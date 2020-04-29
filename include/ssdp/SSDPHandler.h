@@ -19,7 +19,7 @@ class QNetworkConfigurationManager;
 class SSDPHandler : public SSDPServer{
 	Q_OBJECT
 public:
-	SSDPHandler(WebServer* webserver, const quint16& flatBufPort, const quint16& jsonServerPort, QObject * parent = nullptr);
+	SSDPHandler(WebServer* webserver, const quint16& flatBufPort, const quint16& jsonServerPort, const QString &name,  QObject * parent = nullptr);
 	~SSDPHandler();
 
 public slots:

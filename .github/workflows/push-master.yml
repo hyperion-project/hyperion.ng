@@ -1,5 +1,12 @@
-name: GitHub Actions
-on: [push, pull_request]
+name: Hyperion CI Build
+on:
+  push:
+    branches:
+      - master
+
+######################
+###### Linux #########
+######################
 
 jobs:
   Linux:
@@ -7,13 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        dockerTag: [ amd64, i386, armv6hf, armv7hf, aarch64 ]
+        dockerTag: [ amd64, armv6hf, armv7hf, aarch64 ]
         include:
           - dockerTag: amd64
             dockerName: Debian Stretch (AMD64)
-            platform: x11
-          - dockerTag: i386
-            dockerName: Debian Stretch (i386)
             platform: x11
           - dockerTag: armv6hf
             dockerName: Debian Stretch (Raspberry Pi v1 & ZERO)
@@ -39,15 +43,9 @@ jobs:
         shell: bash
         run: ./.ci/ci_build.sh
 
-      # create/update github release (replacement for Microsoft Azure after the beta phase)
-
-#      - name: Create/Update GitHub release
-#        if: github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/') && success()
-#        uses: docker://softprops/action-gh-release
-#        with:
-#          files: deploy/Hyperion.NG-*
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+######################
+###### macOS #########
+######################
 
   macOS:
     name: macOS
@@ -68,13 +66,3 @@ jobs:
           PLATFORM: osx
         shell: bash
         run: ./.ci/ci_build.sh
-
-      # create/update github release (replacement for Microsoft Azure after the beta phase)
-
-#      - name: Create/Update GitHub release
-#        if: github.event_name != 'pull_request' && startsWith(github.ref, 'refs/tags/') && success()
-#        uses: docker://softprops/action-gh-release
-#        with:
-#          files: deploy/Hyperion.NG-*
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

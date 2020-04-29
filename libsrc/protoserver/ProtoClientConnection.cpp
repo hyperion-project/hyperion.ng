@@ -119,10 +119,7 @@ void ProtoClientConnection::handleColorCommand(const proto::ColorRequest &messag
 	// extract parameters
 	int priority = message.priority();
 	int duration = message.has_duration() ? message.duration() : -1;
-	ColorRgb color;
-	color.red = qRed(message.rgbcolor());
-	color.green = qGreen(message.rgbcolor());
-	color.blue = qBlue(message.rgbcolor());
+	std::vector<ColorRgb> color{ ColorRgb{ uint8_t(qRed(message.rgbcolor())), uint8_t(qGreen(message.rgbcolor())), uint8_t(qBlue(message.rgbcolor())) } };
 
 	if (priority < 100 || priority >= 200)
 	{
@@ -202,7 +199,7 @@ void ProtoClientConnection::handleClearCommand(const proto::ClearRequest &messag
 void ProtoClientConnection::handleClearallCommand()
 {
 	// clear all priority
-	emit clearAllGlobalInput();
+	emit clearGlobalInput(-1);
 
 	// send reply
 	sendSuccessReply();

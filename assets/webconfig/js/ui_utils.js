@@ -107,8 +107,12 @@ function loadContent(event, forceRefresh)
 	var tag;
 
 	var lastSelectedInstance = getStorage('lastSelectedInstance', false);
-	if(lastSelectedInstance && (lastSelectedInstance != window.currentHyperionInstance))
-		instanceSwitch(lastSelectedInstance);
+
+	if (lastSelectedInstance && (lastSelectedInstance != window.currentHyperionInstance))
+		if (typeof(window.serverInfo.instance[lastSelectedInstance].running) !== 'undefined' && window.serverInfo.instance[lastSelectedInstance].running)	
+			instanceSwitch(lastSelectedInstance);
+		else
+			removeStorage('lastSelectedInstance', false);
 
 	if(typeof event != "undefined")
 	{
@@ -866,38 +870,85 @@ function getReleases(callback)
 	    success: function(releases)
 			{
 				window.gitHubVersionList = releases;
+				var highestRelease = {
+					tag_name: '0.0.0'
+				};
+				var highestAlphaRelease = {
+					tag_name: '0.0.0'
+				};
+				var highestBetaRelease = {
+					tag_name: '0.0.0'
+				};
+				var highestRcRelease = {
+					tag_name: '0.0.0'
+				};
 
-				for(var i in releases)
-				{
-					if(releases[i].prerelease == true)
+				for(var i in releases) {
+
+					//drafts will be ignored
+					if(releases[i].draft)
+						continue;
+
+					if(releases[i].tag_name.includes('alpha'))
+					{	
+						if (sem = semverLite.gt(releases[i].tag_name, highestAlphaRelease.tag_name))
+							highestAlphaRelease = releases[i];	
+					}
+					else if (releases[i].tag_name.includes('beta'))
+					{	
+						if (sem = semverLite.gt(releases[i].tag_name, highestBetaRelease.tag_name))
+							highestBetaRelease = releases[i];
+					}
+					else if (releases[i].tag_name.includes('rc'))
 					{
-						window.latestBetaVersion = releases[i];
-						break;
+						if (semverLite.gt(releases[i].tag_name, highestRcRelease.tag_name))
+							highestRcRelease = releases[i];
+					}
+					else
+					{
+						if (semverLite.gt(releases[i].tag_name, highestRelease.tag_name))
+							highestRelease = releases[i];				
 					}
 				}
+				window.latestStableVersion = highestRelease;
+				window.latestBetaVersion = highestBetaRelease;
+				window.latestAlphaVersion= highestAlphaRelease;
+				window.latestRcVersion = highestRcRelease;
 
-				$.ajax({
-			    url: window.gitHubReleaseApiUrl + "/latest",
-			    method: 'get',
-			    error: function(XMLHttpRequest, textStatus, errorThrown)
-					{
-							callback(false);
-			    },
-			    success: function(latest)
-					{
-						window.latestStableVersion = latest;
+				
+				if(window.serverConfig.general.watchedVersionBranch == "Beta" && semverLite.gt(highestBetaRelease.tag_name, highestRelease.tag_name))
+					window.latestVersion = highestBetaRelease;
+				else
+					window.latestVersion = highestRelease;
 
-						if(window.serverConfig.general.watchedVersionBranch == "Beta" && window.latestStableVersion.tag_name.replace(/\./g, '') <= window.latestBetaVersion.tag_name.replace(/\./g, ''))
-						{
-							window.latestVersion = window.latestBetaVersion;
-						}
-						else
-						{
-							window.latestVersion = window.latestStableVersion;
-						}
-						callback(true);
-					}
-				});
+				if(window.serverConfig.general.watchedVersionBranch == "Alpha" && semverLite.gt(highestAlphaRelease.tag_name, highestBetaRelease.tag_name))
+					window.latestVersion = highestAlphaRelease;
+
+				if(window.serverConfig.general.watchedVersionBranch == "Alpha" && semverLite.lt(highestAlphaRelease.tag_name, highestBetaRelease.tag_name))
+					window.latestVersion = highestBetaRelease;
+
+				//next two if statements are only necessary if we don't have a beta or stable release. We need one alpha release at least
+				if(window.latestVersion.tag_name == '0.0.0' && highestBetaRelease.tag_name != '0.0.0')
+					window.latestVersion = highestBetaRelease;
+
+				if(window.latestVersion.tag_name == '0.0.0' && highestAlphaRelease.tag_name != '0.0.0')
+					window.latestVersion = highestAlphaRelease;
+
+				callback(true);
+
 			}
-	})
+	});
+}
+
+function handleDarkMode()
+{
+		$("<link/>", {
+			rel: "stylesheet",
+			type: "text/css",
+			href: "../css/darkMode.css"
+		}).appendTo("head");
+
+		setStorage("darkMode", "on", false);
+		$('#btn_darkmode_icon').removeClass('fa fa-moon-o');
+		$('#btn_darkmode_icon').addClass('fa fa-sun-o');
 }

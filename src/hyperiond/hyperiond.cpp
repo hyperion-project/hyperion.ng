@@ -112,7 +112,7 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 
 	// pipe settings changes and component state changes from HyperionIManager to Daemon
 	connect(_instanceManager, &HyperionIManager::settingsChanged, this, &HyperionDaemon::settingsChanged);
-	connect(_instanceManager, &HyperionIManager::componentStateChanged, this, &HyperionDaemon::componentStateChanged);
+	connect(_instanceManager, &HyperionIManager::compStateChangeRequest, this, &HyperionDaemon::compStateChangeRequest);
 
 	// listen for setting changes of framegrabber and v4l2
 	connect(this, &HyperionDaemon::settingsChanged, this, &HyperionDaemon::handleSettingsUpdate);
@@ -247,7 +247,7 @@ void HyperionDaemon::startNetworkServices()
 	sslWsThread->start();
 
 	// Create SSDP server in thread
-	_ssdp = new SSDPHandler(_webserver, getSetting(settings::FLATBUFSERVER).object()["port"].toInt(), getSetting(settings::JSONSERVER).object()["port"].toInt());
+	_ssdp = new SSDPHandler(_webserver, getSetting(settings::FLATBUFSERVER).object()["port"].toInt(), getSetting(settings::JSONSERVER).object()["port"].toInt(),  getSetting(settings::GENERAL).object()["name"].toString());
 	QThread* ssdpThread = new QThread(this);
 	_ssdp->moveToThread(ssdpThread);
 	connect( ssdpThread, &QThread::started, _ssdp, &SSDPHandler::initServer );
@@ -327,22 +327,52 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& settingsType, co
 
 			// stop all capture interfaces
 			#ifdef ENABLE_FB
-			if(_fbGrabber != nullptr)  _fbGrabber->stop();
+			if(_fbGrabber != nullptr)
+			{ 
+				_fbGrabber->stop();
+				delete _fbGrabber;
+				_fbGrabber = nullptr;
+			}
 			#endif
 			#ifdef ENABLE_DISPMANX
-			if(_dispmanx != nullptr)   _dispmanx->stop();
+			if(_dispmanx != nullptr)
+			{
+				_dispmanx->stop();
+				delete _dispmanx;
+				_dispmanx = nullptr;
+			}
 			#endif
 			#ifdef ENABLE_AMLOGIC
-			if(_amlGrabber != nullptr) _amlGrabber->stop();
+			if(_amlGrabber != nullptr)
+			{
+				_amlGrabber->stop();
+				delete _amlGrabber;
+				_amlGrabber = nullptr;
+			}
 			#endif
 			#ifdef ENABLE_OSX
-			if(_osxGrabber != nullptr) _osxGrabber->stop();
+			if(_osxGrabber != nullptr)
+			{
+				_osxGrabber->stop();
+				delete _osxGrabber;
+				_osxGrabber = nullptr;
+			}
 			#endif
 			#ifdef ENABLE_X11
-			if(_x11Grabber != nullptr) _x11Grabber->stop();
+			if(_x11Grabber != nullptr)
+			{
+				 _x11Grabber->stop();
+				 delete _x11Grabber;
+				 _x11Grabber = nullptr;
+			}
 			#endif
 			#ifdef ENABLE_QT
-			if(_qtGrabber != nullptr) _qtGrabber->stop();
+			if(_qtGrabber != nullptr)
+			{
+				_qtGrabber->stop();
+				delete _qtGrabber;
+				_qtGrabber = nullptr;
+			}
 			#endif
 
 			// create/start capture interface
@@ -351,7 +381,7 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& settingsType, co
 				if(_fbGrabber == nullptr)
 					createGrabberFramebuffer(grabberConfig);
 				#ifdef ENABLE_FB
-				_fbGrabber->start();
+				_fbGrabber->tryStart();
 				#endif
 			}
 			else if(type == "dispmanx")
@@ -359,7 +389,7 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& settingsType, co
 				if(_dispmanx == nullptr)
 					createGrabberDispmanx();
 				#ifdef ENABLE_DISPMANX
-				_dispmanx->start();
+				_dispmanx->tryStart();
 				#endif
 			}
 			else if(type == "amlogic")
@@ -367,7 +397,7 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& settingsType, co
 				if(_amlGrabber == nullptr)
 					createGrabberAmlogic();
 				#ifdef ENABLE_AMLOGIC
-				_amlGrabber->start();
+				_amlGrabber->tryStart();
 				#endif
 			}
 			else if(type == "osx")
@@ -375,7 +405,7 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& settingsType, co
 				if(_osxGrabber == nullptr)
 					createGrabberOsx(grabberConfig);
 				#ifdef ENABLE_OSX
-				_osxGrabber->start();
+				_osxGrabber->tryStart();
 				#endif
 			}
 			else if(type == "x11")
@@ -383,7 +413,7 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& settingsType, co
 				if(_x11Grabber == nullptr)
 					createGrabberX11(grabberConfig);
 				#ifdef ENABLE_X11
-				_x11Grabber->start();
+				_x11Grabber->tryStart();
 				#endif
 			}
 			else if(type == "qt")
@@ -391,7 +421,7 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& settingsType, co
 				if(_qtGrabber == nullptr)
 					createGrabberQt(grabberConfig);
 				#ifdef ENABLE_QT
-				_qtGrabber->start();
+				_qtGrabber->tryStart();
 				#endif
 			}
 			else
@@ -413,9 +443,12 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& settingsType, co
 
 			_v4l2Grabber = new V4L2Wrapper(
 				grabberConfig["device"].toString("auto"),
+				grabberConfig["width"].toInt(0),
+				grabberConfig["height"].toInt(0),
+				grabberConfig["fps"].toInt(15),
 				parseVideoStandard(grabberConfig["standard"].toString("no-change")),
 				parsePixelFormat(grabberConfig["pixelFormat"].toString("no-change")),
-				grabberConfig["sizeDecimation"].toInt(8) );
+				grabberConfig["sizeDecimation"].toInt(8));
 			_v4l2Grabber->setSignalThreshold(
 				grabberConfig["redSignalThreshold"].toDouble(0.0)/100.0,
 				grabberConfig["greenSignalThreshold"].toDouble(0.0)/100.0,
@@ -441,7 +474,6 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& settingsType, co
 			// connect to HyperionDaemon signal
 			connect(this, &HyperionDaemon::videoMode, _v4l2Grabber, &V4L2Wrapper::setVideoMode);
 			connect(this, &HyperionDaemon::settingsChanged, _v4l2Grabber, &V4L2Wrapper::handleSettingsUpdate);
-			connect(this, &HyperionDaemon::componentStateChanged, _v4l2Grabber, &V4L2Wrapper::componentStateChanged);
 #else
 		Error(_log, "The v4l2 grabber can not be instantiated, because it has been left out from the build");
 #endif

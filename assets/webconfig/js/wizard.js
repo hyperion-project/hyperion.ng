@@ -518,11 +518,11 @@ $('#btn_wizard_colorcalibration').off().on('click', startWizardCC);
 var hueIPs = [];
 var hueIPsinc = 0;
 var lightIDs = null;
-var huePosTop =    {h: {max: 0.85, min: 0.15}, v: {max: 0.2, min: 0}};
-var huePosBottom = {h: {max: 0.85, min: 0.15}, v: {max: 1, min: 0.8}};
-var huePosLeft =   {h: {max: 0.15, min: 0},    v: {max: 0.85, min: 0.15}};
-var huePosRight =  {h: {max: 1, min: 0.85},    v: {max: 0.85, min: 0.15}};
-var huePosEntire = {h: {max: 1.0, min: 0.0},   v: {max: 1.0, min: 0.0}};
+var huePosTop =    {hmax: 0.85, hmin: 0.15, vmax: 0.2,  vmin: 0};
+var huePosBottom = {hmax: 0.85, hmin: 0.15, vmax: 1,    vmin: 0.8};
+var huePosLeft =   {hmax: 0.15, hmin: 0,    vmax: 0.85, vmin: 0.15};
+var huePosRight =  {hmax: 1,    hmin: 0.85, vmax: 0.85, vmin: 0.15};
+var huePosEntire = {hmax: 1.0,  hmin: 0.0,  vmax: 1.0,  vmin: 0.0};
 
 function startWizardPhilipsHue()
 {
@@ -532,7 +532,7 @@ function startWizardPhilipsHue()
 	$('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><i class="fa fa-fw fa-check"></i>'+$.i18n('general_btn_continue')+'</button><button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
 	$('#wizp2_body').html('<div id="wh_topcontainer"></div>');
 	$('#wh_topcontainer').append('<p style="font-weight:bold">'+$.i18n('wiz_hue_desc1')+'</p><div class="form-group"><label>'+$.i18n('wiz_hue_ip')+'</label><div class="input-group" style="width:175px"><input type="text" class="input-group form-control" id="ip"><span class="input-group-addon" id="retry_bridge" style="cursor:pointer"><i class="fa fa-refresh"></i></span></div></div><span style="font-weight:bold;color:red" id="wiz_hue_ipstate"></span>');
-	$('#wh_topcontainer').append('<div class="form-group" id="usrcont" style="display:none"><label>'+$.i18n('wiz_hue_username')+'</label><div class="input-group" style="width:250px"><input type="text" class="form-control" id="user"><span class="input-group-addon" id="retry_usr" style="cursor:pointer"><i class="fa fa-refresh"></i></span></div><span style="font-weight:bold;color:red" id="wiz_hue_usrstate"></span><br><button type="button" class="btn btn-primary" style="display:none" id="wiz_hue_create_user"> <i class="fa fa-fw fa-plus"></i>'+$.i18n('wiz_hue_create_user')+'</button></div>');
+	$('#wh_topcontainer').append('<div class="form-group" id="usrcont" style="display:none"><label>'+$.i18n('wiz_hue_username')+'</label><div class="input-group" style="width:250px"><input type="text" class="form-control" id="user"><span class="input-group-addon" id="retry_usr" style="cursor:pointer"><i class="fa fa-refresh"></i></span></div><span style="font-weight:bold;color:red" id="wiz_hue_usrstate"></span><br><button type="button" class="btn btn-primary" style="display:none" id="wiz_hue_create_user" onclick="createHueUser()"> <i class="fa fa-fw fa-plus"></i>'+$.i18n('wiz_hue_create_user')+'</button></div>');
 	$('#wizp2_body').append('<div id="hue_ids_t" style="display:none"><p style="font-weight:bold">'+$.i18n('wiz_hue_desc2')+'</p></div>');
 	createTable("lidsh", "lidsb", "hue_ids_t");
 	$('.lidsh').append(createTableRow([$.i18n('edt_dev_spec_lightid_title'),$.i18n('wiz_hue_pos'),$.i18n('wiz_hue_ident')], true));
@@ -567,23 +567,35 @@ function checkHueBridge(cb,hueUser){
 		timeout: 2000
 	})
 	.done( function( data, textStatus, jqXHR ) {
-		if(Array.isArray(data) && data[0].error && data[0].error.type == 4)
-			cb(true);
-		else if(Array.isArray(data) && data[0].error)
-			cb(false);
+		if( Array.isArray(data) && data[0].error)
+		{
+			if ( data[0].error.type == 3 || data[0].error.type == 4)
+			{
+				cb(true, usr);
+			}
+			else
+			{
+				cb(false);
+			}
+		}
 		else
-			cb(true);
+		{
+			cb(true, usr);
+		}
+
 	})
 	.fail( function( jqXHR, textStatus ) {
 		cb(false);
 	});
 }
 
-function checkUserResult(reply){
+function checkUserResult(reply, usr){
+
 	if(reply)
 	{
 		$('#wiz_hue_usrstate').html("");
 		$('#wiz_hue_create_user').toggle(false);
+		$('#user').val(usr);
 		get_hue_lights();
 	}
 	else
@@ -640,17 +652,22 @@ function checkBridgeResult(reply){
 
 function identHueId(id, off)
 {
-	var on = true;
 	if(off !== true)
+	{
 		setTimeout(identHueId,1500,id,true);
+		var put_data = '{"on":true,"bri":254,"hue":47000,"sat":254}';
+	}
 	else
-		on = false;
+	{
+		var put_data = '{"on":false}';
+	}
 
 	$.ajax({
 		url: 'http://'+$('#ip').val()+'/api/'+$('#user').val()+'/lights/'+id+'/state',
 		type: 'PUT',
 		timeout: 2000,
-		data: '	{"on":'+on+', "sat":254, "bri":254,"hue":47000}'
+		
+		data: put_data
 	})
 }
 
@@ -686,7 +703,9 @@ function beginWizardHue()
 
 	//check if ip is empty/reachable/search for bridge
 	if(conf_editor.getEditor("root.specificOptions.output").getValue() == "")
+	{
 		getHueIPs();
+	}
 	else
 	{
 		var ip = conf_editor.getEditor("root.specificOptions.output").getValue();
@@ -719,6 +738,7 @@ function beginWizardHue()
 			}
 		}
 
+		var ledCount= Object.keys(lightIDs).length; 
 
 		window.serverConfig.leds = hueLedConfig;
 
@@ -736,6 +756,7 @@ function beginWizardHue()
 		d.lightIds = finalLightIds;
 		d.username = $('#user').val();
 		d.type = "philipshue";
+		d.hardwareLedCount = ledCount;
 		d.transitiontime = 1;
 		d.switchOffOnBlack = true;
 
@@ -814,6 +835,7 @@ function get_hue_lights(){
 
 				for(var lightid in r)
 				{
+
 					$('.lidsb').append(createTableRow([lightid+' ('+r[lightid].name+')', '<select id="hue_'+lightid+'" class="hue_sel_watch form-control"><option value="disabled">'+$.i18n('wiz_hue_ids_disabled')+'</option><option value="top">'+$.i18n('conf_leds_layout_cl_top')+'</option><option value="bottom">'+$.i18n('conf_leds_layout_cl_bottom')+'</option><option value="left">'+$.i18n('conf_leds_layout_cl_left')+'</option><option value="right">'+$.i18n('conf_leds_layout_cl_right')+'</option><option value="entire">'+$.i18n('wiz_hue_ids_entire')+'</option></select>','<button class="btn btn-sm btn-primary" onClick=identHueId('+lightid+')>'+$.i18n('wiz_hue_blinkblue',lightid)+'</button>']));
 				}
 

@@ -41,12 +41,7 @@ signals:
 	///
 	/// @brief Forward clear command to HyperionDaemon
 	///
-	void clearGlobalInput(const int priority);
-
-	///
-	/// @brief Forward clearAll command to HyperionDaemon
-	///
-	void clearAllGlobalInput(bool forceClearAll=false);
+	void clearGlobalInput(const int priority, bool forceClearAll=false);
 
 	///
 	/// @brief forward prepared image to HyperionDaemon
@@ -56,7 +51,7 @@ signals:
 	///
 	/// @brief Forward requested color
 	///
-	void setGlobalInputColor(const int priority, const ColorRgb &ledColor, const int timeout_ms, const QString& origin = "ProtoBuffer" ,bool clearEffects = true);
+	void setGlobalInputColor(const int priority, const std::vector<ColorRgb> &ledColor, const int timeout_ms, const QString& origin = "ProtoBuffer" ,bool clearEffects = true);
 
 	///
 	/// @brief Emits whenever the client disconnected

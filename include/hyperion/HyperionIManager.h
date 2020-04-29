@@ -32,6 +32,7 @@ public:
 	static HyperionIManager* getInstance() { return HIMinstance; };
 	static HyperionIManager* HIMinstance;
 
+public slots:
 	///
 	/// @brief Is given instance running?
 	/// @param inst  The instance to check
@@ -65,6 +66,12 @@ public:
 	/// @return Return true on success, false if not found in db
 	///
 	bool stopInstance(const quint8& inst);
+
+	///
+	/// @brief Toggle the state of all Hyperion instances
+	/// @param pause If true all instances toggle to pause, else to resume
+	///
+	void toggleStateAllInstances(const bool& pause = false);
 
 	///
 	/// @brief Create a new Hyperion instance entry in db
@@ -130,7 +137,7 @@ signals:
 	///
 	/// @brief PIPE component state changes from Hyperion to HyperionDaemon
 	///
-	void componentStateChanged(const hyperion::Components component, bool enable);
+	void compStateChangeRequest(const hyperion::Components component, bool enable);
 
 private slots:
 	///

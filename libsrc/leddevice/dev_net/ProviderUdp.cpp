@@ -17,21 +17,22 @@
 
 ProviderUdp::ProviderUdp()
 	: LedDevice()
-	, _port(1)
-	, _defaultHost("127.0.0.1")
+	  , _udpSocket (nullptr)
+	  , _port(1)
+	  , _defaultHost("127.0.0.1")
 {
+	_deviceReady = false;
 	_latchTime_ms = 1;
-	_udpSocket = new QUdpSocket(this);
 }
 
 ProviderUdp::~ProviderUdp()
 {
-	_udpSocket->close();
+	_udpSocket->deleteLater();
 }
 
 bool ProviderUdp::init(const QJsonObject &deviceConfig)
 {
-	LedDevice::init(deviceConfig);
+	bool isInitOK = LedDevice::init(deviceConfig);
 
 	QString host = deviceConfig["host"].toString(_defaultHost);
 
@@ -41,36 +42,90 @@ bool ProviderUdp::init(const QJsonObject &deviceConfig)
 	}
 	else
 	{
-		Debug( _log, "Failed to parse %s as an ip address.", deviceConfig["host"].toString().toStdString().c_str());
+		Debug( _log, "Failed to parse [%s] as an ip address.", deviceConfig["host"].toString().toStdString().c_str());
 		QHostInfo info = QHostInfo::fromName(host);
 		if (info.addresses().isEmpty())
 		{
-			Debug( _log, "Failed to parse %s as a hostname.", deviceConfig["host"].toString().toStdString().c_str());
-			throw std::runtime_error("invalid target address");
+			Debug( _log, "Failed to parse [%s] as a hostname.", deviceConfig["host"].toString().toStdString().c_str());
+			QString errortext = QString ("Invalid target address [%1]!").arg(host);
+			this->setInError ( errortext );
+			return false;
 		}
-		Debug( _log, "Successfully parsed %s as a hostname.", deviceConfig["host"].toString().toStdString().c_str());
-		_address = info.addresses().first();
+		else
+		{
+			Debug( _log, "Successfully parsed %s as a hostname.", deviceConfig["host"].toString().toStdString().c_str());
+			_address = info.addresses().first();
+		}
 	}
 
-	_port = deviceConfig["port"].toInt(_port);
-	if ( (_port <= 0) || (_port > MAX_PORT) )
+	int config_port = deviceConfig["port"].toInt(_port);
+	if ( config_port <= 0 || config_port > MAX_PORT )
 	{
-		throw std::runtime_error("invalid target port");
+		QString errortext = QString ("Invalid target port [%1]!").arg(config_port);
+		this->setInError ( errortext );
+		isInitOK = false;
+	}
+	else
+	{
+		_port = static_cast<int>(config_port);
+		Debug( _log, "UDP using %s:%d", _address.toString().toStdString().c_str() , _port );
 	}
 
-	Debug( _log, "UDP using %s:%d", _address.toString().toStdString().c_str() , _port );
+	return isInitOK;
+}
 
-	return true;
+bool ProviderUdp::initNetwork()
+{
+	bool isInitOK = false;
+
+	_udpSocket =new QUdpSocket(this);
+
+	if ( _udpSocket != nullptr)
+	{
+		QHostAddress localAddress = QHostAddress::Any;
+		quint16      localPort = 0;
+		if ( !_udpSocket->bind(localAddress, localPort) )
+		{
+			Warning ( _log, "Could not bind local address: %s", strerror(errno));
+		}
+		isInitOK = true;
+	}
+
+	return isInitOK;
 }
 
 int ProviderUdp::open()
 {
-	QHostAddress localAddress = QHostAddress::Any;
-	quint16      localPort = 0;
+	int retval = -1;
+	QString errortext;
+	_deviceReady = false;
 
-	WarningIf( !_udpSocket->bind(localAddress, localPort), _log, "Could not bind local address: %s", strerror(errno));
+	if ( init(_devConfig) )
+	{
+		if ( ! initNetwork())
+		{
+			this->setInError( "UDP Network error!" );
+		}
+		else
+		{
+			// Everything is OK -> enable device
+			_deviceReady = true;
+			setEnable(true);
+			retval = 0;
+		}
+	}
+	return retval;
+}
 
-	return 0;
+void ProviderUdp::close()
+{
+	LedDevice::close();
+
+	// LedDevice specific closing activites
+	if ( _udpSocket != nullptr)
+	{
+		_udpSocket->close();
+	}
 }
 
 int ProviderUdp::writeBytes(const unsigned size, const uint8_t * data)

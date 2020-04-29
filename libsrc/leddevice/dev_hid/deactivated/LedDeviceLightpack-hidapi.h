@@ -57,9 +57,6 @@ public:
 	/// Get the serial of the Lightpack
 	const std::string & getSerialNumber() const;
 
-	/// Get the number of leds
-	int getLedCount() const;
-
 private:
 	///
 	/// Writes the RGB-Color values to the leds.

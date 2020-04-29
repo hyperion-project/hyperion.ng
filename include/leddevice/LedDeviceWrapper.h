@@ -18,7 +18,7 @@ class LedDeviceWrapper : public QObject
 {
 	Q_OBJECT
 public:
-	LedDeviceWrapper(Hyperion* hyperion);
+	explicit LedDeviceWrapper(Hyperion* hyperion);
 	~LedDeviceWrapper();
 	///
 	/// @brief Contructs a new LedDevice, moves to thread and starts
@@ -57,12 +57,17 @@ public:
 	///
 	/// @brief Return the last enable state
 	///
-	const bool & enabled() { return _enabled; };
+	const bool & enabled() { return _enabled; }
 
 	///
 	/// @brief Get the current colorOrder from device
 	///
 	const QString & getColorOrder();
+
+	///
+	/// @brief Get the number of Leds from device
+	///
+	unsigned int getLedCount() const;
 
 public slots:
 	///
@@ -80,7 +85,10 @@ signals:
 	///
 	/// @return Zero on success else negative
 	///
-	int write(const std::vector<ColorRgb>& ledValues);
+	int updateLeds(const std::vector<ColorRgb>& ledValues);
+
+	void setEnable(bool enable);
+	void closeLedDevice();
 
 private slots:
 	///

@@ -32,7 +32,7 @@ BlackBorderProcessor::BlackBorderProcessor(Hyperion* hyperion, QObject* parent)
 	connect(_hyperion, &Hyperion::settingsChanged, this, &BlackBorderProcessor::handleSettingsUpdate);
 
 	// listen for component state changes
-	connect(_hyperion, &Hyperion::componentStateChanged, this, &BlackBorderProcessor::componentStateChanged);
+	connect(_hyperion, &Hyperion::compStateChangeRequest, this, &BlackBorderProcessor::handleCompStateChangeRequest);
 }
 
 BlackBorderProcessor::~BlackBorderProcessor()
@@ -65,11 +65,11 @@ void BlackBorderProcessor::handleSettingsUpdate(const settings::type& type, cons
 		Debug(Logger::getInstance("BLACKBORDER"), "Set mode to: %s", QSTRING_CSTR(_detectionMode));
 
 		// eval the comp state
-		componentStateChanged(hyperion::COMP_BLACKBORDER, obj["enable"].toBool(true));
+		handleCompStateChangeRequest(hyperion::COMP_BLACKBORDER, obj["enable"].toBool(true));
 	}
 }
 
-void BlackBorderProcessor::componentStateChanged(const hyperion::Components component, bool enable)
+void BlackBorderProcessor::handleCompStateChangeRequest(const hyperion::Components component, bool enable)
 {
 	if(component == hyperion::COMP_BLACKBORDER)
 	{
@@ -85,7 +85,7 @@ void BlackBorderProcessor::componentStateChanged(const hyperion::Components comp
 			_enabled = enable;
 		}
 
-		_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_BLACKBORDER, enable);
+		_hyperion->setNewComponentState(hyperion::COMP_BLACKBORDER, enable);
 	}
 }
 

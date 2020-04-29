@@ -49,6 +49,9 @@ body{
   transform: rotate(-45deg);
   transform-origin: 10% 90%;
 }
+.navbar-toggle.closed {
+  background-color: #d0d0d0;
+}
 .navbar-toggle.closed .top-bar {
   transform: rotate(0);
 }

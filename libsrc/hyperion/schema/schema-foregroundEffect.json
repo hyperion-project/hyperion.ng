@@ -30,7 +30,8 @@
 			"items" : {
 				"type" : "integer",
 				"minimum" : 0,
-				"maximum" : 255
+				"maximum" : 255,
+				"default" : 0
 			},
 			"minItems" : 3,
 			"maxItems" : 3,

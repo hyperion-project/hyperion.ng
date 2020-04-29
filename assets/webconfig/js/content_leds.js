@@ -40,10 +40,10 @@ function createLedPreview(leds, origin){
 		var led = leds[idx];
 		var led_id='ledc_'+[idx];
 		var bgcolor = "background-color:hsl("+(idx*360/leds.length)+",100%,50%);";
-		var pos = "left:"+(led.h.min * canvas_width)+"px;"+
-			"top:"+(led.v.min * canvas_height)+"px;"+
-			"width:"+((led.h.max-led.h.min) * (canvas_width-1))+"px;"+
-			"height:"+((led.v.max-led.v.min) * (canvas_height-1))+"px;";
+		var pos = "left:"+(led.hmin * canvas_width)+"px;"+
+			"top:"+(led.vmin * canvas_height)+"px;"+
+			"width:"+((led.hmax-led.hmin) * (canvas_width-1))+"px;"+
+			"height:"+((led.vmax-led.vmin) * (canvas_height-1))+"px;";
 		leds_html += '<div id="'+led_id+'" class="led" style="'+bgcolor+pos+'" title="'+idx+'"><span id="'+led_id+'_num" class="led_prev_num">'+idx+'</span></div>';
 	}
 	$('#leds_preview').html(leds_html);
@@ -101,11 +101,11 @@ function createClassicLeds(){
 	function createFinalArray(array){
 		finalLedArray = [];
 		for(var i = 0; i<array.length; i++){
-			var hmin = array[i].h.min;
-			var hmax = array[i].h.max;
-			var vmin = array[i].v.min;
-			var vmax = array[i].v.max;
-			finalLedArray[i] = { "h": { "max" : hmax, "min" : hmin }, "v": { "max": vmax, "min": vmin}}
+			var hmin = array[i].hmin;
+			var hmax = array[i].hmax;
+			var vmin = array[i].vmin;
+			var vmax = array[i].vmax;
+			finalLedArray[i] = { "hmax": hmax, "hmin": hmin, "vmax": vmax, "vmin": vmin }
 		}
 		createLedPreview(finalLedArray, 'classic');
 	}
@@ -148,7 +148,7 @@ function createClassicLeds(){
 		hmax = round(hmax);
 		vmin = round(vmin);
 		vmax = round(vmax);
-		ledArray.push( { "h" : { "min" : hmin, "max" : hmax }, "v": { "min": vmin, "max": vmax }} );
+		ledArray.push({ "hmin": hmin, "hmax": hmax, "vmin": vmin, "vmax": vmax });
 	}
 
 	function createTopLeds(){
@@ -276,14 +276,10 @@ function createMatrixLeds(){
 		vscanMax = round(vscanMax);
 
 		leds.push({
-			h: {
-				min: hscanMin,
-				max: hscanMax
-			},
-			v: {
-				min: vscanMin,
-				max: vscanMax
-			}
+			hmin: hscanMin,
+			hmax: hscanMax,
+			vmin: vscanMin,
+			vmax: vscanMax
 		})
 	}
 
@@ -314,6 +310,59 @@ function createMatrixLeds(){
   createLedPreview(leds, 'matrix');
 }
 
+function migrateLedConfig(slConfig){
+
+	var newLedConfig = {classic:{}, matrix:{}};
+
+	//Default Classic layout
+  	newLedConfig.classic = {
+				"top"	 	: 8,
+				"bottom"	: 8,
+				"left"		: 5,
+				"right"		: 5,
+				"glength"	: 0,
+				"gpos"		: 0,
+				"position"	: 0,
+				"reverse"	: false,
+				"hdepth"	: 8,
+				"vdepth"	: 5,
+				"overlap"	: 0,
+				"edgegap"	: 0
+				}
+
+	//Move Classic layout
+	newLedConfig.classic.top 	= slConfig.top;
+	newLedConfig.classic.bottom	= slConfig.bottom;
+	newLedConfig.classic.left 	= slConfig.left;
+	newLedConfig.classic.right	= slConfig.right;
+	newLedConfig.classic.glength 	= slConfig.glength;
+	newLedConfig.classic.position	= slConfig.position;
+	newLedConfig.classic.reverse 	= slConfig.reverse;
+	newLedConfig.classic.hdepth	= slConfig.hdepth;
+	newLedConfig.classic.vdepth 	= slConfig.vdepth;
+	newLedConfig.classic.overlap	= slConfig.overlap;
+
+	//Default Matrix layout
+	newLedConfig["matrix"] = { "ledshoriz": 10,
+				"ledsvert" : 10,
+				"cabling"  : "snake",
+				"start"    : "top-left"
+				}
+
+	// Persit new structure
+	requestWriteConfig({ledConfig:newLedConfig})
+	return newLedConfig
+
+}
+
+function isEmpty(obj) {
+    for(var key in obj) {
+        if(obj.hasOwnProperty(key))
+            return false;
+    }
+    return true;
+}
+
 $(document).ready(function() {
 	// translate
 	performTranslation();
@@ -328,28 +377,55 @@ $(document).ready(function() {
 
 	var slConfig = window.serverConfig.ledConfig;
 
-	//restore ledConfig
-	for(var key in slConfig)
+	//Check, if structure is not aligned to expected -> migrate structure
+	var newConfig = {};
+	if ( isEmpty(slConfig.classic) )
 	{
-		if(typeof(slConfig[key]) === "boolean")
-			$('#ip_cl_'+key).prop('checked', slConfig[key]);
+		slConfig = migrateLedConfig( slConfig );
+	}
+
+	//restore ledConfig - Classic
+	for(var key in slConfig.classic)
+	{
+		if(typeof(slConfig.classic[key]) === "boolean")
+			$('#ip_cl_'+key).prop('checked', slConfig.classic[key]);
 		else
-			$('#ip_cl_'+key).val(slConfig[key]);
+			$('#ip_cl_'+key).val(slConfig.classic[key]);
+	}
+
+	//restore ledConfig - Matrix
+	for(var key in slConfig.matrix)
+	{
+		if(typeof(slConfig.matrix[key]) === "boolean")
+			$('#ip_ma_'+key).prop('checked', slConfig.matrix[key]);
+		else
+			$('#ip_ma_'+key).val(slConfig.matrix[key]);
 	}
 
 	function saveValues()
 	{
-		var ledConfig = {};
-		for(var key in slConfig)
+		var ledConfig = {classic:{}, matrix:{}};
+
+		for(var key in slConfig.classic)
 		{
-			if(typeof(slConfig[key]) === "boolean")
-				ledConfig[key] = $('#ip_cl_'+key).is(':checked');
-			else if(Number.isInteger(slConfig[key]))
-				ledConfig[key] = parseInt($('#ip_cl_'+key).val());
+			if(typeof(slConfig.classic[key]) === "boolean")
+				ledConfig.classic[key] = $('#ip_cl_'+key).is(':checked');
+			else if(Number.isInteger(slConfig.classic[key]))
+				ledConfig.classic[key] = parseInt($('#ip_cl_'+key).val());
 			else
-				ledConfig[key] = $('#ip_cl_'+key).val();
+				ledConfig.classic[key] = $('#ip_cl_'+key).val();
 		}
-		setTimeout(requestWriteConfig, 100, {ledConfig});
+
+		for(var key in slConfig.matrix)
+		{
+			if(typeof(slConfig.matrix[key]) === "boolean")
+				ledConfig.matrix[key]  = $('#ip_ma_'+key).is(':checked');
+			else if(Number.isInteger(slConfig.matrix[key]))
+				ledConfig.matrix[key]  = parseInt($('#ip_ma_'+key).val());
+			else
+				ledConfig.matrix[key]  = $('#ip_ma_'+key).val();
+		}
+		requestWriteConfig({ledConfig});
 	}
 
 	// check access level and adjust ui
@@ -374,7 +450,7 @@ $(document).ready(function() {
 	});
 
 	// v4 of json schema with diff required assignment - remove when hyperion schema moved to v4
-	var ledschema = {"items":{"additionalProperties":false,"required":["h","v"],"properties":{"colorOrder":{"enum":["rgb","bgr","rbg","brg","gbr","grb"],"type":"string"},"h":{"additionalProperties":false,"properties":{"max":{"maximum":1,"minimum":0,"type":"number"},"min":{"maximum":1,"minimum":0,"type":"number"}},"type":"object"},"v":{"additionalProperties":false,"properties":{"max":{"maximum":1,"minimum":0,"type":"number"},"min":{"maximum":1,"minimum":0,"type":"number"}},"type":"object"}},"type":"object"},"type":"array"};
+	var ledschema = { "items": { "additionalProperties": false, "required": ["hmin", "hmax", "vmin", "vmax"], "properties": { "name": { "type": "string" }, "colorOrder": { "enum": ["rgb", "bgr", "rbg", "brg", "gbr", "grb"], "type": "string" }, "hmin": { "maximum": 1, "minimum": 0, "type": "number" }, "hmax": { "maximum": 1, "minimum": 0, "type": "number" }, "vmin": { "maximum": 1, "minimum": 0, "type": "number" }, "vmax": { "maximum": 1, "minimum": 0, "type": "number" } }, "type": "object" }, "type": "array" };
 	//create jsonace editor
 	aceEdt = new JSONACEEditor(document.getElementById("aceedit"),{
 		mode: 'code',

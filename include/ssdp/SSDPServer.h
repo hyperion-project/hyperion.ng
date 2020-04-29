@@ -93,6 +93,17 @@ public:
 	///
 	quint16 getJsonServerPort() { return _jssPort.toInt(); };
 
+		///
+	/// @brief set new hyperion name
+	///
+	void setHyperionName(const QString &name) { _name = name; };
+
+	///
+	/// @brief get hyperion name
+	///
+	QString getHyperionName() { return _name; };
+
+
 signals:
 	///
 	/// @brief Emits whenever a new SSDP search "man : ssdp:discover" is received along with the service type
@@ -111,6 +122,7 @@ private:
 	QString _uuid;
 	QString _fbsPort;
 	QString _jssPort;
+	QString _name;
 	QString _descAddress;
 	bool    _running;
 

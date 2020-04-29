@@ -57,6 +57,16 @@ void HyperionIManager::stopAll()
 	}
 }
 
+void HyperionIManager::toggleStateAllInstances(const bool& pause)
+{
+	// copy the instances due to loop corruption, even with .erase() return next iter
+	QMap<quint8, Hyperion*> instCopy = _runningInstances;
+	for(const auto instance : instCopy)
+	{
+		emit instance->compStateChangeRequest(hyperion::COMP_ALL, pause);
+	}
+}
+
 bool HyperionIManager::startInstance(const quint8& inst, const bool& block)
 {
 	if(_instanceTable->instanceExist(inst))
@@ -76,7 +86,7 @@ bool HyperionIManager::startInstance(const quint8& inst, const bool& block)
 			// from Hyperion
 			connect(hyperion, &Hyperion::settingsChanged, this, &HyperionIManager::settingsChanged);
 			connect(hyperion, &Hyperion::videoMode, this, &HyperionIManager::requestVideoMode);
-			connect(hyperion, &Hyperion::componentStateChanged, this, &HyperionIManager::componentStateChanged);
+			connect(hyperion, &Hyperion::compStateChangeRequest, this, &HyperionIManager::compStateChangeRequest);
 			// to Hyperion
 			connect(this, &HyperionIManager::newVideoMode, hyperion, &Hyperion::newVideoMode);
 

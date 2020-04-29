@@ -1,15 +1,15 @@
-![Hyperion.NG](https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/assets/webconfig/img/hyperion/hyperionlogo.png)
+![Hyperion](https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/assets/webconfig/img/hyperion/hyperionlogo.png)
 
+[![Latest-Release](https://img.shields.io/github/v/release/hyperion-project/hyperion.ng?include_prereleases)](https://github.com/hyperion-project/hyperion.ng/releases)
 [![Dependencies](https://img.shields.io/librariesio/github/hyperion-project/hyperion.ng.svg)](https://github.com/hyperion-project/hyperion.ng/tree/master/dependencies/external)
 [![Azure-Pipeline](https://dev.azure.com/Hyperion-Project/Hyperion.NG/_apis/build/status/Hyperion.NG?branchName=master)](https://dev.azure.com/Hyperion-Project/Hyperion.NG/_build/latest?definitionId=7&branchName=master)
-[![Travis-CI](https://travis-ci.org/hyperion-project/hyperion.ng.svg?branch=master)](https://travis-ci.org/hyperion-project/hyperion.ng)
 [![GitHub Actions](https://github.com/hyperion-project/hyperion.ng/workflows/GitHub%20Actions/badge.svg)](https://github.com/hyperion-project/hyperion.ng/actions)
 [![LGTM](https://img.shields.io/lgtm/alerts/g/hyperion-project/hyperion.ng.svg)](https://lgtm.com/projects/g/hyperion-project/hyperion.ng/alerts/)
 [![Documentation](https://codedocs.xyz/hyperion-project/hyperion.ng.svg)](https://codedocs.xyz/hyperion-project/hyperion.ng/)
 
 ## About Hyperion
 
-[Hyperion.NG](https://github.com/hyperion-project/hyperion.ng) is an opensource [Bias or Ambient Lighting](https://en.wikipedia.org/wiki/Bias_lighting) implementation which you might know from TV manufactures. It supports many LED devices and video grabbers. The project is still in a beta development stage (no stable release available).
+[Hyperion](https://github.com/hyperion-project/hyperion.ng) is an opensource [Bias or Ambient Lighting](https://en.wikipedia.org/wiki/Bias_lighting) implementation which you might know from TV manufacturers. It supports many LED devices and video grabbers. The project is still in a alpha development stage (no stable release available).
 
 ![Screenshot](doc/screenshot.png)
 
@@ -40,10 +40,10 @@ Debian 9, Ubuntu 16.04 or higher. Windows is not supported currently.
 We provide a macOS Build but we can not support this.
 
 ## Building
-See [CompileHowto](CompileHowto.md) and [CrossCompileHowto](CrossCompileHowto.txt).
+See [CompileHowto](CompileHowto.md) and [CrossCompileHowto](CrossCompileHowto.md).
 
 ## Download
-**Please be patient. The first release is coming soon.**
+Alpha releases available from the [Hyperion release page](https://github.com/hyperion-project/hyperion.ng/releases)
 
 ## License
 The source is released under MIT-License (see http://opensource.org/licenses/MIT).  

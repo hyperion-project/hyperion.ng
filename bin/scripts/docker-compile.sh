@@ -81,8 +81,8 @@ mkdir $SCRIPT_PATH/deploy >/dev/null 2>&1
 
 # get Hyperion source, cleanup previous folder
 echo "---> Downloading Hyperion source code from ${GIT_REPO_URL}"
-sudo rm -fr $SCRIPT_PATH/hyperion.ng >/dev/null 2>&1
-git clone --recursive --depth 1 -q $GIT_REPO_URL $SCRIPT_PATH/hyperion.ng || { echo "---> Failed to download Hyperion source code! Abort"; exit 1; }
+sudo rm -fr $SCRIPT_PATH/hyperion >/dev/null 2>&1
+git clone --recursive --depth 1 -q $GIT_REPO_URL $SCRIPT_PATH/hyperion || { echo "---> Failed to download Hyperion source code! Abort"; exit 1; }
 
 # start compilation
 # Remove container after stop
@@ -93,15 +93,15 @@ git clone --recursive --depth 1 -q $GIT_REPO_URL $SCRIPT_PATH/hyperion.ng || { e
 echo "---> Startup docker..."
 $DOCKER run --rm \
 	-v "${SCRIPT_PATH}/deploy:/deploy" \
-	-v "${SCRIPT_PATH}/hyperion.ng:/source:ro" \
+	-v "${SCRIPT_PATH}/hyperion:/source:ro" \
 	hyperionproject/hyperion-ci:$BUILD_TARGET \
-	/bin/bash -c "mkdir hyperion.ng && cp -r /source/. /hyperion.ng &&
-	cd /hyperion.ng && mkdir build && cd build &&
+	/bin/bash -c "mkdir hyperion && cp -r /source/. /hyperion &&
+	cd /hyperion && mkdir build && cd build &&
 	cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. || exit 2 &&
 	make -j $(nproc) ${PACKAGES} || exit 3 &&
 	echo '---> Copy binaries and packages to host folder: ${SCRIPT_PATH}/deploy' &&
-	cp -v /hyperion.ng/build/bin/h* /deploy/ 2>/dev/null || : &&
-	cp -v /hyperion.ng/build/Hyperion.NG-* /deploy/ 2>/dev/null || : &&
+	cp -v /hyperion/build/bin/h* /deploy/ 2>/dev/null || : &&
+	cp -v /hyperion/build/Hyperion-* /deploy/ 2>/dev/null || : &&
 	exit 0;
 	exit 1 " || { echo "---> Hyperion compilation failed! Abort"; exit 4; }
 

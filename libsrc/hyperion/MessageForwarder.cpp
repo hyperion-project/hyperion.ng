@@ -28,7 +28,7 @@ MessageForwarder::MessageForwarder(Hyperion *hyperion)
 	connect(_hyperion, &Hyperion::settingsChanged, this, &MessageForwarder::handleSettingsUpdate);
 
 	// component changes
-	connect(_hyperion, &Hyperion::componentStateChanged, this, &MessageForwarder::componentStateChanged);
+	connect(_hyperion, &Hyperion::compStateChangeRequest, this, &MessageForwarder::handleCompStateChangeRequest);
 
 	// connect with Muxer visible priority changes
 	connect(_muxer, &PriorityMuxer::visiblePriorityChanged, this, &MessageForwarder::handlePriorityChanges);
@@ -91,18 +91,18 @@ void MessageForwarder::handleSettingsUpdate(const settings::type &type, const QJ
 		}
 
 		// update comp state
-		_hyperion->getComponentRegister().componentStateChanged(hyperion::COMP_FORWARDER, obj["enable"].toBool(true));
+		_hyperion->setNewComponentState(hyperion::COMP_FORWARDER, obj["enable"].toBool(true));
 	}
 }
 
-void MessageForwarder::componentStateChanged(const hyperion::Components component, bool enable)
+void MessageForwarder::handleCompStateChangeRequest(const hyperion::Components component, bool enable)
 {
 	if (component == hyperion::COMP_FORWARDER && _forwarder_enabled != enable)
 	{
 		_forwarder_enabled = enable;
 		handleSettingsUpdate(settings::NETFORWARD, _hyperion->getSetting(settings::NETFORWARD));
 		Info(_log, "Forwarder change state to %s", (_forwarder_enabled ? "enabled" : "disabled"));
-		_hyperion->getComponentRegister().componentStateChanged(component, _forwarder_enabled);
+		_hyperion->setNewComponentState(component, _forwarder_enabled);
 	}
 }
 
@@ -118,9 +118,9 @@ void MessageForwarder::handlePriorityChanges(const quint8 &priority)
 		hyperion::Components activeCompId = _hyperion->getPriorityInfo(priority).componentId;
 		if (activeCompId == hyperion::COMP_GRABBER || activeCompId == hyperion::COMP_V4L)
 		{
-			if ( !obj["proto"].isNull() )
+			if ( !obj["flat"].isNull() )
 			{
-				const QJsonArray & addr = obj["proto"].toArray();
+				const QJsonArray & addr = obj["flat"].toArray();
 				for (const auto& entry : addr)
 				{
 					addFlatbufferSlave(entry.toString());
@@ -202,7 +202,7 @@ void MessageForwarder::addFlatbufferSlave(QString slave)
 		return;
 	}
 
-	// verify loop with protoserver
+	// verify loop with flatbufserver
 	const QJsonObject &obj = _hyperion->getSetting(settings::FLATBUFSERVER).object();
 	if(QHostAddress(parts[0]) == QHostAddress::LocalHost && parts[1].toInt() == obj["port"].toInt())
 	{

@@ -1,6 +1,13 @@
 cmake_minimum_required(VERSION 3.0.0)
 
+message( STATUS "CMake Version: ${CMAKE_VERSION}" )
+
 PROJECT(hyperion)
+
+# Parse semantic version of version file
+include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.cmake)
+file (STRINGS "version" HYPERION_VERSION)
+SetVersionNumber(HYPERION ${HYPERION_VERSION})
 
 # Instruct CMake to run moc automatically when needed.
 set(CMAKE_AUTOMOC ON)
@@ -18,43 +25,8 @@ if ( CCACHE_FOUND )
 	set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 endif(CCACHE_FOUND)
 
+set(Python_ADDITIONAL_VERSIONS 3.5)
 find_package( PythonInterp 3.5 REQUIRED )
-
-# Read version from version.json
-EXECUTE_PROCESS (
-	COMMAND ${PYTHON_EXECUTABLE} test/jsonchecks/version.py version.json
-	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-	RESULT_VARIABLE error_code
-	OUTPUT_VARIABLE RETURN_VERSION
-)
-
-SET( VERSION_REGEX "[0-9]+\\.[0-9]+\\.[0-9]+(-[a-zA-Z0-9_]+)?" )
-if ( ${RETURN_VERSION} MATCHES ${VERSION_REGEX} )
-	STRING(REGEX MATCHALL "[0-9]+|-([A-Za-z0-9_]+)" VERSION_PARTS ${RETURN_VERSION} )
-	LIST( GET VERSION_PARTS 0 VERSION_MAJOR )
-	LIST( GET VERSION_PARTS 1 VERSION_MINOR )
-	LIST( GET VERSION_PARTS 2 VERSION_PATCH )
-else ( ${RETURN_VERSION} MATCHES ${VERSION_REGEX} )
-	message( FATAL_ERROR "Failed to parse version.json string properly. ${error_code}" )
-endif()
-
-SET( HYPERION_VERSION_MAJOR ${VERSION_MAJOR} )
-SET( HYPERION_VERSION_MINOR ${VERSION_MINOR} )
-SET( HYPERION_VERSION_PATCH ${VERSION_PATCH} )
-
-# Read channel from version.json
-EXECUTE_PROCESS (
-	COMMAND ${PYTHON_EXECUTABLE} test/jsonchecks/version.py version.json "channel"
-	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-	RESULT_VARIABLE error_code
-	OUTPUT_VARIABLE RETURN_CHANNEL
-)
-
-if ( error_code )
-	message( FATAL_ERROR "Failed to parse version.json string properly. ${error_code}" )
-endif()
-
-SET ( HYPERION_VERSION_CHANNEL ${RETURN_CHANNEL} )
 
 # Set build variables
 SET ( DEFAULT_AMLOGIC    OFF )
@@ -284,11 +256,15 @@ endif()
 # Use GNU gold linker if available
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/LDGold.cmake)
 
-# setup -rpath to search for shared libs in BINARY/../libs folder
+# Don't create new dynamic tags (RUNPATH)
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--disable-new-dtags")
+
+# setup -rpath to search for shared libs in BINARY/../lib folder
 if (UNIX AND NOT APPLE)
 	SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
 	SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-	SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+	SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH}:$ORIGIN/../lib")
+	SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 endif ()
 
 # add QT5 dependency
@@ -322,22 +298,31 @@ find_package(libusb-1.0 REQUIRED)
 find_package(Threads REQUIRED)
 add_definitions(${QT_DEFINITIONS})
 
-# Add jpeg library
+# Add JPEG library
 if (ENABLE_V4L2)
-	find_package(JPEG)
-	if (JPEG_FOUND)
-		add_definitions(-DHAVE_JPEG)
-		message( STATUS "Using JPEG library: ${JPEG_LIBRARIES}")
-		include_directories(${JPEG_INCLUDE_DIR})
+	# Turbo JPEG
+	find_package(TurboJPEG)
+	if (TURBOJPEG_FOUND)
+		add_definitions(-DHAVE_TURBO_JPEG)
+		message( STATUS "Using Turbo JPEG library: ${TurboJPEG_LIBRARY}")
+		include_directories(${TurboJPEG_INCLUDE_DIRS})
 	else()
-		message( STATUS "JPEG library not found, MJPEG camera format won't work in V4L2 grabber.")
+		# System JPEG
+		find_package(JPEG)
+		if (JPEG_FOUND)
+			add_definitions(-DHAVE_JPEG)
+			message( STATUS "Using system JPEG library: ${JPEG_LIBRARIES}")
+			include_directories(${JPEG_INCLUDE_DIR})
+		else()
+			message( STATUS "JPEG library not found, MJPEG camera format won't work in V4L2 grabber.")
+		endif()
+	endif (TURBOJPEG_FOUND)
+
+	
+	if (TURBOJPEG_FOUND OR JPEG_FOUND)
+		add_definitions(-DHAVE_JPEG_DECODER)
 	endif()
 endif()
-
-# TODO[TvdZ]: This linking directory should only be added if we are cross compiling
-#if(NOT APPLE)
-#	link_directories(${CMAKE_FIND_ROOT_PATH}/lib/arm-linux-gnueabihf)
-#endif()
 
 if(APPLE)
 	set(CMAKE_EXE_LINKER_FLAGS "-framework CoreGraphics")
@@ -368,4 +353,3 @@ add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_D
 
 # enable make package - no code after this line !
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/packages.cmake)
-

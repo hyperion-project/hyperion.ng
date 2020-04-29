@@ -44,7 +44,7 @@ void FlatBufferClient::readyRead()
 		if((uint32_t) _receiveBuffer.size() < messageSize + 4) return;
 
 		// extract message only and remove header + msg from buffer :: QByteArray::remove() does not return the removed data
-		const QByteArray msg = _receiveBuffer.right(messageSize);
+		const QByteArray msg = _receiveBuffer.mid(4, messageSize);
 		_receiveBuffer.remove(0, messageSize + 4);
 
 		const auto* msgData = reinterpret_cast<const uint8_t*>(msg.constData());
@@ -95,10 +95,7 @@ void FlatBufferClient::handleColorCommand(const hyperionnet::Color *colorReq)
 {
 	// extract parameters
 	const int32_t rgbData = colorReq->data();
-	ColorRgb color;
-	color.red = qRed(rgbData);
-	color.green = qGreen(rgbData);
-	color.blue = qBlue(rgbData);
+	std::vector<ColorRgb> color{ ColorRgb{ uint8_t(qRed(rgbData)), uint8_t(qGreen(rgbData)), uint8_t(qBlue(rgbData)) } };
 
 	// set output
 	emit setGlobalInputColor(_priority, color, colorReq->duration());
@@ -116,6 +113,8 @@ void FlatBufferClient::registationRequired(const int priority)
 
 		// send reply
 		sendMessage();
+
+		_builder.Clear();
 	}
 }
 
@@ -136,6 +135,8 @@ void FlatBufferClient::handleRegisterCommand(const hyperionnet::Register *regReq
 
 	// send reply
 	sendMessage();
+
+	_builder.Clear();
 }
 
 void FlatBufferClient::handleImageCommand(const hyperionnet::Image *image)
@@ -172,17 +173,12 @@ void FlatBufferClient::handleClearCommand(const hyperionnet::Clear *clear)
 	// extract parameters
 	const int priority = clear->priority();
 
-	if (priority == -1) {
-		emit clearAllGlobalInput();
+	// Check if we are clearing ourselves.
+	if (priority == _priority) {
+		_priority = -1;
 	}
-	else {
-		// Check if we are clearing ourselves.
-		if (priority == _priority) {
-			_priority = -1;
-		}
 
-		emit clearGlobalInput(priority);
-	}
+	emit clearGlobalInput(priority);
 
 	sendSuccessReply();
 }
@@ -200,7 +196,6 @@ void FlatBufferClient::sendMessage()
 	_socket->write((const char *) sizeData, sizeof(sizeData));
 	_socket->write((const char *)buffer, size);
 	_socket->flush();
-	_builder.Clear();
 }
 
 void FlatBufferClient::sendSuccessReply()
@@ -210,6 +205,8 @@ void FlatBufferClient::sendSuccessReply()
 
 	// send reply
 	sendMessage();
+
+	_builder.Clear();
 }
 
 void FlatBufferClient::sendErrorReply(const std::string &error)
@@ -220,4 +217,6 @@ void FlatBufferClient::sendErrorReply(const std::string &error)
 
 	// send reply
 	sendMessage();
+
+	_builder.Clear();
 }

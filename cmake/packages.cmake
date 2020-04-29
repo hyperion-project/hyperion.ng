@@ -4,7 +4,7 @@
 IF (APPLE)
 	SET ( CPACK_GENERATOR "TGZ" "Bundle")
 ELSEIF (UNIX)
-	SET ( CPACK_GENERATOR "TGZ" "STGZ")
+	SET ( CPACK_GENERATOR "TGZ")
 ELSEIF (WIN32)
 	SET ( CPACK_GENERATOR "ZIP")
 ENDIF()
@@ -24,15 +24,15 @@ ENDIF()
 # Apply to all packages, some of these can be overwritten with generator specific content
 # https://cmake.org/cmake/help/v3.5/module/CPack.html
 
-SET ( CPACK_PACKAGE_NAME "Hyperion.NG" )
+SET ( CPACK_PACKAGE_NAME "Hyperion" )
 SET ( CPACK_PACKAGE_DESCRIPTION_SUMMARY "Hyperion is an open source ambient light implementation" )
 SET ( CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.md" )
 
-if ( NOT DEFINED DOCKER_PLATFORM )
-	SET ( CPACK_PACKAGE_FILE_NAME "Hyperion.NG-${HYPERION_VERSION_CHANNEL}.${HYPERION_VERSION_MAJOR}.${HYPERION_VERSION_MINOR}.${HYPERION_VERSION_PATCH}-${CMAKE_SYSTEM_NAME}")
-else()
-	SET ( CPACK_PACKAGE_FILE_NAME "Hyperion.NG-${HYPERION_VERSION_CHANNEL}.${HYPERION_VERSION_MAJOR}.${HYPERION_VERSION_MINOR}.${HYPERION_VERSION_PATCH}-${CMAKE_SYSTEM_NAME}-${DOCKER_PLATFORM}")
-endif()
+IF ( NOT DEFINED DOCKER_PLATFORM )
+	SET ( CPACK_PACKAGE_FILE_NAME "Hyperion-${HYPERION_VERSION}-${CMAKE_SYSTEM_NAME}")
+ELSE()
+	SET ( CPACK_PACKAGE_FILE_NAME "Hyperion-${HYPERION_VERSION}-${CMAKE_SYSTEM_NAME}-${DOCKER_PLATFORM}")
+ENDIF()
 
 SET ( CPACK_PACKAGE_CONTACT "packages@hyperion-project.org")
 SET ( CPACK_PACKAGE_EXECUTABLES "hyperiond;Hyperion" )
@@ -43,13 +43,11 @@ SET ( CPACK_PACKAGE_VERSION_PATCH "${HYPERION_VERSION_PATCH}")
 SET ( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE" )
 SET ( CPACK_CREATE_DESKTOP_LINKS "hyperiond;Hyperion" )
 
-
 # Specific CPack Package Generators
 # https://cmake.org/Wiki/CMake:CPackPackageGenerators
 # .deb files for apt
 
 SET ( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/preinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/postinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/prerm" )
-SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "libqt5core5a (>= 5.5.0), libqt5network5 (>= 5.5.0), libqt5gui5 (>= 5.5.0), libqt5serialport5 (>= 5.5.0), libqt5sql5 (>= 5.5.0), libqt5sql5-sqlite (>= 5.5.0), libavahi-core7 (>= 0.6.31), libavahi-compat-libdnssd1 (>= 0.6.31), libusb-1.0-0, libpython3.5, libc6" )
 SET ( CPACK_DEBIAN_PACKAGE_SECTION "Miscellaneous" )
 
 # .rpm for rpm
@@ -57,7 +55,7 @@ SET ( CPACK_DEBIAN_PACKAGE_SECTION "Miscellaneous" )
 SET ( CPACK_RPM_PACKAGE_RELEASE 1)
 SET ( CPACK_RPM_PACKAGE_LICENSE "MIT")
 SET ( CPACK_RPM_PACKAGE_GROUP "Applications")
-SET ( CPACK_RPM_PACKAGE_REQUIRES "qt5-qtbase >= 5.5.0, qt5-qtbase-gui >= 5.5.0, qt5-qtserialport >= 5.5.0, avahi-libs >= 0.6.31, avahi-compat-libdns_sd >= 0.6.31, libusbx, python35 >= 3.5.0")
+
 # Notes: This is a dependency list for Fedora 27, different .rpm OSes use different names for their deps
 SET ( CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/preinst" )
 SET ( CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/postinst" )
@@ -82,9 +80,16 @@ SET ( CPACK_NSIS_URL_INFO_ABOUT "https://www.hyperion-project.org")
 
 # define the install components
 SET ( CPACK_COMPONENTS_ALL "${PLATFORM}" )
+
+SET ( CPACK_COMPONENT_${PLATFORM}_ARCHIVE_FILE "${CPACK_PACKAGE_FILE_NAME}" )
 SET ( CPACK_ARCHIVE_COMPONENT_INSTALL ON )
+
+SET ( CPACK_DEBIAN_${PLATFORM}_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}.deb" )
 SET ( CPACK_DEB_COMPONENT_INSTALL ON )
+
+SET ( CPACK_RPM_${PLATFORM}_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}.rpm" )
 SET ( CPACK_RPM_COMPONENT_INSTALL ON )
+
 SET ( CPACK_STRIP_FILES ON )
 
 # no code after following line!

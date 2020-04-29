@@ -42,83 +42,88 @@ const QString SSDPDiscover::getFirstService(const searchType& type, const QStrin
 	// search
 	sendSearch(st);
 
-	_udpSocket->waitForReadyRead(timeout_ms);
-
-    while (_udpSocket->hasPendingDatagrams())
+	if ( _udpSocket->waitForReadyRead(timeout_ms) )
 	{
-		QByteArray datagram;
-		datagram.resize(_udpSocket->pendingDatagramSize());
-		QHostAddress sender;
-		quint16 senderPort;
-
-		_udpSocket->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
-
-		QString data(datagram);
-
-        Debug(_log, "_data: [%s]", QSTRING_CSTR(data));
-
-		QMap<QString,QString> headers;
-		QString address;
-		// parse request
-		QStringList entries = data.split("\n", QString::SkipEmptyParts);
-		for(auto entry : entries)
+		while (_udpSocket->waitForReadyRead(500))
 		{
-			// http header parse skip
-			if(entry.contains("HTTP/1.1"))
-				continue;
-
-			// split into key:vale, be aware that value field may contain also a ":"
-			entry = entry.simplified();
-			int pos = entry.indexOf(":");
-			if(pos == -1)
-				continue;
-
-			headers[entry.left(pos).trimmed().toLower()] = entry.mid(pos+1).trimmed();
-		}
-
-		// verify ssdp spec
-		if(!headers.contains("st"))
-			continue;
-
-		// usn duplicates
-		if (_usnList.contains(headers.value("usn")))
-			continue;
-
-		if (headers.value("st") == _searchTarget)
-		{
-			_usnList << headers.value("usn");
-			QUrl url(headers.value("location"));
-			//Debug(_log, "Received msearch response from '%s:%d'. Search target: %s",QSTRING_CSTR(sender.toString()), senderPort, QSTRING_CSTR(headers.value("st")));
-			if(type == STY_WEBSERVER)
+			QByteArray datagram;
+			while (_udpSocket->hasPendingDatagrams())
 			{
-				Debug(_log, "Found service [%s] at: %s:%d", QSTRING_CSTR(st), QSTRING_CSTR(url.host()), url.port());
 
-				return url.host()+":"+QString::number(url.port());
-			}
-			else if(type == STY_FLATBUFSERVER)
-			{
-				const QString fbsport = headers.value("hyperion-fbs-port");
-				if(fbsport.isEmpty())
+				datagram.resize(_udpSocket->pendingDatagramSize());
+				QHostAddress sender;
+				quint16 senderPort;
+
+				_udpSocket->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
+
+				QString data(datagram);
+
+				Debug(_log, "_data: [%s]", QSTRING_CSTR(data));
+
+				QMap<QString,QString> headers;
+				QString address;
+				// parse request
+				QStringList entries = data.split("\n", QString::SkipEmptyParts);
+				for(auto entry : entries)
 				{
+					// http header parse skip
+					if(entry.contains("HTTP/1.1"))
+						continue;
+
+					// split into key:vale, be aware that value field may contain also a ":"
+					entry = entry.simplified();
+					int pos = entry.indexOf(":");
+					if(pos == -1)
+						continue;
+
+					headers[entry.left(pos).trimmed().toLower()] = entry.mid(pos+1).trimmed();
+				}
+
+				// verify ssdp spec
+				if(!headers.contains("st"))
 					continue;
-				}
-				else
-				{
-					Debug(_log, "Found service [%s] at: %s:%s", QSTRING_CSTR(st), QSTRING_CSTR(url.host()), QSTRING_CSTR(fbsport));
-					return url.host()+":"+fbsport;
-				}
-			}
-			else if(type == STY_JSONSERVER)
-			{
-				const QString jssport = headers.value("hyperion-jss-port");
-				if(jssport.isEmpty())
-				{
+
+				// usn duplicates
+				if (_usnList.contains(headers.value("usn")))
 					continue;
-				}
-				else
+
+				if (headers.value("st") == _searchTarget)
 				{
-					Debug(_log, "Found service at: %s:%s", QSTRING_CSTR(url.host()), QSTRING_CSTR(jssport));
-					return url.host()+":"+jssport;
+					_usnList << headers.value("usn");
+					QUrl url(headers.value("location"));
+					//Debug(_log, "Received msearch response from '%s:%d'. Search target: %s",QSTRING_CSTR(sender.toString()), senderPort, QSTRING_CSTR(headers.value("st")));
+					if(type == STY_WEBSERVER)
+					{
+						Debug(_log, "Found service [%s] at: %s:%d", QSTRING_CSTR(st), QSTRING_CSTR(url.host()), url.port());
+
+						return url.host()+":"+QString::number(url.port());
+					}
+					else if(type == STY_FLATBUFSERVER)
+					{
+						const QString fbsport = headers.value("hyperion-fbs-port");
+						if(fbsport.isEmpty())
+						{
+							continue;
+						}
+						else
+						{
+							Debug(_log, "Found service [%s] at: %s:%s", QSTRING_CSTR(st), QSTRING_CSTR(url.host()), QSTRING_CSTR(fbsport));
+							return url.host()+":"+fbsport;
+						}
+					}
+					else if(type == STY_JSONSERVER)
+					{
+						const QString jssport = headers.value("hyperion-jss-port");
+						if(jssport.isEmpty())
+						{
+							continue;
+						}
+						else
+						{
+							Debug(_log, "Found service at: %s:%s", QSTRING_CSTR(url.host()), QSTRING_CSTR(jssport));
+							return url.host()+":"+jssport;
+						}
+					}
 				}
 			}
 		}

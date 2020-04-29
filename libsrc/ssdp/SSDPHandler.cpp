@@ -9,7 +9,9 @@
 #include <QNetworkInterface>
 #include <QNetworkConfigurationManager>
 
-SSDPHandler::SSDPHandler(WebServer* webserver, const quint16& flatBufPort, const quint16& jsonServerPort, QObject * parent)
+static const QString SSDP_HYPERION_ST("urn:hyperion-project.org:device:basic:1");
+
+SSDPHandler::SSDPHandler(WebServer* webserver, const quint16& flatBufPort, const quint16& jsonServerPort, const QString& name, QObject * parent)
 	: SSDPServer(parent)
 	, _webserver(webserver)
 	, _localAddress()
@@ -17,6 +19,7 @@ SSDPHandler::SSDPHandler(WebServer* webserver, const quint16& flatBufPort, const
 {
 	setFlatBufPort(flatBufPort);
 	setJsonServerPort(jsonServerPort);
+	setHyperionName(name);
 }
 
 SSDPHandler::~SSDPHandler()
@@ -32,7 +35,7 @@ void SSDPHandler::initServer()
 	// announce targets
 	_deviceList.push_back("upnp:rootdevice");
 	_deviceList.push_back("uuid:"+_uuid);
-	_deviceList.push_back("urn:hyperion-project.org:device:basic:1");
+	_deviceList.push_back(SSDP_HYPERION_ST);
 
 	// prep server
 	SSDPServer::initServer();
@@ -74,6 +77,15 @@ void SSDPHandler::handleSettingsUpdate(const settings::type& type, const QJsonDo
 		if(obj["port"].toInt() != SSDPServer::getJsonServerPort())
 		{
 			SSDPServer::setJsonServerPort(obj["port"].toInt());
+		}
+	}
+
+	if (type == settings::GENERAL)
+	{
+		const QJsonObject &obj = config.object();
+		if (obj["name"].toString() != SSDPServer::getHyperionName())
+		{
+			SSDPServer::setHyperionName(obj["name"].toString());
 		}
 	}
 }
@@ -135,7 +147,9 @@ void SSDPHandler::handleMSearchRequest(const QString& target, const QString& mx,
 	// TODO Response delay according to MX field (sec) random between 0 and MX
 
 	// when searched for all devices / root devices / basic device
-	if(target == "ssdp:all" || target == "upnp:rootdevice" || target == "urn:schemas-upnp-org:device:basic:1" || target == "urn:hyperion-project.org:device:basic:1")
+	if(target == "ssdp:all")
+		sendMSearchResponse(SSDP_HYPERION_ST, address, port);
+	else if(target == "upnp:rootdevice" || target == "urn:schemas-upnp-org:device:basic:1" || target == SSDP_HYPERION_ST)
 		sendMSearchResponse(target, address, port);
 }
 

@@ -8,6 +8,7 @@
 #include <QObject>
 #include <QSocketNotifier>
 #include <QRectF>
+#include <QMap>
 
 // util includes
 #include <utils/PixelFormat.h>
@@ -15,11 +16,21 @@
 #include <grabber/VideoStandard.h>
 #include <utils/Components.h>
 
-#ifdef HAVE_JPEG
+// general JPEG decoder includes
+#ifdef HAVE_JPEG_DECODER
 	#include <QImage>
 	#include <QColor>
+#endif
+
+// System JPEG decoder
+#ifdef HAVE_JPEG
 	#include <jpeglib.h>
 	#include <csetjmp>
+#endif
+
+// TurboJPEG decoder
+#ifdef HAVE_TURBO_JPEG
+	#include <turbojpeg.h>
 #endif
 
 /// Capture class for V4L2 devices
@@ -30,12 +41,22 @@ class V4L2Grabber : public Grabber
 	Q_OBJECT
 
 public:
+	struct DeviceProperties
+	{
+		QString		name		= QString();
+		QStringList	resolutions	= QStringList();
+		QStringList	framerates	= QStringList();
+	};
+
 	V4L2Grabber(const QString & device,
+			const unsigned width,
+			const unsigned height,
+			const unsigned fps,
 			VideoStandard videoStandard,
 			PixelFormat pixelFormat,
 			int pixelDecimation
 	);
-	virtual ~V4L2Grabber();
+	~V4L2Grabber() override;
 
 	QRectF getSignalDetectionOffset()
 	{
@@ -49,37 +70,47 @@ public:
 	int grabFrame(Image<ColorRgb> &);
 
 	///
-	/// @brief  overwrite Grabber.h implementation, as v4l doesn't use width/height
-	///
-	virtual void setWidthHeight(){};
-
-	///
 	/// @brief  set new PixelDecimation value to ImageResampler
 	/// @param  pixelDecimation  The new pixelDecimation value
 	///
-	virtual void setPixelDecimation(int pixelDecimation);
+	void setPixelDecimation(int pixelDecimation) override;
 
 	///
 	/// @brief  overwrite Grabber.h implementation
 	///
-	virtual void setSignalThreshold(
+	void setSignalThreshold(
 					double redSignalThreshold,
 					double greenSignalThreshold,
 					double blueSignalThreshold,
-					int noSignalCounterThreshold = 50);
+					int noSignalCounterThreshold = 50) override;
 
 	///
 	/// @brief  overwrite Grabber.h implementation
 	///
-	virtual void setSignalDetectionOffset(
+	void setSignalDetectionOffset(
 					double verticalMin,
 					double horizontalMin,
 					double verticalMax,
-					double horizontalMax);
+					double horizontalMax) override;
 	///
 	/// @brief  overwrite Grabber.h implementation
 	///
-	virtual void setSignalDetectionEnable(bool enable);
+	void setSignalDetectionEnable(bool enable) override;
+
+	///
+	/// @brief overwrite Grabber.h implementation
+	///
+	void setDeviceVideoStandard(QString device, VideoStandard videoStandard) override;
+
+	///
+	/// @brief overwrite Grabber.h implementation
+	///
+	bool setFramerate(int fps) override;
+
+	///
+	/// @brief overwrite Grabber.h implementation
+	///
+	bool setWidthHeight(int width, int height) override;
 
 	virtual void setGrabberFixEnable(bool enable);
 	virtual void setGrabberFixValues(
@@ -89,16 +120,29 @@ public:
 
 	///
 	/// @brief overwrite Grabber.h implementation
-	/// 
-	virtual void setDeviceVideoStandard(QString device, VideoStandard videoStandard);
+	///
+	QStringList getV4L2devices() override;
+
+	///
+	/// @brief overwrite Grabber.h implementation
+	///
+	QString getV4L2deviceName(QString devicePath) override;
+
+	///
+	/// @brief overwrite Grabber.h implementation
+	///
+	QStringList getResolutions(QString devicePath) override;
+
+	///
+	/// @brief overwrite Grabber.h implementation
+	///
+	QStringList getFramerates(QString devicePath) override;
 
 public slots:
 
 	bool start();
 
 	void stop();
-
-	void componentStateChanged(const hyperion::Components component, bool enable);
 
 signals:
 	void newFrame(const Image<ColorRgb> & image);
@@ -136,6 +180,8 @@ private:
 	void process_image(const uint8_t *p, int size);
 
 	int xioctl(int request, void *arg);
+
+	int xioctl(int fileDescriptor, int request, void *arg);
 
 	void throw_exception(const QString & error)
 	{
@@ -183,14 +229,20 @@ private:
 	errorManager* _error;
 #endif
 
+#ifdef HAVE_TURBO_JPEG
+	tjhandle _decompress = nullptr;
+	int _subsamp;
+#endif
+
 private:
 	QString _deviceName;
-	std::map<QString,QString> _v4lDevices;
-	int                 _input;
-	VideoStandard       _videoStandard;
-	io_method           _ioMethod;
-	int                 _fileDescriptor;
-	std::vector<buffer> _buffers;
+	std::map<QString, QString>						_v4lDevices;
+	QMap<QString, V4L2Grabber::DeviceProperties>	_deviceProperties;
+	int												_input;
+	VideoStandard									_videoStandard;
+	io_method										_ioMethod;
+	int												_fileDescriptor;
+	std::vector<buffer>								_buffers;
 
 	PixelFormat _pixelFormat;
 	int         _pixelDecimation;
@@ -212,10 +264,14 @@ private:
 
 	bool _initialized;
 	bool _deviceAutoDiscoverEnabled;
+
 	// grabberfix
 	bool    _grabberFixEnabled;
 	int		_gf_width;
 	int		_gf_height;
 	QString		_gf_vtype;
+
+protected:
+	void enumFrameIntervals(QStringList &framerates, int fileDescriptor, int pixelformat, int width, int height);
 
 };

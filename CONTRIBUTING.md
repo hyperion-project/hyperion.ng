@@ -1,0 +1,123 @@
+## Translations
+You can participate in the translation.
+[![Join Translation](https://img.shields.io/badge/POEditor-translate-green.svg)](https://poeditor.com/join/project/Y4F6vHRFjA)
+
+## Development Setup
+
+> TODO: Be more specific, provide a Visual Studio Code workspace with plugins and pre configured build tasks
+
+Get Hyperion to compile: [Compile HowTo](CompileHowTo.md)
+
+## Workflow
+
+### Issue
+
+> TODO
+
+### Pull requests
+
+- Create a feature branch from the default branch (`master`) and merge back against that branch.
+- It's OK to have multiple small commits as you work on the PR - GitHub automatically squashes them before merging.
+- Make sure tests pass.
+- If adding a new feature:
+  - Provide a convincing reason to add this feature. Ideally, you should open a suggestion issue first and have it approved before working on it.
+- If fixing bug:
+  - If you are resolving an open issue, add `(fix #xxxx)` (`#xxxx` being the issue ID) in your PR title for a better release log, e.g. `chore(feat): implement SSR (fix #1234)`.
+  - Provide a detailed description of the bug in the PR.
+
+## Code Specification
+
+- use QT wherever it's possible (except there is a good reason)
+- use unix line endings (not windows)
+- indent your code with TABs instead of spaces
+- your files should end with a newline
+- names are camel case
+- use utf8 file encoding (ANSI encoding is strictly forbidden!)
+- use speaking names for variables.
+- avoid code dups -> if you write similar code blocks more the 2 times -> refactoring!
+- avoid compiler macros (#ifdef #define ...) where possible
+- class member variables must prefixed with underscore `int _myMemberVar`
+- initializer list on constructors:
+
+```c++
+bad:
+MyClass::MyClass()
+	: myVarA(0), myVarB("eee"), myVarC(true)
+{
+}
+
+MyClass::MyClass() : myVarA(0),
+	myVarB("eee"),
+	myVarC(true)
+{
+}
+
+good:
+MyClass::MyClass()
+	: myVarA(0)
+	, myVarB("eee")
+	, myVarC(true)
+{
+}
+```
+
+- pointer declaration
+
+```c++
+bad:
+int *foo;
+int * fooFoo;
+
+good:
+int* foo;
+```
+
+### Logger
+Hyperion has a own logger class with different log levels.
+ - Use macros in include/utils/logger.h
+ - Don't use the Logger class directly unless there is a good reason to do so.
+``` c++
+// *** including
+#include <utils/logger.h>
+
+// creating
+// get a logger, this will create a logger named MAIN with min loglevel INFO, DEBUG messages won't displayed
+Logger * log_main = Logger::getInstance("MAIN");
+
+// get a logger, this will create a logger named MAIN with min loglevel DEBUG,  all messages displayed
+Logger * log_main = Logger::getInstance("MAIN", Logger::DEBUG);
+
+// using
+// basic
+Debug( log_main, "hello folks!");
+Info( log_main, "hello again!");
+Warning( log_main, "something is crazy");
+Error( log_main, "oh to crazy, aborting");
+
+// quick logging, when only one message exists and want no typing overhead - or usage in static functions
+Info( Logger::getInstance("LedDevice"), "Leddevice %s started", "PublicStreetLighting");
+
+// a bit mor complex - with printf like format
+Info( log_main, "hello %s, you have %d messages", "Dax", 25);
+
+// conditional messages
+WarningIf( (value>threshold), log_main, "Alert, your value is greater then %d", threshold );
+```
+The amount of "%" mus match with following arguments
+
+#### The Placeholders
+ - %s for strings (this are cstrings, when having std::string use myStdString.c_str() to convert)
+ - %d for integer numbers
+ - %f for float numbers
+ - more placeholders possible, see [here](http://www.cplusplus.com/reference/cstdio/printf/)
+
+#### Log Level
+  * Debug - used when message is more or less for the developer or for trouble shooting
+  * Info - used for not absolutly developer stuff messages for what's going on
+  * Warning - warn if something is not as it should be, but didn't harm
+  * Error - used when an error occurs
+
+
+## Commit specification
+
+> TODO

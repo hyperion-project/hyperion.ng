@@ -1,6 +1,6 @@
 #pragma once
 
-// hyperion incluse
+// hyperion includes
 #include "ProviderRs232.h"
 
 ///
@@ -14,12 +14,12 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceDMX(const QJsonObject &deviceConfig);
+	explicit LedDeviceDMX(const QJsonObject &deviceConfig);
 
 	/// constructs leddevice
 	static LedDevice* construct(const QJsonObject &deviceConfig);
 	
-	virtual bool init(const QJsonObject &deviceConfig);
+	virtual bool init(const QJsonObject &deviceConfig) override;
 
 private:
 	///
@@ -28,7 +28,7 @@ private:
 	/// @param ledValues The color-value per led
 	/// @return Zero on succes else negative
 	///
-	virtual int write(const std::vector<ColorRgb> &ledValues);
+	virtual int write(const std::vector<ColorRgb> &ledValues) override;
 	int _dmxDeviceType = 0;
 	int _dmxStart = 1;
 	int _dmxSlotsPerLed = 3;

@@ -23,6 +23,13 @@
 	<!-- jQuery -->
 	<script src="js/lib/jquery.min.js"></script>
 
+	<!-- SemVer -->
+	<script src='js/lib/semver.js'></script>
+
+	<!-- md Stuff -->
+	<script src="js/lib/marked.min.js"></script>
+	<script type="text/javascript" src="js/lib/purify.min.js"></script>
+
 	<!-- Hyperion -->
 	<script src="js/hyperion.js"></script>
 	<script src="js/ui_utils.js"></script>
@@ -81,7 +88,7 @@
 		<!-- Navigation -->
 		<nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
 			<div class="navbar-header">
-				<button type="button" class="navbar-toggle closed" aria-controls="navbar" style="background-color:#d0d0d0;">
+				<button type="button" class="navbar-toggle closed" aria-controls="navbar">
 					<span class="sr-only">Toggle navigation</span>
 					<span class="icon-bar top-bar"></span>
 					<span class="icon-bar middle-bar"></span>
@@ -102,6 +109,11 @@
 						<i id="btn_streamer_icon" class="fa fa-video-camera fa-fw"></i>
 					</a>
 				</li>
+				<li class="dropdown" id="btn_darkmode">
+				<a>
+					<i id="btn_darkmode_icon" class="fa fa-moon-o"></i>
+				</a>
+			</li>
 				<!-- instance switcher -->
 				<li class="dropdown" id="btn_hypinstanceswitch" style="display:none">
 					<a class="dropdown-toggle" data-toggle="dropdown" href="#">

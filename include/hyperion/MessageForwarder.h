@@ -52,7 +52,7 @@ private slots:
 	/// @param component  The component from enum
 	/// @param enable     The new state
 	///
-	void componentStateChanged(const hyperion::Components component, bool enable);
+	void handleCompStateChangeRequest(const hyperion::Components component, bool enable);
 
 	///
 	/// @brief Handle priority updates from Priority Muxer

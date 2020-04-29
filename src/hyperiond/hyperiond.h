@@ -120,7 +120,7 @@ signals:
 	///
 	/// @brief PIPE component state changes events from Hyperion class to HyperionDaemon components
 	///
-	void componentStateChanged(const hyperion::Components component, bool enable);
+	void compStateChangeRequest(const hyperion::Components component, bool enable);
 
 private slots:
 	///

@@ -15,27 +15,35 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDevicePiBlaster(const QJsonObject &deviceConfig);
+	explicit LedDevicePiBlaster(const QJsonObject &deviceConfig);
 
-	virtual ~LedDevicePiBlaster();
+	virtual ~LedDevicePiBlaster() override;
 
 	///
 	/// Sets configuration
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool init(const QJsonObject &deviceConfig);
+	bool init(const QJsonObject &deviceConfig) override;
 
 	/// constructs leddevice
 	static LedDevice* construct(const QJsonObject &deviceConfig);
-	
+
+public slots:
+	///
+	/// Closes the output device.
+	/// Includes switching-off the device and stopping refreshes
+	///
+	virtual void close() override;
+
+protected:
 	///
 	/// Attempts to open the piblaster-device. This will only succeed if the device is not yet open
 	/// and the device is available.
 	///
 	/// @return Zero on succes else negative
 	///
-	int open();
+	int open() override;
 
 private:
 	///
@@ -45,7 +53,7 @@ private:
 	///
 	/// @return Zero on success else negative
 	///
-	int write(const std::vector<ColorRgb> &ledValues);
+	int write(const std::vector<ColorRgb> &ledValues) override;
 
 	/// The name of the output device (very likely '/dev/pi-blaster')
 	QString _deviceName;

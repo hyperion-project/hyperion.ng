@@ -8,6 +8,8 @@ window.currentVersion = null;
 window.latestVersion = null;
 window.latestStableVersion = null;
 window.latestBetaVersion = null;
+window.latestAlphaVersion = null;
+window.latestRcVersion = null;
 window.gitHubVersionList = null;
 window.serverInfo = {};
 window.serverSchema = {};
@@ -200,6 +202,10 @@ function requestToken(comment)
 function requestTokenInfo()
 {
 	sendToHyperion("authorize","getTokenList","");
+}
+
+function requestGetPendingTokenRequests (id, state) {
+	sendToHyperion("authorize", "getPendingTokenRequests", "");
 }
 
 function requestHandleTokenRequest(id, state)

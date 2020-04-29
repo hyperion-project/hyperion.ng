@@ -7,7 +7,9 @@ ledData    = bytearray()
 ledDataBuf = bytearray()
 color_step = []
 minStepTime= float(hyperion.latchTime)/1000.0
+if minStepTime == 0: minStepTime = 0.001
 fadeSteps  = min(256.0, math.floor(sleepTime/minStepTime))
+if fadeSteps == 0: fadeSteps = 1
 
 # Initialize the led data
 for i in range(hyperion.ledCount):

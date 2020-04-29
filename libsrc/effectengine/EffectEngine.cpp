@@ -47,14 +47,14 @@ EffectEngine::~EffectEngine()
 {
 }
 
-bool EffectEngine::saveEffect(const QJsonObject& obj, QString& resultMsg)
+QString EffectEngine::saveEffect(const QJsonObject& obj)
 {
-	return _effectFileHandler->saveEffect(obj, resultMsg);
+	return _effectFileHandler->saveEffect(obj);
 }
 
-bool EffectEngine::deleteEffect(const QString& effectName, QString& resultMsg)
+QString EffectEngine::deleteEffect(const QString& effectName)
 {
-	return _effectFileHandler->deleteEffect(effectName, resultMsg);
+	return _effectFileHandler->deleteEffect(effectName);
 }
 
 const std::list<ActiveEffectDefinition> &EffectEngine::getActiveEffects()
@@ -111,19 +111,23 @@ void EffectEngine::handleUpdatedEffectList()
 {
 	_availableEffects.clear();
 
+	unsigned id = 2;
 	for (auto def : _effectFileHandler->getEffects())
 	{
 		// add smoothing configs to Hyperion
 		if (def.args["smoothing-custom-settings"].toBool())
 		{
-			def.smoothCfg = _hyperion->addSmoothingConfig(
+			def.smoothCfg = _hyperion->updateSmoothingConfig(
+				id,
 				def.args["smoothing-time_ms"].toInt(),
 				def.args["smoothing-updateFrequency"].toDouble(),
 				0 );
+			//Debug( _log, "Customs Settings: Update effect %s, script %s, file %s, smoothCfg [%u]", QSTRING_CSTR(def.name), QSTRING_CSTR(def.script), QSTRING_CSTR(def.file), def.smoothCfg);
 		}
 		else
 		{
-			def.smoothCfg = _hyperion->addSmoothingConfig(true);
+			def.smoothCfg = _hyperion->updateSmoothingConfig(id);
+			//Debug( _log, "Default Settings: Update effect %s, script %s, file %s, smoothCfg [%u]", QSTRING_CSTR(def.name), QSTRING_CSTR(def.script), QSTRING_CSTR(def.file), def.smoothCfg);
 		}
 		_availableEffects.push_back(def);
 	}
@@ -137,7 +141,7 @@ int EffectEngine::runEffect(const QString &effectName, int priority, int timeout
 
 int EffectEngine::runEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout, const QString &pythonScript, const QString &origin, unsigned smoothCfg, const QString &imageData)
 {
-	Info( _log, "run effect %s on channel %d", QSTRING_CSTR(effectName), priority);
+	Info( _log, "Run effect \"%s\" on channel %d", QSTRING_CSTR(effectName), priority);
 
 	if (pythonScript.isEmpty())
 	{
@@ -176,6 +180,7 @@ int EffectEngine::runEffectScript(const QString &script, const QString &name, co
 	_activeEffects.push_back(effect);
 
 	// start the effect
+	Debug(_log, "Start the effect: name [%s], smoothCfg [%u]", QSTRING_CSTR(name), smoothCfg);
 	_hyperion->registerInput(priority, hyperion::COMP_EFFECT, origin, name ,smoothCfg);
 	effect->start();
 

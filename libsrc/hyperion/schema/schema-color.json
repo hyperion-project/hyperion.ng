@@ -195,9 +195,8 @@
 						"required" : true,
 						"minimum" : 0,
 						"maximum": 100,
-						"default" : 90,
+						"default" : 0,
 						"append" : "edt_append_percent",
-						"access" : "advanced",
 						"propertyOrder" : 14
 					},
 					"gammaRed" :

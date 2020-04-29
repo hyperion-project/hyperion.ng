@@ -25,6 +25,7 @@ def getSTime(rt, steps = 360):
 	
 	# adapt sleeptime to hardware
 	minStepTime= float(hyperion.latchTime)/1000.0
+	if minStepTime == 0: minStepTime = 0.001
 	if minStepTime > sleepTime:
 		sleepTime = minStepTime
 	return sleepTime

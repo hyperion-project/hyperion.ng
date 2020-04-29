@@ -9,6 +9,9 @@ class V4L2Wrapper : public GrabberWrapper
 
 public:
 	V4L2Wrapper(const QString & device,
+			const unsigned grabWidth,
+			const unsigned grabHeight,
+			const unsigned fps,
 			VideoStandard videoStandard,
 			PixelFormat pixelFormat,
 			int pixelDecimation );
@@ -30,7 +33,6 @@ public slots:
 	void setDeviceVideoStandard(QString device, VideoStandard videoStandard);
 
 signals:
-	void componentStateChanged(const hyperion::Components component, bool enable);
 
 private slots:
 	void newFrame(const Image<ColorRgb> & image);

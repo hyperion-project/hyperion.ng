@@ -1,6 +1,6 @@
 #pragma once
 
-// hyperion incluse
+// hyperion includes
 #include "ProviderSpi.h"
 
 ///
@@ -14,7 +14,7 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceWs2812SPI(const QJsonObject &deviceConfig);
+	explicit LedDeviceWs2812SPI(const QJsonObject &deviceConfig);
 
 	/// constructs leddevice
 	static LedDevice* construct(const QJsonObject &deviceConfig);
@@ -24,7 +24,7 @@ public:
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	virtual bool init(const QJsonObject &deviceConfig);
+	virtual bool init(const QJsonObject &deviceConfig) override;
 
 private:
 	///
@@ -33,10 +33,9 @@ private:
 	/// @param ledValues The color-value per led
 	/// @return Zero on succes else negative
 	///
-	virtual int write(const std::vector<ColorRgb> &ledValues);
+	virtual int write(const std::vector<ColorRgb> &ledValues) override;
 
-        const int SPI_BYTES_PER_COLOUR;
-
+	const int SPI_BYTES_PER_COLOUR;
 	const int SPI_FRAME_END_LATCH_BYTES;
 
 	uint8_t bitpair_to_byte[4];

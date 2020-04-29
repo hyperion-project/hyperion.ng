@@ -1,5 +1,6 @@
 #pragma once
 
+// LedDevice includes
 #include <leddevice/LedDevice.h>
 #include <ws2811.h>
 
@@ -14,31 +15,40 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceWS281x(const QJsonObject &deviceConfig);
+	explicit LedDeviceWS281x(const QJsonObject &deviceConfig);
 
 	///
 	/// Destructor of the LedDevice, waits for DMA to complete and then cleans up
 	///
-	~LedDeviceWS281x();
-	
+	virtual ~LedDeviceWS281x() override;
+
+	/// constructs leddevice
+	static LedDevice* construct(const QJsonObject &deviceConfig);
+
 	///
 	/// Sets configuration
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool init(const QJsonObject &deviceConfig);
+	virtual bool init(const QJsonObject &deviceConfig) override;
 
-	/// constructs leddevice
-	static LedDevice* construct(const QJsonObject &deviceConfig);
+public slots:
+	///
+	/// Closes the output device.
+	/// Includes switching-off the device and stopping refreshes
+	///
+	virtual void close() override;
 
-private:
+protected:
 	///
 	/// Writes the led color values to the led-device
 	///
 	/// @param ledValues The color-value per led
 	/// @return Zero on succes else negative
 	///
-	virtual int write(const std::vector<ColorRgb> &ledValues);
+	virtual int write(const std::vector<ColorRgb> &ledValues) override;
+
+private:
 
 	ws2811_t    _led_string;
 	int         _channel;

@@ -121,7 +121,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 					rgb.red   = data[index+2];
 				}
 				break;
-#ifdef HAVE_JPEG
+#ifdef HAVE_JPEG_DECODER
 				case PIXELFORMAT_MJPEG:
 					break;
 #endif

@@ -2,6 +2,7 @@
 
 // STL includes
 #include <fstream>
+#include <chrono>
 
 // Leddevice includes
 #include <leddevice/LedDevice.h>
@@ -18,12 +19,12 @@ public:
 	///
 	/// @param deviceConfig json device config
 	///
-	LedDeviceFile(const QJsonObject &deviceConfig);
+	explicit LedDeviceFile(const QJsonObject &deviceConfig);
 
 	///
 	/// Destructor of this test-device
 	///
-	virtual ~LedDeviceFile();
+	virtual ~LedDeviceFile() override;
 
 	/// constructs leddevice
 	static LedDevice* construct(const QJsonObject &deviceConfig);
@@ -33,16 +34,23 @@ public:
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	virtual bool init(const QJsonObject &deviceConfig);
+	virtual bool init(const QJsonObject &deviceConfig) override;
+
+public slots:
+	///
+	/// Closes the output device.
+	/// Includes switching-off the device and stopping refreshes
+	///
+	virtual void close() override;
 	
 protected:
 	///
-	/// Opens and configures the output file
+	/// Opens and initiatialises the output device
 	///
-	/// @return Zero on succes else negative
+	/// @return Zero on succes (i.e. device is ready and enabled) else negative
 	///
-	///
-	virtual int open();
+	virtual int open() override;
+
 	///
 	/// Writes the given led-color values to the output stream
 	///
@@ -50,7 +58,7 @@ protected:
 	///
 	/// @return Zero on success else negative
 	///
-	virtual int write(const std::vector<ColorRgb> & ledValues);
+	virtual int write(const std::vector<ColorRgb> & ledValues) override;
 
 	/// The outputstream
 	std::ofstream _ofs;
@@ -60,4 +68,7 @@ private:
 	QString _fileName;
 	/// Timestamp for the output record
 	bool _printTimeStamp;
+	/// Last write/output timestamp
+	std::chrono::system_clock::time_point lastWriteTime = std::chrono::system_clock::now();
+
 };

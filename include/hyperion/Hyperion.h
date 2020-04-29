@@ -78,34 +78,7 @@ public:
 	///
 	void freeObjects(bool emitCloseSignal=false);
 
-	///
-	/// @brief Get a pointer to the effect engine
-	/// @return     EffectEngine instance pointer
-	///
-	EffectEngine* getEffectEngineInstance() { return _effectEngine; };
-
-	///
-	/// @brief Get a pointer to the priorityMuxer instance
-	/// @return      PriorityMuxer instance pointer
-	///
-	PriorityMuxer* getMuxerInstance() { return &_muxer; };
-
 	ImageProcessor* getImageProcessor() { return _imageProcessor; };
-
-	///
-	/// @brief Get a setting by settings::type from SettingsManager
-	/// @param type  The settingsType from enum
-	/// @return      Data Document
-	///
-	QJsonDocument getSetting(const settings::type& type);
-
-	///
-	/// @brief Save a complete json config
-	/// @param config  The entire config object
-	/// @param correct If true will correct json against schema before save
-	/// @return        True on success else false
-	///
-	bool saveSettings(QJsonObject config, const bool& correct = false);
 
 	///
 	/// @brief Get instance index of this instance
@@ -123,98 +96,6 @@ public:
 	///
 	QSize getLedGridSize() const { return _ledGridSize; };
 
-	///
-	/// Returns the current priority
-	///
-	/// @return The current priority
-	///
-	int getCurrentPriority() const;
-
-	///
-	/// Returns true if current priority is given priority
-	///
-	/// @return bool
-	///
-	bool isCurrentPriority(const int priority) const;
-
-	///
-	/// Returns a list of all registered priorities
-	///
-	/// @return The list with priorities
-	///
-	QList<int> getActivePriorities() const;
-
-	///
-	/// Returns the information of a specific priorrity channel
-	///
-	/// @param[in] priority  The priority channel
-	///
-	/// @return The information of the given, a not found priority will return lowest priority as fallback
-	///
-	const InputInfo getPriorityInfo(const int priority) const;
-
-	///
-	/// @brief Save an effect
-	/// @param       obj       The effect args
-	/// @param[out] resultMsg  The feedback message
-	/// @return True on success else false
-	///
-	bool saveEffect(const QJsonObject& obj, QString& resultMsg);
-
-	///
-	/// @brief Delete an effect by name.
-	/// @param[in]  effectName  The effect name to delete
-	/// @param[out] resultMsg   The message on error
-	/// @return True on success else false
-	///
-	bool deleteEffect(const QString& effectName, QString& resultMsg);
-
-	/// Get the list of available effects
-	/// @return The list of available effects
-	const std::list<EffectDefinition> &getEffects() const;
-
-	/// Get the list of active effects
-	/// @return The list of active effects
-	const std::list<ActiveEffectDefinition> &getActiveEffects();
-
-	/// Get the list of available effect schema files
-	/// @return The list of available effect schema files
-	const std::list<EffectSchema> &getEffectSchemas();
-
-	/// gets the current json config object from SettingsManager
-	/// @return json config
-	const QJsonObject& getQJsonConfig();
-
-	/// enable/disable automatic/priorized source selection
-	/// @param enabled the state
-	void setSourceAutoSelectEnabled(bool enabled);
-
-	/// set current input source to visible
-	/// @param priority the priority channel which should be vidible
-	/// @return true if success, false on error
-	bool setCurrentSourcePriority(int priority );
-
-	/// gets current state of automatic/priorized source selection
-	/// @return the state
-	bool sourceAutoSelectEnabled();
-
-	///
-	/// @brief Called from components to update their current state. DO NOT CALL FROM USERS
-	/// @param[in] component The component from enum
-	/// @param[in] state The state of the component [true | false]
-	///
-	void setNewComponentState(const hyperion::Components& component, const bool& state);
-
-	///
-	/// @brief Enable/Disable components during runtime, called from external API (requests)
-	///
-	/// @param component The component from enum
-	/// @param state The state of the component [true | false]
-	///
-	void setComponentState(const hyperion::Components component, const bool state);
-
-	ComponentRegister& getComponentRegister() { return _componentRegister; };
-
 	/// gets the methode how image is maped to leds
 	const int & getLedMappingType();
 
@@ -222,6 +103,8 @@ public:
 
 	/// forward smoothing config
 	unsigned addSmoothingConfig(int settlingTime_ms, double ledUpdateFrequency_hz=25.0, unsigned updateDelay=0);
+	unsigned updateSmoothingConfig(unsigned id, int settlingTime_ms=200, double ledUpdateFrequency_hz=25.0, unsigned updateDelay=0);
+
 
 	const VideoMode & getCurrentVideoMode();
 
@@ -237,6 +120,7 @@ public:
 	LedDevice * getActiveDevice() const;
 
 public slots:
+
 	///
 	/// @brief  Register a new input by priority, the priority is not active (timeout -100 isn't muxer recognized) until you start to update the data with setInput()
 	/// 		A repeated call to update the base data of a known priority won't overwrite their current timeout
@@ -276,12 +160,12 @@ public slots:
 	/// Should be never used to update leds continuous
 	///
 	/// @param[in] priority The priority of the written color
-	/// @param[in] ledColor The color to write to the leds
+	/// @param[in] ledColors The color to write to the leds
 	/// @param[in] timeout_ms The time the leds are set to the given color [ms]
 	/// @param[in] origin   The setter
 	/// @param     clearEffect  Should be true when NOT called from an effect
 	///
-	void setColor(const int priority, const ColorRgb &ledColor, const int timeout_ms = -1, const QString& origin = "System" ,bool clearEffects = true);
+	void setColor(const int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms = -1, const QString& origin = "System" ,bool clearEffects = true);
 
 	///
 	/// @brief Set the given priority to inactive
@@ -309,15 +193,33 @@ public slots:
 	/// Clears the given priority channel. This will switch the led-colors to the colors of the next
 	/// lower priority channel (or off if no more channels are set)
 	///
-	/// @param[in] priority  The priority channel
+	/// @param[in] priority  The priority channel. -1 clears all priorities
+	/// @param[in] forceClearAll Force the clear
 	/// @return              True on success else false (not found)
 	///
-	bool clear(const int priority);
+	bool clear(const int priority, bool forceClearAll=false);
+
+	/// #############
+	// EFFECTENGINE
+	///
+	/// @brief Get a pointer to the effect engine
+	/// @return     EffectEngine instance pointer
+	///
+
+	EffectEngine* getEffectEngineInstance() { return _effectEngine; };
+	///
+	/// @brief Save an effect
+	/// @param  obj  The effect args
+	/// @return Empty on success else error message
+	///
+	QString saveEffect(const QJsonObject& obj);
 
 	///
-	/// @brief Clears all priority channels. This will switch the leds off until a new priority is written.
+	/// @brief Delete an effect by name.
+	/// @param  effectName  The effect name to delete
+	/// @return Empty on success else error message
 	///
-	void clearall(bool forceClearAll=false);
+	QString deleteEffect(const QString& effectName);
 
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	/// @param effectName Name of the effec to run
@@ -338,6 +240,122 @@ public slots:
 				, const QString &origin="System"
 				, const QString &imageData = ""
 	);
+
+	/// Get the list of available effects
+	/// @return The list of available effects
+	const std::list<EffectDefinition> &getEffects() const;
+
+	/// Get the list of active effects
+	/// @return The list of active effects
+	const std::list<ActiveEffectDefinition> &getActiveEffects();
+
+	/// Get the list of available effect schema files
+	/// @return The list of available effect schema files
+	const std::list<EffectSchema> &getEffectSchemas();
+
+	/// #############
+	/// PRIORITYMUXER
+	///
+	/// @brief Get a pointer to the priorityMuxer instance
+	/// @return      PriorityMuxer instance pointer
+	///
+	PriorityMuxer* getMuxerInstance() { return &_muxer; };
+
+	///
+	/// @brief enable/disable automatic/priorized source selection
+	/// @param state The new state
+	///
+	void setSourceAutoSelect(const bool state);
+
+	///
+	/// @brief set current input source to visible
+	/// @param priority the priority channel which should be vidible
+	/// @return true if success, false on error
+	///
+	bool setVisiblePriority(const int& priority);
+
+	/// gets current state of automatic/priorized source selection
+	/// @return the state
+	bool sourceAutoSelectEnabled();
+
+	///
+	/// Returns the current priority
+	///
+	/// @return The current priority
+	///
+	int getCurrentPriority() const;
+
+	///
+	/// Returns true if current priority is given priority
+	///
+	/// @return bool
+	///
+	bool isCurrentPriority(const int priority) const;
+
+	///
+	/// Returns a list of all registered priorities
+	///
+	/// @return The list with priorities
+	///
+	QList<int> getActivePriorities() const;
+
+	///
+	/// Returns the information of a specific priorrity channel
+	///
+	/// @param[in] priority  The priority channel
+	///
+	/// @return The information of the given, a not found priority will return lowest priority as fallback
+	///
+	const InputInfo getPriorityInfo(const int priority) const;
+
+	/// #############
+	/// SETTINGSMANAGER
+	///
+	/// @brief Get a setting by settings::type from SettingsManager
+	/// @param type  The settingsType from enum
+	/// @return      Data Document
+	///
+	QJsonDocument getSetting(const settings::type& type);
+
+	/// gets the current json config object from SettingsManager
+	/// @return json config
+	const QJsonObject& getQJsonConfig();
+
+	///
+	/// @brief Save a complete json config
+	/// @param config  The entire config object
+	/// @param correct If true will correct json against schema before save
+	/// @return        True on success else false
+	///
+	bool saveSettings(QJsonObject config, const bool& correct = false);
+
+	/// ############
+	/// COMPONENTREGISTER
+	///
+	/// @brief Get the component Register
+	/// return Component register pointer
+	///
+	ComponentRegister& getComponentRegister() { return _componentRegister; };
+
+	///
+	/// @brief Called from components to update their current state. DO NOT CALL FROM USERS
+	/// @param[in] component The component from enum
+	/// @param[in] state The state of the component [true | false]
+	///
+	void setNewComponentState(const hyperion::Components& component, const bool& state);
+
+	///
+	/// @brief Get a list of all contrable components and their current state
+	/// @return list of components
+	///
+	std::map<hyperion::Components, bool> getAllComponents();
+
+	///
+	/// @brief Test if a component is enabled
+	/// @param The component to test
+	/// @return Component state
+	///
+	int isComponentEnabled(const hyperion::Components& comp);
 
 	/// sets the methode how image is maped to leds at ImageProcessor
 	void setLedMappingType(const int& mappingType);
@@ -373,7 +391,7 @@ signals:
 	/// @param component  The component from enum
 	/// @param enabled    The new state of the component
 	///
-	void componentStateChanged(const hyperion::Components component, bool enabled);
+	void compStateChangeRequest(const hyperion::Components component, bool enabled);
 
 	///
 	/// @brief Emits whenever the imageToLedsMapping has changed
@@ -456,11 +474,10 @@ public slots:
 private slots:
 
 	///
-	///	@brief Apply ComponentRegister emits for COMP_ALL. Enables/Disables core timers
-	///	@param comp   The component
-	///	@param state  The new state of the component
+	///	@brief Handle whenever the visible component changed
+	///	@param comp      The new component
 	///
-	void updatedComponentState(const hyperion::Components comp, const bool state);
+	void handleVisibleComponentChanged(const hyperion::Components& comp);
 
 	///
 	///	@brief Apply settings updates for LEDS and COLOR
@@ -526,9 +543,6 @@ private:
 	unsigned _hwLedCount;
 
 	QSize _ledGridSize;
-
-	/// Store the previous compID for smarter update()
-	hyperion::Components   _prevCompId;
 
 	/// Background effect instance, kept active to react on setting changes
 	BGEffectHandler* _BGEffectHandler;

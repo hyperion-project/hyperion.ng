@@ -20,7 +20,7 @@ LedDeviceWrapper::LedDeviceWrapper(Hyperion* hyperion)
 	: QObject(hyperion)
 	, _hyperion(hyperion)
 	, _ledDevice(nullptr)
-	, _enabled(true)
+	, _enabled(false)
 {
 	// prepare the device constrcutor map
 	#define REGISTER(className) LedDeviceWrapper::addToDeviceMap(QString(#className).toLower(), LedDevice##className::construct);
@@ -30,7 +30,7 @@ LedDeviceWrapper::LedDeviceWrapper(Hyperion* hyperion)
 
 	#undef REGISTER
 
-	_hyperion->setNewComponentState(hyperion::COMP_LEDDEVICE, true);
+	_hyperion->setNewComponentState(hyperion::COMP_LEDDEVICE, false);
 }
 
 LedDeviceWrapper::~LedDeviceWrapper()
@@ -55,8 +55,11 @@ void LedDeviceWrapper::createLedDevice(const QJsonObject& config)
 	connect(thread, &QThread::finished, _ledDevice, &LedDevice::deleteLater);
 
 	// further signals
-	connect(this, &LedDeviceWrapper::write, _ledDevice, &LedDevice::write, Qt::QueuedConnection);
-	connect(_hyperion->getMuxerInstance(), &PriorityMuxer::visiblePriorityChanged, _ledDevice, &LedDevice::visiblePriorityChanged, Qt::QueuedConnection);
+	connect(this, &LedDeviceWrapper::updateLeds, _ledDevice, &LedDevice::updateLeds, Qt::QueuedConnection);
+	connect(this, &LedDeviceWrapper::setEnable, _ledDevice, &LedDevice::setEnable);
+
+	connect(this, &LedDeviceWrapper::closeLedDevice, _ledDevice, &LedDevice::close, Qt::BlockingQueuedConnection);
+
 	connect(_ledDevice, &LedDevice::enableStateChanged, this, &LedDeviceWrapper::handleInternalEnableState, Qt::QueuedConnection);
 
 	// start the thread
@@ -125,13 +128,21 @@ const QString & LedDeviceWrapper::getColorOrder()
 	return _ledDevice->getColorOrder();
 }
 
+unsigned int LedDeviceWrapper::getLedCount() const
+{
+	return _ledDevice->getLedCount();
+}
+
 void LedDeviceWrapper::handleComponentState(const hyperion::Components component, const bool state)
 {
 	if(component == hyperion::COMP_LEDDEVICE)
 	{
-		_ledDevice->setEnable(state);
-		_hyperion->setNewComponentState(hyperion::COMP_LEDDEVICE, _ledDevice->componentState());
-		_enabled = state;
+		emit setEnable(state);
+
+		//Get device's state, considering situations where it is not ready
+		bool deviceState = _ledDevice->componentState();
+		_hyperion->setNewComponentState(hyperion::COMP_LEDDEVICE, deviceState);
+		_enabled = deviceState;
 	}
 }
 
@@ -143,17 +154,18 @@ void LedDeviceWrapper::handleInternalEnableState(bool newState)
 
 void LedDeviceWrapper::stopDeviceThread()
 {
-	// turns the leds off
-	_ledDevice->switchOff();
+	// turns the leds off & stop refresh timers
+	emit closeLedDevice();
+	std::cout << "[hyperiond LedDeviceWrapper] <INFO> LedDevice \'" << QSTRING_CSTR(_ledDevice->getActiveDeviceType()) << "\' closed" << std::endl;
 
 	// get current thread
 	QThread* oldThread = _ledDevice->thread();
-	disconnect(oldThread, 0, 0, 0);
+	disconnect(oldThread, nullptr, nullptr, nullptr);
 	oldThread->quit();
 	oldThread->wait();
 	delete oldThread;
 
-	disconnect(_ledDevice, 0, 0, 0);
+	disconnect(_ledDevice, nullptr, nullptr, nullptr);
 	delete _ledDevice;
 	_ledDevice = nullptr;
 }

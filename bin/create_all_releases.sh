@@ -20,7 +20,7 @@ make_release()
 	make -j $(nproc)  || exit 1
 	#strip bin/*
 	make package -j $(nproc)
-	mv Hyperion.NG-* ../deploy/${RELEASE}
+	mv Hyperion-* ../deploy/${RELEASE}
 	cd ..
 	bin/create_release.sh . ${RELEASE}
 }

@@ -1,69 +1,92 @@
-#include <exception>
-
 #include "LedDeviceWS281x.h"
 
 LedDeviceWS281x::LedDeviceWS281x(const QJsonObject &deviceConfig)
 	: LedDevice()
 {
-	_deviceReady = init(deviceConfig);
+	_devConfig = deviceConfig;
+	_deviceReady = false;
 }
 
 LedDeviceWS281x::~LedDeviceWS281x()
 {
-	if (_deviceReady)
-	{
-		ws2811_fini(&_led_string);
-	}
-}
-
-bool LedDeviceWS281x::init(const QJsonObject &deviceConfig)
-{
-	LedDevice::init(deviceConfig);
-
-	QString whiteAlgorithm = deviceConfig["whiteAlgorithm"].toString("white_off");
-	_whiteAlgorithm            = RGBW::stringToWhiteAlgorithm(whiteAlgorithm);
-	Debug( _log, "whiteAlgorithm : %s", QSTRING_CSTR(whiteAlgorithm));
-	Debug( _log, "rgbw : %d", deviceConfig["rgbw"].toBool(false) );
-	if (_whiteAlgorithm == RGBW::INVALID)
-	{
-		Error(_log, "unknown whiteAlgorithm %s", QSTRING_CSTR(whiteAlgorithm));
-		return false;
-	}
-
-	_channel           = deviceConfig["pwmchannel"].toInt(0);
-	if (_channel != 0 && _channel != 1)
-	{
-		throw std::runtime_error("WS281x: invalid PWM channel; must be 0 or 1.");
-	}
-
-	memset(&_led_string, 0, sizeof(_led_string));
-	_led_string.freq   = deviceConfig["freq"].toInt(800000ul);
-	_led_string.dmanum = deviceConfig["dma"].toInt(5);
-	_led_string.channel[_channel].gpionum    = deviceConfig["gpio"].toInt(18);
-	_led_string.channel[_channel].count      = deviceConfig["leds"].toInt(256);
-	_led_string.channel[_channel].invert     = deviceConfig["invert"].toInt(0);
-	_led_string.channel[_channel].strip_type = (deviceConfig["rgbw"].toBool(false) ? SK6812_STRIP_GRBW : WS2811_STRIP_RGB);
-	_led_string.channel[_channel].brightness = 255;
-
-	_led_string.channel[!_channel].gpionum = 0;
-	_led_string.channel[!_channel].invert = _led_string.channel[_channel].invert;
-	_led_string.channel[!_channel].count = 0;
-	_led_string.channel[!_channel].brightness = 0;
-	_led_string.channel[!_channel].strip_type = WS2811_STRIP_RGB;
-
-	Debug( _log, "ws281x strip type : %d", _led_string.channel[_channel].strip_type );
-
-	if (ws2811_init(&_led_string) < 0)
-	{
-		throw std::runtime_error("Unable to initialize ws281x library.");
-	}
-	
-	return true;
 }
 
 LedDevice* LedDeviceWS281x::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceWS281x(deviceConfig);
+}
+
+bool LedDeviceWS281x::init(const QJsonObject &deviceConfig)
+{
+	QString errortext;
+
+	bool isInitOK = LedDevice::init(deviceConfig);
+	if ( isInitOK )
+	{
+
+		QString whiteAlgorithm = deviceConfig["whiteAlgorithm"].toString("white_off");
+
+		_whiteAlgorithm	= RGBW::stringToWhiteAlgorithm(whiteAlgorithm);
+		if (_whiteAlgorithm == RGBW::INVALID)
+		{
+			errortext = QString ("unknown whiteAlgorithm: %1").arg(whiteAlgorithm);
+			isInitOK = false;
+		}
+		else
+		{
+			_channel = deviceConfig["pwmchannel"].toInt(0);
+			if (_channel != 0 && _channel != 1)
+			{
+				errortext = "WS281x: invalid PWM channel; must be 0 or 1.";
+				isInitOK = false;
+			}
+			else
+			{
+				memset(&_led_string, 0, sizeof(_led_string));
+				_led_string.freq   = deviceConfig["freq"].toInt(800000ul);
+				_led_string.dmanum = deviceConfig["dma"].toInt(5);
+				_led_string.channel[_channel].gpionum    = deviceConfig["gpio"].toInt(18);
+				_led_string.channel[_channel].count      = deviceConfig["leds"].toInt(256);
+				_led_string.channel[_channel].invert     = deviceConfig["invert"].toInt(0);
+				_led_string.channel[_channel].strip_type = (deviceConfig["rgbw"].toBool(false) ? SK6812_STRIP_GRBW : WS2811_STRIP_RGB);
+				_led_string.channel[_channel].brightness = 255;
+
+				_led_string.channel[!_channel].gpionum = 0;
+				_led_string.channel[!_channel].invert = _led_string.channel[_channel].invert;
+				_led_string.channel[!_channel].count = 0;
+				_led_string.channel[!_channel].brightness = 0;
+				_led_string.channel[!_channel].strip_type = WS2811_STRIP_RGB;
+
+				Debug( _log, "ws281x strip type : %d", _led_string.channel[_channel].strip_type );
+
+				if (ws2811_init(&_led_string) < 0)
+				{
+					errortext = "Unable to initialize ws281x library.";
+					isInitOK = false;
+				}
+				else
+				{
+					isInitOK = true;
+				}
+			}
+		}
+	}
+
+	if ( !isInitOK)
+	{
+		this->setInError(errortext);
+	}
+	return isInitOK;
+}
+
+void LedDeviceWS281x::close()
+{
+	LedDevice::close();
+
+	if (_deviceReady)
+	{
+		ws2811_fini(&_led_string);
+	}
 }
 
 // Send new values down the LED chain

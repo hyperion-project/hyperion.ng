@@ -1,0 +1,21 @@
+root = true
+
+# Unix-style newlines with a newline ending every file
+[*]
+charset = utf-8
+trim_trailing_whitespace = true
+end_of_line = lf
+insert_final_newline = true
+
+# Tab indentation (no size specified)
+[Makefile]
+indent_style = tab
+
+[*.{c,h,cpp,hpp}]
+indent_style = tab
+indent_size = 4
+
+# js and webui
+[*.{ts,js,html}]
+indent_style = space
+indent_size = 2

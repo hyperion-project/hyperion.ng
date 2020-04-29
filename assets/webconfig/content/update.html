@@ -22,17 +22,41 @@ $(document).ready( function(error) {
 
 	if(callback)
 	{
+		var matches = 0;
 		for (var key in window.gitHubVersionList)
 		{
 
-			if(window.gitHubVersionList[key].name == null || (window.serverConfig.general.watchedVersionBranch == "Stable" && window.gitHubVersionList[key].prerelease == true))
+			if(window.gitHubVersionList[key].name == null ||  window.gitHubVersionList[key].tag_name.includes('rc') || (window.serverConfig.general.watchedVersionBranch == "Stable" && (window.gitHubVersionList[key].tag_name.includes('beta') || window.gitHubVersionList[key].tag_name.includes('alpha'))) || (window.serverConfig.general.watchedVersionBranch == "Beta" && window.gitHubVersionList[key].tag_name.includes('alpha')))
 			{
 				continue;
 			}
+			
+			var danger;
+			var type;
 
-			$('#versionlist').append('<div class="col-lg-6"><div class="panel panel-'+ (window.gitHubVersionList[key].prerelease == true ? "danger" : "default") +'"><div class="panel-heading"><i class="fa fa-television fa-fw"></i>Hyperion V'+window.gitHubVersionList[key].tag_name+'</div><div class="panel-body"><p><span style="font-weight:bold;">'+$.i18n('update_label_type') + '</span> ' + (window.gitHubVersionList[key].prerelease == true ? "Beta" : "Stable") + '</p><p><span style="font-weight:bold;">'+$.i18n('update_label_description')+'</span> '+window.gitHubVersionList[key].body+'</p><hr><a class="btn btn-primary" href="'+ window.gitHubVersionList[key].html_url +'" target="_blank"><i class="fa fa-list fa-fw"></i><span style="font-weight:bold;">'+$.i18n('update_button_changelog')+'</span></a><button type="button" class="btn btn-warning pull-right" ' + (window.gitHubVersionList[key].tag_name == window.currentVersion ? "disabled":"") + '><i class="fa fa-download fa-fw"></i>'+$.i18n('update_button_install')+'</button></div></div></div>');
+			if (window.gitHubVersionList[key].tag_name.includes('beta'))
+			{
+				danger = 'warning';
+				type = 'Beta'; 
+			}	
+			else if (window.gitHubVersionList[key].tag_name.includes('alpha'))
+			{
+				danger = 'danger';
+				type = 'Alpha';
+			}	
+			else
+			{
+				danger = 'default';
+				type = 'Stable';
+			}
+				
+			matches++;
+			$('#versionlist').append('<div class="col-lg-6"><div class="panel panel-'+ danger +'"><div class="panel-heading"><i class="fa fa-television fa-fw"></i>Hyperion V'+window.gitHubVersionList[key].tag_name+'</div><div class="panel-body"><p><span style="font-weight:bold;">'+$.i18n('update_label_type') + '</span> ' + type + '</p><p><span id="desc" style="font-weight:bold;">'+$.i18n('update_label_description')+'</span> '+DOMPurify.sanitize(marked(window.gitHubVersionList[key].body))+'</p><hr><a class="btn btn-primary" href="'+ window.gitHubVersionList[key].html_url +'" target="_blank"><i class="fa fa-list fa-fw"></i><span style="font-weight:bold;">'+$.i18n('update_button_changelog')+'</span></a><button type="button" class="btn btn-warning pull-right" ' + (window.gitHubVersionList[key].tag_name == window.currentVersion ? "disabled":"") + '><i class="fa fa-download fa-fw"></i>'+$.i18n('update_button_install')+'</button></div></div></div>');
 		}
 		$('#update_currver').append($.i18n('update_versreminder', currentVersion));
+		
+		if (matches == 0)
+			$('#versionlist').append($.i18n('update_no_updates_for_branch'));
 	}
 	else
 	{

@@ -1,0 +1,17 @@
+PullRequest:
+  opened: |
+    Hello @$AUTHOR :wave: 
+
+    I'm your friendly neighborhood bot and would like to say thank you for
+    submitting a pull request to Hyperion!
+
+    So that you and other users can test your changes more quickly,
+    you can find your workflow artifacts [here](https://github.com/$REPO_FULL_NAME/actions/runs/$RUN_ID).
+
+    If you make changes to your PR, i create a new link to your workflow artifacts.
+
+    Best regards,
+    Hyperion-Project
+  synchronize: |
+    [Here](https://github.com/$REPO_FULL_NAME/actions/runs/$RUN_ID) is your new link to your workflow artifacts.
+      

@@ -17,6 +17,10 @@ class Grabber;
 class GlobalSignals;
 class QTimer;
 
+/// List of Hyperion instances that requested screen capt
+static QList<int> GRABBER_SYS_CLIENTS;
+static QList<int> GRABBER_V4L_CLIENTS;
+
 ///
 /// This class will be inherted by FramebufferWrapper and others which contains the real capture interface
 ///
@@ -28,15 +32,50 @@ public:
 
 	virtual ~GrabberWrapper();
 
+	static GrabberWrapper* instance;
+	static GrabberWrapper* getInstance(){ return instance; }
+
 	///
 	/// Starts the grabber wich produces led values with the specified update rate
 	///
 	virtual bool start();
 
 	///
+	/// Starts maybe the grabber wich produces led values with the specified update rate
+	///
+	virtual void tryStart();
+
+	///
 	/// Stop grabber
 	///
 	virtual void stop();
+
+	///
+	/// @brief Get a list of all available V4L devices
+	/// @return List of all available V4L devices on success else empty List
+	///
+	virtual QStringList getV4L2devices();
+
+	///
+	/// @brief Get the V4L device name
+	/// @param devicePath The device path
+	/// @return The name of the V4L device on success else empty String
+	///
+	virtual QString getV4L2deviceName(QString devicePath);
+
+	///
+	/// @brief Get a list of supported device resolutions
+	/// @param devicePath The device path
+	/// @return List of resolutions on success else empty List
+	///
+	virtual QStringList getResolutions(QString devicePath);
+
+	///
+	/// @brief Get a list of supported device framerates
+	/// @param devicePath The device path
+	/// @return List of framerates on success else empty List
+	///
+	virtual QStringList getFramerates(QString devicePath);
 
 	static QStringList availableGrabbers();
 
@@ -94,8 +133,12 @@ signals:
 	///
 	void systemImage(const QString& name, const Image<ColorRgb>& image);
 
-protected:
+private slots:
+	/// @brief Handle a source request event from Hyperion.
+	/// Will start and stop grabber based on active listeners count
+	void handleSourceRequest(const hyperion::Components& component, const int hyperionInd, const bool listen);
 
+protected:
 	QString _grabberName;
 
 	/// The timer for generating events with the specified update rate

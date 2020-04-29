@@ -74,6 +74,13 @@ SettingsManager::SettingsManager(const quint8& instance, QObject* parent)
 			dbConfig[key] = doc.object();
 	}
 
+	// possible data upgrade steps to prevent data loss
+	if(handleConfigUpgrade(dbConfig))
+	{
+		saveSettings(dbConfig, true);
+	}
+
+
 	// validate full dbconfig against schema, on error we need to rewrite entire table
 	QJsonSchemaChecker schemaChecker;
 	schemaChecker.setSchema(schemaJson);
@@ -98,7 +105,7 @@ SettingsManager::SettingsManager(const quint8& instance, QObject* parent)
 	else
 		_qconfig = dbConfig;
 
-	Debug(_log,"Settings database initialized")
+	Debug(_log,"Settings database initialized");
 }
 
 const QJsonDocument SettingsManager::getSetting(const settings::type& type)
@@ -108,6 +115,9 @@ const QJsonDocument SettingsManager::getSetting(const settings::type& type)
 
 bool SettingsManager::saveSettings(QJsonObject config, const bool& correct)
 {
+	// optional data upgrades e.g. imported legacy/older configs
+	// handleConfigUpgrade(config);
+
 	// we need to validate data against schema
 	QJsonSchemaChecker schemaChecker;
 	schemaChecker.setSchema(schemaJson);
@@ -155,4 +165,67 @@ bool SettingsManager::saveSettings(QJsonObject config, const bool& correct)
 		}
 	}
 	return true;
+}
+
+bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
+{
+	bool migrated = false;
+
+	// LED LAYOUT UPGRADE
+	// from { hscan: { minimum: 0.2, maximum: 0.3 }, vscan: { minimum: 0.2, maximumn: 0.3 } }
+	// from { h: { min: 0.2, max: 0.3 }, v: { min: 0.2, max: 0.3 } }
+	// to   { hmin: 0.2, hmax: 0.3, vmin: 0.2, vmax: 0.3}
+	if(config.contains("leds"))
+	{
+		const QJsonArray ledarr = config["leds"].toArray();
+		const QJsonObject led = ledarr[0].toObject();
+
+		if(led.contains("hscan") || led.contains("h"))
+		{
+			const bool whscan = led.contains("hscan");
+			QJsonArray newLedarr;
+
+			for(const auto & entry : ledarr)
+			{
+				const QJsonObject led = entry.toObject();
+				QJsonObject hscan;
+				QJsonObject vscan;
+				QJsonValue hmin;
+				QJsonValue hmax;
+				QJsonValue vmin;
+				QJsonValue vmax;
+				QJsonObject nL;
+
+				if(whscan)
+				{
+					hscan = led["hscan"].toObject();
+					vscan = led["vscan"].toObject();
+					hmin = hscan["minimum"];
+					hmax = hscan["maximum"];
+					vmin = vscan["minimum"];
+					vmax = vscan["maximum"];
+				}
+				else
+				{
+					hscan = led["h"].toObject();
+					vscan = led["v"].toObject();
+					hmin = hscan["min"];
+					hmax = hscan["max"];
+					vmin = vscan["min"];
+					vmax = vscan["max"];
+				}
+				// append to led object
+				nL["hmin"] = hmin;
+				nL["hmax"] = hmax;
+				nL["vmin"] = vmin;
+				nL["vmax"] = vmax;
+				newLedarr.append(nL);
+			}
+			// replace
+			config["leds"] = newLedarr;
+			migrated = true;
+			Debug(_log,"LED Layout migrated");
+		}
+	}
+	return migrated;
 }
