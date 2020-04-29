@@ -65,6 +65,8 @@ public:
 
 	bool getSignalDetectionEnabled() { return _signalDetectionEnabled; }
 
+	bool getGrabberFixEnabled() { return _grabberFixEnabled; }
+
 	int grabFrame(Image<ColorRgb> &);
 
 	///
@@ -109,6 +111,12 @@ public:
 	/// @brief overwrite Grabber.h implementation
 	///
 	bool setWidthHeight(int width, int height) override;
+
+	virtual void setGrabberFixEnable(bool enable);
+	virtual void setGrabberFixValues(
+					int width,
+					int height,
+					QString vtype);
 
 	///
 	/// @brief overwrite Grabber.h implementation
@@ -257,6 +265,13 @@ private:
 	bool _initialized;
 	bool _deviceAutoDiscoverEnabled;
 
+	// grabberfix
+	bool    _grabberFixEnabled;
+	int		_gf_width;
+	int		_gf_height;
+	QString		_gf_vtype;
+
 protected:
 	void enumFrameIntervals(QStringList &framerates, int fileDescriptor, int pixelformat, int width, int height);
+
 };

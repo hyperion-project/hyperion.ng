@@ -1,0 +1,20 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["platform"]
+		},
+		"subcommand" : {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["poweroff"]
+		},
+		"tan" : {
+			"type" : "integer"
+		}
+	},
+	"additionalProperties": false
+}

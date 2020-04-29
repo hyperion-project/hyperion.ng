@@ -56,6 +56,10 @@ void V4L2Wrapper::setSignalDetectionOffset(double verticalMin, double horizontal
 {
 	_grabber.setSignalDetectionOffset(verticalMin, horizontalMin, verticalMax, horizontalMax);
 }
+void V4L2Wrapper::setGrabberFixValues(int width, int height, QString vtype)
+{
+	_grabber.setGrabberFixValues(width, height, vtype);
+}
 
 void V4L2Wrapper::newFrame(const Image<ColorRgb> &image)
 {
@@ -81,6 +85,15 @@ void V4L2Wrapper::setSignalDetectionEnable(bool enable)
 bool V4L2Wrapper::getSignalDetectionEnable()
 {
 	return _grabber.getSignalDetectionEnabled();
+}
+void V4L2Wrapper::setGrabberFixEnable(bool enable)
+{
+	_grabber.setGrabberFixEnable(enable);
+}
+
+bool V4L2Wrapper::getGrabberFixEnable()
+{
+	return _grabber.getGrabberFixEnabled();
 }
 
 void V4L2Wrapper::setDeviceVideoStandard(QString device, VideoStandard videoStandard)

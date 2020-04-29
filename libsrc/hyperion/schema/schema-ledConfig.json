@@ -74,16 +74,71 @@
 					"minimum" : 0,
 					"default" : 0
 				},
-				"edgegap" :
-				{
-					"type" : "integer",
-					"minimum" : 0,
-					"maximum" : 50,
-					"default" : 0
-				}
-			},
-			"additionalProperties" : false
-		},
+        "edgegap" :
+        {
+          "type" : "integer",
+          "minimum" : 0,
+          "maximum" : 50,
+          "default" : 0
+        },
+        "ptlh" :
+        {
+          "type" : "integer",
+          "minimum" : 0,
+          "maximum" : 100,
+          "default" : 0
+        },
+        "ptlv" :
+        {
+          "type" : "integer",
+          "minimum" : 0,
+          "maximum" : 100,
+          "default" : 0
+        },
+        "ptrh" :
+        {
+          "type" : "integer",
+          "minimum" : 0,
+          "maximum" : 100,
+          "default" : 0
+        },
+        "ptrv" :
+        {
+          "type" : "integer",
+          "minimum" : 0,
+          "maximum" : 100,
+          "default" : 0
+        },
+        "pblh" :
+        {
+          "type" : "integer",
+          "minimum" : 0,
+          "maximum" : 100,
+          "default" : 0
+        },
+        "pblv" :
+        {
+          "type" : "integer",
+          "minimum" : 0,
+          "maximum" : 100,
+          "default" : 0
+        },
+        "pbrh" :
+        {
+          "type" : "integer",
+          "minimum" : 0,
+          "maximum" : 100,
+          "default" : 0
+        },
+        "pbrv" :
+        {
+          "type" : "integer",
+          "minimum" : 0,
+          "maximum" : 100,
+          "default" : 0
+          },
+          "additionalProperties" : false
+        },
 		"matrix" :
 		{
 			"type":"object",
