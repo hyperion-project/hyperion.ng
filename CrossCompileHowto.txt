@@ -63,7 +63,7 @@ echo $HOME/crosscompile/Qt5
 ##### End of Qt5 specific ######
 
 # get the Hyperion sources
-git clone --recursive https://github.com/SputnikElf/hyperion.ng.git "$HYPERION_DIR"
+git clone --recursive https://github.com/hyperion-project/hyperion.ng.git "$HYPERION_DIR"
 
 # get requried submodules
 cd "$HYPERION_DIR"
