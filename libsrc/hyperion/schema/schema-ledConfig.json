@@ -1,177 +1,149 @@
 {
-	"type" : "object",
-	"properties" :
-	{
-		"classic" :
-		{
-			"type":"object",
-			"required" : true,
-			"properties":
-			{
-				"top" :
-				{
-					"type" : "integer",
-					"minimum" : 0,
-					"default" : 8
+	"type": "object",
+	"properties": {
+		"classic": {
+			"type": "object",
+			"required": true,
+			"properties": {
+				"top": {
+					"type": "integer",
+					"minimum": 0,
+					"default": 8
 				},
-				"bottom" :
-				{
-					"type" : "integer",
-					"minimum" : 0,
-					"default" : 8
+				"bottom": {
+					"type": "integer",
+					"minimum": 0,
+					"default": 8
 				},
-				"left" :
-				{
-					"type" : "integer",
-					"minimum" : 0,
-					"default" : 5
+				"left": {
+					"type": "integer",
+					"minimum": 0,
+					"default": 5
 				},
-				"right" :
-				{
-					"type" : "integer",
-					"minimum" : 0,
-					"default" : 5
+				"right": {
+					"type": "integer",
+					"minimum": 0,
+					"default": 5
 				},
-				"glength" :
-				{
-					"type" : "integer",
-					"minimum" : 0,
-					"default" : 0
+				"glength": {
+					"type": "integer",
+					"minimum": 0,
+					"default": 0
 				},
-				"gpos" :
-				{
-					"type" : "integer",
-					"minimum" : 0,
-					"default" : 0
+				"gpos": {
+					"type": "integer",
+					"minimum": 0,
+					"default": 0
 				},
-				"position" :
-				{
-					"type" : "integer",
-					"default" : 0
+				"position": {
+					"type": "integer",
+					"default": 0
 				},
-				"reverse" :
-				{
-					"type" : "boolean",
-					"default" : false
+				"reverse": {
+					"type": "boolean",
+					"default": false
 				},
-				"hdepth" :
-				{
-					"type" : "integer",
-					"minimum" : 1,
-					"maximum" : 100,
-					"default" : 8
+				"hdepth": {
+					"type": "integer",
+					"minimum": 1,
+					"maximum": 100,
+					"default": 8
 				},
-				"vdepth" :
-				{
-					"type" : "integer",
-					"minimum" : 1,
-					"maximum" : 100,
-					"default" : 5
+				"vdepth": {
+					"type": "integer",
+					"minimum": 1,
+					"maximum": 100,
+					"default": 5
 				},
-				"overlap" :
-				{
-					"type" : "integer",
-					"minimum" : 0,
-					"default" : 0
+				"overlap": {
+					"type": "integer",
+					"minimum": 0,
+					"default": 0
 				},
-        "edgegap" :
-        {
-          "type" : "integer",
-          "minimum" : 0,
-          "maximum" : 50,
-          "default" : 0
-        },
-        "ptlh" :
-        {
-          "type" : "integer",
-          "minimum" : 0,
-          "maximum" : 100,
-          "default" : 0
-        },
-        "ptlv" :
-        {
-          "type" : "integer",
-          "minimum" : 0,
-          "maximum" : 100,
-          "default" : 0
-        },
-        "ptrh" :
-        {
-          "type" : "integer",
-          "minimum" : 0,
-          "maximum" : 100,
-          "default" : 0
-        },
-        "ptrv" :
-        {
-          "type" : "integer",
-          "minimum" : 0,
-          "maximum" : 100,
-          "default" : 0
-        },
-        "pblh" :
-        {
-          "type" : "integer",
-          "minimum" : 0,
-          "maximum" : 100,
-          "default" : 0
-        },
-        "pblv" :
-        {
-          "type" : "integer",
-          "minimum" : 0,
-          "maximum" : 100,
-          "default" : 0
-        },
-        "pbrh" :
-        {
-          "type" : "integer",
-          "minimum" : 0,
-          "maximum" : 100,
-          "default" : 0
-        },
-        "pbrv" :
-        {
-          "type" : "integer",
-          "minimum" : 0,
-          "maximum" : 100,
-          "default" : 0
-          },
-          "additionalProperties" : false
-        },
-		"matrix" :
-		{
-			"type":"object",
-			"required" : true,
-			"properties":
-			{
-				"ledshoriz" :
-				{
-					"type" : "integer",
-					"minimum" : 0,
-					"maximum" : 50,
-					"default" : 0
+				"edgegap": {
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 50,
+					"default": 0
 				},
-				"ledsvert" :
-				{
-					"type" : "integer",
-					"minimum" : 0,
-					"maximum" : 50,
-					"default" : 0
+				"ptlh": {
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 100,
+					"default": 0
 				},
-				"cabling" :
-					{
-					"type": "string",
-					"enum" : ["snake", "parallel"]
-					},
-				"start" :
-					{
-					"type": "string",
-					"enum" : ["top-left", "top-right", "bottom-left", "bottom-right"]
-					}
+				"ptlv": {
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 100,
+					"default": 0
+				},
+				"ptrh": {
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 100,
+					"default": 0
+				},
+				"ptrv": {
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 100,
+					"default": 0
+				},
+				"pblh": {
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 100,
+					"default": 0
+				},
+				"pblv": {
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 100,
+					"default": 0
+				},
+				"pbrh": {
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 100,
+					"default": 0
+				},
+				"pbrv": {
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 100,
+					"default": 0
+				}
 			},
-			"additionalProperties" : false
+			"additionalProperties": false
+		},
+		"matrix": {
+			"type": "object",
+			"required": true,
+			"properties": {
+				"ledshoriz": {
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 50,
+					"default": 0
+				},
+				"ledsvert": {
+					"type": "integer",
+					"minimum": 0,
+					"maximum": 50,
+					"default": 0
+				},
+				"cabling": {
+					"type": "string",
+					"enum": ["snake", "parallel"]
+				},
+				"start": {
+					"type": "string",
+					"enum": ["top-left", "top-right", "bottom-left", "bottom-right"]
+				}
+			},
+			"additionalProperties": false
 		}
 	},
-	"additionalProperties" : true
+	"additionalProperties": true
 }
