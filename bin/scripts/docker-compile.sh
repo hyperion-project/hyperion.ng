@@ -3,9 +3,11 @@
 DOCKER="docker"
 # Git repo url of Hyperion
 GIT_REPO_URL="https://github.com/hyperion-project/hyperion.ng.git"
+# GitHub package registry url
+GPR_URL="docker.pkg.github.com/hyperion-project/hyperion.ng"
 # cmake build type
 BUILD_TYPE="Release"
-# the image tag at hyperionproject/hyperion-ci
+# the docker image name at GitHub package registry
 BUILD_TARGET="amd64"
 # build packages (.deb .zip ...)
 BUILD_PACKAGES=true
@@ -51,10 +53,10 @@ echo "########################################################
 # These are possible arguments to modify the script behaviour with their default values
 #
 # docker-compile.sh -h	            # Show this help message
-# docker-compile.sh -t amd64        # The docker tag, one of amd64 | i386 | armv6hf | armv7hf | rpi-raspbian-stretch | rpi-raspbian-buster
+# docker-compile.sh -t amd64        # The docker tag, one of amd64 | armv6hf | armv7hf | rpi-raspbian-stretch | rpi-raspbian-buster
 # docker-compile.sh -b Release      # cmake Release or Debug build
 # docker-compile.sh -p true         # If true build packages with CPack
-# More informations to docker tags at: https://hub.docker.com/r/hyperionproject/hyperion-ci/"
+# More informations to docker tags at: https://github.com/hyperion-project/hyperion.ng/tree/docker-ci/"
 }
 
 while getopts t:b:p:h option
@@ -94,7 +96,7 @@ echo "---> Startup docker..."
 $DOCKER run --rm \
 	-v "${SCRIPT_PATH}/deploy:/deploy" \
 	-v "${SCRIPT_PATH}/hyperion:/source:ro" \
-	hyperionproject/hyperion-ci:$BUILD_TARGET \
+	$GPR_URL/$BUILD_TARGET:latest \
 	/bin/bash -c "mkdir hyperion && cp -r /source/. /hyperion &&
 	cd /hyperion && mkdir build && cd build &&
 	cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. || exit 2 &&
