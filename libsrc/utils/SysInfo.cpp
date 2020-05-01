@@ -15,7 +15,7 @@ SysInfo::SysInfo()
 	_sysinfo.productType    = QSysInfo::productType();
 	_sysinfo.productVersion = QSysInfo::productVersion();
 	_sysinfo.prettyName     = QSysInfo::prettyProductName();
-	_sysinfo.hostName       = QSysInfo::machineHostName();
+	_sysinfo.hostName       = QHostInfo::localHostName();
 	_sysinfo.domainName     = QHostInfo::localDomainName();
 }
 
@@ -27,6 +27,6 @@ SysInfo::HyperionSysInfo SysInfo::get()
 {
 	if ( SysInfo::_instance == nullptr )
 		SysInfo::_instance = new SysInfo();
-	
+
 	return SysInfo::_instance->_sysinfo;
 }
