@@ -21,18 +21,20 @@ IF(DEB_BUILDER_FOUND)
 	SET ( CPACK_GENERATOR ${CPACK_GENERATOR} "DEB")
 ENDIF()
 
+# Overwrite CPACK_SYSTEM_NAME for mac (visual)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    if(${CMAKE_HOST_APPLE})
+        set(CMAKE_SYSTEM_NAME "macOS")
+    endif()
+endif()
+
 # Apply to all packages, some of these can be overwritten with generator specific content
 # https://cmake.org/cmake/help/v3.5/module/CPack.html
 
 SET ( CPACK_PACKAGE_NAME "Hyperion" )
 SET ( CPACK_PACKAGE_DESCRIPTION_SUMMARY "Hyperion is an open source ambient light implementation" )
 SET ( CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.md" )
-
-IF ( "${PLATFORM}" STREQUAL "rpi" )
-	SET ( CPACK_PACKAGE_FILE_NAME "Hyperion-${HYPERION_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}-rpi")
-ELSE()
-	SET ( CPACK_PACKAGE_FILE_NAME "Hyperion-${HYPERION_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
-ENDIF()
+SET ( CPACK_PACKAGE_FILE_NAME "Hyperion-${HYPERION_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 
 SET ( CPACK_PACKAGE_CONTACT "packages@hyperion-project.org")
 SET ( CPACK_PACKAGE_VENDOR "hyperion-project")
