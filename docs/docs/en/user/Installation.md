@@ -1,5 +1,5 @@
 # Install Hyperion
-Hyperion supports various platforms for installation, as package or as a portable .zip.
+Hyperion supports various platforms for installation, as package or portable .zip.
 
 ## Requirements
 
@@ -7,12 +7,12 @@ Hyperion supports various platforms for installation, as package or as a portabl
   * Raspberry Pi (See also [HyperBian](/en/user/HyperBian))
   * Debian 9 | Ubuntu 16.04 or higher
   * Mac OS
-  * OpenELEC, LibreELEC
+  * Windows <Badge text="EXPERIMENTAL" type="warning" vertical="middle"/>
 
 **Please note that some arm devices have limited support in terms of direct capturing**
 
 ### Supported Browsers
-Hyperion will be configured and controlled trough a web configuration. Also for mobile browsers.
+Hyperion will be configured and controlled trough a web interface.
   * Chrome 47+
   * Firefox 43+
   * Opera 34+
@@ -29,23 +29,27 @@ Intenet Explorer is not supported
   * A script installation for read-only systems like OpenELEC, LibreELEC.
   * Mac OSX - currently just a zip file with the binary
 
+### Windows <Badge text="EXPERIMENTAL" type="warning" vertical="middle"/>
+Download the Windows installer from the [Release page](https://github.com/hyperion-project/hyperion.ng/releases) and follow the setup \
+Now start it from your start menu.
+
 ### Debian/Ubuntu
 For Debian/Ubuntu we provide a .deb file. A one click installation package that does the job for you. \
-Download the file here: \
+Download the file from the [Release page](https://github.com/hyperion-project/hyperion.ng/releases) \
 Install from commandline by typing. \
-`sudo apt install ./Hyperion-2.0.0-Linux-x86_64-x11.deb` \
+`sudo apt install ./Hyperion-2.0.0-Linux-x86_64.deb` \
 Hyperion can be now started from your start menu.
 
 ### Fedora
 For Fedora we provide a .rpm file. A one click installation package that does the job for you. \
-Download the file here: \
+Download the file from the [Release page](https://github.com/hyperion-project/hyperion.ng/releases) \
 Install from commandline by typing. \
-`sudo dnf install ./Hyperion-2.0.0-Linux-x86_64-x11.rpm` \
+`sudo dnf install ./Hyperion-2.0.0-Linux-x86_64.rpm` \
 Hyperion can be now started from your start menu.
 
 ## Uninstall Hyperion
 On Debian/Ubuntu you can remove Hyperion with this command \
-`sudo apt remove hyperion*` \
+`sudo apt remove hyperion` \
 
 ### Hyperion user data
 Hyperion stores user data inside your home directory (folder `.hyperion`).
