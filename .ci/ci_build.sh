@@ -40,10 +40,11 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 	mkdir ${CI_BUILD_DIR}/deploy
 
 	# run docker
+	# TODO change this line to: docker.pkg.github.com/hyperion-project/hyperion.ng/$DOCKER_TAG:latest \
 	docker run --rm \
 		-v "${CI_BUILD_DIR}/deploy:/deploy" \
 		-v "${CI_BUILD_DIR}:/source:ro" \
-		hyperionproject/hyperion-ci:$DOCKER_TAG \ # After the first PR has been merged into the docker-ci branch, change this line to: docker.pkg.github.com/hyperion-project/hyperion.ng/$DOCKER_TAG:latest \
+		hyperionproject/hyperion-ci:$DOCKER_TAG \
 		/bin/bash -c "mkdir hyperion && cp -r source/. /hyperion &&
 		cd /hyperion && mkdir build && cd build &&
 		cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DDOCKER_PLATFORM=${DOCKER_TAG} ../ || exit 2 &&
