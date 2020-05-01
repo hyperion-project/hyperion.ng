@@ -28,10 +28,10 @@ SET ( CPACK_PACKAGE_NAME "Hyperion" )
 SET ( CPACK_PACKAGE_DESCRIPTION_SUMMARY "Hyperion is an open source ambient light implementation" )
 SET ( CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.md" )
 
-IF ( NOT DEFINED DOCKER_PLATFORM )
-	SET ( CPACK_PACKAGE_FILE_NAME "Hyperion-${HYPERION_VERSION}-${CMAKE_SYSTEM_NAME}")
+IF ( "${PLATFORM}" STREQUAL "rpi" )
+	SET ( CPACK_PACKAGE_FILE_NAME "Hyperion-${HYPERION_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}-rpi")
 ELSE()
-	SET ( CPACK_PACKAGE_FILE_NAME "Hyperion-${HYPERION_VERSION}-${CMAKE_SYSTEM_NAME}-${DOCKER_PLATFORM}")
+	SET ( CPACK_PACKAGE_FILE_NAME "Hyperion-${HYPERION_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 ENDIF()
 
 SET ( CPACK_PACKAGE_CONTACT "packages@hyperion-project.org")
@@ -47,10 +47,14 @@ SET ( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE" )
 SET ( CPACK_PACKAGE_EXECUTABLES "hyperiond;Hyperion" )
 SET ( CPACK_CREATE_DESKTOP_LINKS "hyperiond;Hyperion" )
 
+# Define the install prefix path for cpack
+IF ( UNIX )
+	#SET ( CPACK_PACKAGING_INSTALL_PREFIX "share/hyperion")
+ENDIF()
+
 # Specific CPack Package Generators
 # https://cmake.org/Wiki/CMake:CPackPackageGenerators
 # .deb files for apt
-
 SET ( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/preinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/postinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/prerm" )
 SET ( CPACK_DEBIAN_PACKAGE_SECTION "Miscellaneous" )
 
@@ -59,7 +63,6 @@ SET ( CPACK_DEBIAN_PACKAGE_SECTION "Miscellaneous" )
 SET ( CPACK_RPM_PACKAGE_RELEASE 1)
 SET ( CPACK_RPM_PACKAGE_LICENSE "MIT")
 SET ( CPACK_RPM_PACKAGE_GROUP "Applications")
-# Notes: This is a dependency list for Fedora 27, different .rpm OSes use different names for their deps
 SET ( CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/preinst" )
 SET ( CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/postinst" )
 SET ( CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/prerm" )
@@ -110,25 +113,34 @@ SET ( CPACK_NSIS_URL_INFO_ABOUT "https://www.hyperion-project.org")
 # define the install components
 # See also https://gitlab.kitware.com/cmake/community/-/wikis/doc/cpack/Component-Install-With-CPack
 # and https://cmake.org/cmake/help/latest/module/CPackComponent.html
-if(NOT WIN32)
-	SET ( CPACK_COMPONENTS_ALL "${PLATFORM}" )
-else()
-	SET ( CPACK_COMPONENTS_GROUPING "ALL_COMPONENTS_IN_ONE")
-	# Components base
-	SET ( CPACK_COMPONENTS_ALL "Hyperion" "hyperion_remote" )
-	# optional compiled
-	if(ENABLE_QT)
-		SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_qt" )
-	endif()
+SET ( CPACK_COMPONENTS_GROUPING "ALL_COMPONENTS_IN_ONE")
+# Components base
+SET ( CPACK_COMPONENTS_ALL "Hyperion" "hyperion_remote" )
+# optional compiled
+if(ENABLE_QT)
+	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_qt" )
+endif()
+if(ENABLE_AMLOGIC)
+	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_aml" )
+endif()
+if(ENABLE_V4L2)
+	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_v4l2" )
+endif()
+if(ENABLE_X11)
+	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_x11" )
+endif()
+if(ENABLE_DISPMANX)
+	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_dispmanx" )
+endif()
+if(ENABLE_FB)
+	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_framebuffer" )
+endif()
+if(ENABLE_OSX)
+	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_osx" )
 endif()
 
-SET ( CPACK_COMPONENT_${PLATFORM}_ARCHIVE_FILE "${CPACK_PACKAGE_FILE_NAME}" )
 SET ( CPACK_ARCHIVE_COMPONENT_INSTALL ON )
-
-SET ( CPACK_DEBIAN_${PLATFORM}_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}.deb" )
 SET ( CPACK_DEB_COMPONENT_INSTALL ON )
-
-SET ( CPACK_RPM_${PLATFORM}_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}.rpm" )
 SET ( CPACK_RPM_COMPONENT_INSTALL ON )
 
 SET ( CPACK_STRIP_FILES ON )
@@ -136,35 +148,88 @@ SET ( CPACK_STRIP_FILES ON )
 # no code after following line!
 INCLUDE ( CPack )
 
-if(WIN32)
-	cpack_add_install_type(Full DISPLAY_NAME "Full")
-	cpack_add_install_type(Min DISPLAY_NAME "Minimal")
-	cpack_add_component_group(Runtime EXPANDED DESCRIPTION "Hyperion runtime and hyperion-remote commandline tool")
-	cpack_add_component_group(Screencapture EXPANDED DESCRIPTION "Standalone Screencapture commandline programs")
-	# Components base
-	cpack_add_component(Hyperion
-		DISPLAY_NAME "Hyperion"
-		DESCRIPTION "Hyperion runtime"
-		INSTALL_TYPES Full Min
-		GROUP Runtime
-		REQUIRED
-	)
-	cpack_add_component(hyperion_remote
-		DISPLAY_NAME "Hyperion Remote"
-		DESCRIPTION "Hyperion remote cli tool"
+cpack_add_install_type(Full DISPLAY_NAME "Full")
+cpack_add_install_type(Min DISPLAY_NAME "Minimal")
+cpack_add_component_group(Runtime EXPANDED DESCRIPTION "Hyperion runtime and hyperion-remote commandline tool")
+cpack_add_component_group(Screencapture EXPANDED DESCRIPTION "Standalone Screencapture commandline programs")
+# Components base
+cpack_add_component(Hyperion
+	DISPLAY_NAME "Hyperion"
+	DESCRIPTION "Hyperion runtime"
+	INSTALL_TYPES Full Min
+	GROUP Runtime
+	REQUIRED
+)
+cpack_add_component(hyperion_remote
+	DISPLAY_NAME "Hyperion Remote"
+	DESCRIPTION "Hyperion remote cli tool"
+	INSTALL_TYPES Full
+	GROUP Runtime
+	DEPENDS Hyperion
+)
+
+# optional compiled
+if(ENABLE_QT)
+	cpack_add_component(hyperion_qt
+		DISPLAY_NAME "Qt Standalone Screencap"
+		DESCRIPTION "Qt based standalone screen capture"
 		INSTALL_TYPES Full
-		GROUP Runtime
+		GROUP Screencapture
 		DEPENDS Hyperion
 	)
-
-	# optional compiled
-	if(ENABLE_QT)
-		cpack_add_component(hyperion_qt
-			DISPLAY_NAME "Qt Standalone Screencap"
-			DESCRIPTION "Qt based standalone screen capture"
-			INSTALL_TYPES Full
-			GROUP Screencapture
-			DEPENDS Hyperion
-		)
-	endif()
 endif()
+if(ENABLE_AMLOGIC)
+	cpack_add_component(hyperion_aml
+		DISPLAY_NAME "Amlogic Standalone Screencap"
+		DESCRIPTION "Amlogic based standalone screen capture"
+		INSTALL_TYPES Full
+		GROUP Screencapture
+		DEPENDS Hyperion
+	)
+endif()
+if(ENABLE_V4L2)
+	cpack_add_component(hyperion_v4l2
+		DISPLAY_NAME "V4l2 Standalone Screencap"
+		DESCRIPTION "Video for Linux 2 based standalone screen capture"
+		INSTALL_TYPES Full
+		GROUP Screencapture
+		DEPENDS Hyperion
+	)
+endif()
+if(ENABLE_X11)
+	cpack_add_component(hyperion_x11
+		DISPLAY_NAME "X11 Standalone Screencap"
+		DESCRIPTION "X11 based standalone screen capture"
+		INSTALL_TYPES Full
+		GROUP Screencapture
+		DEPENDS Hyperion
+	)
+endif()
+if(ENABLE_DISPMANX)
+	cpack_add_component(hyperion_dispmanx
+		DISPLAY_NAME "RPi dispmanx Standalone Screencap"
+		DESCRIPTION "Raspbery Pi dispmanx based standalone screen capture"
+		INSTALL_TYPES Full
+		GROUP Screencapture
+		DEPENDS Hyperion
+	)
+endif()
+if(ENABLE_FB)
+	cpack_add_component(hyperion_framebuffer
+		DISPLAY_NAME "Framebuffer Standalone Screencap"
+		DESCRIPTION "Framebuffer based standalone screen capture"
+		INSTALL_TYPES Full
+		GROUP Screencapture
+		DEPENDS Hyperion
+	)
+endif()
+if(ENABLE_OSX)
+	cpack_add_component(hyperion_osx
+		DISPLAY_NAME "Mac osx Standalone Screencap"
+		DESCRIPTION "Mac osx based standalone screen capture"
+		INSTALL_TYPES Full
+		GROUP Screencapture
+		DEPENDS Hyperion
+	)
+endif()
+

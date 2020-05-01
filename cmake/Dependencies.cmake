@@ -1,4 +1,4 @@
-macro(DeployUnix TARGET INSTALL_COMPONENT)
+macro(DeployUnix TARGET)
 	set(TARGET_FILE ${CMAKE_BINARY_DIR}/bin/${TARGET})
 	set(SYSTEM_LIBS_SKIP
 		"libc"
@@ -109,7 +109,7 @@ macro(DeployUnix TARGET INSTALL_COMPONENT)
 						install(
 							FILES ${file}
 							DESTINATION "share/hyperion/lib/${PLUGIN}"
-							COMPONENT "${INSTALL_COMPONENT}"
+							COMPONENT "Hyperion"
 						)
 					endforeach()
 				endif()
@@ -121,7 +121,7 @@ macro(DeployUnix TARGET INSTALL_COMPONENT)
 		install(
 			FILES "${CMAKE_BINARY_DIR}/qt.conf"
 			DESTINATION "share/hyperion/bin"
-			COMPONENT "${INSTALL_COMPONENT}"
+			COMPONENT "Hyperion"
 		)
 
 		# Copy dependencies to 'share/hyperion/lib'
@@ -129,7 +129,7 @@ macro(DeployUnix TARGET INSTALL_COMPONENT)
 			install(
 				FILES ${PREREQUISITE_LIB}
 				DESTINATION "share/hyperion/lib"
-				COMPONENT "${INSTALL_COMPONENT}"
+				COMPONENT "Hyperion"
 			)
 		endforeach()
 
@@ -157,7 +157,7 @@ macro(DeployUnix TARGET INSTALL_COMPONENT)
 			install(
 				DIRECTORY ${PYTHON_MODULES_DIR}/
 				DESTINATION "share/hyperion/lib/python"
-				COMPONENT "${INSTALL_COMPONENT}"
+				COMPONENT "Hyperion"
 			)
 		endif(PYTHON_MODULES_DIR)
 	else()
@@ -172,7 +172,7 @@ macro(DeployUnix TARGET INSTALL_COMPONENT)
 	endif()
 endmacro()
 
-macro(DeployWindows TARGET INSTALL_COMPONENT)
+macro(DeployWindows TARGET)
 	# TODO Find out what build type it is
 	set(TARGET_FILE ${CMAKE_BINARY_DIR}/bin/Release/${TARGET}.exe)
 
