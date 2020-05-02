@@ -3,10 +3,7 @@ You can participate in the translation.
 [![Join Translation](https://img.shields.io/badge/POEditor-translate-green.svg)](https://poeditor.com/join/project/Y4F6vHRFjA)
 
 ## Development Setup
-
-> TODO: Be more specific, provide a Visual Studio Code workspace with plugins and pre configured build tasks
-
-Get Hyperion to compile: [Compile HowTo](CompileHowTo.md)
+You may already have an editor or IDE you want to use. In any case we provide a pre configured [Visual Studio Code](#visual-studio-code) setup.
 
 ## Workflow
 
@@ -121,3 +118,15 @@ The amount of "%" mus match with following arguments
 ## Commit specification
 
 > TODO
+
+## Visual Studio Code
+**We assume that you sucessfully compiled Hyperion with the [Compile HowTo](CompileHowTo.md) WITHOUT Docker** \
+If you want to use VSCode for development follow the steps.
+
+- Install [VSCode](https://code.visualstudio.com/). On Ubuntu 16.04+ you can also use the [Snapcraft VSCode](https://snapcraft.io/code) package.
+- Linux: Install gdb `sudo apt-get install gdb`
+- Mac: ?
+- Open VSCode and click on _File_ -> _Open Workspace_ and select the file `hyperion.ng/.vscode/hyperion.code-workspace`
+- Install recommended extensions
+- If you installed the Task Explorer you can now use the defined vscode tasks to build Hyperion and configure cmake
+- For debugging you need to build Hyperion in Debug mode and start the correct Run config
