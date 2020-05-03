@@ -1,5 +1,5 @@
 $(document).ready(function() {
-	performTranslation();
+  performTranslation();
 
 	var oldEffects = [];
 	var cpcolor = '#B500FF';
@@ -214,41 +214,35 @@ $(document).ready(function() {
 			}
 		});
 
-		//User default button-style, as hyperion one creates problems
-		$('#componentsbutton').append('<link href="css/bootstrap-toggle.min.css" rel="stylesheet">');
-
-		for (var idx=0; idx<components.length;idx++)
+		for (const comp of components)
 		{
-			if(components[idx].name === "ALL")
+			if(comp.name === "ALL")
 				continue;
 
-			var enable_style = (components[idx].enabled? "checked" : "");
-			var comp_name    = components[idx].name;
-			var comp_btn_id  = "comp_btn_"+comp_name;
+			const enable_style = (comp.enabled? "checked" : "");
+			const comp_btn_id  = "comp_btn_"+comp.name;
 
 			if ($("#"+comp_btn_id).length === 0)
 			{
-				console.log ("updateComponent: ", comp_btn_id);
-
 				var d='<span style="display:block;margin:3px">'
 						+'<input id="'+comp_btn_id+'"'+enable_style+' type="checkbox"'
 						+'data-toggle="toggle" data-onstyle="success" data-on="'+$.i18n('general_btn_on')+'" data-off="'+$.i18n('general_btn_off')+'">'
-						+'&nbsp;&nbsp;&nbsp;<label>'+$.i18n('general_comp_'+components[idx].name)+'</label>'
-						+'<div id="console-event"></div>'
-						+'<script>'
-						+'$(function() {'
-							+'$(\'#'+comp_btn_id+'\').bootstrapToggle();'
-
-							+'$(\'#'+comp_btn_id+'\').change(function() {'
-							+'requestSetComponentState(\''+comp_name+'\', $(this).prop("checked") );'
-							+'})'
-						+'})'
-						+'</script>'
+						+'&nbsp;&nbsp;&nbsp;<label>'+$.i18n('general_comp_'+comp.name)+'</label>'
 						+'</span>';
 
-				$('#componentsbutton').append(d);
-			}
-			//else Buttons already exist
+        $('#componentsbutton').append(d);
+        $(`#${comp_btn_id}`).bootstrapToggle();
+        $(`#${comp_btn_id}`).bootstrapToggle(hyperionEnabled ? "enable" : "disable")
+        $(`#${comp_btn_id}`).change(e => {
+          requestSetComponentState(e.currentTarget.id.split('_').pop(), e.currentTarget.checked)
+          //console.log(e.currentTarget.checked)
+          });
+			} else {
+        // update state
+        // does not work, creates a requestCompState loop
+        //$(`#${comp_btn_id}`).prop('checked', comp.enabled).change()
+        $(`#${comp_btn_id}`).bootstrapToggle(hyperionEnabled ? "enable" : "disable")
+      }
 		}
 	}
 
