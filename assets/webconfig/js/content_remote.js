@@ -203,7 +203,7 @@ $(document).ready(function() {
 		}
 	}
 
-	function updateComponents()
+	function initComponents()
 	{
 		var components = window.comps;
 		var hyperionEnabled = true;
@@ -230,19 +230,54 @@ $(document).ready(function() {
 						+'&nbsp;&nbsp;&nbsp;<label>'+$.i18n('general_comp_'+comp.name)+'</label>'
 						+'</span>';
 
-        $('#componentsbutton').append(d);
-        $(`#${comp_btn_id}`).bootstrapToggle();
-        $(`#${comp_btn_id}`).bootstrapToggle(hyperionEnabled ? "enable" : "disable")
-        $(`#${comp_btn_id}`).change(e => {
-          requestSetComponentState(e.currentTarget.id.split('_').pop(), e.currentTarget.checked)
-          //console.log(e.currentTarget.checked)
-          });
-			} else {
-        // update state
-        // does not work, creates a requestCompState loop
-        //$(`#${comp_btn_id}`).prop('checked', comp.enabled).change()
-        $(`#${comp_btn_id}`).bootstrapToggle(hyperionEnabled ? "enable" : "disable")
-      }
+				$('#componentsbutton').append(d);
+				$(`#${comp_btn_id}`).bootstrapToggle();
+				$(`#${comp_btn_id}`).bootstrapToggle(hyperionEnabled ? "enable" : "disable")
+				$(`#${comp_btn_id}`).change(e => {
+				  requestSetComponentState(e.currentTarget.id.split('_').pop(), e.currentTarget.checked)
+				  //console.log(e.currentTarget.checked)
+				  });
+			}
+		}
+	}
+
+	function updateComponent( component )
+	{
+		if (component.name == "ALL")
+		{
+			var components = window.comps;
+
+			hyperionEnabled = component.enabled
+			for (const comp of components)
+			{
+
+				if(comp.name === "ALL")
+				continue;
+
+				const comp_btn_id  = "comp_btn_"+comp.name;
+
+				if ( !hyperionEnabled )
+				{
+					$(`#${comp_btn_id}`).bootstrapToggle('off');
+					$(`#${comp_btn_id}`).bootstrapToggle("disable");
+				}
+				else
+				{
+					$(`#${comp_btn_id}`).bootstrapToggle("enable");
+					if ( comp.enabled !== $(`#${comp_btn_id}`).prop("checked") )
+					{
+						$(`#${comp_btn_id}`).bootstrapToggle().prop('checked', comp.enabled).change();
+					}
+				}
+			}
+		}
+		else
+		{
+			const comp_btn_id  = "comp_btn_"+component.name;
+			if ( component.enabled )
+				$(`#${comp_btn_id}`).bootstrapToggle("on");
+			else
+				$(`#${comp_btn_id}`).bootstrapToggle("off");
 		}
 	}
 
@@ -347,14 +382,17 @@ $(document).ready(function() {
 	});
 
 	//force first update
-	updateComponents();
+	initComponents();
 	updateInputSelect();
 	updateLedMapping();
 	updateVideoMode();
 	updateEffectlist();
 
 	// interval updates
-	$(window.hyperion).on("components-updated",updateComponents);
+
+  	$(window.hyperion).on('components-updated', function(e, comp){
+		updateComponent (comp);
+	});
 
 	$(window.hyperion).on("cmd-priorities-update", function(event){
 		window.serverInfo.priorities = event.response.data.priorities;
