@@ -274,10 +274,18 @@ $(document).ready(function() {
 		else
 		{
 			const comp_btn_id  = "comp_btn_"+component.name;
-			if ( component.enabled )
-				$(`#${comp_btn_id}`).bootstrapToggle("on");
-			else
-				$(`#${comp_btn_id}`).bootstrapToggle("off");
+
+			//console.log ("updateComponent: ", component.name, "Current Checked: ", $(`#${comp_btn_id}`).prop("checked"), "New Checked: ", component.enabled,  );
+			
+			// In case Buttons were disabled before, status may be different to component status
+			if ( component.enabled != $(`#${comp_btn_id}`).prop("checked") )
+			{
+				// console.log ("Update status to Checked = ", component.enabled);
+				if ( component.enabled )
+					$(`#${comp_btn_id}`).bootstrapToggle("on");
+				else
+					$(`#${comp_btn_id}`).bootstrapToggle("off");
+			}
 		}
 	}
 
@@ -391,6 +399,7 @@ $(document).ready(function() {
 	// interval updates
 
   	$(window.hyperion).on('components-updated', function(e, comp){
+		//console.log ("components-updated", e, comp);
 		updateComponent (comp);
 	});
 
