@@ -12,7 +12,6 @@ body{font-family:Roboto,"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:15
 body{
     overflow-y: scroll;
 }
-.btn{margin: 2px 0;}
 /*
 #page-wrapper a[target=_blank]::after {
     content:"\f08e";
@@ -217,6 +216,8 @@ table label{margin:0}
 }
 
 /*simple ripple effect for li a and btn*/
+/* Breaks Bootstrap toggle; position: relative */
+/*
 .btn, li a{
   position: relative;
   overflow: hidden;
@@ -264,6 +265,7 @@ li a:active:after {
   opacity: .2;
   transition: 0s;
 }
+*/
 
 /*Bootstrap callouts*/
 .bs-callout {
