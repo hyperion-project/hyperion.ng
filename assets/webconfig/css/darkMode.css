@@ -104,6 +104,21 @@ h4 {
     border-color: #a1eea1;
 }
 
+.btn-wizard {
+    background-color: #602060;
+    border-color: #993399;
+}
+
+.btn-wizard:hover {
+    background-color: #993399;
+    border-color: #cc66cc;
+}
+
+.btn-wizard:focus {
+    background-color: #993399;
+    border-color: #cc66cc;
+}
+
 /*Tables*/
 tr:hover td {
     background-color: #2e6da4;
@@ -191,7 +206,15 @@ tr:hover td {
     border-color: #616161;
     background-color: #212121;
     color: #DDDDDD !important;
+    -moz-appearance: none;
     -webkit-appearance: none;
+    appearance: none;
+}
+
+select.form-control {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4.95 10'%3E%3Cpath fill='%23212121' d='M0 0h4.95v10H0z'/%3E%3Cpath fill='%23ddd' d='M1.41 4.67l1.07-1.49 1.06 1.49H1.41zm2.13.66L2.48 6.82 1.41 5.33h2.13z'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat;
+    background-position: right 5px center;
 }
 
 .input-group .form-control:last-child, .input-group-addon:last-child, .input-group-btn:last-child>.btn, .input-group-btn:last-child>.btn-group>.btn, .input-group-btn:last-child>.dropdown-toggle, .input-group-btn:first-child>.btn:not(:first-child), .input-group-btn:first-child>.btn-group:not(:first-child)>.btn {
@@ -212,7 +235,7 @@ tr:hover td {
     color: #DDDDDD;
 }
 
-.checkbox label::after 
+.checkbox label::after
 {
     left: 1px;
     color: #DDDDDD;
