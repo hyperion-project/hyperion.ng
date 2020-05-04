@@ -182,12 +182,12 @@ void ProviderUdpSSL::configLog(const char* msg, const char* type, ...)
 	}
 }
 
-void ProviderUdpSSL::log(const QString &msg, const char* errorType)
+void ProviderUdpSSL::sslLog(const QString &msg, const char* errorType)
 {
-	log( msg.toStdString().c_str(), errorType );
+	sslLog( QSTRING_CSTR( msg ), errorType );
 }
 
-void ProviderUdpSSL::log(const char* msg, const char* errorType)
+void ProviderUdpSSL::sslLog(const char* msg, const char* errorType)
 {
 	if( strcmp("fatal", errorType) == 0 )       Error( _log, "%s", msg );
 
@@ -201,17 +201,17 @@ void ProviderUdpSSL::log(const char* msg, const char* errorType)
 
 bool ProviderUdpSSL::initNetwork()
 {
-	log( "init SSL Network..." );
+	sslLog( "init SSL Network..." );
 	QMutexLocker locker(&_hueMutex);
 	if (!initConnection()) return false;
-	log( "init SSL Network...ok" );
+	sslLog( "init SSL Network...ok" );
 	_stopConnection = false;
 	return true;
 }
 
 bool ProviderUdpSSL::initConnection()
 {
-	log( "init SSL Network -> initConnection" );
+	sslLog( "init SSL Network -> initConnection" );
 
 	mbedtls_net_init(&client_fd);
 	mbedtls_ssl_init(&ssl);
@@ -224,32 +224,32 @@ bool ProviderUdpSSL::initConnection()
 
 bool ProviderUdpSSL::seedingRNG()
 {
-	int ret;
+	int ret = 0;
 
-	log( "Seeding the random number generator..." );
+	sslLog( "Seeding the random number generator..." );
 
 	mbedtls_entropy_init(&entropy);
 
-	log( "Set mbedtls_ctr_drbg_seed..." );
+	sslLog( "Set mbedtls_ctr_drbg_seed..." );
 
 	const char* custom = QSTRING_CSTR( _custom );
 
 	if ((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, reinterpret_cast<const unsigned char *>(custom), strlen(custom))) != 0)
 	{
-		log( QString("mbedtls_ctr_drbg_seed FAILED %1").arg( errorMsg( ret ) ), "error" );
+		sslLog( QString("mbedtls_ctr_drbg_seed FAILED %1").arg( errorMsg( ret ) ), "error" );
 		return false;
 	}
 
-	log( "Seeding the random number generator...ok" );
+	sslLog( "Seeding the random number generator...ok" );
 
 	return true;
 }
 
 bool ProviderUdpSSL::setupStructure()
 {
-	int ret;
+	int ret = 0;
 
-	log( QString( "Setting up the %1 structure").arg( _transport_type ) );
+	sslLog( QString( "Setting up the %1 structure").arg( _transport_type ) );
 
 	//TLS  MBEDTLS_SSL_TRANSPORT_STREAM
 	//DTLS MBEDTLS_SSL_TRANSPORT_DATAGRAM
@@ -258,11 +258,25 @@ bool ProviderUdpSSL::setupStructure()
 
 	if ((ret = mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_CLIENT, transport, MBEDTLS_SSL_PRESET_DEFAULT)) != 0)
 	{
-		log( QString("mbedtls_ssl_config_defaults FAILED %1").arg( errorMsg( ret ) ), "error" );
+		sslLog( QString("mbedtls_ssl_config_defaults FAILED %1").arg( errorMsg( ret ) ), "error" );
 		return false;
 	}
 
 	const int * ciphersuites = getCiphersuites();
+
+	if( _debugStreamer )
+	{
+		int s = ( sizeof( ciphersuites ) ) / sizeof( int );
+
+		QString cipher_values;
+		for(int i=0; i<s; i++)
+		{
+			if(i > 0) cipher_values.append(", ");
+			cipher_values.append(QString::number(ciphersuites[i]));
+		}
+
+		sslLog( ( QString("used ciphersuites value: %1").arg( cipher_values ) ) );
+	}
 
 	mbedtls_ssl_conf_authmode(&conf, MBEDTLS_SSL_VERIFY_REQUIRED);
 	//mbedtls_ssl_conf_authmode(&conf, MBEDTLS_SSL_VERIFY_OPTIONAL);
@@ -285,43 +299,43 @@ bool ProviderUdpSSL::setupStructure()
 
 	if ((ret = mbedtls_ssl_setup(&ssl, &conf)) != 0)
 	{
-		log( QString("mbedtls_ssl_setup FAILED %1").arg( errorMsg( ret ) ), "error" );
+		sslLog( QString("mbedtls_ssl_setup FAILED %1").arg( errorMsg( ret ) ), "error" );
 		return false;
 	}
 
 	if ((ret = mbedtls_ssl_set_hostname(&ssl, QSTRING_CSTR( _server_name ))) != 0)
 	{
-		log( QString("mbedtls_ssl_set_hostname FAILED %1").arg( errorMsg( ret ) ), "error" );
+		sslLog( QString("mbedtls_ssl_set_hostname FAILED %1").arg( errorMsg( ret ) ), "error" );
 		return false;
 	}
 
-	log( QString( "Setting up the %1 structure...ok").arg( _transport_type ) );
+	sslLog( QString( "Setting up the %1 structure...ok").arg( _transport_type ) );
 
 	return startUPDConnection();
 }
 
 bool ProviderUdpSSL::startUPDConnection()
 {
-	log( "init SSL Network -> startUPDConnection" );
+	sslLog( "init SSL Network -> startUPDConnection" );
 
-	int ret;
+	int ret = 0;
 
 	mbedtls_ssl_session_reset(&ssl);
 
 	if(!setupPSK()) return false;
 
-	log( QString("Connecting to udp %1:%2").arg( _address.toString() ).arg( _ssl_port ) );
+	sslLog( QString("Connecting to udp %1:%2").arg( _address.toString() ).arg( _ssl_port ) );
 
 	if ((ret = mbedtls_net_connect( &client_fd, _address.toString().toUtf8(), std::to_string(_ssl_port).c_str(), MBEDTLS_NET_PROTO_UDP)) != 0)
 	{
-		log( QString("mbedtls_net_connect FAILED %1").arg( errorMsg( ret ) ), "error" );
+		sslLog( QString("mbedtls_net_connect FAILED %1").arg( errorMsg( ret ) ), "error" );
 		return false;
 	}
 
 	mbedtls_ssl_set_bio(&ssl, &client_fd, mbedtls_net_send, mbedtls_net_recv, mbedtls_net_recv_timeout);
 	mbedtls_ssl_set_timer_cb(&ssl, &timer, mbedtls_timing_set_delay, mbedtls_timing_get_delay);
 
-	log( "Connecting...ok" );
+	sslLog( "Connecting...ok" );
 
 	return startSSLHandshake();
 }
@@ -338,7 +352,7 @@ bool ProviderUdpSSL::setupPSK()
 
 	if (0 != (ret = mbedtls_ssl_conf_psk( &conf, ( const unsigned char* ) pskRawArray.data(), pskRawArray.length() * sizeof(char), reinterpret_cast<const unsigned char *> ( pskIdRawArray.data() ), pskIdRawArray.length() * sizeof(char) ) ) )
 	{
-		log( QString("mbedtls_ssl_conf_psk FAILED %1").arg( errorMsg( ret ) ), "error" );
+		sslLog( QString("mbedtls_ssl_conf_psk FAILED %1").arg( errorMsg( ret ) ), "error" );
 		return false;
 	}
 
@@ -347,15 +361,15 @@ bool ProviderUdpSSL::setupPSK()
 
 bool ProviderUdpSSL::startSSLHandshake()
 {
-	log( "init SSL Network -> startSSLHandshake" );
+	sslLog( "init SSL Network -> startSSLHandshake" );
 
-	int ret;
+	int ret = 0;
 
-	log( QString( "Performing the SSL/%1 handshake...").arg( _transport_type ) );
+	sslLog( QString( "Performing the SSL/%1 handshake...").arg( _transport_type ) );
 
 	for (unsigned int attempt = 1; attempt <= _handshake_attempts; ++attempt)
 	{
-		log( QString("handshake attempt %1/%2").arg( attempt ).arg( _handshake_attempts ) );
+		sslLog( QString("handshake attempt %1/%2").arg( attempt ).arg( _handshake_attempts ) );
 		do
 		{
 			ret = mbedtls_ssl_handshake(&ssl);
@@ -368,7 +382,7 @@ bool ProviderUdpSSL::startSSLHandshake()
 		}
 		else
 		{
-			log( QString("mbedtls_ssl_handshake attempt %1/%2 FAILED %3").arg( attempt ).arg( _handshake_attempts ).arg( errorMsg( ret ) ) );
+			sslLog( QString("mbedtls_ssl_handshake attempt %1/%2 FAILED %3").arg( attempt ).arg( _handshake_attempts ).arg( errorMsg( ret ) ) );
 		}
 
 		QThread::msleep(200);
@@ -376,27 +390,27 @@ bool ProviderUdpSSL::startSSLHandshake()
 
 	if (ret != 0)
 	{
-		log( QString("mbedtls_ssl_handshake FAILED %1").arg( errorMsg( ret ) ), "error" );
+		sslLog( QString("mbedtls_ssl_handshake FAILED %1").arg( errorMsg( ret ) ), "error" );
 		handleReturn(ret);
-		log( "UDP SSL Connection failed!", "fatal" );
+		sslLog( "UDP SSL Connection failed!", "fatal" );
 		return false;
 	}
 	else
 	{
 		if( ( mbedtls_ssl_get_verify_result( &ssl ) ) != 0 ) {
-			log( "SSL certificate verification failed!", "fatal" );
+			sslLog( "SSL certificate verification failed!", "fatal" );
 			return false;
 		}
 	}
 
-	log( QString( "Performing the SSL/%1 handshake...ok").arg( _transport_type ) );
+	sslLog( QString( "Performing the SSL/%1 handshake...ok").arg( _transport_type ) );
 
 	return true;
 }
 
 void ProviderUdpSSL::freeSSLConnection()
 {
-	log( "SSL Connection cleanup..." );
+	sslLog( "SSL Connection cleanup..." );
 
 	_stopConnection = true;
 
@@ -409,15 +423,15 @@ void ProviderUdpSSL::freeSSLConnection()
 		mbedtls_x509_crt_free(&cacert);
 		mbedtls_ctr_drbg_free(&ctr_drbg);
 		mbedtls_entropy_free(&entropy);
-		log( "SSL Connection cleanup...ok" );
+		sslLog( "SSL Connection cleanup...ok" );
 	}
 	catch (std::exception &e)
 	{
-		log( QString("SSL Connection cleanup Error: %s").arg( e.what() ) );
+		sslLog( QString("SSL Connection cleanup Error: %s").arg( e.what() ) );
 	}
 	catch (...)
 	{
-		log( "SSL Connection cleanup Error: <unknown>" );
+		sslLog( "SSL Connection cleanup Error: <unknown>" );
 	}
 }
 
@@ -427,7 +441,7 @@ void ProviderUdpSSL::writeBytes(const unsigned size, const unsigned char * data)
 
 	QMutexLocker locker(&_hueMutex);
 
-	int ret;
+	int ret = 0;
 
 	do
 	{
@@ -449,17 +463,17 @@ void ProviderUdpSSL::handleReturn(int ret)
 	switch (ret)
 	{
 		case MBEDTLS_ERR_SSL_TIMEOUT:
-			log( errorMsg( ret ), "warning" );
+			sslLog( errorMsg( ret ), "warning" );
 			if ( _retry_left-- > 0 ) return;
 			gotoExit = true;
 			break;
 		case MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY:
-			log( "SSL Connection was closed gracefully", "warning" );
+			sslLog( "SSL Connection was closed gracefully", "warning" );
 			ret = 0;
 			closeNotify = true;
 			break;
 		default:
-			log( QString("mbedtls_ssl_read returned %1").arg( errorMsg( ret ) ), "warning" );
+			sslLog( QString("mbedtls_ssl_read returned %1").arg( errorMsg( ret ) ), "warning" );
 			gotoExit = true;
 	}
 
@@ -471,7 +485,7 @@ void ProviderUdpSSL::handleReturn(int ret)
 
 	if (gotoExit)
 	{
-		log( "Exit SSL connection" );
+		sslLog( "Exit SSL connection" );
 		_stopConnection = true;
 	}
 }
@@ -771,9 +785,9 @@ QString ProviderUdpSSL::errorMsg(int ret) {
 
 void ProviderUdpSSL::closeSSLNotify()
 {
-	int ret;
+	int ret = 0;
 
-	log( "Closing SSL connection..." );
+	sslLog( "Closing SSL connection..." );
 	/* No error checking, the connection might be closed already */
 	do
 	{
@@ -781,5 +795,5 @@ void ProviderUdpSSL::closeSSLNotify()
 	}
 	while (ret == MBEDTLS_ERR_SSL_WANT_WRITE);
 
-	log( "SSL Connection successful closed" );
+	sslLog( "SSL Connection successful closed" );
 }

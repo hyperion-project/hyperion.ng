@@ -156,15 +156,15 @@ CiColor CiColor::rgbToCiColor(double red, double green, double blue, CiColorTria
 		if (!isPointInLampsReach(xy, colorSpace))
 		{
 			// It seems the color is out of reach let's find the closes color we can produce with our lamp and send this XY value out.
-			CiColor pAB = getClosestPointToPoint(colorSpace.red, colorSpace.green, xy);
-			CiColor pAC = getClosestPointToPoint(colorSpace.blue, colorSpace.red, xy);
-			CiColor pBC = getClosestPointToPoint(colorSpace.green, colorSpace.blue, xy);
+			XYColor pAB = getClosestPointToPoint(colorSpace.red, colorSpace.green, xy);
+			XYColor pAC = getClosestPointToPoint(colorSpace.blue, colorSpace.red, xy);
+			XYColor pBC = getClosestPointToPoint(colorSpace.green, colorSpace.blue, xy);
 			// Get the distances per point and see which point is closer to our Point.
 			double dAB = getDistanceBetweenTwoPoints(xy, pAB);
 			double dAC = getDistanceBetweenTwoPoints(xy, pAC);
 			double dBC = getDistanceBetweenTwoPoints(xy, pBC);
 			double lowest = dAB;
-			CiColor closestPoint = pAB;
+			XYColor closestPoint = pAB;
 			if (dAC < lowest)
 			{
 				lowest = dAC;
@@ -183,16 +183,16 @@ CiColor CiColor::rgbToCiColor(double red, double green, double blue, CiColorTria
 	return xy;
 }
 
-double CiColor::crossProduct(CiColor p1, CiColor p2)
+double CiColor::crossProduct(XYColor p1, XYColor p2)
 {
 	return p1.x * p2.y - p1.y * p2.x;
 }
 
 bool CiColor::isPointInLampsReach(CiColor p, CiColorTriangle colorSpace)
 {
-	CiColor v1 = { colorSpace.green.x - colorSpace.red.x, colorSpace.green.y - colorSpace.red.y };
-	CiColor v2 = { colorSpace.blue.x - colorSpace.red.x, colorSpace.blue.y - colorSpace.red.y };
-	CiColor  q = { p.x - colorSpace.red.x, p.y - colorSpace.red.y };
+	XYColor v1 = { colorSpace.green.x - colorSpace.red.x, colorSpace.green.y - colorSpace.red.y };
+	XYColor v2 = { colorSpace.blue.x - colorSpace.red.x, colorSpace.blue.y - colorSpace.red.y };
+	XYColor  q = { p.x - colorSpace.red.x, p.y - colorSpace.red.y };
 	double s = crossProduct(q, v2) / crossProduct(v1, v2);
 	double t = crossProduct(v1, q) / crossProduct(v1, v2);
 	if ( ( s >= 0.0 ) && ( t >= 0.0 ) && ( s + t <= 1.0 ) )
@@ -202,10 +202,10 @@ bool CiColor::isPointInLampsReach(CiColor p, CiColorTriangle colorSpace)
 	return false;
 }
 
-CiColor CiColor::getClosestPointToPoint(CiColor a, CiColor b, CiColor p)
+XYColor CiColor::getClosestPointToPoint(XYColor a, XYColor b, CiColor p)
 {
-	CiColor AP = { p.x - a.x, p.y - a.y };
-	CiColor AB = { b.x - a.x, b.y - a.y };
+	XYColor AP = { p.x - a.x, p.y - a.y };
+	XYColor AB = { b.x - a.x, b.y - a.y };
 	double ab2 = AB.x * AB.x + AB.y * AB.y;
 	double ap_ab = AP.x * AB.x + AP.y * AB.y;
 	double t = ap_ab / ab2;
@@ -220,7 +220,7 @@ CiColor CiColor::getClosestPointToPoint(CiColor a, CiColor b, CiColor p)
 	return { a.x + AB.x * t, a.y + AB.y * t };
 }
 
-double CiColor::getDistanceBetweenTwoPoints(CiColor p1, CiColor p2)
+double CiColor::getDistanceBetweenTwoPoints(CiColor p1, XYColor p2)
 {
 	// Horizontal difference.
 	double dx = p1.x - p2.x;

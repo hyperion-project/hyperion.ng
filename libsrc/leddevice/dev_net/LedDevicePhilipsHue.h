@@ -16,8 +16,24 @@
 #include <leddevice/LedDevice.h>
 #include "ProviderUdpSSL.h"
 
-// Forward declaration
-struct CiColorTriangle;
+/**
+ * A XY color point in the color space of the hue system without brightness.
+ */
+struct XYColor
+{
+	/// X component.
+	double x;
+	/// Y component.
+	double y;
+};
+
+/**
+ * Color triangle to define an available color space for the hue lamps.
+ */
+struct CiColorTriangle
+{
+	XYColor red, green, blue;
+};
 
 /**
  * A color point in the color space of the hue system.
@@ -59,7 +75,7 @@ struct CiColor
 	///
 	/// @return the cross product between p1 and p2
 	///
-	static double crossProduct(CiColor p1, CiColor p2);
+	static double crossProduct(XYColor p1, XYColor p2);
 
 	///
 	/// @param a reference point one
@@ -70,7 +86,7 @@ struct CiColor
 	///
 	/// @return the closest color point of p to a and b
 	///
-	static CiColor getClosestPointToPoint(CiColor a, CiColor b, CiColor p);
+	static XYColor getClosestPointToPoint(XYColor a, XYColor b, CiColor p);
 
 	///
 	/// @param p1 point one
@@ -79,19 +95,11 @@ struct CiColor
 	///
 	/// @return the distance between the two points
 	///
-	static double getDistanceBetweenTwoPoints(CiColor p1, CiColor p2);
+	static double getDistanceBetweenTwoPoints(CiColor p1, XYColor p2);
 };
 
 bool operator==(const CiColor& p1, const CiColor& p2);
 bool operator!=(const CiColor& p1, const CiColor& p2);
-
-/**
- * Color triangle to define an available color space for the hue lamps.
- */
-struct CiColorTriangle
-{
-	CiColor red, green, blue;
-};
 
 /**
  * Simple class to hold the id, the latest color, the color space and the original state.
@@ -126,12 +134,12 @@ public:
 	///
 	/// @param transitionTime the transition time between colors in multiples of 100 ms
 	///
-	void setTransitionTime(unsigned int _transitionTime);
+	void setTransitionTime(unsigned int transitionTime);
 
 	///
 	/// @param color the color to set
 	///
-	void setColor(const CiColor& _color);
+	void setColor(const CiColor& color);
 
 	unsigned int getId() const;
 
@@ -203,12 +211,6 @@ public:
 
 	QJsonArray getGroupLights(unsigned int groupId = 0);
 
-//	/// Set device in error state
-//	///
-//	/// @param errorMsg The error message to be logged
-//	///
-//	virtual void setInError( const QString& errorMsg) override;
-
 public slots:
 	///
 	/// Connect to bridge to check availbility and user
@@ -216,11 +218,6 @@ public slots:
 	virtual int open(void) override;
 	virtual int open( const QString& hostname, const QString& port, const QString& username );
 
-	//signals:
-	//	///
-	//	///	Emits with a QMap of current bridge light/value pairs
-	//	///
-	//	void newLights(QMap<quint16,QJsonObject> map);
 protected:
 
 	/// Ip address of the bridge

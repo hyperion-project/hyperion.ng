@@ -113,8 +113,8 @@ protected:
 	///
 	virtual const int * getCiphersuites();
 
-	void log(const QString &msg, const char* errorType = "debug");
-	void log(const char* msg, const char* errorType = "debug");
+	void sslLog(const QString &msg, const char* errorType = "debug");
+	void sslLog(const char* msg, const char* errorType = "debug");
 	void configLog(const char* msg, const char* type, ...);
 
 	/**
