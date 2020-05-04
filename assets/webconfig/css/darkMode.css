@@ -47,6 +47,24 @@ h4 {
 }
 
 /*Buttons*/
+.btn-default {
+    color: #DDDDDD;
+    background-color: #212121;
+    border-color: #424242;
+}
+
+.btn-default:hover {
+    color: #DDDDDD;
+    background-color: #333;
+    border-color: #616161;
+}
+
+.btn-default:focus{
+    color: #DDDDDD;
+    background-color: #333;
+    border-color: #616161;
+}
+
 .btn-primary {
     background-color: #155fa0;
     border-color: #5db6ff;
