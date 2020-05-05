@@ -607,15 +607,22 @@ function startWizardPhilipsHue(e)
 function checkHueBridge(cb,hueUser) {
   var usr = (typeof hueUser != "undefined") ? hueUser : 'config';
   if(usr == 'config') $('#wiz_hue_discovered').html("");
-  $.getJSON( 'http://'+hueIPs[hueIPsinc].internalipaddress+'/api/'+usr, function( json ) {
-    if (json.config) {
-      cb(true, usr);
-    } else if( json.name && json.bridgeid && json.modelid) {
-      $('#wiz_hue_discovered').html("Bridge: " + json.name + ", Modelid: " + json.modelid + ", API-Version: " + json.apiversion);
-      cb(true);
-    } else {
-      cb(false);
-    }
+  $.ajax({
+    url: 'http://'+hueIPs[hueIPsinc].internalipaddress+'/api/'+usr,
+    type: "GET",
+    dataType: "json",
+    success: function( json ) {
+      if (json.config) {
+        cb(true, usr);
+      } else if( json.name && json.bridgeid && json.modelid) {
+        $('#wiz_hue_discovered').html("Bridge: " + json.name + ", Modelid: " + json.modelid + ", API-Version: " + json.apiversion);
+        cb(true);
+      } else {
+        cb(false);
+      }
+
+     },
+    timeout: 2500
   }).fail(function() {
     cb(false);
   });
