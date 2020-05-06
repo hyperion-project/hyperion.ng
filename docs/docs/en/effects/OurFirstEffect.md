@@ -9,7 +9,7 @@ Target of this effect is to show the general structure of an effect, make you co
   * **Configure a led matrix layout at "LED Hardware"-section at the web configuration to 10x10 LEDs**
 
 ### Start
-First, we start with the python file. Create a new file called `neweffekt.py` in your `custom-effects` folder. \
+First, we start with the python file. Create a new file called `neweffect.py` in your `custom-effects` folder. \
 We need to import some modules, `hyperion` and `time` is always required. The time module comes from Python, if you want to know, what methods such a module has, visit the [Python documentation](https://docs.python.org/3.5/library/). What `hyperion` can do, is already explained at [Effect Engine API](/en/effects/api.md).
 
 ``` python
