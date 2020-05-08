@@ -86,15 +86,18 @@ h4 {
 }
 
 .btn-warning {
-    background-color: #ec971f;
+    background-color: #bc7410;
+    border-color: #f0ad4e;
 }
 
 .btn-warning:hover {
-    background-color: #f0ad4e;
+    background-color: #ec971f;
+    border-color: #f3bd72;
 }
 
 .btn-warning:focus {
-    background-color: #f0ad4e;
+    background-color: #ec971f;
+    border-color: #f3bd72;
 }
 
 .btn-danger {
