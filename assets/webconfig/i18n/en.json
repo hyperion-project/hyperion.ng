@@ -709,6 +709,8 @@
 	"edt_eff_flag_header_desc" : "Let your leds shine bright in the colours of your country. You can select more than one flag and they will change based on the interval time.",
 	"edt_eff_collision_header": "colour collision",
 	"edt_eff_collision_header_desc": "Two colour projectiles are sent from random positions and collide with each other",
+	"edt_eff_plasma_header": "Plasma",
+	"edt_eff_plasma_header_desc": "Color distortion in different directions",
 	"edt_eff_explodeRadius": "Detonation Range ",
 	"edt_eff_enum_all" : "All",
 	"edt_eff_enum_all-together" : "All together",

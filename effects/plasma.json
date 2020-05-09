@@ -1,0 +1,8 @@
+{
+	"name" : "Plasma",
+	"script" : "plasma.py",
+	"args" :
+	{
+		"sleepTime" : 0.20
+	}
+}
