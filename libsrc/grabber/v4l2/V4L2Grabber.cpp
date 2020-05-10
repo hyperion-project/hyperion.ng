@@ -61,10 +61,6 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	, _streamNotifier(nullptr)
 	, _initialized(false)
 	, _deviceAutoDiscoverEnabled(false)
-	, _grabberFixEnabled(true)
-	, _gf_width(0)
-	, _gf_height(0)
-	, _gf_vtype("JPEG")
 {
 	setPixelDecimation(pixelDecimation);
 	getV4Ldevices();
@@ -288,14 +284,6 @@ void V4L2Grabber::setSignalDetectionOffset(double horizontalMin, double vertical
 	_y_frac_max = verticalMax;
 
 	Info(_log, "Signal detection area set to: %f,%f x %f,%f", _x_frac_min, _y_frac_min, _x_frac_max, _y_frac_max );
-}
-void V4L2Grabber::setGrabberFixValues(int width, int height, QString vtype)
-{
-	_gf_width = width;
-	_gf_height = height;
-	_gf_vtype = vtype;
-
-	Warning(_log, "Grabber fix set to: %d x %d, %s", _gf_width, _gf_height, QSTRING_CSTR(_gf_vtype));
 }
 
 bool V4L2Grabber::start()
@@ -682,75 +670,8 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 			break;
 	}
 
-	// get maximum video devices resolution
-	__u32 max_width = 0, max_height = 0;
-	struct v4l2_fmtdesc fmtdesc;
-	CLEAR(fmtdesc);
-	fmtdesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	fmtdesc.index = 0;
-	while (xioctl(VIDIOC_ENUM_FMT, &fmtdesc) >= 0)
-	{
-		v4l2_frmsizeenum frmsizeenum;
-		CLEAR(frmsizeenum);
-		frmsizeenum.pixel_format = fmtdesc.pixelformat;
-		frmsizeenum.index = 0;
-		while (xioctl(VIDIOC_ENUM_FRAMESIZES, &frmsizeenum) >= 0)
-		{
-			switch (frmsizeenum.type)
-			{
-				case V4L2_FRMSIZE_TYPE_DISCRETE:
-				{
-					max_width = std::max(max_width, frmsizeenum.discrete.width);
-					max_height = std::max(max_height, frmsizeenum.discrete.height);
-				}
-				break;
-				case V4L2_FRMSIZE_TYPE_CONTINUOUS:
-				case V4L2_FRMSIZE_TYPE_STEPWISE:
-				{
-					max_width = std::max(max_width, frmsizeenum.stepwise.max_width);
-					max_height = std::max(max_height, frmsizeenum.stepwise.max_height);
-				}
-			}
-
-			frmsizeenum.index++;
-		}
-
-		fmtdesc.index++;
-	}
-	// RPi Camera V1.3 & V2.1 workaround resolution and pixelformat
-	if (_grabberFixEnabled) {
-		max_width = _gf_width;
-		max_height = _gf_height;
-
-		QString pixformat = _gf_vtype.toLower();
-		if (pixformat == "yuyv")
-		{
-			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
-		}
-		else if (pixformat == "uyvy")
-		{
-			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY;
-		}
-		else if (pixformat == "rgb32")
-		{
-			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB32;
-		}
-#ifdef HAVE_JPEG
-		else if (pixformat == "mjpeg")
-		{
-			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG;
-		}
-#endif
-		Warning(_log, "wxh %d x %d, vtype %s", max_width, max_height, QSTRING_CSTR(pixformat.toUpper()));
-	}
-
-	// set the settings
-	if (max_width != 0 || max_height != 0)
-	{
-		fmt.fmt.pix.width = max_width;
-		fmt.fmt.pix.height = max_height;
-	}
-	else
+	// set custom resolution for width and height if they are not zero
+	if(_width && _height)
 	{
 		fmt.fmt.pix.width = _width;
 		fmt.fmt.pix.height = _height;
@@ -1365,14 +1286,6 @@ void V4L2Grabber::setSignalDetectionEnable(bool enable)
 	{
 		_signalDetectionEnabled = enable;
 		Info(_log, "Signal detection is now %s", enable ? "enabled" : "disabled");
-	}
-}
-void V4L2Grabber::setGrabberFixEnable(bool enable)
-{
-	if (_grabberFixEnabled != enable)
-	{
-		_grabberFixEnabled = enable;
-		Info(_log, "Grabber fix is now %s", enable ? "enabled" : "disabled");
 	}
 }
 

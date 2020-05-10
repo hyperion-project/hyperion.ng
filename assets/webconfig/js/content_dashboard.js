@@ -71,7 +71,6 @@ $(document).ready( function() {
 
 		$('#dash_statush').html(hyperion_enabled ? '<span style="color:green">'+$.i18n('general_btn_on')+'</span>' : '<span style="color:red">'+$.i18n('general_btn_off')+'</span>');
 		$('#btn_hsc').html(hyperion_enabled ? '<button class="btn btn-sm btn-danger" onClick="requestSetComponentState(\'ALL\',false)">'+$.i18n('dashboard_infobox_label_disableh')+'</button>' : '<button class="btn btn-sm btn-success" onClick="requestSetComponentState(\'ALL\',true)">'+$.i18n('dashboard_infobox_label_enableh')+'</button>');
-		$('#btn_pltfpoweroff').html('<button class="btn btn-sm btn-danger" onClick="requestPlatformShutdown()">'+$.i18n('dashboard_infobox_label_pltfpoweroff')+'</button>');
 	}
 
 	// add more info
@@ -90,7 +89,7 @@ $(document).ready( function() {
 				$('#versioninforesult').html('<div class="bs-callout bs-callout-warning" style="margin:0px"><a target="_blank" href="' + window.latestVersion.html_url + '">'+$.i18n('dashboard_infobox_message_updatewarning', window.latestVersion.tag_name) + '</a></div>');
 			else
 				$('#versioninforesult').html('<div class="bs-callout bs-callout-success" style="margin:0px">'+$.i18n('dashboard_infobox_message_updatesuccess')+'</div>');
-		
+
 			}
 	});
 

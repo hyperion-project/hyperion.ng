@@ -18,7 +18,6 @@ public:
 	virtual ~V4L2Wrapper() {};
 
 	bool getSignalDetectionEnable();
-	bool getGrabberFixEnable();
 
 public slots:
 	bool start();
@@ -28,8 +27,6 @@ public slots:
 	void setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom);
 	void setSignalDetectionOffset(double verticalMin, double horizontalMin, double verticalMax, double horizontalMax);
 	void setSignalDetectionEnable(bool enable);
-	void setGrabberFixEnable(bool enable);
-	void setGrabberFixValues(int width, int height, QString vtype);
 	void setDeviceVideoStandard(QString device, VideoStandard videoStandard);
 
 signals:

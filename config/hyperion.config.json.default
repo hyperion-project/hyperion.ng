@@ -76,11 +76,7 @@
 		"sDVOffsetMin"		: 0.25,
 		"sDHOffsetMin"		: 0.25,
 		"sDVOffsetMax"		: 0.75,
-		"sDHOffsetMax"		: 0.75,
-    "grabberFix" : false,
-		"gFVType" : "UYVY",
-		"gFWidth" : 1280,
-		"gFHeight" : 720
+		"sDHOffsetMax"		: 0.75
 	},
 
 	"framegrabber" :
@@ -215,7 +211,7 @@
       "pblh"		: 0,
       "pblv"		: 100,
       "pbrh"		: 100,
-      "pbrv"		: 100		
+      "pbrv"		: 100
 
  		},
 
@@ -225,7 +221,7 @@
 			"ledsvert" : 10,
 			"cabling"  : "snake",
 			"start"    : "top-left"
-    		}	
+    		}
 	},
 
 	"leds":
