@@ -29,4 +29,4 @@ about: Create a report to help us improving Hyperion
 
 
 #### System
-<!-- Your system information - please copy paste "System info (Github Issue)" section from web configuration/system/about -->
+<!-- In the web interface of the Hyperion config go to System > About Hyperion and Paste the content of "System info (Github Issue)" here -->
