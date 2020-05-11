@@ -7,7 +7,7 @@
                 "/usr/include/**"
             ],
             "defines": [],
-            "compilerPath": "/usr/bin/gcc-5",
+            "compilerPath": "/usr/bin/gcc",
             "intelliSenseMode": "gcc-x64",
             "cppStandard": "c++11",
             "cStandard": "c11",
