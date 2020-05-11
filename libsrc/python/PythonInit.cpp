@@ -38,9 +38,8 @@ PythonInit::PythonInit()
 	{
 		Py_NoSiteFlag++;
 		Py_SetPath(pythonPath);
-		
+		PyMem_RawFree(pythonPath);
 	}
-	delete pythonPath;
 
 	// init Python
 	Debug(Logger::getInstance("DAEMON"), "Initializing Python interpreter");
