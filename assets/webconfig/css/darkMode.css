@@ -47,6 +47,24 @@ h4 {
 }
 
 /*Buttons*/
+.btn-default {
+    color: #DDDDDD;
+    background-color: #212121;
+    border-color: #424242;
+}
+
+.btn-default:hover {
+    color: #DDDDDD;
+    background-color: #333;
+    border-color: #616161;
+}
+
+.btn-default:focus{
+    color: #DDDDDD;
+    background-color: #333;
+    border-color: #616161;
+}
+
 .btn-primary {
     background-color: #155fa0;
     border-color: #5db6ff;
@@ -68,15 +86,18 @@ h4 {
 }
 
 .btn-warning {
-    background-color: #ec971f;
+    background-color: #bc7410;
+    border-color: #f0ad4e;
 }
 
 .btn-warning:hover {
-    background-color: #f0ad4e;
+    background-color: #ec971f;
+    border-color: #f3bd72;
 }
 
 .btn-warning:focus {
-    background-color: #f0ad4e;
+    background-color: #ec971f;
+    border-color: #f3bd72;
 }
 
 .btn-danger {
@@ -102,6 +123,21 @@ h4 {
 .btn-success:hover {
     background-color: green;
     border-color: #a1eea1;
+}
+
+.btn-wizard {
+    background-color: #602060;
+    border-color: #993399;
+}
+
+.btn-wizard:hover {
+    background-color: #993399;
+    border-color: #cc66cc;
+}
+
+.btn-wizard:focus {
+    background-color: #993399;
+    border-color: #cc66cc;
 }
 
 /*Tables*/
@@ -191,7 +227,15 @@ tr:hover td {
     border-color: #616161;
     background-color: #212121;
     color: #DDDDDD !important;
+    -moz-appearance: none;
     -webkit-appearance: none;
+    appearance: none;
+}
+
+select.form-control {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4.95 10'%3E%3Cpath fill='%23212121' d='M0 0h4.95v10H0z'/%3E%3Cpath fill='%23ddd' d='M1.41 4.67l1.07-1.49 1.06 1.49H1.41zm2.13.66L2.48 6.82 1.41 5.33h2.13z'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat;
+    background-position: right 5px center;
 }
 
 .input-group .form-control:last-child, .input-group-addon:last-child, .input-group-btn:last-child>.btn, .input-group-btn:last-child>.btn-group>.btn, .input-group-btn:last-child>.dropdown-toggle, .input-group-btn:first-child>.btn:not(:first-child), .input-group-btn:first-child>.btn-group:not(:first-child)>.btn {
@@ -212,7 +256,7 @@ tr:hover td {
     color: #DDDDDD;
 }
 
-.checkbox label::after 
+.checkbox label::after
 {
     left: 1px;
     color: #DDDDDD;

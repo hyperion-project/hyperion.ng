@@ -45,6 +45,7 @@ Covers these topics (WorkInProgress)
 - Configuration
 - Effect development
 - JSON API
+
 [Visit Documentation](https://docs.hyperion-project.org)
 
 ## Building
