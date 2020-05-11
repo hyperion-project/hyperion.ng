@@ -1,14 +1,18 @@
 name: Hyperion CI Build
 on:
   push:
-    branches:
-      - master
+    branches-ignore:
+      - 'gh-pages'
+      - 'docker-ci'
+    tags:
+      - '*'
+
+jobs:
 
 ######################
 ###### Linux #########
 ######################
 
-jobs:
   Linux:
     name: ${{ matrix.dockerName }}
     runs-on: ubuntu-latest
@@ -43,6 +47,13 @@ jobs:
         shell: bash
         run: ./.ci/ci_build.sh
 
+      # upload artifacts (only on tagged commit)
+      - name: Upload artifacts
+        if: startsWith(github.event.ref, 'refs/tags')
+        uses: actions/upload-artifact@v2
+        with:
+          path: deploy/Hyperion-*
+
 ######################
 ###### macOS #########
 ######################
@@ -67,11 +78,18 @@ jobs:
         shell: bash
         run: ./.ci/ci_build.sh
 
+      # upload artifacts (only on tagged commit)
+      - name: Upload artifacts
+        if: startsWith(github.event.ref, 'refs/tags')
+        uses: actions/upload-artifact@v2
+        with:
+          path: build/Hyperion-*
+
 ######################
 #### Documentation ###
 ######################
 
-  docs:
+  Docs:
     name: Documentation
     runs-on: ubuntu-latest
     defaults:
@@ -90,6 +108,59 @@ jobs:
       # Build Docs
       - name: Build docs
         run: |
+          cd docs
           npm install -g yarn
           yarn install
           yarn docs:build
+
+      # Deploy to gh-pages (only on tagged commit)
+      - name: Deploy to gh-pages
+        if: startsWith(github.event.ref, 'refs/tags')
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/dist
+          cname: docs.hyperion-project.org
+
+################################
+###### Publish Releases ########
+################################
+
+  publish:
+    name: Publish Releases
+    if: startsWith(github.event.ref, 'refs/tags')
+    needs: [Linux, macOS, Docs]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      # generate environment variables
+      - name: Generate environment variables from version and tag
+        run: |
+          echo ::set-env name=TAG::${GITHUB_REF/refs\/tags\//}
+          echo ::set-env name=VERSION::$(tr -d '\n' < version)
+          echo ::set-env name=preRelease::false
+
+      # If version contains alpha or beta, mark draft release as pre-release
+      - name: Mark release as pre-release
+        if: contains(env.VERSION, 'alpha') || contains(env.VERSION, 'beta')
+        run: echo ::set-env name=preRelease::true
+
+      # Download artifacts from previous build process
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: artifacts
+
+      # create draft release and upload artifacts
+      - name: Create draft release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Hyperion ${{ env.VERSION }}
+          tag_name: ${{ env.TAG }}
+          files: "artifacts/**"
+          draft: true
+          prerelease: ${{ env.preRelease }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
