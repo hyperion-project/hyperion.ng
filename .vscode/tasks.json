@@ -100,6 +100,12 @@
           "command": "cmake --build ${workspaceFolder}/build --target package -- -j $(sysctl -n hw.ncpu)"
         },
         "group": "build"
+      },
+      {
+        "label": "run:hyperiond",
+        "type": "shell",
+        "command": "${workspaceFolder}/build/bin/hyperiond -d",
+        "group": "build"
       }
   ]
 }
