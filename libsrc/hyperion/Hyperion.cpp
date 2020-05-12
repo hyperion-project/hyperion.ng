@@ -2,7 +2,6 @@
 // STL includes
 #include <exception>
 #include <sstream>
-#include <unistd.h>
 
 // QT includes
 #include <QString>

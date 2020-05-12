@@ -20,6 +20,7 @@ const ushort ARTNET_DEFAULT_PORT = 6454;
 // http://stackoverflow.com/questions/16396013/artnet-packet-structure
 typedef union
 {
+#pragma pack(push, 1)
 	struct {
 		char		ID[8];		// "Art-Net"
 		uint16_t	OpCode;		// See Doc. Table 1 - OpCodes eg. 0x5000 OpOutput / OpDmx
@@ -30,7 +31,8 @@ typedef union
 		uint8_t		Net;		// high universe (not used)
 		uint16_t	Length;		// data length (2 - 512)
 		uint8_t		Data[ DMX_MAX ];	// universe data
-	} __attribute__((packed));
+	};
+#pragma pack(pop)
 
 	uint8_t raw[ 18 + DMX_MAX ];
 

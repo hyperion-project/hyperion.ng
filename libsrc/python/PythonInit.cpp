@@ -15,19 +15,31 @@
 // modules to init
 #include <effectengine/EffectModule.h>
 
+#ifdef _WIN32
+	#define STRINGIFY2(x) #x
+	#define STRINGIFY(x) STRINGIFY2(x)
+#endif
+
 PythonInit::PythonInit()
 {
 	// register modules
 	EffectModule::registerHyperionExtensionModule();
 
 	// set Python module path when exists
-	const wchar_t *pythonPath = Py_DecodeLocale((QDir::cleanPath(qApp->applicationDirPath() + "/../lib/python")).toLatin1().data(), nullptr);
-	if(QDir(QString::fromWCharArray(pythonPath)).exists())
+	wchar_t *pythonPath = Py_DecodeLocale((QDir::cleanPath(qApp->applicationDirPath() + "/../lib/python")).toLatin1().data(), nullptr);
+	#ifdef _WIN32
+		pythonPath = Py_DecodeLocale((QDir::cleanPath(qApp->applicationDirPath())).toLatin1().data(), nullptr);
+		pythonPath =  wcscat(pythonPath, L"/python" STRINGIFY(PYTHON_VERSION_MAJOR_MINOR) ".zip");
+		if(QFile(QString::fromWCharArray(pythonPath)).exists())
+	#else
+		if(QDir(QString::fromWCharArray(pythonPath)).exists())
+	#endif
+
 	{
 		Py_NoSiteFlag++;
 		Py_SetPath(pythonPath);
+		PyMem_RawFree(pythonPath);
 	}
-	delete pythonPath;
 
 	// init Python
 	Debug(Logger::getInstance("DAEMON"), "Initializing Python interpreter");

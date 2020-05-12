@@ -1,6 +1,5 @@
 // STL includes
 #include <cstring>
-#include <unistd.h>
 #include <iostream>
 
 // hyperion includes

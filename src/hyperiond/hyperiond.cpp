@@ -1,4 +1,3 @@
-#include <unistd.h>
 #include <cassert>
 #include <stdlib.h>
 
@@ -18,12 +17,14 @@
 #include <utils/Components.h>
 #include <utils/JsonUtils.h>
 
-// bonjour browser
-#include <bonjour/bonjourbrowserwrapper.h>
+#include <HyperionConfig.h> // Required to determine the cmake options
 
+// bonjour browser
+#ifdef ENABLE_AVAHI
+#include <bonjour/bonjourbrowserwrapper.h>
+#endif
 #include <jsonserver/JsonServer.h>
 #include <webserver/WebServer.h>
-#include <HyperionConfig.h> // Required to determine the cmake options
 #include "hyperiond.h"
 
 // Flatbuffer Server
@@ -53,28 +54,29 @@
 // EffectFileHandler
 #include <effectengine/EffectFileHandler.h>
 
-HyperionDaemon* HyperionDaemon::daemon = nullptr;
+HyperionDaemon *HyperionDaemon::daemon = nullptr;
 
-HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bool& logLvlOverwrite)
-	: QObject(parent)
-	, _log(Logger::getInstance("DAEMON"))
-	, _instanceManager(new HyperionIManager(rootPath, this))
-	, _authManager(new AuthManager(this))
-	, _bonjourBrowserWrapper(new BonjourBrowserWrapper())
-	, _netOrigin(new NetOrigin(this))
-	, _pyInit(new PythonInit())
-	, _webserver(nullptr)
-	, _sslWebserver(nullptr)
-	, _jsonServer(nullptr)
-	, _v4l2Grabber(nullptr)
-	, _dispmanx(nullptr)
-	, _x11Grabber(nullptr)
-	, _amlGrabber(nullptr)
-	, _fbGrabber(nullptr)
-	, _osxGrabber(nullptr)
-	, _qtGrabber(nullptr)
-	, _ssdp(nullptr)
-	, _currVideoMode(VIDEO_2D)
+HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bool &logLvlOverwrite)
+		: QObject(parent), _log(Logger::getInstance("DAEMON"))
+		, _instanceManager(new HyperionIManager(rootPath, this))
+		, _authManager(new AuthManager(this))
+#ifdef ENABLE_AVAHI
+		, _bonjourBrowserWrapper(new BonjourBrowserWrapper())
+#endif
+		, _netOrigin(new NetOrigin(this))
+		, _pyInit(new PythonInit())
+		, _webserver(nullptr)
+		, _sslWebserver(nullptr)
+		, _jsonServer(nullptr)
+		, _v4l2Grabber(nullptr)
+		, _dispmanx(nullptr)
+		, _x11Grabber(nullptr)
+		, _amlGrabber(nullptr)
+		, _fbGrabber(nullptr)
+		, _osxGrabber(nullptr)
+		, _qtGrabber(nullptr)
+		, _ssdp(nullptr)
+		, _currVideoMode(VIDEO_2D)
 {
 	HyperionDaemon::daemon = this;
 
@@ -83,18 +85,18 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 	qRegisterMetaType<hyperion::Components>("hyperion::Components");
 	qRegisterMetaType<settings::type>("settings::type");
 	qRegisterMetaType<VideoMode>("VideoMode");
-	qRegisterMetaType<QMap<quint8,QJsonObject>>("QMap<quint8,QJsonObject>");
+	qRegisterMetaType<QMap<quint8, QJsonObject>>("QMap<quint8,QJsonObject>");
 	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
 
 	// init settings
-	_settingsManager = new SettingsManager(0,this);
+	_settingsManager = new SettingsManager(0, this);
 
 	// set inital log lvl if the loglvl wasn't overwritten by arg
-	if(!logLvlOverwrite)
+	if (!logLvlOverwrite)
 		handleSettingsUpdate(settings::LOGGER, getSetting(settings::LOGGER));
 
 	// init EffectFileHandler
-	EffectFileHandler* efh = new EffectFileHandler(rootPath, getSetting(settings::EFFECTS), this);
+	EffectFileHandler *efh = new EffectFileHandler(rootPath, getSetting(settings::EFFECTS), this);
 	connect(this, &HyperionDaemon::settingsChanged, efh, &EffectFileHandler::handleSettingsUpdate);
 
 	// connect and apply settings for AuthManager
@@ -122,10 +124,10 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 	// return videoMode changes from Daemon to HyperionIManager
 	connect(this, &HyperionDaemon::videoMode, _instanceManager, &HyperionIManager::newVideoMode);
 
-	// ---- grabber -----
-	#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB) && !defined(ENABLE_X11) && !defined(ENABLE_AMLOGIC)
-		Warning(_log, "No platform capture can be instantiated, because all grabbers have been left out from the build");
-	#endif
+// ---- grabber -----
+#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB) && !defined(ENABLE_X11) && !defined(ENABLE_AMLOGIC) && !defined(ENABLE_QT)
+	Warning(_log, "No platform capture can be instantiated, because all grabbers have been left out from the build");
+#endif
 
 	// init system capture (framegrabber)
 	handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
@@ -144,9 +146,9 @@ HyperionDaemon::~HyperionDaemon()
 	delete _pyInit;
 }
 
-void HyperionDaemon::setVideoMode(const VideoMode& mode)
+void HyperionDaemon::setVideoMode(const VideoMode &mode)
 {
-	if(_currVideoMode != mode)
+	if (_currVideoMode != mode)
 	{
 		_currVideoMode = mode;
 		emit videoMode(mode);
@@ -177,7 +179,9 @@ void HyperionDaemon::freeObjects()
 	// stop Hyperions (non blocking)
 	_instanceManager->stopAll();
 
+#ifdef ENABLE_AVAHI
 	delete _bonjourBrowserWrapper;
+#endif
 	delete _amlGrabber;
 	delete _dispmanx;
 	delete _fbGrabber;
@@ -185,19 +189,21 @@ void HyperionDaemon::freeObjects()
 	delete _qtGrabber;
 	delete _v4l2Grabber;
 
-	_v4l2Grabber           = nullptr;
+	_v4l2Grabber = nullptr;
+#ifdef ENABLE_AVAHI
 	_bonjourBrowserWrapper = nullptr;
-	_amlGrabber            = nullptr;
-	_dispmanx              = nullptr;
-	_fbGrabber             = nullptr;
-	_osxGrabber            = nullptr;
-	_qtGrabber             = nullptr;
-	_flatBufferServer      = nullptr;
-	_protoServer           = nullptr;
-	_ssdp                  = nullptr;
-	_webserver             = nullptr;
-	_sslWebserver          = nullptr;
-	_jsonServer            = nullptr;
+#endif
+	_amlGrabber = nullptr;
+	_dispmanx = nullptr;
+	_fbGrabber = nullptr;
+	_osxGrabber = nullptr;
+	_qtGrabber = nullptr;
+	_flatBufferServer = nullptr;
+	_protoServer = nullptr;
+	_ssdp = nullptr;
+	_webserver = nullptr;
+	_sslWebserver = nullptr;
+	_jsonServer = nullptr;
 }
 
 void HyperionDaemon::startNetworkServices()
@@ -208,93 +214,97 @@ void HyperionDaemon::startNetworkServices()
 
 	// Create FlatBuffer server in thread
 	_flatBufferServer = new FlatBufferServer(getSetting(settings::FLATBUFSERVER));
-	QThread* fbThread = new QThread(this);
+	QThread *fbThread = new QThread(this);
 	_flatBufferServer->moveToThread(fbThread);
-	connect( fbThread, &QThread::started, _flatBufferServer, &FlatBufferServer::initServer );
-	connect( fbThread, &QThread::finished, _flatBufferServer, &QObject::deleteLater );
-	connect( fbThread, &QThread::finished, fbThread, &QObject::deleteLater );
+	connect(fbThread, &QThread::started, _flatBufferServer, &FlatBufferServer::initServer);
+	connect(fbThread, &QThread::finished, _flatBufferServer, &QObject::deleteLater);
+	connect(fbThread, &QThread::finished, fbThread, &QObject::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _flatBufferServer, &FlatBufferServer::handleSettingsUpdate);
 	fbThread->start();
 
 	// Create Proto server in thread
 	_protoServer = new ProtoServer(getSetting(settings::PROTOSERVER));
-	QThread* pThread = new QThread(this);
+	QThread *pThread = new QThread(this);
 	_protoServer->moveToThread(pThread);
-	connect( pThread, &QThread::started, _protoServer, &ProtoServer::initServer );
-	connect( pThread, &QThread::finished, _protoServer, &QObject::deleteLater );
-	connect( pThread, &QThread::finished, pThread, &QObject::deleteLater );
-	connect( this, &HyperionDaemon::settingsChanged, _protoServer, &ProtoServer::handleSettingsUpdate );
+	connect(pThread, &QThread::started, _protoServer, &ProtoServer::initServer);
+	connect(pThread, &QThread::finished, _protoServer, &QObject::deleteLater);
+	connect(pThread, &QThread::finished, pThread, &QObject::deleteLater);
+	connect(this, &HyperionDaemon::settingsChanged, _protoServer, &ProtoServer::handleSettingsUpdate);
 	pThread->start();
 
 	// Create Webserver in thread
 	_webserver = new WebServer(getSetting(settings::WEBSERVER), false);
-	QThread* wsThread = new QThread(this);
+	QThread *wsThread = new QThread(this);
 	_webserver->moveToThread(wsThread);
-	connect( wsThread, &QThread::started, _webserver, &WebServer::initServer );
-	connect( wsThread, &QThread::finished, _webserver, &QObject::deleteLater );
-	connect( wsThread, &QThread::finished, wsThread, &QObject::deleteLater );
+	connect(wsThread, &QThread::started, _webserver, &WebServer::initServer);
+	connect(wsThread, &QThread::finished, _webserver, &QObject::deleteLater);
+	connect(wsThread, &QThread::finished, wsThread, &QObject::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _webserver, &WebServer::handleSettingsUpdate);
 	wsThread->start();
 
 	// Create SSL Webserver in thread
 	_sslWebserver = new WebServer(getSetting(settings::WEBSERVER), true);
-	QThread* sslWsThread = new QThread(this);
+	QThread *sslWsThread = new QThread(this);
 	_sslWebserver->moveToThread(sslWsThread);
-	connect( sslWsThread, &QThread::started, _sslWebserver, &WebServer::initServer );
-	connect( sslWsThread, &QThread::finished, _sslWebserver, &QObject::deleteLater );
-	connect( sslWsThread, &QThread::finished, sslWsThread, &QObject::deleteLater );
+	connect(sslWsThread, &QThread::started, _sslWebserver, &WebServer::initServer);
+	connect(sslWsThread, &QThread::finished, _sslWebserver, &QObject::deleteLater);
+	connect(sslWsThread, &QThread::finished, sslWsThread, &QObject::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _sslWebserver, &WebServer::handleSettingsUpdate);
 	sslWsThread->start();
 
 	// Create SSDP server in thread
-	_ssdp = new SSDPHandler(_webserver, getSetting(settings::FLATBUFSERVER).object()["port"].toInt(), getSetting(settings::JSONSERVER).object()["port"].toInt(),  getSetting(settings::GENERAL).object()["name"].toString());
-	QThread* ssdpThread = new QThread(this);
+	_ssdp = new SSDPHandler(_webserver, getSetting(settings::FLATBUFSERVER).object()["port"].toInt(), getSetting(settings::JSONSERVER).object()["port"].toInt(), getSetting(settings::GENERAL).object()["name"].toString());
+	QThread *ssdpThread = new QThread(this);
 	_ssdp->moveToThread(ssdpThread);
-	connect( ssdpThread, &QThread::started, _ssdp, &SSDPHandler::initServer );
-	connect( ssdpThread, &QThread::finished, _ssdp, &QObject::deleteLater );
-	connect( ssdpThread, &QThread::finished, ssdpThread, &QObject::deleteLater );
-	connect( _webserver, &WebServer::stateChange, _ssdp, &SSDPHandler::handleWebServerStateChange);
+	connect(ssdpThread, &QThread::started, _ssdp, &SSDPHandler::initServer);
+	connect(ssdpThread, &QThread::finished, _ssdp, &QObject::deleteLater);
+	connect(ssdpThread, &QThread::finished, ssdpThread, &QObject::deleteLater);
+	connect(_webserver, &WebServer::stateChange, _ssdp, &SSDPHandler::handleWebServerStateChange);
 	connect(this, &HyperionDaemon::settingsChanged, _ssdp, &SSDPHandler::handleSettingsUpdate);
 	ssdpThread->start();
 }
 
-void HyperionDaemon::handleSettingsUpdate(const settings::type& settingsType, const QJsonDocument& config)
+void HyperionDaemon::handleSettingsUpdate(const settings::type &settingsType, const QJsonDocument &config)
 {
-	if(settingsType == settings::LOGGER)
+	if (settingsType == settings::LOGGER)
 	{
-		const QJsonObject & logConfig = config.object();
+		const QJsonObject &logConfig = config.object();
 
 		std::string level = logConfig["level"].toString("warn").toStdString(); // silent warn verbose debug
-		if (level == "silent")       Logger::setLogLevel(Logger::OFF);
-		else if (level == "warn")    Logger::setLogLevel(Logger::WARNING);
-		else if (level == "verbose") Logger::setLogLevel(Logger::INFO);
-		else if (level == "debug")   Logger::setLogLevel(Logger::DEBUG);
+		if (level == "silent")
+			Logger::setLogLevel(Logger::OFF);
+		else if (level == "warn")
+			Logger::setLogLevel(Logger::WARNING);
+		else if (level == "verbose")
+			Logger::setLogLevel(Logger::INFO);
+		else if (level == "debug")
+			Logger::setLogLevel(Logger::DEBUG);
 	}
 
-	if(settingsType == settings::SYSTEMCAPTURE)
+	if (settingsType == settings::SYSTEMCAPTURE)
 	{
-		const QJsonObject & grabberConfig = config.object();
+		const QJsonObject &grabberConfig = config.object();
 
-		_grabber_width     = grabberConfig["width"].toInt(96);
-		_grabber_height    = grabberConfig["height"].toInt(96);
+		_grabber_width = grabberConfig["width"].toInt(96);
+		_grabber_height = grabberConfig["height"].toInt(96);
 		_grabber_frequency = grabberConfig["frequency_Hz"].toInt(10);
 
-		_grabber_cropLeft   = grabberConfig["cropLeft"].toInt(0);
-		_grabber_cropRight  = grabberConfig["cropRight"].toInt(0);
-		_grabber_cropTop    = grabberConfig["cropTop"].toInt(0);
+		_grabber_cropLeft = grabberConfig["cropLeft"].toInt(0);
+		_grabber_cropRight = grabberConfig["cropRight"].toInt(0);
+		_grabber_cropTop = grabberConfig["cropTop"].toInt(0);
 		_grabber_cropBottom = grabberConfig["cropBottom"].toInt(0);
 
-		_grabber_ge2d_mode  = grabberConfig["ge2d_mode"].toInt(0);
-		_grabber_device     = grabberConfig["amlogic_grabber"].toString("amvideocap0");
+		_grabber_ge2d_mode = grabberConfig["ge2d_mode"].toInt(0);
+		_grabber_device = grabberConfig["amlogic_grabber"].toString("amvideocap0");
 
-		#ifdef ENABLE_OSX
-			QString type = "osx";
-		#else
-			QString type = grabberConfig["type"].toString("auto");
-		#endif
+#ifdef ENABLE_OSX
+		QString type = "osx";
+#else
+		QString type = grabberConfig["type"].toString("auto");
+#endif
 
 		// auto eval of type
-		if ( type == "auto" )
+		if (type == "auto")
 		{
 			// dispmanx -> on raspi
 			if (QFile::exists("/dev/vchiq"))
@@ -302,15 +312,17 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& settingsType, co
 				type = "dispmanx";
 			}
 			// amlogic -> /dev/amvideo exists
-			else if ( QFile::exists("/dev/amvideo") )
+			else if (QFile::exists("/dev/amvideo"))
 			{
 				type = "amlogic";
 
-					if ( !QFile::exists("/dev/" + _grabber_device) )
-						{ Error( _log, "grabber device '%s' for type amlogic not found!", QSTRING_CSTR(_grabber_device)); }
+				if (!QFile::exists("/dev/" + _grabber_device))
+				{
+					Error(_log, "grabber device '%s' for type amlogic not found!", QSTRING_CSTR(_grabber_device));
+				}
 			}
 			// x11 -> if DISPLAY is set
-			else if (getenv("DISPLAY") != NULL )
+			else if (getenv("DISPLAY") != NULL)
 			{
 				type = "x11";
 			}
@@ -321,9 +333,9 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& settingsType, co
 			}
 		}
 
-		if(_prevType != type)
+		if (_prevType != type)
 		{
-			Info(  _log, "set screen capture device to '%s'", QSTRING_CSTR(type));
+			Info(_log, "set screen capture device to '%s'", QSTRING_CSTR(type));
 
 			// stop all capture interfaces
 			#ifdef ENABLE_FB
@@ -376,49 +388,49 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& settingsType, co
 			#endif
 
 			// create/start capture interface
-			if(type == "framebuffer")
+			if (type == "framebuffer")
 			{
-				if(_fbGrabber == nullptr)
+				if (_fbGrabber == nullptr)
 					createGrabberFramebuffer(grabberConfig);
 				#ifdef ENABLE_FB
 				_fbGrabber->tryStart();
 				#endif
 			}
-			else if(type == "dispmanx")
+			else if (type == "dispmanx")
 			{
-				if(_dispmanx == nullptr)
+				if (_dispmanx == nullptr)
 					createGrabberDispmanx();
 				#ifdef ENABLE_DISPMANX
 				_dispmanx->tryStart();
 				#endif
 			}
-			else if(type == "amlogic")
+			else if (type == "amlogic")
 			{
-				if(_amlGrabber == nullptr)
+				if (_amlGrabber == nullptr)
 					createGrabberAmlogic();
 				#ifdef ENABLE_AMLOGIC
 				_amlGrabber->tryStart();
 				#endif
 			}
-			else if(type == "osx")
+			else if (type == "osx")
 			{
-				if(_osxGrabber == nullptr)
+				if (_osxGrabber == nullptr)
 					createGrabberOsx(grabberConfig);
 				#ifdef ENABLE_OSX
 				_osxGrabber->tryStart();
 				#endif
 			}
-			else if(type == "x11")
+			else if (type == "x11")
 			{
-				if(_x11Grabber == nullptr)
+				if (_x11Grabber == nullptr)
 					createGrabberX11(grabberConfig);
 				#ifdef ENABLE_X11
 				_x11Grabber->tryStart();
 				#endif
 			}
-			else if(type == "qt")
+			else if (type == "qt")
 			{
-				if(_qtGrabber == nullptr)
+				if (_qtGrabber == nullptr)
 					createGrabberQt(grabberConfig);
 				#ifdef ENABLE_QT
 				_qtGrabber->tryStart();
@@ -426,22 +438,22 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& settingsType, co
 			}
 			else
 			{
-				Error(_log,"Unknown platform capture type: %s", QSTRING_CSTR(type));
+				Error(_log, "Unknown platform capture type: %s", QSTRING_CSTR(type));
 				return;
 			}
 			_prevType = type;
 		}
 	}
-	else if(settingsType == settings::V4L2)
+	else if (settingsType == settings::V4L2)
 	{
 
 #ifdef ENABLE_V4L2
-			if(_v4l2Grabber != nullptr)
-				return;
+		if (_v4l2Grabber != nullptr)
+			return;
 
-			const QJsonObject & grabberConfig = config.object();
+		const QJsonObject &grabberConfig = config.object();
 
-			_v4l2Grabber = new V4L2Wrapper(
+		_v4l2Grabber = new V4L2Wrapper(
 				grabberConfig["device"].toString("auto"),
 				grabberConfig["width"].toInt(0),
 				grabberConfig["height"].toInt(0),
@@ -449,22 +461,23 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type& settingsType, co
 				parseVideoStandard(grabberConfig["standard"].toString("no-change")),
 				parsePixelFormat(grabberConfig["pixelFormat"].toString("no-change")),
 				grabberConfig["sizeDecimation"].toInt(8));
-			_v4l2Grabber->setSignalThreshold(
-				grabberConfig["redSignalThreshold"].toDouble(0.0)/100.0,
-				grabberConfig["greenSignalThreshold"].toDouble(0.0)/100.0,
-				grabberConfig["blueSignalThreshold"].toDouble(0.0)/100.0);
-			_v4l2Grabber->setCropping(
+
+		_v4l2Grabber->setSignalThreshold(
+				grabberConfig["redSignalThreshold"].toDouble(0.0) / 100.0,
+				grabberConfig["greenSignalThreshold"].toDouble(0.0) / 100.0,
+				grabberConfig["blueSignalThreshold"].toDouble(0.0) / 100.0);
+		_v4l2Grabber->setCropping(
 				grabberConfig["cropLeft"].toInt(0),
 				grabberConfig["cropRight"].toInt(0),
 				grabberConfig["cropTop"].toInt(0),
 				grabberConfig["cropBottom"].toInt(0));
-			_v4l2Grabber->setSignalDetectionEnable(grabberConfig["signalDetection"].toBool(true));
-			_v4l2Grabber->setSignalDetectionOffset(
+		_v4l2Grabber->setSignalDetectionEnable(grabberConfig["signalDetection"].toBool(true));
+		_v4l2Grabber->setSignalDetectionOffset(
 				grabberConfig["sDHOffsetMin"].toDouble(0.25),
 				grabberConfig["sDVOffsetMin"].toDouble(0.25),
 				grabberConfig["sDHOffsetMax"].toDouble(0.75),
 				grabberConfig["sDVOffsetMax"].toDouble(0.75));
-			Debug(_log, "V4L2 grabber created");
+		Debug(_log, "V4L2 grabber created");
 
 			// connect to HyperionDaemon signal
 			connect(this, &HyperionDaemon::videoMode, _v4l2Grabber, &V4L2Wrapper::setVideoMode);
@@ -491,7 +504,6 @@ void HyperionDaemon::createGrabberDispmanx()
 #endif
 }
 
-
 void HyperionDaemon::createGrabberAmlogic()
 {
 #ifdef ENABLE_AMLOGIC
@@ -508,13 +520,13 @@ void HyperionDaemon::createGrabberAmlogic()
 #endif
 }
 
-void HyperionDaemon::createGrabberX11(const QJsonObject & grabberConfig)
+void HyperionDaemon::createGrabberX11(const QJsonObject &grabberConfig)
 {
 #ifdef ENABLE_X11
 	_x11Grabber = new X11Wrapper(
-				_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom,
-				grabberConfig["pixelDecimation"].toInt(8),
-				_grabber_frequency );
+			_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom,
+			grabberConfig["pixelDecimation"].toInt(8),
+			_grabber_frequency);
 	_x11Grabber->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
 
 	// connect to HyperionDaemon signal
@@ -527,14 +539,14 @@ void HyperionDaemon::createGrabberX11(const QJsonObject & grabberConfig)
 #endif
 }
 
-void HyperionDaemon::createGrabberQt(const QJsonObject & grabberConfig)
+void HyperionDaemon::createGrabberQt(const QJsonObject &grabberConfig)
 {
 #ifdef ENABLE_QT
 	_qtGrabber = new QtWrapper(
-				_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom,
-				grabberConfig["pixelDecimation"].toInt(8),
-				grabberConfig["display"].toInt(0),
-				_grabber_frequency );
+			_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom,
+			grabberConfig["pixelDecimation"].toInt(8),
+			grabberConfig["display"].toInt(0),
+			_grabber_frequency);
 
 	// connect to HyperionDaemon signal
 	connect(this, &HyperionDaemon::videoMode, _qtGrabber, &QtWrapper::setVideoMode);
@@ -546,13 +558,13 @@ void HyperionDaemon::createGrabberQt(const QJsonObject & grabberConfig)
 #endif
 }
 
-void HyperionDaemon::createGrabberFramebuffer(const QJsonObject & grabberConfig)
+void HyperionDaemon::createGrabberFramebuffer(const QJsonObject &grabberConfig)
 {
 #ifdef ENABLE_FB
 	// Construct and start the framebuffer grabber if the configuration is present
 	_fbGrabber = new FramebufferWrapper(
-				grabberConfig["device"].toString("/dev/fb0"),
-				_grabber_width, _grabber_height, _grabber_frequency);
+			grabberConfig["device"].toString("/dev/fb0"),
+			_grabber_width, _grabber_height, _grabber_frequency);
 	_fbGrabber->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
 	// connect to HyperionDaemon signal
 	connect(this, &HyperionDaemon::videoMode, _fbGrabber, &FramebufferWrapper::setVideoMode);
@@ -564,14 +576,13 @@ void HyperionDaemon::createGrabberFramebuffer(const QJsonObject & grabberConfig)
 #endif
 }
 
-
-void HyperionDaemon::createGrabberOsx(const QJsonObject & grabberConfig)
+void HyperionDaemon::createGrabberOsx(const QJsonObject &grabberConfig)
 {
 #ifdef ENABLE_OSX
 	// Construct and start the osx grabber if the configuration is present
 	_osxGrabber = new OsxWrapper(
-				grabberConfig["display"].toInt(0),
-				_grabber_width, _grabber_height, _grabber_frequency);
+			grabberConfig["display"].toInt(0),
+			_grabber_width, _grabber_height, _grabber_frequency);
 
 	// connect to HyperionDaemon signal
 	connect(this, &HyperionDaemon::videoMode, _osxGrabber, &OsxWrapper::setVideoMode);
