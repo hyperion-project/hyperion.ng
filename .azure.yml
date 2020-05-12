@@ -77,20 +77,19 @@ jobs:
     submodules: recursive # set to 'recursive' to get submodules of submodules
 
   - task: UsePythonVersion@0
-      versionSpec: '3.x'
     inputs:
+      versionSpec: '3.x'
       addToPath: true
-
-      cd $(Build.SourcesDirectory)
       architecture: 'x64'
-  - script: |
-      python -m aqt install -O c:\Qt 5.14.0 windows desktop win64_msvc2017_64
-      python -m pip install aqtinstall
-    displayName: 'Install Qt 5.14.0'
 
+  - script: |
+      cd $(Build.SourcesDirectory)
+      python -m pip install aqtinstall
+      python -m aqt install -O c:\Qt 5.14.0 windows desktop win64_msvc2017_64
+    displayName: 'Install Qt 5.14.0'
   # build process
   - bash: ./.ci/ci_build.sh
     env:
       PLATFORM: 'windows'
-    displayName: 'Build windows packages'
     condition: succeeded()
+    displayName: 'Build windows packages'
