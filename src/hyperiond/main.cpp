@@ -10,6 +10,7 @@
 // getpid()
 #ifdef _WIN32
 #include <process.h>
+//#include <Windows.h>
 #else
 #include <unistd.h>
 #endif
@@ -25,7 +26,6 @@
 #include <QDir>
 #include <QStringList>
 #include <QSystemTrayIcon>
-#include <QProcess>
 
 #include "HyperionConfig.h"
 
@@ -34,6 +34,8 @@
 #include <commandline/Parser.h>
 #include <commandline/IntOption.h>
 #include <../../include/db/AuthTable.h>
+
+#include "detectProcess.h"
 
 #ifdef ENABLE_X11
 #include <X11/Xlib.h>
@@ -46,87 +48,13 @@ using namespace commandline;
 
 #define PERM0664 QFileDevice::ReadOwner | QFileDevice::ReadGroup | QFileDevice::ReadOther | QFileDevice::WriteOwner | QFileDevice::WriteGroup
 
-unsigned int getProcessIdsByProcessName(const char* processName, QStringList &listOfPids)
-{
-
-	// Clear content of returned list of PIDS
-	listOfPids.clear();
-
-#if defined(WIN32)
-	/*
-	// Get the list of process identifiers.
-	DWORD aProcesses[1024], cbNeeded, cProcesses;
-	unsigned int i;
-
-	if (!EnumProcesses(aProcesses, sizeof(aProcesses), &cbNeeded))
-		return 0;
-
-	// Calculate how many process identifiers were returned.
-	cProcesses = cbNeeded / sizeof(DWORD);
-
-	// Search for a matching name for each process
-	for (i = 0; i < cProcesses; i++)
-	{
-		if (aProcesses[i] != 0)
-		{
-			char szProcessName[MAX_PATH] = {0};
-
-			DWORD processID = aProcesses[i];
-
-			// Get a handle to the process.
-			HANDLE hProcess = OpenProcess( PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
-
-			// Get the process name
-			if (NULL != hProcess)
-			{
-				HMODULE hMod;
-				DWORD cbNeeded;
-
-				if (EnumProcessModules(hProcess, &hMod, sizeof(hMod), &cbNeeded))
-					GetModuleBaseNameA(hProcess, hMod, szProcessName, sizeof(szProcessName)/sizeof(char));
-
-				// Release the handle to the process.
-				CloseHandle(hProcess);
-
-				if (*szProcessName != 0 && strcmp(processName, szProcessName) == 0)
-					listOfPids.append(QString::number(processID));
-			}
-		}
-	}
-*/
-	return listOfPids.count();
-
-#else
-
-	// Run pgrep, which looks through the currently running processses and lists the process IDs
-	// which match the selection criteria to stdout.
-	QProcess process;
-	process.start("pgrep",  QStringList() << processName);
-	process.waitForReadyRead();
-
-	QByteArray bytes = process.readAllStandardOutput();
-
-	process.terminate();
-	process.waitForFinished();
-	process.kill();
-
-	// Output is something like "2472\n2323" for multiple instances
-	if (bytes.isEmpty())
-		return 0;
-
-	listOfPids = QString(bytes).split("\n", QString::SkipEmptyParts);
-	return listOfPids.count();
-
-#endif
-}
-
 #ifndef _WIN32
 void signal_handler(const int signum)
 {
 	// Hyperion Managment instance
-	HyperionIManager* _hyperion = HyperionIManager::getInstance();
+	HyperionIManager *_hyperion = HyperionIManager::getInstance();
 
-	if(signum == SIGCHLD)
+	if (signum == SIGCHLD)
 	{
 		// only quit when a registered child process is gone
 		// currently this feature is not active ...
@@ -216,8 +144,12 @@ int main(int argc, char** argv)
 #ifndef _WIN32
 	setenv("AVAHI_COMPAT_NOWARN", "1", 1);
 #endif
+#ifdef _WIN32
+	// We can get a console window also in app gui mode conditional
+	//AllocConsole();
+#endif
 	// initialize main logger and set global log level
-	Logger* log = Logger::getInstance("MAIN");
+	Logger *log = Logger::getInstance("MAIN");
 	Logger::setLogLevel(Logger::WARNING);
 
 	// check if we are running already an instance
@@ -225,7 +157,12 @@ int main(int argc, char** argv)
 	// TODO Allow one session per user
 	// http://www.qtcentre.org/threads/44489-Get-Process-ID-for-a-running-application
 	QStringList listOfPids;
-	if(getProcessIdsByProcessName("hyperiond", listOfPids) > 1)
+	#ifdef _WIN32
+		const char* processName = "hyperiond.exe";
+	#else
+		const char* processName = "hyperiond";
+	#endif
+	if (getProcessIdsByProcessName(processName, listOfPids) > 1)
 	{
 		Error(log, "The Hyperion Daemon is already running, abort start");
 		return 0;
