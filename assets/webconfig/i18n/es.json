@@ -808,6 +808,8 @@
     "edt_conf_net_localAdminAuth_expl": "Cuando está habilitado, el acceso de administración desde tu red doméstica necesita una contraseña.",
     "edt_eff_collision_header": "colisión de colores",
     "edt_eff_collision_header_desc": "Dos proyectiles de color se envían desde posiciones aleatorias y chocan entre sí",
+    "edt_eff_plasma_header": "",
+    "edt_eff_plasma_header_desc": "",
     "edt_eff_explodeRadius": "Rango de detonación",
     "edt_dev_spec_printTimeStamp_title": "Añadir marca de tiempo",
     "edt_eff_ledtest_header": "Prueba de Led",

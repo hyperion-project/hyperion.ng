@@ -1,0 +1,18 @@
+{
+	"type":"object",
+	"script" : "plasma.py",
+	"title": "edt_eff_plasma_header",
+	"required": true,
+	"properties": {
+		"sleepTime": {
+			"type": "number",
+			"title":"edt_eff_sleeptime",
+			"default": 0.20,
+			"minimum" : 0.01,
+			"step": 0.01,
+			"append" : "edt_append_s",
+			"propertyOrder" : 1
+		}
+	},
+	"additionalProperties": false
+}
