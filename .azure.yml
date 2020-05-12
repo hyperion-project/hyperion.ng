@@ -67,30 +67,30 @@ jobs:
 ###### windows #######
 ######################
 
-  - job: windows
-    timeoutInMinutes: 120
-    pool:
-      vmImage: 'windows-latest'
+- job: windows
+  timeoutInMinutes: 120
+  pool:
+    vmImage: 'windows-latest'
 
-    steps:
-    - checkout: self # represents the repo where the initial Pipelines YAML file was found
-      submodules: recursive # set to 'recursive' to get submodules of submodules
+  steps:
+  - checkout: self # represents the repo where the initial Pipelines YAML file was found
+    submodules: recursive # set to 'recursive' to get submodules of submodules
 
-    - task: UsePythonVersion@0
-        versionSpec: '3.x'
-      inputs:
-        addToPath: true
+  - task: UsePythonVersion@0
+      versionSpec: '3.x'
+    inputs:
+      addToPath: true
 
-        cd $(Build.SourcesDirectory)
-        architecture: 'x64'
-    - script: |
-        python -m aqt install -O c:\Qt 5.14.0 windows desktop win64_msvc2017_64
-        python -m pip install aqtinstall
-      displayName: 'Install Qt 5.14.0'
+      cd $(Build.SourcesDirectory)
+      architecture: 'x64'
+  - script: |
+      python -m aqt install -O c:\Qt 5.14.0 windows desktop win64_msvc2017_64
+      python -m pip install aqtinstall
+    displayName: 'Install Qt 5.14.0'
 
-    # build process
-    - bash: ./.ci/ci_build.sh
-      env:
-        PLATFORM: 'windows'
-      displayName: 'Build windows packages'
-      condition: succeeded()
+  # build process
+  - bash: ./.ci/ci_build.sh
+    env:
+      PLATFORM: 'windows'
+    displayName: 'Build windows packages'
+    condition: succeeded()
