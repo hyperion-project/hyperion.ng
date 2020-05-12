@@ -8,7 +8,7 @@
       "detail": "Configure Build Env. Release/Debug switch not required for multi generators (msvc)",
       "type": "shell",
       "command": "cmake -B ${workspaceFolder}/build -DCMAKE_BUILD_TYPE=Release",
-      "windows":{
+      "windows": {
         "command": "cmake -G \"Visual Studio 16 2019\" -A x64 -B ${workspaceFolder}/build"
       },
       "group": "build",
@@ -27,14 +27,14 @@
       "label": "build:debug hyperiond",
       "type": "shell",
       "command": "cmake --build ${workspaceFolder}/build --target hyperiond -- -j $(nproc)",
-      "windows":{
-        "command":"cmake --build ${workspaceFolder}/build --target hyperiond --config Debug -- -maxcpucount"
+      "windows": {
+        "command": "cmake --build ${workspaceFolder}/build --target hyperiond --config Debug -- -maxcpucount"
       },
-      "osx":{
-        "command":"cmake --build ${workspaceFolder}/build --target hyperiond -- -j $(sysctl -n hw.ncpu)"
+      "osx": {
+        "command": "cmake --build ${workspaceFolder}/build --target hyperiond -- -j $(sysctl -n hw.ncpu)"
       },
       "group": {
-        "kind":"build",
+        "kind": "build",
         "isDefault": true
       }
     },
@@ -62,50 +62,62 @@
       },
       "group": "build"
     },
-      {
-        "label": "build:release hyperiond",
-        "type": "shell",
-        "command": "cmake --build ${workspaceFolder}/build --target hyperiond -- -j $(nproc)",
-        "windows": {
-          "command": "cmake --build ${workspaceFolder}/build --target hyperiond --config Release -- -maxcpucount"
-        },
-        "osx": {
-          "command": "cmake --build ${workspaceFolder}/build --target hyperiond -- -j $(sysctl -n hw.ncpu)"
-        },
-        "group": {
-          "kind": "build",
-          "isDefault": true
-        }
+    {
+      "label": "build:release hyperiond",
+      "type": "shell",
+      "command": "cmake --build ${workspaceFolder}/build --target hyperiond -- -j $(nproc)",
+      "windows": {
+        "command": "cmake --build ${workspaceFolder}/build --target hyperiond --config Release -- -maxcpucount"
       },
-      {
-        "label": "build:release all",
-        "type": "shell",
-        "command": "cmake --build ${workspaceFolder}/build -- -j $(nproc)",
-        "windows": {
-          "command": "cmake --build ${workspaceFolder}/build --config Release -- -maxcpucount"
-        },
-        "osx": {
-          "command": "cmake --build ${workspaceFolder}/build -- -j $(sysctl -n hw.ncpu)"
-        },
-        "group": "build"
+      "osx": {
+        "command": "cmake --build ${workspaceFolder}/build --target hyperiond -- -j $(sysctl -n hw.ncpu)"
       },
-      {
-        "label": "build:release package",
-        "type": "shell",
-        "command": "cmake --build ${workspaceFolder}/build --target package -- -j $(nproc)",
-        "windows": {
-          "command": "cmake --build ${workspaceFolder}/build --target package --config Release -- -maxcpucount"
-        },
-        "osx": {
-          "command": "cmake --build ${workspaceFolder}/build --target package -- -j $(sysctl -n hw.ncpu)"
-        },
-        "group": "build"
-      },
-      {
-        "label": "run:hyperiond",
-        "type": "shell",
-        "command": "${workspaceFolder}/build/bin/hyperiond -d",
-        "group": "build"
+      "group": {
+        "kind": "build",
+        "isDefault": true
       }
+    },
+    {
+      "label": "build:release all",
+      "type": "shell",
+      "command": "cmake --build ${workspaceFolder}/build -- -j $(nproc)",
+      "windows": {
+        "command": "cmake --build ${workspaceFolder}/build --config Release -- -maxcpucount"
+      },
+      "osx": {
+        "command": "cmake --build ${workspaceFolder}/build -- -j $(sysctl -n hw.ncpu)"
+      },
+      "group": "build"
+    },
+    {
+      "label": "build:release package",
+      "type": "shell",
+      "command": "cmake --build ${workspaceFolder}/build --target package -- -j $(nproc)",
+      "windows": {
+        "command": "cmake --build ${workspaceFolder}/build --target package --config Release -- -maxcpucount"
+      },
+      "osx": {
+        "command": "cmake --build ${workspaceFolder}/build --target package -- -j $(sysctl -n hw.ncpu)"
+      },
+      "group": "build"
+    },
+    {
+      "label": "run:hyperiond (Debug)",
+      "type": "shell",
+      "command": "${workspaceFolder}/build/bin/hyperiond -d",
+      "windows": {
+        "command": "${workspaceFolder}/build/bin/Debug/hyperiond"
+      },
+      "group": "build"
+    },
+    {
+      "label": "run:hyperiond (Release)",
+      "type": "shell",
+      "command": "${workspaceFolder}/build/bin/hyperiond -d",
+      "windows": {
+        "command": "${workspaceFolder}/build/bin/Release/hyperiond"
+      },
+      "group": "build"
+    }
   ]
 }
