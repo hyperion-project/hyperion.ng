@@ -3,13 +3,12 @@ Hyperion supports various platforms for installation, as package or portable .zi
 
 ## Requirements
 
-### Supported Hardware/Software
+### Supported Systems
   * Raspberry Pi (See also [HyperBian](/en/user/HyperBian))
   * Debian 9 | Ubuntu 16.04 or higher
   * Mac OS
-  * Windows <Badge text="EXPERIMENTAL" type="warning" vertical="middle"/>
 
-**Please note that some arm devices have limited support in terms of direct capturing**
+**Please note that some arm devices have limited support in terms of screen capturing**
 
 ### Supported Browsers
 Hyperion will be configured and controlled trough a web interface.
@@ -20,18 +19,13 @@ Hyperion will be configured and controlled trough a web interface.
   * Microsoft Edge 14+
 
 ::: warning Internet Explorer
-Intenet Explorer is not supported
+Internet Explorer is not supported
 :::
 
 ## Install Hyperion
   * Raspberry Pi you can use [HyperBian](/en/user/HyperBian.md) for a fresh start. Or use the install system
   * We provide installation packages (.deb) to install Hyperion with a single click on Debian/Ubuntu based systems.
-  * A script installation for read-only systems like OpenELEC, LibreELEC.
   * Mac OSX - currently just a zip file with the binary
-
-### Windows <Badge text="EXPERIMENTAL" type="warning" vertical="middle"/>
-Download the Windows installer from the [Release page](https://github.com/hyperion-project/hyperion.ng/releases) and follow the setup \
-Now start it from your start menu.
 
 ### Debian/Ubuntu
 For Debian/Ubuntu we provide a .deb file. A one click installation package that does the job for you. \

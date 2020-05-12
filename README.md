@@ -35,7 +35,7 @@ For an example, you can participate in the translation.
 [![Join Translation](https://img.shields.io/badge/POEditor-translate-green.svg)](https://poeditor.com/join/project/Y4F6vHRFjA)
 
 ## Requirements
-Debian 9, Ubuntu 16.04 or higher. Windows 7 or higher.
+Debian 9, Ubuntu 16.04 or higher.
 
 We provide a macOS Build but we can not support this.
 
