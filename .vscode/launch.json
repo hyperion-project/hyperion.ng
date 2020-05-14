@@ -27,7 +27,7 @@
       "name": "(Windows) hyperiond",
       "type": "cppvsdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/bin/hyperiond.exe",
+      "program": "${workspaceFolder}/build/bin/Debug/hyperiond.exe",
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
