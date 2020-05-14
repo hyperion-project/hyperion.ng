@@ -161,7 +161,10 @@ cmake -DPLATFORM=osx -DCMAKE_BUILD_TYPE=Release ..
 To generate files on Windows (Release+Debug capable):
 
 Platform should be auto detected and refer to windows, you can also force windows:
-```
+
+```sh
+# You might need to setup MSVC env first
+call "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
 cmake -DPLATFORM=windows -G "Windows 16 2019" ..
 ```
 
@@ -181,6 +184,7 @@ On Windows run
 ```bash
 cmake --build . --config Release -- -maxcpucount
 ```
+Maintainer: To build installer, install [NSIS](https://nsis.sourceforge.io/Main_Page) and set env `VCINSTALLDIR="C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC"`
 
 ### Install hyperion into your system
 
