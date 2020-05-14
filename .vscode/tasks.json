@@ -1,0 +1,123 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "cmake:conf Release",
+      "detail": "Configure Build Env. Release/Debug switch not required for multi generators (msvc)",
+      "type": "shell",
+      "command": "cmake -B ${workspaceFolder}/build -DCMAKE_BUILD_TYPE=Release",
+      "windows": {
+        "command": "cmake -G \"Visual Studio 16 2019\" -A x64 -B ${workspaceFolder}/build"
+      },
+      "group": "build",
+    },
+    {
+      "label": "cmake:conf Debug",
+      "detail": "Configure Build Env. Release/Debug switch not required with msvc",
+      "type": "shell",
+      "command": "cmake -B ${workspaceFolder}/build -DCMAKE_BUILD_TYPE=Debug",
+      "windows": {
+        "command": "cmake -G \"Visual Studio 16 2019\" -A x64 -B ${workspaceFolder}/build"
+      },
+      "group": "build",
+    },
+    {
+      "label": "build:debug hyperiond",
+      "type": "shell",
+      "command": "cmake --build ${workspaceFolder}/build --target hyperiond -- -j $(nproc)",
+      "windows": {
+        "command": "cmake --build ${workspaceFolder}/build --target hyperiond --config Debug -- -maxcpucount"
+      },
+      "osx": {
+        "command": "cmake --build ${workspaceFolder}/build --target hyperiond -- -j $(sysctl -n hw.ncpu)"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "build:debug all",
+      "type": "shell",
+      "command": "cmake --build ${workspaceFolder}/build -- -j $(nproc)",
+      "windows": {
+        "command": "cmake --build ${workspaceFolder}/build --config Debug -- -maxcpucount"
+      },
+      "osx": {
+        "command": "cmake --build ${workspaceFolder}/build -- -j $(sysctl -n hw.ncpu)"
+      },
+      "group": "build"
+    },
+    {
+      "label": "build:debug package",
+      "type": "shell",
+      "command": "cmake --build ${workspaceFolder}/build --target package -- -j $(nproc)",
+      "windows": {
+        "command": "cmake --build ${workspaceFolder}/build --target package --config Debug -- -maxcpucount"
+      },
+      "osx": {
+        "command": "cmake --build ${workspaceFolder}/build --target package -- -j $(sysctl -n hw.ncpu)"
+      },
+      "group": "build"
+    },
+    {
+      "label": "build:release hyperiond",
+      "type": "shell",
+      "command": "cmake --build ${workspaceFolder}/build --target hyperiond -- -j $(nproc)",
+      "windows": {
+        "command": "cmake --build ${workspaceFolder}/build --target hyperiond --config Release -- -maxcpucount"
+      },
+      "osx": {
+        "command": "cmake --build ${workspaceFolder}/build --target hyperiond -- -j $(sysctl -n hw.ncpu)"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "build:release all",
+      "type": "shell",
+      "command": "cmake --build ${workspaceFolder}/build -- -j $(nproc)",
+      "windows": {
+        "command": "cmake --build ${workspaceFolder}/build --config Release -- -maxcpucount"
+      },
+      "osx": {
+        "command": "cmake --build ${workspaceFolder}/build -- -j $(sysctl -n hw.ncpu)"
+      },
+      "group": "build"
+    },
+    {
+      "label": "build:release package",
+      "type": "shell",
+      "command": "cmake --build ${workspaceFolder}/build --target package -- -j $(nproc)",
+      "windows": {
+        "command": "cmake --build ${workspaceFolder}/build --target package --config Release -- -maxcpucount"
+      },
+      "osx": {
+        "command": "cmake --build ${workspaceFolder}/build --target package -- -j $(sysctl -n hw.ncpu)"
+      },
+      "group": "build"
+    },
+    {
+      "label": "run:hyperiond (Debug)",
+      "type": "shell",
+      "command": "${workspaceFolder}/build/bin/hyperiond -d",
+      "windows": {
+        "command": "${workspaceFolder}/build/bin/Debug/hyperiond"
+      },
+      "group": "build"
+    },
+    {
+      "label": "run:hyperiond (Release)",
+      "type": "shell",
+      "command": "${workspaceFolder}/build/bin/hyperiond -d",
+      "windows": {
+        "command": "${workspaceFolder}/build/bin/Release/hyperiond"
+      },
+      "group": "build"
+    }
+  ]
+}

@@ -220,7 +220,7 @@ $(document).ready(function () {
 			}
 		});
 		// notify the update
-		$(window.hyperion).trigger("components-updated");
+		$(window.hyperion).trigger("components-updated", event.response.data);
 	});
 
 	$(window.hyperion).on("cmd-instance-update", function (event) {

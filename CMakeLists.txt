@@ -25,8 +25,15 @@ if ( CCACHE_FOUND )
 	set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 endif(CCACHE_FOUND)
 
-set(Python_ADDITIONAL_VERSIONS 3.5)
-find_package( PythonInterp 3.5 REQUIRED )
+if (NOT CMAKE_VERSION VERSION_LESS "3.12")
+	find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+	if(Python_FOUND)
+		set(PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
+	endif()
+else()
+	set(Python_ADDITIONAL_VERSIONS 3.5)
+	find_package( PythonInterp 3.5 REQUIRED )
+endif()
 
 # Set build variables
 SET ( DEFAULT_AMLOGIC    OFF )
@@ -35,6 +42,7 @@ SET ( DEFAULT_OSX        OFF )
 SET ( DEFAULT_X11        OFF )
 SET ( DEFAULT_QT         ON )
 SET ( DEFAULT_WS281XPWM  OFF )
+SET ( DEFAULT_AVAHI      ON  )
 SET ( DEFAULT_USE_SHARED_AVAHI_LIBS  ON )
 SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF )
 SET ( DEFAULT_USE_SYSTEM_PROTO_LIBS OFF )
@@ -43,12 +51,14 @@ SET ( DEFAULT_TESTS      OFF )
 IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
 	SET ( DEFAULT_V4L2   ON  )
 	SET ( DEFAULT_SPIDEV ON )
+	SET ( DEFAULT_TINKERFORGE ON)
 	SET ( DEFAULT_FB     ON )
 	SET ( DEFAULT_USB_HID ON )
 ELSE()
 	SET ( DEFAULT_V4L2   OFF )
 	SET ( DEFAULT_FB     OFF )
 	SET ( DEFAULT_SPIDEV OFF )
+	SET ( DEFAULT_TINKERFORGE OFF)
 	SET ( DEFAULT_USB_HID OFF )
 ENDIF()
 
@@ -114,8 +124,8 @@ elseif ( "${PLATFORM}" MATCHES "x11" )
 	endif()
 elseif ( "${PLATFORM}" STREQUAL "imx6" )
 	SET ( DEFAULT_FB         ON )
-elseif ( "${PLATFORM}" STREQUAL "windows" )
-	MESSAGE( WARNING "Hyperion is not developed nor tested on MS Windows.")
+elseif (WIN32)
+	SET ( DEFAULT_AVAHI    OFF)
 endif()
 
 # enable tests for -dev builds
@@ -147,7 +157,7 @@ message(STATUS "ENABLE_OSX = ${ENABLE_OSX}")
 option(ENABLE_SPIDEV   "Enable the SPIDEV device" ${DEFAULT_SPIDEV} )
 message(STATUS "ENABLE_SPIDEV   = ${ENABLE_SPIDEV}")
 
-option(ENABLE_TINKERFORGE "Enable the TINKERFORGE device" ON)
+option(ENABLE_TINKERFORGE "Enable the TINKERFORGE device" ${DEFAULT_TINKERFORGE})
 message(STATUS "ENABLE_TINKERFORGE = ${ENABLE_TINKERFORGE}")
 
 option(ENABLE_V4L2 "Enable the V4L2 grabber" ${DEFAULT_V4L2})
@@ -155,6 +165,9 @@ message(STATUS "ENABLE_V4L2 = ${ENABLE_V4L2}")
 
 option(ENABLE_WS281XPWM "Enable the WS281x-PWM device" ${DEFAULT_WS281XPWM} )
 message(STATUS "ENABLE_WS281XPWM = ${ENABLE_WS281XPWM}")
+
+option(ENABLE_AVAHI "Enable Zeroconf" ${DEFAULT_AVAHI})
+message(STATUS "ENABLE_AVAHI = " ${ENABLE_AVAHI})
 
 option(ENABLE_USB_HID "Enable the libusb and hid devices" ${DEFAULT_USB_HID} )
 message(STATUS "ENABLE_USB_HID = ${ENABLE_USB_HID}")
@@ -183,6 +196,7 @@ SET( JSON_FILES
 	config/hyperion.config.json.default
 	${HYPERION_SCHEMAS}
 )
+
 EXECUTE_PROCESS (
 	COMMAND ${PYTHON_EXECUTABLE} test/jsonchecks/checkjson.py ${JSON_FILES}
 	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
@@ -202,11 +216,14 @@ IF ( ${CHECK_EFFECTS_FAILED} )
 ENDIF ()
 
 # for python 3 the checkschema.py file must be rewritten
-EXECUTE_PROCESS (
-	COMMAND python test/jsonchecks/checkschema.py config/hyperion.config.json.default libsrc/hyperion/hyperion.schema.json
-	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-	RESULT_VARIABLE CHECK_CONFIG_FAILED
-)
+# TODO on windows it can't resolve the path inside the file (Das System kann den angegebenen Pfad nicht finden: '\\schema\\schema-general.json')
+IF (NOT WIN32)
+	EXECUTE_PROCESS (
+		COMMAND python test/jsonchecks/checkschema.py config/hyperion.config.json.default libsrc/hyperion/hyperion.schema.json
+		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+		RESULT_VARIABLE CHECK_CONFIG_FAILED
+	)
+ENDIF()
 IF ( ${CHECK_CONFIG_FAILED} )
 	MESSAGE (FATAL_ERROR "check of json default config failed" )
 ENDIF ()
@@ -235,29 +252,61 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 # Prefer static linking over dynamic
 #set(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.so")
 
-# enable C++11
-include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
+# enable C++11; MSVC doesn't have c++11 feature switch
+if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+	include(CheckCXXCompilerFlag)
+	CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+	CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-if (CMAKE_COMPILER_IS_GNUCXX)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-psabi")
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-psabi")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+	if (CMAKE_COMPILER_IS_GNUCXX)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-psabi")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-psabi")
+	endif()
+	if(COMPILER_SUPPORTS_CXX11)
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+	elseif(COMPILER_SUPPORTS_CXX0X)
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+	else()
+			message(STATUS "No support for C++11 detected. Compilation will most likely fail on your compiler")
+	endif()
 endif()
-if(COMPILER_SUPPORTS_CXX11)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-elseif(COMPILER_SUPPORTS_CXX0X)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-else()
-    message(STATUS "No support for C++11 detected. Compilation will most likely fail on your compiler")
+
+# MSVC options
+if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+	# Search for Windows SDK
+	find_package(WindowsSDK REQUIRED)
+	message(STATUS "WINDOWS SDK: ${WINDOWSSDK_LATEST_DIR} ${WINDOWSSDK_LATEST_NAME}")
+	message(STATUS "MSVC VERSION: ${MSVC_VERSION}")
+
+	# Qt5 default install path with msvc2017 64bit component
+	# The Qt5_DIR should point to Qt5Config.cmake   -> C:/Qt/5.xx/msvc2017_64/lib/cmake/Qt5
+	# The CMAKE_PREFIX_PATH should point to the install directory -> C:/Qt/5.xx/msvc2017_64
+	FIRSTSUBDIR(SUBDIRQT "C:/Qt")
+	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SUBDIRQT}/msvc2017_64")
+	if (NOT DEFINED ENV{Qt5_DIR})
+		message(STATUS "Set Qt5_DIR to default install path C:/Qt")
+		SET(Qt5_DIR "${SUBDIRQT}/msvc2017_64/lib/cmake/Qt5")
+	endif()
+endif()
+
+# Windows specific
+if(WIN32)
+	# Path to .rc icon file for add_executable() calls
+	SET ( WIN_RC_ICON_FILE ${CMAKE_SOURCE_DIR}/cmake/nsis/icon.rc)
+	# Force gui app
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 endif()
 
 # Use GNU gold linker if available
-include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/LDGold.cmake)
+if (NOT WIN32)
+	include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/LDGold.cmake)
+endif()
 
 # Don't create new dynamic tags (RUNPATH)
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--disable-new-dtags")
+if (NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--disable-new-dtags")
+endif()
 
 # setup -rpath to search for shared libs in BINARY/../lib folder
 if (UNIX AND NOT APPLE)

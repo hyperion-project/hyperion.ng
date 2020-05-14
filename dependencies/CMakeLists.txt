@@ -1,5 +1,8 @@
 add_subdirectory(build/hidapi)
-add_subdirectory(build/tinkerforge)
+
+if ( ENABLE_TINKERFORGE )
+	add_subdirectory(build/tinkerforge)
+endif()
 
 if(ENABLE_WS281XPWM)
 	add_library(ws281x
@@ -58,6 +61,7 @@ message(STATUS "Using flatbuffers compiler: " ${FLATBUFFERS_FLATC_EXECUTABLE})
 
 function(compile_flattbuffer_schema SRC_FBS OUTPUT_DIR)
 	string(REGEX REPLACE "\\.fbs$" "_generated.h" GEN_HEADER ${SRC_FBS})
+	set_property(SOURCE ${GEN_HEADER} PROPERTY SKIP_AUTOMOC ON)
 	if (ENABLE_AMLOGIC)
 		add_custom_command(
 			OUTPUT ${GEN_HEADER}
@@ -181,6 +185,8 @@ function(PROTOBUF_GENERATE_CPP SRCS HDRS)
 			COMMENT "Running C++ protocol buffer compiler on ${FIL}"
 			VERBATIM
 		)
+		set_property(SOURCE "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.cc" PROPERTY SKIP_AUTOMOC ON)
+		set_property(SOURCE "${CMAKE_CURRENT_BINARY_DIR}/${FIL_WE}.pb.h" PROPERTY SKIP_AUTOMOC ON)
 	endforeach()
 
 	set_source_files_properties(${${SRCS}} ${${HDRS}} PROPERTIES GENERATED TRUE)

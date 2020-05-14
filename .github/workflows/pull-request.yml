@@ -115,6 +115,68 @@ jobs:
           path: macOS
 
 ######################
+###### Windows #######
+######################
+
+  windows:
+    name: Windows
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+        with:
+          submodules: true
+
+      # Append PR number to version
+      - name: Append PR number to version
+        shell: bash
+        run: |
+          tr -d '\n' < version > temp && mv temp version
+          echo -n "-PR#${{ github.event.pull_request.number }}" >> version
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v2
+        with:
+          version: '5.14.1'
+          target: 'desktop'
+          arch: 'win64_msvc2017_64'
+
+      - name: Install Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.x'
+
+      - name: Install NSIS
+        run: |
+          Invoke-WebRequest https://netcologne.dl.sourceforge.net/project/nsis/NSIS%203/3.05/nsis-3.05-setup.exe -OutFile nsis-setup.exe
+          .\nsis-setup.exe /S
+
+      - name: Set up x64 build architecture environment
+        shell: cmd
+        run: call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+
+      # Build packages
+      - name: Build packages
+        env:
+          VCINSTALLDIR: 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC'
+          PLATFORM: windows
+        shell: bash
+        run: ./.ci/ci_build.sh
+
+      # Collecting deployable artifacts
+      - name: Collecting deployable artifacts
+        shell: bash
+        run: |
+          mkdir -p windows
+          mv build/*.zip windows
+      # Upload artifacts
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: windows.zip
+          path: windows
+
+######################
 #### Documentation ###
 ######################
 

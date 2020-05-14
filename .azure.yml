@@ -1,156 +1,95 @@
-stages:
-- stage: Build
-  displayName: Build packages
+jobs:
 
-  jobs:
+######################
+###### Linux #########
+######################
 
-    ######################
-    ###### Linux #########
-    ######################
+- job: Linux
+  timeoutInMinutes: 120
+  pool:
+    vmImage: 'ubuntu-16.04'
+  strategy:
+    matrix:
+      AMD64 (x64):
+        dockerTag: 'amd64'
+        dockerName: 'Debian Stretch (AMD64)'
+        platform: 'x11'
+      ARMv6hf (Raspberry Pi v1 & ZERO):
+        dockerTag: 'armv6hf'
+        dockerName: 'Debian Stretch (Raspberry Pi v1 & ZERO)'
+        platform: 'rpi'
+      ARMv7hf (Raspberry Pi 2 & 3):
+        dockerTag: 'armv7hf'
+        dockerName: 'Debian Stretch (Raspberry Pi 2 & 3)'
+        platform: 'rpi'
+      ARMv8 (Generic AARCH64):
+        dockerTag: 'aarch64'
+        dockerName: 'ARMv8 (Generic AARCH64)'
+        platform: 'amlogic'
 
-  - job: Linux
-    timeoutInMinutes: 120
-    pool:
-      vmImage: 'ubuntu-16.04'
-    strategy:
-      matrix:
-        AMD64 (x64):
-          dockerTag: 'amd64'
-          dockerName: 'Debian Stretch (AMD64)'
-          platform: 'x11'
-        ARMv6hf (Raspberry Pi v1 & ZERO):
-          dockerTag: 'armv6hf'
-          dockerName: 'Debian Stretch (Raspberry Pi v1 & ZERO)'
-          platform: 'rpi'
-        ARMv7hf (Raspberry Pi 2 & 3):
-          dockerTag: 'armv7hf'
-          dockerName: 'Debian Stretch (Raspberry Pi 2 & 3)'
-          platform: 'rpi'
-        ARMv8 (Generic AARCH64):
-          dockerTag: 'aarch64'
-          dockerName: 'ARMv8 (Generic AARCH64)'
-          platform: 'amlogic'
+  steps:
+  - checkout: self # represents the repo where the initial Pipelines YAML file was found
+    submodules: recursive # set to 'recursive' to get submodules of submodules
 
-    steps:
-    - checkout: self # represents the repo where the initial Pipelines YAML file was found
-      submodules: recursive # set to 'recursive' to get submodules of submodules
+  # build process
+  - bash: ./.ci/ci_build.sh
+    displayName: 'Build $(dockerName) packages'
+    env:
+      DOCKER_TAG: $(dockerTag)
+      DOCKER_NAME: $(dockerName)
+      PLATFORM: $(platform)
 
-    # build process
-    - bash: ./.ci/ci_build.sh
-      displayName: 'Build $(dockerName) packages'
-      env:
-        DOCKER_TAG: $(dockerTag)
-        DOCKER_NAME: $(dockerName)
-        PLATFORM: $(platform)
+######################
+###### macOS #########
+######################
 
-    # move files
-    - bash: 'mv -v deploy/Hyperion-* $(Build.ArtifactStagingDirectory) 2>/dev/null || :'
-      workingDirectory: $(Build.SourcesDirectory)
-      condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
-      displayName: 'Collect artifacts'
+- job: macOS
+  timeoutInMinutes: 120
+  pool:
+    vmImage: 'macOS-10.14'
 
-    # publish artifacts
-    - task: PublishBuildArtifacts@1
-      inputs:
-        pathtoPublish: $(Build.ArtifactStagingDirectory)
-        ArtifactName: $(dockerTag)
-      condition: and(succeeded(), in(variables['dockerTag'], 'amd64', 'armv6hf', 'armv7hf'), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
-      displayName: 'Publish artifacts'
+  steps:
+  - checkout: self # represents the repo where the initial Pipelines YAML file was found
+    submodules: recursive # set to 'recursive' to get submodules of submodules
 
-    ######################
-    ###### macOS #########
-    ######################
+  # install dependencies
+  - bash: ./.ci/ci_install.sh
+    displayName: 'Install dependencies'
 
-  - job: macOS
-    timeoutInMinutes: 120
-    pool:
-      vmImage: 'macOS-10.14'
+  # build process
+  - bash: ./.ci/ci_build.sh
+    env:
+      PLATFORM: 'osx'
+    condition: succeeded()
+    displayName: 'Build macOS 10.13 packages'
 
-    steps:
-    - checkout: self # represents the repo where the initial Pipelines YAML file was found
-      submodules: recursive # set to 'recursive' to get submodules of submodules
+######################
+###### windows #######
+######################
 
-    # install dependencies
-    - bash: ./.ci/ci_install.sh
-      displayName: 'Install dependencies'
+- job: windows
+  timeoutInMinutes: 120
+  pool:
+    vmImage: 'windows-latest'
 
-    # build process
-    - bash: ./.ci/ci_build.sh
-      env:
-        PLATFORM: 'osx'
-      condition: succeeded()
-      displayName: 'Build macOS 10.13 packages'
+  steps:
+  - checkout: self # represents the repo where the initial Pipelines YAML file was found
+    submodules: recursive # set to 'recursive' to get submodules of submodules
 
-    # move files
-    - bash: 'mv -v build/Hyperion-* $(Build.ArtifactStagingDirectory) 2>/dev/null || :'
-      workingDirectory: $(Build.SourcesDirectory)
-      condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
-      displayName: 'Collect artifacts'
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.x'
+      addToPath: true
+      architecture: 'x64'
 
-    # publish artifacts
-    - task: PublishBuildArtifacts@1
-      inputs:
-        pathtoPublish: $(Build.ArtifactStagingDirectory)
-        ArtifactName: 'macos'
-      condition: and(succeeded(), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
-      displayName: 'Publish artifacts'
-
-################################
-###### Publish Releases ########
-################################
-
-- stage: Publish
-  displayName: Publish Releases
-  dependsOn:
-  - Build
-  condition: and(succeeded('Build'), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
-
-  jobs:
-  - job: PublishReleases
-    timeoutInMinutes: 120
-    pool:
-      vmImage: ubuntu-16.04
-
-    steps:
-    - checkout: self # represents the repo where the initial Pipelines YAML file was found
-
-    # download deployables artifacts
-    - task: DownloadPipelineArtifact@2
-      inputs:
-        path: $(Build.ArtifactStagingDirectory)
-      displayName: Download artifacts
-
-    # read version file
-    - bash: |
-        echo "##vso[task.setvariable variable=semVer]$(cat version)"
-        echo "##vso[task.setvariable variable=preRel]$(grep -oE 'alpha|beta' version)"
-      workingDirectory: '$(Build.SourcesDirectory)'
-      condition: succeeded()
-      displayName: 'Read and generate pipeline variables'
-
-    # set release to pre-release
-    - bash: echo '##vso[task.setvariable variable=preRelease;]true'
-      condition: and(succeeded(), or(contains(variables['preRel'], 'alpha'), contains(variables['preRel'], 'beta')), ne(variables['system.pullrequest.isfork'], true), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
-      displayName: 'Mark alpha or beta as pre-release'
-
-    # create github releases
-    - task: GithubRelease@0
-      inputs: 
-        gitHubConnection: Hyperion-Bot
-        repositoryName: $(Build.Repository.Name)
-        action: create
-        target: $(Build.SourceVersion)
-        tagSource: manual
-        tag: $(Build.SourceBranchName)
-        title: 'Hyperion $(semVer)'
-        assets: |
-          $(Build.ArtifactStagingDirectory)/amd64/*
-          $(Build.ArtifactStagingDirectory)/armv6hf/*
-          $(Build.ArtifactStagingDirectory)/armv7hf/*
-          $(Build.ArtifactStagingDirectory)/aarch64/*
-          $(Build.ArtifactStagingDirectory)/macos/*
-        assetUploadMode: 'replace'
-        addChangeLog: false
-        isPreRelease: $(preRelease)
-      condition: succeeded()
-      displayName: Create GitHub releases
+  - script: |
+      cd $(Build.SourcesDirectory)
+      python -m pip install aqtinstall
+      python -m aqt install -O c:\Qt 5.14.0 windows desktop win64_msvc2017_64
+    displayName: 'Install Qt 5.14.0'
+  # build process
+  - bash: ./.ci/ci_build.sh
+    env:
+      PLATFORM: 'windows'
+    condition: succeeded()
+    displayName: 'Build windows packages'

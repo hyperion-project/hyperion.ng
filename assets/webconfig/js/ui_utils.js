@@ -62,7 +62,7 @@ function debugMessage(msg)
 function updateSessions()
 {
 	var sess = window.serverInfo.sessions;
-	if (sess.length)
+	if (sess && sess.length)
 	{
 		window.wSess = [];
 		for(var i = 0; i<sess.length; i++)

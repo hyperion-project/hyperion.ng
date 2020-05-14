@@ -1,3 +1,19 @@
+#ifdef _WIN32
+#include <utils/Logger.h>
+#include <QString>
+#include <QByteArray>
+namespace Process {
+
+void restartHyperion(bool asNewProcess){}
+
+QByteArray command_exec(QString cmd, QByteArray data)
+{
+	return QSTRING_CSTR(QString());
+}
+};
+
+#else
+
 #include <utils/Process.h>
 #include <utils/Logger.h>
 
@@ -55,3 +71,5 @@ QByteArray command_exec(QString cmd, QByteArray data)
 }
 
 };
+
+#endif

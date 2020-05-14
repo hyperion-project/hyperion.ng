@@ -8,6 +8,11 @@
 #include <cassert>
 #include <utils/ColorRgb.h>
 
+// https://docs.microsoft.com/en-us/windows/win32/winprog/windows-data-types#ssize-t
+#if defined(_MSC_VER)
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#endif
 
 template <typename Pixel_T>
 class Image

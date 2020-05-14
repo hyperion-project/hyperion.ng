@@ -27,7 +27,7 @@ FILE ( GLOB Leddevice_SOURCES
 	"${CURRENT_SOURCE_DIR}/dev_other/*.cpp"
 )
 
-if ( ENABLE_OSX )
+if ( ENABLE_OSX OR WIN32 )
 	list(REMOVE_ITEM Leddevice_SOURCES "${CURRENT_SOURCE_DIR}/dev_other/LedDevicePiBlaster.h")
 	list(REMOVE_ITEM Leddevice_SOURCES "${CURRENT_SOURCE_DIR}/dev_other/LedDevicePiBlaster.cpp")
 endif()
@@ -90,6 +90,10 @@ target_link_libraries(leddevice
 	${MBEDTLS_LIBRARIES}
 	ssdp
 )
+
+if(WIN32)
+	target_link_libraries(leddevice ws2_32)
+endif()
 
 if(ENABLE_TINKERFORGE)
 	target_link_libraries(leddevice tinkerforge)
