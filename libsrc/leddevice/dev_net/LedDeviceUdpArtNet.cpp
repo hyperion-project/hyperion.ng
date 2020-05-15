@@ -1,4 +1,9 @@
+#ifdef _WIN32
+#include <winsock.h>
+#else
 #include <arpa/inet.h>
+#endif
+
 #include <QHostInfo>
 
 // hyperion local includes

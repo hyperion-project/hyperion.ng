@@ -13,6 +13,7 @@
 #include <QBuffer>
 #include <QByteArray>
 #include <QTimer>
+#include <QHostInfo>
 
 // hyperion includes
 #include <leddevice/LedDeviceWrapper.h>
@@ -26,7 +27,9 @@
 #include <utils/JsonUtils.h>
 
 // bonjour wrapper
+#ifdef ENABLE_AVAHI
 #include <bonjour/bonjourbrowserwrapper.h>
+#endif
 
 // ledmapping int <> string transform methods
 #include <hyperion/ImageProcessor.h>
@@ -469,9 +472,8 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 
 	QJsonObject grabbers;
 	QJsonArray availableGrabbers;
-	QJsonObject availableProperties;
 
-#if defined(ENABLE_DISPMANX) || defined(ENABLE_V4L2) || defined(ENABLE_FB) || defined(ENABLE_AMLOGIC) || defined(ENABLE_OSX) || defined(ENABLE_X11)
+#if defined(ENABLE_DISPMANX) || defined(ENABLE_V4L2) || defined(ENABLE_FB) || defined(ENABLE_AMLOGIC) || defined(ENABLE_OSX) || defined(ENABLE_X11) || defined(ENABLE_QT)
 
 	// get available grabbers
 	//grabbers["active"] = ????;
@@ -535,7 +537,8 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 
 	// add sessions
 	QJsonArray sessions;
-	for (auto session : BonjourBrowserWrapper::getInstance()->getAllServices())
+#ifdef ENABLE_AVAHI
+	for (auto session: BonjourBrowserWrapper::getInstance()->getAllServices())
 	{
 		if (session.port < 0)
 			continue;
@@ -549,7 +552,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 		sessions.append(item);
 	}
 	info["sessions"] = sessions;
-
+#endif
 	// add instance info
 	QJsonArray instanceInfo;
 	for (const auto &entry : API::getAllInstanceData())

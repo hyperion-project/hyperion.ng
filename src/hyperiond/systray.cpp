@@ -1,7 +1,8 @@
 
 #include <list>
+#ifndef _WIN32
 #include <unistd.h>
-
+#endif
 #include <QPixmap>
 #include <QWindow>
 #include <QGuiApplication>
@@ -126,6 +127,7 @@ void SysTray::closeEvent(QCloseEvent *event)
 
 void SysTray::settings()
 {
+#ifndef _WIN32
 	// Hide error messages when opening webbrowser
 
 	int out_pipe[2];
@@ -144,13 +146,16 @@ void SysTray::settings()
 		// redirecting stderr to stdout
 		::dup2(STDOUT_FILENO, STDERR_FILENO);
 	}
+	#endif
 
 	QDesktopServices::openUrl(QUrl("http://localhost:"+QString::number(_webPort)+"/", QUrl::TolerantMode));
-
+	
+	#ifndef _WIN32
 	// restoring stdout
 	::dup2(saved_stdout, STDOUT_FILENO);
 	// restoring stderr
 	::dup2(saved_stderr, STDERR_FILENO);
+	#endif
 }
 
 void SysTray::setEffect()

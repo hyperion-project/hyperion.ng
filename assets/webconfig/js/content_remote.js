@@ -1,5 +1,5 @@
 $(document).ready(function() {
-	performTranslation();
+  performTranslation();
 
 	var oldEffects = [];
 	var cpcolor = '#B500FF';
@@ -203,7 +203,7 @@ $(document).ready(function() {
 		}
 	}
 
-	function updateComponents()
+	function initComponents()
 	{
 		var components = window.comps;
 		var hyperionEnabled = true;
@@ -214,32 +214,77 @@ $(document).ready(function() {
 			}
 		});
 
-		// create buttons
-		$('#componentsbutton').html("");
-		for (var idx=0; idx<components.length;idx++)
+		for (const comp of components)
 		{
-			if(components[idx].name == "ALL")
+			if(comp.name === "ALL")
 				continue;
 
-			var enable_style = (components[idx].enabled? "btn-success" : "btn-danger");
-			var enable_icon  = (components[idx].enabled? "fa-play" : "fa-stop");
-			var comp_name    = components[idx].name;
-			var comp_btn_id  = "comp_btn_"+comp_name;
-			var comp_goff    = hyperionEnabled? "enabled" : "disabled";
+			const enable_style = (comp.enabled? "checked" : "");
+			const comp_btn_id  = "comp_btn_"+comp.name;
 
-			// create btn if not there
-			if ($("#"+comp_btn_id).length == 0)
+			if ($("#"+comp_btn_id).length === 0)
 			{
-				var d='<span style="display:block;margin:3px"><button type="button" '+comp_goff+' id="'+comp_btn_id+'" class="btn '+enable_style
-					+'" onclick="requestSetComponentState(\''+comp_name+'\','+(!components[idx].enabled)
-					+')"><i id="'+comp_btn_id+'_icon" class="fa '+enable_icon+'"></i></button> '+$.i18n('general_comp_'+components[idx].name)+'</span>';
+				var d='<span style="display:block;margin:3px">'
+						+'<input id="'+comp_btn_id+'"'+enable_style+' type="checkbox"'
+						+'data-toggle="toggle" data-onstyle="success" data-on="'+$.i18n('general_btn_on')+'" data-off="'+$.i18n('general_btn_off')+'">'
+						+'&nbsp;&nbsp;&nbsp;<label>'+$.i18n('general_comp_'+comp.name)+'</label>'
+						+'</span>';
+
 				$('#componentsbutton').append(d);
+				$(`#${comp_btn_id}`).bootstrapToggle();
+				$(`#${comp_btn_id}`).bootstrapToggle(hyperionEnabled ? "enable" : "disable")
+				$(`#${comp_btn_id}`).change(e => {
+				  requestSetComponentState(e.currentTarget.id.split('_').pop(), e.currentTarget.checked)
+				  //console.log(e.currentTarget.checked)
+				  });
 			}
-			else // already create, update state
+		}
+	}
+
+	function updateComponent( component )
+	{
+		if (component.name == "ALL")
+		{
+			var components = window.comps;
+
+			hyperionEnabled = component.enabled
+			for (const comp of components)
 			{
-				setClassByBool( $('#'+comp_btn_id)        , components[idx].enabled, "btn-danger", "btn-success" );
-				setClassByBool( $('#'+comp_btn_id+"_icon"), components[idx].enabled, "fa-stop"    , "fa-play" );
-				$('#'+comp_btn_id).attr("onclick",'requestSetComponentState(\''+comp_name+'\','+(!components[idx].enabled)+')').attr(comp_goff);
+
+				if(comp.name === "ALL")
+				continue;
+
+				const comp_btn_id  = "comp_btn_"+comp.name;
+
+				if ( !hyperionEnabled )
+				{
+					$(`#${comp_btn_id}`).bootstrapToggle('off');
+					$(`#${comp_btn_id}`).bootstrapToggle("disable");
+				}
+				else
+				{
+					$(`#${comp_btn_id}`).bootstrapToggle("enable");
+					if ( comp.enabled !== $(`#${comp_btn_id}`).prop("checked") )
+					{
+						$(`#${comp_btn_id}`).bootstrapToggle().prop('checked', comp.enabled).change();
+					}
+				}
+			}
+		}
+		else
+		{
+			const comp_btn_id  = "comp_btn_"+component.name;
+
+			//console.log ("updateComponent: ", component.name, "Current Checked: ", $(`#${comp_btn_id}`).prop("checked"), "New Checked: ", component.enabled,  );
+			
+			// In case Buttons were disabled before, status may be different to component status
+			if ( component.enabled != $(`#${comp_btn_id}`).prop("checked") )
+			{
+				// console.log ("Update status to Checked = ", component.enabled);
+				if ( component.enabled )
+					$(`#${comp_btn_id}`).bootstrapToggle("on");
+				else
+					$(`#${comp_btn_id}`).bootstrapToggle("off");
 			}
 		}
 	}
@@ -345,14 +390,18 @@ $(document).ready(function() {
 	});
 
 	//force first update
-	updateComponents();
+	initComponents();
 	updateInputSelect();
 	updateLedMapping();
 	updateVideoMode();
 	updateEffectlist();
 
 	// interval updates
-	$(window.hyperion).on("components-updated",updateComponents);
+
+  	$(window.hyperion).on('components-updated', function(e, comp){
+		//console.log ("components-updated", e, comp);
+		updateComponent (comp);
+	});
 
 	$(window.hyperion).on("cmd-priorities-update", function(event){
 		window.serverInfo.priorities = event.response.data.priorities;

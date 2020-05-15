@@ -22,6 +22,10 @@ if(ENABLE_FB)
 	add_subdirectory(hyperion-framebuffer)
 endif()
 
+if(ENABLE_QT)
+	add_subdirectory(hyperion-qt)
+endif()
+
 if(ENABLE_OSX)
 	add_subdirectory(hyperion-osx)
 endif()

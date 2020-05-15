@@ -48,6 +48,7 @@ const ushort E131_DEFAULT_PORT = 5568;
 /* E1.31 Packet Structure */
 typedef union
 {
+#pragma pack(push, 1)
 	struct
 	{
 		/* Root Layer */
@@ -76,7 +77,8 @@ typedef union
 		uint16_t address_increment;
 		uint16_t property_value_count;
 		uint8_t  property_values[513];
-	} __attribute__((packed));
+	};
+#pragma pack(pop)
 
 	uint8_t raw[638];
 } e131_packet_t;

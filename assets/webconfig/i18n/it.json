@@ -808,6 +808,8 @@
     "edt_conf_net_localAdminAuth_expl": "Quando abilitato, l'accesso da amministratore dal tuo network domestico necessita di password",
     "edt_eff_collision_header": "collisione colore",
     "edt_eff_collision_header_desc": "Due proiettili colorati partono da due posizioni casuali e collidono tra loro",
+    "edt_eff_plasma_header": "",
+    "edt_eff_plasma_header_desc": "",
     "edt_eff_explodeRadius": "Raggio di detonazione ",
     "edt_dev_spec_printTimeStamp_title": "Aggiungi timestamp",
     "edt_eff_ledtest_header": "",

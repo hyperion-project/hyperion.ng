@@ -3,7 +3,7 @@ project(hyperion-remote)
 
 find_package(Qt5 COMPONENTS Core Gui Widgets Network REQUIRED)
 
-# The following I do not undrstand completely...
+# The following I do not understand completely...
 # libQtCore.so uses some hardcoded library path inside which are incorrect after copying the file RPi file system
 # Therefore, an extra path is needed on which to find the required libraries
 IF ( EXISTS ${CMAKE_FIND_ROOT_PATH}/lib/arm-linux-gnueabihf )
@@ -19,7 +19,9 @@ set(hyperion-remote_SOURCES
 
 add_executable(${PROJECT_NAME}
 	${hyperion-remote_HEADERS}
-	${hyperion-remote_SOURCES})
+	${hyperion-remote_SOURCES}
+	${WIN_RC_ICON_FILE}
+)
 
 target_link_libraries(${PROJECT_NAME}
 	effectengine
@@ -36,10 +38,14 @@ if (ENABLE_AMLOGIC)
 	)
 endif()
 
-install ( TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin/" COMPONENT "${PLATFORM}" )
+if(NOT WIN32)
+	install ( TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin" COMPONENT "hyperion_remote" )
+else()
+	install ( TARGETS ${PROJECT_NAME} DESTINATION "bin" COMPONENT "hyperion_remote" )
+endif()
 
 if(CMAKE_HOST_UNIX)
-	install(CODE "EXECUTE_PROCESS(COMMAND ln -sf \"../share/hyperion/bin/${PROJECT_NAME}\" \"${CMAKE_BINARY_DIR}/symlink_${PROJECT_NAME}\" )" COMPONENT  "${PLATFORM}" )
-	install(FILES "${CMAKE_BINARY_DIR}/symlink_${PROJECT_NAME}" DESTINATION "bin" RENAME "${PROJECT_NAME}" COMPONENT "${PLATFORM}" )
-	install(CODE "FILE (REMOVE ${CMAKE_BINARY_DIR}/symlink_${PROJECT_NAME} )" COMPONENT  "${PLATFORM}" )
+	install(CODE "EXECUTE_PROCESS(COMMAND ln -sf \"../share/hyperion/bin/${PROJECT_NAME}\" \"${CMAKE_BINARY_DIR}/symlink_${PROJECT_NAME}\" )" COMPONENT "hyperion_remote" )
+	install(FILES "${CMAKE_BINARY_DIR}/symlink_${PROJECT_NAME}" DESTINATION "bin" RENAME "${PROJECT_NAME}" COMPONENT "hyperion_remote" )
+	install(CODE "FILE (REMOVE ${CMAKE_BINARY_DIR}/symlink_${PROJECT_NAME} )" COMPONENT "hyperion_remote" )
 endif(CMAKE_HOST_UNIX)

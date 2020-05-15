@@ -808,6 +808,8 @@
     "edt_conf_net_localAdminAuth_expl": "",
     "edt_eff_collision_header": "",
     "edt_eff_collision_header_desc": "",
+    "edt_eff_plasma_header": "",
+    "edt_eff_plasma_header_desc": "",
     "edt_eff_explodeRadius": "",
     "edt_dev_spec_printTimeStamp_title": "",
     "edt_eff_ledtest_header": "",

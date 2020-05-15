@@ -16,13 +16,13 @@
 #define Debug(logger, ...)   (logger)->Message(Logger::DEBUG  , __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define Info(logger, ...)    (logger)->Message(Logger::INFO   , __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define Warning(logger, ...) (logger)->Message(Logger::WARNING, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
-#define Error(logger, ...)   (logger)->Message(Logger::ERROR  , __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define Error(logger, ...)   (logger)->Message(Logger::ERRORR  , __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
 // conditional log messages
 #define DebugIf(condition, logger, ...)   if (condition) (logger)->Message(Logger::DEBUG   , __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define InfoIf(condition, logger, ...)    if (condition) (logger)->Message(Logger::INFO    , __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 #define WarningIf(condition, logger, ...) if (condition) (logger)->Message(Logger::WARNING , __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
-#define ErrorIf(condition, logger, ...)   if (condition) (logger)->Message(Logger::ERROR   , __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+#define ErrorIf(condition, logger, ...)   if (condition) (logger)->Message(Logger::ERRORR   , __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
 // ================================================================
 
@@ -31,7 +31,14 @@ class Logger : public QObject
 	Q_OBJECT
 
 public:
-	enum LogLevel { UNSET=0,DEBUG=1, INFO=2,WARNING=3,ERROR=4,OFF=5 };
+	enum LogLevel {
+		UNSET,
+		DEBUG,
+		INFO,
+		WARNING,
+		ERRORR,
+		OFF
+	};
 
 	typedef struct
 	{

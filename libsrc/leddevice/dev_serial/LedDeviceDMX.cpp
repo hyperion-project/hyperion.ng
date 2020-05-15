@@ -1,6 +1,8 @@
 #include "LedDeviceDMX.h"
 #include <QSerialPort>
+#ifndef _WIN32
 #include <time.h>
+#endif
 
 LedDeviceDMX::LedDeviceDMX(const QJsonObject &deviceConfig)
 	: ProviderRs232()
@@ -80,9 +82,14 @@ int LedDeviceDMX::write(const std::vector<ColorRgb> &ledValues)
 	}
 
 	_rs232Port.setBreakEnabled(true);
+// Note Windows: There is no concept of ns sleeptime, the closest possible is 1ms but requested is 0,000176ms
+#ifndef _WIN32
 	nanosleep((const struct timespec[]){{0, 176000L}}, NULL);	// 176 uSec break time
+#endif
 	_rs232Port.setBreakEnabled(false);
+#ifndef _WIN32
 	nanosleep((const struct timespec[]){{0, 12000L}}, NULL);	// 176 uSec make after break time
+#endif
 
 #undef uberdebug
 #ifdef uberdebug

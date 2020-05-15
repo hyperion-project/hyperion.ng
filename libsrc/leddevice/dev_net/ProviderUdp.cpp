@@ -6,7 +6,6 @@
 #include <exception>
 // Linux includes
 #include <fcntl.h>
-#include <sys/ioctl.h>
 
 #include <QStringList>
 #include <QUdpSocket>

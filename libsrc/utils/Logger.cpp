@@ -3,13 +3,21 @@
 
 #include <iostream>
 #include <algorithm>
-#include <syslog.h>
 
+#ifndef _WIN32
+#include <syslog.h>
+#elif _WIN32
+#include <windows.h>
+#include <Shlwapi.h>
+#pragma comment(lib, "Shlwapi.lib")
+#endif
 #include <QFileInfo>
 #include <time.h>
 
 static const char * LogLevelStrings[]   = { "", "DEBUG", "INFO", "WARNING", "ERROR" };
+#ifndef _WIN32
 static const int    LogLevelSysLog[]    = { LOG_DEBUG, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERR };
+#endif
 static unsigned int loggerCount         = 0;
 static unsigned int loggerId            = 0;
 
@@ -99,8 +107,19 @@ Logger::Logger ( QString name, LogLevel minLevel )
 {
 #ifdef __GLIBC__
     const char* _appname_char = program_invocation_short_name;
-#else
+#elif !defined(_WIN32)
     const char* _appname_char = getprogname();
+#else
+	char fileName[MAX_PATH];
+	char *_appname_char;
+	HINSTANCE hinst = GetModuleHandle(NULL);
+	if (GetModuleFileNameA(hinst, fileName, sizeof(fileName)))
+	{
+		_appname_char = PathFindFileName(fileName);
+		*(PathFindExtension(fileName)) = 0;
+	}
+	else
+		_appname_char = "unknown";
 #endif
 	_appname = QString(_appname_char).toLower();
 
@@ -108,7 +127,9 @@ Logger::Logger ( QString name, LogLevel minLevel )
 
 	if (_syslogEnabled && loggerCount == 1 )
 	{
+		#ifndef _WIN32
 		openlog (_appname_char, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL0);
+		#endif
 	}
 }
 
@@ -116,8 +137,10 @@ Logger::~Logger()
 {
 	//Debug(this, "logger '%s' destroyed", QSTRING_CSTR(_name) );
 	loggerCount--;
+#ifndef _WIN32
 	if ( loggerCount == 0 )
 		closelog();
+#endif
 }
 
 void Logger::Message(LogLevel level, const char* sourceFile, const char* func, unsigned int line, const char* fmt, ...)
@@ -142,8 +165,10 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 
 		std::cout << QString("[" + repMsg.appName + " " + repMsg.loggerName + "] <" + LogLevelStrings[repMsg.level] + "> " + repMsg.message).toStdString() << std::endl;
 
+#ifndef _WIN32
 		if ( _syslogEnabled && repMsg.level >= Logger::WARNING )
 			syslog (LogLevelSysLog[repMsg.level], "Previous line repeats %d times", _repeatCount);
+#endif
 
 		_repeatCount = 0;
 	};
@@ -185,10 +210,10 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 		}
 
 		std::cout << QString("[" + _appname + " " + _name + "] <" + LogLevelStrings[level] + "> " + location + msg).toStdString() << std::endl;
-
+#ifndef _WIN32
 		if ( _syslogEnabled && level >= Logger::WARNING )
 			syslog (LogLevelSysLog[level], "%s", msg);
-
+#endif
 		_repeatMessage = logMsg;
 	}
 }
