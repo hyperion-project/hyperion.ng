@@ -87,7 +87,6 @@ target_link_libraries(leddevice
 	${CMAKE_THREAD_LIBS_INIT}
 	Qt5::Network
 	Qt5::SerialPort
-	${MBEDTLS_LIBRARIES}
 	ssdp
 )
 
@@ -110,3 +109,11 @@ if (ENABLE_USB_HID)
 		target_link_libraries(leddevice ${LIBUSB_1_LIBRARIES} hidapi-libusb)
 	endif()
 endif()
+
+if (NOT DEFAULT_USE_SYSTEM_MBEDTLS_LIBS)
+	if (MBEDTLS_LIBRARIES)
+		include_directories(${MBEDTLS_INCLUDE_DIR})
+		target_link_libraries(leddevice ${MBEDTLS_LIBRARIES})
+		target_include_directories(leddevice PRIVATE ${MBEDTLS_INCLUDE_DIR})
+	endif (MBEDTLS_LIBRARIES)
+endif ()

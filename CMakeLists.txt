@@ -46,6 +46,7 @@ SET ( DEFAULT_AVAHI      ON  )
 SET ( DEFAULT_USE_SHARED_AVAHI_LIBS  ON )
 SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF )
 SET ( DEFAULT_USE_SYSTEM_PROTO_LIBS OFF )
+SET ( DEFAULT_USE_SYSTEM_MBEDTLS_LIBS OFF )
 SET ( DEFAULT_TESTS      OFF )
 
 IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
@@ -190,7 +191,7 @@ SET ( FLATBUFFERS_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/flatbuf )
 SET ( PROTOBUF_INSTALL_BIN_DIR ${CMAKE_BINARY_DIR}/proto )
 SET ( PROTOBUF_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/proto )
 
-# check all  json files
+# check all json files
 FILE ( GLOB_RECURSE HYPERION_SCHEMAS RELATIVE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/libsrc/*schema*.json )
 SET( JSON_FILES
 	config/hyperion.config.json.default
@@ -298,6 +299,8 @@ if(WIN32)
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 endif()
 
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -v")
+
 # Use GNU gold linker if available
 if (NOT WIN32)
 	include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/LDGold.cmake)
@@ -310,7 +313,7 @@ endif()
 
 # setup -rpath to search for shared libs in BINARY/../lib folder
 if (UNIX AND NOT APPLE)
-	SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+	SET(CMAKE_SKIP_BUILD_RPATH FALSE)
 	SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 	SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH}:$ORIGIN/../lib")
 	SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
@@ -342,9 +345,8 @@ IF ( "${Qt5Core_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
 	message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )
 ENDIF()
 
-# Add libusb, Mbedtls and pthreads
+# Add libusb and pthreads
 find_package(libusb-1.0 REQUIRED)
-find_package(MbedTLS REQUIRED)
 find_package(Threads REQUIRED)
 add_definitions(${QT_DEFINITIONS})
 
