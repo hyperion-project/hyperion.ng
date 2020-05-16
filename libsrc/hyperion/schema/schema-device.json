@@ -29,15 +29,6 @@
 				"enum_titles" : ["edt_conf_enum_rgb", "edt_conf_enum_bgr", "edt_conf_enum_rbg", "edt_conf_enum_brg", "edt_conf_enum_gbr", "edt_conf_enum_grb"]
 			},
 			"propertyOrder" : 3
-		},
-		"rewriteTime": {
-			"type": "integer",
-			"title":"edt_dev_general_rewriteTime_title",
-			"default": 1000,
-			"append" : "edt_append_ms",
-			"minimum": 0,
-			"access" : "expert",
-			"propertyOrder" : 4
 		}
 	},
 	"additionalProperties" : true

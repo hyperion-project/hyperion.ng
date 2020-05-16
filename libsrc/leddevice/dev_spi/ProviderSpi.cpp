@@ -52,8 +52,8 @@ int ProviderSpi::open()
 	if ( init(_devConfig) )
 	{
 
-		Debug(_log, "_baudRate_Hz %d,  _latchTime_ns %d", _baudRate_Hz, _latchTime_ms);
-		Debug(_log, "_spiDataInvert %d,  _spiMode %d", _spiDataInvert, _spiMode);
+		Debug(_log, "_baudRate_Hz [%d], _latchTime_ms [%d]", _baudRate_Hz, _latchTime_ms);
+		Debug(_log, "_spiDataInvert [%d], _spiMode [%d]", _spiDataInvert, _spiMode);
 
 		const int bitsPerWord = 8;
 

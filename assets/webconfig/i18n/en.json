@@ -437,6 +437,7 @@
 	"edt_dev_spec_cid_title" : "CID",
 	"edt_dev_spec_LBap102Mode_title" : "LightBerry APA102 Mode",
 	"edt_dev_spec_universe_title" : "Universe",
+	"edt_dev_spec_chanperfixture_title" : "Channels per Fixture",
 	"edt_dev_spec_whiteLedAlgor_title" : "White LED algorithm",
 	"edt_dev_spec_useRgbwProtocol_title" : "Use RGBW protocol",
 	"edt_dev_spec_maximumLedCount_title" : "Maximum LED count",
