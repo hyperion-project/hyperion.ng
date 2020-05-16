@@ -36,7 +36,7 @@ function installAndUpgrade()
 if [[ $CI_NAME == 'osx' || $CI_NAME == 'darwin' ]]; then
 	echo "Install dependencies"
 	brew update
-	dependencies=("qt5" "python" "libusb" "cmake" "doxygen", "mbedtls")
+	dependencies=("qt5" "python" "libusb" "cmake" "doxygen")
 	installAndUpgrade "${dependencies[@]}"
 # github actions uname -> windows-2019 -> mingw64_nt-10.0-17763
 # TODO: Azure uname windows?
