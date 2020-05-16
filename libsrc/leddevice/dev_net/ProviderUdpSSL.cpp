@@ -5,7 +5,9 @@
 
 // Linux includes
 #include <fcntl.h>
-#include <sys/ioctl.h>
+#ifndef _WIN32
+	#include <sys/ioctl.h>
+#endif
 
 // Local Hyperion includes
 #include "ProviderUdpSSL.h"
