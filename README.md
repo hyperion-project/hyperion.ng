@@ -23,15 +23,15 @@
 * A scriptable (Python) effect engine
 * A multi language web interface to configure and remote control hyperion
 
-If you need further support please open a topic at the forum!
+If you need further support please open a topic at the forum!<br>
 [![Hyperion webpage/forum](https://img.shields.io/website/https/hyperion-project.org.svg?down_color=red&down_message=offline&up_color=green&up_message=online)](https://www.hyperion-project.org)
 
 ## Contributing
 
-Contributions are welcome! Feel free to join us! We are looking always for people who wants to participate.
+Contributions are welcome! Feel free to join us! We are looking always for people who wants to participate.<br>
 [![Contributors](https://img.shields.io/github/contributors/hyperion-project/hyperion.ng.svg)](https://github.com/hyperion-project/hyperion.ng/graphs/contributors)
 
-For an example, you can participate in the translation.
+For an example, you can participate in the translation.<br>
 [![Join Translation](https://img.shields.io/badge/POEditor-translate-green.svg)](https://poeditor.com/join/project/Y4F6vHRFjA)
 
 ## Requirements
@@ -46,7 +46,7 @@ Covers these topics (WorkInProgress)
 - Effect development
 - JSON API
 
-[Visit Documentation](https://docs.hyperion-project.org)
+[![Visit Documentation](https://img.shields.io/website?down_message=offline&label=Documentation%20%20&up_message=online&url=https%3A%2F%2Fdocs.hyperion-project.org)](https://docs.hyperion-project.org)
 
 ## Building
 See [CompileHowto](CompileHowto.md) and [CrossCompileHowto](CrossCompileHowto.md).
@@ -55,6 +55,6 @@ See [CompileHowto](CompileHowto.md) and [CrossCompileHowto](CrossCompileHowto.md
 Alpha releases available from the [Hyperion release page](https://github.com/hyperion-project/hyperion.ng/releases)
 
 ## License
-The source is released under MIT-License (see http://opensource.org/licenses/MIT).
+The source is released under MIT-License (see http://opensource.org/licenses/MIT).<br>
 [![GitHub license](https://img.shields.io/badge/License-MIT-yellow.svg)](https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/LICENSE)
 
