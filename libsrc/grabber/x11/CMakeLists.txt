@@ -7,6 +7,10 @@ find_package(X11 REQUIRED)
 
 include_directories( ${X11_INCLUDES} )
 
+if(APPLE)
+	include_directories("/opt/X11/include")
+endif(APPLE)
+
 FILE ( GLOB X11_SOURCES "${CURRENT_HEADER_DIR}/X11*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
 
 add_library(x11-grabber ${X11_SOURCES} )
