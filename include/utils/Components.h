@@ -86,4 +86,4 @@ inline  Components stringToComponent(QString component)
 	return COMP_INVALID;
 }
 
-}; // end of namespace
+} // end of namespace

@@ -47,7 +47,7 @@ void V4L2Wrapper::setSignalThreshold(double redSignalThreshold, double greenSign
 	_grabber.setSignalThreshold( redSignalThreshold, greenSignalThreshold, blueSignalThreshold, 50);
 }
 
-void V4L2Wrapper::setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom)
+void V4L2Wrapper::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom)
 {
 	_grabber.setCropping(cropLeft, cropRight, cropTop, cropBottom);
 }

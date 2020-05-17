@@ -92,4 +92,4 @@ namespace JsonUtils{
 	/// @return              true on success else false
 	///
 	bool resolveRefs(const QJsonObject& schema, QJsonObject& obj, Logger* log);
-};
+}

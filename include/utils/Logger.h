@@ -103,4 +103,4 @@ protected:
 	const int                      _loggerMaxMsgBufferSize;
 };
 
-Q_DECLARE_METATYPE(Logger::T_LOG_MESSAGE);
+Q_DECLARE_METATYPE(Logger::T_LOG_MESSAGE)
