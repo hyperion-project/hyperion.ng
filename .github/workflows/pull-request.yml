@@ -64,7 +64,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v1
         with:
-          name: ${{ matrix.dockerTag }}.zip
+          name: ${{ matrix.dockerTag }}
           path: ${{ matrix.dockerTag }}
         if: matrix.dockerTag != 'aarch64'
 
@@ -111,7 +111,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v1
         with:
-          name: macOS.zip
+          name: macOS
           path: macOS
 
 ######################
@@ -169,11 +169,12 @@ jobs:
         run: |
           mkdir -p windows
           mv build/*.zip windows
+
       # Upload artifacts
       - name: Upload artifacts
         uses: actions/upload-artifact@v1
         with:
-          name: windows.zip
+          name: windows
           path: windows
 
 ######################
