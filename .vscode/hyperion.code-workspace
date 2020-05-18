@@ -7,8 +7,6 @@
 	"settings": {
 		"editor.formatOnSave": false,
 		"cmake.environment": {
-			"Qt5_DIR":"G:/Programme/Qt/5.14.1/msvc2017_64/lib/cmake/Qt5",
-			"CMAKE_PREFIX_PATH": "G:/Programme/Qt/5.14.1/msvc2017_64"
 		},
 	},
 	"extensions": {
