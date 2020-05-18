@@ -208,7 +208,8 @@ int main(int argc, char * argv[])
 		if (parser.isSet(argColor))
 		{
 			// TODO: make sure setColor accepts a QList<QColor>
-			connection.setColor(argColor.getColors(parser).toVector().toStdVector(), argPriority.getInt(parser), argDuration.getInt(parser));
+			QVector<QColor> _cQV = argColor.getColors(parser).toVector();
+			connection.setColor(std::vector<QColor>( _cQV.begin(), _cQV.end() ), argPriority.getInt(parser), argDuration.getInt(parser));
 		}
 		else if (parser.isSet(argImage))
 		{

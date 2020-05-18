@@ -143,7 +143,8 @@ PyObject* EffectModule::wrapSetColor(PyObject *self, PyObject *args)
 		if (PyArg_ParseTuple(args, "bbb", &color.red, &color.green, &color.blue))
 		{
 			getEffect()->_colors.fill(color);
-			getEffect()->setInput(getEffect()->_priority, getEffect()->_colors.toStdVector(), timeout, false);
+			QVector<ColorRgb> _cQV = getEffect()->_colors;
+			getEffect()->setInput(getEffect()->_priority, std::vector<ColorRgb>( _cQV.begin(), _cQV.end() ), timeout, false);
 			Py_RETURN_NONE;
 		}
 		return nullptr;
@@ -161,7 +162,8 @@ PyObject* EffectModule::wrapSetColor(PyObject *self, PyObject *args)
 				{
 					char * data = PyByteArray_AS_STRING(bytearray);
 					memcpy(getEffect()->_colors.data(), data, length);
-					getEffect()->setInput(getEffect()->_priority, getEffect()->_colors.toStdVector(), timeout, false);
+					QVector<ColorRgb> _cQV = getEffect()->_colors;
+					getEffect()->setInput(getEffect()->_priority, std::vector<ColorRgb>( _cQV.begin(), _cQV.end() ), timeout, false);
 					Py_RETURN_NONE;
 				}
 				else
@@ -602,7 +604,7 @@ PyObject* EffectModule::wrapImageDrawPolygon(PyObject *self, PyObject *args)
 {
 	// check if we have aborted already
 	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-	
+
 	PyObject * bytearray = nullptr;
 
 	int argCount = PyTuple_Size(args);
@@ -663,7 +665,7 @@ PyObject* EffectModule::wrapImageDrawPie(PyObject *self, PyObject *args)
 {
 	// check if we have aborted already
 	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-	
+
 	PyObject * bytearray = nullptr;
 
 	QString brush;
