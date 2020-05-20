@@ -892,8 +892,8 @@ LedDevicePhilipsHue::~LedDevicePhilipsHue()
 		if( _blackLightsTimer->isActive() )
 		{
 			this->stopBlackTimeoutTimer();
-			_blackLightsTimer->deleteLater();
 		}
+		_blackLightsTimer->deleteLater();
 	}
 }
 
@@ -994,7 +994,7 @@ bool LedDevicePhilipsHue::setLights()
 		std::sort( _lightIds.begin(), _lightIds.end() );
 	}
 
-	unsigned int configuredLightsCount = _lightIds.size();
+	unsigned int configuredLightsCount = static_cast<unsigned int>(_lightIds.size());
 
 	log( "Light-IDs configured", "%d", configuredLightsCount );
 
@@ -1118,7 +1118,7 @@ bool LedDevicePhilipsHue::updateLights(QMap<quint16, QJsonObject> map)
 		}
 	}
 
-	unsigned int lightsCount = _lights.size();
+	unsigned int lightsCount = static_cast<unsigned int>(_lights.size());
 
 	setLightsCount( lightsCount );
 
