@@ -75,8 +75,18 @@ function createClassicLeds(){
 	var ledsHDepth = parseInt($("#ip_cl_hdepth").val())/100;
 	var edgeVGap = parseInt($("#ip_cl_edgegap").val())/100/2;
 	//var cornerVGap = parseInt($("#ip_cl_cornergap").val())/100/2;
-	var overlap = $("#ip_cl_overlap").val()/4000;
+	var overlap = $("#ip_cl_overlap").val()/100;
 
+	//trapezoid values % -> float
+	var ptblh  = parseInt($("#ip_cl_pblh").val())/100;
+	var ptblv  = parseInt($("#ip_cl_pblv").val())/100;
+	var ptbrh  = parseInt($("#ip_cl_pbrh").val())/100;
+	var ptbrv  = parseInt($("#ip_cl_pbrv").val())/100;
+	var pttlh  = parseInt($("#ip_cl_ptlh").val())/100;
+	var pttlv  = parseInt($("#ip_cl_ptlv").val())/100;
+	var pttrh  = parseInt($("#ip_cl_ptrh").val())/100;
+	var pttrv  = parseInt($("#ip_cl_ptrv").val())/100;
+	
 	//helper
 	var edgeHGap = edgeVGap/(16/9);
 	//var cornerHGap = cornerVGap/(16/9);
@@ -142,61 +152,59 @@ function createClassicLeds(){
 	}
 
 	function createTopLeds(){
-		var step=(Hmax-Hmin)/ledstop;
-		//if(cornerVGap != '0')
-		//	step=(Hmax-Hmin-(cornerHGap*2))/ledstop;
-
-		var vmin=Vmin;
-		var vmax=vmin+ledsHDepth;
+		var steph = (pttrh - pttlh - (2*edgeHGap))/ledstop;
+		var stepv = (pttrv - pttlv)/ledstop;
+			
 		for (var i = 0; i<ledstop; i++){
-			var hmin = ovl("-",(Hdiff/ledstop*Number([i]))+edgeHGap);
-			var hmax = ovl("+",(Hdiff/ledstop*Number([i]))+step+edgeHGap);
-			createLedArray(hmin, hmax, vmin, vmax);
-		}
-	}
-
-	function createLeftLeds(){
-		var step=(Vmax-Vmin)/ledsleft;
-		//if(cornerVGap != '0')
-		//	step=(Vmax-Vmin-(cornerVGap*2))/ledsleft;
-
-		var hmin=Hmin;
-		var hmax=hmin+ledsVDepth;
-		for (var i = ledsleft-1; i>-1; --i){
-			var vmin = ovl("-",(Vdiff/ledsleft*Number([i]))+edgeVGap);
-			var vmax = ovl("+",(Vdiff/ledsleft*Number([i]))+step+edgeVGap);
+			var hmin = ovl("-",pttlh+(steph*Number([i]))+edgeHGap);
+			var hmax = ovl("+",pttlh+(steph*Number([i+1]))+edgeHGap);
+			var vmin = pttlv+(stepv*Number([i]));
+			var vmax = vmin + ledsHDepth;
 			createLedArray(hmin, hmax, vmin, vmax);
 		}
 	}
 
 	function createRightLeds(){
-		var step=(Vmax-Vmin)/ledsright;
-		//if(cornerVGap != '0')
-		//	step=(Vmax-Vmin-(cornerVGap*2))/ledsright;
-
-		var hmax=Hmax;
-		var hmin=hmax-ledsVDepth;
+		var steph = (ptbrh - pttrh)/ledsright;
+		var stepv = (ptbrv - pttrv - (2*edgeVGap))/ledsright;
+			
 		for (var i = 0; i<ledsright; i++){
-			var vmin = ovl("-",(Vdiff/ledsright*Number([i]))+edgeVGap);
-			var vmax = ovl("+",(Vdiff/ledsright*Number([i]))+step+edgeVGap);
+			var hmax = pttrh+(steph*Number([i+1]));
+			var hmin = hmax-ledsVDepth;
+			var vmin = ovl("-",pttrv+(stepv*Number([i]))+edgeVGap);
+			var vmax = ovl("+",pttrv+(stepv*Number([i+1]))+edgeVGap);
 			createLedArray(hmin, hmax, vmin, vmax);
 		}
 	}
 
 	function createBottomLeds(){
-		var step=(Hmax-Hmin)/ledsbottom;
-		//if(cornerVGap != '0')
-		//	step=(Hmax-Hmin-(cornerHGap*2))/ledsbottom;
-
-		var vmax=Vmax;
-		var vmin=vmax-ledsHDepth;
+		var steph = (ptbrh - ptblh - (2*edgeHGap))/ledsbottom;
+		var stepv = (ptbrv - ptblv)/ledsbottom;
+			
 		for (var i = ledsbottom-1; i>-1; i--){
-			var hmin = ovl("-",(Hdiff/ledsbottom*Number([i]))+edgeHGap);
-			var hmax = ovl("+",(Hdiff/ledsbottom*Number([i]))+step+edgeHGap);
+			var hmin = ovl("-",ptblh+(steph*Number([i]))+edgeHGap);
+			var hmax = ovl("+",ptblh+(steph*Number([i+1]))+edgeHGap);
+			var vmax= ptblv+(stepv*Number([i]));
+			var vmin = vmax-ledsHDepth;
 			createLedArray(hmin, hmax, vmin, vmax);
 		}
 	}
 
+	function createLeftLeds(){
+		var steph = (ptblh - pttlh)/ledsleft;
+		var stepv = (ptblv - pttlv - (2*edgeVGap))/ledsleft;
+			
+		for (var i = ledsleft-1; i>-1; i--){
+			var hmin = pttlh+(steph*Number([i]));
+			var hmax = hmin+ledsVDepth;
+			var vmin = ovl("-",pttlv+(stepv*Number([i]))+edgeVGap);
+			var vmax = ovl("+",pttlv+(stepv*Number([i+1]))+edgeVGap);
+			createLedArray(hmin, hmax, vmin, vmax);
+		}
+
+	}
+
+	//rectangle
 	createTopLeds();
 	createRightLeds();
 	createBottomLeds();
