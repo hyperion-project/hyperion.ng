@@ -340,7 +340,7 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type &settingsType, co
 			// stop all capture interfaces
 			#ifdef ENABLE_FB
 			if(_fbGrabber != nullptr)
-			{ 
+			{
 				_fbGrabber->stop();
 				delete _fbGrabber;
 				_fbGrabber = nullptr;
