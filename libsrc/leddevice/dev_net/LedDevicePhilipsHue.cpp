@@ -889,7 +889,11 @@ LedDevicePhilipsHue::~LedDevicePhilipsHue()
 {
 	if ( _blackLightsTimer != nullptr )
 	{
-		_blackLightsTimer->deleteLater();
+		if( _blackLightsTimer->isActive() )
+		{
+			this->stopBlackTimeoutTimer();
+			_blackLightsTimer->deleteLater();
+		}
 	}
 }
 
@@ -1068,7 +1072,7 @@ bool LedDevicePhilipsHue::initLeds()
 					if ( _blackLightsTimer == nullptr )
 					{
 						_blackLightsTimer = new QTimer(this);
-						connect( _blackLightsTimer, SIGNAL( timeout() ), this, SLOT( noSignalTimeout() ) );
+						connect( _blackLightsTimer, &QTimer::timeout, this, &LedDevicePhilipsHue::noSignalTimeout );
 					}
 				}
 			}
@@ -1290,7 +1294,7 @@ bool LedDevicePhilipsHue::setStreamGroupState(bool state)
 	}
 	else
 	{
-		QString valueName = QString( API_STREAM_RESPONSE_FORMAT ).arg( API_GROUPS ).arg( _groupId ).arg( API_STREAM ).arg( API_STREAM_ACTIVE);
+		QString valueName = QString( API_STREAM_RESPONSE_FORMAT ).arg( API_GROUPS ).arg( _groupId ).arg( API_STREAM ).arg( API_STREAM_ACTIVE );
 		if(!map.value( API_SUCCESS ).toMap().value( valueName ).isValid())
 		{
 			this->setInError( QString("set stream to %1: Bridge response is not Valid").arg( active ) );
@@ -1372,6 +1376,9 @@ void LedDevicePhilipsHue::restoreOriginalState()
 
 void LedDevicePhilipsHue::close()
 {
+	_isInitLeds = false;
+	this->stopBlackTimeoutTimer();
+
 	LedDevicePhilipsHueBridge::close();
 
 	if ( _deviceReady )
@@ -1386,19 +1393,23 @@ void LedDevicePhilipsHue::close()
 
 int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues)
 {
-	// lights will be empty sometimes
-	if( _lights.empty() ) return -1;
-
-	// more lights then leds, stop always
-	if( ledValues.size() < getLightsCount() )
+	if( _isInitLeds )
 	{
-		Error(_log, "More light-IDs configured than leds, each light-ID requires one led!" );
-		return -1;
+
+		// lights will be empty sometimes
+		if( _lights.empty() ) return -1;
+
+		// more lights then leds, stop always
+		if( ledValues.size() < getLightsCount() )
+		{
+			Error(_log, "More light-IDs configured than leds, each light-ID requires one led!" );
+			return -1;
+		}
+
+		writeSingleLights( ledValues );
+
+		if( _useHueEntertainmentAPI && !noSignalDetection() ) writeStream();
 	}
-
-	writeSingleLights( ledValues );
-
-	if( _useHueEntertainmentAPI && !noSignalDetection() ) writeStream();
 
 	return 0;
 }
@@ -1410,9 +1421,9 @@ void LedDevicePhilipsHue::noSignalTimeout()
 	switchOff();
 }
 
-void LedDevicePhilipsHue::stopTimeoutTimer()
+void LedDevicePhilipsHue::stopBlackTimeoutTimer()
 {
-	if ( _blackLightsTimer != nullptr )
+	if ( _blackLightsTimer != nullptr && _blackLightsTimer->isActive() )
 	{
 		_blackLightsTimer->stop();
 	}
@@ -1420,6 +1431,11 @@ void LedDevicePhilipsHue::stopTimeoutTimer()
 
 bool LedDevicePhilipsHue::noSignalDetection()
 {
+	if( !_isInitLeds )
+	{
+		return true;
+	}
+
 	if( _allLightsBlack )
 	{
 		if( !_stopConnection )
@@ -1436,7 +1452,7 @@ bool LedDevicePhilipsHue::noSignalDetection()
 		if ( _blackLightsTimer->isActive() )
 		{
 			DebugIf( verbose, _log, "Signal detected - timeout timer stopped" );
-			this->stopTimeoutTimer();
+			this->stopBlackTimeoutTimer();
 		}
 
 		if( _stopConnection )
@@ -1619,10 +1635,10 @@ int LedDevicePhilipsHue::switchOn()
 
 int LedDevicePhilipsHue::switchOff()
 {
+	this->stopBlackTimeoutTimer();
+
 	//Set all LEDs to Black
 	int rc = LedDevice::switchOff();
-
-	this->stopTimeoutTimer();
 
 	if ( _deviceReady )
 	{
