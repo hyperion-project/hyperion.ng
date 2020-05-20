@@ -784,6 +784,8 @@
 	"edt_append_hz": "Hz",
 	"edt_append_pixel": "Pixel",
 	"edt_append_percent": "%",
+	"edt_append_percent_h": "% hori",
+	"edt_append_percent_v": "% vert",
 	"edt_append_degree": "°",
 	"edt_append_sdegree": "s/grad",
 	"edt_append_leds": "LEDs",
@@ -824,5 +826,12 @@
 	"edt_msg_button_delete_row_title": "$1 Löschen",
 	"edt_msg_button_delete_row_title_short": "Löschen",
 	"edt_msg_button_collapse": "Einklappen",
-	"edt_msg_button_expand": "Ausklappen"
+	"edt_msg_button_expand": "Ausklappen",
+	"conf_leds_layout_ptln": "Trapezpunkte",
+	"conf_leds_layout_ptlh": "Horizontal",
+	"conf_leds_layout_ptlv": "Vertikal",
+	"conf_leds_layout_ptl": "Punkt Oben Links",
+	"conf_leds_layout_ptr": "Punkt Oben Rechts",
+	"conf_leds_layout_pbl": "Punkt Unten Links",
+	"conf_leds_layout_pbr": "Punkt Unten Rechts"
 }
