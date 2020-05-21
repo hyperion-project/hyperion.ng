@@ -117,6 +117,7 @@ $(document).ready( function() {
 							buildSchemaPart(item, v4l2_dynamic_enum_schema, val);
 							grabberV4L2.original_schema.properties[item] = window.schema.grabberV4L2.properties[item];
 							grabberV4L2.schema.properties[item] = window.schema.grabberV4L2.properties[item];
+							conf_editor_v4l2.validator.schema.properties.grabberV4L2.properties[item] = window.schema.grabberV4L2.properties[item];
 
 							grabberV4L2.removeObjectProperty(item);
 							delete grabberV4L2.cached_editors[item];
