@@ -889,10 +889,6 @@ LedDevicePhilipsHue::~LedDevicePhilipsHue()
 {
 	if ( _blackLightsTimer != nullptr )
 	{
-		if( _blackLightsTimer->isActive() )
-		{
-			this->stopBlackTimeoutTimer();
-		}
 		_blackLightsTimer->deleteLater();
 	}
 }
