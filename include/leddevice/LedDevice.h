@@ -177,13 +177,13 @@ protected:
 	/// Timer object which makes sure that led data is written at a minimum rate
 	/// e.g. Adalight device will switch off when it does not receive data at least every 15 seconds
 	QTimer*	_refresh_timer;
-	int		_refresh_timer_interval;
+	int	_refresh_timer_interval;
 
 	/// timestamp of last write
 	qint64	_last_write_time;
 
 	/// Time a device requires mandatorily between two writes
-	int		_latchTime_ms;
+	int	_latchTime_ms;
 
 
 protected slots:
@@ -208,7 +208,7 @@ protected slots:
 	///
 	/// @param errorMsg The error message to be logged
 	///
-    virtual void setInError( const QString& errorMsg);
+	virtual void setInError( const QString& errorMsg);
 
 private:
 

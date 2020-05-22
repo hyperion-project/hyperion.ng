@@ -39,12 +39,12 @@ function createLedPreview(leds, origin){
 	{
 		var led = leds[idx];
 		var led_id='ledc_'+[idx];
-		var bgcolor = "background-color:hsl("+(idx*360/leds.length)+",100%,50%);";
+		var bgcolor = "background-color:hsla("+(idx*360/leds.length)+",100%,50%,0.75);";
 		var pos = "left:"+(led.hmin * canvas_width)+"px;"+
 			"top:"+(led.vmin * canvas_height)+"px;"+
 			"width:"+((led.hmax-led.hmin) * (canvas_width-1))+"px;"+
 			"height:"+((led.vmax-led.vmin) * (canvas_height-1))+"px;";
-		leds_html += '<div id="'+led_id+'" class="led" style="'+bgcolor+pos+'" title="'+idx+'"><span id="'+led_id+'_num" class="led_prev_num">'+idx+'</span></div>';
+		leds_html += '<div id="'+led_id+'" class="led" style="'+bgcolor+pos+'" title="'+idx+'"><span id="'+led_id+'_num" class="led_prev_num">'+((led.name) ? led.name : idx)+'</span></div>';
 	}
 	$('#leds_preview').html(leds_html);
 	$('#ledc_0').css({"background-color":"black","z-index":"12"});
@@ -496,9 +496,13 @@ $(document).ready(function() {
 	$("#leddevices").off().on("change", function() {
 		var generalOptions  = window.serverSchema.properties.device;
 
-		// Modified schema enty "hardwareLedCount" in generalOptions to minimum LedCount
+		// Modified schema entry "hardwareLedCount" in generalOptions to minimum LedCount
+    var ledType = $(this).val();
 
-		var specificOptions = window.serverSchema.properties.alldevices[$(this).val()];
+    //philipshueentertainment backward fix
+    if(ledType == "philipshueentertainment") ledType = "philipshue";
+
+    var specificOptions = window.serverSchema.properties.alldevices[ledType];
 		conf_editor = createJsonEditor('editor_container', {
 			generalOptions : generalOptions,
 			specificOptions : specificOptions,
@@ -506,21 +510,19 @@ $(document).ready(function() {
 
 		var values_general = {};
 		var values_specific = {};
-		var isCurrentDevice = (window.serverConfig.device.type == $(this).val());
+		var isCurrentDevice = (window.serverConfig.device.type == ledType);
 
-		for(var key in window.serverConfig.device){
-			if (key != "type" && key in generalOptions.properties)
-				values_general[key] = window.serverConfig.device[key];
+		for(var key in window.serverConfig.device) {
+			if (key != "type" && key in generalOptions.properties) values_general[key] = window.serverConfig.device[key];
 		};
 		conf_editor.getEditor("root.generalOptions").setValue( values_general );
 
 		if (isCurrentDevice)
 		{
-			var specificOptions_val = conf_editor.getEditor("root.specificOptions").getValue()
+			var specificOptions_val = conf_editor.getEditor("root.specificOptions").getValue();
 			for(var key in specificOptions_val){
-					values_specific[key] = (key in window.serverConfig.device) ? window.serverConfig.device[key] : specificOptions_val[key];
+				values_specific[key] = (key in window.serverConfig.device) ? window.serverConfig.device[key] : specificOptions_val[key];
 			};
-
 			conf_editor.getEditor("root.specificOptions").setValue( values_specific );
 		};
 
@@ -528,17 +530,28 @@ $(document).ready(function() {
 		conf_editor.validate().length ? $('#btn_submit_controller').attr('disabled', true) : $('#btn_submit_controller').attr('disabled', false);
 
 		// led controller sepecific wizards
-		if($(this).val() == "philipshue")
-		{
-			createHint("wizard", $.i18n('wiz_hue_title'), "btn_wiz_holder","btn_led_device_wiz");
-			$('#btn_led_device_wiz').off().on('click',startWizardPhilipsHue);
-		}
-		else
-		{
-			$('#btn_wiz_holder').html("")
-			$('#btn_led_device_wiz').off();
-		}
+		$('#btn_wiz_holder').html("")
+		$('#btn_led_device_wiz').off();
+
+    if(ledType == "philipshue") {
+      $('#root_specificOptions_useEntertainmentAPI').bind("change", function() {
+        var ledWizardType = (this.checked) ? "philipshueentertainment" : ledType;
+        var data = { type: ledWizardType };
+        var hue_title = (this.checked) ? 'wiz_hue_e_title' : 'wiz_hue_title';
+        changeWizard(data, hue_title, startWizardPhilipsHue);
+      });
+      $("#root_specificOptions_useEntertainmentAPI").trigger("change");
+    }
+
+    function changeWizard(data, hint, fn) {
+      $('#btn_wiz_holder').html("")
+			createHint("wizard", $.i18n(hint), "btn_wiz_holder","btn_led_device_wiz");
+			$('#btn_led_device_wiz').off().on('click', data , fn);
+    }
 	});
+
+  //philipshueentertainment backward fix
+  if(window.serverConfig.device.type == "philipshueentertainment") window.serverConfig.device.type = "philipshue";
 
 	// create led device selection
 	var ledDevices = window.serverInfo.ledDevices.available;

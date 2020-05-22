@@ -22,6 +22,11 @@ public:
 	SSDPHandler(WebServer* webserver, const quint16& flatBufPort, const quint16& jsonServerPort, const QString &name,  QObject * parent = nullptr);
 	~SSDPHandler();
 
+	///
+	/// @brief Sends BYE BYE and stop server
+	/// 
+	void stopServer();
+
 public slots:
 	///
 	/// @brief Init SSDP after thread start

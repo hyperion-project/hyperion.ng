@@ -196,7 +196,6 @@ void HyperionIManager::handleFinished()
 	hyperion->deleteLater();
 	emit instanceStateChanged(H_STOPPED, instance);
 	emit change();
-
 }
 
 void HyperionIManager::handleStarted()

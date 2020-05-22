@@ -19,7 +19,7 @@ fi
 
 #Welcome message
 echo '*******************************************************************************' 
-echo 'This script will remove Hyperion and it´s services' 
+echo 'This script will remove Hyperion and its services' 
 echo '-----> Please BACKUP your hyperion.config.json if necessary <-----'
 echo 'Created by brindosch - hyperion-project.org - the official Hyperion source.' 
 echo '*******************************************************************************'
@@ -29,7 +29,7 @@ if [ "$1" = "" ]; then
 	#Prompt for confirmation to proceed
 	while true
 	do
-		echo -n "---> Do you really want to remove Hyperion and it´s services? (y or n) :"
+		echo -n "---> Do you really want to remove Hyperion and its services? (y or n) :"
 		read CONFIRM
 		case $CONFIRM in
 			y|Y|YES|yes|Yes) break ;;
