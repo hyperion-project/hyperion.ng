@@ -1,5 +1,6 @@
 // Local-Hyperion includes
 #include "LedDevicePhilipsHue.h"
+
 // ssdp discover
 #include <ssdp/SSDPDiscover.h>
 
@@ -1389,23 +1390,19 @@ void LedDevicePhilipsHue::close()
 
 int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues)
 {
-	if( _isInitLeds )
+	// lights will be empty sometimes
+	if( _lights.empty() ) return -1;
+
+	// more lights then leds, stop always
+	if( ledValues.size() < getLightsCount() )
 	{
-
-		// lights will be empty sometimes
-		if( _lights.empty() ) return -1;
-
-		// more lights then leds, stop always
-		if( ledValues.size() < getLightsCount() )
-		{
-			Error(_log, "More light-IDs configured than leds, each light-ID requires one led!" );
-			return -1;
-		}
-
-		writeSingleLights( ledValues );
-
-		if( _useHueEntertainmentAPI && !noSignalDetection() ) writeStream();
+		Error(_log, "More light-IDs configured than leds, each light-ID requires one led!" );
+		return -1;
 	}
+
+	writeSingleLights( ledValues );
+
+	if( _useHueEntertainmentAPI && !noSignalDetection() && _isInitLeds ) writeStream();
 
 	return 0;
 }
@@ -1427,14 +1424,9 @@ void LedDevicePhilipsHue::stopBlackTimeoutTimer()
 
 bool LedDevicePhilipsHue::noSignalDetection()
 {
-	if( !_isInitLeds )
-	{
-		return true;
-	}
-
 	if( _allLightsBlack )
 	{
-		if( !_stopConnection )
+		if( !_stopConnection && _isInitLeds )
 		{
 			if ( !_blackLightsTimer->isActive() )
 			{
