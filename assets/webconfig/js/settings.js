@@ -157,20 +157,16 @@ $(document).ready( function() {
 		{
 			if(lsys != window.wSess[i].host+':'+window.wSess[i].port)
 			{
-				var hyperionAddress
-
-				if (window.wSess[i].address.indexOf(':') > -1 && window.wSess[i].address.length == 36)
-					hyperionAddress = 'http://['+window.wSess[i].address+']:'+window.wSess[i].port
-				else
-					hyperionAddress = 'http://'+window.wSess[i].address+':'+window.wSess[i].port
-
-				$('#id_select').append(createSelOpt(hyperionAddress, window.wSess[i].host))
+				var hyperionAddress = window.wSess[i].address;
+				if(hyperionAddress.indexOf(':') > -1 && hyperionAddress.length == 36) hyperionAddress = '['+hyperionAddress+']';
+				hyperionAddress = 'http://'+hyperionAddress+':'+window.wSess[i].port;
+				$('#id_select').append(createSelOpt(hyperionAddress, window.wSess[i].name));
 			}
 		}
 
 		$('#id_btn_saveset').off().on('click',function() {
 			$("#loading_overlay").addClass("overlay");
-			window.location.href = $('#id_select').val()
+			window.location.href = $('#id_select').val();
 		});
 
 	});

@@ -2,16 +2,38 @@
 
 // STL includes
 #include <set>
+#include <string>
+#include <stdarg.h>
 
 // Qt includes
 #include <QNetworkAccessManager>
-#include <QTimer>
+#include <QEventLoop>
+#include <QNetworkReply>
+#include <QtCore/qmath.h>
+#include <QStringList>
 
 // Leddevice includes
 #include <leddevice/LedDevice.h>
+#include "ProviderUdpSSL.h"
 
-// Forward declaration
-struct CiColorTriangle;
+/**
+ * A XY color point in the color space of the hue system without brightness.
+ */
+struct XYColor
+{
+	/// X component.
+	double x;
+	/// Y component.
+	double y;
+};
+
+/**
+ * Color triangle to define an available color space for the hue lamps.
+ */
+struct CiColorTriangle
+{
+	XYColor red, green, blue;
+};
 
 /**
  * A color point in the color space of the hue system.
@@ -37,14 +59,14 @@ struct CiColor
 	///
 	/// @return color point
 	///
-	static CiColor rgbToCiColor(double red, double green, double blue, CiColorTriangle colorSpace);
+	static CiColor rgbToCiColor(double red, double green, double blue, const CiColorTriangle &colorSpace);
 
 	///
 	/// @param p the color point to check
 	///
 	/// @return true if the color point is covered by the lamp color space
 	///
-	static bool isPointInLampsReach(CiColor p, CiColorTriangle colorSpace);
+	static bool isPointInLampsReach(CiColor p, const CiColorTriangle &colorSpace);
 
 	///
 	/// @param p1 point one
@@ -53,7 +75,7 @@ struct CiColor
 	///
 	/// @return the cross product between p1 and p2
 	///
-	static double crossProduct(CiColor p1, CiColor p2);
+	static double crossProduct(XYColor p1, XYColor p2);
 
 	///
 	/// @param a reference point one
@@ -64,7 +86,7 @@ struct CiColor
 	///
 	/// @return the closest color point of p to a and b
 	///
-	static CiColor getClosestPointToPoint(CiColor a, CiColor b, CiColor p);
+	static XYColor getClosestPointToPoint(XYColor a, XYColor b, CiColor p);
 
 	///
 	/// @param p1 point one
@@ -73,19 +95,11 @@ struct CiColor
 	///
 	/// @return the distance between the two points
 	///
-	static double getDistanceBetweenTwoPoints(CiColor p1, CiColor p2);
+	static double getDistanceBetweenTwoPoints(CiColor p1, XYColor p2);
 };
 
 bool operator==(const CiColor& p1, const CiColor& p2);
 bool operator!=(const CiColor& p1, const CiColor& p2);
-
-/**
- * Color triangle to define an available color space for the hue lamps.
- */
-struct CiColorTriangle
-{
-	CiColor red, green, blue;
-};
 
 /**
  * Simple class to hold the id, the latest color, the color space and the original state.
@@ -120,13 +134,12 @@ public:
 	///
 	/// @param transitionTime the transition time between colors in multiples of 100 ms
 	///
-	void setTransitionTime(unsigned int _transitionTime);
+	void setTransitionTime(unsigned int transitionTime);
 
 	///
 	/// @param color the color to set
 	///
-	void setColor(const CiColor& _color);
-
+	void setColor(const CiColor& color);
 
 	unsigned int getId() const;
 
@@ -138,9 +151,7 @@ public:
 	/// @return the color space of the light determined by the model id reported by the bridge.
 	CiColorTriangle getColorSpace() const;
 
-
-	QString getOriginalState();
-
+	QString getOriginalState() const;
 
 private:
 
@@ -167,7 +178,7 @@ private:
 	CiColor _originalColor;
 };
 
-class LedDevicePhilipsHueBridge : public LedDevice
+class LedDevicePhilipsHueBridge : public ProviderUdpSSL
 {
 	Q_OBJECT
 
@@ -183,24 +194,22 @@ public:
 	/// @return true if success
 	virtual bool init(const QJsonObject &deviceConfig) override;
 
-
-
 	///
 	/// @param route the route of the POST request.
 	///
 	/// @param content the content of the POST request.
 	///
-	void post(const QString& route, const QString& content);
+	QJsonDocument post(const QString& route, const QString& content);
 
 	void setLightState(unsigned int lightId = 0, QString state = "");
 
 	const QMap<quint16,QJsonObject>& getLightMap();
 
-//	/// Set device in error state
-//	///
-//	/// @param errorMsg The error message to be logged
-//	///
-//	virtual void setInError( const QString& errorMsg) override;
+	const QMap<quint16,QJsonObject>& getGroupMap();
+
+	QString getGroupName(unsigned int groupId = 0);
+
+	QJsonArray getGroupLights(unsigned int groupId = 0);
 
 public slots:
 	///
@@ -209,11 +218,6 @@ public slots:
 	virtual int open(void) override;
 	virtual int open( const QString& hostname, const QString& port, const QString& username );
 
-	//signals:
-	//	///
-	//	///	Emits with a QMap of current bridge light/value pairs
-	//	///
-	//	void newLights(QMap<quint16,QJsonObject> map);
 protected:
 
 	/// Ip address of the bridge
@@ -221,6 +225,18 @@ protected:
 	QString _api_port;
 	/// User name for the API ("newdeveloper")
 	QString _username;
+
+	bool _useHueEntertainmentAPI;
+
+	QJsonDocument getGroupState( unsigned int groupId );
+	QJsonDocument setGroupState( unsigned int groupId, bool state);
+
+	bool isStreamOwner(const QString streamOwner);
+	bool initMaps();
+
+	void log(const char* msg, const char* type, ...);
+
+	const int * getCiphersuites() override;
 
 private:
 
@@ -267,6 +283,11 @@ private:
 	///
 	QJsonDocument handleReply(QNetworkReply* const &reply );
 
+	QJsonDocument getAllBridgeInfos();
+	void setBridgeConfig( QJsonDocument doc );
+	void setLightsMap( QJsonDocument doc );
+	void setGroupMap( QJsonDocument doc );
+
 	/// QNetworkAccessManager  for sending requests.
 	QNetworkAccessManager* _networkmanager;
 
@@ -282,9 +303,8 @@ private:
 	bool _isHueEntertainmentReady;
 
 	QMap<quint16,QJsonObject> _lightsMap;
+	QMap<quint16,QJsonObject> _groupsMap;
 };
-
-
 
 /**
  * Implementation for the Philips Hue system.
@@ -296,7 +316,6 @@ private:
  */
 class LedDevicePhilipsHue: public LedDevicePhilipsHueBridge
 {
-
 	Q_OBJECT
 
 public:
@@ -337,10 +356,16 @@ public:
 	unsigned int getLightsCount() const { return _lightsCount; }
 	void setLightsCount( unsigned int lightsCount);
 
+	bool initStream();
+	bool getStreamGroupState();
+	bool setStreamGroupState(bool state);
+	bool startStream();
+	bool stopStream();
+
 	void setOnOffState(PhilipsHueLight& light, bool on);
-	void setTransitionTime(PhilipsHueLight& light, unsigned int transitionTime);
-	void setColor(PhilipsHueLight& light, const CiColor& color, double brightnessFactor);
-	void setState(PhilipsHueLight& light, bool on, const CiColor& color, double brightnessFactor, unsigned int transitionTime);
+	void setTransitionTime(PhilipsHueLight& light);
+	void setColor(PhilipsHueLight& light, CiColor& color);
+	void setState(PhilipsHueLight& light, bool on, const CiColor& color);
 
 	void restoreOriginalState();
 
@@ -357,7 +382,9 @@ private slots:
 	///
 	/// @param map Map of lightid/value pairs of bridge
 	///
-	void updateLights(QMap<quint16, QJsonObject> map);
+	bool updateLights(QMap<quint16, QJsonObject> map);
+
+	void noSignalTimeout();
 
 protected:
 
@@ -374,6 +401,7 @@ protected:
 	/// @return True, if Nanoleaf device capabilities fit configuration
 	///
 	bool initLeds();
+	bool reinitLeds();
 
 	///
 	/// Writes the RGB-Color values to the leds.
@@ -386,7 +414,17 @@ protected:
 
 private:
 
+	bool setLights();
+
 	int writeSingleLights(const std::vector<ColorRgb>& ledValues);
+
+	void writeStream();
+
+	bool noSignalDetection();
+
+	void stopBlackTimeoutTimer();
+
+	QByteArray prepareStreamData();
 
 	///
 	bool _switchOffOnBlack;
@@ -397,6 +435,8 @@ private:
 	unsigned int _transitionTime;
 
 	bool _isRestoreOrigState;
+	bool _lightStatesRestored;
+	bool _isInitLeds;
 
 	/// Array of the light ids.
 	std::vector<unsigned int> _lightIds;
@@ -404,6 +444,26 @@ private:
 	std::vector<PhilipsHueLight> _lights;
 
 	unsigned int _lightsCount;
+	unsigned int _groupId;
 
+	double _brightnessMin;
+	double _brightnessMax;
 
+	bool _allLightsBlack;
+
+	QTimer* _blackLightsTimer;
+	unsigned int _blackLightsTimeout;
+	double _brightnessThreshold;
+
+	int _handshake_timeout_min;
+	int _handshake_timeout_max;
+	int _ssl_read_timeout;
+
+	bool _stopConnection;
+
+	QString _groupName;
+	QString _streamOwner;
+
+	int start_retry_left;
+	int stop_retry_left;
 };

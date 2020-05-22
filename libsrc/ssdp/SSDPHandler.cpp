@@ -24,7 +24,7 @@ SSDPHandler::SSDPHandler(WebServer* webserver, const quint16& flatBufPort, const
 
 SSDPHandler::~SSDPHandler()
 {
-	sendAnnounceList(false);
+	stopServer();
 }
 
 void SSDPHandler::initServer()
@@ -58,6 +58,12 @@ void SSDPHandler::initServer()
 	{
 		handleWebServerStateChange(true);
 	}
+}
+
+void SSDPHandler::stopServer()
+{
+	sendAnnounceList(false);
+	SSDPServer::stop();
 }
 
 void SSDPHandler::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
