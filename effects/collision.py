@@ -1,6 +1,6 @@
 # Two projectiles are sent from random positions and collide with each other
 # Template from https://github.com/nickpesce/lit/blob/master/lit/effects/collision.py
-import hyperion, time, colorsys, random, math
+import hyperion, time, colorsys, random
 
 # Get parameters
 sleepTime     = max(0.02, float(hyperion.args.get('speed', 100))/1000.0)

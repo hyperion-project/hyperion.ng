@@ -45,7 +45,7 @@ function connectionLostDetection(type)
 {
 	if ( window.watchdog > 2 )
 	{
-		var interval_id = window.setInterval("", 9999); // Get a reference to the last
+		var interval_id = window.setInterval(function(){clearInterval(interval_id);}, 9999); // Get a reference to the last
 		for (var i = 1; i < interval_id; i++)
 			window.clearInterval(i);
 		if(type == 'restart')

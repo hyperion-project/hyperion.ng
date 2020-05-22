@@ -210,7 +210,7 @@ $(document).ready(function() {
 		components.forEach( function(obj) {
 			if (obj.name == "ALL")
 			{
-				hyperionEnabled = obj.enabled
+				hyperionEnabled = obj.enabled;
 			}
 		});
 
@@ -232,9 +232,9 @@ $(document).ready(function() {
 
 				$('#componentsbutton').append(d);
 				$(`#${comp_btn_id}`).bootstrapToggle();
-				$(`#${comp_btn_id}`).bootstrapToggle(hyperionEnabled ? "enable" : "disable")
+				$(`#${comp_btn_id}`).bootstrapToggle(hyperionEnabled ? "enable" : "disable");
 				$(`#${comp_btn_id}`).change(e => {
-				  requestSetComponentState(e.currentTarget.id.split('_').pop(), e.currentTarget.checked)
+				  requestSetComponentState(e.currentTarget.id.split('_').pop(), e.currentTarget.checked);
 				  //console.log(e.currentTarget.checked)
 				  });
 			}
@@ -246,8 +246,7 @@ $(document).ready(function() {
 		if (component.name == "ALL")
 		{
 			var components = window.comps;
-
-			hyperionEnabled = component.enabled
+			var hyperionEnabled = component.enabled;
 			for (const comp of components)
 			{
 
@@ -276,7 +275,7 @@ $(document).ready(function() {
 			const comp_btn_id  = "comp_btn_"+component.name;
 
 			//console.log ("updateComponent: ", component.name, "Current Checked: ", $(`#${comp_btn_id}`).prop("checked"), "New Checked: ", component.enabled,  );
-			
+
 			// In case Buttons were disabled before, status may be different to component status
 			if ( component.enabled != $(`#${comp_btn_id}`).prop("checked") )
 			{

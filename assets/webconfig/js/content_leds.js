@@ -370,7 +370,7 @@ $(document).ready(function() {
 	var slConfig = window.serverConfig.ledConfig;
 
 	//Check, if structure is not aligned to expected -> migrate structure
-	var newConfig = {};
+
 	if ( isEmpty(slConfig.classic) )
 	{
 		slConfig = migrateLedConfig( slConfig );
