@@ -103,7 +103,7 @@ bool operator != (const CiColor& p1, const CiColor& p2)
 	return !(p1 == p2);
 }
 
-CiColor CiColor::rgbToCiColor(double red, double green, double blue, CiColorTriangle colorSpace)
+CiColor CiColor::rgbToCiColor(double red, double green, double blue, const CiColorTriangle &colorSpace)
 {
 	double cx;
 	double cy;
@@ -189,7 +189,7 @@ double CiColor::crossProduct(XYColor p1, XYColor p2)
 	return p1.x * p2.y - p1.y * p2.x;
 }
 
-bool CiColor::isPointInLampsReach(CiColor p, CiColorTriangle colorSpace)
+bool CiColor::isPointInLampsReach(CiColor p, const CiColorTriangle &colorSpace)
 {
 	XYColor v1 = { colorSpace.green.x - colorSpace.red.x, colorSpace.green.y - colorSpace.red.y };
 	XYColor v2 = { colorSpace.blue.x - colorSpace.red.x, colorSpace.blue.y - colorSpace.red.y };

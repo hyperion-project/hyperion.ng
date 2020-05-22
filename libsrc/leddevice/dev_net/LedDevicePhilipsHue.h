@@ -59,14 +59,14 @@ struct CiColor
 	///
 	/// @return color point
 	///
-	static CiColor rgbToCiColor(double red, double green, double blue, CiColorTriangle colorSpace);
+	static CiColor rgbToCiColor(double red, double green, double blue, const CiColorTriangle &colorSpace);
 
 	///
 	/// @param p the color point to check
 	///
 	/// @return true if the color point is covered by the lamp color space
 	///
-	static bool isPointInLampsReach(CiColor p, CiColorTriangle colorSpace);
+	static bool isPointInLampsReach(CiColor p, const CiColorTriangle &colorSpace);
 
 	///
 	/// @param p1 point one
