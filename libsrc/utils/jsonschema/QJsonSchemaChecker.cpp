@@ -269,7 +269,7 @@ void QJsonSchemaChecker::checkDependencies(const QJsonObject & value, const QJso
 				QString dependency = d.key();
 				const QJsonValue & dependencyValue = *d;
 
-				if (dependencyValue.isArray())
+				if (dependencyValue.toObject()["enum"].isArray())
 				{
 					QJsonArray jArray = dependencyValue.toObject()["enum"].toArray();
 					for(int a = 0; a < jArray.size(); ++a)
