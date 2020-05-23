@@ -41,6 +41,7 @@
 	"general_btn_rename" : "Rename",
 	"general_btn_continue" : "Continue",
 	"general_btn_save" : "Save",
+	"general_btn_saverestart" : "Save and restart",	
 	"general_btn_saveandreload" : "Save and reload",
 	"general_btn_restarthyperion" : "Restart Hyperion",
 	"general_btn_off" : "Off",
