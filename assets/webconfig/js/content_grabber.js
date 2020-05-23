@@ -78,77 +78,77 @@ $(document).ready( function() {
         $('[id="root_grabberV4L2_'+option+'"]').css('left','10px')
       );
     }
-  }
 
-  // Watch all v4l2 dynamic fields
-  var setWatchers = function(schema) {
-    var path = 'root.grabberV4L2.';
-    Object.keys(schema).forEach(function(key) {
-      conf_editor_v4l2.watch(path + key, function() {
-        var ed = conf_editor_v4l2.getEditor(path + key);
-        var val = ed.getValue();
+      // Watch all v4l2 dynamic fields
+    var setWatchers = function(schema) {
+      var path = 'root.grabberV4L2.';
+      Object.keys(schema).forEach(function(key) {
+        conf_editor_v4l2.watch(path + key, function() {
+          var ed = conf_editor_v4l2.getEditor(path + key);
+          var val = ed.getValue();
 
-        if (key == 'available_devices') {
-          var V4L2properties = ['resolutions', 'framerates'];
-          if (val == 'custom') {
-            var grabberV4L2 = ed.parent;
-            V4L2properties.forEach(function(item) {
-              buildSchemaPart(item, v4l2_dynamic_enum_schema, 'none');
-              grabberV4L2.original_schema.properties[item] = window.schema.grabberV4L2.properties[item];
-              grabberV4L2.schema.properties[item] = window.schema.grabberV4L2.properties[item];
+          if (key == 'available_devices') {
+            var V4L2properties = ['resolutions', 'framerates'];
+            if (val == 'custom') {
+              var grabberV4L2 = ed.parent;
+              V4L2properties.forEach(function(item) {
+                buildSchemaPart(item, v4l2_dynamic_enum_schema, 'none');
+                grabberV4L2.original_schema.properties[item] = window.schema.grabberV4L2.properties[item];
+                grabberV4L2.schema.properties[item] = window.schema.grabberV4L2.properties[item];
 
-              grabberV4L2.removeObjectProperty(item);
-              delete grabberV4L2.cached_editors[item];
-              grabberV4L2.addObjectProperty(item);
+                grabberV4L2.removeObjectProperty(item);
+                delete grabberV4L2.cached_editors[item];
+                grabberV4L2.addObjectProperty(item);
 
-              conf_editor_v4l2.getEditor(path + item).enable();
-            });
+                conf_editor_v4l2.getEditor(path + item).enable();
+              });
 
-            toggleOption('device', true);
-          } else if (val == 'auto') {
-            V4L2properties.forEach(function(item) {
-              conf_editor_v4l2.getEditor(path + item).setValue('auto');
-              conf_editor_v4l2.getEditor(path + item).disable();
-            });
+              toggleOption('device', true);
+            } else if (val == 'auto') {
+              V4L2properties.forEach(function(item) {
+                conf_editor_v4l2.getEditor(path + item).setValue('auto');
+                conf_editor_v4l2.getEditor(path + item).disable();
+              });
 
-            (toggleOption('device', false), toggleOption('width', false),
-            toggleOption('height', false), toggleOption('fps', false));
-          } else {
-            var grabberV4L2 = ed.parent;
-            V4L2properties.forEach(function(item) {
-              buildSchemaPart(item, v4l2_dynamic_enum_schema, val);
-              grabberV4L2.original_schema.properties[item] = window.schema.grabberV4L2.properties[item];
-              grabberV4L2.schema.properties[item] = window.schema.grabberV4L2.properties[item];
-              conf_editor_v4l2.validator.schema.properties.grabberV4L2.properties[item] = window.schema.grabberV4L2.properties[item];
+              (toggleOption('device', false), toggleOption('width', false),
+              toggleOption('height', false), toggleOption('fps', false));
+            } else {
+              var grabberV4L2 = ed.parent;
+              V4L2properties.forEach(function(item) {
+                buildSchemaPart(item, v4l2_dynamic_enum_schema, val);
+                grabberV4L2.original_schema.properties[item] = window.schema.grabberV4L2.properties[item];
+                grabberV4L2.schema.properties[item] = window.schema.grabberV4L2.properties[item];
+                conf_editor_v4l2.validator.schema.properties.grabberV4L2.properties[item] = window.schema.grabberV4L2.properties[item];
 
-              grabberV4L2.removeObjectProperty(item);
-              delete grabberV4L2.cached_editors[item];
-              grabberV4L2.addObjectProperty(item);
+                grabberV4L2.removeObjectProperty(item);
+                delete grabberV4L2.cached_editors[item];
+                grabberV4L2.addObjectProperty(item);
 
-              conf_editor_v4l2.getEditor(path + item).enable();
-            });
+                conf_editor_v4l2.getEditor(path + item).enable();
+              });
 
-            toggleOption('device', false);
+              toggleOption('device', false);
+            }
           }
-        }
 
-        if (key == 'resolutions')
-          val != 'custom'
-            ? (toggleOption('width', false), toggleOption('height', false))
-            : (toggleOption('width', true), toggleOption('height', true));
+          if (key == 'resolutions')
+            val != 'custom'
+              ? (toggleOption('width', false), toggleOption('height', false))
+              : (toggleOption('width', true), toggleOption('height', true));
 
-        if (key == 'framerates')
-          val != 'custom'
-            ? toggleOption('fps', false)
-            : toggleOption('fps', true);
+          if (key == 'framerates')
+            val != 'custom'
+              ? toggleOption('fps', false)
+              : toggleOption('fps', true);
+        });
       });
-    });
-  };
+    };
 
-  // Insert dynamic v4l2 enum schema parts
-  Object.keys(v4l2_dynamic_enum_schema).forEach(function(key) {
-    buildSchemaPart(key, v4l2_dynamic_enum_schema, window.serverConfig.grabberV4L2.device);
-  });
+    // Insert dynamic v4l2 enum schema parts
+    Object.keys(v4l2_dynamic_enum_schema).forEach(function(key) {
+      buildSchemaPart(key, v4l2_dynamic_enum_schema, window.serverConfig.grabberV4L2.device);
+    });
+  }
 
   if(window.showOptHelp) {
     // Instance Capture
