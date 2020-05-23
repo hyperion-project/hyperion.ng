@@ -79,7 +79,7 @@ $(document).ready( function() {
       );
     }
 
-      // Watch all v4l2 dynamic fields
+    // Watch all v4l2 dynamic fields
     var setWatchers = function(schema) {
       var path = 'root.grabberV4L2.';
       Object.keys(schema).forEach(function(key) {
