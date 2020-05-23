@@ -271,7 +271,7 @@ void QJsonSchemaChecker::checkDependencies(const QJsonObject & value, const QJso
 
 				if (dependencyValue.isArray())
 				{
-					QJsonArray jArray = dependencyValue.toArray();
+					QJsonArray jArray = dependencyValue.toObject()["enum"].toArray();
 					for(int a = 0; a < jArray.size(); ++a)
 					{
 						if (value[dependency] == jArray[a])
@@ -284,7 +284,7 @@ void QJsonSchemaChecker::checkDependencies(const QJsonObject & value, const QJso
 					}
 				}
 				else
-					valid = (value[dependency] == dependencyValue);
+					valid = (value[dependency] == dependencyValue.toObject()["enum"]);
 			}
 
 			if (value.contains(property) && !valid)

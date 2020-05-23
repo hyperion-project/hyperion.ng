@@ -2,7 +2,7 @@
 	"type" : "object",
 	"title" : "edt_dev_general_heading_title",
 	"required" : true,
-	"defaultProperties": ["hardwareLedCount","colorOrder"],
+	"defaultProperties": ["hardwareLedCount", "colorOrder"],
 	"properties" :
 	{
 		"type" :
@@ -31,15 +31,18 @@
 			"propertyOrder" : 3
 		}
 	},
-	"dependencies":
+	"dependencies" :
 	{
-		"rewriteTime":
+		"rewriteTime" :
 		{
-			"properties":
+			"properties" :
 			{
-				"type": ["adalight", "apa102", "apa104", "atmo", "dmx"]
+				"type" :
+				{
+					"enum" : ["adalight", "apa102", "apa104", "atmo", "dmx", "file"]
+				}
 			},
-			"additionalProperties" : false
+			"additionalProperties" : true
 		}
 	},
 	"additionalProperties" : true

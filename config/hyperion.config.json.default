@@ -17,7 +17,8 @@
 		"output"     : "/dev/null",
 		"rate"       : 1000000,
 		"colorOrder" : "rgb",
-		"latchTime" : 1
+		"latchTime" : 1,
+		"rewriteTime": 5000
 	},
 
 	"color" :
