@@ -87,13 +87,14 @@ int LedDeviceFile::write(const std::vector<ColorRgb> & ledValues)
 		// get a precise timestamp as a string
 		const auto now = std::chrono::system_clock::now();
 		const auto nowAsTimeT = std::chrono::system_clock::to_time_t(now);
-		const auto nowMs = std::chrono::duration_cast<std::chrono::milliseconds>(
-							   now.time_since_epoch()) % 1000;
+		const auto nowMs = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
 
 		const auto elapsedTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastWriteTime);
 
+		struct std::tm local;
+
 		_ofs
-			<< std::put_time(std::localtime(&nowAsTimeT), "%Y-%m-%d %T")
+			<< std::put_time(std::localtime_r(&nowAsTimeT,&local), "%Y-%m-%d %T")
 			<< '.' << std::setfill('0') << std::setw(3) << nowMs.count()
 			<< " | +" << std::setfill('0') << std::setw(4) << elapsedTimeMs.count();
 
