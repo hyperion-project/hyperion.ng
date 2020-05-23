@@ -163,7 +163,6 @@ $(document).ready(function () {
 				requestTokenAuthorization(loginToken)
 			else
 				loadContentTo("#page-content", "login")
-
 		}
 	});
 

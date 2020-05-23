@@ -111,9 +111,9 @@ void MessageForwarder::handlePriorityChanges(const quint8 &priority)
 	const QJsonObject obj = _hyperion->getSetting(settings::NETFORWARD).object();
 	if (priority != 0 && _forwarder_enabled && obj["enable"].toBool())
 	{
-		_flatSlaves.clear();
-		while (!_forwardClients.isEmpty())
-			delete _forwardClients.takeFirst();
+		//_flatSlaves.clear();
+		//while (!_forwardClients.isEmpty())
+		//	delete _forwardClients.takeFirst();
 
 		hyperion::Components activeCompId = _hyperion->getPriorityInfo(priority).componentId;
 		if (activeCompId == hyperion::COMP_GRABBER || activeCompId == hyperion::COMP_V4L)
@@ -181,7 +181,7 @@ void MessageForwarder::addJsonSlave(QString slave)
 		return;
 	}
 
-	if (_forwarder_enabled)
+	if (_forwarder_enabled && !_jsonSlaves.contains(slave))
 		_jsonSlaves << slave;
 }
 
@@ -210,7 +210,7 @@ void MessageForwarder::addFlatbufferSlave(QString slave)
 		return;
 	}
 
-	if (_forwarder_enabled)
+	if (_forwarder_enabled && !_flatSlaves.contains(slave))
 	{
 		_flatSlaves << slave;
 		FlatBufferConnection* flatbuf = new FlatBufferConnection("Forwarder", slave.toLocal8Bit().constData(), _priority, false);

@@ -162,7 +162,7 @@ $(document).ready( function() {
     $('#conf_cont_fg').append(createHelpTable(window.schema.framegrabber.properties, $.i18n("edt_conf_fg_heading_title")));
 
     // V4L2 - hide if not available
-    if(V4L2_AVAIL){
+    if(V4L2_AVAIL) {
       $('#conf_cont').append(createRow('conf_cont_v4l'));
       $('#conf_cont_v4l').append(createOptPanel('fa-camera', $.i18n("edt_conf_v4l2_heading_title"), 'editor_container_v4l2', 'btn_submit_v4l2'));
       $('#conf_cont_v4l').append(createHelpTable(window.schema.grabberV4L2.properties, $.i18n("edt_conf_v4l2_heading_title")));
@@ -171,7 +171,7 @@ $(document).ready( function() {
     $('#conf_cont').addClass('row');
     $('#conf_cont').append(createOptPanel('fa-camera', $.i18n("edt_conf_instCapture_heading_title"), 'editor_container_instCapt', 'btn_submit_instCapt'));
     $('#conf_cont').append(createOptPanel('fa-camera', $.i18n("edt_conf_fg_heading_title"), 'editor_container_fg', 'btn_submit_fg'));
-    if(V4L2_AVAIL){
+    if(V4L2_AVAIL) {
       $('#conf_cont').append(createOptPanel('fa-camera', $.i18n("edt_conf_v4l2_heading_title"), 'editor_container_v4l2', 'btn_submit_v4l2'));
     }
   }
@@ -202,7 +202,7 @@ $(document).ready( function() {
     requestWriteConfig(conf_editor_fg.getValue());
   });
 
-  if(V4L2_AVAIL){
+  if(V4L2_AVAIL) {
     conf_editor_v4l2 = createJsonEditor('editor_container_v4l2', {
       grabberV4L2 : window.schema.grabberV4L2
     }, true, true);

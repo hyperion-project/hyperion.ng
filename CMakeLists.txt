@@ -46,6 +46,7 @@ SET ( DEFAULT_AVAHI      ON  )
 SET ( DEFAULT_USE_SHARED_AVAHI_LIBS  ON )
 SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF )
 SET ( DEFAULT_USE_SYSTEM_PROTO_LIBS OFF )
+SET ( DEFAULT_USE_SYSTEM_MBEDTLS_LIBS OFF )
 SET ( DEFAULT_TESTS      OFF )
 
 IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
@@ -95,7 +96,7 @@ MACRO(FIRSTSUBDIR result curdir)
   FOREACH(child ${children})
     IF(IS_DIRECTORY ${curdir}/${child})
       LIST(APPEND dirlist "${curdir}/${child}")
-	  #BREAK()
+	  	BREAK()
     ENDIF()
   ENDFOREACH()
   SET(${result} ${dirlist})
@@ -190,7 +191,7 @@ SET ( FLATBUFFERS_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/flatbuf )
 SET ( PROTOBUF_INSTALL_BIN_DIR ${CMAKE_BINARY_DIR}/proto )
 SET ( PROTOBUF_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/proto )
 
-# check all  json files
+# check all json files
 FILE ( GLOB_RECURSE HYPERION_SCHEMAS RELATIVE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/libsrc/*schema*.json )
 SET( JSON_FILES
 	config/hyperion.config.json.default
@@ -283,10 +284,10 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	# The Qt5_DIR should point to Qt5Config.cmake   -> C:/Qt/5.xx/msvc2017_64/lib/cmake/Qt5
 	# The CMAKE_PREFIX_PATH should point to the install directory -> C:/Qt/5.xx/msvc2017_64
 	FIRSTSUBDIR(SUBDIRQT "C:/Qt")
-	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SUBDIRQT}/msvc2017_64")
+	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SUBDIRQT}/msvc2019_64")
 	if (NOT DEFINED ENV{Qt5_DIR})
-		message(STATUS "Set Qt5_DIR to default install path C:/Qt")
-		SET(Qt5_DIR "${SUBDIRQT}/msvc2017_64/lib/cmake/Qt5")
+		message(STATUS "Set Qt5 module path: ${SUBDIRQT}")
+		SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SUBDIRQT}/msvc2019_64/lib/cmake/Qt5")
 	endif()
 endif()
 
@@ -297,6 +298,8 @@ if(WIN32)
 	# Force gui app
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 endif()
+
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -v")
 
 # Use GNU gold linker if available
 if (NOT WIN32)
@@ -310,7 +313,7 @@ endif()
 
 # setup -rpath to search for shared libs in BINARY/../lib folder
 if (UNIX AND NOT APPLE)
-	SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+	SET(CMAKE_SKIP_BUILD_RPATH FALSE)
 	SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 	SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH}:$ORIGIN/../lib")
 	SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
@@ -366,7 +369,6 @@ if (ENABLE_V4L2)
 			message( STATUS "JPEG library not found, MJPEG camera format won't work in V4L2 grabber.")
 		endif()
 	endif (TURBOJPEG_FOUND)
-
 
 	if (TURBOJPEG_FOUND OR JPEG_FOUND)
 		add_definitions(-DHAVE_JPEG_DECODER)

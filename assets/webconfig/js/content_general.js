@@ -180,9 +180,11 @@ $(document).ready( function() {
 
 	//create introduction
 	if(window.showOptHelp)
+	{
 		createHint("intro", $.i18n('conf_general_intro'), "editor_container");
 		createHint("intro", $.i18n('conf_general_tok_desc'), "tok_desc_cont");
 		createHint("intro", $.i18n('conf_general_inst_desc'), "inst_desc_cont");
+	}
 
 	removeOverlay();
 });

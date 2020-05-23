@@ -112,6 +112,9 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 
 	//connect(_hyperion,SIGNAL(closing()),this,SLOT(freeObjects())); // TODO for app restart, refactor required
 
+	//Cleaning up Hyperion before quit
+	connect(parent, SIGNAL(aboutToQuit()), this, SLOT(freeObjects()));
+
 	// pipe settings changes and component state changes from HyperionIManager to Daemon
 	connect(_instanceManager, &HyperionIManager::settingsChanged, this, &HyperionDaemon::settingsChanged);
 	connect(_instanceManager, &HyperionIManager::compStateChangeRequest, this, &HyperionDaemon::compStateChangeRequest);
@@ -141,7 +144,6 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 
 HyperionDaemon::~HyperionDaemon()
 {
-	freeObjects();
 	delete _settingsManager;
 	delete _pyInit;
 }
@@ -162,6 +164,8 @@ const QJsonDocument HyperionDaemon::getSetting(const settings::type &type)
 
 void HyperionDaemon::freeObjects()
 {
+	Debug(_log, "Cleaning up Hyperion before quit.");
+
 	// destroy network first as a client might want to access hyperion
 	delete _jsonServer;
 	_flatBufferServer->thread()->quit();
@@ -340,7 +344,7 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type &settingsType, co
 			// stop all capture interfaces
 			#ifdef ENABLE_FB
 			if(_fbGrabber != nullptr)
-			{ 
+			{
 				_fbGrabber->stop();
 				delete _fbGrabber;
 				_fbGrabber = nullptr;

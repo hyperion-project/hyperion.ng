@@ -39,12 +39,12 @@ function createLedPreview(leds, origin){
 	{
 		var led = leds[idx];
 		var led_id='ledc_'+[idx];
-		var bgcolor = "background-color:hsl("+(idx*360/leds.length)+",100%,50%);";
+		var bgcolor = "background-color:hsla("+(idx*360/leds.length)+",100%,50%,0.75);";
 		var pos = "left:"+(led.hmin * canvas_width)+"px;"+
 			"top:"+(led.vmin * canvas_height)+"px;"+
 			"width:"+((led.hmax-led.hmin) * (canvas_width-1))+"px;"+
 			"height:"+((led.vmax-led.vmin) * (canvas_height-1))+"px;";
-		leds_html += '<div id="'+led_id+'" class="led" style="'+bgcolor+pos+'" title="'+idx+'"><span id="'+led_id+'_num" class="led_prev_num">'+idx+'</span></div>';
+		leds_html += '<div id="'+led_id+'" class="led" style="'+bgcolor+pos+'" title="'+idx+'"><span id="'+led_id+'_num" class="led_prev_num">'+((led.name) ? led.name : idx)+'</span></div>';
 	}
 	$('#leds_preview').html(leds_html);
 	$('#ledc_0').css({"background-color":"black","z-index":"12"});
@@ -75,8 +75,18 @@ function createClassicLeds(){
 	var ledsHDepth = parseInt($("#ip_cl_hdepth").val())/100;
 	var edgeVGap = parseInt($("#ip_cl_edgegap").val())/100/2;
 	//var cornerVGap = parseInt($("#ip_cl_cornergap").val())/100/2;
-	var overlap = $("#ip_cl_overlap").val()/4000;
+	var overlap = $("#ip_cl_overlap").val()/100;
 
+	//trapezoid values % -> float
+	var ptblh  = parseInt($("#ip_cl_pblh").val())/100;
+	var ptblv  = parseInt($("#ip_cl_pblv").val())/100;
+	var ptbrh  = parseInt($("#ip_cl_pbrh").val())/100;
+	var ptbrv  = parseInt($("#ip_cl_pbrv").val())/100;
+	var pttlh  = parseInt($("#ip_cl_ptlh").val())/100;
+	var pttlv  = parseInt($("#ip_cl_ptlv").val())/100;
+	var pttrh  = parseInt($("#ip_cl_ptrh").val())/100;
+	var pttrv  = parseInt($("#ip_cl_ptrv").val())/100;
+	
 	//helper
 	var edgeHGap = edgeVGap/(16/9);
 	//var cornerHGap = cornerVGap/(16/9);
@@ -142,61 +152,59 @@ function createClassicLeds(){
 	}
 
 	function createTopLeds(){
-		var step=(Hmax-Hmin)/ledstop;
-		//if(cornerVGap != '0')
-		//	step=(Hmax-Hmin-(cornerHGap*2))/ledstop;
-
-		var vmin=Vmin;
-		var vmax=vmin+ledsHDepth;
+		var steph = (pttrh - pttlh - (2*edgeHGap))/ledstop;
+		var stepv = (pttrv - pttlv)/ledstop;
+			
 		for (var i = 0; i<ledstop; i++){
-			var hmin = ovl("-",(Hdiff/ledstop*Number([i]))+edgeHGap);
-			var hmax = ovl("+",(Hdiff/ledstop*Number([i]))+step+edgeHGap);
-			createLedArray(hmin, hmax, vmin, vmax);
-		}
-	}
-
-	function createLeftLeds(){
-		var step=(Vmax-Vmin)/ledsleft;
-		//if(cornerVGap != '0')
-		//	step=(Vmax-Vmin-(cornerVGap*2))/ledsleft;
-
-		var hmin=Hmin;
-		var hmax=hmin+ledsVDepth;
-		for (var i = ledsleft-1; i>-1; --i){
-			var vmin = ovl("-",(Vdiff/ledsleft*Number([i]))+edgeVGap);
-			var vmax = ovl("+",(Vdiff/ledsleft*Number([i]))+step+edgeVGap);
+			var hmin = ovl("-",pttlh+(steph*Number([i]))+edgeHGap);
+			var hmax = ovl("+",pttlh+(steph*Number([i+1]))+edgeHGap);
+			var vmin = pttlv+(stepv*Number([i]));
+			var vmax = vmin + ledsHDepth;
 			createLedArray(hmin, hmax, vmin, vmax);
 		}
 	}
 
 	function createRightLeds(){
-		var step=(Vmax-Vmin)/ledsright;
-		//if(cornerVGap != '0')
-		//	step=(Vmax-Vmin-(cornerVGap*2))/ledsright;
-
-		var hmax=Hmax;
-		var hmin=hmax-ledsVDepth;
+		var steph = (ptbrh - pttrh)/ledsright;
+		var stepv = (ptbrv - pttrv - (2*edgeVGap))/ledsright;
+			
 		for (var i = 0; i<ledsright; i++){
-			var vmin = ovl("-",(Vdiff/ledsright*Number([i]))+edgeVGap);
-			var vmax = ovl("+",(Vdiff/ledsright*Number([i]))+step+edgeVGap);
+			var hmax = pttrh+(steph*Number([i+1]));
+			var hmin = hmax-ledsVDepth;
+			var vmin = ovl("-",pttrv+(stepv*Number([i]))+edgeVGap);
+			var vmax = ovl("+",pttrv+(stepv*Number([i+1]))+edgeVGap);
 			createLedArray(hmin, hmax, vmin, vmax);
 		}
 	}
 
 	function createBottomLeds(){
-		var step=(Hmax-Hmin)/ledsbottom;
-		//if(cornerVGap != '0')
-		//	step=(Hmax-Hmin-(cornerHGap*2))/ledsbottom;
-
-		var vmax=Vmax;
-		var vmin=vmax-ledsHDepth;
+		var steph = (ptbrh - ptblh - (2*edgeHGap))/ledsbottom;
+		var stepv = (ptbrv - ptblv)/ledsbottom;
+			
 		for (var i = ledsbottom-1; i>-1; i--){
-			var hmin = ovl("-",(Hdiff/ledsbottom*Number([i]))+edgeHGap);
-			var hmax = ovl("+",(Hdiff/ledsbottom*Number([i]))+step+edgeHGap);
+			var hmin = ovl("-",ptblh+(steph*Number([i]))+edgeHGap);
+			var hmax = ovl("+",ptblh+(steph*Number([i+1]))+edgeHGap);
+			var vmax= ptblv+(stepv*Number([i]));
+			var vmin = vmax-ledsHDepth;
 			createLedArray(hmin, hmax, vmin, vmax);
 		}
 	}
 
+	function createLeftLeds(){
+		var steph = (ptblh - pttlh)/ledsleft;
+		var stepv = (ptblv - pttlv - (2*edgeVGap))/ledsleft;
+			
+		for (var i = ledsleft-1; i>-1; i--){
+			var hmin = pttlh+(steph*Number([i]));
+			var hmax = hmin+ledsVDepth;
+			var vmin = ovl("-",pttlv+(stepv*Number([i]))+edgeVGap);
+			var vmax = ovl("+",pttlv+(stepv*Number([i+1]))+edgeVGap);
+			createLedArray(hmin, hmax, vmin, vmax);
+		}
+
+	}
+
+	//rectangle
 	createTopLeds();
 	createRightLeds();
 	createBottomLeds();
@@ -488,9 +496,13 @@ $(document).ready(function() {
 	$("#leddevices").off().on("change", function() {
 		var generalOptions  = window.serverSchema.properties.device;
 
-		// Modified schema enty "hardwareLedCount" in generalOptions to minimum LedCount
+		// Modified schema entry "hardwareLedCount" in generalOptions to minimum LedCount
+    var ledType = $(this).val();
 
-		var specificOptions = window.serverSchema.properties.alldevices[$(this).val()];
+    //philipshueentertainment backward fix
+    if(ledType == "philipshueentertainment") ledType = "philipshue";
+
+    var specificOptions = window.serverSchema.properties.alldevices[ledType];
 		conf_editor = createJsonEditor('editor_container', {
 			generalOptions : generalOptions,
 			specificOptions : specificOptions,
@@ -498,21 +510,19 @@ $(document).ready(function() {
 
 		var values_general = {};
 		var values_specific = {};
-		var isCurrentDevice = (window.serverConfig.device.type == $(this).val());
+		var isCurrentDevice = (window.serverConfig.device.type == ledType);
 
-		for(var key in window.serverConfig.device){
-			if (key != "type" && key in generalOptions.properties)
-				values_general[key] = window.serverConfig.device[key];
+		for(var key in window.serverConfig.device) {
+			if (key != "type" && key in generalOptions.properties) values_general[key] = window.serverConfig.device[key];
 		};
 		conf_editor.getEditor("root.generalOptions").setValue( values_general );
 
 		if (isCurrentDevice)
 		{
-			var specificOptions_val = conf_editor.getEditor("root.specificOptions").getValue()
+			var specificOptions_val = conf_editor.getEditor("root.specificOptions").getValue();
 			for(var key in specificOptions_val){
-					values_specific[key] = (key in window.serverConfig.device) ? window.serverConfig.device[key] : specificOptions_val[key];
+				values_specific[key] = (key in window.serverConfig.device) ? window.serverConfig.device[key] : specificOptions_val[key];
 			};
-
 			conf_editor.getEditor("root.specificOptions").setValue( values_specific );
 		};
 
@@ -520,17 +530,28 @@ $(document).ready(function() {
 		conf_editor.validate().length ? $('#btn_submit_controller').attr('disabled', true) : $('#btn_submit_controller').attr('disabled', false);
 
 		// led controller sepecific wizards
-		if($(this).val() == "philipshue")
-		{
-			createHint("wizard", $.i18n('wiz_hue_title'), "btn_wiz_holder","btn_led_device_wiz");
-			$('#btn_led_device_wiz').off().on('click',startWizardPhilipsHue);
-		}
-		else
-		{
-			$('#btn_wiz_holder').html("")
-			$('#btn_led_device_wiz').off();
-		}
+		$('#btn_wiz_holder').html("")
+		$('#btn_led_device_wiz').off();
+
+    if(ledType == "philipshue") {
+      $('#root_specificOptions_useEntertainmentAPI').bind("change", function() {
+        var ledWizardType = (this.checked) ? "philipshueentertainment" : ledType;
+        var data = { type: ledWizardType };
+        var hue_title = (this.checked) ? 'wiz_hue_e_title' : 'wiz_hue_title';
+        changeWizard(data, hue_title, startWizardPhilipsHue);
+      });
+      $("#root_specificOptions_useEntertainmentAPI").trigger("change");
+    }
+
+    function changeWizard(data, hint, fn) {
+      $('#btn_wiz_holder').html("")
+			createHint("wizard", $.i18n(hint), "btn_wiz_holder","btn_led_device_wiz");
+			$('#btn_led_device_wiz').off().on('click', data , fn);
+    }
 	});
+
+  //philipshueentertainment backward fix
+  if(window.serverConfig.device.type == "philipshueentertainment") window.serverConfig.device.type = "philipshue";
 
 	// create led device selection
 	var ledDevices = window.serverInfo.ledDevices.available;
