@@ -98,6 +98,16 @@ private:
 	void checkProperties(const QJsonObject & value, const QJsonObject & schema);
 
 	///
+	/// Checks whether certain properties of a JSON object exist under certain dependencies and are the same.
+	/// If this is not the case _error is set to true and an error-message is added
+	/// to the message-queue.
+	///
+	/// @param[in] value The given json-object
+	/// @param[in] schema The schema of the json-object
+	///
+	void checkDependencies(const QJsonObject & value, const QJsonObject & schema);
+
+	///
 	/// Verifies the additional configured properties of an json-object. If this is not the case
 	/// _error is set to true and an error-message is added to the message-queue.
 	///

@@ -2,7 +2,7 @@
 	"type" : "object",
 	"title" : "edt_dev_general_heading_title",
 	"required" : true,
-	"defaultProperties": ["hardwareLedCount","colorOrder","rewriteTime"],
+	"defaultProperties": ["hardwareLedCount","colorOrder"],
 	"properties" :
 	{
 		"type" :
@@ -29,6 +29,17 @@
 				"enum_titles" : ["edt_conf_enum_rgb", "edt_conf_enum_bgr", "edt_conf_enum_rbg", "edt_conf_enum_brg", "edt_conf_enum_gbr", "edt_conf_enum_grb"]
 			},
 			"propertyOrder" : 3
+		}
+	},
+	"dependencies":
+	{
+		"rewriteTime":
+		{
+			"properties":
+			{
+				"type": ["adalight", "apa102", "apa104", "atmo", "dmx"]
+			},
+			"additionalProperties" : false
 		}
 	},
 	"additionalProperties" : true
