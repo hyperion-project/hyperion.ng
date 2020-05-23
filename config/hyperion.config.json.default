@@ -17,8 +17,7 @@
 		"output"     : "/dev/null",
 		"rate"       : 1000000,
 		"colorOrder" : "rgb",
-		"latchTime" : 1,
-		"rewriteTime": 5000
+		"latchTime" : 1
 	},
 
 	"color" :
@@ -213,7 +212,7 @@
 			"ledsvert" : 10,
 			"cabling"  : "snake",
 			"start"    : "top-left"
-    		}	
+    		}
 	},
 
 	"leds":
