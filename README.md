@@ -41,7 +41,7 @@ We provide a macOS Build but we can not support this.
 
 ## Documentation
 Covers these topics (WorkInProgress)
-- Installtion
+- Installation
 - Configuration
 - Effect development
 - JSON API
