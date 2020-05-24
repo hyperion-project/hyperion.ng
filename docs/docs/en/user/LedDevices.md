@@ -77,36 +77,37 @@ Hyperion cannot be held liable for any foreseeable, or unforeseeable, negative o
 ##### Philips Hue Entertainment wizard
   * In the wizard, your Hue Bridge is automatically discovered via the Philips Hue Cloud when it is registered. If not, try entering the bridge IP address and click the "retry" icon / button next to the IP entry field.
   * If only the username is known or you start from scratch, create a new user with the Philips Hue Entertainment wizard and a clientkey will automatically generated.
-  * If no entertainment group / area was found on the bridge you are using, the wizard switches back to the classic version and deactivates the use of the Hue Entertainment API!
-  * Username, clientkey and entertainment group / area ready? Select your entertainment group / area, you would like to use and fine-tune your preselected screen positions for each lamp.
+  * If no Entertainment group / area was found on the bridge you are using, the wizard switches back to the classic version and deactivates the use of the Hue Entertainment API!
+  * Username, clientkey and Entertainment group / area ready? Select your Entertainment group / area, you would like to use and fine-tune your preselected screen positions for each lamp.
   * Don't forget to save your changes! ;)
 
 ##### Bridge requirements / limits
   * To use the Philips Hue Entertainment API, the bridge must use at least API version 1.22!
-  * Only one Entertainment group/area can be active at one time on a single Hue Bridge!
+  * Only one Entertainment group / area can be active at one time on a single Hue Bridge!
 
 ##### Multiple and / or none orignal Hue bridges
-  * Automatic detection will only find the first available bridge
-  * If your bridge wasn't found or was found, but not the one you want to use, manually enter the bridge IP address you want to use and click the "retry" icon / button next to the IP entry field.
+  * Automatic detection will only find the first available bridge.
+  * If your bridge wasn't found or was found, but not the one you want to use, manually enter the desired bridge IP address and click the "retry" icon / button next to the IP entry field.
 
 ##### Entertainment groups / areas
-  * Entertainment groups / areas, can be created with the original Philips Hue app.
-  * Set also the right z-axis (Ground height, TV height and Ceiling height) for each lamp within the configuration of the entertainment group / area. Tapping each lamp changes the height and will be recognized it in the Philips Hue Entertainment wizard to also preselect the correct screen position.
+  * Entertainment groups / areas can be created using the original Philips Hue app.
+  * Set also the right z-axis (Ground height, TV height and Ceiling height) for each lamp within the configuration of the Entertainment group / area. Tapping each lamp changes the height and will be recognized it in the Philips Hue Entertainment wizard to also preselect the correct screen position.
   * You can connect up to 10 Philips Hue or Friends of Hue color-capable lights per Entertainment group / area.
-  * If a Entertainment group / area is used with the entertainment API, you can't control any of the lamps until the entertainment API stops!
+  * When a Entertainment group / area is used with the Entertainment API, you can't control any of the lamps in the Entertainment group / area, until the Entertainment API stops!
 
 #### Advanced Settings
 
 ##### Signal detection
   * The Entertainment API is a permanent stream that continuously sends color information to the bridge. That's why the signal detection came into play.
-  * With the Signal detection timeout on black value, you can control how long all lamps are set to black, before the Entertainment API stops and the previous lamp state will be recovered.
+  * With the `Signal detection timeout on black` option, you can control how long all lamps are set to black, before the Entertainment API stops and the previous lamp state will be recovered.
   * Set the ms value higher, so longer dark scenes in movies will not stop the Entertainment API.
-  * The Entertainment API will automatically restart, if new colorinformations available to send, other than black.
+  * The Entertainment API automatically restarts when color information other than black is available to send.
+  * Some grabbers do not provide real black, but rather dark gray, so black = 0 never occurs. With the option `Signal detection brightness minimum` you can set the minimum brightness which is considered black. The range can be set from 0 = 0% to 1 = 100%, e.g. 0,005 = 0.5%. If 0 doesn' work for your setup, increase this value in 0,005 steps. It's like the thresholds for USB Capture.
 
 ##### Brightness *Settings may be removed in future releases*
-  * Set / leave brightness factor back to 1 (default) - classic low brightness bug is fixed
-  * Set / leave brightness minimum to 0 (default) - you can set a minimum brightness, so the lamps will never be off
-  * Set / leave brightness maximum to 1 (default) - you can set a maximum brightness, if you don't want the whole room to light up in bright scenes
+  * Set / leave `brightness factor` back to 1 (default) - classic low brightness bug is fixed
+  * Set / leave `brightness minimum` to 0 (default) - you can set a minimum brightness, so the lamps will never be off
+  * Set / leave `brightness maximum` to 1 (default) - you can set a maximum brightness, if you don't want the whole room to light up in bright scenes
   * Value range for brightness minimum / maximum are: 0 = 0% to 1 = 100%, E.g. 0,05 = 5% / 0,5 = 50%
   * The brightness factor is a multiplier for the input brightness, means E.g. 50% input brightness * brightness factor (e.g. 1,5) = new 75% brightness.
   * __Be warned__:
@@ -130,7 +131,7 @@ Hyperion cannot be held liable for any foreseeable, or unforeseeable, negative o
 
 :::
 
-##### Configuration Tips & Tricks and recommendations
+##### Configuration Tips & Tricks
   * Color calibration is not required, you can keep the default values.
   * To enable/disable the active Entertainment group / area from Hyperion, disable Hyperion or just the led hardware component. The previous lamp state will be recovered - other solutions may come in future releases - Hint: [Signal detection](#signal-detection)
 
