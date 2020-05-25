@@ -77,6 +77,9 @@ if (ENABLE_AMLOGIC)
 endif ()
 
 if (ENABLE_X11)
+	if(APPLE)
+		include_directories("/opt/X11/include")
+	endif(APPLE)
 	target_link_libraries(hyperiond	x11-grabber)
 endif ()
 

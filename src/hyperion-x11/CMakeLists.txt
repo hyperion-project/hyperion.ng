@@ -10,6 +10,10 @@ include_directories(
 	${FLATBUFFERS_INCLUDE_DIRS}
 )
 
+if(APPLE)
+	include_directories("/opt/X11/include")
+endif(APPLE)
+
 set(Hyperion_X11_HEADERS
 	X11Wrapper.h
 )
