@@ -24,7 +24,7 @@ public slots:
 	void stop();
 
 	void setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold);
-	void setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom);
+	void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom);
 	void setSignalDetectionOffset(double verticalMin, double horizontalMin, double verticalMax, double horizontalMax);
 	void setSignalDetectionEnable(bool enable);
 	void setDeviceVideoStandard(QString device, VideoStandard videoStandard);

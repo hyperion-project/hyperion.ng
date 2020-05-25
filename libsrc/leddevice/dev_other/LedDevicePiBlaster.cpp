@@ -32,9 +32,12 @@ LedDevicePiBlaster::LedDevicePiBlaster(const QJsonObject &deviceConfig)
 
 LedDevicePiBlaster::~LedDevicePiBlaster()
 {
-
+	if (_fid != nullptr)
+	{
+		fclose(_fid);
+		_fid = nullptr;
+	}
 }
-
 
 bool LedDevicePiBlaster::init(const QJsonObject &deviceConfig)
 {
@@ -95,7 +98,6 @@ int LedDevicePiBlaster::open()
 			if (!QFile::exists(_deviceName))
 			{
 				errortext = QString ("The device (%1) does not yet exist.").arg(_deviceName);
-
 			}
 			else
 			{
@@ -116,7 +118,6 @@ int LedDevicePiBlaster::open()
 		if ( retval < 0 )
 		{
 			this->setInError( errortext );
-
 		}
 	}
 	return retval;
@@ -132,8 +133,8 @@ void LedDevicePiBlaster::close()
 	{
 		fclose(_fid);
 		_fid = nullptr;
-	}}
-
+	}
+}
 
 int LedDevicePiBlaster::write(const std::vector<ColorRgb> & ledValues)
 {
@@ -149,31 +150,31 @@ int LedDevicePiBlaster::write(const std::vector<ColorRgb> & ledValues)
 		if ( (valueIdx >= 0) && (valueIdx < static_cast<int>( _ledCount)) )
 		{
 			double pwmDutyCycle = 0.0;
-			switch (_gpio_to_color[ i ]) 
+			switch (_gpio_to_color[ i ])
 			{
-			case 'r':
-				pwmDutyCycle = ledValues[valueIdx].red / 255.0;
-				break;
-			case 'g':
-				pwmDutyCycle = ledValues[valueIdx].green / 255.0;
-				break;
-			case 'b':
-				pwmDutyCycle = ledValues[valueIdx].blue / 255.0;
-				break;
-			case 'w':
-				pwmDutyCycle = ledValues[valueIdx].red;
-				pwmDutyCycle += ledValues[valueIdx].green;
-				pwmDutyCycle += ledValues[valueIdx].blue;
-				pwmDutyCycle /= (3.0*255.0);
-				break;
-			default:
-				continue;
+				case 'r':
+					pwmDutyCycle = ledValues[valueIdx].red / 255.0;
+					break;
+				case 'g':
+					pwmDutyCycle = ledValues[valueIdx].green / 255.0;
+					break;
+				case 'b':
+					pwmDutyCycle = ledValues[valueIdx].blue / 255.0;
+					break;
+				case 'w':
+					pwmDutyCycle = ledValues[valueIdx].red;
+					pwmDutyCycle += ledValues[valueIdx].green;
+					pwmDutyCycle += ledValues[valueIdx].blue;
+					pwmDutyCycle /= (3.0*255.0);
+					break;
+				default:
+					continue;
 			}
 
 //			fprintf(_fid, "%i=%f\n", iPins[iPin], pwmDutyCycle);
 
-			if ( (fprintf(_fid, "%i=%f\n", i, pwmDutyCycle) < 0) 
-			  || (fflush(_fid) < 0)) {
+			if ( (fprintf(_fid, "%i=%f\n", i, pwmDutyCycle) < 0) || (fflush(_fid) < 0))
+			{
 				if (_fid != nullptr)
 				{
 					fclose(_fid);

@@ -203,7 +203,7 @@ public:
 		assert(other._width == _width);
 		assert(other._height == _height);
 
-		memcpy(_pixels, other._pixels, _width*_height*sizeof(Pixel_T));
+		memcpy(_pixels, other._pixels, _width * _height * sizeof(Pixel_T));
 	}
 
 	///
@@ -258,7 +258,7 @@ public:
 		_height = 1;
 		_pixels = new Pixel_T[2];
 		_endOfPixels = _pixels + 1;
-		memset(_pixels, 0, _width * _height * sizeof(Pixel_T));
+		memset(_pixels, 0, (unsigned long) _width * _height * sizeof(Pixel_T));
 	}
 
 private:

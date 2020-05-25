@@ -52,7 +52,7 @@ private slots:
 	///
 	/// @brief Handle COMP_ALL changes from Hyperion->compStateChangeRequest
 	///
-	void handleCompStateChangeRequest(const hyperion::Components comp, const bool activated);
+	void handleCompStateChangeRequest(const hyperion::Components comps, const bool activated);
 
 private:
 	///  Hyperion instance

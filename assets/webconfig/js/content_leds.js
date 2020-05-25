@@ -86,16 +86,9 @@ function createClassicLeds(){
 	var pttlv  = parseInt($("#ip_cl_ptlv").val())/100;
 	var pttrh  = parseInt($("#ip_cl_ptrh").val())/100;
 	var pttrv  = parseInt($("#ip_cl_ptrv").val())/100;
-	
+
 	//helper
 	var edgeHGap = edgeVGap/(16/9);
-	//var cornerHGap = cornerVGap/(16/9);
-	var Vmin = 0.0 + edgeVGap;
-	var Vmax = 1.0 - edgeVGap;
-	var Hmin = 0.0 + edgeHGap;
-	var Hmax = 1.0 - edgeHGap;
-	var Hdiff = Hmax-Hmin;
-	var Vdiff = Vmax-Vmin;
 	var ledArray = [];
 
 	function createFinalArray(array){
@@ -154,7 +147,7 @@ function createClassicLeds(){
 	function createTopLeds(){
 		var steph = (pttrh - pttlh - (2*edgeHGap))/ledstop;
 		var stepv = (pttrv - pttlv)/ledstop;
-			
+
 		for (var i = 0; i<ledstop; i++){
 			var hmin = ovl("-",pttlh+(steph*Number([i]))+edgeHGap);
 			var hmax = ovl("+",pttlh+(steph*Number([i+1]))+edgeHGap);
@@ -167,7 +160,7 @@ function createClassicLeds(){
 	function createRightLeds(){
 		var steph = (ptbrh - pttrh)/ledsright;
 		var stepv = (ptbrv - pttrv - (2*edgeVGap))/ledsright;
-			
+
 		for (var i = 0; i<ledsright; i++){
 			var hmax = pttrh+(steph*Number([i+1]));
 			var hmin = hmax-ledsVDepth;
@@ -180,7 +173,7 @@ function createClassicLeds(){
 	function createBottomLeds(){
 		var steph = (ptbrh - ptblh - (2*edgeHGap))/ledsbottom;
 		var stepv = (ptbrv - ptblv)/ledsbottom;
-			
+
 		for (var i = ledsbottom-1; i>-1; i--){
 			var hmin = ovl("-",ptblh+(steph*Number([i]))+edgeHGap);
 			var hmax = ovl("+",ptblh+(steph*Number([i+1]))+edgeHGap);
@@ -193,7 +186,7 @@ function createClassicLeds(){
 	function createLeftLeds(){
 		var steph = (ptblh - pttlh)/ledsleft;
 		var stepv = (ptblv - pttlv - (2*edgeVGap))/ledsleft;
-			
+
 		for (var i = ledsleft-1; i>-1; i--){
 			var hmin = pttlh+(steph*Number([i]));
 			var hmax = hmin+ledsVDepth;
@@ -378,7 +371,7 @@ $(document).ready(function() {
 	var slConfig = window.serverConfig.ledConfig;
 
 	//Check, if structure is not aligned to expected -> migrate structure
-	var newConfig = {};
+
 	if ( isEmpty(slConfig.classic) )
 	{
 		slConfig = migrateLedConfig( slConfig );
@@ -530,7 +523,7 @@ $(document).ready(function() {
 		conf_editor.validate().length ? $('#btn_submit_controller').attr('disabled', true) : $('#btn_submit_controller').attr('disabled', false);
 
 		// led controller sepecific wizards
-		$('#btn_wiz_holder').html("")
+		$('#btn_wiz_holder').html("");
 		$('#btn_led_device_wiz').off();
 
     if(ledType == "philipshue") {

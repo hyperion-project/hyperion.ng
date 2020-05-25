@@ -87,7 +87,7 @@ private:
 	///
 	/// @return Zero on success else negative
 	///
-	virtual int write(const std::vector<ColorRgb>& ledValues);
+	virtual int write(const std::vector<ColorRgb>& ledValues) override;
 
 	///
 	/// Test if the device is a (or the) lightpack we are looking for
@@ -131,7 +131,7 @@ private:
 
 	/// the number of bits per channel
 	int _bitsPerChannel;
-	
+
 	/// count of real hardware leds
 	int _hwLedCount;
 };

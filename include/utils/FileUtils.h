@@ -61,4 +61,4 @@ QString getDirName( QString sourceFile);
 	/// @param[in]  log      The logger of the caller
 	///
 	void resolveFileError(const QFile& file, Logger* log);
-};
+}

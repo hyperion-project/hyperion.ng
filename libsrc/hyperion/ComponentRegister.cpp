@@ -40,9 +40,9 @@ void ComponentRegister::setNewComponentState(const hyperion::Components comp, co
 	}
 }
 
-void ComponentRegister::handleCompStateChangeRequest(const hyperion::Components comp, const bool activated)
+void ComponentRegister::handleCompStateChangeRequest(const hyperion::Components comps, const bool activated)
 {
-	if(comp == COMP_ALL && !_inProgress)
+	if(comps == COMP_ALL && !_inProgress)
 	{
 		_inProgress = true;
 		if(!activated && _prevComponentStates.empty())
