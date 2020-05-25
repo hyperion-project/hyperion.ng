@@ -200,3 +200,10 @@ jobs:
           prerelease: ${{ env.preRelease }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Dispatch event to build new HyperBian image
+      - name: Repository Dispatch
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          repository: HyperBian
+          token: ${{ secrets.HYPERION_BOT_TOKEN }}
+          event-type: hyperion_push
