@@ -13,15 +13,24 @@
 			"title":"edt_dev_spec_latchtime_title",
 			"default": 5,
 			"append" : "edt_append_ms",
-			"minimum": 1,
+			"minimum": 0,
 			"maximum": 1000,
 			"access" : "expert",
 			"propertyOrder" : 2
 		},
+		"rewriteTime": {
+			"type": "integer",
+			"title":"edt_dev_general_rewriteTime_title",
+			"default": 1000,
+			"append" : "edt_append_ms",
+			"minimum": 0,
+			"access" : "expert",
+			"propertyOrder" : 3
+		},		
 		"gpiomap": {
 			"type": "array",
 			"title":"edt_dev_spec_gpioMap_title",
-			"propertyOrder" : 2,
+			"propertyOrder" : 3,
 			"minimum" : 1,
 			"maximum" : 27,
 			"items" : {
@@ -56,7 +65,7 @@
 					}
 				}
 			},
-			"propertyOrder" : 3
+			"propertyOrder" : 4
 		}
 	},
 	"additionalProperties": true

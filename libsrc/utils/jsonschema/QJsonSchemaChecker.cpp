@@ -85,6 +85,17 @@ void QJsonSchemaChecker::validate(const QJsonValue & value, const QJsonObject &s
 				continue;
 			}
 		}
+		else if (attribute == "dependencies")
+		{
+			if (value.isObject())
+				checkDependencies(value.toObject(), attributeValue.toObject());
+			else
+			{
+				_schemaError = true;
+				setMessage("dependencies attribute is only valid for objects");
+				continue;
+			}
+		}
 		else if (attribute == "additionalProperties")
 		{
 			if (value.isObject())
@@ -236,6 +247,62 @@ void QJsonSchemaChecker::checkProperties(const QJsonObject & value, const QJsonO
 			QJsonUtils::modify(_autoCorrected, _currentPath,  QJsonUtils::create(propertyValue, _ignoreRequired), property);
 
 		_currentPath.removeLast();
+	}
+}
+
+void QJsonSchemaChecker::checkDependencies(const QJsonObject & value, const QJsonObject & schema)
+{
+	for (QJsonObject::const_iterator i = schema.begin(); i != schema.end(); ++i)
+	{
+		QString property = i.key();
+		const QJsonValue & propertyValue = *i;
+
+		if (propertyValue.toObject().contains("properties"))
+		{
+			_currentPath.append("." + property);
+
+			const QJsonObject & dependencies = propertyValue.toObject()["properties"].toObject();
+
+			bool valid = false;
+			for (QJsonObject::const_iterator d = dependencies.begin(); d != dependencies.end(); ++d)
+			{
+				QString dependency = d.key();
+				const QJsonValue & dependencyValue = *d;
+
+				if (dependencyValue.toObject()["enum"].isArray())
+				{
+					QJsonArray jArray = dependencyValue.toObject()["enum"].toArray();
+					for(int a = 0; a < jArray.size(); ++a)
+					{
+						if (value[dependency] == jArray[a])
+						{
+							valid = true;
+							break;
+						}
+						else
+							valid = false;
+					}
+				}
+				else
+					valid = (value[dependency] == dependencyValue.toObject()["enum"]);
+			}
+
+			if (value.contains(property) && !valid)
+			{
+				_error = true;
+
+				if (_correct == "remove")
+				{
+					QJsonUtils::modify(_autoCorrected, _currentPath);
+					setMessage("Removed property: "+property);
+				}
+
+				if (_correct == "")
+					setMessage("Property not required");
+			}
+
+			_currentPath.removeLast();
+		}
 	}
 }
 

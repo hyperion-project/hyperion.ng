@@ -14,29 +14,31 @@
 			"default": 1000000,
 			"propertyOrder" : 2
 		},
-		"latchtime": {
-			"type": "integer",
-			"title":"edt_dev_spec_latchtime_title",
-			"default": 500000,
-			"append" : "ns",
-			"propertyOrder" : 3
-		},
 		"invert": {
 			"type": "boolean",
 			"title":"edt_dev_spec_invert_title",
 			"default": false,
-			"propertyOrder" : 4
+			"propertyOrder" : 3
 		},
 		"latchTime": {
 			"type": "integer",
 			"title":"edt_dev_spec_latchtime_title",
-			"default": 1,
+			"default": 0,
 			"append" : "edt_append_ms",
-			"minimum": 1,
+			"minimum": 0,
 			"maximum": 1000,
 			"access" : "expert",
+			"propertyOrder" : 4
+		},
+		"rewriteTime": {
+			"type": "integer",
+			"title":"edt_dev_general_rewriteTime_title",
+			"default": 1000,
+			"append" : "edt_append_ms",
+			"minimum": 0,
+			"access" : "expert",
 			"propertyOrder" : 5
-		}
+		}		
 	},
 	"additionalProperties": true
 }

@@ -15,10 +15,9 @@
 		"type"       : "file",
 		"hardwareLedCount" : 1,
 		"output"     : "/dev/null",
-		"rate"       : 1000000,
 		"colorOrder" : "rgb",
-		"latchTime" : 1,
-		"rewriteTime": 5000
+		"latchTime" : 0,
+		"rewriteTime": 0
 	},
 
 	"color" :
@@ -212,7 +211,6 @@
       "pblv"		: 100,
       "pbrh"		: 100,
       "pbrv"		: 100
-
  		},
 
 		"matrix":

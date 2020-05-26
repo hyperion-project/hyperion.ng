@@ -2,7 +2,7 @@
 	"type" : "object",
 	"title" : "edt_dev_general_heading_title",
 	"required" : true,
-	"defaultProperties": ["hardwareLedCount","colorOrder","rewriteTime"],
+	"defaultProperties": ["hardwareLedCount", "colorOrder"],
 	"properties" :
 	{
 		"type" :
@@ -29,15 +29,20 @@
 				"enum_titles" : ["edt_conf_enum_rgb", "edt_conf_enum_bgr", "edt_conf_enum_rbg", "edt_conf_enum_brg", "edt_conf_enum_gbr", "edt_conf_enum_grb"]
 			},
 			"propertyOrder" : 3
-		},
-		"rewriteTime": {
-			"type": "integer",
-			"title":"edt_dev_general_rewriteTime_title",
-			"default": 1000,
-			"append" : "edt_append_ms",
-			"minimum": 0,
-			"access" : "expert",
-			"propertyOrder" : 4
+		}
+	},
+	"dependencies" :
+	{
+		"rewriteTime" :
+		{
+			"properties" :
+			{
+				"type" :
+				{
+					"enum" : ["file", "apa102", "apa104", "ws2801", "lpd6803", "lpd8806", "p9813", "sk6812spi", "sk6822spi", "ws2812spi","ws281x", "piblaster", "adalight", "dmx", "atmo", "hyperionusbasp", "lightpack", "multilightpack", "paintpack", "rawhid", "sedu", "tpm2", "karate"]
+				}
+			},
+			"additionalProperties" : true
 		}
 	},
 	"additionalProperties" : true
