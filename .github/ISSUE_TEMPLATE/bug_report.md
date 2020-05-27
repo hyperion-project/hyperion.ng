@@ -1,7 +1,7 @@
 ---
 name: Bug report
 about: Create a report to help us improving Hyperion
-
+labels: bug
 ---
 
 <!-- Please don't delete this template or we'll close your issue -->
