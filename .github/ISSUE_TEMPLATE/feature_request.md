@@ -1,7 +1,7 @@
 ---
 name: Feature request
 about: Suggest an idea for Hyperion
-
+labels: feature request
 ---
 
 <!-- Please don't delete this template or we'll close your issue -->

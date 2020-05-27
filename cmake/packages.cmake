@@ -2,7 +2,7 @@
 
 # default packages to build
 IF (APPLE)
-	SET ( CPACK_GENERATOR "TGZ" "Bundle")
+	SET ( CPACK_GENERATOR "TGZ")
 ELSEIF (UNIX)
 	SET ( CPACK_GENERATOR "TGZ")
 ELSEIF (WIN32)
@@ -21,7 +21,7 @@ IF(DEB_BUILDER_FOUND)
 	SET ( CPACK_GENERATOR ${CPACK_GENERATOR} "DEB")
 ENDIF()
 
-# Overwrite CPACK_SYSTEM_NAME for mac (visual)
+# Overwrite CMAKE_SYSTEM_NAME for mac (visual)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     if(${CMAKE_HOST_APPLE})
         set(CMAKE_SYSTEM_NAME "macOS")
