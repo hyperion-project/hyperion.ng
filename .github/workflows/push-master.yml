@@ -201,9 +201,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       # Dispatch event to build new HyperBian image
-      - name: Repository Dispatch
+      - name: Dispatch HyperBian build
         uses: peter-evans/repository-dispatch@v1
+        if: ${{ github.repository_owner == 'hyperion-project'}}
         with:
-          repository: HyperBian
+          repository: hyperion-project/HyperBian
           token: ${{ secrets.HYPERION_BOT_TOKEN }}
           event-type: hyperion_push
