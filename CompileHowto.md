@@ -166,7 +166,7 @@ Platform should be auto detected and refer to windows, you can also force window
 ```sh
 # You might need to setup MSVC env first
 call "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
-cmake -DPLATFORM=windows -G "Windows 16 2019" ..
+cmake -DPLATFORM=windows -G "Visual Studio 16 2019" ..
 ```
 
 ### Run make to build Hyperion
