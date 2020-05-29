@@ -1,3 +1,4 @@
+from __future__ import division
 import hyperion, time, colorsys, math
 
 hyperion.imageMinSize(64, 64)
@@ -25,7 +26,7 @@ for x in range(width):
 
 while not hyperion.abort():
 	ledData = bytearray()
-	mod = time.clock() * 100
+	mod = time.process_time() * 100
 	for x in range(height):
 		for y in range(width):
 			ledData += pal[int((plasma[y][x] + mod) % 256)]
