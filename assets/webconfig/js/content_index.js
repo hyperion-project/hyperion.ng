@@ -57,15 +57,31 @@ $(document).ready(function () {
 	}); // end cmd-serverinfo
 
 	// Update language
-	$('.selectpicker').on('changed.bs.select',function (e, clickedIndex, isSelected, previousValue){
-
-    	    var newLang = availLang[clickedIndex];
+	$("#language-select").on('changed.bs.select',function (e, clickedIndex, isSelected, previousValue){
+   	    var newLang = availLang[clickedIndex-1];
 	    if (newLang !== storedLang)
 	    {
 	    	setStorage("langcode", newLang);
-		reload();
+			reload();
 	    }
 
+	});
+
+	$("#language-select").selectpicker(
+	{
+		container: 'body', title: availLangText[availLang.indexOf(getStorage("langcode"))]
+	});
+
+	$(".bootstrap-select").click(function () {
+		$(this).addClass("open");
+	});
+
+	$(document).click(function(){
+		$(".bootstrap-select").removeClass("open");
+	});
+
+	$(".bootstrap-select").click(function(e){
+		e.stopPropagation();
 	});
 
 	$(window.hyperion).on("cmd-sessions-update", function (event) {

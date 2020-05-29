@@ -172,10 +172,21 @@
 						<i class="fa fa-wrench fa-fw"></i>  <i class="fa fa-caret-down"></i>
 					</a>
 					<ul class="dropdown-menu dropdown-alerts">
+
+						<!-- /.language selector -->
+						<li id="btn_setlang">
+							<a>
+								<div>
+									<i class="fa fa-globe"></i>
+									<select id="language-select" class="selectpicker" data-width="fit" data-style="btn-lang-select" > </select>
+								</div>
+							</a>
+						</li>
+						<li class="divider"></li>
 						<li id="btn_setaccess">
 							<a>
 								<div>
-									<i class="fa fa-key fa-fw"></i>
+									<i class="fa fa-wrench fa-fw"></i>
 									<span data-i18n="InfoDialog_access_title"></span>
 								</div>
 							</a>
@@ -191,10 +202,6 @@
 						</li>
 					</ul>
 				</li>
-				<!-- /.language selector -->
-        			<li>
-			     		<select id="language-select" class="selectpicker" data-width="fit" data-style="btn-lang-select" > </select>
-		        	</li>
 
 				<!-- /.lock-ui -->
 				<li class="dropdown" id="btn_lock_ui" style="display:none">
