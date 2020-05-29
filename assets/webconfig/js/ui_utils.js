@@ -178,6 +178,17 @@ function updateHyperionInstanceListing()
 	}
 }
 
+function initLanguageSelection()
+{
+    for (var i = 0; i < availLang.length; i++)
+    {
+	$("#language-select").append('<option value="'+i+'" selected="">'+availLangText[i]+'</option>');
+    }	
+
+    $("#language-select").val(availLang.indexOf(storedLang));
+    $("#language-select").selectpicker("refresh");
+}
+
 function updateUiOnInstance(inst)
 {
 	if(inst != 0)

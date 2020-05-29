@@ -27,7 +27,7 @@ $(document).ready(function () {
 	$(window.hyperion).on("cmd-serverinfo", function (event) {
 		window.serverInfo = event.response.info;
 		// comps
-    window.comps = event.response.info.components
+		window.comps = event.response.info.components
 
 		$(window.hyperion).trigger("ready");
 
@@ -55,6 +55,18 @@ $(document).ready(function () {
 
 		updateSessions();
 	}); // end cmd-serverinfo
+
+	// Update language
+	$('.selectpicker').on('changed.bs.select',function (e, clickedIndex, isSelected, previousValue){
+
+    	    var newLang = availLang[clickedIndex];
+	    if (newLang !== storedLang)
+	    {
+	    	setStorage("langcode", newLang);
+		reload();
+	    }
+
+	});
 
 	$(window.hyperion).on("cmd-sessions-update", function (event) {
 		window.serverInfo.sessions = event.response.data;
