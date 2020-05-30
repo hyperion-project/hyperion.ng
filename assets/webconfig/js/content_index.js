@@ -56,7 +56,7 @@ $(document).ready(function () {
 		updateSessions();
 	}); // end cmd-serverinfo
 
-	// Update language
+	// Update language selection
 	$("#language-select").on('changed.bs.select',function (e, clickedIndex, isSelected, previousValue){
    	    var newLang = availLang[clickedIndex-1];
 	    if (newLang !== storedLang)
@@ -64,12 +64,11 @@ $(document).ready(function () {
 	    	setStorage("langcode", newLang);
 			reload();
 	    }
-
 	});
 
 	$("#language-select").selectpicker(
 	{
-		container: 'body', title: availLangText[availLang.indexOf(getStorage("langcode"))]
+		container: 'body'
 	});
 
 	$(".bootstrap-select").click(function () {
@@ -83,7 +82,9 @@ $(document).ready(function () {
 	$(".bootstrap-select").click(function(e){
 		e.stopPropagation();
 	});
-
+	
+	//End language selection
+	
 	$(window.hyperion).on("cmd-sessions-update", function (event) {
 		window.serverInfo.sessions = event.response.data;
 		updateSessions();
