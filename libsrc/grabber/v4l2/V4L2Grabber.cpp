@@ -195,7 +195,7 @@ void V4L2Grabber::getV4Ldevices()
 				continue;
 			}
 
-			if (cap.device_caps & V4L2_CAP_META_CAPTURE) // this device has bit 23 set (and bit 1 reset), so it doesn't have capture.
+			if (cap.device_caps & V4L2_CAP_META_CAPTURE || !(cap.capabilities & V4L2_CAP_META_CAPTURE)) // this device has bit 23 set (and bit 1 reset), so it doesn't have capture.
 			{
 				close(fd);
 				continue;
