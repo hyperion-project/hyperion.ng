@@ -43,8 +43,6 @@ fi
 start_msg=""
 restart_msg=""
 
-echo "DEBUG --> FOUND_USR: ${FOUND_USR}"
-
 if grep -m1 systemd /proc/1/comm > /dev/null
 then
 	echo "---> init deamon: systemd"
