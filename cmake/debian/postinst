@@ -19,7 +19,7 @@ install_file()
 echo "---Hyperion ambient light postinstall ---"
 
 #check system
-CPU_RPI=`grep -m1 -c 'BCM2708\|BCM2709\|BCM2710\|BCM2835' /proc/cpuinfo`
+CPU_RPI=`grep -m1 -c 'BCM2708\|BCM2709\|BCM2710\|BCM2835\|BCM2836\|BCM2837\|BCM2711' /proc/cpuinfo`
 CPU_X32X64=`uname -m | grep 'x86_32\|i686\|x86_64' | wc -l`
 
 #Check for a bootloader as Berryboot
@@ -42,6 +42,8 @@ fi
 
 start_msg=""
 restart_msg=""
+
+echo "DEBUG --> FOUND_USR: ${FOUND_USR}"
 
 if grep -m1 systemd /proc/1/comm > /dev/null
 then

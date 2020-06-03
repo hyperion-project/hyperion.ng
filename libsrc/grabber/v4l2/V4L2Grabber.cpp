@@ -195,7 +195,7 @@ void V4L2Grabber::getV4Ldevices()
 				continue;
 			}
 
-			if (cap.device_caps & V4L2_CAP_META_CAPTURE || !(cap.capabilities & V4L2_CAP_META_CAPTURE)) // this device has bit 23 set (and bit 1 reset), so it doesn't have capture.
+			if (cap.device_caps & V4L2_CAP_META_CAPTURE) // this device has bit 23 set (and bit 1 reset), so it doesn't have capture.
 			{
 				close(fd);
 				continue;
@@ -232,16 +232,8 @@ void V4L2Grabber::getV4Ldevices()
 					break;
 					case V4L2_FRMSIZE_TYPE_CONTINUOUS:
 					case V4L2_FRMSIZE_TYPE_STEPWISE:
-					{
-						for(unsigned int y = frmsizeenum.stepwise.min_height; y <= frmsizeenum.stepwise.max_height; y += frmsizeenum.stepwise.step_height)
-						{
-							for(unsigned int x = frmsizeenum.stepwise.min_width; x <= frmsizeenum.stepwise.max_width; x += frmsizeenum.stepwise.step_width)
-							{
-								properties.resolutions << QString::number(x) + "x" + QString::number(y);
-								enumFrameIntervals(properties.framerates, fd, fmt.fmt.pix.pixelformat, x, y);
-							}
-						}
-					}
+						// We do not take care of V4L2_FRMSIZE_TYPE_CONTINUOUS or V4L2_FRMSIZE_TYPE_STEPWISE
+						break;
 				}
 				frmsizeenum.index++;
 			}
