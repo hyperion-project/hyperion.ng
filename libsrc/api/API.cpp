@@ -16,6 +16,7 @@
 
 // hyperion includes
 #include <leddevice/LedDeviceWrapper.h>
+#include <leddevice/dev_serial/ProviderRs232.h>
 #include <hyperion/GrabberWrapper.h>
 #include <utils/jsonschema/QJsonFactory.h>
 #include <utils/jsonschema/QJsonSchemaChecker.h>
@@ -516,6 +517,16 @@ void API::logout()
     // Stop listenig for ADMIN ACCESS protected signals
     disconnect(_authManager, &AuthManager::newPendingTokenRequest, this, &API::onPendingTokenRequest);
     stopDataConnectionss();
+}
+
+QList<QString> API::getLedDeviceSerialPorts()
+{
+	QList<QString> devices;
+	for (const auto &entry : ProviderRs232::getSerialPorts())
+	{
+		devices.append(entry.portName());
+	}
+	return devices;
 }
 
 void API::checkTokenResponse(const bool &success, QObject *caller, const QString &token, const QString &comment, const QString &id)

@@ -346,6 +346,12 @@ protected:
     ///
     void logout();
 
+	///
+    /// @brief Get a list of current system serial devices
+    /// @return The result
+    ///
+    QList<QString> getLedDeviceSerialPorts();
+
     /// Reflect auth status of this client
     bool _authorized;
     bool _adminAuthorized;
