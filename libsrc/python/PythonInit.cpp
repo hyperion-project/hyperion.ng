@@ -16,7 +16,6 @@
 #include <effectengine/EffectModule.h>
 
 #ifdef _WIN32
-	#include <stdexcept>
 	#define STRINGIFY2(x) #x
 	#define STRINGIFY(x) STRINGIFY2(x)
 #endif
