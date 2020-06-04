@@ -168,7 +168,8 @@ table label{margin:0}
     border-color: #602060;
 }
 
-.btn-lang-select {
+/*minimal visible button*/
+.btn-transparent {
   background-color: transparent;
   border-style: none;
 }
