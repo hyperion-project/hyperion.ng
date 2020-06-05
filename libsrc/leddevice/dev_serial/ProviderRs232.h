@@ -2,7 +2,6 @@
 
 #include <QObject>
 #include <QSerialPort>
-#include <QSerialPortInfo>
 #include <QTimer>
 #include <QString>
 
@@ -40,11 +39,6 @@ public:
 	/// @return Zero on succes else negative
 	///
 	int open() override;
-
-	///
-	/// Provide a list of available serial ports of the System
-	///
-	static QList<QSerialPortInfo> getSerialPorts() { return QSerialPortInfo::availablePorts(); };
 
 public slots:
 	///

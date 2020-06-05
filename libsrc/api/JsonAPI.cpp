@@ -1,5 +1,6 @@
 // project includes
 #include <api/JsonAPI.h>
+#include <api/APILedDevice.h>
 
 // stl includes
 #include <iostream>
@@ -191,6 +192,8 @@ proceed:
 		handleVideoModeCommand(message, command, tan);
 	else if (command == "instance")
 		handleInstanceCommand(message, command, tan);
+	else if (command == "leddevice")
+		handleLedDeviceCommand(message, command, tan);
 
 	// BEGIN | The following commands are derecated but used to ensure backward compatibility with hyperion Classic remote control
 	else if (command == "clearall")
@@ -1370,6 +1373,31 @@ void JsonAPI::handleInstanceCommand(const QJsonObject &message, const QString &c
 		else
 			sendErrorReply(replyMsg, command + "-" + subc, tan);
 		return;
+	}
+}
+
+void JsonAPI::handleLedDeviceCommand(const QJsonObject &message, const QString &command, const int tan)
+{
+	const QString &subc = message["subcommand"].toString();
+
+	// all subcmds require ADMIN
+	if(!API::isAdminAuthorized()){
+		sendErrorReply("Not Authorized", command + "-" + subc, tan);
+		return;
+	}
+
+	if(subc == "serialports")
+	{
+		QJsonArray arr;
+		for(const auto &entry : APILedDevice::getSerialPorts()){
+			QJsonObject obj;
+			obj.insert("portName",entry.portName);
+			obj.insert("manufacturer",entry.manufacturer);
+			obj.insert("description",entry.description);
+			obj.insert("systemLocation",entry.systemLocation);
+			arr.append(obj);
+		}
+		sendSuccessDataReply(QJsonDocument(arr), command + "-" + subc, tan);
 	}
 }
 

@@ -448,17 +448,9 @@ function requestAdjustment(type, value, complete)
 		sendToHyperion("adjustment", "", '"adjustment": {"'+type+'": '+value+'}');
 }
 
-async function requestSsdp(searchTarget, searchPort, skipDups, filterRegEx, filterHeader)
+// Get data of avail system serial ports
+// Returns false or info[obj], the array might have a length of 0
+async function requestSerialPorts()
 {
-	let data = {
-    searchTarget: (searchTarget ? searchTarget : 'ssdp:all'),
-    searchPort: (searchPort ? searchPort : undefined),
-    skipDups: (skipDups ? skipDups : undefined),
-  }
-
-  if(filterRegEx || filterHeader){
-    Object.assign(data, {filter:{filterRegEx, filterHeader}})
-  }
-  // tan -1 skip global error handling
-	return sendAsyncToHyperion("ssdp", "", data, -1);
+	return sendAsyncToHyperion("leddevice", "serialports");
 }
