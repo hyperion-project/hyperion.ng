@@ -12,6 +12,7 @@ public:
 			const unsigned grabWidth,
 			const unsigned grabHeight,
 			const unsigned fps,
+			const unsigned input,
 			VideoStandard videoStandard,
 			PixelFormat pixelFormat,
 			int pixelDecimation );

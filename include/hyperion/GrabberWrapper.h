@@ -5,6 +5,8 @@
 #include <QJsonArray>
 #include <QString>
 #include <QStringList>
+#include <QMap>
+#include <QMultiMap>
 
 #include <utils/Logger.h>
 #include <utils/Components.h>
@@ -62,6 +64,13 @@ public:
 	/// @return The name of the V4L device on success else empty String
 	///
 	virtual QString getV4L2deviceName(QString devicePath);
+
+	///
+	/// @brief Get a name/index pair of supported device inputs
+	/// @param devicePath The device path
+	/// @return multi pair of name/index on success else empty pair
+	///
+	virtual QMultiMap<QString, int> getV4L2deviceInputs(QString devicePath);
 
 	///
 	/// @brief Get a list of supported device resolutions

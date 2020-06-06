@@ -34,13 +34,13 @@ V4L2Grabber::V4L2Grabber(const QString & device
 		, const unsigned width
 		, const unsigned height
 		, const unsigned fps
+		, const unsigned input
 		, VideoStandard videoStandard
 		, PixelFormat pixelFormat
 		, int pixelDecimation
 		)
 	: Grabber("V4L2:"+device)
 	, _deviceName()
-	, _input(-1)
 	, _videoStandard(videoStandard)
 	, _ioMethod(IO_METHOD_MMAP)
 	, _fileDescriptor(-1)
@@ -66,6 +66,7 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	getV4Ldevices();
 
 	// init
+	setInput(input);
 	setWidthHeight(width, height);
 	setFramerate(fps);
 	setDeviceVideoStandard(device, videoStandard);
@@ -147,7 +148,7 @@ bool V4L2Grabber::init()
 				if (open_device())
 				{
 					opened = true;
-					init_device(_videoStandard, _input);
+					init_device(_videoStandard);
 					_initialized = true;
 				}
 			}
@@ -213,6 +214,21 @@ void V4L2Grabber::getV4Ldevices()
 			}
 
 			V4L2Grabber::DeviceProperties properties;
+
+			// collect available device inputs (index & name)
+			int inputIndex;
+			if (xioctl(fd, VIDIOC_G_INPUT, &inputIndex) == 0)
+			{
+				struct v4l2_input input;
+				CLEAR(input);
+
+				input.index = 0;
+				while (xioctl(fd, VIDIOC_ENUMINPUT, &input) >= 0)
+				{
+					properties.inputs.insert(QString((char*)input.name), input.index);
+					input.index++;
+				}
+			}
 
 			// collect available device resolutions & frame rates
 			struct v4l2_frmsizeenum frmsizeenum;
@@ -485,7 +501,7 @@ void V4L2Grabber::init_userp(unsigned int buffer_size)
 	}
 }
 
-void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
+void V4L2Grabber::init_device(VideoStandard videoStandard)
 {
 	struct v4l2_capability cap;
 	CLEAR(cap);
@@ -566,16 +582,13 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 	// set input if needed and supported
 	struct v4l2_input v4l2Input;
 	CLEAR(v4l2Input);
+	v4l2Input.index = _input;
 
-	v4l2Input.index = input;
-
-	if (input >= 0 && 0 == xioctl(VIDIOC_ENUMINPUT,&v4l2Input))
+	if (_input >= 0 && 0 == xioctl(VIDIOC_ENUMINPUT, &v4l2Input))
 	{
-		if (-1 == xioctl(VIDIOC_S_INPUT, &input))
-		{
-			throw_errno_exception("VIDIOC_S_INPUT");
-			return;
-		}
+		(-1 == xioctl(VIDIOC_S_INPUT, &_input))
+		?	Debug(_log, "Input settings not supported.")
+		:	Debug(_log, "Set device input to %s", v4l2Input.name);
 	}
 
 	// set the video standard if needed and supported
@@ -1316,9 +1329,9 @@ void V4L2Grabber::setDeviceVideoStandard(QString device, VideoStandard videoStan
 	}
 }
 
-bool V4L2Grabber::setFramerate(int fps)
+bool V4L2Grabber::setInput(int input)
 {
-	if(Grabber::setFramerate(fps))
+	if(Grabber::setInput(input))
 	{
 		bool started = _initialized;
 		uninit();
@@ -1331,6 +1344,18 @@ bool V4L2Grabber::setFramerate(int fps)
 bool V4L2Grabber::setWidthHeight(int width, int height)
 {
 	if(Grabber::setWidthHeight(width,height))
+	{
+		bool started = _initialized;
+		uninit();
+		if(started) start();
+		return true;
+	}
+	return false;
+}
+
+bool V4L2Grabber::setFramerate(int fps)
+{
+	if(Grabber::setFramerate(fps))
 	{
 		bool started = _initialized;
 		uninit();
@@ -1353,6 +1378,11 @@ QStringList V4L2Grabber::getV4L2devices()
 QString V4L2Grabber::getV4L2deviceName(QString devicePath)
 {
 	return _deviceProperties.value(devicePath).name;
+}
+
+QMultiMap<QString, int> V4L2Grabber::getV4L2deviceInputs(QString devicePath)
+{
+	return _deviceProperties.value(devicePath).inputs;
 }
 
 QStringList V4L2Grabber::getResolutions(QString devicePath)

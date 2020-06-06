@@ -14,6 +14,7 @@
 #include <QByteArray>
 #include <QTimer>
 #include <QHostInfo>
+#include <QMultiMap>
 
 // hyperion includes
 #include <leddevice/LedDeviceWrapper.h>
@@ -489,21 +490,32 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	QJsonArray availableV4L2devices;
 	for (auto devicePath : GrabberWrapper::getInstance()->getV4L2devices())
 	{
-
 		QJsonObject device;
 		device["device"] = devicePath;
 		device["name"] = GrabberWrapper::getInstance()->getV4L2deviceName(devicePath);
 
+		QJsonArray availableInputs;
+		QMultiMap<QString, int> inputs = GrabberWrapper::getInstance()->getV4L2deviceInputs(devicePath);
+		for (auto input = inputs.begin(); input != inputs.end(); input++)
+		{
+			QJsonObject availableInput;
+			availableInput["inputName"] = input.key();
+			availableInput["inputIndex"] = input.value();
+			availableInputs.append(availableInput);
+		}
+		device.insert("inputs", availableInputs);
 
 		QJsonArray availableResolutions;
-		for (auto resolution : GrabberWrapper::getInstance()->getResolutions(devicePath))
+		QStringList resolutions = GrabberWrapper::getInstance()->getResolutions(devicePath);
+		for (auto resolution : resolutions)
 		{
 			availableResolutions.append(resolution);
 		}
 		device.insert("resolutions", availableResolutions);
 
 		QJsonArray availableFramerates;
-		for (auto framerate : GrabberWrapper::getInstance()->getFramerates(devicePath))
+		QStringList framerates = GrabberWrapper::getInstance()->getFramerates(devicePath);
+		for (auto framerate : framerates)
 		{
 			availableFramerates.append(framerate);
 		}

@@ -8,6 +8,7 @@ Grabber::Grabber(QString grabberName, int width, int height, int cropLeft, int c
 	, _width(width)
 	, _height(height)
 	, _fps(15)
+	, _input(-1)
 	, _cropLeft(0)
 	, _cropRight(0)
 	, _cropTop(0)
@@ -68,6 +69,14 @@ void Grabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTo
 	{
 		Info(_log, "Cropping image: width=%d height=%d; crop: left=%d right=%d top=%d bottom=%d ", _width, _height, cropLeft, cropRight, cropTop, cropBottom);
 	}
+}
+
+bool Grabber::setInput(int input)
+{
+	if((input > 0) && (_input != input))
+		_input = input;
+
+	return (input > 0) && (_input != input);
 }
 
 bool Grabber::setWidthHeight(int width, int height)

@@ -160,6 +160,9 @@ void GrabberWrapper::handleSettingsUpdate(const settings::type& type, const QJso
 				obj["cropTop"].toInt(0),
 				obj["cropBottom"].toInt(0));
 
+			// device input
+			_ggrabber->setInput(obj["input"].toInt(-1));
+
 			// device resolution
 			_ggrabber->setWidthHeight(obj["width"].toInt(0), obj["height"].toInt(0));
 
@@ -234,6 +237,14 @@ QString GrabberWrapper::getV4L2deviceName(QString devicePath)
 		return _ggrabber->getV4L2deviceName(devicePath);
 
 	return QString();
+}
+
+QMultiMap<QString, int> GrabberWrapper::getV4L2deviceInputs(QString devicePath)
+{
+	if(_grabberName.startsWith("V4L"))
+		return _ggrabber->getV4L2deviceInputs(devicePath);
+
+	return QMultiMap<QString, int>();
 }
 
 QStringList GrabberWrapper::getResolutions(QString devicePath)

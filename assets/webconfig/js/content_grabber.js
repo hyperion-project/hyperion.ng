@@ -15,18 +15,25 @@ $(document).ready( function() {
         "propertyOrder" : 1,
         "required" : true
       },
+      "device_inputs":
+      {
+        "type": "string",
+        "title": "edt_conf_v4l2_input_title",
+        "propertyOrder" : 3,
+        "required" : true
+      },
       "resolutions":
       {
         "type": "string",
         "title": "edt_conf_v4l2_resolution_title",
-        "propertyOrder" : 4,
+        "propertyOrder" : 6,
         "required" : true
       },
       "framerates":
       {
         "type": "string",
         "title": "edt_conf_v4l2_framerate_title",
-        "propertyOrder" : 7,
+        "propertyOrder" : 9,
         "required" : true
       }
     };
@@ -50,6 +57,16 @@ $(document).ready( function() {
           for (var i = 0; i < v4l2_properties.length; i++) {
             if (v4l2_properties[i]['device'] == device) {
               enumVals = enumTitelVals = v4l2_properties[i][key];
+              break;
+            }
+          }
+        } else if (key == 'device_inputs') {
+          for (var i = 0; i < v4l2_properties.length; i++) {
+            if (v4l2_properties[i]['device'] == device) {
+              for (var index = 0; index < v4l2_properties[i]['inputs'].length; index++) {
+                enumVals.push(v4l2_properties[i]['inputs'][index]['inputIndex'].toString());
+                enumTitelVals.push(v4l2_properties[i]['inputs'][index]['inputName']);
+              }
               break;
             }
           }
@@ -88,13 +105,14 @@ $(document).ready( function() {
           var val = ed.getValue();
 
           if (key == 'available_devices') {
-            var V4L2properties = ['resolutions', 'framerates'];
+            var V4L2properties = ['device_inputs', 'resolutions', 'framerates'];
             if (val == 'custom') {
               var grabberV4L2 = ed.parent;
               V4L2properties.forEach(function(item) {
                 buildSchemaPart(item, v4l2_dynamic_enum_schema, 'none');
                 grabberV4L2.original_schema.properties[item] = window.schema.grabberV4L2.properties[item];
                 grabberV4L2.schema.properties[item] = window.schema.grabberV4L2.properties[item];
+                conf_editor_v4l2.validator.schema.properties.grabberV4L2.properties[item] = window.schema.grabberV4L2.properties[item];
 
                 grabberV4L2.removeObjectProperty(item);
                 delete grabberV4L2.cached_editors[item];
@@ -110,8 +128,9 @@ $(document).ready( function() {
                 conf_editor_v4l2.getEditor(path + item).disable();
               });
 
-              (toggleOption('device', false), toggleOption('width', false),
-              toggleOption('height', false), toggleOption('fps', false));
+              (toggleOption('device', false), /*toggleOption('input', false),*/
+               toggleOption('width', false), toggleOption('height', false),
+               toggleOption('fps', false));
             } else {
               var grabberV4L2 = ed.parent;
               V4L2properties.forEach(function(item) {
@@ -140,6 +159,11 @@ $(document).ready( function() {
             val != 'custom'
               ? toggleOption('fps', false)
               : toggleOption('fps', true);
+
+          if (key == 'device_inputs')
+            val != 'custom'
+              ? toggleOption('input', false)
+              : toggleOption('input', true);
         });
       });
     };
@@ -221,11 +245,14 @@ $(document).ready( function() {
         conf_editor_v4l2.getEditor('root.grabberV4L2.available_devices').setValue('auto');
 
       if (window.serverConfig.grabberV4L2.available_devices == 'auto') {
-        ['resolutions', 'framerates'].forEach(function(item) {
+        ['device_inputs', 'resolutions', 'framerates'].forEach(function(item) {
           conf_editor_v4l2.getEditor('root.grabberV4L2.' + item).setValue('auto');
           conf_editor_v4l2.getEditor('root.grabberV4L2.' + item).disable();
         });
       }
+
+      if (window.serverConfig.grabberV4L2.device_inputs == 'custom' && window.serverConfig.grabberV4L2.device != 'auto')
+        toggleOption('input', true);
 
       if (window.serverConfig.grabberV4L2.resolutions == 'custom' && window.serverConfig.grabberV4L2.device != 'auto')
         (toggleOption('width', true), toggleOption('height', true));
@@ -243,6 +270,12 @@ $(document).ready( function() {
 
       if (v4l2Options.grabberV4L2.available_devices == 'auto')
         v4l2Options.grabberV4L2.device = 'auto';
+
+      if (v4l2Options.grabberV4L2.device_inputs != 'custom' && v4l2Options.grabberV4L2.device_inputs != 'auto' && v4l2Options.grabberV4L2.available_devices != 'auto')
+        v4l2Options.grabberV4L2.input = parseInt(v4l2Options.grabberV4L2.device_inputs);
+
+      if (v4l2Options.grabberV4L2.device_inputs == 'auto')
+        v4l2Options.grabberV4L2.input = -1;
 
       if (v4l2Options.grabberV4L2.resolutions != 'custom' && v4l2Options.grabberV4L2.resolutions != 'auto' && v4l2Options.grabberV4L2.available_devices != 'auto')
         (v4l2Options.grabberV4L2.width = parseInt(v4l2Options.grabberV4L2.resolutions.split('x')[0]),

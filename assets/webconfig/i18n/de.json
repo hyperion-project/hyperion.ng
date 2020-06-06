@@ -583,6 +583,8 @@
 	"edt_conf_v4l2_heading_title": "USB Aufnahme",
 	"edt_conf_v4l2_device_title": "Gerät",
 	"edt_conf_v4l2_device_expl": "Eine Liste von USB (v4l) Aufnahmegeräten. Wähle 'Automatisch' für automatische Erkennung. Benutzerdefiniert z.b.: '/dev/video0'",
+	"edt_conf_v4l2_input_title": "Eingang",
+	"edt_conf_v4l2_input_expl": "Wähle den Videoeingang deines Gerätes. Auf 'Automatisch' wird der Videoeingang vom v4l interface beibehalten.",
 	"edt_conf_v4l2_standard_title": "Videoformat",
 	"edt_conf_v4l2_standard_expl": "Wähle das passende Videoformat deiner Region. Auf 'Automatisch' wird der gewählte Modus vom v4l interface beibehalten.",
 	"edt_conf_v4l2_resolution_title": "Auflösung",
