@@ -8,6 +8,10 @@
 #include <QUuid>
 #include <QDir>
 
+#ifdef _WIN32
+	#include <stdexcept>
+#endif
+
 // not in header because of linking
 static QString _rootPath;
 static QThreadStorage<QSqlDatabase> _databasePool;
