@@ -21,7 +21,6 @@
 			"type" : "integer",
 			"title" : "edt_conf_enum_custom",
 			"default" : 0,
-			"minimum" : 0,
 			"options" : {
 				"hidden":true
 			},

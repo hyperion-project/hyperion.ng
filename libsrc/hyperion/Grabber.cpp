@@ -73,10 +73,13 @@ void Grabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTo
 
 bool Grabber::setInput(int input)
 {
-	if((input > 0) && (_input != input))
+	if((input >= 0) && (_input != input))
+	{
 		_input = input;
+		return true;
+	}
 
-	return (input > 0) && (_input != input);
+	return false;
 }
 
 bool Grabber::setWidthHeight(int width, int height)
@@ -100,7 +103,10 @@ bool Grabber::setWidthHeight(int width, int height)
 bool Grabber::setFramerate(int fps)
 {
 	if((fps > 0) && (_fps != fps))
+	{
 		_fps = fps;
+		return true;
+	}
 
-	return (fps > 0) && (_fps != fps);
+	return false;
 }

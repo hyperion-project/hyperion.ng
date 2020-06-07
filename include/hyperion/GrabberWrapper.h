@@ -5,7 +5,6 @@
 #include <QJsonArray>
 #include <QString>
 #include <QStringList>
-#include <QMap>
 #include <QMultiMap>
 
 #include <utils/Logger.h>

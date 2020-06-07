@@ -88,9 +88,9 @@ $(document).ready( function() {
 
     // Switch between visible states
     function toggleOption(option, state) {
-      $('[data-schemapath*="root.grabberV4L2.'+option+'"]').toggle(state);
+      $('[data-schemapath="root.grabberV4L2.'+option+'"]').toggle(state);
       if (state) (
-        $('[data-schemapath*="root.grabberV4L2.'+option+'"]').addClass('col-md-12'),
+        $('[data-schemapath="root.grabberV4L2.'+option+'"]').addClass('col-md-12'),
         $('label[for="root_grabberV4L2_'+option+'"]').css('left','10px'),
         $('[id="root_grabberV4L2_'+option+'"]').css('left','10px')
       );
@@ -121,16 +121,22 @@ $(document).ready( function() {
                 conf_editor_v4l2.getEditor(path + item).enable();
               });
 
+              conf_editor_v4l2.getEditor(path + 'standard').enable();
               toggleOption('device', true);
+
             } else if (val == 'auto') {
               V4L2properties.forEach(function(item) {
                 conf_editor_v4l2.getEditor(path + item).setValue('auto');
                 conf_editor_v4l2.getEditor(path + item).disable();
               });
 
-              (toggleOption('device', false), /*toggleOption('input', false),*/
+              conf_editor_v4l2.getEditor(path + 'standard').setValue('auto');
+              conf_editor_v4l2.getEditor(path + 'standard').disable();
+
+              (toggleOption('device', false), toggleOption('input', false),
                toggleOption('width', false), toggleOption('height', false),
                toggleOption('fps', false));
+
             } else {
               var grabberV4L2 = ed.parent;
               V4L2properties.forEach(function(item) {
@@ -146,6 +152,7 @@ $(document).ready( function() {
                 conf_editor_v4l2.getEditor(path + item).enable();
               });
 
+              conf_editor_v4l2.getEditor(path + 'standard').enable();
               toggleOption('device', false);
             }
           }
@@ -245,7 +252,7 @@ $(document).ready( function() {
         conf_editor_v4l2.getEditor('root.grabberV4L2.available_devices').setValue('auto');
 
       if (window.serverConfig.grabberV4L2.available_devices == 'auto') {
-        ['device_inputs', 'resolutions', 'framerates'].forEach(function(item) {
+        ['device_inputs', 'standard', 'resolutions', 'framerates'].forEach(function(item) {
           conf_editor_v4l2.getEditor('root.grabberV4L2.' + item).setValue('auto');
           conf_editor_v4l2.getEditor('root.grabberV4L2.' + item).disable();
         });

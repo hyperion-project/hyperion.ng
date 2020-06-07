@@ -588,7 +588,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 	{
 		(-1 == xioctl(VIDIOC_S_INPUT, &_input))
 		?	Debug(_log, "Input settings not supported.")
-		:	Debug(_log, "Set device input to %s", v4l2Input.name);
+		:	Debug(_log, "Set device input to: %s", v4l2Input.name);
 	}
 
 	// set the video standard if needed and supported
