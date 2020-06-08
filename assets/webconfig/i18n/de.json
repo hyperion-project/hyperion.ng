@@ -137,7 +137,7 @@
 	"conf_leds_optgroup_RPiPWM": "RPi PWM",
 	"conf_leds_optgroup_RPiGPIO": "RPi GPIO",
 	"conf_leds_optgroup_network": "Netzwerk",
-	"conf_leds_optgroup_usb": "USB",
+	"conf_leds_optgroup_usb": "USB/Seriell",
 	"conf_leds_optgroup_debug": "Debug",
 	"conf_leds_layout_btn_checklist": "Zeige Checkliste",
 	"conf_leds_layout_checkp1": "Die schwarze eingefärbte LED ist die erste LED. Das ist der Punkt, an dem die Daten eingespeist werden.",

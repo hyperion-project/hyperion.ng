@@ -12,7 +12,9 @@
 		  }
 {
 	_devConfig = deviceConfig;
-	_deviceReady = false;
+	_isDeviceReady = false;
+
+	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDevice* LedDeviceSk6812SPI::construct(const QJsonObject &deviceConfig)
@@ -24,8 +26,10 @@ bool LedDeviceSk6812SPI::init(const QJsonObject &deviceConfig)
 {
 	_baudRate_Hz = 3000000;
 
-	bool isInitOK = ProviderSpi::init(deviceConfig);
-	if ( isInitOK )
+	bool isInitOK = false;
+
+	// Initialise sub-class
+	if ( ProviderSpi::init(deviceConfig) )
 	{
 		QString whiteAlgorithm = deviceConfig["whiteAlgorithm"].toString("white_off");
 
@@ -44,6 +48,8 @@ bool LedDeviceSk6812SPI::init(const QJsonObject &deviceConfig)
 
 			const int SPI_FRAME_END_LATCH_BYTES = 3;
 			_ledBuffer.resize(_ledRGBWCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
+
+			isInitOK = true;
 		}
 	}
 	return isInitOK;

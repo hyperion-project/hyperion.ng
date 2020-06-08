@@ -4,7 +4,9 @@ LedDeviceAPA102::LedDeviceAPA102(const QJsonObject &deviceConfig)
 	: ProviderSpi()
 {
 	_devConfig = deviceConfig;
-	_deviceReady = false;
+	_isDeviceReady = false;
+
+	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDevice* LedDeviceAPA102::construct(const QJsonObject &deviceConfig)
@@ -14,10 +16,12 @@ LedDevice* LedDeviceAPA102::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceAPA102::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = ProviderSpi::init(deviceConfig);
+	bool isInitOK = false;
 
-	if ( isInitOK )
+	// Initialise sub-class
+	if ( ProviderSpi::init(deviceConfig) )
 	{
+
 		const unsigned int startFrameSize = 4;
 		const unsigned int endFrameSize = qMax<unsigned int>(((_ledCount + 15) / 16), 4);
 		const unsigned int APAbufferSize = (_ledCount * 4) + startFrameSize + endFrameSize;
@@ -27,6 +31,9 @@ bool LedDeviceAPA102::init(const QJsonObject &deviceConfig)
 		_ledBuffer[1] = 0x00;
 		_ledBuffer[2] = 0x00;
 		_ledBuffer[3] = 0x00;
+
+		isInitOK = true;
+
 	}
 	return isInitOK;
 }

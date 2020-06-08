@@ -8,15 +8,19 @@
 
 static const unsigned MAX_NUM_LEDS = 320;
 static const unsigned MAX_NUM_LEDS_SETTABLE = 16;
+const uint16_t DEFAULT_PORT = 4223;
 
 LedDeviceTinkerforge::LedDeviceTinkerforge(const QJsonObject &deviceConfig)
 	: LedDevice()
-	, _ipConnection(nullptr)
-	, _ledStrip(nullptr)
-	, _colorChannelSize(0)
+	  ,_port(DEFAULT_PORT)
+	  ,_ipConnection(nullptr)
+	  ,_ledStrip(nullptr)
+	  ,_colorChannelSize(0)
 {
 	_devConfig = deviceConfig;
-	_deviceReady = false;
+	_isDeviceReady = false;
+
+	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDeviceTinkerforge::~LedDeviceTinkerforge()
@@ -31,20 +35,21 @@ LedDevice* LedDeviceTinkerforge::construct(const QJsonObject &deviceConfig)
 	return new LedDeviceTinkerforge(deviceConfig);
 }
 
-
 bool LedDeviceTinkerforge::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = LedDevice::init(deviceConfig);
-	if (isInitOK)
+	bool isInitOK = false;
+
+	// Initialise sub-class
+	if ( LedDevice::init(deviceConfig) )
 	{
 		_host     = deviceConfig["output"].toString("127.0.0.1");
-		_port     = deviceConfig["port"].toInt(4223);
+		_port     = deviceConfig["port"].toInt(DEFAULT_PORT);
 		_uid      = deviceConfig["uid"].toString();
 		_interval = deviceConfig["rate"].toInt();
 
 		if ((unsigned)_ledCount > MAX_NUM_LEDS)
 		{
-			QString errortext = QString ("Initialization error. Not more than %1 leds are allowed.").arg(MAX_NUM_LEDS);
+			QString errortext = QString ("Initialization error. Not more than %1 LEDs are allowed.").arg(MAX_NUM_LEDS);
 			this->setInError(errortext);
 			isInitOK = false;
 	}
@@ -67,52 +72,47 @@ int LedDeviceTinkerforge::open()
 {
 	int retval = -1;
 	QString errortext;
-	_deviceReady = false;
+	_isDeviceReady = false;
 
-	if ( init(_devConfig) )
+	// Check if connection is already created
+	if (_ipConnection != nullptr)
 	{
+		Error(_log, "Attempt to open existing connection; close before opening");
+	}
+	else
+	{
+		// Initialise a new connection
+		_ipConnection = new IPConnection;
+		ipcon_create(_ipConnection);
 
-		// Check if connection is already createds
-		if (_ipConnection != nullptr)
+		int connectionStatus = ipcon_connect(_ipConnection, QSTRING_CSTR(_host), _port);
+		if (connectionStatus < 0)
 		{
-			Error(_log, "Attempt to open existing connection; close before opening");
+			Error(_log, "Attempt to connect to master brick (%s:%d) failed with status %d", QSTRING_CSTR(_host), _port, connectionStatus);
 		}
 		else
 		{
-			// Initialise a new connection
-			_ipConnection = new IPConnection;
-			ipcon_create(_ipConnection);
+			// Create the 'LedStrip'
+			_ledStrip = new LEDStrip;
+			led_strip_create(_ledStrip, QSTRING_CSTR(_uid), _ipConnection);
 
-			int connectionStatus = ipcon_connect(_ipConnection, QSTRING_CSTR(_host), _port);
-			if (connectionStatus < 0)
+			int frameStatus = led_strip_set_frame_duration(_ledStrip, _interval);
+			if (frameStatus < 0)
 			{
-				Error(_log, "Attempt to connect to master brick (%s:%d) failed with status %d", QSTRING_CSTR(_host), _port, connectionStatus);
+				Error(_log,"Attempt to connect to led strip bricklet (led_strip_set_frame_duration()) failed with status %d", frameStatus);
 			}
 			else
 			{
-				// Create the 'LedStrip'
-				_ledStrip = new LEDStrip;
-				led_strip_create(_ledStrip, QSTRING_CSTR(_uid), _ipConnection);
-
-				int frameStatus = led_strip_set_frame_duration(_ledStrip, _interval);
-				if (frameStatus < 0)
-				{
-					Error(_log,"Attempt to connect to led strip bricklet (led_strip_set_frame_duration()) failed with status %d", frameStatus);
-				}
-				else
-				{
-					// Everything is OK -> enable device
-					_deviceReady = true;
-					setEnable(true);
-					retval = 0;
-				}
+				// Everything is OK, device is ready
+				_isDeviceReady = true;
+				retval = 0;
 			}
 		}
-		// On error/exceptions, set LedDevice in error
-		if ( retval < 0 )
-		{
-			this->setInError( "Error opening device!" );
-		}
+	}
+	// On error/exceptions, set LedDevice in error
+	if ( retval < 0 )
+	{
+		this->setInError( "Error opening device!" );
 	}
 	return retval;
 }

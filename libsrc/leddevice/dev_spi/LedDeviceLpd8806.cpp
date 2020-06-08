@@ -4,7 +4,9 @@ LedDeviceLpd8806::LedDeviceLpd8806(const QJsonObject &deviceConfig)
 	: ProviderSpi()
 {
 	_devConfig = deviceConfig;
-	_deviceReady = false;
+	_isDeviceReady = false;
+
+	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDevice* LedDeviceLpd8806::construct(const QJsonObject &deviceConfig)
@@ -14,13 +16,18 @@ LedDevice* LedDeviceLpd8806::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceLpd8806::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = ProviderSpi::init(deviceConfig);
+	bool isInitOK = false;
 
-	const unsigned clearSize = _ledCount/32+1;
-	unsigned messageLength = _ledRGBCount + clearSize;
-	// Initialise the buffer
-	_ledBuffer.resize(messageLength, 0x00);
+	// Initialise sub-class
+	if ( ProviderSpi::init(deviceConfig) )
+	{
+		const unsigned clearSize = _ledCount/32+1;
+		unsigned messageLength = _ledRGBCount + clearSize;
+		// Initialise the buffer
+		_ledBuffer.resize(messageLength, 0x00);
 
+		isInitOK = true;
+	}
 	return isInitOK;
 }
 
@@ -28,13 +35,11 @@ int LedDeviceLpd8806::open()
 {
 	int retval = -1;
 	QString errortext;
-	_deviceReady = false;
+	_isDeviceReady = false;
 
-	// General initialisation and configuration of LedDevice
-	if ( init(_devConfig) )
+	if ( ProviderSpi::open() > -1 )
 	{
 		// Perform an initial reset to start accepting data on the first led
-
 		const unsigned clearSize = _ledCount/32+1;
 		if ( writeBytes(clearSize, _ledBuffer.data()) < 0 )
 		{
@@ -43,8 +48,7 @@ int LedDeviceLpd8806::open()
 		else
 		{
 			// Everything is OK -> enable device
-			_deviceReady = true;
-			setEnable(true);
+			_isDeviceReady = true;
 			retval = 0;
 		}
 		// On error/exceptions, set LedDevice in error
@@ -53,6 +57,7 @@ int LedDeviceLpd8806::open()
 			this->setInError( errortext );
 		}
 	}
+	Debug(_log, "[%d]", retval);
 	return retval;
 }
 

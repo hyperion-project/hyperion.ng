@@ -2,22 +2,26 @@
 #include "LedDeviceAtmoOrb.h"
 
 // qt includes
-#include <QtNetwork>
+#include <QUdpSocket>
+
+const quint16 MULTICAST_GROUPL_DEFAULT_PORT = 49692;
+const int LEDS_DEFAULT_NUMBER = 24;
 
 LedDeviceAtmoOrb::LedDeviceAtmoOrb(const QJsonObject &deviceConfig)
 	: LedDevice()
-	  , _networkmanager (nullptr)
 	  , _udpSocket (nullptr)
-	  , _multiCastGroupPort (49692)
-	  , joinedMulticastgroup (false)
+	  , _multiCastGroupPort (MULTICAST_GROUPL_DEFAULT_PORT)
+	  , _joinedMulticastgroup (false)
 	  , _useOrbSmoothing (false)
 	  , _transitiontime (0)
 	  , _skipSmoothingDiff (0)
-	  , _numLeds (24)
+	  , _numLeds (LEDS_DEFAULT_NUMBER)
 
 {
 	_devConfig = deviceConfig;
-	_deviceReady = false;
+	_isDeviceReady = false;
+
+	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDevice* LedDeviceAtmoOrb::construct(const QJsonObject &deviceConfig)
@@ -27,23 +31,25 @@ LedDevice* LedDeviceAtmoOrb::construct(const QJsonObject &deviceConfig)
 
 LedDeviceAtmoOrb::~LedDeviceAtmoOrb()
 {
-	_networkmanager->deleteLater();
-	_udpSocket->deleteLater();
+	if ( _udpSocket != nullptr )
+	{
+		_udpSocket->deleteLater();
+	}
 }
 
 bool LedDeviceAtmoOrb::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = LedDevice::init(deviceConfig);
+	bool isInitOK = false;
 
-	if ( isInitOK )
+	if ( LedDevice::init(deviceConfig) )
 	{
 
 		_multicastGroup     = deviceConfig["output"].toString().toStdString().c_str();
 		_useOrbSmoothing    = deviceConfig["useOrbSmoothing"].toBool(false);
 		_transitiontime     = deviceConfig["transitiontime"].toInt(0);
 		_skipSmoothingDiff  = deviceConfig["skipSmoothingDiff"].toInt(0);
-		_multiCastGroupPort = static_cast<quint16>(deviceConfig["port"].toInt(49692));
-		_numLeds            = deviceConfig["numLeds"].toInt(24);
+		_multiCastGroupPort = static_cast<quint16>(deviceConfig["port"].toInt(MULTICAST_GROUPL_DEFAULT_PORT));
+		_numLeds            = deviceConfig["numLeds"].toInt(LEDS_DEFAULT_NUMBER);
 
 		const QStringList orbIds = deviceConfig["orbIds"].toString().simplified().remove(" ").split(",", QString::SkipEmptyParts);
 		_orbIds.clear();
@@ -63,41 +69,56 @@ bool LedDeviceAtmoOrb::init(const QJsonObject &deviceConfig)
 			this->setInError("No valid OrbIds found!");
 			isInitOK = false;
 		}
+		else
+		{
+			isInitOK = true;
+		}
 	}
-	return isInitOK;
-}
-
-bool LedDeviceAtmoOrb::initNetwork()
-{
-	bool isInitOK = true;
-
-	// TODO: Add Network-Error handling
-	_networkmanager = new QNetworkAccessManager();
-	_groupAddress = QHostAddress(_multicastGroup);
-
-	_udpSocket = new QUdpSocket(this);
-	_udpSocket->bind(QHostAddress::AnyIPv4, _multiCastGroupPort, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint);
-
-	joinedMulticastgroup = _udpSocket->joinMulticastGroup(_groupAddress);
 	return isInitOK;
 }
 
 int LedDeviceAtmoOrb::open()
 {
 	int retval = -1;
-	_deviceReady = false;
+	_isDeviceReady = false;
 
-	if ( init(_devConfig) )
+	_udpSocket = new QUdpSocket(this);
+	// Try to bind the UDP-Socket
+	if ( _udpSocket != nullptr )
 	{
-		if ( !initNetwork() )
+		_groupAddress = QHostAddress(_multicastGroup);
+		_udpSocket = new QUdpSocket(this);
+		if ( !_udpSocket->bind(QHostAddress::AnyIPv4, _multiCastGroupPort, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint) )
 		{
-			this->setInError( "Network error!" );
+			this->setInError( QString ("Could not bind address: %1").arg(strerror(errno)) );
 		}
 		else
 		{
-			_deviceReady = true;
-			setEnable(true);
-			retval = 0;
+			_joinedMulticastgroup = _udpSocket->joinMulticastGroup(_groupAddress);
+			if ( _joinedMulticastgroup )
+			{
+				// Everything is OK, device is ready
+				_isDeviceReady = true;
+				retval = 0;
+			}
+		}
+	}
+	return retval;
+}
+
+int LedDeviceAtmoOrb::close()
+{
+	int retval = 0;
+	_isDeviceReady = false;
+
+	if ( _udpSocket != nullptr )
+	{
+		// Test, if device requires closing
+		if ( _udpSocket->isOpen() )
+		{
+			Debug(_log,"Close UDP-device: %s", QSTRING_CSTR( this->getActiveDeviceType() ) );
+			_udpSocket->close();
+			// Everything is OK -> device is closed
 		}
 	}
 	return retval;
@@ -106,7 +127,7 @@ int LedDeviceAtmoOrb::open()
 int LedDeviceAtmoOrb::write(const std::vector <ColorRgb> &ledValues)
 {
 	// If not in multicast group return
-	if (!joinedMulticastgroup)
+	if (!_joinedMulticastgroup)
 	{
 		return 0;
 	}

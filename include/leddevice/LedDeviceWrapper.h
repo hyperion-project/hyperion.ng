@@ -1,4 +1,5 @@
-#pragma once
+#ifndef LEDEVICEWRAPPER_H
+#define LEDEVICEWRAPPER_H
 
 // util
 #include <utils/Logger.h>
@@ -21,8 +22,8 @@ public:
 	explicit LedDeviceWrapper(Hyperion* hyperion);
 	~LedDeviceWrapper();
 	///
-	/// @brief Contructs a new LedDevice, moves to thread and starts
-	/// @param config  With the given config
+	/// @brief Constructs a new LedDevice, moves to thread and starts
+	/// @param config  With the given configuration
 	///
 	void createLedDevice(const QJsonObject& config);
 
@@ -33,19 +34,19 @@ public:
 	static const QJsonObject getLedDeviceSchemas();
 
 	///
-	/// @brief add all device constrcutors to the map
+	/// @brief add all device constructors to the map
 	///
 	static int addToDeviceMap(QString name, LedDeviceCreateFuncType funcPtr);
 
 	///
-	/// @brief Return all available device contructors
-	/// @return device constrcutors
+	/// @brief Return all available device constructors
+	/// @return device constructors
 	///
 	static const LedDeviceRegistry& getDeviceMap();
 
 	///
-	/// @brief Get the current latchtime of the ledDevice
-	/// @ return latchtime in ms
+	/// @brief Get the current latch time of the ledDevice
+	/// @ return latch time in ms
 	///
 	int getLatchTime();
 
@@ -57,7 +58,7 @@ public:
 	///
 	/// @brief Return the last enable state
 	///
-	const bool & enabled() { return _enabled; }
+	const bool & enabled();
 
 	///
 	/// @brief Get the current colorOrder from device
@@ -65,14 +66,14 @@ public:
 	const QString & getColorOrder();
 
 	///
-	/// @brief Get the number of Leds from device
+	/// @brief Get the number of LEDs from device
 	///
 	unsigned int getLedCount() const;
 
 public slots:
 	///
 	/// @brief Handle new component state request
-	/// @apram component  The comp from enum
+	/// @param component  The comp from enum
 	/// @param state      The new state
 	///
 	void handleComponentState(const hyperion::Components component, const bool state);
@@ -100,7 +101,7 @@ private slots:
 
 
 protected:
-	/// contains all available led device constrcutors
+	/// contains all available led device constructors
 	static LedDeviceRegistry _ledDeviceMap;
 
 private:
@@ -117,3 +118,5 @@ private:
 	// the enable state
 	bool _enabled;
 };
+
+#endif // LEDEVICEWRAPPER_H

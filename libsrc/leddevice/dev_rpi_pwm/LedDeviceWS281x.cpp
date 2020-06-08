@@ -5,6 +5,8 @@ LedDeviceWS281x::LedDeviceWS281x(const QJsonObject &deviceConfig)
 {
 	_devConfig = deviceConfig;
 	_deviceReady = false;
+
+	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDeviceWS281x::~LedDeviceWS281x()
@@ -79,7 +81,7 @@ bool LedDeviceWS281x::init(const QJsonObject &deviceConfig)
 	return isInitOK;
 }
 
-void LedDeviceWS281x::close()
+int LedDeviceWS281x::close()
 {
 	LedDevice::close();
 

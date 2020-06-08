@@ -16,7 +16,7 @@
 static const bool verbose  = false;
 static const bool verbose3 = false;
 
-// Controller configuration settings
+// Configuration settings
 static const char CONFIG_ADDRESS[] = "host";
 //static const char CONFIG_PORT[] = "port";
 static const char CONFIG_AUTH_TOKEN[] ="token";
@@ -39,7 +39,7 @@ static const char STATE_VALUE_FALSE[] = "false";
 
 // Device Data elements
 static const char DEV_DATA_NAME[] = "name";
-static const char DEV_DATA_MODEL[] = "model";
+static const char DEV_DATA_MODEL[] = "model";//	,
 static const char DEV_DATA_MANUFACTURER[] = "manufacturer";
 static const char DEV_DATA_FIRMWAREVERSION[] = "firmwareVersion";
 
@@ -50,8 +50,8 @@ static const char STREAM_CONTROL_PORT[] = "streamControlPort";
 const quint16 STREAM_CONTROL_DEFAULT_PORT = 60222; //Fixed port for Canvas;
 
 // Nanoleaf OpenAPI URLs
-static const char API_DEFAULT_PORT[] = "16021";
-static const char API_URL_FORMAT[] = "http://%1:%2/api/v1/%3/%4";
+static const int API_DEFAULT_PORT = 16021;
+static const char API_BASE_PATH[] = "/api/v1/%1/";
 static const char API_ROOT[] = "";
 //static const char API_EXT_MODE_STRING_V1[] = "{\"write\" : {\"command\" : \"display\", \"animType\" : \"extControl\"}}";
 static const char API_EXT_MODE_STRING_V2[] = "{\"write\" : {\"command\" : \"display\", \"animType\" : \"extControl\", \"extControlVersion\" : \"v2\"}}";
@@ -62,7 +62,6 @@ static const char API_EFFECT[] = "effects";
 // Nanoleaf ssdp services
 static const char SSDP_CANVAS[] = "nanoleaf:nl29";
 static const char SSDP_LIGHTPANELS[] = "nanoleaf_aurora:light";
-const int SSDP_TIMEOUT = 5000; // timout in ms
 
 // Nanoleaf Panel Shapetypes
 enum SHAPETYPES {
@@ -80,6 +79,19 @@ enum EXTCONTROLVERSIONS {
 	EXTCTRLVER_V2
 };
 
+LedDeviceNanoleaf::LedDeviceNanoleaf(const QJsonObject &deviceConfig)
+	: ProviderUdp()
+	  ,_restApi(nullptr)
+	  ,_api_port(API_DEFAULT_PORT)
+	  ,_extControlVersion (EXTCTRLVER_V2),
+	  _panelLedCount(0)
+{
+	_devConfig = deviceConfig;
+	_isDeviceReady = false;
+
+	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
+}
+
 LedDevice* LedDeviceNanoleaf::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceNanoleaf(deviceConfig);
@@ -87,21 +99,17 @@ LedDevice* LedDeviceNanoleaf::construct(const QJsonObject &deviceConfig)
 
 LedDeviceNanoleaf::~LedDeviceNanoleaf()
 {
-	_networkmanager->deleteLater();
-}
-
-LedDeviceNanoleaf::LedDeviceNanoleaf(const QJsonObject &deviceConfig)
-	: ProviderUdp()
-{
-	_devConfig = deviceConfig;
-	_deviceReady = false;
-	_networkmanager = nullptr;
-	_extControlVersion = EXTCTRLVER_V2;
-	_panelLedCount = 0;
+	if ( _restApi != nullptr )
+	{
+		delete _restApi;
+		_restApi = nullptr;
+	}
 }
 
 bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig)
 {
+	Debug(_log, "");
+	Debug(_log, "_isEnabled [%d], _isDeviceReady [%d], _isDeviceInitialised [%d]", _isEnabled, _isDeviceReady, _isDeviceInitialised);
 	// Overwrite non supported/required features
 	_devConfig["latchTime"]   = 0;
 	if (deviceConfig["rewriteTime"].toInt(0) > 0)
@@ -112,61 +120,71 @@ bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig)
 
 	DebugIf(verbose, _log, "deviceConfig: [%s]", QString(QJsonDocument(_devConfig).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 
-	bool isInitOK = LedDevice::init(deviceConfig);
+	bool isInitOK = false;
 
-	if ( isInitOK )
+	if ( LedDevice::init(deviceConfig) )
 	{
 		uint configuredLedCount = this->getLedCount();
 		Debug(_log, "DeviceType   : %s", QSTRING_CSTR( this->getActiveDeviceType() ));
 		Debug(_log, "LedCount     : %u", configuredLedCount);
 		Debug(_log, "ColorOrder   : %s", QSTRING_CSTR( this->getColorOrder() ));
-		Debug(_log, "RefreshTime  : %d", _refresh_timer_interval);
+		Debug(_log, "RefreshTime  : %d", _refreshTimerInterval_ms);
 		Debug(_log, "LatchTime    : %d", this->getLatchTime());
+
+		// TODO: Allow to handle port dynamically
 
 		//Set hostname as per configuration and_defaultHost default port
 		_hostname   = deviceConfig[ CONFIG_ADDRESS ].toString();
 		_api_port   = API_DEFAULT_PORT;
-		_auth_token = deviceConfig[ CONFIG_AUTH_TOKEN ].toString();
+		_authToken = deviceConfig[ CONFIG_AUTH_TOKEN ].toString();
 
-		//If host not configured then discover device
+		//If host not configured the init failed
 		if ( _hostname.isEmpty() )
 		{
-			//Discover Nanoleaf device
-			if ( !discoverDevice() )
+			this->setInError("No target hostname nor IP defined");
+			isInitOK = false;
+		}
+		else
+		{
+			if ( initRestAPI( _hostname, _api_port, _authToken ) )
 			{
-				this->setInError("No target IP defined nor Nanoleaf device was discovered");
-				return false;
+				// Read LedDevice configuration and validate against device configuration
+				if ( initLedsConfiguration() )
+				{
+					// Set UDP streaming host and port
+					_devConfig["host"] = _hostname;
+					_devConfig["port"] = STREAM_CONTROL_DEFAULT_PORT;
+
+					isInitOK = ProviderUdp::init(_devConfig);
+					Debug(_log, "Hostname/IP  : %s", QSTRING_CSTR( _hostname ));
+					Debug(_log, "Port         : %d", _port);
+				}
 			}
 		}
-
-		// Set UDP streaming port
-		_devConfig["host"] = _hostname;
-		_devConfig["port"] = STREAM_CONTROL_DEFAULT_PORT;
-		isInitOK = ProviderUdp::init(_devConfig);
-
-		Debug(_log, "Hostname/IP  : %s", QSTRING_CSTR( _hostname ));
-		Debug(_log, "Port         : %d", _port);
 	}
+	Debug(_log, "[%d], _isEnabled [%d], _isDeviceReady [%d], _isDeviceInitialised [%d]", isInitOK, _isEnabled, _isDeviceReady, _isDeviceInitialised);
 	return isInitOK;
 }
 
-bool LedDeviceNanoleaf::initLeds()
+bool LedDeviceNanoleaf::initLedsConfiguration()
 {
+	Debug(_log, "_isEnabled [%d], _isDeviceReady [%d], _isDeviceInitialised [%d]", _isEnabled, _isDeviceReady, _isDeviceInitialised);
+	Debug(_log, "");
 	bool isInitOK = true;
 
 	//Get Nanoleaf device details and configuration
-	_networkmanager = new QNetworkAccessManager();
 
 	// Read Panel count and panel Ids
-	QString url = getUrl(_hostname, _api_port, _auth_token, API_ROOT );
-	QJsonDocument doc = getJson( url );
-	if ( this->isInError() )
+	_restApi->setPath(API_ROOT);
+	httpResponse response = _restApi->get();
+	if ( response.error() )
 	{
+		this->setInError ( response.getErrorReason() );
 		isInitOK = false;
 	}
 	else
 	{
-		QJsonObject jsonAllPanelInfo = doc.object();
+		QJsonObject jsonAllPanelInfo = response.getBody().object();
 
 		QString deviceName = jsonAllPanelInfo[DEV_DATA_NAME].toString();
 		_deviceModel = jsonAllPanelInfo[DEV_DATA_MODEL].toString();
@@ -228,13 +246,13 @@ bool LedDeviceNanoleaf::initLeds()
 		Debug(_log, "PanelsNum      : %u", panelNum);
 		Debug(_log, "PanelLedCount  : %u", _panelLedCount);
 
-		// Check. if enough panelds were found.
+		// Check. if enough panels were found.
 		uint configuredLedCount = this->getLedCount();
 		if (_panelLedCount < configuredLedCount )
 		{
 			QString errorReason = QString("Not enough panels [%1] for configured LEDs [%2] found!")
-								  .arg(_panelLedCount)
-								  .arg(configuredLedCount);
+									  .arg(_panelLedCount)
+									  .arg(configuredLedCount);
 			this->setInError(errorReason);
 			isInitOK = false;
 		}
@@ -246,191 +264,211 @@ bool LedDeviceNanoleaf::initLeds()
 			}
 		}
 	}
+	Debug(_log, "[%d]", isInitOK);
+	return isInitOK;
+}
+
+//bool LedDeviceNanoleaf::initRestAPI()
+//{
+//	return initRestAPI ( _hostname,_api_port );
+//}
+
+bool LedDeviceNanoleaf::initRestAPI(const QString &hostname, const int port, const QString &token )
+{
+	Debug(_log, "");
+	bool isInitOK = false;
+
+	if ( _restApi == nullptr )
+	{
+		_restApi = new ProviderRestApi(hostname, port );
+
+		//Base-path is api-path + authentication token
+		_restApi->setBasePath( QString(API_BASE_PATH).arg(token) );
+
+		isInitOK = true;
+	}
+
+	Debug(_log, "[%d]", isInitOK);
 	return isInitOK;
 }
 
 int LedDeviceNanoleaf::open()
 {
-	int retval = -1;
-	_deviceReady = false;
+	Debug(_log, "");
 
-	if ( init(_devConfig) )
+	Debug(_log, "enabled [%d], _deviceReady [%d], isInError [%d]", this->isEnabled(), _isDeviceReady, this->isInError());
+	int retval = -1;
+	_isDeviceReady = false;
+
+	// Set Nanoleaf to External Control (UDP) mode
+	Debug(_log, "Set Nanoleaf to External Control (UDP) streaming mode");
+	QJsonDocument responseDoc = changeToExternalControlMode();
+	// Resolve port for Light Panels
+	QJsonObject jsonStreamControllInfo = responseDoc.object();
+	if ( ! jsonStreamControllInfo.isEmpty() )
 	{
-		if ( !initNetwork() )
-		{
-			this->setInError( "UDP Network error!" );
-		}
-		else
-		{
-			if ( initLeds() )
-			{
-				_deviceReady = true;
-				setEnable(true);
-				retval = 0;
-			}
-		}
+		//Set default streaming port
+		_port = static_cast<uchar>(jsonStreamControllInfo[STREAM_CONTROL_PORT].toInt());
 	}
+
+	if ( ProviderUdp::open() == 0 )
+	{
+		// Everything is OK, device is ready
+		_isDeviceReady = true;
+		retval = 0;
+	}
+	Debug(_log, "[%d]", retval);
 	return retval;
 }
 
-bool LedDeviceNanoleaf::discoverDevice()
+QJsonObject LedDeviceNanoleaf::discover()
 {
+	Debug(_log, "");
 
-	bool isDeviceFound (false);
-	// device searching by ssdp
-	QString address;
+	QJsonObject devicesDiscovered;
+	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );
+
+	QJsonArray deviceList;
+
+	// Discover Nanoleaf Devices
 	SSDPDiscover discover;
 
-	// Discover Canvas device
-	address = discover.getFirstService(STY_WEBSERVER, SSDP_CANVAS, SSDP_TIMEOUT);
+	// Search for Canvas and Lightpanels
+	QString searchTargetFilter = QString("%1|%2").arg(SSDP_CANVAS, SSDP_LIGHTPANELS);
 
-	//No Canvas device not found
-	if ( address.isEmpty() ) {
-		// Discover Light Panels (Aurora) device
-		address = discover.getFirstService(STY_WEBSERVER, SSDP_LIGHTPANELS, SSDP_TIMEOUT);
+	discover.setSearchFilter(searchTargetFilter, "ST");
+	QString searchTarget = "ssdp:all";
 
-		if ( address.isEmpty() ) {
-			Warning(_log, "No Nanoleaf device discovered");
-		}
+	if ( discover.discoverServices(searchTarget) > 0 )
+	{
+		deviceList = discover.getServicesDiscoveredJson();
 	}
 
-	// Canvas or Light Panels found
-	if ( ! address.isEmpty() ) {
-		Info(_log, "Nanoleaf device discovered at [%s]", QSTRING_CSTR( address ));
-		isDeviceFound = true;
-		QStringList addressparts = address.split(":", QString::SkipEmptyParts);
-		_hostname = addressparts[0];
-		_api_port = addressparts[1];
-	}
-	return isDeviceFound;
+	devicesDiscovered.insert("devices", deviceList);
+	Debug(_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+
+	return devicesDiscovered;
 }
 
+QJsonObject LedDeviceNanoleaf::getProperties(const QJsonObject& params)
+{
+	Debug(_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+	QJsonObject properties;
+
+	// Get Nanoleaf device properties
+	QString host = params["host"].toString("");
+	if ( !host.isEmpty() )
+	{
+		QString authToken = params["token"].toString("");
+		QString filter = params["filter"].toString("");
+
+		// Resolve hostname and port (or use default API port)
+		QStringList addressparts = host.split(":", QString::SkipEmptyParts);
+		QString apiHost = addressparts[0];
+		int apiPort;
+
+		if ( addressparts.size() > 1)
+			apiPort = addressparts[1].toInt();
+		else
+			apiPort   = API_DEFAULT_PORT;
+
+		if ( filter.startsWith("/") )
+			filter.remove(0,1);
+
+		initRestAPI(apiHost, apiPort, authToken);
+		_restApi->setPath(filter);
+
+		// Perform request
+		httpResponse response = _restApi->get();
+		if ( response.error() )
+		{
+			Warning (_log, "%s get properties failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+		}
+
+		properties.insert("properties", response.getBody().object());
+
+		Debug(_log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+
+	}
+	return properties;
+}
+
+void LedDeviceNanoleaf::identify(const QJsonObject& params)
+{
+	Debug(_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+	QJsonObject properties;
+
+	// Get Nanoleaf device properties
+	QString host = params["host"].toString("");
+	if ( !host.isEmpty() )
+	{
+		QString authToken = params["token"].toString("");
+
+		// Resolve hostname and port (or use default API port)
+		QStringList addressparts = host.split(":", QString::SkipEmptyParts);
+		QString apiHost = addressparts[0];
+		int apiPort;
+
+		if ( addressparts.size() > 1)
+			apiPort = addressparts[1].toInt();
+		else
+			apiPort   = API_DEFAULT_PORT;
+
+		initRestAPI(apiHost, apiPort, authToken);
+		_restApi->setPath("identify");
+
+		// Perform request
+		httpResponse response = _restApi->put();
+		if ( response.error() )
+		{
+			Warning (_log, "%s identification failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+		}
+	}
+}
+
+bool LedDeviceNanoleaf::powerOn()
+{
+	Debug(_log, "");
+	if ( _isDeviceReady)
+	{
+		//Power-on Nanoleaf device
+		_restApi->setPath(API_STATE);
+		_restApi->put( getOnOffRequest(true) );
+	}
+	return true;
+}
+
+bool LedDeviceNanoleaf::powerOff()
+{
+	Debug(_log, "");
+	if ( _isDeviceReady)
+	{
+		//Power-off the Nanoleaf device physically
+		_restApi->setPath(API_STATE);
+		_restApi->put( getOnOffRequest(false) );
+	}
+	return true;
+}
+
+QString LedDeviceNanoleaf::getOnOffRequest (bool isOn ) const
+{
+	QString state = isOn ? STATE_VALUE_TRUE : STATE_VALUE_FALSE;
+	return QString( "{\"%1\":{\"%2\":%3}}" ).arg(STATE_ON, STATE_ONOFF_VALUE, state);
+}
 
 QJsonDocument LedDeviceNanoleaf::changeToExternalControlMode()
 {
-
-	QString url = getUrl(_hostname, _api_port, _auth_token, API_EFFECT );
-	QJsonDocument jsonDoc;
-
 	_extControlVersion = EXTCTRLVER_V2;
 	//Enable UDP Mode v2
-	jsonDoc= putJson(url, API_EXT_MODE_STRING_V2);
 
-	return jsonDoc;
-}
+	_restApi->setPath(API_EFFECT);
+	httpResponse response =_restApi->put(API_EXT_MODE_STRING_V2);
 
-QString LedDeviceNanoleaf::getUrl(QString host, QString port, QString auth_token, QString endpoint) const {
-	return QString(API_URL_FORMAT).arg(host, port, auth_token, endpoint);
-}
-
-QJsonDocument LedDeviceNanoleaf::getJson(QString url)
-{
-
-	Debug(_log, "GET: [%s]", QSTRING_CSTR( url ));
-
-	// Perfrom request
-	QNetworkRequest request(url);
-	QNetworkReply* reply = _networkmanager->get(request);
-	// Connect requestFinished signal to quit slot of the loop.
-	QEventLoop loop;
-	loop.connect(reply, SIGNAL(finished()), SLOT(quit()));
-	// Go into the loop until the request is finished.
-	loop.exec();
-
-	QJsonDocument jsonDoc;
-	if(reply->operation() == QNetworkAccessManager::GetOperation)
-	{
-		jsonDoc = handleReply( reply );
-	}
-	// Free space.
-	reply->deleteLater();
-	// Return response
-	return jsonDoc;
-}
-
-QJsonDocument LedDeviceNanoleaf::putJson(QString url, QString json)
-{
-
-	Debug(_log, "PUT: [%s] [%s]", QSTRING_CSTR( url ), QSTRING_CSTR( json ) );
-	// Perfrom request
-	QNetworkRequest request(url);
-	QNetworkReply* reply = _networkmanager->put(request, json.toUtf8());
-	// Connect requestFinished signal to quit slot of the loop.
-	QEventLoop loop;
-	loop.connect(reply, SIGNAL(finished()), SLOT(quit()));
-	// Go into the loop until the request is finished.
-	loop.exec();
-
-	QJsonDocument jsonDoc;
-	if(reply->operation() == QNetworkAccessManager::PutOperation)
-	{
-		jsonDoc = handleReply( reply );
-	}
-	// Free space.
-	reply->deleteLater();
-
-	// Return response
-	return jsonDoc;
-}
-
-QJsonDocument LedDeviceNanoleaf::handleReply(QNetworkReply* const &reply )
-{
-
-	QJsonDocument jsonDoc;
-
-	int httpStatusCode = reply->attribute( QNetworkRequest::HttpStatusCodeAttribute ).toInt();
-	Debug(_log, "Reply.httpStatusCode [%d]", httpStatusCode );
-
-	if(reply->error() == QNetworkReply::NoError)
-	{
-		if ( httpStatusCode != 204 ){
-			QByteArray response = reply->readAll();
-			QJsonParseError error;
-			jsonDoc = QJsonDocument::fromJson(response, &error);
-			if (error.error != QJsonParseError::NoError)
-			{
-				this->setInError ( "Got invalid response" );
-			}
-			else {
-				//Debug
-				QString strJson(jsonDoc.toJson(QJsonDocument::Compact));
-				DebugIf(verbose, _log, "Reply: [%s]", strJson.toUtf8().constData() );
-			}
-		}
-	}
-	else
-	{
-		QString errorReason;
-		if ( httpStatusCode > 0 ) {
-			QString httpReason = reply->attribute( QNetworkRequest::HttpReasonPhraseAttribute ).toString();
-			QString advise;
-			switch ( httpStatusCode ) {
-			case 400:
-				advise = "Check Request Body";
-				break;
-			case 401:
-				advise = "Check Authentication Token (API Key)";
-				break;
-			case 404:
-				advise = "Check Resource given";
-				break;
-			default:
-				break;
-			}
-			errorReason = QString ("%1:%2 [%3 %4] - %5").arg(_hostname, _api_port, QString(httpStatusCode) , httpReason, advise);
-		}
-		else {
-			errorReason = QString ("%1:%2 - %3").arg(_hostname, _api_port, reply->errorString());
-		}
-		this->setInError ( errorReason );
-	}
-	// Return response
-	return jsonDoc;
+	return response.getBody();
 }
 
 int LedDeviceNanoleaf::write(const std::vector<ColorRgb> & ledValues)
 {
-
 	int retVal = 0;
 	uint udpBufferSize;
 
@@ -473,7 +511,7 @@ int LedDeviceNanoleaf::write(const std::vector<ColorRgb> & ledValues)
 		}
 		else
 		{
-			// Set panels not configed to black;
+			// Set panels not configured to black;
 			color = ColorRgb::BLACK;
 			DebugIf(verbose3, _log, "[%u] >= panelLedCount [%u] => Set to BLACK", panelCounter, _panelLedCount );
 		}
@@ -507,46 +545,6 @@ int LedDeviceNanoleaf::write(const std::vector<ColorRgb> & ledValues)
 	retVal &= writeBytes( i , udpbuffer.data());
 	DebugIf(verbose3, _log, "writeBytes(): [%d]",retVal);
 	return retVal;
-}
-
-QString LedDeviceNanoleaf::getOnOffRequest (bool isOn ) const
-{
-	QString state = isOn ? STATE_VALUE_TRUE : STATE_VALUE_FALSE;
-	return QString( "{\"%1\":{\"%2\":%3}}" ).arg(STATE_ON, STATE_ONOFF_VALUE, state);
-}
-
-int LedDeviceNanoleaf::switchOn()
-{
-	if ( _deviceReady)
-	{
-		// Set Nanoleaf to External Control (UDP) mode
-		Debug(_log, "Set Nanoleaf to External Control (UDP) streaming mode");
-		QJsonDocument responseDoc = changeToExternalControlMode();
-		// Resolve port for Ligh Panels
-		QJsonObject jsonStreamControllInfo = responseDoc.object();
-		if ( ! jsonStreamControllInfo.isEmpty() ) {
-			_port = static_cast<uchar>(jsonStreamControllInfo[STREAM_CONTROL_PORT].toInt());
-		}
-
-		//Switch on Nanoleaf device
-		QString url = getUrl(_hostname, _api_port, _auth_token, API_STATE );
-		putJson(url, this->getOnOffRequest(true) );
-	}
-	return 0;
-}
-
-int LedDeviceNanoleaf::switchOff()
-{
-	//Set all LEDs to Black
-	int rc = LedDevice::switchOff();
-
-	if ( _deviceReady)
-	{
-		//Switch off Nanoleaf device physically
-		QString url = getUrl(_hostname, _api_port, _auth_token, API_STATE );
-		putJson(url, getOnOffRequest(false) );
-	}
-	return rc;
 }
 
 std::string LedDeviceNanoleaf:: uint8_vector_to_hex_string( const std::vector<uint8_t>& buffer ) const

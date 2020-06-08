@@ -46,7 +46,7 @@ Reset time is 300uS = 923 bits = 116 bytes
 		  }
 {
 	_devConfig = deviceConfig;
-	_deviceReady = false;
+	_isDeviceReady = false;
 }
 
 LedDevice* LedDeviceWs2812SPI::construct(const QJsonObject &deviceConfig)
@@ -58,8 +58,10 @@ bool LedDeviceWs2812SPI::init(const QJsonObject &deviceConfig)
 {
 	_baudRate_Hz = 2600000;
 
-	bool isInitOK = ProviderSpi::init(deviceConfig);
-	if ( isInitOK )
+	bool isInitOK = false;
+
+	// Initialise sub-class
+	if ( ProviderSpi::init(deviceConfig) )
 	{
 		WarningIf(( _baudRate_Hz < 2106000 || _baudRate_Hz > 3075000 ), _log, "SPI rate %d outside recommended range (2106000 -> 3075000)", _baudRate_Hz);
 

@@ -22,14 +22,17 @@ LedDeviceMultiLightpack::LedDeviceMultiLightpack(const QJsonObject &deviceConfig
 	, _lightpacks()
 {
 	_devConfig = deviceConfig;
-	_deviceReady = false;
+	_isDeviceReady = false;
+
+	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDeviceMultiLightpack::~LedDeviceMultiLightpack()
 {
 	for (LedDeviceLightpack * device : _lightpacks)
 	{
-		delete device;
+		if ( device != nullptr)
+			delete device;
 	}
 }
 
@@ -38,14 +41,12 @@ LedDevice* LedDeviceMultiLightpack::construct(const QJsonObject &deviceConfig)
 	return new LedDeviceMultiLightpack(deviceConfig);
 }
 
-int LedDeviceMultiLightpack::open()
+bool LedDeviceMultiLightpack::init(const QJsonObject &deviceConfig)
 {
-	int retval = -1;
-	QString errortext;
-	_deviceReady = false;
+	bool isInitOK = false;
 
-	// General initialisation and configuration of LedDevice
-	if ( init(_devConfig) )
+	// Initialise sub-class
+	if ( LedDevice::init(deviceConfig) )
 	{
 		// retrieve a list with Lightpack serials
 		QStringList serialList = getLightpackSerials();
@@ -56,17 +57,21 @@ int LedDeviceMultiLightpack::open()
 		// open each lightpack device
 		foreach (auto serial , serialList)
 		{
-			LedDeviceLightpack * device = new LedDeviceLightpack(serial);
-			int error = device->open();
+			QJsonObject devConfig;
+			devConfig["serial"] = serial;
+			devConfig["latchTime"] = deviceConfig["latchTime"];
+			devConfig["rewriteTime"] = deviceConfig["rewriteTime"];
 
-			if (error == 0)
+			LedDeviceLightpack * device = new LedDeviceLightpack(devConfig);
+
+			device->start();
+			if (device->open() == 0)
 			{
 				_lightpacks.push_back(device);
 			}
 			else
 			{
-				//Error(_log, "Error while creating Lightpack device with serial %s", QSTRING_CSTR(serial));
-				errortext = QString ("Error while creating Lightpack device with serial %1").arg( serial );
+				Error(_log, "Error while creating Lightpack device with serial %s", QSTRING_CSTR(serial));
 				delete device;
 			}
 		}
@@ -74,24 +79,57 @@ int LedDeviceMultiLightpack::open()
 		if (_lightpacks.size() == 0)
 		{
 			//Warning(_log, "No Lightpack devices were found");
-			errortext = QString ("No Lightpack devices were found");
+			QString errortext = QString ("No Lightpack devices were found");
+			this->setInError(errortext);
+			isInitOK = false;
 		}
 		else
 		{
 			Info(_log, "%d Lightpack devices were found", _lightpacks.size());
-
-			// Everything is OK -> enable device
-			_deviceReady = true;
-			setEnable(true);
-			retval = 0;
-		}
-		// On error/exceptions, set LedDevice in error
-		if ( retval < 0 )
-		{
-			this->setInError( errortext );
+			isInitOK = true;
 		}
 	}
+	return isInitOK;
+}
+
+int LedDeviceMultiLightpack::open()
+{
+	int retval = -1;
+	_isDeviceReady = false;
+
+	int lightsInError = 0;
+	// open each lightpack device
+	for (LedDeviceLightpack * device : _lightpacks)
+	{
+		if (device->open() < 0)
+		{
+			Error( _log, "Failed to open [%s]", QSTRING_CSTR(device->getSerialNumber()) );
+			++lightsInError;
+		}
+	}
+
+	if ( lightsInError < static_cast<int>(_lightpacks.size()) )
+	{
+		// Everything is OK -> enable device
+		_isDeviceReady = true;
+		retval = 0;
+	}
+	else
+	{
+		this->setInError( "All Lighpacks failed to be opened!" );
+	}
 	return retval;
+}
+
+int LedDeviceMultiLightpack::close()
+{
+	_isDeviceReady = false;
+
+	for (LedDeviceLightpack * device : _lightpacks)
+	{
+			device->close();
+	}
+	return 0;
 }
 
 int LedDeviceMultiLightpack::write(const std::vector<ColorRgb> &ledValues)
@@ -105,7 +143,10 @@ int LedDeviceMultiLightpack::write(const std::vector<ColorRgb> &ledValues)
 
 		if (count > 0)
 		{
-			device->write(data, count);
+			if ( device->isOpen() )
+			{
+				device->write(data, count);
+			}
 
 			data += count;
 			size -= count;
@@ -119,14 +160,16 @@ int LedDeviceMultiLightpack::write(const std::vector<ColorRgb> &ledValues)
 	return 0;
 }
 
-int LedDeviceMultiLightpack::switchOff()
+bool LedDeviceMultiLightpack::powerOff()
 {
 	for (LedDeviceLightpack * device : _lightpacks)
 	{
-		device->switchOff();
+		if ( device->isOpen() )
+		{
+			device->powerOff();
+		}
 	}
-
-	return 0;
+	return true;
 }
 
 QStringList LedDeviceMultiLightpack::getLightpackSerials()

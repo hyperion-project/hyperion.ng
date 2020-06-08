@@ -6,22 +6,32 @@
 typedef SSIZE_T ssize_t;
 #endif
 
-static const signed   MAX_NUM_LEDS    = 10000; // OPC can handle 21845 leds - in theory, fadecandy device should handle 10000 leds
+static const signed   MAX_NUM_LEDS    = 10000; // OPC can handle 21845 LEDs - in theory, fadecandy device should handle 10000 LEDs
 static const unsigned OPC_SET_PIXELS  = 0;     // OPC command codes
-static const unsigned OPC_SYS_EX      = 255;     // OPC command codes
+static const unsigned OPC_SYS_EX      = 255;   // OPC command codes
 static const unsigned OPC_HEADER_SIZE = 4;     // OPC header size
+
+// TCP elements
+const quint16 STREAM_DEFAULT_PORT = 7890;
 
 LedDeviceFadeCandy::LedDeviceFadeCandy(const QJsonObject &deviceConfig)
 	: LedDevice()
-	, _client(nullptr)
+	  , _client(nullptr)
+	  ,_host()
+	  ,_port(STREAM_DEFAULT_PORT)
 {
 	_devConfig = deviceConfig;
-	_deviceReady = false;
+	_isDeviceReady = false;
+
+	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDeviceFadeCandy::~LedDeviceFadeCandy()
 {
-	_client->deleteLater();
+	if ( _client == nullptr )
+	{
+		_client->deleteLater();
+	}
 }
 
 LedDevice* LedDeviceFadeCandy::construct(const QJsonObject &deviceConfig)
@@ -31,46 +41,60 @@ LedDevice* LedDeviceFadeCandy::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceFadeCandy::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = LedDevice::init(deviceConfig);
+	Debug(_log, "");
+	bool isInitOK = false;
 
-	if ( isInitOK )
+	if ( LedDevice::init(deviceConfig) )
 	{
-		if (_ledCount > MAX_NUM_LEDS)
+		if (getLedCount() > MAX_NUM_LEDS)
 		{
-			//Error(_log, "fadecandy/opc: Invalid attempt to write led values. Not more than %d leds are allowed.", MAX_NUM_LEDS);
 			QString errortext = QString ("More LED configured than allowed (%1)").arg(MAX_NUM_LEDS);
 			this->setInError(errortext);
 			isInitOK = false;
 		}
 		else
 		{
-			_host        = deviceConfig["output"].toString("127.0.0.1");
-			_port        = deviceConfig["port"].toInt(7890);
-			_channel     = deviceConfig["channel"].toInt(0);
-			_gamma       = deviceConfig["gamma"].toDouble(1.0);
-			_noDither    = ! deviceConfig["dither"].toBool(false);
-			_noInterp    = ! deviceConfig["interpolation"].toBool(false);
-			_manualLED   = deviceConfig["manualLed"].toBool(false);
-			_ledOnOff    = deviceConfig["ledOn"].toBool(false);
-			_setFcConfig = deviceConfig["setFcConfig"].toBool(false);
+			_host = deviceConfig["output"].toString("127.0.0.1");
+			_port = deviceConfig["port"].toInt(STREAM_DEFAULT_PORT);
 
-			_whitePoint_r = 1.0;
-			_whitePoint_g = 1.0;
-			_whitePoint_b = 1.0;
-
-			const QJsonArray whitePointConfig = deviceConfig["whitePoint"].toArray();
-			if ( !whitePointConfig.isEmpty() && whitePointConfig.size() == 3 )
+			//If host not configured the init fails
+			if ( _host.isEmpty() )
 			{
-				_whitePoint_r = whitePointConfig[0].toDouble() / 255.0;
-				_whitePoint_g = whitePointConfig[1].toDouble() / 255.0;
-				_whitePoint_b = whitePointConfig[2].toDouble() / 255.0;
+				this->setInError("No target hostname nor IP defined");
 			}
+			else
+			{
+				_channel     = deviceConfig["channel"].toInt(0);
+				_gamma       = deviceConfig["gamma"].toDouble(1.0);
+				_noDither    = ! deviceConfig["dither"].toBool(false);
+				_noInterp    = ! deviceConfig["interpolation"].toBool(false);
+				_manualLED   = deviceConfig["manualLed"].toBool(false);
+				_ledOnOff    = deviceConfig["ledOn"].toBool(false);
+				_setFcConfig = deviceConfig["setFcConfig"].toBool(false);
 
-			_opc_data.resize( _ledRGBCount + OPC_HEADER_SIZE );
-			_opc_data[0] = _channel;
-			_opc_data[1] = OPC_SET_PIXELS;
-			_opc_data[2] = _ledRGBCount >> 8;
-			_opc_data[3] = _ledRGBCount & 0xff;
+				_whitePoint_r = 1.0;
+				_whitePoint_g = 1.0;
+				_whitePoint_b = 1.0;
+
+				const QJsonArray whitePointConfig = deviceConfig["whitePoint"].toArray();
+				if ( !whitePointConfig.isEmpty() && whitePointConfig.size() == 3 )
+				{
+					_whitePoint_r = whitePointConfig[0].toDouble() / 255.0;
+					_whitePoint_g = whitePointConfig[1].toDouble() / 255.0;
+					_whitePoint_b = whitePointConfig[2].toDouble() / 255.0;
+				}
+
+				_opc_data.resize( _ledRGBCount + OPC_HEADER_SIZE );
+				_opc_data[0] = _channel;
+				_opc_data[1] = OPC_SET_PIXELS;
+				_opc_data[2] = _ledRGBCount >> 8;
+				_opc_data[3] = _ledRGBCount & 0xff;
+
+				if ( initNetwork() )
+				{
+					isInitOK = true;
+				}
+			}
 		}
 	}
 	return isInitOK;
@@ -78,62 +102,77 @@ bool LedDeviceFadeCandy::init(const QJsonObject &deviceConfig)
 
 bool LedDeviceFadeCandy::initNetwork()
 {
-	bool isInitOK = true;
+	bool isInitOK = false;
 
-	// TODO: Add Network-Error handling
-	_client = new QTcpSocket(this);
+	if ( _client == nullptr )
+	{
+		_client = new QTcpSocket(this);
+		isInitOK = true;
+	}
 	return isInitOK;
 }
 
 int LedDeviceFadeCandy::open()
 {
 	int retval = -1;
-	_deviceReady = false;
+	QString errortext;
+	_isDeviceReady = false;
 
-	if ( init(_devConfig) )
+	// Try to open the LedDevice
+	if ( !tryConnect() )
 	{
-		if ( !initNetwork() )
-		{
-			this->setInError( "Network error!" );
-		}
-		else
-		{
-			_deviceReady = true;
-			setEnable(true);
-			retval = 0;
-		}
+		errortext = QString ("Failed to open device.");
+		this->setInError( errortext );
+	}
+	else
+	{
+		// Everything is OK, device is ready
+		_isDeviceReady = true;
+		retval = 0;
 	}
 	return retval;
 }
 
-void LedDeviceFadeCandy::close()
+int LedDeviceFadeCandy::close()
 {
-	LedDevice::close();
+	int retval = 0;
+	_isDeviceReady = false;
 
-	// LedDevice specific closing activites
-	_client->close();
+	// LedDevice specific closing activities
+	if ( _client != nullptr )
+	{
+		_client->close();
+		// Everything is OK -> device is closed
+	}
+	return retval;
 }
-
 
 bool LedDeviceFadeCandy::isConnected()
 {
-	return _client->state() == QAbstractSocket::ConnectedState;
+	bool connected = false;
+	if ( _client != nullptr )
+	{
+		connected = _client->state() == QAbstractSocket::ConnectedState;
+	}
+	return connected;
 }
 
 bool LedDeviceFadeCandy::tryConnect()
 {
-	if (  _client->state() == QAbstractSocket::UnconnectedState ) {
-		_client->connectToHost( _host, _port);
-		if ( _client->waitForConnected(1000) )
-		{
-			Info(_log,"fadecandy/opc: connected to %s:%i on channel %i", QSTRING_CSTR(_host), _port, _channel);
-			if (_setFcConfig)
+	if ( _client != nullptr )
+	{
+		if (  _client->state() == QAbstractSocket::UnconnectedState ) {
+			_client->connectToHost( _host, _port);
+			if ( _client->waitForConnected(1000) )
 			{
-				sendFadeCandyConfiguration();
+				Info(_log,"fadecandy/opc: connected to %s:%i on channel %i", QSTRING_CSTR(_host), _port, _channel);
+				if (_setFcConfig)
+				{
+					sendFadeCandyConfiguration();
+				}
 			}
 		}
 	}
-
 	return isConnected();
 }
 
@@ -148,15 +187,16 @@ int LedDeviceFadeCandy::write( const std::vector<ColorRgb> & ledValues )
 		idx += 3;
 	}
 
-	return ( transferData()<0 ? -1 : 0 );
+	int retval = transferData()<0 ? -1 : 0;
+	return retval;
 }
 
 int LedDeviceFadeCandy::transferData()
 {
-	if (LedDevice::enabled())
-		if ( isConnected() || tryConnect() )
-			return _client->write( _opc_data, _opc_data.size() );
-
+	if ( isConnected() || tryConnect() )
+	{
+		return _client->write( _opc_data, _opc_data.size() );
+	}
 	return -2;
 }
 

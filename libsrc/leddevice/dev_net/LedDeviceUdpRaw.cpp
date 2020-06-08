@@ -1,10 +1,14 @@
 #include "LedDeviceUdpRaw.h"
 
+const ushort RAW_DEFAULT_PORT=5568;
+
 LedDeviceUdpRaw::LedDeviceUdpRaw(const QJsonObject &deviceConfig)
 	: ProviderUdp()
 {
 	_devConfig = deviceConfig;
-	_deviceReady = false;
+	_isDeviceReady = false;
+
+	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDevice* LedDeviceUdpRaw::construct(const QJsonObject &deviceConfig)
@@ -15,6 +19,8 @@ LedDevice* LedDeviceUdpRaw::construct(const QJsonObject &deviceConfig)
 bool LedDeviceUdpRaw::init(const QJsonObject &deviceConfig)
 {
 	_port = RAW_DEFAULT_PORT;
+
+	// Initialise sub-class
 	bool isInitOK = ProviderUdp::init(deviceConfig);
 	return isInitOK;
 }

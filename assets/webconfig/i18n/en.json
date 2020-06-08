@@ -137,7 +137,7 @@
 	"conf_leds_optgroup_RPiPWM" : "RPi PWM",
 	"conf_leds_optgroup_RPiGPIO" : "RPi GPIO",
 	"conf_leds_optgroup_network" : "Network",
-	"conf_leds_optgroup_usb" : "USB",
+	"conf_leds_optgroup_usb" : "USB/Serial",
 	"conf_leds_optgroup_debug" : "Debug",
 	"conf_leds_layout_btn_checklist" : "Show checklist",
 	"conf_leds_layout_checkp1" : "The black led is your first led, the first led is the point where you input your data signal.",

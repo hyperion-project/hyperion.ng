@@ -1,62 +1,69 @@
-#pragma once
+#ifndef LEDEVICEFILE_H
+#define LEDEVICEFILE_H
 
 // STL includes
 #include <fstream>
 #include <chrono>
 
-// Leddevice includes
+// LedDevice includes
 #include <leddevice/LedDevice.h>
 
 ///
-/// Implementation of the LedDevice that write the led-colors to an
-/// ASCII-textfile('/home/pi/LedDevice.out')
+/// Implementation of the LedDevice that write the LED-colors to an
+/// ASCII-textfile primarily for testing purposes
 ///
 class LedDeviceFile : public LedDevice
 {
 public:
+
 	///
-	/// Constructs specific LedDevice
+	/// @brief Constructs a file output LED-device
 	///
-	/// @param deviceConfig json device config
+	/// @param deviceConfig Device's configuration as JSON-Object
 	///
 	explicit LedDeviceFile(const QJsonObject &deviceConfig);
 
 	///
-	/// Destructor of this test-device
+	/// @brief Destructor of the LedDevice
 	///
 	virtual ~LedDeviceFile() override;
 
-	/// constructs leddevice
+	///
+	/// @brief Constructs the LED-device
+	///
+	/// @param[in] deviceConfig Device's configuration as JSON-Object
+	/// @return LedDevice constructed
 	static LedDevice* construct(const QJsonObject &deviceConfig);
 
+protected:
+
 	///
-	/// Sets configuration
+	/// @brief Initialise the device's configuration
 	///
-	/// @param deviceConfig the json device config
-	/// @return true if success
+	/// @param[in] deviceConfig the JSON device configuration
+	/// @return True, if success
+	///
 	virtual bool init(const QJsonObject &deviceConfig) override;
 
-public slots:
 	///
-	/// Closes the output device.
-	/// Includes switching-off the device and stopping refreshes
+	/// @brief Opens the output device.
 	///
-	virtual void close() override;
-	
-protected:
-	///
-	/// Opens and initiatialises the output device
-	///
-	/// @return Zero on succes (i.e. device is ready and enabled) else negative
+	/// @return Zero on success (i.e. device is ready), else negative
 	///
 	virtual int open() override;
 
 	///
-	/// Writes the given led-color values to the output stream
+	/// @brief Closes the output device.
 	///
-	/// @param ledValues The color-value per led
+	/// @return Zero on success (i.e. device is closed), else negative
 	///
-	/// @return Zero on success else negative
+	virtual int close() override;
+
+	///
+	/// @brief Writes the RGB-Color values to the LEDs.
+	///
+	/// @param[in] ledValues The RGB-color per LED
+	/// @return Zero on success, else negative
 	///
 	virtual int write(const std::vector<ColorRgb> & ledValues) override;
 
@@ -70,5 +77,6 @@ private:
 	bool _printTimeStamp;
 	/// Last write/output timestamp
 	std::chrono::system_clock::time_point lastWriteTime = std::chrono::system_clock::now();
-
 };
+
+#endif // LEDEVICEFILE_H

@@ -751,6 +751,160 @@ function useGroupId(id)
   get_hue_lights();
 }
 
+async function discover_hue_bridges(){
+
+	const res = await requestLedDeviceDiscovery ('philipshue');
+	
+	// TODO: error case unhandled
+  	// res can be: false (timeout) or res.error (not found)
+	if(res && !res.error){
+		const r = res.info
+
+		// Process devices returned by discovery
+		console.log(r);
+		
+		if(r.devices.length == 0)
+			$('#wiz_hue_ipstate').html($.i18n('wiz_hue_failure_ip'));
+		else
+		{
+			for(const device of r.devices)
+			{
+				console.log("Device:", device);
+
+				var ip = device.hostname + ":" + device.port;
+				console.log("Host:", ip);
+
+				hueIPs.push({internalipaddress : ip});
+			}
+			var usr = $('#user').val();
+			if(usr != "") {
+			   checkHueBridge(checkUserResult, usr);
+			} else {
+			    checkHueBridge(checkBridgeResult);
+			  }
+		}
+	}	
+}
+
+async function getProperties_hue_bridge(hostAddress, username, resourceFilter){
+
+	let params = { host: hostAddress, user: username, filter: resourceFilter};
+	
+	const res = await requestLedDeviceProperties ('philipshue', params);
+	
+	// TODO: error case unhandled
+  	// res can be: false (timeout) or res.error (not found)
+	if(res && !res.error){
+		const r = res.info
+
+		// Process properties returned
+		console.log(r);
+	}	
+}
+
+function identify_hue_device(hostAddress, username, id){
+
+	console.log("identify_hue_device");
+
+	let params = { host: hostAddress, user: username, lightId: id };
+		
+	const res = requestLedDeviceIdentification ("philipshue", params);
+	// TODO: error case unhandled
+  	// res can be: false (timeout) or res.error (not found)
+	if(res && !res.error){
+		const r = res.info
+		console.log(r);
+	}	
+}
+
+async function discover_nanoleaf(){
+
+	const res = await requestLedDeviceDiscovery ('nanoleaf');
+	
+	// TODO: error case unhandled
+  	// res can be: false (timeout) or res.error (not found)
+	if(res && !res.error){
+		const r = res.info
+
+		// Process devices returned by discovery
+		console.log(r);
+		
+		if(r.devices.length == 0)
+			$('#wiz_hue_ipstate').html($.i18n('wiz_hue_failure_ip'));
+		else
+		{
+			for(const device of r.devices)
+			{
+				console.log("Device:", device);
+
+				var ip = device.hostname + ":" + device.port;
+				console.log("Host:", ip);
+
+				nanoleafIPs.push({internalipaddress : ip});
+			}
+		}
+	}	
+}
+
+async function getProperties_nanoleaf(hostAddress, authToken, resourceFilter){
+
+	let params = { host: hostAddress, token: authToken, filter: resourceFilter};
+	
+	const res = await requestLedDeviceProperties ('nanoleaf', params);
+	
+	// TODO: error case unhandled
+  	// res can be: false (timeout) or res.error (not found)
+	if(res && !res.error){
+		const r = res.info
+		
+		// Process properties returned
+		console.log(r);
+	}	
+}
+
+function identify_nanoleaf(hostAddress, authToken){
+
+	let params = { host: hostAddress, token: authToken};
+		
+	const res = requestLedDeviceIdentification ("nanoleaf", params);
+	// TODO: error case unhandled
+  	// res can be: false (timeout) or res.error (not found)
+	if(res && !res.error){
+
+		const r = res.info
+		console.log(r);
+	}	
+}
+
+async function discover_providerRs232(rs232Type){
+
+	const res = await requestLedDeviceDiscovery (rs232Type);
+	
+	// TODO: error case unhandled
+  	// res can be: false (timeout) or res.error (not found)
+	if(res && !res.error){
+		const r = res.info
+
+		// Process serialPorts returned by discover
+		console.log(r);
+	}	
+}
+
+async function discover_providerHid(hidType){
+
+	const res = await requestLedDeviceDiscovery (hidType);
+	console.log("discover_providerHid" ,res);	
+	
+	// TODO: error case unhandled
+  	// res can be: false (timeout) or res.error (not found)
+	if(res && !res.error){
+		const r = res.info
+
+		// Process HID returned by discover
+		console.log(r);
+	}	
+}
+
 function getHueIPs(){
   $('#wiz_hue_ipstate').html($.i18n('wiz_hue_searchb'));
   $.ajax({
@@ -795,7 +949,8 @@ function beginWizardHue()
   //check if ip is empty/reachable/search for bridge
   if(eV("output") == "")
   {
-    getHueIPs();
+    //getHueIPs();
+    discover_hue_bridges();
   }
   else
   {
@@ -810,8 +965,13 @@ function beginWizardHue()
   }
 
   $('#retry_bridge').off().on('click', function(){
-    if($('#ip').val()!="") hueIPs.unshift({internalipaddress : $('#ip').val()});
-    hueIPsinc = 0;
+    if($('#ip').val()!="") 
+	{
+		hueIPs.unshift({internalipaddress : $('#ip').val()})
+    	hueIPsinc = 0;
+    }
+    else  discover_hue_bridges();
+
     var usr = $('#user').val();
     if(usr != "") {
       checkHueBridge(checkUserResult, usr);
@@ -1105,7 +1265,7 @@ function get_hue_lights(){
           }
           $('.lidsb').append(createTableRow([lightid+' ('+r[lightid].name+')', '<select id="hue_'+lightid+'" class="hue_sel_watch form-control">'
           + options
-          + '</select>','<button class="btn btn-sm btn-primary" onClick=get_light_state('+lightid+')>'+$.i18n('wiz_hue_blinkblue',lightid)+'</button>']));
+          + '</select>','<button class="btn btn-sm btn-primary" onClick=identify_hue_device("'+$("#ip").val()+'","'+$("#user").val()+'",'+lightid+')>'+$.i18n('wiz_hue_blinkblue',lightid)+'</button>']));
         }
 
         if(hueType != 'philipshueentertainment')

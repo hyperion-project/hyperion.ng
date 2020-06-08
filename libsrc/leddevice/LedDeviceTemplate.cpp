@@ -4,7 +4,9 @@ LedDeviceTemplate::LedDeviceTemplate(const QJsonObject &deviceConfig)
 	: LedDevice()
 {
 	_devConfig = deviceConfig;
-	_deviceReady = false;
+	_isDeviceReady = false;
+
+	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDeviceTemplate::~LedDeviceTemplate()
@@ -18,18 +20,25 @@ LedDevice* LedDeviceTemplate::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceTemplate::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = LedDevice::init(deviceConfig);
+	bool isInitOK = false;
 
-	// Initiatiale LedDevice configuration and execution environment
-	// ...
-	if ( 0 /*Error during init*/)
+	// Initialise sub-class
+	if ( LedDevice::init(deviceConfig) )
 	{
-		//Build an errortext, illustrative
-		QString errortext = QString ("Error message: %1").arg("errno/text");
-		this->setInError(errortext);
-		isInitOK = false;
+		// Initialise LedDevice configuration and execution environment
+		// ...
+		if ( 0 /*Error during init*/)
+		{
+			//Build an errortext, illustrative
+			QString errortext = QString ("Error message: %1").arg("errno/text");
+			this->setInError(errortext);
+			isInitOK = false;
+		}
+		else
+		{
+			isInitOK = true;
+		}
 	}
-
 	return isInitOK;
 }
 
@@ -37,42 +46,45 @@ int LedDeviceTemplate::open()
 {
 	int retval = -1;
 	QString errortext;
-	_deviceReady = false;
+	_isDeviceReady = false;
 
-	// General initialisation and configuration of LedDevice
-	if ( init(_devConfig) )
+	// Try to open the LedDevice
+	//...
+
+	if ( false /*If opening failed*/ )
 	{
-		// Open/Start LedDevice based on configuration
-		//...
+		//Build an errortext, illustrative
+		errortext = QString ("Failed to xxx. Error message: %1").arg("errno/text");
+	}
+	else
+	{
+		// Everything is OK, device is ready
+		_isDeviceReady = true;
+		retval = 0;
+	}
 
-		if ( false /*If opening failed*/ )
-		{
-			//Build an errortext, illustrative
-			errortext = QString ("Failed to xxx. Error message: %1").arg("errno/text");
-		}
-		else
-		{
-			// Everything is OK -> enable device
-			_deviceReady = true;
-			setEnable(true);
-			retval = 0;
-		}
-
-		// On error/exceptions, set LedDevice in error
-		if ( retval < 0 )
-		{
-			this->setInError( errortext );
-		}
+	// On error/exceptions, set LedDevice in error
+	if ( retval < 0 )
+	{
+		this->setInError( errortext );
 	}
 	return retval;
 }
 
-void LedDeviceTemplate::close()
+int LedDeviceTemplate::close()
 {
-	LedDevice::close();
-
-	// LedDevice specific closing activites
+	// LedDevice specific closing activities
 	//...
+	int retval = 0;
+	_isDeviceReady = false;
+
+	// Test, if device requires closing
+	if ( true /*If device is still open*/ )
+	{
+		// Close device
+		// Everything is OK -> device is closed
+	}
+	return retval;
 }
 
 int LedDeviceTemplate::write(const std::vector<ColorRgb> & ledValues)

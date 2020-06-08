@@ -1,4 +1,5 @@
 #include "LedDeviceDMX.h"
+
 #include <QSerialPort>
 #ifndef _WIN32
 #include <time.h>
@@ -13,8 +14,11 @@ LedDeviceDMX::LedDeviceDMX(const QJsonObject &deviceConfig)
 	, _dmxChannelCount(0)
 {
 	_devConfig = deviceConfig;
-	_deviceReady = false;
+	_isDeviceReady = false;
+
+	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
+
 
 LedDevice* LedDeviceDMX::construct(const QJsonObject &deviceConfig)
 {
@@ -23,9 +27,10 @@ LedDevice* LedDeviceDMX::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceDMX::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = ProviderRs232::init(deviceConfig);
+	bool isInitOK = false;
 
-	if ( isInitOK )
+	// Initialise sub-class
+	if ( ProviderRs232::init(deviceConfig) )
 	{
 		QString dmxString = deviceConfig["dmxdevice"].toString("invalid");
 		if (dmxString == "raw")
@@ -59,6 +64,8 @@ bool LedDeviceDMX::init(const QJsonObject &deviceConfig)
 
 		_ledBuffer.resize(_dmxChannelCount, 0);
 		_ledBuffer[0] = 0x00;	// NULL START code
+
+		isInitOK = true;
 	}
 	return isInitOK;
 }

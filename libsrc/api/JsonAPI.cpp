@@ -17,6 +17,10 @@
 
 // hyperion includes
 #include <leddevice/LedDeviceWrapper.h>
+
+#include <leddevice/LedDevice.h>
+#include <leddevice/LedDeviceFactory.h>
+
 #include <hyperion/GrabberWrapper.h>
 #include <utils/jsonschema/QJsonFactory.h>
 #include <utils/jsonschema/QJsonSchemaChecker.h>
@@ -191,6 +195,8 @@ proceed:
 		handleVideoModeCommand(message, command, tan);
 	else if (command == "instance")
 		handleInstanceCommand(message, command, tan);
+	else if (command == "leddevice")
+		handleLedDeviceCommand(message, command, tan);
 
 	// BEGIN | The following commands are derecated but used to ensure backward compatibility with hyperion Classic remote control
 	else if (command == "clearall")
@@ -1370,6 +1376,80 @@ void JsonAPI::handleInstanceCommand(const QJsonObject &message, const QString &c
 		else
 			sendErrorReply(replyMsg, command + "-" + subc, tan);
 		return;
+	}
+}
+
+void JsonAPI::handleLedDeviceCommand(const QJsonObject &message, const QString &command, const int tan)
+{
+	Debug(_log, "message: [%s]", QString(QJsonDocument(message).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+
+	const QString &subc = message["subcommand"].toString().trimmed();
+	const QString &devType = message["ledDeviceType"].toString().trimmed();
+
+	QString full_command = command + "-" + subc;
+
+	// TODO: Validate that device type is a valid one
+/*	if ( ! valid type )
+	{
+		sendErrorReply("Unknown device", full_command, tan);
+	}
+	else
+*/	{
+		if (subc == "discover")
+		{
+
+			QJsonObject config;
+			config.insert("type", devType);
+
+			// Pointer of current led device
+			LedDevice* _ledDevice;
+			_ledDevice = LedDeviceFactory::construct(config);
+
+			QJsonObject devicesDiscovered = _ledDevice->discover();
+
+			Debug(_log, "response: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+			sendSuccessDataReply(QJsonDocument(devicesDiscovered), full_command, tan);
+
+			delete  _ledDevice;
+		}
+		else if (subc == "getProperties")
+		{
+			const QJsonObject &params = message["params"].toObject();
+
+			QJsonObject config;
+			config.insert("type", devType);
+
+			// Pointer of current led device
+			LedDevice* _ledDevice;
+			_ledDevice = LedDeviceFactory::construct(config);
+
+			QJsonObject deviceProperties = _ledDevice->getProperties(params);
+
+			Debug(_log, "response: [%s]", QString(QJsonDocument(deviceProperties).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+			sendSuccessDataReply(QJsonDocument(deviceProperties), full_command, tan);
+
+			delete  _ledDevice;
+		}
+		else if (subc == "identify")
+		{
+			const QJsonObject &params = message["params"].toObject();
+
+			QJsonObject config;
+			config.insert("type", devType);
+
+			// Pointer of current led device
+			LedDevice* _ledDevice;
+			_ledDevice = LedDeviceFactory::construct(config);
+
+			_ledDevice->identify(params);
+
+			sendSuccessReply(full_command, tan);
+			delete  _ledDevice;
+		}
+		else
+		{
+			sendErrorReply("Unknown or missing subcommand", full_command, tan);
+		}
 	}
 }
 
