@@ -6,9 +6,6 @@
 #include "ProviderRestApi.h"
 #include "ProviderUdp.h"
 
-// ssdp discover
-//#include <ssdp/SSDPDiscover.h>
-
 // Qt includes
 #include <QString>
 #include <QNetworkAccessManager>
@@ -209,7 +206,7 @@ private:
 	ProviderRestApi* _restApi;
 
 	QString _hostname;
-	int  _api_port;
+	int  _apiPort;
 	QString _authToken;
 
 	//Nanoleaf device details

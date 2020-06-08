@@ -255,7 +255,7 @@ protected:
 
 	/// Ip address of the bridge
 	QString _hostname;
-	int _api_port;
+	int _apiPort;
 	/// User name for the API ("newdeveloper")
 	QString _username;
 

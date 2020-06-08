@@ -82,7 +82,7 @@ enum EXTCONTROLVERSIONS {
 LedDeviceNanoleaf::LedDeviceNanoleaf(const QJsonObject &deviceConfig)
 	: ProviderUdp()
 	  ,_restApi(nullptr)
-	  ,_api_port(API_DEFAULT_PORT)
+	  ,_apiPort(API_DEFAULT_PORT)
 	  ,_extControlVersion (EXTCTRLVER_V2),
 	  _panelLedCount(0)
 {
@@ -135,7 +135,7 @@ bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig)
 
 		//Set hostname as per configuration and_defaultHost default port
 		_hostname   = deviceConfig[ CONFIG_ADDRESS ].toString();
-		_api_port   = API_DEFAULT_PORT;
+		_apiPort   = API_DEFAULT_PORT;
 		_authToken = deviceConfig[ CONFIG_AUTH_TOKEN ].toString();
 
 		//If host not configured the init failed
@@ -146,7 +146,7 @@ bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig)
 		}
 		else
 		{
-			if ( initRestAPI( _hostname, _api_port, _authToken ) )
+			if ( initRestAPI( _hostname, _apiPort, _authToken ) )
 			{
 				// Read LedDevice configuration and validate against device configuration
 				if ( initLedsConfiguration() )

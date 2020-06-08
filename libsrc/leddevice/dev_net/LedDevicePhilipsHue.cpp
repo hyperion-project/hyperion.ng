@@ -235,7 +235,7 @@ double CiColor::getDistanceBetweenTwoPoints(CiColor p1, XYColor p2)
 LedDevicePhilipsHueBridge::LedDevicePhilipsHueBridge(const QJsonObject &deviceConfig)
 	: ProviderUdpSSL()
 	  , _restApi(nullptr)
-	  , _api_port(API_DEFAULT_PORT)
+	  , _apiPort(API_DEFAULT_PORT)
 	  , _useHueEntertainmentAPI(false)
 	  , _api_major(0)
 	  , _api_minor(0)
@@ -300,13 +300,13 @@ bool LedDevicePhilipsHueBridge::init(const QJsonObject &deviceConfig)
 
 			if ( addressparts.size() > 1 )
 			{
-				_api_port = addressparts[1].toInt();
-				log( "Port", "%u",  _api_port );
+				_apiPort = addressparts[1].toInt();
+				log( "Port", "%u",  _apiPort );
 			}
 
 			_username = deviceConfig[ CONFIG_USERNAME ].toString();
 
-			if ( initRestAPI( _hostname, _api_port, _username ) )
+			if ( initRestAPI( _hostname, _apiPort, _username ) )
 			{
 				if ( initMaps() )
 				{
