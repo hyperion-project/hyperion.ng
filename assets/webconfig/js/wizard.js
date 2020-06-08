@@ -876,6 +876,65 @@ function identify_nanoleaf(hostAddress, authToken){
 	}	
 }
 
+async function discover_wled(){
+
+	const res = await requestLedDeviceDiscovery ('wled');
+	
+	// TODO: error case unhandled
+  	// res can be: false (timeout) or res.error (not found)
+	if(res && !res.error){
+		const r = res.info
+
+		// Process devices returned by discovery
+		console.log(r);
+		
+		if(r.devices.length == 0)
+			$('#wiz_hue_ipstate').html($.i18n('wiz_hue_failure_ip'));
+		else
+		{
+			for(const device of r.devices)
+			{
+				console.log("Device:", device);
+
+				var ip = device.hostname + ":" + device.port;
+				console.log("Host:", ip);
+
+				nanoleafIPs.push({internalipaddress : ip});
+			}
+		}
+	}	
+}
+
+async function getProperties_wled(hostAddress, resourceFilter){
+
+	let params = { host: hostAddress, filter: resourceFilter};
+	
+	const res = await requestLedDeviceProperties ('wled', params);
+	
+	// TODO: error case unhandled
+  	// res can be: false (timeout) or res.error (not found)
+	if(res && !res.error){
+		const r = res.info
+		
+		// Process properties returned
+		console.log(r);
+	}	
+}
+
+function identify_wled(hostAddress){
+
+	let params = { host: hostAddress };
+		
+	const res = requestLedDeviceIdentification ("wled", params);
+	// TODO: error case unhandled
+  	// res can be: false (timeout) or res.error (not found)
+	if(res && !res.error){
+
+		const r = res.info
+		console.log(r);
+	}	
+}
+
 async function discover_providerRs232(rs232Type){
 
 	const res = await requestLedDeviceDiscovery (rs232Type);
@@ -1300,3 +1359,55 @@ function abortConnection(UserInterval){
   $('#wizp3').toggle(false);
   $("#wiz_hue_usrstate").html($.i18n('wiz_hue_failure_connection'));
 }
+
+//****************************
+// Wizard WLED
+//****************************
+var lights = null;
+function startWizardWLED(e)
+{
+  //create html
+
+  var wled_title = 'wiz_wled_title';
+  var wled_intro1 = 'wiz_wled_intro1';
+
+  $('#wiz_header').html('<i class="fa fa-magic fa-fw"></i>'+$.i18n(wled_title));
+  $('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n(wled_title)+'</h4><p>'+$.i18n(wled_intro1)+'</p>');
+  $('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><i class="fa fa-fw fa-check"></i>'+$.i18n('general_btn_continue')+'</button><button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
+
+  /*$('#wizp2_body').html('<div id="wh_topcontainer"></div>');
+
+  $('#wh_topcontainer').append('<div class="form-group" id="usrcont" style="display:none"></div>');
+
+  $('#wizp2_body').append('<div id="hue_ids_t" style="display:none"><p style="font-weight:bold" id="hue_id_headline">'+$.i18n('wiz_wled_desc2')+'</p></div>');
+
+  createTable("lidsh", "lidsb", "hue_ids_t");
+  $('.lidsh').append(createTableRow([$.i18n('edt_dev_spec_lights_title'),$.i18n('wiz_hue_pos'),$.i18n('wiz_hue_ident')], true));
+  $('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save" style="display:none"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_save')+'</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
+*/
+  //open modal
+  $("#wizard_modal").modal({
+    backdrop : "static",
+    keyboard: false,
+    show: true
+  });
+
+  //listen for continue
+  $('#btn_wiz_cont').off().on('click',function() {
+
+// For testing only
+  discover_wled();
+    
+  var hostAddress = conf_editor.getEditor("root.specificOptions.host").getValue();
+  if(hostAddress != "")
+  {
+    getProperties_wled(hostAddress);
+    identify_wled(hostAddress)  
+  }
+  
+// For testing only
+    
+  });
+}
+
+
