@@ -106,13 +106,6 @@ private:
 	virtual bool init(const QJsonObject &deviceConfig) override;
 
 	///
-	/// @brief Opens the output device.
-	///
-	/// @return Zero on success (i.e. device is ready), else negative
-	///
-	virtual int open() override;
-
-	///
 	/// @brief Writes the RGB-Color values to the LEDs.
 	///
 	/// @param[in] ledValues The RGB-color per LED
