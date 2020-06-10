@@ -9,7 +9,7 @@
 //std includes
 #include <iostream>
 
-static const char ONE_SLASH = '/';
+static const QChar ONE_SLASH = '/';
 
 ProviderRestApi::ProviderRestApi(const QString &host, const int &port, const QString &basePath)
 	:_log(Logger::getInstance("LDEDEVICE"))
@@ -61,19 +61,19 @@ void ProviderRestApi::appendPath (QString& path, const QString &appendPath)
 {
 	if ( !appendPath.isEmpty() && appendPath != ONE_SLASH )
 	{
-		if (path.isEmpty() || path == QString(ONE_SLASH))
+		if (path.isEmpty() || path == ONE_SLASH )
 		{
 			path.clear();
-			if (appendPath.front() != ONE_SLASH )
+			if (appendPath[0] != ONE_SLASH )
 			{
 				path.push_back(ONE_SLASH);
 			}
 		}
-		else if (path.back() == ONE_SLASH && appendPath.front() == ONE_SLASH)
+		else if (path[path.size()-1] == ONE_SLASH && appendPath[0] == ONE_SLASH)
 		{
 			path.chop(1);
 		}
-		else if (path.back() != ONE_SLASH && appendPath.front() != ONE_SLASH)
+		else if (path[path.size()-1] != ONE_SLASH && appendPath[0] != ONE_SLASH)
 		{
 			path.push_back(ONE_SLASH);
 		}
