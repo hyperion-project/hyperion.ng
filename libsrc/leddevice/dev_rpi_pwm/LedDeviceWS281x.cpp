@@ -102,7 +102,10 @@ int LedDeviceWS281x::close()
 	_isDeviceReady = false;
 
 	// LedDevice specific closing activities
-	ws2811_fini(&_led_string);
+	if ( isInitialised() )
+	{
+		ws2811_fini(&_led_string);
+	}
 
 	return retval;
 }
