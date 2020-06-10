@@ -4,7 +4,7 @@ LedDeviceWS281x::LedDeviceWS281x(const QJsonObject &deviceConfig)
 	: LedDevice()
 {
 	_devConfig = deviceConfig;
-	_deviceReady = false;
+	_isDeviceReady = false;
 
 	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
@@ -22,10 +22,11 @@ bool LedDeviceWS281x::init(const QJsonObject &deviceConfig)
 {
 	QString errortext;
 
-	bool isInitOK = LedDevice::init(deviceConfig);
-	if ( isInitOK )
-	{
+	bool isInitOK = false;
 
+	// Initialise sub-class
+	if ( LedDevice::init(deviceConfig) )
+	{
 		QString whiteAlgorithm = deviceConfig["whiteAlgorithm"].toString("white_off");
 
 		_whiteAlgorithm	= RGBW::stringToWhiteAlgorithm(whiteAlgorithm);
@@ -61,15 +62,7 @@ bool LedDeviceWS281x::init(const QJsonObject &deviceConfig)
 
 				Debug( _log, "ws281x strip type : %d", _led_string.channel[_channel].strip_type );
 
-				if (ws2811_init(&_led_string) < 0)
-				{
-					errortext = "Unable to initialize ws281x library.";
-					isInitOK = false;
-				}
-				else
-				{
-					isInitOK = true;
-				}
+				isInitOK = true;
 			}
 		}
 	}
@@ -81,14 +74,37 @@ bool LedDeviceWS281x::init(const QJsonObject &deviceConfig)
 	return isInitOK;
 }
 
+int LedDeviceWS281x::open()
+{
+	int retval = -1;
+	_isDeviceReady = false;
+
+	// Try to open the LedDevice
+
+	ws2811_return_t rc = ws2811_init(&_led_string);
+	if ( rc != WS2811_SUCCESS )
+	{
+		QString errortext = QString ("Failed to open. Error message: %1").arg( ws2811_get_return_t_str(rc) );
+		this->setInError( errortext );
+	}
+	else
+	{
+		// Everything is OK, device is ready
+		_isDeviceReady = true;
+		retval = 0;
+	}
+	return retval;
+}
+
 int LedDeviceWS281x::close()
 {
-	LedDevice::close();
+	int retval = 0;
+	_isDeviceReady = false;
 
-	if (_deviceReady)
-	{
-		ws2811_fini(&_led_string);
-	}
+	// LedDevice specific closing activities
+	ws2811_fini(&_led_string);
+
+	return retval;
 }
 
 // Send new values down the LED chain
