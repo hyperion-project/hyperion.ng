@@ -47,6 +47,8 @@ Reset time is 300uS = 923 bits = 116 bytes
 {
 	_devConfig = deviceConfig;
 	_isDeviceReady = false;
+
+	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDevice* LedDeviceWs2812SPI::construct(const QJsonObject &deviceConfig)
@@ -66,7 +68,10 @@ bool LedDeviceWs2812SPI::init(const QJsonObject &deviceConfig)
 		WarningIf(( _baudRate_Hz < 2106000 || _baudRate_Hz > 3075000 ), _log, "SPI rate %d outside recommended range (2106000 -> 3075000)", _baudRate_Hz);
 
 		_ledBuffer.resize(_ledRGBCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
+
+		isInitOK = true;
 	}
+
 	return isInitOK;
 }
 
