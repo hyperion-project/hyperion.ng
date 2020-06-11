@@ -209,6 +209,11 @@ private:
 	int  _apiPort;
 	QString _authToken;
 
+	bool _topDown;
+	bool _leftRight;
+	uint _startPos;
+	uint _endPos;
+
 	//Nanoleaf device details
 	QString _deviceModel;
 	QString _deviceFirmwareVersion;
@@ -218,7 +223,10 @@ private:
 	uint _panelLedCount;
 
 	/// Array of the panel ids.
-	std::vector<uint> _panelIds;
+	QVector<uint> _panelIds;
+
+
+
 };
 
 #endif // LEDEVICENANOLEAF_H

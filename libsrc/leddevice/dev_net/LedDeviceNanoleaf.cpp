@@ -21,6 +21,10 @@ static const char CONFIG_ADDRESS[] = "host";
 //static const char CONFIG_PORT[] = "port";
 static const char CONFIG_AUTH_TOKEN[] ="token";
 
+static const char CONFIG_PANEL_ORDER_TOP_DOWN[] ="panelOrderTopDown";
+static const char CONFIG_PANEL_ORDER_LEFT_RIGHT[] ="panelOrderLeftRight";
+static const char CONFIG_PANEL_START_POS[] ="panelStartPos";
+
 // Panel configuration settings
 static const char PANEL_LAYOUT[] = "layout";
 static const char PANEL_NUM[] = "numPanels";
@@ -83,6 +87,10 @@ LedDeviceNanoleaf::LedDeviceNanoleaf(const QJsonObject &deviceConfig)
 	: ProviderUdp()
 	  ,_restApi(nullptr)
 	  ,_apiPort(API_DEFAULT_PORT)
+	  ,_topDown(true)
+	  ,_leftRight(true)
+	  ,_startPos(0)
+	  ,_endPos(0)
 	  ,_extControlVersion (EXTCTRLVER_V2),
 	  _panelLedCount(0)
 {
@@ -130,6 +138,20 @@ bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig)
 		Debug(_log, "ColorOrder   : %s", QSTRING_CSTR( this->getColorOrder() ));
 		Debug(_log, "RefreshTime  : %d", _refreshTimerInterval_ms);
 		Debug(_log, "LatchTime    : %d", this->getLatchTime());
+
+		// Read panel organisation configuration
+
+		if ( deviceConfig[ CONFIG_PANEL_ORDER_TOP_DOWN ].isString() )
+			_topDown = deviceConfig[ CONFIG_PANEL_ORDER_TOP_DOWN ].toString().toInt() == 0 ? true : false;
+		else
+			_topDown = deviceConfig[ CONFIG_PANEL_ORDER_TOP_DOWN ].toInt() == 0 ? true : false;
+
+		if ( deviceConfig[ CONFIG_PANEL_ORDER_LEFT_RIGHT ].isString() )
+			_leftRight = deviceConfig[ CONFIG_PANEL_ORDER_LEFT_RIGHT ].toString().toInt() == 0 ? true : false;
+		else
+			_leftRight = deviceConfig[ CONFIG_PANEL_ORDER_LEFT_RIGHT ].toInt() == 0 ? true : false;
+
+		_startPos = deviceConfig[ CONFIG_PANEL_START_POS ].toInt(0);
 
 		// TODO: Allow to handle port dynamically
 
@@ -229,17 +251,37 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 			}
 		}
 
-		// Sort panels top down, left right
+		// Travers panels top down
 		for(auto posY = panelMap.crbegin(); posY != panelMap.crend(); ++posY)
 		{
-			// posY.first is the first key
-			for(auto const &posX : posY->second)
+			// Sort panels left to right
+			if ( _leftRight )
 			{
-				// posX.first is the second key, posX.second is the data
-				DebugIf(verbose3, _log, "panelMap[%u][%u]=%u", posY->first, posX.first, posX.second );
-				_panelIds.push_back(posX.second);
+				for( auto posX =  posY->second.cbegin(); posX !=  posY->second.cend(); ++posX)
+				{
+					DebugIf(verbose3, _log, "panelMap[%u][%u]=%u", posY->first, posX->first, posX->second );
+
+					if ( _topDown )
+						_panelIds.push_back(posX->second);
+					else
+						_panelIds.push_front(posX->second);
+				}
+			}
+			else
+			{
+				// Sort panels right to left
+				for( auto posX =  posY->second.crbegin(); posX !=  posY->second.crend(); ++posX)
+				{
+					DebugIf(verbose3, _log, "panelMap[%u][%u]=%u", posY->first, posX->first, posX->second );
+
+					if ( _topDown )
+						_panelIds.push_back(posX->second);
+					else
+						_panelIds.push_front(posX->second);
+				}
 			}
 		}
+
 		this->_panelLedCount = static_cast<uint>(_panelIds.size());
 		_devConfig["hardwareLedCount"] = static_cast<int>(_panelLedCount);
 
@@ -248,6 +290,13 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 
 		// Check. if enough panels were found.
 		uint configuredLedCount = this->getLedCount();
+		_endPos = _startPos + configuredLedCount - 1;
+
+		Debug(_log, "Sort Top>Down  : %d", _topDown);
+		Debug(_log, "Sort Left>Right: %d", _leftRight);
+		Debug(_log, "Start Panel Pos: %u", _startPos);
+		Debug(_log, "End Panel Pos  : %u", _endPos);
+
 		if (_panelLedCount < configuredLedCount )
 		{
 			QString errorReason = QString("Not enough panels [%1] for configured LEDs [%2] found!")
@@ -260,18 +309,26 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 		{
 			if ( _panelLedCount > this->getLedCount() )
 			{
-				Warning(_log, "Nanoleaf: More panels [%u] than configured LEDs [%u].", _panelLedCount, configuredLedCount );
+				Info(_log, "Nanoleaf: More panels [%u] than configured LEDs [%u].", _panelLedCount, configuredLedCount );
+			}
+
+			// Check, if start position + number of configured LEDs is greater than number of panels available
+			if ( _endPos >= _panelLedCount )
+			{
+				QString errorReason = QString("Start panel [%1] out of range. Start panel position can be max [%2] given [%3] panel available!")
+										  .arg(_startPos).arg(_panelLedCount-configuredLedCount).arg(_panelLedCount);
+
+				this->setInError(errorReason);
+				isInitOK = false;
 			}
 		}
 	}
 	Debug(_log, "[%d]", isInitOK);
+
+	isInitOK = false;
+
 	return isInitOK;
 }
-
-//bool LedDeviceNanoleaf::initRestAPI()
-//{
-//	return initRestAPI ( _hostname,_api_port );
-//}
 
 bool LedDeviceNanoleaf::initRestAPI(const QString &hostname, const int port, const QString &token )
 {
@@ -506,7 +563,7 @@ int LedDeviceNanoleaf::write(const std::vector<ColorRgb> & ledValues)
 		lowByte  = static_cast<uchar>(panelID & 0xFF);
 
 		// Set panels configured
-		if( panelCounter < this->getLedCount() )  {
+		if( panelCounter >= _startPos && panelCounter <= _endPos )  {
 			color = static_cast<ColorRgb>(ledValues.at(panelCounter));
 		}
 		else
