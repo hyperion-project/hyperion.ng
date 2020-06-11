@@ -122,7 +122,7 @@ bool LedDeviceWled::initRestAPI(const QString &hostname, const int port )
 QString LedDeviceWled::getOnOffRequest (bool isOn ) const
 {
 	QString state = isOn ? STATE_VALUE_TRUE : STATE_VALUE_FALSE;
-	return QString( "{\"%1\":%2}}" ).arg( STATE_ON, state);
+	return QString( "{\"%1\":%2}" ).arg( STATE_ON, state);
 }
 
 bool LedDeviceWled::powerOn()
