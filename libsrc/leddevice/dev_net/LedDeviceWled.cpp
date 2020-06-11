@@ -149,6 +149,9 @@ bool LedDeviceWled::powerOff()
 	bool off = true;
 	if ( _isDeviceReady)
 	{
+		// Write a final "Black" to have a defined outcome
+		writeBlack();
+
 		//Power-off the WLED device physically
 		_restApi->setPath(API_PATH_STATE);
 		httpResponse response = _restApi->put(getOnOffRequest(false));
