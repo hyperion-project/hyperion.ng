@@ -82,22 +82,6 @@ protected:
 	virtual int open() override;
 
 private:
-	// QNetworkAccessManager object for sending requests.
-	QNetworkAccessManager* _networkmanager;
-
-	QString _hostname;
-	QString _api_port;
-	QString _auth_token;
-
-	//Nanoleaf device details
-	QString _deviceModel;
-	QString _deviceFirmwareVersion;
-	ushort _extControlVersion;
-	/// The number of panels with leds
-	uint _panelLedCount;
-	/// Array of the pannel ids.
-	std::vector<uint> _panelIds;
-
 	///
 	/// Discover Nanoleaf device via SSDP identifiers
 	///
@@ -162,4 +146,26 @@ private:
 	/// @param uint8_t vector
 	/// @return vector as string of hex values
 	std::string uint8_vector_to_hex_string( const std::vector<uint8_t>& buffer ) const;
+
+	// QNetworkAccessManager object for sending requests.
+	QNetworkAccessManager* _networkmanager;
+
+	QString _hostname;
+	QString _api_port;
+	QString _auth_token;
+
+	bool _topDown;
+	bool _leftRight;
+	uint _startPos;
+	uint _endPos;
+
+	//Nanoleaf device details
+	QString _deviceModel;
+	QString _deviceFirmwareVersion;
+	ushort _extControlVersion;
+	/// The number of panels with leds
+	uint _panelLedCount;
+	/// Array of the pannel ids.
+	QVector<uint> _panelIds;
+
 };
