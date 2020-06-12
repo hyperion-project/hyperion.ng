@@ -159,42 +159,6 @@ private:
 	///
 	QString getOnOffRequest (bool isOn ) const;
 
-	//	///
-	//	/// @brief Get command as url
-	//	///
-	//	/// @param host Hostname or IP
-	//	/// @param port IP-Port
-	//	/// @param authToken Authorization token
-	//	/// @param Endpoint command for request
-	//	/// @return Url to execute endpoint/command
-	//	///
-	//	QString buildUrl(const QString &host, const QString &port, const QString &authToken, const QString &endpoint) const;
-
-	//	///
-	//	/// @brief Execute GET request
-	//	///
-	//	/// @param url GET request for url
-	//	/// @return Response from device
-	//	///
-	//	QJsonDocument getJson(QString url);
-
-	//	///
-	//	/// @brief Execute PUT request
-	//	///
-	//	/// @param Url for PUT request
-	//	/// @param json Command for request
-	//	/// @return Response from device
-	//	///
-	//	QJsonDocument putJson(QString url, QString json);
-
-	//	///
-	//	/// @brief Handle replys for GET and PUT requests
-	//	///
-	//	/// @param reply Network reply
-	//	/// @return Response for request, if no error
-	//	///
-	//	QJsonDocument handleReply(QNetworkReply* const &reply );
-
 	///
 	/// @brief Convert vector to hex string
 	///
@@ -224,8 +188,6 @@ private:
 
 	/// Array of the panel ids.
 	QVector<uint> _panelIds;
-
-
 
 };
 

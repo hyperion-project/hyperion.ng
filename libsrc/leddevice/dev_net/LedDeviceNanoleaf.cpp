@@ -140,7 +140,6 @@ bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig)
 		Debug(_log, "LatchTime    : %d", this->getLatchTime());
 
 		// Read panel organisation configuration
-
 		if ( deviceConfig[ CONFIG_PANEL_ORDER_TOP_DOWN ].isString() )
 			_topDown = deviceConfig[ CONFIG_PANEL_ORDER_TOP_DOWN ].toString().toInt() == 0 ? true : false;
 		else
@@ -324,8 +323,6 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 		}
 	}
 	Debug(_log, "[%d]", isInitOK);
-
-	isInitOK = false;
 
 	return isInitOK;
 }
@@ -555,6 +552,9 @@ int LedDeviceNanoleaf::write(const std::vector<ColorRgb> & ledValues)
 	udpbuffer[i++] = lowByte;
 
 	ColorRgb color;
+
+	//Maintain LED counter independent from PanelCounter
+	uint ledCounter = 0;
 	for ( uint panelCounter=0; panelCounter < _panelLedCount; panelCounter++ )
 	{
 		uint panelID = _panelIds[panelCounter];
@@ -564,7 +564,8 @@ int LedDeviceNanoleaf::write(const std::vector<ColorRgb> & ledValues)
 
 		// Set panels configured
 		if( panelCounter >= _startPos && panelCounter <= _endPos )  {
-			color = static_cast<ColorRgb>(ledValues.at(panelCounter));
+			color = static_cast<ColorRgb>(ledValues.at(ledCounter));
+			++ledCounter;
 		}
 		else
 		{
