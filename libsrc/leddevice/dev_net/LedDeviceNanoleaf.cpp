@@ -426,9 +426,6 @@ QJsonObject LedDeviceNanoleaf::getProperties(const QJsonObject& params)
 		else
 			apiPort   = API_DEFAULT_PORT;
 
-		if ( filter.startsWith("/") )
-			filter.remove(0,1);
-
 		initRestAPI(apiHost, apiPort, authToken);
 		_restApi->setPath(filter);
 
