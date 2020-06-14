@@ -54,7 +54,7 @@ bool LedDeviceMultiLightpack::init(const QJsonObject &deviceConfig)
 		// sort the list of Lightpacks based on the serial to get a fixed order
 		std::sort(_lightpacks.begin(), _lightpacks.end(), compareLightpacks);
 
-		// open each lightpack device
+		// open each Lightpack device
 		foreach (auto serial , serialList)
 		{
 			QJsonObject devConfig;
@@ -98,7 +98,7 @@ int LedDeviceMultiLightpack::open()
 	_isDeviceReady = false;
 
 	int lightsInError = 0;
-	// open each lightpack device
+	// open each Lightpack device
 	for (LedDeviceLightpack * device : _lightpacks)
 	{
 		if (device->open() < 0)
@@ -116,7 +116,7 @@ int LedDeviceMultiLightpack::open()
 	}
 	else
 	{
-		this->setInError( "All Lighpacks failed to be opened!" );
+		this->setInError( "All Lightpacks failed to be opened!" );
 	}
 	return retval;
 }
@@ -178,7 +178,7 @@ QStringList LedDeviceMultiLightpack::getLightpackSerials()
 	Logger * log = Logger::getInstance("LedDevice");
 	Debug(log, "Getting list of Lightpack serials");
 
-	// initialize the usb context
+	// initialize the USB context
 	libusb_context * libusbContext;
 	int error = libusb_init(&libusbContext);
 	if (error != LIBUSB_SUCCESS)
@@ -190,7 +190,7 @@ QStringList LedDeviceMultiLightpack::getLightpackSerials()
 	//libusb_set_debug(_libusbContext, 3);
 	Info(log, "USB context initialized in multi Lightpack device");
 
-	// retrieve the list of usb devices
+	// retrieve the list of USB devices
 	libusb_device ** deviceList;
 	ssize_t deviceCount = libusb_get_device_list(libusbContext, &deviceList);
 
@@ -208,7 +208,7 @@ QStringList LedDeviceMultiLightpack::getLightpackSerials()
 		if ((deviceDescriptor.idVendor == USB_VENDOR_ID && deviceDescriptor.idProduct == USB_PRODUCT_ID) ||
 			(deviceDescriptor.idVendor == USB_OLD_VENDOR_ID && deviceDescriptor.idProduct == USB_OLD_PRODUCT_ID))
 		{
-			Info(log, "Found a lightpack device. Retrieving serial...");
+			Info(log, "Found a Lightpack device. Retrieving serial...");
 
 			// get the serial number
 			QString serialNumber;

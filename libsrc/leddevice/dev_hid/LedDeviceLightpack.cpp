@@ -86,7 +86,7 @@ bool LedDeviceLightpack::init(const QJsonObject &deviceConfig)
 			Debug(_log, "USB context initialized");
 			//libusb_set_debug(_libusbContext, 3);
 
-			// retrieve the list of usb devices
+			// retrieve the list of USB devices
 			libusb_device ** deviceList;
 			ssize_t deviceCount = libusb_get_device_list(_libusbContext, &deviceList);
 
@@ -178,7 +178,7 @@ int LedDeviceLightpack::testAndOpen(libusb_device * device, const QString & requ
 	if ((deviceDescriptor.idVendor == USB_VENDOR_ID && deviceDescriptor.idProduct == USB_PRODUCT_ID) ||
 		(deviceDescriptor.idVendor == USB_OLD_VENDOR_ID && deviceDescriptor.idProduct == USB_OLD_PRODUCT_ID))
 	{
-		Info(_log, "Found a lightpack device. Retrieving more information...");
+		Info(_log, "Found a Lightpack device. Retrieving more information...");
 
 		// get the hardware address
 		int busNumber = libusb_get_bus_number(device);
