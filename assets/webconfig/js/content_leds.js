@@ -489,7 +489,7 @@ $(document).ready(function() {
 	$("#leddevices").off().on("change", function() {
 		var generalOptions  = window.serverSchema.properties.device;
 
-		// Modified schema entry "hardwareLedCount" in generalOptions to minimum LedCount
+	// Modified schema entry "hardwareLedCount" in generalOptions to minimum LedCount
     var ledType = $(this).val();
 
     //philipshueentertainment backward fix
@@ -543,6 +543,13 @@ $(document).ready(function() {
     	    changeWizard(data, wled_title, startWizardWLED);
 	}
 
+	else if(ledType == "yeelight") {
+		var ledWizardType = (this.checked) ? "yeelight" : ledType;
+		var data = { type: ledWizardType };
+		var yeelight_title = 'wiz_yeelight_title';
+		changeWizard(data, yeelight_title, startWizardYeelight);
+	}
+
     function changeWizard(data, hint, fn) {
       $('#btn_wiz_holder').html("")
 			createHint("wizard", $.i18n(hint), "btn_wiz_holder","btn_led_device_wiz");
@@ -558,7 +565,7 @@ $(document).ready(function() {
 	var devRPiSPI = ['apa102', 'apa104', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'sk6822spi', 'ws2812spi'];
 	var devRPiPWM = ['ws281x'];
 	var devRPiGPIO = ['piblaster'];
-	var devNET = ['atmoorb', 'fadecandy', 'philipshue', 'nanoleaf', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udph801', 'udpraw', 'wled'];
+	var devNET = ['atmoorb', 'fadecandy', 'philipshue', 'nanoleaf', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udph801', 'udpraw', 'wled', 'yeelight'];
 	var devUSB = ['adalight', 'dmx', 'atmo', 'hyperionusbasp', 'lightpack', 'multilightpack', 'paintpack', 'rawhid', 'sedu', 'tpm2', 'karate'];
 
 	var optArr = [[]];

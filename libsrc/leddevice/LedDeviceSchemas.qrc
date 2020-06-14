@@ -33,6 +33,7 @@
 		<file alias="schema-ws281x">schemas/schema-ws281x.json</file>
 		<file alias="schema-karate">schemas/schema-karate.json</file>
 		<file alias="schema-nanoleaf">schemas/schema-nanoleaf.json</file>
-		<file alias="schema-wled">schemas/schema-wled.json</file>		
+		<file alias="schema-wled">schemas/schema-wled.json</file>
+		<file alias="schema-yeelight">schemas/schema-yeelight.json</file>
 	</qresource>
 </RCC>
