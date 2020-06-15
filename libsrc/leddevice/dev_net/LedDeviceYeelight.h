@@ -10,20 +10,6 @@
 #include <QTcpServer>
 #include <QColor>
 
-enum API_EFFECT{
-	API_EFFECT_SMOOTH,
-	API_EFFECT_SUDDEN
-};
-
-enum API_MODE{
-	API_TURN_ON_MODE,
-	API_CT_MODE,
-	API_RGB_MODE,
-	API_HSV_MODE,
-	API_COLOR_FLOW_MODE,
-	API_NIGHT_LIGHT_MODE
-};
-
 // List of State Information
 static const char API_METHOD_POWER[] = "set_power";
 static const char API_METHOD_POWER_ON[] = "on";
@@ -44,6 +30,42 @@ static const int  API_PARAM_DURATION = 50;
 static const int  API_PARAM_DURATION_POWERONOFF = 1000;
 static const int  API_PARAM_EXTRA_TIME_DARKNESS = 200;
 
+///
+/// Response object for Yeelight-API calls and JSON-responses
+///
+class YeelightResponse
+{
+public:
+
+	enum API_REPLY{
+		API_OK,
+		API_ERROR,
+		API_NOTIFICATION,
+		};
+
+	explicit YeelightResponse() {}
+
+	API_REPLY error() { return _error;}
+	void setError(const YeelightResponse::API_REPLY replyType) { _error = replyType; }
+
+	QJsonArray getResult() const { return _resultArray; }
+	void setResult(const QJsonArray &result) { _resultArray = result; }
+
+	int getErrorCode() const { return _errorCode; }
+	void setErrorCode(const int &errorCode) { _errorCode = errorCode; _error = API_ERROR;}
+
+	QString getErrorReason() const { return _errorReason; }
+	void setErrorReason(const QString &errorReason) { _errorReason = errorReason; }
+
+private:
+
+	QJsonArray _resultArray;
+	API_REPLY _error = API_OK;
+
+	int _errorCode = 0;
+	QString _errorReason;
+};
+
 /**
  * Simple class to hold the id, the latest color, the color space and the original state.
  */
@@ -51,6 +73,21 @@ class YeelightLight
 {
 
 public:
+
+	enum API_EFFECT{
+		API_EFFECT_SMOOTH,
+		API_EFFECT_SUDDEN
+	};
+
+	enum API_MODE{
+		API_TURN_ON_MODE,
+		API_CT_MODE,
+		API_RGB_MODE,
+		API_HSV_MODE,
+		API_COLOR_FLOW_MODE,
+		API_NIGHT_LIGHT_MODE
+	};
+
 	///
 	/// Constructs the light.
 	///
@@ -64,8 +101,8 @@ public:
 
 	bool close();
 
-	bool writeCommand( const QJsonDocument &command );
-	bool writeCommand( const QJsonDocument &command, QJsonArray &result );
+	int writeCommand( const QJsonDocument &command );
+	int writeCommand( const QJsonDocument &command, QJsonArray &result );
 
 	bool streamCommand( const QJsonDocument &command );
 
@@ -89,6 +126,7 @@ public:
 
 	void setBrightnessConfig (int min = 1, int max = 100, bool switchoff = false,  int extraTime = 0, double factor = 1);
 
+	void setQuotaWaitTime( const int waitTime ) { _waitTimeQuota = waitTime; }
 	bool setMusicMode( bool on, QHostAddress ipAddress = {} , int port = -1 );
 
 	QJsonObject getProperties();
@@ -113,7 +151,7 @@ public:
 
 private:
 
-	QJsonArray handleResponse(int correlationID, QByteArray const &response );
+	YeelightResponse handleResponse(int correlationID, QByteArray const &response );
 
 	void saveOriginalState(const QJsonObject& values);
 
@@ -155,6 +193,8 @@ private:
 	double _brightnessFactor;
 
 	QString _transitionEffectParam;
+
+	int _waitTimeQuota;
 
 	// Light properties
 	QJsonObject _properties;
@@ -328,7 +368,7 @@ private:
 	unsigned int _lightsCount;
 
 	int _outputColorModel;
-	API_EFFECT _transitionEffect;
+	YeelightLight::API_EFFECT _transitionEffect;
 	int _transitionDuration;
 	int _extraTimeDarkness;
 
@@ -337,6 +377,8 @@ private:
 	int _brightnessMax;
 	/// The brightness factor to multiply on color change.
 	double _brightnessFactor;
+
+	int _waitTimeQuota;
 
 	int _debuglevel;
 

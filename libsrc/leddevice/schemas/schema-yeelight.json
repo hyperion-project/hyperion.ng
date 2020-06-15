@@ -135,6 +135,16 @@
 			},
 			"propertyOrder" : 9
 		},
+		"quotaWait": {
+			"type": "integer",
+			"title":"Wait time (quota)",
+			"default": 1000,
+			"append" : "edt_append_ms",
+			"minimum": 0,
+			"maximum": 10000,
+			"access" : "expert",
+			"propertyOrder" : 11
+		},		
 		"latchTime": {
 			"type": "integer",
 			"title":"edt_dev_spec_latchtime_title",
@@ -143,7 +153,7 @@
 			"minimum": 0,
 			"maximum": 1000,
 			"access" : "expert",
-			"propertyOrder" : 10
+			"propertyOrder" : 12
 		},
 		"debugLevel": {
 			"type": "integer",
@@ -156,7 +166,7 @@
 			"minimum" : 0,
 			"maximum" : 3,
 			"access" : "expert",
-			"propertyOrder" : 11
+			"propertyOrder" : 13
 		}
 	},
 	"additionalProperties": true
