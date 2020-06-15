@@ -49,7 +49,7 @@
 			"default" : 0,
 			"step": 10,
 			"minimum" : 0,
-			"maximum" : 1000,
+			"maximum" : 3000,
 			"append" : "ms",
 			"access" : "advanced",
 			"propertyOrder" : 4
