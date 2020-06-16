@@ -952,7 +952,7 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 		_extraTimeDarkness	= _devConfig[CONFIG_EXTRA_TIME_DARKNESS].toInt(0);
 
 		_brightnessMin		= _devConfig[CONFIG_BRIGHTNESS_MIN].toInt(0);
-		_isBrightnessSwitchOffMinimum = _devConfig[CONFIG_BRIGHTNESS_SWITCHOFF].toBool(false);
+		_isBrightnessSwitchOffMinimum = _devConfig[CONFIG_BRIGHTNESS_SWITCHOFF].toBool(true);
 		_brightnessMax		= _devConfig[CONFIG_BRIGHTNESS_MAX].toInt(100);
 		_brightnessFactor	= _devConfig[CONFIG_BRIGHTNESSFACTOR].toDouble(1.0);
 
