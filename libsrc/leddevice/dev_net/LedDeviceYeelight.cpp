@@ -16,13 +16,13 @@
 static const bool verbose  = false;
 static const bool verbose3  = false;
 
-static const bool TEST_CORRELATION_IDS  = false; //Do ignore, if yeelight sends responses in different order as request commands
-
 // Constants
-const int WRITE_TIMEOUT	= 1000;		// device write timeout in ms
-const int READ_TIMEOUT	= 1000;		// device write timeout in ms
-const int CONNECT_TIMEOUT = 1000;	// device connect timeout in ms
+const int WRITE_TIMEOUT	= 1000;			 // device write timeout in ms
+const int READ_TIMEOUT	= 1000;			 // device write timeout in ms
+const int CONNECT_TIMEOUT = 1000;		 // device connect timeout in ms
 const int CONNECT_STREAM_TIMEOUT = 1000; // device streaming connect timeout in ms
+
+static const bool TEST_CORRELATION_IDS  = false; //Ignore, if yeelight sends responses in different order as request commands
 
 // Configuration settings
 static const char CONFIG_LIGHTS [] = "lights";
@@ -74,7 +74,7 @@ static const char API_ERROR[] = "error";
 static const char API_ERROR_CODE[] = "code";
 static const char API_ERROR_MESSAGE[] = "message";
 
-// Yeelight Hue ssdp services
+// Yeelight ssdp services
 static const char SSDP_ID[] = "wifi_bulb";
 static const char SSDP_FILTER[] = "yeelight(.*)";
 static const char SSDP_FILTER_HEADER[] = "Location";
@@ -87,8 +87,9 @@ YeelightLight::YeelightLight( Logger *log, const QString &hostname, int port = A
 	  ,_host (hostname)
 	  ,_port(port)
 	  ,_tcpSocket(nullptr)
-	  ,_correlationID(0)
 	  ,_tcpStreamSocket(nullptr)
+	  ,_correlationID(0)
+	  ,_lastWriteTime(QDateTime::currentMSecsSinceEpoch())
 	  ,_colorRgbValue(0)
 	  ,_transitionEffect(YeelightLight::API_EFFECT_SMOOTH)
 	  ,_transitionDuration(API_PARAM_DURATION)
@@ -101,7 +102,6 @@ YeelightLight::YeelightLight( Logger *log, const QString &hostname, int port = A
 	  ,_waitTimeQuota(API_DEFAULT_QUOTA_WAIT_TIME)
 	  ,_isOn(false)
 	  ,_isInMusicMode(false)
-	  ,_lastWriteTime(QDateTime::currentMSecsSinceEpoch())
 {
 	_name = hostname;
 
@@ -660,7 +660,7 @@ bool YeelightLight::setPower(bool on, YeelightLight::API_EFFECT effect, int dura
 	return rc;
 }
 
-bool YeelightLight::setColorRGB(ColorRgb color)
+bool YeelightLight::setColorRGB(const ColorRgb &color)
 {
 	bool rc = true;
 
@@ -729,7 +729,7 @@ bool YeelightLight::setColorRGB(ColorRgb color)
 	return rc;
 }
 
-bool YeelightLight::setColorHSV(ColorRgb colorRGB)
+bool YeelightLight::setColorHSV(const ColorRgb &colorRGB)
 {
 	bool rc = true;
 
@@ -837,7 +837,7 @@ void YeelightLight::setBrightnessConfig (int min, int max, bool switchoff,  int 
 	_extraTimeDarkness = extraTime;
 }
 
-bool YeelightLight::setMusicMode(bool on, QHostAddress hostAddress, int port)
+bool YeelightLight::setMusicMode(bool on, const QHostAddress &hostAddress, int port)
 {
 	bool rc = false;
 	int musicModeParam = on ? API_METHOD_MUSIC_MODE_ON : API_METHOD_MUSIC_MODE_OFF;
@@ -917,8 +917,6 @@ LedDevice* LedDeviceYeelight::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 {
-	Debug(_log, "_isEnabled [%d], _isDeviceReady [%d], _isDeviceInitialised [%d]", _isEnabled, _isDeviceReady, _isDeviceInitialised);
-
 	// Overwrite non supported/required features
 	if (deviceConfig["rewriteTime"].toInt(0) > 0)
 	{
@@ -1037,7 +1035,7 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 	return isInitOK;
 }
 
-bool LedDeviceYeelight::openMusicModeServer()
+bool LedDeviceYeelight::startMusicModeServer()
 {
 	DebugIf(verbose, _log, "enabled [%d], _isDeviceReady [%d]", _isEnabled, _isDeviceReady);
 
@@ -1055,7 +1053,7 @@ bool LedDeviceYeelight::openMusicModeServer()
 			Error( _log, "Error: MusicModeServer: %s", QSTRING_CSTR(errorReason));
 			this->setInError ( errorReason );
 
-			Error( _log, "Failed to open music mode server");
+			Error( _log, "Failed to start music mode server");
 		}
 		else
 		{
@@ -1086,14 +1084,14 @@ bool LedDeviceYeelight::openMusicModeServer()
 	return rc;
 }
 
-bool LedDeviceYeelight::closeMusicModeServer()
+bool LedDeviceYeelight::stopMusicModeServer()
 {
 	DebugIf(verbose, _log, "enabled [%d], _isDeviceReady [%d]", _isEnabled, _isDeviceReady);
 
 	bool rc = false;
 	if ( _tcpMusicModeServer != nullptr )
 	{
-		Debug(_log, "Close MusicModeServer");
+		Debug(_log, "Stop MusicModeServer");
 		_tcpMusicModeServer->close();
 		rc = true;
 	}
@@ -1110,7 +1108,7 @@ int LedDeviceYeelight::open()
 	// Open/Start LedDevice based on configuration
 	if ( !_lights.empty() )
 	{
-		if ( openMusicModeServer() )
+		if ( startMusicModeServer() )
 		{
 			int lightsInError = 0;
 			for (YeelightLight& light : _lights)
@@ -1162,13 +1160,13 @@ int LedDeviceYeelight::close()
 	}
 
 	//Close music mode server
-	closeMusicModeServer();
+	stopMusicModeServer();
 
 	DebugIf(verbose, _log, "retval [%d], enabled [%d], _isDeviceReady [%d]", retval, _isEnabled, _isDeviceReady);
 	return retval;
 }
 
-bool LedDeviceYeelight::updateLights(QVector<yeelightAddress>& list)
+bool LedDeviceYeelight::updateLights(const QVector<yeelightAddress> &list)
 {
 	bool rc = false;
 	DebugIf(verbose, _log, "enabled [%d], _isDeviceReady [%d]", _isEnabled, _isDeviceReady);
@@ -1245,7 +1243,6 @@ bool LedDeviceYeelight::storeState()
 
 QJsonObject LedDeviceYeelight::discover()
 {
-	Debug(_log, "");
 	QJsonObject devicesDiscovered;
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );
 

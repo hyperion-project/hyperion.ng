@@ -23,6 +23,12 @@ static const char STATE_ON[] = "on";
 static const char STATE_VALUE_TRUE[] = "true";
 static const char STATE_VALUE_FALSE[] = "false";
 
+// WLED ssdp services
+// TODO: WLED - Update ssdp discovery parameters when available
+static const char SSDP_ID[] = "ssdp:all";
+static const char SSDP_FILTER[] = "(*)";
+static const char SSDP_FILTER_HEADER[] = "ST";
+
 LedDeviceWled::LedDeviceWled(const QJsonObject &deviceConfig)
 	: ProviderUdp()
 	  ,_restApi(nullptr)
@@ -166,8 +172,6 @@ bool LedDeviceWled::powerOff()
 
 QJsonObject LedDeviceWled::discover()
 {
-	Debug(_log, "");
-
 	QJsonObject devicesDiscovered;
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );
 
@@ -175,14 +179,9 @@ QJsonObject LedDeviceWled::discover()
 
 	// Discover WLED Devices
 	SSDPDiscover discover;
-
-	// TODO: Update filter to device specifics or change discovery method to mDNS
-
-	//QString searchTargetFilter = QString("%1|%2").arg(SSDP_CANVAS, SSDP_LIGHTPANELS);
-	QString searchTargetFilter = QString("*");
-
-	discover.setSearchFilter(searchTargetFilter, "ST");
-	QString searchTarget = "ssdp:all";
+	discover.skipDuplicateKeys(true);
+	discover.setSearchFilter(SSDP_FILTER, SSDP_FILTER_HEADER);
+	QString searchTarget = SSDP_ID;
 
 	if ( discover.discoverServices(searchTarget) > 0 )
 	{
@@ -223,7 +222,7 @@ QJsonObject LedDeviceWled::getProperties(const QJsonObject& params)
 		_restApi->setPath(API_PATH_INFO);
 
 		// Perform request
-		// TODO: Check, if filter is supported
+		// TODO: WLED::getProperties - Check, if filter is supported
 		httpResponse response = _restApi->put(filter);
 		if ( response.error() )
 		{
@@ -256,7 +255,7 @@ void LedDeviceWled::identify(const QJsonObject& params)
 		else
 			apiPort   = API_DEFAULT_PORT;
 
-		// TODO: Replace with valid identification code
+		// TODO: WLED::identify - Replace with valid identification code
 
 		//		initRestAPI(apiHost, apiPort);
 

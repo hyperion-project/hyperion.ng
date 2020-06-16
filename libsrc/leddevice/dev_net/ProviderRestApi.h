@@ -47,6 +47,22 @@ private:
 ///
 /// Wrapper class supporting REST-API calls with JSON requests and responses
 ///
+/// Usage sample:
+/// @code
+///
+/// ProviderRestApi* _restApi = new ProviderRestApi(hostname, port );
+///
+/// _restApi->setBasePath( QString("/api/%1/").arg(token) );
+/// _restApi->setPath( QString("%1/%2").arg( "groups" ).arg( groupId ) );
+///
+/// httpResponse response = _restApi->get();
+/// if ( !response.error() )
+///		response.getBody();
+///
+/// delete _restApi;
+///
+///@endcode
+///
 class ProviderRestApi
 {
 public:
@@ -130,7 +146,7 @@ public:
 	///
 	/// @brief Execute GET request
 	///
-	/// @param url GET request for URL
+	/// @param[in] url GET request for URL
 	/// @return Response The body of the response in JSON
 	///
 	httpResponse get(const QUrl &url);
@@ -138,7 +154,7 @@ public:
 	///
 	/// @brief Execute PUT request
 	///
-	/// @param body The body of the request in JSON
+	/// @param[in] body The body of the request in JSON
 	/// @return Response The body of the response in JSON
 	///
 	httpResponse put(const QString &body = "");
@@ -146,8 +162,8 @@ public:
 	///
 	/// @brief Execute PUT request
 	///
-	/// @param URL for PUT request
-	/// @param body The body of the request in JSON
+	/// @param[in] URL for PUT request
+	/// @param[in] body The body of the request in JSON
 	/// @return Response The body of the response in JSON
 	///
 	httpResponse put(const QUrl &url, const QString &body = "");
@@ -155,7 +171,7 @@ public:
 	///
 	/// @brief Execute POST request
 	///
-	/// @param body The body of the request in JSON
+	/// @param[in] body The body of the request in JSON
 	/// @return Response The body of the response in JSON
 	///
 	httpResponse post(QString body = "");
@@ -163,7 +179,7 @@ public:
 	///
 	/// @brief Handle responses for REST requests
 	///
-	/// @param reply Network reply
+	/// @param[in] reply Network reply
 	/// @return Response The body of the response in JSON
 	///
 	httpResponse getResponse(QNetworkReply* const &response);

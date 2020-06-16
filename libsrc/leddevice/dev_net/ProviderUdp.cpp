@@ -88,7 +88,6 @@ bool ProviderUdp::init(const QJsonObject &deviceConfig)
 
 int ProviderUdp::open()
 {
-	Debug(_log, "");
 	int retval = -1;
 	_isDeviceReady = false;
 
@@ -109,13 +108,11 @@ int ProviderUdp::open()
 	{
 		this->setInError( " Open error. UDP Socket not initialised!" );
 	}
-	Debug(_log, "[%d]", retval);
 	return retval;
 }
 
 int ProviderUdp::close()
 {
-	Debug(_log, "");
 	int retval = 0;
 	_isDeviceReady = false;
 
@@ -129,7 +126,6 @@ int ProviderUdp::close()
 			// Everything is OK -> device is closed
 		}
 	}
-	Debug(_log, "[%d]", retval);
 	return retval;
 }
 

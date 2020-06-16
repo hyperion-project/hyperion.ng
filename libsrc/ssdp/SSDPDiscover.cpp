@@ -1,6 +1,6 @@
 #include <ssdp/SSDPDiscover.h>
 
-// qt inc
+// Qt includes
 #include <QUdpSocket>
 #include <QUrl>
 #include <QRegularExpression>

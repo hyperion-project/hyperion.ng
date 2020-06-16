@@ -102,7 +102,7 @@ int ProviderSpi::open()
 	{
 		this->setInError( errortext );
 	}
-	Debug(_log, "[%d]", retval);
+
 	return retval;
 }
 

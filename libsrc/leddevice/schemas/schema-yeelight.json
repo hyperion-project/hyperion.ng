@@ -68,7 +68,7 @@
 		"brightnessSwitchOffOnMinimum": {
 			"type": "boolean",
 			"title":"edt_dev_spec_switchOffOnbelowMinBrightness_title",
-			"default" : false,
+			"default" : true,
 			"access" : "advanced",
 			"propertyOrder" : 6
 		},
@@ -142,6 +142,7 @@
 			"append" : "edt_append_ms",
 			"minimum": 0,
 			"maximum": 10000,
+			"step": 100,			
 			"access" : "expert",
 			"propertyOrder" : 11
 		},		

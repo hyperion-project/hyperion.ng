@@ -64,6 +64,8 @@ static const char API_PANELLAYOUT[] = "panelLayout";
 static const char API_EFFECT[] = "effects";
 
 // Nanoleaf ssdp services
+static const char SSDP_ID[] = "ssdp:all";
+static const char SSDP_FILTER_HEADER[] = "ST";
 static const char SSDP_CANVAS[] = "nanoleaf:nl29";
 static const char SSDP_LIGHTPANELS[] = "nanoleaf_aurora:light";
 
@@ -116,8 +118,6 @@ LedDeviceNanoleaf::~LedDeviceNanoleaf()
 
 bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig)
 {
-	Debug(_log, "");
-	Debug(_log, "_isEnabled [%d], _isDeviceReady [%d], _isDeviceInitialised [%d]", _isEnabled, _isDeviceReady, _isDeviceInitialised);
 	// Overwrite non supported/required features
 	_devConfig["latchTime"]   = 0;
 	if (deviceConfig["rewriteTime"].toInt(0) > 0)
@@ -183,14 +183,11 @@ bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig)
 			}
 		}
 	}
-	Debug(_log, "[%d], _isEnabled [%d], _isDeviceReady [%d], _isDeviceInitialised [%d]", isInitOK, _isEnabled, _isDeviceReady, _isDeviceInitialised);
 	return isInitOK;
 }
 
 bool LedDeviceNanoleaf::initLedsConfiguration()
 {
-	Debug(_log, "_isEnabled [%d], _isDeviceReady [%d], _isDeviceInitialised [%d]", _isEnabled, _isDeviceReady, _isDeviceInitialised);
-	Debug(_log, "");
 	bool isInitOK = true;
 
 	//Get Nanoleaf device details and configuration
@@ -322,14 +319,11 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 			}
 		}
 	}
-	Debug(_log, "[%d]", isInitOK);
-
 	return isInitOK;
 }
 
 bool LedDeviceNanoleaf::initRestAPI(const QString &hostname, const int port, const QString &token )
 {
-	Debug(_log, "");
 	bool isInitOK = false;
 
 	if ( _restApi == nullptr )
@@ -341,16 +335,11 @@ bool LedDeviceNanoleaf::initRestAPI(const QString &hostname, const int port, con
 
 		isInitOK = true;
 	}
-
-	Debug(_log, "[%d]", isInitOK);
 	return isInitOK;
 }
 
 int LedDeviceNanoleaf::open()
 {
-	Debug(_log, "");
-
-	Debug(_log, "enabled [%d], _deviceReady [%d], isInError [%d]", this->isEnabled(), _isDeviceReady, this->isInError());
 	int retval = -1;
 	_isDeviceReady = false;
 
@@ -371,14 +360,11 @@ int LedDeviceNanoleaf::open()
 		_isDeviceReady = true;
 		retval = 0;
 	}
-	Debug(_log, "[%d]", retval);
 	return retval;
 }
 
 QJsonObject LedDeviceNanoleaf::discover()
 {
-	Debug(_log, "");
-
 	QJsonObject devicesDiscovered;
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );
 
@@ -387,11 +373,11 @@ QJsonObject LedDeviceNanoleaf::discover()
 	// Discover Nanoleaf Devices
 	SSDPDiscover discover;
 
-	// Search for Canvas and Lightpanels
+	// Search for Canvas and Light-Panels
 	QString searchTargetFilter = QString("%1|%2").arg(SSDP_CANVAS, SSDP_LIGHTPANELS);
 
-	discover.setSearchFilter(searchTargetFilter, "ST");
-	QString searchTarget = "ssdp:all";
+	discover.setSearchFilter(searchTargetFilter, SSDP_FILTER_HEADER);
+	QString searchTarget = SSDP_ID;
 
 	if ( discover.discoverServices(searchTarget) > 0 )
 	{
@@ -479,7 +465,6 @@ void LedDeviceNanoleaf::identify(const QJsonObject& params)
 
 bool LedDeviceNanoleaf::powerOn()
 {
-	Debug(_log, "");
 	if ( _isDeviceReady)
 	{
 		//Power-on Nanoleaf device
@@ -491,7 +476,6 @@ bool LedDeviceNanoleaf::powerOn()
 
 bool LedDeviceNanoleaf::powerOff()
 {
-	Debug(_log, "");
 	if ( _isDeviceReady)
 	{
 		//Power-off the Nanoleaf device physically

@@ -305,7 +305,7 @@ int LedDeviceLightpack::write(const ColorRgb * ledValues, int size)
 		// switches to determine what to do and some bit shuffling
 	}
 
-	int error = writeBytes(_ledBuffer.data(), _ledBuffer.size()); /**< TODO: describe */
+	int error = writeBytes(_ledBuffer.data(), _ledBuffer.size());
 	return error >= 0 ? 0 : error;
 }
 

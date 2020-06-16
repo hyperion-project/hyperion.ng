@@ -1,7 +1,7 @@
 #ifndef LEDEVICEYEELIGHT_H
 #define LEDEVICEYEELIGHT_H
 
-// Leddevice includes
+// LedDevice includes
 #include <leddevice/LedDevice.h>
 
 // Qt includes
@@ -66,9 +66,9 @@ private:
 	QString _errorReason;
 };
 
-/**
- * Simple class to hold the id, the latest color, the color space and the original state.
- */
+///
+/// Implementation of one Yeelight light.
+///
 class YeelightLight
 {
 
@@ -88,101 +88,277 @@ public:
 		API_NIGHT_LIGHT_MODE
 	};
 
+	/// @brief Constructs one Yeelight light
 	///
-	/// Constructs the light.
-	///
-	/// @param log the logger
-	/// @param id the light id
+	/// @param[in] log Logger instance
+	/// @param[in] hostname or IP-address
+	/// @param[in] port, default port 55443 is used when not provided
 	///
 	YeelightLight( Logger *log, const QString &hostname, int port);
+
+	///
+	/// @brief Destructor of the Yeelight light
+	///
 	~YeelightLight();
 
+	///
+	/// @brief Set the Yeelight light connectivity parameters
+	///
+	/// @param[in] hostname or IP-address
+	/// @param[in] port, default port 55443 is used when not provided
+	///
+	void setHostname( const QString &hostname, int port);
+
+	///
+	/// @brief Set the Yeelight light name
+	///
+	/// @param[in] name
+	///
+	void setName( const QString& name )  { _name = name; }
+
+	///
+	/// @brief Get the Yeelight light name
+	///
+	/// @return The Yeelight light name
+	///
+	QString getName() const { return _name; }
+
+	///
+	/// @brief Opens the Yeelight light connectivity
+	///
+	/// @return True, on success (i.e. device is open)
+	///
 	bool open();
 
+	///
+	/// @brief Closes the Yeelight light connectivity
+	///
+	/// @return True, on success (i.e. device is closed)
+	///
 	bool close();
 
+	///
+	/// @brief Send a command to light up Yeelight light to allow identification
+	///
+	/// @return True, if success
+	///
+	bool identify();
+
+	///
+	/// @brief Execute a Yeelight-API command
+	///
+	/// @param[in] command The API command request in JSON
+	/// @return 0: success, -1: error, -2: command quota exceeded
+	///
 	int writeCommand( const QJsonDocument &command );
+
+	///
+	/// @brief Execute a Yeelight-API command
+	///
+	/// @param[in] command The API command request in JSON
+	/// @param[out] result The response to the command in JSON
+	/// @return 0: success, -1: error, -2: command quota exceeded
+	///
 	int writeCommand( const QJsonDocument &command, QJsonArray &result );
 
+	///
+	/// @brief Stream a Yeelight-API command
+	///
+	/// Yeelight must be in music mode, i.e. Streaming socket is established
+	///
+	/// @param[in] command The API command request in JSON
+	/// @return True, on success
+	///
 	bool streamCommand( const QJsonDocument &command );
 
-
-	void setHostname( const QString& hostname, int port);
-
+	///
+	/// @brief Set the Yeelight light streaming socket
+	///
+	/// @param[in] socket
+	///
 	void setStreamSocket( QTcpSocket* socket );
 
 	///
-	/// @param on
+	/// @brief Power on/off on the Yeelight light
+	///
+	/// @param[in] on True: power on, False: power off
+	///
+	/// @return True, if success
 	///
 	bool setPower( bool on );
 
+	///
+	/// @brief Power on/off on the Yeelight light
+	///
+	/// @param[in] on True: power on, False: power off
+	/// @param[in] effect Transition effect, sudden or smooth
+	/// @param[in] duration Duration of the transition, if smooth
+	/// @param[in] mode Color mode after powering on
+	///
+	/// @return True, if success
+	///
 	bool setPower( bool on, API_EFFECT effect, int duration, API_MODE mode = API_RGB_MODE );
 
-	bool setColorRGB( ColorRgb color );
-	bool setColorRGB2( ColorRgb color );
-	bool setColorHSV( ColorRgb color );
+	///
+	/// @brief Set the Yeelight light to the given color (using RGB mode)
+	///
+	/// @param[in] color as RGB value
+	///
+	/// @return True, if success
+	///
+	bool setColorRGB( const ColorRgb &color );
 
+	///
+	/// @brief Set the Yeelight light to the given color (using HSV mode)
+	///
+	/// @param[in] color as RGB value
+	///
+	/// @return True, if success
+	///
+	bool setColorHSV( const ColorRgb &color );
+
+	///
+	/// @brief Set the Yeelight light effect and duration while transiting between color updates
+	///
+	/// @param[in] effect Transition effect, sudden or smooth
+	/// @param[in] duration Duration of the transition, if smooth
+	///
 	void setTransitionEffect ( API_EFFECT effect ,int duration = API_PARAM_DURATION );
 
+	///
+	/// @brief Set the Yeelight light brightness configuration behaviour
+	///
+	/// @param[in] min Minimum Brightness (in %). Every value lower than minimum will be set to minimum.
+	/// @param[in] max Maximum Brightness (in %). Every value greater than maximum will be set to maximum.
+	/// @param[in] switchoff True, power-off light, if brightness is lower then minimum
+	/// @param[in] extraTime Additional time (in ms), which added to transition duration while powering-off
+	/// @param[in] factor Brightness factor to multiply on color change.
+	///
 	void setBrightnessConfig (int min = 1, int max = 100, bool switchoff = false,  int extraTime = 0, double factor = 1);
 
-	void setQuotaWaitTime( const int waitTime ) { _waitTimeQuota = waitTime; }
-	bool setMusicMode( bool on, QHostAddress ipAddress = {} , int port = -1 );
+	///
+	/// @brief Set the Yeelight light into music-mode
+	///
+	/// @param[in] on True: music-mode on, False: music-mode off
+	/// @param[in] ipAddress of the music-mode server
+	/// @param[in] port of the music-mode server
+	///
+	bool setMusicMode( bool on, const QHostAddress &ipAddress = {} , int port = -1 );
 
+	///
+	/// @brief Set the wait-time between two Yeelight light commands
+	///
+	/// The write of a command is delayed by the given wait-time, if the last write happen in the wait-time time frame.
+	/// Used to avoid that the Yeelight light runs into the quota exceed error scenario.
+	/// A Yeelight light can do 60 commands/min ( -> wait-time = 1000ms).
+	///
+	/// @param[in] waitTime in milliseconds
+	///
+	void setQuotaWaitTime( int waitTime ) { _waitTimeQuota = waitTime; }
+
+	///
+	/// @brief Get the Yeelight light properties
+	///
+	/// @return properties as JSON-object
+	///
 	QJsonObject getProperties();
+
+	///
+	/// @brief Get the Yeelight light properties and store them along the Yeelight light for later access
+	///
 	void storeProperties();
 
-	bool identify();
-
-	void setName( const QString& name )  { _name = name; }
-	QString getName()const { return _name; }
-
+	///
+	/// @brief Check, if the Yeelight light is ready for updates
+	///
+	/// @return True, if ready
+	///
 	bool isReady() const { return !_isInError; }
+
+	///
+	/// @brief Check, if the Yeelight light is powered on
+	///
+	/// @return True, if powered on
+	///
 	bool isOn() const { return _isOn; }
+
+	///
+	/// @brief Check, if the Yeelight light is in music-mode
+	///
+	/// @return True, if in music mode
+	///
 	bool isInMusicMode( bool deviceCheck = false );
 
-	/// Set device in error state
 	///
-	/// @param errorMsg The error message to be logged
+	/// @brief Set the Yeelight light in error state
+	///
+	/// @param[in] errorMsg The error message to be logged
 	///
 	void setInError( const QString& errorMsg );
 
+	///
+	/// @brief Set the Yeelight light debug-level
+	///
+	/// @param[in] level Debug level (0: no debug output, 1-3: verbosity level)
+	///
 	void setDebuglevel ( int level ) { _debugLevel = level; }
 
 private:
 
 	YeelightResponse handleResponse(int correlationID, QByteArray const &response );
 
-	void saveOriginalState(const QJsonObject& values);
-
-	//QString getCommand(const QString &method, const QString &params);
+	///
+	/// @brief Build Yeelight-API command
+	///
+	/// @param[in] method Control method to be invoked
+	/// @param[in] params Parameters for control method
+	/// @return Yeelight-API command in JSON format
+	///
 	QJsonDocument getCommand(const QString &method, const QJsonArray &params);
 
-	void mapProperties(const QMap<QString, QString> propertyList);
+	///
+	/// @brief Map Yeelight light properties into the Yeelight light members for direct access
+	///
+	/// @param[in] properties Yeelight light's properties as JSON-Object
+	///
 	void mapProperties(const QJsonObject &properties);
 
+	///
+	/// @brief Write a Yeelight light specific log-line for debugging purposed
+	///
+	/// @param[in] logLevel Debug level (0: no debug output, 1-3: verbosity level)
+	/// @param[in] msg  Log message prefix (max 20 characters)
+	/// @param[in] type log message text
+	/// @param[in] ... variable input to log message text
+	/// 	///
 	void log(const int logLevel,const char* msg, const char* type, ...);
 
 	Logger* _log;
 	int _debugLevel;
 
+	/// Error status of Yeelight light
 	bool _isInError;
 
-	/// Ip address of the Yeelight
+	/// IP address/port of the Yeelight light
 	QString _host;
 	int _port;
-	QString _defaultHost;
 
+	/// Yeelight light communication socket
 	QTcpSocket*	 _tcpSocket;
-	int _correlationID;
-
+	/// Music mode server communication socket
 	QTcpSocket*	 _tcpStreamSocket;
 
-	QColor _color;
-	int _colorRgbValue;
-	int _bright;
-	int _ct;
+	/// ID of last command written or streamed
+	int _correlationID;
+	/// Timestamp of last write
+	qint64	_lastWriteTime;
 
+	/// Last color written to Yeelight light (RGB represented as QColor)
+	QColor _color;
+	/// Last color written to Yeelight light (RGB represented as int)
+	int _colorRgbValue;
+
+	/// Yeelight light behavioural parameters
 	API_EFFECT _transitionEffect;
 	int _transitionDuration;
 	int _extraTimeDarkness;
@@ -194,20 +370,21 @@ private:
 
 	QString _transitionEffectParam;
 
+	/// Wait time to avoid quota exceed scenario
 	int _waitTimeQuota;
 
-	// Light properties
+	/// Yeelight light properties
 	QJsonObject _properties;
 	QString _name;
 	QString _model;
 	QString _power;
 	QString _fw_ver;
+	int _bright;
+	int _ct;
 
+	/// Yeelight light status
 	bool _isOn;
 	bool _isInMusicMode;
-
-	/// timestamp of last write
-	qint64	_lastWriteTime;
 };
 
 ///
@@ -343,30 +520,51 @@ private:
 		}
 	};
 
-	bool openMusicModeServer();
-	bool closeMusicModeServer();
+	///
+	/// @brief Start music-mode server
+	///
+	/// @return True, if music mode server is running
+	///
+	bool startMusicModeServer();
 
-	bool updateLights(QVector<yeelightAddress>& list);
+	///
+	/// @brief Stop music-mode server
+	///
+	/// @return True, if music mode server has been stopped
+	///
+	bool stopMusicModeServer();
 
+	///
+	/// @brief Update list of Yeelight lights handled by the LED-device
+	///
+	/// @param[in] list List of Yeelight lights
+	///
+	/// @return False, if no lights were provided
+	///
+	bool updateLights(const QVector<yeelightAddress> &list);
+
+	///
+	/// @brief Set the number of Yeelight lights handled by the LED-device
+	///
+	/// @param[in] lightsCount Number of Yeelight lights
+	///
 	void setLightsCount( unsigned int lightsCount )	{ _lightsCount = lightsCount; }
-	uint getLightsCount() { return _lightsCount; }
 
 	///
-	/// Get Yeelight command
+	/// @brief Get the number of Yeelight lights handled by the LED-device
 	///
-	/// @param method
-	/// @param parameters
-	/// @return command to execute
+	/// @return Number of Yeelight lights
 	///
-	QString getCommand(const QString &method, const QString &params);
+	uint getLightsCount() const { return _lightsCount; }
 
-	/// Array of the Yeelight addresses.
+	/// Array of the Yeelight addresses handled by the LED-device
 	QVector<yeelightAddress> _lightsAddressList;
 
-	/// Array to save the lamps.
+	/// Array to save the lights
 	std::vector<YeelightLight> _lights;
 	unsigned int _lightsCount;
 
+	/// Yeelight configuration/behavioural parameters
 	int _outputColorModel;
 	YeelightLight::API_EFFECT _transitionEffect;
 	int _transitionDuration;
@@ -375,13 +573,13 @@ private:
 	int _brightnessMin;
 	bool _isBrightnessSwitchOffMinimum;
 	int _brightnessMax;
-	/// The brightness factor to multiply on color change.
 	double _brightnessFactor;
 
 	int _waitTimeQuota;
 
 	int _debuglevel;
 
+	///Music mode Server details
 	QHostAddress _musicModeServerAddress;
 	quint16 _musicModeServerPort;
 	QTcpServer* _tcpMusicModeServer = nullptr;

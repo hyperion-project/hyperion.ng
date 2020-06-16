@@ -58,8 +58,6 @@ ProviderRs232::~ProviderRs232()
 
 int ProviderRs232::open()
 {
-	Debug(_log, "");
-
 	int retval = -1;
 	_isDeviceReady = false;
 	_isInSwitchOff = false;
@@ -71,15 +69,11 @@ int ProviderRs232::open()
 		_isDeviceReady = true;
 		retval = 0;
 	}
-
-	Debug(_log, "[%d]", retval);
 	return retval;
 }
 
 int ProviderRs232::close()
 {
-	Debug(_log, "");
-
 	int retval = 0;
 
 	_isDeviceReady = false;
@@ -95,30 +89,22 @@ int ProviderRs232::close()
 		_rs232Port.close();
 		// Everything is OK -> device is closed
 	}
-
-	Debug(_log, "[%d]", retval);
 	return retval;
 }
 
 bool ProviderRs232::powerOff()
 {
-	Debug(_log, "");
-
 	// Simulate power-off by writing a final "Black" to have a defined outcome
 	bool rc = false;
 	if ( writeBlack( NUM_POWEROFF_WRITE_BLACK ) >= 0 )
 	{
 		rc = true;
 	}
-
-	Debug(_log, "[%d]", rc);
 	return rc;
 }
 
 QString ProviderRs232::discoverFirst()
 {
-	Debug(_log, "");
-
 	// take first available USB serial port - currently no probing!
 	for( auto port : QSerialPortInfo::availablePorts())
 	{
@@ -133,8 +119,6 @@ QString ProviderRs232::discoverFirst()
 
 bool ProviderRs232::tryOpen(const int delayAfterConnect_ms)
 {
-	Debug(_log, "");
-
 	if (_deviceName.isEmpty() || _rs232Port.portName().isEmpty())
 	{
 		if ( _isAutoDeviceName )
@@ -223,7 +207,7 @@ int ProviderRs232::writeBytes(const qint64 size, const uint8_t * data)
 				++_frameDropCounter;
 
 				// Check,if number of timeouts in a given time frame is greater than defined
-				// TODO: Add time frame
+				// TODO: ProviderRs232::writeBytes - Add time frame to check for timeouts that devices does not close after absolute number of timeouts
 				if ( _frameDropCounter > MAX_WRITE_TIMEOUTS )
 				{
 					this->setInError( QString ("Timeout writing data to %1").arg(_deviceName) );

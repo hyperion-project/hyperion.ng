@@ -48,7 +48,7 @@ LedDevice::~LedDevice()
 void LedDevice::start()
 {
 	Info(_log, "Start LedDevice '%s'.", QSTRING_CSTR(_activeDeviceType));
-	Debug(_log, "");
+
 	close();
 
 	_isDeviceInitialised = false;
@@ -59,36 +59,27 @@ void LedDevice::start()
 		_isDeviceInitialised = true;
 		setEnable(true);
 	}
-	Debug(_log, "[void], _isEnabled [%d], _isDeviceReady [%d], _isDeviceInitialised [%d]", _isEnabled, _isDeviceReady, _isDeviceInitialised);
 }
 
 void LedDevice::stop()
 {
-	Debug(_log, "");
 	setEnable(false);
 	this->stopRefreshTimer();
-	Debug(_log, "[void]");
 }
 
 int LedDevice::open()
 {
-	Debug(_log, "");
-
 	_isDeviceReady = true;
 	int retval = 0;
 
-	Debug(_log, "[%d]", retval);
 	return retval;
 }
 
 int LedDevice::close()
 {
-	Debug(_log, "");
-
 	_isDeviceReady = false;
 	int retval = 0;
 
-	Debug(_log, "[%d]", retval);
 	return retval;
 }
 
@@ -105,8 +96,6 @@ void LedDevice::setInError(const QString& errorMsg)
 
 void LedDevice::setEnable(bool enable)
 {
-	Debug(_log, "_isEnabled [%d], _isDeviceReady [%d], _isDeviceInitialised [%d]", _isEnabled, _isDeviceReady, _isDeviceInitialised);
-
 	bool isSwitched = false;
 	// switch off device when disabled, default: set black to LEDs when they should go off
 	if ( _isEnabled  && !enable)
@@ -127,8 +116,6 @@ void LedDevice::setEnable(bool enable)
 		_isEnabled = enable;
 		emit enableStateChanged(enable);
 	}
-
-	Debug(_log, "isSwitched [%d], _isEnabled [%d], _isDeviceReady [%d], _isDeviceInitialised [%d]", isSwitched, _isEnabled, _isDeviceReady, _isDeviceInitialised);
 }
 
 void LedDevice::setActiveDeviceType(const QString& deviceType)
@@ -170,7 +157,6 @@ bool LedDevice::init(const QJsonObject &deviceConfig)
 
 void LedDevice::startRefreshTimer()
 {
-	//std::cout << "LedDevice::startRefreshTimer(), _deviceReady [" << _deviceReady << "], _enabled [" << _enabled << "]" << std::endl;
 	if ( _isDeviceReady && _isEnabled )
 	{
 		_refreshTimer->start();
@@ -179,13 +165,11 @@ void LedDevice::startRefreshTimer()
 
 void LedDevice::stopRefreshTimer()
 {
-	//std::cout << "LedDevice::stopRefreshTimer(), _deviceReady [" << _deviceReady << "], _enabled [" << _enabled << "]" << std::endl;
 	_refreshTimer->stop();
 }
 
 int LedDevice::updateLeds(const std::vector<ColorRgb>& ledValues)
 {
-	//std::cout << "LedDevice::updateLeds(), _enabled [" << _enabled << "], _deviceReady [" << _deviceReady << "], _deviceInError [" << _deviceInError << "]" << std::endl;
 	int retval = 0;
 	if ( !isEnabled() || !_isDeviceReady || _isDeviceInError )
 	{
@@ -248,7 +232,6 @@ int LedDevice::rewriteLEDs()
 
 int LedDevice::writeBlack(int numberOfBlack)
 {
-	Debug(_log, "enabled [%d], _deviceReady [%d]", this->isEnabled(), _isDeviceReady);
 	int rc = -1;
 
 	for (int i = 0; i < numberOfBlack; i++)
@@ -262,14 +245,11 @@ int LedDevice::writeBlack(int numberOfBlack)
 		}
 		rc = write(std::vector<ColorRgb>(static_cast<unsigned long>(_ledCount), ColorRgb::BLACK ));
 	}
-
-	Debug(_log, "[%d]", rc);
 	return rc;
 }
 
 bool LedDevice::switchOn()
 {
-	Debug(_log, "_isEnabled [%d], _isDeviceReady [%d], _isDeviceInitialised [%d]", _isEnabled, _isDeviceReady, _isDeviceInitialised);
 	bool rc = false;
 	if ( _isDeviceInitialised && ! _isDeviceReady && ! _isEnabled )
 	{
@@ -289,14 +269,11 @@ bool LedDevice::switchOn()
 			}
 		}
 	}
-
-	Debug(_log, "[%d], _isEnabled [%d], _isDeviceReady [%d], _isDeviceInitialised [%d]", rc, _isEnabled, _isDeviceReady, _isDeviceInitialised);
 	return rc;
 }
 
 bool LedDevice::switchOff()
 {
-	Debug(_log, "");
 	bool rc = false;
 
 	if ( _isDeviceInitialised )
@@ -330,67 +307,52 @@ bool LedDevice::switchOff()
 			rc = false;
 		}
 	}
-	Debug(_log, "[%d]", rc);
 	return rc;
 }
 
 bool LedDevice::powerOff()
 {
-	Debug(_log, "");
-
 	// Simulate power-off by writing a final "Black" to have a defined outcome
 	bool rc = false;
 	if ( writeBlack() >= 0 )
 	{
 		rc = true;
 	}
-
-	Debug(_log, "[%d]", rc);
 	return rc;
 }
 
 bool LedDevice::powerOn()
 {
-	Debug(_log, "");
 	bool rc = true;
-	Debug(_log, "[%d]", rc);
 	return rc;
 }
 
 bool LedDevice::storeState()
 {
-	Debug(_log, "");
 	bool rc = true;
 
 	if ( _isRestoreOrigState )
 	{
 		// Save device's original state
-		//_orignalStateValues = get device's state;
+		// _originalStateValues = get device's state;
 	}
-
-	Debug(_log, "[%d]", rc);
 	return rc;
 }
 
 bool LedDevice::restoreState()
 {
-	Debug(_log, "");
 	bool rc = true;
 
 	if ( _isRestoreOrigState )
 	{
 		// Restore device's original state
-		//update device using _orignalStateValues
+		// update device using _originalStateValues
 	}
-
-	Debug(_log, "[%d]", rc);
 	return rc;
 }
 
 QJsonObject LedDevice::discover()
 {
-	Debug(_log, "");
-
 	QJsonObject devicesDiscovered;
 
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
@@ -404,8 +366,6 @@ QJsonObject LedDevice::discover()
 
 QString LedDevice::discoverFirst()
 {
-	Debug(_log, "");
-
 	QString deviceDiscovered;
 
 	Debug(_log, "deviceDiscovered: [%s]", QSTRING_CSTR(deviceDiscovered) );

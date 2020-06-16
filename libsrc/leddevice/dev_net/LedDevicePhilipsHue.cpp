@@ -79,8 +79,9 @@ static const char API_ERROR_TYPE[] = "type";
 static const char API_SUCCESS[] = "success";
 
 // Phlips Hue ssdp services
-static const char SSDP_ID[] = "urn:schemas-upnp-org:device:Basic:1";
-const int SSDP_TIMEOUT = 5000; // timout in ms
+static const char SSDP_ID[] = "upnp:rootdevice";
+static const char SSDP_FILTER[] = "(.*)IpBridge(.*)";
+static const char SSDP_FILTER_HEADER[] = "SERVER";
 
 // DTLS Connection / SSL / Cipher Suite
 static const char API_SSL_SERVER_NAME[] = "Hue";
@@ -1606,8 +1607,8 @@ QJsonObject LedDevicePhilipsHue::discover()
 	SSDPDiscover discover;
 
 	discover.skipDuplicateKeys(false);
-	discover.setSearchFilter("(.*)IpBridge(.*)", "SERVER");
-	QString searchTarget = "upnp:rootdevice";
+	discover.setSearchFilter(SSDP_FILTER, SSDP_FILTER_HEADER);
+	QString searchTarget = SSDP_ID;
 
 	if ( discover.discoverServices(searchTarget) > 0 )
 	{
@@ -1640,9 +1641,6 @@ QJsonObject LedDevicePhilipsHue::getProperties(const QJsonObject& params)
 			apiPort = addressparts[1].toInt();
 		else
 			apiPort   = API_DEFAULT_PORT;
-
-		if ( filter.startsWith("/") )
-			filter.remove(0,1);
 
 		initRestAPI(apiHost, apiPort, username);
 		_restApi->setPath(filter);
