@@ -46,7 +46,7 @@ public:
 	/// @brief Search for specified service, results will be returned by signal newService(). Calling this method again will reset all found urns and search again
 	/// @param st The service to search for
 	///
-	void searchForService(const QString& st = "urn:hyperion-project.org:device:basic:1");
+	void searchForService(const QString &st = "urn:hyperion-project.org:device:basic:1");
 
 	///
 	/// @brief Search for specified searchTarget, the method will block until a server has been found or a timeout happened
@@ -55,7 +55,7 @@ public:
 	/// @param timeout_ms  The timeout in ms
 	/// @return The address+port of web-server or empty if timed out
 	///
-	const QString getFirstService(const searchType& type = STY_WEBSERVER,const QString& st = "urn:hyperion-project.org:device:basic:1", const int& timeout_ms = 3000);
+	const QString getFirstService(const searchType &type = STY_WEBSERVER,const QString &st = "urn:hyperion-project.org:device:basic:1", const int &timeout_ms = 3000);
 
 	///
 	/// @brief Discover services via ssdp.
@@ -84,7 +84,7 @@ public:
 	///
 	/// @return Number of service records found (meeting the search & filter criteria)
 	///
-	int discoverServices(const QString& searchTarget="ssdp:all", const QString& key="LOCATION");
+	int discoverServices(const QString &searchTarget="ssdp:all", const QString &key="LOCATION");
 
 	///
 	/// @brief Get services discovered during discoverServices()
@@ -126,7 +126,7 @@ public:
 	///
 	/// @param[in] IP-address used during discovery
 	///
-	void setAddress ( const QString& address) { _ssdpAddr = address; }
+	void setAddress ( const QString &address) { _ssdpAddr = QHostAddress(address); }
 
 	///
 	/// @brief Set the ssdp discovery port (HOST)
@@ -147,7 +147,7 @@ public:
 	///
 	/// @param[in] searchTarget
 	///
-	void setSearchTarget ( const QString& searchTarget) { _searchTarget = searchTarget; }
+	void setSearchTarget ( const QString &searchTarget) { _searchTarget = searchTarget; }
 
 	///
 	/// @brief Set the ssdp discovery search target filter
@@ -157,7 +157,7 @@ public:
 	///
 	/// @return True, if valid regular expression
 	///
-	bool setSearchFilter ( const QString& filter=DEFAULT_FILTER, const QString& filterHeader="ST");
+	bool setSearchFilter ( const QString &filter=DEFAULT_FILTER, const QString &filterHeader="ST");
 
 	///
 	/// @brief Set the ssdp discovery search target and filter to default values
@@ -188,7 +188,7 @@ private:
 	///
 	/// @param[in] st Search Target
 	///
-	void sendSearch(const QString& st);
+	void sendSearch(const QString &st);
 
 private:
 
