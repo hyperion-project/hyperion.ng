@@ -127,7 +127,6 @@ private:
 
 	QString _hostname;
 	int		_apiPort;
-	ushort  _streamPort;
 };
 
 #endif // LEDDEVICEWLED_H

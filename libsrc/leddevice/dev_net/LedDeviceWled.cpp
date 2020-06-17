@@ -6,7 +6,6 @@
 
 // Configuration settings
 static const char CONFIG_ADDRESS[] = "host";
-static const char CONFIG_PORT[] = "port";
 
 // UDP elements
 const quint16 STREAM_DEFAULT_PORT = 19446;
@@ -26,14 +25,13 @@ static const char STATE_VALUE_FALSE[] = "false";
 // WLED ssdp services
 // TODO: WLED - Update ssdp discovery parameters when available
 static const char SSDP_ID[] = "ssdp:all";
-static const char SSDP_FILTER[] = "(*)";
+static const char SSDP_FILTER[] = "(.*)";
 static const char SSDP_FILTER_HEADER[] = "ST";
 
 LedDeviceWled::LedDeviceWled(const QJsonObject &deviceConfig)
 	: ProviderUdp()
 	  ,_restApi(nullptr)
 	  ,_apiPort(API_DEFAULT_PORT)
-	  ,_streamPort(STREAM_DEFAULT_PORT)
 {
 	_devConfig = deviceConfig;
 	_isDeviceReady = false;
@@ -70,9 +68,8 @@ bool LedDeviceWled::init(const QJsonObject &deviceConfig)
 		Debug(_log, "ColorOrder   : %s", QSTRING_CSTR( this->getColorOrder() ));
 		Debug(_log, "LatchTime    : %d", this->getLatchTime());
 
-		//Set hostname as per configuration and_defaultHost default port
+		//Set hostname as per configuration
 		QString address = deviceConfig[ CONFIG_ADDRESS ].toString();
-		_port = deviceConfig[ CONFIG_PORT ].toInt();
 
 		//If host not configured the init fails
 		if ( address.isEmpty() )
@@ -97,6 +94,7 @@ bool LedDeviceWled::init(const QJsonObject &deviceConfig)
 			{
 				// Update configuration with hostname without port
 				_devConfig["host"] = _hostname;
+				_devConfig["port"] = STREAM_DEFAULT_PORT;
 
 				isInitOK = ProviderUdp::init(_devConfig);
 				Debug(_log, "Hostname/IP  : %s", QSTRING_CSTR( _hostname ));

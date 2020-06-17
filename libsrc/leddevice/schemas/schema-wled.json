@@ -7,14 +7,6 @@
 			"title":"edt_dev_spec_targetIpHost_title",
 			"propertyOrder" : 1
 		},
-		"port" : {
-			"type": "integer",
-			"title":"edt_dev_spec_port_title",
-			"default": 19446,
-			"minimum" : 0,
-			"maximum" : 65535,
-			"propertyOrder" : 2
-		},
 		"latchTime": {
 			"type": "integer",
 			"title":"edt_dev_spec_latchtime_title",
@@ -23,7 +15,7 @@
 			"minimum": 0,
 			"maximum": 1000,
 			"access" : "expert",
-			"propertyOrder" : 3
+			"propertyOrder" : 2
 		}
 	},
 	"additionalProperties": true
