@@ -1,4 +1,5 @@
-#pragma once
+#ifndef LEDEVICELPD8806_H
+#define LEDEVICELPD8806_H
 
 // Local hyperion includes
 #include "ProviderSpi.h"
@@ -32,7 +33,7 @@
 /// applications.  The 'subsequent' rule also means that at least one extra
 /// byte must follow the last pixel, in order for the final blue LED to latch.
 ///
-/// To reset the pass-through behavior and begin sending new data to the start
+/// To reset the pass-through behaviour and begin sending new data to the start
 /// of the strip, a number of zero bytes must be issued (remember, all color
 /// data bytes have the high bit set, thus are in the range 128 to 255, so the
 /// zero is 'special').  This should be done before each full payload of color
@@ -69,7 +70,7 @@
 /// Tested.  Confirmed.  Fact.
 ///
 ///
-/// The summary of the story is that the following needs to be writen on the spi-device:
+/// The summary of the story is that the following needs to be written on the spi-device:
 /// 1RRRRRRR 1GGGGGGG 1BBBBBBB 1RRRRRRR 1GGGGGGG ... ... 1GGGGGGG 1BBBBBBB 00000000 00000000 ...
 /// |---------led_1----------| |---------led_2--         -led_n----------| |----clear data--
 ///
@@ -78,29 +79,39 @@
 class LedDeviceLpd8806 : public ProviderSpi
 {
 public:
+
 	///
-	/// Constructs specific LedDevice
+	/// @brief Constructs a LDP8806 LED-device
 	///
-	/// @param deviceConfig json device config
+	/// @param deviceConfig Device's configuration as JSON-Object
 	///
 	explicit LedDeviceLpd8806(const QJsonObject &deviceConfig);
 
-	/// constructs leddevice
+	///
+	/// @brief Constructs the LED-device
+	///
+	/// @param[in] deviceConfig Device's configuration as JSON-Object
+	/// @return LedDevice constructed
+	///
 	static LedDevice* construct(const QJsonObject &deviceConfig);
 
+private:
+
 	///
-	/// Sets configuration
+	/// @brief Initialise the device's configuration
 	///
-	/// @param deviceConfig the json device config
-	/// @return true if success
+	/// @param[in] deviceConfig the JSON device configuration
+	/// @return True, if success
+	///
 	virtual bool init(const QJsonObject &deviceConfig) override;
 
-private:
 	///
-	/// Writes the led color values to the led-device
+	/// @brief Writes the RGB-Color values to the LEDs.
 	///
-	/// @param ledValues The color-value per led
-	/// @return Zero on succes else negative
+	/// @param[in] ledValues The RGB-color per LED
+	/// @return Zero on success, else negative
 	///
-	virtual int write(const std::vector<ColorRgb> &ledValues) override;
+	virtual int write(const std::vector<ColorRgb> & ledValues) override;
 };
+
+#endif // LEDEVICELPD8806_H
