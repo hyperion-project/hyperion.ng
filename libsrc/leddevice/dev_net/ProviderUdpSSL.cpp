@@ -150,7 +150,6 @@ int ProviderUdpSSL::open()
 	{
 		// Everything is OK -> enable device
 		_isDeviceReady = true;
-		setEnable(true);
 		retval = 0;
 	}
 	return retval;

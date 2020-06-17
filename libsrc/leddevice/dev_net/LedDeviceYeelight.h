@@ -266,7 +266,23 @@ public:
 	///
 	/// @brief Get the Yeelight light properties and store them along the Yeelight light for later access
 	///
-	void storeProperties();
+	void storeState();
+
+	///
+	/// @brief Restore the Yeelight light's original state.
+	///
+	/// Restore the device's state as before hyperion color streaming started.
+	///
+	/// @return True, if success
+	///
+	virtual bool restoreState();
+
+	///
+	/// @brief Check, if light was originally powered on before hyperion color streaming started..
+	///
+	/// @return True, if light was on at start
+	///
+	bool wasOriginallyOn() const { return _power == API_METHOD_POWER_ON ? true : false; }
 
 	///
 	/// @brief Check, if the Yeelight light is ready for updates
@@ -356,7 +372,7 @@ private:
 	/// Last color written to Yeelight light (RGB represented as QColor)
 	QColor _color;
 	/// Last color written to Yeelight light (RGB represented as int)
-	int _colorRgbValue;
+	int _lastColorRgbValue;
 
 	/// Yeelight light behavioural parameters
 	API_EFFECT _transitionEffect;
@@ -374,11 +390,12 @@ private:
 	int _waitTimeQuota;
 
 	/// Yeelight light properties
-	QJsonObject _properties;
+	QJsonObject _originalStateProperties;
 	QString _name;
 	QString _model;
 	QString _power;
 	QString _fw_ver;
+	int _colorRgbValue;
 	int _bright;
 	int _ct;
 
@@ -508,6 +525,16 @@ protected:
 	///
 	virtual bool storeState() override;
 
+	///
+	/// @brief Restore the device's original state.
+	///
+	/// Restore the device's state as before hyperion color streaming started.
+	/// This includes the on/off state of the device.
+	///
+	/// @return True, if success
+	///
+	virtual bool restoreState() override;
+
 private:
 
 	struct yeelightAddress {
@@ -518,6 +545,11 @@ private:
 		{
 			return ((host == a.host) && (port == a.port));
 		}
+	};
+
+	enum COLOR_MODEL{
+		MODEL_HSV,
+		MODEL_RGB
 	};
 
 	///

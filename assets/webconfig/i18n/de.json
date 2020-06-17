@@ -480,7 +480,7 @@
 	"edt_dev_spec_verbose_title": "Logge alle Hue Commandos",
 	"edt_dev_spec_debugStreamer_title": "Streamer Debugging",
 	"edt_dev_spec_debugLevel_title": "Streamer Verbindung Debug Stufe",
-	"edt_dev_spec_restoreOriginalState_title" : "Lampen Originalzustand wiederherstellen",
+	"edt_dev_spec_restoreOriginalState_title" : "Bei Deaktivierung, Lampen Originalzustand wiederherstellen",
 	"edt_dev_spec_useEntertainmentAPI_title": "Hue Entertainment API verwenden",
 	"edt_dev_spec_ledType_title": "LED typ",
 	"edt_dev_spec_uid_title": "UID",

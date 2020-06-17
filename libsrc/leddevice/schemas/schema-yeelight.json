@@ -93,10 +93,16 @@
 			"access" : "expert",
 			"propertyOrder" : 8
 		},
+		"restoreOriginalState": {
+			"type": "boolean",
+			"title":"edt_dev_spec_restoreOriginalState_title",
+			"default" : false,
+			"propertyOrder" : 9
+		},		
 		"lights": {
 			"type": "array",
 			"title":"edt_dev_spec_lights_title",
-			"propertyOrder" : 8,
+			"propertyOrder" : 9,
 			"minimum" : 1,
 			"uniqueItems" : true,
 			"items" : {
@@ -133,7 +139,7 @@
 					}
 				}
 			},
-			"propertyOrder" : 9
+			"propertyOrder" : 10
 		},
 		"quotaWait": {
 			"type": "integer",

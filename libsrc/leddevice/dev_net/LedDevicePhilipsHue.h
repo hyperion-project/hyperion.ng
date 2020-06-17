@@ -466,8 +466,9 @@ protected:
 	/// @brief Restore the device's original state.
 	///
 	/// Restore the device's state as before hyperion color streaming started.
+	/// This includes the on/off state of the device.
 	///
-	/// @return True if success
+	/// @return True, if success
 	///
 	virtual bool restoreState() override;
 

@@ -38,6 +38,8 @@ static const char CONFIG_BRIGHTNESS_SWITCHOFF[] = "brightnessSwitchOffOnMinimum"
 static const char CONFIG_BRIGHTNESS_MAX[] = "brightnessMax";
 static const char CONFIG_BRIGHTNESSFACTOR[] = "brightnessFactor";
 
+static const char CONFIG_RESTORE_STATE[] = "restoreOriginalState";
+
 static const char CONFIG_QUOTA_WAIT_TIME[] = "quotaWait";
 
 // Yeelights API
@@ -90,7 +92,7 @@ YeelightLight::YeelightLight( Logger *log, const QString &hostname, int port = A
 	  ,_tcpStreamSocket(nullptr)
 	  ,_correlationID(0)
 	  ,_lastWriteTime(QDateTime::currentMSecsSinceEpoch())
-	  ,_colorRgbValue(0)
+	  ,_lastColorRgbValue(0)
 	  ,_transitionEffect(YeelightLight::API_EFFECT_SMOOTH)
 	  ,_transitionDuration(API_PARAM_DURATION)
 	  ,_extraTimeDarkness(API_PARAM_EXTRA_TIME_DARKNESS)
@@ -498,8 +500,12 @@ QJsonObject YeelightLight::getProperties()
 	log (3,"getProperties()","" );
 	QJsonObject properties;
 
-	QJsonArray propertyList;
-	propertyList << API_PROP_NAME << API_PROP_MODEL << API_PROP_POWER << API_PROP_RGB << API_PROP_BRIGHT << API_PROP_CT << API_PROP_FWVER;
+	//Selected properties
+	QJsonArray propertyList = { API_PROP_NAME, API_PROP_MODEL, API_PROP_POWER, API_PROP_RGB, API_PROP_BRIGHT, API_PROP_CT, API_PROP_FWVER };
+
+	//All properties
+	//	QJsonArray propertyList = {"power","bright","ct","rgb","hue","sat","color_mode","flowing","delayoff","music_on","name","bg_power","bg_flowing","bg_ct","bg_bright","bg_hue","bg_sat","bg_rgb","nl_br","active_mode" };
+
 	QJsonDocument command = getCommand( API_METHOD_GETPROP, propertyList );
 
 	QJsonArray result;
@@ -528,8 +534,6 @@ bool YeelightLight::identify()
 {
 	log (3,"identify()","" );
 
-	QJsonArray colorflowParams;
-
 	/*
 	count		6, total number of visible state changing before color flow is stopped
 	action		0, 0 means smart LED recover to the state before the color flow started
@@ -544,8 +548,7 @@ bool YeelightLight::identify()
 	Value:		16711696 (red)
 	Brightness:	10
 	*/
-
-	colorflowParams << API_PROP_COLORFLOW << 6 << 0 << "500,1,100,100,500,1,16711696,10";
+	QJsonArray colorflowParams = { API_PROP_COLORFLOW, 6, 0, "500,1,100,100,500,1,16711696,10"};
 
 	QJsonDocument command = getCommand( API_METHOD_SETSCENE, colorflowParams );
 
@@ -562,8 +565,7 @@ bool YeelightLight::isInMusicMode( bool deviceCheck)
 	if ( deviceCheck )
 	{
 		// Get status from device directly
-		QJsonArray propertylist;
-		propertylist << API_PROP_MUSIC;
+		QJsonArray propertylist = { API_PROP_MUSIC };
 
 		QJsonDocument command = getCommand( API_METHOD_GETPROP, propertylist );
 
@@ -614,20 +616,41 @@ void YeelightLight::mapProperties(const QJsonObject &properties)
 	_fw_ver	= properties.value(API_PROP_FWVER).toString();;
 
 	_power	= properties.value(API_PROP_POWER).toString();
-	_colorRgbValue	= properties.value(API_PROP_RGB).toString().toInt();
+	_colorRgbValue = properties.value(API_PROP_RGB).toString().toInt();
 	_bright	= properties.value(API_PROP_BRIGHT).toString().toInt();
 	_ct		= properties.value(API_PROP_CT).toString().toInt();
+
 	log (2,"mapProperties() rc","void" );
 }
 
-void YeelightLight::storeProperties()
+void YeelightLight::storeState()
 {
-	log (3,"storeProperties()","" );
+	log (3,"storeState()","" );
 
-	_properties = this->getProperties();
-	mapProperties( _properties );
+	_originalStateProperties = this->getProperties();
+	mapProperties( _originalStateProperties );
 
-	log (2,"storeProperties() rc","void" );
+	log (2,"storeState() rc","void" );
+}
+
+bool YeelightLight::restoreState()
+{
+	log (3,"restoreState()","" );
+	bool rc = false;
+
+	QJsonArray paramlist = { API_PARAM_CLASS_COLOR, _colorRgbValue, _bright };
+
+	if ( _isInMusicMode )
+	{
+		rc = streamCommand( getCommand( API_METHOD_SETSCENE, paramlist ) );
+	}
+	else
+	{
+		rc = writeCommand( getCommand( API_METHOD_SETSCENE, paramlist ) );
+	}
+
+	log (2,"restoreState() rc","%d", rc );
+	return rc;
 }
 
 bool YeelightLight::setPower(bool on)
@@ -639,11 +662,17 @@ bool YeelightLight::setPower(bool on, YeelightLight::API_EFFECT effect, int dura
 {
 	bool rc = false;
 	log (3,"setPower()","isON[%d], isInMusicMode[%d]", _isOn, _isInMusicMode );
+
+	// Disable music mode to get power-off command executed
+	if ( !on && _isInMusicMode )
+	{
+		_tcpStreamSocket->close();
+	}
+
 	QString powerParam = on ? API_METHOD_POWER_ON : API_METHOD_POWER_OFF;
 	QString effectParam = effect == YeelightLight::API_EFFECT_SMOOTH ? API_PARAM_EFFECT_SMOOTH : API_PARAM_EFFECT_SUDDEN;
 
-	QJsonArray paramlist;
-	paramlist << powerParam << effectParam << duration << mode;
+	QJsonArray paramlist = { powerParam, effectParam, duration, mode };
 
 	// If power off was successful, automatically music-mode is off too
 	if (  writeCommand( getCommand( API_METHOD_POWER, paramlist ) ) > -1 )
@@ -671,7 +700,7 @@ bool YeelightLight::setColorRGB(const ColorRgb &color)
 		colorParam = 1;
 	}
 
-	if ( colorParam != _colorRgbValue )
+	if ( colorParam != _lastColorRgbValue )
 	{
 		int bri = std::max( { color.red, color.green, color.blue } ) * 100 / 255;
 		int duration = _transitionDuration;
@@ -698,8 +727,7 @@ bool YeelightLight::setColorRGB(const ColorRgb &color)
 		}
 
 		log ( 3, "Set Color RGB:", "{%u,%u,%u} -> [%d], [%d], [%d], [%d]", color.red, color.green, color.blue, colorParam, bri, _transitionEffect, _transitionDuration );
-		QJsonArray paramlist;
-		paramlist << API_PARAM_CLASS_COLOR << colorParam << bri;
+		QJsonArray paramlist = { API_PARAM_CLASS_COLOR, colorParam, bri };
 
 		// Only add transition effect and duration, if device smoothing is configured (older FW do not support this parameters in set_scene
 		if ( _transitionEffect == YeelightLight::API_EFFECT_SMOOTH )
@@ -718,7 +746,7 @@ bool YeelightLight::setColorRGB(const ColorRgb &color)
 		}
 		if ( writeOK )
 		{
-			_colorRgbValue = colorParam;
+			_lastColorRgbValue = colorParam;
 		}
 		else
 		{
@@ -770,8 +798,7 @@ bool YeelightLight::setColorHSV(const ColorRgb &colorRGB)
 			bri = ( qMin( _brightnessMax, static_cast<int> (_brightnessFactor * qMax( _brightnessMin, bri ) ) ) );
 		}
 		log ( 2, "Set Color HSV:", "{%u,%u,%u}, [%d], [%d]", hue, sat, bri, _transitionEffect, duration );
-		QJsonArray paramlist;
-		paramlist << API_PARAM_CLASS_HSV << hue << sat << bri;
+		QJsonArray paramlist = { API_PARAM_CLASS_HSV, hue, sat, bri };
 
 		// Only add transition effect and duration, if device smoothing is configured (older FW do not support this parameters in set_scene
 		if ( _transitionEffect == YeelightLight::API_EFFECT_SMOOTH )
@@ -842,8 +869,7 @@ bool YeelightLight::setMusicMode(bool on, const QHostAddress &hostAddress, int p
 	bool rc = false;
 	int musicModeParam = on ? API_METHOD_MUSIC_MODE_ON : API_METHOD_MUSIC_MODE_OFF;
 
-	QJsonArray paramlist;
-	paramlist << musicModeParam;
+	QJsonArray paramlist = { musicModeParam };
 
 	if ( on )
 	{
@@ -938,15 +964,17 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 
 		//Get device specific configuration
 
+		bool ok;
 		if ( deviceConfig[ CONFIG_COLOR_MODEL ].isString() )
-			_outputColorModel = deviceConfig[ CONFIG_COLOR_MODEL ].toString().toInt();
+			_outputColorModel = deviceConfig[ CONFIG_COLOR_MODEL ].toString().toInt(&ok,MODEL_RGB);
 		else
-			_outputColorModel = deviceConfig[ CONFIG_COLOR_MODEL ].toInt();
+			_outputColorModel = deviceConfig[ CONFIG_COLOR_MODEL ].toInt(MODEL_RGB);
+
 
 		if ( deviceConfig[ CONFIG_TRANS_EFFECT ].isString() )
-			_transitionEffect = static_cast<YeelightLight::API_EFFECT>( deviceConfig[ CONFIG_TRANS_EFFECT ].toString().toInt() );
+			_transitionEffect = static_cast<YeelightLight::API_EFFECT>( deviceConfig[ CONFIG_TRANS_EFFECT ].toString().toInt(&ok, YeelightLight::API_EFFECT_SMOOTH) );
 		else
-			_transitionEffect = static_cast<YeelightLight::API_EFFECT>( deviceConfig[ CONFIG_TRANS_EFFECT ].toInt() );
+			_transitionEffect = static_cast<YeelightLight::API_EFFECT>( deviceConfig[ CONFIG_TRANS_EFFECT ].toInt(YeelightLight::API_EFFECT_SMOOTH) );
 
 		_transitionDuration = deviceConfig[ CONFIG_TRANS_TIME ].toInt(API_PARAM_DURATION);
 		_extraTimeDarkness	= _devConfig[CONFIG_EXTRA_TIME_DARKNESS].toInt(0);
@@ -961,7 +989,7 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 		else
 			_debuglevel = deviceConfig[ CONFIG_DEBUGLEVEL ].toInt(0);
 
-		QString outputColorModel = _outputColorModel == 1 ? "RGB": "HSV";
+		QString outputColorModel = _outputColorModel == MODEL_RGB ? "RGB": "HSV";
 		QString transitionEffect = _transitionEffect == YeelightLight::API_EFFECT_SMOOTH ? API_PARAM_EFFECT_SMOOTH : API_PARAM_EFFECT_SUDDEN;
 
 		Debug(_log, "colorModel        : %s", QSTRING_CSTR(outputColorModel));
@@ -974,7 +1002,9 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 		Debug(_log, "Brightn. Max      : %d", _brightnessMax );
 		Debug(_log, "Brightn. Factor   : %.2f", _brightnessFactor );
 
-
+		_isRestoreOrigState     = _devConfig[CONFIG_RESTORE_STATE].toBool(false);
+		Debug(_log, "RestoreOrigState  : %d", _isRestoreOrigState);
+		
 		_waitTimeQuota	= _devConfig[CONFIG_QUOTA_WAIT_TIME].toInt(0);
 		Debug(_log, "Wait time (quota) : %d", _waitTimeQuota );
 
@@ -1236,7 +1266,20 @@ bool LedDeviceYeelight::storeState()
 
 	for (YeelightLight& light : _lights)
 	{
-		light.storeProperties();
+		light.storeState();
+	}
+	return rc;
+}
+
+bool LedDeviceYeelight::restoreState()
+{
+	bool rc = true;
+
+	for (YeelightLight& light : _lights)
+	{
+		light.restoreState();
+		if ( !light.wasOriginallyOn() )
+			light.setPower( false, _transitionEffect, API_PARAM_DURATION_POWERONOFF);
 	}
 	return rc;
 }
@@ -1354,7 +1397,7 @@ int LedDeviceYeelight::write(const std::vector<ColorRgb> & ledValues)
 			if ( !skipWrite )
 			{
 				// Update light with given color
-				if ( _outputColorModel == 1 )
+				if ( _outputColorModel == MODEL_RGB )
 				{
 					light.setColorRGB( color );
 				}

@@ -286,22 +286,19 @@ bool LedDevice::switchOff()
 
 		rc = true;
 
-		restoreState();
-
-		if (! powerOff() )
-		{	// Test, if device requires closing
-			if ( _isDeviceReady )
+		if ( _isDeviceReady )
+		{
+			if ( _isRestoreOrigState )
 			{
-				if ( _isRestoreOrigState )
-				{
-					//Restore devices state
-					restoreState();
-				}
-
+				//Restore devices state
+				restoreState();
 			}
-			 rc = false;
-		}
+			else
+			{
+				powerOff();
+			}
 
+		}
 		if ( close() < 0 )
 		{
 			rc = false;
@@ -310,10 +307,12 @@ bool LedDevice::switchOff()
 	return rc;
 }
 
+
 bool LedDevice::powerOff()
 {
-	// Simulate power-off by writing a final "Black" to have a defined outcome
 	bool rc = false;
+
+	// Simulate power-off by writing a final "Black" to have a defined outcome
 	if ( writeBlack() >= 0 )
 	{
 		rc = true;
@@ -335,6 +334,7 @@ bool LedDevice::storeState()
 	{
 		// Save device's original state
 		// _originalStateValues = get device's state;
+		// store original power on/off state, if available
 	}
 	return rc;
 }
@@ -347,6 +347,7 @@ bool LedDevice::restoreState()
 	{
 		// Restore device's original state
 		// update device using _originalStateValues
+		// update original power on/off state, if supported
 	}
 	return rc;
 }

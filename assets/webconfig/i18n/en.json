@@ -481,7 +481,7 @@
 	"edt_dev_spec_verbose_title": "Log all Hue commands",
 	"edt_dev_spec_debugStreamer_title": "Streamer Debug",
 	"edt_dev_spec_debugLevel_title": "Streamer Connection Debug Level",
-	"edt_dev_spec_restoreOriginalState_title" : "Restore lights' original state",
+	"edt_dev_spec_restoreOriginalState_title" : "Restore lights' original state when disabled",
 	"edt_dev_spec_useEntertainmentAPI_title": "Use Hue Entertainment API",
 	"edt_dev_spec_ledType_title" : "LED Type",
 	"edt_dev_spec_uid_title" : "UID",
