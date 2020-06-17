@@ -11,6 +11,47 @@
 			"type": "string",
 			"title":"edt_dev_auth_key_title",
 			"propertyOrder" : 2
+		},
+		"title": {
+		"type" : "object",
+		"title":"edt_dev_spec_panelorganisation_title",
+		"access" : "advanced",
+		"propertyOrder" : 3
+		},
+		"panelOrderTopDown": {
+			"type": "integer",
+			"title":"edt_dev_spec_order_top_down_title",
+			"enum" : [0, 1],
+			"default" : 0,
+			"options" : {
+				"enum_titles" : ["edt_conf_enum_top_down", "edt_conf_enum_bottom_up"]
+			},
+			"minimum" : 0,
+			"maximum" : 1,
+			"access" : "advanced",
+			"propertyOrder" : 4
+		},
+		"panelOrderLeftRight": {
+			"type": "integer",
+			"title":"edt_dev_spec_order_left_right_title",
+			"enum" : [0, 1],
+			"default" : 0,
+			"options" : {
+				"enum_titles" : ["edt_conf_enum_left_right", "edt_conf_enum_right_left"]
+			},
+			"minimum" : 0,
+			"maximum" : 1,
+			"access" : "advanced",
+			"propertyOrder" : 5
+		},
+		"panelStartPos": {
+			"type": "integer",
+			"title":"edt_dev_spec_panel_start_position",
+			"step": 1,
+			"minimum" : 0,
+			"default": 0,
+			"access" : "advanced",
+			"propertyOrder" : 6
 		}
 	},
 	"additionalProperties": true
