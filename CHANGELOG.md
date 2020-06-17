@@ -5,7 +5,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.0.0-alpha.6...HEAD)
-- HyperBian - A Raspbian Lite image with Hyperion pre installed.
+
+### Breaking
+
+### Added
+- [HyperBian](https://github.com/hyperion-project/HyperBian/releases) - A Raspbian Lite image with Hyperion pre installed. (#832)
+- An option to reset (delete) the database for the commandline has been added (#820)
+- Improve language selection usability (#812)
+- readded V4L2 Input method from old Hyperion (#825)
+### Changed
+- Updated dependency rpi_ws281x to latest upstream (#820)
+- Updated websocket-extensions (#826)
+
+### Fixed
+- device: Nanoleaf (#829)
+- device: LPD8806 Problems fixed (#829)
+- Enumerate only V4L2 frame sizes & intervals for framesize type DISCRETE (fix BCM2835 ISP) (#820)
+- Fix systemd registration in debian for RPi4 (#820)
+- Fix missing define in Profiler & added header notes (#820)
+- some Windows Compile issues
+- some little things, as always
+### Removed
 
 ## [2.0.0-alpha.6](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.6) - 2020-05-27
 ### Breaking
