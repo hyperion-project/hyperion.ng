@@ -12,7 +12,7 @@ Is a ready to use image for your Raspberry Pi. Based on the original Raspberry P
   * Linux/Mac/Windows + sd card read/writer
 
 ## Installation
-  * Download the image here: TODO LINK MISSING
+  * Download the image here: [HyperBian Download](https://github.com/Hyperion-Project/HyperBian/releases)
   * Extract HyperBian-XXXX.img out of the HyperBian.zip
   * Burn the extracted HyperBian-XXXX.img to your sdcard. Below 3 instructions for the specific system
   * On Windows: [INSTALLING OPERATING SYSTEM IMAGES USING WINDOWS](https://www.raspberrypi.org/documentation/installation/installing-images/windows.md)
