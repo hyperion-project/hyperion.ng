@@ -53,11 +53,14 @@
 
 	<!-- Bootstrap Core CSS -->
 	<link href="css/bootstrap.min.css" rel="stylesheet">
-  <link href="css/bootstrap-colorpicker.min.css" rel="stylesheet">
+
+	<link href="css/bootstrap-colorpicker.min.css" rel="stylesheet">
 
 	<!-- BSToggle -->
-  <script src="js/lib/bootstrap-toggle.min.js"></script>
-  <link href="css/bootstrap-toggle.min.css" rel="stylesheet">
+	<link href="css/bootstrap-toggle.min.css" rel="stylesheet">
+
+	<!-- BSSelect -->
+	<link href="css/bootstrap-select.min.css" rel="stylesheet">
 
 	<!-- MetisMenu CSS -->
 	<link href="css/metisMenu.css" rel="stylesheet">
@@ -169,11 +172,13 @@
 						<i class="fa fa-wrench fa-fw"></i>  <i class="fa fa-caret-down"></i>
 					</a>
 					<ul class="dropdown-menu dropdown-alerts">
+
+						<!-- /.language selector -->
 						<li id="btn_setlang">
 							<a>
 								<div>
-									<i class="fa fa-globe fa-fw"></i>
-									<span data-i18n="InfoDialog_lang_title"></span>
+									<i class="fa fa-globe"></i>
+									<select id="language-select" class="selectpicker" data-width="fit" data-style="btn-transparent" > </select>
 								</div>
 							</a>
 						</li>
@@ -181,7 +186,7 @@
 						<li id="btn_setaccess">
 							<a>
 								<div>
-									<i class="fa fa-key fa-fw"></i>
+									<i class="fa fa-wrench fa-fw"></i>
 									<span data-i18n="InfoDialog_access_title"></span>
 								</div>
 							</a>
@@ -197,6 +202,7 @@
 						</li>
 					</ul>
 				</li>
+
 				<!-- /.lock-ui -->
 				<li class="dropdown" id="btn_lock_ui" style="display:none">
 					<a>
@@ -342,6 +348,12 @@
 
 	<!-- Bootstrap Core JavaScript -->
 	<script src="js/lib/bootstrap.min.js"></script>
+
+	<!-- BSToggle -->
+ 	<script src="js/lib/bootstrap-toggle.min.js"></script>
+
+	<!-- Bootstrap Select JavaScript -->
+	<script src="js/lib/bootstrap-select.min.js"></script>
 
 	<!-- Metis Menu Plugin JavaScript -->
 	<script src="js/lib/metisMenu.min.js"></script>

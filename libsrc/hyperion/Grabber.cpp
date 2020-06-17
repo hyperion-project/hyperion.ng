@@ -8,6 +8,7 @@ Grabber::Grabber(QString grabberName, int width, int height, int cropLeft, int c
 	, _width(width)
 	, _height(height)
 	, _fps(15)
+	, _input(-1)
 	, _cropLeft(0)
 	, _cropRight(0)
 	, _cropTop(0)
@@ -70,6 +71,17 @@ void Grabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTo
 	}
 }
 
+bool Grabber::setInput(int input)
+{
+	if((input >= 0) && (_input != input))
+	{
+		_input = input;
+		return true;
+	}
+
+	return false;
+}
+
 bool Grabber::setWidthHeight(int width, int height)
 {
 	// eval changes with crop
@@ -91,7 +103,10 @@ bool Grabber::setWidthHeight(int width, int height)
 bool Grabber::setFramerate(int fps)
 {
 	if((fps > 0) && (_fps != fps))
+	{
 		_fps = fps;
+		return true;
+	}
 
-	return (fps > 0) && (_fps != fps);
+	return false;
 }

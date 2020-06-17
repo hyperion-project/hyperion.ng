@@ -27,7 +27,7 @@ $(document).ready(function () {
 	$(window.hyperion).on("cmd-serverinfo", function (event) {
 		window.serverInfo = event.response.info;
 		// comps
-    window.comps = event.response.info.components
+		window.comps = event.response.info.components
 
 		$(window.hyperion).trigger("ready");
 
@@ -56,6 +56,35 @@ $(document).ready(function () {
 		updateSessions();
 	}); // end cmd-serverinfo
 
+	// Update language selection
+	$("#language-select").on('changed.bs.select',function (e, clickedIndex, isSelected, previousValue){
+   	    var newLang = availLang[clickedIndex-1];
+	    if (newLang !== storedLang)
+	    {
+	    	setStorage("langcode", newLang);
+			reload();
+	    }
+	});
+
+	$("#language-select").selectpicker(
+	{
+		container: 'body'
+	});
+
+	$(".bootstrap-select").click(function () {
+		$(this).addClass("open");
+	});
+
+	$(document).click(function(){
+		$(".bootstrap-select").removeClass("open");
+	});
+
+	$(".bootstrap-select").click(function(e){
+		e.stopPropagation();
+	});
+	
+	//End language selection
+	
 	$(window.hyperion).on("cmd-sessions-update", function (event) {
 		window.serverInfo.sessions = event.response.data;
 		updateSessions();

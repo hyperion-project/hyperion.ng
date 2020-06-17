@@ -462,6 +462,7 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type &settingsType, co
 				grabberConfig["width"].toInt(0),
 				grabberConfig["height"].toInt(0),
 				grabberConfig["fps"].toInt(15),
+				grabberConfig["input"].toInt(-1),
 				parseVideoStandard(grabberConfig["standard"].toString("no-change")),
 				parsePixelFormat(grabberConfig["pixelFormat"].toString("no-change")),
 				grabberConfig["sizeDecimation"].toInt(8));

@@ -9,6 +9,7 @@
 #include <QSocketNotifier>
 #include <QRectF>
 #include <QMap>
+#include <QMultiMap>
 
 // util includes
 #include <utils/PixelFormat.h>
@@ -43,15 +44,17 @@ class V4L2Grabber : public Grabber
 public:
 	struct DeviceProperties
 	{
-		QString		name		= QString();
-		QStringList	resolutions	= QStringList();
-		QStringList	framerates	= QStringList();
+		QString					name		= QString();
+		QMultiMap<QString, int>	inputs		= QMultiMap<QString, int>();
+		QStringList				resolutions	= QStringList();
+		QStringList				framerates	= QStringList();
 	};
 
 	V4L2Grabber(const QString & device,
 			const unsigned width,
 			const unsigned height,
 			const unsigned fps,
+			const unsigned input,
 			VideoStandard videoStandard,
 			PixelFormat pixelFormat,
 			int pixelDecimation
@@ -103,12 +106,17 @@ public:
 	///
 	/// @brief overwrite Grabber.h implementation
 	///
-	bool setFramerate(int fps) override;
+	bool setInput(int input) override;
 
 	///
 	/// @brief overwrite Grabber.h implementation
 	///
 	bool setWidthHeight(int width, int height) override;
+
+	///
+	/// @brief overwrite Grabber.h implementation
+	///
+	bool setFramerate(int fps) override;
 
 	///
 	/// @brief overwrite Grabber.h implementation
@@ -119,6 +127,11 @@ public:
 	/// @brief overwrite Grabber.h implementation
 	///
 	QString getV4L2deviceName(QString devicePath) override;
+
+	///
+	/// @brief overwrite Grabber.h implementation
+	///
+	QMultiMap<QString, int> getV4L2deviceInputs(QString devicePath) override;
 
 	///
 	/// @brief overwrite Grabber.h implementation
@@ -159,7 +172,7 @@ private:
 
 	void init_userp(unsigned int buffer_size);
 
-	void init_device(VideoStandard videoStandard, int input);
+	void init_device(VideoStandard videoStandard);
 
 	void uninit_device();
 
@@ -230,7 +243,6 @@ private:
 	QString _deviceName;
 	std::map<QString, QString>						_v4lDevices;
 	QMap<QString, V4L2Grabber::DeviceProperties>	_deviceProperties;
-	int												_input;
 	VideoStandard									_videoStandard;
 	io_method										_ioMethod;
 	int												_fileDescriptor;

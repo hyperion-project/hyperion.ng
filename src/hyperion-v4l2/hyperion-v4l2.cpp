@@ -51,6 +51,7 @@ int main(int argc, char** argv)
 		Parser parser("V4L capture application for Hyperion.  Will automatically search a Hyperion server if -a option isn't used. Please note that if you have more than one server running it's more or less random which one will be used.");
 
 		Option             & argDevice              = parser.add<Option>       ('d', "device", "The device to use, can be /dev/video0 [default: %1 (auto detected)]", "auto");
+		IntOption          & argInput               = parser.add<IntOption>    ('i', "input",  "The device input [default: %1]", "0");
 		SwitchOption<VideoStandard> & argVideoStandard= parser.add<SwitchOption<VideoStandard>>('v', "video-standard", "The used video standard. Valid values are PAL, NTSC, SECAM or no-change. [default: %1]", "no-change");
 		SwitchOption<PixelFormat> & argPixelFormat    = parser.add<SwitchOption<PixelFormat>>  (0x0, "pixel-format", "The use pixel format. Valid values are YUYV, UYVY, RGB32, MJPEG or no-change. [default: %1]", "no-change");
 		IntOption          & argFps                 = parser.add<IntOption>    ('f', "framerate",  "Capture frame rate [default: %1]", "15", 1, 25);
@@ -111,6 +112,7 @@ int main(int argc, char** argv)
 					argWidth.getInt(parser),
 					argHeight.getInt(parser),
 					1000 / argFps.getInt(parser),
+					argInput.getInt(parser),
 					argVideoStandard.switchValue(parser),
 					argPixelFormat.switchValue(parser),
 					std::max(1, argSizeDecimation.getInt(parser)));

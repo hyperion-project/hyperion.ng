@@ -11,6 +11,8 @@
 #include <utils/Logger.h>
 #include <utils/Components.h>
 
+#include <QMultiMap>
+
 ///
 /// @brief The Grabber class is responsible to apply image resizes (with or without ImageResampler)
 /// Overwrite the videoMode with setVideoMode()
@@ -33,6 +35,12 @@ public:
 	/// @brief Apply new crop values, on errors reject the values
 	///
 	virtual void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom);
+
+	///
+	/// @brief Apply new video input (used from v4l)
+	/// @param input device input
+	///
+	virtual bool setInput(int input);
 
 	///
 	/// @brief Apply new width/height values, on errors (collide with cropping) reject the values
@@ -117,6 +125,13 @@ public:
 	virtual QString getV4L2deviceName(QString devicePath) { return QString(); }
 
 	///
+	/// @brief Get a name/index pair of supported device inputs
+	/// @param devicePath The device path
+	/// @return multi pair of name/index on success else empty pair
+	///
+	virtual QMultiMap<QString, int> getV4L2deviceInputs(QString devicePath) { return QMultiMap<QString, int>(); }
+
+	///
 	/// @brief Get a list of supported device resolutions
 	/// @param devicePath The device path
 	/// @return List of resolutions on success else empty List
@@ -144,9 +159,13 @@ protected:
 	/// Height of the captured snapshot [pixels]
 	int _height;
 
+	/// frame per second
 	int _fps;
 
-	// number of pixels to crop after capturing
+	/// device input
+	int _input;
+
+	/// number of pixels to crop after capturing
 	int _cropLeft, _cropRight, _cropTop, _cropBottom;
 
 	bool _enabled;
