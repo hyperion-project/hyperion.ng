@@ -52,7 +52,7 @@
 			"default": 0,
 			"access" : "advanced",
 			"propertyOrder" : 6
-		}		
+		}
 	},
 	"additionalProperties": true
 }
