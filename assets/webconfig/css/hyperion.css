@@ -168,6 +168,12 @@ table label{margin:0}
     border-color: #602060;
 }
 
+/*minimal visible button*/
+.btn-transparent {
+  background-color: transparent;
+  border-style: none;
+}
+
 /*led preview & led visualisation*/
 #leds_canvas {background-color:#AAAAAA; position:absolute; margin:15px; background-image:url(/img/hyperion/hyperionlogo.png); background-repeat:no-repeat; background-position: center;}
 .led { display:inline-block; border: 1px solid black; position:absolute; opacity:0.8; text-align:center; vertical-align:middle; padding:4px;  border-radius:2px;}

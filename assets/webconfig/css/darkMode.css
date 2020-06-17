@@ -47,6 +47,14 @@ h4 {
 }
 
 /*Buttons*/
+.btn-transparent:hover {
+    color: #5db6ff;
+}
+
+.btn-transparent:focus{
+    color: #5db6ff;
+}
+
 .btn-default {
     color: #DDDDDD;
     background-color: #212121;

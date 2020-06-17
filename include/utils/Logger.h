@@ -9,6 +9,9 @@
 #include <stdarg.h>
 #include <map>
 #include <QVector>
+#ifdef _WIN32
+#include <stdexcept>
+#endif
 
 #include <utils/global_defines.h>
 
