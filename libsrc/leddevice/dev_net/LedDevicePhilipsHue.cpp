@@ -294,7 +294,11 @@ bool LedDevicePhilipsHueBridge::init(const QJsonObject &deviceConfig)
 		}
 		else
 		{
-			QStringList addressparts = address.split(":", QString::SkipEmptyParts);
+			#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+						QStringList addressparts = address.split(":", Qt::SkipEmptyParts);
+			#else
+						QStringList addressparts = address.split(":", QString::SkipEmptyParts);
+			#endif
 
 			_hostname = addressparts[0];
 			log( "Hostname/IP", "%s", QSTRING_CSTR( _hostname ) );
@@ -447,7 +451,12 @@ void LedDevicePhilipsHueBridge::setBridgeConfig(QJsonDocument doc)
 	_deviceFirmwareVersion = jsonConfigInfo[DEV_DATA_FIRMWAREVERSION].toString();
 	_deviceAPIVersion = jsonConfigInfo[DEV_DATA_APIVERSION].toString();
 
-	QStringList apiVersionParts = _deviceAPIVersion.split(".", QString::SkipEmptyParts);
+	#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+		QStringList apiVersionParts = _deviceAPIVersion.split(".", Qt::SkipEmptyParts);
+	#else
+		QStringList apiVersionParts = _deviceAPIVersion.split(".", QString::SkipEmptyParts);
+	#endif
+
 	if ( !apiVersionParts.isEmpty() )
 	{
 		_api_major = apiVersionParts[0].toUInt();
@@ -1633,7 +1642,12 @@ QJsonObject LedDevicePhilipsHue::getProperties(const QJsonObject& params)
 		QString filter = params["filter"].toString("");
 
 		// Resolve hostname and port (or use default API port)
-		QStringList addressparts = host.split(":", QString::SkipEmptyParts);
+		#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+				QStringList addressparts = host.split(":", Qt::SkipEmptyParts);
+		#else
+				QStringList addressparts = host.split(":", QString::SkipEmptyParts);
+		#endif
+
 		QString apiHost = addressparts[0];
 		int apiPort;
 
@@ -1671,7 +1685,12 @@ void LedDevicePhilipsHue::identify(const QJsonObject& params)
 		int lightId = params["lightId"].toInt(0);
 
 		// Resolve hostname and port (or use default API port)
-		QStringList addressparts = host.split(":", QString::SkipEmptyParts);
+		#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+				QStringList addressparts = host.split(":", Qt::SkipEmptyParts);
+		#else
+				QStringList addressparts = host.split(":", QString::SkipEmptyParts);
+		#endif
+
 		QString apiHost = addressparts[0];
 		int apiPort;
 

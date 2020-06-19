@@ -1,12 +1,12 @@
 #ifndef LEDEVICEFILE_H
 #define LEDEVICEFILE_H
 
-// STL includes
-#include <fstream>
-#include <chrono>
-
 // LedDevice includes
 #include <leddevice/LedDevice.h>
+
+// Qt includes
+#include <QFile>
+#include <QDateTime>
 
 ///
 /// Implementation of the LedDevice that write the LED-colors to an
@@ -68,15 +68,16 @@ protected:
 	virtual int write(const std::vector<ColorRgb> & ledValues) override;
 
 	/// The outputstream
-	std::ofstream _ofs;
+	QFile* _file;
 
 private:
+
+	void initFile(const QString &filename);
 
 	QString _fileName;
 	/// Timestamp for the output record
 	bool _printTimeStamp;
-	/// Last write/output timestamp
-	std::chrono::system_clock::time_point lastWriteTime = std::chrono::system_clock::now();
+
 };
 
 #endif // LEDEVICEFILE_H

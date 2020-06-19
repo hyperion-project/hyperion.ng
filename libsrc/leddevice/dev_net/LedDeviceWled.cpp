@@ -79,7 +79,12 @@ bool LedDeviceWled::init(const QJsonObject &deviceConfig)
 		}
 		else
 		{
-			QStringList addressparts = address.split(":", QString::SkipEmptyParts);
+			#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+						QStringList addressparts = address.split(":", Qt::SkipEmptyParts);
+			#else
+						QStringList addressparts = address.split(":", QString::SkipEmptyParts);
+			#endif
+
 			_hostname = addressparts[0];
 			if ( addressparts.size() > 1 )
 			{
@@ -204,7 +209,12 @@ QJsonObject LedDeviceWled::getProperties(const QJsonObject& params)
 		QString filter = params["filter"].toString("");
 
 		// Resolve hostname and port (or use default API port)
-		QStringList addressparts = host.split(":", QString::SkipEmptyParts);
+		#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+			QStringList addressparts = host.split(":", Qt::SkipEmptyParts);
+		#else
+			QStringList addressparts = host.split(":", QString::SkipEmptyParts);
+		#endif
+
 		QString apiHost = addressparts[0];
 		int apiPort;
 
@@ -244,7 +254,12 @@ void LedDeviceWled::identify(const QJsonObject& params)
 	if ( !host.isEmpty() )
 	{
 		// Resolve hostname and port (or use default API port)
-		QStringList addressparts = host.split(":", QString::SkipEmptyParts);
+		#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+				QStringList addressparts = host.split(":", Qt::SkipEmptyParts);
+		#else
+				QStringList addressparts = host.split(":", QString::SkipEmptyParts);
+		#endif
+
 		QString apiHost = addressparts[0];
 		int apiPort;
 

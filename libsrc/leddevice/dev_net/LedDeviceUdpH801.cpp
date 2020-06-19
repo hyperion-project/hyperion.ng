@@ -38,8 +38,8 @@ bool LedDeviceUdpH801::init(const QJsonObject &deviceConfig)
 		}
 
 		_message = QByteArray(_prefix_size + _colors + _id_size * _ids.size() + _suffix_size, 0x00);
-		_message[0] = 0xFB;
-		_message[1] = 0xEB;
+		_message[0] = static_cast<char>(0xFB);
+		_message[1] = static_cast<char>(0xEB);
 
 		for (int i = 0; i < _ids.length(); i++) {
 			_message[_prefix_size + _colors + i * _id_size + 0] = (_ids[i] >> 0x00) & 0xFF;

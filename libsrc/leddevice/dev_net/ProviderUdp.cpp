@@ -6,7 +6,6 @@
 #include <exception>
 // Linux includes
 #include <fcntl.h>
-#include <sys/ioctl.h>
 
 #include <QStringList>
 #include <QUdpSocket>
@@ -98,7 +97,8 @@ int ProviderUdp::open()
 		quint16      localPort = 0;
 		if ( !_udpSocket->bind(localAddress, localPort) )
 		{
-			Warning ( _log, "Could not bind local address: %s", strerror(errno));
+			QString warntext = QString ("Could not bind local address: %1, (%2) %3").arg(localAddress.toString()).arg(_udpSocket->error()).arg(_udpSocket->errorString());
+			Warning ( _log, "%s", QSTRING_CSTR(warntext));
 		}
 		// Everything is OK, device is ready
 		_isDeviceReady = true;
@@ -132,7 +132,9 @@ int ProviderUdp::close()
 int ProviderUdp::writeBytes(const unsigned size, const uint8_t * data)
 {
 	qint64 retVal = _udpSocket->writeDatagram((const char *)data,size,_address,_port);
-	WarningIf((retVal<0), _log, "Error sending: %s", strerror(errno));
+
+	WarningIf((retVal<0), _log, "&s", QSTRING_CSTR(QString
+								("(%1:%2) Write Error: (%3) %4").arg(_address.toString()).arg(_port).arg(_udpSocket->error()).arg(_udpSocket->errorString())));
 
 	return retVal;
 }

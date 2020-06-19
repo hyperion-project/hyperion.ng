@@ -51,7 +51,12 @@ bool LedDeviceAtmoOrb::init(const QJsonObject &deviceConfig)
 		_multiCastGroupPort = static_cast<quint16>(deviceConfig["port"].toInt(MULTICAST_GROUPL_DEFAULT_PORT));
 		_numLeds            = deviceConfig["numLeds"].toInt(LEDS_DEFAULT_NUMBER);
 
-		const QStringList orbIds = deviceConfig["orbIds"].toString().simplified().remove(" ").split(",", QString::SkipEmptyParts);
+		#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+				const QStringList orbIds = deviceConfig["orbIds"].toString().simplified().remove(" ").split(",", Qt::SkipEmptyParts);
+		#else
+				const QStringList orbIds = deviceConfig["orbIds"].toString().simplified().remove(" ").split(",", QString::SkipEmptyParts);
+		#endif
+
 		_orbIds.clear();
 
 		foreach(auto & id_str, orbIds)
@@ -59,7 +64,12 @@ bool LedDeviceAtmoOrb::init(const QJsonObject &deviceConfig)
 			bool ok;
 			int id = id_str.toInt(&ok);
 			if (ok)
-				_orbIds.append(id);
+			{
+				if ( id < 1 || id > 255 )
+					Warning(_log, "Skip orb id '%d'. IDs must be in range 1-255", id);
+				else
+					_orbIds.append(id);
+			}
 			else
 				Error(_log, "orb id '%s' is not a number", QSTRING_CSTR(id_str));
 		}
@@ -90,12 +100,18 @@ int LedDeviceAtmoOrb::open()
 		_udpSocket = new QUdpSocket(this);
 		if ( !_udpSocket->bind(QHostAddress::AnyIPv4, _multiCastGroupPort, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint) )
 		{
-			this->setInError( QString ("Could not bind address: %1").arg(strerror(errno)) );
+			QString errortext = QString ("(%1) %2, MulticastGroup: (%3)").arg(_udpSocket->error()).arg(_udpSocket->errorString()).arg(_multicastGroup);
+			this->setInError( errortext );
 		}
 		else
 		{
 			_joinedMulticastgroup = _udpSocket->joinMulticastGroup(_groupAddress);
-			if ( _joinedMulticastgroup )
+			if ( !_joinedMulticastgroup )
+			{
+				QString errortext = QString ("(%1) %2, MulticastGroup: (%3)").arg(_udpSocket->error()).arg(_udpSocket->errorString()).arg(_multicastGroup);
+				this->setInError( errortext );
+			}
+			else
 			{
 				// Everything is OK, device is ready
 				_isDeviceReady = true;
@@ -200,20 +216,22 @@ void LedDeviceAtmoOrb::setColor(int orbId, const ColorRgb &color, int commandTyp
 	bytes.fill('\0');
 
 	// Command identifier: C0FFEE
-	bytes[0] = 0xC0;
-	bytes[1] = 0xFF;
-	bytes[2] = 0xEE;
+	bytes[0] = static_cast<char>(0xC0);
+	bytes[1] = static_cast<char>(0xFF);
+	bytes[2] = static_cast<char>(0xEE);
 
 	// Command type
-	bytes[3] = commandType;
+	bytes[3] = static_cast<char>(commandType);
 
 	// Orb ID
-	bytes[4] = orbId;
+	bytes[4] = static_cast<char>(orbId);
 
 	// RED / GREEN / BLUE
-	bytes[5] = color.red;
-	bytes[6] = color.green;
-	bytes[7] = color.blue;
+	bytes[5] = static_cast<char>(color.red);
+	bytes[6] = static_cast<char>(color.green);
+	bytes[7] = static_cast<char>(color.blue);
+
+	//std::cout << "Orb [" << orbId << "] Cmd [" << bytes.toHex(':').toStdString() <<"]"<< std::endl;
 
 	sendCommand(bytes);
 }

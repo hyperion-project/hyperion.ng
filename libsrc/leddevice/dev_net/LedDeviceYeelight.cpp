@@ -11,7 +11,8 @@
 #include <QColor>
 #include <QDateTime>
 
-#include <unistd.h>
+#include <chrono>
+#include <thread>
 
 static const bool verbose  = false;
 static const bool verbose3  = false;
@@ -243,7 +244,7 @@ int YeelightLight::writeCommand( const QJsonDocument &command, QJsonArray &resul
 					log ( 1, "writeCommand():", "Wait %dms, elapsedTime: %dms < quotaTime: %dms", waitTime, elapsedTime, _waitTimeQuota);
 
 					// Wait time (in ms) before doing next write to not overrun Yeelight command quota
-					usleep (_waitTimeQuota * 1000);
+					std::this_thread::sleep_for(std::chrono::milliseconds(_waitTimeQuota));
 				}
 			}
 
@@ -1048,7 +1049,11 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 				QString address = configuredYeelightLights[j].toObject().value("host").toString();
 				int port = configuredYeelightLights[j].toObject().value("port").toInt(API_DEFAULT_PORT);
 
-				QStringList addressparts = address.split(":", QString::SkipEmptyParts);
+				#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+								QStringList addressparts = address.split(":", Qt::SkipEmptyParts);
+				#else
+								QStringList addressparts = address.split(":", QString::SkipEmptyParts);
+				#endif
 
 				QString apiHost = addressparts[0];
 				int apiPort = port;;

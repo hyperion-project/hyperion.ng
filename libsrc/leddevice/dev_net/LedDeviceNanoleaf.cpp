@@ -403,7 +403,12 @@ QJsonObject LedDeviceNanoleaf::getProperties(const QJsonObject& params)
 		QString filter = params["filter"].toString("");
 
 		// Resolve hostname and port (or use default API port)
-		QStringList addressparts = host.split(":", QString::SkipEmptyParts);
+		#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+			QStringList addressparts = host.split(":", Qt::SkipEmptyParts);
+		#else
+			QStringList addressparts = host.split(":", QString::SkipEmptyParts);
+		#endif
+
 		QString apiHost = addressparts[0];
 		int apiPort;
 
@@ -442,8 +447,13 @@ void LedDeviceNanoleaf::identify(const QJsonObject& params)
 		QString authToken = params["token"].toString("");
 
 		// Resolve hostname and port (or use default API port)
-		QStringList addressparts = host.split(":", QString::SkipEmptyParts);
-		QString apiHost = addressparts[0];
+		#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+				QStringList addressparts = host.split(":", Qt::SkipEmptyParts);
+		#else
+				QStringList addressparts = host.split(":", QString::SkipEmptyParts);
+		#endif
+
+				QString apiHost = addressparts[0];
 		int apiPort;
 
 		if ( addressparts.size() > 1)

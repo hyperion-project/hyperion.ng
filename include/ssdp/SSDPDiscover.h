@@ -8,7 +8,7 @@
 
 class QUdpSocket;
 
-enum searchType{
+enum class searchType{
 	STY_WEBSERVER,
 	STY_FLATBUFSERVER,
 	STY_JSONSERVER
@@ -55,7 +55,7 @@ public:
 	/// @param timeout_ms  The timeout in ms
 	/// @return The address+port of web-server or empty if timed out
 	///
-	const QString getFirstService(const searchType &type = STY_WEBSERVER,const QString &st = "urn:hyperion-project.org:device:basic:1", const int &timeout_ms = 3000);
+	const QString getFirstService(const searchType &type = searchType::STY_WEBSERVER,const QString &st = "urn:hyperion-project.org:device:basic:1", const int &timeout_ms = 3000);
 
 	///
 	/// @brief Discover services via ssdp.

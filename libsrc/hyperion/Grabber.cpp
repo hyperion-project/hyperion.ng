@@ -4,7 +4,7 @@
 Grabber::Grabber(QString grabberName, int width, int height, int cropLeft, int cropRight, int cropTop, int cropBottom)
 	: _imageResampler()
 	, _useImageResampler(true)
-	, _videoMode(VIDEO_2D)
+	, _videoMode(VideoMode::VIDEO_2D)
 	, _width(width)
 	, _height(height)
 	, _fps(15)
@@ -16,7 +16,7 @@ Grabber::Grabber(QString grabberName, int width, int height, int cropLeft, int c
 	, _enabled(true)
 	, _log(Logger::getInstance(grabberName))
 {
-	Grabber::setVideoMode(VIDEO_2D);
+	Grabber::setVideoMode(VideoMode::VIDEO_2D);
 	Grabber::setCropping(cropLeft, cropRight, cropTop, cropBottom);
 }
 

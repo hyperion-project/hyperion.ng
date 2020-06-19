@@ -8,6 +8,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QTimer>
+#include <QDateTime>
 
 // STL includes
 #include <vector>
@@ -383,7 +384,7 @@ protected:
 	bool _isInSwitchOff;
 
 	/// Timestamp of last write
-	qint64 _lastWriteTime;
+	QDateTime _lastWriteTime;
 
 protected slots:
 

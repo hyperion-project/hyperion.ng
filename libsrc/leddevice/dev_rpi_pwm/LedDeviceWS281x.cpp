@@ -30,7 +30,7 @@ bool LedDeviceWS281x::init(const QJsonObject &deviceConfig)
 		QString whiteAlgorithm = deviceConfig["whiteAlgorithm"].toString("white_off");
 
 		_whiteAlgorithm	= RGBW::stringToWhiteAlgorithm(whiteAlgorithm);
-		if (_whiteAlgorithm == RGBW::INVALID)
+		if (_whiteAlgorithm == RGBW::WhiteAlgorithm::INVALID)
 		{
 			errortext = QString ("unknown whiteAlgorithm: %1").arg(whiteAlgorithm);
 			isInitOK = false;
