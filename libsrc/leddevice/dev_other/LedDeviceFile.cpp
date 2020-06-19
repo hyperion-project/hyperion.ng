@@ -100,7 +100,11 @@ int LedDeviceFile::write(const std::vector<ColorRgb> & ledValues)
 		QDateTime now = QDateTime::currentDateTime();
 		qint64 elapsedTimeMs = _lastWriteTime.msecsTo(now);
 
-		out << now.toString(Qt::ISODateWithMs) << " | +" << QString("%1").arg( elapsedTimeMs,4);
+		#if (QT_VERSION >= QT_VERSION_CHECK(5, 8, 0))
+			out << now.toString(Qt::ISODateWithMs) << " | +" << QString("%1").arg( elapsedTimeMs,4);
+		#else
+			out << now.toString(Qt::ISODate) << now.toString(".zzz") << " | +" << QString("%1").arg( elapsedTimeMs,4);
+		#endif
 	}
 
 	out << " [";
