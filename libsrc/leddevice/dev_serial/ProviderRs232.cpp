@@ -201,7 +201,9 @@ bool ProviderRs232::tryOpen(const int delayAfterConnect_ms)
 	if ( ! _rs232Port.isOpen() )
 	{
 		_frameDropCounter = 0;
-		if (QFile::exists(_deviceName))
+
+		QSerialPortInfo serialPortInfo(_deviceName);
+		if (! serialPortInfo.isNull())
 		{
 			if ( _preOpenDelayTimeOut > QDateTime::currentMSecsSinceEpoch() )
 			{
