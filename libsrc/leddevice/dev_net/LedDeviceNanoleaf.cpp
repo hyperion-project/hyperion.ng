@@ -337,12 +337,12 @@ bool LedDeviceNanoleaf::discoverDevice()
 	SSDPDiscover discover;
 
 	// Discover Canvas device
-	address = discover.getFirstService(STY_WEBSERVER, SSDP_CANVAS, SSDP_TIMEOUT);
+	address = discover.getFirstService(searchType::STY_WEBSERVER, SSDP_CANVAS, SSDP_TIMEOUT);
 
 	//No Canvas device not found
 	if ( address.isEmpty() ) {
 		// Discover Light Panels (Aurora) device
-		address = discover.getFirstService(STY_WEBSERVER, SSDP_LIGHTPANELS, SSDP_TIMEOUT);
+		address = discover.getFirstService(searchType::STY_WEBSERVER, SSDP_LIGHTPANELS, SSDP_TIMEOUT);
 
 		if ( address.isEmpty() ) {
 			Warning(_log, "No Nanoleaf device discovered");
@@ -353,7 +353,12 @@ bool LedDeviceNanoleaf::discoverDevice()
 	if ( ! address.isEmpty() ) {
 		Info(_log, "Nanoleaf device discovered at [%s]", QSTRING_CSTR( address ));
 		isDeviceFound = true;
-		QStringList addressparts = address.split(":", QString::SkipEmptyParts);
+		// Resolve hostname and port (or use default API port)
+		#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+			QStringList addressparts = address.split(":", Qt::SkipEmptyParts);
+		#else
+			QStringList addressparts = address.split(":", QString::SkipEmptyParts);
+		#endif
 		_hostname = addressparts[0];
 		_api_port = addressparts[1];
 	}

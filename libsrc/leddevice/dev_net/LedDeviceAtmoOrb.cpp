@@ -2,18 +2,20 @@
 #include "LedDeviceAtmoOrb.h"
 
 // qt includes
-#include <QtNetwork>
+#include <QUdpSocket>
+
+const quint16 MULTICAST_GROUPL_DEFAULT_PORT = 49692;
+const int LEDS_DEFAULT_NUMBER = 24;
 
 LedDeviceAtmoOrb::LedDeviceAtmoOrb(const QJsonObject &deviceConfig)
 	: LedDevice()
-	  , _networkmanager (nullptr)
 	  , _udpSocket (nullptr)
-	  , _multiCastGroupPort (49692)
-	  , joinedMulticastgroup (false)
+	  , _multiCastGroupPort (MULTICAST_GROUPL_DEFAULT_PORT)
+	  , _joinedMulticastgroup (false)
 	  , _useOrbSmoothing (false)
 	  , _transitiontime (0)
 	  , _skipSmoothingDiff (0)
-	  , _numLeds (24)
+	  , _numLeds (LEDS_DEFAULT_NUMBER)
 
 {
 	_devConfig = deviceConfig;
@@ -27,25 +29,32 @@ LedDevice* LedDeviceAtmoOrb::construct(const QJsonObject &deviceConfig)
 
 LedDeviceAtmoOrb::~LedDeviceAtmoOrb()
 {
-	_networkmanager->deleteLater();
-	_udpSocket->deleteLater();
+	if ( _udpSocket != nullptr )
+	{
+		_udpSocket->deleteLater();
+	}
 }
 
 bool LedDeviceAtmoOrb::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = LedDevice::init(deviceConfig);
+	bool isInitOK = false;
 
-	if ( isInitOK )
+	if ( LedDevice::init(deviceConfig) )
 	{
 
 		_multicastGroup     = deviceConfig["output"].toString().toStdString().c_str();
 		_useOrbSmoothing    = deviceConfig["useOrbSmoothing"].toBool(false);
 		_transitiontime     = deviceConfig["transitiontime"].toInt(0);
 		_skipSmoothingDiff  = deviceConfig["skipSmoothingDiff"].toInt(0);
-		_multiCastGroupPort = static_cast<quint16>(deviceConfig["port"].toInt(49692));
-		_numLeds            = deviceConfig["numLeds"].toInt(24);
+		_multiCastGroupPort = static_cast<quint16>(deviceConfig["port"].toInt(MULTICAST_GROUPL_DEFAULT_PORT));
+		_numLeds            = deviceConfig["numLeds"].toInt(LEDS_DEFAULT_NUMBER);
 
-		const QStringList orbIds = deviceConfig["orbIds"].toString().simplified().remove(" ").split(",", QString::SkipEmptyParts);
+		#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+				const QStringList orbIds = deviceConfig["orbIds"].toString().simplified().remove(" ").split(",", Qt::SkipEmptyParts);
+		#else
+				const QStringList orbIds = deviceConfig["orbIds"].toString().simplified().remove(" ").split(",", QString::SkipEmptyParts);
+		#endif
+
 		_orbIds.clear();
 
 		foreach(auto & id_str, orbIds)
@@ -53,7 +62,12 @@ bool LedDeviceAtmoOrb::init(const QJsonObject &deviceConfig)
 			bool ok;
 			int id = id_str.toInt(&ok);
 			if (ok)
-				_orbIds.append(id);
+			{
+				if ( id < 1 || id > 255 )
+					Warning(_log, "Skip orb id '%d'. IDs must be in range 1-255", id);
+				else
+					_orbIds.append(id);
+			}
 			else
 				Error(_log, "orb id '%s' is not a number", QSTRING_CSTR(id_str));
 		}
@@ -63,22 +77,12 @@ bool LedDeviceAtmoOrb::init(const QJsonObject &deviceConfig)
 			this->setInError("No valid OrbIds found!");
 			isInitOK = false;
 		}
+		else
+		{
+			_udpSocket = new QUdpSocket(this);
+			isInitOK = true;
+		}
 	}
-	return isInitOK;
-}
-
-bool LedDeviceAtmoOrb::initNetwork()
-{
-	bool isInitOK = true;
-
-	// TODO: Add Network-Error handling
-	_networkmanager = new QNetworkAccessManager();
-	_groupAddress = QHostAddress(_multicastGroup);
-
-	_udpSocket = new QUdpSocket(this);
-	_udpSocket->bind(QHostAddress::AnyIPv4, _multiCastGroupPort, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint);
-
-	joinedMulticastgroup = _udpSocket->joinMulticastGroup(_groupAddress);
 	return isInitOK;
 }
 
@@ -89,24 +93,56 @@ int LedDeviceAtmoOrb::open()
 
 	if ( init(_devConfig) )
 	{
-		if ( !initNetwork() )
+		// Try to bind the UDP-Socket
+		if ( _udpSocket != nullptr )
 		{
-			this->setInError( "Network error!" );
-		}
-		else
-		{
-			_deviceReady = true;
-			setEnable(true);
-			retval = 0;
+			_groupAddress = QHostAddress(_multicastGroup);
+			if ( !_udpSocket->bind(QHostAddress::AnyIPv4, _multiCastGroupPort, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint) )
+			{
+				QString errortext = QString ("(%1) %2, MulticastGroup: (%3)").arg(_udpSocket->error()).arg(_udpSocket->errorString()).arg(_multicastGroup);
+				this->setInError( errortext );
+			}
+			else
+			{
+				_joinedMulticastgroup = _udpSocket->joinMulticastGroup(_groupAddress);
+				if ( !_joinedMulticastgroup )
+				{
+					QString errortext = QString ("(%1) %2, MulticastGroup: (%3)").arg(_udpSocket->error()).arg(_udpSocket->errorString()).arg(_multicastGroup);
+					this->setInError( errortext );
+				}
+				else
+				{
+					// Everything is OK, device is ready
+					_deviceReady = true;
+					setEnable(true);
+					retval = 0;
+				}
+			}
 		}
 	}
 	return retval;
 }
 
+void LedDeviceAtmoOrb::close()
+{
+	LedDevice::close();
+
+	if ( _udpSocket != nullptr )
+	{
+		// Test, if device requires closing
+		if ( _udpSocket->isOpen() )
+		{
+			Debug(_log,"Close UDP-device: %s", QSTRING_CSTR( this->getActiveDeviceType() ) );
+			_udpSocket->close();
+			// Everything is OK -> device is closed
+		}
+	}
+}
+
 int LedDeviceAtmoOrb::write(const std::vector <ColorRgb> &ledValues)
 {
 	// If not in multicast group return
-	if (!joinedMulticastgroup)
+	if (!_joinedMulticastgroup)
 	{
 		return 0;
 	}
@@ -179,20 +215,23 @@ void LedDeviceAtmoOrb::setColor(int orbId, const ColorRgb &color, int commandTyp
 	bytes.fill('\0');
 
 	// Command identifier: C0FFEE
-	bytes[0] = 0xC0;
-	bytes[1] = 0xFF;
-	bytes[2] = 0xEE;
+	bytes[0] = static_cast<char>(0xC0);
+	bytes[1] = static_cast<char>(0xFF);
+	bytes[2] = static_cast<char>(0xEE);
 
 	// Command type
-	bytes[3] = commandType;
+	bytes[3] = static_cast<char>(commandType);
 
 	// Orb ID
-	bytes[4] = orbId;
+	bytes[4] = static_cast<char>(orbId);
 
 	// RED / GREEN / BLUE
-	bytes[5] = color.red;
-	bytes[6] = color.green;
-	bytes[7] = color.blue;
+	bytes[5] = static_cast<char>(color.red);
+	bytes[6] = static_cast<char>(color.green);
+	bytes[7] = static_cast<char>(color.blue);
+
+	// TODO: Why is the datagram _numLeds * 3 in size, if only bypes 5,6,7 are updated with the color?
+	//std::cout << "Orb [" << orbId << "] Cmd [" << bytes.toHex(':').toStdString() <<"]"<< std::endl;
 
 	sendCommand(bytes);
 }

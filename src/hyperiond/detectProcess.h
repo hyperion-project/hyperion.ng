@@ -77,7 +77,12 @@ unsigned int getProcessIdsByProcessName(const char *processName, QStringList &li
 	if (bytes.isEmpty())
 		return 0;
 
-	listOfPids = QString(bytes).split("\n", QString::SkipEmptyParts);
+	#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+		listOfPids = QString(bytes).split("\n", Qt::SkipEmptyParts);
+	#else
+		listOfPids = QString(bytes).split("\n", QString::SkipEmptyParts);
+	#endif
+
 	return listOfPids.count();
 
 #endif
