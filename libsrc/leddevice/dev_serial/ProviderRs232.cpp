@@ -225,6 +225,8 @@ bool ProviderRs232::tryOpen(const int delayAfterConnect_ms)
 		}
 		else
 		{
+			QString errortext = QString("Invalid serial device name: [%1]!").arg(_deviceName);
+			this->setInError(errortext);
 			_preOpenDelayTimeOut = QDateTime::currentMSecsSinceEpoch() + _preOpenDelay;
 			return false;
 		}
