@@ -502,10 +502,10 @@ QJsonObject YeelightLight::getProperties()
 	QJsonObject properties;
 
 	//Selected properties
-	QJsonArray propertyList = { API_PROP_NAME, API_PROP_MODEL, API_PROP_POWER, API_PROP_RGB, API_PROP_BRIGHT, API_PROP_CT, API_PROP_FWVER };
+	//QJsonArray propertyList = { API_PROP_NAME, API_PROP_MODEL, API_PROP_POWER, API_PROP_RGB, API_PROP_BRIGHT, API_PROP_CT, API_PROP_FWVER };
 
 	//All properties
-	//	QJsonArray propertyList = {"power","bright","ct","rgb","hue","sat","color_mode","flowing","delayoff","music_on","name","bg_power","bg_flowing","bg_ct","bg_bright","bg_hue","bg_sat","bg_rgb","nl_br","active_mode" };
+	QJsonArray propertyList = {"power","bright","ct","rgb","hue","sat","color_mode","flowing","delayoff","music_on","name","bg_power","bg_flowing","bg_ct","bg_bright","bg_hue","bg_sat","bg_rgb","nl_br","active_mode" };
 
 	QJsonDocument command = getCommand( API_METHOD_GETPROP, propertyList );
 
@@ -1327,7 +1327,7 @@ QJsonObject LedDeviceYeelight::getProperties(const QJsonObject& params)
 	{
 		YeelightLight yeelight(_log, apiHostname, apiPort);
 
-		yeelight.setDebuglevel(3);
+		//yeelight.setDebuglevel(3);
 		if ( yeelight.open() )
 		{
 			properties.insert("properties", yeelight.getProperties());
@@ -1350,7 +1350,7 @@ void LedDeviceYeelight::identify(const QJsonObject& params)
 	if ( !apiHostname.isEmpty() )
 	{
 		YeelightLight yeelight(_log, apiHostname, apiPort);
-		yeelight.setDebuglevel(3);
+		//yeelight.setDebuglevel(3);
 
 		if ( yeelight.open() )
 		{

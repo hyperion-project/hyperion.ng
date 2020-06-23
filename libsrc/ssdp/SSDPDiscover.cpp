@@ -329,8 +329,19 @@ QJsonArray SSDPDiscover::getServicesDiscoveredJson()
 		QHostInfo hostInfo = QHostInfo::fromName(url.host());
 		if (hostInfo.error() == QHostInfo::NoError )
 		{
-			obj.insert("hostname", hostInfo.hostName().remove("."+hostInfo.localDomainName()));
-			obj.insert("domain", hostInfo.localDomainName());
+			QString hostname = hostInfo.hostName();
+			//Seems that for Windows no local domain name is resolved
+			if (!hostInfo.localDomainName().isEmpty() )
+			{
+				obj.insert("hostname", hostname.remove("."+hostInfo.localDomainName()));
+				obj.insert("domain", hostInfo.localDomainName());
+			}
+			else
+			{
+				int domainPos = hostname.indexOf('.');
+				obj.insert("hostname", hostname.left(domainPos));
+				obj.insert("domain", hostname.mid(domainPos+1));
+			}
 		}
 
 		QJsonObject objOther;

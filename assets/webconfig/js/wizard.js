@@ -1295,7 +1295,7 @@ async function discover_wled(){
 				var ip = device.hostname + ":" + device.port;
 				console.log("Host:", ip);
 
-				nanoleafIPs.push({internalipaddress : ip});
+				//wledIPs.push({internalipaddress : ip});
 			}
 		}
 	}
@@ -1376,8 +1376,6 @@ function beginWizardYeelight()
 {
 	lights = [];
 	configuredLights = conf_editor.getEditor("root.specificOptions.lights").getValue();
-
-	console.log(conf_editor.getEditor("root.specificOptions"));
 
 	discover_yeelight_lights();
 
@@ -1643,7 +1641,7 @@ async function discover_nanoleaf(){
 				var ip = device.hostname + ":" + device.port;
 				console.log("Host:", ip);
 
-				nanoleafIPs.push({internalipaddress : ip});
+				//nanoleafIPs.push({internalipaddress : ip});
 			}
 		}
 	}

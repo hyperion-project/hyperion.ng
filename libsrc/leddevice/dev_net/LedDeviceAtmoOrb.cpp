@@ -81,6 +81,7 @@ bool LedDeviceAtmoOrb::init(const QJsonObject &deviceConfig)
 		}
 		else
 		{
+			_udpSocket = new QUdpSocket(this);
 			isInitOK = true;
 		}
 	}
@@ -92,12 +93,10 @@ int LedDeviceAtmoOrb::open()
 	int retval = -1;
 	_isDeviceReady = false;
 
-	_udpSocket = new QUdpSocket(this);
 	// Try to bind the UDP-Socket
 	if ( _udpSocket != nullptr )
 	{
 		_groupAddress = QHostAddress(_multicastGroup);
-		_udpSocket = new QUdpSocket(this);
 		if ( !_udpSocket->bind(QHostAddress::AnyIPv4, _multiCastGroupPort, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint) )
 		{
 			QString errortext = QString ("(%1) %2, MulticastGroup: (%3)").arg(_udpSocket->error()).arg(_udpSocket->errorString()).arg(_multicastGroup);
@@ -212,7 +211,9 @@ int LedDeviceAtmoOrb::write(const std::vector <ColorRgb> &ledValues)
 void LedDeviceAtmoOrb::setColor(int orbId, const ColorRgb &color, int commandType)
 {
 	QByteArray bytes;
-	bytes.resize(5 + _numLeds * 3);
+
+	// 5 bytes command-header + 3 bytes color information
+	bytes.resize(5 + 3);
 	bytes.fill('\0');
 
 	// Command identifier: C0FFEE

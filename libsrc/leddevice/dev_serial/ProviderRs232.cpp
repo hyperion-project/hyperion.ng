@@ -103,48 +103,59 @@ bool ProviderRs232::powerOff()
 	return rc;
 }
 
-QString ProviderRs232::discoverFirst()
-{
-	// take first available USB serial port - currently no probing!
-	for( auto port : QSerialPortInfo::availablePorts())
-	{
-		if (port.hasProductIdentifier() && port.hasVendorIdentifier() && !port.isBusy())
-		{
-			Info(_log, "found serial device: %s", QSTRING_CSTR(port.systemLocation()) );
-			return port.systemLocation();
-		}
-	}
-	return "";
-}
-
 bool ProviderRs232::tryOpen(const int delayAfterConnect_ms)
 {
 	if (_deviceName.isEmpty() || _rs232Port.portName().isEmpty())
 	{
-		if ( _isAutoDeviceName )
+		if (!_rs232Port.isOpen())
 		{
-			_deviceName = discoverFirst();
-			if ( _deviceName.isEmpty() )
+			if ( _isAutoDeviceName )
 			{
-				this->setInError( QString ("No serial device found automatically!") );
-				return false;
+				_deviceName = discoverFirst();
+				if (_deviceName.isEmpty())
+				{
+					this->setInError( QString("No serial device found automatically!") );
+					return false;
+				}
 			}
 		}
-		Info(_log, "Opening UART: %s", QSTRING_CSTR(_deviceName));
+
 		_rs232Port.setPortName(_deviceName);
 	}
 
-	if ( ! _rs232Port.isOpen() )
+	if (!_rs232Port.isOpen())
 	{
-		Debug(_log, "! _rs232Port.isOpen(): %s", QSTRING_CSTR(_deviceName) );
+		Info(_log, "Opening UART: %s", QSTRING_CSTR(_deviceName));
+
 		_frameDropCounter = 0;
 
 		_rs232Port.setBaudRate( _baudRate_Hz );
 
-		Debug(_log, "_rs232Port.open(QIODevice::WriteOnly): %s", QSTRING_CSTR(_deviceName));
-		if ( ! _rs232Port.open(QIODevice::WriteOnly) )
+		Debug(_log, "_rs232Port.open(QIODevice::WriteOnly): %s, Baud rate [%d]bps", QSTRING_CSTR(_deviceName), _baudRate_Hz);
+
+		QSerialPortInfo serialPortInfo(_deviceName);
+
+		QJsonObject portInfo;
+		Debug(_log, "portName:          %s", QSTRING_CSTR(serialPortInfo.portName()));
+		Debug(_log, "systemLocation:    %s", QSTRING_CSTR(serialPortInfo.systemLocation()));
+		Debug(_log, "description:       %s", QSTRING_CSTR(serialPortInfo.description()));
+		Debug(_log, "manufacturer:      %s", QSTRING_CSTR(serialPortInfo.manufacturer()));
+		Debug(_log, "productIdentifier: %s", QSTRING_CSTR(QString("0x%1").arg(serialPortInfo.productIdentifier(), 0, 16)));
+		Debug(_log, "vendorIdentifier:  %s", QSTRING_CSTR(QString("0x%1").arg(serialPortInfo.vendorIdentifier(), 0, 16)));
+		Debug(_log, "serialNumber:      %s", QSTRING_CSTR(serialPortInfo.serialNumber()));
+
+		if (!serialPortInfo.isNull() )
 		{
-			this->setInError( _rs232Port.errorString() );
+			if ( !_rs232Port.open(QIODevice::WriteOnly) )
+			{
+				this->setInError(_rs232Port.errorString());
+				return false;
+			}
+		}
+		else
+		{
+			QString errortext = QString("Invalid serial device name: [%1]!").arg(_deviceName);
+			this->setInError( errortext );
 			return false;
 		}
 	}
@@ -173,7 +184,7 @@ void ProviderRs232::setInError(const QString& errorMsg)
 	LedDevice::setInError( errorMsg );
 }
 
-int ProviderRs232::writeBytes(const qint64 size, const uint8_t * data)
+int ProviderRs232::writeBytes(const qint64 size, const uint8_t *data)
 {
 	DebugIf(_isInSwitchOff, _log, "_inClosing [%d], enabled [%d], _deviceReady [%d], _frameDropCounter [%d]", _isInSwitchOff, this->isEnabled(), _isDeviceReady, _frameDropCounter);
 
@@ -188,7 +199,7 @@ int ProviderRs232::writeBytes(const qint64 size, const uint8_t * data)
 		}
 	}
 
-	DebugIf(_isInSwitchOff, _log, "[%s]", uint8_t_to_hex_string(size,data, 32 ).c_str() );
+	DebugIf( _isInSwitchOff, _log, "[%s]", QSTRING_CSTR(uint8_t_to_hex_string(data, size, 32)) );
 
 	qint64 bytesWritten = _rs232Port.write(reinterpret_cast<const char*>(data), size);
 	if (bytesWritten == -1 || bytesWritten != size)
@@ -235,6 +246,20 @@ int ProviderRs232::writeBytes(const qint64 size, const uint8_t * data)
 	return rc;
 }
 
+QString ProviderRs232::discoverFirst()
+{
+	// take first available USB serial port - currently no probing!
+	for (auto port : QSerialPortInfo::availablePorts())
+	{
+		if (!port.isNull() && !port.isBusy())
+		{
+			Info(_log, "found serial device: %s", QSTRING_CSTR(port.portName()));
+			return port.portName();
+		}
+	}
+	return "";
+}
+
 QJsonObject ProviderRs232::discover()
 {
 	QJsonObject devicesDiscovered;
@@ -243,18 +268,18 @@ QJsonObject ProviderRs232::discover()
 	QJsonArray deviceList;
 
 	// Discover serial Devices
-	for (auto & port : QSerialPortInfo::availablePorts() )
+	for (auto &port : QSerialPortInfo::availablePorts() )
 	{
-		if (port.hasProductIdentifier() && port.hasVendorIdentifier() )
+		if ( !port.isNull() )
 		{
 			QJsonObject portInfo;
-			portInfo.insert("description",port.description());
-			portInfo.insert("manufacturer",port.manufacturer());
-			portInfo.insert("portName",port.portName());
-			portInfo.insert("productIdentifier", QString("0x%1").arg(port.productIdentifier(),0,16));
-			portInfo.insert("serialNumber",port.serialNumber());
-			portInfo.insert("systemLocation",port.systemLocation());
-			portInfo.insert("vendorIdentifier", QString("0x%1").arg(port.vendorIdentifier(),0,16));
+			portInfo.insert("description", port.description());
+			portInfo.insert("manufacturer", port.manufacturer());
+			portInfo.insert("portName", port.portName());
+			portInfo.insert("productIdentifier", QString("0x%1").arg(port.productIdentifier(), 0, 16));
+			portInfo.insert("serialNumber", port.serialNumber());
+			portInfo.insert("systemLocation", port.systemLocation());
+			portInfo.insert("vendorIdentifier", QString("0x%1").arg(port.vendorIdentifier(), 0, 16));
 
 			deviceList.append(portInfo);
 		}

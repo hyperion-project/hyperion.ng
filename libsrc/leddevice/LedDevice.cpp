@@ -411,18 +411,11 @@ void LedDevice::printLedValues(const std::vector<ColorRgb>& ledValues)
 	std::cout << "]" << std::endl;
 }
 
-std::string LedDevice::uint8_t_to_hex_string(const qint64 size, const uint8_t * data, qint64 number) const
+QString LedDevice::uint8_t_to_hex_string(const uint8_t * data, const qint64 size, qint64 number) const
 {
-	std::stringstream ss;
-	ss << std::hex << std::setfill('0');
-
-	if ( number <= 0 )
-	{
+	if ( number <= 0 || number > size)
 		number = size;
-	}
-	for (int it = 0; it != number; ++it)
-	{
-		ss << " " << std::setw(2) << static_cast<unsigned>(data[it]);
-	}
-	return ss.str();
+
+	QByteArray bytes (reinterpret_cast<const char*>(data), number);
+	return bytes.toHex(':');
 }

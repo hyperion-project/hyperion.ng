@@ -328,9 +328,10 @@ protected:
 	/// @brief Converts an uint8_t array to hex string.
 	///
 	/// @param data uint8_t array
-	/// @param number Number of array items to be converted. Default is the size of array.
+	/// @param size of the array
+	/// @param number Number of array items to be converted.
 	/// @return array as string of hex values
-	std::string uint8_t_to_hex_string( const qint64 size, const uint8_t * data, qint64 number = -1) const;
+	QString uint8_t_to_hex_string(const uint8_t * data, const qint64 size, qint64 number = -1) const;
 
 	/// Current device's type
 	QString _activeDeviceType;

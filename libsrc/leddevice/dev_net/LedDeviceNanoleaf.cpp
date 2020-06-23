@@ -43,7 +43,7 @@ static const char STATE_VALUE_FALSE[] = "false";
 
 // Device Data elements
 static const char DEV_DATA_NAME[] = "name";
-static const char DEV_DATA_MODEL[] = "model";//	,
+static const char DEV_DATA_MODEL[] = "model";
 static const char DEV_DATA_MANUFACTURER[] = "manufacturer";
 static const char DEV_DATA_FIRMWAREVERSION[] = "firmwareVersion";
 
