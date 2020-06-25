@@ -82,24 +82,24 @@ namespace hyperion {
 		);
 	}
 
-        ColorAdjustment* createColorAdjustment(const QJsonObject & adjustmentConfig)
-        {
-                const QString id = adjustmentConfig["id"].toString("default");
+	ColorAdjustment* createColorAdjustment(const QJsonObject & adjustmentConfig)
+	{
+		const QString id = adjustmentConfig["id"].toString("default");
 
-                ColorAdjustment * adjustment = new ColorAdjustment();
-                adjustment->_id = id;
-                adjustment->_rgbBlackAdjustment   = createRgbChannelAdjustment(adjustmentConfig, "black"  ,   0,  0,  0);
-                adjustment->_rgbWhiteAdjustment   = createRgbChannelAdjustment(adjustmentConfig, "white"  , 255,255,255);
-                adjustment->_rgbRedAdjustment     = createRgbChannelAdjustment(adjustmentConfig, "red"    , 255,  0,  0);
-                adjustment->_rgbGreenAdjustment   = createRgbChannelAdjustment(adjustmentConfig, "green"  ,   0,255,  0);
-                adjustment->_rgbBlueAdjustment    = createRgbChannelAdjustment(adjustmentConfig, "blue"   ,   0,  0,255);
-                adjustment->_rgbCyanAdjustment    = createRgbChannelAdjustment(adjustmentConfig, "cyan"   ,   0,255,255);
-                adjustment->_rgbMagentaAdjustment = createRgbChannelAdjustment(adjustmentConfig, "magenta", 255,  0,255);
-                adjustment->_rgbYellowAdjustment  = createRgbChannelAdjustment(adjustmentConfig, "yellow" , 255,255,  0);
-                adjustment->_rgbTransform         = createRgbTransform(adjustmentConfig);
+		ColorAdjustment * adjustment = new ColorAdjustment();
+		adjustment->_id = id;
+		adjustment->_rgbBlackAdjustment   = createRgbChannelAdjustment(adjustmentConfig, "black"  ,   0,  0,  0);
+		adjustment->_rgbWhiteAdjustment   = createRgbChannelAdjustment(adjustmentConfig, "white"  , 255,255,255);
+		adjustment->_rgbRedAdjustment     = createRgbChannelAdjustment(adjustmentConfig, "red"    , 255,  0,  0);
+		adjustment->_rgbGreenAdjustment   = createRgbChannelAdjustment(adjustmentConfig, "green"  ,   0,255,  0);
+		adjustment->_rgbBlueAdjustment    = createRgbChannelAdjustment(adjustmentConfig, "blue"   ,   0,  0,255);
+		adjustment->_rgbCyanAdjustment    = createRgbChannelAdjustment(adjustmentConfig, "cyan"   ,   0,255,255);
+		adjustment->_rgbMagentaAdjustment = createRgbChannelAdjustment(adjustmentConfig, "magenta", 255,  0,255);
+		adjustment->_rgbYellowAdjustment  = createRgbChannelAdjustment(adjustmentConfig, "yellow" , 255,255,  0);
+		adjustment->_rgbTransform         = createRgbTransform(adjustmentConfig);
 
-                return adjustment;
-        }
+		return adjustment;
+	}
 
 	MultiColorAdjustment * createLedColorsAdjustment(const unsigned ledCnt, const QJsonObject & colorConfig)
 	{
