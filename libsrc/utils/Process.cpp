@@ -6,7 +6,7 @@ namespace Process {
 
 void restartHyperion(bool asNewProcess){}
 
-QByteArray command_exec(QString cmd, QByteArray data)
+QByteArray command_exec(QString /*cmd*/, QByteArray /*data*/)
 {
 	return QSTRING_CSTR(QString());
 }
@@ -45,7 +45,7 @@ void restartHyperion(bool asNewProcess)
 	{
 		int str_size = qargs[i].toLocal8Bit().size();
 		args[i] = new char[str_size+1];
-		strncpy(args[i], qargs[i].toLocal8Bit().constData(),str_size );
+		strncpy(args[i], qargs[i].toLocal8Bit().constData(),str_size);
 		args[i][str_size] = '\0';
 	}
 
@@ -56,7 +56,7 @@ void restartHyperion(bool asNewProcess)
 QByteArray command_exec(QString cmd, QByteArray data)
 {
 	char buffer[128];
-	QString result = "";
+	QString result;
 
 	std::shared_ptr<FILE> pipe(popen(cmd.toLocal8Bit().constData(), "r"), pclose);
 	if (pipe)

@@ -26,11 +26,11 @@ void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, const WhiteAlgorithm algori
 			output->blue  = input.blue  - output->white;
 			break;
 		}
-		
+
 		case SUB_MIN_WARM_ADJUST:
 		{
 			// http://forum.garagecube.com/viewtopic.php?t=10178
-			// warm white 
+			// warm white
 			float F1 = 0.274;
 			float F2 = 0.454;
 			float F3 = 2.333;
@@ -45,7 +45,7 @@ void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, const WhiteAlgorithm algori
 		case SUB_MIN_COOL_ADJUST:
 		{
 			// http://forum.garagecube.com/viewtopic.php?t=10178
-			// cold white 
+			// cold white
 			float F1 = 0.299;
 			float F2 = 0.587;
 			float F3 = 0.114;

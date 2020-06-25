@@ -37,7 +37,7 @@ Logger* Logger::getInstance(QString name, Logger::LogLevel minLevel)
 		LoggerMap = new std::map<QString,Logger*>;
 	}
 
-	if ( LoggerMap->find(name) == LoggerMap->end() )
+	if (LoggerMap->find(name) == LoggerMap->end())
 	{
 		log = new Logger(name,minLevel);
 		LoggerMap->insert(std::pair<QString,Logger*>(name,log)); // compat version, replace it with following line if we have 100% c++11
@@ -57,10 +57,10 @@ void Logger::deleteInstance(QString name)
 	if (LoggerMap == nullptr)
 		return;
 
-	if ( name.isEmpty() )
+	if (name.isEmpty())
 	{
 		std::map<QString,Logger*>::iterator it;
-		for ( it=LoggerMap->begin(); it != LoggerMap->end(); it++)
+		for (it = LoggerMap->begin(); it != LoggerMap->end(); it++)
 		{
 			delete it->second;
 		}
@@ -76,7 +76,7 @@ void Logger::deleteInstance(QString name)
 
 void Logger::setLogLevel(LogLevel level,QString name)
 {
-	if ( name.isEmpty() )
+	if (name.isEmpty())
 	{
 		GLOBAL_MIN_LOG_LEVEL = level;
 	}
@@ -89,7 +89,7 @@ void Logger::setLogLevel(LogLevel level,QString name)
 
 Logger::LogLevel Logger::getLogLevel(QString name)
 {
-	if ( name.isEmpty() )
+	if (name.isEmpty())
 	{
 		return GLOBAL_MIN_LOG_LEVEL;
 	}
@@ -98,7 +98,7 @@ Logger::LogLevel Logger::getLogLevel(QString name)
 	return log->getMinLevel();
 }
 
-Logger::Logger ( QString name, LogLevel minLevel )
+Logger::Logger (QString name, LogLevel minLevel)
 	: QObject()
 	, _name(name)
 	, _minLevel(minLevel)
@@ -125,7 +125,7 @@ Logger::Logger ( QString name, LogLevel minLevel )
 
 	loggerCount++;
 
-	if (_syslogEnabled && loggerCount == 1 )
+	if (_syslogEnabled && loggerCount == 1)
 	{
 		#ifndef _WIN32
 		openlog (_appname_char, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL0);
@@ -138,7 +138,7 @@ Logger::~Logger()
 	//Debug(this, "logger '%s' destroyed", QSTRING_CSTR(_name) );
 	loggerCount--;
 #ifndef _WIN32
-	if ( loggerCount == 0 )
+	if (loggerCount == 0)
 		closelog();
 #endif
 }
@@ -237,7 +237,7 @@ void LoggerManager::handleNewLogMessage(const Logger::T_LOG_MESSAGE &msg)
 
 LoggerManager* LoggerManager::getInstance()
 {
-	if ( _instance == nullptr )
+	if (_instance == nullptr)
 		_instance = new LoggerManager();
 	return _instance;
 }

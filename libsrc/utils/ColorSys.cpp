@@ -1,6 +1,7 @@
 #include <utils/ColorSys.h>
 
 #include <QColor>
+
 void ColorSys::rgb2hsl(uint8_t red, uint8_t green, uint8_t blue, uint16_t & hue, float & saturation, float & luminance)
 {
 	QColor color(red,green,blue);
