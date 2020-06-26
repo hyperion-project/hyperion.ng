@@ -1,7 +1,7 @@
 var storedAccess;
 var storedLang;
-var availLang = ['en','de','es','it','cs','sv','nl','pl','ro','tr'];
-var availLangText = ['English', 'Deutsch', 'Español', 'Italiano', 'Čeština', 'Svenska', 'Nederlands', 'Polski', 'Română', 'Türkiye'];
+var availLang = ['en','de','es','it','cs','sv','nl','pl','ro','tr','vi','fr'];
+var availLangText = ['English', 'Deutsch', 'Español', 'Italiano', 'Čeština', 'Svenska', 'Nederlands', 'Polski', 'Română', 'Türkiye', 'Tiếng Việt', 'français'];
 var availAccess = ['default','advanced','expert'];
 //$.i18n.debug = true;
 
