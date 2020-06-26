@@ -159,8 +159,8 @@ void SSDPServer::readPendingDatagrams()
 
 		if (headers.value("man") == "\"ssdp:discover\"")
 		{
-	    	//Debug(_log, "Received msearch from '%s:%d'. Search target: %s",QSTRING_CSTR(sender.toString()), senderPort, QSTRING_CSTR(headers.value("st")));
-    		emit msearchRequestReceived(headers.value("st"), headers.value("mx"), sender.toString(), senderPort);
+			//Debug(_log, "Received msearch from '%s:%d'. Search target: %s",QSTRING_CSTR(sender.toString()), senderPort, QSTRING_CSTR(headers.value("st")));
+			emit msearchRequestReceived(headers.value("st"), headers.value("mx"), sender.toString(), senderPort);
 		}
     }
 }
@@ -177,9 +177,7 @@ void SSDPServer::sendMSearchResponse(const QString& st, const QString& senderIp,
 		, _jssPort
 		, _name );
 
-	_udpSocket->writeDatagram(message.toUtf8(),
-								 QHostAddress(senderIp),
-								 senderPort);
+	_udpSocket->writeDatagram(message.toUtf8(), QHostAddress(senderIp), senderPort);
 }
 
 void SSDPServer::sendByeBye(const QString& st)
@@ -188,11 +186,8 @@ void SSDPServer::sendByeBye(const QString& st)
 
 	// we repeat 3 times
 	quint8 rep = 0;
-	while(rep < 3) {
-		_udpSocket->writeDatagram(message.toUtf8(),
-								 QHostAddress(SSDP_ADDR),
-								 SSDP_PORT);
-		rep++;
+	while(rep++ < 3) {
+		_udpSocket->writeDatagram(message.toUtf8(), QHostAddress(SSDP_ADDR), SSDP_PORT);
 	}
 }
 
@@ -211,11 +206,8 @@ void SSDPServer::sendAlive(const QString& st)
 
 	// we repeat 3 times
 	quint8 rep = 0;
-	while(rep < 3) {
-		_udpSocket->writeDatagram(message.toUtf8(),
-								 QHostAddress(SSDP_ADDR),
-								 SSDP_PORT);
-		rep++;
+	while(rep++ < 3) {
+		_udpSocket->writeDatagram(message.toUtf8(), QHostAddress(SSDP_ADDR), SSDP_PORT);
 	}
 }
 
@@ -225,7 +217,5 @@ void SSDPServer::sendUpdate(const QString& st)
 		, st
 		, _uuid+"::"+st );
 
-	_udpSocket->writeDatagram(message.toUtf8(),
-							 QHostAddress(SSDP_ADDR),
-							 SSDP_PORT);
+	_udpSocket->writeDatagram(message.toUtf8(), QHostAddress(SSDP_ADDR), SSDP_PORT);
 }

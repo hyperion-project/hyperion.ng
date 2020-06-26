@@ -12,7 +12,7 @@ static const quint16      SSDP_PORT(1900);
 static const QString UPNP_DISCOVER_MESSAGE = "M-SEARCH * HTTP/1.1\r\n"
                                           "HOST: 239.255.255.250:1900\r\n"
                                           "MAN: \"ssdp:discover\"\r\n"
-										  "MX: 1\r\n"
+                                          "MX: 1\r\n"
                                           "ST: %1\r\n"
                                           "\r\n";
 
@@ -49,7 +49,6 @@ const QString SSDPDiscover::getFirstService(const searchType& type, const QStrin
 			QByteArray datagram;
 			while (_udpSocket->hasPendingDatagrams())
 			{
-
 				datagram.resize(_udpSocket->pendingDatagramSize());
 				QHostAddress sender;
 				quint16 senderPort;
@@ -153,13 +152,15 @@ void SSDPDiscover::readPendingDatagrams()
 			if(entry.contains("HTTP/1.1"))
 				continue;
 
-			// split into key:vale, be aware that value field may contain also a ":"
+			// split into key:value, be aware that value field may contain also a ":"
 			entry = entry.simplified();
 			int pos = entry.indexOf(":");
 			if(pos == -1)
 				continue;
 
-			headers[entry.left(pos).trimmed().toLower()] = entry.mid(pos+1).trimmed();
+			const QString key = entry.left(pos).trimmed().toLower();
+			const QString value = entry.mid(pos + 1).trimmed();
+			headers[key] = value;
 		}
 
 		// verify ssdp spec
@@ -175,7 +176,7 @@ void SSDPDiscover::readPendingDatagrams()
 			_usnList << headers.value("usn");
 			//Debug(_log, "Received msearch response from '%s:%d'. Search target: %s",QSTRING_CSTR(sender.toString()), senderPort, QSTRING_CSTR(headers.value("st")));
 			QUrl url(headers.value("location"));
-			emit newService(url.host()+":"+QString::number(url.port()));
+			emit newService(url.host() + ":" + QString::number(url.port()));
 		}
 	}
 }
@@ -184,7 +185,5 @@ void SSDPDiscover::sendSearch(const QString& st)
 {
 	const QString msg = UPNP_DISCOVER_MESSAGE.arg(st);
 
-    _udpSocket->writeDatagram(msg.toUtf8(),
-							 QHostAddress(SSDP_ADDR),
-							 SSDP_PORT);
+	_udpSocket->writeDatagram(msg.toUtf8(), QHostAddress(SSDP_ADDR), SSDP_PORT);
 }
