@@ -25,3 +25,7 @@ endif()
 if (ENABLE_QT)
 	add_subdirectory(qt)
 endif()
+
+if (ENABLE_DX)
+	add_subdirectory(directx)
+endif()

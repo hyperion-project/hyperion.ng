@@ -21,6 +21,9 @@
 // Define to enable the qt grabber
 #cmakedefine ENABLE_QT
 
+// Define to enable the DirectX grabber
+#cmakedefine ENABLE_DX
+
 // Define to enable the spi-device
 #cmakedefine ENABLE_SPIDEV
 

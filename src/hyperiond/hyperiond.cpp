@@ -75,6 +75,7 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 		, _fbGrabber(nullptr)
 		, _osxGrabber(nullptr)
 		, _qtGrabber(nullptr)
+		, _dxGrabber(nullptr)
 		, _ssdp(nullptr)
 		, _currVideoMode(VideoMode::VIDEO_2D)
 {
@@ -128,7 +129,7 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 	connect(this, &HyperionDaemon::videoMode, _instanceManager, &HyperionIManager::newVideoMode);
 
 // ---- grabber -----
-#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB) && !defined(ENABLE_X11) && !defined(ENABLE_AMLOGIC) && !defined(ENABLE_QT)
+#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB) && !defined(ENABLE_X11) && !defined(ENABLE_AMLOGIC) && !defined(ENABLE_QT) && !defined(ENABLE_DX)
 	Warning(_log, "No platform capture can be instantiated, because all grabbers have been left out from the build");
 #endif
 
@@ -205,6 +206,7 @@ void HyperionDaemon::freeObjects()
 	delete _fbGrabber;
 	delete _osxGrabber;
 	delete _qtGrabber;
+	delete _dxGrabber;
 	delete _v4l2Grabber;
 
 	_v4l2Grabber = nullptr;
@@ -216,6 +218,7 @@ void HyperionDaemon::freeObjects()
 	_fbGrabber = nullptr;
 	_osxGrabber = nullptr;
 	_qtGrabber = nullptr;
+	_dxGrabber = nullptr;
 	_flatBufferServer = nullptr;
 	_protoServer = nullptr;
 	_ssdp = nullptr;
@@ -403,6 +406,14 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type &settingsType, co
 				_qtGrabber = nullptr;
 			}
 			#endif
+			#ifdef ENABLE_DX
+			if(_dxGrabber != nullptr)
+			{
+				_dxGrabber->stop();
+				delete _dxGrabber;
+				_dxGrabber = nullptr;
+			}
+			#endif
 
 			// create/start capture interface
 			if (type == "framebuffer")
@@ -451,6 +462,14 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type &settingsType, co
 					createGrabberQt(grabberConfig);
 				#ifdef ENABLE_QT
 				_qtGrabber->tryStart();
+				#endif
+			}
+			else if (type == "dx")
+			{
+				if (_dxGrabber == nullptr)
+					createGrabberDx(grabberConfig);
+				#ifdef ENABLE_DX
+				_dxGrabber->tryStart();
 				#endif
 			}
 			else
@@ -573,6 +592,25 @@ void HyperionDaemon::createGrabberQt(const QJsonObject &grabberConfig)
 	Info(_log, "Qt grabber created");
 #else
 	Error(_log, "The Qt grabber can not be instantiated, because it has been left out from the build");
+#endif
+}
+
+void HyperionDaemon::createGrabberDx(const QJsonObject &grabberConfig)
+{
+#ifdef ENABLE_DX
+	_dxGrabber = new DirectXWrapper(
+			_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom,
+			grabberConfig["pixelDecimation"].toInt(8),
+			grabberConfig["display"].toInt(0),
+			_grabber_frequency);
+
+	// connect to HyperionDaemon signal
+	connect(this, &HyperionDaemon::videoMode, _dxGrabber, &DirectXWrapper::setVideoMode);
+	connect(this, &HyperionDaemon::settingsChanged, _dxGrabber, &DirectXWrapper::handleSettingsUpdate);
+
+	Info(_log, "DirectX grabber created");
+#else
+	Error(_log, "The DirectX grabber can not be instantiated, because it has been left out from the build");
 #endif
 }
 

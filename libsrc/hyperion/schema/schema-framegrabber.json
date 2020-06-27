@@ -7,10 +7,10 @@
 		{
 			"type" : "string",
 			"title" : "edt_conf_fg_type_title",
-			"enum"  : ["auto","dispmanx","amlogic","x11","framebuffer","qt"],
+			"enum"  : ["auto","dispmanx","amlogic","x11","framebuffer","qt","dx"],
 			"options":
 			{
-				"enum_titles": ["edt_conf_enum_automatic","DispmanX","AMLogic","X11","Framebuffer","QT"]
+				"enum_titles": ["edt_conf_enum_automatic","DispmanX","AMLogic","X11","Framebuffer","QT","DirectX9"]
 			},
 			"default" : "auto",
 			"propertyOrder" : 2

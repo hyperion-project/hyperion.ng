@@ -88,6 +88,10 @@ if (ENABLE_QT)
 	target_link_libraries(hyperiond	qt-grabber)
 endif ()
 
+if (ENABLE_DX)
+	target_link_libraries(hyperiond	directx-grabber)
+endif ()
+
 if(NOT WIN32)
 	install ( TARGETS hyperiond DESTINATION "share/hyperion/bin" COMPONENT "Hyperion" )
 	install ( DIRECTORY ${CMAKE_SOURCE_DIR}/bin/service DESTINATION "share/hyperion/" COMPONENT "Hyperion" )
