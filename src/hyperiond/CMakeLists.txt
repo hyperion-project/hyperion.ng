@@ -103,6 +103,10 @@ if (ENABLE_QT)
 	target_link_libraries(hyperiond	qt-grabber)
 endif ()
 
+if (ENABLE_DX)
+	target_link_libraries(hyperiond	directx-grabber)
+endif ()
+
 if (ENABLE_CEC)
         target_link_libraries(hyperiond cechandler)
 endif ()
