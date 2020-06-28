@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Updated dependency rpi_ws281x to latest upstream (#820)
 - Updated websocket-extensions (#826)
+- webui: Suppress default password warning (#830)
+- webui: Add French, Vietnamese and Turkey (#842)
 
 ### Fixed
 - device: Nanoleaf (#829)
