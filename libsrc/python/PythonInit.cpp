@@ -29,8 +29,7 @@ PythonInit::PythonInit()
 	// set Python module path when exists
 	wchar_t *pythonPath = Py_DecodeLocale((QDir::cleanPath(qApp->applicationDirPath() + "/../lib/python")).toLatin1().data(), nullptr);
 	#ifdef _WIN32
-		pythonPath = Py_DecodeLocale((QDir::cleanPath(qApp->applicationDirPath())).toLatin1().data(), nullptr);
-		pythonPath =  wcscat(pythonPath, L"/python" STRINGIFY(PYTHON_VERSION_MAJOR_MINOR) ".zip");
+		pythonPath = Py_DecodeLocale((QDir::cleanPath(qApp->applicationDirPath()) + "/python" + STRINGIFY(PYTHON_VERSION_MAJOR_MINOR) ".zip").toLatin1().data(), nullptr);
 		if(QFile(QString::fromWCharArray(pythonPath)).exists())
 	#else
 		if(QDir(QString::fromWCharArray(pythonPath)).exists())
