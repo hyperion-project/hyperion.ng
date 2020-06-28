@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - HyperBian - A Raspbian Lite image with Hyperion pre installed.
 ### Feature
 - webui: Suppress default password warning (#830)
+- webui: Add French, Vietnamese and Turkey (#842)
 
 ## [2.0.0-alpha.6](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.6) - 2020-05-27
 ### Breaking
