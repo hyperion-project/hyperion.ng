@@ -68,7 +68,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 		for (int xDest = 0, xSource = _cropLeft + (_horizontalDecimation >> 1); xDest < outputWidth; xSource += _horizontalDecimation, ++xDest)
 		{
 			ColorRgb & rgb = outputImage(xDest, yDest);
-			
+
 			switch (pixelFormat)
 			{
 			case PixelFormat::UYVY:
@@ -144,7 +144,7 @@ void ImageResampler::yuv2rgb(uint8_t y, uint8_t u, uint8_t v, uint8_t &r, uint8_
 	int c = y - 16;
 	int d = u - 128;
 	int e = v - 128;
-	
+
 	r = clamp((298 * c + 409 * e + 128) >> 8);
 	g = clamp((298 * c - 100 * d - 208 * e + 128) >> 8);
 	b = clamp((298 * c + 516 * d + 128) >> 8);
