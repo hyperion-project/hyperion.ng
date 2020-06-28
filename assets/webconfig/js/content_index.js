@@ -152,8 +152,13 @@ $(document).ready(function () {
 		$("#main-nav").removeAttr('style')
 		$("#top-navbar").removeAttr('style')
 
-		if (window.defaultPasswordIsSet === true)
-			showNotification('warning', $.i18n('dashboard_message_default_password'), $.i18n('dashboard_message_default_password_t'), '<a style="cursor:pointer" onClick="changePassword()"> ' + $.i18n('InfoDialog_changePassword_title') + '</a>')
+		if (window.defaultPasswordIsSet === true && getStorage("suppressDefaultPwWarning") !== "true" )
+		{
+			var supprPwWarnCheckbox = '<div class="text-right">'+$.i18n('dashboard_message_do_not_show_again')
+					+ ' <input id="chk_suppressDefaultPw" type="checkbox" onChange="suppressDefaultPwWarning()"> </div>'
+			showNotification('warning', $.i18n('dashboard_message_default_password'), $.i18n('dashboard_message_default_password_t'), '<a style="cursor:pointer" onClick="changePassword()">'
+					+ $.i18n('InfoDialog_changePassword_title') + '</a>' + supprPwWarnCheckbox)
+		}
 		else
 			//if logged on and pw != default show option to lock ui
 			$("#btn_lock_ui").removeAttr('style')
@@ -307,6 +312,14 @@ $(document).ready(function () {
 	});
 
 });
+
+function suppressDefaultPwWarning(){
+
+  if (document.getElementById('chk_suppressDefaultPw').checked) 
+	setStorage("suppressDefaultPwWarning", "true");
+  else 
+	setStorage("suppressDefaultPwWarning", "false");
+}
 
 $(function () {
 	var sidebar = $('#side-menu');  // cache sidebar to a variable for performance
