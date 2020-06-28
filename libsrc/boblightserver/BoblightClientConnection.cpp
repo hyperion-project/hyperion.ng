@@ -90,8 +90,11 @@ void BoblightClientConnection::socketClosed()
 void BoblightClientConnection::handleMessage(const QString & message)
 {
 	//std::cout << "boblight message: " << message.toStdString() << std::endl;
-
-	QStringList messageParts = message.split(" ", QString::SkipEmptyParts);
+	#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+		QStringList messageParts = message.split(" ", Qt::SkipEmptyParts);
+	#else
+		QStringList messageParts = message.split(" ", QString::SkipEmptyParts);
+	#endif
 
 	if (messageParts.size() > 0)
 	{

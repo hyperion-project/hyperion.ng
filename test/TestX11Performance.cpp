@@ -1,12 +1,12 @@
 
-// X11 includes
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-
 #include <QElapsedTimer>
 
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
+
+// X11 includes
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
 
 void foo_1(int pixelDecimation)
 {

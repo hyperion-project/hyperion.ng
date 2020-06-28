@@ -14,6 +14,7 @@ MultiColorAdjustment::~MultiColorAdjustment()
 	for (ColorAdjustment * adjustment : _adjustment)
 	{
 		delete adjustment;
+		// BUG: Calling pop_back while iterating is invalid
 		_adjustment.pop_back();
 	}
 }

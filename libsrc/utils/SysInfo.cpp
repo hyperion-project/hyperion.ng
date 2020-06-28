@@ -25,7 +25,7 @@ SysInfo::~SysInfo()
 
 SysInfo::HyperionSysInfo SysInfo::get()
 {
-	if ( SysInfo::_instance == nullptr )
+	if (SysInfo::_instance == nullptr)
 		SysInfo::_instance = new SysInfo();
 
 	return SysInfo::_instance->_sysinfo;

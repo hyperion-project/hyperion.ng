@@ -7,6 +7,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QTimer>
+#include <QDateTime>
 
 // STL includes
 #include <vector>
@@ -179,8 +180,8 @@ protected:
 	QTimer*	_refresh_timer;
 	int	_refresh_timer_interval;
 
-	/// timestamp of last write
-	qint64	_last_write_time;
+	/// Timestamp of last write
+	QDateTime _lastWriteTime;
 
 	/// Time a device requires mandatorily between two writes
 	int	_latchTime_ms;

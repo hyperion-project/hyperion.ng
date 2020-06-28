@@ -76,7 +76,7 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 		, _osxGrabber(nullptr)
 		, _qtGrabber(nullptr)
 		, _ssdp(nullptr)
-		, _currVideoMode(VIDEO_2D)
+		, _currVideoMode(VideoMode::VIDEO_2D)
 {
 	HyperionDaemon::daemon = this;
 
@@ -170,15 +170,29 @@ void HyperionDaemon::freeObjects()
 	delete _jsonServer;
 	_flatBufferServer->thread()->quit();
 	_flatBufferServer->thread()->wait(1000);
+	_flatBufferServer->deleteLater();
+	_flatBufferServer->thread()->deleteLater();
+
 	_protoServer->thread()->quit();
 	_protoServer->thread()->wait(1000);
+	_protoServer->deleteLater();
+	_protoServer->thread()->deleteLater();
+
 	//ssdp before webserver
 	_ssdp->thread()->quit();
 	_ssdp->thread()->wait(1000);
+	_ssdp->deleteLater();
+	_ssdp->thread()->deleteLater();
+
 	_webserver->thread()->quit();
 	_webserver->thread()->wait(1000);
+	_webserver->deleteLater();
+	_webserver->thread()->deleteLater();
+
 	_sslWebserver->thread()->quit();
 	_sslWebserver->thread()->wait(1000);
+	_sslWebserver->deleteLater();
+	_sslWebserver->thread()->deleteLater();
 
 	// stop Hyperions (non blocking)
 	_instanceManager->stopAll();
@@ -219,50 +233,45 @@ void HyperionDaemon::startNetworkServices()
 	// Create FlatBuffer server in thread
 	_flatBufferServer = new FlatBufferServer(getSetting(settings::FLATBUFSERVER));
 	QThread *fbThread = new QThread(this);
+	fbThread->setObjectName("FlatBufferServerThread");
 	_flatBufferServer->moveToThread(fbThread);
 	connect(fbThread, &QThread::started, _flatBufferServer, &FlatBufferServer::initServer);
-	connect(fbThread, &QThread::finished, _flatBufferServer, &QObject::deleteLater);
-	connect(fbThread, &QThread::finished, fbThread, &QObject::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _flatBufferServer, &FlatBufferServer::handleSettingsUpdate);
 	fbThread->start();
 
 	// Create Proto server in thread
 	_protoServer = new ProtoServer(getSetting(settings::PROTOSERVER));
 	QThread *pThread = new QThread(this);
+	pThread->setObjectName("ProtoServerThread");
 	_protoServer->moveToThread(pThread);
 	connect(pThread, &QThread::started, _protoServer, &ProtoServer::initServer);
-	connect(pThread, &QThread::finished, _protoServer, &QObject::deleteLater);
-	connect(pThread, &QThread::finished, pThread, &QObject::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _protoServer, &ProtoServer::handleSettingsUpdate);
 	pThread->start();
 
 	// Create Webserver in thread
 	_webserver = new WebServer(getSetting(settings::WEBSERVER), false);
 	QThread *wsThread = new QThread(this);
+	wsThread->setObjectName("WebServerThread");
 	_webserver->moveToThread(wsThread);
 	connect(wsThread, &QThread::started, _webserver, &WebServer::initServer);
-	connect(wsThread, &QThread::finished, _webserver, &QObject::deleteLater);
-	connect(wsThread, &QThread::finished, wsThread, &QObject::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _webserver, &WebServer::handleSettingsUpdate);
 	wsThread->start();
 
 	// Create SSL Webserver in thread
 	_sslWebserver = new WebServer(getSetting(settings::WEBSERVER), true);
 	QThread *sslWsThread = new QThread(this);
+	sslWsThread->setObjectName("SSLWebServerThread");
 	_sslWebserver->moveToThread(sslWsThread);
 	connect(sslWsThread, &QThread::started, _sslWebserver, &WebServer::initServer);
-	connect(sslWsThread, &QThread::finished, _sslWebserver, &QObject::deleteLater);
-	connect(sslWsThread, &QThread::finished, sslWsThread, &QObject::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _sslWebserver, &WebServer::handleSettingsUpdate);
 	sslWsThread->start();
 
 	// Create SSDP server in thread
 	_ssdp = new SSDPHandler(_webserver, getSetting(settings::FLATBUFSERVER).object()["port"].toInt(), getSetting(settings::JSONSERVER).object()["port"].toInt(), getSetting(settings::GENERAL).object()["name"].toString());
 	QThread *ssdpThread = new QThread(this);
+	ssdpThread->setObjectName("SSDPThread");
 	_ssdp->moveToThread(ssdpThread);
 	connect(ssdpThread, &QThread::started, _ssdp, &SSDPHandler::initServer);
-	connect(ssdpThread, &QThread::finished, _ssdp, &QObject::deleteLater);
-	connect(ssdpThread, &QThread::finished, ssdpThread, &QObject::deleteLater);
 	connect(_webserver, &WebServer::stateChange, _ssdp, &SSDPHandler::handleWebServerStateChange);
 	connect(this, &HyperionDaemon::settingsChanged, _ssdp, &SSDPHandler::handleSettingsUpdate);
 	ssdpThread->start();
@@ -278,7 +287,7 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type &settingsType, co
 		if (level == "silent")
 			Logger::setLogLevel(Logger::OFF);
 		else if (level == "warn")
-			Logger::setLogLevel(Logger::WARNING);
+			Logger::setLogLevel(Logger::LogLevel::WARNING);
 		else if (level == "verbose")
 			Logger::setLogLevel(Logger::INFO);
 		else if (level == "debug")
@@ -325,15 +334,19 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type &settingsType, co
 					Error(_log, "grabber device '%s' for type amlogic not found!", QSTRING_CSTR(_grabber_device));
 				}
 			}
-			// x11 -> if DISPLAY is set
-			else if (getenv("DISPLAY") != NULL)
-			{
-				type = "x11";
-			}
-			// qt -> if nothing other applies
 			else
 			{
-				type = "qt";
+				// x11 -> if DISPLAY is set
+				QByteArray envDisplay = qgetenv("DISPLAY");
+				if ( !envDisplay.isEmpty() )
+				{
+					type = "x11";
+				}
+				// qt -> if nothing other applies
+				else
+				{
+					type = "qt";
+				}
 			}
 		}
 

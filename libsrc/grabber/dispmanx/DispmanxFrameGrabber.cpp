@@ -114,15 +114,15 @@ int DispmanxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 	// calculate final image dimensions and adjust top/left cropping in 3D modes
 	switch (_videoMode)
 	{
-	case VIDEO_3DSBS:
+	case VideoMode::VIDEO_3DSBS:
 		imageWidth /= 2;
 		cropLeft /= 2;
 		break;
-	case VIDEO_3DTAB:
+	case VideoMode::VIDEO_3DTAB:
 		imageHeight /= 2;
 		cropTop /= 2;
 		break;
-	case VIDEO_2D:
+	case VideoMode::VIDEO_2D:
 	default:
 		break;
 	}
