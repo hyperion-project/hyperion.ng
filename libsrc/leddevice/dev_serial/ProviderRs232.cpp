@@ -38,7 +38,12 @@ bool ProviderRs232::init(const QJsonObject &deviceConfig)
 		Debug(_log, "LatchTime    : %d", this->getLatchTime());
 
 		_deviceName           = deviceConfig["output"].toString("auto");
-		_isAutoDeviceName	  = _deviceName == "auto";
+
+		// If device name was given as unix /dev/ system-location, get port name
+		if ( _deviceName.startsWith(QLatin1String("/dev/")) )
+				 _deviceName = _deviceName.mid(5);
+
+		_isAutoDeviceName	  = _deviceName.toLower() == "auto";
 		_baudRate_Hz          = deviceConfig["rate"].toInt();
 		_delayAfterConnect_ms = deviceConfig["delayAfterConnect"].toInt(1500);
 
