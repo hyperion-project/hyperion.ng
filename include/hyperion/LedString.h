@@ -15,7 +15,7 @@
 namespace Json { class Value; }
 
 /// Enumeration containing the possible orders of device color byte data
-enum ColorOrder
+enum class ColorOrder
 {
 	ORDER_RGB, ORDER_RBG, ORDER_GRB, ORDER_BRG, ORDER_GBR, ORDER_BGR
 };
@@ -24,17 +24,17 @@ inline QString colorOrderToString(const ColorOrder colorOrder)
 {
 	switch (colorOrder)
 	{
-	case ORDER_RGB:
+	case ColorOrder::ORDER_RGB:
 		return "rgb";
-	case ORDER_RBG:
+	case ColorOrder::ORDER_RBG:
 		return "rbg";
-	case ORDER_GRB:
+	case ColorOrder::ORDER_GRB:
 		return "grb";
-	case ORDER_BRG:
+	case ColorOrder::ORDER_BRG:
 		return "brg";
-	case ORDER_GBR:
+	case ColorOrder::ORDER_GBR:
 		return "gbr";
-	case ORDER_BGR:
+	case ColorOrder::ORDER_BGR:
 		return "bgr";
 	default:
 		return "not-a-colororder";
@@ -44,31 +44,31 @@ inline ColorOrder stringToColorOrder(const QString & order)
 {
 	if (order == "rgb")
 	{
-		return ORDER_RGB;
+		return ColorOrder::ORDER_RGB;
 	}
 	else if (order == "bgr")
 	{
-		return ORDER_BGR;
+		return ColorOrder::ORDER_BGR;
 	}
 	else if (order == "rbg")
 	{
-		return ORDER_RBG;
+		return ColorOrder::ORDER_RBG;
 	}
 	else if (order == "brg")
 	{
-		return ORDER_BRG;
+		return ColorOrder::ORDER_BRG;
 	}
 	else if (order == "gbr")
 	{
-		return ORDER_GBR;
+		return ColorOrder::ORDER_GBR;
 	}
 	else if (order == "grb")
 	{
-		return ORDER_GRB;
+		return ColorOrder::ORDER_GRB;
 	}
 
 	std::cout << "Unknown color order defined (" << order.toStdString() << "). Using RGB." << std::endl;
-	return ORDER_RGB;
+	return ColorOrder::ORDER_RGB;
 }
 
 ///

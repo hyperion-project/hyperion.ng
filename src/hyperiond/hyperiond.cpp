@@ -76,7 +76,7 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 		, _osxGrabber(nullptr)
 		, _qtGrabber(nullptr)
 		, _ssdp(nullptr)
-		, _currVideoMode(VIDEO_2D)
+		, _currVideoMode(VideoMode::VIDEO_2D)
 {
 	HyperionDaemon::daemon = this;
 
@@ -282,7 +282,7 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type &settingsType, co
 		if (level == "silent")
 			Logger::setLogLevel(Logger::OFF);
 		else if (level == "warn")
-			Logger::setLogLevel(Logger::WARNING);
+			Logger::setLogLevel(Logger::LogLevel::WARNING);
 		else if (level == "verbose")
 			Logger::setLogLevel(Logger::INFO);
 		else if (level == "debug")
@@ -329,15 +329,19 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type &settingsType, co
 					Error(_log, "grabber device '%s' for type amlogic not found!", QSTRING_CSTR(_grabber_device));
 				}
 			}
-			// x11 -> if DISPLAY is set
-			else if (getenv("DISPLAY") != NULL)
-			{
-				type = "x11";
-			}
-			// qt -> if nothing other applies
 			else
 			{
-				type = "qt";
+				// x11 -> if DISPLAY is set
+				QByteArray envDisplay = qgetenv("DISPLAY");
+				if ( !envDisplay.isEmpty() )
+				{
+					type = "x11";
+				}
+				// qt -> if nothing other applies
+				else
+				{
+					type = "qt";
+				}
 			}
 		}
 

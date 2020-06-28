@@ -184,7 +184,7 @@ int X11Grabber::grabFrame(Image<ColorRgb> & image, bool forceUpdate)
 		return -1;
 	}
 
-	_imageResampler.processImage(reinterpret_cast<const uint8_t *>(_xImage->data), _xImage->width, _xImage->height, _xImage->bytes_per_line, PIXELFORMAT_BGR32, image);
+	_imageResampler.processImage(reinterpret_cast<const uint8_t *>(_xImage->data), _xImage->width, _xImage->height, _xImage->bytes_per_line, PixelFormat::BGR32, image);
 
 	return 0;
 }
@@ -244,19 +244,19 @@ int X11Grabber::updateScreenDimensions(bool force)
 	// calculate final image dimensions and adjust top/left cropping in 3D modes
 	switch (_videoMode)
 	{
-	case VIDEO_3DSBS:
+	case VideoMode::VIDEO_3DSBS:
 		_width  = width /2;
 		_height = height;
 		_src_x  = _cropLeft / 2;
 		_src_y  = _cropTop;
 		break;
-	case VIDEO_3DTAB:
+	case VideoMode::VIDEO_3DTAB:
 		_width  = width;
 		_height = height / 2;
 		_src_x  = _cropLeft;
 		_src_y  = _cropTop / 2;
 		break;
-	case VIDEO_2D:
+	case VideoMode::VIDEO_2D:
 	default:
 		_width  = width;
 		_height = height;

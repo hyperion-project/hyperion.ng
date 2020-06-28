@@ -552,7 +552,7 @@ private:
 	/// buffer for leds (with adjustment)
 	std::vector<ColorRgb> _ledBuffer;
 
-	VideoMode _currVideoMode = VIDEO_2D;
+	VideoMode _currVideoMode = VideoMode::VIDEO_2D;
 
 	/// Boblight instance
 	BoblightServer* _boblightServer;

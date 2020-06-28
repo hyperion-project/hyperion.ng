@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <iostream>
 
+#include <QTextStream>
+
 struct ColorRgb;
 
 ///
@@ -44,6 +46,19 @@ static_assert(sizeof(ColorRgb) == 3, "Incorrect size of ColorRgb");
 /// @return The output stream (with the color written to it)
 ///
 inline std::ostream& operator<<(std::ostream& os, const ColorRgb& color)
+{
+	os << "{" << unsigned(color.red) << "," << unsigned(color.green) << "," << unsigned(color.blue) << "}";
+	return os;
+}
+
+///
+/// Stream operator to write ColorRgb to a QTextStream (format "'{'[red]','[green]','[blue]'}'")
+///
+/// @param os The output stream
+/// @param color The color to write
+/// @return The output stream (with the color written to it)
+///
+inline QTextStream& operator<<(QTextStream &os, const ColorRgb& color)
 {
 	os << "{" << unsigned(color.red) << "," << unsigned(color.green) << "," << unsigned(color.blue) << "}";
 	return os;

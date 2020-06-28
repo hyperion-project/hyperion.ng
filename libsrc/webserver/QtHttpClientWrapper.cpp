@@ -58,7 +58,11 @@ void QtHttpClientWrapper::onClientDataReceived (void)
 				case AwaitingRequest: // "command url version" × 1
 				{
 					QString str = QString::fromUtf8 (line).trimmed ();
-					QStringList parts = str.split (SPACE, QString::SkipEmptyParts);
+					#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+						QStringList parts = str.split (SPACE, Qt::SkipEmptyParts);
+					#else
+						QStringList parts = str.split (SPACE, QString::SkipEmptyParts);
+					#endif
 
 					if (parts.size () == 3)
 					{
@@ -192,7 +196,12 @@ void QtHttpClientWrapper::onClientDataReceived (void)
 
 						// catch /jsonrpc in url, we need async callback, StaticFileServing is sync
 						QString path = m_currentRequest->getUrl ().path ();
-						QStringList uri_parts = path.split('/', QString::SkipEmptyParts);
+
+						#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+							QStringList uri_parts = path.split('/', Qt::SkipEmptyParts);
+						#else
+							QStringList uri_parts = path.split('/', QString::SkipEmptyParts);
+						#endif
 
 						if ( ! uri_parts.empty() && uri_parts.at(0) == "json-rpc" )
 						{

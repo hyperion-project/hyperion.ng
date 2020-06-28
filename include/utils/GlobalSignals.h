@@ -24,8 +24,8 @@ private:
     GlobalSignals() {}
 
 public:
-    GlobalSignals(GlobalSignals const&)   = delete;
-    void operator=(GlobalSignals const&)  = delete;
+    GlobalSignals(GlobalSignals const&)  = delete;
+    void operator=(GlobalSignals const&) = delete;
 
 signals:
 	///////////////////////////////////////

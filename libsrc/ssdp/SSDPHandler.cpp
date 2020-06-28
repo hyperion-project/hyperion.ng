@@ -150,13 +150,28 @@ const QString SSDPHandler::getLocalAddress()
 
 void SSDPHandler::handleMSearchRequest(const QString& target, const QString& mx, const QString address, const quint16 & port)
 {
-	// TODO Response delay according to MX field (sec) random between 0 and MX
+	const auto respond = [=] () {
+		// when searched for all devices / root devices / basic device
+		if(target == "ssdp:all")
+			sendMSearchResponse(SSDP_HYPERION_ST, address, port);
+		else if(target == "upnp:rootdevice" || target == "urn:schemas-upnp-org:device:basic:1" || target == SSDP_HYPERION_ST)
+			sendMSearchResponse(target, address, port);
+	};
 
-	// when searched for all devices / root devices / basic device
-	if(target == "ssdp:all")
-		sendMSearchResponse(SSDP_HYPERION_ST, address, port);
-	else if(target == "upnp:rootdevice" || target == "urn:schemas-upnp-org:device:basic:1" || target == SSDP_HYPERION_ST)
-		sendMSearchResponse(target, address, port);
+	bool ok = false;
+	int maxDelay = mx.toInt(&ok);
+	if (ok)
+	{
+		/* Pick a random delay between 0 and MX seconds */
+		int randomDelay = qrand() % (maxDelay * 1000);
+		QTimer::singleShot(randomDelay, respond);
+	}
+	else
+	{
+		/* MX Header is not valid.
+		 * Send response without delay */
+		respond();
+	}
 }
 
 const QString SSDPHandler::getDescAddress()
