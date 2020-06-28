@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - device: Nanoleaf (#829)
 - device: LPD8806 Problems fixed (#829)
+- Possible crash on shutdown (#846). Issue #668
 - Enumerate only V4L2 frame sizes & intervals for framesize type DISCRETE (fix BCM2835 ISP) (#820)
 - Fix systemd registration in debian for RPi4 (#820)
 - Fix missing define in Profiler & added header notes (#820)
