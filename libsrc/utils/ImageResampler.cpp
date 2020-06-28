@@ -8,7 +8,7 @@ ImageResampler::ImageResampler()
 	, _cropRight(0)
 	, _cropTop(0)
 	, _cropBottom(0)
-	, _videoMode(VIDEO_2D)
+	, _videoMode(VideoMode::VIDEO_2D)
 {
 }
 
@@ -47,10 +47,10 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 	// handle 3D mode
 	switch (_videoMode)
 	{
-	case VIDEO_3DSBS:
+	case VideoMode::VIDEO_3DSBS:
 		cropRight = width >> 1;
 		break;
-	case VIDEO_3DTAB:
+	case VideoMode::VIDEO_3DTAB:
 		cropBottom = width >> 1;
 		break;
 	default:
@@ -71,7 +71,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 
 			switch (pixelFormat)
 			{
-				case PIXELFORMAT_UYVY:
+			case PixelFormat::UYVY:
 				{
 					int index = lineLength * ySource + (xSource << 1);
 					uint8_t y = data[index+1];
@@ -80,7 +80,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 					yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
 				}
 				break;
-				case PIXELFORMAT_YUYV:
+				case PixelFormat::YUYV:
 				{
 					int index = lineLength * ySource + (xSource << 1);
 					uint8_t y = data[index];
@@ -89,7 +89,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 					yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
 				}
 				break;
-				case PIXELFORMAT_BGR16:
+				case PixelFormat::BGR16:
 				{
 					int index = lineLength * ySource + (xSource << 1);
 					rgb.blue  = (data[index] & 0x1f) << 3;
@@ -97,7 +97,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 					rgb.red   = (data[index+1] & 0xF8);
 				}
 				break;
-				case PIXELFORMAT_BGR24:
+				case PixelFormat::BGR24:
 				{
 					int index = lineLength * ySource + (xSource << 1) + xSource;
 					rgb.blue  = data[index  ];
@@ -105,7 +105,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 					rgb.red   = data[index+2];
 				}
 				break;
-				case PIXELFORMAT_RGB32:
+				case PixelFormat::RGB32:
 				{
 					int index = lineLength * ySource + (xSource << 2);
 					rgb.red   = data[index  ];
@@ -113,7 +113,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 					rgb.blue  = data[index+2];
 				}
 				break;
-				case PIXELFORMAT_BGR32:
+				case PixelFormat::BGR32:
 				{
 					int index = lineLength * ySource + (xSource << 2);
 					rgb.blue  = data[index  ];
@@ -122,10 +122,10 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 				}
 				break;
 #ifdef HAVE_JPEG_DECODER
-				case PIXELFORMAT_MJPEG:
+				case PixelFormat::MJPEG:
 					break;
 #endif
-				case PIXELFORMAT_NO_CHANGE:
+				case PixelFormat::NO_CHANGE:
 					Error(Logger::getInstance("ImageResampler"), "Invalid pixel format given");
 				break;
 			}

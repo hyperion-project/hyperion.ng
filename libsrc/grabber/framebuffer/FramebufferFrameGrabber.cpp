@@ -44,12 +44,12 @@ int FramebufferFrameGrabber::grabFrame(Image<ColorRgb> & image)
 
 	switch (vinfo.bits_per_pixel)
 	{
-		case 16: pixelFormat = PIXELFORMAT_BGR16; break;
-		case 24: pixelFormat = PIXELFORMAT_BGR24; break;
+		case 16: pixelFormat = PixelFormat::BGR16; break;
+		case 24: pixelFormat = PixelFormat::BGR24; break;
 #ifdef ENABLE_AMLOGIC
-		case 32: pixelFormat = PIXELFORMAT_RGB32; break;
+		case 32: pixelFormat = PixelFormat::PIXELFORMAT_RGB32; break;
 #else
-		case 32: pixelFormat = PIXELFORMAT_BGR32; break;
+		case 32: pixelFormat = PixelFormat::BGR32; break;
 #endif
 		default:
 			Error(_log, "Unknown pixel format: %d bits per pixel", vinfo.bits_per_pixel);

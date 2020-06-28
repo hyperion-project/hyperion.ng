@@ -9,8 +9,6 @@
 
 class QUdpSocket;
 
-const ushort MAX_PORT = 65535;
-
 ///
 /// The ProviderUdp implements an abstract base-class for LedDevices using UDP packets.
 ///

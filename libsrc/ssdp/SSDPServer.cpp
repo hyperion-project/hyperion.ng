@@ -137,7 +137,11 @@ void SSDPServer::readPendingDatagrams()
 		QString data(datagram);
 		QMap<QString,QString> headers;
 		// parse request
-		QStringList entries = data.split("\n", QString::SkipEmptyParts);
+		#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+			QStringList entries = data.split("\n", Qt::SkipEmptyParts);
+		#else
+			QStringList entries = data.split("\n", QString::SkipEmptyParts);
+		#endif
 		for(auto entry : entries)
 		{
 			// http header parse skip
