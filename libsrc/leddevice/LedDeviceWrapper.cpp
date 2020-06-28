@@ -47,6 +47,7 @@ void LedDeviceWrapper::createLedDevice(const QJsonObject& config)
 
 	// create thread and device
 	QThread* thread = new QThread(this);
+	thread->setObjectName("LedDeviceWrapperThread");
 	_ledDevice = LedDeviceFactory::construct(config);
 	_ledDevice->moveToThread(thread);
 	// setup thread management
