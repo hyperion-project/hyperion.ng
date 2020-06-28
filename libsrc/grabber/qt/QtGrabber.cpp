@@ -146,7 +146,7 @@ int QtGrabber::updateScreenDimensions(const bool& force)
 	// calculate final image dimensions and adjust top/left cropping in 3D modes
 	switch (_videoMode)
 	{
-	case VIDEO_3DSBS:
+	case VideoMode::VIDEO_3DSBS:
 		_width  = width /2;
 		_height = height;
 		_src_x  = _cropLeft / 2;
@@ -154,7 +154,7 @@ int QtGrabber::updateScreenDimensions(const bool& force)
 		_src_x_max = (_screenWidth / 2) - _cropRight;
 		_src_y_max = _screenHeight - _cropBottom;
 		break;
-	case VIDEO_3DTAB:
+	case VideoMode::VIDEO_3DTAB:
 		_width  = width;
 		_height = height / 2;
 		_src_x  = _cropLeft;
@@ -162,7 +162,7 @@ int QtGrabber::updateScreenDimensions(const bool& force)
 		_src_x_max = _screenWidth - _cropRight;
 		_src_y_max = (_screenHeight / 2) - _cropBottom;
 		break;
-	case VIDEO_2D:
+	case VideoMode::VIDEO_2D:
 	default:
 		_width  = width;
 		_height = height;

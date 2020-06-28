@@ -50,7 +50,7 @@ int OsxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 								dspWidth,
 								dspHeight,
 								CGImageGetBytesPerRow(dispImage),
-								PIXELFORMAT_BGR32,
+								PixelFormat::BGR32,
 								image);
 
 	CFRelease(imgData);

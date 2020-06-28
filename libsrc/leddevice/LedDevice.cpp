@@ -8,6 +8,7 @@
 #include <QDateTime>
 #include <QEventLoop>
 #include <QTimer>
+#include <QDateTime>
 
 #include "hyperion/Hyperion.h"
 #include <utils/JsonUtils.h>
@@ -21,7 +22,7 @@ LedDevice::LedDevice(const QJsonObject& config, QObject* parent)
 	, _deviceInError(false)
 	, _refresh_timer(new QTimer(this))
 	, _refresh_timer_interval(0)
-	, _last_write_time(QDateTime::currentMSecsSinceEpoch())
+	, _lastWriteTime(QDateTime::currentDateTime())
 	, _latchTime_ms(0)
 	, _componentRegistered(false)
 	, _enabled(false)
@@ -140,7 +141,7 @@ bool LedDevice::init(const QJsonObject &deviceConfig)
 		//Debug(_log, "Refresh interval = %dms",_refresh_timer_interval );
 		_refresh_timer->setInterval( _refresh_timer_interval );
 
-		_last_write_time = QDateTime::currentMSecsSinceEpoch();
+		_lastWriteTime = QDateTime::currentDateTime();
 
 		this->startRefreshTimer();
 	}
@@ -170,12 +171,12 @@ int LedDevice::updateLeds(const std::vector<ColorRgb>& ledValues)
 	}
 	else
 	{
-		qint64 elapsedTime = QDateTime::currentMSecsSinceEpoch() - _last_write_time;
-		if (_latchTime_ms == 0 || elapsedTime >= _latchTime_ms)
+		qint64 elapsedTimeMs = _lastWriteTime.msecsTo(QDateTime::currentDateTime());
+		if (_latchTime_ms == 0 || elapsedTimeMs >= _latchTime_ms)
 		{
-			//std::cout << "LedDevice::updateLeds(), Elapsed time since last write (" << elapsedTime << ") ms > _latchTime_ms (" << _latchTime_ms << ") ms" << std::endl;
+			//std::cout << "LedDevice::updateLeds(), Elapsed time since last write (" << elapsedTimeMs << ") ms > _latchTime_ms (" << _latchTime_ms << ") ms" << std::endl;
 			retval = write(ledValues);
-			_last_write_time = QDateTime::currentMSecsSinceEpoch();
+			_lastWriteTime = QDateTime::currentDateTime();
 
 			// if device requires refreshing, save Led-Values and restart the timer
 			if ( _refresh_enabled )
@@ -186,7 +187,7 @@ int LedDevice::updateLeds(const std::vector<ColorRgb>& ledValues)
 		}
 		else
 		{
-			//std::cout << "LedDevice::updateLeds(), Skip write. _latchTime_ms (" << _latchTime_ms << ") ms > elapsedTime (" << elapsedTime << ") ms" << std::endl;
+			//std::cout << "LedDevice::updateLeds(), Skip write. elapsedTime (" << elapsedTimeMs << ") ms < _latchTime_ms (" << _latchTime_ms << ") ms" << std::endl;
 			if ( _refresh_enabled )
 			{
 				//Stop timer to allow for next non-refresh update
@@ -242,16 +243,16 @@ int LedDevice::rewriteLeds()
 
 	if ( _deviceReady )
 	{
-//		qint64 elapsedTime = QDateTime::currentMSecsSinceEpoch() - _last_write_time;
-//		std::cout << "LedDevice::rewriteLeds(): Rewrite Leds now, elapsedTime [" << elapsedTime << "] ms" << std::endl;
+//		qint64 elapsedTimeMs = _lastWriteTime.msecsTo(QDateTime::currentDateTime());
+//		std::cout << "LedDevice::rewriteLEDs(): Rewrite LEDs now, elapsedTime [" << elapsedTimeMs << "] ms" << std::endl;
 //		//:TESTING: Inject "white" output records to differentiate from normal writes
 //		_last_ledValues.clear();
 //		_last_ledValues.resize(static_cast<unsigned long>(_ledCount), ColorRgb::WHITE);
 //		printLedValues(_last_ledValues);
-//		//:TESTING:
+		//:TESTING:
 
 		retval = write(_last_ledValues);
-		_last_write_time = QDateTime::currentMSecsSinceEpoch();
+		_lastWriteTime = QDateTime::currentDateTime();
 	}
 	else
 	{

@@ -46,7 +46,7 @@ void SysTray::iconActivated(QSystemTrayIcon::ActivationReason reason)
 		case QSystemTrayIcon::Trigger:
 			break;
 		case QSystemTrayIcon::DoubleClick:
-			showColorDialog();
+			settings();
 			break;
 		case QSystemTrayIcon::MiddleClick:
 			break;

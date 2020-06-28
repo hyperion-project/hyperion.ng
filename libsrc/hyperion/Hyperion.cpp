@@ -568,24 +568,24 @@ void Hyperion::update()
 		// correct the color byte order
 		switch (_ledStringColorOrder.at(i))
 		{
-		case ORDER_RGB:
+		case ColorOrder::ORDER_RGB:
 			// leave as it is
 			break;
-		case ORDER_BGR:
+		case ColorOrder::ORDER_BGR:
 			std::swap(color.red, color.blue);
 			break;
-		case ORDER_RBG:
+		case ColorOrder::ORDER_RBG:
 			std::swap(color.green, color.blue);
 			break;
-		case ORDER_GRB:
+		case ColorOrder::ORDER_GRB:
 			std::swap(color.red, color.green);
 			break;
-		case ORDER_GBR:
+		case ColorOrder::ORDER_GBR:
 			std::swap(color.red, color.green);
 			std::swap(color.green, color.blue);
 			break;
 
-		case ORDER_BRG:
+		case ColorOrder::ORDER_BRG:
 			std::swap(color.red, color.blue);
 			std::swap(color.green, color.blue);
 			break;

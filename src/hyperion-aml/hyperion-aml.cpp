@@ -68,7 +68,7 @@ int main(int argc, char ** argv)
 			if(argAddress.value(parser) == "127.0.0.1:19400")
 			{
 				SSDPDiscover discover;
-				address = discover.getFirstService(STY_FLATBUFSERVER);
+				address = discover.getFirstService(searchType::STY_FLATBUFSERVER);
 				if(address.isEmpty())
 				{
 					address = argAddress.value(parser);

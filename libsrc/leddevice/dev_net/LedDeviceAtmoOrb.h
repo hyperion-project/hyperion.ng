@@ -60,6 +60,13 @@ protected:
 	///
 	virtual int open() override;
 
+	///
+	/// @brief Closes the output device.
+	///
+	/// @return Zero on success (i.e. device is closed), else negative
+	///
+	virtual void close() override;
+
 private:
 
 	///
@@ -102,7 +109,7 @@ private:
 	quint16 _multiCastGroupPort;
 
 	// Multicast status
-	bool joinedMulticastgroup;
+	bool _joinedMulticastgroup;
 
 	/// use Orbs own (external) smoothing algorithm
 	bool _useOrbSmoothing;
@@ -116,9 +123,6 @@ private:
 	/// Number of leds in Orb, used to determine buffer size
 	int _numLeds;
 
-
-
-
 	/// Array of the orb ids.
 	QVector<int> _orbIds;
 
@@ -126,8 +130,5 @@ private:
 	QMap<int, int> lastColorRedMap;
 	QMap<int, int> lastColorGreenMap;
 	QMap<int, int> lastColorBlueMap;
-
-
-
 
 };
