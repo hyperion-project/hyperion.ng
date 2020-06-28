@@ -2,7 +2,7 @@
 
 	LedDeviceSk6812SPI::LedDeviceSk6812SPI(const QJsonObject &deviceConfig)
 	: ProviderSpi()
-	  , _whiteAlgorithm(RGBW::INVALID)
+	  , _whiteAlgorithm(RGBW::WhiteAlgorithm::INVALID)
 	  , SPI_BYTES_PER_COLOUR(4)
 	  , bitpair_to_byte {
 		  0b10001000,
@@ -30,7 +30,7 @@ bool LedDeviceSk6812SPI::init(const QJsonObject &deviceConfig)
 		QString whiteAlgorithm = deviceConfig["whiteAlgorithm"].toString("white_off");
 
 		_whiteAlgorithm	= RGBW::stringToWhiteAlgorithm(whiteAlgorithm);
-		if (_whiteAlgorithm == RGBW::INVALID)
+		if (_whiteAlgorithm == RGBW::WhiteAlgorithm::INVALID)
 		{
 			QString errortext = QString ("unknown whiteAlgorithm: %1").arg(whiteAlgorithm);
 			this->setInError(errortext);

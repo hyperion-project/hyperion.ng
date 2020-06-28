@@ -3,11 +3,11 @@
 /**
  * Enumeration of the possible video standards the grabber can be set to
  */
-enum VideoStandard {
-	VIDEOSTANDARD_PAL,
-	VIDEOSTANDARD_NTSC,
-	VIDEOSTANDARD_SECAM,
-	VIDEOSTANDARD_NO_CHANGE
+enum class VideoStandard {
+	PAL,
+	NTSC,
+	SECAM,
+	NO_CHANGE
 };
 
 inline VideoStandard parseVideoStandard(QString videoStandard)
@@ -17,17 +17,17 @@ inline VideoStandard parseVideoStandard(QString videoStandard)
 
 	if (videoStandard == "pal")
 	{
-		return VIDEOSTANDARD_PAL;
+		return VideoStandard::PAL;
 	}
 	else if (videoStandard == "ntsc")
 	{
-		return VIDEOSTANDARD_NTSC;
+		return VideoStandard::NTSC;
 	}
 	else if (videoStandard == "secam")
 	{
-		return VIDEOSTANDARD_SECAM;
+		return VideoStandard::SECAM;
 	}
 
 	// return the default NO_CHANGE
-	return VIDEOSTANDARD_NO_CHANGE;
+	return VideoStandard::NO_CHANGE;
 }

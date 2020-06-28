@@ -1,6 +1,6 @@
 #include <ssdp/SSDPDiscover.h>
 
-// qt inc
+// Qt includes
 #include <QUdpSocket>
 #include <QUrl>
 
@@ -40,7 +40,7 @@ const QString SSDPDiscover::getFirstService(const searchType& type, const QStrin
 	_searchTarget = st;
 
 	// search
-	sendSearch(st);
+	sendSearch(_searchTarget);
 
 	if ( _udpSocket->waitForReadyRead(timeout_ms) )
 	{
@@ -58,12 +58,18 @@ const QString SSDPDiscover::getFirstService(const searchType& type, const QStrin
 
 				QString data(datagram);
 
-				Debug(_log, "_data: [%s]", QSTRING_CSTR(data));
+				//Debug(_log, "_data: [%s]", QSTRING_CSTR(data));
 
 				QMap<QString,QString> headers;
 				QString address;
 				// parse request
-				QStringList entries = data.split("\n", QString::SkipEmptyParts);
+
+				#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+					QStringList entries = data.split("\n", Qt::SkipEmptyParts);
+				#else
+					QStringList entries = data.split("\n", QString::SkipEmptyParts);
+				#endif
+
 				for(auto entry : entries)
 				{
 					// http header parse skip
@@ -92,13 +98,13 @@ const QString SSDPDiscover::getFirstService(const searchType& type, const QStrin
 					_usnList << headers.value("usn");
 					QUrl url(headers.value("location"));
 					//Debug(_log, "Received msearch response from '%s:%d'. Search target: %s",QSTRING_CSTR(sender.toString()), senderPort, QSTRING_CSTR(headers.value("st")));
-					if(type == STY_WEBSERVER)
+					if(type == searchType::STY_WEBSERVER)
 					{
 						Debug(_log, "Found service [%s] at: %s:%d", QSTRING_CSTR(st), QSTRING_CSTR(url.host()), url.port());
 
 						return url.host()+":"+QString::number(url.port());
 					}
-					else if(type == STY_FLATBUFSERVER)
+					else if(type == searchType::STY_FLATBUFSERVER)
 					{
 						const QString fbsport = headers.value("hyperion-fbs-port");
 						if(fbsport.isEmpty())
@@ -111,7 +117,7 @@ const QString SSDPDiscover::getFirstService(const searchType& type, const QStrin
 							return url.host()+":"+fbsport;
 						}
 					}
-					else if(type == STY_JSONSERVER)
+					else if(type == searchType::STY_JSONSERVER)
 					{
 						const QString jssport = headers.value("hyperion-jss-port");
 						if(jssport.isEmpty())
@@ -146,7 +152,11 @@ void SSDPDiscover::readPendingDatagrams()
 		QString data(datagram);
 		QMap<QString,QString> headers;
 		// parse request
-		QStringList entries = data.split("\n", QString::SkipEmptyParts);
+		#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+			QStringList entries = data.split("\n", Qt::SkipEmptyParts);
+		#else
+			QStringList entries = data.split("\n", QString::SkipEmptyParts);
+		#endif
 		for(auto entry : entries)
 		{
 			// http header parse skip

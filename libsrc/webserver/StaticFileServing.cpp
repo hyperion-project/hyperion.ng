@@ -81,7 +81,11 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 	if (command == QStringLiteral ("GET"))
 	{
 		QString path = request->getUrl ().path ();
-		QStringList uri_parts = path.split('/', QString::SkipEmptyParts);
+		#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+			QStringList uri_parts = path.split('/', Qt::SkipEmptyParts);
+		#else
+			QStringList uri_parts = path.split('/', QString::SkipEmptyParts);
+		#endif
 
 		// special uri handling for server commands
 		if ( ! uri_parts.empty() )

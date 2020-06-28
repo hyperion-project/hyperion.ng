@@ -8,9 +8,6 @@
 ///
 ///
 
-const ushort H801_DEFAULT_PORT = 30977;
-static const char H801_DEFAULT_HOST[] = "255.255.255.255";
-
 class LedDeviceUdpH801: public ProviderUdp
 {
 protected:
