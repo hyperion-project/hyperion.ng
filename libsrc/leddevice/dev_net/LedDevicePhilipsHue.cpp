@@ -282,7 +282,11 @@ bool LedDevicePhilipsHueBridge::init(const QJsonObject &deviceConfig)
 
 		if ( !address.isEmpty() )
 		{
-			QStringList addressparts = address.split(":", QString::SkipEmptyParts);
+			#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+				QStringList addressparts = address.split(":", Qt::SkipEmptyParts);
+			#else
+				QStringList addressparts = address.split(":", QString::SkipEmptyParts);
+			#endif
 
 			_hostname = addressparts[0];
 			if ( addressparts.size() > 1 )
@@ -402,7 +406,12 @@ void LedDevicePhilipsHueBridge::setBridgeConfig(QJsonDocument doc)
 	_deviceFirmwareVersion = jsonConfigInfo[DEV_DATA_FIRMWAREVERSION].toString();
 	_deviceAPIVersion = jsonConfigInfo[DEV_DATA_APIVERSION].toString();
 
-	QStringList apiVersionParts = _deviceAPIVersion.split(".", QString::SkipEmptyParts);
+	#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+		QStringList apiVersionParts = _deviceAPIVersion.split(".", Qt::SkipEmptyParts);
+	#else
+		QStringList apiVersionParts = _deviceAPIVersion.split(".", QString::SkipEmptyParts);
+	#endif
+	
 	if ( !apiVersionParts.isEmpty() )
 	{
 		_api_major = apiVersionParts[0].toUInt();
@@ -483,7 +492,7 @@ bool LedDevicePhilipsHueBridge::discoverDevice()
 	SSDPDiscover discover;
 
 	// Discover Philips Hue Bridge
-	address = discover.getFirstService( STY_WEBSERVER, SSDP_ID, SSDP_TIMEOUT );
+	address = discover.getFirstService( searchType::STY_WEBSERVER, SSDP_ID, SSDP_TIMEOUT );
 	if ( address.isEmpty() )
 	{
 		Warning(_log, "No Philips Hue Bridge discovered" );
@@ -493,7 +502,13 @@ bool LedDevicePhilipsHueBridge::discoverDevice()
 		// Philips Hue Bridge found
 		Info(_log, "Philips Hue Bridge discovered at [%s]", QSTRING_CSTR( address ) );
 		isDeviceFound = true;
-		QStringList addressparts = address.split(":", QString::SkipEmptyParts);
+
+		#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+				QStringList addressparts = address.split(":", Qt::SkipEmptyParts);
+		#else
+				QStringList addressparts = address.split(":", QString::SkipEmptyParts);
+		#endif		
+		
 		_hostname = addressparts[0];
 		_api_port = addressparts[1];
 	}

@@ -120,7 +120,7 @@ The amount of "%" mus match with following arguments
 > TODO
 
 ## Visual Studio Code
-**We assume that you sucessfully compiled Hyperion with the [Compile HowTo](CompileHowTo.md) WITHOUT Docker** \
+**We assume that you sucessfully compiled Hyperion with the [Compile HowTo](CompileHowto.md) WITHOUT Docker** \
 If you want to use VSCode for development follow the steps.
 
 - Install [VSCode](https://code.visualstudio.com/). On Ubuntu 16.04+ you can also use the [Snapcraft VSCode](https://snapcraft.io/code) package.

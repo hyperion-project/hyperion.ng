@@ -591,7 +591,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 	{
 		switch (videoStandard)
 		{
-			case VIDEOSTANDARD_PAL:
+			case VideoStandard::PAL:
 			{
 				standard.id = V4L2_STD_PAL;
 				if (-1 == xioctl(VIDIOC_S_STD, &standard.id))
@@ -603,7 +603,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 			}
 			break;
 
-			case VIDEOSTANDARD_NTSC:
+			case VideoStandard::NTSC:
 			{
 				standard.id = V4L2_STD_NTSC;
 				if (-1 == xioctl(VIDIOC_S_STD, &standard.id))
@@ -615,7 +615,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 			}
 			break;
 
-			case VIDEOSTANDARD_SECAM:
+			case VideoStandard::SECAM:
 			{
 				standard.id = V4L2_STD_SECAM;
 				if (-1 == xioctl(VIDIOC_S_STD, &standard.id))
@@ -627,7 +627,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 			}
 			break;
 
-			case VIDEOSTANDARD_NO_CHANGE:
+			case VideoStandard::NO_CHANGE:
 			default:
 				// No change to device settings
 				break;
@@ -648,20 +648,20 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 	// set the requested pixel format
 	switch (_pixelFormat)
 	{
-		case PIXELFORMAT_UYVY:
+		case PixelFormat::UYVY:
 			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY;
 		break;
 
-		case PIXELFORMAT_YUYV:
+		case PixelFormat::YUYV:
 			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
 		break;
 
-		case PIXELFORMAT_RGB32:
+		case PixelFormat::RGB32:
 			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB32;
 		break;
 
 #ifdef HAVE_JPEG_DECODER
-		case PIXELFORMAT_MJPEG:
+		case PixelFormat::MJPEG:
 		{
 			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG;
 			fmt.fmt.pix.field       = V4L2_FIELD_ANY;
@@ -669,7 +669,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 		break;
 #endif
 
-		case PIXELFORMAT_NO_CHANGE:
+		case PixelFormat::NO_CHANGE:
 		default:
 			// No change to device settings
 			break;
@@ -723,7 +723,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 	{
 		case V4L2_PIX_FMT_UYVY:
 		{
-			_pixelFormat = PIXELFORMAT_UYVY;
+			_pixelFormat = PixelFormat::UYVY;
 			_frameByteSize = _width * _height * 2;
 			Debug(_log, "Pixel format=UYVY");
 		}
@@ -731,7 +731,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 
 		case V4L2_PIX_FMT_YUYV:
 		{
-			_pixelFormat = PIXELFORMAT_YUYV;
+			_pixelFormat = PixelFormat::YUYV;
 			_frameByteSize = _width * _height * 2;
 			Debug(_log, "Pixel format=YUYV");
 		}
@@ -739,7 +739,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 
 		case V4L2_PIX_FMT_RGB32:
 		{
-			_pixelFormat = PIXELFORMAT_RGB32;
+			_pixelFormat = PixelFormat::RGB32;
 			_frameByteSize = _width * _height * 4;
 			Debug(_log, "Pixel format=RGB32");
 		}
@@ -748,7 +748,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 #ifdef HAVE_JPEG_DECODER
 		case V4L2_PIX_FMT_MJPEG:
 		{
-			_pixelFormat = PIXELFORMAT_MJPEG;
+			_pixelFormat = PixelFormat::MJPEG;
 			Debug(_log, "Pixel format=MJPEG");
 		}
 		break;
@@ -1016,7 +1016,7 @@ bool V4L2Grabber::process_image(const void *p, int size)
 {
 	// We do want a new frame...
 #ifdef HAVE_JPEG_DECODER
-	if (size < _frameByteSize && _pixelFormat != PIXELFORMAT_MJPEG)
+	if (size < _frameByteSize && _pixelFormat != PixelFormat::MJPEG)
 #else
 	if (size < _frameByteSize)
 #endif
@@ -1041,7 +1041,7 @@ void V4L2Grabber::process_image(const uint8_t * data, int size)
  * --------------------------------------------------------*/
 
 #ifdef HAVE_JPEG_DECODER
-	if (_pixelFormat == PIXELFORMAT_MJPEG)
+	if (_pixelFormat == PixelFormat::MJPEG)
 	{
 #endif
 #ifdef HAVE_JPEG

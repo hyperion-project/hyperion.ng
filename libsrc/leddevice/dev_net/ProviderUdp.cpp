@@ -14,6 +14,8 @@
 // Local Hyperion includes
 #include "ProviderUdp.h"
 
+const ushort MAX_PORT = 65535;
+
 ProviderUdp::ProviderUdp()
 	: LedDevice()
 	  , _udpSocket (nullptr)
@@ -26,7 +28,10 @@ ProviderUdp::ProviderUdp()
 
 ProviderUdp::~ProviderUdp()
 {
-	_udpSocket->deleteLater();
+	if ( _udpSocket != nullptr )
+	{
+		_udpSocket->deleteLater();
+	}
 }
 
 bool ProviderUdp::init(const QJsonObject &deviceConfig)
@@ -79,17 +84,18 @@ bool ProviderUdp::initNetwork()
 
 	_udpSocket = new QUdpSocket(this);
 
-	if ( _udpSocket != nullptr)
+	// Try to bind the UDP-Socket
+	if ( _udpSocket != nullptr )
 	{
 		QHostAddress localAddress = QHostAddress::Any;
 		quint16      localPort = 0;
 		if ( !_udpSocket->bind(localAddress, localPort) )
 		{
-			Warning ( _log, "Could not bind local address: %s", strerror(errno));
+			QString warntext = QString ("Could not bind local address: %1, (%2) %3").arg(localAddress.toString()).arg(_udpSocket->error()).arg(_udpSocket->errorString());
+			Warning ( _log, "%s", QSTRING_CSTR(warntext));
 		}
 		isInitOK = true;
 	}
-
 	return isInitOK;
 }
 
@@ -120,18 +126,24 @@ void ProviderUdp::close()
 {
 	LedDevice::close();
 
-	// LedDevice specific closing activites
-	if ( _udpSocket != nullptr)
+	if ( _udpSocket != nullptr )
 	{
-		_udpSocket->close();
+		// Test, if device requires closing
+		if ( _udpSocket->isOpen() )
+		{
+			Debug(_log,"Close UDP-device: %s", QSTRING_CSTR( this->getActiveDeviceType() ) );
+			_udpSocket->close();
+			// Everything is OK -> device is closed
+		}
 	}
 }
 
 int ProviderUdp::writeBytes(const unsigned size, const uint8_t * data)
 {
-
 	qint64 retVal = _udpSocket->writeDatagram((const char *)data,size,_address,_port);
-	WarningIf((retVal<0), _log, "Error sending: %s", strerror(errno));
+
+	WarningIf((retVal<0), _log, "&s", QSTRING_CSTR(QString
+								("(%1:%2) Write Error: (%3) %4").arg(_address.toString()).arg(_port).arg(_udpSocket->error()).arg(_udpSocket->errorString())));
 
 	return retVal;
 }
