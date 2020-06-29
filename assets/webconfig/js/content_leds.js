@@ -535,14 +535,14 @@ $(document).ready(function() {
       });
       $("#root_specificOptions_useEntertainmentAPI").trigger("change");
     }
-
+/*
     else if(ledType == "wled") {
     	    var ledWizardType = (this.checked) ? "wled" : ledType;
     	    var data = { type: ledWizardType };
     	    var wled_title = 'wiz_wled_title';
     	    changeWizard(data, wled_title, startWizardWLED);
 	}
-
+*/
 	else if(ledType == "yeelight") {
 		var ledWizardType = (this.checked) ? "yeelight" : ledType;
 		var data = { type: ledWizardType };
