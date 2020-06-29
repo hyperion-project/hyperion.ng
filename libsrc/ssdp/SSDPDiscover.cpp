@@ -59,7 +59,6 @@ const QString SSDPDiscover::getFirstService(const searchType& type, const QStrin
 			QByteArray datagram;
 			while (_udpSocket->hasPendingDatagrams())
 			{
-
 				datagram.resize(_udpSocket->pendingDatagramSize());
 				QHostAddress sender;
 				quint16 senderPort;
@@ -173,13 +172,15 @@ void SSDPDiscover::readPendingDatagrams()
 			if(entry.contains("HTTP/1.1"))
 				continue;
 
-			// split into key:vale, be aware that value field may contain also a ":"
+			// split into key:value, be aware that value field may contain also a ":"
 			entry = entry.simplified();
 			int pos = entry.indexOf(":");
 			if(pos == -1)
 				continue;
 
-			headers[entry.left(pos).trimmed().toLower()] = entry.mid(pos+1).trimmed();
+			const QString key = entry.left(pos).trimmed().toLower();
+			const QString value = entry.mid(pos + 1).trimmed();
+			headers[key] = value;
 		}
 
 		// verify ssdp spec
@@ -195,7 +196,7 @@ void SSDPDiscover::readPendingDatagrams()
 			_usnList << headers.value("usn");
 			//Debug(_log, "Received msearch response from '%s:%d'. Search target: %s",QSTRING_CSTR(sender.toString()), senderPort, QSTRING_CSTR(headers.value("st")));
 			QUrl url(headers.value("location"));
-			emit newService(url.host()+":"+QString::number(url.port()));
+			emit newService(url.host() + ":" + QString::number(url.port()));
 		}
 	}
 }

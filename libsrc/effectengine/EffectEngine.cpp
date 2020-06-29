@@ -45,6 +45,11 @@ EffectEngine::EffectEngine(Hyperion * hyperion)
 
 EffectEngine::~EffectEngine()
 {
+	for (Effect * effect : _activeEffects)
+	{
+		effect->wait();
+		delete effect;
+	}
 }
 
 QString EffectEngine::saveEffect(const QJsonObject& obj)

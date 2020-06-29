@@ -9,6 +9,8 @@ AmlogicWrapper::AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeig
 	_thread(this),
 	_grabber(grabWidth, grabHeight)
 {
+	_thread.setObjectName("AmlogicWrapperThread");
+
 	// Connect capturing to the timeout signal of the timer
 	connect(&_thread, SIGNAL (started()), this, SLOT(capture()));
 }
