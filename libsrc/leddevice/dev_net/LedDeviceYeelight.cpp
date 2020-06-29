@@ -551,6 +551,9 @@ bool YeelightLight::identify()
 	*/
 	QJsonArray colorflowParams = { API_PROP_COLORFLOW, 6, 0, "500,1,100,100,500,1,16711696,10"};
 
+	//Blink White
+	//QJsonArray colorflowParams = { API_PROP_COLORFLOW, 6, 0, "500,2,4000,1,500,2,4000,50"};
+
 	QJsonDocument command = getCommand( API_METHOD_SETSCENE, colorflowParams );
 
 	int rc = writeCommand( command );
@@ -585,12 +588,12 @@ bool YeelightLight::isInMusicMode( bool deviceCheck)
 		{
 			if ( _tcpStreamSocket->state() == QAbstractSocket::ConnectedState )
 			{
-				log (3,"isInMusicMode", "Yes, as socket in ConnectedState");
+				log (3,"isInMusicMode", "Yes, as socket is in ConnectedState");
 				inMusicMode = true;
 			}
 			else
 			{
-				log (1,"isInMusicMode", "No, %s", QSTRING_CSTR(_tcpStreamSocket->errorString()) );
+				log (1,"isInMusicMode", "No, StreamSocket state: %d", _tcpStreamSocket->state());
 			}
 		}
 	}
@@ -667,7 +670,8 @@ bool YeelightLight::setPower(bool on, YeelightLight::API_EFFECT effect, int dura
 	// Disable music mode to get power-off command executed
 	if ( !on && _isInMusicMode )
 	{
-		_tcpStreamSocket->close();
+		if ( _tcpStreamSocket != nullptr )
+			_tcpStreamSocket->close();
 	}
 
 	QString powerParam = on ? API_METHOD_POWER_ON : API_METHOD_POWER_OFF;
