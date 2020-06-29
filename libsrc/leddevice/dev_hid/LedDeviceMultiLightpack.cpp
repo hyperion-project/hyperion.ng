@@ -226,7 +226,7 @@ QStringList LedDeviceMultiLightpack::getLightpackSerials()
 				}
 			}
 
-			Error(log, "Lightpack device found with serial %s", QSTRING_CSTR(serialNumber));;
+			Info(log, "Lightpack device found with serial %s", QSTRING_CSTR(serialNumber));;
 			serialList.append(serialNumber);
 		}
 	}
