@@ -67,8 +67,8 @@ int main(int argc, char ** argv)
 					parser.isSet(argCropBottom) ? argCropBottom.getInt(parser) : argCropHeight.getInt(parser),
 					argSizeDecimation.getInt(parser)); // decimation
 
-	if (!x11Wrapper.displayInit())
-	  return -1;
+		if (!x11Wrapper.displayInit())
+			return -1;
 
 		if (parser.isSet(argScreenshot))
 		{

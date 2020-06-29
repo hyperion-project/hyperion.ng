@@ -153,7 +153,6 @@ int main(int argc, char** argv)
 	Logger::setLogLevel(Logger::WARNING);
 
 	// check if we are running already an instance
-	// TODO Do not use pgrep on linux, instead iter /proc
 	// TODO Allow one session per user
 	// http://www.qtcentre.org/threads/44489-Get-Process-ID-for-a-running-application
 	QStringList listOfPids;
@@ -196,8 +195,8 @@ int main(int argc, char** argv)
 	BooleanOption & silentOption        = parser.add<BooleanOption> ('s', "silent", "do not print any outputs");
 	BooleanOption & verboseOption       = parser.add<BooleanOption> ('v', "verbose", "Increase verbosity");
 	BooleanOption & debugOption         = parser.add<BooleanOption> ('d', "debug", "Show debug messages");
-                                          parser.add<BooleanOption> (0x0, "desktop", "show systray on desktop");
-	                                      parser.add<BooleanOption> (0x0, "service", "force hyperion to start as console service");
+					      parser.add<BooleanOption> (0x0, "desktop", "show systray on desktop");
+					      parser.add<BooleanOption> (0x0, "service", "force hyperion to start as console service");
 	Option        & exportEfxOption     = parser.add<Option>        (0x0, "export-effects", "export effects to given path");
 
 	parser.process(*qApp);
