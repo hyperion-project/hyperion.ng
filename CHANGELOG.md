@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - An option to reset (delete) the database for the commandline has been added (#820)
 - Improve language selection usability (#812)
 - readded V4L2 Input method from old Hyperion (#825)
-- Windows: You can start Hyperion with arg `-c` to open a console window and view log output `hyperiond.exe -c` (#859)
+- Windows: You can start Hyperion with arg `-c` to open a console window and view log output `hyperiond.exe -c` (#860)
 
 ### Changed
 - Updated dependency rpi_ws281x to latest upstream (#820)
