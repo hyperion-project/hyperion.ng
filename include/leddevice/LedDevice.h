@@ -36,7 +36,7 @@ class LedDevice : public QObject
 
 public:
 	LedDevice(const QJsonObject& config = QJsonObject(), QObject* parent = nullptr);
-	virtual ~LedDevice();
+	~LedDevice() override;
 
 	///
 	/// @brief Get color order of device
@@ -92,7 +92,7 @@ public slots:
 	///
 	/// Is called on thread start, all construction tasks and init should run here
 	///
-	virtual void start() { _deviceReady = (open() == 0 ? true : false);}
+	virtual void start() { _deviceReady = (open() == 0); }
 
 	///
 	/// Update the RGB-Color values to the leds.
@@ -185,7 +185,6 @@ protected:
 
 	/// Time a device requires mandatorily between two writes
 	int	_latchTime_ms;
-
 
 protected slots:
 

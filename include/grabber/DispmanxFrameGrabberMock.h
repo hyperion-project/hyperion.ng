@@ -36,5 +36,4 @@ int  vc_dispmanx_resource_read_data(DISPMANX_RESOURCE_HANDLE_T vc_resource, VC_R
 void vc_dispmanx_rect_set(VC_RECT_T *rectangle, int left, int top, int width, int height);
 int vc_dispmanx_snapshot(int, DISPMANX_RESOURCE_HANDLE_T resource, int vc_flags);
 
-
 #endif

@@ -30,7 +30,7 @@ public:
 	///
 	/// Destructor
 	///
-	~BoblightClientConnection();
+	~BoblightClientConnection() override;
 
 signals:
 	///

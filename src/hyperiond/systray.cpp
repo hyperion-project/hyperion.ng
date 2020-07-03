@@ -169,10 +169,10 @@ void SysTray::clearEfxColor()
 	_hyperion->clear(1);
 }
 
-void SysTray::handleInstanceStateChange(const instanceState& state, const quint8& instance, const QString& name)
+void SysTray::handleInstanceStateChange(const InstanceState& state, const quint8& instance, const QString& name)
 {
 	switch(state){
-		case H_STARTED:
+		case InstanceState::H_STARTED:
 			if(instance == 0)
 			{
 				_hyperion = _instanceManager->getHyperionInstance(0);

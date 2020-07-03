@@ -43,11 +43,6 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument& config, Hyperion
 	connect(_timer, &QTimer::timeout, this, &LinearColorSmoothing::updateLeds);
 }
 
-LinearColorSmoothing::~LinearColorSmoothing()
-{
-
-}
-
 void LinearColorSmoothing::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
 {
 	if(type == settings::SMOOTHING)
@@ -224,7 +219,6 @@ void LinearColorSmoothing::componentStateChange(const hyperion::Components compo
 	{
 		setEnable(state);
 	}
-
 }
 
 void LinearColorSmoothing::setEnable(bool enable)
