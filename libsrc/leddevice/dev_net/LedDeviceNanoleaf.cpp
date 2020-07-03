@@ -141,16 +141,24 @@ bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig)
 
 		// Read panel organisation configuration
 		if ( deviceConfig[ CONFIG_PANEL_ORDER_TOP_DOWN ].isString() )
-			_topDown = deviceConfig[ CONFIG_PANEL_ORDER_TOP_DOWN ].toString().toInt() == 0 ? true : false;
+		{
+			_topDown = deviceConfig[ CONFIG_PANEL_ORDER_TOP_DOWN ].toString().toInt() == 0;
+		}
 		else
-			_topDown = deviceConfig[ CONFIG_PANEL_ORDER_TOP_DOWN ].toInt() == 0 ? true : false;
+		{
+			_topDown = deviceConfig[ CONFIG_PANEL_ORDER_TOP_DOWN ].toInt() == 0;
+		}
 
 		if ( deviceConfig[ CONFIG_PANEL_ORDER_LEFT_RIGHT ].isString() )
-			_leftRight = deviceConfig[ CONFIG_PANEL_ORDER_LEFT_RIGHT ].toString().toInt() == 0 ? true : false;
+		{
+			_leftRight = deviceConfig[ CONFIG_PANEL_ORDER_LEFT_RIGHT ].toString().toInt() == 0;
+		}
 		else
-			_leftRight = deviceConfig[ CONFIG_PANEL_ORDER_LEFT_RIGHT ].toInt() == 0 ? true : false;
+		{
+			_leftRight = deviceConfig[ CONFIG_PANEL_ORDER_LEFT_RIGHT ].toInt() == 0;
+		}
 
-		_startPos = deviceConfig[ CONFIG_PANEL_START_POS ].toInt(0);
+		_startPos = static_cast<uint>( deviceConfig[ CONFIG_PANEL_START_POS ].toInt(0) );
 
 		// TODO: Allow to handle port dynamically
 
@@ -224,7 +232,7 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 		std::map<uint, std::map<uint, uint>> panelMap;
 
 		// Loop over all children.
-		foreach (const QJsonValue & value, positionData)
+		for (const QJsonValue value : positionData)
 		{
 			QJsonObject panelObj = value.toObject();
 
@@ -258,9 +266,13 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 					DebugIf(verbose3, _log, "panelMap[%u][%u]=%u", posY->first, posX->first, posX->second );
 
 					if ( _topDown )
+					{
 						_panelIds.push_back(posX->second);
+					}
 					else
+					{
 						_panelIds.push_front(posX->second);
+					}
 				}
 			}
 			else
@@ -271,9 +283,13 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 					DebugIf(verbose3, _log, "panelMap[%u][%u]=%u", posY->first, posX->first, posX->second );
 
 					if ( _topDown )
+					{
 						_panelIds.push_back(posX->second);
+					}
 					else
+					{
 						_panelIds.push_front(posX->second);
+					}
 				}
 			}
 		}
@@ -413,9 +429,13 @@ QJsonObject LedDeviceNanoleaf::getProperties(const QJsonObject& params)
 		int apiPort;
 
 		if ( addressparts.size() > 1)
+		{
 			apiPort = addressparts[1].toInt();
+		}
 		else
+		{
 			apiPort   = API_DEFAULT_PORT;
+		}
 
 		initRestAPI(apiHost, apiPort, authToken);
 		_restApi->setPath(filter);
@@ -457,9 +477,13 @@ void LedDeviceNanoleaf::identify(const QJsonObject& params)
 		int apiPort;
 
 		if ( addressparts.size() > 1)
+		{
 			apiPort = addressparts[1].toInt();
+		}
 		else
+		{
 			apiPort   = API_DEFAULT_PORT;
+		}
 
 		initRestAPI(apiHost, apiPort, authToken);
 		_restApi->setPath("identify");

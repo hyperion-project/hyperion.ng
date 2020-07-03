@@ -219,9 +219,13 @@ QJsonObject LedDeviceWled::getProperties(const QJsonObject& params)
 		int apiPort;
 
 		if ( addressparts.size() > 1)
+		{
 			apiPort = addressparts[1].toInt();
+		}
 		else
+		{
 			apiPort   = API_DEFAULT_PORT;
+		}
 
 		if ( filter.startsWith("/") )
 			filter.remove(0,1);
@@ -293,5 +297,5 @@ int LedDeviceWled::write(const std::vector<ColorRgb> &ledValues)
 {
 	const uint8_t * dataPtr = reinterpret_cast<const uint8_t *>(ledValues.data());
 
-	return writeBytes((unsigned)_ledRGBCount, dataPtr);
+	return writeBytes( _ledRGBCount, dataPtr);
 }

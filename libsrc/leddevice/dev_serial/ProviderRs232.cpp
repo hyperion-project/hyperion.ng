@@ -254,7 +254,7 @@ int ProviderRs232::writeBytes(const qint64 size, const uint8_t *data)
 QString ProviderRs232::discoverFirst()
 {
 	// take first available USB serial port - currently no probing!
-	for (auto port : QSerialPortInfo::availablePorts())
+	for (auto const & port : QSerialPortInfo::availablePorts())
 	{
 		if (!port.isNull() && !port.isBusy())
 		{

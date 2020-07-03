@@ -71,7 +71,6 @@ bool LedDeviceTinkerforge::init(const QJsonObject &deviceConfig)
 int LedDeviceTinkerforge::open()
 {
 	int retval = -1;
-	QString errortext;
 	_isDeviceReady = false;
 
 	// Check if connection is already created

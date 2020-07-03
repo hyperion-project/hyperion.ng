@@ -25,7 +25,6 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 	  , _refreshTimerInterval_ms(0)
 	  , _latchTime_ms(0)
 	  , _isRestoreOrigState(false)
-	  , _orignalStateValues()
 	  , _isEnabled(false)
 	  , _isDeviceInitialised(false)
 	  , _isDeviceReady(false)
@@ -414,7 +413,9 @@ void LedDevice::printLedValues(const std::vector<ColorRgb>& ledValues)
 QString LedDevice::uint8_t_to_hex_string(const uint8_t * data, const qint64 size, qint64 number) const
 {
 	if ( number <= 0 || number > size)
+	{
 		number = size;
+	}
 
 	QByteArray bytes (reinterpret_cast<const char*>(data), number);
 	#if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))

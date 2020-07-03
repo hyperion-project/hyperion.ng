@@ -20,11 +20,6 @@ public:
 	explicit LedDeviceTemplate(const QJsonObject &deviceConfig);
 
 	///
-	/// @brief Destructor of the LedDevice
-	///
-	virtual ~LedDeviceTemplate() override;
-
-	///
 	/// @brief Constructs the LED-device
 	///
 	/// @param[in] deviceConfig Device's configuration as JSON-Object

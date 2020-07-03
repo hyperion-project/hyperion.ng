@@ -28,7 +28,7 @@ LedDeviceFadeCandy::LedDeviceFadeCandy(const QJsonObject &deviceConfig)
 
 LedDeviceFadeCandy::~LedDeviceFadeCandy()
 {
-	if ( _client == nullptr )
+	if ( _client != nullptr )
 	{
 		_client->deleteLater();
 	}

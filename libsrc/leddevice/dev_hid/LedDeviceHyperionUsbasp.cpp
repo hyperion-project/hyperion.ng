@@ -182,7 +182,7 @@ int LedDeviceHyperionUsbasp::write(const std::vector<ColorRgb> &ledValues)
 {
 	int nbytes = libusb_control_transfer(
 				_deviceHandle, // device handle
-				LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT, // request type
+				static_cast<uint8_t>( LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT ), // request type
 				_writeLedsCommand, // request
 				0, // value
 				0, // index

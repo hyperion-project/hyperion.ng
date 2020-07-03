@@ -186,7 +186,7 @@ class LedDevicePhilipsHueBridge : public ProviderUdpSSL
 public:
 
 	explicit LedDevicePhilipsHueBridge(const QJsonObject &deviceConfig);
-	~LedDevicePhilipsHueBridge();
+	~LedDevicePhilipsHueBridge() override;
 
 	///
 	/// @brief Initialise the access to the REST-API wrapper
@@ -274,9 +274,9 @@ protected:
 private:
 
 	QJsonDocument getAllBridgeInfos();
-	void setBridgeConfig( QJsonDocument doc );
-	void setLightsMap( QJsonDocument doc );
-	void setGroupMap( QJsonDocument doc );
+	void setBridgeConfig( const QJsonDocument &doc );
+	void setLightsMap( const QJsonDocument &doc );
+	void setGroupMap( const QJsonDocument &doc );
 
 	//Philips Hue Bridge details
 	QString _deviceModel;

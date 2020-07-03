@@ -42,7 +42,7 @@ bool LedDeviceSedu::init(const QJsonObject &deviceConfig)
 			}
 		}
 
-		if (_ledBuffer.size() == 0)
+		if (_ledBuffer.empty())
 		{
 			//Warning(_log, "More rgb-channels required then available");
 			QString errortext = "More rgb-channels required then available";

@@ -29,5 +29,5 @@ int LedDeviceUdpRaw::write(const std::vector<ColorRgb> &ledValues)
 {
 	const uint8_t * dataPtr = reinterpret_cast<const uint8_t *>(ledValues.data());
 
-	return writeBytes((unsigned)_ledRGBCount, dataPtr);
+	return writeBytes(_ledRGBCount, dataPtr);
 }

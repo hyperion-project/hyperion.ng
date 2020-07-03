@@ -140,7 +140,7 @@ public:
 	///
 	/// @param[in] params Parameters to address device
 	///
-	virtual void identify(const QJsonObject& params) {};
+	virtual void identify(const QJsonObject& params) {}
 
 	///
 	/// @brief Check, if device is properly initialised
@@ -262,7 +262,7 @@ protected:
 	/// @param[in] numberOfWrites Write Black given number of times
 	/// @return Zero on success else negative
 	///
-	virtual int writeBlack(int numberOfWrites=1);
+	virtual int writeBlack(int numberOfBlack=1);
 
 	///
 	/// @brief Switch the LEDs on.

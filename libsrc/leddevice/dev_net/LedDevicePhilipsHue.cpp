@@ -60,7 +60,7 @@ static const char API_STREAM_RESPONSE_FORMAT[] = "/%1/%2/%3/%4";
 // List of resources
 static const char API_XY_COORDINATES[] = "xy";
 static const char API_BRIGHTNESS[] = "bri";
-static const char API_SATURATION[] = "sat";
+//static const char API_SATURATION[] = "sat";
 static const char API_TRANSITIONTIME[] = "transitiontime";
 static const char API_MODEID[] = "modelid";
 
@@ -193,6 +193,7 @@ double CiColor::crossProduct(XYColor p1, XYColor p2)
 
 bool CiColor::isPointInLampsReach(CiColor p, const CiColorTriangle &colorSpace)
 {
+	bool rc = false;
 	XYColor v1 = { colorSpace.green.x - colorSpace.red.x, colorSpace.green.y - colorSpace.red.y };
 	XYColor v2 = { colorSpace.blue.x - colorSpace.red.x, colorSpace.blue.y - colorSpace.red.y };
 	XYColor  q = { p.x - colorSpace.red.x, p.y - colorSpace.red.y };
@@ -200,9 +201,9 @@ bool CiColor::isPointInLampsReach(CiColor p, const CiColorTriangle &colorSpace)
 	double t = crossProduct(v1, q) / crossProduct(v1, v2);
 	if ( ( s >= 0.0 ) && ( t >= 0.0 ) && ( s + t <= 1.0 ) )
 	{
-		return true;
+		rc =  true;
 	}
-	return false;
+	return rc;
 }
 
 XYColor CiColor::getClosestPointToPoint(XYColor a, XYColor b, CiColor p)
@@ -430,14 +431,17 @@ bool LedDevicePhilipsHueBridge::initMaps()
 	else
 	{
 		setBridgeConfig( doc );
-		if( _useHueEntertainmentAPI ) setGroupMap( doc );
+		if( _useHueEntertainmentAPI )
+		{
+			setGroupMap( doc );
+		}
 		setLightsMap( doc );
 	}
 
 	return isInitOK;
 }
 
-void LedDevicePhilipsHueBridge::setBridgeConfig(QJsonDocument doc)
+void LedDevicePhilipsHueBridge::setBridgeConfig(const QJsonDocument &doc)
 {
 	QJsonObject jsonConfigInfo = doc.object()[ API_CONFIG ].toObject();
 	if ( verbose )
@@ -483,7 +487,7 @@ void LedDevicePhilipsHueBridge::setBridgeConfig(QJsonDocument doc)
 	log( "EntertainmentReady", "%d", _isHueEntertainmentReady );
 }
 
-void LedDevicePhilipsHueBridge::setLightsMap(QJsonDocument doc)
+void LedDevicePhilipsHueBridge::setLightsMap(const QJsonDocument &doc)
 {
 	QJsonObject jsonLightsInfo = doc.object()[ API_LIGHTS ].toObject();
 
@@ -510,7 +514,7 @@ void LedDevicePhilipsHueBridge::setLightsMap(QJsonDocument doc)
 	}
 }
 
-void LedDevicePhilipsHueBridge::setGroupMap(QJsonDocument doc)
+void LedDevicePhilipsHueBridge::setGroupMap(const QJsonDocument &doc)
 {
 	QJsonObject jsonGroupsInfo = doc.object()[ API_GROUPS ].toObject();
 
@@ -643,7 +647,7 @@ QJsonDocument LedDevicePhilipsHueBridge::getGroupState(const unsigned int groupI
 QJsonDocument LedDevicePhilipsHueBridge::setGroupState(const unsigned int groupId, bool state)
 {
 	QString active = state ? API_STREAM_ACTIVE_VALUE_TRUE : API_STREAM_ACTIVE_VALUE_FALSE;
-	return post( QString("%1/%2").arg( API_GROUPS ).arg( groupId ), QString("{\"%1\":{\"%2\":%3}}").arg( API_STREAM ).arg( API_STREAM_ACTIVE ).arg( active ) );
+	return post( QString("%1/%2").arg( API_GROUPS ).arg( groupId ), QString("{\"%1\":{\"%2\":%3}}").arg( API_STREAM, API_STREAM_ACTIVE, active ) );
 }
 
 bool LedDevicePhilipsHueBridge::isStreamOwner(const QString &streamOwner)
@@ -916,7 +920,7 @@ bool LedDevicePhilipsHue::setLights()
 
 	if( !lArray.empty() )
 	{
-		for(const auto id : lArray)
+		for (const auto id : lArray)
 		{
 			unsigned int lightId = id.toString().toUInt();
 			if( lightId > 0 )
@@ -1209,7 +1213,7 @@ bool LedDevicePhilipsHue::setStreamGroupState(bool state)
 	}
 	else
 	{
-		QString valueName = QString( API_STREAM_RESPONSE_FORMAT ).arg( API_GROUPS ).arg( _groupId ).arg( API_STREAM ).arg( API_STREAM_ACTIVE );
+		QString valueName = QString( API_STREAM_RESPONSE_FORMAT ).arg( API_GROUPS ).arg( _groupId ).arg( API_STREAM, API_STREAM_ACTIVE );
 		if(!map.value( API_SUCCESS ).toMap().value( valueName ).isValid())
 		{
 			this->setInError( QString("set stream to %1: Bridge response is not Valid").arg( active ) );
@@ -1457,7 +1461,7 @@ void LedDevicePhilipsHue::setOnOffState(PhilipsHueLight& light, bool on)
 	{
 		light.setOnOffState( on );
 		QString state = on ? API_STATE_VALUE_TRUE : API_STATE_VALUE_FALSE;
-		setLightState( light.getId(), QString("{\"%1\": %2 }").arg( API_STATE_ON ).arg( state ) );
+		setLightState( light.getId(), QString("{\"%1\": %2 }").arg( API_STATE_ON, state ) );
 	}
 }
 
@@ -1497,7 +1501,7 @@ void LedDevicePhilipsHue::setState(PhilipsHueLight& light, bool on, const CiColo
 	{
 		light.setOnOffState( on );
 		QString state = on ? API_STATE_VALUE_TRUE : API_STATE_VALUE_FALSE;
-		stateCmd += QString("\"%1\":%2,").arg( API_STATE_ON ).arg( state );
+		stateCmd += QString("\"%1\":%2,").arg( API_STATE_ON, state );
 	}
 
 	if ( light.getTransitionTime() != _transitionTime )
@@ -1705,8 +1709,8 @@ void LedDevicePhilipsHue::identify(const QJsonObject& params)
 		_restApi->setPath(resource);
 
 		QString stateCmd;
-		stateCmd += QString("\"%1\":%2,").arg( API_STATE_ON ).arg( API_STATE_VALUE_TRUE );
-		stateCmd += QString("\"%1\":\"%2\"").arg( "alert" ).arg( "select" );
+		stateCmd += QString("\"%1\":%2,").arg( API_STATE_ON, API_STATE_VALUE_TRUE );
+		stateCmd += QString("\"%1\":\"%2\"").arg( "alert", "select" );
 		stateCmd = "{" + stateCmd + "}";
 
 		// Perform request

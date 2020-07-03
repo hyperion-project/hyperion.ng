@@ -94,12 +94,12 @@ public:
 	/// @param[in] hostname or IP-address
 	/// @param[in] port, default port 55443 is used when not provided
 	///
-	YeelightLight( Logger *log, const QString &hostname, int port);
+	YeelightLight( Logger *log, const QString &hostname, quint16 port);
 
 	///
 	/// @brief Destructor of the Yeelight light
 	///
-	~YeelightLight();
+	virtual ~YeelightLight();
 
 	///
 	/// @brief Set the Yeelight light connectivity parameters
@@ -107,7 +107,7 @@ public:
 	/// @param[in] hostname or IP-address
 	/// @param[in] port, default port 55443 is used when not provided
 	///
-	void setHostname( const QString &hostname, int port);
+	void setHostname( const QString &hostname, quint16 port);
 
 	///
 	/// @brief Set the Yeelight light name
@@ -240,10 +240,10 @@ public:
 	/// @brief Set the Yeelight light into music-mode
 	///
 	/// @param[in] on True: music-mode on, False: music-mode off
-	/// @param[in] ipAddress of the music-mode server
+	/// @param[in] hostAddress of the music-mode server
 	/// @param[in] port of the music-mode server
 	///
-	bool setMusicMode( bool on, const QHostAddress &ipAddress = {} , int port = -1 );
+	bool setMusicMode( bool on, const QHostAddress &hostAddress = {} , int port = -1 );
 
 	///
 	/// @brief Set the wait-time between two Yeelight light commands
@@ -357,7 +357,7 @@ private:
 
 	/// IP address/port of the Yeelight light
 	QString _host;
-	int _port;
+	quint16 _port;
 
 	/// Yeelight light communication socket
 	QTcpSocket*	 _tcpSocket;
@@ -613,7 +613,7 @@ private:
 
 	///Music mode Server details
 	QHostAddress _musicModeServerAddress;
-	quint16 _musicModeServerPort;
+	int _musicModeServerPort;
 	QTcpServer* _tcpMusicModeServer = nullptr;
 
 };

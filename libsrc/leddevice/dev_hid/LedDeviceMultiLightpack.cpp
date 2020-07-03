@@ -32,7 +32,9 @@ LedDeviceMultiLightpack::~LedDeviceMultiLightpack()
 	for (LedDeviceLightpack * device : _lightpacks)
 	{
 		if ( device != nullptr)
+		{
 			delete device;
+		}
 	}
 }
 
@@ -55,7 +57,7 @@ bool LedDeviceMultiLightpack::init(const QJsonObject &deviceConfig)
 		std::sort(_lightpacks.begin(), _lightpacks.end(), compareLightpacks);
 
 		// open each Lightpack device
-		foreach (auto serial , serialList)
+		for (auto serial : serialList)
 		{
 			QJsonObject devConfig;
 			devConfig["serial"] = serial;
@@ -76,7 +78,7 @@ bool LedDeviceMultiLightpack::init(const QJsonObject &deviceConfig)
 			}
 		}
 
-		if (_lightpacks.size() == 0)
+		if (_lightpacks.empty())
 		{
 			//Warning(_log, "No Lightpack devices were found");
 			QString errortext = QString ("No Lightpack devices were found");
@@ -226,7 +228,7 @@ QStringList LedDeviceMultiLightpack::getLightpackSerials()
 				}
 			}
 
-			Info(log, "Lightpack device found with serial %s", QSTRING_CSTR(serialNumber));;
+			Info(log, "Lightpack device found with serial %s", QSTRING_CSTR(serialNumber));
 			serialList.append(serialNumber);
 		}
 	}

@@ -59,22 +59,28 @@ bool LedDeviceAtmoOrb::init(const QJsonObject &deviceConfig)
 
 		_orbIds.clear();
 
-		foreach(auto & id_str, orbIds)
+		for (auto & id_str : orbIds)
 		{
 			bool ok;
 			int id = id_str.toInt(&ok);
 			if (ok)
 			{
 				if ( id < 1 || id > 255 )
+				{
 					Warning(_log, "Skip orb id '%d'. IDs must be in range 1-255", id);
+				}
 				else
+				{
 					_orbIds.append(id);
+				}
 			}
 			else
+			{
 				Error(_log, "orb id '%s' is not a number", QSTRING_CSTR(id_str));
+			}
 		}
 
-		if ( _orbIds.size() == 0 )
+		if ( _orbIds.empty() )
 		{
 			this->setInError("No valid OrbIds found!");
 			isInitOK = false;
@@ -99,7 +105,7 @@ int LedDeviceAtmoOrb::open()
 		_groupAddress = QHostAddress(_multicastGroup);
 		if ( !_udpSocket->bind(QHostAddress::AnyIPv4, _multiCastGroupPort, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint) )
 		{
-			QString errortext = QString ("(%1) %2, MulticastGroup: (%3)").arg(_udpSocket->error()).arg(_udpSocket->errorString()).arg(_multicastGroup);
+			QString errortext = QString ("(%1) %2, MulticastGroup: (%3)").arg(_udpSocket->error()).arg(_udpSocket->errorString(), _multicastGroup);
 			this->setInError( errortext );
 		}
 		else
@@ -107,7 +113,7 @@ int LedDeviceAtmoOrb::open()
 			_joinedMulticastgroup = _udpSocket->joinMulticastGroup(_groupAddress);
 			if ( !_joinedMulticastgroup )
 			{
-				QString errortext = QString ("(%1) %2, MulticastGroup: (%3)").arg(_udpSocket->error()).arg(_udpSocket->errorString()).arg(_multicastGroup);
+				QString errortext = QString ("(%1) %2, MulticastGroup: (%3)").arg(_udpSocket->error()).arg(_udpSocket->errorString(), _multicastGroup);
 				this->setInError( errortext );
 			}
 			else

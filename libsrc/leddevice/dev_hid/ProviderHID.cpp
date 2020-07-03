@@ -196,23 +196,27 @@ QJsonObject ProviderHID::discover()
 
 	// Discover HID Devices
 	auto devs = hid_enumerate(0x00, 0x00);
-	auto cur_dev = devs;
-	while (cur_dev)
-	{
-		QJsonObject deviceInfo;
-		deviceInfo.insert("manufacturer",QString::fromWCharArray(cur_dev->manufacturer_string));
-		deviceInfo.insert("path",cur_dev->path);
-		deviceInfo.insert("productIdentifier", QString("0x%1").arg(static_cast<ushort>(cur_dev->product_id),0,16));
-		deviceInfo.insert("release_number",QString("0x%1").arg(static_cast<ushort>(cur_dev->release_number),0,16));
-		deviceInfo.insert("serialNumber",QString::fromWCharArray(cur_dev->serial_number));
-		deviceInfo.insert("usage_page", QString("0x%1").arg(static_cast<ushort>(cur_dev->usage_page),0,16));
-		deviceInfo.insert("vendorIdentifier", QString("0x%1").arg(static_cast<ushort>(cur_dev->vendor_id),0,16));
-		deviceInfo.insert("interface_number",cur_dev->interface_number);
-		deviceList.append(deviceInfo);
 
-		cur_dev = cur_dev->next;
+	if ( devs != nullptr )
+	{
+		auto cur_dev = devs;
+		while (cur_dev)
+		{
+			QJsonObject deviceInfo;
+			deviceInfo.insert("manufacturer",QString::fromWCharArray(cur_dev->manufacturer_string));
+			deviceInfo.insert("path",cur_dev->path);
+			deviceInfo.insert("productIdentifier", QString("0x%1").arg(static_cast<ushort>(cur_dev->product_id),0,16));
+			deviceInfo.insert("release_number",QString("0x%1").arg(static_cast<ushort>(cur_dev->release_number),0,16));
+			deviceInfo.insert("serialNumber",QString::fromWCharArray(cur_dev->serial_number));
+			deviceInfo.insert("usage_page", QString("0x%1").arg(static_cast<ushort>(cur_dev->usage_page),0,16));
+			deviceInfo.insert("vendorIdentifier", QString("0x%1").arg(static_cast<ushort>(cur_dev->vendor_id),0,16));
+			deviceInfo.insert("interface_number",cur_dev->interface_number);
+			deviceList.append(deviceInfo);
+
+			cur_dev = cur_dev->next;
+		}
+		hid_free_enumeration(devs);
 	}
-	hid_free_enumeration(devs);
 
 	devicesDiscovered.insert("devices", deviceList);
 	return devicesDiscovered;

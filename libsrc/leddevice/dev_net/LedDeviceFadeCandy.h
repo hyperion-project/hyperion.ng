@@ -45,7 +45,7 @@ public:
 	///
 	/// @brief Destructor of the LedDevice
 	///
-	virtual ~LedDeviceFadeCandy();
+	~LedDeviceFadeCandy() override;
 
 	///
 	/// @brief Constructs the LED-device

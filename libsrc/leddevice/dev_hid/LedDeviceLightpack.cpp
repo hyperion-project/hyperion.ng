@@ -220,7 +220,7 @@ int LedDeviceLightpack::testAndOpen(libusb_device * device, const QString & requ
 				uint8_t buffer[256];
 				error = libusb_control_transfer(
 							_deviceHandle,
-							LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE,
+							static_cast<uint8_t>( LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE),
 							0x01,
 							0x0100,
 							0,
@@ -283,12 +283,12 @@ int LedDeviceLightpack::testAndOpen(libusb_device * device, const QString & requ
 
 int LedDeviceLightpack::write(const std::vector<ColorRgb> &ledValues)
 {
-	return write(ledValues.data(), ledValues.size());
+	return write(ledValues.data(), static_cast<int>(ledValues.size()));
 }
 
 int LedDeviceLightpack::write(const ColorRgb * ledValues, int size)
 {
-	int count = qMin(_hwLedCount, static_cast<int>( _ledCount));
+	int count = qMin(_hwLedCount, static_cast<int>( size ));
 
 	for (int i = 0; i < count ; ++i)
 	{
@@ -331,7 +331,7 @@ int LedDeviceLightpack::writeBytes(uint8_t *data, int size)
 //	std::cout << std::endl;
 
 	int error = libusb_control_transfer(_deviceHandle,
-		LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE,
+									 static_cast<uint8_t>( LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE ),
 		0x09,
 		(2 << 8),
 		0x00,
@@ -349,7 +349,13 @@ int LedDeviceLightpack::writeBytes(uint8_t *data, int size)
 int LedDeviceLightpack::disableSmoothing()
 {
 	unsigned char buf[2] = {CMD_SET_SMOOTH_SLOWDOWN, 0};
-	return writeBytes(buf, sizeof(buf)) == sizeof(buf);
+
+	int rc = 0;
+	if (  writeBytes(buf, sizeof(buf)) == sizeof(buf) )
+	{
+		rc = 1;
+	}
+	return rc;
 }
 
 libusb_device_handle * LedDeviceLightpack::openDevice(libusb_device *device)

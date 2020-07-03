@@ -46,7 +46,7 @@ bool LedDeviceWS281x::init(const QJsonObject &deviceConfig)
 			else
 			{
 				memset(&_led_string, 0, sizeof(_led_string));
-				_led_string.freq   = deviceConfig["freq"].toInt(800000ul);
+				_led_string.freq   = deviceConfig["freq"].toInt(800000UL);
 				_led_string.dmanum = deviceConfig["dma"].toInt(5);
 				_led_string.channel[_channel].gpionum    = deviceConfig["gpio"].toInt(18);
 				_led_string.channel[_channel].count      = deviceConfig["leds"].toInt(256);

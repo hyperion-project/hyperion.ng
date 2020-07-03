@@ -135,7 +135,6 @@ bool ProviderUdpSSL::init(const QJsonObject &deviceConfig)
 int ProviderUdpSSL::open()
 {
 	int retval = -1;
-	QString errortext;
 	_isDeviceReady = false;
 
 	// TODO: Question: Just checking .... Is this one time initialisation or required with every open request (during switch-off/switch-on)?

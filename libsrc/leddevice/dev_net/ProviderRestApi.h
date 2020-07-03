@@ -182,7 +182,7 @@ public:
 	/// @param[in] reply Network reply
 	/// @return Response The body of the response in JSON
 	///
-	httpResponse getResponse(QNetworkReply* const &response);
+	httpResponse getResponse(QNetworkReply* const &reply);
 
 private:
 

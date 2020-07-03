@@ -9,10 +9,6 @@ LedDeviceTemplate::LedDeviceTemplate(const QJsonObject &deviceConfig)
 	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
-LedDeviceTemplate::~LedDeviceTemplate()
-{
-}
-
 LedDevice* LedDeviceTemplate::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceTemplate(deviceConfig);

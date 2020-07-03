@@ -58,9 +58,8 @@ int LedDeviceFile::open()
 		Debug(_log, "QIODevice::WriteOnly, %s", QSTRING_CSTR(_fileName));
 		if ( !_file->open(QIODevice::WriteOnly | QIODevice::Text) )
 		{
-			QString errortext = QString ("(%1) %2, file: (%3)").arg(_file->error()).arg(_file->errorString()).arg(_fileName);
+			QString errortext = QString ("(%1) %2, file: (%3)").arg(_file->error()).arg(_file->errorString(),_fileName);
 			this->setInError( errortext );
-			return false;
 		}
 		else
 		{
