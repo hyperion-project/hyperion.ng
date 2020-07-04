@@ -84,27 +84,18 @@ void LinearColorSmoothing::handleSettingsUpdate(const settings::type& type, cons
 
 int LinearColorSmoothing::write(const std::vector<ColorRgb> &ledValues)
 {
+	_targetTime = QDateTime::currentMSecsSinceEpoch() + _settlingTime;
+	_targetValues = ledValues;
+
 	// received a new target color
 	if (_previousValues.empty())
 	{
 		// not initialized yet
-		_targetTime = QDateTime::currentMSecsSinceEpoch() + _settlingTime;
-		_targetValues = ledValues;
-
 		_previousTime = QDateTime::currentMSecsSinceEpoch();
 		_previousValues = ledValues;
 
 		//Debug( _log, "Start Smoothing timer: settlingTime: %d ms, interval: %d ms (%u Hz), updateDelay: %u frames", _settlingTime, _updateInterval, unsigned(1000.0/_updateInterval), _outputDelay );
 		QMetaObject::invokeMethod(_timer, "start", Qt::QueuedConnection, Q_ARG(int, _updateInterval));
-	}
-	else
-	{
-		//std::cout << "LinearColorSmoothing::write> "; LedDevice::printLedValues ( ledValues );
-
-		_targetTime = QDateTime::currentMSecsSinceEpoch() + _settlingTime;
-		memcpy(_targetValues.data(), ledValues.data(), ledValues.size() * sizeof(ColorRgb));
-
-		//std::cout << "LinearColorSmoothing::write> _targetValues: "; LedDevice::printLedValues ( _targetValues );
 	}
 
 	return 0;
@@ -132,7 +123,7 @@ void LinearColorSmoothing::updateLeds()
 	//Debug(_log, "elapsed Time [%d], _targetTime [%d] - now [%d], deltaTime [%d]", now -_previousTime, _targetTime, now, deltaTime);
 	if (deltaTime < 0)
 	{
-		memcpy(_previousValues.data(), _targetValues.data(), _targetValues.size() * sizeof(ColorRgb));
+		_previousValues = _targetValues;
 		_previousTime = now;
 
 		queueColors(_previousValues);
