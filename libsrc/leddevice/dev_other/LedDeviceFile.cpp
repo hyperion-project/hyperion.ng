@@ -42,7 +42,7 @@ void LedDeviceFile::initFile(const QString &fileName)
 {
 	if ( _file == nullptr )
 	{
-		_file = new QFile(fileName);
+		_file = new QFile(fileName, this);
 	}
 }
 
