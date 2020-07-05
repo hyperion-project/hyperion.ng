@@ -54,13 +54,21 @@ bool LedDeviceUdpE131::init(const QJsonObject &deviceConfig)
 		if (_json_cid.isEmpty())
 		{
 			_e131_cid = QUuid::createUuid();
-			Debug( _log, "e131 no cid found, generated %s", QSTRING_CSTR(_e131_cid.toString()));
+			Debug( _log, "e131 no CID found, generated %s", QSTRING_CSTR(_e131_cid.toString()));
+			isInitOK = true;
 		}
 		else
 		{
 			_e131_cid = QUuid(_json_cid);
-			Debug( _log, "e131  cid found, using %s", QSTRING_CSTR(_e131_cid.toString()));
-			isInitOK = true;
+			if ( !_e131_cid.isNull() )
+			{
+				Debug( _log, "e131  CID found, using %s", QSTRING_CSTR(_e131_cid.toString()));
+				isInitOK = true;
+			}
+			else
+			{
+				this->setInError("CID configured is not a valid UUID. Format expected is \"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx\"");
+			}
 		}
 	}
 	return isInitOK;
