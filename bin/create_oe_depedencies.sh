@@ -20,6 +20,7 @@ tar --create --verbose --gzip --absolute-names --show-transformed-names --derefe
 	"$IMX6_ROOTFS/usr/lib/arm-linux-gnueabihf/libxcb.so.1" \
 	"$IMX6_ROOTFS/usr/lib/arm-linux-gnueabihf/libXdmcp.so.6" \
 	"$IMX6_ROOTFS/usr/lib/arm-linux-gnueabihf/libXext.so.6" \
+	"$IMX6_ROOTFS/usr/lib/arm-linux-gnueabihf/libXrandr.so.2" \
 	"$IMX6_ROOTFS/usr/lib/arm-linux-gnueabihf/libXrender.so.1" \
 	"$IMX6_ROOTFS/usr/lib/arm-linux-gnueabihf/libXt.so.6" \
 	"./openelec/hyperiond.sh" \

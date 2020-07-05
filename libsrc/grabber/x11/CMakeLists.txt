@@ -18,5 +18,6 @@ add_library(x11-grabber ${X11_SOURCES} )
 target_link_libraries(x11-grabber
 	hyperion
 	${X11_LIBRARIES}
+	${X11_Xrandr_LIB}
 	${X11_Xrender_LIB}
 )

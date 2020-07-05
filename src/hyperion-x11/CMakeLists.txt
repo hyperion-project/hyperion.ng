@@ -36,6 +36,7 @@ target_link_libraries(${PROJECT_NAME}
 	x11-grabber
 	ssdp
 	${X11_LIBRARIES}
+	${X11_Xrandr_LIB}
 	${X11_Xrender_LIB}
 	Qt5::Core
 	Qt5::Gui
