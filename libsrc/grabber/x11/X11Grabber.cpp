@@ -2,6 +2,7 @@
 #include <grabber/X11Grabber.h>
 
 #include <xcb/randr.h>
+#include <xcb/xcb_event.h>
 
 X11Grabber::X11Grabber(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation)
 	: Grabber("X11GRABBER", 0, 0, cropLeft, cropRight, cropTop, cropBottom)
@@ -57,6 +58,11 @@ void X11Grabber::freeResources()
 
 void X11Grabber::setupResources()
 {
+	if (_XRandRAvailable)
+	{
+		qApp->installNativeEventFilter(this);
+	}
+
 	if(_XShmAvailable)
 	{
 		_xImage = XShmCreateImage(_x11Display, _windowAttr.visual, _windowAttr.depth, ZPixmap, NULL, &_shminfo, _width, _height);
@@ -110,11 +116,6 @@ bool X11Grabber::Setup()
 	_XShmAvailable = XShmQueryExtension(_x11Display);
 	XShmQueryVersion(_x11Display, &dummy, &dummy, &pixmaps_supported);
 	_XShmPixmapAvailable = pixmaps_supported && XShmPixmapFormat(_x11Display) == ZPixmap;
-
-	if (_XRandRAvailable)
-	{
-		qApp->installNativeEventFilter(this);
-	}
 
 	// Image scaling is performed by XRender when available, otherwise by ImageResampler
 	_imageResampler.setHorizontalPixelDecimation(_XRenderAvailable ? 1 : _pixelDecimation);
@@ -315,7 +316,8 @@ bool X11Grabber::nativeEventFilter(const QByteArray & eventType, void * message,
 	xcb_generic_event_t *e = static_cast<xcb_generic_event_t*>(message);
 	const uint8_t xEventType = XCB_EVENT_RESPONSE_TYPE(e);
 
-	if (xEventType == _XRandREventBase + XCB_RANDR_SCREEN_CHANGE_NOTIFY) {
+	if (xEventType == _XRandREventBase + XCB_RANDR_SCREEN_CHANGE_NOTIFY)
+	{
 		updateScreenDimensions(true);
 	}
 

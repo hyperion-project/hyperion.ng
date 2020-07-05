@@ -46,7 +46,7 @@ bool ScreenshotHandler::findNoSignalSettings(const Image<ColorRgb> & image)
 	ColorRgb redThresoldColor   = {255,75,75};
 	ColorRgb greenThresoldColor = {75,255,75};
 	ColorRgb blueThresoldColor  = {75,75,255};
-	
+
 	QVector<unsigned> redOffsets;
 	QVector<unsigned> redCounts;
 	QVector<unsigned> greenOffsets;
@@ -203,7 +203,7 @@ bool ScreenshotHandler::findNoSignalSettings(const Image<ColorRgb> & image)
 	{
 		std::cout << "WARNING difference between threshold color and the other color components is to small, signal detection might have problems." << std::endl;
 	}
-	
+
 	if (thresholdGreen > thresholdRed && thresholdGreen > thresholdBlue && ((thresholdGreen-thresholdRed) <= 0.5 || (thresholdGreen-thresholdBlue) <= 0.5))
 	{
 		std::cout << "WARNING difference between threshold color and the other color components is to small, signal detection might have problems." << std::endl;
