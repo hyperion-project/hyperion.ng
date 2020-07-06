@@ -21,7 +21,7 @@ fi
 
 # Determine cmake build type; tag builds are Release, else Debug (-dev appends to platform)
 if [[ $BUILD_SOURCEBRANCH == *"refs/tags"* || $GITHUB_REF == *"refs/tags"* ]]; then
-	BUILD_TYPE=Release
+	BUILD_TYPE="Release"
 else
 	PLATFORM=${PLATFORM}-dev
 fi
@@ -42,7 +42,7 @@ elif [[ $CI_NAME == *"mingw64_nt"* || "$CI_NAME" == 'windows_nt' ]]; then
 	mkdir build || exit 1
 	cd build
 	cmake -G "Visual Studio 16 2019" -A x64 -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ../ || exit 2
-	cmake --build . --target package --config Release -- -nologo -v:m -maxcpucount || exit 3
+	cmake --build . --target package --config ${BUILD_TYPE} -- -nologo -v:m -maxcpucount || exit 3
 	exit 0;
 	exit 1 || { echo "---> Hyperion compilation failed! Abort"; exit 5; }
 elif [[ "$CI_NAME" == 'linux' ]]; then
