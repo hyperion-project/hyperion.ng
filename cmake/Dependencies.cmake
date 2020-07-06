@@ -173,10 +173,8 @@ macro(DeployUnix TARGET)
 endmacro()
 
 macro(DeployWindows TARGET)
-	# TODO Find out what build type it is
-	set(TARGET_FILE ${CMAKE_BINARY_DIR}/bin/Release/${TARGET}.exe)
-
 	if(EXISTS ${TARGET_FILE})
+		message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
 		find_package(Qt5Core REQUIRED)
 
 		# Find the windeployqt binaries
@@ -277,7 +275,7 @@ macro(DeployWindows TARGET)
 		# Run CMake after target was built
 		add_custom_command(
 			TARGET ${TARGET} POST_BUILD
-			COMMAND ${CMAKE_COMMAND}
+			COMMAND "${CMAKE_COMMAND}" "-DTARGET_FILE=$<TARGET_FILE:${TARGET}>"
 			ARGS ${CMAKE_SOURCE_DIR}
 			WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 			VERBATIM
