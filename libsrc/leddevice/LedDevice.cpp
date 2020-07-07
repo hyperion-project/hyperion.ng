@@ -21,7 +21,7 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 	  , _devConfig(deviceConfig)
 	  , _log(Logger::getInstance("LEDDEVICE"))
 	  , _ledBuffer(0)
-	  , _refreshTimer(new QTimer(this))
+	  , _refreshTimer(nullptr)
 	  , _refreshTimerInterval_ms(0)
 	  , _latchTime_ms(0)
 	  , _isRestoreOrigState(false)
@@ -33,10 +33,7 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 	  , _lastWriteTime(QDateTime::currentDateTime())
 	  , _isRefreshEnabled (false)
 {
-	// setup refreshTimer
-	_refreshTimer->setTimerType(Qt::PreciseTimer);
-	_refreshTimer->setInterval( _refreshTimerInterval_ms );
-	connect(_refreshTimer, &QTimer::timeout, this, &LedDevice::rewriteLEDs );
+
 }
 
 LedDevice::~LedDevice()
@@ -47,6 +44,15 @@ LedDevice::~LedDevice()
 void LedDevice::start()
 {
 	Info(_log, "Start LedDevice '%s'.", QSTRING_CSTR(_activeDeviceType));
+
+	// setup refreshTimer
+	if ( _refreshTimer == nullptr )
+	{
+		_refreshTimer = new QTimer(this);
+		_refreshTimer->setTimerType(Qt::PreciseTimer);
+		_refreshTimer->setInterval( _refreshTimerInterval_ms );
+		connect(_refreshTimer, &QTimer::timeout, this, &LedDevice::rewriteLEDs );
+	}
 
 	close();
 
