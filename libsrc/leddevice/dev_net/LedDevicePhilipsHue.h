@@ -135,7 +135,7 @@ public:
 	///
 	/// @param transitionTime the transition time between colors in multiples of 100 ms
 	///
-	void setTransitionTime(unsigned int transitionTime);
+	void setTransitionTime(int transitionTime);
 
 	///
 	/// @param color the color to set
@@ -145,7 +145,7 @@ public:
 	unsigned int getId() const;
 
 	bool getOnOffState() const;
-	unsigned int getTransitionTime() const;
+	int getTransitionTime() const;
 	CiColor getColor() const;
 
 	///
@@ -163,7 +163,7 @@ private:
 	unsigned int _id;
 	unsigned int _ledidx;
 	bool _on;
-	unsigned int _transitionTime;
+	int _transitionTime;
 	CiColor _color;
 	/// darkes blue color in hue lamp GAMUT = black
 	CiColor _colorBlack;
@@ -206,15 +206,15 @@ public:
 	///
 	QJsonDocument post(const QString& route, const QString& content);
 
-	void setLightState(unsigned int lightId = 0, QString state = "");
+	void setLightState(unsigned int lightId = 0, const QString &state = "");
 
 	const QMap<quint16,QJsonObject>& getLightMap();
 
 	const QMap<quint16,QJsonObject>& getGroupMap();
 
-	QString getGroupName(unsigned int groupId = 0);
+	QString getGroupName(quint16 groupId = 0);
 
-	QJsonArray getGroupLights(unsigned int groupId = 0);
+	QJsonArray getGroupLights(quint16 groupId = 0);
 
 
 
@@ -371,15 +371,6 @@ public:
 	void setColor(PhilipsHueLight& light, CiColor& color);
 	void setState(PhilipsHueLight& light, bool on, const CiColor& color);
 
-public slots:
-
-	///
-	/// @brief Stops the device.
-	///
-	/// Includes switching-off the device and stopping refreshes.
-	///
-	virtual void stop() override;
-
 protected:
 
 	///
@@ -472,6 +463,10 @@ protected:
 	///
 	virtual bool restoreState() override;
 
+private slots:
+
+	void noSignalTimeout();
+
 private:
 
 	bool initLeds();
@@ -489,7 +484,7 @@ private:
 	///
 	/// @param map Map of lightid/value pairs of bridge
 	///
-	bool updateLights(QMap<quint16, QJsonObject> map);
+	bool updateLights(const QMap<quint16, QJsonObject> &map);
 
 	///
 	/// @brief Set the number of LEDs supported by the device.
@@ -518,19 +513,19 @@ private:
 	/// The brightness factor to multiply on color change.
 	double _brightnessFactor;
 	/// Transition time in multiples of 100 ms.
-	/// The default of the Hue lights is 400 ms, but we may want it snapier.
-	unsigned int _transitionTime;
+	/// The default of the Hue lights is 400 ms, but we may want it snappier.
+	int _transitionTime;
 
 	bool _lightStatesRestored;
 	bool _isInitLeds;
 
 	/// Array of the light ids.
-	std::vector<unsigned int> _lightIds;
+	std::vector<quint16> _lightIds;
 	/// Array to save the lamps.
 	std::vector<PhilipsHueLight> _lights;
 
 	unsigned int _lightsCount;
-	unsigned int _groupId;
+	quint16 _groupId;
 
 	double _brightnessMin;
 	double _brightnessMax;
@@ -538,7 +533,7 @@ private:
 	bool _allLightsBlack;
 
 	QTimer* _blackLightsTimer;
-	unsigned int _blackLightsTimeout;
+	int _blackLightsTimeout;
 	double _brightnessThreshold;
 
 	int _handshake_timeout_min;
@@ -553,7 +548,4 @@ private:
 	int start_retry_left;
 	int stop_retry_left;
 
-private slots:
-
-	void noSignalTimeout();	
 };
