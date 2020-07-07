@@ -4,6 +4,7 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/grabber/x11)
 
 # Find X11
 find_package(X11 REQUIRED)
+find_package(Qt5Widgets REQUIRED)
 
 include_directories( ${X11_INCLUDES} )
 
