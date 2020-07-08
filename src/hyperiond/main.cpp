@@ -31,9 +31,9 @@
 
 #include <utils/Logger.h>
 #include <utils/FileUtils.h>
-#include <utils/StackTrace.h>
 #include <commandline/Parser.h>
 #include <commandline/IntOption.h>
+#include <utils/DefaultSignalHandler.h>
 #include <../../include/db/AuthTable.h>
 
 #include "detectProcess.h"
@@ -81,16 +81,6 @@ void signal_handler(const int signum)
 		}
 		return;
 	}
-	else if (signum == SIGSEGV || signum == SIGABRT || signum == SIGFPE)
-	{
-		StackTrace::print_trace();
-		exit(1);
-	}
-
-	QCoreApplication::quit();
-
-	// reset signal handler to default (in case this handler is not capable of stopping)
-	signal(signum, SIG_DFL);
 }
 #endif
 
@@ -182,14 +172,9 @@ int main(int argc, char** argv)
 	bool isGuiApp = (qobject_cast<QApplication *>(app.data()) != 0 && QSystemTrayIcon::isSystemTrayAvailable());
 
 #ifndef _WIN32
-	signal(SIGFPE,  signal_handler);
-	signal(SIGINT,  signal_handler);
-	signal(SIGTERM, signal_handler);
-	signal(SIGABRT, signal_handler);
-	signal(SIGSEGV, signal_handler);
-	signal(SIGTRAP, signal_handler);
+	DefaultSignalHandler::install();
+
 	signal(SIGCHLD, signal_handler);
-	signal(SIGPIPE, signal_handler);
 	signal(SIGUSR1, signal_handler);
 	signal(SIGUSR2, signal_handler);
 #endif

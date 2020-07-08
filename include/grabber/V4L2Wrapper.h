@@ -16,7 +16,7 @@ public:
 			VideoStandard videoStandard,
 			PixelFormat pixelFormat,
 			int pixelDecimation );
-	virtual ~V4L2Wrapper() {};
+	~V4L2Wrapper() override;
 
 	bool getSignalDetectionEnable();
 

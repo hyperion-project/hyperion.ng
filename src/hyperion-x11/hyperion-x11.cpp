@@ -5,32 +5,14 @@
 
 #include <commandline/Parser.h>
 #include <flatbufserver/FlatBufferConnection.h>
-#include <utils/StackTrace.h>
+#include <utils/DefaultSignalHandler.h>
 #include "X11Wrapper.h"
 #include "HyperionConfig.h"
 
 // ssdp discover
 #include <ssdp/SSDPDiscover.h>
 
-#include <signal.h>
-
 using namespace commandline;
-
-void signal_handler(const int signum)
-{
-	if (signum == SIGSEGV || signum == SIGABRT || signum == SIGFPE)
-	{
-		StackTrace::print_trace();
-		exit(1);
-	}
-	else
-	{
-		QCoreApplication::quit();
-
-		// reset signal handler to default (in case this handler is not capable of stopping)
-		signal(signum, SIG_DFL);
-	}
-}
 
 // save the image as screenshot
 void saveScreenshot(QString filename, const Image<ColorRgb> & image)
@@ -47,12 +29,7 @@ int main(int argc, char ** argv)
 		<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
 		<< "\tbuild time: " << __DATE__ << " " << __TIME__ << std::endl;
 
-        signal(SIGFPE,  signal_handler);
-        signal(SIGINT,  signal_handler);
-        signal(SIGTERM, signal_handler);
-        signal(SIGABRT, signal_handler);
-        signal(SIGSEGV, signal_handler);
-        signal(SIGPIPE, signal_handler);
+	DefaultSignalHandler::install();
 
 	QCoreApplication app(argc, argv);
 

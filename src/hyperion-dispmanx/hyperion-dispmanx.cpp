@@ -12,23 +12,9 @@
 // ssdp discover
 #include <ssdp/SSDPDiscover.h>
 
+#include <utils/DefaultSignalHandler.h>
+
 using namespace commandline;
-
-void signal_handler(const int signum)
-{
-        if (signum == SIGSEGV || signum == SIGABRT || signum == SIGFPE)
-        {
-                StackTrace::print_trace();
-                exit(1);
-        }
-        else
-        {
-                QCoreApplication::quit();
-
-                // reset signal handler to default (in case this handler is not capable of stopping)
-                signal(signum, SIG_DFL);
-        }
-}
 
 // save the image as screenshot
 void saveScreenshot(QString filename, const Image<ColorRgb> & image)
@@ -44,6 +30,8 @@ int main(int argc, char ** argv)
 		<< "hyperion-dispmanx:" << std::endl
 		<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
 		<< "\tbuild time: " << __DATE__ << " " << __TIME__ << std::endl;
+
+	DefaultSignalHandler::install();
 
 	QCoreApplication app(argc, argv);
 
