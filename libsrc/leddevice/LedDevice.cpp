@@ -36,7 +36,7 @@ LedDevice::LedDevice(const QJsonObject& config, QObject* parent)
 
 LedDevice::~LedDevice()
 {
-
+	delete _refresh_timer;
 }
 
 int LedDevice::open()

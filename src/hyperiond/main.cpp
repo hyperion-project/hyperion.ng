@@ -45,10 +45,6 @@
 #include "hyperiond.h"
 #include "systray.h"
 
-#include <execinfo.h>
-#include <stdio.h>
-#include <unistd.h>
-
 using namespace commandline;
 
 #define PERM0664 QFileDevice::ReadOwner | QFileDevice::ReadGroup | QFileDevice::ReadOther | QFileDevice::WriteOwner | QFileDevice::WriteGroup
@@ -160,7 +156,7 @@ int main(int argc, char** argv)
 		const char* processName = "hyperiond";
 	#endif
 	const QStringList listOfPids = getProcessIdsByProcessName(processName);
-	if (!listOfPids.empty())
+	if (listOfPids.size() > 1)
 	{
 		Error(log, "The Hyperion Daemon is already running, abort start");
 		return 0;
@@ -171,9 +167,9 @@ int main(int argc, char** argv)
 
 	bool isGuiApp = (qobject_cast<QApplication *>(app.data()) != 0 && QSystemTrayIcon::isSystemTrayAvailable());
 
-#ifndef _WIN32
 	DefaultSignalHandler::install();
 
+#ifndef _WIN32
 	signal(SIGCHLD, signal_handler);
 	signal(SIGUSR1, signal_handler);
 	signal(SIGUSR2, signal_handler);
