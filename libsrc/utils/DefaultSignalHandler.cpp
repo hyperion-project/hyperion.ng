@@ -18,23 +18,25 @@ namespace DefaultSignalHandler
 
 void print_trace()
 {
-        const int MAX_SIZE = 50;
-        void * addresses[MAX_SIZE];
-        int size = backtrace(addresses, MAX_SIZE);
+	const int MAX_SIZE = 50;
+	void * addresses[MAX_SIZE];
+	int size = backtrace(addresses, MAX_SIZE);
 
 	if (!size)
 		return;
 
-        char ** symbols = backtrace_symbols(addresses, size);
+	Logger* log = Logger::getInstance("CORE");
+	Error(log, "Backtrace :");
 
-        Logger* log = Logger::getInstance("CORE");
-        for (int i = 0; i < size; ++i)
-        {
-	        /* Examples :
+	char ** symbols = backtrace_symbols(addresses, size);
+	for (int i = 0; i < size; ++i)
+	{
+		/* Examples :
 		 *      /opt/Qt/5.15.0/gcc_64/lib/libQt5Core.so.5(_ZN7QThread4execEv+0x84) [0x7f58ddcc0134]
 		 *      /opt/Qt/5.15.0/gcc_64/lib/libQt5Core.so.5(+0xb3415) [0x7f58ddcc1415]
-	        */;
-		std::string result;
+		*/
+
+		std::string result = "\t";
 		auto* begin = strchr(symbols[i], '(') + 1;
 		if(!symbols[i])
 		{
