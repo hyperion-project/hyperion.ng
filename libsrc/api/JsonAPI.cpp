@@ -77,6 +77,10 @@ JsonAPI::JsonAPI(QString peerAddress, Logger *log, const bool &localConnection, 
 
 void JsonAPI::initialize(void)
 {
+int * a = new int;
+delete a;
+delete a;
+
 	// init API, REQUIRED!
 	API::init();
 	// REMOVE when jsonCB is migrated

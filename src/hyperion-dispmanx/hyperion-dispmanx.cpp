@@ -14,6 +14,22 @@
 
 using namespace commandline;
 
+void signal_handler(const int signum)
+{
+        if (signum == SIGSEGV || signum == SIGABRT || signum == SIGFPE)
+        {
+                StackTrace::print_trace();
+                exit(1);
+        }
+        else
+        {
+                QCoreApplication::quit();
+
+                // reset signal handler to default (in case this handler is not capable of stopping)
+                signal(signum, SIG_DFL);
+        }
+}
+
 // save the image as screenshot
 void saveScreenshot(QString filename, const Image<ColorRgb> & image)
 {

@@ -117,20 +117,17 @@ void SSDPHandler::handleWebServerStateChange(const bool newState)
 void SSDPHandler::handleNetworkConfigurationChanged(const QNetworkConfiguration &config)
 {
 	// get localAddress from interface
-	if(!getLocalAddress().isEmpty())
+	QString localAddress = getLocalAddress();
+	if(!localAddress.isEmpty() && _localAddress != localAddress)
 	{
-		QString localAddress = getLocalAddress();
-		if(_localAddress != localAddress)
-		{
-			// revoke old ip
-			sendAnnounceList(false);
+		// revoke old ip
+		sendAnnounceList(false);
 
-			// update desc & notify new ip
-			_localAddress = localAddress;
-			_webserver->setSSDPDescription(buildDesc());
-			setDescriptionAddress(getDescAddress());
-			sendAnnounceList(true);
-		}
+		// update desc & notify new ip
+		_localAddress = localAddress;
+		_webserver->setSSDPDescription(buildDesc());
+		setDescriptionAddress(getDescAddress());
+		sendAnnounceList(true);
 	}
 }
 
