@@ -1,4 +1,5 @@
 #ifndef _WIN32
+
 #include <utils/DefaultSignalHandler.h>
 #include <utils/Logger.h>
 
@@ -18,23 +19,23 @@ namespace DefaultSignalHandler
 
 void print_trace()
 {
-        const int MAX_SIZE = 50;
-        void * addresses[MAX_SIZE];
-        int size = backtrace(addresses, MAX_SIZE);
+	const int MAX_SIZE = 50;
+	void * addresses[MAX_SIZE];
+	int size = backtrace(addresses, MAX_SIZE)
 
 	if (!size)
 		return;
 
-        char ** symbols = backtrace_symbols(addresses, size);
-
-        Logger* log = Logger::getInstance("CORE");
-        for (int i = 0; i < size; ++i)
-        {
-	        /* Examples :
+	Logger* log = Logger::getInstance("CORE");
+	char ** symbols = backtrace_symbols(addresses, size);
+	for (int i = 0; i < size; ++i)
+	{
+		/* Examples :
 		 *      /opt/Qt/5.15.0/gcc_64/lib/libQt5Core.so.5(_ZN7QThread4execEv+0x84) [0x7f58ddcc0134]
 		 *      /opt/Qt/5.15.0/gcc_64/lib/libQt5Core.so.5(+0xb3415) [0x7f58ddcc1415]
-	        */;
-		std::string result;
+		*/
+
+		std::string result = "\t";
 		auto* begin = strchr(symbols[i], '(') + 1;
 		if(!symbols[i])
 		{
@@ -80,6 +81,7 @@ void signal_handler(const int signum)
 	case SIGSEGV:
 	case SIGABRT:
 	case SIGFPE:
+		Error(log, "Backtrace :");
 		print_trace();
 		exit(1);
 	case SIGINT:
@@ -99,16 +101,20 @@ void signal_handler(const int signum)
 	}
 }
 
+} // namespace DefaultSignalHandler
+#endif // _WIN32
+
+namespace DefaultSignalHandler
+{
 void install()
 {
+#ifndef _WIN32
 	signal(SIGFPE,  signal_handler);
 	signal(SIGINT,  signal_handler);
 	signal(SIGTERM, signal_handler);
 	signal(SIGABRT, signal_handler);
 	signal(SIGSEGV, signal_handler);
 	signal(SIGPIPE, signal_handler);
-};
-
-} // namespace DefaultSignalHandler
-
 #endif // _WIN32
+}
+} // namespace DefaultSignalHandler

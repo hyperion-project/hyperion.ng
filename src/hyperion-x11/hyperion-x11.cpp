@@ -98,7 +98,6 @@ int main(int argc, char ** argv)
 			// Connect the screen capturing to flatbuf connection processing
 			QObject::connect(&x11Wrapper, SIGNAL(sig_screenshot(const Image<ColorRgb> &)), &flatbuf, SLOT(setImage(Image<ColorRgb>)));
 
-			// Start the capturing
 			x11Wrapper.start();
 
 			// Start the application
