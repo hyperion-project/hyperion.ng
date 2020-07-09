@@ -6,10 +6,15 @@
 typedef SSIZE_T ssize_t;
 #endif
 
-static const signed   MAX_NUM_LEDS    = 10000; // OPC can handle 21845 LEDs - in theory, fadecandy device should handle 10000 LEDs
-static const unsigned OPC_SET_PIXELS  = 0;     // OPC command codes
-static const unsigned OPC_SYS_EX      = 255;   // OPC command codes
-static const unsigned OPC_HEADER_SIZE = 4;     // OPC header size
+// Constants
+namespace {
+
+const signed   MAX_NUM_LEDS    = 10000; // OPC can handle 21845 LEDs - in theory, fadecandy device should handle 10000 LEDs
+const unsigned OPC_SET_PIXELS  = 0;     // OPC command codes
+const unsigned OPC_SYS_EX      = 255;   // OPC command codes
+const unsigned OPC_HEADER_SIZE = 4;     // OPC header size
+
+} //End of constants
 
 // TCP elements
 const quint16 STREAM_DEFAULT_PORT = 7890;
@@ -30,7 +35,7 @@ LedDeviceFadeCandy::~LedDeviceFadeCandy()
 {
 	if ( _client != nullptr )
 	{
-		_client->deleteLater();
+		delete _client;
 	}
 }
 

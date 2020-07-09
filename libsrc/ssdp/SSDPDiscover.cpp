@@ -1,5 +1,7 @@
 #include <ssdp/SSDPDiscover.h>
 
+#include <utils/QStringUtils.h>
+
 // Qt includes
 #include <QUdpSocket>
 #include <QUrl>
@@ -9,13 +11,17 @@
 
 #include <iostream>
 
+// Constants
+namespace {
+
 // as per upnp spec 1.1, section 1.2.2.
-static const QString UPNP_DISCOVER_MESSAGE = "M-SEARCH * HTTP/1.1\r\n"
+const QString UPNP_DISCOVER_MESSAGE = "M-SEARCH * HTTP/1.1\r\n"
 										  "HOST: %1:%2\r\n"
                                           "MAN: \"ssdp:discover\"\r\n"
 										  "MX: %3\r\n"
 										  "ST: %4\r\n"
                                           "\r\n";
+} //End of constants
 
 SSDPDiscover::SSDPDiscover(QObject* parent)
 	: QObject(parent)
@@ -24,7 +30,7 @@ SSDPDiscover::SSDPDiscover(QObject* parent)
 	  , _ssdpAddr(DEFAULT_SEARCH_ADDRESS)
 	  , _ssdpPort(DEFAULT_SEARCH_PORT)
 	  , _ssdpMaxWaitResponseTime(1)
-	  , _ssdpTimeout(DEFAULT_SSDP_TIMEOUT)
+	  , _ssdpTimeout(DEFAULT_SSDP_TIMEOUT.count())
 	  ,_filter(DEFAULT_FILTER)
 	  ,_filterHeader(DEFAULT_FILTER_HEADER)
 	  ,_regExFilter(_filter)
@@ -73,12 +79,7 @@ const QString SSDPDiscover::getFirstService(const searchType& type, const QStrin
 				QString address;
 				// parse request
 
-				#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-					QStringList entries = data.split("\n", Qt::SkipEmptyParts);
-				#else
-					QStringList entries = data.split("\n", QString::SkipEmptyParts);
-				#endif
-
+				QStringList entries = QStringUtils::split(data,"\n", QStringUtils::SplitBehavior::SkipEmptyParts);
 				for(auto entry : entries)
 				{
 					// http header parse skip
@@ -161,11 +162,7 @@ void SSDPDiscover::readPendingDatagrams()
 		QString data(datagram);
 		QMap<QString,QString> headers;
 		// parse request
-		#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-			QStringList entries = data.split("\n", Qt::SkipEmptyParts);
-		#else
-			QStringList entries = data.split("\n", QString::SkipEmptyParts);
-		#endif
+		QStringList entries = QStringUtils::split(data,"\n", QStringUtils::SplitBehavior::SkipEmptyParts);
 		for(auto entry : entries)
 		{
 			// http header parse skip
@@ -233,12 +230,7 @@ int SSDPDiscover::discoverServices(const QString& searchTarget, const QString& k
 
 				QMap<QString,QString> headers;
 				// parse request
-				#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-					QStringList entries = data.split("\n", Qt::SkipEmptyParts);
-				#else
-					QStringList entries = data.split("\n", QString::SkipEmptyParts);
-				#endif
-
+				QStringList entries = QStringUtils::split(data,"\n", QStringUtils::SplitBehavior::SkipEmptyParts);
 				for(auto entry : entries)
 				{
 					// http header parse skip

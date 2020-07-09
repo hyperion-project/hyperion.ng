@@ -30,7 +30,7 @@ ProviderUdp::~ProviderUdp()
 {
 	if ( _udpSocket != nullptr )
 	{
-		_udpSocket->deleteLater();
+		delete _udpSocket;
 	}
 }
 

@@ -29,7 +29,7 @@ static const int	DEFAULT_SEARCH_PORT = 1900;
 static const char	DEFAULT_FILTER[] = ".*";
 static const char	DEFAULT_FILTER_HEADER[] = "ST";
 
-const int DEFAULT_SSDP_TIMEOUT = 5000; // timeout in ms
+constexpr std::chrono::milliseconds DEFAULT_SSDP_TIMEOUT{5000}; // timeout in ms
 
 ///
 /// @brief Search for SSDP sessions, used by stand-alone capture binaries

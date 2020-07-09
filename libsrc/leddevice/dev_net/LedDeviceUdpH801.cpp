@@ -1,7 +1,12 @@
 #include "LedDeviceUdpH801.h"
 
+// Constants
+namespace {
+
 const ushort H801_DEFAULT_PORT = 30977;
-static const char H801_DEFAULT_HOST[] = "255.255.255.255";
+const char H801_DEFAULT_HOST[] = "255.255.255.255";
+
+} //End of constants
 
 LedDeviceUdpH801::LedDeviceUdpH801(const QJsonObject &deviceConfig)
 	: ProviderUdp()

@@ -1,32 +1,37 @@
 // Local-Hyperion includes
 #include "LedDeviceWled.h"
 
-// ssdp discover
 #include <ssdp/SSDPDiscover.h>
+#include <utils/QStringUtils.h>
+
+// Constants
+namespace {
 
 // Configuration settings
-static const char CONFIG_ADDRESS[] = "host";
+const char CONFIG_ADDRESS[] = "host";
 
 // UDP elements
 const quint16 STREAM_DEFAULT_PORT = 19446;
 
 // WLED JSON-API elements
-static const int API_DEFAULT_PORT = -1; //Use default port per communication scheme
+const int API_DEFAULT_PORT = -1; //Use default port per communication scheme
 
-static const char API_BASE_PATH[] = "/json/";
-static const char API_PATH_INFO[] = "info";
-static const char API_PATH_STATE[] = "state";
+const char API_BASE_PATH[] = "/json/";
+const char API_PATH_INFO[] = "info";
+const char API_PATH_STATE[] = "state";
 
 // List of State Information
-static const char STATE_ON[] = "on";
-static const char STATE_VALUE_TRUE[] = "true";
-static const char STATE_VALUE_FALSE[] = "false";
+const char STATE_ON[] = "on";
+const char STATE_VALUE_TRUE[] = "true";
+const char STATE_VALUE_FALSE[] = "false";
 
 // WLED ssdp services
 // TODO: WLED - Update ssdp discovery parameters when available
-static const char SSDP_ID[] = "ssdp:all";
-static const char SSDP_FILTER[] = "(.*)";
-static const char SSDP_FILTER_HEADER[] = "ST";
+const char SSDP_ID[] = "ssdp:all";
+const char SSDP_FILTER[] = "(.*)";
+const char SSDP_FILTER_HEADER[] = "ST";
+
+} //End of constants
 
 LedDeviceWled::LedDeviceWled(const QJsonObject &deviceConfig)
 	: ProviderUdp()
@@ -79,12 +84,7 @@ bool LedDeviceWled::init(const QJsonObject &deviceConfig)
 		}
 		else
 		{
-			#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-						QStringList addressparts = address.split(":", Qt::SkipEmptyParts);
-			#else
-						QStringList addressparts = address.split(":", QString::SkipEmptyParts);
-			#endif
-
+			QStringList addressparts = QStringUtils::split(address,":", QStringUtils::SplitBehavior::SkipEmptyParts);
 			_hostname = addressparts[0];
 			if ( addressparts.size() > 1 )
 			{
@@ -209,12 +209,7 @@ QJsonObject LedDeviceWled::getProperties(const QJsonObject& params)
 		QString filter = params["filter"].toString("");
 
 		// Resolve hostname and port (or use default API port)
-		#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-			QStringList addressparts = host.split(":", Qt::SkipEmptyParts);
-		#else
-			QStringList addressparts = host.split(":", QString::SkipEmptyParts);
-		#endif
-
+		QStringList addressparts = QStringUtils::split(host,":", QStringUtils::SplitBehavior::SkipEmptyParts);
 		QString apiHost = addressparts[0];
 		int apiPort;
 
@@ -258,12 +253,7 @@ void LedDeviceWled::identify(const QJsonObject& params)
 	if ( !host.isEmpty() )
 	{
 		// Resolve hostname and port (or use default API port)
-		#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-				QStringList addressparts = host.split(":", Qt::SkipEmptyParts);
-		#else
-				QStringList addressparts = host.split(":", QString::SkipEmptyParts);
-		#endif
-
+		QStringList addressparts = QStringUtils::split(host,":", QStringUtils::SplitBehavior::SkipEmptyParts);
 		QString apiHost = addressparts[0];
 		int apiPort;
 

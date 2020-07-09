@@ -8,8 +8,8 @@
 #include <QEventLoop>
 
 // Constants
-const int WRITE_TIMEOUT	= 1000;		// device write timeout in ms
-const int OPEN_TIMEOUT	= 5000;		// device open timeout in ms
+constexpr std::chrono::milliseconds WRITE_TIMEOUT{1000};	// device write timeout in ms
+constexpr std::chrono::milliseconds OPEN_TIMEOUT{5000};		// device open timeout in ms
 const int MAX_WRITE_TIMEOUTS = 5;	// maximum number of allowed timeouts
 
 const int NUM_POWEROFF_WRITE_BLACK = 2;	// Number of write "BLACK" during powering off
@@ -198,7 +198,7 @@ int ProviderRs232::writeBytes(const qint64 size, const uint8_t *data)
 	{
 		Debug(_log, "!_rs232Port.isOpen()");
 
-		if ( !tryOpen(OPEN_TIMEOUT) )
+		if ( !tryOpen(OPEN_TIMEOUT.count()) )
 		{
 			return -1;
 		}
@@ -214,7 +214,7 @@ int ProviderRs232::writeBytes(const qint64 size, const uint8_t *data)
 	}
 	else
 	{
-		if (!_rs232Port.waitForBytesWritten(WRITE_TIMEOUT))
+		if (!_rs232Port.waitForBytesWritten(WRITE_TIMEOUT.count()))
 		{
 			if ( _rs232Port.error() == QSerialPort::TimeoutError )
 			{

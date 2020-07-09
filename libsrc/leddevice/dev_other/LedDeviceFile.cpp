@@ -17,10 +17,7 @@ LedDeviceFile::LedDeviceFile(const QJsonObject &deviceConfig)
 
 LedDeviceFile::~LedDeviceFile()
 {
-	if ( _file != nullptr )
-	{
-		_file->deleteLater();
-	}
+		delete _file;
 }
 
 LedDevice* LedDeviceFile::construct(const QJsonObject &deviceConfig)
@@ -44,7 +41,7 @@ void LedDeviceFile::initFile(const QString &fileName)
 {
 	if ( _file == nullptr )
 	{
-		_file = new QFile(fileName);
+		_file = new QFile(fileName, this);
 	}
 }
 

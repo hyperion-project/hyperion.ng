@@ -18,6 +18,7 @@
 #include <hyperion/ImageProcessor.h>
 #include "HyperionConfig.h"
 #include <hyperion/Hyperion.h>
+#include <utils/QStringUtils.h>
 
 // project includes
 #include "BoblightClientConnection.h"
@@ -81,7 +82,7 @@ void BoblightClientConnection::readData()
 void BoblightClientConnection::socketClosed()
 {
 	 // clear the current channel
-	if (_priority != 0 && _priority >= 128 && _priority < 254)
+	if (_priority >= 128 && _priority < 254)
 		_hyperion->clear(_priority);
 
 	emit connectionClosed(this);
@@ -90,12 +91,7 @@ void BoblightClientConnection::socketClosed()
 void BoblightClientConnection::handleMessage(const QString & message)
 {
 	//std::cout << "boblight message: " << message.toStdString() << std::endl;
-	#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-		QStringList messageParts = message.split(" ", Qt::SkipEmptyParts);
-	#else
-		QStringList messageParts = message.split(" ", QString::SkipEmptyParts);
-	#endif
-
+	QStringList messageParts = QStringUtils::split(message," ",QStringUtils::SplitBehavior::SkipEmptyParts);
 	if (messageParts.size() > 0)
 	{
 		if (messageParts[0] == "hello")
@@ -217,7 +213,7 @@ void BoblightClientConnection::handleMessage(const QString & message)
 		}
 		else if (messageParts[0] == "sync")
 		{
-			if (_priority != 0 && _priority >= 128 && _priority < 254)
+			if ( _priority >= 128 && _priority < 254)
 				_hyperion->setInput(_priority, _ledColors); // send current color values to hyperion
 
 			return;

@@ -10,26 +10,30 @@
 #include <QTcpServer>
 #include <QColor>
 
+// Constants
+namespace {
+
 // List of State Information
-static const char API_METHOD_POWER[] = "set_power";
-static const char API_METHOD_POWER_ON[] = "on";
-static const char API_METHOD_POWER_OFF[] = "off";
+const char API_METHOD_POWER[] = "set_power";
+const char API_METHOD_POWER_ON[] = "on";
+const char API_METHOD_POWER_OFF[] = "off";
 
-static const char API_METHOD_MUSIC_MODE[] = "set_music";
-static const int API_METHOD_MUSIC_MODE_ON = 1;
-static const int API_METHOD_MUSIC_MODE_OFF = 0;
+const char API_METHOD_MUSIC_MODE[] = "set_music";
+const int API_METHOD_MUSIC_MODE_ON = 1;
+const int API_METHOD_MUSIC_MODE_OFF = 0;
 
-static const char API_METHOD_SETRGB[] = "set_rgb";
-static const char API_METHOD_SETSCENE[] = "set_scene";
-static const char API_METHOD_GETPROP[] = "get_prop";
+const char API_METHOD_SETRGB[] = "set_rgb";
+const char API_METHOD_SETSCENE[] = "set_scene";
+const char API_METHOD_GETPROP[] = "get_prop";
 
-static const char API_PARAM_EFFECT_SUDDEN[] = "sudden";
-static const char API_PARAM_EFFECT_SMOOTH[] = "smooth";
+const char API_PARAM_EFFECT_SUDDEN[] = "sudden";
+const char API_PARAM_EFFECT_SMOOTH[] = "smooth";
 
-static const int  API_PARAM_DURATION = 50;
-static const int  API_PARAM_DURATION_POWERONOFF = 1000;
-static const int  API_PARAM_EXTRA_TIME_DARKNESS = 200;
+constexpr std::chrono::milliseconds API_PARAM_DURATION{50};
+constexpr std::chrono::milliseconds API_PARAM_DURATION_POWERONOFF{1000};
+constexpr std::chrono::milliseconds API_PARAM_EXTRA_TIME_DARKNESS{200};
 
+} //End of constants
 ///
 /// Response object for Yeelight-API calls and JSON-responses
 ///
@@ -223,7 +227,7 @@ public:
 	/// @param[in] effect Transition effect, sudden or smooth
 	/// @param[in] duration Duration of the transition, if smooth
 	///
-	void setTransitionEffect ( API_EFFECT effect ,int duration = API_PARAM_DURATION );
+	void setTransitionEffect ( API_EFFECT effect ,int duration = API_PARAM_DURATION.count() );
 
 	///
 	/// @brief Set the Yeelight light brightness configuration behaviour

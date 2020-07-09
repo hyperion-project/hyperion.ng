@@ -91,11 +91,6 @@ protected:
 
 	/// libusb device handle
 	libusb_device_handle * _deviceHandle;
-
-	/// Usb device identifiers
-	static uint16_t     _usbVendorId;
-	static uint16_t     _usbProductId;
-	static QString      _usbProductDescription;
 };
 
 #endif // LEDEVICEHYPERIONUSBASP_H

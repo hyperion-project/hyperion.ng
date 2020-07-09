@@ -1,5 +1,6 @@
 // Local-Hyperion includes
 #include "LedDeviceAtmoOrb.h"
+#include <utils/QStringUtils.h>
 
 // qt includes
 #include <QUdpSocket>
@@ -33,7 +34,7 @@ LedDeviceAtmoOrb::~LedDeviceAtmoOrb()
 {
 	if ( _udpSocket != nullptr )
 	{
-		_udpSocket->deleteLater();
+		delete _udpSocket;
 	}
 }
 
@@ -51,12 +52,7 @@ bool LedDeviceAtmoOrb::init(const QJsonObject &deviceConfig)
 		_multiCastGroupPort = static_cast<quint16>(deviceConfig["port"].toInt(MULTICAST_GROUPL_DEFAULT_PORT));
 		_numLeds            = deviceConfig["numLeds"].toInt(LEDS_DEFAULT_NUMBER);
 
-		#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-				const QStringList orbIds = deviceConfig["orbIds"].toString().simplified().remove(" ").split(",", Qt::SkipEmptyParts);
-		#else
-				const QStringList orbIds = deviceConfig["orbIds"].toString().simplified().remove(" ").split(",", QString::SkipEmptyParts);
-		#endif
-
+		QStringList orbIds = QStringUtils::split(deviceConfig["orbIds"].toString().simplified().remove(" "),",", QStringUtils::SplitBehavior::SkipEmptyParts);
 		_orbIds.clear();
 
 		for (auto & id_str : orbIds)

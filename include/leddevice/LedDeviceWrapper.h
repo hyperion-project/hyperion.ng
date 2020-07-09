@@ -58,7 +58,7 @@ public:
 	///
 	/// @brief Return the last enable state
 	///
-	const bool & enabled();
+	bool enabled();
 
 	///
 	/// @brief Get the current colorOrder from device

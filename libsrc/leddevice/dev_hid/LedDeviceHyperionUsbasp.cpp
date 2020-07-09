@@ -5,10 +5,12 @@
 // Local Hyperion includes
 #include "LedDeviceHyperionUsbasp.h"
 
-// Static constants which define the Hyperion USBasp device
-uint16_t LedDeviceHyperionUsbasp::_usbVendorId = 0x16c0;
-uint16_t LedDeviceHyperionUsbasp::_usbProductId = 0x05dc;
-QString  LedDeviceHyperionUsbasp::_usbProductDescription = "Hyperion led controller";
+// Constants which define the Hyperion USBasp device
+namespace {
+uint16_t _usbVendorId = 0x16c0;
+uint16_t _usbProductId = 0x05dc;
+QString  _usbProductDescription = "Hyperion led controller";
+}
 
 LedDeviceHyperionUsbasp::LedDeviceHyperionUsbasp(const QJsonObject &deviceConfig)
 	: LedDevice()

@@ -48,7 +48,7 @@ public:
 	///
 	/// @brief Destructor of the LED-device
 	///
-	virtual ~LedDevice();
+	~LedDevice() override;
 
 	///
 	/// @brief Get color order of device.

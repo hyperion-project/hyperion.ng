@@ -371,6 +371,15 @@ public:
 	void setColor(PhilipsHueLight& light, CiColor& color);
 	void setState(PhilipsHueLight& light, bool on, const CiColor& color);
 
+public slots:
+
+	///
+	/// @brief Stops the device.
+	///
+	/// Includes switching-off the device and stopping refreshes.
+	///
+	virtual void stop() override;
+
 protected:
 
 	///

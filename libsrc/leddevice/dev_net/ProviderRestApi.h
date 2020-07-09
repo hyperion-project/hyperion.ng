@@ -99,7 +99,7 @@ public:
 	///
 	/// @return url
 	///
-	QUrl getUrl();
+	QUrl getUrl() const;
 
 	///
 	/// @brief Set an API's base path (the stable path element before addressing resources)
@@ -192,7 +192,7 @@ private:
 	/// @param[in/out] path to be updated
 	/// @param[in] path, element to be appended
 	///
-	void appendPath (QString &path, const QString &appendPath);
+	void appendPath (QString &path, const QString &appendPath) const;
 
 	Logger* _log;
 

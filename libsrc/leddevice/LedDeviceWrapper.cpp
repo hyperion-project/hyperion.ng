@@ -134,7 +134,7 @@ unsigned int LedDeviceWrapper::getLedCount() const
 	return _ledDevice->getLedCount();
 }
 
-const bool & LedDeviceWrapper::enabled()
+bool LedDeviceWrapper::enabled()
 {
 	return _enabled;
 }

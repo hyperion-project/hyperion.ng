@@ -1,99 +1,126 @@
 // Local-Hyperion includes
 #include "LedDevicePhilipsHue.h"
 
-// ssdp discover
 #include <ssdp/SSDPDiscover.h>
+#include <utils/QStringUtils.h>
 
 bool verbose = false;
 
+// Constants
+namespace {
+
 // Configuration settings
-static const char CONFIG_ADDRESS[] = "output";
-//static const char CONFIG_PORT[] = "port";
-static const char CONFIG_USERNAME[] = "username";
-static const char CONFIG_CLIENTKEY[] = "clientkey";
-static const char CONFIG_BRIGHTNESSFACTOR[] = "brightnessFactor";
-static const char CONFIG_TRANSITIONTIME[] = "transitiontime";
-static const char CONFIG_BLACK_LIGHTS_TIMEOUT[] = "blackLightsTimeout";
-static const char CONFIG_ON_OFF_BLACK[] = "switchOffOnBlack";
-static const char CONFIG_RESTORE_STATE[] = "restoreOriginalState";
-static const char CONFIG_LIGHTIDS[] = "lightIds";
-static const char CONFIG_USE_HUE_ENTERTAINMENT_API[] = "useEntertainmentAPI";
-static const char CONFIG_GROUPID[] = "groupId";
+const char CONFIG_ADDRESS[] = "output";
+//const char CONFIG_PORT[] = "port";
+const char CONFIG_USERNAME[] = "username";
+const char CONFIG_CLIENTKEY[] = "clientkey";
+const char CONFIG_BRIGHTNESSFACTOR[] = "brightnessFactor";
+const char CONFIG_TRANSITIONTIME[] = "transitiontime";
+const char CONFIG_BLACK_LIGHTS_TIMEOUT[] = "blackLightsTimeout";
+const char CONFIG_ON_OFF_BLACK[] = "switchOffOnBlack";
+const char CONFIG_RESTORE_STATE[] = "restoreOriginalState";
+const char CONFIG_LIGHTIDS[] = "lightIds";
+const char CONFIG_USE_HUE_ENTERTAINMENT_API[] = "useEntertainmentAPI";
+const char CONFIG_GROUPID[] = "groupId";
 
-static const char CONFIG_VERBOSE[] = "verbose";
-static const char CONFIG_BRIGHTNESS_MIN[] = "brightnessMin";
-static const char CONFIG_BRIGHTNESS_MAX[] = "brightnessMax";
-static const char CONFIG_BRIGHTNESS_THRESHOLD[] = "brightnessThreshold";
+const char CONFIG_VERBOSE[] = "verbose";
+const char CONFIG_BRIGHTNESS_MIN[] = "brightnessMin";
+const char CONFIG_BRIGHTNESS_MAX[] = "brightnessMax";
+const char CONFIG_BRIGHTNESS_THRESHOLD[] = "brightnessThreshold";
 
-static const char CONFIG_SSL_HANDSHAKE_TIMEOUT_MIN[] = "sslHSTimeoutMin";
-static const char CONFIG_SSL_HANDSHAKE_TIMEOUT_MAX[] = "sslHSTimeoutMax";
-static const char CONFIG_SSL_READ_TIMEOUT[] = "sslReadTimeout";
+const char CONFIG_SSL_HANDSHAKE_TIMEOUT_MIN[] = "sslHSTimeoutMin";
+const char CONFIG_SSL_HANDSHAKE_TIMEOUT_MAX[] = "sslHSTimeoutMax";
+const char CONFIG_SSL_READ_TIMEOUT[] = "sslReadTimeout";
 
 // Device Data elements
-static const char DEV_DATA_BRIDGEID[] = "bridgeid";
-static const char DEV_DATA_MODEL[] = "modelid";
-static const char DEV_DATA_NAME[] = "name";
-//static const char DEV_DATA_MANUFACTURER[] = "manufacturer";
-static const char DEV_DATA_FIRMWAREVERSION[] = "swversion";
-static const char DEV_DATA_APIVERSION[] = "apiversion";
+const char DEV_DATA_BRIDGEID[] = "bridgeid";
+const char DEV_DATA_MODEL[] = "modelid";
+const char DEV_DATA_NAME[] = "name";
+//const char DEV_DATA_MANUFACTURER[] = "manufacturer";
+const char DEV_DATA_FIRMWAREVERSION[] = "swversion";
+const char DEV_DATA_APIVERSION[] = "apiversion";
 
 // Philips Hue OpenAPI URLs
-static const int API_DEFAULT_PORT = -1; //Use default port per communication scheme
-static const char API_BASE_PATH[] = "/api/%1/";
-static const char API_ROOT[] = "";
-static const char API_STATE[] = "state";
-static const char API_CONFIG[] = "config";
-static const char API_LIGHTS[] = "lights";
-static const char API_GROUPS[] = "groups";
+const int API_DEFAULT_PORT = -1; //Use default port per communication scheme
+const char API_BASE_PATH[] = "/api/%1/";
+const char API_ROOT[] = "";
+const char API_STATE[] = "state";
+const char API_CONFIG[] = "config";
+const char API_LIGHTS[] = "lights";
+const char API_GROUPS[] = "groups";
 
 // List of Group / Stream Information
-static const char API_GROUP_NAME[] = "name";
-static const char API_GROUP_TYPE[] = "type";
-static const char API_GROUP_TYPE_ENTERTAINMENT[] = "Entertainment";
-static const char API_STREAM[] = "stream";
-static const char API_STREAM_ACTIVE[] = "active";
-static const char API_STREAM_ACTIVE_VALUE_TRUE[] = "true";
-static const char API_STREAM_ACTIVE_VALUE_FALSE[] = "false";
-static const char API_STREAM_OWNER[] = "owner";
-static const char API_STREAM_RESPONSE_FORMAT[] = "/%1/%2/%3/%4";
+const char API_GROUP_NAME[] = "name";
+const char API_GROUP_TYPE[] = "type";
+const char API_GROUP_TYPE_ENTERTAINMENT[] = "Entertainment";
+const char API_STREAM[] = "stream";
+const char API_STREAM_ACTIVE[] = "active";
+const char API_STREAM_ACTIVE_VALUE_TRUE[] = "true";
+const char API_STREAM_ACTIVE_VALUE_FALSE[] = "false";
+const char API_STREAM_OWNER[] = "owner";
+const char API_STREAM_RESPONSE_FORMAT[] = "/%1/%2/%3/%4";
 
 // List of resources
-static const char API_XY_COORDINATES[] = "xy";
-static const char API_BRIGHTNESS[] = "bri";
-//static const char API_SATURATION[] = "sat";
-static const char API_TRANSITIONTIME[] = "transitiontime";
-static const char API_MODEID[] = "modelid";
+const char API_XY_COORDINATES[] = "xy";
+const char API_BRIGHTNESS[] = "bri";
+//const char API_SATURATION[] = "sat";
+const char API_TRANSITIONTIME[] = "transitiontime";
+const char API_MODEID[] = "modelid";
 
 // List of State Information
-static const char API_STATE_ON[] = "on";
-static const char API_STATE_VALUE_TRUE[] = "true";
-static const char API_STATE_VALUE_FALSE[] = "false";
+const char API_STATE_ON[] = "on";
+const char API_STATE_VALUE_TRUE[] = "true";
+const char API_STATE_VALUE_FALSE[] = "false";
 
 // List of Error Information
-static const char API_ERROR[] = "error";
-static const char API_ERROR_ADDRESS[] = "address";
-static const char API_ERROR_DESCRIPTION[] = "description";
-static const char API_ERROR_TYPE[] = "type";
+const char API_ERROR[] = "error";
+const char API_ERROR_ADDRESS[] = "address";
+const char API_ERROR_DESCRIPTION[] = "description";
+const char API_ERROR_TYPE[] = "type";
 
 // List of Success Information
-static const char API_SUCCESS[] = "success";
+const char API_SUCCESS[] = "success";
 
 // Phlips Hue ssdp services
-static const char SSDP_ID[] = "upnp:rootdevice";
-static const char SSDP_FILTER[] = "(.*)IpBridge(.*)";
-static const char SSDP_FILTER_HEADER[] = "SERVER";
+const char SSDP_ID[] = "upnp:rootdevice";
+const char SSDP_FILTER[] = "(.*)IpBridge(.*)";
+const char SSDP_FILTER_HEADER[] = "SERVER";
 
 // DTLS Connection / SSL / Cipher Suite
-static const char API_SSL_SERVER_NAME[] = "Hue";
-static const char API_SSL_SEED_CUSTOM[] = "dtls_client";
+const char API_SSL_SERVER_NAME[] = "Hue";
+const char API_SSL_SEED_CUSTOM[] = "dtls_client";
 const int API_SSL_SERVER_PORT = 2100;
 const int STREAM_CONNECTION_RETRYS = 5;
-const int STREAM_REWRITE_TIME = 20;
 const int STREAM_SSL_HANDSHAKE_ATTEMPTS = 5;
-const int STREAM_SSL_HANDSHAKE_TIMEOUT_MIN = 400;
-const int STREAM_SSL_HANDSHAKE_TIMEOUT_MAX = 1000;
-const int STREAM_SSL_READ_TIMEOUT = 0;
+constexpr std::chrono::milliseconds STREAM_REWRITE_TIME{20};
 const int SSL_CIPHERSUITES[2] = { MBEDTLS_TLS_PSK_WITH_AES_128_GCM_SHA256, 0 };
+
+//Streaming message header and payload definition
+const uint8_t HEADER[] =
+{
+	'H', 'u', 'e', 'S', 't', 'r', 'e', 'a', 'm', //protocol
+	0x01, 0x00, //version 1.0
+	0x01, //sequence number 1
+	0x00, 0x00, //Reserved write 0’s
+	0x01, //xy Brightness
+	0x00, // Reserved, write 0’s
+};
+
+const uint8_t PAYLOAD_PER_LIGHT[] =
+{
+	0x01, 0x00, 0x06, //light ID
+	//color: 16 bpc
+	0xff, 0xff,
+	0xff, 0xff,
+	0xff, 0xff,
+	/*
+	(message.R >> 8) & 0xff, message.R & 0xff,
+	(message.G >> 8) & 0xff, message.G & 0xff,
+	(message.B >> 8) & 0xff, message.B & 0xff
+	*/
+};
+
+} //End of constants
 
 bool operator ==(const CiColor& p1, const CiColor& p2)
 {
@@ -293,12 +320,7 @@ bool LedDevicePhilipsHueBridge::init(const QJsonObject &deviceConfig)
 		}
 		else
 		{
-			#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-						QStringList addressparts = address.split(":", Qt::SkipEmptyParts);
-			#else
-						QStringList addressparts = address.split(":", QString::SkipEmptyParts);
-			#endif
-
+			QStringList addressparts = QStringUtils::split(address,":", QStringUtils::SplitBehavior::SkipEmptyParts);
 			_hostname = addressparts[0];
 			log( "Hostname/IP", "%s", QSTRING_CSTR( _hostname ) );
 
@@ -448,12 +470,7 @@ void LedDevicePhilipsHueBridge::setBridgeConfig(const QJsonDocument &doc)
 	_deviceFirmwareVersion = jsonConfigInfo[DEV_DATA_FIRMWAREVERSION].toString();
 	_deviceAPIVersion = jsonConfigInfo[DEV_DATA_APIVERSION].toString();
 
-	#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-		QStringList apiVersionParts = _deviceAPIVersion.split(".", Qt::SkipEmptyParts);
-	#else
-		QStringList apiVersionParts = _deviceAPIVersion.split(".", QString::SkipEmptyParts);
-	#endif
-
+	QStringList apiVersionParts = QStringUtils::split(_deviceAPIVersion,".", QStringUtils::SplitBehavior::SkipEmptyParts);
 	if ( !apiVersionParts.isEmpty() )
 	{
 		_api_major = apiVersionParts[0].toUInt();
@@ -802,9 +819,9 @@ LedDevicePhilipsHue::LedDevicePhilipsHue(const QJsonObject& deviceConfig)
 	  , _blackLightsTimer(nullptr)
 	  , _blackLightsTimeout(15000)
 	  , _brightnessThreshold(0.0)
-	  , _handshake_timeout_min(STREAM_SSL_HANDSHAKE_TIMEOUT_MIN)
-	  , _handshake_timeout_max(STREAM_SSL_HANDSHAKE_TIMEOUT_MAX)
-	  , _ssl_read_timeout(STREAM_SSL_READ_TIMEOUT)
+	  , _handshake_timeout_min(STREAM_SSL_HANDSHAKE_TIMEOUT_MIN.count())
+	  , _handshake_timeout_max(STREAM_SSL_HANDSHAKE_TIMEOUT_MAX.count())
+	  , _ssl_read_timeout(STREAM_SSL_READ_TIMEOUT.count())
 	  , _stopConnection(false)
 	  , start_retry_left(3)
 	  , stop_retry_left(3)
@@ -822,10 +839,7 @@ LedDevice* LedDevicePhilipsHue::construct(const QJsonObject &deviceConfig)
 
 LedDevicePhilipsHue::~LedDevicePhilipsHue()
 {
-	if ( _blackLightsTimer != nullptr )
-	{
-		_blackLightsTimer->deleteLater();
-	}
+		delete _blackLightsTimer;
 }
 
 bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
@@ -846,9 +860,9 @@ bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
 		_brightnessMin          = _devConfig[CONFIG_BRIGHTNESS_MIN].toDouble(0.0);
 		_brightnessMax          = _devConfig[CONFIG_BRIGHTNESS_MAX].toDouble(1.0);
 		_brightnessThreshold    = _devConfig[CONFIG_BRIGHTNESS_THRESHOLD].toDouble(0.0);
-		_handshake_timeout_min  = _devConfig[CONFIG_SSL_HANDSHAKE_TIMEOUT_MIN].toInt(STREAM_SSL_HANDSHAKE_TIMEOUT_MIN);
-		_handshake_timeout_max  = _devConfig[CONFIG_SSL_HANDSHAKE_TIMEOUT_MAX].toInt(STREAM_SSL_HANDSHAKE_TIMEOUT_MAX);
-		_ssl_read_timeout       = _devConfig[CONFIG_SSL_READ_TIMEOUT].toInt(STREAM_SSL_READ_TIMEOUT);
+		_handshake_timeout_min  = _devConfig[CONFIG_SSL_HANDSHAKE_TIMEOUT_MIN].toInt(STREAM_SSL_HANDSHAKE_TIMEOUT_MIN.count());
+		_handshake_timeout_max  = _devConfig[CONFIG_SSL_HANDSHAKE_TIMEOUT_MAX].toInt(STREAM_SSL_HANDSHAKE_TIMEOUT_MAX.count());
+		_ssl_read_timeout       = _devConfig[CONFIG_SSL_READ_TIMEOUT].toInt(STREAM_SSL_READ_TIMEOUT.count());
 
 		if( _brightnessMin < 0.0 ) { _brightnessMin = 0.0; }
 		if( _brightnessMax > 1.0 ) { _brightnessMax = 1.0; }
@@ -963,7 +977,7 @@ bool LedDevicePhilipsHue::initLeds()
 				_devConfig["host"]           = _hostname;
 				_devConfig["sslport"]        = API_SSL_SERVER_PORT;
 				_devConfig["servername"]     = API_SSL_SERVER_NAME;
-				_devConfig["rewriteTime"]    = STREAM_REWRITE_TIME;
+				_devConfig["rewriteTime"]    = static_cast<int>( STREAM_REWRITE_TIME.count() );
 				_devConfig["psk"]            = _devConfig[ CONFIG_CLIENTKEY ].toString();
 				_devConfig["psk_identity"]   = _devConfig[ CONFIG_USERNAME ].toString();
 				_devConfig["seed_custom"]    = API_SSL_SEED_CUSTOM;
@@ -1240,30 +1254,6 @@ bool LedDevicePhilipsHue::setStreamGroupState(bool state)
 
 QByteArray LedDevicePhilipsHue::prepareStreamData()
 {
-	static const uint8_t HEADER[] =
-	{
-		'H', 'u', 'e', 'S', 't', 'r', 'e', 'a', 'm', //protocol
-		0x01, 0x00, //version 1.0
-		0x01, //sequence number 1
-		0x00, 0x00, //Reserved write 0’s
-		0x01, //xy Brightness
-		0x00, // Reserved, write 0’s
-	};
-
-	static const uint8_t PAYLOAD_PER_LIGHT[] =
-	{
-		0x01, 0x00, 0x06, //light ID
-		//color: 16 bpc
-		0xff, 0xff,
-		0xff, 0xff,
-		0xff, 0xff,
-		/*
-		(message.R >> 8) & 0xff, message.R & 0xff,
-		(message.G >> 8) & 0xff, message.G & 0xff,
-		(message.B >> 8) & 0xff, message.B & 0xff
-		*/
-	};
-
 	QByteArray msg;
 	msg.reserve(static_cast<int>(sizeof(HEADER) + sizeof(PAYLOAD_PER_LIGHT) * _lights.size()));
 	msg.append((const char*)HEADER, sizeof(HEADER));
@@ -1285,6 +1275,12 @@ QByteArray LedDevicePhilipsHue::prepareStreamData()
 	}
 
 	return msg;
+}
+
+void LedDevicePhilipsHue::stop()
+{
+	stopBlackTimeoutTimer();
+	LedDevicePhilipsHueBridge::stop();
 }
 
 int LedDevicePhilipsHue::open()
@@ -1365,7 +1361,7 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues)
 
 void LedDevicePhilipsHue::noSignalTimeout()
 {
-	Debug(_log, "No Signal (timeout: %sms), only black color detected - stop stream for \"%s\" [%u]", QSTRING_CSTR( QString::number( _blackLightsTimer->remainingTime() ) ), QSTRING_CSTR(_groupName), _groupId );
+	Debug(_log, "No Signal (timeout: %dms), only black color detected - stop stream for \"%s\" [%u]", _blackLightsTimer->remainingTime(), QSTRING_CSTR(_groupName), _groupId );
 	_stopConnection = true;
 	switchOff();
 }
@@ -1642,12 +1638,7 @@ QJsonObject LedDevicePhilipsHue::getProperties(const QJsonObject& params)
 		QString filter = params["filter"].toString("");
 
 		// Resolve hostname and port (or use default API port)
-		#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-				QStringList addressparts = host.split(":", Qt::SkipEmptyParts);
-		#else
-				QStringList addressparts = host.split(":", QString::SkipEmptyParts);
-		#endif
-
+		QStringList addressparts = QStringUtils::split(host,":", QStringUtils::SplitBehavior::SkipEmptyParts);
 		QString apiHost = addressparts[0];
 		int apiPort;
 
@@ -1689,12 +1680,7 @@ void LedDevicePhilipsHue::identify(const QJsonObject& params)
 		int lightId = params["lightId"].toInt(0);
 
 		// Resolve hostname and port (or use default API port)
-		#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-				QStringList addressparts = host.split(":", Qt::SkipEmptyParts);
-		#else
-				QStringList addressparts = host.split(":", QString::SkipEmptyParts);
-		#endif
-
+		QStringList addressparts = QStringUtils::split(host,":", QStringUtils::SplitBehavior::SkipEmptyParts);
 		QString apiHost = addressparts[0];
 		int apiPort;
 

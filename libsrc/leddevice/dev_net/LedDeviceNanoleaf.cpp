@@ -1,8 +1,8 @@
 // Local-Hyperion includes
 #include "LedDeviceNanoleaf.h"
 
-// ssdp discover
 #include <ssdp/SSDPDiscover.h>
+#include <utils/QStringUtils.h>
 
 // Qt includes
 #include <QEventLoop>
@@ -12,62 +12,66 @@
 #include <sstream>
 #include <iomanip>
 
-//
-static const bool verbose  = false;
-static const bool verbose3 = false;
+// Constants
+namespace {
+
+const bool verbose  = false;
+const bool verbose3 = false;
 
 // Configuration settings
-static const char CONFIG_ADDRESS[] = "host";
-//static const char CONFIG_PORT[] = "port";
-static const char CONFIG_AUTH_TOKEN[] ="token";
+const char CONFIG_ADDRESS[] = "host";
+//const char CONFIG_PORT[] = "port";
+const char CONFIG_AUTH_TOKEN[] ="token";
 
-static const char CONFIG_PANEL_ORDER_TOP_DOWN[] ="panelOrderTopDown";
-static const char CONFIG_PANEL_ORDER_LEFT_RIGHT[] ="panelOrderLeftRight";
-static const char CONFIG_PANEL_START_POS[] ="panelStartPos";
+const char CONFIG_PANEL_ORDER_TOP_DOWN[] ="panelOrderTopDown";
+const char CONFIG_PANEL_ORDER_LEFT_RIGHT[] ="panelOrderLeftRight";
+const char CONFIG_PANEL_START_POS[] ="panelStartPos";
 
 // Panel configuration settings
-static const char PANEL_LAYOUT[] = "layout";
-static const char PANEL_NUM[] = "numPanels";
-static const char PANEL_ID[] = "panelId";
-static const char PANEL_POSITIONDATA[] = "positionData";
-static const char PANEL_SHAPE_TYPE[] = "shapeType";
-//static const char PANEL_ORIENTATION[] = "0";
-static const char PANEL_POS_X[] = "x";
-static const char PANEL_POS_Y[] = "y";
+const char PANEL_LAYOUT[] = "layout";
+const char PANEL_NUM[] = "numPanels";
+const char PANEL_ID[] = "panelId";
+const char PANEL_POSITIONDATA[] = "positionData";
+const char PANEL_SHAPE_TYPE[] = "shapeType";
+//const char PANEL_ORIENTATION[] = "0";
+const char PANEL_POS_X[] = "x";
+const char PANEL_POS_Y[] = "y";
 
 // List of State Information
-static const char STATE_ON[] = "on";
-static const char STATE_ONOFF_VALUE[] = "value";
-static const char STATE_VALUE_TRUE[] = "true";
-static const char STATE_VALUE_FALSE[] = "false";
+const char STATE_ON[] = "on";
+const char STATE_ONOFF_VALUE[] = "value";
+const char STATE_VALUE_TRUE[] = "true";
+const char STATE_VALUE_FALSE[] = "false";
 
 // Device Data elements
-static const char DEV_DATA_NAME[] = "name";
-static const char DEV_DATA_MODEL[] = "model";
-static const char DEV_DATA_MANUFACTURER[] = "manufacturer";
-static const char DEV_DATA_FIRMWAREVERSION[] = "firmwareVersion";
+const char DEV_DATA_NAME[] = "name";
+const char DEV_DATA_MODEL[] = "model";
+const char DEV_DATA_MANUFACTURER[] = "manufacturer";
+const char DEV_DATA_FIRMWAREVERSION[] = "firmwareVersion";
 
 // Nanoleaf Stream Control elements
-//static const char STREAM_CONTROL_IP[] = "streamControlIpAddr";
-static const char STREAM_CONTROL_PORT[] = "streamControlPort";
-//static const char STREAM_CONTROL_PROTOCOL[] = "streamControlProtocol";
+//const char STREAM_CONTROL_IP[] = "streamControlIpAddr";
+const char STREAM_CONTROL_PORT[] = "streamControlPort";
+//const char STREAM_CONTROL_PROTOCOL[] = "streamControlProtocol";
 const quint16 STREAM_CONTROL_DEFAULT_PORT = 60222; //Fixed port for Canvas;
 
 // Nanoleaf OpenAPI URLs
-static const int API_DEFAULT_PORT = 16021;
-static const char API_BASE_PATH[] = "/api/v1/%1/";
-static const char API_ROOT[] = "";
-//static const char API_EXT_MODE_STRING_V1[] = "{\"write\" : {\"command\" : \"display\", \"animType\" : \"extControl\"}}";
-static const char API_EXT_MODE_STRING_V2[] = "{\"write\" : {\"command\" : \"display\", \"animType\" : \"extControl\", \"extControlVersion\" : \"v2\"}}";
-static const char API_STATE[] ="state";
-static const char API_PANELLAYOUT[] = "panelLayout";
-static const char API_EFFECT[] = "effects";
+const int API_DEFAULT_PORT = 16021;
+const char API_BASE_PATH[] = "/api/v1/%1/";
+const char API_ROOT[] = "";
+//const char API_EXT_MODE_STRING_V1[] = "{\"write\" : {\"command\" : \"display\", \"animType\" : \"extControl\"}}";
+const char API_EXT_MODE_STRING_V2[] = "{\"write\" : {\"command\" : \"display\", \"animType\" : \"extControl\", \"extControlVersion\" : \"v2\"}}";
+const char API_STATE[] ="state";
+const char API_PANELLAYOUT[] = "panelLayout";
+const char API_EFFECT[] = "effects";
 
 // Nanoleaf ssdp services
-static const char SSDP_ID[] = "ssdp:all";
-static const char SSDP_FILTER_HEADER[] = "ST";
-static const char SSDP_CANVAS[] = "nanoleaf:nl29";
-static const char SSDP_LIGHTPANELS[] = "nanoleaf_aurora:light";
+const char SSDP_ID[] = "ssdp:all";
+const char SSDP_FILTER_HEADER[] = "ST";
+const char SSDP_CANVAS[] = "nanoleaf:nl29";
+const char SSDP_LIGHTPANELS[] = "nanoleaf_aurora:light";
+
+} //End of constants
 
 // Nanoleaf Panel Shapetypes
 enum SHAPETYPES {
@@ -419,12 +423,7 @@ QJsonObject LedDeviceNanoleaf::getProperties(const QJsonObject& params)
 		QString filter = params["filter"].toString("");
 
 		// Resolve hostname and port (or use default API port)
-		#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-			QStringList addressparts = host.split(":", Qt::SkipEmptyParts);
-		#else
-			QStringList addressparts = host.split(":", QString::SkipEmptyParts);
-		#endif
-
+		QStringList addressparts = QStringUtils::split(host,":", QStringUtils::SplitBehavior::SkipEmptyParts);
 		QString apiHost = addressparts[0];
 		int apiPort;
 
@@ -467,13 +466,8 @@ void LedDeviceNanoleaf::identify(const QJsonObject& params)
 		QString authToken = params["token"].toString("");
 
 		// Resolve hostname and port (or use default API port)
-		#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-				QStringList addressparts = host.split(":", Qt::SkipEmptyParts);
-		#else
-				QStringList addressparts = host.split(":", QString::SkipEmptyParts);
-		#endif
-
-				QString apiHost = addressparts[0];
+		QStringList addressparts = QStringUtils::split(host,":", QStringUtils::SplitBehavior::SkipEmptyParts);
+		QString apiHost = addressparts[0];
 		int apiPort;
 
 		if ( addressparts.size() > 1)

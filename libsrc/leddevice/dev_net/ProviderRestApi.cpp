@@ -9,10 +9,15 @@
 //std includes
 #include <iostream>
 
-static const QChar ONE_SLASH = '/';
+// Constants
+namespace {
+
+const QChar ONE_SLASH = '/';
+
+} //End of constants
 
 ProviderRestApi::ProviderRestApi(const QString &host, const int &port, const QString &basePath)
-	:_log(Logger::getInstance("LDEDEVICE"))
+	:_log(Logger::getInstance("LEDDEVICE"))
 	  ,_networkManager(nullptr)
 	  ,_scheme("http")
 	  ,_hostname(host)
@@ -36,7 +41,7 @@ ProviderRestApi::~ProviderRestApi()
 {
 	if ( _networkManager != nullptr )
 	{
-		_networkManager->deleteLater();
+		delete _networkManager;
 	}
 }
 
@@ -57,7 +62,7 @@ void ProviderRestApi::appendPath ( const QString &path )
 	appendPath (_path, path );
 }
 
-void ProviderRestApi::appendPath (QString& path, const QString &appendPath)
+void ProviderRestApi::appendPath ( QString& path, const QString &appendPath) const
 {
 	if ( !appendPath.isEmpty() && appendPath != ONE_SLASH )
 	{
@@ -96,7 +101,7 @@ void ProviderRestApi::setQuery(const QUrlQuery &query)
 	_query = query;
 }
 
-QUrl ProviderRestApi::getUrl()
+QUrl ProviderRestApi::getUrl() const
 {
 	QUrl url = _apiUrl;
 

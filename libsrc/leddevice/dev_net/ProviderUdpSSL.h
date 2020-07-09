@@ -48,6 +48,9 @@
 
 //----------- END mbedtls
 
+constexpr std::chrono::milliseconds STREAM_SSL_HANDSHAKE_TIMEOUT_MIN{400};
+constexpr std::chrono::milliseconds STREAM_SSL_HANDSHAKE_TIMEOUT_MAX{1000};
+constexpr std::chrono::milliseconds STREAM_SSL_READ_TIMEOUT{0};
 
 class ProviderUdpSSL : public LedDevice
 {

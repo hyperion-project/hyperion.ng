@@ -1,7 +1,7 @@
 ﻿#include "LedDeviceYeelight.h"
 
-// ssdp discover
 #include <ssdp/SSDPDiscover.h>
+#include <utils/QStringUtils.h>
 
 // Qt includes
 #include <QEventLoop>
@@ -14,74 +14,78 @@
 #include <chrono>
 #include <thread>
 
-static const bool verbose  = false;
-static const bool verbose3  = false;
-
 // Constants
-const int WRITE_TIMEOUT	= 1000;			 // device write timeout in ms
-const int READ_TIMEOUT	= 1000;			 // device write timeout in ms
-const int CONNECT_TIMEOUT = 1000;		 // device connect timeout in ms
-const int CONNECT_STREAM_TIMEOUT = 1000; // device streaming connect timeout in ms
+namespace {
 
-static const bool TEST_CORRELATION_IDS  = false; //Ignore, if yeelight sends responses in different order as request commands
+const bool verbose  = false;
+const bool verbose3  = false;
+
+constexpr std::chrono::milliseconds WRITE_TIMEOUT{1000};		 // device write timeout in ms
+constexpr std::chrono::milliseconds READ_TIMEOUT{1000};			 // device read timeout in ms
+constexpr std::chrono::milliseconds CONNECT_TIMEOUT{1000};		 // device connect timeout in ms
+constexpr std::chrono::milliseconds CONNECT_STREAM_TIMEOUT{1000}; // device streaming connect timeout in ms
+
+const bool TEST_CORRELATION_IDS  = false; //Ignore, if yeelight sends responses in different order as request commands
 
 // Configuration settings
-static const char CONFIG_LIGHTS [] = "lights";
+const char CONFIG_LIGHTS [] = "lights";
 
-static const char CONFIG_COLOR_MODEL [] = "colorModel";
-static const char CONFIG_TRANS_EFFECT [] = "transEffect";
-static const char CONFIG_TRANS_TIME [] = "transTime";
-static const char CONFIG_EXTRA_TIME_DARKNESS[] = "extraTimeDarkness";
-static const char CONFIG_DEBUGLEVEL [] = "debugLevel";
+const char CONFIG_COLOR_MODEL [] = "colorModel";
+const char CONFIG_TRANS_EFFECT [] = "transEffect";
+const char CONFIG_TRANS_TIME [] = "transTime";
+const char CONFIG_EXTRA_TIME_DARKNESS[] = "extraTimeDarkness";
+const char CONFIG_DEBUGLEVEL [] = "debugLevel";
 
-static const char CONFIG_BRIGHTNESS_MIN[] = "brightnessMin";
-static const char CONFIG_BRIGHTNESS_SWITCHOFF[] = "brightnessSwitchOffOnMinimum";
-static const char CONFIG_BRIGHTNESS_MAX[] = "brightnessMax";
-static const char CONFIG_BRIGHTNESSFACTOR[] = "brightnessFactor";
+const char CONFIG_BRIGHTNESS_MIN[] = "brightnessMin";
+const char CONFIG_BRIGHTNESS_SWITCHOFF[] = "brightnessSwitchOffOnMinimum";
+const char CONFIG_BRIGHTNESS_MAX[] = "brightnessMax";
+const char CONFIG_BRIGHTNESSFACTOR[] = "brightnessFactor";
 
-static const char CONFIG_RESTORE_STATE[] = "restoreOriginalState";
+const char CONFIG_RESTORE_STATE[] = "restoreOriginalState";
 
-static const char CONFIG_QUOTA_WAIT_TIME[] = "quotaWait";
+const char CONFIG_QUOTA_WAIT_TIME[] = "quotaWait";
 
 // Yeelights API
-static const int API_DEFAULT_PORT = 55443;
-static const quint16 API_DEFAULT_QUOTA_WAIT_TIME = 1000;
+const int API_DEFAULT_PORT = 55443;
+const quint16 API_DEFAULT_QUOTA_WAIT_TIME = 1000;
 
 // Yeelight API Command
-static const char API_COMMAND_ID[] = "id";
-static const char API_COMMAND_METHOD[] = "method";
-static const char API_COMMAND_PARAMS[] = "params";
-static const char API_COMMAND_PROPS[] = "props";
+const char API_COMMAND_ID[] = "id";
+const char API_COMMAND_METHOD[] = "method";
+const char API_COMMAND_PARAMS[] = "params";
+const char API_COMMAND_PROPS[] = "props";
 
-static const char API_PARAM_CLASS_COLOR[] = "color";
-static const char API_PARAM_CLASS_HSV[] = "hsv";
+const char API_PARAM_CLASS_COLOR[] = "color";
+const char API_PARAM_CLASS_HSV[] = "hsv";
 
-static const char API_PROP_NAME[] = "name";
-static const char API_PROP_MODEL[] = "model";
-static const char API_PROP_FWVER[] = "fw_ver";
+const char API_PROP_NAME[] = "name";
+const char API_PROP_MODEL[] = "model";
+const char API_PROP_FWVER[] = "fw_ver";
 
-static const char API_PROP_POWER[] = "power";
-static const char API_PROP_MUSIC[] = "music_on";
-static const char API_PROP_RGB[] = "rgb";
-static const char API_PROP_CT[] = "ct";
-static const char API_PROP_COLORFLOW[] = "cf";
-static const char API_PROP_BRIGHT[] = "bright";
+const char API_PROP_POWER[] = "power";
+const char API_PROP_MUSIC[] = "music_on";
+const char API_PROP_RGB[] = "rgb";
+const char API_PROP_CT[] = "ct";
+const char API_PROP_COLORFLOW[] = "cf";
+const char API_PROP_BRIGHT[] = "bright";
 
 // List of Result Information
-static const char API_RESULT_ID[] = "id";
-static const char API_RESULT[] = "result";
-//static const char API_RESULT_OK[] = "OK";
+const char API_RESULT_ID[] = "id";
+const char API_RESULT[] = "result";
+//const char API_RESULT_OK[] = "OK";
 
 // List of Error Information
-static const char API_ERROR[] = "error";
-static const char API_ERROR_CODE[] = "code";
-static const char API_ERROR_MESSAGE[] = "message";
+const char API_ERROR[] = "error";
+const char API_ERROR_CODE[] = "code";
+const char API_ERROR_MESSAGE[] = "message";
 
 // Yeelight ssdp services
-static const char SSDP_ID[] = "wifi_bulb";
-static const char SSDP_FILTER[] = "yeelight(.*)";
-static const char SSDP_FILTER_HEADER[] = "Location";
+const char SSDP_ID[] = "wifi_bulb";
+const char SSDP_FILTER[] = "yeelight(.*)";
+const char SSDP_FILTER_HEADER[] = "Location";
 const quint16 SSDP_PORT = 1982;
+
+} //End of constants
 
 YeelightLight::YeelightLight( Logger *log, const QString &hostname, quint16 port = API_DEFAULT_PORT)
 	:_log(log)
@@ -95,8 +99,8 @@ YeelightLight::YeelightLight( Logger *log, const QString &hostname, quint16 port
 	  ,_lastWriteTime(QDateTime::currentMSecsSinceEpoch())
 	  ,_lastColorRgbValue(0)
 	  ,_transitionEffect(YeelightLight::API_EFFECT_SMOOTH)
-	  ,_transitionDuration(API_PARAM_DURATION)
-	  ,_extraTimeDarkness(API_PARAM_EXTRA_TIME_DARKNESS)
+	  ,_transitionDuration(API_PARAM_DURATION.count())
+	  ,_extraTimeDarkness(API_PARAM_EXTRA_TIME_DARKNESS.count())
 	  ,_brightnessMin(0)
 	  ,_isBrightnessSwitchOffMinimum(false)
 	  ,_brightnessMax(100)
@@ -115,7 +119,7 @@ YeelightLight::~YeelightLight()
 	log (3,"~YeelightLight()","" );
 	if ( _tcpSocket != nullptr)
 	{
-		_tcpSocket->deleteLater();
+		delete _tcpSocket;
 	}
 	log (2,"~YeelightLight()","void" );
 }
@@ -152,7 +156,7 @@ bool YeelightLight::open()
 	{
 		_tcpSocket->connectToHost( _host, _port);
 
-		if ( _tcpSocket->waitForConnected( CONNECT_TIMEOUT ) )
+		if ( _tcpSocket->waitForConnected( CONNECT_TIMEOUT.count() ) )
 		{
 			if ( _tcpSocket->state() != QAbstractSocket::ConnectedState )
 			{
@@ -230,7 +234,7 @@ int YeelightLight::writeCommand( const QJsonDocument &command, QJsonArray &resul
 		}
 		else
 		{
-			if ( ! _tcpSocket->waitForBytesWritten(WRITE_TIMEOUT) )
+			if ( ! _tcpSocket->waitForBytesWritten(WRITE_TIMEOUT.count()) )
 			{
 				QString errorReason = QString ("(%1) %2").arg(_tcpSocket->error()).arg( _tcpSocket->errorString());
 				log ( 2, "Error:", "bytesWritten: [%d], %s", bytesWritten, QSTRING_CSTR(errorReason));
@@ -253,7 +257,7 @@ int YeelightLight::writeCommand( const QJsonDocument &command, QJsonArray &resul
 				}
 			}
 
-			if ( _tcpSocket->waitForReadyRead(READ_TIMEOUT) )
+			if ( _tcpSocket->waitForReadyRead(READ_TIMEOUT.count()) )
 			{
 				do
 				{
@@ -333,7 +337,7 @@ bool YeelightLight::streamCommand( const QJsonDocument &command )
 		}
 		else
 		{
-			if ( ! _tcpStreamSocket->waitForBytesWritten(WRITE_TIMEOUT) )
+			if ( ! _tcpStreamSocket->waitForBytesWritten(WRITE_TIMEOUT.count()) )
 			{
 				int error = _tcpStreamSocket->error();
 				QString errorReason = QString ("(%1) %2").arg(error).arg( _tcpStreamSocket->errorString());
@@ -968,7 +972,7 @@ LedDeviceYeelight::LedDeviceYeelight(const QJsonObject &deviceConfig)
 	  ,_lightsCount (0)
 	  ,_outputColorModel(0)
 	  ,_transitionEffect(YeelightLight::API_EFFECT_SMOOTH)
-	  ,_transitionDuration(API_PARAM_DURATION)
+	  ,_transitionDuration(API_PARAM_DURATION.count())
 	  ,_extraTimeDarkness(0)
 	  ,_brightnessMin(0)
 	  ,_isBrightnessSwitchOffMinimum(false)
@@ -988,7 +992,7 @@ LedDeviceYeelight::~LedDeviceYeelight()
 {
 	if ( _tcpMusicModeServer != nullptr )
 	{
-		_tcpMusicModeServer->deleteLater();
+		delete _tcpMusicModeServer;
 	}
 }
 
@@ -1039,7 +1043,7 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 			_transitionEffect = static_cast<YeelightLight::API_EFFECT>( deviceConfig[ CONFIG_TRANS_EFFECT ].toInt(YeelightLight::API_EFFECT_SMOOTH) );
 		}
 
-		_transitionDuration = deviceConfig[ CONFIG_TRANS_TIME ].toInt(API_PARAM_DURATION);
+		_transitionDuration = deviceConfig[ CONFIG_TRANS_TIME ].toInt(API_PARAM_DURATION.count());
 		_extraTimeDarkness	= _devConfig[CONFIG_EXTRA_TIME_DARKNESS].toInt(0);
 
 		_brightnessMin		= _devConfig[CONFIG_BRIGHTNESS_MIN].toInt(0);
@@ -1115,12 +1119,7 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 				QString address = configuredYeelightLights[j].toObject().value("host").toString();
 				int port = configuredYeelightLights[j].toObject().value("port").toInt(API_DEFAULT_PORT);
 
-				#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-								QStringList addressparts = address.split(":", Qt::SkipEmptyParts);
-				#else
-								QStringList addressparts = address.split(":", QString::SkipEmptyParts);
-				#endif
-
+				QStringList addressparts = QStringUtils::split(address,":", QStringUtils::SplitBehavior::SkipEmptyParts);
 				QString apiHost = addressparts[0];
 				int apiPort = port;
 
@@ -1325,7 +1324,7 @@ bool LedDeviceYeelight::powerOff()
 		//Power-off all Yeelights
 		for (YeelightLight& light : _lights)
 		{
-			light.setPower( false, _transitionEffect, API_PARAM_DURATION_POWERONOFF);
+			light.setPower( false, _transitionEffect, API_PARAM_DURATION_POWERONOFF.count());
 		}
 	}
 	return true;
@@ -1351,7 +1350,7 @@ bool LedDeviceYeelight::restoreState()
 		light.restoreState();
 		if ( !light.wasOriginallyOn() )
 		{
-			light.setPower( false, _transitionEffect, API_PARAM_DURATION_POWERONOFF);
+			light.setPower( false, _transitionEffect, API_PARAM_DURATION_POWERONOFF.count());
 		}
 	}
 	return rc;
@@ -1449,7 +1448,7 @@ int LedDeviceYeelight::write(const std::vector<ColorRgb> & ledValues)
 				if ( light.setMusicMode(true, _musicModeServerAddress, _musicModeServerPort) )
 				{
 					// Wait for callback of the device to establish streaming socket
-					if ( _tcpMusicModeServer->waitForNewConnection(CONNECT_STREAM_TIMEOUT) )
+					if ( _tcpMusicModeServer->waitForNewConnection(CONNECT_STREAM_TIMEOUT.count()) )
 					{
 						light.setStreamSocket( _tcpMusicModeServer->nextPendingConnection() );
 					}

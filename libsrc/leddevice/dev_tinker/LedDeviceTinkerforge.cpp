@@ -6,9 +6,14 @@
 // Local LedDevice includes
 #include "LedDeviceTinkerforge.h"
 
-static const unsigned MAX_NUM_LEDS = 320;
-static const unsigned MAX_NUM_LEDS_SETTABLE = 16;
+// Constants
+namespace {
+
+const unsigned MAX_NUM_LEDS = 320;
+const unsigned MAX_NUM_LEDS_SETTABLE = 16;
 const uint16_t DEFAULT_PORT = 4223;
+
+} //End of constants
 
 LedDeviceTinkerforge::LedDeviceTinkerforge(const QJsonObject &deviceConfig)
 	: LedDevice()
