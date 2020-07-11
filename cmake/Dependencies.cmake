@@ -1,31 +1,31 @@
 macro(DeployUnix TARGET)
-	set(TARGET_FILE ${CMAKE_BINARY_DIR}/bin/${TARGET})
-	set(SYSTEM_LIBS_SKIP
-		"libc"
-		"libdl"
-		"libexpat"
-		"libfontconfig"
-		"libfreetype"
-		"libgcc_s"
-		"libgcrypt"
-		"libGL"
-		"libGLdispatch"
-		"libglib-2"
-		"libGLX"
-		"libgpg-error"
-		"libm"
-		"libpthread"
-		"librt"
-		"libstdc++"
-		"libudev"
-		"libusb-1"
-		"libutil"
-		"libX11"
-		"libz"
-	)
-
 	if(EXISTS ${TARGET_FILE})
+		message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
 		include(GetPrerequisites)
+
+		set(SYSTEM_LIBS_SKIP
+			"libc"
+			"libdl"
+			"libexpat"
+			"libfontconfig"
+			"libfreetype"
+			"libgcc_s"
+			"libgcrypt"
+			"libGL"
+			"libGLdispatch"
+			"libglib-2"
+			"libGLX"
+			"libgpg-error"
+			"libm"
+			"libpthread"
+			"librt"
+			"libstdc++"
+			"libudev"
+			"libusb-1"
+			"libutil"
+			"libX11"
+			"libz"
+		)
 
 		if (APPLE)
 			set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
@@ -133,17 +133,19 @@ macro(DeployUnix TARGET)
 			)
 		endforeach()
 
+		# Detect the Python version and modules directory
 		if (NOT CMAKE_VERSION VERSION_LESS "3.12")
 
-			# Detect the Python modules directory
+			set(PYTHON_VERSION_MAJOR_MINOR "${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}")
 			execute_process(
 				COMMAND ${Python3_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(standard_lib=True))"
 				OUTPUT_VARIABLE PYTHON_MODULES_DIR
 				OUTPUT_STRIP_TRAILING_WHITESPACE
 			)
+
 		else()
 
-			# Detect the Python modules directory
+			set(PYTHON_VERSION_MAJOR_MINOR "${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}")
 			execute_process(
 				COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(standard_lib=True))"
 				OUTPUT_VARIABLE PYTHON_MODULES_DIR
@@ -152,19 +154,43 @@ macro(DeployUnix TARGET)
 
 		endif()
 
-		# Copy Python modules to 'share/hyperion/lib/python'
+		# Pack Python modules to pythonXX.zip or copy to 'share/hyperion/lib/python'
 		if (PYTHON_MODULES_DIR)
-			install(
-				DIRECTORY ${PYTHON_MODULES_DIR}/
-				DESTINATION "share/hyperion/lib/python"
-				COMPONENT "Hyperion"
-			)
+			# Since version 3.3.2 CMake has the functionality to generate a zip file built-in.
+			if (NOT CMAKE_VERSION VERSION_LESS "3.3.2")
+
+				file(GLOB PYTHON_MODULE_FILES RELATIVE "${PYTHON_MODULES_DIR}" "${PYTHON_MODULES_DIR}/*")
+				set(PYTHON_ZIP "python${PYTHON_VERSION_MAJOR_MINOR}.zip")
+
+				execute_process(
+					COMMAND "${CMAKE_COMMAND}" "-E" "tar" "cf" "${CMAKE_BINARY_DIR}/${PYTHON_ZIP}" "--format=zip" ${PYTHON_MODULE_FILES}
+					WORKING_DIRECTORY "${PYTHON_MODULES_DIR}"
+					OUTPUT_QUIET
+				)
+
+				install(
+					FILES "${CMAKE_BINARY_DIR}/${PYTHON_ZIP}"
+					DESTINATION "share/hyperion/bin"
+					COMPONENT "Hyperion"
+				)
+
+			else()
+
+				install(
+					DIRECTORY ${PYTHON_MODULES_DIR}/
+					DESTINATION "share/hyperion/lib/python"
+					COMPONENT "Hyperion"
+				)
+
+			endif()
+
 		endif(PYTHON_MODULES_DIR)
+
 	else()
 		# Run CMake after target was built to run get_prerequisites on ${TARGET_FILE}
 		add_custom_command(
 			TARGET ${TARGET} POST_BUILD
-			COMMAND ${CMAKE_COMMAND}
+			COMMAND "${CMAKE_COMMAND}" "-DTARGET_FILE=$<TARGET_FILE:${TARGET}>"
 			ARGS ${CMAKE_SOURCE_DIR}
 			WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 			VERBATIM
@@ -189,11 +215,11 @@ macro(DeployWindows TARGET)
 		execute_process(
 			COMMAND "${CMAKE_COMMAND}" -E
 			env "PATH=${COMPILER_PATH};${QT_BIN_DIR}" "${WINDEPLOYQT_EXECUTABLE}"
-            --dry-run
-            ${WINDEPLOYQT_PARAMS}
-            --list mapping
-            "${TARGET_FILE}"
-            OUTPUT_VARIABLE DEPS
+			--dry-run
+			${WINDEPLOYQT_PARAMS}
+			--list mapping
+			"${TARGET_FILE}"
+			OUTPUT_VARIABLE DEPS
 			OUTPUT_STRIP_TRAILING_WHITESPACE
 		)
 
