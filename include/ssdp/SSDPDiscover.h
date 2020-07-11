@@ -6,6 +6,8 @@
 #include <QUrl>
 #include <QRegularExpression>
 
+#include <chrono>
+
 class QUdpSocket;
 
 enum class searchType{
