@@ -10,6 +10,8 @@
 #include <QTcpServer>
 #include <QColor>
 
+#include <chrono>
+
 // Constants
 namespace {
 

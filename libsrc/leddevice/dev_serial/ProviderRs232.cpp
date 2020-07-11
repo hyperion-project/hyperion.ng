@@ -7,6 +7,8 @@
 #include <QSerialPortInfo>
 #include <QEventLoop>
 
+#include <chrono>
+
 // Constants
 constexpr std::chrono::milliseconds WRITE_TIMEOUT{1000};	// device write timeout in ms
 constexpr std::chrono::milliseconds OPEN_TIMEOUT{5000};		// device open timeout in ms

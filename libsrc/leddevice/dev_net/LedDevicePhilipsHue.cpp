@@ -4,6 +4,8 @@
 #include <ssdp/SSDPDiscover.h>
 #include <utils/QStringUtils.h>
 
+#include <chrono>
+
 bool verbose = false;
 
 // Constants
