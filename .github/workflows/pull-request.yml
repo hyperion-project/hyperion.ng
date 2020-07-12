@@ -121,6 +121,8 @@ jobs:
   windows:
     name: Windows
     runs-on: windows-latest
+    env:
+      VCINSTALLDIR: 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC'
     steps:
       - name: Checkout
         uses: actions/checkout@v1
@@ -147,18 +149,18 @@ jobs:
           python-version: '3.x'
 
       - name: Install NSIS
-        run: |
-          Invoke-WebRequest https://netcologne.dl.sourceforge.net/project/nsis/NSIS%203/3.05/nsis-3.05-setup.exe -OutFile nsis-setup.exe
-          .\nsis-setup.exe /S
+        run: choco install --no-progress nsis -y
+
+      - name: Install OpenSSL
+        run: choco install --no-progress openssl -y
 
       - name: Set up x64 build architecture environment
         shell: cmd
-        run: call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        run: call "${{env.VCINSTALLDIR}}\Auxiliary\Build\vcvars64.bat"
 
       # Build packages
       - name: Build packages
         env:
-          VCINSTALLDIR: 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC'
           PLATFORM: windows
         shell: bash
         run: ./.ci/ci_build.sh
