@@ -35,9 +35,7 @@ JsonServer::JsonServer(const QJsonDocument& config)
 
 JsonServer::~JsonServer()
 {
-	foreach (JsonClientConnection * connection, _openConnections) {
-		delete connection;
-	}
+	qDeleteAll(_openConnections);
 }
 
 void JsonServer::start()

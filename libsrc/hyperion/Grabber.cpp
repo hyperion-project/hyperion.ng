@@ -20,10 +20,6 @@ Grabber::Grabber(QString grabberName, int width, int height, int cropLeft, int c
 	Grabber::setCropping(cropLeft, cropRight, cropTop, cropBottom);
 }
 
-Grabber::~Grabber()
-{
-}
-
 void Grabber::setEnabled(bool enable)
 {
 	Info(_log,"Capture interface is now %s", enable ? "enabled" : "disabled");

@@ -57,7 +57,7 @@ bool LedDeviceAtmoOrb::init(const QJsonObject &deviceConfig)
 
 		_orbIds.clear();
 
-		foreach(auto & id_str, orbIds)
+		for(auto & id_str : orbIds)
 		{
 			bool ok;
 			int id = id_str.toInt(&ok);

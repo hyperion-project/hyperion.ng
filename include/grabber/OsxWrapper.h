@@ -22,11 +22,6 @@ public:
 	///
 	OsxWrapper(const unsigned display, const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz);
 
-	///
-	/// Destructor of this osx frame grabber. Releases any claimed resources.
-	///
-	virtual ~OsxWrapper() {};
-
 public slots:
 	///
 	/// Performs a single frame grab and computes the led-colors

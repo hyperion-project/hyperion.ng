@@ -1,6 +1,6 @@
 
 // QT includes
-#include <QCoreApplication>
+#include <QApplication>
 #include <QImage>
 
 #include <commandline/Parser.h>
@@ -31,8 +31,7 @@ int main(int argc, char ** argv)
 
 	DefaultSignalHandler::install();
 
-	QCoreApplication app(argc, argv);
-
+	QApplication app(argc, argv);
 	try
 	{
 		// create the option parser and initialize all parameters

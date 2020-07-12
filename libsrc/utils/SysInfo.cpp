@@ -19,10 +19,6 @@ SysInfo::SysInfo()
 	_sysinfo.domainName     = QHostInfo::localDomainName();
 }
 
-SysInfo::~SysInfo()
-{
-}
-
 SysInfo::HyperionSysInfo SysInfo::get()
 {
 	if (SysInfo::_instance == nullptr)

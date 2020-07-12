@@ -22,9 +22,9 @@ PriorityMuxer::PriorityMuxer(int ledCount)
 	, _activeInputs()
 	, _lowestPriorityInfo()
 	, _sourceAutoSelectEnabled(true)
-	, _updateTimer(new QTimer())
-	, _timer(new QTimer())
-	, _blockTimer(new QTimer())
+	, _updateTimer(new QTimer(this))
+	, _timer(new QTimer(this))
+	, _blockTimer(new QTimer(this))
 {
 	// init lowest priority info
 	_lowestPriorityInfo.priority       = PriorityMuxer::LOWEST_PRIORITY;

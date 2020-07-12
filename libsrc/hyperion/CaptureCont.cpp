@@ -41,10 +41,6 @@ CaptureCont::CaptureCont(Hyperion* hyperion)
 	handleSettingsUpdate(settings::INSTCAPTURE, _hyperion->getSetting(settings::INSTCAPTURE));
 }
 
-CaptureCont::~CaptureCont()
-{
-}
-
 void CaptureCont::handleV4lImage(const QString& name, const Image<ColorRgb> & image)
 {
 	if(_v4lCaptName != name)
