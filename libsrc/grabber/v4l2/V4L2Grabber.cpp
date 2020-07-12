@@ -52,6 +52,8 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	, _noSignalCounterThreshold(40)
 	, _noSignalThresholdColor(ColorRgb{0,0,0})
 	, _signalDetectionEnabled(true)
+	, _cecDetectionEnabled(true)
+	, _cecStandbyActivated(false)
 	, _noSignalDetected(false)
 	, _noSignalCounter(0)
 	, _x_frac_min(0.25)
@@ -1031,6 +1033,9 @@ bool V4L2Grabber::process_image(const void *p, int size)
 
 void V4L2Grabber::process_image(const uint8_t * data, int size)
 {
+	if (_cecDetectionEnabled && _cecStandbyActivated)
+		return;
+
 	Image<ColorRgb> image(_width, _height);
 
 /* ----------------------------------------------------------
@@ -1291,6 +1296,15 @@ void V4L2Grabber::setSignalDetectionEnable(bool enable)
 	}
 }
 
+void V4L2Grabber::setCecDetectionEnable(bool enable)
+{
+	if (_cecDetectionEnabled != enable)
+	{
+		_cecDetectionEnabled = enable;
+		Info(_log, "CEC detection is now %s", enable ? "enabled" : "disabled");
+	}
+}
+
 void V4L2Grabber::setPixelDecimation(int pixelDecimation)
 {
 	if (_pixelDecimation != pixelDecimation)
@@ -1382,4 +1396,20 @@ QStringList V4L2Grabber::getResolutions(QString devicePath)
 QStringList V4L2Grabber::getFramerates(QString devicePath)
 {
 	return _deviceProperties.value(devicePath).framerates;
+}
+
+void V4L2Grabber::handleCecEvent(CECEvent event)
+{
+	switch (event)
+	{
+		case CECEvent::On  :
+			Debug(_log,"CEC on event received");
+			_cecStandbyActivated = false;
+			return;
+		case CECEvent::Off :
+			Debug(_log,"CEC off event received");
+			_cecStandbyActivated = true;
+			return;
+		default: break;
+	}
 }

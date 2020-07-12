@@ -5,6 +5,10 @@
 // qt
 #include <QTimer>
 
+#ifdef ENABLE_CEC
+#include <cec/CECHandler.h>
+#endif
+
 V4L2Wrapper::V4L2Wrapper(const QString &device,
 		const unsigned grabWidth,
 		const unsigned grabHeight,
@@ -90,7 +94,22 @@ bool V4L2Wrapper::getSignalDetectionEnable()
 	return _grabber.getSignalDetectionEnabled();
 }
 
+void V4L2Wrapper::setCecDetectionEnable(bool enable)
+{
+	_grabber.setCecDetectionEnable(enable);
+}
+
+bool V4L2Wrapper::getCecDetectionEnable()
+{
+	return _grabber.getCecDetectionEnabled();
+}
+
 void V4L2Wrapper::setDeviceVideoStandard(QString device, VideoStandard videoStandard)
 {
 	_grabber.setDeviceVideoStandard(device, videoStandard);
+}
+
+void V4L2Wrapper::handleCecEvent(CECEvent event)
+{
+	_grabber.handleCecEvent(event);
 }

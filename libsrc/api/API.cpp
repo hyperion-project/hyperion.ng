@@ -15,6 +15,7 @@
 #include <QTimer>
 
 // hyperion includes
+#include <cec/CECHandler.h>
 #include <leddevice/LedDeviceWrapper.h>
 #include <hyperion/GrabberWrapper.h>
 #include <utils/jsonschema/QJsonFactory.h>
@@ -526,4 +527,11 @@ void API::checkTokenResponse(const bool &success, QObject *caller, const QString
 
 void API::stopDataConnectionss()
 {
+}
+
+QString API::scanCec()
+{
+    if (!_adminAuthorized)
+        return {};
+    return CECHandler::getInstance()->scan();
 }

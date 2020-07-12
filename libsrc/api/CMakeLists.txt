@@ -19,3 +19,7 @@ target_link_libraries(hyperion-api
 	Qt5::Gui
 	Qt5::Network
 )
+
+if (ENABLE_CEC)
+        target_link_libraries(hyperion-api cechandler)
+endif ()

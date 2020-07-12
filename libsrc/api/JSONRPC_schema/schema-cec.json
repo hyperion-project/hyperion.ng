@@ -5,7 +5,7 @@
 		"command": {
 			"type" : "string",
 			"required" : true,
-			"enum" : ["leddevice"]
+			"enum" : ["cec"]
 		},
 		"tan" : {
 			"type" : "integer"
@@ -13,15 +13,7 @@
 		"subcommand": {
 			"type" : "string",
 			"required" : true,
-			"enum" : ["discover","getProperties","identify"]
-		},
-		"ledDeviceType": {
-			"type" : "string",
-			"required" : true
-		},
-		"params": {
-			"type" : "object",
-			"required" : false
+			"enum" : ["scan"]
 		}
 	},
 	"additionalProperties": false

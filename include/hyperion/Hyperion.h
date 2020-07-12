@@ -550,6 +550,5 @@ private:
 	/// Boblight instance
 	BoblightServer* _boblightServer;
 
-	/// mutex
 	QMutex _changes;
 };

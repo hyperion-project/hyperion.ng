@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file alias="schema">JSONRPC_schema/schema.json</file>
+        <file alias="schema-cec">JSONRPC_schema/schema-cec.json</file>
         <file alias="schema-color">JSONRPC_schema/schema-color.json</file>
         <file alias="schema-image">JSONRPC_schema/schema-image.json</file>
         <file alias="schema-serverinfo">JSONRPC_schema/schema-serverinfo.json</file>

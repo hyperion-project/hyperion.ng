@@ -144,6 +144,7 @@ private:
 	void createGrabberOsx(const QJsonObject & grabberConfig);
 	void createGrabberX11(const QJsonObject & grabberConfig);
 	void createGrabberQt(const QJsonObject & grabberConfig);
+	void createCecHandler(const QJsonObject & grabberConfig);
 
 	Logger*                    _log;
 	HyperionIManager*          _instanceManager;

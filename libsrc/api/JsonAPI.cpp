@@ -198,6 +198,8 @@ proceed:
 		handleInstanceCommand(message, command, tan);
 	else if (command == "leddevice")
 		handleLedDeviceCommand(message, command, tan);
+	else if (command == "cec")
+		handleCecCommand(message, command, tan);
 
 	// BEGIN | The following commands are derecated but used to ensure backward compatibility with hyperion Classic remote control
 	else if (command == "clearall")
@@ -1409,7 +1411,6 @@ void JsonAPI::handleLedDeviceCommand(const QJsonObject &message, const QString &
 */	{
 		if (subc == "discover")
 		{
-
 			QJsonObject config;
 			config.insert("type", devType);
 
@@ -1462,6 +1463,30 @@ void JsonAPI::handleLedDeviceCommand(const QJsonObject &message, const QString &
 		{
 			sendErrorReply("Unknown or missing subcommand", full_command, tan);
 		}
+	}
+}
+
+
+void JsonAPI::handleCecCommand(const QJsonObject &message, const QString &command, const int tan)
+{
+	Debug(_log, "message: [%s]", QString(QJsonDocument(message).toJson(QJsonDocument::Compact)).toUtf8().constData());
+
+	const QString &subcommand = message["subcommand"].toString().trimmed();
+
+	QString full_command = command + "-" + subcommand;
+
+	if (subcommand == "scan")
+	{
+		QJsonObject devices;
+		devices.insert("devices", API::scanCec());
+		QJsonDocument document(devices);
+
+                Debug(_log, "response: [%s]", QString(document.toJson(QJsonDocument::Compact)).toUtf8().constData());
+		sendSuccessDataReply(document, full_command, tan);
+	}
+	else
+	{
+		sendErrorReply("Unknown or missing subcommand", full_command, tan);
 	}
 }
 
