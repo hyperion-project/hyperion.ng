@@ -91,3 +91,5 @@ int LedDeviceTemplate::write(const std::vector<ColorRgb> & ledValues)
 
 	return retval;
 }
+
+

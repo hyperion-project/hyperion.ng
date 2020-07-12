@@ -24,7 +24,7 @@ public:
 
 	///
 	/// @brief Sends BYE BYE and stop server
-	///
+	/// 
 	void stopServer();
 
 public slots:
@@ -50,23 +50,23 @@ private:
 	///
 	/// @brief Build http url for current ip:port/desc.xml
 	///
-	QString getDescAddress() const;
+	const QString getDescAddress();
 
 	///
 	/// @brief Get the base address
 	///
-	QString getBaseAddress() const;
+	const QString getBaseAddress();
 
 	///
 	/// @brief Build the ssdp description (description.xml)
 	///
-	QString buildDesc() const;
+	const QString buildDesc();
 
 	///
 	/// @brief Get the local address of interface
 	/// @return the address, might be empty
 	///
-	QString getLocalAddress() const;
+	const QString getLocalAddress();
 
 	///
 	/// @brief Send alive/byebye message based on _deviceList

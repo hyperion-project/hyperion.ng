@@ -6,6 +6,8 @@
 
 #include <QTextStream>
 
+struct ColorRgb;
+
 ///
 /// Plain-Old-Data structure containing the red-green-blue color specification. Size of the
 /// structure is exactly 3-bytes for easy writing to led-device
@@ -85,3 +87,4 @@ inline bool operator>=(const ColorRgb & lhs, const ColorRgb & rhs)
 {
 	return (lhs.red >= rhs.red) && (lhs.green >= rhs.green) && (lhs.blue >= rhs.blue);
 }
+

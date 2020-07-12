@@ -28,8 +28,6 @@ protected:
 	QString _getDescription(const QString description, const QString default_=QString());
 
 public:
-	~Parser() override;
-
 	bool parse(const QStringList &arguments);
 	void process(const QStringList &arguments);
 	void process(const QCoreApplication &app);

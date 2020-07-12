@@ -1,6 +1,6 @@
 
 // QT includes
-#include <QApplication>
+#include <QCoreApplication>
 #include <QImage>
 
 #include <commandline/Parser.h>
@@ -28,7 +28,8 @@ int main(int argc, char ** argv)
 		<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
 		<< "\tbuild time: " << __DATE__ << " " << __TIME__ << std::endl;
 
-	QApplication app(argc, argv);
+	QCoreApplication app(argc, argv);
+
 	try
 	{
 		// create the option parser and initialize all parameters
@@ -66,8 +67,8 @@ int main(int argc, char ** argv)
 					parser.isSet(argCropBottom) ? argCropBottom.getInt(parser) : argCropHeight.getInt(parser),
 					argSizeDecimation.getInt(parser)); // decimation
 
-		if (!x11Wrapper.displayInit())
-			return -1;
+	if (!x11Wrapper.displayInit())
+	  return -1;
 
 		if (parser.isSet(argScreenshot))
 		{

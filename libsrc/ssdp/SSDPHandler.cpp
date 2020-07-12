@@ -68,10 +68,9 @@ void SSDPHandler::stopServer()
 
 void SSDPHandler::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
 {
-	const QJsonObject& obj = config.object();
-
 	if(type == settings::FLATBUFSERVER)
 	{
+		const QJsonObject& obj = config.object();
 		if(obj["port"].toInt() != SSDPServer::getFlatBufPort())
 		{
 			SSDPServer::setFlatBufPort(obj["port"].toInt());
@@ -80,6 +79,7 @@ void SSDPHandler::handleSettingsUpdate(const settings::type& type, const QJsonDo
 
 	if(type == settings::JSONSERVER)
 	{
+		const QJsonObject& obj = config.object();
 		if(obj["port"].toInt() != SSDPServer::getJsonServerPort())
 		{
 			SSDPServer::setJsonServerPort(obj["port"].toInt());
@@ -88,6 +88,7 @@ void SSDPHandler::handleSettingsUpdate(const settings::type& type, const QJsonDo
 
 	if (type == settings::GENERAL)
 	{
+		const QJsonObject &obj = config.object();
 		if (obj["name"].toString() != SSDPServer::getHyperionName())
 		{
 			SSDPServer::setHyperionName(obj["name"].toString());
@@ -133,13 +134,13 @@ void SSDPHandler::handleNetworkConfigurationChanged(const QNetworkConfiguration 
 	}
 }
 
-QString SSDPHandler::getLocalAddress() const
+const QString SSDPHandler::getLocalAddress()
 {
 	// get the first valid IPv4 address. This is probably not that one we actually want to announce
-	for(const auto & address : QNetworkInterface::allAddresses())
+	for( const auto & address : QNetworkInterface::allAddresses())
 	{
 		// is valid when, no loopback, IPv4
-		if (!address.isLoopback() && address.protocol() == QAbstractSocket::IPv4Protocol)
+		if (!address.isLoopback() && address.protocol() == QAbstractSocket::IPv4Protocol )
 		{
 			return address.toString();
 		}
@@ -173,27 +174,26 @@ void SSDPHandler::handleMSearchRequest(const QString& target, const QString& mx,
 	}
 }
 
-QString SSDPHandler::getDescAddress() const
+const QString SSDPHandler::getDescAddress()
 {
 	return getBaseAddress()+"description.xml";
 }
 
-QString SSDPHandler::getBaseAddress() const
+const QString SSDPHandler::getBaseAddress()
 {
-	return QString("http://%1:%2/").arg(_localAddress).arg(_webserver->getPort());
+	return "http://"+_localAddress+":"+QString::number(_webserver->getPort())+"/";
 }
 
-QString SSDPHandler::buildDesc() const
+const QString SSDPHandler::buildDesc()
 {
 	/// %1 base url                   http://192.168.0.177:80/
 	/// %2 friendly name              Hyperion 2.0.0 (192.168.0.177)
 	/// %3 modelNumber                2.0.0
 	/// %4 serialNumber / UDN (H ID)  Fjsa723dD0....
-	return SSDP_DESCRIPTION.arg(getBaseAddress(), QString("Hyperion (%1)").arg(_localAddress), QString(HYPERION_VERSION), _uuid);
+	return SSDP_DESCRIPTION.arg(getBaseAddress(), QString("Hyperion (%2)").arg(_localAddress), QString(HYPERION_VERSION), _uuid);
 }
 
-void SSDPHandler::sendAnnounceList(const bool alive)
-{
+void SSDPHandler::sendAnnounceList(const bool alive){
 	for(const auto & entry : _deviceList){
 		alive ? SSDPServer::sendAlive(entry) : SSDPServer::sendByeBye(entry);
 	}

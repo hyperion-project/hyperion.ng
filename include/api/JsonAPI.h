@@ -85,7 +85,7 @@ private slots:
 	/// @param instance      The index of instance
 	/// @param name          The name of the instance, just available with H_CREATED
 	///
-	void handleInstanceStateChange(const InstanceState &state, const quint8 &instance, const QString &name = QString());
+	void handleInstanceStateChange(const instanceState &state, const quint8 &instance, const QString &name = QString());
 
 signals:
 	///

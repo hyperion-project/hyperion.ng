@@ -32,6 +32,9 @@ public:
 	///
 	LinearColorSmoothing(const QJsonDocument& config, Hyperion* hyperion);
 
+	/// Destructor
+	virtual ~LinearColorSmoothing();
+
 	/// LED values as input for the smoothing filter
 	///
 	/// @param ledValues The color-value per led

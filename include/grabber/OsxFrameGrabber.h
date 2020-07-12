@@ -25,7 +25,7 @@ public:
 	/// @param[in] height The heigth of the captured screenshot
 	///
 	OsxFrameGrabber(const unsigned display, const unsigned width, const unsigned height);
-	~OsxFrameGrabber() override;
+	~OsxFrameGrabber();
 
 	///
 	/// Captures a single snapshot of the display and writes the data to the given image. The

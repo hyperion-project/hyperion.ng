@@ -20,6 +20,11 @@ public:
 	///
 	AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeight);
 
+	///
+	/// Destructor of this dispmanx frame grabber. Releases any claimed resources.
+	///
+	virtual ~AmlogicWrapper() {};
+
 public slots:
 	///
 	/// Performs a single frame grab and computes the led-colors

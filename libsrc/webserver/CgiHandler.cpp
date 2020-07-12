@@ -21,6 +21,10 @@ CgiHandler::CgiHandler (QObject * parent)
 {
 }
 
+CgiHandler::~CgiHandler()
+{
+}
+
 void CgiHandler::setBaseUrl(const QString& url)
 {
 	_baseUrl = url;

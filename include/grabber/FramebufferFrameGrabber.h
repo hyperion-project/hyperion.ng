@@ -18,6 +18,7 @@ public:
 	/// @param[in] height The heigth of the captured screenshot
 	///
 	FramebufferFrameGrabber(const QString & device, const unsigned width, const unsigned height);
+	~FramebufferFrameGrabber();
 
 	///
 	/// Captures a single snapshot of the display and writes the data to the given image. The
@@ -35,6 +36,12 @@ public:
 	virtual void setDevicePath(const QString& path);
 
 private:
+	/// Framebuffer file descriptor
+	int _fbfd;
+
+	/// Pointer to framebuffer
+	unsigned char * _fbp;
+
 	/// Framebuffer device e.g. /dev/fb0
 	QString _fbDevice;
 };

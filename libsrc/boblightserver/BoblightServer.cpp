@@ -59,8 +59,9 @@ void BoblightServer::stop()
 	if ( ! _server->isListening() )
 		return;
 
-	qDeleteAll(_openConnections);
-
+	foreach (BoblightClientConnection * connection, _openConnections) {
+		delete connection;
+	}
 	_server->close();
 
 	Info(_log, "Stopped");

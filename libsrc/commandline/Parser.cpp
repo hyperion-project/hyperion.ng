@@ -4,11 +4,6 @@
 
 using namespace commandline;
 
-Parser::~Parser()
-{
-	qDeleteAll(_options);
-}
-
 bool Parser::parse(const QStringList &arguments)
 {
 	if (!_parser.parse(arguments))
@@ -16,7 +11,7 @@ bool Parser::parse(const QStringList &arguments)
 		return false;
 	}
 
-	for(Option * option : _options)
+	Q_FOREACH(Option * option, _options)
 	{
 		QString value = this->value(*option);
 		if (!option->validate(*this, value)) {

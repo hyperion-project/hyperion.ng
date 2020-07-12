@@ -9,7 +9,6 @@ endif()
 find_package(Qt5Widgets REQUIRED)
 
 add_executable(hyperiond
-	console.h
 	hyperiond.h
 	systray.h
 	hyperiond.cpp

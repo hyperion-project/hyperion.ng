@@ -18,7 +18,7 @@ public:
 	/// @param[in] height The heigth of the captured screenshot
 	///
 	AmlogicGrabber(const unsigned width, const unsigned height);
-	~AmlogicGrabber() override;
+	~AmlogicGrabber();
 
 	///
 	/// Captures a single snapshot of the display and writes the data to the given image. The

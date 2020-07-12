@@ -21,7 +21,7 @@ public:
         return & instance;
     }
 private:
-    GlobalSignals() = default;
+    GlobalSignals() {}
 
 public:
     GlobalSignals(GlobalSignals const&)  = delete;

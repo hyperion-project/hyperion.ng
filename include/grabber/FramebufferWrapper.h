@@ -22,6 +22,11 @@ public:
 	///
 	FramebufferWrapper(const QString & device, const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz);
 
+	///
+	/// Destructor of this framebuffer frame grabber. Releases any claimed resources.
+	///
+	virtual ~FramebufferWrapper() {};
+
 public slots:
 	///
 	/// Performs a single frame grab and computes the led-colors

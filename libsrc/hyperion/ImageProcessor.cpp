@@ -69,8 +69,11 @@ void ImageProcessor::setSize(const unsigned width, const unsigned height)
 		return;
 	}
 
-	// Clean up the old buffer and mapping
-	delete _imageToLeds;
+	if ( _imageToLeds != nullptr)
+	{
+		// Clean up the old buffer and mapping
+		delete _imageToLeds;
+	}
 
 	// Construct a new buffer and mapping
 	_imageToLeds = (width>0 && height>0) ? (new ImageToLedsMap(width, height, 0, 0, _ledString.leds())) : nullptr;

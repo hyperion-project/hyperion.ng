@@ -1,11 +1,8 @@
 #pragma once
 
-#include <QByteArray>
-#include <QDir>
-#include <QFile>
-#include <QRegExp>
 #include <QString>
-#include <QTextStream>
+#include <QProcess>
+#include <QByteArray>
 
 #ifdef WIN32
 // psapi.h requires windows.h to be included
@@ -15,6 +12,7 @@
 
 unsigned int getProcessIdsByProcessName(const char *processName, QStringList &listOfPids)
 {
+
 	// Clear content of returned list of PIDS
 	listOfPids.clear();
 
@@ -59,36 +57,33 @@ unsigned int getProcessIdsByProcessName(const char *processName, QStringList &li
 		}
 	}
 
+	return listOfPids.count();
+
 #else
 
-	QDir dir("/proc");
-	dir.setFilter(QDir::Dirs);
-	dir.setSorting(QDir::Name | QDir::Reversed);
+	// Run pgrep, which looks through the currently running processses and lists the process IDs
+	// which match the selection criteria to stdout.
+	QProcess process;
+	process.start("pgrep", QStringList() << processName);
+	process.waitForReadyRead();
 
-	for (const QString & pid : dir.entryList()) {
-		QRegExp regexp("\\d*");
-		if (!regexp.exactMatch(pid))
-		{
-			/* Not a number, can not be PID */
-			continue;
-		}
+	QByteArray bytes = process.readAllStandardOutput();
 
-		QFile cmdline("/proc/" + pid + "/cmdline");
-		if (!cmdline.open(QFile::ReadOnly | QFile::Text))
-		{
-			/* Can not open cmdline file */
-			continue;
-		}
+	process.terminate();
+	process.waitForFinished();
+	process.kill();
 
-		QTextStream in(&cmdline);
-		QString command = in.readAll();
-		if (command.startsWith(processName))
-		{
-			listOfPids.push_back(pid);
-		}
-	}
+	// Output is something like "2472\n2323" for multiple instances
+	if (bytes.isEmpty())
+		return 0;
 
-#endif
+	#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+		listOfPids = QString(bytes).split("\n", Qt::SkipEmptyParts);
+	#else
+		listOfPids = QString(bytes).split("\n", QString::SkipEmptyParts);
+	#endif
 
 	return listOfPids.count();
+
+#endif
 }

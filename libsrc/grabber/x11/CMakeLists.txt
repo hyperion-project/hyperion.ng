@@ -4,7 +4,6 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/grabber/x11)
 
 # Find X11
 find_package(X11 REQUIRED)
-find_package(Qt5Widgets REQUIRED)
 
 include_directories( ${X11_INCLUDES} )
 
@@ -19,7 +18,5 @@ add_library(x11-grabber ${X11_SOURCES} )
 target_link_libraries(x11-grabber
 	hyperion
 	${X11_LIBRARIES}
-	${X11_Xrandr_LIB}
 	${X11_Xrender_LIB}
-	Qt5::Widgets
 )

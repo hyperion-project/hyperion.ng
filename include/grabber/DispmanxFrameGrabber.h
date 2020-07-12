@@ -27,7 +27,7 @@ public:
 	/// @param[in] height The heigth of the captured screenshot
 	///
 	DispmanxFrameGrabber(const unsigned width, const unsigned height);
-	~DispmanxFrameGrabber() override;
+	~DispmanxFrameGrabber();
 
 
 	///

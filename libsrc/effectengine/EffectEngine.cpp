@@ -28,6 +28,7 @@ EffectEngine::EffectEngine(Hyperion * hyperion)
 	, _log(Logger::getInstance("EFFECTENGINE"))
 	, _effectFileHandler(EffectFileHandler::getInstance())
 {
+
 	Q_INIT_RESOURCE(EffectEngine);
 	qRegisterMetaType<hyperion::Components>("hyperion::Components");
 

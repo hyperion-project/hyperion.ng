@@ -32,6 +32,7 @@ Profiler::Profiler(const char* sourceFile, const char* func, unsigned int line)
 	_logger->Message(Logger::DEBUG,_file,_func,_line,">>> enter block %d", _blockId);
 }
 
+
 Profiler::~Profiler()
 {
   	_logger->Message( Logger::DEBUG, _file,_func, _line, "<<< exit block %d, executed for %f s", _blockId, getClockDelta(_startTime));
@@ -85,3 +86,4 @@ void Profiler::TimerGetTime(const QString timerName, const char* sourceFile, con
 		_logger->Message(Logger::DEBUG, sourceFile, func, line, "ERROR timer '%s' not started", QSTRING_CSTR(timerName));
 	}
 }
+

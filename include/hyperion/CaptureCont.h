@@ -17,6 +17,7 @@ class CaptureCont : public QObject
 	Q_OBJECT
 public:
 	CaptureCont(Hyperion* hyperion);
+	~CaptureCont();
 
 	void setSystemCaptureEnable(const bool& enable);
 	void setV4LCaptureEnable(const bool& enable);

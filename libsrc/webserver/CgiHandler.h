@@ -15,6 +15,7 @@ class CgiHandler : public QObject {
 
 public:
 	CgiHandler (QObject * parent = NULL);
+	virtual ~CgiHandler (void);
 
 	void setBaseUrl(const QString& url);
 	void exec(const QStringList & args,QtHttpRequest * request, QtHttpReply * reply);

@@ -22,7 +22,7 @@ bool ColorsOption::validate(Parser & parser, QString & value)
 	QRegularExpressionMatch match = hexRe.match(value);
 	if(match.hasMatch())
 	{
-		for(const QString m : match.capturedTexts())
+		Q_FOREACH(const QString m, match.capturedTexts())
 		{
 			_colors.push_back(QColor(QString("#%1").arg(m)));
 		}

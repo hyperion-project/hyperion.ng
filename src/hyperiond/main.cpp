@@ -9,8 +9,8 @@
 #endif
 // getpid()
 #ifdef _WIN32
-#include "console.h"
 #include <process.h>
+//#include <Windows.h>
 #else
 #include <unistd.h>
 #endif
@@ -144,11 +144,16 @@ int main(int argc, char** argv)
 #ifndef _WIN32
 	setenv("AVAHI_COMPAT_NOWARN", "1", 1);
 #endif
+#ifdef _WIN32
+	// We can get a console window also in app gui mode conditional
+	//AllocConsole();
+#endif
 	// initialize main logger and set global log level
 	Logger *log = Logger::getInstance("MAIN");
 	Logger::setLogLevel(Logger::WARNING);
 
 	// check if we are running already an instance
+	// TODO Do not use pgrep on linux, instead iter /proc
 	// TODO Allow one session per user
 	// http://www.qtcentre.org/threads/44489-Get-Process-ID-for-a-running-application
 	QStringList listOfPids;
@@ -191,21 +196,11 @@ int main(int argc, char** argv)
 	BooleanOption & silentOption        = parser.add<BooleanOption> ('s', "silent", "do not print any outputs");
 	BooleanOption & verboseOption       = parser.add<BooleanOption> ('v', "verbose", "Increase verbosity");
 	BooleanOption & debugOption         = parser.add<BooleanOption> ('d', "debug", "Show debug messages");
-#ifdef WIN32
-	BooleanOption & consoleOption       = parser.add<BooleanOption> ('c', "console", "Open a console window to view log output");
-#endif
-	                                      parser.add<BooleanOption> (0x0, "desktop", "show systray on desktop");
+                                          parser.add<BooleanOption> (0x0, "desktop", "show systray on desktop");
 	                                      parser.add<BooleanOption> (0x0, "service", "force hyperion to start as console service");
 	Option        & exportEfxOption     = parser.add<Option>        (0x0, "export-effects", "export effects to given path");
 
 	parser.process(*qApp);
-
-#ifdef WIN32
-	if (parser.isSet(consoleOption))
-	{
-		CreateConsole();
-	}
-#endif
 
 	int logLevelCheck = 0;
 	if (parser.isSet(silentOption))
@@ -252,7 +247,7 @@ int main(int argc, char** argv)
 			std::cout << "extract to folder: " << std::endl;
 			QStringList filenames = directory.entryList(QStringList() << "*", QDir::Files, QDir::Name | QDir::IgnoreCase);
 			QString destFileName;
-			for (const QString & filename : filenames)
+			foreach (const QString & filename, filenames)
 			{
 				destFileName = destDir.dirName()+"/"+filename;
 				if (QFile::exists(destFileName))

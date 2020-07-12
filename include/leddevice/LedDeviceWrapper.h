@@ -20,7 +20,7 @@ class LedDeviceWrapper : public QObject
 	Q_OBJECT
 public:
 	explicit LedDeviceWrapper(Hyperion* hyperion);
-	~LedDeviceWrapper() override;
+	~LedDeviceWrapper();
 	///
 	/// @brief Constructs a new LedDevice, moves to thread and starts
 	/// @param config  With the given configuration
@@ -107,7 +107,7 @@ protected:
 private:
 	///
 	/// @brief switchOff() the device and Stops the device thread
-	///
+	/// 
 	void stopDeviceThread();
 
 private:

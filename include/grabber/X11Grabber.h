@@ -1,7 +1,5 @@
 #pragma once
-#include <QAbstractEventDispatcher>
-#include <QAbstractNativeEventFilter>
-#include <QCoreApplication>
+
 #include <QObject>
 
 // Hyperion-utils includes
@@ -10,19 +8,18 @@
 
 // X11 includes
 #include <X11/Xlib.h>
-#include <X11/extensions/Xrandr.h>
 #include <X11/extensions/Xrender.h>
 #include <X11/extensions/XShm.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
-class X11Grabber : public Grabber , public QAbstractNativeEventFilter
+class X11Grabber : public Grabber
 {
 public:
 
 	X11Grabber(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation);
 
-	~X11Grabber() override;
+	virtual ~X11Grabber();
 
 	bool Setup();
 
@@ -61,11 +58,8 @@ public:
 	///
 	virtual void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom);
 
-protected:
-	bool nativeEventFilter(const QByteArray & eventType, void * message, long int * result) override;
-
 private:
-	bool _XShmAvailable, _XShmPixmapAvailable, _XRenderAvailable,  _XRandRAvailable;
+	bool _XShmAvailable, _XShmPixmapAvailable, _XRenderAvailable;
 
 	XImage* _xImage;
 	XShmSegmentInfo _shminfo;
@@ -81,8 +75,6 @@ private:
 	XRenderPictureAttributes _pictAttr;
 	Picture _srcPicture;
 	Picture _dstPicture;
-
-	int _XRandREventBase;
 
 	XTransform _transform;
 	int _pixelDecimation;

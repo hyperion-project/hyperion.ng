@@ -21,7 +21,7 @@ For more profiler function see the macros listed below
 */
 
 #ifndef ENABLE_PROFILER
-	#error "Profiler is not for production code, enable it via cmake or remove header include"
+	#error "Profiler is not for productive code, enable it via cmake or remove header include"
 #endif
 
 // profiler
@@ -50,3 +50,4 @@ private:
 	unsigned int    _blockId;
 	clock_t         _startTime;
 };
+

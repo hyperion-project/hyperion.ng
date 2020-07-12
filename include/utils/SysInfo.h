@@ -20,6 +20,7 @@ public:
 		QString domainName;
 	};
 
+	~SysInfo();
 	static HyperionSysInfo get();
 
 private:

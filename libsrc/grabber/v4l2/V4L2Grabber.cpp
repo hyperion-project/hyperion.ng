@@ -95,7 +95,7 @@ bool V4L2Grabber::init()
 		QString v4lDevices_str;
 
 		// show list only once
-		if (!_deviceName.startsWith("/dev/"))
+		if (!QString(QSTRING_CSTR(_deviceName)).startsWith("/dev/"))
 		{
 			for (auto& dev: _v4lDevices)
 			{
@@ -369,8 +369,11 @@ void V4L2Grabber::close_device()
 
 	_fileDescriptor = -1;
 
-	delete _streamNotifier;
-	_streamNotifier = nullptr;
+	if (_streamNotifier != nullptr)
+	{
+		delete _streamNotifier;
+		_streamNotifier = nullptr;
+	}
 }
 
 void V4L2Grabber::init_read(unsigned int buffer_size)

@@ -170,29 +170,29 @@ void HyperionDaemon::freeObjects()
 	delete _jsonServer;
 	_flatBufferServer->thread()->quit();
 	_flatBufferServer->thread()->wait(1000);
-	delete _flatBufferServer->thread();
-	delete _flatBufferServer;
+	_flatBufferServer->deleteLater();
+	_flatBufferServer->thread()->deleteLater();
 
 	_protoServer->thread()->quit();
 	_protoServer->thread()->wait(1000);
-	delete _protoServer->thread();
-	delete _protoServer;
+	_protoServer->deleteLater();
+	_protoServer->thread()->deleteLater();
 
 	//ssdp before webserver
 	_ssdp->thread()->quit();
 	_ssdp->thread()->wait(1000);
-	delete _ssdp->thread();
-	delete _ssdp;
+	_ssdp->deleteLater();
+	_ssdp->thread()->deleteLater();
 
 	_webserver->thread()->quit();
 	_webserver->thread()->wait(1000);
-	delete _webserver->thread();
-	delete _webserver;
+	_webserver->deleteLater();
+	_webserver->thread()->deleteLater();
 
 	_sslWebserver->thread()->quit();
 	_sslWebserver->thread()->wait(1000);
-	delete _sslWebserver->thread();
-	delete _sslWebserver;
+	_sslWebserver->deleteLater();
+	_sslWebserver->thread()->deleteLater();
 
 	// stop Hyperions (non blocking)
 	_instanceManager->stopAll();

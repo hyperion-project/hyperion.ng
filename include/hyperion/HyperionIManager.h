@@ -12,7 +12,7 @@
 class Hyperion;
 class InstanceTable;
 
-enum class InstanceState{
+enum instanceState{
 	H_STARTED,
 	H_ON_STOP,
 	H_STOPPED,
@@ -29,7 +29,7 @@ class HyperionIManager : public QObject
 
 public:
 	// global instance pointer
-	static HyperionIManager* getInstance() { return HIMinstance; }
+	static HyperionIManager* getInstance() { return HIMinstance; };
 	static HyperionIManager* HIMinstance;
 
 public slots:
@@ -38,7 +38,7 @@ public slots:
 	/// @param inst  The instance to check
 	/// @return  True when running else false
 	///
-	bool IsInstanceRunning(const quint8& inst) { return _runningInstances.contains(inst); }
+	bool IsInstanceRunning(const quint8& inst) { return _runningInstances.contains(inst); };
 
 	///
 	/// @brief Get a Hyperion instance by index
@@ -103,7 +103,7 @@ signals:
 	/// @param instance      The index of instance
 	/// @param name          The name of the instance, just available with H_CREATED
 	///
-	void instanceStateChanged(const InstanceState& state, const quint8& instance, const QString& name = QString());
+	void instanceStateChanged(const instanceState& state, const quint8& instance, const QString& name = QString());
 
 	///
 	/// @brief Emits whenever something changes, the lazy version of instanceStateChanged (- H_ON_STOP) + saveName() emit
@@ -172,7 +172,7 @@ private:
 	/// @brief check if a instance is allowed for management. Instance 0 represents the root instance
 	/// @apram inst The instance to check
 	///
-	bool isInstAllowed(const quint8& inst) { return (inst > 0); }
+	bool isInstAllowed(const quint8& inst) { return (inst > 0); };
 
 private:
 	Logger* _log;

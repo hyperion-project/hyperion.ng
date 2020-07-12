@@ -2,6 +2,7 @@
 
 // stl includes
 #include <list>
+#include <QMap>
 
 // QT includes
 #include <QString>
@@ -10,7 +11,6 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QJsonArray>
-#include <QMap>
 #include <QMutex>
 
 // hyperion-utils includes
@@ -59,25 +59,32 @@ class Hyperion : public QObject
 	Q_OBJECT
 public:
 	///  Type definition of the info structure used by the priority muxer
-	using InputInfo = PriorityMuxer::InputInfo;
+	typedef PriorityMuxer::InputInfo InputInfo;
+	///
+	/// RGB-Color channel enumeration
+	///
+	enum RgbChannel
+	{
+		BLACK, WHITE, RED, GREEN, BLUE, CYAN, MAGENTA, YELLOW, INVALID
+	};
 
 	///
 	/// Destructor; cleans up resources
 	///
-	~Hyperion() override;
+	virtual ~Hyperion();
 
 	///
 	/// free all alocated objects, should be called only from constructor or before restarting hyperion
 	///
 	void freeObjects(bool emitCloseSignal=false);
 
-	ImageProcessor* getImageProcessor() { return _imageProcessor; }
+	ImageProcessor* getImageProcessor() { return _imageProcessor; };
 
 	///
 	/// @brief Get instance index of this instance
 	/// @return The index of this instance
 	///
-	const quint8 & getInstanceIndex() { return _instIndex; }
+	const quint8 & getInstanceIndex() { return _instIndex; };
 
 	///
 	/// Returns the number of attached leds
@@ -87,7 +94,7 @@ public:
 	///
 	/// @brief Return the size of led grid
 	///
-	QSize getLedGridSize() const { return _ledGridSize; }
+	QSize getLedGridSize() const { return _ledGridSize; };
 
 	/// gets the methode how image is maped to leds
 	const int & getLedMappingType();
@@ -103,8 +110,8 @@ public:
 
 	///
 	/// @brief Get the current active led device
-	/// @return The device name
-	///
+	/// @return The device nam
+	/// e
 	const QString & getActiveDeviceType();
 
 	///
@@ -199,7 +206,7 @@ public slots:
 	/// @return     EffectEngine instance pointer
 	///
 
-	EffectEngine* getEffectEngineInstance() { return _effectEngine; }
+	EffectEngine* getEffectEngineInstance() { return _effectEngine; };
 	///
 	/// @brief Save an effect
 	/// @param  obj  The effect args
@@ -252,7 +259,7 @@ public slots:
 	/// @brief Get a pointer to the priorityMuxer instance
 	/// @return      PriorityMuxer instance pointer
 	///
-	PriorityMuxer* getMuxerInstance() { return &_muxer; }
+	PriorityMuxer* getMuxerInstance() { return &_muxer; };
 
 	///
 	/// @brief enable/disable automatic/priorized source selection
@@ -328,7 +335,7 @@ public slots:
 	/// @brief Get the component Register
 	/// return Component register pointer
 	///
-	ComponentRegister& getComponentRegister() { return _componentRegister; }
+	ComponentRegister& getComponentRegister() { return _componentRegister; };
 
 	///
 	/// @brief Called from components to update their current state. DO NOT CALL FROM USERS
@@ -482,7 +489,7 @@ private slots:
 	///
 	/// @brief Apply new videoMode from Daemon to _currVideoMode
 	///
-	void handleNewVideoMode(const VideoMode& mode) { _currVideoMode = mode; }
+	void handleNewVideoMode(const VideoMode& mode) { _currVideoMode = mode; };
 
 private:
 	friend class HyperionDaemon;
