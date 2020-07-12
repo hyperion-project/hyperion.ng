@@ -39,7 +39,7 @@ private slots:
 	///
 	/// @brief is called whenever a hyperion isntance state changes
 	///
-	void handleInstanceStateChange(const instanceState& state, const quint8& instance, const QString& name);
+	void handleInstanceStateChange(const InstanceState& state, const quint8& instance, const QString& name);
 
 private:
 	void createTrayIcon();

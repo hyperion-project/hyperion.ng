@@ -40,6 +40,7 @@ inline QString colorOrderToString(const ColorOrder colorOrder)
 		return "not-a-colororder";
 	}
 }
+
 inline ColorOrder stringToColorOrder(const QString & order)
 {
 	if (order == "rgb")

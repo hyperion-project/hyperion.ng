@@ -48,6 +48,9 @@ Covers these topics (WorkInProgress)
 
 [![Visit Documentation](https://img.shields.io/website?down_message=offline&label=Documentation%20%20&up_message=online&url=https%3A%2F%2Fdocs.hyperion-project.org)](https://docs.hyperion-project.org)
 
+## Changelog
+Released and unreleased changes at [Changelog.md](CHANGELOG.md)
+
 ## Building
 See [CompileHowto](CompileHowto.md) and [CrossCompileHowto](CrossCompileHowto.md).
 
