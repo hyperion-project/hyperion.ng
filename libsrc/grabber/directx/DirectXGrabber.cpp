@@ -94,7 +94,7 @@ bool DirectXGrabber::setupDisplay()
 	// calculate final image dimensions and adjust top/left cropping in 3D modes
 	switch (_videoMode)
 	{
-		case VIDEO_3DSBS:
+		case VideoMode::VIDEO_3DSBS:
 			_width  = width / 2;
 			_height = height;
 			_src_x = _cropLeft / 2;
@@ -102,7 +102,7 @@ bool DirectXGrabber::setupDisplay()
 			_src_x_max = (_displayWidth / 2) - _cropRight;
 			_src_y_max = _displayHeight - _cropBottom;
 			break;
-		case VIDEO_3DTAB:
+		case VideoMode::VIDEO_3DTAB:
 			_width  = width;
 			_height = height / 2;
 			_src_x = _cropLeft;
@@ -110,7 +110,7 @@ bool DirectXGrabber::setupDisplay()
 			_src_x_max = _displayWidth - _cropRight;
 			_src_y_max = (_displayHeight / 2) - _cropBottom;
 			break;
-		case VIDEO_2D:
+		case VideoMode::VIDEO_2D:
 		default:
 			_width  = width;
 			_height = height;
