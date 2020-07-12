@@ -1606,11 +1606,11 @@ void JsonAPI::handleTokenResponse(const bool &success, const QString &token, con
 		sendErrorReply("Token request timeout or denied", cmd, 5);
 }
 
-void JsonAPI::handleInstanceStateChange(const instanceState &state, const quint8 &instance, const QString &name)
+void JsonAPI::handleInstanceStateChange(const InstanceState &state, const quint8 &instance, const QString &name)
 {
 	switch (state)
 	{
-	case H_ON_STOP:
+	case InstanceState::H_ON_STOP:
 		if (_hyperion->getInstanceIndex() == instance)
 		{
 			handleInstanceSwitch();

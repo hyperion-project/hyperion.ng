@@ -36,12 +36,12 @@ else()
 endif()
 
 # Set build variables
-SET ( DEFAULT_AMLOGIC    OFF )
-SET ( DEFAULT_DISPMANX   OFF )
+SET ( DEFAULT_AMLOGIC    ON )
+SET ( DEFAULT_DISPMANX   ON )
 SET ( DEFAULT_OSX        OFF )
-SET ( DEFAULT_X11        OFF )
+SET ( DEFAULT_X11        ON )
 SET ( DEFAULT_QT         ON )
-SET ( DEFAULT_WS281XPWM  OFF )
+SET ( DEFAULT_WS281XPWM  ON )
 SET ( DEFAULT_AVAHI      ON  )
 SET ( DEFAULT_USE_SHARED_AVAHI_LIBS  ON )
 SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF )
@@ -389,6 +389,9 @@ endif ()
 
 # Add resources directory
 add_subdirectory(resources)
+
+# Add the doxygen generation directory
+add_subdirectory(doc)
 
 # remove generated files on make cleaan too
 LIST( APPEND GENERATED_QRC

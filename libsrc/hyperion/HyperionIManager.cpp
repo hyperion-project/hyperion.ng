@@ -16,7 +16,7 @@ HyperionIManager::HyperionIManager(const QString& rootPath, QObject* parent)
 	, _rootPath( rootPath )
 {
 	HIMinstance = this;
-	qRegisterMetaType<instanceState>("instanceState");
+	qRegisterMetaType<InstanceState>("InstanceState");
 }
 
 Hyperion* HyperionIManager::getHyperionInstance(const quint8& instance)
@@ -124,7 +124,7 @@ bool HyperionIManager::stopInstance(const quint8& inst)
 		if(_runningInstances.contains(inst))
 		{
 			// notify a ON_STOP rather sooner than later, queued signal listener should have some time to drop the pointer before it's deleted
-			emit instanceStateChanged(H_ON_STOP, inst);
+			emit instanceStateChanged(InstanceState::H_ON_STOP, inst);
 			Hyperion* hyperion = _runningInstances.value(inst);
 			hyperion->stop();
 
@@ -146,7 +146,7 @@ bool HyperionIManager::createInstance(const QString& name, const bool& start)
 	if(_instanceTable->createInstance(name, inst))
 	{
 		Info(_log,"New Hyperion instance created with name '%s'",QSTRING_CSTR(name));
-		emit instanceStateChanged(H_CREATED, inst, name);
+		emit instanceStateChanged(InstanceState::H_CREATED, inst, name);
 		emit change();
 
 		if(start)
@@ -168,7 +168,7 @@ bool HyperionIManager::deleteInstance(const quint8& inst)
 	if(_instanceTable->deleteInstance(inst))
 	{
 		Info(_log,"Hyperion instance with index '%d' has been deleted", inst);
-		emit instanceStateChanged(H_DELETED, inst);
+		emit instanceStateChanged(InstanceState::H_DELETED, inst);
 		emit change();
 
 		return true;
@@ -194,8 +194,9 @@ void HyperionIManager::handleFinished()
 	Info(_log,"Hyperion instance '%s' has been stopped", QSTRING_CSTR(_instanceTable->getNamebyIndex(instance)));
 
 	_runningInstances.remove(instance);
+	hyperion->thread()->deleteLater();
 	hyperion->deleteLater();
-	emit instanceStateChanged(H_STOPPED, instance);
+	emit instanceStateChanged(InstanceState::H_STOPPED, instance);
 	emit change();
 }
 
@@ -208,6 +209,6 @@ void HyperionIManager::handleStarted()
 
 	_startQueue.removeAll(instance);
 	_runningInstances.insert(instance, hyperion);
-	emit instanceStateChanged(H_STARTED, instance);
+	emit instanceStateChanged(InstanceState::H_STARTED, instance);
 	emit change();
 }
