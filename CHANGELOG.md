@@ -14,12 +14,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve language selection usability (#812)
 - readded V4L2 Input method from old Hyperion (#825)
 - Windows: Start Hyperion with a console window `hyperiond -c` (Or new start menu entry) (#860)
+- Get process IDs by iterating /proc (#843)
+- Dump stack trace on crash (Implement #849) (#870)
+- Minor fixes
 
 ### Changed
 - Updated dependency rpi_ws281x to latest upstream (#820)
 - Updated websocket-extensions (#826)
 - webui: Suppress default password warning (#830)
 - webui: Add French, Vietnamese and Turkish (#842)
+- Show thread names in GDB for better debugging (#848)
+- CompileHowto.md updated (#864)
+- Updated Embedded python package (zip) for Linux (#871)
+- DBManager: ORDER BY parameter added to getRecord(s) (#770)
+- Corrected GitHub Actions badge
+- Fix GitHub Actions/Azure Windows Workflow/Pipeline
+- Updated submodules flatbuffers/rpi_ws281x (#873)
+- LED Device Features, Fixes and Refactoring (Resubmit PR855) (#875) (THIS ONE IS HUGE! THX TO @Lord-Grey)
+  * Refactor LedDevices - Initial version
+  * Small renamings
+  * Add WLED as own device
+  * Lpd8806 Remove open() method
+  * remove dependency on Qt 5.10
+  * Lpd8806 Remove open() method
+  * Update WS281x
+  * Update WS2812SPI
+  * Add writeBlack for WLED powerOff
+  * WLED remove extra bracket
+  * Allow different Nanoleaf panel numbering sequence (Feature req.#827)
+  * build(deps): bump websocket-extensions from 0.1.3 to 0.1.4 in /docs (#826)
+  * Bumps [websocket-extensions](https://github.com/faye/websocket-extensions-node) from 0.1.3 to 0.1.4.
+  - [Release notes](https://github.com/faye/websocket-extensions-node/releases)
+  - [Changelog](https://github.com/faye/websocket-extensions-node/blob/master/CHANGELOG.md)
+  - [Commits](faye/websocket-extensions-node@0.1.3...0.1.4)
+  * Fix typos
+  * Nanoleaf clean-up
+  * Yeelight support, generalize wizard elements
+  * Update Yeelight to handle quota in music mode
+  * Yeelight extend rage for extraTimeDarkness for testing
+  * Clean-up - Add commentary, Remove development debug statements
+  * Fix brightnessSwitchOffOnMinimum typo and default value
+  * Yeelight support restoreOriginalState, additional Fixes
+  * WLED - Remove UDP-Port, as it is not configurable
+  * Fix merging issue
+  * Remove QHostAddress::operator=(const QString&)' is deprecated
+  * Windows compile errors and (Qt 5.15 deprecation) warnings
+  * Fix order includes
+  * LedDeviceFile Support Qt5.7 and greater
+  * Windows compatibility and other Fixes
+  * Fix Qt Version compatability
+  * Rs232 - Resolve portname from unix /dev/ style, fix DMX sub-type support
+  * Disable WLED Wizard Button (until Wizard is available)
+  * Yeelight updates
+  * Add wrong log-type as per #505
+  * Fixes and Clean-up after clang-tidy report
+  * Fix udpe131 not enabled for generated CID
+  * Change timer into dynamic for Qt Thread-Affinity
+  * Hue clean-up and diyHue workaround
+  * Updates after review feedback by m-seker
+  * Add "chrono" includes
 
 ### Fixed
 - device: Nanoleaf (#829)
@@ -29,7 +82,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix systemd registration in debian for RPi4 (#820)
 - Fix missing define in Profiler & added header notes (#820)
 - some Windows Compile issues
-- some little things, as always
+- Fix: leaking active effects during quit (#850)
+- Correct path for each build configuration
+- Fix heap corruption (#862)
+- Fix OpenSSL dependencies for Windows (#864)
+- Fix resolution change event Fixes part of #620 (#867)
+- some code improvements & cleanup (#861) (#872)
+- some little things, as always (#863)
+
 ### Removed
 
 ## [2.0.0-alpha.6](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.6) - 2020-05-27
