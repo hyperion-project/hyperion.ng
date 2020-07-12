@@ -122,7 +122,7 @@ public:
 	inline QVector<QVariantMap> getAllInstances(const bool& justEnabled = false)
 	{
 		QVector<QVariantMap> results;
-		getRecords(results);
+		getRecords(results, QStringList(), QStringList() << "instance ASC");
 		if(justEnabled)
 		{
 			for (auto it = results.begin(); it != results.end();)
