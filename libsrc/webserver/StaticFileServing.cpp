@@ -97,11 +97,6 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 				{
 					_cgi.exec(uri_parts, request, reply);
 				}
-				catch(int err)
-				{
-					Error(_log,"Exception while executing cgi %s :  %d", path.toStdString().c_str(), err);
-					printErrorToReply (reply, QtHttpReply::InternalError, "script failed (" % path % ")");
-				}
 				catch(std::exception &e)
 				{
 					Error(_log,"Exception while executing cgi %s :  %s", path.toStdString().c_str(), e.what());

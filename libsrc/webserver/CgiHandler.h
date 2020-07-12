@@ -18,13 +18,13 @@ public:
 	virtual ~CgiHandler (void);
 
 	void setBaseUrl(const QString& url);
-	void exec(const QStringList & args,QtHttpRequest * request, QtHttpReply * reply);
-
-	// cgi commands
-	void cmd_cfg_jsonserver();
-	void cmd_runscript ();
+	bool exec(const QStringList & args,QtHttpRequest * request, QtHttpReply * reply);
 
 private:
+	// cgi commands
+	bool cmd_cfg_jsonserver();
+	bool cmd_runscript ();
+
 	QtHttpReply *       _reply;
 	QtHttpRequest *     _request;
 	QStringList         _args;

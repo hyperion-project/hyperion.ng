@@ -32,25 +32,30 @@ void CgiHandler::setBaseUrl(const QString& url)
 
 void CgiHandler::exec(const QStringList & args, QtHttpRequest * request, QtHttpReply * reply)
 {
-	try
+// 	QByteArray header = reply->getHeader(QtHttpHeader::Host);
+// 	QtHttpRequest::ClientInfo info = request->getClientInfo();
+	_args = args;
+	_request = request;
+	_reply   = reply;
+
+	if ( _args.at(0) == "cfg_jsonserver" )
 	{
-// 		QByteArray header = reply->getHeader(QtHttpHeader::Host);
-// 		QtHttpRequest::ClientInfo info = request->getClientInfo();
-		_args = args;
-		_request = request;
-		_reply   = reply;
-		cmd_cfg_jsonserver();
-// 		cmd_cfg_set();
-		cmd_runscript();
-		throw 1;
+		if ( cmd_cfg_jsonserver() )
+		{
+			return;
+		}
 	}
-	catch(int e)
+	else if ( _args.at(0) == "run" )
 	{
-		if (e != 0) throw 1;
+		if ( cmd_runscript() )
+		{
+			return;
+		}
 	}
+	throw std::runtime_error("CGI execution failed");
 }
 
-void CgiHandler::cmd_cfg_jsonserver()
+bool CgiHandler::cmd_cfg_jsonserver()
 {
 	if ( _args.at(0) == "cfg_jsonserver" )
 	{
@@ -59,11 +64,12 @@ void CgiHandler::cmd_cfg_jsonserver()
 		_reply->addHeader ("Content-Type", "text/plain" );
 		_reply->appendRawData (QByteArrayLiteral(":") % QString::number(jsonPort).toUtf8() );
 
-		throw 0;
+		return true;
 	}
+	return false;
 }
 
-void CgiHandler::cmd_runscript()
+bool CgiHandler::cmd_runscript()
 {
 	if ( _args.at(0) == "run" )
 	{
@@ -75,7 +81,7 @@ void CgiHandler::cmd_runscript()
 		if (scriptFilePath.indexOf("..") >=0)
 		{
 			Error( _log, "relative path not allowed (%s)", scriptFilePath.toStdString().c_str());
-			throw 1;
+			return false;
 		}
 
 		scriptFilePath = _baseUrl+"/server_scripts/"+scriptFilePath;
@@ -87,13 +93,13 @@ void CgiHandler::cmd_runscript()
 			QByteArray data = Process::command_exec("python " + scriptFilePath, inputData);
 			_reply->addHeader ("Content-Type", "text/plain");
 			_reply->appendRawData (data);
-			throw 0;
+			return true;
 		}
 		else
 		{
 			Error( _log, "script %s doesn't exists or is no python file", scriptFilePath.toStdString().c_str());
 		}
 
-		throw 1;
+		return false;
 	}
 }
