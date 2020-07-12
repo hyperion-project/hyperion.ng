@@ -35,14 +35,6 @@ public:
 	/// @return LedDevice constructed
 	static LedDevice* construct(const QJsonObject &deviceConfig);
 
-	public slots:	
-	///
-	/// @brief Closes the output device.
-	///
-	/// @return Zero on success (i.e. device is closed), else negative
-	///
-	virtual void close() override;
-
 protected:
 
 	///
@@ -59,6 +51,13 @@ protected:
 	/// @return Zero on success (i.e. device is ready), else negative
 	///
 	virtual int open() override;
+
+	///
+	/// @brief Closes the output device.
+	///
+	/// @return Zero on success (i.e. device is closed), else negative
+	///
+	virtual int close() override;
 
 	///
 	/// @brief Writes the RGB-Color values to the LEDs.

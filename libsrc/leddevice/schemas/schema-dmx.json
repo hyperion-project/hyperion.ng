@@ -2,23 +2,35 @@
 	"type":"object",
 	"required":true,
 	"properties":{
+		"dmxtype": {
+			"type": "string",
+			"title":"edt_dev_spec_ledType_title",
+			"enum" : ["raw", "McCrypt"],
+			"default" : "raw",
+			"options" : {
+				"enum_titles" : ["Raw", "McCrypt"]
+			},
+			"minimum" : 0,
+			"maximum" : 1,
+			"propertyOrder" : 1
+		},
 		"output": {
 			"type": "string",
 			"title":"edt_dev_spec_outputPath_title",
-			"default":"/dev/ttyUSB0",
-			"propertyOrder" : 1
+			"default":"ttyUSB0",
+			"propertyOrder" : 2
 		},
 		"rate": {
 			"type": "integer",
 			"title":"edt_dev_spec_baudrate_title",
 			"default": 250000,
-			"propertyOrder" : 2
+			"propertyOrder" : 3
 		},
 		"delayAfterConnect": {
 			"type": "integer",
 			"title":"edt_dev_spec_delayAfterConnect_title",
 			"default": 250,
-			"propertyOrder" : 3
+			"propertyOrder" : 4
 		},
 		"latchTime": {
 			"type": "integer",
@@ -28,7 +40,7 @@
 			"minimum": 0,
 			"maximum": 1000,
 			"access" : "expert",
-			"propertyOrder" : 4
+			"propertyOrder" : 5
 		},
 		"rewriteTime": {
 			"type": "integer",
@@ -37,7 +49,7 @@
 			"append" : "edt_append_ms",
 			"minimum": 0,
 			"access" : "expert",
-			"propertyOrder" : 5
+			"propertyOrder" : 6
 		}		
 	},
 	"additionalProperties": true

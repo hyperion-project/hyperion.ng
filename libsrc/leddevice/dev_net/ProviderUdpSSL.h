@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PROVIDERUDPSSL_H
+#define PROVIDERUDPSSL_H
 
 #include <leddevice/LedDevice.h>
 #include <utils/Logger.h>
@@ -36,6 +37,7 @@
 
 #include <string.h>
 #include <cstring>
+#include <chrono>
 
 #include <mbedtls/net_sockets.h>
 #include <mbedtls/ssl_ciphersuites.h>
@@ -45,12 +47,11 @@
 #include <mbedtls/error.h>
 #include <mbedtls/debug.h>
 
-#define READ_TIMEOUT_MS 1000
-#define MAX_RETRY       5
-
 //----------- END mbedtls
 
-const ushort MAX_PORT_SSL = 65535;
+constexpr std::chrono::milliseconds STREAM_SSL_HANDSHAKE_TIMEOUT_MIN{400};
+constexpr std::chrono::milliseconds STREAM_SSL_HANDSHAKE_TIMEOUT_MAX{1000};
+constexpr std::chrono::milliseconds STREAM_SSL_READ_TIMEOUT{0};
 
 class ProviderUdpSSL : public LedDevice
 {
@@ -58,44 +59,45 @@ class ProviderUdpSSL : public LedDevice
 
 public:
 	///
-	/// Constructs specific LedDevice
+	/// @brief Constructs an UDP SSL LED-device
 	///
 	ProviderUdpSSL();
 
 	///
-	/// Destructor of the LedDevice; closes the output device if it is open
+	/// @brief Destructor of the LED-device
 	///
 	virtual ~ProviderUdpSSL() override;
-
-	///
-	/// Sets configuration
-	///
-	/// @param deviceConfig the json device config
-	/// @return true if success
-	virtual bool init(const QJsonObject &deviceConfig) override;
-
-public slots:
-	///
-	/// Closes the output device.
-	/// Includes switching-off the device and stopping refreshes
-	///
-	virtual void close() override;
 
 protected:
 
 	///
-	/// Initialise device's network details
+	/// @brief Initialise the UDP-SSL device's configuration and network address details
 	///
-	/// @return True if success
+	/// @param[in] deviceConfig the JSON device configuration
+	/// @return True, if success#endif // PROVIDERUDP_H
 	///
-	bool initNetwork();
+	virtual bool init(const QJsonObject &deviceConfig) override;
 
 	///
-	/// Opens and configures the output device
+	/// @brief Opens the output device.
 	///
-	/// @return Zero on succes else negative
+	/// @return Zero on success (i.e. device is ready), else negative
 	///
-	int open() override;
+	virtual int open() override;
+
+	///
+	/// @brief Closes the output device.
+	///
+	/// @return Zero on success (i.e. device is closed), else negative
+	///
+	virtual int close() override;
+
+	///
+	/// @brief Initialise device's network details
+	///
+	/// @return True, if success
+	///
+	bool initNetwork();
 
 	///
 	/// Writes the given bytes/bits to the UDP-device and sleeps the latch time to ensure that the
@@ -208,3 +210,5 @@ private:
 	bool         _debugStreamer;
 	int          _debugLevel;
 };
+
+#endif // PROVIDERUDPSSL_H

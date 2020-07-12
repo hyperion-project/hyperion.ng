@@ -26,6 +26,7 @@ void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, const WhiteAlgorithm algori
 			output->blue  = input.blue  - output->white;
 			break;
 		}
+
 		case WhiteAlgorithm::SUB_MIN_WARM_ADJUST:
 		{
 			// http://forum.garagecube.com/viewtopic.php?t=10178

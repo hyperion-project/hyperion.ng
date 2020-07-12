@@ -1,4 +1,5 @@
-#pragma once
+#ifndef LEDEVICERAWHID_H
+#define LEDEVICERAWHID_H
 
 // Qt includes
 #include <QTimer>
@@ -11,31 +12,40 @@
 ///
 class LedDeviceRawHID : public ProviderHID
 {
-
 public:
+
 	///
-	/// Constructs specific LedDevice
+	/// @brief Constructs a Raw-HID LED-device
 	///
-	/// @param deviceConfig json device config
+	/// @param deviceConfig Device's configuration as JSON-Object
 	///
 	explicit LedDeviceRawHID(const QJsonObject &deviceConfig);
 
-	/// constructs leddevice
+	///
+	/// @brief Constructs the LED-device
+	///
+	/// @param[in] deviceConfig Device's configuration as JSON-Object
+	/// @return LedDevice constructed
+	///
 	static LedDevice* construct(const QJsonObject &deviceConfig);
 
+private:
+
 	///
-	/// Sets configuration
+	/// @brief Initialise the device's configuration
 	///
-	/// @param deviceConfig the json device config
-	/// @return true if success
+	/// @param[in] deviceConfig the JSON device configuration
+	/// @return True, if success
+	///
 	virtual bool init(const QJsonObject &deviceConfig) override;
 
-private:
 	///
-	/// Writes the led color values to the led-device
+	/// @brief Writes the RGB-Color values to the LEDs.
 	///
-	/// @param ledValues The color-value per led
-	/// @return Zero on succes else negative
+	/// @param[in] ledValues The RGB-color per LED
+	/// @return Zero on success, else negative
 	///
 	virtual int write(const std::vector<ColorRgb> & ledValues) override;
 };
+
+#endif // LEDEVICERAWHID_H
