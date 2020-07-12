@@ -194,6 +194,7 @@ void HyperionIManager::handleFinished()
 	Info(_log,"Hyperion instance '%s' has been stopped", QSTRING_CSTR(_instanceTable->getNamebyIndex(instance)));
 
 	_runningInstances.remove(instance);
+	hyperion->thread()->deleteLater();
 	hyperion->deleteLater();
 	emit instanceStateChanged(InstanceState::H_STOPPED, instance);
 	emit change();
