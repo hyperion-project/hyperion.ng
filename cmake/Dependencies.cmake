@@ -176,6 +176,7 @@ macro(DeployWindows TARGET)
 	if(EXISTS ${TARGET_FILE})
 		message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
 		find_package(Qt5Core REQUIRED)
+		find_package(OpenSSL REQUIRED)
 
 		# Find the windeployqt binaries
 		get_target_property(QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
@@ -223,6 +224,36 @@ macro(DeployWindows TARGET)
 
 			list(REMOVE_AT DEPENDENCIES 0 1)
 		endwhile()
+
+		# Copy OpenSSL Libs
+		if (OPENSSL_FOUND)
+			string(REGEX MATCHALL "[0-9]+" openssl_versions "${OPENSSL_VERSION}")
+			list(GET openssl_versions 0 openssl_version_major)
+			list(GET openssl_versions 1 openssl_version_minor)
+
+			set(library_suffix "-${openssl_version_major}_${openssl_version_minor}")
+			if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+			  string(APPEND library_suffix "-x64")
+			endif()
+
+			find_file(OPENSSL_SSL
+				NAMES "libssl${library_suffix}.dll"
+				PATHS ${OPENSSL_INCLUDE_DIR}/.. ${OPENSSL_INCLUDE_DIR}/../bin
+				NO_DEFAULT_PATH
+			)
+
+			find_file(OPENSSL_CRYPTO
+				NAMES "libcrypto${library_suffix}.dll"
+				PATHS ${OPENSSL_INCLUDE_DIR}/.. ${OPENSSL_INCLUDE_DIR}/../bin
+				NO_DEFAULT_PATH
+			)
+
+			install(
+				FILES ${OPENSSL_SSL} ${OPENSSL_CRYPTO}
+				DESTINATION "bin"
+				COMPONENT "Hyperion"
+			)
+		endif(OPENSSL_FOUND)
 
 		# Create a qt.conf file in 'bin' to override hard-coded search paths in Qt plugins
 		file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/\n")
