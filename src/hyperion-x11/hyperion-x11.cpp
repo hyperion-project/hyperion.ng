@@ -5,6 +5,7 @@
 
 #include <commandline/Parser.h>
 #include <flatbufserver/FlatBufferConnection.h>
+#include <utils/DefaultSignalHandler.h>
 #include "X11Wrapper.h"
 #include "HyperionConfig.h"
 
@@ -27,6 +28,8 @@ int main(int argc, char ** argv)
 		<< "hyperion-x11:" << std::endl
 		<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
 		<< "\tbuild time: " << __DATE__ << " " << __TIME__ << std::endl;
+
+	DefaultSignalHandler::install();
 
 	QApplication app(argc, argv);
 	try

@@ -4,7 +4,7 @@ DispmanxWrapper::DispmanxWrapper(const unsigned grabWidth, const unsigned grabHe
 	: GrabberWrapper("Dispmanx", &_grabber, grabWidth, grabHeight, updateRate_Hz)
 	, _grabber(grabWidth, grabHeight)
 {
-	
+
 }
 
 void DispmanxWrapper::action()

@@ -33,6 +33,7 @@
 #include <utils/FileUtils.h>
 #include <commandline/Parser.h>
 #include <commandline/IntOption.h>
+#include <utils/DefaultSignalHandler.h>
 #include <../../include/db/AuthTable.h>
 
 #include "detectProcess.h"
@@ -76,11 +77,6 @@ void signal_handler(const int signum)
 		}
 		return;
 	}
-
-	QCoreApplication::quit();
-
-	// reset signal handler to default (in case this handler is not capable of stopping)
-	signal(signum, SIG_DFL);
 }
 #endif
 
@@ -150,14 +146,13 @@ int main(int argc, char** argv)
 
 	// check if we are running already an instance
 	// TODO Allow one session per user
-	// http://www.qtcentre.org/threads/44489-Get-Process-ID-for-a-running-application
-	QStringList listOfPids;
 	#ifdef _WIN32
 		const char* processName = "hyperiond.exe";
 	#else
 		const char* processName = "hyperiond";
 	#endif
-	if (getProcessIdsByProcessName(processName, listOfPids) > 1)
+	const QStringList listOfPids = getProcessIdsByProcessName(processName);
+	if (listOfPids.size() > 1)
 	{
 		Error(log, "The Hyperion Daemon is already running, abort start");
 		return 0;
@@ -168,12 +163,10 @@ int main(int argc, char** argv)
 
 	bool isGuiApp = (qobject_cast<QApplication *>(app.data()) != 0 && QSystemTrayIcon::isSystemTrayAvailable());
 
+	DefaultSignalHandler::install();
+
 #ifndef _WIN32
-	signal(SIGINT,  signal_handler);
-	signal(SIGTERM, signal_handler);
-	signal(SIGABRT, signal_handler);
 	signal(SIGCHLD, signal_handler);
-	signal(SIGPIPE, signal_handler);
 	signal(SIGUSR1, signal_handler);
 	signal(SIGUSR2, signal_handler);
 #endif
@@ -309,7 +302,7 @@ int main(int argc, char** argv)
 		// delete database before start
 		if(parser.isSet(deleteDB))
 		{
-			QString dbFile = mDir.absolutePath() + "/db/hyperion.db";
+			const QString dbFile = mDir.absolutePath() + "/db/hyperion.db";
 			if (QFile::exists(dbFile))
 			{
 				if (!QFile::remove(dbFile))

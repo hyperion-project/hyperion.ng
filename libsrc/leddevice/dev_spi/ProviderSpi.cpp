@@ -39,7 +39,7 @@ bool ProviderSpi::init(const QJsonObject &deviceConfig)
 	_baudRate_Hz   = deviceConfig["rate"].toInt(_baudRate_Hz);
 	_spiMode       = deviceConfig["spimode"].toInt(_spiMode);
 	_spiDataInvert = deviceConfig["invert"].toBool(_spiDataInvert);
-	
+
 	return isInitOK;
 }
 
