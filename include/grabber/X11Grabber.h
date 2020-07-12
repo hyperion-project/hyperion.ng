@@ -19,7 +19,7 @@ public:
 
 	X11Grabber(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation);
 
-	virtual ~X11Grabber();
+	~X11Grabber() override;
 
 	bool Setup();
 

@@ -252,7 +252,7 @@ int main(int argc, char** argv)
 			std::cout << "extract to folder: " << std::endl;
 			QStringList filenames = directory.entryList(QStringList() << "*", QDir::Files, QDir::Name | QDir::IgnoreCase);
 			QString destFileName;
-			foreach (const QString & filename, filenames)
+			for (const QString & filename : filenames)
 			{
 				destFileName = destDir.dirName()+"/"+filename;
 				if (QFile::exists(destFileName))

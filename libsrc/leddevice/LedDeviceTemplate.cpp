@@ -7,10 +7,6 @@ LedDeviceTemplate::LedDeviceTemplate(const QJsonObject &deviceConfig)
 	_deviceReady = false;
 }
 
-LedDeviceTemplate::~LedDeviceTemplate()
-{
-}
-
 LedDevice* LedDeviceTemplate::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceTemplate(deviceConfig);
@@ -83,5 +79,3 @@ int LedDeviceTemplate::write(const std::vector<ColorRgb> & ledValues)
 
 	return retval;
 }
-
-

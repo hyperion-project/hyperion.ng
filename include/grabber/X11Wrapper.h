@@ -26,11 +26,6 @@ public:
 	///
 	X11Wrapper(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation, const unsigned updateRate_Hz);
 
-	///
-	/// Destructor of this framebuffer frame grabber. Releases any claimed resources.
-	///
-	virtual ~X11Wrapper() {};
-
 public slots:
 	///
 	/// Performs a single frame grab and computes the led-colors

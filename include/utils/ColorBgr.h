@@ -4,8 +4,6 @@
 #include <cstdint>
 #include <iostream>
 
-struct ColorBgr;
-
 ///
 /// Plain-Old-Data structure containing the red-green-blue color specification. Size of the
 /// structure is exactly 3-bytes for easy writing to led-device

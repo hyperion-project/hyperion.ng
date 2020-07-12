@@ -22,10 +22,6 @@ void RgbTransform::init(double gammaR, double gammaG, double gammaB, double back
 	initializeMapping();
 }
 
-RgbTransform::~RgbTransform()
-{
-}
-
 double RgbTransform::getGammaR() const
 {
 	return _gammaR;
@@ -175,4 +171,3 @@ void RgbTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue)
 		}
 	}
 }
-
