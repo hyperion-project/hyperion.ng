@@ -1,5 +1,4 @@
 
-
 // QT includes
 #include <QCoreApplication>
 #include <QImage>

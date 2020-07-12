@@ -5,6 +5,7 @@
 #include <linux/fb.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
+#include <cstring>
 
 // STL includes
 #include <iostream>
@@ -14,15 +15,9 @@
 
 FramebufferFrameGrabber::FramebufferFrameGrabber(const QString & device, const unsigned width, const unsigned height)
 	: Grabber("FRAMEBUFFERGRABBER", width, height)
-	, _fbfd(0)
-	, _fbp(0)
 	, _fbDevice()
 {
 	setDevicePath(device);
-}
-
-FramebufferFrameGrabber::~FramebufferFrameGrabber()
-{
 }
 
 int FramebufferFrameGrabber::grabFrame(Image<ColorRgb> & image)
@@ -34,10 +29,15 @@ int FramebufferFrameGrabber::grabFrame(Image<ColorRgb> & image)
 	PixelFormat pixelFormat;
 
 	/* Open the framebuffer device */
-	_fbfd = open(QSTRING_CSTR(_fbDevice), O_RDONLY);
+	int fbfd = open(QSTRING_CSTR(_fbDevice), O_RDONLY);
+	if (fbfd == -1)
+	{
+		Error(_log, "Error opening %s, %s : ", QSTRING_CSTR(_fbDevice), std::strerror(errno));
+		return -1;
+	}
 
 	/* get variable screen information */
-	ioctl (_fbfd, FBIOGET_VSCREENINFO, &vinfo);
+	ioctl (fbfd, FBIOGET_VSCREENINFO, &vinfo);
 
 	bytesPerPixel = vinfo.bits_per_pixel / 8;
 	capSize = vinfo.xres * vinfo.yres * bytesPerPixel;
@@ -53,24 +53,28 @@ int FramebufferFrameGrabber::grabFrame(Image<ColorRgb> & image)
 #endif
 		default:
 			Error(_log, "Unknown pixel format: %d bits per pixel", vinfo.bits_per_pixel);
-			close(_fbfd);
+			close(fbfd);
 			return -1;
 	}
 
 	/* map the device to memory */
-	_fbp = (unsigned char*)mmap(0, capSize, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, _fbfd, 0);
+	unsigned char * fbp = (unsigned char*)mmap(0, capSize, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, fbfd, 0);
+	if (fbp == MAP_FAILED) {
+		Error(_log, "Error mapping %s, %s : ", QSTRING_CSTR(_fbDevice), std::strerror(errno));
+		return -1;
+	}
 
 	_imageResampler.setHorizontalPixelDecimation(vinfo.xres/_width);
 	_imageResampler.setVerticalPixelDecimation(vinfo.yres/_height);
-	_imageResampler.processImage(_fbp,
+	_imageResampler.processImage(fbp,
 								vinfo.xres,
 								vinfo.yres,
 								vinfo.xres * bytesPerPixel,
 								pixelFormat,
 								image);
 
-	munmap(_fbp, capSize);
-	close(_fbfd);
+	munmap(fbp, capSize);
+	close(fbfd);
 
 	return 0;
 }
@@ -84,25 +88,24 @@ void FramebufferFrameGrabber::setDevicePath(const QString& path)
 		struct fb_var_screeninfo vinfo;
 
 		// Check if the framebuffer device can be opened and display the current resolution
-		_fbfd = open(QSTRING_CSTR(_fbDevice), O_RDONLY);
-		if (_fbfd == 0)
+		int fbfd = open(QSTRING_CSTR(_fbDevice), O_RDONLY);
+		if (fbfd == -1)
 		{
-			Error(_log, "Error openning %s", QSTRING_CSTR(_fbDevice));
+			Error(_log, "Error opening %s, %s : ", QSTRING_CSTR(_fbDevice), std::strerror(errno));
 		}
 		else
 		{
 			// get variable screen information
-			result = ioctl (_fbfd, FBIOGET_VSCREENINFO, &vinfo);
+			result = ioctl (fbfd, FBIOGET_VSCREENINFO, &vinfo);
 			if (result != 0)
 			{
-				Error(_log, "Could not get screen information");
+				Error(_log, "Could not get screen information, %s", std::strerror(errno));
 			}
 			else
 			{
 				Info(_log, "Display opened with resolution: %dx%d@%dbit", vinfo.xres, vinfo.yres, vinfo.bits_per_pixel);
 			}
-			close(_fbfd);
+			close(fbfd);
 		}
-
 	}
 }

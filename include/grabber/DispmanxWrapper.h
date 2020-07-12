@@ -22,11 +22,6 @@ public:
 	///
 	DispmanxWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz);
 
-	///
-	/// Destructor of this dispmanx frame grabber. Releases any claimed resources.
-	///
-	virtual ~DispmanxWrapper() {};
-
 public slots:
 	///
 	/// Performs a single frame grab and computes the led-colors

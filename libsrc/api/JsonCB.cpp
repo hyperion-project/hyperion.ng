@@ -223,7 +223,7 @@ void JsonCB::handlePriorityUpdate()
 	activePriorities.removeAll(255);
 	int currentPriority = _prioMuxer->getCurrentPriority();
 
-	foreach (int priority, activePriorities) {
+	for (int priority : activePriorities) {
 		const Hyperion::InputInfo priorityInfo = _prioMuxer->getInputInfo(priority);
 		QJsonObject item;
 		item["priority"] = priority;
