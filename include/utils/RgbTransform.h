@@ -26,11 +26,6 @@ public:
 	///
 	RgbTransform(double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation);
 
-	///
-	/// Destructor
-	///
-	~RgbTransform();
-
 	/// @return The current red gamma value
 	double getGammaR() const;
 

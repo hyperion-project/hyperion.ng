@@ -106,7 +106,7 @@
       "type": "shell",
       "command": "${workspaceFolder}/build/bin/hyperiond -d",
       "windows": {
-        "command": "${workspaceFolder}/build/bin/Debug/hyperiond"
+        "command": "${workspaceFolder}/build/bin/Debug/hyperiond -d -c"
       },
       "group": "build"
     },
@@ -115,7 +115,7 @@
       "type": "shell",
       "command": "${workspaceFolder}/build/bin/hyperiond -d",
       "windows": {
-        "command": "${workspaceFolder}/build/bin/Release/hyperiond"
+        "command": "${workspaceFolder}/build/bin/Release/hyperiond -d -c"
       },
       "group": "build"
     }
