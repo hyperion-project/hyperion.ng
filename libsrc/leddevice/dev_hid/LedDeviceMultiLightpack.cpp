@@ -54,7 +54,7 @@ int LedDeviceMultiLightpack::open()
 		std::sort(_lightpacks.begin(), _lightpacks.end(), compareLightpacks);
 
 		// open each lightpack device
-		foreach (auto serial , serialList)
+		for (auto serial : serialList)
 		{
 			LedDeviceLightpack * device = new LedDeviceLightpack(serial);
 			int error = device->open();

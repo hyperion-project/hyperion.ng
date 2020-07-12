@@ -17,9 +17,11 @@
 
 #ifdef _WIN32
 	#include <stdexcept>
-	#define STRINGIFY2(x) #x
-	#define STRINGIFY(x) STRINGIFY2(x)
 #endif
+
+#define STRINGIFY2(x) #x
+#define STRINGIFY(x) STRINGIFY2(x)
+
 
 PythonInit::PythonInit()
 {
@@ -27,18 +29,16 @@ PythonInit::PythonInit()
 	EffectModule::registerHyperionExtensionModule();
 
 	// set Python module path when exists
-	wchar_t *pythonPath = Py_DecodeLocale((QDir::cleanPath(qApp->applicationDirPath() + "/../lib/python")).toLatin1().data(), nullptr);
-	#ifdef _WIN32
-		pythonPath = Py_DecodeLocale((QDir::cleanPath(qApp->applicationDirPath()) + "/python" + STRINGIFY(PYTHON_VERSION_MAJOR_MINOR) + ".zip").toLatin1().data(), nullptr);
-		if(QFile(QString::fromWCharArray(pythonPath)).exists())
-	#else
-		if(QDir(QString::fromWCharArray(pythonPath)).exists())
-	#endif
+	QString py_patch = QDir::cleanPath(qApp->applicationDirPath() + "/../lib/python");
+	QString py_file  = QDir::cleanPath(qApp->applicationDirPath() + "/python" + STRINGIFY(PYTHON_VERSION_MAJOR_MINOR) + ".zip");
 
+	if (QFile(py_file).exists() || QDir(py_patch).exists())
 	{
 		Py_NoSiteFlag++;
-		Py_SetPath(pythonPath);
-		PyMem_RawFree(pythonPath);
+		if (QFile(py_file).exists())
+			Py_SetPath(Py_DecodeLocale(py_file.toLatin1().data(), nullptr));
+		else if (QDir(py_patch).exists())
+			Py_SetPath(Py_DecodeLocale(py_patch.toLatin1().data(), nullptr));
 	}
 
 	// init Python

@@ -4,8 +4,6 @@
 #include <cstdint>
 #include <ostream>
 
-struct ColorRgba;
-
 struct ColorRgba
 {
 
@@ -49,4 +47,3 @@ inline std::ostream& operator<<(std::ostream& os, const ColorRgba& color)
 	os << "{" << unsigned(color.alpha) << "," << unsigned(color.red) << "," << unsigned(color.green) << "," << unsigned(color.blue) << "}";
 	return os;
 }
-

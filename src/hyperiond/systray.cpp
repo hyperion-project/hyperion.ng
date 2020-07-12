@@ -88,7 +88,7 @@ void SysTray::createTrayIcon()
 		connect(efxAction, SIGNAL(triggered()), this, SLOT(setEffect()));
 		_trayIconEfxMenu->addAction(efxAction);
 	}
-	
+
 	_trayIconMenu->addAction(settingsAction);
 	_trayIconMenu->addSeparator();
 	_trayIconMenu->addAction(colorAction);
@@ -104,7 +104,7 @@ void SysTray::createTrayIcon()
 void SysTray::setColor(const QColor & color)
 {
 	std::vector<ColorRgb> rgbColor{ ColorRgb{ (uint8_t)color.red(), (uint8_t)color.green(), (uint8_t)color.blue() } };
- 
+
  	_hyperion->setColor(1 ,rgbColor, 0);
 }
 
@@ -149,7 +149,7 @@ void SysTray::settings()
 	#endif
 
 	QDesktopServices::openUrl(QUrl("http://localhost:"+QString::number(_webPort)+"/", QUrl::TolerantMode));
-	
+
 	#ifndef _WIN32
 	// restoring stdout
 	::dup2(saved_stdout, STDOUT_FILENO);
@@ -169,10 +169,10 @@ void SysTray::clearEfxColor()
 	_hyperion->clear(1);
 }
 
-void SysTray::handleInstanceStateChange(const instanceState& state, const quint8& instance, const QString& name)
+void SysTray::handleInstanceStateChange(const InstanceState& state, const quint8& instance, const QString& name)
 {
 	switch(state){
-		case H_STARTED:
+		case InstanceState::H_STARTED:
 			if(instance == 0)
 			{
 				_hyperion = _instanceManager->getHyperionInstance(0);

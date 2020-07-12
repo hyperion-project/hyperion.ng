@@ -17,11 +17,6 @@ public:
 	///
 	explicit LedDeviceTemplate(const QJsonObject &deviceConfig);
 
-	///
-	/// Destructor of this LedDevice
-	///
-	virtual ~LedDeviceTemplate() override;
-
 	/// constructs leddevice
 	static LedDevice* construct(const QJsonObject &deviceConfig);
 
@@ -38,7 +33,7 @@ public slots:
 	/// Includes switching-off the device and stopping refreshes
 	///
 	virtual void close() override;
-	
+
 protected:
 	///
 	/// Opens and initiatialises the output device

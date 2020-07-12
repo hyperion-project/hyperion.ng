@@ -40,7 +40,7 @@ wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/
 
 ```
 sudo apt-get update
-sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python3-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev libjpeg-dev libturbojpeg0-dev libqt5sql5-sqlite libssl-dev zlib1g-dev
+sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python3-dev libxcb-util0-dev libxcb-randr0-dev libxrandr-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev libjpeg-dev libturbojpeg0-dev libqt5sql5-sqlite libssl-dev zlib1g-dev
 ```
 
 **on RPI you need the videocore IV headers**
@@ -82,6 +82,7 @@ We assume a 64bit Windows 7 or higher. Install the following
   - Open a console window and execute `pip install aqtinstall`.
   - Now we can download Qt to _C:\Qt_ `mkdir c:\Qt && aqt install -O c:\Qt 5.15.0 windows desktop win64_msvc2019_64`
 - [CMake (Windows win64-x64 Installer)](https://cmake.org/download/) (Check: Add to PATH)
+- [Win64 OpenSSL v1.1.1g](https://slproweb.com/products/Win32OpenSSL.html) ([direct link](https://slproweb.com/download/Win64OpenSSL-1_1_1g.exe))
 - [Visual Studio 2019 Build Tools](https://go.microsoft.com/fwlink/?linkid=840931) ([direct link](https://aka.ms/vs/16/release/vs_buildtools.exe))
   - Select C++ Buildtools
   - On the right, just select `MSVC v142 VS 2019 C++ x64/x86-Buildtools` and latest `Windows 10 SDK`. Everything else is not needed.

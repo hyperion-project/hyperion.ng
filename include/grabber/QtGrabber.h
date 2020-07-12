@@ -17,7 +17,7 @@ public:
 
 	QtGrabber(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation, int display);
 
-	virtual ~QtGrabber();
+	~QtGrabber() override;
 
 	///
 	/// Captures a single snapshot of the display and writes the data to the given image. The

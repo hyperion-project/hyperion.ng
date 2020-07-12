@@ -87,6 +87,7 @@ jobs:
       python -m pip install aqtinstall
       python -m aqt install -O c:\Qt 5.15.0 windows desktop win64_msvc2019_64
     displayName: 'Install Qt 5.15.0'
+
   # build process
   - bash: ./.ci/ci_build.sh
     env:

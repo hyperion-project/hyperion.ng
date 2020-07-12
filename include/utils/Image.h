@@ -256,6 +256,7 @@ public:
 	{
 		_width = 1;
 		_height = 1;
+		delete[] _pixels;
 		_pixels = new Pixel_T[2];
 		_endOfPixels = _pixels + 1;
 		memset(_pixels, 0, (unsigned long) _width * _height * sizeof(Pixel_T));
