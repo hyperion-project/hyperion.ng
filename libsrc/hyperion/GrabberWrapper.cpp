@@ -39,7 +39,7 @@ GrabberWrapper::GrabberWrapper(QString grabberName, Grabber * ggrabber, unsigned
 
 GrabberWrapper::~GrabberWrapper()
 {
-	GrabberWrapper::stop(); // TODO Is this right????????
+	stop();
 	Debug(_log,"Close grabber: %s", QSTRING_CSTR(_grabberName));
 }
 
@@ -53,9 +53,12 @@ bool GrabberWrapper::start()
 
 void GrabberWrapper::stop()
 {
-	// Stop the timer, effectivly stopping the process
-	Debug(_log,"Grabber stop()");
-	_timer->stop();
+	if (_timer->isActive())
+	{
+		// Stop the timer, effectivly stopping the process
+		Debug(_log,"Grabber stop()");
+		_timer->stop();
+	}
 }
 
 QStringList GrabberWrapper::availableGrabbers()
@@ -216,7 +219,7 @@ void GrabberWrapper::handleSourceRequest(const hyperion::Components& component, 
 
 void GrabberWrapper::tryStart()
 {
-		// verify start condition
+	// verify start condition
 	if((_grabberName.startsWith("V4L") && !GRABBER_V4L_CLIENTS.empty()) || (!_grabberName.startsWith("V4L") && !GRABBER_SYS_CLIENTS.empty()))
 	{
 		start();

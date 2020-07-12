@@ -127,7 +127,7 @@ void SysTray::closeEvent(QCloseEvent *event)
 
 void SysTray::settings()
 {
-#ifndef _WIN32
+	#ifndef _WIN32
 	// Hide error messages when opening webbrowser
 
 	int out_pipe[2];

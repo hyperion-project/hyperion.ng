@@ -33,6 +33,11 @@ V4L2Wrapper::V4L2Wrapper(const QString &device,
 	connect(&_grabber, SIGNAL(readError(const char*)), this, SLOT(readError(const char*)), Qt::DirectConnection);
 }
 
+V4L2Wrapper::~V4L2Wrapper()
+{
+	stop();
+}
+
 bool V4L2Wrapper::start()
 {
 	return ( _grabber.start() && GrabberWrapper::start());
