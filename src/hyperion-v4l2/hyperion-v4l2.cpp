@@ -24,6 +24,8 @@
 // ssdp discover
 #include <ssdp/SSDPDiscover.h>
 
+#include <utils/DefaultSignalHandler.h>
+
 using namespace commandline;
 
 int main(int argc, char** argv)

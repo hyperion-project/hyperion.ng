@@ -1,4 +1,5 @@
-#pragma once
+#ifndef LEDEVICETEMPLATE_H
+#define LEDEVICETEMPLATE_H
 
 // LedDevice includes
 #include <leddevice/LedDevice.h>
@@ -10,46 +11,56 @@
 class LedDeviceTemplate : public LedDevice
 {
 public:
+
 	///
-	/// Constructs specific LedDevice
+	/// @brief Constructs a specific LED-device
 	///
-	/// @param deviceConfig json device config
+	/// @param deviceConfig Device's configuration as JSON-Object
 	///
 	explicit LedDeviceTemplate(const QJsonObject &deviceConfig);
 
-	/// constructs leddevice
+	///
+	/// @brief Constructs the LED-device
+	///
+	/// @param[in] deviceConfig Device's configuration as JSON-Object
+	/// @return LedDevice constructed
+	///
 	static LedDevice* construct(const QJsonObject &deviceConfig);
 
+protected:
+
 	///
-	/// Sets configuration
+	/// @brief Initialise the device's configuration
 	///
-	/// @param deviceConfig the json device config
-	/// @return true if success
+	/// @param[in] deviceConfig the JSON device configuration
+	/// @return True, if success
+	///
 	virtual bool init(const QJsonObject &deviceConfig) override;
 
-public slots:
 	///
-	/// Closes the output device.
-	/// Includes switching-off the device and stopping refreshes
+	/// @brief Opens the output device.
 	///
-	virtual void close() override;
-
-protected:
-	///
-	/// Opens and initiatialises the output device
-	///
-	/// @return Zero on succes (i.e. device is ready and enabled) else negative
+	/// @return Zero on success (i.e. device is ready), else negative
 	///
 	virtual int open() override;
 
-	/// Writes the led color values to the led-device
 	///
-	/// @param ledValues The color-value per led
-	/// @return Zero on succes else negative
-	//////
+	/// @brief Closes the output device.
+	///
+	/// @return Zero on success (i.e. device is closed), else negative
+	///
+	virtual int close() override;
+
+	///
+	/// @brief Writes the RGB-Color values to the LEDs.
+	///
+	/// @param[in] ledValues The RGB-color per LED
+	/// @return Zero on success, else negative
+	///
 	virtual int write(const std::vector<ColorRgb> & ledValues) override;
 
 private:
 
-
 };
+
+#endif // LEDEVICETEMPLATE_H

@@ -4,7 +4,9 @@ LedDeviceP9813::LedDeviceP9813(const QJsonObject &deviceConfig)
 	: ProviderSpi()
 {
 	_devConfig = deviceConfig;
-	_deviceReady = false;
+	_isDeviceReady = false;
+
+	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDevice* LedDeviceP9813::construct(const QJsonObject &deviceConfig)
@@ -14,10 +16,13 @@ LedDevice* LedDeviceP9813::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceP9813::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = ProviderSpi::init(deviceConfig);
-	if ( isInitOK )
+	bool isInitOK = false;
+
+	// Initialise sub-class
+	if ( ProviderSpi::init(deviceConfig) )
 	{
 		_ledBuffer.resize(_ledCount * 4 + 8, 0x00);
+		isInitOK = true;
 	}
 	return isInitOK;
 }

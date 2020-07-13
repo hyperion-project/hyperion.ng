@@ -118,15 +118,19 @@ function initWebSocket()
 					var response = JSON.parse(event.data);
 					var success = response.success;
 					var cmd = response.command;
+					var tan = response.tan
 					if (success || typeof(success) == "undefined")
 					{
 						$(window.hyperion).trigger({type:"cmd-"+cmd, response:response});
 					}
 					else
 					{
-						var error = response.hasOwnProperty("error")? response.error : "unknown";
-						$(window.hyperion).trigger({type:"error",reason:error});
-						console.log("[window.websocket::onmessage] ",error)
+					    // skip tan -1 error handling
+					    if(tan != -1){
+					      var error = response.hasOwnProperty("error")? response.error : "unknown";
+					      $(window.hyperion).trigger({type:"error",reason:error});
+					      console.log("[window.websocket::onmessage] ",error)
+					    }
 					}
 				}
 				catch(exception_error)
@@ -163,6 +167,53 @@ function sendToHyperion(command, subcommand, msg)
 		msg = "";
 
 	window.websocket.send('{"command":"'+command+'", "tan":'+window.wsTan+subcommand+msg+'}');
+}
+
+// Send a json message to Hyperion and wait for a matching response
+// A response matches, when command(+subcommand) of request and response is the same
+// command:    The string command
+// subcommand: The optional string subcommand
+// data:       The json data as Object
+// tan:        The optional tan, default 1. If the tan is -1, we skip global response error handling
+// Returns data of response or false if timeout
+async function sendAsyncToHyperion (command, subcommand, data, tan = 1) {
+  let obj = { command, tan }
+  if (subcommand) {Object.assign(obj, {subcommand})}
+  if (data) { Object.assign(obj, data) }
+
+  //if (process.env.DEV || sstore.getters['common/getDebugState']) console.log('SENDAS', obj)
+  return __sendAsync(obj)
+}
+
+// Send a json message to Hyperion and wait for a matching response
+// A response matches, when command(+subcommand) of request and response is the same
+// Returns data of response or false if timeout
+async function __sendAsync (data) {
+  return new Promise((resolve, reject) => {
+    let cmd = data.command
+    let subc = data.subcommand
+    let tan = data.tan;
+    if (subc)
+      cmd = `${cmd}-${subc}`
+
+    let func = (e) => {
+      let rdata;
+      try {
+        rdata = JSON.parse(e.data)
+      } catch (error) {
+        console.error("[window.websocket::onmessage] ",error)
+        resolve(false)
+      }
+      if (rdata.command == cmd && rdata.tan == tan) {
+        window.websocket.removeEventListener('message', func)
+        resolve(rdata)
+      }
+    }
+    // after 7 sec we resolve false
+    setTimeout(() => { window.websocket.removeEventListener('message', func); resolve(false) }, 7000)
+    window.websocket.addEventListener('message', func)
+    window.websocket.send(JSON.stringify(data) + '\n')
+  })
 }
 
 // -----------------------------------------------------------
@@ -395,4 +446,26 @@ function requestAdjustment(type, value, complete)
 		sendToHyperion("adjustment", "", '"adjustment": '+type+'');
 	else
 		sendToHyperion("adjustment", "", '"adjustment": {"'+type+'": '+value+'}');
+}
+
+async function requestLedDeviceDiscovery(type)
+{
+	let data = { ledDeviceType: type };
+
+	return sendAsyncToHyperion("leddevice", "discover", data, Math.floor(Math.random() * 1000) );
+}
+
+async function requestLedDeviceProperties(type, params)
+{
+	let data = { ledDeviceType: type, params: params };
+
+	return sendAsyncToHyperion("leddevice", "getProperties", data, Math.floor(Math.random() * 1000));
+}
+
+function requestLedDeviceIdentification(type, params)
+{
+	sendToHyperion("leddevice", "identify", '"ledDeviceType": "'+type+'","params": '+JSON.stringify(params)+'');
+	
+	//let data = {ledDeviceType: type, params: params};
+	//sendToHyperion("leddevice", "identify", data );
 }

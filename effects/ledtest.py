@@ -7,7 +7,7 @@ import time
 #import colorsys
 
 # Get parameters
-sleepTime = float(hyperion.args.get('sleepTime', 0.2))
+sleepTime = float(hyperion.args.get('sleepTime', 0.5))
 testleds = hyperion.args.get('testleds', "all")
 ledlist = hyperion.args.get('ledlist', "1")
 

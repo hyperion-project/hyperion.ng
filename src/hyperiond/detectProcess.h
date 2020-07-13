@@ -11,53 +11,41 @@
 // psapi.h requires windows.h to be included
 #include <Windows.h>
 #include <Psapi.h>
+#include <tlhelp32.h>
 #endif
 
-unsigned int getProcessIdsByProcessName(const char *processName, QStringList &listOfPids)
+QStringList getProcessIdsByProcessName(const char *processName)
 {
-	// Clear content of returned list of PIDS
-	listOfPids.clear();
+	QStringList listOfPids;
 
 #if defined(WIN32)
-	// Get the list of process identifiers.
-	DWORD aProcesses[1024], cbNeeded, cProcesses;
-	unsigned int i;
-
-	if (!EnumProcesses(aProcesses, sizeof(aProcesses), &cbNeeded))
-		return 0;
-
-	// Calculate how many process identifiers were returned.
-	cProcesses = cbNeeded / sizeof(DWORD);
-
-	// Search for a matching name for each process
-	for (i = 0; i < cProcesses; i++)
+	// https://docs.microsoft.com/en-us/windows/win32/toolhelp/taking-a-snapshot-and-viewing-processes
+	/* Take a snapshot of all processes in the system */
+	HANDLE hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	if(hProcessSnap == INVALID_HANDLE_VALUE)
 	{
-		if (aProcesses[i] != 0)
-		{
-			char szProcessName[MAX_PATH] = {0};
-
-			DWORD processID = aProcesses[i];
-
-			// Get a handle to the process.
-			HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
-
-			// Get the process name
-			if (NULL != hProcess)
-			{
-				HMODULE hMod;
-				DWORD cbNeeded;
-
-				if (EnumProcessModules(hProcess, &hMod, sizeof(hMod), &cbNeeded))
-					GetModuleBaseNameA(hProcess, hMod, szProcessName, sizeof(szProcessName) / sizeof(char));
-
-				// Release the handle to the process.
-				CloseHandle(hProcess);
-
-				if (*szProcessName != 0 && strcmp(processName, szProcessName) == 0)
-					listOfPids.append(QString::number(processID));
-			}
-		}
+		return {};
 	}
+
+	PROCESSENTRY32 pe32{};
+	pe32.dwSize = sizeof(PROCESSENTRY32);
+
+	/* Retrieve information about the first process */
+	if(!Process32First(hProcessSnap, &pe32))
+	{
+		CloseHandle(hProcessSnap);
+		return {};
+	}
+
+	/* Walk through the snapshot of processes */
+	do
+	{
+		if (strcmp(processName, pe32.szExeFile) == 0)
+			listOfPids.append(QString::number(pe32.th32ProcessID));
+
+	} while(Process32Next(hProcessSnap, &pe32));
+
+	CloseHandle(hProcessSnap);
 
 #else
 
@@ -90,5 +78,5 @@ unsigned int getProcessIdsByProcessName(const char *processName, QStringList &li
 
 #endif
 
-	return listOfPids.count();
+	return listOfPids;
 }

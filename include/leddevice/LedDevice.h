@@ -1,4 +1,5 @@
-#pragma once
+﻿#ifndef LEDEVICE_H
+#define LEDEVICE_H
 
 // qt includes
 #include <QObject>
@@ -28,204 +29,397 @@ typedef LedDevice* ( *LedDeviceCreateFuncType ) ( const QJsonObject& );
 typedef std::map<QString,LedDeviceCreateFuncType> LedDeviceRegistry;
 
 ///
-/// Interface (pure virtual base class) for LedDevices.
+/// @brief Interface (pure virtual base class) for LED-devices.
 ///
 class LedDevice : public QObject
 {
 	Q_OBJECT
 
 public:
-	LedDevice(const QJsonObject& config = QJsonObject(), QObject* parent = nullptr);
+
+	///
+	/// @brief Constructs LED-device
+	///
+	/// @param deviceConfig Device's configuration as JSON-Object
+	/// @param parent QT parent
+	///
+	LedDevice(const QJsonObject& deviceConfig = QJsonObject(), QObject* parent = nullptr);
+
+	///
+	/// @brief Destructor of the LED-device
+	///
 	~LedDevice() override;
 
 	///
-	/// @brief Get color order of device
+	/// @brief Get color order of device.
+	///
 	/// @return The color order
 	///
 	const QString & getColorOrder() const { return _colorOrder; }
 
 	///
-	/// @brief Set the current active ledDevice type
+	/// @brief Set the current active LED-device type.
 	///
 	/// @param deviceType Device's type
 	///
     void setActiveDeviceType(const QString& deviceType);
 
 	///
-	/// @brief Get the current active ledDevice type
+	/// @brief Get the current active LED-device type.
 	///
 	const QString & getActiveDeviceType() const { return _activeDeviceType; }
 
+	///
+	/// @brief Set the number of LEDs supported by the device.
+	///
+	/// @param[in] ledCount Number of device LEDs
+	///
 	void setLedCount(unsigned int ledCount);
+
+	///
+	/// @brief Get the number of LEDs supported by the device.
+	///
+	/// @return Number of device's LEDs
+	///
 	unsigned int getLedCount() const { return _ledCount; }
 
-	bool enabled() const { return _enabled; }
+	///
+	/// @brief Check, if the device is enabled.
+	///
+	/// @return True, if enabled
+	///
+	bool isEnabled() const { return _isEnabled; }
 
+	///
+	/// @brief Set a device's latch time.
+	///
+	/// Latch time is the time-frame a device requires until the next update can be processed.
+	/// During that time-frame any updates done via updateLeds are skipped.
+	///
+	/// @param[in] latchTime_ms Latch time in milliseconds
+	///
+	void setLatchTime(int latchTime_ms);
+
+	///
+	/// @brief Get the currently defined LatchTime.
+	///
+	/// @return Latch time in milliseconds
+	///
 	int getLatchTime() const { return _latchTime_ms; }
-	void setLatchTime( int latchTime_ms );
 
 	///
-	/// Check, if device is ready to be used
-	/// i.e. initialisation and configuration were successfull
+	/// @brief Discover devices of this type available (for configuration).
+	/// @note Mainly used for network devices. Allows to find devices, e.g. via ssdp, mDNS or cloud ways.
 	///
-	/// @return True if device is ready
+	/// @return A JSON structure holding a list of devices found
 	///
-	bool isReady() const { return _deviceReady; }
+	virtual QJsonObject discover();
 
 	///
-	/// Check, if device is in error state
+	/// @brief Discover first device of this type available (for configuration).
+	/// @note Mainly used for network devices. Allows to find devices, e.g. via ssdp, mDNS or cloud ways.
 	///
-	/// @return True if device is in error
+	/// @return A string of the device found
 	///
-	bool isInError() const { return _deviceInError; }
+	virtual QString discoverFirst();
 
-	inline bool componentState() const { return enabled(); }
-
-	/// Prints the RGB-Color values to stdout.
 	///
-	/// @param[in] ledValues  The RGB-color per led
+	/// @brief Get the device's properties
 	///
-	static void printLedValues (const std::vector<ColorRgb>& ledValues );
+	/// Used in context of a set of devices of the same type.
+	///
+	/// @param[in] params Parameters to address device
+	/// @return A JSON structure holding the device's properties
+	///
+	virtual QJsonObject getProperties(const QJsonObject& params);
 
+	///
+	/// @brief Send an update to the device to identify it.
+	///
+	/// Used in context of a set of devices of the same type.
+	///
+	/// @param[in] params Parameters to address device
+	///
+	virtual void identify(const QJsonObject& params) {}
+
+	///
+	/// @brief Check, if device is properly initialised
+	///
+	/// i.e. initialisation and configuration were successful.
+	///
+	/// @return True, if device is initialised
+	///
+	bool isInitialised() const { return _isDeviceInitialised; }
+
+	///
+	/// @brief Check, if device is ready to be used.
+	///
+	/// i.e. initialisation and opening were successful.
+	///
+	/// @return True, if device is ready
+	///
+	bool isReady() const { return _isDeviceReady; }
+
+	///
+	/// @brief Check, if device is in error state.
+	///
+	/// @return True, if device is in error
+	///
+	bool isInError() const { return _isDeviceInError; }
+
+	///
+	/// @brief Get the LED-Device component's state.
+	///
+	/// @return True, if enabled
+	///
+	inline bool componentState() const { return isEnabled(); }
+
+	///
+	/// @brief Prints the color values to stdout.
+	///
+	/// @param[in] ledValues The color per led
+	///
+	static void printLedValues(const std::vector<ColorRgb>& ledValues);
 
 public slots:
-	///
-	/// Is called on thread start, all construction tasks and init should run here
-	///
-	virtual void start() { _deviceReady = (open() == 0); }
 
 	///
-	/// Update the RGB-Color values to the leds.
-	/// Handles refreshing of leds.
+	/// @brief Is called on thread start, all construction tasks and init should run here.
 	///
-	/// @param[in] ledValues  The RGB-color per led
+	virtual void start();
+
+	///
+	/// @brief Stops the device.
+	///
+	/// Includes switching-off the device and stopping refreshes.
+	///
+	virtual void stop();
+
+	///
+	/// @brief Update the color values of the device's LEDs.
+	///
+	/// Handles refreshing of LEDs.
+	///
+	/// @param[in] ledValues The color per LED
 	/// @return Zero on success else negative (i.e. device is not ready)
 	///
 	virtual int updateLeds(const std::vector<ColorRgb>& ledValues);
 
 	///
-	/// Closes the output device.
-	/// Includes switching-off the device and stopping refreshes
+	/// @brief Enables/disables the device for output.
 	///
-	virtual void close();
-
+	/// If the device is not ready, it will not be enabled.
 	///
-	/// Enables/disables the device for output.
-	/// If the device is not ready, it will not be enabled
+	/// @param[in] enable The new state of the device
 	///
-	/// @param enable The new state of the device
-	///
-	void setEnable(bool enable);	///
+	void setEnable(bool enable);
 
 signals:
 	///
-	/// Emits whenever the led device switches between on/off
-	/// @param newState The new state of the device
+	/// @brief Emits whenever the LED-Device switches between on/off.
+	///
+	/// @param[in] newState The new state of the device
 	///
 	void enableStateChanged(bool newState);
 
 protected:
 
 	///
-	/// Initialise a device's configuration
+	/// @brief Initialise the device's configuration.
 	///
-	/// @param deviceConfig the json device config
-	/// @return True if success
+	/// @param[in] deviceConfig the JSON device configuration
+	/// @return True, if success
 	///
 	virtual bool init(const QJsonObject &deviceConfig);
 
 	///
-	/// Opens and initiatialises the output device
+	/// @brief Opens the output device.
 	///
-	/// @return Zero on succes (i.e. device is ready and enabled) else negative
+	/// @return Zero, on success (i.e. device is ready), else negative
 	///
 	virtual int open();
 
 	///
-	/// Writes the RGB-Color values to the leds.
+	/// @brief Closes the output device.
 	///
-	/// @param[in] ledValues  The RGB-color per led
+	/// @return Zero on success (i.e. device is closed), else negative
 	///
-	/// @return Zero on success else negative
+	virtual int close();
+
+	///
+	/// @brief Writes the RGB-Color values to the LEDs.
+	///
+	/// @param[in] ledValues The RGB-color per LED
+	/// @return Zero on success, else negative
 	///
 	virtual int write(const std::vector<ColorRgb>& ledValues) = 0;
 
 	///
-	/// Writes "BLACK" to the output stream
+	/// @brief Writes "BLACK" to the output stream,
+	/// even if the device is not in enabled state (allowing to have a defined state during device power-off).
+	/// @note: latch-time is considered between each write
 	///
+	/// @param[in] numberOfWrites Write Black given number of times
 	/// @return Zero on success else negative
 	///
-	virtual int writeBlack();
+	virtual int writeBlack(int numberOfBlack=1);
 
-	// Helper to pipe device config from constructor to start()
+	///
+	/// @brief Switch the LEDs on.
+	///
+	/// Takes care that the device is opened and powered-on.
+	/// Depending on the configuration, the device may store its current state for later restore.
+	/// @see powerOn, storeState
+	///
+	/// @return True, if success
+	///
+	virtual bool switchOn();
+
+	///
+	/// @brief Switch the LEDs off.
+	///
+	/// Takes care that the LEDs and device are switched-off and device is closed.
+	/// Depending on the configuration, the device may be powered-off or restored to its previous state.
+	/// @see powerOff, restoreState
+	///
+	/// @return True, if success
+	///
+	virtual bool switchOff();
+
+	///
+	/// @brief Power-/turn on the LED-device.
+	///
+	/// Powers-/Turns on the LED hardware, if supported.
+	///
+	/// @return True, if success
+	///
+	virtual bool powerOn();
+
+	///
+	/// @brief Power-/turn off the LED-device.
+	///
+	/// Depending on the device's capability, the device is powered-/turned off or
+	/// an off state is simulated by writing "Black to LED" (default).
+	///
+	/// @return True, if success
+	///
+	virtual bool powerOff();
+
+	///
+	/// @brief Store the device's original state.
+	///
+	/// Save the device's state before hyperion color streaming starts allowing to restore state during switchOff().
+	///
+	/// @return True, if success
+	///
+	virtual bool storeState();
+
+	///
+	/// @brief Restore the device's original state.
+	///
+	/// Restore the device's state as before hyperion color streaming started.
+	/// This includes the on/off state of the device.
+	///
+	/// @return True, if success
+	///
+	virtual bool restoreState();
+
+	///
+	/// @brief Converts an uint8_t array to hex string.
+	///
+	/// @param data uint8_t array
+	/// @param size of the array
+	/// @param number Number of array items to be converted.
+	/// @return array as string of hex values
+	QString uint8_t_to_hex_string(const uint8_t * data, const qint64 size, qint64 number = -1) const;
+
+	/// Current device's type
+	QString _activeDeviceType;
+
+	/// Helper to pipe device configuration from constructor to start()
 	QJsonObject _devConfig;
 
-	/// The common Logger instance for all LedDevices
+	/// The common Logger instance for all LED-devices
 	Logger * _log;
 
 	/// The buffer containing the packed RGB values
 	std::vector<uint8_t> _ledBuffer;
 
-	bool _deviceReady;
-	bool _deviceInError;
+	/// Timer object which makes sure that LED data is written at a minimum rate
+	/// e.g. some devices will switch off when they do not receive data at least every 15 seconds
+	QTimer*	_refreshTimer;
 
-	QString _activeDeviceType;
+	// Device configuration parameters
 
+	/// Number of hardware LEDs supported by device.
 	unsigned int _ledCount;
 	unsigned int _ledRGBCount;
 	unsigned int _ledRGBWCount;
 
-	/// Timer object which makes sure that led data is written at a minimum rate
-	/// e.g. Adalight device will switch off when it does not receive data at least every 15 seconds
-	QTimer*	_refresh_timer;
-	int	_refresh_timer_interval;
+	/// Refresh interval in milliseconds
+	int _refreshTimerInterval_ms;
+
+	/// Time a device requires mandatorily between two writes (in milliseconds)
+	int _latchTime_ms;
+
+	/// Does the device allow restoring the original state?
+	bool	_isRestoreOrigState;
+
+	/// Device, lights state before streaming via hyperion
+	QJsonObject _orignalStateValues;
+
+	// Device states
+	/// Is the device enabled?
+	bool _isEnabled;
+
+	/// Is the device initialised?
+	bool _isDeviceInitialised;
+
+	/// Is the device ready for processing?
+	bool _isDeviceReady;
+
+	/// Is the device in error state and stopped?
+	bool _isDeviceInError;
+
+	/// Is the device in the switchOff process?
+	bool _isInSwitchOff;
 
 	/// Timestamp of last write
 	QDateTime _lastWriteTime;
 
-	/// Time a device requires mandatorily between two writes
-	int	_latchTime_ms;
-
 protected slots:
 
-	/// Write the last data to the leds again
+	///
+	/// @brief Write the last data to the LEDs again.
 	///
 	/// @return Zero on success else negative
 	///
-	int rewriteLeds();
+	int rewriteLEDs();
 
-	/// Switch the leds off
-	/// Writes "Black to LED" or may switch-off the LED hardware, if supported
 	///
-	virtual int switchOff();
-
-	/// Switch the leds on
-	/// May switch-on the LED hardware, if supported
+	/// @brief Set device in error state
 	///
-	virtual int switchOn();
-
-	/// Set device in error state
+	/// @param[in] errorMsg The error message to be logged
 	///
-	/// @param errorMsg The error message to be logged
-	///
-	virtual void setInError( const QString& errorMsg);
+    virtual void setInError( const QString& errorMsg);
 
 private:
 
-	/// Start new refresh cycle
-	///
+	/// @brief Start a new refresh cycle
 	void startRefreshTimer();
 
-	/// Stop refresh cycle
-	///
+	/// @brief Stop refresh cycle
 	void stopRefreshTimer();
 
+	/// Is last write refreshing enabled?
+	bool	_isRefreshEnabled;
 
-	bool	_componentRegistered;
-	bool	_enabled;
-	bool	_refresh_enabled;
+	/// Order of Colors supported by the device
+	/// "RGB", "BGR", "RBG", "BRG", "GBR", "GRB"
 	QString	_colorOrder;
 
 	/// Last LED values written
-	std::vector<ColorRgb> _last_ledValues;
+	std::vector<ColorRgb> _lastLedValues;
 };
+
+#endif // LEDEVICE_H

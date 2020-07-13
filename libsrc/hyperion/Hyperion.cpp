@@ -141,9 +141,8 @@ void Hyperion::start()
 	_boblightServer = new BoblightServer(this, getSetting(settings::BOBLSERVER));
 	connect(this, &Hyperion::settingsChanged, _boblightServer, &BoblightServer::handleSettingsUpdate);
 
-	// instance inited
+	// instance inited, enter thread event loop
 	emit started();
-	// enter thread event loop
 }
 
 void Hyperion::stop()
@@ -380,18 +379,8 @@ void Hyperion::setColor(const int priority, const std::vector<ColorRgb> &ledColo
 		_effectEngine->channelCleared(priority);
 
 	// create full led vector from single/multiple colors
-	size_t size = _ledString.leds().size();
 	std::vector<ColorRgb> newLedColors;
-	while (true)
-	{
-		for (const auto &entry : ledColors)
-		{
-			newLedColors.emplace_back(entry);
-			if (newLedColors.size() == size)
-				goto end;
-		}
-	}
-end:
+	std::copy_n(ledColors.begin(), _ledString.leds().size(), std::back_inserter(newLedColors));
 
 	if (getPriorityInfo(priority).componentId != hyperion::COMP_COLOR)
 		clear(priority);

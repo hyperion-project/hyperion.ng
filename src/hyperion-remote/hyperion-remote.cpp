@@ -17,6 +17,7 @@
 
 #include "HyperionConfig.h"
 #include <commandline/Parser.h>
+#include <utils/DefaultSignalHandler.h>
 
 using namespace commandline;
 
@@ -65,6 +66,8 @@ int main(int argc, char * argv[])
 		<< "hyperion-remote:" << std::endl
 		<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
 		<< "\tbuild time: " << __DATE__ << " " << __TIME__ << std::endl;
+
+	DefaultSignalHandler::install();
 
 	QCoreApplication app(argc, argv);
 
