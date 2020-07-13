@@ -17,6 +17,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Get process IDs by iterating /proc (#843)
 - Dump stack trace on crash (Implement #849) (#870)
 - Minor fixes
+- New Devices (#875)
+  * Yeelight support incl. device discovery and setup-wizard
+  * WLED as own device and pre-configuration
+- Additional device related capabilities (#875)
+  * discover, getProperties, identify, store/restore state and power-on/off 
+available for Philips-Hue, Nanoleaf, Yeelight, partially for Rs232 / USB (Hid)
+  * New device capabilities are accessible via JSON-API
+  * New REST-API wrapper class in support of network devices, e.g. Philips Hue, Nanoleaf and WLED
+  * Flexible ssdp-Discovery incl. RegEx matching and filtering
+- Documentation (#875)
+  * Process workflow for LED-Devices
+  * Documentation of device classes & methods
+  * Code template for new LED-Devices available
 
 ### Changed
 - Updated dependency rpi_ws281x to latest upstream (#820)
@@ -30,49 +43,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Corrected GitHub Actions badge
 - Fix GitHub Actions/Azure Windows Workflow/Pipeline
 - Updated submodules flatbuffers/rpi_ws281x (#873)
-- LED Device Features, Fixes and Refactoring (Resubmit PR855) (#875) (THIS ONE IS HUGE! THX TO @Lord-Grey)
-  * Refactor LedDevices - Initial version
-  * Small renamings
-  * Add WLED as own device
-  * Lpd8806 Remove open() method
-  * remove dependency on Qt 5.10
-  * Lpd8806 Remove open() method
-  * Update WS281x
-  * Update WS2812SPI
-  * Add writeBlack for WLED powerOff
-  * WLED remove extra bracket
-  * Allow different Nanoleaf panel numbering sequence (Feature req.#827)
-  * build(deps): bump websocket-extensions from 0.1.3 to 0.1.4 in /docs (#826)
-  * Bumps [websocket-extensions](https://github.com/faye/websocket-extensions-node) from 0.1.3 to 0.1.4.
-  - [Release notes](https://github.com/faye/websocket-extensions-node/releases)
-  - [Changelog](https://github.com/faye/websocket-extensions-node/blob/master/CHANGELOG.md)
-  - [Commits](faye/websocket-extensions-node@0.1.3...0.1.4)
-  * Fix typos
-  * Nanoleaf clean-up
-  * Yeelight support, generalize wizard elements
-  * Update Yeelight to handle quota in music mode
-  * Yeelight extend rage for extraTimeDarkness for testing
-  * Clean-up - Add commentary, Remove development debug statements
-  * Fix brightnessSwitchOffOnMinimum typo and default value
-  * Yeelight support restoreOriginalState, additional Fixes
-  * WLED - Remove UDP-Port, as it is not configurable
-  * Fix merging issue
-  * Remove QHostAddress::operator=(const QString&)' is deprecated
-  * Windows compile errors and (Qt 5.15 deprecation) warnings
-  * Fix order includes
-  * LedDeviceFile Support Qt5.7 and greater
-  * Windows compatibility and other Fixes
-  * Fix Qt Version compatability
-  * Rs232 - Resolve portname from unix /dev/ style, fix DMX sub-type support
-  * Disable WLED Wizard Button (until Wizard is available)
-  * Yeelight updates
-  * Add wrong log-type as per #505
-  * Fixes and Clean-up after clang-tidy report
-  * Fix udpe131 not enabled for generated CID
-  * Change timer into dynamic for Qt Thread-Affinity
-  * Hue clean-up and diyHue workaround
-  * Updates after review feedback by m-seker
-  * Add "chrono" includes
+- LED-Device workflow changed allowing proper suspend/resume & disable/enable scenarios (#875)
+- Network LED-Devices will stop sending packages when disabled (#875)
+- Rs232 Provider fully reworked and changed to synchronous writes (#875)
+- Rs232 configuration via portname and system location (/dev/ style), auto detection is not case-sensitive any longer (#875)
+- Additional error handling depending on device type (#875)
+- Add Windows compatibility incl. moving to Qt functions (#875)
+- Add compatibility for different Qt versions (#875)
 
 ### Fixed
 - device: Nanoleaf (#829)
@@ -89,6 +66,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix resolution change event Fixes part of #620 (#867)
 - some code improvements & cleanup (#861) (#872)
 - some little things, as always (#863)
+- AtomOrb: Buffer length fix and new configuration validations (#875)
+- Added missing DMX SubTypes to configuration (#875)
 
 ### Removed
 
