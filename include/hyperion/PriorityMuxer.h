@@ -63,7 +63,7 @@ public:
 	///
 	/// @param ledCount The number of leds
 	///
-	PriorityMuxer(int ledCount);
+	PriorityMuxer(int ledCount, QObject * parent);
 
 	///
 	/// Destructor
