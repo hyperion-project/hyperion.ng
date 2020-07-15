@@ -5,10 +5,6 @@
 // qt
 #include <QTimer>
 
-#ifdef ENABLE_CEC
-#include <cec/CECHandler.h>
-#endif
-
 V4L2Wrapper::V4L2Wrapper(const QString &device,
 		const unsigned grabWidth,
 		const unsigned grabHeight,

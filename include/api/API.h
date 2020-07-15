@@ -342,12 +342,6 @@ protected:
     bool hasHyperionDefaultPw();
 
     ///
-    /// @brief Scan HDMI bus for available CEC devices
-    /// @return Scan results
-    ///
-    QString scanCec();
-
-    ///
     /// @brief Logout revokes all authorizations
     ///
     void logout();

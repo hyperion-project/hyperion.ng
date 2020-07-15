@@ -8,7 +8,6 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QMutexLocker>
 
 /* Enable to turn on detailed CEC logs */
 // #define VERBOSE_CEC
@@ -35,7 +34,10 @@ CECHandler::~CECHandler()
 
 bool CECHandler::start()
 {
-	QMutexLocker locker(&_lock);
+	if (_cecAdapter)
+		return true;
+
+	Info(LOG, "Starting CEC handler");
 
 	_cecAdapter = LibCecInitialise(&_cecConfig);
 	if(!_cecAdapter)
@@ -49,6 +51,8 @@ bool CECHandler::start()
 	{
 		Error(LOG, "Failed to find CEC adapter");
 		UnloadLibCec(_cecAdapter);
+		_cecAdapter = nullptr;
+
 		return false;
 	}
 
@@ -77,10 +81,10 @@ bool CECHandler::start()
 
 void CECHandler::stop()
 {
-	QMutexLocker locker(&_lock);
-
 	if (_cecAdapter)
 	{
+		Info(LOG, "Stopping CEC handler");
+
 		_cecAdapter->Close();
 		UnloadLibCec(_cecAdapter);
 		_cecAdapter = nullptr;
@@ -117,8 +121,6 @@ CECCallbacks CECHandler::getCallbacks() const
 
 QVector<CECAdapterDescriptor> CECHandler::getAdapters() const
 {
-	QMutexLocker locker(&_lock);
-
 	if (!_cecAdapter)
 		return {};
 
@@ -131,8 +133,6 @@ QVector<CECAdapterDescriptor> CECHandler::getAdapters() const
 
 bool CECHandler::openAdapter(const CECAdapterDescriptor & descriptor)
 {
-	QMutexLocker locker(&_lock);
-
 	if (!_cecAdapter)
 		return false;
 
@@ -156,26 +156,26 @@ void CECHandler::printAdapter(const CECAdapterDescriptor & descriptor) const
 
 QString CECHandler::scan() const
 {
-	Info(LOG, "Starting CEC scan");
-
-	QMutexLocker locker(&_lock);
-
 	if (!_cecAdapter)
 		return {};
 
+	Info(LOG, "Starting CEC scan");
+
 	QJsonArray devices;
 	CECLogicalAddresses addresses = _cecAdapter->GetActiveDevices();
-	for (int address = CEC::CECDEVICE_TV; address < CEC::CECDEVICE_BROADCAST; ++address)
+	for (int address = CEC::CECDEVICE_TV; address <= CEC::CECDEVICE_BROADCAST; ++address)
 	{
 		if (addresses[address])
 		{
-			QJsonObject device;
-			CECVendorId vendor = (CECVendorId)_cecAdapter->GetDeviceVendorId((CECLogicalAddress)address);
-			CECPowerStatus power = _cecAdapter->GetDevicePowerStatus((CECLogicalAddress)address);
+			CECLogicalAddress logicalAddress = (CECLogicalAddress)address;
 
-			device["name"    ] = _cecAdapter->GetDeviceOSDName((CECLogicalAddress)address).c_str();
-			device["vendor"  ] = _cecAdapter->ToString((CECVendorId)vendor);
-			device["address" ] = _cecAdapter->ToString((CECLogicalAddress)address);
+			QJsonObject device;
+			CECVendorId vendor = (CECVendorId)_cecAdapter->GetDeviceVendorId(logicalAddress);
+			CECPowerStatus power = _cecAdapter->GetDevicePowerStatus(logicalAddress);
+
+			device["name"    ] = _cecAdapter->GetDeviceOSDName(logicalAddress).c_str();
+			device["vendor"  ] = _cecAdapter->ToString(vendor);
+			device["address" ] = _cecAdapter->ToString(logicalAddress);
 			device["power"   ] = _cecAdapter->ToString(power);
 
 			devices << device;
@@ -195,9 +195,32 @@ QString CECHandler::scan() const
 void CECHandler::onCecLogMessage(void * context, const CECLogMessage * message)
 {
 #ifdef VERBOSE_CEC
-	Debug(LOG, QString("%1")
-		.arg(message->message)
-			.toLocal8Bit());
+	switch (message->level)
+	{
+	case CEC::CEC_LOG_ERROR:
+		Error(LOG, QString("%1")
+			.arg(message->message)
+				.toLocal8Bit());
+		break;
+	case CEC::CEC_LOG_WARNING:
+		Warning(LOG, QString("%1")
+			.arg(message->message)
+				.toLocal8Bit());
+		break;
+	case CEC::CEC_LOG_TRAFFIC:
+	case CEC::CEC_LOG_NOTICE:
+		Info(LOG, QString("%1")
+			.arg(message->message)
+				.toLocal8Bit());
+		break;
+	case CEC::CEC_LOG_DEBUG:
+		Debug(LOG, QString("%1")
+			.arg(message->message)
+				.toLocal8Bit());
+		break;
+	default:
+		break;
+	}
 #endif
 }
 
@@ -207,8 +230,6 @@ void CECHandler::onCecKeyPress(void * context, const CECKeyPress * key)
 	CECHandler * handler = qobject_cast<CECHandler*>(static_cast<QObject*>(context));
 	if (!handler)
 		return;
-
-	CECAdapter * adapter = handler->_cecAdapter;
 
 	Debug(LOG, QString("CECHandler::onCecKeyPress: %1")
 		.arg(adapter->ToString(key->keycode))
@@ -241,8 +262,6 @@ int CECHandler::onCecMenuStateChanged(void * context, const CECMenuState state)
 	if (!handler)
 		return 0;
 
-	CECAdapter * adapter = handler->_cecAdapter;
-
 	Debug(LOG, QString("CECHandler::onCecMenuStateChanged: %1")
 		.arg(adapter->ToString(state))
 			.toLocal8Bit());
@@ -265,14 +284,21 @@ void CECHandler::onCecCommandReceived(void * context, const CECCommand * command
 		.arg(adapter->ToString(command->destination))
 			.toLocal8Bit());
 #endif
-	if (command->opcode == CEC::CEC_OPCODE_STANDBY)
+	/* We do not check sender */
+	// if (address == CEC::CECDEVICE_TV)
 	{
-		Info(LOG, QString("CEC source deactivated: #%1")
-			.arg(adapter->ToString(command->initiator))
-				.toLocal8Bit());
-
-		if (command->initiator == CEC::CECDEVICE_TV)
+		if (command->opcode == CEC::CEC_OPCODE_SET_STREAM_PATH)
 		{
+			Info(LOG, QString("CEC source activated: %1")
+				.arg(adapter->ToString(command->initiator))
+					.toLocal8Bit());
+			emit handler->cecEvent(CECEvent::On);
+		}
+		if (command->opcode == CEC::CEC_OPCODE_STANDBY)
+		{
+			Info(LOG, QString("CEC source deactivated: %1")
+				.arg(adapter->ToString(command->initiator))
+					.toLocal8Bit());
 			emit handler->cecEvent(CECEvent::Off);
 		}
 	}
@@ -280,18 +306,19 @@ void CECHandler::onCecCommandReceived(void * context, const CECCommand * command
 
 void CECHandler::onCecSourceActivated(void * context, const CECLogicalAddress address, const uint8_t activated)
 {
+	/* We use CECHandler::onCecCommandReceived for
+	 * source activated/deactivated notifications. */
+
+#ifdef VERBOSE_CEC
 	CECHandler * handler = qobject_cast<CECHandler*>(static_cast<QObject*>(context));
 	if (!handler)
 		return;
 
-	CECAdapter * adapter = handler->_cecAdapter;
-
-	Debug(LOG, QString("CEC source activated: %1")
+	Debug(LOG, QString("CEC source %1 : %2")
+		.arg(activated ? "activated" : "deactivated")
 		.arg(adapter->ToString(address))
 			.toLocal8Bit());
-
-	if (activated && address == CEC::CECDEVICE_TV)
-	{
-		emit handler->cecEvent(CECEvent::On);
-	}
+#endif
 }
+
+

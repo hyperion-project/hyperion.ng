@@ -6,6 +6,7 @@ macro(DeployUnix TARGET)
 		set(SYSTEM_LIBS_SKIP
 			"libc"
 			"libdl"
+			"libcec"
 			"libexpat"
 			"libfontconfig"
 			"libfreetype"
@@ -24,7 +25,6 @@ macro(DeployUnix TARGET)
 			"libusb-1"
 			"libutil"
 			"libX11"
-			"libz"
 		)
 
 		if (APPLE)

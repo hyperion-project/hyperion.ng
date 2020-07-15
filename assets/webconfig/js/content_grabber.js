@@ -331,10 +331,5 @@ $(document).ready( function() {
       hideEl(["pixelDecimation"]);
   });
 
-  $(window.hyperion).on("cmd-scan", function(event) {
-    console.log(event.response);
-  });
-  requestCecScan();
-
   removeOverlay();
 });

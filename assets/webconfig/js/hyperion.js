@@ -448,11 +448,6 @@ function requestAdjustment(type, value, complete)
 		sendToHyperion("adjustment", "", '"adjustment": {"'+type+'": '+value+'}');
 }
 
-async function requestCecScan()
-{
-	return sendAsyncToHyperion("cec", "scan", "", Math.floor(Math.random() * 1000));
-}
-
 async function requestLedDeviceDiscovery(type)
 {
 	let data = { ledDeviceType: type };

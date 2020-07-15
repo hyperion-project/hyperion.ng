@@ -1301,7 +1301,7 @@ void V4L2Grabber::setCecDetectionEnable(bool enable)
 	if (_cecDetectionEnabled != enable)
 	{
 		_cecDetectionEnabled = enable;
-		Info(_log, "CEC detection is now %s", enable ? "enabled" : "disabled");
+		Info(_log, QString("CEC detection is now %1").arg(enable ? "enabled" : "disabled").toLocal8Bit());
 	}
 }
 

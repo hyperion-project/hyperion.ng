@@ -1,7 +1,6 @@
 #pragma once
 
 #include <QObject>
-#include <QMutex>
 #include <QVector>
 
 #include <iostream>
@@ -19,35 +18,29 @@ using CECCommand           = CEC::cec_command;
 using CECLogicalAddress    = CEC::cec_logical_address;
 using CECLogicalAddresses  = CEC::cec_logical_addresses;
 using CECMenuState         = CEC::cec_menu_state;
+using CECPowerStatus       = CEC::cec_power_status;
+using CECVendorId          = CEC::cec_vendor_id;
 using CECParameter         = CEC::libcec_parameter;
 using CECConfig            = CEC::libcec_configuration;
 using CECAlert             = CEC::libcec_alert;
-using CECPowerStatus       = CEC::cec_power_status;
-using CECVendorId          = CEC::cec_vendor_id;
 
 class CECHandler : public QObject
 {
 	Q_OBJECT
 public:
+	CECHandler();
 	~CECHandler() override;
 
-	static CECHandler * getInstance()
-	{
-		static CECHandler instance;
-		return &instance;
-	}
+	QString scan() const;
 
+public slots:
 	bool start();
 	void stop();
-	bool running() const { return _cecAdapter != nullptr; }
-	QString scan() const;
 
 signals:
 	void cecEvent(CECEvent event);
 
 private:
-	CECHandler();
-
 	/* CEC Callbacks */
 	static void onCecLogMessage           (void * context, const CECLogMessage * message);
 	static void onCecKeyPress             (void * context, const CECKeyPress * key);
@@ -69,6 +62,4 @@ private:
 	CECAdapter * _cecAdapter   {};
 	CECCallbacks _cecCallbacks {};
 	CECConfig    _cecConfig    {};
-
-	mutable QMutex _lock { QMutex::Recursive };
 };

@@ -14,7 +14,7 @@ if ! [ -d "$builddir" ]; then
 	echo "Could not find build director"
 	exit 1
 fi
-	
+
 outfile="$repodir/deploy/hyperion_$buildid.tar.gz"
 echo create $outfile
 

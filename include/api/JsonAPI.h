@@ -277,12 +277,6 @@ private:
 	///
 	void handleLedDeviceCommand(const QJsonObject &message, const QString &command, const int tan);
 
-	/// Handle an incoming JSON Led Device message
-	///
-	/// @param message the incoming message
-	///
-	void handleCecCommand(const QJsonObject &message, const QString &command, const int tan);
-
 	///
 	/// Handle an incoming JSON message of unknown type
 	///

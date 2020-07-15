@@ -54,8 +54,9 @@
 // EffectFileHandler
 #include <effectengine/EffectFileHandler.h>
 
-// CECHandler
+#ifdef ENABLE_CEC
 #include <cec/CECHandler.h>
+#endif
 
 HyperionDaemon *HyperionDaemon::daemon = nullptr;
 
@@ -79,6 +80,7 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 		, _osxGrabber(nullptr)
 		, _qtGrabber(nullptr)
 		, _ssdp(nullptr)
+		, _cecHandler(nullptr)
 		, _currVideoMode(VideoMode::VIDEO_2D)
 {
 	HyperionDaemon::daemon = this;
@@ -98,9 +100,7 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 	if (!logLvlOverwrite)
 		handleSettingsUpdate(settings::LOGGER, getSetting(settings::LOGGER));
 
-
-	const QJsonObject &grabberConfig = getSetting(settings::V4L2).object();
-	createCecHandler(grabberConfig);
+	createCecHandler();
 
 	// init EffectFileHandler
 	EffectFileHandler *efh = new EffectFileHandler(rootPath, getSetting(settings::EFFECTS), this);
@@ -201,6 +201,13 @@ void HyperionDaemon::freeObjects()
 	delete _sslWebserver->thread();
 	delete _sslWebserver;
 
+#ifdef ENABLE_CEC
+	_cecHandler->thread()->quit();
+	_cecHandler->thread()->wait(1000);
+	delete _cecHandler->thread();
+	delete _cecHandler;
+#endif
+
 	// stop Hyperions (non blocking)
 	_instanceManager->stopAll();
 
@@ -213,6 +220,7 @@ void HyperionDaemon::freeObjects()
 	delete _v4l2Grabber;
 
 	_v4l2Grabber = nullptr;
+	_cecHandler = nullptr;
 	_bonjourBrowserWrapper = nullptr;
 	_amlGrabber = nullptr;
 	_dispmanx = nullptr;
@@ -466,25 +474,23 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type &settingsType, co
 	}
 	else if (settingsType == settings::V4L2)
 	{
-
-#ifdef ENABLE_V4L2
 		const QJsonObject &grabberConfig = config.object();
-
-		if (grabberConfig["cecDetection"].toBool(false))
+#ifdef ENABLE_CEC
+		QString operation;
+		if (_cecHandler && grabberConfig["cecDetection"].toBool(false))
 		{
-
-			if (!CECHandler::getInstance()->running())
-				CECHandler::getInstance()->start();
+			QMetaObject::invokeMethod(_cecHandler, "start", Qt::QueuedConnection);
 		}
 		else
 		{
-			if (CECHandler::getInstance()->running())
-				CECHandler::getInstance()->stop();
+			QMetaObject::invokeMethod(_cecHandler, "stop", Qt::QueuedConnection);
 		}
+#endif
 
 		if (_v4l2Grabber != nullptr)
 			return;
 
+#ifdef ENABLE_V4L2
 		_v4l2Grabber = new V4L2Wrapper(
 				grabberConfig["device"].toString("auto"),
 				grabberConfig["width"].toInt(0),
@@ -629,21 +635,20 @@ void HyperionDaemon::createGrabberOsx(const QJsonObject &grabberConfig)
 #endif
 }
 
-void HyperionDaemon::createCecHandler(const QJsonObject &grabberConfig)
+void HyperionDaemon::createCecHandler()
 {
 #ifdef ENABLE_CEC
-	// Construct and start the CEC handler if the configuration is present
-	CECHandler * cecHandler = CECHandler::getInstance();
+	_cecHandler = new CECHandler;
 
-	if (grabberConfig["cecDetection"].toBool(false))
-	{
-		connect(cecHandler, &CECHandler::cecEvent, [&] (CECEvent event) {
-			if (_v4l2Grabber)
-				_v4l2Grabber->handleCecEvent(event);
-		});
+	QThread * thread = new QThread(this);
+	thread->setObjectName("CECThread");
+	_cecHandler->moveToThread(thread);
+	thread->start();
 
-		cecHandler->start();
-	}
+	connect(_cecHandler, &CECHandler::cecEvent, [&] (CECEvent event) {
+		if (_v4l2Grabber)
+			_v4l2Grabber->handleCecEvent(event);
+	});
 
 	Info(_log, "CEC handler created");
 #else
