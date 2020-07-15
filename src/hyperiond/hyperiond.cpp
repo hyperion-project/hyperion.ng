@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <limits>
 #include <QThread>
+#include <QSysInfo>
 
 #include <utils/Components.h>
 #include <utils/JsonUtils.h>
@@ -336,6 +337,10 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type &settingsType, co
 				{
 					Error(_log, "grabber device '%s' for type amlogic not found!", QSTRING_CSTR(_grabber_device));
 				}
+			}
+			else if (QSysInfo::productType() == "windows")
+			{
+				type = "dx";
 			}
 			else
 			{
