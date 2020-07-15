@@ -142,6 +142,9 @@ endif()
 if(ENABLE_OSX)
 	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_osx" )
 endif()
+if(ENABLE_DX)
+	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_dx" )
+endif()
 
 SET ( CPACK_ARCHIVE_COMPONENT_INSTALL ON )
 SET ( CPACK_DEB_COMPONENT_INSTALL ON )
@@ -231,6 +234,15 @@ if(ENABLE_OSX)
 	cpack_add_component(hyperion_osx
 		DISPLAY_NAME "Mac osx Standalone Screencap"
 		DESCRIPTION "Mac osx based standalone screen capture"
+		INSTALL_TYPES Full
+		GROUP Screencapture
+		DEPENDS Hyperion
+	)
+endif()
+if(ENABLE_DX)
+	cpack_add_component(hyperion_dx
+		DISPLAY_NAME "DirectX Standalone Screencap"
+		DESCRIPTION "DirectX 9 based standalone screen capture"
 		INSTALL_TYPES Full
 		GROUP Screencapture
 		DEPENDS Hyperion
