@@ -29,3 +29,7 @@ endif()
 if(ENABLE_OSX)
 	add_subdirectory(hyperion-osx)
 endif()
+
+if(ENABLE_DX)
+	add_subdirectory(hyperion-dx)
+endif()
