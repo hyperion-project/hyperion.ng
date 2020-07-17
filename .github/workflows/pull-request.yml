@@ -123,6 +123,7 @@ jobs:
     runs-on: windows-latest
     env:
       VCINSTALLDIR: 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC'
+      qt_version: 5.15.0
     steps:
       - name: Checkout
         uses: actions/checkout@v1
@@ -136,12 +137,20 @@ jobs:
           tr -d '\n' < version > temp && mv temp version
           echo -n "-PR#${{ github.event.pull_request.number }}" >> version
 
+      - name: Cache Qt
+        uses: actions/cache@v2
+        id: cache-qt-windows
+        with:
+          path: ../Qt
+          key: ${{ runner.os }}/Qt/${env:qt_version}
+
       - name: Install Qt
         uses: jurplel/install-qt-action@v2
         with:
-          version: '5.15.0'
+          version: ${env:qt_version}
           target: 'desktop'
           arch: 'win64_msvc2019_64'
+          cached: ${{ steps.cache-qt-windows.outputs.cache-hit }}
 
       - name: Install Python
         uses: actions/setup-python@v1
