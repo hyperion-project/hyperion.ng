@@ -13,7 +13,7 @@ DxWrapper::DxWrapper(int grabInterval, int cropLeft, int cropRight, int cropTop,
 
 const Image<ColorRgb> & DxWrapper::getScreenshot()
 {
-	_grabber.grabFrame(_screenshot);
+	capture();
 	return _screenshot;
 }
 

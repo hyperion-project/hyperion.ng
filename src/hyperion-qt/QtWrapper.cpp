@@ -13,7 +13,7 @@ QtWrapper::QtWrapper(int grabInterval, int cropLeft, int cropRight, int cropTop,
 
 const Image<ColorRgb> & QtWrapper::getScreenshot()
 {
-	_grabber.grabFrame(_screenshot);
+	capture();
 	return _screenshot;
 }
 
