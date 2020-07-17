@@ -142,12 +142,12 @@ jobs:
         id: cache-qt-windows
         with:
           path: ../Qt
-          key: ${{ runner.os }}/Qt/${env:qt_version}
+          key: ${{ runner.os }}/Qt/${{env.qt_version}}
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v2
         with:
-          version: ${env:qt_version}
+          version: ${{env.qt_version}}
           target: 'desktop'
           arch: 'win64_msvc2019_64'
           cached: ${{ steps.cache-qt-windows.outputs.cache-hit }}
