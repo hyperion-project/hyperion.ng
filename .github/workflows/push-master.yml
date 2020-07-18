@@ -94,29 +94,45 @@ jobs:
     runs-on: windows-latest
     env:
       VCINSTALLDIR: 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC'
+      qt_version: 5.15.0
     steps:
       - name: Checkout
         uses: actions/checkout@v1
         with:
           submodules: true
 
+      - name: Cache Qt
+        uses: actions/cache@v1
+        id: cache-qt-windows
+        with:
+          path: ../Qt
+          key: ${{ runner.os }}/Qt.${{ env.qt_version }}-cache
+
       - name: Install Qt
         uses: jurplel/install-qt-action@v2
         with:
-          version: '5.15.0'
+          version: ${{env.qt_version}}
           target: 'desktop'
           arch: 'win64_msvc2019_64'
+          cached: ${{ steps.cache-qt-windows.outputs.cache-hit }}
 
       - name: Install Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v2
         with:
           python-version: '3.x'
+          architecture: 'x64'
 
-      - name: Install NSIS
-        run: choco install --no-progress nsis -y
+      - name: Set Chocolatey cache path
+        run: echo "::set-env name=CHOCOLATEY_CACHE_PATH::C:\Users\$env:UserName\AppData\Local\Temp\chocolatey"
 
-      - name: Install OpenSSL
-        run: choco install --no-progress openssl -y
+      - name: Cache Chocolatey downloads
+        uses: actions/cache@v1
+        with:
+          path: ${{ env.CHOCOLATEY_CACHE_PATH }}
+          key: ${{ runner.os }}/chocolatey-cache
+
+      - name: Install NSIS & OpenSSL
+        run: choco install nsis openssl -y
 
       - name: Set up x64 build architecture environment
         shell: cmd
