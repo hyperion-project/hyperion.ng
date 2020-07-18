@@ -5,6 +5,7 @@
 
 //qt
 #include <QMap>
+#include <QVector>
 
 class AuthTable;
 class MetaTable;

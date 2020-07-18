@@ -12,7 +12,7 @@ FlatBufferConnection::FlatBufferConnection(const QString& origin, const QString 
 	, _origin(origin)
 	, _priority(priority)
 	, _prevSocketState(QAbstractSocket::UnconnectedState)
-	, _log(Logger::getInstance("FLATBUFCONNECTION"))
+	, _log(Logger::getInstance("FLATBUFCONN"))
 	, _registered(false)
 {
 	QStringList parts = address.split(":");
