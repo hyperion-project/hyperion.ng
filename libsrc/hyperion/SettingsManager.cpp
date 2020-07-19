@@ -16,7 +16,7 @@ QJsonObject SettingsManager::schemaJson;
 
 SettingsManager::SettingsManager(const quint8& instance, QObject* parent)
 	: QObject(parent)
-	, _log(Logger::getInstance("SettingsManager"))
+	, _log(Logger::getInstance("SETTINGSMGR"))
 	, _sTable(new SettingsTable(instance, this))
 {
 	// get schema
