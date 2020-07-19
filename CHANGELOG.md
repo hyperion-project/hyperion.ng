@@ -30,6 +30,7 @@ available for Philips-Hue, Nanoleaf, Yeelight, partially for Rs232 / USB (Hid)
   * Process workflow for LED-Devices
   * Documentation of device classes & methods
   * Code template for new LED-Devices available
+- CEC detection (#877)
 
 ### Changed
 - Updated dependency rpi_ws281x to latest upstream (#820)
@@ -51,6 +52,7 @@ available for Philips-Hue, Nanoleaf, Yeelight, partially for Rs232 / USB (Hid)
 - Add Windows compatibility incl. moving to Qt functions (#875)
 - Add compatibility for different Qt versions (#875)
 
+
 ### Fixed
 - device: Nanoleaf (#829)
 - device: LPD8806 Problems fixed (#829)
@@ -64,10 +66,15 @@ available for Philips-Hue, Nanoleaf, Yeelight, partially for Rs232 / USB (Hid)
 - Fix heap corruption (#862)
 - Fix OpenSSL dependencies for Windows (#864)
 - Fix resolution change event Fixes part of #620 (#867)
-- some code improvements & cleanup (#861) (#872)
+- some code improvements & cleanup (#861) (#872) (#880) (#876)
 - some little things, as always (#863)
 - AtomOrb: Buffer length fix and new configuration validations (#875)
 - Added missing DMX SubTypes to configuration (#875)
+- Fix logger (#885)
+ * Make logger thread safe
+ * Include timestamp in logs
+ * Make logs look a bit more cleaner
+- Decrease compile time (#886)
 
 ### Removed
 
