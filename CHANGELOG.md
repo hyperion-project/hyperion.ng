@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Breaking
 
 ### Added
-- [HyperBian](https://github.com/hyperion-project/HyperBian/releases) - A Raspbian Lite image with Hyperion pre installed. (#832)
+- [HyperBian](https://github.com/hyperion-project/HyperBian/releases) - A Raspberry Pi OS Lite image with Hyperion pre installed. (#832)
 - An option to reset (delete) the database for the commandline has been added (#820)
 - Improve language selection usability (#812)
 - readded V4L2 Input method from old Hyperion (#825)
@@ -21,8 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * Yeelight support incl. device discovery and setup-wizard
   * WLED as own device and pre-configuration
 - Additional device related capabilities (#875)
-  * discover, getProperties, identify, store/restore state and power-on/off 
-available for Philips-Hue, Nanoleaf, Yeelight, partially for Rs232 / USB (Hid)
+  * discover, getProperties, identify, store/restore state and power-on/off available for Philips-Hue, Nanoleaf, Yeelight, partially for Rs232 / USB (Hid)
   * New device capabilities are accessible via JSON-API
   * New REST-API wrapper class in support of network devices, e.g. Philips Hue, Nanoleaf and WLED
   * Flexible ssdp-Discovery incl. RegEx matching and filtering
