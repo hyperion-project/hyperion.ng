@@ -71,9 +71,9 @@ available for Philips-Hue, Nanoleaf, Yeelight, partially for Rs232 / USB (Hid)
 - AtomOrb: Buffer length fix and new configuration validations (#875)
 - Added missing DMX SubTypes to configuration (#875)
 - Fix logger (#885)
- * Make logger thread safe
- * Include timestamp in logs
- * Make logs look a bit more cleaner
+  * Make logger thread safe
+  * Include timestamp in logs
+  * Make logs look a bit more cleaner
 - Decrease compile time (#886)
 
 ### Removed
