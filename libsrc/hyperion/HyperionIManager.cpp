@@ -74,7 +74,7 @@ bool HyperionIManager::startInstance(const quint8& inst, const bool& block)
 		if(!_runningInstances.contains(inst) && !_startQueue.contains(inst))
 		{
 			QThread* hyperionThread = new QThread();
-			hyperionThread->setObjectName("HyperionIManagerThread");
+			hyperionThread->setObjectName("HyperionThread");
 			Hyperion* hyperion = new Hyperion(inst);
 			hyperion->moveToThread(hyperionThread);
 			// setup thread management
