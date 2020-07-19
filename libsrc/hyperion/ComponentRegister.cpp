@@ -7,7 +7,7 @@ using namespace hyperion;
 
 ComponentRegister::ComponentRegister(Hyperion* hyperion)
 	: _hyperion(hyperion)
-	, _log(Logger::getInstance("ComponentRegister"))
+	, _log(Logger::getInstance("COMPONENTREG"))
 {
 	// init all comps to false
 	QVector<hyperion::Components> vect;

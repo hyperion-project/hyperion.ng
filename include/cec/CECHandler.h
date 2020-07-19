@@ -24,6 +24,8 @@ using CECParameter         = CEC::libcec_parameter;
 using CECConfig            = CEC::libcec_configuration;
 using CECAlert             = CEC::libcec_alert;
 
+class Logger;
+
 class CECHandler : public QObject
 {
 	Q_OBJECT
@@ -62,4 +64,6 @@ private:
 	CECAdapter * _cecAdapter   {};
 	CECCallbacks _cecCallbacks {};
 	CECConfig    _cecConfig    {};
+
+	Logger * _logger {};
 };
