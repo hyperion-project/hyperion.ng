@@ -6,7 +6,6 @@ macro(DeployUnix TARGET)
 		set(SYSTEM_LIBS_SKIP
 			"libc"
 			"libdl"
-			"libcec"
 			"libexpat"
 			"libfontconfig"
 			"libfreetype"
