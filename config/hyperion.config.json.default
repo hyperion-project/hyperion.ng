@@ -73,6 +73,7 @@
 		"greenSignalThreshold"	: 5,
 		"blueSignalThreshold"	: 5,
 		"signalDetection"		: false,
+		"cecDetection"			: false,
 		"sDVOffsetMin"			: 0.25,
 		"sDHOffsetMin"			: 0.25,
 		"sDVOffsetMax"			: 0.75,

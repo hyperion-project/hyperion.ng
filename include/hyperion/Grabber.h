@@ -81,6 +81,11 @@ public:
 	virtual void setSignalDetectionEnable(bool enable) {}
 
 	///
+	/// @brief Apply CecDetectionEnable (used from v4l)
+	///
+	virtual void setCecDetectionEnable(bool enable) {}
+
+	///
 	/// @brief Apply device and videoStanded (used from v4l)
 	///
 	virtual void setDeviceVideoStandard(QString device, VideoStandard videoStandard) {}

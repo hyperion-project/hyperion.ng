@@ -1409,7 +1409,6 @@ void JsonAPI::handleLedDeviceCommand(const QJsonObject &message, const QString &
 */	{
 		if (subc == "discover")
 		{
-
 			QJsonObject config;
 			config.insert("type", devType);
 

@@ -22,7 +22,7 @@
 		"params": {
 			"type" : "object",
 			"required" : false
-		}					
+		}
 	},
 	"additionalProperties": false
 }

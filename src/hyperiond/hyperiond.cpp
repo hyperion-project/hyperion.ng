@@ -54,6 +54,10 @@
 // EffectFileHandler
 #include <effectengine/EffectFileHandler.h>
 
+#ifdef ENABLE_CEC
+#include <cec/CECHandler.h>
+#endif
+
 HyperionDaemon *HyperionDaemon::daemon = nullptr;
 
 HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bool &logLvlOverwrite)
@@ -76,6 +80,7 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 		, _osxGrabber(nullptr)
 		, _qtGrabber(nullptr)
 		, _ssdp(nullptr)
+		, _cecHandler(nullptr)
 		, _currVideoMode(VideoMode::VIDEO_2D)
 {
 	HyperionDaemon::daemon = this;
@@ -94,6 +99,8 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 	// set inital log lvl if the loglvl wasn't overwritten by arg
 	if (!logLvlOverwrite)
 		handleSettingsUpdate(settings::LOGGER, getSetting(settings::LOGGER));
+
+	createCecHandler();
 
 	// init EffectFileHandler
 	EffectFileHandler *efh = new EffectFileHandler(rootPath, getSetting(settings::EFFECTS), this);
@@ -194,12 +201,17 @@ void HyperionDaemon::freeObjects()
 	delete _sslWebserver->thread();
 	delete _sslWebserver;
 
+#ifdef ENABLE_CEC
+	_cecHandler->thread()->quit();
+	_cecHandler->thread()->wait(1000);
+	delete _cecHandler->thread();
+	delete _cecHandler;
+#endif
+
 	// stop Hyperions (non blocking)
 	_instanceManager->stopAll();
 
-#ifdef ENABLE_AVAHI
 	delete _bonjourBrowserWrapper;
-#endif
 	delete _amlGrabber;
 	delete _dispmanx;
 	delete _fbGrabber;
@@ -208,9 +220,8 @@ void HyperionDaemon::freeObjects()
 	delete _v4l2Grabber;
 
 	_v4l2Grabber = nullptr;
-#ifdef ENABLE_AVAHI
+	_cecHandler = nullptr;
 	_bonjourBrowserWrapper = nullptr;
-#endif
 	_amlGrabber = nullptr;
 	_dispmanx = nullptr;
 	_fbGrabber = nullptr;
@@ -463,13 +474,23 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type &settingsType, co
 	}
 	else if (settingsType == settings::V4L2)
 	{
+		const QJsonObject &grabberConfig = config.object();
+#ifdef ENABLE_CEC
+		QString operation;
+		if (_cecHandler && grabberConfig["cecDetection"].toBool(false))
+		{
+			QMetaObject::invokeMethod(_cecHandler, "start", Qt::QueuedConnection);
+		}
+		else
+		{
+			QMetaObject::invokeMethod(_cecHandler, "stop", Qt::QueuedConnection);
+		}
+#endif
 
-#ifdef ENABLE_V4L2
 		if (_v4l2Grabber != nullptr)
 			return;
 
-		const QJsonObject &grabberConfig = config.object();
-
+#ifdef ENABLE_V4L2
 		_v4l2Grabber = new V4L2Wrapper(
 				grabberConfig["device"].toString("auto"),
 				grabberConfig["width"].toInt(0),
@@ -489,6 +510,8 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type &settingsType, co
 				grabberConfig["cropRight"].toInt(0),
 				grabberConfig["cropTop"].toInt(0),
 				grabberConfig["cropBottom"].toInt(0));
+
+		_v4l2Grabber->setCecDetectionEnable(grabberConfig["cecDetection"].toBool(true));
 		_v4l2Grabber->setSignalDetectionEnable(grabberConfig["signalDetection"].toBool(true));
 		_v4l2Grabber->setSignalDetectionOffset(
 				grabberConfig["sDHOffsetMin"].toDouble(0.25),
@@ -497,9 +520,9 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type &settingsType, co
 				grabberConfig["sDVOffsetMax"].toDouble(0.75));
 		Debug(_log, "V4L2 grabber created");
 
-			// connect to HyperionDaemon signal
-			connect(this, &HyperionDaemon::videoMode, _v4l2Grabber, &V4L2Wrapper::setVideoMode);
-			connect(this, &HyperionDaemon::settingsChanged, _v4l2Grabber, &V4L2Wrapper::handleSettingsUpdate);
+		// connect to HyperionDaemon signal
+		connect(this, &HyperionDaemon::videoMode, _v4l2Grabber, &V4L2Wrapper::setVideoMode);
+		connect(this, &HyperionDaemon::settingsChanged, _v4l2Grabber, &V4L2Wrapper::handleSettingsUpdate);
 #else
 		Error(_log, "The v4l2 grabber can not be instantiated, because it has been left out from the build");
 #endif
@@ -609,5 +632,26 @@ void HyperionDaemon::createGrabberOsx(const QJsonObject &grabberConfig)
 	Info(_log, "OSX grabber created");
 #else
 	Error(_log, "The osx grabber can not be instantiated, because it has been left out from the build");
+#endif
+}
+
+void HyperionDaemon::createCecHandler()
+{
+#ifdef ENABLE_CEC
+	_cecHandler = new CECHandler;
+
+	QThread * thread = new QThread(this);
+	thread->setObjectName("CECThread");
+	_cecHandler->moveToThread(thread);
+	thread->start();
+
+	connect(_cecHandler, &CECHandler::cecEvent, [&] (CECEvent event) {
+		if (_v4l2Grabber)
+			_v4l2Grabber->handleCecEvent(event);
+	});
+
+	Info(_log, "CEC handler created");
+#else
+	Error(_log, "The CEC handler can not be instantiated, because it has been left out from the build");
 #endif
 }
