@@ -4,7 +4,6 @@
 	requestLoggingStart();
 
 $(document).ready(function() {
-	
 	var messages;
 	var loguplmess = "";
 	var reportUrl = 'https://report.hyperion-project.org/#';
