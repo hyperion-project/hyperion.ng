@@ -101,6 +101,7 @@ int QtGrabber::grabFrame(Image<ColorRgb> & image)
 	QPixmap originalPixmap = _screen->grabWindow(0, _src_x, _src_y, _src_x_max, _src_y_max);
 	QPixmap resizedPixmap = originalPixmap.scaled(_width,_height);
 	QImage imageFrame = resizedPixmap.toImage().convertToFormat( QImage::Format_RGB888);
+	image.resize(imageFrame.width(), imageFrame.height());
 
 	for (int y=0; y<imageFrame.height(); ++y)
 		for (int x=0; x<imageFrame.width(); ++x)

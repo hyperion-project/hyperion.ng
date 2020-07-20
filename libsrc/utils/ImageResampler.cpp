@@ -60,7 +60,9 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 	// calculate the output size
 	int outputWidth = (width - _cropLeft - cropRight - (_horizontalDecimation >> 1) + _horizontalDecimation - 1) / _horizontalDecimation;
 	int outputHeight = (height - _cropTop - cropBottom - (_verticalDecimation >> 1) + _verticalDecimation - 1) / _verticalDecimation;
-	outputImage.resize(outputWidth, outputHeight);
+
+	if (outputImage.width() != outputWidth || outputImage.height() != outputHeight)
+		outputImage.resize(outputWidth, outputHeight);
 
 	for (int yDest = 0, ySource = _cropTop + (_verticalDecimation >> 1); yDest < outputHeight; ySource += _verticalDecimation, ++yDest)
 	{
