@@ -121,7 +121,7 @@ void SysTray::createTrayIcon()
 bool SysTray::getCurrentAutorunState()
 {
 	QSettings reg("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::NativeFormat);
-    if (reg.value("Hyperion", 0).toString() == qApp->applicationFilePath())
+    if (reg.value("Hyperion", 0).toString() == qApp->applicationFilePath().replace('/', '\\'))
 	{
 		autorunAction->setText(tr("&Disable autostart"));
         return true;
@@ -139,7 +139,7 @@ void SysTray::setAutorunState()
 	QSettings reg("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::NativeFormat);
 	(currentState)
 	? reg.remove("Hyperion")
-	: reg.setValue("Hyperion", qApp->applicationFilePath());
+	: reg.setValue("Hyperion", qApp->applicationFilePath().replace('/', '\\'));
 #endif
 }
 
