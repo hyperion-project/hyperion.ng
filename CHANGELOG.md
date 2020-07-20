@@ -74,6 +74,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * Include timestamp in logs
   * Make logs look a bit more cleaner
 - Decrease compile time (#886)
+- Fix some data synchronization error (#890)
 
 ### Removed
 
