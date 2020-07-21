@@ -868,12 +868,16 @@ void JsonAPI::handleConfigCommand(const QJsonObject &message, const QString &com
 	{
 		if (_adminAuthorized)
 		{
-			_hyperion->freeObjects(true);
+			Debug(_log, "Restarting due to RPC command");
+
 			Process::restartHyperion();
-			sendErrorReply("failed to restart hyperion", full_command, tan);
+
+			sendSuccessReply(command + "-" + subcommand, tan);
 		}
 		else
+		{
 			sendErrorReply("No Authorization", command, tan);
+		}
 	}
 	else
 	{
