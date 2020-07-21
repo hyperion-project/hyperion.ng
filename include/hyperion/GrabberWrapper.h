@@ -52,6 +52,11 @@ public:
 	virtual void stop();
 
 	///
+	/// Check if grabber is active
+	///
+	virtual bool isActive() const;
+
+	///
 	/// @brief Get a list of all available V4L devices
 	/// @return List of all available V4L devices on success else empty List
 	///
@@ -145,6 +150,12 @@ private slots:
 	/// @brief Handle a source request event from Hyperion.
 	/// Will start and stop grabber based on active listeners count
 	void handleSourceRequest(const hyperion::Components& component, const int hyperionInd, const bool listen);
+
+	///
+	/// @brief Update Update capture rate
+	/// @param type   interval between frames in millisecons
+	///
+	void updateTimer(int interval);
 
 protected:
 	QString _grabberName;
