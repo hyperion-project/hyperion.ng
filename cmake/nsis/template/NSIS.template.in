@@ -724,6 +724,24 @@ Section "-Core installation"
 
 @CPACK_NSIS_EXTRA_INSTALL_COMMANDS@
 
+; Custom vcredist install script, detection is not reliable
+;ReadRegStr $1 HKLM "SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\X64" "Bld"
+;DetailPrint "VCREDIS KEY: $1"
+;
+;IntCmp $1 28508 Equal Val1Less Val1More
+;Equal:
+;    DetailPrint "$1 = 28508 "
+;    Goto End
+;Val1Less:
+;    DetailPrint "$1 < 28508 "
+;    Goto End
+;Val1More:
+;    DetailPrint "$1 > 28508 "
+;    Goto End
+;End:
+
+ExecWait '"$INSTDIR\bin\vc_redist.x64.exe" /install /quiet'
+
 SectionEnd
 
 Section "-Add to path"

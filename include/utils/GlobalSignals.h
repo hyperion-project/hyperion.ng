@@ -21,11 +21,11 @@ public:
         return & instance;
     }
 private:
-    GlobalSignals() {}
+    GlobalSignals() = default;
 
 public:
-    GlobalSignals(GlobalSignals const&)   = delete;
-    void operator=(GlobalSignals const&)  = delete;
+    GlobalSignals(GlobalSignals const&)  = delete;
+    void operator=(GlobalSignals const&) = delete;
 
 signals:
 	///////////////////////////////////////

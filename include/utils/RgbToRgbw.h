@@ -6,7 +6,7 @@
 
 namespace RGBW {
 
-	enum WhiteAlgorithm {
+	enum class WhiteAlgorithm {
 		INVALID,
 		SUBTRACT_MINIMUM,
 		SUB_MIN_WARM_ADJUST,

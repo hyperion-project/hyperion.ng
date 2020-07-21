@@ -15,16 +15,15 @@ class CgiHandler : public QObject {
 
 public:
 	CgiHandler (QObject * parent = NULL);
-	virtual ~CgiHandler (void);
 
 	void setBaseUrl(const QString& url);
 	void exec(const QStringList & args,QtHttpRequest * request, QtHttpReply * reply);
 
-	// cgi commands
+private:
+	// CGI commands
 	void cmd_cfg_jsonserver();
 	void cmd_runscript ();
 
-private:
 	QtHttpReply *       _reply;
 	QtHttpRequest *     _request;
 	QStringList         _args;

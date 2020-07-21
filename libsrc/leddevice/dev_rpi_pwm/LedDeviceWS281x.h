@@ -1,52 +1,65 @@
-#pragma once
+#ifndef LEDEVICEWS281X_H
+#define LEDEVICEWS281X_H
 
 // LedDevice includes
 #include <leddevice/LedDevice.h>
 #include <ws2811.h>
 
 ///
-/// Implementation of the LedDevice interface for writing to Ws2812 led device via pwm.
+/// Implementation of the LedDevice interface for writing to WS281x LED-device via pwm.
 ///
 class LedDeviceWS281x : public LedDevice
 {
 public:
+
 	///
-	/// Constructs specific LedDevice
+	/// @brief Constructs an WS281x LED-device
 	///
-	/// @param deviceConfig json device config
+	/// @param deviceConfig Device's configuration as JSON-Object
 	///
 	explicit LedDeviceWS281x(const QJsonObject &deviceConfig);
 
 	///
-	/// Destructor of the LedDevice, waits for DMA to complete and then cleans up
+	/// @brief Destructor of the LedDevice
 	///
 	virtual ~LedDeviceWS281x() override;
 
-	/// constructs leddevice
+	///
+	/// @brief Destructor of the LedDevice
+	///
 	static LedDevice* construct(const QJsonObject &deviceConfig);
 
+protected:
+
 	///
-	/// Sets configuration
+	/// @brief Initialise the device's configuration
 	///
-	/// @param deviceConfig the json device config
-	/// @return true if success
+	/// @param[in] deviceConfig the JSON device configuration
+	/// @return True, if success
+	///
 	virtual bool init(const QJsonObject &deviceConfig) override;
 
-public slots:
 	///
-	/// Closes the output device.
-	/// Includes switching-off the device and stopping refreshes
+	/// @brief Opens the output device.
 	///
-	virtual void close() override;
+	/// @return Zero on success (i.e. device is ready), else negative
+	///
+	virtual int open() override;
 
-protected:
 	///
-	/// Writes the led color values to the led-device
+	/// @brief Closes the output device.
 	///
-	/// @param ledValues The color-value per led
-	/// @return Zero on succes else negative
+	/// @return Zero on success (i.e. device is closed), else negative
 	///
-	virtual int write(const std::vector<ColorRgb> &ledValues) override;
+	virtual int close() override;
+
+	///
+	/// @brief Writes the RGB-Color values to the LEDs.
+	///
+	/// @param[in] ledValues The RGB-color per LED
+	/// @return Zero on success, else negative
+	///
+	virtual int write(const std::vector<ColorRgb> & ledValues) override;
 
 private:
 
@@ -55,3 +68,5 @@ private:
 	RGBW::WhiteAlgorithm _whiteAlgorithm;
 	ColorRgbw   _temp_rgbw;
 };
+
+#endif // LEDEVICEWS281X_H

@@ -33,6 +33,11 @@ V4L2Wrapper::V4L2Wrapper(const QString &device,
 	connect(&_grabber, SIGNAL(readError(const char*)), this, SLOT(readError(const char*)), Qt::DirectConnection);
 }
 
+V4L2Wrapper::~V4L2Wrapper()
+{
+	stop();
+}
+
 bool V4L2Wrapper::start()
 {
 	return ( _grabber.start() && GrabberWrapper::start());
@@ -85,7 +90,22 @@ bool V4L2Wrapper::getSignalDetectionEnable()
 	return _grabber.getSignalDetectionEnabled();
 }
 
+void V4L2Wrapper::setCecDetectionEnable(bool enable)
+{
+	_grabber.setCecDetectionEnable(enable);
+}
+
+bool V4L2Wrapper::getCecDetectionEnable()
+{
+	return _grabber.getCecDetectionEnabled();
+}
+
 void V4L2Wrapper::setDeviceVideoStandard(QString device, VideoStandard videoStandard)
 {
 	_grabber.setDeviceVideoStandard(device, videoStandard);
+}
+
+void V4L2Wrapper::handleCecEvent(CECEvent event)
+{
+	_grabber.handleCecEvent(event);
 }

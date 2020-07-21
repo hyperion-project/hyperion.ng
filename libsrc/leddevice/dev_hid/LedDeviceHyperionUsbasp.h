@@ -1,4 +1,5 @@
-#pragma once
+#ifndef LEDEVICEHYPERIONUSBASP_H
+#define LEDEVICEHYPERIONUSBASP_H
 
 // stl includes
 #include <vector>
@@ -32,7 +33,7 @@ public:
 	///
 	/// Sets configuration
 	///
-	/// @param deviceConfig the json device config
+	/// @para#endif // LEDEVICETEMPLATE_Hm deviceConfig the json device config
 	/// @return true if success
 	bool init(const QJsonObject &deviceConfig) override;
 
@@ -49,7 +50,7 @@ public slots:
 	/// Closes the output device.
 	/// Includes switching-off the device and stopping refreshes
 	///
-	virtual void close() override;
+	virtual int close() override;
 
 protected:
 	///
@@ -85,11 +86,11 @@ protected:
 	/// libusb context
 	libusb_context * _libusbContext;
 
+	/// libusb device
+	libusb_device * _device;
+
 	/// libusb device handle
 	libusb_device_handle * _deviceHandle;
-
-	/// Usb device identifiers
-	static uint16_t     _usbVendorId;
-	static uint16_t     _usbProductId;
-	static QString      _usbProductDescription;
 };
+
+#endif // LEDEVICEHYPERIONUSBASP_H

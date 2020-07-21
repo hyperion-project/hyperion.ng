@@ -41,7 +41,7 @@ public slots:
 	/// Closes the output device.
 	/// Includes switching-off the device and stopping refreshes
 	///
-	virtual void close() override;
+	virtual int close() override;
 
 protected:
 	///
@@ -51,7 +51,7 @@ protected:
 	/// @param[in[ size The length of the data
 	/// @param[in] data The data
 	///
-	/// @return Zero on succes else negative
+	/// @return Zero on success, else negative
 	///
 	int writeBytes(const unsigned size, const uint8_t *data);
 

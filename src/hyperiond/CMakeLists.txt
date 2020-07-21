@@ -9,6 +9,7 @@ endif()
 find_package(Qt5Widgets REQUIRED)
 
 add_executable(hyperiond
+	console.h
 	hyperiond.h
 	systray.h
 	hyperiond.cpp
@@ -18,18 +19,18 @@ add_executable(hyperiond
 )
 
 target_link_libraries(hyperiond
-		commandline
-		hyperion
-		effectengine
-		jsonserver
-		flatbufserver
-		protoserver
-		webserver
-		ssdp
-		database
-		python
-		resources
-		Qt5::Widgets
+	commandline
+	hyperion
+	effectengine
+	jsonserver
+	flatbufserver
+	protoserver
+	webserver
+	ssdp
+	database
+	python
+	resources
+	Qt5::Widgets
 )
 
 if (NOT CMAKE_VERSION VERSION_LESS "3.12")
@@ -85,6 +86,10 @@ endif ()
 
 if (ENABLE_QT)
 	target_link_libraries(hyperiond	qt-grabber)
+endif ()
+
+if (ENABLE_CEC)
+        target_link_libraries(hyperiond cechandler)
 endif ()
 
 if(NOT WIN32)

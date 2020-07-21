@@ -29,7 +29,7 @@ public:
 	///
 	/// Destructor of this framebuffer frame grabber. Releases any claimed resources.
 	///
-	virtual ~X11Wrapper() {};
+	~X11Wrapper() override;
 
 public slots:
 	///

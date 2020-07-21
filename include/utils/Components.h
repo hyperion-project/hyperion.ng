@@ -67,7 +67,7 @@ inline const char* componentToIdString(Components c)
 	}
 }
 
-inline  Components stringToComponent(QString component)
+inline Components stringToComponent(QString component)
 {
 	component = component.toUpper();
 	if (component == "ALL")           return COMP_ALL;

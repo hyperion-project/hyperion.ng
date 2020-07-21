@@ -23,7 +23,6 @@ class Grabber : public QObject
 
 public:
 	Grabber(QString grabberName = "", int width=0, int height=0, int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
-	virtual ~Grabber();
 
 	///
 	/// Set the video mode (2D/3D)
@@ -80,6 +79,11 @@ public:
 	/// @brief Apply SignalDetectionEnable (used from v4l)
 	///
 	virtual void setSignalDetectionEnable(bool enable) {}
+
+	///
+	/// @brief Apply CecDetectionEnable (used from v4l)
+	///
+	virtual void setCecDetectionEnable(bool enable) {}
 
 	///
 	/// @brief Apply device and videoStanded (used from v4l)

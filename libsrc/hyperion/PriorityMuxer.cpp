@@ -14,17 +14,17 @@
 
 const int PriorityMuxer::LOWEST_PRIORITY = std::numeric_limits<uint8_t>::max();
 
-PriorityMuxer::PriorityMuxer(int ledCount)
-	: QObject()
+PriorityMuxer::PriorityMuxer(int ledCount, QObject * parent)
+	: QObject(parent)
 	, _log(Logger::getInstance("HYPERION"))
 	, _currentPriority(PriorityMuxer::LOWEST_PRIORITY)
 	, _manualSelectedPriority(256)
 	, _activeInputs()
 	, _lowestPriorityInfo()
 	, _sourceAutoSelectEnabled(true)
-	, _updateTimer(new QTimer())
-	, _timer(new QTimer())
-	, _blockTimer(new QTimer())
+	, _updateTimer(new QTimer(this))
+	, _timer(new QTimer(this))
+	, _blockTimer(new QTimer(this))
 {
 	// init lowest priority info
 	_lowestPriorityInfo.priority       = PriorityMuxer::LOWEST_PRIORITY;

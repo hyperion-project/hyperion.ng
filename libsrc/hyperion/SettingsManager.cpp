@@ -16,7 +16,7 @@ QJsonObject SettingsManager::schemaJson;
 
 SettingsManager::SettingsManager(const quint8& instance, QObject* parent)
 	: QObject(parent)
-	, _log(Logger::getInstance("SettingsManager"))
+	, _log(Logger::getInstance("SETTINGSMGR"))
 	, _sTable(new SettingsTable(instance, this))
 {
 	// get schema
@@ -88,7 +88,7 @@ SettingsManager::SettingsManager(const quint8& instance, QObject* parent)
 	// check if our main schema syntax is IO
 	if (!valid.second)
 	{
-		foreach (auto & schemaError, schemaChecker.getMessages())
+		for (auto & schemaError : schemaChecker.getMessages())
 			Error(_log, "Schema Syntax Error: %s", QSTRING_CSTR(schemaError));
 		throw std::runtime_error("The config schema has invalid syntax. This should never happen! Go fix it!");
 	}
@@ -97,7 +97,7 @@ SettingsManager::SettingsManager(const quint8& instance, QObject* parent)
 		Info(_log,"Table upgrade required...");
 		dbConfig = schemaChecker.getAutoCorrectedConfig(dbConfig);
 
-		foreach (auto & schemaError, schemaChecker.getMessages())
+		for (auto & schemaError : schemaChecker.getMessages())
 			Warning(_log, "Config Fix: %s", QSTRING_CSTR(schemaError));
 
 		saveSettings(dbConfig);
@@ -131,7 +131,7 @@ bool SettingsManager::saveSettings(QJsonObject config, const bool& correct)
 		Warning(_log,"Fixing json data!");
 		config = schemaChecker.getAutoCorrectedConfig(config);
 
-		foreach (auto & schemaError, schemaChecker.getMessages())
+		for (auto & schemaError : schemaChecker.getMessages())
 			Warning(_log, "Config Fix: %s", QSTRING_CSTR(schemaError));
 	}
 

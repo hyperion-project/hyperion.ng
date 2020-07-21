@@ -85,7 +85,7 @@ private slots:
 	/// @param instance      The index of instance
 	/// @param name          The name of the instance, just available with H_CREATED
 	///
-	void handleInstanceStateChange(const instanceState &state, const quint8 &instance, const QString &name = QString());
+	void handleInstanceStateChange(const InstanceState &state, const quint8 &instance, const QString &name = QString());
 
 signals:
 	///
@@ -94,7 +94,7 @@ signals:
 	void callbackMessage(QJsonObject);
 
 	///
-	/// Signal emits whenever a jsonmessage should be forwarded
+	/// Signal emits whenever a JSON-message should be forwarded
 	///
 	void forwardJsonMessage(QJsonObject);
 
@@ -247,7 +247,7 @@ private:
 	///
 	void handleLoggingCommand(const QJsonObject &message, const QString &command, const int tan);
 
-	/// Handle an incoming JSON Proccessing message
+	/// Handle an incoming JSON Processing message
 	///
 	/// @param message the incoming message
 	///
@@ -270,6 +270,12 @@ private:
 	/// @param message the incoming message
 	///
 	void handleInstanceCommand(const QJsonObject &message, const QString &command, const int tan);
+
+	/// Handle an incoming JSON Led Device message
+	///
+	/// @param message the incoming message
+	///
+	void handleLedDeviceCommand(const QJsonObject &message, const QString &command, const int tan);
 
 	///
 	/// Handle an incoming JSON message of unknown type

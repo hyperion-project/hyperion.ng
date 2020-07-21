@@ -34,15 +34,15 @@ class WebServer : public QObject {
 public:
 	WebServer (const QJsonDocument& config, const bool& useSsl, QObject * parent = 0);
 
-	virtual ~WebServer (void);
+	~WebServer () override;
 
 	void start();
 	void stop();
 
-	quint16 getPort() { return _port; };
+	quint16 getPort() const { return _port; }
 
 	/// check if server has been inited
-	bool isInited() { return _inited; };
+	bool isInited() const { return _inited; }
 
 	///
 	/// @brief Set a new description, if empty the description is NotFound for clients

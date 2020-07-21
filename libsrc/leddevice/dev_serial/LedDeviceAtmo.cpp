@@ -5,8 +5,11 @@ LedDeviceAtmo::LedDeviceAtmo(const QJsonObject &deviceConfig)
 	: ProviderRs232()
 {
 	_devConfig = deviceConfig;
-	_deviceReady = false;
+	_isDeviceReady = false;
+
+	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
+
 
 LedDevice* LedDeviceAtmo::construct(const QJsonObject &deviceConfig)
 {
@@ -15,13 +18,13 @@ LedDevice* LedDeviceAtmo::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceAtmo::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = ProviderRs232::init(deviceConfig);
+	bool isInitOK = false;
 
-	if ( isInitOK )
+	// Initialise sub-class
+	if ( ProviderRs232::init(deviceConfig) )
 	{
 		if (_ledCount != 5)
 		{
-			//Error( _log, "%d channels configured. This should always be 5!", _ledCount);
 			QString errortext = QString ("%1 channels configured. This should always be 5!").arg(_ledCount);
 			this->setInError(errortext);
 			isInitOK = false;
@@ -33,6 +36,8 @@ bool LedDeviceAtmo::init(const QJsonObject &deviceConfig)
 			_ledBuffer[1] = 0x00;       // StartChannel(Low)
 			_ledBuffer[2] = 0x00;       // StartChannel(High)
 			_ledBuffer[3] = 0x0F;       // Number of Databytes send (always! 15)
+
+			isInitOK = true;
 		}
 	}
 	return isInitOK;

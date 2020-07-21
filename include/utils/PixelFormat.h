@@ -5,17 +5,17 @@
 /**
  * Enumeration of the possible pixel formats the grabber can be set to
  */
-enum PixelFormat {
-	PIXELFORMAT_YUYV,
-	PIXELFORMAT_UYVY,
-	PIXELFORMAT_BGR16,
-	PIXELFORMAT_BGR24,
-	PIXELFORMAT_RGB32,
-	PIXELFORMAT_BGR32,
+enum class PixelFormat {
+	YUYV,
+	UYVY,
+	BGR16,
+	BGR24,
+	RGB32,
+	BGR32,
 #ifdef HAVE_JPEG_DECODER
-	PIXELFORMAT_MJPEG,
+	MJPEG,
 #endif
-	PIXELFORMAT_NO_CHANGE
+	NO_CHANGE
 };
 
 inline PixelFormat parsePixelFormat(QString pixelFormat)
@@ -23,37 +23,37 @@ inline PixelFormat parsePixelFormat(QString pixelFormat)
 	// convert to lower case
 	pixelFormat = pixelFormat.toLower();
 
-	if (pixelFormat == "yuyv")
+	if (pixelFormat.compare("yuyv") )
 	{
-		return PIXELFORMAT_YUYV;
+		return PixelFormat::YUYV;
 	}
-	else if (pixelFormat == "uyvy")
+	else if (pixelFormat.compare("uyvy") )
 	{
-		return PIXELFORMAT_UYVY;
+		return PixelFormat::UYVY;
 	}
-	else if (pixelFormat == "bgr16")
+	else if (pixelFormat.compare("bgr16") )
 	{
-		return PIXELFORMAT_BGR16;
+		return PixelFormat::BGR16;
 	}
-	else if (pixelFormat == "bgr24")
+	else if (pixelFormat.compare("bgr24") )
 	{
-		return PIXELFORMAT_BGR24;
+		return PixelFormat::BGR24;
 	}
-	else if (pixelFormat == "rgb32")
+	else if (pixelFormat.compare("rgb32") )
 	{
-		return PIXELFORMAT_RGB32;
+		return PixelFormat::RGB32;
 	}
-	else if (pixelFormat == "bgr32")
+	else if (pixelFormat.compare("bgr32") )
 	{
-		return PIXELFORMAT_BGR32;
+		return PixelFormat::BGR32;
 	}
 #ifdef HAVE_JPEG_DECODER
-	else if (pixelFormat == "mjpeg")
+	else if (pixelFormat.compare("mjpeg") )
 	{
-		return PIXELFORMAT_MJPEG;
+		return PixelFormat::MJPEG;
 	}
 #endif
 
 	// return the default NO_CHANGE
-	return PIXELFORMAT_NO_CHANGE;
+	return PixelFormat::NO_CHANGE;
 }

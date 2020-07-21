@@ -12,6 +12,8 @@
 // ssdp discover
 #include <ssdp/SSDPDiscover.h>
 
+#include <utils/DefaultSignalHandler.h>
+
 using namespace commandline;
 
 // save the image as screenshot
@@ -28,6 +30,8 @@ int main(int argc, char ** argv)
 		<< "hyperion-dispmanx:" << std::endl
 		<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
 		<< "\tbuild time: " << __DATE__ << " " << __TIME__ << std::endl;
+
+	DefaultSignalHandler::install();
 
 	QCoreApplication app(argc, argv);
 
@@ -57,15 +61,15 @@ int main(int argc, char ** argv)
 		// parse all options
 		parser.process(app);
 
-		VideoMode videoMode = VIDEO_2D;
+		VideoMode videoMode = VideoMode::VIDEO_2D;
 
 		if (parser.isSet(arg3DSBS))
 		{
-			videoMode = VIDEO_3DSBS;
+			videoMode = VideoMode::VIDEO_3DSBS;
 		}
 		else if (parser.isSet(arg3DTAB))
 		{
-			videoMode = VIDEO_3DTAB;
+			videoMode = VideoMode::VIDEO_3DTAB;
 		}
 
 		// check if we need to display the usage. exit if we do.
@@ -98,7 +102,7 @@ int main(int argc, char ** argv)
 			if(argAddress.value(parser) == "127.0.0.1:19400")
 			{
 				SSDPDiscover discover;
-				address = discover.getFirstService(STY_FLATBUFSERVER);
+				address = discover.getFirstService(searchType::STY_FLATBUFSERVER);
 				if(address.isEmpty())
 				{
 					address = argAddress.value(parser);

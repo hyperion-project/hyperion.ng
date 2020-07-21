@@ -1,5 +1,4 @@
 
-
 // QT includes
 #include <QCoreApplication>
 #include <QImage>
@@ -12,6 +11,8 @@
 
 // ssdp discover
 #include <ssdp/SSDPDiscover.h>
+
+#include <utils/DefaultSignalHandler.h>
 
 using namespace commandline;
 
@@ -29,6 +30,8 @@ int main(int argc, char ** argv)
 		<< "hyperion-aml:" << std::endl
 		<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
 		<< "\tbuild time: " << __DATE__ << " " << __TIME__ << std::endl;
+
+	DefaultSignalHandler::install();
 
 	QCoreApplication app(argc, argv);
 
@@ -69,7 +72,7 @@ int main(int argc, char ** argv)
 			if(argAddress.value(parser) == "127.0.0.1:19400")
 			{
 				SSDPDiscover discover;
-				address = discover.getFirstService(STY_FLATBUFSERVER);
+				address = discover.getFirstService(searchType::STY_FLATBUFSERVER);
 				if(address.isEmpty())
 				{
 					address = argAddress.value(parser);

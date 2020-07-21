@@ -110,6 +110,7 @@
 	///  * cropTop              : Cropping from the top [default=0]
 	///  * cropBottom           : Cropping from the bottom [default=0]
 	///  * signalDetection      : enable/disable signal detection [default=true]
+	///  * cecDetection         : enable/disable cec detection [default=true]
 	///  * redSignalThreshold   : Signal threshold for the red channel between 0 and 100 [default=5]
 	///  * greenSignalThreshold : Signal threshold for the green channel between 0 and 100 [default=5]
 	///  * blueSignalThreshold  : Signal threshold for the blue channel between 0 and 100 [default=5]
@@ -133,6 +134,7 @@
 		"greenSignalThreshold" : 5,
 		"blueSignalThreshold"  : 5,
 		"signalDetection"      : false,
+		"cecDetection"         : false,
 		"sDVOffsetMin"   : 0.25,
 		"sDHOffsetMin" : 0.25,
 		"sDVOffsetMax"   : 0.75,

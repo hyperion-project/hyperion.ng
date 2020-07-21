@@ -28,7 +28,6 @@ EffectEngine::EffectEngine(Hyperion * hyperion)
 	, _log(Logger::getInstance("EFFECTENGINE"))
 	, _effectFileHandler(EffectFileHandler::getInstance())
 {
-
 	Q_INIT_RESOURCE(EffectEngine);
 	qRegisterMetaType<hyperion::Components>("hyperion::Components");
 
@@ -45,6 +44,11 @@ EffectEngine::EffectEngine(Hyperion * hyperion)
 
 EffectEngine::~EffectEngine()
 {
+	for (Effect * effect : _activeEffects)
+	{
+		effect->wait();
+		delete effect;
+	}
 }
 
 QString EffectEngine::saveEffect(const QJsonObject& obj)

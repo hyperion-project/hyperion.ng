@@ -1,9 +1,8 @@
-#pragma once
+#ifndef LEDEVICEATMOORB_H
+#define LEDEVICEATMOORB_H
 
 // Qt includes
-#include <QObject>
-#include <QString>
-#include <QNetworkAccessManager>
+#include <QUdpSocket>
 #include <QHostAddress>
 #include <QVector>
 
@@ -25,50 +24,58 @@ class LedDeviceAtmoOrb : public LedDevice
 public:
 
 	///
-	/// Constructs specific LedDevice
+	/// @brief Constructs an AtmoOrb LED-device
 	///
-	/// @param deviceConfig json device config
+	/// @param deviceConfig Device's configuration as JSON-Object
 	///
 	explicit LedDeviceAtmoOrb(const QJsonObject &deviceConfig);
 
 	///
-	/// Sets configuration
-	///
-	/// @param deviceConfig the json device config
-	/// @return true if success
-	bool init(const QJsonObject &deviceConfig) override;
-
-	/// constructs leddevice
-	static LedDevice* construct(const QJsonObject &deviceConfig);
-	///
-	/// Destructor of this device
+	/// @brief Destructor of the LedDevice
 	///
 	virtual ~LedDeviceAtmoOrb() override;
+
+	///
+	/// @brief Constructs the LED-device
+	///
+	/// @param[in] deviceConfig Device's configuration as JSON-Object
+	/// @return LedDevice constructed
+	///
+	static LedDevice* construct(const QJsonObject &deviceConfig);
 
 protected:
 
 	///
-	/// Initialise device's network details
+	/// @brief Initialise the device's configuration
 	///
-	/// @return True if success
-	bool initNetwork();
+	/// @param[in] deviceConfig the JSON device configuration
+	/// @return True, if success
+	///
+	virtual bool init(const QJsonObject &deviceConfig) override;
 
 	///
-	/// Opens and initiatialises the output device
+	/// @brief Opens the output device.
 	///
-	/// @return Zero on succes (i.e. device is ready and enabled) else negative
+	/// @return Zero on success (i.e. device is ready), else negative
 	///
 	virtual int open() override;
 
-private:
+	///
+	/// @brief Closes the output device.
+	///
+	/// @return Zero on success (i.e. device is closed), else negative
+	///
+	virtual int close() override;
 
 	///
-	/// Sends the given led-color values to the Orbs
+	/// @brief Writes the RGB-Color values to the LEDs.
 	///
-	/// @param ledValues The color-value per led
-	/// @return Zero on success else negative
+	/// @param[in] ledValues The RGB-color per LED
+	/// @return Zero on success, else negative
 	///
-	virtual int write(const std::vector <ColorRgb> &ledValues) override;
+	virtual int write(const std::vector<ColorRgb> & ledValues) override;
+
+private:
 
 	///
 	/// Set Orbcolor
@@ -86,9 +93,6 @@ private:
 	///
 	void sendCommand(const QByteArray &bytes);
 
-	/// QNetworkAccessManager object for sending requests.
-	QNetworkAccessManager *_networkmanager;
-
 	/// QUdpSocket object used to send data over
 	QUdpSocket * _udpSocket;
 
@@ -102,7 +106,7 @@ private:
 	quint16 _multiCastGroupPort;
 
 	// Multicast status
-	bool joinedMulticastgroup;
+	bool _joinedMulticastgroup;
 
 	/// use Orbs own (external) smoothing algorithm
 	bool _useOrbSmoothing;
@@ -116,9 +120,6 @@ private:
 	/// Number of leds in Orb, used to determine buffer size
 	int _numLeds;
 
-
-
-
 	/// Array of the orb ids.
 	QVector<int> _orbIds;
 
@@ -127,7 +128,6 @@ private:
 	QMap<int, int> lastColorGreenMap;
 	QMap<int, int> lastColorBlueMap;
 
-
-
-
 };
+
+#endif // LEDEVICEATMOORB_H

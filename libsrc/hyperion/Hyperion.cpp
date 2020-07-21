@@ -1,4 +1,3 @@
-﻿
 // STL includes
 #include <exception>
 #include <sstream>
@@ -39,6 +38,7 @@
 // Boblight
 #include <boblightserver/BoblightServer.h>
 
+
 Hyperion::Hyperion(const quint8& instance)
 	: QObject()
 	, _instIndex(instance)
@@ -46,7 +46,7 @@ Hyperion::Hyperion(const quint8& instance)
 	, _componentRegister(this)
 	, _ledString(hyperion::createLedString(getSetting(settings::LEDS).array(), hyperion::createColorOrder(getSetting(settings::DEVICE).object())))
 	, _imageProcessor(new ImageProcessor(_ledString, this))
-	, _muxer(_ledString.leds().size())
+	, _muxer(_ledString.leds().size(), this)
 	, _raw2ledAdjustment(hyperion::createLedColorsAdjustment(_ledString.leds().size(), getSetting(settings::COLOR).object()))
 	, _effectEngine(nullptr)
 	, _messageForwarder(nullptr)
@@ -141,9 +141,8 @@ void Hyperion::start()
 	_boblightServer = new BoblightServer(this, getSetting(settings::BOBLSERVER));
 	connect(this, &Hyperion::settingsChanged, _boblightServer, &BoblightServer::handleSettingsUpdate);
 
-	// instance inited
+	// instance inited, enter thread event loop
 	emit started();
-	// enter thread event loop
 }
 
 void Hyperion::stop()
@@ -380,18 +379,8 @@ void Hyperion::setColor(const int priority, const std::vector<ColorRgb> &ledColo
 		_effectEngine->channelCleared(priority);
 
 	// create full led vector from single/multiple colors
-	unsigned int size = _ledString.leds().size();
 	std::vector<ColorRgb> newLedColors;
-	while (true)
-	{
-		for (const auto &entry : ledColors)
-		{
-			newLedColors.emplace_back(entry);
-			if (newLedColors.size() == size)
-				goto end;
-		}
-	}
-end:
+	std::copy_n(ledColors.begin(), _ledString.leds().size(), std::back_inserter(newLedColors));
 
 	if (getPriorityInfo(priority).componentId != hyperion::COMP_COLOR)
 		clear(priority);
@@ -568,24 +557,24 @@ void Hyperion::update()
 		// correct the color byte order
 		switch (_ledStringColorOrder.at(i))
 		{
-		case ORDER_RGB:
+		case ColorOrder::ORDER_RGB:
 			// leave as it is
 			break;
-		case ORDER_BGR:
+		case ColorOrder::ORDER_BGR:
 			std::swap(color.red, color.blue);
 			break;
-		case ORDER_RBG:
+		case ColorOrder::ORDER_RBG:
 			std::swap(color.green, color.blue);
 			break;
-		case ORDER_GRB:
+		case ColorOrder::ORDER_GRB:
 			std::swap(color.red, color.green);
 			break;
-		case ORDER_GBR:
+		case ColorOrder::ORDER_GBR:
 			std::swap(color.red, color.green);
 			std::swap(color.green, color.blue);
 			break;
 
-		case ORDER_BRG:
+		case ColorOrder::ORDER_BRG:
 			std::swap(color.red, color.blue);
 			std::swap(color.green, color.blue);
 			break;

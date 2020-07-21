@@ -65,6 +65,7 @@ class FlatBufferServer;
 class ProtoServer;
 class AuthManager;
 class NetOrigin;
+class CECHandler;
 
 class HyperionDaemon : public QObject
 {
@@ -144,6 +145,7 @@ private:
 	void createGrabberOsx(const QJsonObject & grabberConfig);
 	void createGrabberX11(const QJsonObject & grabberConfig);
 	void createGrabberQt(const QJsonObject & grabberConfig);
+	void createCecHandler();
 
 	Logger*                    _log;
 	HyperionIManager*          _instanceManager;
@@ -162,6 +164,7 @@ private:
 	OsxWrapper*                _osxGrabber;
 	QtWrapper*                 _qtGrabber;
 	SSDPHandler*               _ssdp;
+	CECHandler*                _cecHandler;
 	FlatBufferServer*          _flatBufferServer;
 	ProtoServer*               _protoServer;
 

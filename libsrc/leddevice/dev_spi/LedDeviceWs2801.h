@@ -1,4 +1,5 @@
-#pragma once
+#ifndef LEDEVICEWS2801_H
+#define LEDEVICEWS2801_H
 
 // hyperion includes
 #include "ProviderSpi.h"
@@ -9,29 +10,38 @@
 class LedDeviceWs2801 : public ProviderSpi
 {
 public:
+
 	///
-	/// Constructs specific LedDevice
+	/// @brief Constructs a Ws2801 LED-device
 	///
-	/// @param deviceConfig json device config
+	/// @param deviceConfig Device's configuration as JSON-Object
 	///
 	explicit LedDeviceWs2801(const QJsonObject &deviceConfig);
 
-	/// constructs leddevice
+	///
+	/// @brief Constructs the LED-device
+	///
+	/// @param[in] deviceConfig Device's configuration as JSON-Object
+	/// @return LedDevice constructed
 	static LedDevice* construct(const QJsonObject &deviceConfig);
 
+private:
+
 	///
-	/// Sets configuration
+	/// @brief Initialise the device's configuration
 	///
-	/// @param deviceConfig the json device config
-	/// @return true if success
+	/// @param[in] deviceConfig the JSON device configuration
+	/// @return True, if success
+	///
 	virtual bool init(const QJsonObject &deviceConfig) override;
 
-protected:
 	///
-	/// Writes the led color values to the led-device
+	/// @brief Writes the RGB-Color values to the LEDs.
 	///
-	/// @param ledValues The color-value per led
-	/// @return Zero on succes else negative
+	/// @param[in] ledValues The RGB-color per LED
+	/// @return Zero on success, else negative
 	///
-	virtual int write(const std::vector<ColorRgb> &ledValues) override;
+	virtual int write(const std::vector<ColorRgb> & ledValues) override;
 };
+
+#endif // LEDEVICEWS2801_H

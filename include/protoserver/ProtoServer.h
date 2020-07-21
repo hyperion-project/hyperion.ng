@@ -22,7 +22,7 @@ class ProtoServer : public QObject
 
 public:
 	ProtoServer(const QJsonDocument& config, QObject* parent = nullptr);
-	~ProtoServer();
+	~ProtoServer() override;
 
 public slots:
 	///
