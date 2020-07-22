@@ -80,19 +80,12 @@ public:
 	const quint8 & getInstanceIndex() { return _instIndex; }
 
 	///
-	/// Returns the number of attached leds
-	///
-	unsigned getLedCount() const;
-
-	///
 	/// @brief Return the size of led grid
 	///
 	QSize getLedGridSize() const { return _ledGridSize; }
 
 	/// gets the methode how image is maped to leds
 	const int & getLedMappingType();
-
-	int getLatchTime() const;
 
 	/// forward smoothing config
 	unsigned addSmoothingConfig(int settlingTime_ms, double ledUpdateFrequency_hz=25.0, unsigned updateDelay=0);
@@ -113,6 +106,12 @@ public:
 	LedDevice * getActiveDevice() const;
 
 public slots:
+	int getLatchTime() const;
+
+	///
+	/// Returns the number of attached leds
+	///
+	unsigned getLedCount() const;
 
 	///
 	/// @brief  Register a new input by priority, the priority is not active (timeout -100 isn't muxer recognized) until you start to update the data with setInput()

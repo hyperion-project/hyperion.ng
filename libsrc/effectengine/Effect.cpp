@@ -53,6 +53,9 @@ Effect::Effect(Hyperion *hyperion, int priority, int timeout, const QString &scr
 
 Effect::~Effect()
 {
+	requestInterruption();
+	wait();
+
 	delete _painter;
 	_imageStack.clear();
 }
@@ -82,10 +85,14 @@ void Effect::run()
 	PyModule_AddObject(module, "__effectObj", PyCapsule_New((void*)this, "hyperion.__effectObj", nullptr));
 
 	// add ledCount variable to the interpreter
-	PyObject_SetAttrString(module, "ledCount", Py_BuildValue("i", _hyperion->getLedCount()));
+	unsigned ledCount = 0;
+	QMetaObject::invokeMethod(_hyperion, "getLedCount", Qt::BlockingQueuedConnection, Q_RETURN_ARG(unsigned, ledCount));
+	PyObject_SetAttrString(module, "ledCount", Py_BuildValue("i", ledCount));
 
 	// add minimumWriteTime variable to the interpreter
-	PyObject_SetAttrString(module, "latchTime", Py_BuildValue("i", _hyperion->getLatchTime()));
+	int latchTime = 0;
+	QMetaObject::invokeMethod(_hyperion, "getLatchTime", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, latchTime));
+	PyObject_SetAttrString(module, "latchTime", Py_BuildValue("i", latchTime));
 
 	// add a args variable to the interpreter
 	PyObject_SetAttrString(module, "args", EffectModule::json2python(_args));
