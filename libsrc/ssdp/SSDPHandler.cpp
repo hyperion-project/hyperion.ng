@@ -54,7 +54,10 @@ void SSDPHandler::initServer()
 	}
 
 	// startup if localAddress is found
-	if(!_localAddress.isEmpty() && _webserver->isInited())
+	bool isInited = false;
+	QMetaObject::invokeMethod(_webserver, "isInited", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isInited));
+
+	if(!_localAddress.isEmpty() && isInited)
 	{
 		handleWebServerStateChange(true);
 	}
@@ -100,14 +103,14 @@ void SSDPHandler::handleWebServerStateChange(const bool newState)
 	if(newState)
 	{
 		// refresh info
-		_webserver->setSSDPDescription(buildDesc());
+		QMetaObject::invokeMethod(_webserver, "setSSDPDescription", Qt::BlockingQueuedConnection, Q_ARG(QString, buildDesc()));
 		setDescriptionAddress(getDescAddress());
 		if(start())
 			sendAnnounceList(true);
 	}
 	else
 	{
-		_webserver->setSSDPDescription("");
+		QMetaObject::invokeMethod(_webserver, "setSSDPDescription", Qt::BlockingQueuedConnection, Q_ARG(QString, ""));
 		sendAnnounceList(false);
 		stop();
 	}
@@ -124,7 +127,7 @@ void SSDPHandler::handleNetworkConfigurationChanged(const QNetworkConfiguration 
 
 		// update desc & notify new ip
 		_localAddress = localAddress;
-		_webserver->setSSDPDescription(buildDesc());
+		QMetaObject::invokeMethod(_webserver, "setSSDPDescription", Qt::BlockingQueuedConnection, Q_ARG(QString, buildDesc()));
 		setDescriptionAddress(getDescAddress());
 		sendAnnounceList(true);
 	}
@@ -177,7 +180,9 @@ QString SSDPHandler::getDescAddress() const
 
 QString SSDPHandler::getBaseAddress() const
 {
-	return QString("http://%1:%2/").arg(_localAddress).arg(_webserver->getPort());
+	quint16 port = 0;
+	QMetaObject::invokeMethod(_webserver, "getPort", Qt::BlockingQueuedConnection, Q_RETURN_ARG(quint16, port));
+	return QString("http://%1:%2/").arg(_localAddress).arg(port);
 }
 
 QString SSDPHandler::buildDesc() const
@@ -195,3 +200,4 @@ void SSDPHandler::sendAnnounceList(const bool alive)
 		alive ? SSDPServer::sendAlive(entry) : SSDPServer::sendByeBye(entry);
 	}
 }
+

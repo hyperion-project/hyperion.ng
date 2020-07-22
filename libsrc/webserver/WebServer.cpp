@@ -12,7 +12,6 @@
 // netUtil
 #include <utils/NetUtils.h>
 
-
 WebServer::WebServer(const QJsonDocument& config, const bool& useSsl, QObject * parent)
 	:  QObject(parent)
 	, _config(config)

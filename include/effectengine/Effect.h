@@ -18,6 +18,8 @@
 #include <utils/Components.h>
 #include <utils/Image.h>
 
+#include <atomic>
+
 class Hyperion;
 class Logger;
 
@@ -88,7 +90,7 @@ private:
 
 	Logger *_log;
 	// Reflects whenever this effects should interupt (timeout or external request)
-	bool _interupt = false;
+	std::atomic<bool> _interupt {};
 
 	QSize           _imageSize;
 	QImage          _image;
