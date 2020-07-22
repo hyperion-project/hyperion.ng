@@ -57,7 +57,6 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 		hyperionproject/hyperion-ci:$DOCKER_TAG \
 		/bin/bash -c "mkdir hyperion && cp -r source/. /hyperion &&
 		cd /hyperion && mkdir build && cd build &&
-		cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DDOCKER_PLATFORM=${DOCKER_TAG} ../ || exit 2 &&
 		make -j $(nproc) package || exit 3 &&
 		cp /hyperion/build/bin/h* /deploy/ 2>/dev/null || : &&
 		cp /hyperion/build/Hyperion-* /deploy/ 2>/dev/null || : &&
