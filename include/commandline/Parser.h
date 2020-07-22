@@ -71,6 +71,28 @@ public:
 		return *option;
 	}
 
+	template<class OptionT>
+	OptionT &addHidden(
+		const char shortOption,
+		const QString longOption,
+		const QString description,
+		const QString default_ = QString())
+	{
+		OptionT * option = new OptionT(
+			_getNames(shortOption, longOption),
+			_getDescription(description, default_),
+			longOption,
+			default_);
+		#if (QT_VERSION >= QT_VERSION_CHECK(5, 8, 0))
+		option->setFlags(QCommandLineOption::HiddenFromHelp);
+		#else
+		option->setHidden(true);
+		#endif
+
+		addOption(option);
+		return *option;
+	}
+
 	Parser(QString description=QString())
 	{
 		if(description.size())setApplicationDescription(description);

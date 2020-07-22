@@ -61,7 +61,7 @@ QStringList getProcessIdsByProcessName(const char *processName)
 			continue;
 		}
 
-		QFile cmdline("/proc/" + pid + "/cmdline");
+		QFile cmdline("/proc/" + pid + "/comm");
 		if (!cmdline.open(QFile::ReadOnly | QFile::Text))
 		{
 			/* Can not open cmdline file */
