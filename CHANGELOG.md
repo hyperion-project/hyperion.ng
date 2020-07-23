@@ -4,15 +4,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.0.0-alpha.6...HEAD)
+## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.0.0-alpha.7...HEAD)
 
 ### Breaking
 
 ### Added
+
+### Changed
+
+### Fixed
+
+### Removed
+
+## [2.0.0-alpha.7](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.7) - 2020-07-23
+### Added
 - [HyperBian](https://github.com/hyperion-project/HyperBian/releases) - A Raspberry Pi OS Lite image with Hyperion pre installed. (#832)
 - An option to reset (delete) the database for the commandline has been added (#820)
 - Improve language selection usability (#812)
-- readded V4L2 Input method from old Hyperion (#825)
+- re-added V4L2 Input method from old Hyperion (#825)
 - Windows: Start Hyperion with a console window `hyperiond -c` (Or new start menu entry) (#860)
 - Get process IDs by iterating /proc (#843)
 - Dump stack trace on crash (Implement #849) (#870)
@@ -78,8 +87,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix Qt screenhot crash (#889)
 - Fix crash on startup if no X server available (#892)
 - Fix RPC restart of Hyperion (#894)
-
-### Removed
 
 ## [2.0.0-alpha.6](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.6) - 2020-05-27
 ### Breaking
