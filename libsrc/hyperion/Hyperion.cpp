@@ -1,4 +1,3 @@
-﻿
 // STL includes
 #include <exception>
 #include <sstream>

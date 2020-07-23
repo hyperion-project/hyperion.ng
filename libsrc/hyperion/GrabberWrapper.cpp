@@ -172,6 +172,9 @@ void GrabberWrapper::handleSettingsUpdate(const settings::type& type, const QJso
 			// device framerate
 			_ggrabber->setFramerate(obj["fps"].toInt(15));
 
+			// CEC Standby
+			_ggrabber->setCecDetectionEnable(obj["cecDetection"].toBool(true));
+
 			_ggrabber->setSignalDetectionEnable(obj["signalDetection"].toBool(true));
 			_ggrabber->setSignalDetectionOffset(
 				obj["sDHOffsetMin"].toDouble(0.25),

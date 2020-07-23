@@ -14,9 +14,12 @@
 #include <utils/VideoMode.h>
 #include <utils/Logger.h>
 
-// flatbuffer FBS
-#include "hyperion_reply_generated.h"
-#include "hyperion_request_generated.h"
+#include <flatbuffers/flatbuffers.h>
+
+namespace hyperionnet
+{
+class Reply;
+}
 
 ///
 /// Connection class to setup an connection to the hyperion server and execute commands.

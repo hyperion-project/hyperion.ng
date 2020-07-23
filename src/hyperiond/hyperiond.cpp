@@ -54,6 +54,10 @@
 // EffectFileHandler
 #include <effectengine/EffectFileHandler.h>
 
+#ifdef ENABLE_CEC
+#include <cec/CECHandler.h>
+#endif
+
 HyperionDaemon *HyperionDaemon::daemon = nullptr;
 
 HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bool &logLvlOverwrite)
@@ -76,6 +80,7 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 		, _osxGrabber(nullptr)
 		, _qtGrabber(nullptr)
 		, _ssdp(nullptr)
+		, _cecHandler(nullptr)
 		, _currVideoMode(VideoMode::VIDEO_2D)
 {
 	HyperionDaemon::daemon = this;
@@ -94,6 +99,8 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 	// set inital log lvl if the loglvl wasn't overwritten by arg
 	if (!logLvlOverwrite)
 		handleSettingsUpdate(settings::LOGGER, getSetting(settings::LOGGER));
+
+	createCecHandler();
 
 	// init EffectFileHandler
 	EffectFileHandler *efh = new EffectFileHandler(rootPath, getSetting(settings::EFFECTS), this);
@@ -168,38 +175,44 @@ void HyperionDaemon::freeObjects()
 
 	// destroy network first as a client might want to access hyperion
 	delete _jsonServer;
-	_flatBufferServer->thread()->quit();
-	_flatBufferServer->thread()->wait(1000);
-	delete _flatBufferServer->thread();
-	delete _flatBufferServer;
 
-	_protoServer->thread()->quit();
-	_protoServer->thread()->wait(1000);
-	delete _protoServer->thread();
-	delete _protoServer;
+	auto flatBufferServerThread = _flatBufferServer->thread();
+	flatBufferServerThread->quit();
+	flatBufferServerThread->wait();
+	delete flatBufferServerThread;
+
+	auto protoServerThread = _protoServer->thread();
+	protoServerThread->quit();
+	protoServerThread->wait();
+	delete protoServerThread;
 
 	//ssdp before webserver
-	_ssdp->thread()->quit();
-	_ssdp->thread()->wait(1000);
-	delete _ssdp->thread();
-	delete _ssdp;
+	auto ssdpThread = _ssdp->thread();
+	ssdpThread->quit();
+	ssdpThread->wait();
+	delete ssdpThread;
 
-	_webserver->thread()->quit();
-	_webserver->thread()->wait(1000);
-	delete _webserver->thread();
-	delete _webserver;
+	auto webserverThread =_webserver->thread();
+	webserverThread->quit();
+	webserverThread->wait();
+	delete webserverThread;
 
-	_sslWebserver->thread()->quit();
-	_sslWebserver->thread()->wait(1000);
-	delete _sslWebserver->thread();
-	delete _sslWebserver;
+	auto sslWebserverThread =_sslWebserver->thread();
+	sslWebserverThread->quit();
+	sslWebserverThread->wait();
+	delete sslWebserverThread;
+
+#ifdef ENABLE_CEC
+	_cecHandler->thread()->quit();
+	_cecHandler->thread()->wait(1000);
+	delete _cecHandler->thread();
+	delete _cecHandler;
+#endif
 
 	// stop Hyperions (non blocking)
 	_instanceManager->stopAll();
 
-#ifdef ENABLE_AVAHI
 	delete _bonjourBrowserWrapper;
-#endif
 	delete _amlGrabber;
 	delete _dispmanx;
 	delete _fbGrabber;
@@ -208,9 +221,8 @@ void HyperionDaemon::freeObjects()
 	delete _v4l2Grabber;
 
 	_v4l2Grabber = nullptr;
-#ifdef ENABLE_AVAHI
+	_cecHandler = nullptr;
 	_bonjourBrowserWrapper = nullptr;
-#endif
 	_amlGrabber = nullptr;
 	_dispmanx = nullptr;
 	_fbGrabber = nullptr;
@@ -236,6 +248,7 @@ void HyperionDaemon::startNetworkServices()
 	fbThread->setObjectName("FlatBufferServerThread");
 	_flatBufferServer->moveToThread(fbThread);
 	connect(fbThread, &QThread::started, _flatBufferServer, &FlatBufferServer::initServer);
+	connect(fbThread, &QThread::finished, _flatBufferServer, &FlatBufferServer::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _flatBufferServer, &FlatBufferServer::handleSettingsUpdate);
 	fbThread->start();
 
@@ -245,6 +258,7 @@ void HyperionDaemon::startNetworkServices()
 	pThread->setObjectName("ProtoServerThread");
 	_protoServer->moveToThread(pThread);
 	connect(pThread, &QThread::started, _protoServer, &ProtoServer::initServer);
+	connect(pThread, &QThread::finished, _protoServer, &ProtoServer::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _protoServer, &ProtoServer::handleSettingsUpdate);
 	pThread->start();
 
@@ -254,6 +268,7 @@ void HyperionDaemon::startNetworkServices()
 	wsThread->setObjectName("WebServerThread");
 	_webserver->moveToThread(wsThread);
 	connect(wsThread, &QThread::started, _webserver, &WebServer::initServer);
+	connect(wsThread, &QThread::finished, _webserver, &WebServer::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _webserver, &WebServer::handleSettingsUpdate);
 	wsThread->start();
 
@@ -263,6 +278,7 @@ void HyperionDaemon::startNetworkServices()
 	sslWsThread->setObjectName("SSLWebServerThread");
 	_sslWebserver->moveToThread(sslWsThread);
 	connect(sslWsThread, &QThread::started, _sslWebserver, &WebServer::initServer);
+	connect(sslWsThread, &QThread::finished, _sslWebserver, &WebServer::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _sslWebserver, &WebServer::handleSettingsUpdate);
 	sslWsThread->start();
 
@@ -272,6 +288,7 @@ void HyperionDaemon::startNetworkServices()
 	ssdpThread->setObjectName("SSDPThread");
 	_ssdp->moveToThread(ssdpThread);
 	connect(ssdpThread, &QThread::started, _ssdp, &SSDPHandler::initServer);
+	connect(ssdpThread, &QThread::finished, _ssdp, &SSDPHandler::deleteLater);
 	connect(_webserver, &WebServer::stateChange, _ssdp, &SSDPHandler::handleWebServerStateChange);
 	connect(this, &HyperionDaemon::settingsChanged, _ssdp, &SSDPHandler::handleSettingsUpdate);
 	ssdpThread->start();
@@ -463,13 +480,23 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type &settingsType, co
 	}
 	else if (settingsType == settings::V4L2)
 	{
+		const QJsonObject &grabberConfig = config.object();
+#ifdef ENABLE_CEC
+		QString operation;
+		if (_cecHandler && grabberConfig["cecDetection"].toBool(false))
+		{
+			QMetaObject::invokeMethod(_cecHandler, "start", Qt::QueuedConnection);
+		}
+		else
+		{
+			QMetaObject::invokeMethod(_cecHandler, "stop", Qt::QueuedConnection);
+		}
+#endif
 
-#ifdef ENABLE_V4L2
 		if (_v4l2Grabber != nullptr)
 			return;
 
-		const QJsonObject &grabberConfig = config.object();
-
+#ifdef ENABLE_V4L2
 		_v4l2Grabber = new V4L2Wrapper(
 				grabberConfig["device"].toString("auto"),
 				grabberConfig["width"].toInt(0),
@@ -489,6 +516,8 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type &settingsType, co
 				grabberConfig["cropRight"].toInt(0),
 				grabberConfig["cropTop"].toInt(0),
 				grabberConfig["cropBottom"].toInt(0));
+
+		_v4l2Grabber->setCecDetectionEnable(grabberConfig["cecDetection"].toBool(true));
 		_v4l2Grabber->setSignalDetectionEnable(grabberConfig["signalDetection"].toBool(true));
 		_v4l2Grabber->setSignalDetectionOffset(
 				grabberConfig["sDHOffsetMin"].toDouble(0.25),
@@ -497,9 +526,9 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type &settingsType, co
 				grabberConfig["sDVOffsetMax"].toDouble(0.75));
 		Debug(_log, "V4L2 grabber created");
 
-			// connect to HyperionDaemon signal
-			connect(this, &HyperionDaemon::videoMode, _v4l2Grabber, &V4L2Wrapper::setVideoMode);
-			connect(this, &HyperionDaemon::settingsChanged, _v4l2Grabber, &V4L2Wrapper::handleSettingsUpdate);
+		// connect to HyperionDaemon signal
+		connect(this, &HyperionDaemon::videoMode, _v4l2Grabber, &V4L2Wrapper::setVideoMode);
+		connect(this, &HyperionDaemon::settingsChanged, _v4l2Grabber, &V4L2Wrapper::handleSettingsUpdate);
 #else
 		Error(_log, "The v4l2 grabber can not be instantiated, because it has been left out from the build");
 #endif
@@ -609,5 +638,26 @@ void HyperionDaemon::createGrabberOsx(const QJsonObject &grabberConfig)
 	Info(_log, "OSX grabber created");
 #else
 	Error(_log, "The osx grabber can not be instantiated, because it has been left out from the build");
+#endif
+}
+
+void HyperionDaemon::createCecHandler()
+{
+#ifdef ENABLE_CEC
+	_cecHandler = new CECHandler;
+
+	QThread * thread = new QThread(this);
+	thread->setObjectName("CECThread");
+	_cecHandler->moveToThread(thread);
+	thread->start();
+
+	connect(_cecHandler, &CECHandler::cecEvent, [&] (CECEvent event) {
+		if (_v4l2Grabber)
+			_v4l2Grabber->handleCecEvent(event);
+	});
+
+	Info(_log, "CEC handler created");
+#else
+	Error(_log, "The CEC handler can not be instantiated, because it has been left out from the build");
 #endif
 }

@@ -90,7 +90,10 @@ void print_trace()
 
 	Logger* log = Logger::getInstance("CORE");
 	char ** symbols = backtrace_symbols(addresses, size);
-	for (int i = 0; i < size; ++i)
+
+	/* Skip first 2 frames as they are signal
+	 * handler and print_trace functions. */
+	for (int i = 2; i < size; ++i)
 	{
 		std::string line = "\t" + decipher_trace(symbols[i]);
 		Error(log, line.c_str());

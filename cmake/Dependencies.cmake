@@ -24,7 +24,6 @@ macro(DeployUnix TARGET)
 			"libusb-1"
 			"libutil"
 			"libX11"
-			"libz"
 		)
 
 		if (APPLE)

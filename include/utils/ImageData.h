@@ -136,7 +136,9 @@ public:
 
 	void toRgb(ImageData<ColorRgb>& image)
 	{
-		image.resize(_width, _height);
+		if (image.width() != _width || image.height() != _height)
+			image.resize(_width, _height);
+
 		const unsigned imageSize = _width * _height;
 
 		for (unsigned idx = 0; idx < imageSize; idx++)
