@@ -76,7 +76,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix resolution change event Fixes part of #620 (#867)
 - some code improvements & cleanup (#861) (#872) (#880) (#876)
 - some little things, as always (#863)
-- AtomOrb: Buffer length fix and new configuration validations (#875)
+- AtmoOrb: Buffer length fix and new configuration validations (#875)
 - Added missing DMX SubTypes to configuration (#875)
 - Fix logger (#885)
   * Make logger thread safe
