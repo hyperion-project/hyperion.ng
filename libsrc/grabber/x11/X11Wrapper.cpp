@@ -25,8 +25,11 @@ void X11Wrapper::action()
 		}
 	}
 
-	if (_grabber.updateScreenDimensions() >= 0 )
+	if (isActive())
 	{
-		transferFrame(_grabber);
+		if (_grabber.updateScreenDimensions() >= 0 )
+		{
+			transferFrame(_grabber);
+		}
 	}
 }

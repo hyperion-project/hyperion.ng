@@ -109,3 +109,48 @@ void V4L2Wrapper::handleCecEvent(CECEvent event)
 {
 	_grabber.handleCecEvent(event);
 }
+
+void V4L2Wrapper::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
+{
+	if(type == settings::V4L2 && _grabberName.startsWith("V4L"))
+	{
+		// extract settings
+		const QJsonObject& obj = config.object();
+
+		// pixel decimation for v4l
+		_grabber.setPixelDecimation(obj["sizeDecimation"].toInt(8));
+
+		// crop for v4l
+		_grabber.setCropping(
+			obj["cropLeft"].toInt(0),
+			obj["cropRight"].toInt(0),
+			obj["cropTop"].toInt(0),
+			obj["cropBottom"].toInt(0));
+
+		// device input
+		_grabber.setInput(obj["input"].toInt(-1));
+
+		// device resolution
+		_grabber.setWidthHeight(obj["width"].toInt(0), obj["height"].toInt(0));
+
+		// device framerate
+		_grabber.setFramerate(obj["fps"].toInt(15));
+
+		// CEC Standby
+		_grabber.setCecDetectionEnable(obj["cecDetection"].toBool(true));
+
+		_grabber.setSignalDetectionEnable(obj["signalDetection"].toBool(true));
+		_grabber.setSignalDetectionOffset(
+			obj["sDHOffsetMin"].toDouble(0.25),
+			obj["sDVOffsetMin"].toDouble(0.25),
+			obj["sDHOffsetMax"].toDouble(0.75),
+			obj["sDVOffsetMax"].toDouble(0.75));
+		_grabber.setSignalThreshold(
+			obj["redSignalThreshold"].toDouble(0.0)/100.0,
+			obj["greenSignalThreshold"].toDouble(0.0)/100.0,
+			obj["blueSignalThreshold"].toDouble(0.0)/100.0);
+		_grabber.setDeviceVideoStandard(
+			obj["device"].toString("auto"),
+			parseVideoStandard(obj["standard"].toString("no-change")));
+	}
+}
