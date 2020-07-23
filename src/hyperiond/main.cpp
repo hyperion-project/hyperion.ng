@@ -151,12 +151,6 @@ int main(int argc, char** argv)
 	#else
 		const char* processName = "hyperiond";
 	#endif
-	const QStringList listOfPids = getProcessIdsByProcessName(processName);
-	if (listOfPids.size() > 1)
-	{
-		Error(log, "The Hyperion Daemon is already running, abort start");
-		return 0;
-	}
 
 	// Initialising QCoreApplication
 	QScopedPointer<QCoreApplication> app(createApplication(argc, argv));
@@ -181,17 +175,36 @@ int main(int argc, char** argv)
 	Option        & userDataOption      = parser.add<Option>        ('u', "userdata", "Overwrite user data path, defaults to home directory of current user (%1)", QDir::homePath() + "/.hyperion");
 	BooleanOption & resetPassword       = parser.add<BooleanOption> (0x0, "resetPassword", "Lost your password? Reset it with this option back to 'hyperion'");
 	BooleanOption & deleteDB            = parser.add<BooleanOption> (0x0, "deleteDatabase", "Start all over? This Option will delete the database");
-	BooleanOption & silentOption        = parser.add<BooleanOption> ('s', "silent", "do not print any outputs");
+	BooleanOption & silentOption        = parser.add<BooleanOption> ('s', "silent", "Do not print any outputs");
 	BooleanOption & verboseOption       = parser.add<BooleanOption> ('v', "verbose", "Increase verbosity");
 	BooleanOption & debugOption         = parser.add<BooleanOption> ('d', "debug", "Show debug messages");
 #ifdef WIN32
 	BooleanOption & consoleOption       = parser.add<BooleanOption> ('c', "console", "Open a console window to view log output");
 #endif
-	                                      parser.add<BooleanOption> (0x0, "desktop", "show systray on desktop");
-	                                      parser.add<BooleanOption> (0x0, "service", "force hyperion to start as console service");
-	Option        & exportEfxOption     = parser.add<Option>        (0x0, "export-effects", "export effects to given path");
+	                                      parser.add<BooleanOption> (0x0, "desktop", "Show systray on desktop");
+	                                      parser.add<BooleanOption> (0x0, "service", "Force hyperion to start as console service");
+	Option        & exportEfxOption     = parser.add<Option>        (0x0, "export-effects", "Export effects to given path");
+
+	/* Internal options, invisible to help */
+	BooleanOption & waitOption          = parser.addHidden<BooleanOption> (0x0, "wait-hyperion", "Do not exit if other Hyperion instances are running, wait them to finish");
 
 	parser.process(*qApp);
+
+	if (!parser.isSet(waitOption))
+	{
+		if (getProcessIdsByProcessName(processName).size() > 1)
+		{
+			Error(log, "The Hyperion Daemon is already running, abort start");
+			return 0;
+		}
+	}
+	else
+	{
+		while (getProcessIdsByProcessName(processName).size() > 1)
+		{
+			QThread::msleep(100);
+		}
+	}
 
 #ifdef WIN32
 	if (parser.isSet(consoleOption))

@@ -175,31 +175,32 @@ void HyperionDaemon::freeObjects()
 
 	// destroy network first as a client might want to access hyperion
 	delete _jsonServer;
-	_flatBufferServer->thread()->quit();
-	_flatBufferServer->thread()->wait(1000);
-	delete _flatBufferServer->thread();
-	delete _flatBufferServer;
 
-	_protoServer->thread()->quit();
-	_protoServer->thread()->wait(1000);
-	delete _protoServer->thread();
-	delete _protoServer;
+	auto flatBufferServerThread = _flatBufferServer->thread();
+	flatBufferServerThread->quit();
+	flatBufferServerThread->wait();
+	delete flatBufferServerThread;
+
+	auto protoServerThread = _protoServer->thread();
+	protoServerThread->quit();
+	protoServerThread->wait();
+	delete protoServerThread;
 
 	//ssdp before webserver
-	_ssdp->thread()->quit();
-	_ssdp->thread()->wait(1000);
-	delete _ssdp->thread();
-	delete _ssdp;
+	auto ssdpThread = _ssdp->thread();
+	ssdpThread->quit();
+	ssdpThread->wait();
+	delete ssdpThread;
 
-	_webserver->thread()->quit();
-	_webserver->thread()->wait(1000);
-	delete _webserver->thread();
-	delete _webserver;
+	auto webserverThread =_webserver->thread();
+	webserverThread->quit();
+	webserverThread->wait();
+	delete webserverThread;
 
-	_sslWebserver->thread()->quit();
-	_sslWebserver->thread()->wait(1000);
-	delete _sslWebserver->thread();
-	delete _sslWebserver;
+	auto sslWebserverThread =_sslWebserver->thread();
+	sslWebserverThread->quit();
+	sslWebserverThread->wait();
+	delete sslWebserverThread;
 
 #ifdef ENABLE_CEC
 	_cecHandler->thread()->quit();
@@ -247,6 +248,7 @@ void HyperionDaemon::startNetworkServices()
 	fbThread->setObjectName("FlatBufferServerThread");
 	_flatBufferServer->moveToThread(fbThread);
 	connect(fbThread, &QThread::started, _flatBufferServer, &FlatBufferServer::initServer);
+	connect(fbThread, &QThread::finished, _flatBufferServer, &FlatBufferServer::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _flatBufferServer, &FlatBufferServer::handleSettingsUpdate);
 	fbThread->start();
 
@@ -256,6 +258,7 @@ void HyperionDaemon::startNetworkServices()
 	pThread->setObjectName("ProtoServerThread");
 	_protoServer->moveToThread(pThread);
 	connect(pThread, &QThread::started, _protoServer, &ProtoServer::initServer);
+	connect(pThread, &QThread::finished, _protoServer, &ProtoServer::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _protoServer, &ProtoServer::handleSettingsUpdate);
 	pThread->start();
 
@@ -265,6 +268,7 @@ void HyperionDaemon::startNetworkServices()
 	wsThread->setObjectName("WebServerThread");
 	_webserver->moveToThread(wsThread);
 	connect(wsThread, &QThread::started, _webserver, &WebServer::initServer);
+	connect(wsThread, &QThread::finished, _webserver, &WebServer::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _webserver, &WebServer::handleSettingsUpdate);
 	wsThread->start();
 
@@ -274,6 +278,7 @@ void HyperionDaemon::startNetworkServices()
 	sslWsThread->setObjectName("SSLWebServerThread");
 	_sslWebserver->moveToThread(sslWsThread);
 	connect(sslWsThread, &QThread::started, _sslWebserver, &WebServer::initServer);
+	connect(sslWsThread, &QThread::finished, _sslWebserver, &WebServer::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _sslWebserver, &WebServer::handleSettingsUpdate);
 	sslWsThread->start();
 
@@ -283,6 +288,7 @@ void HyperionDaemon::startNetworkServices()
 	ssdpThread->setObjectName("SSDPThread");
 	_ssdp->moveToThread(ssdpThread);
 	connect(ssdpThread, &QThread::started, _ssdp, &SSDPHandler::initServer);
+	connect(ssdpThread, &QThread::finished, _ssdp, &SSDPHandler::deleteLater);
 	connect(_webserver, &WebServer::stateChange, _ssdp, &SSDPHandler::handleWebServerStateChange);
 	connect(this, &HyperionDaemon::settingsChanged, _ssdp, &SSDPHandler::handleSettingsUpdate);
 	ssdpThread->start();
