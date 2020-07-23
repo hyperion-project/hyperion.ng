@@ -128,12 +128,13 @@ Logger::Logger (const QString & name, LogLevel minLevel)
 {
 	qRegisterMetaType<Logger::T_LOG_MESSAGE>();
 
-	int count = LoggerCount.fetchAndAddOrdered(1);
-
-	if (_syslogEnabled && count == 1)
+	if (LoggerCount.fetchAndAddOrdered(1) == 1)
 	{
 #ifndef _WIN32
-		openlog (_appname.toLocal8Bit(), LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL0);
+		if (_syslogEnabled)
+		{
+			openlog (_appname.toLocal8Bit(), LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL0);
+		}
 #endif
 	}
 }
@@ -142,11 +143,16 @@ Logger::~Logger()
 {
 	//Debug(this, "logger '%s' destroyed", QSTRING_CSTR(_name) );
 
-	int count = LoggerCount.fetchAndSubOrdered(1);
+
+	if (LoggerCount.fetchAndSubOrdered(1) == 0)
+	{
 #ifndef _WIN32
-	if (_syslogEnabled && count == 0)
-		closelog();
+		if (_syslogEnabled)
+		{
+			closelog();
+		}
 #endif
+	}
 }
 
 void Logger::write(const Logger::T_LOG_MESSAGE & message) const
