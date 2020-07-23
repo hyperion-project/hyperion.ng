@@ -54,7 +54,7 @@ public:
 	virtual bool setFramerate(int fps);
 
 	///
-	/// @brief Apply new pixelDecimation (used from x11 and qt)
+	/// @brief Apply new pixelDecimation (used from x11, xcb and qt)
 	///
 	virtual void setPixelDecimation(int pixelDecimation) {}
 

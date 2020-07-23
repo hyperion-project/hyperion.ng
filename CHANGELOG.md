@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Breaking
 
 ### Added
+- Add XCB grabber, a faster and safer alternative for X11 grabbing (#912)
 
 ### Changed
 

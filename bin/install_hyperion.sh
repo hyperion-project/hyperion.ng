@@ -236,6 +236,7 @@ else
 	ln -fs $BINSP/hyperion-v4l2 $BINTP/hyperion-v4l2
 	ln -fs $BINSP/hyperion-dispmanx $BINTP/hyperion-dispmanx 2>/dev/null
 	ln -fs $BINSP/hyperion-x11 $BINTP/hyperion-x11 2>/dev/null
+	ln -fs $BINSP/hyperion-xcb $BINTP/hyperion-xcb 2>/dev/null
 	ln -fs $BINSP/hyperion-aml $BINTP/hyperion-aml 2>/dev/null
 fi
 
@@ -259,6 +260,11 @@ elif [ $OS_OPENELEC -eq 1 ]; then
 	if [ $CPU_X32X64 -eq 1 ] && [ `cat /storage/.config/autostart.sh 2>/dev/null | grep hyperion-x11 | wc -l` -eq 0 ]; then
 		echo '---> Adding Hyperion-x11 to OpenELEC/LibreELEC autostart.sh'
 		echo "DISPLAY=:0.0 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/storage/hyperion/bin /storage/hyperion/bin/hyperion-x11 </dev/null >/storage/logfiles/hyperion.log 2>&1 &" >> /storage/.config/autostart.sh		
+	fi
+	# only add hyperion-xcb to startup, if not found and x32x64 detected
+	if [ $CPU_X32X64 -eq 1 ] && [ `cat /storage/.config/autostart.sh 2>/dev/null | grep hyperion-xcb | wc -l` -eq 0 ]; then
+		echo '---> Adding Hyperion-xcb to OpenELEC/LibreELEC autostart.sh'
+		echo "DISPLAY=:0.0 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/storage/hyperion/bin /storage/hyperion/bin/hyperion-xcb </dev/null >/storage/logfiles/hyperion.log 2>&1 &" >> /storage/.config/autostart.sh
 	fi
 elif [ $USE_SYSTEMD -eq 1 ]; then
 	echo '---> Installing systemd script'

@@ -79,6 +79,7 @@ elif [ $OS_OPENELEC -eq 1 ]; then
 	echo "---> Remove Hyperion from OpenELEC autostart.sh"
 	sed -i "/hyperiond/d" /storage/.config/autostart.sh 2>/dev/null
 	sed -i "/hyperion-x11/d" /storage/.config/autostart.sh 2>/dev/null
+	sed -i "/hyperion-xcb/d" /storage/.config/autostart.sh 2>/dev/null
 elif [ $USE_SYSTEMD -eq 1 ]; then
 	# Delete and disable Hyperion systemd script
 	echo '---> Delete and disable Hyperion systemd script'
@@ -97,14 +98,15 @@ if [ $OS_OPENELEC -eq 1 ]; then
 	echo '---> Remove the OpenELEC Hyperion binaries and hyperion.config.json'
 	rm -rv /storage/hyperion 2>/dev/null
 	rm -v /storage/.config/hyperion.config.json 2>/dev/null
-else 	
+else
 	#Remove binaries on all distributions/systems (not OpenELEC)
-	echo "---> Remove links to the binaries"	
+	echo "---> Remove links to the binaries"
 	rm -v /usr/bin/hyperiond 2>/dev/null
 	rm -v /usr/bin/hyperion-remote 2>/dev/null
 	rm -v /usr/bin/hyperion-v4l2 2>/dev/null
 	rm -v /usr/bin/hyperion-dispmanx 2>/dev/null
 	rm -v /usr/bin/hyperion-x11 2>/dev/null
+	rm -v /usr/bin/hyperion-xcb 2>/dev/null
 	rm -v /usr/bin/hyperion-aml 2>/dev/null
 	rm -v /etc/hyperion.config.json 2>/dev/null
 	echo "---> Remove binaries"
@@ -116,4 +118,4 @@ echo '**************************************************************************
 echo 'Hyperion successful removed!'
 echo '*******************************************************************************'  
 exit 0
-	
+
