@@ -79,7 +79,7 @@ protected:
 	~Logger();
 
 private:
-	void write(const Logger::T_LOG_MESSAGE & message) const;
+	void write(const Logger::T_LOG_MESSAGE & message);
 
 	static QMutex                MapLock;
 	static QMap<QString,Logger*> LoggerMap;
@@ -106,7 +106,7 @@ public slots:
 	void handleNewLogMessage(const Logger::T_LOG_MESSAGE&);
 
 signals:
-	void newLogMessage(Logger::T_LOG_MESSAGE);
+	void newLogMessage(const Logger::T_LOG_MESSAGE&);
 
 protected:
 	LoggerManager();
