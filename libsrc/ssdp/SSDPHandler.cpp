@@ -9,6 +9,10 @@
 #include <QNetworkInterface>
 #include <QNetworkConfigurationManager>
 
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
+#include <QRandomGenerator>
+#endif
+
 static const QString SSDP_HYPERION_ST("urn:hyperion-project.org:device:basic:1");
 
 SSDPHandler::SSDPHandler(WebServer* webserver, const quint16& flatBufPort, const quint16& jsonServerPort, const QString& name, QObject * parent)
@@ -162,7 +166,11 @@ void SSDPHandler::handleMSearchRequest(const QString& target, const QString& mx,
 	if (ok)
 	{
 		/* Pick a random delay between 0 and MX seconds */
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
+		int randomDelay = QRandomGenerator::global()->generate() % (maxDelay * 1000);
+#else
 		int randomDelay = qrand() % (maxDelay * 1000);
+#endif
 		QTimer::singleShot(randomDelay, respond);
 	}
 	else
