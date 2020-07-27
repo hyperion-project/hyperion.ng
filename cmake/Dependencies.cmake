@@ -24,7 +24,12 @@ macro(DeployUnix TARGET)
 			"libusb-1"
 			"libutil"
 			"libX11"
+			"libz"
 		)
+
+		if(ENABLE_DISPMANX)
+			list(APPEND SYSTEM_LIBS_SKIP "libcec")
+		endif()
 
 		if (APPLE)
 			set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
@@ -153,35 +158,14 @@ macro(DeployUnix TARGET)
 
 		endif()
 
-		# Pack Python modules to pythonXX.zip or copy to 'share/hyperion/lib/python'
+		# Copy Python modules to 'share/hyperion/lib/python'
 		if (PYTHON_MODULES_DIR)
-			# Since version 3.3.2 CMake has the functionality to generate a zip file built-in.
-			if (NOT CMAKE_VERSION VERSION_LESS "3.3.2")
 
-				file(GLOB PYTHON_MODULE_FILES RELATIVE "${PYTHON_MODULES_DIR}" "${PYTHON_MODULES_DIR}/*")
-				set(PYTHON_ZIP "python${PYTHON_VERSION_MAJOR_MINOR}.zip")
-
-				execute_process(
-					COMMAND "${CMAKE_COMMAND}" "-E" "tar" "cf" "${CMAKE_BINARY_DIR}/${PYTHON_ZIP}" "--format=zip" ${PYTHON_MODULE_FILES}
-					WORKING_DIRECTORY "${PYTHON_MODULES_DIR}"
-					OUTPUT_QUIET
-				)
-
-				install(
-					FILES "${CMAKE_BINARY_DIR}/${PYTHON_ZIP}"
-					DESTINATION "share/hyperion/bin"
-					COMPONENT "Hyperion"
-				)
-
-			else()
-
-				install(
-					DIRECTORY ${PYTHON_MODULES_DIR}/
-					DESTINATION "share/hyperion/lib/python"
-					COMPONENT "Hyperion"
-				)
-
-			endif()
+			install(
+				DIRECTORY ${PYTHON_MODULES_DIR}/
+				DESTINATION "share/hyperion/lib/python"
+				COMPONENT "Hyperion"
+			)
 
 		endif(PYTHON_MODULES_DIR)
 
