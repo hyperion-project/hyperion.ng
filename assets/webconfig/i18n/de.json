@@ -910,5 +910,7 @@
 	"conf_leds_layout_ptl": "Punkt Oben Links",
 	"conf_leds_layout_ptr": "Punkt Oben Rechts",
 	"conf_leds_layout_pbl": "Punkt Unten Links",
-	"conf_leds_layout_pbr": "Punkt Unten Rechts"
+	"conf_leds_layout_pbr": "Punkt Unten Rechts",
+	"edt_conf_v4l2_cecDetection_title": "CEC-Erkennung",
+	"edt_conf_v4l2_cecDetection_expl": "Die USB-Erfassung wird vorübergehend deaktiviert, wenn ein CEC-Standby-Ereignis vom HDMI-Bus empfangen wird."
 }
