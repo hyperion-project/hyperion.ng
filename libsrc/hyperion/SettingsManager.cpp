@@ -80,7 +80,6 @@ SettingsManager::SettingsManager(const quint8& instance, QObject* parent)
 		saveSettings(dbConfig, true);
 	}
 
-
 	// validate full dbconfig against schema, on error we need to rewrite entire table
 	QJsonSchemaChecker schemaChecker;
 	schemaChecker.setSchema(schemaJson);

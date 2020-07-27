@@ -1053,7 +1053,7 @@ void JsonAPI::handleLoggingCommand(const QJsonObject &message, const QString &co
 			if (!_streaming_logging_activated)
 			{
 				_streaming_logging_reply["command"] = command + "-update";
-				connect(LoggerManager::getInstance(), SIGNAL(newLogMessage(Logger::T_LOG_MESSAGE)), this, SLOT(incommingLogMessage(Logger::T_LOG_MESSAGE)));
+				connect(LoggerManager::getInstance(), &LoggerManager::newLogMessage, this, &JsonAPI::incommingLogMessage);
 				Debug(_log, "log streaming activated for client %s", _peerAddress.toStdString().c_str()); // needed to trigger log sending
 			}
 		}
@@ -1061,7 +1061,7 @@ void JsonAPI::handleLoggingCommand(const QJsonObject &message, const QString &co
 		{
 			if (_streaming_logging_activated)
 			{
-				disconnect(LoggerManager::getInstance(), SIGNAL(newLogMessage(Logger::T_LOG_MESSAGE)), this, 0);
+				disconnect(LoggerManager::getInstance(), &LoggerManager::newLogMessage, this, &JsonAPI::incommingLogMessage);
 				_streaming_logging_activated = false;
 				Debug(_log, "log streaming deactivated for client  %s", _peerAddress.toStdString().c_str());
 			}

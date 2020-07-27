@@ -1,5 +1,7 @@
 #include "LedDeviceAdalight.h"
 
+#include <cassert>
+
 LedDeviceAdalight::LedDeviceAdalight(const QJsonObject &deviceConfig)
 	: ProviderRs232()
 	  , _headerSize(6)
@@ -78,7 +80,9 @@ int LedDeviceAdalight::write(const std::vector<ColorRgb> & ledValues)
 	}
 	else
 	{
-		memcpy(_headerSize + _ledBuffer.data(), ledValues.data(), ledValues.size() * 3);
+		assert(_headerSize + ledValues.size() * sizeof(ColorRgb) <= _ledBuffer.size());
+
+		memcpy(_headerSize + _ledBuffer.data(), ledValues.data(), ledValues.size() * sizeof(ColorRgb));
 	}
 
 	int rc = writeBytes(_ledBuffer.size(), _ledBuffer.data());
