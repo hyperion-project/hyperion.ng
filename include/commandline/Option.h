@@ -26,11 +26,12 @@ public:
 	);
 
 	Option(const QCommandLineOption &other);
+	virtual ~Option() = default;
 
 	virtual bool validate(Parser &parser, QString &value);
 	QString name();
-    QString getError();
-    QString value(Parser &parser);
+	QString getError();
+	QString value(Parser &parser);
 	const char* getCString(Parser &parser);
 
 protected:

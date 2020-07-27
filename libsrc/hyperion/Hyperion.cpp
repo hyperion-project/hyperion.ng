@@ -38,7 +38,6 @@
 // Boblight
 #include <boblightserver/BoblightServer.h>
 
-
 Hyperion::Hyperion(const quint8& instance)
 	: QObject()
 	, _instIndex(instance)

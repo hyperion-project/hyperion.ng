@@ -27,22 +27,22 @@ public:
 	/// @param[out] image  The snapped screenshot (should be initialized with correct width and
 	/// height)
 	///
-	virtual int grabFrame(Image<ColorRgb> & image);
+	int grabFrame(Image<ColorRgb> & image);
 
 	///
 	/// @brief Set a new video mode
 	///
-	virtual void setVideoMode(VideoMode mode);
+	void setVideoMode(VideoMode mode) override;
 
 	///
 	/// @brief Apply new width/height values, overwrite Grabber.h implementation as qt doesn't use width/height, just pixelDecimation to calc dimensions
 	///
-	virtual bool setWidthHeight(int width, int height) { return true; };
+	bool setWidthHeight(int width, int height) override { return true; };
 
 	///
 	/// @brief Apply new pixelDecimation
 	///
-	virtual void setPixelDecimation(int pixelDecimation);
+	void setPixelDecimation(int pixelDecimation) override;
 
 	///
 	/// Set the crop values
@@ -51,12 +51,12 @@ public:
 	/// @param  cropTop     Top pixel crop
 	/// @param  cropBottom  Bottom pixel crop
 	///
-	virtual void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom);
+	void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom) override;
 
 	///
 	/// @brief Apply display index
 	///
-	virtual void setDisplayIndex(int index);
+	void setDisplayIndex(int index) override;
 
 private slots:
 	///
