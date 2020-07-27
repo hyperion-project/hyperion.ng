@@ -155,7 +155,7 @@ Logger::~Logger()
 	}
 }
 
-void Logger::write(const Logger::T_LOG_MESSAGE & message) const
+void Logger::write(const Logger::T_LOG_MESSAGE & message)
 {
 	QString location;
 	if (message.level == Logger::DEBUG)
@@ -179,6 +179,8 @@ void Logger::write(const Logger::T_LOG_MESSAGE & message) const
 			.arg(message.message)
 		.toStdString()
 	<< std::endl;
+
+	newLogMessage(message);
 }
 
 void Logger::Message(LogLevel level, const char* sourceFile, const char* func, unsigned int line, const char* fmt, ...)

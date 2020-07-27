@@ -165,9 +165,9 @@ public:
 	///
 	/// @param[out] image  The image that buffers the output
 	///
-	void toRgb(Image<ColorRgb>& image)
+	void toRgb(Image<ColorRgb>& image) const
 	{
-		_d_ptr->toRgb(*(image.imageData()));
+		_d_ptr->toRgb(*image._d_ptr);
 	}
 
 	///
@@ -186,12 +186,10 @@ public:
 		_d_ptr->clear();
 	}
 
-	QSharedDataPointer<ImageData<Pixel_T>> imageData() const
-	{
-		return _d_ptr;
-	}
-
 private:
+	template<class T>
+	friend class Image;
+
 	///
 	/// Translate x and y coordinate to index of the underlying vector
 	///

@@ -243,9 +243,10 @@ QJsonObject LedDeviceWled::getProperties(const QJsonObject& params)
 	return properties;
 }
 
-void LedDeviceWled::identify(const QJsonObject& params)
+void LedDeviceWled::identify(const QJsonObject& /*params*/)
 {
-	Debug(_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+#if 0
+	Debug(_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 	QJsonObject properties;
 
 	// Get Nanoleaf device properties
@@ -281,6 +282,7 @@ void LedDeviceWled::identify(const QJsonObject& params)
 		//			Warning (_log, "%s identification failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
 		//		}
 	}
+#endif
 }
 
 int LedDeviceWled::write(const std::vector<ColorRgb> &ledValues)

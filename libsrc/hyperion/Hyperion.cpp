@@ -379,8 +379,18 @@ void Hyperion::setColor(const int priority, const std::vector<ColorRgb> &ledColo
 		_effectEngine->channelCleared(priority);
 
 	// create full led vector from single/multiple colors
+	size_t size = _ledString.leds().size();
 	std::vector<ColorRgb> newLedColors;
-	std::copy_n(ledColors.begin(), _ledString.leds().size(), std::back_inserter(newLedColors));
+	while (true)
+	{
+		for (const auto &entry : ledColors)
+		{
+			newLedColors.emplace_back(entry);
+			if (newLedColors.size() == size)
+				goto end;
+		}
+	}
+end:
 
 	if (getPriorityInfo(priority).componentId != hyperion::COMP_COLOR)
 		clear(priority);

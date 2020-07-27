@@ -134,7 +134,7 @@ public:
 		return _pixels;
 	}
 
-	void toRgb(ImageData<ColorRgb>& image)
+	void toRgb(ImageData<ColorRgb>& image) const
 	{
 		if (image.width() != _width || image.height() != _height)
 			image.resize(_width, _height);
