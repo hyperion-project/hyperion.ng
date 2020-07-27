@@ -1,5 +1,5 @@
-SET(CMAKE_SYSTEM_NAME Linux) 
-SET(CMAKE_SYSTEM_VERSION 1) 
+SET(CMAKE_SYSTEM_NAME Linux)
+SET(CMAKE_SYSTEM_VERSION 1)
 
 SET(CROSSROOT $ENV{HOME}/crosscompile)
 SET(DEVROOT ${CROSSROOT}/raspberrypi)
@@ -9,19 +9,19 @@ SET(PITOOLCHAIN ${DEVROOT}/tools)
 SET(TOOLROOT ${PITOOLCHAIN}/gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf )
 SET(QT_BIN_PATH ${CROSSROOT}/Qt5/5.7/gcc_64/bin)
 
-# specify the cross compiler 
+# specify the cross compiler
 SET(CMAKE_C_COMPILER   ${TOOLROOT}/bin/arm-linux-gnueabihf-gcc)
 SET(CMAKE_CXX_COMPILER ${TOOLROOT}/bin/arm-linux-gnueabihf-g++)
-SET(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "armhf" ) 
+SET(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "armhf" )
 
 SET(CMAKE_SYSROOT ${PIROOT})
 SET(CMAKE_FIND_ROOT_PATH ${PIROOT})
 
-# search for programs in the build host directories 
+# search for programs in the build host directories
 SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 
-# for libraries and headers in the target directories 
-SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY) 
+# for libraries and headers in the target directories
+SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 #SET(CMAKE_FIND_ROOT_PATH_MODE_PACKAGES ONLY)
 

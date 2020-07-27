@@ -97,9 +97,9 @@ if [ $OS_OPENELEC -eq 1 ]; then
 	echo '---> Remove the OpenELEC Hyperion binaries and hyperion.config.json'
 	rm -rv /storage/hyperion 2>/dev/null
 	rm -v /storage/.config/hyperion.config.json 2>/dev/null
-else 	
+else
 	#Remove binaries on all distributions/systems (not OpenELEC)
-	echo "---> Remove links to the binaries"	
+	echo "---> Remove links to the binaries"
 	rm -v /usr/bin/hyperiond 2>/dev/null
 	rm -v /usr/bin/hyperion-remote 2>/dev/null
 	rm -v /usr/bin/hyperion-v4l2 2>/dev/null
@@ -112,8 +112,8 @@ else
 	rm -rv /etc/hyperion 2>/dev/null
 	rm -rv /usr/share/hyperion 2>/dev/null
 fi
-echo '*******************************************************************************' 
+echo '*******************************************************************************'
 echo 'Hyperion successful removed!'
-echo '*******************************************************************************'  
+echo '*******************************************************************************'
 exit 0
-	
+

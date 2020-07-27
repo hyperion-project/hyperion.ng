@@ -140,7 +140,7 @@ If you used a `.deb` package please uninstall it before you upgrade
 - Resolve enable state for v4l and screen capture (#728)
 - Enable/Disable loops for components
 - Runs now on x86_64 LibreElec (missing libs) (#736)
-- Brightness componsation is now visible for configuration (#746)
+- Brightness compensation is now visible for configuration (#746)
 - Prevent malformed image size for effects with specific led layouts (#746)
 
 ### Changed:
@@ -170,7 +170,7 @@ If you used a `.deb` package please uninstall it before you upgrade
 - Smoothing comp state on startup (#685)
 - Azure GitHub release title (#686)
 - SSL/Avahi problems in previous release (#689)
-- WebUI Version Check to SemVer. Also addes "Alpha" Channel (#692)
+- WebUI Version Check to SemVer. Also adds "Alpha" Channel (#692)
 
 ### Removed
 - Travis CI tests (#684)
