@@ -19,18 +19,18 @@ add_executable(hyperiond
 )
 
 target_link_libraries(hyperiond
-		commandline
-		hyperion
-		effectengine
-		jsonserver
-		flatbufserver
-		protoserver
-		webserver
-		ssdp
-		database
-		python
-		resources
-		Qt5::Widgets
+	commandline
+	hyperion
+	effectengine
+	jsonserver
+	flatbufserver
+	protoserver
+	webserver
+	ssdp
+	database
+	python
+	resources
+	Qt5::Widgets
 )
 
 if (NOT CMAKE_VERSION VERSION_LESS "3.12")
@@ -90,6 +90,10 @@ endif ()
 
 if (ENABLE_DX)
 	target_link_libraries(hyperiond	directx-grabber)
+endif ()
+
+if (ENABLE_CEC)
+        target_link_libraries(hyperiond cechandler)
 endif ()
 
 if(NOT WIN32)

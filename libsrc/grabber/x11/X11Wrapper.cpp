@@ -6,6 +6,14 @@ X11Wrapper::X11Wrapper(int cropLeft, int cropRight, int cropTop, int cropBottom,
 	, _init(false)
 {}
 
+X11Wrapper::~X11Wrapper()
+{
+	if ( _init )
+	{
+		stop();
+	}
+}
+
 void X11Wrapper::action()
 {
 	if (! _init )
@@ -17,8 +25,11 @@ void X11Wrapper::action()
 		}
 	}
 
-	if (_grabber.updateScreenDimensions() >= 0 )
+	if (isActive())
 	{
-		transferFrame(_grabber);
+		if (_grabber.updateScreenDimensions() >= 0 )
+		{
+			transferFrame(_grabber);
+		}
 	}
 }

@@ -16,8 +16,10 @@ public:
 			VideoStandard videoStandard,
 			PixelFormat pixelFormat,
 			int pixelDecimation );
+	~V4L2Wrapper() override;
 
 	bool getSignalDetectionEnable();
+	bool getCecDetectionEnable();
 
 public slots:
 	bool start();
@@ -27,9 +29,10 @@ public slots:
 	void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom);
 	void setSignalDetectionOffset(double verticalMin, double horizontalMin, double verticalMax, double horizontalMax);
 	void setSignalDetectionEnable(bool enable);
+	void setCecDetectionEnable(bool enable);
 	void setDeviceVideoStandard(QString device, VideoStandard videoStandard);
-
-signals:
+	void handleCecEvent(CECEvent event);
+	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config) override;
 
 private slots:
 	void newFrame(const Image<ColorRgb> & image);

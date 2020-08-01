@@ -4,7 +4,9 @@ LedDeviceWs2801::LedDeviceWs2801(const QJsonObject &deviceConfig)
 	: ProviderSpi()
 {
 	_devConfig = deviceConfig;
-	_deviceReady = false;
+	_isDeviceReady = false;
+
+	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDevice* LedDeviceWs2801::construct(const QJsonObject &deviceConfig)

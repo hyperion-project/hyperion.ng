@@ -4,22 +4,62 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.0.0-alpha.6...HEAD)
+## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.0.0-alpha.7...HEAD)
 
 ### Breaking
 
 ### Added
-- [HyperBian](https://github.com/hyperion-project/HyperBian/releases) - A Raspbian Lite image with Hyperion pre installed. (#832)
+
+### Changed
+
+### Fixed
+
+### Removed
+
+## [2.0.0-alpha.7](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.7) - 2020-07-23
+### Added
+- [HyperBian](https://github.com/hyperion-project/HyperBian/releases) - A Raspberry Pi OS Lite image with Hyperion pre installed. (#832)
 - An option to reset (delete) the database for the commandline has been added (#820)
 - Improve language selection usability (#812)
-- readded V4L2 Input method from old Hyperion (#825)
+- re-added V4L2 Input method from old Hyperion (#825)
 - Windows: Start Hyperion with a console window `hyperiond -c` (Or new start menu entry) (#860)
+- Get process IDs by iterating /proc (#843)
+- Dump stack trace on crash (Implement #849) (#870)
+- Minor fixes
+- New Devices (#875)
+  * Yeelight support incl. device discovery and setup-wizard
+  * WLED as own device and pre-configuration
+- Additional device related capabilities (#875)
+  * discover, getProperties, identify, store/restore state and power-on/off available for Philips-Hue, Nanoleaf, Yeelight, partially for Rs232 / USB (Hid)
+  * New device capabilities are accessible via JSON-API
+  * New REST-API wrapper class in support of network devices, e.g. Philips Hue, Nanoleaf and WLED
+  * Flexible ssdp-Discovery incl. RegEx matching and filtering
+- Documentation (#875)
+  * Process workflow for LED-Devices
+  * Documentation of device classes & methods
+  * Code template for new LED-Devices available
+- CEC detection (#877)
 
 ### Changed
 - Updated dependency rpi_ws281x to latest upstream (#820)
 - Updated websocket-extensions (#826)
 - webui: Suppress default password warning (#830)
 - webui: Add French, Vietnamese and Turkish (#842)
+- Show thread names in GDB for better debugging (#848)
+- CompileHowto.md updated (#864)
+- Updated Embedded python package (zip) for Linux (#871)
+- DBManager: ORDER BY parameter added to getRecord(s) (#770)
+- Corrected GitHub Actions badge
+- Fix GitHub Actions/Azure Windows Workflow/Pipeline
+- Updated submodules flatbuffers/rpi_ws281x (#873)
+- LED-Device workflow changed allowing proper suspend/resume & disable/enable scenarios (#875)
+- Network LED-Devices will stop sending packages when disabled (#875)
+- Rs232 Provider fully reworked and changed to synchronous writes (#875)
+- Rs232 configuration via portname and system location (/dev/ style), auto detection is not case-sensitive any longer (#875)
+- Additional error handling depending on device type (#875)
+- Add Windows compatibility incl. moving to Qt functions (#875)
+- Add compatibility for different Qt versions (#875)
+
 
 ### Fixed
 - device: Nanoleaf (#829)
@@ -29,8 +69,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix systemd registration in debian for RPi4 (#820)
 - Fix missing define in Profiler & added header notes (#820)
 - some Windows Compile issues
-- some little things, as always
-### Removed
+- Fix: leaking active effects during quit (#850)
+- Correct path for each build configuration
+- Fix heap corruption (#862)
+- Fix OpenSSL dependencies for Windows (#864)
+- Fix resolution change event Fixes part of #620 (#867)
+- some code improvements & cleanup (#861) (#872) (#880) (#876)
+- some little things, as always (#863)
+- AtmoOrb: Buffer length fix and new configuration validations (#875)
+- Added missing DMX SubTypes to configuration (#875)
+- Fix logger (#885)
+  * Make logger thread safe
+  * Include timestamp in logs
+  * Make logs look a bit more cleaner
+- Decrease compile time (#886)
+- Fix some data synchronization error (#890)
+- Fix Qt screenhot crash (#889)
+- Fix crash on startup if no X server available (#892)
+- Fix RPC restart of Hyperion (#894)
 
 ## [2.0.0-alpha.6](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.6) - 2020-05-27
 ### Breaking

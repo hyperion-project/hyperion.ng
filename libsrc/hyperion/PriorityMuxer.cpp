@@ -14,8 +14,8 @@
 
 const int PriorityMuxer::LOWEST_PRIORITY = std::numeric_limits<uint8_t>::max();
 
-PriorityMuxer::PriorityMuxer(int ledCount)
-	: QObject()
+PriorityMuxer::PriorityMuxer(int ledCount, QObject * parent)
+	: QObject(parent)
 	, _log(Logger::getInstance("HYPERION"))
 	, _currentPriority(PriorityMuxer::LOWEST_PRIORITY)
 	, _manualSelectedPriority(256)

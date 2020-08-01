@@ -1,4 +1,3 @@
-﻿
 // STL includes
 #include <exception>
 #include <sstream>
@@ -39,6 +38,7 @@
 // Boblight
 #include <boblightserver/BoblightServer.h>
 
+
 Hyperion::Hyperion(const quint8& instance)
 	: QObject()
 	, _instIndex(instance)
@@ -46,7 +46,7 @@ Hyperion::Hyperion(const quint8& instance)
 	, _componentRegister(this)
 	, _ledString(hyperion::createLedString(getSetting(settings::LEDS).array(), hyperion::createColorOrder(getSetting(settings::DEVICE).object())))
 	, _imageProcessor(new ImageProcessor(_ledString, this))
-	, _muxer(_ledString.leds().size())
+	, _muxer(_ledString.leds().size(), this)
 	, _raw2ledAdjustment(hyperion::createLedColorsAdjustment(_ledString.leds().size(), getSetting(settings::COLOR).object()))
 	, _effectEngine(nullptr)
 	, _messageForwarder(nullptr)
@@ -141,9 +141,8 @@ void Hyperion::start()
 	_boblightServer = new BoblightServer(this, getSetting(settings::BOBLSERVER));
 	connect(this, &Hyperion::settingsChanged, _boblightServer, &BoblightServer::handleSettingsUpdate);
 
-	// instance inited
+	// instance inited, enter thread event loop
 	emit started();
-	// enter thread event loop
 }
 
 void Hyperion::stop()

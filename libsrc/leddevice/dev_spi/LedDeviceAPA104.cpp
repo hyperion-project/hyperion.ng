@@ -46,8 +46,11 @@ LedDeviceAPA104::LedDeviceAPA104(const QJsonObject &deviceConfig)
 	}
 {
 	_devConfig = deviceConfig;
-	_deviceReady = false;
+	_isDeviceReady = false;
+
+	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
+
 
 LedDevice* LedDeviceAPA104::construct(const QJsonObject &deviceConfig)
 {
@@ -58,12 +61,16 @@ bool LedDeviceAPA104::init(const QJsonObject &deviceConfig)
 {
 	_baudRate_Hz = 2235000;
 
-	bool isInitOK = ProviderSpi::init(deviceConfig);
-	if ( isInitOK )
+	bool isInitOK = false;
+
+	// Initialise sub-class
+	if ( ProviderSpi::init(deviceConfig) )
 	{
 		WarningIf(( _baudRate_Hz < 2000000 || _baudRate_Hz > 2470000 ), _log, "SPI rate %d outside recommended range (2000000 -> 2470000)", _baudRate_Hz);
 
 		_ledBuffer.resize(_ledRGBCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
+
+		isInitOK = true;
 	}
 	return isInitOK;
 }

@@ -18,6 +18,10 @@
 
 // hyperion includes
 #include <leddevice/LedDeviceWrapper.h>
+
+#include <leddevice/LedDevice.h>
+#include <leddevice/LedDeviceFactory.h>
+
 #include <hyperion/GrabberWrapper.h>
 #include <utils/jsonschema/QJsonFactory.h>
 #include <utils/jsonschema/QJsonSchemaChecker.h>
@@ -192,6 +196,8 @@ proceed:
 		handleVideoModeCommand(message, command, tan);
 	else if (command == "instance")
 		handleInstanceCommand(message, command, tan);
+	else if (command == "leddevice")
+		handleLedDeviceCommand(message, command, tan);
 
 	// BEGIN | The following commands are derecated but used to ensure backward compatibility with hyperion Classic remote control
 	else if (command == "clearall")
@@ -862,12 +868,16 @@ void JsonAPI::handleConfigCommand(const QJsonObject &message, const QString &com
 	{
 		if (_adminAuthorized)
 		{
-			_hyperion->freeObjects(true);
+			Debug(_log, "Restarting due to RPC command");
+
 			Process::restartHyperion();
-			sendErrorReply("failed to restart hyperion", full_command, tan);
+
+			sendSuccessReply(command + "-" + subcommand, tan);
 		}
 		else
+		{
 			sendErrorReply("No Authorization", command, tan);
+		}
 	}
 	else
 	{
@@ -1043,7 +1053,7 @@ void JsonAPI::handleLoggingCommand(const QJsonObject &message, const QString &co
 			if (!_streaming_logging_activated)
 			{
 				_streaming_logging_reply["command"] = command + "-update";
-				connect(LoggerManager::getInstance(), SIGNAL(newLogMessage(Logger::T_LOG_MESSAGE)), this, SLOT(incommingLogMessage(Logger::T_LOG_MESSAGE)));
+				connect(LoggerManager::getInstance(), &LoggerManager::newLogMessage, this, &JsonAPI::incommingLogMessage);
 				Debug(_log, "log streaming activated for client %s", _peerAddress.toStdString().c_str()); // needed to trigger log sending
 			}
 		}
@@ -1051,7 +1061,7 @@ void JsonAPI::handleLoggingCommand(const QJsonObject &message, const QString &co
 		{
 			if (_streaming_logging_activated)
 			{
-				disconnect(LoggerManager::getInstance(), SIGNAL(newLogMessage(Logger::T_LOG_MESSAGE)), this, 0);
+				disconnect(LoggerManager::getInstance(), &LoggerManager::newLogMessage, this, &JsonAPI::incommingLogMessage);
 				_streaming_logging_activated = false;
 				Debug(_log, "log streaming deactivated for client  %s", _peerAddress.toStdString().c_str());
 			}
@@ -1385,6 +1395,79 @@ void JsonAPI::handleInstanceCommand(const QJsonObject &message, const QString &c
 	}
 }
 
+void JsonAPI::handleLedDeviceCommand(const QJsonObject &message, const QString &command, const int tan)
+{
+	Debug(_log, "message: [%s]", QString(QJsonDocument(message).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+
+	const QString &subc = message["subcommand"].toString().trimmed();
+	const QString &devType = message["ledDeviceType"].toString().trimmed();
+
+	QString full_command = command + "-" + subc;
+
+	// TODO: Validate that device type is a valid one
+/*	if ( ! valid type )
+	{
+		sendErrorReply("Unknown device", full_command, tan);
+	}
+	else
+*/	{
+		if (subc == "discover")
+		{
+			QJsonObject config;
+			config.insert("type", devType);
+
+			// Pointer of current led device
+			LedDevice* _ledDevice;
+			_ledDevice = LedDeviceFactory::construct(config);
+
+			QJsonObject devicesDiscovered = _ledDevice->discover();
+
+			Debug(_log, "response: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+			sendSuccessDataReply(QJsonDocument(devicesDiscovered), full_command, tan);
+
+			delete  _ledDevice;
+		}
+		else if (subc == "getProperties")
+		{
+			const QJsonObject &params = message["params"].toObject();
+
+			QJsonObject config;
+			config.insert("type", devType);
+
+			// Pointer of current led device
+			LedDevice* _ledDevice;
+			_ledDevice = LedDeviceFactory::construct(config);
+
+			QJsonObject deviceProperties = _ledDevice->getProperties(params);
+
+			Debug(_log, "response: [%s]", QString(QJsonDocument(deviceProperties).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+			sendSuccessDataReply(QJsonDocument(deviceProperties), full_command, tan);
+
+			delete  _ledDevice;
+		}
+		else if (subc == "identify")
+		{
+			const QJsonObject &params = message["params"].toObject();
+
+			QJsonObject config;
+			config.insert("type", devType);
+
+			// Pointer of current led device
+			LedDevice* _ledDevice;
+			_ledDevice = LedDeviceFactory::construct(config);
+
+			_ledDevice->identify(params);
+
+			sendSuccessReply(full_command, tan);
+			delete  _ledDevice;
+		}
+		else
+		{
+			sendErrorReply("Unknown or missing subcommand", full_command, tan);
+		}
+	}
+}
+
 void JsonAPI::handleNotImplemented()
 {
 	sendErrorReply("Command not implemented");
@@ -1468,7 +1551,7 @@ void JsonAPI::incommingLogMessage(const Logger::T_LOG_MESSAGE &msg)
 	if (!_streaming_logging_activated)
 	{
 		_streaming_logging_activated = true;
-		QVector<Logger::T_LOG_MESSAGE> *logBuffer = LoggerManager::getInstance()->getLogMessageBuffer();
+		const QList<Logger::T_LOG_MESSAGE> *logBuffer = LoggerManager::getInstance()->getLogMessageBuffer();
 		for (int i = 0; i < logBuffer->length(); i++)
 		{
 			message["appName"] = logBuffer->at(i).appName;
@@ -1478,6 +1561,7 @@ void JsonAPI::incommingLogMessage(const Logger::T_LOG_MESSAGE &msg)
 			message["fileName"] = logBuffer->at(i).fileName;
 			message["message"] = logBuffer->at(i).message;
 			message["levelString"] = logBuffer->at(i).levelString;
+			message["utime"] = QString::number(logBuffer->at(i).utime);
 
 			messageArray.append(message);
 		}
@@ -1491,6 +1575,7 @@ void JsonAPI::incommingLogMessage(const Logger::T_LOG_MESSAGE &msg)
 		message["fileName"] = msg.fileName;
 		message["message"] = msg.message;
 		message["levelString"] = msg.levelString;
+		message["utime"] = QString::number(msg.utime);
 
 		messageArray.append(message);
 	}

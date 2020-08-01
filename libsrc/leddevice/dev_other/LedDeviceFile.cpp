@@ -9,16 +9,15 @@ LedDeviceFile::LedDeviceFile(const QJsonObject &deviceConfig)
 	, _file (nullptr)
 {
 	_devConfig = deviceConfig;
-	_deviceReady = false;
+	_isDeviceReady = false;
 	_printTimeStamp = false;
+
+	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDeviceFile::~LedDeviceFile()
 {
-	if ( _file != nullptr )
-	{
-		_file->deleteLater();
-	}
+		delete _file;
 }
 
 LedDevice* LedDeviceFile::construct(const QJsonObject &deviceConfig)
@@ -49,38 +48,30 @@ void LedDeviceFile::initFile(const QString &fileName)
 int LedDeviceFile::open()
 {
 	int retval = -1;
-	QString errortext;
-	_deviceReady = false;
+	_isDeviceReady = false;
 
-	if ( init(_devConfig) )
+	if ( ! _file->isOpen() )
 	{
-		if ( ! _file->isOpen() )
+		Debug(_log, "QIODevice::WriteOnly, %s", QSTRING_CSTR(_fileName));
+		if ( !_file->open(QIODevice::WriteOnly | QIODevice::Text) )
 		{
-			Debug(_log, "QIODevice::WriteOnly, %s", QSTRING_CSTR(_fileName));
-			if ( !_file->open(QIODevice::WriteOnly | QIODevice::Text) )
-			{
-				errortext = QString ("(%1) %2, file: (%3)").arg(_file->error()).arg(_file->errorString()).arg(_fileName);
-			}
-			else
-			{
-				_deviceReady = true;
-				setEnable(true);
-				retval = 0;
-			}
-
-			if ( retval < 0 )
-			{
-				this->setInError( errortext );
-			}
+			QString errortext = QString ("(%1) %2, file: (%3)").arg(_file->error()).arg(_file->errorString(),_fileName);
+			this->setInError( errortext );
+		}
+		else
+		{
+			_isDeviceReady = true;
+			retval = 0;
 		}
 	}
 	return retval;
 }
 
-void LedDeviceFile::close()
+int LedDeviceFile::close()
 {
-	LedDevice::close();
+	int retval = 0;
 
+	_isDeviceReady = false;
 	if ( _file != nullptr)
 	{
 		// Test, if device requires closing
@@ -91,6 +82,7 @@ void LedDeviceFile::close()
 			_file->close();
 		}
 	}
+	return retval;
 }
 
 int LedDeviceFile::write(const std::vector<ColorRgb> & ledValues)

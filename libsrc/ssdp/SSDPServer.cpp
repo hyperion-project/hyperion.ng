@@ -2,6 +2,7 @@
 
 // utils
 #include <utils/SysInfo.h>
+#include <utils/QStringUtils.h>
 
 // Hyperion
 #include <HyperionConfig.h>
@@ -137,11 +138,7 @@ void SSDPServer::readPendingDatagrams()
 		QString data(datagram);
 		QMap<QString,QString> headers;
 		// parse request
-		#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-			QStringList entries = data.split("\n", Qt::SkipEmptyParts);
-		#else
-			QStringList entries = data.split("\n", QString::SkipEmptyParts);
-		#endif
+		QStringList entries = QStringUtils::split(data,"\n", QStringUtils::SplitBehavior::SkipEmptyParts);
 		for(auto entry : entries)
 		{
 			// http header parse skip

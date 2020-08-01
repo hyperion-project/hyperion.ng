@@ -11,6 +11,8 @@
 // ssdp discover
 #include <ssdp/SSDPDiscover.h>
 
+#include <utils/DefaultSignalHandler.h>
+
 using namespace commandline;
 
 // save the image as screenshot
@@ -23,6 +25,8 @@ void saveScreenshot(QString filename, const Image<ColorRgb> & image)
 
 int main(int argc, char ** argv)
 {
+	DefaultSignalHandler::install();
+
 	QCoreApplication app(argc, argv);
 
 	try

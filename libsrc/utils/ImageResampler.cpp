@@ -60,7 +60,8 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 	// calculate the output size
 	int outputWidth = (width - _cropLeft - cropRight - (_horizontalDecimation >> 1) + _horizontalDecimation - 1) / _horizontalDecimation;
 	int outputHeight = (height - _cropTop - cropBottom - (_verticalDecimation >> 1) + _verticalDecimation - 1) / _verticalDecimation;
-	if ((outputImage.height() != unsigned(outputHeight)) && (outputImage.width() != unsigned(outputWidth)))
+
+	if (outputImage.width() != outputWidth || outputImage.height() != outputHeight)
 		outputImage.resize(outputWidth, outputHeight);
 
 	for (int yDest = 0, ySource = _cropTop + (_verticalDecimation >> 1); yDest < outputHeight; ySource += _verticalDecimation, ++yDest)
@@ -71,7 +72,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 
 			switch (pixelFormat)
 			{
-			case PixelFormat::UYVY:
+				case PixelFormat::UYVY:
 				{
 					int index = lineLength * ySource + (xSource << 1);
 					uint8_t y = data[index+1];
@@ -123,7 +124,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 				break;
 #ifdef HAVE_JPEG_DECODER
 				case PixelFormat::MJPEG:
-					break;
+				break;
 #endif
 				case PixelFormat::NO_CHANGE:
 					Error(Logger::getInstance("ImageResampler"), "Invalid pixel format given");

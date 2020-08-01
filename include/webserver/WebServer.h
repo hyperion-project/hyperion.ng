@@ -39,16 +39,6 @@ public:
 	void start();
 	void stop();
 
-	quint16 getPort() const { return _port; }
-
-	/// check if server has been inited
-	bool isInited() const { return _inited; }
-
-	///
-	/// @brief Set a new description, if empty the description is NotFound for clients
-	///
-	void setSSDPDescription(const QString & desc);
-
 signals:
 	///
 	/// @emits whenever server is started or stopped (to sync with SSDPHandler)
@@ -77,6 +67,16 @@ public slots:
 	/// @param config configuration object
 	///
 	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+
+	///
+	/// @brief Set a new description, if empty the description is NotFound for clients
+	///
+	void setSSDPDescription(const QString & desc);
+
+	/// check if server has been inited
+	bool isInited() const { return _inited; }
+
+	quint16 getPort() const { return _port; }
 
 private:
 	QJsonDocument        _config;

@@ -9,6 +9,10 @@
 #include <QNetworkInterface>
 #include <QNetworkConfigurationManager>
 
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
+#include <QRandomGenerator>
+#endif
+
 static const QString SSDP_HYPERION_ST("urn:hyperion-project.org:device:basic:1");
 
 SSDPHandler::SSDPHandler(WebServer* webserver, const quint16& flatBufPort, const quint16& jsonServerPort, const QString& name, QObject * parent)
@@ -54,7 +58,10 @@ void SSDPHandler::initServer()
 	}
 
 	// startup if localAddress is found
-	if(!_localAddress.isEmpty() && _webserver->isInited())
+	bool isInited = false;
+	QMetaObject::invokeMethod(_webserver, "isInited", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isInited));
+
+	if(!_localAddress.isEmpty() && isInited)
 	{
 		handleWebServerStateChange(true);
 	}
@@ -100,14 +107,14 @@ void SSDPHandler::handleWebServerStateChange(const bool newState)
 	if(newState)
 	{
 		// refresh info
-		_webserver->setSSDPDescription(buildDesc());
+		QMetaObject::invokeMethod(_webserver, "setSSDPDescription", Qt::BlockingQueuedConnection, Q_ARG(QString, buildDesc()));
 		setDescriptionAddress(getDescAddress());
 		if(start())
 			sendAnnounceList(true);
 	}
 	else
 	{
-		_webserver->setSSDPDescription("");
+		QMetaObject::invokeMethod(_webserver, "setSSDPDescription", Qt::BlockingQueuedConnection, Q_ARG(QString, ""));
 		sendAnnounceList(false);
 		stop();
 	}
@@ -116,20 +123,17 @@ void SSDPHandler::handleWebServerStateChange(const bool newState)
 void SSDPHandler::handleNetworkConfigurationChanged(const QNetworkConfiguration &config)
 {
 	// get localAddress from interface
-	if(!getLocalAddress().isEmpty())
+	QString localAddress = getLocalAddress();
+	if(!localAddress.isEmpty() && _localAddress != localAddress)
 	{
-		QString localAddress = getLocalAddress();
-		if(_localAddress != localAddress)
-		{
-			// revoke old ip
-			sendAnnounceList(false);
+		// revoke old ip
+		sendAnnounceList(false);
 
-			// update desc & notify new ip
-			_localAddress = localAddress;
-			_webserver->setSSDPDescription(buildDesc());
-			setDescriptionAddress(getDescAddress());
-			sendAnnounceList(true);
-		}
+		// update desc & notify new ip
+		_localAddress = localAddress;
+		QMetaObject::invokeMethod(_webserver, "setSSDPDescription", Qt::BlockingQueuedConnection, Q_ARG(QString, buildDesc()));
+		setDescriptionAddress(getDescAddress());
+		sendAnnounceList(true);
 	}
 }
 
@@ -162,7 +166,11 @@ void SSDPHandler::handleMSearchRequest(const QString& target, const QString& mx,
 	if (ok)
 	{
 		/* Pick a random delay between 0 and MX seconds */
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
+		int randomDelay = QRandomGenerator::global()->generate() % (maxDelay * 1000);
+#else
 		int randomDelay = qrand() % (maxDelay * 1000);
+#endif
 		QTimer::singleShot(randomDelay, respond);
 	}
 	else
@@ -180,7 +188,9 @@ QString SSDPHandler::getDescAddress() const
 
 QString SSDPHandler::getBaseAddress() const
 {
-	return QString("http://%1:%2/").arg(_localAddress).arg(_webserver->getPort());
+	quint16 port = 0;
+	QMetaObject::invokeMethod(_webserver, "getPort", Qt::BlockingQueuedConnection, Q_RETURN_ARG(quint16, port));
+	return QString("http://%1:%2/").arg(_localAddress).arg(port);
 }
 
 QString SSDPHandler::buildDesc() const
@@ -198,3 +208,4 @@ void SSDPHandler::sendAnnounceList(const bool alive)
 		alive ? SSDPServer::sendAlive(entry) : SSDPServer::sendByeBye(entry);
 	}
 }
+

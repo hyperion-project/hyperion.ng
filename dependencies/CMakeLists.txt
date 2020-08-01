@@ -61,13 +61,15 @@ message(STATUS "Using flatbuffers compiler: " ${FLATBUFFERS_FLATC_EXECUTABLE})
 function(compile_flattbuffer_schema SRC_FBS OUTPUT_DIR)
 	string(REGEX REPLACE "\\.fbs$" "_generated.h" GEN_HEADER ${SRC_FBS})
 	set_property(SOURCE ${GEN_HEADER} PROPERTY SKIP_AUTOMOC ON)
+
 	if (ENABLE_AMLOGIC)
 		add_custom_command(
 			OUTPUT ${GEN_HEADER}
 			COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -c --no-includes --gen-mutable
 					--gen-object-api
 					-o "${OUTPUT_DIR}"
-					"${SRC_FBS}")
+					"${SRC_FBS}"
+			DEPENDS ${SRC_FBS})
 	else()
 		add_custom_command(
 			OUTPUT ${GEN_HEADER}
@@ -75,7 +77,7 @@ function(compile_flattbuffer_schema SRC_FBS OUTPUT_DIR)
 					--gen-object-api
 					-o "${OUTPUT_DIR}"
 					"${SRC_FBS}"
-			DEPENDS flatc)
+			DEPENDS flatc ${SRC_FBS})
 	endif()
 endfunction()
 
