@@ -27,6 +27,7 @@ public slots:
 	void settings();
 	void setEffect();
 	void clearEfxColor();
+	void setAutorunState();
 
 private slots:
 	void iconActivated(QSystemTrayIcon::ActivationReason reason);
@@ -37,12 +38,20 @@ private slots:
 	void webserverPortChanged(const quint16& port) { _webPort = port; };
 
 	///
-	/// @brief is called whenever a hyperion isntance state changes
+	/// @brief is called whenever a hyperion instance state changes
 	///
 	void handleInstanceStateChange(const InstanceState& state, const quint8& instance, const QString& name);
 
 private:
 	void createTrayIcon();
+
+#ifdef _WIN32
+	///
+	/// @brief Checks whether Hyperion should start at Windows system start.
+	/// @return True on success, otherwise false
+	///
+	bool getCurrentAutorunState();
+#endif
 
 	QAction          *quitAction;
 	QAction          *startAction;
@@ -50,6 +59,9 @@ private:
 	QAction          *colorAction;
 	QAction          *settingsAction;
 	QAction          *clearAction;
+#ifdef _WIN32
+	QAction          *autorunAction;
+#endif
 
 	QSystemTrayIcon  *_trayIcon;
 	QMenu            *_trayIconMenu;

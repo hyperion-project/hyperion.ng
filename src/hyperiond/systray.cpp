@@ -3,12 +3,15 @@
 #ifndef _WIN32
 #include <unistd.h>
 #endif
+
+// QT includes
 #include <QPixmap>
 #include <QWindow>
 #include <QGuiApplication>
 #include <QWidget>
 #include <QColor>
 #include <QDesktopServices>
+#include <QSettings>
 
 #include <utils/ColorRgb.h>
 #include <effectengine/EffectDefinition.h>
@@ -43,6 +46,11 @@ void SysTray::iconActivated(QSystemTrayIcon::ActivationReason reason)
 {
 	switch (reason)
 	{
+#ifdef _WIN32
+		case QSystemTrayIcon::Context:
+			getCurrentAutorunState();
+			break;
+#endif
 		case QSystemTrayIcon::Trigger:
 			break;
 		case QSystemTrayIcon::DoubleClick:
@@ -89,6 +97,14 @@ void SysTray::createTrayIcon()
 		_trayIconEfxMenu->addAction(efxAction);
 	}
 
+#ifdef _WIN32
+	autorunAction = new QAction(tr("&Disable autostart"), this);
+	connect(autorunAction, SIGNAL(triggered()), this, SLOT(setAutorunState()));
+
+	_trayIconMenu->addAction(autorunAction);
+	_trayIconMenu->addSeparator();
+#endif
+
 	_trayIconMenu->addAction(settingsAction);
 	_trayIconMenu->addSeparator();
 	_trayIconMenu->addAction(colorAction);
@@ -99,6 +115,32 @@ void SysTray::createTrayIcon()
 
 	_trayIcon = new QSystemTrayIcon(this);
 	_trayIcon->setContextMenu(_trayIconMenu);
+}
+
+#ifdef _WIN32
+bool SysTray::getCurrentAutorunState()
+{
+	QSettings reg("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::NativeFormat);
+    if (reg.value("Hyperion", 0).toString() == qApp->applicationFilePath().replace('/', '\\'))
+	{
+		autorunAction->setText(tr("&Disable autostart"));
+        return true;
+	}
+
+    autorunAction->setText(tr("&Enable autostart"));
+	return false;
+}
+#endif
+
+void SysTray::setAutorunState()
+{
+#ifdef _WIN32
+	bool currentState = getCurrentAutorunState();
+	QSettings reg("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::NativeFormat);
+	(currentState)
+	? reg.remove("Hyperion")
+	: reg.setValue("Hyperion", qApp->applicationFilePath().replace('/', '\\'));
+#endif
 }
 
 void SysTray::setColor(const QColor & color)
