@@ -147,7 +147,7 @@ public:
 	/// @param devicePath The device path
 	/// @return List of framerates on success else empty List
 	///
-	virtual QStringList getFramerates(QString devicePath) { return QStringList(); }
+	virtual QStringList getFramerates(QString devicePath) { return QStringList(); }		
 
 protected:
 	ImageResampler _imageResampler;

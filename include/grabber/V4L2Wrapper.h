@@ -33,7 +33,22 @@ public slots:
 	void setDeviceVideoStandard(QString device, VideoStandard videoStandard);
 	void handleCecEvent(CECEvent event);
 	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config) override;
-
+	
+	///
+	/// @brief load LUT file for HDR to SDR tone mapping (v4l2)
+	///
+	void loadLutFile(QString path);
+	
+	///
+	/// @brief set software decimation (v4l2)
+	///
+	void setFpsSoftwareDecimation(int decimation);
+	
+	///
+	/// @brief enable HDR to SDR tone mapping (v4l2)
+	///
+	void setHdrToneMappingEnabled(bool enable);	
+	
 private slots:
 	void newFrame(const Image<ColorRgb> & image);
 	void readError(const char* err);

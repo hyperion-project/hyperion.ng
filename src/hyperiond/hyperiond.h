@@ -182,4 +182,7 @@ private:
 
 	VideoMode                  _currVideoMode;
 	SettingsManager*           _settingsManager;
+	
+	// application root path
+	QString _rootPath;
 };

@@ -82,6 +82,7 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 		, _ssdp(nullptr)
 		, _cecHandler(nullptr)
 		, _currVideoMode(VideoMode::VIDEO_2D)
+		, _rootPath(rootPath)
 {
 	HyperionDaemon::daemon = this;
 
@@ -146,7 +147,7 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 	handleSettingsUpdate(settings::V4L2, getSetting(settings::V4L2));
 
 	// ---- network services -----
-	startNetworkServices();
+	startNetworkServices();		
 }
 
 HyperionDaemon::~HyperionDaemon()
@@ -506,7 +507,14 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type &settingsType, co
 				parseVideoStandard(grabberConfig["standard"].toString("no-change")),
 				parsePixelFormat(grabberConfig["pixelFormat"].toString("no-change")),
 				grabberConfig["sizeDecimation"].toInt(8));
-
+				
+		// HDR stuff		
+		_v4l2Grabber->loadLutFile(_rootPath);				
+		_v4l2Grabber->setHdrToneMappingEnabled(grabberConfig["hdrToneMapping"].toBool(false));
+		
+		// software frame skipping
+		_v4l2Grabber->setFpsSoftwareDecimation(grabberConfig["fpsSoftwareDecimation"].toInt(1));
+		
 		_v4l2Grabber->setSignalThreshold(
 				grabberConfig["redSignalThreshold"].toDouble(0.0) / 100.0,
 				grabberConfig["greenSignalThreshold"].toDouble(0.0) / 100.0,

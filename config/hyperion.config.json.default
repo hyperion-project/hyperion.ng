@@ -77,7 +77,9 @@
 		"sDVOffsetMin"			: 0.25,
 		"sDHOffsetMin"			: 0.25,
 		"sDVOffsetMax"			: 0.75,
-		"sDHOffsetMax"			: 0.75
+		"sDHOffsetMax"			: 0.75,
+		"hdrToneMapping"		: false,
+		"fpsSoftwareDecimation"	: 1
 	},
 
 	"framegrabber" :
