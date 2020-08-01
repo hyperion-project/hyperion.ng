@@ -199,7 +199,7 @@
 	"conf_leds_layout_ma_optbottomleft" : "Bottom left",
 	"conf_leds_layout_ma_optbottomright" : "Bottom right",
 	"conf_leds_layout_textf1" : "This textfield shows by default your current loaded layout and will be overwritten if you generate a new one with the options above. Optional you could perform further edits.",
-	"conf_grabber_fg_intro" : "Platforum capture is your local system capture as input source, Hyperion is installed on.",
+	"conf_grabber_fg_intro" : "Platform capture is your local system capture as input source, Hyperion is installed on.",
 	"conf_grabber_v4l_intro" : "USB capture is a (capture)device connected via USB which is used to input source pictures for processing.",
 	"conf_colors_color_intro" : "Create one or more calibration profiles, adjust each color, brightness, linearization and more.",
 	"conf_colors_smoothing_intro" : "Smoothing flattens color/brightness changes to reduce annoying distraction.",
