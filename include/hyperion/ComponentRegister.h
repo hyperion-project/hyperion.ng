@@ -30,7 +30,7 @@ public:
 	int isComponentEnabled(const hyperion::Components& comp) const;
 
 	/// contains all components and their state
-	std::map<hyperion::Components, bool> getRegister() { return _componentStates; };
+	std::map<hyperion::Components, bool> getRegister() const { return _componentStates; };
 
 signals:
 	///

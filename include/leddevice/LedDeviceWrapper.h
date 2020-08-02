@@ -6,6 +6,8 @@
 #include <utils/ColorRgb.h>
 #include <utils/Components.h>
 
+#include <QMutex>
+
 class LedDevice;
 class Hyperion;
 
@@ -53,7 +55,7 @@ public:
 	///
 	/// @brief Get the current active ledDevice type
 	///
-	const QString & getActiveDeviceType();
+	QString getActiveDeviceType();
 
 	///
 	/// @brief Return the last enable state
@@ -63,7 +65,7 @@ public:
 	///
 	/// @brief Get the current colorOrder from device
 	///
-	const QString & getColorOrder();
+	QString getColorOrder();
 
 	///
 	/// @brief Get the number of LEDs from device
@@ -103,6 +105,7 @@ private slots:
 protected:
 	/// contains all available led device constructors
 	static LedDeviceRegistry _ledDeviceMap;
+	static QMutex _ledDeviceMapLock;
 
 private:
 	///
