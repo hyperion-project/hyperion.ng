@@ -1,0 +1,34 @@
+IDI_ICON1 ICON DISCARDABLE "${WIN_RC_ICON_PATH}"
+1 VERSIONINFO
+ FILEVERSION ${HYPERION_VERSION_MAJOR},${HYPERION_VERSION_MINOR},${HYPERION_VERSION_PATCH},0
+ PRODUCTVERSION ${HYPERION_VERSION_MAJOR},${HYPERION_VERSION_MINOR},${HYPERION_VERSION_PATCH},0
+ FILEFLAGSMASK 0x17L
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "CompanyName", "hyperion-project"
+            VALUE "Comments", "www.hyperion-project.org"
+            VALUE "FileDescription", "Hyperion Ambient Lighting"
+            VALUE "FileVersion", "${HYPERION_VERSION}"
+            VALUE "InternalName", "Hyperion"
+            VALUE "LegalCopyright", "MIT"
+            VALUE "OriginalFilename", "${BINARY_NAME}"
+            VALUE "ProductName", "Hyperion Ambient Lighting"
+            VALUE "ProductVersion", "${HYPERION_VERSION}"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
