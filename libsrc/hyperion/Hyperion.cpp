@@ -39,7 +39,6 @@
 // Boblight
 #include <boblightserver/BoblightServer.h>
 
-
 Hyperion::Hyperion(const quint8& instance)
 	: QObject()
 	, _instIndex(instance)
@@ -61,7 +60,7 @@ Hyperion::Hyperion(const quint8& instance)
 
 Hyperion::~Hyperion()
 {
-	freeObjects(false);
+	freeObjects();
 }
 
 void Hyperion::start()
@@ -152,15 +151,10 @@ void Hyperion::stop()
 	thread()->wait();
 }
 
-void Hyperion::freeObjects(bool emitCloseSignal)
+void Hyperion::freeObjects()
 {
 	// switch off all leds
 	clear(-1,true);
-
-	if (emitCloseSignal)
-	{
-		emit closing();
-	}
 
 	// delete components on exit of hyperion core
 	delete _boblightServer;

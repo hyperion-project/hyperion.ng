@@ -28,9 +28,9 @@ BoblightServer::BoblightServer(Hyperion* hyperion,const QJsonDocument& config)
 	Debug(_log, "Instance created");
 
 	// listen for component change
-	connect(_hyperion, SIGNAL(compStateChangeRequest(hyperion::Components,bool)), this, SLOT(compStateChangeRequest(hyperion::Components,bool)));
+	connect(_hyperion, &Hyperion::compStateChangeRequest, this, &BoblightServer::compStateChangeRequest);
 	// listen new connection signal from server
-	connect(_server, SIGNAL(newConnection()), this, SLOT(newConnection()));
+	connect(_server, &QTcpServer::newConnection, this, &BoblightServer::newConnection);
 
 	// init
 	handleSettingsUpdate(settings::BOBLSERVER, config);
@@ -101,7 +101,7 @@ void BoblightServer::newConnection()
 		_openConnections.insert(connection);
 
 		// register slot for cleaning up after the connection closed
-		connect(connection, SIGNAL(connectionClosed(BoblightClientConnection*)), this, SLOT(closedConnection(BoblightClientConnection*)));
+		connect(connection, &BoblightClientConnection::connectionClosed, this, &BoblightServer::closedConnection);
 	}
 }
 

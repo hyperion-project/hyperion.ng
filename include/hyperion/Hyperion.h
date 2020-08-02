@@ -68,7 +68,7 @@ public:
 	///
 	/// free all alocated objects, should be called only from constructor or before restarting hyperion
 	///
-	void freeObjects(bool emitCloseSignal=false);
+	void freeObjects();
 
 	ImageProcessor* getImageProcessor() const { return _imageProcessor; }
 
@@ -397,8 +397,6 @@ signals:
 	/// @param  image  The current image
 	///
 	void currentImage(const Image<ColorRgb> & image);
-
-	void closing();
 
 	/// Signal which is emitted, when a new json message should be forwarded
 	void forwardJsonMessage(QJsonObject);

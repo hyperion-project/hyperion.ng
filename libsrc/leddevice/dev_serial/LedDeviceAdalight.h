@@ -44,7 +44,7 @@ private:
 	/// @return Zero on success, else negative
 	///
 	virtual int write(const std::vector<ColorRgb> & ledValues) override;
-	
+
 	const short _headerSize;
 	bool        _ligthBerryAPA102Mode;
 };

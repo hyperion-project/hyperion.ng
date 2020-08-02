@@ -27,7 +27,7 @@ JsonServer::JsonServer(const QJsonDocument& config)
 	Debug(_log, "Created instance");
 
 	// Set trigger for incoming connections
-	connect(_server, SIGNAL(newConnection()), this, SLOT(newConnection()));
+	connect(_server, &QTcpServer::newConnection, this, &JsonServer::newConnection);
 
 	// init
 	handleSettingsUpdate(settings::JSONSERVER, config);
