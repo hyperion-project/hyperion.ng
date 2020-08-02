@@ -16,6 +16,7 @@
 // utils
 #include <utils/hyperion.h>
 #include <utils/GlobalSignals.h>
+#include <utils/Logger.h>
 
 // Leddevice includes
 #include <leddevice/LedDeviceWrapper.h>
@@ -80,7 +81,7 @@ void Hyperion::start()
 	_hwLedCount = qMax(unsigned(getSetting(settings::DEVICE).object()["hardwareLedCount"].toInt(getLedCount())), getLedCount());
 
 	// init colororder vector
-	for (Led& led : _ledString.leds())
+	for (const Led& led : _ledString.leds())
 	{
 		_ledStringColorOrder.push_back(led.colorOrder);
 	}
@@ -190,8 +191,6 @@ void Hyperion::handleSettingsUpdate(const settings::type& type, const QJsonDocum
 	}
 	else if(type == settings::LEDS)
 	{
-		QMutexLocker lock(&_changes);
-
 		const QJsonArray leds = config.array();
 
 		// stop and cache all running effects, as effects depend heavily on ledlayout
@@ -207,7 +206,7 @@ void Hyperion::handleSettingsUpdate(const settings::type& type, const QJsonDocum
 		_ledBuffer = color;
 
 		_ledStringColorOrder.clear();
-		for (Led& led : _ledString.leds())
+		for (const Led& led : _ledString.leds())
 		{
 			_ledStringColorOrder.push_back(led.colorOrder);
 		}
@@ -224,7 +223,6 @@ void Hyperion::handleSettingsUpdate(const settings::type& type, const QJsonDocum
 	}
 	else if(type == settings::DEVICE)
 	{
-		QMutexLocker lock(&_changes);
 		QJsonObject dev = config.object();
 
 		// handle hwLedCount update
@@ -237,7 +235,7 @@ void Hyperion::handleSettingsUpdate(const settings::type& type, const QJsonDocum
 			_imageProcessor->setLedString(_ledString);
 
 			_ledStringColorOrder.clear();
-			for (Led& led : _ledString.leds())
+			for (const Led& led : _ledString.leds())
 			{
 				_ledStringColorOrder.push_back(led.colorOrder);
 			}
@@ -258,7 +256,7 @@ void Hyperion::handleSettingsUpdate(const settings::type& type, const QJsonDocum
 	update();
 }
 
-QJsonDocument Hyperion::getSetting(const settings::type& type)
+QJsonDocument Hyperion::getSetting(const settings::type& type) const
 {
 	return _settingsManager->getSetting(type);
 }
@@ -270,7 +268,7 @@ bool Hyperion::saveSettings(QJsonObject config, const bool& correct)
 
 int Hyperion::getLatchTime() const
 {
-  return _ledDeviceWrapper->getLatchTime();
+	return _ledDeviceWrapper->getLatchTime();
 }
 
 unsigned Hyperion::addSmoothingConfig(int settlingTime_ms, double ledUpdateFrequency_hz, unsigned updateDelay)
@@ -308,7 +306,7 @@ void Hyperion::setNewComponentState(const hyperion::Components& component, const
 	_componentRegister.setNewComponentState(component, state);
 }
 
-std::map<hyperion::Components, bool> Hyperion::getAllComponents()
+std::map<hyperion::Components, bool> Hyperion::getAllComponents() const
 {
 	return _componentRegister.getRegister();
 }
@@ -409,7 +407,7 @@ const QStringList & Hyperion::getAdjustmentIds() const
 	return _raw2ledAdjustment->getAdjustmentIds();
 }
 
-ColorAdjustment * Hyperion::getAdjustment(const QString& id)
+ColorAdjustment * Hyperion::getAdjustment(const QString& id) const
 {
 	return _raw2ledAdjustment->getAdjustment(id);
 }
@@ -457,7 +455,7 @@ QList<int> Hyperion::getActivePriorities() const
 	return _muxer.getPriorities();
 }
 
-const Hyperion::InputInfo Hyperion::getPriorityInfo(const int priority) const
+Hyperion::InputInfo Hyperion::getPriorityInfo(const int priority) const
 {
 	return _muxer.getInputInfo(priority);
 }
@@ -477,17 +475,17 @@ const std::list<EffectDefinition> & Hyperion::getEffects() const
 	return _effectEngine->getEffects();
 }
 
-const std::list<ActiveEffectDefinition> & Hyperion::getActiveEffects()
+const std::list<ActiveEffectDefinition> & Hyperion::getActiveEffects() const
 {
 	return _effectEngine->getActiveEffects();
 }
 
-const std::list<EffectSchema> & Hyperion::getEffectSchemas()
+const std::list<EffectSchema> & Hyperion::getEffectSchemas() const
 {
 	return _effectEngine->getEffectSchemas();
 }
 
-const QJsonObject& Hyperion::getQJsonConfig()
+const QJsonObject& Hyperion::getQJsonConfig() const
 {
 	return _settingsManager->getSettings();
 }
@@ -511,7 +509,7 @@ void Hyperion::setLedMappingType(const int& mappingType)
 	}
 }
 
-const int & Hyperion::getLedMappingType()
+int Hyperion::getLedMappingType() const
 {
 	return _imageProcessor->getUserLedMappingType();
 }
@@ -521,12 +519,12 @@ void Hyperion::setVideoMode(const VideoMode& mode)
 	emit videoMode(mode);
 }
 
-const VideoMode & Hyperion::getCurrentVideoMode()
+VideoMode Hyperion::getCurrentVideoMode() const
 {
 	return _currVideoMode;
 }
 
-const QString & Hyperion::getActiveDeviceType()
+QString Hyperion::getActiveDeviceType() const
 {
 	return _ledDeviceWrapper->getActiveDeviceType();
 }
@@ -540,8 +538,6 @@ void Hyperion::handleVisibleComponentChanged(const hyperion::Components &comp)
 
 void Hyperion::update()
 {
-	QMutexLocker lock(&_changes);
-
 	// Obtain the current priority channel
 	int priority = _muxer.getCurrentPriority();
 	const PriorityMuxer::InputInfo priorityInfo = _muxer.getInputInfo(priority);
@@ -554,7 +550,9 @@ void Hyperion::update()
 		_ledBuffer = _imageProcessor->process(image);
 	}
 	else
+	{
 		_ledBuffer = priorityInfo.ledColors;
+	}
 
 	// emit rawLedColors before transform
 	emit rawLedColors(_ledBuffer);
