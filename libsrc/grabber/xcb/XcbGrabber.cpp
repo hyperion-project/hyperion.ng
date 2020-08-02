@@ -231,8 +231,8 @@ int XcbGrabber::grabFrame(Image<ColorRgb> & image, bool forceUpdate)
 
 	if (_XcbRenderAvailable)
 	{
-		double scale_x = static_cast<double>(_width / _pixelDecimation) / static_cast<double>(_width);
-		double scale_y = static_cast<double>(_height / _pixelDecimation) / static_cast<double>(_height);
+		double scale_x = static_cast<double>(_screenWidth / _pixelDecimation) / static_cast<double>(_screenWidth);
+		double scale_y = static_cast<double>(_screenHeight / _pixelDecimation) / static_cast<double>(_screenHeight);
 		double scale = qMin(scale_y, scale_x);
 
 		_transform = {
@@ -339,7 +339,7 @@ int XcbGrabber::updateScreenDimensions(bool force)
 			? ((_screenHeight - _cropTop - _cropBottom) / _pixelDecimation)
 			: _screenHeight / _pixelDecimation;
 
-		Info(_log, "Using XcbRender for grabbing");
+		Info(_log, "Using XcbRender for grabbing [%dx%d]", width, height);
 	}
 	else
 	{
@@ -351,7 +351,7 @@ int XcbGrabber::updateScreenDimensions(bool force)
 			? (_screenHeight - _cropTop - _cropBottom)
 			: _screenHeight;
 
-		Info(_log, "Using XcbGetImage for grabbing");
+		Info(_log, "Using XcbGetImage for grabbing [%dx%d]", width, height);
 	}
 
 	// Calculate final image dimensions and adjust top/left cropping in 3D modes
