@@ -626,8 +626,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 
 	// ACTIVE EFFECT INFO
 	QJsonArray activeEffects;
-	const std::list<ActiveEffectDefinition> &activeEffectsDefinitions = _hyperion->getActiveEffects();
-	for (const ActiveEffectDefinition &activeEffectDefinition : activeEffectsDefinitions)
+	for (const ActiveEffectDefinition &activeEffectDefinition : _hyperion->getActiveEffects())
 	{
 		if (activeEffectDefinition.priority != PriorityMuxer::LOWEST_PRIORITY - 1)
 		{
@@ -1236,7 +1235,9 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 			sendSuccessDataReply(QJsonDocument(arr), command + "-" + subc, tan);
 		}
 		else
+		{
 			sendErrorReply("No Authorization", command + "-" + subc, tan);
+		}
 
 		return;
 	}
@@ -1411,60 +1412,43 @@ void JsonAPI::handleLedDeviceCommand(const QJsonObject &message, const QString &
 	}
 	else
 */	{
+		QJsonObject config;
+		config.insert("type", devType);
+		LedDevice* ledDevice = nullptr;
+
 		if (subc == "discover")
 		{
-			QJsonObject config;
-			config.insert("type", devType);
-
-			// Pointer of current led device
-			LedDevice* _ledDevice;
-			_ledDevice = LedDeviceFactory::construct(config);
-
-			QJsonObject devicesDiscovered = _ledDevice->discover();
+			ledDevice = LedDeviceFactory::construct(config);
+			const QJsonObject devicesDiscovered = ledDevice->discover();
 
 			Debug(_log, "response: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData() );
-			sendSuccessDataReply(QJsonDocument(devicesDiscovered), full_command, tan);
 
-			delete  _ledDevice;
+			sendSuccessDataReply(QJsonDocument(devicesDiscovered), full_command, tan);
 		}
 		else if (subc == "getProperties")
 		{
+			ledDevice = LedDeviceFactory::construct(config);
 			const QJsonObject &params = message["params"].toObject();
-
-			QJsonObject config;
-			config.insert("type", devType);
-
-			// Pointer of current led device
-			LedDevice* _ledDevice;
-			_ledDevice = LedDeviceFactory::construct(config);
-
-			QJsonObject deviceProperties = _ledDevice->getProperties(params);
+			const QJsonObject deviceProperties = ledDevice->getProperties(params);
 
 			Debug(_log, "response: [%s]", QString(QJsonDocument(deviceProperties).toJson(QJsonDocument::Compact)).toUtf8().constData() );
-			sendSuccessDataReply(QJsonDocument(deviceProperties), full_command, tan);
 
-			delete  _ledDevice;
+			sendSuccessDataReply(QJsonDocument(deviceProperties), full_command, tan);
 		}
 		else if (subc == "identify")
 		{
+			ledDevice = LedDeviceFactory::construct(config);
 			const QJsonObject &params = message["params"].toObject();
-
-			QJsonObject config;
-			config.insert("type", devType);
-
-			// Pointer of current led device
-			LedDevice* _ledDevice;
-			_ledDevice = LedDeviceFactory::construct(config);
-
-			_ledDevice->identify(params);
+			ledDevice->identify(params);
 
 			sendSuccessReply(full_command, tan);
-			delete  _ledDevice;
 		}
 		else
 		{
 			sendErrorReply("Unknown or missing subcommand", full_command, tan);
 		}
+
+		delete  ledDevice;
 	}
 }
 

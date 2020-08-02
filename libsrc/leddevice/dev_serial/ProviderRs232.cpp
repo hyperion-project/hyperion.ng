@@ -12,8 +12,7 @@
 // Constants
 constexpr std::chrono::milliseconds WRITE_TIMEOUT{1000};	// device write timeout in ms
 constexpr std::chrono::milliseconds OPEN_TIMEOUT{5000};		// device open timeout in ms
-const int MAX_WRITE_TIMEOUTS = 5;	// maximum number of allowed timeouts
-
+const int MAX_WRITE_TIMEOUTS = 5;	// Maximum number of allowed timeouts
 const int NUM_POWEROFF_WRITE_BLACK = 2;	// Number of write "BLACK" during powering off
 
 ProviderRs232::ProviderRs232()
@@ -43,9 +42,9 @@ bool ProviderRs232::init(const QJsonObject &deviceConfig)
 
 		// If device name was given as unix /dev/ system-location, get port name
 		if ( _deviceName.startsWith(QLatin1String("/dev/")) )
-				 _deviceName = _deviceName.mid(5);
+			_deviceName = _deviceName.mid(5);
 
-		_isAutoDeviceName	  = _deviceName.toLower() == "auto";
+		_isAutoDeviceName     = _deviceName.toLower() == "auto";
 		_baudRate_Hz          = deviceConfig["rate"].toInt();
 		_delayAfterConnect_ms = deviceConfig["delayAfterConnect"].toInt(1500);
 
@@ -174,7 +173,7 @@ bool ProviderRs232::tryOpen(const int delayAfterConnect_ms)
 
 		// Wait delayAfterConnect_ms before allowing write
 		QEventLoop loop;
-		QTimer::singleShot( delayAfterConnect_ms, &loop, SLOT( quit() ) );
+		QTimer::singleShot(delayAfterConnect_ms, &loop, &QEventLoop::quit);
 		loop.exec();
 
 		Debug(_log, "delayAfterConnect for %d ms - finished", delayAfterConnect_ms);

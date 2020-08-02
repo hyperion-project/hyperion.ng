@@ -15,15 +15,12 @@
 #include <QTimer>
 
 // hyperion includes
-#include <leddevice/LedDeviceWrapper.h>
-#include <hyperion/GrabberWrapper.h>
 #include <utils/jsonschema/QJsonFactory.h>
 #include <utils/jsonschema/QJsonSchemaChecker.h>
 #include <HyperionConfig.h>
 #include <utils/SysInfo.h>
 #include <utils/ColorSys.h>
 #include <utils/Process.h>
-//#include <utils/ApiSync.h>
 
 // bonjour wrapper
 #include <bonjour/bonjourbrowserwrapper.h>
@@ -95,7 +92,6 @@ void API::setColor(const int &priority, const std::vector<uint8_t> &ledColors, c
             fledColors.emplace_back(ColorRgb{ledColors[i], ledColors[i + 1], ledColors[i + 2]});
         }
         QMetaObject::invokeMethod(_hyperion, "setColor", Qt::QueuedConnection, Q_ARG(int, priority), Q_ARG(std::vector<ColorRgb>, fledColors), Q_ARG(int, timeout_ms), Q_ARG(QString, origin));
-        //QMetaObject::invokeMethod(ApiSync::getInstance(), "setColor", Qt::QueuedConnection, Q_ARG(QObject *, _hyperion), Q_ARG(int, priority), Q_ARG(std::vector<ColorRgb>, fledColors), Q_ARG(int, timeout_ms), Q_ARG(QString, origin), Q_ARG(hyperion::Components, callerComp));
     }
 }
 
@@ -175,9 +171,6 @@ bool API::setImage(ImageCmdData &data, hyperion::Components comp, QString &reply
     QMetaObject::invokeMethod(_hyperion, "registerInput", Qt::QueuedConnection, Q_ARG(int, data.priority), Q_ARG(hyperion::Components, comp), Q_ARG(QString, data.origin), Q_ARG(QString, data.imgName));
     QMetaObject::invokeMethod(_hyperion, "setInputImage", Qt::QueuedConnection, Q_ARG(int, data.priority), Q_ARG(Image<ColorRgb>, image), Q_ARG(int64_t, data.duration));
 
-    //QMetaObject::invokeMethod(ApiSync::getInstance(), "registerInput", Qt::QueuedConnection, Q_ARG(QObject *, _hyperion), Q_ARG(int, data.priority), Q_ARG(hyperion::Components, comp), Q_ARG(QString, data.origin), Q_ARG(QString, data.imgName), Q_ARG(hyperion::Components, callerComp));
-    //QMetaObject::invokeMethod(ApiSync::getInstance(), "setInputImage", Qt::QueuedConnection, Q_ARG(QObject *, _hyperion), Q_ARG(int, data.priority), Q_ARG(Image<ColorRgb>, image), Q_ARG(int64_t, data.duration), Q_ARG(hyperion::Components, comp), Q_ARG(hyperion::Components, callerComp));
-
     return true;
 }
 
@@ -186,7 +179,6 @@ bool API::clearPriority(const int &priority, QString &replyMsg, const hyperion::
     if (priority < 0 || (priority > 0 && priority < 254))
     {
         QMetaObject::invokeMethod(_hyperion, "clear", Qt::QueuedConnection, Q_ARG(int, priority));
-        //QMetaObject::invokeMethod(ApiSync::getInstance(), "clearPriority", Qt::QueuedConnection, Q_ARG(QObject *, _hyperion), Q_ARG(int, priority), Q_ARG(hyperion::Components, callerComp));
     }
     else
     {
@@ -203,7 +195,6 @@ bool API::setComponentState(const QString &comp, bool &compState, QString &reply
     if (component != COMP_INVALID)
     {
         QMetaObject::invokeMethod(_hyperion, "compStateChangeRequest", Qt::QueuedConnection, Q_ARG(hyperion::Components, component), Q_ARG(bool, compState));
-        //QMetaObject::invokeMethod(ApiSync::getInstance(), "compStateChangeRequest", Qt::QueuedConnection, Q_ARG(QObject *, _hyperion), Q_ARG(hyperion::Components, component), Q_ARG(bool, compState), Q_ARG(hyperion::Components, callerComp));
         return true;
     }
     replyMsg = QString("Unknown component name: %1").arg(comp);
@@ -213,13 +204,11 @@ bool API::setComponentState(const QString &comp, bool &compState, QString &reply
 void API::setLedMappingType(const int &type, const hyperion::Components &callerComp)
 {
     QMetaObject::invokeMethod(_hyperion, "setLedMappingType", Qt::QueuedConnection, Q_ARG(int, type));
-    //QMetaObject::invokeMethod(ApiSync::getInstance(), "setLedMappingType", Qt::QueuedConnection, Q_ARG(QObject *, _hyperion), Q_ARG(int, type), Q_ARG(hyperion::Components, callerComp));
 }
 
 void API::setVideoMode(const VideoMode &mode, const hyperion::Components &callerComp)
 {
     QMetaObject::invokeMethod(_hyperion, "setVideoMode", Qt::QueuedConnection, Q_ARG(VideoMode, mode));
-    //QMetaObject::invokeMethod(ApiSync::getInstance(), "setVideoMode", Qt::QueuedConnection, Q_ARG(QObject *, _hyperion), Q_ARG(VideoMode, mode), Q_ARG(hyperion::Components, callerComp));
 }
 
 void API::setEffect(const EffectCmdData &dat, const hyperion::Components &callerComp)
@@ -231,20 +220,17 @@ void API::setEffect(const EffectCmdData &dat, const hyperion::Components &caller
     else
     {
         QMetaObject::invokeMethod(_hyperion, "setEffect", Qt::QueuedConnection, Q_ARG(QString, dat.effectName), Q_ARG(int, dat.priority), Q_ARG(int, dat.duration), Q_ARG(QString, dat.origin));
-        //QMetaObject::invokeMethod(ApiSync::getInstance(), "setEffect", Qt::QueuedConnection, Q_ARG(QObject *, _hyperion), Q_ARG(QString, dat.effectName), Q_ARG(int, dat.priority), Q_ARG(int, dat.duration), Q_ARG(QString, dat.origin), Q_ARG(hyperion::Components, callerComp));
     }
 }
 
 void API::setSourceAutoSelect(const bool state, const hyperion::Components &callerComp)
 {
     QMetaObject::invokeMethod(_hyperion, "setSourceAutoSelect", Qt::QueuedConnection, Q_ARG(bool, state));
-    //QMetaObject::invokeMethod(ApiSync::getInstance(), "setSourceAutoSelect", Qt::QueuedConnection, Q_ARG(QObject *, _hyperion), Q_ARG(bool, state), Q_ARG(hyperion::Components, callerComp));
 }
 
 void API::setVisiblePriority(const int &priority, const hyperion::Components &callerComp)
 {
     QMetaObject::invokeMethod(_hyperion, "setVisiblePriority", Qt::QueuedConnection, Q_ARG(int, priority));
-    //QMetaObject::invokeMethod(ApiSync::getInstance(), "setVisiblePriority", Qt::QueuedConnection, Q_ARG(QObject *, _hyperion), Q_ARG(int, priority), Q_ARG(hyperion::Components, callerComp));
 }
 
 void API::registerInput(const int &priority, const hyperion::Components &component, const QString &origin, const QString &owner, const hyperion::Components &callerComp)
@@ -255,7 +241,6 @@ void API::registerInput(const int &priority, const hyperion::Components &compone
     _activeRegisters.insert({priority, registerData{component, origin, owner, callerComp}});
 
     QMetaObject::invokeMethod(_hyperion, "registerInput", Qt::QueuedConnection, Q_ARG(int, priority), Q_ARG(hyperion::Components, component), Q_ARG(QString, origin), Q_ARG(QString, owner));
-    //QMetaObject::invokeMethod(ApiSync::getInstance(), "registerInput", Qt::QueuedConnection, Q_ARG(QObject *, _hyperion), Q_ARG(int, priority), Q_ARG(hyperion::Components, component), Q_ARG(QString, origin), Q_ARG(QString, owner), Q_ARG(hyperion::Components, callerComp));
 }
 
 void API::unregisterInput(const int &priority)

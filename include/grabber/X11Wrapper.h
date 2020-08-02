@@ -35,7 +35,7 @@ public slots:
 	///
 	/// Performs a single frame grab and computes the led-colors
 	///
-	virtual void action();
+	void action() override;
 
 private:
 	/// The actual grabber

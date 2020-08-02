@@ -18,7 +18,7 @@
 
 namespace hyperionnet
 {
-class Reply;
+struct Reply;
 }
 
 ///

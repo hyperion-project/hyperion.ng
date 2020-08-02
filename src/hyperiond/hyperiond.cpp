@@ -119,8 +119,6 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 	// spawn all Hyperion instances (non blocking)
 	_instanceManager->startAll();
 
-	//connect(_hyperion,SIGNAL(closing()),this,SLOT(freeObjects())); // TODO for app restart, refactor required
-
 	//Cleaning up Hyperion before quit
 	connect(parent, SIGNAL(aboutToQuit()), this, SLOT(freeObjects()));
 
@@ -177,38 +175,64 @@ void HyperionDaemon::freeObjects()
 
 	// destroy network first as a client might want to access hyperion
 	delete _jsonServer;
+	_jsonServer = nullptr;
 
-	auto flatBufferServerThread = _flatBufferServer->thread();
-	flatBufferServerThread->quit();
-	flatBufferServerThread->wait();
-	delete flatBufferServerThread;
+	if (_flatBufferServer)
+	{
+		auto flatBufferServerThread = _flatBufferServer->thread();
+		flatBufferServerThread->quit();
+		flatBufferServerThread->wait();
+		delete flatBufferServerThread;
+		_flatBufferServer = nullptr;
+	}
 
-	auto protoServerThread = _protoServer->thread();
-	protoServerThread->quit();
-	protoServerThread->wait();
-	delete protoServerThread;
+	if (_protoServer)
+	{
+		auto protoServerThread = _protoServer->thread();
+		protoServerThread->quit();
+		protoServerThread->wait();
+		delete protoServerThread;
+		_protoServer = nullptr;
+	}
 
 	//ssdp before webserver
-	auto ssdpThread = _ssdp->thread();
-	ssdpThread->quit();
-	ssdpThread->wait();
-	delete ssdpThread;
+	if (_ssdp)
+	{
+		auto ssdpThread = _ssdp->thread();
+		ssdpThread->quit();
+		ssdpThread->wait();
+		delete ssdpThread;
+		_ssdp = nullptr;
+	}
 
-	auto webserverThread =_webserver->thread();
-	webserverThread->quit();
-	webserverThread->wait();
-	delete webserverThread;
+	if(_webserver)
+	{
+		auto webserverThread =_webserver->thread();
+		webserverThread->quit();
+		webserverThread->wait();
+		delete webserverThread;
+		_webserver = nullptr;
+	}
 
-	auto sslWebserverThread =_sslWebserver->thread();
-	sslWebserverThread->quit();
-	sslWebserverThread->wait();
-	delete sslWebserverThread;
+	if (_sslWebserver)
+	{
+		auto sslWebserverThread =_sslWebserver->thread();
+		sslWebserverThread->quit();
+		sslWebserverThread->wait();
+		delete sslWebserverThread;
+		_sslWebserver = nullptr;
+	}
 
 #ifdef ENABLE_CEC
-	_cecHandler->thread()->quit();
-	_cecHandler->thread()->wait(1000);
-	delete _cecHandler->thread();
-	delete _cecHandler;
+	if (_cecHandler)
+	{
+		auto cecHandlerThread = _cecHandler->thread();
+		cecHandlerThread->quit();
+		cecHandlerThread->wait();
+		delete cecHandlerThread;
+		delete _cecHandler;
+		_cecHandler = nullptr;
+	}
 #endif
 
 	// stop Hyperions (non blocking)
@@ -224,7 +248,6 @@ void HyperionDaemon::freeObjects()
 	delete _v4l2Grabber;
 
 	_v4l2Grabber = nullptr;
-	_cecHandler = nullptr;
 	_bonjourBrowserWrapper = nullptr;
 	_amlGrabber = nullptr;
 	_dispmanx = nullptr;
@@ -232,12 +255,6 @@ void HyperionDaemon::freeObjects()
 	_osxGrabber = nullptr;
 	_qtGrabber = nullptr;
 	_dxGrabber = nullptr;
-	_flatBufferServer = nullptr;
-	_protoServer = nullptr;
-	_ssdp = nullptr;
-	_webserver = nullptr;
-	_sslWebserver = nullptr;
-	_jsonServer = nullptr;
 }
 
 void HyperionDaemon::startNetworkServices()

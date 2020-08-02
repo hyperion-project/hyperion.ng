@@ -8,6 +8,12 @@ endif()
 
 find_package(Qt5Widgets REQUIRED)
 
+# generate windows .rc file for this binary
+if (WIN32)
+	include(${CMAKE_SOURCE_DIR}/cmake/win/win_rc.cmake)
+	generate_win_rc_file(hyperiond)
+endif()
+
 add_executable(hyperiond
 	console.h
 	hyperiond.h
@@ -15,8 +21,13 @@ add_executable(hyperiond
 	hyperiond.cpp
 	systray.cpp
 	main.cpp
-	${WIN_RC_ICON_FILE}
+	${hyperiond_WIN_RC_PATH}
 )
+
+# promote hyperiond as GUI app
+if (WIN32)
+	target_link_options(hyperiond PUBLIC /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup)
+endif()
 
 target_link_libraries(hyperiond
 	commandline
