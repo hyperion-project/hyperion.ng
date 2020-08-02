@@ -36,9 +36,9 @@ private:
 	bool nativeEventFilter(const QByteArray & eventType, void * message, long int * result) override;
 	void freeResources();
 	void setupResources();
-	bool check_render() const;
-	bool check_randr() const;
-	bool check_shm() const;
+	void setupRender();
+	void setupRandr();
+	void setupShm();
 	xcb_screen_t * getScreen(const xcb_setup_t *setup, int screen_num) const;
 	xcb_render_pictformat_t findFormatForVisual(xcb_visualid_t visual) const;
 

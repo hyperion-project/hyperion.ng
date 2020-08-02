@@ -35,7 +35,7 @@ XcbGrabber::XcbGrabber(int cropLeft, int cropRight, int cropTop, int cropBottom,
 	, _XcbShmPixmapAvailable{}
 	, _logger{}
 	, _shmData{}
-	, _XcbRandREventBase{}
+	, _XcbRandREventBase{-1}
 {
 	_logger = Logger::getInstance("XCB");
 
@@ -150,19 +150,32 @@ xcb_screen_t * XcbGrabber::getScreen(const xcb_setup_t *setup, int screen_num) c
 	return screen;
 }
 
-bool XcbGrabber::check_randr() const
+void XcbGrabber::setupRandr()
 {
-	return query<RandRQueryVersion>(_connection, 0, 0) != nullptr;
+	auto randrQueryExtensionReply = xcb_get_extension_data(_connection, &xcb_randr_id);
+	_XcbRandRAvailable = randrQueryExtensionReply != nullptr;
+	_XcbRandREventBase = randrQueryExtensionReply ? randrQueryExtensionReply->first_event : -1;
 }
 
-bool XcbGrabber::check_render() const
+void XcbGrabber::setupRender()
 {
-	return query<RenderQueryVersion>(_connection, 0, 0) != nullptr;
+	auto renderQueryVersionReply = query<RenderQueryVersion>(_connection, 0, 0);
+
+	_XcbRenderAvailable = renderQueryVersionReply != nullptr;
 }
 
-bool XcbGrabber::check_shm() const
+void XcbGrabber::setupShm()
 {
-	return query<ShmQueryVersion>(_connection) != nullptr;
+	auto shmQueryExtensionReply = xcb_get_extension_data(_connection, &xcb_render_id);
+	_XcbShmAvailable = shmQueryExtensionReply != nullptr;
+
+	_XcbShmPixmapAvailable = false;
+	if (_XcbShmAvailable)
+	{
+		auto shmQueryVersionReply = query<ShmQueryVersion>(_connection);
+
+		_XcbShmPixmapAvailable = shmQueryVersionReply ? shmQueryVersionReply->shared_pixmaps : false;
+	}
 }
 
 bool XcbGrabber::Setup()
@@ -193,12 +206,14 @@ bool XcbGrabber::Setup()
 		return false;
 	}
 
-	_XcbRandRAvailable = check_randr();
-	_XcbRenderAvailable = check_render();
-	_XcbShmAvailable = check_shm();
+	setupRandr();
+	setupRender();
+	setupShm();
 
-	auto shmQueryReply = query<ShmQueryVersion>(_connection);
-	_XcbShmPixmapAvailable = shmQueryReply->shared_pixmaps;
+	Info(_log, "XcbRandR : %s", _XcbRandRAvailable ? "available" : "unavailable");
+	Info(_log, "XcbRender : %s", _XcbRenderAvailable ? "available" : "unavailable");
+	Info(_log, "XcbShm : %s", _XcbShmAvailable ? "available" : "unavailable");
+	Info(_log, "XcbPixmap : %s", _XcbShmPixmapAvailable ? "available" : "unavailable");
 
 	bool result = (updateScreenDimensions(true) >=0);
 	ErrorIf(!result, _log, "XCB Grabber start failed");
@@ -392,7 +407,7 @@ void XcbGrabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cro
 
 bool XcbGrabber::nativeEventFilter(const QByteArray & eventType, void * message, long int * /*result*/)
 {
-	if (!_XcbRandRAvailable || eventType != "xcb_generic_event_t")
+	if (!_XcbRandRAvailable || eventType != "xcb_generic_event_t" || _XcbRandREventBase == -1)
 		return false;
 
 	xcb_generic_event_t *e = static_cast<xcb_generic_event_t*>(message);

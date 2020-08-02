@@ -37,14 +37,6 @@ struct RenderQueryVersion
 	static constexpr auto ReplyFunction = xcb_render_query_version_reply;
 };
 
-struct RandRQueryVersion
-{
-	typedef xcb_randr_query_version_reply_t ResponseType;
-
-	static constexpr auto RequestFunction = xcb_randr_query_version;
-	static constexpr auto ReplyFunction = xcb_randr_query_version_reply;
-};
-
 struct ShmGetImage
 {
 	typedef xcb_shm_get_image_reply_t ResponseType;

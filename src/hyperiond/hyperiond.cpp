@@ -356,7 +356,13 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type &settingsType, co
 				QByteArray envDisplay = qgetenv("DISPLAY");
 				if ( !envDisplay.isEmpty() )
 				{
+				#if defined(ENABLE_X11)
 					type = "x11";
+				#elif defined(ENABLE_XCB)
+					type = "xcb";
+				#else
+					type = "qt";
+				#endif
 				}
 				// qt -> if nothing other applies
 				else
