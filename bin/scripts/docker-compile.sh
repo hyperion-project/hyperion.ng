@@ -91,6 +91,7 @@ git clone --recursive --depth 1 -q $GIT_REPO_URL $SCRIPT_PATH/hyperion || { echo
 # Target docker image
 # execute inside container all commands on bash
 echo "---> Startup docker..."
+$DOCKER pull hyperionproject/hyperion-ci:$BUILD_TARGET
 $DOCKER run --rm \
 	-v "${SCRIPT_PATH}/deploy:/deploy" \
 	-v "${SCRIPT_PATH}/hyperion:/source:ro" \
