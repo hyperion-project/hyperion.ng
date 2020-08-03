@@ -270,7 +270,7 @@ $(document).ready( function() {
     });
 
     $('#btn_submit_v4l2').off().on('click',function() {
-      var v4l2Options = conf_editor_v4l2.getValue()
+      var v4l2Options = conf_editor_v4l2.getValue();
 
       if (v4l2Options.grabberV4L2.available_devices != 'custom' && v4l2Options.grabberV4L2.available_devices != 'auto')
         v4l2Options.grabberV4L2.device = v4l2Options.grabberV4L2.available_devices;
