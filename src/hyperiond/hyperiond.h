@@ -40,6 +40,12 @@
 	typedef QObject X11Wrapper;
 #endif
 
+#ifdef ENABLE_XCB
+	#include <grabber/XcbWrapper.h>
+#else
+	typedef QObject XcbWrapper;
+#endif
+
 #ifdef ENABLE_QT
 	#include <grabber/QtWrapper.h>
 #else
@@ -144,6 +150,7 @@ private:
 	void createGrabberFramebuffer(const QJsonObject & grabberConfig);
 	void createGrabberOsx(const QJsonObject & grabberConfig);
 	void createGrabberX11(const QJsonObject & grabberConfig);
+	void createGrabberXcb(const QJsonObject & grabberConfig);
 	void createGrabberQt(const QJsonObject & grabberConfig);
 	void createCecHandler();
 
@@ -159,6 +166,7 @@ private:
 	V4L2Wrapper*               _v4l2Grabber;
 	DispmanxWrapper*           _dispmanx;
 	X11Wrapper*                _x11Grabber;
+	XcbWrapper*                _xcbGrabber;
 	AmlogicWrapper*            _amlGrabber;
 	FramebufferWrapper*        _fbGrabber;
 	OsxWrapper*                _osxGrabber;

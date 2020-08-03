@@ -95,6 +95,10 @@ if (ENABLE_X11)
 	target_link_libraries(hyperiond	x11-grabber)
 endif ()
 
+if (ENABLE_XCB)
+	target_link_libraries(hyperiond	xcb-grabber)
+endif ()
+
 if (ENABLE_QT)
 	target_link_libraries(hyperiond	qt-grabber)
 endif ()

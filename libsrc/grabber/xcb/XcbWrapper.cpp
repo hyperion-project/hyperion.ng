@@ -1,12 +1,12 @@
-#include <grabber/X11Wrapper.h>
+#include <grabber/XcbWrapper.h>
 
-X11Wrapper::X11Wrapper(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation, const unsigned updateRate_Hz)
-	: GrabberWrapper("X11", &_grabber, 0, 0, updateRate_Hz)
+XcbWrapper::XcbWrapper(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation, const unsigned updateRate_Hz)
+	: GrabberWrapper("Xcb", &_grabber, 0, 0, updateRate_Hz)
 	, _grabber(cropLeft, cropRight, cropTop, cropBottom, pixelDecimation)
 	, _init(false)
 {}
 
-X11Wrapper::~X11Wrapper()
+XcbWrapper::~XcbWrapper()
 {
 	if ( _init )
 	{
@@ -14,7 +14,7 @@ X11Wrapper::~X11Wrapper()
 	}
 }
 
-void X11Wrapper::action()
+void XcbWrapper::action()
 {
 	if (! _init )
 	{

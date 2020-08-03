@@ -18,6 +18,9 @@
 // Define to enable the x11 grabber
 #cmakedefine ENABLE_X11
 
+// Define to enable the xcb grabber
+#cmakedefine ENABLE_XCB
+
 // Define to enable the qt grabber
 #cmakedefine ENABLE_QT
 
