@@ -39,8 +39,8 @@ BoblightClientConnection::BoblightClientConnection(Hyperion* hyperion, QTcpSocke
 	_locale.setNumberOptions(QLocale::OmitGroupSeparator | QLocale::RejectGroupSeparator);
 
 	// connect internal signals and slots
-	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
-	connect(_socket, SIGNAL(readyRead()), this, SLOT(readData()));
+	connect(_socket, &QTcpSocket::disconnected, this, &BoblightClientConnection::socketClosed);
+	connect(_socket, &QTcpSocket::readyRead, this, &BoblightClientConnection::readData);
 }
 
 BoblightClientConnection::~BoblightClientConnection()

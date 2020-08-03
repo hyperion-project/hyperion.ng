@@ -36,19 +36,20 @@ else()
 endif()
 
 # Set build variables
-SET ( DEFAULT_AMLOGIC    OFF )
-SET ( DEFAULT_DISPMANX   OFF )
-SET ( DEFAULT_OSX        OFF )
-SET ( DEFAULT_X11        OFF )
-SET ( DEFAULT_XCB        OFF )
-SET ( DEFAULT_QT         ON )
-SET ( DEFAULT_WS281XPWM  OFF )
-SET ( DEFAULT_AVAHI      ON  )
-SET ( DEFAULT_USE_SHARED_AVAHI_LIBS  ON )
+SET ( DEFAULT_AMLOGIC                     OFF )
+SET ( DEFAULT_DISPMANX                    OFF )
+SET ( DEFAULT_OSX                         OFF )
+SET ( DEFAULT_X11                         OFF )
+SET ( DEFAULT_XCB                         OFF )
+SET ( DEFAULT_QT                          ON  )
+SET ( DEFAULT_WS281XPWM                   OFF )
+SET ( DEFAULT_AVAHI                       ON  )
+SET ( DEFAULT_USE_SHARED_AVAHI_LIBS       ON  )
 SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF )
-SET ( DEFAULT_USE_SYSTEM_PROTO_LIBS OFF )
-SET ( DEFAULT_USE_SYSTEM_MBEDTLS_LIBS OFF )
-SET ( DEFAULT_TESTS      OFF )
+SET ( DEFAULT_USE_SYSTEM_PROTO_LIBS       OFF )
+SET ( DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     OFF )
+SET ( DEFAULT_TESTS                       OFF )
+SET ( DEFAULT_EXPERIMENTAL                OFF )
 
 IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
 	SET ( DEFAULT_V4L2        ON )
@@ -195,6 +196,9 @@ message(STATUS "ENABLE_TESTS = ${ENABLE_TESTS}")
 option(ENABLE_PROFILER "enable profiler capabilities - not for release code" OFF)
 message(STATUS "ENABLE_PROFILER = ${ENABLE_PROFILER}")
 
+option(ENABLE_EXPERIMENTAL "Compile experimental features" ${DEFAULT_EXPERIMENTAL})
+message(STATUS "ENABLE_EXPERIMENTAL = ${ENABLE_EXPERIMENTAL}")
+
 SET ( FLATBUFFERS_INSTALL_BIN_DIR ${CMAKE_BINARY_DIR}/flatbuf )
 SET ( FLATBUFFERS_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/flatbuf )
 
@@ -300,16 +304,6 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 		SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SUBDIRQT}/msvc2019_64/lib/cmake/Qt5")
 	endif()
 endif()
-
-# Windows specific
-if(WIN32)
-	# Path to .rc icon file for add_executable() calls
-	SET ( WIN_RC_ICON_FILE ${CMAKE_SOURCE_DIR}/cmake/nsis/icon.rc)
-	# Force gui app
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
-endif()
-
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -v")
 
 # Use GNU gold linker if available
 if (NOT WIN32)

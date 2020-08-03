@@ -32,8 +32,8 @@ EffectEngine::EffectEngine(Hyperion * hyperion)
 	qRegisterMetaType<hyperion::Components>("hyperion::Components");
 
 	// connect the Hyperion channel clear feedback
-	connect(_hyperion, SIGNAL(channelCleared(int)), this, SLOT(channelCleared(int)));
-	connect(_hyperion, SIGNAL(allChannelsCleared()), this, SLOT(allChannelsCleared()));
+	connect(_hyperion, &Hyperion::channelCleared, this, &EffectEngine::channelCleared);
+	connect(_hyperion, &Hyperion::allChannelsCleared, this, &EffectEngine::allChannelsCleared);
 
 	// get notifications about refreshed effect list
 	connect(_effectFileHandler, &EffectFileHandler::effectListChanged, this, &EffectEngine::handleUpdatedEffectList);

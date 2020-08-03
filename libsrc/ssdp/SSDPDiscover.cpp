@@ -1,15 +1,15 @@
 #include <ssdp/SSDPDiscover.h>
 
+#include <utils/Logger.h>
 #include <utils/QStringUtils.h>
 
 // Qt includes
 #include <QUdpSocket>
 #include <QUrl>
 #include <QRegularExpression>
+#include <QJsonArray>
 #include <QJsonObject>
-#include <QtNetwork>
-
-#include <iostream>
+#include <QHostInfo>
 
 // Constants
 namespace {

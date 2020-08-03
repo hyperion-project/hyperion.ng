@@ -41,7 +41,7 @@ const QVector<QVariantMap> HyperionIManager::getInstanceData()
 
 void HyperionIManager::startAll()
 {
-	for(const auto entry : _instanceTable->getAllInstances(true))
+	for(const auto & entry : _instanceTable->getAllInstances(true))
 	{
 		startInstance(entry["instance"].toInt());
 	}

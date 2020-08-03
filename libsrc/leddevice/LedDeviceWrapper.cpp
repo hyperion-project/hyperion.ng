@@ -11,10 +11,12 @@
 #include <utils/JsonUtils.h>
 
 // qt
+#include <QMutexLocker>
 #include <QThread>
 #include <QDir>
 
-LedDeviceRegistry LedDeviceWrapper::_ledDeviceMap = LedDeviceRegistry();
+LedDeviceRegistry LedDeviceWrapper::_ledDeviceMap {};
+QMutex LedDeviceWrapper::_ledDeviceMapLock {QMutex::Recursive};
 
 LedDeviceWrapper::LedDeviceWrapper(Hyperion* hyperion)
 	: QObject(hyperion)
@@ -47,18 +49,16 @@ void LedDeviceWrapper::createLedDevice(const QJsonObject& config)
 
 	// create thread and device
 	QThread* thread = new QThread(this);
-	thread->setObjectName("LedDeviceWrapperThread");
+	thread->setObjectName("LedDeviceThread");
 	_ledDevice = LedDeviceFactory::construct(config);
 	_ledDevice->moveToThread(thread);
+
 	// setup thread management
 	connect(thread, &QThread::started, _ledDevice, &LedDevice::start);
-	connect(thread, &QThread::finished, thread, &QThread::deleteLater);
-	connect(thread, &QThread::finished, _ledDevice, &LedDevice::deleteLater);
 
 	// further signals
 	connect(this, &LedDeviceWrapper::updateLeds, _ledDevice, &LedDevice::updateLeds, Qt::QueuedConnection);
 	connect(this, &LedDeviceWrapper::setEnable, _ledDevice, &LedDevice::setEnable);
-
 	connect(this, &LedDeviceWrapper::closeLedDevice, _ledDevice, &LedDevice::stop, Qt::BlockingQueuedConnection);
 
 	connect(_ledDevice, &LedDevice::enableStateChanged, this, &LedDeviceWrapper::handleInternalEnableState, Qt::QueuedConnection);
@@ -73,11 +73,10 @@ const QJsonObject LedDeviceWrapper::getLedDeviceSchemas()
 	Q_INIT_RESOURCE(LedDeviceSchemas);
 
 	// read the JSON schema from the resource
-	QDir d(":/leddevices/");
-	QStringList l = d.entryList();
+	QDir dir(":/leddevices/");
 	QJsonObject result, schemaJson;
 
-	for(QString &item : l)
+	for(QString &item : dir.entryList())
 	{
 		QString schemaPath(QString(":/leddevices/")+item);
 		QString devName = item.remove("schema-");
@@ -105,33 +104,46 @@ const QJsonObject LedDeviceWrapper::getLedDeviceSchemas()
 
 int LedDeviceWrapper::addToDeviceMap(QString name, LedDeviceCreateFuncType funcPtr)
 {
+	QMutexLocker lock(&_ledDeviceMapLock);
+
 	_ledDeviceMap.emplace(name,funcPtr);
+
 	return 0;
 }
 
 const LedDeviceRegistry& LedDeviceWrapper::getDeviceMap()
 {
+	QMutexLocker lock(&_ledDeviceMapLock);
+
 	return _ledDeviceMap;
 }
 
 int LedDeviceWrapper::getLatchTime()
 {
-	return _ledDevice->getLatchTime();
+	int value = 0;
+	QMetaObject::invokeMethod(_ledDevice, "getLatchTime", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, value));
+	return value;
 }
 
-const QString & LedDeviceWrapper::getActiveDeviceType()
+QString LedDeviceWrapper::getActiveDeviceType()
 {
-	return _ledDevice->getActiveDeviceType();
+	QString value = 0;
+	QMetaObject::invokeMethod(_ledDevice, "getActiveDeviceType", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QString, value));
+	return value;
 }
 
-const QString & LedDeviceWrapper::getColorOrder()
+QString LedDeviceWrapper::getColorOrder()
 {
-	return _ledDevice->getColorOrder();
+	QString value;
+	QMetaObject::invokeMethod(_ledDevice, "getColorOrder", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QString, value));
+	return value;
 }
 
 unsigned int LedDeviceWrapper::getLedCount() const
 {
-	return _ledDevice->getLedCount();
+	unsigned int value = 0;
+	QMetaObject::invokeMethod(_ledDevice, "getLedCount", Qt::BlockingQueuedConnection, Q_RETURN_ARG(unsigned int, value));
+	return value;
 }
 
 bool LedDeviceWrapper::enabled()
@@ -146,7 +158,8 @@ void LedDeviceWrapper::handleComponentState(const hyperion::Components component
 		emit setEnable(state);
 
 		//Get device's state, considering situations where it is not ready
-		bool deviceState = _ledDevice->componentState();
+		bool deviceState = false;
+		QMetaObject::invokeMethod(_ledDevice, "componentState", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, deviceState));
 		_hyperion->setNewComponentState(hyperion::COMP_LEDDEVICE, deviceState);
 		_enabled = deviceState;
 	}
@@ -162,7 +175,7 @@ void LedDeviceWrapper::stopDeviceThread()
 {
 	// turns the LEDs off & stop refresh timers
 	emit closeLedDevice();
-	std::cout << "[hyperiond LedDeviceWrapper] <INFO> LedDevice \'" << QSTRING_CSTR(_ledDevice->getActiveDeviceType()) << "\' closed" << std::endl;
+	std::cout << "[hyperiond LedDeviceWrapper] <INFO> LedDevice \'" << QSTRING_CSTR(getActiveDeviceType()) << "\' closed" << std::endl;
 
 	// get current thread
 	QThread* oldThread = _ledDevice->thread();

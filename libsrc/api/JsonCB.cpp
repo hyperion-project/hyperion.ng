@@ -148,13 +148,16 @@ bool JsonCB::subscribeFor(const QString& type, const bool & unsubscribe)
 	return true;
 }
 
-void JsonCB::resetSubscriptions(void){
-	for(const auto & entry : getSubscribedCommands()){
+void JsonCB::resetSubscriptions()
+{
+	for(const auto & entry : getSubscribedCommands())
+	{
 		subscribeFor(entry, true);
 	}
 }
 
-void JsonCB::setSubscriptionsTo(Hyperion* hyperion){
+void JsonCB::setSubscriptionsTo(Hyperion* hyperion)
+{
 	// get current subs
 	QStringList currSubs(getSubscribedCommands());
 

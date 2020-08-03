@@ -22,11 +22,11 @@ public:
 	bool getCecDetectionEnable();
 
 public slots:
-	bool start();
-	void stop();
+	bool start() override;
+	void stop() override;
 
 	void setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold);
-	void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom);
+	void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom) override;
 	void setSignalDetectionOffset(double verticalMin, double horizontalMin, double verticalMax, double horizontalMax);
 	void setSignalDetectionEnable(bool enable);
 	void setCecDetectionEnable(bool enable);
@@ -38,7 +38,7 @@ private slots:
 	void newFrame(const Image<ColorRgb> & image);
 	void readError(const char* err);
 
-	virtual void action();
+	void action() override;
 
 private:
 	/// The V4L2 grabber

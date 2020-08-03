@@ -41,7 +41,7 @@ SettingsManager::SettingsManager(const quint8& instance, QObject* parent)
 	// transform json to string lists
 	QStringList keyList = defaultConfig.keys();
 	QStringList defValueList;
-	for(const auto key : keyList)
+	for(const auto & key : keyList)
 	{
 		if(defaultConfig[key].isObject())
 		{
@@ -54,7 +54,7 @@ SettingsManager::SettingsManager(const quint8& instance, QObject* parent)
 	}
 
 	// fill database with default data if required
-	for(const auto key : keyList)
+	for(const auto & key : keyList)
 	{
 		QString val = defValueList.takeFirst();
 		// prevent overwrite
@@ -65,7 +65,7 @@ SettingsManager::SettingsManager(const quint8& instance, QObject* parent)
 	// need to validate all data in database constuct the entire data object
 	// TODO refactor schemaChecker to accept QJsonArray in validate(); QJsonDocument container? To validate them per entry...
 	QJsonObject dbConfig;
-	for(const auto key : keyList)
+	for(const auto & key : keyList)
 	{
 		QJsonDocument doc = _sTable->getSettingsRecord(key);
 		if(doc.isArray())
@@ -79,7 +79,6 @@ SettingsManager::SettingsManager(const quint8& instance, QObject* parent)
 	{
 		saveSettings(dbConfig, true);
 	}
-
 
 	// validate full dbconfig against schema, on error we need to rewrite entire table
 	QJsonSchemaChecker schemaChecker;
@@ -141,7 +140,7 @@ bool SettingsManager::saveSettings(QJsonObject config, const bool& correct)
 	// extract keys and data
 	QStringList keyList = config.keys();
 	QStringList newValueList;
-	for(const auto key : keyList)
+	for(const auto & key : keyList)
 	{
 		if(config[key].isObject())
 		{
@@ -154,7 +153,7 @@ bool SettingsManager::saveSettings(QJsonObject config, const bool& correct)
 	}
 
 	// compare database data with new data to emit/save changes accordingly
-	for(const auto key : keyList)
+	for(const auto & key : keyList)
 	{
 		QString data = newValueList.takeFirst();
 		if(_sTable->getSettingsRecordString(key) != data)

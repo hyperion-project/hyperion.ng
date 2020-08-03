@@ -357,7 +357,7 @@ bool V4L2Grabber::open_device()
 	// create the notifier for when a new frame is available
 	_streamNotifier = new QSocketNotifier(_fileDescriptor, QSocketNotifier::Read);
 	_streamNotifier->setEnabled(false);
-	connect(_streamNotifier, SIGNAL(activated(int)), this, SLOT(read_frame()));
+	connect(_streamNotifier, &QSocketNotifier::activated, this, &V4L2Grabber::read_frame);
 	return true;
 }
 
