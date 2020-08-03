@@ -125,7 +125,7 @@ private:
 	///
 	/// @brief Generate E1.31 communication header
 	///
-	void prepare(const unsigned this_universe, const unsigned this_dmxChannelCount);
+	void prepare(unsigned this_universe, unsigned this_dmxChannelCount);
 
 	e131_packet_t e131_packet;
 	uint8_t _e131_seq = 0;

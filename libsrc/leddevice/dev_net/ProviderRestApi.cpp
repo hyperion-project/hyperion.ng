@@ -16,7 +16,7 @@ const QChar ONE_SLASH = '/';
 
 } //End of constants
 
-ProviderRestApi::ProviderRestApi(const QString &host, const int &port, const QString &basePath)
+ProviderRestApi::ProviderRestApi(const QString &host, int port, const QString &basePath)
 	:_log(Logger::getInstance("LEDDEVICE"))
 	  ,_networkManager(nullptr)
 	  ,_scheme("http")
@@ -31,7 +31,7 @@ ProviderRestApi::ProviderRestApi(const QString &host, const int &port, const QSt
 	_basePath = basePath;
 }
 
-ProviderRestApi::ProviderRestApi(const QString &host, const int &port)
+ProviderRestApi::ProviderRestApi(const QString &host, int port)
 	: ProviderRestApi(host, port, "") {}
 
 ProviderRestApi::ProviderRestApi()

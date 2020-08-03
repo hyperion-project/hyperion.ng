@@ -60,7 +60,7 @@
 
 HyperionDaemon *HyperionDaemon::daemon = nullptr;
 
-HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bool &logLvlOverwrite)
+HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, bool logLvlOverwrite)
 		: QObject(parent), _log(Logger::getInstance("DAEMON"))
 		, _instanceManager(new HyperionIManager(rootPath, this))
 		, _authManager(new AuthManager(this))
@@ -153,7 +153,7 @@ HyperionDaemon::~HyperionDaemon()
 	delete _pyInit;
 }
 
-void HyperionDaemon::setVideoMode(const VideoMode &mode)
+void HyperionDaemon::setVideoMode(VideoMode mode)
 {
 	if (_currVideoMode != mode)
 	{
@@ -162,7 +162,7 @@ void HyperionDaemon::setVideoMode(const VideoMode &mode)
 	}
 }
 
-const QJsonDocument HyperionDaemon::getSetting(const settings::type &type)
+QJsonDocument HyperionDaemon::getSetting(settings::type type) const
 {
 	return _settingsManager->getSetting(type);
 }
@@ -311,7 +311,7 @@ void HyperionDaemon::startNetworkServices()
 	ssdpThread->start();
 }
 
-void HyperionDaemon::handleSettingsUpdate(const settings::type &settingsType, const QJsonDocument &config)
+void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJsonDocument &config)
 {
 	if (settingsType == settings::LOGGER)
 	{

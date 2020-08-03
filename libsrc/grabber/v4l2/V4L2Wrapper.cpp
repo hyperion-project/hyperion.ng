@@ -110,7 +110,7 @@ void V4L2Wrapper::handleCecEvent(CECEvent event)
 	_grabber.handleCecEvent(event);
 }
 
-void V4L2Wrapper::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
+void V4L2Wrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
 	if(type == settings::V4L2 && _grabberName.startsWith("V4L"))
 	{

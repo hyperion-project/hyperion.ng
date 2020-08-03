@@ -24,7 +24,7 @@ class ImageData : public QSharedData
 public:
 	typedef Pixel_T pixel_type;
 
-	ImageData(const unsigned width, const unsigned height, const Pixel_T background) :
+	ImageData(unsigned width, unsigned height, const Pixel_T background) :
 		_width(width),
 		_height(height),
 		_pixels(new Pixel_T[width * height + 1])
@@ -84,32 +84,32 @@ public:
 		return _height;
 	}
 
-	uint8_t red(const unsigned pixel) const
+	uint8_t red(unsigned pixel) const
 	{
 		return (_pixels + pixel)->red;
 	}
 
-	uint8_t green(const unsigned pixel) const
+	uint8_t green(unsigned pixel) const
 	{
 		return (_pixels + pixel)->green;
 	}
 
-	uint8_t blue(const unsigned pixel) const
+	uint8_t blue(unsigned pixel) const
 	{
 		return (_pixels + pixel)->blue;
 	}
 
-	const Pixel_T& operator()(const unsigned x, const unsigned y) const
+	const Pixel_T& operator()(unsigned x, unsigned y) const
 	{
 		return _pixels[toIndex(x,y)];
 	}
 
-	Pixel_T& operator()(const unsigned x, const unsigned y)
+	Pixel_T& operator()(unsigned x, unsigned y)
 	{
 		return _pixels[toIndex(x,y)];
 	}
 
-	void resize(const unsigned width, const unsigned height)
+	void resize(unsigned width, unsigned height)
 	{
 		if (width == _width && height == _height)
 			return;
@@ -167,7 +167,7 @@ public:
 	}
 
 private:
-	inline unsigned toIndex(const unsigned x, const unsigned y) const
+	inline unsigned toIndex(unsigned x, unsigned y) const
 	{
 		return y * _width + x;
 	}

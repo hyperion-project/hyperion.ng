@@ -55,12 +55,12 @@ PriorityMuxer::~PriorityMuxer()
 {
 }
 
-void PriorityMuxer::setEnable(const bool& enable)
+void PriorityMuxer::setEnable(bool enable)
 {
 	enable ? _updateTimer->start() : _updateTimer->stop();
 }
 
-bool PriorityMuxer::setSourceAutoSelectEnabled(const bool& enable, const bool& update)
+bool PriorityMuxer::setSourceAutoSelectEnabled(bool enable, bool update)
 {
 	if(_sourceAutoSelectEnabled != enable)
 	{
@@ -84,7 +84,7 @@ bool PriorityMuxer::setSourceAutoSelectEnabled(const bool& enable, const bool& u
 	return false;
 }
 
-bool PriorityMuxer::setPriority(const uint8_t priority)
+bool PriorityMuxer::setPriority(uint8_t priority)
 {
 	if(_activeInputs.contains(priority))
 	{
@@ -96,7 +96,7 @@ bool PriorityMuxer::setPriority(const uint8_t priority)
 	return false;
 }
 
-void PriorityMuxer::updateLedColorsLength(const int& ledCount)
+void PriorityMuxer::updateLedColorsLength(int ledCount)
 {
 	for (auto infoIt = _activeInputs.begin(); infoIt != _activeInputs.end();)
 	{
@@ -113,12 +113,12 @@ QList<int> PriorityMuxer::getPriorities() const
 	return _activeInputs.keys();
 }
 
-bool PriorityMuxer::hasPriority(const int priority) const
+bool PriorityMuxer::hasPriority(int priority) const
 {
 	return (priority == PriorityMuxer::LOWEST_PRIORITY) ? true : _activeInputs.contains(priority);
 }
 
-const PriorityMuxer::InputInfo PriorityMuxer::getInputInfo(const int priority) const
+PriorityMuxer::InputInfo PriorityMuxer::getInputInfo(int priority) const
 {
 	auto elemIt = _activeInputs.find(priority);
 	if (elemIt == _activeInputs.end())
@@ -133,12 +133,12 @@ const PriorityMuxer::InputInfo PriorityMuxer::getInputInfo(const int priority) c
 	return elemIt.value();
 }
 
-hyperion::Components PriorityMuxer::getComponentOfPriority(const int &priority)
+hyperion::Components PriorityMuxer::getComponentOfPriority(int priority)
 {
 	return _activeInputs[priority].componentId;
 }
 
-void PriorityMuxer::registerInput(const int priority, const hyperion::Components& component, const QString& origin, const QString& owner, unsigned smooth_cfg)
+void PriorityMuxer::registerInput(int priority, hyperion::Components component, const QString& origin, const QString& owner, unsigned smooth_cfg)
 {
 	// detect new registers
 	bool newInput = false;
@@ -162,7 +162,7 @@ void PriorityMuxer::registerInput(const int priority, const hyperion::Components
 	}
 }
 
-bool PriorityMuxer::setInput(const int priority, const std::vector<ColorRgb>& ledColors, int64_t timeout_ms)
+bool PriorityMuxer::setInput(int priority, const std::vector<ColorRgb>& ledColors, int64_t timeout_ms)
 {
 	if(!_activeInputs.contains(priority))
 	{
@@ -202,7 +202,7 @@ bool PriorityMuxer::setInput(const int priority, const std::vector<ColorRgb>& le
 	return true;
 }
 
-bool PriorityMuxer::setInputImage(const int priority, const Image<ColorRgb>& image, int64_t timeout_ms)
+bool PriorityMuxer::setInputImage(int priority, const Image<ColorRgb>& image, int64_t timeout_ms)
 {
 	if(!_activeInputs.contains(priority))
 	{
@@ -242,13 +242,13 @@ bool PriorityMuxer::setInputImage(const int priority, const Image<ColorRgb>& ima
 	return true;
 }
 
-bool PriorityMuxer::setInputInactive(const quint8& priority)
+bool PriorityMuxer::setInputInactive(quint8 priority)
 {
 	Image<ColorRgb> image;
 	return setInputImage(priority, image, -100);
 }
 
-bool PriorityMuxer::clearInput(const uint8_t priority)
+bool PriorityMuxer::clearInput(uint8_t priority)
 {
 	if (priority < PriorityMuxer::LOWEST_PRIORITY && _activeInputs.remove(priority))
 	{
@@ -283,7 +283,7 @@ void PriorityMuxer::clearAll(bool forceClearAll)
 	}
 }
 
-void PriorityMuxer::setCurrentTime(void)
+void PriorityMuxer::setCurrentTime()
 {
 	const int64_t now = QDateTime::currentMSecsSinceEpoch();
 	int newPriority;

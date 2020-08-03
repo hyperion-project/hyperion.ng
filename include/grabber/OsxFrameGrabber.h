@@ -24,7 +24,7 @@ public:
 	/// @param[in] width  The width of the captured screenshot
 	/// @param[in] height The heigth of the captured screenshot
 	///
-	OsxFrameGrabber(const unsigned display, const unsigned width, const unsigned height);
+	OsxFrameGrabber(unsigned display, unsigned width, unsigned height);
 	~OsxFrameGrabber() override;
 
 	///

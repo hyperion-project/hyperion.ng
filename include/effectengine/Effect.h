@@ -64,8 +64,8 @@ public:
 	QJsonObject getArgs() const { return _args; }
 
 signals:
-	void setInput(const int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, const bool &clearEffect);
-	void setInputImage(const int priority, const Image<ColorRgb> &image, const int timeout_ms, const bool &clearEffect);
+	void setInput(int priority, const std::vector<ColorRgb> &ledColors, int timeout_ms, bool clearEffect);
+	void setInputImage(int priority, const Image<ColorRgb> &image, int timeout_ms, bool clearEffect);
 
 private:
 

@@ -36,7 +36,7 @@ void QtWrapper::capture()
 	emit sig_screenshot(_screenshot);
 }
 
-void QtWrapper::setVideoMode(const VideoMode mode)
+void QtWrapper::setVideoMode(VideoMode mode)
 {
 	_grabber.setVideoMode(mode);
 }

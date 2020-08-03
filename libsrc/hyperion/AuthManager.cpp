@@ -85,7 +85,7 @@ const QString AuthManager::getUserToken(const QString &usr)
 	return QString(_authTable->getUserToken(usr));
 }
 
-void AuthManager::setAuthBlock(const bool &user)
+void AuthManager::setAuthBlock(bool user)
 {
 	// current timestamp +10 minutes
 	if (user)
@@ -172,7 +172,7 @@ void AuthManager::cancelNewTokenRequest(QObject *caller, const QString &comment,
 	}
 }
 
-void AuthManager::handlePendingTokenRequest(const QString &id, const bool &accept)
+void AuthManager::handlePendingTokenRequest(const QString &id, bool accept)
 {
 	if (_pendingRequests.contains(id))
 	{
@@ -226,7 +226,7 @@ bool AuthManager::deleteToken(const QString &id)
 	return false;
 }
 
-void AuthManager::handleSettingsUpdate(const settings::type &type, const QJsonDocument &config)
+void AuthManager::handleSettingsUpdate(settings::type type, const QJsonDocument &config)
 {
 	if (type == settings::NETWORK)
 	{

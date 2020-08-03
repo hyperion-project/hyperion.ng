@@ -34,7 +34,7 @@ public slots:
 	/// Set the video mode (2D/3D)
 	/// @param[in] mode The new video mode
 	///
-	void setVideoMode(const VideoMode videoMode);
+	void setVideoMode(VideoMode videoMode);
 
 private slots:
 	///

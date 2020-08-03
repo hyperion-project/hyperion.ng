@@ -50,7 +50,7 @@ using namespace commandline;
 #define PERM0664 QFileDevice::ReadOwner | QFileDevice::ReadGroup | QFileDevice::ReadOther | QFileDevice::WriteOwner | QFileDevice::WriteGroup
 
 #ifndef _WIN32
-void signal_handler(const int signum)
+void signal_handler(int signum)
 {
 	// Hyperion Managment instance
 	HyperionIManager *_hyperion = HyperionIManager::getInstance();

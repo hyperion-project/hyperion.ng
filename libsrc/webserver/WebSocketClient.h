@@ -12,7 +12,7 @@ class JsonAPI;
 class WebSocketClient : public QObject {
 	Q_OBJECT
 public:
-	WebSocketClient(QtHttpRequest* request, QTcpSocket* sock, const bool& localConnection, QObject* parent);
+	WebSocketClient(QtHttpRequest* request, QTcpSocket* sock, bool localConnection, QObject* parent);
 
 	struct WebSocketHeader
 	{
@@ -67,6 +67,6 @@ private:
 	static const quint64 FRAME_SIZE_IN_BYTES = 512 * 512 * 2;  //maximum size of a frame when sending a message
 
 private slots:
-	void handleWebSocketFrame(void);
+	void handleWebSocketFrame();
 	qint64 sendMessage(QJsonObject obj);
 };

@@ -6,7 +6,7 @@
 #include <QTimer>
 #include <QRgb>
 
-FlatBufferClient::FlatBufferClient(QTcpSocket* socket, const int &timeout, QObject *parent)
+FlatBufferClient::FlatBufferClient(QTcpSocket* socket, int timeout, QObject *parent)
 	: QObject(parent)
 	, _log(Logger::getInstance("FLATBUFSERVER"))
 	, _socket(socket)
@@ -104,7 +104,7 @@ void FlatBufferClient::handleColorCommand(const hyperionnet::Color *colorReq)
 	sendSuccessReply();
 }
 
-void FlatBufferClient::registationRequired(const int priority)
+void FlatBufferClient::registationRequired(int priority)
 {
 	if (_priority == priority)
 	{

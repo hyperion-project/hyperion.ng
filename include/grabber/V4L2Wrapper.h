@@ -32,7 +32,7 @@ public slots:
 	void setCecDetectionEnable(bool enable);
 	void setDeviceVideoStandard(QString device, VideoStandard videoStandard);
 	void handleCecEvent(CECEvent event);
-	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config) override;
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config) override;
 
 private slots:
 	void newFrame(const Image<ColorRgb> & image);

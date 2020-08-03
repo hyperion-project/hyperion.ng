@@ -54,14 +54,14 @@ public slots:
 	///
 	void stop();
 
-	void compStateChangeRequest(const hyperion::Components component, bool enable);
+	void compStateChangeRequest(hyperion::Components component, bool enable);
 
 	///
 	/// @brief Handle settings update from Hyperion Settingsmanager emit or this constructor
 	/// @param type   settingyType from enum
 	/// @param config configuration object
 	///
-	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 private slots:
 	///
