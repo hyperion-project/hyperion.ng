@@ -90,13 +90,6 @@ public:
 	int discoverServices(const QString &searchTarget="ssdp:all", const QString &key="LOCATION");
 
 	///
-	/// @brief Get services discovered during discoverServices()
-	///
-	/// @return Map of discovered services
-	///
-	const QMap<QString, SSDPService> getServicesDiscovered () { return _services; }
-
-	///
 	/// @brief Get services discovered during discoverServices().
 	///
 	/// Hostname and domain are resolved from IP-address and stored in extra elements

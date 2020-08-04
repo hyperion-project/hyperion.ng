@@ -271,11 +271,11 @@ int SSDPDiscover::discoverServices(const QString& searchTarget, const QString& k
 
 					if ( _skipDupKeys )
 					{
-						_services.insert(mapKey, service);
+						_services.replace(mapKey, service);
 					}
 					else
 					{
-						_services.insertMulti(mapKey, service);
+						_services.insert(mapKey, service);
 					}
 				}
 			}
