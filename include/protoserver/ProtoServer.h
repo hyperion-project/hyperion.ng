@@ -1,12 +1,12 @@
 #pragma once
 
 // util
-#include <utils/Logger.h>
 #include <utils/settings.h>
 
 // qt
 #include <QVector>
 
+class Logger;
 class QTcpServer;
 class ProtoClientConnection;
 class NetOrigin;

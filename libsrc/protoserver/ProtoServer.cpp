@@ -4,6 +4,7 @@
 // util
 #include <utils/NetOrigin.h>
 #include <utils/GlobalSignals.h>
+#include <utils/Logger.h>
 
 // qt
 #include <QJsonObject>

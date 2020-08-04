@@ -7,6 +7,9 @@
 #include <QTimer>
 #include <QRgb>
 
+// util
+#include <utils/Logger.h>
+
 // TODO Remove this class if third-party apps have been migrated (eg. Hyperion Android Grabber, Windows Screen grabber etc.)
 
 ProtoClientConnection::ProtoClientConnection(QTcpSocket* socket, const int &timeout, QObject *parent)

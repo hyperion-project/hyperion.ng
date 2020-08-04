@@ -1,14 +1,14 @@
 #pragma once
 
+// protobuffer PROTO
+#include "message.pb.h"
+
 // util
-#include <utils/Logger.h>
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
 #include <utils/Components.h>
 
-// protobuffer PROTO
-#include "message.pb.h"
-
+class Logger;
 class QTcpSocket;
 class QTimer;
 
@@ -139,7 +139,7 @@ private:
 	void sendErrorReply(const std::string & error);
 
 private:
-	Logger*_log;
+	Logger* _log;
 
 	/// The TCP-Socket that is connected tot the Proto-client
 	QTcpSocket* _socket;
