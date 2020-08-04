@@ -17,10 +17,16 @@ set(hyperion-remote_SOURCES
 	hyperion-remote.cpp
 	JsonConnection.cpp)
 
+# generate windows .rc file for this binary
+if (WIN32)
+	include(${CMAKE_SOURCE_DIR}/cmake/win/win_rc.cmake)
+	generate_win_rc_file(${PROJECT_NAME})
+endif()
+
 add_executable(${PROJECT_NAME}
 	${hyperion-remote_HEADERS}
 	${hyperion-remote_SOURCES}
-	${WIN_RC_ICON_FILE}
+	${${PROJECT_NAME}_WIN_RC_PATH}
 )
 
 target_link_libraries(${PROJECT_NAME}

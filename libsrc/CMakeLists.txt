@@ -27,3 +27,8 @@ endif()
 if(ENABLE_AVAHI)
 	add_subdirectory(bonjour)
 endif()
+
+if(ENABLE_EXPERIMENTAL)
+	add_subdirectory(experimental)
+endif()
+

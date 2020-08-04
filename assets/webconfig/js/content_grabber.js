@@ -323,7 +323,7 @@ $(document).ready( function() {
 
     if (grabbers.indexOf('dispmanx') > -1)
       hideEl(["device","pixelDecimation"]);
-    else if (grabbers.indexOf('x11') > -1)
+    else if (grabbers.indexOf('x11') > -1 || grabbers.indexOf('xcb') > -1)
       hideEl(["device","width","height"]);
     else if (grabbers.indexOf('osx')  > -1 )
       hideEl(["device","pixelDecimation"]);

@@ -23,13 +23,17 @@ void X11Wrapper::action()
 		{
 			stop();
 		}
+		else
+		{
+			if (_grabber.updateScreenDimensions() < 0 )
+			{
+				stop();
+			}
+		}
 	}
 
 	if (isActive())
 	{
-		if (_grabber.updateScreenDimensions() >= 0 )
-		{
-			transferFrame(_grabber);
-		}
+		transferFrame(_grabber);
 	}
 }

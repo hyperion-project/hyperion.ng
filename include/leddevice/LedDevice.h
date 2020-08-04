@@ -51,23 +51,11 @@ public:
 	~LedDevice() override;
 
 	///
-	/// @brief Get color order of device.
-	///
-	/// @return The color order
-	///
-	const QString & getColorOrder() const { return _colorOrder; }
-
-	///
 	/// @brief Set the current active LED-device type.
 	///
 	/// @param deviceType Device's type
 	///
-    void setActiveDeviceType(const QString& deviceType);
-
-	///
-	/// @brief Get the current active LED-device type.
-	///
-	const QString & getActiveDeviceType() const { return _activeDeviceType; }
+	void setActiveDeviceType(const QString& deviceType);
 
 	///
 	/// @brief Set the number of LEDs supported by the device.
@@ -75,13 +63,6 @@ public:
 	/// @param[in] ledCount Number of device LEDs
 	///
 	void setLedCount(unsigned int ledCount);
-
-	///
-	/// @brief Get the number of LEDs supported by the device.
-	///
-	/// @return Number of device's LEDs
-	///
-	unsigned int getLedCount() const { return _ledCount; }
 
 	///
 	/// @brief Check, if the device is enabled.
@@ -99,13 +80,6 @@ public:
 	/// @param[in] latchTime_ms Latch time in milliseconds
 	///
 	void setLatchTime(int latchTime_ms);
-
-	///
-	/// @brief Get the currently defined LatchTime.
-	///
-	/// @return Latch time in milliseconds
-	///
-	int getLatchTime() const { return _latchTime_ms; }
 
 	///
 	/// @brief Discover devices of this type available (for configuration).
@@ -168,13 +142,6 @@ public:
 	bool isInError() const { return _isDeviceInError; }
 
 	///
-	/// @brief Get the LED-Device component's state.
-	///
-	/// @return True, if enabled
-	///
-	inline bool componentState() const { return isEnabled(); }
-
-	///
 	/// @brief Prints the color values to stdout.
 	///
 	/// @param[in] ledValues The color per led
@@ -213,6 +180,39 @@ public slots:
 	/// @param[in] enable The new state of the device
 	///
 	void setEnable(bool enable);
+
+	///
+	/// @brief Get the currently defined LatchTime.
+	///
+	/// @return Latch time in milliseconds
+	///
+	int getLatchTime() const { return _latchTime_ms; }
+
+	///
+	/// @brief Get the number of LEDs supported by the device.
+	///
+	/// @return Number of device's LEDs
+	///
+	unsigned int getLedCount() const { return _ledCount; }
+
+	///
+	/// @brief Get the current active LED-device type.
+	///
+	QString getActiveDeviceType() const { return _activeDeviceType; }
+
+	///
+	/// @brief Get color order of device.
+	///
+	/// @return The color order
+	///
+	QString getColorOrder() const { return _colorOrder; }
+
+	///
+	/// @brief Get the LED-Device component's state.
+	///
+	/// @return True, if enabled
+	///
+	inline bool componentState() const { return isEnabled(); }
 
 signals:
 	///

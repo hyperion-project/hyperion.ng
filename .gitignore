@@ -17,3 +17,4 @@ CMakeCache.txt
 /lib
 .directory
 *.pyc
+compile_commands.json

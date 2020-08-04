@@ -94,6 +94,10 @@ QStringList GrabberWrapper::availableGrabbers()
 	grabbers << "x11";
 	#endif
 
+	#ifdef ENABLE_XCB
+	grabbers << "xcb";
+	#endif
+
 	#ifdef ENABLE_QT
 	grabbers << "qt";
 	#endif
