@@ -18,6 +18,7 @@ PriorityMuxer::PriorityMuxer(int ledCount, QObject * parent)
 	: QObject(parent)
 	, _log(Logger::getInstance("HYPERION"))
 	, _currentPriority(PriorityMuxer::LOWEST_PRIORITY)
+	, _previousPriority(_currentPriority)
 	, _manualSelectedPriority(256)
 	, _activeInputs()
 	, _lowestPriorityInfo()
@@ -266,6 +267,7 @@ void PriorityMuxer::clearAll(bool forceClearAll)
 {
 	if (forceClearAll)
 	{
+		_previousPriority = _currentPriority;
 		_activeInputs.clear();
 		_currentPriority = PriorityMuxer::LOWEST_PRIORITY;
 		_activeInputs[_currentPriority] = _lowestPriorityInfo;
@@ -329,6 +331,7 @@ void PriorityMuxer::setCurrentTime(void)
 	// apply & emit on change (after apply!)
 	if (_currentPriority != newPriority)
 	{
+		_previousPriority = _currentPriority;
 		_currentPriority = newPriority;
 		Debug(_log, "Set visible priority to %d", newPriority);
 		emit visiblePriorityChanged(newPriority);

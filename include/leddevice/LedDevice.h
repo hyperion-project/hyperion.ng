@@ -179,7 +179,7 @@ public slots:
 	///
 	/// @param[in] enable The new state of the device
 	///
-	void setEnable(bool enable);
+//	void setEnable(bool enable);
 
 	///
 	/// @brief Get the currently defined LatchTime.
@@ -213,6 +213,46 @@ public slots:
 	/// @return True, if enabled
 	///
 	inline bool componentState() const { return isEnabled(); }
+
+	///
+	/// @brief Enables the device for output.
+	///
+	/// If the device is not ready, it will not be enabled.
+	///
+	void enable();
+
+	///
+	/// @brief Disables the device for output.
+	///
+	void disable();
+
+	///
+	/// @brief Switch the LEDs on.
+	///
+	/// Takes care that the device is opened and powered-on.
+	/// Depending on the configuration, the device may store its current state for later restore.
+	/// @see powerOn, storeState
+	///
+	/// @return True, if success
+	///
+	virtual bool switchOn();
+
+	///
+	/// @brief Switch the LEDs off.
+	///
+	/// Takes care that the LEDs and device are switched-off and device is closed.
+	/// Depending on the configuration, the device may be powered-off or restored to its previous state.
+	/// @see powerOff, restoreState
+	///
+	/// @return True, if success
+	///
+	virtual bool switchOff();
+
+
+	bool switchOnOff(bool onState)
+	{
+		return onState == true ? switchOn() : switchOff();
+	}
 
 signals:
 	///
@@ -263,28 +303,6 @@ protected:
 	/// @return Zero on success else negative
 	///
 	virtual int writeBlack(int numberOfBlack=1);
-
-	///
-	/// @brief Switch the LEDs on.
-	///
-	/// Takes care that the device is opened and powered-on.
-	/// Depending on the configuration, the device may store its current state for later restore.
-	/// @see powerOn, storeState
-	///
-	/// @return True, if success
-	///
-	virtual bool switchOn();
-
-	///
-	/// @brief Switch the LEDs off.
-	///
-	/// Takes care that the LEDs and device are switched-off and device is closed.
-	/// Depending on the configuration, the device may be powered-off or restored to its previous state.
-	/// @see powerOff, restoreState
-	///
-	/// @return True, if success
-	///
-	virtual bool switchOff();
 
 	///
 	/// @brief Power-/turn on the LED-device.

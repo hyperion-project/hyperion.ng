@@ -110,6 +110,13 @@ public:
 	int getCurrentPriority() const { return _currentPriority; }
 
 	///
+	/// Returns the previous priority before current priority
+	///
+	/// @return The previous priority
+	///
+	int getPreviousPriority() const { return _previousPriority; }
+
+	///
 	/// Returns the state (enabled/disabled) of a specific priority channel
 	/// @param priority The priority channel
 	/// @return True if the priority channel exists else false
@@ -260,6 +267,9 @@ private:
 
 	/// The current priority (lowest value in _activeInputs)
 	int _currentPriority;
+
+	/// The previous priority before current priority
+	int _previousPriority;
 
 	/// The manual select priority set with setPriority
 	int _manualSelectedPriority;
