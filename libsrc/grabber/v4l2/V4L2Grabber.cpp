@@ -1088,7 +1088,7 @@ int V4L2Grabber::read_frame()
 bool V4L2Grabber::process_image(const void *p, int size)
 {
 
-	if ( (_fpsSoftwareDecimation > 1) && ((_currentFrame++) % _fpsSoftwareDecimation == 0))
+	if ( (_fpsSoftwareDecimation > 1) && ((_currentFrame++) % _fpsSoftwareDecimation != 0))
 		return false;
 
 	// We do want a new frame...
