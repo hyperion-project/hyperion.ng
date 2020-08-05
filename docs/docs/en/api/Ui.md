@@ -2,7 +2,7 @@
 We use a JSON schema to create a user-friendly GUI and validate the input to prevent wrong or unwanted data that will be consumed by your python file. Each python file requires a GUI schema.
 
 ::: tip
-If you have never written JSON syntax, we reommend a short introduction. [Here](https://www.digitalocean.com/community/tutorials/an-introduction-to-json) and/or [Here (techinal)](http://www.json.org/)
+If you have never written JSON syntax, we recommend a short introduction. [Here](https://www.digitalocean.com/community/tutorials/an-introduction-to-json) and/or [Here (technical)](http://www.json.org/)
 :::
 
 [[toc]]
@@ -49,7 +49,7 @@ The option `swirl_count` will be of type integer with title `edt_eff_swirl_count
 **Optional**
   * Add `"minimum" : 5` to force a minimum value in case it shouldn't be lower
   * Add `"maximum" : 9` to force a maximum value in case it shouldn't be higher
-  * Add `"step" : 2,` to define a alternate stepping of value. If not given, defaults to `1`. This doesn't prevent values which are "outside" of the step, it's more a helper if you use up/down keys and hugher or smaller steps are wanted. 
+  * Add `"step" : 2,` to define a alternate stepping of value. If not given, defaults to `1`. This doesn't prevent values which are "outside" of the step, it's more a helper if you use up/down keys and higher or smaller steps are wanted. 
 
 
 ### Number
@@ -66,7 +66,7 @@ The option `swirl_spread` will be of type number (float) with title `edt_eff_swi
 **Optional**
   * Add `"minimum" : 5.0` to force a minimum value in case it shouldn't be lower
   * Add `"maximum" : 9.6` to force a maximum value in case it shouldn't be higher
-  * Add `"step" : 0.1,` to define a alternate stepping of value. If not given, defaults to `1.0`. This doesn't prevent values which are "outside" of the step, it's more a helper if you use up/down keys and hugher or smaller steps are wanted. 
+  * Add `"step" : 0.1,` to define a alternate stepping of value. If not given, defaults to `1.0`. This doesn't prevent values which are "outside" of the step, it's more a helper if you use up/down keys and higher or smaller steps are wanted. 
 
 ### Select
 Create a select element, where you can select one of the `enum` items. Default is required!
@@ -149,7 +149,7 @@ Creates a RGBA colorpicker. Think twice brefore you provide a RGBA picker, the u
 The option `color` will be of type array (shown as RGBA colorpicker) with the title `edt_eff_color` ([Titles will be translated](#translation)). This colorpicker will be set to red with 50% alpha initial. Required to add a default color.
 
 ## More beautification
-To organize your ui better and make it prettier we provide a set of additional keywords.
+To organize your UI better and make it prettier we provide a set of additional keywords.
 
 ### Dependencies
 Hide/Show a specific option based on the value of another option
@@ -204,7 +204,7 @@ You want a specific unit at the end of a field like "s", "ms" or "percent"? Just
 ```
 This will add a "s" for seconds to the input field. Please note it will be also translated, so check the translation file if your unit is already available. Add a new one if required.
 
-### Smooting control (only for effects)
+### Smoothing control (only for effects)
 Since v2 effects are no longer smoothed, it is possible to enable and manipulate smoothing if required. Add the following to the schema.
 ``` json
 "smoothing-custom-settings":{  

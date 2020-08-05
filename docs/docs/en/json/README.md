@@ -1,5 +1,5 @@
 # JSON RPC Introduction
-The JSON-RPC povide lot's of possiblities to interact with Hyperion. You could get information about Hyperion and it's states and trigger certain actions based on these informations or just out of the wild.
+The JSON-RPC provide lot's of possibilities to interact with Hyperion. You could get information about Hyperion and it's states and trigger certain actions based on these informations or just out of the wild.
 
 [[toc]]
 
@@ -7,7 +7,7 @@ The JSON-RPC povide lot's of possiblities to interact with Hyperion. You could g
 JSON is a standardized message format [JSON.org](http://www.json.org/) and is supported by lot's of programming languages, which is perfect to transmit and process informations. While it's not the smartest in traffic size, it can be read by humans.
 
 ### Sending JSON
-Hyperion requires a special formatted json message to process it. `command` is always required, while `tan` is optinal. The tan is a integer you could freely define. It is part of the response so you could easy filter for it in case you need it (Might be very rarely).
+Hyperion requires a special formatted JSON message to process it. `command` is always required, while `tan` is optional. The tan is a integer you could freely define. It is part of the response so you could easy filter for it in case you need it (Might be very rarely).
 ``` json
 {
   "command" : "YourCommand",

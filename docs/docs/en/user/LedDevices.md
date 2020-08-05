@@ -14,7 +14,7 @@ Applicable for all led hardware implementations \
 Each LED hardware has specific settings which are explained here
 
 ### SPI
-Are 4 wire leds which can be powered via SPI of a Raspberry Pi or an Ardunio (which is usb connected to your computer/HTPC/Pi)
+Are 4 wire leds which can be powered via SPI of a Raspberry Pi or an Arduino (which is USB connected to your computer/HTPC/Pi)
 
 #### apa102
 APA 102. These LEDs are known for a good color spectrum (converting a data signal to the wanted color).
@@ -85,7 +85,7 @@ Hyperion cannot be held liable for any foreseeable, or unforeseeable, negative o
   * To use the Philips Hue Entertainment API, the bridge must use at least API version 1.22!
   * Only one Entertainment group / area can be active at one time on a single Hue Bridge!
 
-##### Multiple and / or none orignal Hue bridges
+##### Multiple and / or none original Hue bridges
   * Automatic detection will only find the first available bridge.
   * If your bridge wasn't found or was found, but not the one you want to use, manually enter the desired bridge IP address and click the "retry" icon / button next to the IP entry field.
 
@@ -102,7 +102,7 @@ Hyperion cannot be held liable for any foreseeable, or unforeseeable, negative o
   * With the `Signal detection timeout on black` option, you can control how long all lamps are set to black, before the Entertainment API stops and the previous lamp state will be recovered.
   * Set the ms value higher, so longer dark scenes in movies will not stop the Entertainment API.
   * The Entertainment API automatically restarts when color information other than black is available to send.
-  * Some grabbers do not provide real black, but rather dark gray, so black = 0 never occurs. With the option `Signal detection brightness minimum` you can set the minimum brightness which is considered black. The range can be set from 0 = 0% to 1 = 100%, e.g. 0,005 = 0.5%. If 0 doesn' work for your setup, increase this value in 0,005 steps. It's like the thresholds for USB Capture.
+  * Some grabbers do not provide real black, but rather dark gray, so black = 0 never occurs. With the option `Signal detection brightness minimum` you can set the minimum brightness which is considered black. The range can be set from 0 = 0% to 1 = 100%, e.g. 0,005 = 0.5%. If 0 doesn't' work for your setup, increase this value in 0,005 steps. It's like the thresholds for USB Capture.
 
 ##### Brightness *Settings may be removed in future releases*
   * Set / leave `brightness factor` back to 1 (default) - classic low brightness bug is fixed
@@ -112,11 +112,11 @@ Hyperion cannot be held liable for any foreseeable, or unforeseeable, negative o
   * The brightness factor is a multiplier for the input brightness, means E.g. 50% input brightness * brightness factor (e.g. 1,5) = new 75% brightness.
   * __Be warned__:
   If you change the brightness factor / minimum / maximum to a value other than the default value, the color rendering will also change!!!
-  E.g. Dark / Black will apear as a deep dark blue, if you raise the minimum brightness, because the deepes color inside the hue light system is a deep blue, because black is not a color, it's only off.
+  E.g. Dark / Black will appear as a deep dark blue, if you raise the minimum brightness, because the deepest color inside the hue light system is a deep blue, because black is not a color, it's only off.
   __AND__ you can miss the entire Entertainment API experience ;)
 
 ::: warning Fast uncontrolled colors / flickering
-  * The colorinformation for each lamp, depends on the input signal from your grabber source, the defined screen position to use for the lamp (like any other led configuration) and the used capture framerate!
+  * The color information for each lamp, depends on the input signal from your grabber source, the defined screen position to use for the lamp (like any other led configuration) and the used capture framerate!
   * Input signals with noise and other image disturbances can cause this effect of rapidly changing colors / flickering. For more information on how to reduce this problem, see the next tip:
 
 :::
@@ -140,8 +140,8 @@ Hyperion cannot be held liable for any foreseeable, or unforeseeable, negative o
 ##### Configuration Tips & Tricks
   * Use the Philips Hue wizard at the web configuration for configuration (available at led hardware section)!
   * Color calibration is not required, you can keep the default values.
-  * If the bightness is to low for you and Hyperion is already at 100% you can higher the brightness factor at the web configuration -> LED hardware
-  * Brightness componsation influences the brightness across different color (Adjust at the color section)
+  * If the brightness is to low for you and Hyperion is already at 100% you can higher the brightness factor at the web configuration -> LED hardware
+  * Brightness compensation influences the brightness across different color (Adjust at the color section)
   * To enable/disable the bridge control from Hyperion, disable Hyperion or just the led hardware component. The previous lamp state will be recovered
 
 #### atmoorb
