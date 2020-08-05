@@ -39,7 +39,6 @@ GrabberWrapper::GrabberWrapper(QString grabberName, Grabber * ggrabber, unsigned
 
 GrabberWrapper::~GrabberWrapper()
 {
-	stop();
 	Debug(_log,"Close grabber: %s", QSTRING_CSTR(_grabberName));
 }
 
