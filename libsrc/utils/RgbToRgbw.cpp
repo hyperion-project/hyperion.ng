@@ -14,7 +14,7 @@ WhiteAlgorithm stringToWhiteAlgorithm(QString str)
 	return WhiteAlgorithm::INVALID;
 }
 
-void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, const WhiteAlgorithm algorithm)
+void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm)
 {
 	switch (algorithm)
 	{
