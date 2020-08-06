@@ -10,7 +10,7 @@ set(IOKit_FOUND false)
 set(IOKit_INCLUDE_DIR)
 set(IOKit_LIBRARY)
 
-if(APPLE) 
+if(APPLE)
 # The only platform it makes sense to check for IOKit
 	find_library(IOKit IOKit)
 	if(IOKit)

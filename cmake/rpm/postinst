@@ -88,6 +88,7 @@ ln -fs $BINSP/hyperion-v4l2 $BINTP/hyperion-v4l2
 ln -fs $BINSP/hyperion-framebuffer $BINTP/hyperion-framebuffer 2>/dev/null
 ln -fs $BINSP/hyperion-dispmanx $BINTP/hyperion-dispmanx 2>/dev/null
 ln -fs $BINSP/hyperion-x11 $BINTP/hyperion-x11 2>/dev/null
+ln -fs $BINSP/hyperion-xcb $BINTP/hyperion-xcb 2>/dev/null
 ln -fs $BINSP/hyperion-aml $BINTP/hyperion-aml 2>/dev/null
 ln -fs $BINSP/hyperion-qt $BINTP/hyperion-qt 2>/dev/null
 

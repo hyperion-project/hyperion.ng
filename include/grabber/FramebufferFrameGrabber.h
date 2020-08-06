@@ -32,7 +32,7 @@ public:
 	///
 	/// @brief Overwrite Grabber.h implememtation
 	///
-	virtual void setDevicePath(const QString& path);
+	void setDevicePath(const QString& path) override;
 
 private:
 	/// Framebuffer device e.g. /dev/fb0

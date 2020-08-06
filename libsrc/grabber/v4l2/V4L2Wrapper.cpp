@@ -29,8 +29,8 @@ V4L2Wrapper::V4L2Wrapper(const QString &device,
 	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");
 
 	// Handle the image in the captured thread using a direct connection
-	connect(&_grabber, SIGNAL(newFrame(Image<ColorRgb>)), this, SLOT(newFrame(Image<ColorRgb>)), Qt::DirectConnection);
-	connect(&_grabber, SIGNAL(readError(const char*)), this, SLOT(readError(const char*)), Qt::DirectConnection);
+	connect(&_grabber, &V4L2Grabber::newFrame, this, &V4L2Wrapper::newFrame, Qt::DirectConnection);
+	connect(&_grabber, &V4L2Grabber::readError, this, &V4L2Wrapper::readError, Qt::DirectConnection);
 }
 
 V4L2Wrapper::~V4L2Wrapper()

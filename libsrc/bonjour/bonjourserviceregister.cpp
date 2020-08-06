@@ -115,7 +115,7 @@ void BonjourServiceRegister::registerService(const BonjourRecord &record, quint1
 		else
 		{
 			bonjourSocket = new QSocketNotifier(sockfd, QSocketNotifier::Read, this);
-			connect(bonjourSocket, SIGNAL(activated(int)), this, SLOT(bonjourSocketReadyRead()));
+			connect(bonjourSocket, &QSocketNotifier::activated, this, &BonjourServiceRegister::bonjourSocketReadyRead);
 		}
 	}
 }

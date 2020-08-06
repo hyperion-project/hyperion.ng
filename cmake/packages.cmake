@@ -135,6 +135,9 @@ endif()
 if(ENABLE_X11)
 	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_x11" )
 endif()
+if(ENABLE_XCB)
+	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_xcb" )
+endif()
 if(ENABLE_DISPMANX)
 	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_dispmanx" )
 endif()
@@ -206,6 +209,15 @@ if(ENABLE_X11)
 	cpack_add_component(hyperion_x11
 		DISPLAY_NAME "X11 Standalone Screencap"
 		DESCRIPTION "X11 based standalone screen capture"
+		INSTALL_TYPES Full
+		GROUP Screencapture
+		DEPENDS Hyperion
+	)
+endif()
+if(ENABLE_X11)
+	cpack_add_component(hyperion_xcb
+		DISPLAY_NAME "XCB Standalone Screencap"
+		DESCRIPTION "XCB based standalone screen capture"
 		INSTALL_TYPES Full
 		GROUP Screencapture
 		DEPENDS Hyperion

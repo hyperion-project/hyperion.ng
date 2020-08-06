@@ -63,7 +63,7 @@ void BonjourServiceBrowser::browseForServiceType(const QString &serviceType)
 		else
 		{
 			bonjourSocket = new QSocketNotifier(sockfd, QSocketNotifier::Read, this);
-			connect(bonjourSocket, SIGNAL(activated(int)), this, SLOT(bonjourSocketReadyRead()));
+			connect(bonjourSocket, &QSocketNotifier::activated, this, &BonjourServiceBrowser::bonjourSocketReadyRead);
 		}
 	}
 }
