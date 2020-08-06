@@ -639,7 +639,7 @@
 	"edt_conf_v4l2_cecDetection_title" : "CEC detection",
 	"edt_conf_v4l2_cecDetection_expl" : "If enabled, usb capture will be temporarily disabled when CEC standby event received from HDMI bus.",
 	"edt_conf_v4l2_hdrToneMapping_title" : "HDR to SDR tone mapping",
-	"edt_conf_v4l2_hdrToneMapping_expl" : "If enabled, Hyperion will try to correct colors of the HDR content that were captured by the grabber as SDR format. 3D LUT file 'lut_rgb.3d' is require to be present in Hyperion configuration folder. Only for MJPEG capturing devices for now.",
+	"edt_conf_v4l2_hdrToneMapping_expl" : "If enabled, Hyperion will try to correct colors of the HDR content that were captured by the grabber as SDR format. 3D LUT file 'lut_rgb.3d' is require to be present in Hyperion configuration folder.",
 	"edt_conf_v4l2_fpsSoftwareDecimation_title" : "Software frame skipping",
 	"edt_conf_v4l2_fpsSoftwareDecimation_expl" : "To save resources every n'th frame will be processed only (1 - disables)",
 	"edt_conf_v4l2_signalDetection_title" : "Signal detection",

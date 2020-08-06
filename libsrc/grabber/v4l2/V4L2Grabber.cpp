@@ -33,16 +33,6 @@
 // some stuff for HDR tone mapping
 #define LUT_FILE_SIZE 50331648
 
-#define IMG_BITS 8
-#define LUTD_BITS IMG_BITS
-#define LUTD_Y_STRIDE(y) (y << (0 * LUTD_BITS)) // Y: Shift by (2**LUTD_BITS)**0
-#define LUTD_U_STRIDE(u) (u << (1 * LUTD_BITS)) // U: Shift by (2**LUTD_BITS)**1
-#define LUTD_V_STRIDE(v) (v << (2 * LUTD_BITS)) // V: Shift by (2**LUTD_BITS)**2
-#define LUTD_C_STRIDE(c) (c << (3 * LUTD_BITS)) // C: Shift by (2**LUTD_BITS)**3
-
-
-
-
 V4L2Grabber::V4L2Grabber(const QString & device
 		, const unsigned width
 		, const unsigned height
@@ -1271,8 +1261,12 @@ void V4L2Grabber::process_image(const uint8_t * data, int size)
 /* ----------------------------------------------------------
  * ------------ END of JPEG decoder related code ------------
  * --------------------------------------------------------*/
-
-	_imageResampler.processImage(data, _width, _height, _lineLength, _pixelFormat, image);
+	{
+		if (lutBuffer == NULL || !_hdrToneMappingEnabled)
+			_imageResampler.processImage(data, _width, _height, _lineLength, _pixelFormat, image);
+		else
+			_imageResampler.processImageHDR2SDR(data, _width, _height, _lineLength, _pixelFormat, lutBuffer, image);
+	}
 
 	if (_signalDetectionEnabled)
 	{

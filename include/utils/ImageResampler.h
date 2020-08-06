@@ -5,6 +5,15 @@
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
 
+
+// some stuff for HDR tone mapping
+#define IMG_BITS 8
+#define LUTD_BITS IMG_BITS
+#define LUTD_Y_STRIDE(y) (y << (0 * LUTD_BITS)) // Y: Shift by (2**LUTD_BITS)**0
+#define LUTD_U_STRIDE(u) (u << (1 * LUTD_BITS)) // U: Shift by (2**LUTD_BITS)**1
+#define LUTD_V_STRIDE(v) (v << (2 * LUTD_BITS)) // V: Shift by (2**LUTD_BITS)**2
+#define LUTD_C_STRIDE(c) (c << (3 * LUTD_BITS)) // C: Shift by (2**LUTD_BITS)**3
+
 class ImageResampler
 {
 public:
@@ -23,11 +32,12 @@ public:
 	void setVideoMode(VideoMode mode);
 
 	void processImage(const uint8_t * data, int width, int height, int lineLength, PixelFormat pixelFormat, Image<ColorRgb> & outputImage) const;
+	void processImageHDR2SDR(const uint8_t * data, int width, int height, int lineLength, PixelFormat pixelFormat, unsigned char *lutBuffer, Image<ColorRgb> &outputImage) const;
 
 private:
 	static inline uint8_t clamp(int x);
 	static void yuv2rgb(uint8_t y, uint8_t u, uint8_t v, uint8_t & r, uint8_t & g, uint8_t & b);
-
+	static void yuv2rgbHDR2SDR(uint8_t y, uint8_t u, uint8_t v, uint8_t & r, uint8_t & g, uint8_t & b, unsigned char *lutBuffer);
 private:
 	int _horizontalDecimation;
 	int _verticalDecimation;
