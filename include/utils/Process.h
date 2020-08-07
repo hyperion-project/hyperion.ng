@@ -1,11 +1,11 @@
 #pragma once
 
-#include <QByteArray>
 #include <QString>
+#include <QByteArray>
 
 namespace Process {
 
 void restartHyperion(bool asNewProcess=false);
-QByteArray command_exec(QString cmd, QByteArray data="");
+QByteArray command_exec(const QString& cmd, const QByteArray& data = {});
 
 }

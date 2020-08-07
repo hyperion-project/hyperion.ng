@@ -5,19 +5,15 @@
 #include <QTextStream>
 
 LedDeviceFile::LedDeviceFile(const QJsonObject &deviceConfig)
-	: LedDevice()
+	: LedDevice(deviceConfig)
 	, _file (nullptr)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
 	_printTimeStamp = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDeviceFile::~LedDeviceFile()
 {
-		delete _file;
+	delete _file;
 }
 
 LedDevice* LedDeviceFile::construct(const QJsonObject &deviceConfig)

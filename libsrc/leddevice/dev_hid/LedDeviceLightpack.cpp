@@ -33,7 +33,7 @@ enum DATA_VERSION_INDEXES{
 };
 
 LedDeviceLightpack::LedDeviceLightpack(const QJsonObject &deviceConfig)
-	: LedDevice()
+	: LedDevice(deviceConfig)
 	  , _libusbContext(nullptr)
 	  , _deviceHandle(nullptr)
 	  , _busNumber(-1)
@@ -41,12 +41,8 @@ LedDeviceLightpack::LedDeviceLightpack(const QJsonObject &deviceConfig)
 	  , _firmwareVersion({-1,-1})
 	  , _bitsPerChannel(-1)
 	  , _hwLedCount(-1)
-	  ,_isOpen(false)
+	  , _isOpen(false)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDeviceLightpack::~LedDeviceLightpack()

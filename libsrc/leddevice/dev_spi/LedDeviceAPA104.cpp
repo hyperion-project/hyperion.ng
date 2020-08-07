@@ -35,7 +35,7 @@ Reset time is 24uS = 59 bits = 8 bytes
 */
 
 LedDeviceAPA104::LedDeviceAPA104(const QJsonObject &deviceConfig)
-	: ProviderSpi()
+	: ProviderSpi(deviceConfig)
 	, SPI_BYTES_PER_COLOUR(4)
 	, SPI_FRAME_END_LATCH_BYTES(8)
 	, bitpair_to_byte {
@@ -45,10 +45,6 @@ LedDeviceAPA104::LedDeviceAPA104(const QJsonObject &deviceConfig)
 		0b11101110,
 	}
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 

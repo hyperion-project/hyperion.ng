@@ -7,12 +7,8 @@ struct FrameSpec
 };
 
 LedDeviceSedu::LedDeviceSedu(const QJsonObject &deviceConfig)
-	: ProviderRs232()
+	: ProviderRs232(deviceConfig)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDevice* LedDeviceSedu::construct(const QJsonObject &deviceConfig)

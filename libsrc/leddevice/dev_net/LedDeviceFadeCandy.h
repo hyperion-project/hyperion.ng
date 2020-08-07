@@ -35,7 +35,7 @@ public:
 	/// 	"interpolation" : false,
 	/// 	"manualLed"     : false,
 	/// 	"ledOn"         : false
-	/// }, 
+	/// },
 	///@endcode
 	///
 	/// @param deviceConfig Device's configuration as JSON-Object
@@ -114,7 +114,7 @@ private:
 	/// @return amount of transferred bytes. -1 error while transferring, -2 error while connecting
 	///
 	int transferData();
-	
+
 	///
 	/// @brief Send system exclusive commands
 	///

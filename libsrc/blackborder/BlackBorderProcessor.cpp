@@ -56,8 +56,7 @@ void BlackBorderProcessor::handleSettingsUpdate(const settings::type& type, cons
 		{
 			_oldThreshold = newThreshold;
 
-			if(_detector != nullptr)
-				delete _detector;
+			delete _detector;
 
 			_detector = new BlackBorderDetector(newThreshold);
 		}

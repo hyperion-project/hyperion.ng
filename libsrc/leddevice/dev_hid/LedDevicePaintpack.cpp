@@ -2,14 +2,9 @@
 
 // Use out report HID device
 LedDevicePaintpack::LedDevicePaintpack(const QJsonObject &deviceConfig)
-	: ProviderHID()
+	: ProviderHID(deviceConfig)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
 	_useFeature = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDevice* LedDevicePaintpack::construct(const QJsonObject &deviceConfig)

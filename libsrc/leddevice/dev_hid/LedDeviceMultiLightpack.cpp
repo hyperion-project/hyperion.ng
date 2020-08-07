@@ -18,23 +18,16 @@ bool compareLightpacks(LedDeviceLightpack * lhs, LedDeviceLightpack * rhs)
 }
 
 LedDeviceMultiLightpack::LedDeviceMultiLightpack(const QJsonObject &deviceConfig)
-	: LedDevice()
+	: LedDevice(deviceConfig)
 	, _lightpacks()
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDeviceMultiLightpack::~LedDeviceMultiLightpack()
 {
 	for (LedDeviceLightpack * device : _lightpacks)
 	{
-		if ( device != nullptr)
-		{
-			delete device;
-		}
+		delete device;
 	}
 }
 

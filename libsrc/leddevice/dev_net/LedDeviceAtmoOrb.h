@@ -127,7 +127,6 @@ private:
 	QMap<int, int> lastColorRedMap;
 	QMap<int, int> lastColorGreenMap;
 	QMap<int, int> lastColorBlueMap;
-
 };
 
 #endif // LEDEVICEATMOORB_H

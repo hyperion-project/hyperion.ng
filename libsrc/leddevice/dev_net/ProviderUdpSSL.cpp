@@ -15,8 +15,8 @@
 const int MAX_RETRY = 5;
 const ushort MAX_PORT_SSL = 65535;
 
-ProviderUdpSSL::ProviderUdpSSL()
-	: LedDevice()
+ProviderUdpSSL::ProviderUdpSSL(const QJsonObject &deviceConfig)
+	: LedDevice(deviceConfig)
 	, client_fd()
 	, entropy()
 	, ssl()
@@ -41,7 +41,6 @@ ProviderUdpSSL::ProviderUdpSSL()
 	, _debugStreamer(false)
 	, _debugLevel(0)
 {
-	_isDeviceReady = false;
 	_latchTime_ms = 1;
 }
 

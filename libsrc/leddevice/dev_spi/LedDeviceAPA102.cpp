@@ -1,12 +1,8 @@
 #include "LedDeviceAPA102.h"
 
 LedDeviceAPA102::LedDeviceAPA102(const QJsonObject &deviceConfig)
-	: ProviderSpi()
+	: ProviderSpi(deviceConfig)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDevice* LedDeviceAPA102::construct(const QJsonObject &deviceConfig)

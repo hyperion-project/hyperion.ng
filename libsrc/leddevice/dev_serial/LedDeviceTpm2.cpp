@@ -2,14 +2,9 @@
 
 
 LedDeviceTpm2::LedDeviceTpm2(const QJsonObject &deviceConfig)
-	: ProviderRs232()
+	: ProviderRs232(deviceConfig)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
-
 
 LedDevice* LedDeviceTpm2::construct(const QJsonObject &deviceConfig)
 {

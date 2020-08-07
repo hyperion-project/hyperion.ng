@@ -1,12 +1,8 @@
 #include "LedDeviceLpd6803.h"
 
 LedDeviceLpd6803::LedDeviceLpd6803(const QJsonObject &deviceConfig)
-	: ProviderSpi()
+	: ProviderSpi(deviceConfig)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDevice* LedDeviceLpd6803::construct(const QJsonObject &deviceConfig)

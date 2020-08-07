@@ -3,14 +3,10 @@
 #include <cassert>
 
 LedDeviceAdalight::LedDeviceAdalight(const QJsonObject &deviceConfig)
-	: ProviderRs232()
+	: ProviderRs232(deviceConfig)
 	  , _headerSize(6)
 	  , _ligthBerryAPA102Mode(false)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDevice* LedDeviceAdalight::construct(const QJsonObject &deviceConfig)

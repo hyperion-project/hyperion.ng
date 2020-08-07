@@ -21,7 +21,7 @@ public:
 	///
 	/// @brief Constructs an UDP LED-device
 	///
-	ProviderUdp();
+	ProviderUdp(const QJsonObject &deviceConfig);
 
 	///
 	/// @brief Destructor of the UDP LED-device

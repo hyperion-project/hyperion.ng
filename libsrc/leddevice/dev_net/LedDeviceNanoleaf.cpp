@@ -90,7 +90,7 @@ enum EXTCONTROLVERSIONS {
 };
 
 LedDeviceNanoleaf::LedDeviceNanoleaf(const QJsonObject &deviceConfig)
-	: ProviderUdp()
+	: ProviderUdp(deviceConfig)
 	  ,_restApi(nullptr)
 	  ,_apiPort(API_DEFAULT_PORT)
 	  ,_topDown(true)
@@ -100,10 +100,6 @@ LedDeviceNanoleaf::LedDeviceNanoleaf(const QJsonObject &deviceConfig)
 	  ,_extControlVersion (EXTCTRLVER_V2),
 	  _panelLedCount(0)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDevice* LedDeviceNanoleaf::construct(const QJsonObject &deviceConfig)
@@ -113,11 +109,8 @@ LedDevice* LedDeviceNanoleaf::construct(const QJsonObject &deviceConfig)
 
 LedDeviceNanoleaf::~LedDeviceNanoleaf()
 {
-	if ( _restApi != nullptr )
-	{
-		delete _restApi;
-		_restApi = nullptr;
-	}
+	delete _restApi;
+	_restApi = nullptr;
 }
 
 bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig)

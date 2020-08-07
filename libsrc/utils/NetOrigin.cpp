@@ -13,7 +13,7 @@ NetOrigin::NetOrigin(QObject* parent, Logger* log)
 	NetOrigin::instance = this;
 }
 
-bool NetOrigin::accessAllowed(const QHostAddress& address, const QHostAddress& local)
+bool NetOrigin::accessAllowed(const QHostAddress& address, const QHostAddress& local) const
 {
 	if(_internetAccessAllowed)
 		return true;
@@ -29,7 +29,7 @@ bool NetOrigin::accessAllowed(const QHostAddress& address, const QHostAddress& l
 	return true;
 }
 
-bool NetOrigin::isLocalAddress(const QHostAddress& address, const QHostAddress& local)
+bool NetOrigin::isLocalAddress(const QHostAddress& address, const QHostAddress& local) const
 {
 	if(address.protocol() == QAbstractSocket::IPv4Protocol)
 	{

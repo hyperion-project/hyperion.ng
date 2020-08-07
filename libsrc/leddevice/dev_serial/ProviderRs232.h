@@ -19,7 +19,7 @@ public:
 	///
 	/// @brief Constructs a RS232 LED-device
 	///
-	ProviderRs232();
+	ProviderRs232(const QJsonObject &deviceConfig);
 
 	///
 	/// @brief Destructor of the UDP LED-device

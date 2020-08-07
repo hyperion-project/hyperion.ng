@@ -9,7 +9,7 @@ const quint16 MULTICAST_GROUPL_DEFAULT_PORT = 49692;
 const int LEDS_DEFAULT_NUMBER = 24;
 
 LedDeviceAtmoOrb::LedDeviceAtmoOrb(const QJsonObject &deviceConfig)
-	: LedDevice()
+	: LedDevice(deviceConfig)
 	  , _udpSocket (nullptr)
 	  , _multiCastGroupPort (MULTICAST_GROUPL_DEFAULT_PORT)
 	  , _joinedMulticastgroup (false)
@@ -19,10 +19,6 @@ LedDeviceAtmoOrb::LedDeviceAtmoOrb(const QJsonObject &deviceConfig)
 	  , _numLeds (LEDS_DEFAULT_NUMBER)
 
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDevice* LedDeviceAtmoOrb::construct(const QJsonObject &deviceConfig)
@@ -32,10 +28,7 @@ LedDevice* LedDeviceAtmoOrb::construct(const QJsonObject &deviceConfig)
 
 LedDeviceAtmoOrb::~LedDeviceAtmoOrb()
 {
-	if ( _udpSocket != nullptr )
-	{
-		delete _udpSocket;
-	}
+	delete _udpSocket;
 }
 
 bool LedDeviceAtmoOrb::init(const QJsonObject &deviceConfig)
@@ -241,6 +234,5 @@ void LedDeviceAtmoOrb::setColor(int orbId, const ColorRgb &color, int commandTyp
 
 void LedDeviceAtmoOrb::sendCommand(const QByteArray &bytes)
 {
-	QByteArray datagram = bytes;
-	_udpSocket->writeDatagram(datagram.data(), datagram.size(), _groupAddress, _multiCastGroupPort);
+	_udpSocket->writeDatagram(bytes.data(), bytes.size(), _groupAddress, _multiCastGroupPort);
 }

@@ -2,12 +2,8 @@
 #include "LedDeviceKarate.h"
 
 LedDeviceKarate::LedDeviceKarate(const QJsonObject &deviceConfig)
-	: ProviderRs232()
+	: ProviderRs232(deviceConfig)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDevice* LedDeviceKarate::construct(const QJsonObject &deviceConfig)

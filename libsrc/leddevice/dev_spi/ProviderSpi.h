@@ -15,7 +15,7 @@ public:
 	///
 	/// Constructs specific LedDevice
 	///
-	ProviderSpi();
+	ProviderSpi(const QJsonObject &deviceConfig);
 
 	///
 	/// Sets configuration

@@ -31,9 +31,9 @@ void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, const WhiteAlgorithm algori
 		{
 			// http://forum.garagecube.com/viewtopic.php?t=10178
 			// warm white
-			float F1 = static_cast<float>(0.274);
-			float F2 = static_cast<float>(0.454);
-			float F3 = static_cast<float>(2.333);
+			const float F1(0.274);
+			const float F2(0.454);
+			const float F3(2.333);
 
 			output->white = qMin(input.red*F1,qMin(input.green*F2,input.blue*F3));
 			output->red   = input.red   - output->white/F1;
@@ -46,9 +46,9 @@ void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, const WhiteAlgorithm algori
 		{
 			// http://forum.garagecube.com/viewtopic.php?t=10178
 			// cold white
-			float F1 = static_cast<float>(0.299);
-			float F2 = static_cast<float>(0.587);
-			float F3 = static_cast<float>(0.114);
+			const float F1(0.299);
+			const float F2(0.587);
+			const float F3(0.114);
 
 			output->white = qMin(input.red*F1,qMin(input.green*F2,input.blue*F3));
 			output->red   = input.red   - output->white/F1;

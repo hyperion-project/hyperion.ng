@@ -25,12 +25,8 @@ const uint32_t VECTOR_E131_DATA_PACKET = 0x00000002;
 const int DMX_MAX = 512; // 512 usable slots
 
 LedDeviceUdpE131::LedDeviceUdpE131(const QJsonObject &deviceConfig)
-	: ProviderUdp()
+	: ProviderUdp(deviceConfig)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDevice* LedDeviceUdpE131::construct(const QJsonObject &deviceConfig)
