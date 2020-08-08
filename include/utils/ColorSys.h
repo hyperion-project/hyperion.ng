@@ -2,6 +2,8 @@
 
 // STL includes
 #include <cstdint>
+// HDR definition
+#include "ImageResampler.h"
 
 ///
 /// Color transformation to adjust the saturation and luminance of a RGB color value
