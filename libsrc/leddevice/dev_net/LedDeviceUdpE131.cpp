@@ -75,7 +75,7 @@ bool LedDeviceUdpE131::init(const QJsonObject &deviceConfig)
 }
 
 // populates the headers
-void LedDeviceUdpE131::prepare(const unsigned this_universe, const unsigned this_dmxChannelCount)
+void LedDeviceUdpE131::prepare(unsigned this_universe, unsigned this_dmxChannelCount)
 {
 	memset(e131_packet.raw, 0, sizeof(e131_packet.raw));
 

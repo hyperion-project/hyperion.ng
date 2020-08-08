@@ -24,7 +24,7 @@ public:
 	/// @param[in] grabHeight  The height of the grabbed images [pixels]
 	/// @param[in] updateRate_Hz  The image grab rate [Hz]
 	///
-	X11Wrapper(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation, const unsigned updateRate_Hz);
+	X11Wrapper(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation, unsigned updateRate_Hz);
 
 	///
 	/// Destructor of this framebuffer frame grabber. Releases any claimed resources.

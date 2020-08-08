@@ -51,14 +51,14 @@ public:
 
 	explicit YeelightResponse() {}
 
-	API_REPLY error() { return _error;}
+	API_REPLY error() const { return _error;}
 	void setError(const YeelightResponse::API_REPLY replyType) { _error = replyType; }
 
 	QJsonArray getResult() const { return _resultArray; }
 	void setResult(const QJsonArray &result) { _resultArray = result; }
 
 	int getErrorCode() const { return _errorCode; }
-	void setErrorCode(const int &errorCode) { _errorCode = errorCode; _error = API_ERROR;}
+	void setErrorCode(int errorCode) { _errorCode = errorCode; _error = API_ERROR;}
 
 	QString getErrorReason() const { return _errorReason; }
 	void setErrorReason(const QString &errorReason) { _errorReason = errorReason; }
@@ -353,7 +353,7 @@ private:
 	/// @param[in] type log message text
 	/// @param[in] ... variable input to log message text
 	/// 	///
-	void log(const int logLevel,const char* msg, const char* type, ...);
+	void log(int logLevel,const char* msg, const char* type, ...);
 
 	Logger* _log;
 	int _debugLevel;

@@ -2,7 +2,7 @@
 #include <utils/Logger.h>
 #include <hyperion/MultiColorAdjustment.h>
 
-MultiColorAdjustment::MultiColorAdjustment(const unsigned ledCnt)
+MultiColorAdjustment::MultiColorAdjustment(unsigned ledCnt)
 	: _ledAdjustments(ledCnt, nullptr)
 	, _log(Logger::getInstance("ADJUSTMENT"))
 {
@@ -25,7 +25,7 @@ void MultiColorAdjustment::addAdjustment(ColorAdjustment * adjustment)
 	_adjustment.push_back(adjustment);
 }
 
-void MultiColorAdjustment::setAdjustmentForLed(const QString& id, const unsigned startLed, unsigned endLed)
+void MultiColorAdjustment::setAdjustmentForLed(const QString& id, unsigned startLed, unsigned endLed)
 {
 	// abort
 	if(startLed > endLed)

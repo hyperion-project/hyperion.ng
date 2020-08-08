@@ -129,7 +129,7 @@ int ProviderUdp::close()
 	return retval;
 }
 
-int ProviderUdp::writeBytes(const unsigned size, const uint8_t * data)
+int ProviderUdp::writeBytes(unsigned size, const uint8_t * data)
 {
 	qint64 retVal = _udpSocket->writeDatagram((const char *)data,size,_address,_port);
 

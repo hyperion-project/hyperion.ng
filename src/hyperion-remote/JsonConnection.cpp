@@ -290,7 +290,7 @@ void JsonConnection::clearAll()
 	parseReply(reply);
 }
 
-void JsonConnection::setComponentState(const QString & component, const bool state)
+void JsonConnection::setComponentState(const QString & component, bool state)
 {
 	qDebug() << (state ? "Enable" : "Disable") << "Component" << component;
 
@@ -517,7 +517,7 @@ void JsonConnection::setToken(const QString &token)
 	parseReply(reply);
 }
 
-void JsonConnection::setInstance(const int &instance)
+void JsonConnection::setInstance(int instance)
 {
 	// create command
 	QJsonObject command;

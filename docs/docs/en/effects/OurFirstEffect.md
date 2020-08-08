@@ -1,10 +1,10 @@
 # Our first Effect
 Let's create together our first effect! \
-Target of this effect is to show the general structure of an effect, make you confident with the api and workflow.
+Target of this effect is to show the general structure of an effect, make you confident with the API and workflow.
 
 ## Requirements 
   * An installed and running Hyperion. You need access to the filesystem where Hyperion has been installed.
-  * Texteditor (of your liking, i would recommend [Visual Studio Code](https://code.visualstudio.com/))
+  * Text editor (of your liking, i would recommend [Visual Studio Code](https://code.visualstudio.com/))
   * Navigate to the "custom-effects" folder of your Hyperion installation (Inside .hyperion folder of your home directory)
   * **Configure a led matrix layout at "LED Hardware"-section at the web configuration to 10x10 LEDs**
 
@@ -44,7 +44,7 @@ Let's talk about what we have done here
  - The `neweffect.json` contains the configuration for our effect.
  - The `name` property is the effect name which is displayed at the effect list and could be freely defined.
  - The `script` property points to the python file it should start.
- - The `args` property contains options and their values, for examaple a color, speed and so on. We leave this empty for the moment.
+ - The `args` property contains options and their values, for example a color, speed and so on. We leave this empty for the moment.
 
 **After you added this file to your custom-effects folder, you need to restart Hyperion once**
 

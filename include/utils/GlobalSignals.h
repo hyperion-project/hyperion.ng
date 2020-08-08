@@ -20,6 +20,7 @@ public:
         static GlobalSignals instance;
         return & instance;
     }
+
 private:
     GlobalSignals() = default;
 
@@ -54,7 +55,7 @@ signals:
 	/// @param[in] owner       Specific owner string, might be empty
 	/// @param[in] smooth_cfg  The smooth id to use
 	///
-	void registerGlobalInput(const int priority, const hyperion::Components& component, const QString& origin = "External", const QString& owner = "", unsigned smooth_cfg = 0);
+	void registerGlobalInput(int priority, hyperion::Components component, const QString& origin = "External", const QString& owner = "", unsigned smooth_cfg = 0);
 
 	///
 	/// @brief PIPE the clear command for the global priority channel over HyperionDaemon to Hyperion class
@@ -70,7 +71,7 @@ signals:
 	/// @param[in] timeout_ms  The timeout in milliseconds
 	/// @param     clearEffect Should be true when NOT called from an effect
 	///
-	void setGlobalImage(const int priority, const Image<ColorRgb>& image, const int timeout_ms, const bool& clearEffect = true);
+	void setGlobalImage(int priority, const Image<ColorRgb>& image, int timeout_ms, bool clearEffect = true);
 
 	///
 	/// @brief PIPE external color message over HyperionDaemon to Hyperion class
@@ -80,7 +81,7 @@ signals:
 	/// @param[in] origin      The setter
 	/// @param     clearEffect Should be true when NOT called from an effect
 	///
-	void setGlobalColor(const int priority, const std::vector<ColorRgb> &ledColor, const int timeout_ms, const QString& origin = "External" ,bool clearEffects = true);
+	void setGlobalColor(int priority, const std::vector<ColorRgb> &ledColor, int timeout_ms, const QString& origin = "External" ,bool clearEffects = true);
 
 	///////////////////////////////////////
 	//////////// FROM HYPERION ////////////
@@ -98,6 +99,6 @@ signals:
 	/// @param hyperionInd The Hyperion instance index as identifier
 	/// @param listen  True when listening, else false
 	///
-	void requestSource(const hyperion::Components& component, const int hyperionInd, const bool listen);
+	void requestSource(hyperion::Components component, int hyperionInd, bool listen);
 
 };

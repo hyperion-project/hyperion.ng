@@ -19,7 +19,7 @@ HyperionIManager::HyperionIManager(const QString& rootPath, QObject* parent)
 	qRegisterMetaType<InstanceState>("InstanceState");
 }
 
-Hyperion* HyperionIManager::getHyperionInstance(const quint8& instance)
+Hyperion* HyperionIManager::getHyperionInstance(quint8 instance)
 {
 	if(_runningInstances.contains(instance))
 		return _runningInstances.value(instance);
@@ -57,7 +57,7 @@ void HyperionIManager::stopAll()
 	}
 }
 
-void HyperionIManager::toggleStateAllInstances(const bool& pause)
+void HyperionIManager::toggleStateAllInstances(bool pause)
 {
 	// copy the instances due to loop corruption, even with .erase() return next iter
 	QMap<quint8, Hyperion*> instCopy = _runningInstances;
@@ -67,7 +67,7 @@ void HyperionIManager::toggleStateAllInstances(const bool& pause)
 	}
 }
 
-bool HyperionIManager::startInstance(const quint8& inst, const bool& block)
+bool HyperionIManager::startInstance(quint8 inst, bool block)
 {
 	if(_instanceTable->instanceExist(inst))
 	{
@@ -113,7 +113,7 @@ bool HyperionIManager::startInstance(const quint8& inst, const bool& block)
 	return false;
 }
 
-bool HyperionIManager::stopInstance(const quint8& inst)
+bool HyperionIManager::stopInstance(quint8 inst)
 {
 	// inst 0 can't be stopped
 	if(!isInstAllowed(inst))
@@ -140,7 +140,7 @@ bool HyperionIManager::stopInstance(const quint8& inst)
 	return false;
 }
 
-bool HyperionIManager::createInstance(const QString& name, const bool& start)
+bool HyperionIManager::createInstance(const QString& name, bool start)
 {
 	quint8 inst;
 	if(_instanceTable->createInstance(name, inst))
@@ -156,7 +156,7 @@ bool HyperionIManager::createInstance(const QString& name, const bool& start)
 	return false;
 }
 
-bool HyperionIManager::deleteInstance(const quint8& inst)
+bool HyperionIManager::deleteInstance(quint8 inst)
 {
 	// inst 0 can't be deleted
 	if(!isInstAllowed(inst))
@@ -176,7 +176,7 @@ bool HyperionIManager::deleteInstance(const quint8& inst)
 	return false;
 }
 
-bool HyperionIManager::saveName(const quint8& inst, const QString& name)
+bool HyperionIManager::saveName(quint8 inst, const QString& name)
 {
 	if(_instanceTable->saveName(inst, name))
 	{
@@ -189,7 +189,7 @@ bool HyperionIManager::saveName(const quint8& inst, const QString& name)
 void HyperionIManager::handleFinished()
 {
 	Hyperion* hyperion = qobject_cast<Hyperion*>(sender());
-	const quint8 & instance = hyperion->getInstanceIndex();
+	quint8 instance = hyperion->getInstanceIndex();
 
 	Info(_log,"Hyperion instance '%s' has been stopped", QSTRING_CSTR(_instanceTable->getNamebyIndex(instance)));
 
@@ -203,7 +203,7 @@ void HyperionIManager::handleFinished()
 void HyperionIManager::handleStarted()
 {
 	Hyperion* hyperion = qobject_cast<Hyperion*>(sender());
-	const quint8 & instance = hyperion->getInstanceIndex();
+	quint8 instance = hyperion->getInstanceIndex();
 
 	Info(_log,"Hyperion instance '%s' has been started", QSTRING_CSTR(_instanceTable->getNamebyIndex(instance)));
 

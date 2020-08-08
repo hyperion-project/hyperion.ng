@@ -18,8 +18,8 @@ class CaptureCont : public QObject
 public:
 	CaptureCont(Hyperion* hyperion);
 
-	void setSystemCaptureEnable(const bool& enable);
-	void setV4LCaptureEnable(const bool& enable);
+	void setSystemCaptureEnable(bool enable);
+	void setV4LCaptureEnable(bool enable);
 
 private slots:
 	///
@@ -27,14 +27,14 @@ private slots:
 	/// @param component  The component from enum
 	/// @param enable     The new state
 	///
-	void handleCompStateChangeRequest(const hyperion::Components component, bool enable);
+	void handleCompStateChangeRequest(hyperion::Components component, bool enable);
 
 	///
 	/// @brief Handle settings update from Hyperion Settingsmanager emit or this constructor
 	/// @param type   settingyType from enum
 	/// @param config configuration object
 	///
-	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 	///
 	/// @brief forward system image

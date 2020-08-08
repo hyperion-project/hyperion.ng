@@ -17,7 +17,7 @@ public:
 	/// @param[in] width  The width of the captured screenshot
 	/// @param[in] height The heigth of the captured screenshot
 	///
-	FramebufferFrameGrabber(const QString & device, const unsigned width, const unsigned height);
+	FramebufferFrameGrabber(const QString & device, unsigned width, unsigned height);
 
 	///
 	/// Captures a single snapshot of the display and writes the data to the given image. The

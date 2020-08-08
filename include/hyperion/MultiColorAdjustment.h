@@ -16,7 +16,7 @@
 class MultiColorAdjustment
 {
 public:
-	MultiColorAdjustment(const unsigned ledCnt);
+	MultiColorAdjustment(unsigned ledCnt);
 	~MultiColorAdjustment();
 
 	/**

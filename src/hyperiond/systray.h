@@ -35,12 +35,12 @@ private slots:
 	///
 	/// @brief is called whenever the webserver changes the port
 	///
-	void webserverPortChanged(const quint16& port) { _webPort = port; };
+	void webserverPortChanged(quint16 port) { _webPort = port; };
 
 	///
 	/// @brief is called whenever a hyperion instance state changes
 	///
-	void handleInstanceStateChange(const InstanceState& state, const quint8& instance, const QString& name);
+	void handleInstanceStateChange(InstanceState state, quint8 instance, const QString& name);
 
 private:
 	void createTrayIcon();

@@ -15,7 +15,7 @@ class SettingsTable : public DBManager
 
 public:
 	/// construct wrapper with settings table
-	SettingsTable(const quint8& instance, QObject* parent = nullptr)
+	SettingsTable(quint8 instance, QObject* parent = nullptr)
 		: DBManager(parent)
 		, _hyperion_inst(instance)
 	{

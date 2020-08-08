@@ -11,7 +11,7 @@
 
 GrabberWrapper* GrabberWrapper::instance = nullptr;
 
-GrabberWrapper::GrabberWrapper(QString grabberName, Grabber * ggrabber, unsigned width, unsigned height, const unsigned updateRate_Hz)
+GrabberWrapper::GrabberWrapper(QString grabberName, Grabber * ggrabber, unsigned width, unsigned height, unsigned updateRate_Hz)
 	: _grabberName(grabberName)
 	, _timer(new QTimer(this))
 	, _updateInterval_ms(1000/updateRate_Hz)
@@ -39,7 +39,6 @@ GrabberWrapper::GrabberWrapper(QString grabberName, Grabber * ggrabber, unsigned
 
 GrabberWrapper::~GrabberWrapper()
 {
-	stop();
 	Debug(_log,"Close grabber: %s", QSTRING_CSTR(_grabberName));
 }
 
@@ -105,7 +104,7 @@ QStringList GrabberWrapper::availableGrabbers()
 	return grabbers;
 }
 
-void GrabberWrapper::setVideoMode(const VideoMode& mode)
+void GrabberWrapper::setVideoMode(VideoMode mode)
 {
 	if (_ggrabber != nullptr)
 	{
@@ -134,7 +133,7 @@ void GrabberWrapper::updateTimer(int interval)
 	}
 }
 
-void GrabberWrapper::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
+void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
 	if(type == settings::SYSTEMCAPTURE && !_grabberName.startsWith("V4L"))
 	{
@@ -165,7 +164,7 @@ void GrabberWrapper::handleSettingsUpdate(const settings::type& type, const QJso
 	}
 }
 
-void GrabberWrapper::handleSourceRequest(const hyperion::Components& component, const int hyperionInd, const bool listen)
+void GrabberWrapper::handleSourceRequest(hyperion::Components component, int hyperionInd, bool listen)
 {
 	if(component == hyperion::Components::COMP_GRABBER  && !_grabberName.startsWith("V4L"))
 	{

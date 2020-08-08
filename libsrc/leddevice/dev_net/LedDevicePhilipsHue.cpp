@@ -347,7 +347,7 @@ bool LedDevicePhilipsHueBridge::init(const QJsonObject &deviceConfig)
 	return isInitOK;
 }
 
-bool LedDevicePhilipsHueBridge::initRestAPI(const QString &hostname, const int port, const QString &token )
+bool LedDevicePhilipsHueBridge::initRestAPI(const QString &hostname, int port, const QString &token )
 {
 	bool isInitOK = false;
 
@@ -544,12 +544,12 @@ void LedDevicePhilipsHueBridge::setGroupMap(const QJsonDocument &doc)
 	}
 }
 
-const QMap<quint16,QJsonObject>& LedDevicePhilipsHueBridge::getLightMap(void)
+const QMap<quint16,QJsonObject>& LedDevicePhilipsHueBridge::getLightMap()
 {
 	return _lightsMap;
 }
 
-const QMap<quint16,QJsonObject>& LedDevicePhilipsHueBridge::getGroupMap(void)
+const QMap<quint16,QJsonObject>& LedDevicePhilipsHueBridge::getGroupMap()
 {
 	return _groupsMap;
 }
@@ -642,13 +642,13 @@ QJsonDocument LedDevicePhilipsHueBridge::post(const QString& route, const QStrin
 	return response.getBody();
 }
 
-void LedDevicePhilipsHueBridge::setLightState(const unsigned int lightId, const QString &state)
+void LedDevicePhilipsHueBridge::setLightState(unsigned int lightId, const QString &state)
 {
 	DebugIf( verbose, _log, "SetLightState [%u]: %s", lightId, QSTRING_CSTR(state) );
 	post( QString("%1/%2/%3").arg( API_LIGHTS ).arg( lightId ).arg( API_STATE ), state );
 }
 
-QJsonDocument LedDevicePhilipsHueBridge::getGroupState(const unsigned int groupId)
+QJsonDocument LedDevicePhilipsHueBridge::getGroupState(unsigned int groupId)
 {
 	_restApi->setPath( QString("%1/%2").arg( API_GROUPS ).arg( groupId ) );
 	httpResponse response = _restApi->get();
@@ -656,7 +656,7 @@ QJsonDocument LedDevicePhilipsHueBridge::getGroupState(const unsigned int groupI
 	return response.getBody();
 }
 
-QJsonDocument LedDevicePhilipsHueBridge::setGroupState(const unsigned int groupId, bool state)
+QJsonDocument LedDevicePhilipsHueBridge::setGroupState(unsigned int groupId, bool state)
 {
 	QString active = state ? API_STREAM_ACTIVE_VALUE_TRUE : API_STREAM_ACTIVE_VALUE_FALSE;
 	return post( QString("%1/%2").arg( API_GROUPS ).arg( groupId ), QString("{\"%1\":{\"%2\":%3}}").arg( API_STREAM, API_STREAM_ACTIVE, active ) );

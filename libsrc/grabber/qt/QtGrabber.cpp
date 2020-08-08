@@ -116,7 +116,7 @@ int QtGrabber::grabFrame(Image<ColorRgb> & image)
 	return 0;
 }
 
-int QtGrabber::updateScreenDimensions(const bool& force)
+int QtGrabber::updateScreenDimensions(bool force)
 {
 	if(!_screen)
 		return -1;

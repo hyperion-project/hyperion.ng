@@ -49,7 +49,7 @@ namespace hyperion
 		/// It's not possible to enable bb from this method, if the user requsted a disable!
 		/// @param disable  The new state
 		///
-		void setHardDisable(const bool& disable);
+		void setHardDisable(bool disable);
 
 		///
 		/// Processes the image. This performs detecion of black-border on the given image and
@@ -100,12 +100,12 @@ namespace hyperion
 		/// @param type   settingyType from enum
 		/// @param config configuration object
 		///
-		void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+		void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 		///
 		/// @brief Handle component state changes, it's not possible for BB to be enabled, when a hardDisable is active
 		///
-		void handleCompStateChangeRequest(const hyperion::Components component, bool enable);
+		void handleCompStateChangeRequest(hyperion::Components component, bool enable);
 
 	private:
 		/// Hyperion instance

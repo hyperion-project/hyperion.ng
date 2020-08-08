@@ -109,7 +109,7 @@ bool ProviderRs232::powerOff()
 	return rc;
 }
 
-bool ProviderRs232::tryOpen(const int delayAfterConnect_ms)
+bool ProviderRs232::tryOpen(int delayAfterConnect_ms)
 {
 	if (_deviceName.isEmpty() || _rs232Port.portName().isEmpty())
 	{

@@ -111,7 +111,7 @@ bool LedDeviceWled::init(const QJsonObject &deviceConfig)
 	return isInitOK;
 }
 
-bool LedDeviceWled::initRestAPI(const QString &hostname, const int port )
+bool LedDeviceWled::initRestAPI(const QString &hostname, int port )
 {
 	Debug(_log, "");
 	bool isInitOK = false;
