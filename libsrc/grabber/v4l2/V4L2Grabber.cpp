@@ -131,13 +131,12 @@ void V4L2Grabber::setHdrToneMappingEnabled(bool enable)
 	if (lutBuffer!=NULL || !enable)
 		Debug(_log,"setHdrToneMappingEnabled to: %s", enable ? "true" : "false");
 	else
-		Error(_log,"ERROR! setHdrToneMappingEnabled was to: enable, but the 3DLUT file (lut_rgb.3d)  was missing in the configuration folder");		
+		Error(_log,"setHdrToneMappingEnabled to: enable, but the 3DLUT file (lut_rgb.3d)  was missing in the configuration folder");		
 }
 
 V4L2Grabber::~V4L2Grabber()
 {
-	if (lutBuffer!=NULL)
-		free(lutBuffer);
+	free(lutBuffer);
 	lutBuffer = NULL;
 
 	uninit();

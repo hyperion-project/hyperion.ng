@@ -177,7 +177,7 @@ void ImageResampler::processImageHDR2SDR(const uint8_t * data, int width, int he
 					uint8_t y = data[index+1];
 					uint8_t u = ((xSource&1) == 0) ? data[index  ] : data[index-2];
 					uint8_t v = ((xSource&1) == 0) ? data[index+2] : data[index  ];
-					yuv2rgbHDR2SDR(y, u, v, rgb.red, rgb.green, rgb.blue, lutBuffer);
+					ColorSys::yuv2rgbHDR2SDR(y, u, v, rgb.red, rgb.green, rgb.blue, lutBuffer);
 				}
 				break;
 				case PixelFormat::YUYV:
@@ -186,7 +186,7 @@ void ImageResampler::processImageHDR2SDR(const uint8_t * data, int width, int he
 					uint8_t y = data[index];
 					uint8_t u = ((xSource&1) == 0) ? data[index+1] : data[index-1];
 					uint8_t v = ((xSource&1) == 0) ? data[index+3] : data[index+1];
-					yuv2rgbHDR2SDR(y, u, v, rgb.red, rgb.green, rgb.blue, lutBuffer);
+					ColorSys::yuv2rgbHDR2SDR(y, u, v, rgb.red, rgb.green, rgb.blue, lutBuffer);
 				}
 				break;
 				case PixelFormat::BGR16:
@@ -257,32 +257,3 @@ void ImageResampler::processImageHDR2SDR(const uint8_t * data, int width, int he
 	}
 }
 
-uint8_t ImageResampler::clamp(int x)
-{
-	return (x<0) ? 0 : ((x>255) ? 255 : uint8_t(x));
-}
-
-
-void ImageResampler::yuv2rgbHDR2SDR(uint8_t y, uint8_t u, uint8_t v, uint8_t &r, uint8_t &g, uint8_t &b, unsigned char *lutBuffer)
-{
-	// see: http://en.wikipedia.org/wiki/YUV#Y.27UV444_to_RGB888_conversion
-	int c = y - 16;
-	int d = u - 128;
-	int e = v - 128;
-	
-	
-
-	uint8_t _r = clamp((298 * c + 409 * e + 128) >> 8);
-	uint8_t _g = clamp((298 * c - 100 * d - 208 * e + 128) >> 8);
-	uint8_t _b = clamp((298 * c + 516 * d + 128) >> 8);
-	
-	size_t ind_lutd = (
-						LUTD_Y_STRIDE(_r) +
-						LUTD_U_STRIDE(_g) +
-						LUTD_V_STRIDE(_b)
-					);
-					
-	r = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];
-	g = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];
-	b = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];					
-}

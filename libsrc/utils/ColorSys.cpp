@@ -52,3 +52,39 @@ void ColorSys::yuv2rgb(uint8_t y, uint8_t u, uint8_t v, uint8_t &r, uint8_t &g, 
 	g = clamp((298 * c - 100 * d - 208 * e + 128) >> 8);
 	b = clamp((298 * c + 516 * d + 128) >> 8);
 }
+
+void ColorSys::yuv2rgb(uint8_t y, uint8_t u, uint8_t v, uint8_t &r, uint8_t &g, uint8_t &b)
+{
+	// see: http://en.wikipedia.org/wiki/YUV#Y.27UV444_to_RGB888_conversion
+	int c = y - 16;
+	int d = u - 128;
+	int e = v - 128;
+
+	r = clamp((298 * c + 409 * e + 128) >> 8);
+	g = clamp((298 * c - 100 * d - 208 * e + 128) >> 8);
+	b = clamp((298 * c + 516 * d + 128) >> 8);
+}
+
+void ImageResampler::yuv2rgbHDR2SDR(uint8_t y, uint8_t u, uint8_t v, uint8_t &r, uint8_t &g, uint8_t &b, unsigned char *lutBuffer)
+{
+	// see: http://en.wikipedia.org/wiki/YUV#Y.27UV444_to_RGB888_conversion
+	int c = y - 16;
+	int d = u - 128;
+	int e = v - 128;
+	
+	
+
+	uint8_t _r = clamp((298 * c + 409 * e + 128) >> 8);
+	uint8_t _g = clamp((298 * c - 100 * d - 208 * e + 128) >> 8);
+	uint8_t _b = clamp((298 * c + 516 * d + 128) >> 8);
+	
+	size_t ind_lutd = (
+						LUTD_Y_STRIDE(_r) +
+						LUTD_U_STRIDE(_g) +
+						LUTD_V_STRIDE(_b)
+					);
+					
+	r = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];
+	g = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];
+	b = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];					
+}
