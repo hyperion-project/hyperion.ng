@@ -9,11 +9,11 @@ class DispmanxWrapper : public QObject
 {
 	Q_OBJECT
 public:
-	DispmanxWrapper(const unsigned grabWidth, const unsigned grabHeight,
-		const VideoMode& videoMode,
-		const unsigned cropLeft, const unsigned cropRight,
-		const unsigned cropTop, const unsigned cropBottom,
-		const unsigned updateRate_Hz);
+	DispmanxWrapper(unsigned grabWidth, unsigned grabHeight,
+		VideoMode videoMode,
+		unsigned cropLeft, unsigned cropRight,
+		unsigned cropTop, unsigned cropBottom,
+		unsigned updateRate_Hz);
 
 	const Image<ColorRgb> & getScreenshot();
 

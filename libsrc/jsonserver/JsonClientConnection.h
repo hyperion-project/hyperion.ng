@@ -23,7 +23,7 @@ public:
 	/// Constructor
 	/// @param socket The Socket object for this connection
 	///
-	JsonClientConnection(QTcpSocket * socket, const bool& localConnection);
+	JsonClientConnection(QTcpSocket * socket, bool localConnection);
 
 signals:
 	void connectionClosed();

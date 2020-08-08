@@ -457,7 +457,7 @@ void ProviderUdpSSL::freeSSLConnection()
 	}
 }
 
-void ProviderUdpSSL::writeBytes(const unsigned size, const unsigned char * data)
+void ProviderUdpSSL::writeBytes(unsigned size, const unsigned char * data)
 {
 	if( _stopConnection ) return;
 

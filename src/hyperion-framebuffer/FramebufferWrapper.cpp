@@ -2,7 +2,7 @@
 // Hyperion-AmLogic includes
 #include "FramebufferWrapper.h"
 
-FramebufferWrapper::FramebufferWrapper(const QString & device, const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz) :
+FramebufferWrapper::FramebufferWrapper(const QString & device, unsigned grabWidth, unsigned grabHeight, unsigned updateRate_Hz) :
 	_timer(this),
 	_grabber(device,grabWidth, grabHeight)
 {

@@ -80,7 +80,7 @@ class HyperionDaemon : public QObject
 	friend SysTray;
 
 public:
-	HyperionDaemon(QString rootPath, QObject *parent, const bool& logLvlOverwrite);
+	HyperionDaemon(QString rootPath, QObject *parent, bool logLvlOverwrite);
 	~HyperionDaemon();
 
 	///
@@ -91,12 +91,12 @@ public:
 	///
 	/// @brief Get the current videoMode
 	///
-	const VideoMode & getVideoMode() { return _currVideoMode; };
+	VideoMode getVideoMode() const { return _currVideoMode; };
 
 	///
 	/// @brief get the settings
 	///
-	const QJsonDocument getSetting(const settings::type& type);
+	QJsonDocument getSetting(settings::type type) const;
 
 	void startNetworkServices();
 
@@ -114,7 +114,7 @@ signals:
 	///
 	/// @brief After eval of setVideoMode this signal emits with a new one on change
 	///
-	void videoMode(const VideoMode& mode);
+	void videoMode(VideoMode mode);
 
 	///////////////////////////////////////
 	/// FROM HYPERION TO HYPERIONDAEMON ///
@@ -123,12 +123,12 @@ signals:
 	///
 	/// @brief PIPE settings events from Hyperion class to HyperionDaemon components
 	///
-	void settingsChanged(const settings::type& type, const QJsonDocument& data);
+	void settingsChanged(settings::type type, const QJsonDocument& data);
 
 	///
 	/// @brief PIPE component state changes events from Hyperion class to HyperionDaemon components
 	///
-	void compStateChangeRequest(const hyperion::Components component, bool enable);
+	void compStateChangeRequest(hyperion::Components component, bool enable);
 
 private slots:
 	///
@@ -136,13 +136,13 @@ private slots:
 	/// @param type   settingyType from enum
 	/// @param config configuration object
 	///
-	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 	///
 	/// @brief Listen for videoMode changes and emit videoMode in case of a change, update _currVideoMode
 	/// @param mode  The requested video mode
 	///
-	void setVideoMode(const VideoMode& mode);
+	void setVideoMode(VideoMode mode);
 
 private:
 	void createGrabberDispmanx();

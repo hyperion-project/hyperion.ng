@@ -18,7 +18,7 @@ public:
 	/// @param[in] grabWidth  The width of the grabbed image [pixels]
 	/// @param[in] grabHeight  The height of the grabbed images [pixels]
 	///
-	AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeight);
+	AmlogicWrapper(unsigned grabWidth, unsigned grabHeight);
 
 public slots:
 	///

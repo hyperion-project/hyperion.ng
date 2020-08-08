@@ -111,7 +111,7 @@ public:
 	/// @param component The component [SMOOTHING, BLACKBORDER, FORWARDER, BOBLIGHT_SERVER, GRABBER]
 	/// @param state The state of the component [true | false]
 	///
-	void setComponentState(const QString & component, const bool state);
+	void setComponentState(const QString & component, bool state);
 
 	///
 	/// Set current active priority channel and deactivate auto source switching
@@ -185,7 +185,7 @@ public:
 	/// Send a json message with a specific instance id
 	/// @param instance The instance id
 	///
-	void setInstance(const int &instance);
+	void setInstance(int instance);
 
 
 private:

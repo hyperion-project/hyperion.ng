@@ -63,7 +63,7 @@ void CaptureCont::handleSystemImage(const QString& name, const Image<ColorRgb>& 
 	_hyperion->setInputImage(_systemCaptPrio, image);
 }
 
-void CaptureCont::setSystemCaptureEnable(const bool& enable)
+void CaptureCont::setSystemCaptureEnable(bool enable)
 {
 	if(_systemCaptEnabled != enable)
 	{
@@ -86,7 +86,7 @@ void CaptureCont::setSystemCaptureEnable(const bool& enable)
 	}
 }
 
-void CaptureCont::setV4LCaptureEnable(const bool& enable)
+void CaptureCont::setV4LCaptureEnable(bool enable)
 {
 	if(_v4lCaptEnabled != enable)
 	{
@@ -109,7 +109,7 @@ void CaptureCont::setV4LCaptureEnable(const bool& enable)
 	}
 }
 
-void CaptureCont::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
+void CaptureCont::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
 	if(type == settings::INSTCAPTURE)
 	{
@@ -130,7 +130,7 @@ void CaptureCont::handleSettingsUpdate(const settings::type& type, const QJsonDo
 	}
 }
 
-void CaptureCont::handleCompStateChangeRequest(const hyperion::Components component, bool enable)
+void CaptureCont::handleCompStateChangeRequest(hyperion::Components component, bool enable)
 {
 	if(component == hyperion::COMP_GRABBER)
 	{

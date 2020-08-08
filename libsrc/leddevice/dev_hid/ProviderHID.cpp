@@ -122,7 +122,7 @@ int ProviderHID::close()
 	return retval;
 }
 
-int ProviderHID::writeBytes(const unsigned size, const uint8_t * data)
+int ProviderHID::writeBytes(unsigned size, const uint8_t * data)
 {
 	if (_blockedForDelay) {
 		return 0;

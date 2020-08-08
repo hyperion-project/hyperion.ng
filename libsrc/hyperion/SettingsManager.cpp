@@ -14,7 +14,7 @@
 
 QJsonObject SettingsManager::schemaJson;
 
-SettingsManager::SettingsManager(const quint8& instance, QObject* parent)
+SettingsManager::SettingsManager(quint8 instance, QObject* parent)
 	: QObject(parent)
 	, _log(Logger::getInstance("SETTINGSMGR"))
 	, _sTable(new SettingsTable(instance, this))
@@ -107,12 +107,12 @@ SettingsManager::SettingsManager(const quint8& instance, QObject* parent)
 	Debug(_log,"Settings database initialized");
 }
 
-const QJsonDocument SettingsManager::getSetting(const settings::type& type)
+QJsonDocument SettingsManager::getSetting(settings::type type) const
 {
 	return _sTable->getSettingsRecord(settings::typeToString(type));
 }
 
-bool SettingsManager::saveSettings(QJsonObject config, const bool& correct)
+bool SettingsManager::saveSettings(QJsonObject config, bool correct)
 {
 	// optional data upgrades e.g. imported legacy/older configs
 	// handleConfigUpgrade(config);

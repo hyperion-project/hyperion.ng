@@ -30,28 +30,28 @@ public:
 	/// @param timeout  The timeout when a client is automatically disconnected and the priority unregistered
 	/// @param parent   The parent
 	///
-	explicit ProtoClientConnection(QTcpSocket* socket, const int &timeout, QObject *parent);
+	explicit ProtoClientConnection(QTcpSocket* socket, int timeout, QObject *parent);
 
 signals:
 	///
 	/// @brief forward register data to HyperionDaemon
 	///
-	void registerGlobalInput(const int priority, const hyperion::Components& component, const QString& origin = "ProtoBuffer", const QString& owner = "", unsigned smooth_cfg = 0);
+	void registerGlobalInput(int priority, hyperion::Components component, const QString& origin = "ProtoBuffer", const QString& owner = "", unsigned smooth_cfg = 0);
 
 	///
 	/// @brief Forward clear command to HyperionDaemon
 	///
-	void clearGlobalInput(const int priority, bool forceClearAll=false);
+	void clearGlobalInput(int priority, bool forceClearAll=false);
 
 	///
 	/// @brief forward prepared image to HyperionDaemon
 	///
-	const bool setGlobalInputImage(const int priority, const Image<ColorRgb>& image, const int timeout_ms, const bool& clearEffect = false);
+	bool setGlobalInputImage(int priority, const Image<ColorRgb>& image, int timeout_ms, bool clearEffect = false);
 
 	///
 	/// @brief Forward requested color
 	///
-	void setGlobalInputColor(const int priority, const std::vector<ColorRgb> &ledColor, const int timeout_ms, const QString& origin = "ProtoBuffer" ,bool clearEffects = true);
+	void setGlobalInputColor(int priority, const std::vector<ColorRgb> &ledColor, int timeout_ms, const QString& origin = "ProtoBuffer" ,bool clearEffects = true);
 
 	///
 	/// @brief Emits whenever the client disconnected
@@ -62,7 +62,7 @@ public slots:
 	///
 	/// @brief Requests a registration from the client
 	///
-	void registationRequired(const int priority) { if (_priority == priority) _priority = -1; };
+	void registationRequired(int priority) { if (_priority == priority) _priority = -1; };
 
 	///
 	/// @brief close the socket and call disconnected()

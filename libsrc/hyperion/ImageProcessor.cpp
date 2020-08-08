@@ -48,7 +48,7 @@ ImageProcessor::~ImageProcessor()
 	delete _imageToLeds;
 }
 
-void ImageProcessor::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
+void ImageProcessor::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
 	if(type == settings::COLOR)
 	{
@@ -61,7 +61,7 @@ void ImageProcessor::handleSettingsUpdate(const settings::type& type, const QJso
 	}
 }
 
-void ImageProcessor::setSize(const unsigned width, const unsigned height)
+void ImageProcessor::setSize(unsigned width, unsigned height)
 {
 	// Check if the existing buffer-image is already the correct dimensions
 	if (_imageToLeds && _imageToLeds->width() == width && _imageToLeds->height() == height)

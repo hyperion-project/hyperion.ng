@@ -6,7 +6,7 @@
 #include <QTcpSocket>
 #include <QHostAddress>
 
-JsonClientConnection::JsonClientConnection(QTcpSocket *socket, const bool& localConnection)
+JsonClientConnection::JsonClientConnection(QTcpSocket *socket, bool localConnection)
 	: QObject()
 	, _socket(socket)
 	, _receiveBuffer()
@@ -53,7 +53,7 @@ qint64 JsonClientConnection::sendMessage(QJsonObject message)
 	return _socket->write(data.data(), data.size());
 }
 
-void JsonClientConnection::disconnected(void)
+void JsonClientConnection::disconnected()
 {
 	emit connectionClosed();
 }

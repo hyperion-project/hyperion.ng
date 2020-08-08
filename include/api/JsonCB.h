@@ -35,7 +35,7 @@ public:
 	/// @param unsubscribe  Revert subscription
 	/// @return      True on success, false if not found
 	///
-	bool subscribeFor(const QString& cmd, const bool & unsubscribe = false);
+	bool subscribeFor(const QString& cmd, bool unsubscribe = false);
 
 	///
 	/// @brief Get all possible commands to subscribe for
@@ -52,7 +52,7 @@ public:
 	///
 	/// @brief Reset subscriptions, disconnect all signals
 	///
-	void resetSubscriptions(void);
+	void resetSubscriptions();
 
 	///
 	/// @brief Re-apply all current subs to a new Hyperion instance, the connections to the old instance will be dropped
@@ -70,7 +70,7 @@ private slots:
 	///
 	/// @brief handle component state changes
 	///
-	void handleComponentState(const hyperion::Components comp, const bool state);
+	void handleComponentState(hyperion::Components comp, bool state);
 #ifdef ENABLE_AVAHI
 	///
 	/// @brief handle emits from bonjour wrapper
@@ -86,7 +86,7 @@ private slots:
 	///
 	/// @brief Handle imageToLedsMapping updates
 	///
-	void handleImageToLedsMappingChange(const int& mappingType);
+	void handleImageToLedsMappingChange(int mappingType);
 
 	///
 	/// @brief Handle the adjustment update
@@ -97,7 +97,7 @@ private slots:
 	/// @brief Handle video mode change
 	/// @param mode  The new videoMode
 	///
-	void handleVideoModeChange(const VideoMode& mode);
+	void handleVideoModeChange(VideoMode mode);
 
 	///
 	/// @brief Handle effect list change
@@ -109,14 +109,14 @@ private slots:
 	/// @param type   The settings type from enum
 	/// @param data   The data as QJsonDocument
 	///
-	void handleSettingsChange(const settings::type& type, const QJsonDocument& data);
+	void handleSettingsChange(settings::type type, const QJsonDocument& data);
 
 	///
 	/// @brief Handle led config specific updates (required for led color streaming with positional display)
 	/// @param type   The settings type from enum
 	/// @param data   The data as QJsonDocument
 	///
-	void handleLedsConfigChange(const settings::type& type, const QJsonDocument& data);
+	void handleLedsConfigChange(settings::type type, const QJsonDocument& data);
 
 	///
 	/// @brief Handle Hyperion instance manager change

@@ -197,7 +197,7 @@ public:
 	///
 	/// @return True, if success
 	///
-	bool initRestAPI(const QString &hostname, const int port, const QString &token );
+	bool initRestAPI(const QString &hostname, int port, const QString &token );
 
 	///
 	/// @param route the route of the POST request.
@@ -233,7 +233,7 @@ protected:
 	///
 	/// @return Zero on success (i.e. device is ready), else negative
 	///
-	virtual int open(void) override;
+	virtual int open() override;
 
 	///
 	/// @brief Closes the Hue-Bridge device and its SSL-connection

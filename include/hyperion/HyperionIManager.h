@@ -38,14 +38,14 @@ public slots:
 	/// @param inst  The instance to check
 	/// @return  True when running else false
 	///
-	bool IsInstanceRunning(const quint8& inst) { return _runningInstances.contains(inst); }
+	bool IsInstanceRunning(quint8 inst) { return _runningInstances.contains(inst); }
 
 	///
 	/// @brief Get a Hyperion instance by index
 	/// @param intance  the index
 	/// @return Hyperion instance, if index is not found returns instance 0
 	///
-	Hyperion* getHyperionInstance(const quint8& instance = 0);
+	Hyperion* getHyperionInstance(quint8 instance = 0);
 
 	///
 	/// @brief Get instance data of all instaces in db + running state
@@ -58,20 +58,20 @@ public slots:
 	/// @param block     If true return when thread has been started
 	/// @return Return true on success, false if not found in db
 	///
-	bool startInstance(const quint8& inst, const bool& block = false);
+	bool startInstance(quint8 inst, bool block = false);
 
 	///
 	/// @brief Stop a Hyperion instance
 	/// @param instance  Instance index
 	/// @return Return true on success, false if not found in db
 	///
-	bool stopInstance(const quint8& inst);
+	bool stopInstance(quint8 inst);
 
 	///
 	/// @brief Toggle the state of all Hyperion instances
 	/// @param pause If true all instances toggle to pause, else to resume
 	///
-	void toggleStateAllInstances(const bool& pause = false);
+	void toggleStateAllInstances(bool pause = false);
 
 	///
 	/// @brief Create a new Hyperion instance entry in db
@@ -79,14 +79,14 @@ public slots:
 	/// @param start     If true it will be started after creation (async)
 	/// @return Return true on success false if name is already in use or a db error occurred
 	///
-	bool createInstance(const QString& name, const bool& start = false);
+	bool createInstance(const QString& name, bool start = false);
 
 	///
 	/// @brief Delete Hyperion instance entry in db. Cleanup also all associated table data for this instance
 	/// @param inst  The instance index
 	/// @return Return true on success, false if not found or not allowed
 	///
-	bool deleteInstance(const quint8& inst);
+	bool deleteInstance(quint8 inst);
 
 	///
 	/// @brief Assign a new name to the given instance
@@ -94,7 +94,7 @@ public slots:
 	/// @param name  The instance name index
 	/// @return Return true on success, false if not found
 	///
-	bool saveName(const quint8& inst, const QString& name);
+	bool saveName(quint8 inst, const QString& name);
 
 signals:
 	///
@@ -103,7 +103,7 @@ signals:
 	/// @param instance      The index of instance
 	/// @param name          The name of the instance, just available with H_CREATED
 	///
-	void instanceStateChanged(const InstanceState& state, const quint8& instance, const QString& name = QString());
+	void instanceStateChanged(InstanceState state, quint8 instance, const QString& name = QString());
 
 	///
 	/// @brief Emits whenever something changes, the lazy version of instanceStateChanged (- H_ON_STOP) + saveName() emit
@@ -118,7 +118,7 @@ signals:
 	///
 	/// @brief PIPE videoMode back to Hyperion
 	///
-	void newVideoMode(const VideoMode& mode);
+	void newVideoMode(VideoMode mode);
 
 	///////////////////////////////////////
 	/// FROM HYPERION TO HYPERIONDAEMON ///
@@ -127,17 +127,17 @@ signals:
 	///
 	/// @brief PIPE settings events from Hyperion
 	///
-	void settingsChanged(const settings::type& type, const QJsonDocument& data);
+	void settingsChanged(settings::type type, const QJsonDocument& data);
 
 	///
 	/// @brief PIPE videoMode request changes from Hyperion to HyperionDaemon
 	///
-	void requestVideoMode(const VideoMode& mode);
+	void requestVideoMode(VideoMode mode);
 
 	///
 	/// @brief PIPE component state changes from Hyperion to HyperionDaemon
 	///
-	void compStateChangeRequest(const hyperion::Components component, bool enable);
+	void compStateChangeRequest(hyperion::Components component, bool enable);
 
 private slots:
 	///
@@ -172,7 +172,7 @@ private:
 	/// @brief check if a instance is allowed for management. Instance 0 represents the root instance
 	/// @apram inst The instance to check
 	///
-	bool isInstAllowed(const quint8& inst) { return (inst > 0); }
+	bool isInstAllowed(quint8 inst) { return (inst > 0); }
 
 private:
 	Logger* _log;

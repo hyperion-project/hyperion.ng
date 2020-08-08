@@ -15,7 +15,7 @@ public:
 	{
 	}
 
-	Image(const unsigned width, const unsigned height) :
+	Image(unsigned width, unsigned height) :
 		Image(width, height, Pixel_T())
 
 	{
@@ -28,7 +28,7 @@ public:
 	/// @param height The height of the image
 	/// @param background The color of the image
 	///
-	Image(const unsigned width, const unsigned height, const Pixel_T background) :
+	Image(unsigned width, unsigned height, const Pixel_T background) :
 		_d_ptr(new ImageData<Pixel_T>(width, height, background))
 	{
 	}
@@ -93,12 +93,12 @@ public:
 		return _d_ptr->height();
 	}
 
-	uint8_t red(const unsigned pixel) const
+	uint8_t red(unsigned pixel) const
 	{
 		return _d_ptr->red(pixel);
 	}
 
-	uint8_t green(const unsigned pixel) const
+	uint8_t green(unsigned pixel) const
 	{
 		return _d_ptr->green(pixel);
 	}
@@ -111,7 +111,7 @@ public:
 	///
 	/// @return const reference to specified pixel
 	///
-	uint8_t blue(const unsigned pixel) const
+	uint8_t blue(unsigned pixel) const
 	{
 		return _d_ptr->blue(pixel);
 	}
@@ -121,7 +121,7 @@ public:
 	///
 	/// @param x The x index
 	/// @param y The y index
-	const Pixel_T& operator()(const unsigned x, const unsigned y) const
+	const Pixel_T& operator()(unsigned x, unsigned y) const
 	{
 		return _d_ptr->operator()(x, y);
 	}
@@ -129,7 +129,7 @@ public:
 	///
 	/// @return reference to specified pixel
 	///
-	Pixel_T& operator()(const unsigned x, const unsigned y)
+	Pixel_T& operator()(unsigned x, unsigned y)
 	{
 		return _d_ptr->operator()(x, y);
 	}
@@ -137,7 +137,7 @@ public:
 	/// Resize the image
 	/// @param width The width of the image
 	/// @param height The height of the image
-	void resize(const unsigned width, const unsigned height)
+	void resize(unsigned width, unsigned height)
 	{
 		_d_ptr->resize(width, height);
 	}
@@ -198,7 +198,7 @@ private:
 	///
 	/// @return The index into the underlying data-vector
 	///
-	inline unsigned toIndex(const unsigned x, const unsigned y) const
+	inline unsigned toIndex(unsigned x, unsigned y) const
 	{
 		return _d_ptr->toIndex(x, y);
 	}

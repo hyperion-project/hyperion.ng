@@ -106,7 +106,7 @@ protected:
 	/// @param[in] size The length of the data
 	/// @param[in] data The data
 	///
-	void writeBytes(const unsigned size, const uint8_t *data);
+	void writeBytes(unsigned size, const uint8_t *data);
 
 	///
 	/// get ciphersuites list from mbedtls_ssl_list_ciphersuites

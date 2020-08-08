@@ -6,7 +6,7 @@
 // Local includes
 #include "grabber/DispmanxFrameGrabber.h"
 
-DispmanxFrameGrabber::DispmanxFrameGrabber(const unsigned width, const unsigned height)
+DispmanxFrameGrabber::DispmanxFrameGrabber(unsigned width, unsigned height)
 	: Grabber("DISPMANXGRABBER", 0, 0)
 	, _vc_display(0)
 	, _vc_resource(0)
@@ -84,7 +84,7 @@ bool DispmanxFrameGrabber::setWidthHeight(int width, int height)
 	return false;
 }
 
-void DispmanxFrameGrabber::setFlags(const int vc_flags)
+void DispmanxFrameGrabber::setFlags(int vc_flags)
 {
 	_vc_flags = vc_flags;
 }
