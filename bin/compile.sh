@@ -14,6 +14,8 @@ sudo apt-get install                 \
 	build-essential              \
 	qtbase5-dev                  \
 	libqt5serialport5-dev        \
+	libqt5sql5-sqlite            \
+	libqt5sql5-sqlite            \
 	libusb-1.0-0-dev             \
 	libturbojpeg0-dev            \
 	python3-dev                  \
@@ -26,7 +28,6 @@ sudo apt-get install                 \
 	libavahi-compat-libdnssd-dev \
 	libssl-dev                   \
 	libjpeg-dev                  \
-	libqt5sql5-sqlite            \
 	zlib1g-dev                   \
 
 if [ -e /dev/vc-cma -a -e /dev/vc-mem ]
