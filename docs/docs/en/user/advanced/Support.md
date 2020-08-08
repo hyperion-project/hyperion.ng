@@ -2,7 +2,7 @@
 In case you need support or you found a bug it's all about informations that you need to deliver. 
 
 ## Usual request
-For this pupose and to save a lot of time we included a report creation and upload function into the web configuration.
+For this purpose and to save a lot of time we included a report creation and upload function into the web configuration.
 So visit your web configuration and click on System -> Log. Now you click on the button "Upload report for support request".
 > Image of report tool
 
@@ -20,7 +20,7 @@ Debugging segmentation faults requires a bunch of work, if we don't own your har
   * Tell gdb where "hyperiond" is located, usually at /usr/share/hyperion/bin/hyperiond. Prepend "file" to the path. So type into terminal something like that and press enter: `file /usr/share/hyperion/bin/hyperiond`
   * gdb should tell you now that the binary has been loaded with it's symbols etc
   * Now type in `run` and press enter, this will start Hyperion. Now you can use Hyperion as usual, repeat the steps you did to create a segmentation fault.
-  * A segmentation fault happend, when Hyperion stops responding and you see something like this as last message at the terminal: `Thread 1 "hyperiond" received signal SIGSEGV, Segmentation fault.`
+  * A segmentation fault happened, when Hyperion stops responding and you see something like this as last message at the terminal: `Thread 1 "hyperiond" received signal SIGSEGV, Segmentation fault.`
   * Now type in `backtrace` and press enter, add the backtrace to your support request thread at our forum. [Hyperion Project Forum](https://forum.hyperion-project.org)
   * To quit gdb press enter and type in `quit`, you can start Hyperion again with `sudo service hyperiond start`. It's not recommended to use "Debug" Hyperion builds in production, just install the "Release" version again.
 
