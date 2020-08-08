@@ -86,7 +86,7 @@ void XcbGrabber::setupResources()
 	if(_XcbShmAvailable)
 	{
 		_shminfo = xcb_generate_id(_connection);
-		int id = shmget(IPC_PRIVATE, _width * _height * 4, IPC_CREAT | 0777);
+		int id = shmget(IPC_PRIVATE, size_t(_width) * size_t(_height) * 4, IPC_CREAT | 0777);
 		_shmData = static_cast<uint8_t*>(shmat(id, nullptr, 0));
 		xcb_shm_attach(_connection, _shminfo, id, 0);
 	}
