@@ -74,14 +74,14 @@ public:
 	/// @brief Start/Stop the PriorityMuxer update timer; On disabled no priority and timeout updates will be performend
 	/// @param  enable  The new state
 	///
-	void setEnable(const bool& enable);
+	void setEnable(bool enable);
 
 	/// @brief Enable or disable auto source selection
 	/// @param   enable   True if it should be enabled else false
 	/// @param   update   True to update _currentPriority - INTERNAL usage.
 	/// @return           True if changed has been applied, false if the state is unchanged
 	///
-	bool setSourceAutoSelectEnabled(const bool& enabel, const bool& update = true);
+	bool setSourceAutoSelectEnabled(bool enabel, bool update = true);
 
 	///
 	/// @brief Get the state of source auto selection
@@ -94,13 +94,13 @@ public:
 	/// @param   priority  The
 	/// @return            True on success, false if priority not found
 	///
-	bool setPriority(const uint8_t priority);
+	bool setPriority(uint8_t priority);
 
 	///
 	/// @brief Update all ledColos with min length of >= 1 to fit the new led length
 	/// @param[in] ledCount   The count of leds
 	///
-	void updateLedColorsLength(const int& ledCount);
+	void updateLedColorsLength(int ledCount);
 
 	///
 	/// Returns the current priority
@@ -114,7 +114,7 @@ public:
 	/// @param priority The priority channel
 	/// @return True if the priority channel exists else false
 	///
-	bool hasPriority(const int priority) const;
+	bool hasPriority(int priority) const;
 
 	///
 	/// Returns the number of active priorities
@@ -131,7 +131,7 @@ public:
 	///
 	/// @return The information for the specified priority channel
 	///
-	const InputInfo getInputInfo(const int priority) const;
+	InputInfo getInputInfo(int priority) const;
 
 	///
 	/// @brief  Register a new input by priority, the priority is not active (timeout -100 isn't muxer recognized) until you start to update the data with setInput()
@@ -142,7 +142,7 @@ public:
 	/// @param[in] owner       Speicifc owner string, might be empty
 	/// @param[in] smooth_cfg  The smooth id to use
 	///
-	void registerInput(const int priority, const hyperion::Components& component, const QString& origin = "System", const QString& owner = "", unsigned smooth_cfg = SMOOTHING_MODE_DEFAULT);
+	void registerInput(int priority, hyperion::Components component, const QString& origin = "System", const QString& owner = "", unsigned smooth_cfg = SMOOTHING_MODE_DEFAULT);
 
 	///
 	/// @brief   Update the current color of a priority (prev registered with registerInput())
@@ -151,7 +151,7 @@ public:
 	/// @param  timeout_ms  The new timeout (defaults to -1 endless)
 	/// @return             True on success, false when priority is not found
 	///
-	bool setInput(const int priority, const std::vector<ColorRgb>& ledColors, int64_t timeout_ms = -1);
+	bool setInput(int priority, const std::vector<ColorRgb>& ledColors, int64_t timeout_ms = -1);
 
 	///
 	/// @brief   Update the current image of a priority (prev registered with registerInput())
@@ -160,14 +160,14 @@ public:
 	/// @param  timeout_ms  The new timeout (defaults to -1 endless)
 	/// @return             True on success, false when priority is not found
 	///
-	bool setInputImage(const int priority, const Image<ColorRgb>& image, int64_t timeout_ms = -1);
+	bool setInputImage(int priority, const Image<ColorRgb>& image, int64_t timeout_ms = -1);
 
 	///
 	/// @brief Set the given priority to inactive
 	/// @param priority  The priority
 	/// @return True on success false if not found
 	///
-	bool setInputInactive(const quint8& priority);
+	bool setInputInactive(quint8 priority);
 
 	///
 	/// Clears the specified priority channel and update _currentPriority on success
@@ -175,7 +175,7 @@ public:
 	/// @param[in] priority  The priority of the channel to clear
 	/// @return              True if priority has been cleared else false (not found)
 	///
-	bool clearInput(const uint8_t priority);
+	bool clearInput(uint8_t priority);
 
 	///
 	/// Clears all priority channels
@@ -185,7 +185,7 @@ public:
 	///
 	/// @brief Queue a manual push where muxer doesn't recognize them (e.g. continous single color pushes)
 	///
-	void queuePush(void){ emit timeRunner(); };
+	void queuePush(){ emit timeRunner(); };
 
 signals:
 	///
@@ -198,38 +198,38 @@ signals:
 	/// @param priority  The priority which has changed
 	/// @param state     If true it was added else it was removed!
 	///
-	void priorityChanged(const quint8& priority, const bool& state);
+	void priorityChanged(quint8 priority, bool state);
 
 	///
 	/// @brief Emits whenever the visible priority has changed
 	/// @param  priority  The new visible priority
 	///
-	void visiblePriorityChanged(const quint8& priority);
+	void visiblePriorityChanged(quint8 priority);
 
 	///
 	/// @brief Emits whenever the current visible component changed
 	/// @param comp  The new component
 	///
-	void visibleComponentChanged(const hyperion::Components& comp);
+	void visibleComponentChanged(hyperion::Components comp);
 
 	///
 	/// @brief Emits whenever a priority changes active state
 	/// @param  priority  The priority who changed the active state
 	/// @param  state     The new state, state true = active else false
 	///
-	void activeStateChanged(const quint8& priority, const bool& state);
+	void activeStateChanged(quint8 priority, bool state);
 
 	///
 	/// @brief Emits whenever the auto selection state has been changed
 	/// @param  state  The new state of auto selection; True enabled else false
 	///
-	void autoSelectChanged(const bool& state);
+	void autoSelectChanged(bool state);
 
 	///
 	/// @brief Emits whenever something changes which influences the priorities listing
 	///        Emits also in 1s interval when a COLOR or EFFECT is running with a timeout > -1
 	///
-	void prioritiesChanged(void);
+	void prioritiesChanged();
 
 	///
 	/// internal used signal to resolve treading issues with timer
@@ -246,14 +246,14 @@ private slots:
 	/// Updates the current time. Channels with a configured time out will be checked and cleared if
 	/// required.
 	///
-	void setCurrentTime(void);
+	void setCurrentTime();
 
 private:
 	///
 	/// @brief Get the component of the given priority
 	/// @return The component
 	///
-	hyperion::Components getComponentOfPriority(const int& priority);
+	hyperion::Components getComponentOfPriority(int priority);
 
 	/// Logger instance
 	Logger* _log;

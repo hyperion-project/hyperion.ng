@@ -5,7 +5,7 @@
 // Local includes
 #include <grabber/OsxFrameGrabber.h>
 
-OsxFrameGrabber::OsxFrameGrabber(const unsigned display, const unsigned width, const unsigned height)
+OsxFrameGrabber::OsxFrameGrabber(unsigned display, unsigned width, unsigned height)
 	: Grabber("OSXGRABBER", width, height)
 	, _screenIndex(100)
 {

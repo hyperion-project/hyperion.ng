@@ -947,7 +947,7 @@ bool YeelightLight::setMusicMode(bool on, const QHostAddress &hostAddress, int p
 	return rc;
 }
 
-void YeelightLight::log(const int logLevel, const char* msg, const char* type, ...)
+void YeelightLight::log(int logLevel, const char* msg, const char* type, ...)
 {
 	if ( logLevel <= _debugLevel)
 	{

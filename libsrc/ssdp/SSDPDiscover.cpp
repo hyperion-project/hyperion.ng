@@ -49,7 +49,7 @@ void SSDPDiscover::searchForService(const QString& st)
 	sendSearch(st);
 }
 
-const QString SSDPDiscover::getFirstService(const searchType& type, const QString& st, const int& timeout_ms)
+const QString SSDPDiscover::getFirstService(const searchType& type, const QString& st, int timeout_ms)
 {
 	_searchTarget = st;
 	_services.clear();

@@ -151,7 +151,7 @@ bool LedDeviceWrapper::enabled()
 	return _enabled;
 }
 
-void LedDeviceWrapper::handleComponentState(const hyperion::Components component, const bool state)
+void LedDeviceWrapper::handleComponentState(hyperion::Components component, bool state)
 {
 	if(component == hyperion::COMP_LEDDEVICE)
 	{

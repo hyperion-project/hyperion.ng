@@ -29,7 +29,7 @@ class GrabberWrapper : public QObject
 {
 	Q_OBJECT
 public:
-	GrabberWrapper(QString grabberName, Grabber * ggrabber, unsigned width, unsigned height, const unsigned updateRate_Hz = 0);
+	GrabberWrapper(QString grabberName, Grabber * ggrabber, unsigned width, unsigned height, unsigned updateRate_Hz = 0);
 
 	virtual ~GrabberWrapper();
 
@@ -122,7 +122,7 @@ public slots:
 	/// Set the video mode (2D/3D)
 	/// @param[in] mode The new video mode
 	///
-	virtual void setVideoMode(const VideoMode& videoMode);
+	virtual void setVideoMode(VideoMode videoMode);
 
 	///
 	/// Set the crop values
@@ -138,7 +138,7 @@ public slots:
 	/// @param type   settingyType from enum
 	/// @param config configuration object
 	///
-	virtual void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+	virtual void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 signals:
 	///
@@ -149,7 +149,7 @@ signals:
 private slots:
 	/// @brief Handle a source request event from Hyperion.
 	/// Will start and stop grabber based on active listeners count
-	void handleSourceRequest(const hyperion::Components& component, const int hyperionInd, const bool listen);
+	void handleSourceRequest(hyperion::Components component, int hyperionInd, bool listen);
 
 	///
 	/// @brief Update Update capture rate

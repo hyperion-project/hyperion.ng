@@ -16,7 +16,7 @@ class StaticFileServing : public QObject {
 
 public:
     explicit StaticFileServing (QObject * parent = nullptr);
-    virtual ~StaticFileServing (void);
+    virtual ~StaticFileServing ();
 
 	///
 	/// @brief Overwrite current base url

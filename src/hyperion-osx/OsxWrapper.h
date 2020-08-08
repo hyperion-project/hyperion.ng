@@ -9,7 +9,7 @@ class OsxWrapper : public QObject
 {
 	Q_OBJECT
 public:
-	OsxWrapper(const unsigned display, const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz);
+	OsxWrapper(unsigned display, unsigned grabWidth, unsigned grabHeight, unsigned updateRate_Hz);
 
 	const Image<ColorRgb> & getScreenshot();
 

@@ -112,7 +112,7 @@ private:
 	/// @param[in] port
 	/// @return True, if success
 	///
-	bool initRestAPI(const QString &hostname, const int port );
+	bool initRestAPI(const QString &hostname, int port );
 
 	///
 	/// @brief Get command to power WLED-device on or off

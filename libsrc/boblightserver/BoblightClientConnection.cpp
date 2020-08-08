@@ -23,7 +23,7 @@
 // project includes
 #include "BoblightClientConnection.h"
 
-BoblightClientConnection::BoblightClientConnection(Hyperion* hyperion, QTcpSocket *socket, const int priority)
+BoblightClientConnection::BoblightClientConnection(Hyperion* hyperion, QTcpSocket *socket, int priority)
 	: QObject()
 	, _locale(QLocale::C)
 	, _socket(socket)

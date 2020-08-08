@@ -19,7 +19,7 @@ class QNetworkConfigurationManager;
 class SSDPHandler : public SSDPServer{
 	Q_OBJECT
 public:
-	SSDPHandler(WebServer* webserver, const quint16& flatBufPort, const quint16& jsonServerPort, const QString &name,  QObject * parent = nullptr);
+	SSDPHandler(WebServer* webserver, quint16 flatBufPort, quint16 jsonServerPort, const QString &name,  QObject * parent = nullptr);
 	~SSDPHandler();
 
 	///
@@ -37,14 +37,14 @@ public slots:
 	/// @brief get state changes from webserver
 	/// @param newState true for started and false for stopped
 	///
-	void handleWebServerStateChange(const bool newState);
+	void handleWebServerStateChange(bool newState);
 
 	///
 	/// @brief Handle settings update from Hyperion Settingsmanager emit
 	/// @param type   settingyType from enum
 	/// @param config configuration object
 	///
-	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 private:
 	///
@@ -72,7 +72,7 @@ private:
 	/// @brief Send alive/byebye message based on _deviceList
 	/// @param alive When true send alive, else byebye
 	///
-	void sendAnnounceList(const bool alive);
+	void sendAnnounceList(bool alive);
 
 private slots:
 	///
@@ -82,7 +82,7 @@ private slots:
 	/// @param address The ip of the caller
 	/// @param port    The port of the caller
 	///
-	void handleMSearchRequest(const QString& target, const QString& mx, const QString address, const quint16 & port);
+	void handleMSearchRequest(const QString& target, const QString& mx, const QString address, quint16 port);
 
 	///
 	/// @brief Handle changes in the network configuration
