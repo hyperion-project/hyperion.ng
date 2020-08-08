@@ -347,7 +347,7 @@ bool LedDevicePhilipsHueBridge::init(const QJsonObject &deviceConfig)
 	return isInitOK;
 }
 
-bool LedDevicePhilipsHueBridge::initRestAPI(const QString &hostname, int port, const QString &token )
+bool LedDevicePhilipsHueBridge::initRestAPI(const QString &hostname, int port, const QString &token)
 {
 	bool isInitOK = false;
 
@@ -403,12 +403,12 @@ int LedDevicePhilipsHueBridge::close()
 	return retval;
 }
 
-const int *LedDevicePhilipsHueBridge::getCiphersuites()
+const int *LedDevicePhilipsHueBridge::getCiphersuites() const
 {
 	return SSL_CIPHERSUITES;
 }
 
-void LedDevicePhilipsHueBridge::log(const char* msg, const char* type, ...)
+void LedDevicePhilipsHueBridge::log(const char* msg, const char* type, ...) const
 {
 	const size_t max_val_length = 1024;
 	char val[max_val_length];
@@ -544,17 +544,17 @@ void LedDevicePhilipsHueBridge::setGroupMap(const QJsonDocument &doc)
 	}
 }
 
-const QMap<quint16,QJsonObject>& LedDevicePhilipsHueBridge::getLightMap()
+QMap<quint16,QJsonObject> LedDevicePhilipsHueBridge::getLightMap() const
 {
 	return _lightsMap;
 }
 
-const QMap<quint16,QJsonObject>& LedDevicePhilipsHueBridge::getGroupMap()
+QMap<quint16,QJsonObject> LedDevicePhilipsHueBridge::getGroupMap() const
 {
 	return _groupsMap;
 }
 
-QString LedDevicePhilipsHueBridge::getGroupName(quint16 groupId)
+QString LedDevicePhilipsHueBridge::getGroupName(quint16 groupId) const
 {
 	QString groupName;
 	if( _groupsMap.contains( groupId ) )
@@ -569,7 +569,7 @@ QString LedDevicePhilipsHueBridge::getGroupName(quint16 groupId)
 	return groupName;
 }
 
-QJsonArray LedDevicePhilipsHueBridge::getGroupLights(quint16 groupId)
+QJsonArray LedDevicePhilipsHueBridge::getGroupLights(quint16 groupId) const
 {
 	QJsonArray groupLights;
 	// search user groupid inside _groupsMap and create light if found
@@ -599,13 +599,13 @@ QJsonArray LedDevicePhilipsHueBridge::getGroupLights(quint16 groupId)
 	return groupLights;
 }
 
-bool LedDevicePhilipsHueBridge::checkApiError(const QJsonDocument &response )
+bool LedDevicePhilipsHueBridge::checkApiError(const QJsonDocument &response)
 {
 	bool apiError = false;
 	QString errorReason;
 
 	QString strJson(response.toJson(QJsonDocument::Compact));
-	DebugIf(verbose, _log, "Reply: [%s]", strJson.toUtf8().constData() );
+	DebugIf(verbose, _log, "Reply: [%s]", strJson.toUtf8().constData());
 
 	QVariantList rspList = response.toVariant().toList();
 	if ( !rspList.isEmpty() )
@@ -662,7 +662,7 @@ QJsonDocument LedDevicePhilipsHueBridge::setGroupState(unsigned int groupId, boo
 	return post( QString("%1/%2").arg( API_GROUPS ).arg( groupId ), QString("{\"%1\":{\"%2\":%3}}").arg( API_STREAM, API_STREAM_ACTIVE, active ) );
 }
 
-bool LedDevicePhilipsHueBridge::isStreamOwner(const QString &streamOwner)
+bool LedDevicePhilipsHueBridge::isStreamOwner(const QString &streamOwner) const
 {
 	return ( streamOwner != "" && streamOwner == _username );
 }
@@ -1254,13 +1254,13 @@ bool LedDevicePhilipsHue::setStreamGroupState(bool state)
 	return false;
 }
 
-QByteArray LedDevicePhilipsHue::prepareStreamData()
+QByteArray LedDevicePhilipsHue::prepareStreamData() const
 {
 	QByteArray msg;
 	msg.reserve(static_cast<int>(sizeof(HEADER) + sizeof(PAYLOAD_PER_LIGHT) * _lights.size()));
 	msg.append((const char*)HEADER, sizeof(HEADER));
 
-	for (PhilipsHueLight& light : _lights)
+	for (const PhilipsHueLight& light : _lights)
 	{
 		CiColor lightC = light.getColor();
 		quint64 R = lightC.x * 0xffff;

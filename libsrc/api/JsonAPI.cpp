@@ -494,7 +494,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 #if defined(ENABLE_V4L2)
 
 	QJsonArray availableV4L2devices;
-	for (auto devicePath : GrabberWrapper::getInstance()->getV4L2devices())
+	for (const auto& devicePath : GrabberWrapper::getInstance()->getV4L2devices())
 	{
 		QJsonObject device;
 		device["device"] = devicePath;

@@ -68,7 +68,7 @@ public:
 	///
 	/// Destructor
 	///
-	~PriorityMuxer();
+	~PriorityMuxer() override;
 
 	///
 	/// @brief Start/Stop the PriorityMuxer update timer; On disabled no priority and timeout updates will be performend
@@ -185,7 +185,7 @@ public:
 	///
 	/// @brief Queue a manual push where muxer doesn't recognize them (e.g. continous single color pushes)
 	///
-	void queuePush(){ emit timeRunner(); };
+	void queuePush() { emit timeRunner(); }
 
 signals:
 	///
@@ -253,7 +253,7 @@ private:
 	/// @brief Get the component of the given priority
 	/// @return The component
 	///
-	hyperion::Components getComponentOfPriority(int priority);
+	hyperion::Components getComponentOfPriority(int priority) const;
 
 	/// Logger instance
 	Logger* _log;

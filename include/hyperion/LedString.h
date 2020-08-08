@@ -20,7 +20,7 @@ enum class ColorOrder
 	ORDER_RGB, ORDER_RBG, ORDER_GRB, ORDER_BRG, ORDER_GBR, ORDER_BGR
 };
 
-inline QString colorOrderToString(const ColorOrder colorOrder)
+inline QString colorOrderToString(ColorOrder colorOrder)
 {
 	switch (colorOrder)
 	{

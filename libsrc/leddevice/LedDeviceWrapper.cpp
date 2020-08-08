@@ -67,7 +67,7 @@ void LedDeviceWrapper::createLedDevice(const QJsonObject& config)
 	thread->start();
 }
 
-const QJsonObject LedDeviceWrapper::getLedDeviceSchemas()
+QJsonObject LedDeviceWrapper::getLedDeviceSchemas()
 {
 	// make sure the resources are loaded (they may be left out after static linking)
 	Q_INIT_RESOURCE(LedDeviceSchemas);
@@ -118,21 +118,21 @@ const LedDeviceRegistry& LedDeviceWrapper::getDeviceMap()
 	return _ledDeviceMap;
 }
 
-int LedDeviceWrapper::getLatchTime()
+int LedDeviceWrapper::getLatchTime() const
 {
 	int value = 0;
 	QMetaObject::invokeMethod(_ledDevice, "getLatchTime", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, value));
 	return value;
 }
 
-QString LedDeviceWrapper::getActiveDeviceType()
+QString LedDeviceWrapper::getActiveDeviceType() const
 {
 	QString value = 0;
 	QMetaObject::invokeMethod(_ledDevice, "getActiveDeviceType", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QString, value));
 	return value;
 }
 
-QString LedDeviceWrapper::getColorOrder()
+QString LedDeviceWrapper::getColorOrder() const
 {
 	QString value;
 	QMetaObject::invokeMethod(_ledDevice, "getColorOrder", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QString, value));
@@ -146,7 +146,7 @@ unsigned int LedDeviceWrapper::getLedCount() const
 	return value;
 }
 
-bool LedDeviceWrapper::enabled()
+bool LedDeviceWrapper::enabled() const
 {
 	return _enabled;
 }

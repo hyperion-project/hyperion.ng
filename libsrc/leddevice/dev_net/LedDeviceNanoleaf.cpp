@@ -513,7 +513,7 @@ bool LedDeviceNanoleaf::powerOff()
 	return true;
 }
 
-QString LedDeviceNanoleaf::getOnOffRequest (bool isOn ) const
+QString LedDeviceNanoleaf::getOnOffRequest(bool isOn) const
 {
 	QString state = isOn ? STATE_VALUE_TRUE : STATE_VALUE_FALSE;
 	return QString( "{\"%1\":{\"%2\":%3}}" ).arg(STATE_ON, STATE_ONOFF_VALUE, state);
@@ -614,7 +614,7 @@ int LedDeviceNanoleaf::write(const std::vector<ColorRgb> & ledValues)
 	return retVal;
 }
 
-std::string LedDeviceNanoleaf:: uint8_vector_to_hex_string( const std::vector<uint8_t>& buffer ) const
+std::string LedDeviceNanoleaf::uint8_vector_to_hex_string(const std::vector<uint8_t>& buffer) const
 {
 	std::stringstream ss;
 	ss << std::hex << std::setfill('0');

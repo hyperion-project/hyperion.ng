@@ -89,8 +89,8 @@ void BlackBorderProcessor::handleCompStateChangeRequest(hyperion::Components com
 	}
 }
 
-void BlackBorderProcessor::setHardDisable(bool disable) {
-
+void BlackBorderProcessor::setHardDisable(bool disable)
+{
 	if (disable)
 	{
 		_enabled = false;

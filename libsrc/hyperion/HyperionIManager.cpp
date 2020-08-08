@@ -28,7 +28,7 @@ Hyperion* HyperionIManager::getHyperionInstance(quint8 instance)
 	return _runningInstances.value(0);
 }
 
-const QVector<QVariantMap> HyperionIManager::getInstanceData()
+QVector<QVariantMap> HyperionIManager::getInstanceData() const
 {
 	QVector<QVariantMap> instances = _instanceTable->getAllInstances();
 	for( auto & entry : instances)

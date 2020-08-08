@@ -61,7 +61,7 @@ AuthManager::AuthDefinition AuthManager::createToken(const QString &comment)
 	return def;
 }
 
-QVector<AuthManager::AuthDefinition> AuthManager::getTokenList()
+QVector<AuthManager::AuthDefinition> AuthManager::getTokenList() const
 {
 	QVector<QVariantMap> vector = _authTable->getTokenList();
 	QVector<AuthManager::AuthDefinition> finalVec;
@@ -79,7 +79,7 @@ QVector<AuthManager::AuthDefinition> AuthManager::getTokenList()
 	return finalVec;
 }
 
-const QString AuthManager::getUserToken(const QString &usr)
+QString AuthManager::getUserToken(const QString &usr) const
 {
 	QString tok = _authTable->getUserToken(usr);
 	return QString(_authTable->getUserToken(usr));
@@ -192,7 +192,7 @@ void AuthManager::handlePendingTokenRequest(const QString &id, bool accept)
 	}
 }
 
-QVector<AuthManager::AuthDefinition> AuthManager::getPendingRequests()
+QVector<AuthManager::AuthDefinition> AuthManager::getPendingRequests() const
 {
 	QVector<AuthManager::AuthDefinition> finalVec;
 	for (const auto &entry : _pendingRequests)

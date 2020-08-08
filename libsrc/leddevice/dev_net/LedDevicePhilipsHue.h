@@ -208,13 +208,13 @@ public:
 
 	void setLightState(unsigned int lightId = 0, const QString &state = "");
 
-	const QMap<quint16,QJsonObject>& getLightMap();
+	QMap<quint16,QJsonObject> getLightMap() const;
 
-	const QMap<quint16,QJsonObject>& getGroupMap();
+	QMap<quint16,QJsonObject> getGroupMap() const;
 
-	QString getGroupName(quint16 groupId = 0);
+	QString getGroupName(quint16 groupId = 0) const;
 
-	QJsonArray getGroupLights(quint16 groupId = 0);
+	QJsonArray getGroupLights(quint16 groupId = 0) const;
 
 
 
@@ -226,21 +226,21 @@ protected:
 	/// @param[in] deviceConfig the JSON device configuration
 	/// @return True, if success
 	///
-	virtual bool init(const QJsonObject &deviceConfig) override;
+	bool init(const QJsonObject &deviceConfig) override;
 
 	///
 	/// @brief Opens the Hue-Bridge device and its SSL-connection
 	///
 	/// @return Zero on success (i.e. device is ready), else negative
 	///
-	virtual int open() override;
+	int open() override;
 
 	///
 	/// @brief Closes the Hue-Bridge device and its SSL-connection
 	///
 	/// @return Zero on success (i.e. device is closed), else negative
 	///
-	virtual int close() override;
+	int close() override;
 
 	///
 	/// @brief Check, if Hue API response indicate error
@@ -264,12 +264,12 @@ protected:
 	QJsonDocument getGroupState( unsigned int groupId );
 	QJsonDocument setGroupState( unsigned int groupId, bool state);
 
-	bool isStreamOwner(const QString &streamOwner);
+	bool isStreamOwner(const QString &streamOwner) const;
 	bool initMaps();
 
-	void log(const char* msg, const char* type, ...);
+	void log(const char* msg, const char* type, ...) const;
 
-	const int * getCiphersuites() override;
+	const int * getCiphersuites() const override;
 
 private:
 
@@ -316,7 +316,7 @@ public:
 	///
 	/// @brief Destructor of the LED-device
 	///
-	virtual ~LedDevicePhilipsHue();
+	~LedDevicePhilipsHue();
 
 	///
 	/// @brief Constructs the LED-device
@@ -331,7 +331,7 @@ public:
 	///
 	/// @return A JSON structure holding a list of devices found
 	///
-	virtual QJsonObject discover() override;
+	QJsonObject discover() override;
 
 	///
 	/// @brief Get the Hue Bridge device's resource properties
@@ -348,7 +348,7 @@ public:
 	/// @param[in] params Parameters to query device
 	/// @return A JSON structure holding the device's properties
 	///
-	virtual QJsonObject getProperties(const QJsonObject& params) override;
+	QJsonObject getProperties(const QJsonObject& params) override;
 
 	///
 	/// @brief Send an update to the device to identify it.
@@ -357,7 +357,7 @@ public:
 	///
 	/// @param[in] params Parameters to address device
 	///
-	virtual void identify(const QJsonObject& params) override;
+	void identify(const QJsonObject& params) override;
 
 	///
 	/// @brief Get the number of LEDs supported by the device.
@@ -378,7 +378,7 @@ public slots:
 	///
 	/// Includes switching-off the device and stopping refreshes.
 	///
-	virtual void stop() override;
+	void stop() override;
 
 protected:
 
@@ -388,21 +388,21 @@ protected:
 	/// @param deviceConfig Device's configuration in JSON
 	/// @return True, if success
 	///
-	virtual bool init(const QJsonObject &deviceConfig) override;
+	bool init(const QJsonObject &deviceConfig) override;
 
 	///
 	/// @brief Opens the output device
 	///
 	/// @return Zero on success (i.e. device is ready), else negative
 	///
-	virtual int open() override;
+	int open() override;
 
 	///
 	/// @brief Closes the output device.
 	///
 	/// @return Zero on success (i.e. device is closed), else negative
 	///
-	virtual int close() override;
+	int close() override;
 
 	///
 	/// @brief Writes the RGB-Color values to the LEDs.
@@ -410,7 +410,7 @@ protected:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	virtual int write(const std::vector<ColorRgb>& ledValues) override;
+	int write(const std::vector<ColorRgb>& ledValues) override;
 
 	///
 	/// @brief Switch the LEDs on.
@@ -421,7 +421,7 @@ protected:
 	///
 	/// @return True if success
 	///
-	//virtual bool switchOn() override;
+	//bool switchOn() override;
 
 	///
 	/// @brief Switch the LEDs off.
@@ -432,7 +432,7 @@ protected:
 	///
 	/// @return True, if success
 	///
-	virtual bool switchOff() override;
+	bool switchOff() override;
 
 	///
 	/// @brief Power-/turn on the LED-device.
@@ -441,7 +441,7 @@ protected:
 	///
 	/// @return True, if success
 	///
-	virtual bool powerOn() override;
+	bool powerOn() override;
 
 	///
 	/// @brief Power-/turn off the LED-device.
@@ -451,7 +451,7 @@ protected:
 	///
 	/// @return True, if success
 	///
-	virtual bool powerOff() override;
+	bool powerOff() override;
 
 	///
 	/// @brief Store the device's original state.
@@ -460,7 +460,7 @@ protected:
 	///
 	/// @return True if success
 	///
-	virtual bool storeState() override;
+	bool storeState() override;
 
 	///
 	/// @brief Restore the device's original state.
@@ -470,7 +470,7 @@ protected:
 	///
 	/// @return True, if success
 	///
-	virtual bool restoreState() override;
+	bool restoreState() override;
 
 private slots:
 
@@ -515,7 +515,7 @@ private:
 
 	void stopBlackTimeoutTimer();
 
-	QByteArray prepareStreamData();
+	QByteArray prepareStreamData() const;
 
 	///
 	bool _switchOffOnBlack;

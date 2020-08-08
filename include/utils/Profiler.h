@@ -36,8 +36,8 @@ public:
 	Profiler(const char* sourceFile, const char* func, unsigned int line);
 	~Profiler();
 
-	static void TimerStart(const QString stopWatchName, const char* sourceFile, const char* func, unsigned int line);
-	static void TimerGetTime(const QString stopWatchName, const char* sourceFile, const char* func, unsigned int line);
+	static void TimerStart(const QString& stopWatchName, const char* sourceFile, const char* func, unsigned int line);
+	static void TimerGetTime(const QString& stopWatchName, const char* sourceFile, const char* func, unsigned int line);
 
 private:
 	static void initLogger();

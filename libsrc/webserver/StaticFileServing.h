@@ -11,12 +11,13 @@
 
 #include <utils/Logger.h>
 
-class StaticFileServing : public QObject {
+class StaticFileServing : public QObject
+{
     Q_OBJECT
 
 public:
-    explicit StaticFileServing (QObject * parent = nullptr);
-    virtual ~StaticFileServing ();
+	explicit StaticFileServing (QObject * parent = nullptr);
+	~StaticFileServing() override;
 
 	///
 	/// @brief Overwrite current base url
@@ -29,7 +30,7 @@ public:
 	void setSSDPDescription(const QString& desc);
 
 public slots:
-    void onRequestNeedsReply  (QtHttpRequest * request, QtHttpReply * reply);
+	void onRequestNeedsReply  (QtHttpRequest * request, QtHttpReply * reply);
 
 private:
 	QString         _baseUrl;

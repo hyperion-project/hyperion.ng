@@ -151,7 +151,7 @@ int LedDeviceFadeCandy::close()
 	return retval;
 }
 
-bool LedDeviceFadeCandy::isConnected()
+bool LedDeviceFadeCandy::isConnected() const
 {
 	bool connected = false;
 	if ( _client != nullptr )
@@ -204,7 +204,7 @@ int LedDeviceFadeCandy::transferData()
 	return -2;
 }
 
-int LedDeviceFadeCandy::sendSysEx(uint8_t systemId, uint8_t commandId, QByteArray msg)
+int LedDeviceFadeCandy::sendSysEx(uint8_t systemId, uint8_t commandId, const QByteArray& msg)
 {
 	if ( isConnected() )
 	{

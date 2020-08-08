@@ -45,13 +45,13 @@ class BonjourServiceRegister : public QObject
     Q_OBJECT
 public:
     BonjourServiceRegister(QObject *parent = 0);
-    ~BonjourServiceRegister();
+    ~BonjourServiceRegister() override;
 
-	void registerService(const QString& service, int port);
-    void registerService(const BonjourRecord &record, quint16 servicePort, std::vector<std::pair<std::string, std::string>> txt = std::vector<std::pair<std::string, std::string>>());
-    inline BonjourRecord registeredRecord() const {return finalRecord; }
+    void registerService(const QString& service, int port);
+    void registerService(const BonjourRecord &record, quint16 servicePort, const std::vector<std::pair<std::string, std::string>>& txt = {});
+    inline BonjourRecord registeredRecord() const { return finalRecord; }
 
-	quint16 getPort() const { return _port; };
+    quint16 getPort() const { return _port; }
 
 signals:
     void error(DNSServiceErrorType error);
@@ -69,8 +69,8 @@ private:
     QSocketNotifier *bonjourSocket;
     BonjourRecord finalRecord;
 
-	// current port
-	quint16 _port = 0;
+    // current port
+    quint16 _port = 0;
 };
 
 #endif // BONJOURSERVICEREGISTER_H

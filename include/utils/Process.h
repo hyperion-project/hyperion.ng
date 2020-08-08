@@ -6,6 +6,6 @@
 namespace Process {
 
 void restartHyperion(bool asNewProcess=false);
-QByteArray command_exec(QString cmd, QByteArray data="");
+QByteArray command_exec(const QString& cmd, const QByteArray& data="");
 
 }

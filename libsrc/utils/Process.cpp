@@ -6,7 +6,7 @@ namespace Process {
 
 void restartHyperion(bool asNewProcess){}
 
-QByteArray command_exec(QString /*cmd*/, QByteArray /*data*/)
+QByteArray command_exec(const QString& /*cmd*/, const QByteArray& /*data*/)
 {
 	return QSTRING_CSTR(QString());
 }
@@ -48,7 +48,7 @@ void restartHyperion(bool asNewProcess)
 	QCoreApplication::quit();
 }
 
-QByteArray command_exec(QString cmd, QByteArray data)
+QByteArray command_exec(const QString& cmd, const QByteArray& data)
 {
 	char buffer[128];
 	QString result;

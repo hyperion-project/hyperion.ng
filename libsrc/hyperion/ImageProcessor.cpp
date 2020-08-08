@@ -10,7 +10,7 @@
 using namespace hyperion;
 
 // global transform method
-int ImageProcessor::mappingTypeToInt(QString mappingType)
+int ImageProcessor::mappingTypeToInt(const QString& mappingType)
 {
 	if (mappingType == "unicolor_mean" )
 		return 1;
@@ -99,7 +99,7 @@ void ImageProcessor::setBlackbarDetectDisable(bool enable)
 	_borderProcessor->setHardDisable(enable);
 }
 
-bool ImageProcessor::blackBorderDetectorEnabled()
+bool ImageProcessor::blackBorderDetectorEnabled() const
 {
 	return _borderProcessor->enabled();
 }

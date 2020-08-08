@@ -32,7 +32,7 @@ public:
 	/// @param port port number on which to start listening for connections
 	///
 	BoblightServer(Hyperion* hyperion, const QJsonDocument& config);
-	~BoblightServer();
+	~BoblightServer() override;
 
 	///
 	/// @return the port number on which this TCP listens for incoming connections
@@ -41,7 +41,7 @@ public:
 
 	/// @return true if server is active (bind to a port)
 	///
-	bool active();
+	bool active() const;
 
 public slots:
 	///

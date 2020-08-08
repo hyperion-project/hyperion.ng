@@ -133,7 +133,7 @@ PriorityMuxer::InputInfo PriorityMuxer::getInputInfo(int priority) const
 	return elemIt.value();
 }
 
-hyperion::Components PriorityMuxer::getComponentOfPriority(int priority)
+hyperion::Components PriorityMuxer::getComponentOfPriority(int priority) const
 {
 	return _activeInputs[priority].componentId;
 }

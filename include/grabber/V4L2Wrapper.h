@@ -18,8 +18,8 @@ public:
 			int pixelDecimation );
 	~V4L2Wrapper() override;
 
-	bool getSignalDetectionEnable();
-	bool getCecDetectionEnable();
+	bool getSignalDetectionEnable() const;
+	bool getCecDetectionEnable() const;
 
 public slots:
 	bool start() override;
@@ -30,7 +30,7 @@ public slots:
 	void setSignalDetectionOffset(double verticalMin, double horizontalMin, double verticalMax, double horizontalMax);
 	void setSignalDetectionEnable(bool enable);
 	void setCecDetectionEnable(bool enable);
-	void setDeviceVideoStandard(QString device, VideoStandard videoStandard);
+	void setDeviceVideoStandard(const QString& device, VideoStandard videoStandard);
 	void handleCecEvent(CECEvent event);
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config) override;
 

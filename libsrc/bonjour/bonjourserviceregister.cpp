@@ -65,7 +65,7 @@ void BonjourServiceRegister::registerService(const QString& service, int port)
 	);
 }
 
-void BonjourServiceRegister::registerService(const BonjourRecord &record, quint16 servicePort, std::vector<std::pair<std::string, std::string>> txt)
+void BonjourServiceRegister::registerService(const BonjourRecord &record, quint16 servicePort, const std::vector<std::pair<std::string, std::string>>& txt)
 {
 	if (dnssref)
 	{

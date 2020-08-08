@@ -16,8 +16,7 @@
 class httpResponse
 {
 public:
-
-	explicit httpResponse() {}
+	httpResponse() {}
 
 	bool error() const { return _hasError;}
 	void setError(bool hasError) { _hasError = hasError; }

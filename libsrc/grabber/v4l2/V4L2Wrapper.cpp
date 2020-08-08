@@ -6,10 +6,10 @@
 #include <QTimer>
 
 V4L2Wrapper::V4L2Wrapper(const QString &device,
-		const unsigned grabWidth,
-		const unsigned grabHeight,
-		const unsigned fps,
-		const unsigned input,
+		unsigned grabWidth,
+		unsigned grabHeight,
+		unsigned fps,
+		unsigned input,
 		VideoStandard videoStandard,
 		PixelFormat pixelFormat,
 		int pixelDecimation )
@@ -85,7 +85,7 @@ void V4L2Wrapper::setSignalDetectionEnable(bool enable)
 	_grabber.setSignalDetectionEnable(enable);
 }
 
-bool V4L2Wrapper::getSignalDetectionEnable()
+bool V4L2Wrapper::getSignalDetectionEnable() const
 {
 	return _grabber.getSignalDetectionEnabled();
 }
@@ -95,12 +95,12 @@ void V4L2Wrapper::setCecDetectionEnable(bool enable)
 	_grabber.setCecDetectionEnable(enable);
 }
 
-bool V4L2Wrapper::getCecDetectionEnable()
+bool V4L2Wrapper::getCecDetectionEnable() const
 {
 	return _grabber.getCecDetectionEnabled();
 }
 
-void V4L2Wrapper::setDeviceVideoStandard(QString device, VideoStandard videoStandard)
+void V4L2Wrapper::setDeviceVideoStandard(const QString& device, VideoStandard videoStandard)
 {
 	_grabber.setDeviceVideoStandard(device, videoStandard);
 }

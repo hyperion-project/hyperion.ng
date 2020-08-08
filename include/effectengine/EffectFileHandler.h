@@ -20,12 +20,12 @@ public:
 	///
 	/// @brief Get all available effects
 	///
-	const std::list<EffectDefinition> & getEffects() const { return _availableEffects; };
+	std::list<EffectDefinition> getEffects() const { return _availableEffects; }
 
 	///
 	/// @brief Get all available schemas
 	///
-	const std::list<EffectSchema> & getEffectSchemas() { return _effectSchemas; };
+	std::list<EffectSchema> getEffectSchemas() const { return _effectSchemas; }
 
 	///
 	/// @brief Save an effect

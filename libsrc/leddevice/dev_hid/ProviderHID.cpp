@@ -156,28 +156,30 @@ int ProviderHID::writeBytes(unsigned size, const uint8_t * data)
 	else{
 		ret = hid_write(_deviceHandle, ledData, size + 1);
 	}
-	
+
 	// Handle first error
-	if(ret < 0){
+	if(ret < 0)
+	{
 		Error(_log,"Failed to write to HID device.");
 
 		// Try again
-		if(_useFeature){
+		if(_useFeature)
+		{
 			ret = hid_send_feature_report(_deviceHandle, ledData, size + 1);
 		}
-		else{
+		else
+		{
 			ret = hid_write(_deviceHandle, ledData, size + 1);
 		}
 
 		// Writing failed again, device might have disconnected
 		if(ret < 0){
 			Error(_log,"Failed to write to HID device.");
-		
+
 			hid_close(_deviceHandle);
 			_deviceHandle = nullptr;
 		}
 	}
-	
 	return ret;
 }
 

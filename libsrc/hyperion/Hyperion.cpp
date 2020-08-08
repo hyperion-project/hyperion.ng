@@ -255,7 +255,7 @@ QJsonDocument Hyperion::getSetting(settings::type type) const
 	return _settingsManager->getSetting(type);
 }
 
-bool Hyperion::saveSettings(QJsonObject config, bool correct)
+bool Hyperion::saveSettings(const QJsonObject& config, bool correct)
 {
 	return _settingsManager->saveSettings(config, correct);
 }
@@ -290,7 +290,7 @@ bool Hyperion::setVisiblePriority(int priority)
 	return _muxer.setPriority(priority);
 }
 
-bool Hyperion::sourceAutoSelectEnabled()
+bool Hyperion::sourceAutoSelectEnabled() const
 {
 	return _muxer.isSourceAutoSelectEnabled();
 }
@@ -305,7 +305,7 @@ std::map<hyperion::Components, bool> Hyperion::getAllComponents() const
 	return _componentRegister.getRegister();
 }
 
-int Hyperion::isComponentEnabled(hyperion::Components comp)
+int Hyperion::isComponentEnabled(hyperion::Components comp) const
 {
 	return _componentRegister.isComponentEnabled(comp);
 }
@@ -396,7 +396,7 @@ end:
 		_muxer.queuePush();
 }
 
-const QStringList & Hyperion::getAdjustmentIds() const
+QStringList Hyperion::getAdjustmentIds() const
 {
 	return _raw2ledAdjustment->getAdjustmentIds();
 }
@@ -464,22 +464,22 @@ QString Hyperion::deleteEffect(const QString& effectName)
 	return _effectEngine->deleteEffect(effectName);
 }
 
-const std::list<EffectDefinition> & Hyperion::getEffects() const
+std::list<EffectDefinition> Hyperion::getEffects() const
 {
 	return _effectEngine->getEffects();
 }
 
-const std::list<ActiveEffectDefinition> & Hyperion::getActiveEffects() const
+std::list<ActiveEffectDefinition> Hyperion::getActiveEffects() const
 {
 	return _effectEngine->getActiveEffects();
 }
 
-const std::list<EffectSchema> & Hyperion::getEffectSchemas() const
+std::list<EffectSchema> Hyperion::getEffectSchemas() const
 {
 	return _effectEngine->getEffectSchemas();
 }
 
-const QJsonObject& Hyperion::getQJsonConfig() const
+QJsonObject Hyperion::getQJsonConfig() const
 {
 	return _settingsManager->getSettings();
 }

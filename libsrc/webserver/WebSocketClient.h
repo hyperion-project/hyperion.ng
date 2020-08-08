@@ -9,7 +9,8 @@ class QtHttpRequest;
 class Hyperion;
 class JsonAPI;
 
-class WebSocketClient : public QObject {
+class WebSocketClient : public QObject
+{
 	Q_OBJECT
 public:
 	WebSocketClient(QtHttpRequest* request, QTcpSocket* sock, bool localConnection, QObject* parent);

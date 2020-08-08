@@ -67,22 +67,22 @@ inline const char* componentToIdString(Components c)
 	}
 }
 
-inline Components stringToComponent(QString component)
+inline Components stringToComponent(const QString& component)
 {
-	component = component.toUpper();
-	if (component == "ALL")           return COMP_ALL;
-	if (component == "SMOOTHING")     return COMP_SMOOTHING;
-	if (component == "BLACKBORDER")   return COMP_BLACKBORDER;
-	if (component == "FORWARDER")     return COMP_FORWARDER;
-	if (component == "BOBLIGHTSERVER")return COMP_BOBLIGHTSERVER;
-	if (component == "GRABBER")       return COMP_GRABBER;
-	if (component == "V4L")           return COMP_V4L;
-	if (component == "COLOR")         return COMP_COLOR;
-	if (component == "EFFECT")        return COMP_EFFECT;
-	if (component == "IMAGE")         return COMP_IMAGE;
-	if (component == "LEDDEVICE")     return COMP_LEDDEVICE;
-	if (component == "FLATBUFSERVER") return COMP_FLATBUFSERVER;
-	if (component == "PROTOSERVER")   return COMP_PROTOSERVER;
+	const QString cmp = component.toUpper();
+	if (cmp == "ALL")           return COMP_ALL;
+	if (cmp == "SMOOTHING")     return COMP_SMOOTHING;
+	if (cmp == "BLACKBORDER")   return COMP_BLACKBORDER;
+	if (cmp == "FORWARDER")     return COMP_FORWARDER;
+	if (cmp == "BOBLIGHTSERVER")return COMP_BOBLIGHTSERVER;
+	if (cmp == "GRABBER")       return COMP_GRABBER;
+	if (cmp == "V4L")           return COMP_V4L;
+	if (cmp == "COLOR")         return COMP_COLOR;
+	if (cmp == "EFFECT")        return COMP_EFFECT;
+	if (cmp == "IMAGE")         return COMP_IMAGE;
+	if (cmp == "LEDDEVICE")     return COMP_LEDDEVICE;
+	if (cmp == "FLATBUFSERVER") return COMP_FLATBUFSERVER;
+	if (cmp == "PROTOSERVER")   return COMP_PROTOSERVER;
 	return COMP_INVALID;
 }
 

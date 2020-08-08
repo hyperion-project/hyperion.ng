@@ -130,7 +130,7 @@ bool SettingsManager::saveSettings(QJsonObject config, bool correct)
 		Warning(_log,"Fixing json data!");
 		config = schemaChecker.getAutoCorrectedConfig(config);
 
-		for (auto & schemaError : schemaChecker.getMessages())
+		for (const auto & schemaError : schemaChecker.getMessages())
 			Warning(_log, "Config Fix: %s", QSTRING_CSTR(schemaError));
 	}
 

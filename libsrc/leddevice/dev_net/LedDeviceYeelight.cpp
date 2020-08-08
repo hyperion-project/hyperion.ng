@@ -575,7 +575,7 @@ bool YeelightLight::identify()
 	return rc;
 }
 
-bool YeelightLight::isInMusicMode( bool deviceCheck)
+bool YeelightLight::isInMusicMode(bool deviceCheck)
 {
 	bool inMusicMode = false;
 
@@ -899,7 +899,7 @@ bool YeelightLight::setColorHSV(const ColorRgb &colorRGB)
 }
 
 
-void YeelightLight::setTransitionEffect ( YeelightLight::API_EFFECT effect ,int duration )
+void YeelightLight::setTransitionEffect(YeelightLight::API_EFFECT effect, int duration)
 {
 	if( effect != _transitionEffect )
 	{
@@ -914,7 +914,7 @@ void YeelightLight::setTransitionEffect ( YeelightLight::API_EFFECT effect ,int 
 
 }
 
-void YeelightLight::setBrightnessConfig (int min, int max, bool switchoff,  int extraTime, double factor )
+void YeelightLight::setBrightnessConfig(int min, int max, bool switchoff, int extraTime, double factor)
 {
 	_brightnessMin = min;
 	_isBrightnessSwitchOffMinimum = switchoff;

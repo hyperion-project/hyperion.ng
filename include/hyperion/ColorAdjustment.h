@@ -13,7 +13,7 @@ public:
 
 	/// Unique identifier for this color transform
 	QString _id;
-	
+
 	/// The BLACK (RGB-Channel) adjustment
 	RgbChannelAdjustment _rgbBlackAdjustment;
 	/// The WHITE (RGB-Channel) adjustment

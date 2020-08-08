@@ -20,7 +20,7 @@ class ComponentRegister : public QObject
 
 public:
 	ComponentRegister(Hyperion* hyperion);
-	~ComponentRegister();
+	~ComponentRegister() override;
 
 	///
 	/// @brief  Check if a component is currently enabled
@@ -30,7 +30,7 @@ public:
 	int isComponentEnabled(hyperion::Components comp) const;
 
 	/// contains all components and their state
-	std::map<hyperion::Components, bool> getRegister() const { return _componentStates; };
+	std::map<hyperion::Components, bool> getRegister() const { return _componentStates; }
 
 signals:
 	///
