@@ -125,7 +125,7 @@ void V4L2Wrapper::setFpsSoftwareDecimation(int decimation)
 	_grabber.setFpsSoftwareDecimation(decimation);
 }
 
-void V4L2Wrapper::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
+void V4L2Wrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
 	if(type == settings::V4L2 && _grabberName.startsWith("V4L"))
 	{

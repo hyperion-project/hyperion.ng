@@ -43,7 +43,7 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument& config, Hyperion
 	connect(_timer, &QTimer::timeout, this, &LinearColorSmoothing::updateLeds);
 }
 
-void LinearColorSmoothing::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
+void LinearColorSmoothing::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
 	if(type == settings::SMOOTHING)
 	{
@@ -198,7 +198,7 @@ void LinearColorSmoothing::clearQueuedColors()
 	_targetValues.clear();
 }
 
-void LinearColorSmoothing::componentStateChange(const hyperion::Components component, const bool state)
+void LinearColorSmoothing::componentStateChange(hyperion::Components component, bool state)
 {
 	_writeToLedsEnable = state;
 	if(component == hyperion::COMP_LEDDEVICE)
@@ -254,7 +254,7 @@ unsigned LinearColorSmoothing::updateConfig(unsigned cfgID, int settlingTime_ms,
 	return updatedCfgID;
 }
 
-bool LinearColorSmoothing::selectConfig(unsigned cfg, const bool& force)
+bool LinearColorSmoothing::selectConfig(unsigned cfg, bool force)
 {
 	if (_currentConfigId == cfg && !force)
 	{

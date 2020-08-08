@@ -21,24 +21,15 @@ public:
 	~ImageResampler();
 
 	void setHorizontalPixelDecimation(int decimator);
-
 	void setVerticalPixelDecimation(int decimator);
-
-	void setCropping(int cropLeft,
-					 int cropRight,
-					 int cropTop,
-					 int cropBottom);
-
+	void setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom);
 	void setVideoMode(VideoMode mode);
-
 	void processImage(const uint8_t * data, int width, int height, int lineLength, PixelFormat pixelFormat, Image<ColorRgb> & outputImage) const;
 	void processImageHDR2SDR(const uint8_t * data, int width, int height, int lineLength, PixelFormat pixelFormat, unsigned char *lutBuffer, Image<ColorRgb> &outputImage) const;
 
 private:
-	static inline uint8_t clamp(int x);
-	static void yuv2rgb(uint8_t y, uint8_t u, uint8_t v, uint8_t & r, uint8_t & g, uint8_t & b);
-	static void yuv2rgbHDR2SDR(uint8_t y, uint8_t u, uint8_t v, uint8_t & r, uint8_t & g, uint8_t & b, unsigned char *lutBuffer);
-private:
+  static inline uint8_t clamp(int x);	
+	static void yuv2rgbHDR2SDR(uint8_t y, uint8_t u, uint8_t v, uint8_t & r, uint8_t & g, uint8_t & b, unsigned char *lutBuffer);  
 	int _horizontalDecimation;
 	int _verticalDecimation;
 	int _cropLeft;
@@ -47,3 +38,4 @@ private:
 	int _cropBottom;
 	VideoMode _videoMode;
 };
+

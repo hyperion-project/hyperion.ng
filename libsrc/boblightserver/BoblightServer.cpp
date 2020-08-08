@@ -72,7 +72,7 @@ bool BoblightServer::active()
 	return _server->isListening();
 }
 
-void BoblightServer::compStateChangeRequest(const hyperion::Components component, bool enable)
+void BoblightServer::compStateChangeRequest(hyperion::Components component, bool enable)
 {
 	if (component == COMP_BOBLIGHTSERVER)
 	{
@@ -114,7 +114,7 @@ void BoblightServer::closedConnection(BoblightClientConnection *connection)
 	connection->deleteLater();
 }
 
-void BoblightServer::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
+void BoblightServer::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
 	if(type == settings::BOBLSERVER)
 	{

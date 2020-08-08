@@ -51,7 +51,7 @@ BonjourServiceRegister::~BonjourServiceRegister()
 	}
 }
 
-void BonjourServiceRegister::registerService(const QString& service, const int& port)
+void BonjourServiceRegister::registerService(const QString& service, int port)
 {
 	_port = port;
 	// zeroconf $configname@$hostname:port

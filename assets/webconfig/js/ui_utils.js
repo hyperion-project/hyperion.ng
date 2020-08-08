@@ -198,7 +198,7 @@ function initLanguageSelection()
 	var langText = 'Please Select';
 
 	//Test, if language is supported by hyperion
-	langIdx = availLang.indexOf(langLocale)
+	var langIdx = availLang.indexOf(langLocale);
 	if ( langIdx > -1 )
 	{
 		langText = availLangText[langIdx];

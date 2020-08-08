@@ -135,7 +135,7 @@ private:
 	///
 	/// @return True, if success
 	///
-	bool initRestAPI(const QString &hostname, const int port, const QString &token );
+	bool initRestAPI(const QString &hostname, int port, const QString &token );
 
 	///
 	/// @brief Get Nanoleaf device details and configuration

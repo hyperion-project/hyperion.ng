@@ -27,7 +27,7 @@ public:
 	/// @param  comp   The component from enum
 	/// @return        True if component is running else false. Not found is -1
 	///
-	int isComponentEnabled(const hyperion::Components& comp) const;
+	int isComponentEnabled(hyperion::Components comp) const;
 
 	/// contains all components and their state
 	std::map<hyperion::Components, bool> getRegister() const { return _componentStates; };
@@ -38,7 +38,7 @@ signals:
 	///	@param comp   The component
 	///	@param state  The new state of the component
 	///
-	void updatedComponentState(const hyperion::Components comp, const bool state);
+	void updatedComponentState(hyperion::Components comp, bool state);
 
 public slots:
 	///
@@ -46,13 +46,13 @@ public slots:
 	///	@param comp   The component
 	///	@param state  The new state of the component
 	///
-	void setNewComponentState(const hyperion::Components comp, const bool activated);
+	void setNewComponentState(hyperion::Components comp, bool activated);
 
 private slots:
 	///
 	/// @brief Handle COMP_ALL changes from Hyperion->compStateChangeRequest
 	///
-	void handleCompStateChangeRequest(const hyperion::Components comps, const bool activated);
+	void handleCompStateChangeRequest(hyperion::Components comps, bool activated);
 
 private:
 	///  Hyperion instance

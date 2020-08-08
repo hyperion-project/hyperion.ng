@@ -80,7 +80,7 @@ private:
 	///
 	/// @brief Generate Art-Net communication header
 	///
-	void prepare(const unsigned this_universe, const unsigned this_sequence, const unsigned this_dmxChannelCount);
+	void prepare(unsigned this_universe, unsigned this_sequence, unsigned this_dmxChannelCount);
 
 	artnet_packet_t artnet_packet;
 	uint8_t _artnet_seq = 1;

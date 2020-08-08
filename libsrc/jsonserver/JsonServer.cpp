@@ -73,7 +73,7 @@ void JsonServer::stop()
 	Info(_log, "Stopped");
 }
 
-void JsonServer::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
+void JsonServer::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
 	if(type == settings::JSONSERVER)
 	{
@@ -113,7 +113,7 @@ void JsonServer::newConnection()
 	}
 }
 
-void JsonServer::closedConnection(void)
+void JsonServer::closedConnection()
 {
 	JsonClientConnection* connection = qobject_cast<JsonClientConnection*>(sender());
 	Debug(_log, "Connection closed");

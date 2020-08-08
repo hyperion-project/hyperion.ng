@@ -41,7 +41,7 @@ public:
 	/// @param senderIp   Ip address of the sender
 	/// @param senderPort The port of the sender
 	///
-	void sendMSearchResponse(const QString& st, const QString& senderIp, const quint16& senderPort);
+	void sendMSearchResponse(const QString& st, const QString& senderIp, quint16 senderPort);
 
 	///
 	/// @brief Send ByeBye notification (on SSDP stop) (repeated 3 times)
@@ -76,7 +76,7 @@ public:
 	///
 	/// @brief set new flatbuffer server port
 	///
-	void setFlatBufPort(const quint16& port) { _fbsPort = QString::number(port); };
+	void setFlatBufPort(quint16 port) { _fbsPort = QString::number(port); };
 
 	///
 	/// @brief Get current flatbuffer server port
@@ -86,7 +86,7 @@ public:
 	///
 	/// @brief set new jsonserver server port
 	///
-	void setJsonServerPort(const quint16& port) { _jssPort = QString::number(port); };
+	void setJsonServerPort(quint16 port) { _jssPort = QString::number(port); };
 
 	///
 	/// @brief get new jsonserver server port
@@ -112,7 +112,7 @@ signals:
 	/// @param address The ip of the caller
 	/// @param port    The port of the caller
 	///
-	void msearchRequestReceived(const QString& target, const QString& mx, const QString address, const quint16 & port);
+	void msearchRequestReceived(const QString& target, const QString& mx, const QString address, quint16 port);
 
 private:
 	Logger* _log;

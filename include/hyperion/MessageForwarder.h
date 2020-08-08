@@ -45,20 +45,20 @@ private slots:
 	/// @param type   settingyType from enum
 	/// @param config configuration object
 	///
-	void handleSettingsUpdate(const settings::type &type, const QJsonDocument &config);
+	void handleSettingsUpdate(settings::type type, const QJsonDocument &config);
 
 	///
 	/// @brief Handle component state change MessageForwarder
 	/// @param component  The component from enum
 	/// @param enable     The new state
 	///
-	void handleCompStateChangeRequest(const hyperion::Components component, bool enable);
+	void handleCompStateChangeRequest(hyperion::Components component, bool enable);
 
 	///
 	/// @brief Handle priority updates from Priority Muxer
 	/// @param  priority  The new visible priority
 	///
-	void handlePriorityChanges(const quint8 &priority);
+	void handlePriorityChanges(quint8 priority);
 
 	///
 	/// @brief Forward message to all json slaves

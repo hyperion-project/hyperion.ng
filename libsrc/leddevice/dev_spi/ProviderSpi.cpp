@@ -125,7 +125,7 @@ int ProviderSpi::close()
 	return retval;
 }
 
-int ProviderSpi::writeBytes(const unsigned size, const uint8_t * data)
+int ProviderSpi::writeBytes(unsigned size, const uint8_t * data)
 {
 	if (_fid < 0)
 	{

@@ -38,25 +38,25 @@ public:
 	/// @brief Get the unique id (imported from removed class 'Stats')
 	/// @return The unique id
 	///
-	const QString &getID() { return _uuid; };
+	const QString &getID() const { return _uuid; };
 
 	///
 	/// @brief Check authorization is required according to the user setting
 	/// @return       True if authorization required else false
 	///
-	const bool &isAuthRequired() { return _authRequired; };
+	bool isAuthRequired() const { return _authRequired; };
 
 	///
 	/// @brief Check if authorization is required for local network connections
 	/// @return       True if authorization required else false
 	///
-	const bool &isLocalAuthRequired() { return _localAuthRequired; };
+	bool isLocalAuthRequired() const { return _localAuthRequired; };
 
 	///
 	/// @brief Check if authorization is required for local network connections for admin access
 	/// @return       True if authorization required else false
 	///
-	const bool &isLocalAdminAuthRequired() { return _localAdminAuthRequired; };
+	bool isLocalAdminAuthRequired() const { return _localAdminAuthRequired; };
 
 	///
 	/// @brief Reset Hyperion user
@@ -158,7 +158,7 @@ public slots:
 	/// @param id      The id of the request
 	/// @param accept  The accept or deny the request
 	///
-	void handlePendingTokenRequest(const QString &id, const bool &accept);
+	void handlePendingTokenRequest(const QString &id, bool accept);
 
 	///
 	/// @brief Get pending requests
@@ -183,7 +183,7 @@ public slots:
 	/// @param type   settings type from enum
 	/// @param config configuration object
 	///
-	void handleSettingsUpdate(const settings::type &type, const QJsonDocument &config);
+	void handleSettingsUpdate(settings::type type, const QJsonDocument &config);
 
 signals:
 	///
@@ -201,7 +201,7 @@ signals:
 	/// @param  comment The comment that was part of the request
 	/// @param  id      The id that was part of the request
 	///
-	void tokenResponse(const bool &success, QObject *caller, const QString &token, const QString &comment, const QString &id);
+	void tokenResponse(bool success, QObject *caller, const QString &token, const QString &comment, const QString &id);
 
 	///
 	/// @brief Emits whenever the token list changes
@@ -214,7 +214,7 @@ private:
 	/// @brief Increment counter for token/user auth
 	/// @param user If true we increment USER auth instead of token
 	///
-	void setAuthBlock(const bool &user = false);
+	void setAuthBlock(bool user = false);
 
 	/// Database interface for auth table
 	AuthTable *_authTable;

@@ -13,7 +13,7 @@
 // Local includes
 #include <grabber/FramebufferFrameGrabber.h>
 
-FramebufferFrameGrabber::FramebufferFrameGrabber(const QString & device, const unsigned width, const unsigned height)
+FramebufferFrameGrabber::FramebufferFrameGrabber(const QString & device, unsigned width, unsigned height)
 	: Grabber("FRAMEBUFFERGRABBER", width, height)
 	, _fbDevice()
 {

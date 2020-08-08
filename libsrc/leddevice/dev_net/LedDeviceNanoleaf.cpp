@@ -342,7 +342,7 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 	return isInitOK;
 }
 
-bool LedDeviceNanoleaf::initRestAPI(const QString &hostname, const int port, const QString &token )
+bool LedDeviceNanoleaf::initRestAPI(const QString &hostname, int port, const QString &token )
 {
 	bool isInitOK = false;
 

@@ -32,7 +32,7 @@ public slots:
 	void setCecDetectionEnable(bool enable);
 	void setDeviceVideoStandard(QString device, VideoStandard videoStandard);
 	void handleCecEvent(CECEvent event);
-	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config) override;
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config) override;
 	
 	///
 	/// @brief load LUT file for HDR to SDR tone mapping (v4l2)

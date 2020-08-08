@@ -42,7 +42,7 @@ JsonCB::JsonCB(QObject* parent)
 	<< "adjustment-update" << "videomode-update" << "effects-update" << "settings-update" << "leds-update" << "instance-update" << "token-update";
 }
 
-bool JsonCB::subscribeFor(const QString& type, const bool & unsubscribe)
+bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
 {
 	if(!_availableCommands.contains(type))
 		return false;
@@ -189,7 +189,7 @@ void JsonCB::doCallback(const QString& cmd, const QVariant& data)
 	emit newCallback(obj);
 }
 
-void JsonCB::handleComponentState(const hyperion::Components comp, const bool state)
+void JsonCB::handleComponentState(hyperion::Components comp, bool state)
 {
 	QJsonObject data;
 	data["name"] = componentToIdString(comp);
@@ -279,7 +279,7 @@ void JsonCB::handlePriorityUpdate()
 	doCallback("priorities-update", QVariant(data));
 }
 
-void JsonCB::handleImageToLedsMappingChange(const int& mappingType)
+void JsonCB::handleImageToLedsMappingChange(int mappingType)
 {
 	QJsonObject data;
 	data["imageToLedMappingType"] = ImageProcessor::mappingTypeToStr(mappingType);
@@ -357,7 +357,7 @@ void JsonCB::handleAdjustmentChange()
 	doCallback("adjustment-update", QVariant(adjustmentArray));
 }
 
-void JsonCB::handleVideoModeChange(const VideoMode& mode)
+void JsonCB::handleVideoModeChange(VideoMode mode)
 {
 	QJsonObject data;
 	data["videomode"] = QString(videoMode2String(mode));
@@ -382,7 +382,7 @@ void JsonCB::handleEffectListChange()
 	doCallback("effects-update", QVariant(effects));
 }
 
-void JsonCB::handleSettingsChange(const settings::type& type, const QJsonDocument& data)
+void JsonCB::handleSettingsChange(settings::type type, const QJsonDocument& data)
 {
 	QJsonObject dat;
 	if(data.isObject())
@@ -393,7 +393,7 @@ void JsonCB::handleSettingsChange(const settings::type& type, const QJsonDocumen
 	doCallback("settings-update", QVariant(dat));
 }
 
-void JsonCB::handleLedsConfigChange(const settings::type& type, const QJsonDocument& data)
+void JsonCB::handleLedsConfigChange(settings::type type, const QJsonDocument& data)
 {
 	if(type == settings::LEDS)
 	{

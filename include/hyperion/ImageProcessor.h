@@ -46,7 +46,7 @@ public:
 	/// @param[in] width   The new width of the buffer-image
 	/// @param[in] height  The new height of the buffer-image
 	///
-	void setSize(const unsigned width, const unsigned height);
+	void setSize(unsigned width, unsigned height);
 
 	///
 	/// @brief Update the led string (eg on settings change)
@@ -57,10 +57,10 @@ public:
 	bool blackBorderDetectorEnabled();
 
 	/// Returns the current _userMappingType, this may not be the current applied type!
-	const int & getUserLedMappingType() { return _userMappingType; };
+	int getUserLedMappingType() { return _userMappingType; };
 
 	/// Returns the current _mappingType
-	const int & ledMappingType() { return _mappingType; };
+	int ledMappingType() { return _mappingType; };
 
 	static int mappingTypeToInt(QString mappingType);
 	static QString mappingTypeToStr(int mappingType);
@@ -215,7 +215,7 @@ private:
 	}
 
 private slots:
-	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 private:
 	Logger * _log;
