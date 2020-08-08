@@ -30,7 +30,6 @@ For more profiler function see the macros listed below
 #define PROFILER_TIMER_GET(stopWatchName)    Profiler::TimerGetTime(stopWatchName, __FILE__, __FUNCTION__, __LINE__);
 #define PROFILER_TIMER_GET_IF(condition, stopWatchName) { if (condition) {Profiler::TimerGetTime(stopWatchName, __FILE__, __FUNCTION__, __LINE__);} }
 
-
 class Profiler
 {
 public:

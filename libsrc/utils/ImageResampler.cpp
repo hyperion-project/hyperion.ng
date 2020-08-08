@@ -1,5 +1,5 @@
 #include "utils/ImageResampler.h"
-
+#include <utils/ColorSys.h>
 #include <utils/Logger.h>
 
 ImageResampler::ImageResampler()
@@ -80,7 +80,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 					uint8_t y = data[index+1];
 					uint8_t u = ((xSource&1) == 0) ? data[index  ] : data[index-2];
 					uint8_t v = ((xSource&1) == 0) ? data[index+2] : data[index  ];
-					yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
+					ColorSys::yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
 				}
 				break;
 				case PixelFormat::YUYV:
@@ -89,7 +89,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 					uint8_t y = data[index];
 					uint8_t u = ((xSource&1) == 0) ? data[index+1] : data[index-1];
 					uint8_t v = ((xSource&1) == 0) ? data[index+3] : data[index+1];
-					yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
+					ColorSys::yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
 				}
 				break;
 				case PixelFormat::BGR16:
@@ -134,21 +134,4 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 			}
 		}
 	}
-}
-
-uint8_t ImageResampler::clamp(int x)
-{
-	return (x<0) ? 0 : ((x>255) ? 255 : uint8_t(x));
-}
-
-void ImageResampler::yuv2rgb(uint8_t y, uint8_t u, uint8_t v, uint8_t &r, uint8_t &g, uint8_t &b)
-{
-	// see: http://en.wikipedia.org/wiki/YUV#Y.27UV444_to_RGB888_conversion
-	int c = y - 16;
-	int d = u - 128;
-	int e = v - 128;
-
-	r = clamp((298 * c + 409 * e + 128) >> 8);
-	g = clamp((298 * c - 100 * d - 208 * e + 128) >> 8);
-	b = clamp((298 * c + 516 * d + 128) >> 8);
 }

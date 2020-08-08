@@ -20,6 +20,7 @@ public:
         static GlobalSignals instance;
         return & instance;
     }
+
 private:
     GlobalSignals() = default;
 
