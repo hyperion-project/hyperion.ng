@@ -10,9 +10,9 @@ make_release()
 	PLATFORM=$2
 	shift 2
 
-	rm -r build-${RELEASE}
+	rm -rf build-${RELEASE}
 	mkdir -p build-${RELEASE}
-	rm -r deploy/${RELEASE}
+	rm -rf deploy/${RELEASE}
 	mkdir -p deploy/${RELEASE}
 
 	cd  build-${RELEASE}
