@@ -1,13 +1,14 @@
 #ifndef SSDPDISCOVER_H
 #define SSDPDISCOVER_H
 
-#include <utils/Logger.h>
 #include <QHostAddress>
+#include <QMultiMap>
 #include <QUrl>
 #include <QRegularExpression>
 
 #include <chrono>
 
+class Logger;
 class QUdpSocket;
 
 enum class searchType{
@@ -202,7 +203,7 @@ private:
 	int _ssdpMaxWaitResponseTime;
 	int	_ssdpTimeout;
 
-	QMap<QString, SSDPService> _services;
+	QMultiMap<QString, SSDPService> _services;
 
 	QStringList _usnList;
 	QString _searchTarget;

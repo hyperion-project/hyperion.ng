@@ -29,8 +29,8 @@ V4L2Wrapper::V4L2Wrapper(const QString &device,
 	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");
 
 	// Handle the image in the captured thread using a direct connection
-	connect(&_grabber, SIGNAL(newFrame(Image<ColorRgb>)), this, SLOT(newFrame(Image<ColorRgb>)), Qt::DirectConnection);
-	connect(&_grabber, SIGNAL(readError(const char*)), this, SLOT(readError(const char*)), Qt::DirectConnection);
+	connect(&_grabber, &V4L2Grabber::newFrame, this, &V4L2Wrapper::newFrame, Qt::DirectConnection);
+	connect(&_grabber, &V4L2Grabber::readError, this, &V4L2Wrapper::readError, Qt::DirectConnection);
 }
 
 V4L2Wrapper::~V4L2Wrapper()
@@ -110,6 +110,21 @@ void V4L2Wrapper::handleCecEvent(CECEvent event)
 	_grabber.handleCecEvent(event);
 }
 
+void V4L2Wrapper::loadLutFile(QString path)
+{
+	_grabber.loadLutFile(path);
+}
+
+void V4L2Wrapper::setHdrToneMappingEnabled(bool enable)
+{
+	_grabber.setHdrToneMappingEnabled(enable);
+}
+
+void V4L2Wrapper::setFpsSoftwareDecimation(int decimation)
+{
+	_grabber.setFpsSoftwareDecimation(decimation);
+}
+
 void V4L2Wrapper::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
 {
 	if(type == settings::V4L2 && _grabberName.startsWith("V4L"))
@@ -139,6 +154,12 @@ void V4L2Wrapper::handleSettingsUpdate(const settings::type& type, const QJsonDo
 		// CEC Standby
 		_grabber.setCecDetectionEnable(obj["cecDetection"].toBool(true));
 
+		// HDR tone mapping
+		_grabber.setHdrToneMappingEnabled(obj["hdrToneMapping"].toBool(false));
+		
+		// software frame skipping
+		_grabber.setFpsSoftwareDecimation(obj["fpsSoftwareDecimation"].toInt(1));
+		
 		_grabber.setSignalDetectionEnable(obj["signalDetection"].toBool(true));
 		_grabber.setSignalDetectionOffset(
 			obj["sDHOffsetMin"].toDouble(0.25),

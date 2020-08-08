@@ -72,8 +72,13 @@ void X11Grabber::setupResources()
 		_shminfo.readOnly = False;
 		XShmAttach(_x11Display, &_shminfo);
 	}
+
 	if (_XRenderAvailable)
 	{
+        	_useImageResampler = false;
+		_imageResampler.setHorizontalPixelDecimation(1);
+		_imageResampler.setVerticalPixelDecimation(1);
+
 		if(_XShmPixmapAvailable)
 		{
 			_pixmap = XShmCreatePixmap(_x11Display, _window, _xImage->data, &_shminfo, _width, _height, _windowAttr.depth);
@@ -86,8 +91,16 @@ void X11Grabber::setupResources()
 		_dstFormat = XRenderFindVisualFormat(_x11Display, _windowAttr.visual);
 		_srcPicture = XRenderCreatePicture(_x11Display, _window, _srcFormat, CPRepeat, &_pictAttr);
 		_dstPicture = XRenderCreatePicture(_x11Display, _pixmap, _dstFormat, CPRepeat, &_pictAttr);
+
 		XRenderSetPictureFilter(_x11Display, _srcPicture, FilterBilinear, NULL, 0);
 	}
+	else
+	{
+        	_useImageResampler = true;
+		_imageResampler.setHorizontalPixelDecimation(_pixelDecimation);
+		_imageResampler.setVerticalPixelDecimation(_pixelDecimation);
+	}
+
 }
 
 bool X11Grabber::Setup()
@@ -116,10 +129,6 @@ bool X11Grabber::Setup()
 	_XShmAvailable = XShmQueryExtension(_x11Display);
 	XShmQueryVersion(_x11Display, &dummy, &dummy, &pixmaps_supported);
 	_XShmPixmapAvailable = pixmaps_supported && XShmPixmapFormat(_x11Display) == ZPixmap;
-
-	// Image scaling is performed by XRender when available, otherwise by ImageResampler
-	_imageResampler.setHorizontalPixelDecimation(_XRenderAvailable ? 1 : _pixelDecimation);
-	_imageResampler.setVerticalPixelDecimation(_XRenderAvailable ? 1 : _pixelDecimation);
 
 	bool result = (updateScreenDimensions(true) >=0);
 	ErrorIf(!result, _log, "X11 Grabber start failed");

@@ -104,7 +104,7 @@ $(document).ready( function() {
 
 	if(grabbers.indexOf('dispmanx') > -1)
 		html += 'Raspberry Pi';
-	else if(grabbers.indexOf('x11') > -1)
+	else if(grabbers.indexOf('x11') > -1 || grabbers.indexOf('xcb') > -1)
 		html += 'X86';
 	else if(grabbers.indexOf('osx')  > -1)
 		html += 'OSX';

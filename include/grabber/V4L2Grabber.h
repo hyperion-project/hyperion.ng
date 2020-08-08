@@ -149,7 +149,21 @@ public:
 	/// @brief overwrite Grabber.h implementation
 	///
 	QStringList getFramerates(QString devicePath) override;
-
+	
+	///
+	/// @brief load LUT file for HDR to SDR tone mapping (v4l2)
+	///
+	void loadLutFile(QString path);
+	
+	///
+	/// @brief set software decimation (v4l2)
+	///
+	void setFpsSoftwareDecimation(int decimation);
+	
+	///
+	/// @brief enable HDR to SDR tone mapping (v4l2)
+	///
+	void setHdrToneMappingEnabled(bool enable);
 public slots:
 
 	bool start();
@@ -279,7 +293,16 @@ private:
 
 	bool _initialized;
 	bool _deviceAutoDiscoverEnabled;
-
+	
+	// enable/disable HDR tone mapping
+	bool _hdrToneMappingEnabled;
+	// accept only frame: n'th mod fpsSoftwareDecimation == 0 
+	int _fpsSoftwareDecimation;
+	// memory buffer for 3DLUT HDR tone mapping
+	unsigned char *lutBuffer;
+	// frame counter
+	int _currentFrame;
+	
 protected:
 	void enumFrameIntervals(QStringList &framerates, int fileDescriptor, int pixelformat, int width, int height);
 };

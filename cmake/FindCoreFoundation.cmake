@@ -10,7 +10,7 @@ set(CoreFoundation_FOUND false)
 set(CoreFoundation_INCLUDE_DIR)
 set(CoreFoundation_LIBRARY)
 
-if(APPLE) 
+if(APPLE)
 # The only platform it makes sense to check for CoreFoundation
 	find_library(CoreFoundation CoreFoundation)
 	if(CoreFoundation)

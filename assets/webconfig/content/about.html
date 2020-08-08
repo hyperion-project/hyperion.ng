@@ -25,6 +25,7 @@
 
 	for (var i = 0; i < availLang.length; i++)
 		lang.push($.i18n('general_speech_' + availLang[i]));
+	lang.sort();
 	for (key in libs)
 		libh += '<a href="' + libs[key] + '" target="_blank">' + key + '</a>, ';
 	libh += "<br/>" + $.i18n("about_credits");

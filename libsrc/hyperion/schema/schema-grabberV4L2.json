@@ -258,6 +258,24 @@
 			},
 			"required" : true,
 			"propertyOrder" : 24
+		},
+		"hdrToneMapping" :
+		{
+			"type" : "boolean",
+			"title" : "edt_conf_v4l2_hdrToneMapping_title",
+			"default" : false,
+			"required" : true,
+			"propertyOrder" : 25
+		},
+		"fpsSoftwareDecimation" :
+		{
+			"type" : "integer",
+			"title" : "edt_conf_v4l2_fpsSoftwareDecimation_title",
+			"minimum" : 1,
+			"maximum" : 60,
+			"default" : 1,
+			"required" : true,
+			"propertyOrder" : 26
 		}
 	},
 	"additionalProperties" : true

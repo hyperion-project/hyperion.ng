@@ -50,7 +50,6 @@ int LedDeviceKarate::write(const std::vector<ColorRgb> &ledValues)
 {
 	for (signed iLed=0; iLed< static_cast<int>(_ledCount); iLed++)
         {
-		
        		const ColorRgb& rgb = ledValues[iLed];
                 _ledBuffer[iLed*3+4] = rgb.green;
                 _ledBuffer[iLed*3+5] = rgb.blue;

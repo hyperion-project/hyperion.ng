@@ -17,8 +17,6 @@ LedDevicePiBlaster::LedDevicePiBlaster(const QJsonObject &deviceConfig)
 
 	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 
-	signal(SIGPIPE,  SIG_IGN);
-
 	// initialise the mapping tables
 	// -1 is invalid
 	// z is also meaningless

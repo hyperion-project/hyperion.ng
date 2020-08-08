@@ -94,13 +94,13 @@ Error( log_main, "oh to crazy, aborting");
 // quick logging, when only one message exists and want no typing overhead - or usage in static functions
 Info( Logger::getInstance("LedDevice"), "Leddevice %s started", "PublicStreetLighting");
 
-// a bit mor complex - with printf like format
+// a bit more complex - with printf like format
 Info( log_main, "hello %s, you have %d messages", "Dax", 25);
 
 // conditional messages
 WarningIf( (value>threshold), log_main, "Alert, your value is greater then %d", threshold );
 ```
-The amount of "%" mus match with following arguments
+The amount of "%" must match with following arguments
 
 #### The Placeholders
  - %s for strings (this are cstrings, when having std::string use myStdString.c_str() to convert)
@@ -110,7 +110,7 @@ The amount of "%" mus match with following arguments
 
 #### Log Level
   * Debug - used when message is more or less for the developer or for trouble shooting
-  * Info - used for not absolutly developer stuff messages for what's going on
+  * Info - used for not absolutely developer stuff messages for what's going on
   * Warning - warn if something is not as it should be, but didn't harm
   * Error - used when an error occurs
 
@@ -120,7 +120,7 @@ The amount of "%" mus match with following arguments
 > TODO
 
 ## Visual Studio Code
-**We assume that you sucessfully compiled Hyperion with the [Compile HowTo](CompileHowto.md) WITHOUT Docker** \
+**We assume that you successfully compiled Hyperion with the [Compile HowTo](CompileHowto.md) WITHOUT Docker** \
 If you want to use VSCode for development follow the steps.
 
 - Install [VSCode](https://code.visualstudio.com/). On Ubuntu 16.04+ you can also use the [Snapcraft VSCode](https://snapcraft.io/code) package.

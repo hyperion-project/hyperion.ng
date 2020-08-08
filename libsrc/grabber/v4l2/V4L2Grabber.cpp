@@ -30,6 +30,9 @@
 #define V4L2_CAP_META_CAPTURE 0x00800000 // Specified in kernel header v4.16. Required for backward compatibility.
 #endif
 
+// some stuff for HDR tone mapping
+#define LUT_FILE_SIZE 50331648
+
 V4L2Grabber::V4L2Grabber(const QString & device
 		, const unsigned width
 		, const unsigned height
@@ -37,7 +40,7 @@ V4L2Grabber::V4L2Grabber(const QString & device
 		, const unsigned input
 		, VideoStandard videoStandard
 		, PixelFormat pixelFormat
-		, int pixelDecimation
+		, int pixelDecimation	
 		)
 	: Grabber("V4L2:"+device)
 	, _deviceName()
@@ -63,6 +66,12 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	, _streamNotifier(nullptr)
 	, _initialized(false)
 	, _deviceAutoDiscoverEnabled(false)
+	,_hdrToneMappingEnabled(0)	
+	, _fpsSoftwareDecimation(1)
+	, lutBuffer(NULL)
+	, _currentFrame(0)
+
+
 {
 	setPixelDecimation(pixelDecimation);
 	getV4Ldevices();
@@ -71,11 +80,66 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	setInput(input);
 	setWidthHeight(width, height);
 	setFramerate(fps);
-	setDeviceVideoStandard(device, videoStandard);
+	setDeviceVideoStandard(device, videoStandard);	
+}
+
+void V4L2Grabber::loadLutFile(QString path)
+{
+	//load lut
+	QString fileName3d = path +"/lut_rgb.3d";
+	
+	if (lutBuffer!=NULL)
+		free(lutBuffer);
+	lutBuffer = NULL;
+	
+	if (FILE *file = fopen(QSTRING_CSTR(fileName3d), "r")) {
+		size_t length;
+		Debug(_log,"LUT file found: %s", QSTRING_CSTR(fileName3d));
+		
+		fseek(file, 0, SEEK_END);
+		length = ftell(file);
+		fseek(file, 0, SEEK_SET);
+		if (length ==  LUT_FILE_SIZE) {
+			lutBuffer = (unsigned char *)malloc(length + 1);
+			if(fread(lutBuffer, 1, length, file)!=length)
+			{
+				free(lutBuffer);
+				lutBuffer = NULL;
+				Debug(_log,"Error reading LUT file");
+			}
+			else
+				Debug(_log,"LUT file has been loaded");
+		}
+		else
+			Debug(_log,"LUT file has invalid length: %i", length);
+		fclose(file);
+	}
+	else
+		Debug(_log,"LUT file NOT found: %s", QSTRING_CSTR(fileName3d));
+		
+}
+
+void V4L2Grabber::setFpsSoftwareDecimation(int decimation)
+{
+	_fpsSoftwareDecimation = decimation;
+	Debug(_log,"setFpsSoftwareDecimation to: %i", decimation);
+}
+
+void V4L2Grabber::setHdrToneMappingEnabled(bool enable)
+{
+	_hdrToneMappingEnabled = enable;
+	if (lutBuffer!=NULL || !enable)
+		Debug(_log,"setHdrToneMappingEnabled to: %s", enable ? "true" : "false");
+	else
+		Error(_log,"ERROR! setHdrToneMappingEnabled was to: enable, but the 3DLUT file (lut_rgb.3d)  was missing in the configuration folder");		
 }
 
 V4L2Grabber::~V4L2Grabber()
 {
+	if (lutBuffer!=NULL)
+		free(lutBuffer);
+	lutBuffer = NULL;
+
 	uninit();
 }
 
@@ -357,7 +421,7 @@ bool V4L2Grabber::open_device()
 	// create the notifier for when a new frame is available
 	_streamNotifier = new QSocketNotifier(_fileDescriptor, QSocketNotifier::Read);
 	_streamNotifier->setEnabled(false);
-	connect(_streamNotifier, SIGNAL(activated(int)), this, SLOT(read_frame()));
+	connect(_streamNotifier, &QSocketNotifier::activated, this, &V4L2Grabber::read_frame);
 	return true;
 }
 
@@ -1013,6 +1077,10 @@ int V4L2Grabber::read_frame()
 
 bool V4L2Grabber::process_image(const void *p, int size)
 {
+
+	if ( (_fpsSoftwareDecimation > 1) && ((_currentFrame++) % _fpsSoftwareDecimation != 0))
+		return false;
+
 	// We do want a new frame...
 #ifdef HAVE_JPEG_DECODER
 	if (size < _frameByteSize && _pixelFormat != PixelFormat::MJPEG)
@@ -1033,6 +1101,7 @@ bool V4L2Grabber::process_image(const void *p, int size)
 
 void V4L2Grabber::process_image(const uint8_t * data, int size)
 {
+
 	if (_cecDetectionEnabled && _cecStandbyActivated)
 		return;
 
@@ -1141,22 +1210,50 @@ void V4L2Grabber::process_image(const uint8_t * data, int size)
 			return;
 #endif
 #ifdef HAVE_JPEG_DECODER
-		QRect rect(_cropLeft, _cropTop, imageFrame.width() - _cropLeft - _cropRight, imageFrame.height() - _cropTop - _cropBottom);
-		imageFrame = imageFrame.copy(rect);
-		imageFrame = imageFrame.scaled(imageFrame.width() / _pixelDecimation, imageFrame.height() / _pixelDecimation,Qt::KeepAspectRatio);
+		if (_cropLeft>0 || _cropTop>0 || _cropBottom>0 || _cropRight>0)
+		{
+			QRect rect(_cropLeft, _cropTop, imageFrame.width() - _cropLeft - _cropRight, imageFrame.height() - _cropTop - _cropBottom);
+			imageFrame = imageFrame.copy(rect);
+		}
+		if (_pixelDecimation>1)
+			imageFrame = imageFrame.scaled(imageFrame.width() / _pixelDecimation, imageFrame.height() / _pixelDecimation,Qt::KeepAspectRatio);
 
 		if ((image.width() != unsigned(imageFrame.width())) || (image.height() != unsigned(imageFrame.height())))
 			image.resize(imageFrame.width(), imageFrame.height());
 
-		for (int y=0; y<imageFrame.height(); ++y)
-			for (int x=0; x<imageFrame.width(); ++x)
-			{
-				QColor inPixel(imageFrame.pixel(x,y));
-				ColorRgb & outPixel = image(x,y);
-				outPixel.red   = inPixel.red();
-				outPixel.green = inPixel.green();
-				outPixel.blue  = inPixel.blue();
-			}
+		if (lutBuffer == NULL || !_hdrToneMappingEnabled)
+		{		
+			for (int y=0; y<imageFrame.height(); ++y)
+				for (int x=0; x<imageFrame.width(); ++x)
+				{
+					QColor inPixel(imageFrame.pixel(x,y));
+					ColorRgb & outPixel = image(x,y);
+					outPixel.red   = inPixel.red();
+					outPixel.green = inPixel.green();
+					outPixel.blue  = inPixel.blue();
+				}
+		}
+		else
+		{
+
+
+			for (int y=0; y<imageFrame.height(); ++y)
+				for (int x=0; x<imageFrame.width(); ++x)
+				{
+					QColor inPixel(imageFrame.pixel(x,y));
+					ColorRgb & outPixel = image(x,y);
+
+					size_t ind_lutd = (
+						LUTD_Y_STRIDE(inPixel.red()) +
+						LUTD_U_STRIDE(inPixel.green()) +
+						LUTD_V_STRIDE(inPixel.blue())
+					);
+
+					outPixel.red   = lutBuffer[ind_lutd + LUTD_C_STRIDE(0)];
+					outPixel.green = lutBuffer[ind_lutd + LUTD_C_STRIDE(1)];
+					outPixel.blue  = lutBuffer[ind_lutd + LUTD_C_STRIDE(2)];
+				}
+		}
 	}
 	else
 #endif
@@ -1164,8 +1261,12 @@ void V4L2Grabber::process_image(const uint8_t * data, int size)
 /* ----------------------------------------------------------
  * ------------ END of JPEG decoder related code ------------
  * --------------------------------------------------------*/
-
-	_imageResampler.processImage(data, _width, _height, _lineLength, _pixelFormat, image);
+	{
+		if (lutBuffer == NULL || !_hdrToneMappingEnabled)
+			_imageResampler.processImage(data, _width, _height, _lineLength, _pixelFormat, image);
+		else
+			_imageResampler.processImageHDR2SDR(data, _width, _height, _lineLength, _pixelFormat, lutBuffer, image);
+	}
 
 	if (_signalDetectionEnabled)
 	{

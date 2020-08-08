@@ -54,7 +54,7 @@ public:
 	virtual bool setFramerate(int fps);
 
 	///
-	/// @brief Apply new pixelDecimation (used from x11 and qt)
+	/// @brief Apply new pixelDecimation (used from x11, xcb and qt)
 	///
 	virtual void setPixelDecimation(int pixelDecimation) {}
 
@@ -147,7 +147,7 @@ public:
 	/// @param devicePath The device path
 	/// @return List of framerates on success else empty List
 	///
-	virtual QStringList getFramerates(QString devicePath) { return QStringList(); }
+	virtual QStringList getFramerates(QString devicePath) { return QStringList(); }		
 
 protected:
 	ImageResampler _imageResampler;

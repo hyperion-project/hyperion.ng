@@ -40,7 +40,7 @@ public:
 	///
 	/// @brief Overwrite Grabber.h implementation
 	///
-	virtual void setDisplayIndex(int index);
+	void setDisplayIndex(int index) override;
 
 private:
 	/// display

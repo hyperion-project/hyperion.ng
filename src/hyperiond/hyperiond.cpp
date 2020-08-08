@@ -75,6 +75,7 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 		, _v4l2Grabber(nullptr)
 		, _dispmanx(nullptr)
 		, _x11Grabber(nullptr)
+		, _xcbGrabber(nullptr)
 		, _amlGrabber(nullptr)
 		, _fbGrabber(nullptr)
 		, _osxGrabber(nullptr)
@@ -82,6 +83,7 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 		, _ssdp(nullptr)
 		, _cecHandler(nullptr)
 		, _currVideoMode(VideoMode::VIDEO_2D)
+		, _rootPath(rootPath)
 {
 	HyperionDaemon::daemon = this;
 
@@ -117,8 +119,6 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 	// spawn all Hyperion instances (non blocking)
 	_instanceManager->startAll();
 
-	//connect(_hyperion,SIGNAL(closing()),this,SLOT(freeObjects())); // TODO for app restart, refactor required
-
 	//Cleaning up Hyperion before quit
 	connect(parent, SIGNAL(aboutToQuit()), this, SLOT(freeObjects()));
 
@@ -135,7 +135,7 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 	connect(this, &HyperionDaemon::videoMode, _instanceManager, &HyperionIManager::newVideoMode);
 
 // ---- grabber -----
-#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB) && !defined(ENABLE_X11) && !defined(ENABLE_AMLOGIC) && !defined(ENABLE_QT)
+#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB) && !defined(ENABLE_X11) && !defined(ENABLE_XCB) && !defined(ENABLE_AMLOGIC) && !defined(ENABLE_QT)
 	Warning(_log, "No platform capture can be instantiated, because all grabbers have been left out from the build");
 #endif
 
@@ -146,7 +146,7 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, const bo
 	handleSettingsUpdate(settings::V4L2, getSetting(settings::V4L2));
 
 	// ---- network services -----
-	startNetworkServices();
+	startNetworkServices();		
 }
 
 HyperionDaemon::~HyperionDaemon()
@@ -175,38 +175,64 @@ void HyperionDaemon::freeObjects()
 
 	// destroy network first as a client might want to access hyperion
 	delete _jsonServer;
+	_jsonServer = nullptr;
 
-	auto flatBufferServerThread = _flatBufferServer->thread();
-	flatBufferServerThread->quit();
-	flatBufferServerThread->wait();
-	delete flatBufferServerThread;
+	if (_flatBufferServer)
+	{
+		auto flatBufferServerThread = _flatBufferServer->thread();
+		flatBufferServerThread->quit();
+		flatBufferServerThread->wait();
+		delete flatBufferServerThread;
+		_flatBufferServer = nullptr;
+	}
 
-	auto protoServerThread = _protoServer->thread();
-	protoServerThread->quit();
-	protoServerThread->wait();
-	delete protoServerThread;
+	if (_protoServer)
+	{
+		auto protoServerThread = _protoServer->thread();
+		protoServerThread->quit();
+		protoServerThread->wait();
+		delete protoServerThread;
+		_protoServer = nullptr;
+	}
 
 	//ssdp before webserver
-	auto ssdpThread = _ssdp->thread();
-	ssdpThread->quit();
-	ssdpThread->wait();
-	delete ssdpThread;
+	if (_ssdp)
+	{
+		auto ssdpThread = _ssdp->thread();
+		ssdpThread->quit();
+		ssdpThread->wait();
+		delete ssdpThread;
+		_ssdp = nullptr;
+	}
 
-	auto webserverThread =_webserver->thread();
-	webserverThread->quit();
-	webserverThread->wait();
-	delete webserverThread;
+	if(_webserver)
+	{
+		auto webserverThread =_webserver->thread();
+		webserverThread->quit();
+		webserverThread->wait();
+		delete webserverThread;
+		_webserver = nullptr;
+	}
 
-	auto sslWebserverThread =_sslWebserver->thread();
-	sslWebserverThread->quit();
-	sslWebserverThread->wait();
-	delete sslWebserverThread;
+	if (_sslWebserver)
+	{
+		auto sslWebserverThread =_sslWebserver->thread();
+		sslWebserverThread->quit();
+		sslWebserverThread->wait();
+		delete sslWebserverThread;
+		_sslWebserver = nullptr;
+	}
 
 #ifdef ENABLE_CEC
-	_cecHandler->thread()->quit();
-	_cecHandler->thread()->wait(1000);
-	delete _cecHandler->thread();
-	delete _cecHandler;
+	if (_cecHandler)
+	{
+		auto cecHandlerThread = _cecHandler->thread();
+		cecHandlerThread->quit();
+		cecHandlerThread->wait();
+		delete cecHandlerThread;
+		delete _cecHandler;
+		_cecHandler = nullptr;
+	}
 #endif
 
 	// stop Hyperions (non blocking)
@@ -221,19 +247,12 @@ void HyperionDaemon::freeObjects()
 	delete _v4l2Grabber;
 
 	_v4l2Grabber = nullptr;
-	_cecHandler = nullptr;
 	_bonjourBrowserWrapper = nullptr;
 	_amlGrabber = nullptr;
 	_dispmanx = nullptr;
 	_fbGrabber = nullptr;
 	_osxGrabber = nullptr;
 	_qtGrabber = nullptr;
-	_flatBufferServer = nullptr;
-	_protoServer = nullptr;
-	_ssdp = nullptr;
-	_webserver = nullptr;
-	_sslWebserver = nullptr;
-	_jsonServer = nullptr;
 }
 
 void HyperionDaemon::startNetworkServices()
@@ -357,7 +376,13 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type &settingsType, co
 				QByteArray envDisplay = qgetenv("DISPLAY");
 				if ( !envDisplay.isEmpty() )
 				{
+				#if defined(ENABLE_X11)
 					type = "x11";
+				#elif defined(ENABLE_XCB)
+					type = "xcb";
+				#else
+					type = "qt";
+				#endif
 				}
 				// qt -> if nothing other applies
 				else
@@ -412,6 +437,14 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type &settingsType, co
 				 _x11Grabber = nullptr;
 			}
 			#endif
+			#ifdef ENABLE_XCB
+			if(_xcbGrabber != nullptr)
+			{
+				 _xcbGrabber->stop();
+				 delete _xcbGrabber;
+				 _xcbGrabber = nullptr;
+			}
+			#endif
 			#ifdef ENABLE_QT
 			if(_qtGrabber != nullptr)
 			{
@@ -462,6 +495,14 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type &settingsType, co
 				_x11Grabber->tryStart();
 				#endif
 			}
+			else if (type == "xcb")
+			{
+				if (_xcbGrabber == nullptr)
+					createGrabberXcb(grabberConfig);
+				#ifdef ENABLE_XCB
+				_xcbGrabber->tryStart();
+				#endif
+			}
 			else if (type == "qt")
 			{
 				if (_qtGrabber == nullptr)
@@ -506,7 +547,14 @@ void HyperionDaemon::handleSettingsUpdate(const settings::type &settingsType, co
 				parseVideoStandard(grabberConfig["standard"].toString("no-change")),
 				parsePixelFormat(grabberConfig["pixelFormat"].toString("no-change")),
 				grabberConfig["sizeDecimation"].toInt(8));
-
+				
+		// HDR stuff		
+		_v4l2Grabber->loadLutFile(_rootPath);				
+		_v4l2Grabber->setHdrToneMappingEnabled(grabberConfig["hdrToneMapping"].toBool(false));
+		
+		// software frame skipping
+		_v4l2Grabber->setFpsSoftwareDecimation(grabberConfig["fpsSoftwareDecimation"].toInt(1));
+		
 		_v4l2Grabber->setSignalThreshold(
 				grabberConfig["redSignalThreshold"].toDouble(0.0) / 100.0,
 				grabberConfig["greenSignalThreshold"].toDouble(0.0) / 100.0,
@@ -583,6 +631,25 @@ void HyperionDaemon::createGrabberX11(const QJsonObject &grabberConfig)
 	Info(_log, "X11 grabber created");
 #else
 	Error(_log, "The X11 grabber can not be instantiated, because it has been left out from the build");
+#endif
+}
+
+void HyperionDaemon::createGrabberXcb(const QJsonObject &grabberConfig)
+{
+#ifdef ENABLE_XCB
+	_xcbGrabber = new XcbWrapper(
+			_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom,
+			grabberConfig["pixelDecimation"].toInt(8),
+			_grabber_frequency);
+	_xcbGrabber->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
+
+	// connect to HyperionDaemon signal
+	connect(this, &HyperionDaemon::videoMode, _xcbGrabber, &XcbWrapper::setVideoMode);
+	connect(this, &HyperionDaemon::settingsChanged, _xcbGrabber, &XcbWrapper::handleSettingsUpdate);
+
+	Info(_log, "XCB grabber created");
+#else
+	Error(_log, "The XCB grabber can not be instantiated, because it has been left out from the build");
 #endif
 }
 

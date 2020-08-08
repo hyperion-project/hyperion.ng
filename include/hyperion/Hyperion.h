@@ -11,12 +11,10 @@
 #include <QJsonValue>
 #include <QJsonArray>
 #include <QMap>
-#include <QMutex>
 
 // hyperion-utils includes
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
-#include <utils/Logger.h>
 #include <utils/Components.h>
 #include <utils/VideoMode.h>
 
@@ -49,6 +47,7 @@ class BGEffectHandler;
 class CaptureCont;
 class BoblightServer;
 class LedDeviceWrapper;
+class Logger;
 
 ///
 /// The main class of Hyperion. This gives other 'users' access to the attached LedDevice through
@@ -69,15 +68,15 @@ public:
 	///
 	/// free all alocated objects, should be called only from constructor or before restarting hyperion
 	///
-	void freeObjects(bool emitCloseSignal=false);
+	void freeObjects();
 
-	ImageProcessor* getImageProcessor() { return _imageProcessor; }
+	ImageProcessor* getImageProcessor() const { return _imageProcessor; }
 
 	///
 	/// @brief Get instance index of this instance
 	/// @return The index of this instance
 	///
-	const quint8 & getInstanceIndex() { return _instIndex; }
+	quint8 getInstanceIndex() const { return _instIndex; }
 
 	///
 	/// @brief Return the size of led grid
@@ -85,28 +84,27 @@ public:
 	QSize getLedGridSize() const { return _ledGridSize; }
 
 	/// gets the methode how image is maped to leds
-	const int & getLedMappingType();
+	int getLedMappingType() const;
 
 	/// forward smoothing config
 	unsigned addSmoothingConfig(int settlingTime_ms, double ledUpdateFrequency_hz=25.0, unsigned updateDelay=0);
 	unsigned updateSmoothingConfig(unsigned id, int settlingTime_ms=200, double ledUpdateFrequency_hz=25.0, unsigned updateDelay=0);
 
-
-	const VideoMode & getCurrentVideoMode();
+	VideoMode getCurrentVideoMode() const;
 
 	///
 	/// @brief Get the current active led device
 	/// @return The device name
 	///
-	const QString & getActiveDeviceType();
-
-	///
-	/// @brief Get pointer to current LedDevice
-	///
-	LedDevice * getActiveDevice() const;
+	QString getActiveDeviceType() const;
 
 public slots:
-	int getLatchTime() const;
+
+	///
+	/// Updates the priority muxer with the current time and (re)writes the led color with applied
+	/// transforms.
+	///
+	void update();
 
 	///
 	/// Returns the number of attached leds
@@ -176,7 +174,7 @@ public slots:
 	/// Returns the ColorAdjustment with the given identifier
 	/// @return The adjustment with the given identifier (or nullptr if the identifier does not exist)
 	///
-	ColorAdjustment * getAdjustment(const QString& id);
+	ColorAdjustment * getAdjustment(const QString& id) const;
 
 	/// Tell Hyperion that the corrections have changed and the leds need to be updated
 	void adjustmentsUpdated();
@@ -198,7 +196,7 @@ public slots:
 	/// @return     EffectEngine instance pointer
 	///
 
-	EffectEngine* getEffectEngineInstance() { return _effectEngine; }
+	EffectEngine* getEffectEngineInstance() const { return _effectEngine; }
 	///
 	/// @brief Save an effect
 	/// @param  obj  The effect args
@@ -239,11 +237,11 @@ public slots:
 
 	/// Get the list of active effects
 	/// @return The list of active effects
-	const std::list<ActiveEffectDefinition> &getActiveEffects();
+	const std::list<ActiveEffectDefinition> &getActiveEffects() const;
 
 	/// Get the list of available effect schema files
 	/// @return The list of available effect schema files
-	const std::list<EffectSchema> &getEffectSchemas();
+	const std::list<EffectSchema> &getEffectSchemas() const;
 
 	/// #############
 	/// PRIORITYMUXER
@@ -298,7 +296,7 @@ public slots:
 	///
 	/// @return The information of the given, a not found priority will return lowest priority as fallback
 	///
-	const InputInfo getPriorityInfo(const int priority) const;
+	InputInfo getPriorityInfo(const int priority) const;
 
 	/// #############
 	/// SETTINGSMANAGER
@@ -307,11 +305,11 @@ public slots:
 	/// @param type  The settingsType from enum
 	/// @return      Data Document
 	///
-	QJsonDocument getSetting(const settings::type& type);
+	QJsonDocument getSetting(const settings::type& type) const;
 
 	/// gets the current json config object from SettingsManager
 	/// @return json config
-	const QJsonObject& getQJsonConfig();
+	const QJsonObject& getQJsonConfig() const;
 
 	///
 	/// @brief Save a complete json config
@@ -327,7 +325,7 @@ public slots:
 	/// @brief Get the component Register
 	/// return Component register pointer
 	///
-	ComponentRegister& getComponentRegister() { return _componentRegister; }
+	ComponentRegister & getComponentRegister() { return _componentRegister; }
 
 	///
 	/// @brief Called from components to update their current state. DO NOT CALL FROM USERS
@@ -340,7 +338,7 @@ public slots:
 	/// @brief Get a list of all contrable components and their current state
 	/// @return list of components
 	///
-	std::map<hyperion::Components, bool> getAllComponents();
+	std::map<hyperion::Components, bool> getAllComponents() const;
 
 	///
 	/// @brief Test if a component is enabled
@@ -367,6 +365,8 @@ public slots:
 	/// @brief Stop the execution of this thread, helper to properly track eventing
 	///
 	void stop();
+
+	int getLatchTime() const;
 
 signals:
 	/// Signal which is emitted when a priority channel is actively cleared
@@ -397,8 +397,6 @@ signals:
 	/// @param  image  The current image
 	///
 	void currentImage(const Image<ColorRgb> & image);
-
-	void closing();
 
 	/// Signal which is emitted, when a new json message should be forwarded
 	void forwardJsonMessage(QJsonObject);
@@ -456,15 +454,7 @@ signals:
 	///
 	void started();
 
-public slots:
-	///
-	/// Updates the priority muxer with the current time and (re)writes the led color with applied
-	/// transforms.
-	///
-	void update();
-
 private slots:
-
 	///
 	///	@brief Handle whenever the visible component changed
 	///	@param comp      The new component
@@ -548,6 +538,4 @@ private:
 
 	/// Boblight instance
 	BoblightServer* _boblightServer;
-
-	QMutex _changes;
 };
