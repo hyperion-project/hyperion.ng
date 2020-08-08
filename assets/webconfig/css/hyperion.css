@@ -75,15 +75,15 @@ table.input-group{width:100%}
 
 /*table*/
 table.borderless td,table.borderless th{border: none !important;}
-.borderless {margin-bottom:0px}
-table label{margin:0}
+.borderless {margin-bottom:0px;}
+table label{margin:0;}
 
 /*Header*/
-.navbar-brand{padding-top:0px;padding-bottom:5px;padding-left:20px;height:60px;}
-.sidebar{margin-top:62px;padding-top:20px;}
+.navbar-brand{padding-top:4px;padding-bottom:0px;padding-left:2px;}
+.sidebar{margin-top:65px;}
 .dropdown{font-size:18px;}
 @media (max-width: 767px) {.sidebar{margin-top:0px;padding-top:0px !important;}}
-.page-header{margin-top:15px;}
+.page-header{margin-top:0px;}
 
 /*Panels*/
 .panel-heading{font-size:18px;}
