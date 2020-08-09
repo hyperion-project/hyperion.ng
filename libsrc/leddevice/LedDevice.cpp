@@ -44,7 +44,6 @@ LedDevice::~LedDevice()
 
 void LedDevice::start()
 {
-	Debug (_log, "");
 	Info(_log, "Start LedDevice '%s'.", QSTRING_CSTR(_activeDeviceType));
 
 	// setup refreshTimer
@@ -70,7 +69,6 @@ void LedDevice::start()
 
 void LedDevice::stop()
 {
-	Debug (_log, "");
 	this->disable();
 	this->stopRefreshTimer();
 	Info(_log, " Stopped LedDevice '%s'", QSTRING_CSTR(_activeDeviceType) );
@@ -78,7 +76,6 @@ void LedDevice::stop()
 
 int LedDevice::open()
 {
-	Debug (_log, "");
 	_isDeviceReady = true;
 	int retval = 0;
 
@@ -87,7 +84,6 @@ int LedDevice::open()
 
 int LedDevice::close()
 {
-	Debug (_log, "");
 	_isDeviceReady = false;
 	int retval = 0;
 
@@ -96,7 +92,6 @@ int LedDevice::close()
 
 void LedDevice::setInError(const QString& errorMsg)
 {
-	Debug (_log, "");
 	_isDeviceInError = true;
 	_isDeviceReady = false;
 	_isEnabled = false;
@@ -170,7 +165,6 @@ void LedDevice::startRefreshTimer()
 
 void LedDevice::stopRefreshTimer()
 {
-	Debug (_log, "");
 	_refreshTimer->stop();
 }
 
@@ -238,7 +232,6 @@ int LedDevice::rewriteLEDs()
 
 int LedDevice::writeBlack(int numberOfBlack)
 {
-	Debug (_log, "");
 	int rc = -1;
 
 	for (int i = 0; i < numberOfBlack; i++)
@@ -328,14 +321,12 @@ bool LedDevice::powerOff()
 
 bool LedDevice::powerOn()
 {
-	Debug (_log, "");
 	bool rc = true;
 	return rc;
 }
 
 bool LedDevice::storeState()
 {
-	Debug (_log, "");
 	bool rc = true;
 
 	if ( _isRestoreOrigState )
@@ -349,7 +340,6 @@ bool LedDevice::storeState()
 
 bool LedDevice::restoreState()
 {
-	Debug (_log, "");
 	bool rc = true;
 
 	if ( _isRestoreOrigState )
