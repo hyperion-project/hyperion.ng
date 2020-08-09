@@ -54,8 +54,6 @@ void LedDeviceWrapper::createLedDevice(const QJsonObject& config)
 	_ledDevice->moveToThread(thread);
 	// setup thread management
 	connect(thread, &QThread::started, _ledDevice, &LedDevice::start);
-	connect(thread, &QThread::finished, thread, &QThread::deleteLater);
-	connect(thread, &QThread::finished, _ledDevice, &LedDevice::deleteLater);
 
 	// further signals
 	connect(this, &LedDeviceWrapper::updateLeds, _ledDevice, &LedDevice::updateLeds, Qt::QueuedConnection);
@@ -74,7 +72,7 @@ void LedDeviceWrapper::createLedDevice(const QJsonObject& config)
 	thread->start();
 }
 
-const QJsonObject LedDeviceWrapper::getLedDeviceSchemas()
+QJsonObject LedDeviceWrapper::getLedDeviceSchemas()
 {
 	// make sure the resources are loaded (they may be left out after static linking)
 	Q_INIT_RESOURCE(LedDeviceSchemas);
@@ -125,21 +123,21 @@ const LedDeviceRegistry& LedDeviceWrapper::getDeviceMap()
 	return _ledDeviceMap;
 }
 
-int LedDeviceWrapper::getLatchTime()
+int LedDeviceWrapper::getLatchTime() const
 {
 	int value = 0;
 	QMetaObject::invokeMethod(_ledDevice, "getLatchTime", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, value));
 	return value;
 }
 
-QString LedDeviceWrapper::getActiveDeviceType()
+QString LedDeviceWrapper::getActiveDeviceType() const
 {
 	QString value = 0;
 	QMetaObject::invokeMethod(_ledDevice, "getActiveDeviceType", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QString, value));
 	return value;
 }
 
-QString LedDeviceWrapper::getColorOrder()
+QString LedDeviceWrapper::getColorOrder() const
 {
 	QString value;
 	QMetaObject::invokeMethod(_ledDevice, "getColorOrder", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QString, value));
@@ -153,7 +151,7 @@ unsigned int LedDeviceWrapper::getLedCount() const
 	return value;
 }
 
-bool LedDeviceWrapper::enabled()
+bool LedDeviceWrapper::enabled() const
 {
 	return _enabled;
 }
@@ -172,10 +170,10 @@ void LedDeviceWrapper::handleComponentState(const hyperion::Components component
 		}
 
 		//Get device's state, considering situations where it is not ready
-		bool isEnabled = false;
-		QMetaObject::invokeMethod(_ledDevice, "isEnabled", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isEnabled));
-		_hyperion->setNewComponentState(hyperion::COMP_LEDDEVICE, isEnabled);
-		_enabled = isEnabled;
+		bool deviceState = false;
+		QMetaObject::invokeMethod(_ledDevice, "componentState", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, deviceState));
+		_hyperion->setNewComponentState(hyperion::COMP_LEDDEVICE, deviceState);
+		_enabled = deviceState;
 	}
 }
 

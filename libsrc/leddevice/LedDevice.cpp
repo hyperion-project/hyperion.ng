@@ -28,6 +28,7 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 	  , _isEnabled(false)
 	  , _isDeviceInitialised(false)
 	  , _isDeviceReady(false)
+	  , _isOn(false)
 	  , _isDeviceInError(false)
 	  , _isInSwitchOff (false)
 	  , _lastWriteTime(QDateTime::currentDateTime())
@@ -105,54 +106,39 @@ void LedDevice::setInError(const QString& errorMsg)
 	emit enableStateChanged(_isEnabled);
 }
 
-//void LedDevice::setEnable(bool enable)
-//{
-//	Debug (_log, "");
-//	bool isSwitched = false;
-//	// switch off device when disabled, default: set black to LEDs when they should go off
-//	if ( _isEnabled  && !enable)
-//	{
-//		isSwitched = switchOff();
-//	}
-//	else
-//	{
-//		// switch on device when enabled
-//		if ( !_isEnabled  && enable)
-//		{
-//			isSwitched = switchOn();
-//		}
-//	}
-
-//	if ( isSwitched )
-//	{
-//		_isEnabled = enable;
-//		emit enableStateChanged(enable);
-//	}
-//}
-
 void LedDevice::enable()
 {
-	Debug (_log, "");
 	if ( !_isEnabled )
 	{
-		if ( switchOn() )
+		_isDeviceInError = false;
+
+		if ( ! _isDeviceReady )
+		{
+			open();
+		}
+
+		if ( _isDeviceReady )
 		{
 			_isEnabled = true;
-			emit enableStateChanged(_isEnabled);
+			if ( switchOn() )
+			{
+				emit enableStateChanged(_isEnabled);
+			}
 		}
 	}
 }
 
 void LedDevice::disable()
 {
-	Debug (_log, "");
 	if ( _isEnabled )
 	{
-		if ( switchOff() )
-		{
-			_isEnabled = false;
-			emit enableStateChanged(_isEnabled);
-		}
+		_isEnabled = false;
+		this->stopRefreshTimer();
+
+		switchOff();
+		close();
+
+		emit enableStateChanged(_isEnabled);
 	}
 }
 
@@ -166,37 +152,16 @@ bool LedDevice::init(const QJsonObject &deviceConfig)
 	Debug(_log, "deviceConfig: [%s]", QString(QJsonDocument(_devConfig).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 
 	_colorOrder = deviceConfig["colorOrder"].toString("RGB");
-	setLedCount(static_cast<unsigned int>( deviceConfig["currentLedCount"].toInt(1) )); // property injected to reflect real led count
 
-	_latchTime_ms =deviceConfig["latchTime"].toInt( _latchTime_ms );
-	_refreshTimerInterval_ms =  deviceConfig["rewriteTime"].toInt( _refreshTimerInterval_ms);
+	setLedCount( static_cast<unsigned int>( deviceConfig["currentLedCount"].toInt(1) ) ); // property injected to reflect real led count
+	setLatchTime( deviceConfig["latchTime"].toInt( _latchTime_ms ) );
+	setRewriteTime ( deviceConfig["rewriteTime"].toInt( _refreshTimerInterval_ms) );
 
-	if ( _refreshTimerInterval_ms > 0 )
-	{
-		_isRefreshEnabled = true;
-
-		if (_refreshTimerInterval_ms <= _latchTime_ms )
-		{
-			int new_refresh_timer_interval = _latchTime_ms + 10;
-			Warning(_log, "latchTime(%d) is bigger/equal rewriteTime(%d), set rewriteTime to %dms", _latchTime_ms, _refreshTimerInterval_ms, new_refresh_timer_interval);
-			_refreshTimerInterval_ms = new_refresh_timer_interval;
-			_refreshTimer->setInterval( _refreshTimerInterval_ms );
-		}
-
-		Debug(_log, "Refresh interval = %dms",_refreshTimerInterval_ms );
-		_refreshTimer->setInterval( _refreshTimerInterval_ms );
-
-		_lastWriteTime = QDateTime::currentDateTime();
-
-		// TODO: Remove time start, as device is not Ready nor Enabled
-		//this->startRefreshTimer();
-	}
 	return true;
 }
 
 void LedDevice::startRefreshTimer()
 {
-	Debug (_log, "");
 	if ( _isDeviceReady && _isEnabled )
 	{
 		_refreshTimer->start();
@@ -212,9 +177,9 @@ void LedDevice::stopRefreshTimer()
 int LedDevice::updateLeds(const std::vector<ColorRgb>& ledValues)
 {
 	int retval = 0;
-	if ( !isEnabled() || !_isDeviceReady || _isDeviceInError )
+	if ( !_isEnabled || !_isOn || !_isDeviceReady || _isDeviceInError )
 	{
-		std::cout << "LedDevice::updateLeds(), LedDevice NOT ready!" <<  std::endl;
+		//std::cout << "LedDevice::updateLeds(), LedDevice NOT ready! ";
 		return -1;
 	}
 	else
@@ -235,7 +200,7 @@ int LedDevice::updateLeds(const std::vector<ColorRgb>& ledValues)
 		}
 		else
 		{
-			std::cout << "LedDevice::updateLeds(), Skip write. elapsedTime (" << elapsedTimeMs << ") ms < _latchTime_ms (" << _latchTime_ms << ") ms" << std::endl;
+			//std::cout << "LedDevice::updateLeds(), Skip write. elapsedTime (" << elapsedTimeMs << ") ms < _latchTime_ms (" << _latchTime_ms << ") ms" << std::endl;
 			if ( _isRefreshEnabled )
 			{
 				//Stop timer to allow for next non-refresh update
@@ -248,7 +213,6 @@ int LedDevice::updateLeds(const std::vector<ColorRgb>& ledValues)
 
 int LedDevice::rewriteLEDs()
 {
-	//Debug (_log, "");
 	int retval = -1;
 
 	if ( _isDeviceReady && _isEnabled )
@@ -293,22 +257,21 @@ int LedDevice::writeBlack(int numberOfBlack)
 
 bool LedDevice::switchOn()
 {
-	Debug (_log, "");
 	bool rc = false;
-	if ( _isDeviceInitialised && ! _isDeviceReady )
+
+	if ( _isOn )
 	{
-		_isDeviceInError = false;
-		if ( open() < 0 )
-		{
-			rc = false;
-		}
-		else
+		rc = true;
+	}
+	else
+	{
+		if ( _isEnabled &&_isDeviceInitialised )
 		{
 			storeState();
 
 			if ( powerOn() )
 			{
-				_isEnabled = true;
+				_isOn = true;
 				rc = true;
 			}
 		}
@@ -318,44 +281,41 @@ bool LedDevice::switchOn()
 
 bool LedDevice::switchOff()
 {
-	Debug (_log, "");
 	bool rc = false;
 
-	if ( _isDeviceInitialised )
+	if ( !_isOn )
 	{
-		// Disable device to ensure no standard Led updates are written/processed
-		//_isEnabled = false;
-		_isInSwitchOff = true;
-
-		this->stopRefreshTimer();
-
 		rc = true;
-
-		if ( _isDeviceReady )
+	}
+	else
+	{
+		if ( _isDeviceInitialised )
 		{
-			if ( _isRestoreOrigState )
-			{
-				//Restore devices state
-				restoreState();
-			}
-			else
-			{
-				powerOff();
-			}
+			// Disable device to ensure no standard Led updates are written/processed
+			_isOn = false;
+			_isInSwitchOff = true;
 
-		}
-		if ( close() < 0 )
-		{
-			rc = false;
+			rc = true;
+
+			if ( _isDeviceReady )
+			{
+				if ( _isRestoreOrigState )
+				{
+					//Restore devices state
+					restoreState();
+				}
+				else
+				{
+					powerOff();
+				}
+			}
 		}
 	}
 	return rc;
 }
 
-
 bool LedDevice::powerOff()
 {
-	Debug (_log, "");
 	bool rc = false;
 
 	// Simulate power-off by writing a final "Black" to have a defined outcome
@@ -447,7 +407,33 @@ void LedDevice::setLedCount(unsigned int ledCount)
 void LedDevice::setLatchTime( int latchTime_ms )
 {
 	_latchTime_ms = latchTime_ms;
-	Debug(_log, "LatchTime updated to %dms", this->getLatchTime());
+	Debug(_log, "LatchTime updated to %dms", _latchTime_ms);
+}
+
+void LedDevice::setRewriteTime( int rewriteTime_ms )
+{
+	_refreshTimerInterval_ms = rewriteTime_ms;
+
+	if ( _refreshTimerInterval_ms > 0 )
+	{
+
+		_isRefreshEnabled = true;
+
+		if (_refreshTimerInterval_ms <= _latchTime_ms )
+		{
+			int new_refresh_timer_interval = _latchTime_ms + 10;
+			Warning(_log, "latchTime(%d) is bigger/equal rewriteTime(%d), set rewriteTime to %dms", _latchTime_ms, _refreshTimerInterval_ms, new_refresh_timer_interval);
+			_refreshTimerInterval_ms = new_refresh_timer_interval;
+			_refreshTimer->setInterval( _refreshTimerInterval_ms );
+		}
+
+		Debug(_log, "Refresh interval = %dms",_refreshTimerInterval_ms );
+		_refreshTimer->setInterval( _refreshTimerInterval_ms );
+
+		_lastWriteTime = QDateTime::currentDateTime();
+	}
+
+	Debug(_log, "RewriteTime updated to %dms", _refreshTimerInterval_ms);
 }
 
 void LedDevice::printLedValues(const std::vector<ColorRgb>& ledValues)

@@ -65,13 +65,6 @@ public:
 	void setLedCount(unsigned int ledCount);
 
 	///
-	/// @brief Check, if the device is enabled.
-	///
-	/// @return True, if enabled
-	///
-	bool isEnabled() const { return _isEnabled; }
-
-	///
 	/// @brief Set a device's latch time.
 	///
 	/// Latch time is the time-frame a device requires until the next update can be processed.
@@ -80,6 +73,15 @@ public:
 	/// @param[in] latchTime_ms Latch time in milliseconds
 	///
 	void setLatchTime(int latchTime_ms);
+
+	///
+	/// @brief Set a device's rewrite time.
+	///
+	/// Rewrite time is the time frame a devices requires to be refreshed, if no updated happened in the meantime.
+	///
+	/// @param[in] rewriteTime_ms Rewrite time in milliseconds
+	///
+	void setRewriteTime(int rewriteTime_ms);
 
 	///
 	/// @brief Discover devices of this type available (for configuration).
@@ -173,20 +175,18 @@ public slots:
 	virtual int updateLeds(const std::vector<ColorRgb>& ledValues);
 
 	///
-	/// @brief Enables/disables the device for output.
-	///
-	/// If the device is not ready, it will not be enabled.
-	///
-	/// @param[in] enable The new state of the device
-	///
-//	void setEnable(bool enable);
-
-	///
 	/// @brief Get the currently defined LatchTime.
 	///
 	/// @return Latch time in milliseconds
 	///
 	int getLatchTime() const { return _latchTime_ms; }
+
+	///
+	/// @brief Get the currently defined RewriteTime.
+	///
+	/// @return Rewrite time in milliseconds
+	///
+	int getRewriteTime() const { return _refreshTimerInterval_ms; }
 
 	///
 	/// @brief Get the number of LEDs supported by the device.
@@ -212,7 +212,7 @@ public slots:
 	///
 	/// @return True, if enabled
 	///
-	inline bool componentState() const { return isEnabled(); }
+	inline bool componentState() const { return _isEnabled; }
 
 	///
 	/// @brief Enables the device for output.
@@ -247,7 +247,6 @@ public slots:
 	/// @return True, if success
 	///
 	virtual bool switchOff();
-
 
 	bool switchOnOff(bool onState)
 	{
@@ -395,6 +394,9 @@ protected:
 
 	/// Is the device ready for processing?
 	bool _isDeviceReady;
+
+	/// Is the device switched on?
+	bool _isOn;
 
 	/// Is the device in error state and stopped?
 	bool _isDeviceInError;

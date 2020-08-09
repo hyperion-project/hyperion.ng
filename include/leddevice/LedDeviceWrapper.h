@@ -33,7 +33,7 @@ public:
 	/// @brief Get all available device schemas
 	/// @return device schemas
 	///
-	static const QJsonObject getLedDeviceSchemas();
+	static QJsonObject getLedDeviceSchemas();
 
 	///
 	/// @brief add all device constructors to the map
@@ -50,22 +50,22 @@ public:
 	/// @brief Get the current latch time of the ledDevice
 	/// @ return latch time in ms
 	///
-	int getLatchTime();
+	int getLatchTime() const;
 
 	///
 	/// @brief Get the current active ledDevice type
 	///
-	QString getActiveDeviceType();
+	QString getActiveDeviceType() const;
 
 	///
 	/// @brief Return the last enable state
 	///
-	bool enabled();
+	bool enabled() const;
 
 	///
 	/// @brief Get the current colorOrder from device
 	///
-	QString getColorOrder();
+	QString getColorOrder() const;
 
 	///
 	/// @brief Get the number of LEDs from device
