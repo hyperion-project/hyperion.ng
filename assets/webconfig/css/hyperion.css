@@ -85,6 +85,12 @@ table label{margin:0;}
 @media (max-width: 767px) {.sidebar{margin-top:0px;padding-top:0px !important;}}
 .page-header{margin-top:0px;}
 
+.navbar-top-links li a {
+	min-height: 64px;
+    display: flex;
+    align-items: center;
+}
+
 /*Panels*/
 .panel-heading{font-size:18px;}
 .headcollapse{cursor:pointer;}

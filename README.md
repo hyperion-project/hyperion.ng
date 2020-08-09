@@ -1,4 +1,4 @@
-![Hyperion](assets/webconfig/img/hyperion/hyperionlogo.png)
+![Hyperion](doc/hyperion_logo.png)
 
 [![Latest-Release](https://img.shields.io/github/v/release/hyperion-project/hyperion.ng?include_prereleases)](https://github.com/hyperion-project/hyperion.ng/releases)
 [![Dependencies](https://img.shields.io/librariesio/github/hyperion-project/hyperion.ng.svg)](https://github.com/hyperion-project/hyperion.ng/tree/master/dependencies/external)
@@ -11,7 +11,7 @@
 
 [Hyperion](https://github.com/hyperion-project/hyperion.ng) is an opensource [Bias or Ambient Lighting](https://en.wikipedia.org/wiki/Bias_lighting) implementation which you might know from TV manufacturers. It supports many LED devices and video grabbers. The project is still in a alpha development stage (no stable release available).
 
-![Screenshot](doc/screenshot.png)
+![Screenshot](doc/hyperion_screenshot.png)
 
 ### Features:
 
