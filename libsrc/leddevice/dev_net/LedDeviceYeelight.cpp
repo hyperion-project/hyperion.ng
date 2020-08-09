@@ -1004,10 +1004,11 @@ LedDevice* LedDeviceYeelight::construct(const QJsonObject &deviceConfig)
 bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 {
 	// Overwrite non supported/required features
+	setRewriteTime(0);
+
 	if (deviceConfig["rewriteTime"].toInt(0) > 0)
 	{
 		Info (_log, "Yeelights do not require rewrites. Refresh time is ignored.");
-		_devConfig["rewriteTime"] = 0;
 	}
 
 	DebugIf(verbose, _log, "deviceConfig: [%s]", QString(QJsonDocument(_devConfig).toJson(QJsonDocument::Compact)).toUtf8().constData() );
@@ -1019,7 +1020,7 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 		Debug(_log, "DeviceType        : %s", QSTRING_CSTR( this->getActiveDeviceType() ));
 		Debug(_log, "LedCount          : %u", this->getLedCount());
 		Debug(_log, "ColorOrder        : %s", QSTRING_CSTR( this->getColorOrder() ));
-		Debug(_log, "RefreshTime       : %d", _refreshTimerInterval_ms);
+		Debug(_log, "RewriteTime  : %d", this->getRewriteTime());
 		Debug(_log, "LatchTime         : %d", this->getLatchTime());
 
 		//Get device specific configuration

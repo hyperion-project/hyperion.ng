@@ -123,11 +123,12 @@ LedDeviceNanoleaf::~LedDeviceNanoleaf()
 bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig)
 {
 	// Overwrite non supported/required features
-	_devConfig["latchTime"]   = 0;
+	setLatchTime(0);
+	setRewriteTime(0);
+
 	if (deviceConfig["rewriteTime"].toInt(0) > 0)
 	{
 		Info (_log, "Device Nanoleaf does not require rewrites. Refresh time is ignored.");
-		_devConfig["rewriteTime"] = 0;
 	}
 
 	DebugIf(verbose, _log, "deviceConfig: [%s]", QString(QJsonDocument(_devConfig).toJson(QJsonDocument::Compact)).toUtf8().constData() );
@@ -140,7 +141,7 @@ bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig)
 		Debug(_log, "DeviceType   : %s", QSTRING_CSTR( this->getActiveDeviceType() ));
 		Debug(_log, "LedCount     : %u", configuredLedCount);
 		Debug(_log, "ColorOrder   : %s", QSTRING_CSTR( this->getColorOrder() ));
-		Debug(_log, "RefreshTime  : %d", _refreshTimerInterval_ms);
+		Debug(_log, "RewriteTime  : %d", this->getRewriteTime());
 		Debug(_log, "LatchTime    : %d", this->getLatchTime());
 
 		// Read panel organisation configuration
@@ -363,8 +364,6 @@ int LedDeviceNanoleaf::open()
 	int retval = -1;
 	_isDeviceReady = false;
 
-	// Set Nanoleaf to External Control (UDP) mode
-	Debug(_log, "Set Nanoleaf to External Control (UDP) streaming mode");
 	QJsonDocument responseDoc = changeToExternalControlMode();
 	// Resolve port for Light Panels
 	QJsonObject jsonStreamControllInfo = responseDoc.object();
@@ -495,6 +494,8 @@ bool LedDeviceNanoleaf::powerOn()
 {
 	if ( _isDeviceReady)
 	{
+		changeToExternalControlMode();
+
 		//Power-on Nanoleaf device
 		_restApi->setPath(API_STATE);
 		_restApi->put( getOnOffRequest(true) );
@@ -521,6 +522,7 @@ QString LedDeviceNanoleaf::getOnOffRequest (bool isOn ) const
 
 QJsonDocument LedDeviceNanoleaf::changeToExternalControlMode()
 {
+	Debug(_log, "Set Nanoleaf to External Control (UDP) streaming mode");
 	_extControlVersion = EXTCTRLVER_V2;
 	//Enable UDP Mode v2
 
