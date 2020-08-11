@@ -25,13 +25,21 @@ wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/
 ```
 wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -t i386
 ```
-**Raspberry Pi v1 & ZERO**
+**Raspberry Pi v1 & ZERO (Raspbian Stretch)**
 ```
 wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -t armv6hf
 ```
-**Raspberry Pi 2 & 3**
+**Raspberry Pi 2 & 3 (Raspbian Stretch)**
 ```
 wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -t armv7hf
+```
+**Raspberry Pi v1 & ZERO (Raspbian Buster)**
+```
+wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -t armv6hf-buster
+```
+**Raspberry Pi 2 & 3 (Raspbian Buster**
+```
+wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -t armv7hf-buster
 ```
 
 # The usual way
