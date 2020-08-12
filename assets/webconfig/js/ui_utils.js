@@ -992,5 +992,6 @@ function handleDarkMode()
 
 		setStorage("darkMode", "on", false);
 		$('#btn_darkmode_icon').removeClass('fa fa-moon-o');
-		$('#btn_darkmode_icon').addClass('fa fa-sun-o');
+		$('#btn_darkmode_icon').addClass('mdi mdi-white-balance-sunny');
+		$('#navbar_brand_logo').attr("src", 'img/hyperion/hyperionlogo_dark.png');
 }
