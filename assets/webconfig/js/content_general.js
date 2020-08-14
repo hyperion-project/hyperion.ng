@@ -62,26 +62,35 @@ $(document).ready( function() {
 		$('.itbody').html("");
 		for(var key in inst)
 		{
-			var startBtnColor = inst[key].running ? "success" : "danger";
-			var startBtnIcon = inst[key].running ? "stop" : "play";
-			var startBtnText = inst[key].running ? $.i18n('general_btn_stop') : $.i18n('general_btn_start');
-			var renameBtn = '<button id="instren_'+inst[key].instance+'" type="button" class="btn btn-primary"><i class="fa fa-fw fa-pencil"></i>'+$.i18n('general_btn_rename')+'</button>';
+			const enable_style = inst[key].running ? "checked" : "";
+			const inst_btn_id  = inst[key].instance;
+			// var startBtnIcon = inst[key].running ? "stop" : "play";
+			// var startBtnText = inst[key].running ? $.i18n('general_btn_stop') : $.i18n('general_btn_start');
+			var renameBtn = '<button id="instren_'+inst[key].instance+'" type="button" class="btn btn-primary"><i class="fa fa-pencil"></i></button>';
 			var startBtn = ""
 			var delBtn = "";
 			if(inst[key].instance > 0)
 			{
-				delBtn = '<button id="instdel_'+inst[key].instance+'" type="button" class="btn btn-warning"><i class="fa fa-fw fa-remove"></i>'+$.i18n('general_btn_delete')+'</button>';
-				startBtn = '<button id="inst_'+inst[key].instance+'" type="button" class="btn btn-'+startBtnColor+'"><i class="fa fa-fw fa-'+startBtnIcon+'"></i>'+startBtnText+'</button>';
+				delBtn = '<button id="instdel_'+inst[key].instance+'" type="button" class="btn btn-warning"><i class="fa fa-remove"></i></button>';
+				startBtn = '<span style="display:block;margin:3px">'
+					+'<input id="'+inst_btn_id+'"'+enable_style+' type="checkbox"'
+					+'data-toggle="toggle" data-onstyle="success" data-on="'+$.i18n('general_btn_on')+'" data-off="'+$.i18n('general_btn_off')+'">'
+					+'</span>';
 			}
-			$('.itbody').append(createTableRow([inst[key].friendly_name, renameBtn, startBtn, delBtn], false, true));
+			$('.itbody').append(createTableRow([inst[key].friendly_name, startBtn, renameBtn, delBtn], false, true));
 			$('#instren_'+inst[key].instance).off().on('click', handleInstanceRename);
-			$('#inst_'+inst[key].instance).off().on('click', handleInstanceStartStop);
+
+			$(`#${inst_btn_id}`).bootstrapToggle();
+			$(`#${inst_btn_id}`).change(e => {
+				requestInstanceStartStop(e.currentTarget.id.split('_').pop(), e.currentTarget.checked);
+			});
+
 			$('#instdel_'+inst[key].instance).off().on('click', handleInstanceDelete);
 		}
 	}
 
 	createTable('ithead', 'itbody', 'itable');
-	$('.ithead').html(createTableRow([$.i18n('conf_general_inst_namehead'), "", $.i18n('conf_general_inst_actionhead'), ""], true, true));
+	$('.ithead').html(createTableRow([$.i18n('conf_general_inst_namehead'), "", $.i18n('conf_general_inst_actionhead'), ""], true, false));
 	buildInstanceList();
 
 	$('#inst_name').off().on('input',function(e) {

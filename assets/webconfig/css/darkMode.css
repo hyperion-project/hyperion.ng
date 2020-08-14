@@ -14,6 +14,10 @@ body {
     border-color: #212121;
 }
 
+.navbar-default li a {
+    color: #C6C6C6 !important;
+}
+
 .panel-body {
     background-color: #424242;
 }
@@ -160,6 +164,8 @@ tr:hover td {
 
 .sidebar ul li a.active{
     background-color: #424242;
+	padding-left:10px;
+	border-left:10px solid #0088cc;
 }
 
 .sidebar ul li a:hover{

@@ -91,6 +91,20 @@ table label{margin:0;}
     align-items: center;
 }
 
+.navbar-default li a {
+    color: #303030 !important;
+}
+
+.sidebar ul li a.active{
+	padding-left:5px;
+	border-left:10px solid #0E83E7;
+}
+
+.sidebar ul li ul li a.active{
+	padding-left:27px;
+	border-left:10px solid #0E83E7;
+}
+
 /*Panels*/
 .panel-heading{font-size:18px;}
 .headcollapse{cursor:pointer;}
