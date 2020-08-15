@@ -221,7 +221,13 @@ tr:hover td {
 }
 
 .panel-default>.panel-heading{
-    background-color: #424242 !important;
+    background-color:#0E83E7 !important;
+    border-color: #212121 !important;
+    color: #DDDDDD;
+}
+
+.panel-default>.panel-instance{
+	background-color:#E18300 !important;
     border-color: #212121 !important;
     color: #DDDDDD;
 }
@@ -422,7 +428,7 @@ button.close:hover {
 }
 
 .bs-callout-success {
-    border-left-color: greenyellow;
+    border-left-color: #67FF01;
 }
 
 .bs-callout-success h4 {

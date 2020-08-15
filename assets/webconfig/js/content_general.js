@@ -40,13 +40,6 @@ $(document).ready( function() {
 		});
 	}
 
-	function handleInstanceStartStop(e)
-	{
-		var inst = e.currentTarget.id.split("_")[1];
-		var start = (e.currentTarget.className == "btn btn-danger")
-		requestInstanceStartStop(inst, start)
-	}
-
 	function handleInstanceDelete(e)
 	{
 		var inst = e.currentTarget.id.split("_")[1];
@@ -64,18 +57,14 @@ $(document).ready( function() {
 		{
 			const enable_style = inst[key].running ? "checked" : "";
 			const inst_btn_id  = inst[key].instance;
-			// var startBtnIcon = inst[key].running ? "stop" : "play";
-			// var startBtnText = inst[key].running ? $.i18n('general_btn_stop') : $.i18n('general_btn_start');
-			var renameBtn = '<button id="instren_'+inst[key].instance+'" type="button" class="btn btn-primary"><i class="fa fa-pencil"></i></button>';
+			var renameBtn = '<button id="instren_'+inst[key].instance+'" type="button" class="btn btn-primary"><i class="mdi mdi-lead-pencil"></i></button>';
 			var startBtn = ""
 			var delBtn = "";
 			if(inst[key].instance > 0)
 			{
-				delBtn = '<button id="instdel_'+inst[key].instance+'" type="button" class="btn btn-warning"><i class="fa fa-remove"></i></button>';
-				startBtn = '<span style="display:block;margin:3px">'
-					+'<input id="'+inst_btn_id+'"'+enable_style+' type="checkbox"'
-					+'data-toggle="toggle" data-onstyle="success" data-on="'+$.i18n('general_btn_on')+'" data-off="'+$.i18n('general_btn_off')+'">'
-					+'</span>';
+				delBtn = '<button id="instdel_'+inst[key].instance+'" type="button" class="btn btn-danger"><i class="mdi mdi-delete-forever"></i></button>';
+				startBtn = '<input id="'+inst_btn_id+'"'+enable_style+' type="checkbox"'
+					+'data-toggle="toggle" data-onstyle="success" data-on="'+$.i18n('general_btn_on')+'" data-off="'+$.i18n('general_btn_off')+'">';
 			}
 			$('.itbody').append(createTableRow([inst[key].friendly_name, startBtn, renameBtn, delBtn], false, true));
 			$('#instren_'+inst[key].instance).off().on('click', handleInstanceRename);
