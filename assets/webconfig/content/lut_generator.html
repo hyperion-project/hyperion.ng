@@ -310,7 +310,7 @@ function extendedReinhard(c_in, l_new, l_old)
 	<td>
 		<table>
 		<tr height="64px" width="100%">
-			<td width="20%">
+			<td width="50%" colspan="2">
 				<label for="lut_progress">Generating LUT:</label>
 			</td>
 			<td>
@@ -318,7 +318,7 @@ function extendedReinhard(c_in, l_new, l_old)
 			</td>
 		</tr>
 		<tr height="64px">   
-			<td>
+			<td colspan="2">
 				Enter gain (default 100):
 			</td>
 			<td>
@@ -327,7 +327,9 @@ function extendedReinhard(c_in, l_new, l_old)
 		</tr>
 		<tr height="64px">
 			<td>
-				Hable<input type="radio" id="algoH" name="algo" value="H" style="margin-right:64px" checked>
+				Hable<input type="radio" id="algoH" name="algo" value="H" checked>
+			</td>
+			<td>				
 			        Reinhard<input type="radio" id="algoR" name="algo" value="R" >
 			</td>
 			<td>
@@ -336,7 +338,7 @@ function extendedReinhard(c_in, l_new, l_old)
 			</td>
 		</tr>
 		<tr height="64px">
-			<td>
+			<td colspan="2">
 				 <button type="button" onclick="MakeLut()" style="width:200px">Generate LUT</button>
 			</td>
 			<td>
@@ -344,7 +346,7 @@ function extendedReinhard(c_in, l_new, l_old)
 			</td>
 		</tr>
 		<tr>
-			<td>
+			<td colspan="2">
 				 <button type="button" style="width:200px" onclick="TestImage()">Apply LUT to image</button>
 			</td>
 			<td>
