@@ -1,9 +1,9 @@
 $(document).ready( function() {
   performTranslation();
 
-	// update instance listing
-	updateHyperionInstanceListing();
-	$('#instance_name').html(window.currentHyperionInstanceName);
+  // update instance listing
+  updateHyperionInstanceListing();
+  $('#instance_name').html(window.currentHyperionInstanceName);
 
   var conf_editor_v4l2 = null;
   var conf_editor_fg = null;

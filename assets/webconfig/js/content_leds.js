@@ -1,4 +1,3 @@
-
 var ledsCustomCfgInitialized = false;
 var finalLedArray = [];
 var conf_editor = null;
