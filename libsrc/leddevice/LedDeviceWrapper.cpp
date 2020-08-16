@@ -181,6 +181,11 @@ void LedDeviceWrapper::handleInternalEnableState(bool newState)
 {
 	_hyperion->setNewComponentState(hyperion::COMP_LEDDEVICE, newState);
 	_enabled = newState;
+
+	if (_enabled)
+	{
+		_hyperion->update();
+	}
 }
 
 void LedDeviceWrapper::stopDeviceThread()
