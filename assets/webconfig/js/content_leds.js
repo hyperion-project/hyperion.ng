@@ -360,6 +360,10 @@ $(document).ready(function() {
 	// translate
 	performTranslation();
 
+	// update instance listing
+	updateHyperionInstanceListing();
+	$('#instance_name').html(window.currentHyperionInstanceName);
+
 	//add intros
 	if(window.showOptHelp)
 	{
@@ -368,10 +372,8 @@ $(document).ready(function() {
 		$('#led_vis_help').html('<div><div class="led_ex" style="background-color:black;margin-right:5px;margin-top:3px"></div><div style="display:inline-block;vertical-align:top">'+$.i18n('conf_leds_layout_preview_l1')+'</div></div><div class="led_ex" style="background-color:grey;margin-top:3px;margin-right:2px"></div><div class="led_ex" style="background-color: rgb(169, 169, 169);margin-right:5px;margin-top:3px;"></div><div style="display:inline-block;vertical-align:top">'+$.i18n('conf_leds_layout_preview_l2')+'</div>');
 	}
 
-	var slConfig = window.serverConfig.ledConfig;
-
 	//Check, if structure is not aligned to expected -> migrate structure
-
+	var slConfig = window.serverConfig.ledConfig;
 	if ( isEmpty(slConfig.classic) )
 	{
 		slConfig = migrateLedConfig( slConfig );
@@ -501,30 +503,30 @@ $(document).ready(function() {
 			specificOptions : specificOptions,
 		});
 
-		var values_general = {};
-		var values_specific = {};
-		var isCurrentDevice = (window.serverConfig.device.type == ledType);
+	var values_general = {};
+	var values_specific = {};
+	var isCurrentDevice = (window.serverConfig.device.type == ledType);
 
-		for(var key in window.serverConfig.device) {
-			if (key != "type" && key in generalOptions.properties) values_general[key] = window.serverConfig.device[key];
+	for(var key in window.serverConfig.device) {
+		if (key != "type" && key in generalOptions.properties) values_general[key] = window.serverConfig.device[key];
+	};
+	conf_editor.getEditor("root.generalOptions").setValue( values_general );
+
+	if (isCurrentDevice)
+	{
+		var specificOptions_val = conf_editor.getEditor("root.specificOptions").getValue();
+		for(var key in specificOptions_val){
+			values_specific[key] = (key in window.serverConfig.device) ? window.serverConfig.device[key] : specificOptions_val[key];
 		};
-		conf_editor.getEditor("root.generalOptions").setValue( values_general );
+		conf_editor.getEditor("root.specificOptions").setValue( values_specific );
+	};
 
-		if (isCurrentDevice)
-		{
-			var specificOptions_val = conf_editor.getEditor("root.specificOptions").getValue();
-			for(var key in specificOptions_val){
-				values_specific[key] = (key in window.serverConfig.device) ? window.serverConfig.device[key] : specificOptions_val[key];
-			};
-			conf_editor.getEditor("root.specificOptions").setValue( values_specific );
-		};
+	// change save button state based on validation result
+	conf_editor.validate().length ? $('#btn_submit_controller').attr('disabled', true) : $('#btn_submit_controller').attr('disabled', false);
 
-		// change save button state based on validation result
-		conf_editor.validate().length ? $('#btn_submit_controller').attr('disabled', true) : $('#btn_submit_controller').attr('disabled', false);
-
-		// led controller sepecific wizards
-		$('#btn_wiz_holder').html("");
-		$('#btn_led_device_wiz').off();
+	// led controller sepecific wizards
+	$('#btn_wiz_holder').html("");
+	$('#btn_led_device_wiz').off();
 
     if(ledType == "philipshue") {
       $('#root_specificOptions_useEntertainmentAPI').bind("change", function() {

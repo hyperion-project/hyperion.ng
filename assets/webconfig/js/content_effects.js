@@ -1,5 +1,10 @@
 $(document).ready( function() {
 	performTranslation();
+
+	// update instance listing
+	updateHyperionInstanceListing();
+	$('#instance_name').html(window.currentHyperionInstanceName);
+
 	var oldEffects = [];
 	var effects_editor = null;
 	var confFgEff = window.serverConfig.foregroundEffect.effect;

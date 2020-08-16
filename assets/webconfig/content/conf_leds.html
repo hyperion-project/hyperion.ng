@@ -1,5 +1,18 @@
 <div class="container-fluid">
 	<h3 class="page-header"><i class="fa fa-lightbulb-o fa-fw"></i><span  data-i18n="main_menu_leds_conf_token">LED Hardware</span></h3>
+	
+	<div class="panel panel-default">
+		<div class="panel-heading panel-instance">
+			<span id="instance_name">Instance</span>
+			<div class="dropdown pull-right" id="btn_hypinstanceswitch" style="cursor:pointer">
+				<a class="dropdown-toggle" data-toggle="dropdown" href="#">
+					<i class="mdi mdi-lightbulb-group mdi-24px"></i><i class="mdi mdi-menu-down mdi-24px"></i>
+				</a>
+				<ul id="hyp_inst_listing" class="dropdown-menu dropdown-alerts"></ul>
+			</div>
+		</div>
+	</div>
+
 	<ul id="leds_cfg_nav" class="nav nav-tabs">
 		<li class="active"><a data-toggle="tab" href="#menu_controller"  data-i18n="conf_leds_nav_label_ledcontroller">LED Controller</a></li>
 		<li><a data-toggle="tab" href="#menu_gencfg"  data-i18n="conf_leds_nav_label_ledlayout">LED Layout</a></li>

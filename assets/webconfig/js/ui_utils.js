@@ -133,7 +133,7 @@ function loadContent(event, forceRefresh)
 				$("#page-content").html('<h3>'+$.i18n('info_404')+'</h3>');
 				removeOverlay();
 			}
-			updateUiOnInstance(window.currentHyperionInstance);
+			// updateUiOnInstance(window.currentHyperionInstance);
 		});
 	}
 }
@@ -220,7 +220,7 @@ function initLanguageSelection()
 	$("#language-select").selectpicker("refresh");
 }
 
-function updateUiOnInstance(inst)
+/* function updateUiOnInstance(inst)
 {
 	if(inst != 0)
 	{
@@ -238,7 +238,7 @@ function updateUiOnInstance(inst)
 		$("#hyperion_global_setting_notify").fadeOut("fast");
 		$("#dashboard_active_instance").attr("style", "display:none");
 	}
-}
+} */
 
 function instanceSwitch(inst)
 {
@@ -735,7 +735,7 @@ function createRow(id)
 	return el;
 }
 
-function createOptPanel(phicon, phead, bodyid, footerid)
+function createOptPanel(phicon, phead, bodyid, footerid, css)
 {
 	phead = '<i class="fa '+phicon+' fa-fw"></i>'+phead;
 	var pfooter = document.createElement('button');
@@ -743,7 +743,7 @@ function createOptPanel(phicon, phead, bodyid, footerid)
 	pfooter.setAttribute("id", footerid);
 	pfooter.innerHTML = '<i class="fa fa-fw fa-save"></i>'+$.i18n('general_button_savesettings');
 
-	return createPanel(phead, "", pfooter, "panel-default", bodyid);
+	return createPanel(phead, "", pfooter, "panel-default", bodyid, css);
 }
 
 function sortProperties(list)
@@ -806,7 +806,7 @@ function createHelpTable(list, phead){
 	return createPanel(phead, table);
 }
 
-function createPanel(head, body, footer, type, bodyid){
+function createPanel(head, body, footer, type, bodyid, css){
 	var cont = document.createElement('div');
 	var p = document.createElement('div');
 	var phead = document.createElement('div');
@@ -819,7 +819,7 @@ function createPanel(head, body, footer, type, bodyid){
 		type = 'panel-default';
 
 	p.className = 'panel '+type;
-	phead.className = 'panel-heading';
+	phead.className = 'panel-heading ' + css;
 	pbody.className = 'panel-body';
 	pfooter.className = 'panel-footer';
 

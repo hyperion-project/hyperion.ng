@@ -221,9 +221,15 @@ tr:hover td {
 }
 
 .panel-default>.panel-heading{
-    background-color:#0E83E7 !important;
+    background-color:#424242 !important;
     border-color: #212121 !important;
     color: #DDDDDD;
+}
+
+.panel-default>.panel-system{
+	background-color:#0E83E7 !important;
+	border-color:#ddd !important;
+	color: #fff ;
 }
 
 .panel-default>.panel-instance{

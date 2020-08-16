@@ -46,6 +46,7 @@ $(document).ready(function () {
 			$('#btn_hypinstanceswitch').toggle(true)
 		else
 			$('#btn_hypinstanceswitch').toggle(false)
+
 		// update listing at button
 		updateHyperionInstanceListing()
 		if (!instNameInit) {

@@ -120,6 +120,11 @@ table.first_cell_borderless td:first-child,table.first_cell_borderless th:first-
 	border-color:#d0d0d0 !important;
 }
 .panel-default>.panel-heading{
+	background-color:#F3F3F3  !important;
+	border-color:#ddd !important;
+}
+
+.panel-default>.panel-system{
 	background-color:#0E83E7 !important;
 	border-color:#ddd !important;
 	color: #fff ;

@@ -1,5 +1,10 @@
 $(document).ready( function() {
 	performTranslation();
+
+	// update instance listing
+	updateHyperionInstanceListing();
+	$('#instance_name').html(window.currentHyperionInstanceName);
+
 	var editor_color = null;
 	var editor_smoothing = null;
 	var editor_blackborder = null;
