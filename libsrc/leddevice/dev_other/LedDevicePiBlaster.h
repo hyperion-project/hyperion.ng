@@ -20,7 +20,7 @@ public:
 	///
 	/// @brief Destructor of the LedDevice
 	///
-	virtual ~LedDevicePiBlaster() override;
+	~LedDevicePiBlaster() override;
 
 	///
 	/// @brief Constructs the LED-device
@@ -43,14 +43,14 @@ protected:
 	///
 	/// @return Zero on success (i.e. device is ready), else negative
 	///
-	virtual int open() override;
+	int open() override;
 
 	///
 	/// @brief Closes the output device.
 	///
 	/// @return Zero on success (i.e. device is closed), else negative
 	///
-	virtual int close() override;
+	int close() override;
 
 private:
 

@@ -35,7 +35,7 @@ Also known as [Apple Bonjour](https://en.wikipedia.org/wiki/Bonjour_(software)) 
   * _hyperiond-json._tcp -> Hyperion JSON Server (TcpSocket)
   * _hyperiond-flatbuf._tcp -> Hyperion Flatbuffers server (Google Flatbuffers)
 
-So you get the ip address, hostname and port of the system. Also the Hyperion instance name is part of it (before the @ for the full name). As this works realtime you have always an up2date list of available Hyperion servers right to your hand. So check your development environment if you have access to it.
+So you get the IP address, hostname and port of the system. Also the Hyperion instance name is part of it (before the @ for the full name). As this works realtime you have always an up2date list of available Hyperion servers right to your hand. So check your development environment if you have access to it.
 
 ### TXT RECORD
 Each published entry contains at least the following informations at the txt field

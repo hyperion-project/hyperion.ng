@@ -55,7 +55,7 @@ Now with three LEDs
 </ImageWrap>
 
 ### Additional properties
-You may connected different led stripe charges with different rgb byte orders. You can overwrite the global rgb byte order by adding a `colorOrder` property to all leds that require a different one.
+You may connected different led stripe charges with different RGB byte orders. You can overwrite the global RGB byte order by adding a `colorOrder` property to all leds that require a different one.
 ``` json
 {
   "hmax": 0.2,
@@ -77,7 +77,7 @@ You may connected different led stripe charges with different rgb byte orders. Y
   "vmin": 0.7
 }
 ```
-In this example the first led will be `gbr`, the other leds will be assigned to the global rgb order that has been defined at the led hardware section.
+In this example the first led will be `gbr`, the other leds will be assigned to the global RGB order that has been defined at the led hardware section.
 
 ### Edit with Web Configuration
 While editing these values in a local texteditor is a little bit weird, you could edit them at the web configuration!
@@ -92,7 +92,7 @@ Explain the differences between the available modes for blackbar detection.
 
   * **Default:** 3 scanlines in each direction (X Y) - fastest detection
   * **Classic:** The original implementation - lower cpu time (legacy for RPi 1) just scan the top one third of the picture which leads to a  slow detection and trouble with TV channel logo.
-  * **OSD:** Based on the default mode - not that effectiv but prevents border switching which may caused of OSD overlays (program infos and volume bar).
+  * **OSD:** Based on the default mode - not that effective but prevents border switching which may caused of OSD overlays (program infos and volume bar).
 <ImageWrap src="/images/en/user_bbmodes.jpg" alt="Hyperion Blackbar detection modes" />
 
 ## Gamma Curve
@@ -131,7 +131,7 @@ If a path name contains spaces, surround it with `“`.
 :::
 
 ### hyperion-remote
-hyperion-remote is a command line tool which translates given arguments to json commands and sends them to the Hyperion JSON-RPC. Easy to use for scripts. It supports nearly all commands that Hyperion provides.
+hyperion-remote is a command line tool which translates given arguments to JSON commands and sends them to the Hyperion JSON-RPC. Easy to use for scripts. It supports nearly all commands that Hyperion provides.
 
 ``` sh
 # Get a list of all available commands
@@ -169,7 +169,7 @@ Hyperion remote will search for a Hyperion server automatically. So you can even
 ### hyperion-capture
  We deliver also stand alone capture apps right in your Hyperion directory. They are called hyperion-dispmanx, hyperion-osx, hyperion-x11, hyperion-amlogic, hyperion-framebuffer, hyperion-qt. Depending on your platform you have more or less.
 
-All these application can be started independent from Hyperion and all of these have slightly different options. They communitcate with the flatbuffer interface of Hyperion. So let's start one of them! In this example i use dispmanx for Raspberry Pi, so let us check the available options.
+All these application can be started independent from Hyperion and all of these have slightly different options. They communicate with the flatbuffer interface of Hyperion. So let's start one of them! In this example i use dispmanx for Raspberry Pi, so let us check the available options.
 
 ``` sh
 hyprion-dispmanx -h

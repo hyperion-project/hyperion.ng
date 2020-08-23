@@ -93,76 +93,108 @@ public:
 		return *option;
 	}
 
-	Parser(QString description=QString())
+	Parser(const QString& description = QString())
 	{
-		if(description.size())setApplicationDescription(description);
+		if(description.size())
+			setApplicationDescription(description);
 	};
-	
+
 	QCommandLineOption addHelpOption()
 	{
 		return _parser.addHelpOption();
 	};
-	
+
 	bool addOption(Option &option);
 	bool addOption(Option *option);
 	void addPositionalArgument(const QString &name, const QString &description, const QString &syntax = QString())
 	{
 		_parser.addPositionalArgument(name, description, syntax);
 	};
-	
+
 	QCommandLineOption addVersionOption()
-	{ 
+	{
 		return _parser.addVersionOption();
 	};
-	
-	QString applicationDescription() const
-	{ return _parser.applicationDescription(); }
-	
-	void clearPositionalArguments()
-	{ _parser.clearPositionalArguments(); }
-	
-	QString helpText() const
-	{ return _parser.helpText(); }
-	
-	bool isSet(const QString &name) const
-	{ return _parser.isSet(name); }
-	
-	bool isSet(const Option &option) const
-	{ return _parser.isSet(option); }
-	
-	bool isSet(const Option *option) const
-	{ return _parser.isSet(*option); }
-	
-	QStringList optionNames() const
-	{ return _parser.optionNames(); }
-	
-	QStringList positionalArguments() const
-	{ return _parser.positionalArguments(); }
-	
-	void setApplicationDescription(const QString &description)
-	{ _parser.setApplicationDescription(description); }
-	
-	void setSingleDashWordOptionMode(QCommandLineParser::SingleDashWordOptionMode singleDashWordOptionMode)
-	{ _parser.setSingleDashWordOptionMode(singleDashWordOptionMode); }
-	
-	void showHelp(int exitCode = 0)
-	{ _parser.showHelp(exitCode); }
-	
-	QStringList unknownOptionNames() const
-	{ return _parser.unknownOptionNames(); }
-	
-	QString value(const QString &optionName) const
-	{ return _parser.value(optionName); }
-	
-	QString value(const Option &option) const
-	{ return _parser.value(option); }
-	
-	QStringList values(const QString &optionName) const
-	{ return _parser.values(optionName); }
-	
-	QStringList values(const Option &option) const
-	{ return _parser.values(option); }
 
+	QString applicationDescription() const
+	{
+		return _parser.applicationDescription();
+	}
+
+	void clearPositionalArguments()
+	{
+		_parser.clearPositionalArguments();
+	}
+
+	QString helpText() const
+	{
+		return _parser.helpText();
+	}
+
+	bool isSet(const QString &name) const
+	{
+		return _parser.isSet(name);
+	}
+
+	bool isSet(const Option &option) const
+	{
+		return _parser.isSet(option);
+	}
+
+	bool isSet(const Option *option) const
+	{
+		return _parser.isSet(*option);
+	}
+
+	QStringList optionNames() const
+	{
+		return _parser.optionNames();
+	}
+
+	QStringList positionalArguments() const
+	{
+		return _parser.positionalArguments();
+	}
+
+	void setApplicationDescription(const QString &description)
+	{
+		_parser.setApplicationDescription(description);
+	}
+
+	void setSingleDashWordOptionMode(QCommandLineParser::SingleDashWordOptionMode singleDashWordOptionMode)
+	{
+		_parser.setSingleDashWordOptionMode(singleDashWordOptionMode);
+	}
+
+	void showHelp(int exitCode = 0)
+	{
+		_parser.showHelp(exitCode);
+	}
+
+	QStringList unknownOptionNames() const
+	{
+		return _parser.unknownOptionNames();
+	}
+
+	QString value(const QString &optionName) const
+	{
+		return _parser.value(optionName);
+	}
+
+	QString value(const Option &option) const
+	{
+		return _parser.value(option);
+	}
+
+	QStringList values(const QString &optionName) const
+	{
+		return _parser.values(optionName);
+	}
+
+	QStringList values(const Option &option) const
+	{
+		return _parser.values(option);
+	}
 };
 
 }

@@ -5,7 +5,7 @@
 
 namespace RGBW {
 
-WhiteAlgorithm stringToWhiteAlgorithm(QString str)
+WhiteAlgorithm stringToWhiteAlgorithm(const QString& str)
 {
 	if (str == "subtract_minimum")         return WhiteAlgorithm::SUBTRACT_MINIMUM;
 	if (str == "sub_min_warm_adjust")      return WhiteAlgorithm::SUB_MIN_WARM_ADJUST;
@@ -14,7 +14,7 @@ WhiteAlgorithm stringToWhiteAlgorithm(QString str)
 	return WhiteAlgorithm::INVALID;
 }
 
-void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, const WhiteAlgorithm algorithm)
+void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm)
 {
 	switch (algorithm)
 	{

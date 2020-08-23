@@ -4,7 +4,7 @@ Overview of the API. Get access to these functions by importing the `hapi` modul
 | Function                  | Returns | Comment                                                                                             |
 | ------------------------- | ------- | --------------------------------------------------------------------------------------------------- |
 | hapi.abort()              | bool    | Check if we should abort the script, True on abort request else false                               |
-| hapi.log()                | -       | Print a log message to the Hyprion log. See [hapi.log()](#hapi-log)                                 |
+| hapi.log()                | -       | Print a log message to the Hyperion log. See [hapi.log()](#hapi-log)                                 |
 | hapi.registerCallback()   | -       | Register a function with a callback function. See [hapi.registerCallback()](#hapi-registercallback) |
 | hapi.unregisterCallback() | -       | Unregister a function from callback. See [hapi.unregisterCallback()](#hapi-unregistercallback)      |
 | hapi.getComponentState()  | int     | Get current state of a component. See [hapi.getComponentState()](#hapi-getcomponentstate )          |
@@ -70,7 +70,7 @@ hapi.registerCallback(ON_VISIBLE_PRIORITY_CHANGED, onVsibilePriorityChanged)
 ```
  
 ### hapi.unregisterCallback()
-You can als unregister a callbackType again. You can register and unregister as often you need it. Usually you won't need it, but for completion here it is! After unregister the connected function does no longer react upon callbacks 
+You can also unregister a callbackType again. You can register and unregister as often you need it. Usually you won't need it, but for completion here it is! After unregister the connected function does no longer react upon callbacks 
 `hapi.unregisterCallback(callbackType)`
 | Argument     | Type | Comment                                                                              |
 | ------------ | ---- | ------------------------------------------------------------------------------------ |
@@ -95,7 +95,7 @@ Set a Hyperion component to a new state. This method writes a debug message on e
 | @return  | bool | True if the requested component was found else false                                                                                                                                                                      |
 
 ### hapi.getSettings()
-Get the current user settings data for your addon. The returned data contains all settings that has been transformed from json to python data types. See the table below how they are transformed.
+Get the current user settings data for your addon. The returned data contains all settings that has been transformed from JSON to python data types. See the table below how they are transformed.
 `hapi.getSettings()`
 |  Json   | Python |
 | :-----: | :----: |
@@ -107,7 +107,7 @@ Get the current user settings data for your addon. The returned data contains al
 | object  |  dict  |
 
 **Basics** \
-The root data type is usually of type object which will be transformed to a python dict, so we use the dict syntax to get the value. The fallback paramter should be defined wisely, if the value is not found it will be used instead.
+The root data type is usually of type object which will be transformed to a python dict, so we use the dict syntax to get the value. The fallback parameter should be defined wisely, if the value is not found it will be used instead.
 ``` python
 import hapi
 # Get a bool value of a dict 

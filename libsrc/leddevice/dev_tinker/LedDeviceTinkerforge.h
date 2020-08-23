@@ -23,7 +23,7 @@ public:
 	///
 	explicit LedDeviceTinkerforge(const QJsonObject &deviceConfig);
 
-	virtual ~LedDeviceTinkerforge() override;
+	~LedDeviceTinkerforge() override;
 
 	///
 	/// @brief Constructs the LED-device
@@ -40,14 +40,14 @@ protected:
 	/// @param[in] deviceConfig the JSON device configuration
 	/// @return True, if success
 	///
-	virtual bool init(const QJsonObject &deviceConfig) override;
+	bool init(const QJsonObject &deviceConfig) override;
 
 	///
 	/// @brief Opens a connection to the master bricklet and the led strip bricklet.
 	///
 	/// @return Zero on success (i.e. device is ready), else negative
 	///
-	virtual int open() override;
+	int open() override;
 
 	///
 	/// @brief Writes the RGB-Color values to the LEDs.
@@ -55,7 +55,7 @@ protected:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	virtual int write(const std::vector<ColorRgb> & ledValues) override;
+	int write(const std::vector<ColorRgb> & ledValues) override;
 
 private:
 

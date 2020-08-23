@@ -12,7 +12,7 @@ class JsonAPI;
 class WebJsonRpc : public QObject {
 	Q_OBJECT
 public:
-	WebJsonRpc(QtHttpRequest* request, QtHttpServer* server, const bool& localConnection, QtHttpClientWrapper* parent);
+	WebJsonRpc(QtHttpRequest* request, QtHttpServer* server, bool localConnection, QtHttpClientWrapper* parent);
 
 	void handleMessage(QtHttpRequest* request);
 

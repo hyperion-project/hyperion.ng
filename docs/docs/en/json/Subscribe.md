@@ -67,7 +67,7 @@ You can subscribe to session updates (Found with Bonjour/Zeroconf/Ahavi). These 
 }
 ```
 These updates aren't incremental, so they contain always all found entries.
-Example response with 2 http server sessions (_hyperiond-http._tcp)
+Example response with 2 HTTP server sessions (_hyperiond-http._tcp)
 ``` json
 {
     "command":"sessions-update",

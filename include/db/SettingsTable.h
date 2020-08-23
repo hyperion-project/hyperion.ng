@@ -15,7 +15,7 @@ class SettingsTable : public DBManager
 
 public:
 	/// construct wrapper with settings table
-	SettingsTable(const quint8& instance, QObject* parent = nullptr)
+	SettingsTable(quint8 instance, QObject* parent = nullptr)
 		: DBManager(parent)
 		, _hyperion_inst(instance)
 	{
@@ -23,7 +23,6 @@ public:
 		// create table columns
 		createTable(QStringList()<<"type TEXT"<<"config TEXT"<<"hyperion_inst INTEGER"<<"updated_at TEXT");
 	};
-	~SettingsTable(){};
 
 	///
 	/// @brief      Create or update a settings record

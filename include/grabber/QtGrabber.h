@@ -75,7 +75,7 @@ private:
 	///
 	/// @brief Is called whenever we need new screen dimension calculations based on window geometry
 	///
-	int updateScreenDimensions(const bool& force);
+	int updateScreenDimensions(bool force);
 
 	///
 	/// @brief free the _screen pointer

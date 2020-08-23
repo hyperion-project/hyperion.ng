@@ -26,7 +26,7 @@ public:
 	/// @param[in] width  The width of the captured screenshot
 	/// @param[in] height The heigth of the captured screenshot
 	///
-	DispmanxFrameGrabber(const unsigned width, const unsigned height);
+	DispmanxFrameGrabber(unsigned width, unsigned height);
 	~DispmanxFrameGrabber() override;
 
 
@@ -50,7 +50,7 @@ private:
 	///
 	/// @param vc_flags  The snapshot grabbing mask
 	///
-	void setFlags(const int vc_flags);
+	void setFlags(int vc_flags);
 
 	///
 	/// @brief free _vc_resource and captureBuffer

@@ -17,18 +17,19 @@ struct ColorBgr
 	/// The red color channel
 	uint8_t red;
 
+
 	/// 'Black' RgbColor (0, 0, 0)
-	static ColorBgr BLACK;
+	static const ColorBgr BLACK;
 	/// 'Red' RgbColor (255, 0, 0)
-	static ColorBgr RED;
+	static const ColorBgr RED;
 	/// 'Green' RgbColor (0, 255, 0)
-	static ColorBgr GREEN;
+	static const ColorBgr GREEN;
 	/// 'Blue' RgbColor (0, 0, 255)
-	static ColorBgr BLUE;
+	static const ColorBgr BLUE;
 	/// 'Yellow' RgbColor (255, 255, 0)
-	static ColorBgr YELLOW;
+	static const ColorBgr YELLOW;
 	/// 'White' RgbColor (255, 255, 255)
-	static ColorBgr WHITE;
+	static const ColorBgr WHITE;
 };
 
 /// Assert to ensure that the size of the structure is 'only' 3 bytes
@@ -43,19 +44,33 @@ static_assert(sizeof(ColorBgr) == 3, "Incorrect size of ColorBgr");
 ///
 inline std::ostream& operator<<(std::ostream& os, const ColorBgr& color)
 {
-	os << "{" << unsigned(color.red) << "," << unsigned(color.green) << "," << unsigned(color.blue) << "}";
+	os << "{"
+		<< color.red   << ","
+		<< color.green << ","
+		<< color.blue
+	<< "}";
+
 	return os;
 }
 
+/// Compare operator to check if a color is 'equal' to another color
+inline bool operator==(const ColorBgr & lhs, const ColorBgr & rhs)
+{
+	return	(lhs.red   == rhs.red)   &&
+		(lhs.green == rhs.green) &&
+		(lhs.blue  == rhs.blue);
+}
 
 /// Compare operator to check if a color is 'smaller' than another color
 inline bool operator<(const ColorBgr & lhs, const ColorBgr & rhs)
 {
-	return (lhs.red < rhs.red) && (lhs.green < rhs.green) && (lhs.blue < rhs.blue);
+	return	(lhs.red   < rhs.red)   &&
+		(lhs.green < rhs.green) &&
+		(lhs.blue  < rhs.blue);
 }
 
 /// Compare operator to check if a color is 'smaller' than or 'equal' to another color
 inline bool operator<=(const ColorBgr & lhs, const ColorBgr & rhs)
 {
-	return (lhs.red <= rhs.red) && (lhs.green <= rhs.green) && (lhs.blue <= rhs.blue);
+	return lhs < rhs || lhs == rhs;
 }

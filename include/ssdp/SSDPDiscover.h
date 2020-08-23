@@ -58,7 +58,7 @@ public:
 	/// @param timeout_ms  The timeout in ms
 	/// @return The address+port of web-server or empty if timed out
 	///
-	const QString getFirstService(const searchType &type = searchType::STY_WEBSERVER,const QString &st = "urn:hyperion-project.org:device:basic:1", const int &timeout_ms = 3000);
+	QString getFirstService(const searchType &type = searchType::STY_WEBSERVER,const QString &st = "urn:hyperion-project.org:device:basic:1", int timeout_ms = 3000);
 
 	///
 	/// @brief Discover services via ssdp.
@@ -90,13 +90,6 @@ public:
 	int discoverServices(const QString &searchTarget="ssdp:all", const QString &key="LOCATION");
 
 	///
-	/// @brief Get services discovered during discoverServices()
-	///
-	/// @return Map of discovered services
-	///
-	const QMap<QString, SSDPService> getServicesDiscovered () { return _services; }
-
-	///
 	/// @brief Get services discovered during discoverServices().
 	///
 	/// Hostname and domain are resolved from IP-address and stored in extra elements
@@ -122,7 +115,7 @@ public:
 	///
 	/// @return Discovered services as JSON-document
 	///
-	QJsonArray getServicesDiscoveredJson();
+	QJsonArray getServicesDiscoveredJson() const;
 
 	///
 	/// @brief Set the ssdp discovery address (HOST)

@@ -57,8 +57,8 @@ namespace hyperion
 		///
 		unsigned height() const;
 
-		unsigned horizontalBorder() const { return _horizontalBorder; };
-		unsigned verticalBorder() const { return _verticalBorder; };
+		unsigned horizontalBorder() const { return _horizontalBorder; }
+		unsigned verticalBorder() const { return _verticalBorder; }
 
 		///
 		/// Determines the mean color for each led using the mapping the image given

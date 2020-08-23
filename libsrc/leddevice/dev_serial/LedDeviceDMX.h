@@ -24,7 +24,7 @@ public:
 	/// @param[in] deviceConfig Device's configuration as JSON-Object
 	/// @return LedDevice constructed
 	static LedDevice* construct(const QJsonObject &deviceConfig);
-	
+
 private:
 
 	///
@@ -33,7 +33,7 @@ private:
 	/// @param[in] deviceConfig the JSON device configuration
 	/// @return True, if success
 	///
-	virtual bool init(const QJsonObject &deviceConfig) override;
+	bool init(const QJsonObject &deviceConfig) override;
 
 	///
 	/// @brief Writes the RGB-Color values to the LEDs.
@@ -41,7 +41,7 @@ private:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	virtual int write(const std::vector<ColorRgb> &ledValues) override;
+	int write(const std::vector<ColorRgb> &ledValues) override;
 
 	int _dmxDeviceType = 0;
 	int _dmxStart = 1;

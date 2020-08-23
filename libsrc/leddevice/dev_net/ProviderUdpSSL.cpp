@@ -181,7 +181,7 @@ void ProviderUdpSSL::closeSSLConnection()
 	}
 }
 
-const int *ProviderUdpSSL::getCiphersuites()
+const int *ProviderUdpSSL::getCiphersuites() const
 {
 	return mbedtls_ssl_list_ciphersuites();
 }
@@ -456,7 +456,7 @@ void ProviderUdpSSL::freeSSLConnection()
 	}
 }
 
-void ProviderUdpSSL::writeBytes(const unsigned size, const unsigned char * data)
+void ProviderUdpSSL::writeBytes(unsigned size, const unsigned char * data)
 {
 	if( _stopConnection ) return;
 

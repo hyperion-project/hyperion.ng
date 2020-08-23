@@ -12,6 +12,7 @@ class ColorsOption: public Option
 {
 protected:
     QList<QColor> _colors;
+
 public:
     ColorsOption(const QString &name,
                  const QString &description = QString(),
@@ -20,6 +21,7 @@ public:
     )
         : Option(name, description, valueName, defaultValue)
     {}
+
     ColorsOption(const QStringList &names,
                  const QString &description = QString(),
                  const QString &valueName = QString(),
@@ -27,13 +29,13 @@ public:
     )
         : Option(names, description, valueName, defaultValue)
     {}
+
     ColorsOption(const QCommandLineOption &other)
         : Option(other)
     {}
 
     virtual bool validate(Parser & parser, QString & value) override;
-    QList<QColor> &getColors(Parser &parser)
-    { return _colors; }
+    QList<QColor> getColors(Parser &parser) const { return _colors; }
 };
 
 }

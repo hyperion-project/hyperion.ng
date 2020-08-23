@@ -1,8 +1,8 @@
 # Control
-You can control Hyperion by sending specific json messages. Or get a image and led colors stream of the current active source priority.
+You can control Hyperion by sending specific JSON messages. Or get a image and led colors stream of the current active source priority.
 
 ::: tip
-The `tan` property is supported, but ommited.
+The `tan` property is supported, but omitted.
 :::
 
 [[toc]]
@@ -133,7 +133,7 @@ Clear a priority, usually used to revert these: [set color](#set-color), [set ef
 }
 ```
 ::: warning
-When you clear all, you clear all effects and colors independet who set it! We recommend to provide a list of possible clear targets instead based on the priority list
+When you clear all, you clear all effects and colors independent who set it! We recommend to provide a list of possible clear targets instead based on the priority list
 :::
 
 ### Adjustments
@@ -333,7 +333,7 @@ You can request a live image stream (when the current source priority can delive
   "subcommand":"imagestream-start"
 }
 ```
-You will receive "ledcolors-imagestream-update" messages with a bas64 encoded image.
+You will receive "ledcolors-imagestream-update" messages with a base64 encoded image.
 Stop the stream by sending
 ``` json
 {
