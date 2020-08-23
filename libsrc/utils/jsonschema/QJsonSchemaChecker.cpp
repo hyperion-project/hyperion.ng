@@ -166,7 +166,7 @@ void QJsonSchemaChecker::setMessage(const QString & message)
 	_messages.append(_currentPath.join("") +": "+message);
 }
 
-const QStringList & QJsonSchemaChecker::getMessages() const
+QStringList QJsonSchemaChecker::getMessages() const
 {
 	return _messages;
 }

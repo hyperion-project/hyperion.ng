@@ -67,7 +67,7 @@ public:
 
 	void     Message(LogLevel level, const char* sourceFile, const char* func, unsigned int line, const char* fmt, ...);
 	void     setMinLevel(LogLevel level) { _minLevel = static_cast<int>(level); }
-	LogLevel getMinLevel() { return static_cast<LogLevel>(int(_minLevel)); }
+	LogLevel getMinLevel() const { return static_cast<LogLevel>(int(_minLevel)); }
 	QString  getName() const { return _name; }
 	QString  getAppName() const { return _appname; }
 
@@ -76,7 +76,7 @@ signals:
 
 protected:
 	Logger(const QString & name="", LogLevel minLevel = INFO);
-	~Logger();
+	~Logger() override;
 
 private:
 	void write(const Logger::T_LOG_MESSAGE & message);

@@ -10,20 +10,20 @@ enum class VideoStandard {
 	NO_CHANGE
 };
 
-inline VideoStandard parseVideoStandard(QString videoStandard)
+inline VideoStandard parseVideoStandard(const QString& videoStandard)
 {
 	// convert to lower case
-	videoStandard = videoStandard.toLower();
+	QString standard = videoStandard.toLower();
 
-	if (videoStandard == "pal")
+	if (standard == "pal")
 	{
 		return VideoStandard::PAL;
 	}
-	else if (videoStandard == "ntsc")
+	else if (standard == "ntsc")
 	{
 		return VideoStandard::NTSC;
 	}
-	else if (videoStandard == "secam")
+	else if (standard == "secam")
 	{
 		return VideoStandard::SECAM;
 	}

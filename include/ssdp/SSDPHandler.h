@@ -16,11 +16,12 @@ class QNetworkConfigurationManager;
 /// UPnP 1.0: spec: http://upnp.org/specs/arch/UPnP-arch-DeviceArchitecture-v1.0.pdf
 ///
 
-class SSDPHandler : public SSDPServer{
+class SSDPHandler : public SSDPServer
+{
 	Q_OBJECT
 public:
 	SSDPHandler(WebServer* webserver, quint16 flatBufPort, quint16 jsonServerPort, const QString &name,  QObject * parent = nullptr);
-	~SSDPHandler();
+	~SSDPHandler() override;
 
 	///
 	/// @brief Sends BYE BYE and stop server

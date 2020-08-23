@@ -7,7 +7,8 @@ class QUdpSocket;
 ///
 /// @brief The SSDP Server sends and receives (parses) SSDP requests
 ///
-class SSDPServer : public QObject {
+class SSDPServer : public QObject
+{
 	Q_OBJECT
 
 public:
@@ -17,7 +18,7 @@ public:
 	/// @param parent  The parent object
 	///
 	SSDPServer(QObject* parent = nullptr);
-	virtual ~SSDPServer();
+	~SSDPServer() override;
 
 	///
 	/// @brief Prepare server after thread start
@@ -81,7 +82,7 @@ public:
 	///
 	/// @brief Get current flatbuffer server port
 	///
-	quint16 getFlatBufPort() { return _fbsPort.toInt(); };
+	quint16 getFlatBufPort() const { return _fbsPort.toInt(); };
 
 	///
 	/// @brief set new jsonserver server port
@@ -91,7 +92,7 @@ public:
 	///
 	/// @brief get new jsonserver server port
 	///
-	quint16 getJsonServerPort() { return _jssPort.toInt(); };
+	quint16 getJsonServerPort() const { return _jssPort.toInt(); };
 
 		///
 	/// @brief set new hyperion name
@@ -101,7 +102,7 @@ public:
 	///
 	/// @brief get hyperion name
 	///
-	QString getHyperionName() { return _name; };
+	QString getHyperionName() const { return _name; };
 
 
 signals:

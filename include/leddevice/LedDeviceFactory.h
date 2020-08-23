@@ -1,8 +1,8 @@
 #ifndef LEDEVICEFACTORY_H
 #define LEDEVICEFACTORY_H
 
-// LedDevice includes
-#include <leddevice/LedDevice.h>
+class LedDevice;
+class QJsonObject;
 
 ///
 /// The LedDeviceFactory is responsible for constructing 'LedDevices'
@@ -10,7 +10,6 @@
 class LedDeviceFactory
 {
 public:
-
 	///
 	/// Constructs a LedDevice based on the given configuration
 	///

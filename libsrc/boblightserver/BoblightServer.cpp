@@ -67,7 +67,7 @@ void BoblightServer::stop()
 	_hyperion->setNewComponentState(COMP_BOBLIGHTSERVER, _server->isListening());
 }
 
-bool BoblightServer::active()
+bool BoblightServer::active() const
 {
 	return _server->isListening();
 }

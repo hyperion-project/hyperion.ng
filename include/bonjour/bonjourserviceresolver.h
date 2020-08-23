@@ -44,8 +44,8 @@ class BonjourServiceResolver : public QObject
 {
 	Q_OBJECT
 public:
-	BonjourServiceResolver(QObject *parent);
-    ~BonjourServiceResolver();
+    BonjourServiceResolver(QObject *parent);
+    ~BonjourServiceResolver() override;
 
     bool resolveBonjourRecord(const BonjourRecord &record);
 

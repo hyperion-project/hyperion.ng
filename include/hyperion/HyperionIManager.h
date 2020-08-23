@@ -38,7 +38,7 @@ public slots:
 	/// @param inst  The instance to check
 	/// @return  True when running else false
 	///
-	bool IsInstanceRunning(quint8 inst) { return _runningInstances.contains(inst); }
+	bool IsInstanceRunning(quint8 inst) const { return _runningInstances.contains(inst); }
 
 	///
 	/// @brief Get a Hyperion instance by index
@@ -50,7 +50,7 @@ public slots:
 	///
 	/// @brief Get instance data of all instaces in db + running state
 	///
-	const QVector<QVariantMap> getInstanceData();
+	QVector<QVariantMap> getInstanceData() const;
 
 	///
 	/// @brief Start a Hyperion instance
@@ -172,7 +172,7 @@ private:
 	/// @brief check if a instance is allowed for management. Instance 0 represents the root instance
 	/// @apram inst The instance to check
 	///
-	bool isInstAllowed(quint8 inst) { return (inst > 0); }
+	bool isInstAllowed(quint8 inst) const { return (inst > 0); }
 
 private:
 	Logger* _log;

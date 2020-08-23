@@ -21,7 +21,7 @@ class FlatBufferServer : public QObject
 	Q_OBJECT
 public:
 	FlatBufferServer(const QJsonDocument& config, QObject* parent = nullptr);
-	~FlatBufferServer();
+	~FlatBufferServer() override;
 
 public slots:
 	///

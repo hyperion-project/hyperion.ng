@@ -14,7 +14,6 @@ namespace RGBW {
 		WHITE_OFF
 	};
 
-	WhiteAlgorithm stringToWhiteAlgorithm(QString str);
+	WhiteAlgorithm stringToWhiteAlgorithm(const QString& str);
 	void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm);
-
 }

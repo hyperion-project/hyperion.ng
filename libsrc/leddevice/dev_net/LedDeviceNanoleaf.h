@@ -37,7 +37,7 @@ public:
 	///
 	/// @brief Destructor of the LED-device
 	///
-	virtual ~LedDeviceNanoleaf() override;
+	~LedDeviceNanoleaf() override;
 
 	///
 	/// @brief Constructs the LED-device
@@ -51,7 +51,7 @@ public:
 	///
 	/// @return A JSON structure holding a list of devices found
 	///
-	virtual QJsonObject discover() override;
+	QJsonObject discover() override;
 
 	///
 	/// @brief Get the Nanoleaf device's resource properties
@@ -68,7 +68,7 @@ public:
 	/// @param[in] params Parameters to query device
 	/// @return A JSON structure holding the device's properties
 	///
-	virtual QJsonObject getProperties(const QJsonObject& params) override;
+	QJsonObject getProperties(const QJsonObject& params) override;
 
 	///
 	/// @brief Send an update to the Nanoleaf device to identify it.
@@ -83,7 +83,7 @@ public:
 	///
 	/// @param[in] params Parameters to address device
 	///
-	virtual void identify(const QJsonObject& params) override;
+	void identify(const QJsonObject& params) override;
 
 protected:
 
@@ -100,7 +100,7 @@ protected:
 	///
 	/// @return Zero on success (i.e. device is ready), else negative
 	///
-	virtual int open() override;
+	int open() override;
 
 	///
 	/// @brief Writes the RGB-Color values to the LEDs.
@@ -108,21 +108,21 @@ protected:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	//////
-	virtual int write(const std::vector<ColorRgb> & ledValues) override;
+	int write(const std::vector<ColorRgb> & ledValues) override;
 
 	///
 	/// @brief Power-/turn on the Nanoleaf device.
 	///
 	/// @brief Store the device's original state.
 	///
-	virtual bool powerOn() override;
+	bool powerOn() override;
 
 	///
 	/// @brief Power-/turn off the Nanoleaf device.
 	///
 	/// @return True if success
 	///
-	virtual bool powerOff() override;
+	bool powerOff() override;
 
 private:
 

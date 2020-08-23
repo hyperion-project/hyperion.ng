@@ -67,7 +67,7 @@ bool MultiColorAdjustment::verifyAdjustments() const
 	return ok;
 }
 
-const QStringList & MultiColorAdjustment::getAdjustmentIds()
+QStringList MultiColorAdjustment::getAdjustmentIds() const
 {
 	return _adjustmentIds;
 }

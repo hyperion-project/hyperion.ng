@@ -26,7 +26,7 @@ public:
 	 */
 	void addAdjustment(ColorAdjustment * adjustment);
 
-	void setAdjustmentForLed(const QString& id, const unsigned startLed, unsigned endLed);
+	void setAdjustmentForLed(const QString& id, unsigned startLed, unsigned endLed);
 
 	bool verifyAdjustments() const;
 
@@ -36,7 +36,7 @@ public:
 	/// Returns the identifier of all the unique ColorAdjustment
 	///
 	/// @return The list with unique id's of the ColorAdjustment
-	const QStringList & getAdjustmentIds();
+	QStringList getAdjustmentIds() const;
 
 	///
 	/// Returns the pointer to the ColorAdjustment with the given id

@@ -38,25 +38,25 @@ public:
 	/// @brief Get the unique id (imported from removed class 'Stats')
 	/// @return The unique id
 	///
-	const QString &getID() const { return _uuid; };
+	QString getID() const { return _uuid; }
 
 	///
 	/// @brief Check authorization is required according to the user setting
 	/// @return       True if authorization required else false
 	///
-	bool isAuthRequired() const { return _authRequired; };
+	bool isAuthRequired() const { return _authRequired; }
 
 	///
 	/// @brief Check if authorization is required for local network connections
 	/// @return       True if authorization required else false
 	///
-	bool isLocalAuthRequired() const { return _localAuthRequired; };
+	bool isLocalAuthRequired() const { return _localAuthRequired; }
 
 	///
 	/// @brief Check if authorization is required for local network connections for admin access
 	/// @return       True if authorization required else false
 	///
-	bool isLocalAdminAuthRequired() const { return _localAdminAuthRequired; };
+	bool isLocalAdminAuthRequired() const { return _localAdminAuthRequired; }
 
 	///
 	/// @brief Reset Hyperion user
@@ -68,18 +68,18 @@ public:
 	/// @brief Check if user auth is temporary blocked due to failed attempts
 	/// @return True on blocked and no further Auth requests will be accepted
 	///
-	bool isUserAuthBlocked() { return (_userAuthAttempts.length() >= 10); };
+	bool isUserAuthBlocked() const { return (_userAuthAttempts.length() >= 10); }
 
 	///
 	/// @brief Check if token auth is temporary blocked due to failed attempts
 	/// @return True on blocked and no further Auth requests will be accepted
 	///
-	bool isTokenAuthBlocked() { return (_tokenAuthAttempts.length() >= 25); };
+	bool isTokenAuthBlocked() const { return (_tokenAuthAttempts.length() >= 25); }
 
 	/// Pointer of this instance
 	static AuthManager *manager;
 	/// Get Pointer of this instance
-	static AuthManager *getInstance() { return manager; };
+	static AuthManager *getInstance() { return manager; }
 
 public slots:
 
@@ -164,19 +164,19 @@ public slots:
 	/// @brief Get pending requests
 	/// @return       All pending requests
 	///
-	QVector<AuthManager::AuthDefinition> getPendingRequests();
+	QVector<AuthManager::AuthDefinition> getPendingRequests() const;
 
 	///
 	/// @brief Get the current valid token for user. Make sure this call is allowed!
 	/// @param usr the defined user
 	/// @return       The token
 	///
-	const QString getUserToken(const QString &usr = "Hyperion");
+	QString getUserToken(const QString &usr = "Hyperion") const;
 
 	///
 	/// @brief Get all available token entries
 	///
-	QVector<AuthManager::AuthDefinition> getTokenList();
+	QVector<AuthManager::AuthDefinition> getTokenList() const;
 
 	///
 	/// @brief Handle settings update from Hyperion Settingsmanager emit

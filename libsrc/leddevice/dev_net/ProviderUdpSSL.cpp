@@ -182,7 +182,7 @@ void ProviderUdpSSL::closeSSLConnection()
 	}
 }
 
-const int *ProviderUdpSSL::getCiphersuites()
+const int *ProviderUdpSSL::getCiphersuites() const
 {
 	return mbedtls_ssl_list_ciphersuites();
 }

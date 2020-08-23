@@ -34,10 +34,10 @@ class MessageForwarder : public QObject
 	Q_OBJECT
 public:
 	MessageForwarder(Hyperion* hyperion);
-	~MessageForwarder();
+	~MessageForwarder() override;
 
-	void addJsonSlave(QString slave);
-	void addFlatbufferSlave(QString slave);
+	void addJsonSlave(const QString& slave);
+	void addFlatbufferSlave(const QString& slave);
 
 private slots:
 	///

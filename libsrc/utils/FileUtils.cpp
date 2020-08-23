@@ -10,13 +10,13 @@
 
 namespace FileUtils {
 
-	QString getBaseName(QString sourceFile)
+	QString getBaseName(const QString& sourceFile)
 	{
 		QFileInfo fi(sourceFile);
 		return fi.fileName();
 	}
 
-	QString getDirName(QString sourceFile)
+	QString getDirName(const QString& sourceFile)
 	{
 		QFileInfo fi(sourceFile);
 		return fi.path();

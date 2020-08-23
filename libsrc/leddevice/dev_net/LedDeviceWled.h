@@ -25,7 +25,7 @@ public:
 	///
 	/// @brief Destructor of the WLED-device
 	///
-	virtual ~LedDeviceWled() override;
+	~LedDeviceWled() override;
 
 	///
 	/// @brief Constructs the WLED-device
@@ -39,7 +39,7 @@ public:
 	///
 	/// @return A JSON structure holding a list of devices found
 	///
-	virtual QJsonObject discover() override;
+	QJsonObject discover() override;
 
 	///
 	/// @brief Get the WLED device's resource properties
@@ -55,7 +55,7 @@ public:
 	/// @param[in] params Parameters to query device
 	/// @return A JSON structure holding the device's properties
 	///
-	virtual QJsonObject getProperties(const QJsonObject& params) override;
+	QJsonObject getProperties(const QJsonObject& params) override;
 
 	///
 	/// @brief Send an update to the WLED device to identify it.
@@ -69,7 +69,7 @@ public:
 	///
 	/// @param[in] params Parameters to address device
 	///
-	virtual void identify(const QJsonObject& params) override;
+	void identify(const QJsonObject& params) override;
 
 protected:
 
@@ -79,7 +79,7 @@ protected:
 	/// @param[in] deviceConfig the JSON device configuration
 	/// @return True, if success
 	///
-	virtual bool init(const QJsonObject &deviceConfig) override;
+	bool init(const QJsonObject &deviceConfig) override;
 
 	///
 	/// @brief Writes the RGB-Color values to the LEDs.
@@ -87,21 +87,21 @@ protected:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	virtual int write(const std::vector<ColorRgb> & ledValues) override;
+	int write(const std::vector<ColorRgb> & ledValues) override;
 
 	///
 	/// @brief Power-/turn on the WLED device.
 	///
 	/// @brief Store the device's original state.
 	///
-	virtual bool powerOn() override;
+	bool powerOn() override;
 
 	///
 	/// @brief Power-/turn off the WLED device.
 	///
 	/// @return True if success
 	///
-	virtual bool powerOff() override;
+	bool powerOff() override;
 
 private:
 

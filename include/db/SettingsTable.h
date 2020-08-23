@@ -23,7 +23,6 @@ public:
 		// create table columns
 		createTable(QStringList()<<"type TEXT"<<"config TEXT"<<"hyperion_inst INTEGER"<<"updated_at TEXT");
 	};
-	~SettingsTable(){};
 
 	///
 	/// @brief      Create or update a settings record

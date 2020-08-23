@@ -40,7 +40,7 @@ public:
 	///
 	/// @brief Destructor
 	///
-	~FlatBufferConnection();
+	~FlatBufferConnection() override;
 
 	/// @brief Do not read reply messages from Hyperion if set to true
 	void setSkipReply(bool skip);

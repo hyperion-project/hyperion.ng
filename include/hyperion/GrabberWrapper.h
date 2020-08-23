@@ -29,9 +29,9 @@ class GrabberWrapper : public QObject
 {
 	Q_OBJECT
 public:
-	GrabberWrapper(QString grabberName, Grabber * ggrabber, unsigned width, unsigned height, unsigned updateRate_Hz = 0);
+	GrabberWrapper(const QString& grabberName, Grabber * ggrabber, unsigned width, unsigned height, unsigned updateRate_Hz = 0);
 
-	virtual ~GrabberWrapper();
+	~GrabberWrapper() override;
 
 	static GrabberWrapper* instance;
 	static GrabberWrapper* getInstance(){ return instance; }
@@ -60,35 +60,35 @@ public:
 	/// @brief Get a list of all available V4L devices
 	/// @return List of all available V4L devices on success else empty List
 	///
-	virtual QStringList getV4L2devices();
+	virtual QStringList getV4L2devices() const;
 
 	///
 	/// @brief Get the V4L device name
 	/// @param devicePath The device path
 	/// @return The name of the V4L device on success else empty String
 	///
-	virtual QString getV4L2deviceName(QString devicePath);
+	virtual QString getV4L2deviceName(const QString& devicePath) const;
 
 	///
 	/// @brief Get a name/index pair of supported device inputs
 	/// @param devicePath The device path
 	/// @return multi pair of name/index on success else empty pair
 	///
-	virtual QMultiMap<QString, int> getV4L2deviceInputs(QString devicePath);
+	virtual QMultiMap<QString, int> getV4L2deviceInputs(const QString& devicePath) const;
 
 	///
 	/// @brief Get a list of supported device resolutions
 	/// @param devicePath The device path
 	/// @return List of resolutions on success else empty List
 	///
-	virtual QStringList getResolutions(QString devicePath);
+	virtual QStringList getResolutions(const QString& devicePath) const;
 
 	///
 	/// @brief Get a list of supported device framerates
 	/// @param devicePath The device path
 	/// @return List of framerates on success else empty List
 	///
-	virtual QStringList getFramerates(QString devicePath);
+	virtual QStringList getFramerates(const QString& devicePath) const;
 
 	static QStringList availableGrabbers();
 

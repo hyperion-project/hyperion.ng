@@ -29,7 +29,7 @@ public:
 	/// @param The configuration
 	///
 	JsonServer(const QJsonDocument& config);
-	~JsonServer();
+	~JsonServer() override;
 
 	///
 	/// @return the port number on which this TCP listens for incoming connections

@@ -49,7 +49,7 @@ void SSDPDiscover::searchForService(const QString& st)
 	sendSearch(st);
 }
 
-const QString SSDPDiscover::getFirstService(const searchType& type, const QString& st, int timeout_ms)
+QString SSDPDiscover::getFirstService(const searchType& type, const QString& st, int timeout_ms)
 {
 	_searchTarget = st;
 	_services.clear();
@@ -296,11 +296,11 @@ int SSDPDiscover::discoverServices(const QString& searchTarget, const QString& k
 	return rc;
 }
 
-QJsonArray SSDPDiscover::getServicesDiscoveredJson()
+QJsonArray SSDPDiscover::getServicesDiscoveredJson() const
 {
 	QJsonArray result;
 
-	QMap<QString, SSDPService>::iterator i;
+	QMap<QString, SSDPService>::const_iterator i;
 	for (i = _services.begin(); i != _services.end(); ++i)
 	{
 		//Debug(_log, "Device discovered at [%s]", QSTRING_CSTR( i.key() ));
@@ -338,7 +338,7 @@ QJsonArray SSDPDiscover::getServicesDiscoveredJson()
 		}
 
 		QJsonObject objOther;
-		QMap <QString,QString>::iterator o;
+		QMap <QString,QString>::const_iterator o;
 		for (o = i.value().otherHeaders.begin(); o != i.value().otherHeaders.end(); ++o)
 		{
 			objOther.insert(o.key().toLower(), o.value());

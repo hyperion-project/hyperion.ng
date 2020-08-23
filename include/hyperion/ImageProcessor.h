@@ -36,7 +36,7 @@ public:
 	///
 	ImageProcessor(const LedString& ledString, Hyperion* hyperion);
 
-	~ImageProcessor();
+	~ImageProcessor() override;
 
 	///
 	/// Specifies the width and height of 'incomming' images. This will resize the buffer-image to
@@ -54,15 +54,15 @@ public:
 	void setLedString(const LedString& ledString);
 
 	/// Returns starte of black border detector
-	bool blackBorderDetectorEnabled();
+	bool blackBorderDetectorEnabled() const;
 
 	/// Returns the current _userMappingType, this may not be the current applied type!
-	int getUserLedMappingType() { return _userMappingType; };
+	int getUserLedMappingType() const { return _userMappingType; }
 
 	/// Returns the current _mappingType
-	int ledMappingType() { return _mappingType; };
+	int ledMappingType() const { return _mappingType; }
 
-	static int mappingTypeToInt(QString mappingType);
+	static int mappingTypeToInt(const QString& mappingType);
 	static QString mappingTypeToStr(int mappingType);
 
 	///

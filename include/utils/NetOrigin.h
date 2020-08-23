@@ -25,13 +25,13 @@ public:
 	/// @param local    The local address of the socket (Differs based on NetworkAdapter IP or localhost)
 	/// @return         True when allowed, else false
 	///
-	bool accessAllowed(const QHostAddress& address, const QHostAddress& local);
+	bool accessAllowed(const QHostAddress& address, const QHostAddress& local) const;
 
 	///
 	/// @brief Check if address is in subnet of local
 	/// @return True or false
 	///
-	bool isLocalAddress(const QHostAddress& address, const QHostAddress& local);
+	bool isLocalAddress(const QHostAddress& address, const QHostAddress& local) const;
 
 	static NetOrigin* getInstance(){ return instance; };
 	static NetOrigin* instance;

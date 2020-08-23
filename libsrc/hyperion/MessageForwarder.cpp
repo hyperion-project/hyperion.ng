@@ -156,7 +156,7 @@ void MessageForwarder::handlePriorityChanges(quint8 priority)
 	}
 }
 
-void MessageForwarder::addJsonSlave(QString slave)
+void MessageForwarder::addJsonSlave(const QString& slave)
 {
 	QStringList parts = slave.split(":");
 	if (parts.size() != 2)
@@ -185,7 +185,7 @@ void MessageForwarder::addJsonSlave(QString slave)
 		_jsonSlaves << slave;
 }
 
-void MessageForwarder::addFlatbufferSlave(QString slave)
+void MessageForwarder::addFlatbufferSlave(const QString& slave)
 {
 	QStringList parts = slave.split(":");
 	if (parts.size() != 2)

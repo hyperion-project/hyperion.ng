@@ -27,9 +27,7 @@ public:
 
 		// start/create the first Hyperion instance index 0
 		createInstance();
-
 	};
-	~InstanceTable(){};
 
 	///
 	/// @brief Create a new Hyperion instance entry, the name needs to be unique

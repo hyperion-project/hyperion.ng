@@ -168,7 +168,7 @@ public slots:
 	/// Returns the list with unique adjustment identifiers
 	/// @return The list with adjustment identifiers
 	///
-	const QStringList & getAdjustmentIds() const;
+	QStringList getAdjustmentIds() const;
 
 	///
 	/// Returns the ColorAdjustment with the given identifier
@@ -233,15 +233,15 @@ public slots:
 
 	/// Get the list of available effects
 	/// @return The list of available effects
-	const std::list<EffectDefinition> &getEffects() const;
+	std::list<EffectDefinition> getEffects() const;
 
 	/// Get the list of active effects
 	/// @return The list of active effects
-	const std::list<ActiveEffectDefinition> &getActiveEffects() const;
+	std::list<ActiveEffectDefinition> getActiveEffects() const;
 
 	/// Get the list of available effect schema files
 	/// @return The list of available effect schema files
-	const std::list<EffectSchema> &getEffectSchemas() const;
+	std::list<EffectSchema> getEffectSchemas() const;
 
 	/// #############
 	/// PRIORITYMUXER
@@ -266,7 +266,7 @@ public slots:
 
 	/// gets current state of automatic/priorized source selection
 	/// @return the state
-	bool sourceAutoSelectEnabled();
+	bool sourceAutoSelectEnabled() const;
 
 	///
 	/// Returns the current priority
@@ -309,7 +309,7 @@ public slots:
 
 	/// gets the current json config object from SettingsManager
 	/// @return json config
-	const QJsonObject& getQJsonConfig() const;
+	QJsonObject getQJsonConfig() const;
 
 	///
 	/// @brief Save a complete json config
@@ -317,7 +317,7 @@ public slots:
 	/// @param correct If true will correct json against schema before save
 	/// @return        True on success else false
 	///
-	bool saveSettings(QJsonObject config, bool correct = false);
+	bool saveSettings(const QJsonObject& config, bool correct = false);
 
 	/// ############
 	/// COMPONENTREGISTER
@@ -345,7 +345,7 @@ public slots:
 	/// @param The component to test
 	/// @return Component state
 	///
-	int isComponentEnabled(hyperion::Components comp);
+	int isComponentEnabled(hyperion::Components comp) const;
 
 	/// sets the methode how image is maped to leds at ImageProcessor
 	void setLedMappingType(int mappingType);
@@ -402,10 +402,10 @@ signals:
 	void forwardJsonMessage(QJsonObject);
 
 	/// Signal which is emitted, when a new system proto image should be forwarded
-	void forwardSystemProtoMessage(const QString, const Image<ColorRgb>);
+	void forwardSystemProtoMessage(const QString&, const Image<ColorRgb>&);
 
 	/// Signal which is emitted, when a new V4l proto image should be forwarded
-	void forwardV4lProtoMessage(const QString, const Image<ColorRgb>);
+	void forwardV4lProtoMessage(const QString&, const Image<ColorRgb>&);
 
 	///
 	/// @brief Is emitted from clients who request a videoMode change

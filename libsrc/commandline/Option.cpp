@@ -11,7 +11,6 @@ Option::Option(const QStringList &names, const QString &description, const QStri
 	: QCommandLineOption(names, description, valueName, defaultValue)
 {}
 
-
 bool Option::validate(Parser & parser, QString &value)
 {
 	/* By default everything is accepted */
@@ -22,22 +21,22 @@ Option::Option(const QCommandLineOption &other)
 	: QCommandLineOption(other)
 {}
 
-QString Option::value(Parser &parser)
+QString Option::value(Parser &parser) const
 {
 	return parser.value(*this);
 }
 
-QString Option::name()
+QString Option::name() const
 {
 	return this->names().last();
 }
 
-QString Option::getError()
+QString Option::getError() const
 {
 	return this->_error;
 }
 
-const char* Option::getCString(Parser &parser)
+const char* Option::getCString(Parser &parser) const
 {
 	return value(parser).toLocal8Bit().constData();
 }
