@@ -33,7 +33,7 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 	  , _lastWriteTime(QDateTime::currentDateTime())
 	  , _isRefreshEnabled (false)
 {
-
+	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDevice::~LedDevice()

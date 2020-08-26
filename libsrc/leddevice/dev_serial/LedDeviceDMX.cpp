@@ -6,19 +6,14 @@
 #endif
 
 LedDeviceDMX::LedDeviceDMX(const QJsonObject &deviceConfig)
-	: ProviderRs232()
+	: ProviderRs232(deviceConfig)
 	, _dmxDeviceType(0)
 	, _dmxStart(1)
 	, _dmxSlotsPerLed(3)
 	, _dmxLedCount(0)
 	, _dmxChannelCount(0)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
-
 
 LedDevice* LedDeviceDMX::construct(const QJsonObject &deviceConfig)
 {

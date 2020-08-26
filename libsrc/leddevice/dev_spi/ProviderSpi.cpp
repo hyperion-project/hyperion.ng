@@ -14,9 +14,8 @@
 #include "ProviderSpi.h"
 #include <utils/Logger.h>
 
-
-ProviderSpi::ProviderSpi()
-	: LedDevice()
+ProviderSpi::ProviderSpi(const QJsonObject &deviceConfig)
+	: LedDevice(deviceConfig)
 	, _deviceName("/dev/spidev0.0")
 	, _baudRate_Hz(1000000)
 	, _fid(-1)

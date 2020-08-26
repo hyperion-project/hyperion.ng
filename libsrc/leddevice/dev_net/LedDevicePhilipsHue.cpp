@@ -264,7 +264,7 @@ double CiColor::getDistanceBetweenTwoPoints(CiColor p1, XYColor p2)
 }
 
 LedDevicePhilipsHueBridge::LedDevicePhilipsHueBridge(const QJsonObject &deviceConfig)
-	: ProviderUdpSSL()
+	: ProviderUdpSSL(deviceConfig)
 	  , _restApi(nullptr)
 	  , _apiPort(API_DEFAULT_PORT)
 	  , _useHueEntertainmentAPI(false)
@@ -273,17 +273,12 @@ LedDevicePhilipsHueBridge::LedDevicePhilipsHueBridge(const QJsonObject &deviceCo
 	  , _api_patch(0)
 	  , _isHueEntertainmentReady(false)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
 }
 
 LedDevicePhilipsHueBridge::~LedDevicePhilipsHueBridge()
 {
-	if ( _restApi != nullptr )
-	{
-		delete _restApi;
-		_restApi = nullptr;
-	}
+	delete _restApi;
+	_restApi = nullptr;
 }
 
 bool LedDevicePhilipsHueBridge::init(const QJsonObject &deviceConfig)
@@ -828,10 +823,6 @@ LedDevicePhilipsHue::LedDevicePhilipsHue(const QJsonObject& deviceConfig)
 	  , start_retry_left(3)
 	  , stop_retry_left(3)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDevice* LedDevicePhilipsHue::construct(const QJsonObject &deviceConfig)

@@ -2,13 +2,8 @@
 
 // Use feature report HID device
 LedDeviceRawHID::LedDeviceRawHID(const QJsonObject &deviceConfig)
-	: ProviderHID()
+	: ProviderHID(deviceConfig)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
-
 	_useFeature = true;
 }
 

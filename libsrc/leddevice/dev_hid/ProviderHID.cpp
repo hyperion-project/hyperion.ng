@@ -9,8 +9,9 @@
 // Local Hyperion includes
 #include "ProviderHID.h"
 
-ProviderHID::ProviderHID()
-	:	_VendorId(0)
+ProviderHID::ProviderHID(const QJsonObject &deviceConfig)
+	:   LedDevice(deviceConfig)
+	  , _VendorId(0)
 	  , _ProductId(0)
 	  , _useFeature(false)
 	  , _deviceHandle(nullptr)

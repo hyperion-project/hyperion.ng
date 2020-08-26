@@ -1,7 +1,7 @@
 #include "LedDeviceSk6812SPI.h"
 
-	LedDeviceSk6812SPI::LedDeviceSk6812SPI(const QJsonObject &deviceConfig)
-	: ProviderSpi()
+LedDeviceSk6812SPI::LedDeviceSk6812SPI(const QJsonObject &deviceConfig)
+	: ProviderSpi(deviceConfig)
 	  , _whiteAlgorithm(RGBW::WhiteAlgorithm::INVALID)
 	  , SPI_BYTES_PER_COLOUR(4)
 	  , bitpair_to_byte {
@@ -11,10 +11,6 @@
 		  0b11001100,
 		  }
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDevice* LedDeviceSk6812SPI::construct(const QJsonObject &deviceConfig)

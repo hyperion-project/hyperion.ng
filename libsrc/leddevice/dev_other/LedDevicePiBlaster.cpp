@@ -10,13 +10,9 @@
 #include "LedDevicePiBlaster.h"
 
 LedDevicePiBlaster::LedDevicePiBlaster(const QJsonObject &deviceConfig)
-	: _fid(nullptr)
+	: LedDevice(deviceConfig)
+	, _fid(nullptr)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
-
 	// initialise the mapping tables
 	// -1 is invalid
 	// z is also meaningless

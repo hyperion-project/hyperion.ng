@@ -176,9 +176,9 @@ namespace hyperion
 			}
 
 			// Accumulate the sum of each seperate color channel
-			uint_fast16_t cummRed   = 0;
-			uint_fast16_t cummGreen = 0;
-			uint_fast16_t cummBlue  = 0;
+			uint_fast32_t cummRed   = 0;
+			uint_fast32_t cummGreen = 0;
+			uint_fast32_t cummBlue  = 0;
 			const auto& imgData = image.memptr();
 
 			for (const unsigned colorOffset : colors)
@@ -210,9 +210,9 @@ namespace hyperion
 		ColorRgb calcMeanColor(const Image<Pixel_T> & image) const
 		{
 			// Accumulate the sum of each seperate color channel
-			uint_fast16_t cummRed   = 0;
-			uint_fast16_t cummGreen = 0;
-			uint_fast16_t cummBlue  = 0;
+			uint_fast32_t cummRed   = 0;
+			uint_fast32_t cummGreen = 0;
+			uint_fast32_t cummBlue  = 0;
 			const unsigned imageSize = image.width() * image.height();
 
 			const auto& imgData = image.memptr();

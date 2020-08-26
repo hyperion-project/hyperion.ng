@@ -9,12 +9,8 @@ const char H801_DEFAULT_HOST[] = "255.255.255.255";
 } //End of constants
 
 LedDeviceUdpH801::LedDeviceUdpH801(const QJsonObject &deviceConfig)
-	: ProviderUdp()
+	: ProviderUdp(deviceConfig)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDevice* LedDeviceUdpH801::construct(const QJsonObject &deviceConfig)

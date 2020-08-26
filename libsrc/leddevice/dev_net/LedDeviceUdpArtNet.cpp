@@ -12,14 +12,9 @@
 const ushort ARTNET_DEFAULT_PORT = 6454;
 
 LedDeviceUdpArtNet::LedDeviceUdpArtNet(const QJsonObject &deviceConfig)
-	: ProviderUdp()
+	: ProviderUdp(deviceConfig)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
-
 
 LedDevice* LedDeviceUdpArtNet::construct(const QJsonObject &deviceConfig)
 {

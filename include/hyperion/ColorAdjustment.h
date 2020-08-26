@@ -10,7 +10,6 @@
 class ColorAdjustment
 {
 public:
-
 	/// Unique identifier for this color transform
 	QString _id;
 

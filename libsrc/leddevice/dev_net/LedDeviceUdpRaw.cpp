@@ -3,12 +3,8 @@
 const ushort RAW_DEFAULT_PORT=5568;
 
 LedDeviceUdpRaw::LedDeviceUdpRaw(const QJsonObject &deviceConfig)
-	: ProviderUdp()
+	: ProviderUdp(deviceConfig)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDevice* LedDeviceUdpRaw::construct(const QJsonObject &deviceConfig)

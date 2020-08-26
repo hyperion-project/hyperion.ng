@@ -1,12 +1,8 @@
 #include "LedDeviceWS281x.h"
 
 LedDeviceWS281x::LedDeviceWS281x(const QJsonObject &deviceConfig)
-	: LedDevice()
+	: LedDevice(deviceConfig)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDeviceWS281x::~LedDeviceWS281x()

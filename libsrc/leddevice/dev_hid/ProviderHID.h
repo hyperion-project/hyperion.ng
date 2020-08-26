@@ -21,7 +21,7 @@ public:
 	///
 	/// @param deviceConfig Device's configuration as JSON-Object
 	///
-	ProviderHID();
+	ProviderHID(const QJsonObject &deviceConfig);
 
 	///
 	/// @brief Destructor of the LedDevice

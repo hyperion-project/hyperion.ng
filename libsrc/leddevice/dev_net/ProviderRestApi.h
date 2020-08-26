@@ -16,10 +16,10 @@
 class httpResponse
 {
 public:
-	httpResponse() {}
+	httpResponse() = default;
 
 	bool error() const { return _hasError;}
-	void setError(bool hasError) { _hasError = hasError; }
+	void setError(const bool hasError) { _hasError = hasError; }
 
 	QJsonDocument getBody() const { return _responseBody; }
 	void setBody(const QJsonDocument &body) { _responseBody = body; }
@@ -69,7 +69,7 @@ public:
 	///
 	/// @brief Constructor of the REST-API wrapper
 	///
-	explicit ProviderRestApi();
+	ProviderRestApi();
 
 	///
 	/// @brief Constructor of the REST-API wrapper

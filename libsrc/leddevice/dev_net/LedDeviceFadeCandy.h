@@ -35,7 +35,7 @@ public:
 	/// 	"interpolation" : false,
 	/// 	"manualLed"     : false,
 	/// 	"ledOn"         : false
-	/// }, 
+	/// },
 	///@endcode
 	///
 	/// @param deviceConfig Device's configuration as JSON-Object

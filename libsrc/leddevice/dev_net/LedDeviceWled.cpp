@@ -34,23 +34,16 @@ const char SSDP_FILTER_HEADER[] = "ST";
 } //End of constants
 
 LedDeviceWled::LedDeviceWled(const QJsonObject &deviceConfig)
-	: ProviderUdp()
+	: ProviderUdp(deviceConfig)
 	  ,_restApi(nullptr)
 	  ,_apiPort(API_DEFAULT_PORT)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDeviceWled::~LedDeviceWled()
 {
-	if ( _restApi != nullptr )
-	{
-		delete _restApi;
-		_restApi = nullptr;
-	}
+	delete _restApi;
+	_restApi = nullptr;
 }
 
 LedDevice* LedDeviceWled::construct(const QJsonObject &deviceConfig)

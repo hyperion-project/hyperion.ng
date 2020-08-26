@@ -61,7 +61,7 @@ public:
 	///
 	/// @brief Constructs an UDP SSL LED-device
 	///
-	ProviderUdpSSL();
+	ProviderUdpSSL(const QJsonObject &deviceConfig);
 
 	///
 	/// @brief Destructor of the LED-device

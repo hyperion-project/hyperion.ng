@@ -15,8 +15,9 @@ constexpr std::chrono::milliseconds OPEN_TIMEOUT{5000};		// device open timeout 
 const int MAX_WRITE_TIMEOUTS = 5;	// Maximum number of allowed timeouts
 const int NUM_POWEROFF_WRITE_BLACK = 2;	// Number of write "BLACK" during powering off
 
-ProviderRs232::ProviderRs232()
-	: _rs232Port(this)
+ProviderRs232::ProviderRs232(const QJsonObject &deviceConfig)
+	: LedDevice(deviceConfig)
+	  , _rs232Port(this)
 	  ,_baudRate_Hz(1000000)
 	  ,_isAutoDeviceName(false)
 	  ,_delayAfterConnect_ms(0)

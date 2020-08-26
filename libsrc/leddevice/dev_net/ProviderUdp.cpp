@@ -16,22 +16,18 @@
 
 const ushort MAX_PORT = 65535;
 
-ProviderUdp::ProviderUdp()
-	: LedDevice()
+ProviderUdp::ProviderUdp(const QJsonObject &deviceConfig)
+	: LedDevice(deviceConfig)
 	  , _udpSocket (nullptr)
 	  , _port(1)
 	  , _defaultHost("127.0.0.1")
 {
-	_isDeviceReady = false;
 	_latchTime_ms = 1;
 }
 
 ProviderUdp::~ProviderUdp()
 {
-	if ( _udpSocket != nullptr )
-	{
-		delete _udpSocket;
-	}
+	delete _udpSocket;
 }
 
 bool ProviderUdp::init(const QJsonObject &deviceConfig)
