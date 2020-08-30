@@ -89,12 +89,13 @@ else ()
 	endif()
 
 	# define the include for the protobuf library at the parent scope
+    set(PROTOBUF_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/external/protobuf/src")
 
 	# define the protoc executable at the parent scope
 	get_property(PROTOBUF_PROTOC_EXECUTABLE TARGET protoc_compiler PROPERTY LOCATION)
 endif()
 set(PROTOBUF_PROTOC_EXECUTABLE ${PROTOBUF_PROTOC_EXECUTABLE} PARENT_SCOPE)
-set(PROTOBUF_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/external/protobuf/src")
+set(PROTOBUF_INCLUDE_DIRS ${PROTOBUF_INCLUDE_DIRS} PARENT_SCOPE)
 include_directories(${PROTOBUF_INCLUDE_DIRS})
 
 message(STATUS "Using protobuf compiler: " ${PROTOBUF_PROTOC_EXECUTABLE})
