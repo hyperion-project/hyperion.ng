@@ -6,7 +6,7 @@ GIT_REPO_URL="https://github.com/hyperion-project/hyperion.ng.git"
 # cmake build type
 BUILD_TYPE="Release"
 # the image tag at hyperionproject/hyperion-ci
-BUILD_TARGET="amd64"
+BUILD_TARGET="amd64-buster"
 # build packages (.deb .zip ...)
 BUILD_PACKAGES=true
 # packages string inserted to cmake cmd
@@ -42,7 +42,7 @@ function printHelp {
 echo "########################################################
 ## A script to compile Hyperion inside a docker container
 ## Requires installed Docker: https://www.docker.com/
-## Without arguments it will compile Hyperion for Debain Stretch (x64) or higher.
+## Without arguments it will compile Hyperion for Debain Buster (x64) or higher.
 ## Supports Raspberry Pi (armv6hf, armv7hf) cross compilation (Debian Stretch/Buster) and native compilation (Raspbian Stretch/Buster)
 ##
 ## Homepage: https://www.hyperion-project.org
@@ -51,7 +51,7 @@ echo "########################################################
 # These are possible arguments to modify the script behaviour with their default values
 #
 # docker-compile.sh -h	            # Show this help message
-# docker-compile.sh -t amd64        # The docker tag, one of amd64 | i386 | armv6hf | armv7hf | armv6hf-buster | armv7hf-buster | rpi-raspbian-stretch | rpi-raspbian-buster
+# docker-compile.sh -t amd64        # The docker tag, one of amd64 | armv6hf | armv7hf | amd64-buster | armv6hf-buster | armv7hf-buster | rpi-raspbian-stretch | rpi-raspbian-buster
 # docker-compile.sh -b Release      # cmake Release or Debug build
 # docker-compile.sh -p true         # If true build packages with CPack
 # More informations to docker tags at: https://hub.docker.com/r/hyperionproject/hyperion-ci/"
@@ -90,6 +90,7 @@ git clone --recursive --depth 1 -q $GIT_REPO_URL $SCRIPT_PATH/hyperion || { echo
 # Mount source dir to /source
 # Target docker image
 # execute inside container all commands on bash
+
 echo "---> Startup docker..."
 $DOCKER pull hyperionproject/hyperion-ci:$BUILD_TARGET
 $DOCKER run --rm \

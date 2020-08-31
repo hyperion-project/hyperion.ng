@@ -18,19 +18,19 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        dockerTag: [ amd64, armv6hf, armv7hf, aarch64 ]
+        dockerTag: [ amd64-buster, armv6hf-buster, armv7hf-buster, aarch64-buster ]
         include:
-          - dockerTag: amd64
-            dockerName: Debian Stretch (AMD64)
+          - dockerTag: amd64-buster
+            dockerName: Debian Buster (AMD64)
             platform: x11
-          - dockerTag: armv6hf
-            dockerName: Debian Stretch (Raspberry Pi v1 & ZERO)
+          - dockerTag: armv6hf-buster
+            dockerName: Debian Buster (Raspberry Pi v1 & ZERO)
             platform: rpi
-          - dockerTag: armv7hf
-            dockerName: Debian Stretch (Raspberry Pi 2 & 3)
+          - dockerTag: armv7hf-buster
+            dockerName: Debian Buster (Raspberry Pi 2 & 3)
             platform: rpi
-          - dockerTag: aarch64
-            dockerName: Debian Stretch (Generic AARCH64)
+          - dockerTag: aarch64-buster
+            dockerName: Debian Buster (Generic AARCH64)
             platform: amlogic
 
     steps:

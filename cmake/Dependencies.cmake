@@ -6,6 +6,7 @@ macro(DeployUnix TARGET)
 		set(SYSTEM_LIBS_SKIP
 			"libc"
 			"libdl"
+			"libEGL"
 			"libexpat"
 			"libfontconfig"
 			"libfreetype"
@@ -13,6 +14,7 @@ macro(DeployUnix TARGET)
 			"libgcrypt"
 			"libGL"
 			"libGLdispatch"
+			"libGLESv2"
 			"libglib-2"
 			"libGLX"
 			"libgpg-error"

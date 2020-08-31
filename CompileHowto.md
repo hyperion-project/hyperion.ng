@@ -17,13 +17,13 @@ wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/
 
 ## Cross compiling on X64_86 for:
 
-**X64:**
+**X64 Debian Stretch:**
 ```
 wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh
 ```
-**i386:**
+**X64 Debian Buster:**
 ```
-wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -t i386
+wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh
 ```
 **Raspberry Pi v1 & ZERO (Raspbian Stretch)**
 ```
@@ -37,7 +37,7 @@ wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/
 ```
 wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -t armv6hf-buster
 ```
-**Raspberry Pi 2 & 3 (Raspbian Buster**
+**Raspberry Pi 2 & 3 (Raspbian Buster)**
 ```
 wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -t armv7hf-buster
 ```
@@ -114,7 +114,7 @@ mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make -j $(nproc)
-if this get stucked and dmseg says out of memory try:
+if this get stucked and dmesg says 'out of memory' try:
 make -j 2
 # optional: install into your system
 sudo make install/strip
