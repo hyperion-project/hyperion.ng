@@ -68,7 +68,7 @@ signals:
 	void setInputImage(int priority, const Image<ColorRgb> &image, int timeout_ms, bool clearEffect);
 
 private:
-
+	void setModuleParameters();
 	void addImage();
 
 	Hyperion *_hyperion;
