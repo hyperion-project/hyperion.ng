@@ -37,7 +37,10 @@ PythonInit::PythonInit()
 		if (QFile(py_file).exists())
 			Py_SetPath(Py_DecodeLocale(py_file.toLatin1().data(), nullptr));
 		else if (QDir(py_patch).exists())
+		{
+			Py_SetPythonHome(Py_DecodeLocale(py_patch.toLatin1().data(), nullptr));
 			Py_SetPath(Py_DecodeLocale(py_patch.toLatin1().data(), nullptr));
+		}
 	}
 
 	// init Python
