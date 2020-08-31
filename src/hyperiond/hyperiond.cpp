@@ -16,6 +16,7 @@
 
 #include <utils/Components.h>
 #include <utils/JsonUtils.h>
+#include <utils/Image.h>
 
 #include <HyperionConfig.h> // Required to determine the cmake options
 
@@ -702,7 +703,7 @@ void HyperionDaemon::createGrabberOsx(const QJsonObject &grabberConfig)
 
 void HyperionDaemon::createCecHandler()
 {
-#ifdef ENABLE_CEC
+#if defined(ENABLE_V4L2) && defined(ENABLE_CEC)
 	_cecHandler = new CECHandler;
 
 	QThread * thread = new QThread(this);
