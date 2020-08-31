@@ -12,7 +12,6 @@
 #include <QSize>
 #include <QImage>
 #include <QPainter>
-#include <QMap>
 
 // Hyperion includes
 #include <utils/Components.h>

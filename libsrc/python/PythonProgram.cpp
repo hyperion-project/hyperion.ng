@@ -4,6 +4,8 @@
 
 #include <QThread>
 
+PyThreadState* mainThreadState;
+
 PythonProgram::PythonProgram(const QString & name, Logger * log) :
 	_name(name), _log(log), _tstate(nullptr)
 {

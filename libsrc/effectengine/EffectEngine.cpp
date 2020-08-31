@@ -4,10 +4,6 @@
 
 // Qt includes
 #include <QResource>
-#include <QMetaType>
-#include <QFile>
-#include <QDir>
-#include <QMap>
 
 // hyperion util includes
 #include <utils/jsonschema/QJsonSchemaChecker.h>
