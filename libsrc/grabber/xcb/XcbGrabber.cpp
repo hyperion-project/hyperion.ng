@@ -62,7 +62,7 @@ void XcbGrabber::freeResources()
 
 	if(_XcbShmAvailable)
 	{
-		xcb_shm_detach(_connection, _shminfo);
+		query<ShmDetach>(_connection, _shminfo);
 		shmdt(_shmData);
 		shmctl(_shminfo, IPC_RMID, 0);
 
@@ -70,9 +70,9 @@ void XcbGrabber::freeResources()
 
 	if (_XcbRenderAvailable)
 	{
-		xcb_free_pixmap(_connection, _pixmap);
-		xcb_render_free_picture(_connection, _srcPicture);
-		xcb_render_free_picture(_connection, _dstPicture);
+		query<FreePixmap>(_connection, _pixmap);
+		query<RenderFreePicture>(_connection, _srcPicture);
+		query<RenderFreePicture>(_connection, _dstPicture);
 	}
 }
 
@@ -88,7 +88,7 @@ void XcbGrabber::setupResources()
 		_shminfo = xcb_generate_id(_connection);
 		int id = shmget(IPC_PRIVATE, size_t(_width) * size_t(_height) * 4, IPC_CREAT | 0777);
 		_shmData = static_cast<uint8_t*>(shmat(id, nullptr, 0));
-		xcb_shm_attach(_connection, _shminfo, id, 0);
+		query<ShmAttach>(_connection, _shminfo, id, 0);
 	}
 
 	if (_XcbRenderAvailable)
@@ -100,14 +100,14 @@ void XcbGrabber::setupResources()
 		if(_XcbShmPixmapAvailable)
 		{
 			_pixmap = xcb_generate_id(_connection);
-			xcb_shm_create_pixmap(
+			query<ShmCreatePixmap>(
 				_connection, _pixmap, _screen->root, _width,
 				_height, _screen->root_depth, _shminfo, 0);
 		}
 		else
 		{
 			_pixmap = xcb_generate_id(_connection);
-			xcb_create_pixmap(_connection, _screen->root_depth, _pixmap, _screen->root, _width, _height);
+			query<CreatePixmap>(_connection, _screen->root_depth, _pixmap, _screen->root, _width, _height);
 		}
 
 		_srcFormat = findFormatForVisual(_screen->root_visual);
@@ -119,11 +119,11 @@ void XcbGrabber::setupResources()
 		const uint32_t value_mask = XCB_RENDER_CP_REPEAT;
 		const uint32_t values[] = { XCB_RENDER_REPEAT_NONE };
 
-		xcb_render_create_picture(_connection, _srcPicture, _screen->root, _srcFormat, value_mask, values);
-		xcb_render_create_picture(_connection, _dstPicture, _pixmap, _dstFormat, value_mask, values);
+		query<RenderCreatePicture>(_connection, _srcPicture, _screen->root, _srcFormat, value_mask, values);
+		query<RenderCreatePicture>(_connection, _dstPicture, _pixmap, _dstFormat, value_mask, values);
 
 		const std::string filter = "fast";
-		xcb_render_set_picture_filter(_connection, _srcPicture, filter.size(), filter.c_str(), 0, nullptr);
+		query<RenderSetPictureFilter>(_connection, _srcPicture, filter.size(), filter.c_str(), 0, nullptr);
 	}
 	else
 	{
@@ -243,8 +243,8 @@ int XcbGrabber::grabFrame(Image<ColorRgb> & image, bool forceUpdate)
 			DOUBLE_TO_FIXED(0), DOUBLE_TO_FIXED(0), DOUBLE_TO_FIXED(scale)
 		};
 
-		xcb_render_set_picture_transform(_connection, _srcPicture, _transform);
-		xcb_render_composite(_connection,
+		query<RenderSetPictureTransform>(_connection, _srcPicture, _transform);
+		query<RenderComposite>(_connection,
 			XCB_RENDER_PICT_OP_SRC, _srcPicture,
 			XCB_RENDER_PICTURE_NONE, _dstPicture,
 			(_src_x/_pixelDecimation),
