@@ -91,26 +91,30 @@ int LedDeviceAtmoOrb::open()
 	// Try to bind the UDP-Socket
 	if ( _udpSocket != nullptr )
 	{
-		_groupAddress = QHostAddress(_multicastGroup);
-		if ( !_udpSocket->bind(QHostAddress::AnyIPv4, _multiCastGroupPort, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint) )
+		if ( _udpSocket->state() != QAbstractSocket::BoundState )
 		{
-			QString errortext = QString ("(%1) %2, MulticastGroup: (%3)").arg(_udpSocket->error()).arg(_udpSocket->errorString(), _multicastGroup);
-			this->setInError( errortext );
-		}
-		else
-		{
-			_joinedMulticastgroup = _udpSocket->joinMulticastGroup(_groupAddress);
-			if ( !_joinedMulticastgroup )
+			_groupAddress = QHostAddress(_multicastGroup);
+			if ( !_udpSocket->bind(QHostAddress::AnyIPv4, _multiCastGroupPort, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint) )
 			{
 				QString errortext = QString ("(%1) %2, MulticastGroup: (%3)").arg(_udpSocket->error()).arg(_udpSocket->errorString(), _multicastGroup);
 				this->setInError( errortext );
 			}
 			else
 			{
-				// Everything is OK, device is ready
-				_isDeviceReady = true;
-				retval = 0;
+				_joinedMulticastgroup = _udpSocket->joinMulticastGroup(_groupAddress);
+				if ( !_joinedMulticastgroup )
+				{
+					QString errortext = QString ("(%1) %2, MulticastGroup: (%3)").arg(_udpSocket->error()).arg(_udpSocket->errorString(), _multicastGroup);
+					this->setInError( errortext );
+				}
 			}
+		}
+
+		if ( ! _isDeviceInError )
+		{
+			// Everything is OK, device is ready
+			_isDeviceReady = true;
+			retval = 0;
 		}
 	}
 	return retval;
