@@ -157,7 +157,6 @@ void PriorityMuxer::registerInput(const int priority, const hyperion::Components
 	if(newInput)
 	{
 		Debug(_log,"Register new input '%s/%s' with priority %d as inactive", QSTRING_CSTR(origin), hyperion::componentToIdString(component), priority);
-		emit priorityChanged(priority, true);
 		emit prioritiesChanged();
 		return;
 	}
@@ -256,7 +255,6 @@ bool PriorityMuxer::clearInput(const uint8_t priority)
 		Debug(_log,"Removed source priority %d",priority);
 		// on clear success update _currentPriority
 		setCurrentTime();
-		emit priorityChanged(priority, false);
 		emit prioritiesChanged();
 		return true;
 	}
@@ -298,7 +296,6 @@ void PriorityMuxer::setCurrentTime(void)
 			quint8 tPrio = infoIt->priority;
 			infoIt = _activeInputs.erase(infoIt);
 			Debug(_log,"Timeout clear for priority %d",tPrio);
-			emit priorityChanged(tPrio, false);
 			emit prioritiesChanged();
 		}
 		else

@@ -201,13 +201,6 @@ signals:
 	void timeRunner();
 
 	///
-	/// @brief A priority has been added (registerInput()) or deleted, method clear or timeout clear
-	/// @param priority  The priority which has changed
-	/// @param state     If true it was added else it was removed!
-	///
-	void priorityChanged(const quint8& priority, const bool& state);
-
-	///
 	/// @brief Emits whenever the visible priority has changed
 	/// @param  priority  The new visible priority
 	///
