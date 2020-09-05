@@ -6,11 +6,11 @@ You want to write an addon? You have no clue about everything? Perfect, the next
 ## Addon types
 Currently there are 2 types of Addons.
   * Service
-  * Modul
+  * Module
 
 A service addon runs usually the whole time (if enabled), it starts and stops with the execution of Hyperion. Additional it has settings that can be configured from the user to fit their needs. This can be an IP address to another service, a time to trigger, or anything else that you will discover from the Addon API
 
-A modul provides utility methods which can be imported from a service addon to be used. Examples are Python packages from the PyPi repository like httplib2, which makes the developer life easier when working with http requests. Instead implementing everything on your own you can rely on the work of others with well tested modules from the Python community. You can also create modules on your own if you think the code can be reused in other service addons.
+A module provides utility methods which can be imported from a service addon to be used. Examples are Python packages from the PyPi repository like httplib2, which makes the developer life easier when working with HTTP requests. Instead implementing everything on your own you can rely on the work of others with well tested modules from the Python community. You can also create modules on your own if you think the code can be reused in other service addons.
 
 ## Development setup
 All you need is:
@@ -23,13 +23,13 @@ The follow files are part of an addon.
 | ------------------- | -------------------------------------- | --------------------------------------------------------------------------- |
 | service.py          | [Python](https://www.python.org/)      | Required for `service` addons. Entry point, this is where your code goes to |
 | addon.json          | [JSON](http://www.json.org/)           | The meta data file required for all addons                                  |
-| settingsSchema.json | [JSON Schema](http://json-schema.org/) | Required for `service` addons. Options ui. [Read more](/en/api/ui.md)       |
+| settingsSchema.json | [JSON Schema](http://json-schema.org/) | Required for `service` addons. Options UI. [Read more](/en/api/ui.md)       |
 | lib                 | Folder                                 | Required for `module` addons. Entry point for modules                       |
 
 ### Create a new service Addon
 To create a service addon you need to follow a simple structure.
-  - Naviagte to ~/.hyperion/addons (folder in your home directory)
-  - Think about a short "id", this id needs to be unqiue and should just contain letters (english), lowercase no whitespace Example: `kodicon` `plexcon` `timer` `cec`
+  - Navigate to ~/.hyperion/addons (folder in your home directory)
+  - Think about a short "id", this id needs to be unique and should just contain letters (English), lowercase no whitespace Example: `kodicon` `plexcon` `timer` `cec`
   - Create a folder with your id and prepend `service.`. Example: `service.kodicon` `service.timer` `service.cec`
   - Inside this folder create a file called `service.py`, this is where your addon code goes to
   - Create a file called `settingsSchema.json`, this will represent our options
@@ -37,17 +37,17 @@ To create a service addon you need to follow a simple structure.
   - That's it!
 
 ::: tip
-A prepared service playground addon can be downloaded from the repository. This shows the basic usage of the API but also how option ui works
+A prepared service playground addon can be downloaded from the repository. This shows the basic usage of the API but also how option UI works
 :::
 
 ### Metadata
-The metadata file called addon.json is a description of your addon to declare name, version, dependencies, support url, sourcecode url and more. This file is parsed by Hyperion to provide users required informations and download updates accordingly.
+The metadata file called addon.json is a description of your addon to declare name, version, dependencies, support URL, sourcecode URL and more. This file is parsed by Hyperion to provide users required informations and download updates accordingly.
 
 | Property     | Type   | Comment                                                                |
 | ------------ | ------ | ---------------------------------------------------------------------- |
-| name         | String | Userfriendly name of your addon                                        |
+| name         | String | User friendly name of your addon                                        |
 | description  | String | What does this addon as a brief overview                               |
-| id           | String | The unqiue id                                                          |
+| id           | String | The unique id                                                          |
 | version      | String | The current version of your addon. [Semver 2.0.0](https://semver.org/) |
 | category     | Array  | Add the addon to a category. Available `utility`                       |
 | dependencies | Object | You can depend on modules / a specific minimum Hyperion version.       |
@@ -76,12 +76,12 @@ Here a version for copy and paste
 
 ### Addon categories
 Addons can be assigned to  a category for better sorting. Select the best matching
-  * **utility** A utility is usually a smaller addon, which does very basic tasks. It doesn't connect to another software. For example the Wake On Lan addon is a utility.
+  * **utility** A utility is usually a smaller addon, which does very basic tasks. It doesn't connect to another software. For example the Wake On LAN addon is a utility.
   * **integration** A integration addon interfaces with another software to listen for specific API events which triggers now actions on the Hyperion side or vice versa. Example is the Kodi addon
   * You can suggest new categories!
 
 ### Development
-Enough preperation stuff, let's start! \
+Enough preparation stuff, let's start! \
 It's highly recommended to work/read once through a Python tutorial which explains you the principals of Python if you are new to Python.
   * New to Python? No problem, here is a interactive tutorial where you can read, write and execute your first python scripts inside your browser [learnpython](https://www.learnpython.org/), available in 7 languages!
-  * Good beginner guide: [Python course EN](https://www.python-course.eu/python3_interactive.php). [Python Kurs DE](https://www.python-kurs.eu/python3_interaktiv.php). It's not necessary (nor possible) to understand everything, but the first pages are very helpfull as a start!
+  * Good beginner guide: [Python course EN](https://www.python-course.eu/python3_interactive.php). [Python Kurs DE](https://www.python-kurs.eu/python3_interaktiv.php). It's not necessary (nor possible) to understand everything, but the first pages are very helpful as a start!

@@ -19,7 +19,7 @@ public:
 	/// @param[in] pixelDecimation   Decimation factor for image [pixels]
 	/// @param[in] updateRate_Hz     The image grab rate [Hz]
 	///
-	QtWrapper(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation, int display, const unsigned updateRate_Hz);
+	QtWrapper(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation, int display, unsigned updateRate_Hz);
 
 public slots:
 	///

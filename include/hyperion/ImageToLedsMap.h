@@ -57,8 +57,8 @@ namespace hyperion
 		///
 		unsigned height() const;
 
-		unsigned horizontalBorder() { return _horizontalBorder; };
-		unsigned verticalBorder() { return _verticalBorder; };
+		unsigned horizontalBorder() const { return _horizontalBorder; }
+		unsigned verticalBorder() const { return _verticalBorder; }
 
 		///
 		/// Determines the mean color for each led using the mapping the image given
@@ -176,9 +176,9 @@ namespace hyperion
 			}
 
 			// Accumulate the sum of each seperate color channel
-			uint_fast16_t cummRed   = 0;
-			uint_fast16_t cummGreen = 0;
-			uint_fast16_t cummBlue  = 0;
+			uint_fast32_t cummRed   = 0;
+			uint_fast32_t cummGreen = 0;
+			uint_fast32_t cummBlue  = 0;
 			const auto& imgData = image.memptr();
 
 			for (const unsigned colorOffset : colors)
@@ -210,9 +210,9 @@ namespace hyperion
 		ColorRgb calcMeanColor(const Image<Pixel_T> & image) const
 		{
 			// Accumulate the sum of each seperate color channel
-			uint_fast16_t cummRed   = 0;
-			uint_fast16_t cummGreen = 0;
-			uint_fast16_t cummBlue  = 0;
+			uint_fast32_t cummRed   = 0;
+			uint_fast32_t cummGreen = 0;
+			uint_fast32_t cummBlue  = 0;
 			const unsigned imageSize = image.width() * image.height();
 
 			const auto& imgData = image.memptr();

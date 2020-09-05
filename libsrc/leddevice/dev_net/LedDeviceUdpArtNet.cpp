@@ -12,14 +12,9 @@
 const ushort ARTNET_DEFAULT_PORT = 6454;
 
 LedDeviceUdpArtNet::LedDeviceUdpArtNet(const QJsonObject &deviceConfig)
-	: ProviderUdp()
+	: ProviderUdp(deviceConfig)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
-
 
 LedDevice* LedDeviceUdpArtNet::construct(const QJsonObject &deviceConfig)
 {
@@ -44,7 +39,7 @@ bool LedDeviceUdpArtNet::init(const QJsonObject &deviceConfig)
 }
 
 // populates the headers
-void LedDeviceUdpArtNet::prepare(const unsigned this_universe, const unsigned this_sequence, unsigned this_dmxChannelCount)
+void LedDeviceUdpArtNet::prepare(unsigned this_universe, unsigned this_sequence, unsigned this_dmxChannelCount)
 {
 // WTF? why do the specs say:
 // "This value should be an even number in the range 2 – 512. "

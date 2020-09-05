@@ -12,16 +12,16 @@ enum class VideoMode
 	VIDEO_3DTAB
 };
 
-inline VideoMode parse3DMode(QString videoMode)
+inline VideoMode parse3DMode(const QString& videoMode)
 {
 	// convert to upper case
-	videoMode = videoMode.toUpper();
+	const QString vm = videoMode.toUpper();
 
-	if (videoMode == "3DTAB")
+	if (vm == "3DTAB")
 	{
 		return VideoMode::VIDEO_3DTAB;
 	}
-	else if (videoMode == "3DSBS")
+	else if (vm == "3DSBS")
 	{
 		return VideoMode::VIDEO_3DSBS;
 	}

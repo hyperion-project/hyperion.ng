@@ -20,7 +20,7 @@ public:
 	/// @param[in] grabHeight  The height of the grabbed images [pixels]
 	/// @param[in] updateRate_Hz  The image grab rate [Hz]
 	///
-	OsxWrapper(const unsigned display, const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz);
+	OsxWrapper(unsigned display, unsigned grabWidth, unsigned grabHeight, unsigned updateRate_Hz);
 
 public slots:
 	///

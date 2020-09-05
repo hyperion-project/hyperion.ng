@@ -166,7 +166,7 @@ void SSDPServer::readPendingDatagrams()
     }
 }
 
-void SSDPServer::sendMSearchResponse(const QString& st, const QString& senderIp, const quint16& senderPort)
+void SSDPServer::sendMSearchResponse(const QString& st, const QString& senderIp, quint16 senderPort)
 {
 	QString message = UPNP_MSEARCH_RESPONSE.arg(SSDP_MAX_AGE
 		, QDateTime::currentDateTimeUtc().toString("ddd, dd MMM yyyy HH:mm:ss GMT")

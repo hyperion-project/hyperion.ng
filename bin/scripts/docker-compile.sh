@@ -43,7 +43,7 @@ echo "########################################################
 ## A script to compile Hyperion inside a docker container
 ## Requires installed Docker: https://www.docker.com/
 ## Without arguments it will compile Hyperion for Debain Stretch (x64) or higher.
-## Supports Raspberry Pi (armv6hf, armv7hf) cross compilation (Debian Stretch) and native compilation (Raspbian Stretch/Buster)
+## Supports Raspberry Pi (armv6hf, armv7hf) cross compilation (Debian Stretch/Buster) and native compilation (Raspbian Stretch/Buster)
 ##
 ## Homepage: https://www.hyperion-project.org
 ## Forum: https://forum.hyperion-project.org
@@ -51,7 +51,7 @@ echo "########################################################
 # These are possible arguments to modify the script behaviour with their default values
 #
 # docker-compile.sh -h	            # Show this help message
-# docker-compile.sh -t amd64        # The docker tag, one of amd64 | i386 | armv6hf | armv7hf | rpi-raspbian-stretch | rpi-raspbian-buster
+# docker-compile.sh -t amd64        # The docker tag, one of amd64 | i386 | armv6hf | armv7hf | armv6hf-buster | armv7hf-buster | rpi-raspbian-stretch | rpi-raspbian-buster
 # docker-compile.sh -b Release      # cmake Release or Debug build
 # docker-compile.sh -p true         # If true build packages with CPack
 # More informations to docker tags at: https://hub.docker.com/r/hyperionproject/hyperion-ci/"
@@ -73,7 +73,7 @@ if [ $BUILD_PACKAGES == "true" ]; then
 	PACKAGES="package"
 fi
 
-echo "---> Initilize with BUILD_TARGET=${BUILD_TARGET}, BUILD_TYPE=${BUILD_TYPE}, BUILD_PACKAGES=${BUILD_PACKAGES}"
+echo "---> Initialize with BUILD_TARGET=${BUILD_TARGET}, BUILD_TYPE=${BUILD_TYPE}, BUILD_PACKAGES=${BUILD_PACKAGES}"
 
 # cleanup deploy folder, create folder for ownership
 sudo rm -fr $SCRIPT_PATH/deploy >/dev/null 2>&1
@@ -91,6 +91,7 @@ git clone --recursive --depth 1 -q $GIT_REPO_URL $SCRIPT_PATH/hyperion || { echo
 # Target docker image
 # execute inside container all commands on bash
 echo "---> Startup docker..."
+$DOCKER pull hyperionproject/hyperion-ci:$BUILD_TARGET
 $DOCKER run --rm \
 	-v "${SCRIPT_PATH}/deploy:/deploy" \
 	-v "${SCRIPT_PATH}/hyperion:/source:ro" \

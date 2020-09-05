@@ -15,8 +15,8 @@
 const int MAX_RETRY = 5;
 const ushort MAX_PORT_SSL = 65535;
 
-ProviderUdpSSL::ProviderUdpSSL()
-	: LedDevice()
+ProviderUdpSSL::ProviderUdpSSL(const QJsonObject &deviceConfig)
+	: LedDevice(deviceConfig)
 	, client_fd()
 	, entropy()
 	, ssl()
@@ -41,7 +41,6 @@ ProviderUdpSSL::ProviderUdpSSL()
 	, _debugStreamer(false)
 	, _debugLevel(0)
 {
-	_isDeviceReady = false;
 	_latchTime_ms = 1;
 }
 
@@ -182,7 +181,7 @@ void ProviderUdpSSL::closeSSLConnection()
 	}
 }
 
-const int *ProviderUdpSSL::getCiphersuites()
+const int *ProviderUdpSSL::getCiphersuites() const
 {
 	return mbedtls_ssl_list_ciphersuites();
 }
@@ -457,7 +456,7 @@ void ProviderUdpSSL::freeSSLConnection()
 	}
 }
 
-void ProviderUdpSSL::writeBytes(const unsigned size, const unsigned char * data)
+void ProviderUdpSSL::writeBytes(unsigned size, const unsigned char * data)
 {
 	if( _stopConnection ) return;
 

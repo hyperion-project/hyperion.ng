@@ -5,7 +5,7 @@
 #include <QJsonObject>
 #include <utils/Logger.h>
 
-namespace JsonUtils{
+namespace JsonUtils {
 	///
 	/// @brief read a json file and get the parsed result on success
 	/// @param[in]  path     The file path to read

@@ -35,7 +35,7 @@ public:
 	/// 	"interpolation" : false,
 	/// 	"manualLed"     : false,
 	/// 	"ledOn"         : false
-	/// }, 
+	/// },
 	///@endcode
 	///
 	/// @param deviceConfig Device's configuration as JSON-Object
@@ -62,21 +62,21 @@ protected:
 	/// @param[in] deviceConfig the JSON device configuration
 	/// @return True, if success
 	///
-	virtual bool init(const QJsonObject &deviceConfig) override;
+	bool init(const QJsonObject &deviceConfig) override;
 
 	///
 	/// @brief Opens the output device.
 	///
 	/// @return Zero on success (i.e. device is ready), else negative
 	///
-	virtual int open() override;
+	int open() override;
 
 	///
 	/// @brief Closes the output device.
 	///
 	/// @return Zero on success (i.e. device is closed), else negative
 	///
-	virtual int close() override;
+	int close() override;
 
 	///
 	/// @brief Writes the RGB-Color values to the LEDs.
@@ -84,7 +84,7 @@ protected:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	virtual int write(const std::vector<ColorRgb> & ledValues) override;
+	int write(const std::vector<ColorRgb> & ledValues) override;
 
 private:
 
@@ -106,7 +106,7 @@ private:
 	///
 	/// @return True, if connection established
 	///
-	bool isConnected();
+	bool isConnected() const;
 
 	///
 	/// @brief Transfer current opc_data buffer to opc server
@@ -114,7 +114,7 @@ private:
 	/// @return amount of transferred bytes. -1 error while transferring, -2 error while connecting
 	///
 	int transferData();
-	
+
 	///
 	/// @brief Send system exclusive commands
 	///
@@ -122,7 +122,7 @@ private:
 	/// @param[in] commandId id of command
 	/// @param[in] msg the sysEx message
 	/// @return amount bytes written, -1 if failed
-	int sendSysEx(uint8_t systemId, uint8_t commandId, QByteArray msg);
+	int sendSysEx(uint8_t systemId, uint8_t commandId, const QByteArray& msg);
 
 	///
 	/// @brief Sends the configuration to fadecandy cserver

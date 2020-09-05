@@ -61,12 +61,12 @@ public:
 	///
 	/// @brief Constructs an UDP SSL LED-device
 	///
-	ProviderUdpSSL();
+	ProviderUdpSSL(const QJsonObject &deviceConfig);
 
 	///
 	/// @brief Destructor of the LED-device
 	///
-	virtual ~ProviderUdpSSL() override;
+	~ProviderUdpSSL() override;
 
 protected:
 
@@ -76,21 +76,21 @@ protected:
 	/// @param[in] deviceConfig the JSON device configuration
 	/// @return True, if success#endif // PROVIDERUDP_H
 	///
-	virtual bool init(const QJsonObject &deviceConfig) override;
+	bool init(const QJsonObject &deviceConfig) override;
 
 	///
 	/// @brief Opens the output device.
 	///
 	/// @return Zero on success (i.e. device is ready), else negative
 	///
-	virtual int open() override;
+	int open() override;
 
 	///
 	/// @brief Closes the output device.
 	///
 	/// @return Zero on success (i.e. device is closed), else negative
 	///
-	virtual int close() override;
+	int close() override;
 
 	///
 	/// @brief Initialise device's network details
@@ -106,14 +106,14 @@ protected:
 	/// @param[in] size The length of the data
 	/// @param[in] data The data
 	///
-	void writeBytes(const unsigned size, const uint8_t *data);
+	void writeBytes(unsigned size, const uint8_t *data);
 
 	///
 	/// get ciphersuites list from mbedtls_ssl_list_ciphersuites
 	///
 	/// @return const int * array
 	///
-	virtual const int * getCiphersuites();
+	virtual const int * getCiphersuites() const;
 
 	void sslLog(const QString &msg, const char* errorType = "debug");
 	void sslLog(const char* msg, const char* errorType = "debug");

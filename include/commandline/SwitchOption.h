@@ -30,8 +30,6 @@ public:
 		: Option(other), _switches(switches)
 	{}
 
-	virtual ~SwitchOption() {}
-
 	const QMap<QString, T> &getSwitches() const                      { return _switches; }
 	virtual bool validate(Parser &parser, QString &switch_) override { return hasSwitch(switch_); }
 	bool hasSwitch(const QString &switch_)                           { return _switches.contains(switch_.toLower()); }

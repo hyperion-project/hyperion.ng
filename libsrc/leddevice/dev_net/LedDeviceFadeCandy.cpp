@@ -20,23 +20,16 @@ const unsigned OPC_HEADER_SIZE = 4;     // OPC header size
 const quint16 STREAM_DEFAULT_PORT = 7890;
 
 LedDeviceFadeCandy::LedDeviceFadeCandy(const QJsonObject &deviceConfig)
-	: LedDevice()
+	: LedDevice(deviceConfig)
 	  , _client(nullptr)
 	  ,_host()
 	  ,_port(STREAM_DEFAULT_PORT)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDeviceFadeCandy::~LedDeviceFadeCandy()
 {
-	if ( _client != nullptr )
-	{
-		delete _client;
-	}
+	delete _client;
 }
 
 LedDevice* LedDeviceFadeCandy::construct(const QJsonObject &deviceConfig)
@@ -151,7 +144,7 @@ int LedDeviceFadeCandy::close()
 	return retval;
 }
 
-bool LedDeviceFadeCandy::isConnected()
+bool LedDeviceFadeCandy::isConnected() const
 {
 	bool connected = false;
 	if ( _client != nullptr )
@@ -204,7 +197,7 @@ int LedDeviceFadeCandy::transferData()
 	return -2;
 }
 
-int LedDeviceFadeCandy::sendSysEx(uint8_t systemId, uint8_t commandId, QByteArray msg)
+int LedDeviceFadeCandy::sendSysEx(uint8_t systemId, uint8_t commandId, const QByteArray& msg)
 {
 	if ( isConnected() )
 	{

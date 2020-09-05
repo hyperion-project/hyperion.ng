@@ -35,15 +35,15 @@ public:
 	/// @param address The address of the Hyperion server (for example "192.168.0.32:19444)
 	/// @param skipReply  If true skip reply
 	///
-	FlatBufferConnection(const QString& origin, const QString & address, const int& priority, const bool& skipReply);
+	FlatBufferConnection(const QString& origin, const QString & address, int priority, bool skipReply);
 
 	///
 	/// @brief Destructor
 	///
-	~FlatBufferConnection();
+	~FlatBufferConnection() override;
 
 	/// @brief Do not read reply messages from Hyperion if set to true
-	void setSkipReply(const bool& skip);
+	void setSkipReply(bool skip);
 
 	///
 	/// @brief Register a new priority with given origin
@@ -100,7 +100,7 @@ signals:
 	///
 	/// @brief emits when a new videoMode was requested from flatbuf client
 	///
-	void setVideoMode(const VideoMode videoMode);
+	void setVideoMode(VideoMode videoMode);
 
 private:
 

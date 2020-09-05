@@ -9,8 +9,9 @@
 // Local Hyperion includes
 #include "ProviderHID.h"
 
-ProviderHID::ProviderHID()
-	:	_VendorId(0)
+ProviderHID::ProviderHID(const QJsonObject &deviceConfig)
+	:   LedDevice(deviceConfig)
+	  , _VendorId(0)
 	  , _ProductId(0)
 	  , _useFeature(false)
 	  , _deviceHandle(nullptr)
@@ -122,7 +123,7 @@ int ProviderHID::close()
 	return retval;
 }
 
-int ProviderHID::writeBytes(const unsigned size, const uint8_t * data)
+int ProviderHID::writeBytes(unsigned size, const uint8_t * data)
 {
 	if (_blockedForDelay) {
 		return 0;
@@ -156,28 +157,30 @@ int ProviderHID::writeBytes(const unsigned size, const uint8_t * data)
 	else{
 		ret = hid_write(_deviceHandle, ledData, size + 1);
 	}
-	
+
 	// Handle first error
-	if(ret < 0){
+	if(ret < 0)
+	{
 		Error(_log,"Failed to write to HID device.");
 
 		// Try again
-		if(_useFeature){
+		if(_useFeature)
+		{
 			ret = hid_send_feature_report(_deviceHandle, ledData, size + 1);
 		}
-		else{
+		else
+		{
 			ret = hid_write(_deviceHandle, ledData, size + 1);
 		}
 
 		// Writing failed again, device might have disconnected
 		if(ret < 0){
 			Error(_log,"Failed to write to HID device.");
-		
+
 			hid_close(_deviceHandle);
 			_deviceHandle = nullptr;
 		}
 	}
-	
 	return ret;
 }
 

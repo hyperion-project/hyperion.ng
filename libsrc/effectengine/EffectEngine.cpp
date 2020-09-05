@@ -61,9 +61,9 @@ QString EffectEngine::deleteEffect(const QString& effectName)
 	return _effectFileHandler->deleteEffect(effectName);
 }
 
-const std::list<ActiveEffectDefinition> &EffectEngine::getActiveEffects()
+std::list<ActiveEffectDefinition> EffectEngine::getActiveEffects() const
 {
-	_availableActiveEffects.clear();
+	std::list<ActiveEffectDefinition> availableActiveEffects;
 
 	for (Effect * effect : _activeEffects)
 	{
@@ -73,13 +73,13 @@ const std::list<ActiveEffectDefinition> &EffectEngine::getActiveEffects()
 		activeEffectDefinition.priority = effect->getPriority();
 		activeEffectDefinition.timeout  = effect->getTimeout();
 		activeEffectDefinition.args     = effect->getArgs();
-		_availableActiveEffects.push_back(activeEffectDefinition);
+		availableActiveEffects.push_back(activeEffectDefinition);
 	}
 
-	return _availableActiveEffects;
+	return availableActiveEffects;
 }
 
-const std::list<EffectSchema> & EffectEngine::getEffectSchemas()
+std::list<EffectSchema> EffectEngine::getEffectSchemas() const
 {
 	return _effectFileHandler->getEffectSchemas();
 }

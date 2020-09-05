@@ -34,8 +34,8 @@ Reset time is 300uS = 923 bits = 116 bytes
 
 */
 
-	LedDeviceWs2812SPI::LedDeviceWs2812SPI(const QJsonObject &deviceConfig)
-	: ProviderSpi()
+LedDeviceWs2812SPI::LedDeviceWs2812SPI(const QJsonObject &deviceConfig)
+	: ProviderSpi(deviceConfig)
 	  , SPI_BYTES_PER_COLOUR(4)
 	  , SPI_FRAME_END_LATCH_BYTES(116)
 	  , bitpair_to_byte {
@@ -45,10 +45,6 @@ Reset time is 300uS = 923 bits = 116 bytes
 		  0b11001100,
 		  }
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDevice* LedDeviceWs2812SPI::construct(const QJsonObject &deviceConfig)

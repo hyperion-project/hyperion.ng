@@ -21,12 +21,12 @@ public:
 	///
 	/// @brief Constructs an UDP LED-device
 	///
-	ProviderUdp();
+	ProviderUdp(const QJsonObject &deviceConfig);
 
 	///
 	/// @brief Destructor of the UDP LED-device
 	///
-	virtual ~ProviderUdp() override;
+	~ProviderUdp() override;
 
 protected:
 
@@ -36,21 +36,21 @@ protected:
 	/// @param[in] deviceConfig the JSON device configuration
 	/// @return True, if success
 	///
-	virtual bool init(const QJsonObject &deviceConfig) override;
+	bool init(const QJsonObject &deviceConfig) override;
 
 	///
 	/// @brief Opens the output device.
 	///
 	/// @return Zero on success (i.e. device is ready), else negative
 	///
-	virtual int open() override;
+	int open() override;
 
 	///
 	/// @brief Closes the UDP device.
 	///
 	/// @return Zero on success (i.e. device is closed), else negative
 	///
-	virtual int close() override;
+	int close() override;
 
 	///
 	/// @brief Writes the given bytes/bits to the UDP-device and sleeps the latch time to ensure that the
@@ -61,7 +61,7 @@ protected:
 	///
 	/// @return Zero on success, else negative
 	///
-	int writeBytes(const unsigned size, const uint8_t *data);
+	int writeBytes(unsigned size, const uint8_t *data);
 
 	///
 	QUdpSocket * _udpSocket;

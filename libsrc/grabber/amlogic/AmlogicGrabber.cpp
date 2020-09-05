@@ -20,7 +20,7 @@
 #define VIDEO_DEVICE   "/dev/amvideo"
 #define CAPTURE_DEVICE "/dev/amvideocap0"
 
-AmlogicGrabber::AmlogicGrabber(const unsigned width, const unsigned height)
+AmlogicGrabber::AmlogicGrabber(unsigned width, unsigned height)
 	: Grabber("AMLOGICGRABBER", qMax(160u, width), qMax(160u, height)) // Minimum required width or height is 160
 	, _captureDev(-1)
 	, _videoDev(-1)

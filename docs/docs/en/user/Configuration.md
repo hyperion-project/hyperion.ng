@@ -2,7 +2,7 @@
 Hyperion is fully configurable via web browser. The interface is fully responsive and created with touch devices in mind.
 
 ## Web Configuration
-Open the web configuration by typing the ip address of your device and the port 8090 in your browser. The installation script will show you the addess, if you don't know it. \
+Open the web configuration by typing the IP address of your device and the port 8090 in your browser. The installation script will show you the address, if you don't know it. \
 **Example:** `http://192.168.0.20:8090`
 
 ### Dashboard
@@ -27,7 +27,7 @@ Open the web configuration by typing the ip address of your device and the port 
   * The **Component status** shows always the latest state (enabled/disabled) of the components
 
 ::: tip Hashtag navigation
-The web configuration supports hashtags for sitenames, so you could directly open a specfic page by calling the hashtag. **Example:**`http://192.168.0.20:8090/#remote` - will open the remote control page.
+The web configuration supports hashtags for sitenames, so you could directly open a specific page by calling the hashtag. **Example:**`http://192.168.0.20:8090/#remote` - will open the remote control page.
 :::
 
 ### Configuration

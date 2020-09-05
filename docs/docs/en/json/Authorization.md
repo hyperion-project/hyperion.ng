@@ -88,9 +88,9 @@ If you want to get the most comfortable way for your application to authenticate
   * Wait for the response, the user needs to accept the request from the webconfiguration
   * -> On success you get a UUID token which is now your personal app token
   * -> On error you won't get a token, in this case the user denied the request or it timed out (180s).
-  * Now you are able to access the api, your access can be revoked by the user at any time, but will last for current connected sessions.
+  * Now you are able to access the API, your access can be revoked by the user at any time, but will last for current connected sessions.
 
-Requesting a token is easy, just send the follwing command, make sure to add a sufficient comment. The "id" field has 5 random chars created by yourself. And add a meaningful comment.
+Requesting a token is easy, just send the following command, make sure to add a sufficient comment. The "id" field has 5 random chars created by yourself. And add a meaningful comment.
 ``` json
 {
     "command" : "authorize",

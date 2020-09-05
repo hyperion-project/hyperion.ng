@@ -35,7 +35,7 @@ void FlatBufferServer::initServer()
 	handleSettingsUpdate(settings::FLATBUFSERVER, _config);
 }
 
-void FlatBufferServer::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
+void FlatBufferServer::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
 	if(type == settings::FLATBUFSERVER)
 	{

@@ -67,7 +67,7 @@ private:
 	/// @param[in] deviceConfig the JSON device configuration
 	/// @return True, if success
 	///
-	virtual bool init(const QJsonObject &deviceConfig) override;
+	bool init(const QJsonObject &deviceConfig) override;
 
 	///
 	/// @brief Writes the RGB-Color values to the LEDs.
@@ -75,12 +75,12 @@ private:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	virtual int write(const std::vector<ColorRgb> & ledValues) override;
+	int write(const std::vector<ColorRgb> & ledValues) override;
 
 	///
 	/// @brief Generate Art-Net communication header
 	///
-	void prepare(const unsigned this_universe, const unsigned this_sequence, const unsigned this_dmxChannelCount);
+	void prepare(unsigned this_universe, unsigned this_sequence, unsigned this_dmxChannelCount);
 
 	artnet_packet_t artnet_packet;
 	uint8_t _artnet_seq = 1;

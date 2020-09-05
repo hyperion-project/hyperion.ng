@@ -43,7 +43,7 @@ void Profiler::initLogger()
 		_logger = Logger::getInstance("PROFILER", Logger::DEBUG);
 }
 
-void Profiler::TimerStart(const QString timerName, const char* sourceFile, const char* func, unsigned int line)
+void Profiler::TimerStart(const QString& timerName, const char* sourceFile, const char* func, unsigned int line)
 {
 	std::pair<std::map<QString,StopWatchItem>::iterator,bool> ret;
 	Profiler::initLogger();
@@ -71,7 +71,7 @@ void Profiler::TimerStart(const QString timerName, const char* sourceFile, const
 }
 
 
-void Profiler::TimerGetTime(const QString timerName, const char* sourceFile, const char* func, unsigned int line)
+void Profiler::TimerGetTime(const QString& timerName, const char* sourceFile, const char* func, unsigned int line)
 {
 	std::map<QString,StopWatchItem>::iterator ret = GlobalProfilerMap.find(timerName);
 	Profiler::initLogger();

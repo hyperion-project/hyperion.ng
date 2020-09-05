@@ -9,7 +9,7 @@
 
 // TODO Remove this class if third-party apps have been migrated (eg. Hyperion Android Grabber, Windows Screen grabber etc.)
 
-ProtoClientConnection::ProtoClientConnection(QTcpSocket* socket, const int &timeout, QObject *parent)
+ProtoClientConnection::ProtoClientConnection(QTcpSocket* socket, int timeout, QObject *parent)
 	: QObject(parent)
 	, _log(Logger::getInstance("PROTOSERVER"))
 	, _socket(socket)

@@ -5,7 +5,6 @@
 
 class SysInfo : public QObject
 {
-
 public:
 	struct HyperionSysInfo
 	{

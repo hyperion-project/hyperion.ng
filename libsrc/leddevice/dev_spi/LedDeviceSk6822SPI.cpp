@@ -37,7 +37,7 @@ Reset time is 50uS = 100 bits = 13 bytes
 */
 
 LedDeviceSk6822SPI::LedDeviceSk6822SPI(const QJsonObject &deviceConfig)
-	: ProviderSpi()
+	: ProviderSpi(deviceConfig)
 	  , SPI_BYTES_PER_COLOUR(4)
 	  , SPI_BYTES_WAIT_TIME(3)
 	  , SPI_FRAME_END_LATCH_BYTES(13)
@@ -48,12 +48,7 @@ LedDeviceSk6822SPI::LedDeviceSk6822SPI(const QJsonObject &deviceConfig)
 		  0b11101110,
 		  }
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
-
 
 LedDevice* LedDeviceSk6822SPI::construct(const QJsonObject &deviceConfig)
 {

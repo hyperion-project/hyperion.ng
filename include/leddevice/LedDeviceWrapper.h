@@ -78,7 +78,7 @@ public slots:
 	/// @param component  The comp from enum
 	/// @param state      The new state
 	///
-	void handleComponentState(const hyperion::Components component, const bool state);
+	void handleComponentState(hyperion::Components component, bool state);
 
 signals:
 	///

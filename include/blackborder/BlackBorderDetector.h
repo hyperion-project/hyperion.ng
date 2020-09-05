@@ -60,12 +60,12 @@ namespace hyperion
 		/// @return The detected (or not detected) black border info
 		///
 
-		uint8_t calculateThreshold(double blackborderThreshold);
+		uint8_t calculateThreshold(double blackborderThreshold) const;
 
 		///
 		/// default detection mode (3lines 4side detection)
 		template <typename Pixel_T>
-		BlackBorder process(const Image<Pixel_T> & image)
+		BlackBorder process(const Image<Pixel_T> & image) const
 		{
 			// test center and 33%, 66% of width/heigth
 			// 33 and 66 will check left and top
@@ -102,7 +102,7 @@ namespace hyperion
 			for (int y = 0; y < height33percent; ++y)
 			{
 				if (!isBlack(image(xCenter, (height - y)))
-					|| !isBlack(image(width33percent, y)) 
+					|| !isBlack(image(width33percent, y))
 					|| !isBlack(image(width66percent, y)))
 				{
 					firstNonBlackYPixelIndex = y;
@@ -122,7 +122,7 @@ namespace hyperion
 		///
 		/// classic detection mode (topleft single line mode)
 		template <typename Pixel_T>
-		BlackBorder process_classic(const Image<Pixel_T> & image)
+		BlackBorder process_classic(const Image<Pixel_T> & image) const
 		{
 			// only test the topleft third of the image
 			int width = image.width() /3;
@@ -179,7 +179,7 @@ namespace hyperion
 		///
 		/// osd detection mode (find x then y at detected x to avoid changes by osd overlays)
 		template <typename Pixel_T>
-		BlackBorder process_osd(const Image<Pixel_T> & image)
+		BlackBorder process_osd(const Image<Pixel_T> & image) const
 		{
 			// find X position at height33 and height66 we check from the left side, Ycenter will check from right side
 			// then we try to find a pixel at this X position from top and bottom and right side from top
@@ -201,7 +201,7 @@ namespace hyperion
 			int x;
 			for (x = 0; x < width33percent; ++x)
 			{
-				if (!isBlack(image((width - x), yCenter)) 
+				if (!isBlack(image((width - x), yCenter))
 					|| !isBlack(image(x, height33percent))
 					|| !isBlack(image(x, height66percent)))
 				{
@@ -214,9 +214,9 @@ namespace hyperion
 			for (int y = 0; y < height33percent; ++y)
 			{
 				// left side top + left side bottom + right side top  +  right side bottom
-				if (!isBlack(image(x, y)) 
+				if (!isBlack(image(x, y))
 					|| !isBlack(image(x, (height - y)))
-					|| !isBlack(image((width - x), y)) 
+					|| !isBlack(image((width - x), y))
 					|| !isBlack(image((width - x), (height - y))))
 				{
 //					std::cout << "y " << y << " lt " << int(isBlack(color1)) << " lb " << int(isBlack(color2)) << " rt " << int(isBlack(color3)) << " rb " << int(isBlack(color4)) << std::endl;
@@ -245,7 +245,7 @@ namespace hyperion
 		/// @return True if the color is considered black else false
 		///
 		template <typename Pixel_T>
-		inline bool isBlack(const Pixel_T & color)
+		inline bool isBlack(const Pixel_T & color) const
 		{
 			// Return the simple compare of the color against black
 			return color.red < _blackborderThreshold && color.green < _blackborderThreshold && color.blue < _blackborderThreshold;

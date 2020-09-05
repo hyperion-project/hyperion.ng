@@ -117,10 +117,7 @@ YeelightLight::YeelightLight( Logger *log, const QString &hostname, quint16 port
 YeelightLight::~YeelightLight()
 {
 	log (3,"~YeelightLight()","" );
-	if ( _tcpSocket != nullptr)
-	{
-		delete _tcpSocket;
-	}
+	delete _tcpSocket;
 	log (2,"~YeelightLight()","void" );
 }
 
@@ -237,12 +234,12 @@ int YeelightLight::writeCommand( const QJsonDocument &command, QJsonArray &resul
 			if ( ! _tcpSocket->waitForBytesWritten(WRITE_TIMEOUT.count()) )
 			{
 				QString errorReason = QString ("(%1) %2").arg(_tcpSocket->error()).arg( _tcpSocket->errorString());
-				log ( 2, "Error:", "bytesWritten: [%d], %s", bytesWritten, QSTRING_CSTR(errorReason));
+				log ( 2, "Error:", "bytesWritten: [%ll], %s", bytesWritten, QSTRING_CSTR(errorReason));
 				this->setInError ( errorReason );
 			}
 			else
 			{
-				log ( 3, "Success:", "Bytes written   [%d]", bytesWritten );
+				log ( 3, "Success:", "Bytes written   [%ll]", bytesWritten );
 
 				// Avoid to overrun the Yeelight Command Quota
 				qint64 elapsedTime = QDateTime::currentMSecsSinceEpoch() - _lastWriteTime;
@@ -250,7 +247,7 @@ int YeelightLight::writeCommand( const QJsonDocument &command, QJsonArray &resul
 				if ( elapsedTime < _waitTimeQuota )
 				{
 					int waitTime = _waitTimeQuota;
-					log ( 1, "writeCommand():", "Wait %dms, elapsedTime: %dms < quotaTime: %dms", waitTime, elapsedTime, _waitTimeQuota);
+					log ( 1, "writeCommand():", "Wait %dms, elapsedTime: %llms < quotaTime: %dms", waitTime, elapsedTime, _waitTimeQuota);
 
 					// Wait time (in ms) before doing next write to not overrun Yeelight command quota
 					std::this_thread::sleep_for(std::chrono::milliseconds(_waitTimeQuota));
@@ -261,7 +258,7 @@ int YeelightLight::writeCommand( const QJsonDocument &command, QJsonArray &resul
 			{
 				do
 				{
-					log ( 3, "Reading:", "Bytes available [%d]", _tcpSocket->bytesAvailable() );
+					log ( 3, "Reading:", "Bytes available [%ll]", _tcpSocket->bytesAvailable() );
 					while ( _tcpSocket->canReadLine() )
 					{
 						QByteArray response = _tcpSocket->readLine();
@@ -341,7 +338,7 @@ bool YeelightLight::streamCommand( const QJsonDocument &command )
 			{
 				int error = _tcpStreamSocket->error();
 				QString errorReason = QString ("(%1) %2").arg(error).arg( _tcpStreamSocket->errorString());
-				log ( 1, "Error:", "bytesWritten: [%d], %s", bytesWritten, QSTRING_CSTR(errorReason));
+				log ( 1, "Error:", "bytesWritten: [%ll], %s", bytesWritten, QSTRING_CSTR(errorReason));
 
 				if ( error == QAbstractSocket::RemoteHostClosedError )
 				{
@@ -356,7 +353,7 @@ bool YeelightLight::streamCommand( const QJsonDocument &command )
 			}
 			else
 			{
-				log ( 3, "Success:", "Bytes written   [%d]", bytesWritten );
+				log ( 3, "Success:", "Bytes written   [%ll]", bytesWritten );
 				rc = true;
 			}
 		}
@@ -575,7 +572,7 @@ bool YeelightLight::identify()
 	return rc;
 }
 
-bool YeelightLight::isInMusicMode( bool deviceCheck)
+bool YeelightLight::isInMusicMode(bool deviceCheck)
 {
 	bool inMusicMode = false;
 
@@ -899,7 +896,7 @@ bool YeelightLight::setColorHSV(const ColorRgb &colorRGB)
 }
 
 
-void YeelightLight::setTransitionEffect ( YeelightLight::API_EFFECT effect ,int duration )
+void YeelightLight::setTransitionEffect(YeelightLight::API_EFFECT effect, int duration)
 {
 	if( effect != _transitionEffect )
 	{
@@ -914,7 +911,7 @@ void YeelightLight::setTransitionEffect ( YeelightLight::API_EFFECT effect ,int 
 
 }
 
-void YeelightLight::setBrightnessConfig (int min, int max, bool switchoff,  int extraTime, double factor )
+void YeelightLight::setBrightnessConfig(int min, int max, bool switchoff, int extraTime, double factor)
 {
 	_brightnessMin = min;
 	_isBrightnessSwitchOffMinimum = switchoff;
@@ -947,7 +944,7 @@ bool YeelightLight::setMusicMode(bool on, const QHostAddress &hostAddress, int p
 	return rc;
 }
 
-void YeelightLight::log(const int logLevel, const char* msg, const char* type, ...)
+void YeelightLight::log(int logLevel, const char* msg, const char* type, ...)
 {
 	if ( logLevel <= _debugLevel)
 	{
@@ -968,7 +965,7 @@ void YeelightLight::log(const int logLevel, const char* msg, const char* type, .
 //---------------------------------------------------------------------------------
 
 LedDeviceYeelight::LedDeviceYeelight(const QJsonObject &deviceConfig)
-	: LedDevice()
+	: LedDevice(deviceConfig)
 	  ,_lightsCount (0)
 	  ,_outputColorModel(0)
 	  ,_transitionEffect(YeelightLight::API_EFFECT_SMOOTH)
@@ -982,10 +979,6 @@ LedDeviceYeelight::LedDeviceYeelight(const QJsonObject &deviceConfig)
 	  ,_debuglevel(0)
 	  ,_musicModeServerPort(-1)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDeviceYeelight::~LedDeviceYeelight()

@@ -1,6 +1,6 @@
 #include <grabber/AmlogicWrapper.h>
 
-AmlogicWrapper::AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeight)
+AmlogicWrapper::AmlogicWrapper(unsigned grabWidth, unsigned grabHeight)
 	: GrabberWrapper("AmLogic", &_grabber, grabWidth, grabHeight)
 	, _grabber(grabWidth, grabHeight)
 {}

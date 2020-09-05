@@ -19,12 +19,12 @@ public:
 	///
 	/// @brief Constructs a RS232 LED-device
 	///
-	ProviderRs232();
+	ProviderRs232(const QJsonObject &deviceConfig);
 
 	///
 	/// @brief Destructor of the UDP LED-device
 	///
-	virtual ~ProviderRs232() override;
+	~ProviderRs232() override;
 
 protected:
 
@@ -34,21 +34,21 @@ protected:
 	/// @param[in] deviceConfig the JSON device configuration
 	/// @return True, if success
 	///
-	virtual bool init(const QJsonObject &deviceConfig) override;
+	bool init(const QJsonObject &deviceConfig) override;
 
 	///
 	/// @brief Opens the output device.
 	///
 	/// @return Zero on success (i.e. device is ready), else negative
 	///
-	virtual int open() override;
+	int open() override;
 
 	///
 	/// @brief Closes the UDP device.
 	///
 	/// @return Zero on success (i.e. device is closed), else negative
 	///
-	virtual int close() override;
+	int close() override;
 
 	///
 	/// @brief Power-/turn off a RS232-device
@@ -57,21 +57,21 @@ protected:
 	///
 	/// @return True, if success
 	///
-	virtual bool powerOff() override;
+	bool powerOff() override;
 
 	///
 	/// @brief Discover first devices of a serial device available (for configuration)
 	///
 	/// @return A string of the device found
 	///
-	virtual QString discoverFirst() override;
+	QString discoverFirst() override;
 
 	///
 	/// @brief Discover RS232 serial devices available (for configuration).
 	///
 	/// @return A JSON structure holding a list of devices found
 	///
-	virtual QJsonObject discover() override;
+	QJsonObject discover() override;
 
 	///
 	/// @brief Write the given bytes to the RS232-device
@@ -96,7 +96,7 @@ protected slots:
 	///
 	/// @param errorMsg The error message to be logged
 	///
-	virtual void setInError( const QString& errorMsg) override;
+	void setInError( const QString& errorMsg) override;
 
 private:
 
@@ -105,7 +105,7 @@ private:
 	///
 	/// @return True,if on success
 	///
-	bool tryOpen(const int delayAfterConnect_ms);
+	bool tryOpen(int delayAfterConnect_ms);
 
 	/// Try to auto-discover device name?
 	bool _isAutoDeviceName;

@@ -10,8 +10,8 @@
 
 namespace FileUtils {
 
-	QString getBaseName(QString sourceFile);
-	QString getDirName(QString sourceFile);
+	QString getBaseName(const QString& sourceFile);
+	QString getDirName(const QString& sourceFile);
 
 	///
 	/// @brief remove directory recursive given by path

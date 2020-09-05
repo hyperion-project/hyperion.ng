@@ -21,19 +21,19 @@ public:
 	///
 	/// @param deviceConfig Device's configuration as JSON-Object
 	///
-	ProviderHID();
+	ProviderHID(const QJsonObject &deviceConfig);
 
 	///
 	/// @brief Destructor of the LedDevice
 	///
-	virtual ~ProviderHID() override;
+	~ProviderHID() override;
 
 	///
 	/// @brief Discover HIB (USB) devices available (for configuration).
 	///
 	/// @return A JSON structure holding a list of devices found
 	///
-	virtual QJsonObject discover() override;
+	QJsonObject discover() override;
 
 protected:
 
@@ -43,21 +43,21 @@ protected:
 	/// @param[in] deviceConfig the JSON device configuration
 	/// @return True, if success
 	///
-	virtual bool init(const QJsonObject &deviceConfig) override;
+	bool init(const QJsonObject &deviceConfig) override;
 
 	///
 	/// @brief Opens the output device.
 	///
 	/// @return Zero on success (i.e. device is ready), else negative
 	///
-	virtual int open() override;
+	int open() override;
 
 	///
 	/// @brief Closes the output device.
 	///
 	/// @return Zero on success (i.e. device is closed), else negative
 	///
-	virtual int close() override;
+	int close() override;
 
 	///
 	/// @brief Write the given bytes to the HID-device
@@ -66,7 +66,7 @@ protected:
 	/// @param[in] data The data
 	/// @return Zero on success, else negative
 	///
-	int writeBytes(const unsigned size, const uint8_t *data);
+	int writeBytes(unsigned size, const uint8_t *data);
 
 	// HID VID and PID
 	unsigned short _VendorId;

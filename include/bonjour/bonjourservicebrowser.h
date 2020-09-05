@@ -44,7 +44,7 @@ class BonjourServiceBrowser : public QObject
 	Q_OBJECT
 public:
 	BonjourServiceBrowser(QObject *parent = 0);
-	~BonjourServiceBrowser();
+	~BonjourServiceBrowser() override;
 	void browseForServiceType(const QString &serviceType);
 	inline QList<BonjourRecord> currentRecords() const { return bonjourRecords; }
 	inline QString serviceType() const { return browsingType; }

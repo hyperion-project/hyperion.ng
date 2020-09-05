@@ -28,11 +28,12 @@ openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
   -subj /CN=hyperion-project.org
 */
 
-class WebServer : public QObject {
+class WebServer : public QObject
+{
 	Q_OBJECT
 
 public:
-	WebServer (const QJsonDocument& config, const bool& useSsl, QObject * parent = 0);
+	WebServer (const QJsonDocument& config, bool useSsl, QObject * parent = 0);
 
 	~WebServer () override;
 
@@ -44,12 +45,12 @@ signals:
 	/// @emits whenever server is started or stopped (to sync with SSDPHandler)
 	/// @param newState   True when started, false when stopped
 	///
-	void stateChange(const bool newState);
+	void stateChange(bool newState);
 
 	///
 	/// @brief Emits whenever the port changes (doesn't compare prev <> now)
 	///
-	void portChanged(const quint16& port);
+	void portChanged(quint16 port);
 
 public slots:
 	///
@@ -57,7 +58,7 @@ public slots:
 	///
 	void initServer();
 
-	void onServerStopped      (void);
+	void onServerStopped      ();
 	void onServerStarted      (quint16 port);
 	void onServerError        (QString msg);
 
@@ -66,7 +67,7 @@ public slots:
 	/// @param type   settingyType from enum
 	/// @param config configuration object
 	///
-	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 	///
 	/// @brief Set a new description, if empty the description is NotFound for clients

@@ -2,14 +2,9 @@
 #include "LedDeviceAtmo.h"
 
 LedDeviceAtmo::LedDeviceAtmo(const QJsonObject &deviceConfig)
-	: ProviderRs232()
+	: ProviderRs232(deviceConfig)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
-
 
 LedDevice* LedDeviceAtmo::construct(const QJsonObject &deviceConfig)
 {

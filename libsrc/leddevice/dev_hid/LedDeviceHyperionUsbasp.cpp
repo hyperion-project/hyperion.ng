@@ -13,14 +13,10 @@ QString  _usbProductDescription = "Hyperion led controller";
 }
 
 LedDeviceHyperionUsbasp::LedDeviceHyperionUsbasp(const QJsonObject &deviceConfig)
-	: LedDevice()
+	: LedDevice(deviceConfig)
 	, _libusbContext(nullptr)
 	, _deviceHandle(nullptr)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDeviceHyperionUsbasp::~LedDeviceHyperionUsbasp()

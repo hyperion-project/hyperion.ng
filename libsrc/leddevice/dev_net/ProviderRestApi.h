@@ -16,10 +16,9 @@
 class httpResponse
 {
 public:
+	httpResponse() = default;
 
-	explicit httpResponse() {}
-
-	bool error() { return _hasError;}
+	bool error() const { return _hasError;}
 	void setError(const bool hasError) { _hasError = hasError; }
 
 	QJsonDocument getBody() const { return _responseBody; }
@@ -29,7 +28,7 @@ public:
 	void setErrorReason(const QString &errorReason) { _errorReason = errorReason; }
 
 	int getHttpStatusCode() const { return _httpStatusCode; }
-	void setHttpStatusCode(const int httpStatusCode) { _httpStatusCode = httpStatusCode; }
+	void setHttpStatusCode(int httpStatusCode) { _httpStatusCode = httpStatusCode; }
 
 	QNetworkReply::NetworkError getNetworkReplyError() const { return _networkReplyError; }
 	void setNetworkReplyError (const QNetworkReply::NetworkError networkReplyError) { _networkReplyError = networkReplyError; }
@@ -70,7 +69,7 @@ public:
 	///
 	/// @brief Constructor of the REST-API wrapper
 	///
-	explicit ProviderRestApi();
+	ProviderRestApi();
 
 	///
 	/// @brief Constructor of the REST-API wrapper
@@ -78,7 +77,7 @@ public:
 	/// @param[in] host
 	/// @param[in] port
 	///
-	explicit ProviderRestApi(const QString &host, const int &port);
+	explicit ProviderRestApi(const QString &host, int port);
 
 	///
 	/// @brief Constructor of the REST-API wrapper
@@ -87,7 +86,7 @@ public:
 	/// @param[in] port
 	/// @param[in] API base-path
 	///
-	explicit ProviderRestApi(const QString &host, const int &port, const QString &basePath);
+	explicit ProviderRestApi(const QString &host, int port, const QString &basePath);
 
 	///
 	/// @brief Destructor of the REST-API wrapper

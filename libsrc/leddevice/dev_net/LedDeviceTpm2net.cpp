@@ -3,12 +3,8 @@
 const ushort TPM2_DEFAULT_PORT = 65506;
 
 LedDeviceTpm2net::LedDeviceTpm2net(const QJsonObject &deviceConfig)
-	: ProviderUdp()
+	: ProviderUdp(deviceConfig)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDevice* LedDeviceTpm2net::construct(const QJsonObject &deviceConfig)

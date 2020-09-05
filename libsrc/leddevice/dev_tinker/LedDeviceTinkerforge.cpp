@@ -16,16 +16,12 @@ const uint16_t DEFAULT_PORT = 4223;
 } //End of constants
 
 LedDeviceTinkerforge::LedDeviceTinkerforge(const QJsonObject &deviceConfig)
-	: LedDevice()
+	: LedDevice(deviceConfig)
 	  ,_port(DEFAULT_PORT)
 	  ,_ipConnection(nullptr)
 	  ,_ledStrip(nullptr)
 	  ,_colorChannelSize(0)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDeviceTinkerforge::~LedDeviceTinkerforge()

@@ -90,7 +90,7 @@ enum EXTCONTROLVERSIONS {
 };
 
 LedDeviceNanoleaf::LedDeviceNanoleaf(const QJsonObject &deviceConfig)
-	: ProviderUdp()
+	: ProviderUdp(deviceConfig)
 	  ,_restApi(nullptr)
 	  ,_apiPort(API_DEFAULT_PORT)
 	  ,_topDown(true)
@@ -100,10 +100,6 @@ LedDeviceNanoleaf::LedDeviceNanoleaf(const QJsonObject &deviceConfig)
 	  ,_extControlVersion (EXTCTRLVER_V2),
 	  _panelLedCount(0)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDevice* LedDeviceNanoleaf::construct(const QJsonObject &deviceConfig)
@@ -113,11 +109,8 @@ LedDevice* LedDeviceNanoleaf::construct(const QJsonObject &deviceConfig)
 
 LedDeviceNanoleaf::~LedDeviceNanoleaf()
 {
-	if ( _restApi != nullptr )
-	{
-		delete _restApi;
-		_restApi = nullptr;
-	}
+	delete _restApi;
+	_restApi = nullptr;
 }
 
 bool LedDeviceNanoleaf::init(const QJsonObject &deviceConfig)
@@ -343,7 +336,7 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 	return isInitOK;
 }
 
-bool LedDeviceNanoleaf::initRestAPI(const QString &hostname, const int port, const QString &token )
+bool LedDeviceNanoleaf::initRestAPI(const QString &hostname, int port, const QString &token )
 {
 	bool isInitOK = false;
 
@@ -514,7 +507,7 @@ bool LedDeviceNanoleaf::powerOff()
 	return true;
 }
 
-QString LedDeviceNanoleaf::getOnOffRequest (bool isOn ) const
+QString LedDeviceNanoleaf::getOnOffRequest(bool isOn) const
 {
 	QString state = isOn ? STATE_VALUE_TRUE : STATE_VALUE_FALSE;
 	return QString( "{\"%1\":{\"%2\":%3}}" ).arg(STATE_ON, STATE_ONOFF_VALUE, state);
@@ -616,7 +609,7 @@ int LedDeviceNanoleaf::write(const std::vector<ColorRgb> & ledValues)
 	return retVal;
 }
 
-std::string LedDeviceNanoleaf:: uint8_vector_to_hex_string( const std::vector<uint8_t>& buffer ) const
+std::string LedDeviceNanoleaf::uint8_vector_to_hex_string(const std::vector<uint8_t>& buffer) const
 {
 	std::stringstream ss;
 	ss << std::hex << std::setfill('0');

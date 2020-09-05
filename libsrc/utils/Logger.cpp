@@ -114,7 +114,7 @@ Logger::LogLevel Logger::getLogLevel(const QString & name)
 		return static_cast<Logger::LogLevel>(int(GLOBAL_MIN_LOG_LEVEL));
 	}
 
-	Logger* log = Logger::getInstance(name);
+	const Logger* log = Logger::getInstance(name);
 	return log->getMinLevel();
 }
 
