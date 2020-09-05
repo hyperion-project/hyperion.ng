@@ -41,41 +41,42 @@ bool ProviderUdp::init(const QJsonObject &deviceConfig)
 
 		if (_address.setAddress(host) )
 		{
-			Debug( _log, "Successfully parsed %s as an ip address.", deviceConfig["host"].toString().toStdString().c_str());
+			Debug( _log, "Successfully parsed %s as an IP-address.", QSTRING_CSTR(_address.toString()));
 		}
 		else
 		{
-			Debug( _log, "Failed to parse [%s] as an ip address.", deviceConfig["host"].toString().toStdString().c_str());
-			QHostInfo info = QHostInfo::fromName(host);
-			if (info.addresses().isEmpty())
+			QHostInfo hostInfo = QHostInfo::fromName(host);
+			if ( hostInfo.error() == QHostInfo::NoError )
 			{
-				Debug( _log, "Failed to parse [%s] as a hostname.", deviceConfig["host"].toString().toStdString().c_str());
-				QString errortext = QString ("Invalid target address [%1]!").arg(host);
-				this->setInError ( errortext );
-				return false;
+				_address = hostInfo.addresses().first();
+				Debug( _log, "Successfully resolved IP-address (%s) for hostname (%s).", QSTRING_CSTR(_address.toString()), QSTRING_CSTR(host));
 			}
 			else
 			{
-				Debug( _log, "Successfully parsed %s as a hostname.", deviceConfig["host"].toString().toStdString().c_str());
-				_address = info.addresses().first();
+				QString errortext = QString ("Failed resolving IP-address for [%1], (%2) %3").arg(host).arg(hostInfo.error()).arg(hostInfo.errorString());
+				this->setInError ( errortext );
+				isInitOK = false;
 			}
 		}
 
-		int config_port = deviceConfig["port"].toInt(_port);
-		if ( config_port <= 0 || config_port > MAX_PORT )
+		if ( !_isDeviceInError )
 		{
-			QString errortext = QString ("Invalid target port [%1]!").arg(config_port);
-			this->setInError ( errortext );
-			isInitOK = false;
-		}
-		else
-		{
-			_port = static_cast<int>(config_port);
-			Debug( _log, "UDP using %s:%d", _address.toString().toStdString().c_str() , _port );
+			int config_port = deviceConfig["port"].toInt(_port);
+			if ( config_port <= 0 || config_port > MAX_PORT )
+			{
+				QString errortext = QString ("Invalid target port [%1]!").arg(config_port);
+				this->setInError ( errortext );
+				isInitOK = false;
+			}
+			else
+			{
+				_port = static_cast<int>(config_port);
+				Debug( _log, "UDP socket will write to %s:%u", QSTRING_CSTR(_address.toString()) , _port );
 
-			_udpSocket = new QUdpSocket(this);
+				_udpSocket = new QUdpSocket(this);
 
-			isInitOK = true;
+				isInitOK = true;
+			}
 		}
 	}
 	return isInitOK;
@@ -89,12 +90,15 @@ int ProviderUdp::open()
 	// Try to bind the UDP-Socket
 	if ( _udpSocket != nullptr )
 	{
-		QHostAddress localAddress = QHostAddress::Any;
-		quint16      localPort = 0;
-		if ( !_udpSocket->bind(localAddress, localPort) )
+		if ( _udpSocket->state() != QAbstractSocket::BoundState )
 		{
-			QString warntext = QString ("Could not bind local address: %1, (%2) %3").arg(localAddress.toString()).arg(_udpSocket->error()).arg(_udpSocket->errorString());
-			Warning ( _log, "%s", QSTRING_CSTR(warntext));
+			QHostAddress localAddress = QHostAddress::Any;
+			quint16      localPort = 0;
+			if ( !_udpSocket->bind(localAddress, localPort) )
+			{
+				QString warntext = QString ("Could not bind local address: %1, (%2) %3").arg(localAddress.toString()).arg(_udpSocket->error()).arg(_udpSocket->errorString());
+				Warning ( _log, "%s", QSTRING_CSTR(warntext));
+			}
 		}
 		// Everything is OK, device is ready
 		_isDeviceReady = true;
@@ -125,7 +129,7 @@ int ProviderUdp::close()
 	return retval;
 }
 
-int ProviderUdp::writeBytes(unsigned size, const uint8_t * data)
+int ProviderUdp::writeBytes(const unsigned size, const uint8_t * data)
 {
 	qint64 retVal = _udpSocket->writeDatagram((const char *)data,size,_address,_port);
 
