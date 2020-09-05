@@ -138,7 +138,7 @@ bool ProviderRs232::tryOpen(int delayAfterConnect_ms)
 
 		_rs232Port.setBaudRate( _baudRate_Hz );
 
-		Debug(_log, "_rs232Port.open(QIODevice::WriteOnly): %s, Baud rate [%d]bps", QSTRING_CSTR(_deviceName), _baudRate_Hz);
+		Debug(_log, "_rs232Port.open(QIODevice::ReadWrite): %s, Baud rate [%d]bps", QSTRING_CSTR(_deviceName), _baudRate_Hz);
 
 		QSerialPortInfo serialPortInfo(_deviceName);
 
@@ -153,7 +153,7 @@ bool ProviderRs232::tryOpen(int delayAfterConnect_ms)
 
 		if (!serialPortInfo.isNull() )
 		{
-			if ( !_rs232Port.open(QIODevice::WriteOnly) )
+			if ( !_rs232Port.open(QIODevice::ReadWrite) )
 			{
 				this->setInError(_rs232Port.errorString());
 				return false;
