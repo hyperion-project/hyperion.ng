@@ -6,7 +6,6 @@
 #include <QUdpSocket>
 
 const quint16 MULTICAST_GROUPL_DEFAULT_PORT = 49692;
-const int LEDS_DEFAULT_NUMBER = 24;
 
 LedDeviceAtmoOrb::LedDeviceAtmoOrb(const QJsonObject &deviceConfig)
 	: LedDevice(deviceConfig)
@@ -14,10 +13,7 @@ LedDeviceAtmoOrb::LedDeviceAtmoOrb(const QJsonObject &deviceConfig)
 	  , _multiCastGroupPort (MULTICAST_GROUPL_DEFAULT_PORT)
 	  , _joinedMulticastgroup (false)
 	  , _useOrbSmoothing (false)
-	  , _transitiontime (0)
 	  , _skipSmoothingDiff (0)
-	  , _numLeds (LEDS_DEFAULT_NUMBER)
-
 {
 }
 
@@ -39,13 +35,23 @@ bool LedDeviceAtmoOrb::init(const QJsonObject &deviceConfig)
 	{
 
 		_multicastGroup     = deviceConfig["output"].toString().toStdString().c_str();
-		_useOrbSmoothing    = deviceConfig["useOrbSmoothing"].toBool(false);
-		_transitiontime     = deviceConfig["transitiontime"].toInt(0);
-		_skipSmoothingDiff  = deviceConfig["skipSmoothingDiff"].toInt(0);
 		_multiCastGroupPort = static_cast<quint16>(deviceConfig["port"].toInt(MULTICAST_GROUPL_DEFAULT_PORT));
-		_numLeds            = deviceConfig["numLeds"].toInt(LEDS_DEFAULT_NUMBER);
-
+		_useOrbSmoothing    = deviceConfig["useOrbSmoothing"].toBool(false);
+		_skipSmoothingDiff  = deviceConfig["skipSmoothingDiff"].toInt(0);
 		QStringList orbIds = QStringUtils::split(deviceConfig["orbIds"].toString().simplified().remove(" "),",", QStringUtils::SplitBehavior::SkipEmptyParts);
+
+		Debug(_log, "DeviceType        : %s", QSTRING_CSTR( this->getActiveDeviceType() ));
+		Debug(_log, "LedCount          : %u", this->getLedCount());
+		Debug(_log, "ColorOrder        : %s", QSTRING_CSTR( this->getColorOrder() ));
+		Debug(_log, "RefreshTime       : %d", _refreshTimerInterval_ms);
+		Debug(_log, "LatchTime         : %d", this->getLatchTime());
+
+		Debug(_log, "MulticastGroup    : %s", QSTRING_CSTR(_multicastGroup));
+		Debug(_log, "MulticastGroupPort: %d", _multiCastGroupPort);
+		Debug(_log, "Orb ID list       : %s", QSTRING_CSTR(deviceConfig["orbIds"].toString()));
+		Debug(_log, "Use Orb Smoothing : %d", _useOrbSmoothing);
+		Debug(_log, "Skip SmoothingDiff: %d", _skipSmoothingDiff);
+
 		_orbIds.clear();
 
 		for (auto & id_str : orbIds)

@@ -111,14 +111,8 @@ private:
 	/// use Orbs own (external) smoothing algorithm
 	bool _useOrbSmoothing;
 
-	/// Transition time between colors (not implemented)
-	int _transitiontime;
-
 	// Maximum allowed color difference, will skip Orb (external) smoothing once reached
 	int _skipSmoothingDiff;
-
-	/// Number of leds in Orb, used to determine buffer size
-	int _numLeds;
 
 	/// Array of the orb ids.
 	QVector<int> _orbIds;
