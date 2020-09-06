@@ -10,20 +10,20 @@ jobs:
     vmImage: 'ubuntu-16.04'
   strategy:
     matrix:
-      AMD64 (x64):
-        dockerTag: 'amd64'
-        dockerName: 'Debian Stretch (AMD64)'
+      x86_64:
+        dockerImage: 'x86_64'
+        dockerName: 'Debian Stretch (x86_64)'
         platform: 'x11'
       ARMv6hf (Raspberry Pi v1 & ZERO):
-        dockerTag: 'armv6hf'
+        dockerImage: 'armv6l'
         dockerName: 'Debian Stretch (Raspberry Pi v1 & ZERO)'
         platform: 'rpi'
       ARMv7hf (Raspberry Pi 2 & 3):
-        dockerTag: 'armv7hf'
+        dockerImage: 'armv7l'
         dockerName: 'Debian Stretch (Raspberry Pi 2 & 3)'
         platform: 'rpi'
       ARMv8 (Generic AARCH64):
-        dockerTag: 'aarch64'
+        dockerImage: 'aarch64'
         dockerName: 'ARMv8 (Generic AARCH64)'
         platform: 'amlogic'
 
@@ -35,7 +35,8 @@ jobs:
   - bash: ./.ci/ci_build.sh
     displayName: 'Build $(dockerName) packages'
     env:
-      DOCKER_TAG: $(dockerTag)
+      DOCKER_IMAGE: $(dockerImage)
+      DOCKER_TAG: stretch
       DOCKER_NAME: $(dockerName)
       PLATFORM: $(platform)
 
