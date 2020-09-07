@@ -1,17 +1,6 @@
-// stl includes
-#include <iostream>
-#include <sstream>
-#include <cmath>
-
 // Qt includes
 #include <QDateTime>
 #include <QFile>
-#include <Qt>
-#include <QLinearGradient>
-#include <QConicalGradient>
-#include <QRadialGradient>
-#include <QRect>
-#include <QImageReader>
 #include <QResource>
 
 // effect engin eincludes
@@ -20,11 +9,8 @@
 #include <utils/Logger.h>
 #include <hyperion/Hyperion.h>
 
-// python utils/ global mainthread
+// python utils
 #include <python/PythonProgram.h>
-#include <python/PythonUtils.h>
-//impl
-PyThreadState* mainThreadState;
 
 Effect::Effect(Hyperion *hyperion, int priority, int timeout, const QString &script, const QString &name, const QJsonObject &args, const QString &imageData)
 	: QThread()
@@ -100,19 +86,13 @@ void Effect::run()
 
 	// Run the effect script
 	QFile file (_script);
-	QByteArray python_code;
 	if (file.open(QIODevice::ReadOnly))
 	{
-		python_code = file.readAll();
+		program.execute(file.readAll());
 	}
 	else
 	{
 		Error(_log, "Unable to open script file %s.", QSTRING_CSTR(_script));
 	}
 	file.close();
-
-	if (!python_code.isEmpty())
-	{
-		program.execute(python_code);
-	}
 }
