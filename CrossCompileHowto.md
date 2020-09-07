@@ -47,14 +47,15 @@ Get toolchain files which allows to build ARM executables on x86 platforms:
 ```
 mkdir -p "$TOOLCHAIN_DIR"
 cd $TOOLCHAIN_DIR
-wget -c https://releases.linaro.org/components/toolchain/binaries/latest-7/arm-linux-gnueabihf/gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf.tar.xz --no-check-certificate
+wget -c https://releases.linaro.org/components/toolchain/binaries/7.4-2019.02/arm-linux-gnueabihf/gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf.tar.xz --no-check-certificate
 tar -xvf gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf.tar.xz
+
 ```
 ### Install the Qt5 framework
 ```
 mkdir -p "$QT5_DIR"
 cd "$QT5_DIR"
-wget -c http://download.qt.io/archive/qt/5.7/5.7.1/qt-opensource-linux-x64-5.7.1.run
+wget -c https://download.qt.io/new_archive/qt/5.7/5.7.1/qt-opensource-linux-x64-5.7.1.run
 chmod +x $QT5_DIR/*.run
 ```
 Display absolute installation directory to be used in Qt5 installer:
