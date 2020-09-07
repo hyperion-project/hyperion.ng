@@ -50,7 +50,7 @@
 // Network settings
 const char* ssid = "***"; // WiFi SSID
 const char* password = "***"; // WiFi password
-const IPAddress multicastIP(239, 255, 255, 2); // Multicast IP address
+const IPAddress multicastIP(239, 255, 255, 250); // Multicast IP address
 const int multicastPort = 49692; // Multicast port number
 
 CRGB leds[NUM_LEDS];
