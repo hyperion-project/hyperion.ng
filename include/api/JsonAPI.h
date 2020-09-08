@@ -280,7 +280,7 @@ private:
 	///
 	/// Handle an incoming JSON message of unknown type
 	///
-	void handleNotImplemented();
+	void handleNotImplemented(const QString &command, int tan);
 
 	///
 	/// Send a standard reply indicating success
