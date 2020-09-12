@@ -240,9 +240,7 @@ void LedDeviceWled::identify(const QJsonObject& /*params*/)
 {
 #if 0
 	Debug(_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-	QJsonObject properties;
 
-	// Get Nanoleaf device properties
 	QString host = params["host"].toString("");
 	if ( !host.isEmpty() )
 	{

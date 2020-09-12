@@ -1356,7 +1356,7 @@ QJsonObject LedDeviceYeelight::discover()
 
 	QJsonArray deviceList;
 
-	// Discover WLED Devices
+	// Discover Yeelight Devices
 	SSDPDiscover discover;
 	discover.setPort(SSDP_PORT);
 	discover.skipDuplicateKeys(true);
