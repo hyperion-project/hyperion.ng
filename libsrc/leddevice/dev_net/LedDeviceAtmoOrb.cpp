@@ -8,6 +8,8 @@
 #include <QUrl>
 #include <QHostInfo>
 
+#include <chrono>
+
 // Constants
 namespace {
 
