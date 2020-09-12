@@ -104,7 +104,7 @@ bool LedDeviceWled::init(const QJsonObject &deviceConfig)
 	return isInitOK;
 }
 
-bool LedDeviceWled::initRestAPI(const QString &hostname, const int port )
+bool LedDeviceWled::initRestAPI(const QString &hostname, int port)
 {
 	Debug(_log, "");
 	bool isInitOK = false;
@@ -121,7 +121,7 @@ bool LedDeviceWled::initRestAPI(const QString &hostname, const int port )
 	return isInitOK;
 }
 
-QString LedDeviceWled::getOnOffRequest (bool isOn ) const
+QString LedDeviceWled::getOnOffRequest(bool isOn) const
 {
 	QString state = isOn ? STATE_VALUE_TRUE : STATE_VALUE_FALSE;
 	return QString( "{\"%1\":%2}" ).arg( STATE_ON, state);

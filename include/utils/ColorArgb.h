@@ -6,7 +6,6 @@
 
 struct ColorArgb
 {
-
 	/// The alpha mask channel
 	uint8_t alpha;
 
@@ -18,19 +17,18 @@ struct ColorArgb
 	uint8_t blue;
 
 	/// 'Black' RgbColor (255, 0, 0, 0)
-	static ColorArgb BLACK;
+	static const ColorArgb BLACK;
 	/// 'Red' RgbColor (255, 255, 0, 0)
-	static ColorArgb RED;
+	static const ColorArgb RED;
 	/// 'Green' RgbColor (255, 0, 255, 0)
-	static ColorArgb GREEN;
+	static const ColorArgb GREEN;
 	/// 'Blue' RgbColor (255, 0, 0, 255)
-	static ColorArgb BLUE;
+	static const ColorArgb BLUE;
 	/// 'Yellow' RgbColor (255, 255, 255, 0)
-	static ColorArgb YELLOW;
+	static const ColorArgb YELLOW;
 	/// 'White' RgbColor (255, 255, 255, 255)
-	static ColorArgb WHITE;
+	static const ColorArgb WHITE;
 };
-
 
 /// Assert to ensure that the size of the structure is 'only' 3 bytes
 static_assert(sizeof(ColorArgb) == 4, "Incorrect size of ColorARGB");
@@ -44,6 +42,12 @@ static_assert(sizeof(ColorArgb) == 4, "Incorrect size of ColorARGB");
 ///
 inline std::ostream& operator<<(std::ostream& os, const ColorArgb& color)
 {
-	os << "{" << unsigned(color.alpha) << "," << unsigned(color.red) << "," << unsigned(color.green) << "," << unsigned(color.blue) << "}";
+	os << "{"
+		<< color.alpha << ","
+		<< color.red   << ","
+		<< color.green << ","
+		<< color.blue
+	<< "}";
+
 	return os;
 }

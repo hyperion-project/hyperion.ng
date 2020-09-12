@@ -20,12 +20,12 @@ public:
 	///
 	/// @brief Get all available effects
 	///
-	const std::list<EffectDefinition> & getEffects() const { return _availableEffects; };
+	std::list<EffectDefinition> getEffects() const { return _availableEffects; }
 
 	///
 	/// @brief Get all available schemas
 	///
-	const std::list<EffectSchema> & getEffectSchemas() { return _effectSchemas; };
+	std::list<EffectSchema> getEffectSchemas() const { return _effectSchemas; }
 
 	///
 	/// @brief Save an effect
@@ -47,7 +47,7 @@ public slots:
 	/// @param type   settingyType from enum
 	/// @param config configuration object
 	///
-	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 signals:
 	///

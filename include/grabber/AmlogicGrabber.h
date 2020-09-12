@@ -17,7 +17,7 @@ public:
 	/// @param[in] width  The width of the captured screenshot
 	/// @param[in] height The heigth of the captured screenshot
 	///
-	AmlogicGrabber(const unsigned width, const unsigned height);
+	AmlogicGrabber(unsigned width, unsigned height);
 	~AmlogicGrabber() override;
 
 	///

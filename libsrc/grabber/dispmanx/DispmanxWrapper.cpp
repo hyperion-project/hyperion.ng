@@ -1,6 +1,6 @@
 #include <grabber/DispmanxWrapper.h>
 
-DispmanxWrapper::DispmanxWrapper(const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz)
+DispmanxWrapper::DispmanxWrapper(unsigned grabWidth, unsigned grabHeight, unsigned updateRate_Hz)
 	: GrabberWrapper("Dispmanx", &_grabber, grabWidth, grabHeight, updateRate_Hz)
 	, _grabber(grabWidth, grabHeight)
 {

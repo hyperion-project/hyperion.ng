@@ -18,37 +18,37 @@ enum class PixelFormat {
 	NO_CHANGE
 };
 
-inline PixelFormat parsePixelFormat(QString pixelFormat)
+inline PixelFormat parsePixelFormat(const QString& pixelFormat)
 {
 	// convert to lower case
-	pixelFormat = pixelFormat.toLower();
+	QString format = pixelFormat.toLower();
 
-	if (pixelFormat.compare("yuyv") )
+	if (format.compare("yuyv") )
 	{
 		return PixelFormat::YUYV;
 	}
-	else if (pixelFormat.compare("uyvy") )
+	else if (format.compare("uyvy") )
 	{
 		return PixelFormat::UYVY;
 	}
-	else if (pixelFormat.compare("bgr16") )
+	else if (format.compare("bgr16") )
 	{
 		return PixelFormat::BGR16;
 	}
-	else if (pixelFormat.compare("bgr24") )
+	else if (format.compare("bgr24") )
 	{
 		return PixelFormat::BGR24;
 	}
-	else if (pixelFormat.compare("rgb32") )
+	else if (format.compare("rgb32") )
 	{
 		return PixelFormat::RGB32;
 	}
-	else if (pixelFormat.compare("bgr32") )
+	else if (format.compare("bgr32") )
 	{
 		return PixelFormat::BGR32;
 	}
 #ifdef HAVE_JPEG_DECODER
-	else if (pixelFormat.compare("mjpeg") )
+	else if (format.compare("mjpeg") )
 	{
 		return PixelFormat::MJPEG;
 	}

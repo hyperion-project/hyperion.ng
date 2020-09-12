@@ -37,7 +37,7 @@ namespace settings {
 	/// @param  type  The settings::type from enum
 	/// @return       The settings type as string
 	///
-	inline QString typeToString(const type& type)
+	inline QString typeToString(type type)
 	{
 		switch (type)
 		{

@@ -11,7 +11,7 @@
 
 GrabberWrapper* GrabberWrapper::instance = nullptr;
 
-GrabberWrapper::GrabberWrapper(QString grabberName, Grabber * ggrabber, unsigned width, unsigned height, const unsigned updateRate_Hz)
+GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber * ggrabber, unsigned width, unsigned height, unsigned updateRate_Hz)
 	: _grabberName(grabberName)
 	, _timer(new QTimer(this))
 	, _updateInterval_ms(1000/updateRate_Hz)
@@ -39,7 +39,6 @@ GrabberWrapper::GrabberWrapper(QString grabberName, Grabber * ggrabber, unsigned
 
 GrabberWrapper::~GrabberWrapper()
 {
-	stop();
 	Debug(_log,"Close grabber: %s", QSTRING_CSTR(_grabberName));
 }
 
@@ -105,7 +104,7 @@ QStringList GrabberWrapper::availableGrabbers()
 	return grabbers;
 }
 
-void GrabberWrapper::setVideoMode(const VideoMode& mode)
+void GrabberWrapper::setVideoMode(VideoMode mode)
 {
 	if (_ggrabber != nullptr)
 	{
@@ -134,7 +133,7 @@ void GrabberWrapper::updateTimer(int interval)
 	}
 }
 
-void GrabberWrapper::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
+void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
 	if(type == settings::SYSTEMCAPTURE && !_grabberName.startsWith("V4L"))
 	{
@@ -165,7 +164,7 @@ void GrabberWrapper::handleSettingsUpdate(const settings::type& type, const QJso
 	}
 }
 
-void GrabberWrapper::handleSourceRequest(const hyperion::Components& component, const int hyperionInd, const bool listen)
+void GrabberWrapper::handleSourceRequest(hyperion::Components component, int hyperionInd, bool listen)
 {
 	if(component == hyperion::Components::COMP_GRABBER  && !_grabberName.startsWith("V4L"))
 	{
@@ -202,7 +201,7 @@ void GrabberWrapper::tryStart()
 	}
 }
 
-QStringList GrabberWrapper::getV4L2devices()
+QStringList GrabberWrapper::getV4L2devices() const
 {
 	if(_grabberName.startsWith("V4L"))
 		return _ggrabber->getV4L2devices();
@@ -210,7 +209,7 @@ QStringList GrabberWrapper::getV4L2devices()
 	return QStringList();
 }
 
-QString GrabberWrapper::getV4L2deviceName(QString devicePath)
+QString GrabberWrapper::getV4L2deviceName(const QString& devicePath) const
 {
 	if(_grabberName.startsWith("V4L"))
 		return _ggrabber->getV4L2deviceName(devicePath);
@@ -218,7 +217,7 @@ QString GrabberWrapper::getV4L2deviceName(QString devicePath)
 	return QString();
 }
 
-QMultiMap<QString, int> GrabberWrapper::getV4L2deviceInputs(QString devicePath)
+QMultiMap<QString, int> GrabberWrapper::getV4L2deviceInputs(const QString& devicePath) const
 {
 	if(_grabberName.startsWith("V4L"))
 		return _ggrabber->getV4L2deviceInputs(devicePath);
@@ -226,7 +225,7 @@ QMultiMap<QString, int> GrabberWrapper::getV4L2deviceInputs(QString devicePath)
 	return QMultiMap<QString, int>();
 }
 
-QStringList GrabberWrapper::getResolutions(QString devicePath)
+QStringList GrabberWrapper::getResolutions(const QString& devicePath) const
 {
 	if(_grabberName.startsWith("V4L"))
 		return _ggrabber->getResolutions(devicePath);
@@ -234,7 +233,7 @@ QStringList GrabberWrapper::getResolutions(QString devicePath)
 	return QStringList();
 }
 
-QStringList GrabberWrapper::getFramerates(QString devicePath)
+QStringList GrabberWrapper::getFramerates(const QString& devicePath) const
 {
 	if(_grabberName.startsWith("V4L"))
 		return _ggrabber->getFramerates(devicePath);

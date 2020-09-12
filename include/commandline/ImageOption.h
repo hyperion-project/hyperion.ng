@@ -12,6 +12,7 @@ class ImageOption: public Option
 {
 protected:
     QImage _image;
+
 public:
     ImageOption(const QString &name,
                 const QString &description = QString(),
@@ -20,6 +21,7 @@ public:
     )
         : Option(name, description, valueName, defaultValue)
     {}
+
     ImageOption(const QStringList &names,
                 const QString &description = QString(),
                 const QString &valueName = QString(),
@@ -27,13 +29,13 @@ public:
     )
         : Option(names, description, valueName, defaultValue)
     {}
+
     ImageOption(const QCommandLineOption &other)
         : Option(other)
     {}
 
-    virtual bool validate(Parser & parser, QString & value) override;
-    QImage &getImage(Parser &parser)
-    { return _image; }
+    bool validate(Parser & parser, QString & value) override;
+    QImage& getImage(Parser &parser) { return _image; }
 };
 
 }

@@ -7,7 +7,7 @@ class PythonInit
 {
 private:
 	friend class HyperionDaemon;
-	
+
 	PythonInit();
 	~PythonInit();
 };

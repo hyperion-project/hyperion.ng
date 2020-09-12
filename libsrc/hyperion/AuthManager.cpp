@@ -61,7 +61,7 @@ AuthManager::AuthDefinition AuthManager::createToken(const QString &comment)
 	return def;
 }
 
-QVector<AuthManager::AuthDefinition> AuthManager::getTokenList()
+QVector<AuthManager::AuthDefinition> AuthManager::getTokenList() const
 {
 	QVector<QVariantMap> vector = _authTable->getTokenList();
 	QVector<AuthManager::AuthDefinition> finalVec;
@@ -79,13 +79,13 @@ QVector<AuthManager::AuthDefinition> AuthManager::getTokenList()
 	return finalVec;
 }
 
-const QString AuthManager::getUserToken(const QString &usr)
+QString AuthManager::getUserToken(const QString &usr) const
 {
 	QString tok = _authTable->getUserToken(usr);
 	return QString(_authTable->getUserToken(usr));
 }
 
-void AuthManager::setAuthBlock(const bool &user)
+void AuthManager::setAuthBlock(bool user)
 {
 	// current timestamp +10 minutes
 	if (user)
@@ -172,7 +172,7 @@ void AuthManager::cancelNewTokenRequest(QObject *caller, const QString &comment,
 	}
 }
 
-void AuthManager::handlePendingTokenRequest(const QString &id, const bool &accept)
+void AuthManager::handlePendingTokenRequest(const QString &id, bool accept)
 {
 	if (_pendingRequests.contains(id))
 	{
@@ -192,7 +192,7 @@ void AuthManager::handlePendingTokenRequest(const QString &id, const bool &accep
 	}
 }
 
-QVector<AuthManager::AuthDefinition> AuthManager::getPendingRequests()
+QVector<AuthManager::AuthDefinition> AuthManager::getPendingRequests() const
 {
 	QVector<AuthManager::AuthDefinition> finalVec;
 	for (const auto &entry : _pendingRequests)
@@ -226,7 +226,7 @@ bool AuthManager::deleteToken(const QString &id)
 	return false;
 }
 
-void AuthManager::handleSettingsUpdate(const settings::type &type, const QJsonDocument &config)
+void AuthManager::handleSettingsUpdate(settings::type type, const QJsonDocument &config)
 {
 	if (type == settings::NETWORK)
 	{

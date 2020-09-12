@@ -42,7 +42,7 @@ private slots:
 	/// @param type   settingyType from enum
 	/// @param config configuration object
 	///
-	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 private:
 	Logger* _log;

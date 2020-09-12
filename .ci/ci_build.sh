@@ -46,7 +46,9 @@ elif [[ $CI_NAME == *"mingw64_nt"* || "$CI_NAME" == 'windows_nt' ]]; then
 	exit 0;
 	exit 1 || { echo "---> Hyperion compilation failed! Abort"; exit 5; }
 elif [[ "$CI_NAME" == 'linux' ]]; then
-	echo "Compile Hyperion with DOCKER_TAG = ${DOCKER_TAG} and friendly name DOCKER_NAME = ${DOCKER_NAME}"
+	echo "Compile Hyperion with DOCKER_IMAGE = ${DOCKER_IMAGE}, DOCKER_TAG = ${DOCKER_TAG} and friendly name DOCKER_NAME = ${DOCKER_NAME}"
+	# set GitHub Container Registry url
+	REGISTRY_URL="ghcr.io/hyperion-project/${DOCKER_IMAGE}"
 	# take ownership of deploy dir
 	mkdir ${CI_BUILD_DIR}/deploy
 
@@ -54,7 +56,7 @@ elif [[ "$CI_NAME" == 'linux' ]]; then
 	docker run --rm \
 		-v "${CI_BUILD_DIR}/deploy:/deploy" \
 		-v "${CI_BUILD_DIR}:/source:ro" \
-		hyperionproject/hyperion-ci:$DOCKER_TAG \
+		$REGISTRY_URL:$DOCKER_TAG \
 		/bin/bash -c "mkdir hyperion && cp -r source/. /hyperion &&
 		cd /hyperion && mkdir build && cd build &&
 		cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ../ || exit 2 &&

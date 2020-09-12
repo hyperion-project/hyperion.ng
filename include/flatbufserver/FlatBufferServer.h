@@ -21,7 +21,7 @@ class FlatBufferServer : public QObject
 	Q_OBJECT
 public:
 	FlatBufferServer(const QJsonDocument& config, QObject* parent = nullptr);
-	~FlatBufferServer();
+	~FlatBufferServer() override;
 
 public slots:
 	///
@@ -29,7 +29,7 @@ public slots:
 	/// @param type   The type from enum
 	/// @param config The configuration
 	///
-	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 	void initServer();
 

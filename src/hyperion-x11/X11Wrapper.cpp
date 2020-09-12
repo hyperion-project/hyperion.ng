@@ -41,7 +41,7 @@ void X11Wrapper::capture()
 	_inited = true;
 }
 
-void X11Wrapper::setVideoMode(const VideoMode mode)
+void X11Wrapper::setVideoMode(VideoMode mode)
 {
 	_grabber.setVideoMode(mode);
 }

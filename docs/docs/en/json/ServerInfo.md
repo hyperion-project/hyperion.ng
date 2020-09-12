@@ -87,7 +87,7 @@ You can subscribe to future data updates. Read more about [Adjustment updates](/
 ```
 
 ### Effect list
-An array of effects where each object is one effect, ususally you just use the `name` to create a list for the user. You could filter between user created effects and provided effects by checking the effect `file` string. In case it begins with `:` it's a provided effect. If the path begins with `/`, it's a user created effect. Could be used to list the user effects earlier than the provided effects and to keep the overview.
+An array of effects where each object is one effect, usually you just use the `name` to create a list for the user. You could filter between user created effects and provided effects by checking the effect `file` string. In case it begins with `:` it's a provided effect. If the path begins with `/`, it's a user created effect. Could be used to list the user effects earlier than the provided effects and to keep the overview.
 See also [set Effect](/en/json/control#set-effect)
 ::: tip Subscribe
 You can subscribe to future data updates. Read more about [Effect updates](/en/json/subscribe#effects-updates)
@@ -155,7 +155,7 @@ Overview of the registered/active sources. Each object is a source.
   * visible: If "true" this source is displayed and will be pushed to the led device. The `visible:true`-source is always the first entry!
   * componentId: A string belongs to a specific component. [See available components](/en/json/control#components-ids-explained)
   * origin: The external setter of this source "NameOfRemote@IP". If not given it's `System` (from Hyperion).
-  * owner: Contains additional information realted to the componentId. If it's an effect, the effect name is shown here. If it's usb capture it shows the capture device. If it's platform capture you get the name of it (While we use different capture implementations on different hardware (dispmanx/x11/amlogic/...)).
+  * owner: Contains additional information related to the componentId. If it's an effect, the effect name is shown here. If it's USB capture it shows the capture device. If it's platform capture you get the name of it (While we use different capture implementations on different hardware (dispmanx/x11/amlogic/...)).
   * priority: The priority of this source.
   * value: Just available if source is a color AND color data is available (active = false has usually no data). Outputs the color in RGB and HSL.
   * duration_ms: Actual duration in ms until this priority is deleted. Just available if source is color or effect AND a specific duration higher than `0` is set (because 0 is endless).

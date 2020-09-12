@@ -127,7 +127,7 @@ int LedDeviceWS281x::write(const std::vector<ColorRgb> &ledValues)
 			Rgb_to_Rgbw(color, &_temp_rgbw, _whiteAlgorithm);
 		}
 
-		_led_string.channel[_channel].leds[idx++] = 
+		_led_string.channel[_channel].leds[idx++] =
 			((uint32_t)_temp_rgbw.white << 24) + ((uint32_t)_temp_rgbw.red << 16) + ((uint32_t)_temp_rgbw.green << 8) + _temp_rgbw.blue;
 
 	}
@@ -135,6 +135,6 @@ int LedDeviceWS281x::write(const std::vector<ColorRgb> &ledValues)
 	{
 		_led_string.channel[_channel].leds[idx++] = 0;
 	}
-	
+
 	return ws2811_render(&_led_string) ? -1 : 0;
 }

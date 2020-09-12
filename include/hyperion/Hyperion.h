@@ -120,7 +120,7 @@ public slots:
 	/// @param[in] owner       Specific owner string, might be empty
 	/// @param[in] smooth_cfg  The smooth id to use
 	///
-	void registerInput(const int priority, const hyperion::Components& component, const QString& origin = "System", const QString& owner = "", unsigned smooth_cfg = 0);
+	void registerInput(int priority, hyperion::Components component, const QString& origin = "System", const QString& owner = "", unsigned smooth_cfg = 0);
 
 	///
 	/// @brief   Update the current color of a priority (prev registered with registerInput())
@@ -131,7 +131,7 @@ public slots:
 	/// @param  clearEffect  Should be true when NOT called from an effect
 	/// @return              True on success, false when priority is not found
 	///
-	bool setInput(const int priority, const std::vector<ColorRgb>& ledColors, const int timeout_ms = -1, const bool& clearEffect = true);
+	bool setInput(int priority, const std::vector<ColorRgb>& ledColors, int timeout_ms = -1, bool clearEffect = true);
 
 	///
 	/// @brief   Update the current image of a priority (prev registered with registerInput())
@@ -142,7 +142,7 @@ public slots:
 	/// @param  clearEffect  Should be true when NOT called from an effect
 	/// @return              True on success, false when priority is not found
 	///
-	bool setInputImage(const int priority, const Image<ColorRgb>& image, const int64_t timeout_ms = -1, const bool& clearEffect = true);
+	bool setInputImage(int priority, const Image<ColorRgb>& image, int64_t timeout_ms = -1, bool clearEffect = true);
 
 	///
 	/// Writes a single color to all the leds for the given time and priority
@@ -155,20 +155,20 @@ public slots:
 	/// @param[in] origin   The setter
 	/// @param     clearEffect  Should be true when NOT called from an effect
 	///
-	void setColor(const int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms = -1, const QString& origin = "System" ,bool clearEffects = true);
+	void setColor(int priority, const std::vector<ColorRgb> &ledColors, int timeout_ms = -1, const QString& origin = "System" ,bool clearEffects = true);
 
 	///
 	/// @brief Set the given priority to inactive
 	/// @param priority  The priority
 	/// @return True on success false if not found
 	///
-	bool setInputInactive(const quint8& priority);
+	bool setInputInactive(quint8 priority);
 
 	///
 	/// Returns the list with unique adjustment identifiers
 	/// @return The list with adjustment identifiers
 	///
-	const QStringList & getAdjustmentIds() const;
+	QStringList getAdjustmentIds() const;
 
 	///
 	/// Returns the ColorAdjustment with the given identifier
@@ -187,7 +187,7 @@ public slots:
 	/// @param[in] forceClearAll Force the clear
 	/// @return              True on success else false (not found)
 	///
-	bool clear(const int priority, bool forceClearAll=false);
+	bool clear(int priority, bool forceClearAll=false);
 
 	/// #############
 	// EFFECTENGINE
@@ -233,15 +233,15 @@ public slots:
 
 	/// Get the list of available effects
 	/// @return The list of available effects
-	const std::list<EffectDefinition> &getEffects() const;
+	std::list<EffectDefinition> getEffects() const;
 
 	/// Get the list of active effects
 	/// @return The list of active effects
-	const std::list<ActiveEffectDefinition> &getActiveEffects() const;
+	std::list<ActiveEffectDefinition> getActiveEffects() const;
 
 	/// Get the list of available effect schema files
 	/// @return The list of available effect schema files
-	const std::list<EffectSchema> &getEffectSchemas() const;
+	std::list<EffectSchema> getEffectSchemas() const;
 
 	/// #############
 	/// PRIORITYMUXER
@@ -255,18 +255,18 @@ public slots:
 	/// @brief enable/disable automatic/priorized source selection
 	/// @param state The new state
 	///
-	void setSourceAutoSelect(const bool state);
+	void setSourceAutoSelect(bool state);
 
 	///
 	/// @brief set current input source to visible
 	/// @param priority the priority channel which should be vidible
 	/// @return true if success, false on error
 	///
-	bool setVisiblePriority(const int& priority);
+	bool setVisiblePriority(int priority);
 
 	/// gets current state of automatic/priorized source selection
 	/// @return the state
-	bool sourceAutoSelectEnabled();
+	bool sourceAutoSelectEnabled() const;
 
 	///
 	/// Returns the current priority
@@ -280,7 +280,7 @@ public slots:
 	///
 	/// @return bool
 	///
-	bool isCurrentPriority(const int priority) const;
+	bool isCurrentPriority(int priority) const;
 
 	///
 	/// Returns a list of all registered priorities
@@ -296,7 +296,7 @@ public slots:
 	///
 	/// @return The information of the given, a not found priority will return lowest priority as fallback
 	///
-	InputInfo getPriorityInfo(const int priority) const;
+	InputInfo getPriorityInfo(int priority) const;
 
 	/// #############
 	/// SETTINGSMANAGER
@@ -305,11 +305,11 @@ public slots:
 	/// @param type  The settingsType from enum
 	/// @return      Data Document
 	///
-	QJsonDocument getSetting(const settings::type& type) const;
+	QJsonDocument getSetting(settings::type type) const;
 
 	/// gets the current json config object from SettingsManager
 	/// @return json config
-	const QJsonObject& getQJsonConfig() const;
+	QJsonObject getQJsonConfig() const;
 
 	///
 	/// @brief Save a complete json config
@@ -317,7 +317,7 @@ public slots:
 	/// @param correct If true will correct json against schema before save
 	/// @return        True on success else false
 	///
-	bool saveSettings(QJsonObject config, const bool& correct = false);
+	bool saveSettings(const QJsonObject& config, bool correct = false);
 
 	/// ############
 	/// COMPONENTREGISTER
@@ -332,7 +332,7 @@ public slots:
 	/// @param[in] component The component from enum
 	/// @param[in] state The state of the component [true | false]
 	///
-	void setNewComponentState(const hyperion::Components& component, const bool& state);
+	void setNewComponentState(hyperion::Components component, bool state);
 
 	///
 	/// @brief Get a list of all contrable components and their current state
@@ -345,16 +345,16 @@ public slots:
 	/// @param The component to test
 	/// @return Component state
 	///
-	int isComponentEnabled(const hyperion::Components& comp);
+	int isComponentEnabled(hyperion::Components comp) const;
 
 	/// sets the methode how image is maped to leds at ImageProcessor
-	void setLedMappingType(const int& mappingType);
+	void setLedMappingType(int mappingType);
 
 	///
 	/// Set the video mode (2D/3D)
 	/// @param[in] mode The new video mode
 	///
-	void setVideoMode(const VideoMode& mode);
+	void setVideoMode(VideoMode mode);
 
 	///
 	/// @brief Init after thread start
@@ -383,13 +383,13 @@ signals:
 	/// @param component  The component from enum
 	/// @param enabled    The new state of the component
 	///
-	void compStateChangeRequest(const hyperion::Components component, bool enabled);
+	void compStateChangeRequest(hyperion::Components component, bool enabled);
 
 	///
 	/// @brief Emits whenever the imageToLedsMapping has changed
 	/// @param mappingType The new mapping type
 	///
-	void imageToLedsMappingChanged(const int& mappingType);
+	void imageToLedsMappingChanged(int mappingType);
 
 	///
 	/// @brief Emits whenever the visible priority delivers a image which is applied in update()
@@ -402,27 +402,27 @@ signals:
 	void forwardJsonMessage(QJsonObject);
 
 	/// Signal which is emitted, when a new system proto image should be forwarded
-	void forwardSystemProtoMessage(const QString, const Image<ColorRgb>);
+	void forwardSystemProtoMessage(const QString&, const Image<ColorRgb>&);
 
 	/// Signal which is emitted, when a new V4l proto image should be forwarded
-	void forwardV4lProtoMessage(const QString, const Image<ColorRgb>);
+	void forwardV4lProtoMessage(const QString&, const Image<ColorRgb>&);
 
 	///
 	/// @brief Is emitted from clients who request a videoMode change
 	///
-	void videoMode(const VideoMode& mode);
+	void videoMode(VideoMode mode);
 
 	///
 	/// @brief A new videoMode was requested (called from Daemon!)
 	///
-	void newVideoMode(const VideoMode& mode);
+	void newVideoMode(VideoMode mode);
 
 	///
 	/// @brief Emits whenever a config part changed. SIGNAL PIPE helper for SettingsManager -> HyperionDaemon
 	/// @param type   The settings type from enum
 	/// @param data   The data as QJsonDocument
 	///
-	void settingsChanged(const settings::type& type, const QJsonDocument& data);
+	void settingsChanged(settings::type type, const QJsonDocument& data);
 
 	///
 	/// @brief Emits whenever the adjustments have been updated
@@ -459,19 +459,19 @@ private slots:
 	///	@brief Handle whenever the visible component changed
 	///	@param comp      The new component
 	///
-	void handleVisibleComponentChanged(const hyperion::Components& comp);
+	void handleVisibleComponentChanged(hyperion::Components comp);
 
 	///
 	///	@brief Apply settings updates for LEDS and COLOR
 	///	@param type   The type from enum
 	///	@param config The configuration
 	///
-	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 	///
 	/// @brief Apply new videoMode from Daemon to _currVideoMode
 	///
-	void handleNewVideoMode(const VideoMode& mode) { _currVideoMode = mode; }
+	void handleNewVideoMode(VideoMode mode) { _currVideoMode = mode; }
 
 private:
 	friend class HyperionDaemon;
@@ -481,7 +481,7 @@ private:
 	/// @brief Constructs the Hyperion instance, just accessible for HyperionIManager
 	/// @param  instance  The instance index
 	///
-	Hyperion(const quint8& instance);
+	Hyperion(quint8 instance);
 
 	/// instance index
 	const quint8 _instIndex;

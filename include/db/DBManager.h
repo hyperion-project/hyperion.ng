@@ -27,7 +27,7 @@ class DBManager : public QObject
 
 public:
 	DBManager(QObject* parent = nullptr);
-	~DBManager();
+	~DBManager() override;
 
 	/// set root path
 	void setRootPath(const QString& rootPath);

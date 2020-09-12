@@ -23,13 +23,12 @@ public:
 		setTable("meta");
 		createTable(QStringList()<<"uuid TEXT"<<"created_at TEXT");
 	};
-	~MetaTable(){};
 
 	///
 	/// @brief Get the uuid, if the uuid is not set it will be created
 	/// @return The uuid
 	///
-	inline const QString getUUID()
+	inline QString getUUID() const
 	{
 		QVector<QVariantMap> results;
 		getRecords(results, QStringList() << "uuid");

@@ -53,3 +53,83 @@ struct RenderQueryPictFormats
 	static constexpr auto ReplyFunction = xcb_render_query_pict_formats_reply;
 };
 
+struct ShmCreatePixmap
+{
+	typedef xcb_void_cookie_t ResponseType;
+
+	static constexpr auto RequestFunction = xcb_shm_create_pixmap_checked;
+	static constexpr auto ReplyFunction = xcb_request_check;
+};
+
+struct ShmAttach
+{
+	typedef xcb_void_cookie_t ResponseType;
+
+	static constexpr auto RequestFunction = xcb_shm_attach_checked;
+	static constexpr auto ReplyFunction = xcb_request_check;
+};
+
+struct ShmDetach
+{
+	typedef xcb_void_cookie_t ResponseType;
+
+	static constexpr auto RequestFunction = xcb_shm_detach_checked;
+	static constexpr auto ReplyFunction = xcb_request_check;
+};
+
+struct CreatePixmap
+{
+	typedef xcb_void_cookie_t ResponseType;
+
+	static constexpr auto RequestFunction = xcb_create_pixmap_checked;
+	static constexpr auto ReplyFunction = xcb_request_check;
+};
+
+struct RenderCreatePicture
+{
+	typedef xcb_void_cookie_t ResponseType;
+
+	static constexpr auto RequestFunction = xcb_render_create_picture_checked;
+	static constexpr auto ReplyFunction = xcb_request_check;
+};
+
+struct RenderSetPictureFilter
+{
+	typedef xcb_void_cookie_t ResponseType;
+
+	static constexpr auto RequestFunction = xcb_render_set_picture_filter_checked;
+	static constexpr auto ReplyFunction = xcb_request_check;
+};
+
+struct RenderSetPictureTransform
+{
+	typedef xcb_void_cookie_t ResponseType;
+
+	static constexpr auto RequestFunction = xcb_render_set_picture_transform_checked;
+	static constexpr auto ReplyFunction = xcb_request_check;
+};
+
+struct RenderComposite
+{
+	typedef xcb_void_cookie_t ResponseType;
+
+	static constexpr auto RequestFunction = xcb_render_composite_checked;
+	static constexpr auto ReplyFunction = xcb_request_check;
+};
+
+struct RenderFreePicture
+{
+	typedef xcb_void_cookie_t ResponseType;
+
+	static constexpr auto RequestFunction = xcb_render_free_picture_checked;
+	static constexpr auto ReplyFunction = xcb_request_check;
+};
+
+struct FreePixmap
+{
+	typedef xcb_void_cookie_t ResponseType;
+
+	static constexpr auto RequestFunction = xcb_free_pixmap_checked;
+	static constexpr auto ReplyFunction = xcb_request_check;
+};
+

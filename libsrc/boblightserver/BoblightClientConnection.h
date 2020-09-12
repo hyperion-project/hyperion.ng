@@ -25,7 +25,7 @@ public:
 	/// @param socket The Socket object for this connection
 	/// @param hyperion The Hyperion server
 	///
-	BoblightClientConnection(Hyperion* hyperion, QTcpSocket * socket, const int priority);
+	BoblightClientConnection(Hyperion* hyperion, QTcpSocket * socket, int priority);
 
 	///
 	/// Destructor

@@ -12,9 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add XCB grabber, a faster and safer alternative for X11 grabbing (#912)
 
 ### Changed
+- Improved UDP-Device Error handling (#961)
 
 ### Fixed
-- webui: Works now with https port 443 (#923 with #924)
+- webui: Works now with HTTPS port 443 (#923 with #924)
+- Adalight issue (#903 with #991)
 ### Removed
 
 ## [2.0.0-alpha.7](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.7) - 2020-07-23
@@ -34,7 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * discover, getProperties, identify, store/restore state and power-on/off available for Philips-Hue, Nanoleaf, Yeelight, partially for Rs232 / USB (Hid)
   * New device capabilities are accessible via JSON-API
   * New REST-API wrapper class in support of network devices, e.g. Philips Hue, Nanoleaf and WLED
-  * Flexible ssdp-Discovery incl. RegEx matching and filtering
+  * Flexible SSDP-Discovery incl. RegEx matching and filtering
 - Documentation (#875)
   * Process workflow for LED-Devices
   * Documentation of device classes & methods
@@ -85,7 +87,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * Make logs look a bit more cleaner
 - Decrease compile time (#886)
 - Fix some data synchronization error (#890)
-- Fix Qt screenhot crash (#889)
+- Fix Qt screenshot crash (#889)
 - Fix crash on startup if no X server available (#892)
 - Fix RPC restart of Hyperion (#894)
 

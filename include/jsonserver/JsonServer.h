@@ -29,7 +29,7 @@ public:
 	/// @param The configuration
 	///
 	JsonServer(const QJsonDocument& config);
-	~JsonServer();
+	~JsonServer() override;
 
 	///
 	/// @return the port number on which this TCP listens for incoming connections
@@ -46,7 +46,7 @@ private slots:
 	///
 	/// Slot which is called when a client closes a connection
 	///
-	void closedConnection(void);
+	void closedConnection();
 
 public slots:
 	///
@@ -54,7 +54,7 @@ public slots:
 	/// @param type   settings type from enum
 	/// @param config configuration object
 	///
-	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 private:
 	/// The TCP server object

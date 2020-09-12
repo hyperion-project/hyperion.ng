@@ -21,7 +21,7 @@ public:
 	/// @params  instance   Instance index of HyperionInstanceManager
 	/// @params  parent    The parent hyperion instance
 	///
-	SettingsManager(const quint8& instance, QObject* parent = nullptr);
+	SettingsManager(quint8 instance, QObject* parent = nullptr);
 
 	///
 	/// @brief Save a complete json config
@@ -29,20 +29,20 @@ public:
 	/// @param correct If true will correct json against schema before save
 	/// @return True on success else false
 	///
-	bool saveSettings(QJsonObject config, const bool& correct = false);
+	bool saveSettings(QJsonObject config, bool correct = false);
 
 	///
 	/// @brief get a single setting json from config
 	/// @param type   The settings::type from enum
 	/// @return The requested json data as QJsonDocument
 	///
-	const QJsonDocument getSetting(const settings::type& type);
+	QJsonDocument getSetting(settings::type type) const;
 
 	///
 	/// @brief get the full settings object of this instance (with global settings)
 	/// @return The requested json
 	///
-	const QJsonObject & getSettings() { return _qconfig; };
+	const QJsonObject & getSettings() const { return _qconfig; };
 
 signals:
 	///
@@ -50,7 +50,7 @@ signals:
 	/// @param type The settings type from enum
 	/// @param data The data as QJsonDocument
 	///
-	void settingsChanged(const settings::type& type, const QJsonDocument& data);
+	void settingsChanged(settings::type type, const QJsonDocument& data);
 
 private:
 	///

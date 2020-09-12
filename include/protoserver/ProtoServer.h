@@ -30,7 +30,7 @@ public slots:
 	/// @param type   The type from enum
 	/// @param config The configuration
 	///
-	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 	void initServer();
 

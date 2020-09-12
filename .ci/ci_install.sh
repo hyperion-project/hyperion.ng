@@ -38,12 +38,4 @@ if [[ $CI_NAME == 'osx' || $CI_NAME == 'darwin' ]]; then
 	brew update
 	dependencies=("qt5" "python" "libusb" "cmake" "doxygen")
 	installAndUpgrade "${dependencies[@]}"
-# github actions uname -> windows-2019 -> mingw64_nt-10.0-17763
-# TODO: Azure uname windows?
-elif [[ $CI_NAME == *"mingw64_nt"* ]]; then
-	echo "Yes, we are Windows: $CI_NAME"
-# Windows has no dependency manager
-elif [[ $CI_NAME != 'linux' ]]; then
-	echo "Unsupported platform: $CI_NAME"
-	exit 5
 fi

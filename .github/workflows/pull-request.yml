@@ -15,18 +15,18 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        dockerTag: [ amd64, armv6hf, armv7hf, aarch64 ]
+        dockerImage: [ x86_64, armv6l, armv7l, aarch64 ]
         include:
-          - dockerTag: amd64
-            dockerName: Debian Stretch (AMD64)
+          - dockerImage: x86_64
+            dockerName: Debian Stretch (x86_64)
             platform: x11
-          - dockerTag: armv6hf
+          - dockerImage: armv6l
             dockerName: Debian Stretch (Raspberry Pi v1 & ZERO)
             platform: rpi
-          - dockerTag: armv7hf
+          - dockerImage: armv7l
             dockerName: Debian Stretch (Raspberry Pi 2 & 3)
             platform: rpi
-          - dockerTag: aarch64
+          - dockerImage: aarch64
             dockerName: Debian Stretch (Generic AARCH64)
             platform: amlogic
 
@@ -46,7 +46,8 @@ jobs:
       # Build packages
       - name: Build packages
         env:
-          DOCKER_TAG: ${{ matrix.dockerTag }}
+          DOCKER_IMAGE: ${{ matrix.dockerImage }}
+          DOCKER_TAG: stretch
           DOCKER_NAME: ${{ matrix.dockerName }}
           PLATFORM: ${{ matrix.platform }}
         shell: bash
@@ -56,17 +57,17 @@ jobs:
       - name: Collecting deployable artifacts
         shell: bash
         run: |
-          mkdir -p ${{ matrix.dockerTag }}
-          mv deploy/*.tar.gz ${{ matrix.dockerTag }}
-        if: matrix.dockerTag != 'aarch64'
+          mkdir -p ${{ matrix.dockerImage }}
+          mv deploy/*.tar.gz ${{ matrix.dockerImage }}
+        if: matrix.dockerImage != 'aarch64'
 
       # Upload artifacts
       - name: Upload artifacts
         uses: actions/upload-artifact@v1
         with:
-          name: ${{ matrix.dockerTag }}
-          path: ${{ matrix.dockerTag }}
-        if: matrix.dockerTag != 'aarch64'
+          name: ${{ matrix.dockerImage }}
+          path: ${{ matrix.dockerImage }}
+        if: matrix.dockerImage != 'aarch64'
 
 ######################
 ###### macOS #########

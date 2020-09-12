@@ -15,7 +15,7 @@
 
 static const QString SSDP_HYPERION_ST("urn:hyperion-project.org:device:basic:1");
 
-SSDPHandler::SSDPHandler(WebServer* webserver, const quint16& flatBufPort, const quint16& jsonServerPort, const QString& name, QObject * parent)
+SSDPHandler::SSDPHandler(WebServer* webserver, quint16 flatBufPort, quint16 jsonServerPort, const QString& name, QObject * parent)
 	: SSDPServer(parent)
 	, _webserver(webserver)
 	, _localAddress()
@@ -73,7 +73,7 @@ void SSDPHandler::stopServer()
 	SSDPServer::stop();
 }
 
-void SSDPHandler::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
+void SSDPHandler::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
 	const QJsonObject& obj = config.object();
 
@@ -102,7 +102,7 @@ void SSDPHandler::handleSettingsUpdate(const settings::type& type, const QJsonDo
 	}
 }
 
-void SSDPHandler::handleWebServerStateChange(const bool newState)
+void SSDPHandler::handleWebServerStateChange(bool newState)
 {
 	if(newState)
 	{
@@ -151,7 +151,7 @@ QString SSDPHandler::getLocalAddress() const
 	return QString();
 }
 
-void SSDPHandler::handleMSearchRequest(const QString& target, const QString& mx, const QString address, const quint16 & port)
+void SSDPHandler::handleMSearchRequest(const QString& target, const QString& mx, const QString address, quint16 port)
 {
 	const auto respond = [=] () {
 		// when searched for all devices / root devices / basic device
@@ -202,7 +202,7 @@ QString SSDPHandler::buildDesc() const
 	return SSDP_DESCRIPTION.arg(getBaseAddress(), QString("Hyperion (%1)").arg(_localAddress), QString(HYPERION_VERSION), _uuid);
 }
 
-void SSDPHandler::sendAnnounceList(const bool alive)
+void SSDPHandler::sendAnnounceList(bool alive)
 {
 	for(const auto & entry : _deviceList){
 		alive ? SSDPServer::sendAlive(entry) : SSDPServer::sendByeBye(entry);

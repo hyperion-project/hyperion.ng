@@ -12,7 +12,6 @@
 #include <QSize>
 #include <QImage>
 #include <QPainter>
-#include <QMap>
 
 // Hyperion includes
 #include <utils/Components.h>
@@ -38,23 +37,23 @@ public:
 				, const QJsonObject &args = QJsonObject()
 				, const QString &imageData = ""
 	);
-	virtual ~Effect();
+	~Effect() override;
 
-	virtual void run();
+	void run() override;
 
-	int getPriority() const { return _priority; };
+	int getPriority() const { return _priority; }
 
 	///
 	/// @brief Set manual interuption to true,
 	///        Note: DO NOT USE QThread::interuption!
 	///
-	void requestInterruption() { _interupt = true; };
+	void requestInterruption() { _interupt = true; }
 
 	///
 	/// @brief Check if the interuption flag has been set
 	/// @return    The flag state
 	///
-	bool isInterruptionRequested() { return _interupt; };
+	bool isInterruptionRequested() { return _interupt; }
 
 	QString getScript() const { return _script; }
 	QString getName() const { return _name; }
@@ -64,11 +63,11 @@ public:
 	QJsonObject getArgs() const { return _args; }
 
 signals:
-	void setInput(const int priority, const std::vector<ColorRgb> &ledColors, const int timeout_ms, const bool &clearEffect);
-	void setInputImage(const int priority, const Image<ColorRgb> &image, const int timeout_ms, const bool &clearEffect);
+	void setInput(int priority, const std::vector<ColorRgb> &ledColors, int timeout_ms, bool clearEffect);
+	void setInputImage(int priority, const Image<ColorRgb> &image, int timeout_ms, bool clearEffect);
 
 private:
-
+	void setModuleParameters();
 	void addImage();
 
 	Hyperion *_hyperion;

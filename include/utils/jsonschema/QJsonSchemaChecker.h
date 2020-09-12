@@ -57,7 +57,7 @@ public:
 	///
 	/// @return A list of error messages
 	///
-	const QStringList & getMessages() const;
+	QStringList getMessages() const;
 
 private:
 	///

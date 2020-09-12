@@ -19,12 +19,8 @@ endif()
 set(USE_SYSTEM_FLATBUFFERS_LIBS ${DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS} CACHE BOOL "use flatbuffers library from system")
 
 if (USE_SYSTEM_FLATBUFFERS_LIBS)
-	if (ENABLE_AMLOGIC)
-		find_program(FLATBUFFERS_FLATC_EXECUTABLE NAMES flatc REQUIRED)
-	else ()
-		find_package(flatbuffers REQUIRED)
-	endif()
-	include_directories(${FLATBUFFERS_INCLUDE_DIRS})
+	find_program(FLATBUFFERS_FLATC_EXECUTABLE NAMES flatc REQUIRED)
+	find_package(Flatbuffers REQUIRED)
 else ()
 	set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared flatbuffers library")
 	set(FLATBUFFERS_BUILD_TESTS OFF CACHE BOOL "Build Flatbuffers with tests")
@@ -41,7 +37,6 @@ else ()
 
 	# define the include for the flatbuffers library at the parent scope
 	set(FLATBUFFERS_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/external/flatbuffers/include")
-	set(FLATBUFFERS_INCLUDE_DIRS ${FLATBUFFERS_INCLUDE_DIRS} PARENT_SCOPE)
 
 	IF (NOT CMAKE_CROSSCOMPILING)
 		# define the flatc executable at the parent scope
@@ -51,10 +46,11 @@ else ()
 		#Includ of flatc_export.cmake detects that flatc target is defined aand returns before using the definitions written by export
 		set ( FLATBUFFERS_FLATC_EXECUTABLE "${CMAKE_BINARY_DIR}/../build-x86x64/bin/flatc")
 	endif()
-
-	set(FLATBUFFERS_FLATC_EXECUTABLE ${FLATBUFFERS_FLATC_EXECUTABLE} PARENT_SCOPE)
-
 endif()
+set(FLATBUFFERS_FLATC_EXECUTABLE ${FLATBUFFERS_FLATC_EXECUTABLE} PARENT_SCOPE)
+set(FLATBUFFERS_INCLUDE_DIRS ${FLATBUFFERS_INCLUDE_DIRS} PARENT_SCOPE)
+include_directories(${FLATBUFFERS_INCLUDE_DIRS})
+
 
 message(STATUS "Using flatbuffers compiler: " ${FLATBUFFERS_FLATC_EXECUTABLE})
 
@@ -62,23 +58,13 @@ function(compile_flattbuffer_schema SRC_FBS OUTPUT_DIR)
 	string(REGEX REPLACE "\\.fbs$" "_generated.h" GEN_HEADER ${SRC_FBS})
 	set_property(SOURCE ${GEN_HEADER} PROPERTY SKIP_AUTOMOC ON)
 
-	if (ENABLE_AMLOGIC)
-		add_custom_command(
-			OUTPUT ${GEN_HEADER}
-			COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -c --no-includes --gen-mutable
-					--gen-object-api
-					-o "${OUTPUT_DIR}"
-					"${SRC_FBS}"
-			DEPENDS ${SRC_FBS})
-	else()
-		add_custom_command(
-			OUTPUT ${GEN_HEADER}
-			COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -c --no-includes --gen-mutable
-					--gen-object-api
-					-o "${OUTPUT_DIR}"
-					"${SRC_FBS}"
-			DEPENDS flatc ${SRC_FBS})
-	endif()
+	add_custom_command(
+		OUTPUT ${GEN_HEADER}
+		COMMAND "${FLATBUFFERS_FLATC_EXECUTABLE}" -c --no-includes --gen-mutable
+				--gen-object-api
+				-o "${OUTPUT_DIR}"
+				"${SRC_FBS}"
+		DEPENDS "${FLATBUFFERS_FLATC_EXECUTABLE}" ${SRC_FBS})
 endfunction()
 
 #=============================================================================
@@ -89,11 +75,6 @@ set(USE_SYSTEM_PROTO_LIBS ${DEFAULT_USE_SYSTEM_PROTO_LIBS} CACHE BOOL "use proto
 
 if (USE_SYSTEM_PROTO_LIBS)
 	find_package(Protobuf REQUIRED)
-	if (ENABLE_AMLOGIC)
-		set(PROTOBUF_INCLUDE_DIRS "${Protobuf_INCLUDE_DIRS}" PARENT_SCOPE)
-		set(PROTOBUF_PROTOC_EXECUTABLE "${Protobuf_PROTOC_EXECUTABLE}" PARENT_SCOPE)
-	endif()
-	include_directories(${PROTOBUF_INCLUDE_DIRS})
 else ()
 	set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared protobuf library")
 	add_subdirectory(external/protobuf)
@@ -108,13 +89,14 @@ else ()
 	endif()
 
 	# define the include for the protobuf library at the parent scope
-	set(PROTOBUF_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/external/protobuf/src")
-	set(PROTOBUF_INCLUDE_DIRS ${PROTOBUF_INCLUDE_DIRS} PARENT_SCOPE)
+    set(PROTOBUF_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/external/protobuf/src")
 
 	# define the protoc executable at the parent scope
 	get_property(PROTOBUF_PROTOC_EXECUTABLE TARGET protoc_compiler PROPERTY LOCATION)
-	set(PROTOBUF_PROTOC_EXECUTABLE ${PROTOBUF_PROTOC_EXECUTABLE} PARENT_SCOPE)
 endif()
+set(PROTOBUF_PROTOC_EXECUTABLE ${PROTOBUF_PROTOC_EXECUTABLE} PARENT_SCOPE)
+set(PROTOBUF_INCLUDE_DIRS ${PROTOBUF_INCLUDE_DIRS} PARENT_SCOPE)
+include_directories(${PROTOBUF_INCLUDE_DIRS})
 
 message(STATUS "Using protobuf compiler: " ${PROTOBUF_PROTOC_EXECUTABLE})
 

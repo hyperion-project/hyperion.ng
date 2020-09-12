@@ -34,7 +34,7 @@ public:
 	///
 	/// @brief Destructor of the LedDevice
 	///
-	virtual ~LedDeviceLightpack() override;
+	~LedDeviceLightpack() override;
 
 	///
 	/// @brief Constructs the LED-device
@@ -50,28 +50,28 @@ public:
 	/// @param[in] deviceConfig the JSON device configuration
 	/// @return True, if success
 	///
-	virtual bool init(const QJsonObject &deviceConfig) override;
+	bool init(const QJsonObject &deviceConfig) override;
 
 	///
 	/// @brief Opens the output device.
 	///
 	/// @return Zero on success (i.e. device is ready), else negative
 	///
-	virtual int open() override;
+	int open() override;
 
 	///
 	/// @brief Closes the output device.
 	///
 	/// @return Zero on success (i.e. device is closed), else negative
 	///
-	virtual int close() override;
+	int close() override;
 
 	///
 	/// @brief Power-/turn off the Nanoleaf device.
 	///
 	/// @return True if success
 	///
-	virtual bool powerOff() override;
+	bool powerOff() override;
 
 	///
 	/// @brief Writes the RGB-Color values to the LEDs.
@@ -100,7 +100,7 @@ protected:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	virtual int write(const std::vector<ColorRgb> & ledValues) override;
+	int write(const std::vector<ColorRgb> & ledValues) override;
 
 private:
 

@@ -762,7 +762,7 @@ async function discover_hue_bridges(){
 	// TODO: error case unhandled
   	// res can be: false (timeout) or res.error (not found)
 	if(res && !res.error){
-		const r = res.info
+		const r = res.info;
 
 		// Process devices returned by discovery
 		console.log(r);
@@ -1462,7 +1462,7 @@ async function discover_yeelight_lights(){
   // TODO: error case unhandled
   // res can be: false (timeout) or res.error (not found)
   if(res && !res.error){
-    const r = res.info
+    const r = res.info;
 
 	// Process devices returned by discovery
 	for(const device of r.devices)
@@ -1555,7 +1555,7 @@ function assign_yeelight_lights(){
 			var enabled = 'enabled'
 			if (! models.includes (lights[lightid].model) )
 			{
-				enabled = 'disabled'
+				var enabled = 'disabled';
 				options = '<option value=disabled>'+$.i18n('wiz_yeelight_unsupported')+'</option>';
 			}
 
@@ -1612,7 +1612,7 @@ function identify_yeelight_device(hostname, port){
 	// TODO: error case unhandled
   	// res can be: false (timeout) or res.error (not found)
 	if(res && !res.error){
-		const r = res.info
+		//const r = res.info;
 	}
 }
 

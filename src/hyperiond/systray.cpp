@@ -211,7 +211,7 @@ void SysTray::clearEfxColor()
 	_hyperion->clear(1);
 }
 
-void SysTray::handleInstanceStateChange(const InstanceState& state, const quint8& instance, const QString& name)
+void SysTray::handleInstanceStateChange(InstanceState state, quint8 instance, const QString& name)
 {
 	switch(state){
 		case InstanceState::H_STARTED:

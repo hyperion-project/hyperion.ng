@@ -71,7 +71,7 @@ namespace hyperion {
 		return RgbTransform(gammaR, gammaG, gammaB, backlightThreshold, backlightColored, brightness, brightnessComp);
 	}
 
-	RgbChannelAdjustment createRgbChannelAdjustment(const QJsonObject& colorConfig, const QString& channelName, const int defaultR, const int defaultG, const int defaultB)
+	RgbChannelAdjustment createRgbChannelAdjustment(const QJsonObject& colorConfig, const QString& channelName, int defaultR, int defaultG, int defaultB)
 	{
 		const QJsonArray& channelConfig  = colorConfig[channelName].toArray();
 		return RgbChannelAdjustment(
@@ -101,7 +101,7 @@ namespace hyperion {
 		return adjustment;
 	}
 
-	MultiColorAdjustment * createLedColorsAdjustment(const unsigned ledCnt, const QJsonObject & colorConfig)
+	MultiColorAdjustment * createLedColorsAdjustment(unsigned ledCnt, const QJsonObject & colorConfig)
 	{
 		// Create the result, the transforms are added to this
 		MultiColorAdjustment * adjustment = new MultiColorAdjustment(ledCnt);
