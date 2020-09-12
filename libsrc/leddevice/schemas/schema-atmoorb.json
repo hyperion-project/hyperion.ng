@@ -5,7 +5,7 @@
 		"orbIds": {
 			"type": "string",
 			"title":"edt_dev_spec_orbIds_title",
-			"default": "1",
+			"default": "",
 			"propertyOrder" : 1
 		},
 		"useOrbSmoothing": {
