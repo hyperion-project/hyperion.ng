@@ -1,4 +1,4 @@
-// AtmoOrb by Lightning303 & Rick164
+// AtmoOrb by Lightning303 & Rick164, Additions by Lord-Grey
 //
 // ESP8266 Standalone Version
 //
@@ -50,11 +50,18 @@
 // Network settings
 const char* ssid = "***"; // WiFi SSID
 const char* password = "***"; // WiFi password
-const IPAddress multicastIP(239, 255, 255, 250); // Multicast IP address
+
+const IPAddress multicastIP(239,255,255,250); // Multicast IP address
 const int multicastPort = 49692; // Multicast port number
+IPAddress    ip_null(0,0,0,0);
+IPAddress    local_IP(0,0,0,0);
+WiFiUDP Udp;
+
+int          timeout    = 20000;      // wait 20 sec for successfull login
+boolean      is_connect = false;      // ... not yet connected
 
 CRGB leds[NUM_LEDS];
-WiFiUDP Udp;
+
 byte nextColor[3];
 byte prevColor[3];
 byte currentColor[3];
@@ -72,7 +79,7 @@ void setup()
   //FastLED.setCorrection(TypicalSMD5050);
   FastLED.setCorrection(CRGB(RED_CORRECTION, GREEN_CORRECTION, BLUE_CORRECTION));
   FastLED.showColor(CRGB(STARTUP_RED, STARTUP_GREEN, STARTUP_BLUE));
-  
+
   #if RC_SWITCH == 1
     mySwitch.enableTransmit(RC_PIN);
   #endif
@@ -80,23 +87,91 @@ void setup()
   #if SERIAL_DEBUG == 1
     Serial.begin(115200);
   #endif
-  
+
+  #if SERIAL_DEBUG == 1
+    Serial.printf("Connecting to %s ", ssid);
+  #endif
+
+  // .... wait for WiFi gets valid !!!
+  unsigned long tick = millis();      // get start-time for login
   WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED)
+  while ( (!is_connect) &&  ((millis() - tick) < timeout) )
   {
-    delay(500);
+    yield();                          // ... for safety
+    is_connect = WiFi.status();       // connected ?
+    if (!is_connect)                  // only if not yet connected !
+    {
+      #if SERIAL_DEBUG == 1
+        Serial.print(".");              // print a dot while waiting
+      #endif
+      delay(50);
+    }
+  }
+  
+  if (is_connect)
+  {
     #if SERIAL_DEBUG == 1
-      Serial.print(F("."));
+      Serial.print("after ");
+      Serial.print(millis() - tick);
+      Serial.println(" ms");
+    #endif
+    // .... wait for local_IP becomes valid !!!
+    is_connect = false;
+    tick = millis();      // get start-time for login
+    while ( (!is_connect) &&  ((millis() - tick) < timeout) )
+    {
+      yield();                          // ... for safety
+      local_IP = WiFi.localIP(); 
+      is_connect = local_IP != ip_null;       // connected ?
+      if (!is_connect)                  // only if not yet connected !
+      {
+        #if SERIAL_DEBUG == 1
+          Serial.print(".");              // print a dot while waiting
+        #endif
+        delay(50);
+      }
+    }
+    if (is_connect)
+    {
+      #if SERIAL_DEBUG == 1
+        Serial.print("local_IP valid after ");
+        Serial.print(millis() - tick);
+        Serial.println(" ms");
+        Serial.println("");
+        Serial.print(F("Connected to "));
+        Serial.println(ssid);
+      #endif
+
+       // ... now start UDP and check the result:
+      is_connect = Udp.beginMulticast(local_IP, multicastIP, multicastPort);
+      if (is_connect)
+      {
+        #if SERIAL_DEBUG == 1      
+          Serial.print("Listening to Multicast at ");
+          Serial.print(multicastIP);
+          Serial.println(":" + String(multicastPort));
+        #endif
+      }
+      else
+      {
+        #if SERIAL_DEBUG == 1      
+          Serial.println(" - ERROR beginMulticast !");
+        #endif
+      }
+    }
+    else
+    {
+      #if SERIAL_DEBUG == 1     
+        Serial.println("local_IP invalid after timeout !");
+      #endif
+    }
+  }
+  else
+  {
+    #if SERIAL_DEBUG == 1     
+      Serial.println("- invalid after timeout !");      
     #endif
   }
-  #if SERIAL_DEBUG == 1
-    Serial.println("");
-    Serial.print(F("Connected to "));
-    Serial.println(ssid);
-    Serial.print(F("IP address: "));
-    Serial.println(WiFi.localIP());
-  #endif
-  Udp.beginMulticast(WiFi.localIP(), multicastIP, multicastPort);
 }
 
 void loop()
@@ -122,10 +197,12 @@ void loop()
     byte len = Udp.available();
     byte rcvd[len];
     Udp.read(rcvd, len);
-    
+
     #if SERIAL_DEBUG == 1
       Serial.print(F("UDP Packet from "));
       Serial.print(Udp.remoteIP());
+      Serial.print(F(":"));
+      Serial.print(Udp.remotePort());
       Serial.print(F(" to "));
       Serial.println(Udp.destinationIP());
       for (byte i = 0; i < len; i++)
@@ -141,6 +218,9 @@ void loop()
       {
         case 1:
           setColor(0, 0, 0);
+          nextColor[0] = 0;
+          nextColor[1] = 0;
+          nextColor[2] = 0;
           smoothStep = SMOOTH_STEPS;
           break;
         case 2:
@@ -152,9 +232,20 @@ void loop()
           smoothStep = SMOOTH_STEPS;
           break;
         case 8:
+          #if SERIAL_DEBUG == 1
+            Serial.print(F("Announce myself. OrbID: "));
+            Serial.println(ID);
+          #endif
           Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
           Udp.write(ID);
           Udp.endPacket();
+          break;
+        case 9:
+          #if SERIAL_DEBUG == 1
+            Serial.print(F("Identify myself. OrbID: "));
+            Serial.println(ID);
+          #endif
+          identify();
           break;
       }
     }
@@ -184,7 +275,7 @@ void setColor(byte red, byte green, byte blue)
   currentColor[0] = red;
   currentColor[1] = green;
   currentColor[2] = blue;
-  
+
   FastLED.showColor(CRGB(red, green, blue));
 }
 
@@ -206,15 +297,15 @@ void setSmoothColor(byte red, byte green, byte blue)
       smoothStep = SMOOTH_STEPS;
       return;
     }
-    
+
     prevColor[0] = currentColor[0];
     prevColor[1] = currentColor[1];
     prevColor[2] = currentColor[2];
-    
+
     nextColor[0] = red;
     nextColor[1] = green;
     nextColor[2] = blue;
-    
+
     smoothMillis = millis();
     smoothStep = 0;
 
@@ -229,12 +320,23 @@ void setSmoothColor(byte red, byte green, byte blue)
 
 // Display one step to the next color
 void smoothColor()
-{ 
+{
   smoothStep++;
-  
+
   byte red = prevColor[0] + (((nextColor[0] - prevColor[0]) * smoothStep) / SMOOTH_STEPS);
   byte green = prevColor[1] + (((nextColor[1] - prevColor[1]) * smoothStep) / SMOOTH_STEPS);
   byte blue = prevColor[2] + (((nextColor[2] - prevColor[2]) * smoothStep) / SMOOTH_STEPS);   
 
   setColor(red, green, blue);
+}
+
+void identify()
+{
+  for (byte i = 0; i < 3; i++)
+  {
+    FastLED.showColor(CRGB::LemonChiffon);
+    delay(500);
+    FastLED.showColor(CRGB::Black);   
+    delay(500);
+  }
 }
