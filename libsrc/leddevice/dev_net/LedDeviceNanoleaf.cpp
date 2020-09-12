@@ -318,7 +318,7 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 		{
 			if ( _panelLedCount > this->getLedCount() )
 			{
-				Info(_log, "&s: More panels [%u] than configured LEDs [%u].", QSTRING_CSTR(this->getActiveDeviceType()), _panelLedCount, configuredLedCount );
+				Info(_log, "%s: More panels [%u] than configured LEDs [%u].", QSTRING_CSTR(this->getActiveDeviceType()), _panelLedCount, configuredLedCount );
 			}
 
 			// Check, if start position + number of configured LEDs is greater than number of panels available
