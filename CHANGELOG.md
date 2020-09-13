@@ -10,13 +10,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Add XCB grabber, a faster and safer alternative for X11 grabbing (#912)
+- for Windows: Add binary meta (#932)
+- Differentiate between LED-Device Enable/Disable and Switch On/Off (#960) (Fixes: #828)
+- AtmoOrb discovery and identification support (#988)
+- New AtmoOrb Wizard (#988)
 
 ### Changed
 - Improved UDP-Device Error handling (#961)
+- Updated some language files (#900, #926, #916, 
+- NSIS/Systray option to launch Hyperion on Windows start (HKCU) (#887)
+- Updated some dependencies (#929,
+- refactor: Modernize Qt connections (#914) 
+- refactor: Resolve some clang warnings (#915)
+- refactor: Several random fixes + Experimental playground (#917)
+- Use query interface for void returning X requests (#945)
+- Move Python related code to Python module (#946)
+- General tidy up (#958)
+- AtmoOrb ESP8266 sketch to support device identification, plus small fix (#988)
 
 ### Fixed
 - webui: Works now with HTTPS port 443 (#923 with #924)
 - Adalight issue (#903 with #991)
+- Fixed CI: Trigger HyperBian build after release
+- Fixed: -DUSE_SYSTEM_MBEDTLS_LIBS=ON - undefined reference (#898)
+- set zlib back to system ignore list/revert pr #871 (#904)
+- Fixed: logger and led colors (#906)
+- Fixed: some more threading errors (#911)
+- AtmoOrb Fix (#988)
+
 ### Removed
 
 ## [2.0.0-alpha.7](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.7) - 2020-07-23
