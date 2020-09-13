@@ -217,11 +217,8 @@ void loop()
       switch (rcvd[3])
       {
         case 1:
-          setColor(0, 0, 0);
-          nextColor[0] = 0;
-          nextColor[1] = 0;
-          nextColor[2] = 0;
           smoothStep = SMOOTH_STEPS;
+          forceLedsOFF();
           break;
         case 2:
         default:
@@ -328,6 +325,21 @@ void smoothColor()
   byte blue = prevColor[2] + (((nextColor[2] - prevColor[2]) * smoothStep) / SMOOTH_STEPS);   
 
   setColor(red, green, blue);
+}
+
+// Force all leds OFF
+void forceLedsOFF()
+{
+    setColor(0,0,0);
+    clearSmoothColors();
+}
+ 
+// Clear smooth color byte arrays
+void clearSmoothColors()
+{
+    memset(prevColor, 0, sizeof(prevColor));
+    memset(currentColor, 0, sizeof(nextColor));
+    memset(nextColor, 0, sizeof(nextColor));
 }
 
 void identify()
