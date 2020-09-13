@@ -47,9 +47,9 @@
 			"type": "integer",
 			"title":"edt_dev_spec_transistionTimeExtra_title",
 			"default" : 0,
-			"step": 10,
+			"step": 100,
 			"minimum" : 0,
-			"maximum" : 3000,
+			"maximum" : 8000,
 			"append" : "ms",
 			"access" : "advanced",
 			"propertyOrder" : 4
