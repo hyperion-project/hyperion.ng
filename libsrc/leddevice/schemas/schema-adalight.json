@@ -5,26 +5,29 @@
 		"output": {
 			"type": "string",
 			"title":"edt_dev_spec_outputPath_title",
-			"default":"ttyACM0",
+			"default":"auto",
 			"propertyOrder" : 1
 		},
 		"rate": {
 			"type": "integer",
 			"title":"edt_dev_spec_baudrate_title",
-			"default": 1000000,
+			"default": 115200,
+			"access" : "advanced",
 			"propertyOrder" : 2
 		},
 		"delayAfterConnect": {
 			"type": "integer",
 			"title":"edt_dev_spec_delayAfterConnect_title",
-			"default": 1500,
+			"default": 0,
 			"append" : "ms",
+			"access" : "expert",
 			"propertyOrder" : 3
 		},
 		"lightberry_apa102_mode": {
 			"type": "boolean",
 			"title":"edt_dev_spec_LBap102Mode_title",
 			"default": false,
+			"access" : "advanced",
 			"propertyOrder" : 4
 		},
 		"latchTime": {
