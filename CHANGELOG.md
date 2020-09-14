@@ -14,12 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Differentiate between LED-Device Enable/Disable and Switch On/Off (#960) (Fixes: #828)
 - AtmoOrb discovery and identification support (#988)
 - New AtmoOrb Wizard (#988)
-
+- Added and updated some language files (#900, #926, #916) (DE, CS, NL, FR, IT, PL, RO, ES, SV, TR, VI)
 ### Changed
 - Improved UDP-Device Error handling (#961)
-- Updated some language files (#900, #926, #916, 
 - NSIS/Systray option to launch Hyperion on Windows start (HKCU) (#887)
-- Updated some dependencies (#929,
+- Updated some dependencies (#929, #1003, #1004)
 - refactor: Modernize Qt connections (#914) 
 - refactor: Resolve some clang warnings (#915)
 - refactor: Several random fixes + Experimental playground (#917)
@@ -39,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix OSX build (#952)
 - AtmoOrb Fix (#988)
 - Return TAN to API requests whenever possible (#1002)
+- Fix OSX build (#952) 
 
 ### Removed
 
