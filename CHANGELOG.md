@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed: logger and led colors (#906)
 - Fixed: some more threading errors (#911)
 - AtmoOrb Fix (#988)
+- Return TAN to API requests whenever possible (#1002)
 
 ### Removed
 
