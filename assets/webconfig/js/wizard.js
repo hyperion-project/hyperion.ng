@@ -1263,7 +1263,7 @@ function startWizardWLED(e)
   var hostAddress = conf_editor.getEditor("root.specificOptions.host").getValue();
   if(hostAddress != "")
   {
-    getProperties_wled(hostAddress);
+    getProperties_wled(hostAddress,"info");
     identify_wled(hostAddress)  
   }
   

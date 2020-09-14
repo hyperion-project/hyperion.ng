@@ -18,6 +18,7 @@ PriorityMuxer::PriorityMuxer(int ledCount, QObject * parent)
 	: QObject(parent)
 	, _log(Logger::getInstance("HYPERION"))
 	, _currentPriority(PriorityMuxer::LOWEST_PRIORITY)
+	, _previousPriority(_currentPriority)
 	, _manualSelectedPriority(256)
 	, _activeInputs()
 	, _lowestPriorityInfo()
@@ -156,7 +157,6 @@ void PriorityMuxer::registerInput(int priority, hyperion::Components component, 
 	if(newInput)
 	{
 		Debug(_log,"Register new input '%s/%s' with priority %d as inactive", QSTRING_CSTR(origin), hyperion::componentToIdString(component), priority);
-		emit priorityChanged(priority, true);
 		emit prioritiesChanged();
 		return;
 	}
@@ -255,7 +255,6 @@ bool PriorityMuxer::clearInput(uint8_t priority)
 		Debug(_log,"Removed source priority %d",priority);
 		// on clear success update _currentPriority
 		setCurrentTime();
-		emit priorityChanged(priority, false);
 		emit prioritiesChanged();
 		return true;
 	}
@@ -266,6 +265,7 @@ void PriorityMuxer::clearAll(bool forceClearAll)
 {
 	if (forceClearAll)
 	{
+		_previousPriority = _currentPriority;
 		_activeInputs.clear();
 		_currentPriority = PriorityMuxer::LOWEST_PRIORITY;
 		_activeInputs[_currentPriority] = _lowestPriorityInfo;
@@ -296,7 +296,6 @@ void PriorityMuxer::setCurrentTime()
 			quint8 tPrio = infoIt->priority;
 			infoIt = _activeInputs.erase(infoIt);
 			Debug(_log,"Timeout clear for priority %d",tPrio);
-			emit priorityChanged(tPrio, false);
 			emit prioritiesChanged();
 		}
 		else
@@ -329,6 +328,7 @@ void PriorityMuxer::setCurrentTime()
 	// apply & emit on change (after apply!)
 	if (_currentPriority != newPriority)
 	{
+		_previousPriority = _currentPriority;
 		_currentPriority = newPriority;
 		Debug(_log, "Set visible priority to %d", newPriority);
 		emit visiblePriorityChanged(newPriority);

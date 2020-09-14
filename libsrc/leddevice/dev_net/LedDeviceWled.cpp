@@ -215,15 +215,10 @@ QJsonObject LedDeviceWled::getProperties(const QJsonObject& params)
 			apiPort   = API_DEFAULT_PORT;
 		}
 
-		if ( filter.startsWith("/") )
-			filter.remove(0,1);
-
 		initRestAPI(apiHost, apiPort);
-		_restApi->setPath(API_PATH_INFO);
+		_restApi->setPath(filter);
 
-		// Perform request
-		// TODO: WLED::getProperties - Check, if filter is supported
-		httpResponse response = _restApi->put(filter);
+		httpResponse response = _restApi->get();
 		if ( response.error() )
 		{
 			Warning (_log, "%s get properties failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
