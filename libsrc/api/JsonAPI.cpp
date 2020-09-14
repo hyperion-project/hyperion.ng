@@ -97,7 +97,7 @@ void JsonAPI::handleMessage(const QString &messageString, const QString &httpAut
 		return;
 	}
 
-	int tan = -1;
+	int tan = 0;
 	if (message.value("tan") != QJsonValue::Undefined)
 		tan = message["tan"].toInt();
 
