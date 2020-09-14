@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - set zlib back to system ignore list/revert pr #871 (#904)
 - Fixed: logger and led colors (#906)
 - Fixed: some more threading errors (#911)
+- Fix OSX build (#952)
 - AtmoOrb Fix (#988)
 - Return TAN to API requests whenever possible (#1002)
 
