@@ -4,7 +4,10 @@ SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/grabber/xcb)
 
 find_package(XCB COMPONENTS SHM IMAGE RENDER RANDR REQUIRED)
 find_package(Qt5Widgets REQUIRED)
-find_package(Qt5X11Extras REQUIRED)
+
+if (NOT APPLE)
+	find_package(Qt5X11Extras REQUIRED)
+endif()
 
 include_directories(${XCB_INCLUDE_DIRS})
 
@@ -19,3 +22,6 @@ target_link_libraries(xcb-grabber
 	${XCB_LIBRARIES}
 )
 
+if (NOT APPLE)
+	target_link_libraries(xcb-grabber Qt5::X11Extras)
+endif()

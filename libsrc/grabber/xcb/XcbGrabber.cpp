@@ -7,7 +7,10 @@
 #include <xcb/xcb_event.h>
 
 #include <QCoreApplication>
+
+#ifndef __APPLE__
 #include <QX11Info>
+#endif
 
 #include <memory>
 
@@ -427,7 +430,11 @@ xcb_render_pictformat_t XcbGrabber::findFormatForVisual(xcb_visualid_t visual) c
 	if (formats == nullptr)
 		return {};
 
+#ifdef __APPLE__
+	int screen = 0;
+#else
 	int screen = QX11Info::appScreen();
+#endif
 	xcb_render_pictscreen_iterator_t sit =
 		xcb_render_query_pict_formats_screens_iterator(formats.get());
 
