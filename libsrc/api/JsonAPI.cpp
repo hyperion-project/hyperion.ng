@@ -97,10 +97,14 @@ void JsonAPI::handleMessage(const QString &messageString, const QString &httpAut
 		return;
 	}
 
+	int tan = 0;
+	if (message.value("tan") != QJsonValue::Undefined)
+		tan = message["tan"].toInt();
+
 	// check basic message
 	if (!JsonUtils::validate(ident, message, ":schema", _log))
 	{
-		sendErrorReply("Errors during message validation, please consult the Hyperion Log.");
+		sendErrorReply("Errors during message validation, please consult the Hyperion Log.", "" /*command*/, tan);
 		return;
 	}
 
@@ -108,11 +112,9 @@ void JsonAPI::handleMessage(const QString &messageString, const QString &httpAut
 	const QString command = message["command"].toString();
 	if (!JsonUtils::validate(ident, message, QString(":schema-%1").arg(command), _log))
 	{
-		sendErrorReply("Errors during specific message validation, please consult the Hyperion Log", command);
+		sendErrorReply("Errors during specific message validation, please consult the Hyperion Log", command, tan);
 		return;
 	}
-
-	int tan = message["tan"].toInt();
 
 	// client auth before everything else but not for http
 	if (!_noListener && command == "authorize")
@@ -177,12 +179,12 @@ proceed:
 	else if (command == "clearall")
 		handleClearallCommand(message, command, tan);
 	else if (command == "transform" || command == "correction" || command == "temperature")
-		sendErrorReply("The command " + command + "is deprecated, please use the Hyperion Web Interface to configure");
+		sendErrorReply("The command " + command + "is deprecated, please use the Hyperion Web Interface to configure", command, tan);
 	// END
 
 	// handle not implemented commands
 	else
-		handleNotImplemented();
+		handleNotImplemented(command, tan);
 }
 
 void JsonAPI::handleColorCommand(const QJsonObject &message, const QString &command, int tan)
@@ -1426,9 +1428,9 @@ void JsonAPI::handleLedDeviceCommand(const QJsonObject &message, const QString &
 	}
 }
 
-void JsonAPI::handleNotImplemented()
+void JsonAPI::handleNotImplemented(const QString &command, int tan)
 {
-	sendErrorReply("Command not implemented");
+	sendErrorReply("Command not implemented", command, tan);
 }
 
 void JsonAPI::sendSuccessReply(const QString &command, int tan)
