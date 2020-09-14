@@ -543,6 +543,12 @@ $(document).ready(function() {
     	    changeWizard(data, wled_title, startWizardWLED);
 	}
 */
+    else if(ledType == "atmoorb") {
+    	    var ledWizardType = (this.checked) ? "atmoorb" : ledType;
+    	    var data = { type: ledWizardType };
+    	    var atmoorb_title = 'wiz_atmoorb_title';
+    	    changeWizard(data, atmoorb_title, startWizardAtmoOrb);
+	}
 	else if(ledType == "yeelight") {
 		var ledWizardType = (this.checked) ? "yeelight" : ledType;
 		var data = { type: ledWizardType };

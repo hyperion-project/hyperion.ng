@@ -165,7 +165,10 @@ void LedDevice::startRefreshTimer()
 
 void LedDevice::stopRefreshTimer()
 {
-	_refreshTimer->stop();
+	if ( _refreshTimer != nullptr )
+	{
+		_refreshTimer->stop();
+	}
 }
 
 int LedDevice::updateLeds(const std::vector<ColorRgb>& ledValues)

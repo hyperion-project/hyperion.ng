@@ -1259,16 +1259,16 @@ function startWizardWLED(e)
 
 // For testing only
   discover_wled();
-    
+
   var hostAddress = conf_editor.getEditor("root.specificOptions.host").getValue();
   if(hostAddress != "")
   {
     getProperties_wled(hostAddress,"info");
     identify_wled(hostAddress)  
   }
-  
+
 // For testing only
-    
+
   });
 }
 
@@ -1552,13 +1552,14 @@ function assign_yeelight_lights(){
 				options+= '>'+$.i18n(txt+val)+'</option>';
 			}
 
+			var enabled = 'enabled'
 			if (! models.includes (lights[lightid].model) )
 			{
 				var enabled = 'disabled';
 				options = '<option value=disabled>'+$.i18n('wiz_yeelight_unsupported')+'</option>';
 			}
 
-			$('.lidsb').append(createTableRow([(parseInt(lightid, 10) + 1)+'. '+lightName+' ('+lightHostname+')', '<select id="yee_'+lightid+'" '+enabled+' class="yee_sel_watch form-control">'
+			$('.lidsb').append(createTableRow([(parseInt(lightid, 10) + 1)+'. '+lightName+'<br>('+lightHostname+')', '<select id="yee_'+lightid+'" '+enabled+' class="yee_sel_watch form-control">'
 											   + options
 											   + '</select>','<button class="btn btn-sm btn-primary" onClick=identify_yeelight_device("'+lightHostname+'",'+lightPort+')>'
 											   + $.i18n('wiz_identify_light',lightName)+'</button>']));
@@ -1612,6 +1613,276 @@ function identify_yeelight_device(hostname, port){
   	// res can be: false (timeout) or res.error (not found)
 	if(res && !res.error){
 		//const r = res.info;
+	}
+}
+
+//****************************
+// Wizard AtmoOrb
+//****************************
+var lights = null;
+function startWizardAtmoOrb(e)
+{
+	//create html
+
+	var atmoorb_title = 'wiz_atmoorb_title';
+	var atmoorb_intro1 = 'wiz_atmoorb_intro1';
+
+	$('#wiz_header').html('<i class="fa fa-magic fa-fw"></i>'+$.i18n(atmoorb_title));
+	$('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">'+$.i18n(atmoorb_title)+'</h4><p>'+$.i18n(atmoorb_intro1)+'</p>');
+
+	$('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><i class="fa fa-fw fa-check"></i>'
+	+$.i18n('general_btn_continue')+'</button><button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'
+	+$.i18n('general_btn_cancel')+'</button>');
+
+	$('#wizp2_body').html('<div id="wh_topcontainer"></div>');
+
+	$('#wh_topcontainer').append('<div class="form-group" id="usrcont" style="display:none"></div>');
+
+	$('#wizp2_body').append('<div id="orb_ids_t" style="display:none"><p style="font-weight:bold" id="orb_id_headline">'+$.i18n('wiz_atmoorb_desc2')+'</p></div>');
+
+	createTable("lidsh", "lidsb", "orb_ids_t");
+	$('.lidsh').append(createTableRow([$.i18n('edt_dev_spec_lights_title'),$.i18n('wiz_pos'),$.i18n('wiz_identify')], true));
+	$('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save" style="display:none"><i class="fa fa-fw fa-save"></i>'
+	+$.i18n('general_btn_save')+'</button><buttowindow.serverConfig.device = d;n type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>'
+	+$.i18n('general_btn_cancel')+'</button>');
+
+	//open modal
+	$("#wizard_modal").modal({backdrop : "static", keyboard: false, show: true });
+
+	//listen for continue
+	$('#btn_wiz_cont').off().on('click',function() {
+		beginWizardAtmoOrb();
+		$('#wizp1').toggle(false);
+		$('#wizp2').toggle(true);
+	});
+}
+
+function beginWizardAtmoOrb()
+{
+	lights = [];
+	configuredLights = [];
+
+	configruedOrbIds =  conf_editor.getEditor("root.specificOptions.orbIds").getValue().trim();
+	if ( configruedOrbIds.length !== 0 )
+	{
+	    configuredLights =  configruedOrbIds.split(",").map( Number );
+	}
+
+    var multiCastGroup = conf_editor.getEditor("root.specificOptions.output").getValue();
+    var multiCastPort = parseInt(conf_editor.getEditor("root.specificOptions.port").getValue());
+
+	discover_atmoorb_lights(multiCastGroup, multiCastPort);
+
+	$('#btn_wiz_save').off().on("click", function(){
+		var atmoorbLedConfig = [];
+		var finalLights = [];
+
+		//create atmoorb led config
+		for(var key in lights)
+		{
+			if($('#orb_'+key).val() !== "disabled")
+			{
+				// Set Name to layout-position, if empty
+				if ( lights[key].name === "" )
+				{
+					lights[key].name = $.i18n( 'conf_leds_layout_cl_'+$('#orb_'+key).val() );
+				}
+
+				finalLights.push( lights[key].id);
+
+				var name = lights[key].id;
+				if ( lights[key].host !== "")
+					name += ':' + lights[key].host;
+
+				var idx_content = assignLightPos(key, $('#orb_'+key).val(), name);
+				atmoorbLedConfig.push(JSON.parse(JSON.stringify(idx_content)));
+			}
+		}
+
+		//LED layout
+		window.serverConfig.leds = atmoorbLedConfig;
+
+		//LED device config
+		//Start with a clean configuration
+		var d = {};
+
+		d.type = 'atmoorb';
+		d.hardwareLedCount = finalLights.length;
+		d.colorOrder = conf_editor.getEditor("root.generalOptions.colorOrder").getValue();
+
+		d.orbIds = finalLights.toString();
+		d.useOrbSmoothing  = (eV("useOrbSmoothing") == true);
+
+		d.output = conf_editor.getEditor("root.specificOptions.output").getValue();
+		d.port = parseInt(conf_editor.getEditor("root.specificOptions.port").getValue());
+		d.latchTime = parseInt(conf_editor.getEditor("root.specificOptions.latchTime").getValue());;
+
+		window.serverConfig.device = d;
+
+		requestWriteConfig(window.serverConfig, true);
+		resetWizard();
+	});
+
+	$('#btn_wiz_abort').off().on('click', resetWizard);
+}
+
+function getIdInLights(id) {
+	return lights.filter(
+				function(lights) {
+					return lights.id === id
+				}
+				);
+}
+
+async function discover_atmoorb_lights(multiCastGroup, multiCastPort){
+
+  var light = {};
+
+  if ( multiCastGroup === "" )
+  	multiCastGroup = "239.255.255.250";
+
+  if ( multiCastPort === "")
+    multiCastPort = 49692;
+
+  let params = { multiCastGroup : multiCastGroup, multiCastPort : multiCastPort};
+
+  // Get discovered lights
+  const res = await requestLedDeviceDiscovery ('atmoorb', params);
+
+  // TODO: error case unhandled
+  // res can be: false (timeout) or res.error (not found)
+  if(res && !res.error){
+    const r = res.info
+
+	// Process devices returned by discovery
+	for(const device of r.devices)
+	{
+	    if( device.id !== "")
+	    {
+		    if ( getIdInLights ( device.id ).length === 0 )
+		    {
+		      light = {};
+		      light.id = device.id;
+		      light.ip = device.ip;
+		      light.host = device.hostname;
+		      lights.push(light);
+		    }
+	    }
+	}
+
+    // Add additional items from configuration
+    for(const keyConfig in configuredLights)
+    {
+      if ( configuredLights[keyConfig] !== "" && !isNaN(configuredLights[keyConfig]) ) 
+      {
+		  if ( getIdInLights ( configuredLights[keyConfig] ).length === 0 )
+		  {
+		  	light = {};
+			light.id = configuredLights[keyConfig];
+		    light.ip = "";
+		    light.host = "";	    
+		    lights.push(light);
+		  }
+	  }
+    }
+
+	lights.sort((a, b) => (a.id > b.id) ? 1 : -1);
+
+    assign_atmoorb_lights();
+  }
+}
+
+function assign_atmoorb_lights(){
+
+	// If records are left for configuration
+	if(Object.keys(lights).length > 0)
+	{
+		$('#wh_topcontainer').toggle(false);
+		$('#orb_ids_t, #btn_wiz_save').toggle(true);
+
+		var lightOptions = [
+					"top", "topleft", "topright",
+					"bottom", "bottomleft", "bottomright",
+					"left", "lefttop", "leftmiddle", "leftbottom",
+					"right", "righttop", "rightmiddle", "rightbottom",
+					"entire"
+				];
+
+		lightOptions.unshift("disabled");
+
+		$('.lidsb').html("");
+		var pos = "";
+
+		for(var lightid in lights)
+		{
+			var orbId = lights[lightid].id;
+			var orbIp = lights[lightid].ip;
+			var orbHostname = lights[lightid].host;
+
+			if ( orbHostname === "" )
+				orbHostname = $.i18n('edt_dev_spec_lights_itemtitle');
+
+			var options = "";
+			for(var opt in lightOptions)
+			{
+				var val = lightOptions[opt];
+				var txt = (val !== 'entire' && val !== 'disabled') ? 'conf_leds_layout_cl_' : 'wiz_ids_';
+				options+= '<option value="'+val+'"';
+				if(pos === val) options+=' selected="selected"';
+				options+= '>'+$.i18n(txt+val)+'</option>';
+			}
+
+			var enabled = 'enabled'
+			if ( orbId < 1 || orbId > 255 )
+			{
+				enabled = 'disabled'
+				options = '<option value=disabled>'+$.i18n('wiz_atmoorb_unsupported')+'</option>';
+			}
+
+			var lightAnnotation ="";
+			if ( orbIp !== "" )
+			{
+		      lightAnnotation = ': '+orbIp+'<br>('+orbHostname+')';
+			}
+
+			$('.lidsb').append(createTableRow([orbId + lightAnnotation, '<select id="orb_'+lightid+'" '+enabled+' class="orb_sel_watch form-control">'
+											   + options
+											   + '</select>','<button class="btn btn-sm btn-primary" ' +enabled+ ' onClick=identify_atmoorb_device('+orbId+')>'
+											   + $.i18n('wiz_identify_light',orbId)+'</button>']));
+		}
+
+		$('.orb_sel_watch').bind("change", function(){
+			var cC = 0;
+			for(var key in lights)
+			{
+				if($('#orb_'+key).val() !== "disabled")
+				{
+					cC++;
+				}
+			}
+			if ( cC === 0)
+				$('#btn_wiz_save').attr("disabled",true);
+			else
+				$('#btn_wiz_save').attr("disabled",false);
+		});
+		$('.orb_sel_watch').trigger('change');
+	}
+	else
+	{
+		var noLightsTxt = '<p style="font-weight:bold;color:red;">'+$.i18n('wiz_atmoorb_noLights')+'</p>';
+		$('#wizp2_body').append(noLightsTxt);
+	}
+}
+
+function identify_atmoorb_device(orbId){
+
+	let params = { id : orbId };
+
+	const res = requestLedDeviceIdentification ("atmoorb", params);
+	// TODO: error case unhandled
+  	// res can be: false (timeout) or res.error (not found)
+	if(res && !res.error){
+		const r = res.info
 	}
 }
 

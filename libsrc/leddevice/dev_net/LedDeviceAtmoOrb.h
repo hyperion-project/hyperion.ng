@@ -11,13 +11,10 @@
 
 class QUdpSocket;
 
-/**
- * Implementation for the AtmoOrb
- *
- * To use set the device to "atmoorb".
- *
- * @author RickDB (github)
- */
+///
+/// Implementation of the LedDevice interface for sending to
+/// AtmoOrb devices via network
+///
 class LedDeviceAtmoOrb : public LedDevice
 {
 	Q_OBJECT
@@ -42,6 +39,27 @@ public:
 	/// @return LedDevice constructed
 	///
 	static LedDevice* construct(const QJsonObject &deviceConfig);
+
+	///
+	/// @brief Discover AtmoOrb devices available (for configuration).
+	///
+	/// @return A JSON structure holding a list of devices found
+	///
+	virtual QJsonObject discover() override;
+
+	///
+	/// @brief Send an update to the AtmoOrb device to identify it.
+	///
+	/// Following parameters are required
+	/// @code
+	/// {
+	///     "orbId"  : "orb identifier in the range of (1-255)",
+	/// }
+	///@endcode
+	///
+	/// @param[in] params Parameters to address device
+	///
+	virtual void identify(const QJsonObject& params) override;
 
 protected:
 
@@ -111,14 +129,8 @@ private:
 	/// use Orbs own (external) smoothing algorithm
 	bool _useOrbSmoothing;
 
-	/// Transition time between colors (not implemented)
-	int _transitiontime;
-
 	// Maximum allowed color difference, will skip Orb (external) smoothing once reached
 	int _skipSmoothingDiff;
-
-	/// Number of leds in Orb, used to determine buffer size
-	int _numLeds;
 
 	/// Array of the orb ids.
 	QVector<int> _orbIds;
@@ -127,6 +139,8 @@ private:
 	QMap<int, int> lastColorRedMap;
 	QMap<int, int> lastColorGreenMap;
 	QMap<int, int> lastColorBlueMap;
+
+	QMultiMap<int, QHostAddress> _services;
 };
 
 #endif // LEDEVICEATMOORB_H

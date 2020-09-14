@@ -319,7 +319,7 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 		{
 			if ( _panelLedCount > this->getLedCount() )
 			{
-				Info(_log, "Nanoleaf: More panels [%u] than configured LEDs [%u].", _panelLedCount, configuredLedCount );
+				Info(_log, "%s: More panels [%u] than configured LEDs [%u].", QSTRING_CSTR(this->getActiveDeviceType()), _panelLedCount, configuredLedCount );
 			}
 
 			// Check, if start position + number of configured LEDs is greater than number of panels available
@@ -449,9 +449,7 @@ QJsonObject LedDeviceNanoleaf::getProperties(const QJsonObject& params)
 void LedDeviceNanoleaf::identify(const QJsonObject& params)
 {
 	Debug(_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData() );
-	QJsonObject properties;
 
-	// Get Nanoleaf device properties
 	QString host = params["host"].toString("");
 	if ( !host.isEmpty() )
 	{
