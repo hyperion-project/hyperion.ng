@@ -9,6 +9,8 @@
 // ssdp discover
 #include <ssdp/SSDPDiscover.h>
 
+#include <utils/DefaultSignalHandler.h>
+
 using namespace commandline;
 
 // save the image as screenshot
@@ -21,6 +23,8 @@ void saveScreenshot(QString filename, const Image<ColorRgb> & image)
 
 int main(int argc, char ** argv)
 {
+	DefaultSignalHandler::install();
+
 	QCoreApplication app(argc, argv);
 
 	try
@@ -62,7 +66,7 @@ int main(int argc, char ** argv)
 			if(argAddress.value(parser) == "127.0.0.1:19400")
 			{
 				SSDPDiscover discover;
-				address = discover.getFirstService(STY_FLATBUFSERVER);
+				address = discover.getFirstService(searchType::STY_FLATBUFSERVER);
 				if(address.isEmpty())
 				{
 					address = argAddress.value(parser);

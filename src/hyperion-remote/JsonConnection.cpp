@@ -121,7 +121,7 @@ void JsonConnection::setImage(QImage &image, int priority, int duration)
 
 void JsonConnection::setEffect(const QString &effectName, const QString & effectArgs, int priority, int duration)
 {
-    qDebug() << "Start effect " << effectName;
+	qDebug() << "Start effect " << effectName;
 
 	// create command
 	QJsonObject command, effect;
@@ -157,7 +157,7 @@ void JsonConnection::setEffect(const QString &effectName, const QString & effect
 
 void JsonConnection::createEffect(const QString &effectName, const QString &effectScript, const QString & effectArgs)
 {
-    qDebug() << "Create effect " << effectName;
+	qDebug() << "Create effect " << effectName;
 
 	// create command
 	QJsonObject effect;
@@ -185,7 +185,7 @@ void JsonConnection::createEffect(const QString &effectName, const QString &effe
 
 void JsonConnection::deleteEffect(const QString &effectName)
 {
-    qDebug() << "Delete effect configuration" << effectName;
+	qDebug() << "Delete effect configuration" << effectName;
 
 	// create command
 	QJsonObject effect;
@@ -290,7 +290,7 @@ void JsonConnection::clearAll()
 	parseReply(reply);
 }
 
-void JsonConnection::setComponentState(const QString & component, const bool state)
+void JsonConnection::setComponentState(const QString & component, bool state)
 {
 	qDebug() << (state ? "Enable" : "Disable") << "Component" << component;
 
@@ -372,7 +372,6 @@ void JsonConnection::setConfig(const QString &jsonString)
 	command["command"] = QString("config");
 	command["subcommand"] = QString("setconfig");
 
-
 	if (jsonString.size() > 0)
 	{
 		QJsonObject configObj;
@@ -383,9 +382,6 @@ void JsonConnection::setConfig(const QString &jsonString)
 
 		command["config"] = configObj;
 	}
-
-
-
 
 	// send command message
 	QJsonObject reply = sendMessage(command);
@@ -423,72 +419,26 @@ void JsonConnection::setAdjustment(
 		adjust["id"] = adjustmentId;
 	}
 
-	if (redAdjustment.isValid())
-	{
-		QJsonArray red;
-		red.append(redAdjustment.red());
-		red.append(redAdjustment.green());
-		red.append(redAdjustment.blue());
-		adjust["red"] = red;
-	}
+	const auto addAdjustmentIfValid = [&] (const QString & name, const QColor & adjustment) {
+		if (adjustment.isValid())
+		{
+			QJsonArray color;
+			color.append(adjustment.red());
+			color.append(adjustment.green());
+			color.append(adjustment.blue());
+			adjust[name] = color;
+		}
+	};
 
-	if (greenAdjustment.isValid())
-	{
-		QJsonArray green;
-		green.append(greenAdjustment.red());
-		green.append(greenAdjustment.green());
-		green.append(greenAdjustment.blue());
-		adjust["green"] = green;
-	}
+	addAdjustmentIfValid("red",     redAdjustment);
+	addAdjustmentIfValid("green",   greenAdjustment);
+	addAdjustmentIfValid("blue",    blueAdjustment);
+	addAdjustmentIfValid("cyan",    cyanAdjustment);
+	addAdjustmentIfValid("magenta", magentaAdjustment);
+	addAdjustmentIfValid("yellow",  yellowAdjustment);
+	addAdjustmentIfValid("white",   whiteAdjustment);
+	addAdjustmentIfValid("black",   blackAdjustment);
 
-	if (blueAdjustment.isValid())
-	{
-		QJsonArray blue;
-		blue.append(blueAdjustment.red());
-		blue.append(blueAdjustment.green());
-		blue.append(blueAdjustment.blue());
-		adjust["blue"] = blue;
-	}
-	if (cyanAdjustment.isValid())
-	{
-		QJsonArray cyan;
-		cyan.append(cyanAdjustment.red());
-		cyan.append(cyanAdjustment.green());
-		cyan.append(cyanAdjustment.blue());
-		adjust["cyan"] = cyan;
-	}
-	if (magentaAdjustment.isValid())
-	{
-		QJsonArray magenta;
-		magenta.append(magentaAdjustment.red());
-		magenta.append(magentaAdjustment.green());
-		magenta.append(magentaAdjustment.blue());
-		adjust["magenta"] = magenta;
-	}
-	if (yellowAdjustment.isValid())
-	{
-		QJsonArray yellow;
-		yellow.append(yellowAdjustment.red());
-		yellow.append(yellowAdjustment.green());
-		yellow.append(yellowAdjustment.blue());
-		adjust["yellow"] = yellow;
-	}
-	if (whiteAdjustment.isValid())
-	{
-		QJsonArray white;
-		white.append(whiteAdjustment.red());
-		white.append(whiteAdjustment.green());
-		white.append(whiteAdjustment.blue());
-		adjust["white"] = white;
-	}
-	if (blackAdjustment.isValid())
-	{
-		QJsonArray black;
-		black.append(blackAdjustment.red());
-		black.append(blackAdjustment.green());
-		black.append(blackAdjustment.blue());
-		adjust["black"] = black;
-	}
 	if (backlightThreshold != nullptr)
 	{
 		adjust["backlightThreshold"] = *backlightThreshold;
@@ -567,7 +517,7 @@ void JsonConnection::setToken(const QString &token)
 	parseReply(reply);
 }
 
-void JsonConnection::setInstance(const int &instance)
+void JsonConnection::setInstance(int instance)
 {
 	// create command
 	QJsonObject command;

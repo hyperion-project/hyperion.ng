@@ -18,11 +18,9 @@ bool compareLightpacks(LedDeviceLightpack * lhs, LedDeviceLightpack * rhs)
 }
 
 LedDeviceMultiLightpack::LedDeviceMultiLightpack(const QJsonObject &deviceConfig)
-	: LedDevice()
+	: LedDevice(deviceConfig)
 	, _lightpacks()
 {
-	_devConfig = deviceConfig;
-	_deviceReady = false;
 }
 
 LedDeviceMultiLightpack::~LedDeviceMultiLightpack()
@@ -38,14 +36,12 @@ LedDevice* LedDeviceMultiLightpack::construct(const QJsonObject &deviceConfig)
 	return new LedDeviceMultiLightpack(deviceConfig);
 }
 
-int LedDeviceMultiLightpack::open()
+bool LedDeviceMultiLightpack::init(const QJsonObject &deviceConfig)
 {
-	int retval = -1;
-	QString errortext;
-	_deviceReady = false;
+	bool isInitOK = false;
 
-	// General initialisation and configuration of LedDevice
-	if ( init(_devConfig) )
+	// Initialise sub-class
+	if ( LedDevice::init(deviceConfig) )
 	{
 		// retrieve a list with Lightpack serials
 		QStringList serialList = getLightpackSerials();
@@ -53,45 +49,82 @@ int LedDeviceMultiLightpack::open()
 		// sort the list of Lightpacks based on the serial to get a fixed order
 		std::sort(_lightpacks.begin(), _lightpacks.end(), compareLightpacks);
 
-		// open each lightpack device
-		foreach (auto serial , serialList)
+		// open each Lightpack device
+		for (auto serial : serialList)
 		{
-			LedDeviceLightpack * device = new LedDeviceLightpack(serial);
-			int error = device->open();
+			QJsonObject devConfig;
+			devConfig["serial"] = serial;
+			devConfig["latchTime"] = deviceConfig["latchTime"];
+			devConfig["rewriteTime"] = deviceConfig["rewriteTime"];
 
-			if (error == 0)
+			LedDeviceLightpack * device = new LedDeviceLightpack(devConfig);
+
+			device->start();
+			if (device->open() == 0)
 			{
 				_lightpacks.push_back(device);
 			}
 			else
 			{
-				//Error(_log, "Error while creating Lightpack device with serial %s", QSTRING_CSTR(serial));
-				errortext = QString ("Error while creating Lightpack device with serial %1").arg( serial );
+				Error(_log, "Error while creating Lightpack device with serial %s", QSTRING_CSTR(serial));
 				delete device;
 			}
 		}
 
-		if (_lightpacks.size() == 0)
+		if (_lightpacks.empty())
 		{
 			//Warning(_log, "No Lightpack devices were found");
-			errortext = QString ("No Lightpack devices were found");
+			QString errortext = QString ("No Lightpack devices were found");
+			this->setInError(errortext);
+			isInitOK = false;
 		}
 		else
 		{
 			Info(_log, "%d Lightpack devices were found", _lightpacks.size());
-
-			// Everything is OK -> enable device
-			_deviceReady = true;
-			setEnable(true);
-			retval = 0;
-		}
-		// On error/exceptions, set LedDevice in error
-		if ( retval < 0 )
-		{
-			this->setInError( errortext );
+			isInitOK = true;
 		}
 	}
+	return isInitOK;
+}
+
+int LedDeviceMultiLightpack::open()
+{
+	int retval = -1;
+	_isDeviceReady = false;
+
+	int lightsInError = 0;
+	// open each Lightpack device
+	for (LedDeviceLightpack * device : _lightpacks)
+	{
+		if (device->open() < 0)
+		{
+			Error( _log, "Failed to open [%s]", QSTRING_CSTR(device->getSerialNumber()) );
+			++lightsInError;
+		}
+	}
+
+	if ( lightsInError < static_cast<int>(_lightpacks.size()) )
+	{
+		// Everything is OK -> enable device
+		_isDeviceReady = true;
+		retval = 0;
+	}
+	else
+	{
+		this->setInError( "All Lightpacks failed to be opened!" );
+	}
 	return retval;
+}
+
+int LedDeviceMultiLightpack::close()
+{
+	_isDeviceReady = false;
+
+	for (LedDeviceLightpack * device : _lightpacks)
+	{
+			device->close();
+	}
+	return 0;
 }
 
 int LedDeviceMultiLightpack::write(const std::vector<ColorRgb> &ledValues)
@@ -105,7 +138,10 @@ int LedDeviceMultiLightpack::write(const std::vector<ColorRgb> &ledValues)
 
 		if (count > 0)
 		{
-			device->write(data, count);
+			if ( device->isOpen() )
+			{
+				device->write(data, count);
+			}
 
 			data += count;
 			size -= count;
@@ -119,14 +155,16 @@ int LedDeviceMultiLightpack::write(const std::vector<ColorRgb> &ledValues)
 	return 0;
 }
 
-int LedDeviceMultiLightpack::switchOff()
+bool LedDeviceMultiLightpack::powerOff()
 {
 	for (LedDeviceLightpack * device : _lightpacks)
 	{
-		device->switchOff();
+		if ( device->isOpen() )
+		{
+			device->powerOff();
+		}
 	}
-
-	return 0;
+	return true;
 }
 
 QStringList LedDeviceMultiLightpack::getLightpackSerials()
@@ -135,7 +173,7 @@ QStringList LedDeviceMultiLightpack::getLightpackSerials()
 	Logger * log = Logger::getInstance("LedDevice");
 	Debug(log, "Getting list of Lightpack serials");
 
-	// initialize the usb context
+	// initialize the USB context
 	libusb_context * libusbContext;
 	int error = libusb_init(&libusbContext);
 	if (error != LIBUSB_SUCCESS)
@@ -147,7 +185,7 @@ QStringList LedDeviceMultiLightpack::getLightpackSerials()
 	//libusb_set_debug(_libusbContext, 3);
 	Info(log, "USB context initialized in multi Lightpack device");
 
-	// retrieve the list of usb devices
+	// retrieve the list of USB devices
 	libusb_device ** deviceList;
 	ssize_t deviceCount = libusb_get_device_list(libusbContext, &deviceList);
 
@@ -165,7 +203,7 @@ QStringList LedDeviceMultiLightpack::getLightpackSerials()
 		if ((deviceDescriptor.idVendor == USB_VENDOR_ID && deviceDescriptor.idProduct == USB_PRODUCT_ID) ||
 			(deviceDescriptor.idVendor == USB_OLD_VENDOR_ID && deviceDescriptor.idProduct == USB_OLD_PRODUCT_ID))
 		{
-			Info(log, "Found a lightpack device. Retrieving serial...");
+			Info(log, "Found a Lightpack device. Retrieving serial...");
 
 			// get the serial number
 			QString serialNumber;
@@ -183,7 +221,7 @@ QStringList LedDeviceMultiLightpack::getLightpackSerials()
 				}
 			}
 
-			Error(log, "Lightpack device found with serial %s", QSTRING_CSTR(serialNumber));;
+			Info(log, "Lightpack device found with serial %s", QSTRING_CSTR(serialNumber));
 			serialList.append(serialNumber);
 		}
 	}

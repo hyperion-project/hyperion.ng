@@ -18,18 +18,18 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        dockerTag: [ amd64, armv6hf, armv7hf, aarch64 ]
+        dockerImage: [ x86_64, armv6l, armv7l, aarch64 ]
         include:
-          - dockerTag: amd64
-            dockerName: Debian Stretch (AMD64)
+          - dockerImage: x86_64
+            dockerName: Debian Stretch (x86_64)
             platform: x11
-          - dockerTag: armv6hf
+          - dockerImage: armv6l
             dockerName: Debian Stretch (Raspberry Pi v1 & ZERO)
             platform: rpi
-          - dockerTag: armv7hf
+          - dockerImage: armv7l
             dockerName: Debian Stretch (Raspberry Pi 2 & 3)
             platform: rpi
-          - dockerTag: aarch64
+          - dockerImage: aarch64
             dockerName: Debian Stretch (Generic AARCH64)
             platform: amlogic
 
@@ -41,7 +41,8 @@ jobs:
       # build process
       - name: Build packages
         env:
-          DOCKER_TAG: ${{ matrix.dockerTag }}
+          DOCKER_IMAGE: ${{ matrix.dockerImage }}
+          DOCKER_TAG: stretch
           DOCKER_NAME: ${{ matrix.dockerName }}
           PLATFORM: ${{ matrix.platform }}
         shell: bash
@@ -92,6 +93,8 @@ jobs:
   windows:
     name: Windows
     runs-on: windows-latest
+    env:
+      VCINSTALLDIR: 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC'
     steps:
       - name: Checkout
         uses: actions/checkout@v1
@@ -110,9 +113,15 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Install NSIS
+        run: choco install --no-progress nsis -y
+
+      - name: Install OpenSSL
+        run: choco install --no-progress openssl -y
+
       - name: Set up x64 build architecture environment
         shell: cmd
-        run: call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+        run: call "${{env.VCINSTALLDIR}}\Auxiliary\Build\vcvars64.bat"
 
       # Build packages
       - name: Build packages
@@ -120,6 +129,13 @@ jobs:
           PLATFORM: windows
         shell: bash
         run: ./.ci/ci_build.sh
+
+      # upload artifacts (only on tagged commit)
+      - name: Upload artifacts
+        if: startsWith(github.event.ref, 'refs/tags')
+        uses: actions/upload-artifact@v2
+        with:
+          path: build/Hyperion-*
 
 ######################
 #### Documentation ###
@@ -165,7 +181,7 @@ jobs:
   publish:
     name: Publish Releases
     if: startsWith(github.event.ref, 'refs/tags')
-    needs: [Linux, macOS, Docs]
+    needs: [Linux, macOS, windows, Docs]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -200,11 +216,3 @@ jobs:
           prerelease: ${{ env.preRelease }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      # Dispatch event to build new HyperBian image
-      - name: Dispatch HyperBian build
-        uses: peter-evans/repository-dispatch@v1
-        if: ${{ github.repository_owner == 'hyperion-project'}}
-        with:
-          repository: hyperion-project/HyperBian
-          token: ${{ secrets.HYPERION_BOT_TOKEN }}
-          event-type: hyperion_push

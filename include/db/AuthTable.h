@@ -29,7 +29,6 @@ public:
 		// create table columns
 		createTable(QStringList()<<"user TEXT"<<"password BLOB"<<"token BLOB"<<"salt BLOB"<<"comment TEXT"<<"id TEXT"<<"created_at TEXT"<<"last_use TEXT");
 	};
-	~AuthTable(){};
 
 	///
 	/// @brief      Create a user record, if called on a existing user the auth is recreated

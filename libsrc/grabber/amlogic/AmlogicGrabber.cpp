@@ -20,7 +20,7 @@
 #define VIDEO_DEVICE   "/dev/amvideo"
 #define CAPTURE_DEVICE "/dev/amvideocap0"
 
-AmlogicGrabber::AmlogicGrabber(const unsigned width, const unsigned height)
+AmlogicGrabber::AmlogicGrabber(unsigned width, unsigned height)
 	: Grabber("AMLOGICGRABBER", qMax(160u, width), qMax(160u, height)) // Minimum required width or height is 160
 	, _captureDev(-1)
 	, _videoDev(-1)
@@ -159,7 +159,7 @@ int AmlogicGrabber::grabFrame_amvideocap(Image<ColorRgb> & image)
 	}
 
 	_useImageResampler = true;
-	_imageResampler.processImage((const uint8_t*)_image_ptr, _width, _height, (_width << 1) + _width, PIXELFORMAT_BGR24, image);
+	_imageResampler.processImage((const uint8_t*)_image_ptr, _width, _height, (_width << 1) + _width, PixelFormat::BGR24, image);
 	_lastError = 0;
 
 	return 0;

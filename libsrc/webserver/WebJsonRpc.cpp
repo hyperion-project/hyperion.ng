@@ -6,7 +6,7 @@
 
 #include <api/JsonAPI.h>
 
-WebJsonRpc::WebJsonRpc(QtHttpRequest* request, QtHttpServer* server, const bool& localConnection, QtHttpClientWrapper* parent)
+WebJsonRpc::WebJsonRpc(QtHttpRequest* request, QtHttpServer* server, bool localConnection, QtHttpClientWrapper* parent)
 	: QObject(parent)
 	, _server(server)
 	, _wrapper(parent)

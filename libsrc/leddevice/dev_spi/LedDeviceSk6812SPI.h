@@ -1,39 +1,47 @@
-#pragma once
+#ifndef LEDEVICESK6812SPI_H
+#define LEDEVICESK6812SPI_H
 
 // hyperion includes
 #include "ProviderSpi.h"
 
 ///
-/// Implementation of the LedDevice interface for writing to Sk6801 led device via SPI.
+/// Implementation of the LedDevice interface for writing to Sk6801 LED-device via SPI.
 ///
 class LedDeviceSk6812SPI : public ProviderSpi
 {
 public:
+
 	///
-	/// Constructs specific LedDevice
+	/// @brief Constructs a Sk6801 LED-device
 	///
-	/// @param deviceConfig json device config
+	/// @param deviceConfig Device's configuration as JSON-Object
 	///
 	explicit LedDeviceSk6812SPI(const QJsonObject &deviceConfig);
 
-	/// constructs leddevice
+	///
+	/// @brief Constructs the LED-device
+	///
+	/// @param[in] deviceConfig Device's configuration as JSON-Object
+	/// @return LedDevice constructed
 	static LedDevice* construct(const QJsonObject &deviceConfig);
 
-	///
-	/// Sets configuration
-	///
-	/// @param deviceConfig the json device config
-	/// @return true if success
-	bool init(const QJsonObject &deviceConfig) override;
-	
 private:
+
 	///
-	/// Writes the led color values to the led-device
+	/// @brief Initialise the device's configuration
 	///
-	/// @param ledValues The color-value per led
-	/// @return Zero on succes else negative
+	/// @param[in] deviceConfig the JSON device configuration
+	/// @return True, if success
 	///
-	virtual int write(const std::vector<ColorRgb> &ledValues) override;
+	bool init(const QJsonObject &deviceConfig) override;
+
+	///
+	/// @brief Writes the RGB-Color values to the LEDs.
+	///
+	/// @param[in] ledValues The RGB-color per LED
+	/// @return Zero on success, else negative
+	///
+	int write(const std::vector<ColorRgb> & ledValues) override;
 
 	RGBW::WhiteAlgorithm _whiteAlgorithm;
 
@@ -42,3 +50,5 @@ private:
 
 	ColorRgbw _temp_rgbw;
 };
+
+#endif // LEDEVICESK6812SPI_H

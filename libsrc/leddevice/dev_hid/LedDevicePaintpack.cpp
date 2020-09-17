@@ -2,11 +2,8 @@
 
 // Use out report HID device
 LedDevicePaintpack::LedDevicePaintpack(const QJsonObject &deviceConfig)
-	: ProviderHID()
+	: ProviderHID(deviceConfig)
 {
-	_devConfig = deviceConfig;
-	_deviceReady = false;
-
 	_useFeature = false;
 }
 
@@ -17,12 +14,17 @@ LedDevice* LedDevicePaintpack::construct(const QJsonObject &deviceConfig)
 
 bool LedDevicePaintpack::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = ProviderHID::init(deviceConfig);
+	bool isInitOK = false;
 
-	_ledBuffer.resize(_ledRGBCount + 2, uint8_t(0));
-	_ledBuffer[0] = 3;
-	_ledBuffer[1] = 0;
+	// Initialise sub-class
+	if ( ProviderHID::init(deviceConfig) )
+	{
+		_ledBuffer.resize(_ledRGBCount + 2, uint8_t(0));
+		_ledBuffer[0] = 3;
+		_ledBuffer[1] = 0;
 
+		isInitOK = true;
+	}
 	return isInitOK;
 }
 

@@ -19,14 +19,14 @@ public:
 		{
 			if (path.first() == "[root]")
 				path.removeFirst();
-			
+
 			for (QStringList::iterator it = path.begin(); it != path.end(); ++it)
 			{
 				QString current = *it;
 				if (current.left(1) == ".")
 					*it = current.mid(1, current.size()-1);
 			}
-			
+
 			if (!value.isEmpty())
 				modifyValue(value, result, path, newValue, propertyName);
 			else if (newValue != QJsonValue::Null && !propertyName.isEmpty())
@@ -78,17 +78,17 @@ private:
 	{
 		QJsonObject result;
 		QJsonObject obj = schema.toObject();
-		
+
 		if (obj.find("type") != obj.end() && obj.find("type").value().isString())
 		{
 			QJsonValue ret = QJsonValue::Null;
-			
+
 			if (obj.find("type").value().toString() == "object" && ( obj.find("required").value().toBool() || ignoreRequired ) )
 				ret = createValue(obj["properties"], ignoreRequired);
 			else if (obj.find("type").value().toString() == "array" && ( obj.find("required").value().toBool() || ignoreRequired ) )
 			{
 				QJsonArray array;
-				
+
 				if (obj.find("default") != obj.end())
 					ret = obj.find("default").value();
 				else
@@ -103,7 +103,7 @@ private:
 			else if ( obj.find("required").value().toBool() || ignoreRequired )
 				if (obj.find("default") != obj.end())
 					ret = obj.find("default").value();
-			
+
 			return ret;
 		}
 		else
@@ -133,7 +133,7 @@ private:
 						{
 							QJsonValue retEmpty;
 							retEmpty = createValue(attributeValue.toObject()["items"], ignoreRequired);
-							
+
 							if (!retEmpty.toObject().isEmpty())
 								array.append(retEmpty);
 							result[attribute] = array;
@@ -234,7 +234,7 @@ private:
 									subValue = newValue;
 								else
 									continue;
-								
+
 								if (!subValue.toObject().isEmpty())
 									json_array.append(subValue);
 								else if (newValue != QJsonValue::Null && arrayLevel != -1)

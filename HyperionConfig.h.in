@@ -18,6 +18,9 @@
 // Define to enable the x11 grabber
 #cmakedefine ENABLE_X11
 
+// Define to enable the xcb grabber
+#cmakedefine ENABLE_XCB
+
 // Define to enable the qt grabber
 #cmakedefine ENABLE_QT
 
@@ -33,11 +36,17 @@
 // Define to enable avahi
 #cmakedefine ENABLE_AVAHI
 
+// Define to enable cec
+#cmakedefine ENABLE_CEC
+
 // Define to enable the usb / hid devices
 #cmakedefine ENABLE_USB_HID
 
 // Define to enable profiler for development purpose
 #cmakedefine ENABLE_PROFILER
+
+// Define to enable experimental features
+#cmakedefine ENABLE_EXPERIMENTAL
 
 // the hyperion build id string
 #define HYPERION_BUILD_ID "${HYPERION_BUILD_ID}"

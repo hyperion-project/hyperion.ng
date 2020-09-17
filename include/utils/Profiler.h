@@ -21,7 +21,7 @@ For more profiler function see the macros listed below
 */
 
 #ifndef ENABLE_PROFILER
-	#error "Profiler is not for productive code, enable it via cmake or remove header include"
+	#error "Profiler is not for production code, enable it via cmake or remove header include"
 #endif
 
 // profiler
@@ -30,15 +30,14 @@ For more profiler function see the macros listed below
 #define PROFILER_TIMER_GET(stopWatchName)    Profiler::TimerGetTime(stopWatchName, __FILE__, __FUNCTION__, __LINE__);
 #define PROFILER_TIMER_GET_IF(condition, stopWatchName) { if (condition) {Profiler::TimerGetTime(stopWatchName, __FILE__, __FUNCTION__, __LINE__);} }
 
-
 class Profiler
 {
 public:
 	Profiler(const char* sourceFile, const char* func, unsigned int line);
 	~Profiler();
 
-	static void TimerStart(const QString stopWatchName, const char* sourceFile, const char* func, unsigned int line);
-	static void TimerGetTime(const QString stopWatchName, const char* sourceFile, const char* func, unsigned int line);
+	static void TimerStart(const QString& stopWatchName, const char* sourceFile, const char* func, unsigned int line);
+	static void TimerGetTime(const QString& stopWatchName, const char* sourceFile, const char* func, unsigned int line);
 
 private:
 	static void initLogger();
@@ -50,4 +49,3 @@ private:
 	unsigned int    _blockId;
 	clock_t         _startTime;
 };
-

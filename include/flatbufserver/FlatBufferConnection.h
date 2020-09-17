@@ -14,9 +14,12 @@
 #include <utils/VideoMode.h>
 #include <utils/Logger.h>
 
-// flatbuffer FBS
-#include "hyperion_reply_generated.h"
-#include "hyperion_request_generated.h"
+#include <flatbuffers/flatbuffers.h>
+
+namespace hyperionnet
+{
+struct Reply;
+}
 
 ///
 /// Connection class to setup an connection to the hyperion server and execute commands.
@@ -32,15 +35,15 @@ public:
 	/// @param address The address of the Hyperion server (for example "192.168.0.32:19444)
 	/// @param skipReply  If true skip reply
 	///
-	FlatBufferConnection(const QString& origin, const QString & address, const int& priority, const bool& skipReply);
+	FlatBufferConnection(const QString& origin, const QString & address, int priority, bool skipReply);
 
 	///
 	/// @brief Destructor
 	///
-	~FlatBufferConnection();
+	~FlatBufferConnection() override;
 
 	/// @brief Do not read reply messages from Hyperion if set to true
-	void setSkipReply(const bool& skip);
+	void setSkipReply(bool skip);
 
 	///
 	/// @brief Register a new priority with given origin
@@ -97,7 +100,7 @@ signals:
 	///
 	/// @brief emits when a new videoMode was requested from flatbuf client
 	///
-	void setVideoMode(const VideoMode videoMode);
+	void setVideoMode(VideoMode videoMode);
 
 private:
 

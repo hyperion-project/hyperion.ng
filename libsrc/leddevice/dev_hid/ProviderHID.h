@@ -1,6 +1,5 @@
-#pragma once
-
-#include <QObject>
+#ifndef PROVIDERHID_H
+#define PROVIDERHID_H
 
 // libusb include
 #include <hidapi/hidapi.h>
@@ -16,47 +15,58 @@ class ProviderHID : public LedDevice
 	Q_OBJECT
 
 public:
-	///
-	/// Constructs specific LedDevice
-	///
-	ProviderHID();
 
 	///
-	/// Destructor of the LedDevice; closes the output device if it is open
+	/// @brief Constructs a HID (USB) LED-device
 	///
-	virtual ~ProviderHID() override;
+	/// @param deviceConfig Device's configuration as JSON-Object
+	///
+	ProviderHID(const QJsonObject &deviceConfig);
 
 	///
-	/// Sets configuration
+	/// @brief Destructor of the LedDevice
 	///
-	/// @param deviceConfig the json device config
-	/// @return true if success
-	virtual bool init(const QJsonObject &deviceConfig) override;
+	~ProviderHID() override;
 
-public slots:
 	///
-	/// Closes the output device.
-	/// Includes switching-off the device and stopping refreshes
+	/// @brief Discover HIB (USB) devices available (for configuration).
 	///
-	virtual void close() override;
+	/// @return A JSON structure holding a list of devices found
+	///
+	QJsonObject discover() override;
 
 protected:
+
 	///
-	/// Opens and configures the output device
+	/// @brief Initialise the device's configuration
 	///
-	/// @return Zero on succes else negative
+	/// @param[in] deviceConfig the JSON device configuration
+	/// @return True, if success
+	///
+	bool init(const QJsonObject &deviceConfig) override;
+
+	///
+	/// @brief Opens the output device.
+	///
+	/// @return Zero on success (i.e. device is ready), else negative
 	///
 	int open() override;
 
-	/**
-	 * Writes the given bytes to the HID-device and
-	 *
-	 * @param[in] size The length of the data
-	 * @param[in] data The data
-	 *
-	 * @return Zero on succes else negative
-	 */
-	int writeBytes(const unsigned size, const uint8_t *data);
+	///
+	/// @brief Closes the output device.
+	///
+	/// @return Zero on success (i.e. device is closed), else negative
+	///
+	int close() override;
+
+	///
+	/// @brief Write the given bytes to the HID-device
+	///
+	/// @param[in[ size The length of the data
+	/// @param[in] data The data
+	/// @return Zero on success, else negative
+	///
+	int writeBytes(unsigned size, const uint8_t *data);
 
 	// HID VID and PID
 	unsigned short _VendorId;
@@ -74,4 +84,10 @@ protected:
 private slots:
 	/// Unblock the device after a connection delay
 	void unblockAfterDelay();
+
+
+private:
+
 };
+
+#endif // PROVIDERHID_H

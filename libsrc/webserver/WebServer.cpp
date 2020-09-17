@@ -12,8 +12,7 @@
 // netUtil
 #include <utils/NetUtils.h>
 
-
-WebServer::WebServer(const QJsonDocument& config, const bool& useSsl, QObject * parent)
+WebServer::WebServer(const QJsonDocument& config, bool useSsl, QObject * parent)
 	:  QObject(parent)
 	, _config(config)
 	, _useSsl(useSsl)
@@ -54,7 +53,7 @@ void WebServer::initServer()
 
 void WebServer::onServerStarted (quint16 port)
 {
-	_inited= true;
+	_inited = true;
 
 	Info(_log, "Started on port %d name '%s'", port ,_server->getServerName().toStdString().c_str());
 #ifdef ENABLE_AVAHI
@@ -84,7 +83,7 @@ void WebServer::onServerError (QString msg)
 	Error(_log, "%s", msg.toStdString().c_str());
 }
 
-void WebServer::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
+void WebServer::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
 	if(type == settings::WEBSERVER)
 	{

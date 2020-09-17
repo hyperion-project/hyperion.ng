@@ -19,18 +19,13 @@ public:
 	/// @param[in] pixelDecimation   Decimation factor for image [pixels]
 	/// @param[in] updateRate_Hz     The image grab rate [Hz]
 	///
-	QtWrapper(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation, int display, const unsigned updateRate_Hz);
-
-	///
-	/// Destructor of this qt frame grabber. Releases any claimed resources.
-	///
-	virtual ~QtWrapper() {};
+	QtWrapper(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation, int display, unsigned updateRate_Hz);
 
 public slots:
 	///
 	/// Performs a single frame grab and computes the led-colors
 	///
-	virtual void action();
+	void action() override;
 
 private:
 	/// The actual grabber

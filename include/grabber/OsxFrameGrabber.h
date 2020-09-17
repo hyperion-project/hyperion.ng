@@ -24,8 +24,8 @@ public:
 	/// @param[in] width  The width of the captured screenshot
 	/// @param[in] height The heigth of the captured screenshot
 	///
-	OsxFrameGrabber(const unsigned display, const unsigned width, const unsigned height);
-	~OsxFrameGrabber();
+	OsxFrameGrabber(unsigned display, unsigned width, unsigned height);
+	~OsxFrameGrabber() override;
 
 	///
 	/// Captures a single snapshot of the display and writes the data to the given image. The
@@ -40,7 +40,7 @@ public:
 	///
 	/// @brief Overwrite Grabber.h implementation
 	///
-	virtual void setDisplayIndex(int index);
+	void setDisplayIndex(int index) override;
 
 private:
 	/// display

@@ -5,7 +5,6 @@
 
 class SysInfo : public QObject
 {
-
 public:
 	struct HyperionSysInfo
 	{
@@ -20,7 +19,6 @@ public:
 		QString domainName;
 	};
 
-	~SysInfo();
 	static HyperionSysInfo get();
 
 private:

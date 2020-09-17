@@ -18,11 +18,12 @@
 #include <hyperion/ImageProcessor.h>
 #include "HyperionConfig.h"
 #include <hyperion/Hyperion.h>
+#include <utils/QStringUtils.h>
 
 // project includes
 #include "BoblightClientConnection.h"
 
-BoblightClientConnection::BoblightClientConnection(Hyperion* hyperion, QTcpSocket *socket, const int priority)
+BoblightClientConnection::BoblightClientConnection(Hyperion* hyperion, QTcpSocket *socket, int priority)
 	: QObject()
 	, _locale(QLocale::C)
 	, _socket(socket)
@@ -38,8 +39,8 @@ BoblightClientConnection::BoblightClientConnection(Hyperion* hyperion, QTcpSocke
 	_locale.setNumberOptions(QLocale::OmitGroupSeparator | QLocale::RejectGroupSeparator);
 
 	// connect internal signals and slots
-	connect(_socket, SIGNAL(disconnected()), this, SLOT(socketClosed()));
-	connect(_socket, SIGNAL(readyRead()), this, SLOT(readData()));
+	connect(_socket, &QTcpSocket::disconnected, this, &BoblightClientConnection::socketClosed);
+	connect(_socket, &QTcpSocket::readyRead, this, &BoblightClientConnection::readData);
 }
 
 BoblightClientConnection::~BoblightClientConnection()
@@ -81,7 +82,7 @@ void BoblightClientConnection::readData()
 void BoblightClientConnection::socketClosed()
 {
 	 // clear the current channel
-	if (_priority != 0 && _priority >= 128 && _priority < 254)
+	if (_priority >= 128 && _priority < 254)
 		_hyperion->clear(_priority);
 
 	emit connectionClosed(this);
@@ -90,9 +91,7 @@ void BoblightClientConnection::socketClosed()
 void BoblightClientConnection::handleMessage(const QString & message)
 {
 	//std::cout << "boblight message: " << message.toStdString() << std::endl;
-
-	QStringList messageParts = message.split(" ", QString::SkipEmptyParts);
-
+	QStringList messageParts = QStringUtils::split(message," ",QStringUtils::SplitBehavior::SkipEmptyParts);
 	if (messageParts.size() > 0)
 	{
 		if (messageParts[0] == "hello")
@@ -214,7 +213,7 @@ void BoblightClientConnection::handleMessage(const QString & message)
 		}
 		else if (messageParts[0] == "sync")
 		{
-			if (_priority != 0 && _priority >= 128 && _priority < 254)
+			if ( _priority >= 128 && _priority < 254)
 				_hyperion->setInput(_priority, _ledColors); // send current color values to hyperion
 
 			return;

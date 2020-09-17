@@ -7,7 +7,7 @@ using namespace hyperion;
 
 ComponentRegister::ComponentRegister(Hyperion* hyperion)
 	: _hyperion(hyperion)
-	, _log(Logger::getInstance("ComponentRegister"))
+	, _log(Logger::getInstance("COMPONENTREG"))
 {
 	// init all comps to false
 	QVector<hyperion::Components> vect;
@@ -24,12 +24,12 @@ ComponentRegister::~ComponentRegister()
 {
 }
 
-int ComponentRegister::isComponentEnabled(const hyperion::Components& comp) const
+int ComponentRegister::isComponentEnabled(hyperion::Components comp) const
 {
 	return (_componentStates.count(comp)) ? _componentStates.at(comp) : -1;
 }
 
-void ComponentRegister::setNewComponentState(const hyperion::Components comp, const bool activated)
+void ComponentRegister::setNewComponentState(hyperion::Components comp, bool activated)
 {
 	if(_componentStates[comp] != activated)
 	{
@@ -40,7 +40,7 @@ void ComponentRegister::setNewComponentState(const hyperion::Components comp, co
 	}
 }
 
-void ComponentRegister::handleCompStateChangeRequest(const hyperion::Components comps, const bool activated)
+void ComponentRegister::handleCompStateChangeRequest(hyperion::Components comps, bool activated)
 {
 	if(comps == COMP_ALL && !_inProgress)
 	{

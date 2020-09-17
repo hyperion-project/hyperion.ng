@@ -26,11 +26,6 @@ public:
 	///
 	RgbTransform(double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation);
 
-	///
-	/// Destructor
-	///
-	~RgbTransform();
-
 	/// @return The current red gamma value
 	double getGammaR() const;
 
@@ -84,7 +79,7 @@ public:
 	///
 	/// @note The values are updated in place.
 	///
-	void getBrightnessComponents(uint8_t & rgb, uint8_t & cmy, uint8_t & w );
+	void getBrightnessComponents(uint8_t & rgb, uint8_t & cmy, uint8_t & w) const;
 
 	///
 	/// Apply the transform the the given RGB values.
@@ -126,7 +121,7 @@ private:
 	double    _gammaR
 		, _gammaG
 		, _gammaB;
-	
+
 	/// The mapping from input color to output color
 	uint8_t   _mappingR[256]
 		, _mappingG[256]

@@ -28,10 +28,10 @@ public:
 	Option(const QCommandLineOption &other);
 
 	virtual bool validate(Parser &parser, QString &value);
-	QString name();
-    QString getError();
-    QString value(Parser &parser);
-	const char* getCString(Parser &parser);
+	QString name() const;
+	QString getError() const;
+	QString value(Parser &parser) const;
+	const char* getCString(Parser &parser) const;
 
 protected:
 	QString _error;

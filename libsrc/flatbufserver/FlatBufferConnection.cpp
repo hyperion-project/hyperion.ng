@@ -7,12 +7,16 @@
 // flatbuffer includes
 #include <flatbufserver/FlatBufferConnection.h>
 
-FlatBufferConnection::FlatBufferConnection(const QString& origin, const QString & address, const int& priority, const bool& skipReply)
+// flatbuffer FBS
+#include "hyperion_reply_generated.h"
+#include "hyperion_request_generated.h"
+
+FlatBufferConnection::FlatBufferConnection(const QString& origin, const QString & address, int priority, bool skipReply)
 	: _socket()
 	, _origin(origin)
 	, _priority(priority)
 	, _prevSocketState(QAbstractSocket::UnconnectedState)
-	, _log(Logger::getInstance("FLATBUFCONNECTION"))
+	, _log(Logger::getInstance("FLATBUFCONN"))
 	, _registered(false)
 {
 	QStringList parts = address.split(":");
@@ -81,7 +85,7 @@ void FlatBufferConnection::readData()
 	}
 }
 
-void FlatBufferConnection::setSkipReply(const bool& skip)
+void FlatBufferConnection::setSkipReply(bool skip)
 {
 	if(skip)
 		disconnect(&_socket, &QTcpSocket::readyRead, 0, 0);

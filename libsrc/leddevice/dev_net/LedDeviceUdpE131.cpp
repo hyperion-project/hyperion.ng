@@ -9,18 +9,39 @@
 // hyperion local includes
 #include "LedDeviceUdpE131.h"
 
+const ushort E131_DEFAULT_PORT = 5568;
+
+/* defined parameters from http://tsp.esta.org/tsp/documents/docs/BSR_E1-31-20xx_CP-2014-1009r2.pdf */
+const uint32_t VECTOR_ROOT_E131_DATA = 0x00000004;
+//#define VECTOR_ROOT_E131_EXTENDED               0x00000008
+const uint8_t VECTOR_DMP_SET_PROPERTY = 0x02;
+const uint32_t VECTOR_E131_DATA_PACKET = 0x00000002;
+//#define VECTOR_E131_EXTENDED_SYNCHRONIZATION    0x00000001
+//#define VECTOR_E131_EXTENDED_DISCOVERY          0x00000002
+//#define VECTOR_UNIVERSE_DISCOVERY_UNIVERSE_LIST 0x00000001
+//#define E131_E131_UNIVERSE_DISCOVERY_INTERVAL   10         // seconds
+//#define E131_NETWORK_DATA_LOSS_TIMEOUT          2500       // milli econds
+//#define E131_DISCOVERY_UNIVERSE                 64214
+const int DMX_MAX = 512; // 512 usable slots
+
 LedDeviceUdpE131::LedDeviceUdpE131(const QJsonObject &deviceConfig)
-	: ProviderUdp()
+	: ProviderUdp(deviceConfig)
 {
-	_devConfig = deviceConfig;
-	_deviceReady = false;
+}
+
+LedDevice* LedDeviceUdpE131::construct(const QJsonObject &deviceConfig)
+{
+	return new LedDeviceUdpE131(deviceConfig);
 }
 
 bool LedDeviceUdpE131::init(const QJsonObject &deviceConfig)
 {
+	bool isInitOK = false;
+
 	_port = E131_DEFAULT_PORT;
-	bool isInitOK = ProviderUdp::init(deviceConfig);
-	if ( isInitOK )
+
+	// Initialise sub-class
+	if ( ProviderUdp::init(deviceConfig) )
 	{
 		_e131_universe = deviceConfig["universe"].toInt(1);
 		_e131_source_name = deviceConfig["source-name"].toString("hyperion on "+QHostInfo::localHostName());
@@ -29,24 +50,28 @@ bool LedDeviceUdpE131::init(const QJsonObject &deviceConfig)
 		if (_json_cid.isEmpty())
 		{
 			_e131_cid = QUuid::createUuid();
-			Debug( _log, "e131 no cid found, generated %s", QSTRING_CSTR(_e131_cid.toString()));
+			Debug( _log, "e131 no CID found, generated %s", QSTRING_CSTR(_e131_cid.toString()));
+			isInitOK = true;
 		}
 		else
 		{
 			_e131_cid = QUuid(_json_cid);
-			Debug( _log, "e131  cid found, using %s", QSTRING_CSTR(_e131_cid.toString()));
+			if ( !_e131_cid.isNull() )
+			{
+				Debug( _log, "e131  CID found, using %s", QSTRING_CSTR(_e131_cid.toString()));
+				isInitOK = true;
+			}
+			else
+			{
+				this->setInError("CID configured is not a valid UUID. Format expected is \"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx\"");
+			}
 		}
 	}
 	return isInitOK;
 }
 
-LedDevice* LedDeviceUdpE131::construct(const QJsonObject &deviceConfig)
-{
-	return new LedDeviceUdpE131(deviceConfig);
-}
-
 // populates the headers
-void LedDeviceUdpE131::prepare(const unsigned this_universe, const unsigned this_dmxChannelCount)
+void LedDeviceUdpE131::prepare(unsigned this_universe, unsigned this_dmxChannelCount)
 {
 	memset(e131_packet.raw, 0, sizeof(e131_packet.raw));
 
@@ -120,4 +145,3 @@ int LedDeviceUdpE131::write(const std::vector<ColorRgb> &ledValues)
 
 	return retVal;
 }
-

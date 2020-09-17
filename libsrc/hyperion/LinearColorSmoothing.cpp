@@ -43,12 +43,7 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument& config, Hyperion
 	connect(_timer, &QTimer::timeout, this, &LinearColorSmoothing::updateLeds);
 }
 
-LinearColorSmoothing::~LinearColorSmoothing()
-{
-
-}
-
-void LinearColorSmoothing::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
+void LinearColorSmoothing::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
 	if(type == settings::SMOOTHING)
 	{
@@ -84,27 +79,18 @@ void LinearColorSmoothing::handleSettingsUpdate(const settings::type& type, cons
 
 int LinearColorSmoothing::write(const std::vector<ColorRgb> &ledValues)
 {
+	_targetTime = QDateTime::currentMSecsSinceEpoch() + _settlingTime;
+	_targetValues = ledValues;
+
 	// received a new target color
 	if (_previousValues.empty())
 	{
 		// not initialized yet
-		_targetTime = QDateTime::currentMSecsSinceEpoch() + _settlingTime;
-		_targetValues = ledValues;
-
 		_previousTime = QDateTime::currentMSecsSinceEpoch();
 		_previousValues = ledValues;
 
 		//Debug( _log, "Start Smoothing timer: settlingTime: %d ms, interval: %d ms (%u Hz), updateDelay: %u frames", _settlingTime, _updateInterval, unsigned(1000.0/_updateInterval), _outputDelay );
 		QMetaObject::invokeMethod(_timer, "start", Qt::QueuedConnection, Q_ARG(int, _updateInterval));
-	}
-	else
-	{
-		//std::cout << "LinearColorSmoothing::write> "; LedDevice::printLedValues ( ledValues );
-
-		_targetTime = QDateTime::currentMSecsSinceEpoch() + _settlingTime;
-		memcpy(_targetValues.data(), ledValues.data(), ledValues.size() * sizeof(ColorRgb));
-
-		//std::cout << "LinearColorSmoothing::write> _targetValues: "; LedDevice::printLedValues ( _targetValues );
 	}
 
 	return 0;
@@ -132,7 +118,7 @@ void LinearColorSmoothing::updateLeds()
 	//Debug(_log, "elapsed Time [%d], _targetTime [%d] - now [%d], deltaTime [%d]", now -_previousTime, _targetTime, now, deltaTime);
 	if (deltaTime < 0)
 	{
-		memcpy(_previousValues.data(), _targetValues.data(), _targetValues.size() * sizeof(ColorRgb));
+		_previousValues = _targetValues;
 		_previousTime = now;
 
 		queueColors(_previousValues);
@@ -212,7 +198,7 @@ void LinearColorSmoothing::clearQueuedColors()
 	_targetValues.clear();
 }
 
-void LinearColorSmoothing::componentStateChange(const hyperion::Components component, const bool state)
+void LinearColorSmoothing::componentStateChange(hyperion::Components component, bool state)
 {
 	_writeToLedsEnable = state;
 	if(component == hyperion::COMP_LEDDEVICE)
@@ -224,7 +210,6 @@ void LinearColorSmoothing::componentStateChange(const hyperion::Components compo
 	{
 		setEnable(state);
 	}
-
 }
 
 void LinearColorSmoothing::setEnable(bool enable)
@@ -269,7 +254,7 @@ unsigned LinearColorSmoothing::updateConfig(unsigned cfgID, int settlingTime_ms,
 	return updatedCfgID;
 }
 
-bool LinearColorSmoothing::selectConfig(unsigned cfg, const bool& force)
+bool LinearColorSmoothing::selectConfig(unsigned cfg, bool force)
 {
 	if (_currentConfigId == cfg && !force)
 	{

@@ -5,7 +5,6 @@
 // hyperion includes
 #include <hyperion/LedString.h>
 
-
 LedString::LedString()
 {
 	// empty

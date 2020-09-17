@@ -32,7 +32,7 @@ public:
 	/// @param port port number on which to start listening for connections
 	///
 	BoblightServer(Hyperion* hyperion, const QJsonDocument& config);
-	~BoblightServer();
+	~BoblightServer() override;
 
 	///
 	/// @return the port number on which this TCP listens for incoming connections
@@ -41,7 +41,7 @@ public:
 
 	/// @return true if server is active (bind to a port)
 	///
-	bool active();
+	bool active() const;
 
 public slots:
 	///
@@ -54,14 +54,14 @@ public slots:
 	///
 	void stop();
 
-	void compStateChangeRequest(const hyperion::Components component, bool enable);
+	void compStateChangeRequest(hyperion::Components component, bool enable);
 
 	///
 	/// @brief Handle settings update from Hyperion Settingsmanager emit or this constructor
 	/// @param type   settingyType from enum
 	/// @param config configuration object
 	///
-	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 private slots:
 	///

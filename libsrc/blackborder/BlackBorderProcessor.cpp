@@ -40,7 +40,7 @@ BlackBorderProcessor::~BlackBorderProcessor()
 	delete _detector;
 }
 
-void BlackBorderProcessor::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
+void BlackBorderProcessor::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
 	if(type == settings::BLACKBORDER)
 	{
@@ -56,8 +56,7 @@ void BlackBorderProcessor::handleSettingsUpdate(const settings::type& type, cons
 		{
 			_oldThreshold = newThreshold;
 
-			if(_detector != nullptr)
-				delete _detector;
+			delete _detector;
 
 			_detector = new BlackBorderDetector(newThreshold);
 		}
@@ -69,7 +68,7 @@ void BlackBorderProcessor::handleSettingsUpdate(const settings::type& type, cons
 	}
 }
 
-void BlackBorderProcessor::handleCompStateChangeRequest(const hyperion::Components component, bool enable)
+void BlackBorderProcessor::handleCompStateChangeRequest(hyperion::Components component, bool enable)
 {
 	if(component == hyperion::COMP_BLACKBORDER)
 	{
@@ -89,8 +88,8 @@ void BlackBorderProcessor::handleCompStateChangeRequest(const hyperion::Componen
 	}
 }
 
-void BlackBorderProcessor::setHardDisable(const bool& disable) {
-
+void BlackBorderProcessor::setHardDisable(bool disable)
+{
 	if (disable)
 	{
 		_enabled = false;

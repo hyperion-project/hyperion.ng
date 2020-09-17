@@ -1,10 +1,10 @@
 #include "LedDeviceTpm2net.h"
 
+const ushort TPM2_DEFAULT_PORT = 65506;
+
 LedDeviceTpm2net::LedDeviceTpm2net(const QJsonObject &deviceConfig)
-	: ProviderUdp()
+	: ProviderUdp(deviceConfig)
 {
-	_devConfig = deviceConfig;
-	_deviceReady = false;
 }
 
 LedDevice* LedDeviceTpm2net::construct(const QJsonObject &deviceConfig)
@@ -14,13 +14,19 @@ LedDevice* LedDeviceTpm2net::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceTpm2net::init(const QJsonObject &deviceConfig)
 {
+	bool isInitOK = false;
+
 	_port = TPM2_DEFAULT_PORT;
-	bool isInitOK = ProviderUdp::init(deviceConfig);
 
-	_tpm2_max  = deviceConfig["max-packet"].toInt(170);
-	_tpm2ByteCount = 3 * _ledCount;
-	_tpm2TotalPackets = 1 + _tpm2ByteCount / _tpm2_max;
+	// Initialise sub-class
+	if ( ProviderUdp::init(deviceConfig) )
+	{
+		_tpm2_max  = deviceConfig["max-packet"].toInt(170);
+		_tpm2ByteCount = 3 * _ledCount;
+		_tpm2TotalPackets = 1 + _tpm2ByteCount / _tpm2_max;
 
+		isInitOK = true;
+	}
 	return isInitOK;
 }
 

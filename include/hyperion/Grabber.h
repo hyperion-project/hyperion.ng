@@ -22,8 +22,7 @@ class Grabber : public QObject
 	Q_OBJECT
 
 public:
-	Grabber(QString grabberName = "", int width=0, int height=0, int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
-	virtual ~Grabber();
+	Grabber(const QString& grabberName = "", int width=0, int height=0, int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
 
 	///
 	/// Set the video mode (2D/3D)
@@ -55,7 +54,7 @@ public:
 	virtual bool setFramerate(int fps);
 
 	///
-	/// @brief Apply new pixelDecimation (used from x11 and qt)
+	/// @brief Apply new pixelDecimation (used from x11, xcb and qt)
 	///
 	virtual void setPixelDecimation(int pixelDecimation) {}
 
@@ -80,6 +79,11 @@ public:
 	/// @brief Apply SignalDetectionEnable (used from v4l)
 	///
 	virtual void setSignalDetectionEnable(bool enable) {}
+
+	///
+	/// @brief Apply CecDetectionEnable (used from v4l)
+	///
+	virtual void setCecDetectionEnable(bool enable) {}
 
 	///
 	/// @brief Apply device and videoStanded (used from v4l)
@@ -115,35 +119,35 @@ public:
 	/// @brief Get a list of all available V4L devices
 	/// @return List of all available V4L devices on success else empty List
 	///
-	virtual QStringList getV4L2devices() { return QStringList(); }
+	virtual QStringList getV4L2devices() const { return QStringList(); }
 
 	///
 	/// @brief Get the V4L device name
 	/// @param devicePath The device path
 	/// @return The name of the V4L device on success else empty String
 	///
-	virtual QString getV4L2deviceName(QString devicePath) { return QString(); }
+	virtual QString getV4L2deviceName(const QString& /*devicePath*/) const { return QString(); }
 
 	///
 	/// @brief Get a name/index pair of supported device inputs
 	/// @param devicePath The device path
 	/// @return multi pair of name/index on success else empty pair
 	///
-	virtual QMultiMap<QString, int> getV4L2deviceInputs(QString devicePath) { return QMultiMap<QString, int>(); }
+	virtual QMultiMap<QString, int> getV4L2deviceInputs(const QString& /*devicePath*/) const { return QMultiMap<QString, int>(); }
 
 	///
 	/// @brief Get a list of supported device resolutions
 	/// @param devicePath The device path
 	/// @return List of resolutions on success else empty List
 	///
-	virtual QStringList getResolutions(QString devicePath) { return QStringList(); }
+	virtual QStringList getResolutions(const QString& /*devicePath*/) const { return QStringList(); }
 
 	///
 	/// @brief Get a list of supported device framerates
 	/// @param devicePath The device path
 	/// @return List of framerates on success else empty List
 	///
-	virtual QStringList getFramerates(QString devicePath) { return QStringList(); }
+	virtual QStringList getFramerates(const QString& devicePath) const { return QStringList(); }
 
 protected:
 	ImageResampler _imageResampler;

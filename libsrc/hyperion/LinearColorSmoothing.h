@@ -32,9 +32,6 @@ public:
 	///
 	LinearColorSmoothing(const QJsonDocument& config, Hyperion* hyperion);
 
-	/// Destructor
-	virtual ~LinearColorSmoothing();
-
 	/// LED values as input for the smoothing filter
 	///
 	/// @param ledValues The color-value per led
@@ -77,7 +74,7 @@ public:
 	///
 	/// @return  On success return else false (and falls back to cfg 0)
 	///
-	bool selectConfig(unsigned cfg, const bool& force = false);
+	bool selectConfig(unsigned cfg, bool force = false);
 
 public slots:
 	///
@@ -85,7 +82,7 @@ public slots:
 	/// @param type   settingyType from enum
 	/// @param config configuration object
 	///
-	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 private slots:
 	/// Timer callback which writes updated led values to the led device
@@ -96,7 +93,7 @@ private slots:
 	/// @param component   The component
 	/// @param state       The requested state
 	///
-	void componentStateChange(const hyperion::Components component, const bool state);
+	void componentStateChange(hyperion::Components component, bool state);
 
 private:
 

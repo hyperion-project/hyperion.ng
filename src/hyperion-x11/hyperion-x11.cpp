@@ -1,10 +1,11 @@
 
 // QT includes
-#include <QCoreApplication>
+#include <QApplication>
 #include <QImage>
 
 #include <commandline/Parser.h>
 #include <flatbufserver/FlatBufferConnection.h>
+#include <utils/DefaultSignalHandler.h>
 #include "X11Wrapper.h"
 #include "HyperionConfig.h"
 
@@ -28,8 +29,9 @@ int main(int argc, char ** argv)
 		<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
 		<< "\tbuild time: " << __DATE__ << " " << __TIME__ << std::endl;
 
-	QCoreApplication app(argc, argv);
+	DefaultSignalHandler::install();
 
+	QApplication app(argc, argv);
 	try
 	{
 		// create the option parser and initialize all parameters
@@ -67,8 +69,8 @@ int main(int argc, char ** argv)
 					parser.isSet(argCropBottom) ? argCropBottom.getInt(parser) : argCropHeight.getInt(parser),
 					argSizeDecimation.getInt(parser)); // decimation
 
-	if (!x11Wrapper.displayInit())
-	  return -1;
+		if (!x11Wrapper.displayInit())
+			return -1;
 
 		if (parser.isSet(argScreenshot))
 		{
@@ -83,7 +85,7 @@ int main(int argc, char ** argv)
 			if(argAddress.value(parser) == "127.0.0.1:19400")
 			{
 				SSDPDiscover discover;
-				address = discover.getFirstService(STY_FLATBUFSERVER);
+				address = discover.getFirstService(searchType::STY_FLATBUFSERVER);
 				if(address.isEmpty())
 				{
 					address = argAddress.value(parser);

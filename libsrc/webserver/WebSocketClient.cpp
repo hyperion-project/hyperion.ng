@@ -10,7 +10,7 @@
 #include <QCryptographicHash>
 #include <QJsonObject>
 
-WebSocketClient::WebSocketClient(QtHttpRequest* request, QTcpSocket* sock, const bool& localConnection, QObject* parent)
+WebSocketClient::WebSocketClient(QtHttpRequest* request, QTcpSocket* sock, bool localConnection, QObject* parent)
 	: QObject(parent)
 	, _socket(sock)
 	, _log(Logger::getInstance("WEBSOCKET"))
@@ -46,7 +46,7 @@ WebSocketClient::WebSocketClient(QtHttpRequest* request, QTcpSocket* sock, const
 	_jsonAPI->initialize();
 }
 
-void WebSocketClient::handleWebSocketFrame(void)
+void WebSocketClient::handleWebSocketFrame()
 {
 	while (_socket->bytesAvailable())
 	{
@@ -239,7 +239,7 @@ void WebSocketClient::handleBinaryMessage(QByteArray &data)
 	unsigned width      = ((data.at(2) << 8) & 0xFF00) | (data.at(3) & 0xFF);
 	unsigned height     =  imgSize / width;
 
-	if ( ! (imgSize) % width)
+	if ( imgSize % width > 0 )
 	{
 		Error(_log, "data size is not multiple of width");
 		return;

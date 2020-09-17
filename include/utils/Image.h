@@ -1,51 +1,24 @@
 #pragma once
 
-// STL includes
-#include <vector>
-#include <cstdint>
-#include <cstring>
-#include <algorithm>
-#include <cassert>
-#include <utils/ColorRgb.h>
+#include <QSharedDataPointer>
 
-// https://docs.microsoft.com/en-us/windows/win32/winprog/windows-data-types#ssize-t
-#if defined(_MSC_VER)
-#include <BaseTsd.h>
-typedef SSIZE_T ssize_t;
-#endif
+#include <utils/ImageData.h>
 
 template <typename Pixel_T>
 class Image
 {
 public:
-
 	typedef Pixel_T pixel_type;
 
-	///
-	/// Default constructor for an image
-	///
 	Image() :
-		_width(1),
-		_height(1),
-		_pixels(new Pixel_T[2]),
-		_endOfPixels(_pixels + 1)
+		Image(1, 1, Pixel_T())
 	{
-		memset(_pixels, 0, 2*sizeof(Pixel_T));
 	}
 
-	///
-	/// Constructor for an image with specified width and height
-	///
-	/// @param width The width of the image
-	/// @param height The height of the image
-	///
-	Image(const unsigned width, const unsigned height) :
-		_width(width),
-		_height(height),
-		_pixels(new Pixel_T[width * height + 1]),
-		_endOfPixels(_pixels + width * height)
+	Image(unsigned width, unsigned height) :
+		Image(width, height, Pixel_T())
+
 	{
-		memset(_pixels, 0, (_width*_height+1)*sizeof(Pixel_T));
 	}
 
 	///
@@ -55,53 +28,38 @@ public:
 	/// @param height The height of the image
 	/// @param background The color of the image
 	///
-	Image(const unsigned width, const unsigned height, const Pixel_T background) :
-		_width(width),
-		_height(height),
-		_pixels(new Pixel_T[width * height + 1]),
-		_endOfPixels(_pixels + width * height)
+	Image(unsigned width, unsigned height, const Pixel_T background) :
+		_d_ptr(new ImageData<Pixel_T>(width, height, background))
 	{
-		std::fill(_pixels, _endOfPixels, background);
 	}
 
 	///
 	/// Copy constructor for an image
+	/// @param other The image which will be copied
 	///
-	Image(const Image & other) :
-		_width(other._width),
-		_height(other._height),
-		_pixels(new Pixel_T[other._width * other._height + 1]),
-		_endOfPixels(_pixels + other._width * other._height)
+	Image(const Image & other)
 	{
-		memcpy(_pixels, other._pixels, (long) other._width * other._height * sizeof(Pixel_T));
+		_d_ptr = other._d_ptr;
 	}
 
-	// Define assignment operator in terms of the copy constructor
-	// More to read: https://stackoverflow.com/questions/255612/dynamically-allocating-an-array-of-objects?answertab=active#tab-top
 	Image& operator=(Image rhs)
 	{
-		rhs.swap(*this);
+		// Define assignment operator in terms of the copy constructor
+		// More to read: https://stackoverflow.com/questions/255612/dynamically-allocating-an-array-of-objects?answertab=active#tab-top
+		_d_ptr = rhs._d_ptr;
 		return *this;
 	}
 
-	void swap(Image& s) noexcept
+	void swap(Image& s)
 	{
-		using std::swap;
-		swap(this->_width, s._width);
-		swap(this->_height, s._height);
-		swap(this->_pixels, s._pixels);
-		swap(this->_endOfPixels, s._endOfPixels);
+		std::swap(this->_d_ptr, s._d_ptr);
 	}
 
-	// C++11
 	Image(Image&& src) noexcept
-		: _width(0)
-		, _height(0)
-		, _pixels(NULL)
-		, _endOfPixels(NULL)
 	{
-		src.swap(*this);
+		std::swap(this->_d_ptr, src._d_ptr);
 	}
+
 	Image& operator=(Image&& src) noexcept
 	{
 		src.swap(*this);
@@ -113,7 +71,6 @@ public:
 	///
 	~Image()
 	{
-		delete[] _pixels;
 	}
 
 	///
@@ -123,7 +80,7 @@ public:
 	///
 	inline unsigned width() const
 	{
-		return _width;
+		return _d_ptr->width();
 	}
 
 	///
@@ -133,22 +90,17 @@ public:
 	///
 	inline unsigned height() const
 	{
-		return _height;
+		return _d_ptr->height();
 	}
 
-	uint8_t red(const unsigned pixel) const
+	uint8_t red(unsigned pixel) const
 	{
-		return (_pixels + pixel)->red;
+		return _d_ptr->red(pixel);
 	}
 
-	uint8_t green(const unsigned pixel) const
+	uint8_t green(unsigned pixel) const
 	{
-		return (_pixels + pixel)->green;
-	}
-
-	uint8_t blue(const unsigned pixel) const
-	{
-		return (_pixels + pixel)->blue;
+		return _d_ptr->green(pixel);
 	}
 
 	///
@@ -159,9 +111,9 @@ public:
 	///
 	/// @return const reference to specified pixel
 	///
-	const Pixel_T& operator()(const unsigned x, const unsigned y) const
+	uint8_t blue(unsigned pixel) const
 	{
-		return _pixels[toIndex(x,y)];
+		return _d_ptr->blue(pixel);
 	}
 
 	///
@@ -169,41 +121,25 @@ public:
 	///
 	/// @param x The x index
 	/// @param y The y index
+	const Pixel_T& operator()(unsigned x, unsigned y) const
+	{
+		return _d_ptr->operator()(x, y);
+	}
+
 	///
 	/// @return reference to specified pixel
 	///
-	Pixel_T& operator()(const unsigned x, const unsigned y)
+	Pixel_T& operator()(unsigned x, unsigned y)
 	{
-		return _pixels[toIndex(x,y)];
+		return _d_ptr->operator()(x, y);
 	}
 
 	/// Resize the image
 	/// @param width The width of the image
 	/// @param height The height of the image
-	void resize(const unsigned width, const unsigned height)
+	void resize(unsigned width, unsigned height)
 	{
-		if ((width*height) > unsigned((_endOfPixels-_pixels)))
-		{
-			delete[] _pixels;
-			_pixels = new Pixel_T[width*height + 1];
-			_endOfPixels = _pixels + width*height;
-		}
-
-		_width = width;
-		_height = height;
-	}
-
-	///
-	/// Copies another image into this image. The images should have exactly the same size.
-	///
-	/// @param other The image to copy into this
-	///
-	void copy(const Image<Pixel_T>& other)
-	{
-		assert(other._width == _width);
-		assert(other._height == _height);
-
-		memcpy(_pixels, other._pixels, _width * _height * sizeof(Pixel_T));
+		_d_ptr->resize(width, height);
 	}
 
 	///
@@ -212,7 +148,7 @@ public:
 	///
 	Pixel_T* memptr()
 	{
-		return _pixels;
+		return _d_ptr->memptr();
 	}
 
 	///
@@ -221,47 +157,38 @@ public:
 	///
 	const Pixel_T* memptr() const
 	{
-		return _pixels;
+		return _d_ptr->memptr();
 	}
-
 
 	///
 	/// Convert image of any color order to a RGB image.
 	///
 	/// @param[out] image  The image that buffers the output
 	///
-	void toRgb(Image<ColorRgb>& image)
+	void toRgb(Image<ColorRgb>& image) const
 	{
-		image.resize(_width, _height);
-		const unsigned imageSize = _width * _height;
-
-		for (unsigned idx=0; idx<imageSize; idx++)
-		{
-			const Pixel_T color = memptr()[idx];
-			image.memptr()[idx] = ColorRgb{color.red, color.green, color.blue};
-		}
+		_d_ptr->toRgb(*image._d_ptr);
 	}
 
 	///
-	/// get size of buffer
-	//
+	/// Get size of buffer
+	///
 	ssize_t size() const
 	{
-		return  (ssize_t) _width * _height * sizeof(Pixel_T);
+		return _d_ptr->size();
 	}
 
+	///
 	/// Clear the image
-	//
+	///
 	void clear()
 	{
-		_width = 1;
-		_height = 1;
-		_pixels = new Pixel_T[2];
-		_endOfPixels = _pixels + 1;
-		memset(_pixels, 0, (unsigned long) _width * _height * sizeof(Pixel_T));
+		_d_ptr->clear();
 	}
 
 private:
+	template<class T>
+	friend class Image;
 
 	///
 	/// Translate x and y coordinate to index of the underlying vector
@@ -271,20 +198,12 @@ private:
 	///
 	/// @return The index into the underlying data-vector
 	///
-	inline unsigned toIndex(const unsigned x, const unsigned y) const
+	inline unsigned toIndex(unsigned x, unsigned y) const
 	{
-		return y*_width + x;
+		return _d_ptr->toIndex(x, y);
 	}
 
 private:
-	/// The width of the image
-	unsigned _width;
-	/// The height of the image
-	unsigned _height;
-
-	/// The pixels of the image
-	Pixel_T* _pixels;
-
-	/// Pointer to the last(extra) pixel
-	Pixel_T* _endOfPixels;
+	QSharedDataPointer<ImageData<Pixel_T>>  _d_ptr;
 };
+

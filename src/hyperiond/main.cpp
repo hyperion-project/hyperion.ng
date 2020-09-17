@@ -9,8 +9,8 @@
 #endif
 // getpid()
 #ifdef _WIN32
+#include "console.h"
 #include <process.h>
-//#include <Windows.h>
 #else
 #include <unistd.h>
 #endif
@@ -33,6 +33,7 @@
 #include <utils/FileUtils.h>
 #include <commandline/Parser.h>
 #include <commandline/IntOption.h>
+#include <utils/DefaultSignalHandler.h>
 #include <../../include/db/AuthTable.h>
 
 #include "detectProcess.h"
@@ -49,7 +50,7 @@ using namespace commandline;
 #define PERM0664 QFileDevice::ReadOwner | QFileDevice::ReadGroup | QFileDevice::ReadOther | QFileDevice::WriteOwner | QFileDevice::WriteGroup
 
 #ifndef _WIN32
-void signal_handler(const int signum)
+void signal_handler(int signum)
 {
 	// Hyperion Managment instance
 	HyperionIManager *_hyperion = HyperionIManager::getInstance();
@@ -76,11 +77,6 @@ void signal_handler(const int signum)
 		}
 		return;
 	}
-
-	QCoreApplication::quit();
-
-	// reset signal handler to default (in case this handler is not capable of stopping)
-	signal(signum, SIG_DFL);
 }
 #endif
 
@@ -109,13 +105,21 @@ QCoreApplication* createApplication(int &argc, char *argv[])
 	if (!forceNoGui)
 	{
 		// if x11, then test if xserver is available
-		#ifdef ENABLE_X11
+		#if defined(ENABLE_X11)
 		Display* dpy = XOpenDisplay(NULL);
 		if (dpy != NULL)
 		{
 			XCloseDisplay(dpy);
 			isGuiApp = true;
 		}
+		#elif defined(ENABLE_XCB)
+			int screen_num;
+			xcb_connection_t * connection = xcb_connect(nullptr, &screen_num);
+			if (!xcb_connection_has_error(connection))
+			{
+				isGuiApp = true;
+			}
+			xcb_disconnect(connection);
 		#endif
 	}
 #endif
@@ -144,41 +148,27 @@ int main(int argc, char** argv)
 #ifndef _WIN32
 	setenv("AVAHI_COMPAT_NOWARN", "1", 1);
 #endif
-#ifdef _WIN32
-	// We can get a console window also in app gui mode conditional
-	//AllocConsole();
-#endif
 	// initialize main logger and set global log level
 	Logger *log = Logger::getInstance("MAIN");
 	Logger::setLogLevel(Logger::WARNING);
 
 	// check if we are running already an instance
-	// TODO Do not use pgrep on linux, instead iter /proc
 	// TODO Allow one session per user
-	// http://www.qtcentre.org/threads/44489-Get-Process-ID-for-a-running-application
-	QStringList listOfPids;
 	#ifdef _WIN32
 		const char* processName = "hyperiond.exe";
 	#else
 		const char* processName = "hyperiond";
 	#endif
-	if (getProcessIdsByProcessName(processName, listOfPids) > 1)
-	{
-		Error(log, "The Hyperion Daemon is already running, abort start");
-		return 0;
-	}
 
 	// Initialising QCoreApplication
 	QScopedPointer<QCoreApplication> app(createApplication(argc, argv));
 
 	bool isGuiApp = (qobject_cast<QApplication *>(app.data()) != 0 && QSystemTrayIcon::isSystemTrayAvailable());
 
+	DefaultSignalHandler::install();
+
 #ifndef _WIN32
-	signal(SIGINT,  signal_handler);
-	signal(SIGTERM, signal_handler);
-	signal(SIGABRT, signal_handler);
 	signal(SIGCHLD, signal_handler);
-	signal(SIGPIPE, signal_handler);
 	signal(SIGUSR1, signal_handler);
 	signal(SIGUSR2, signal_handler);
 #endif
@@ -193,14 +183,43 @@ int main(int argc, char** argv)
 	Option        & userDataOption      = parser.add<Option>        ('u', "userdata", "Overwrite user data path, defaults to home directory of current user (%1)", QDir::homePath() + "/.hyperion");
 	BooleanOption & resetPassword       = parser.add<BooleanOption> (0x0, "resetPassword", "Lost your password? Reset it with this option back to 'hyperion'");
 	BooleanOption & deleteDB            = parser.add<BooleanOption> (0x0, "deleteDatabase", "Start all over? This Option will delete the database");
-	BooleanOption & silentOption        = parser.add<BooleanOption> ('s', "silent", "do not print any outputs");
+	BooleanOption & silentOption        = parser.add<BooleanOption> ('s', "silent", "Do not print any outputs");
 	BooleanOption & verboseOption       = parser.add<BooleanOption> ('v', "verbose", "Increase verbosity");
 	BooleanOption & debugOption         = parser.add<BooleanOption> ('d', "debug", "Show debug messages");
-                                          parser.add<BooleanOption> (0x0, "desktop", "show systray on desktop");
-	                                      parser.add<BooleanOption> (0x0, "service", "force hyperion to start as console service");
-	Option        & exportEfxOption     = parser.add<Option>        (0x0, "export-effects", "export effects to given path");
+#ifdef WIN32
+	BooleanOption & consoleOption       = parser.add<BooleanOption> ('c', "console", "Open a console window to view log output");
+#endif
+	                                      parser.add<BooleanOption> (0x0, "desktop", "Show systray on desktop");
+	                                      parser.add<BooleanOption> (0x0, "service", "Force hyperion to start as console service");
+	Option        & exportEfxOption     = parser.add<Option>        (0x0, "export-effects", "Export effects to given path");
+
+	/* Internal options, invisible to help */
+	BooleanOption & waitOption          = parser.addHidden<BooleanOption> (0x0, "wait-hyperion", "Do not exit if other Hyperion instances are running, wait them to finish");
 
 	parser.process(*qApp);
+
+	if (!parser.isSet(waitOption))
+	{
+		if (getProcessIdsByProcessName(processName).size() > 1)
+		{
+			Error(log, "The Hyperion Daemon is already running, abort start");
+			return 0;
+		}
+	}
+	else
+	{
+		while (getProcessIdsByProcessName(processName).size() > 1)
+		{
+			QThread::msleep(100);
+		}
+	}
+
+#ifdef WIN32
+	if (parser.isSet(consoleOption))
+	{
+		CreateConsole();
+	}
+#endif
 
 	int logLevelCheck = 0;
 	if (parser.isSet(silentOption))
@@ -230,7 +249,7 @@ int main(int argc, char** argv)
 	if (parser.isSet(versionOption))
 	{
 		std::cout
-			<< "Hyperion Ambilight Deamon (" << getpid() << ")" << std::endl
+			<< "Hyperion Ambilight Deamon" << std::endl
 			<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
 			<< "\tBuild Time: " << __DATE__ << " " << __TIME__ << std::endl;
 
@@ -247,7 +266,7 @@ int main(int argc, char** argv)
 			std::cout << "extract to folder: " << std::endl;
 			QStringList filenames = directory.entryList(QStringList() << "*", QDir::Files, QDir::Name | QDir::IgnoreCase);
 			QString destFileName;
-			foreach (const QString & filename, filenames)
+			for (const QString & filename : filenames)
 			{
 				destFileName = destDir.dirName()+"/"+filename;
 				if (QFile::exists(destFileName))
@@ -304,7 +323,7 @@ int main(int argc, char** argv)
 		// delete database before start
 		if(parser.isSet(deleteDB))
 		{
-			QString dbFile = mDir.absolutePath() + "/db/hyperion.db";
+			const QString dbFile = mDir.absolutePath() + "/db/hyperion.db";
 			if (QFile::exists(dbFile))
 			{
 				if (!QFile::remove(dbFile))

@@ -7,10 +7,8 @@ struct FrameSpec
 };
 
 LedDeviceSedu::LedDeviceSedu(const QJsonObject &deviceConfig)
-	: ProviderRs232()
+	: ProviderRs232(deviceConfig)
 {
-	_devConfig = deviceConfig;
-	_deviceReady = false;
 }
 
 LedDevice* LedDeviceSedu::construct(const QJsonObject &deviceConfig)
@@ -20,31 +18,37 @@ LedDevice* LedDeviceSedu::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceSedu::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = ProviderRs232::init(deviceConfig);
+	bool isInitOK = false;
 
-	std::vector<FrameSpec> frameSpecs{{0xA1, 256}, {0xA2, 512}, {0xB0, 768}, {0xB1, 1536}, {0xB2, 3072} };
-
-	for (const FrameSpec& frameSpec : frameSpecs)
+	// Initialise sub-class
+	if ( ProviderRs232::init(deviceConfig) )
 	{
-		if ((unsigned)_ledRGBCount <= frameSpec.size)
+		std::vector<FrameSpec> frameSpecs{{0xA1, 256}, {0xA2, 512}, {0xB0, 768}, {0xB1, 1536}, {0xB2, 3072} };
+
+		for (const FrameSpec& frameSpec : frameSpecs)
 		{
-			_ledBuffer.clear();
-			_ledBuffer.resize(frameSpec.size + 3, 0);
-			_ledBuffer[0] = 0x5A;
-			_ledBuffer[1] = frameSpec.id;
-			_ledBuffer.back() = 0xA5;
-			break;
+			if ((unsigned)_ledRGBCount <= frameSpec.size)
+			{
+				_ledBuffer.clear();
+				_ledBuffer.resize(frameSpec.size + 3, 0);
+				_ledBuffer[0] = 0x5A;
+				_ledBuffer[1] = frameSpec.id;
+				_ledBuffer.back() = 0xA5;
+				break;
+			}
+		}
+
+		if (_ledBuffer.empty())
+		{
+			//Warning(_log, "More rgb-channels required then available");
+			QString errortext = "More rgb-channels required then available";
+			this->setInError(errortext);
+		}
+		else
+		{
+			isInitOK = true;
 		}
 	}
-
-	if (_ledBuffer.size() == 0)
-	{
-		//Warning(_log, "More rgb-channels required then available");
-		QString errortext = "More rgb-channels required then available";
-		this->setInError(errortext);
-		isInitOK = false;
-	}
-
 	return isInitOK;
 }
 

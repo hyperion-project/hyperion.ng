@@ -1,4 +1,5 @@
-#pragma once
+#ifndef LEDEVICELIGHTPACK_H
+#define LEDEVICELIGHTPACK_H
 
 // stl includes
 #include <cstdint>
@@ -15,79 +16,93 @@
 class LedDeviceLightpack : public LedDevice
 {
 public:
+
 	///
-	/// Constructs the LedDeviceLightpack
+	/// @brief Constructs a Lightpack LED-device
 	///
 	/// @param serialNumber serial output device
 	///
-	LedDeviceLightpack(const QString & serialNumber = "");
+	explicit LedDeviceLightpack(const QString & serialNumber = "");
+
 	///
-	/// Constructs specific LedDevice
+	/// @brief Constructs a Lightpack LED-device
 	///
-	/// @param deviceConfig json device config
+	/// @param deviceConfig Device's configuration as JSON-Object
 	///
 	explicit LedDeviceLightpack(const QJsonObject &deviceConfig);
 
 	///
-	/// Sets configuration
+	/// @brief Destructor of the LedDevice
 	///
-	/// @param deviceConfig the json device config
-	/// @return true if success
-	bool init(const QJsonObject &deviceConfig) override;
+	~LedDeviceLightpack() override;
 
-	/// constructs leddevice
+	///
+	/// @brief Constructs the LED-device
+	///
+	/// @param[in] deviceConfig Device's configuration as JSON-Object
+	/// @return LedDevice constructed
+	///
 	static LedDevice* construct(const QJsonObject &deviceConfig);
 
 	///
-	/// Destructor of the LedDevice; closes the output device if it is open
+	/// @brief Initialise the device's configuration
 	///
-	virtual ~LedDeviceLightpack() override;
+	/// @param[in] deviceConfig the JSON device configuration
+	/// @return True, if success
+	///
+	bool init(const QJsonObject &deviceConfig) override;
 
 	///
-	/// Opens and configures the output device
+	/// @brief Opens the output device.
 	///
-	/// @return Zero on succes else negative
+	/// @return Zero on success (i.e. device is ready), else negative
 	///
 	int open() override;
 
 	///
-	/// Writes the RGB-Color values to the leds.
+	/// @brief Closes the output device.
+	///
+	/// @return Zero on success (i.e. device is closed), else negative
+	///
+	int close() override;
+
+	///
+	/// @brief Power-/turn off the Nanoleaf device.
+	///
+	/// @return True if success
+	///
+	bool powerOff() override;
+
+	///
+	/// @brief Writes the RGB-Color values to the LEDs.
 	///
 	/// @param[in] ledValues  Array of RGB values
 	/// @param[in] size       The number of RGB values
 	///
-	/// @return Zero on success else negative
+	/// @return Zero on success, else negative
 	///
 	int write(const ColorRgb * ledValues, int size);
 
 	///
-	/// Switch the leds off
+	/// @brief Get the serial number of the Lightpack
 	///
-	/// @return Zero on success else negative
-	///
-	virtual int switchOff() override;
-
-	/// Get the serial of the Lightpack
+	/// @return Serial Number
+	///	///
 	const QString & getSerialNumber() const;
 
-public slots:
-	///
-	/// Closes the output device.
-	/// Includes switching-off the device and stopping refreshes
-	///
-	virtual void close() override;
+	bool isOpen(){ return _isOpen; }
 
 protected:
 
+	///
+	/// @brief Writes the RGB-Color values to the LEDs.
+	///
+	/// @param[in] ledValues The RGB-color per LED
+	/// @return Zero on success, else negative
+	///
+	int write(const std::vector<ColorRgb> & ledValues) override;
+
 private:
-	///
-	/// Writes the RGB-Color values to the leds.
-	///
-	/// @param[in] ledValues  The RGB-color per led
-	///
-	/// @return Zero on success else negative
-	///
-	virtual int write(const std::vector<ColorRgb>& ledValues) override;
 
 	///
 	/// Test if the device is a (or the) lightpack we are looking for
@@ -114,6 +129,9 @@ private:
 	/// libusb context
 	libusb_context * _libusbContext;
 
+	/// libusb device
+	libusb_device * _device;
+
 	/// libusb device handle
 	libusb_device_handle * _deviceHandle;
 
@@ -134,4 +152,8 @@ private:
 
 	/// count of real hardware leds
 	int _hwLedCount;
+
+	bool _isOpen;
 };
+
+#endif // LEDEVICELIGHTPACK_H

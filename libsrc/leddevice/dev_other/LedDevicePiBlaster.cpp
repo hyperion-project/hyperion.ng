@@ -10,13 +10,9 @@
 #include "LedDevicePiBlaster.h"
 
 LedDevicePiBlaster::LedDevicePiBlaster(const QJsonObject &deviceConfig)
-	: _fid(nullptr)
+	: LedDevice(deviceConfig)
+	, _fid(nullptr)
 {
-	_devConfig = deviceConfig;
-	_deviceReady = false;
-
-	signal(SIGPIPE,  SIG_IGN);
-
 	// initialise the mapping tables
 	// -1 is invalid
 	// z is also meaningless
@@ -55,7 +51,7 @@ bool LedDevicePiBlaster::init(const QJsonObject &deviceConfig)
 			return false;
 		}
 
-		// walk through the json config and populate the mapping tables
+		// walk through the JSON configuration and populate the mapping tables
 		for(QJsonArray::const_iterator gpioArray = gpioMapping.begin(); gpioArray != gpioMapping.end(); ++gpioArray)
 		{
 			const QJsonObject value = (*gpioArray).toObject();
@@ -84,56 +80,57 @@ int LedDevicePiBlaster::open()
 {
 	int retval = -1;
 	QString errortext;
-	_deviceReady = false;
+	_isDeviceReady = false;
 
-	if ( init(_devConfig) )
+	if (_fid != nullptr)
 	{
-		if (_fid != nullptr)
+		// The file pointer is already open
+		errortext = QString ("Device (%1) is already open.").arg(_deviceName);
+	}
+	else
+	{
+		if (!QFile::exists(_deviceName))
 		{
-			// The file pointer is already open
-			errortext = QString ("Device (%1) is already open.").arg(_deviceName);
+			errortext = QString ("The device (%1) does not yet exist.").arg(_deviceName);
 		}
 		else
 		{
-			if (!QFile::exists(_deviceName))
+			_fid = fopen(QSTRING_CSTR(_deviceName), "w");
+			if (_fid == nullptr)
 			{
-				errortext = QString ("The device (%1) does not yet exist.").arg(_deviceName);
+				errortext = QString ("Failed to open device (%1). Error message: %2").arg(_deviceName, strerror(errno));
 			}
 			else
 			{
-				_fid = fopen(QSTRING_CSTR(_deviceName), "w");
-				if (_fid == nullptr)
-				{
-					errortext = QString ("Failed to open device (%1). Error message: %2").arg(_deviceName, strerror(errno));
-				}
-				else
-				{
-					Info( _log, "Connected to device(%s)", QSTRING_CSTR(_deviceName));
-					retval = 0;
-					setEnable(true);
-				}
+				Info( _log, "Connected to device(%s)", QSTRING_CSTR(_deviceName));
+
+				// Everything is OK, device is ready
+				_isDeviceReady = true;
+				retval = 0;
 			}
 		}
+	}
 
-		if ( retval < 0 )
-		{
-			this->setInError( errortext );
-		}
+	// On error/exceptions, set LedDevice in error
+	if ( retval < 0 )
+	{
+		this->setInError( errortext );
 	}
 	return retval;
 }
 
-void LedDevicePiBlaster::close()
+int LedDevicePiBlaster::close()
 {
-	LedDevice::close();
+	int retval = 0;
+	_isDeviceReady = false;
 
-	// LedDevice specific closing activites
-	// Close the device (if it is opened)
+	// Test, if device requires closing
 	if (_fid != nullptr)
 	{
 		fclose(_fid);
 		_fid = nullptr;
 	}
+	return retval;
 }
 
 int LedDevicePiBlaster::write(const std::vector<ColorRgb> & ledValues)

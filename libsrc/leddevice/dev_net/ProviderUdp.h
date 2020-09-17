@@ -1,15 +1,15 @@
-#pragma once
+#ifndef PROVIDERUDP_H
+#define PROVIDERUDP_H
+
+// LedDevice includes
+#include <leddevice/LedDevice.h>
 
 // Hyperion includes
-#include <leddevice/LedDevice.h>
 #include <utils/Logger.h>
 
-// qt
+// Qt includes
 #include <QHostAddress>
-
-class QUdpSocket;
-
-const ushort MAX_PORT = 65535;
+#include <QUdpSocket>
 
 ///
 /// The ProviderUdp implements an abstract base-class for LedDevices using UDP packets.
@@ -17,59 +17,57 @@ const ushort MAX_PORT = 65535;
 class ProviderUdp : public LedDevice
 {
 public:
-	///
-	/// Constructs specific LedDevice
-	///
-	ProviderUdp();
 
 	///
-	/// Destructor of the LedDevice; closes the output device if it is open
+	/// @brief Constructs an UDP LED-device
 	///
-	virtual ~ProviderUdp() override;
+	ProviderUdp(const QJsonObject &deviceConfig);
 
 	///
-	/// Sets configuration
+	/// @brief Destructor of the UDP LED-device
 	///
-	/// @param deviceConfig the json device config
-	/// @return true if success
-	virtual bool init(const QJsonObject &deviceConfig) override;
-
-public slots:
-	///
-	/// Closes the output device.
-	/// Includes switching-off the device and stopping refreshes
-	///
-	virtual void close() override;
+	~ProviderUdp() override;
 
 protected:
 
 	///
-	/// Initialise device's network details
+	/// @brief Initialise the UDP device's configuration and network address details
 	///
-	/// @return True if success
-	bool initNetwork();
+	/// @param[in] deviceConfig the JSON device configuration
+	/// @return True, if success
+	///
+	bool init(const QJsonObject &deviceConfig) override;
 
 	///
-	/// Opens and configures the output device
+	/// @brief Opens the output device.
 	///
-	/// @return Zero on succes else negative
+	/// @return Zero on success (i.e. device is ready), else negative
 	///
 	int open() override;
 
 	///
-	/// Writes the given bytes/bits to the UDP-device and sleeps the latch time to ensure that the
+	/// @brief Closes the UDP device.
+	///
+	/// @return Zero on success (i.e. device is closed), else negative
+	///
+	int close() override;
+
+	///
+	/// @brief Writes the given bytes/bits to the UDP-device and sleeps the latch time to ensure that the
 	/// values are latched.
 	///
 	/// @param[in] size The length of the data
 	/// @param[in] data The data
 	///
-	/// @return Zero on succes else negative
+	/// @return Zero on success, else negative
 	///
 	int writeBytes(const unsigned size, const uint8_t *data);
 
 	///
 	QUdpSocket * _udpSocket;
 	QHostAddress _address;
-	ushort       _port;
+	quint16       _port;
 	QString      _defaultHost;
 };
+
+#endif // PROVIDERUDP_H

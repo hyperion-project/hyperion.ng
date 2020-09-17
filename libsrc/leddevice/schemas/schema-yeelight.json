@@ -1,0 +1,180 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"colorModel": {
+			"type": "integer",
+			"title":"Output Type",
+			"enum" : [0, 1],
+			"default" : 1,
+			"options" : {
+				"enum_titles" : ["edt_conf_enum_hsv", "edt_conf_enum_rgb"]
+			},
+			"minimum" : 0,
+			"maximum" : 1,
+			"access" : "advanced",
+			"propertyOrder" : 1
+		},
+		"transEffect": {
+			"type": "integer",
+			"title":"edt_dev_spec_transeffect_title",
+			"enum" : [0, 1],
+			"default" : 0,
+			"options" : {
+				"enum_titles" : ["edt_conf_enum_transeffect_smooth", "edt_conf_enum_transeffect_sudden" ]
+			},
+			"minimum" : 0,
+			"maximum" : 1,
+			"access" : "advanced",
+			"propertyOrder" : 2
+		},
+		"transTime": {
+			"type": "integer",
+			"title":"edt_dev_spec_transistionTime_title",
+			"default": 40,
+			"append" : "ms",
+			"minimum": 30,
+			"maximum": 5000,
+			"access" : "advanced",
+			"options": {
+				"dependencies": {
+					"transEffect": 0
+				}
+			},
+			"propertyOrder" : 3
+		},
+		"extraTimeDarkness": {
+			"type": "integer",
+			"title":"edt_dev_spec_transistionTimeExtra_title",
+			"default" : 0,
+			"step": 100,
+			"minimum" : 0,
+			"maximum" : 8000,
+			"append" : "ms",
+			"access" : "advanced",
+			"propertyOrder" : 4
+		},
+		"brightnessMin": {
+			"type": "integer",
+			"title":"edt_dev_spec_brightnessMin_title",
+			"default" : 1,
+			"step": 1,
+			"minimum" : 1,
+			"maximum" : 99,
+			"append" : "%",
+			"access" : "advanced",
+			"propertyOrder" : 5
+		},
+		"brightnessSwitchOffOnMinimum": {
+			"type": "boolean",
+			"title":"edt_dev_spec_switchOffOnbelowMinBrightness_title",
+			"default" : true,
+			"access" : "advanced",
+			"propertyOrder" : 6
+		},
+		"brightnessMax": {
+			"type": "integer",
+			"title":"edt_dev_spec_brightnessMax_title",
+			"default" : 100,
+			"step": 1,
+			"minimum" : 0,
+			"maximum" : 100,
+			"append" : "%",
+			"access" : "advanced",
+			"propertyOrder" : 7
+		},
+		"brightnessFactor": {
+			"type": "number",
+			"title":"edt_dev_spec_brightnessFactor_title",
+			"default" : 1.0,
+			"step": 0.25,
+			"minimum" : 0.5,
+			"maximum" : 10.0,
+			"access" : "expert",
+			"propertyOrder" : 8
+		},
+		"restoreOriginalState": {
+			"type": "boolean",
+			"title":"edt_dev_spec_restoreOriginalState_title",
+			"default" : false,
+			"propertyOrder" : 9
+		},		
+		"lights": {
+			"type": "array",
+			"title":"edt_dev_spec_lights_title",
+			"propertyOrder" : 9,
+			"minimum" : 1,
+			"uniqueItems" : true,
+			"items" : {
+				"type" : "object",
+				"title" : "edt_dev_spec_lights_itemtitle",
+				"required" : true,
+				"properties" :
+				{
+					"host" :
+					{
+						"type" : "string",
+						"minimum" : 7,
+						"title" : "edt_dev_spec_networkDeviceName_title",
+						"required" : true,
+						"propertyOrder" : 1
+					},
+					"port" :
+					{
+						"type" : "integer",
+						"minimum" : 0,
+						"maximum" : 65535,
+						"default":55443,
+						"title" : "edt_dev_spec_networkDevicePort_title",
+						"required" : false,
+						"access" : "expert",						
+						"propertyOrder" : 2
+					},					
+					"name" :
+					{
+						"type" : "string",
+						"title" : "edt_dev_spec_lights_name",
+						"minimum" : 0,
+						"propertyOrder" : 3
+					}
+				}
+			},
+			"propertyOrder" : 10
+		},
+		"quotaWait": {
+			"type": "integer",
+			"title":"Wait time (quota)",
+			"default": 1000,
+			"append" : "edt_append_ms",
+			"minimum": 0,
+			"maximum": 10000,
+			"step": 100,			
+			"access" : "expert",
+			"propertyOrder" : 11
+		},		
+		"latchTime": {
+			"type": "integer",
+			"title":"edt_dev_spec_latchtime_title",
+			"default": 40,
+			"append" : "edt_append_ms",
+			"minimum": 0,
+			"maximum": 1000,
+			"access" : "expert",
+			"propertyOrder" : 12
+		},
+		"debugLevel": {
+			"type": "integer",
+			"title":"edt_dev_spec_debugLevel_title",
+			"enum" : [0, 1, 2, 3],
+			"default" : 0,
+			"options" : {
+				"enum_titles" : ["edt_conf_enum_dl_nodebug", "edt_conf_enum_dl_verbose1", "edt_conf_enum_dl_verbose2", "edt_conf_enum_dl_verbose3"]
+			},
+			"minimum" : 0,
+			"maximum" : 3,
+			"access" : "expert",
+			"propertyOrder" : 13
+		}
+	},
+	"additionalProperties": true
+}

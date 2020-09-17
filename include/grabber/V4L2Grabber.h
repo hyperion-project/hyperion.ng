@@ -16,6 +16,7 @@
 #include <hyperion/Grabber.h>
 #include <grabber/VideoStandard.h>
 #include <utils/Components.h>
+#include <cec/CECEvent.h>
 
 // general JPEG decoder includes
 #ifdef HAVE_JPEG_DECODER
@@ -61,12 +62,13 @@ public:
 	);
 	~V4L2Grabber() override;
 
-	QRectF getSignalDetectionOffset()
+	QRectF getSignalDetectionOffset() const
 	{
 		return QRectF(_x_frac_min, _y_frac_min, _x_frac_max, _y_frac_max);
 	}
 
-	bool getSignalDetectionEnabled() { return _signalDetectionEnabled; }
+	bool getSignalDetectionEnabled() const { return _signalDetectionEnabled; }
+	bool getCecDetectionEnabled() const { return _cecDetectionEnabled; }
 
 	int grabFrame(Image<ColorRgb> &);
 
@@ -99,6 +101,11 @@ public:
 	void setSignalDetectionEnable(bool enable) override;
 
 	///
+	/// @brief  overwrite Grabber.h implementation
+	///
+	void setCecDetectionEnable(bool enable) override;
+
+	///
 	/// @brief overwrite Grabber.h implementation
 	///
 	void setDeviceVideoStandard(QString device, VideoStandard videoStandard) override;
@@ -121,33 +128,35 @@ public:
 	///
 	/// @brief overwrite Grabber.h implementation
 	///
-	QStringList getV4L2devices() override;
+	QStringList getV4L2devices() const override;
 
 	///
 	/// @brief overwrite Grabber.h implementation
 	///
-	QString getV4L2deviceName(QString devicePath) override;
+	QString getV4L2deviceName(const QString& devicePath) const override;
 
 	///
 	/// @brief overwrite Grabber.h implementation
 	///
-	QMultiMap<QString, int> getV4L2deviceInputs(QString devicePath) override;
+	QMultiMap<QString, int> getV4L2deviceInputs(const QString& devicePath) const override;
 
 	///
 	/// @brief overwrite Grabber.h implementation
 	///
-	QStringList getResolutions(QString devicePath) override;
+	QStringList getResolutions(const QString& devicePath) const override;
 
 	///
 	/// @brief overwrite Grabber.h implementation
 	///
-	QStringList getFramerates(QString devicePath) override;
+	QStringList getFramerates(const QString& devicePath) const override;
 
 public slots:
 
 	bool start();
 
 	void stop();
+
+	void handleCecEvent(CECEvent event);
 
 signals:
 	void newFrame(const Image<ColorRgb> & image);
@@ -160,6 +169,7 @@ private:
 	void getV4Ldevices();
 
 	bool init();
+
 	void uninit();
 
 	bool open_device();
@@ -241,12 +251,13 @@ private:
 
 private:
 	QString _deviceName;
-	std::map<QString, QString>						_v4lDevices;
-	QMap<QString, V4L2Grabber::DeviceProperties>	_deviceProperties;
-	VideoStandard									_videoStandard;
-	io_method										_ioMethod;
-	int												_fileDescriptor;
-	std::vector<buffer>								_buffers;
+	std::map<QString, QString> _v4lDevices;
+	QMap<QString, V4L2Grabber::DeviceProperties> _deviceProperties;
+
+	VideoStandard       _videoStandard;
+	io_method           _ioMethod;
+	int                 _fileDescriptor;
+	std::vector<buffer> _buffers;
 
 	PixelFormat _pixelFormat;
 	int         _pixelDecimation;
@@ -257,6 +268,8 @@ private:
 	int      _noSignalCounterThreshold;
 	ColorRgb _noSignalThresholdColor;
 	bool     _signalDetectionEnabled;
+	bool     _cecDetectionEnabled;
+	bool     _cecStandbyActivated;
 	bool     _noSignalDetected;
 	int      _noSignalCounter;
 	double   _x_frac_min;

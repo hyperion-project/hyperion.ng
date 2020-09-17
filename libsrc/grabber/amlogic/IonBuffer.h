@@ -65,8 +65,6 @@ public:
 		return physicalAddress;
 	}
 
-
-
 	IonBuffer(size_t bufferSize)
 		: bufferSize(bufferSize)
 	{

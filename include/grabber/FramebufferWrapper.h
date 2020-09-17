@@ -20,18 +20,13 @@ public:
 	/// @param[in] grabHeight  The height of the grabbed images [pixels]
 	/// @param[in] updateRate_Hz  The image grab rate [Hz]
 	///
-	FramebufferWrapper(const QString & device, const unsigned grabWidth, const unsigned grabHeight, const unsigned updateRate_Hz);
-
-	///
-	/// Destructor of this framebuffer frame grabber. Releases any claimed resources.
-	///
-	virtual ~FramebufferWrapper() {};
+	FramebufferWrapper(const QString & device, unsigned grabWidth, unsigned grabHeight, unsigned updateRate_Hz);
 
 public slots:
 	///
 	/// Performs a single frame grab and computes the led-colors
 	///
-	virtual void action();
+	void action() override;
 
 private:
 	/// The actual grabber

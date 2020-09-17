@@ -4,14 +4,14 @@ Use a clean Raspbian Stretch Lite (on target) and Ubuntu 18/19 (on host) to exec
 ## On the Target system (here Raspberry Pi)
 Install required additional packages.
 ```
-sudo apt-get install qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python3-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev libjpeg-dev libturbojpeg0-dev libqt5sql5-sqlite aptitude qt5-default rsync libssl-dev zlib1g-dev
+sudo apt-get install qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python3-dev libcec-dev libxcb-util0-dev libxcb-randr0-dev libxrandr-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev libjpeg-dev libturbojpeg0-dev libqt5sql5-sqlite aptitude qt5-default rsync libssl-dev zlib1g-dev
 ```
 ## On the Host system (here Ubuntu)
 Update the Ubuntu environment to the latest stage and install required additional packages.
 ```
 sudo apt-get update
 sudo apt-get upgrade
-sudo apt-get -qq -y install git rsync cmake build-essential qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python3-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev libjpeg-dev libturbojpeg0-dev libqt5sql5-sqlite libssl-dev zlib1g-dev
+sudo apt-get -qq -y install git rsync cmake build-essential qtbase5-dev libqt5serialport5-dev libqt5sql5-sqlite libqt5x11extras5-dev libusb-1.0-0-dev python3-dev libcec-dev libxcb-image0-dev libxcb-util0-dev libxcb-shm0-dev libxcb-render0-dev libxcb-randr0-dev libxrandr-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev libjpeg-dev libturbojpeg0-dev libssl-dev zlib1g-dev
 ```
 
 Refine the target IP or hostname, plus userID as required and set-up cross-compilation environment:
@@ -47,14 +47,15 @@ Get toolchain files which allows to build ARM executables on x86 platforms:
 ```
 mkdir -p "$TOOLCHAIN_DIR"
 cd $TOOLCHAIN_DIR
-wget -c https://releases.linaro.org/components/toolchain/binaries/latest-7/arm-linux-gnueabihf/gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf.tar.xz --no-check-certificate
+wget -c https://releases.linaro.org/components/toolchain/binaries/7.4-2019.02/arm-linux-gnueabihf/gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf.tar.xz --no-check-certificate
 tar -xvf gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf.tar.xz
+
 ```
 ### Install the Qt5 framework
 ```
 mkdir -p "$QT5_DIR"
 cd "$QT5_DIR"
-wget -c http://download.qt.io/archive/qt/5.7/5.7.1/qt-opensource-linux-x64-5.7.1.run
+wget -c https://download.qt.io/new_archive/qt/5.7/5.7.1/qt-opensource-linux-x64-5.7.1.run
 chmod +x $QT5_DIR/*.run
 ```
 Display absolute installation directory to be used in Qt5 installer:

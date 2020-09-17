@@ -48,7 +48,7 @@ EffectFileHandler::EffectFileHandler(const QString& rootPath, const QJsonDocumen
 	handleSettingsUpdate(settings::EFFECTS, effectConfig);
 }
 
-void EffectFileHandler::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
+void EffectFileHandler::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
 	if(type == settings::EFFECTS)
 	{

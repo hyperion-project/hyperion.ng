@@ -10,21 +10,21 @@
 #include "QtHttpReply.h"
 #include "QtHttpRequest.h"
 
-class CgiHandler : public QObject {
+class CgiHandler : public QObject
+{
 	Q_OBJECT
 
 public:
-	CgiHandler (QObject * parent = NULL);
-	virtual ~CgiHandler (void);
+	CgiHandler(QObject * parent = nullptr);
 
 	void setBaseUrl(const QString& url);
-	void exec(const QStringList & args,QtHttpRequest * request, QtHttpReply * reply);
-
-	// cgi commands
-	void cmd_cfg_jsonserver();
-	void cmd_runscript ();
+	void exec(const QStringList & args, QtHttpRequest * request, QtHttpReply * reply);
 
 private:
+	// CGI commands
+	void cmd_cfg_jsonserver();
+	void cmd_runscript();
+
 	QtHttpReply *       _reply;
 	QtHttpRequest *     _request;
 	QStringList         _args;

@@ -40,6 +40,9 @@
   ;Require administrator access
   RequestExecutionLevel admin
 
+  ;Tnstaller window branding text
+  BrandingText /TRIMLEFT "@CPACK_NSIS_BRANDING_TEXT@"
+
 @CPACK_NSIS_DEFINES@
 
   !include Sections.nsh
@@ -523,6 +526,10 @@ Function DownloadFile
 FunctionEnd
 !endif
 
+Function writeStartupRegistry
+  WriteRegStr HKCU "SOFTWARE\MICROSOFT\Windows\CurrentVersion\Run" "@CPACK_NSIS_PACKAGE_NAME@" "$INSTDIR\bin\hyperiond.exe"
+FunctionEnd
+
 ;--------------------------------
 ; Define some macro setting for the gui
 @CPACK_NSIS_INSTALLER_MUI_ICON_CODE@
@@ -553,6 +560,10 @@ FunctionEnd
   !insertmacro MUI_PAGE_INSTFILES
   @CPACK_NSIS_INSTALLER_FINISH_TITLE_CODE@
   @CPACK_NSIS_INSTALLER_FINISH_TITLE_3LINES_CODE@
+  !define MUI_FINISHPAGE_SHOWREADME "$INSTDIR\bin\hyperiond.exe"
+  !define MUI_FINISHPAGE_SHOWREADME_TEXT "$(FINISH_READMETXT)"
+  !define MUI_FINISHPAGE_SHOWREADME_FUNCTION writeStartupRegistry
+  !define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
   !insertmacro MUI_PAGE_FINISH
 
   !insertmacro MUI_UNPAGE_CONFIRM
@@ -612,6 +623,42 @@ FunctionEnd
   !insertmacro MUI_LANGUAGE "Turkish"
   !insertmacro MUI_LANGUAGE "Ukrainian"
   !insertmacro MUI_LANGUAGE "Welsh"
+
+  LangString FINISH_READMETXT ${LANG_ENGLISH} "Load @CPACK_NSIS_PACKAGE_NAME@ at Windows startup"
+  LangString FINISH_READMETXT ${LANG_ALBANIAN} "Thirr @CPACK_NSIS_PACKAGE_NAME@ gjatë startimit të Windows-it"
+  LangString FINISH_READMETXT ${LANG_ARABIC} "مع بدء الويندوز @CPACK_NSIS_PACKAGE_NAME@ تشغيل"
+  LangString FINISH_READMETXT ${LANG_BOSNIAN} "Pokreni @CPACK_NSIS_PACKAGE_NAME@ pri startovanju Windowsa"
+  LangString FINISH_READMETXT ${LANG_BULGARIAN} "Стартирайте @CPACK_NSIS_PACKAGE_NAME@ при стартиране на Windows"
+  LangString FINISH_READMETXT ${LANG_CROATIAN} "Uèitaj @CPACK_NSIS_PACKAGE_NAME@ prilikom podizanja Windowsa"
+  LangString FINISH_READMETXT ${LANG_CZECH} "Nahrát @CPACK_NSIS_PACKAGE_NAME@ pøi spuštìní windows"
+  LangString FINISH_READMETXT ${LANG_DANISH} "Indlæs @CPACK_NSIS_PACKAGE_NAME@ ved Windows opstart"
+  LangString FINISH_READMETXT ${LANG_DUTCH} "Laad @CPACK_NSIS_PACKAGE_NAME@ bij opstarten van Windows"
+  LangString FINISH_READMETXT ${LANG_FINNISH} "Lataa @CPACK_NSIS_PACKAGE_NAME@ Windowsin käynnistyessä"
+  LangString FINISH_READMETXT ${LANG_FRENCH} "Charger @CPACK_NSIS_PACKAGE_NAME@ lors de l'initialisation de Windows"
+  LangString FINISH_READMETXT ${LANG_GERMAN} "Starte @CPACK_NSIS_PACKAGE_NAME@ beim Windows start"
+  LangString FINISH_READMETXT ${LANG_HUNGARIAN} "Indítsa el a @CPACK_NSIS_PACKAGE_NAME@ alkalmazást, amikor a Windows elindul"
+  LangString FINISH_READMETXT ${LANG_INDONESIAN} "Panggil @CPACK_NSIS_PACKAGE_NAME@ saat Windows dimulai"
+  LangString FINISH_READMETXT ${LANG_ITALIAN} "Esegui @CPACK_NSIS_PACKAGE_NAME@ all'avvio del sistema"
+  LangString FINISH_READMETXT ${LANG_JAPANESE} "Windows起動時に@CPACK_NSIS_PACKAGE_NAME@を起動する"
+  LangString FINISH_READMETXT ${LANG_KOREAN} "Windows 시작시 @CPACK_NSIS_PACKAGE_NAME@ 시작"
+  LangString FINISH_READMETXT ${LANG_LATVIAN} "Startējiet @CPACK_NSIS_PACKAGE_NAME@, kad Windows tiek startēts"
+  LangString FINISH_READMETXT ${LANG_LITHUANIAN} "Pradėkite @CPACK_NSIS_PACKAGE_NAME@, kai Windows paleidžiama"
+  LangString FINISH_READMETXT ${LANG_MACEDONIAN} "Започнете @CPACK_NSIS_PACKAGE_NAME@ кога ќе започне Windows"
+  LangString FINISH_READMETXT ${LANG_NORWEGIAN} "Start @CPACK_NSIS_PACKAGE_NAME@ ved Windows oppstart"
+  LangString FINISH_READMETXT ${LANG_POLISH} "Uruchamiaæ @CPACK_NSIS_PACKAGE_NAME@ przy logowaniu Windows"
+  LangString FINISH_READMETXT ${LANG_PORTUGUESE} "Carregar o @CPACK_NSIS_PACKAGE_NAME@ na inicialização do Windows"
+  LangString FINISH_READMETXT ${LANG_ROMANIAN} "Incarca @CPACK_NSIS_PACKAGE_NAME@ la pornirea Windows"
+  LangString FINISH_READMETXT ${LANG_RUSSIAN} "Запускать @CPACK_NSIS_PACKAGE_NAME@ при старте Windows"
+  LangString FINISH_READMETXT ${LANG_SERBIAN} "Покрените @CPACK_NSIS_PACKAGE_NAME@ при покретању Виндовс"
+  LangString FINISH_READMETXT ${LANG_SIMPCHINESE} "Windows 系统启动时运行 @CPACK_NSIS_PACKAGE_NAME@"
+  LangString FINISH_READMETXT ${LANG_SLOVAK} "Naèíta @CPACK_NSIS_PACKAGE_NAME@ pri spustení Windows"
+  LangString FINISH_READMETXT ${LANG_SLOVENIAN} "Zažene @CPACK_NSIS_PACKAGE_NAME@ kot del zagona Windows"
+  LangString FINISH_READMETXT ${LANG_SPANISH} "Inicia @CPACK_NSIS_PACKAGE_NAME@ en el arranque de Windows"
+  LangString FINISH_READMETXT ${LANG_SWEDISH} "Startar @CPACK_NSIS_PACKAGE_NAME@ som en del av Windows boot"
+  LangString FINISH_READMETXT ${LANG_TRADCHINESE} "在 Windows 啟動時載入 @CPACK_NSIS_PACKAGE_NAME@"
+  LangString FINISH_READMETXT ${LANG_TURKISH} "@CPACK_NSIS_PACKAGE_NAME@ 'i Windows baþlatýlýrken baþlatýr"
+  LangString FINISH_READMETXT ${LANG_UKRAINIAN} "Запустіть @CPACK_NSIS_PACKAGE_NAME@ у запуску Windows"
+
 
 ;--------------------------------
 ;Reserve Files
@@ -723,6 +770,24 @@ Section "-Core installation"
   !insertmacro MUI_STARTMENU_WRITE_END
 
 @CPACK_NSIS_EXTRA_INSTALL_COMMANDS@
+
+; Custom vcredist install script, detection is not reliable
+;ReadRegStr $1 HKLM "SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\X64" "Bld"
+;DetailPrint "VCREDIS KEY: $1"
+;
+;IntCmp $1 28508 Equal Val1Less Val1More
+;Equal:
+;    DetailPrint "$1 = 28508 "
+;    Goto End
+;Val1Less:
+;    DetailPrint "$1 < 28508 "
+;    Goto End
+;Val1More:
+;    DetailPrint "$1 > 28508 "
+;    Goto End
+;End:
+
+ExecWait '"$INSTDIR\bin\vc_redist.x64.exe" /install /quiet'
 
 SectionEnd
 
@@ -843,6 +908,7 @@ Section "Uninstall"
 
   ; Remove the registry entries.
   DeleteRegKey SHCTX "Software\@CPACK_PACKAGE_VENDOR@\@CPACK_PACKAGE_INSTALL_REGISTRY_KEY@"
+  DeleteRegValue HKCU "SOFTWARE\MICROSOFT\Windows\CurrentVersion\Run" "@CPACK_NSIS_PACKAGE_NAME@"
 
   ; Removes all optional components
   !insertmacro SectionList "RemoveSection_CPack"

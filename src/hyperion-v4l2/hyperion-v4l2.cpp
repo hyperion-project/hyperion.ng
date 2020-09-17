@@ -24,6 +24,8 @@
 // ssdp discover
 #include <ssdp/SSDPDiscover.h>
 
+#include <utils/DefaultSignalHandler.h>
+
 using namespace commandline;
 
 int main(int argc, char** argv)
@@ -84,18 +86,18 @@ int main(int argc, char** argv)
 		BooleanOption      & argSkipReply           = parser.add<BooleanOption>(0x0, "skip-reply", "Do not receive and check reply messages from Hyperion");
 		BooleanOption      & argHelp                = parser.add<BooleanOption>('h', "help", "Show this help message and exit");
 
-		argVideoStandard.addSwitch("pal", VIDEOSTANDARD_PAL);
-		argVideoStandard.addSwitch("ntsc", VIDEOSTANDARD_NTSC);
-		argVideoStandard.addSwitch("secam", VIDEOSTANDARD_SECAM);
-		argVideoStandard.addSwitch("no-change", VIDEOSTANDARD_NO_CHANGE);
+		argVideoStandard.addSwitch("pal", VideoStandard::PAL);
+		argVideoStandard.addSwitch("ntsc", VideoStandard::NTSC);
+		argVideoStandard.addSwitch("secam", VideoStandard::SECAM);
+		argVideoStandard.addSwitch("no-change", VideoStandard::NO_CHANGE);
 
-		argPixelFormat.addSwitch("yuyv", PIXELFORMAT_YUYV);
-		argPixelFormat.addSwitch("uyvy", PIXELFORMAT_UYVY);
-		argPixelFormat.addSwitch("rgb32", PIXELFORMAT_RGB32);
+		argPixelFormat.addSwitch("yuyv", PixelFormat::YUYV);
+		argPixelFormat.addSwitch("uyvy", PixelFormat::UYVY);
+		argPixelFormat.addSwitch("rgb32", PixelFormat::RGB32);
 #ifdef HAVE_JPEG
-		argPixelFormat.addSwitch("mjpeg", PIXELFORMAT_MJPEG);
+		argPixelFormat.addSwitch("mjpeg", PixelFormat::MJPEG);
 #endif
-		argPixelFormat.addSwitch("no-change", PIXELFORMAT_NO_CHANGE);
+		argPixelFormat.addSwitch("no-change", PixelFormat::NO_CHANGE);
 
 		// parse all options
 		parser.process(app);
@@ -173,11 +175,11 @@ int main(int argc, char** argv)
 		// set 3D mode if applicable
 		if (parser.isSet(arg3DSBS))
 		{
-			grabber.setVideoMode(VIDEO_3DSBS);
+			grabber.setVideoMode(VideoMode::VIDEO_3DSBS);
 		}
 		else if (parser.isSet(arg3DTAB))
 		{
-			grabber.setVideoMode(VIDEO_3DTAB);
+			grabber.setVideoMode(VideoMode::VIDEO_3DTAB);
 		}
 
 		// run the grabber
@@ -198,7 +200,7 @@ int main(int argc, char** argv)
 			if(argAddress.value(parser) == "127.0.0.1:19400")
 			{
 				SSDPDiscover discover;
-				address = discover.getFirstService(STY_FLATBUFSERVER);
+				address = discover.getFirstService(searchType::STY_FLATBUFSERVER);
 				if(address.isEmpty())
 				{
 					address = argAddress.value(parser);

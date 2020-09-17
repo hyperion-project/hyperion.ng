@@ -18,7 +18,6 @@ LedDevice * LedDeviceFactory::construct(const QJsonObject & deviceConfig)
 {
 	Logger * log = Logger::getInstance("LEDDEVICE");
 	QJsonDocument config(deviceConfig);
-	QString ss(config.toJson(QJsonDocument::Indented));
 
 	QString type = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 
@@ -31,7 +30,6 @@ LedDevice * LedDeviceFactory::construct(const QJsonObject & deviceConfig)
 			if (dev.first == type)
 			{
 				device = dev.second(deviceConfig);
-				Info(log,"LedDevice '%s' found.", QSTRING_CSTR(dev.first));
 				break;
 			}
 		}

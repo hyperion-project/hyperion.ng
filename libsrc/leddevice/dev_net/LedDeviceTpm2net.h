@@ -1,44 +1,53 @@
-#pragma once
+#ifndef LEDEVICETPM2NET_H
+#define LEDEVICETPM2NET_H
 
 // hyperion includes
 #include "ProviderUdp.h"
 
-const ushort TPM2_DEFAULT_PORT = 65506;
-
 ///
-/// Implementation of the LedDevice interface for sending led colors via udp tpm2.net packets
+/// Implementation of the LedDevice interface for sending LED colors via udp tpm2.net packets
 ///
 class LedDeviceTpm2net : public ProviderUdp
 {
 public:
+
 	///
-	/// Constructs specific LedDevice
+	/// @brief Constructs a TPM2 LED-device fed via UDP
 	///
-	/// @param deviceConfig json device config
+	/// @param deviceConfig Device's configuration as JSON-Object
 	///
 	explicit LedDeviceTpm2net(const QJsonObject &deviceConfig);
 
-	/// constructs leddevice
+	///
+	/// @brief Constructs the LED-device
+	///
+	/// @param[in] deviceConfig Device's configuration as JSON-Object
+	/// @return LedDevice constructed
+	///
 	static LedDevice* construct(const QJsonObject &deviceConfig);
 
-	///
-	/// Sets configuration
-	///
-	/// @param deviceConfig the json device config
-	/// @return true if success
-	virtual bool init(const QJsonObject &deviceConfig) override;
-
 private:
+
 	///
-	/// Writes the led color values to the led-device
+	/// @brief Initialise the device's configuration
 	///
-	/// @param ledValues The color-value per led
-	/// @return Zero on succes else negative
+	/// @param[in] deviceConfig the JSON device configuration
+	/// @return True, if success
 	///
-	virtual int write(const std::vector<ColorRgb> &ledValues) override;
+	bool init(const QJsonObject &deviceConfig) override;
+
+	///
+	/// @brief Writes the RGB-Color values to the LEDs.
+	///
+	/// @param[in] ledValues The RGB-color per LED
+	/// @return Zero on success, else negative
+	///
+	int write(const std::vector<ColorRgb> & ledValues) override;
 
 	int _tpm2_max;
 	int _tpm2ByteCount;
 	int _tpm2TotalPackets;
 	int _tpm2ThisPacket;
 };
+
+#endif // LEDEVICETPM2NET_H

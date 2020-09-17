@@ -1,10 +1,8 @@
 #include "LedDeviceLpd8806.h"
 
 LedDeviceLpd8806::LedDeviceLpd8806(const QJsonObject &deviceConfig)
-	: ProviderSpi()
+	: ProviderSpi(deviceConfig)
 {
-	_devConfig = deviceConfig;
-	_deviceReady = false;
 }
 
 LedDevice* LedDeviceLpd8806::construct(const QJsonObject &deviceConfig)
@@ -14,13 +12,18 @@ LedDevice* LedDeviceLpd8806::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceLpd8806::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = ProviderSpi::init(deviceConfig);
+	bool isInitOK = false;
 
-	const unsigned clearSize = _ledCount/32+1;
-	unsigned messageLength = _ledRGBCount + clearSize;
-	// Initialise the buffer
-	_ledBuffer.resize(messageLength, 0x00);
+	// Initialise sub-class
+	if ( ProviderSpi::init(deviceConfig) )
+	{
+		const unsigned clearSize = _ledCount/32+1;
+		unsigned messageLength = _ledRGBCount + clearSize;
+		// Initialise the buffer
+		_ledBuffer.resize(messageLength, 0x00);
 
+		isInitOK = true;
+	}
 	return isInitOK;
 }
 
