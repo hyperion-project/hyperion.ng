@@ -419,13 +419,7 @@ void LedDevicePhilipsHueBridge::log(const char* msg, const char* type, ...) cons
 
 QJsonDocument LedDevicePhilipsHueBridge::getAllBridgeInfos()
 {
-	// Read Groups/ Lights and Light-Ids
-	_restApi->setPath(API_ROOT);
-
-	httpResponse response = _restApi->get();
-	checkApiError(response.getBody());
-
-	return response.getBody();
+	return get(API_ROOT);
 }
 
 bool LedDevicePhilipsHueBridge::initMaps()
@@ -628,6 +622,15 @@ bool LedDevicePhilipsHueBridge::checkApiError(const QJsonDocument &response)
 	return apiError;
 }
 
+QJsonDocument LedDevicePhilipsHueBridge::get(const QString& route)
+{
+	_restApi->setPath(route);
+
+	httpResponse response = _restApi->get();
+	checkApiError(response.getBody());
+	return response.getBody();
+}
+
 QJsonDocument LedDevicePhilipsHueBridge::post(const QString& route, const QString& content)
 {
 	_restApi->setPath(route);
@@ -635,6 +638,12 @@ QJsonDocument LedDevicePhilipsHueBridge::post(const QString& route, const QStrin
 	httpResponse response = _restApi->put(content);
 	checkApiError(response.getBody());
 	return response.getBody();
+}
+
+QJsonDocument LedDevicePhilipsHueBridge::getLightState(unsigned int lightId)
+{
+	DebugIf( verbose, _log, "GetLightState [%u]", lightId );
+	return get( QString("%1/%2").arg( API_LIGHTS ).arg( lightId ) );
 }
 
 void LedDevicePhilipsHueBridge::setLightState(unsigned int lightId, const QString &state)
@@ -711,8 +720,6 @@ PhilipsHueLight::PhilipsHueLight(Logger* log, unsigned int id, QJsonObject value
 		_colorSpace.blue 	= {0.0, 0.0};
 		_colorBlack 		= {0.0, 0.0, 0.0};
 	}
-
-	saveOriginalState(values);
 
 	_lightname = values["name"].toString().trimmed().replace("\"", "");
 	Info(_log, "Light ID %d (\"%s\", LED index \"%d\") created", id, QSTRING_CSTR(_lightname), ledidx );
@@ -806,7 +813,6 @@ LedDevicePhilipsHue::LedDevicePhilipsHue(const QJsonObject& deviceConfig)
 	  , _switchOffOnBlack(false)
 	  , _brightnessFactor(1.0)
 	  , _transitionTime(1)
-	  , _lightStatesRestored(false)
 	  , _isInitLeds(false)
 	  , _lightsCount(0)
 	  , _groupId(0)
@@ -1563,11 +1569,14 @@ bool LedDevicePhilipsHue::storeState()
 
 	if ( _isRestoreOrigState )
 	{
-		// Save device's original state
-		//_orignalStateValues = get device's state;
-
-		// TODO: Move saveOriginalState out of the HueLight constructor,
-		// as the light state may have change since last close and needs to be stored again before reopen
+		if( !_lightIds.empty() )
+		{
+			for ( PhilipsHueLight& light : _lights )
+			{
+				QJsonObject values = getLightState(light.getId()).object();
+				light.saveOriginalState(values);
+			}
+		}
 	}
 
 	return rc;
@@ -1577,11 +1586,9 @@ bool LedDevicePhilipsHue::restoreState()
 {
 	bool rc = true;
 
-	if ( _isRestoreOrigState && !_lightStatesRestored )
+	if ( _isRestoreOrigState )
 	{
 		// Restore device's original state
-		_lightStatesRestored = true;
-
 		if( !_lightIds.empty() )
 		{
 			for ( PhilipsHueLight& light : _lights )
