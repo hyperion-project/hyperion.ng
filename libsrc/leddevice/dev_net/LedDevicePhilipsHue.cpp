@@ -654,10 +654,8 @@ void LedDevicePhilipsHueBridge::setLightState(unsigned int lightId, const QStrin
 
 QJsonDocument LedDevicePhilipsHueBridge::getGroupState(unsigned int groupId)
 {
-	_restApi->setPath( QString("%1/%2").arg( API_GROUPS ).arg( groupId ) );
-	httpResponse response = _restApi->get();
-	checkApiError(response.getBody());
-	return response.getBody();
+	DebugIf( verbose, _log, "GetGroupState [%u]", groupId );
+	return get( QString("%1/%2").arg( API_GROUPS ).arg( groupId ) );
 }
 
 QJsonDocument LedDevicePhilipsHueBridge::setGroupState(unsigned int groupId, bool state)
@@ -1284,30 +1282,8 @@ void LedDevicePhilipsHue::stop()
 
 int LedDevicePhilipsHue::open()
 {
-	int retval = -1;
-	_isDeviceReady = false;
-
-	if( _useHueEntertainmentAPI )
-	{
-		if ( openStream() )
-		{
-			// Everything is OK, device is ready
-			_isDeviceReady = true;
-			retval = 0;
-		}
-		else
-		{
-			// TODO: Stop device (or fallback to classic mode) - suggest to stop device to meet user expectation
-			//_useHueEntertainmentAPI = false; -to be removed, if 1
-			// Everything is OK, device is ready
-		}
-	}
-	else
-	{
-		// Classic mode, everything is OK, device is ready
-		_isDeviceReady = true;
-		retval = 0;
-	}
+	int retval = 0;
+	_isDeviceReady = true;
 
 	return retval;
 }
@@ -1321,6 +1297,40 @@ int LedDevicePhilipsHue::close()
 	return retval;
 }
 
+bool LedDevicePhilipsHue::switchOn()
+	{
+	Debug(_log, "");
+
+	bool rc = false;
+
+	if ( _isOn )
+		{
+		rc = true;
+		}
+		else
+		{
+		if ( _isEnabled && _isDeviceInitialised )
+		{
+			storeState();
+
+			if ( _useHueEntertainmentAPI)
+			{
+				if ( openStream() )
+				{
+					_isOn = true;
+					rc = true;
+		}
+	}
+			else if ( powerOn() )
+	{
+				_isOn = true;
+				rc = true;
+			}
+	}
+}
+	return rc;
+}
+
 bool LedDevicePhilipsHue::switchOff()
 {
 	Debug(_log, "");
@@ -1328,7 +1338,10 @@ bool LedDevicePhilipsHue::switchOff()
 	this->stopBlackTimeoutTimer();
 
 	stop_retry_left = 3;
+	if (_useHueEntertainmentAPI)
+	{
 	stopStream();
+	}
 
 	return LedDevicePhilipsHueBridge::switchOff();
 }

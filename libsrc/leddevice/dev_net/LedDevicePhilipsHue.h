@@ -431,7 +431,7 @@ protected:
 	///
 	/// @return True if success
 	///
-	//bool switchOn() override;
+	bool switchOn() override;
 
 	///
 	/// @brief Switch the LEDs off.
