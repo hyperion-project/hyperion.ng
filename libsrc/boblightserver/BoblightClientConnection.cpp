@@ -102,7 +102,7 @@ QString BoblightClientConnection::readMessage(const char *data, const size_t siz
 	const int len = end - data + 1;
 	const QString message =  QString::fromLatin1(data, len);
 
-	//std::cout << bytes << ": \"" << message.toUtf8().constData() << std::endl;
+	//std::cout << bytes << ": \"" << message.toUtf8().constData() << "\"" << std::endl;
 
 	return message;
 }
@@ -117,16 +117,10 @@ void BoblightClientConnection::socketClosed()
 }
 
 
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-#define SkipEmptyParts (Qt::SkipEmptyParts)
-#else
-#define SkipEmptyParts (QString::SkipEmptyParts)
-#endif
-
 void BoblightClientConnection::handleMessage(const QString & message)
 {
 	//std::cout << "boblight message: " << message.toStdString() << std::endl;
-	const QVector<QStringRef> messageParts = message.splitRef(' ', SkipEmptyParts, Qt::CaseSensitive);
+	const QVector<QStringRef> messageParts = QStringUtils::splitRef(message, ' ', QStringUtils::SplitBehavior::SkipEmptyParts);
 	if (messageParts.size() > 0)
 	{
 		if (messageParts[0] == "hello")
@@ -202,7 +196,7 @@ void BoblightClientConnection::handleMessage(const QString & message)
 			else if (messageParts.size() == 3 && messageParts[1] == "priority")
 			{
 				bool rc;
-				const unsigned prio = parseUInt(messageParts[2], &rc);
+				const int prio = static_cast<int>(parseUInt(messageParts[2], &rc));
 				if (rc && prio != _priority)
 				{
 					if (_priority != 0 && _hyperion->getPriorityInfo(_priority).componentId == hyperion::COMP_BOBLIGHTSERVER)
@@ -318,7 +312,7 @@ float BoblightClientConnection::parseFloat(QStringRef s, bool *ok) const
 		}
 	}
 
-	if (q >= MAX_LEN)
+	if (q >= MAX_LEN || q < s.length())
 	{
 		if (ok)
 		{
@@ -354,10 +348,8 @@ unsigned BoblightClientConnection::parseUInt(QStringRef s, bool *ok) const
 
 	auto it = s.begin();
 
-#define STEP ((it != s.end()) && (q++ < MAX_LEN))
-
 	// parse the integer-part
-	while (it->unicode() >= MIN_DIGIT && it->unicode() <= MAX_DIGIT && STEP)
+	while (it->unicode() >= MIN_DIGIT && it->unicode() <= MAX_DIGIT && ((it != s.end()) && (q++ < MAX_LEN)))
 	{
 		n = (n * 10) + (it->unicode() - MIN_DIGIT);
 		++it;
@@ -365,7 +357,7 @@ unsigned BoblightClientConnection::parseUInt(QStringRef s, bool *ok) const
 
 	if (ok)
 	{
-		*ok = q < MAX_LEN;
+		*ok = !(q >= MAX_LEN || q < s.length());
 	}
 
 	return n;
