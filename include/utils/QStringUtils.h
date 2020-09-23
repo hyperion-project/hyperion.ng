@@ -52,7 +52,7 @@ inline QVector<QStringRef> splitRef(const QString &string, const QString &sep, S
 inline QVector<QStringRef> splitRef(const QString &string, QChar sep, SplitBehavior behavior = SplitBehavior::KeepEmptyParts, Qt::CaseSensitivity cs = Qt::CaseSensitive)
 {
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-	return string.splitRef(sep, behavior == SplitBehavior::SkipEmptyParts ? Qt::SkipEmptyParts : Qt::KeepEmptyParts, cs)
+	return string.splitRef(sep, behavior == SplitBehavior::SkipEmptyParts ? Qt::SkipEmptyParts : Qt::KeepEmptyParts, cs);
 #else
 	return string.splitRef(sep, behavior == SplitBehavior::SkipEmptyParts ? QString::SkipEmptyParts : QString::KeepEmptyParts, cs);
 #endif
