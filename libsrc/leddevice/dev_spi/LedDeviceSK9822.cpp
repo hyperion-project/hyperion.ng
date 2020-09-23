@@ -5,15 +5,15 @@
 
 
 /// The value that determines the higher bits of the SK9822 global brightness control field
-const int SK9222_GBC_UPPER_BITS = 0xE0;
+const int SK9822_GBC_UPPER_BITS = 0xE0;
 
 /// The maximal current level supported by the SK9822 global brightness control field, 31
-const int SK9222_GBC_MAX_LEVEL = 0x1F;
+const int SK9822_GBC_MAX_LEVEL = 0x1F;
 
 LedDeviceSK9822::LedDeviceSK9822(const QJsonObject &deviceConfig)
 	: ProviderSpi(deviceConfig)
 	, _globalBrightnessControlThreshold(255)
-	, _globalBrightnessControlMaxLevel(SK9222_GBC_MAX_LEVEL)
+	, _globalBrightnessControlMaxLevel(SK9822_GBC_MAX_LEVEL)
 {
 }
 
@@ -30,7 +30,7 @@ bool LedDeviceSK9822::init(const QJsonObject &deviceConfig)
 	if (ProviderSpi::init(deviceConfig))
 	{
 		_globalBrightnessControlThreshold = deviceConfig["globalBrightnessControlThreshold"].toInt(255);
-		_globalBrightnessControlMaxLevel = deviceConfig["globalBrightnessControlMaxLevel"].toInt(SK9222_GBC_MAX_LEVEL);
+		_globalBrightnessControlMaxLevel = deviceConfig["globalBrightnessControlMaxLevel"].toInt(SK9822_GBC_MAX_LEVEL);
 		Info(_log, "[SK9822] Using global brightness control with threshold of %d and max level of %d", _globalBrightnessControlThreshold, _globalBrightnessControlMaxLevel);
 
 		const unsigned int startFrameSize = 4;
@@ -66,11 +66,15 @@ void LedDeviceSK9822::bufferWithMaxCurrent(std::vector<uint8_t> &txBuf, const st
 		// with PWM control on RGB-Channels
 		const int ored = (red|green|blue);
 
-		txBuf[b + 0] = ((ored > 0) * (maxLevel & SK9222_GBC_MAX_LEVEL)) | SK9222_GBC_UPPER_BITS; // (ored > 0) is 1 for any r,g,b > 0, 0 otherwise; branch free
+		txBuf[b + 0] = ((ored > 0) * (maxLevel & SK9822_GBC_MAX_LEVEL)) | SK9822_GBC_UPPER_BITS; // (ored > 0) is 1 for any r,g,b > 0, 0 otherwise; branch free
 		txBuf[b + 1] = red;
 		txBuf[b + 2] = green;
 		txBuf[b + 3] = blue;
 	}
+}
+
+inline __attribute__((always_inline)) unsigned LedDeviceSK9822::scale(const uint8_t value, const int maxLevel, const uint16_t brightness) {
+	return (((maxLevel * value + (brightness >> 1)) / brightness));
 }
 
 void LedDeviceSK9822::bufferWithAdjustedCurrent(std::vector<uint8_t> &txBuf, const std::vector<ColorRgb> & ledValues, const int threshold, const int maxLevel) {
@@ -98,28 +102,27 @@ void LedDeviceSK9822::bufferWithAdjustedCurrent(std::vector<uint8_t> &txBuf, con
 			blue = 0x00;
 		} else if (maxValue >= threshold) {
 			// Use full LED-Current when maximal r,g,b-channel grayscale value >= threshold and just use PWM control
-			level = (maxLevel & SK9222_GBC_MAX_LEVEL);
+			level = (maxLevel & SK9822_GBC_MAX_LEVEL);
 		} else {
 			// Use adjusted LED-Current for other r,g,b-channel grayscale values
 			// See also: https://github.com/FastLED/FastLED/issues/656
 
 			// Scale the r,g,b-channel grayscale values to adjusted current = brightness level
 			const uint16_t /* 16 bit! */ brightness = (((maxValue + 1) * maxLevel - 1) >> 8) + 1;
-			#define scale(value) (((maxLevel * value + (brightness >> 1)) / brightness))
 
-			level = (brightness & SK9222_GBC_MAX_LEVEL);
-			red = scale(red);
-			green = scale(green);
-			blue = scale(blue);
+			level = (brightness & SK9822_GBC_MAX_LEVEL);
+			red = scale(red, maxLevel, brightness);
+			green = scale(green, maxLevel, brightness);
+			blue = scale(blue, maxLevel, brightness);
 		}
 
-		txBuf[b + 0] = level | SK9222_GBC_UPPER_BITS;
+		txBuf[b + 0] = level | SK9822_GBC_UPPER_BITS;
 		txBuf[b + 1] = red;
 		txBuf[b + 2] = green;
 		txBuf[b + 3] = blue;
 
 		//if(iLed == 0) {
-		//	std::cout << std::to_string((int)rgb.red) << "," << std::to_string((int)rgb.green) << "," << std::to_string((int)rgb.blue) << ": " << std::to_string(maxValue) << (maxValue >= threshold ? " >= " : " < ") << std::to_string(threshold) << " -> " << std::to_string((int)(level&SK9222_GBC_MAX_LEVEL))<< "@" << std::to_string((int)red) << "," << std::to_string((int)green) << "," << std::to_string((int)blue) << std::endl;
+		//	std::cout << std::to_string((int)rgb.red) << "," << std::to_string((int)rgb.green) << "," << std::to_string((int)rgb.blue) << ": " << std::to_string(maxValue) << (maxValue >= threshold ? " >= " : " < ") << std::to_string(threshold) << " -> " << std::to_string((int)(level&SK9822_GBC_MAX_LEVEL))<< "@" << std::to_string((int)red) << "," << std::to_string((int)green) << "," << std::to_string((int)blue) << std::endl;
 		//}
 	}
 }

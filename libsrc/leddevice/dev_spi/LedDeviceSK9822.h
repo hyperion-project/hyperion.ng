@@ -26,7 +26,7 @@ public:
 	///
 	static LedDevice* construct(const QJsonObject &deviceConfig);
 
-protected:
+private:
 	///
 	/// @brief Writes the RGB-Color values to the SPI Tx buffer setting SK9822 current level to maximal value.
 	///
@@ -50,10 +50,18 @@ protected:
 	/// i.e. global brightness control is used for rgb-values when max(r,g,b) < threshold.
 	int _globalBrightnessControlThreshold;
 
-	/// The maximal current level
+	/// The maximal current level that is targeted. Possibile values 1 .. 31.
 	int _globalBrightnessControlMaxLevel;
 
-private:
+	///
+	/// @brief Scales the given value such that a given grayscale stimulus is reached for the targeted brightness and defined max current value.
+	///
+	/// @param[in] value The grayscale value to scale
+	/// @param[in] maxLevel The maximal current level 1 .. 31 to use
+	/// @param[in] brightness The target brightness
+	/// @return The scaled grayscale stimulus
+	///
+	inline __attribute__((always_inline)) unsigned scale(const uint8_t value, const int maxLevel, const uint16_t brightness);
 
 	///
 	/// @brief Initialise the device's configuration
