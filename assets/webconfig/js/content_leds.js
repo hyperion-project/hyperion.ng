@@ -568,7 +568,7 @@ $(document).ready(function() {
 
 	// create led device selection
 	var ledDevices = window.serverInfo.ledDevices.available;
-	var devRPiSPI = ['apa102', 'apa104', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'sk6822spi', 'ws2812spi'];
+	var devRPiSPI = ['apa102', 'apa104', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'sk6822spi', 'sk9822', 'ws2812spi'];
 	var devRPiPWM = ['ws281x'];
 	var devRPiGPIO = ['piblaster'];
 	var devNET = ['atmoorb', 'fadecandy', 'philipshue', 'nanoleaf', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udph801', 'udpraw', 'wled', 'yeelight'];

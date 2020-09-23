@@ -466,6 +466,8 @@
     "edt_dev_spec_intervall_title": "Intervall",
     "edt_dev_spec_invert_title": "Invertiere Signal",
     "edt_dev_spec_latchtime_title": "Sperrzeit",
+    "edt_dev_spec_globalBrightnessControlMaxLevel_title": "Maximalstufe Stromstärke",
+    "edt_dev_spec_globalBrightnessControlThreshold_title": "Grenzwert für adaptive Stromstärke",
     "edt_dev_spec_ledIndex_title": "LED-Index",
     "edt_dev_spec_ledType_title": "LED-Typ",
     "edt_dev_spec_lightid_itemtitle": "ID",
