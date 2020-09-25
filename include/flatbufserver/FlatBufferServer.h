@@ -7,6 +7,7 @@
 // qt
 #include <QVector>
 
+class BonjourServiceRegister;
 class QTcpServer;
 class FlatBufferClient;
 class NetOrigin;
@@ -63,6 +64,7 @@ private:
 	int _timeout;
 	quint16 _port;
 	const QJsonDocument _config;
+	BonjourServiceRegister * _serviceRegister = nullptr;
 
 	QVector<FlatBufferClient*> _openConnections;
 };
