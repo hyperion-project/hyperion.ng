@@ -2,6 +2,7 @@
 #include <stdexcept>
 
 // project includes
+#include "HyperionConfig.h"
 #include <jsonserver/JsonServer.h>
 #include "JsonClientConnection.h"
 
@@ -49,6 +50,7 @@ void JsonServer::start()
 		return;
 	}
 	Info(_log, "Started on port %d", _port);
+
 #ifdef ENABLE_AVAHI
 	if(_serviceRegister == nullptr)
 	{

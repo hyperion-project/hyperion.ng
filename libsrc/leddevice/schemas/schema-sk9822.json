@@ -1,0 +1,61 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"output": {
+			"type": "string",
+			"title":"edt_dev_spec_spipath_title",
+			"enum" : ["/dev/spidev0.0","/dev/spidev0.1"],
+			"default" : "/dev/spidev0.0",
+			"propertyOrder" : 1
+		},
+		"rate": {
+			"type": "integer",
+			"title":"edt_dev_spec_baudrate_title",
+			"default": 1000000,
+			"propertyOrder" : 2
+		},
+		"invert": {
+			"type": "boolean",
+			"title":"edt_dev_spec_invert_title",
+			"default": false,
+			"propertyOrder" : 3
+		},
+		"globalBrightnessControlMaxLevel": {
+			"type": "integer",
+			"title":"edt_dev_spec_globalBrightnessControlMaxLevel_title",
+			"default": 31,
+			"minimum": 1,
+			"maximum": 31,
+			"propertyOrder" : 4
+		},
+		"globalBrightnessControlThreshold": {
+			"type": "integer",
+			"title":"edt_dev_spec_globalBrightnessControlThreshold_title",
+			"default": 255,
+			"minimum": 0,
+			"maximum": 255,
+			"propertyOrder" : 5
+		},
+		"latchTime": {
+			"type": "integer",
+			"title":"edt_dev_spec_latchtime_title",
+			"default": 0,
+			"append" : "edt_append_ms",
+			"minimum": 0,
+			"maximum": 1000,
+			"access" : "expert",
+			"propertyOrder" : 6
+		},
+		"rewriteTime": {
+			"type": "integer",
+			"title":"edt_dev_general_rewriteTime_title",
+			"default": 1000,
+			"append" : "edt_append_ms",
+			"minimum": 0,
+			"access" : "expert",
+			"propertyOrder" : 7
+		}
+	},
+	"additionalProperties": true
+}

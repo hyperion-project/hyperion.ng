@@ -1,4 +1,5 @@
 #include "webserver/WebServer.h"
+#include "HyperionConfig.h"
 #include "StaticFileServing.h"
 #include "QtHttpServer.h"
 
