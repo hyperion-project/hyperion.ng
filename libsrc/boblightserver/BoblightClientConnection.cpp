@@ -250,7 +250,7 @@ const float ipows[] = {
 	1.0f / 10000000.0f,
 	1.0f / 100000000.0f};
 
-float BoblightClientConnection::parseFloat(QStringRef s, bool *ok) const
+float BoblightClientConnection::parseFloat(const QStringRef& s, bool *ok) const
 {
 	// We parse radix 10
 	const char MIN_DIGIT = '0';
@@ -331,7 +331,7 @@ float BoblightClientConnection::parseFloat(QStringRef s, bool *ok) const
 	return f;
 }
 
-unsigned BoblightClientConnection::parseUInt(QStringRef s, bool *ok) const
+unsigned BoblightClientConnection::parseUInt(const QStringRef& s, bool *ok) const
 {
 	// We parse radix 10
 	const char MIN_DIGIT = '0';
@@ -363,7 +363,7 @@ unsigned BoblightClientConnection::parseUInt(QStringRef s, bool *ok) const
 	return n;
 }
 
-uint8_t BoblightClientConnection::parseByte(QStringRef s, bool *ok) const
+uint8_t BoblightClientConnection::parseByte(const QStringRef& s, bool *ok) const
 {
 	const int LO = 0;
 	const int HI = 255;
