@@ -31,6 +31,9 @@ The SK6812 are **3** wire leds, you could also drive them via spi.
 #### sk6822spi
 The SK6822 are **3** wire leds, you could also drive them via spi.
 
+#### sk9822
+The SK9822 are **4** wire leds compatible to APA 102 with addition of global brightness control.
+
 #### ws2812spi
 The WS2812 are **3** wire leds, you could also drive them via spi.
 
