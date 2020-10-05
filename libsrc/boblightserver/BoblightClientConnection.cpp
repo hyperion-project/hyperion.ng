@@ -375,7 +375,7 @@ uint8_t BoblightClientConnection::parseByte(const QStringRef& s, bool *ok) const
 #endif
 
 	// Clamp to byte range 0 to 255
-	return static_cast<uint8_t>(std::max(LO, std::min(HI, int(HI * d))));
+	return static_cast<uint8_t>(qBound(LO, int(HI * d), HI)); // qBound args are in order min, value, max; see: https://doc.qt.io/qt-5/qtglobal.html#qBound
 }
 
 void BoblightClientConnection::sendLightMessage()
