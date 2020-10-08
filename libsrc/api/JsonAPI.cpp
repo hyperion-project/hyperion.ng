@@ -351,8 +351,10 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 
 			item["value"] = LEDcolor;
 		}
-		// priorities[priorities.size()] = item;
-		priorities.append(item);
+
+		(priority == currentPriority)
+		? priorities.prepend(item)
+		: priorities.append(item);
 	}
 
 	info["priorities"] = priorities;
