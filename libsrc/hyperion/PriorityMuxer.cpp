@@ -339,7 +339,6 @@ void PriorityMuxer::setCurrentTime()
 			_prevVisComp = comp;
 			emit visibleComponentChanged(comp);
 		}
-		emit prioritiesChanged();
 	}
 }
 
