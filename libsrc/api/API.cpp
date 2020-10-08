@@ -407,9 +407,9 @@ QString API::deleteToken(const QString &id)
     return "";
 }
 
-void API::setNewTokenRequest(const QString &comment, const QString &id)
+void API::setNewTokenRequest(const QString &comment, const QString &id, const int &tan)
 {
-    QMetaObject::invokeMethod(_authManager, "setNewTokenRequest", Qt::QueuedConnection, Q_ARG(QObject *, this), Q_ARG(QString, comment), Q_ARG(QString, id));
+    QMetaObject::invokeMethod(_authManager, "setNewTokenRequest", Qt::QueuedConnection, Q_ARG(QObject *, this), Q_ARG(QString, comment), Q_ARG(QString, id), Q_ARG(int, tan));
 }
 
 void API::cancelNewTokenRequest(const QString &comment, const QString &id)
@@ -503,10 +503,10 @@ void API::logout()
     stopDataConnectionss();
 }
 
-void API::checkTokenResponse(bool success, QObject *caller, const QString &token, const QString &comment, const QString &id)
+void API::checkTokenResponse(bool success, QObject *caller, const QString &token, const QString &comment, const QString &id, const int &tan)
 {
     if (this == caller)
-        emit onTokenResponse(success, token, comment, id);
+        emit onTokenResponse(success, token, comment, id, tan);
 }
 
 void API::stopDataConnectionss()

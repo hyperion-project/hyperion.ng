@@ -1186,7 +1186,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 		const QString &comment = message["comment"].toString().trimmed();
 		const bool &acc = message["accept"].toBool(true);
 		if (acc)
-			API::setNewTokenRequest(comment, id);
+			API::setNewTokenRequest(comment, id, tan);
 		else
 			API::cancelNewTokenRequest(comment, id);
 		// client should wait for answer
@@ -1557,7 +1557,7 @@ void JsonAPI::newPendingTokenRequest(const QString &id, const QString &comment)
 	sendSuccessDataReply(QJsonDocument(obj), "authorize-tokenRequest", 1);
 }
 
-void JsonAPI::handleTokenResponse(bool success, const QString &token, const QString &comment, const QString &id)
+void JsonAPI::handleTokenResponse(bool success, const QString &token, const QString &comment, const QString &id, const int &tan)
 {
 	const QString cmd = "authorize-requestToken";
 	QJsonObject result;
@@ -1566,9 +1566,9 @@ void JsonAPI::handleTokenResponse(bool success, const QString &token, const QStr
 	result["id"] = id;
 
 	if (success)
-		sendSuccessDataReply(QJsonDocument(result), cmd);
+		sendSuccessDataReply(QJsonDocument(result), cmd, tan);
 	else
-		sendErrorReply("Token request timeout or denied", cmd, 5);
+		sendErrorReply("Token request timeout or denied", cmd, tan);
 }
 
 void JsonAPI::handleInstanceStateChange(InstanceState state, quint8 instance, const QString &name)

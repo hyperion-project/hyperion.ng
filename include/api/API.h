@@ -277,8 +277,9 @@ protected:
     /// @brief Set a new token request
     /// @param comment  The comment
     /// @param id       The id
+	/// @param tan      The tan
     ///
-    void setNewTokenRequest(const QString &comment, const QString &id);
+    void setNewTokenRequest(const QString &comment, const QString &id, const int &tan);
 
     ///
     /// @brief Cancel new token request
@@ -367,7 +368,7 @@ signals:
 
     ///
     /// @brief Emits whenever a new Token request is pending. This signal is just active when ADMIN ACCESS has been granted
-    /// @param id  The id of the request
+    /// @param id      The id of the request
     /// @param comment The comment of the request; If the commen is EMPTY the request has been revoked by the caller. So remove it from the pending list
     ///
     void onPendingTokenRequest(const QString &id, const QString &comment);
@@ -378,8 +379,9 @@ signals:
     /// @param  token   The new token that is now valid
     /// @param  comment The comment that was part of the request
     /// @param  id      The id that was part of the request
+    /// @param  tan     The tan that was part of the request
     ///
-    void onTokenResponse(bool success, const QString &token, const QString &comment, const QString &id);
+    void onTokenResponse(bool success, const QString &token, const QString &comment, const QString &id, const int &tan);
 
 private slots:
     ///
@@ -395,8 +397,9 @@ private slots:
     /// @param  token   The new token that is now valid
     /// @param  comment The comment that was part of the request
     /// @param  id      The id that was part of the request
+    /// @param  tan     The tan that was part of the request
     ///
-    void checkTokenResponse(bool success, QObject *caller, const QString &token, const QString &comment, const QString &id);
+    void checkTokenResponse(bool success, QObject *caller, const QString &token, const QString &comment, const QString &id, const int &tan);
 
 private:
     void stopDataConnectionss();
