@@ -465,12 +465,11 @@ bool API::getUserToken(QString &userToken)
 
 bool API::isTokenAuthorized(const QString &token)
 {
-    bool res;
-    QMetaObject::invokeMethod(_authManager, "isTokenAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, res), Q_ARG(QString, token));
-    if (res)
-        _authorized = true;
+	(_authManager->thread() != this->thread())
+	? QMetaObject::invokeMethod(_authManager, "isTokenAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, _authorized), Q_ARG(QString, token))
+	: _authorized = _authManager->isTokenAuthorized(token);
 
-    return res;
+    return _authorized;
 }
 
 bool API::isUserAuthorized(const QString &password)
