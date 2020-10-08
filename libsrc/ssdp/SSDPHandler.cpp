@@ -199,7 +199,16 @@ QString SSDPHandler::buildDesc() const
 	/// %2 friendly name              Hyperion 2.0.0 (192.168.0.177)
 	/// %3 modelNumber                2.0.0
 	/// %4 serialNumber / UDN (H ID)  Fjsa723dD0....
-	return SSDP_DESCRIPTION.arg(getBaseAddress(), QString("Hyperion (%1)").arg(_localAddress), QString(HYPERION_VERSION), _uuid);
+	/// %5 json port                  19444
+	/// %6 flatbuf port               19400
+	return SSDP_DESCRIPTION.arg(
+			getBaseAddress(),
+			QString("Hyperion (%1)").arg(_localAddress),
+			QString(HYPERION_VERSION),
+			_uuid,
+			QString::number(SSDPServer::getJsonServerPort()),
+			QString::number(getFlatBufPort())
+	);
 }
 
 void SSDPHandler::sendAnnounceList(bool alive)
