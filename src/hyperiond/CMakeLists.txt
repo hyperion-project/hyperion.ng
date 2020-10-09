@@ -104,6 +104,7 @@ if (ENABLE_QT)
 endif ()
 
 if (ENABLE_DX)
+	include_directories(${DIRECTX9_INCLUDE_DIRS})
 	target_link_libraries(hyperiond	directx-grabber)
 endif ()
 

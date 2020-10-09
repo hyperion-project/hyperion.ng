@@ -4,13 +4,14 @@
 
 // DirectX 9 header
 #include <d3d9.h>
+#include <d3dx9.h>
 
 // Hyperion-utils includes
 #include <utils/ColorRgb.h>
 #include <hyperion/Grabber.h>
 
 ///
-/// @brief The DirectX capture implementation
+/// @brief The DirectX9 capture implementation
 ///
 class DirectXGrabber : public Grabber
 {
@@ -77,4 +78,5 @@ private:
 	IDirect3D9* _d3d9;
 	IDirect3DDevice9* _device;
 	IDirect3DSurface9* _surface;
+	IDirect3DSurface9* _surfaceDest;
 };

@@ -2,6 +2,7 @@
 #include <grabber/DirectXGrabber.h>
 #include <QImage>
 #pragma comment(lib, "d3d9.lib")
+#pragma comment(lib,"d3dx9.lib")
 
 DirectXGrabber::DirectXGrabber(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation, int display)
 	: Grabber("DXGRABBER", 0, 0, cropLeft, cropRight, cropTop, cropBottom)
@@ -91,10 +92,11 @@ bool DirectXGrabber::setupDisplay()
 		: (_displayHeight / _pixelDecimation);
 
 
+	// TODO: That should be included in the grabber process
 	// calculate final image dimensions and adjust top/left cropping in 3D modes
 	switch (_videoMode)
 	{
-		case VIDEO_3DSBS:
+		case VideoMode::VIDEO_3DSBS:
 			_width  = width / 2;
 			_height = height;
 			_src_x = _cropLeft / 2;
@@ -102,7 +104,7 @@ bool DirectXGrabber::setupDisplay()
 			_src_x_max = (_displayWidth / 2) - _cropRight;
 			_src_y_max = _displayHeight - _cropBottom;
 			break;
-		case VIDEO_3DTAB:
+		case VideoMode::VIDEO_3DTAB:
 			_width  = width;
 			_height = height / 2;
 			_src_x = _cropLeft;
@@ -110,7 +112,7 @@ bool DirectXGrabber::setupDisplay()
 			_src_x_max = _displayWidth - _cropRight;
 			_src_y_max = (_displayHeight / 2) - _cropBottom;
 			break;
-		case VIDEO_2D:
+		case VideoMode::VIDEO_2D:
 		default:
 			_width  = width;
 			_height = height;
@@ -119,6 +121,12 @@ bool DirectXGrabber::setupDisplay()
 			_src_x_max = _displayWidth - _cropRight;
 			_src_y_max = _displayHeight - _cropBottom;
 			break;
+	}
+
+	if (FAILED(_device->CreateOffscreenPlainSurface(_width, _height, D3DFMT_R8G8B8, D3DPOOL_SCRATCH, &_surfaceDest, nullptr)))
+	{
+		Error(_log, "CreateOffscreenPlainSurface failed");
+		return false;
 	}
 
 	Info(_log, "Update output image resolution to [%dx%d]", _width, _height);
@@ -133,26 +141,27 @@ int DirectXGrabber::grabFrame(Image<ColorRgb> & image)
 	if (FAILED(_device->GetFrontBufferData(0, _surface)))
 	{
 		// reinit, this will disable capture on failure
+		Error(_log, "Unable to get Buffer Surface Data");
 		setEnabled(setupDisplay());
 		return -1;
 	}
 
+	D3DXLoadSurfaceFromSurface(_surfaceDest, nullptr, nullptr, _surface, nullptr, nullptr, D3DX_DEFAULT, 0);
+
 	D3DLOCKED_RECT lockedRect;
-	if (FAILED(_surface->LockRect(&lockedRect, nullptr, D3DLOCK_NO_DIRTY_UPDATE | D3DLOCK_NOSYSLOCK | D3DLOCK_READONLY)))
+	if (FAILED(_surfaceDest->LockRect(&lockedRect, nullptr, D3DLOCK_NO_DIRTY_UPDATE | D3DLOCK_NOSYSLOCK | D3DLOCK_READONLY)))
+	{
+		Error(_log, "Unable to lock destination Front Buffer Surface");
 		return 0;
+	}
 
-    QImage frame = QImage(reinterpret_cast<const uchar*>(lockedRect.pBits), _displayWidth, _displayHeight, QImage::Format_RGB32).copy( _src_x, _src_y, _src_x_max, _src_y_max).scaled(_width, _height);
-	_surface->UnlockRect();
+	memcpy(image.memptr(), lockedRect.pBits, _width * _height * 3);
 
-	for (int y = 0; y < frame.height(); ++y)
-		for (int x = 0; x < frame.width(); ++x)
-		{
-			QColor inPixel(frame.pixel(x, y));
-			ColorRgb & outPixel = image(x, y);
-			outPixel.red   = inPixel.red();
-			outPixel.green = inPixel.green();
-			outPixel.blue  = inPixel.blue();
-		}
+	if (FAILED(_surfaceDest->UnlockRect()))
+	{
+		Error(_log, "Unable to unlock destination Front Buffer Surface");
+		return 0;
+	}
 
 	return 0;
 }

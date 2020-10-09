@@ -309,6 +309,12 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 		message(STATUS "Set Qt5 module path: ${SUBDIRQT}")
 		SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SUBDIRQT}/msvc2019_64/lib/cmake/Qt5")
 	endif()
+
+	# Search for DirectX9
+	if (ENABLE_DX)
+		find_package(DirectX9 REQUIRED)
+	endif()
+
 endif()
 
 # Use GNU gold linker if available
