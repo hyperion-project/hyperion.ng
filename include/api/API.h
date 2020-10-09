@@ -174,8 +174,10 @@ protected:
     ///
     /// @brief Start instance
     /// @param index  The instance index
+    /// @param tan    The tan
+    /// @return  True on success else false
     ///
-    void startInstance(quint8 index);
+    bool startInstance(quint8 index, int tan = 0);
 
     ///
     /// @brief Stop instance
@@ -383,23 +385,18 @@ signals:
     ///
     void onTokenResponse(bool success, const QString &token, const QString &comment, const QString &id, const int &tan);
 
+    ///
+    /// @brief Handle emits from HyperionIManager of startInstance request, just if QObject matches with this instance it will emit.
+    /// @param  tan     The tan that was part of the request
+    ///
+    void onStartInstanceResponse(const int &tan);
+
 private slots:
     ///
     /// @brief Is called whenever a Hyperion instance wants the current register list
     /// @param callerInstance  The instance should be returned in the answer call
     ///
     void requestActiveRegister(QObject *callerInstance);
-
-    ///
-    /// @brief See onTokenResponse(). Here we validate the caller instance and on success we will emit onTokenResponse()
-    /// @param  success If true the request was accepted else false and no token was created
-    /// @param  caller  The origin caller instance who requested this token
-    /// @param  token   The new token that is now valid
-    /// @param  comment The comment that was part of the request
-    /// @param  id      The id that was part of the request
-    /// @param  tan     The tan that was part of the request
-    ///
-    void checkTokenResponse(bool success, QObject *caller, const QString &token, const QString &comment, const QString &id, const int &tan);
 
 private:
     void stopDataConnectionss();

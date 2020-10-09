@@ -1325,9 +1325,10 @@ void JsonAPI::handleInstanceCommand(const QJsonObject &message, const QString &c
 
 	if (subc == "startInstance")
 	{
-		// silent fail
-		API::startInstance(inst);
-		sendSuccessReply(command + "-" + subc, tan);
+		connect(this, &API::onStartInstanceResponse, [=] (const int &tan) { sendSuccessReply(command + "-" + subc, tan); });
+		if (!API::startInstance(inst, tan))
+			sendErrorReply("Can't start Hyperion instance index " + QString::number(inst), command + "-" + subc, tan);
+
 		return;
 	}
 

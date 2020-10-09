@@ -56,7 +56,18 @@ API::API(Logger *log, bool localConnection, QObject *parent)
     //connect(ApiSync::getInstance(), &ApiSync::requestActiveRegister, this, &API::requestActiveRegister, Qt::QueuedConnection);
 
     // connect to possible token responses that has been requested
-    connect(_authManager, &AuthManager::tokenResponse, this, &API::checkTokenResponse);
+    connect(_authManager, &AuthManager::tokenResponse, [=] (bool success, QObject *caller, const QString &token, const QString &comment, const QString &id, const int &tan)
+    {
+        if (this == caller)
+            emit onTokenResponse(success, token, comment, id, tan);
+    });
+
+    // connect to possible startInstance responses that has been requested
+    connect(_instanceManager, &HyperionIManager::startInstanceResponse, [=] (QObject *caller, const int &tan)
+    {
+        if (this == caller)
+            emit onStartInstanceResponse(tan);
+    });
 }
 
 void API::init()
@@ -285,9 +296,14 @@ QVector<QVariantMap> API::getAllInstanceData()
     return vec;
 }
 
-void API::startInstance(quint8 index)
+bool API::startInstance(quint8 index, int tan)
 {
-    QMetaObject::invokeMethod(_instanceManager, "startInstance", Qt::QueuedConnection, Q_ARG(quint8, index));
+    bool res;
+    (_instanceManager->thread() != this->thread())
+    ? QMetaObject::invokeMethod(_instanceManager, "startInstance", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, res), Q_ARG(quint8, index), Q_ARG(bool, false), Q_ARG(QObject*, this), Q_ARG(int, tan))
+    : res = _instanceManager->startInstance(index, false, this, tan);
+
+    return res;
 }
 
 void API::stopInstance(quint8 index)
@@ -500,12 +516,6 @@ void API::logout()
     // Stop listenig for ADMIN ACCESS protected signals
     disconnect(_authManager, &AuthManager::newPendingTokenRequest, this, &API::onPendingTokenRequest);
     stopDataConnectionss();
-}
-
-void API::checkTokenResponse(bool success, QObject *caller, const QString &token, const QString &comment, const QString &id, const int &tan)
-{
-    if (this == caller)
-        emit onTokenResponse(success, token, comment, id, tan);
 }
 
 void API::stopDataConnectionss()
