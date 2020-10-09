@@ -159,7 +159,8 @@ void PriorityMuxer::registerInput(int priority, hyperion::Components component, 
 	if (newInput)
 	{
 		Debug(_log,"Register new input '%s/%s' with priority %d as inactive", QSTRING_CSTR(origin), hyperion::componentToIdString(component), priority);
-		emit prioritiesChanged();
+		if (!_sourceAutoSelectEnabled) // emit 'prioritiesChanged' only on when _sourceAutoSelectEnabled is false
+			emit prioritiesChanged();
 		return;
 	}
 
