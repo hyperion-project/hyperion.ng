@@ -4,14 +4,14 @@ Use a clean Raspbian Stretch Lite (on target) and Ubuntu 18/19 (on host) to exec
 ## On the Target system (here Raspberry Pi)
 Install required additional packages.
 ```
-sudo apt-get install qtbase5-dev libqt5serialport5-dev libusb-1.0-0-dev python3-dev libcec-dev libxcb-util0-dev libxcb-randr0-dev libxrandr-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev libjpeg-dev libturbojpeg0-dev libqt5sql5-sqlite aptitude qt5-default rsync libssl-dev zlib1g-dev
+sudo apt-get install qtbase5-dev libqt5serialport5-dev libqt5svg5-dev libusb-1.0-0-dev python3-dev libcec-dev libxcb-util0-dev libxcb-randr0-dev libxrandr-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev libjpeg-dev libturbojpeg0-dev libqt5sql5-sqlite aptitude qt5-default rsync libssl-dev zlib1g-dev
 ```
 ## On the Host system (here Ubuntu)
 Update the Ubuntu environment to the latest stage and install required additional packages.
 ```
 sudo apt-get update
 sudo apt-get upgrade
-sudo apt-get -qq -y install git rsync cmake build-essential qtbase5-dev libqt5serialport5-dev libqt5sql5-sqlite libqt5x11extras5-dev libusb-1.0-0-dev python3-dev libcec-dev libxcb-image0-dev libxcb-util0-dev libxcb-shm0-dev libxcb-render0-dev libxcb-randr0-dev libxrandr-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev libjpeg-dev libturbojpeg0-dev libssl-dev zlib1g-dev
+sudo apt-get -qq -y install git rsync cmake build-essential qtbase5-dev libqt5serialport5-dev libqt5svg5-dev libqt5sql5-sqlite libqt5x11extras5-dev libusb-1.0-0-dev python3-dev libcec-dev libxcb-image0-dev libxcb-util0-dev libxcb-shm0-dev libxcb-render0-dev libxcb-randr0-dev libxrandr-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev libjpeg-dev libturbojpeg0-dev libssl-dev zlib1g-dev
 ```
 
 Refine the target IP or hostname, plus userID as required and set-up cross-compilation environment:
