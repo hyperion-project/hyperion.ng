@@ -70,10 +70,7 @@ private:
 	int _pixelDecimation;
 	unsigned _displayWidth;
 	unsigned _displayHeight;
-	unsigned _src_x;
-	unsigned _src_y;
-	unsigned _src_x_max;
-	unsigned _src_y_max;
+	RECT* _srcRect;
 
 	IDirect3D9* _d3d9;
 	IDirect3DDevice9* _device;

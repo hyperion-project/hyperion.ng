@@ -9,15 +9,11 @@ DirectXGrabber::DirectXGrabber(int cropLeft, int cropRight, int cropTop, int cro
 	, _pixelDecimation(pixelDecimation)
 	, _displayWidth(0)
 	, _displayHeight(0)
-	, _src_x(0)
-	, _src_y(0)
-	, _src_x_max(0)
-	, _src_y_max(0)
+	, _srcRect(0)
 	, _d3d9(nullptr)
 	, _device(nullptr)
 	, _surface(nullptr)
 {
-
 	// init
 	setupDisplay();
 }
@@ -37,6 +33,8 @@ void DirectXGrabber::freeResources()
 
 	if (_d3d9)
 		_d3d9->Release();
+
+	delete _srcRect;
 }
 
 bool DirectXGrabber::setupDisplay()
@@ -83,43 +81,37 @@ bool DirectXGrabber::setupDisplay()
 		return false;
 	}
 
-	int width = (_displayWidth > unsigned(_cropLeft + _cropRight))
-		? ((_displayWidth - _cropLeft - _cropRight) / _pixelDecimation)
-		: (_displayWidth / _pixelDecimation);
+	int width = _displayWidth / _pixelDecimation;
+	int height =_displayHeight / _pixelDecimation;
 
-	int height = (_displayHeight > unsigned(_cropTop + _cropBottom))
-		? ((_displayHeight - _cropTop - _cropBottom) / _pixelDecimation)
-		: (_displayHeight / _pixelDecimation);
-
-
-	// TODO: That should be included in the grabber process
 	// calculate final image dimensions and adjust top/left cropping in 3D modes
+	_srcRect = new RECT;
 	switch (_videoMode)
 	{
 		case VideoMode::VIDEO_3DSBS:
-			_width  = width / 2;
-			_height = height;
-			_src_x = _cropLeft / 2;
-			_src_y = _cropTop;
-			_src_x_max = (_displayWidth / 2) - _cropRight;
-			_src_y_max = _displayHeight - _cropBottom;
+			_width         = width / 2;
+			_height        = height;
+			_srcRect->left = _cropLeft * _pixelDecimation / 2;
+			_srcRect->top  = _cropTop * _pixelDecimation;
+			_srcRect->right = (_displayWidth / 2) - (_cropRight * _pixelDecimation);
+			_srcRect->bottom = _displayHeight - (_cropBottom * _pixelDecimation);
 			break;
 		case VideoMode::VIDEO_3DTAB:
 			_width  = width;
 			_height = height / 2;
-			_src_x = _cropLeft;
-			_src_y = _cropTop / 2;
-			_src_x_max = _displayWidth - _cropRight;
-			_src_y_max = (_displayHeight / 2) - _cropBottom;
+			_srcRect->left = _cropLeft * _pixelDecimation;
+			_srcRect->top  = (_cropTop * _pixelDecimation) / 2;
+			_srcRect->right = _displayWidth - (_cropRight * _pixelDecimation);
+			_srcRect->bottom = (_displayHeight / 2) - (_cropBottom * _pixelDecimation);
 			break;
 		case VideoMode::VIDEO_2D:
 		default:
 			_width  = width;
 			_height = height;
-			_src_x = _cropLeft;
-			_src_y = _cropTop;
-			_src_x_max = _displayWidth - _cropRight;
-			_src_y_max = _displayHeight - _cropBottom;
+			_srcRect->left = _cropLeft * _pixelDecimation;
+			_srcRect->top  = _cropTop * _pixelDecimation;
+			_srcRect->right = _displayWidth - _cropRight * _pixelDecimation;
+			_srcRect->bottom = _displayHeight - _cropBottom * _pixelDecimation;
 			break;
 	}
 
@@ -146,7 +138,7 @@ int DirectXGrabber::grabFrame(Image<ColorRgb> & image)
 		return -1;
 	}
 
-	D3DXLoadSurfaceFromSurface(_surfaceDest, nullptr, nullptr, _surface, nullptr, nullptr, D3DX_DEFAULT, 0);
+	D3DXLoadSurfaceFromSurface(_surfaceDest, nullptr, nullptr, _surface, nullptr, _srcRect, D3DX_DEFAULT, 0);
 
 	D3DLOCKED_RECT lockedRect;
 	if (FAILED(_surfaceDest->LockRect(&lockedRect, nullptr, D3DLOCK_NO_DIRTY_UPDATE | D3DLOCK_NOSYSLOCK | D3DLOCK_READONLY)))
