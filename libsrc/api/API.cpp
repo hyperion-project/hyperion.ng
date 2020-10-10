@@ -222,16 +222,19 @@ void API::setVideoMode(VideoMode mode, hyperion::Components callerComp)
     QMetaObject::invokeMethod(_hyperion, "setVideoMode", Qt::QueuedConnection, Q_ARG(VideoMode, mode));
 }
 
-void API::setEffect(const EffectCmdData &dat, hyperion::Components callerComp)
+bool API::setEffect(const EffectCmdData &dat, hyperion::Components callerComp)
 {
+    int res;
     if (!dat.args.isEmpty())
     {
-        QMetaObject::invokeMethod(_hyperion, "setEffect", Qt::QueuedConnection, Q_ARG(QString, dat.effectName), Q_ARG(QJsonObject, dat.args), Q_ARG(int, dat.priority), Q_ARG(int, dat.duration), Q_ARG(QString, dat.pythonScript), Q_ARG(QString, dat.origin), Q_ARG(QString, dat.data));
+        QMetaObject::invokeMethod(_hyperion, "setEffect", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, res), Q_ARG(QString, dat.effectName), Q_ARG(QJsonObject, dat.args), Q_ARG(int, dat.priority), Q_ARG(int, dat.duration), Q_ARG(QString, dat.pythonScript), Q_ARG(QString, dat.origin), Q_ARG(QString, dat.data));
     }
     else
     {
-        QMetaObject::invokeMethod(_hyperion, "setEffect", Qt::QueuedConnection, Q_ARG(QString, dat.effectName), Q_ARG(int, dat.priority), Q_ARG(int, dat.duration), Q_ARG(QString, dat.origin));
+        QMetaObject::invokeMethod(_hyperion, "setEffect", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, res), Q_ARG(QString, dat.effectName), Q_ARG(int, dat.priority), Q_ARG(int, dat.duration), Q_ARG(QString, dat.origin));
     }
+
+    return res >= 0;
 }
 
 void API::setSourceAutoSelect(bool state, hyperion::Components callerComp)

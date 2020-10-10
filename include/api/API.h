@@ -112,8 +112,9 @@ protected:
     /// @param dat        The effect data
     /// @param callerComp The HYPERION COMPONENT that calls this function! e.g. PROT/FLATBUF
     /// REQUIRED dat fields: effectName, priority, duration, origin
+	/// @return  True on success else false
     ///
-    void setEffect(const EffectCmdData &dat, hyperion::Components callerComp = hyperion::COMP_INVALID);
+    bool setEffect(const EffectCmdData &dat, hyperion::Components callerComp = hyperion::COMP_INVALID);
 
     ///
     /// @brief Set source auto select enabled or disabled

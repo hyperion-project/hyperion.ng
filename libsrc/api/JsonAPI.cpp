@@ -243,9 +243,10 @@ void JsonAPI::handleEffectCommand(const QJsonObject &message, const QString &com
 	dat.data = message["imageData"].toString("").toUtf8();
 	dat.args = message["effect"].toObject()["args"].toObject();
 
-	API::setEffect(dat);
-
-	sendSuccessReply(command, tan);
+	if (API::setEffect(dat))
+		sendSuccessReply(command, tan);
+	else
+		sendErrorReply("Effect '" + dat.effectName + "' not found", command, tan);
 }
 
 void JsonAPI::handleCreateEffectCommand(const QJsonObject &message, const QString &command, int tan)
