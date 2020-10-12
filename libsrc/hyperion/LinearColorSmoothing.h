@@ -209,7 +209,6 @@ private:
 		REMEMBERED_FRAME ( REMEMBERED_FRAME && ) = default;
 		REMEMBERED_FRAME ( const REMEMBERED_FRAME & ) = default;
 		REMEMBERED_FRAME & operator= ( const REMEMBERED_FRAME & ) = default;
-		REMEMBERED_FRAME & operator= ( REMEMBERED_FRAME & ) = default;
 
 		REMEMBERED_FRAME(const int64_t time, const std::vector<ColorRgb> colors)
 		: time(time)
