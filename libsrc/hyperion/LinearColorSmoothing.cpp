@@ -12,8 +12,16 @@
 /// The number of microseconds per millisecond = 1000.
 const int64_t MS_PER_MICRO = 1000;
 
+#if defined(COMPILER_GCC)
+#define ALWAYS_INLINE inline __attribute__((__always_inline__))
+#elif defined(COMPILER_MSVC)
+#define ALWAYS_INLINE __forceinline
+#else
+#define ALWAYS_INLINE inline
+#endif
+
 /// Clamps the rounded values to the byte-interval of [0, 255].
-inline __attribute__((always_inline)) long clampRounded(const floatT x) {
+ALWAYS_INLINE long clampRounded(const floatT x) {
 	return std::min(255l, std::max(0l, std::lroundf(x)));
 }
 
@@ -194,7 +202,7 @@ void LinearColorSmoothing::writeFrame()
 }
 
 
-inline __attribute__((always_inline)) __int64_t LinearColorSmoothing::micros() const
+ALWAYS_INLINE int64_t LinearColorSmoothing::micros() const
 {
 	const auto now = std::chrono::high_resolution_clock::now();
 	return (std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch())).count();
@@ -260,7 +268,7 @@ void LinearColorSmoothing::assembleFrame()
 	}
 }
 
-inline __attribute__((always_inline)) void LinearColorSmoothing::aggregateComponents(const std::vector<ColorRgb>& colors, std::vector<uint64_t>& weighted, const floatT weight) {
+ALWAYS_INLINE void LinearColorSmoothing::aggregateComponents(const std::vector<ColorRgb>& colors, std::vector<uint64_t>& weighted, const floatT weight) {
 	// Determine the integer-scale by converting the weight to fixed point
 	const uint64_t scale = (1l<<FPShift) * static_cast<double>(weight);
 

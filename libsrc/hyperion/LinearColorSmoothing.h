@@ -349,7 +349,7 @@ private:
 	static inline void aggregateComponents(const std::vector<ColorRgb>& colors, std::vector<uint64_t>& weighted, const floatT weight);
 
 	/// Gets the current time in microseconds from high precision system clock.
-	inline __int64_t micros() const;
+	inline int64_t micros() const;
 
 	/// The time, when the rendering statistics were logged previously
 	int64_t _renderedStatTime;
