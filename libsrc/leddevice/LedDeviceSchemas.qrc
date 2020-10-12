@@ -20,6 +20,7 @@
 		<file alias="schema-sedu">schemas/schema-sedu.json</file>
 		<file alias="schema-sk6812spi">schemas/schema-sk6812spi.json</file>
 		<file alias="schema-sk6822spi">schemas/schema-sk6822spi.json</file>
+		<file alias="schema-sk9822">schemas/schema-sk9822.json</file>
 		<file alias="schema-tinkerforge">schemas/schema-tinkerforge.json</file>
 		<file alias="schema-tpm2net">schemas/schema-tpm2net.json</file>
 		<file alias="schema-tpm2">schemas/schema-tpm2.json</file>

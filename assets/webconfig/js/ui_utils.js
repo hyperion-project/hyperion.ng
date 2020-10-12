@@ -206,8 +206,8 @@ function initLanguageSelection()
 	else
 	{
 		// If language is not supported by hyperion, try fallback language
-		langLocale = $.i18n().options.fallbackLocale.substring(0,2);
-		langIdx = availLang.indexOf(langLocale)
+		langLocale = $.i18n().options.fallbackLocale.substring(0,2);	
+		langIdx = availLang.indexOf(langLocale);
 		if ( langIdx > -1 )
 		{
 			langText = availLangText[langIdx];

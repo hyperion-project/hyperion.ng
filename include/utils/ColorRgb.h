@@ -46,9 +46,9 @@ static_assert(sizeof(ColorRgb) == 3, "Incorrect size of ColorRgb");
 inline std::ostream& operator<<(std::ostream& os, const ColorRgb& color)
 {
 	os << "{"
-		<< color.red   << ","
-		<< color.green << ","
-		<< color.blue
+	   << static_cast<unsigned>(color.red) << ","
+	   << static_cast<unsigned>(color.green) << ","
+	   << static_cast<unsigned>(color.blue)
 	<< "}";
 
 	return os;
@@ -64,9 +64,9 @@ inline std::ostream& operator<<(std::ostream& os, const ColorRgb& color)
 inline QTextStream& operator<<(QTextStream &os, const ColorRgb& color)
 {
 	os << "{"
-		<< color.red   << ","
-		<< color.green << ","
-		<< color.blue
+	   << static_cast<unsigned>(color.red) << ","
+	   << static_cast<unsigned>(color.green) << ","
+	   << static_cast<unsigned>(color.blue)
 	<< "}";
 
 	return os;

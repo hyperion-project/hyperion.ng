@@ -246,7 +246,8 @@ int LedDevice::writeBlack(int numberOfBlack)
 			QTimer::singleShot(_latchTime_ms, &loop, &QEventLoop::quit);
 			loop.exec();
 		}
-		rc = write(std::vector<ColorRgb>(static_cast<unsigned long>(_ledCount), ColorRgb::BLACK ));
+		_lastLedValues = std::vector<ColorRgb>(static_cast<unsigned long>(_ledCount), ColorRgb::BLACK );
+		rc = write(_lastLedValues);
 	}
 	return rc;
 }

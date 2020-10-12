@@ -1552,7 +1552,7 @@ function assign_yeelight_lights(){
 				options+= '>'+$.i18n(txt+val)+'</option>';
 			}
 
-			var enabled = 'enabled'
+			var enabled = 'enabled';
 			if (! models.includes (lights[lightid].model) )
 			{
 				var enabled = 'disabled';
@@ -1752,7 +1752,7 @@ async function discover_atmoorb_lights(multiCastGroup, multiCastPort){
   // TODO: error case unhandled
   // res can be: false (timeout) or res.error (not found)
   if(res && !res.error){
-    const r = res.info
+    const r = res.info;
 
 	// Process devices returned by discovery
 	for(const device of r.devices)
@@ -1832,10 +1832,10 @@ function assign_atmoorb_lights(){
 				options+= '>'+$.i18n(txt+val)+'</option>';
 			}
 
-			var enabled = 'enabled'
+			var enabled = 'enabled';
 			if ( orbId < 1 || orbId > 255 )
 			{
-				enabled = 'disabled'
+				enabled = 'disabled';
 				options = '<option value=disabled>'+$.i18n('wiz_atmoorb_unsupported')+'</option>';
 			}
 
