@@ -346,7 +346,7 @@ private:
 	/// @param colors The LED colors to aggregate.
 	/// @param weighted The target vector, that accumulates the terms.
 	/// @param weight The weight to use.
-	static inline __attribute__((always_inline)) void aggregateComponents(const std::vector<ColorRgb>& colors, std::vector<uint64_t>& weighted, const floatT weight);
+	static inline void aggregateComponents(const std::vector<ColorRgb>& colors, std::vector<uint64_t>& weighted, const floatT weight);
 
 	/// Gets the current time in microseconds from high precision system clock.
 	inline __attribute__((always_inline)) __int64_t micros() const;
