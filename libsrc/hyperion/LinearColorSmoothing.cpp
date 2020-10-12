@@ -7,7 +7,7 @@
 
 #include <cmath>
 #include <chrono>
-#include <unistd.h>
+#include <thread>
 
 /// The number of microseconds per millisecond = 1000.
 const int64_t MS_PER_MICRO = 1000;
@@ -382,7 +382,8 @@ void LinearColorSmoothing::performDecay(const int64_t now) {
 
 		if(microsTillNextAction > SLEEP_RES_MICROS) {
 			const int64_t wait = std::min(microsTillNextAction - SLEEP_RES_MICROS, SLEEP_MAX_MICROS);
-			usleep(wait);
+			//usleep(wait);
+			std::this_thread::sleep_for(std::chrono::microseconds(wait));
 		}
 	}
 
