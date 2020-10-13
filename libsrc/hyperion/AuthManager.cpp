@@ -10,10 +10,10 @@
 
 AuthManager *AuthManager::manager = nullptr;
 
-AuthManager::AuthManager(QObject *parent)
+AuthManager::AuthManager(QObject *parent, bool readonlyMode)
 	: QObject(parent)
-	, _authTable(new AuthTable("", this))
-	, _metaTable(new MetaTable(this))
+	, _authTable(new AuthTable("", this, readonlyMode))
+	, _metaTable(new MetaTable(this, readonlyMode))
 	, _pendingRequests()
 	, _authRequired(true)
 	, _timer(new QTimer(this))

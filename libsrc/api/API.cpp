@@ -359,11 +359,18 @@ QString API::saveEffect(const QJsonObject &data)
     return NO_AUTH;
 }
 
-void API::saveSettings(const QJsonObject &data)
+bool API::saveSettings(const QJsonObject &data)
 {
+	bool rc = true;
     if (!_adminAuthorized)
-        return;
-    QMetaObject::invokeMethod(_hyperion, "saveSettings", Qt::QueuedConnection, Q_ARG(QJsonObject, data), Q_ARG(bool, true));
+	{
+		rc = false;
+	}
+	else
+	{
+		QMetaObject::invokeMethod(_hyperion, "saveSettings", Qt::DirectConnection, Q_RETURN_ARG(bool, rc), Q_ARG(QJsonObject, data), Q_ARG(bool, true));
+	}
+	return rc;
 }
 
 bool API::updateHyperionPassword(const QString &password, const QString &newPassword)

@@ -98,6 +98,8 @@ public:
 	///
 	QString getActiveDeviceType() const;
 
+	bool getReadOnlyMode() {return _readOnlyMode; };
+
 public slots:
 
 	///
@@ -484,7 +486,7 @@ private:
 	/// @brief Constructs the Hyperion instance, just accessible for HyperionIManager
 	/// @param  instance  The instance index
 	///
-	Hyperion(quint8 instance);
+	Hyperion(quint8 instance, bool readonlyMode = false);
 
 	/// instance index
 	const quint8 _instIndex;
@@ -541,4 +543,6 @@ private:
 
 	/// Boblight instance
 	BoblightServer* _boblightServer;
+
+	bool _readOnlyMode;
 };

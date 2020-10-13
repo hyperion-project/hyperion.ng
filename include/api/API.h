@@ -228,7 +228,7 @@ protected:
     /// @brief Save settings object. Requires ADMIN ACCESS
     /// @param data  The data object
     ///
-    void saveSettings(const QJsonObject &data);
+	bool saveSettings(const QJsonObject &data);
 
     ///
     /// @brief Test if we are authorized to use the interface

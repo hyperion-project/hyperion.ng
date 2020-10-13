@@ -83,7 +83,8 @@ $(document).ready( function() {
 			}
 			if( effects_editor.validate().length == 0 && effectName != "")
 			{
-				$('#btn_start_test, #btn_write').attr('disabled', false);
+				$('#btn_start_test').attr('disabled', false);
+				!window.readOnlyMode ? $('#btn_write').attr('disabled', false) : $('#btn_write').attr('disabled', true);
 			}
 			else
 			{
@@ -101,6 +102,7 @@ $(document).ready( function() {
         } else {
             effects_editor.enable();
             $("#eff_footer").children().attr('disabled',false);
+            !window.readOnlyMode ? $('#btn_write').attr('disabled', false) : $('#btn_write').attr('disabled', true);
         }
     });
 
