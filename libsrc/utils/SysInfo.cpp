@@ -54,6 +54,20 @@ void SysInfo::getCPUInfo()
 			_sysinfo.cpuModelName = match.captured(1);
 		}
 
+		regEx.setPattern("^hardware\\s*:\\s(.*)");
+		match = regEx.match(cpuInfo);
+		if ( match.hasMatch() )
+		{
+			_sysinfo.cpuHardware = match.captured(1);
+		}
+
+		regEx.setPattern("^revision\\s*:\\s(.*)");
+		match = regEx.match(cpuInfo);
+		if ( match.hasMatch() )
+		{
+			_sysinfo.cpuRevision = match.captured(1);
+		}
+
 		regEx.setPattern("^revision\\s*:\\s(.*)");
 		match = regEx.match(cpuInfo);
 		if ( match.hasMatch() )

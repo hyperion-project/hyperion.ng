@@ -276,6 +276,7 @@ void JsonAPI::handleSysInfoCommand(const QJsonObject &, const QString &command, 
 	system["architecture"] = data.architecture;
 	system["cpuModelName"] = data.cpuModelName;
 	system["cpuModelType"] = data.cpuModelType;
+	system["cpuHardware"] = data.cpuHardware;
 	system["cpuRevision"] = data.cpuRevision;
 	system["wordSize"] = data.wordSize;
 	system["productType"] = data.productType;

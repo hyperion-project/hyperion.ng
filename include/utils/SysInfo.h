@@ -14,6 +14,7 @@ public:
 		QString cpuModelName;
 		QString cpuModelType;
 		QString cpuRevision;
+		QString cpuHardware;
 		QString wordSize;
 		QString productType;
 		QString productVersion;

@@ -86,6 +86,7 @@ $(document).ready(function() {
 		info += 'Architecture:'+sys.architecture+'\n';
 		info += 'CPU Model:   '+sys.cpuModelName+'\n';
 		info += 'CPU Type:    '+sys.cpuModelType+'\n';
+		info += 'CPU Hardware:'+sys.cpuHardware+'\n';	
 		info += 'CPU Revision:'+sys.cpuRevision+'\n';
 		info += 'Kernel:      '+sys.kernelType+' ('+sys.kernelVersion+' (WS: '+sys.wordSize+'))\n';
 		info += 'Browser/OS:  '+navigator.userAgent+'\n\n';
