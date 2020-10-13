@@ -11,7 +11,9 @@ public:
 		QString kernelType;
 		QString kernelVersion;
 		QString architecture;
-		QString cpuModel;
+		QString cpuModelName;
+		QString cpuModelType;
+		QString cpuRevision;
 		QString wordSize;
 		QString productType;
 		QString productVersion;
@@ -24,7 +26,7 @@ public:
 
 private:
 	SysInfo();
-	const QString getCPUModel() const;
+	void getCPUInfo();
 
 	static SysInfo* _instance;
 

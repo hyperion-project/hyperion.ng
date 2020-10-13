@@ -81,10 +81,12 @@ $(document).ready(function() {
 		info += 'Log lvl:     '+window.serverConfig.logger.level+'\n';
 		info += 'Avail Capt:  '+window.serverInfo.grabbers.available+'\n';
 		info += '\n';
-		
+
 		info += 'Distribution:'+sys.prettyName+'\n';
 		info += 'Architecture:'+sys.architecture+'\n';
-		info += 'CPU Model:   '+sys.cpuModel+'\n';
+		info += 'CPU Model:   '+sys.cpuModelName+'\n';
+		info += 'CPU Type:    '+sys.cpuModelType+'\n';
+		info += 'CPU Revision:'+sys.cpuRevision+'\n';
 		info += 'Kernel:      '+sys.kernelType+' ('+sys.kernelVersion+' (WS: '+sys.wordSize+'))\n';
 		info += 'Browser/OS:  '+navigator.userAgent+'\n\n';
 
