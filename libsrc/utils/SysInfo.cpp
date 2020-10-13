@@ -1,8 +1,12 @@
 #include "utils/SysInfo.h"
+#include "utils/FileUtils.h"
 
 #include <QHostInfo>
 #include <QSysInfo>
-#include <QFile>
+#include <QRegularExpression>
+#include <QRegularExpressionMatch>
+
+#include <iostream>
 
 SysInfo* SysInfo::_instance = nullptr;
 
@@ -31,40 +35,31 @@ SysInfo::HyperionSysInfo SysInfo::get()
 
 void SysInfo::getCPUInfo()
 {
-	QString modelName;
-
-	QFile cpuInfoFile("/proc/cpuinfo");
-	if ( cpuInfoFile.open(QIODevice::ReadOnly| QIODevice::Text) )
+	QString cpuInfo;
+	if( FileUtils::readFile("/proc/cpuinfo", cpuInfo, Logger::getInstance("DAEMON"), true) )
 	{
-		QString line;
-		do
+		QRegularExpression regEx ("^model\\s*:\\s(.*)", QRegularExpression::CaseInsensitiveOption | QRegularExpression::MultilineOption);
+		QRegularExpressionMatch match;
+
+		match = regEx.match(cpuInfo);
+		if ( match.hasMatch() )
 		{
-			line = cpuInfoFile.readLine();
-
-			if ( !line.isEmpty() )
-			{
-				if ( line.startsWith("model",Qt::CaseInsensitive) )
-				{
-					QString modelTag = line.split(":").first();
-					if ( modelTag.startsWith("model name",Qt::CaseInsensitive) )
-					{
-						_sysinfo.cpuModelName = line.split(":").last().trimmed();
-					}
-					else
-					{
-						_sysinfo.cpuModelType = line.split(":").last().trimmed();
-					}
-					continue;
-				}
-
-				if ( line.startsWith("Revision",Qt::CaseInsensitive) )
-				{
-					_sysinfo.cpuRevision = line.split(":").last().trimmed();
-					continue;
-				}
-			}
+			_sysinfo.cpuModelType = match.captured(1);
 		}
-		while ( !line.isNull() );
+
+		regEx.setPattern("^model name\\s*:\\s(.*)");
+		match = regEx.match(cpuInfo);
+		if ( match.hasMatch() )
+		{
+			_sysinfo.cpuModelName = match.captured(1);
+		}
+
+		regEx.setPattern("^revision\\s*:\\s(.*)");
+		match = regEx.match(cpuInfo);
+		if ( match.hasMatch() )
+		{
+			_sysinfo.cpuRevision = match.captured(1);
+		}
 	}
 }
 
