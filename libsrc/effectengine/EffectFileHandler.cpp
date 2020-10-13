@@ -208,7 +208,7 @@ void EffectFileHandler::updateEffects()
 		{
 			if(directory.mkpath(path))
 			{
-				Info(_log, "New Effect path \"%s\" created successfull", QSTRING_CSTR(path) );
+				Info(_log, "New Effect path \"%s\" created successfully", QSTRING_CSTR(path) );
 			}
 			else
 			{
