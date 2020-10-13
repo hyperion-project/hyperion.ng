@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Provide additional details on Hardware/CPU information
+- Allow execution with option "--version", while another hyperion daemon is running
+
 ### Changed
 
 ### Fixed
