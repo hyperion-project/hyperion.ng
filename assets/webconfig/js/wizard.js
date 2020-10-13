@@ -151,7 +151,6 @@ $('#btn_wizard_byteorder').off().on('click', startWizardRGB);
 var kodiHost = document.location.hostname;
 var kodiPort = 9090;
 var kodiAddress = kodiHost;
-
 var wiz_editor;
 var colorLength;
 var cobj;
@@ -167,6 +166,13 @@ var availVideos = ["Sweet_Cocoon", "Caminandes_2_GranDillama", "Caminandes_3_Lla
 if (getStorage("kodiAddress") != null) {
   kodiAddress = getStorage("kodiAddress");
   [kodiHost, kodiPort] = kodiAddress.split(":", 2);
+
+  // Ensure that Kodi's default REST-API port is not used, as now the Web-Socket port is used
+  if (kodiPort === "8080") {
+    kodiAddress = kodiHost;
+    kodiPort = undefined;
+    setStorage("kodiAddress", kodiAddress);
+  }
 }
 
 function switchPicture(pictures) {
@@ -199,7 +205,9 @@ function sendToKodi(type, content, cb) {
       command = { "jsonrpc": "2.0", "method": "Player.Rotate", "params": { "playerid": 2 }, "id": "1" };
       break;
     default:
-      cb("error");
+      if (cb != undefined) {
+        cb("error");
+      }
   }
 
   if ("WebSocket" in window) {
@@ -229,7 +237,9 @@ function sendToKodi(type, content, cb) {
     };
 
     ws.onerror = function (evt) {
-      cb("error");
+      if (cb != undefined) {
+        cb("error");
+      }
     };
   }
   else {
@@ -397,6 +407,13 @@ function updateWEditor(el, all) {
 }
 
 function startWizardCC() {
+  // Ensure that Kodi's default REST-API port is not used, as now the Web-Socket port is used
+  [kodiHost, kodiPort] = kodiAddress.split(":", 2);
+  if (kodiPort === "8080") {
+    kodiAddress = kodiHost;
+    kodiPort = undefined;
+  }
+
   //create html
   $('#wiz_header').html('<i class="fa fa-magic fa-fw"></i>' + $.i18n('wiz_cc_title'));
   $('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n('wiz_cc_title') + '</h4><p>' + $.i18n('wiz_cc_intro1') + '</p><label>' + $.i18n('wiz_cc_kwebs') + '</label><input class="form-control" style="width:170px;margin:auto" id="wiz_cc_kodiip" type="text" placeholder="' + kodiAddress + '" value="' + kodiAddress + '" /><span id="kodi_status"></span><span id="multi_cali"></span>');
@@ -412,26 +429,31 @@ function startWizardCC() {
   });
 
   $('#wiz_cc_kodiip').off().on('change', function () {
-    kodiAddress = $(this).val();
-    setStorage("kodiAddress", kodiAddress);
-    [kodiHost, kodiPort] = kodiAddress.split(":", 2);
+    kodiAddress = $(this).val().trim();
+    $('#kodi_status').html('');
 
-    if (kodiPort === "9090") {
-      kodiAddress = kodiHost;
+    // Remove Kodi's default Web-Socket port (9090) from display and ensure Kodi's default REST-API port (8080) is mapped to web-socket port to ease migration
+    if (kodiAddress !== "") {
+      [kodiHost, kodiPort] = kodiAddress.split(":", 2);
+      if (kodiPort === "9090" || kodiPort === "8080") {
+        kodiAddress = kodiHost;
+        kodiPort = undefined;
+      }
+      sendToKodi("msg", $.i18n('wiz_cc_kodimsg_start'), function (cb) {
+        if (cb == "error") {
+          $('#kodi_status').html('<p style="color:red;font-weight:bold;margin-top:5px">' + $.i18n('wiz_cc_kodidiscon') + '</p><p>' + $.i18n('wiz_cc_kodidisconlink') + ' <a href="https://sourceforge.net/projects/hyperion-project/files/resources/Hyperion_calibration_pictures.zip/download" target="_blank">' + $.i18n('wiz_cc_link') + '</p>');
+          withKodi = false;
+        }
+        else {
+          setStorage("kodiAddress", kodiAddress);
+
+          $('#kodi_status').html('<p style="color:green;font-weight:bold;margin-top:5px">' + $.i18n('wiz_cc_kodicon') + '</p>');
+          withKodi = true;
+        }
+
+        $('#btn_wiz_cont').attr('disabled', false);
+      });
     }
-
-    sendToKodi("msg", $.i18n('wiz_cc_kodimsg_start'), function (cb) {
-      if (cb == "error") {
-        $('#kodi_status').html('<p style="color:red;font-weight:bold;margin-top:5px">' + $.i18n('wiz_cc_kodidiscon') + '</p><p>' + $.i18n('wiz_cc_kodidisconlink') + ' <a href="https://sourceforge.net/projects/hyperion-project/files/resources/Hyperion_calibration_pictures.zip/download" target="_blank">' + $.i18n('wiz_cc_link') + '</p>');
-        withKodi = false;
-      }
-      else {
-        $('#kodi_status').html('<p style="color:green;font-weight:bold;margin-top:5px">' + $.i18n('wiz_cc_kodicon') + '</p>');
-        withKodi = true;
-      }
-
-      $('#btn_wiz_cont').attr('disabled', false);
-    });
   });
 
   //listen for continue
@@ -1183,7 +1205,6 @@ function startWizardWLED(e) {
 
   //listen for continue
   $('#btn_wiz_cont').off().on('click', function () {
-
     /* For testing only
 
       discover_wled();
@@ -1838,7 +1859,6 @@ async function discover_providerRs232(rs232Type) {
 // Wizard/Routines HID (USB)-Devices
 //****************************
 async function discover_providerHid(hidType) {
-
   const res = await requestLedDeviceDiscovery(hidType);
   console.log("discover_providerHid", res);
 
