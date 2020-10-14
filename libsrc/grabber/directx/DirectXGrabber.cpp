@@ -148,6 +148,11 @@ int DirectXGrabber::grabFrame(Image<ColorRgb> & image)
 	}
 
 	memcpy(image.memptr(), lockedRect.pBits, _width * _height * 3);
+	for (int idx = 0; idx < _width * _height; idx++)
+	{
+		const ColorRgb & color = image.memptr()[idx];
+		image.memptr()[idx] = ColorRgb{color.blue, color.green, color.red};
+	}
 
 	if (FAILED(_surfaceDest->UnlockRect()))
 	{
