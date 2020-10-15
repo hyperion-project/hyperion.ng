@@ -53,8 +53,7 @@ protected:
 	int close() override;
 
 	///
-	/// @brief Writes the given bytes/bits to the UDP-device and sleeps the latch time to ensure that the
-	/// values are latched.
+	/// @brief Writes the given bytes to the UDP-device
 	///
 	/// @param[in] size The length of the data
 	/// @param[in] data The data
@@ -62,6 +61,15 @@ protected:
 	/// @return Zero on success, else negative
 	///
 	int writeBytes(const unsigned size, const uint8_t *data);
+
+	///
+	/// @brief Writes the given bytes to the UDP-device
+	///
+	/// @param[in] data The data
+	///
+	/// @return Zero on success, else negative
+	///
+	int writeBytes(const QByteArray &bytes);
 
 	///
 	QUdpSocket * _udpSocket;
