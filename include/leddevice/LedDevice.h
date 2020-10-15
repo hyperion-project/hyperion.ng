@@ -414,14 +414,14 @@ protected slots:
 	///
 	/// @return Zero on success else negative
 	///
-	int rewriteLEDs();
+	virtual int rewriteLEDs();
 
 	///
 	/// @brief Set device in error state
 	///
 	/// @param[in] errorMsg The error message to be logged
 	///
-    virtual void setInError( const QString& errorMsg);
+	virtual void setInError( const QString& errorMsg);
 
 private:
 

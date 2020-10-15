@@ -492,6 +492,7 @@
     "edt_dev_spec_printTimeStamp_title": "Add timestamp",
     "edt_dev_spec_pwmChannel_title": "PWM channel",
     "edt_dev_spec_restoreOriginalState_title": "Restore lights' original state when disabled",
+    "edt_dev_spec_razor_device_title": "Razor Chroma Device",    
     "edt_dev_spec_serial_title": "Serial number",
     "edt_dev_spec_spipath_title": "SPI path",
     "edt_dev_spec_sslHSTimeoutMax_title": "Streamer handshake timeout maximum",
