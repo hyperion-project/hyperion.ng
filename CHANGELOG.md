@@ -14,7 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fix Lightpack issue (#1015)
+
 ### Removed
+
+- Replace Multi-Lightpack by multi-instance Lightpack configuration
 
 ## [2.0.0-alpha.8](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.8) - 2020-09-14
 ### Added
