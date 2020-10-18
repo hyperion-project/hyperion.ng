@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix Lightpack issue (#1015)
 
+- Fix color calibration for Kodi 18 (Fixes #771)
+
 ### Removed
 
 - Replace Multi-Lightpack by multi-instance Lightpack configuration
