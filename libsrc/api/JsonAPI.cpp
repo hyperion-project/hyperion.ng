@@ -243,9 +243,10 @@ void JsonAPI::handleEffectCommand(const QJsonObject &message, const QString &com
 	dat.data = message["imageData"].toString("").toUtf8();
 	dat.args = message["effect"].toObject()["args"].toObject();
 
-	API::setEffect(dat);
-
-	sendSuccessReply(command, tan);
+	if (API::setEffect(dat))
+		sendSuccessReply(command, tan);
+	else
+		sendErrorReply("Effect '" + dat.effectName + "' not found", command, tan);
 }
 
 void JsonAPI::handleCreateEffectCommand(const QJsonObject &message, const QString &command, int tan)
@@ -351,8 +352,10 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 
 			item["value"] = LEDcolor;
 		}
-		// priorities[priorities.size()] = item;
-		priorities.append(item);
+
+		(priority == currentPriority)
+		? priorities.prepend(item)
+		: priorities.append(item);
 	}
 
 	info["priorities"] = priorities;
@@ -1186,7 +1189,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 		const QString &comment = message["comment"].toString().trimmed();
 		const bool &acc = message["accept"].toBool(true);
 		if (acc)
-			API::setNewTokenRequest(comment, id);
+			API::setNewTokenRequest(comment, id, tan);
 		else
 			API::cancelNewTokenRequest(comment, id);
 		// client should wait for answer
@@ -1323,9 +1326,10 @@ void JsonAPI::handleInstanceCommand(const QJsonObject &message, const QString &c
 
 	if (subc == "startInstance")
 	{
-		// silent fail
-		API::startInstance(inst);
-		sendSuccessReply(command + "-" + subc, tan);
+		connect(this, &API::onStartInstanceResponse, [=] (const int &tan) { sendSuccessReply(command + "-" + subc, tan); });
+		if (!API::startInstance(inst, tan))
+			sendErrorReply("Can't start Hyperion instance index " + QString::number(inst), command + "-" + subc, tan);
+
 		return;
 	}
 
@@ -1557,7 +1561,7 @@ void JsonAPI::newPendingTokenRequest(const QString &id, const QString &comment)
 	sendSuccessDataReply(QJsonDocument(obj), "authorize-tokenRequest", 1);
 }
 
-void JsonAPI::handleTokenResponse(bool success, const QString &token, const QString &comment, const QString &id)
+void JsonAPI::handleTokenResponse(bool success, const QString &token, const QString &comment, const QString &id, const int &tan)
 {
 	const QString cmd = "authorize-requestToken";
 	QJsonObject result;
@@ -1566,9 +1570,9 @@ void JsonAPI::handleTokenResponse(bool success, const QString &token, const QStr
 	result["id"] = id;
 
 	if (success)
-		sendSuccessDataReply(QJsonDocument(result), cmd);
+		sendSuccessDataReply(QJsonDocument(result), cmd, tan);
 	else
-		sendErrorReply("Token request timeout or denied", cmd, 5);
+		sendErrorReply("Token request timeout or denied", cmd, tan);
 }
 
 void JsonAPI::handleInstanceStateChange(InstanceState state, quint8 instance, const QString &name)

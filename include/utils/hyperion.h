@@ -234,12 +234,6 @@ namespace hyperion {
 		midPointsY.erase(std::unique(midPointsY.begin(), midPointsY.end()), midPointsY.end());
 
 		QSize gridSize( midPointsX.size(), midPointsY.size() );
-		//Debug(_log, "LED layout grid size: %dx%d", gridSize.width(), gridSize.height());
-
-		// Limit to 80px for performance reasons
-		const int pl = 80;
-		if(gridSize.width() > pl || gridSize.height() > pl)
-			gridSize.scale(pl, pl, Qt::KeepAspectRatio);
 
 		// Correct the grid in case it is malformed in width vs height
 		// Expected is at least 50% of width <-> height
@@ -247,6 +241,13 @@ namespace hyperion {
 			gridSize.setHeight(qMax(1,gridSize.width()/2));
 		else if((gridSize.width() / gridSize.height()) < 0.5)
 			gridSize.setWidth(qMax(1,gridSize.height()/2));
+
+		// Limit to 80px for performance reasons
+		const int pl = 80;
+		if(gridSize.width() > pl || gridSize.height() > pl)
+		{
+			gridSize.scale(pl, pl, Qt::KeepAspectRatio);
+		}
 
 		return gridSize;
 	}

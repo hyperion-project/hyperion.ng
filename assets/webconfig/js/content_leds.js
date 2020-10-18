@@ -572,7 +572,7 @@ $(document).ready(function() {
 	var devRPiPWM = ['ws281x'];
 	var devRPiGPIO = ['piblaster'];
 	var devNET = ['atmoorb', 'fadecandy', 'philipshue', 'nanoleaf', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udph801', 'udpraw', 'wled', 'yeelight'];
-	var devUSB = ['adalight', 'dmx', 'atmo', 'hyperionusbasp', 'lightpack', 'multilightpack', 'paintpack', 'rawhid', 'sedu', 'tpm2', 'karate'];
+	var devUSB = ['adalight', 'dmx', 'atmo', 'hyperionusbasp', 'lightpack', 'paintpack', 'rawhid', 'sedu', 'tpm2', 'karate'];
 
 	var optArr = [[]];
 	optArr[1]=[];

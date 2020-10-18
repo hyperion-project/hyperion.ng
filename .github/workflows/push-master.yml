@@ -134,6 +134,9 @@ jobs:
         run: |
           choco install --no-progress python nsis openssl directx-sdk -y
 
+      - name: Copy NSIS plugins
+        run: copy "cmake\nsis\template\*.dll" "C:\Program Files (x86)\NSIS\Plugins\x86-ansi\"
+
       - name: Set up x64 build architecture environment
         shell: cmd
         run: call "${{env.VCINSTALLDIR}}\Auxiliary\Build\vcvars64.bat"

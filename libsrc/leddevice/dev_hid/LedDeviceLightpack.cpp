@@ -35,6 +35,7 @@ enum DATA_VERSION_INDEXES{
 LedDeviceLightpack::LedDeviceLightpack(const QJsonObject &deviceConfig)
 	: LedDevice(deviceConfig)
 	  , _libusbContext(nullptr)
+	  , _device(nullptr)
 	  , _deviceHandle(nullptr)
 	  , _busNumber(-1)
 	  , _addressNumber(-1)
@@ -80,17 +81,28 @@ bool LedDeviceLightpack::init(const QJsonObject &deviceConfig)
 		else
 		{
 			Debug(_log, "USB context initialized");
-			//libusb_set_debug(_libusbContext, 3);
+
+			if ( _log->getMinLevel() == Logger::LogLevel::DEBUG )
+			{
+				int logLevel = LIBUSB_LOG_LEVEL_INFO;
+				#if LIBUSB_API_VERSION >= 0x01000106
+					libusb_set_option(_libusbContext, LIBUSB_OPTION_LOG_LEVEL, logLevel);
+				#else
+					libusb_set_debug(_libusbContext, logLevel);
+				#endif
+			}
 
 			// retrieve the list of USB devices
 			libusb_device ** deviceList;
 			ssize_t deviceCount = libusb_get_device_list(_libusbContext, &deviceList);
 
+			bool deviceFound = true;
 			// iterate the list of devices
 			for (ssize_t i = 0 ; i < deviceCount; ++i)
 			{
 				// try to open and initialize the device
-				if (testAndOpen(deviceList[i], _serialNumber) == 0)
+				deviceFound = searchDevice(deviceList[i], _serialNumber);
+				if ( deviceFound )
 				{
 					_device = deviceList[i];
 					// a device was successfully opened. break from list
@@ -101,7 +113,7 @@ bool LedDeviceLightpack::init(const QJsonObject &deviceConfig)
 			// free the device list
 			libusb_free_device_list(deviceList, 1);
 
-			if (_deviceHandle == nullptr)
+			if (!deviceFound)
 			{
 				QString errortext;
 				if (_serialNumber.isEmpty())
@@ -110,12 +122,16 @@ bool LedDeviceLightpack::init(const QJsonObject &deviceConfig)
 				}
 				else
 				{
-					errortext = QString ("No Lightpack device has been found with serial %1").arg( _serialNumber);
+					errortext = QString ("No Lightpack device found with serial %1").arg( _serialNumber);
 				}
 				this->setInError( errortext );
 			}
 			else
 			{
+				// set the led buffer size (command + 6 bytes per led)
+				_ledBuffer = std::vector<uint8_t>(1 + _hwLedCount * 6, 0);
+				_ledBuffer[0] = CMD_UPDATE_LEDS;
+
 				isInitOK = true;
 			}
 		}
@@ -128,18 +144,29 @@ int LedDeviceLightpack::open()
 	int retval = -1;
 	_isDeviceReady = false;
 
-	if ( libusb_open(_device, &_deviceHandle) != LIBUSB_SUCCESS )
+	if ( _device != nullptr)
 	{
-		QString errortext = QString ("Failed to open [%1]").arg(_serialNumber);
-		this->setInError(errortext);
-	}
-	else
-	{
-		// Everything is OK -> enable device
-		_isDeviceReady = true;
-		retval = 0;
-	}
+		openDevice(_device, &_deviceHandle);
 
+		if ( _deviceHandle == nullptr )
+		{
+			QString errortext = QString ("Failed to open device with serial [%1]").arg(_serialNumber);
+			this->setInError(errortext);
+			retval = -1;
+		}
+		else
+		{
+			disableSmoothing();
+			{
+				// Everything is OK
+				_isDeviceReady = true;
+				_isOpen = true;
+
+				Info(_log, "Lightpack device successfully opened");
+				retval = 0;
+			}
+		}
+	}
 	return retval;
 }
 
@@ -147,75 +174,64 @@ int LedDeviceLightpack::close()
 {
 	int retval = 0;
 	_isDeviceReady = false;
+	_isOpen = false;
 
-	// LedDevice specific closing activities
-	if (_deviceHandle != nullptr)
+	if ( _deviceHandle != nullptr)
 	{
-		_isOpen = false;
-		libusb_release_interface(_deviceHandle, LIGHTPACK_INTERFACE);
-		libusb_attach_kernel_driver(_deviceHandle, LIGHTPACK_INTERFACE);
-		libusb_close(_deviceHandle);
-
+		closeDevice(_deviceHandle);
 		_deviceHandle = nullptr;
 	}
+
 	return retval;
 }
 
-int LedDeviceLightpack::testAndOpen(libusb_device * device, const QString & requestedSerialNumber)
+bool LedDeviceLightpack::searchDevice(libusb_device * device, const QString & requestedSerialNumber)
 {
+	bool lightPackFound = false;
+
 	libusb_device_descriptor deviceDescriptor;
 	int error = libusb_get_device_descriptor(device, &deviceDescriptor);
 	if (error != LIBUSB_SUCCESS)
 	{
 		Error(_log, "Error while retrieving device descriptor(%d): %s", error, libusb_error_name(error));
-		return -1;
+		return false;
 	}
 
+	#define UNO_VENDOR_ID      0x2341
+	#define UNO_PRODUCT_ID     0x43
+
 	if ((deviceDescriptor.idVendor == USB_VENDOR_ID && deviceDescriptor.idProduct == USB_PRODUCT_ID) ||
-		(deviceDescriptor.idVendor == USB_OLD_VENDOR_ID && deviceDescriptor.idProduct == USB_OLD_PRODUCT_ID))
+		 (deviceDescriptor.idVendor == USB_OLD_VENDOR_ID && deviceDescriptor.idProduct == USB_OLD_PRODUCT_ID))
 	{
 		Info(_log, "Found a Lightpack device. Retrieving more information...");
+
+		Debug(_log, "vendorIdentifier : %s", QSTRING_CSTR(QString("0x%1").arg(static_cast<ushort>(deviceDescriptor.idVendor),0,16)));
+		Debug(_log, "productIdentifier: %s", QSTRING_CSTR(QString("0x%1").arg(static_cast<ushort>(deviceDescriptor.idProduct),0,16)));
+		Debug(_log, "release_number   : %s", QSTRING_CSTR(QString("0x%1").arg(static_cast<ushort>(deviceDescriptor.bcdDevice),0,16)));
+		Debug(_log, "manufacturer     : %s", QSTRING_CSTR(getProperty(device, deviceDescriptor.iManufacturer)));
 
 		// get the hardware address
 		int busNumber = libusb_get_bus_number(device);
 		int addressNumber = libusb_get_device_address(device);
 
 		// get the serial number
-		QString serialNumber;
-		if (deviceDescriptor.iSerialNumber != 0)
-		{
-			// TODO: Check, if exceptions via try/catch need to be replaced in Qt environment
-			try
-			{
-				serialNumber = LedDeviceLightpack::getString(device, deviceDescriptor.iSerialNumber);
-			}
-			catch (int e)
-			{
-				Error(_log, "unable to retrieve serial number from Lightpack device(%d): %s", e, libusb_error_name(e));
-				serialNumber = "";
-			}
-		}
-
+		QString serialNumber = LedDeviceLightpack::getProperty(device, deviceDescriptor.iSerialNumber);
 		Debug(_log,"Lightpack device found: bus=%d address=%d serial=%s", busNumber, addressNumber, QSTRING_CSTR(serialNumber));
 
 		// check if this is the device we are looking for
 		if (requestedSerialNumber.isEmpty() || requestedSerialNumber == serialNumber)
 		{
-			// This is it!
-			// TODO: Check, if exceptions via try/catch need to be replaced in Qt environment
-			try
+			libusb_device_handle * deviceHandle;
+			if ( openDevice(device, &deviceHandle ) == 0 )
 			{
-				_deviceHandle = openDevice(device);
 				_serialNumber = serialNumber;
 				_busNumber = busNumber;
 				_addressNumber = addressNumber;
 
-				Info(_log, "Lightpack device successfully opened");
-
 				// get the firmware version
 				uint8_t buffer[256];
 				error = libusb_control_transfer(
-							_deviceHandle,
+							deviceHandle,
 							static_cast<uint8_t>( LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE),
 							0x01,
 							0x0100,
@@ -231,13 +247,12 @@ int LedDeviceLightpack::testAndOpen(libusb_device * device, const QString & requ
 					_firmwareVersion.minorVersion = buffer[INDEX_FW_VER_MINOR];
 				}
 
+				#if 0
 				// FOR TESTING PURPOSE: FORCE MAJOR VERSION TO 6
 				_firmwareVersion.majorVersion = 6;
+				#endif
 
-				// disable smoothing of the chosen device
-				disableSmoothing();
-
-				// determine the number of leds
+				// determine the number of LEDs
 				if (_firmwareVersion.majorVersion == 4)
 				{
 					_hwLedCount = 8;
@@ -257,24 +272,20 @@ int LedDeviceLightpack::testAndOpen(libusb_device * device, const QString & requ
 				{
 					_bitsPerChannel = 8;
 				}
+				closeDevice(deviceHandle);
 
-				// set the led buffer size (command + 6 bytes per led)
-				_ledBuffer = std::vector<uint8_t>(1 + _hwLedCount * 6, 0);
-				_ledBuffer[0] = CMD_UPDATE_LEDS;
+				Debug(_log, "Lightpack device found: bus=%d address=%d serial=%s version=%d.%d.", _busNumber, _addressNumber, QSTRING_CSTR(_serialNumber), _firmwareVersion.majorVersion, _firmwareVersion.minorVersion );
+				lightPackFound = true;
 
-				// return success
-				Debug(_log, "Lightpack device opened: bus=%d address=%d serial=%s version=%d.%d.", _busNumber, _addressNumber, QSTRING_CSTR(_serialNumber), _firmwareVersion.majorVersion, _firmwareVersion.minorVersion );
-				return 0;
 			}
-			catch(int e)
+			else
 			{
-				_deviceHandle = nullptr;
-				Warning(_log, "Unable to open Lightpack device. Searching for other device(%d): %s", e, libusb_error_name(e));
+				Warning(_log, "Unable to open Lightpack device. Searching for other device");
 			}
 		}
 	}
 
-	return -1;
+	return lightPackFound;
 }
 
 int LedDeviceLightpack::write(const std::vector<ColorRgb> &ledValues)
@@ -322,24 +333,23 @@ const QString &LedDeviceLightpack::getSerialNumber() const
 
 int LedDeviceLightpack::writeBytes(uint8_t *data, int size)
 {
-//	std::cout << "Writing " << size << " bytes: ";
-//	for (int i = 0; i < size ; ++i) printf("%02x ", data[i]);
-//	std::cout << std::endl;
+	int rc = 0;
+	//Debug( _log, "[%s]", QSTRING_CSTR(uint8_t_to_hex_string(data, size, 32)) );
 
 	int error = libusb_control_transfer(_deviceHandle,
-									 static_cast<uint8_t>( LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE ),
-		0x09,
-		(2 << 8),
-		0x00,
-		data, size, 1000);
+								 static_cast<uint8_t>( LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE ),
+	0x09,
+	(2 << 8),
+	0x00,
+	data, size, 1000);
 
-	if (error == size)
+	if (error != size)
 	{
-		return 0;
+		rc = -1;
+		Error(_log, "Unable to write %d bytes to Lightpack device(%d): %s", size, error, libusb_error_name(error));
 	}
 
-	Error(_log, "Unable to write %d bytes to Lightpack device(%d): %s", size, error, libusb_error_name(error));
-	return error;
+	return rc;
 }
 
 int LedDeviceLightpack::disableSmoothing()
@@ -354,15 +364,16 @@ int LedDeviceLightpack::disableSmoothing()
 	return rc;
 }
 
-libusb_device_handle * LedDeviceLightpack::openDevice(libusb_device *device)
+int LedDeviceLightpack::openDevice(libusb_device *device, libusb_device_handle ** deviceHandle)
 {
+	int rc = 0;
+
 	libusb_device_handle * handle = nullptr;
-	Logger * log = Logger::getInstance("LedDevice");
 	int error = libusb_open(device, &handle);
 	if (error != LIBUSB_SUCCESS)
 	{
-		Error(log, "unable to open device(%d): %s", error, libusb_error_name(error));
-		throw error;
+		Error(_log, "unable to open device(%d): %s", error, libusb_error_name(error));
+		rc = -1;
 	}
 
 	// detach kernel driver if it is active
@@ -371,42 +382,65 @@ libusb_device_handle * LedDeviceLightpack::openDevice(libusb_device *device)
 		error = libusb_detach_kernel_driver(handle, LIGHTPACK_INTERFACE);
 		if (error != LIBUSB_SUCCESS)
 		{
-			Error(log, "unable to detach kernel driver(%d): %s", error, libusb_error_name(error));
+			Error(_log, "unable to detach kernel driver(%d): %s", error, libusb_error_name(error));
 			libusb_close(handle);
-			throw error;
+			rc = -1;
 		}
 	}
 
 	error = libusb_claim_interface(handle, LIGHTPACK_INTERFACE);
 	if (error != LIBUSB_SUCCESS)
 	{
-		Error(log, "unable to claim interface(%d): %s", error, libusb_error_name(error));
+		Error(_log, "unable to claim interface(%d): %s", error, libusb_error_name(error));
 		libusb_attach_kernel_driver(handle, LIGHTPACK_INTERFACE);
 		libusb_close(handle);
-		throw error;
+		rc = -1;
 	}
 
-	return handle;
+	*deviceHandle = handle;
+	return rc;
 }
 
-QString LedDeviceLightpack::getString(libusb_device * device, int stringDescriptorIndex)
+int LedDeviceLightpack::closeDevice(libusb_device_handle * deviceHandle)
 {
-	libusb_device_handle * handle = nullptr;
+	int rc = 0;
 
-	int error = libusb_open(device, &handle);
+	int error = libusb_release_interface(deviceHandle, LIGHTPACK_INTERFACE);
 	if (error != LIBUSB_SUCCESS)
 	{
-		throw error;
+		Debug(_log, "Error while releasing interface (%d): %s", error, libusb_error_name(error));
+		rc = -1;
 	}
 
-	char buffer[256];
-	error = libusb_get_string_descriptor_ascii(handle, stringDescriptorIndex, reinterpret_cast<unsigned char *>(buffer), sizeof(buffer));
-	if (error <= 0)
+	error = libusb_attach_kernel_driver(deviceHandle, LIGHTPACK_INTERFACE);
+	if (error != LIBUSB_SUCCESS)
 	{
-		libusb_close(handle);
-		throw error;
+		Debug(_log, "Error while attaching kernel driver (%d): %s", error, libusb_error_name(error));
+		rc = -1;
 	}
 
-	libusb_close(handle);
-	return QString(QByteArray(buffer, error));
+	libusb_close(deviceHandle);
+
+	return rc;
+}
+
+QString LedDeviceLightpack::getProperty(libusb_device * device, int stringDescriptorIndex)
+{
+	QString value;
+
+	if ( stringDescriptorIndex != 0 )
+	{
+		libusb_device_handle * handle = nullptr;
+		if ( libusb_open(device, &handle) == LIBUSB_SUCCESS )
+		{
+			char buffer[256];
+			int error = libusb_get_string_descriptor_ascii(handle, stringDescriptorIndex, reinterpret_cast<unsigned char *>(buffer), sizeof(buffer));
+			if (error > 0)
+			{
+				value = QString(QByteArray(buffer, error));
+			}
+			libusb_close(handle);
+		}
+	}
+	return value;
 }

@@ -305,7 +305,12 @@ void HyperionDaemon::startNetworkServices()
 	sslWsThread->start();
 
 	// Create SSDP server in thread
-	_ssdp = new SSDPHandler(_webserver, getSetting(settings::FLATBUFSERVER).object()["port"].toInt(), getSetting(settings::JSONSERVER).object()["port"].toInt(), getSetting(settings::GENERAL).object()["name"].toString());
+	_ssdp = new SSDPHandler(_webserver,
+							getSetting(settings::FLATBUFSERVER).object()["port"].toInt(),
+							getSetting(settings::PROTOSERVER).object()["port"].toInt(),
+							getSetting(settings::JSONSERVER).object()["port"].toInt(),
+							getSetting(settings::WEBSERVER).object()["sslPort"].toInt(),
+							getSetting(settings::GENERAL).object()["name"].toString());
 	QThread *ssdpThread = new QThread(this);
 	ssdpThread->setObjectName("SSDPThread");
 	_ssdp->moveToThread(ssdpThread);

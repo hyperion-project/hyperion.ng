@@ -142,9 +142,11 @@ hyperion::Components PriorityMuxer::getComponentOfPriority(int priority) const
 void PriorityMuxer::registerInput(int priority, hyperion::Components component, const QString& origin, const QString& owner, unsigned smooth_cfg)
 {
 	// detect new registers
-	bool newInput = false;
-	if(!_activeInputs.contains(priority))
+	bool newInput, reusedInput = false;
+	if (!_activeInputs.contains(priority))
 		newInput = true;
+	else
+		reusedInput = true;
 
 	InputInfo& input     = _activeInputs[priority];
 	input.priority       = priority;
@@ -154,12 +156,15 @@ void PriorityMuxer::registerInput(int priority, hyperion::Components component, 
 	input.smooth_cfg     = smooth_cfg;
 	input.owner          = owner;
 
-	if(newInput)
+	if (newInput)
 	{
 		Debug(_log,"Register new input '%s/%s' with priority %d as inactive", QSTRING_CSTR(origin), hyperion::componentToIdString(component), priority);
-		emit prioritiesChanged();
+		if (!_sourceAutoSelectEnabled) // emit 'prioritiesChanged' only on when _sourceAutoSelectEnabled is false
+			emit prioritiesChanged();
 		return;
 	}
+
+	if (reusedInput) emit prioritiesChanged();
 }
 
 bool PriorityMuxer::setInput(int priority, const std::vector<ColorRgb>& ledColors, int64_t timeout_ms)
@@ -339,7 +344,6 @@ void PriorityMuxer::setCurrentTime()
 			_prevVisComp = comp;
 			emit visibleComponentChanged(comp);
 		}
-		emit prioritiesChanged();
 	}
 }
 
