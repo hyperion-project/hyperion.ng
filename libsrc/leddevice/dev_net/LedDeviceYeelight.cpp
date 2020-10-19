@@ -247,7 +247,7 @@ int YeelightLight::writeCommand( const QJsonDocument &command, QJsonArray &resul
 				if ( elapsedTime < _waitTimeQuota )
 				{
 					int waitTime = _waitTimeQuota;
-					log ( 1, "writeCommand():", "Wait %dms, elapsedTime: %llms < quotaTime: %dms", waitTime, elapsedTime, _waitTimeQuota);
+					log ( 1, "writeCommand():", "Wait %dms, elapsedTime: %dms < quotaTime: %dms", waitTime, elapsedTime, _waitTimeQuota);
 
 					// Wait time (in ms) before doing next write to not overrun Yeelight command quota
 					std::this_thread::sleep_for(std::chrono::milliseconds(_waitTimeQuota));
@@ -983,10 +983,7 @@ LedDeviceYeelight::LedDeviceYeelight(const QJsonObject &deviceConfig)
 
 LedDeviceYeelight::~LedDeviceYeelight()
 {
-	if ( _tcpMusicModeServer != nullptr )
-	{
 		delete _tcpMusicModeServer;
-	}
 }
 
 LedDevice* LedDeviceYeelight::construct(const QJsonObject &deviceConfig)
@@ -1448,10 +1445,18 @@ int LedDeviceYeelight::write(const std::vector<ColorRgb> & ledValues)
 					}
 					else
 					{
-						QString errorReason = QString ("(%1) %2").arg(_tcpMusicModeServer->serverError()).arg( _tcpMusicModeServer->errorString());
-						Warning( _log, "write Error [%s]: _tcpMusicModeServer: %s", QSTRING_CSTR(light.getName()), QSTRING_CSTR(errorReason));
-						light.setInError("Failed to get stream socket");
-					}
+						QString errorReason = QString("(%1) %2").arg(_tcpMusicModeServer->serverError()).arg(_tcpMusicModeServer->errorString());
+						if (_tcpMusicModeServer->serverError() == QAbstractSocket::TemporaryError)
+						{
+							Info(_log, "Ignore write Error [%s]: _tcpMusicModeServer: %s", QSTRING_CSTR(light.getName()), QSTRING_CSTR(errorReason));
+							skipWrite = true;
+						}
+						else
+						{
+							Warning(_log, "write Error [%s]: _tcpMusicModeServer: %s", QSTRING_CSTR(light.getName()), QSTRING_CSTR(errorReason));
+							light.setInError("Failed to get stream socket");
+						}
+				}
 				}
 				else
 				{
