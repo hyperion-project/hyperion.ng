@@ -65,8 +65,8 @@ public slots:
 private slots:
 	///
 	/// @brief Handle emits from API of a new Token request.
-	/// @param id       The id of the request
-	/// @param  The comment which needs to be accepted
+	/// @param  id      The id of the request
+	/// @param  comment The comment which needs to be accepted
 	///
 	void newPendingTokenRequest(const QString &id, const QString &comment);
 
@@ -76,8 +76,9 @@ private slots:
 	/// @param  token   The new token that is now valid
 	/// @param  comment The comment that was part of the request
 	/// @param  id      The id that was part of the request
+	/// @param  tan     The tan that was part of the request
 	///
-	void handleTokenResponse(bool success, const QString &token, const QString &comment, const QString &id);
+	void handleTokenResponse(bool success, const QString &token, const QString &comment, const QString &id, const int &tan);
 
 	///
 	/// @brief Handle whenever the state of a instance (HyperionIManager) changes according to enum instanceState

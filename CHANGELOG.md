@@ -15,8 +15,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 ### Fixed
+ - Also allow an 8-LED configuration when using Karatelight
+
+- Fix Lightpack issue (#1015)
+
+- Fix color calibration for Kodi 18 (Fixes #771)
 
 ### Removed
+
+- Replace Multi-Lightpack by multi-instance Lightpack configuration
 
 ## [2.0.0-alpha.8](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.8) - 2020-09-14
 ### Added

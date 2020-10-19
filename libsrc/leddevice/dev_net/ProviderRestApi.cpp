@@ -39,10 +39,7 @@ ProviderRestApi::ProviderRestApi()
 
 ProviderRestApi::~ProviderRestApi()
 {
-	if ( _networkManager != nullptr )
-	{
-		delete _networkManager;
-	}
+	delete _networkManager;
 }
 
 void ProviderRestApi::setBasePath(const QString &basePath)

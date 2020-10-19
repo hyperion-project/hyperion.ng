@@ -85,16 +85,36 @@ public:
 	quint16 getFlatBufPort() const { return _fbsPort.toInt(); };
 
 	///
-	/// @brief set new jsonserver server port
+	/// @brief set new protobuf server port
+	///
+	void setProtoBufPort(quint16 port) { _pbsPort = QString::number(port); };
+
+	///
+	/// @brief Get current protobuf server port
+	///
+	quint16 getProtoBufPort() const { return _pbsPort.toInt(); };
+
+	///
+	/// @brief set new json server port
 	///
 	void setJsonServerPort(quint16 port) { _jssPort = QString::number(port); };
 
 	///
-	/// @brief get new jsonserver server port
+	/// @brief get new json server port
 	///
 	quint16 getJsonServerPort() const { return _jssPort.toInt(); };
 
-		///
+	///
+	/// @brief set new ssl server port
+	///
+	void setSSLServerPort(quint16 port) { _sslPort = QString::number(port); };
+
+	///
+	/// @brief get new ssl server port
+	///
+	quint16 getSSLServerPort() const { return _sslPort.toInt(); };
+
+	///
 	/// @brief set new hyperion name
 	///
 	void setHyperionName(const QString &name) { _name = name; };
@@ -119,13 +139,15 @@ private:
 	Logger* _log;
 	QUdpSocket* _udpSocket;
 
-	QString _serverHeader;
-	QString _uuid;
-	QString _fbsPort;
-	QString _jssPort;
-	QString _name;
-	QString _descAddress;
-	bool    _running;
+	QString _serverHeader,
+			_uuid,
+			_fbsPort,
+			_pbsPort,
+			_jssPort,
+			_sslPort,
+			_name,
+			_descAddress;
+	bool	_running;
 
 private slots:
 	void readPendingDatagrams();

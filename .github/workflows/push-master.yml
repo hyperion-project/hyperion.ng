@@ -113,8 +113,10 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Install NSIS
-        run: choco install --no-progress nsis -y
+      - name: Install NSIS & copy plugins
+        run: |
+          choco install --no-progress nsis -y
+          copy "cmake\nsis\template\*.dll" "C:\Program Files (x86)\NSIS\Plugins\x86-ansi\"
 
       - name: Install OpenSSL
         run: choco install --no-progress openssl -y

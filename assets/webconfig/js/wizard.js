@@ -152,7 +152,9 @@ function beginWizardRGB() {
 $('#btn_wizard_byteorder').off().on('click', startWizardRGB);
 
 //color calibration wizard
-var kodiAddress = document.location.hostname+':8080';
+var kodiHost = document.location.hostname;
+var kodiPort = 9090;
+var kodiAddress = kodiHost;
 var wiz_editor;
 var colorLength;
 var cobj;
@@ -163,60 +165,94 @@ var websAddress;
 var imgAddress;
 var vidAddress = "https://sourceforge.net/projects/hyperion-project/files/resources/vid/";
 var picnr = 0;
-var availVideos = ["Sweet_Cocoon","Caminandes_2_GranDillama","Caminandes_3_Llamigos"];
+var availVideos = ["Sweet_Cocoon", "Caminandes_2_GranDillama", "Caminandes_3_Llamigos"];
 
-if(getStorage("kodiAddress") != null)
+if (getStorage("kodiAddress") != null) {
   kodiAddress = getStorage("kodiAddress");
+  [kodiHost, kodiPort] = kodiAddress.split(":", 2);
 
-function switchPicture(pictures)
-{
-  if(typeof pictures[picnr] === 'undefined')
+  // Ensure that Kodi's default REST-API port is not used, as now the Web-Socket port is used
+  if (kodiPort === "8080") {
+    kodiAddress = kodiHost;
+    kodiPort = undefined;
+    setStorage("kodiAddress", kodiAddress);
+  }
+}
+
+function switchPicture(pictures) {
+  if (typeof pictures[picnr] === 'undefined')
     picnr = 0;
 
-  sendToKodi('playP',pictures[picnr]);
+  sendToKodi('playP', pictures[picnr]);
   picnr++;
 }
 
-function sendToKodi(type, content, cb)
-{
+function sendToKodi(type, content, cb) {
   var command;
 
-  if(type == "playP")
-    content = imgAddress+content+'.png';
-  if(type == "playV")
-    content = vidAddress+content;
+  switch (type) {
+    case "msg":
+      command = { "jsonrpc": "2.0", "method": "GUI.ShowNotification", "params": { "title": $.i18n('wiz_cc_title'), "message": content, "image": "info", "displaytime": 5000 }, "id": "1" };
+      break;
+    case "stop":
+      command = { "jsonrpc": "2.0", "method": "Player.Stop", "params": { "playerid": 2 }, "id": "1" };
+      break;
+    case "playP":
+      content = imgAddress + content + '.png';
+      command = { "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "file": content } }, "id": "1" };
+      break;
+    case "playV":
+      content = vidAddress + content;
+      command = { "jsonrpc": "2.0", "method": "Player.Open", "params": { "item": { "file": content } }, "id": "1" };
+      break;
+    case "rotate":
+      command = { "jsonrpc": "2.0", "method": "Player.Rotate", "params": { "playerid": 2 }, "id": "1" };
+      break;
+    default:
+      if (cb != undefined) {
+        cb("error");
+      }
+  }
 
-  if(type == "msg")
-    command = '{"jsonrpc":"2.0","method":"GUI.ShowNotification","params":{"title": "'+$.i18n('wiz_cc_title')+'", "message": "'+content+'", "image":"info", "displaytime":5000 },"id":"1"}';
-  else if (type == "stop")
-    command = '{"jsonrpc":"2.0","method":"Player.Stop","params":{"playerid": 2},"id":"1"}';
-  else if (type == "playP" || type == "playV")
-    command = '{"jsonrpc":"2.0","method":"Player.Open","params":{"item":{"file":"' + content + '"}},"id":"1"}';
-  else if (type == "rotate")
-    command = '{"jsonrpc":"2.0","method":"Player.Rotate","params":{"playerid": 2},"id":"1"}';
+  if ("WebSocket" in window) {
+    //Add kodi default web-socket port, in case port has been explicitly provided
+    if (kodiPort == undefined) {
+      kodiPort = 9090;
+    }
 
-  $.ajax({
-    url: 'http://' + kodiAddress + '/jsonrpc',
-    dataType: 'jsonp',
-    crossDomain: true,
-    jsonpCallback: 'jsonCallback',
-    type: 'POST',
-    timeout: 2000,
-    data: 'request=' + encodeURIComponent( command )
-  })
-  .done( function( data, textStatus, jqXHR ) {
-    if ( jqXHR.status == 200 && data['result'] == 'OK' && type == "msg")
-      cb("success");
-  })
-  // Older Versions Of Kodi/XBMC Tend To Fail Due To CORS But Typically If A '200' Is Returned Then It Has Worked!
-  .fail( function( jqXHR, textStatus ) {
-    if ( jqXHR.status != 200 && type == "msg")
-      cb("error")
-  });
+    var ws = new WebSocket("ws://" + kodiHost + ":" + kodiPort + "/jsonrpc/websocket");
+
+    ws.onopen = function () {
+      ws.send(JSON.stringify(command));
+    };
+
+    ws.onmessage = function (evt) {
+      var response = JSON.parse(evt.data);
+
+      if (cb != undefined) {
+        if (response.result != undefined) {
+          if (response.result === "OK") {
+            cb("success");
+          } else {
+            cb("error");
+          }
+        }
+      }
+    };
+
+    ws.onerror = function (evt) {
+      if (cb != undefined) {
+        cb("error");
+      }
+    };
+  }
+  else {
+    console.log("Kodi Access: WebSocket NOT supported by this browser");
+    cb("error");
+  }
 }
 
-function performAction()
-{
+function performAction() {
   var h;
 
   if (step == 1) {
@@ -376,6 +412,13 @@ function updateWEditor(el, all) {
 }
 
 function startWizardCC() {
+
+  // Ensure that Kodi's default REST-API port is not used, as now the Web-Socket port is used
+  [kodiHost, kodiPort] = kodiAddress.split(":", 2);
+  if (kodiPort === "8080") {
+    kodiAddress = kodiHost;
+    kodiPort = undefined;
+  }
   //create html
   $('#wiz_header').html('<i class="fa fa-magic fa-fw"></i>' + $.i18n('wiz_cc_title'));
   $('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n('wiz_cc_title') + '</h4><p>' + $.i18n('wiz_cc_intro1') + '</p><label>' + $.i18n('wiz_cc_kwebs') + '</label><input class="form-control" style="width:170px;margin:auto" id="wiz_cc_kodiip" type="text" placeholder="' + kodiAddress + '" value="' + kodiAddress + '" /><span id="kodi_status"></span><span id="multi_cali"></span>');
@@ -391,21 +434,32 @@ function startWizardCC() {
   });
 
   $('#wiz_cc_kodiip').off().on('change', function () {
-    kodiAddress = $(this).val();
-    setStorage("kodiAddress", kodiAddress);
-    sendToKodi("msg", $.i18n('wiz_cc_kodimsg_start'), function(cb){
-      if(cb == "error")
-      {
-        $('#kodi_status').html('<p style="color:red;font-weight:bold;margin-top:5px">'+$.i18n('wiz_cc_kodidiscon')+'</p><p>'+$.i18n('wiz_cc_kodidisconlink')+' <a href="https://sourceforge.net/projects/hyperion-project/files/resources/Hyperion_calibration_pictures.zip/download" target="_blank">'+$.i18n('wiz_cc_link')+'</p>');
-        withKodi = false;
-      }
-      else {
-        $('#kodi_status').html('<p style="color:green;font-weight:bold;margin-top:5px">' + $.i18n('wiz_cc_kodicon') + '</p>');
-        withKodi = true;
-      }
+    
+    kodiAddress = $(this).val().trim();
+    $('#kodi_status').html('');
 
-      $('#btn_wiz_cont').attr('disabled', false);
-    });
+    // Remove Kodi's default Web-Socket port (9090) from display and ensure Kodi's default REST-API port (8080) is mapped to web-socket port to ease migration
+    if (kodiAddress !== "") {
+      [kodiHost, kodiPort] = kodiAddress.split(":", 2);
+      if (kodiPort === "9090" || kodiPort === "8080") {
+        kodiAddress = kodiHost;
+        kodiPort = undefined;
+      }
+      sendToKodi("msg", $.i18n('wiz_cc_kodimsg_start'), function (cb) {
+        if (cb == "error") {
+          $('#kodi_status').html('<p style="color:red;font-weight:bold;margin-top:5px">' + $.i18n('wiz_cc_kodidiscon') + '</p><p>' + $.i18n('wiz_cc_kodidisconlink') + ' <a href="https://sourceforge.net/projects/hyperion-project/files/resources/Hyperion_calibration_pictures.zip/download" target="_blank">' + $.i18n('wiz_cc_link') + '</p>');
+          withKodi = false;
+        }
+        else {
+          setStorage("kodiAddress", kodiAddress);
+
+          $('#kodi_status').html('<p style="color:green;font-weight:bold;margin-top:5px">' + $.i18n('wiz_cc_kodicon') + '</p>');
+          withKodi = true;
+        }
+
+        $('#btn_wiz_cont').attr('disabled', false);
+      });
+    }
   });
 
   //listen for continue
@@ -1103,7 +1157,9 @@ function get_hue_lights() {
                 cC++;
               }
             }
+
             (cC == 0 || window.readOnlyMode) ? $('#btn_wiz_save').attr("disabled", true) : $('#btn_wiz_save').attr("disabled", false);
+
           });
         }
         $('.hue_sel_watch').trigger('change');
@@ -1156,20 +1212,19 @@ function startWizardWLED(e) {
   });
 
   //listen for continue
-  $('#btn_wiz_cont').off().on('click',function() {
+  $('#btn_wiz_cont').off().on('click', function () {
+    /* For testing only
 
-// For testing only
-  discover_wled();
+      discover_wled();
 
-  var hostAddress = conf_editor.getEditor("root.specificOptions.host").getValue();
-  if(hostAddress != "")
-  {
-    getProperties_wled(hostAddress,"info");
-    identify_wled(hostAddress)  
-  }
+      var hostAddress = conf_editor.getEditor("root.specificOptions.host").getValue();
+      if(hostAddress != "")
+      {
+        getProperties_wled(hostAddress,"info");
+        identify_wled(hostAddress)
+      }
 
-// For testing only
-
+     For testing only */
   });
 }
 
@@ -1450,6 +1505,7 @@ function assign_yeelight_lights() {
           cC++;
         }
       }
+
       if (cC === 0 || window.readOnlyMode)
         $('#btn_wiz_save').attr("disabled", true);
       else
@@ -1480,7 +1536,6 @@ async function getProperties_yeelight(hostname, port) {
 
 function identify_yeelight_device(hostname, port) {
   let params = { hostname: hostname, port: port };
-
   const res = requestLedDeviceIdentification("yeelight", params);
   // TODO: error case unhandled
   // res can be: false (timeout) or res.error (not found)
