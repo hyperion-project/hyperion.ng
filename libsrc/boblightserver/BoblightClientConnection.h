@@ -4,10 +4,14 @@
 #include <QByteArray>
 #include <QTcpSocket>
 #include <QLocale>
+#include <QString>
 
 // utils includes
 #include <utils/Logger.h>
 #include <utils/ColorRgb.h>
+
+/// Whether to parse floats with an eye on performance
+#define FAST_FLOAT_PARSE
 
 class ImageProcessor;
 class Hyperion;
@@ -69,6 +73,42 @@ private:
 	/// Send a lights message the to connected client
 	///
 	void sendLightMessage();
+
+	///
+	/// Interpret the float value "0.0" to "1.0" of the QString byte values 0 .. 255
+	///
+	/// @param s the string to parse
+	/// @param ok whether the result is ok
+	/// @return the parsed byte value in range 0 to 255, or 0
+	///
+	uint8_t parseByte(const QStringRef& s, bool *ok = nullptr) const;
+
+	///
+	/// Parse the given QString as unsigned int value.
+	///
+	/// @param s the string to parse
+	/// @param ok whether the result is ok
+	/// @return the parsed unsigned int value
+	///
+	unsigned parseUInt(const QStringRef& s, bool *ok = nullptr) const;
+
+	///
+	/// Parse the given QString as float value, e.g. the 16-bit (wide char) QString "1" shall represent 1, "0.5" is 0.5 and so on.
+	///
+	/// @param s the string to parse
+	/// @param ok whether the result is ok
+	/// @return the parsed float value, or 0
+	///
+	float parseFloat(const QStringRef& s, bool *ok = nullptr) const;
+
+	///
+	/// Read an incoming boblight message as QString
+	///
+	/// @param data the char data buffer of the incoming message
+	/// @param size the length of the buffer buffer
+	/// @returns the incoming boblight message as QString
+	///
+	QString readMessage(const char *data, const size_t size) const;
 
 private:
 	/// Locale used for parsing floating point values
