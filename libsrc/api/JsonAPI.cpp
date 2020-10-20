@@ -275,6 +275,10 @@ void JsonAPI::handleSysInfoCommand(const QJsonObject &, const QString &command, 
 	system["kernelType"] = data.kernelType;
 	system["kernelVersion"] = data.kernelVersion;
 	system["architecture"] = data.architecture;
+	system["cpuModelName"] = data.cpuModelName;
+	system["cpuModelType"] = data.cpuModelType;
+	system["cpuHardware"] = data.cpuHardware;
+	system["cpuRevision"] = data.cpuRevision;
 	system["wordSize"] = data.wordSize;
 	system["productType"] = data.productType;
 	system["productVersion"] = data.productVersion;
@@ -289,6 +293,7 @@ void JsonAPI::handleSysInfoCommand(const QJsonObject &, const QString &command, 
 	hyperion["gitremote"] = QString(HYPERION_GIT_REMOTE);
 	hyperion["time"] = QString(__DATE__ " " __TIME__);
 	hyperion["id"] = _authManager->getID();
+
 	info["hyperion"] = hyperion;
 
 	// send the result
