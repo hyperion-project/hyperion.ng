@@ -44,7 +44,6 @@ PriorityMuxer::PriorityMuxer(int ledCount, QObject * parent)
 	// forward timeRunner signal to prioritiesChanged signal & threading workaround
 	connect(this, &PriorityMuxer::timeRunner, this, &PriorityMuxer::prioritiesChanged);
 	connect(this, &PriorityMuxer::signalTimeTrigger, this, &PriorityMuxer::timeTrigger);
-	connect(this, &PriorityMuxer::activeStateChanged, this, &PriorityMuxer::prioritiesChanged);
 
 	// start muxer timer
 	connect(_updateTimer, &QTimer::timeout, this, &PriorityMuxer::setCurrentTime);
@@ -201,7 +200,6 @@ bool PriorityMuxer::setInput(int priority, const std::vector<ColorRgb>& ledColor
 	if(activeChange)
 	{
 		Debug(_log, "Priority %d is now %s", priority, active ? "active" : "inactive");
-		emit activeStateChanged(priority, active);
 		setCurrentTime();
 	}
 	return true;
@@ -241,7 +239,6 @@ bool PriorityMuxer::setInputImage(int priority, const Image<ColorRgb>& image, in
 	if(activeChange)
 	{
 		Debug(_log, "Priority %d is now %s", priority, active ? "active" : "inactive");
-		emit activeStateChanged(priority, active);
 		setCurrentTime();
 	}
 	return true;

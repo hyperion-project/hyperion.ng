@@ -213,13 +213,6 @@ signals:
 	void visibleComponentChanged(hyperion::Components comp);
 
 	///
-	/// @brief Emits whenever a priority changes active state
-	/// @param  priority  The priority who changed the active state
-	/// @param  state     The new state, state true = active else false
-	///
-	void activeStateChanged(quint8 priority, bool state);
-
-	///
 	/// @brief Emits whenever the auto selection state has been changed
 	/// @param  state  The new state of auto selection; True enabled else false
 	///
