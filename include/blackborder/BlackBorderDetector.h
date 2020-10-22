@@ -239,7 +239,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		BlackBorder process_letterbox(const Image<Pixel_T> & image) const
 		{
-			// test center and 33%, 66% of width/heigth
+			// test center and 33%, 66% of width
 			// 33 and 66 will check both top and bottom
 			// center will only check top (minimise false detection of captions)
 			int width = image.width();
