@@ -239,14 +239,14 @@ namespace hyperion
 		template <typename Pixel_T>
 		BlackBorder process_letterbox(const Image<Pixel_T> & image) const
 		{
-			// test center and 33%, 66% of width
-			// 33 and 66 will check both top and bottom
+			// test center and 25%, 75% of width
+			// 25 and 75 will check both top and bottom
 			// center will only check top (minimise false detection of captions)
 			int width = image.width();
 			int height = image.height();
-			int width33percent = width / 3;
+			int width25percent = width / 4;
 			int height33percent = height / 3;
-			int width66percent = width33percent * 2;
+			int width75percent = width25percent * 3;
 			int xCenter = width / 2;
 
 
@@ -258,10 +258,10 @@ namespace hyperion
 			for (int y = 0; y < height33percent; ++y)
 			{
 				if (!isBlack(image(xCenter, y))
-					|| !isBlack(image(width33percent, y))
-					|| !isBlack(image(width66percent, y))
-					|| !isBlack(image(width33percent, (height - y))
-					|| !isBlack(image(width66percent, (height - y)))
+					|| !isBlack(image(width25percent, y))
+					|| !isBlack(image(width75percent, y))
+					|| !isBlack(image(width25percent, (height - y))
+					|| !isBlack(image(width75percent, (height - y)))
 				{
 					firstNonBlackYPixelIndex = y;
 					break;
