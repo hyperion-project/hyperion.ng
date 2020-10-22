@@ -260,8 +260,8 @@ namespace hyperion
 				if (!isBlack(image(xCenter, y))
 					|| !isBlack(image(width25percent, y))
 					|| !isBlack(image(width75percent, y))
-					|| !isBlack(image(width25percent, (height - y))
-					|| !isBlack(image(width75percent, (height - y)))
+					|| !isBlack(image(width25percent, (height - y)))
+					|| !isBlack(image(width75percent, (height - y))))
 				{
 					firstNonBlackYPixelIndex = y;
 					break;
