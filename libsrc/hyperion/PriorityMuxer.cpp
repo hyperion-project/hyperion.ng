@@ -163,7 +163,7 @@ void PriorityMuxer::registerInput(int priority, hyperion::Components component, 
 		return;
 	}
 
-	if (reusedInput) emit prioritiesChanged();
+	if (reusedInput && component != hyperion::COMP_COLOR) emit prioritiesChanged();
 }
 
 bool PriorityMuxer::setInput(int priority, const std::vector<ColorRgb>& ledColors, int64_t timeout_ms)
