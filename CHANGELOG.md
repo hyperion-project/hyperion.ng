@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Provide additional details on Hardware/CPU information
 - Allow execution with option "--version", while another hyperion daemon is running
-- New blackbar detection mode "Letterbox", that consideres only bars at the top and bottom of picture
+- New blackbar detection mode "Letterbox", that considers only bars at the top and bottom of picture
 
 ### Changed
 
