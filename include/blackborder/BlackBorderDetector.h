@@ -234,6 +234,49 @@ namespace hyperion
 		}
 
 
+		///
+		/// letterbox detection mode (5lines top-bottom only detection)
+		template <typename Pixel_T>
+		BlackBorder process_letterbox(const Image<Pixel_T> & image) const
+		{
+			// test center and 33%, 66% of width/heigth
+			// 33 and 66 will check both top and bottom
+			// center will only check top (minimise false detection of captions)
+			int width = image.width();
+			int height = image.height();
+			int width33percent = width / 3;
+			int height33percent = height / 3;
+			int width66percent = width33percent * 2;
+			int xCenter = width / 2;
+
+
+			int firstNonBlackYPixelIndex = -1;
+
+			height--; // remove 1 pixel to get end pixel index
+
+			// find first Y pixel of the image
+			for (int y = 0; y < height33percent; ++y)
+			{
+				if (!isBlack(image(xCenter, y))
+					|| !isBlack(image(width33percent, y))
+					|| !isBlack(image(width66percent, y))
+					|| !isBlack(image(width33percent, (height - y))
+					|| !isBlack(image(width66percent, (height - y)))
+				{
+					firstNonBlackYPixelIndex = y;
+					break;
+				}
+			}
+
+			// Construct result
+			BlackBorder detectedBorder;
+			detectedBorder.unknown = firstNonBlackYPixelIndex == -1;
+			detectedBorder.horizontalSize = firstNonBlackYPixelIndex;
+			detectedBorder.verticalSize = 0;
+			return detectedBorder;
+		}
+
+
 
 	private:
 

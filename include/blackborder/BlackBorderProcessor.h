@@ -79,6 +79,8 @@ namespace hyperion
 				imageBorder = _detector->process_classic(image);
 			} else if (_detectionMode == "osd") {
 				imageBorder = _detector->process_osd(image);
+			} else if (_detectionMode == "letterbox") {
+				imageBorder = _detector->process_letterbox(image);
 			}
 			// add blur to the border
 			if (imageBorder.horizontalSize > 0)
