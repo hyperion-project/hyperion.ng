@@ -43,6 +43,8 @@
   ;Tnstaller window branding text
   BrandingText /TRIMLEFT "@CPACK_NSIS_BRANDING_TEXT@"
 
+@CPACK_NSIS_EXTRA_DEFS@
+
 @CPACK_NSIS_DEFINES@
 
   !include Sections.nsh
