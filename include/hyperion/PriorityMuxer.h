@@ -213,12 +213,6 @@ signals:
 	void visibleComponentChanged(hyperion::Components comp);
 
 	///
-	/// @brief Emits whenever the auto selection state has been changed
-	/// @param  state  The new state of auto selection; True enabled else false
-	///
-	void autoSelectChanged(bool state);
-
-	///
 	/// @brief Emits whenever something changes which influences the priorities listing
 	///        Emits also in 1s interval when a COLOR or EFFECT is running with a timeout > -1
 	///
