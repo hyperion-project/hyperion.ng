@@ -144,7 +144,7 @@ void PriorityMuxer::registerInput(int priority, hyperion::Components component, 
 	bool newInput, reusedInput = false;
 	if (!_activeInputs.contains(priority))
 		newInput = true;
-	else if(_prevVisComp == component)
+	else if(_prevVisComp == component || _activeInputs[priority].componentId == component)
 		reusedInput = true;
 
 	InputInfo& input     = _activeInputs[priority];
@@ -158,7 +158,7 @@ void PriorityMuxer::registerInput(int priority, hyperion::Components component, 
 	if (newInput)
 	{
 		Debug(_log,"Register new input '%s/%s' with priority %d as inactive", QSTRING_CSTR(origin), hyperion::componentToIdString(component), priority);
-		// emit 'prioritiesChanged' only on when _sourceAutoSelectEnabled is false
+		// emit 'prioritiesChanged' only if _sourceAutoSelectEnabled is false
 		if (!_sourceAutoSelectEnabled)
 			emit prioritiesChanged();
 		return;
@@ -202,8 +202,11 @@ bool PriorityMuxer::setInput(int priority, const std::vector<ColorRgb>& ledColor
 	if(activeChange)
 	{
 		Debug(_log, "Priority %d is now %s", priority, active ? "active" : "inactive");
+		if (_currentPriority < priority)
+			emit prioritiesChanged();
 		setCurrentTime();
 	}
+
 	return true;
 }
 
@@ -241,8 +244,11 @@ bool PriorityMuxer::setInputImage(int priority, const Image<ColorRgb>& image, in
 	if(activeChange)
 	{
 		Debug(_log, "Priority %d is now %s", priority, active ? "active" : "inactive");
+		if (_currentPriority < priority)
+			emit prioritiesChanged();
 		setCurrentTime();
 	}
+
 	return true;
 }
 
@@ -259,8 +265,8 @@ bool PriorityMuxer::clearInput(uint8_t priority)
 		Debug(_log,"Removed source priority %d",priority);
 		// on clear success update _currentPriority
 		setCurrentTime();
-		// emit 'prioritiesChanged' only on when _sourceAutoSelectEnabled is false
-		if (!_sourceAutoSelectEnabled)
+		// emit 'prioritiesChanged' only if _sourceAutoSelectEnabled is false
+		if (!_sourceAutoSelectEnabled || _currentPriority < priority)
 			emit prioritiesChanged();
 		return true;
 	}
