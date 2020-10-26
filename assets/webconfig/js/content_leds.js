@@ -599,6 +599,12 @@ $(document).ready(function() {
     	    var atmoorb_title = 'wiz_atmoorb_title';
     	    changeWizard(data, atmoorb_title, startWizardAtmoOrb);
 	}
+	else if(ledType == "cololight") {
+		var ledWizardType = (this.checked) ? "cololight" : ledType;
+		var data = { type: ledWizardType };
+		var cololight_title = 'wiz_cololight_title';
+		changeWizard(data, cololight_title, startWizardCololight);
+	}
 	else if(ledType == "yeelight") {
 		var ledWizardType = (this.checked) ? "yeelight" : ledType;
 		var data = { type: ledWizardType };
