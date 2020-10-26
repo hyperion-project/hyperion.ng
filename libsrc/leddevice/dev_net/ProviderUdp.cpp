@@ -22,7 +22,7 @@ ProviderUdp::ProviderUdp(const QJsonObject &deviceConfig)
 	  , _port(1)
 	  , _defaultHost("127.0.0.1")
 {
-	_latchTime_ms = 1;
+	_latchTime_ms = 0;
 }
 
 ProviderUdp::~ProviderUdp()
