@@ -1,4 +1,3 @@
-
 var ledsCustomCfgInitialized = false;
 var finalLedArray = [];
 var conf_editor = null;
@@ -12,7 +11,6 @@ function round(number) {
 };
 
 function createLedPreview(leds, origin){
-
 	if (origin == "classic"){
 		$('#previewcreator').html($.i18n('conf_leds_layout_preview_originCL'));
 		$('#leds_preview').css("padding-top", "56.25%");
@@ -56,7 +54,6 @@ function createLedPreview(leds, origin){
 
 	// update ace Editor content
 	aceEdt.set(finalLedArray);
-
 }
 
 function createClassicLeds(){
@@ -194,7 +191,6 @@ function createClassicLeds(){
 			var vmax = ovl("+",pttlv+(stepv*Number([i+1]))+edgeVGap);
 			createLedArray(hmin, hmax, vmin, vmax);
 		}
-
 	}
 
 	//rectangle
@@ -304,7 +300,6 @@ function createMatrixLeds(){
 }
 
 function migrateLedConfig(slConfig){
-
 	var newLedConfig = {classic:{}, matrix:{}};
 
 	//Default Classic layout
@@ -345,7 +340,6 @@ function migrateLedConfig(slConfig){
 	// Persit new structure
 	requestWriteConfig({ledConfig:newLedConfig})
 	return newLedConfig
-
 }
 
 function isEmpty(obj) {
@@ -656,7 +650,6 @@ $(document).ready(function() {
 
 	// save led device config
 	$("#btn_submit_controller").off().on("click", function(event) {
-
 		var ledDevice = $("#leddevices").val();
 		var result = {device:{}};
 
