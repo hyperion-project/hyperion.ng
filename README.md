@@ -56,6 +56,6 @@ See [CompileHowto](CompileHowto.md) and [CrossCompileHowto](CrossCompileHowto.md
 Alpha releases available from the [Hyperion release page](https://github.com/hyperion-project/hyperion.ng/releases)
 
 ## License
-The source is released under MIT-License (see http://opensource.org/licenses/MIT).<br>
+The source is released under MIT-License (see https://opensource.org/licenses/MIT).<br>
 [![GitHub license](https://img.shields.io/badge/License-MIT-yellow.svg)](https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/LICENSE)
 
