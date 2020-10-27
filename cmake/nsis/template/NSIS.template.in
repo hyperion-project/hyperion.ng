@@ -43,6 +43,8 @@
   ;Tnstaller window branding text
   BrandingText /TRIMLEFT "@CPACK_NSIS_BRANDING_TEXT@"
 
+@CPACK_NSIS_EXTRA_DEFS@
+
 @CPACK_NSIS_DEFINES@
 
   !include Sections.nsh
@@ -384,7 +386,7 @@ Function un.RemoveFromPath
 FunctionEnd
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Uninstall sutff
+; Uninstall stuff
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ###########################################
@@ -810,6 +812,15 @@ FunctionEnd
 ;--------------------------------
 ; determine admin versus local install
 Function un.onInit
+  ; Check if Hyperion is running
+  loopIsRunningCheck:
+	FindProcDLL::FindProc "hyperiond.exe"
+	IntCmp $R0 1 0 notRunning
+	  MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "Hyperion is running.$\n$\nClose it and press Retry, or press Cancel to exit." IDRETRY loopIsRunningCheck IDCANCEL abortnow
+
+	abortnow:
+		Abort
+  notRunning:
 
   ClearErrors
   UserInfo::GetName
@@ -873,6 +884,16 @@ FunctionEnd
 ;Uninstaller Section
 
 Section "Uninstall"
+  ; Check if Hyperion is running
+  loopIsRunningCheck:
+    FindProcDLL::FindProc "hyperiond.exe"
+    IntCmp $R0 1 0 notRunning
+      MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "Hyperion is running.$\n$\nClose it and press Retry, or press Cancel to exit." IDRETRY loopIsRunningCheck IDCANCEL abortnow
+
+    abortnow:
+      Abort
+  notRunning:
+
   ReadRegStr $START_MENU SHCTX \
    "Software\Microsoft\Windows\CurrentVersion\Uninstall\@CPACK_PACKAGE_INSTALL_REGISTRY_KEY@" "StartMenu"
   ;MessageBox MB_OK "Start menu is in: $START_MENU"
@@ -970,6 +991,16 @@ SectionEnd
 ; "Program Files" for AllUsers, "My Documents" for JustMe...
 
 Function .onInit
+  ; Check if Hyperion is running
+  loopIsRunningCheck:
+	FindProcDLL::FindProc "hyperiond.exe"
+	IntCmp $R0 1 0 notRunning
+	  MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "Hyperion is running.$\n$\nClose it and press Retry, or press Cancel to exit." IDRETRY loopIsRunningCheck IDCANCEL abortnow
+
+	abortnow:
+		Abort
+  notRunning:
+
   StrCmp "@CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL@" "ON" 0 inst
 
   ReadRegStr $0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\@CPACK_PACKAGE_INSTALL_REGISTRY_KEY@" "UninstallString"

@@ -198,6 +198,16 @@ int main(int argc, char** argv)
 
 	parser.process(*qApp);
 
+	if (parser.isSet(versionOption))
+	{
+		std::cout
+			<< "Hyperion Ambilight Deamon" << std::endl
+			<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
+			<< "\tBuild Time: " << __DATE__ << " " << __TIME__ << std::endl;
+
+		return 0;
+	}
+
 	if (!parser.isSet(waitOption))
 	{
 		if (getProcessIdsByProcessName(processName).size() > 1)
@@ -246,15 +256,7 @@ int main(int argc, char** argv)
 		return 0;
 	}
 
-	if (parser.isSet(versionOption))
-	{
-		std::cout
-			<< "Hyperion Ambilight Deamon" << std::endl
-			<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
-			<< "\tBuild Time: " << __DATE__ << " " << __TIME__ << std::endl;
 
-		return 0;
-	}
 
 	if (parser.isSet(exportEfxOption))
 	{
@@ -303,8 +305,6 @@ int main(int argc, char** argv)
 		if(!mDir.mkpath(userDataPath) || !mFi.isWritable() || !mDir.isReadable())
 			throw std::runtime_error("The user data path '"+mDir.absolutePath().toStdString()+"' can't be created or isn't read/writeable. Please setup permissions correctly!");
 
-		Info(log, "Set user data path to '%s'", QSTRING_CSTR(mDir.absolutePath()));
-
 		// reset Password without spawning daemon
 		if(parser.isSet(resetPassword))
 		{
@@ -333,6 +333,10 @@ int main(int argc, char** argv)
 				}
 			}
 		}
+
+		Info(log,"Starting Hyperion - %s, %s, built: %s:%s", HYPERION_VERSION, HYPERION_BUILD_ID, __DATE__, __TIME__);
+
+		Info(log, "Set user data path to '%s'", QSTRING_CSTR(mDir.absolutePath()));
 
 		HyperionDaemon* hyperiond = nullptr;
 		try

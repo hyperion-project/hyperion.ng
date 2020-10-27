@@ -11,14 +11,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Cololight support (Cololight Plus & Strip) incl. configuration wizard
+- Provide additional details on Hardware/CPU information
+- Allow execution with option "--version", while another hyperion daemon is running
 
 ### Changed
 
 - UI: Separate LED-Layout creation from UI code
 
 ### Fixed
+ - Also allow an 8-LED configuration when using Karatelight
+
+- Fix Lightpack issue (#1015)
+
+- Fix color calibration for Kodi 18 (Fixes #771)
 
 ### Removed
+
+- Replace Multi-Lightpack by multi-instance Lightpack configuration
 
 ## [2.0.0-alpha.8](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.8) - 2020-09-14
 ### Added
