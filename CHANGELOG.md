@@ -10,9 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Cololight support (Cololight Plus & Strip)
+- Cololight support (Cololight Plus & Strip) incl. configuration wizard
 
 ### Changed
+
+- UI: Separate LED-Layout creation from UI code
 
 ### Fixed
 
