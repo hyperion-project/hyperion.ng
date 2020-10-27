@@ -28,7 +28,7 @@ public:
 	///
 	~ProviderUdp() override;
 
-	QHostAddress getAddress() const { return _address; };
+	QHostAddress getAddress() const { return _address; }
 
 protected:
 

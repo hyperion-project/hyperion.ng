@@ -35,6 +35,9 @@ const char COLOLIGHT_NAME[] = "name";
 
 const char COLOLIGHT_MODEL_IDENTIFIER[] = "OD_WE_QUAN";
 
+const int COLOLIGHT_BEADS_PER_MODULE = 19;
+const int COLOLIGHT_MIN_STRIP_SEGMENT_SIZE = 30;
+
 enum verbs {
 	GET = 0x03,
 	SET = 0x04,
@@ -106,8 +109,8 @@ LedDeviceCololight::LedDeviceCololight(const QJsonObject& deviceConfig)
 	  , _distance(0)
 	  , _sequenceNumber(1)
 {
-	_packetFixPart.append((const char*)PACKET_HEADER, sizeof(PACKET_HEADER));
-	_packetFixPart.append((const char*)PACKET_SECU, sizeof(PACKET_SECU));
+	_packetFixPart.append(reinterpret_cast<const char*>(PACKET_HEADER), sizeof(PACKET_HEADER));
+	_packetFixPart.append(reinterpret_cast<const char*>(PACKET_SECU), sizeof(PACKET_SECU));
 }
 
 LedDevice* LedDeviceCololight::construct(const QJsonObject& deviceConfig)
@@ -171,18 +174,20 @@ bool LedDeviceCololight::initLedsConfiguration()
 
 		if (getLedCount() == 0)
 		{
-			setLedCount(_devConfig[CONFIG_HW_LED_COUNT].toInt(0));
+			setLedCount(static_cast<uint>(_devConfig[CONFIG_HW_LED_COUNT].toInt(0)));
 		}
 
-		if (_modelType == STRIP && getLedCount() % 30 != 0)
+		if (_modelType == STRIP && (getLedCount() % COLOLIGHT_MIN_STRIP_SEGMENT_SIZE != 0))
 		{
-			setInError("Hardware LED count must be multiple of 30 for Cololight Strip");
+			QString errorReason = QString("Hardware LED count must be multiple of %1 for Cololight Strip!")
+									  .arg(COLOLIGHT_MIN_STRIP_SEGMENT_SIZE);
+			this->setInError(errorReason);
 		}
 		else
 		{
 			Debug(_log, "LedCount     : %d", getLedCount());
 
-			uint configuredLedCount = _devConfig["currentLedCount"].toInt(1);
+			uint configuredLedCount = static_cast<uint>(_devConfig["currentLedCount"].toInt(1));
 
 			if (getLedCount() < configuredLedCount)
 			{
@@ -207,7 +212,7 @@ bool LedDeviceCololight::initLedsConfiguration()
 
 void LedDeviceCololight::initDirectColorCmdTemplate()
 {
-	unsigned int ledNumber = this->getLedCount();
+	int ledNumber = static_cast<int>(this->getLedCount());
 
 	_directColorCommandTemplate.clear();
 
@@ -217,10 +222,10 @@ void LedDeviceCololight::initDirectColorCmdTemplate()
 	int beads = 1;
 	if (_ledLayoutType == MODLUE_LAYOUT)
 	{
-		beads = 19;
+		beads = COLOLIGHT_BEADS_PER_MODULE;
 	}
 
-	for (quint8 i = 0; i < ledNumber; ++i)
+	for (int i = 0; i < ledNumber; ++i)
 	{
 		_directColorCommandTemplate.append(static_cast<char>(i * beads + 1));
 		_directColorCommandTemplate.append(static_cast<char>(i * beads + beads));
@@ -230,7 +235,7 @@ void LedDeviceCololight::initDirectColorCmdTemplate()
 
 bool LedDeviceCololight::getInfo()
 {
-	int isCmdOK = false;
+	bool isCmdOK = false;
 
 	QByteArray command;
 
@@ -260,11 +265,11 @@ bool LedDeviceCololight::getInfo()
 			if (ledNum != 0xFFFF)
 			{
 				_ledBeadCount = ledNum;
-				if (ledNum % 19 == 0)
+				if (ledNum % COLOLIGHT_BEADS_PER_MODULE == 0)
 				{
 					_modelType = MODLUE_LAYOUT;
-					_distance = ledNum / 19;
-					setLedCount(_distance);
+					_distance = ledNum / COLOLIGHT_BEADS_PER_MODULE;
+					setLedCount(static_cast<uint>(_distance));
 				}
 			}
 			else
@@ -391,12 +396,12 @@ bool LedDeviceCololight::setStateDirect(bool isOn)
 
 bool LedDeviceCololight::setColor(const std::vector<ColorRgb>& ledValues)
 {
-	unsigned int ledNumber = static_cast<uint>(ledValues.size());
+	int ledNumber = static_cast<int>(ledValues.size());
 
 	QByteArray command = _directColorCommandTemplate;
 
 	//Update LED values, start from offset (mode + first start/stop pair) = 3
-	for (quint8 i = 0; i < ledNumber; ++i)
+	for (int i = 0; i < ledNumber; ++i)
 	{
 		command[3 + i * 5] = static_cast<char>(ledValues[i].red);
 		command[3 + i * 5 + 1] = static_cast<char>(ledValues[i].green);
@@ -476,7 +481,7 @@ bool LedDeviceCololight::readResponse()
 
 bool LedDeviceCololight::readResponse(QByteArray& response)
 {
-	int isRequestOK = false;
+	bool isRequestOK = false;
 	if (_udpSocket->waitForReadyRead(DEFAULT_READ_TIMEOUT.count()))
 	{
 		while (_udpSocket->waitForReadyRead(200))
@@ -485,7 +490,7 @@ bool LedDeviceCololight::readResponse(QByteArray& response)
 
 			while (_udpSocket->hasPendingDatagrams())
 			{
-				datagram.resize(_udpSocket->pendingDatagramSize());
+				datagram.resize(static_cast<int>(_udpSocket->pendingDatagramSize()));
 				QHostAddress senderIP;
 				quint16 senderPort;
 
@@ -511,18 +516,18 @@ bool LedDeviceCololight::readResponse(QByteArray& response)
 
 						Debug(_log, "Response SECU  : Dict: [0x%.4x][%u], Sum: [0x%.4x][%u], Salt: [0x%.4x][%u], SN: [0x%.4x][%u]", dictionary, dictionary, checkSum, checkSum, salt, salt, sequenceNumber, sequenceNumber);
 
-						quint8 packetSN = datagram.at(sizeof(PACKET_HEADER) + sizeof(PACKET_SECU));
+						quint8 packetSN = static_cast<quint8>(datagram.at(sizeof(PACKET_HEADER) + sizeof(PACKET_SECU)));
 						Debug(_log, "Response packSN: [0x%.4x][%u]", packetSN, packetSN);
 					}
 
-					quint8 errorCode = datagram.at(sizeof(PACKET_HEADER) + sizeof(PACKET_SECU) + 1);
+					quint8 errorCode = static_cast<quint8>(datagram.at(sizeof(PACKET_HEADER) + sizeof(PACKET_SECU) + 1));
 
 					int dataPartStart = sizeof(PACKET_HEADER) + sizeof(PACKET_SECU) + sizeof(TL1_CMD_FIXED_PART);
 
 					if (errorCode != 0)
 					{
-						quint8 originalVerb = datagram.at(dataPartStart - 2) - 0x80;
-						quint8 originalRequestPacketSN = datagram.at(dataPartStart - 1);
+						quint8 originalVerb = static_cast<quint8>(datagram.at(dataPartStart - 2) - 0x80);
+						quint8 originalRequestPacketSN = static_cast<quint8>(datagram.at(dataPartStart - 1));
 
 						if (errorCode == 16)
 						{
@@ -541,11 +546,14 @@ bool LedDeviceCololight::readResponse(QByteArray& response)
 						{
 							if (dataPartStart < datagram.size())
 							{
-								quint8 dataLength = datagram.at(dataPartStart);
+								quint8 dataLength = static_cast<quint8>(datagram.at(dataPartStart));
 
 								response = datagram.mid(dataPartStart + 1, dataLength);
-								quint8 originalVerb = datagram.at(dataPartStart - 2) - 0x80;
-								DebugIf(verbose, _log, "Cmd [0x%x], Data returned: [%s]", originalVerb, QSTRING_CSTR(toHex(response)));
+								if (verbose)
+								{
+									quint8 originalVerb = static_cast<quint8>(datagram.at(dataPartStart - 2) - 0x80);
+									Debug(_log, "Cmd [0x%x], Data returned: [%s]", originalVerb, QSTRING_CSTR(toHex(response)));
+								}
 							}
 							else
 							{
@@ -617,7 +625,7 @@ QJsonObject LedDeviceCololight::discover()
 
 			while (udpSocket.hasPendingDatagrams())
 			{
-				datagram.resize(udpSocket.pendingDatagramSize());
+				datagram.resize(static_cast<int>(udpSocket.pendingDatagramSize()));
 				QHostAddress senderIP;
 				quint16 senderPort;
 
@@ -634,7 +642,9 @@ QJsonObject LedDeviceCololight::discover()
 					entry = entry.simplified();
 					int pos = entry.indexOf("=");
 					if (pos == -1)
+					{
 						continue;
+					}
 
 					const QString key = entry.left(pos).trimmed().toLower();
 					const QString value = entry.mid(pos + 1).trimmed();
@@ -669,10 +679,10 @@ QJsonObject LedDeviceCololight::discover()
 		{
 			QString hostname = hostInfo.hostName();
 			//Seems that for Windows no local domain name is resolved
-			if (!hostInfo.localDomainName().isEmpty())
+			if (!QHostInfo::localDomainName().isEmpty())
 			{
-				obj.insert("hostname", hostname.remove("." + hostInfo.localDomainName()));
-				obj.insert("domain", hostInfo.localDomainName());
+				obj.insert("hostname", hostname.remove("." + QHostInfo::localDomainName()));
+				obj.insert("domain", QHostInfo::localDomainName());
 			}
 			else
 			{
