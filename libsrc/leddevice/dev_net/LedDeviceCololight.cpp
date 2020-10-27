@@ -255,9 +255,7 @@ bool LedDeviceCololight::getInfo()
 		{
 			DebugIf(verbose, _log, "#[0x%x], Data returned: [%s]", _sequenceNumber, QSTRING_CSTR(toHex(response)));
 
-			quint16 ledNum;
-
-			qFromBigEndian<quint16>(response.data() + 1, sizeof(ledNum), &ledNum);
+			quint16 ledNum = qFromBigEndian<quint16>(response.data() + 1);
 
 			if (ledNum != 0xFFFF)
 			{
@@ -393,7 +391,7 @@ bool LedDeviceCololight::setStateDirect(bool isOn)
 
 bool LedDeviceCololight::setColor(const std::vector<ColorRgb>& ledValues)
 {
-	unsigned int ledNumber = ledValues.size();
+	unsigned int ledNumber = static_cast<uint>(ledValues.size());
 
 	QByteArray command = _directColorCommandTemplate;
 
@@ -502,14 +500,14 @@ bool LedDeviceCololight::readResponse(QByteArray& response)
 					if (verbose && appID == 0x8000)
 					{
 						QString tagVersion = datagram.left(2);
-						quint32 packetSize = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER) - sizeof(packetSize), sizeof(packetSize)));
+						quint32 packetSize = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER) - sizeof(packetSize)));
 
 						Debug(_log, "Response HEADER: tagVersion [%s], appID: [0x%.2x][%u], packet size: [0x%.4x][%u]", QSTRING_CSTR(tagVersion), appID, appID, packetSize, packetSize);
 
-						quint32 dictionary = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER), sizeof(dictionary)));
-						quint32 checkSum = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER) + sizeof(dictionary), sizeof(checkSum)));
+						quint32 dictionary = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER)));
+						quint32 checkSum = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER) + sizeof(dictionary)));
 						quint32 salt = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER) + sizeof(dictionary) + sizeof(checkSum), sizeof(salt)));
-						quint32 sequenceNumber = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER) + sizeof(dictionary) + sizeof(checkSum) + sizeof(salt), sizeof(sequenceNumber)));
+						quint32 sequenceNumber = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER) + sizeof(dictionary) + sizeof(checkSum) + sizeof(salt)));
 
 						Debug(_log, "Response SECU  : Dict: [0x%.4x][%u], Sum: [0x%.4x][%u], Salt: [0x%.4x][%u], SN: [0x%.4x][%u]", dictionary, dictionary, checkSum, checkSum, salt, salt, sequenceNumber, sequenceNumber);
 
