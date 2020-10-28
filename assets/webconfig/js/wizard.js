@@ -819,17 +819,8 @@ async function getProperties_hue_bridge(hostAddress, username, resourceFilter) {
 }
 
 function identify_hue_device(hostAddress, username, id) {
-  console.log("identify_hue_device");
-
   let params = { host: hostAddress, user: username, lightId: id };
-
-  const res = requestLedDeviceIdentification("philipshue", params);
-  // TODO: error case unhandled
-  // res can be: false (timeout) or res.error (not found)
-  if (res && !res.error) {
-    const r = res.info
-    console.log(r);
-  }
+  requestLedDeviceIdentification("philipshue", params);
 }
 
 function getHueIPs() {
@@ -1290,14 +1281,7 @@ async function getProperties_wled(hostAddress, resourceFilter) {
 
 function identify_wled(hostAddress) {
   let params = { host: hostAddress };
-
-  const res = requestLedDeviceIdentification("wled", params);
-  // TODO: error case unhandled
-  // res can be: false (timeout) or res.error (not found)
-  if (res && !res.error) {
-    const r = res.info
-    console.log(r);
-  }
+  requestLedDeviceIdentification("wled", params);
 }
 
 //****************************
@@ -1425,7 +1409,7 @@ async function discover_yeelight_lights() {
 
       if (device.hostname !== "") {
         if (getHostInLights(device.hostname).length === 0) {
-          light = {};
+          var light = {};
           light.host = device.hostname;
           light.port = device.port;
           light.name = device.other.name;
@@ -1445,7 +1429,7 @@ async function discover_yeelight_lights() {
 
       if (host !== "")
         if (getHostInLights(host).length === 0) {
-          light = {};
+          var light = {};
           light.host = host;
           light.port = port;
           light.name = configuredLights[keyConfig].name;
@@ -1545,13 +1529,7 @@ async function getProperties_yeelight(hostname, port) {
 
 function identify_yeelight_device(hostname, port) {
   let params = { hostname: hostname, port: port };
-
-  const res = requestLedDeviceIdentification("yeelight", params);
-  // TODO: error case unhandled
-  // res can be: false (timeout) or res.error (not found)
-  if (res && !res.error) {
-    //const r = res.info;
-  }
+  requestLedDeviceIdentification("yeelight", params);
 }
 
 //****************************
@@ -1681,7 +1659,7 @@ async function discover_atmoorb_lights(multiCastGroup, multiCastPort) {
     for (const device of r.devices) {
       if (device.id !== "") {
         if (getIdInLights(device.id).length === 0) {
-          light = {};
+          var light = {};
           light.id = device.id;
           light.ip = device.ip;
           light.host = device.hostname;
@@ -1694,7 +1672,7 @@ async function discover_atmoorb_lights(multiCastGroup, multiCastPort) {
     for (const keyConfig in configuredLights) {
       if (configuredLights[keyConfig] !== "" && !isNaN(configuredLights[keyConfig])) {
         if (getIdInLights(configuredLights[keyConfig]).length === 0) {
-          light = {};
+          var light = {};
           light.id = configuredLights[keyConfig];
           light.ip = "";
           light.host = "";
@@ -1784,13 +1762,7 @@ function assign_atmoorb_lights() {
 
 function identify_atmoorb_device(orbId) {
   let params = { id: orbId };
-
-  const res = requestLedDeviceIdentification("atmoorb", params);
-  // TODO: error case unhandled
-  // res can be: false (timeout) or res.error (not found)
-  if (res && !res.error) {
-    const r = res.info
-  }
+  requestLedDeviceIdentification("atmoorb", params);
 }
 
 //****************************
@@ -1839,14 +1811,7 @@ async function getProperties_nanoleaf(hostAddress, authToken, resourceFilter) {
 
 function identify_nanoleaf(hostAddress, authToken) {
   let params = { host: hostAddress, token: authToken };
-
-  const res = requestLedDeviceIdentification("nanoleaf", params);
-  // TODO: error case unhandled
-  // res can be: false (timeout) or res.error (not found)
-  if (res && !res.error) {
-    const r = res.info
-    console.log(r);
-  }
+  requestLedDeviceIdentification("nanoleaf", params);
 }
 
 //****************************
@@ -1911,7 +1876,7 @@ function beginWizardCololight() {
       d.host = lights[selectedLightId].ip;
     }
 
-    coloLightProperties = lights[selectedLightId].props;
+    var coloLightProperties = lights[selectedLightId].props;
     if (Object.keys(coloLightProperties).length === 0) {
       alert($.i18n('wiz_cololight_noprops'));
       d.hardwareLedCount = 1;
@@ -1960,7 +1925,7 @@ async function discover_cololights() {
     for (const device of r.devices) {
       if (device.ip !== "") {
         if (getIpInLights(device.ip).length === 0) {
-          light = {};
+          var light = {};
           light.ip = device.ip;
           light.host = device.hostname;
           light.name = device.name;
@@ -2034,11 +1999,7 @@ async function getProperties_cololight(ip) {
 
 function identify_cololight_device(hostAddress) {
   let params = { host: hostAddress };
-
-  const res = requestLedDeviceIdentification("cololight", params);
-  if (res && !res.error) {
-    const r = res.info;
-  }
+  requestLedDeviceIdentification("cololight", params);
 }
 
 //****************************
