@@ -98,14 +98,14 @@ public:
 	///
 	/// @param[in] host
 	///
-	void setHost(const QString& host) { _apiUrl.setHost(host); };
+	void setHost(const QString& host) { _apiUrl.setHost(host); }
 
 	///
 	/// @brief Set an API's port
 	///
 	/// @param[in] port
 	///
-	void setPort(const int port) { _apiUrl.setPort(port); };
+	void setPort(const int port) { _apiUrl.setPort(port); }
 
 	///
 	/// @brief Set an API's url
@@ -233,7 +233,7 @@ public:
 	///
 	/// Remove all header fields.
 	///
-	void removeAllHeaders() { _networkRequestHeaders = QNetworkRequest(); };
+	void removeAllHeaders() { _networkRequestHeaders = QNetworkRequest(); }
 
 private:
 

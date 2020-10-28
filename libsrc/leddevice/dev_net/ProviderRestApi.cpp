@@ -130,7 +130,7 @@ httpResponse ProviderRestApi::get(const QUrl& url)
 	QNetworkReply* reply = _networkManager->get(request);
 	// Connect requestFinished signal to quit slot of the loop.
 	QEventLoop loop;
-	loop.connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+	QEventLoop::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
 	// Go into the loop until the request is finished.
 	loop.exec();
 
@@ -160,7 +160,7 @@ httpResponse ProviderRestApi::put(const QUrl& url, const QString& body)
 	QNetworkReply* reply = _networkManager->put(request, body.toUtf8());
 	// Connect requestFinished signal to quit slot of the loop.
 	QEventLoop loop;
-	loop.connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+	QEventLoop::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
 	// Go into the loop until the request is finished.
 	loop.exec();
 
@@ -191,7 +191,7 @@ httpResponse ProviderRestApi::post(const QUrl& url, const QString& body)
 	QNetworkReply* reply = _networkManager->post(request, body.toUtf8());
 	// Connect requestFinished signal to quit slot of the loop.
 	QEventLoop loop;
-	loop.connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+	QEventLoop::connect(reply,&QNetworkReply::finished,&loop,&QEventLoop::quit);
 	// Go into the loop until the request is finished.
 	loop.exec();
 
@@ -217,7 +217,7 @@ httpResponse ProviderRestApi::deleteResource(const QUrl& url)
 	QNetworkReply* reply = _networkManager->deleteResource(request);
 	// Connect requestFinished signal to quit slot of the loop.
 	QEventLoop loop;
-	loop.connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+	QEventLoop::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
 	// Go into the loop until the request is finished.
 	loop.exec();
 

@@ -4,12 +4,14 @@
 #if _WIN32
 #include <windows.h>
 #endif
+
+#include <chrono>
+
 // Constants
 namespace {
 bool verbose = false;
 
 // Configuration settings
-const char CONFIG_ADDRESS[] = "host";
 const char RAZOR_DEVICE_TYPE[] = "razorDevice";
 
 // WLED JSON-API elements
@@ -17,26 +19,17 @@ const char API_DEFAULT_HOST[] = "localhost";
 const int API_DEFAULT_PORT = 54235;
 
 const char API_BASE_PATH[] = "/razer/chromasdk";
-const char API_PATH_INFO[] = "info";
-const char API_PATH_STATE[] = "state";
-
 const char API_RESULT[] = "result";
 
-// List of State Information
-const char STATE_ON[] = "on";
-const char STATE_VALUE_TRUE[] = "true";
-const char STATE_VALUE_FALSE[] = "false";
+constexpr std::chrono::milliseconds HEARTBEAT_INTERVALL{1000};
+
 } //End of constants
 
-LedDeviceRazer::LedDeviceRazer(const QJsonObject& deviceConfig)
-	: LedDevice()
-	  , _restApi(nullptr)
+LedDeviceRazer::LedDeviceRazer(const QJsonObject&  /*deviceConfig*/)
+	:
+	  _restApi(nullptr)
 	  , _apiPort(API_DEFAULT_PORT)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDevice* LedDeviceRazer::construct(const QJsonObject& deviceConfig)
@@ -44,10 +37,16 @@ LedDevice* LedDeviceRazer::construct(const QJsonObject& deviceConfig)
 	return new LedDeviceRazer(deviceConfig);
 }
 
+LedDeviceRazer::~LedDeviceRazer()
+{
+	delete _restApi;
+	_restApi = nullptr;
+}
+
 bool LedDeviceRazer::init(const QJsonObject& deviceConfig)
 {
 	bool isInitOK = false;
-	setRewriteTime(1000);
+	setRewriteTime(HEARTBEAT_INTERVALL.count());
 	connect(_refreshTimer, &QTimer::timeout, this, &LedDeviceRazer::rewriteLEDs);
 
 	// Initialise sub-class
@@ -132,7 +131,6 @@ bool LedDeviceRazer::checkApiError(const httpResponse& response)
 int LedDeviceRazer::open()
 {
 	int retval = -1;
-	QString errortext;
 	_isDeviceReady = false;
 
 	// Try to open the LedDevice

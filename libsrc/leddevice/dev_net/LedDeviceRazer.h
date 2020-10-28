@@ -28,6 +28,11 @@ public:
 	///
 	static LedDevice* construct(const QJsonObject& deviceConfig);
 
+	///
+	/// @brief Destructor of the LED-device
+	///
+	~LedDeviceRazer() override;
+
 protected:
 
 	///
