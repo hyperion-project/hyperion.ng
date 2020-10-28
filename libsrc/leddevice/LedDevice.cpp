@@ -177,11 +177,11 @@ int LedDevice::updateLeds(const std::vector<ColorRgb>& ledValues)
 	if ( !_isEnabled || !_isOn || !_isDeviceReady || _isDeviceInError )
 	{
 		//std::cout << "LedDevice::updateLeds(), LedDevice NOT ready! ";
-		return -1;
+		retval = -1;
 	}
 	else
 	{
-		qint64 elapsedTimeMs = _lastWriteTime.msecsTo(QDateTime::currentDateTime());
+		qint64 elapsedTimeMs = _lastWriteTime.msecsTo( QDateTime::currentDateTime() );
 		if (_latchTime_ms == 0 || elapsedTimeMs >= _latchTime_ms)
 		{
 			//std::cout << "LedDevice::updateLeds(), Elapsed time since last write (" << elapsedTimeMs << ") ms > _latchTime_ms (" << _latchTime_ms << ") ms" << std::endl;
@@ -440,7 +440,7 @@ void LedDevice::printLedValues(const std::vector<ColorRgb>& ledValues)
 	std::cout << "]" << std::endl;
 }
 
-QString LedDevice::uint8_t_to_hex_string(const uint8_t * data, const qint64 size, qint64 number) const
+QString LedDevice::uint8_t_to_hex_string(const uint8_t * data, const int size, int number) const
 {
 	if ( number <= 0 || number > size)
 	{

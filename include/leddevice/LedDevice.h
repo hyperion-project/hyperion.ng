@@ -348,7 +348,7 @@ protected:
 	/// @param size of the array
 	/// @param number Number of array items to be converted.
 	/// @return array as string of hex values
-	QString uint8_t_to_hex_string(const uint8_t * data, const qint64 size, qint64 number = -1) const;
+	QString uint8_t_to_hex_string(const uint8_t * data, const int size, int number = -1) const;
 
 	/// Current device's type
 	QString _activeDeviceType;
