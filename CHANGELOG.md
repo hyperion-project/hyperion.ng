@@ -9,22 +9,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Breaking
 
 ### Added
-
-- Provide additional details on Hardware/CPU information
+- New language support: Russian and Chinese (simplified) (#1005)
+- added libcec to deb/rpm dependency list
+- updated some language files
+- New LED Device SK9822 (#1005)
+- Support SK9822 type LEDs with adaptive brightness control via SPI (#1017)
+- Provide additional details on Hardware/CPU information (#1045)
 - Allow execution with option "--version", while another hyperion daemon is running
+- Systray icons added - Issue #925 (#1040)
+- DirectX9 Grabber (#1039)
+- Added DirectX SDK to CompileHowto
+- Hide Systray on exit & Install DirectX Redistributable 
 
 ### Changed
+- boblight: reduce cpu time spent on memcopy and parsing rgb values (#1016)
+- Windows Installer/Uninstaller notification when Hyperion is running (#1033)
+- Updated Windows Dependencies
+- cleanup packages.cmake & extend NSIS plugin directory
+- Optimize images (#1058)
+- Update LICENSE
+- Change links from http to https (#1067)
 
 ### Fixed
- - Also allow an 8-LED configuration when using Karatelight
-
-- Fix Lightpack issue (#1015)
-
-- Fix color calibration for Kodi 18 (Fixes #771)
+- AVAHI included in Webserver (#996)
+- Also allow an 8-LED configuration when using Karatelight (#1037)
+- Fix #1007 - LED's retain last state after clearing a source (#1008) 
+- Fix Lightpack issue #1015 (#1049)
+- Fix #771 color calibration for Kodi 18 (#1044)
+- Fixed some issuex #1022, #1019, #997, #993, #992, #976, #969, #964, #980 (#1036)
+- Fix issue #909, Have ratio correction first and then scale (#1047) 
+- Fix display argument in hyperion-qt (#1027)
+- Fix typos (#1051) 
 
 ### Removed
-
-- Replace Multi-Lightpack by multi-instance Lightpack configuration
+- Replace Multi-Lightpack by multi-instance Lightpack configuration (#1049)
 
 ## [2.0.0-alpha.8](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.8) - 2020-09-14
 ### Added
