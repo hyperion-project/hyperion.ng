@@ -158,7 +158,7 @@ PyObject* EffectModule::wrapSetColor(PyObject *self, PyObject *args)
 			if (PyByteArray_Check(bytearray))
 			{
 				size_t length = PyByteArray_Size(bytearray);
-				if (length == 3 * getEffect()->_hyperion->getLedCount())
+				if (length == 3 * static_cast<size_t>(getEffect()->_hyperion->getLedCount()))
 				{
 					char * data = PyByteArray_AS_STRING(bytearray);
 					memcpy(getEffect()->_colors.data(), data, length);

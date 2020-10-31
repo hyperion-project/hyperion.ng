@@ -11,7 +11,7 @@ namespace hyperion
 	///
 	struct BlackBorder
 	{
-		/// Falg indicating if the border is unknown
+		/// Flag indicating if the border is unknown
 		bool unknown;
 
 		/// The size of the detected horizontal border
@@ -48,7 +48,7 @@ namespace hyperion
 	public:
 		///
 		/// Constructs a black-border detector
-		/// @param[in] blackborderThreshold The threshold which the blackborder detector should use
+		/// @param[in] threshold The threshold which the black-border detector should use
 		///
 		BlackBorderDetector(double threshold);
 
@@ -67,9 +67,9 @@ namespace hyperion
 		template <typename Pixel_T>
 		BlackBorder process(const Image<Pixel_T> & image) const
 		{
-			// test center and 33%, 66% of width/heigth
+			// test centre and 33%, 66% of width/height
 			// 33 and 66 will check left and top
-			// center will check right and bottom sids
+			// centre will check right and bottom sides
 			int width = image.width();
 			int height = image.height();
 			int width33percent = width / 3;
@@ -233,12 +233,10 @@ namespace hyperion
 			return detectedBorder;
 		}
 
-
-
 	private:
 
 		///
-		/// Checks if a given color is considered black and therefor could be part of the border.
+		/// Checks if a given color is considered black and therefore could be part of the border.
 		///
 		/// @param[in] color  The color to check
 		///
@@ -252,7 +250,7 @@ namespace hyperion
 		}
 
 	private:
-		/// Threshold for the blackborder detector [0 .. 255]
+		/// Threshold for the black-border detector [0 .. 255]
 		const uint8_t _blackborderThreshold;
 
 	};

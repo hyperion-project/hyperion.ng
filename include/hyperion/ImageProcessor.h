@@ -19,9 +19,9 @@
 class Hyperion;
 
 ///
-/// The ImageProcessor translates an RGB-image to RGB-values for the leds. The processing is
+/// The ImageProcessor translates an RGB-image to RGB-values for the LEDs. The processing is
 /// performed in two steps. First the average color per led-region is computed. Second a
-/// color-tranform is applied based on a gamma-correction.
+/// color-transform is applied based on a gamma-correction.
 ///
 class ImageProcessor : public QObject
 {
@@ -39,7 +39,7 @@ public:
 	~ImageProcessor() override;
 
 	///
-	/// Specifies the width and height of 'incomming' images. This will resize the buffer-image to
+	/// Specifies the width and height of 'incoming' images. This will resize the buffer-image to
 	/// match the given size.
 	/// NB All earlier obtained references will be invalid.
 	///
@@ -53,7 +53,7 @@ public:
 	///
 	void setLedString(const LedString& ledString);
 
-	/// Returns starte of black border detector
+	/// Returns state of black border detector
 	bool blackBorderDetectorEnabled() const;
 
 	/// Returns the current _userMappingType, this may not be the current applied type!
@@ -66,7 +66,7 @@ public:
 	static QString mappingTypeToStr(int mappingType);
 
 	///
-	/// @brief Set the Hyperion::update() requestes led mapping type. This type is used in favour of type set with setLedMappingType.
+	/// @brief Set the Hyperion::update() request LED mapping type. This type is used in favour of type set with setLedMappingType.
 	/// 	   If you don't want to force a mapType set this to -1 (user choice will be set)
 	/// @param  mapType   The new mapping type
 	///
@@ -85,7 +85,7 @@ public slots:
 
 public:
 	///
-	/// Specifies the width and height of 'incomming' images. This will resize the buffer-image to
+	/// Specifies the width and height of 'incoming' images. This will resize the buffer-image to
 	/// match the given size.
 	/// NB All earlier obtained references will be invalid.
 	///
@@ -117,7 +117,7 @@ public:
 			// Check black border detection
 			verifyBorder(image);
 
-			// Create a result vector and call the 'in place' functionl
+			// Create a result vector and call the 'in place' function
 			switch (_mappingType)
 			{
 				case 1: colors = _imageToLeds->getUniLedColor(image); break;
@@ -225,7 +225,7 @@ private:
 	/// The processor for black border detection
 	hyperion::BlackBorderProcessor * _borderProcessor;
 
-	/// The mapping of image-pixels to leds
+	/// The mapping of image-pixels to LEDs
 	hyperion::ImageToLedsMap* _imageToLeds;
 
 	/// Type of image 2 led mapping

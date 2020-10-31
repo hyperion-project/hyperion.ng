@@ -92,6 +92,7 @@
 			"type" : "integer",
 			"title" : "edt_conf_fg_display_title",
 			"minimum" : 0,
+			"default" : 0,
 			"propertyOrder" : 11
 		}
 	},

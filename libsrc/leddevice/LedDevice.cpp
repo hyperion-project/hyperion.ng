@@ -454,3 +454,17 @@ QString LedDevice::uint8_t_to_hex_string(const uint8_t * data, const int size, i
 		return bytes.toHex();
 	#endif
 }
+
+QString LedDevice::toHex(const QByteArray& data, int number) const
+{
+	if ( number <= 0 || number > data.size())
+	{
+		number = data.size();
+	}
+
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
+	return data.left(number).toHex(':');
+#else
+	return data.left(number).toHex();
+#endif
+}

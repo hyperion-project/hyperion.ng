@@ -386,7 +386,7 @@ void BoblightClientConnection::sendLightMessage()
 	sendMessage(QByteArray(buffer, n));
 
 	double h0, h1, v0, v1;
-	for (unsigned i = 0; i < _hyperion->getLedCount(); ++i)
+	for (int i = 0; i < _hyperion->getLedCount(); ++i)
 	{
 		_imageProcessor->getScanParameters(i, h0, h1, v0, v1);
 		n = snprintf(buffer, sizeof(buffer), "light %03d scan %f %f %f %f\n", i, 100*v0, 100*v1, 100*h0, 100*h1);

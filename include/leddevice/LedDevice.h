@@ -193,7 +193,7 @@ public slots:
 	///
 	/// @return Number of device's LEDs
 	///
-	unsigned int getLedCount() const { return _ledCount; }
+	int getLedCount() const { return _ledCount; }
 
 	///
 	/// @brief Get the current active LED-device type.
@@ -349,6 +349,14 @@ protected:
 	/// @param number Number of array items to be converted.
 	/// @return array as string of hex values
 	QString uint8_t_to_hex_string(const uint8_t * data, const int size, int number = -1) const;
+
+	///
+	/// @brief Converts a ByteArray to hex string.
+	///
+	/// @param data ByteArray
+	/// @param number Number of array items to be converted.
+	/// @return array as string of hex values
+	QString toHex(const QByteArray& data, int number = -1) const;
 
 	/// Current device's type
 	QString _activeDeviceType;
