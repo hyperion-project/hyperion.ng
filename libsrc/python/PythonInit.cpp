@@ -1,7 +1,3 @@
-#undef slots
-#include <Python.h>
-#define slots
-
 // utils
 #include <utils/Logger.h>
 

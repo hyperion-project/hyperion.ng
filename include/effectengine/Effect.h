@@ -1,11 +1,5 @@
 #pragma once
 
-// Python includes
-// collide of qt slots macro
-#undef slots
-#include "Python.h"
-#define slots
-
 // Qt includes
 #include <QThread>
 #include <QJsonObject>
@@ -44,13 +38,13 @@ public:
 	int getPriority() const { return _priority; }
 
 	///
-	/// @brief Set manual interuption to true,
-	///        Note: DO NOT USE QThread::interuption!
+	/// @brief Set manual interruption to true,
+	///        Note: DO NOT USE QThread::interruption!
 	///
 	void requestInterruption() { _interupt = true; }
 
 	///
-	/// @brief Check if the interuption flag has been set
+	/// @brief Check if the interruption flag has been set
 	/// @return    The flag state
 	///
 	bool isInterruptionRequested() { return _interupt; }
@@ -88,7 +82,7 @@ private:
 	QVector<ColorRgb> _colors;
 
 	Logger *_log;
-	// Reflects whenever this effects should interupt (timeout or external request)
+	// Reflects whenever this effects should interrupt (timeout or external request)
 	std::atomic<bool> _interupt {};
 
 	QSize           _imageSize;
