@@ -90,8 +90,7 @@
 		"cropLeft"           : 0,
 		"cropRight"          : 0,
 		"cropTop"            : 0,
-		"cropBottom"         : 0,
-		"device"             : "/dev/fb0"
+		"cropBottom"         : 0
 	},
 
 	"blackborderdetector" :
