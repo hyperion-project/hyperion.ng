@@ -123,7 +123,6 @@ $(document).ready( function() {
 
               conf_editor_v4l2.getEditor(path + 'standard').enable();
               toggleOption('device', true);
-
             } else if (val == 'auto') {
               V4L2properties.forEach(function(item) {
                 conf_editor_v4l2.getEditor(path + item).setValue('auto');
@@ -136,7 +135,6 @@ $(document).ready( function() {
               (toggleOption('device', false), toggleOption('input', false),
                toggleOption('width', false), toggleOption('height', false),
                toggleOption('fps', false));
-
             } else {
               var grabberV4L2 = ed.parent;
               V4L2properties.forEach(function(item) {
@@ -226,6 +224,24 @@ $(document).ready( function() {
   }, true, true);
 
   conf_editor_fg.on('change',function() {
+  	//Remove Grabbers which are not supported
+  	var grabbers = window.serverInfo.grabbers.available;
+
+  	var selector = "root_framegrabber_type";
+	var options = $("#"+selector+" option");
+
+	 for (i=0;i<options.length ;i++ )
+	 {
+	 	var type = options[i].value;
+		if (grabbers.indexOf(type) === -1)
+		{
+			 $("#"+selector+" option[value='" + type + "']").remove();
+		}
+	 }
+
+	var selectedType = $("#root_framegrabber_type").val();
+  	filerFgGrabberOptions(selectedType);
+
     conf_editor_fg.validate().length ? $('#btn_submit_fg').attr('disabled', true) : $('#btn_submit_fg').attr('disabled', false);
   });
 
@@ -266,7 +282,6 @@ $(document).ready( function() {
 
       if (window.serverConfig.grabberV4L2.framerates == 'custom' && window.serverConfig.grabberV4L2.device != 'auto')
         toggleOption('fps', true);
-
     });
 
     $('#btn_submit_v4l2').off().on('click',function() {
@@ -311,25 +326,48 @@ $(document).ready( function() {
     }
   }
 
-  function hideEl(el) {
+  function toggleFgOptions(el, state) {
     for(var i = 0; i<el.length; i++) {
-      $('[data-schemapath*="root.framegrabber.'+el[i]+'"]').toggle(false);
+      $('[data-schemapath*="root.framegrabber.'+el[i]+'"]').toggle(state);
     }
   }
 
-  //hide specific options
-  conf_editor_fg.on('ready',function() {
-    var grabbers = window.serverInfo.grabbers.available;
+  function filerFgGrabberOptions (type) {
+ 	//hide specific options for grabbers found
 
-    if (grabbers.indexOf('dispmanx') > -1)
-      hideEl(["device","pixelDecimation"]);
-    else if (grabbers.indexOf('x11') > -1 || grabbers.indexOf('xcb') > -1)
-      hideEl(["device","width","height"]);
-    else if (grabbers.indexOf('osx')  > -1 )
-      hideEl(["device","pixelDecimation"]);
-    else if (grabbers.indexOf('amlogic')  > -1)
-      hideEl(["pixelDecimation"]);
+  	var grabbers = window.serverInfo.grabbers.available;
+    if (grabbers.indexOf(type)  > -1)
+    {
+      toggleFgOptions(["width","height","pixelDecimation","display"],true);
+
+      switch (type) {
+		  case "dispmanx":
+		    toggleFgOptions(["pixelDecimation","display"],false);
+		    break;
+		  case "amlogic":
+		    toggleFgOptions(["pixelDecimation","display"],false);
+		    break;
+		  case "x11":
+		  case "xcb":
+		    toggleFgOptions(["width","height","display"],false);
+		    break;
+		  case "framebuffer":
+		    toggleFgOptions(["display"],false);
+		    break;
+		  case "qt":
+		    break;
+		  case "dx":
+		    break;
+		  default:
+      }
+  }
+  };
+
+  $('#root_framegrabber_type').change(function () {
+    var selectedType = $("#root_framegrabber_type").val();
+    filerFgGrabberOptions(selectedType);
   });
 
   removeOverlay();
 });
+
