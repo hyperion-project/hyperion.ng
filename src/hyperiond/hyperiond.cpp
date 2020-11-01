@@ -575,7 +575,11 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 	}
 	else if (settingsType == settings::V4L2)
 	{
+
+#if defined(ENABLE_CEC) || defined(ENABLE_V4L2)
 		const QJsonObject& grabberConfig = config.object();
+#endif
+
 #ifdef ENABLE_CEC
 		if (_cecHandler != nullptr && grabberConfig["cecDetection"].toBool(false))
 		{

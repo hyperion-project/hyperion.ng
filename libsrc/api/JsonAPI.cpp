@@ -682,12 +682,13 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 		if (subsArr.contains("all"))
 		{
 			subsArr = QJsonArray();
-			for (const auto &entry : _jsonCB->getCommands())
+			for (const auto& entry : _jsonCB->getCommands())
 			{
 				subsArr.append(entry);
 			}
 		}
-		for (const auto &entry : subsArr)
+
+		for (const QJsonValueRef entry : subsArr)
 		{
 			// config callbacks just if auth is set
 			if ((entry == "settings-update" || entry == "token-update") && !API::isAdminAuthorized())

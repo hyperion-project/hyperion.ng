@@ -223,7 +223,7 @@ void WebSocketClient::sendClose(int status, QString reason)
 		sendBuffer.append(quint8(length));
 	}
 
-	sendBuffer.append(reason);
+	sendBuffer.append(reason.toUtf8());
 
 	_socket->write(sendBuffer);
 	_socket->flush();

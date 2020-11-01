@@ -17,7 +17,7 @@ const quint16 STREAM_DEFAULT_PORT = 19446;
 const int API_DEFAULT_PORT = -1; //Use default port per communication scheme
 
 const char API_BASE_PATH[] = "/json/";
-const char API_PATH_INFO[] = "info";
+//const char API_PATH_INFO[] = "info";
 const char API_PATH_STATE[] = "state";
 
 // List of State Information
