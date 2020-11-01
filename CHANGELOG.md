@@ -36,10 +36,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix #1007 - LED's retain last state after clearing a source (#1008) 
 - Fix Lightpack issue #1015 (#1049)
 - Fix #771 color calibration for Kodi 18 (#1044)
-- Fixed some issuex #1022, #1019, #997, #993, #992, #976, #969, #964, #980 (#1036)
+- Fix various JSON API issues #1022, #1019, #997, #993, #992, #976, #969, #964, #980 (#1036)
 - Fix issue #909, Have ratio correction first and then scale (#1047) 
 - Fix display argument in hyperion-qt (#1027)
-- Fix typos (#1051) 
+- Fix typos (#1051)
+- Fix Pyhton reset thread state
 
 ### Removed
 - Replace Multi-Lightpack by multi-instance Lightpack configuration (#1049)
