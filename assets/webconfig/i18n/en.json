@@ -261,6 +261,7 @@
     "edt_conf_enum_automatic": "Automatic",
     "edt_conf_enum_bbclassic": "Classic",
     "edt_conf_enum_bbdefault": "Default",
+    "edt_conf_enum_bbletterbox": "Letterbox",
     "edt_conf_enum_bbosd": "OSD",
     "edt_conf_enum_bgr": "BGR",
     "edt_conf_enum_bottom_up": "Bottom up",

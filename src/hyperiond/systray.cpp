@@ -221,6 +221,8 @@ void SysTray::handleInstanceStateChange(InstanceState state, quint8 instance, co
 				connect(_trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
 					this, SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
 
+				connect(quitAction, &QAction::triggered, _trayIcon, &QSystemTrayIcon::hide, Qt::DirectConnection);
+
 				connect(&_colorDlg, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(setColor(const QColor &)));
 				QIcon icon(":/hyperion-icon-32px.png");
 				_trayIcon->setIcon(icon);
