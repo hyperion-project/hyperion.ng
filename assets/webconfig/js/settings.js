@@ -21,7 +21,7 @@ function changePassword(){
 	});
 
 	$('#newPw, #oldPw').off().on('input',function(e) {
-		($('#oldPw').val().length >= 8 && $('#newPw').val().length >= 8) ? $('#id_btn_ok').attr('disabled', false) : $('#id_btn_ok').attr('disabled', true);
+		($('#oldPw').val().length >= 8 && $('#newPw').val().length >= 8) && !window.readOnlyMode ? $('#id_btn_ok').attr('disabled', false) : $('#id_btn_ok').attr('disabled', true);
 	});
 }
 

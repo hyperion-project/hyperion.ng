@@ -22,6 +22,8 @@ Allow execution with option "--version", while another hyperion daemon is runnin
 - Added DirectX SDK to CompileHowto
 - Hide Systray on exit & Install DirectX Redistributable 
 
+- Read-Only configuration database support
+
 ### Changed
 - boblight: reduce cpu time spent on memcopy and parsing rgb values (#1016)
 - Windows Installer/Uninstaller notification when Hyperion is running (#1033)

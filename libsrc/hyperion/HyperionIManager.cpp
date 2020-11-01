@@ -9,11 +9,12 @@
 
 HyperionIManager* HyperionIManager::HIMinstance;
 
-HyperionIManager::HyperionIManager(const QString& rootPath, QObject* parent)
+HyperionIManager::HyperionIManager(const QString& rootPath, QObject* parent, bool readonlyMode)
 	: QObject(parent)
 	, _log(Logger::getInstance("HYPERION"))
-	, _instanceTable( new InstanceTable(rootPath, this) )
+	, _instanceTable( new InstanceTable(rootPath, this, readonlyMode) )
 	, _rootPath( rootPath )
+	, _readonlyMode(readonlyMode)
 {
 	HIMinstance = this;
 	qRegisterMetaType<InstanceState>("InstanceState");
@@ -75,7 +76,7 @@ bool HyperionIManager::startInstance(quint8 inst, bool block, QObject* caller, i
 		{
 			QThread* hyperionThread = new QThread();
 			hyperionThread->setObjectName("HyperionThread");
-			Hyperion* hyperion = new Hyperion(inst);
+			Hyperion* hyperion = new Hyperion(inst, _readonlyMode);
 			hyperion->moveToThread(hyperionThread);
 			// setup thread management
 			connect(hyperionThread, &QThread::started, hyperion, &Hyperion::start);
