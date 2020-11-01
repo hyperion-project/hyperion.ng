@@ -19,7 +19,8 @@ PythonProgram::PythonProgram(const QString & name, Logger * log) :
 	_tstate = Py_NewInterpreter();
 	if(_tstate == nullptr)
 	{
-		PyEval_ReleaseLock();
+		PyThreadState_Swap(mainThreadState);
+		PyEval_SaveThread();
 		Error(_log, "Failed to get thread state for %s",QSTRING_CSTR(_name));
 		return;
 	}
@@ -54,7 +55,8 @@ PythonProgram::~PythonProgram()
 
 	// Clean up the thread state
 	Py_EndInterpreter(_tstate);
-	PyEval_ReleaseLock();
+	PyThreadState_Swap(mainThreadState);
+	PyEval_SaveThread();
 }
 
 void PythonProgram::execute(const QByteArray & python_code)

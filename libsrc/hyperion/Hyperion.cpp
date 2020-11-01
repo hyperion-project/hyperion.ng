@@ -391,10 +391,8 @@ end:
 	// register color
 	registerInput(priority, hyperion::COMP_COLOR, origin);
 
-	// write color to muxer & queuePush
+	// write color to muxer
 	setInput(priority, newLedColors, timeout_ms);
-	if (timeout_ms <= 0)
-		_muxer.queuePush();
 }
 
 QStringList Hyperion::getAdjustmentIds() const
