@@ -242,7 +242,8 @@ $(document).ready( function() {
 	 var activegrabber = window.serverInfo.grabbers.active.toLowerCase();
 	 $("#"+selector+" option[value='" + activegrabber + "']").attr('selected', 'selected');
 
-  	filerFgGrabberOptions(activegrabber);
+	var selectedType = $("#root_framegrabber_type").val();
+  	filerFgGrabberOptions(selectedType);
 
     conf_editor_fg.validate().length ? $('#btn_submit_fg').attr('disabled', true) : $('#btn_submit_fg').attr('disabled', false);
   });
