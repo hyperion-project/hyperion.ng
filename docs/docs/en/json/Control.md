@@ -19,7 +19,7 @@ Set a color for all leds or provide a pattern of led colors.
 | priority | Integer |   true   | We recommend `50`, following the [Priority Guidelines](/en/api/guidelines#priority_guidelines). Min `2` Max `99` |
 |  origin  | String  |   true   |              A short name of your application like `Hyperion of App` . Max length is `20`, min `4`.              |
 
-``` json
+```json
 // Example: Set a blue color with indefinite duration at priority 50 
 {
   "command":"color",
@@ -57,7 +57,7 @@ Set an effect by name. Available names can be found in the [serverinfo effect li
 | priority | Integer |   true   | We recommend `50`, following the [Priority Guidelines](/en/api/guidelines#priority_guidelines). Min `2` Max `99` |
 |  origin  | String  |   true   |              A short name of your application like `Hyperion of App` . Max length is `20`, min `4`.              |
 
-``` json
+```json
 // Example: Set the 'Warm mood blobs' effect with indefinite duration
 {
   "command":"effect",
@@ -105,7 +105,7 @@ Set a single image. Supports all [Qt5](https://doc.qt.io/qt-5/qimagereader.html#
 | priority  | Integer |   true   | We recommend `50`, following the [Priority Guidelines](/en/api/guidelines#priority_guidelines). Min `2` Max `99` |
 |  origin   | String  |   true   |              A short name of your application like `Hyperion of App` . Max length is `20`, min `4`.              |
 
-``` json
+```json
 // Set an image for 5 seconds
 {
   "command":"image",
@@ -121,7 +121,7 @@ Set a single image. Supports all [Qt5](https://doc.qt.io/qt-5/qimagereader.html#
 ### Clear
 Clear a priority, usually used to revert [set color](#set-color), [set
 effect](#set-effect) or [set image](#set-image).
-``` json
+```json
 // Clear effect/color/image with priority 50
 {
   "command":"clear",
@@ -160,7 +160,7 @@ Adjustments reflect the color calibration. You can modify all properties of [ser
 |    backlightColored    |    Boolean     |  false   |    If `true` the backlight is colored, `false` it's white. Disabled for effect/color/image     |
 |           id           |     String     |  false   |                                        Short identifier                                        |
 
-``` json
+```json
 // Example: Set gammaRed to 1.5
 {
   "command":"adjustment",
@@ -195,7 +195,7 @@ Adjustments reflect the color calibration. You can modify all properties of [ser
 
 ### LED mapping
 Switch the image to led mapping mode. Possible values are `unicolor_mean` (led color based on whole picture color) and `multicolor_mean` (led colors based on led layout)
-``` json
+```json
 // Example: Set mapping mode to multicolor_mean
 {
   "command":"processing",
@@ -210,7 +210,7 @@ Switch the image to led mapping mode. Possible values are `unicolor_mean` (led c
 
 ### Video Mode
 Switch the video mode. Possible values are: `2D`, `3DSBS` and `3DTAB`.
- ``` json
+ ```json
 // Example: Set video mode to 3DTAB
 {
   "command":"videomode",
@@ -228,7 +228,7 @@ Some components can be enabled and disabled at runtime. To get the current state
 available components see [Serverinfo Components](/en/json/serverinfo#components). See
 also: [Components/IDs explained](#components-ids-explained)
 
- ``` json
+ ```json
 // Example: disable LEDDEVICE component
 {
   "command":"componentstate",
@@ -276,7 +276,7 @@ Sources are always selected automatically by priority value (lowest value is the
 priority). You need to know the priority value of the source you want to select -- these
 priority values are available in the [serverinfo
 Priorities](/en/json/serverinfo#priorities).
-``` json
+```json
 // Example: Set priority 50 to visible
 {
   "command":"sourceselect",
@@ -284,7 +284,7 @@ Priorities](/en/json/serverinfo#priorities).
 }
 ```
 If you get a success response, the `priorities_autoselect`-status will switch to false (see [serverinfo Autoselection Mode](/en/json/serverinfo##priorities-selection-auto-manual)). You are now in manual mode, to switch back to auto mode send:
-``` json
+```json
 {
   "command":"sourceselect",
   "auto":true
@@ -301,7 +301,7 @@ An instance represents an LED hardware instance. It runs within its own scope wi
 own plugin settings, led layout and calibration. Before selecting you can instance, you
 should first get information about the available instances from [serverinfo](/en/json/serverinfo#instance).
 
-``` json
+```json
 // Command to start instance 1
 {
   "command" : "instance",
@@ -324,7 +324,7 @@ control only one instance at the same time within a single connection, and
 
 It's possible to switch to another instance with the following command:
 
-``` json
+```json
 // Switch to instance 1
 {
   "command" : "instance",
@@ -344,7 +344,7 @@ See: [Instance updates](/en/json/subscribe#instance-updates).
 ### Live Image Stream
 You can request a live image stream (if the current source priority supports it,
 otherwise here may be no response).
-``` json
+```json
 {
   "command":"ledcolors",
   "subcommand":"imagestream-start"
@@ -352,7 +352,7 @@ otherwise here may be no response).
 ```
 You will receive "ledcolors-imagestream-update" messages with a base64 encoded image.
 Stop the stream by sending:
-``` json
+```json
 {
   "command":"ledcolors",
   "subcommand":"imagestream-stop"
@@ -366,7 +366,7 @@ This feature is not available for HTTP/S JSON-RPC
 ### Live Led Color Stream
 You can request a live led color stream with current color values in RGB for each single
 led. The update rate is 125ms.
-``` json
+```json
 {
   "command":"ledcolors",
   "subcommand":"ledstream-start"
@@ -374,7 +374,7 @@ led. The update rate is 125ms.
 ```
 You will receive "ledcolors-ledstream-update" messages with an array of all led colors.
 Stop the stream by sending:
-``` json
+```json
 {
   "command":"ledcolors",
   "subcommand":"ledstream-stop"

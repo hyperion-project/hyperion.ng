@@ -14,14 +14,14 @@ token](#request-a-token) via the API.
 ### Authorization Check
 
 Callers can check whether authorization is required to work with the API, by sending:
-``` json
+```json
 {
     "command" : "authorize",
     "subcommand" : "tokenRequired"
 }
 ```
 If the property `required` is true, authentication is required. An example response:
-``` json
+```json
 {
     "command" : "authorize-tokenRequired",
     "info" : {
@@ -34,7 +34,7 @@ If the property `required` is true, authentication is required. An example respo
 
 ### Login with Token
 Login with a token as follows -- the caller will receive a [Login response](#login-response).
-``` json
+```json
 {
     "command" : "authorize",
     "subcommand" : "login",
@@ -44,13 +44,13 @@ Login with a token as follows -- the caller will receive a [Login response](#log
 
 ### Login with Token over HTTP/S
 Add the HTTP Authorization header to every request. On error, the user will get a failed [Login response](#login-response).
-``` http
+```http
   Authorization : token YourPrivateTokenHere
 ```
 
 #### Login response
 A successful login response:
-``` json
+```json
 {
     "command" : "authorize-login",
     "success" : true,
@@ -59,7 +59,7 @@ A successful login response:
 ```
 
 A failed login response:
-``` json
+```json
 {
     "command" : "authorize-login",
     "error" : "No Authorization",
@@ -72,7 +72,7 @@ A failed login response:
 Users can also logout. Hyperion doesn't verify the login state, this call will always
 return a success.
 
-``` json
+```json
 {
     "command" : "authorize",
     "subcommand" : "logout"
@@ -80,7 +80,7 @@ return a success.
 ```
 
 Response:
-``` json
+```json
 {
     "command" : "authorize-logout",
     "success" : true,
@@ -107,7 +107,7 @@ Request a token using the follow command, being sure to add a comment that is
 descriptive enough for the Web UI user to make a decision as to whether to grant or deny
 the request. The `id` field has 5 random chars created by the caller, which will appear
 in the Web UI as the user considers granting their approval.
-``` json
+```json
 {
     "command" : "authorize",
     "subcommand" : "requestToken",
@@ -123,7 +123,7 @@ request is automatically rejected, and the caller will get a failure response (s
 
 #### Success response
 If the user accepted the token request the caller will get the following response:
-``` json
+```json
 {
     "command" : "authorize-requestToken",
     "success" : true,
@@ -142,7 +142,7 @@ A request will fail when either:
    * It times out (i.e. user neither approves nor rejects for 180 seconds after the request
      is sent).
    * User rejects the request.
-``` json
+```json
 {
     "command" : "authorize-requestToken",
     "success" : false,
@@ -153,7 +153,7 @@ A request will fail when either:
 #### Request abort
 You can abort the token request by adding an "accept" property to the original request.
 The request will be deleted:
-``` json
+```json
 {
     "command" : "authorize",
     "subcommand" : "requestToken",
@@ -162,4 +162,3 @@ The request will be deleted:
     "accept" : false
 }
 ```
-  

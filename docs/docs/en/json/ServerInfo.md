@@ -5,7 +5,7 @@ of different parts (described below).
 [[toc]]
 
 You can request a `serverinfo` response by sending the following command:
-``` json
+```json
 {
     "command":"serverinfo",
     "tan":1
@@ -23,7 +23,7 @@ components](/en/json/control#control-components)
 You can subscribe to future data updates. Read more about [Component updates](/en/json/subscribe#component-updates)
 :::
 
-``` json
+```json
 {
   "components":[
     {
@@ -68,7 +68,7 @@ Adjustments reflect the value of the last performed (non-persistent) color adjus
 ::: tip Subscribe
 You can subscribe to future data updates. Read more about [Adjustment updates](/en/json/subscribe#adjustment-updates)
 :::
-``` json
+```json
 {
   "adjustment":[
     {
@@ -101,7 +101,7 @@ See also [set Effect](/en/json/control#set-effect)
 ::: tip Subscribe
 You can subscribe to future data updates. Read more about [Effect updates](/en/json/subscribe#effects-updates)
 :::
-``` json
+```json
 {
   "effects":[
     {
@@ -145,7 +145,7 @@ Active mode of the led area mapping. [See control LED mapping](/en/json/control#
 ::: tip Subscribe
 You can subscribe to future data updates. Read more about [LED mapping updates](/en/json/subscribe#led-mapping-updates)
 :::
-``` json
+```json
   "imageToLedMappingType":"multicolor_mean"
 ```
 
@@ -154,7 +154,7 @@ The current video mode of grabbers. Can be switched to 3DHSBS, 3DVSBS. [See cont
 ::: tip Subscribe
 You can subscribe to future data updates. Read more about [Video mode updates](/en/json/subscribe#videomode-updates)
 :::
-``` json
+```json
   "videomode" : "2D"
 ```
 
@@ -177,7 +177,7 @@ Overview of the registered/active sources. Each object is a source.
 ::: tip Subscribe
 You can subscribe to future data updates. Read more about [Priority updates](/en/json/subscribe#priority-updates)
 :::
-``` json
+```json
   "priorities":[
     {
       "active":true,
@@ -226,7 +226,7 @@ device. Instances can be controlled, see: [Control Instance](/en/json/control#co
 ::: tip Subscribe
 You can subscribe to future data updates. Read more about [Instance Updates](/en/json/subscribe#instance-updates)
 :::
-``` json
+```json
    "instance":[
        {
          "instance": 0,
@@ -238,7 +238,7 @@ You can subscribe to future data updates. Read more about [Instance Updates](/en
          "running" : false,
          "friendly_name" : "PhilipsHue LED Hardware instance"
        }
-    [
+   ]
 ```
 
 ### LEDs
@@ -246,7 +246,7 @@ Information about led layout (image mapping positions) and led count.
 ::: tip Subscribe
 You can subscribe to future data updates. Read more about [LEDs Updates](/en/json/subscribe#leds-updates)
 :::
-``` json
+```json
 {
   "leds":[
     {
@@ -269,7 +269,7 @@ You can subscribe to future data updates. Read more about [LEDs Updates](/en/jso
 ### System & Hyperion
 It's possible to retrieve basic system information about the Hyperion server and the
 host it runs on. This information is static and won't change during runtime.
-``` json
+```json
 {
     "command" : "sysinfo",
     "tan" : 1
@@ -278,7 +278,7 @@ host it runs on. This information is static and won't change during runtime.
 You can use the "version" (Hyperion version) string to check application compatibility. We use [Semantic Versioning 2.0.0](https://semver.org/).
 If you need a specific id to re-detect known servers you can use the `id` field which
 provides a unique id and will not change for a given server.
-``` json
+```json
 {
     "hyperion":{
         "build":"webd (brindosch-38f97dc/814977d-1489698970)",
@@ -306,7 +306,7 @@ provides a unique id and will not change for a given server.
 You can subscribe to future data updates. Read more about [Session updates](/en/json/subscribe#session-updates)
 :::
 
-``` json
+```json
 {
   "sessions":[
     {

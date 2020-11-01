@@ -7,7 +7,7 @@ for the caller to poll.
 [[toc]]
 
 To subscribe to specific updates, you can modify the serverinfo command to:
-``` json
+```json
 {
     "command":"serverinfo",
     "subscribe":[
@@ -19,7 +19,7 @@ To subscribe to specific updates, you can modify the serverinfo command to:
 }
 ```
 To subscribe for all available updates modify the severinfo command to
-``` json
+```json
 {
     "command":"serverinfo",
     "subscribe":["all"],
@@ -30,7 +30,7 @@ To subscribe for all available updates modify the severinfo command to
 All pushed subscription updates will have an `-update` suffix added to the relevant key
 from the [serverinfo part in question](/en/json/ServerInfo.html#parts). The new data
 will be in the `data` property. There is no `tan` nor `success` argument provided.
-``` json
+```json
 {
     "command":"XYZ-update",
     "data":{
@@ -43,7 +43,7 @@ The caller can subscribe to component updates. These updates are meant to update
 `components` section of the caller's initial serverinfo. Relevant `serverinfo`
 subscription command:
 
-``` json
+```json
 {
     "command":"serverinfo",
     "subscribe":[
@@ -53,7 +53,7 @@ subscription command:
 }
 ```
 After this, the caller will receive incremental updates. An example:
-``` json
+```json
 {
     "command":"components-update",
     "data":{
@@ -67,7 +67,7 @@ After this, the caller will receive incremental updates. An example:
 The caller can subscribe to session updates (Hyperion instances found with
 Bonjour/Zeroconf/Ahavi). These updates are meant to update the `sessions` section of
 the caller's initial serverinfo. Relevant `serverinfo` subscription command:
-``` json
+```json
 {
     "command":"serverinfo",
     "subscribe":[
@@ -78,7 +78,7 @@ the caller's initial serverinfo. Relevant `serverinfo` subscription command:
 ```
 These updates aren't incremental -- they contain all found entries on each update.
 Example response with 2 HTTP server sessions (`_hyperiond-http._tcp`):
-``` json
+```json
 {
     "command":"sessions-update",
     "data":[
@@ -105,7 +105,7 @@ Example response with 2 HTTP server sessions (`_hyperiond-http._tcp`):
 The caller can subscribe to priority updates. These updates are meant to update the
 `priorities` and `priorities_autoselect` section of the caller's initial `serverinfo`.
 Relevant `serverinfo` subscription command:
-``` json
+```json
 {
     "command":"serverinfo",
     "subscribe":["priorities-update"],
@@ -114,7 +114,7 @@ Relevant `serverinfo` subscription command:
 ```
 Caller will get the complete data. Please note that if a color or effect is running with
 a timeout > -1, the caller will receive new data each second. An example update:
-``` json
+```json
 {
   "command":"priorities-update",
   "data":{
@@ -156,14 +156,14 @@ a timeout > -1, the caller will receive new data each second. An example update:
 The caller can subscribe to LED mapping type updates. These updates are meant to update
 the `imageToLedMappingType` section of the caller's initial `serverinfo`.
 Relevant `serverinfo` subscription command:
-``` json
+```json
 {
     "command":"serverinfo",
     "subscribe":["imageToLedMapping-update"],
     "tan":1}
 ```
 An example update:
-``` json
+```json
 {
     "command":"imageToLedMapping-update",
     "data":{
@@ -175,7 +175,7 @@ An example update:
 The caller can subscribe to adjustment updates. These updates are meant to update the
 `adjustment` section of the caller's initial `serverinfo`. Relevant `serverinfo`
 subscription command:
-``` json
+```json
 {
     "command":"serverinfo",
     "subscribe":["adjustment-update"],
@@ -183,7 +183,7 @@ subscription command:
 }
 ```
 An example update:
-``` json
+```json
 {
   "command":"adjustment-update",
     "data":[{
@@ -209,7 +209,7 @@ An example update:
 The caller can subscribe to videomode updates. These updates are meant to update the
 `videomode` section of the cakker's initial `serverinfo`. Relevant `serverinfo`
 subscription command:
-``` json
+```json
 {
   "command":"serverinfo",
   "subscribe":["videomode-update"],
@@ -217,7 +217,7 @@ subscription command:
 }
 ```
 An example update:
-``` json
+```json
 {
   "command":"videomode-update",
   "data":{
@@ -229,7 +229,7 @@ An example update:
 The caller can subscribe to effect list updates. These updates are meant to update the
 `effects` section of the caller's initial `serverinfo`. Relevant `serverinfo`
 subscription command:
-``` json
+```json
 {
   "command":"serverinfo",
   "subscribe":["effects-update"],
@@ -237,7 +237,7 @@ subscription command:
 }
 ```
 An example update:
-``` json
+```json
 {
   "command":"effects-update",
   "data":{
@@ -250,7 +250,7 @@ An example update:
 The caller can subscribe to instance updates. These updates are meant to update the
 `instance` section of the caller's initial serverinfo. Relevant `serverinfo`
 subscription command:
-``` json
+```json
 {
   "command":"serverinfo",
   "subscribe":["instance-update"],
@@ -259,7 +259,7 @@ subscription command:
 ```
 An example update. This is not incremental -- the caller will get the full set of
 instances:
-``` json
+```json
 {
   "command":"instance-update",
   "data":[
@@ -279,7 +279,7 @@ instances:
 ### LEDs updates
 The caller can subscribe to leds updates. These updates are meant to update the `leds`
 section of the caller's initial `serverinfo`. Relevant `serverinfo` subscription command:
-``` json
+```json
 {
   "command":"serverinfo",
   "subscribe":["leds-update"],
@@ -287,7 +287,7 @@ section of the caller's initial `serverinfo`. Relevant `serverinfo` subscription
 }
 ```
 An example update. This is not incremental -- the caller willg et the full set of leds:
-``` json
+```json
 {
   "command":"leds-update",
     "data": {

@@ -15,14 +15,14 @@ required. A `tan` argument is optional. This is an integer you can freely choose
 part of the response you will receive to allow you to filter the response from other server
 messages (this functionality is likely necessary for advanced usecases only).
 
-``` json
+```json
 {
   "command" : "YourCommand",
   "tan" : 1
 }
 ```
 Depending on the command, there might be an additional subcommand required:
-``` json
+```json
 {
   "command" : "YourCommand",
   "subcommand" : "YourSubCommand",
@@ -32,7 +32,7 @@ Depending on the command, there might be an additional subcommand required:
   
 ### Response
 Most messages you send will trigger a response of the following format:
-``` json
+```json
 {
   "command" : "YourCommand",
   "info":{ ...DATA... },
