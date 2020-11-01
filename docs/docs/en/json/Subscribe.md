@@ -1,9 +1,12 @@
 # Subscription
-During initial serverinfo request you can subscribe to specific data updates or all of them at once, these updates will be pushed to you whenever a server side data change occur.
+During a `serverinfo` request the caller can optionally subscribe to updates -- either
+to specific [serverinfo parts](/en/json/ServerInfo.html#parts) or all available data.
+These updates will be pushed whenever a server-side data change occurs, without the need
+for the caller to poll.
 
 [[toc]]
 
-To subscribe for specific updates modify serverinfo command to
+To subscribe to specific updates, you can modify the serverinfo command to:
 ``` json
 {
     "command":"serverinfo",
@@ -24,7 +27,9 @@ To subscribe for all available updates modify the severinfo command to
 }
 ```
 ### Base response layout
-All responses will have a `-update` suffix in their command property, it's the same command you subscribed to. The new data is in the `data` property. A `tan` and `success` property does not exist.
+All pushed subscription updates will have an `-update` suffix added to the relevant key
+from the [serverinfo part in question](/en/json/ServerInfo.html#parts). The new data
+will be in the `data` property. There is no `tan` nor `success` argument provided.
 ``` json
 {
     "command":"XYZ-update",
@@ -34,7 +39,10 @@ All responses will have a `-update` suffix in their command property, it's the s
 }
 ```
 ### Component updates
-You can subscribe to updates of components. These updates are meant to update the `components` section of your initial serverinfo. Modify serverinfo command to
+The caller can subscribe to component updates. These updates are meant to update the
+`components` section of the caller's initial serverinfo. Relevant `serverinfo`
+subscription command:
+
 ``` json
 {
     "command":"serverinfo",
@@ -44,7 +52,7 @@ You can subscribe to updates of components. These updates are meant to update th
     "tan":1
 }
 ```
-You will get incremental updates, here an example response
+After this, the caller will receive incremental updates. An example:
 ``` json
 {
     "command":"components-update",
@@ -56,7 +64,9 @@ You will get incremental updates, here an example response
 ```
 
 ### Session updates
-You can subscribe to session updates (Found with Bonjour/Zeroconf/Ahavi). These updates are meant to update the `sessions` section of your initial serverinfo. Modify serverinfo command to
+The caller can subscribe to session updates (Hyperion instances found with
+Bonjour/Zeroconf/Ahavi). These updates are meant to update the `sessions` section of
+the caller's initial serverinfo. Relevant `serverinfo` subscription command:
 ``` json
 {
     "command":"serverinfo",
@@ -66,8 +76,8 @@ You can subscribe to session updates (Found with Bonjour/Zeroconf/Ahavi). These 
     "tan":1
 }
 ```
-These updates aren't incremental, so they contain always all found entries.
-Example response with 2 HTTP server sessions (_hyperiond-http._tcp)
+These updates aren't incremental -- they contain all found entries on each update.
+Example response with 2 HTTP server sessions (`_hyperiond-http._tcp`):
 ``` json
 {
     "command":"sessions-update",
@@ -92,7 +102,9 @@ Example response with 2 HTTP server sessions (_hyperiond-http._tcp)
 }
 ```
 ### Priority updates
-You can subscribe to priority updates. These updates are meant to update the `priorities` and `priorities_autoselect` section of your initial serverinfo. Modify serverinfo command to
+The caller can subscribe to priority updates. These updates are meant to update the
+`priorities` and `priorities_autoselect` section of the caller's initial `serverinfo`.
+Relevant `serverinfo` subscription command:
 ``` json
 {
     "command":"serverinfo",
@@ -100,7 +112,8 @@ You can subscribe to priority updates. These updates are meant to update the `pr
     "tan":1
 }
 ```
-You get the complete data, please note that if a color or effect is running with a timeout > -1 you will receive at least within a 1 second interval new data. Here an example update:
+Caller will get the complete data. Please note that if a color or effect is running with
+a timeout > -1, the caller will receive new data each second. An example update:
 ``` json
 {
   "command":"priorities-update",
@@ -140,14 +153,16 @@ You get the complete data, please note that if a color or effect is running with
 }
 ```
 ### LED Mapping updates
-You can subscribe to LED mapping type updates. These updates are meant to update the `imageToLedMappingType` section of your initial serverinfo. Modify serverinfo command to
+The caller can subscribe to LED mapping type updates. These updates are meant to update
+the `imageToLedMappingType` section of the caller's initial `serverinfo`.
+Relevant `serverinfo` subscription command:
 ``` json
 {
     "command":"serverinfo",
     "subscribe":["imageToLedMapping-update"],
     "tan":1}
 ```
-Here an example update:
+An example update:
 ``` json
 {
     "command":"imageToLedMapping-update",
@@ -157,7 +172,9 @@ Here an example update:
 }
 ```
 ### Adjustment updates
-You can subscribe to adjustment updates. These updates are meant to update the `adjustment` section of your initial serverinfo. Modify serverinfo command to
+The caller can subscribe to adjustment updates. These updates are meant to update the
+`adjustment` section of the caller's initial `serverinfo`. Relevant `serverinfo`
+subscription command:
 ``` json
 {
     "command":"serverinfo",
@@ -165,7 +182,7 @@ You can subscribe to adjustment updates. These updates are meant to update the `
     "tan":1
 }
 ```
-Here an example update:
+An example update:
 ``` json
 {
   "command":"adjustment-update",
@@ -189,7 +206,9 @@ Here an example update:
 }
 ```
 ### VideoMode updates
-You can subscribe to videomode updates. These updates are meant to update the `videomode` section of your initial serverinfo. Modify serverinfo command to
+The caller can subscribe to videomode updates. These updates are meant to update the
+`videomode` section of the cakker's initial `serverinfo`. Relevant `serverinfo`
+subscription command:
 ``` json
 {
   "command":"serverinfo",
@@ -197,7 +216,7 @@ You can subscribe to videomode updates. These updates are meant to update the `v
   "tan":1
 }
 ```
-Here an example update:
+An example update:
 ``` json
 {
   "command":"videomode-update",
@@ -207,7 +226,9 @@ Here an example update:
 }
 ```
 ### Effects updates
-You can subscribe to effect list updates. These updates are meant to update the `effects` section of your initial serverinfo. Modify serverinfo command to
+The caller can subscribe to effect list updates. These updates are meant to update the
+`effects` section of the caller's initial `serverinfo`. Relevant `serverinfo`
+subscription command:
 ``` json
 {
   "command":"serverinfo",
@@ -215,7 +236,7 @@ You can subscribe to effect list updates. These updates are meant to update the 
   "tan":1
 }
 ```
-Here an example update:
+An example update:
 ``` json
 {
   "command":"effects-update",
@@ -226,7 +247,9 @@ Here an example update:
 ```
 
 ### Instance updates
-You can subscribe to instance updates. These updates are meant to update the `instance` section of your initial serverinfo. Modify serverinfo command to
+The caller can subscribe to instance updates. These updates are meant to update the
+`instance` section of the caller's initial serverinfo. Relevant `serverinfo`
+subscription command:
 ``` json
 {
   "command":"serverinfo",
@@ -234,7 +257,8 @@ You can subscribe to instance updates. These updates are meant to update the `in
   "tan":1
 }
 ```
-Here an example update, you will also get the whole section:
+An example update. This is not incremental -- the caller will get the full set of
+instances:
 ``` json
 {
   "command":"instance-update",
@@ -253,7 +277,8 @@ Here an example update, you will also get the whole section:
 }
 ```
 ### LEDs updates
-You can subscribe to leds updates. These updates are meant to update the `leds` section of your initial serverinfo. Modify serverinfo command to
+The caller can subscribe to leds updates. These updates are meant to update the `leds`
+section of the caller's initial `serverinfo`. Relevant `serverinfo` subscription command:
 ``` json
 {
   "command":"serverinfo",
@@ -261,7 +286,7 @@ You can subscribe to leds updates. These updates are meant to update the `leds` 
   "tan":1
 }
 ```
-Here an example update, you will also get the whole section:
+An example update. This is not incremental -- the caller willg et the full set of leds:
 ``` json
 {
   "command":"leds-update",
@@ -277,55 +302,4 @@ Here an example update, you will also get the whole section:
       ]
     }
   }
-```
-
-### Plugin updates
-::: danger NOT IMPLEMENTED
-THIS IS NOT IMPLEMENTED
-:::
-You can subscribe to plugin updates. These updates are meant to update the `plugins` section of your initial serverinfo. Modify serverinfo command to
-``` json
-{
-    "command":"serverinfo",
-    "subscribe":[
-        "plugins-update"
-    ],
-    "tan":1
-}
-```
-Response on new plugin has been added (or plugin has been updated to a newer version)
-``` json
-{
-    "command":"plugins-update",
-    "data":{
-    "IdOfPlugin":{
-        "name":"The name of plugin",
-        "description":"The description of plugin",
-        "version":"TheVersion",
-        "running":false
-        }
-    }
-  }
-```
-Response on plugin removed, the data object contains a `removed` property / the plugin id object is empty
-``` json
-{
-    "command":"plugins-update",
-    "data":{
-        "ThePluginId":{
-            "removed":true
-        }
-    }
-}
-```
-Response on plugin running state change
-``` json
-{
-    "command":"plugins-update",
-    "data":{
-        "ThePluginId":{
-            "running":true
-        }
-    }
-}
 ```
