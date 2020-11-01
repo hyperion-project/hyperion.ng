@@ -211,7 +211,7 @@ $(document).ready( function() {
   }, true, true);
 
   conf_editor_instCapt.on('change',function() {
-    conf_editor_instCapt.validate().length ? $('#btn_submit_instCapt').attr('disabled', true) : $('#btn_submit_instCapt').attr('disabled', false);
+    conf_editor_instCapt.validate().length || window.readOnlyMode ? $('#btn_submit_instCapt').attr('disabled', true) : $('#btn_submit_instCapt').attr('disabled', false);
   });
 
   $('#btn_submit_instCapt').off().on('click',function() {
@@ -223,14 +223,14 @@ $(document).ready( function() {
     framegrabber: window.schema.framegrabber
   }, true, true);
 
-  conf_editor_fg.on('change',function() {
-  	//Remove Grabbers which are not supported
-  	var grabbers = window.serverInfo.grabbers.available;
+  conf_editor_fg.on('change',function()
+  //Remove Grabbers which are not supported
+  var grabbers = window.serverInfo.grabbers.available;
 
-  	var selector = "root_framegrabber_type";
+  var selector = "root_framegrabber_type";
 	var options = $("#"+selector+" option");
 
-	 for (var i=0; i<options.length; i++ )
+	for (var i=0; i<options.length; i++ )
 	 {
 	 	var type = options[i].value;
 		if (grabbers.indexOf(type) === -1)
@@ -242,10 +242,11 @@ $(document).ready( function() {
 	 var activegrabber = window.serverInfo.grabbers.active.toLowerCase();
 	 $("#"+selector+" option[value='" + activegrabber + "']").attr('selected', 'selected');
 
-	var selectedType = $("#root_framegrabber_type").val();
-  	filerFgGrabberOptions(selectedType);
+	 var selectedType = $("#root_framegrabber_type").val();
+   filerFgGrabberOptions(selectedType);
 
-    conf_editor_fg.validate().length ? $('#btn_submit_fg').attr('disabled', true) : $('#btn_submit_fg').attr('disabled', false);
+   conf_editor_fg.validate().length || window.readOnlyMode ? $('#btn_submit_fg').attr('disabled', true) : $('#btn_submit_fg').attr('disabled', false);
+
   });
 
   $('#btn_submit_fg').off().on('click',function() {
@@ -258,7 +259,7 @@ $(document).ready( function() {
     }, true, true);
 
     conf_editor_v4l2.on('change',function() {
-      conf_editor_v4l2.validate().length ? $('#btn_submit_v4l2').attr('disabled', true) : $('#btn_submit_v4l2').attr('disabled', false);
+      conf_editor_v4l2.validate().length || window.readOnlyMode ? $('#btn_submit_v4l2').attr('disabled', true) : $('#btn_submit_v4l2').attr('disabled', false);
     });
 
     conf_editor_v4l2.on('ready', function() {

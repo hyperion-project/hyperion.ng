@@ -18,7 +18,7 @@ $(document).ready( function() {
 	}, true, true);
 
 	conf_editor.on('change',function() {
-		conf_editor.validate().length ? $('#btn_submit').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
+		conf_editor.validate().length || window.readOnlyMode ? $('#btn_submit').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
 	});
 
 	$('#btn_submit').off().on('click',function() {
@@ -28,6 +28,12 @@ $(document).ready( function() {
 	// Instance handling
 	function handleInstanceRename(e)
 	{
+	
+		conf_editor.on('change',function() {
+		window.readOnlyMode ? $('#btn_cl_save').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
+		window.readOnlyMode ? $('#btn_ma_save').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
+		});
+		
 		var inst = e.currentTarget.id.split("_")[1];
 		showInfoDialog('renInst', $.i18n('conf_general_inst_renreq_t'), getInstanceNameByIndex(inst));
 
@@ -77,6 +83,10 @@ $(document).ready( function() {
 			$('#instren_'+inst[key].instance).off().on('click', handleInstanceRename);
 			$('#inst_'+inst[key].instance).off().on('click', handleInstanceStartStop);
 			$('#instdel_'+inst[key].instance).off().on('click', handleInstanceDelete);
+			
+			window.readOnlyMode ? $('#instren_'+inst[key].instance).attr('disabled', true) : $('#btn_submit').attr('disabled', false);
+			window.readOnlyMode ? $('#inst_'+inst[key].instance).attr('disabled', true) : $('#btn_submit').attr('disabled', false);
+			window.readOnlyMode ? $('#instdel_'+inst[key].instance).attr('disabled', true) : $('#btn_submit').attr('disabled', false);
 		}
 	}
 
@@ -85,7 +95,7 @@ $(document).ready( function() {
 	buildInstanceList();
 
 	$('#inst_name').off().on('input',function(e) {
-		(e.currentTarget.value.length >= 5) ? $('#btn_create_inst').attr('disabled', false) : $('#btn_create_inst').attr('disabled', true);
+		(e.currentTarget.value.length >= 5) && !window.readOnlyMode ? $('#btn_create_inst').attr('disabled', false) : $('#btn_create_inst').attr('disabled', true);
 		if(5-e.currentTarget.value.length >= 1 && 5-e.currentTarget.value.length <= 4)
 			$('#inst_chars_needed').html(5-e.currentTarget.value.length + " " + $.i18n('general_chars_needed'))
 		else
@@ -105,7 +115,7 @@ $(document).ready( function() {
 	//import
 	function dis_imp_btn(state)
 	{
-		state ? $('#btn_import_conf').attr('disabled', true) : $('#btn_import_conf').attr('disabled', false);
+		state || window.readOnlyMode ? $('#btn_import_conf').attr('disabled', true) : $('#btn_import_conf').attr('disabled', false);
 	}
 
 	function readFile(evt)

@@ -39,10 +39,10 @@
 // Boblight
 #include <boblightserver/BoblightServer.h>
 
-Hyperion::Hyperion(quint8 instance)
+Hyperion::Hyperion(quint8 instance, bool readonlyMode)
 	: QObject()
 	, _instIndex(instance)
-	, _settingsManager(new SettingsManager(instance, this))
+	, _settingsManager(new SettingsManager(instance, this, readonlyMode))
 	, _componentRegister(this)
 	, _ledString(hyperion::createLedString(getSetting(settings::LEDS).array(), hyperion::createColorOrder(getSetting(settings::DEVICE).object())))
 	, _imageProcessor(new ImageProcessor(_ledString, this))
@@ -54,6 +54,7 @@ Hyperion::Hyperion(quint8 instance)
 	, _hwLedCount()
 	, _ledGridSize(hyperion::getLedLayoutGridSize(getSetting(settings::LEDS).array()))
 	, _ledBuffer(_ledString.leds().size(), ColorRgb::BLACK)
+	, _readOnlyMode(readonlyMode)
 {
 
 }
@@ -391,10 +392,8 @@ end:
 	// register color
 	registerInput(priority, hyperion::COMP_COLOR, origin);
 
-	// write color to muxer & queuePush
+	// write color to muxer
 	setInput(priority, newLedColors, timeout_ms);
-	if (timeout_ms <= 0)
-		_muxer.queuePush();
 }
 
 QStringList Hyperion::getAdjustmentIds() const

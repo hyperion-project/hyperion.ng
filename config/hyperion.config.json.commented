@@ -175,7 +175,7 @@
 	///  * borderFrameCnt     : Number of frames before a consistent detected border gets set (default 50)
 	///  * maxInconsistentCnt : Number of inconsistent frames that are ignored before a new border gets a chance to proof consistency
 	///  * blurRemoveCnt      : Number of pixels that get removed from the detected border to cut away blur (default 1)
-	///  * mode               : Border detection mode (values=default,classic,osd)
+	///  * mode               : Border detection mode (values=default,classic,osd,letterbox)
 	"blackborderdetector" :
 	{
 		"enable"             : true,

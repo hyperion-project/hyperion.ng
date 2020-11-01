@@ -14,11 +14,13 @@
 
 QJsonObject SettingsManager::schemaJson;
 
-SettingsManager::SettingsManager(quint8 instance, QObject* parent)
+SettingsManager::SettingsManager(quint8 instance, QObject* parent, bool readonlyMode)
 	: QObject(parent)
 	, _log(Logger::getInstance("SETTINGSMGR"))
 	, _sTable(new SettingsTable(instance, this))
+	, _readonlyMode(readonlyMode)
 {
+	_sTable->setReadonlyMode(_readonlyMode);
 	// get schema
 	if(schemaJson.isEmpty())
 	{
@@ -152,18 +154,24 @@ bool SettingsManager::saveSettings(QJsonObject config, bool correct)
 		}
 	}
 
+	int rc = true;
 	// compare database data with new data to emit/save changes accordingly
 	for(const auto & key : keyList)
 	{
 		QString data = newValueList.takeFirst();
 		if(_sTable->getSettingsRecordString(key) != data)
 		{
-			_sTable->createSettingsRecord(key, data);
-
-			emit settingsChanged(settings::stringToType(key), QJsonDocument::fromJson(data.toLocal8Bit()));
+			if ( ! _sTable->createSettingsRecord(key, data) )
+			{
+				rc = false;
+			}
+			else
+			{
+				emit settingsChanged(settings::stringToType(key), QJsonDocument::fromJson(data.toLocal8Bit()));
+			}
 		}
 	}
-	return true;
+	return rc;
 }
 
 bool SettingsManager::handleConfigUpgrade(QJsonObject& config)

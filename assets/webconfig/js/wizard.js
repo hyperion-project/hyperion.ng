@@ -109,9 +109,13 @@ function beginWizardRGB() {
       if (redS == "r" && greenS == "g") {
         $('#btn_wiz_save').toggle(false);
         $('#btn_wiz_checkok').toggle(true);
+
+        window.readOnlyMode ? $('#btn_wiz_checkok').attr('disabled', true) : $('#btn_wiz_checkok').attr('disabled', false);
       }
       else {
         $('#btn_wiz_save').toggle(true);
+        window.readOnlyMode ? $('#btn_wiz_save').attr('disabled', true) : $('#btn_wiz_save').attr('disabled', false);
+
         $('#btn_wiz_checkok').toggle(false);
       }
       new_rgb_order = rgb_order;
@@ -390,6 +394,7 @@ function performAction() {
 
     $('#btn_wiz_next').attr("disabled", true);
     $('#btn_wiz_save').toggle(true);
+    window.readOnlyMode ? $('#btn_wiz_save').attr('disabled', true) : $('#btn_wiz_save').attr('disabled', false);
   }
   else {
     $('#btn_wiz_next').attr("disabled", false);
@@ -407,13 +412,13 @@ function updateWEditor(el, all) {
 }
 
 function startWizardCC() {
+
   // Ensure that Kodi's default REST-API port is not used, as now the Web-Socket port is used
   [kodiHost, kodiPort] = kodiAddress.split(":", 2);
   if (kodiPort === "8080") {
     kodiAddress = kodiHost;
     kodiPort = undefined;
   }
-
   //create html
   $('#wiz_header').html('<i class="fa fa-magic fa-fw"></i>' + $.i18n('wiz_cc_title'));
   $('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n('wiz_cc_title') + '</h4><p>' + $.i18n('wiz_cc_intro1') + '</p><label>' + $.i18n('wiz_cc_kwebs') + '</label><input class="form-control" style="width:170px;margin:auto" id="wiz_cc_kodiip" type="text" placeholder="' + kodiAddress + '" value="' + kodiAddress + '" /><span id="kodi_status"></span><span id="multi_cali"></span>');
@@ -429,6 +434,7 @@ function startWizardCC() {
   });
 
   $('#wiz_cc_kodiip').off().on('change', function () {
+    
     kodiAddress = $(this).val().trim();
     $('#kodi_status').html('');
 
@@ -1151,7 +1157,9 @@ function get_hue_lights() {
                 cC++;
               }
             }
-            (cC == 0) ? $('#btn_wiz_save').attr("disabled", true) : $('#btn_wiz_save').attr("disabled", false);
+
+            (cC == 0 || window.readOnlyMode) ? $('#btn_wiz_save').attr("disabled", true) : $('#btn_wiz_save').attr("disabled", false);
+
           });
         }
         $('.hue_sel_watch').trigger('change');
@@ -1497,7 +1505,8 @@ function assign_yeelight_lights() {
           cC++;
         }
       }
-      if (cC === 0)
+
+      if (cC === 0 || window.readOnlyMode)
         $('#btn_wiz_save').attr("disabled", true);
       else
         $('#btn_wiz_save').attr("disabled", false);
@@ -1527,7 +1536,6 @@ async function getProperties_yeelight(hostname, port) {
 
 function identify_yeelight_device(hostname, port) {
   let params = { hostname: hostname, port: port };
-
   const res = requestLedDeviceIdentification("yeelight", params);
   // TODO: error case unhandled
   // res can be: false (timeout) or res.error (not found)
@@ -1759,7 +1767,7 @@ function assign_atmoorb_lights() {
           cC++;
         }
       }
-      if (cC === 0)
+      if (cC === 0 || window.readOnlyMode)
         $('#btn_wiz_save').attr("disabled", true);
       else
         $('#btn_wiz_save').attr("disabled", false);
@@ -1860,7 +1868,6 @@ async function discover_providerRs232(rs232Type) {
 //****************************
 async function discover_providerHid(hidType) {
   const res = await requestLedDeviceDiscovery(hidType);
-  console.log("discover_providerHid", res);
 
   // TODO: error case unhandled
   // res can be: false (timeout) or res.error (not found)

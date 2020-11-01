@@ -26,6 +26,9 @@ $(document).ready(function () {
 
 	$(window.hyperion).on("cmd-serverinfo", function (event) {
 		window.serverInfo = event.response.info;
+		
+		window.readOnlyMode = window.sysInfo.hyperion.readOnlyMode;
+	
 		// comps
 		window.comps = event.response.info.components
 
