@@ -13,7 +13,7 @@
 				"enum_titles": ["edt_conf_enum_automatic","DispmanX","AMLogic","X11", "XCB", "Framebuffer","QT", "DirectX9"]
 			},
 			"default" : "auto",
-			"propertyOrder" : 2
+			"propertyOrder" : 1
 		},
 		"width" :
 		{
@@ -22,7 +22,7 @@
 			"minimum" : 10,
 			"default" : 80,
 			"append" : "edt_append_pixel",
-			"propertyOrder" : 3
+			"propertyOrder" : 2
 		},
 		"height" :
 		{
@@ -49,7 +49,7 @@
 			"minimum" : 0,
 			"default" : 0,
 			"append" : "edt_append_pixel",
-			"propertyOrder" : 6
+			"propertyOrder" : 5
 		},
 		"cropRight" :
 		{
@@ -58,7 +58,7 @@
 			"minimum" : 0,
 			"default" : 0,
 			"append" : "edt_append_pixel",
-			"propertyOrder" : 7
+			"propertyOrder" : 6
 		},
 		"cropTop" :
 		{
@@ -67,7 +67,7 @@
 			"minimum" : 0,
 			"default" : 0,
 			"append" : "edt_append_pixel",
-			"propertyOrder" : 8
+			"propertyOrder" : 7
 		},
 		"cropBottom" :
 		{
@@ -76,7 +76,7 @@
 			"minimum" : 0,
 			"default" : 0,
 			"append" : "edt_append_pixel",
-			"propertyOrder" : 9
+			"propertyOrder" : 8
 		},
 		"pixelDecimation" :
 		{
@@ -85,7 +85,7 @@
 			"minimum" : 1,
 			"maximum" : 30,
 			"default" : 8,
-			"propertyOrder" : 10
+			"propertyOrder" : 9
 		},
 		"display" :
 		{
@@ -93,7 +93,7 @@
 			"title" : "edt_conf_fg_display_title",
 			"minimum" : 0,
 			"default" : 0,
-			"propertyOrder" : 11
+			"propertyOrder" : 10
 		}
 	},
 	"additionalProperties" : false
