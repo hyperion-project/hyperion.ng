@@ -27,6 +27,7 @@ sudo apt-get install                 \
 	libssl-dev                   \
 	libjpeg-dev                  \
 	libqt5sql5-sqlite            \
+	libqt5svg5-dev               \
 	zlib1g-dev                   \
 
 if [ -e /dev/vc-cma -a -e /dev/vc-mem ]

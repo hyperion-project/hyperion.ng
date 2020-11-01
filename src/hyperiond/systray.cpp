@@ -64,32 +64,29 @@ void SysTray::iconActivated(QSystemTrayIcon::ActivationReason reason)
 
 void SysTray::createTrayIcon()
 {
+	QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+
 	quitAction = new QAction(tr("&Quit"), this);
-	QIcon quitIcon = QIcon::fromTheme("application-exit");
-	quitAction->setIcon(quitIcon);
+	quitAction->setIcon(QPixmap(":/quit.svg"));
 	connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
 
 	colorAction = new QAction(tr("&Color"), this);
-	QIcon colorIcon = QIcon::fromTheme("applications-graphics");
-	colorAction->setIcon(colorIcon);
+	colorAction->setIcon(QPixmap(":/color.svg"));
 	connect(colorAction, SIGNAL(triggered()), this, SLOT(showColorDialog()));
 
 	settingsAction = new QAction(tr("&Settings"), this);
-	QIcon settingsIcon = QIcon::fromTheme("preferences-system");
-	settingsAction->setIcon(settingsIcon);
+	settingsAction->setIcon(QPixmap(":/settings.svg"));
 	connect(settingsAction, SIGNAL(triggered()), this, SLOT(settings()));
 
 	clearAction = new QAction(tr("&Clear"), this);
-	QIcon clearIcon = QIcon::fromTheme("edit-delete");
-	clearAction->setIcon(clearIcon);
+	clearAction->setIcon(QPixmap(":/clear.svg"));
 	connect(clearAction, SIGNAL(triggered()), this, SLOT(clearEfxColor()));
 
 	const std::list<EffectDefinition> efxs = _hyperion->getEffects();
 	_trayIconMenu = new QMenu(this);
 	_trayIconEfxMenu = new QMenu(_trayIconMenu);
 	_trayIconEfxMenu->setTitle(tr("Effects"));
-	QIcon efxIcon = QIcon::fromTheme("media-playback-start");
-	_trayIconEfxMenu->setIcon(efxIcon);
+	_trayIconEfxMenu->setIcon(QPixmap(":/effects.svg"));
 	for (auto efx : efxs)
 	{
 		QAction *efxAction = new QAction(efx.name, this);
@@ -99,6 +96,7 @@ void SysTray::createTrayIcon()
 
 #ifdef _WIN32
 	autorunAction = new QAction(tr("&Disable autostart"), this);
+	autorunAction->setIcon(QPixmap(":/autorun.svg"));
 	connect(autorunAction, SIGNAL(triggered()), this, SLOT(setAutorunState()));
 
 	_trayIconMenu->addAction(autorunAction);
@@ -222,6 +220,8 @@ void SysTray::handleInstanceStateChange(InstanceState state, quint8 instance, co
 				createTrayIcon();
 				connect(_trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
 					this, SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
+
+				connect(quitAction, &QAction::triggered, _trayIcon, &QSystemTrayIcon::hide, Qt::DirectConnection);
 
 				connect(&_colorDlg, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(setColor(const QColor &)));
 				QIcon icon(":/hyperion-icon-32px.png");

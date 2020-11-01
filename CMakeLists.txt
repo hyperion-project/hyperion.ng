@@ -39,9 +39,9 @@ endif()
 SET ( DEFAULT_AMLOGIC                     OFF )
 SET ( DEFAULT_DISPMANX                    OFF )
 SET ( DEFAULT_OSX                         OFF )
+SET ( DEFAULT_QT                          ON  )
 SET ( DEFAULT_X11                         OFF )
 SET ( DEFAULT_XCB                         OFF )
-SET ( DEFAULT_QT                          ON  )
 SET ( DEFAULT_WS281XPWM                   OFF )
 SET ( DEFAULT_AVAHI                       ON  )
 SET ( DEFAULT_USE_SHARED_AVAHI_LIBS       ON  )
@@ -58,6 +58,8 @@ IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
 	SET ( DEFAULT_FB          ON )
 	SET ( DEFAULT_USB_HID     ON )
 	SET ( DEFAULT_CEC         ON )
+ELSEIF ( WIN32 )
+	SET ( DEFAULT_DX ON )
 ELSE()
 	SET ( DEFAULT_V4L2        OFF )
 	SET ( DEFAULT_FB          OFF )
@@ -190,6 +192,9 @@ message(STATUS "ENABLE_XCB = ${ENABLE_XCB}")
 option(ENABLE_QT "Enable the qt grabber" ${DEFAULT_QT})
 message(STATUS "ENABLE_QT = ${ENABLE_QT}")
 
+option(ENABLE_DX "Enable the DirectX grabber" ${DEFAULT_DX})
+message(STATUS "ENABLE_DX = ${ENABLE_DX}")
+
 option(ENABLE_TESTS "Compile additional test applications" ${DEFAULT_TESTS})
 message(STATUS "ENABLE_TESTS = ${ENABLE_TESTS}")
 
@@ -303,6 +308,12 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 		message(STATUS "Set Qt5 module path: ${SUBDIRQT}")
 		SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SUBDIRQT}/msvc2019_64/lib/cmake/Qt5")
 	endif()
+
+	# Search for DirectX9
+	if (ENABLE_DX)
+		find_package(DirectX9 REQUIRED)
+	endif()
+
 endif()
 
 # Use GNU gold linker if available

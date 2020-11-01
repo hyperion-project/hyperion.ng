@@ -1,7 +1,12 @@
 #include "utils/SysInfo.h"
+#include "utils/FileUtils.h"
 
 #include <QHostInfo>
 #include <QSysInfo>
+#include <QRegularExpression>
+#include <QRegularExpressionMatch>
+
+#include <iostream>
 
 SysInfo* SysInfo::_instance = nullptr;
 
@@ -17,6 +22,7 @@ SysInfo::SysInfo()
 	_sysinfo.prettyName     = QSysInfo::prettyProductName();
 	_sysinfo.hostName       = QHostInfo::localHostName();
 	_sysinfo.domainName     = QHostInfo::localDomainName();
+	getCPUInfo();
 }
 
 SysInfo::HyperionSysInfo SysInfo::get()
@@ -26,3 +32,48 @@ SysInfo::HyperionSysInfo SysInfo::get()
 
 	return SysInfo::_instance->_sysinfo;
 }
+
+void SysInfo::getCPUInfo()
+{
+	QString cpuInfo;
+	if( FileUtils::readFile("/proc/cpuinfo", cpuInfo, Logger::getInstance("DAEMON"), true) )
+	{
+		QRegularExpression regEx ("^model\\s*:\\s(.*)", QRegularExpression::CaseInsensitiveOption | QRegularExpression::MultilineOption);
+		QRegularExpressionMatch match;
+
+		match = regEx.match(cpuInfo);
+		if ( match.hasMatch() )
+		{
+			_sysinfo.cpuModelType = match.captured(1);
+		}
+
+		regEx.setPattern("^model name\\s*:\\s(.*)");
+		match = regEx.match(cpuInfo);
+		if ( match.hasMatch() )
+		{
+			_sysinfo.cpuModelName = match.captured(1);
+		}
+
+		regEx.setPattern("^hardware\\s*:\\s(.*)");
+		match = regEx.match(cpuInfo);
+		if ( match.hasMatch() )
+		{
+			_sysinfo.cpuHardware = match.captured(1);
+		}
+
+		regEx.setPattern("^revision\\s*:\\s(.*)");
+		match = regEx.match(cpuInfo);
+		if ( match.hasMatch() )
+		{
+			_sysinfo.cpuRevision = match.captured(1);
+		}
+
+		regEx.setPattern("^revision\\s*:\\s(.*)");
+		match = regEx.match(cpuInfo);
+		if ( match.hasMatch() )
+		{
+			_sysinfo.cpuRevision = match.captured(1);
+		}
+	}
+}
+

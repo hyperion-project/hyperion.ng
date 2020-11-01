@@ -43,6 +43,8 @@
   ;Tnstaller window branding text
   BrandingText /TRIMLEFT "@CPACK_NSIS_BRANDING_TEXT@"
 
+@CPACK_NSIS_EXTRA_DEFS@
+
 @CPACK_NSIS_DEFINES@
 
   !include Sections.nsh
@@ -384,7 +386,7 @@ Function un.RemoveFromPath
 FunctionEnd
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; Uninstall sutff
+; Uninstall stuff
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ###########################################
@@ -787,7 +789,14 @@ Section "-Core installation"
 ;    Goto End
 ;End:
 
+; Install Visual c++ Redistributable
 ExecWait '"$INSTDIR\bin\vc_redist.x64.exe" /install /quiet'
+
+; Install DirectX 9 Redistributable
+ExecWait '"$INSTDIR\bin\dx_redist.exe" /q /t:"$INSTDIR\tmp"'
+	ExecWait '"$INSTDIR\tmp\DXSETUP.exe" /silent'
+	Delete   '$INSTDIR\tmp\*.*'
+	RMDir    '$INSTDIR\tmp'
 
 SectionEnd
 
@@ -810,6 +819,15 @@ FunctionEnd
 ;--------------------------------
 ; determine admin versus local install
 Function un.onInit
+  ; Check if Hyperion is running
+  loopIsRunningCheck:
+	FindProcDLL::FindProc "hyperiond.exe"
+	IntCmp $R0 1 0 notRunning
+	  MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "Hyperion is running.$\n$\nClose it and press Retry, or press Cancel to exit." IDRETRY loopIsRunningCheck IDCANCEL abortnow
+
+	abortnow:
+		Abort
+  notRunning:
 
   ClearErrors
   UserInfo::GetName
@@ -873,6 +891,16 @@ FunctionEnd
 ;Uninstaller Section
 
 Section "Uninstall"
+  ; Check if Hyperion is running
+  loopIsRunningCheck:
+    FindProcDLL::FindProc "hyperiond.exe"
+    IntCmp $R0 1 0 notRunning
+      MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "Hyperion is running.$\n$\nClose it and press Retry, or press Cancel to exit." IDRETRY loopIsRunningCheck IDCANCEL abortnow
+
+    abortnow:
+      Abort
+  notRunning:
+
   ReadRegStr $START_MENU SHCTX \
    "Software\Microsoft\Windows\CurrentVersion\Uninstall\@CPACK_PACKAGE_INSTALL_REGISTRY_KEY@" "StartMenu"
   ;MessageBox MB_OK "Start menu is in: $START_MENU"
@@ -970,6 +998,16 @@ SectionEnd
 ; "Program Files" for AllUsers, "My Documents" for JustMe...
 
 Function .onInit
+  ; Check if Hyperion is running
+  loopIsRunningCheck:
+	FindProcDLL::FindProc "hyperiond.exe"
+	IntCmp $R0 1 0 notRunning
+	  MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "Hyperion is running.$\n$\nClose it and press Retry, or press Cancel to exit." IDRETRY loopIsRunningCheck IDCANCEL abortnow
+
+	abortnow:
+		Abort
+  notRunning:
+
   StrCmp "@CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL@" "ON" 0 inst
 
   ReadRegStr $0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\@CPACK_PACKAGE_INSTALL_REGISTRY_KEY@" "UninstallString"

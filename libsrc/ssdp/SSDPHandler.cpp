@@ -15,14 +15,16 @@
 
 static const QString SSDP_HYPERION_ST("urn:hyperion-project.org:device:basic:1");
 
-SSDPHandler::SSDPHandler(WebServer* webserver, quint16 flatBufPort, quint16 jsonServerPort, const QString& name, QObject * parent)
+SSDPHandler::SSDPHandler(WebServer* webserver, quint16 flatBufPort, quint16 protoBufPort, quint16 jsonServerPort, quint16 sslPort,  const QString& name, QObject * parent)
 	: SSDPServer(parent)
 	, _webserver(webserver)
 	, _localAddress()
 	, _NCA(nullptr)
 {
 	setFlatBufPort(flatBufPort);
+	setProtoBufPort(protoBufPort);
 	setJsonServerPort(jsonServerPort);
+	setSSLServerPort(sslPort);
 	setHyperionName(name);
 }
 
@@ -85,11 +87,27 @@ void SSDPHandler::handleSettingsUpdate(settings::type type, const QJsonDocument&
 		}
 	}
 
+	if(type == settings::PROTOSERVER)
+	{
+		if(obj["port"].toInt() != SSDPServer::getProtoBufPort())
+		{
+			SSDPServer::setProtoBufPort(obj["port"].toInt());
+		}
+	}
+
 	if(type == settings::JSONSERVER)
 	{
 		if(obj["port"].toInt() != SSDPServer::getJsonServerPort())
 		{
 			SSDPServer::setJsonServerPort(obj["port"].toInt());
+		}
+	}
+
+	if(type == settings::WEBSERVER)
+	{
+		if(obj["sslPort"].toInt() != SSDPServer::getSSLServerPort())
+		{
+			SSDPServer::setSSLServerPort(obj["sslPort"].toInt());
 		}
 	}
 
@@ -199,7 +217,21 @@ QString SSDPHandler::buildDesc() const
 	/// %2 friendly name              Hyperion 2.0.0 (192.168.0.177)
 	/// %3 modelNumber                2.0.0
 	/// %4 serialNumber / UDN (H ID)  Fjsa723dD0....
-	return SSDP_DESCRIPTION.arg(getBaseAddress(), QString("Hyperion (%1)").arg(_localAddress), QString(HYPERION_VERSION), _uuid);
+	/// %5 json port                  19444
+	/// %6 ssl server port            8092
+	/// %7 protobuf port              19445
+	/// %8 flatbuf port               19400
+
+	return SSDP_DESCRIPTION.arg(
+			getBaseAddress(),
+			QString("Hyperion (%1)").arg(_localAddress),
+			QString(HYPERION_VERSION),
+			_uuid,
+			QString::number(SSDPServer::getJsonServerPort()),
+			QString::number(SSDPServer::getSSLServerPort()),
+			QString::number(SSDPServer::getProtoBufPort()),
+			QString::number(SSDPServer::getFlatBufPort())
+	);
 }
 
 void SSDPHandler::sendAnnounceList(bool alive)

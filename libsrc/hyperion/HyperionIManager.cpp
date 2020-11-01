@@ -67,7 +67,7 @@ void HyperionIManager::toggleStateAllInstances(bool pause)
 	}
 }
 
-bool HyperionIManager::startInstance(quint8 inst, bool block)
+bool HyperionIManager::startInstance(quint8 inst, bool block, QObject* caller, int tan)
 {
 	if(_instanceTable->instanceExist(inst))
 	{
@@ -102,6 +102,12 @@ bool HyperionIManager::startInstance(quint8 inst, bool block)
 			if(block)
 			{
 				while(!hyperionThread->isRunning()){};
+			}
+
+			if (!_pendingRequests.contains(inst) && caller != nullptr)
+			{
+				PendingRequests newDef{caller, tan};
+				_pendingRequests[inst] = newDef;
 			}
 
 			return true;
@@ -211,4 +217,11 @@ void HyperionIManager::handleStarted()
 	_runningInstances.insert(instance, hyperion);
 	emit instanceStateChanged(InstanceState::H_STARTED, instance);
 	emit change();
+
+	if (_pendingRequests.contains(instance))
+	{
+		PendingRequests def = _pendingRequests.take(instance);
+		emit startInstanceResponse(def.caller, def.tan);
+		_pendingRequests.remove(instance);
+	}
 }
