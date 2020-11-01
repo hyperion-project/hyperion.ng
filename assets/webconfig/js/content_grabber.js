@@ -239,8 +239,10 @@ $(document).ready( function() {
 		}
 	 }
 
-	var selectedType = $("#root_framegrabber_type").val();
-  	filerFgGrabberOptions(selectedType);
+	 var activegrabber = window.serverInfo.grabbers.active.toLowerCase();
+	 $("#"+selector+" option[value='" + activegrabber + "']").attr('selected', 'selected');
+
+  	filerFgGrabberOptions(activegrabber);
 
     conf_editor_fg.validate().length ? $('#btn_submit_fg').attr('disabled', true) : $('#btn_submit_fg').attr('disabled', false);
   });
