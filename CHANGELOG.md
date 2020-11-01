@@ -15,7 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New LED Device SK9822 (#1005)
 - Support SK9822 type LEDs with adaptive brightness control via SPI (#1017)
 - Provide additional details on Hardware/CPU information (#1045)
-- Allow execution with option "--version", while another hyperion daemon is running
+Allow execution with option "--version", while another hyperion daemon is running
+- New blackbar detection mode "Letterbox", that considers only bars at the top and bottom of picture
 - Systray icons added - Issue #925 (#1040)
 - DirectX9 Grabber (#1039)
 - Added DirectX SDK to CompileHowto

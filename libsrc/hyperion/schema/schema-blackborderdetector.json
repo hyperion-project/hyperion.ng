@@ -60,10 +60,10 @@
 		{
 			"type" : "string",
 			"title": "edt_conf_bb_mode_title",
-			"enum" : ["default", "classic", "osd"],
+			"enum" : ["default", "classic", "osd", "letterbox"],
 			"default" : "default",
 			"options" : {
-				"enum_titles" : ["edt_conf_enum_bbdefault", "edt_conf_enum_bbclassic", "edt_conf_enum_bbosd"]
+				"enum_titles" : ["edt_conf_enum_bbdefault", "edt_conf_enum_bbclassic", "edt_conf_enum_bbosd", "edt_conf_enum_bbletterbox"]
 			},
 			"propertyOrder" : 7
 		}
