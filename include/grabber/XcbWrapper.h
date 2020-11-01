@@ -15,7 +15,7 @@ public:
 	~XcbWrapper() override;
 
 public slots:
-	virtual void action();
+	void action() override;
 
 private:
 	XcbGrabber _grabber;

@@ -86,18 +86,18 @@ class HyperionDaemon : public QObject
 	friend SysTray;
 
 public:
-	HyperionDaemon(QString rootPath, QObject *parent, bool logLvlOverwrite);
+	HyperionDaemon( const QString& rootPath, QObject *parent, bool logLvlOverwrite );
 	~HyperionDaemon();
 
 	///
 	/// @brief Get webserver pointer (systray)
 	///
-	WebServer* getWebServerInstance() { return _webserver; };
+	WebServer *getWebServerInstance() { return _webserver; }
 
 	///
 	/// @brief Get the current videoMode
 	///
-	VideoMode getVideoMode() const { return _currVideoMode; };
+	VideoMode getVideoMode() const { return _currVideoMode; }
 
 	///
 	/// @brief get the settings
@@ -106,7 +106,7 @@ public:
 
 	void startNetworkServices();
 
-	static HyperionDaemon* getInstance() { return daemon; };
+	static HyperionDaemon* getInstance() { return daemon; }
 	static HyperionDaemon* daemon;
 
 public slots:

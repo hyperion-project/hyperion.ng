@@ -61,7 +61,7 @@
 
 HyperionDaemon *HyperionDaemon::daemon = nullptr;
 
-HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, bool logLvlOverwrite)
+HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject *parent, bool logLvlOverwrite)
 		: QObject(parent), _log(Logger::getInstance("DAEMON"))
 		, _instanceManager(new HyperionIManager(rootPath, this))
 		, _authManager(new AuthManager(this))
@@ -101,7 +101,9 @@ HyperionDaemon::HyperionDaemon(const QString rootPath, QObject *parent, bool log
 
 	// set inital log lvl if the loglvl wasn't overwritten by arg
 	if (!logLvlOverwrite)
+	{
 		handleSettingsUpdate(settings::LOGGER, getSetting(settings::LOGGER));
+	}
 
 	createCecHandler();
 
@@ -178,7 +180,7 @@ void HyperionDaemon::freeObjects()
 	delete _jsonServer;
 	_jsonServer = nullptr;
 
-	if (_flatBufferServer)
+	if (_flatBufferServer != nullptr)
 	{
 		auto flatBufferServerThread = _flatBufferServer->thread();
 		flatBufferServerThread->quit();
@@ -187,7 +189,7 @@ void HyperionDaemon::freeObjects()
 		_flatBufferServer = nullptr;
 	}
 
-	if (_protoServer)
+	if (_protoServer != nullptr)
 	{
 		auto protoServerThread = _protoServer->thread();
 		protoServerThread->quit();
@@ -197,7 +199,7 @@ void HyperionDaemon::freeObjects()
 	}
 
 	//ssdp before webserver
-	if (_ssdp)
+	if (_ssdp != nullptr)
 	{
 		auto ssdpThread = _ssdp->thread();
 		ssdpThread->quit();
@@ -206,7 +208,7 @@ void HyperionDaemon::freeObjects()
 		_ssdp = nullptr;
 	}
 
-	if(_webserver)
+	if(_webserver != nullptr)
 	{
 		auto webserverThread =_webserver->thread();
 		webserverThread->quit();
@@ -215,7 +217,7 @@ void HyperionDaemon::freeObjects()
 		_webserver = nullptr;
 	}
 
-	if (_sslWebserver)
+	if (_sslWebserver != nullptr)
 	{
 		auto sslWebserverThread =_sslWebserver->thread();
 		sslWebserverThread->quit();
@@ -225,7 +227,7 @@ void HyperionDaemon::freeObjects()
 	}
 
 #ifdef ENABLE_CEC
-	if (_cecHandler)
+	if (_cecHandler != nullptr)
 	{
 		auto cecHandlerThread = _cecHandler->thread();
 		cecHandlerThread->quit();
@@ -329,13 +331,21 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 
 		std::string level = logConfig["level"].toString("warn").toStdString(); // silent warn verbose debug
 		if (level == "silent")
+		{
 			Logger::setLogLevel(Logger::OFF);
+		}
 		else if (level == "warn")
+		{
 			Logger::setLogLevel(Logger::LogLevel::WARNING);
+		}
 		else if (level == "verbose")
+		{
 			Logger::setLogLevel(Logger::INFO);
+		}
 		else if (level == "debug")
+		{
 			Logger::setLogLevel(Logger::DEBUG);
+		}
 	}
 
 	if (settingsType == settings::SYSTEMCAPTURE)
@@ -474,7 +484,9 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 			if (type == "framebuffer")
 			{
 				if (_fbGrabber == nullptr)
+				{
 					createGrabberFramebuffer(grabberConfig);
+				}
 				#ifdef ENABLE_FB
 				_fbGrabber->tryStart();
 				#endif
@@ -482,7 +494,9 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 			else if (type == "dispmanx")
 			{
 				if (_dispmanx == nullptr)
+				{
 					createGrabberDispmanx();
+				}
 				#ifdef ENABLE_DISPMANX
 				_dispmanx->tryStart();
 				#endif
@@ -490,7 +504,9 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 			else if (type == "amlogic")
 			{
 				if (_amlGrabber == nullptr)
+				{
 					createGrabberAmlogic();
+				}
 				#ifdef ENABLE_AMLOGIC
 				_amlGrabber->tryStart();
 				#endif
@@ -498,7 +514,9 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 			else if (type == "osx")
 			{
 				if (_osxGrabber == nullptr)
+				{
 					createGrabberOsx(grabberConfig);
+				}
 				#ifdef ENABLE_OSX
 				_osxGrabber->tryStart();
 				#endif
@@ -506,7 +524,9 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 			else if (type == "x11")
 			{
 				if (_x11Grabber == nullptr)
+				{
 					createGrabberX11(grabberConfig);
+				}
 				#ifdef ENABLE_X11
 				_x11Grabber->tryStart();
 				#endif
@@ -514,7 +534,9 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 			else if (type == "xcb")
 			{
 				if (_xcbGrabber == nullptr)
+				{
 					createGrabberXcb(grabberConfig);
+				}
 				#ifdef ENABLE_XCB
 				_xcbGrabber->tryStart();
 				#endif
@@ -522,7 +544,9 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 			else if (type == "qt")
 			{
 				if (_qtGrabber == nullptr)
+				{
 					createGrabberQt(grabberConfig);
+				}
 				#ifdef ENABLE_QT
 				_qtGrabber->tryStart();
 				#endif
@@ -530,7 +554,9 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 			else if (type == "dx")
 			{
 				if (_dxGrabber == nullptr)
+				{
 					createGrabberDx(grabberConfig);
+				}
 				#ifdef ENABLE_DX
 				_dxGrabber->tryStart();
 				#endif
@@ -547,8 +573,7 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 	{
 		const QJsonObject &grabberConfig = config.object();
 #ifdef ENABLE_CEC
-		QString operation;
-		if (_cecHandler && grabberConfig["cecDetection"].toBool(false))
+		if (_cecHandler != nullptr && grabberConfig["cecDetection"].toBool(false))
 		{
 			QMetaObject::invokeMethod(_cecHandler, "start", Qt::QueuedConnection);
 		}
@@ -559,7 +584,9 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 #endif
 
 		if (_v4l2Grabber != nullptr)
+		{
 			return;
+		}
 
 #ifdef ENABLE_V4L2
 		_v4l2Grabber = new V4L2Wrapper(
@@ -755,8 +782,10 @@ void HyperionDaemon::createCecHandler()
 	thread->start();
 
 	connect(_cecHandler, &CECHandler::cecEvent, [&] (CECEvent event) {
-		if (_v4l2Grabber)
+		if (_v4l2Grabber != nullptr)
+		{
 			_v4l2Grabber->handleCecEvent(event);
+		}
 	});
 
 	Info(_log, "CEC handler created");
