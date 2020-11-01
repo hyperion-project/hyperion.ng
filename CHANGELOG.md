@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change links from http to https (#1067)
 
 ### Fixed
+- Properly save Hue light state between sessions (#1014)
 - AVAHI included in Webserver (#996)
 - Also allow an 8-LED configuration when using Karatelight (#1037)
 - Fix #1007 - LED's retain last state after clearing a source (#1008) 
@@ -41,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix display argument in hyperion-qt (#1027)
 - Fix typos (#1051)
 - Fix Python reset thread state
+
 
 ### Removed
 - Replace Multi-Lightpack by multi-instance Lightpack configuration (#1049)
