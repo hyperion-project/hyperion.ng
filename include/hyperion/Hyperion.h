@@ -476,7 +476,7 @@ private slots:
 	void handleNewVideoMode(VideoMode mode) { _currVideoMode = mode; }
 
 
-	void handlPriorityChangedLedDevice(const quint8& priority);
+	void handlePriorityChangedLedDevice(const quint8& priority);
 
 private:
 	friend class HyperionDaemon;

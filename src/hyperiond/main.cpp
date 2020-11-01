@@ -198,6 +198,16 @@ int main(int argc, char** argv)
 
 	parser.process(*qApp);
 
+	if (parser.isSet(versionOption))
+	{
+		std::cout
+			<< "Hyperion Ambilight Deamon" << std::endl
+			<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
+			<< "\tBuild Time: " << __DATE__ << " " << __TIME__ << std::endl;
+
+		return 0;
+	}
+
 	if (!parser.isSet(waitOption))
 	{
 		if (getProcessIdsByProcessName(processName).size() > 1)
@@ -252,10 +262,8 @@ int main(int argc, char** argv)
 			<< "Hyperion Ambilight Daemon" << std::endl
 			<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
 			<< "\tBuild Time: " << __DATE__ << " " << __TIME__ << std::endl;
-
-		return 0;
-	}
-
+  }
+  
 	if (parser.isSet(exportEfxOption))
 	{
 		Q_INIT_RESOURCE(EffectEngine);
@@ -395,7 +403,7 @@ int main(int argc, char** argv)
 			Warning(log,"The user data path '%s' is not writeable. Hyperion starts in read-only mode. Configuration updates will not be persisted!", QSTRING_CSTR(mDir.absolutePath()));
 		}
 
-		HyperionDaemon* hyperiond = nullptr;
+    HyperionDaemon* hyperiond = nullptr;
 		try
 		{
 			hyperiond = new HyperionDaemon(userDataPath, qApp, bool(logLevelCheck), readonlyMode);

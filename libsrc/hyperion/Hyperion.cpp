@@ -88,7 +88,7 @@ void Hyperion::start()
 
 	// connect Hyperion::update with Muxer visible priority changes as muxer updates independent
 	connect(&_muxer, &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::update);
-	connect(&_muxer, &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::handlPriorityChangedLedDevice);
+	connect(&_muxer, &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::handlePriorityChangedLedDevice);
 	connect(&_muxer, &PriorityMuxer::visibleComponentChanged, this, &Hyperion::handleVisibleComponentChanged);
 
 	// listens for ComponentRegister changes of COMP_ALL to perform core enable/disable actions
@@ -392,10 +392,8 @@ end:
 	// register color
 	registerInput(priority, hyperion::COMP_COLOR, origin);
 
-	// write color to muxer & queuePush
+	// write color to muxer
 	setInput(priority, newLedColors, timeout_ms);
-	if (timeout_ms <= 0)
-		_muxer.queuePush();
 }
 
 QStringList Hyperion::getAdjustmentIds() const
@@ -532,7 +530,7 @@ void Hyperion::handleVisibleComponentChanged(hyperion::Components comp)
 	_raw2ledAdjustment->setBacklightEnabled((comp != hyperion::COMP_COLOR && comp != hyperion::COMP_EFFECT));
 }
 
-void Hyperion::handlPriorityChangedLedDevice(const quint8& priority)
+void Hyperion::handlePriorityChangedLedDevice(const quint8& priority)
 {
 	quint8 previousPriority = _muxer.getPreviousPriority();
 

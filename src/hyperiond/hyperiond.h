@@ -52,6 +52,12 @@
 	typedef QObject QtWrapper;
 #endif
 
+#ifdef ENABLE_DX
+	#include <grabber/DirectXWrapper.h>
+#else
+	typedef QObject DirectXWrapper;
+#endif
+
 #include <utils/Logger.h>
 #include <utils/VideoMode.h>
 
@@ -153,6 +159,7 @@ private:
 	void createGrabberXcb(const QJsonObject & grabberConfig);
 	void createGrabberQt(const QJsonObject & grabberConfig);
 	void createCecHandler();
+	void createGrabberDx(const QJsonObject & grabberConfig);
 
 	Logger*                    _log;
 	HyperionIManager*          _instanceManager;
@@ -171,6 +178,7 @@ private:
 	FramebufferWrapper*        _fbGrabber;
 	OsxWrapper*                _osxGrabber;
 	QtWrapper*                 _qtGrabber;
+	DirectXWrapper*            _dxGrabber;
 	SSDPHandler*               _ssdp;
 	CECHandler*                _cecHandler;
 	FlatBufferServer*          _flatBufferServer;

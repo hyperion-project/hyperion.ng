@@ -92,7 +92,7 @@ protected:
 	///
 	/// @brief Power-/turn on the WLED device.
 	///
-	/// @brief Store the device's original state.
+	/// @return True if success
 	///
 	bool powerOn() override;
 

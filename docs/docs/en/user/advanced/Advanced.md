@@ -93,6 +93,7 @@ Explain the differences between the available modes for blackbar detection.
   * **Default:** 3 scanlines in each direction (X Y) - fastest detection
   * **Classic:** The original implementation - lower cpu time (legacy for RPi 1) just scan the top one third of the picture which leads to a  slow detection and trouble with TV channel logo.
   * **OSD:** Based on the default mode - not that effective but prevents border switching which may caused of OSD overlays (program infos and volume bar).
+  * **Letterbox:** Based on the default mode - only considers blackbars at the top and bottom of the picture, ignoring the sides.
 <ImageWrap src="/images/en/user_bbmodes.jpg" alt="Hyperion Blackbar detection modes" />
 
 ## Gamma Curve
