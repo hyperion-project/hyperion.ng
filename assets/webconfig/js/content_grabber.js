@@ -230,7 +230,7 @@ $(document).ready( function() {
   	var selector = "root_framegrabber_type";
 	var options = $("#"+selector+" option");
 
-	 for (i=0;i<options.length ;i++ )
+	 for (var i=0; i<options.length; i++ )
 	 {
 	 	var type = options[i].value;
 		if (grabbers.indexOf(type) === -1)
@@ -373,4 +373,3 @@ $(document).ready( function() {
 
   removeOverlay();
 });
-
