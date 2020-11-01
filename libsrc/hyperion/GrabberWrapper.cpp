@@ -65,6 +65,11 @@ bool GrabberWrapper::isActive() const
 	return _timer->isActive();
 }
 
+QString GrabberWrapper::getActive() const
+{
+	return _grabberName;
+}
+
 QStringList GrabberWrapper::availableGrabbers()
 {
 	QStringList grabbers;
