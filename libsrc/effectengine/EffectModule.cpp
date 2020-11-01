@@ -138,7 +138,7 @@ PyObject* EffectModule::wrapSetColor(PyObject *self, PyObject *args)
 	int argCount = PyTuple_Size(args);
 	if (argCount == 3)
 	{
-		// three seperate arguments for red, green, and blue
+		// three separate arguments for red, green, and blue
 		ColorRgb color;
 		if (PyArg_ParseTuple(args, "bbb", &color.red, &color.green, &color.blue))
 		{
