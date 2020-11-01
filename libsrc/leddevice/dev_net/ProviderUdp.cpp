@@ -22,7 +22,7 @@ ProviderUdp::ProviderUdp(const QJsonObject &deviceConfig)
 	  , _port(1)
 	  , _defaultHost("127.0.0.1")
 {
-	_latchTime_ms = 1;
+	_latchTime_ms = 0;
 }
 
 ProviderUdp::~ProviderUdp()
@@ -135,6 +135,16 @@ int ProviderUdp::writeBytes(const unsigned size, const uint8_t * data)
 
 	WarningIf((retVal<0), _log, "&s", QSTRING_CSTR(QString
 								("(%1:%2) Write Error: (%3) %4").arg(_address.toString()).arg(_port).arg(_udpSocket->error()).arg(_udpSocket->errorString())));
+
+	return retVal;
+}
+
+int ProviderUdp::writeBytes(const QByteArray &bytes)
+{
+	qint64 retVal = _udpSocket->writeDatagram(bytes,_address,_port);
+
+	WarningIf((retVal<0), _log, "&s", QSTRING_CSTR(QString
+														 ("(%1:%2) Write Error: (%3) %4").arg(_address.toString()).arg(_port).arg(_udpSocket->error()).arg(_udpSocket->errorString())));
 
 	return retVal;
 }

@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Breaking
 
 ### Added
+- Cololight support (Cololight Plus & Strip) incl. configuration wizard
+- Provide additional details on Hardware/CPU information
+- Allow execution with option "--version", while another hyperion daemon is running
 - New language support: Russian and Chinese (simplified) (#1005)
 - added libcec to deb/rpm dependency list
 - updated some language files
@@ -21,8 +24,7 @@ Allow execution with option "--version", while another hyperion daemon is runnin
 - DirectX9 Grabber (#1039)
 - Added DirectX SDK to CompileHowto
 - Hide Systray on exit & Install DirectX Redistributable 
-
-- Read-Only configuration database support
+- Read-Only configuration database suppor
 
 ### Changed
 - boblight: reduce cpu time spent on memcopy and parsing rgb values (#1016)
@@ -32,6 +34,8 @@ Allow execution with option "--version", while another hyperion daemon is runnin
 - Optimize images (#1058)
 - Update LICENSE
 - Change links from http to https (#1067)
+
+- UI: Separate LED-Layout creation from UI code
 
 ### Fixed
 - Properly save Hue light state between sessions (#1014)

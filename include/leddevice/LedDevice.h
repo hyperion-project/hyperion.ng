@@ -60,7 +60,7 @@ public:
 	///
 	/// @brief Set the number of LEDs supported by the device.
 	///
-	/// @param[in] ledCount Number of device LEDs
+	/// @param[in] ledCount Number of device LEDs,  0 = unknown number
 	///
 	void setLedCount(unsigned int ledCount);
 
@@ -191,7 +191,7 @@ public slots:
 	///
 	/// @brief Get the number of LEDs supported by the device.
 	///
-	/// @return Number of device's LEDs
+	/// @return Number of device's LEDs, 0 = unknown number
 	///
 	unsigned int getLedCount() const { return _ledCount; }
 
@@ -350,6 +350,14 @@ protected:
 	/// @return array as string of hex values
 	QString uint8_t_to_hex_string(const uint8_t * data, const qint64 size, qint64 number = -1) const;
 
+	///
+	/// @brief Converts a ByteArray to hex string.
+	///
+	/// @param data ByteArray
+	/// @param number Number of array items to be converted.
+	/// @return array as string of hex values
+	QString toHex(const QByteArray& data, int number = -1) const;
+
 	/// Current device's type
 	QString _activeDeviceType;
 
@@ -368,16 +376,16 @@ protected:
 
 	// Device configuration parameters
 
-	/// Number of hardware LEDs supported by device.
-	unsigned int _ledCount;
-	unsigned int _ledRGBCount;
-	unsigned int _ledRGBWCount;
-
 	/// Refresh interval in milliseconds
 	int _refreshTimerInterval_ms;
 
 	/// Time a device requires mandatorily between two writes (in milliseconds)
 	int _latchTime_ms;
+
+	/// Number of hardware LEDs supported by device.
+	uint _ledCount;
+	uint _ledRGBCount;
+	uint _ledRGBWCount;
 
 	/// Does the device allow restoring the original state?
 	bool	_isRestoreOrigState;

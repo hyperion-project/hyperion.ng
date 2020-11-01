@@ -24,6 +24,7 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 	  , _refreshTimer(nullptr)
 	  , _refreshTimerInterval_ms(0)
 	  , _latchTime_ms(0)
+	  , _ledCount(0)
 	  , _isRestoreOrigState(false)
 	  , _isEnabled(false)
 	  , _isDeviceInitialised(false)
@@ -453,4 +454,18 @@ QString LedDevice::uint8_t_to_hex_string(const uint8_t * data, const qint64 size
 	#else
 		return bytes.toHex();
 	#endif
+}
+
+QString LedDevice::toHex(const QByteArray& data, int number) const
+{
+	if ( number <= 0 || number > data.size())
+	{
+		number = data.size();
+	}
+
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
+	return data.left(number).toHex(':');
+#else
+	return data.left(number).toHex();
+#endif
 }
