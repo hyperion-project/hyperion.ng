@@ -90,7 +90,8 @@
 		"cropLeft"           : 0,
 		"cropRight"          : 0,
 		"cropTop"            : 0,
-		"cropBottom"         : 0
+		"cropBottom"         : 0,
+		"display"            : 0
 	},
 
 	"blackborderdetector" :
