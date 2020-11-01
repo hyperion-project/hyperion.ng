@@ -40,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix issue #909, Have ratio correction first and then scale (#1047) 
 - Fix display argument in hyperion-qt (#1027)
 - Fix typos (#1051)
-- Fix Pyhton reset thread state
+- Fix Python reset thread state
 
 ### Removed
 - Replace Multi-Lightpack by multi-instance Lightpack configuration (#1049)
