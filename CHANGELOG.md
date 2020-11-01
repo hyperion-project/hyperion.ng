@@ -24,7 +24,7 @@ Allow execution with option "--version", while another hyperion daemon is runnin
 - DirectX9 Grabber (#1039)
 - Added DirectX SDK to CompileHowto
 - Hide Systray on exit & Install DirectX Redistributable 
-
+- Read-Only configuration database suppor
 
 ### Changed
 - boblight: reduce cpu time spent on memcopy and parsing rgb values (#1016)

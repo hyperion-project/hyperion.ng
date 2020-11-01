@@ -213,7 +213,7 @@ $(document).ready( function() {
   }, true, true);
 
   conf_editor_instCapt.on('change',function() {
-    conf_editor_instCapt.validate().length ? $('#btn_submit_instCapt').attr('disabled', true) : $('#btn_submit_instCapt').attr('disabled', false);
+    conf_editor_instCapt.validate().length || window.readOnlyMode ? $('#btn_submit_instCapt').attr('disabled', true) : $('#btn_submit_instCapt').attr('disabled', false);
   });
 
   $('#btn_submit_instCapt').off().on('click',function() {
@@ -226,7 +226,7 @@ $(document).ready( function() {
   }, true, true);
 
   conf_editor_fg.on('change',function() {
-    conf_editor_fg.validate().length ? $('#btn_submit_fg').attr('disabled', true) : $('#btn_submit_fg').attr('disabled', false);
+    conf_editor_fg.validate().length || window.readOnlyMode ? $('#btn_submit_fg').attr('disabled', true) : $('#btn_submit_fg').attr('disabled', false);
   });
 
   $('#btn_submit_fg').off().on('click',function() {
@@ -239,7 +239,7 @@ $(document).ready( function() {
     }, true, true);
 
     conf_editor_v4l2.on('change',function() {
-      conf_editor_v4l2.validate().length ? $('#btn_submit_v4l2').attr('disabled', true) : $('#btn_submit_v4l2').attr('disabled', false);
+      conf_editor_v4l2.validate().length || window.readOnlyMode ? $('#btn_submit_v4l2').attr('disabled', true) : $('#btn_submit_v4l2').attr('disabled', false);
     });
 
     conf_editor_v4l2.on('ready', function() {
