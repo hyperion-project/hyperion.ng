@@ -5,6 +5,7 @@
 // qt incl
 #include <QDateTime>
 #include <QTimer>
+#include <QDebug>
 
 // Hyperion includes
 #include <hyperion/PriorityMuxer.h>
@@ -44,7 +45,6 @@ PriorityMuxer::PriorityMuxer(int ledCount, QObject * parent)
 	// forward timeRunner signal to prioritiesChanged signal & threading workaround
 	connect(this, &PriorityMuxer::timeRunner, this, &PriorityMuxer::prioritiesChanged);
 	connect(this, &PriorityMuxer::signalTimeTrigger, this, &PriorityMuxer::timeTrigger);
-	connect(this, &PriorityMuxer::activeStateChanged, this, &PriorityMuxer::prioritiesChanged);
 
 	// start muxer timer
 	connect(_updateTimer, &QTimer::timeout, this, &PriorityMuxer::setCurrentTime);
@@ -79,7 +79,6 @@ bool PriorityMuxer::setSourceAutoSelectEnabled(bool enable, bool update)
 		if(update)
 			setCurrentTime();
 
-		emit autoSelectChanged(enable);
 		return true;
 	}
 	return false;
@@ -142,10 +141,10 @@ hyperion::Components PriorityMuxer::getComponentOfPriority(int priority) const
 void PriorityMuxer::registerInput(int priority, hyperion::Components component, const QString& origin, const QString& owner, unsigned smooth_cfg)
 {
 	// detect new registers
-	bool newInput, reusedInput = false;
+	bool newInput = false, reusedInput = false;
 	if (!_activeInputs.contains(priority))
 		newInput = true;
-	else
+	else if(_prevVisComp == component || _activeInputs[priority].componentId == component)
 		reusedInput = true;
 
 	InputInfo& input     = _activeInputs[priority];
@@ -159,12 +158,14 @@ void PriorityMuxer::registerInput(int priority, hyperion::Components component, 
 	if (newInput)
 	{
 		Debug(_log,"Register new input '%s/%s' with priority %d as inactive", QSTRING_CSTR(origin), hyperion::componentToIdString(component), priority);
-		if (!_sourceAutoSelectEnabled) // emit 'prioritiesChanged' only on when _sourceAutoSelectEnabled is false
+		// emit 'prioritiesChanged' only if _sourceAutoSelectEnabled is false
+		if (!_sourceAutoSelectEnabled)
 			emit prioritiesChanged();
 		return;
 	}
 
-	if (reusedInput) emit prioritiesChanged();
+	if (reusedInput)
+		emit timeRunner();
 }
 
 bool PriorityMuxer::setInput(int priority, const std::vector<ColorRgb>& ledColors, int64_t timeout_ms)
@@ -201,9 +202,11 @@ bool PriorityMuxer::setInput(int priority, const std::vector<ColorRgb>& ledColor
 	if(activeChange)
 	{
 		Debug(_log, "Priority %d is now %s", priority, active ? "active" : "inactive");
-		emit activeStateChanged(priority, active);
+		if (_currentPriority < priority)
+			emit prioritiesChanged();
 		setCurrentTime();
 	}
+
 	return true;
 }
 
@@ -241,9 +244,11 @@ bool PriorityMuxer::setInputImage(int priority, const Image<ColorRgb>& image, in
 	if(activeChange)
 	{
 		Debug(_log, "Priority %d is now %s", priority, active ? "active" : "inactive");
-		emit activeStateChanged(priority, active);
+		if (_currentPriority < priority)
+			emit prioritiesChanged();
 		setCurrentTime();
 	}
+
 	return true;
 }
 
@@ -260,7 +265,9 @@ bool PriorityMuxer::clearInput(uint8_t priority)
 		Debug(_log,"Removed source priority %d",priority);
 		// on clear success update _currentPriority
 		setCurrentTime();
-		emit prioritiesChanged();
+		// emit 'prioritiesChanged' only if _sourceAutoSelectEnabled is false
+		if (!_sourceAutoSelectEnabled || _currentPriority < priority)
+			emit prioritiesChanged();
 		return true;
 	}
 	return false;
@@ -281,9 +288,7 @@ void PriorityMuxer::clearAll(bool forceClearAll)
 		{
 			const InputInfo info = getInputInfo(key);
 			if ((info.componentId == hyperion::COMP_COLOR || info.componentId == hyperion::COMP_EFFECT || info.componentId == hyperion::COMP_IMAGE) && key < PriorityMuxer::LOWEST_PRIORITY-1)
-			{
 				clearInput(key);
-			}
 		}
 	}
 }
@@ -331,19 +336,20 @@ void PriorityMuxer::setCurrentTime()
 		}
 	}
 	// apply & emit on change (after apply!)
-	if (_currentPriority != newPriority)
+	hyperion::Components comp = getComponentOfPriority(newPriority);
+	if (_currentPriority != newPriority || comp != _prevVisComp)
 	{
 		_previousPriority = _currentPriority;
 		_currentPriority = newPriority;
 		Debug(_log, "Set visible priority to %d", newPriority);
 		emit visiblePriorityChanged(newPriority);
 		// check for visible comp change
-		hyperion::Components comp = getComponentOfPriority(newPriority);
 		if (comp != _prevVisComp)
 		{
 			_prevVisComp = comp;
 			emit visibleComponentChanged(comp);
 		}
+		emit prioritiesChanged();
 	}
 }
 
