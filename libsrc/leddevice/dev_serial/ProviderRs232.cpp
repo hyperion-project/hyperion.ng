@@ -34,7 +34,7 @@ bool ProviderRs232::init(const QJsonObject &deviceConfig)
 	{
 
 		Debug(_log, "DeviceType   : %s", QSTRING_CSTR( this->getActiveDeviceType() ));
-		Debug(_log, "LedCount     : %u", this->getLedCount());
+		Debug(_log, "LedCount     : %d", this->getLedCount());
 		Debug(_log, "ColorOrder   : %s", QSTRING_CSTR( this->getColorOrder() ));
 		Debug(_log, "RefreshTime  : %d", _refreshTimerInterval_ms);
 		Debug(_log, "LatchTime    : %d", this->getLatchTime());

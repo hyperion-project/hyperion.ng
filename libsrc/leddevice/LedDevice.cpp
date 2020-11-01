@@ -148,7 +148,7 @@ bool LedDevice::init(const QJsonObject &deviceConfig)
 
 	_colorOrder = deviceConfig["colorOrder"].toString("RGB");
 
-	setLedCount( static_cast<unsigned int>( deviceConfig["currentLedCount"].toInt(1) ) ); // property injected to reflect real led count
+	setLedCount( deviceConfig["currentLedCount"].toInt(1) ); // property injected to reflect real led count
 	setLatchTime( deviceConfig["latchTime"].toInt( _latchTime_ms ) );
 	setRewriteTime ( deviceConfig["rewriteTime"].toInt( _refreshTimerInterval_ms) );
 
@@ -391,7 +391,7 @@ QJsonObject LedDevice::getProperties(const QJsonObject& params)
 	return properties;
 }
 
-void LedDevice::setLedCount(unsigned int ledCount)
+void LedDevice::setLedCount(int ledCount)
 {
 	_ledCount     = ledCount;
 	_ledRGBCount  = _ledCount * sizeof(ColorRgb);

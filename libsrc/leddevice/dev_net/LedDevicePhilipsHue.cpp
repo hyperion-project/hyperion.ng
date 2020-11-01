@@ -301,7 +301,7 @@ bool LedDevicePhilipsHueBridge::init(const QJsonObject &deviceConfig)
 	{
 
 		log( "DeviceType", "%s", QSTRING_CSTR( this->getActiveDeviceType() ) );
-		log( "LedCount", "%u", this->getLedCount() );
+		log( "LedCount", "%d", this->getLedCount() );
 		log( "ColorOrder", "%s", QSTRING_CSTR( this->getColorOrder() ) );
 		log( "RefreshTime", "%d", _refreshTimerInterval_ms );
 		log( "LatchTime", "%d", this->getLatchTime() );
@@ -517,7 +517,7 @@ void LedDevicePhilipsHueBridge::setLightsMap(const QJsonDocument &doc)
 	}
 	else
 	{
-		log( "Lights in Bridge found", "%u", getLedCount() );
+		log( "Lights in Bridge found", "%d", getLedCount() );
 	}
 }
 
@@ -1369,7 +1369,7 @@ void LedDevicePhilipsHue::stopBlackTimeoutTimer()
 
 bool LedDevicePhilipsHue::noSignalDetection()
 {
-	if( _allLightsBlack )
+	if( _allLightsBlack && _switchOffOnBlack)
 	{
 		if( !_stopConnection && _isInitLeds )
 		{

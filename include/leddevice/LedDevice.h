@@ -62,7 +62,7 @@ public:
 	///
 	/// @param[in] ledCount Number of device LEDs
 	///
-	void setLedCount(unsigned int ledCount);
+	void setLedCount(int ledCount);
 
 	///
 	/// @brief Set a device's latch time.

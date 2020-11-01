@@ -133,9 +133,9 @@ bool LedDeviceNanoleaf::init(const QJsonObject& deviceConfig)
 
 	if (LedDevice::init(deviceConfig))
 	{
-		uint configuredLedCount = this->getLedCount();
+		int configuredLedCount = this->getLedCount();
 		Debug(_log, "DeviceType   : %s", QSTRING_CSTR(this->getActiveDeviceType()));
-		Debug(_log, "LedCount     : %u", configuredLedCount);
+		Debug(_log, "LedCount     : %d", configuredLedCount);
 		Debug(_log, "ColorOrder   : %s", QSTRING_CSTR(this->getColorOrder()));
 		Debug(_log, "RewriteTime  : %d", this->getRewriteTime());
 		Debug(_log, "LatchTime    : %d", this->getLatchTime());
@@ -298,11 +298,11 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 		this->_panelLedCount = _panelIds.size();
 		_devConfig["hardwareLedCount"] = _panelLedCount;
 
-		Debug(_log, "PanelsNum      : %u", panelNum);
+		Debug(_log, "PanelsNum      : %d", panelNum);
 		Debug(_log, "PanelLedCount  : %d", _panelLedCount);
 
 		// Check. if enough panels were found.
-		int configuredLedCount = static_cast<int>(this->getLedCount());
+		int configuredLedCount = this->getLedCount();
 		_endPos = _startPos + configuredLedCount - 1;
 
 		Debug(_log, "Sort Top>Down  : %d", _topDown);
@@ -320,7 +320,7 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 		}
 		else
 		{
-			if (_panelLedCount > static_cast<int>(this->getLedCount()))
+			if (_panelLedCount > this->getLedCount())
 			{
 				Info(_log, "%s: More panels [%d] than configured LEDs [%d].", QSTRING_CSTR(this->getActiveDeviceType()), _panelLedCount, configuredLedCount);
 			}

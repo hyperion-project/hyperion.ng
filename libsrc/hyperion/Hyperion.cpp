@@ -108,7 +108,7 @@ void Hyperion::start()
 
 	// initialize LED-devices
 	QJsonObject ledDevice = getSetting(settings::DEVICE).object();
-	ledDevice["currentLedCount"] = int(_hwLedCount); // Inject led count info
+	ledDevice["currentLedCount"] = _hwLedCount; // Inject led count info
 
 	_ledDeviceWrapper = new LedDeviceWrapper(this);
 	connect(this, &Hyperion::compStateChangeRequest, _ledDeviceWrapper, &LedDeviceWrapper::handleComponentState);
@@ -246,7 +246,7 @@ void Hyperion::handleSettingsUpdate(settings::type type, const QJsonDocument& co
 		}
 
 		// do always reinit until the led devices can handle dynamic changes
-		dev["currentLedCount"] = int(_hwLedCount); // Inject led count info
+		dev["currentLedCount"] = _hwLedCount; // Inject led count info
 		_ledDeviceWrapper->createLedDevice(dev);
 
 		// TODO: Check, if framegrabber frequency is lower than latchtime..., if yes, stop

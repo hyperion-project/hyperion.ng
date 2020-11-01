@@ -60,9 +60,9 @@ bool LedDeviceWled::init(const QJsonObject &deviceConfig)
 	if ( LedDevice::init(deviceConfig) )
 	{
 		// Initialise LedDevice configuration and execution environment
-		uint configuredLedCount = this->getLedCount();
+		int configuredLedCount = this->getLedCount();
 		Debug(_log, "DeviceType   : %s", QSTRING_CSTR( this->getActiveDeviceType() ));
-		Debug(_log, "LedCount     : %u", configuredLedCount);
+		Debug(_log, "LedCount     : %d", configuredLedCount);
 		Debug(_log, "ColorOrder   : %s", QSTRING_CSTR( this->getColorOrder() ));
 		Debug(_log, "LatchTime    : %d", this->getLatchTime());
 

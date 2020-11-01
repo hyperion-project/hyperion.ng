@@ -55,7 +55,7 @@ bool LedDeviceAtmoOrb::init(const QJsonObject &deviceConfig)
 		QStringList orbIds = QStringUtils::split(deviceConfig["orbIds"].toString().simplified().remove(" "),",", QStringUtils::SplitBehavior::SkipEmptyParts);
 
 		Debug(_log, "DeviceType        : %s", QSTRING_CSTR( this->getActiveDeviceType() ));
-		Debug(_log, "LedCount          : %u", this->getLedCount());
+		Debug(_log, "LedCount          : %d", this->getLedCount());
 		Debug(_log, "ColorOrder        : %s", QSTRING_CSTR( this->getColorOrder() ));
 		Debug(_log, "RefreshTime       : %d", _refreshTimerInterval_ms);
 		Debug(_log, "LatchTime         : %d", this->getLatchTime());
@@ -89,8 +89,8 @@ bool LedDeviceAtmoOrb::init(const QJsonObject &deviceConfig)
 			}
 		}
 
-		uint numberOrbs = _orbIds.size();
-		uint configuredLedCount = this->getLedCount();
+		int numberOrbs = _orbIds.size();
+		int configuredLedCount = this->getLedCount();
 
 		if ( _orbIds.empty() )
 		{
@@ -111,7 +111,7 @@ bool LedDeviceAtmoOrb::init(const QJsonObject &deviceConfig)
 			{
 				if ( numberOrbs > configuredLedCount )
 				{
-					Info(_log, "%s: More Orbs [%u] than configured LEDs [%u].", QSTRING_CSTR(this->getActiveDeviceType()), numberOrbs, configuredLedCount );
+					Info(_log, "%s: More Orbs [%d] than configured LEDs [%d].", QSTRING_CSTR(this->getActiveDeviceType()), numberOrbs, configuredLedCount );
 				}
 
 				isInitOK = true;
