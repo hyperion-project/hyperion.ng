@@ -152,11 +152,10 @@ public:
 	/// @return the color space of the light determined by the model id reported by the bridge.
 	CiColorTriangle getColorSpace() const;
 
+	void saveOriginalState(const QJsonObject& values);
 	QString getOriginalState() const;
 
 private:
-
-	void saveOriginalState(const QJsonObject& values);
 
 	Logger* _log;
 	/// light id
@@ -200,12 +199,23 @@ public:
 	bool initRestAPI(const QString &hostname, int port, const QString &token );
 
 	///
-	/// @param route the route of the POST request.
+	/// @brief Perform a REST-API GET
 	///
+	/// @param route the route of the GET request.
+	///
+	/// @return the content of the GET request.
+	///
+	QJsonDocument get(const QString& route);
+
+	///
+	/// @brief Perform a REST-API POST
+	///
+	/// @param route the route of the POST request.
 	/// @param content the content of the POST request.
 	///
 	QJsonDocument post(const QString& route, const QString& content);
 
+	QJsonDocument getLightState(unsigned int lightId);
 	void setLightState(unsigned int lightId = 0, const QString &state = "");
 
 	QMap<quint16,QJsonObject> getLightMap() const;
@@ -421,7 +431,7 @@ protected:
 	///
 	/// @return True if success
 	///
-	//bool switchOn() override;
+	bool switchOn() override;
 
 	///
 	/// @brief Switch the LEDs off.
@@ -525,7 +535,6 @@ private:
 	/// The default of the Hue lights is 400 ms, but we may want it snappier.
 	int _transitionTime;
 
-	bool _lightStatesRestored;
 	bool _isInitLeds;
 
 	/// Array of the light ids.

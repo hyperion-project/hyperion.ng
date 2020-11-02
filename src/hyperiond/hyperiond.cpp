@@ -59,9 +59,9 @@
 #include <cec/CECHandler.h>
 #endif
 
-HyperionDaemon* HyperionDaemon::daemon = nullptr;
+HyperionDaemon *HyperionDaemon::daemon = nullptr;
 
-HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool logLvlOverwrite)
+HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool logLvlOverwrite, bool readonlyMode)
 	: QObject(parent), _log(Logger::getInstance("DAEMON"))
 	  , _instanceManager(new HyperionIManager(rootPath, this))
 	  , _authManager(new AuthManager(this))
@@ -97,7 +97,7 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
 
 	// init settings
-	_settingsManager = new SettingsManager(0, this);
+	_settingsManager = new SettingsManager(0, this, readonlyMode);
 
 	// set inital log lvl if the loglvl wasn't overwritten by arg
 	if (!logLvlOverwrite)
@@ -368,11 +368,11 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 		_grabber_ge2d_mode = grabberConfig["ge2d_mode"].toInt(0);
 		_grabber_device = grabberConfig["amlogic_grabber"].toString("amvideocap0");
 
-#ifdef ENABLE_OSX
+		#ifdef ENABLE_OSX
 		QString type = "osx";
-#else
+		#else
 		QString type = grabberConfig["type"].toString("auto");
-#endif
+		#endif
 
 		// auto eval of type
 		if (type == "auto")
@@ -383,33 +383,36 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 				type = "dispmanx";
 			}
 			// amlogic -> /dev/amvideo exists
-			else if (QFile::exists("/dev/amvideo"))
-			{
-				type = "amlogic";
-
-				if (!QFile::exists("/dev/" + _grabber_device))
-				{
-					Error(_log, "grabber device '%s' for type amlogic not found!", QSTRING_CSTR(_grabber_device));
-				}
-			}
 			else
 			{
-				// x11 -> if DISPLAY is set
-				QByteArray envDisplay = qgetenv("DISPLAY");
-				if (!envDisplay.isEmpty())
+				if (QFile::exists("/dev/amvideo"))
 				{
-#if defined(ENABLE_X11)
-					type = "x11";
-#elif defined(ENABLE_XCB)
-					type = "xcb";
-#else
-					type = "qt";
-#endif
+					type = "amlogic";
+
+					if (!QFile::exists("/dev/" + _grabber_device))
+					{
+						Error(_log, "grabber device '%s' for type amlogic not found!", QSTRING_CSTR(_grabber_device));
+					}
 				}
-				// qt -> if nothing other applies
 				else
 				{
-					type = "qt";
+					// x11 -> if DISPLAY is set
+					QByteArray envDisplay = qgetenv("DISPLAY");
+					if (!envDisplay.isEmpty())
+					{
+						#if defined(ENABLE_X11)
+						type = "x11";
+						#elif defined(ENABLE_XCB)
+						type = "xcb";
+						#else
+						type = "qt";
+						#endif
+					}
+					// qt -> if nothing other applies
+					else
+					{
+						type = "qt";
+					}
 				}
 			}
 		}
@@ -419,70 +422,70 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 			Info(_log, "set screen capture device to '%s'", QSTRING_CSTR(type));
 
 			// stop all capture interfaces
-#ifdef ENABLE_FB
+			#ifdef ENABLE_FB
 			if (_fbGrabber != nullptr)
 			{
 				_fbGrabber->stop();
 				delete _fbGrabber;
 				_fbGrabber = nullptr;
 			}
-#endif
-#ifdef ENABLE_DISPMANX
+			#endif
+			#ifdef ENABLE_DISPMANX
 			if (_dispmanx != nullptr)
 			{
 				_dispmanx->stop();
 				delete _dispmanx;
 				_dispmanx = nullptr;
 			}
-#endif
-#ifdef ENABLE_AMLOGIC
+			#endif
+			#ifdef ENABLE_AMLOGIC
 			if (_amlGrabber != nullptr)
 			{
 				_amlGrabber->stop();
 				delete _amlGrabber;
 				_amlGrabber = nullptr;
 			}
-#endif
-#ifdef ENABLE_OSX
+			#endif
+			#ifdef ENABLE_OSX
 			if (_osxGrabber != nullptr)
 			{
 				_osxGrabber->stop();
 				delete _osxGrabber;
 				_osxGrabber = nullptr;
 			}
-#endif
-#ifdef ENABLE_X11
+			#endif
+			#ifdef ENABLE_X11
 			if (_x11Grabber != nullptr)
 			{
 				_x11Grabber->stop();
 				delete _x11Grabber;
 				_x11Grabber = nullptr;
 			}
-#endif
-#ifdef ENABLE_XCB
+			#endif
+			#ifdef ENABLE_XCB
 			if (_xcbGrabber != nullptr)
 			{
 				_xcbGrabber->stop();
 				delete _xcbGrabber;
 				_xcbGrabber = nullptr;
 			}
-#endif
-#ifdef ENABLE_QT
+			#endif
+			#ifdef ENABLE_QT
 			if (_qtGrabber != nullptr)
 			{
 				_qtGrabber->stop();
 				delete _qtGrabber;
 				_qtGrabber = nullptr;
 			}
-#endif
-#ifdef ENABLE_DX
+			#endif
+			#ifdef ENABLE_DX
 			if (_dxGrabber != nullptr)
 			{
 				_dxGrabber->stop();
 				delete _dxGrabber;
 				_dxGrabber = nullptr;
 			}
-#endif
+			#endif
 
 			// create/start capture interface
 			if (type == "framebuffer")
@@ -491,9 +494,9 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 				{
 					createGrabberFramebuffer(grabberConfig);
 				}
-#ifdef ENABLE_FB
+				#ifdef ENABLE_FB
 				_fbGrabber->tryStart();
-#endif
+				#endif
 			}
 			else if (type == "dispmanx")
 			{
@@ -501,9 +504,9 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 				{
 					createGrabberDispmanx();
 				}
-#ifdef ENABLE_DISPMANX
+				#ifdef ENABLE_DISPMANX
 				_dispmanx->tryStart();
-#endif
+				#endif
 			}
 			else if (type == "amlogic")
 			{
@@ -511,9 +514,9 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 				{
 					createGrabberAmlogic();
 				}
-#ifdef ENABLE_AMLOGIC
+				#ifdef ENABLE_AMLOGIC
 				_amlGrabber->tryStart();
-#endif
+				#endif
 			}
 			else if (type == "osx")
 			{
@@ -521,9 +524,9 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 				{
 					createGrabberOsx(grabberConfig);
 				}
-#ifdef ENABLE_OSX
+				#ifdef ENABLE_OSX
 				_osxGrabber->tryStart();
-#endif
+				#endif
 			}
 			else if (type == "x11")
 			{
@@ -531,9 +534,9 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 				{
 					createGrabberX11(grabberConfig);
 				}
-#ifdef ENABLE_X11
+				#ifdef ENABLE_X11
 				_x11Grabber->tryStart();
-#endif
+				#endif
 			}
 			else if (type == "xcb")
 			{
@@ -541,9 +544,9 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 				{
 					createGrabberXcb(grabberConfig);
 				}
-#ifdef ENABLE_XCB
+				#ifdef ENABLE_XCB
 				_xcbGrabber->tryStart();
-#endif
+				#endif
 			}
 			else if (type == "qt")
 			{
@@ -551,9 +554,9 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 				{
 					createGrabberQt(grabberConfig);
 				}
-#ifdef ENABLE_QT
+				#ifdef ENABLE_QT
 				_qtGrabber->tryStart();
-#endif
+				#endif
 			}
 			else if (type == "dx")
 			{
@@ -561,9 +564,9 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 				{
 					createGrabberDx(grabberConfig);
 				}
-#ifdef ENABLE_DX
+				#ifdef ENABLE_DX
 				_dxGrabber->tryStart();
-#endif
+				#endif
 			}
 			else
 			{

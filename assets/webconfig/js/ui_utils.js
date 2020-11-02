@@ -184,7 +184,7 @@ function initLanguageSelection()
 	for (var i = 0; i < availLang.length; i++)
 	{
 		$("#language-select").append('<option value="'+i+'" selected="">'+availLangText[i]+'</option>');
-	}	
+	}
 
 	var langLocale = storedLang;
 
@@ -533,7 +533,7 @@ function createJsonEditor(container,schema,setconfig,usePanel,arrayre)
 	{
 		for(var key in editor.root.editors)
 		{
-			editor.getEditor("root."+key).setValue( window.serverConfig[key] );
+			editor.getEditor("root."+key).setValue(Object.assign({}, editor.getEditor("root."+key).value, window.serverConfig[key] ));
 		}
 	}
 

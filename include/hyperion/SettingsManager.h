@@ -21,7 +21,7 @@ public:
 	/// @params  instance   Instance index of HyperionInstanceManager
 	/// @params  parent    The parent hyperion instance
 	///
-	SettingsManager(quint8 instance, QObject* parent = nullptr);
+	SettingsManager(quint8 instance, QObject* parent = nullptr, bool readonlyMode = false);
 
 	///
 	/// @brief Save a complete json configuration
@@ -75,4 +75,6 @@ private:
 
 	/// the current configuration of this instance
 	QJsonObject _qconfig;
+
+	bool	_readonlyMode;
 };

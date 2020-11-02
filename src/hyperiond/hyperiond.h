@@ -86,7 +86,7 @@ class HyperionDaemon : public QObject
 	friend SysTray;
 
 public:
-	HyperionDaemon( const QString& rootPath, QObject *parent, bool logLvlOverwrite );
+	HyperionDaemon(const QString& rootPath, QObject *parent, bool logLvlOverwrite, bool readonlyMode = false);
 	~HyperionDaemon();
 
 	///

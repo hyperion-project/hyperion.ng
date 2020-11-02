@@ -21,7 +21,7 @@ class AuthManager : public QObject
 private:
 	friend class HyperionDaemon;
 	/// constructor is private, can be called from HyperionDaemon
-	AuthManager(QObject *parent = nullptr);
+	AuthManager(QObject *parent = nullptr, bool readonlyMode = false);
 
 public:
 	struct AuthDefinition
