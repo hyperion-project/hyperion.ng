@@ -256,7 +256,7 @@ QString ProviderRs232::discoverFirst()
 	return "";
 }
 
-QJsonObject ProviderRs232::discover()
+QJsonObject ProviderRs232::discover(const QJsonObject& /*params*/)
 {
 	QJsonObject devicesDiscovered;
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );

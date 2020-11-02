@@ -87,9 +87,11 @@ public:
 	/// @brief Discover devices of this type available (for configuration).
 	/// @note Mainly used for network devices. Allows to find devices, e.g. via ssdp, mDNS or cloud ways.
 	///
+	/// @param[in] params Parameters used to overwrite discovery default behaviour
+	///
 	/// @return A JSON structure holding a list of devices found
 	///
-	virtual QJsonObject discover();
+	virtual QJsonObject discover(const QJsonObject& params);
 
 	///
 	/// @brief Discover first device of this type available (for configuration).

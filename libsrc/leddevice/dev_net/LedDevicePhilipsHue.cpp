@@ -1614,7 +1614,7 @@ bool LedDevicePhilipsHue::restoreState()
 	return rc;
 }
 
-QJsonObject LedDevicePhilipsHue::discover()
+QJsonObject LedDevicePhilipsHue::discover(const QJsonObject& /*params*/)
 {
 	QJsonObject devicesDiscovered;
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );

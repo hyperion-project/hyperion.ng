@@ -356,7 +356,7 @@ bool LedDevice::restoreState()
 	return rc;
 }
 
-QJsonObject LedDevice::discover()
+QJsonObject LedDevice::discover(const QJsonObject& /*params*/)
 {
 	QJsonObject devicesDiscovered;
 

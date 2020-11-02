@@ -378,7 +378,7 @@ int LedDeviceNanoleaf::open()
 	return retval;
 }
 
-QJsonObject LedDeviceNanoleaf::discover()
+QJsonObject LedDeviceNanoleaf::discover(const QJsonObject& /*params*/)
 {
 	QJsonObject devicesDiscovered;
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);

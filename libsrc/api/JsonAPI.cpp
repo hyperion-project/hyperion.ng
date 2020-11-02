@@ -1412,7 +1412,8 @@ void JsonAPI::handleLedDeviceCommand(const QJsonObject &message, const QString &
 		if (subc == "discover")
 		{
 			ledDevice = LedDeviceFactory::construct(config);
-			const QJsonObject devicesDiscovered = ledDevice->discover();
+			const QJsonObject &params = message["params"].toObject();
+			const QJsonObject devicesDiscovered = ledDevice->discover(params);
 
 			Debug(_log, "response: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 

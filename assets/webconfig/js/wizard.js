@@ -1648,13 +1648,16 @@ function beginWizardAtmoOrb() {
 async function discover_atmoorb_lights(multiCastGroup, multiCastPort) {
   var light = {};
 
-  if (multiCastGroup === "")
-    multiCastGroup = "239.255.255.250";
+  var params = {};
+  if (multiCastGroup !== "")
+  {
+    params.multiCastGroup = multiCastGroup;
+  }
 
-  if (multiCastPort === "")
-    multiCastPort = 49692;
-
-  let params = { multiCastGroup: multiCastGroup, multiCastPort: multiCastPort };
+  if (multiCastPort !== 0)
+  {
+     params.multiCastPort = multiCastPort;
+  }
 
   // Get discovered lights
   const res = await requestLedDeviceDiscovery('atmoorb', params);

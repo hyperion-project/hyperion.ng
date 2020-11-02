@@ -1347,7 +1347,7 @@ bool LedDeviceYeelight::restoreState()
 	return rc;
 }
 
-QJsonObject LedDeviceYeelight::discover()
+QJsonObject LedDeviceYeelight::discover(const QJsonObject& /*params*/)
 {
 	QJsonObject devicesDiscovered;
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );

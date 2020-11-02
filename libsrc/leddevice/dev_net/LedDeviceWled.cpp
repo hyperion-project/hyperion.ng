@@ -166,7 +166,7 @@ bool LedDeviceWled::powerOff()
 	return off;
 }
 
-QJsonObject LedDeviceWled::discover()
+QJsonObject LedDeviceWled::discover(const QJsonObject& /*params*/)
 {
 	QJsonObject devicesDiscovered;
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );
