@@ -55,7 +55,7 @@ int LedDeviceTemplate::open()
 	}
 
 	// On error/exceptions, set LedDevice in error
-	if ( retval < 0 )
+	if ( false /* retval < 0*/ )
 	{
 		this->setInError( errortext );
 	}
