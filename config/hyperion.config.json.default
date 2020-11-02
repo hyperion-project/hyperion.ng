@@ -48,12 +48,16 @@
 
 	"smoothing" :
 	{
-		"enable"           : true,
-		"type"             : "linear",
-		"time_ms"          : 200,
-		"updateFrequency"  : 25.0000,
-		"updateDelay"      : 0,
-		"continuousOutput" : true
+		"enable"            : true,
+		"type"              : "linear",
+		"time_ms"           : 200,
+		"updateFrequency"   : 25.0000,
+		"interpolationRate" : 25.0000,
+		"outputRate"        : 25.0000,
+		"decay"             : 1,
+		"dithering"         : false,
+		"updateDelay"       : 0,
+		"continuousOutput"  : true
 	},
 
 	"grabberV4L2" :
