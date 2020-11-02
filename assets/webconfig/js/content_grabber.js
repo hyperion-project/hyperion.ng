@@ -348,9 +348,6 @@ $(document).ready( function() {
 		  case "dispmanx":
 		    toggleFgOptions(["pixelDecimation","display"],false);
 		    break;
-		  case "amlogic":
-		    toggleFgOptions(["pixelDecimation","display"],false);
-		    break;
 		  case "x11":
 		  case "xcb":
 		    toggleFgOptions(["width","height","display"],false);
@@ -358,9 +355,14 @@ $(document).ready( function() {
 		  case "framebuffer":
 		    toggleFgOptions(["display"],false);
 		    break;
+		  case "amlogic":
+		    toggleFgOptions(["pixelDecimation","display"],false);
+		    break;
 		  case "qt":
 		    break;
 		  case "dx":
+		    break;
+		  case "osx":
 		    break;
 		  default:
       }
