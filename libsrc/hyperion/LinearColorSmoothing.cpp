@@ -22,7 +22,7 @@ const int64_t MS_PER_MICRO = 1000;
 
 /// Clamps the rounded values to the byte-interval of [0, 255].
 ALWAYS_INLINE long clampRounded(const floatT x) {
-	return std::min(255l, std::max(0l, std::lroundf(x)));
+	return std::min(255L, std::max(0L, std::lroundf(x)));
 }
 
 /// The number of bits that are used for shifting the fixed point values
@@ -61,7 +61,7 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument &config, Hyperion
 	, _pause(false)
 	, _currentConfigId(0)
 	, _enabled(false)
-	, tempValues(std::vector<uint64_t>(0, 0l))
+	, tempValues(std::vector<uint64_t>(0, 0L))
 {
 	// init cfg 0 (default)
 	addConfig(DEFAUL_SETTLINGTIME, DEFAUL_UPDATEFREQUENCY, DEFAUL_OUTPUTDEPLAY);
@@ -69,7 +69,7 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument &config, Hyperion
 	selectConfig(0, true);
 
 	// add pause on cfg 1
-	SMOOTHING_CFG cfg = {SmoothingType::Linear, 0, 0, 0, 0, 0, false};
+	SMOOTHING_CFG cfg = {SmoothingType::Linear, false, 0, 0, 0, 0, 0, false, 1};
 	_cfgList.append(cfg);
 
 	// listen for comp changes
@@ -89,7 +89,9 @@ void LinearColorSmoothing::handleSettingsUpdate(settings::type type, const QJson
 
 		QJsonObject obj = config.object();
 		if (enabled() != obj["enable"].toBool(true))
+		{
 			setEnable(obj["enable"].toBool(true));
+		}
 
 		_continuousOutput = obj["continuousOutput"].toBool(true);
 
@@ -144,7 +146,7 @@ int LinearColorSmoothing::write(const std::vector<ColorRgb> &ledValues)
 		_previousInterpolationTime = micros();
 
 		//Debug( _log, "Start Smoothing timer: settlingTime: %d ms, interval: %d ms (%u Hz), updateDelay: %u frames", _settlingTime, _updateInterval, unsigned(1000.0/_updateInterval), _outputDelay );
-		QMetaObject::invokeMethod(_timer, "start", Qt::QueuedConnection, Q_ARG(int, _updateInterval));
+		QMetaObject::invokeMethod(_timer, "start", Qt::QueuedConnection, Q_ARG(long, _updateInterval));
 	}
 
 	return 0;
@@ -155,7 +157,7 @@ int LinearColorSmoothing::updateLedValues(const std::vector<ColorRgb> &ledValues
 	int retval = 0;
 	if (!_enabled)
 	{
-		return -1;
+		retval = -1;
 	}
 	else
 	{
@@ -173,13 +175,13 @@ void LinearColorSmoothing::intitializeComponentVectors(const size_t ledCount)
 
 		const size_t len = 3 * ledCount;
 
-		meanValues = std::vector<floatT>(len, 0.0f);
-		residualErrors = std::vector<floatT>(len, 0.0f);
-		tempValues = std::vector<uint64_t>(len, 0l);
+		meanValues = std::vector<floatT>(len, 0.0F);
+		residualErrors = std::vector<floatT>(len, 0.0F);
+		tempValues = std::vector<uint64_t>(len, 0L);
 	}
 
 	// Zero the temp vector
-	std::fill(tempValues.begin(), tempValues.end(), 0l);
+	std::fill(tempValues.begin(), tempValues.end(), 0L);
 }
 
 void LinearColorSmoothing::writeDirect()
@@ -232,9 +234,9 @@ void LinearColorSmoothing::assembleAndDitherFrame()
 
 		// Update the colors
 		ColorRgb &prev = _previousValues[i];
-		prev.red = (uint8_t)ir;
-		prev.green = (uint8_t)ig;
-		prev.blue = (uint8_t)ib;
+		prev.red = static_cast<uint8_t>(ir);
+		prev.green = static_cast<uint8_t>(ig);
+		prev.blue = static_cast<uint8_t>(ib);
 
 		// Determine the component errors
 		residualErrors[3 * i + 0] = fr - ir;
@@ -262,15 +264,15 @@ void LinearColorSmoothing::assembleFrame()
 
 		// Update the colors
 		ColorRgb &prev = _previousValues[i];
-		prev.red = (uint8_t)ir;
-		prev.green = (uint8_t)ig;
-		prev.blue = (uint8_t)ib;
+		prev.red = static_cast<uint8_t>(ir);
+		prev.green = static_cast<uint8_t>(ig);
+		prev.blue = static_cast<uint8_t>(ib);
 	}
 }
 
 ALWAYS_INLINE void LinearColorSmoothing::aggregateComponents(const std::vector<ColorRgb>& colors, std::vector<uint64_t>& weighted, const floatT weight) {
 	// Determine the integer-scale by converting the weight to fixed point
-	const uint64_t scale = (1l<<FPShift) * static_cast<double>(weight);
+	const uint64_t scale = (static_cast<uint64_t>(1L)<<FPShift) * static_cast<double>(weight);
 
 	const size_t N = colors.size();
 
@@ -309,7 +311,7 @@ void LinearColorSmoothing::interpolateFrame()
 	const int64_t windowStart = now - (MS_PER_MICRO * _settlingTime);
 
 	/// The total weight of the frames that were included in our window; sum of the individual weights
-	floatT fs = 0.0f;
+	floatT fs = 0.0F;
 
 	// To calculate the mean component we iterate over all relevant frames;
 	// from the most recent to the oldest frame that still clips our moving-average window given by time (now)
@@ -331,7 +333,7 @@ void LinearColorSmoothing::interpolateFrame()
 	}
 
 	/// The inverse scaling factor for the color components, clamped to (0, 1.0]; 1.0 for fs < 1, 1 : fs otherwise
-	const floatT inv_fs = ((fs < 1.0f) ? 1.0f : 1.0f / fs) / (1 << SmallShiftBis);
+	const floatT inv_fs = ((fs < 1.0F) ? 1.0F : 1.0F / fs) / (1 << SmallShiftBis);
 
 	// Normalize the mean component values for the window (fs)
 	for (size_t i = 0; i < 3 * N; ++i)
@@ -385,8 +387,8 @@ void LinearColorSmoothing::performDecay(const int64_t now) {
 	if(_updateInterval <= 0 && !(interpolatePending || writePending)) {
 		const int64_t nextActionExpected = std::min(interpolationTarget, writeTarget);
 		const int64_t microsTillNextAction = nextActionExpected - now;
-		const int64_t SLEEP_MAX_MICROS = 1000l; // We want to use usleep for up to 1ms
-		const int64_t SLEEP_RES_MICROS = 100l; // Expected resolution is >= 100µs on stock linux
+		const int64_t SLEEP_MAX_MICROS = 1000L; // We want to use usleep for up to 1ms
+		const int64_t SLEEP_RES_MICROS = 100L; // Expected resolution is >= 100µs on stock linux
 
 		if(microsTillNextAction > SLEEP_RES_MICROS) {
 			const int64_t wait = std::min(microsTillNextAction - SLEEP_RES_MICROS, SLEEP_MAX_MICROS);
@@ -400,10 +402,10 @@ void LinearColorSmoothing::performDecay(const int64_t now) {
 	{
 		Info(_log, "decay - rendered frames [%d] (%f/s), interpolated frames [%d] (%f/s) in [%f ms]"
 		, _renderedCounter - _renderedStatCounter
-		, (1.0f * (_renderedCounter - _renderedStatCounter) / ((now - _renderedStatTime) / 1000000.0f))
+		, (1.0F * (_renderedCounter - _renderedStatCounter) / ((now - _renderedStatTime) / 1000000.0F))
 		, _interpolationCounter - _interpolationStatCounter
-		, (1.0f * (_interpolationCounter - _interpolationStatCounter) / ((now - _renderedStatTime) / 1000000.0f))
-		, (now - _renderedStatTime) / 1000.0f
+		, (1.0F * (_interpolationCounter - _interpolationStatCounter) / ((now - _renderedStatTime) / 1000000.0F))
+		, (now - _renderedStatTime) / 1000.0F
 		);
 		_renderedStatTime = now;
 		_renderedStatCounter = _renderedCounter;
@@ -413,7 +415,7 @@ void LinearColorSmoothing::performDecay(const int64_t now) {
 
 void LinearColorSmoothing::performLinear(const int64_t now) {
 	const int64_t deltaTime = _targetTime - now;
-	const float k = 1.0f - 1.0f * deltaTime / (_targetTime - _previousWriteTime);
+	const float k = 1.0F - 1.0F * deltaTime / (_targetTime - _previousWriteTime);
 	const size_t N = _previousValues.size();
 
 	for (size_t i = 0; i < N; ++i)
@@ -518,10 +520,12 @@ void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> &ledColors)
 	{
 		// Push new colors in the delay-buffer
 		if (_writeToLedsEnable)
+		{
 			_outputQueue.push_back(ledColors);
+		}
 
 		// If the delay-buffer is filled pop the front and write to device
-		if (_outputQueue.size() > 0)
+		if (!_outputQueue.empty())
 		{
 			if (_outputQueue.size() > _outputDelay || !_writeToLedsEnable)
 			{
@@ -630,7 +634,7 @@ bool LinearColorSmoothing::selectConfig(unsigned cfg, bool force)
 	}
 
 	//Debug( _log, "selectConfig FORCED - _currentConfigId [%u], force [%d]", cfg, force);
-	if (cfg < (unsigned)_cfgList.count())
+	if (cfg < static_cast<uint>(_cfgList.count()) )
 	{
 		_smoothingType = _cfgList[cfg].smoothingType;
 		_settlingTime = _cfgList[cfg].settlingTime;
@@ -642,14 +646,14 @@ bool LinearColorSmoothing::selectConfig(unsigned cfg, bool force)
 		_interpolationIntervalMicros = int64_t(1000000.0 / _interpolationRate);
 		_dithering = _cfgList[cfg].dithering;
 		_decay = _cfgList[cfg].decay;
-		_invWindow = 1.0f / (MS_PER_MICRO * _settlingTime);
+		_invWindow = 1.0F / (MS_PER_MICRO * _settlingTime);
 
 		// Set _weightFrame based on the given decay
 		const float decay = _decay;
 		const floatT inv_window = _invWindow;
 
 		// For decay != 1 use power-based approach for calculating the moving average values
-		if(std::abs(decay - 1.0f) > std::numeric_limits<float>::epsilon()) {
+		if(std::abs(decay - 1.0F) > std::numeric_limits<float>::epsilon()) {
 			// Exponential Decay
 			_weightFrame = [inv_window,decay](const int64_t fs, const int64_t fe, const int64_t ws) {
 				const floatT s = (fs - ws) * inv_window;
@@ -660,7 +664,7 @@ bool LinearColorSmoothing::selectConfig(unsigned cfg, bool force)
 		} else {
 			// For decay == 1 use linear interpolation of the moving average values
 			// Linear Decay
-			_weightFrame = [inv_window](const int64_t fs, const int64_t fe, const int64_t ws) {
+			_weightFrame = [inv_window](const int64_t fs, const int64_t fe, const int64_t /*ws*/) {
 				// Linear weighting = (end - start) * scale
 				return static_cast<floatT>((fe - fs) * inv_window);
 			};
@@ -680,7 +684,7 @@ bool LinearColorSmoothing::selectConfig(unsigned cfg, bool force)
 			if (this->enabled() && this->_writeToLedsEnable)
 			{
 				//Debug( _log, "_cfgList[cfg].updateInterval != _updateInterval - Restart timer - _updateInterval [%d]", _updateInterval);
-				QMetaObject::invokeMethod(_timer, "start", Qt::QueuedConnection, Q_ARG(int, _updateInterval));
+				QMetaObject::invokeMethod(_timer, "start", Qt::QueuedConnection, Q_ARG(long, _updateInterval));
 			}
 			else
 			{

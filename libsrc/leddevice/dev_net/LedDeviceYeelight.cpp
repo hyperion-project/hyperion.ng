@@ -452,7 +452,7 @@ YeelightResponse YeelightLight::handleResponse(int correlationID, QByteArray con
 						// Debug output
 						if(!yeeResponse.getResult().empty())
 						{
-							for(const auto item : yeeResponse.getResult())
+							for(const QJsonValueRef item : yeeResponse.getResult())
 							{
 								log ( 3, "Result:", "%s", QSTRING_CSTR( item.toString() ));
 							}
@@ -524,7 +524,7 @@ QJsonObject YeelightLight::getProperties()
 		if( !result.empty())
 		{
 			int i = 0;
-			for(const auto item : result)
+			for(const QJsonValueRef item : result)
 			{
 				log (1,"Property:", "%s = %s", QSTRING_CSTR( propertyList.at(i).toString() ), QSTRING_CSTR( item.toString() ));
 				properties.insert( propertyList.at(i).toString(), item );
@@ -1074,7 +1074,7 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 
 		QJsonArray configuredYeelightLights   = _devConfig[CONFIG_LIGHTS].toArray();
 		int configuredYeelightsCount = 0;
-		for (const QJsonValue light : configuredYeelightLights)
+		for (const QJsonValueRef light : configuredYeelightLights)
 		{
 			QString host = light.toObject().value("host").toString();
 			int port = light.toObject().value("port").toInt(API_DEFAULT_PORT);

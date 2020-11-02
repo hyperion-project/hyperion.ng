@@ -118,7 +118,7 @@ public:
 	///
 	/// @param[in] params Parameters to address device
 	///
-	virtual void identify(const QJsonObject& params) {}
+	virtual void identify(const QJsonObject& /*params*/) {}
 
 	///
 	/// @brief Check, if device is properly initialised
