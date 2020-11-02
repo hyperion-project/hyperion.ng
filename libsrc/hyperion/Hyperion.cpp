@@ -655,7 +655,7 @@ void Hyperion::update()
 	#if 0
 	else
 	{
-		/LEDDevice is disabled
+		//LEDDevice is disabled
 		Debug(_log, "LEDDevice is disabled - no update required");
 	}
 	#endif
