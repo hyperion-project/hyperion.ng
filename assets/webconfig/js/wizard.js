@@ -424,7 +424,7 @@ function startWizardCC() {
   }
   //create html
   $('#wiz_header').html('<i class="fa fa-magic fa-fw"></i>' + $.i18n('wiz_cc_title'));
-  $('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n('wiz_cc_title') + '</h4><p>' + $.i18n('wiz_cc_intro1') + '</p><label>' + $.i18n('wiz_cc_kwebs') + '</label><input class="form-control" style="width:170px;margin:auto" id="wiz_cc_kodiip" type="text" placeholder="' + kodiAddress + '" value="' + kodiAddress + '" /><span id="kodi_status"></span><span id="multi_cali"></span>');
+  $('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n('wiz_cc_title') + '</h4><p>' + $.i18n('wiz_cc_intro1') + '</p><label>' + $.i18n('wiz_cc_kwebs') + '</label><input class="form-control" style="width:170px;margin:auto" id="wiz_cc_kodiip" type="text" placeholder="' + kodiAddress + '" value="' +  kodiAddress + '" /><span id="kodi_status"></span><span id="multi_cali"></span>');
   $('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont" disabled="disabled"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
   $('#wizp2_body').html('<div id="wiz_cc_desc" style="font-weight:bold"></div><div id="editor_container_wiz"></div>');
   $('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_back"><i class="fa fa-fw fa-chevron-left"></i>' + $.i18n('general_btn_back') + '</button><button type="button" class="btn btn-primary" id="btn_wiz_next">' + $.i18n('general_btn_next') + '<i style="margin-left:4px;"class="fa fa-fw fa-chevron-right"></i></button><button type="button" class="btn btn-warning" id="btn_wiz_save" style="display:none"><i class="fa fa-fw fa-save"></i>' + $.i18n('general_btn_save') + '</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
@@ -439,6 +439,8 @@ function startWizardCC() {
   $('#wiz_cc_kodiip').off().on('change', function () {
     
     kodiAddress = $(this).val().trim();
+    $('#wizp1_body').find("kodiAddress").val(kodiAddress);
+    
     $('#kodi_status').html('');
 
     // Remove Kodi's default Web-Socket port (9090) from display and ensure Kodi's default REST-API port (8080) is mapped to web-socket port to ease migration
@@ -1585,7 +1587,7 @@ function beginWizardAtmoOrb() {
   lights = [];
   configuredLights = [];
 
-  configruedOrbIds = conf_editor.getEditor("root.specificOptions.orbIds").getValue().trim();
+  var configruedOrbIds = conf_editor.getEditor("root.specificOptions.orbIds").getValue().trim();
   if (configruedOrbIds.length !== 0) {
     configuredLights = configruedOrbIds.split(",").map(Number);
   }
