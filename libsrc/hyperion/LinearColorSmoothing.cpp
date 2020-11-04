@@ -43,15 +43,16 @@ const char* SETTINGS_KEY_DECAY = "decay";
 using namespace hyperion;
 
 const int64_t DEFAUL_SETTLINGTIME = 200;													// settlingtime in ms
-const double DEFAUL_UPDATEFREQUENCY = 25;													// updatefrequncy in hz
-const int64_t DEFAUL_UPDATEINTERVALL = static_cast<int64_t>(1000 / DEFAUL_UPDATEFREQUENCY); // updateintervall in ms
+const int DEFAUL_UPDATEFREQUENCY = 25;													// updatefrequncy in hz
+
+constexpr std::chrono::milliseconds DEFAUL_UPDATEINTERVALL{1000/ DEFAUL_UPDATEFREQUENCY};
 const unsigned DEFAUL_OUTPUTDEPLAY = 0;														// outputdelay in ms
 
 LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument &config, Hyperion *hyperion)
 	: QObject(hyperion)
 	, _log(Logger::getInstance("SMOOTHING"))
 	, _hyperion(hyperion)
-	, _updateInterval(DEFAUL_UPDATEINTERVALL)
+	, _updateInterval(DEFAUL_UPDATEINTERVALL.count())
 	, _settlingTime(DEFAUL_SETTLINGTIME)
 	, _timer(new QTimer(this))
 	, _outputDelay(DEFAUL_OUTPUTDEPLAY)
@@ -77,7 +78,7 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument &config, Hyperion
 	// timer
 	connect(_timer, &QTimer::timeout, this, &LinearColorSmoothing::updateLeds);
 
-	Info(_log, "LinearColorSmoothing sizeof floatT == %d", (sizeof(floatT)));
+	//Debug(_log, "LinearColorSmoothing sizeof floatT == %d", (sizeof(floatT)));
 }
 
 void LinearColorSmoothing::handleSettingsUpdate(settings::type type, const QJsonDocument &config)
@@ -107,7 +108,7 @@ void LinearColorSmoothing::handleSettingsUpdate(settings::type type, const QJson
 
 		cfg.pause = false;
 		cfg.settlingTime = static_cast<int64_t>(obj["time_ms"].toInt(DEFAUL_SETTLINGTIME));
-		cfg.updateInterval = static_cast<int64_t>(1000.0 / obj["updateFrequency"].toDouble(DEFAUL_UPDATEFREQUENCY));
+		cfg.updateInterval = static_cast<int>(1000.0 / obj["updateFrequency"].toDouble(DEFAUL_UPDATEFREQUENCY));
 		cfg.outputRate = obj[SETTINGS_KEY_OUTPUT_RATE].toDouble(DEFAUL_UPDATEFREQUENCY);
 		cfg.interpolationRate = obj[SETTINGS_KEY_INTERPOLATION_RATE].toDouble(DEFAUL_UPDATEFREQUENCY);
 		cfg.outputDelay = static_cast<unsigned>(obj["updateDelay"].toInt(DEFAUL_OUTPUTDEPLAY));
@@ -146,7 +147,7 @@ int LinearColorSmoothing::write(const std::vector<ColorRgb> &ledValues)
 		_previousInterpolationTime = micros();
 
 		//Debug( _log, "Start Smoothing timer: settlingTime: %d ms, interval: %d ms (%u Hz), updateDelay: %u frames", _settlingTime, _updateInterval, unsigned(1000.0/_updateInterval), _outputDelay );
-		QMetaObject::invokeMethod(_timer, "start", Qt::QueuedConnection, Q_ARG(long, _updateInterval));
+		QMetaObject::invokeMethod(_timer, "start", Qt::QueuedConnection, Q_ARG(int, _updateInterval));
 	}
 
 	return 0;
@@ -400,7 +401,7 @@ void LinearColorSmoothing::performDecay(const int64_t now) {
 	// Write stats every 30 sec
 	if ((now > (_renderedStatTime + 30 * 1000000)) && (_renderedCounter > _renderedStatCounter))
 	{
-		Info(_log, "decay - rendered frames [%d] (%f/s), interpolated frames [%d] (%f/s) in [%f ms]"
+		Debug(_log, "decay - rendered frames [%d] (%f/s), interpolated frames [%d] (%f/s) in [%f ms]"
 		, _renderedCounter - _renderedStatCounter
 		, (1.0F * (_renderedCounter - _renderedStatCounter) / ((now - _renderedStatTime) / 1000000.0F))
 		, _interpolationCounter - _interpolationStatCounter
@@ -463,7 +464,7 @@ void LinearColorSmoothing::updateLeds()
 
 void LinearColorSmoothing::rememberFrame(const std::vector<ColorRgb> &ledColors)
 {
-	//Info(_log, "rememberFrame -  before _frameQueue.size() [%d]", _frameQueue.size());
+	//Debug(_log, "rememberFrame -  before _frameQueue.size() [%d]", _frameQueue.size());
 
 	const int64_t now = micros();
 
@@ -480,7 +481,7 @@ void LinearColorSmoothing::rememberFrame(const std::vector<ColorRgb> &ledColors)
 
 	if (p > 0)
 	{
-		//Info(_log, "rememberFrame -  erasing %d frames", p);
+		//Debug(_log, "rememberFrame -  erasing %d frames", p);
 		_frameQueue.erase(_frameQueue.begin(), _frameQueue.begin() + p);
 	}
 
@@ -488,7 +489,7 @@ void LinearColorSmoothing::rememberFrame(const std::vector<ColorRgb> &ledColors)
 	const REMEMBERED_FRAME frame = REMEMBERED_FRAME(now, ledColors);
 	_frameQueue.push_back(frame);
 
-	//Info(_log, "rememberFrame -  after _frameQueue.size() [%d]", _frameQueue.size());
+	//Debug(_log, "rememberFrame -  after _frameQueue.size() [%d]", _frameQueue.size());
 }
 
 
@@ -585,7 +586,7 @@ unsigned LinearColorSmoothing::addConfig(int settlingTime_ms, double ledUpdateFr
 		SmoothingType::Linear,
 		false,
 		settlingTime_ms,
-		int64_t(1000.0 / ledUpdateFrequency_hz),
+		static_cast<int>(1000.0 / ledUpdateFrequency_hz),
 		ledUpdateFrequency_hz,
 		ledUpdateFrequency_hz,
 		updateDelay,
@@ -607,7 +608,7 @@ unsigned LinearColorSmoothing::updateConfig(unsigned cfgID, int settlingTime_ms,
 			SmoothingType::Linear,
 			false,
 			settlingTime_ms,
-			int64_t(1000.0 / ledUpdateFrequency_hz),
+			static_cast<int>(1000.0 / ledUpdateFrequency_hz),
 			ledUpdateFrequency_hz,
 			ledUpdateFrequency_hz,
 			updateDelay,
@@ -684,7 +685,7 @@ bool LinearColorSmoothing::selectConfig(unsigned cfg, bool force)
 			if (this->enabled() && this->_writeToLedsEnable)
 			{
 				//Debug( _log, "_cfgList[cfg].updateInterval != _updateInterval - Restart timer - _updateInterval [%d]", _updateInterval);
-				QMetaObject::invokeMethod(_timer, "start", Qt::QueuedConnection, Q_ARG(long, _updateInterval));
+				QMetaObject::invokeMethod(_timer, "start", Qt::QueuedConnection, Q_ARG(int, _updateInterval));
 			}
 			else
 			{
@@ -697,7 +698,7 @@ bool LinearColorSmoothing::selectConfig(unsigned cfg, bool force)
 		// DebugIf( _pause, _log, "set smoothing cfg: %d, pause",  _currentConfigId );
 
 		const float thalf = (1.0-std::pow(1.0/2, 1.0/_decay))*_settlingTime;
-		Info( _log, "%s - Time: %d ms, outputRate %f Hz, interpolationRate: %f Hz, timer: %d ms, Dithering: %d, Decay: %f -> HalfTime: %f ms", _smoothingType == SmoothingType::Decay ? "decay" : "linear", _settlingTime, _outputRate, _interpolationRate, _updateInterval, _dithering ? 1 : 0, _decay, thalf);
+		Debug( _log, "Type: %s - Time: %d ms, outputRate %f Hz, interpolationRate: %f Hz, timer: %d ms, Dithering: %d, Decay: %f -> HalfTime: %f ms", _smoothingType == SmoothingType::Decay ? "decay" : "linear", _settlingTime, _outputRate, _interpolationRate, _updateInterval, _dithering ? 1 : 0, _decay, thalf);
 
 		return true;
 	}
