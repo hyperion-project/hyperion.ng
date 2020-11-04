@@ -96,6 +96,7 @@ $(document).ready(function() {
 		  info += 'CPU Hardware:' + sys.cpuHardware + '\n';	
 
 		info += 'Kernel:      '+sys.kernelType+' ('+sys.kernelVersion+' (WS: '+sys.wordSize+'))\n';
+		info += 'Qt Version:  '+sys.qtVersion + '\n';
 		info += 'Browser/OS:  '+navigator.userAgent+'\n\n';
 
 		//create prios

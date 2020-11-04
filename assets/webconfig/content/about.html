@@ -61,6 +61,7 @@
 	  info += '- CPU Hardware: ' + sys.cpuHardware + '\n';	
 
 	info += '- Kernel:       ' + sys.kernelType + ' (' + sys.kernelVersion + ' (WS: ' + sys.wordSize + '))\n';
+	info += '- Qt Version:   ' + sys.qtVersion + '\n';
 	info += '- Browser:      ' + navigator.userAgent + ' </pre>';
 
 	var fc = ['<span id="danger_trig">' + $.i18n("about_version") + '<span>', $.i18n("about_build"), $.i18n("about_builddate"), $.i18n("about_translations"), $.i18n("about_resources", $.i18n("general_webui_title")), "System info (Github Issue)", $.i18n("about_3rd_party_licenses")];

@@ -23,6 +23,7 @@ SysInfo::SysInfo()
 	_sysinfo.hostName       = QHostInfo::localHostName();
 	_sysinfo.domainName     = QHostInfo::localDomainName();
 	getCPUInfo();
+	_sysinfo.qtVersion		= QT_VERSION_STR;
 }
 
 SysInfo::HyperionSysInfo SysInfo::get()
