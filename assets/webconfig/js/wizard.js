@@ -1537,7 +1537,7 @@ async function getProperties_yeelight(hostname, port) {
 }
 
 function identify_yeelight_device(hostname, port) {
-  let params = { hostname: hostname, port: port
+  let params = { hostname: hostname, port: port };
   requestLedDeviceIdentification("yeelight", params);
 }
 
