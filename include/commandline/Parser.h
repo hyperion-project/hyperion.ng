@@ -27,7 +27,7 @@ protected:
 	QString _getDescription(const QString& description, const QString& default_=QString());
 
 public:
-	virtual ~Parser() override;
+	~Parser() override;
 
 	bool parse(const QStringList &arguments);
 	void process(const QStringList &arguments);
