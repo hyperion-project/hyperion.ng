@@ -135,7 +135,7 @@ int ProviderUdp::writeBytes(const unsigned size, const uint8_t* data)
 
 	if (bytesWritten == -1 || bytesWritten != size)
 	{
-		Warning(_log, "&s", QSTRING_CSTR(QString("(%1:%2) Write Error: (%3) %4").arg(_address.toString()).arg(_port).arg(_udpSocket->error()).arg(_udpSocket->errorString())));
+		Warning(_log, "%s", QSTRING_CSTR(QString("(%1:%2) Write Error: (%3) %4").arg(_address.toString()).arg(_port).arg(_udpSocket->error()).arg(_udpSocket->errorString())));
 		rc = -1;
 	}
 	return  rc;
@@ -148,7 +148,7 @@ int ProviderUdp::writeBytes(const QByteArray& bytes)
 
 	if (bytesWritten == -1 || bytesWritten != bytes.size())
 	{
-		Warning(_log, "&s", QSTRING_CSTR(QString("(%1:%2) Write Error: (%3) %4").arg(_address.toString()).arg(_port).arg(_udpSocket->error()).arg(_udpSocket->errorString())));
+		Warning(_log, "%s", QSTRING_CSTR(QString("(%1:%2) Write Error: (%3) %4").arg(_address.toString()).arg(_port).arg(_udpSocket->error()).arg(_udpSocket->errorString())));
 		rc = -1;
 	}
 	return  rc;
