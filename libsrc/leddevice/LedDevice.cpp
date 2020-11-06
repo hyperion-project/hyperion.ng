@@ -394,6 +394,7 @@ QJsonObject LedDevice::getProperties(const QJsonObject& params)
 
 void LedDevice::setLedCount(int ledCount)
 {
+	assert(ledCount > 0);
 	_ledCount     = ledCount;
 	_ledRGBCount  = _ledCount * sizeof(ColorRgb);
 	_ledRGBWCount = _ledCount * sizeof(ColorRgbw);
@@ -401,12 +402,14 @@ void LedDevice::setLedCount(int ledCount)
 
 void LedDevice::setLatchTime( int latchTime_ms )
 {
+	assert(latchTime_ms >= 0);
 	_latchTime_ms = latchTime_ms;
 	Debug(_log, "LatchTime updated to %dms", _latchTime_ms);
 }
 
 void LedDevice::setRewriteTime( int rewriteTime_ms )
 {
+	assert(rewriteTime_ms >= 0);
 	_refreshTimerInterval_ms = rewriteTime_ms;
 
 	if ( _refreshTimerInterval_ms > 0 )
