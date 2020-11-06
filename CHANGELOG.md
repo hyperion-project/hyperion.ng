@@ -13,28 +13,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Provide additional details on Hardware/CPU information
 - Allow execution with option "--version", while another hyperion daemon is running
 - New language support: Russian and Chinese (simplified) (#1005)
-- added libcec to deb/rpm dependency list
-- updated some language files
+- Added libcec to deb/rpm dependency list
+- Updated some language files
 - New LED Device SK9822 (#1005)
 - Support SK9822 type LEDs with adaptive brightness control via SPI (#1017)
 - Provide additional details on Hardware/CPU information (#1045)
-Allow execution with option "--version", while another hyperion daemon is running
+  - Allow execution with option "--version", while another hyperion daemon is running
 - New blackbar detection mode "Letterbox", that considers only bars at the top and bottom of picture
 - Systray icons added - Issue #925 (#1040)
 - DirectX9 Grabber (#1039)
 - Added DirectX SDK to CompileHowto
-- Hide Systray on exit & Install DirectX Redistributable 
-- Read-Only configuration database suppor
+- Hide Window Systray icon on Hyperion exit & Install DirectX Redistributable
+- Read-Only configuration database support
 
 ### Changed
 - boblight: reduce cpu time spent on memcopy and parsing rgb values (#1016)
 - Windows Installer/Uninstaller notification when Hyperion is running (#1033)
 - Updated Windows Dependencies
-- cleanup packages.cmake & extend NSIS plugin directory
+- Cleanup packages.cmake & extend NSIS plugin directory
 - Optimize images (#1058)
 - Update LICENSE
 - Change links from http to https (#1067)
-
 - UI: Separate LED-Layout creation from UI code
 
 ### Fixed
@@ -44,7 +43,7 @@ Allow execution with option "--version", while another hyperion daemon is runnin
 - Fix #1007 - LED's retain last state after clearing a source (#1008) 
 - Fix Lightpack issue #1015 (#1049)
 - Fix #771 color calibration for Kodi 18 (#1044)
-- Fix various JSON API issues #1022, #1019, #997, #993, #992, #976, #969, #964, #980 (#1036)
+- Fix various JSON API issues (#1036)
 - Fix issue #909, Have ratio correction first and then scale (#1047) 
 - Fix display argument in hyperion-qt (#1027)
 - Fix typos (#1051)
