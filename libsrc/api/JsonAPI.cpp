@@ -286,6 +286,7 @@ void JsonAPI::handleSysInfoCommand(const QJsonObject &, const QString &command, 
 	system["hostName"] = data.hostName;
 	system["domainName"] = data.domainName;
 	system["qtVersion"] = data.qtVersion;
+	system["pyVersion"] = data.pyVersion;
 	info["system"] = system;
 
 	QJsonObject hyperion;
