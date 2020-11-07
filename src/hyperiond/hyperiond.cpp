@@ -63,8 +63,8 @@ HyperionDaemon *HyperionDaemon::daemon = nullptr;
 
 HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool logLvlOverwrite, bool readonlyMode)
 	: QObject(parent), _log(Logger::getInstance("DAEMON"))
-	  , _instanceManager(new HyperionIManager(rootPath, this))
-	  , _authManager(new AuthManager(this))
+	  , _instanceManager(new HyperionIManager(rootPath, this, readonlyMode))
+	  , _authManager(new AuthManager(this, readonlyMode))
 #ifdef ENABLE_AVAHI
 	  , _bonjourBrowserWrapper(new BonjourBrowserWrapper())
 #endif
