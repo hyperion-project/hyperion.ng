@@ -698,7 +698,7 @@ bool LinearColorSmoothing::selectConfig(unsigned cfg, bool force)
 		// DebugIf( _pause, _log, "set smoothing cfg: %d, pause",  _currentConfigId );
 
 		const float thalf = (1.0-std::pow(1.0/2, 1.0/_decay))*_settlingTime;
-		Debug( _log, "Type: %s - Time: %d ms, outputRate %f Hz, interpolationRate: %f Hz, timer: %d ms, Dithering: %d, Decay: %f -> HalfTime: %f ms", _smoothingType == SmoothingType::Decay ? "decay" : "linear", _settlingTime, _outputRate, _interpolationRate, _updateInterval, _dithering ? 1 : 0, _decay, thalf);
+		Debug( _log, "cfg [%d]:  Type: %s - Time: %d ms, outputRate %f Hz, interpolationRate: %f Hz, timer: %d ms, Dithering: %d, Decay: %f -> HalfTime: %f ms", cfg, _smoothingType == SmoothingType::Decay ? "decay" : "linear", _settlingTime, _outputRate, _interpolationRate, _updateInterval, _dithering ? 1 : 0, _decay, thalf);
 
 		return true;
 	}
