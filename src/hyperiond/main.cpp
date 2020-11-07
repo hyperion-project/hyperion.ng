@@ -262,8 +262,8 @@ int main(int argc, char** argv)
 			<< "Hyperion Ambilight Daemon" << std::endl
 			<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
 			<< "\tBuild Time: " << __DATE__ << " " << __TIME__ << std::endl;
-  }
-  
+	}
+
 	if (parser.isSet(exportEfxOption))
 	{
 		Q_INIT_RESOURCE(EffectEngine);
@@ -271,7 +271,7 @@ int main(int argc, char** argv)
 		QDir destDir(exportEfxOption.value(parser));
 		if (directory.exists() && destDir.exists())
 		{
-			std::cout << "Extract to folder: " << std::endl;
+			std::cout << "Extract to folder: " << destDir.absolutePath().toStdString() << std::endl;
 			QStringList filenames = directory.entryList(QStringList() << "*", QDir::Files, QDir::Name | QDir::IgnoreCase);
 			QString destFileName;
 			for (const QString & filename : filenames)
@@ -288,8 +288,8 @@ int main(int argc, char** argv)
 				}
 				else
 				{
-					 std::cout << "Error, aborting" << std::endl;
-					 return 1;
+					std::cout << "Error, aborting" << std::endl;
+					return 1;
 				}
 			}
 			return 0;
@@ -302,39 +302,36 @@ int main(int argc, char** argv)
 	int rc = 1;
 	bool readonlyMode = false;
 
+	QString userDataPath(userDataOption.value(parser));
+
+	QDir userDataDirectory(userDataPath);
+	QFileInfo dbFile(userDataDirectory.absolutePath() +"/db/hyperion.db");
+
 	try
 	{
-		// handle and create userDataPath for user data, default path is home directory + /.hyperion
-		QString userDataPath(userDataOption.value(parser));
-		QDir mDir(userDataPath);
-		QFileInfo mFi(userDataPath);
-		if(!mDir.mkpath(userDataPath) || !mFi.isWritable())
+
+
+		if (dbFile.exists())
 		{
-			if ( !mDir.isReadable() )
+			if (!dbFile.isReadable())
 			{
-				throw std::runtime_error("The user data path '"+mDir.absolutePath().toStdString()+"' can't be created or isn't read/writeable. Please setup permissions correctly!");
+				throw std::runtime_error("Configuration database '" + dbFile.absoluteFilePath().toStdString() + "' is not readable. Please setup permissions correctly!");
 			}
 			else
 			{
-				QFileInfo mFiDB(userDataPath + "/db/hyperion.db");
-
-				if ( !mFiDB.exists() )
+				if (!dbFile.isWritable())
 				{
-					throw std::runtime_error("Configuration database '"+mFiDB.absoluteFilePath().toStdString()+"' does not exist!");
+					readonlyMode = true;
 				}
-				else
+			}
+		}
+		else
+		{
+			if (!userDataDirectory.mkpath(dbFile.absolutePath()))
+			{
+				if (!userDataDirectory.isReadable() || !dbFile.isWritable())
 				{
-					if ( !mFiDB.isReadable() )
-					{
-						throw std::runtime_error("Configuration database '"+mFiDB.absoluteFilePath().toStdString()+"' is not readable. Please setup permissions correctly!");
-					}
-					else
-					{
-						if ( !mFiDB.isWritable() )
-						{
-							readonlyMode = true;
-						}
-					}
+					throw std::runtime_error("The user data path '" + userDataDirectory.absolutePath().toStdString() + "' can't be created or isn't read/writeable. Please setup permissions correctly!");
 				}
 			}
 		}
@@ -344,12 +341,12 @@ int main(int argc, char** argv)
 		{
 			if ( readonlyMode )
 			{
-				Error(log,"Password reset is not possible. The user data path '%s' is not writeable.", QSTRING_CSTR(mDir.absolutePath()));
+				Error(log,"Password reset is not possible. The user data path '%s' is not writeable.", QSTRING_CSTR(userDataDirectory.absolutePath()));
 				throw std::runtime_error("Password reset failed");
 			}
 			else
 			{
-				AuthTable* table = new AuthTable(userDataPath);
+				AuthTable* table = new AuthTable(userDataDirectory.absolutePath());
 				if(table->resetHyperionUser()){
 					Info(log,"Password reset successful");
 					delete table;
@@ -367,15 +364,14 @@ int main(int argc, char** argv)
 		{
 			if ( readonlyMode )
 			{
-				Error(log,"Deleting the configuration database is not possible. The user data path '%s' is not writeable.", QSTRING_CSTR(mDir.absolutePath()));
+				Error(log,"Deleting the configuration database is not possible. The user data path '%s' is not writeable.", QSTRING_CSTR(dbFile.absolutePath()));
 				throw std::runtime_error("Deleting the configuration database failed");
 			}
 			else
 			{
-				const QString dbFile = mDir.absolutePath() + "/db/hyperion.db";
-				if (QFile::exists(dbFile))
+				if (QFile::exists(dbFile.absoluteFilePath()))
 				{
-					if (!QFile::remove(dbFile))
+					if (!QFile::remove(dbFile.absoluteFilePath()))
 					{
 						Info(log,"Failed to delete Database!");
 						exit(1);
@@ -387,7 +383,7 @@ int main(int argc, char** argv)
 				}
 				else
 				{
-					Warning(log,"Configuration database [%s] does not exist!", QSTRING_CSTR(dbFile));
+					Warning(log,"Configuration database [%s] does not exist!", QSTRING_CSTR(dbFile.absoluteFilePath()));
 				}
 			}
 		}
@@ -396,17 +392,17 @@ int main(int argc, char** argv)
 
 		if ( !readonlyMode )
 		{
-			Info(log, "Set user data path to '%s'", QSTRING_CSTR(mDir.absolutePath()));
+			Info(log, "Set user data path to '%s'", QSTRING_CSTR(userDataDirectory.absolutePath()));
 		}
 		else
 		{
-			Warning(log,"The user data path '%s' is not writeable. Hyperion starts in read-only mode. Configuration updates will not be persisted!", QSTRING_CSTR(mDir.absolutePath()));
+			Warning(log,"The user data path '%s' is not writeable. Hyperion starts in read-only mode. Configuration updates will not be persisted!", QSTRING_CSTR(userDataDirectory.absolutePath()));
 		}
 
-    HyperionDaemon* hyperiond = nullptr;
+		HyperionDaemon* hyperiond = nullptr;
 		try
 		{
-			hyperiond = new HyperionDaemon(userDataPath, qApp, bool(logLevelCheck), readonlyMode);
+			hyperiond = new HyperionDaemon(userDataDirectory.absolutePath(), qApp, bool(logLevelCheck), readonlyMode);
 		}
 		catch (std::exception& e)
 		{
@@ -437,5 +433,13 @@ int main(int argc, char** argv)
 
 	// delete components
 	Logger::deleteInstance();
+
+#ifdef _WIN32
+	if (parser.isSet(consoleOption))
+	{
+		system("pause");
+	}
+#endif
+
 	return rc;
 }
