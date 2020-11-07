@@ -394,7 +394,7 @@ QJsonObject LedDevice::getProperties(const QJsonObject& params)
 
 void LedDevice::setLedCount(int ledCount)
 {
-	assert(ledCount > 0);
+	assert(ledCount >= 0);
 	_ledCount     = ledCount;
 	_ledRGBCount  = _ledCount * sizeof(ColorRgb);
 	_ledRGBWCount = _ledCount * sizeof(ColorRgbw);
