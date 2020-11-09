@@ -1,21 +1,27 @@
 ## Authorization
-Hyperion has an authorization system where people can login via password and applications with Tokens. The user can decide how strong or weak the Hyperion API should be protected.
+Hyperion has an authorization system allowing users to login via password, and
+applications to login with tokens. The user can configure how strong or weak the Hyperion API
+should be protected from the `Configuration` -> `Network Services` panel on the Web UI.
 
 [[toc]]
 
 ### Token System
-Tokens are a simple way to authenticate an App for API access. They can be created "by hand" TODO LINK TO WEBUI TOKEN CREATION at the webconfiguration or your application can [request one](#request-a-token). 
+Tokens are a simple way to authenticate an App for API access. They can be created in
+the UI on the `Configuration` -> `Network Services` panel (the panel appears when `API
+Authentication` options is checked). Your application can also [request a
+token](#request-a-token) via the API.
 
 ### Authorization Check
-It's for sure useful to check if you actually need an authorization to work with the API. Ask Hyperion by sending
-``` json
+
+Callers can check whether authorization is required to work with the API, by sending:
+```json
 {
     "command" : "authorize",
     "subcommand" : "tokenRequired"
 }
 ```
-If the property "required" is true, you need authentication. Example response.
-``` json
+If the property `required` is true, authentication is required. An example response:
+```json
 {
     "command" : "authorize-tokenRequired",
     "info" : {
@@ -27,8 +33,8 @@ If the property "required" is true, you need authentication. Example response.
 ```
 
 ### Login with Token
-Login with your token as follows. And get a [Login response](#login-response)
-``` json
+Login with a token as follows -- the caller will receive a [Login response](#login-response).
+```json
 {
     "command" : "authorize",
     "subcommand" : "login",
@@ -37,14 +43,14 @@ Login with your token as follows. And get a [Login response](#login-response)
 ```
 
 ### Login with Token over HTTP/S
-Add the HTTP Authorization header to every request. On error, you will get a failed [Login response](#login-response)
-``` http
+Add the HTTP Authorization header to every request. On error, the user will get a failed [Login response](#login-response).
+```http
   Authorization : token YourPrivateTokenHere
 ```
 
 #### Login response
-Login success response
-``` json
+A successful login response:
+```json
 {
     "command" : "authorize-login",
     "success" : true,
@@ -52,8 +58,8 @@ Login success response
 }
 ```
 
-Login failed response
-``` json
+A failed login response:
+```json
 {
     "command" : "authorize-login",
     "error" : "No Authorization",
@@ -63,15 +69,18 @@ Login failed response
 ```
 
 ### Logout
-You can also logout. Hyperion doesn't verify the login state, it will be always a success.
-``` json
+Users can also logout. Hyperion doesn't verify the login state, this call will always
+return a success.
+
+```json
 {
     "command" : "authorize",
     "subcommand" : "logout"
 }
 ```
-Response
-``` json
+
+Response:
+```json
 {
     "command" : "authorize-logout",
     "success" : true,
@@ -79,19 +88,26 @@ Response
 }
 ```
 ::: warning
-A Logout will stop all streaming data services and subscriptions
+Logging out will stop all streaming data services and subscriptions
 :::
 
 ### Request a Token
-If you want to get the most comfortable way for your application to authenticate
-  * You ask Hyperion for a token along with a comment (A text which identifies you as the sender, meaningful informations are desired - appname + device) and a short random created id (numbers/letters)
-  * Wait for the response, the user needs to accept the request from the webconfiguration
-  * -> On success you get a UUID token which is now your personal app token
-  * -> On error you won't get a token, in this case the user denied the request or it timed out (180s).
-  * Now you are able to access the API, your access can be revoked by the user at any time, but will last for current connected sessions.
 
-Requesting a token is easy, just send the following command, make sure to add a sufficient comment. The "id" field has 5 random chars created by yourself. And add a meaningful comment.
-``` json
+Here is the recommended workflow for your application to authenticate:
+   * Ask Hyperion for a token along with a comment (a short meaningful string that
+     identifies the caller is the most useful, e.g. includes an application name and
+     device) and a short randomly created `id` (numbers/letters).
+   * Wait for the response. The user will need to accept the token request from the Web UI.
+   * On success: The call will return a UUID token that can be repeatedly used. Note that
+  access could be revoked by the user at any time, but will continue to last for
+  currently connected sessions in this case.
+   * On error: The call won't get a token, which means the user either denied the request or it timed out (180s).
+
+Request a token using the follow command, being sure to add a comment that is
+descriptive enough for the Web UI user to make a decision as to whether to grant or deny
+the request. The `id` field has 5 random chars created by the caller, which will appear
+in the Web UI as the user considers granting their approval.
+```json
 {
     "command" : "authorize",
     "subcommand" : "requestToken",
@@ -99,13 +115,15 @@ Requesting a token is easy, just send the following command, make sure to add a 
     "id" : "T3c91"
 }
 ```
-Now you wait for the response, show a popup that the user should login to the webconfiguration and accept the token request. Show the comment and the id so that the user can confirm the origin properly. After 180 seconds without a user action, the request is automatically rejected. You will get a notification about the failure.
+
+After the call, a popup will appear in the Web UI to accept/reject the token request.
+The calling application should show the comment and the id so that the user can confirm
+the origin properly in the Hyperion UI. After 180 seconds without a user action, the
+request is automatically rejected, and the caller will get a failure response (see below).
 
 #### Success response
-If the user accepted your token request you will get the following message.
-  * Save the token somewhere for further use, it doesn't expire.
-  * Be aware that a user can revoke the access. It will last for current connected sessions.
-``` json
+If the user accepted the token request the caller will get the following response:
+```json
 {
     "command" : "authorize-requestToken",
     "success" : true,
@@ -116,12 +134,15 @@ If the user accepted your token request you will get the following message.
     }
 }
 ```
+  * Save the token somewhere for further use. The token does not expire.
+  * Be aware that a user can revoke the token. It will continue to function for currently connected sessions.
 
 #### Failed response
-A request will fail when
-  * Timeout - no user action for 180 seconds
-  * User denied the request
-``` json
+A request will fail when either:
+   * It times out (i.e. user neither approves nor rejects for 180 seconds after the request
+     is sent).
+   * User rejects the request.
+```json
 {
     "command" : "authorize-requestToken",
     "success" : false,
@@ -130,8 +151,9 @@ A request will fail when
 ```
 
 #### Request abort
-You can abort the request by adding an "accept" property to the original request. The request will be deleted
-``` json
+You can abort the token request by adding an "accept" property to the original request.
+The request will be deleted:
+```json
 {
     "command" : "authorize",
     "subcommand" : "requestToken",
@@ -140,4 +162,3 @@ You can abort the request by adding an "accept" property to the original request
     "accept" : false
 }
 ```
-  

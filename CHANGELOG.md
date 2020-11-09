@@ -36,6 +36,7 @@ Allow execution with option "--version", while another hyperion daemon is runnin
 - Change links from http to https (#1067)
 
 - UI: Separate LED-Layout creation from UI code
+- Docs: Refreshed EN JSON API documentation
 
 ### Fixed
 - Properly save Hue light state between sessions (#1014)

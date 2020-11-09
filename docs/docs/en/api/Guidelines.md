@@ -1,13 +1,14 @@
 # Guidelines
-Improve the experience with Hyperion by following a rule set
+Improve the user experience with Hyperion by following these guidelines.
 
 [[toc]]
 
 ## Priority Guidelines
-The possibilities of priorities mixing and using is endless. But where are a lot of possibilities you require also some guidelines to reduce confusion on user and developer side and to get the best matching experience possible.
+Please adhere to the following priority guidelines to avoid user confusion and ensure
+the best user experience possible:
 
-The user expects, that an Effect or Color should be higher in priority than capturing as you usually run them from remotes and not all time.
-While we have different capture/input methods, we follow also a specific priority chain to make sure that it fit's the most use cases out of the box.
+The user expects that an effect or color should be higher in priority (lower in value)
+than capturing, as colors/effects are usually run intermittently.
 
 |          Type           | Priority/Range | Recommended |                  Comment                   |
 | :---------------------: | :------------: | :---------: | :----------------------------------------: |
@@ -20,4 +21,3 @@ While we have different capture/input methods, we follow also a specific priorit
 |    Platform Capture     |      250       |      -      |                                            |
 | Background Effect/Color |      254       |      -      |                                            |
 |        Reserved         |      255       |      -      |                                            |
- 

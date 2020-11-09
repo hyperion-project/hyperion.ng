@@ -1,8 +1,8 @@
 # Control
-You can control Hyperion by sending specific JSON messages. Or get a image and led colors stream of the current active source priority.
+You can control Hyperion by sending specific JSON messages.
 
 ::: tip
-The `tan` property is supported, but omitted.
+The `tan` property is supported in these calls, but omitted for brevity.
 :::
 
 [[toc]]
@@ -15,19 +15,19 @@ Set a color for all leds or provide a pattern of led colors.
 | Property |  Type   | Required |                                                     Comment                                                      |
 | :------: | :-----: | :------: | :--------------------------------------------------------------------------------------------------------------: |
 |  color   |  Array  |   true   |                                 An array of R G B Integer values e.g. `[R,G,B]`                                  |
-| duration | Integer |  false   |                  Duration of color in ms. If you don't provide a duration, it's `0` -> endless                   |
+| duration | Integer |  false   |                  Duration of color in ms. If you don't provide a duration, it's `0` -> indefinite                |
 | priority | Integer |   true   | We recommend `50`, following the [Priority Guidelines](/en/api/guidelines#priority_guidelines). Min `2` Max `99` |
 |  origin  | String  |   true   |              A short name of your application like `Hyperion of App` . Max length is `20`, min `4`.              |
 
-``` json
-// Example: Set color blue with endless duration at priority 50 
+```json
+// Example: Set a blue color with indefinite duration at priority 50 
 {
   "command":"color",
   "color":[0,0,255],
   "priority":50,
   "origin":"My Fancy App"
 }
-// Example: Set color cyan for 12 seconds at priority 20
+// Example: Set a cyan color for 12 seconds at priority 20
 {
   "command":"color",
   "color":[0,255,255],
@@ -36,8 +36,8 @@ Set a color for all leds or provide a pattern of led colors.
   "origin":"My Fancy App"
 }
 
-// Example: Provide a color pattern, which will be reapted until all LEDs have a color
-// In this case LED 1: Red, LED 2: Red, LED 3: Blue. This repeats now
+// Example: Provide a color pattern, which will be repeated until all LEDs have a color
+// In this case LED 1: Red, LED 2: Red, LED 3: Blue.
 {
   "command":"color",
   "color":[255,0,0,255,0,0,0,0,255], // one led has 3 values (Red,Green,Blue) with range of 0-255
@@ -48,17 +48,17 @@ Set a color for all leds or provide a pattern of led colors.
 ```
 
 ### Set Effect
-Set an effect by name. Get a name from [Serverinfo](/en/json/ServerInfo.md#effect-list)
+Set an effect by name. Available names can be found in the [serverinfo effect list](/en/json/ServerInfo.md#effect-list).
 
 | Property |  Type   | Required |                                                     Comment                                                      |
 | :------: | :-----: | :------: | :--------------------------------------------------------------------------------------------------------------: |
 |  effect  | Object  |   true   |                          Object with additional properties. e.g. `"name":"EffectName"`.                          |
-| duration | Integer |  false   |                  Duration of effect in ms. If you don't provide a duration, it's `0` -> endless                  |
+| duration | Integer |  false   |                  Duration of effect in ms. If you don't provide a duration, it's `0` -> indefinite               |
 | priority | Integer |   true   | We recommend `50`, following the [Priority Guidelines](/en/api/guidelines#priority_guidelines). Min `2` Max `99` |
 |  origin  | String  |   true   |              A short name of your application like `Hyperion of App` . Max length is `20`, min `4`.              |
 
-``` json
-// Example: Set effect Warm mood blobs with endless duration
+```json
+// Example: Set the 'Warm mood blobs' effect with indefinite duration
 {
   "command":"effect",
   "effect":{
@@ -67,7 +67,7 @@ Set an effect by name. Get a name from [Serverinfo](/en/json/ServerInfo.md#effec
   "priority":50,
   "origin":"My Fancy App"
 }
-// Example: Set effect Rainbow swirl for 5 seconds
+// Example: Set 'Rainbow swirl' effect for 5 seconds
 {
   "command":"effect",
   "effect":{
@@ -77,9 +77,9 @@ Set an effect by name. Get a name from [Serverinfo](/en/json/ServerInfo.md#effec
   "priority":50,
   "origin":"My Fancy App"
 }
-// Example: Set effect Rainbow swirl for 1 seconds with overwritten agrument
-// Each effect has different agruments inside the args property that can be overwritten
-// WARNING: We highly recommend to use the effects configurator instead. As you can send wrong values and the effect can crash/ behave strange
+// Example: Set 'Rainbow swirl' effect for 1 second with overridden agrument
+// Each effect has different agruments inside the args property that can be overridden.
+// WARNING: We highly recommend using the effects configurator in the UI instead. Sending invalid values may cause the effect to misbehave or crash.
 {
   "command":"effect",
   "effect":{
@@ -94,7 +94,7 @@ Set an effect by name. Get a name from [Serverinfo](/en/json/ServerInfo.md#effec
 ```
 
 ### Set Image
-Set a single image. Supported are all [Qt5](https://doc.qt.io/qt-5/qimagereader.html#supportedImageFormats) image formats, including png/jpg/gif.
+Set a single image. Supports all [Qt5](https://doc.qt.io/qt-5/qimagereader.html#supportedImageFormats) image formats, including png/jpg/gif.
 
 | Property  |  Type   | Required |                                                     Comment                                                      |
 | :-------: | :-----: | :------: | :--------------------------------------------------------------------------------------------------------------: |
@@ -105,8 +105,8 @@ Set a single image. Supported are all [Qt5](https://doc.qt.io/qt-5/qimagereader.
 | priority  | Integer |   true   | We recommend `50`, following the [Priority Guidelines](/en/api/guidelines#priority_guidelines). Min `2` Max `99` |
 |  origin   | String  |   true   |              A short name of your application like `Hyperion of App` . Max length is `20`, min `4`.              |
 
-``` json
-// Set a image for 5 seconds
+```json
+// Set an image for 5 seconds
 {
   "command":"image",
   "imagedata":"VGhpcyBpcyBubyBpbWFnZSEgOik=", // as base64!
@@ -119,8 +119,9 @@ Set a single image. Supported are all [Qt5](https://doc.qt.io/qt-5/qimagereader.
 ```
 
 ### Clear
-Clear a priority, usually used to revert these: [set color](#set-color), [set effect](#set-effect), [set image](#set-image)
-``` json
+Clear a priority, usually used to revert [set color](#set-color), [set
+effect](#set-effect) or [set image](#set-image).
+```json
 // Clear effect/color/image with priority 50
 {
   "command":"clear",
@@ -133,11 +134,13 @@ Clear a priority, usually used to revert these: [set color](#set-color), [set ef
 }
 ```
 ::: warning
-When you clear all, you clear all effects and colors independent who set it! We recommend to provide a list of possible clear targets instead based on the priority list
+When you clear all, you clear all effects and colors regardless of who set them!
+Instead, we recommend users provide a list of possible clear targets based on a
+priority list
 :::
 
 ### Adjustments
-Adjustments reflect the color calibration. You can modify all properties of [serverinfo adjustments](/en/json/serverinfo#adjustments)
+Adjustments reflect the color calibration. You can modify all properties of [serverinfo adjustments](/en/json/serverinfo#adjustments).
 
 |        Property        |      Type      | Required |                                            Comment                                             |
 | :--------------------: | :------------: | :------: | :--------------------------------------------------------------------------------------------: |
@@ -157,7 +160,7 @@ Adjustments reflect the color calibration. You can modify all properties of [ser
 |    backlightColored    |    Boolean     |  false   |    If `true` the backlight is colored, `false` it's white. Disabled for effect/color/image     |
 |           id           |     String     |  false   |                                        Short identifier                                        |
 
-``` json
+```json
 // Example: Set gammaRed to 1.5
 {
   "command":"adjustment",
@@ -191,8 +194,8 @@ Adjustments reflect the color calibration. You can modify all properties of [ser
 ```
 
 ### LED mapping
-Switch the image to led mapping mode. Available are `unicolor_mean` (led color based on whole picture color) and `multicolor_mean` (led colors based on led layout)
-``` json
+Switch the image to led mapping mode. Possible values are `unicolor_mean` (led color based on whole picture color) and `multicolor_mean` (led colors based on led layout)
+```json
 // Example: Set mapping mode to multicolor_mean
 {
   "command":"processing",
@@ -206,8 +209,8 @@ Switch the image to led mapping mode. Available are `unicolor_mean` (led color b
 ```
 
 ### Video Mode
-Switch the video mode between 2D, 3DSBS, 3DTAB.
- ``` json
+Switch the video mode. Possible values are: `2D`, `3DSBS` and `3DTAB`.
+ ```json
 // Example: Set video mode to 3DTAB
 {
   "command":"videomode",
@@ -221,12 +224,12 @@ Switch the video mode between 2D, 3DSBS, 3DTAB.
 ```
 
 ### Control Components
-It is possible to enable and disable certain components during runtime.
-To get the current state and available components See [serverinfo Components](/en/json/serverinfo#components).
-See also: [Components/IDs explained](#components-ids-explained)
+Some components can be enabled and disabled at runtime. To get the current state and
+available components see [Serverinfo Components](/en/json/serverinfo#components). See
+also: [Components/IDs explained](#components-ids-explained)
 
- ``` json
-// Example: disable component LEDDEVICE
+ ```json
+// Example: disable LEDDEVICE component
 {
   "command":"componentstate",
   "componentstate":{
@@ -234,7 +237,7 @@ See also: [Components/IDs explained](#components-ids-explained)
     "state":false
   }
 }
-// Example: enable component SMOOTHING
+// Example: enable SMOOTHING component
 {
   "command":"componentstate",
   "componentstate":{
@@ -244,12 +247,13 @@ See also: [Components/IDs explained](#components-ids-explained)
 }
 ```
 ::: warning
-Hyperion needs to be enabled! Check the status of "ALL" at the components list before you change another component!
+Hyperion itself needs to be enabled! Check the status of "ALL" in the components list before you change another component!
 :::
 
 ### Components/IDs explained
-Each component has a unique id. Not all of them can be enabled/disabled some of them like effect and color is used to determine the source 
- type you are confronted with at the priority overview.
+Each component has a unique id. Not all of them can be enabled/disabled -- some of them,
+such as effect and color, are used to determine the source type when examining the
+[priority list](/en/json/ServerInfo.html#priorities).
 |  ComponentID   |      Component       | Enable/Disable |                                    Comment                                    |
 | :------------: | :------------------: | :------------: | :---------------------------------------------------------------------------: |
 |   SMOOTHING    |      Smoothing       |      Yes       |                              Smoothing component                              |
@@ -268,30 +272,36 @@ Each component has a unique id. Not all of them can be enabled/disabled some of 
 
 
 ### Source Selection
-Sources are always selected automatically by priority value (lowest number first), now you could select on your own a specific priority which should be visible (shown). You need the priority value of the source you want to select. Get them from the [serverinfo Priorities](/en/json/serverinfo#priorities).
-``` json
+Sources are always selected automatically by priority value (lowest value is the highest
+priority). You need to know the priority value of the source you want to select -- these
+priority values are available in the [serverinfo
+Priorities](/en/json/serverinfo#priorities).
+```json
 // Example: Set priority 50 to visible
 {
   "command":"sourceselect",
   "priority":50
 }
 ```
-If you get a success response, the `priorities_autoselect`-status will switch to false: [serverinfo Autoselection Mode](/en/json/serverinfo##priorities-selection-auto-manual). You are now in manual mode, to switch back to auto mode send:
-``` json
+If you get a success response, the `priorities_autoselect`-status will switch to false (see [serverinfo Autoselection Mode](/en/json/serverinfo##priorities-selection-auto-manual)). You are now in manual mode, to switch back to auto mode send:
+```json
 {
   "command":"sourceselect",
   "auto":true
 }
 ```
-Now, the `priorities_autoselect`-status will be again true
+After which, the `priorities_autoselect`-status will return to `true`.
 
 ::: warning
-You can just select priorities which are `active:true`!
+You can only select priorities which are `active:true`!
 :::
 
 ### Control Instances
-An instance represents a LED hardware instance, it runs within a own scope along with it's own plugin settings, led layout, calibration. First, you need to get informations about instances. The first shot from [serverinfo Instance](/en/json/serverinfo#instance).
-``` json
+An instance represents an LED hardware instance. It runs within its own scope with it's
+own plugin settings, led layout and calibration. Before selecting you can instance, you
+should first get information about the available instances from [serverinfo](/en/json/serverinfo#instance).
+
+```json
 // Command to start instance 1
 {
   "command" : "instance",
@@ -306,36 +316,43 @@ An instance represents a LED hardware instance, it runs within a own scope along
   "instance" : 1
 }
 ```
-In both cases you get a success response, it doesn't return any error responses.
 
 ### API Instance handling
-On connection to the API you will be connected to instance `0`, that means you can control just one instance at the same time within a connection. It's possible to switch to another instance with the following command.
+On connection to the API you will be connected to instance `0` by default. You can
+control only one instance at the same time within a single connection, and
+[subscriptions](/en/json/subscribe#instance-updates) are in the context of the selected instance.
 
-``` json
-// We switch to instance 1
+It's possible to switch to another instance with the following command:
+
+```json
+// Switch to instance 1
 {
   "command" : "instance",
   "subcommand" : "switchTo",
   "instance" : 1
 }
 ```
-Will return a success response, or a error response when the instance isn't available
+This will return a success response or an error if the instance isn't available.
 
 ::: warning
-It's possible that an instance will stop while you are connected. In this case you will be automatically reseted to instance `0`. So keep watching the instance data as subscription: [Instance updates](/en/json/subscribe#instance-updates)
+It's possible that an instance will stop while you are connected to it. In this case
+connections on that instance will automatically be reset to instance `0`. Keep watching
+the instance data via subscription if you need to handle this case.
+See: [Instance updates](/en/json/subscribe#instance-updates).
 :::
 
 ### Live Image Stream
-You can request a live image stream (when the current source priority can deliver). So it might be possible that there is no response or it stops and starts in between.
-``` json
+You can request a live image stream (if the current source priority supports it,
+otherwise here may be no response).
+```json
 {
   "command":"ledcolors",
   "subcommand":"imagestream-start"
 }
 ```
 You will receive "ledcolors-imagestream-update" messages with a base64 encoded image.
-Stop the stream by sending
-``` json
+Stop the stream by sending:
+```json
 {
   "command":"ledcolors",
   "subcommand":"imagestream-stop"
@@ -347,16 +364,17 @@ This feature is not available for HTTP/S JSON-RPC
 
 
 ### Live Led Color Stream
-You can request a live led color stream with current color values in RGB for each single led. Update rate is 125ms.
-``` json
+You can request a live led color stream with current color values in RGB for each single
+led. The update rate is 125ms.
+```json
 {
   "command":"ledcolors",
   "subcommand":"ledstream-start"
 }
 ```
 You will receive "ledcolors-ledstream-update" messages with an array of all led colors.
-Stop the stream by sending
-``` json
+Stop the stream by sending:
+```json
 {
   "command":"ledcolors",
   "subcommand":"ledstream-stop"
@@ -365,25 +383,3 @@ Stop the stream by sending
 ::: danger HTTP/S
 This feature is not available for HTTP/S JSON-RPC
 :::
-
-### Plugins
-::: danger NOT IMPLEMENTED
-THIS IS NOT IMPLEMENTED
-:::
-You can start and stop plugins. First, you need to get informations about plugins. The first short from [serverinfo plugins](/en/json/serverinfo#plugins).
-You need now the plugin id. Example: `service.kodi`.
-``` json
-// Command to start a plugin
-{
-  "command":"plugin",
-  "subcommand":"start",
-  "id":"service.kodi"
-}
-// Command to stop a plugin
-{
-  "command":"plugin",
-  "subcommand":"stop",
-  "id":"service.kodi"
-}
-```  
-You will get a response of your action. `plugin-start` or `plugin-stop` with success true/false.

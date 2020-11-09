@@ -1,21 +1,28 @@
 # JSON RPC Introduction
-The JSON-RPC provide lot's of possibilities to interact with Hyperion. You could get information about Hyperion and it's states and trigger certain actions based on these informations or just out of the wild.
+The JSON-RPC interfaces provides many ways to interact with Hyperion. You can retrieve
+information about your server, your instances and take actions (such as setting a
+priority input).
 
 [[toc]]
 
 ## What is JSON?
-JSON is a standardized message format [JSON.org](http://www.json.org/) and is supported by lot's of programming languages, which is perfect to transmit and process informations. While it's not the smartest in traffic size, it can be read by humans.
+JSON is a standardized message format (see [JSON.org](http://www.json.org/)) and is supported
+by most programming languages. It is human readable which makes for easier debugging.
 
 ### Sending JSON
-Hyperion requires a special formatted JSON message to process it. `command` is always required, while `tan` is optional. The tan is a integer you could freely define. It is part of the response so you could easy filter for it in case you need it (Might be very rarely).
-``` json
+Hyperion requires a specially formatted JSON message. A `command` argument is always
+required. A `tan` argument is optional. This is an integer you can freely choose -- it is
+part of the response you will receive to allow you to filter the response from other server
+messages (this functionality is likely necessary for advanced usecases only).
+
+```json
 {
   "command" : "YourCommand",
   "tan" : 1
 }
 ```
-Depending on command, there might be an additional subcommand required
-``` json
+Depending on the command, there might be an additional subcommand required:
+```json
 {
   "command" : "YourCommand",
   "subcommand" : "YourSubCommand",
@@ -24,8 +31,8 @@ Depending on command, there might be an additional subcommand required
 ```
   
 ### Response
-Most messages you send, trigger a response of the following format:
-``` json
+Most messages you send will trigger a response of the following format:
+```json
 {
   "command" : "YourCommand",
   "info":{ ...DATA... },
@@ -33,27 +40,28 @@ Most messages you send, trigger a response of the following format:
   "tan" : 1
 }
 ```
-- command: The command you requested.
-- tan: The tan you provided (If not, defaults to 1).
-- success: true or false. In case of false you get a proper answer what's wrong within an **error** property.
-- info: The data you requested (if so) 
+- **command**: The command you requested.
+- **tan**: The tan you provided (If not, it will default to 0 in the response).
+- **success**: true or false. If false, an **error** argument will contain details of the issue.
+- **info**: The data you requested (if any).
 
 ## Connect
-Supported are currently TCP Socket ("Json Server"), WebSocket and HTTP/S.
+Hyperion currently supports multiple connection mechanisms: TCP Socket ("Json Server"), WebSocket and HTTP/S.
 ::: tip
-You can discover Hyperion servers! Checkout [Detect Hyperion](/en/api/detect.md)
+You can automatically discover Hyperion servers! See [Detect Hyperion](/en/api/detect.md)
 :::
 
 ### TCP Socket
-Is a "raw" connection, you send and receive json from the json-rpc (default port: 19444). Also known as "Json Server".
+This is a "raw" connection, you can send and receive line-separated json from the server
+(default port: 19444). This is also known as the "Json Server".
 
 ### WebSocket
-Part of the webserver (default port: 8090). You send and receive json from the json-rpc.
-Supported is also WSS at port 8092. We support just TEXT mode. Read more at [Websocket](https://en.wikipedia.org/wiki/WebSocket|).
+This is part of the Hyperion webserver (default port: 8090). You send and receive json
+commands. WSS is also supported on port 8092. Only TEXT mode is supported. Read more
+about websockets at [Websocket](https://en.wikipedia.org/wiki/WebSocket|).
 
 ### HTTP/S Json
-HTTP requests can be also send to the webserver (default port: 8090, for HTTPS: 8092).
-Send a HTTP/S POST request along with a properly formatted json message at the body to the (example) url: `http://IpOfDevice:WebserverPort/json-rpc`
+HTTP requests can also be sent to the webserver (default port: 8090, for HTTPS: 8092). Send a HTTP/S POST request along with a properly formatted json message in the body to the (example) url: `http://IpOfDevice:WebserverPort/json-rpc`
  
 <ImageWrap src="/images/en/http_jsonrpc.jpg" alt="Control Hyperion with HTTP JSON RPC">
 Example picture with a [Firefox](https://addons.mozilla.org/de/firefox/addon/restclient/)/[Chrome](https://chrome.google.com/webstore/detail/advanced-rest-client/hgmloofddffdnphfgcellkdfbfbjeloo/related) Addon to send HTTP JSON messages
@@ -61,7 +69,7 @@ Example picture with a [Firefox](https://addons.mozilla.org/de/firefox/addon/res
 </ImageWrap>
 
 ::: tip
-If you get a "No Authorization" message back, you need to create an [Authorization Token](/en/json/Authorization.md#token-system)
+If you get a "No Authorization" response, you need to create an [Authorization Token](/en/json/Authorization.md#token-system)
 :::
 
 ::: warning HTTP/S Restrictions
@@ -72,10 +80,10 @@ Please note that the HTTP JSON-RPC lacks of the following functions due to techn
 ## API
 
 ### Server Info
-All kind of infos from the Server: [Server Info](/en/json/ServerInfo.md)
+A large variety of data is available from the server: [Server Info](/en/json/ServerInfo.md)
 ### Control
-Control Hyperion: [Control](/en/json/Control.md)
+Control your Hyperion server: [Control](/en/json/Control.md)
 ### Authorization
-All around the Authorization system: [Authorization](/en/json/Authorization.md)
+Authorization mechanisms: [Authorization](/en/json/Authorization.md)
 ### Subscribe
 Data subscriptions: [Subscribe](/en/json/Subscribe.md)
