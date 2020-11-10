@@ -26,6 +26,14 @@ bool LedDeviceFile::init(const QJsonObject &deviceConfig)
 	bool initOK = LedDevice::init(deviceConfig);
 
 	_fileName = deviceConfig["output"].toString("/dev/null");
+
+#if _WIN32
+	if (_fileName == "/dev/null" )
+	{
+		_fileName = "NULL";
+	}
+#endif
+
 	_printTimeStamp = deviceConfig["printTimeStamp"].toBool(false);
 
 	initFile(_fileName);
