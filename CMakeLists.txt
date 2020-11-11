@@ -308,7 +308,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	#
 	#      "environments": [
 	#    {
-	#      "Qt5_BASE_DIR": "D:\\Qt\\5.15.1\\msvc2019_64"
+	#      "Qt5_BASE_DIR": "D:/Qt/5.15.1/msvc2019_64"
 	#    }
 	#  ]
 
@@ -316,9 +316,9 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 		FIRSTSUBDIR(SUBDIRQT "C:/Qt")
 		SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SUBDIRQT}/msvc2019_64")
 	else()
-		message(STATUS "QT5_BASE_DIR: $ENV{QT5_BASE_DIR}")
-		message(STATUS "Add QT5_BASE_DIR: $ENV{QT5_BASE_DIR} to CMAKE_PREFIX_PATH")
-		SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} $ENV{Qt5_BASE_DIR})
+		message(STATUS "Qt5_BASE_DIR: $ENV{Qt5_BASE_DIR}")
+		message(STATUS "Add Qt5_BASE_DIR: $ENV{Qt5_BASE_DIR} to CMAKE_PREFIX_PATH")
+		SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "$ENV{Qt5_BASE_DIR}")
 	endif()
 
 	if (NOT DEFINED ENV{Qt5_DIR})
@@ -328,10 +328,11 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 			SET (qt_module_path "$ENV{Qt5_BASE_DIR}/lib/cmake/Qt5")
 		endif()
 	else()
-		SET (qt_module_path $ENV{Qt5_DIR})
+		SET (qt_module_path "$ENV{Qt5_DIR}")
 	endif()
+
 	message(STATUS "Add ${qt_module_path} to CMAKE_MODULE_PATH")
-	SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${qt_module_path})
+	SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${qt_module_path}")
 	
 	#message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 	#message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")

@@ -28,6 +28,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Documentation: Optimized images (#1058)
 - UX: Default LED-layout is now one LED only to avoid errors as in #673
 - UX: Change links from http to https (#1067)
+- Change links from http to https (#1067)
+- Cleanup packages.cmake & extend NSIS plugin directory
+- Optimize images (#1058)
+- Update LICENSE
+- Change links from http to https (#1067)
+- UI: Separate LED-Layout creation from UI code
+- Docs: Refreshed EN JSON API documentation
 
 ### Fixed
 - Color calibration for Kodi 18 (#1044)
