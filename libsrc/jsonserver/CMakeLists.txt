@@ -10,6 +10,6 @@ add_library(jsonserver ${JsonServer_SOURCES} )
 target_link_libraries(jsonserver
 	hyperion-api
 	hyperion
-	Qt5::Network
-	Qt5::Gui
+	Qt6::Network
+	Qt6::Gui
 )

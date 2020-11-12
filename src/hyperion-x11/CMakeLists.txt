@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(hyperion-x11)
 
-find_package(Qt5Widgets REQUIRED)
+find_package(Qt6Widgets REQUIRED)
 find_package(X11 REQUIRED)
 
 include_directories(
@@ -38,10 +38,10 @@ target_link_libraries(${PROJECT_NAME}
 	${X11_LIBRARIES}
 	${X11_Xrandr_LIB}
 	${X11_Xrender_LIB}
-	Qt5::Core
-	Qt5::Gui
-	Qt5::Network
-	Qt5::Widgets
+	Qt6::Core
+	Qt6::Gui
+	Qt6::Network
+	Qt6::Widgets
 )
 
 install ( TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin" COMPONENT "hyperion_x11" )

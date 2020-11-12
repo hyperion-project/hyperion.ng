@@ -6,7 +6,7 @@ else()
 	include_directories(${PYTHON_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS}/..)
 endif()
 
-find_package(Qt5Widgets REQUIRED)
+find_package(Qt6Widgets REQUIRED)
 
 # generate windows .rc file for this binary
 if (WIN32)
@@ -41,7 +41,7 @@ target_link_libraries(hyperiond
 	database
 	python
 	resources
-	Qt5::Widgets
+	Qt6::Widgets
 )
 
 if (NOT CMAKE_VERSION VERSION_LESS "3.12")
@@ -56,7 +56,7 @@ endif ()
 
 if (ENABLE_AMLOGIC)
 	target_link_libraries(hyperiond
-		Qt5::Core
+		Qt6::Core
 		pcre16 dl z
 	)
 endif()

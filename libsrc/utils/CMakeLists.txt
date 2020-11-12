@@ -15,7 +15,7 @@ add_library(hyperion-utils
 
 target_link_libraries(hyperion-utils
 	hyperion
-	Qt5::Core
-	Qt5::Gui
-	Qt5::Network
+	Qt6::Core
+	Qt6::Gui
+	Qt6::Network
 )

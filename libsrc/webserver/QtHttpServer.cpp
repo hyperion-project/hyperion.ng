@@ -36,7 +36,7 @@ void QtHttpServerWrapper::incomingConnection (qintptr handle)
 QtHttpServer::QtHttpServer (QObject * parent)
 	: QObject      (parent)
 	, m_useSsl     (false)
-	, m_serverName (QStringLiteral ("The Qt5 HTTP Server"))
+	, m_serverName (QStringLiteral ("The Qt6 HTTP Server"))
 	, m_netOrigin  (NetOrigin::getInstance())
 {
 	m_sockServer = new QtHttpServerWrapper (this);

@@ -3,10 +3,10 @@ SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/grabber)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/grabber/xcb)
 
 find_package(XCB COMPONENTS SHM IMAGE RENDER RANDR REQUIRED)
-find_package(Qt5Widgets REQUIRED)
+find_package(Qt6Widgets REQUIRED)
 
 if (NOT APPLE)
-	find_package(Qt5X11Extras REQUIRED)
+	find_package(Qt6X11Extras REQUIRED)
 endif()
 
 include_directories(${XCB_INCLUDE_DIRS})
@@ -17,11 +17,11 @@ add_library(xcb-grabber ${XCB_SOURCES})
 
 target_link_libraries(xcb-grabber
 	hyperion
-	Qt5::X11Extras
-	Qt5::Widgets
+	Qt6::X11Extras
+	Qt6::Widgets
 	${XCB_LIBRARIES}
 )
 
 if (NOT APPLE)
-	target_link_libraries(xcb-grabber Qt5::X11Extras)
+	target_link_libraries(xcb-grabber Qt6::X11Extras)
 endif()

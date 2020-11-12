@@ -2,7 +2,7 @@
 SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/grabber)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/grabber/qt)
 
-find_package(Qt5Widgets REQUIRED)
+find_package(Qt6Widgets REQUIRED)
 
 include_directories( ${X11_INCLUDES} )
 
@@ -12,5 +12,5 @@ add_library(qt-grabber ${QT_GRAB_SOURCES} )
 
 target_link_libraries(qt-grabber
 	hyperion
-	Qt5::Widgets
+	Qt6::Widgets
 )

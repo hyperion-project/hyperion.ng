@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(hyperion-framebuffer)
 
-find_package(Qt5Widgets REQUIRED)
+find_package(Qt6Widgets REQUIRED)
 
 include_directories(
 	${CMAKE_CURRENT_BINARY_DIR}/../../libsrc/flatbufserver
@@ -29,9 +29,9 @@ target_link_libraries( ${PROJECT_NAME}
 	flatbuffers
 	framebuffer-grabber
 	ssdp
-	Qt5::Core
-	Qt5::Gui
-	Qt5::Network
+	Qt6::Core
+	Qt6::Gui
+	Qt6::Network
 )
 
 if (ENABLE_AMLOGIC)
