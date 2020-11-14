@@ -359,10 +359,10 @@ function migrateLedConfig(slConfig){
 
 	//Default Classic layout
   	newLedConfig.classic = {
-				"top"	 	: 8,
-				"bottom"	: 8,
-				"left"		: 5,
-				"right"		: 5,
+				"top"	 	: 1,
+				"bottom"	: 0,
+				"left"		: 0,
+				"right"		: 0,
 				"glength"	: 0,
 				"gpos"		: 0,
 				"position"	: 0,
@@ -386,8 +386,8 @@ function migrateLedConfig(slConfig){
 	newLedConfig.classic.overlap	= slConfig.overlap;
 
 	//Default Matrix layout
-	newLedConfig["matrix"] = { "ledshoriz": 10,
-				"ledsvert" : 10,
+	newLedConfig["matrix"] = { "ledshoriz": 1,
+				"ledsvert" : 1,
 				"cabling"  : "snake",
 				"start"    : "top-left"
 				}

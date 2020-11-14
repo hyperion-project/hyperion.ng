@@ -66,12 +66,11 @@ protected:
 	///
 	QString discoverFirst() override;
 
-	///
-	/// @brief Discover RS232 serial devices available (for configuration).
+	/// @param[in] params Parameters used to overwrite discovery default behaviour
 	///
 	/// @return A JSON structure holding a list of devices found
 	///
-	QJsonObject discover() override;
+	QJsonObject discover(const QJsonObject& params) override;
 
 	///
 	/// @brief Write the given bytes to the RS232-device

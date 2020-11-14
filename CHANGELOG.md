@@ -9,20 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Breaking
 
 ### Added
-- Cololight support (Cololight Plus & Strip) incl. configuration wizard
-- Provide additional details on Hardware/CPU information
-- Allow execution with option "--version", while another hyperion daemon is running
-- New language support: Russian and Chinese (simplified) (#1005)
-- Added libcec to deb/rpm dependency list
-- Updated some language files
-- New LED Device SK9822 (#1005)
-- Support SK9822 type LEDs with adaptive brightness control via SPI (#1017)
-- Provide additional details on Hardware/CPU information (#1045)
-  - Allow execution with option "--version", while another hyperion daemon is running
+- Grabber: DirectX9 support (#1039)
 - New blackbar detection mode "Letterbox", that considers only bars at the top and bottom of picture
-- Systray icons added - Issue #925 (#1040)
-- DirectX9 Grabber (#1039)
-- Added DirectX SDK to CompileHowto
+
+- LED-Devices: Cololight support (Cololight Plus & Strip) incl. configuration wizard
+- LED-Devices: SK9822 support (#1005,#1017)
+
+- UX: New language support: Russian and Chinese (simplified) (#1005)
+- UX: Additional details on Hardware/CPU information (#1045)
+- UX: Systray icons added - Issue #925 (#1040)
+
+- Read-Only configuration database support
 - Hide Window Systray icon on Hyperion exit & Install DirectX Redistributable
 - Read-Only configuration database support
 
@@ -30,26 +27,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - boblight: reduce cpu time spent on memcopy and parsing rgb values (#1016)
 - Windows Installer/Uninstaller notification when Hyperion is running (#1033)
 - Updated Windows Dependencies
+- Documentation: Optimized images (#1058)
+- UX: Default LED-layout is now one LED only to avoid errors as in #673
+- UX: Change links from http to https (#1067)
+- Change links from http to https (#1067)
 - Cleanup packages.cmake & extend NSIS plugin directory
 - Optimize images (#1058)
-- Update LICENSE
-- Change links from http to https (#1067)
-- UI: Separate LED-Layout creation from UI code
 - Docs: Refreshed EN JSON API documentation
 
 ### Fixed
-- Properly save Hue light state between sessions (#1014)
-- AVAHI included in Webserver (#996)
-- Also allow an 8-LED configuration when using Karatelight (#1037)
-- Fix #1007 - LED's retain last state after clearing a source (#1008) 
-- Fix Lightpack issue #1015 (#1049)
-- Fix #771 color calibration for Kodi 18 (#1044)
+- Color calibration for Kodi 18 (#1044)
+- LED-Devices: Karatelight, allow an 8-LED configuration (#1037)
+- LED-Devices: Save Hue light state between sessions (#1014)
+- LED-Devices: LED's retain last state after clearing a source (#1008) 
+- LED-Devices: Lightpack issue #1015 (#1049)
 - Fix various JSON API issues (#1036)
 - Fix issue #909, Have ratio correction first and then scale (#1047) 
 - Fix display argument in hyperion-qt (#1027)
-- Fix typos (#1051)
 - Fix Python reset thread state
-
+- AVAHI included in Webserver (#996)
+- Fix add libcec to deb/rpm dependency list
+- Fix Hyperion configuration is corrected during start-up, if required
 
 ### Removed
 - Replace Multi-Lightpack by multi-instance Lightpack configuration (#1049)

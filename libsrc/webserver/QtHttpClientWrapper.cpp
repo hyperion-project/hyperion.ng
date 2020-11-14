@@ -242,7 +242,7 @@ void QtHttpClientWrapper::onReplySendHeadersRequested (void)
 	{
 		QByteArray data;
 		// HTTP Version + Status Code + Status Msg
-		data.append (QtHttpServer::HTTP_VERSION);
+		data.append (QtHttpServer::HTTP_VERSION.toUtf8());
 		data.append (SPACE);
 		data.append (QByteArray::number (reply->getStatusCode ()));
 		data.append (SPACE);

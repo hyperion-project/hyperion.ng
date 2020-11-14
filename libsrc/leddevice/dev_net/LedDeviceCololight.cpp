@@ -38,67 +38,6 @@ const char COLOLIGHT_MODEL_IDENTIFIER[] = "OD_WE_QUAN";
 const int COLOLIGHT_BEADS_PER_MODULE = 19;
 const int COLOLIGHT_MIN_STRIP_SEGMENT_SIZE = 30;
 
-enum verbs {
-	GET = 0x03,
-	SET = 0x04,
-	SETEEPROM = 0x07,
-	SETVAR = 0x0b
-};
-
-enum commandTypes {
-	STATE_OFF = 0x80,
-	STATE_ON = 0x81,
-	BRIGTHNESS = 0xCF,
-	SETCOLOR = 0xFF
-};
-
-enum idxTypes {
-	BRIGTHNESS_CONTROL = 0x01,
-	COLOR_CONTROL = 0x02,
-	COLOR_DIRECT_CONTROL = 0x81,
-	READ_INFO_FROM_STORAGE = 0x86
-};
-
-	enum bufferMode {
-		MONOCROME = 0x01,
-		LIGHTBEAD = 0x02,
-		};
-
-enum ledLayout {
-	STRIP_LAYOUT,
-	MODLUE_LAYOUT
-};
-
-enum modelType {
-	STRIP,
-	PLUS
-};
-
-const uint8_t PACKET_HEADER[] =
-	{
-		'S', 'Z',   // Tag "SZ"
-		0x30, 0x30, // Version "00"
-		0x00, 0x00, // AppID, 0x0000 = TL1 command mode
-		0x00, 0x00, 0x00, 0x00 // Size
-};
-
-const uint8_t PACKET_SECU[] =
-	{
-		0x00, 0x00, 0x00, 0x00, // Dict
-		0x00, 0x00, 0x00, 0x00, // Sum
-		0x00, 0x00, 0x00, 0x00, // Salt
-		0x00, 0x00, 0x00, 0x00 // SN
-};
-
-const uint8_t TL1_CMD_FIXED_PART[] =
-	{
-		0x00, 0x00, 0x00, 0x00, // DISTID
-		0x00, 0x00, 0x00, 0x00, // SRCID
-		0x00, // SECU
-		0x00, // VERB
-		0x00, // CTAG
-		0x00 // LENGTH
-};
 } //End of constants
 
 LedDeviceCololight::LedDeviceCololight(const QJsonObject& deviceConfig)
@@ -174,7 +113,7 @@ bool LedDeviceCololight::initLedsConfiguration()
 
 		if (getLedCount() == 0)
 		{
-			setLedCount(static_cast<uint>(_devConfig[CONFIG_HW_LED_COUNT].toInt(0)));
+			setLedCount(_devConfig[CONFIG_HW_LED_COUNT].toInt(0));
 		}
 
 		if (_modelType == STRIP && (getLedCount() % COLOLIGHT_MIN_STRIP_SEGMENT_SIZE != 0))
@@ -187,7 +126,7 @@ bool LedDeviceCololight::initLedsConfiguration()
 		{
 			Debug(_log, "LedCount     : %d", getLedCount());
 
-			uint configuredLedCount = static_cast<uint>(_devConfig["currentLedCount"].toInt(1));
+			int configuredLedCount = _devConfig["currentLedCount"].toInt(1);
 
 			if (getLedCount() < configuredLedCount)
 			{
@@ -200,7 +139,7 @@ bool LedDeviceCololight::initLedsConfiguration()
 			{
 				if (getLedCount() > configuredLedCount)
 				{
-					Info(_log, "%s: More LEDs [%u] than configured LEDs in layout [%u].", QSTRING_CSTR(this->getActiveDeviceType()), getLedCount(), configuredLedCount);
+					Info(_log, "%s: More LEDs [%d] than configured LEDs in layout [%d].", QSTRING_CSTR(this->getActiveDeviceType()), getLedCount(), configuredLedCount);
 				}
 				isInitOK = true;
 			}
@@ -269,7 +208,7 @@ bool LedDeviceCololight::getInfo()
 				{
 					_modelType = MODLUE_LAYOUT;
 					_distance = ledNum / COLOLIGHT_BEADS_PER_MODULE;
-					setLedCount(static_cast<uint>(_distance));
+					setLedCount(_distance);
 				}
 			}
 			else
@@ -455,7 +394,7 @@ bool LedDeviceCololight::sendRequest(const appID appID, const QByteArray& comman
 	packet.append(static_cast<char>(_sequenceNumber));
 	packet.append(command);
 
-	quint32 size = sizeof(PACKET_SECU) + 1 + command.size();
+	quint32 size = static_cast<quint32>(static_cast<int>(sizeof(PACKET_SECU)) + 1 + command.size());
 
 	qToBigEndian<quint16>(appID, packet.data() + 4);
 
@@ -606,7 +545,7 @@ bool LedDeviceCololight::powerOff()
 	return off;
 }
 
-QJsonObject LedDeviceCololight::discover()
+QJsonObject LedDeviceCololight::discover(const QJsonObject& /*params*/)
 {
 	QJsonObject devicesDiscovered;
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);

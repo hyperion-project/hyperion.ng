@@ -19,14 +19,14 @@ public:
 		// listen for config changes
 		connect(_hyperion, &Hyperion::settingsChanged, this, &BGEffectHandler::handleSettingsUpdate);
 
-		// init
+		// initialization
 		handleSettingsUpdate(settings::BGEFFECT, _hyperion->getSetting(settings::BGEFFECT));
-	};
+	}
 
 private slots:
 	///
 	/// @brief Handle settings update from Hyperion Settingsmanager emit or this constructor
-	/// @param type   settingyType from enum
+	/// @param type   settingType from enum
 	/// @param config configuration object
 	///
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config)
@@ -36,7 +36,7 @@ private slots:
 			const QJsonObject& BGEffectConfig = config.object();
 
 			#define BGCONFIG_ARRAY bgColorConfig.toArray()
-			// clear bg prioritiy
+			// clear background priority
 			_hyperion->clear(254);
 			// initial background effect/color
 			if (BGEffectConfig["enable"].toBool(true))
@@ -48,24 +48,24 @@ private slots:
 				{
 					std::vector<ColorRgb> bg_color = {
 						ColorRgb {
-							(uint8_t)BGCONFIG_ARRAY.at(0).toInt(0),
-							(uint8_t)BGCONFIG_ARRAY.at(1).toInt(0),
-							(uint8_t)BGCONFIG_ARRAY.at(2).toInt(0)
+							static_cast<uint8_t>(BGCONFIG_ARRAY.at(0).toInt(0)),
+							static_cast<uint8_t>(BGCONFIG_ARRAY.at(1).toInt(0)),
+							static_cast<uint8_t>(BGCONFIG_ARRAY.at(2).toInt(0))
 						}
 					};
 					_hyperion->setColor(254, bg_color);
-					Info(Logger::getInstance("HYPERION"),"Inital background color set (%d %d %d)",bg_color.at(0).red, bg_color.at(0).green, bg_color.at(0).blue);
+					Info(Logger::getInstance("HYPERION"),"Initial background color set (%d %d %d)",bg_color.at(0).red, bg_color.at(0).green, bg_color.at(0).blue);
 				}
 				else
 				{
 					int result = _hyperion->setEffect(bgEffectConfig, 254);
-					Info(Logger::getInstance("HYPERION"),"Inital background effect '%s' %s", QSTRING_CSTR(bgEffectConfig), ((result == 0) ? "started" : "failed"));
+					Info(Logger::getInstance("HYPERION"),"Initial background effect '%s' %s", QSTRING_CSTR(bgEffectConfig), ((result == 0) ? "started" : "failed"));
 				}
 			}
 
 			#undef BGCONFIG_ARRAY
 		}
-	};
+	}
 
 private:
 	/// Hyperion instance pointer

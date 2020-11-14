@@ -7,7 +7,7 @@
 // Qt includes
 #include <QVector>
 
-// hyperion incluse
+// hyperion includes
 #include <leddevice/LedDevice.h>
 #include <utils/Components.h>
 
@@ -30,7 +30,7 @@ enum SmoothingType {
 	Decay,
 };
 
-/// Linear Smooting class
+/// Linear Smoothing class
 ///
 /// This class processes the requested led values and forwards them to the device after applying
 /// a smoothing effect to LED colors. This class can be handled as a generic LedDevice.
@@ -94,12 +94,12 @@ public:
 	bool enabled() const { return _enabled && !_pause; }
 
 	///
-	/// @brief Add a new smoothing cfg which can be used with selectConfig()
+	/// @brief Add a new smoothing configuration which can be used with selectConfig()
 	/// @param   settlingTime_ms       The buffer time
 	/// @param   ledUpdateFrequency_hz The frequency of update
 	/// @param   updateDelay           The delay
 	///
-	/// @return The index of the cfg which can be passed to selectConfig()
+	/// @return The index of the configuration, which can be passed to selectConfig()
 	///
 	unsigned addConfig(int settlingTime_ms, double ledUpdateFrequency_hz = 25.0, unsigned updateDelay = 0);
 
@@ -112,12 +112,12 @@ public:
 	/// @param   ledUpdateFrequency_hz The frequency of update
 	/// @param   updateDelay           The delay
 	///
-	/// @return The index of the cfg which can be passed to selectConfig()
+	/// @return The index of the configuration, which can be passed to selectConfig()
 	///
 	unsigned updateConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz = 25.0, unsigned updateDelay = 0);
 
 	///
-	/// @brief select a smoothing cfg given by cfg index from addConfig()
+	/// @brief select a smoothing configuration given by cfg index from addConfig()
 	/// @param   cfg     The index to use
 	/// @param   force   Overwrite in any case the current values (used for cfg 0 settings update)
 	///
@@ -128,7 +128,7 @@ public:
 public slots:
 	///
 	/// @brief Handle settings update from Hyperion Settingsmanager emit or this constructor
-	/// @param type   settingyType from enum
+	/// @param type   settingType from enum
 	/// @param config configuration object
 	///
 	void handleSettingsUpdate(settings::type type, const QJsonDocument &config);
@@ -167,7 +167,7 @@ private:
 	Hyperion *_hyperion;
 
 	/// The interval at which to update the leds (msec)
-	int64_t _updateInterval;
+	int _updateInterval;
 
 	/// The time after which the updated led values have been fully applied (msec)
 	int64_t _settlingTime;
@@ -243,7 +243,7 @@ private:
 	/// The interval time in microseconds for interpolation of LED Frames.
 	int64_t _interpolationIntervalMicros;
 
-	/// Whether to apply temproral dithering to diffuse rounding errors when downsampling to 8-bit RGB colors.
+	/// Whether to apply temporal dithering to diffuse rounding errors when downsampling to 8-bit RGB colors.
 	bool _dithering;
 
 	/// The decay power > 0. A value of exactly 1 is linear decay, higher numbers indicate a faster decay rate.
@@ -263,8 +263,8 @@ private:
 		/// The time of the smoothing window.
 		int64_t settlingTime;
 
-		/// The interval time in millisecons of the timer used for scheduling LED update operations. A value of 0 indicates sub-millisecond timing.
-		int64_t updateInterval;
+		/// The interval time in milliseconds of the timer used for scheduling LED update operations. A value of 0 indicates sub-millisecond timing.
+		int updateInterval;
 
 		// The rate at which color frames should be written to LED device.
 		double outputRate;
@@ -275,13 +275,13 @@ private:
 		/// The number of frames the output is delayed
 		unsigned outputDelay;
 
-		/// Whether to apply temproral dithering to diffuse rounding errors when downsampling to 8-bit RGB colors. Improves color accuracy.
+		/// Whether to apply temporal dithering to diffuse rounding errors when downsampling to 8-bit RGB colors. Improves color accuracy.
 		bool dithering;
 
 		/// The decay power > 0. A value of exactly 1 is linear decay, higher numbers indicate a faster decay rate.
 		double decay;
 	};
-	/// smooth config list
+	/// smooth configuration list
 	QVector<SMOOTHING_CFG> _cfgList;
 
 	unsigned _currentConfigId;
@@ -329,7 +329,7 @@ private:
 	/// Prepares a frame of LED colors by interpolating using the current smoothing window
 	void interpolateFrame();
 
-	/// Performes a decay-based smoothing effect. The frames are interpolated based on their age and a given decay-power.
+	/// Performs a decay-based smoothing effect. The frames are interpolated based on their age and a given decay-power.
 	///
 	/// The ingress frames that were received during the current smoothing window are reduced using a weighted moving average
 	/// by applying the weighting-function to the color components of each frame.

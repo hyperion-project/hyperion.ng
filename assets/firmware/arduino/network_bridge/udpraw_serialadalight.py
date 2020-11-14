@@ -21,6 +21,7 @@ import socket
 import serial
 import serial.threaded
 
+from __future__ import division
 
 class SerialToNet(serial.threaded.Protocol):
     """serial->socket"""
@@ -152,7 +153,7 @@ to this service over the network.
 
     srv = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    srv.bind(('', args.localport))
+    srv.bind(('0.0.0.0', args.localport))
 
     try:
         intentional_exit = False

@@ -21,7 +21,7 @@ public:
 	///
 	/// @brief Constructs an UDP LED-device
 	///
-	ProviderUdp(const QJsonObject &deviceConfig);
+	ProviderUdp(const QJsonObject& deviceConfig);
 
 	///
 	/// @brief Destructor of the UDP LED-device
@@ -38,7 +38,7 @@ protected:
 	/// @param[in] deviceConfig the JSON device configuration
 	/// @return True, if success
 	///
-	bool init(const QJsonObject &deviceConfig) override;
+	bool init(const QJsonObject& deviceConfig) override;
 
 	///
 	/// @brief Opens the output device.
@@ -62,7 +62,7 @@ protected:
 	///
 	/// @return Zero on success, else negative
 	///
-	int writeBytes(const unsigned size, const uint8_t *data);
+	int writeBytes(const unsigned size, const uint8_t* data);
 
 	///
 	/// @brief Writes the given bytes to the UDP-device
@@ -71,10 +71,10 @@ protected:
 	///
 	/// @return Zero on success, else negative
 	///
-	int writeBytes(const QByteArray &bytes);
+	int writeBytes(const QByteArray& bytes);
 
 	///
-	QUdpSocket * _udpSocket;
+	QUdpSocket* _udpSocket;
 	QHostAddress _address;
 	quint16       _port;
 	QString      _defaultHost;
