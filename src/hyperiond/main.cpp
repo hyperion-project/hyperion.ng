@@ -256,14 +256,6 @@ int main(int argc, char** argv)
 		return 0;
 	}
 
-	if (parser.isSet(versionOption))
-	{
-		std::cout
-			<< "Hyperion Ambilight Daemon" << std::endl
-			<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
-			<< "\tBuild Time: " << __DATE__ << " " << __TIME__ << std::endl;
-	}
-
 	if (parser.isSet(exportEfxOption))
 	{
 		Q_INIT_RESOURCE(EffectEngine);
@@ -389,6 +381,7 @@ int main(int argc, char** argv)
 		}
 
 		Info(log,"Starting Hyperion - %s, %s, built: %s:%s", HYPERION_VERSION, HYPERION_BUILD_ID, __DATE__, __TIME__);
+		Debug(log,"QtVersion [%s]", QT_VERSION_STR);
 
 		if ( !readonlyMode )
 		{
