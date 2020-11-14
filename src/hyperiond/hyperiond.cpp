@@ -139,7 +139,7 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 
 	// ---- grabber -----
 #if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB) && !defined(ENABLE_X11) && !defined(ENABLE_XCB) && !defined(ENABLE_AMLOGIC) && !defined(ENABLE_QT) && !defined(ENABLE_DX)
-	Warning(_log, "No platform capture can be instantiated, because all grabbers have been left out from the build");
+	Info(_log, "No platform capture supported on this platform");
 #endif
 
 	// init system capture (framegrabber)
@@ -633,7 +633,7 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 		connect(this, &HyperionDaemon::videoMode, _v4l2Grabber, &V4L2Wrapper::setVideoMode);
 		connect(this, &HyperionDaemon::settingsChanged, _v4l2Grabber, &V4L2Wrapper::handleSettingsUpdate);
 #else
-		Error(_log, "The v4l2 grabber can not be instantiated, because it has been left out from the build");
+		Debug(_log, "The v4l2 grabber is not supported on this platform");
 #endif
 	}
 }
@@ -650,7 +650,7 @@ void HyperionDaemon::createGrabberDispmanx()
 
 	Info(_log, "DISPMANX frame grabber created");
 #else
-	Error(_log, "The dispmanx framegrabber can not be instantiated, because it has been left out from the build");
+	Debug(_log, "The dispmanx framegrabber is not supported on this platform");
 #endif
 }
 
@@ -666,7 +666,7 @@ void HyperionDaemon::createGrabberAmlogic()
 
 	Info(_log, "AMLOGIC grabber created");
 #else
-	Error(_log, "The AMLOGIC grabber can not be instantiated, because it has been left out from the build");
+	Debug(_log, "The AMLOGIC grabber is not supported on this platform");
 #endif
 }
 
@@ -685,7 +685,7 @@ void HyperionDaemon::createGrabberX11(const QJsonObject& grabberConfig)
 
 	Info(_log, "X11 grabber created");
 #else
-	Error(_log, "The X11 grabber can not be instantiated, because it has been left out from the build");
+	Debug(_log, "The X11 grabber is not supported on this platform");
 #endif
 }
 
@@ -704,7 +704,7 @@ void HyperionDaemon::createGrabberXcb(const QJsonObject& grabberConfig)
 
 	Info(_log, "XCB grabber created");
 #else
-	Error(_log, "The XCB grabber can not be instantiated, because it has been left out from the build");
+	Debug(_log, "The XCB grabber is not supported on this platform");
 #endif
 }
 
@@ -723,7 +723,7 @@ void HyperionDaemon::createGrabberQt(const QJsonObject& grabberConfig)
 
 	Info(_log, "Qt grabber created");
 #else
-	Error(_log, "The Qt grabber can not be instantiated, because it has been left out from the build");
+	Debug(_log, "The Qt grabber is not supported on this platform");
 #endif
 }
 
@@ -742,7 +742,7 @@ void HyperionDaemon::createGrabberDx(const QJsonObject& grabberConfig)
 
 	Info(_log, "DirectX grabber created");
 #else
-	Error(_log, "The DirectX grabber can not be instantiated, because it has been left out from the build");
+	Debug(_log, "The DirectX is not supported on this platform");
 #endif
 }
 
@@ -760,7 +760,7 @@ void HyperionDaemon::createGrabberFramebuffer(const QJsonObject& grabberConfig)
 
 	Info(_log, "Framebuffer grabber created");
 #else
-	Error(_log, "The framebuffer grabber can not be instantiated, because it has been left out from the build");
+	Debug(_log, "The framebuffer is not supported on this platform");
 #endif
 }
 
@@ -778,7 +778,7 @@ void HyperionDaemon::createGrabberOsx(const QJsonObject& grabberConfig)
 
 	Info(_log, "OSX grabber created");
 #else
-	Error(_log, "The osx grabber can not be instantiated, because it has been left out from the build");
+	Debug(_log, "The osx grabber is not supported on this platform");
 #endif
 }
 
@@ -801,6 +801,6 @@ void HyperionDaemon::createCecHandler()
 
 	Info(_log, "CEC handler created");
 #else
-	Error(_log, "The CEC handler can not be instantiated, because it has been left out from the build");
+	Debug(_log, "The CEC handler is not supported on this platform");
 #endif
 }

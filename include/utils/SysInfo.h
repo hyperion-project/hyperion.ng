@@ -21,6 +21,8 @@ public:
 		QString prettyName;
 		QString hostName;
 		QString domainName;
+		QString qtVersion;
+		QString pyVersion;
 	};
 
 	static HyperionSysInfo get();

@@ -20,20 +20,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UX: Systray icons added - Issue #925 (#1040)
 
 - Read-Only configuration database support
-- Allow execution with option "--version", while another hyperion daemon is running
+- Hide Window Systray icon on Hyperion exit & Install DirectX Redistributable
+- Read-Only configuration database support
 
 ### Changed
 - boblight: reduce cpu time spent on memcopy and parsing rgb values (#1016)
 - Windows Installer/Uninstaller notification when Hyperion is running (#1033)
+- Updated Windows Dependencies
 - Documentation: Optimized images (#1058)
 - UX: Default LED-layout is now one LED only to avoid errors as in #673
 - UX: Change links from http to https (#1067)
 - Change links from http to https (#1067)
 - Cleanup packages.cmake & extend NSIS plugin directory
 - Optimize images (#1058)
-- Update LICENSE
-- Change links from http to https (#1067)
-- UI: Separate LED-Layout creation from UI code
 - Docs: Refreshed EN JSON API documentation
 
 ### Fixed
@@ -42,14 +41,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - LED-Devices: Save Hue light state between sessions (#1014)
 - LED-Devices: LED's retain last state after clearing a source (#1008) 
 - LED-Devices: Lightpack issue #1015 (#1049)
-- Fix various JSON API issues #1022, #1019, #997, #993, #992, #976, #969, #964, #980 (#1036)
+- Fix various JSON API issues (#1036)
 - Fix issue #909, Have ratio correction first and then scale (#1047) 
 - Fix display argument in hyperion-qt (#1027)
-- Fix typos (#1051)
 - Fix Python reset thread state
 - AVAHI included in Webserver (#996)
 - Fix add libcec to deb/rpm dependency list
-- Fix static Code-analysis findings
 - Fix Hyperion configuration is corrected during start-up, if required
 
 ### Removed

@@ -607,7 +607,8 @@ QJsonObject LedDeviceCololight::discover(const QJsonObject& /*params*/)
 	{
 		QJsonObject obj;
 
-		obj.insert("ip", i.key());
+		QString ipAddress = i.key();
+		obj.insert("ip", ipAddress);
 		obj.insert("model", i.value().value(COLOLIGHT_MODEL));
 		obj.insert("type", i.value().value(COLOLIGHT_MODEL_TYPE));
 		obj.insert("mac", i.value().value(COLOLIGHT_MAC));
@@ -617,7 +618,6 @@ QJsonObject LedDeviceCololight::discover(const QJsonObject& /*params*/)
 		if (hostInfo.error() == QHostInfo::NoError)
 		{
 			QString hostname = hostInfo.hostName();
-			//Seems that for Windows no local domain name is resolved
 			if (!QHostInfo::localDomainName().isEmpty())
 			{
 				obj.insert("hostname", hostname.remove("." + QHostInfo::localDomainName()));
@@ -625,9 +625,23 @@ QJsonObject LedDeviceCololight::discover(const QJsonObject& /*params*/)
 			}
 			else
 			{
-				int domainPos = hostname.indexOf('.');
-				obj.insert("hostname", hostname.left(domainPos));
-				obj.insert("domain", hostname.mid(domainPos + 1));
+				if (hostname.startsWith(ipAddress))
+				{
+					obj.insert("hostname", ipAddress);
+
+					QString domain = hostname.remove(ipAddress);
+					if (domain.at(0) == '.')
+					{
+						domain.remove(0, 1);
+					}
+					obj.insert("domain", domain);
+				}
+				else
+				{
+					int domainPos = hostname.indexOf('.');
+					obj.insert("hostname", hostname.left(domainPos));
+					obj.insert("domain", hostname.mid(domainPos + 1));
+				}
 			}
 		}
 

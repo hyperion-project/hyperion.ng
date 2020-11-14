@@ -106,6 +106,10 @@ QStringList GrabberWrapper::availableGrabbers()
 	grabbers << "qt";
 	#endif
 
+	#ifdef ENABLE_DX
+		grabbers << "dx";
+	#endif
+
 	return grabbers;
 }
 

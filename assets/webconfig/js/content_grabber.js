@@ -237,8 +237,11 @@ $(document).ready(function () {
       }
     }
 
-    var activegrabber = window.serverInfo.grabbers.active.toLowerCase();
-    $("#" + selector + " option[value='" + activegrabber + "']").attr('selected', 'selected');
+	  if (window.serverInfo.grabbers.active)
+	  {
+	    var activegrabber = window.serverInfo.grabbers.active.toLowerCase();
+	    $("#" + selector + " option[value='" + activegrabber + "']").attr('selected', 'selected');
+	  }
 
     var selectedType = $("#root_framegrabber_type").val();
     filerFgGrabberOptions(selectedType);
