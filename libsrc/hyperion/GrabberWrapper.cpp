@@ -65,6 +65,11 @@ bool GrabberWrapper::isActive() const
 	return _timer->isActive();
 }
 
+QString GrabberWrapper::getActive() const
+{
+	return _grabberName;
+}
+
 QStringList GrabberWrapper::availableGrabbers()
 {
 	QStringList grabbers;
@@ -99,6 +104,10 @@ QStringList GrabberWrapper::availableGrabbers()
 
 	#ifdef ENABLE_QT
 	grabbers << "qt";
+	#endif
+
+	#ifdef ENABLE_DX
+		grabbers << "dx";
 	#endif
 
 	return grabbers;

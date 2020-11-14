@@ -101,7 +101,7 @@ SettingsManager::SettingsManager(quint8 instance, QObject* parent, bool readonly
 		for (auto & schemaError : schemaChecker.getMessages())
 			Warning(_log, "Config Fix: %s", QSTRING_CSTR(schemaError));
 
-		saveSettings(dbConfig);
+		saveSettings(dbConfig,true);
 	}
 	else
 		_qconfig = dbConfig;

@@ -467,8 +467,11 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 
 #if defined(ENABLE_DISPMANX) || defined(ENABLE_V4L2) || defined(ENABLE_FB) || defined(ENABLE_AMLOGIC) || defined(ENABLE_OSX) || defined(ENABLE_X11) || defined(ENABLE_XCB) || defined(ENABLE_QT)
 
+	if ( GrabberWrapper::getInstance() != nullptr )
+	{
+		grabbers["active"] = GrabberWrapper::getInstance()->getActive();
+	}
 	// get available grabbers
-	//grabbers["active"] = ????;
 	for (auto grabber : GrabberWrapper::availableGrabbers())
 	{
 		availableGrabbers.append(grabber);
