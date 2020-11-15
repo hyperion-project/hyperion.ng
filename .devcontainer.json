@@ -1,0 +1,20 @@
+{
+	"name": "Hyperion.ng Linux",
+	"extensions": [
+		"twxs.cmake",
+		"ms-vscode.cpptools",
+		"ms-vscode.cmake-tools",
+		"spmeesseman.vscode-taskexplorer",
+		"yzhang.markdown-all-in-one",
+		"CoenraadS.bracket-pair-colorizer",
+		"vscode-icons-team.vscode-icons",
+		"editorconfig.editorconfig"
+	],
+	"settings": {
+		"editor.formatOnSave": false,
+		"cmake.environment": {
+		},
+	},
+	"forwardPorts": [8090, 8092],
+	"postCreateCommand": "git submodule update --recursive --init && sudo apt-get install -y git cmake build-essential qtbase5-dev libqt5serialport5-dev libqt5sql5-sqlite libqt5svg5-dev libqt5x11extras5-dev libusb-1.0-0-dev python3-dev libcec-dev libxcb-image0-dev libxcb-util0-dev libxcb-shm0-dev libxcb-render0-dev libxcb-randr0-dev libxrandr-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev libjpeg-dev libturbojpeg0-dev libssl-dev zlib1g-dev"
+}
