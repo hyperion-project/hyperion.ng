@@ -46,12 +46,7 @@
 		"switchOffOnBlack": {
 			"type": "boolean",
 			"title":"edt_dev_spec_switchOffOnBlack_title",
-			"default" : true,
-			"options": {
-				"dependencies": {
-					"useEntertainmentAPI": false
-				}
-			},
+			"default" : false,
 			"propertyOrder" : 6
 		},
 		"restoreOriginalState": {
