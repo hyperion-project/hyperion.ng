@@ -296,7 +296,6 @@
     "edt_conf_fbs_heading_title": "Flatbuffers Server",
     "edt_conf_fbs_timeout_expl": "Als er voor een bepaalde tijd geen data binnenkomt, zal de component worden uitgeschakeld.",
     "edt_conf_fbs_timeout_title": "Timeout",
-    "edt_conf_fg_device_title": "Apparaat",
     "edt_conf_fg_display_expl": "Selecteer welk scherm moet worden opgenomen (multi-scherm setup)",
     "edt_conf_fg_display_title": "Scherm",
     "edt_conf_fg_frequency_Hz_expl": "Hoe snel nieuw beeld wordt opgenomen",
@@ -910,7 +909,6 @@
     "wiz_wizavail": "Wizard beschikbaar",
     "wiz_yeelight_desc2": "Kies nu welke lampen moeten worden toegevoegd. De positie wijst de lamp toe aan een specifieke positie op uw \"foto\". Uitgeschakelde lampen worden niet toegevoegd. Druk op de knop aan de rechterkant om afzonderlijke lampen te identificeren.",
     "wiz_yeelight_intro1": "Deze wizards configureren Hyperion voor het Yeelight-systeem. Functies zijn de automatische detectie van de Yeelighs, waarbij elk licht op een specifieke positie op uw foto wordt ingesteld of uitgeschakeld en de Hyperion-instellingen automatisch worden afgestemd! Kortom: u heeft slechts enkele klikken nodig en u bent klaar!",
-    "wiz_yeelight_noLights": "Geen Yeelights gevonden! Zorg ervoor dat de lampen op het netwerk zijn aangesloten of configureer ze mannelijk.",
     "wiz_yeelight_title": "Yeelight Wizard",
     "wiz_yeelight_unsupported": "Niet ondersteund"
 }
