@@ -17,6 +17,31 @@
 #include "ProviderRestApi.h"
 #include "ProviderUdpSSL.h"
 
+//Streaming message header and payload definition
+const uint8_t HEADER[] =
+	{
+		'H', 'u', 'e', 'S', 't', 'r', 'e', 'a', 'm', //protocol
+		0x01, 0x00, //version 1.0
+		0x01, //sequence number 1
+		0x00, 0x00, //Reserved write 0’s
+		0x01, //xy Brightness
+		0x00, // Reserved, write 0’s
+};
+
+const uint8_t PAYLOAD_PER_LIGHT[] =
+	{
+		0x01, 0x00, 0x06, //light ID
+		//color: 16 bpc
+		0xff, 0xff,
+		0xff, 0xff,
+		0xff, 0xff,
+		/*
+	(message.R >> 8) & 0xff, message.R & 0xff,
+	(message.G >> 8) & 0xff, message.G & 0xff,
+	(message.B >> 8) & 0xff, message.B & 0xff
+	*/
+};
+
 /**
  * A XY color point in the color space of the hue system without brightness.
  */
@@ -326,7 +351,7 @@ public:
 	///
 	/// @brief Destructor of the LED-device
 	///
-	~LedDevicePhilipsHue();
+	~LedDevicePhilipsHue() override;
 
 	///
 	/// @brief Constructs the LED-device
@@ -339,9 +364,11 @@ public:
 	/// @brief Discover devices of this type available (for configuration).
 	/// @note Mainly used for network devices. Allows to find devices, e.g. via ssdp, mDNS or cloud ways.
 	///
+	/// @param[in] params Parameters used to overwrite discovery default behaviour
+	///
 	/// @return A JSON structure holding a list of devices found
 	///
-	QJsonObject discover() override;
+	QJsonObject discover(const QJsonObject& params) override;
 
 	///
 	/// @brief Get the Hue Bridge device's resource properties

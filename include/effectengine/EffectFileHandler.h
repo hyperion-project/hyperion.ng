@@ -15,7 +15,7 @@ private:
 
 public:
 	static EffectFileHandler* efhInstance;
-	static EffectFileHandler* getInstance() { return efhInstance; };
+	static EffectFileHandler* getInstance() { return efhInstance; }
 
 	///
 	/// @brief Get all available effects

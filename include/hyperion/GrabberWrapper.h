@@ -37,12 +37,12 @@ public:
 	static GrabberWrapper* getInstance(){ return instance; }
 
 	///
-	/// Starts the grabber wich produces led values with the specified update rate
+	/// Starts the grabber which produces led values with the specified update rate
 	///
 	virtual bool start();
 
 	///
-	/// Starts maybe the grabber wich produces led values with the specified update rate
+	/// Starts maybe the grabber which produces led values with the specified update rate
 	///
 	virtual void tryStart();
 
@@ -89,6 +89,12 @@ public:
 	/// @return List of framerates on success else empty List
 	///
 	virtual QStringList getFramerates(const QString& devicePath) const;
+
+	///
+	/// @brief Get active grabber name
+	/// @return Active grabber name
+	///
+	virtual QString getActive() const;
 
 	static QStringList availableGrabbers();
 

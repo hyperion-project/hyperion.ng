@@ -43,9 +43,11 @@ public:
 	///
 	/// @brief Discover AtmoOrb devices available (for configuration).
 	///
+	/// @param[in] params Parameters used to overwrite discovery default behaviour
+	///
 	/// @return A JSON structure holding a list of devices found
 	///
-	virtual QJsonObject discover() override;
+	QJsonObject discover(const QJsonObject& params) override;
 
 	///
 	/// @brief Send an update to the AtmoOrb device to identify it.

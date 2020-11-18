@@ -247,7 +247,7 @@ int YeelightLight::writeCommand( const QJsonDocument &command, QJsonArray &resul
 				if ( elapsedTime < _waitTimeQuota )
 				{
 					int waitTime = _waitTimeQuota;
-					log ( 1, "writeCommand():", "Wait %dms, elapsedTime: %dms < quotaTime: %dms", waitTime, elapsedTime, _waitTimeQuota);
+					log ( 1, "writeCommand():", "Wait %dms, elapsedTime: %dms < quotaTime: %dms", waitTime, static_cast<int>(elapsedTime), _waitTimeQuota);
 
 					// Wait time (in ms) before doing next write to not overrun Yeelight command quota
 					std::this_thread::sleep_for(std::chrono::milliseconds(_waitTimeQuota));
@@ -452,7 +452,7 @@ YeelightResponse YeelightLight::handleResponse(int correlationID, QByteArray con
 						// Debug output
 						if(!yeeResponse.getResult().empty())
 						{
-							for(const auto item : yeeResponse.getResult())
+							for(const QJsonValueRef item : yeeResponse.getResult())
 							{
 								log ( 3, "Result:", "%s", QSTRING_CSTR( item.toString() ));
 							}
@@ -524,7 +524,7 @@ QJsonObject YeelightLight::getProperties()
 		if( !result.empty())
 		{
 			int i = 0;
-			for(const auto item : result)
+			for(const QJsonValueRef item : result)
 			{
 				log (1,"Property:", "%s = %s", QSTRING_CSTR( propertyList.at(i).toString() ), QSTRING_CSTR( item.toString() ));
 				properties.insert( propertyList.at(i).toString(), item );
@@ -1008,7 +1008,7 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 	if ( LedDevice::init(deviceConfig) )
 	{
 		Debug(_log, "DeviceType        : %s", QSTRING_CSTR( this->getActiveDeviceType() ));
-		Debug(_log, "LedCount          : %u", this->getLedCount());
+		Debug(_log, "LedCount          : %d", this->getLedCount());
 		Debug(_log, "ColorOrder        : %s", QSTRING_CSTR( this->getColorOrder() ));
 		Debug(_log, "RewriteTime  : %d", this->getRewriteTime());
 		Debug(_log, "LatchTime         : %d", this->getLatchTime());
@@ -1073,8 +1073,8 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 		Debug(_log, "Debuglevel        : %d", _debuglevel);
 
 		QJsonArray configuredYeelightLights   = _devConfig[CONFIG_LIGHTS].toArray();
-		uint configuredYeelightsCount = 0;
-		for (const QJsonValue light : configuredYeelightLights)
+		int configuredYeelightsCount = 0;
+		for (const QJsonValueRef light : configuredYeelightLights)
 		{
 			QString host = light.toObject().value("host").toString();
 			int port = light.toObject().value("port").toInt(API_DEFAULT_PORT);
@@ -1085,9 +1085,9 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 				++configuredYeelightsCount;
 			}
 		}
-		Debug(_log, "Light configured  : %u", configuredYeelightsCount );
+		Debug(_log, "Light configured  : %d", configuredYeelightsCount );
 
-		uint configuredLedCount = this->getLedCount();
+		int configuredLedCount = this->getLedCount();
 		if (configuredYeelightsCount < configuredLedCount )
 		{
 			QString errorReason = QString("Not enough Yeelights [%1] for configured LEDs [%2] found!")
@@ -1101,7 +1101,7 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 
 			if (  configuredYeelightsCount > configuredLedCount )
 			{
-				Warning(_log, "More Yeelights defined [%u] than configured LEDs [%u].", configuredYeelightsCount, configuredLedCount );
+				Warning(_log, "More Yeelights defined [%d] than configured LEDs [%d].", configuredYeelightsCount, configuredLedCount );
 			}
 
 			_lightsAddressList.clear();
@@ -1347,7 +1347,7 @@ bool LedDeviceYeelight::restoreState()
 	return rc;
 }
 
-QJsonObject LedDeviceYeelight::discover()
+QJsonObject LedDeviceYeelight::discover(const QJsonObject& /*params*/)
 {
 	QJsonObject devicesDiscovered;
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );

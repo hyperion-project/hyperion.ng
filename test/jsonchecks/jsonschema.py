@@ -190,12 +190,13 @@ class Draft3Validator(object):
         for type in types:
             if self.is_type(type, "object"):
                 if self.is_valid(instance, type):
-                    return
+                    break
             elif self.is_type(type, "string"):
                 if self.is_type(instance, type):
-                    return
+                    break
         else:
             yield ValidationError(_types_msg(instance, types))
+        return
 
     def validate_properties(self, properties, instance, schema):
         if not self.is_type(instance, "object"):

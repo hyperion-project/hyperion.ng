@@ -285,6 +285,8 @@ void JsonAPI::handleSysInfoCommand(const QJsonObject &, const QString &command, 
 	system["prettyName"] = data.prettyName;
 	system["hostName"] = data.hostName;
 	system["domainName"] = data.domainName;
+	system["qtVersion"] = data.qtVersion;
+	system["pyVersion"] = data.pyVersion;
 	info["system"] = system;
 
 	QJsonObject hyperion;
@@ -467,8 +469,12 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 
 #if defined(ENABLE_DISPMANX) || defined(ENABLE_V4L2) || defined(ENABLE_FB) || defined(ENABLE_AMLOGIC) || defined(ENABLE_OSX) || defined(ENABLE_X11) || defined(ENABLE_XCB) || defined(ENABLE_QT)
 
+	if ( GrabberWrapper::getInstance() != nullptr )
+	{
+		grabbers["active"] = GrabberWrapper::getInstance()->getActive();
+	}
+
 	// get available grabbers
-	//grabbers["active"] = ????;
 	for (auto grabber : GrabberWrapper::availableGrabbers())
 	{
 		availableGrabbers.append(grabber);
@@ -683,12 +689,13 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 		if (subsArr.contains("all"))
 		{
 			subsArr = QJsonArray();
-			for (const auto &entry : _jsonCB->getCommands())
+			for (const auto& entry : _jsonCB->getCommands())
 			{
 				subsArr.append(entry);
 			}
 		}
-		for (const auto &entry : subsArr)
+
+		for (const QJsonValueRef entry : subsArr)
 		{
 			// config callbacks just if auth is set
 			if ((entry == "settings-update" || entry == "token-update") && !API::isAdminAuthorized())
@@ -1411,7 +1418,8 @@ void JsonAPI::handleLedDeviceCommand(const QJsonObject &message, const QString &
 		if (subc == "discover")
 		{
 			ledDevice = LedDeviceFactory::construct(config);
-			const QJsonObject devicesDiscovered = ledDevice->discover();
+			const QJsonObject &params = message["params"].toObject();
+			const QJsonObject devicesDiscovered = ledDevice->discover(params);
 
 			Debug(_log, "response: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 

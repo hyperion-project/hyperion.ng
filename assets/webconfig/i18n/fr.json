@@ -252,7 +252,6 @@
     "edt_conf_fbs_heading_title": "Serveur Flatbuffers",
     "edt_conf_fbs_timeout_expl": "Si aucune donnée n'est reçue dans la période de temps donnée, le composant sera désactivé.",
     "edt_conf_fbs_timeout_title": "Temps écoulé",
-    "edt_conf_fg_device_title": "Appareil",
     "edt_conf_fg_frequency_Hz_title": "Fréquence de capture",
     "edt_conf_fg_heading_title": "Platform de capture",
     "edt_conf_fg_height_title": "Hauteur",

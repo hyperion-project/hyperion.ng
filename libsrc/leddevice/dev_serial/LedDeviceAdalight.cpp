@@ -1,5 +1,7 @@
 #include "LedDeviceAdalight.h"
 
+#include <QtEndian>
+
 #include <cassert>
 
 LedDeviceAdalight::LedDeviceAdalight(const QJsonObject &deviceConfig)
@@ -50,8 +52,7 @@ bool LedDeviceAdalight::init(const QJsonObject &deviceConfig)
 		_ledBuffer[0] = 'A';
 		_ledBuffer[1] = 'd';
 		_ledBuffer[2] = 'a';
-		_ledBuffer[3] = (totalLedCount >> 8) & 0xFF; // LED count high byte
-		_ledBuffer[4] = totalLedCount & 0xFF;        // LED count low byte
+		qToBigEndian<quint16>(static_cast<quint16>(totalLedCount), &_ledBuffer[3]);
 		_ledBuffer[5] = _ledBuffer[3] ^ _ledBuffer[4] ^ 0x55; // Checksum
 
 		Debug( _log, "Adalight header for %d leds: %c%c%c 0x%02x 0x%02x 0x%02x", _ledCount,

@@ -1,3 +1,6 @@
+// Python includes
+#include <Python.h>
+
 #include "utils/SysInfo.h"
 #include "utils/FileUtils.h"
 
@@ -23,6 +26,8 @@ SysInfo::SysInfo()
 	_sysinfo.hostName       = QHostInfo::localHostName();
 	_sysinfo.domainName     = QHostInfo::localDomainName();
 	getCPUInfo();
+	_sysinfo.qtVersion		= QT_VERSION_STR;
+	_sysinfo.pyVersion		= PY_VERSION;
 }
 
 SysInfo::HyperionSysInfo SysInfo::get()

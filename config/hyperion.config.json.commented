@@ -165,10 +165,7 @@
 		"pixelDecimation"           : 8,
 
 		// valid for qt
-		"display" 0,
-
-		// valid for framebuffer
-		"device"     : "/dev/fb0"
+		"display" 0
 	},
 
 	/// The black border configuration, contains the following items:

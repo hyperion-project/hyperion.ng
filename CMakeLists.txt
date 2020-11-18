@@ -302,12 +302,40 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	# Qt5 default install path with msvc2017 64bit component
 	# The Qt5_DIR should point to Qt5Config.cmake   -> C:/Qt/5.xx/msvc2017_64/lib/cmake/Qt5
 	# The CMAKE_PREFIX_PATH should point to the install directory -> C:/Qt/5.xx/msvc2017_64
-	FIRSTSUBDIR(SUBDIRQT "C:/Qt")
-	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SUBDIRQT}/msvc2019_64")
-	if (NOT DEFINED ENV{Qt5_DIR})
-		message(STATUS "Set Qt5 module path: ${SUBDIRQT}")
-		SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SUBDIRQT}/msvc2019_64/lib/cmake/Qt5")
+	#
+	# Alternatively, use Qt5_BASE_DIR environment variable to point to Qt version to be used 
+	# In MSVC19 add into CMakeSettings.json
+	#
+	#      "environments": [
+	#    {
+	#      "Qt5_BASE_DIR": "D:/Qt/5.15.1/msvc2019_64"
+	#    }
+	#  ]
+
+	if (NOT DEFINED ENV{Qt5_BASE_DIR})
+		FIRSTSUBDIR(SUBDIRQT "C:/Qt")
+		SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SUBDIRQT}/msvc2019_64")
+	else()
+		message(STATUS "Qt5_BASE_DIR: $ENV{Qt5_BASE_DIR}")
+		message(STATUS "Add Qt5_BASE_DIR: $ENV{Qt5_BASE_DIR} to CMAKE_PREFIX_PATH")
+		SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "$ENV{Qt5_BASE_DIR}")
 	endif()
+
+	if (NOT DEFINED ENV{Qt5_DIR})
+		if (NOT DEFINED ENV{Qt5_BASE_DIR})
+			SET (qt_module_path "${SUBDIRQT}/msvc2019_64/lib/cmake/Qt5")
+		else ()
+			SET (qt_module_path "$ENV{Qt5_BASE_DIR}/lib/cmake/Qt5")
+		endif()
+	else()
+		SET (qt_module_path "$ENV{Qt5_DIR}")
+	endif()
+
+	message(STATUS "Add ${qt_module_path} to CMAKE_MODULE_PATH")
+	SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${qt_module_path}")
+	
+	#message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
+	#message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
 	# Search for DirectX9
 	if (ENABLE_DX)
