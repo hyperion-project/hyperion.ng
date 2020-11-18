@@ -48,6 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AVAHI included in Webserver (#996)
 - Fix add libcec to deb/rpm dependency list
 - Fix Hyperion configuration is corrected during start-up, if required
+- Fix color comparison / Signal detection (#1087)
 
 ### Removed
 - Replace Multi-Lightpack by multi-instance Lightpack configuration (#1049)
