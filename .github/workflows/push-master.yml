@@ -205,14 +205,14 @@ jobs:
       # generate environment variables
       - name: Generate environment variables from version and tag
         run: |
-          echo ::set-env name=TAG::${GITHUB_REF/refs\/tags\//}
-          echo ::set-env name=VERSION::$(tr -d '\n' < version)
-          echo ::set-env name=preRelease::false
+          echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
+          echo "VERSION=$(tr -d '\n' < version)" >> $GITHUB_ENV
+          echo "preRelease=false" >> $GITHUB_ENV
 
       # If version contains alpha or beta, mark draft release as pre-release
       - name: Mark release as pre-release
         if: contains(env.VERSION, 'alpha') || contains(env.VERSION, 'beta')
-        run: echo ::set-env name=preRelease::true
+        run: echo "preRelease=true" >> $GITHUB_ENV
 
       # Download artifacts from previous build process
       - name: Download artifacts
