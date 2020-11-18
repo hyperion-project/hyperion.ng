@@ -35,7 +35,7 @@ void ProtoServer::initServer()
 	handleSettingsUpdate(settings::PROTOSERVER, _config);
 }
 
-void ProtoServer::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
+void ProtoServer::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
 	if(type == settings::PROTOSERVER)
 	{

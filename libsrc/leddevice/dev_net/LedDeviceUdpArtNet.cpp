@@ -1,3 +1,6 @@
+// hyperion local includes
+#include "LedDeviceUdpArtNet.h"
+
 #ifdef _WIN32
 #include <winsock.h>
 #else
@@ -6,14 +9,11 @@
 
 #include <QHostInfo>
 
-// hyperion local includes
-#include "LedDeviceUdpArtNet.h"
+const ushort ARTNET_DEFAULT_PORT = 6454;
 
 LedDeviceUdpArtNet::LedDeviceUdpArtNet(const QJsonObject &deviceConfig)
-	: ProviderUdp()
+	: ProviderUdp(deviceConfig)
 {
-	_devConfig = deviceConfig;
-	_deviceReady = false;
 }
 
 LedDevice* LedDeviceUdpArtNet::construct(const QJsonObject &deviceConfig)
@@ -23,17 +23,23 @@ LedDevice* LedDeviceUdpArtNet::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceUdpArtNet::init(const QJsonObject &deviceConfig)
 {
+	bool isInitOK = false;
+
 	_port = ARTNET_DEFAULT_PORT;
-	bool isInitOK = ProviderUdp::init(deviceConfig);
 
-	_artnet_universe = deviceConfig["universe"].toInt(1);
-	_artnet_channelsPerFixture = deviceConfig["channelsPerFixture"].toInt(3);
+	// Initialise sub-class
+	if ( ProviderUdp::init(deviceConfig) )
+	{
+		_artnet_universe = deviceConfig["universe"].toInt(1);
+		_artnet_channelsPerFixture = deviceConfig["channelsPerFixture"].toInt(3);
 
+		isInitOK = true;
+	}
 	return isInitOK;
 }
 
 // populates the headers
-void LedDeviceUdpArtNet::prepare(const unsigned this_universe, const unsigned this_sequence, unsigned this_dmxChannelCount)
+void LedDeviceUdpArtNet::prepare(unsigned this_universe, unsigned this_sequence, unsigned this_dmxChannelCount)
 {
 // WTF? why do the specs say:
 // "This value should be an even number in the range 2 – 512. "
@@ -51,7 +57,6 @@ void LedDeviceUdpArtNet::prepare(const unsigned this_universe, const unsigned th
 	artnet_packet.SubUni	= this_universe & 0xff ;
 	artnet_packet.Net	= (this_universe >> 8) & 0x7f;
 	artnet_packet.Length	= htons(this_dmxChannelCount);
-
 }
 
 int LedDeviceUdpArtNet::write(const std::vector<ColorRgb> &ledValues)

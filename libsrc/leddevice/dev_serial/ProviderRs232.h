@@ -1,12 +1,11 @@
-#pragma once
-
-#include <QObject>
-#include <QSerialPort>
-#include <QTimer>
-#include <QString>
+#ifndef PROVIDERRS232_H
+#define PROVIDERRS232_H
 
 // LedDevice includes
 #include <leddevice/LedDevice.h>
+
+// qt includes
+#include <QSerialPort>
 
 ///
 /// The ProviderRs232 implements an abstract base-class for LedDevices using a RS232-device.
@@ -16,91 +15,105 @@ class ProviderRs232 : public LedDevice
 	Q_OBJECT
 
 public:
-	///
-	/// Constructs specific LedDevice
-	///
-	ProviderRs232();
 
 	///
-	/// Sets configuration
+	/// @brief Constructs a RS232 LED-device
 	///
-	/// @param deviceConfig the json device config
-	/// @return true if success
-	virtual bool init(const QJsonObject &deviceConfig) override;
+	ProviderRs232(const QJsonObject &deviceConfig);
 
 	///
-	/// Destructor of the LedDevice; closes the output device if it is open
+	/// @brief Destructor of the UDP LED-device
 	///
-	virtual ~ProviderRs232() override;
+	~ProviderRs232() override;
+
+protected:
 
 	///
-	/// Opens and configures the output device
+	/// @brief Initialise the RS232 device's configuration and network address details
 	///
-	/// @return Zero on succes else negative
+	/// @param[in] deviceConfig the JSON device configuration
+	/// @return True, if success
+	///
+	bool init(const QJsonObject &deviceConfig) override;
+
+	///
+	/// @brief Opens the output device.
+	///
+	/// @return Zero on success (i.e. device is ready), else negative
 	///
 	int open() override;
 
-public slots:
 	///
-	/// Closes the output device.
-	/// Includes switching-off the device and stopping refreshes
+	/// @brief Closes the UDP device.
 	///
-	virtual void close() override;
+	/// @return Zero on success (i.e. device is closed), else negative
+	///
+	int close() override;
 
-private slots:
+	///
+	/// @brief Power-/turn off a RS232-device
+	///
+	/// The off-state is simulated by writing "Black to LED"
+	///
+	/// @return True, if success
+	///
+	bool powerOff() override;
 
-	/// Unblock the device after a connection delay
-	void writeTimeout();
-	void unblockAfterDelay();
-	void error(QSerialPort::SerialPortError setInError);
-	void bytesWritten(qint64 bytes);
-	void readyRead();
+	///
+	/// @brief Discover first devices of a serial device available (for configuration)
+	///
+	/// @return A string of the device found
+	///
+	QString discoverFirst() override;
 
-signals:
-	void receivedData(QByteArray data);
+	/// @param[in] params Parameters used to overwrite discovery default behaviour
+	///
+	/// @return A JSON structure holding a list of devices found
+	///
+	QJsonObject discover(const QJsonObject& params) override;
 
-protected:
-	/**
-	 * Writes the given bytes to the RS232-device and
-	 *
-	 * @param[in[ size The length of the data
-	 * @param[in] data The data
-	 *
-	 * @return Zero on success else negative
-	 */
+	///
+	/// @brief Write the given bytes to the RS232-device
+	///
+	/// @param[in[ size The length of the data
+	/// @param[in] data The data
+	/// @return Zero on success, else negative
+	///
 	int writeBytes(const qint64 size, const uint8_t *data);
-
-	void closeDevice();
-
-	QString findSerialDevice();
-
-	// tries to open device if not opened
-	bool tryOpen(const int delayAfterConnect_ms);
-
 
 	/// The name of the output device
 	QString _deviceName;
-
-	/// The used baudrate of the output device
+	/// The RS232 serial-device
+	QSerialPort _rs232Port;
+	/// The used baud-rate of the output device
 	qint32 _baudRate_Hz;
+
+protected slots:
+
+	///
+	/// @brief Set device in error state
+	///
+	/// @param errorMsg The error message to be logged
+	///
+	void setInError( const QString& errorMsg) override;
+
+private:
+
+	///
+	/// @brief Try to open device if not opened
+	///
+	/// @return True,if on success
+	///
+	bool tryOpen(int delayAfterConnect_ms);
+
+	/// Try to auto-discover device name?
+	bool _isAutoDeviceName;
 
 	/// Sleep after the connect before continuing
 	int _delayAfterConnect_ms;
 
-	/// The RS232 serial-device
-	QSerialPort _rs232Port;
-
-	/// A timeout timer for the asynchronous connection
-	QTimer _writeTimeout;
-
-	bool _blockedForDelay;
-	
-	bool _stateChanged;
-
-	qint64 _bytesToWrite;
-	qint64 _frameDropCounter;
-	QSerialPort::SerialPortError _lastError;
-	qint64                       _preOpenDelayTimeOut;
-	int                          _preOpenDelay;
-	bool                         _enableAutoDeviceName;
+	/// Frames dropped, as write failed
+	int _frameDropCounter;
 };
+
+#endif // PROVIDERRS232_H

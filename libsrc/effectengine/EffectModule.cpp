@@ -138,13 +138,13 @@ PyObject* EffectModule::wrapSetColor(PyObject *self, PyObject *args)
 	int argCount = PyTuple_Size(args);
 	if (argCount == 3)
 	{
-		// three seperate arguments for red, green, and blue
+		// three separate arguments for red, green, and blue
 		ColorRgb color;
 		if (PyArg_ParseTuple(args, "bbb", &color.red, &color.green, &color.blue))
 		{
 			getEffect()->_colors.fill(color);
 			QVector<ColorRgb> _cQV = getEffect()->_colors;
-			getEffect()->setInput(getEffect()->_priority, std::vector<ColorRgb>( _cQV.begin(), _cQV.end() ), timeout, false);
+			emit getEffect()->setInput(getEffect()->_priority, std::vector<ColorRgb>( _cQV.begin(), _cQV.end() ), timeout, false);
 			Py_RETURN_NONE;
 		}
 		return nullptr;
@@ -158,12 +158,12 @@ PyObject* EffectModule::wrapSetColor(PyObject *self, PyObject *args)
 			if (PyByteArray_Check(bytearray))
 			{
 				size_t length = PyByteArray_Size(bytearray);
-				if (length == 3 * getEffect()->_hyperion->getLedCount())
+				if (length == 3 * static_cast<size_t>(getEffect()->_hyperion->getLedCount()))
 				{
 					char * data = PyByteArray_AS_STRING(bytearray);
 					memcpy(getEffect()->_colors.data(), data, length);
 					QVector<ColorRgb> _cQV = getEffect()->_colors;
-					getEffect()->setInput(getEffect()->_priority, std::vector<ColorRgb>( _cQV.begin(), _cQV.end() ), timeout, false);
+					emit getEffect()->setInput(getEffect()->_priority, std::vector<ColorRgb>( _cQV.begin(), _cQV.end() ), timeout, false);
 					Py_RETURN_NONE;
 				}
 				else
@@ -218,7 +218,7 @@ PyObject* EffectModule::wrapSetImage(PyObject *self, PyObject *args)
 				Image<ColorRgb> image(width, height);
 				char * data = PyByteArray_AS_STRING(bytearray);
 				memcpy(image.memptr(), data, length);
-				getEffect()->setInputImage(getEffect()->_priority, image, timeout, false);
+				emit getEffect()->setInputImage(getEffect()->_priority, image, timeout, false);
 				Py_RETURN_NONE;
 			}
 			else
@@ -375,7 +375,7 @@ PyObject* EffectModule::wrapImageShow(PyObject *self, PyObject *args)
 	}
 
 	memcpy(image.memptr(), binaryImage.data(), binaryImage.size());
-	getEffect()->setInputImage(getEffect()->_priority, image, timeout, false);
+	emit getEffect()->setInputImage(getEffect()->_priority, image, timeout, false);
 
 	return Py_BuildValue("");
 }

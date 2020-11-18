@@ -1,10 +1,11 @@
-#pragma once
+#ifndef LEDEVICEFADECANDY_H
+#define LEDEVICEFADECANDY_H
 
 // STL/Qt includes
 #include <QTcpSocket>
 #include <QString>
 
-// Leddevice includes
+// LedDevice includes
 #include <leddevice/LedDevice.h>
 
 ///
@@ -17,9 +18,9 @@ class LedDeviceFadeCandy : public LedDevice
 
 public:
 	///
-	/// Constructs the LedDevice for fadecandy/opc server
+	/// @brief Constructs a LED-device for fadecandy/opc server
 	///
-	/// following code shows all config options
+	/// Following code shows all configuration options
 	/// @code
 	/// "device" :
 	/// {
@@ -34,93 +35,104 @@ public:
 	/// 	"interpolation" : false,
 	/// 	"manualLed"     : false,
 	/// 	"ledOn"         : false
-	/// }, 
+	/// },
 	///@endcode
 	///
-	/// @param deviceConfig json config for fadecandy
+	/// @param deviceConfig Device's configuration as JSON-Object
 	///
-	explicit LedDeviceFadeCandy(const QJsonObject &deviceConfig);
+	explicit LedDeviceFadeCandy(const QJsonObject& deviceConfig);
 
 	///
-	/// Destructor of the LedDevice; closes the tcp client
+	/// @brief Destructor of the LedDevice
 	///
-	virtual ~LedDeviceFadeCandy();
-
-	/// constructs leddevice
-	static LedDevice* construct(const QJsonObject &deviceConfig);
+	~LedDeviceFadeCandy() override;
 
 	///
-	/// Sets configuration
+	/// @brief Constructs the LED-device
 	///
-	/// @param deviceConfig the json device config
-	/// @return true if success
-	bool init(const QJsonObject &deviceConfig) override;
-
-public slots:
-
-	///
-	/// Closes the output device.
-	/// Includes switching-off the device and stopping refreshes
-	///
-	virtual void close() override;
+	/// @param[in] deviceConfig Device's configuration as JSON-Object
+	/// @return LedDevice constructed
+	static LedDevice* construct(const QJsonObject& deviceConfig);
 
 protected:
 
 	///
-	/// Initialise device's network details
+	/// @brief Initialise the Nanoleaf device's configuration and network address details
+	///
+	/// @param[in] deviceConfig the JSON device configuration
+	/// @return True, if success
+	///
+	bool init(const QJsonObject& deviceConfig) override;
+
+	///
+	/// @brief Opens the output device.
+	///
+	/// @return Zero on success (i.e. device is ready), else negative
+	///
+	int open() override;
+
+	///
+	/// @brief Closes the output device.
+	///
+	/// @return Zero on success (i.e. device is closed), else negative
+	///
+	int close() override;
+
+	///
+	/// @brief Writes the RGB-Color values to the LEDs.
+	///
+	/// @param[in] ledValues The RGB-color per LED
+	/// @return Zero on success, else negative
+	///
+	int write(const std::vector<ColorRgb>& ledValues) override;
+
+private:
+
+	///
+	/// @brief Initialise device's network details
 	///
 	/// @return True if success
 	bool initNetwork();
 
 	///
-	/// Opens and initiatialises the output device
+	/// @brief try to establish connection to opc server, if not connected yet
 	///
-	/// @return Zero on succes (i.e. device is ready and enabled) else negative
-	///
-	virtual int open() override;
-
-private:
-	///
-	/// Writes the led color values to the led-device
-	///
-	/// @param ledValues The color-value per led
-	/// @return Zero on succes else negative
-	///
-	virtual int write(const std::vector<ColorRgb>& ledValues) override;
-
-	/// try to establish connection to opc server, if not connected yet
-	///
-	/// @return true if connection is established
+	/// @return True, if connection is established
 	///
 	bool tryConnect();
 
-	/// return the conenction state
 	///
-	/// @return True if connection established
+	/// @brief Return the connection state
 	///
-	bool isConnected();
+	/// @return True, if connection established
+	///
+	bool isConnected() const;
 
-	/// transfer current opc_data buffer to opc server
 	///
-	/// @return amount of transfered bytes. -1 error while transfering, -2 error while connecting
+	/// @brief Transfer current opc_data buffer to opc server
 	///
-	int transferData();
-	
-	/// send system exclusive commands
+	/// @return amount of transferred bytes. -1 error while transferring, -2 error while connecting
 	///
-	/// @param systemId fadecandy device identifier (for standard fadecandy always: 1)
-	/// @param commandId id of command
-	/// @param msg the sysEx message
-	/// @return amount bytes written, -1 if fail
-	int sendSysEx(uint8_t systemId, uint8_t commandId, QByteArray msg);
+	qint64 transferData();
 
-	/// sends the configuration to fcserver
+	///
+	/// @brief Send system exclusive commands
+	///
+	/// @param[in] systemId fadecandy device identifier (for standard fadecandy always: 1)
+	/// @param[in] commandId id of command
+	/// @param[in] msg the sysEx message
+	/// @return amount bytes written, -1 if failed
+	qint64 sendSysEx(uint8_t systemId, uint8_t commandId, const QByteArray& msg);
+
+	///
+	/// @brief Sends the configuration to fadecandy cserver
+	///
 	void sendFadeCandyConfiguration();
 
 	QTcpSocket* _client;
 	QString     _host;
-	uint16_t    _port;
-	unsigned    _channel;
+	int    _port;
+	int    _channel;
 	QByteArray  _opc_data;
 
 	// fadecandy sysEx
@@ -133,5 +145,6 @@ private:
 	bool        _noInterp;
 	bool        _manualLED;
 	bool        _ledOnOff;
-
 };
+
+#endif // LEDEVICEFADECANDY_H

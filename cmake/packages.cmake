@@ -58,13 +58,15 @@ ENDIF()
 # https://cmake.org/Wiki/CMake:CPackPackageGenerators
 # .deb files for apt
 SET ( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/preinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/postinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/prerm" )
+SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "libcec4" )
 SET ( CPACK_DEBIAN_PACKAGE_SECTION "Miscellaneous" )
 
 # .rpm for rpm
 # https://cmake.org/cmake/help/v3.5/module/CPackRPM.html
-SET ( CPACK_RPM_PACKAGE_RELEASE 1)
-SET ( CPACK_RPM_PACKAGE_LICENSE "MIT")
-SET ( CPACK_RPM_PACKAGE_GROUP "Applications")
+SET ( CPACK_RPM_PACKAGE_RELEASE 1 )
+SET ( CPACK_RPM_PACKAGE_LICENSE "MIT" )
+SET ( CPACK_RPM_PACKAGE_GROUP "Applications" )
+SET ( CPACK_RPM_PACKAGE_REQUIRES "libcec4" )
 SET ( CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/preinst" )
 SET ( CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/postinst" )
 SET ( CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/prerm" )
@@ -101,16 +103,13 @@ SET ( CPACK_NSIS_PACKAGE_NAME "Hyperion" )
 SET ( CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\hyperiond.exe")
 SET ( CPACK_NSIS_HELP_LINK "https://www.hyperion-project.org")
 SET ( CPACK_NSIS_URL_INFO_ABOUT "https://www.hyperion-project.org")
-# hyperiond startmenu link
-#SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Hyperion.lnk' '$INSTDIR\\\\bin\\\\hyperiond.exe'")
-#SET ( CPACK_NSIS_DELETE_ICONS_EXTRA "Delete '$SMPROGRAMS\\\\$START_MENU\\\\Hyperion.lnk'")
-# hyperiond desktop link
-#SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$DESKTOP\\\\Hyperion.lnk' '$INSTDIR\\\\bin\\\\hyperiond.exe' ")
-#SET ( CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Delete '$DESKTOP\\\\Hyperion.lnk' ")
-
-# With cli args: SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Hyperion (Debug).lnk' '$INSTDIR\\\\bin\\\\hyperiond.exe' '-d'")
-#SET ( CPACK_NSIS_EXTRA_INSTALL_COMMANDS "CreateShortCut \\\"$DESKTOP\\\\Hyperion.lnk\\\" \\\"$INSTDIR\\\\bin\\\\hyperiond.exe\\\" ")
-#SET ( CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Delete \\\"$DESKTOP\\\\Hyperion.lnk\\\" ")
+SET ( CPACK_NSIS_MUI_FINISHPAGE_RUN "hyperiond.exe")
+SET ( CPACK_NSIS_BRANDING_TEXT "Hyperion-${HYPERION_VERSION}")
+# custom nsis plugin directory
+SET ( CPACK_NSIS_EXTRA_DEFS "!addplugindir ${CMAKE_SOURCE_DIR}/cmake/nsis/plugins")
+# additional hyperiond startmenu link, won't be created if the user disables startmenu links
+SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Hyperion (Console).lnk' '$INSTDIR\\\\bin\\\\hyperiond.exe' '-d -c'")
+SET ( CPACK_NSIS_DELETE_ICONS_EXTRA "Delete '$SMPROGRAMS\\\\$MUI_TEMP\\\\Hyperion (Console).lnk'")
 
 # define the install components
 # See also https://gitlab.kitware.com/cmake/community/-/wikis/doc/cpack/Component-Install-With-CPack
@@ -130,6 +129,9 @@ if(ENABLE_V4L2)
 endif()
 if(ENABLE_X11)
 	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_x11" )
+endif()
+if(ENABLE_XCB)
+	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_xcb" )
 endif()
 if(ENABLE_DISPMANX)
 	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_dispmanx" )
@@ -202,6 +204,15 @@ if(ENABLE_X11)
 	cpack_add_component(hyperion_x11
 		DISPLAY_NAME "X11 Standalone Screencap"
 		DESCRIPTION "X11 based standalone screen capture"
+		INSTALL_TYPES Full
+		GROUP Screencapture
+		DEPENDS Hyperion
+	)
+endif()
+if(ENABLE_X11)
+	cpack_add_component(hyperion_xcb
+		DISPLAY_NAME "XCB Standalone Screencap"
+		DESCRIPTION "XCB based standalone screen capture"
 		INSTALL_TYPES Full
 		GROUP Screencapture
 		DEPENDS Hyperion

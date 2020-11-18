@@ -1,19 +1,19 @@
 #include "LedDeviceFile.h"
 
-#include <chrono>
-#include <iomanip>
-#include <iostream>
+// Qt includes
+#include <Qt>
+#include <QTextStream>
 
 LedDeviceFile::LedDeviceFile(const QJsonObject &deviceConfig)
-	: LedDevice()
+	: LedDevice(deviceConfig)
+	, _file (nullptr)
 {
-	_devConfig = deviceConfig;
-	_deviceReady = false;
 	_printTimeStamp = false;
 }
 
 LedDeviceFile::~LedDeviceFile()
 {
+	delete _file;
 }
 
 LedDevice* LedDeviceFile::construct(const QJsonObject &deviceConfig)
@@ -26,85 +26,98 @@ bool LedDeviceFile::init(const QJsonObject &deviceConfig)
 	bool initOK = LedDevice::init(deviceConfig);
 
 	_fileName = deviceConfig["output"].toString("/dev/null");
+
+#if _WIN32
+	if (_fileName == "/dev/null" )
+	{
+		_fileName = "NULL";
+	}
+#endif
+
 	_printTimeStamp = deviceConfig["printTimeStamp"].toBool(false);
 
+	initFile(_fileName);
+
 	return initOK;
+}
+
+void LedDeviceFile::initFile(const QString &fileName)
+{
+	if ( _file == nullptr )
+	{
+		_file = new QFile(fileName, this);
+	}
 }
 
 int LedDeviceFile::open()
 {
 	int retval = -1;
-	QString errortext;
-	_deviceReady = false;
+	_isDeviceReady = false;
 
-	if ( init(_devConfig) )
+	if ( ! _file->isOpen() )
 	{
-		if ( _ofs.is_open() )
+		Debug(_log, "QIODevice::WriteOnly, %s", QSTRING_CSTR(_fileName));
+		if ( !_file->open(QIODevice::WriteOnly | QIODevice::Text) )
 		{
-			_ofs.close();
-		}
-
-		_ofs.open( QSTRING_CSTR(_fileName));
-		if ( _ofs.fail() )
-		{
-			errortext = QString ("Failed to open file (%1). Error message: %2").arg(_fileName, strerror(errno));
+			QString errortext = QString ("(%1) %2, file: (%3)").arg(_file->error()).arg(_file->errorString(),_fileName);
+			this->setInError( errortext );
 		}
 		else
 		{
-			_deviceReady = true;
-			setEnable(true);
+			_isDeviceReady = true;
 			retval = 0;
-		}
-
-		if ( retval < 0 )
-		{
-			this->setInError( errortext );
 		}
 	}
 	return retval;
 }
 
-void LedDeviceFile::close()
+int LedDeviceFile::close()
 {
-	LedDevice::close();
+	int retval = 0;
 
-	// LedDevice specific closing activites
-	if ( _ofs )
+	_isDeviceReady = false;
+	if ( _file != nullptr)
 	{
-		_ofs.close();
-		if ( _ofs.fail() )
+		// Test, if device requires closing
+		if ( _file->isOpen() )
 		{
-			Error( _log, "Failed to close device (%s). Error message: %s", QSTRING_CSTR(_fileName), strerror(errno) );
+			// close device physically
+			Debug(_log,"File: %s", QSTRING_CSTR(_fileName) );
+			_file->close();
 		}
 	}
+	return retval;
 }
 
 int LedDeviceFile::write(const std::vector<ColorRgb> & ledValues)
 {
+	QTextStream out(_file);
+
 	//printLedValues (ledValues);
+
 	if ( _printTimeStamp )
 	{
-		// get a precise timestamp as a string
-		const auto now = std::chrono::system_clock::now();
-		const auto nowAsTimeT = std::chrono::system_clock::to_time_t(now);
-		const auto nowMs = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
+		QDateTime now = QDateTime::currentDateTime();
+		qint64 elapsedTimeMs = _lastWriteTime.msecsTo(now);
 
-		const auto elapsedTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastWriteTime);
-
-		_ofs
-			<< std::put_time(std::localtime(&nowAsTimeT), "%Y-%m-%d %T")
-			<< '.' << std::setfill('0') << std::setw(3) << nowMs.count()
-			<< " | +" << std::setfill('0') << std::setw(4) << elapsedTimeMs.count();
-
-		lastWriteTime = now;
+		#if (QT_VERSION >= QT_VERSION_CHECK(5, 8, 0))
+			out << now.toString(Qt::ISODateWithMs) << " | +" << QString("%1").arg( elapsedTimeMs,4);
+		#else
+			out << now.toString(Qt::ISODate) << now.toString(".zzz") << " | +" << QString("%1").arg( elapsedTimeMs,4);
+		#endif
 	}
 
-	_ofs << " [";
+	out << " [";
 	for (const ColorRgb& color : ledValues)
 	{
-		_ofs << color;
+		out << color;
 	}
-	_ofs << "]" << std::endl;
+
+	#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+		out << "]" << Qt::endl;
+	#else
+		out << "]" << endl;
+	#endif
 
 	return 0;
 }

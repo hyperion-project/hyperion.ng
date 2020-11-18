@@ -19,7 +19,7 @@ install_file()
 echo "---Hyperion ambient light postinstall ---"
 
 #check system
-CPU_RPI=`grep -m1 -c 'BCM2708\|BCM2709\|BCM2710\|BCM2835' /proc/cpuinfo`
+CPU_RPI=`grep -m1 -c 'BCM2708\|BCM2709\|BCM2710\|BCM2835\|BCM2836\|BCM2837\|BCM2711' /proc/cpuinfo`
 CPU_X32X64=`uname -m | grep 'x86_32\|i686\|x86_64' | wc -l`
 
 #Check for a bootloader as Berryboot
@@ -88,6 +88,7 @@ ln -fs $BINSP/hyperion-v4l2 $BINTP/hyperion-v4l2
 ln -fs $BINSP/hyperion-framebuffer $BINTP/hyperion-framebuffer 2>/dev/null
 ln -fs $BINSP/hyperion-dispmanx $BINTP/hyperion-dispmanx 2>/dev/null
 ln -fs $BINSP/hyperion-x11 $BINTP/hyperion-x11 2>/dev/null
+ln -fs $BINSP/hyperion-xcb $BINTP/hyperion-xcb 2>/dev/null
 ln -fs $BINSP/hyperion-aml $BINTP/hyperion-aml 2>/dev/null
 ln -fs $BINSP/hyperion-qt $BINTP/hyperion-qt 2>/dev/null
 

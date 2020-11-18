@@ -1,41 +1,52 @@
-#pragma once
+#ifndef LEDEVICETADALIGHT_H
+#define LEDEVICETADALIGHT_H
 
 // hyperion includes
 #include "ProviderRs232.h"
 
 ///
-/// Implementation of the LedDevice interface for writing to an Adalight led device.
+/// Implementation of the LedDevice interface for writing to an Adalight LED-device.
 ///
 class LedDeviceAdalight : public ProviderRs232
 {
 	Q_OBJECT
 
 public:
+
 	///
-	/// Constructs specific LedDevice
+	/// @brief Constructs an Adalight LED-device
 	///
-	/// @param deviceConfig json device config
+	/// @param deviceConfig Device's configuration as JSON-Object
 	///
 	explicit LedDeviceAdalight(const QJsonObject &deviceConfig);
 
-	/// constructs leddevice
+	///
+	/// @brief Constructs the LED-device
+	///
+	/// @param[in] deviceConfig Device's configuration as JSON-Object
+	/// @return LedDevice constructed
 	static LedDevice* construct(const QJsonObject &deviceConfig);
 
-	virtual bool init(const QJsonObject &deviceConfig) override;
-
-public slots:
-	void receivedData(QByteArray data);
-
 private:
+
 	///
-	/// Writes the led color values to the led-device
+	/// @brief Initialise the device's configuration
 	///
-	/// @param ledValues The color-value per led
-	/// @return Zero on succes else negative
+	/// @param[in] deviceConfig the JSON device configuration
+	/// @return True, if success
 	///
-	virtual int write(const std::vector<ColorRgb> & ledValues) override;
-	
+	bool init(const QJsonObject &deviceConfig) override;
+
+	///
+	/// @brief Writes the RGB-Color values to the LEDs.
+	///
+	/// @param[in] ledValues The RGB-color per LED
+	/// @return Zero on success, else negative
+	///
+	int write(const std::vector<ColorRgb> & ledValues) override;
+
 	const short _headerSize;
 	bool        _ligthBerryAPA102Mode;
 };
 
+#endif // LEDEVICETADALIGHT_H

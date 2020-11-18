@@ -17,19 +17,20 @@ class MetaTable : public DBManager
 
 public:
 	/// construct wrapper with plugins table and columns
-	MetaTable(QObject* parent = nullptr)
+	MetaTable(QObject* parent = nullptr, bool readonlyMode = false)
 		: DBManager(parent)
 	{
+		setReadonlyMode(readonlyMode);
+
 		setTable("meta");
 		createTable(QStringList()<<"uuid TEXT"<<"created_at TEXT");
 	};
-	~MetaTable(){};
 
 	///
 	/// @brief Get the uuid, if the uuid is not set it will be created
 	/// @return The uuid
 	///
-	inline const QString getUUID()
+	inline QString getUUID() const
 	{
 		QVector<QVariantMap> results;
 		getRecords(results, QStringList() << "uuid");

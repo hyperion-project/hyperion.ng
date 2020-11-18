@@ -30,7 +30,7 @@ CGImageRef CGImageGetDataProvider(CGImageRef image)
 	{
 		__osx_frame_counter = 0;
 	}
-	
+
 	ColorRgb color[4] = {ColorRgb::RED, ColorRgb::BLUE, ColorRgb::GREEN, ColorRgb::WHITE};
 	if (__osx_frame_counter < 25)
 	{
@@ -55,7 +55,7 @@ CGImageRef CGImageGetDataProvider(CGImageRef image)
 	}
 	unsigned w = image->width();
 	unsigned h = image->height();
-	
+
 	for (unsigned y=0; y<h; y++)
 	{
 		for (unsigned x=0; x<w; x++)
@@ -64,11 +64,11 @@ CGImageRef CGImageGetDataProvider(CGImageRef image)
 			if (x  < w/2 && y  < h/2) id = 1;
 			if (x  < w/2 && y >= h/2) id = 2;
 			if (x >= w/2 && y  < h/2) id = 3;
-			
+
 			image->memptr()[y*w + x] = color[id];
 		}
 	}
-	
+
 	return image;
 }
 

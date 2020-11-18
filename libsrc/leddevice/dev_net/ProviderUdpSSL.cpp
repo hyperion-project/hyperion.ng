@@ -12,8 +12,11 @@
 // Local Hyperion includes
 #include "ProviderUdpSSL.h"
 
-ProviderUdpSSL::ProviderUdpSSL()
-	: LedDevice()
+const int MAX_RETRY = 5;
+const ushort MAX_PORT_SSL = 65535;
+
+ProviderUdpSSL::ProviderUdpSSL(const QJsonObject &deviceConfig)
+	: LedDevice(deviceConfig)
 	, client_fd()
 	, entropy()
 	, ssl()
@@ -29,16 +32,15 @@ ProviderUdpSSL::ProviderUdpSSL()
 	, _server_name()
 	, _psk()
 	, _psk_identity()
-	, _read_timeout(0)
-	, _handshake_timeout_min(400)
-	, _handshake_timeout_max(1000)
+	, _read_timeout(STREAM_SSL_READ_TIMEOUT.count())
+	, _handshake_timeout_min(STREAM_SSL_HANDSHAKE_TIMEOUT_MIN.count())
+	, _handshake_timeout_max(STREAM_SSL_HANDSHAKE_TIMEOUT_MAX.count())
 	, _handshake_attempts(5)
 	, _retry_left(MAX_RETRY)
 	, _stopConnection(true)
 	, _debugStreamer(false)
 	, _debugLevel(0)
 {
-	_deviceReady = false;
 	_latchTime_ms = 1;
 }
 
@@ -48,78 +50,83 @@ ProviderUdpSSL::~ProviderUdpSSL()
 
 bool ProviderUdpSSL::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = LedDevice::init(deviceConfig);
+	bool isInitOK = false;
 
-	_debugStreamer = deviceConfig["debugStreamer"].toBool(false);
-	_debugLevel    = deviceConfig["debugLevel"].toString().toInt(0);
-
-	//PSK Pre Shared Key
-	_psk           = deviceConfig["psk"].toString();
-	_psk_identity  = deviceConfig["psk_identity"].toString();
-	_port          = deviceConfig["sslport"].toInt(2100);
-	_server_name   = deviceConfig["servername"].toString();
-
-	if( deviceConfig.contains("transport_type") ) _transport_type        = deviceConfig["transport_type"].toString("DTLS");
-	if( deviceConfig.contains("seed_custom") )    _custom                = deviceConfig["seed_custom"].toString("dtls_client");
-	if( deviceConfig.contains("retry_left") )     _retry_left            = deviceConfig["retry_left"].toInt(MAX_RETRY);
-	if( deviceConfig.contains("read_timeout") )   _read_timeout          = deviceConfig["read_timeout"].toInt(0);
-	if( deviceConfig.contains("hs_timeout_min") ) _handshake_timeout_min = deviceConfig["hs_timeout_min"].toInt(400);
-	if( deviceConfig.contains("hs_timeout_max") ) _handshake_timeout_max = deviceConfig["hs_timeout_max"].toInt(1000);
-	if( deviceConfig.contains("hs_attempts") )    _handshake_attempts    = deviceConfig["hs_attempts"].toInt(5);
-
-	QString host = deviceConfig["host"].toString(_defaultHost);
-	QStringList debugLevels = QStringList() << "No Debug" << "Error" << "State Change" << "Informational" << "Verbose";
-
-	configLog( "SSL Streamer Debug", "%s", ( _debugStreamer ) ? "yes" : "no" );
-	configLog( "SSL DebugLevel", "[%d] %s", _debugLevel, QSTRING_CSTR( debugLevels[ _debugLevel ]) );
-
-	configLog( "SSL Servername", "%s", QSTRING_CSTR( _server_name ) );
-	configLog( "SSL Host", "%s", QSTRING_CSTR( host ) );
-	configLog( "SSL Port", "%d", _port );
-	configLog( "PSK", "%s", QSTRING_CSTR( _psk ) );
-	configLog( "PSK-Identity", "%s", QSTRING_CSTR( _psk_identity ) );
-	configLog( "SSL Transport Type", "%s", QSTRING_CSTR( _transport_type ) );
-	configLog( "SSL Seed Custom", "%s", QSTRING_CSTR( _custom ) );
-	configLog( "SSL Retry Left", "%d", _retry_left );
-	configLog( "SSL Read Timeout", "%d", _read_timeout );
-	configLog( "SSL Handshake Timeout min", "%d", _handshake_timeout_min );
-	configLog( "SSL Handshake Timeout max", "%d", _handshake_timeout_max );
-	configLog( "SSL Handshake attempts", "%d", _handshake_attempts );
-
-	if ( _address.setAddress(host) )
+	// Initialise sub-class
+	if ( LedDevice::init(deviceConfig) )
 	{
-		Debug( _log, "Successfully parsed %s as an ip address.", QSTRING_CSTR( host ) );
-	}
-	else
-	{
-		Debug( _log, "Failed to parse [%s] as an ip address.", QSTRING_CSTR( host ) );
-		QHostInfo info = QHostInfo::fromName(host);
-		if ( info.addresses().isEmpty() )
+		_debugStreamer = deviceConfig["debugStreamer"].toBool(false);
+		_debugLevel    = deviceConfig["debugLevel"].toString().toInt(0);
+
+		//PSK Pre Shared Key
+		_psk           = deviceConfig["psk"].toString();
+		_psk_identity  = deviceConfig["psk_identity"].toString();
+		_port          = deviceConfig["sslport"].toInt(2100);
+		_server_name   = deviceConfig["servername"].toString();
+
+		if( deviceConfig.contains("transport_type") ) _transport_type        = deviceConfig["transport_type"].toString("DTLS");
+		if( deviceConfig.contains("seed_custom") )    _custom                = deviceConfig["seed_custom"].toString("dtls_client");
+		if( deviceConfig.contains("retry_left") )     _retry_left            = deviceConfig["retry_left"].toInt(MAX_RETRY);
+		if( deviceConfig.contains("read_timeout") )   _read_timeout          = deviceConfig["read_timeout"].toInt(0);
+		if( deviceConfig.contains("hs_timeout_min") ) _handshake_timeout_min = deviceConfig["hs_timeout_min"].toInt(400);
+		if( deviceConfig.contains("hs_timeout_max") ) _handshake_timeout_max = deviceConfig["hs_timeout_max"].toInt(1000);
+		if( deviceConfig.contains("hs_attempts") )    _handshake_attempts    = deviceConfig["hs_attempts"].toInt(5);
+
+		QString host = deviceConfig["host"].toString(_defaultHost);
+		QStringList debugLevels = QStringList() << "No Debug" << "Error" << "State Change" << "Informational" << "Verbose";
+
+		configLog( "SSL Streamer Debug", "%s", ( _debugStreamer ) ? "yes" : "no" );
+		configLog( "SSL DebugLevel", "[%d] %s", _debugLevel, QSTRING_CSTR( debugLevels[ _debugLevel ]) );
+
+		configLog( "SSL Servername", "%s", QSTRING_CSTR( _server_name ) );
+		configLog( "SSL Host", "%s", QSTRING_CSTR( host ) );
+		configLog( "SSL Port", "%d", _port );
+		configLog( "PSK", "%s", QSTRING_CSTR( _psk ) );
+		configLog( "PSK-Identity", "%s", QSTRING_CSTR( _psk_identity ) );
+		configLog( "SSL Transport Type", "%s", QSTRING_CSTR( _transport_type ) );
+		configLog( "SSL Seed Custom", "%s", QSTRING_CSTR( _custom ) );
+		configLog( "SSL Retry Left", "%d", _retry_left );
+		configLog( "SSL Read Timeout", "%d", _read_timeout );
+		configLog( "SSL Handshake Timeout min", "%d", _handshake_timeout_min );
+		configLog( "SSL Handshake Timeout max", "%d", _handshake_timeout_max );
+		configLog( "SSL Handshake attempts", "%d", _handshake_attempts );
+
+		if ( _address.setAddress(host) )
 		{
-			Debug( _log, "Failed to parse [%s] as a hostname.", QSTRING_CSTR( host ) );
-			QString errortext = QString("Invalid target address [%1]!").arg(host);
+			Debug( _log, "Successfully parsed %s as an ip address.", QSTRING_CSTR( host ) );
+		}
+		else
+		{
+			Debug( _log, "Failed to parse [%s] as an ip address.", QSTRING_CSTR( host ) );
+			QHostInfo info = QHostInfo::fromName(host);
+			if ( info.addresses().isEmpty() )
+			{
+				Debug( _log, "Failed to parse [%s] as a hostname.", QSTRING_CSTR( host ) );
+				QString errortext = QString("Invalid target address [%1]!").arg(host);
+				this->setInError( errortext );
+				isInitOK = false;
+			}
+			else
+			{
+				Debug( _log, "Successfully parsed %s as a hostname.", QSTRING_CSTR( host ) );
+				_address = info.addresses().first();
+			}
+		}
+
+		int config_port = deviceConfig["sslport"].toInt(_port);
+
+		if ( config_port <= 0 || config_port > MAX_PORT_SSL )
+		{
+			QString errortext = QString ("Invalid target port [%1]!").arg(config_port);
 			this->setInError( errortext );
 			isInitOK = false;
 		}
 		else
 		{
-			Debug( _log, "Successfully parsed %s as a hostname.", QSTRING_CSTR( host ) );
-			_address = info.addresses().first();
+			_ssl_port = config_port;
+			Debug( _log, "UDP SSL using %s:%u", QSTRING_CSTR( _address.toString() ), _ssl_port );
+			isInitOK = true;
 		}
-	}
-
-	int config_port = deviceConfig["sslport"].toInt(_port);
-
-	if ( config_port <= 0 || config_port > MAX_PORT_SSL )
-	{
-		QString errortext = QString ("Invalid target port [%1]!").arg(config_port);
-		this->setInError( errortext );
-		isInitOK = false;
-	}
-	else
-	{
-		_ssl_port = config_port;
-		Debug( _log, "UDP SSL using %s:%u", QSTRING_CSTR( _address.toString() ), _ssl_port );
 	}
 	return isInitOK;
 }
@@ -127,42 +134,54 @@ bool ProviderUdpSSL::init(const QJsonObject &deviceConfig)
 int ProviderUdpSSL::open()
 {
 	int retval = -1;
-	QString errortext;
-	_deviceReady = false;
+	_isDeviceReady = false;
 
-	if ( init(_devConfig) )
+	// TODO: Question: Just checking .... Is this one time initialisation or required with every open request (during switch-off/switch-on)?
+	// In case one time initialisation, it should go to the init method.
+	// Everything that is required to pen a UDP-SSL connection again (after it maybe was closed remotely should go here)
+
+	if ( !initNetwork() )
 	{
-		if ( !initNetwork() )
-		{
-			this->setInError( "UDP SSL Network error!" );
-		}
-		else
-		{
-			// Everything is OK -> enable device
-			_deviceReady = true;
-			setEnable(true);
-			retval = 0;
-		}
+		this->setInError( "UDP SSL Network error!" );
+	}
+	else
+	{
+		// Everything is OK -> enable device
+		_isDeviceReady = true;
+		retval = 0;
 	}
 	return retval;
 }
 
-void ProviderUdpSSL::close()
+int ProviderUdpSSL::close()
 {
-	LedDevice::close();
-	closeSSLConnection();
+	// LedDevice specific closing activities
+	int retval = 0;
+	_isDeviceReady = false;
+
+	// TODO: You may want to check, if the device is already closed or close it and return, if ok or not
+	// Test, if device requires closing
+	if ( true /*If device is still open*/ )
+	{
+		// Close device
+
+		LedDevice::close();
+		closeSSLConnection();
+		// Everything is OK -> device is closed
+	}
+	return retval;
 }
 
 void ProviderUdpSSL::closeSSLConnection()
 {
-	if( _deviceReady && !_stopConnection )
+	if( _isDeviceReady && !_stopConnection )
 	{
 		closeSSLNotify();
 		freeSSLConnection();
 	}
 }
 
-const int *ProviderUdpSSL::getCiphersuites()
+const int *ProviderUdpSSL::getCiphersuites() const
 {
 	return mbedtls_ssl_list_ciphersuites();
 }
@@ -412,7 +431,7 @@ bool ProviderUdpSSL::startSSLHandshake()
 
 void ProviderUdpSSL::freeSSLConnection()
 {
-	sslLog( "SSL Connection cleanup..." );
+	sslLog( "SSL Connection clean-up..." );
 
 	_stopConnection = true;
 
@@ -425,19 +444,19 @@ void ProviderUdpSSL::freeSSLConnection()
 		mbedtls_x509_crt_free(&cacert);
 		mbedtls_ctr_drbg_free(&ctr_drbg);
 		mbedtls_entropy_free(&entropy);
-		sslLog( "SSL Connection cleanup...ok" );
+		sslLog( "SSL Connection clean-up...ok" );
 	}
 	catch (std::exception &e)
 	{
-		sslLog( QString("SSL Connection cleanup Error: %s").arg( e.what() ) );
+		sslLog( QString("SSL Connection clean-up Error: %s").arg( e.what() ) );
 	}
 	catch (...)
 	{
-		sslLog( "SSL Connection cleanup Error: <unknown>" );
+		sslLog( "SSL Connection clean-up Error: <unknown>" );
 	}
 }
 
-void ProviderUdpSSL::writeBytes(const unsigned size, const unsigned char * data)
+void ProviderUdpSSL::writeBytes(unsigned size, const unsigned char * data)
 {
 	if( _stopConnection ) return;
 

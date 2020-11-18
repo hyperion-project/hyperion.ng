@@ -1,9 +1,12 @@
-#pragma once
+#ifndef LEDEVICEWRAPPER_H
+#define LEDEVICEWRAPPER_H
 
 // util
 #include <utils/Logger.h>
 #include <utils/ColorRgb.h>
 #include <utils/Components.h>
+
+#include <QMutex>
 
 class LedDevice;
 class Hyperion;
@@ -19,10 +22,10 @@ class LedDeviceWrapper : public QObject
 	Q_OBJECT
 public:
 	explicit LedDeviceWrapper(Hyperion* hyperion);
-	~LedDeviceWrapper();
+	~LedDeviceWrapper() override;
 	///
-	/// @brief Contructs a new LedDevice, moves to thread and starts
-	/// @param config  With the given config
+	/// @brief Constructs a new LedDevice, moves to thread and starts
+	/// @param config  With the given configuration
 	///
 	void createLedDevice(const QJsonObject& config);
 
@@ -30,52 +33,52 @@ public:
 	/// @brief Get all available device schemas
 	/// @return device schemas
 	///
-	static const QJsonObject getLedDeviceSchemas();
+	static QJsonObject getLedDeviceSchemas();
 
 	///
-	/// @brief add all device constrcutors to the map
+	/// @brief add all device constructors to the map
 	///
 	static int addToDeviceMap(QString name, LedDeviceCreateFuncType funcPtr);
 
 	///
-	/// @brief Return all available device contructors
-	/// @return device constrcutors
+	/// @brief Return all available device constructors
+	/// @return device constructors
 	///
 	static const LedDeviceRegistry& getDeviceMap();
 
 	///
-	/// @brief Get the current latchtime of the ledDevice
-	/// @ return latchtime in ms
+	/// @brief Get the current latch time of the ledDevice
+	/// @ return latch time in ms
 	///
-	int getLatchTime();
+	int getLatchTime() const;
 
 	///
 	/// @brief Get the current active ledDevice type
 	///
-	const QString & getActiveDeviceType();
+	QString getActiveDeviceType() const;
 
 	///
 	/// @brief Return the last enable state
 	///
-	const bool & enabled() { return _enabled; }
+	bool enabled() const;
 
 	///
 	/// @brief Get the current colorOrder from device
 	///
-	const QString & getColorOrder();
+	QString getColorOrder() const;
 
 	///
-	/// @brief Get the number of Leds from device
+	/// @brief Get the number of LEDs from device
 	///
 	unsigned int getLedCount() const;
 
 public slots:
 	///
 	/// @brief Handle new component state request
-	/// @apram component  The comp from enum
+	/// @param component  The comp from enum
 	/// @param state      The new state
 	///
-	void handleComponentState(const hyperion::Components component, const bool state);
+	void handleComponentState(hyperion::Components component, bool state);
 
 signals:
 	///
@@ -87,8 +90,27 @@ signals:
 	///
 	int updateLeds(const std::vector<ColorRgb>& ledValues);
 
-	void setEnable(bool enable);
-	void closeLedDevice();
+	///
+	/// @brief Enables the LED-Device.
+	///
+	void enable();
+
+	///
+	/// @brief Disables the LED-Device.
+	///
+	void disable();
+
+	///
+	/// @brief Switch the LEDs on.
+	///
+	void switchOn();
+
+	///
+	/// @brief Switch the LEDs off.
+	///
+	void switchOff();
+
+	void stopLedDevice();
 
 private slots:
 	///
@@ -100,13 +122,14 @@ private slots:
 
 
 protected:
-	/// contains all available led device constrcutors
+	/// contains all available led device constructors
 	static LedDeviceRegistry _ledDeviceMap;
+	static QMutex _ledDeviceMapLock;
 
 private:
 	///
 	/// @brief switchOff() the device and Stops the device thread
-	/// 
+	///
 	void stopDeviceThread();
 
 private:
@@ -117,3 +140,5 @@ private:
 	// the enable state
 	bool _enabled;
 };
+
+#endif // LEDEVICEWRAPPER_H

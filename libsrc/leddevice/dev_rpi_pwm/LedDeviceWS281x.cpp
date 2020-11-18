@@ -1,10 +1,8 @@
 #include "LedDeviceWS281x.h"
 
 LedDeviceWS281x::LedDeviceWS281x(const QJsonObject &deviceConfig)
-	: LedDevice()
+	: LedDevice(deviceConfig)
 {
-	_devConfig = deviceConfig;
-	_deviceReady = false;
 }
 
 LedDeviceWS281x::~LedDeviceWS281x()
@@ -20,14 +18,15 @@ bool LedDeviceWS281x::init(const QJsonObject &deviceConfig)
 {
 	QString errortext;
 
-	bool isInitOK = LedDevice::init(deviceConfig);
-	if ( isInitOK )
-	{
+	bool isInitOK = false;
 
+	// Initialise sub-class
+	if ( LedDevice::init(deviceConfig) )
+	{
 		QString whiteAlgorithm = deviceConfig["whiteAlgorithm"].toString("white_off");
 
 		_whiteAlgorithm	= RGBW::stringToWhiteAlgorithm(whiteAlgorithm);
-		if (_whiteAlgorithm == RGBW::INVALID)
+		if (_whiteAlgorithm == RGBW::WhiteAlgorithm::INVALID)
 		{
 			errortext = QString ("unknown whiteAlgorithm: %1").arg(whiteAlgorithm);
 			isInitOK = false;
@@ -43,7 +42,7 @@ bool LedDeviceWS281x::init(const QJsonObject &deviceConfig)
 			else
 			{
 				memset(&_led_string, 0, sizeof(_led_string));
-				_led_string.freq   = deviceConfig["freq"].toInt(800000ul);
+				_led_string.freq   = deviceConfig["freq"].toInt(800000UL);
 				_led_string.dmanum = deviceConfig["dma"].toInt(5);
 				_led_string.channel[_channel].gpionum    = deviceConfig["gpio"].toInt(18);
 				_led_string.channel[_channel].count      = deviceConfig["leds"].toInt(256);
@@ -59,15 +58,7 @@ bool LedDeviceWS281x::init(const QJsonObject &deviceConfig)
 
 				Debug( _log, "ws281x strip type : %d", _led_string.channel[_channel].strip_type );
 
-				if (ws2811_init(&_led_string) < 0)
-				{
-					errortext = "Unable to initialize ws281x library.";
-					isInitOK = false;
-				}
-				else
-				{
-					isInitOK = true;
-				}
+				isInitOK = true;
 			}
 		}
 	}
@@ -79,14 +70,40 @@ bool LedDeviceWS281x::init(const QJsonObject &deviceConfig)
 	return isInitOK;
 }
 
-void LedDeviceWS281x::close()
+int LedDeviceWS281x::open()
 {
-	LedDevice::close();
+	int retval = -1;
+	_isDeviceReady = false;
 
-	if (_deviceReady)
+	// Try to open the LedDevice
+
+	ws2811_return_t rc = ws2811_init(&_led_string);
+	if ( rc != WS2811_SUCCESS )
+	{
+		QString errortext = QString ("Failed to open. Error message: %1").arg( ws2811_get_return_t_str(rc) );
+		this->setInError( errortext );
+	}
+	else
+	{
+		// Everything is OK, device is ready
+		_isDeviceReady = true;
+		retval = 0;
+	}
+	return retval;
+}
+
+int LedDeviceWS281x::close()
+{
+	int retval = 0;
+	_isDeviceReady = false;
+
+	// LedDevice specific closing activities
+	if ( isInitialised() )
 	{
 		ws2811_fini(&_led_string);
 	}
+
+	return retval;
 }
 
 // Send new values down the LED chain
@@ -110,7 +127,7 @@ int LedDeviceWS281x::write(const std::vector<ColorRgb> &ledValues)
 			Rgb_to_Rgbw(color, &_temp_rgbw, _whiteAlgorithm);
 		}
 
-		_led_string.channel[_channel].leds[idx++] = 
+		_led_string.channel[_channel].leds[idx++] =
 			((uint32_t)_temp_rgbw.white << 24) + ((uint32_t)_temp_rgbw.red << 16) + ((uint32_t)_temp_rgbw.green << 8) + _temp_rgbw.blue;
 
 	}
@@ -118,6 +135,6 @@ int LedDeviceWS281x::write(const std::vector<ColorRgb> &ledValues)
 	{
 		_led_string.channel[_channel].leds[idx++] = 0;
 	}
-	
+
 	return ws2811_render(&_led_string) ? -1 : 0;
 }

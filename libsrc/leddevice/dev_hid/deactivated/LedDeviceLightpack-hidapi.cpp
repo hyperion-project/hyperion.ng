@@ -53,7 +53,7 @@ LedDeviceLightpackHidapi::~LedDeviceLightpackHidapi()
 		_deviceHandle = nullptr;
 	}
 
-	// TODO: Should be called to avoid memory loss, but only at the end of the application
+	// TODO: Should be called to avoid memory leak, but only at the end of the application
 	//hid_exit();
 }
 

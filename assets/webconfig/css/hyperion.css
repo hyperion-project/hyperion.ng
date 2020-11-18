@@ -79,7 +79,7 @@ table.borderless td,table.borderless th{border: none !important;}
 table label{margin:0}
 
 /*Header*/
-.navbar-brand{padding: 5px;padding-left:20px;height:60px;}
+.navbar-brand{padding-top:0px;padding-bottom:5px;padding-left:20px;height:60px;}
 .sidebar{margin-top:62px;padding-top:20px;}
 .dropdown{font-size:18px;}
 @media (max-width: 767px) {.sidebar{margin-top:0px;padding-top:0px !important;}}
@@ -166,6 +166,12 @@ table label{margin:0}
     color: #fff;
     background-color: #732673;
     border-color: #602060;
+}
+
+/*minimal visible button*/
+.btn-transparent {
+  background-color: transparent;
+  border-style: none;
 }
 
 /*led preview & led visualisation*/

@@ -43,7 +43,7 @@ MessageForwarder::~MessageForwarder()
 		delete _forwardClients.takeFirst();
 }
 
-void MessageForwarder::handleSettingsUpdate(const settings::type &type, const QJsonDocument &config)
+void MessageForwarder::handleSettingsUpdate(settings::type type, const QJsonDocument &config)
 {
 	if(type == settings::NETFORWARD)
 	{
@@ -95,7 +95,7 @@ void MessageForwarder::handleSettingsUpdate(const settings::type &type, const QJ
 	}
 }
 
-void MessageForwarder::handleCompStateChangeRequest(const hyperion::Components component, bool enable)
+void MessageForwarder::handleCompStateChangeRequest(hyperion::Components component, bool enable)
 {
 	if (component == hyperion::COMP_FORWARDER && _forwarder_enabled != enable)
 	{
@@ -106,7 +106,7 @@ void MessageForwarder::handleCompStateChangeRequest(const hyperion::Components c
 	}
 }
 
-void MessageForwarder::handlePriorityChanges(const quint8 &priority)
+void MessageForwarder::handlePriorityChanges(quint8 priority)
 {
 	const QJsonObject obj = _hyperion->getSetting(settings::NETFORWARD).object();
 	if (priority != 0 && _forwarder_enabled && obj["enable"].toBool())
@@ -156,7 +156,7 @@ void MessageForwarder::handlePriorityChanges(const quint8 &priority)
 	}
 }
 
-void MessageForwarder::addJsonSlave(QString slave)
+void MessageForwarder::addJsonSlave(const QString& slave)
 {
 	QStringList parts = slave.split(":");
 	if (parts.size() != 2)
@@ -185,7 +185,7 @@ void MessageForwarder::addJsonSlave(QString slave)
 		_jsonSlaves << slave;
 }
 
-void MessageForwarder::addFlatbufferSlave(QString slave)
+void MessageForwarder::addFlatbufferSlave(const QString& slave)
 {
 	QStringList parts = slave.split(":");
 	if (parts.size() != 2)

@@ -27,17 +27,17 @@ class EffectEngine : public QObject
 
 public:
 	EffectEngine(Hyperion * hyperion);
-	virtual ~EffectEngine();
+	~EffectEngine() override;
 
-	const std::list<EffectDefinition> & getEffects() const { return _availableEffects; };
+	std::list<EffectDefinition> getEffects() const { return _availableEffects; }
 
-	const std::list<ActiveEffectDefinition> & getActiveEffects();
+	std::list<ActiveEffectDefinition> getActiveEffects() const;
 
 	///
 	/// Get available schemas from EffectFileHandler
 	/// @return all schemas
 	///
-	const std::list<EffectSchema> & getEffectSchemas();
+	std::list<EffectSchema> getEffectSchemas() const;
 
 	///
 	/// @brief Save an effect with EffectFileHandler
@@ -114,8 +114,6 @@ private:
 	std::list<EffectDefinition> _availableEffects;
 
 	std::list<Effect *> _activeEffects;
-
-	std::list<ActiveEffectDefinition> _availableActiveEffects;
 
 	std::list<ActiveEffectDefinition> _cachedActiveEffects;
 

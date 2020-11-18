@@ -12,16 +12,13 @@ class RgbChannelAdjustment
 public:
 	/// Default constructor
 	RgbChannelAdjustment(QString channelName="");
-	
+
 	/// Constructor
-	/// @param adjustR  
-	/// @param adjustG 
-	/// @param adjustB 
+	/// @param adjustR
+	/// @param adjustG
+	/// @param adjustB
 	RgbChannelAdjustment(uint8_t adjustR, uint8_t adjustG, uint8_t adjustB, QString channelName="");
 
-	/// Destructor
-	~RgbChannelAdjustment();
-	
 	///
 	/// Transform the given array value
 	///
@@ -38,9 +35,9 @@ public:
 	///
 	/// setAdjustment RGB
 	///
-	/// @param adjustR  
-	/// @param adjustG 
-	/// @param adjustB 
+	/// @param adjustR
+	/// @param adjustG
+	/// @param adjustB
 	///
 	void setAdjustment(uint8_t adjustR, uint8_t adjustG, uint8_t adjustB);
 
@@ -62,7 +59,7 @@ private:
 
 	/// The adjustment of RGB channel
 	uint8_t _adjust[3];
-	
+
 	/// The mapping from input color to output color
 	uint8_t _mapping[3][256];
 

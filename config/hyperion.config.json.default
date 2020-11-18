@@ -48,48 +48,54 @@
 
 	"smoothing" :
 	{
-		"enable"           : true,
-		"type"             : "linear",
-		"time_ms"          : 200,
-		"updateFrequency"  : 25.0000,
-		"updateDelay"      : 0,
-		"continuousOutput" : true
+		"enable"            : true,
+		"type"              : "linear",
+		"time_ms"           : 200,
+		"updateFrequency"   : 25.0000,
+		"interpolationRate" : 25.0000,
+		"outputRate"        : 25.0000,
+		"decay"             : 1,
+		"dithering"         : false,
+		"updateDelay"       : 0,
+		"continuousOutput"  : true
 	},
 
 	"grabberV4L2" :
 	{
-		"device"		: "auto",
-		"width"			: 0,
-		"height"		: 0,
-		"fps"			: 15,
-		"standard"		: "NO_CHANGE",
-		"sizeDecimation" 	: 8,
-		"cropLeft"		: 0,
-		"cropRight"		: 0,
-		"cropTop"		: 0,
-		"cropBottom"		: 0,
-		"redSignalThreshold"	: 5,
-		"greenSignalThreshold"	: 5,
-		"blueSignalThreshold"	: 5,
-		"signalDetection"	: false,
-		"sDVOffsetMin"		: 0.25,
-		"sDHOffsetMin"		: 0.25,
-		"sDVOffsetMax"		: 0.75,
-		"sDHOffsetMax"		: 0.75
+		"device"                : "auto",
+		"input"                 : 0,
+		"width"                 : 0,
+		"height"                : 0,
+		"fps"                   : 15,
+		"standard"              : "NO_CHANGE",
+		"sizeDecimation"        : 8,
+		"cropLeft"              : 0,
+		"cropRight"             : 0,
+		"cropTop"               : 0,
+		"cropBottom"            : 0,
+		"redSignalThreshold"    : 5,
+		"greenSignalThreshold"  : 5,
+		"blueSignalThreshold"   : 5,
+		"signalDetection"       : false,
+		"cecDetection"          : false,
+		"sDVOffsetMin"          : 0.25,
+		"sDHOffsetMin"          : 0.25,
+		"sDVOffsetMax"          : 0.75,
+		"sDHOffsetMax"          : 0.75
 	},
 
 	"framegrabber" :
 	{
-		"type"						: "auto",
-		"width"						: 80,
-		"height"					: 45,
-		"frequency_Hz"				: 10,
-		"pixelDecimation"       	: 8,
-		"cropLeft"					: 0,
-		"cropRight"					: 0,
-		"cropTop"					: 0,
-		"cropBottom"				: 0,
-		"device"					: "/dev/fb0"
+		"type"               : "auto",
+		"width"              : 80,
+		"height"             : 45,
+		"frequency_Hz"       : 10,
+		"pixelDecimation"    : 8,
+		"cropLeft"           : 0,
+		"cropRight"          : 0,
+		"cropTop"            : 0,
+		"cropBottom"         : 0,
+		"display"            : 0
 	},
 
 	"blackborderdetector" :
@@ -114,7 +120,7 @@
 
 	"backgroundEffect" :
 	{
-		"enable"      : true,
+		"enable"      : false,
 		"type"        : "effect",
 		"color"       : [255,138,0],
 		"effect"      : "Warm mood blobs"
@@ -191,10 +197,10 @@
 	{
   	"classic":
 		{
-			"top"	 	: 8,
-			"bottom"	: 8,
-			"left"		: 5,
-			"right"		: 5,
+			"top"	 	: 1,
+			"bottom"	: 0,
+			"left"		: 0,
+			"right"		: 0,
 			"glength"	: 0,
 			"gpos"		: 0,
 			"position"	: 0,
@@ -203,20 +209,20 @@
 			"vdepth"	: 5,
 			"overlap"	: 0,
 			"edgegap"	: 0,
-      "ptlh"		: 0,
-      "ptlv"		: 0,
-      "ptrh"		: 100,
-      "ptrv"		: 0,
-      "pblh"		: 0,
-      "pblv"		: 100,
-      "pbrh"		: 100,
-      "pbrv"		: 100
+			"ptlh"		: 0,
+			"ptlv"		: 0,
+			"ptrh"		: 100,
+			"ptrv"		: 0,
+			"pblh"		: 0,
+			"pblv"		: 100,
+			"pbrh"		: 100,
+			"pbrv"		: 100
  		},
 
 		"matrix":
 		{
-			"ledshoriz": 10,
-			"ledsvert" : 10,
+			"ledshoriz": 1,
+			"ledsvert" : 1,
 			"cabling"  : "snake",
 			"start"    : "top-left"
     		}
@@ -225,159 +231,9 @@
 	"leds":
 	[
 		{
-			"hmax": 0.125,
+			"hmax": 1,
 			"hmin": 0,
 			"vmax": 0.08,
-			"vmin": 0
-		},
-		{
-			"hmax": 0.25,
-			"hmin": 0.125,
-			"vmax": 0.08,
-			"vmin": 0
-		},
-		{
-			"hmax": 0.375,
-			"hmin": 0.25,
-			"vmax": 0.08,
-			"vmin": 0
-		},
-		{
-			"hmax": 0.5,
-			"hmin": 0.375,
-			"vmax": 0.08,
-			"vmin": 0
-		},
-		{
-			"hmax": 0.625,
-			"hmin": 0.5,
-			"vmax": 0.08,
-			"vmin": 0
-		},
-		{
-			"hmax": 0.75,
-			"hmin": 0.625,
-			"vmax": 0.08,
-			"vmin": 0
-		},
-		{
-			"hmax": 0.875,
-			"hmin": 0.75,
-			"vmax": 0.08,
-			"vmin": 0
-		},
-		{
-			"hmax": 1,
-			"hmin": 0.875,
-			"vmax": 0.08,
-			"vmin": 0
-		},
-		{
-			"hmax": 1,
-			"hmin": 0.95,
-			"vmax": 0.2,
-			"vmin": 0
-		},
-		{
-			"hmax": 1,
-			"hmin": 0.95,
-			"vmax": 0.4,
-			"vmin": 0.2
-		},
-		{
-			"hmax": 1,
-			"hmin": 0.95,
-			"vmax": 0.6,
-			"vmin": 0.4
-		},
-		{
-			"hmax": 1,
-			"hmin": 0.95,
-			"vmax": 0.8,
-			"vmin": 0.6
-		},
-		{
-			"hmax": 1,
-			"hmin": 0.95,
-			"vmax": 1,
-			"vmin": 0.8
-		},
-		{
-			"hmax": 1,
-			"hmin": 0.875,
-			"vmax": 1,
-			"vmin": 0.92
-		},
-		{
-			"hmax": 0.875,
-			"hmin": 0.75,
-			"vmax": 1,
-			"vmin": 0.92
-		},
-		{
-			"hmax": 0.75,
-			"hmin": 0.625,
-			"vmax": 1,
-			"vmin": 0.92
-		},
-		{
-			"hmax": 0.625,
-			"hmin": 0.5,
-			"vmax": 1,
-			"vmin": 0.92
-		},
-		{
-			"hmax": 0.5,
-			"hmin": 0.375,
-			"vmax": 1,
-			"vmin": 0.92
-		},
-		{
-			"hmax": 0.375,
-			"hmin": 0.25,
-			"vmax": 1,
-			"vmin": 0.92
-		},
-		{
-			"hmax": 0.25,
-			"hmin": 0.125,
-			"vmax": 1,
-			"vmin": 0.92
-		},
-		{
-			"hmax": 0.125,
-			"hmin": 0,
-			"vmax": 1,
-			"vmin": 0.92
-		},
-		{
-			"hmax": 0.05,
-			"hmin": 0,
-			"vmax": 1,
-			"vmin": 0.8
-		},
-		{
-			"hmax": 0.05,
-			"hmin": 0,
-			"vmax": 0.8,
-			"vmin": 0.6
-		},
-		{
-			"hmax": 0.05,
-			"hmin": 0,
-			"vmax": 0.6,
-			"vmin": 0.4
-		},
-		{
-			"hmax": 0.05,
-			"hmin": 0,
-			"vmax": 0.4,
-			"vmin": 0.2
-		},
-		{
-			"hmax": 0.05,
-			"hmin": 0,
-			"vmax": 0.2,
 			"vmin": 0
 		}
 	]

@@ -1,26 +1,22 @@
 {
 	"type":"object",
 	"required":true,
-	"properties":{
+    "properties": {
+		"host" : {
+			"type": "string",
+			"title":"edt_dev_spec_targetIpHost_title",
+			"propertyOrder" : 1
+		},
 		"latchTime": {
 			"type": "integer",
 			"title":"edt_dev_spec_latchtime_title",
-			"default": 11,
+			"default": 0,
 			"append" : "edt_append_ms",
 			"minimum": 0,
 			"maximum": 1000,
 			"access" : "expert",
-			"propertyOrder" : 1
-		},
-		"rewriteTime": {
-			"type": "integer",
-			"title":"edt_dev_general_rewriteTime_title",
-			"default": 1000,
-			"append" : "edt_append_ms",
-			"minimum": 0,
-			"access" : "expert",
 			"propertyOrder" : 2
-		}		
+		}
 	},
 	"additionalProperties": true
 }

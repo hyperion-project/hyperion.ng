@@ -27,7 +27,7 @@ class DBManager : public QObject
 
 public:
 	DBManager(QObject* parent = nullptr);
-	~DBManager();
+	~DBManager() override;
 
 	/// set root path
 	void setRootPath(const QString& rootPath);
@@ -83,18 +83,20 @@ public:
 	/// @param[in]  conditions  condition to search for (WHERE)
 	/// @param[out] results     results of query
 	/// @param[in]  tColumns    target columns to search in (optional) if not provided returns all columns
+	/// @param[in]  tOrder      target order columns with order by ASC/DESC (optional)
 	/// @return                 True on success else false
 	///
-	bool getRecord(const VectorPair& conditions, QVariantMap& results, const QStringList& tColumns = QStringList()) const;
+	bool getRecord(const VectorPair& conditions, QVariantMap& results, const QStringList& tColumns = QStringList(), const QStringList& tOrder = QStringList()) const;
 
 	///
 	/// @brief Get data of multiple records, you need to specify the columns. This search is without conditions. Good to grab all data from db
 	/// @param[in]  conditions  condition to search for (WHERE)
 	/// @param[out] results     results of query
-	/// @param[in]  tColumns    target columns to search in (optional)  if not provided returns all columns
+	/// @param[in]  tColumns    target columns to search in (optional) if not provided returns all columns
+	/// @param[in]  tOrder      target order columns with order by ASC/DESC (optional)
 	/// @return                 True on success else false
 	///
-	bool getRecords(QVector<QVariantMap>& results, const QStringList& tColumns = QStringList()) const;
+	bool getRecords(QVector<QVariantMap>& results, const QStringList& tColumns = QStringList(), const QStringList& tOrder = QStringList()) const;
 
 	///
 	/// @brief Delete a record determined by conditions
@@ -117,6 +119,13 @@ public:
 	///
 	bool deleteTable(const QString& table) const;
 
+	///
+	/// @brief Sets a table in read-only mode.
+	/// Updates will not written to the table
+	/// @param[in]  readOnly True read-only, false - read/write
+	///
+	void setReadonlyMode(bool readOnly) { _readonlyMode = readOnly; };
+
 private:
 
 	Logger* _log;
@@ -124,6 +133,8 @@ private:
 	QString _dbn = "hyperion";
 	/// table in database
 	QString _table;
+
+	bool _readonlyMode;
 
 	/// addBindValue to query given by QVariantList
 	void doAddBindValue(QSqlQuery& query, const QVariantList& variants) const;

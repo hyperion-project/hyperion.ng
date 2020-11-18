@@ -16,7 +16,7 @@ class NetOrigin : public QObject
 	Q_OBJECT
 private:
 	friend class HyperionDaemon;
-	NetOrigin(QObject* parent = 0, Logger* log = Logger::getInstance("NETWORK"));
+	NetOrigin(QObject* parent = nullptr, Logger* log = Logger::getInstance("NETWORK"));
 
 public:
 	///
@@ -25,16 +25,16 @@ public:
 	/// @param local    The local address of the socket (Differs based on NetworkAdapter IP or localhost)
 	/// @return         True when allowed, else false
 	///
-	bool accessAllowed(const QHostAddress& address, const QHostAddress& local);
+	bool accessAllowed(const QHostAddress& address, const QHostAddress& local) const;
 
 	///
 	/// @brief Check if address is in subnet of local
 	/// @return True or false
 	///
-	bool isLocalAddress(const QHostAddress& address, const QHostAddress& local);
+	bool isLocalAddress(const QHostAddress& address, const QHostAddress& local) const;
 
-	static NetOrigin* getInstance(){ return instance; };
-	static NetOrigin* instance;
+	static NetOrigin *getInstance() { return instance; }
+	static NetOrigin *instance;
 
 private slots:
 	///
@@ -42,7 +42,7 @@ private slots:
 	/// @param type   settingyType from enum
 	/// @param config configuration object
 	///
-	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 private:
 	Logger* _log;

@@ -5,6 +5,7 @@
 // qt incl
 #include <QDateTime>
 #include <QTimer>
+#include <QDebug>
 
 // Hyperion includes
 #include <hyperion/PriorityMuxer.h>
@@ -14,17 +15,18 @@
 
 const int PriorityMuxer::LOWEST_PRIORITY = std::numeric_limits<uint8_t>::max();
 
-PriorityMuxer::PriorityMuxer(int ledCount)
-	: QObject()
+PriorityMuxer::PriorityMuxer(int ledCount, QObject * parent)
+	: QObject(parent)
 	, _log(Logger::getInstance("HYPERION"))
 	, _currentPriority(PriorityMuxer::LOWEST_PRIORITY)
+	, _previousPriority(_currentPriority)
 	, _manualSelectedPriority(256)
 	, _activeInputs()
 	, _lowestPriorityInfo()
 	, _sourceAutoSelectEnabled(true)
-	, _updateTimer(new QTimer())
-	, _timer(new QTimer())
-	, _blockTimer(new QTimer())
+	, _updateTimer(new QTimer(this))
+	, _timer(new QTimer(this))
+	, _blockTimer(new QTimer(this))
 {
 	// init lowest priority info
 	_lowestPriorityInfo.priority       = PriorityMuxer::LOWEST_PRIORITY;
@@ -43,7 +45,6 @@ PriorityMuxer::PriorityMuxer(int ledCount)
 	// forward timeRunner signal to prioritiesChanged signal & threading workaround
 	connect(this, &PriorityMuxer::timeRunner, this, &PriorityMuxer::prioritiesChanged);
 	connect(this, &PriorityMuxer::signalTimeTrigger, this, &PriorityMuxer::timeTrigger);
-	connect(this, &PriorityMuxer::activeStateChanged, this, &PriorityMuxer::prioritiesChanged);
 
 	// start muxer timer
 	connect(_updateTimer, &QTimer::timeout, this, &PriorityMuxer::setCurrentTime);
@@ -55,12 +56,12 @@ PriorityMuxer::~PriorityMuxer()
 {
 }
 
-void PriorityMuxer::setEnable(const bool& enable)
+void PriorityMuxer::setEnable(bool enable)
 {
 	enable ? _updateTimer->start() : _updateTimer->stop();
 }
 
-bool PriorityMuxer::setSourceAutoSelectEnabled(const bool& enable, const bool& update)
+bool PriorityMuxer::setSourceAutoSelectEnabled(bool enable, bool update)
 {
 	if(_sourceAutoSelectEnabled != enable)
 	{
@@ -78,13 +79,12 @@ bool PriorityMuxer::setSourceAutoSelectEnabled(const bool& enable, const bool& u
 		if(update)
 			setCurrentTime();
 
-		emit autoSelectChanged(enable);
 		return true;
 	}
 	return false;
 }
 
-bool PriorityMuxer::setPriority(const uint8_t priority)
+bool PriorityMuxer::setPriority(int priority)
 {
 	if(_activeInputs.contains(priority))
 	{
@@ -96,7 +96,7 @@ bool PriorityMuxer::setPriority(const uint8_t priority)
 	return false;
 }
 
-void PriorityMuxer::updateLedColorsLength(const int& ledCount)
+void PriorityMuxer::updateLedColorsLength(int ledCount)
 {
 	for (auto infoIt = _activeInputs.begin(); infoIt != _activeInputs.end();)
 	{
@@ -113,12 +113,12 @@ QList<int> PriorityMuxer::getPriorities() const
 	return _activeInputs.keys();
 }
 
-bool PriorityMuxer::hasPriority(const int priority) const
+bool PriorityMuxer::hasPriority(int priority) const
 {
 	return (priority == PriorityMuxer::LOWEST_PRIORITY) ? true : _activeInputs.contains(priority);
 }
 
-const PriorityMuxer::InputInfo PriorityMuxer::getInputInfo(const int priority) const
+PriorityMuxer::InputInfo PriorityMuxer::getInputInfo(int priority) const
 {
 	auto elemIt = _activeInputs.find(priority);
 	if (elemIt == _activeInputs.end())
@@ -133,17 +133,20 @@ const PriorityMuxer::InputInfo PriorityMuxer::getInputInfo(const int priority) c
 	return elemIt.value();
 }
 
-hyperion::Components PriorityMuxer::getComponentOfPriority(const int &priority)
+hyperion::Components PriorityMuxer::getComponentOfPriority(int priority) const
 {
 	return _activeInputs[priority].componentId;
 }
 
-void PriorityMuxer::registerInput(const int priority, const hyperion::Components& component, const QString& origin, const QString& owner, unsigned smooth_cfg)
+void PriorityMuxer::registerInput(int priority, hyperion::Components component, const QString& origin, const QString& owner, unsigned smooth_cfg)
 {
 	// detect new registers
 	bool newInput = false;
-	if(!_activeInputs.contains(priority))
+	bool reusedInput = false;
+	if (!_activeInputs.contains(priority))
 		newInput = true;
+	else if(_prevVisComp == component || _activeInputs[priority].componentId == component)
+		reusedInput = true;
 
 	InputInfo& input     = _activeInputs[priority];
 	input.priority       = priority;
@@ -153,16 +156,22 @@ void PriorityMuxer::registerInput(const int priority, const hyperion::Components
 	input.smooth_cfg     = smooth_cfg;
 	input.owner          = owner;
 
-	if(newInput)
+	if (newInput)
 	{
 		Debug(_log,"Register new input '%s/%s' with priority %d as inactive", QSTRING_CSTR(origin), hyperion::componentToIdString(component), priority);
-		emit priorityChanged(priority, true);
-		emit prioritiesChanged();
+		// emit 'prioritiesChanged' only if _sourceAutoSelectEnabled is false
+		if (!_sourceAutoSelectEnabled)
+			emit prioritiesChanged();
 		return;
+	}
+
+	if (reusedInput)
+	{
+		emit timeRunner();
 	}
 }
 
-bool PriorityMuxer::setInput(const int priority, const std::vector<ColorRgb>& ledColors, int64_t timeout_ms)
+bool PriorityMuxer::setInput(int priority, const std::vector<ColorRgb>& ledColors, int64_t timeout_ms)
 {
 	if(!_activeInputs.contains(priority))
 	{
@@ -196,13 +205,17 @@ bool PriorityMuxer::setInput(const int priority, const std::vector<ColorRgb>& le
 	if(activeChange)
 	{
 		Debug(_log, "Priority %d is now %s", priority, active ? "active" : "inactive");
-		emit activeStateChanged(priority, active);
+		if (_currentPriority < priority)
+		{
+			emit prioritiesChanged();
+		}
 		setCurrentTime();
 	}
+
 	return true;
 }
 
-bool PriorityMuxer::setInputImage(const int priority, const Image<ColorRgb>& image, int64_t timeout_ms)
+bool PriorityMuxer::setInputImage(int priority, const Image<ColorRgb>& image, int64_t timeout_ms)
 {
 	if(!_activeInputs.contains(priority))
 	{
@@ -210,7 +223,7 @@ bool PriorityMuxer::setInputImage(const int priority, const Image<ColorRgb>& ima
 		return false;
 	}
 
-	// calc final timeout
+	// calculate final timeout
 	if(timeout_ms > 0)
 		timeout_ms = QDateTime::currentMSecsSinceEpoch() + timeout_ms;
 
@@ -236,27 +249,30 @@ bool PriorityMuxer::setInputImage(const int priority, const Image<ColorRgb>& ima
 	if(activeChange)
 	{
 		Debug(_log, "Priority %d is now %s", priority, active ? "active" : "inactive");
-		emit activeStateChanged(priority, active);
+		if (_currentPriority < priority)
+			emit prioritiesChanged();
 		setCurrentTime();
 	}
+
 	return true;
 }
 
-bool PriorityMuxer::setInputInactive(const quint8& priority)
+bool PriorityMuxer::setInputInactive(int priority)
 {
 	Image<ColorRgb> image;
 	return setInputImage(priority, image, -100);
 }
 
-bool PriorityMuxer::clearInput(const uint8_t priority)
+bool PriorityMuxer::clearInput(int priority)
 {
 	if (priority < PriorityMuxer::LOWEST_PRIORITY && _activeInputs.remove(priority))
 	{
 		Debug(_log,"Removed source priority %d",priority);
 		// on clear success update _currentPriority
 		setCurrentTime();
-		emit priorityChanged(priority, false);
-		emit prioritiesChanged();
+		// emit 'prioritiesChanged' only if _sourceAutoSelectEnabled is false
+		if (!_sourceAutoSelectEnabled || _currentPriority < priority)
+			emit prioritiesChanged();
 		return true;
 	}
 	return false;
@@ -266,6 +282,7 @@ void PriorityMuxer::clearAll(bool forceClearAll)
 {
 	if (forceClearAll)
 	{
+		_previousPriority = _currentPriority;
 		_activeInputs.clear();
 		_currentPriority = PriorityMuxer::LOWEST_PRIORITY;
 		_activeInputs[_currentPriority] = _lowestPriorityInfo;
@@ -283,7 +300,7 @@ void PriorityMuxer::clearAll(bool forceClearAll)
 	}
 }
 
-void PriorityMuxer::setCurrentTime(void)
+void PriorityMuxer::setCurrentTime()
 {
 	const int64_t now = QDateTime::currentMSecsSinceEpoch();
 	int newPriority;
@@ -293,10 +310,9 @@ void PriorityMuxer::setCurrentTime(void)
 	{
 		if (infoIt->timeoutTime_ms > 0 && infoIt->timeoutTime_ms <= now)
 		{
-			quint8 tPrio = infoIt->priority;
+			int tPrio = infoIt->priority;
 			infoIt = _activeInputs.erase(infoIt);
 			Debug(_log,"Timeout clear for priority %d",tPrio);
-			emit priorityChanged(tPrio, false);
 			emit prioritiesChanged();
 		}
 		else
@@ -312,7 +328,7 @@ void PriorityMuxer::setCurrentTime(void)
 			++infoIt;
 		}
 	}
-	// eval if manual selected prio is still available
+	// evaluate, if manual selected priority is still available
 	if(!_sourceAutoSelectEnabled)
 	{
 		if(_activeInputs.contains(_manualSelectedPriority))
@@ -327,13 +343,14 @@ void PriorityMuxer::setCurrentTime(void)
 		}
 	}
 	// apply & emit on change (after apply!)
-	if (_currentPriority != newPriority)
+	hyperion::Components comp = getComponentOfPriority(newPriority);
+	if (_currentPriority != newPriority || comp != _prevVisComp)
 	{
+		_previousPriority = _currentPriority;
 		_currentPriority = newPriority;
 		Debug(_log, "Set visible priority to %d", newPriority);
 		emit visiblePriorityChanged(newPriority);
 		// check for visible comp change
-		hyperion::Components comp = getComponentOfPriority(newPriority);
 		if (comp != _prevVisComp)
 		{
 			_prevVisComp = comp;

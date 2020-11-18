@@ -26,8 +26,11 @@ $(document).ready(function () {
 
 	$(window.hyperion).on("cmd-serverinfo", function (event) {
 		window.serverInfo = event.response.info;
+		
+		window.readOnlyMode = window.sysInfo.hyperion.readOnlyMode;
+	
 		// comps
-    window.comps = event.response.info.components
+		window.comps = event.response.info.components
 
 		$(window.hyperion).trigger("ready");
 
@@ -56,6 +59,35 @@ $(document).ready(function () {
 		updateSessions();
 	}); // end cmd-serverinfo
 
+	// Update language selection
+	$("#language-select").on('changed.bs.select',function (e, clickedIndex, isSelected, previousValue){
+   	    var newLang = availLang[clickedIndex-1];
+	    if (newLang !== storedLang)
+	    {
+	    	setStorage("langcode", newLang);
+			reload();
+	    }
+	});
+
+	$("#language-select").selectpicker(
+	{
+		container: 'body'
+	});
+
+	$(".bootstrap-select").click(function () {
+		$(this).addClass("open");
+	});
+
+	$(document).click(function(){
+		$(".bootstrap-select").removeClass("open");
+	});
+
+	$(".bootstrap-select").click(function(e){
+		e.stopPropagation();
+	});
+	
+	//End language selection
+	
 	$(window.hyperion).on("cmd-sessions-update", function (event) {
 		window.serverInfo.sessions = event.response.data;
 		updateSessions();
@@ -123,8 +155,13 @@ $(document).ready(function () {
 		$("#main-nav").removeAttr('style')
 		$("#top-navbar").removeAttr('style')
 
-		if (window.defaultPasswordIsSet === true)
-			showNotification('warning', $.i18n('dashboard_message_default_password'), $.i18n('dashboard_message_default_password_t'), '<a style="cursor:pointer" onClick="changePassword()"> ' + $.i18n('InfoDialog_changePassword_title') + '</a>')
+		if (window.defaultPasswordIsSet === true && getStorage("suppressDefaultPwWarning") !== "true" )
+		{
+			var supprPwWarnCheckbox = '<div class="text-right">'+$.i18n('dashboard_message_do_not_show_again')
+					+ ' <input id="chk_suppressDefaultPw" type="checkbox" onChange="suppressDefaultPwWarning()"> </div>'
+			showNotification('warning', $.i18n('dashboard_message_default_password'), $.i18n('dashboard_message_default_password_t'), '<a style="cursor:pointer" onClick="changePassword()">'
+					+ $.i18n('InfoDialog_changePassword_title') + '</a>' + supprPwWarnCheckbox)
+		}
 		else
 			//if logged on and pw != default show option to lock ui
 			$("#btn_lock_ui").removeAttr('style')
@@ -278,6 +315,14 @@ $(document).ready(function () {
 	});
 
 });
+
+function suppressDefaultPwWarning(){
+
+  if (document.getElementById('chk_suppressDefaultPw').checked) 
+	setStorage("suppressDefaultPwWarning", "true");
+  else 
+	setStorage("suppressDefaultPwWarning", "false");
+}
 
 $(function () {
 	var sidebar = $('#side-menu');  // cache sidebar to a variable for performance

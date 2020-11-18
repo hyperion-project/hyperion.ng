@@ -10,21 +10,20 @@
 
 namespace FileUtils {
 
-	QString getBaseName( QString sourceFile)
+	QString getBaseName(const QString& sourceFile)
 	{
-		QFileInfo fi( sourceFile );
+		QFileInfo fi(sourceFile);
 		return fi.fileName();
 	}
 
-	QString getDirName( QString sourceFile)
+	QString getDirName(const QString& sourceFile)
 	{
-		QFileInfo fi( sourceFile );
+		QFileInfo fi(sourceFile);
 		return fi.path();
 	}
 
 	bool removeDir(const QString& path, Logger* log)
 	{
-		//QDir dir(path);
 		if(!QDir(path).removeRecursively())
 		{
 			Error(log, "Failed to remove directory: %s", QSTRING_CSTR(path));
@@ -35,8 +34,7 @@ namespace FileUtils {
 
 	bool fileExists(const QString& path, Logger* log, bool ignError)
 	{
-		QFile file(path);
-		if(!file.exists())
+		if(!QFile::exists(path))
 		{
 			ErrorIf((!ignError), log,"File does not exist: %s",QSTRING_CSTR(path));
 			return false;

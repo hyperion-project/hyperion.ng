@@ -46,14 +46,14 @@ public:
     /// @param localConnection Is this a local network connection? Use utils/NetOrigin to check that
     /// @param parent          Parent QObject
     ///
-    API(Logger *log, const bool &localConnection, QObject *parent);
+    API(Logger *log, bool localConnection, QObject *parent);
 
 protected:
     ///
     /// @brief Initialize the API
     /// This call is REQUIRED!
     ///
-    void init(void);
+    void init();
 
     ///
     /// @brief Set a single color
@@ -62,7 +62,7 @@ protected:
     /// @param[in] timeout_ms The time the leds are set to the given color [ms]
     /// @param[in] origin   The setter
     ///
-    void setColor(const int &priority, const std::vector<uint8_t> &ledColors, const int &timeout_ms = -1, const QString &origin = "API", const hyperion::Components &callerComp = hyperion::COMP_INVALID);
+    void setColor(int priority, const std::vector<uint8_t> &ledColors, int timeout_ms = -1, const QString &origin = "API", hyperion::Components callerComp = hyperion::COMP_INVALID);
 
     ///
     /// @brief Set a image
@@ -72,7 +72,7 @@ protected:
     /// @param      callerComp The HYPERION COMPONENT that calls this function! e.g. PROT/FLATBUF
     /// @return True on success
     ///
-    bool setImage(ImageCmdData &data, hyperion::Components comp, QString &replyMsg, const hyperion::Components &callerComp = hyperion::COMP_INVALID);
+    bool setImage(ImageCmdData &data, hyperion::Components comp, QString &replyMsg, hyperion::Components callerComp = hyperion::COMP_INVALID);
 
     ///
     /// @brief Clear a priority in the Muxer, if -1 all priorities are cleared
@@ -81,7 +81,7 @@ protected:
     /// @param callerComp The HYPERION COMPONENT that calls this function! e.g. PROT/FLATBUF
     /// @return  True on success
     ///
-    bool clearPriority(const int &priority, QString &replyMsg, const hyperion::Components &callerComp = hyperion::COMP_INVALID);
+    bool clearPriority(int priority, QString &replyMsg, hyperion::Components callerComp = hyperion::COMP_INVALID);
 
     ///
     /// @brief Set a new component state
@@ -91,43 +91,44 @@ protected:
     /// @param callerComp The HYPERION COMPONENT that calls this function! e.g. PROT/FLATBUF
     /// @ return True on success
     ///
-    bool setComponentState(const QString &comp, bool &compState, QString &replyMsg, const hyperion::Components &callerComp = hyperion::COMP_INVALID);
+    bool setComponentState(const QString &comp, bool &compState, QString &replyMsg, hyperion::Components callerComp = hyperion::COMP_INVALID);
 
     ///
     /// @brief Set a ledToImageMapping type
     /// @param type       mapping type string
     /// @param callerComp The HYPERION COMPONENT that calls this function! e.g. PROT/FLATBUF
     ///
-    void setLedMappingType(const int &type, const hyperion::Components &callerComp = hyperion::COMP_INVALID);
+    void setLedMappingType(int type, hyperion::Components callerComp = hyperion::COMP_INVALID);
 
     ///
     /// @brief Set the 2D/3D modes type
     /// @param mode       The VideoMode
     /// @param callerComp The HYPERION COMPONENT that calls this function! e.g. PROT/FLATBUF
     ///
-    void setVideoMode(const VideoMode &mode, const hyperion::Components &callerComp = hyperion::COMP_INVALID);
+    void setVideoMode(VideoMode mode, hyperion::Components callerComp = hyperion::COMP_INVALID);
 
     ///
     /// @brief Set an effect
     /// @param dat        The effect data
     /// @param callerComp The HYPERION COMPONENT that calls this function! e.g. PROT/FLATBUF
     /// REQUIRED dat fields: effectName, priority, duration, origin
+	/// @return  True on success else false
     ///
-    void setEffect(const EffectCmdData &dat, const hyperion::Components &callerComp = hyperion::COMP_INVALID);
+    bool setEffect(const EffectCmdData &dat, hyperion::Components callerComp = hyperion::COMP_INVALID);
 
     ///
     /// @brief Set source auto select enabled or disabled
     /// @param sate       The new state
     /// @param callerComp The HYPERION COMPONENT that calls this function! e.g. PROT/FLATBUF
     ///
-    void setSourceAutoSelect(const bool state, const hyperion::Components &callerComp = hyperion::COMP_INVALID);
+    void setSourceAutoSelect(bool state, hyperion::Components callerComp = hyperion::COMP_INVALID);
 
     ///
     /// @brief Set the visible priority to given priority
     /// @param priority   The priority to set
     /// @param callerComp The HYPERION COMPONENT that calls this function! e.g. PROT/FLATBUF
     ///
-    void setVisiblePriority(const int &priority, const hyperion::Components &callerComp = hyperion::COMP_INVALID);
+    void setVisiblePriority(int priority, hyperion::Components callerComp = hyperion::COMP_INVALID);
 
     ///
     /// @brief Register a input or update the meta data of a previous register call
@@ -138,21 +139,21 @@ protected:
     /// @param[in] owner       Specific owner string, might be empty
     /// @param[in] callerComp  The component that call this (e.g. PROTO/FLAT)
     ///
-    void registerInput(const int &priority, const hyperion::Components &component, const QString &origin, const QString &owner, const hyperion::Components &callerComp);
+    void registerInput(int priority, hyperion::Components component, const QString &origin, const QString &owner, hyperion::Components callerComp);
 
     ///
     /// @brief Revoke a registerInput() call by priority. We maintain all registered priorities in this scope
     /// ATTENTION: This is MANDATORY if you change (priority change) or stop(clear/timeout) DURING lifetime. If this class destructs it's not needed
     /// @param priority  The priority to unregister
     ///
-    void unregisterInput(const int &priority);
+    void unregisterInput(int priority);
 
     ///
     /// @brief Handle the instance switching
     /// @param inst  The requested instance
     /// @return True on success else false
     ///
-    bool setHyperionInstance(const quint8 &inst);
+    bool setHyperionInstance(quint8 inst);
 
     ///
     /// @brief Get all contrable components and their state
@@ -169,19 +170,21 @@ protected:
     /// @brief Get all instances data
     /// @return The instance data
     ///
-    QVector<QVariantMap> getAllInstanceData(void);
+    QVector<QVariantMap> getAllInstanceData();
 
     ///
     /// @brief Start instance
     /// @param index  The instance index
+    /// @param tan    The tan
+    /// @return  True on success else false
     ///
-    void startInstance(const quint8 &index);
+    bool startInstance(quint8 index, int tan = 0);
 
     ///
     /// @brief Stop instance
     /// @param index  The instance index
     ///
-    void stopInstance(const quint8 &index);
+    void stopInstance(quint8 index);
 
     //////////////////////////////////
     /// AUTH / ADMINISTRATION METHODS
@@ -193,7 +196,7 @@ protected:
     /// @param replyMsg The reply Msg
     /// @return False with reply
     ///
-    bool deleteInstance(const quint8 &index, QString &replyMsg);
+    bool deleteInstance(quint8 index, QString &replyMsg);
 
     ///
     /// @brief Create instance. Requires ADMIN ACCESS
@@ -208,7 +211,7 @@ protected:
     /// @param name  With given name
     /// @return False with reply
     ///
-    QString setInstanceName(const quint8 &index, const QString &name);
+    QString setInstanceName(quint8 index, const QString &name);
 
     ///
     /// @brief Delete an effect. Requires ADMIN ACCESS
@@ -228,7 +231,7 @@ protected:
     /// @brief Save settings object. Requires ADMIN ACCESS
     /// @param data  The data object
     ///
-    void saveSettings(const QJsonObject &data);
+	bool saveSettings(const QJsonObject &data);
 
     ///
     /// @brief Test if we are authorized to use the interface
@@ -277,8 +280,9 @@ protected:
     /// @brief Set a new token request
     /// @param comment  The comment
     /// @param id       The id
+	/// @param tan      The tan
     ///
-    void setNewTokenRequest(const QString &comment, const QString &id);
+    void setNewTokenRequest(const QString &comment, const QString &id, const int &tan);
 
     ///
     /// @brief Cancel new token request
@@ -292,7 +296,7 @@ protected:
     /// @param id     The id fo the request
     /// @param accept True when it should be accepted, else false
     /// @return True on success
-    bool handlePendingTokenRequest(const QString &id, const bool accept);
+    bool handlePendingTokenRequest(const QString &id, bool accept);
 
     ///
     /// @brief Get the current List of Tokens. Requires ADMIN ACCESS
@@ -367,7 +371,7 @@ signals:
 
     ///
     /// @brief Emits whenever a new Token request is pending. This signal is just active when ADMIN ACCESS has been granted
-    /// @param id  The id of the request
+    /// @param id      The id of the request
     /// @param comment The comment of the request; If the commen is EMPTY the request has been revoked by the caller. So remove it from the pending list
     ///
     void onPendingTokenRequest(const QString &id, const QString &comment);
@@ -378,8 +382,15 @@ signals:
     /// @param  token   The new token that is now valid
     /// @param  comment The comment that was part of the request
     /// @param  id      The id that was part of the request
+    /// @param  tan     The tan that was part of the request
     ///
-    void onTokenResponse(const bool &success, const QString &token, const QString &comment, const QString &id);
+    void onTokenResponse(bool success, const QString &token, const QString &comment, const QString &id, const int &tan);
+
+    ///
+    /// @brief Handle emits from HyperionIManager of startInstance request, just if QObject matches with this instance it will emit.
+    /// @param  tan     The tan that was part of the request
+    ///
+    void onStartInstanceResponse(const int &tan);
 
 private slots:
     ///
@@ -387,16 +398,6 @@ private slots:
     /// @param callerInstance  The instance should be returned in the answer call
     ///
     void requestActiveRegister(QObject *callerInstance);
-
-    ///
-    /// @brief See onTokenResponse(). Here we validate the caller instance and on success we will emit onTokenResponse()
-    /// @param  success If true the request was accepted else false and no token was created
-    /// @param  caller  The origin caller instance who requested this token
-    /// @param  token   The new token that is now valid
-    /// @param  comment The comment that was part of the request
-    /// @param  id      The id that was part of the request
-    ///
-    void checkTokenResponse(const bool &success, QObject *caller, const QString &token, const QString &comment, const QString &id);
 
 private:
     void stopDataConnectionss();

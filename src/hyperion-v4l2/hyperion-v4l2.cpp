@@ -24,6 +24,8 @@
 // ssdp discover
 #include <ssdp/SSDPDiscover.h>
 
+#include <utils/DefaultSignalHandler.h>
+
 using namespace commandline;
 
 int main(int argc, char** argv)
@@ -51,6 +53,7 @@ int main(int argc, char** argv)
 		Parser parser("V4L capture application for Hyperion.  Will automatically search a Hyperion server if -a option isn't used. Please note that if you have more than one server running it's more or less random which one will be used.");
 
 		Option             & argDevice              = parser.add<Option>       ('d', "device", "The device to use, can be /dev/video0 [default: %1 (auto detected)]", "auto");
+		IntOption          & argInput               = parser.add<IntOption>    ('i', "input",  "The device input [default: %1]", "0");
 		SwitchOption<VideoStandard> & argVideoStandard= parser.add<SwitchOption<VideoStandard>>('v', "video-standard", "The used video standard. Valid values are PAL, NTSC, SECAM or no-change. [default: %1]", "no-change");
 		SwitchOption<PixelFormat> & argPixelFormat    = parser.add<SwitchOption<PixelFormat>>  (0x0, "pixel-format", "The use pixel format. Valid values are YUYV, UYVY, RGB32, MJPEG or no-change. [default: %1]", "no-change");
 		IntOption          & argFps                 = parser.add<IntOption>    ('f', "framerate",  "Capture frame rate [default: %1]", "15", 1, 25);
@@ -83,18 +86,18 @@ int main(int argc, char** argv)
 		BooleanOption      & argSkipReply           = parser.add<BooleanOption>(0x0, "skip-reply", "Do not receive and check reply messages from Hyperion");
 		BooleanOption      & argHelp                = parser.add<BooleanOption>('h', "help", "Show this help message and exit");
 
-		argVideoStandard.addSwitch("pal", VIDEOSTANDARD_PAL);
-		argVideoStandard.addSwitch("ntsc", VIDEOSTANDARD_NTSC);
-		argVideoStandard.addSwitch("secam", VIDEOSTANDARD_SECAM);
-		argVideoStandard.addSwitch("no-change", VIDEOSTANDARD_NO_CHANGE);
+		argVideoStandard.addSwitch("pal", VideoStandard::PAL);
+		argVideoStandard.addSwitch("ntsc", VideoStandard::NTSC);
+		argVideoStandard.addSwitch("secam", VideoStandard::SECAM);
+		argVideoStandard.addSwitch("no-change", VideoStandard::NO_CHANGE);
 
-		argPixelFormat.addSwitch("yuyv", PIXELFORMAT_YUYV);
-		argPixelFormat.addSwitch("uyvy", PIXELFORMAT_UYVY);
-		argPixelFormat.addSwitch("rgb32", PIXELFORMAT_RGB32);
+		argPixelFormat.addSwitch("yuyv", PixelFormat::YUYV);
+		argPixelFormat.addSwitch("uyvy", PixelFormat::UYVY);
+		argPixelFormat.addSwitch("rgb32", PixelFormat::RGB32);
 #ifdef HAVE_JPEG
-		argPixelFormat.addSwitch("mjpeg", PIXELFORMAT_MJPEG);
+		argPixelFormat.addSwitch("mjpeg", PixelFormat::MJPEG);
 #endif
-		argPixelFormat.addSwitch("no-change", PIXELFORMAT_NO_CHANGE);
+		argPixelFormat.addSwitch("no-change", PixelFormat::NO_CHANGE);
 
 		// parse all options
 		parser.process(app);
@@ -111,6 +114,7 @@ int main(int argc, char** argv)
 					argWidth.getInt(parser),
 					argHeight.getInt(parser),
 					1000 / argFps.getInt(parser),
+					argInput.getInt(parser),
 					argVideoStandard.switchValue(parser),
 					argPixelFormat.switchValue(parser),
 					std::max(1, argSizeDecimation.getInt(parser)));
@@ -171,11 +175,11 @@ int main(int argc, char** argv)
 		// set 3D mode if applicable
 		if (parser.isSet(arg3DSBS))
 		{
-			grabber.setVideoMode(VIDEO_3DSBS);
+			grabber.setVideoMode(VideoMode::VIDEO_3DSBS);
 		}
 		else if (parser.isSet(arg3DTAB))
 		{
-			grabber.setVideoMode(VIDEO_3DTAB);
+			grabber.setVideoMode(VideoMode::VIDEO_3DTAB);
 		}
 
 		// run the grabber
@@ -196,7 +200,7 @@ int main(int argc, char** argv)
 			if(argAddress.value(parser) == "127.0.0.1:19400")
 			{
 				SSDPDiscover discover;
-				address = discover.getFirstService(STY_FLATBUFSERVER);
+				address = discover.getFirstService(searchType::STY_FLATBUFSERVER);
 				if(address.isEmpty())
 				{
 					address = argAddress.value(parser);

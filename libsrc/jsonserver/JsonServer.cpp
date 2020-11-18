@@ -2,6 +2,7 @@
 #include <stdexcept>
 
 // project includes
+#include "HyperionConfig.h"
 #include <jsonserver/JsonServer.h>
 #include "JsonClientConnection.h"
 
@@ -27,7 +28,7 @@ JsonServer::JsonServer(const QJsonDocument& config)
 	Debug(_log, "Created instance");
 
 	// Set trigger for incoming connections
-	connect(_server, SIGNAL(newConnection()), this, SLOT(newConnection()));
+	connect(_server, &QTcpServer::newConnection, this, &JsonServer::newConnection);
 
 	// init
 	handleSettingsUpdate(settings::JSONSERVER, config);
@@ -35,9 +36,7 @@ JsonServer::JsonServer(const QJsonDocument& config)
 
 JsonServer::~JsonServer()
 {
-	foreach (JsonClientConnection * connection, _openConnections) {
-		delete connection;
-	}
+	qDeleteAll(_openConnections);
 }
 
 void JsonServer::start()
@@ -51,6 +50,7 @@ void JsonServer::start()
 		return;
 	}
 	Info(_log, "Started on port %d", _port);
+
 #ifdef ENABLE_AVAHI
 	if(_serviceRegister == nullptr)
 	{
@@ -75,7 +75,7 @@ void JsonServer::stop()
 	Info(_log, "Stopped");
 }
 
-void JsonServer::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
+void JsonServer::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
 	if(type == settings::JSONSERVER)
 	{
@@ -115,7 +115,7 @@ void JsonServer::newConnection()
 	}
 }
 
-void JsonServer::closedConnection(void)
+void JsonServer::closedConnection()
 {
 	JsonClientConnection* connection = qobject_cast<JsonClientConnection*>(sender());
 	Debug(_log, "Connection closed");

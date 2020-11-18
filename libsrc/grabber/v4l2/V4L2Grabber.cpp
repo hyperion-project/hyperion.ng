@@ -31,16 +31,16 @@
 #endif
 
 V4L2Grabber::V4L2Grabber(const QString & device
-		, const unsigned width
-		, const unsigned height
-		, const unsigned fps
+		, unsigned width
+		, unsigned height
+		, unsigned fps
+		, unsigned input
 		, VideoStandard videoStandard
 		, PixelFormat pixelFormat
 		, int pixelDecimation
 		)
 	: Grabber("V4L2:"+device)
 	, _deviceName()
-	, _input(-1)
 	, _videoStandard(videoStandard)
 	, _ioMethod(IO_METHOD_MMAP)
 	, _fileDescriptor(-1)
@@ -52,6 +52,8 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	, _noSignalCounterThreshold(40)
 	, _noSignalThresholdColor(ColorRgb{0,0,0})
 	, _signalDetectionEnabled(true)
+	, _cecDetectionEnabled(true)
+	, _cecStandbyActivated(false)
 	, _noSignalDetected(false)
 	, _noSignalCounter(0)
 	, _x_frac_min(0.25)
@@ -66,6 +68,7 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	getV4Ldevices();
 
 	// init
+	setInput(input);
 	setWidthHeight(width, height);
 	setFramerate(fps);
 	setDeviceVideoStandard(device, videoStandard);
@@ -94,7 +97,7 @@ bool V4L2Grabber::init()
 		QString v4lDevices_str;
 
 		// show list only once
-		if (!QString(QSTRING_CSTR(_deviceName)).startsWith("/dev/"))
+		if (!_deviceName.startsWith("/dev/"))
 		{
 			for (auto& dev: _v4lDevices)
 			{
@@ -147,7 +150,7 @@ bool V4L2Grabber::init()
 				if (open_device())
 				{
 					opened = true;
-					init_device(_videoStandard, _input);
+					init_device(_videoStandard);
 					_initialized = true;
 				}
 			}
@@ -214,6 +217,21 @@ void V4L2Grabber::getV4Ldevices()
 
 			V4L2Grabber::DeviceProperties properties;
 
+			// collect available device inputs (index & name)
+			int inputIndex;
+			if (xioctl(fd, VIDIOC_G_INPUT, &inputIndex) == 0)
+			{
+				struct v4l2_input input;
+				CLEAR(input);
+
+				input.index = 0;
+				while (xioctl(fd, VIDIOC_ENUMINPUT, &input) >= 0)
+				{
+					properties.inputs.insert(QString((char*)input.name), input.index);
+					input.index++;
+				}
+			}
+
 			// collect available device resolutions & frame rates
 			struct v4l2_frmsizeenum frmsizeenum;
 			CLEAR(frmsizeenum);
@@ -232,16 +250,8 @@ void V4L2Grabber::getV4Ldevices()
 					break;
 					case V4L2_FRMSIZE_TYPE_CONTINUOUS:
 					case V4L2_FRMSIZE_TYPE_STEPWISE:
-					{
-						for(unsigned int y = frmsizeenum.stepwise.min_height; y <= frmsizeenum.stepwise.max_height; y += frmsizeenum.stepwise.step_height)
-						{
-							for(unsigned int x = frmsizeenum.stepwise.min_width; x <= frmsizeenum.stepwise.max_width; x += frmsizeenum.stepwise.step_width)
-							{
-								properties.resolutions << QString::number(x) + "x" + QString::number(y);
-								enumFrameIntervals(properties.framerates, fd, fmt.fmt.pix.pixelformat, x, y);
-							}
-						}
-					}
+						// We do not take care of V4L2_FRMSIZE_TYPE_CONTINUOUS or V4L2_FRMSIZE_TYPE_STEPWISE
+						break;
 				}
 				frmsizeenum.index++;
 			}
@@ -347,7 +357,7 @@ bool V4L2Grabber::open_device()
 	// create the notifier for when a new frame is available
 	_streamNotifier = new QSocketNotifier(_fileDescriptor, QSocketNotifier::Read);
 	_streamNotifier->setEnabled(false);
-	connect(_streamNotifier, SIGNAL(activated(int)), this, SLOT(read_frame()));
+	connect(_streamNotifier, &QSocketNotifier::activated, this, &V4L2Grabber::read_frame);
 	return true;
 }
 
@@ -361,11 +371,8 @@ void V4L2Grabber::close_device()
 
 	_fileDescriptor = -1;
 
-	if (_streamNotifier != nullptr)
-	{
-		delete _streamNotifier;
-		_streamNotifier = nullptr;
-	}
+	delete _streamNotifier;
+	_streamNotifier = nullptr;
 }
 
 void V4L2Grabber::init_read(unsigned int buffer_size)
@@ -485,7 +492,7 @@ void V4L2Grabber::init_userp(unsigned int buffer_size)
 	}
 }
 
-void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
+void V4L2Grabber::init_device(VideoStandard videoStandard)
 {
 	struct v4l2_capability cap;
 	CLEAR(cap);
@@ -566,16 +573,13 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 	// set input if needed and supported
 	struct v4l2_input v4l2Input;
 	CLEAR(v4l2Input);
+	v4l2Input.index = _input;
 
-	v4l2Input.index = input;
-
-	if (input >= 0 && 0 == xioctl(VIDIOC_ENUMINPUT,&v4l2Input))
+	if (_input >= 0 && 0 == xioctl(VIDIOC_ENUMINPUT, &v4l2Input))
 	{
-		if (-1 == xioctl(VIDIOC_S_INPUT, &input))
-		{
-			throw_errno_exception("VIDIOC_S_INPUT");
-			return;
-		}
+		(-1 == xioctl(VIDIOC_S_INPUT, &_input))
+		?	Debug(_log, "Input settings not supported.")
+		:	Debug(_log, "Set device input to: %s", v4l2Input.name);
 	}
 
 	// set the video standard if needed and supported
@@ -586,7 +590,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 	{
 		switch (videoStandard)
 		{
-			case VIDEOSTANDARD_PAL:
+			case VideoStandard::PAL:
 			{
 				standard.id = V4L2_STD_PAL;
 				if (-1 == xioctl(VIDIOC_S_STD, &standard.id))
@@ -598,7 +602,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 			}
 			break;
 
-			case VIDEOSTANDARD_NTSC:
+			case VideoStandard::NTSC:
 			{
 				standard.id = V4L2_STD_NTSC;
 				if (-1 == xioctl(VIDIOC_S_STD, &standard.id))
@@ -610,7 +614,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 			}
 			break;
 
-			case VIDEOSTANDARD_SECAM:
+			case VideoStandard::SECAM:
 			{
 				standard.id = V4L2_STD_SECAM;
 				if (-1 == xioctl(VIDIOC_S_STD, &standard.id))
@@ -622,7 +626,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 			}
 			break;
 
-			case VIDEOSTANDARD_NO_CHANGE:
+			case VideoStandard::NO_CHANGE:
 			default:
 				// No change to device settings
 				break;
@@ -643,20 +647,20 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 	// set the requested pixel format
 	switch (_pixelFormat)
 	{
-		case PIXELFORMAT_UYVY:
+		case PixelFormat::UYVY:
 			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_UYVY;
 		break;
 
-		case PIXELFORMAT_YUYV:
+		case PixelFormat::YUYV:
 			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
 		break;
 
-		case PIXELFORMAT_RGB32:
+		case PixelFormat::RGB32:
 			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB32;
 		break;
 
 #ifdef HAVE_JPEG_DECODER
-		case PIXELFORMAT_MJPEG:
+		case PixelFormat::MJPEG:
 		{
 			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_MJPEG;
 			fmt.fmt.pix.field       = V4L2_FIELD_ANY;
@@ -664,7 +668,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 		break;
 #endif
 
-		case PIXELFORMAT_NO_CHANGE:
+		case PixelFormat::NO_CHANGE:
 		default:
 			// No change to device settings
 			break;
@@ -718,7 +722,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 	{
 		case V4L2_PIX_FMT_UYVY:
 		{
-			_pixelFormat = PIXELFORMAT_UYVY;
+			_pixelFormat = PixelFormat::UYVY;
 			_frameByteSize = _width * _height * 2;
 			Debug(_log, "Pixel format=UYVY");
 		}
@@ -726,7 +730,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 
 		case V4L2_PIX_FMT_YUYV:
 		{
-			_pixelFormat = PIXELFORMAT_YUYV;
+			_pixelFormat = PixelFormat::YUYV;
 			_frameByteSize = _width * _height * 2;
 			Debug(_log, "Pixel format=YUYV");
 		}
@@ -734,7 +738,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 
 		case V4L2_PIX_FMT_RGB32:
 		{
-			_pixelFormat = PIXELFORMAT_RGB32;
+			_pixelFormat = PixelFormat::RGB32;
 			_frameByteSize = _width * _height * 4;
 			Debug(_log, "Pixel format=RGB32");
 		}
@@ -743,7 +747,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard, int input)
 #ifdef HAVE_JPEG_DECODER
 		case V4L2_PIX_FMT_MJPEG:
 		{
-			_pixelFormat = PIXELFORMAT_MJPEG;
+			_pixelFormat = PixelFormat::MJPEG;
 			Debug(_log, "Pixel format=MJPEG");
 		}
 		break;
@@ -1011,7 +1015,7 @@ bool V4L2Grabber::process_image(const void *p, int size)
 {
 	// We do want a new frame...
 #ifdef HAVE_JPEG_DECODER
-	if (size < _frameByteSize && _pixelFormat != PIXELFORMAT_MJPEG)
+	if (size < _frameByteSize && _pixelFormat != PixelFormat::MJPEG)
 #else
 	if (size < _frameByteSize)
 #endif
@@ -1029,6 +1033,9 @@ bool V4L2Grabber::process_image(const void *p, int size)
 
 void V4L2Grabber::process_image(const uint8_t * data, int size)
 {
+	if (_cecDetectionEnabled && _cecStandbyActivated)
+		return;
+
 	Image<ColorRgb> image(_width, _height);
 
 /* ----------------------------------------------------------
@@ -1036,7 +1043,7 @@ void V4L2Grabber::process_image(const uint8_t * data, int size)
  * --------------------------------------------------------*/
 
 #ifdef HAVE_JPEG_DECODER
-	if (_pixelFormat == PIXELFORMAT_MJPEG)
+	if (_pixelFormat == PixelFormat::MJPEG)
 	{
 #endif
 #ifdef HAVE_JPEG
@@ -1289,6 +1296,15 @@ void V4L2Grabber::setSignalDetectionEnable(bool enable)
 	}
 }
 
+void V4L2Grabber::setCecDetectionEnable(bool enable)
+{
+	if (_cecDetectionEnabled != enable)
+	{
+		_cecDetectionEnabled = enable;
+		Info(_log, QString("CEC detection is now %1").arg(enable ? "enabled" : "disabled").toLocal8Bit());
+	}
+}
+
 void V4L2Grabber::setPixelDecimation(int pixelDecimation)
 {
 	if (_pixelDecimation != pixelDecimation)
@@ -1316,9 +1332,9 @@ void V4L2Grabber::setDeviceVideoStandard(QString device, VideoStandard videoStan
 	}
 }
 
-bool V4L2Grabber::setFramerate(int fps)
+bool V4L2Grabber::setInput(int input)
 {
-	if(Grabber::setFramerate(fps))
+	if(Grabber::setInput(input))
 	{
 		bool started = _initialized;
 		uninit();
@@ -1340,7 +1356,19 @@ bool V4L2Grabber::setWidthHeight(int width, int height)
 	return false;
 }
 
-QStringList V4L2Grabber::getV4L2devices()
+bool V4L2Grabber::setFramerate(int fps)
+{
+	if(Grabber::setFramerate(fps))
+	{
+		bool started = _initialized;
+		uninit();
+		if(started) start();
+		return true;
+	}
+	return false;
+}
+
+QStringList V4L2Grabber::getV4L2devices() const
 {
 	QStringList result = QStringList();
 	for (auto it = _deviceProperties.begin(); it != _deviceProperties.end(); ++it)
@@ -1350,17 +1378,38 @@ QStringList V4L2Grabber::getV4L2devices()
 	return result;
 }
 
-QString V4L2Grabber::getV4L2deviceName(QString devicePath)
+QString V4L2Grabber::getV4L2deviceName(const QString& devicePath) const
 {
 	return _deviceProperties.value(devicePath).name;
 }
 
-QStringList V4L2Grabber::getResolutions(QString devicePath)
+QMultiMap<QString, int> V4L2Grabber::getV4L2deviceInputs(const QString& devicePath) const
+{
+	return _deviceProperties.value(devicePath).inputs;
+}
+
+QStringList V4L2Grabber::getResolutions(const QString& devicePath) const
 {
 	return _deviceProperties.value(devicePath).resolutions;
 }
 
-QStringList V4L2Grabber::getFramerates(QString devicePath)
+QStringList V4L2Grabber::getFramerates(const QString& devicePath) const
 {
 	return _deviceProperties.value(devicePath).framerates;
+}
+
+void V4L2Grabber::handleCecEvent(CECEvent event)
+{
+	switch (event)
+	{
+		case CECEvent::On  :
+			Debug(_log,"CEC on event received");
+			_cecStandbyActivated = false;
+			return;
+		case CECEvent::Off :
+			Debug(_log,"CEC off event received");
+			_cecStandbyActivated = true;
+			return;
+		default: break;
+	}
 }

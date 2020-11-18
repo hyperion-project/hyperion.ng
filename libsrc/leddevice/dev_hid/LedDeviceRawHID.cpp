@@ -2,11 +2,8 @@
 
 // Use feature report HID device
 LedDeviceRawHID::LedDeviceRawHID(const QJsonObject &deviceConfig)
-	: ProviderHID()
+	: ProviderHID(deviceConfig)
 {
-	_devConfig = deviceConfig;
-	_deviceReady = false;
-
 	_useFeature = true;
 }
 
@@ -17,10 +14,14 @@ LedDevice* LedDeviceRawHID::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceRawHID::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = ProviderHID::init(deviceConfig);
+	bool isInitOK = false;
 
-	_ledBuffer.resize(_ledRGBCount);
-
+	// Initialise sub-class
+	if ( ProviderHID::init(deviceConfig) )
+	{
+		_ledBuffer.resize(_ledRGBCount);
+		isInitOK = true;
+	}
 	return isInitOK;
 }
 

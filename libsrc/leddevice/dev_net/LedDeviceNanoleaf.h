@@ -1,11 +1,10 @@
-#pragma once
+#ifndef LEDEVICENANOLEAF_H
+#define LEDEVICENANOLEAF_H
 
-// Leddevice includes
+// LedDevice includes
 #include <leddevice/LedDevice.h>
+#include "ProviderRestApi.h"
 #include "ProviderUdp.h"
-
-// ssdp discover
-#include <ssdp/SSDPDiscover.h>
 
 // Qt includes
 #include <QString>
@@ -19,147 +18,171 @@ class LedDeviceNanoleaf : public ProviderUdp
 {
 public:
 	///
-	/// Constructs the LedDevice for Nanoleaf LightPanels (aka Aurora) or Canvas
+	/// @brief Constructs LED-device for Nanoleaf LightPanels (aka Aurora) or Canvas
 	///
-	/// following code shows all config options
+	/// following code shows all configuration options
 	/// @code
 	/// "device" :
 	/// {
-	///     "type"   : "nanoleaf"
-	///     "output" : "hostname or IP", // Optional. If empty, device is tried to be discovered
-	///     "token"  : "Authentication Token",
+	///     "type" : "nanoleaf"
+	///     "host" : "hostname or IP",
+	///     "token": "Authentication Token",
 	/// },
 	///@endcode
 	///
-	/// @param deviceConfig json config for nanoleaf
+	/// @param deviceConfig Device's configuration as JSON-Object
 	///
-	explicit LedDeviceNanoleaf(const QJsonObject &deviceConfig);
+	explicit LedDeviceNanoleaf(const QJsonObject& deviceConfig);
 
 	///
-	/// Destructor of the LedDevice; closes the tcp client
+	/// @brief Destructor of the LED-device
 	///
-	virtual ~LedDeviceNanoleaf() override;
+	~LedDeviceNanoleaf() override;
 
-	/// Constructs leddevice
-	static LedDevice* construct(const QJsonObject &deviceConfig);
+	///
+	/// @brief Constructs the LED-device
+	///
+	/// @param[in] deviceConfig Device's configuration as JSON-Object
+	/// @return LedDevice constructed
+	static LedDevice* construct(const QJsonObject& deviceConfig);
 
-	/// Switch the device on
-	virtual int switchOn() override;
+	///
+	/// @brief Discover Nanoleaf devices available (for configuration).
+	///
+	/// @param[in] params Parameters used to overwrite discovery default behaviour
+	///
+	/// @return A JSON structure holding a list of devices found
+	///
+	QJsonObject discover(const QJsonObject& params) override;
 
-	/// Switch the device off
-	virtual int switchOff() override;
+	///
+	/// @brief Get the Nanoleaf device's resource properties
+	///
+	/// Following parameters are required
+	/// @code
+	/// {
+	///     "host"  : "hostname or IP [:port]",
+	///     "token" : "authentication token",
+	///     "filter": "resource to query", root "/" is used, if empty
+	/// }
+	///@endcode
+	///
+	/// @param[in] params Parameters to query device
+	/// @return A JSON structure holding the device's properties
+	///
+	QJsonObject getProperties(const QJsonObject& params) override;
+
+	///
+	/// @brief Send an update to the Nanoleaf device to identify it.
+	///
+	/// Following parameters are required
+	/// @code
+	/// {
+	///     "host"  : "hostname or IP [:port]",
+	///     "token" : "authentication token",
+	/// }
+	///@endcode
+	///
+	/// @param[in] params Parameters to address device
+	///
+	void identify(const QJsonObject& params) override;
 
 protected:
 
 	///
-	/// Writes the led color values to the led-device
+	/// @brief Initialise the Nanoleaf device's configuration and network address details
 	///
-	/// @param ledValues The color-value per led
-	/// @return Zero on succes else negative
+	/// @param[in] deviceConfig the JSON device configuration
+	/// @return True, if success
 	///
-	virtual int write(const std::vector<ColorRgb> & ledValues) override;
+	bool init(const QJsonObject& deviceConfig) override;
 
 	///
-	/// Initialise Nanoleaf device's configuration and network address details
+	/// @brief Opens the output device.
 	///
-	/// @param deviceConfig the json device config
+	/// @return Zero on success (i.e. device is ready), else negative
+	///
+	int open() override;
+
+	///
+	/// @brief Writes the RGB-Color values to the LEDs.
+	///
+	/// @param[in] ledValues The RGB-color per LED
+	/// @return Zero on success, else negative
+	//////
+	int write(const std::vector<ColorRgb>& ledValues) override;
+
+	///
+	/// @brief Power-/turn on the Nanoleaf device.
+	///
+	/// @brief Store the device's original state.
+	///
+	bool powerOn() override;
+
+	///
+	/// @brief Power-/turn off the Nanoleaf device.
+	///
 	/// @return True if success
 	///
-	bool init(const QJsonObject &deviceConfig) override;
+	bool powerOff() override;
+
+private:
 
 	///
-	/// Get Nanoleaf device details and configuration
+	/// @brief Initialise the access to the REST-API wrapper
+	///
+	/// @param[in] host
+	/// @param[in] port
+	/// @param[in] authentication token
+	///
+	/// @return True, if success
+	///
+	bool initRestAPI(const QString& hostname, int port, const QString& token);
+
+	///
+	/// @brief Get Nanoleaf device details and configuration
 	///
 	/// @return True, if Nanoleaf device capabilities fit configuration
 	///
-	bool initLeds();
+	bool initLedsConfiguration();
 
 	///
-	/// Opens and initiatialises the output device
+	/// @brief Change Nanoleaf device to External Control (UDP) mode
 	///
-	/// @return Zero on succes (i.e. device is ready and enabled) else negative
-	///
-	virtual int open() override;
+	/// @return Response from device
+	///@brief
+	QJsonDocument changeToExternalControlMode();
 
-private:
-	// QNetworkAccessManager object for sending requests.
-	QNetworkAccessManager* _networkmanager;
+	///
+	/// @brief Get command to power Nanoleaf device on or off
+	///
+	/// @param isOn True, if to switch on device
+	/// @return Command to switch device on/off
+	///
+	QString getOnOffRequest(bool isOn) const;
+
+	///REST-API wrapper
+	ProviderRestApi* _restApi;
 
 	QString _hostname;
-	QString _api_port;
-	QString _auth_token;
+	int  _apiPort;
+	QString _authToken;
+
+	bool _topDown;
+	bool _leftRight;
+	int _startPos;
+	int _endPos;
 
 	//Nanoleaf device details
 	QString _deviceModel;
 	QString _deviceFirmwareVersion;
 	ushort _extControlVersion;
-	/// The number of panels with leds
-	uint _panelLedCount;
-	/// Array of the pannel ids.
-	std::vector<uint> _panelIds;
 
-	///
-	/// Discover Nanoleaf device via SSDP identifiers
-	///
-	/// @return True, if Nanoleaf device was found
-	///
-	bool discoverDevice();
+	/// The number of panels with LEDs
+	int _panelLedCount;
 
-	///
-	/// Change Nanoleaf device to External Control (UDP) mode
-	///
-	/// @return Response from device
-	///
-	QJsonDocument changeToExternalControlMode();
-
-	///
-	/// Get command to switch Nanoleaf device on or off
-	///
-	/// @param isOn True, if to switch on device
-	/// @return Command to switch device on/off
-	///
-	QString getOnOffRequest (bool isOn ) const;
-
-	///
-	/// Get command as url
-	///
-	/// @param host Hostname or IP
-	/// @param port IP-Port
-	/// @param _auth_token Authorization token
-	/// @param Endpoint command for request
-	/// @return Url to execute endpoint/command
-	///
-	QString getUrl(QString host, QString port, QString auth_token, QString endpoint) const;
-
-	///
-	/// Execute GET request
-	///
-	/// @param url GET request for url
-	/// @return Response from device
-	///
-	QJsonDocument getJson(QString url);
-
-	///
-	/// Execute PUT request
-	///
-	/// @param Url for PUT request
-	/// @param json Command for request
-	/// @return Response from device
-	///
-	QJsonDocument putJson(QString url, QString json);
-
-	///
-	/// Handle replys for GET and PUT requests
-	///
-	/// @param reply Network reply
-	/// @return Response for request, if no error
-	///
-	QJsonDocument handleReply(QNetworkReply* const &reply );
-
-	///
-	/// convert vector to hex string
-	///
-	/// @param uint8_t vector
-	/// @return vector as string of hex values
-	std::string uint8_vector_to_hex_string( const std::vector<uint8_t>& buffer ) const;
+	/// Array of the panel ids.
+	QVector<int> _panelIds;
 };
+
+#endif // LEDEVICENANOLEAF_H

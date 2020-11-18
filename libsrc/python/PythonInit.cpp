@@ -1,7 +1,3 @@
-#undef slots
-#include <Python.h>
-#define slots
-
 // utils
 #include <utils/Logger.h>
 
@@ -16,9 +12,11 @@
 #include <effectengine/EffectModule.h>
 
 #ifdef _WIN32
-	#define STRINGIFY2(x) #x
-	#define STRINGIFY(x) STRINGIFY2(x)
+	#include <stdexcept>
 #endif
+
+#define STRINGIFY2(x) #x
+#define STRINGIFY(x) STRINGIFY2(x)
 
 PythonInit::PythonInit()
 {
@@ -26,19 +24,16 @@ PythonInit::PythonInit()
 	EffectModule::registerHyperionExtensionModule();
 
 	// set Python module path when exists
-	wchar_t *pythonPath = Py_DecodeLocale((QDir::cleanPath(qApp->applicationDirPath() + "/../lib/python")).toLatin1().data(), nullptr);
-	#ifdef _WIN32
-		pythonPath = Py_DecodeLocale((QDir::cleanPath(qApp->applicationDirPath())).toLatin1().data(), nullptr);
-		pythonPath =  wcscat(pythonPath, L"/python" STRINGIFY(PYTHON_VERSION_MAJOR_MINOR) ".zip");
-		if(QFile(QString::fromWCharArray(pythonPath)).exists())
-	#else
-		if(QDir(QString::fromWCharArray(pythonPath)).exists())
-	#endif
+	QString py_patch = QDir::cleanPath(qApp->applicationDirPath() + "/../lib/python");
+	QString py_file  = QDir::cleanPath(qApp->applicationDirPath() + "/python" + STRINGIFY(PYTHON_VERSION_MAJOR_MINOR) + ".zip");
 
+	if (QFile(py_file).exists() || QDir(py_patch).exists())
 	{
 		Py_NoSiteFlag++;
-		Py_SetPath(pythonPath);
-		PyMem_RawFree(pythonPath);
+		if (QFile(py_file).exists())
+			Py_SetPath(Py_DecodeLocale(py_file.toLatin1().data(), nullptr));
+		else if (QDir(py_patch).exists())
+			Py_SetPath(Py_DecodeLocale(py_patch.toLatin1().data(), nullptr));
 	}
 
 	// init Python
@@ -49,7 +44,11 @@ PythonInit::PythonInit()
 		throw std::runtime_error("Initializing Python failed!");
 	}
 
+#if (PY_VERSION_HEX < 0x03090000)
+	// PyEval_InitThreads became deprecated in Python 3.9 and will be removed in Python 3.11
 	PyEval_InitThreads(); // Create the GIL
+#endif
+
 	mainThreadState = PyEval_SaveThread();
 }
 

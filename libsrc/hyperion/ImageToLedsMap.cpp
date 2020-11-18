@@ -3,10 +3,10 @@
 using namespace hyperion;
 
 ImageToLedsMap::ImageToLedsMap(
-		const unsigned width,
-		const unsigned height,
-		const unsigned horizontalBorder,
-		const unsigned verticalBorder,
+		unsigned width,
+		unsigned height,
+		unsigned horizontalBorder,
+		unsigned verticalBorder,
 		const std::vector<Led>& leds)
 	: _width(width)
 	, _height(height)

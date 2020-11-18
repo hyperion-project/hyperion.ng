@@ -12,6 +12,7 @@ class ColorOption: public Option
 {
 protected:
     QColor _color;
+
 public:
     ColorOption(const QString &name,
                 const QString &description = QString(),
@@ -31,9 +32,8 @@ public:
         : Option(other)
     {}
 
-    virtual bool validate(Parser & parser, QString & value) override;
-    QColor getColor(Parser &parser)
-    { return _color; }
+    bool validate(Parser & parser, QString & value) override;
+    QColor getColor(Parser &parser) const { return _color; }
 };
 
 }

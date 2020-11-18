@@ -16,15 +16,16 @@ class QNetworkConfigurationManager;
 /// UPnP 1.0: spec: http://upnp.org/specs/arch/UPnP-arch-DeviceArchitecture-v1.0.pdf
 ///
 
-class SSDPHandler : public SSDPServer{
+class SSDPHandler : public SSDPServer
+{
 	Q_OBJECT
 public:
-	SSDPHandler(WebServer* webserver, const quint16& flatBufPort, const quint16& jsonServerPort, const QString &name,  QObject * parent = nullptr);
-	~SSDPHandler();
+	SSDPHandler(WebServer* webserver, quint16 flatBufPort, quint16 protoBufPort, quint16 jsonServerPort, quint16 sslPort, const QString &name,  QObject * parent = nullptr);
+	~SSDPHandler() override;
 
 	///
 	/// @brief Sends BYE BYE and stop server
-	/// 
+	///
 	void stopServer();
 
 public slots:
@@ -37,42 +38,42 @@ public slots:
 	/// @brief get state changes from webserver
 	/// @param newState true for started and false for stopped
 	///
-	void handleWebServerStateChange(const bool newState);
+	void handleWebServerStateChange(bool newState);
 
 	///
 	/// @brief Handle settings update from Hyperion Settingsmanager emit
 	/// @param type   settingyType from enum
 	/// @param config configuration object
 	///
-	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 private:
 	///
 	/// @brief Build http url for current ip:port/desc.xml
 	///
-	const QString getDescAddress();
+	QString getDescAddress() const;
 
 	///
 	/// @brief Get the base address
 	///
-	const QString getBaseAddress();
+	QString getBaseAddress() const;
 
 	///
 	/// @brief Build the ssdp description (description.xml)
 	///
-	const QString buildDesc();
+	QString buildDesc() const;
 
 	///
 	/// @brief Get the local address of interface
 	/// @return the address, might be empty
 	///
-	const QString getLocalAddress();
+	QString getLocalAddress() const;
 
 	///
 	/// @brief Send alive/byebye message based on _deviceList
 	/// @param alive When true send alive, else byebye
 	///
-	void sendAnnounceList(const bool alive);
+	void sendAnnounceList(bool alive);
 
 private slots:
 	///
@@ -82,7 +83,7 @@ private slots:
 	/// @param address The ip of the caller
 	/// @param port    The port of the caller
 	///
-	void handleMSearchRequest(const QString& target, const QString& mx, const QString address, const quint16 & port);
+	void handleMSearchRequest(const QString& target, const QString& mx, const QString address, quint16 port);
 
 	///
 	/// @brief Handle changes in the network configuration

@@ -8,22 +8,22 @@
 				"top": {
 					"type": "integer",
 					"minimum": 0,
-					"default": 8
+					"default": 1
 				},
 				"bottom": {
 					"type": "integer",
 					"minimum": 0,
-					"default": 8
+					"default": 0
 				},
 				"left": {
 					"type": "integer",
 					"minimum": 0,
-					"default": 5
+					"default": 0
 				},
 				"right": {
 					"type": "integer",
 					"minimum": 0,
-					"default": 5
+					"default": 0
 				},
 				"glength": {
 					"type": "integer",

@@ -6,7 +6,7 @@
 // Local includes
 #include "grabber/DispmanxFrameGrabber.h"
 
-DispmanxFrameGrabber::DispmanxFrameGrabber(const unsigned width, const unsigned height)
+DispmanxFrameGrabber::DispmanxFrameGrabber(unsigned width, unsigned height)
 	: Grabber("DISPMANXGRABBER", 0, 0)
 	, _vc_display(0)
 	, _vc_resource(0)
@@ -84,7 +84,7 @@ bool DispmanxFrameGrabber::setWidthHeight(int width, int height)
 	return false;
 }
 
-void DispmanxFrameGrabber::setFlags(const int vc_flags)
+void DispmanxFrameGrabber::setFlags(int vc_flags)
 {
 	_vc_flags = vc_flags;
 }
@@ -114,15 +114,15 @@ int DispmanxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 	// calculate final image dimensions and adjust top/left cropping in 3D modes
 	switch (_videoMode)
 	{
-	case VIDEO_3DSBS:
+	case VideoMode::VIDEO_3DSBS:
 		imageWidth /= 2;
 		cropLeft /= 2;
 		break;
-	case VIDEO_3DTAB:
+	case VideoMode::VIDEO_3DTAB:
 		imageHeight /= 2;
 		cropTop /= 2;
 		break;
-	case VIDEO_2D:
+	case VideoMode::VIDEO_2D:
 	default:
 		break;
 	}

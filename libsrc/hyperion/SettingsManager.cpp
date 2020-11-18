@@ -14,11 +14,13 @@
 
 QJsonObject SettingsManager::schemaJson;
 
-SettingsManager::SettingsManager(const quint8& instance, QObject* parent)
+SettingsManager::SettingsManager(quint8 instance, QObject* parent, bool readonlyMode)
 	: QObject(parent)
-	, _log(Logger::getInstance("SettingsManager"))
+	, _log(Logger::getInstance("SETTINGSMGR"))
 	, _sTable(new SettingsTable(instance, this))
+	, _readonlyMode(readonlyMode)
 {
+	_sTable->setReadonlyMode(_readonlyMode);
 	// get schema
 	if(schemaJson.isEmpty())
 	{
@@ -41,7 +43,7 @@ SettingsManager::SettingsManager(const quint8& instance, QObject* parent)
 	// transform json to string lists
 	QStringList keyList = defaultConfig.keys();
 	QStringList defValueList;
-	for(const auto key : keyList)
+	for(const auto & key : keyList)
 	{
 		if(defaultConfig[key].isObject())
 		{
@@ -54,7 +56,7 @@ SettingsManager::SettingsManager(const quint8& instance, QObject* parent)
 	}
 
 	// fill database with default data if required
-	for(const auto key : keyList)
+	for(const auto & key : keyList)
 	{
 		QString val = defValueList.takeFirst();
 		// prevent overwrite
@@ -65,7 +67,7 @@ SettingsManager::SettingsManager(const quint8& instance, QObject* parent)
 	// need to validate all data in database constuct the entire data object
 	// TODO refactor schemaChecker to accept QJsonArray in validate(); QJsonDocument container? To validate them per entry...
 	QJsonObject dbConfig;
-	for(const auto key : keyList)
+	for(const auto & key : keyList)
 	{
 		QJsonDocument doc = _sTable->getSettingsRecord(key);
 		if(doc.isArray())
@@ -80,7 +82,6 @@ SettingsManager::SettingsManager(const quint8& instance, QObject* parent)
 		saveSettings(dbConfig, true);
 	}
 
-
 	// validate full dbconfig against schema, on error we need to rewrite entire table
 	QJsonSchemaChecker schemaChecker;
 	schemaChecker.setSchema(schemaJson);
@@ -88,7 +89,7 @@ SettingsManager::SettingsManager(const quint8& instance, QObject* parent)
 	// check if our main schema syntax is IO
 	if (!valid.second)
 	{
-		foreach (auto & schemaError, schemaChecker.getMessages())
+		for (auto & schemaError : schemaChecker.getMessages())
 			Error(_log, "Schema Syntax Error: %s", QSTRING_CSTR(schemaError));
 		throw std::runtime_error("The config schema has invalid syntax. This should never happen! Go fix it!");
 	}
@@ -97,10 +98,10 @@ SettingsManager::SettingsManager(const quint8& instance, QObject* parent)
 		Info(_log,"Table upgrade required...");
 		dbConfig = schemaChecker.getAutoCorrectedConfig(dbConfig);
 
-		foreach (auto & schemaError, schemaChecker.getMessages())
+		for (auto & schemaError : schemaChecker.getMessages())
 			Warning(_log, "Config Fix: %s", QSTRING_CSTR(schemaError));
 
-		saveSettings(dbConfig);
+		saveSettings(dbConfig,true);
 	}
 	else
 		_qconfig = dbConfig;
@@ -108,12 +109,12 @@ SettingsManager::SettingsManager(const quint8& instance, QObject* parent)
 	Debug(_log,"Settings database initialized");
 }
 
-const QJsonDocument SettingsManager::getSetting(const settings::type& type)
+QJsonDocument SettingsManager::getSetting(settings::type type) const
 {
 	return _sTable->getSettingsRecord(settings::typeToString(type));
 }
 
-bool SettingsManager::saveSettings(QJsonObject config, const bool& correct)
+bool SettingsManager::saveSettings(QJsonObject config, bool correct)
 {
 	// optional data upgrades e.g. imported legacy/older configs
 	// handleConfigUpgrade(config);
@@ -131,7 +132,7 @@ bool SettingsManager::saveSettings(QJsonObject config, const bool& correct)
 		Warning(_log,"Fixing json data!");
 		config = schemaChecker.getAutoCorrectedConfig(config);
 
-		foreach (auto & schemaError, schemaChecker.getMessages())
+		for (const auto & schemaError : schemaChecker.getMessages())
 			Warning(_log, "Config Fix: %s", QSTRING_CSTR(schemaError));
 	}
 
@@ -141,7 +142,7 @@ bool SettingsManager::saveSettings(QJsonObject config, const bool& correct)
 	// extract keys and data
 	QStringList keyList = config.keys();
 	QStringList newValueList;
-	for(const auto key : keyList)
+	for(const auto & key : keyList)
 	{
 		if(config[key].isObject())
 		{
@@ -153,18 +154,24 @@ bool SettingsManager::saveSettings(QJsonObject config, const bool& correct)
 		}
 	}
 
+	int rc = true;
 	// compare database data with new data to emit/save changes accordingly
-	for(const auto key : keyList)
+	for(const auto & key : keyList)
 	{
 		QString data = newValueList.takeFirst();
 		if(_sTable->getSettingsRecordString(key) != data)
 		{
-			_sTable->createSettingsRecord(key, data);
-
-			emit settingsChanged(settings::stringToType(key), QJsonDocument::fromJson(data.toLocal8Bit()));
+			if ( ! _sTable->createSettingsRecord(key, data) )
+			{
+				rc = false;
+			}
+			else
+			{
+				emit settingsChanged(settings::stringToType(key), QJsonDocument::fromJson(data.toLocal8Bit()));
+			}
 		}
 	}
-	return true;
+	return rc;
 }
 
 bool SettingsManager::handleConfigUpgrade(QJsonObject& config)

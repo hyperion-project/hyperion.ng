@@ -14,9 +14,11 @@ class InstanceTable : public DBManager
 {
 
 public:
-	InstanceTable(const QString& rootPath, QObject* parent = nullptr)
+	InstanceTable(const QString& rootPath, QObject* parent = nullptr, bool readonlyMode = false)
 		: DBManager(parent)
 	{
+
+		setReadonlyMode(readonlyMode);
 		// Init Hyperion database usage
 		setRootPath(rootPath);
 		setDatabaseName("hyperion");
@@ -27,9 +29,7 @@ public:
 
 		// start/create the first Hyperion instance index 0
 		createInstance();
-
 	};
-	~InstanceTable(){};
 
 	///
 	/// @brief Create a new Hyperion instance entry, the name needs to be unique
@@ -71,7 +71,7 @@ public:
 	/// @param  inst  The id that has been assigned
 	/// @return True on success else false
 	///
-	inline bool deleteInstance(const quint8& inst)
+	inline bool deleteInstance(quint8 inst)
 	{
 		VectorPair cond;
 		cond.append(CPair("instance",inst));
@@ -91,7 +91,7 @@ public:
 	/// @param  name  The new name of the instance
 	/// @return True on success else false (instance not found)
 	///
-	inline bool saveName(const quint8& inst, const QString& name)
+	inline bool saveName(quint8 inst, const QString& name)
 	{
 		VectorPair fcond;
 		fcond.append(CPair("friendly_name",name));
@@ -119,10 +119,10 @@ public:
 	/// @param justEnabled  return just enabled instances if true
 	/// @return The found instances
 	///
-	inline QVector<QVariantMap> getAllInstances(const bool& justEnabled = false)
+	inline QVector<QVariantMap> getAllInstances(bool justEnabled = false)
 	{
 		QVector<QVariantMap> results;
-		getRecords(results);
+		getRecords(results, QStringList(), QStringList() << "instance ASC");
 		if(justEnabled)
 		{
 			for (auto it = results.begin(); it != results.end();)
@@ -143,7 +143,7 @@ public:
 	/// @param[in]  user   The user id
 	/// @return     true on success else false
 	///
-	inline bool instanceExist(const quint8& inst)
+	inline bool instanceExist(quint8 inst)
 	{
 		VectorPair cond;
 		cond.append(CPair("instance",inst));
@@ -155,7 +155,7 @@ public:
 	/// @param index  The index to search for
 	/// @return The name of this index, may return NOT FOUND if not found
 	///
-	inline const QString getNamebyIndex(const quint8 index)
+	inline const QString getNamebyIndex(quint8 index)
 	{
 		QVariantMap results;
 		VectorPair cond;
@@ -170,7 +170,7 @@ public:
 	/// @brief Update 'last_use' timestamp
 	/// @param inst  The instance to update
 	///
-	inline void setLastUse(const quint8& inst)
+	inline void setLastUse(quint8 inst)
 	{
 		VectorPair cond;
 		cond.append(CPair("instance", inst));
@@ -184,7 +184,7 @@ public:
 	/// @param inst     The instance to update
 	/// @param newState True when enabled else false
 	///
-	inline void setEnable(const quint8& inst, const bool& newState)
+	inline void setEnable(quint8 inst, bool newState)
 	{
 		VectorPair cond;
 		cond.append(CPair("instance", inst));
@@ -198,7 +198,7 @@ public:
 	/// @param inst  The instance to get
 	/// @return True when enabled else false
 	///
-	inline bool isEnabled(const quint8& inst)
+	inline bool isEnabled(quint8 inst)
 	{
 		VectorPair cond;
 		cond.append(CPair("instance", inst));

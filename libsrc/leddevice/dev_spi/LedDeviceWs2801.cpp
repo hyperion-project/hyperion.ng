@@ -1,10 +1,8 @@
 #include "LedDeviceWs2801.h"
 
 LedDeviceWs2801::LedDeviceWs2801(const QJsonObject &deviceConfig)
-	: ProviderSpi()
+	: ProviderSpi(deviceConfig)
 {
-	_devConfig = deviceConfig;
-	_deviceReady = false;
 }
 
 LedDevice* LedDeviceWs2801::construct(const QJsonObject &deviceConfig)

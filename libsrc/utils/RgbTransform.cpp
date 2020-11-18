@@ -22,10 +22,6 @@ void RgbTransform::init(double gammaR, double gammaG, double gammaB, double back
 	initializeMapping();
 }
 
-RgbTransform::~RgbTransform()
-{
-}
-
 double RgbTransform::getGammaR() const
 {
 	return _gammaR;
@@ -98,7 +94,7 @@ uint8_t RgbTransform::getBrightness() const
 
 void RgbTransform::setBrightness(uint8_t brightness)
 {
-	_brightness    = brightness;
+	_brightness = brightness;
 	updateBrightnessComponents();
 }
 
@@ -117,7 +113,7 @@ void RgbTransform::updateBrightnessComponents()
 {
 	double Fw   = _brightnessCompensation*2.0/100.0+1.0;
 	double Fcmy = _brightnessCompensation/100.0+1.0;
-	
+
 	double B_in= 0;
 	_brightness_rgb = 0;
 	_brightness_cmy = 0;
@@ -133,7 +129,7 @@ void RgbTransform::updateBrightnessComponents()
 	}
 }
 
-void RgbTransform::getBrightnessComponents(uint8_t & rgb, uint8_t & cmy, uint8_t & w )
+void RgbTransform::getBrightnessComponents(uint8_t & rgb, uint8_t & cmy, uint8_t & w) const
 {
 	rgb = _brightness_rgb;
 	cmy = _brightness_cmy;
@@ -175,4 +171,3 @@ void RgbTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue)
 		}
 	}
 }
-

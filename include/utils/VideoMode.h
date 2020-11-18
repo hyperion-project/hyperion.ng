@@ -5,38 +5,38 @@
 /**
  * Enumeration of the possible modes in which video can be playing (2D, 3D)
  */
-enum VideoMode
+enum class VideoMode
 {
 	VIDEO_2D,
 	VIDEO_3DSBS,
 	VIDEO_3DTAB
 };
 
-inline VideoMode parse3DMode(QString videoMode)
+inline VideoMode parse3DMode(const QString& videoMode)
 {
 	// convert to upper case
-	videoMode = videoMode.toUpper();
+	const QString vm = videoMode.toUpper();
 
-	if (videoMode == "3DTAB")
+	if (vm == "3DTAB")
 	{
-		return VIDEO_3DTAB;
+		return VideoMode::VIDEO_3DTAB;
 	}
-	else if (videoMode == "3DSBS")
+	else if (vm == "3DSBS")
 	{
-		return VIDEO_3DSBS;
+		return VideoMode::VIDEO_3DSBS;
 	}
 
 	// return the default 2D
-	return VIDEO_2D;
+	return VideoMode::VIDEO_2D;
 }
 
 inline QString videoMode2String(VideoMode mode)
 {
 	switch(mode)
 	{
-		case VIDEO_3DTAB: return "3DTAB";
-		case VIDEO_3DSBS: return "3DSBS";
-		case VIDEO_2D: return "2D";
+		case VideoMode::VIDEO_3DTAB: return "3DTAB";
+		case VideoMode::VIDEO_3DSBS: return "3DSBS";
+		case VideoMode::VIDEO_2D: return "2D";
 		default: return "INVALID";
 	}
 }

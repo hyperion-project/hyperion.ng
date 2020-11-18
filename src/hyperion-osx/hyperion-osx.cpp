@@ -11,6 +11,8 @@
 // ssdp discover
 #include <ssdp/SSDPDiscover.h>
 
+#include <utils/DefaultSignalHandler.h>
+
 using namespace commandline;
 
 // save the image as screenshot
@@ -23,6 +25,8 @@ void saveScreenshot(QString filename, const Image<ColorRgb> & image)
 
 int main(int argc, char ** argv)
 {
+	DefaultSignalHandler::install();
+
 	QCoreApplication app(argc, argv);
 
 	try
@@ -30,7 +34,7 @@ int main(int argc, char ** argv)
 		// create the option parser and initialize all parameters
 		Parser parser("OSX capture application for Hyperion. Will automatically search a Hyperion server if -a option isn't used. Please note that if you have more than one server running it's more or less random which one will be used.");
 
-		Option        & argDisplay    = parser.add<Option>       ('d', "display",    "Set the display to capture [default: %1]", "0");
+		IntOption     & argDisplay    = parser.add<IntOption>    ('d', "display",    "Set the display to capture [default: %1]", "0");
 		IntOption     & argFps        = parser.add<IntOption>    ('f', "framerate",  "Capture frame rate [default: %1]", "10", 1, 25);
 		IntOption     & argWidth      = parser.add<IntOption>    (0x0, "width",      "Width of the captured image [default: %1]", "160", 160);
 		IntOption     & argHeight     = parser.add<IntOption>    (0x0, "height",     "Height of the captured image [default: %1]", "160", 160);
@@ -50,7 +54,7 @@ int main(int argc, char ** argv)
 		}
 
 		OsxWrapper osxWrapper
-			(parser.isSet(argDisplay), argWidth.getInt(parser), argHeight.getInt(parser), 1000 / argFps.getInt(parser));
+			(argDisplay.getInt(parser), argWidth.getInt(parser), argHeight.getInt(parser), 1000 / argFps.getInt(parser));
 
 		if (parser.isSet(argScreenshot))
 		{
@@ -65,7 +69,7 @@ int main(int argc, char ** argv)
 			if(argAddress.value(parser) == "127.0.0.1:19400")
 			{
 				SSDPDiscover discover;
-				address = discover.getFirstService(STY_FLATBUFSERVER);
+				address = discover.getFirstService(searchType::STY_FLATBUFSERVER);
 				if(address.isEmpty())
 				{
 					address = argAddress.value(parser);

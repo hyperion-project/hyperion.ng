@@ -51,7 +51,7 @@ BonjourServiceRegister::~BonjourServiceRegister()
 	}
 }
 
-void BonjourServiceRegister::registerService(const QString& service, const int& port)
+void BonjourServiceRegister::registerService(const QString& service, int port)
 {
 	_port = port;
 	// zeroconf $configname@$hostname:port
@@ -65,7 +65,7 @@ void BonjourServiceRegister::registerService(const QString& service, const int& 
 	);
 }
 
-void BonjourServiceRegister::registerService(const BonjourRecord &record, quint16 servicePort, std::vector<std::pair<std::string, std::string>> txt)
+void BonjourServiceRegister::registerService(const BonjourRecord &record, quint16 servicePort, const std::vector<std::pair<std::string, std::string>>& txt)
 {
 	if (dnssref)
 	{
@@ -115,7 +115,7 @@ void BonjourServiceRegister::registerService(const BonjourRecord &record, quint1
 		else
 		{
 			bonjourSocket = new QSocketNotifier(sockfd, QSocketNotifier::Read, this);
-			connect(bonjourSocket, SIGNAL(activated(int)), this, SLOT(bonjourSocketReadyRead()));
+			connect(bonjourSocket, &QSocketNotifier::activated, this, &BonjourServiceRegister::bonjourSocketReadyRead);
 		}
 	}
 }

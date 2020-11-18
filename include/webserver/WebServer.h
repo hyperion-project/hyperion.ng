@@ -28,38 +28,29 @@ openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
   -subj /CN=hyperion-project.org
 */
 
-class WebServer : public QObject {
+class WebServer : public QObject
+{
 	Q_OBJECT
 
 public:
-	WebServer (const QJsonDocument& config, const bool& useSsl, QObject * parent = 0);
+	WebServer (const QJsonDocument& config, bool useSsl, QObject * parent = nullptr);
 
-	virtual ~WebServer (void);
+	~WebServer () override;
 
 	void start();
 	void stop();
-
-	quint16 getPort() { return _port; };
-
-	/// check if server has been inited
-	bool isInited() { return _inited; };
-
-	///
-	/// @brief Set a new description, if empty the description is NotFound for clients
-	///
-	void setSSDPDescription(const QString & desc);
 
 signals:
 	///
 	/// @emits whenever server is started or stopped (to sync with SSDPHandler)
 	/// @param newState   True when started, false when stopped
 	///
-	void stateChange(const bool newState);
+	void stateChange(bool newState);
 
 	///
 	/// @brief Emits whenever the port changes (doesn't compare prev <> now)
 	///
-	void portChanged(const quint16& port);
+	void portChanged(quint16 port);
 
 public slots:
 	///
@@ -67,7 +58,7 @@ public slots:
 	///
 	void initServer();
 
-	void onServerStopped      (void);
+	void onServerStopped      ();
 	void onServerStarted      (quint16 port);
 	void onServerError        (QString msg);
 
@@ -76,7 +67,17 @@ public slots:
 	/// @param type   settingyType from enum
 	/// @param config configuration object
 	///
-	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
+
+	///
+	/// @brief Set a new description, if empty the description is NotFound for clients
+	///
+	void setSSDPDescription(const QString & desc);
+
+	/// check if server has been inited
+	bool isInited() const { return _inited; }
+
+	quint16 getPort() const { return _port; }
 
 private:
 	QJsonDocument        _config;

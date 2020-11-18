@@ -5,7 +5,7 @@
 // Local includes
 #include <grabber/OsxFrameGrabber.h>
 
-OsxFrameGrabber::OsxFrameGrabber(const unsigned display, const unsigned width, const unsigned height)
+OsxFrameGrabber::OsxFrameGrabber(unsigned display, unsigned width, unsigned height)
 	: Grabber("OSXGRABBER", width, height)
 	, _screenIndex(100)
 {
@@ -50,7 +50,7 @@ int OsxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 								dspWidth,
 								dspHeight,
 								CGImageGetBytesPerRow(dispImage),
-								PIXELFORMAT_BGR32,
+								PixelFormat::BGR32,
 								image);
 
 	CFRelease(imgData);

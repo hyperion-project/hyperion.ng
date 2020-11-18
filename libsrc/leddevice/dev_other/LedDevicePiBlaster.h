@@ -1,57 +1,64 @@
-#pragma once
+#ifndef LEDEVICEPIBLASTER_H
+#define LEDEVICEPIBLASTER_H
 
-// Hyperion-Leddevice includes
+// LedDevice includes
 #include <leddevice/LedDevice.h>
 
 ///
 /// Implementation of the LedDevice interface for writing to pi-blaster based PWM LEDs
 ///
-
 class LedDevicePiBlaster : public LedDevice
 {
 public:
 	///
-	/// Constructs specific LedDevice
+	/// @brief Constructs a pi-Blaster LED-device
 	///
-	/// @param deviceConfig json device config
+	/// @param deviceConfig Device's configuration as JSON-Object
 	///
 	explicit LedDevicePiBlaster(const QJsonObject &deviceConfig);
 
-	virtual ~LedDevicePiBlaster() override;
+	///
+	/// @brief Destructor of the LedDevice
+	///
+	~LedDevicePiBlaster() override;
 
 	///
-	/// Sets configuration
+	/// @brief Constructs the LED-device
 	///
-	/// @param deviceConfig the json device config
-	/// @return true if success
-	bool init(const QJsonObject &deviceConfig) override;
-
-	/// constructs leddevice
+	/// @param[in] deviceConfig Device's configuration as JSON-Object
+	/// @return LedDevice constructed
 	static LedDevice* construct(const QJsonObject &deviceConfig);
 
-public slots:
-	///
-	/// Closes the output device.
-	/// Includes switching-off the device and stopping refreshes
-	///
-	virtual void close() override;
-
 protected:
+
+	///
+	/// @brief Initialise the device's configuration
+	///
+	/// @param[in] deviceConfig the JSON device configuration
+	bool init(const QJsonObject &deviceConfig) override;
+
 	///
 	/// Attempts to open the piblaster-device. This will only succeed if the device is not yet open
 	/// and the device is available.
 	///
-	/// @return Zero on succes else negative
+	/// @return Zero on success (i.e. device is ready), else negative
 	///
 	int open() override;
 
+	///
+	/// @brief Closes the output device.
+	///
+	/// @return Zero on success (i.e. device is closed), else negative
+	///
+	int close() override;
+
 private:
+
 	///
-	/// Writes the colors to the PiBlaster device
+	/// @brief Writes the RGB-Color values to the LEDs.
 	///
-	/// @param ledValues The color value for each led
-	///
-	/// @return Zero on success else negative
+	/// @param[in] ledValues The RGB-color per LED
+	/// @return Zero on success, else negative
 	///
 	int write(const std::vector<ColorRgb> &ledValues) override;
 
@@ -65,3 +72,5 @@ private:
 	FILE * _fid;
 
 };
+
+#endif // LEDEVICETEMPLATE_H

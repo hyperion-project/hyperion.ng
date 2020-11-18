@@ -6,7 +6,7 @@
 
 namespace RGBW {
 
-	enum WhiteAlgorithm {
+	enum class WhiteAlgorithm {
 		INVALID,
 		SUBTRACT_MINIMUM,
 		SUB_MIN_WARM_ADJUST,
@@ -14,7 +14,6 @@ namespace RGBW {
 		WHITE_OFF
 	};
 
-	WhiteAlgorithm stringToWhiteAlgorithm(QString str);
-	void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, const WhiteAlgorithm algorithm);
-
+	WhiteAlgorithm stringToWhiteAlgorithm(const QString& str);
+	void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm);
 }

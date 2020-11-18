@@ -1,9 +1,8 @@
-#pragma once
+#ifndef LEDEVICEATMOORB_H
+#define LEDEVICEATMOORB_H
 
 // Qt includes
-#include <QObject>
-#include <QString>
-#include <QNetworkAccessManager>
+#include <QUdpSocket>
 #include <QHostAddress>
 #include <QVector>
 
@@ -12,63 +11,91 @@
 
 class QUdpSocket;
 
-/**
- * Implementation for the AtmoOrb
- *
- * To use set the device to "atmoorb".
- *
- * @author RickDB (github)
- */
+///
+/// Implementation of the LedDevice interface for sending to
+/// AtmoOrb devices via network
+///
 class LedDeviceAtmoOrb : public LedDevice
 {
 	Q_OBJECT
 public:
 
 	///
-	/// Constructs specific LedDevice
+	/// @brief Constructs an AtmoOrb LED-device
 	///
-	/// @param deviceConfig json device config
+	/// @param deviceConfig Device's configuration as JSON-Object
 	///
 	explicit LedDeviceAtmoOrb(const QJsonObject &deviceConfig);
 
 	///
-	/// Sets configuration
+	/// @brief Destructor of the LedDevice
 	///
-	/// @param deviceConfig the json device config
-	/// @return true if success
-	bool init(const QJsonObject &deviceConfig) override;
+	~LedDeviceAtmoOrb() override;
 
-	/// constructs leddevice
+	///
+	/// @brief Constructs the LED-device
+	///
+	/// @param[in] deviceConfig Device's configuration as JSON-Object
+	/// @return LedDevice constructed
+	///
 	static LedDevice* construct(const QJsonObject &deviceConfig);
+
 	///
-	/// Destructor of this device
+	/// @brief Discover AtmoOrb devices available (for configuration).
 	///
-	virtual ~LedDeviceAtmoOrb() override;
+	/// @param[in] params Parameters used to overwrite discovery default behaviour
+	///
+	/// @return A JSON structure holding a list of devices found
+	///
+	QJsonObject discover(const QJsonObject& params) override;
+
+	///
+	/// @brief Send an update to the AtmoOrb device to identify it.
+	///
+	/// Following parameters are required
+	/// @code
+	/// {
+	///     "orbId"  : "orb identifier in the range of (1-255)",
+	/// }
+	///@endcode
+	///
+	/// @param[in] params Parameters to address device
+	///
+	virtual void identify(const QJsonObject& params) override;
 
 protected:
 
 	///
-	/// Initialise device's network details
+	/// @brief Initialise the device's configuration
 	///
-	/// @return True if success
-	bool initNetwork();
+	/// @param[in] deviceConfig the JSON device configuration
+	/// @return True, if success
+	///
+	bool init(const QJsonObject &deviceConfig) override;
 
 	///
-	/// Opens and initiatialises the output device
+	/// @brief Opens the output device.
 	///
-	/// @return Zero on succes (i.e. device is ready and enabled) else negative
+	/// @return Zero on success (i.e. device is ready), else negative
 	///
-	virtual int open() override;
+	int open() override;
+
+	///
+	/// @brief Closes the output device.
+	///
+	/// @return Zero on success (i.e. device is closed), else negative
+	///
+	int close() override;
+
+	///
+	/// @brief Writes the RGB-Color values to the LEDs.
+	///
+	/// @param[in] ledValues The RGB-color per LED
+	/// @return Zero on success, else negative
+	///
+	int write(const std::vector<ColorRgb> & ledValues) override;
 
 private:
-
-	///
-	/// Sends the given led-color values to the Orbs
-	///
-	/// @param ledValues The color-value per led
-	/// @return Zero on success else negative
-	///
-	virtual int write(const std::vector <ColorRgb> &ledValues) override;
 
 	///
 	/// Set Orbcolor
@@ -86,9 +113,6 @@ private:
 	///
 	void sendCommand(const QByteArray &bytes);
 
-	/// QNetworkAccessManager object for sending requests.
-	QNetworkAccessManager *_networkmanager;
-
 	/// QUdpSocket object used to send data over
 	QUdpSocket * _udpSocket;
 
@@ -102,22 +126,13 @@ private:
 	quint16 _multiCastGroupPort;
 
 	// Multicast status
-	bool joinedMulticastgroup;
+	bool _joinedMulticastgroup;
 
 	/// use Orbs own (external) smoothing algorithm
 	bool _useOrbSmoothing;
 
-	/// Transition time between colors (not implemented)
-	int _transitiontime;
-
 	// Maximum allowed color difference, will skip Orb (external) smoothing once reached
 	int _skipSmoothingDiff;
-
-	/// Number of leds in Orb, used to determine buffer size
-	int _numLeds;
-
-
-
 
 	/// Array of the orb ids.
 	QVector<int> _orbIds;
@@ -127,7 +142,7 @@ private:
 	QMap<int, int> lastColorGreenMap;
 	QMap<int, int> lastColorBlueMap;
 
-
-
-
+	QMultiMap<int, QHostAddress> _services;
 };
+
+#endif // LEDEVICEATMOORB_H

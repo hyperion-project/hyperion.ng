@@ -16,9 +16,10 @@ class AuthTable : public DBManager
 
 public:
 	/// construct wrapper with auth table
-	AuthTable(const QString& rootPath = "", QObject* parent = nullptr)
+	AuthTable(const QString& rootPath = "", QObject* parent = nullptr, bool readonlyMode = false)
 		: DBManager(parent)
 	{
+		setReadonlyMode(readonlyMode);
 		if(!rootPath.isEmpty()){
 			// Init Hyperion database usage
 			setRootPath(rootPath);
@@ -29,7 +30,6 @@ public:
 		// create table columns
 		createTable(QStringList()<<"user TEXT"<<"password BLOB"<<"token BLOB"<<"salt BLOB"<<"comment TEXT"<<"id TEXT"<<"created_at TEXT"<<"last_use TEXT");
 	};
-	~AuthTable(){};
 
 	///
 	/// @brief      Create a user record, if called on a existing user the auth is recreated

@@ -22,6 +22,14 @@ if (ENABLE_X11)
 	add_subdirectory(x11)
 endif()
 
+if (ENABLE_XCB)
+	add_subdirectory(xcb)
+endif()
+
 if (ENABLE_QT)
 	add_subdirectory(qt)
+endif()
+
+if (ENABLE_DX)
+	add_subdirectory(directx)
 endif()

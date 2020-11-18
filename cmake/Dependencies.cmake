@@ -1,31 +1,35 @@
 macro(DeployUnix TARGET)
-	set(TARGET_FILE ${CMAKE_BINARY_DIR}/bin/${TARGET})
-	set(SYSTEM_LIBS_SKIP
-		"libc"
-		"libdl"
-		"libexpat"
-		"libfontconfig"
-		"libfreetype"
-		"libgcc_s"
-		"libgcrypt"
-		"libGL"
-		"libGLdispatch"
-		"libglib-2"
-		"libGLX"
-		"libgpg-error"
-		"libm"
-		"libpthread"
-		"librt"
-		"libstdc++"
-		"libudev"
-		"libusb-1"
-		"libutil"
-		"libX11"
-		"libz"
-	)
-
 	if(EXISTS ${TARGET_FILE})
+		message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
 		include(GetPrerequisites)
+
+		set(SYSTEM_LIBS_SKIP
+			"libc"
+			"libdl"
+			"libexpat"
+			"libfontconfig"
+			"libfreetype"
+			"libgcc_s"
+			"libgcrypt"
+			"libGL"
+			"libGLdispatch"
+			"libglib-2"
+			"libGLX"
+			"libgpg-error"
+			"libm"
+			"libpthread"
+			"librt"
+			"libstdc++"
+			"libudev"
+			"libusb-1"
+			"libutil"
+			"libX11"
+			"libz"
+		)
+
+		if(ENABLE_DISPMANX)
+			list(APPEND SYSTEM_LIBS_SKIP "libcec")
+		endif()
 
 		if (APPLE)
 			set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
@@ -133,17 +137,19 @@ macro(DeployUnix TARGET)
 			)
 		endforeach()
 
+		# Detect the Python version and modules directory
 		if (NOT CMAKE_VERSION VERSION_LESS "3.12")
 
-			# Detect the Python modules directory
+			set(PYTHON_VERSION_MAJOR_MINOR "${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}")
 			execute_process(
 				COMMAND ${Python3_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(standard_lib=True))"
 				OUTPUT_VARIABLE PYTHON_MODULES_DIR
 				OUTPUT_STRIP_TRAILING_WHITESPACE
 			)
+
 		else()
 
-			# Detect the Python modules directory
+			set(PYTHON_VERSION_MAJOR_MINOR "${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}")
 			execute_process(
 				COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(standard_lib=True))"
 				OUTPUT_VARIABLE PYTHON_MODULES_DIR
@@ -154,17 +160,20 @@ macro(DeployUnix TARGET)
 
 		# Copy Python modules to 'share/hyperion/lib/python'
 		if (PYTHON_MODULES_DIR)
+
 			install(
 				DIRECTORY ${PYTHON_MODULES_DIR}/
 				DESTINATION "share/hyperion/lib/python"
 				COMPONENT "Hyperion"
 			)
+
 		endif(PYTHON_MODULES_DIR)
+
 	else()
 		# Run CMake after target was built to run get_prerequisites on ${TARGET_FILE}
 		add_custom_command(
 			TARGET ${TARGET} POST_BUILD
-			COMMAND ${CMAKE_COMMAND}
+			COMMAND "${CMAKE_COMMAND}" "-DTARGET_FILE=$<TARGET_FILE:${TARGET}>"
 			ARGS ${CMAKE_SOURCE_DIR}
 			WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 			VERBATIM
@@ -173,11 +182,10 @@ macro(DeployUnix TARGET)
 endmacro()
 
 macro(DeployWindows TARGET)
-	# TODO Find out what build type it is
-	set(TARGET_FILE ${CMAKE_BINARY_DIR}/bin/Release/${TARGET}.exe)
-
 	if(EXISTS ${TARGET_FILE})
+		message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
 		find_package(Qt5Core REQUIRED)
+		find_package(OpenSSL REQUIRED)
 
 		# Find the windeployqt binaries
 		get_target_property(QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
@@ -191,11 +199,11 @@ macro(DeployWindows TARGET)
 		execute_process(
 			COMMAND "${CMAKE_COMMAND}" -E
 			env "PATH=${COMPILER_PATH};${QT_BIN_DIR}" "${WINDEPLOYQT_EXECUTABLE}"
-            --dry-run
-            ${WINDEPLOYQT_PARAMS}
-            --list mapping
-            "${TARGET_FILE}"
-            OUTPUT_VARIABLE DEPS
+			--dry-run
+			${WINDEPLOYQT_PARAMS}
+			--list mapping
+			"${TARGET_FILE}"
+			OUTPUT_VARIABLE DEPS
 			OUTPUT_STRIP_TRAILING_WHITESPACE
 		)
 
@@ -225,6 +233,36 @@ macro(DeployWindows TARGET)
 
 			list(REMOVE_AT DEPENDENCIES 0 1)
 		endwhile()
+
+		# Copy OpenSSL Libs
+		if (OPENSSL_FOUND)
+			string(REGEX MATCHALL "[0-9]+" openssl_versions "${OPENSSL_VERSION}")
+			list(GET openssl_versions 0 openssl_version_major)
+			list(GET openssl_versions 1 openssl_version_minor)
+
+			set(library_suffix "-${openssl_version_major}_${openssl_version_minor}")
+			if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+			  string(APPEND library_suffix "-x64")
+			endif()
+
+			find_file(OPENSSL_SSL
+				NAMES "libssl${library_suffix}.dll"
+				PATHS ${OPENSSL_INCLUDE_DIR}/.. ${OPENSSL_INCLUDE_DIR}/../bin
+				NO_DEFAULT_PATH
+			)
+
+			find_file(OPENSSL_CRYPTO
+				NAMES "libcrypto${library_suffix}.dll"
+				PATHS ${OPENSSL_INCLUDE_DIR}/.. ${OPENSSL_INCLUDE_DIR}/../bin
+				NO_DEFAULT_PATH
+			)
+
+			install(
+				FILES ${OPENSSL_SSL} ${OPENSSL_CRYPTO}
+				DESTINATION "bin"
+				COMPONENT "Hyperion"
+			)
+		endif(OPENSSL_FOUND)
 
 		# Create a qt.conf file in 'bin' to override hard-coded search paths in Qt plugins
 		file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/\n")
@@ -273,11 +311,33 @@ macro(DeployWindows TARGET)
 			)
 		endforeach()
 
+		# Download DirectX End-User Runtimes (June 2010)
+		set(url "https://download.microsoft.com/download/8/4/A/84A35BF1-DAFE-4AE8-82AF-AD2AE20B6B14/directx_Jun2010_redist.exe")
+		if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/dx_redist.exe")
+			file(DOWNLOAD "${url}" "${CMAKE_CURRENT_BINARY_DIR}/dx_redist.exe"
+				STATUS result
+			)
+
+			# Check if the download is successful
+			list(GET result 0 result_code)
+			if(NOT result_code EQUAL 0)
+				list(GET result 1 reason)
+				message(FATAL_ERROR "Could not download DirectX End-User Runtimes: ${reason}")
+			endif()
+		endif()
+
+		# Copy DirectX End-User Runtimes to 'hyperion'
+		install(
+			FILES ${CMAKE_CURRENT_BINARY_DIR}/dx_redist.exe
+			DESTINATION "bin"
+			COMPONENT "Hyperion"
+		)
+
 	else()
 		# Run CMake after target was built
 		add_custom_command(
 			TARGET ${TARGET} POST_BUILD
-			COMMAND ${CMAKE_COMMAND}
+			COMMAND "${CMAKE_COMMAND}" "-DTARGET_FILE=$<TARGET_FILE:${TARGET}>"
 			ARGS ${CMAKE_SOURCE_DIR}
 			WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 			VERBATIM

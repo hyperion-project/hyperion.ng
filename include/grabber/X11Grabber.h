@@ -1,5 +1,7 @@
 #pragma once
-
+#include <QAbstractEventDispatcher>
+#include <QAbstractNativeEventFilter>
+#include <QCoreApplication>
 #include <QObject>
 
 // Hyperion-utils includes
@@ -8,18 +10,19 @@
 
 // X11 includes
 #include <X11/Xlib.h>
+#include <X11/extensions/Xrandr.h>
 #include <X11/extensions/Xrender.h>
 #include <X11/extensions/XShm.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
-class X11Grabber : public Grabber
+class X11Grabber : public Grabber , public QAbstractNativeEventFilter
 {
 public:
 
 	X11Grabber(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation);
 
-	virtual ~X11Grabber();
+	~X11Grabber() override;
 
 	bool Setup();
 
@@ -31,23 +34,23 @@ public:
 	/// @param[out] image  The snapped screenshot (should be initialized with correct width and
 	/// height)
 	///
-	virtual int grabFrame(Image<ColorRgb> & image, bool forceUpdate=false);
+	int grabFrame(Image<ColorRgb> & image, bool forceUpdate=false);
 
 	///
 	/// update dimension according current screen
 	int updateScreenDimensions(bool force=false);
 
-	virtual void setVideoMode(VideoMode mode);
+	void setVideoMode(VideoMode mode) override;
 
 	///
 	/// @brief Apply new width/height values, overwrite Grabber.h implementation as X11 doesn't use width/height, just pixelDecimation to calc dimensions
 	///
-	virtual bool setWidthHeight(int width, int height) { return true; };
+	bool setWidthHeight(int width, int height) override { return true; }
 
 	///
 	/// @brief Apply new pixelDecimation
 	///
-	virtual void setPixelDecimation(int pixelDecimation);
+	void setPixelDecimation(int pixelDecimation) override;
 
 	///
 	/// Set the crop values
@@ -56,10 +59,13 @@ public:
 	/// @param  cropTop     Top pixel crop
 	/// @param  cropBottom  Bottom pixel crop
 	///
-	virtual void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom);
+	void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom) override;
+
+protected:
+	bool nativeEventFilter(const QByteArray & eventType, void * message, long int * result) override;
 
 private:
-	bool _XShmAvailable, _XShmPixmapAvailable, _XRenderAvailable;
+	bool _XShmAvailable, _XShmPixmapAvailable, _XRenderAvailable,  _XRandRAvailable;
 
 	XImage* _xImage;
 	XShmSegmentInfo _shminfo;
@@ -75,6 +81,8 @@ private:
 	XRenderPictureAttributes _pictAttr;
 	Picture _srcPicture;
 	Picture _dstPicture;
+
+	int _XRandREventBase;
 
 	XTransform _transform;
 	int _pixelDecimation;

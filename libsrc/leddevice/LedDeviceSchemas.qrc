@@ -11,7 +11,6 @@
 		<file alias="schema-lightpack">schemas/schema-lightpack.json</file>
 		<file alias="schema-lpd6803">schemas/schema-lpd6803.json</file>
 		<file alias="schema-lpd8806">schemas/schema-lpd8806.json</file>
-		<file alias="schema-multilightpack">schemas/schema-multilightpack.json</file>
 		<file alias="schema-p9813">schemas/schema-p9813.json</file>
 		<file alias="schema-paintpack">schemas/schema-paintpack.json</file>
 		<file alias="schema-philipshue">schemas/schema-philipshue.json</file>
@@ -20,6 +19,7 @@
 		<file alias="schema-sedu">schemas/schema-sedu.json</file>
 		<file alias="schema-sk6812spi">schemas/schema-sk6812spi.json</file>
 		<file alias="schema-sk6822spi">schemas/schema-sk6822spi.json</file>
+		<file alias="schema-sk9822">schemas/schema-sk9822.json</file>
 		<file alias="schema-tinkerforge">schemas/schema-tinkerforge.json</file>
 		<file alias="schema-tpm2net">schemas/schema-tpm2net.json</file>
 		<file alias="schema-tpm2">schemas/schema-tpm2.json</file>
@@ -33,5 +33,8 @@
 		<file alias="schema-ws281x">schemas/schema-ws281x.json</file>
 		<file alias="schema-karate">schemas/schema-karate.json</file>
 		<file alias="schema-nanoleaf">schemas/schema-nanoleaf.json</file>
+		<file alias="schema-wled">schemas/schema-wled.json</file>
+		<file alias="schema-yeelight">schemas/schema-yeelight.json</file>
+		<file alias="schema-cololight">schemas/schema-cololight.json</file>
 	</qresource>
 </RCC>

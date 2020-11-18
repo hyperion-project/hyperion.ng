@@ -13,6 +13,7 @@ class ValidatorOption: public Option
 protected:
     const QValidator *validator;
     virtual void setValidator(const QValidator *validator);
+
 public:
     ValidatorOption(const QString &name,
                     const QString &description = QString(),
@@ -21,6 +22,7 @@ public:
                     const QValidator *validator = nullptr)
         : Option(name, description, valueName, defaultValue), validator(validator)
     {}
+
     ValidatorOption(const QStringList &names,
                     const QString &description = QString(),
                     const QString &valueName = QString(),
@@ -28,6 +30,7 @@ public:
                     const QValidator *validator = nullptr)
         : Option(names, description, valueName, defaultValue), validator(validator)
     {}
+
     ValidatorOption(const QCommandLineOption &other,
                     const QValidator *validator = nullptr)
         : Option(other), validator(validator)

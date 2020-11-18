@@ -5,6 +5,7 @@
 
 //qt
 #include <QMap>
+#include <QVector>
 
 class AuthTable;
 class MetaTable;
@@ -20,7 +21,7 @@ class AuthManager : public QObject
 private:
 	friend class HyperionDaemon;
 	/// constructor is private, can be called from HyperionDaemon
-	AuthManager(QObject *parent = 0);
+	AuthManager(QObject *parent = nullptr, bool readonlyMode = false);
 
 public:
 	struct AuthDefinition
@@ -28,6 +29,7 @@ public:
 		QString id;
 		QString comment;
 		QObject *caller;
+		int      tan;
 		uint64_t timeoutTime;
 		QString token;
 		QString lastUse;
@@ -37,25 +39,25 @@ public:
 	/// @brief Get the unique id (imported from removed class 'Stats')
 	/// @return The unique id
 	///
-	const QString &getID() { return _uuid; };
+	QString getID() const { return _uuid; }
 
 	///
 	/// @brief Check authorization is required according to the user setting
 	/// @return       True if authorization required else false
 	///
-	const bool &isAuthRequired() { return _authRequired; };
+	bool isAuthRequired() const { return _authRequired; }
 
 	///
 	/// @brief Check if authorization is required for local network connections
 	/// @return       True if authorization required else false
 	///
-	const bool &isLocalAuthRequired() { return _localAuthRequired; };
+	bool isLocalAuthRequired() const { return _localAuthRequired; }
 
 	///
 	/// @brief Check if authorization is required for local network connections for admin access
 	/// @return       True if authorization required else false
 	///
-	const bool &isLocalAdminAuthRequired() { return _localAdminAuthRequired; };
+	bool isLocalAdminAuthRequired() const { return _localAdminAuthRequired; }
 
 	///
 	/// @brief Reset Hyperion user
@@ -67,18 +69,18 @@ public:
 	/// @brief Check if user auth is temporary blocked due to failed attempts
 	/// @return True on blocked and no further Auth requests will be accepted
 	///
-	bool isUserAuthBlocked() { return (_userAuthAttempts.length() >= 10); };
+	bool isUserAuthBlocked() const { return (_userAuthAttempts.length() >= 10); }
 
 	///
 	/// @brief Check if token auth is temporary blocked due to failed attempts
 	/// @return True on blocked and no further Auth requests will be accepted
 	///
-	bool isTokenAuthBlocked() { return (_tokenAuthAttempts.length() >= 25); };
+	bool isTokenAuthBlocked() const { return (_tokenAuthAttempts.length() >= 25); }
 
 	/// Pointer of this instance
 	static AuthManager *manager;
 	/// Get Pointer of this instance
-	static AuthManager *getInstance() { return manager; };
+	static AuthManager *getInstance() { return manager; }
 
 public slots:
 
@@ -141,48 +143,48 @@ public slots:
 	/// @param  caller  The QObject of the caller to deliver the reply
 	/// @param  comment The comment as ident helper
 	/// @param  id      The id created by the caller
+	/// @param  tan     The tan created by the caller
 	///
-	void setNewTokenRequest(QObject *caller, const QString &comment, const QString &id);
+	void setNewTokenRequest(QObject *caller, const QString &comment, const QString &id, const int &tan = 0);
 
 	///
 	/// @brief Cancel a pending token request with the provided comment and id as identifier helper
 	/// @param  caller  The QObject of the caller to deliver the reply
-	/// @param  comment The comment as ident helper
 	/// @param  id      The id created by the caller
 	///
-	void cancelNewTokenRequest(QObject *caller, const QString &comment, const QString &id);
+	void cancelNewTokenRequest(QObject *caller, const QString &, const QString &id);
 
 	///
 	/// @brief Handle a token request by id, generate token and inform token caller or deny
 	/// @param id      The id of the request
 	/// @param accept  The accept or deny the request
 	///
-	void handlePendingTokenRequest(const QString &id, const bool &accept);
+	void handlePendingTokenRequest(const QString &id, bool accept);
 
 	///
 	/// @brief Get pending requests
 	/// @return       All pending requests
 	///
-	QVector<AuthManager::AuthDefinition> getPendingRequests();
+	QVector<AuthManager::AuthDefinition> getPendingRequests() const;
 
 	///
 	/// @brief Get the current valid token for user. Make sure this call is allowed!
 	/// @param usr the defined user
 	/// @return       The token
 	///
-	const QString getUserToken(const QString &usr = "Hyperion");
+	QString getUserToken(const QString &usr = "Hyperion") const;
 
 	///
 	/// @brief Get all available token entries
 	///
-	QVector<AuthManager::AuthDefinition> getTokenList();
+	QVector<AuthManager::AuthDefinition> getTokenList() const;
 
 	///
 	/// @brief Handle settings update from Hyperion Settingsmanager emit
 	/// @param type   settings type from enum
 	/// @param config configuration object
 	///
-	void handleSettingsUpdate(const settings::type &type, const QJsonDocument &config);
+	void handleSettingsUpdate(settings::type type, const QJsonDocument &config);
 
 signals:
 	///
@@ -199,8 +201,9 @@ signals:
 	/// @param  token   The new token that is now valid
 	/// @param  comment The comment that was part of the request
 	/// @param  id      The id that was part of the request
+	/// @param  tan     The tan that was part of the request
 	///
-	void tokenResponse(const bool &success, QObject *caller, const QString &token, const QString &comment, const QString &id);
+	void tokenResponse(bool success, QObject *caller, const QString &token, const QString &comment, const QString &id, const int &tan);
 
 	///
 	/// @brief Emits whenever the token list changes
@@ -213,7 +216,7 @@ private:
 	/// @brief Increment counter for token/user auth
 	/// @param user If true we increment USER auth instead of token
 	///
-	void setAuthBlock(const bool &user = false);
+	void setAuthBlock(bool user = false);
 
 	/// Database interface for auth table
 	AuthTable *_authTable;

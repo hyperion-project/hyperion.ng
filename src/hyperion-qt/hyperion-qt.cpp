@@ -34,7 +34,7 @@ int main(int argc, char ** argv)
 		// create the option parser and initialize all parameters
 		Parser parser("Qt interface capture application for Hyperion");
 
-		Option        & argDisplay         = parser.add<Option>       ('d', "display",    "Set the display to capture [default: %1]","0");
+		IntOption     & argDisplay         = parser.add<IntOption>    ('d', "display",    "Set the display to capture [default: %1]", "0");
 		IntOption     & argFps             = parser.add<IntOption>    ('f', "framerate",  "Capture frame rate [default: %1]", "10", 1, 25);
 		IntOption     & argCropLeft        = parser.add<IntOption>    (0x0, "crop-left", "Number of pixels to crop from the left of the picture before decimation (overrides --crop-width)");
 		IntOption     & argCropRight       = parser.add<IntOption>    (0x0, "crop-right", "Number of pixels to crop from the right of the picture before decimation (overrides --crop-width)");
@@ -63,7 +63,7 @@ int main(int argc, char ** argv)
 			argCropTop.getInt(parser),
 			argCropBottom.getInt(parser),
 			argSizeDecimation.getInt(parser),
-			parser.isSet(argDisplay));
+			argDisplay.getInt(parser));
 
 		if (parser.isSet(argScreenshot))
 		{
@@ -78,7 +78,7 @@ int main(int argc, char ** argv)
 			if(argAddress.value(parser) == "127.0.0.1:19400")
 			{
 				SSDPDiscover discover;
-				address = discover.getFirstService(STY_FLATBUFSERVER);
+				address = discover.getFirstService(searchType::STY_FLATBUFSERVER);
 				if(address.isEmpty())
 				{
 					address = argAddress.value(parser);

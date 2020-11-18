@@ -8,28 +8,40 @@ endif()
 
 find_package(Qt5Widgets REQUIRED)
 
+# generate windows .rc file for this binary
+if (WIN32)
+	include(${CMAKE_SOURCE_DIR}/cmake/win/win_rc.cmake)
+	generate_win_rc_file(hyperiond)
+endif()
+
 add_executable(hyperiond
+	console.h
 	hyperiond.h
 	systray.h
 	hyperiond.cpp
 	systray.cpp
 	main.cpp
-	${WIN_RC_ICON_FILE}
+	${hyperiond_WIN_RC_PATH}
 )
 
+# promote hyperiond as GUI app
+if (WIN32)
+	target_link_options(hyperiond PUBLIC /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup)
+endif()
+
 target_link_libraries(hyperiond
-		commandline
-		hyperion
-		effectengine
-		jsonserver
-		flatbufserver
-		protoserver
-		webserver
-		ssdp
-		database
-		python
-		resources
-		Qt5::Widgets
+	commandline
+	hyperion
+	effectengine
+	jsonserver
+	flatbufserver
+	protoserver
+	webserver
+	ssdp
+	database
+	python
+	resources
+	Qt5::Widgets
 )
 
 if (NOT CMAKE_VERSION VERSION_LESS "3.12")
@@ -83,8 +95,21 @@ if (ENABLE_X11)
 	target_link_libraries(hyperiond	x11-grabber)
 endif ()
 
+if (ENABLE_XCB)
+	target_link_libraries(hyperiond	xcb-grabber)
+endif ()
+
 if (ENABLE_QT)
 	target_link_libraries(hyperiond	qt-grabber)
+endif ()
+
+if (ENABLE_DX)
+	include_directories(${DIRECTX9_INCLUDE_DIRS})
+	target_link_libraries(hyperiond	directx-grabber)
+endif ()
+
+if (ENABLE_CEC)
+        target_link_libraries(hyperiond cechandler)
 endif ()
 
 if(NOT WIN32)

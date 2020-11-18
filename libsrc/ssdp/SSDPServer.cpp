@@ -2,6 +2,7 @@
 
 // utils
 #include <utils/SysInfo.h>
+#include <utils/QStringUtils.h>
 
 // Hyperion
 #include <HyperionConfig.h>
@@ -26,9 +27,9 @@ static const QString UPNP_ALIVE_MESSAGE = "NOTIFY * HTTP/1.1\r\n"
                                           "NTS: ssdp:alive\r\n"
                                           "SERVER: %4\r\n"
                                           "USN: uuid:%5\r\n"
-										  "HYPERION-FBS-PORT: %6\r\n"
-										  "HYPERION-JSS-PORT: %7\r\n"
-										  "HYPERION-NAME: %8\r\n"
+                                          "HYPERION-FBS-PORT: %6\r\n"
+                                          "HYPERION-JSS-PORT: %7\r\n"
+                                          "HYPERION-NAME: %8\r\n"
                                           "\r\n";
 
 // Implement ssdp:update as per spec 1.1, section 1.2.4
@@ -44,7 +45,7 @@ static const QString UPNP_UPDATE_MESSAGE = "NOTIFY * HTTP/1.1\r\n"
 /*                                         "CONFIGID.UPNP.ORG: %4\r\n"
 UPNP spec = 1.1                            "NEXTBOOTID.UPNP.ORG: %5\r\n"
                                            "SEARCHPORT.UPNP.ORG: %6\r\n"
-*/                                           "\r\n";
+*/                                         "\r\n";
 
 // TODO: Add this two fields commented below in the BYEBYE MESSAGE
 // as per upnp spec 1.1, section 1.2.2 and 1.2.3.
@@ -71,9 +72,9 @@ static const QString UPNP_MSEARCH_RESPONSE = "HTTP/1.1 200 OK\r\n"
                                              "SERVER: %4\r\n"
                                              "ST: %5\r\n"
                                              "USN: uuid:%6\r\n"
-											 "HYPERION-FBS-PORT: %7\r\n"
-											 "HYPERION-JSS-PORT: %8\r\n"
-											 "HYPERION-NAME: %9\r\n"
+                                             "HYPERION-FBS-PORT: %7\r\n"
+                                             "HYPERION-JSS-PORT: %8\r\n"
+                                             "HYPERION-NAME: %9\r\n"
                                              "\r\n";
 
 SSDPServer::SSDPServer(QObject * parent)
@@ -98,7 +99,8 @@ void SSDPServer::initServer()
 	SysInfo::HyperionSysInfo data = SysInfo::get();
 
 	// create SERVER String
-	_serverHeader = data.prettyName+"/"+data.productVersion+" UPnP/1.0 Hyperion/"+QString(HYPERION_VERSION);
+	_serverHeader = QString("%1/%2 UPnP/1.0 Hyperion/%3")
+				.arg(data.prettyName, data.productVersion, HYPERION_VERSION);
 
 	connect(_udpSocket, &QUdpSocket::readyRead, this, &SSDPServer::readPendingDatagrams);
 }
@@ -137,7 +139,7 @@ void SSDPServer::readPendingDatagrams()
 		QString data(datagram);
 		QMap<QString,QString> headers;
 		// parse request
-		QStringList entries = data.split("\n", QString::SkipEmptyParts);
+		QStringList entries = QStringUtils::split(data,"\n", QStringUtils::SplitBehavior::SkipEmptyParts);
 		for(auto entry : entries)
 		{
 			// http header parse skip
@@ -159,13 +161,13 @@ void SSDPServer::readPendingDatagrams()
 
 		if (headers.value("man") == "\"ssdp:discover\"")
 		{
-	    	//Debug(_log, "Received msearch from '%s:%d'. Search target: %s",QSTRING_CSTR(sender.toString()), senderPort, QSTRING_CSTR(headers.value("st")));
-    		emit msearchRequestReceived(headers.value("st"), headers.value("mx"), sender.toString(), senderPort);
+			//Debug(_log, "Received msearch from '%s:%d'. Search target: %s",QSTRING_CSTR(sender.toString()), senderPort, QSTRING_CSTR(headers.value("st")));
+			emit msearchRequestReceived(headers.value("st"), headers.value("mx"), sender.toString(), senderPort);
 		}
     }
 }
 
-void SSDPServer::sendMSearchResponse(const QString& st, const QString& senderIp, const quint16& senderPort)
+void SSDPServer::sendMSearchResponse(const QString& st, const QString& senderIp, quint16 senderPort)
 {
 	QString message = UPNP_MSEARCH_RESPONSE.arg(SSDP_MAX_AGE
 		, QDateTime::currentDateTimeUtc().toString("ddd, dd MMM yyyy HH:mm:ss GMT")
@@ -177,9 +179,7 @@ void SSDPServer::sendMSearchResponse(const QString& st, const QString& senderIp,
 		, _jssPort
 		, _name );
 
-	_udpSocket->writeDatagram(message.toUtf8(),
-								 QHostAddress(senderIp),
-								 senderPort);
+	_udpSocket->writeDatagram(message.toUtf8(), QHostAddress(senderIp), senderPort);
 }
 
 void SSDPServer::sendByeBye(const QString& st)
@@ -188,11 +188,8 @@ void SSDPServer::sendByeBye(const QString& st)
 
 	// we repeat 3 times
 	quint8 rep = 0;
-	while(rep < 3) {
-		_udpSocket->writeDatagram(message.toUtf8(),
-								 QHostAddress(SSDP_ADDR),
-								 SSDP_PORT);
-		rep++;
+	while(rep++ < 3) {
+		_udpSocket->writeDatagram(message.toUtf8(), QHostAddress(SSDP_ADDR), SSDP_PORT);
 	}
 }
 
@@ -211,11 +208,8 @@ void SSDPServer::sendAlive(const QString& st)
 
 	// we repeat 3 times
 	quint8 rep = 0;
-	while(rep < 3) {
-		_udpSocket->writeDatagram(message.toUtf8(),
-								 QHostAddress(SSDP_ADDR),
-								 SSDP_PORT);
-		rep++;
+	while(rep++ < 3) {
+		_udpSocket->writeDatagram(message.toUtf8(), QHostAddress(SSDP_ADDR), SSDP_PORT);
 	}
 }
 
@@ -225,7 +219,5 @@ void SSDPServer::sendUpdate(const QString& st)
 		, st
 		, _uuid+"::"+st );
 
-	_udpSocket->writeDatagram(message.toUtf8(),
-							 QHostAddress(SSDP_ADDR),
-							 SSDP_PORT);
+	_udpSocket->writeDatagram(message.toUtf8(), QHostAddress(SSDP_ADDR), SSDP_PORT);
 }

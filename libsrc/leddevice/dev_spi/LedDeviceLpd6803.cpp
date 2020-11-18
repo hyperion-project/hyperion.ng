@@ -1,10 +1,8 @@
 #include "LedDeviceLpd6803.h"
 
 LedDeviceLpd6803::LedDeviceLpd6803(const QJsonObject &deviceConfig)
-	: ProviderSpi()
+	: ProviderSpi(deviceConfig)
 {
-	_devConfig = deviceConfig;
-	_deviceReady = false;
 }
 
 LedDevice* LedDeviceLpd6803::construct(const QJsonObject &deviceConfig)
@@ -14,12 +12,16 @@ LedDevice* LedDeviceLpd6803::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceLpd6803::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = ProviderSpi::init(deviceConfig);
-	if ( isInitOK )
+	bool isInitOK = false;
+
+	// Initialise sub-class
+	if ( ProviderSpi::init(deviceConfig) )
 	{
 		unsigned messageLength = 4 + 2*_ledCount + _ledCount/8 + 1;
 		// Initialise the buffer
 		_ledBuffer.resize(messageLength, 0x00);
+
+		isInitOK = true;
 	}
 	return isInitOK;
 }

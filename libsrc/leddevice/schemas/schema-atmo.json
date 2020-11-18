@@ -5,7 +5,7 @@
 		"output": {
 			"type": "string",
 			"title":"edt_dev_spec_outputPath_title",
-			"default":"/dev/ttyUSB0",
+			"default":"ttyUSB0",
 			"propertyOrder" : 1
 		},
 		"rate": {

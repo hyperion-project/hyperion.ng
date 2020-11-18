@@ -1,8 +1,8 @@
 #include "LedDeviceSk6812SPI.h"
 
-	LedDeviceSk6812SPI::LedDeviceSk6812SPI(const QJsonObject &deviceConfig)
-	: ProviderSpi()
-	  , _whiteAlgorithm(RGBW::INVALID)
+LedDeviceSk6812SPI::LedDeviceSk6812SPI(const QJsonObject &deviceConfig)
+	: ProviderSpi(deviceConfig)
+	  , _whiteAlgorithm(RGBW::WhiteAlgorithm::INVALID)
 	  , SPI_BYTES_PER_COLOUR(4)
 	  , bitpair_to_byte {
 		  0b10001000,
@@ -11,8 +11,6 @@
 		  0b11001100,
 		  }
 {
-	_devConfig = deviceConfig;
-	_deviceReady = false;
 }
 
 LedDevice* LedDeviceSk6812SPI::construct(const QJsonObject &deviceConfig)
@@ -24,13 +22,15 @@ bool LedDeviceSk6812SPI::init(const QJsonObject &deviceConfig)
 {
 	_baudRate_Hz = 3000000;
 
-	bool isInitOK = ProviderSpi::init(deviceConfig);
-	if ( isInitOK )
+	bool isInitOK = false;
+
+	// Initialise sub-class
+	if ( ProviderSpi::init(deviceConfig) )
 	{
 		QString whiteAlgorithm = deviceConfig["whiteAlgorithm"].toString("white_off");
 
 		_whiteAlgorithm	= RGBW::stringToWhiteAlgorithm(whiteAlgorithm);
-		if (_whiteAlgorithm == RGBW::INVALID)
+		if (_whiteAlgorithm == RGBW::WhiteAlgorithm::INVALID)
 		{
 			QString errortext = QString ("unknown whiteAlgorithm: %1").arg(whiteAlgorithm);
 			this->setInError(errortext);
@@ -44,6 +44,8 @@ bool LedDeviceSk6812SPI::init(const QJsonObject &deviceConfig)
 
 			const int SPI_FRAME_END_LATCH_BYTES = 3;
 			_ledBuffer.resize(_ledRGBWCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
+
+			isInitOK = true;
 		}
 	}
 	return isInitOK;

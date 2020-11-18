@@ -5,10 +5,12 @@
 // Linux includes
 #include <unistd.h>
 
-AmlogicWrapper::AmlogicWrapper(const unsigned grabWidth, const unsigned grabHeight) :
+AmlogicWrapper::AmlogicWrapper(unsigned grabWidth, unsigned grabHeight) :
 	_thread(this),
 	_grabber(grabWidth, grabHeight)
 {
+	_thread.setObjectName("AmlogicWrapperThread");
+
 	// Connect capturing to the timeout signal of the timer
 	connect(&_thread, SIGNAL (started()), this, SLOT(capture()));
 }

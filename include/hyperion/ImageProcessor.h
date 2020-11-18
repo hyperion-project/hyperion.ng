@@ -19,9 +19,9 @@
 class Hyperion;
 
 ///
-/// The ImageProcessor translates an RGB-image to RGB-values for the leds. The processing is
+/// The ImageProcessor translates an RGB-image to RGB-values for the LEDs. The processing is
 /// performed in two steps. First the average color per led-region is computed. Second a
-/// color-tranform is applied based on a gamma-correction.
+/// color-transform is applied based on a gamma-correction.
 ///
 class ImageProcessor : public QObject
 {
@@ -36,37 +36,37 @@ public:
 	///
 	ImageProcessor(const LedString& ledString, Hyperion* hyperion);
 
-	~ImageProcessor();
+	~ImageProcessor() override;
 
 	///
-	/// Specifies the width and height of 'incomming' images. This will resize the buffer-image to
+	/// Specifies the width and height of 'incoming' images. This will resize the buffer-image to
 	/// match the given size.
 	/// NB All earlier obtained references will be invalid.
 	///
 	/// @param[in] width   The new width of the buffer-image
 	/// @param[in] height  The new height of the buffer-image
 	///
-	void setSize(const unsigned width, const unsigned height);
+	void setSize(unsigned width, unsigned height);
 
 	///
 	/// @brief Update the led string (eg on settings change)
 	///
 	void setLedString(const LedString& ledString);
 
-	/// Returns starte of black border detector
-	bool blackBorderDetectorEnabled();
+	/// Returns state of black border detector
+	bool blackBorderDetectorEnabled() const;
 
 	/// Returns the current _userMappingType, this may not be the current applied type!
-	const int & getUserLedMappingType() { return _userMappingType; };
+	int getUserLedMappingType() const { return _userMappingType; }
 
 	/// Returns the current _mappingType
-	const int & ledMappingType() { return _mappingType; };
+	int ledMappingType() const { return _mappingType; }
 
-	static int mappingTypeToInt(QString mappingType);
+	static int mappingTypeToInt(const QString& mappingType);
 	static QString mappingTypeToStr(int mappingType);
 
 	///
-	/// @brief Set the Hyperion::update() requestes led mapping type. This type is used in favour of type set with setLedMappingType.
+	/// @brief Set the Hyperion::update() request LED mapping type. This type is used in favour of type set with setLedMappingType.
 	/// 	   If you don't want to force a mapType set this to -1 (user choice will be set)
 	/// @param  mapType   The new mapping type
 	///
@@ -85,7 +85,7 @@ public slots:
 
 public:
 	///
-	/// Specifies the width and height of 'incomming' images. This will resize the buffer-image to
+	/// Specifies the width and height of 'incoming' images. This will resize the buffer-image to
 	/// match the given size.
 	/// NB All earlier obtained references will be invalid.
 	///
@@ -117,7 +117,7 @@ public:
 			// Check black border detection
 			verifyBorder(image);
 
-			// Create a result vector and call the 'in place' functionl
+			// Create a result vector and call the 'in place' function
 			switch (_mappingType)
 			{
 				case 1: colors = _imageToLeds->getUniLedColor(image); break;
@@ -215,7 +215,7 @@ private:
 	}
 
 private slots:
-	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 private:
 	Logger * _log;
@@ -225,7 +225,7 @@ private:
 	/// The processor for black border detection
 	hyperion::BlackBorderProcessor * _borderProcessor;
 
-	/// The mapping of image-pixels to leds
+	/// The mapping of image-pixels to LEDs
 	hyperion::ImageToLedsMap* _imageToLeds;
 
 	/// Type of image 2 led mapping

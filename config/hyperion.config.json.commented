@@ -109,38 +109,40 @@
 	///  * cropRight            : Cropping from the right [default=0]
 	///  * cropTop              : Cropping from the top [default=0]
 	///  * cropBottom           : Cropping from the bottom [default=0]
-	///  * signalDetection      : enable/disable signal detection [default=true]
+	///  * signalDetection      : enable/disable signal detection [default=false]
+	///  * cecDetection         : enable/disable cec detection [default=false]
 	///  * redSignalThreshold   : Signal threshold for the red channel between 0 and 100 [default=5]
 	///  * greenSignalThreshold : Signal threshold for the green channel between 0 and 100 [default=5]
 	///  * blueSignalThreshold  : Signal threshold for the blue channel between 0 and 100 [default=5]
-	///  * sDHOffsetMin 		: area for signal detection - horizontal minimum offset value. Values between 0.0 and 1.0
-	///  * sDVOffsetMin			: area for signal detection - vertical minimum offset value. Values between 0.0 and 1.0
-	///  * sDHOffsetMax   		: area for signal detection - horizontal maximum offset value. Values between 0.0 and 1.0
-	///  * sDVOffsetMax			: area for signal detection - vertical maximum offset value. Values between 0.0 and 1.0
+	///  * sDHOffsetMin         : area for signal detection - horizontal minimum offset value. Values between 0.0 and 1.0
+	///  * sDVOffsetMin         : area for signal detection - vertical minimum offset value. Values between 0.0 and 1.0
+	///  * sDHOffsetMax         : area for signal detection - horizontal maximum offset value. Values between 0.0 and 1.0
+	///  * sDVOffsetMax         : area for signal detection - vertical maximum offset value. Values between 0.0 and 1.0
 	"grabberV4L2" :
 	{
-		"device"   : "auto",
-		"width" : 0,
-		"height" : 0,
-		"standard" : "NO_CHANGE",
-		"sizeDecimation"  : 8,
-		"priority"    : 240,
-		"cropLeft"    : 0,
-		"cropRight"   : 0,
-		"cropTop"     : 0,
-		"cropBottom"  : 0,
+		"device"               : "auto",
+		"width"                : 0,
+		"height"               : 0,
+		"standard"             : "NO_CHANGE",
+		"sizeDecimation"       : 8,
+		"priority"             : 240,
+		"cropLeft"             : 0,
+		"cropRight"            : 0,
+		"cropTop"              : 0,
+		"cropBottom"           : 0,
 		"redSignalThreshold"   : 5,
 		"greenSignalThreshold" : 5,
 		"blueSignalThreshold"  : 5,
 		"signalDetection"      : false,
-		"sDVOffsetMin"   : 0.25,
-		"sDHOffsetMin" : 0.25,
-		"sDVOffsetMax"   : 0.75,
-		"sDHOffsetMax" : 0.75
+		"cecDetection"         : false,
+		"sDVOffsetMin"         : 0.25,
+		"sDHOffsetMin"         : 0.25,
+		"sDVOffsetMax"         : 0.75,
+		"sDHOffsetMax"         : 0.75
 	},
 
 	///  The configuration for the frame-grabber, contains the following items:
-	///   * type         : type of grabber. (auto|osx|dispmanx|amlogic|x11|framebuffer|qt) [auto]
+	///   * type         : type of grabber. (auto|osx|dispmanx|amlogic|x11|xcb|framebuffer|qt) [auto]
 	///   * width        : The width of the grabbed frames [pixels]
 	///   * height       : The height of the grabbed frames [pixels]
 	///   * frequency_Hz : The frequency of the frame grab [Hz]
@@ -159,14 +161,11 @@
 		"width"        : 96,
 		"height"       : 96,
 
-		// valid for x11|qt
+		// valid for x11|xcb|qt
 		"pixelDecimation"           : 8,
 
 		// valid for qt
-		"display" 0,
-
-		// valid for framebuffer
-		"device"     : "/dev/fb0"
+		"display" 0
 	},
 
 	/// The black border configuration, contains the following items:
@@ -176,7 +175,7 @@
 	///  * borderFrameCnt     : Number of frames before a consistent detected border gets set (default 50)
 	///  * maxInconsistentCnt : Number of inconsistent frames that are ignored before a new border gets a chance to proof consistency
 	///  * blurRemoveCnt      : Number of pixels that get removed from the detected border to cut away blur (default 1)
-	///  * mode               : Border detection mode (values=default,classic,osd)
+	///  * mode               : Border detection mode (values=default,classic,osd,letterbox)
 	"blackborderdetector" :
 	{
 		"enable"             : true,

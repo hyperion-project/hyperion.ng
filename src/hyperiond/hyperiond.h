@@ -40,10 +40,22 @@
 	typedef QObject X11Wrapper;
 #endif
 
+#ifdef ENABLE_XCB
+	#include <grabber/XcbWrapper.h>
+#else
+	typedef QObject XcbWrapper;
+#endif
+
 #ifdef ENABLE_QT
 	#include <grabber/QtWrapper.h>
 #else
 	typedef QObject QtWrapper;
+#endif
+
+#ifdef ENABLE_DX
+	#include <grabber/DirectXWrapper.h>
+#else
+	typedef QObject DirectXWrapper;
 #endif
 
 #include <utils/Logger.h>
@@ -65,6 +77,7 @@ class FlatBufferServer;
 class ProtoServer;
 class AuthManager;
 class NetOrigin;
+class CECHandler;
 
 class HyperionDaemon : public QObject
 {
@@ -73,27 +86,27 @@ class HyperionDaemon : public QObject
 	friend SysTray;
 
 public:
-	HyperionDaemon(QString rootPath, QObject *parent, const bool& logLvlOverwrite);
+	HyperionDaemon(const QString& rootPath, QObject *parent, bool logLvlOverwrite, bool readonlyMode = false);
 	~HyperionDaemon();
 
 	///
 	/// @brief Get webserver pointer (systray)
 	///
-	WebServer* getWebServerInstance() { return _webserver; };
+	WebServer *getWebServerInstance() { return _webserver; }
 
 	///
 	/// @brief Get the current videoMode
 	///
-	const VideoMode & getVideoMode() { return _currVideoMode; };
+	VideoMode getVideoMode() const { return _currVideoMode; }
 
 	///
 	/// @brief get the settings
 	///
-	const QJsonDocument getSetting(const settings::type& type);
+	QJsonDocument getSetting(settings::type type) const;
 
 	void startNetworkServices();
 
-	static HyperionDaemon* getInstance() { return daemon; };
+	static HyperionDaemon* getInstance() { return daemon; }
 	static HyperionDaemon* daemon;
 
 public slots:
@@ -107,7 +120,7 @@ signals:
 	///
 	/// @brief After eval of setVideoMode this signal emits with a new one on change
 	///
-	void videoMode(const VideoMode& mode);
+	void videoMode(VideoMode mode);
 
 	///////////////////////////////////////
 	/// FROM HYPERION TO HYPERIONDAEMON ///
@@ -116,12 +129,12 @@ signals:
 	///
 	/// @brief PIPE settings events from Hyperion class to HyperionDaemon components
 	///
-	void settingsChanged(const settings::type& type, const QJsonDocument& data);
+	void settingsChanged(settings::type type, const QJsonDocument& data);
 
 	///
 	/// @brief PIPE component state changes events from Hyperion class to HyperionDaemon components
 	///
-	void compStateChangeRequest(const hyperion::Components component, bool enable);
+	void compStateChangeRequest(hyperion::Components component, bool enable);
 
 private slots:
 	///
@@ -129,13 +142,13 @@ private slots:
 	/// @param type   settingyType from enum
 	/// @param config configuration object
 	///
-	void handleSettingsUpdate(const settings::type& type, const QJsonDocument& config);
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 	///
 	/// @brief Listen for videoMode changes and emit videoMode in case of a change, update _currVideoMode
 	/// @param mode  The requested video mode
 	///
-	void setVideoMode(const VideoMode& mode);
+	void setVideoMode(VideoMode mode);
 
 private:
 	void createGrabberDispmanx();
@@ -143,7 +156,10 @@ private:
 	void createGrabberFramebuffer(const QJsonObject & grabberConfig);
 	void createGrabberOsx(const QJsonObject & grabberConfig);
 	void createGrabberX11(const QJsonObject & grabberConfig);
+	void createGrabberXcb(const QJsonObject & grabberConfig);
 	void createGrabberQt(const QJsonObject & grabberConfig);
+	void createCecHandler();
+	void createGrabberDx(const QJsonObject & grabberConfig);
 
 	Logger*                    _log;
 	HyperionIManager*          _instanceManager;
@@ -157,11 +173,14 @@ private:
 	V4L2Wrapper*               _v4l2Grabber;
 	DispmanxWrapper*           _dispmanx;
 	X11Wrapper*                _x11Grabber;
+	XcbWrapper*                _xcbGrabber;
 	AmlogicWrapper*            _amlGrabber;
 	FramebufferWrapper*        _fbGrabber;
 	OsxWrapper*                _osxGrabber;
 	QtWrapper*                 _qtGrabber;
+	DirectXWrapper*            _dxGrabber;
 	SSDPHandler*               _ssdp;
+	CECHandler*                _cecHandler;
 	FlatBufferServer*          _flatBufferServer;
 	ProtoServer*               _protoServer;
 

@@ -19,10 +19,9 @@ set(Flatbuffer_FBS
 	${CURRENT_SOURCE_DIR}/hyperion_reply.fbs
 	${CURRENT_SOURCE_DIR}/hyperion_request.fbs
 )
-
 FOREACH(FBS_FILE ${Flatbuffer_FBS})
-	compile_flattbuffer_schema(${FBS_FILE} ${CMAKE_CURRENT_BINARY_DIR})
- ENDFOREACH(FBS_FILE)
+	compile_flattbuffer_schema(${FBS_FILE} ${CMAKE_CURRENT_SOURCE_DIR})
+ENDFOREACH(FBS_FILE)
 
 # let cmake know about new generated source files
 set_source_files_properties(

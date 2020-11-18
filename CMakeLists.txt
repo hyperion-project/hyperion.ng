@@ -36,35 +36,45 @@ else()
 endif()
 
 # Set build variables
-SET ( DEFAULT_AMLOGIC    OFF )
-SET ( DEFAULT_DISPMANX   OFF )
-SET ( DEFAULT_OSX        OFF )
-SET ( DEFAULT_X11        OFF )
-SET ( DEFAULT_QT         ON )
-SET ( DEFAULT_WS281XPWM  OFF )
-SET ( DEFAULT_AVAHI      ON  )
-SET ( DEFAULT_USE_SHARED_AVAHI_LIBS  ON )
+SET ( DEFAULT_AMLOGIC                     OFF )
+SET ( DEFAULT_DISPMANX                    OFF )
+SET ( DEFAULT_OSX                         OFF )
+SET ( DEFAULT_QT                          ON  )
+SET ( DEFAULT_X11                         OFF )
+SET ( DEFAULT_XCB                         OFF )
+SET ( DEFAULT_WS281XPWM                   OFF )
+SET ( DEFAULT_AVAHI                       ON  )
+SET ( DEFAULT_USE_SHARED_AVAHI_LIBS       ON  )
 SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF )
-SET ( DEFAULT_USE_SYSTEM_PROTO_LIBS OFF )
-SET ( DEFAULT_USE_SYSTEM_MBEDTLS_LIBS OFF )
-SET ( DEFAULT_TESTS      OFF )
+SET ( DEFAULT_USE_SYSTEM_PROTO_LIBS       OFF )
+SET ( DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     OFF )
+SET ( DEFAULT_TESTS                       OFF )
+SET ( DEFAULT_EXPERIMENTAL                OFF )
 
 IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
-	SET ( DEFAULT_V4L2   ON  )
-	SET ( DEFAULT_SPIDEV ON )
-	SET ( DEFAULT_TINKERFORGE ON)
-	SET ( DEFAULT_FB     ON )
-	SET ( DEFAULT_USB_HID ON )
+	SET ( DEFAULT_V4L2        ON )
+	SET ( DEFAULT_SPIDEV      ON )
+	SET ( DEFAULT_TINKERFORGE ON )
+	SET ( DEFAULT_FB          ON )
+	SET ( DEFAULT_USB_HID     ON )
+	SET ( DEFAULT_CEC         ON )
+ELSEIF ( WIN32 )
+	SET ( DEFAULT_DX ON )
 ELSE()
-	SET ( DEFAULT_V4L2   OFF )
-	SET ( DEFAULT_FB     OFF )
-	SET ( DEFAULT_SPIDEV OFF )
-	SET ( DEFAULT_TINKERFORGE OFF)
-	SET ( DEFAULT_USB_HID OFF )
+	SET ( DEFAULT_V4L2        OFF )
+	SET ( DEFAULT_FB          OFF )
+	SET ( DEFAULT_SPIDEV      OFF )
+	SET ( DEFAULT_TINKERFORGE OFF )
+	SET ( DEFAULT_USB_HID     OFF )
+	SET ( DEFAULT_CEC         OFF )
 ENDIF()
 
 if ( NOT DEFINED PLATFORM )
-	if ( "${CMAKE_SYSTEM_PROCESSOR}" MATCHES "x86" )
+	if ( APPLE )
+		SET( PLATFORM "osx")
+	elseif ( WIN32 )
+		SET( PLATFORM "windows")
+	elseif ( "${CMAKE_SYSTEM_PROCESSOR}" MATCHES "x86" )
 		SET( PLATFORM "x11")
 	elseif ( "${CMAKE_SYSTEM_PROCESSOR}" MATCHES "arm" OR "${CMAKE_SYSTEM_PROCESSOR}" MATCHES "aarch64")
 		SET( PLATFORM "rpi")
@@ -75,10 +85,6 @@ if ( NOT DEFINED PLATFORM )
 		elseif ( ("${SYSTEM_CPUINFO}" MATCHES "amlogic" OR "${SYSTEM_CPUINFO}" MATCHES "odroid-c2" OR "${SYSTEM_CPUINFO}" MATCHES "vero4k") AND ${CMAKE_SIZEOF_VOID_P} EQUAL 8 )
 			SET( PLATFORM "amlogic64" )
 		endif()
-	elseif ( APPLE )
-		SET( PLATFORM "osx")
-	elseif ( WIN32 )
-		SET( PLATFORM "windows")
 	endif()
 	if ( PLATFORM )
 		message( STATUS "PLATFORM is not defined, evaluated platform: ${PLATFORM}")
@@ -104,13 +110,13 @@ ENDMACRO()
 
 if ( "${PLATFORM}" MATCHES "osx" )
 	# add specific prefix paths
-	FIRSTSUBDIR(SUBDIRQT "/usr/local/Cellar/qt5")
+	FIRSTSUBDIR(SUBDIRQT "/usr/local/Cellar/qt")
 	FIRSTSUBDIR(SUBDIRPY "/usr/local/opt/python3/Frameworks/Python.framework/Versions")
 	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${SUBDIRQT} ${SUBDIRPY} "/usr/local/opt/qt5" )
 	include_directories("/opt/X11/include/")
 	SET ( DEFAULT_OSX        ON )
 	SET ( DEFAULT_USB_HID    ON )
-elseif ( "${PLATFORM}" STREQUAL "rpi" )
+elseif ( "${PLATFORM}" MATCHES "rpi" )
 	SET ( DEFAULT_DISPMANX   ON )
 	SET ( DEFAULT_WS281XPWM  ON )
 elseif ( "${PLATFORM}" STREQUAL "amlogic" )
@@ -119,6 +125,7 @@ elseif ( "${PLATFORM}" STREQUAL "amlogic64" )
 	SET ( DEFAULT_AMLOGIC    ON )
 elseif ( "${PLATFORM}" MATCHES "x11" )
 	SET ( DEFAULT_X11        ON )
+	SET ( DEFAULT_XCB        ON )
 	if ( "${PLATFORM}" STREQUAL "x11-dev" )
 		SET ( DEFAULT_AMLOGIC    ON)
 		SET ( DEFAULT_WS281XPWM  ON )
@@ -173,17 +180,29 @@ message(STATUS "ENABLE_AVAHI = " ${ENABLE_AVAHI})
 option(ENABLE_USB_HID "Enable the libusb and hid devices" ${DEFAULT_USB_HID} )
 message(STATUS "ENABLE_USB_HID = ${ENABLE_USB_HID}")
 
+option(ENABLE_CEC "Enable the libcec and CEC control" ${DEFAULT_CEC} )
+message(STATUS "ENABLE_CEC = ${ENABLE_CEC}")
+
 option(ENABLE_X11 "Enable the X11 grabber" ${DEFAULT_X11})
 message(STATUS "ENABLE_X11 = ${ENABLE_X11}")
 
+option(ENABLE_XCB "Enable the XCB grabber" ${DEFAULT_XCB})
+message(STATUS "ENABLE_XCB = ${ENABLE_XCB}")
+
 option(ENABLE_QT "Enable the qt grabber" ${DEFAULT_QT})
 message(STATUS "ENABLE_QT = ${ENABLE_QT}")
+
+option(ENABLE_DX "Enable the DirectX grabber" ${DEFAULT_DX})
+message(STATUS "ENABLE_DX = ${ENABLE_DX}")
 
 option(ENABLE_TESTS "Compile additional test applications" ${DEFAULT_TESTS})
 message(STATUS "ENABLE_TESTS = ${ENABLE_TESTS}")
 
 option(ENABLE_PROFILER "enable profiler capabilities - not for release code" OFF)
 message(STATUS "ENABLE_PROFILER = ${ENABLE_PROFILER}")
+
+option(ENABLE_EXPERIMENTAL "Compile experimental features" ${DEFAULT_EXPERIMENTAL})
+message(STATUS "ENABLE_EXPERIMENTAL = ${ENABLE_EXPERIMENTAL}")
 
 SET ( FLATBUFFERS_INSTALL_BIN_DIR ${CMAKE_BINARY_DIR}/flatbuf )
 SET ( FLATBUFFERS_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/flatbuf )
@@ -283,23 +302,47 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	# Qt5 default install path with msvc2017 64bit component
 	# The Qt5_DIR should point to Qt5Config.cmake   -> C:/Qt/5.xx/msvc2017_64/lib/cmake/Qt5
 	# The CMAKE_PREFIX_PATH should point to the install directory -> C:/Qt/5.xx/msvc2017_64
-	FIRSTSUBDIR(SUBDIRQT "C:/Qt")
-	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SUBDIRQT}/msvc2019_64")
-	if (NOT DEFINED ENV{Qt5_DIR})
-		message(STATUS "Set Qt5 module path: ${SUBDIRQT}")
-		SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${SUBDIRQT}/msvc2019_64/lib/cmake/Qt5")
+	#
+	# Alternatively, use Qt5_BASE_DIR environment variable to point to Qt version to be used 
+	# In MSVC19 add into CMakeSettings.json
+	#
+	#      "environments": [
+	#    {
+	#      "Qt5_BASE_DIR": "D:/Qt/5.15.1/msvc2019_64"
+	#    }
+	#  ]
+
+	if (NOT DEFINED ENV{Qt5_BASE_DIR})
+		FIRSTSUBDIR(SUBDIRQT "C:/Qt")
+		SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SUBDIRQT}/msvc2019_64")
+	else()
+		message(STATUS "Qt5_BASE_DIR: $ENV{Qt5_BASE_DIR}")
+		message(STATUS "Add Qt5_BASE_DIR: $ENV{Qt5_BASE_DIR} to CMAKE_PREFIX_PATH")
+		SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "$ENV{Qt5_BASE_DIR}")
 	endif()
-endif()
 
-# Windows specific
-if(WIN32)
-	# Path to .rc icon file for add_executable() calls
-	SET ( WIN_RC_ICON_FILE ${CMAKE_SOURCE_DIR}/cmake/nsis/icon.rc)
-	# Force gui app
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
-endif()
+	if (NOT DEFINED ENV{Qt5_DIR})
+		if (NOT DEFINED ENV{Qt5_BASE_DIR})
+			SET (qt_module_path "${SUBDIRQT}/msvc2019_64/lib/cmake/Qt5")
+		else ()
+			SET (qt_module_path "$ENV{Qt5_BASE_DIR}/lib/cmake/Qt5")
+		endif()
+	else()
+		SET (qt_module_path "$ENV{Qt5_DIR}")
+	endif()
 
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -v")
+	message(STATUS "Add ${qt_module_path} to CMAKE_MODULE_PATH")
+	SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${qt_module_path}")
+	
+	#message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
+	#message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
+
+	# Search for DirectX9
+	if (ENABLE_DX)
+		find_package(DirectX9 REQUIRED)
+	endif()
+
+endif()
 
 # Use GNU gold linker if available
 if (NOT WIN32)

@@ -48,7 +48,7 @@ EffectFileHandler::EffectFileHandler(const QString& rootPath, const QJsonDocumen
 	handleSettingsUpdate(settings::EFFECTS, effectConfig);
 }
 
-void EffectFileHandler::handleSettingsUpdate(const settings::type& type, const QJsonDocument& config)
+void EffectFileHandler::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
 	if(type == settings::EFFECTS)
 	{
@@ -208,7 +208,7 @@ void EffectFileHandler::updateEffects()
 		{
 			if(directory.mkpath(path))
 			{
-				Info(_log, "New Effect path \"%s\" created successfull", QSTRING_CSTR(path) );
+				Info(_log, "New Effect path \"%s\" created successfully", QSTRING_CSTR(path) );
 			}
 			else
 			{

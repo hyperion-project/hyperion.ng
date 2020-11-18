@@ -8,6 +8,10 @@
 #include <QUuid>
 #include <QDir>
 
+#ifdef _WIN32
+	#include <stdexcept>
+#endif
+
 // not in header because of linking
 static QString _rootPath;
 static QThreadStorage<QSqlDatabase> _databasePool;
@@ -15,6 +19,7 @@ static QThreadStorage<QSqlDatabase> _databasePool;
 DBManager::DBManager(QObject* parent)
 	: QObject(parent)
 	, _log(Logger::getInstance("DB"))
+	, _readonlyMode (false)
 {
 }
 
@@ -54,6 +59,11 @@ QSqlDatabase DBManager::getDB() const
 
 bool DBManager::createRecord(const VectorPair& conditions, const QVariantMap& columns) const
 {
+	if ( _readonlyMode )
+	{
+		return false;
+	}
+
 	if(recordExists(conditions))
 	{
 		// if there is no column data, return
@@ -140,6 +150,11 @@ bool DBManager::recordExists(const VectorPair& conditions) const
 
 bool DBManager::updateRecord(const VectorPair& conditions, const QVariantMap& columns) const
 {
+	if ( _readonlyMode )
+	{
+		return false;
+	}
+
 	QSqlDatabase idb = getDB();
 	QSqlQuery query(idb);
 	query.setForwardOnly(true);
@@ -181,7 +196,7 @@ bool DBManager::updateRecord(const VectorPair& conditions, const QVariantMap& co
 	return true;
 }
 
-bool DBManager::getRecord(const VectorPair& conditions, QVariantMap& results, const QStringList& tColumns) const
+bool DBManager::getRecord(const VectorPair& conditions, QVariantMap& results, const QStringList& tColumns, const QStringList& tOrder) const
 {
 	QSqlDatabase idb = getDB();
 	QSqlQuery query(idb);
@@ -191,18 +206,24 @@ bool DBManager::getRecord(const VectorPair& conditions, QVariantMap& results, co
 	if(!tColumns.isEmpty())
 		sColumns = tColumns.join(", ");
 
+	QString sOrder("");
+	if(!tOrder.isEmpty())
+	{
+		sOrder = " ORDER BY ";
+		sOrder.append(tOrder.join(", "));
+	}
 	// prep conditions
 	QStringList prepCond;
 	QVariantList bindVal;
 	if(!conditions.isEmpty())
-		prepCond << "WHERE";
+		prepCond << " WHERE";
 
 	for(const auto& pair : conditions)
 	{
 		prepCond << pair.first+"=?";
 		bindVal << pair.second;
 	}
-	query.prepare(QString("SELECT %1 FROM %2 %3").arg(sColumns,_table).arg(prepCond.join(" ")));
+	query.prepare(QString("SELECT %1 FROM %2%3%4").arg(sColumns,_table).arg(prepCond.join(" ")).arg(sOrder));
 	doAddBindValue(query, bindVal);
 
 	if(!query.exec())
@@ -223,7 +244,7 @@ bool DBManager::getRecord(const VectorPair& conditions, QVariantMap& results, co
 	return true;
 }
 
-bool DBManager::getRecords(QVector<QVariantMap>& results, const QStringList& tColumns) const
+bool DBManager::getRecords(QVector<QVariantMap>& results, const QStringList& tColumns, const QStringList& tOrder) const
 {
 	QSqlDatabase idb = getDB();
 	QSqlQuery query(idb);
@@ -233,7 +254,14 @@ bool DBManager::getRecords(QVector<QVariantMap>& results, const QStringList& tCo
 	if(!tColumns.isEmpty())
 		sColumns = tColumns.join(", ");
 
-	query.prepare(QString("SELECT %1 FROM %2").arg(sColumns,_table));
+	QString sOrder("");
+	if(!tOrder.isEmpty())
+	{
+		sOrder = " ORDER BY ";
+		sOrder.append(tOrder.join(", "));
+	}
+
+	query.prepare(QString("SELECT %1 FROM %2%3").arg(sColumns,_table,sOrder));
 
 	if(!query.exec())
 	{
@@ -259,6 +287,11 @@ bool DBManager::getRecords(QVector<QVariantMap>& results, const QStringList& tCo
 
 bool DBManager::deleteRecord(const VectorPair& conditions) const
 {
+	if ( _readonlyMode )
+	{
+		return false;
+	}
+
 	if(conditions.isEmpty())
 	{
 		Error(_log, "Oops, a deleteRecord() call wants to delete the entire table (%s)! Denied it", QSTRING_CSTR(_table));
@@ -294,6 +327,11 @@ bool DBManager::deleteRecord(const VectorPair& conditions) const
 
 bool DBManager::createTable(QStringList& columns) const
 {
+	if ( _readonlyMode )
+	{
+		return false;
+	}
+
 	if(columns.isEmpty())
 	{
 		Error(_log,"Empty tables aren't supported!");
@@ -336,6 +374,11 @@ bool DBManager::createTable(QStringList& columns) const
 
 bool DBManager::createColumn(const QString& column) const
 {
+	if ( _readonlyMode )
+	{
+		return false;
+	}
+
 	QSqlDatabase idb = getDB();
 	QSqlQuery query(idb);
 	if(!query.exec(QString("ALTER TABLE %1 ADD COLUMN %2").arg(_table,column)))
@@ -357,6 +400,11 @@ bool DBManager::tableExists(const QString& table) const
 
 bool DBManager::deleteTable(const QString& table) const
 {
+	if ( _readonlyMode )
+	{
+		return false;
+	}
+
 	if(tableExists(table))
 	{
 		QSqlDatabase idb = getDB();

@@ -178,6 +178,48 @@ function updateHyperionInstanceListing()
 	}
 }
 
+function initLanguageSelection()
+{
+	// Initialise language selection list with languages supported
+	for (var i = 0; i < availLang.length; i++)
+	{
+		$("#language-select").append('<option value="'+i+'" selected="">'+availLangText[i]+'</option>');
+	}
+
+	var langLocale = storedLang;
+
+	// If no language has been set, resolve browser locale
+	if ( langLocale === 'auto' )
+	{
+		langLocale = $.i18n().locale.substring(0,2);
+	}
+
+	// Resolve text for language code
+	var langText = 'Please Select';
+
+	//Test, if language is supported by hyperion
+	var langIdx = availLang.indexOf(langLocale);
+	if ( langIdx > -1 )
+	{
+		langText = availLangText[langIdx];
+	}
+	else
+	{
+		// If language is not supported by hyperion, try fallback language
+		langLocale = $.i18n().options.fallbackLocale.substring(0,2);	
+		langIdx = availLang.indexOf(langLocale);
+		if ( langIdx > -1 )
+		{
+			langText = availLangText[langIdx];
+		}
+	}
+	//console.log("langLocale: ", langLocale, "langText: ", langText);
+
+	$('#language-select').prop('title', langText);
+	$("#language-select").val(langIdx);
+	$("#language-select").selectpicker("refresh");
+}
+
 function updateUiOnInstance(inst)
 {
 	if(inst != 0)
@@ -347,7 +389,7 @@ function showInfoDialog(type,header,message)
 
 	$(document).on('click', '[data-dismiss-modal]', function () {
 		var target = $(this).attr('data-dismiss-modal');
-		$(target).modal('hide');
+		$.find(target).modal.hide();
 	});
 }
 
@@ -491,7 +533,7 @@ function createJsonEditor(container,schema,setconfig,usePanel,arrayre)
 	{
 		for(var key in editor.root.editors)
 		{
-			editor.getEditor("root."+key).setValue( window.serverConfig[key] );
+			editor.getEditor("root."+key).setValue(Object.assign({}, editor.getEditor("root."+key).value, window.serverConfig[key] ));
 		}
 	}
 

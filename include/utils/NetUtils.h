@@ -15,15 +15,13 @@ namespace NetUtils {
 	{
 		const quint16 prevPort = port;
 		QTcpServer server;
-		bool corrected = false;
 		while (!server.listen(QHostAddress::Any, port))
 		{
-			corrected = true;
 			Warning(log,"Port '%d' is already in use, will increment", port);
 			port ++;
 		}
 		server.close();
-		if(corrected)
+		if(port != prevPort)
 		{
 			Warning(log, "The requested Port '%d' was already in use, will use Port '%d' instead", prevPort, port);
 			return false;
