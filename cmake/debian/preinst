@@ -12,7 +12,7 @@ then
 	then
 		echo "--> stop init deamon: systemd"
 		# systemd
-		systemctl stop hyperiond"@${FOUND_USR}" 2> /dev/null
+		systemctl stop hyperion hyperiond"@${FOUND_USR}" 2> /dev/null
 
 	elif [ -e /sbin/initctl ]
 	then
