@@ -7,14 +7,14 @@ using namespace hyperion;
 
 ComponentRegister::ComponentRegister(Hyperion* hyperion)
 	: _hyperion(hyperion)
-	, _log(Logger::getInstance("COMPONENTREG"))
+	  , _log(Logger::getInstance("COMPONENTREG"))
 {
 	// init all comps to false
 	QVector<hyperion::Components> vect;
 	vect << COMP_ALL << COMP_SMOOTHING << COMP_BLACKBORDER << COMP_FORWARDER << COMP_BOBLIGHTSERVER << COMP_GRABBER << COMP_V4L << COMP_LEDDEVICE;
 	for(auto e : vect)
 	{
-		_componentStates.emplace(e, ((e == COMP_ALL) ? true : false));
+		_componentStates.emplace(e, (e == COMP_ALL));
 	}
 
 	connect(_hyperion, &Hyperion::compStateChangeRequest, this, &ComponentRegister::handleCompStateChangeRequest);
@@ -36,7 +36,7 @@ void ComponentRegister::setNewComponentState(hyperion::Components comp, bool act
 		Debug( _log, "%s: %s", componentToString(comp), (activated? "enabled" : "disabled"));
 		_componentStates[comp] = activated;
 		// emit component has changed state
-	 	emit updatedComponentState(comp, activated);
+		emit updatedComponentState(comp, activated);
 	}
 }
 
@@ -48,28 +48,34 @@ void ComponentRegister::handleCompStateChangeRequest(hyperion::Components comps,
 		if(!activated && _prevComponentStates.empty())
 		{
 			Debug(_log,"Disable Hyperion, store current component states");
-			for(const auto comp : _componentStates)
+			for(const auto &comp : _componentStates)
 			{
 				// save state
 				_prevComponentStates.emplace(comp.first, comp.second);
 				// disable if enabled
 				if(comp.second)
+				{
 					emit _hyperion->compStateChangeRequest(comp.first, false);
+				}
 			}
 			setNewComponentState(COMP_ALL, false);
 		}
-		else if(activated && !_prevComponentStates.empty())
+		else
 		{
-			Debug(_log,"Enable Hyperion, recover previous component states");
-			for(const auto comp : _prevComponentStates)
+			if(activated && !_prevComponentStates.empty())
 			{
-				// if comp was enabled, enable again
-				if(comp.second)
-					emit _hyperion->compStateChangeRequest(comp.first, true);
-
+				Debug(_log,"Enable Hyperion, recover previous component states");
+				for(const auto &comp : _prevComponentStates)
+				{
+					// if comp was enabled, enable again
+					if(comp.second)
+					{
+						emit _hyperion->compStateChangeRequest(comp.first, true);
+					}
+				}
+				_prevComponentStates.clear();
+				setNewComponentState(COMP_ALL, true);
 			}
-			_prevComponentStates.clear();
-			setNewComponentState(COMP_ALL, true);
 		}
 		_inProgress = false;
 	}

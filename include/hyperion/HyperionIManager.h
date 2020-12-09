@@ -169,7 +169,7 @@ private:
 	/// @brief Construct the Manager
 	/// @param The root path of all userdata
 	///
-	HyperionIManager(const QString& rootPath, QObject* parent = nullptr);
+	HyperionIManager(const QString& rootPath, QObject* parent = nullptr, bool readonlyMode = false);
 
 	///
 	/// @brief Start all instances that are marked as enabled in db. Non blocking
@@ -193,6 +193,9 @@ private:
 	const QString _rootPath;
 	QMap<quint8, Hyperion*> _runningInstances;
 	QList<quint8> _startQueue;
+
+	bool _readonlyMode;
+
 	/// All pending requests
 	QMap<quint8, PendingRequests> _pendingRequests;
 };

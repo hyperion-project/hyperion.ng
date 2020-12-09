@@ -22,7 +22,7 @@ $(document).ready(function() {
 	}, true, true);
 
 	conf_editor.on('change',function() {
-		conf_editor.validate().length ? $('#btn_submit').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
+		conf_editor.validate().length || window.readOnlyMode ? $('#btn_submit').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
 	});
 
 	$('#btn_submit').off().on('click',function() {
@@ -73,17 +73,32 @@ $(document).ready(function() {
 
 		//create general info
 		info = "### GENERAL ### \n";
-		info += 'Build:       '+shy.build+'\n';
-		info += 'Build time:  '+shy.time+'\n';
-		info += 'Version:     '+shy.version+'\n';
-		info += 'UI Lang:     '+storedLang+' (BrowserL: '+navigator.language+')\n';
-		info += 'UI Access:   '+storedAccess+'\n';
-		info += 'Log lvl:     '+window.serverConfig.logger.level+'\n';
-		info += 'Avail Capt:  '+window.serverInfo.grabbers.available+'\n\n';
-		info += 'Distribution:'+sys.prettyName+'\n';
-		info += 'Arch:        '+sys.architecture+'\n';
-		info += 'Kernel:      '+sys.kernelType+' ('+sys.kernelVersion+' (WS: '+sys.wordSize+'))\n';
-		info += 'Browser/OS:  '+navigator.userAgent+'\n\n';
+		info += 'Build:          '+shy.build+'\n';
+		info += 'Build time:     '+shy.time+'\n';
+		info += 'Version:        '+shy.version+'\n';
+		info += 'UI Lang:        '+storedLang+' (BrowserL: '+navigator.language+')\n';
+		info += 'UI Access:      '+storedAccess+'\n';
+		info += 'Log lvl:        '+window.serverConfig.logger.level+'\n';
+		info += 'Avail Capt:     '+window.serverInfo.grabbers.available+'\n';
+		info += 'Database:       '+(shy.readOnlyMode ? "ready-only" : "read/write")+'\n';
+		info += '\n';
+
+		info += 'Distribution:   '+sys.prettyName+'\n';
+		info += 'Architecture:   '+sys.architecture+'\n';
+
+		if (sys.cpuModelName)
+		  info += 'CPU Model:      ' + sys.cpuModelName + '\n';
+		if (sys.cpuModelType)
+		  info += 'CPU Type:       ' + sys.cpuModelType + '\n';
+		if (sys.cpuRevision)
+		  info += 'CPU Revision:   ' + sys.cpuRevision + '\n';
+		if (sys.cpuHardware)
+		  info += 'CPU Hardware:   ' + sys.cpuHardware + '\n';	
+
+		info += 'Kernel:         ' + sys.kernelType+' ('+sys.kernelVersion+' (WS: '+sys.wordSize+'))' + '\n';
+		info += 'Qt Version:     ' + sys.qtVersion + '\n';
+		info += 'Python Version: ' + sys.pyVersion + '\n';			
+		info += 'Browser/OS:     ' + navigator.userAgent + '\n\n';
 
 		//create prios
 		info += "### PRIORITIES ### \n";

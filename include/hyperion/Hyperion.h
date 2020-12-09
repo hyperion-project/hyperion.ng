@@ -98,6 +98,8 @@ public:
 	///
 	QString getActiveDeviceType() const;
 
+	bool getReadOnlyMode() {return _readOnlyMode; };
+
 public slots:
 
 	///
@@ -109,7 +111,7 @@ public slots:
 	///
 	/// Returns the number of attached leds
 	///
-	unsigned getLedCount() const;
+	int getLedCount() const;
 
 	///
 	/// @brief  Register a new input by priority, the priority is not active (timeout -100 isn't muxer recognized) until you start to update the data with setInput()
@@ -296,7 +298,7 @@ public slots:
 	///
 	/// @return The information of the given, a not found priority will return lowest priority as fallback
 	///
-	InputInfo getPriorityInfo(int priority) const;
+	PriorityMuxer::InputInfo getPriorityInfo(int priority) const;
 
 	/// #############
 	/// SETTINGSMANAGER
@@ -484,7 +486,7 @@ private:
 	/// @brief Constructs the Hyperion instance, just accessible for HyperionIManager
 	/// @param  instance  The instance index
 	///
-	Hyperion(quint8 instance);
+	Hyperion(quint8 instance, bool readonlyMode = false);
 
 	/// instance index
 	const quint8 _instIndex;
@@ -525,7 +527,7 @@ private:
 	Logger * _log;
 
 	/// count of hardware leds
-	unsigned _hwLedCount;
+	int _hwLedCount;
 
 	QSize _ledGridSize;
 
@@ -541,4 +543,6 @@ private:
 
 	/// Boblight instance
 	BoblightServer* _boblightServer;
+
+	bool _readOnlyMode;
 };

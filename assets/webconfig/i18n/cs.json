@@ -258,7 +258,6 @@
     "edt_conf_fbs_heading_title": "Flatbuffers Server\n",
     "edt_conf_fbs_timeout_expl": "Pokud nebudou v daném časovém období přijata žádná data, bude komponenta (soft) deaktivována.",
     "edt_conf_fbs_timeout_title": "Časový limit",
-    "edt_conf_fg_device_title": "Zařízení",
     "edt_conf_fg_display_expl": "Vyberte, která plocha by měla být zachycena (nastavení více monitorů)",
     "edt_conf_fg_display_title": "Displej",
     "edt_conf_fg_frequency_Hz_expl": "Jak často se pořizují nové snímky",

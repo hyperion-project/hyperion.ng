@@ -31,9 +31,11 @@ public:
 	///
 	/// @brief Discover HIB (USB) devices available (for configuration).
 	///
+	/// @param[in] params Parameters used to overwrite discovery default behaviour
+	///
 	/// @return A JSON structure holding a list of devices found
 	///
-	QJsonObject discover() override;
+	QJsonObject discover(const QJsonObject& params) override;
 
 protected:
 

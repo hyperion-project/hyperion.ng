@@ -58,7 +58,7 @@ ENDIF()
 # https://cmake.org/Wiki/CMake:CPackPackageGenerators
 # .deb files for apt
 SET ( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/preinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/postinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/prerm" )
-SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "libcec4" )
+SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "libcec6 | libcec4" )
 SET ( CPACK_DEBIAN_PACKAGE_SECTION "Miscellaneous" )
 
 # .rpm for rpm
@@ -105,18 +105,11 @@ SET ( CPACK_NSIS_HELP_LINK "https://www.hyperion-project.org")
 SET ( CPACK_NSIS_URL_INFO_ABOUT "https://www.hyperion-project.org")
 SET ( CPACK_NSIS_MUI_FINISHPAGE_RUN "hyperiond.exe")
 SET ( CPACK_NSIS_BRANDING_TEXT "Hyperion-${HYPERION_VERSION}")
+# custom nsis plugin directory
+SET ( CPACK_NSIS_EXTRA_DEFS "!addplugindir ${CMAKE_SOURCE_DIR}/cmake/nsis/plugins")
 # additional hyperiond startmenu link, won't be created if the user disables startmenu links
 SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Hyperion (Console).lnk' '$INSTDIR\\\\bin\\\\hyperiond.exe' '-d -c'")
 SET ( CPACK_NSIS_DELETE_ICONS_EXTRA "Delete '$SMPROGRAMS\\\\$MUI_TEMP\\\\Hyperion (Console).lnk'")
-
-
-#SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Hyperion.lnk' '$INSTDIR\\\\bin\\\\hyperiond.exe'")
-#SET ( CPACK_NSIS_DELETE_ICONS_EXTRA "Delete '$SMPROGRAMS\\\\$START_MENU\\\\Hyperion.lnk'")
-# hyperiond desktop link
-#SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$DESKTOP\\\\Hyperion.lnk' '$INSTDIR\\\\bin\\\\hyperiond.exe' ")
-#SET ( CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Delete '$DESKTOP\\\\Hyperion.lnk' ")
-#SET ( CPACK_NSIS_EXTRA_INSTALL_COMMANDS "CreateShortCut \\\"$DESKTOP\\\\Hyperion.lnk\\\" \\\"$INSTDIR\\\\bin\\\\hyperiond.exe\\\" ")
-#SET ( CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Delete \\\"$DESKTOP\\\\Hyperion.lnk\\\" ")
 
 # define the install components
 # See also https://gitlab.kitware.com/cmake/community/-/wikis/doc/cpack/Component-Install-With-CPack

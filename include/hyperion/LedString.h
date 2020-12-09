@@ -108,16 +108,6 @@ class LedString
 {
 public:
 	///
-	/// Constructs the LedString with no leds
-	///
-	LedString();
-
-	///
-	/// Destructor of this LedString
-	///
-	~LedString();
-
-	///
 	/// Returns the led specifications
 	///
 	/// @return The list with led specifications

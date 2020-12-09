@@ -52,6 +52,12 @@
 	typedef QObject QtWrapper;
 #endif
 
+#ifdef ENABLE_DX
+	#include <grabber/DirectXWrapper.h>
+#else
+	typedef QObject DirectXWrapper;
+#endif
+
 #include <utils/Logger.h>
 #include <utils/VideoMode.h>
 
@@ -80,18 +86,18 @@ class HyperionDaemon : public QObject
 	friend SysTray;
 
 public:
-	HyperionDaemon(QString rootPath, QObject *parent, bool logLvlOverwrite);
+	HyperionDaemon(const QString& rootPath, QObject *parent, bool logLvlOverwrite, bool readonlyMode = false);
 	~HyperionDaemon();
 
 	///
 	/// @brief Get webserver pointer (systray)
 	///
-	WebServer* getWebServerInstance() { return _webserver; };
+	WebServer *getWebServerInstance() { return _webserver; }
 
 	///
 	/// @brief Get the current videoMode
 	///
-	VideoMode getVideoMode() const { return _currVideoMode; };
+	VideoMode getVideoMode() const { return _currVideoMode; }
 
 	///
 	/// @brief get the settings
@@ -100,7 +106,7 @@ public:
 
 	void startNetworkServices();
 
-	static HyperionDaemon* getInstance() { return daemon; };
+	static HyperionDaemon* getInstance() { return daemon; }
 	static HyperionDaemon* daemon;
 
 public slots:
@@ -153,6 +159,7 @@ private:
 	void createGrabberXcb(const QJsonObject & grabberConfig);
 	void createGrabberQt(const QJsonObject & grabberConfig);
 	void createCecHandler();
+	void createGrabberDx(const QJsonObject & grabberConfig);
 
 	Logger*                    _log;
 	HyperionIManager*          _instanceManager;
@@ -171,6 +178,7 @@ private:
 	FramebufferWrapper*        _fbGrabber;
 	OsxWrapper*                _osxGrabber;
 	QtWrapper*                 _qtGrabber;
+	DirectXWrapper*            _dxGrabber;
 	SSDPHandler*               _ssdp;
 	CECHandler*                _cecHandler;
 	FlatBufferServer*          _flatBufferServer;

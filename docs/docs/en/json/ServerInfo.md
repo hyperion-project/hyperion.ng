@@ -1,25 +1,29 @@
-# Sever Information
-It provides you informations about Hyperion that are required to perform certain actions.
+# Server Information
+This is the primary read mechanism of the Hyperion server. This single command provides data about the live state of Hyperion, broken down into a number
+of different parts (described below).
 
 [[toc]]
 
-Grab it by sending:
-``` json
+You can request a `serverinfo` response by sending the following command:
+```json
 {
     "command":"serverinfo",
     "tan":1
 }
 ```
 
-## Parts
+## Parts of a serverinfo response
 
 ### Components
-List of Hyperion components and their current status "enabled" (on/off). You can enable or disable them during runtime. The "ALL" component reflect Hyperion as a whole and as long "ALL" is false (off) you can't enable another component. [See control components](/en/json/control#control-components)
+List of Hyperion components and their current status "enabled" (on/off). You can enable
+or disable them during runtime . The "ALL" component reflect Hyperion as a whole -- if
+"ALL" is false (off) you can't enable any other component. [See control
+components](/en/json/control#control-components)
 ::: tip Subscribe
 You can subscribe to future data updates. Read more about [Component updates](/en/json/subscribe#component-updates)
 :::
 
-``` json
+```json
 {
   "components":[
     {
@@ -59,11 +63,12 @@ You can subscribe to future data updates. Read more about [Component updates](/e
 ```
 
 ### Adjustments
-Adjustments reflects the value of the last performed (non persistent) color adjustment. Read more about [control Adjustments](/en/json/control#adjustments)
+Adjustments reflect the value of the last performed (non-persistent) color adjustment
+(e.g. brightness). Read more about [control Adjustments](/en/json/control#adjustments)
 ::: tip Subscribe
 You can subscribe to future data updates. Read more about [Adjustment updates](/en/json/subscribe#adjustment-updates)
 :::
-``` json
+```json
 {
   "adjustment":[
     {
@@ -87,12 +92,16 @@ You can subscribe to future data updates. Read more about [Adjustment updates](/
 ```
 
 ### Effect list
-An array of effects where each object is one effect, usually you just use the `name` to create a list for the user. You could filter between user created effects and provided effects by checking the effect `file` string. In case it begins with `:` it's a provided effect. If the path begins with `/`, it's a user created effect. Could be used to list the user effects earlier than the provided effects and to keep the overview.
+An array of effects where each object is one named effect. You can filter between user
+created effects and system provided effects by checking the effect `file` string -- if
+it begins with `:` it's a system provided effect, whereas if the path begins with `/`,
+it's a user created effect.
+
 See also [set Effect](/en/json/control#set-effect)
 ::: tip Subscribe
 You can subscribe to future data updates. Read more about [Effect updates](/en/json/subscribe#effects-updates)
 :::
-``` json
+```json
 {
   "effects":[
     {
@@ -132,38 +141,43 @@ You can subscribe to future data updates. Read more about [Effect updates](/en/j
 ```
   
 ### LED mapping
-Active mode of led area mapping. [See control LED mapping](/en/json/control#led-mapping)
+Active mode of the led area mapping. [See control LED mapping](/en/json/control#led-mapping)
 ::: tip Subscribe
 You can subscribe to future data updates. Read more about [LED mapping updates](/en/json/subscribe#led-mapping-updates)
 :::
-``` json
+```json
   "imageToLedMappingType":"multicolor_mean"
 ```
 
 ### Video mode
-The current video mode of grabbers Can be switched to 3DHSBS, 3DVSBS. [See control video mode](/en/json/control#video-mode)
+The current video mode of grabbers. Can be switched to 3DHSBS, 3DVSBS. [See control video mode](/en/json/control#video-mode)
 ::: tip Subscribe
 You can subscribe to future data updates. Read more about [Video mode updates](/en/json/subscribe#videomode-updates)
 :::
-``` json
+```json
   "videomode" : "2D"
 ```
 
 ### Priorities
 Overview of the registered/active sources. Each object is a source.
-  * active: If "true" it is selectable for manual source selection. [See also source selection](/en/json/control#source-selection)
-  * visible: If "true" this source is displayed and will be pushed to the led device. The `visible:true`-source is always the first entry!
-  * componentId: A string belongs to a specific component. [See available components](/en/json/control#components-ids-explained)
-  * origin: The external setter of this source "NameOfRemote@IP". If not given it's `System` (from Hyperion).
-  * owner: Contains additional information related to the componentId. If it's an effect, the effect name is shown here. If it's USB capture it shows the capture device. If it's platform capture you get the name of it (While we use different capture implementations on different hardware (dispmanx/x11/amlogic/...)).
-  * priority: The priority of this source.
-  * value: Just available if source is a color AND color data is available (active = false has usually no data). Outputs the color in RGB and HSL.
-  * duration_ms: Actual duration in ms until this priority is deleted. Just available if source is color or effect AND a specific duration higher than `0` is set (because 0 is endless).
+  * **active**: If "true" it is selectable for manual source selection. [See also source selection](/en/json/control#source-selection)
+  * **visible**: If "true" this source is displayed and pushed to the led device. The `visible:true`-source is always the first entry!
+  * **componentId**: A key belonging to a specific component that indicates the kind of input. [See available components](/en/json/control#components-ids-explained)
+  * **origin**: A named external setter of this source for reference purposes. If not given it's `System` (from Hyperion).
+  * **owner**: Contains additional information related to the componentId. If it's an effect,
+  the effect name is shown here. If it's USB capture, the capture device is shown. If
+  it's platform capture, you get the name of the platform capture implementation (e.g. dispmanx/x11/amlogic/...).
+  * **priority**: The priority of this source, an integer between 0 and 255.
+  * **value**: If the source is a color AND color data is available (if active is false
+    there's usually no datta),hen this will be the color in RGB and HSL.
+  * **duration_ms**: Actual duration in ms until this priority is automatically deleted.
+    This is shown if source is color or effect AND a specific duration higher than
+    `0` is set (0 means indefinite).
 
 ::: tip Subscribe
 You can subscribe to future data updates. Read more about [Priority updates](/en/json/subscribe#priority-updates)
 :::
-``` json
+```json
   "priorities":[
     {
       "active":true,
@@ -196,17 +210,23 @@ You can subscribe to future data updates. Read more about [Priority updates](/en
   ]
 ```
 
-### Priorities selection Auto/Manual
-If "priorities_autoselect" is "true" the visible source is determined by priority. The lowest number is selected. If someone request to set a source manual, the value switches to "false".
-In case the manual selected source is cleared/stops/duration runs out OR the user requests the auto selection, it switches back to "true". [See also source selection](/en/json/control#source-selection).
-This value will be updated together with the priority update.
+### Priorities selection: Auto/Manual
+If `priorities_autoselect` is "true" the visible source is determined by priority. The
+lowest number is automatically selected. If a caller requests to set a source manually,
+then `priorities_autoselect` switches to `false`.
+
+If the manually selected source is cleared/stops/completes-duration OR the user requests
+the auto selection, `priorities_autoselect` switches back to `true`. This value is
+atomically updated with the priority updates (shown above).
+[See also source selection](/en/json/control#source-selection).
   
 ### Instance
-Information about available instances and their state. Each instance represents a LED device. How to control them: [Control Instance](/en/json/control#control-instances).
+Information about available instances and their state. Each instance represents a LED
+device. Instances can be controlled, see: [Control Instance](/en/json/control#control-instances).
 ::: tip Subscribe
 You can subscribe to future data updates. Read more about [Instance Updates](/en/json/subscribe#instance-updates)
 :::
-``` json
+```json
    "instance":[
        {
          "instance": 0,
@@ -218,7 +238,7 @@ You can subscribe to future data updates. Read more about [Instance Updates](/en
          "running" : false,
          "friendly_name" : "PhilipsHue LED Hardware instance"
        }
-    [
+   ]
 ```
 
 ### LEDs
@@ -226,7 +246,7 @@ Information about led layout (image mapping positions) and led count.
 ::: tip Subscribe
 You can subscribe to future data updates. Read more about [LEDs Updates](/en/json/subscribe#leds-updates)
 :::
-``` json
+```json
 {
   "leds":[
     {
@@ -247,16 +267,18 @@ You can subscribe to future data updates. Read more about [LEDs Updates](/en/jso
 ```
 
 ### System & Hyperion
-It's possible to gather some basic software informations Hyperion runs on. This information is static and won't change during runtime.
-``` json
+It's possible to retrieve basic system information about the Hyperion server and the
+host it runs on. This information is static and won't change during runtime.
+```json
 {
     "command" : "sysinfo",
     "tan" : 1
 }
 ```
 You can use the "version" (Hyperion version) string to check application compatibility. We use [Semantic Versioning 2.0.0](https://semver.org/).
-If you need a specific id to re-detect known servers you can use the "id" field which provides a unique id.
-``` json
+If you need a specific id to re-detect known servers you can use the `id` field which
+provides a unique id and will not change for a given server.
+```json
 {
     "hyperion":{
         "build":"webd (brindosch-38f97dc/814977d-1489698970)",
@@ -278,18 +300,13 @@ If you need a specific id to re-detect known servers you can use the "id" field 
 }
 ```
 
-Hyperion will answer your request. Below just the "info"-part of the response, splitted for better overview.
-::: tip Subscribe
-You can subscribe to future data updates. Read more about [Subscriptions](/en/json/subscribe)
-:::
-
 ### Sessions
- "sessions" shows all Hyperion servers at the current network found via Zeroconf/avahi/bonjour. See also [detect Hyperion](/en/api/detect.md)
+ `sessions` shows all Hyperion servers on the current network found via Zeroconf/avahi/bonjour. See also [detect Hyperion](/en/api/detect.md)
  ::: tip Subscribe
 You can subscribe to future data updates. Read more about [Session updates](/en/json/subscribe#session-updates)
 :::
 
-``` json
+```json
 {
   "sessions":[
     {
@@ -302,29 +319,4 @@ You can subscribe to future data updates. Read more about [Session updates](/en/
     }
   ] 
 }
-```
-
-### Plugins
-::: danger NOT IMPLEMENTED
-THIS IS NOT IMPLEMENTED
-:::
-Information about installed plugins. How to control them: [Control Plugins](/en/json/control#plugins)
-::: tip Subscribe
-You can subscribe to future data updates. Read more about [Plugin updates](/en/json/subscribe#plugin-updates)
-:::
-``` json
-  "plugins": {
-    "service.kodi": {
-      "description": "Connect to a Kodi instance to get player state",
-      "name": "Kodi Connector",
-      "version": "0.0.2",
-      "running": true
-    },
-    "service.wol": {
-      "description": "Send WOL packages to somewhere",
-      "name": "WOL Packages",
-      "version": "0.0.1",
-      "running": false
-    }
-  }
 ```

@@ -56,8 +56,8 @@ void Effect::setModuleParameters()
 	PyModule_AddObject(module, "__effectObj", PyCapsule_New((void*)this, "hyperion.__effectObj", nullptr));
 
 	// add ledCount variable to the interpreter
-	unsigned ledCount = 0;
-	QMetaObject::invokeMethod(_hyperion, "getLedCount", Qt::BlockingQueuedConnection, Q_RETURN_ARG(unsigned, ledCount));
+	int ledCount = 0;
+	QMetaObject::invokeMethod(_hyperion, "getLedCount", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, ledCount));
 	PyObject_SetAttrString(module, "ledCount", Py_BuildValue("i", ledCount));
 
 	// add minimumWriteTime variable to the interpreter

@@ -33,7 +33,7 @@ class WebServer : public QObject
 	Q_OBJECT
 
 public:
-	WebServer (const QJsonDocument& config, bool useSsl, QObject * parent = 0);
+	WebServer (const QJsonDocument& config, bool useSsl, QObject * parent = nullptr);
 
 	~WebServer () override;
 

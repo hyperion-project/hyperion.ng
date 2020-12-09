@@ -44,14 +44,14 @@ namespace hyperion
 		void setEnabled(bool enable);
 
 		///
-		/// Sets the _hardDisabled state, if True prevents the enable from COMP_BLACKBORDER state emit (mimiks wrong state to external!)
-		/// It's not possible to enable bb from this method, if the user requsted a disable!
+		/// Sets the _hardDisabled state, if True prevents the enable from COMP_BLACKBORDER state emit (mimics wrong state to external!)
+		/// It's not possible to enable black-border detection from this method, if the user requested a disable!
 		/// @param disable  The new state
 		///
 		void setHardDisable(bool disable);
 
 		///
-		/// Processes the image. This performs detecion of black-border on the given image and
+		/// Processes the image. This performs detection of black-border on the given image and
 		/// updates the current border accordingly. If the current border is updated the method call
 		/// will return true else false
 		///
@@ -64,10 +64,11 @@ namespace hyperion
 		{
 			// get the border for the single image
 			BlackBorder imageBorder;
+			imageBorder.horizontalSize = 0;
+			imageBorder.verticalSize = 0;
+
 			if (!enabled())
 			{
-				imageBorder.horizontalSize = 0;
-				imageBorder.verticalSize = 0;
 				imageBorder.unknown=true;
 				_currentBorder = imageBorder;
 				return true;
@@ -79,6 +80,8 @@ namespace hyperion
 				imageBorder = _detector->process_classic(image);
 			} else if (_detectionMode == "osd") {
 				imageBorder = _detector->process_osd(image);
+			} else if (_detectionMode == "letterbox") {
+				imageBorder = _detector->process_letterbox(image);
 			}
 			// add blur to the border
 			if (imageBorder.horizontalSize > 0)
@@ -96,7 +99,7 @@ namespace hyperion
 	private slots:
 		///
 		/// @brief Handle settings update from Hyperion Settingsmanager emit or this constructor
-		/// @param type   settingyType from enum
+		/// @param type   settingType from enum
 		/// @param config configuration object
 		///
 		void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
@@ -119,7 +122,7 @@ namespace hyperion
 		///
 		bool updateBorder(const BlackBorder & newDetectedBorder);
 
-		/// flag for blackborder detector usage
+		/// flag for black-border detector usage
 		bool _enabled;
 
 		/// The number of unknown-borders detected before it becomes the current border
@@ -131,13 +134,13 @@ namespace hyperion
 		// The number of frames that are "ignored" before a new border gets set as _previousDetectedBorder
 		unsigned _maxInconsistentCnt;
 
-		/// The number of pixels to increase a detected border for removing blury pixels
+		/// The number of pixels to increase a detected border for removing blurry pixels
 		unsigned _blurRemoveCnt;
 
 		/// The border detection mode
 		QString _detectionMode;
 
-		/// The blackborder detector
+		/// The black-border detector
 		BlackBorderDetector* _detector;
 
 		/// The current detected border
@@ -146,9 +149,9 @@ namespace hyperion
 		/// The border detected in the previous frame
 		BlackBorder _previousDetectedBorder;
 
-		/// The number of frame the previous detected border matched the incomming border
+		/// The number of frame the previous detected border matched the incoming border
 		unsigned _consistentCnt;
-		/// The number of frame the previous detected border NOT matched the incomming border
+		/// The number of frame the previous detected border NOT matched the incoming border
 		unsigned _inconsistentCnt;
 		/// old threshold
 		double _oldThreshold;

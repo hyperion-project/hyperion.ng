@@ -36,16 +36,17 @@ LedDevice * LedDeviceFactory::construct(const QJsonObject & deviceConfig)
 
 		if (device == nullptr)
 		{
-			Error(log, "Dummy device used, because configured device '%s' is unknown", QSTRING_CSTR(type) );
 			throw std::runtime_error("unknown device");
 		}
 	}
 	catch(std::exception& e)
 	{
+		QString dummyDeviceType = "file";
+		Error(log, "Dummy device type (%s) used, because configured device '%s' throws error '%s'", QSTRING_CSTR(dummyDeviceType), QSTRING_CSTR(type), e.what());
 
-		Error(log, "Dummy device used, because configured device '%s' throws error '%s'", QSTRING_CSTR(type), e.what());
-		const QJsonObject dummyDeviceConfig;
-		device = LedDeviceFile::construct(QJsonObject());
+		QJsonObject dummyDeviceConfig;
+		dummyDeviceConfig.insert("type",dummyDeviceType);
+		device = LedDeviceFile::construct(dummyDeviceConfig);
 	}
 
 	return device;

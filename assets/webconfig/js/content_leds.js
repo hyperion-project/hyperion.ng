@@ -59,40 +59,36 @@ function createLedPreview(leds, origin){
 
 }
 
-function createClassicLeds(){
-	//get values
-	var ledstop = parseInt($("#ip_cl_top").val());
-	var ledsbottom = parseInt($("#ip_cl_bottom").val());
-	var ledsleft = parseInt($("#ip_cl_left").val());
-	var ledsright = parseInt($("#ip_cl_right").val());
-	var ledsglength = parseInt($("#ip_cl_glength").val());
-	var ledsgpos = parseInt($("#ip_cl_gpos").val());
-	var position = parseInt($("#ip_cl_position").val());
-	var reverse = $("#ip_cl_reverse").is(":checked");
+function createClassicLedLayoutSimple( ledstop,ledsleft,ledsright,ledsbottom,position,reverse ){
 
-	//advanced values
-	var ledsVDepth = parseInt($("#ip_cl_vdepth").val())/100;
-	var ledsHDepth = parseInt($("#ip_cl_hdepth").val())/100;
-	var edgeVGap = parseInt($("#ip_cl_edgegap").val())/100/2;
-	//var cornerVGap = parseInt($("#ip_cl_cornergap").val())/100/2;
-	var overlap = $("#ip_cl_overlap").val()/100;
+	let params = { 
+		   ledstop: 0, ledsleft: 0, ledsright: 0, ledsbottom: 0,
+		   ledsglength: 0, ledsgpos: 0, position: 0,
+		   ledsHDepth: 0.08, ledsVDepth: 0.05, overlap: 0,
+		   edgeVGap: 0,
+		   ptblh: 0, ptblv: 1, ptbrh: 1, ptbrv: 1,
+		   pttlh: 0, pttlv: 0, pttrh: 1, pttrv: 0,
+		   reverse:false
+		 };
+		 
+	params.ledstop = ledstop;
+	params.ledsleft = ledsleft;
+	params.ledsright = ledsright;
+	params.ledsbottom = ledsbottom;
+	params.position = position;
+	params.reverse = reverse;		 
 
-	//trapezoid values % -> float
-	var ptblh  = parseInt($("#ip_cl_pblh").val())/100;
-	var ptblv  = parseInt($("#ip_cl_pblv").val())/100;
-	var ptbrh  = parseInt($("#ip_cl_pbrh").val())/100;
-	var ptbrv  = parseInt($("#ip_cl_pbrv").val())/100;
-	var pttlh  = parseInt($("#ip_cl_ptlh").val())/100;
-	var pttlv  = parseInt($("#ip_cl_ptlv").val())/100;
-	var pttrh  = parseInt($("#ip_cl_ptrh").val())/100;
-	var pttrv  = parseInt($("#ip_cl_ptrv").val())/100;
+	return createClassicLedLayout( params );
+}
+
+function createClassicLedLayout( params ){
 
 	//helper
-	var edgeHGap = edgeVGap/(16/9);
+	var edgeHGap = params.edgeVGap/(16/9);
 	var ledArray = [];
 
 	function createFinalArray(array){
-		finalLedArray = [];
+		var finalLedArray = [];
 		for(var i = 0; i<array.length; i++){
 			var hmin = array[i].hmin;
 			var hmax = array[i].hmax;
@@ -100,7 +96,7 @@ function createClassicLeds(){
 			var vmax = array[i].vmax;
 			finalLedArray[i] = { "hmax": hmax, "hmin": hmin, "vmax": vmax, "vmin": vmin }
 		}
-		createLedPreview(finalLedArray, 'classic');
+		return finalLedArray;
 	}
 
 	function rotateArray(array, times){
@@ -131,9 +127,9 @@ function createClassicLeds(){
 	function ovl(scan,val)
 	{
 		if(scan == "+")
-			return valScan(val += overlap);
+			return valScan(val += params.overlap);
 		else
-			return valScan(val -= overlap);
+			return valScan(val -= params.overlap);
 	}
 
 	function createLedArray(hmin, hmax, vmin, vmax){
@@ -145,53 +141,53 @@ function createClassicLeds(){
 	}
 
 	function createTopLeds(){
-		var steph = (pttrh - pttlh - (2*edgeHGap))/ledstop;
-		var stepv = (pttrv - pttlv)/ledstop;
+		var steph = (params.pttrh - params.pttlh - (2*edgeHGap))/params.ledstop;
+		var stepv = (params.pttrv - params.pttlv)/params.ledstop;
 
-		for (var i = 0; i<ledstop; i++){
-			var hmin = ovl("-",pttlh+(steph*Number([i]))+edgeHGap);
-			var hmax = ovl("+",pttlh+(steph*Number([i+1]))+edgeHGap);
-			var vmin = pttlv+(stepv*Number([i]));
-			var vmax = vmin + ledsHDepth;
+		for (var i = 0; i<params.ledstop; i++){
+			var hmin = ovl("-",params.pttlh+(steph*Number([i]))+edgeHGap);
+			var hmax = ovl("+",params.pttlh+(steph*Number([i+1]))+edgeHGap);
+			var vmin = params.pttlv+(stepv*Number([i]));
+			var vmax = vmin + params.ledsHDepth;
 			createLedArray(hmin, hmax, vmin, vmax);
 		}
 	}
 
 	function createRightLeds(){
-		var steph = (ptbrh - pttrh)/ledsright;
-		var stepv = (ptbrv - pttrv - (2*edgeVGap))/ledsright;
+		var steph = (params.ptbrh - params.pttrh)/params.ledsright;
+		var stepv = (params.ptbrv - params.pttrv - (2*params.edgeVGap))/params.ledsright;
 
-		for (var i = 0; i<ledsright; i++){
-			var hmax = pttrh+(steph*Number([i+1]));
-			var hmin = hmax-ledsVDepth;
-			var vmin = ovl("-",pttrv+(stepv*Number([i]))+edgeVGap);
-			var vmax = ovl("+",pttrv+(stepv*Number([i+1]))+edgeVGap);
+		for (var i = 0; i<params.ledsright; i++){
+			var hmax = params.pttrh+(steph*Number([i+1]));
+			var hmin = hmax-params.ledsVDepth;
+			var vmin = ovl("-",params.pttrv+(stepv*Number([i]))+params.edgeVGap);
+			var vmax = ovl("+",params.pttrv+(stepv*Number([i+1]))+params.edgeVGap);
 			createLedArray(hmin, hmax, vmin, vmax);
 		}
 	}
 
 	function createBottomLeds(){
-		var steph = (ptbrh - ptblh - (2*edgeHGap))/ledsbottom;
-		var stepv = (ptbrv - ptblv)/ledsbottom;
+		var steph = (params.ptbrh - params.ptblh - (2*edgeHGap))/params.ledsbottom;
+		var stepv = (params.ptbrv - params.ptblv)/params.ledsbottom;
 
-		for (var i = ledsbottom-1; i>-1; i--){
-			var hmin = ovl("-",ptblh+(steph*Number([i]))+edgeHGap);
-			var hmax = ovl("+",ptblh+(steph*Number([i+1]))+edgeHGap);
-			var vmax= ptblv+(stepv*Number([i]));
-			var vmin = vmax-ledsHDepth;
+		for (var i = params.ledsbottom-1; i>-1; i--){
+			var hmin = ovl("-",params.ptblh+(steph*Number([i]))+edgeHGap);
+			var hmax = ovl("+",params.ptblh+(steph*Number([i+1]))+edgeHGap);
+			var vmax= params.ptblv+(stepv*Number([i]));
+			var vmin = vmax-params.ledsHDepth;
 			createLedArray(hmin, hmax, vmin, vmax);
 		}
 	}
 
 	function createLeftLeds(){
-		var steph = (ptblh - pttlh)/ledsleft;
-		var stepv = (ptblv - pttlv - (2*edgeVGap))/ledsleft;
+		var steph = (params.ptblh - params.pttlh)/params.ledsleft;
+		var stepv = (params.ptblv - params.pttlv - (2*params.edgeVGap))/params.ledsleft;
 
-		for (var i = ledsleft-1; i>-1; i--){
-			var hmin = pttlh+(steph*Number([i]));
-			var hmax = hmin+ledsVDepth;
-			var vmin = ovl("-",pttlv+(stepv*Number([i]))+edgeVGap);
-			var vmax = ovl("+",pttlv+(stepv*Number([i+1]))+edgeVGap);
+		for (var i = params.ledsleft-1; i>-1; i--){
+			var hmin = params.pttlh+(steph*Number([i]));
+			var hmax = hmin+params.ledsVDepth;
+			var vmin = ovl("-",params.pttlv+(stepv*Number([i]))+params.edgeVGap);
+			var vmax = ovl("+",params.pttlv+(stepv*Number([i+1]))+params.edgeVGap);
 			createLedArray(hmin, hmax, vmin, vmax);
 		}
 
@@ -202,46 +198,86 @@ function createClassicLeds(){
 	createRightLeds();
 	createBottomLeds();
 	createLeftLeds();
-
+	
 	//check led gap pos
-	if (ledsgpos+ledsglength > ledArray.length)
+	if (params.ledsgpos+params.ledsglength > ledArray.length)
 	{
-		var mpos = Math.max(0,ledArray.length-ledsglength);
-		$('#ip_cl_ledsgpos').val(mpos);
+		var mpos = Math.max(0,ledArray.length-params.ledsglength);
+		//$('#ip_cl_ledsgpos').val(mpos);
 		ledsgpos = mpos;
 	}
 
 	//check led gap length
-	if(ledsglength >= ledArray.length)
+	if(params.ledsglength >= ledArray.length)
 	{
-		$('#ip_cl_ledsglength').val(ledArray.length-1);
-		ledsglength = ledArray.length-ledsglength-1;
+		//$('#ip_cl_ledsglength').val(ledArray.length-1);
+		params.ledsglength = ledArray.length-params.ledsglength-1;
 	}
 
-	if(ledsglength != 0){
-		ledArray.splice(ledsgpos, ledsglength);
+	if(params.ledsglength != 0){
+		ledArray.splice(params.ledsgpos, params.ledsglength);
 	}
 
-	if (position != 0){
-		rotateArray(ledArray, position);
+	if (params.position != 0){
+		rotateArray(ledArray, params.position);
 	}
 
-	if (reverse)
+	if (params.reverse)
 		ledArray.reverse();
 
-	createFinalArray(ledArray);
+	return createFinalArray(ledArray);
 }
 
-function createMatrixLeds(){
+function createClassicLeds(){
+	
+	//get values
+	let params = {
+		ledstop : parseInt($("#ip_cl_top").val()),
+		ledsbottom : parseInt($("#ip_cl_bottom").val()),
+		ledsleft : parseInt($("#ip_cl_left").val()),
+		ledsright : parseInt($("#ip_cl_right").val()),
+		ledsglength : parseInt($("#ip_cl_glength").val()),
+		ledsgpos : parseInt($("#ip_cl_gpos").val()),
+		position : parseInt($("#ip_cl_position").val()),
+		reverse : $("#ip_cl_reverse").is(":checked"),
+
+		//advanced values
+		ledsVDepth : parseInt($("#ip_cl_vdepth").val())/100,
+		ledsHDepth : parseInt($("#ip_cl_hdepth").val())/100,
+		edgeVGap : parseInt($("#ip_cl_edgegap").val())/100/2,
+		//cornerVGap : parseInt($("#ip_cl_cornergap").val())/100/2,
+		overlap : $("#ip_cl_overlap").val()/100,
+
+		//trapezoid values % -> float
+		ptblh  : parseInt($("#ip_cl_pblh").val())/100,
+		ptblv  : parseInt($("#ip_cl_pblv").val())/100,
+		ptbrh  : parseInt($("#ip_cl_pbrh").val())/100,
+		ptbrv  : parseInt($("#ip_cl_pbrv").val())/100,
+		pttlh  : parseInt($("#ip_cl_ptlh").val())/100,
+		pttlv  : parseInt($("#ip_cl_ptlv").val())/100,
+		pttrh  : parseInt($("#ip_cl_ptrh").val())/100,
+		pttrv  : parseInt($("#ip_cl_ptrv").val())/100,
+	}
+	
+	finalLedArray = createClassicLedLayout( params );
+	
+	//check led gap pos
+	if (params.ledsgpos+params.ledsglength > finalLedArray.length) {
+		var mpos = Math.max(0,finalLedArray.length-params.ledsglength);
+		$('#ip_cl_ledsgpos').val(mpos);
+	}
+	//check led gap length
+	if(params.ledsglength >= finalLedArray.length) {
+		$('#ip_cl_ledsglength').val(finalLedArray.length-1);
+	}
+	
+	createLedPreview(finalLedArray, 'classic');	
+}
+
+
+function createMatrixLayout( ledshoriz, ledsvert, cabling, start){
 // Big thank you to RanzQ (Juha Rantanen) from Github for this script
 // https://raw.githubusercontent.com/RanzQ/hyperion-audio-effects/master/matrix-config.js
-
-	//get values
-	var ledshoriz = parseInt($("#ip_ma_ledshoriz").val());
-	var ledsvert = parseInt($("#ip_ma_ledsvert").val());
-	var cabling = $("#ip_ma_cabling").val();
-	//var order = $("#ip_ma_order").val();
-	var start = $("#ip_ma_start").val();
 
 	var parallel = false
 	var leds = []
@@ -298,9 +334,23 @@ function createMatrixLeds(){
 			endX = tmp
 		}
 	}
-  finalLedArray =[];
-  finalLedArray = leds
-  createLedPreview(leds, 'matrix');
+	
+	return leds;
+}
+
+
+function createMatrixLeds(){
+// Big thank you to RanzQ (Juha Rantanen) from Github for this script
+// https://raw.githubusercontent.com/RanzQ/hyperion-audio-effects/master/matrix-config.js
+
+	//get values
+	var ledshoriz = parseInt($("#ip_ma_ledshoriz").val());
+	var ledsvert = parseInt($("#ip_ma_ledsvert").val());
+	var cabling = $("#ip_ma_cabling").val();
+	var start = $("#ip_ma_start").val();
+
+	finalLedArray = createMatrixLayout(ledshoriz,ledsvert,cabling,start);
+	createLedPreview(finalLedArray, 'matrix');
 }
 
 function migrateLedConfig(slConfig){
@@ -309,10 +359,10 @@ function migrateLedConfig(slConfig){
 
 	//Default Classic layout
   	newLedConfig.classic = {
-				"top"	 	: 8,
-				"bottom"	: 8,
-				"left"		: 5,
-				"right"		: 5,
+				"top"	 	: 1,
+				"bottom"	: 0,
+				"left"		: 0,
+				"right"		: 0,
 				"glength"	: 0,
 				"gpos"		: 0,
 				"position"	: 0,
@@ -336,8 +386,8 @@ function migrateLedConfig(slConfig){
 	newLedConfig.classic.overlap	= slConfig.overlap;
 
 	//Default Matrix layout
-	newLedConfig["matrix"] = { "ledshoriz": 10,
-				"ledsvert" : 10,
+	newLedConfig["matrix"] = { "ledshoriz": 1,
+				"ledsvert" : 1,
 				"cabling"  : "snake",
 				"start"    : "top-left"
 				}
@@ -468,6 +518,11 @@ $(document).ready(function() {
 				$('#leds_custom_updsim').attr("disabled", true);
 				$('#leds_custom_save').attr("disabled", true);
 			}
+
+			if ( window.readOnlyMode )
+			{
+				$('#leds_custom_save').attr('disabled', true);
+			}
 		}
 	}, window.serverConfig.leds);
 
@@ -520,7 +575,13 @@ $(document).ready(function() {
 		};
 
 		// change save button state based on validation result
-		conf_editor.validate().length ? $('#btn_submit_controller').attr('disabled', true) : $('#btn_submit_controller').attr('disabled', false);
+		conf_editor.validate().length || window.readOnlyMode ? $('#btn_submit_controller').attr('disabled', true) : $('#btn_submit_controller').attr('disabled', false);
+
+		conf_editor.on('change',function() {
+		window.readOnlyMode ? $('#btn_cl_save').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
+		window.readOnlyMode ? $('#btn_ma_save').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
+		window.readOnlyMode ? $('#leds_custom_save').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
+		});
 
 		// led controller sepecific wizards
 		$('#btn_wiz_holder').html("");
@@ -549,6 +610,12 @@ $(document).ready(function() {
     	    var atmoorb_title = 'wiz_atmoorb_title';
     	    changeWizard(data, atmoorb_title, startWizardAtmoOrb);
 	}
+	else if(ledType == "cololight") {
+		var ledWizardType = (this.checked) ? "cololight" : ledType;
+		var data = { type: ledWizardType };
+		var cololight_title = 'wiz_cololight_title';
+		changeWizard(data, cololight_title, startWizardCololight);
+	}
 	else if(ledType == "yeelight") {
 		var ledWizardType = (this.checked) ? "yeelight" : ledType;
 		var data = { type: ledWizardType };
@@ -572,10 +639,10 @@ $(document).ready(function() {
 	var devRPiPWM = ['ws281x'];
 	var devRPiGPIO = ['piblaster'];
 
-	var devNET = ['atmoorb', 'fadecandy', 'philipshue', 'nanoleaf', 'razer', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udph801', 'udpraw', 'wled', 'yeelight'];
+	var devNET = ['atmoorb', 'cololight', 'fadecandy', 'philipshue', 'nanoleaf', 'razer', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udph801', 'udpraw', 'wled', 'yeelight'];
 	var devUSB = ['adalight', 'dmx', 'atmo', 'hyperionusbasp', 'lightpack', 'paintpack', 'rawhid', 'sedu', 'tpm2', 'karate'];
 
-	var optArr = [[]];
+  var optArr = [[]];
 	optArr[1]=[];
 	optArr[2]=[];
 	optArr[3]=[];

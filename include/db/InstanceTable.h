@@ -14,9 +14,11 @@ class InstanceTable : public DBManager
 {
 
 public:
-	InstanceTable(const QString& rootPath, QObject* parent = nullptr)
+	InstanceTable(const QString& rootPath, QObject* parent = nullptr, bool readonlyMode = false)
 		: DBManager(parent)
 	{
+
+		setReadonlyMode(readonlyMode);
 		// Init Hyperion database usage
 		setRootPath(rootPath);
 		setDatabaseName("hyperion");

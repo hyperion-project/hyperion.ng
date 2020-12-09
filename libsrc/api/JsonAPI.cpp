@@ -275,12 +275,18 @@ void JsonAPI::handleSysInfoCommand(const QJsonObject &, const QString &command, 
 	system["kernelType"] = data.kernelType;
 	system["kernelVersion"] = data.kernelVersion;
 	system["architecture"] = data.architecture;
+	system["cpuModelName"] = data.cpuModelName;
+	system["cpuModelType"] = data.cpuModelType;
+	system["cpuHardware"] = data.cpuHardware;
+	system["cpuRevision"] = data.cpuRevision;
 	system["wordSize"] = data.wordSize;
 	system["productType"] = data.productType;
 	system["productVersion"] = data.productVersion;
 	system["prettyName"] = data.prettyName;
 	system["hostName"] = data.hostName;
 	system["domainName"] = data.domainName;
+	system["qtVersion"] = data.qtVersion;
+	system["pyVersion"] = data.pyVersion;
 	info["system"] = system;
 
 	QJsonObject hyperion;
@@ -289,6 +295,8 @@ void JsonAPI::handleSysInfoCommand(const QJsonObject &, const QString &command, 
 	hyperion["gitremote"] = QString(HYPERION_GIT_REMOTE);
 	hyperion["time"] = QString(__DATE__ " " __TIME__);
 	hyperion["id"] = _authManager->getID();
+	hyperion["readOnlyMode"] = _hyperion->getReadOnlyMode();
+
 	info["hyperion"] = hyperion;
 
 	// send the result
@@ -461,8 +469,12 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 
 #if defined(ENABLE_DISPMANX) || defined(ENABLE_V4L2) || defined(ENABLE_FB) || defined(ENABLE_AMLOGIC) || defined(ENABLE_OSX) || defined(ENABLE_X11) || defined(ENABLE_XCB) || defined(ENABLE_QT)
 
+	if ( GrabberWrapper::getInstance() != nullptr )
+	{
+		grabbers["active"] = GrabberWrapper::getInstance()->getActive();
+	}
+
 	// get available grabbers
-	//grabbers["active"] = ????;
 	for (auto grabber : GrabberWrapper::availableGrabbers())
 	{
 		availableGrabbers.append(grabber);
@@ -677,12 +689,13 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 		if (subsArr.contains("all"))
 		{
 			subsArr = QJsonArray();
-			for (const auto &entry : _jsonCB->getCommands())
+			for (const auto& entry : _jsonCB->getCommands())
 			{
 				subsArr.append(entry);
 			}
 		}
-		for (const auto &entry : subsArr)
+
+		for (const QJsonValueRef entry : subsArr)
 		{
 			// config callbacks just if auth is set
 			if ((entry == "settings-update" || entry == "token-update") && !API::isAdminAuthorized())
@@ -870,8 +883,14 @@ void JsonAPI::handleConfigSetCommand(const QJsonObject &message, const QString &
 		QJsonObject config = message["config"].toObject();
 		if (API::isHyperionEnabled())
 		{
-			API::saveSettings(config);
-			sendSuccessReply(command, tan);
+			if ( API::saveSettings(config) )
+			{
+				sendSuccessReply(command, tan);
+			}
+			else
+			{
+				sendErrorReply("Save settings failed", command, tan);
+			}
 		}
 		else
 			sendErrorReply("Saving configuration while Hyperion is disabled isn't possible", command, tan);
@@ -1399,7 +1418,8 @@ void JsonAPI::handleLedDeviceCommand(const QJsonObject &message, const QString &
 		if (subc == "discover")
 		{
 			ledDevice = LedDeviceFactory::construct(config);
-			const QJsonObject devicesDiscovered = ledDevice->discover();
+			const QJsonObject &params = message["params"].toObject();
+			const QJsonObject devicesDiscovered = ledDevice->discover(params);
 
 			Debug(_log, "response: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 

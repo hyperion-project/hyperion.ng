@@ -1,7 +1,3 @@
-#undef slots
-#include <Python.h>
-#define slots
-
 // utils
 #include <utils/Logger.h>
 
@@ -48,7 +44,11 @@ PythonInit::PythonInit()
 		throw std::runtime_error("Initializing Python failed!");
 	}
 
+#if (PY_VERSION_HEX < 0x03090000)
+	// PyEval_InitThreads became deprecated in Python 3.9 and will be removed in Python 3.11
 	PyEval_InitThreads(); // Create the GIL
+#endif
+
 	mainThreadState = PyEval_SaveThread();
 }
 

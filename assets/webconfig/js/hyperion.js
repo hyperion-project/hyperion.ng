@@ -454,9 +454,9 @@ function requestAdjustment(type, value, complete)
 		sendToHyperion("adjustment", "", '"adjustment": {"'+type+'": '+value+'}');
 }
 
-async function requestLedDeviceDiscovery(type)
+async function requestLedDeviceDiscovery(type, params)
 {
-	let data = { ledDeviceType: type };
+	let data = { ledDeviceType: type, params: params };
 
 	return sendAsyncToHyperion("leddevice", "discover", data, Math.floor(Math.random() * 1000) );
 }
@@ -471,8 +471,5 @@ async function requestLedDeviceProperties(type, params)
 function requestLedDeviceIdentification(type, params)
 {
 	sendToHyperion("leddevice", "identify", '"ledDeviceType": "'+type+'","params": '+JSON.stringify(params)+'');
-
-	//let data = {ledDeviceType: type, params: params};
-	//sendToHyperion("leddevice", "identify", data );
 }
 

@@ -1,0 +1,12 @@
+Issues:
+  opened: |
+    Hello @$AUTHOR
+
+    We make use of an **[ISSUE TEMPLATE](https://github.com/$REPO_FULL_NAME/issues/new/choose)** to capture relevant information to support you best. Unfortunately, **you ignored or deleted** the given sections. Please take care that all information requested is provided.
+
+    This issue will be automatically closed by our bot, please do not take it personally. We would like asking you to open a new issue following the **[ISSUE TEMPLATE](https://github.com/$REPO_FULL_NAME/issues/new/choose)**.
+
+    Thanks for your continuous support!
+
+    Best regards,
+    Hyperion-Project

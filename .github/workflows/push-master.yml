@@ -95,31 +95,44 @@ jobs:
     runs-on: windows-latest
     env:
       VCINSTALLDIR: 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC'
+      QT_VERSION: 5.15.0
     steps:
       - name: Checkout
         uses: actions/checkout@v1
         with:
           submodules: true
 
+      - name: Cache Qt
+        uses: actions/cache@v2
+        id: cache-qt-windows
+        with:
+          path: ${{ runner.workspace }}/Qt
+          key: ${{ runner.os }}-Qt.${{ env.QT_VERSION }}
+
       - name: Install Qt
         uses: jurplel/install-qt-action@v2
         with:
-          version: '5.15.0'
+          version: ${{ env.QT_VERSION }}
           target: 'desktop'
           arch: 'win64_msvc2019_64'
+          cached: ${{ steps.cache-qt-windows.outputs.cache-hit }}
 
-      - name: Install Python
-        uses: actions/setup-python@v1
+      - name: Cache Chocolatey downloads
+        uses: actions/cache@v2
         with:
-          python-version: '3.x'
+          path: C:\Users\runneradmin\AppData\Local\Temp\chocolatey
+          key: ${{ runner.os }}-chocolatey
 
-      - name: Install NSIS & copy plugins
+      - name: "Remove Redistributable"
+        shell: cmd
         run: |
-          choco install --no-progress nsis -y
-          copy "cmake\nsis\template\*.dll" "C:\Program Files (x86)\NSIS\Plugins\x86-ansi\"
+          MsiExec.exe /passive /X{F0C3E5D1-1ADE-321E-8167-68EF0DE699A5}
+          MsiExec.exe /passive /X{1D8E6291-B0D5-35EC-8441-6616F567A0F7}
 
-      - name: Install OpenSSL
-        run: choco install --no-progress openssl -y
+      - name: Install Python, NSIS, OpenSSL, DirectX SDK
+        shell: powershell
+        run: |
+          choco install --no-progress python nsis openssl directx-sdk -y
 
       - name: Set up x64 build architecture environment
         shell: cmd
@@ -192,14 +205,14 @@ jobs:
       # generate environment variables
       - name: Generate environment variables from version and tag
         run: |
-          echo ::set-env name=TAG::${GITHUB_REF/refs\/tags\//}
-          echo ::set-env name=VERSION::$(tr -d '\n' < version)
-          echo ::set-env name=preRelease::false
+          echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
+          echo "VERSION=$(tr -d '\n' < version)" >> $GITHUB_ENV
+          echo "preRelease=false" >> $GITHUB_ENV
 
       # If version contains alpha or beta, mark draft release as pre-release
       - name: Mark release as pre-release
         if: contains(env.VERSION, 'alpha') || contains(env.VERSION, 'beta')
-        run: echo ::set-env name=preRelease::true
+        run: echo "preRelease=true" >> $GITHUB_ENV
 
       # Download artifacts from previous build process
       - name: Download artifacts

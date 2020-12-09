@@ -17,7 +17,7 @@ class ImageProcessor;
 class Hyperion;
 
 ///
-/// The Connection object created by \a BoblightServer when a new connection is establshed
+/// The Connection object created by \a BoblightServer when a new connection is established
 ///
 class BoblightClientConnection : public QObject
 {

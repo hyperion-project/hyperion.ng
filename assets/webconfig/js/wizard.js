@@ -109,9 +109,13 @@ function beginWizardRGB() {
       if (redS == "r" && greenS == "g") {
         $('#btn_wiz_save').toggle(false);
         $('#btn_wiz_checkok').toggle(true);
+
+        window.readOnlyMode ? $('#btn_wiz_checkok').attr('disabled', true) : $('#btn_wiz_checkok').attr('disabled', false);
       }
       else {
         $('#btn_wiz_save').toggle(true);
+        window.readOnlyMode ? $('#btn_wiz_save').attr('disabled', true) : $('#btn_wiz_save').attr('disabled', false);
+
         $('#btn_wiz_checkok').toggle(false);
       }
       new_rgb_order = rgb_order;
@@ -148,9 +152,11 @@ function beginWizardRGB() {
 $('#btn_wizard_byteorder').off().on('click', startWizardRGB);
 
 //color calibration wizard
+
 var kodiHost = document.location.hostname;
 var kodiPort = 9090;
 var kodiAddress = kodiHost;
+
 var wiz_editor;
 var colorLength;
 var cobj;
@@ -164,6 +170,7 @@ var picnr = 0;
 var availVideos = ["Sweet_Cocoon", "Caminandes_2_GranDillama", "Caminandes_3_Llamigos"];
 
 if (getStorage("kodiAddress") != null) {
+
   kodiAddress = getStorage("kodiAddress");
   [kodiHost, kodiPort] = kodiAddress.split(":", 2);
 
@@ -390,6 +397,7 @@ function performAction() {
 
     $('#btn_wiz_next').attr("disabled", true);
     $('#btn_wiz_save').toggle(true);
+    window.readOnlyMode ? $('#btn_wiz_save').attr('disabled', true) : $('#btn_wiz_save').attr('disabled', false);
   }
   else {
     $('#btn_wiz_next').attr("disabled", false);
@@ -407,16 +415,16 @@ function updateWEditor(el, all) {
 }
 
 function startWizardCC() {
+
   // Ensure that Kodi's default REST-API port is not used, as now the Web-Socket port is used
   [kodiHost, kodiPort] = kodiAddress.split(":", 2);
   if (kodiPort === "8080") {
     kodiAddress = kodiHost;
     kodiPort = undefined;
   }
-
   //create html
   $('#wiz_header').html('<i class="fa fa-magic fa-fw"></i>' + $.i18n('wiz_cc_title'));
-  $('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n('wiz_cc_title') + '</h4><p>' + $.i18n('wiz_cc_intro1') + '</p><label>' + $.i18n('wiz_cc_kwebs') + '</label><input class="form-control" style="width:170px;margin:auto" id="wiz_cc_kodiip" type="text" placeholder="' + kodiAddress + '" value="' + kodiAddress + '" /><span id="kodi_status"></span><span id="multi_cali"></span>');
+  $('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n('wiz_cc_title') + '</h4><p>' + $.i18n('wiz_cc_intro1') + '</p><label>' + $.i18n('wiz_cc_kwebs') + '</label><input class="form-control" style="width:170px;margin:auto" id="wiz_cc_kodiip" type="text" placeholder="' + kodiAddress + '" value="' +  kodiAddress + '" /><span id="kodi_status"></span><span id="multi_cali"></span>');
   $('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont" disabled="disabled"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
   $('#wizp2_body').html('<div id="wiz_cc_desc" style="font-weight:bold"></div><div id="editor_container_wiz"></div>');
   $('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_back"><i class="fa fa-fw fa-chevron-left"></i>' + $.i18n('general_btn_back') + '</button><button type="button" class="btn btn-primary" id="btn_wiz_next">' + $.i18n('general_btn_next') + '<i style="margin-left:4px;"class="fa fa-fw fa-chevron-right"></i></button><button type="button" class="btn btn-warning" id="btn_wiz_save" style="display:none"><i class="fa fa-fw fa-save"></i>' + $.i18n('general_btn_save') + '</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
@@ -429,7 +437,10 @@ function startWizardCC() {
   });
 
   $('#wiz_cc_kodiip').off().on('change', function () {
+    
     kodiAddress = $(this).val().trim();
+    $('#wizp1_body').find("kodiAddress").val(kodiAddress);
+    
     $('#kodi_status').html('');
 
     // Remove Kodi's default Web-Socket port (9090) from display and ensure Kodi's default REST-API port (8080) is mapped to web-socket port to ease migration
@@ -577,6 +588,30 @@ function assignLightPos(id, pos, name) {
 
   i.name = name;
   return i;
+}
+
+function getHostInLights(hostname) {
+  return lights.filter(
+    function (lights) {
+      return lights.host === hostname
+    }
+  );
+}
+
+function getIpInLights(ip) {
+  return lights.filter(
+    function (lights) {
+      return lights.ip === ip
+    }
+  );
+}
+
+function getIdInLights(id) {
+  return lights.filter(
+    function (lights) {
+      return lights.id === id
+    }
+  );
 }
 
 //****************************
@@ -792,17 +827,8 @@ async function getProperties_hue_bridge(hostAddress, username, resourceFilter) {
 }
 
 function identify_hue_device(hostAddress, username, id) {
-  console.log("identify_hue_device");
-
   let params = { host: hostAddress, user: username, lightId: id };
-
-  const res = requestLedDeviceIdentification("philipshue", params);
-  // TODO: error case unhandled
-  // res can be: false (timeout) or res.error (not found)
-  if (res && !res.error) {
-    const r = res.info
-    console.log(r);
-  }
+  requestLedDeviceIdentification("philipshue", params);
 }
 
 function getHueIPs() {
@@ -1151,7 +1177,9 @@ function get_hue_lights() {
                 cC++;
               }
             }
-            (cC == 0) ? $('#btn_wiz_save').attr("disabled", true) : $('#btn_wiz_save').attr("disabled", false);
+
+            (cC == 0 || window.readOnlyMode) ? $('#btn_wiz_save').attr("disabled", true) : $('#btn_wiz_save').attr("disabled", false);
+
           });
         }
         $('.hue_sel_watch').trigger('change');
@@ -1263,14 +1291,7 @@ async function getProperties_wled(hostAddress, resourceFilter) {
 
 function identify_wled(hostAddress) {
   let params = { host: hostAddress };
-
-  const res = requestLedDeviceIdentification("wled", params);
-  // TODO: error case unhandled
-  // res can be: false (timeout) or res.error (not found)
-  if (res && !res.error) {
-    const r = res.info
-    console.log(r);
-  }
+  requestLedDeviceIdentification("wled", params);
 }
 
 //****************************
@@ -1382,14 +1403,6 @@ function beginWizardYeelight() {
   $('#btn_wiz_abort').off().on('click', resetWizard);
 }
 
-function getHostInLights(hostname) {
-  return lights.filter(
-    function (lights) {
-      return lights.host === hostname
-    }
-  );
-}
-
 async function discover_yeelight_lights() {
   var light = {};
   // Get discovered lights
@@ -1406,10 +1419,9 @@ async function discover_yeelight_lights() {
 
       if (device.hostname !== "") {
         if (getHostInLights(device.hostname).length === 0) {
-          light = {};
+          var light = {};
           light.host = device.hostname;
           light.port = device.port;
-
           light.name = device.other.name;
           light.model = device.other.model;
           lights.push(light);
@@ -1427,7 +1439,7 @@ async function discover_yeelight_lights() {
 
       if (host !== "")
         if (getHostInLights(host).length === 0) {
-          light = {};
+          var light = {};
           light.host = host;
           light.port = port;
           light.name = configuredLights[keyConfig].name;
@@ -1446,7 +1458,7 @@ function assign_yeelight_lights() {
   // If records are left for configuration
   if (Object.keys(lights).length > 0) {
     $('#wh_topcontainer').toggle(false);
-    $('#yee_ids_t,#btn_wiz_save').toggle(true);
+    $('#yee_ids_t, #btn_wiz_save').toggle(true);
 
     var lightOptions = [
       "top", "topleft", "topright",
@@ -1478,7 +1490,7 @@ function assign_yeelight_lights() {
         options += '>' + $.i18n(txt + val) + '</option>';
       }
 
-      var enabled = 'enabled'
+      var enabled = 'enabled';
       if (!models.includes(lights[lightid].model)) {
         var enabled = 'disabled';
         options = '<option value=disabled>' + $.i18n('wiz_yeelight_unsupported') + '</option>';
@@ -1497,7 +1509,8 @@ function assign_yeelight_lights() {
           cC++;
         }
       }
-      if (cC === 0)
+
+      if (cC === 0 || window.readOnlyMode)
         $('#btn_wiz_save').attr("disabled", true);
       else
         $('#btn_wiz_save').attr("disabled", false);
@@ -1505,7 +1518,7 @@ function assign_yeelight_lights() {
     $('.yee_sel_watch').trigger('change');
   }
   else {
-    var noLightsTxt = '<p style="font-weight:bold;color:red;">' + $.i18n('wiz_yeelight_noLights') + '</p>';
+    var noLightsTxt = '<p style="font-weight:bold;color:red;">' + $.i18n('wiz_noLights','Yeelights') + '</p>';
     $('#wizp2_body').append(noLightsTxt);
   }
 }
@@ -1527,13 +1540,7 @@ async function getProperties_yeelight(hostname, port) {
 
 function identify_yeelight_device(hostname, port) {
   let params = { hostname: hostname, port: port };
-
-  const res = requestLedDeviceIdentification("yeelight", params);
-  // TODO: error case unhandled
-  // res can be: false (timeout) or res.error (not found)
-  if (res && !res.error) {
-    //const r = res.info;
-  }
+  requestLedDeviceIdentification("yeelight", params);
 }
 
 //****************************
@@ -1580,7 +1587,7 @@ function beginWizardAtmoOrb() {
   lights = [];
   configuredLights = [];
 
-  configruedOrbIds = conf_editor.getEditor("root.specificOptions.orbIds").getValue().trim();
+  var configruedOrbIds = conf_editor.getEditor("root.specificOptions.orbIds").getValue().trim();
   if (configruedOrbIds.length !== 0) {
     configuredLights = configruedOrbIds.split(",").map(Number);
   }
@@ -1640,24 +1647,19 @@ function beginWizardAtmoOrb() {
   $('#btn_wiz_abort').off().on('click', resetWizard);
 }
 
-function getIdInLights(id) {
-  return lights.filter(
-    function (lights) {
-      return lights.id === id
-    }
-  );
-}
-
 async function discover_atmoorb_lights(multiCastGroup, multiCastPort) {
   var light = {};
 
-  if (multiCastGroup === "")
-    multiCastGroup = "239.255.255.250";
+  var params = {};
+  if (multiCastGroup !== "")
+  {
+    params.multiCastGroup = multiCastGroup;
+  }
 
-  if (multiCastPort === "")
-    multiCastPort = 49692;
-
-  let params = { multiCastGroup: multiCastGroup, multiCastPort: multiCastPort };
+  if (multiCastPort !== 0)
+  {
+     params.multiCastPort = multiCastPort;
+  }
 
   // Get discovered lights
   const res = await requestLedDeviceDiscovery('atmoorb', params);
@@ -1665,13 +1667,13 @@ async function discover_atmoorb_lights(multiCastGroup, multiCastPort) {
   // TODO: error case unhandled
   // res can be: false (timeout) or res.error (not found)
   if (res && !res.error) {
-    const r = res.info
-
+    const r = res.info;
+    
     // Process devices returned by discovery
     for (const device of r.devices) {
       if (device.id !== "") {
         if (getIdInLights(device.id).length === 0) {
-          light = {};
+          var light = {};
           light.id = device.id;
           light.ip = device.ip;
           light.host = device.hostname;
@@ -1684,7 +1686,7 @@ async function discover_atmoorb_lights(multiCastGroup, multiCastPort) {
     for (const keyConfig in configuredLights) {
       if (configuredLights[keyConfig] !== "" && !isNaN(configuredLights[keyConfig])) {
         if (getIdInLights(configuredLights[keyConfig]).length === 0) {
-          light = {};
+          var light = {};
           light.id = configuredLights[keyConfig];
           light.ip = "";
           light.host = "";
@@ -1735,9 +1737,9 @@ function assign_atmoorb_lights() {
         options += '>' + $.i18n(txt + val) + '</option>';
       }
 
-      var enabled = 'enabled'
+      var enabled = 'enabled';
       if (orbId < 1 || orbId > 255) {
-        enabled = 'disabled'
+        enabled = 'disabled';
         options = '<option value=disabled>' + $.i18n('wiz_atmoorb_unsupported') + '</option>';
       }
 
@@ -1759,7 +1761,7 @@ function assign_atmoorb_lights() {
           cC++;
         }
       }
-      if (cC === 0)
+      if (cC === 0 || window.readOnlyMode)
         $('#btn_wiz_save').attr("disabled", true);
       else
         $('#btn_wiz_save').attr("disabled", false);
@@ -1767,20 +1769,14 @@ function assign_atmoorb_lights() {
     $('.orb_sel_watch').trigger('change');
   }
   else {
-    var noLightsTxt = '<p style="font-weight:bold;color:red;">' + $.i18n('wiz_atmoorb_noLights') + '</p>';
+    var noLightsTxt = '<p style="font-weight:bold;color:red;">' + $.i18n('wiz_noLights','AtmoOrbs') + '</p>';
     $('#wizp2_body').append(noLightsTxt);
   }
 }
 
 function identify_atmoorb_device(orbId) {
   let params = { id: orbId };
-
-  const res = requestLedDeviceIdentification("atmoorb", params);
-  // TODO: error case unhandled
-  // res can be: false (timeout) or res.error (not found)
-  if (res && !res.error) {
-    const r = res.info
-  }
+  requestLedDeviceIdentification("atmoorb", params);
 }
 
 //****************************
@@ -1829,14 +1825,195 @@ async function getProperties_nanoleaf(hostAddress, authToken, resourceFilter) {
 
 function identify_nanoleaf(hostAddress, authToken) {
   let params = { host: hostAddress, token: authToken };
+  requestLedDeviceIdentification("nanoleaf", params);
+}
 
-  const res = requestLedDeviceIdentification("nanoleaf", params);
-  // TODO: error case unhandled
-  // res can be: false (timeout) or res.error (not found)
+//****************************
+// Wizard Cololight
+//****************************
+var lights = null;
+var selectedLightId = null;
+
+function startWizardCololight(e) {
+  //create html
+
+  var cololight_title = 'wiz_cololight_title';
+  var cololight_intro1 = 'wiz_cololight_intro1';
+
+  $('#wiz_header').html('<i class="fa fa-magic fa-fw"></i>' + $.i18n(cololight_title));
+  $('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n(cololight_title) + '</h4><p>' + $.i18n(cololight_intro1) + '</p>');
+  $('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
+
+  $('#wizp2_body').html('<div id="wh_topcontainer"></div>');
+
+  $('#wh_topcontainer').append('<div class="form-group" id="usrcont" style="display:none"></div>');
+
+  $('#wizp2_body').append('<div id="colo_ids_t" style="display:none"><p style="font-weight:bold" id="colo_id_headline">' + $.i18n('wiz_cololight_desc2') + '</p></div>');
+
+  createTable("lidsh", "lidsb", "colo_ids_t");
+  $('.lidsh').append(createTableRow([$.i18n('edt_dev_spec_lights_title'), $.i18n('wiz_identify')], true));
+  $('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save" style="display:none"><i class="fa fa-fw fa-save"></i>'
+    + $.i18n('general_btn_save') + '</button><buttowindow.serverConfig.device = d;n type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>'
+    + $.i18n('general_btn_cancel') + '</button>');
+
+  //open modal
+  $("#wizard_modal").modal({
+    backdrop: "static",
+    keyboard: false,
+    show: true
+  });
+
+  //listen for continue
+  $('#btn_wiz_cont').off().on('click', function () {
+    beginWizardCololight();
+    $('#wizp1').toggle(false);
+    $('#wizp2').toggle(true);
+  });
+}
+
+function beginWizardCololight() {
+  lights = [];
+
+  discover_cololights();
+
+  $('#btn_wiz_save').off().on("click", function () {
+    //LED device config
+    //Start with a clean configuration
+    var d = {};
+
+    d.type = 'cololight';
+
+    //Cololight does not resolve into stable hostnames (as devices named the same), therefore use IP
+    if (!lights[selectedLightId].ip) {
+      d.host = lights[selectedLightId].host;
+    } else {
+      d.host = lights[selectedLightId].ip;
+    }
+
+    var coloLightProperties = lights[selectedLightId].props;
+    if (Object.keys(coloLightProperties).length === 0) {
+      alert($.i18n('wiz_cololight_noprops'));
+      d.hardwareLedCount = 1;
+    } else {
+      if (coloLightProperties.ledCount > 0) {
+        d.hardwareLedCount = coloLightProperties.ledCount;
+      } else if (coloLightProperties.modelType === "Strip")
+        d.hardwareLedCount = 120;
+    }
+
+    d.colorOrder = conf_editor.getEditor("root.generalOptions.colorOrder").getValue();
+    d.latchTime = parseInt(conf_editor.getEditor("root.specificOptions.latchTime").getValue());;
+
+    window.serverConfig.device = d;
+
+    //LED layout - have initial layout prepared matching the LED-count
+
+    var coloLightLedConfig = [];
+
+    if (coloLightProperties.modelType === "Strip") {
+      coloLightLedConfig = createClassicLedLayoutSimple(d.hardwareLedCount / 2, d.hardwareLedCount / 4, d.hardwareLedCount / 4, 0, d.hardwareLedCount / 4 * 3, false);
+    } else {
+      coloLightLedConfig = createClassicLedLayoutSimple(0, 0, 0, d.hardwareLedCount, 0, true);
+    }
+
+    window.serverConfig.leds = coloLightLedConfig;
+
+    //smoothing off
+    window.serverConfig.smoothing.enable = false;
+
+    requestWriteConfig(window.serverConfig, true);
+
+    resetWizard();
+  });
+
+  $('#btn_wiz_abort').off().on('click', resetWizard);
+}
+
+async function discover_cololights() {
+  const res = await requestLedDeviceDiscovery('cololight');
+
   if (res && !res.error) {
-    const r = res.info
-    console.log(r);
+    const r = res.info;
+
+    // Process devices returned by discovery
+    for (const device of r.devices) {
+      if (device.ip !== "") {
+        if (getIpInLights(device.ip).length === 0) {
+          var light = {};
+          light.ip = device.ip;
+          light.host = device.hostname;
+          light.name = device.name;
+          light.type = device.type;
+          lights.push(light);
+        }
+      }
+    }
+    assign_cololight_lights();
   }
+}
+
+function assign_cololight_lights() {
+  // If records are left for configuration
+  if (Object.keys(lights).length > 0) {
+    $('#wh_topcontainer').toggle(false);
+    $('#colo_ids_t, #btn_wiz_save').toggle(true);
+
+    $('.lidsb').html("");
+
+    var options = "";
+
+    for (var lightid in lights) {
+      lights[lightid].id = lightid;
+
+      var lightHostname = lights[lightid].host;
+      var lightIP = lights[lightid].ip;
+
+      var val = lightHostname + " (" + lightIP + ")";
+      options += '<option value="' + lightid + '">' + val + '</option>';
+    }
+
+    var enabled = 'enabled';
+
+    $('.lidsb').append(createTableRow(['<select id="colo_select_id" ' + enabled + ' class="colo_sel_watch form-control">'
+      + options
+      + '</select>', '<button id="wiz_identify_btn" class="btn btn-sm btn-primary">'
+      + $.i18n('wiz_identify') + '</button>']));
+
+    $('.colo_sel_watch').bind("change", function () {
+      selectedLightId = $('#colo_select_id').val();
+      var lightIP = lights[selectedLightId].ip;
+
+      $('#wiz_identify_btn').unbind().bind('click', function (event) { identify_cololight_device(lightIP); });
+
+      if (!lights[selectedLightId].props) {
+        getProperties_cololight(lightIP);
+      }
+    });
+    $('.colo_sel_watch').trigger('change');
+  }
+  else {
+    var noLightsTxt = '<p style="font-weight:bold;color:red;">' + $.i18n('wiz_noLights','Cololights') + '</p>';
+    $('#wizp2_body').append(noLightsTxt);
+  }
+}
+
+async function getProperties_cololight(ip) {
+  let params = { host: ip };
+
+  const res = await requestLedDeviceProperties('cololight', params);
+
+  if (res && !res.error) {
+    var coloLightProperties = res.info;
+
+    //Store properties along light with given IP-address
+    var id = getIpInLights(ip)[0].id;
+    lights[id].props = coloLightProperties;
+  }
+}
+
+function identify_cololight_device(hostAddress) {
+  let params = { host: hostAddress };
+  requestLedDeviceIdentification("cololight", params);
 }
 
 //****************************
@@ -1860,7 +2037,6 @@ async function discover_providerRs232(rs232Type) {
 //****************************
 async function discover_providerHid(hidType) {
   const res = await requestLedDeviceDiscovery(hidType);
-  console.log("discover_providerHid", res);
 
   // TODO: error case unhandled
   // res can be: false (timeout) or res.error (not found)

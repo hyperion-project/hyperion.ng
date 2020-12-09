@@ -257,7 +257,6 @@
     "edt_conf_fbs_heading_title": "Máy chủ Flatbuffers",
     "edt_conf_fbs_timeout_expl": "Nếu không có dữ liệu nào được nhận trong khoảng thời gian nhất định, thành phần sẽ bị tắt (mềm).",
     "edt_conf_fbs_timeout_title": "Hết giờ",
-    "edt_conf_fg_device_title": "Thiết bị",
     "edt_conf_fg_display_expl": "Chọn máy tính để bàn nào sẽ được chụp (thiết lập nhiều màn hình)",
     "edt_conf_fg_display_title": "Trưng bày",
     "edt_conf_fg_frequency_Hz_expl": "Tần suất chụp ảnh mới",

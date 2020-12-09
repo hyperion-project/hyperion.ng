@@ -19,7 +19,12 @@ PythonProgram::PythonProgram(const QString & name, Logger * log) :
 	_tstate = Py_NewInterpreter();
 	if(_tstate == nullptr)
 	{
+#if (PY_VERSION_HEX >= 0x03020000)
+		PyThreadState_Swap(mainThreadState);
+		PyEval_SaveThread();
+#else
 		PyEval_ReleaseLock();
+#endif
 		Error(_log, "Failed to get thread state for %s",QSTRING_CSTR(_name));
 		return;
 	}
@@ -54,7 +59,12 @@ PythonProgram::~PythonProgram()
 
 	// Clean up the thread state
 	Py_EndInterpreter(_tstate);
+#if (PY_VERSION_HEX >= 0x03020000)
+	PyThreadState_Swap(mainThreadState);
+	PyEval_SaveThread();
+#else
 	PyEval_ReleaseLock();
+#endif
 }
 
 void PythonProgram::execute(const QByteArray & python_code)

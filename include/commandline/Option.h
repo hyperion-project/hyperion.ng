@@ -33,6 +33,8 @@ public:
 	QString value(Parser &parser) const;
 	const char* getCString(Parser &parser) const;
 
+	virtual ~Option();
+
 protected:
 	QString _error;
 };

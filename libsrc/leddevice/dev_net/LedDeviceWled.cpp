@@ -17,7 +17,7 @@ const quint16 STREAM_DEFAULT_PORT = 19446;
 const int API_DEFAULT_PORT = -1; //Use default port per communication scheme
 
 const char API_BASE_PATH[] = "/json/";
-const char API_PATH_INFO[] = "info";
+//const char API_PATH_INFO[] = "info";
 const char API_PATH_STATE[] = "state";
 
 // List of State Information
@@ -60,9 +60,9 @@ bool LedDeviceWled::init(const QJsonObject &deviceConfig)
 	if ( LedDevice::init(deviceConfig) )
 	{
 		// Initialise LedDevice configuration and execution environment
-		uint configuredLedCount = this->getLedCount();
+		int configuredLedCount = this->getLedCount();
 		Debug(_log, "DeviceType   : %s", QSTRING_CSTR( this->getActiveDeviceType() ));
-		Debug(_log, "LedCount     : %u", configuredLedCount);
+		Debug(_log, "LedCount     : %d", configuredLedCount);
 		Debug(_log, "ColorOrder   : %s", QSTRING_CSTR( this->getColorOrder() ));
 		Debug(_log, "LatchTime    : %d", this->getLatchTime());
 
@@ -166,7 +166,7 @@ bool LedDeviceWled::powerOff()
 	return off;
 }
 
-QJsonObject LedDeviceWled::discover()
+QJsonObject LedDeviceWled::discover(const QJsonObject& /*params*/)
 {
 	QJsonObject devicesDiscovered;
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );
