@@ -12,7 +12,7 @@ namespace {
 bool verbose = false;
 
 // Configuration settings
-const char RAZOR_DEVICE_TYPE[] = "razorDevice";
+const char RAZER_DEVICE_TYPE[] = "razerDevice";
 
 // WLED JSON-API elements
 const char API_DEFAULT_HOST[] = "localhost";
@@ -25,10 +25,10 @@ constexpr std::chrono::milliseconds HEARTBEAT_INTERVALL{1000};
 
 } //End of constants
 
-LedDeviceRazer::LedDeviceRazer(const QJsonObject&  /*deviceConfig*/)
-	:
-	  _restApi(nullptr)
-	  , _apiPort(API_DEFAULT_PORT)
+LedDeviceRazer::LedDeviceRazer(const QJsonObject&  deviceConfig)
+	: LedDevice(deviceConfig)
+	  ,_restApi(nullptr)
+	  ,_apiPort(API_DEFAULT_PORT)
 {
 }
 
@@ -60,14 +60,14 @@ bool LedDeviceRazer::init(const QJsonObject& deviceConfig)
 		Debug(_log, "LatchTime    : %d", this->getLatchTime());
 		Debug(_log, "RefreshTime  : %d", _refreshTimerInterval_ms);
 
-		//Razor Chroma SDK allows localhost connection only
+		//Razer Chroma SDK allows localhost connection only
 		_hostname = API_DEFAULT_HOST;
 		_apiPort = API_DEFAULT_PORT;
 
 		Debug(_log, "Hostname     : %s", QSTRING_CSTR(_hostname));
 		Debug(_log, "Port         : %d", _apiPort);
 
-		_razerDeviceType = deviceConfig[RAZOR_DEVICE_TYPE].toString("keyboard");
+		_razerDeviceType = deviceConfig[RAZER_DEVICE_TYPE].toString("keyboard");
 
 		Debug(_log, "Razer device : %s", QSTRING_CSTR(_razerDeviceType));
 
