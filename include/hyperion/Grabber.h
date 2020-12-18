@@ -136,6 +136,13 @@ public:
 	virtual QMultiMap<QString, int> getV4L2deviceInputs(const QString& /*devicePath*/) const { return QMultiMap<QString, int>(); }
 
 	///
+	/// @brief Get a list of supported hardware encoding formats
+	/// @param devicePath The device path
+	/// @return List of hardware encoding formats on success else empty List
+	///
+	virtual QStringList getV4L2EncodingFormats(const QString& /*devicePath*/) const { return QStringList(); }
+
+	///
 	/// @brief Get a list of supported device resolutions
 	/// @param devicePath The device path
 	/// @return List of resolutions on success else empty List

@@ -467,11 +467,18 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	QJsonObject grabbers;
 	QJsonArray availableGrabbers;
 
-#if defined(ENABLE_DISPMANX) || defined(ENABLE_V4L2) || defined(ENABLE_FB) || defined(ENABLE_AMLOGIC) || defined(ENABLE_OSX) || defined(ENABLE_X11) || defined(ENABLE_XCB) || defined(ENABLE_QT)
+#if defined(ENABLE_DISPMANX) || defined(ENABLE_V4L2) ||  defined(ENABLE_MF) || defined(ENABLE_FB) || defined(ENABLE_AMLOGIC) || defined(ENABLE_OSX) || defined(ENABLE_X11) || defined(ENABLE_XCB) || defined(ENABLE_QT)
 
 	if ( GrabberWrapper::getInstance() != nullptr )
 	{
-		grabbers["active"] = GrabberWrapper::getInstance()->getActive();
+		QStringList activeGrabbers = GrabberWrapper::getInstance()->getActive(_hyperion->getInstanceIndex());
+		QJsonArray activeGrabberNames;
+		for (auto grabberName : activeGrabbers)
+		{
+			activeGrabberNames.append(grabberName);
+		}
+
+		grabbers["active"] = activeGrabberNames;
 	}
 
 	// get available grabbers
@@ -482,7 +489,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 
 #endif
 
-#if defined(ENABLE_V4L2)
+#if defined(ENABLE_V4L2) || defined(ENABLE_MF)
 
 	QJsonArray availableV4L2devices;
 	for (const auto& devicePath : GrabberWrapper::getInstance()->getV4L2devices())
@@ -501,6 +508,14 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 			availableInputs.append(availableInput);
 		}
 		device.insert("inputs", availableInputs);
+
+		QJsonArray availableEncodingFormats;
+		QStringList encodingFormats = GrabberWrapper::getInstance()->getV4L2EncodingFormats(devicePath);
+		for (auto encodingFormat : encodingFormats)
+		{
+			availableEncodingFormats.append(encodingFormat);
+		}
+		device.insert("encoding_format", availableEncodingFormats);
 
 		QJsonArray availableResolutions;
 		QStringList resolutions = GrabberWrapper::getInstance()->getResolutions(devicePath);

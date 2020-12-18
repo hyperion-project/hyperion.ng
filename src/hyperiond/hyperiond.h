@@ -16,6 +16,12 @@
 	typedef QObject V4L2Wrapper;
 #endif
 
+#ifdef ENABLE_MF
+	#include <grabber/MFWrapper.h>
+#else
+	typedef QObject MFWrapper;
+#endif
+
 #ifdef ENABLE_FB
 	#include <grabber/FramebufferWrapper.h>
 #else
@@ -171,6 +177,7 @@ private:
 	WebServer*                 _sslWebserver;
 	JsonServer*                _jsonServer;
 	V4L2Wrapper*               _v4l2Grabber;
+	MFWrapper*                 _mfGrabber;
 	DispmanxWrapper*           _dispmanx;
 	X11Wrapper*                _x11Grabber;
 	XcbWrapper*                _xcbGrabber;

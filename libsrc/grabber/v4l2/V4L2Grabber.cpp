@@ -30,15 +30,7 @@
 #define V4L2_CAP_META_CAPTURE 0x00800000 // Specified in kernel header v4.16. Required for backward compatibility.
 #endif
 
-V4L2Grabber::V4L2Grabber(const QString & device
-		, unsigned width
-		, unsigned height
-		, unsigned fps
-		, unsigned input
-		, VideoStandard videoStandard
-		, PixelFormat pixelFormat
-		, int pixelDecimation
-		)
+V4L2Grabber::V4L2Grabber(const QString & device, unsigned width, unsigned height, unsigned fps, unsigned input, VideoStandard videoStandard, PixelFormat pixelFormat, int pixelDecimation)
 	: Grabber("V4L2:"+device)
 	, _deviceName()
 	, _videoStandard(videoStandard)
@@ -46,7 +38,7 @@ V4L2Grabber::V4L2Grabber(const QString & device
 	, _fileDescriptor(-1)
 	, _buffers()
 	, _pixelFormat(pixelFormat)
-	, _pixelDecimation(-1)
+	, _pixelDecimation(pixelDecimation)
 	, _lineLength(-1)
 	, _frameByteSize(-1)
 	, _noSignalCounterThreshold(40)

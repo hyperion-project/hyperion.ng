@@ -51,15 +51,7 @@ public:
 		QStringList				framerates	= QStringList();
 	};
 
-	V4L2Grabber(const QString & device,
-			const unsigned width,
-			const unsigned height,
-			const unsigned fps,
-			const unsigned input,
-			VideoStandard videoStandard,
-			PixelFormat pixelFormat,
-			int pixelDecimation
-	);
+	V4L2Grabber(const QString & device, const unsigned width, const unsigned height, const unsigned fps, const unsigned input, VideoStandard videoStandard, PixelFormat pixelFormat, int pixelDecimation);
 	~V4L2Grabber() override;
 
 	QRectF getSignalDetectionOffset() const

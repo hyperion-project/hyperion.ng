@@ -74,6 +74,7 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	  , _sslWebserver(nullptr)
 	  , _jsonServer(nullptr)
 	  , _v4l2Grabber(nullptr)
+	  , _mfGrabber(nullptr)
 	  , _dispmanx(nullptr)
 	  , _x11Grabber(nullptr)
 	  , _xcbGrabber(nullptr)
@@ -145,7 +146,7 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	// init system capture (framegrabber)
 	handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
 
-	// init v4l2 capture
+	// init v4l2 && media foundation capture
 	handleSettingsUpdate(settings::V4L2, getSetting(settings::V4L2));
 
 	// ---- network services -----
@@ -253,15 +254,16 @@ void HyperionDaemon::freeObjects()
 	delete _qtGrabber;
 	delete _dxGrabber;
 	delete _v4l2Grabber;
+	delete _mfGrabber;
 
 	_v4l2Grabber = nullptr;
-
-	_amlGrabber = nullptr;
-	_dispmanx = nullptr;
-	_fbGrabber = nullptr;
-	_osxGrabber = nullptr;
-	_qtGrabber = nullptr;
-	_dxGrabber = nullptr;
+	_mfGrabber   = nullptr;
+	_amlGrabber  = nullptr;
+	_dispmanx    = nullptr;
+	_fbGrabber   = nullptr;
+	_osxGrabber  = nullptr;
+	_qtGrabber   = nullptr;
+	_dxGrabber   = nullptr;
 }
 
 void HyperionDaemon::startNetworkServices()
@@ -579,7 +581,7 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 	else if (settingsType == settings::V4L2)
 	{
 
-#if defined(ENABLE_CEC) || defined(ENABLE_V4L2)
+#if defined(ENABLE_CEC) || defined(ENABLE_V4L2) || defined(ENABLE_MF)
 		const QJsonObject& grabberConfig = config.object();
 #endif
 
@@ -592,6 +594,62 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 		{
 			QMetaObject::invokeMethod(_cecHandler, "stop", Qt::QueuedConnection);
 		}
+#endif
+
+#if defined(ENABLE_MF)
+		if (_mfGrabber == nullptr)
+		{
+			_mfGrabber = new MFWrapper(
+					grabberConfig["device"].toString("auto"),
+					grabberConfig["width"].toInt(0),
+					grabberConfig["height"].toInt(0),
+					grabberConfig["fps"].toInt(15),
+					grabberConfig["input"].toInt(-1),
+					grabberConfig["sizeDecimation"].toInt(8));
+
+			// Image cropping
+			_mfGrabber->setCropping(
+					grabberConfig["cropLeft"].toInt(0),
+					grabberConfig["cropRight"].toInt(0),
+					grabberConfig["cropTop"].toInt(0),
+					grabberConfig["cropBottom"].toInt(0));
+
+			// Software frame decimation
+			_mfGrabber->setFpsSoftwareDecimation(grabberConfig["fpsSoftwareDecimation"].toInt(1));
+
+			// Hardware encoding format
+			_mfGrabber->setEncoding(grabberConfig["encoding"].toString("NONE"));
+
+			// Signal detection
+			_mfGrabber->setSignalDetectionOffset(
+					grabberConfig["sDHOffsetMin"].toDouble(0.25),
+					grabberConfig["sDVOffsetMin"].toDouble(0.25),
+					grabberConfig["sDHOffsetMax"].toDouble(0.75),
+					grabberConfig["sDVOffsetMax"].toDouble(0.75));
+			_mfGrabber->setSignalThreshold(
+					grabberConfig["redSignalThreshold"].toDouble(0.0) / 100.0,
+					grabberConfig["greenSignalThreshold"].toDouble(0.0) / 100.0,
+					grabberConfig["blueSignalThreshold"].toDouble(0.0) / 100.0,
+					grabberConfig["noSignalCounterThreshold"].toInt(50) );
+			_mfGrabber->setSignalDetectionEnable(grabberConfig["signalDetection"].toBool(true));
+
+			// CEC Standby
+			_mfGrabber->setCecDetectionEnable(grabberConfig["cecDetection"].toBool(true));
+
+			// Brightness, Contrast, Saturation, Hue
+			_mfGrabber->setBrightnessContrastSaturationHue(grabberConfig["hardware_brightness"].toInt(0),
+													grabberConfig["hardware_contrast"].toInt(0),
+													grabberConfig["hardware_saturation"].toInt(0),
+													grabberConfig["hardware_hue"].toInt(0));
+
+			Debug(_log, "Media Foundation grabber created");
+
+			// connect to HyperionDaemon signal
+			connect(this, &HyperionDaemon::videoMode, _mfGrabber, &MFWrapper::setVideoMode);
+			connect(this, &HyperionDaemon::settingsChanged, _mfGrabber, &MFWrapper::handleSettingsUpdate);
+		}
+#elif !defined(ENABLE_V4L2)
+		Warning(_log, "The Media Foundation grabber can not be instantiated, because it has been left out from the build");
 #endif
 
 		if (_v4l2Grabber != nullptr)
@@ -632,7 +690,7 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 		// connect to HyperionDaemon signal
 		connect(this, &HyperionDaemon::videoMode, _v4l2Grabber, &V4L2Wrapper::setVideoMode);
 		connect(this, &HyperionDaemon::settingsChanged, _v4l2Grabber, &V4L2Wrapper::handleSettingsUpdate);
-#else
+#elif !defined(ENABLE_MF)
 		Debug(_log, "The v4l2 grabber is not supported on this platform");
 #endif
 	}

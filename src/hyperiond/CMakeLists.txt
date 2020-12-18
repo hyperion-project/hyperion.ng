@@ -12,7 +12,7 @@ find_package(Qt5Widgets REQUIRED)
 if (WIN32)
 	include(${CMAKE_SOURCE_DIR}/cmake/win/win_rc.cmake)
 	generate_win_rc_file(hyperiond)
-endif()
+endif(WIN32)
 
 add_executable(hyperiond
 	console.h
@@ -27,7 +27,7 @@ add_executable(hyperiond
 # promote hyperiond as GUI app
 if (WIN32)
 	target_link_options(hyperiond PUBLIC /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup)
-endif()
+endif(WIN32)
 
 target_link_libraries(hyperiond
 	commandline
@@ -52,14 +52,14 @@ endif()
 
 if (ENABLE_AVAHI)
 	target_link_libraries(hyperiond bonjour)
-endif ()
+endif (ENABLE_AVAHI)
 
 if (ENABLE_AMLOGIC)
 	target_link_libraries(hyperiond
 		Qt5::Core
 		pcre16 dl z
 	)
-endif()
+endif(ENABLE_AMLOGIC)
 
 if (ENABLE_DISPMANX)
 	IF ( "${PLATFORM}" MATCHES rpi)
@@ -70,47 +70,51 @@ if (ENABLE_DISPMANX)
 		SET(BCM_LIBRARIES "")
 	ENDIF()
 	target_link_libraries(hyperiond dispmanx-grabber)
-endif ()
+endif (ENABLE_DISPMANX)
 
 if (ENABLE_FB)
 	target_link_libraries(hyperiond framebuffer-grabber)
-endif ()
+endif (ENABLE_FB)
 
 if (ENABLE_OSX)
 	target_link_libraries(hyperiond osx-grabber)
-endif ()
+endif (ENABLE_OSX)
 
 if (ENABLE_V4L2)
 	target_link_libraries(hyperiond v4l2-grabber)
 endif ()
 
+if (ENABLE_MF)
+	target_link_libraries(hyperiond mf-grabber)
+endif (ENABLE_MF)
+
 if (ENABLE_AMLOGIC)
 	target_link_libraries(hyperiond amlogic-grabber)
-endif ()
+endif (ENABLE_AMLOGIC)
 
 if (ENABLE_X11)
 	if(APPLE)
 		include_directories("/opt/X11/include")
 	endif(APPLE)
 	target_link_libraries(hyperiond	x11-grabber)
-endif ()
+endif (ENABLE_X11)
 
 if (ENABLE_XCB)
 	target_link_libraries(hyperiond	xcb-grabber)
-endif ()
+endif (ENABLE_XCB)
 
 if (ENABLE_QT)
 	target_link_libraries(hyperiond	qt-grabber)
-endif ()
+endif (ENABLE_QT)
 
 if (ENABLE_DX)
 	include_directories(${DIRECTX9_INCLUDE_DIRS})
 	target_link_libraries(hyperiond	directx-grabber)
-endif ()
+endif (ENABLE_DX)
 
 if (ENABLE_CEC)
         target_link_libraries(hyperiond cechandler)
-endif ()
+endif (ENABLE_CEC)
 
 if(NOT WIN32)
 	install ( TARGETS hyperiond DESTINATION "share/hyperion/bin" COMPONENT "Hyperion" )

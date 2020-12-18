@@ -18,9 +18,9 @@ class Grabber;
 class GlobalSignals;
 class QTimer;
 
-/// List of Hyperion instances that requested screen capt
-static QList<int> GRABBER_SYS_CLIENTS;
-static QList<int> GRABBER_V4L_CLIENTS;
+/// Map of Hyperion instances with grabber name that requested screen capture
+static QMap<int, QString> GRABBER_SYS_CLIENTS;
+static QMap<int, QString> GRABBER_V4L_CLIENTS;
 
 ///
 /// This class will be inherted by FramebufferWrapper and others which contains the real capture interface
@@ -77,6 +77,13 @@ public:
 	virtual QMultiMap<QString, int> getV4L2deviceInputs(const QString& devicePath) const;
 
 	///
+	/// @brief Get a list of supported hardware encoding formats
+	/// @param devicePath The device path
+	/// @return List of hardware encoding formats on success else empty List
+	///
+	virtual QStringList getV4L2EncodingFormats(const QString& devicePath) const;
+
+	///
 	/// @brief Get a list of supported device resolutions
 	/// @param devicePath The device path
 	/// @return List of resolutions on success else empty List
@@ -92,9 +99,10 @@ public:
 
 	///
 	/// @brief Get active grabber name
-	/// @return Active grabber name
+	/// @param hyperionInd The instance index
+	/// @return Active grabbers
 	///
-	virtual QString getActive() const;
+	virtual QStringList getActive(int inst) const;
 
 	static QStringList availableGrabbers();
 

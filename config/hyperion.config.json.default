@@ -64,10 +64,12 @@
 	{
 		"device"                : "auto",
 		"input"                 : 0,
+		"encoding"              : "NO_CHANGE",
 		"width"                 : 0,
 		"height"                : 0,
 		"fps"                   : 15,
 		"standard"              : "NO_CHANGE",
+		"fpsSoftwareDecimation" : 1,
 		"sizeDecimation"        : 8,
 		"cropLeft"              : 0,
 		"cropRight"             : 0,
@@ -77,11 +79,16 @@
 		"greenSignalThreshold"  : 5,
 		"blueSignalThreshold"   : 5,
 		"signalDetection"       : false,
+		"noSignalCounterThreshold" : 200,
 		"cecDetection"          : false,
 		"sDVOffsetMin"          : 0.25,
 		"sDHOffsetMin"          : 0.25,
 		"sDVOffsetMax"          : 0.75,
-		"sDHOffsetMax"          : 0.75
+		"sDHOffsetMax"          : 0.75,
+		"hardware_brightness"   : 0,
+		"hardware_contrast"     : 0,
+		"hardware_saturation"   : 0,
+		"hardware_hue"          : 0
 	},
 
 	"framegrabber" :

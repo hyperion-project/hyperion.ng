@@ -12,7 +12,7 @@ V4L2Wrapper::V4L2Wrapper(const QString &device,
 		unsigned input,
 		VideoStandard videoStandard,
 		PixelFormat pixelFormat,
-		int pixelDecimation )
+		int pixelDecimation)
 	: GrabberWrapper("V4L2:"+device, &_grabber, grabWidth, grabHeight, 10)
 	, _grabber(device,
 			grabWidth,

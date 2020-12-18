@@ -22,18 +22,25 @@ $(document).ready(function () {
         "propertyOrder": 3,
         "required": true
       },
+      "encoding_format":
+      {
+        "type": "string",
+        "title": "edt_conf_v4l2_encoding_title",
+        "propertyOrder": 5,
+        "required": true
+      },
       "resolutions":
       {
         "type": "string",
         "title": "edt_conf_v4l2_resolution_title",
-        "propertyOrder": 6,
+        "propertyOrder": 8,
         "required": true
       },
       "framerates":
       {
         "type": "string",
         "title": "edt_conf_v4l2_framerate_title",
-        "propertyOrder": 9,
+        "propertyOrder": 11,
         "required": true
       }
     };
@@ -53,7 +60,7 @@ $(document).ready(function () {
               ? enumTitelVals.push(v4l2_properties[i]['name'])
               : enumTitelVals.push(v4l2_properties[i]['device']);
           }
-        } else if (key == 'resolutions' || key == 'framerates') {
+        } else if (key == 'resolutions' || key == 'framerates' || key == 'encoding_format') {
           for (var i = 0; i < v4l2_properties.length; i++) {
             if (v4l2_properties[i]['device'] == device) {
               enumVals = enumTitelVals = v4l2_properties[i][key];
@@ -105,7 +112,7 @@ $(document).ready(function () {
           var val = ed.getValue();
 
           if (key == 'available_devices') {
-            var V4L2properties = ['device_inputs', 'resolutions', 'framerates'];
+            var V4L2properties = ['device_inputs', 'resolutions', 'framerates', 'encoding_format'];
             if (val == 'custom') {
               var grabberV4L2 = ed.parent;
               V4L2properties.forEach(function (item) {
@@ -134,7 +141,7 @@ $(document).ready(function () {
 
               (toggleOption('device', false), toggleOption('input', false),
                 toggleOption('width', false), toggleOption('height', false),
-                toggleOption('fps', false));
+                toggleOption('fps', false), toggleOption('encoding', false));
             } else {
               var grabberV4L2 = ed.parent;
               V4L2properties.forEach(function (item) {
@@ -169,6 +176,11 @@ $(document).ready(function () {
             val != 'custom'
               ? toggleOption('input', false)
               : toggleOption('input', true);
+
+              if (key == 'encoding_format')
+              val != 'custom'
+                ? toggleOption('encoding', false)
+                : toggleOption('encoding', true);
         });
       });
     };
@@ -239,8 +251,16 @@ $(document).ready(function () {
 
 	  if (window.serverInfo.grabbers.active)
 	  {
-	    var activegrabber = window.serverInfo.grabbers.active.toLowerCase();
-	    $("#" + selector + " option[value='" + activegrabber + "']").attr('selected', 'selected');
+      var activegrabbers = window.serverInfo.grabbers.active.map(v => v.toLowerCase());
+      options = $("#" + selector + " option");
+
+      for (var i = 0; i < options.length; i++) {
+        var type = options[i].value.toLowerCase();
+        if (activegrabbers.indexOf(type) > -1) {
+          $("#" + selector + " option[value='" + type + "']").attr('selected', 'selected');
+          break;
+        }
+      }
 	  }
 
     var selectedType = $("#root_framegrabber_type").val();
@@ -272,7 +292,7 @@ $(document).ready(function () {
         conf_editor_v4l2.getEditor('root.grabberV4L2.available_devices').setValue('auto');
 
       if (window.serverConfig.grabberV4L2.available_devices == 'auto') {
-        ['device_inputs', 'standard', 'resolutions', 'framerates'].forEach(function (item) {
+        ['device_inputs', 'standard', 'resolutions', 'framerates', 'encoding_format'].forEach(function (item) {
           conf_editor_v4l2.getEditor('root.grabberV4L2.' + item).setValue('auto');
           conf_editor_v4l2.getEditor('root.grabberV4L2.' + item).disable();
         });
@@ -286,6 +306,9 @@ $(document).ready(function () {
 
       if (window.serverConfig.grabberV4L2.framerates == 'custom' && window.serverConfig.grabberV4L2.device != 'auto')
         toggleOption('fps', true);
+
+        if (window.serverConfig.grabberV4L2.encoding_format == 'custom' && window.serverConfig.grabberV4L2.device != 'auto')
+        toggleOption('encoding', true);
     });
 
     $('#btn_submit_v4l2').off().on('click', function () {
@@ -302,6 +325,12 @@ $(document).ready(function () {
 
       if (v4l2Options.grabberV4L2.device_inputs == 'auto')
         v4l2Options.grabberV4L2.input = -1;
+
+      if (v4l2Options.grabberV4L2.encoding_format != 'custom' && v4l2Options.grabberV4L2.encoding_format != 'auto' && v4l2Options.grabberV4L2.available_devices != 'auto')
+        v4l2Options.grabberV4L2.encoding = v4l2Options.grabberV4L2.encoding_format;
+
+      if (v4l2Options.grabberV4L2.encoding_format == 'auto' || v4l2Options.grabberV4L2.encoding_format == 'NO_CHANGE')
+        v4l2Options.grabberV4L2.encoding = 'NO_CHANGE';
 
       if (v4l2Options.grabberV4L2.resolutions != 'custom' && v4l2Options.grabberV4L2.resolutions != 'auto' && v4l2Options.grabberV4L2.available_devices != 'auto')
         (v4l2Options.grabberV4L2.width = parseInt(v4l2Options.grabberV4L2.resolutions.split('x')[0]),

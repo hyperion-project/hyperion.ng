@@ -50,6 +50,7 @@ SET ( DEFAULT_USE_SYSTEM_PROTO_LIBS       OFF )
 SET ( DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     OFF )
 SET ( DEFAULT_TESTS                       OFF )
 SET ( DEFAULT_EXPERIMENTAL                OFF )
+SET ( DEFAULT_MF                          OFF )
 
 IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
 	SET ( DEFAULT_V4L2        ON )
@@ -60,6 +61,7 @@ IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
 	SET ( DEFAULT_CEC         ON )
 ELSEIF ( WIN32 )
 	SET ( DEFAULT_DX ON )
+	SET ( DEFAULT_MF ON )
 ELSE()
 	SET ( DEFAULT_V4L2        OFF )
 	SET ( DEFAULT_FB          OFF )
@@ -159,7 +161,7 @@ else()
 endif()
 message(STATUS "ENABLE_FB = ${ENABLE_FB}")
 
-option(ENABLE_OSX "Enable the osx grabber" ${DEFAULT_OSX} )
+option(ENABLE_OSX "Enable the OSX grabber" ${DEFAULT_OSX} )
 message(STATUS "ENABLE_OSX = ${ENABLE_OSX}")
 
 option(ENABLE_SPIDEV   "Enable the SPIDEV device" ${DEFAULT_SPIDEV} )
@@ -170,6 +172,9 @@ message(STATUS "ENABLE_TINKERFORGE = ${ENABLE_TINKERFORGE}")
 
 option(ENABLE_V4L2 "Enable the V4L2 grabber" ${DEFAULT_V4L2})
 message(STATUS "ENABLE_V4L2 = ${ENABLE_V4L2}")
+
+option(ENABLE_MF "Enable the Media Foundation grabber" ${DEFAULT_MF})
+message(STATUS "ENABLE_MF = ${ENABLE_MF}")
 
 option(ENABLE_WS281XPWM "Enable the WS281x-PWM device" ${DEFAULT_WS281XPWM} )
 message(STATUS "ENABLE_WS281XPWM = ${ENABLE_WS281XPWM}")
@@ -189,7 +194,7 @@ message(STATUS "ENABLE_X11 = ${ENABLE_X11}")
 option(ENABLE_XCB "Enable the XCB grabber" ${DEFAULT_XCB})
 message(STATUS "ENABLE_XCB = ${ENABLE_XCB}")
 
-option(ENABLE_QT "Enable the qt grabber" ${DEFAULT_QT})
+option(ENABLE_QT "Enable the Qt grabber" ${DEFAULT_QT})
 message(STATUS "ENABLE_QT = ${ENABLE_QT}")
 
 option(ENABLE_DX "Enable the DirectX grabber" ${DEFAULT_DX})
@@ -303,7 +308,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	# The Qt5_DIR should point to Qt5Config.cmake   -> C:/Qt/5.xx/msvc2017_64/lib/cmake/Qt5
 	# The CMAKE_PREFIX_PATH should point to the install directory -> C:/Qt/5.xx/msvc2017_64
 	#
-	# Alternatively, use Qt5_BASE_DIR environment variable to point to Qt version to be used 
+	# Alternatively, use Qt5_BASE_DIR environment variable to point to Qt version to be used
 	# In MSVC19 add into CMakeSettings.json
 	#
 	#      "environments": [
@@ -333,7 +338,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 
 	message(STATUS "Add ${qt_module_path} to CMAKE_MODULE_PATH")
 	SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${qt_module_path}")
-	
+
 	#message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 	#message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
@@ -394,14 +399,14 @@ find_package(Threads REQUIRED)
 add_definitions(${QT_DEFINITIONS})
 
 # Add JPEG library
-if (ENABLE_V4L2)
+if (ENABLE_V4L2 OR ENABLE_MF)
 	# Turbo JPEG
 	find_package(TurboJPEG)
 	if (TURBOJPEG_FOUND)
 		add_definitions(-DHAVE_TURBO_JPEG)
 		message( STATUS "Using Turbo JPEG library: ${TurboJPEG_LIBRARY}")
 		include_directories(${TurboJPEG_INCLUDE_DIRS})
-	else()
+	elseif(ENABLE_V4L2)
 		# System JPEG
 		find_package(JPEG)
 		if (JPEG_FOUND)
@@ -411,7 +416,7 @@ if (ENABLE_V4L2)
 		else()
 			message( STATUS "JPEG library not found, MJPEG camera format won't work in V4L2 grabber.")
 		endif()
-	endif (TURBOJPEG_FOUND)
+	endif ()
 
 	if (TURBOJPEG_FOUND OR JPEG_FOUND)
 		add_definitions(-DHAVE_JPEG_DECODER)

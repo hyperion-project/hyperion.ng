@@ -3,15 +3,31 @@
 #  TurboJPEG_INCLUDE_DIRS
 #  TurboJPEG_LIBRARY
 
-find_path(TurboJPEG_INCLUDE_DIRS
-	NAMES turbojpeg.h
-	PATH_SUFFIXES include
-)
+if (ENABLE_MF)
+	find_path(TurboJPEG_INCLUDE_DIRS
+		NAMES turbojpeg.h
+		PATHS
+		"C:/libjpeg-turbo64"
+		PATH_SUFFIXES include
+	)
 
-find_library(TurboJPEG_LIBRARY
-	NAMES turbojpeg turbojpeg-static
-	PATH_SUFFIXES bin lib
-)
+	find_library(TurboJPEG_LIBRARY
+		NAMES turbojpeg turbojpeg-static
+		PATHS
+		"C:/libjpeg-turbo64"
+		PATH_SUFFIXES bin lib
+	)
+else()
+	find_path(TurboJPEG_INCLUDE_DIRS
+		NAMES turbojpeg.h
+		PATH_SUFFIXES include
+	)
+
+	find_library(TurboJPEG_LIBRARY
+		NAMES turbojpeg turbojpeg-static
+		PATH_SUFFIXES bin lib
+	)
+endif()
 
 if(TurboJPEG_INCLUDE_DIRS AND TurboJPEG_LIBRARY)
 	include(CheckCSourceCompiles)
@@ -26,7 +42,7 @@ if(TurboJPEG_INCLUDE_DIRS AND TurboJPEG_LIBRARY)
 endif()
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(TurboJpeg
+find_package_handle_standard_args(TurboJPEG
 	FOUND_VAR TURBOJPEG_FOUND
 	REQUIRED_VARS TurboJPEG_LIBRARY TurboJPEG_INCLUDE_DIRS TURBOJPEG_WORKS
 	TurboJPEG_INCLUDE_DIRS TurboJPEG_LIBRARY

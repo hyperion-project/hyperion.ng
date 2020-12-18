@@ -65,9 +65,17 @@ bool GrabberWrapper::isActive() const
 	return _timer->isActive();
 }
 
-QString GrabberWrapper::getActive() const
+QStringList GrabberWrapper::getActive(int inst) const
 {
-	return _grabberName;
+	QStringList result = QStringList();
+
+	if(GRABBER_V4L_CLIENTS.contains(inst))
+		result << GRABBER_V4L_CLIENTS.value(inst);
+
+	if(GRABBER_SYS_CLIENTS.contains(inst))
+		result << GRABBER_SYS_CLIENTS.value(inst);
+
+	return result;
 }
 
 QStringList GrabberWrapper::availableGrabbers()
@@ -78,7 +86,7 @@ QStringList GrabberWrapper::availableGrabbers()
 	grabbers << "dispmanx";
 	#endif
 
-	#ifdef ENABLE_V4L2
+	#if defined(ENABLE_V4L2) || defined(ENABLE_MF)
 	grabbers << "v4l2";
 	#endif
 
@@ -178,9 +186,9 @@ void GrabberWrapper::handleSourceRequest(hyperion::Components component, int hyp
 	if(component == hyperion::Components::COMP_GRABBER  && !_grabberName.startsWith("V4L"))
 	{
 		if(listen && !GRABBER_SYS_CLIENTS.contains(hyperionInd))
-			GRABBER_SYS_CLIENTS.append(hyperionInd);
+			GRABBER_SYS_CLIENTS.insert(hyperionInd, _grabberName);
 		else if (!listen)
-			GRABBER_SYS_CLIENTS.removeOne(hyperionInd);
+			GRABBER_SYS_CLIENTS.remove(hyperionInd);
 
 		if(GRABBER_SYS_CLIENTS.empty())
 			stop();
@@ -190,9 +198,9 @@ void GrabberWrapper::handleSourceRequest(hyperion::Components component, int hyp
 	else if(component == hyperion::Components::COMP_V4L && _grabberName.startsWith("V4L"))
 	{
 		if(listen && !GRABBER_V4L_CLIENTS.contains(hyperionInd))
-			GRABBER_V4L_CLIENTS.append(hyperionInd);
+			GRABBER_V4L_CLIENTS.insert(hyperionInd, _grabberName);
 		else if (!listen)
-			GRABBER_V4L_CLIENTS.removeOne(hyperionInd);
+			GRABBER_V4L_CLIENTS.remove(hyperionInd);
 
 		if(GRABBER_V4L_CLIENTS.empty())
 			stop();
@@ -232,6 +240,14 @@ QMultiMap<QString, int> GrabberWrapper::getV4L2deviceInputs(const QString& devic
 		return _ggrabber->getV4L2deviceInputs(devicePath);
 
 	return QMultiMap<QString, int>();
+}
+
+QStringList GrabberWrapper::getV4L2EncodingFormats(const QString& devicePath) const
+{
+	if(_grabberName.startsWith("V4L"))
+		return _ggrabber->getV4L2EncodingFormats(devicePath);
+
+	return QStringList();
 }
 
 QStringList GrabberWrapper::getResolutions(const QString& devicePath) const
