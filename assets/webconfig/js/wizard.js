@@ -1930,15 +1930,13 @@ function beginWizardCololight() {
       d.host = lights[selectedLightId].ip;
     }
 
-    var coloLightProperties = lights[selectedLightId].props;
+    var coloLightProperties = lights[selectedLightId].props.properties;
     if (Object.keys(coloLightProperties).length === 0) {
       alert($.i18n('wiz_cololight_noprops'));
       d.hardwareLedCount = 1;
-    } else {
-      if (coloLightProperties.ledCount > 0) {
+    }
+    else {
         d.hardwareLedCount = coloLightProperties.ledCount;
-      } else if (coloLightProperties.modelType === "Strip")
-        d.hardwareLedCount = 120;
     }
 
     d.colorOrder = conf_editor.getEditor("root.generalOptions.colorOrder").getValue();
