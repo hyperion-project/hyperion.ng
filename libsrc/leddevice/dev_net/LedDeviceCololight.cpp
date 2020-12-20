@@ -18,7 +18,6 @@ const bool verbose3 = false;
 const char CONFIG_HW_LED_COUNT[] = "hardwareLedCount";
 
 const int COLOLIGHT_BEADS_PER_MODULE = 19;
-const int COLOLIGHT_MIN_STRIP_SEGMENT_SIZE = 30;
 
 // Cololight discovery service
 
@@ -115,33 +114,24 @@ bool LedDeviceCololight::initLedsConfiguration()
 			setLedCount(_devConfig[CONFIG_HW_LED_COUNT].toInt(0));
 		}
 
-		if (_modelType == STRIP && (getLedCount() % COLOLIGHT_MIN_STRIP_SEGMENT_SIZE != 0))
+		Debug(_log, "LedCount     : %d", getLedCount());
+
+		int configuredLedCount = _devConfig["currentLedCount"].toInt(1);
+
+		if (getLedCount() < configuredLedCount)
 		{
-			QString errorReason = QString("Hardware LED count must be multiple of %1 for Cololight Strip!")
-									  .arg(COLOLIGHT_MIN_STRIP_SEGMENT_SIZE);
+			QString errorReason = QString("Not enough LEDs [%1] for configured LEDs in layout [%2] found!")
+									  .arg(getLedCount())
+									  .arg(configuredLedCount);
 			this->setInError(errorReason);
 		}
 		else
 		{
-			Debug(_log, "LedCount     : %d", getLedCount());
-
-			int configuredLedCount = _devConfig["currentLedCount"].toInt(1);
-
-			if (getLedCount() < configuredLedCount)
+			if (getLedCount() > configuredLedCount)
 			{
-				QString errorReason = QString("Not enough LEDs [%1] for configured LEDs in layout [%2] found!")
-										  .arg(getLedCount())
-										  .arg(configuredLedCount);
-				this->setInError(errorReason);
+				Info(_log, "%s: More LEDs [%d] than configured LEDs in layout [%d].", QSTRING_CSTR(this->getActiveDeviceType()), getLedCount(), configuredLedCount);
 			}
-			else
-			{
-				if (getLedCount() > configuredLedCount)
-				{
-					Info(_log, "%s: More LEDs [%d] than configured LEDs in layout [%d].", QSTRING_CSTR(this->getActiveDeviceType()), getLedCount(), configuredLedCount);
-				}
-				isInitOK = true;
-			}
+			isInitOK = true;
 		}
 	}
 
@@ -204,7 +194,8 @@ bool LedDeviceCololight::getInfo()
 			{
 				_ledBeadCount = ledNum;
 				// Cololight types are not identifyable currently
-				// Work under the assumption that modules (Cololight Plus) have a number of beads and a Colologht Strip does not have a mulitple of beads
+				// Work under the assumption that modules (Cololight Plus) have a number of beads and a Colologht Strip does not have a multiple of beads
+				// The assumption will not hold true, if a user cuts the Strip to a multiple of beads...
 				if (ledNum % COLOLIGHT_BEADS_PER_MODULE == 0)
 				{
 					_modelType = PLUS;
