@@ -19,12 +19,15 @@ function installAndUpgrade()
 	arr=("$@")
 	for i in "${arr[@]}";
 	do
-		list_output=`brew list | grep $i`
+		list_output=`brew list --formula | grep $i`
 		outdated_output=`brew outdated | grep $i`
 
 		if [[ ! -z "$list_output" ]]; then
 		    if [[ ! -z "$outdated_output" ]]; then
+		    	echo "Outdated package: ${outdated_output}"
+		    	brew unlink  ${outdated_output}
 			brew upgrade $i
+			brew link --overwrite $i
 		    fi
 		else
 		    brew install $i
