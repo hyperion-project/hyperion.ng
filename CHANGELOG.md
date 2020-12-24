@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Updated dependency rpi_ws281x to latest upstream
+- Documentation: Add link to [Hyperion-py](https://github.com/dermotduffy/hyperion-py)
 
 ### Fixed
 
