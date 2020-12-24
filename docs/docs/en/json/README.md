@@ -87,3 +87,10 @@ Control your Hyperion server: [Control](/en/json/Control.md)
 Authorization mechanisms: [Authorization](/en/json/Authorization.md)
 ### Subscribe
 Data subscriptions: [Subscribe](/en/json/Subscribe.md)
+
+## 3rd Party Libraries
+
+* [Hyperion-py](https://github.com/dermotduffy/hyperion-py) is a 3rd-party Python
+  library for communication with Hyperion-NG. It uses the API described here as the
+  underlying communication mechanism and presents it in a user-friendly way. As a 3rd
+  party library, it is not supported by the Hyperion development team.
