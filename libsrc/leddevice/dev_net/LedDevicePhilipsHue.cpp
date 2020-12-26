@@ -1235,7 +1235,7 @@ QByteArray LedDevicePhilipsHue::prepareStreamData() const
 		CiColor lightC = light.getColor();
 		quint64 R = lightC.x * 0xffff;
 		quint64 G = lightC.y * 0xffff;
-		quint64 B = lightC.bri * 0xffff;
+		quint64 B = (lightC.x || lightC.y) ? lightC.bri * 0xffff : 0;
 		unsigned int id = light.getId();
 		const uint8_t payload[] = {
 			0x00, 0x00, static_cast<uint8_t>(id),
