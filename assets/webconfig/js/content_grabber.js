@@ -177,10 +177,10 @@ $(document).ready(function () {
               ? toggleOption('input', false)
               : toggleOption('input', true);
 
-              if (key == 'encoding_format')
-              val != 'custom'
-                ? toggleOption('encoding', false)
-                : toggleOption('encoding', true);
+          if (key == 'encoding_format')
+            val != 'custom'
+              ? toggleOption('encoding', false)
+              : toggleOption('encoding', true);
         });
       });
     };
@@ -222,51 +222,39 @@ $(document).ready(function () {
     instCapture: window.schema.instCapture
   }, true, true);
 
+  // Hide V4L2 elements, if not available
+  if (!V4L2_AVAIL) {
+    var instCapOptions = conf_editor_instCapt;
+    $('[data-schemapath*="root.instCapture.v4lEnable' + '"]').hide();
+    $('[data-schemapath*="root.instCapture.v4lPriority' + '"]').hide();
+  }
+
   conf_editor_instCapt.on('change', function () {
+
+    var systemEnable = conf_editor_instCapt.getEditor("root.instCapture.systemEnable").getValue();
+    if (systemEnable) {
+      $('[data-schemapath*="root.instCapture.systemPriority' + '"]').show();
+      $('#conf_cont_fg').show();
+    } else {
+      $('#conf_cont_fg').hide();
+      $('[data-schemapath*="root.instCapture.systemPriority' + '"]').hide();
+    }
+
+    if (V4L2_AVAIL) {
+      var v4lEnable = conf_editor_instCapt.getEditor("root.instCapture.v4lEnable").getValue();
+      if (v4lEnable) {
+        $('[data-schemapath*="root.instCapture.v4lPriority' + '"]').show();
+        $('#conf_cont_v4l').show();
+      } else {
+        $('[data-schemapath*="root.instCapture.v4lPriority' + '"]').hide();
+        $('#conf_cont_v4l').hide();
+      }
+    }
     conf_editor_instCapt.validate().length || window.readOnlyMode ? $('#btn_submit_instCapt').attr('disabled', true) : $('#btn_submit_instCapt').attr('disabled', false);
   });
 
   $('#btn_submit_instCapt').off().on('click', function () {
     requestWriteConfig(conf_editor_instCapt.getValue());
-  });
-
-  // Framegrabber
-  conf_editor_fg = createJsonEditor('editor_container_fg', {
-    framegrabber: window.schema.framegrabber
-  }, true, true);
-
-  conf_editor_fg.on('change', function () {
-    //Remove Grabbers which are not supported
-    var grabbers = window.serverInfo.grabbers.available;
-
-    var selector = "root_framegrabber_type";
-    var options = $("#" + selector + " option");
-
-    for (var i = 0; i < options.length; i++) {
-      var type = options[i].value;
-      if (grabbers.indexOf(type) === -1) {
-        $("#" + selector + " option[value='" + type + "']").remove();
-      }
-    }
-
-	  if (window.serverInfo.grabbers.active)
-	  {
-      var activegrabbers = window.serverInfo.grabbers.active.map(v => v.toLowerCase());
-      options = $("#" + selector + " option");
-
-      for (var i = 0; i < options.length; i++) {
-        var type = options[i].value.toLowerCase();
-        if (activegrabbers.indexOf(type) > -1) {
-          $("#" + selector + " option[value='" + type + "']").attr('selected', 'selected');
-          break;
-        }
-      }
-	  }
-
-    var selectedType = $("#root_framegrabber_type").val();
-    filerFgGrabberOptions(selectedType);
-
-    conf_editor_fg.validate().length || window.readOnlyMode ? $('#btn_submit_fg').attr('disabled', true) : $('#btn_submit_fg').attr('disabled', false);
   });
 
   $('#btn_submit_fg').off().on('click', function () {
@@ -307,7 +295,7 @@ $(document).ready(function () {
       if (window.serverConfig.grabberV4L2.framerates == 'custom' && window.serverConfig.grabberV4L2.device != 'auto')
         toggleOption('fps', true);
 
-        if (window.serverConfig.grabberV4L2.encoding_format == 'custom' && window.serverConfig.grabberV4L2.device != 'auto')
+      if (window.serverConfig.grabberV4L2.encoding_format == 'custom' && window.serverConfig.grabberV4L2.device != 'auto')
         toggleOption('encoding', true);
     });
 
@@ -359,6 +347,60 @@ $(document).ready(function () {
     }
   }
 
+  // Framegrabber
+  conf_editor_fg = createJsonEditor('editor_container_fg', {
+    framegrabber: window.schema.framegrabber
+  }, true, true);
+
+
+  conf_editor_fg.on('ready', function () {
+
+    var availableGrabbers = window.serverInfo.grabbers.available;
+
+    console.log("conf_editor_fg.on->ready, availableGrabbers: ", availableGrabbers);
+
+    var fgOptions = conf_editor_fg.getEditor('root.framegrabber');
+    var orginalGrabberTypes = fgOptions.schema.properties.type.enum;
+    var orginalGrabberTitles = fgOptions.schema.properties.type.options.enum_titles;
+
+    var enumVals = [];
+    var enumTitelVals = [];
+    var enumDefaultVal = "";
+
+    for (var i = 0; i < orginalGrabberTypes.length; i++) {
+      var grabberType = orginalGrabberTypes[i];
+      if ($.inArray(grabberType, availableGrabbers) != -1) {
+        enumVals.push(grabberType);
+        enumTitelVals.push(orginalGrabberTitles[i]);
+      }
+    }
+
+    var activeGrabbers = window.serverInfo.grabbers.active.map(v => v.toLowerCase());
+
+    console.log("conf_editor_fg.on->ready, activeGrabbers: ", activeGrabbers);
+
+    // Select first active platform grabber
+    for (var i = 0; i < enumVals.length; i++) {
+      var grabberType = enumVals[i];
+      if ($.inArray(grabberType, activeGrabbers) != -1) {
+        enumDefaultVal = grabberType;
+        break;
+      }
+    }
+    updateJsonEditorSelection(fgOptions, "type", {}, enumVals, enumTitelVals, enumDefaultVal);
+  });
+
+  conf_editor_fg.on('change', function () {
+
+    var selectedType = conf_editor_fg.getEditor("root.framegrabber.type").getValue();
+
+    console.log("conf_editor_fg.on->change, selectedType: ", selectedType);
+
+    filerFgGrabberOptions(selectedType);
+
+    conf_editor_fg.validate().length || window.readOnlyMode ? $('#btn_submit_fg').attr('disabled', true) : $('#btn_submit_fg').attr('disabled', false);
+  });
+
   function toggleFgOptions(el, state) {
     for (var i = 0; i < el.length; i++) {
       $('[data-schemapath*="root.framegrabber.' + el[i] + '"]').toggle(state);
@@ -366,8 +408,8 @@ $(document).ready(function () {
   }
 
   function filerFgGrabberOptions(type) {
-    //hide specific options for grabbers found
 
+    //hide specific options for grabbers found
     var grabbers = window.serverInfo.grabbers.available;
     if (grabbers.indexOf(type) > -1) {
       toggleFgOptions(["width", "height", "pixelDecimation", "display"], true);
@@ -397,10 +439,6 @@ $(document).ready(function () {
     }
   };
 
-  $('#root_framegrabber_type').change(function () {
-    var selectedType = $("#root_framegrabber_type").val();
-    filerFgGrabberOptions(selectedType);
-  });
-
   removeOverlay();
 });
+

@@ -540,6 +540,54 @@ function createJsonEditor(container,schema,setconfig,usePanel,arrayre)
 	return editor;
 }
 
+function updateJsonEditorSelection(editor, key, addElements, newEnumVals, newTitelVals, newDefaultVal, addCustom) {
+
+  var orginalProperties = editor.schema.properties[key];
+
+  var newSchema = [];
+  newSchema[key] =
+  {
+    "type": "string",
+    "enum": [],
+    "propertyOrder": 1,
+    "required": true,
+    "options": { "enum_titles": [] }
+  };
+
+  //Add additional elements to overwrite defaults
+  for (var item in addElements) {
+    newSchema[key][item] = addElements[item];
+  }
+
+  if (addCustom) {
+    newEnumVals.push("custom");
+    newTitelVals.push("edt_conf_enum_custom");
+
+    if (newSchema[key].options.infoText) {
+      var customInfoText = newSchema[key].options.infoText + "_custom";
+      newSchema[key].options.infoText = customInfoText;
+    }
+  }
+
+  if (newEnumVals) {
+    newSchema[key]["enum"] = newEnumVals;
+  }
+
+  if (newTitelVals) {
+    newSchema[key]["options"]["enum_titles"] = newTitelVals;
+  }
+  if (newDefaultVal) {
+    newSchema[key]["default"] = newDefaultVal;
+  }
+
+  editor.original_schema.properties = orginalProperties;
+  editor.schema.properties = newSchema;
+
+  editor.removeObjectProperty(key);
+  delete editor.cached_editors[key];
+  editor.addObjectProperty(key);
+}
+
 function buildWL(link,linkt,cl)
 {
 	var baseLink = "https://docs.hyperion-project.org/";
