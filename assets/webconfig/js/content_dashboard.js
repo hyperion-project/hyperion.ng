@@ -95,26 +95,6 @@ $(document).ready( function() {
 			}
 	});
 
-
-
-	//determine platform
-	var grabbers = window.serverInfo.grabbers.available;
-	var html = "";
-
-	if(grabbers.indexOf('dispmanx') > -1)
-		html += 'Raspberry Pi';
-	else if(grabbers.indexOf('x11') > -1 || grabbers.indexOf('xcb') > -1)
-		html += 'X86';
-	else if(grabbers.indexOf('osx')  > -1)
-		html += 'OSX';
-	else if(grabbers.indexOf('amlogic')  > -1)
-		html += 'Amlogic';
-	else
-		html += 'Framebuffer';
-
-	$('#dash_platform').html(html);
-
-
 	//interval update
 	updateComponents();
 	$(window.hyperion).on("components-updated",updateComponents);
