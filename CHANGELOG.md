@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated dependency rpi_ws281x to latest upstream
 
 ### Fixed
+- Fix issue #1127: Total packet count in tpm2net (#1127)
 
 ### Removed
 
