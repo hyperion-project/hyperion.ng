@@ -44,10 +44,13 @@ GrabberWrapper::~GrabberWrapper()
 
 bool GrabberWrapper::start()
 {
-	// Start the timer with the pre configured interval
-	Debug(_log,"Grabber start()");
-	_timer->start();
-	return _timer->isActive();
+	if (!_timer->isActive())
+	{
+		// Start the timer with the pre configured interval
+		Debug(_log,"Grabber start()");
+		_timer->start();
+		return _timer->isActive();
+	}
 }
 
 void GrabberWrapper::stop()
@@ -185,9 +188,9 @@ void GrabberWrapper::handleSourceRequest(hyperion::Components component, int hyp
 {
 	if(component == hyperion::Components::COMP_GRABBER  && !_grabberName.startsWith("V4L"))
 	{
-		if(listen && !GRABBER_SYS_CLIENTS.contains(hyperionInd))
+		if(listen)
 			GRABBER_SYS_CLIENTS.insert(hyperionInd, _grabberName);
-		else if (!listen)
+		else
 			GRABBER_SYS_CLIENTS.remove(hyperionInd);
 
 		if(GRABBER_SYS_CLIENTS.empty())
@@ -197,9 +200,9 @@ void GrabberWrapper::handleSourceRequest(hyperion::Components component, int hyp
 	}
 	else if(component == hyperion::Components::COMP_V4L && _grabberName.startsWith("V4L"))
 	{
-		if(listen && !GRABBER_V4L_CLIENTS.contains(hyperionInd))
+		if(listen)
 			GRABBER_V4L_CLIENTS.insert(hyperionInd, _grabberName);
-		else if (!listen)
+		else
 			GRABBER_V4L_CLIENTS.remove(hyperionInd);
 
 		if(GRABBER_V4L_CLIENTS.empty())

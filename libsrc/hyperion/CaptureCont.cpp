@@ -47,6 +47,7 @@ void CaptureCont::handleV4lImage(const QString& name, const Image<ColorRgb> & im
 	{
 		_hyperion->registerInput(_v4lCaptPrio, hyperion::COMP_V4L, "System", name);
 		_v4lCaptName = name;
+		emit GlobalSignals::getInstance()->requestSource(hyperion::COMP_V4L, int(_hyperion->getInstanceIndex()), _v4lCaptEnabled);
 	}
 	_v4lInactiveTimer->start();
 	_hyperion->setInputImage(_v4lCaptPrio, image);
@@ -58,6 +59,7 @@ void CaptureCont::handleSystemImage(const QString& name, const Image<ColorRgb>& 
 	{
 		_hyperion->registerInput(_systemCaptPrio, hyperion::COMP_GRABBER, "System", name);
 		_systemCaptName = name;
+		emit GlobalSignals::getInstance()->requestSource(hyperion::COMP_GRABBER, int(_hyperion->getInstanceIndex()), _systemCaptEnabled);
 	}
 	_systemInactiveTimer->start();
 	_hyperion->setInputImage(_systemCaptPrio, image);
