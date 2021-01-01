@@ -24,24 +24,30 @@ int FramebufferFrameGrabber::grabFrame(Image<ColorRgb> & image)
 {
 	if (!_enabled) return 0;
 
-	struct fb_var_screeninfo vinfo;
-	unsigned capSize, bytesPerPixel;
-	PixelFormat pixelFormat;
-
 	/* Open the framebuffer device */
 	int fbfd = open(QSTRING_CSTR(_fbDevice), O_RDONLY);
 	if (fbfd == -1)
 	{
 		Error(_log, "Error opening %s, %s : ", QSTRING_CSTR(_fbDevice), std::strerror(errno));
+		setEnabled(false);
 		return -1;
 	}
 
 	/* get variable screen information */
-	ioctl (fbfd, FBIOGET_VSCREENINFO, &vinfo);
+	struct fb_var_screeninfo vinfo;
+	int result = ioctl (fbfd, FBIOGET_VSCREENINFO, &vinfo);
+	if (result != 0)
+	{
+		Error(_log, "Could not get screen information, %s", std::strerror(errno));
+		close(fbfd);
+		setEnabled(false);
+		return -1;
+	}
 
-	bytesPerPixel = vinfo.bits_per_pixel / 8;
-	capSize = vinfo.xres * vinfo.yres * bytesPerPixel;
+	unsigned bytesPerPixel = vinfo.bits_per_pixel / 8;
+	unsigned capSize = vinfo.xres * vinfo.yres * bytesPerPixel;
 
+	PixelFormat pixelFormat;
 	switch (vinfo.bits_per_pixel)
 	{
 		case 16: pixelFormat = PixelFormat::BGR16; break;
@@ -84,22 +90,23 @@ void FramebufferFrameGrabber::setDevicePath(const QString& path)
 	if(_fbDevice != path)
 	{
 		_fbDevice = path;
-		int result;
-		struct fb_var_screeninfo vinfo;
 
 		// Check if the framebuffer device can be opened and display the current resolution
 		int fbfd = open(QSTRING_CSTR(_fbDevice), O_RDONLY);
 		if (fbfd == -1)
 		{
 			Error(_log, "Error opening %s, %s : ", QSTRING_CSTR(_fbDevice), std::strerror(errno));
+			setEnabled(false);
 		}
 		else
 		{
 			// get variable screen information
-			result = ioctl (fbfd, FBIOGET_VSCREENINFO, &vinfo);
+			struct fb_var_screeninfo vinfo;
+			int result = ioctl (fbfd, FBIOGET_VSCREENINFO, &vinfo);
 			if (result != 0)
 			{
 				Error(_log, "Could not get screen information, %s", std::strerror(errno));
+				setEnabled(false);
 			}
 			else
 			{

@@ -49,8 +49,9 @@ bool GrabberWrapper::start()
 		// Start the timer with the pre configured interval
 		Debug(_log,"Grabber start()");
 		_timer->start();
-		return _timer->isActive();
 	}
+
+	return _timer->isActive();
 }
 
 void GrabberWrapper::stop()
