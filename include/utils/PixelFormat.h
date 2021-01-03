@@ -12,6 +12,8 @@ enum class PixelFormat {
 	BGR24,
 	RGB32,
 	BGR32,
+	NV12,
+	I420,
 #ifdef HAVE_JPEG_DECODER
 	MJPEG,
 #endif
@@ -47,6 +49,14 @@ inline PixelFormat parsePixelFormat(const QString& pixelFormat)
 	{
 		return PixelFormat::BGR32;
 	}
+	else if (format.compare("i420")  == 0)
+	{
+		return PixelFormat::I420;
+	}
+	else if (format.compare("nv12") == 0)
+	{
+		return PixelFormat::NV12;
+	}
 #ifdef HAVE_JPEG_DECODER
 	else if (format.compare("mjpeg")  == 0)
 	{
@@ -63,34 +73,96 @@ inline QString pixelFormatToString(const PixelFormat& pixelFormat)
 
 	if ( pixelFormat == PixelFormat::YUYV)
 	{
-		return "yuyv";
+		return "YUYV";
 	}
 	else if (pixelFormat == PixelFormat::UYVY)
 	{
-		return "uyvy";
+		return "UYVY";
 	}
 	else if (pixelFormat == PixelFormat::BGR16)
 	{
-		return "bgr16";
+		return "BGR16";
 	}
 	else if (pixelFormat == PixelFormat::BGR24)
 	{
-		return "bgr24";
+		return "BGR24";
 	}
 	else if (pixelFormat == PixelFormat::RGB32)
 	{
-		return "rgb32";
+		return "RGB32";
 	}
 	else if (pixelFormat == PixelFormat::BGR32)
 	{
-		return "bgr32";
+		return "BGR32";
+	}
+	else if (pixelFormat == PixelFormat::I420)
+	{
+		return "I420";
+	}
+	else if (pixelFormat == PixelFormat::NV12)
+	{
+		return "NV12";
 	}
 #ifdef HAVE_JPEG_DECODER
 	else if (pixelFormat == PixelFormat::MJPEG)
 	{
-		return "mjpeg";
+		return "MJPEG";
 	}
 #endif
+
+	// return the default NO_CHANGE
+	return "NO_CHANGE";
+}
+
+/**
+ * Enumeration of the possible flip modes
+ */
+
+enum class FlipMode
+{
+	HORIZONTAL = 1,
+	VERTICAL = 2,
+	BOTH = HORIZONTAL | VERTICAL,
+	NO_CHANGE = 4
+};
+
+inline FlipMode parseFlipMode(const QString& flipMode)
+{
+	// convert to lower case
+	QString mode = flipMode.toLower();
+
+	if (flipMode.compare("horizontal") == 0)
+	{
+		return FlipMode::HORIZONTAL;
+	}
+	else if (flipMode.compare("vertical")  == 0)
+	{
+		return FlipMode::VERTICAL;
+	}
+	else if (flipMode.compare("both")  == 0)
+	{
+		return FlipMode::BOTH;
+	}
+
+	// return the default NO_CHANGE
+	return FlipMode::NO_CHANGE;
+}
+
+inline QString flipModeToString(const FlipMode& flipMode)
+{
+
+	if ( flipMode == FlipMode::HORIZONTAL)
+	{
+		return "horizontal";
+	}
+	else if (flipMode == FlipMode::VERTICAL)
+	{
+		return "vertical";
+	}
+	else if (flipMode == FlipMode::BOTH)
+	{
+		return "both";
+	}
 
 	// return the default NO_CHANGE
 	return "NO_CHANGE";

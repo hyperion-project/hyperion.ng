@@ -134,6 +134,11 @@ jobs:
         run: |
           choco install --no-progress python nsis openssl directx-sdk -y
 
+      - name: Install libjpeg-turbo
+        run: |
+          Invoke-WebRequest https://netcologne.dl.sourceforge.net/project/libjpeg-turbo/2.0.6/libjpeg-turbo-2.0.6-vc64.exe -OutFile libjpeg-turbo.exe
+          .\libjpeg-turbo /S
+
       - name: Set up x64 build architecture environment
         shell: cmd
         run: call "${{env.VCINSTALLDIR}}\Auxiliary\Build\vcvars64.bat"

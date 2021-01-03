@@ -74,7 +74,6 @@ public:
 				hrStatus = pSample->ConvertToContiguousBuffer(&buffer);
 				if (SUCCEEDED(hrStatus))
 				{
-
 					BYTE* data = nullptr;
 					DWORD maxLength = 0, currentLength = 0;
 
@@ -89,11 +88,11 @@ public:
 					else
 						error = QString("buffer->Lock failed => %1").arg(hrStatus);
 
-					SAFE_RELEASE(buffer);
 				}
 				else
 					error = QString("pSample->ConvertToContiguousBuffer failed => %1").arg(hrStatus);
 
+				SAFE_RELEASE(buffer);
 			}
 			else
 				error = "pSample is NULL";

@@ -3,13 +3,15 @@
 
 volatile bool MFThread::_isActive = false;
 
-MFThread::MFThread():
-		_localData(nullptr),
-		_localDataSize(0),
-		_decompress(nullptr),
-		_isBusy(false),
-		_semaphore(1),
-		_imageResampler()
+MFThread::MFThread()
+	: _localData(nullptr)
+	, _localDataSize(0)
+	, _decompress(nullptr)
+	, _scalingFactorsCount(0)
+	, _scalingFactors(nullptr)
+	, _isBusy(false)
+	, _semaphore(1)
+	, _imageResampler()
 {
 }
 
@@ -50,6 +52,7 @@ void MFThread::setup(
 	_imageResampler.setCropping(cropLeft, cropRight, cropTop, cropBottom);
 	_imageResampler.setHorizontalPixelDecimation(_pixelDecimation);
 	_imageResampler.setVerticalPixelDecimation(_pixelDecimation);
+	_imageResampler.setFlipMode(FlipMode::HORIZONTAL);
 
 	if (size > _localDataSize)
 	{
@@ -110,6 +113,7 @@ void MFThread::processImageMjpeg()
 	{
 		_decompress = tjInitDecompress();
 		_scalingFactors = tjGetScalingFactors (&_scalingFactorsCount);
+		tjhandle handle=NULL;
 	}
 
 	if (tjDecompressHeader2(_decompress, _localData, _size, &_width, &_height, &_subsamp) != 0)
@@ -167,6 +171,8 @@ void MFThread::processImageMjpeg()
 			unsigned char* source = (unsigned char*)srcImage.memptr() + (y + _cropTop)*srcImage.width()*3 + _cropLeft*3;
 			unsigned char* dest = (unsigned char*)destImage.memptr() + y*destImage.width()*3;
 			memcpy(dest, source, destImage.width()*3);
+			free(source);
+			free(dest);
 		}
 
     	// emit

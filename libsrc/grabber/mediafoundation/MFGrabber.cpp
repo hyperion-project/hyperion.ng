@@ -4,9 +4,12 @@
 static PixelFormat GetPixelFormatForGuid(const GUID guid)
 {
 	if (IsEqualGUID(guid, MFVideoFormat_RGB32)) return PixelFormat::RGB32;
+	if (IsEqualGUID(guid, MFVideoFormat_RGB24)) return PixelFormat::BGR24;
 	if (IsEqualGUID(guid, MFVideoFormat_YUY2)) return PixelFormat::YUYV;
 	if (IsEqualGUID(guid, MFVideoFormat_UYVY)) return PixelFormat::UYVY;
 	if (IsEqualGUID(guid, MFVideoFormat_MJPG)) return  PixelFormat::MJPEG;
+	if (IsEqualGUID(guid, MFVideoFormat_NV12)) return  PixelFormat::NV12;
+	if (IsEqualGUID(guid, MFVideoFormat_I420)) return  PixelFormat::I420;
 	return PixelFormat::NO_CHANGE;
 };
 
@@ -40,7 +43,7 @@ MFGrabber::MFGrabber(const QString & device, unsigned width, unsigned height, un
 	setInput(input);
 	setWidthHeight(width, height);
 	setFramerate(fps);
-	// setDeviceVideoStandard(device, videoStandard);
+	// setDeviceVideoStandard(device, videoStandard); // TODO
 
 	CoInitializeEx(0, COINIT_MULTITHREADED);
 	_hr = MFStartup(MF_VERSION, MFSTARTUP_NOSOCKET);
@@ -134,7 +137,7 @@ bool MFGrabber::init()
 					continue;
 			}
 
-			if (strict)
+			if (strict && (val.fps <= 60 || _fps != 15))
 				foundIndex = i;
 		}
 
@@ -394,16 +397,32 @@ bool MFGrabber::init_device(QString deviceName, DevicePropertiesItem props)
 			}
 			break;
 
-			case PixelFormat::RGB32:
+			case PixelFormat::BGR24:
+			case PixelFormat::MJPEG:
 			{
-				_frameByteSize = props.x * props.y * 4;
+				_frameByteSize = props.x * props.y * 3;
 				_lineLength = props.x * 3;
 			}
 			break;
 
-			case PixelFormat::MJPEG:
+			case PixelFormat::RGB32:
 			{
-				_lineLength = props.x * 3;
+				_frameByteSize = props.x * props.y * 4;
+				_lineLength = props.x * 4;
+			}
+			break;
+
+			case PixelFormat::NV12:
+			{
+				_frameByteSize = (6 * props.x * props.y) / 4;
+				_lineLength = props.x;
+			}
+			break;
+
+			case PixelFormat::I420:
+			{
+				_frameByteSize = (6 * props.x * props.y) / 4;
+				_lineLength = props.x;
 			}
 			break;
 		}
@@ -499,6 +518,8 @@ void MFGrabber::enumVideoCaptureDevices()
 												di.pf = pixelformat;
 												di.guid = format;
 												properties.valid.append(di);
+
+												Debug(_log,  "%s %d x %d @ %d fps (%s)", QSTRING_CSTR(dev), di.x, di.y, di.fps, QSTRING_CSTR(pixelFormatToString(di.pf)));
 											}
 										}
 

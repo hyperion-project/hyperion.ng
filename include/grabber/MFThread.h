@@ -46,8 +46,7 @@ private:
 
 #ifdef HAVE_TURBO_JPEG
 	tjhandle 	_decompress;
-	int _scalingFactorsCount = 0;
-	tjscalingfactor* _scalingFactors = nullptr;
+	tjscalingfactor* _scalingFactors;
 #endif
 
 	static volatile bool _isActive;
@@ -57,6 +56,7 @@ private:
 	PixelFormat          _pixelFormat;
 	uint8_t*             _localData;
 	int                  _localDataSize;
+	int                  _scalingFactorsCount;
 	int                  _size;
 	int                  _width;
 	int                  _height;
@@ -78,16 +78,7 @@ class MFThreadManager : public QObject
 public:
 	MFThreadManager() : _threads(nullptr)
 	{
-		int select = QThread::idealThreadCount();
-
-		if (select >= 2 && select <= 3)
-			select = 2;
-		else if (select > 3 && select <= 5)
-			select = 3;
-		else if (select > 5)
-			select = 4;
-
-		_maxThreads = qMax(select, 1);
+		_maxThreads = qBound(1, ((QThread::idealThreadCount() * 3) / 2), 12);
 	}
 
 	~MFThreadManager()
@@ -100,6 +91,7 @@ public:
 					_threads[i]->deleteLater();
 					_threads[i] = nullptr;
 				}
+
 			delete[] _threads;
 			_threads = nullptr;
 		}
