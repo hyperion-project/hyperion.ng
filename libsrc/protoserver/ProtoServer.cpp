@@ -1,5 +1,5 @@
-#include <protoserver/ProtoServer.h>
 #include "ProtoClientConnection.h"
+#include <protoserver/ProtoServer.h>
 
 // util
 #include <utils/NetOrigin.h>
