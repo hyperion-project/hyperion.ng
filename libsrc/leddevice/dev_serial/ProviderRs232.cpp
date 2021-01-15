@@ -161,6 +161,12 @@ bool ProviderRs232::tryOpen(int delayAfterConnect_ms)
 		}
 		else
 		{
+			// List available device
+			Debug(_log, "Available devices:");
+			for (auto &port : QSerialPortInfo::availablePorts() ) {
+				Debug(_log, "portName:    %s", QSTRING_CSTR(port.portName()));
+				Debug(_log, "description: %s", QSTRING_CSTR(port.description()));
+			}
 			QString errortext = QString("Invalid serial device name: [%1]!").arg(_deviceName);
 			this->setInError( errortext );
 			return false;
