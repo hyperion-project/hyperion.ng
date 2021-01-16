@@ -1,0 +1,8 @@
+{
+	"name": "Flags Germany/Russia",
+	"script": "flag.py",
+	"args": {
+		"countries":["de","ru"],
+		"switch-time": 2
+	}
+}
