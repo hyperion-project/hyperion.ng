@@ -1,57 +1,27 @@
- 
-
 {
-
-	"type":"object",	"script" : "flag.py",
-
+	"type":"object",
+	"script" : "flag.py",
 	"title":"edt_eff_flag_header",
-
 	"required":true,
-
 	"properties":{
-
 		"countries": {
-
 			"type": "array",
-
 			"title" : "edt_eff_countries",
-
 			"uniqueItems": true,
-
 			"items": {
-
 				"type": "string",
-
 				"enum": ["at","be","bg","ch","cmr","cz","de","dk","ee","es","fi","fr","gr","hu","ie","it","lt","lu","lv","mt","nl","pl","pt","ro","ru","se","sl"]
-
 			},
-
 			"propertyOrder" : 1
-
 		},
-
 		"switch-time": {
-
 			"type": "integer",
-
 			"title":"edt_eff_interval",
-
 			"default": 5,
-
 			"minimum" : 1,
-
 			"append" : "edt_append_s",
-
 			"propertyOrder" : 2
-
 		}
-
 	},
-
 	"additionalProperties": false
-
 }
-
-
-
-
