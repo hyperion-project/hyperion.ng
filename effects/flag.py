@@ -178,7 +178,7 @@ def printFlag(country):
 		hyperion.imageSolidFill(int(iW*0.33), 0, int(iW*0.33), iH, 255, 0, 0)
 		hyperion.imageSolidFill(int(iW*0.66), 0, iW, iH, 255, 255, 0)
 		
-		# ru flag (Russia)
+	# ru flag (Russia)
 	if country == "ru":
 		hyperion.imageSolidFill(0, 0, iW, int(iH*0.33), 255, 255, 255)
 		hyperion.imageSolidFill(0, int(iH*0.33), iW, int(iH*0.33), 0, 57, 166)
