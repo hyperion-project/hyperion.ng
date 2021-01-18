@@ -253,7 +253,7 @@ void EffectFileHandler::updateEffects()
 					efxCount++;
 				}
 			}
-			InfoIf(efxCount > 0, _log, "%d effect schemas loaded from directory %s", efxCount, QSTRING_CSTR((path + "schema/")));
+			InfoIf(efxCount > 0, _log, "%d effect schemas loaded from directory %s", efxCount, QSTRING_CSTR((path + "/schema/")));
 		}
 	}
 
@@ -309,7 +309,7 @@ bool EffectFileHandler::loadEffectDefinition(const QString &path, const QString 
 
 bool EffectFileHandler::loadEffectSchema(const QString &path, const QString &effectSchemaFile, EffectSchema & effectSchema)
 {
-	QString fileName = path + "schema/" + QDir::separator() + effectSchemaFile;
+	QString fileName = path + "/schema/" + QDir::separator() + effectSchemaFile;
 
 	// Read and parse the effect schema file
 	QJsonObject schemaEffect;
