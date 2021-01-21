@@ -243,17 +243,17 @@ void EffectFileHandler::updateEffects()
 			// collect effect schemas
 			efxCount = 0;
 			directory.setPath(path.endsWith("/") ? (path + "schema/") : (path + "/schema/"));
-			QStringList pynames = directory.entryList(QStringList() << "*.json", QDir::Files, QDir::Name | QDir::IgnoreCase);
-			for (const QString & pyname : pynames)
+			QStringList schemaFileNames = directory.entryList(QStringList() << "*.json", QDir::Files, QDir::Name | QDir::IgnoreCase);
+			for (const QString & schemaFileName : schemaFileNames)
 			{
 				EffectSchema pyEffect;
-				if (loadEffectSchema(path, pyname, pyEffect))
+				if (loadEffectSchema(path, directory.filePath(schemaFileName), pyEffect))
 				{
 					_effectSchemas.push_back(pyEffect);
 					efxCount++;
 				}
 			}
-			InfoIf(efxCount > 0, _log, "%d effect schemas loaded from directory %s", efxCount, QSTRING_CSTR((path + "/schema/")));
+			InfoIf(efxCount > 0, _log, "%d effect schemas loaded from directory %s", efxCount, QSTRING_CSTR((directory.path())));
 		}
 	}
 
@@ -307,32 +307,31 @@ bool EffectFileHandler::loadEffectDefinition(const QString &path, const QString 
 	return true;
 }
 
-bool EffectFileHandler::loadEffectSchema(const QString &path, const QString &effectSchemaFile, EffectSchema & effectSchema)
+bool EffectFileHandler::loadEffectSchema(const QString &path, const QString &schemaFilePath, EffectSchema & effectSchema)
 {
-	QString fileName = path + "/schema/" + QDir::separator() + effectSchemaFile;
-
 	// Read and parse the effect schema file
 	QJsonObject schemaEffect;
-	if(!JsonUtils::readFile(fileName, schemaEffect, _log))
+
+	if(!JsonUtils::readFile(schemaFilePath, schemaEffect, _log))
 		return false;
 
 	// setup the definition
-	QString scriptName = schemaEffect["script"].toString();
-	effectSchema.schemaFile = fileName;
-	fileName = path + QDir::separator() + scriptName;
-	QFile pyFile(fileName);
+	QString scriptName		= schemaEffect["script"].toString();
+	effectSchema.schemaFile	= schemaFilePath;
+
+	QString scriptFilePath 	= path + QDir::separator() + scriptName;
+	QFile pyFile(scriptFilePath);
 
 	if (scriptName.isEmpty() || !pyFile.open(QIODevice::ReadOnly))
 	{
-		fileName = path + "schema/" + QDir::separator() + effectSchemaFile;
-		Error( _log, "Python script '%s' in effect schema '%s' could not be loaded", QSTRING_CSTR(scriptName), QSTRING_CSTR(fileName));
+		Error( _log, "Python script '%s' in effect schema '%s' could not be loaded", QSTRING_CSTR(scriptName), QSTRING_CSTR(schemaFilePath));
 		return false;
 	}
 
 	pyFile.close();
 
-	effectSchema.pyFile = (scriptName.mid(0, 1)  == ":" ) ? ":/effects/"+scriptName.mid(1) : path + QDir::separator() + scriptName;
-	effectSchema.pySchema = schemaEffect;
+	effectSchema.pyFile		= (scriptName.mid(0, 1)  == ":" ) ? ":/effects/" + scriptName.mid(1) : scriptFilePath;
+	effectSchema.pySchema	= schemaEffect;
 
 	return true;
 }
