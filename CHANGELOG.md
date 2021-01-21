@@ -4,10 +4,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.0.0-alpha.8...HEAD)
+## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.0.0-alpha.9...HEAD)
 
 ### Breaking
 
+### Added
+
+### Changed
+- Updated dependency rpi_ws281x to latest upstream
+
+### Fixed
+
+### Removed
+
+## [2.0.0-alpha.9](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.9) - 2020-11-18
 ### Added
 - Grabber: DirectX9 support (#1039)
 - New blackbar detection mode "Letterbox", that considers only bars at the top and bottom of picture
@@ -39,10 +49,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Color calibration for Kodi 18 (#1044)
 - LED-Devices: Karatelight, allow an 8-LED configuration (#1037)
 - LED-Devices: Save Hue light state between sessions (#1014)
-- LED-Devices: LED's retain last state after clearing a source (#1008) 
+- LED-Devices: LED's retain last state after clearing a source (#1008)
 - LED-Devices: Lightpack issue #1015 (#1049)
 - Fix various JSON API issues (#1036)
-- Fix issue #909, Have ratio correction first and then scale (#1047) 
+- Fix issue #909, Have ratio correction first and then scale (#1047)
 - Fix display argument in hyperion-qt (#1027)
 - Fix Python reset thread state
 - AVAHI included in Webserver (#996)
@@ -65,7 +75,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved UDP-Device Error handling (#961)
 - NSIS/Systray option to launch Hyperion on Windows start (HKCU) (#887)
 - Updated some dependencies (#929, #1003, #1004)
-- refactor: Modernize Qt connections (#914) 
+- refactor: Modernize Qt connections (#914)
 - refactor: Resolve some clang warnings (#915)
 - refactor: Several random fixes + Experimental playground (#917)
 - Use query interface for void returning X requests (#945)

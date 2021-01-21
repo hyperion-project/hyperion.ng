@@ -69,6 +69,13 @@ all linux specific led and grabber hardware via cmake. Because we use QT as fram
 ## Arch
 See [AUR](https://aur.archlinux.org/packages/?O=0&SeB=nd&K=hyperion&outdated=&SB=n&SO=a&PP=50&do_Search=Go) for PKGBUILDs on arch. If the PKGBUILD does not work ask questions there please.
 
+## Fedora
+The following dependencies are needed to build hyperion.ng on fedora.
+```
+sudo dnf -y groupinstall "Development Tools"
+sudo dnf install python3-devel qt-devel qt5-qtbase-devel qt5-qtserialport-devel libjpeg-devel xrandr xcb-util-image-devel qt5-qtx11extras-devel turbojpeg-devel libusb-devel avahi-libs avahi-compat-libdns_sd-devel xcb-util-devel dbus-devel openssl-devel fedora-packager rpmdevtools gcc libcec-devel
+```
+After installing the dependencies, you can continue with the compile instructions later on this page (the more detailed way..).
 
 ## OSX
 To install on OS X you either need Homebrew or Macport but Homebrew is the recommended way to install the packages. To use Homebrew XCode is required as well, use `brew doctor` to check your install.

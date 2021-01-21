@@ -140,7 +140,7 @@ macro(DeployUnix TARGET)
 		# Detect the Python version and modules directory
 		if (NOT CMAKE_VERSION VERSION_LESS "3.12")
 
-			set(PYTHON_VERSION_MAJOR_MINOR "${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}")
+			set(PYTHON_VERSION_MAJOR_MINOR "${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}")
 			execute_process(
 				COMMAND ${Python3_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(standard_lib=True))"
 				OUTPUT_VARIABLE PYTHON_MODULES_DIR
@@ -149,7 +149,7 @@ macro(DeployUnix TARGET)
 
 		else()
 
-			set(PYTHON_VERSION_MAJOR_MINOR "${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}")
+			set(PYTHON_VERSION_MAJOR_MINOR "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
 			execute_process(
 				COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(standard_lib=True))"
 				OUTPUT_VARIABLE PYTHON_MODULES_DIR
@@ -158,15 +158,22 @@ macro(DeployUnix TARGET)
 
 		endif()
 
-		# Copy Python modules to 'share/hyperion/lib/python'
+		# Copy Python modules to 'share/hyperion/lib/python' and ignore the unnecessary stuff listed below
 		if (PYTHON_MODULES_DIR)
 
 			install(
 				DIRECTORY ${PYTHON_MODULES_DIR}/
 				DESTINATION "share/hyperion/lib/python"
 				COMPONENT "Hyperion"
+				PATTERN "*.pyc"                                 EXCLUDE # compiled bytecodes
+				PATTERN "__pycache__"                           EXCLUDE # any cache
+				PATTERN "config-${PYTHON_VERSION_MAJOR_MINOR}*" EXCLUDE # static libs
+				PATTERN "lib2to3"                               EXCLUDE # automated Python 2 to 3 code translation
+				PATTERN "tkinter"                               EXCLUDE # Tk interface
+				PATTERN "turtle.py"                             EXCLUDE # Tk demo
+				PATTERN "test"                                  EXCLUDE # unittest module
+				PATTERN "sitecustomize.py"                      EXCLUDE # site-specific configs
 			)
-
 		endif(PYTHON_MODULES_DIR)
 
 	else()

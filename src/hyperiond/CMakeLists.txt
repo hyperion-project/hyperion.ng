@@ -136,7 +136,17 @@ if(CMAKE_HOST_UNIX)
 	install( CODE "FILE (REMOVE ${CMAKE_BINARY_DIR}/symlink_hyperiond )" COMPONENT "Hyperion" )
 endif()
 
-# Copy dependencies (not for OSX)
+# Deploy Qt DLLs into the binary folder.
+# This is necessary for starting the application from within the IDE
+if(WIN32)
+	get_target_property(QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
+	get_filename_component(QT_BIN_DIR "${QT_QMAKE_EXECUTABLE}" DIRECTORY)
+	find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${QT_BIN_DIR}")
+	set(WINDEPLOYQT_PARAMS --verbose 0 --no-compiler-runtime --no-opengl-sw --no-system-d3d-compiler)
+	add_custom_command(TARGET hyperiond POST_BUILD COMMAND ${WINDEPLOYQT_EXECUTABLE} ${WINDEPLOYQT_PARAMS} "$<TARGET_FILE:hyperiond>")
+endif()
+
+# Deploy all dependencies for package creation (not for OSX)
 include(${CMAKE_SOURCE_DIR}/cmake/Dependencies.cmake)
 
 if (NOT ENABLE_OSX AND NOT WIN32) # Unix
