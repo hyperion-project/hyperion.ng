@@ -1,12 +1,13 @@
 # Installiere Hyperion
 Hyperion unterstützt zahlreiche Plattformen zur Installation und wird als Paket oder .zip bereitgestellt.
 
-## Vorraussetzungen
+## Voraussetzungen
 
 ### Unterstützte Systeme
   * Raspberry Pi (Siehe [HyperBian](/en/user/HyperBian), derzeit nur auf Englisch)
   * Debian 9 | Ubuntu 16.04 oder neuer
   * Mac OS
+  * Windows 10
 
 **Einige arm Geräte haben eine reduzierte Untersützung der Funktion des mitschneidens des Bildschirms**
 
