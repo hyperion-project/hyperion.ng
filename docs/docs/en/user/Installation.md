@@ -43,7 +43,7 @@ Hyperion can be now started from your start menu.
 
 ## Uninstall Hyperion
 On Debian/Ubuntu you can remove Hyperion with this command \
-`sudo apt remove hyperion` \
+`sudo apt remove hyperion`
 
 ### Hyperion user data
 Hyperion stores user data inside your home directory (folder `.hyperion`).
