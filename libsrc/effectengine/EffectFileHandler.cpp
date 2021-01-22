@@ -72,7 +72,7 @@ QString EffectFileHandler::deleteEffect(const QString& effectName)
 			{
 				if ((it->script == ":/effects/gif.py") && !it->args.value("image").toString("").isEmpty())
 				{
-					QFileInfo effectImageFile(effectConfigurationFile.absolutePath() + '/' + it->args.value("image").toString());
+					QFileInfo effectImageFile(it->args.value("image").toString());
 					if (effectImageFile.exists())
 					{
 						QFile::remove(effectImageFile.absoluteFilePath());
