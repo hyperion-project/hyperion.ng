@@ -66,7 +66,7 @@ QString EffectFileHandler::deleteEffect(const QString& effectName)
 	if (it != effectsDefinition.end())
 	{
 		QFileInfo effectConfigurationFile(it->file);
-		if (!effectConfigurationFile.absoluteFilePath().startsWith('.'))
+		if (!effectConfigurationFile.absoluteFilePath().startsWith(':'))
 		{
 			if (effectConfigurationFile.exists())
 			{
@@ -132,7 +132,7 @@ QString EffectFileHandler::saveEffect(const QJsonObject& message)
 
 			if (!effectArray.empty())
 			{
-				if (message["name"].toString().trimmed().isEmpty() || message["name"].toString().trimmed().startsWith("."))
+				if (message["name"].toString().trimmed().isEmpty() || message["name"].toString().trimmed().startsWith(":"))
 				{
 					return "Can't save new effect. Effect name is empty or begins with a dot.";
 				}
@@ -148,7 +148,7 @@ QString EffectFileHandler::saveEffect(const QJsonObject& message)
 				if (iter != availableEffects.end())
 				{
 					newFileName.setFile(iter->file);
-					if (newFileName.absoluteFilePath().startsWith('.'))
+					if (newFileName.absoluteFilePath().startsWith(':'))
 					{
 						return "The effect name '" + message["name"].toString() + "' is assigned to an internal effect. Please rename your effect.";
 					}
