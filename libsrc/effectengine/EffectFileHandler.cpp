@@ -155,19 +155,24 @@ QString EffectFileHandler::saveEffect(const QJsonObject& message)
 				}
 				else
 				{
-					// TODO global special keyword handling
 					QString f = effectArray[0].toString().replace("$ROOT", _rootPath) + '/' + message["name"].toString().replace(QString(" "), QString("")) + QString(".json");
 					newFileName.setFile(f);
 				}
 
-				//TODO check if filename exist
 				if (!message["imageData"].toString("").isEmpty() && !message["args"].toObject().value("image").toString("").isEmpty())
 				{
-					QFileInfo imageFileName(effectArray[0].toString().replace("$ROOT", _rootPath) + '/' + message["args"].toObject().value("image").toString());
+					QJsonObject args = message["args"].toObject();
+					QString imageFilePath = effectArray[0].toString().replace("$ROOT", _rootPath) + '/' + args.value("image").toString();
+
+					QFileInfo imageFileName(imageFilePath);
 					if (!FileUtils::writeFile(imageFileName.absoluteFilePath(), QByteArray::fromBase64(message["imageData"].toString("").toUtf8()), _log))
 					{
 						return "Error while saving image file '" + message["args"].toObject().value("image").toString() + ", please check the Hyperion Log";
 					}
+
+					//Update json with image file location
+					args["image"] = imageFilePath;
+					effectJson["args"] = args;
 				}
 
 				if (!JsonUtils::write(newFileName.absoluteFilePath(), effectJson, _log))
