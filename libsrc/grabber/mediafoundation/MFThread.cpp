@@ -1,5 +1,4 @@
 #include "grabber/MFThread.h"
-#include <QDebug>
 
 volatile bool MFThread::_isActive = false;
 
@@ -52,7 +51,7 @@ void MFThread::setup(
 	_imageResampler.setCropping(cropLeft, cropRight, cropTop, cropBottom);
 	_imageResampler.setHorizontalPixelDecimation(_pixelDecimation);
 	_imageResampler.setVerticalPixelDecimation(_pixelDecimation);
-	_imageResampler.setFlipMode(FlipMode::HORIZONTAL);
+	_imageResampler.setFlipMode(FlipMode::NO_CHANGE);
 
 	if (size > _localDataSize)
 	{
@@ -79,7 +78,7 @@ void MFThread::run()
 		else
 		{
 			Image<ColorRgb> image = Image<ColorRgb>();
-			_imageResampler.processImage(_localData, _width, _height, _lineLength, _pixelFormat, image);
+			_imageResampler.processImage(_localData, _width, _height, _lineLength, PixelFormat::BGR24, image);
 			emit newFrame(_workerIndex, image, _currentFrame);
 		}
 	}
@@ -156,8 +155,8 @@ void MFThread::processImageMjpeg()
 	if ( !(_cropLeft > 0 || _cropTop > 0 || _cropBottom > 0 || _cropRight > 0))
 		emit newFrame(_workerIndex, srcImage, _currentFrame);
 	else
-    	{
-    		// calculate the output size
+    {
+    	// calculate the output size
 		int outputWidth = (_width - _cropLeft - _cropRight);
 		int outputHeight = (_height - _cropTop - _cropBottom);
 

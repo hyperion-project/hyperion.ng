@@ -87,11 +87,32 @@ void SysTray::createTrayIcon()
 	_trayIconEfxMenu = new QMenu(_trayIconMenu);
 	_trayIconEfxMenu->setTitle(tr("Effects"));
 	_trayIconEfxMenu->setIcon(QPixmap(":/effects.svg"));
+
+	// custom effects
 	for (auto efx : efxs)
 	{
-		QAction *efxAction = new QAction(efx.name, this);
-		connect(efxAction, SIGNAL(triggered()), this, SLOT(setEffect()));
-		_trayIconEfxMenu->addAction(efxAction);
+		if (efx.file.mid(0, 1)  != ":")
+		{
+			qDebug() << efx.file;
+			QAction *efxAction = new QAction(efx.name, this);
+			connect(efxAction, SIGNAL(triggered()), this, SLOT(setEffect()));
+			_trayIconEfxMenu->addAction(efxAction);
+		}
+	}
+
+	// add seperator if custom effects exists
+	if (!_trayIconEfxMenu->isEmpty())
+		_trayIconEfxMenu->addSeparator();
+
+	// build in effects
+	for (auto efx : efxs)
+	{
+		if (efx.file.mid(0, 1)  == ":")
+		{
+			QAction *efxAction = new QAction(efx.name, this);
+			connect(efxAction, SIGNAL(triggered()), this, SLOT(setEffect()));
+			_trayIconEfxMenu->addAction(efxAction);
+		}
 	}
 
 #ifdef _WIN32

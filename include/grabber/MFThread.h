@@ -78,7 +78,7 @@ class MFThreadManager : public QObject
 public:
 	MFThreadManager() : _threads(nullptr)
 	{
-		_maxThreads = qBound(1, ((QThread::idealThreadCount() * 3) / 2), 12);
+		_maxThreads = qBound(1, (QThread::idealThreadCount() > 4 ? (QThread::idealThreadCount() - 1) : QThread::idealThreadCount()), 8);
 	}
 
 	~MFThreadManager()

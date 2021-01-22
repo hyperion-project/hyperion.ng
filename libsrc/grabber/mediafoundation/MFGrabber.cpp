@@ -1,22 +1,9 @@
 #include "MFSourceReaderCB.h"
 #include "grabber/MFGrabber.h"
 
-static PixelFormat GetPixelFormatForGuid(const GUID guid)
-{
-	if (IsEqualGUID(guid, MFVideoFormat_RGB32)) return PixelFormat::RGB32;
-	if (IsEqualGUID(guid, MFVideoFormat_RGB24)) return PixelFormat::BGR24;
-	if (IsEqualGUID(guid, MFVideoFormat_YUY2)) return PixelFormat::YUYV;
-	if (IsEqualGUID(guid, MFVideoFormat_UYVY)) return PixelFormat::UYVY;
-	if (IsEqualGUID(guid, MFVideoFormat_MJPG)) return  PixelFormat::MJPEG;
-	if (IsEqualGUID(guid, MFVideoFormat_NV12)) return  PixelFormat::NV12;
-	if (IsEqualGUID(guid, MFVideoFormat_I420)) return  PixelFormat::I420;
-	return PixelFormat::NO_CHANGE;
-};
-
 MFGrabber::MFGrabber(const QString & device, unsigned width, unsigned height, unsigned fps, unsigned input, int pixelDecimation)
 	: Grabber("V4L2:"+device)
 	, _deviceName(device)
-	, _buffers()
 	, _hr(S_FALSE)
 	, _sourceReader(nullptr)
 	, _pixelDecimation(pixelDecimation)
@@ -47,7 +34,7 @@ MFGrabber::MFGrabber(const QString & device, unsigned width, unsigned height, un
 
 	CoInitializeEx(0, COINIT_MULTITHREADED);
 	_hr = MFStartup(MF_VERSION, MFSTARTUP_NOSOCKET);
-	if (FAILED(_hr))
+	if(FAILED(_hr))
 		CoUninitialize();
 	else
 		_sourceReaderCB = new SourceReaderCB(this);
@@ -60,13 +47,13 @@ MFGrabber::~MFGrabber()
 	SAFE_RELEASE(_sourceReader);
 	SAFE_RELEASE(_sourceReaderCB);
 
-	if (SUCCEEDED(_hr) && SUCCEEDED(MFShutdown()))
+	if(SUCCEEDED(_hr) && SUCCEEDED(MFShutdown()))
 		CoUninitialize();
 }
 
 bool MFGrabber::init()
 {
-	if (!_initialized && SUCCEEDED(_hr))
+	if(!_initialized && SUCCEEDED(_hr))
 	{
 		QString foundDevice = "";
 		int     foundIndex = -1, bestGuess = -1, bestGuessMinX = INT_MAX, bestGuessMinFPS = INT_MAX;
@@ -75,16 +62,16 @@ bool MFGrabber::init()
 		// enumerate the video capture devices on the user's system
 		enumVideoCaptureDevices();
 
-		if (!autoDiscovery && !_deviceProperties.contains(_deviceName))
+		if(!autoDiscovery && !_deviceProperties.contains(_deviceName))
 		{
 			Debug(_log, "Device '%s' is not available. Changing to auto.", QSTRING_CSTR(_deviceName));
 			autoDiscovery = true;
 		}
 
-		if (autoDiscovery)
+		if(autoDiscovery)
 		{
 			Debug(_log, "Forcing auto discovery device");
-			if (_deviceProperties.count()>0)
+			if(_deviceProperties.count()>0)
 			{
 				foundDevice = _deviceProperties.firstKey();
 				_deviceName = foundDevice;
@@ -94,7 +81,7 @@ bool MFGrabber::init()
 		else
 			foundDevice = _deviceName;
 
-		if (foundDevice.isNull() || foundDevice.isEmpty() || !_deviceProperties.contains(foundDevice))
+		if(foundDevice.isNull() || foundDevice.isEmpty() || !_deviceProperties.contains(foundDevice))
 		{
 			Error(_log, "Could not find any capture device");
 			return false;
@@ -109,7 +96,7 @@ bool MFGrabber::init()
 			bool strict = false;
 			const auto& val = dev.valid[i];
 
-			if (bestGuess == -1 || (val.x <= bestGuessMinX && val.x >= 640 && val.fps <= bestGuessMinFPS && val.fps >= 10))
+			if(bestGuess == -1 || (val.x <= bestGuessMinX && val.x >= 640 && val.fps <= bestGuessMinFPS && val.fps >= 10))
 			{
 				bestGuess = i;
 				bestGuessMinFPS = val.fps;
@@ -119,31 +106,31 @@ bool MFGrabber::init()
 			if(_width && _height)
 			{
 				strict = true;
-				if (val.x != _width || val.y != _height)
+				if(val.x != _width || val.y != _height)
 					continue;
 			}
 
 			if(_fps && _fps!=15)
 			{
 				strict = true;
-				if (val.fps != _fps)
+				if(val.fps != _fps)
 					continue;
 			}
 
 			if(_pixelFormat != PixelFormat::NO_CHANGE)
 			{
 				strict = true;
-				if (val.pf != _pixelFormat)
+				if(val.pf != _pixelFormat)
 					continue;
 			}
 
-			if (strict && (val.fps <= 60 || _fps != 15))
+			if(strict && (val.fps <= 60 || _fps != 15))
 				foundIndex = i;
 		}
 
-		if (foundIndex < 0 && bestGuess >= 0)
+		if(foundIndex < 0 && bestGuess >= 0)
 		{
-			if (!autoDiscovery)
+			if(!autoDiscovery)
 				Warning(_log, "Selected resolution not found in supported modes. Forcing best resolution");
 			else
 				Debug(_log, "Forcing best resolution");
@@ -151,9 +138,9 @@ bool MFGrabber::init()
 			foundIndex = bestGuess;
 		}
 
-		if (foundIndex>=0)
+		if(foundIndex>=0)
 		{
-			if (init_device(foundDevice, dev.valid[foundIndex]))
+			if(SUCCEEDED(init_device(foundDevice, dev.valid[foundIndex])))
 				_initialized = true;
 		}
 		else
@@ -166,219 +153,229 @@ bool MFGrabber::init()
 void MFGrabber::uninit()
 {
 	// stop if the grabber was not stopped
-	if (_initialized)
+	if(_initialized)
 	{
 		Debug(_log,"uninit grabber: %s", QSTRING_CSTR(_deviceName));
 		stop();
 	}
 }
 
-bool MFGrabber::init_device(QString deviceName, DevicePropertiesItem props)
+HRESULT MFGrabber::init_device(QString deviceName, DevicePropertiesItem props)
 {
-	bool setStreamParamOK = false;
 	PixelFormat pixelformat = GetPixelFormatForGuid(props.guid);
 	QString error, guid = _deviceProperties[deviceName].name;
-	HRESULT hr,hr1,hr2;
+	int size = guid.length() + 1024;
+	wchar_t *name = new wchar_t[size];
+	memset(name, 0, size);
+	guid.toWCharArray(name);
+	IMFMediaSource* device = nullptr;
+	IMFAttributes* deviceAttributes = nullptr, *sourceReaderAttributes = nullptr;
+	IAMVideoProcAmp *pProcAmp = nullptr;
+	IMFMediaType* type = nullptr;
+	HRESULT hr = S_OK;
 
 	Debug(_log,  "Init %s, %d x %d @ %d fps (%s) => %s", QSTRING_CSTR(deviceName), props.x, props.y, props.fps, QSTRING_CSTR(pixelFormatToString(pixelformat)), QSTRING_CSTR(guid));
 
-	IMFMediaSource* device = nullptr;
-	IMFAttributes* attr;
-	hr = MFCreateAttributes(&attr, 2);
-	if (SUCCEEDED(hr))
+	hr = MFCreateAttributes(&deviceAttributes, 2);
+	if(FAILED(hr))
 	{
-		hr = attr->SetGUID(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE, MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
-		if (SUCCEEDED(hr))
-		{
-			int size = guid.length() + 1024;
-			wchar_t *name = new wchar_t[size];
-			memset(name, 0, size);
-			guid.toWCharArray(name);
+		error = QString("Could not create device attributes (%1)").arg(hr);
+		goto done;
+	}
 
-			if (SUCCEEDED(attr->SetString(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK, (LPCWSTR)name)) && _sourceReaderCB)
-			{
-				hr = MFCreateDeviceSource(attr, &device);
-				if (FAILED(hr))
-				{
-					SAFE_RELEASE(device);;
-					error = QString("MFCreateDeviceSource %1").arg(hr);
-				}
-			}
-			else
-				error = QString("IMFAttributes_SetString_MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK %1").arg(hr);
+	hr = deviceAttributes->SetGUID(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE, MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
+	if(FAILED(hr))
+	{
+		error = QString("SetGUID_MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE (%1)").arg(hr);
+		goto done;
+	}
 
-			delete[] name;
-		}
-		SAFE_RELEASE(attr);
+	if(FAILED(deviceAttributes->SetString(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK, (LPCWSTR)name)) && _sourceReaderCB)
+	{
+		error = QString("IMFAttributes_SetString_MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK (%1)").arg(hr);
+		goto done;
+	}
+
+	hr = MFCreateDeviceSource(deviceAttributes, &device);
+	if(FAILED(hr))
+	{
+		error = QString("MFCreateDeviceSource (%1)").arg(hr);
+		goto done;
+	}
+
+	if(!device)
+	{
+		error = QString("Could not open device (%1)").arg(hr);
+		goto done;
 	}
 	else
-	{
-		SAFE_RELEASE(attr);
-		error = QString("MFCreateAttributes_MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE %1").arg(hr);
-	}
-
-	if (device)
-	{
 		Debug(_log, "Device opened");
-		if (_brightness != 0 || _contrast != 0 || _saturation != 0 || _hue != 0)
+
+	// Set Brightness/Contrast/Saturation/Hue
+	if (_brightness != 0 || _contrast != 0 || _saturation != 0 || _hue != 0)
+	{
+		if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&pProcAmp))))
 		{
-			IAMVideoProcAmp *pProcAmp = NULL;
-			if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&pProcAmp))))
+			long lMin, lMax, lStep, lDefault, lCaps, Val;
+			if (_brightness != 0)
 			{
-				long lMin, lMax, lStep, lDefault, lCaps, Val;
-				if (_brightness != 0)
+				if (SUCCEEDED(pProcAmp->GetRange(VideoProcAmp_Brightness, &lMin, &lMax, &lStep, &lDefault, &lCaps)))
 				{
-					if (SUCCEEDED(pProcAmp->GetRange(VideoProcAmp_Brightness, &lMin, &lMax, &lStep, &lDefault, &lCaps)))
-					{
-						Debug(_log, "Brightness: min=%i, max=%i, default=%i", lMin, lMax, lDefault);
+					Debug(_log, "Brightness: min=%i, max=%i, default=%i", lMin, lMax, lDefault);
 
-						if (SUCCEEDED(pProcAmp->Get(VideoProcAmp_Brightness, &Val,  &lCaps)))
-							Debug(_log, "Current brightness set to: %i",Val);
+					if (SUCCEEDED(pProcAmp->Get(VideoProcAmp_Brightness, &Val,  &lCaps)))
+						Debug(_log, "Current brightness set to: %i",Val);
 
-						if (SUCCEEDED(pProcAmp->Set(VideoProcAmp_Brightness, _brightness, VideoProcAmp_Flags_Manual)))
-							Debug(_log, "Brightness set to: %i",_brightness);
-						else
-							Error(_log, "Could not set brightness");
-					}
+					if (SUCCEEDED(pProcAmp->Set(VideoProcAmp_Brightness, _brightness, VideoProcAmp_Flags_Manual)))
+						Debug(_log, "Brightness set to: %i",_brightness);
 					else
-						Error(_log, "Brightness is not supported by the grabber");
-				}
-
-				if (_contrast != 0)
-				{
-					if (SUCCEEDED(pProcAmp->GetRange(VideoProcAmp_Contrast, &lMin, &lMax, &lStep, &lDefault, &lCaps)))
-					{
-						Debug(_log, "Contrast: min=%i, max=%i, default=%i", lMin, lMax, lDefault);
-
-						if (SUCCEEDED(pProcAmp->Get(VideoProcAmp_Contrast, &Val,  &lCaps)))
-							Debug(_log, "Current contrast set to: %i",Val);
-
-						if (SUCCEEDED(pProcAmp->Set(VideoProcAmp_Contrast, _contrast, VideoProcAmp_Flags_Manual)))
-							Debug(_log, "Contrast set to: %i",_contrast);
-						else
-							Error(_log, "Could not set contrast");
-					}
-					else
-						Error(_log, "Contrast is not supported by the grabber");
-				}
-
-				if (_saturation != 0)
-				{
-					if (SUCCEEDED(pProcAmp->GetRange(VideoProcAmp_Saturation, &lMin, &lMax, &lStep, &lDefault, &lCaps)))
-					{
-						Debug(_log, "Saturation: min=%i, max=%i, default=%i", lMin, lMax, lDefault);
-
-						if (SUCCEEDED(pProcAmp->Get(VideoProcAmp_Saturation, &Val,  &lCaps)))
-							Debug(_log, "Current saturation set to: %i",Val);
-
-						if (SUCCEEDED(pProcAmp->Set(VideoProcAmp_Saturation, _saturation, VideoProcAmp_Flags_Manual)))
-							Debug(_log, "Saturation set to: %i",_saturation);
-						else
-							Error(_log, "Could not set saturation");
-					}
-					else
-						Error(_log, "Saturation is not supported by the grabber");
-				}
-
-				if (_hue != 0)
-				{
-					hr = pProcAmp->GetRange(VideoProcAmp_Hue, &lMin, &lMax, &lStep, &lDefault, &lCaps);
-
-					if (SUCCEEDED(hr))
-					{
-						Debug(_log, "Hue: min=%i, max=%i, default=%i", lMin, lMax, lDefault);
-
-						hr = pProcAmp->Get(VideoProcAmp_Hue, &Val,  &lCaps);
-						if (SUCCEEDED(hr))
-							Debug(_log, "Current hue set to: %i",Val);
-
-						hr = pProcAmp->Set(VideoProcAmp_Hue, _hue, VideoProcAmp_Flags_Manual);
-						if (SUCCEEDED(hr))
-							Debug(_log, "Hue set to: %i",_hue);
-						else
-							Error(_log, "Could not set hue");
-					}
-					else
-						Error(_log, "Hue is not supported by the grabber");
-				}
-
-				pProcAmp->Release();
-			}
-		}
-
-		IMFAttributes* pAttributes;
-		hr1 = MFCreateAttributes(&pAttributes, 1);
-
-		if (SUCCEEDED(hr1))
-			hr2 = pAttributes->SetUnknown(MF_SOURCE_READER_ASYNC_CALLBACK, (IMFSourceReaderCallback *)_sourceReaderCB);
-
-		if (SUCCEEDED(hr1) && SUCCEEDED(hr2))
-			hr = MFCreateSourceReaderFromMediaSource(device, pAttributes, &_sourceReader);
-		else
-			hr = E_INVALIDARG;
-
-		if (SUCCEEDED(hr1))
-			pAttributes->Release();
-
-		device->Release();
-
-        if (SUCCEEDED(hr))
-		{
-            IMFMediaType* type;
-
-            hr = MFCreateMediaType(&type);
-            if (SUCCEEDED(hr))
-			{
-				hr = type->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
-				if (SUCCEEDED(hr))
-				{
-					hr = type->SetGUID(MF_MT_SUBTYPE, props.guid);
-					if (SUCCEEDED(hr))
-					{
-						hr = MFSetAttributeSize(type, MF_MT_FRAME_SIZE, props.x, props.y);
-						if (SUCCEEDED(hr))
-						{
-							hr = MFSetAttributeSize(type, MF_MT_FRAME_RATE, props.fps_a, props.fps_b);
-							if (SUCCEEDED(hr))
-							{
-								MFSetAttributeRatio(type, MF_MT_PIXEL_ASPECT_RATIO, 1, 1);
-
-								hr = _sourceReader->SetCurrentMediaType(MF_SOURCE_READER_FIRST_VIDEO_STREAM, NULL, type);
-								if (SUCCEEDED(hr))
-								{
-									setStreamParamOK = true;
-								}
-								else
-									error = QString("SetCurrentMediaType %1").arg(hr);
-							}
-							else
-								error = QString("MFSetAttributeSize_MF_MT_FRAME_RATE %1").arg(hr);
-						}
-						else
-							error = QString("SMFSetAttributeSize_MF_MT_FRAME_SIZE %1").arg(hr);
-					}
-					else
-						error = QString("SetGUID_MF_MT_SUBTYPE %1").arg(hr);
+						Error(_log, "Could not set brightness");
 				}
 				else
-					error = QString("SetGUID_MF_MT_MAJOR_TYPE %1").arg(hr);
-
-				type->Release();
+					Error(_log, "Brightness is not supported by the grabber");
 			}
-			else
-				error = QString("IMFAttributes_SetString %1").arg(hr);
 
-			if (!setStreamParamOK)
-				Error(_log,  "Could not stream set params (%s)", QSTRING_CSTR(error));
+			if (_contrast != 0)
+			{
+				if (SUCCEEDED(pProcAmp->GetRange(VideoProcAmp_Contrast, &lMin, &lMax, &lStep, &lDefault, &lCaps)))
+				{
+					Debug(_log, "Contrast: min=%i, max=%i, default=%i", lMin, lMax, lDefault);
+
+					if (SUCCEEDED(pProcAmp->Get(VideoProcAmp_Contrast, &Val,  &lCaps)))
+						Debug(_log, "Current contrast set to: %i",Val);
+
+					if (SUCCEEDED(pProcAmp->Set(VideoProcAmp_Contrast, _contrast, VideoProcAmp_Flags_Manual)))
+						Debug(_log, "Contrast set to: %i",_contrast);
+					else
+						Error(_log, "Could not set contrast");
+				}
+				else
+					Error(_log, "Contrast is not supported by the grabber");
+			}
+
+			if (_saturation != 0)
+			{
+				if (SUCCEEDED(pProcAmp->GetRange(VideoProcAmp_Saturation, &lMin, &lMax, &lStep, &lDefault, &lCaps)))
+				{
+					Debug(_log, "Saturation: min=%i, max=%i, default=%i", lMin, lMax, lDefault);
+
+					if (SUCCEEDED(pProcAmp->Get(VideoProcAmp_Saturation, &Val,  &lCaps)))
+						Debug(_log, "Current saturation set to: %i",Val);
+
+					if (SUCCEEDED(pProcAmp->Set(VideoProcAmp_Saturation, _saturation, VideoProcAmp_Flags_Manual)))
+						Debug(_log, "Saturation set to: %i",_saturation);
+					else
+						Error(_log, "Could not set saturation");
+				}
+				else
+					Error(_log, "Saturation is not supported by the grabber");
+			}
+
+			if (_hue != 0)
+			{
+				hr = pProcAmp->GetRange(VideoProcAmp_Hue, &lMin, &lMax, &lStep, &lDefault, &lCaps);
+
+				if (SUCCEEDED(hr))
+				{
+					Debug(_log, "Hue: min=%i, max=%i, default=%i", lMin, lMax, lDefault);
+
+					hr = pProcAmp->Get(VideoProcAmp_Hue, &Val,  &lCaps);
+					if (SUCCEEDED(hr))
+						Debug(_log, "Current hue set to: %i",Val);
+
+					hr = pProcAmp->Set(VideoProcAmp_Hue, _hue, VideoProcAmp_Flags_Manual);
+					if (SUCCEEDED(hr))
+						Debug(_log, "Hue set to: %i",_hue);
+					else
+						Error(_log, "Could not set hue");
+				}
+				else
+					Error(_log, "Hue is not supported by the grabber");
+			}
 		}
-		else
-			Error(_log,  "MFCreateSourceReaderFromMediaSource (%i)", hr);
 	}
-	else
-		Error(_log,  "Could not open device (%s)", QSTRING_CSTR(error));
 
-	if (!setStreamParamOK)
+	hr = MFCreateAttributes(&sourceReaderAttributes, 1);
+	if(FAILED(hr))
 	{
+		error = QString("Could not create Source Reader attributes (%1)").arg(hr);
+		goto done;
+	}
+
+	hr = sourceReaderAttributes->SetUnknown(MF_SOURCE_READER_ASYNC_CALLBACK, (IMFSourceReaderCallback *)_sourceReaderCB);
+	if(FAILED(hr))
+	{
+		error = QString("Could not set stream parameter: SetUnknown_MF_SOURCE_READER_ASYNC_CALLBACK (%1)").arg(hr);
+		hr = E_INVALIDARG;
+		goto done;
+	}
+
+	hr = MFCreateSourceReaderFromMediaSource(device, sourceReaderAttributes, &_sourceReader);
+	if(FAILED(hr))
+	{
+		error = QString("Could not create the Source Reader (%1)").arg(hr);
+		goto done;
+	}
+
+	hr = MFCreateMediaType(&type);
+	if(FAILED(hr))
+	{
+		error = QString("Could not create an empty media type (%1)").arg(hr);
+		goto done;
+	}
+
+	hr = type->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
+	if(FAILED(hr))
+	{
+		error = QString("Could not set stream parameter: SetGUID_MF_MT_MAJOR_TYPE (%1)").arg(hr);
+		goto done;
+	}
+
+	hr = type->SetGUID(MF_MT_SUBTYPE, props.guid);
+	if(FAILED(hr))
+	{
+		error = QString("Could not set stream parameter: SetGUID_MF_MT_SUBTYPE (%1)").arg(hr);
+		goto done;
+	}
+
+	hr = MFSetAttributeSize(type, MF_MT_FRAME_SIZE, props.x, props.y);
+	if(FAILED(hr))
+	{
+		error = QString("Could not set stream parameter: SMFSetAttributeSize_MF_MT_FRAME_SIZE (%1)").arg(hr);
+		goto done;
+	}
+
+	hr = MFSetAttributeSize(type, MF_MT_FRAME_RATE, props.fps_a, props.fps_b);
+	if(FAILED(hr))
+	{
+		error = QString("Could not set stream parameter: MFSetAttributeSize_MF_MT_FRAME_RATE (%1)").arg(hr);
+		goto done;
+	}
+
+	hr = MFSetAttributeRatio(type, MF_MT_PIXEL_ASPECT_RATIO, 1, 1);
+	if(FAILED(hr))
+	{
+		error = QString("Could not set stream parameter: MFSetAttributeRatio_MF_MT_PIXEL_ASPECT_RATIO (%1)").arg(hr);
+		goto done;
+	}
+
+	hr = _sourceReaderCB->InitializeVideoEncoder(type, pixelformat);
+	if (FAILED(hr))
+	{
+		error = QString("Failed to initialize the Video Encoder (%1)").arg(hr);
+		goto done;
+	}
+
+	hr = _sourceReader->SetCurrentMediaType(MF_SOURCE_READER_FIRST_VIDEO_STREAM, nullptr, type);
+	if (FAILED(hr))
+	{
+		error = QString("Failed to set media type on Source Reader (%1)").arg(hr);
+	}
+
+done:
+	if(FAILED(hr))
+	{
+		Error(_log, "%s", QSTRING_CSTR(error));
 		SAFE_RELEASE(_sourceReader);
 	}
 	else
@@ -386,49 +383,19 @@ bool MFGrabber::init_device(QString deviceName, DevicePropertiesItem props)
 		_pixelFormat = props.pf;
 		_width = props.x;
 		_height = props.y;
-
-		switch (_pixelFormat)
-		{
-			case PixelFormat::UYVY:
-			case PixelFormat::YUYV:
-			{
-				_frameByteSize = props.x * props.y * 2;
-				_lineLength = props.x * 2;
-			}
-			break;
-
-			case PixelFormat::BGR24:
-			case PixelFormat::MJPEG:
-			{
-				_frameByteSize = props.x * props.y * 3;
-				_lineLength = props.x * 3;
-			}
-			break;
-
-			case PixelFormat::RGB32:
-			{
-				_frameByteSize = props.x * props.y * 4;
-				_lineLength = props.x * 4;
-			}
-			break;
-
-			case PixelFormat::NV12:
-			{
-				_frameByteSize = (6 * props.x * props.y) / 4;
-				_lineLength = props.x;
-			}
-			break;
-
-			case PixelFormat::I420:
-			{
-				_frameByteSize = (6 * props.x * props.y) / 4;
-				_lineLength = props.x;
-			}
-			break;
-		}
+		_frameByteSize = props.x * props.y * 3;
+		_lineLength = props.x * 3;
 	}
 
-	return setStreamParamOK;
+	// Cleanup
+	SAFE_RELEASE(deviceAttributes);
+	delete[] name;
+	SAFE_RELEASE(device);
+	SAFE_RELEASE(pProcAmp);
+	SAFE_RELEASE(type);
+	SAFE_RELEASE(sourceReaderAttributes);
+
+	return hr;
 }
 
 void MFGrabber::uninit_device()
@@ -438,7 +405,7 @@ void MFGrabber::uninit_device()
 
 void MFGrabber::enumVideoCaptureDevices()
 {
-	if (FAILED(_hr))
+	if(FAILED(_hr))
 	{
 		Error(_log, "enumVideoCaptureDevices(): Media Foundation not initialized");
 		return;
@@ -456,7 +423,7 @@ void MFGrabber::enumVideoCaptureDevices()
 			if(SUCCEEDED(MFEnumDeviceSources(attr, &devices, &count)))
 			{
 				Debug(_log, "Detected devices: %u", count);
-				for (UINT32 i = 0; i < count; i++)
+				for(UINT32 i = 0; i < count; i++)
 				{
 					UINT32 length;
 					LPWSTR name;
@@ -529,18 +496,22 @@ void MFGrabber::enumVideoCaptureDevices()
 								}
 								pSource->Release();
 							}
+
 							properties.displayResolutions.sort();
 							properties.framerates.sort();
 							_deviceProperties.insert(dev, properties);
 						}
+
 						CoTaskMemFree(symlink);
 					}
+
 					CoTaskMemFree(name);
 					devices[i]->Release();
 				}
 
 				CoTaskMemFree(devices);
 			}
+
 			attr->Release();
 		}
 	}
@@ -550,26 +521,23 @@ void MFGrabber::start_capturing()
 {
 	if (_sourceReader)
 	{
-		HRESULT hr = _sourceReader->ReadSample(MF_SOURCE_READER_FIRST_VIDEO_STREAM,
-			0, NULL, NULL, NULL, NULL);
+		HRESULT hr = _sourceReader->ReadSample(MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, NULL, NULL, NULL, NULL);
 		if (!SUCCEEDED(hr))
 			Error(_log, "ReadSample (%i)", hr);
 	}
 }
 
-bool MFGrabber::process_image(const void *frameImageBuffer, int size)
+void MFGrabber::process_image(const void *frameImageBuffer, int size)
 {
-	bool frameSend = false;
-
 	unsigned int processFrameIndex = _currentFrame++;
 
 	// frame skipping
-	if ( (processFrameIndex % _fpsSoftwareDecimation != 0) && (_fpsSoftwareDecimation > 1))
-		return frameSend;
+	if((processFrameIndex % _fpsSoftwareDecimation != 0) && (_fpsSoftwareDecimation > 1))
+		return;
 
 	// CEC detection
-	if (_cecDetectionEnabled)
-		return frameSend;
+	if(_cecDetectionEnabled)
+		return;
 
 	// We do want a new frame...
 	if (size < _frameByteSize && _pixelFormat != PixelFormat::MJPEG)
@@ -593,6 +561,7 @@ bool MFGrabber::process_image(const void *frameImageBuffer, int size)
 			for (unsigned int i=0;_threadManager.isActive() && i < _threadManager._maxThreads && _threadManager._threads != nullptr; i++)
 			{
 				if ((_threadManager._threads[i]->isFinished() || !_threadManager._threads[i]->isRunning()))
+				{
 					// aquire lock
 					if ( _threadManager._threads[i]->isBusy() == false)
 					{
@@ -602,14 +571,12 @@ bool MFGrabber::process_image(const void *frameImageBuffer, int size)
 						if (_threadManager._maxThreads > 1)
 							_threadManager._threads[i]->start();
 
-						frameSend = true;
 						break;
 					}
+				}
 			}
 		}
 	}
-
-	return frameSend;
 }
 
 void MFGrabber::setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold, int noSignalCounterThreshold)
@@ -640,9 +607,9 @@ bool MFGrabber::start()
 	try
 	{
 		_threadManager.start();
-		Info(_log, "Decoding threads: %d",_threadManager._maxThreads );
+		Info(_log, "Decoding threads: %d",_threadManager._maxThreads);
 
-		if (init())
+		if(init())
 		{
 			start_capturing();
 			Info(_log, "Started");
@@ -659,7 +626,7 @@ bool MFGrabber::start()
 
 void MFGrabber::stop()
 {
-	if (_initialized)
+	if(_initialized)
 	{
 		_threadManager.stop();
 		uninit_device();
@@ -669,17 +636,9 @@ void MFGrabber::stop()
 	}
 }
 
-void MFGrabber::receive_image(const void *frameImageBuffer, int size, QString message)
+void MFGrabber::receive_image(const void *frameImageBuffer, int size)
 {
-	if (frameImageBuffer == NULL || size ==0)
-		Error(_log, "Received empty image frame: %s", QSTRING_CSTR(message));
-	else
-	{
-		if (!message.isEmpty())
-			Debug(_log, "Received image frame: %s", QSTRING_CSTR(message));
-		process_image(frameImageBuffer, size);
-	}
-
+	process_image(frameImageBuffer, size);
 	start_capturing();
 }
 
@@ -697,7 +656,7 @@ void MFGrabber::newThreadFrame(unsigned int threadIndex, const Image<ColorRgb>& 
 
 void MFGrabber::checkSignalDetectionEnabled(Image<ColorRgb> image)
 {
-	if (_signalDetectionEnabled)
+	if(_signalDetectionEnabled)
 	{
 		// check signal (only in center of the resulting image, because some grabbers have noise values along the borders)
 		bool noSignal = true;
@@ -710,15 +669,15 @@ void MFGrabber::checkSignalDetectionEnabled(Image<ColorRgb> image)
 		unsigned xMax     = image.width()  * _x_frac_max;
 		unsigned yMax     = image.height() * _y_frac_max;
 
-		for (unsigned x = xOffset; noSignal && x < xMax; ++x)
-			for (unsigned y = yOffset; noSignal && y < yMax; ++y)
+		for(unsigned x = xOffset; noSignal && x < xMax; ++x)
+			for(unsigned y = yOffset; noSignal && y < yMax; ++y)
 				noSignal &= (ColorRgb&)image(x, y) <= _noSignalThresholdColor;
 
-		if (noSignal)
+		if(noSignal)
 			++_noSignalCounter;
 		else
 		{
-			if (_noSignalCounter >= _noSignalCounterThreshold)
+			if(_noSignalCounter >= _noSignalCounterThreshold)
 			{
 				_noSignalDetected = true;
 				Info(_log, "Signal detected");
@@ -727,11 +686,11 @@ void MFGrabber::checkSignalDetectionEnabled(Image<ColorRgb> image)
 			_noSignalCounter = 0;
 		}
 
-		if ( _noSignalCounter < _noSignalCounterThreshold)
+		if( _noSignalCounter < _noSignalCounterThreshold)
 		{
 			emit newFrame(image);
 		}
-		else if (_noSignalCounter == _noSignalCounterThreshold)
+		else if(_noSignalCounter == _noSignalCounterThreshold)
 		{
 			_noSignalDetected = false;
 			Info(_log, "Signal lost");
@@ -744,7 +703,7 @@ void MFGrabber::checkSignalDetectionEnabled(Image<ColorRgb> image)
 QStringList MFGrabber::getV4L2devices() const
 {
 	QStringList result = QStringList();
-	for (auto it = _deviceProperties.begin(); it != _deviceProperties.end(); ++it)
+	for(auto it = _deviceProperties.begin(); it != _deviceProperties.end(); ++it)
 		result << it.key();
 
 	return result;
@@ -755,7 +714,7 @@ QStringList MFGrabber::getV4L2EncodingFormats(const QString& devicePath) const
 	QStringList result = QStringList();
 
 	for(int i = 0; i < _deviceProperties[devicePath].valid.count(); ++i )
-		if (!result.contains(pixelFormatToString(_deviceProperties[devicePath].valid[i].pf), Qt::CaseInsensitive))
+		if(!result.contains(pixelFormatToString(_deviceProperties[devicePath].valid[i].pf), Qt::CaseInsensitive))
 			result << pixelFormatToString(_deviceProperties[devicePath].valid[i].pf).toLower();
 
 	return result;
@@ -763,7 +722,7 @@ QStringList MFGrabber::getV4L2EncodingFormats(const QString& devicePath) const
 
 void MFGrabber::setSignalDetectionEnable(bool enable)
 {
-	if (_signalDetectionEnabled != enable)
+	if(_signalDetectionEnabled != enable)
 	{
 		_signalDetectionEnabled = enable;
 		Info(_log, "Signal detection is now %s", enable ? "enabled" : "disabled");
@@ -772,7 +731,7 @@ void MFGrabber::setSignalDetectionEnable(bool enable)
 
 void MFGrabber::setCecDetectionEnable(bool enable)
 {
-	if (_cecDetectionEnabled != enable)
+	if(_cecDetectionEnabled != enable)
 	{
 		_cecDetectionEnabled = enable;
 		Info(_log, QString("CEC detection is now %1").arg(enable ? "enabled" : "disabled").toLocal8Bit());
@@ -781,16 +740,16 @@ void MFGrabber::setCecDetectionEnable(bool enable)
 
 void MFGrabber::setPixelDecimation(int pixelDecimation)
 {
-	if (_pixelDecimation != pixelDecimation)
+	if(_pixelDecimation != pixelDecimation)
 		_pixelDecimation = pixelDecimation;
 }
 
 void MFGrabber::setDeviceVideoStandard(QString device, VideoStandard videoStandard)
 {
-	if (_deviceName != device)
+	if(_deviceName != device)
 	{
 		_deviceName = device;
-		if (_initialized && !device.isEmpty())
+		if(_initialized && !device.isEmpty())
 		{
 			Debug(_log,"Restarting Media Foundation grabber");
 			uninit();
@@ -819,7 +778,7 @@ bool MFGrabber::setWidthHeight(int width, int height)
 	if(Grabber::setWidthHeight(width,height))
 	{
 		Debug(_log,"Set width:height to: %i:&i", width, height);
-		if (_initialized)
+		if(_initialized)
 		{
 			Debug(_log,"Restarting Media Foundation grabber");
 			uninit();
@@ -835,7 +794,7 @@ bool MFGrabber::setFramerate(int fps)
 	if(Grabber::setFramerate(fps))
 	{
 		Debug(_log,"Set fps to: %i", fps);
-		if (_initialized)
+		if(_initialized)
 		{
 			Debug(_log,"Restarting Media Foundation grabber");
 			uninit();
@@ -849,17 +808,17 @@ bool MFGrabber::setFramerate(int fps)
 void MFGrabber::setFpsSoftwareDecimation(int decimation)
 {
 	_fpsSoftwareDecimation = decimation;
-	if (decimation > 1)
+	if(decimation > 1)
 		Debug(_log,"Every %ith image per second are processed", decimation);
 }
 
 void MFGrabber::setEncoding(QString enc)
 {
-	if (_pixelFormat != parsePixelFormat(enc))
+	if(_pixelFormat != parsePixelFormat(enc))
 	{
 		Debug(_log,"Set encoding to: %s", QSTRING_CSTR(enc));
 		_pixelFormat = parsePixelFormat(enc);
-		if (_initialized)
+		if(_initialized)
 		{
 			Debug(_log,"Restarting Media Foundation Grabber");
 			uninit();
@@ -870,7 +829,7 @@ void MFGrabber::setEncoding(QString enc)
 
 void MFGrabber::setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue)
 {
-	if (_brightness != brightness || _contrast != contrast || _saturation != saturation || _hue != hue)
+	if(_brightness != brightness || _contrast != contrast || _saturation != saturation || _hue != hue)
 	{
 		_brightness = brightness;
 		_contrast = contrast;
@@ -879,7 +838,7 @@ void MFGrabber::setBrightnessContrastSaturationHue(int brightness, int contrast,
 
 		Debug(_log,"Set brightness to %i, contrast to %i, saturation to %i, hue to %i", _brightness, _contrast, _saturation, _hue);
 
-		if (_initialized)
+		if(_initialized)
 		{
 			Debug(_log,"Restarting Media Foundation Grabber");
 			uninit();

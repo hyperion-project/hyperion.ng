@@ -57,8 +57,8 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 		}
 		else if (pixelFormat == PixelFormat::I420)
 		{
-			uOffset = height * lineLength + ((ySource * lineLength) / 4);
-			vOffset = ((5 * height * lineLength) * 4) + ((ySource * lineLength) / 4);
+			uOffset = (lineLength * (5 * height + ySource) / 4);
+			vOffset = (lineLength * (4 * height + ySource)) * 4;
 		}
 
 		for (int xDest = 0, xSource = _cropLeft + (_horizontalDecimation >> 1); xDest < outputWidth; xSource += _horizontalDecimation, ++xDest)
@@ -150,8 +150,8 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 				{
 					int index = yOffset + xSource;
 					uint8_t y = data[index];
-					uint8_t u = data[uOffset + (xSource >> 1)];
-					uint8_t v = data[vOffset + (xSource >> 1)];
+					uint8_t u = data[uOffset + xSource];
+					uint8_t v = data[vOffset + xSource];
 					ColorSys::yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
 					break;
 				}

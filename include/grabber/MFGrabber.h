@@ -1,5 +1,8 @@
 #pragma once
 
+// Windows include
+#include <Windows.h>
+
 // COM includes
 #include <Guiddef.h>
 
@@ -46,17 +49,17 @@ public:
 
 	struct DeviceProperties
 	{
-		QString name                      = QString();
-		QMultiMap<QString, int>	inputs    = QMultiMap<QString, int>();
-		QStringList displayResolutions    = QStringList();
-		QStringList framerates            = QStringList();
-		QList<DevicePropertiesItem> valid = QList<DevicePropertiesItem>();
+		QString name						= QString();
+		QMultiMap<QString, int>	inputs		= QMultiMap<QString, int>();
+		QStringList displayResolutions		= QStringList();
+		QStringList framerates				= QStringList();
+		QList<DevicePropertiesItem> valid	= QList<DevicePropertiesItem>();
 	};
 
 	MFGrabber(const QString & device, const unsigned width, const unsigned height, const unsigned fps, const unsigned input, int pixelDecimation);
 	~MFGrabber() override;
 
-	void receive_image(const void *frameImageBuffer, int size, QString message);
+	void receive_image(const void *frameImageBuffer, int size);
 	QRectF getSignalDetectionOffset() const { return QRectF(_x_frac_min, _y_frac_min, _x_frac_max, _y_frac_max); }
 	bool getSignalDetectionEnabled() const { return _signalDetectionEnabled; }
 	bool getCecDetectionEnabled() const { return _cecDetectionEnabled; }
@@ -88,51 +91,44 @@ signals:
 	void newFrame(const Image<ColorRgb> & image);
 
 private:
-	struct buffer
-	{
-			void   *start;
-			size_t  length;
-	};
-
 	bool init();
 	void uninit();
-	bool init_device(QString device, DevicePropertiesItem props);
+	HRESULT init_device(QString device, DevicePropertiesItem props);
 	void uninit_device();
 	void enumVideoCaptureDevices();
 	void start_capturing();
-	bool process_image(const void *frameImageBuffer, int size);
+	void process_image(const void *frameImageBuffer, int size);
 	void checkSignalDetectionEnabled(Image<ColorRgb> image);
 
-	QString                                    _deviceName;
-	QMap<QString, MFGrabber::DeviceProperties> _deviceProperties;
-	std::vector<buffer>                        _buffers;
-	HRESULT                                    _hr;
-	SourceReaderCB*                            _sourceReaderCB;
-	PixelFormat                                _pixelFormat;
-	int                                        _pixelDecimation,
-	                                           _lineLength,
-	                                           _frameByteSize,
-	                                           _noSignalCounterThreshold,
-	                                           _noSignalCounter,
-	                                           _fpsSoftwareDecimation,
-	                                           _brightness,
-	                                           _contrast,
-	                                           _saturation,
-	                                           _hue;
-	volatile unsigned int                      _currentFrame;
-	ColorRgb                                   _noSignalThresholdColor;
-	bool                                       _signalDetectionEnabled,
-	                                           _cecDetectionEnabled,
-	                                           _noSignalDetected,
-	                                           _initialized;
-	double                                     _x_frac_min,
-	                                           _y_frac_min,
-	                                           _x_frac_max,
-	                                           _y_frac_max;
-	MFThreadManager                            _threadManager;
-	IMFSourceReader*                           _sourceReader;
+	QString										_deviceName;
+	QMap<QString, MFGrabber::DeviceProperties>	_deviceProperties;
+	HRESULT										_hr;
+	SourceReaderCB*								_sourceReaderCB;
+	PixelFormat									_pixelFormat;
+	int											_pixelDecimation,
+												_lineLength,
+												_frameByteSize,
+												_noSignalCounterThreshold,
+												_noSignalCounter,
+												_fpsSoftwareDecimation,
+												_brightness,
+												_contrast,
+												_saturation,
+												_hue;
+	volatile unsigned int						_currentFrame;
+	ColorRgb									_noSignalThresholdColor;
+	bool										_signalDetectionEnabled,
+												_cecDetectionEnabled,
+												_noSignalDetected,
+												_initialized;
+	double										_x_frac_min,
+												_y_frac_min,
+												_x_frac_max,
+												_y_frac_max;
+	MFThreadManager								_threadManager;
+	IMFSourceReader*							_sourceReader;
 
 #ifdef HAVE_TURBO_JPEG
-	int                                        _subsamp;
+	int											_subsamp;
 #endif
 };
