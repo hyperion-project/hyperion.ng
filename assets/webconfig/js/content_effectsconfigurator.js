@@ -17,14 +17,29 @@ $(document).ready(function () {
       var usrEffArr = [];
       var sysEffArr = [];
       for (var idx = 0; idx < newDelList.length; idx++) {
-        if (newDelList[idx].file.startsWith(".")) {
-          sysEffArr.push('int_' + newDelList[idx].name + ':' + newDelList[idx].name);
+        if (newDelList[idx].file.startsWith(":")) {
+          sysEffArr.push(idx);
         }
         else {
-          usrEffArr.push('ext_' + newDelList[idx].name + ':' + newDelList[idx].name);
+          usrEffArr.push(idx);
         }
       }
-      $('#effectsdellist').append(createSel(usrEffArr, $.i18n('remote_optgroup_usreffets'), true)).append(createSel(sysEffArr, $.i18n('remote_optgroup_syseffets'), true)).trigger('change');
+
+      if (usrEffArr.length > 0) {
+        $('#effectsdellist').append(createSelGroup($.i18n('remote_optgroup_usreffets')));
+        for (var idx = 0; idx < usrEffArr.length; idx++)
+        {
+          $("#effectsdellist").append(createSelOpt('ext_' + newDelList[usrEffArr[idx]].name, newDelList[usrEffArr[idx]].name));
+        }
+        $('#effectsdellist').append(createSelGroup($.i18n('remote_optgroup_syseffets')));
+      }
+
+      for (var idx = 0; idx < sysEffArr.length; idx++)
+      {
+        $("#effectsdellist").append(createSelOpt('int_' + newDelList[sysEffArr[idx]].name, newDelList[sysEffArr[idx]].name));
+      }
+      $("#effectsdellist").trigger("change");
+
       oldDelList = newDelList;
     }
   }
@@ -188,7 +203,7 @@ $(document).ready(function () {
   $('#effectslist').html("");
   var custTemplatesIDs = [];
   var sysTemplatesIDs = [];
-  
+
   for (var idx = 0; idx < effects.length; idx++) {
     if (effects[idx].type === "custom")
       custTemplatesIDs.push(idx);
@@ -203,9 +218,9 @@ $(document).ready(function () {
     {
       $("#effectslist").append(createSelOpt(effects[custTemplatesIDs[idx]].script, $.i18n(effects[custTemplatesIDs[idx]].schemaContent.title)));
     }
+    $('#effectslist').append(createSelGroup($.i18n('remote_optgroup_templates_system')));
   }
 
-  $('#effectslist').append(createSelGroup($.i18n('remote_optgroup_templates_system')));
   for (var idx = 0; idx < sysTemplatesIDs.length; idx++)
   {
     $("#effectslist").append(createSelOpt(effects[sysTemplatesIDs[idx]].script, $.i18n(effects[sysTemplatesIDs[idx]].schemaContent.title)));

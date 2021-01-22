@@ -931,7 +931,7 @@ void JsonAPI::handleSchemaGetCommand(const QJsonObject& message, const QString& 
 		schema.insert("script", effectSchema.pyFile);
 		schema.insert("schemaLocation", effectSchema.schemaFile);
 		schema.insert("schemaContent", effectSchema.pySchema);
-		if (effectSchema.pyFile.startsWith('.'))
+		if (effectSchema.pyFile.startsWith(':'))
 		{
 			schema.insert("type", "system");
 		}
