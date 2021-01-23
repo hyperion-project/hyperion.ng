@@ -26,18 +26,21 @@ $(document).ready(function () {
       }
 
       if (usrEffArr.length > 0) {
-        $('#effectsdellist').append(createSelGroup($.i18n('remote_optgroup_usreffets')));
+        var usrEffGrp = createSelGroup($.i18n('remote_optgroup_usreffets'));
         for (var idx = 0; idx < usrEffArr.length; idx++)
         {
-          $("#effectsdellist").append(createSelOpt('ext_' + newDelList[usrEffArr[idx]].name, newDelList[usrEffArr[idx]].name));
+          usrEffGrp.appendChild(createSelOpt('ext_' + newDelList[usrEffArr[idx]].name, newDelList[usrEffArr[idx]].name));
         }
-        $('#effectsdellist').append(createSelGroup($.i18n('remote_optgroup_syseffets')));
+        $('#effectsdellist').append(usrEffGrp);
       }
 
+      var sysEffGrp = createSelGroup($.i18n('remote_optgroup_syseffets'));
       for (var idx = 0; idx < sysEffArr.length; idx++)
       {
-        $("#effectsdellist").append(createSelOpt('int_' + newDelList[sysEffArr[idx]].name, newDelList[sysEffArr[idx]].name));
+        sysEffGrp.appendChild(createSelOpt('int_' + newDelList[sysEffArr[idx]].name, newDelList[sysEffArr[idx]].name));
       }
+      $('#effectsdellist').append(sysEffGrp);
+
       $("#effectsdellist").trigger("change");
 
       oldDelList = newDelList;
@@ -213,18 +216,21 @@ $(document).ready(function () {
 
   //Cannot use createSel(), as Windows filenames include colons ":"
   if (custTemplatesIDs.length > 0) {
-    $('#effectslist').append(createSelGroup($.i18n('remote_optgroup_templates_custom')));
+    var custTmplGrp = createSelGroup($.i18n('remote_optgroup_templates_custom'));
     for (var idx = 0; idx < custTemplatesIDs.length; idx++)
     {
-      $("#effectslist").append(createSelOpt(effects[custTemplatesIDs[idx]].script, $.i18n(effects[custTemplatesIDs[idx]].schemaContent.title)));
+      custTmplGrp.appendChild(createSelOpt(effects[custTemplatesIDs[idx]].script, $.i18n(effects[custTemplatesIDs[idx]].schemaContent.title)));
     }
-    $('#effectslist').append(createSelGroup($.i18n('remote_optgroup_templates_system')));
+    $('#effectslist').append(custTmplGrp);
   }
 
+  var sysTmplGrp = createSelGroup($.i18n('remote_optgroup_templates_system'));
   for (var idx = 0; idx < sysTemplatesIDs.length; idx++)
   {
-    $("#effectslist").append(createSelOpt(effects[sysTemplatesIDs[idx]].script, $.i18n(effects[sysTemplatesIDs[idx]].schemaContent.title)));
+    sysTmplGrp.appendChild(createSelOpt(effects[sysTemplatesIDs[idx]].script, $.i18n(effects[sysTemplatesIDs[idx]].schemaContent.title)));
   }
+  $('#effectslist').append(sysTmplGrp);
+
   $("#effectslist").trigger("change");
 
   updateDelEffectlist();
