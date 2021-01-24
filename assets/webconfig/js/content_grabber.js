@@ -84,20 +84,18 @@ $(document).ready(function () {
           }
         }
 
-        if (key != 'device_inputs' || enumVals.length > 0) {
-          window.schema.grabberV4L2.properties[key] = {
-            "type": schema[key].type,
-            "title": schema[key].title,
-            ...(schema[key].custom ? {"enum": [].concat(["auto"], enumVals, ["custom"]),} : {"enum": [].concat(["auto"], enumVals),}),
-            // "enum": [].concat(["auto"], enumVals, ["custom"]),
-            "options":
-            {
-              "enum_titles": [].concat(["edt_conf_enum_automatic"], enumTitelVals, ["edt_conf_enum_custom"]),
-            },
-            "propertyOrder": schema[key].propertyOrder,
-            "required": schema[key].required
-          };
-        }
+        window.schema.grabberV4L2.properties[key] = {
+          "type": schema[key].type,
+          "title": schema[key].title,
+          ...(schema[key].custom ? {"enum": [].concat(["auto"], enumVals, ["custom"]),} : {"enum": [].concat(["auto"], enumVals),}),
+          // "enum": [].concat(["auto"], enumVals, ["custom"]),
+          "options":
+          {
+            "enum_titles": [].concat(["edt_conf_enum_automatic"], enumTitelVals, ["edt_conf_enum_custom"]),
+          },
+          "propertyOrder": schema[key].propertyOrder,
+          "required": schema[key].required
+        };
       }
     };
 

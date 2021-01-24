@@ -93,7 +93,6 @@ void SysTray::createTrayIcon()
 	{
 		if (efx.file.mid(0, 1)  != ":")
 		{
-			qDebug() << efx.file;
 			QAction *efxAction = new QAction(efx.name, this);
 			connect(efxAction, SIGNAL(triggered()), this, SLOT(setEffect()));
 			_trayIconEfxMenu->addAction(efxAction);
