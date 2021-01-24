@@ -91,7 +91,7 @@ brew install zlib
 ```
 
 ## Windows (WIP)
-We assume a 64bit Windows 7 or higher. Install the following;
+We assume a 64bit Windows 10. Install the following;
 - [Git](https://git-scm.com/downloads) (Check: Add to PATH)
 - [CMake (Windows win64-x64 Installer)](https://cmake.org/download/) (Check: Add to PATH)
 - [Visual Studio 2019 Build Tools](https://go.microsoft.com/fwlink/?linkid=840931) ([direct link](https://aka.ms/vs/16/release/vs_buildtools.exe))
