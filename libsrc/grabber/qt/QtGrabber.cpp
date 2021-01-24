@@ -115,7 +115,7 @@ int QtGrabber::updateScreenDimensions(bool force)
 		return -1;
 
 	const QRect& geo = _screen->geometry();
-	if (!force && _width == unsigned(geo.right()) && _height == unsigned(geo.bottom()))
+	if (!force && _width == geo.right() && _height == geo.bottom())
 	{
 		// No update required
 		return 0;

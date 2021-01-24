@@ -13,8 +13,8 @@ X11Grabber::X11Grabber(int cropLeft, int cropRight, int cropTop, int cropBottom,
 	, _srcPicture(None)
 	, _dstPicture(None)
 	, _pixelDecimation(pixelDecimation)
-	, _screenWidth(0)
-	, _screenHeight(0)
+	, _calculatedWidth(0)
+	, _calculatedHeight(0)
 	, _src_x(cropLeft)
 	, _src_y(cropTop)
 	, _image(0,0)
@@ -65,7 +65,7 @@ void X11Grabber::setupResources()
 
 	if(_XShmAvailable)
 	{
-		_xImage = XShmCreateImage(_x11Display, _windowAttr.visual, _windowAttr.depth, ZPixmap, NULL, &_shminfo, _width, _height);
+		_xImage = XShmCreateImage(_x11Display, _windowAttr.visual, _windowAttr.depth, ZPixmap, NULL, &_shminfo, _calculatedWidth, _calculatedHeight);
 		_shminfo.shmid = shmget(IPC_PRIVATE, (size_t) _xImage->bytes_per_line * _xImage->height, IPC_CREAT|0777);
 		_xImage->data = (char*)shmat(_shminfo.shmid,0,0);
 		_shminfo.shmaddr = _xImage->data;
@@ -75,17 +75,17 @@ void X11Grabber::setupResources()
 
 	if (_XRenderAvailable)
 	{
-        	_useImageResampler = false;
+        _useImageResampler = false;
 		_imageResampler.setHorizontalPixelDecimation(1);
 		_imageResampler.setVerticalPixelDecimation(1);
 
 		if(_XShmPixmapAvailable)
 		{
-			_pixmap = XShmCreatePixmap(_x11Display, _window, _xImage->data, &_shminfo, _width, _height, _windowAttr.depth);
+			_pixmap = XShmCreatePixmap(_x11Display, _window, _xImage->data, &_shminfo, _calculatedWidth, _calculatedHeight, _windowAttr.depth);
 		}
 		else
 		{
-			_pixmap = XCreatePixmap(_x11Display, _window, _width, _height, _windowAttr.depth);
+			_pixmap = XCreatePixmap(_x11Display, _window, _calculatedWidth, _calculatedHeight, _windowAttr.depth);
 		}
 		_srcFormat = XRenderFindVisualFormat(_x11Display, _windowAttr.visual);
 		_dstFormat = XRenderFindVisualFormat(_x11Display, _windowAttr.visual);
@@ -96,7 +96,7 @@ void X11Grabber::setupResources()
 	}
 	else
 	{
-        	_useImageResampler = true;
+        _useImageResampler = true;
 		_imageResampler.setHorizontalPixelDecimation(_pixelDecimation);
 		_imageResampler.setVerticalPixelDecimation(_pixelDecimation);
 	}
@@ -176,7 +176,7 @@ int X11Grabber::grabFrame(Image<ColorRgb> & image, bool forceUpdate)
 		// src_y = cropTop, mask_x, mask_y, dest_x, dest_y, width, height
 		XRenderComposite(
 			_x11Display, PictOpSrc, _srcPicture, None, _dstPicture, ( _src_x/_pixelDecimation),
-			(_src_y/_pixelDecimation), 0, 0, 0, 0, _width, _height);
+			(_src_y/_pixelDecimation), 0, 0, 0, 0, _calculatedWidth, _calculatedHeight);
 
 		XSync(_x11Display, False);
 
@@ -186,7 +186,7 @@ int X11Grabber::grabFrame(Image<ColorRgb> & image, bool forceUpdate)
 		}
 		else
 		{
-			_xImage = XGetImage(_x11Display, _pixmap, 0, 0, _width, _height, AllPlanes, ZPixmap);
+			_xImage = XGetImage(_x11Display, _pixmap, 0, 0, _calculatedWidth, _calculatedHeight, AllPlanes, ZPixmap);
 		}
 	}
 	else if (_XShmAvailable)
@@ -197,7 +197,7 @@ int X11Grabber::grabFrame(Image<ColorRgb> & image, bool forceUpdate)
 	else
 	{
 		// all things done by xgetimage
-		_xImage = XGetImage(_x11Display, _window, _src_x, _src_y, _width, _height, AllPlanes, ZPixmap);
+		_xImage = XGetImage(_x11Display, _window, _src_x, _src_y, _calculatedWidth, _calculatedHeight, AllPlanes, ZPixmap);
 	}
 
 	if (_xImage == nullptr)
@@ -220,45 +220,45 @@ int X11Grabber::updateScreenDimensions(bool force)
 		return -1;
 	}
 
-	if (!force && _screenWidth == unsigned(_windowAttr.width) && _screenHeight == unsigned(_windowAttr.height))
+	if (!force && _width == _windowAttr.width && _height == _windowAttr.height)
 	{
 		// No update required
 		return 0;
 	}
 
-	if (_screenWidth || _screenHeight)
+	if (_width || _height)
 	{
 		freeResources();
 	}
 
-	Info(_log, "Update of screen resolution: [%dx%d]  to [%dx%d]", _screenWidth, _screenHeight, _windowAttr.width, _windowAttr.height);
-	_screenWidth  = _windowAttr.width;
-	_screenHeight = _windowAttr.height;
+	Info(_log, "Update of screen resolution: [%dx%d]  to [%dx%d]", _width, _height, _windowAttr.width, _windowAttr.height);
+	_width  = _windowAttr.width;
+	_height = _windowAttr.height;
 
 	int width=0, height=0;
 
 	// Image scaling is performed by XRender when available, otherwise by ImageResampler
 	if (_XRenderAvailable)
 	{
-		width  =  (_screenWidth > unsigned(_cropLeft + _cropRight))
-			? ((_screenWidth - _cropLeft - _cropRight) / _pixelDecimation)
-			: _screenWidth / _pixelDecimation;
+		width  =  (_width > (_cropLeft + _cropRight))
+			? ((_width - _cropLeft - _cropRight) / _pixelDecimation)
+			: _width / _pixelDecimation;
 
-		height =  (_screenHeight > unsigned(_cropTop + _cropBottom))
-			? ((_screenHeight - _cropTop - _cropBottom) / _pixelDecimation)
-			: _screenHeight / _pixelDecimation;
+		height =  (_height > (_cropTop + _cropBottom))
+			? ((_height - _cropTop - _cropBottom) / _pixelDecimation)
+			: _height / _pixelDecimation;
 
 		Info(_log, "Using XRender for grabbing");
 	}
 	else
 	{
-		width  =  (_screenWidth > unsigned(_cropLeft + _cropRight))
-			? (_screenWidth - _cropLeft - _cropRight)
-			: _screenWidth;
+		width  =  (_width > (_cropLeft + _cropRight))
+			? (_width - _cropLeft - _cropRight)
+			: _width;
 
-		height =  (_screenHeight > unsigned(_cropTop + _cropBottom))
-			? (_screenHeight - _cropTop - _cropBottom)
-			: _screenHeight;
+		height =  (_height > (_cropTop + _cropBottom))
+			? (_height - _cropTop - _cropBottom)
+			: _height;
 
 		Info(_log, "Using XGetImage for grabbing");
 	}
@@ -267,29 +267,29 @@ int X11Grabber::updateScreenDimensions(bool force)
 	switch (_videoMode)
 	{
 	case VideoMode::VIDEO_3DSBS:
-		_width  = width /2;
-		_height = height;
+		_calculatedWidth  = width /2;
+		_calculatedHeight = height;
 		_src_x  = _cropLeft / 2;
 		_src_y  = _cropTop;
 		break;
 	case VideoMode::VIDEO_3DTAB:
-		_width  = width;
-		_height = height / 2;
+		_calculatedWidth  = width;
+		_calculatedHeight = height / 2;
 		_src_x  = _cropLeft;
 		_src_y  = _cropTop / 2;
 		break;
 	case VideoMode::VIDEO_2D:
 	default:
-		_width  = width;
-		_height = height;
+		_calculatedWidth  = width;
+		_calculatedHeight = height;
 		_src_x  = _cropLeft;
 		_src_y  = _cropTop;
 		break;
 	}
 
-	Info(_log, "Update output image resolution: [%dx%d]  to [%dx%d]", _image.width(), _image.height(), _width, _height);
+	Info(_log, "Update output image resolution: [%dx%d]  to [%dx%d]", _image.width(), _image.height(), _calculatedWidth, _calculatedHeight);
 
-	_image.resize(_width, _height);
+	_image.resize(_calculatedWidth, _calculatedHeight);
 	setupResources();
 
 	return 1;
