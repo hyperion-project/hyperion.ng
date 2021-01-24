@@ -69,6 +69,7 @@
 		"height"                : 0,
 		"fps"                   : 15,
 		"standard"              : "NO_CHANGE",
+		"flip"                  : "NO_CHANGE",
 		"fpsSoftwareDecimation" : 1,
 		"sizeDecimation"        : 8,
 		"cropLeft"              : 0,

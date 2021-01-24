@@ -32,7 +32,7 @@ public:
 		unsigned int threadIndex, PixelFormat pixelFormat, uint8_t* sharedData,
 		int size, int width, int height, int lineLength,
 		int subsamp, unsigned cropLeft, unsigned cropTop, unsigned cropBottom, unsigned cropRight,
-		VideoMode videoMode, int currentFrame, int pixelDecimation);
+		VideoMode videoMode, FlipMode flipMode, int currentFrame, int pixelDecimation);
 	void run();
 
 	bool isBusy();
@@ -45,30 +45,33 @@ private:
 	void processImageMjpeg();
 
 #ifdef HAVE_TURBO_JPEG
-	tjhandle 	_decompress;
-	tjscalingfactor* _scalingFactors;
+	tjhandle			_transform,
+			 			_decompress;
+	tjscalingfactor*	_scalingFactors;
+	tjtransform*		_xform;
 #endif
 
 	static volatile bool _isActive;
-	volatile bool        _isBusy;
-	QSemaphore           _semaphore;
-	unsigned int         _workerIndex;
-	PixelFormat          _pixelFormat;
-	uint8_t*             _localData;
-	int                  _localDataSize;
-	int                  _scalingFactorsCount;
-	int                  _size;
-	int                  _width;
-	int                  _height;
-	int                  _lineLength;
-	int                  _subsamp;
-	unsigned             _cropLeft;
-	unsigned             _cropTop;
-	unsigned             _cropBottom;
-	unsigned             _cropRight;
-	int                  _currentFrame;
-	int                  _pixelDecimation;
-	ImageResampler       _imageResampler;
+	volatile bool			_isBusy;
+	QSemaphore				_semaphore;
+	unsigned int			_threadIndex;
+	PixelFormat				_pixelFormat;
+	uint8_t*				_localData;
+	int						_localDataSize,
+							_scalingFactorsCount,
+							_size,
+							_width,
+							_height,
+							_lineLength,
+							_subsamp,
+							_currentFrame,
+							_pixelDecimation;
+	unsigned				_cropLeft,
+							_cropTop,
+							_cropBottom,
+							_cropRight;
+	FlipMode				_flipMode;
+	ImageResampler			_imageResampler;
 };
 
 class MFThreadManager : public QObject
@@ -116,7 +119,7 @@ public:
 
 		if (_threads != nullptr)
 		{
-			for(unsigned i=0; i < _maxThreads; i++)
+			for(unsigned i = 0; i < _maxThreads; i++)
 				if (_threads[i] != nullptr)
 				{
 					_threads[i]->quit();
@@ -125,6 +128,6 @@ public:
 		}
 	}
 
-	unsigned int    _maxThreads;
-	MFThread** _threads;
+	unsigned int	_maxThreads;
+	MFThread**		_threads;
 };

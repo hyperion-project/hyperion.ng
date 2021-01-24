@@ -31,6 +31,12 @@ public:
 	virtual void setVideoMode(VideoMode mode);
 
 	///
+	/// Apply new flip mode (vertical/horizontal/both)
+	/// @param[in] mode The new flip mode
+	///
+	virtual void setFlipMode(FlipMode mode);
+
+	///
 	/// @brief Apply new crop values, on errors reject the values
 	///
 	virtual void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom);
@@ -161,8 +167,11 @@ protected:
 
 	bool _useImageResampler;
 
-	/// the selected VideoMode
-	VideoMode    _videoMode;
+	/// The selected VideoMode
+	VideoMode _videoMode;
+
+	/// The used Flip Mode
+	FlipMode _flipMode;
 
 	/// With of the captured snapshot [pixels]
 	int _width;

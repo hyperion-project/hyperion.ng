@@ -8,7 +8,7 @@ class MFWrapper : public GrabberWrapper
 	Q_OBJECT
 
 public:
-	MFWrapper(const QString & device, const unsigned grabWidth, const unsigned grabHeight, const unsigned fps, const unsigned input, int pixelDecimation);
+	MFWrapper(const QString & device, const unsigned grabWidth, const unsigned grabHeight, const unsigned fps, const unsigned input, int pixelDecimation, QString flipMode);
 	~MFWrapper() override;
 
 	bool getSignalDetectionEnable() const;

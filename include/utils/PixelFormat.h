@@ -120,10 +120,10 @@ inline QString pixelFormatToString(const PixelFormat& pixelFormat)
 
 enum class FlipMode
 {
-	HORIZONTAL = 1,
-	VERTICAL = 2,
-	BOTH = HORIZONTAL | VERTICAL,
-	NO_CHANGE = 4
+	HORIZONTAL,
+	VERTICAL,
+	BOTH,
+	NO_CHANGE
 };
 
 inline FlipMode parseFlipMode(const QString& flipMode)
@@ -131,15 +131,15 @@ inline FlipMode parseFlipMode(const QString& flipMode)
 	// convert to lower case
 	QString mode = flipMode.toLower();
 
-	if (flipMode.compare("horizontal") == 0)
+	if (mode.compare("horizontal") == 0)
 	{
 		return FlipMode::HORIZONTAL;
 	}
-	else if (flipMode.compare("vertical")  == 0)
+	else if (mode.compare("vertical")  == 0)
 	{
 		return FlipMode::VERTICAL;
 	}
-	else if (flipMode.compare("both")  == 0)
+	else if (mode.compare("both")  == 0)
 	{
 		return FlipMode::BOTH;
 	}
@@ -150,7 +150,6 @@ inline FlipMode parseFlipMode(const QString& flipMode)
 
 inline QString flipModeToString(const FlipMode& flipMode)
 {
-
 	if ( flipMode == FlipMode::HORIZONTAL)
 	{
 		return "horizontal";

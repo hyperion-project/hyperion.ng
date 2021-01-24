@@ -3,26 +3,31 @@
 volatile bool MFThread::_isActive = false;
 
 MFThread::MFThread()
-	: _localData(nullptr)
+	: _isBusy(false)
+	, _semaphore(1)
+	, _localData(nullptr)
 	, _localDataSize(0)
-	, _decompress(nullptr)
 	, _scalingFactorsCount(0)
 	, _scalingFactors(nullptr)
-	, _isBusy(false)
-	, _semaphore(1)
+	, _transform(nullptr)
+	, _decompress(nullptr)
+	, _xform(nullptr)
 	, _imageResampler()
 {
 }
 
 MFThread::~MFThread()
 {
-	if (_decompress == nullptr)
+	if (_transform)
+		tjDestroy(_transform);
+
+	if (_decompress)
 		tjDestroy(_decompress);
 
-	if (_localData != NULL)
+	if (_localData)
 	{
 		free(_localData);
-		_localData = NULL;
+		_localData = nullptr;
 		_localDataSize = 0;
 	}
 }
@@ -31,9 +36,9 @@ void MFThread::setup(
 	unsigned int threadIndex, PixelFormat pixelFormat, uint8_t* sharedData,
 	int size, int width, int height, int lineLength,
 	int subsamp, unsigned cropLeft, unsigned cropTop, unsigned cropBottom, unsigned cropRight,
-	VideoMode videoMode, int currentFrame, int pixelDecimation)
+	VideoMode videoMode, FlipMode flipMode, int currentFrame, int pixelDecimation)
 {
-	_workerIndex = threadIndex;
+	_threadIndex = threadIndex;
 	_lineLength = lineLength;
 	_pixelFormat = pixelFormat;
 	_size = size;
@@ -44,26 +49,25 @@ void MFThread::setup(
 	_cropTop = cropTop;
 	_cropBottom = cropBottom;
 	_cropRight = cropRight;
+	_flipMode = flipMode;
 	_currentFrame = currentFrame;
 	_pixelDecimation = pixelDecimation;
 
 	_imageResampler.setVideoMode(videoMode);
+	_imageResampler.setFlipMode(_flipMode);
 	_imageResampler.setCropping(cropLeft, cropRight, cropTop, cropBottom);
 	_imageResampler.setHorizontalPixelDecimation(_pixelDecimation);
 	_imageResampler.setVerticalPixelDecimation(_pixelDecimation);
-	_imageResampler.setFlipMode(FlipMode::NO_CHANGE);
 
 	if (size > _localDataSize)
 	{
-		if (_localData != NULL)
-		{
-			free(_localData);
-			_localData = NULL;
-			_localDataSize = 0;
-		}
-		_localData = (uint8_t *) malloc(size+1);
+		if (_localData)
+			tjFree(_localData);
+
+		_localData = (uint8_t*)tjAlloc(size + 1);
 		_localDataSize = size;
 	}
+
 	memcpy(_localData, sharedData, size);
 }
 
@@ -79,7 +83,7 @@ void MFThread::run()
 		{
 			Image<ColorRgb> image = Image<ColorRgb>();
 			_imageResampler.processImage(_localData, _width, _height, _lineLength, PixelFormat::BGR24, image);
-			emit newFrame(_workerIndex, image, _currentFrame);
+			emit newFrame(_threadIndex, image, _currentFrame);
 		}
 	}
 }
@@ -108,11 +112,36 @@ void MFThread::noBusy()
 
 void MFThread::processImageMjpeg()
 {
-	if (_decompress == nullptr)
+	if (!_transform && _flipMode != FlipMode::NO_CHANGE)
+	{
+		_transform = tjInitTransform();
+		_xform = new tjtransform();
+	}
+
+	if (_flipMode == FlipMode::BOTH || _flipMode == FlipMode::HORIZONTAL)
+	{
+		_xform->op = TJXOP_HFLIP;
+		uint8_t* dstBuf = nullptr;
+		unsigned long dstSize = 0;
+		tjTransform(_transform, _localData, _size, 1, &dstBuf, &dstSize, _xform, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE);
+		_localData = dstBuf;
+		_size = dstSize;
+	}
+
+	if (_flipMode == FlipMode::BOTH || _flipMode == FlipMode::VERTICAL)
+	{
+		_xform->op = TJXOP_VFLIP;
+		uint8_t *dstBuf = nullptr;
+		unsigned long dstSize = 0;
+		tjTransform(_transform, _localData, _size, 1, &dstBuf, &dstSize, _xform, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE);
+		_localData = dstBuf;
+		_size = dstSize;
+	}
+
+	if (!_decompress)
 	{
 		_decompress = tjInitDecompress();
-		_scalingFactors = tjGetScalingFactors (&_scalingFactorsCount);
-		tjhandle handle=NULL;
+		_scalingFactors = tjGetScalingFactors(&_scalingFactorsCount);
 	}
 
 	if (tjDecompressHeader2(_decompress, _localData, _size, &_width, &_height, &_subsamp) != 0)
@@ -153,10 +182,10 @@ void MFThread::processImageMjpeg()
 
 	// got image, process it
 	if ( !(_cropLeft > 0 || _cropTop > 0 || _cropBottom > 0 || _cropRight > 0))
-		emit newFrame(_workerIndex, srcImage, _currentFrame);
+		emit newFrame(_threadIndex, srcImage, _currentFrame);
 	else
     {
-    	// calculate the output size
+		// calculate the output size
 		int outputWidth = (_width - _cropLeft - _cropRight);
 		int outputHeight = (_height - _cropTop - _cropBottom);
 
@@ -171,10 +200,12 @@ void MFThread::processImageMjpeg()
 			unsigned char* dest = (unsigned char*)destImage.memptr() + y*destImage.width()*3;
 			memcpy(dest, source, destImage.width()*3);
 			free(source);
+			source = nullptr;
 			free(dest);
+			dest = nullptr;
 		}
 
     	// emit
-		emit newFrame(_workerIndex, destImage, _currentFrame);
+		emit newFrame(_threadIndex, destImage, _currentFrame);
 	}
 }

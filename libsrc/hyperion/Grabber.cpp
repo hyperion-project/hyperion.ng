@@ -4,6 +4,7 @@ Grabber::Grabber(const QString& grabberName, int width, int height, int cropLeft
 	: _imageResampler()
 	, _useImageResampler(true)
 	, _videoMode(VideoMode::VIDEO_2D)
+	, _flipMode(FlipMode::NO_CHANGE)
 	, _width(width)
 	, _height(height)
 	, _fps(15)
@@ -32,6 +33,16 @@ void Grabber::setVideoMode(VideoMode mode)
 	if ( _useImageResampler )
 	{
 		_imageResampler.setVideoMode(_videoMode);
+	}
+}
+
+void Grabber::setFlipMode(FlipMode mode)
+{
+	Debug(_log,"Set flipmode to %d", mode);
+	_flipMode = mode;
+	if ( _useImageResampler )
+	{
+		_imageResampler.setFlipMode(_flipMode);
 	}
 }
 

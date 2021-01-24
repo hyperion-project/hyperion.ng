@@ -12,8 +12,8 @@ QtGrabber::QtGrabber(int cropLeft, int cropRight, int cropTop, int cropBottom, i
 	: Grabber("QTGRABBER", 0, 0, cropLeft, cropRight, cropTop, cropBottom)
 	, _display(unsigned(display))
 	, _pixelDecimation(pixelDecimation)
-	, _screenWidth(0)
-	, _screenHeight(0)
+	, _calculatedWidth(0)
+	, _calculatedHeight(0)
 	, _src_x(0)
 	, _src_y(0)
 	, _src_x_max(0)
@@ -98,20 +98,13 @@ int QtGrabber::grabFrame(Image<ColorRgb> & image)
 		setEnabled(setupDisplay());
 		return -1;
 	}
-	QPixmap originalPixmap = _screen->grabWindow(0, _src_x, _src_y, _src_x_max, _src_y_max);
-	QPixmap resizedPixmap = originalPixmap.scaled(_width,_height);
-	QImage imageFrame = resizedPixmap.toImage().convertToFormat( QImage::Format_RGB888);
-	image.resize(imageFrame.width(), imageFrame.height());
 
-	for (int y=0; y<imageFrame.height(); ++y)
-		for (int x=0; x<imageFrame.width(); ++x)
-		{
-			QColor inPixel(imageFrame.pixel(x,y));
-			ColorRgb & outPixel = image(x,y);
-			outPixel.red   = inPixel.red();
-			outPixel.green = inPixel.green();
-			outPixel.blue  = inPixel.blue();
-		}
+	QPixmap originalPixmap = _screen->grabWindow(0, _src_x, _src_y, _src_x_max, _src_y_max);
+	QImage imageFrame = originalPixmap.toImage().scaled(_calculatedWidth, _calculatedHeight).convertToFormat( QImage::Format_RGB888);
+	image.resize(_calculatedWidth, _calculatedHeight);
+
+	for (int y = 0; y < imageFrame.height(); y++)
+		memcpy((unsigned char*)image.memptr() + y * image.width() * 3, (unsigned char*)imageFrame.scanLine(y), imageFrame.width() * 3);
 
 	return 0;
 }
@@ -122,59 +115,59 @@ int QtGrabber::updateScreenDimensions(bool force)
 		return -1;
 
 	const QRect& geo = _screen->geometry();
-	if (!force && _screenWidth == unsigned(geo.right()) && _screenHeight == unsigned(geo.bottom()))
+	if (!force && _width == unsigned(geo.right()) && _height == unsigned(geo.bottom()))
 	{
 		// No update required
 		return 0;
 	}
 
-	Info(_log, "Update of screen resolution: [%dx%d] to [%dx%d]", _screenWidth, _screenHeight, geo.right(), geo.bottom());
-	_screenWidth  = geo.right() - geo.left();
-	_screenHeight = geo.bottom() - geo.top();
+	Info(_log, "Update of screen resolution: [%dx%d] to [%dx%d]", _width, _height, geo.right(), geo.bottom());
+	_width  = geo.right() - geo.left();
+	_height = geo.bottom() - geo.top();
 
 	int width=0, height=0;
 
 	// Image scaling is performed by Qt
-	width  =  (_screenWidth > unsigned(_cropLeft + _cropRight))
-		? ((_screenWidth - _cropLeft - _cropRight) / _pixelDecimation)
-		: (_screenWidth / _pixelDecimation);
+	width  =  (_width > (_cropLeft + _cropRight))
+		? ((_width - _cropLeft - _cropRight) / _pixelDecimation)
+		: (_width / _pixelDecimation);
 
-	height =  (_screenHeight > unsigned(_cropTop + _cropBottom))
-		? ((_screenHeight - _cropTop - _cropBottom) / _pixelDecimation)
-		: (_screenHeight / _pixelDecimation);
+	height =  (_height > (_cropTop + _cropBottom))
+		? ((_height - _cropTop - _cropBottom) / _pixelDecimation)
+		: (_height / _pixelDecimation);
 
 
 	// calculate final image dimensions and adjust top/left cropping in 3D modes
 	switch (_videoMode)
 	{
 	case VideoMode::VIDEO_3DSBS:
-		_width  = width /2;
-		_height = height;
+		_calculatedWidth  = width /2;
+		_calculatedHeight = height;
 		_src_x  = _cropLeft / 2;
 		_src_y  = _cropTop;
-		_src_x_max = (_screenWidth / 2) - _cropRight;
-		_src_y_max = _screenHeight - _cropBottom;
+		_src_x_max = (_width / 2) - _cropRight - _cropLeft;
+		_src_y_max = _height - _cropBottom - _cropTop;
 		break;
 	case VideoMode::VIDEO_3DTAB:
-		_width  = width;
-		_height = height / 2;
+		_calculatedWidth  = width;
+		_calculatedHeight = height / 2;
 		_src_x  = _cropLeft;
 		_src_y  = _cropTop / 2;
-		_src_x_max = _screenWidth - _cropRight;
-		_src_y_max = (_screenHeight / 2) - _cropBottom;
+		_src_x_max = _width - _cropRight - _cropLeft;
+		_src_y_max = (_height / 2) - _cropBottom - _cropTop;
 		break;
 	case VideoMode::VIDEO_2D:
 	default:
-		_width  = width;
-		_height = height;
+		_calculatedWidth  = width;
+		_calculatedHeight = height;
 		_src_x  = _cropLeft;
 		_src_y  = _cropTop;
-		_src_x_max = _screenWidth - _cropRight;
-		_src_y_max = _screenHeight - _cropBottom;
+		_src_x_max = _width - _cropRight - _cropLeft;
+		_src_y_max = _height - _cropBottom - _cropTop;
 		break;
 	}
 
-	Info(_log, "Update output image resolution to [%dx%d]", _width, _height);
+	Info(_log, "Update output image resolution to [%dx%d]", _calculatedWidth, _calculatedHeight);
 	return 1;
 }
 

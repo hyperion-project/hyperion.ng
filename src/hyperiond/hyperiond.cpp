@@ -605,7 +605,8 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 					grabberConfig["height"].toInt(0),
 					grabberConfig["fps"].toInt(15),
 					grabberConfig["input"].toInt(-1),
-					grabberConfig["sizeDecimation"].toInt(8));
+					grabberConfig["sizeDecimation"].toInt(8),
+					grabberConfig["flip"].toString("auto"));
 
 			// Image cropping
 			_mfGrabber->setCropping(

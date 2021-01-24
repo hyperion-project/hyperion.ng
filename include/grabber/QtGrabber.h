@@ -86,8 +86,8 @@ private:
 
 	unsigned _display;
 	int _pixelDecimation;
-	unsigned _screenWidth;
-	unsigned _screenHeight;
+	unsigned _calculatedWidth;
+	unsigned _calculatedHeight;
 	unsigned _src_x;
 	unsigned _src_y;
 	unsigned _src_x_max;

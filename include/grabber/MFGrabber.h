@@ -56,7 +56,7 @@ public:
 		QList<DevicePropertiesItem> valid	= QList<DevicePropertiesItem>();
 	};
 
-	MFGrabber(const QString & device, const unsigned width, const unsigned height, const unsigned fps, const unsigned input, int pixelDecimation);
+	MFGrabber(const QString & device, const unsigned width, const unsigned height, const unsigned fps, const unsigned input, int pixelDecimation, QString flipMode);
 	~MFGrabber() override;
 
 	void receive_image(const void *frameImageBuffer, int size);
@@ -80,6 +80,7 @@ public:
 	bool setFramerate(int fps) override;
 	void setFpsSoftwareDecimation(int decimation);
 	void setEncoding(QString enc);
+	void setFlipMode(QString flipMode);
 	void setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue);
 
 public slots:

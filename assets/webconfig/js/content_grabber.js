@@ -13,35 +13,40 @@ $(document).ready(function () {
         "type": "string",
         "title": "edt_conf_v4l2_device_title",
         "propertyOrder": 1,
-        "required": true
+        "required": true,
+        "custom": true
       },
       "device_inputs":
       {
         "type": "string",
         "title": "edt_conf_v4l2_input_title",
         "propertyOrder": 3,
-        "required": true
+        "required": true,
+        "custom": false
       },
       "encoding_format":
       {
         "type": "string",
         "title": "edt_conf_v4l2_encoding_title",
         "propertyOrder": 5,
-        "required": true
+        "required": true,
+        "custom": false
       },
       "resolutions":
       {
         "type": "string",
         "title": "edt_conf_v4l2_resolution_title",
-        "propertyOrder": 8,
-        "required": true
+        "propertyOrder": 9,
+        "required": true,
+        "custom": true
       },
       "framerates":
       {
         "type": "string",
         "title": "edt_conf_v4l2_framerate_title",
-        "propertyOrder": 11,
-        "required": true
+        "propertyOrder": 12,
+        "required": true,
+        "custom": true
       }
     };
 
@@ -52,7 +57,7 @@ $(document).ready(function () {
         var enumTitelVals = [];
         var v4l2_properties = JSON.parse(JSON.stringify(window.serverInfo.grabbers.v4l2_properties));
 
-        if (key === 'available_devices') {
+        if (key == 'available_devices') {
           for (var i = 0; i < v4l2_properties.length; i++) {
             enumVals.push(v4l2_properties[i]['device']);
 
@@ -79,17 +84,20 @@ $(document).ready(function () {
           }
         }
 
-        window.schema.grabberV4L2.properties[key] = {
-          "type": schema[key].type,
-          "title": schema[key].title,
-          "enum": [].concat(["auto"], enumVals, ["custom"]),
-          "options":
-          {
-            "enum_titles": [].concat(["edt_conf_enum_automatic"], enumTitelVals, ["edt_conf_enum_custom"]),
-          },
-          "propertyOrder": schema[key].propertyOrder,
-          "required": schema[key].required
-        };
+        if (key != 'device_inputs' || enumVals.length > 0) {
+          window.schema.grabberV4L2.properties[key] = {
+            "type": schema[key].type,
+            "title": schema[key].title,
+            ...(schema[key].custom ? {"enum": [].concat(["auto"], enumVals, ["custom"]),} : {"enum": [].concat(["auto"], enumVals),}),
+            // "enum": [].concat(["auto"], enumVals, ["custom"]),
+            "options":
+            {
+              "enum_titles": [].concat(["edt_conf_enum_automatic"], enumTitelVals, ["edt_conf_enum_custom"]),
+            },
+            "propertyOrder": schema[key].propertyOrder,
+            "required": schema[key].required
+          };
+        }
       }
     };
 

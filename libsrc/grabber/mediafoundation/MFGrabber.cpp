@@ -1,7 +1,10 @@
 #include "MFSourceReaderCB.h"
 #include "grabber/MFGrabber.h"
 
-MFGrabber::MFGrabber(const QString & device, unsigned width, unsigned height, unsigned fps, unsigned input, int pixelDecimation)
+// Constants
+namespace { const bool verbose = false; }
+
+MFGrabber::MFGrabber(const QString & device, unsigned width, unsigned height, unsigned fps, unsigned input, int pixelDecimation, QString flipMode)
 	: Grabber("V4L2:"+device)
 	, _deviceName(device)
 	, _hr(S_FALSE)
@@ -30,6 +33,7 @@ MFGrabber::MFGrabber(const QString & device, unsigned width, unsigned height, un
 	setInput(input);
 	setWidthHeight(width, height);
 	setFramerate(fps);
+	setFlipMode(flipMode);
 	// setDeviceVideoStandard(device, videoStandard); // TODO
 
 	CoInitializeEx(0, COINIT_MULTITHREADED);
@@ -467,8 +471,8 @@ void MFGrabber::enumVideoCaptureDevices()
 											if (pixelformat != PixelFormat::NO_CHANGE)
 											{
 												int framerate = fr1/fr2;
-												QString sFrame = QString::number(framerate).rightJustified(2,' ');
-												QString displayResolutions = QString::number(w).rightJustified(4,' ') +"x"+ QString::number(h).rightJustified(4,' ');
+												QString sFrame = QString::number(framerate).rightJustified(2,' ').trimmed();
+												QString displayResolutions = QString::number(w).rightJustified(4,' ').trimmed() +"x"+ QString::number(h).rightJustified(4,' ').trimmed();
 
 												if (!properties.displayResolutions.contains(displayResolutions))
 													properties.displayResolutions << displayResolutions;
@@ -486,7 +490,7 @@ void MFGrabber::enumVideoCaptureDevices()
 												di.guid = format;
 												properties.valid.append(di);
 
-												Debug(_log,  "%s %d x %d @ %d fps (%s)", QSTRING_CSTR(dev), di.x, di.y, di.fps, QSTRING_CSTR(pixelFormatToString(di.pf)));
+												DebugIf(verbose, _log,  "%s %d x %d @ %d fps (%s)", QSTRING_CSTR(dev), di.x, di.y, di.fps, QSTRING_CSTR(pixelFormatToString(di.pf)));
 											}
 										}
 
@@ -553,12 +557,12 @@ void MFGrabber::process_image(const void *frameImageBuffer, int size)
 
 				for (unsigned int i=0; i < _threadManager._maxThreads && _threadManager._threads != nullptr; i++)
 				{
-					MFThread* _thread=_threadManager._threads[i];
+					MFThread* _thread = _threadManager._threads[i];
 					connect(_thread, SIGNAL(newFrame(unsigned int, const Image<ColorRgb> &,unsigned int)), this , SLOT(newThreadFrame(unsigned int, const Image<ColorRgb> &, unsigned int)));
 				}
 		    }
 
-			for (unsigned int i=0;_threadManager.isActive() && i < _threadManager._maxThreads && _threadManager._threads != nullptr; i++)
+			for (unsigned int i = 0;_threadManager.isActive() && i < _threadManager._maxThreads && _threadManager._threads != nullptr; i++)
 			{
 				if ((_threadManager._threads[i]->isFinished() || !_threadManager._threads[i]->isRunning()))
 				{
@@ -566,11 +570,8 @@ void MFGrabber::process_image(const void *frameImageBuffer, int size)
 					if ( _threadManager._threads[i]->isBusy() == false)
 					{
 						MFThread* _thread = _threadManager._threads[i];
-						_thread->setup(i, _pixelFormat, (uint8_t *)frameImageBuffer, size, _width, _height, _lineLength, _subsamp, _cropLeft, _cropTop, _cropBottom, _cropRight, _videoMode, processFrameIndex, _pixelDecimation);
-
-						if (_threadManager._maxThreads > 1)
-							_threadManager._threads[i]->start();
-
+						_thread->setup(i, _pixelFormat, (uint8_t *)frameImageBuffer, size, _width, _height, _lineLength, _subsamp, _cropLeft, _cropTop, _cropBottom, _cropRight, _videoMode, _flipMode, processFrameIndex, _pixelDecimation);
+						_threadManager._threads[i]->start();
 						break;
 					}
 				}
@@ -586,7 +587,8 @@ void MFGrabber::setSignalThreshold(double redSignalThreshold, double greenSignal
 	_noSignalThresholdColor.blue  = uint8_t(255*blueSignalThreshold);
 	_noSignalCounterThreshold     = qMax(1, noSignalCounterThreshold);
 
-	Info(_log, "Signal threshold set to: {%d, %d, %d} and frames: %d", _noSignalThresholdColor.red, _noSignalThresholdColor.green, _noSignalThresholdColor.blue, _noSignalCounterThreshold );
+	if(_signalDetectionEnabled)
+		Info(_log, "Signal threshold set to: {%d, %d, %d} and frames: %d", _noSignalThresholdColor.red, _noSignalThresholdColor.green, _noSignalThresholdColor.blue, _noSignalCounterThreshold );
 }
 
 void MFGrabber::setSignalDetectionOffset(double horizontalMin, double verticalMin, double horizontalMax, double verticalMax)
@@ -599,7 +601,8 @@ void MFGrabber::setSignalDetectionOffset(double horizontalMin, double verticalMi
 	_x_frac_max = horizontalMax;
 	_y_frac_max = verticalMax;
 
-	Info(_log, "Signal detection area set to: %f,%f x %f,%f", _x_frac_min, _y_frac_min, _x_frac_max, _y_frac_max );
+	if(_signalDetectionEnabled)
+		Info(_log, "Signal detection area set to: %f,%f x %f,%f", _x_frac_min, _y_frac_min, _x_frac_max, _y_frac_max );
 }
 
 bool MFGrabber::start()
@@ -742,6 +745,12 @@ void MFGrabber::setPixelDecimation(int pixelDecimation)
 {
 	if(_pixelDecimation != pixelDecimation)
 		_pixelDecimation = pixelDecimation;
+}
+
+void MFGrabber::setFlipMode(QString flipMode)
+{
+	if(_flipMode != parseFlipMode(flipMode))
+		Grabber::setFlipMode(parseFlipMode(flipMode));
 }
 
 void MFGrabber::setDeviceVideoStandard(QString device, VideoStandard videoStandard)

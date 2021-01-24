@@ -5,9 +5,9 @@
 // qt
 #include <QTimer>
 
-MFWrapper::MFWrapper(const QString &device, unsigned grabWidth, unsigned grabHeight, unsigned fps, unsigned input, int pixelDecimation )
+MFWrapper::MFWrapper(const QString &device, unsigned grabWidth, unsigned grabHeight, unsigned fps, unsigned input, int pixelDecimation, QString flipMode)
 	: GrabberWrapper("V4L2:"+device, &_grabber, grabWidth, grabHeight, 10)
-	, _grabber(device, grabWidth, grabHeight, fps, input, pixelDecimation)
+	, _grabber(device, grabWidth, grabHeight, fps, input, pixelDecimation, flipMode)
 {
 	_ggrabber = &_grabber;
 
@@ -122,6 +122,9 @@ void MFWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& c
 
 		// image size decimation
 		_grabber.setPixelDecimation(obj["sizeDecimation"].toInt(8));
+
+		// flip mode
+		_grabber.setFlipMode(obj["flip"].toString("no-change"));
 
 		// image cropping
 		_grabber.setCropping(
