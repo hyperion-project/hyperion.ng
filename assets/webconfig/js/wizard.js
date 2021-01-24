@@ -424,7 +424,7 @@ function startWizardCC() {
   }
   //create html
   $('#wiz_header').html('<i class="fa fa-magic fa-fw"></i>' + $.i18n('wiz_cc_title'));
-  $('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n('wiz_cc_title') + '</h4><p>' + $.i18n('wiz_cc_intro1') + '</p><label>' + $.i18n('wiz_cc_kwebs') + '</label><input class="form-control" style="width:170px;margin:auto" id="wiz_cc_kodiip" type="text" placeholder="' + kodiAddress + '" value="' +  kodiAddress + '" /><span id="kodi_status"></span><span id="multi_cali"></span>');
+  $('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n('wiz_cc_title') + '</h4><p>' + $.i18n('wiz_cc_intro1') + '</p><label>' + $.i18n('wiz_cc_kwebs') + '</label><input class="form-control" style="width:170px;margin:auto" id="wiz_cc_kodiip" type="text" placeholder="' + kodiAddress + '" value="' + kodiAddress + '" /><span id="kodi_status"></span><span id="multi_cali"></span>');
   $('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont" disabled="disabled"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
   $('#wizp2_body').html('<div id="wiz_cc_desc" style="font-weight:bold"></div><div id="editor_container_wiz"></div>');
   $('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_back"><i class="fa fa-fw fa-chevron-left"></i>' + $.i18n('general_btn_back') + '</button><button type="button" class="btn btn-primary" id="btn_wiz_next">' + $.i18n('general_btn_next') + '<i style="margin-left:4px;"class="fa fa-fw fa-chevron-right"></i></button><button type="button" class="btn btn-warning" id="btn_wiz_save" style="display:none"><i class="fa fa-fw fa-save"></i>' + $.i18n('general_btn_save') + '</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
@@ -437,10 +437,9 @@ function startWizardCC() {
   });
 
   $('#wiz_cc_kodiip').off().on('change', function () {
-    
     kodiAddress = $(this).val().trim();
     $('#wizp1_body').find("kodiAddress").val(kodiAddress);
-    
+
     $('#kodi_status').html('');
 
     // Remove Kodi's default Web-Socket port (9090) from display and ensure Kodi's default REST-API port (8080) is mapped to web-socket port to ease migration
@@ -788,8 +787,6 @@ async function discover_hue_bridges() {
     const r = res.info;
 
     // Process devices returned by discovery
-    console.log(r);
-
     if (r.devices.length == 0)
       $('#wiz_hue_ipstate').html($.i18n('wiz_hue_failure_ip'));
     else {
@@ -1187,7 +1184,6 @@ function get_hue_lights() {
             }
 
             (cC == 0 || window.readOnlyMode) ? $('#btn_wiz_save').attr("disabled", true) : $('#btn_wiz_save').attr("disabled", false);
-
           });
         }
         $('.hue_sel_watch').trigger('change');
@@ -1212,6 +1208,8 @@ function abortConnection(UserInterval) {
 // Wizard WLED
 //****************************
 var lights = null;
+var selectedLightId = null;
+
 function startWizardWLED(e) {
   //create html
 
@@ -1222,16 +1220,18 @@ function startWizardWLED(e) {
   $('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n(wled_title) + '</h4><p>' + $.i18n(wled_intro1) + '</p>');
   $('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
 
-  /*$('#wizp2_body').html('<div id="wh_topcontainer"></div>');
+  $('#wizp2_body').html('<div id="wh_topcontainer"></div>');
 
   $('#wh_topcontainer').append('<div class="form-group" id="usrcont" style="display:none"></div>');
 
-  $('#wizp2_body').append('<div id="hue_ids_t" style="display:none"><p style="font-weight:bold" id="hue_id_headline">'+$.i18n('wiz_wled_desc2')+'</p></div>');
+  $('#wizp2_body').append('<div id="wled_ids_t" style="display:none"><p style="font-weight:bold" id="wled_id_headline">' + $.i18n('wiz_wled_desc2') + '</p></div>');
 
-  createTable("lidsh", "lidsb", "hue_ids_t");
-  $('.lidsh').append(createTableRow([$.i18n('edt_dev_spec_lights_title'),$.i18n('wiz_pos'),$.i18n('wiz_identify')], true));
-  $('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save" style="display:none"><i class="fa fa-fw fa-save"></i>'+$.i18n('general_btn_save')+'</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>'+$.i18n('general_btn_cancel')+'</button>');
-*/
+  createTable("lidsh", "lidsb", "wled_ids_t");
+  $('.lidsh').append(createTableRow([$.i18n('edt_dev_spec_lights_title'), $.i18n('wiz_identify')], true));
+  $('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save" style="display:none"><i class="fa fa-fw fa-save"></i>'
+    + $.i18n('general_btn_save') + '</button><buttowindow.serverConfig.device = d;n type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>'
+    + $.i18n('general_btn_cancel') + '</button>');
+
   //open modal
   $("#wizard_modal").modal({
     backdrop: "static",
@@ -1241,44 +1241,127 @@ function startWizardWLED(e) {
 
   //listen for continue
   $('#btn_wiz_cont').off().on('click', function () {
-    /* For testing only
-
-      discover_wled();
-
-      var hostAddress = conf_editor.getEditor("root.specificOptions.host").getValue();
-      if(hostAddress != "")
-      {
-        getProperties_wled(hostAddress,"info");
-        identify_wled(hostAddress)
-      }
-
-     For testing only */
+    beginWizardwled();
+    $('#wizp1').toggle(false);
+    $('#wizp2').toggle(true);
   });
 }
 
-async function discover_wled() {
+function beginWizardwled() {
+  lights = [];
+
+  discover_wleds();
+
+  $('#btn_wiz_save').off().on("click", function () {
+    //LED device config
+    //Start with a clean configuration
+    var d = {};
+
+    d.type = 'wled';
+
+    if (!lights[selectedLightId].host) {
+      d.host = lights[selectedLightId].ip;
+    } else {
+      d.host = lights[selectedLightId].host;
+    }
+
+    var wledProperties = lights[selectedLightId].props;
+
+    if (Object.keys(wledProperties).length === 0) {
+      alert($.i18n('wiz_wled_noprops'));
+      d.hardwareLedCount = 1;
+    } else {
+      d.hardwareLedCount = wledProperties.leds.count;
+    }
+
+    d.colorOrder = conf_editor.getEditor("root.generalOptions.colorOrder").getValue();
+    d.latchTime = parseInt(conf_editor.getEditor("root.specificOptions.latchTime").getValue());;
+
+    window.serverConfig.device = d;
+
+    //LED layout - have initial layout prepared matching the LED-count
+
+    var wledLedConfig = [];
+    wledLedConfig = createClassicLedLayoutSimple(0, 0, 0, d.hardwareLedCount, 0, true);
+
+    window.serverConfig.leds = wledLedConfig;
+
+    //smoothing off
+    window.serverConfig.smoothing.enable = false;
+
+    requestWriteConfig(window.serverConfig, true);
+
+    resetWizard();
+  });
+
+  $('#btn_wiz_abort').off().on('click', resetWizard);
+}
+
+async function discover_wleds() {
   const res = await requestLedDeviceDiscovery('wled');
 
-  // TODO: error case unhandled
-  // res can be: false (timeout) or res.error (not found)
   if (res && !res.error) {
-    const r = res.info
+    const r = res.info;
 
     // Process devices returned by discovery
-    console.log(r);
-
-    if (r.devices.length == 0)
-      $('#wiz_hue_ipstate').html($.i18n('wiz_hue_failure_ip'));
-    else {
-      for (const device of r.devices) {
-        console.log("Device:", device);
-
-        var ip = device.hostname + ":" + device.port;
-        console.log("Host:", ip);
-
-        //wledIPs.push({internalipaddress : ip});
+    for (const device of r.devices) {
+      if (device.address !== "") {
+        if (getIpInLights(device.address).length === 0) {
+          var light = {};
+          light.ip = device.address;
+          light.host = device.hostname;
+          light.name = device.name;
+          light.type = device.type;
+          lights.push(light);
+        }
       }
     }
+    assign_wled_lights();
+  }
+}
+
+function assign_wled_lights() {
+  // If records are left for configuration
+  if (Object.keys(lights).length > 0) {
+    $('#wh_topcontainer').toggle(false);
+    $('#wled_ids_t, #btn_wiz_save').toggle(true);
+
+    $('.lidsb').html("");
+
+    var options = "";
+
+    for (var lightid in lights) {
+      lights[lightid].id = lightid;
+
+      var lightName = lights[lightid].name;
+      var lightHostname = lights[lightid].host;
+      var lightIP = lights[lightid].ip;
+
+      options += '<option value="' + lightid + '">' + lightName + '</option>';
+    }
+
+    var enabled = 'enabled';
+
+    $('.lidsb').append(createTableRow(['<select id="wled_select_id" ' + enabled + ' class="wled_sel_watch form-control">'
+      + options
+      + '</select>', '<button id="wiz_identify_btn" class="btn btn-sm btn-primary">'
+      + $.i18n('wiz_identify') + '</button>']));
+
+    $('.wled_sel_watch').bind("change", function () {
+      selectedLightId = $('#wled_select_id').val();
+      var lightIP = lights[selectedLightId].ip;
+
+      $('#wiz_identify_btn').unbind().bind('click', function (event) { identify_wled_device(lightIP); });
+
+      if (!lights[selectedLightId].props) {
+        getProperties_wled(lightIP, "info");
+      }
+    });
+    $('.wled_sel_watch').trigger('change');
+  }
+  else {
+    var noLightsTxt = '<p style="font-weight:bold;color:red;">' + $.i18n('wiz_noLights', 'wleds') + '</p>';
+    $('#wizp2_body').append(noLightsTxt);
   }
 }
 
@@ -1287,18 +1370,16 @@ async function getProperties_wled(hostAddress, resourceFilter) {
 
   const res = await requestLedDeviceProperties('wled', params);
 
-  // TODO: error case unhandled
-  // res can be: false (timeout) or res.error (not found)
   if (res && !res.error) {
-    const r = res.info
+    var wledProperties = res.info.properties;
 
-    // Process properties returned
-    console.log(r);
+    //Store properties along light with given IP-address
+    var id = getIpInLights(hostAddress)[0].id;
+    lights[id].props = wledProperties;
   }
 }
 
-async function identify_wled(hostAddress) {
-
+async function identify_wled_device(hostAddress) {
   // Take care that new record cannot be save during background process
   $('#btn_wiz_save').attr('disabled', true);
 
@@ -1306,7 +1387,7 @@ async function identify_wled(hostAddress) {
   const res = await requestLedDeviceIdentification('wled', params);
 
   if (!window.readOnlyMode) {
-    $('#btn_wiz_save').attr('disabled', false);  
+    $('#btn_wiz_save').attr('disabled', false);
   }
 }
 
@@ -1438,8 +1519,17 @@ async function discover_yeelight_lights() {
           var light = {};
           light.host = device.hostname;
           light.port = device.port;
-          light.name = device.other.name;
-          light.model = device.other.model;
+
+          if (device.txt) {
+            light.name = device.name;
+            light.model = device.txt.md;
+            //Yeelight does not provide correct API port with mDNS response, use default one
+            light.port = 55443;
+          }
+          else {
+            light.name = device.other.name;
+            light.model = device.other.model;
+          }
           lights.push(light);
         }
       }
@@ -1469,7 +1559,8 @@ async function discover_yeelight_lights() {
 }
 
 function assign_yeelight_lights() {
-  var models = ['color', 'color1', 'color2', 'color4', 'stripe', 'strip1'];
+  // Model mappings, see https://www.home-assistant.io/integrations/yeelight/
+  var models = ['color', 'color1', 'YLDP02YL', 'YLDP02YL', 'color2', 'YLDP06YL', 'color4', 'YLDP13YL', 'stripe', 'YLDD04YL', 'strip1', 'YLDD01YL', 'YLDD02YL'];
 
   // If records are left for configuration
   if (Object.keys(lights).length > 0) {
@@ -1534,7 +1625,7 @@ function assign_yeelight_lights() {
     $('.yee_sel_watch').trigger('change');
   }
   else {
-    var noLightsTxt = '<p style="font-weight:bold;color:red;">' + $.i18n('wiz_noLights','Yeelights') + '</p>';
+    var noLightsTxt = '<p style="font-weight:bold;color:red;">' + $.i18n('wiz_noLights', 'Yeelights') + '</p>';
     $('#wizp2_body').append(noLightsTxt);
   }
 }
@@ -1555,7 +1646,6 @@ async function getProperties_yeelight(hostname, port) {
 }
 
 async function identify_yeelight_device(hostname, port) {
-
   // Take care that new record cannot be save during background process
   $('#btn_wiz_save').attr('disabled', true);
 
@@ -1563,7 +1653,7 @@ async function identify_yeelight_device(hostname, port) {
   const res = await requestLedDeviceIdentification("yeelight", params);
 
   if (!window.readOnlyMode) {
-    $('#btn_wiz_save').attr('disabled', false);  
+    $('#btn_wiz_save').attr('disabled', false);
   }
 }
 
@@ -1675,14 +1765,12 @@ async function discover_atmoorb_lights(multiCastGroup, multiCastPort) {
   var light = {};
 
   var params = {};
-  if (multiCastGroup !== "")
-  {
+  if (multiCastGroup !== "") {
     params.multiCastGroup = multiCastGroup;
   }
 
-  if (multiCastPort !== 0)
-  {
-     params.multiCastPort = multiCastPort;
+  if (multiCastPort !== 0) {
+    params.multiCastPort = multiCastPort;
   }
 
   // Get discovered lights
@@ -1692,14 +1780,14 @@ async function discover_atmoorb_lights(multiCastGroup, multiCastPort) {
   // res can be: false (timeout) or res.error (not found)
   if (res && !res.error) {
     const r = res.info;
-    
+
     // Process devices returned by discovery
     for (const device of r.devices) {
       if (device.id !== "") {
         if (getIdInLights(device.id).length === 0) {
           var light = {};
           light.id = device.id;
-          light.ip = device.ip;
+          light.ip = device.address;
           light.host = device.hostname;
           lights.push(light);
         }
@@ -1793,13 +1881,12 @@ function assign_atmoorb_lights() {
     $('.orb_sel_watch').trigger('change');
   }
   else {
-    var noLightsTxt = '<p style="font-weight:bold;color:red;">' + $.i18n('wiz_noLights','AtmoOrbs') + '</p>';
+    var noLightsTxt = '<p style="font-weight:bold;color:red;">' + $.i18n('wiz_noLights', 'AtmoOrbs') + '</p>';
     $('#wizp2_body').append(noLightsTxt);
   }
 }
 
 async function identify_atmoorb_device(orbId) {
-
   // Take care that new record cannot be save during background process
   $('#btn_wiz_save').attr('disabled', true);
 
@@ -1807,7 +1894,7 @@ async function identify_atmoorb_device(orbId) {
   const res = await requestLedDeviceIdentification("atmoorb", params);
 
   if (!window.readOnlyMode) {
-    $('#btn_wiz_save').attr('disabled', false);  
+    $('#btn_wiz_save').attr('disabled', false);
   }
 }
 
@@ -1856,7 +1943,6 @@ async function getProperties_nanoleaf(hostAddress, authToken, resourceFilter) {
 }
 
 async function identify_nanoleaf(hostAddress, authToken) {
-
   // Take care that new record cannot be save during background process
   $('#btn_wiz_save').attr('disabled', true);
 
@@ -1864,7 +1950,7 @@ async function identify_nanoleaf(hostAddress, authToken) {
   const res = await requestLedDeviceIdentification('nanoleaf', params);
 
   if (!window.readOnlyMode) {
-    $('#btn_wiz_save').attr('disabled', false);  
+    $('#btn_wiz_save').attr('disabled', false);
   }
 }
 
@@ -1975,10 +2061,10 @@ async function discover_cololights() {
 
     // Process devices returned by discovery
     for (const device of r.devices) {
-      if (device.ip !== "") {
-        if (getIpInLights(device.ip).length === 0) {
+      if (device.address !== "") {
+        if (getIpInLights(device.address).length === 0) {
           var light = {};
-          light.ip = device.ip;
+          light.ip = device.address;
           light.host = device.hostname;
           light.name = device.name;
           light.type = device.type;
@@ -2003,10 +2089,11 @@ function assign_cololight_lights() {
     for (var lightid in lights) {
       lights[lightid].id = lightid;
 
+      var lightName = lights[lightid].name;
       var lightHostname = lights[lightid].host;
       var lightIP = lights[lightid].ip;
 
-      var val = lightHostname + " (" + lightIP + ")";
+      var val = lightName + " (" + lightIP + ")";
       options += '<option value="' + lightid + '">' + val + '</option>';
     }
 
@@ -2030,7 +2117,7 @@ function assign_cololight_lights() {
     $('.colo_sel_watch').trigger('change');
   }
   else {
-    var noLightsTxt = '<p style="font-weight:bold;color:red;">' + $.i18n('wiz_noLights','Cololights') + '</p>';
+    var noLightsTxt = '<p style="font-weight:bold;color:red;">' + $.i18n('wiz_noLights', 'Cololights') + '</p>';
     $('#wizp2_body').append(noLightsTxt);
   }
 }
@@ -2050,7 +2137,6 @@ async function getProperties_cololight(ip) {
 }
 
 async function identify_cololight_device(hostAddress) {
-
   // Take care that new record cannot be save during background process
   $('#btn_wiz_save').attr('disabled', true);
 
@@ -2058,7 +2144,7 @@ async function identify_cololight_device(hostAddress) {
   const res = await requestLedDeviceIdentification('cololight', params);
 
   if (!window.readOnlyMode) {
-    $('#btn_wiz_save').attr('disabled', false);  
+    $('#btn_wiz_save').attr('disabled', false);
   }
 }
 
