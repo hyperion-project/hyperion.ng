@@ -6,7 +6,6 @@ MFThread::MFThread()
 	: _isBusy(false)
 	, _semaphore(1)
 	, _localData(nullptr)
-	, _localDataSize(0)
 	, _scalingFactorsCount(0)
 	, _scalingFactors(nullptr)
 	, _transform(nullptr)
@@ -28,7 +27,6 @@ MFThread::~MFThread()
 	{
 		free(_localData);
 		_localData = nullptr;
-		_localDataSize = 0;
 	}
 }
 
@@ -41,7 +39,7 @@ void MFThread::setup(
 	_threadIndex = threadIndex;
 	_lineLength = lineLength;
 	_pixelFormat = pixelFormat;
-	_size = size;
+	_size = (unsigned long) size;
 	_width = width;
 	_height = height;
 	_subsamp = subsamp;
@@ -59,15 +57,10 @@ void MFThread::setup(
 	_imageResampler.setHorizontalPixelDecimation(_pixelDecimation);
 	_imageResampler.setVerticalPixelDecimation(_pixelDecimation);
 
-	if (size > _localDataSize)
-	{
-		if (_localData)
-			tjFree(_localData);
+	if (_localData)
+		tjFree(_localData);
 
-		_localData = (uint8_t*)tjAlloc(size + 1);
-		_localDataSize = size;
-	}
-
+	_localData = (uint8_t*)tjAlloc(size + 1);
 	memcpy(_localData, sharedData, size);
 }
 
@@ -121,21 +114,13 @@ void MFThread::processImageMjpeg()
 	if (_flipMode == FlipMode::BOTH || _flipMode == FlipMode::HORIZONTAL)
 	{
 		_xform->op = TJXOP_HFLIP;
-		uint8_t* dstBuf = nullptr;
-		unsigned long dstSize = 0;
-		tjTransform(_transform, _localData, _size, 1, &dstBuf, &dstSize, _xform, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE);
-		_localData = dstBuf;
-		_size = dstSize;
+		tjTransform(_transform, _localData, _size, 1, &_localData, &_size, _xform, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE);
 	}
 
 	if (_flipMode == FlipMode::BOTH || _flipMode == FlipMode::VERTICAL)
 	{
 		_xform->op = TJXOP_VFLIP;
-		uint8_t *dstBuf = nullptr;
-		unsigned long dstSize = 0;
-		tjTransform(_transform, _localData, _size, 1, &dstBuf, &dstSize, _xform, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE);
-		_localData = dstBuf;
-		_size = dstSize;
+		tjTransform(_transform, _localData, _size, 1, &_localData, &_size, _xform, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE);
 	}
 
 	if (!_decompress)

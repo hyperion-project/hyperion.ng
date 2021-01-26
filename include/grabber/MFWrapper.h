@@ -8,7 +8,7 @@ class MFWrapper : public GrabberWrapper
 	Q_OBJECT
 
 public:
-	MFWrapper(const QString & device, const unsigned grabWidth, const unsigned grabHeight, const unsigned fps, const unsigned input, int pixelDecimation, QString flipMode);
+	MFWrapper(const QString & device, const unsigned grabWidth, const unsigned grabHeight, const unsigned fps, int pixelDecimation, QString flipMode);
 	~MFWrapper() override;
 
 	bool getSignalDetectionEnable() const;
@@ -23,17 +23,11 @@ public slots:
 	void setSignalDetectionOffset(double verticalMin, double horizontalMin, double verticalMax, double horizontalMax);
 	void setSignalDetectionEnable(bool enable);
 	void setCecDetectionEnable(bool enable);
-	void setDeviceVideoStandard(const QString& device, VideoStandard videoStandard);
-	void handleSettingsUpdate(settings::type type, const QJsonDocument& config) override;
-
-	///
-	/// @brief set software decimation (v4l2)
-	///
+	bool setDevice(const QString& device);
 	void setFpsSoftwareDecimation(int decimation);
-
-	void setEncoding(QString enc);
-
-	void setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue);
+	bool setEncoding(QString enc);
+	bool setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue);
+	void handleSettingsUpdate(settings::type type, const QJsonDocument& config) override;
 
 private slots:
 	void newFrame(const Image<ColorRgb> & image);

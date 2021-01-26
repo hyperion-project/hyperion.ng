@@ -331,7 +331,13 @@ public:
 	STDMETHODIMP OnFlush(DWORD) { return S_OK; }
 
 private:
-	virtual ~SourceReaderCB() {}
+	virtual ~SourceReaderCB()
+	{
+		_transform->ProcessMessage(MFT_MESSAGE_NOTIFY_END_OF_STREAM, 0);
+		_transform->ProcessMessage(MFT_MESSAGE_NOTIFY_END_STREAMING, 0);
+		SAFE_RELEASE(_transform);
+	}
+
 	void NotifyError(HRESULT hr) { Error(_grabber->_log, "Source Reader error"); }
 
 private:

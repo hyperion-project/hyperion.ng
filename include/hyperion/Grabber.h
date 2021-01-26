@@ -92,9 +92,14 @@ public:
 	virtual void setCecDetectionEnable(bool enable) {}
 
 	///
-	/// @brief Apply device and videoStanded (used from v4l)
+	/// @brief Apply device and videoStandard (used from v4l)
 	///
 	virtual void setDeviceVideoStandard(QString device, VideoStandard videoStandard) {}
+
+	///
+	/// @brief Apply device (used from MediaFoundation)
+	///
+	virtual bool setDevice(QString device) { return false; }
 
 	///
 	/// @brief Apply display index (used from qt)

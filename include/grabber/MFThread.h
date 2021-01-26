@@ -51,25 +51,15 @@ private:
 	tjtransform*		_xform;
 #endif
 
-	static volatile bool _isActive;
+	static volatile bool	_isActive;
 	volatile bool			_isBusy;
 	QSemaphore				_semaphore;
 	unsigned int			_threadIndex;
 	PixelFormat				_pixelFormat;
-	uint8_t*				_localData;
-	int						_localDataSize,
-							_scalingFactorsCount,
-							_size,
-							_width,
-							_height,
-							_lineLength,
-							_subsamp,
-							_currentFrame,
-							_pixelDecimation;
-	unsigned				_cropLeft,
-							_cropTop,
-							_cropBottom,
-							_cropRight;
+	uint8_t*				_localData, *_flipBuffer;
+	int						_scalingFactorsCount, _width, _height, _lineLength, _subsamp, _currentFrame, _pixelDecimation;
+	unsigned long			_size;
+	unsigned				_cropLeft, _cropTop, _cropBottom, _cropRight;
 	FlipMode				_flipMode;
 	ImageResampler			_imageResampler;
 };

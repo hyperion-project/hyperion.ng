@@ -56,7 +56,7 @@ public:
 		QList<DevicePropertiesItem> valid	= QList<DevicePropertiesItem>();
 	};
 
-	MFGrabber(const QString & device, const unsigned width, const unsigned height, const unsigned fps, const unsigned input, int pixelDecimation, QString flipMode);
+	MFGrabber(const QString & device, const unsigned width, const unsigned height, const unsigned fps, int pixelDecimation, QString flipMode);
 	~MFGrabber() override;
 
 	void receive_image(const void *frameImageBuffer, int size);
@@ -74,14 +74,15 @@ public:
 	void setSignalDetectionEnable(bool enable) override;
 	void setPixelDecimation(int pixelDecimation) override;
 	void setCecDetectionEnable(bool enable) override;
-	void setDeviceVideoStandard(QString device, VideoStandard videoStandard) override;
-	bool setInput(int input) override;
+	bool setDevice(QString device) override;
 	bool setWidthHeight(int width, int height) override;
 	bool setFramerate(int fps) override;
 	void setFpsSoftwareDecimation(int decimation);
-	void setEncoding(QString enc);
+	bool setEncoding(QString enc);
 	void setFlipMode(QString flipMode);
-	void setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue);
+	bool setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue);
+
+	void reloadGrabber();
 
 public slots:
 	bool start();
@@ -105,7 +106,7 @@ private:
 	QMap<QString, MFGrabber::DeviceProperties>	_deviceProperties;
 	HRESULT										_hr;
 	SourceReaderCB*								_sourceReaderCB;
-	PixelFormat									_pixelFormat;
+	PixelFormat									_pixelFormat, _pixelFormatConfig;
 	int											_pixelDecimation,
 												_lineLength,
 												_frameByteSize,

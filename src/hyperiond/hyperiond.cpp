@@ -604,7 +604,6 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 					grabberConfig["width"].toInt(0),
 					grabberConfig["height"].toInt(0),
 					grabberConfig["fps"].toInt(15),
-					grabberConfig["input"].toInt(-1),
 					grabberConfig["sizeDecimation"].toInt(8),
 					grabberConfig["flip"].toString("auto"));
 
@@ -619,9 +618,10 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 			_mfGrabber->setFpsSoftwareDecimation(grabberConfig["fpsSoftwareDecimation"].toInt(1));
 
 			// Hardware encoding format
-			_mfGrabber->setEncoding(grabberConfig["encoding"].toString("NONE"));
+			_mfGrabber->setEncoding(grabberConfig["encoding"].toString("NO_CHANGE"));
 
 			// Signal detection
+			_mfGrabber->setSignalDetectionEnable(grabberConfig["signalDetection"].toBool(true));
 			_mfGrabber->setSignalDetectionOffset(
 					grabberConfig["sDHOffsetMin"].toDouble(0.25),
 					grabberConfig["sDVOffsetMin"].toDouble(0.25),
@@ -632,7 +632,6 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 					grabberConfig["greenSignalThreshold"].toDouble(0.0) / 100.0,
 					grabberConfig["blueSignalThreshold"].toDouble(0.0) / 100.0,
 					grabberConfig["noSignalCounterThreshold"].toInt(50) );
-			_mfGrabber->setSignalDetectionEnable(grabberConfig["signalDetection"].toBool(true));
 
 			// CEC Standby
 			_mfGrabber->setCecDetectionEnable(grabberConfig["cecDetection"].toBool(true));

@@ -5,9 +5,9 @@
 // qt
 #include <QTimer>
 
-MFWrapper::MFWrapper(const QString &device, unsigned grabWidth, unsigned grabHeight, unsigned fps, unsigned input, int pixelDecimation, QString flipMode)
+MFWrapper::MFWrapper(const QString &device, unsigned grabWidth, unsigned grabHeight, unsigned fps, int pixelDecimation, QString flipMode)
 	: GrabberWrapper("V4L2:"+device, &_grabber, grabWidth, grabHeight, 10)
-	, _grabber(device, grabWidth, grabHeight, fps, input, pixelDecimation, flipMode)
+	, _grabber(device, grabWidth, grabHeight, fps, pixelDecimation, flipMode)
 {
 	_ggrabber = &_grabber;
 
@@ -79,9 +79,9 @@ bool MFWrapper::getCecDetectionEnable() const
 	return _grabber.getCecDetectionEnabled();
 }
 
-void MFWrapper::setDeviceVideoStandard(const QString& device, VideoStandard videoStandard)
+bool MFWrapper::setDevice(const QString& device)
 {
-	_grabber.setDeviceVideoStandard(device, VideoStandard::NO_CHANGE);
+	return _grabber.setDevice(device);
 }
 
 void MFWrapper::setFpsSoftwareDecimation(int decimation)
@@ -89,14 +89,14 @@ void MFWrapper::setFpsSoftwareDecimation(int decimation)
 	_grabber.setFpsSoftwareDecimation(decimation);
 }
 
-void MFWrapper::setEncoding(QString enc)
+bool MFWrapper::setEncoding(QString enc)
 {
-	_grabber.setEncoding(enc);
+	return _grabber.setEncoding(enc);
 }
 
-void MFWrapper::setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue)
+bool MFWrapper::setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue)
 {
-	_grabber.setBrightnessContrastSaturationHue(brightness, contrast, saturation, hue);
+	return _grabber.setBrightnessContrastSaturationHue(brightness, contrast, saturation, hue);
 }
 
 void MFWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
@@ -105,20 +105,23 @@ void MFWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& c
 	{
 		// extract settings
 		const QJsonObject& obj = config.object();
+		// reload state
+		bool reload = false;
 
 		// device name, video standard
-		_grabber.setDeviceVideoStandard(
-			obj["device"].toString("auto"),
-			parseVideoStandard(obj["standard"].toString("no-change")));
+		if (_grabber.setDevice(obj["device"].toString("auto")))
+			reload = true;
 
 		// device input
 		_grabber.setInput(obj["input"].toInt(-1));
 
 		// device resolution
-		_grabber.setWidthHeight(obj["width"].toInt(0), obj["height"].toInt(0));
+		if (_grabber.setWidthHeight(obj["width"].toInt(0), obj["height"].toInt(0)))
+			reload = true;
 
 		// device framerate
-		_grabber.setFramerate(obj["fps"].toInt(15));
+		if (_grabber.setFramerate(obj["fps"].toInt(15)))
+			reload = true;
 
 		// image size decimation
 		_grabber.setPixelDecimation(obj["sizeDecimation"].toInt(8));
@@ -134,10 +137,8 @@ void MFWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& c
 			obj["cropBottom"].toInt(0));
 
 		// Brightness, Contrast, Saturation, Hue
-		_grabber.setBrightnessContrastSaturationHue(obj["hardware_brightness"].toInt(0),
-													obj["hardware_contrast"].toInt(0),
-													obj["hardware_saturation"].toInt(0),
-													obj["hardware_hue"].toInt(0));
+		if (_grabber.setBrightnessContrastSaturationHue(obj["hardware_brightness"].toInt(0), obj["hardware_contrast"].toInt(0), obj["hardware_saturation"].toInt(0), obj["hardware_hue"].toInt(0)))
+			reload = true;
 
 		// CEC Standby
 		_grabber.setCecDetectionEnable(obj["cecDetection"].toBool(true));
@@ -146,6 +147,7 @@ void MFWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& c
 		_grabber.setFpsSoftwareDecimation(obj["fpsSoftwareDecimation"].toInt(1));
 
 		// Signal detection
+		_grabber.setSignalDetectionEnable(obj["signalDetection"].toBool(true));
 		_grabber.setSignalDetectionOffset(
 			obj["sDHOffsetMin"].toDouble(0.25),
 			obj["sDVOffsetMin"].toDouble(0.25),
@@ -156,9 +158,13 @@ void MFWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& c
 			obj["greenSignalThreshold"].toDouble(0.0)/100.0,
 			obj["blueSignalThreshold"].toDouble(0.0)/100.0,
 			obj["noSignalCounterThreshold"].toInt(50) );
-		_grabber.setSignalDetectionEnable(obj["signalDetection"].toBool(true));
 
 		// Hardware encoding format
-		_grabber.setEncoding(obj["encoding"].toString("NO_CHANGE"));
+		if (_grabber.setEncoding(obj["encoding"].toString("NO_CHANGE")))
+			reload = true;
+
+		// Reload the Grabber if any settings have been changed that require it
+		if (reload)
+			_grabber.reloadGrabber();
 	}
 }

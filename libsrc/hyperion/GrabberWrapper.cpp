@@ -15,7 +15,7 @@ GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber * ggrabber, u
 	: _grabberName(grabberName)
 	, _timer(new QTimer(this))
 	, _updateInterval_ms(1000/updateRate_Hz)
-	, _log(Logger::getInstance(grabberName))
+	, _log(Logger::getInstance(grabberName.toUpper()))
 	, _ggrabber(ggrabber)
 	, _image(0,0)
 {

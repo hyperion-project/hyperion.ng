@@ -4,7 +4,7 @@
 // Constants
 namespace { const bool verbose = false; }
 
-MFGrabber::MFGrabber(const QString & device, unsigned width, unsigned height, unsigned fps, unsigned input, int pixelDecimation, QString flipMode)
+MFGrabber::MFGrabber(const QString & device, unsigned width, unsigned height, unsigned fps, int pixelDecimation, QString flipMode)
 	: Grabber("V4L2:"+device)
 	, _deviceName(device)
 	, _hr(S_FALSE)
@@ -30,11 +30,9 @@ MFGrabber::MFGrabber(const QString & device, unsigned width, unsigned height, un
 	, _x_frac_max(0.75)
 	, _y_frac_max(0.75)
 {
-	setInput(input);
 	setWidthHeight(width, height);
 	setFramerate(fps);
 	setFlipMode(flipMode);
-	// setDeviceVideoStandard(device, videoStandard); // TODO
 
 	CoInitializeEx(0, COINIT_MULTITHREADED);
 	_hr = MFStartup(MF_VERSION, MFSTARTUP_NOSOCKET);
@@ -178,7 +176,8 @@ HRESULT MFGrabber::init_device(QString deviceName, DevicePropertiesItem props)
 	IMFMediaType* type = nullptr;
 	HRESULT hr = S_OK;
 
-	Debug(_log,  "Init %s, %d x %d @ %d fps (%s) => %s", QSTRING_CSTR(deviceName), props.x, props.y, props.fps, QSTRING_CSTR(pixelFormatToString(pixelformat)), QSTRING_CSTR(guid));
+	Debug(_log, "Init %s, %d x %d @ %d fps (%s)", QSTRING_CSTR(deviceName), props.x, props.y, props.fps, QSTRING_CSTR(pixelFormatToString(pixelformat)));
+	DebugIf(verbose, _log, "Symbolic link: %s", QSTRING_CSTR(guid));
 
 	hr = MFCreateAttributes(&deviceAttributes, 2);
 	if(FAILED(hr))
@@ -426,7 +425,7 @@ void MFGrabber::enumVideoCaptureDevices()
 			IMFActivate** devices;
 			if(SUCCEEDED(MFEnumDeviceSources(attr, &devices, &count)))
 			{
-				Debug(_log, "Detected devices: %u", count);
+				DebugIf(verbose, _log, "Detected devices: %u", count);
 				for(UINT32 i = 0; i < count; i++)
 				{
 					UINT32 length;
@@ -441,7 +440,7 @@ void MFGrabber::enumVideoCaptureDevices()
 							MFGrabber::DeviceProperties properties;
 							properties.name = QString::fromUtf16((const ushort*)symlink);
 
-							Info(_log, "Found capture device: %s", QSTRING_CSTR(dev));
+							Debug(_log, "Found capture device: %s", QSTRING_CSTR(dev));
 							IMFMediaSource *pSource = nullptr;
 							if(SUCCEEDED(devices[i]->ActivateObject(IID_PPV_ARGS(&pSource))))
 							{
@@ -523,7 +522,7 @@ void MFGrabber::enumVideoCaptureDevices()
 
 void MFGrabber::start_capturing()
 {
-	if (_sourceReader)
+	if (_initialized && _sourceReader)
 	{
 		HRESULT hr = _sourceReader->ReadSample(MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, NULL, NULL, NULL, NULL);
 		if (!SUCCEEDED(hr))
@@ -610,7 +609,7 @@ bool MFGrabber::start()
 	try
 	{
 		_threadManager.start();
-		Info(_log, "Decoding threads: %d",_threadManager._maxThreads);
+		DebugIf(verbose, _log, "Decoding threads: %d",_threadManager._maxThreads);
 
 		if(init())
 		{
@@ -631,10 +630,11 @@ void MFGrabber::stop()
 {
 	if(_initialized)
 	{
+		_initialized = false;
 		_threadManager.stop();
 		uninit_device();
+		_pixelFormat = _pixelFormatConfig;
 		_deviceProperties.clear();
-		_initialized = false;
 		Info(_log, "Stopped");
 	}
 }
@@ -741,6 +741,16 @@ void MFGrabber::setCecDetectionEnable(bool enable)
 	}
 }
 
+bool MFGrabber::setDevice(QString device)
+{
+	if(_deviceName != device)
+	{
+		_deviceName = device;
+		return true;
+	}
+	return false;
+}
+
 void MFGrabber::setPixelDecimation(int pixelDecimation)
 {
 	if(_pixelDecimation != pixelDecimation)
@@ -753,46 +763,11 @@ void MFGrabber::setFlipMode(QString flipMode)
 		Grabber::setFlipMode(parseFlipMode(flipMode));
 }
 
-void MFGrabber::setDeviceVideoStandard(QString device, VideoStandard videoStandard)
-{
-	if(_deviceName != device)
-	{
-		_deviceName = device;
-		if(_initialized && !device.isEmpty())
-		{
-			Debug(_log,"Restarting Media Foundation grabber");
-			uninit();
-			start();
-		}
-	}
-}
-
-bool MFGrabber::setInput(int input)
-{
-	if(Grabber::setInput(input))
-	{
-		bool started = _initialized;
-		uninit();
-		if(started)
-			start();
-
-		return true;
-	}
-
-	return false;
-}
-
 bool MFGrabber::setWidthHeight(int width, int height)
 {
-	if(Grabber::setWidthHeight(width,height))
+	if(Grabber::setWidthHeight(width, height))
 	{
-		Debug(_log,"Set width:height to: %i:&i", width, height);
-		if(_initialized)
-		{
-			Debug(_log,"Restarting Media Foundation grabber");
-			uninit();
-			start();
-		}
+		Debug(_log,"Set width:height to: %i:%i", width, height);
 		return true;
 	}
 	return false;
@@ -803,12 +778,6 @@ bool MFGrabber::setFramerate(int fps)
 	if(Grabber::setFramerate(fps))
 	{
 		Debug(_log,"Set fps to: %i", fps);
-		if(_initialized)
-		{
-			Debug(_log,"Restarting Media Foundation grabber");
-			uninit();
-			start();
-		}
 		return true;
 	}
 	return false;
@@ -821,22 +790,20 @@ void MFGrabber::setFpsSoftwareDecimation(int decimation)
 		Debug(_log,"Every %ith image per second are processed", decimation);
 }
 
-void MFGrabber::setEncoding(QString enc)
+bool MFGrabber::setEncoding(QString enc)
 {
-	if(_pixelFormat != parsePixelFormat(enc))
+	if(_pixelFormatConfig != parsePixelFormat(enc))
 	{
-		Debug(_log,"Set encoding to: %s", QSTRING_CSTR(enc));
-		_pixelFormat = parsePixelFormat(enc);
-		if(_initialized)
-		{
-			Debug(_log,"Restarting Media Foundation Grabber");
-			uninit();
-			start();
-		}
+		Debug(_log,"Set hardware encoding to: %s", QSTRING_CSTR(enc.toUpper()));
+		_pixelFormatConfig = parsePixelFormat(enc);
+		if(!_initialized)
+			_pixelFormat = _pixelFormatConfig;
+		return true;
 	}
+	return false;
 }
 
-void MFGrabber::setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue)
+bool MFGrabber::setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue)
 {
 	if(_brightness != brightness || _contrast != contrast || _saturation != saturation || _hue != hue)
 	{
@@ -846,12 +813,21 @@ void MFGrabber::setBrightnessContrastSaturationHue(int brightness, int contrast,
 		_hue = hue;
 
 		Debug(_log,"Set brightness to %i, contrast to %i, saturation to %i, hue to %i", _brightness, _contrast, _saturation, _hue);
+		return true;
+	}
+	return false;
+}
 
-		if(_initialized)
-		{
-			Debug(_log,"Restarting Media Foundation Grabber");
-			uninit();
-			start();
-		}
+void MFGrabber::reloadGrabber()
+{
+	if(_initialized)
+	{
+		Debug(_log,"Reloading Media Foundation Grabber");
+		// stop grabber
+		uninit();
+		// restore pixelformat to configs value
+		_pixelFormat = _pixelFormatConfig;
+		// start grabber
+		start();
 	}
 }
