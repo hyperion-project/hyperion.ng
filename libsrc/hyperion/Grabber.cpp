@@ -28,7 +28,7 @@ void Grabber::setEnabled(bool enable)
 
 void Grabber::setVideoMode(VideoMode mode)
 {
-	Debug(_log,"Set videomode to %d", mode);
+	Debug(_log,"Set videomode to %s", QSTRING_CSTR(videoMode2String(mode)));
 	_videoMode = mode;
 	if ( _useImageResampler )
 	{
@@ -98,6 +98,7 @@ bool Grabber::setWidthHeight(int width, int height)
 			Error(_log, "Rejecting invalid width/height values as it collides with image cropping: width: %d, height: %d", width, height);
 			return false;
 		}
+
 		Debug(_log, "Set new width: %d, height: %d for capture", width, height);
 		_width = width;
 		_height = height;

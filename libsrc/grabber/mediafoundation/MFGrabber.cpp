@@ -6,7 +6,8 @@ namespace { const bool verbose = false; }
 
 MFGrabber::MFGrabber(const QString & device, unsigned width, unsigned height, unsigned fps, int pixelDecimation, QString flipMode)
 	: Grabber("V4L2:"+device)
-	, _deviceName(device)
+	, _currentDeviceName(device)
+	, _newDeviceName(device)
 	, _hr(S_FALSE)
 	, _sourceReader(nullptr)
 	, _pixelDecimation(pixelDecimation)
@@ -59,14 +60,14 @@ bool MFGrabber::init()
 	{
 		QString foundDevice = "";
 		int     foundIndex = -1, bestGuess = -1, bestGuessMinX = INT_MAX, bestGuessMinFPS = INT_MAX;
-		bool    autoDiscovery = (QString::compare(_deviceName, "auto", Qt::CaseInsensitive) == 0 );
+		bool    autoDiscovery = (QString::compare(_currentDeviceName, "auto", Qt::CaseInsensitive) == 0 );
 
 		// enumerate the video capture devices on the user's system
 		enumVideoCaptureDevices();
 
-		if(!autoDiscovery && !_deviceProperties.contains(_deviceName))
+		if(!autoDiscovery && !_deviceProperties.contains(_currentDeviceName))
 		{
-			Debug(_log, "Device '%s' is not available. Changing to auto.", QSTRING_CSTR(_deviceName));
+			Debug(_log, "Device '%s' is not available. Changing to auto.", QSTRING_CSTR(_currentDeviceName));
 			autoDiscovery = true;
 		}
 
@@ -76,12 +77,12 @@ bool MFGrabber::init()
 			if(_deviceProperties.count()>0)
 			{
 				foundDevice = _deviceProperties.firstKey();
-				_deviceName = foundDevice;
-				Debug(_log, "Auto discovery set to %s", QSTRING_CSTR(_deviceName));
+				_currentDeviceName = foundDevice;
+				Debug(_log, "Auto discovery set to %s", QSTRING_CSTR(_currentDeviceName));
 			}
 		}
 		else
-			foundDevice = _deviceName;
+			foundDevice = _currentDeviceName;
 
 		if(foundDevice.isNull() || foundDevice.isEmpty() || !_deviceProperties.contains(foundDevice))
 		{
@@ -132,7 +133,7 @@ bool MFGrabber::init()
 
 		if(foundIndex < 0 && bestGuess >= 0)
 		{
-			if(!autoDiscovery)
+			if(!autoDiscovery && _width != 0 && _height != 0)
 				Warning(_log, "Selected resolution not found in supported modes. Forcing best resolution");
 			else
 				Debug(_log, "Forcing best resolution");
@@ -157,7 +158,7 @@ void MFGrabber::uninit()
 	// stop if the grabber was not stopped
 	if(_initialized)
 	{
-		Debug(_log,"uninit grabber: %s", QSTRING_CSTR(_deviceName));
+		Debug(_log,"uninit grabber: %s", QSTRING_CSTR(_newDeviceName));
 		stop();
 	}
 }
@@ -608,14 +609,17 @@ bool MFGrabber::start()
 {
 	try
 	{
-		_threadManager.start();
-		DebugIf(verbose, _log, "Decoding threads: %d",_threadManager._maxThreads);
-
-		if(init())
+		if(!_initialized)
 		{
-			start_capturing();
-			Info(_log, "Started");
-			return true;
+			_threadManager.start();
+			DebugIf(verbose, _log, "Decoding threads: %d",_threadManager._maxThreads);
+
+			if(init())
+			{
+				start_capturing();
+				Info(_log, "Started");
+				return true;
+			}
 		}
 	}
 	catch(std::exception& e)
@@ -743,9 +747,9 @@ void MFGrabber::setCecDetectionEnable(bool enable)
 
 bool MFGrabber::setDevice(QString device)
 {
-	if(_deviceName != device)
+	if(_currentDeviceName != device)
 	{
-		_deviceName = device;
+		_currentDeviceName = device;
 		return true;
 	}
 	return false;
@@ -767,9 +771,16 @@ bool MFGrabber::setWidthHeight(int width, int height)
 {
 	if(Grabber::setWidthHeight(width, height))
 	{
-		Debug(_log,"Set width:height to: %i:%i", width, height);
+		Debug(_log,"Set device resolution to width: %i, height: %i", width, height);
 		return true;
 	}
+	else if(width == 0 && height == 0)
+	{
+		_width = _height = 0;
+		Debug(_log,"Set device resolution to 'Automatic'");
+		return true;
+	}
+
 	return false;
 }
 
@@ -827,6 +838,8 @@ void MFGrabber::reloadGrabber()
 		uninit();
 		// restore pixelformat to configs value
 		_pixelFormat = _pixelFormatConfig;
+		// set _newDeviceName
+		_newDeviceName = _currentDeviceName;
 		// start grabber
 		start();
 	}

@@ -102,7 +102,7 @@ private:
 	void process_image(const void *frameImageBuffer, int size);
 	void checkSignalDetectionEnabled(Image<ColorRgb> image);
 
-	QString										_deviceName;
+	QString										_currentDeviceName, _newDeviceName;
 	QMap<QString, MFGrabber::DeviceProperties>	_deviceProperties;
 	HRESULT										_hr;
 	SourceReaderCB*								_sourceReaderCB;

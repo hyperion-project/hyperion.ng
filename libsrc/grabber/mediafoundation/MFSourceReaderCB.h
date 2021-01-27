@@ -43,6 +43,8 @@ public:
 		, _grabber(grabber)
 		, _bEOS(FALSE)
 		, _hrStatus(S_OK)
+		, _transform(nullptr)
+		, _pixelformat(PixelFormat::NO_CHANGE)
 	{
 		InitializeCriticalSection(&_critsec);
 	}
@@ -333,8 +335,12 @@ public:
 private:
 	virtual ~SourceReaderCB()
 	{
-		_transform->ProcessMessage(MFT_MESSAGE_NOTIFY_END_OF_STREAM, 0);
-		_transform->ProcessMessage(MFT_MESSAGE_NOTIFY_END_STREAMING, 0);
+		if (_transform)
+		{
+			_transform->ProcessMessage(MFT_MESSAGE_NOTIFY_END_OF_STREAM, 0);
+			_transform->ProcessMessage(MFT_MESSAGE_NOTIFY_END_STREAMING, 0);
+		}
+
 		SAFE_RELEASE(_transform);
 	}
 

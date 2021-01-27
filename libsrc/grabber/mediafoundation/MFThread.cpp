@@ -24,10 +24,7 @@ MFThread::~MFThread()
 		tjDestroy(_decompress);
 
 	if (_localData)
-	{
-		free(_localData);
-		_localData = nullptr;
-	}
+		tjFree(_localData);
 }
 
 void MFThread::setup(
