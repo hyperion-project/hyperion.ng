@@ -23,6 +23,7 @@ enum Components
 #endif
 	COMP_GRABBER,
 	COMP_V4L,
+	COMP_AUDIO,
 	COMP_COLOR,
 	COMP_IMAGE,
 	COMP_EFFECT,
@@ -50,6 +51,7 @@ inline const char* componentToString(Components c)
 #endif
 		case COMP_GRABBER:       return "Framegrabber";
 		case COMP_V4L:           return "V4L capture device";
+		case COMP_AUDIO:		 return "Audio capture device";
 		case COMP_COLOR:         return "Solid color";
 		case COMP_EFFECT:        return "Effect";
 		case COMP_IMAGE:         return "Image";
@@ -79,6 +81,7 @@ inline const char* componentToIdString(Components c)
 #endif
 		case COMP_GRABBER:       return "GRABBER";
 		case COMP_V4L:           return "V4L";
+		case COMP_AUDIO:		 return "AUDIO";
 		case COMP_COLOR:         return "COLOR";
 		case COMP_EFFECT:        return "EFFECT";
 		case COMP_IMAGE:         return "IMAGE";
@@ -107,6 +110,7 @@ inline Components stringToComponent(const QString& component)
 #endif
 	if (cmp == "GRABBER")       return COMP_GRABBER;
 	if (cmp == "V4L")           return COMP_V4L;
+	if (cmp == "AUDIO")			return COMP_AUDIO;
 	if (cmp == "COLOR")         return COMP_COLOR;
 	if (cmp == "EFFECT")        return COMP_EFFECT;
 	if (cmp == "IMAGE")         return COMP_IMAGE;

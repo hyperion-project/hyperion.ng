@@ -57,6 +57,13 @@ signals:
 #endif
 
 	///
+	/// @brief PIPE audioCapture images from audioCapture over HyperionDaemon to Hyperion class
+	/// @param name   The name of the audio capture (path) that is currently active
+	/// @param image  The prepared image
+	///
+	void setAudioImage(const QString& name, const Image<ColorRgb>& image);
+
+	///
 	/// @brief PIPE the register command for a new global input over HyperionDaemon to Hyperion class
 	/// @param[in] priority    The priority of the channel
 	/// @param[in] component   The component of the channel

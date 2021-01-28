@@ -162,7 +162,8 @@ void QJsonSchemaChecker::validate(const QJsonValue& value, const QJsonObject& sc
 			; // references have already been collected
 		else if (attribute == "title" || attribute == "description" || attribute == "default" || attribute == "format"
 			|| attribute == "defaultProperties" || attribute == "propertyOrder" || attribute == "append" || attribute == "step"
-			|| attribute == "access" || attribute == "options" || attribute == "script" || attribute == "allowEmptyArray" || attribute == "comment")
+			|| attribute == "access" || attribute == "options" || attribute == "script" || attribute == "allowEmptyArray" || attribute == "comment"
+			|| attribute == "watch" || attribute == "template")
 			; // nothing to do.
 		else
 		{

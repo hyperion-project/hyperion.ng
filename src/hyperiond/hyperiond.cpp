@@ -93,6 +93,7 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	, _qtGrabber(nullptr)
 	, _dxGrabber(nullptr)
 	, _ssdp(nullptr)
+	, _audioGrabber(nullptr)
 #ifdef ENABLE_CEC
 	, _cecHandler(nullptr)
 #endif
@@ -169,6 +170,9 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 
 	// init v4l2 && media foundation capture
 	handleSettingsUpdate(settings::V4L2, getSetting(settings::V4L2));
+
+	// init audio capture
+	handleSettingsUpdate(settings::AUDIO, getSetting(settings::AUDIO));
 
 	// ---- network services -----
 	startNetworkServices();
@@ -353,6 +357,7 @@ void HyperionDaemon::freeObjects()
 	delete _qtGrabber;
 	delete _dxGrabber;
 	delete _videoGrabber;
+	delete _audioGrabber;
 
 	_videoGrabber = nullptr;
 	_amlGrabber = nullptr;
@@ -361,6 +366,7 @@ void HyperionDaemon::freeObjects()
 	_osxGrabber = nullptr;
 	_qtGrabber = nullptr;
 	_dxGrabber = nullptr;
+	_audioGrabber = nullptr;
 }
 
 void HyperionDaemon::startNetworkServices()
@@ -717,6 +723,26 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 		}
 #else
 		Debug(_log, "The v4l2 grabber is not supported on this platform");
+#endif
+	}
+	else if (settingsType == settings::AUDIO)
+	{
+#ifdef ENABLE_AUDIO
+		// Create Audio Grabber
+		if (_audioGrabber == nullptr)
+		{
+			_audioGrabber = new AudioWrapper();
+			_audioGrabber->handleSettingsUpdate(settings::AUDIO, getSetting(settings::AUDIO));
+
+			//connect(this, &HyperionDaemon::setVideoMode, _audioGrabber, &AudioWrapper::setVideoMode); // Do we need this?
+			connect(this, &HyperionDaemon::settingsChanged, _audioGrabber, &AudioWrapper::handleSettingsUpdate);
+
+			Debug(_log, "Audio grabber created");
+		}
+
+		//_audioGrabber->tryStart();
+#else
+		Debug(_log, "Audio capture not supported on this platform");
 #endif
 	}
 }

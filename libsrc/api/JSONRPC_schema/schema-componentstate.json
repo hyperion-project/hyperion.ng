@@ -21,7 +21,7 @@
 				"component":
 				{
 					"type" : "string",
-					"enum" : ["ALL", "SMOOTHING", "BLACKBORDER", "FORWARDER", "BOBLIGHTSERVER", "GRABBER", "V4L", "LEDDEVICE"],
+					"enum" : ["ALL", "SMOOTHING", "BLACKBORDER", "FORWARDER", "BOBLIGHTSERVER", "GRABBER", "V4L", "AUDIO", "LEDDEVICE"],
 					"required": true
 				},
 				"state":

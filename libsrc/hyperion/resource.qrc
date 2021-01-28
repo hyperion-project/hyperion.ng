@@ -7,6 +7,7 @@
 		<file alias="schema-color.json">schema/schema-color.json</file>
 		<file alias="schema-smoothing.json">schema/schema-smoothing.json</file>
 		<file alias="schema-grabberV4L2.json">schema/schema-grabberV4L2.json</file>
+		<file alias="schema-grabberAudio.json">schema/schema-grabberAudio.json</file>
 		<file alias="schema-framegrabber.json">schema/schema-framegrabber.json</file>
 		<file alias="schema-blackborderdetector.json">schema/schema-blackborderdetector.json</file>
 		<file alias="schema-foregroundEffect.json">schema/schema-foregroundEffect.json</file>

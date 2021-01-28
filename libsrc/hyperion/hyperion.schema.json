@@ -27,6 +27,10 @@
 		{
 			"$ref": "schema-grabberV4L2.json"
 		},
+		"grabberAudio" :
+		{
+			"$ref": "schema-grabberAudio.json"
+		},
 		"framegrabber" :
 		{
 			"$ref": "schema-framegrabber.json"

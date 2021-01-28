@@ -1,239 +1,236 @@
 {
-	"general" :
-	{
-		"name"       : "My Hyperion Config",
-	    "configVersion": "configVersionValue",
-	    "previousVersion": "previousVersionValue",
-		"watchedVersionBranch" : "Stable",
-		"showOptHelp" : true
+	"general": {
+		"name": "My Hyperion Config",
+		"configVersion": "configVersionValue",
+		"previousVersion": "previousVersionValue",
+		"watchedVersionBranch": "Stable",
+		"showOptHelp": true
 	},
-	"logger" :
-	{
-		"level" : "warn"
+	"logger": {
+		"level": "warn"
 	},
 
-	"device" :
-	{
-		"type"       : "file",
-		"hardwareLedCount" : 1,
-		"autoStart" : true,
-		"output"     : "/dev/null",
-		"colorOrder" : "rgb",
-		"latchTime" : 0,
+	"device": {
+		"type": "file",
+		"hardwareLedCount": 1,
+		"autoStart": true,
+		"output": "/dev/null",
+		"colorOrder": "rgb",
+		"latchTime": 0,
 		"rewriteTime": 0,
 		"enableAttempts": 6,
 		"enableAttemptsInterval": 15
 	},
 
-	"color" :
-	{
-		"imageToLedMappingType" : "multicolor_mean",
-		"channelAdjustment" :
-		[
+	"color": {
+		"imageToLedMappingType": "multicolor_mean",
+		"channelAdjustment": [
 			{
-				"id"   : "default",
-				"leds" : "*",
-				"white"   : [255,255,255],
-				"red"     : [255,0,0],
-				"green"   : [0,255,0],
-				"blue"    : [0,0,255],
-				"cyan"    : [0,255,255],
-				"magenta" : [255,0,255],
-				"yellow"  : [255,255,0],
-				"gammaRed"   : 2.2,
-				"gammaGreen" : 2.2,
-				"gammaBlue"  : 2.2,
-				"backlightThreshold"  : 0,
-				"backlightColored"  : false,
-				"brightness" : 100,
-				"brightnessCompensation" : 100,
-				"saturationGain" : 1.0,
-				"brightnessGain" : 1.0
+				"id": "default",
+				"leds": "*",
+				"white": [ 255, 255, 255 ],
+				"red": [ 255, 0, 0 ],
+				"green": [ 0, 255, 0 ],
+				"blue": [ 0, 0, 255 ],
+				"cyan": [ 0, 255, 255 ],
+				"magenta": [ 255, 0, 255 ],
+				"yellow": [ 255, 255, 0 ],
+				"gammaRed": 2.2,
+				"gammaGreen": 2.2,
+				"gammaBlue": 2.2,
+				"backlightThreshold": 0,
+				"backlightColored": false,
+				"brightness": 100,
+				"brightnessCompensation": 100,
+				"saturationGain": 1.0,
+				"brightnessGain": 1.0
 			}
 		]
 	},
 
-	"smoothing" :
-	{
-		"enable"            : true,
-		"type"              : "linear",
-		"time_ms"           : 200,
-		"updateFrequency"   : 25.0000,
-		"interpolationRate" : 25.0000,
-		"decay"             : 1,
-		"dithering"         : false,
-		"updateDelay"       : 0
+	"smoothing": {
+		"enable": true,
+		"type": "linear",
+		"time_ms": 200,
+		"updateFrequency": 25.0000,
+		"interpolationRate": 25.0000,
+		"decay": 1,
+		"dithering": false,
+		"updateDelay": 0
 	},
 
-	"grabberV4L2" :
-	{
-		"enable"                : false,
-		"device"                : "none",
-		"input"                 : 0,
-		"encoding"              : "NO_CHANGE",
-		"width"                 : 0,
-		"height"                : 0,
-		"fps"                   : 15,
-		"flip"                  : "NO_CHANGE",
-		"fpsSoftwareDecimation" : 0,
-		"sizeDecimation"        : 8,
-		"cropLeft"              : 0,
-		"cropRight"             : 0,
-		"cropTop"               : 0,
-		"cropBottom"            : 0,
-		"redSignalThreshold"    : 0,
-		"greenSignalThreshold"  : 100,
-		"blueSignalThreshold"   : 0,
-		"signalDetection"       : false,
-		"noSignalCounterThreshold" : 200,
-		"cecDetection"          : false,
-		"sDVOffsetMin"          : 0.1,
-		"sDVOffsetMax"          : 0.9,
-		"sDHOffsetMin"          : 0.4,
-		"sDHOffsetMax"          : 0.46,
-		"hardware_brightness"   : 0,
-		"hardware_contrast"     : 0,
-		"hardware_saturation"   : 0,
-		"hardware_hue"          : 0
+	"grabberV4L2": {
+		"enable": false,
+		"device": "none",
+		"input": 0,
+		"encoding": "NO_CHANGE",
+		"width": 0,
+		"height": 0,
+		"fps": 15,
+		"flip": "NO_CHANGE",
+		"fpsSoftwareDecimation": 0,
+		"sizeDecimation": 8,
+		"cropLeft": 0,
+		"cropRight": 0,
+		"cropTop": 0,
+		"cropBottom": 0,
+		"redSignalThreshold": 0,
+		"greenSignalThreshold": 100,
+		"blueSignalThreshold": 0,
+		"signalDetection": false,
+		"noSignalCounterThreshold": 200,
+		"cecDetection": false,
+		"sDVOffsetMin": 0.1,
+		"sDVOffsetMax": 0.9,
+		"sDHOffsetMin": 0.4,
+		"sDHOffsetMax": 0.46,
+		"hardware_brightness": 0,
+		"hardware_contrast": 0,
+		"hardware_saturation": 0,
+		"hardware_hue": 0
 	},
 
-	"framegrabber" :
-	{
-		"enable"             : false,
-		"device"             : "auto",
-		"input"              : 0,
-		"width"              : 80,
-		"height"             : 45,
-		"fps"                : 10,
-		"pixelDecimation"    : 8,
-		"cropLeft"           : 0,
-		"cropRight"          : 0,
-		"cropTop"            : 0,
-		"cropBottom"         : 0
+	"grabberAudio": {
+		"enable": false,
+		"device": "auto",
+		"audioEffect": "uvMeter",
+		"uvMeter": {
+			"flip": "NO_CHANGE",
+			"hotColor": [ 255, 0, 0 ],
+			"multiplier": 1,
+			"safeColor": [ 0, 255, 0 ],
+			"safeValue": 45,
+			"tolerance": 5,
+			"warnColor": [ 255, 255, 0 ],
+			"warnValue": 80
+		}
 	},
 
-	"blackborderdetector" :
-	{
-		"enable" : true,
-		"threshold" : 5,
-		"unknownFrameCnt"    : 600,
-		"borderFrameCnt"     : 50,
-		"maxInconsistentCnt" : 10,
-		"blurRemoveCnt"      : 1,
-		"mode" : "default"
+	"framegrabber": {
+		"enable": false,
+		"device": "auto",
+		"input": 0,
+		"width": 80,
+		"height": 45,
+		"fps": 10,
+		"pixelDecimation": 8,
+		"cropLeft": 0,
+		"cropRight": 0,
+		"cropTop": 0,
+		"cropBottom": 0
 	},
 
-	"foregroundEffect" :
-	{
-		"enable"      : true,
-		"type"        : "effect",
-		"color"       : [0,0,255],
-		"effect"      : "Rainbow swirl fast",
-		"duration_ms" : 3000
+	"blackborderdetector": {
+		"enable": true,
+		"threshold": 5,
+		"unknownFrameCnt": 600,
+		"borderFrameCnt": 50,
+		"maxInconsistentCnt": 10,
+		"blurRemoveCnt": 1,
+		"mode": "default"
 	},
 
-	"backgroundEffect" :
-	{
-		"enable"      : false,
-		"type"        : "effect",
-		"color"       : [255,138,0],
-		"effect"      : "Warm mood blobs"
+	"foregroundEffect": {
+		"enable": true,
+		"type": "effect",
+		"color": [ 0, 0, 255 ],
+		"effect": "Rainbow swirl fast",
+		"duration_ms": 3000
 	},
 
-	"forwarder" :
-	{
-		"enable"     : false,
-		"jsonapi"    : [],
-		"flatbuffer" : []
+	"backgroundEffect": {
+		"enable": false,
+		"type": "effect",
+		"color": [ 255, 138, 0 ],
+		"effect": "Warm mood blobs"
 	},
 
-	"jsonServer" :
-	{
-		"port" : 19444
+	"forwarder": {
+		"enable": false,
+		"jsonapi": [],
+		"flatbuffer": []
 	},
 
-	"flatbufServer" :
-	{
-		"enable" : true,
-		"port" : 19400,
-		"timeout" : 5
+	"jsonServer": {
+		"port": 19444
 	},
 
-	"protoServer" :
-	{
-		"enable" : true,
-		"port" : 19445,
-		"timeout" : 5
+	"flatbufServer": {
+		"enable": true,
+		"port": 19400,
+		"timeout": 5
 	},
 
-	"boblightServer" :
-	{
-		"enable"   : false,
-		"port"     : 19333,
-		"priority" : 128
+	"protoServer": {
+		"enable": true,
+		"port": 19445,
+		"timeout": 5
 	},
 
-	"webConfig" :
-	{
-		"document_root" : "",
-		"port"          : 8090,
-		"sslPort"		: 8092,
-		"crtPath"		: "",
-		"keyPath"		: "",
-		"keyPassPhrase"	: ""
+	"boblightServer": {
+		"enable": false,
+		"port": 19333,
+		"priority": 128
 	},
 
-	"effects" :
-	{
-		"paths" : ["$ROOT/custom-effects"],
-		"disable": [""]
+	"webConfig": {
+		"document_root": "",
+		"port": 8090,
+		"sslPort": 8092,
+		"crtPath": "",
+		"keyPath": "",
+		"keyPassPhrase": ""
 	},
 
-	"instCapture" :
-	{
-		"systemEnable" : false,
-		"systemGrabberDevice" : "NONE",
-		"systemPriority" : 250,
-		"v4lEnable" : false,
-		"v4lGrabberDevice" : "NONE",
-		"v4lPriority" : 240
+	"effects": {
+		"paths": [ "$ROOT/custom-effects" ],
+		"disable": [ "" ]
 	},
 
-	"network" :
-	{
-		"internetAccessAPI" : false,
-		"restirctedInternetAccessAPI" : false,
-		"ipWhitelist" : [],
-		"apiAuth" : true,
-		"localApiAuth" : false,
+	"instCapture": {
+		"systemEnable": false,
+		"systemGrabberDevice": "NONE",
+		"systemPriority": 250,
+		"v4lEnable": false,
+		"v4lGrabberDevice": "NONE",
+		"v4lPriority": 240,
+		"audioEnable": false,
+		"audioGrabberDevice": "NONE",
+		"audioPriority": 230
+	},
+
+	"network": {
+		"internetAccessAPI": false,
+		"restirctedInternetAccessAPI": false,
+		"ipWhitelist": [],
+		"apiAuth": true,
+		"localApiAuth": false,
 		"localAdminAuth": true
 	},
 
-	"ledConfig" :
-	{
-  	"classic":
-		{
-			"top"	 	: 1,
-			"bottom"	: 0,
-			"left"		: 0,
-			"right"		: 0,
-			"glength"	: 0,
-			"gpos"		: 0,
-			"position"	: 0,
-			"reverse"	: false,
-			"hdepth"	: 8,
-			"vdepth"	: 5,
-			"overlap"	: 0,
-			"edgegap"	: 0,
-			"ptlh"		: 0,
-			"ptlv"		: 0,
-			"ptrh"		: 100,
-			"ptrv"		: 0,
-			"pblh"		: 0,
-			"pblv"		: 100,
-			"pbrh"		: 100,
-			"pbrv"		: 100
- 		},
+	"ledConfig": {
+		"classic": {
+			"top": 1,
+			"bottom": 0,
+			"left": 0,
+			"right": 0,
+			"glength": 0,
+			"gpos": 0,
+			"position": 0,
+			"reverse": false,
+			"hdepth": 8,
+			"vdepth": 5,
+			"overlap": 0,
+			"edgegap": 0,
+			"ptlh": 0,
+			"ptlv": 0,
+			"ptrh": 100,
+			"ptrv": 0,
+			"pblh": 0,
+			"pblv": 100,
+			"pbrh": 100,
+			"pbrv": 100
+		},
 
 		"matrix": {
 			"ledshoriz": 1,
@@ -244,8 +241,7 @@
 		}
 	},
 
-	"leds":
-	[
+	"leds": [
 		{
 			"hmax": 1,
 			"hmin": 0,
