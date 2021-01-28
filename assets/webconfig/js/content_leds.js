@@ -696,13 +696,18 @@ $(document).ready(function () {
       if (hostList) {
         var val = hostList.getValue();
 
-        if (val === 'custom' || val === 'NONE' || val === "") {
+        if (val === 'NONE') {
           conf_editor.getEditor(specOptPath + "host").enable()
-          conf_editor.getEditor(specOptPath + "host").setValue("");
         }
         else {
-          conf_editor.getEditor(specOptPath + "host").disable();
-          conf_editor.getEditor(specOptPath + "host").setValue(val);
+          if (val === 'custom' || val === "") {
+            conf_editor.getEditor(specOptPath + "host").enable()
+            conf_editor.getEditor(specOptPath + "host").setValue("");
+          }
+          else {
+            conf_editor.getEditor(specOptPath + "host").disable();
+            conf_editor.getEditor(specOptPath + "host").setValue(val);
+          }
         }
       }
     });
@@ -1133,10 +1138,14 @@ async function getProperties_device(ledType, key, params) {
 }
 
 async function identify_device(type, params) {
-  // Take care that connfig cannot be saved during background processing
+
+  // Take care that connfig cannot be saved and identification cannot be retriggerred during background processing
   $('#btn_submit_controller').attr('disabled', true);
+  $('#btn_test_controller').attr('disabled', true);
 
   const res = await requestLedDeviceIdentification(type, params);
+
+  $('#btn_test_controller').attr('disabled', false);
   if (!window.readOnlyMode) {
     $('#btn_submit_controller').attr('disabled', false);
   }
