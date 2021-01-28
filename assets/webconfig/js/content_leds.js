@@ -598,7 +598,6 @@ $(document).ready(function () {
     }
 
     conf_editor.on('ready', function () {
-
       switch (ledType) {
         case "adalight":
         case "cololight":
@@ -626,7 +625,6 @@ $(document).ready(function () {
     });
 
     conf_editor.on('change', function () {
-
       //Check, if device can be identified/tested and/or saved
       var canIdentify = false;
       var canSave = false;
@@ -643,7 +641,7 @@ $(document).ready(function () {
 
         case "nanoleaf":
           var host = conf_editor.getEditor("root.specificOptions.host").getValue();
-          token = conf_editor.getEditor("root.specificOptions.token").getValue();
+          var token = conf_editor.getEditor("root.specificOptions.token").getValue();
           if (host !== "" && token !== "") {
             canIdentify = true;
             canSave = true;
@@ -686,7 +684,6 @@ $(document).ready(function () {
     });
 
     conf_editor.watch('root.specificOptions.hostList', () => {
-
       var specOptPath = 'root.specificOptions.';
 
       //Disable General Options, as LED count will be resolved from device itself
@@ -713,7 +710,6 @@ $(document).ready(function () {
     });
 
     conf_editor.watch('root.specificOptions.host', () => {
-
       var host = conf_editor.getEditor("root.specificOptions.host").getValue();
 
       if (host === "") {
@@ -745,7 +741,6 @@ $(document).ready(function () {
     });
 
     conf_editor.watch('root.specificOptions.token', () => {
-
       var token = conf_editor.getEditor("root.specificOptions.token").getValue();
 
       if (token !== "") {
@@ -766,7 +761,6 @@ $(document).ready(function () {
         getProperties_device(ledType, host, params);
       }
     });
-
   });
 
   //philipshueentertainment backward fix
@@ -873,7 +867,7 @@ $(document).ready(function () {
       case "nanoleaf":
         var host = conf_editor.getEditor("root.specificOptions.host").getValue();
         var token = conf_editor.getEditor("root.specificOptions.token").getValue();
-        params = { host: host, token: authToken };
+        params = { host: host, token: token };
         break;
 
       default:
@@ -951,7 +945,6 @@ $(document).ready(function () {
 
 // build dynamic enum
 var updateSelectList = function (ledType, discoveryInfo) {
-
   if (!discoveryInfo.devices) {
     return;
   }
@@ -1085,7 +1078,6 @@ var updateSelectList = function (ledType, discoveryInfo) {
 };
 
 async function discover_device(ledType, params) {
-
   const result = await requestLedDeviceDiscovery(ledType, params);
 
   var discoveryResult;
@@ -1102,7 +1094,6 @@ async function discover_device(ledType, params) {
 }
 
 async function getProperties_device(ledType, key, params) {
-
   // Take care that connfig cannot be saved during background processing
   $('#btn_submit_controller').attr('disabled', true);
 
@@ -1113,7 +1104,6 @@ async function getProperties_device(ledType, key, params) {
 
   // get device's properties, if properties not available in chache
   if (!devicesProperties[ledType][key]) {
-
     const res = await requestLedDeviceProperties(ledType, params);
     if (res && !res.error) {
       var deviceProperties = res.info.properties;
@@ -1135,7 +1125,6 @@ async function getProperties_device(ledType, key, params) {
 }
 
 async function identify_device(type, params) {
-
   // Take care that connfig cannot be saved and identification cannot be retriggerred during background processing
   $('#btn_submit_controller').attr('disabled', true);
   $('#btn_test_controller').attr('disabled', true);
@@ -1149,13 +1138,12 @@ async function identify_device(type, params) {
 }
 
 function updateElements(ledType, key) {
-
   if (devicesProperties[ledType][key]) {
     switch (ledType) {
       case "cololight":
         var ledProperties = devicesProperties[ledType][key];
 
-        var hardwareLedCount=1;
+        var hardwareLedCount = 1;
         if (ledProperties) {
           hardwareLedCount = ledProperties.ledCount;
         }
