@@ -634,7 +634,7 @@ $(document).ready(function () {
       switch (ledType) {
         case "cololight":
         case "wled":
-          host = conf_editor.getEditor("root.specificOptions.host").getValue();
+          var host = conf_editor.getEditor("root.specificOptions.host").getValue();
           if (host !== "") {
             canIdentify = true;
             canSave = true;
@@ -642,7 +642,7 @@ $(document).ready(function () {
           break;
 
         case "nanoleaf":
-          host = conf_editor.getEditor("root.specificOptions.host").getValue();
+          var host = conf_editor.getEditor("root.specificOptions.host").getValue();
           token = conf_editor.getEditor("root.specificOptions.token").getValue();
           if (host !== "" && token !== "") {
             canIdentify = true;
@@ -651,7 +651,7 @@ $(document).ready(function () {
           break;
 
         case "adalight":
-          output = conf_editor.getEditor("root.specificOptions.output").getValue();
+          var output = conf_editor.getEditor("root.specificOptions.output").getValue();
           if (output !== "NONE") {
             canIdentify = false;
             canSave = true;
@@ -714,7 +714,7 @@ $(document).ready(function () {
 
     conf_editor.watch('root.specificOptions.host', () => {
 
-      host = conf_editor.getEditor("root.specificOptions.host").getValue();
+      var host = conf_editor.getEditor("root.specificOptions.host").getValue();
 
       if (host === "") {
         conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(1);
@@ -727,7 +727,7 @@ $(document).ready(function () {
             break;
 
           case "nanoleaf":
-            token = conf_editor.getEditor("root.specificOptions.token").getValue();
+            var token = conf_editor.getEditor("root.specificOptions.token").getValue();
             if (token === "") {
               return
             }
@@ -746,11 +746,12 @@ $(document).ready(function () {
 
     conf_editor.watch('root.specificOptions.token', () => {
 
-      token = conf_editor.getEditor("root.specificOptions.token").getValue();
+      var token = conf_editor.getEditor("root.specificOptions.token").getValue();
 
       if (token !== "") {
         let params = {};
 
+        var host = "";
         switch (ledType) {
           case "nanoleaf":
             host = conf_editor.getEditor("root.specificOptions.host").getValue();
@@ -865,13 +866,13 @@ $(document).ready(function () {
     switch (ledType) {
       case "cololight":
       case "wled":
-        host = conf_editor.getEditor("root.specificOptions.host").getValue();
+        var host = conf_editor.getEditor("root.specificOptions.host").getValue();
         params = { host: host };
         break;
 
       case "nanoleaf":
-        host = conf_editor.getEditor("root.specificOptions.host").getValue();
-        token = conf_editor.getEditor("root.specificOptions.token").getValue();
+        var host = conf_editor.getEditor("root.specificOptions.host").getValue();
+        var token = conf_editor.getEditor("root.specificOptions.token").getValue();
         params = { host: host, token: authToken };
         break;
 
@@ -921,9 +922,6 @@ $(document).ready(function () {
         break;
 
       case "wled":
-
-        var host = conf_editor.getEditor("root.specificOptions.host").getValue();
-
         var hardwareLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue();
         result.device.hardwareLedCount = hardwareLedCount;
 
@@ -971,7 +969,7 @@ var updateSelectList = function (ledType, discoveryInfo) {
 
   var devNET = ['atmoorb', 'cololight', 'fadecandy', 'philipshue', 'nanoleaf', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udph801', 'udpraw', 'wled', 'yeelight'];
   var devSerial = ['adalight', 'dmx', 'atmo', 'sedu', 'tpm2', 'karate'];
-  var devHID = ['hyperionusbasp', 'lightpack', 'paintpack', 'rawhid',];
+  //var devHID = ['hyperionusbasp', 'lightpack', 'paintpack', 'rawhid',];
 
   if ($.inArray(ledType, devNET) != -1) {
     ledTypeGroup = "devNET";
@@ -998,7 +996,6 @@ var updateSelectList = function (ledType, discoveryInfo) {
         for (const device of discoveryInfo.devices) {
           var name;
           var host;
-          addCustom = true;
 
           switch (ledType) {
             case "nanoleaf":
@@ -1115,7 +1112,7 @@ async function getProperties_device(ledType, key, params) {
   }
 
   // get device's properties, if properties not available in chache
-  if (!devicesProperties[ledType][host]) {
+  if (!devicesProperties[ledType][key]) {
 
     const res = await requestLedDeviceProperties(ledType, params);
     if (res && !res.error) {
@@ -1143,7 +1140,7 @@ async function identify_device(type, params) {
   $('#btn_submit_controller').attr('disabled', true);
   $('#btn_test_controller').attr('disabled', true);
 
-  const res = await requestLedDeviceIdentification(type, params);
+  await requestLedDeviceIdentification(type, params);
 
   $('#btn_test_controller').attr('disabled', false);
   if (!window.readOnlyMode) {
@@ -1158,11 +1155,9 @@ function updateElements(ledType, key) {
       case "cololight":
         var ledProperties = devicesProperties[ledType][key];
 
+        var hardwareLedCount=1;
         if (ledProperties) {
           hardwareLedCount = ledProperties.ledCount;
-        }
-        else {
-          hardwareLedCount = 1;
         }
         conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(hardwareLedCount);
         break;
@@ -1171,9 +1166,6 @@ function updateElements(ledType, key) {
 
         if (ledProperties && ledProperties.leds) {
           hardwareLedCount = ledProperties.leds.count;
-        }
-        else {
-          hardwareLedCount = 1;
         }
         conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(hardwareLedCount);
         break;
@@ -1190,9 +1182,6 @@ function updateElements(ledType, key) {
             }
           }
           hardwareLedCount = ledProperties.panelLayout.layout.numPanels - nonLedNum;
-        }
-        else {
-          hardwareLedCount = 1;
         }
         conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(hardwareLedCount);
 

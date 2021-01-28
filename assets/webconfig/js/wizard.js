@@ -829,7 +829,7 @@ async function identify_hue_device(hostAddress, username, id) {
   $('#btn_wiz_save').attr('disabled', true);
 
   let params = { host: hostAddress, user: username, lightId: id };
-  const res = await requestLedDeviceIdentification('philipshue', params);
+  await requestLedDeviceIdentification('philipshue', params);
 
   if (!window.readOnlyMode) {
     $('#btn_wiz_save').attr('disabled', false);  
@@ -1305,10 +1305,10 @@ async function discover_wleds() {
 
     // Process devices returned by discovery
     for (const device of r.devices) {
-      if (device.address !== "") {
-        if (getIpInLights(device.address).length === 0) {
+      if (device.ip !== "") {
+        if (getIpInLights(device.ip).length === 0) {
           var light = {};
-          light.ip = device.address;
+          light.ip = device.ip;
           light.host = device.hostname;
           light.name = device.name;
           light.type = device.type;
@@ -1334,9 +1334,6 @@ function assign_wled_lights() {
       lights[lightid].id = lightid;
 
       var lightName = lights[lightid].name;
-      var lightHostname = lights[lightid].host;
-      var lightIP = lights[lightid].ip;
-
       options += '<option value="' + lightid + '">' + lightName + '</option>';
     }
 
@@ -1384,7 +1381,7 @@ async function identify_wled_device(hostAddress) {
   $('#btn_wiz_save').attr('disabled', true);
 
   let params = { host: hostAddress };
-  const res = await requestLedDeviceIdentification('wled', params);
+  await requestLedDeviceIdentification('wled', params);
 
   if (!window.readOnlyMode) {
     $('#btn_wiz_save').attr('disabled', false);
@@ -1650,7 +1647,7 @@ async function identify_yeelight_device(hostname, port) {
   $('#btn_wiz_save').attr('disabled', true);
 
   let params = { hostname: hostname, port: port };
-  const res = await requestLedDeviceIdentification("yeelight", params);
+  await requestLedDeviceIdentification("yeelight", params);
 
   if (!window.readOnlyMode) {
     $('#btn_wiz_save').attr('disabled', false);
@@ -1787,7 +1784,7 @@ async function discover_atmoorb_lights(multiCastGroup, multiCastPort) {
         if (getIdInLights(device.id).length === 0) {
           var light = {};
           light.id = device.id;
-          light.ip = device.address;
+          light.ip = device.ip;
           light.host = device.hostname;
           lights.push(light);
         }
@@ -1862,7 +1859,7 @@ function assign_atmoorb_lights() {
 
       $('.lidsb').append(createTableRow([orbId + lightAnnotation, '<select id="orb_' + lightid + '" ' + enabled + ' class="orb_sel_watch form-control">'
         + options
-        + '</select>', '<button class="btn btn-sm btn-primary" ' + enabled + ' onClick=identify_atmoorb_device(' + orbId + ')>'
+        + '</select>', '<button class="btn btn-sm btn-primary" ' + enabled + ' onClick=identify_atmoorb_device("' + orbId + '")>'
         + $.i18n('wiz_identify_light', orbId) + '</button>']));
     }
 
@@ -1891,7 +1888,7 @@ async function identify_atmoorb_device(orbId) {
   $('#btn_wiz_save').attr('disabled', true);
 
   let params = { id: orbId };
-  const res = await requestLedDeviceIdentification("atmoorb", params);
+  await requestLedDeviceIdentification("atmoorb", params);
 
   if (!window.readOnlyMode) {
     $('#btn_wiz_save').attr('disabled', false);
@@ -1947,7 +1944,7 @@ async function identify_nanoleaf(hostAddress, authToken) {
   $('#btn_wiz_save').attr('disabled', true);
 
   let params = { host: hostAddress, token: authToken };
-  const res = await requestLedDeviceIdentification('nanoleaf', params);
+  await requestLedDeviceIdentification('nanoleaf', params);
 
   if (!window.readOnlyMode) {
     $('#btn_wiz_save').attr('disabled', false);
@@ -2090,7 +2087,6 @@ function assign_cololight_lights() {
       lights[lightid].id = lightid;
 
       var lightName = lights[lightid].name;
-      var lightHostname = lights[lightid].host;
       var lightIP = lights[lightid].ip;
 
       var val = lightName + " (" + lightIP + ")";
@@ -2141,7 +2137,7 @@ async function identify_cololight_device(hostAddress) {
   $('#btn_wiz_save').attr('disabled', true);
 
   let params = { host: hostAddress };
-  const res = await requestLedDeviceIdentification('cololight', params);
+  await requestLedDeviceIdentification('cololight', params);
 
   if (!window.readOnlyMode) {
     $('#btn_wiz_save').attr('disabled', false);
