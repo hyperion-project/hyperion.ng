@@ -43,3 +43,17 @@ int LedDeviceAtmo::write(const std::vector<ColorRgb> &ledValues)
 	memcpy(4 + _ledBuffer.data(), ledValues.data(), _ledCount * sizeof(ColorRgb));
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
 }
+
+QJsonObject LedDeviceAtmo::getProperties(const QJsonObject& params)
+{
+	QJsonObject properties;
+
+	QString serialPort = params["serialPort"].toString("");
+
+	QJsonObject propertiesDetails;
+	QJsonArray possibleLedCounts = { 5 };
+	propertiesDetails.insert("ledCount", possibleLedCounts);
+
+	properties.insert("properties", propertiesDetails);
+	return properties;
+}

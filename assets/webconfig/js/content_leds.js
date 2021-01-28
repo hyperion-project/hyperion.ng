@@ -600,6 +600,11 @@ $(document).ready(function () {
     conf_editor.on('ready', function () {
       switch (ledType) {
         case "adalight":
+        case "atmo":
+        case "dmx":
+        case "karate":
+        case "sedu":
+        case "tpm2":
         case "cololight":
         case "wled":
         case "nanoleaf":
@@ -644,14 +649,6 @@ $(document).ready(function () {
           var token = conf_editor.getEditor("root.specificOptions.token").getValue();
           if (host !== "" && token !== "") {
             canIdentify = true;
-            canSave = true;
-          }
-          break;
-
-        case "adalight":
-          var output = conf_editor.getEditor("root.specificOptions.output").getValue();
-          if (output !== "NONE") {
-            canIdentify = false;
             canSave = true;
           }
           break;
@@ -737,6 +734,28 @@ $(document).ready(function () {
         }
 
         getProperties_device(ledType, host, params);
+      }
+    });
+
+    conf_editor.watch('root.specificOptions.output', () => {
+      var output = conf_editor.getEditor("root.specificOptions.output").getValue();
+
+      if (output === "NONE" || output === "") {
+        conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(1);
+        $('#btn_submit_controller').attr('disabled', true);
+      }
+      else {
+        let params = {};
+        switch (ledType) {
+          case "atmo":
+          case "karate":
+            params = { serialPort: output };
+            getProperties_device(ledType, output, params);
+            break;
+        }
+        if (!window.readOnlyMode) {
+          $('#btn_submit_controller').attr('disabled', false);
+        }
       }
     });
 
@@ -876,7 +895,7 @@ $(document).ready(function () {
     identify_device(ledType, params);
   });
 
-  // save led device config
+  // Save LED device config
   $("#btn_submit_controller").off().on("click", function (event) {
     var ledType = $("#leddevices").val();
     var result = { device: {} };
@@ -892,6 +911,9 @@ $(document).ready(function () {
     }
     result.device.type = ledType;
 
+    var ledConfig = {};
+    var leds = [];
+
     // Special handling per LED-type
     switch (ledType) {
       case "cololight":
@@ -902,29 +924,60 @@ $(document).ready(function () {
         result.device.hardwareLedCount = hardwareLedCount;
 
         // Generate default layout
-        var ledLedConfig = [];
         if (devicesProperties[ledType][host].modelType === "Strip") {
-          ledLedConfig = createClassicLedLayoutSimple(hardwareLedCount / 2, hardwareLedCount / 4, hardwareLedCount / 4, 0, hardwareLedCount / 4 * 3, false);
+          ledConfig = {
+            "classic": {
+              "top": hardwareLedCount / 2,
+              "bottom": 0,
+              "left": hardwareLedCount / 4,
+              "right": hardwareLedCount / 4,
+              "position": hardwareLedCount / 4 * 3
+            }
+          };
+          leds = createClassicLedLayoutSimple(hardwareLedCount / 2, hardwareLedCount / 4, hardwareLedCount / 4, 0, hardwareLedCount / 4 * 3, false);
         }
         else {
-          ledLedConfig = createClassicLedLayoutSimple(0, 0, 0, hardwareLedCount, 0, true);
+          ledConfig = {
+            "classic": {
+              "top": hardwareLedCount,
+              "bottom": 0,
+              "left": 0,
+              "right": 0
+            }
+          };
+          leds = createClassicLedLayoutSimple(hardwareLedCount, 0, 0, 0, 0, false);
         }
-        result.leds = ledLedConfig;
+        result.ledConfig = ledConfig;
+        result.leds = leds;
 
         result.smoothing = { enable: false };
 
         break;
 
       case "wled":
-        var hardwareLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue();
+        result.smoothing = { enable: false };
+
+      case "adalight":
+      case "atmo":
+      case "dmx":
+      case "karate":
+      case "sedu":
+      case "tpm2":
+        var hardwareLedCount = parseInt(conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue());
         result.device.hardwareLedCount = hardwareLedCount;
 
         // Generate default layout
-        var ledLedConfig = [];
-        ledLedConfig = createClassicLedLayoutSimple(0, 0, 0, hardwareLedCount, 0, true);
-        result.leds = ledLedConfig;
-
-        result.smoothing = { enable: false };
+        ledConfig = {
+          "classic": {
+            "top": hardwareLedCount,
+            "bottom": 0,
+            "left": 0,
+            "right": 0
+          }
+        };
+        result.ledConfig = ledConfig;
+        leds = createClassicLedLayoutSimple(hardwareLedCount, 0, 0, 0, 0, false);
+        result.leds = leds;
 
         break;
 
@@ -933,7 +986,6 @@ $(document).ready(function () {
         result.smoothing = { enable: false };
 
         break;
-
       default:
     }
 
@@ -1043,6 +1095,7 @@ var updateSelectList = function (ledType, discoveryInfo) {
 
     case "devSerial":
       key = "output";
+
       if (discoveryInfo.devices.length == 0) {
         enumVals.push("NONE");
         enumTitelVals.push($.i18n('edt_dev_spec_devices_discovered_none'));
@@ -1051,6 +1104,11 @@ var updateSelectList = function (ledType, discoveryInfo) {
       else {
         switch (ledType) {
           case "adalight":
+          case "atmo":
+          case "dmx":
+          case "karate":
+          case "sedu":
+          case "tpm2":
             for (const device of discoveryInfo.devices) {
               enumVals.push(device.portName);
               enumTitelVals.push(device.portName + " (" + device.vendorIdentifier + "|" + device.productIdentifier + ") - " + device.manufacturer);
@@ -1173,6 +1231,19 @@ function updateElements(ledType, key) {
         }
         conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(hardwareLedCount);
 
+        break;
+
+      case "atmo":
+      case "karate":
+        var ledProperties = devicesProperties[ledType][key];
+
+        if (ledProperties && ledProperties.ledCount) {
+          if (ledProperties.ledCount.length > 0) {
+            var configuredLedCount = window.serverConfig.device.hardwareLedCount;
+            var generalOpt = conf_editor.getEditor('root.generalOptions');
+            updateJsonEditorSelection(generalOpt, "hardwareLedCount", {}, ledProperties.ledCount, [], configuredLedCount);
+          }
+        }
         break;
 
       default:
