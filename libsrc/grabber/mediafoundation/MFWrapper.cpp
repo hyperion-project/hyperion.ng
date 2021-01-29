@@ -6,7 +6,7 @@
 #include <QTimer>
 
 MFWrapper::MFWrapper(const QString &device, unsigned grabWidth, unsigned grabHeight, unsigned fps, int pixelDecimation, QString flipMode)
-	: GrabberWrapper("V4L2:"+device, &_grabber, grabWidth, grabHeight, 10)
+	: GrabberWrapper("V4L2:MEDIA_FOUNDATION", &_grabber, grabWidth, grabHeight, 10)
 	, _grabber(device, grabWidth, grabHeight, fps, pixelDecimation, flipMode)
 {
 	_ggrabber = &_grabber;

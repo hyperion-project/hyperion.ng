@@ -71,6 +71,18 @@ void MFThread::run()
 		}
 		else
 		{
+			if (_pixelFormat == PixelFormat::BGR24)
+			{
+				if (_flipMode == FlipMode::NO_CHANGE)
+					_imageResampler.setFlipMode(FlipMode::HORIZONTAL);
+				else if (_flipMode == FlipMode::HORIZONTAL)
+					_imageResampler.setFlipMode(FlipMode::NO_CHANGE);
+				else if (_flipMode == FlipMode::VERTICAL)
+					_imageResampler.setFlipMode(FlipMode::BOTH);
+				else if (_flipMode == FlipMode::BOTH)
+					_imageResampler.setFlipMode(FlipMode::VERTICAL);
+			}
+
 			Image<ColorRgb> image = Image<ColorRgb>();
 			_imageResampler.processImage(_localData, _width, _height, _lineLength, PixelFormat::BGR24, image);
 			emit newFrame(_threadIndex, image, _currentFrame);

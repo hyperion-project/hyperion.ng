@@ -5,7 +5,7 @@
 namespace { const bool verbose = false; }
 
 MFGrabber::MFGrabber(const QString & device, unsigned width, unsigned height, unsigned fps, int pixelDecimation, QString flipMode)
-	: Grabber("V4L2:"+device)
+	: Grabber("V4L2:MEDIA_FOUNDATION")
 	, _currentDeviceName(device)
 	, _newDeviceName(device)
 	, _hr(S_FALSE)
@@ -15,7 +15,7 @@ MFGrabber::MFGrabber(const QString & device, unsigned width, unsigned height, un
 	, _frameByteSize(-1)
 	, _noSignalCounterThreshold(40)
 	, _noSignalCounter(0)
-	, _fpsSoftwareDecimation(1)
+	, _fpsSoftwareDecimation(0)
 	, _brightness(0)
 	, _contrast(0)
 	, _saturation(0)
@@ -65,6 +65,7 @@ bool MFGrabber::init()
 		// enumerate the video capture devices on the user's system
 		enumVideoCaptureDevices();
 
+		//
 		if(!autoDiscovery && !_deviceProperties.contains(_currentDeviceName))
 		{
 			Debug(_log, "Device '%s' is not available. Changing to auto.", QSTRING_CSTR(_currentDeviceName));
@@ -134,9 +135,9 @@ bool MFGrabber::init()
 		if(foundIndex < 0 && bestGuess >= 0)
 		{
 			if(!autoDiscovery && _width != 0 && _height != 0)
-				Warning(_log, "Selected resolution not found in supported modes. Forcing best resolution");
+				Warning(_log, "Selected resolution not found in supported modes. Set default configuration");
 			else
-				Debug(_log, "Forcing best resolution");
+				Debug(_log, "Set default configuration");
 
 			foundIndex = bestGuess;
 		}
@@ -536,7 +537,7 @@ void MFGrabber::process_image(const void *frameImageBuffer, int size)
 	unsigned int processFrameIndex = _currentFrame++;
 
 	// frame skipping
-	if((processFrameIndex % _fpsSoftwareDecimation != 0) && (_fpsSoftwareDecimation > 1))
+	if((processFrameIndex % (_fpsSoftwareDecimation + 1) != 0) && (_fpsSoftwareDecimation > 0))
 		return;
 
 	// CEC detection
@@ -637,7 +638,9 @@ void MFGrabber::stop()
 		_initialized = false;
 		_threadManager.stop();
 		uninit_device();
-		_pixelFormat = _pixelFormatConfig;
+		// restore pixelformat to configs value if it is not auto or device name has not changed
+		if(_pixelFormatConfig != PixelFormat::NO_CHANGE || _newDeviceName != _currentDeviceName)
+			_pixelFormat = _pixelFormatConfig;
 		_deviceProperties.clear();
 		Info(_log, "Stopped");
 	}
@@ -797,8 +800,8 @@ bool MFGrabber::setFramerate(int fps)
 void MFGrabber::setFpsSoftwareDecimation(int decimation)
 {
 	_fpsSoftwareDecimation = decimation;
-	if(decimation > 1)
-		Debug(_log,"Every %ith image per second are processed", decimation);
+	if(decimation > 0)
+		Debug(_log,"Skip %i frame per second", decimation);
 }
 
 bool MFGrabber::setEncoding(QString enc)
@@ -836,8 +839,9 @@ void MFGrabber::reloadGrabber()
 		Debug(_log,"Reloading Media Foundation Grabber");
 		// stop grabber
 		uninit();
-		// restore pixelformat to configs value
-		_pixelFormat = _pixelFormatConfig;
+		// restore pixelformat to configs value if it is not auto or device name has not changed
+		if(_pixelFormatConfig != PixelFormat::NO_CHANGE || _newDeviceName != _currentDeviceName)
+			_pixelFormat = _pixelFormatConfig;
 		// set _newDeviceName
 		_newDeviceName = _currentDeviceName;
 		// start grabber

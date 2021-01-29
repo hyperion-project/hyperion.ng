@@ -70,7 +70,7 @@
 		"fps"                   : 15,
 		"standard"              : "NO_CHANGE",
 		"flip"                  : "NO_CHANGE",
-		"fpsSoftwareDecimation" : 1,
+		"fpsSoftwareDecimation" : 0,
 		"sizeDecimation"        : 8,
 		"cropLeft"              : 0,
 		"cropRight"             : 0,

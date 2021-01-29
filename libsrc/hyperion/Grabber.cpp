@@ -38,7 +38,7 @@ void Grabber::setVideoMode(VideoMode mode)
 
 void Grabber::setFlipMode(FlipMode mode)
 {
-	Debug(_log,"Set flipmode to %d", mode);
+	Debug(_log,"Set flipmode to %s", QSTRING_CSTR(flipModeToString(mode)));
 	_flipMode = mode;
 	if ( _useImageResampler )
 	{
