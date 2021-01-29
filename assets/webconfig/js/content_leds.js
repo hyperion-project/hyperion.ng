@@ -653,6 +653,11 @@ $(document).ready(function () {
           }
           break;
 
+        case "adalight":
+            canIdentify = true;
+            canSave = true;
+          break;
+
         default:
           canIdentify = false;
           canSave = true;
@@ -889,6 +894,12 @@ $(document).ready(function () {
         params = { host: host, token: token };
         break;
 
+      case "adalight":
+        var currentLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue();
+        params = Object.assign(conf_editor.getEditor("root.generalOptions").getValue(),
+                               conf_editor.getEditor("root.specificOptions").getValue(),
+                               { currentLedCount }
+                 );
       default:
     }
 

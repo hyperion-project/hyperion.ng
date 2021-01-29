@@ -234,20 +234,25 @@ int LedDevice::rewriteLEDs()
 	return retval;
 }
 
-int LedDevice::writeBlack(int numberOfBlack)
+int LedDevice::writeBlack(int numberOfWrites)
+{
+	return writeColor(ColorRgb::BLACK, numberOfWrites);
+}
+
+int LedDevice::writeColor(const ColorRgb& color, int numberOfWrites)
 {
 	int rc = -1;
 
-	for (int i = 0; i < numberOfBlack; i++)
+	for (int i = 0; i < numberOfWrites; i++)
 	{
-		if ( _latchTime_ms > 0 )
+		if (_latchTime_ms > 0)
 		{
 			// Wait latch time before writing black
 			QEventLoop loop;
 			QTimer::singleShot(_latchTime_ms, &loop, &QEventLoop::quit);
 			loop.exec();
 		}
-		_lastLedValues = std::vector<ColorRgb>(static_cast<unsigned long>(_ledCount), ColorRgb::BLACK );
+		_lastLedValues = std::vector<ColorRgb>(static_cast<unsigned long>(_ledCount),color);
 		rc = write(_lastLedValues);
 	}
 	return rc;
@@ -411,6 +416,8 @@ void LedDevice::setLatchTime( int latchTime_ms )
 void LedDevice::setRewriteTime( int rewriteTime_ms )
 {
 	assert(rewriteTime_ms >= 0);
+	assert(_refreshTimer != nullptr);
+
 	_refreshTimerInterval_ms = rewriteTime_ms;
 
 	if ( _refreshTimerInterval_ms > 0 )

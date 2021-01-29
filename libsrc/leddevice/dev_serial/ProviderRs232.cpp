@@ -2,6 +2,7 @@
 // LedDevice includes
 #include <leddevice/LedDevice.h>
 #include "ProviderRs232.h"
+#include <utils/WaitTime.h>
 
 // qt includes
 #include <QSerialPortInfo>
@@ -10,10 +11,16 @@
 #include <chrono>
 
 // Constants
-constexpr std::chrono::milliseconds WRITE_TIMEOUT{1000};	// device write timeout in ms
-constexpr std::chrono::milliseconds OPEN_TIMEOUT{5000};		// device open timeout in ms
-const int MAX_WRITE_TIMEOUTS = 5;	// Maximum number of allowed timeouts
-const int NUM_POWEROFF_WRITE_BLACK = 2;	// Number of write "BLACK" during powering off
+namespace {
+	const bool verbose = false;
+
+	constexpr std::chrono::milliseconds WRITE_TIMEOUT{ 1000 };	// device write timeout in ms
+	constexpr std::chrono::milliseconds OPEN_TIMEOUT{ 5000 };		// device open timeout in ms
+	const int MAX_WRITE_TIMEOUTS = 5;	// Maximum number of allowed timeouts
+	const int NUM_POWEROFF_WRITE_BLACK = 2;	// Number of write "BLACK" during powering off
+
+	constexpr std::chrono::milliseconds DEFAULT_IDENTIFY_TIME{ 500 };
+} //End of constants
 
 ProviderRs232::ProviderRs232(const QJsonObject &deviceConfig)
 	: LedDevice(deviceConfig)
@@ -295,4 +302,36 @@ QJsonObject ProviderRs232::discover(const QJsonObject& /*params*/)
 
 	devicesDiscovered.insert("devices", deviceList);
 	return devicesDiscovered;
+}
+
+void ProviderRs232::identify(const QJsonObject& params)
+{
+	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
+
+	QString deviceName = params["output"].toString("");
+	if (!deviceName.isEmpty())
+	{
+		_devConfig = params;
+		start();
+		{
+			if ( open() == 0 )
+			{
+				for (int i = 0; i < 2; ++i)
+				{
+					if (writeColor(ColorRgb::RED) == 0)
+					{
+						wait(DEFAULT_IDENTIFY_TIME);
+
+						writeColor(ColorRgb::BLACK);
+						wait(DEFAULT_IDENTIFY_TIME);
+					}
+					else
+					{
+						break;
+					}
+				}
+				close();
+			}
+		}
+	}
 }
