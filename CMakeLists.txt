@@ -59,7 +59,7 @@ IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
 	SET ( DEFAULT_USB_HID     ON )
 	SET ( DEFAULT_CEC         ON )
 ELSEIF ( WIN32 )
-	SET ( DEFAULT_DX ON )
+	SET ( DEFAULT_DX OFF )
 ELSE()
 	SET ( DEFAULT_V4L2        OFF )
 	SET ( DEFAULT_FB          OFF )
@@ -303,7 +303,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	# The Qt5_DIR should point to Qt5Config.cmake   -> C:/Qt/5.xx/msvc2017_64/lib/cmake/Qt5
 	# The CMAKE_PREFIX_PATH should point to the install directory -> C:/Qt/5.xx/msvc2017_64
 	#
-	# Alternatively, use Qt5_BASE_DIR environment variable to point to Qt version to be used 
+	# Alternatively, use Qt5_BASE_DIR environment variable to point to Qt version to be used
 	# In MSVC19 add into CMakeSettings.json
 	#
 	#      "environments": [
@@ -333,14 +333,14 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 
 	message(STATUS "Add ${qt_module_path} to CMAKE_MODULE_PATH")
 	SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${qt_module_path}")
-	
+
 	#message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 	#message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
 	# Search for DirectX9
 	if (ENABLE_DX)
 		find_package(DirectX9 REQUIRED)
-	endif()
+	endif(ENABLE_DX)
 
 endif()
 
