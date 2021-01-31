@@ -171,6 +171,18 @@ def printFlag(country):
 		hyperion.imageSolidFill(255, 0, 0)
 		hyperion.imageDrawLine(int(iW*0.5), int(iH*0.25), int(iW*0.5), int(iH*0.75), int(iH*0.15), 255, 255, 255)
 		hyperion.imageDrawLine(int(iW*0.26), int(iH*0.5), int(iW*0.75), int(iH*0.5), int(iH*0.15), 255, 255, 255)
+		
+	# cmr flag (Cameroon)
+	if country == "cmr":
+		hyperion.imageSolidFill(0, 0, int(iW*0.33), iH, 0, 255, 0)
+		hyperion.imageSolidFill(int(iW*0.33), 0, int(iW*0.33), iH, 255, 0, 0)
+		hyperion.imageSolidFill(int(iW*0.66), 0, iW, iH, 255, 255, 0)
+		
+	# ru flag (Russia)
+	if country == "ru":
+		hyperion.imageSolidFill(0, 0, iW, int(iH*0.33), 255, 255, 255)
+		hyperion.imageSolidFill(0, int(iH*0.33), iW, int(iH*0.33), 0, 57, 166)
+		hyperion.imageSolidFill(0, int(iH*0.66), iW, iH, 213, 43, 30)
 
 #prepare wanted flags
 for cf in countries:

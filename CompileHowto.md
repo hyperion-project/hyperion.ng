@@ -69,6 +69,13 @@ all linux specific led and grabber hardware via cmake. Because we use QT as fram
 ## Arch
 See [AUR](https://aur.archlinux.org/packages/?O=0&SeB=nd&K=hyperion&outdated=&SB=n&SO=a&PP=50&do_Search=Go) for PKGBUILDs on arch. If the PKGBUILD does not work ask questions there please.
 
+## Fedora
+The following dependencies are needed to build hyperion.ng on fedora.
+```
+sudo dnf -y groupinstall "Development Tools"
+sudo dnf install python3-devel qt-devel qt5-qtbase-devel qt5-qtserialport-devel libjpeg-devel xrandr xcb-util-image-devel qt5-qtx11extras-devel turbojpeg-devel libusb-devel avahi-libs avahi-compat-libdns_sd-devel xcb-util-devel dbus-devel openssl-devel fedora-packager rpmdevtools gcc libcec-devel
+```
+After installing the dependencies, you can continue with the compile instructions later on this page (the more detailed way..).
 
 ## OSX
 To install on OS X you either need Homebrew or Macport but Homebrew is the recommended way to install the packages. To use Homebrew XCode is required as well, use `brew doctor` to check your install.
@@ -84,7 +91,7 @@ brew install zlib
 ```
 
 ## Windows (WIP)
-We assume a 64bit Windows 7 or higher. Install the following;
+We assume a 64bit Windows 10. Install the following;
 - [Git](https://git-scm.com/downloads) (Check: Add to PATH)
 - [CMake (Windows win64-x64 Installer)](https://cmake.org/download/) (Check: Add to PATH)
 - [Visual Studio 2019 Build Tools](https://go.microsoft.com/fwlink/?linkid=840931) ([direct link](https://aka.ms/vs/16/release/vs_buildtools.exe))
@@ -94,9 +101,12 @@ We assume a 64bit Windows 7 or higher. Install the following;
 - [Python 3 (Windows x86-64 executable installer)](https://www.python.org/downloads/windows/) (Check: Add to PATH and Debug Symbols)
   - Open a console window and execute `pip install aqtinstall`.
   - Now we can download Qt to _C:\Qt_ `mkdir c:\Qt && aqt install -O c:\Qt 5.15.0 windows desktop win64_msvc2019_64`
-- [DirectX Software Development Kit](https://www.microsoft.com/en-us/download/details.aspx?id=6812) ([direct link](https://download.microsoft.com/download/A/E/7/AE743F1F-632B-4809-87A9-AA1BB3458E31/DXSDK_Jun10.exe))
 
-- Optional for package creation: [NSIS 3.x](https://sourceforge.net/projects/nsis/files/NSIS%203/) ([direct link](https://sourceforge.net/projects/nsis/files/latest/download))
+###  Optional:
+- For DirectX9 grabber:
+  - DirectX Software Development Kit. The download link is no longer available, so you will have to search for it yourself.
+- For package creation:
+  - [NSIS 3.x](https://sourceforge.net/projects/nsis/files/NSIS%203/) ([direct link](https://sourceforge.net/projects/nsis/files/latest/download))
 
 # Compiling and installing Hyperion
 

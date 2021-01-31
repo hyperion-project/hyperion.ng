@@ -826,9 +826,17 @@ async function getProperties_hue_bridge(hostAddress, username, resourceFilter) {
   }
 }
 
-function identify_hue_device(hostAddress, username, id) {
+async function identify_hue_device(hostAddress, username, id) {
+
+  // Take care that new record cannot be save during background process
+  $('#btn_wiz_save').attr('disabled', true);
+
   let params = { host: hostAddress, user: username, lightId: id };
-  requestLedDeviceIdentification("philipshue", params);
+  const res = await requestLedDeviceIdentification('philipshue', params);
+
+  if (!window.readOnlyMode) {
+    $('#btn_wiz_save').attr('disabled', false);  
+  } 
 }
 
 function getHueIPs() {
@@ -1289,9 +1297,17 @@ async function getProperties_wled(hostAddress, resourceFilter) {
   }
 }
 
-function identify_wled(hostAddress) {
+async function identify_wled(hostAddress) {
+
+  // Take care that new record cannot be save during background process
+  $('#btn_wiz_save').attr('disabled', true);
+
   let params = { host: hostAddress };
-  requestLedDeviceIdentification("wled", params);
+  const res = await requestLedDeviceIdentification('wled', params);
+
+  if (!window.readOnlyMode) {
+    $('#btn_wiz_save').attr('disabled', false);  
+  }
 }
 
 //****************************
@@ -1538,9 +1554,17 @@ async function getProperties_yeelight(hostname, port) {
   }
 }
 
-function identify_yeelight_device(hostname, port) {
+async function identify_yeelight_device(hostname, port) {
+
+  // Take care that new record cannot be save during background process
+  $('#btn_wiz_save').attr('disabled', true);
+
   let params = { hostname: hostname, port: port };
-  requestLedDeviceIdentification("yeelight", params);
+  const res = await requestLedDeviceIdentification("yeelight", params);
+
+  if (!window.readOnlyMode) {
+    $('#btn_wiz_save').attr('disabled', false);  
+  }
 }
 
 //****************************
@@ -1774,9 +1798,17 @@ function assign_atmoorb_lights() {
   }
 }
 
-function identify_atmoorb_device(orbId) {
+async function identify_atmoorb_device(orbId) {
+
+  // Take care that new record cannot be save during background process
+  $('#btn_wiz_save').attr('disabled', true);
+
   let params = { id: orbId };
-  requestLedDeviceIdentification("atmoorb", params);
+  const res = await requestLedDeviceIdentification("atmoorb", params);
+
+  if (!window.readOnlyMode) {
+    $('#btn_wiz_save').attr('disabled', false);  
+  }
 }
 
 //****************************
@@ -1823,9 +1855,17 @@ async function getProperties_nanoleaf(hostAddress, authToken, resourceFilter) {
   }
 }
 
-function identify_nanoleaf(hostAddress, authToken) {
+async function identify_nanoleaf(hostAddress, authToken) {
+
+  // Take care that new record cannot be save during background process
+  $('#btn_wiz_save').attr('disabled', true);
+
   let params = { host: hostAddress, token: authToken };
-  requestLedDeviceIdentification("nanoleaf", params);
+  const res = await requestLedDeviceIdentification('nanoleaf', params);
+
+  if (!window.readOnlyMode) {
+    $('#btn_wiz_save').attr('disabled', false);  
+  }
 }
 
 //****************************
@@ -1890,15 +1930,13 @@ function beginWizardCololight() {
       d.host = lights[selectedLightId].ip;
     }
 
-    var coloLightProperties = lights[selectedLightId].props;
+    var coloLightProperties = lights[selectedLightId].props.properties;
     if (Object.keys(coloLightProperties).length === 0) {
       alert($.i18n('wiz_cololight_noprops'));
       d.hardwareLedCount = 1;
-    } else {
-      if (coloLightProperties.ledCount > 0) {
+    }
+    else {
         d.hardwareLedCount = coloLightProperties.ledCount;
-      } else if (coloLightProperties.modelType === "Strip")
-        d.hardwareLedCount = 120;
     }
 
     d.colorOrder = conf_editor.getEditor("root.generalOptions.colorOrder").getValue();
@@ -2011,9 +2049,17 @@ async function getProperties_cololight(ip) {
   }
 }
 
-function identify_cololight_device(hostAddress) {
+async function identify_cololight_device(hostAddress) {
+
+  // Take care that new record cannot be save during background process
+  $('#btn_wiz_save').attr('disabled', true);
+
   let params = { host: hostAddress };
-  requestLedDeviceIdentification("cololight", params);
+  const res = await requestLedDeviceIdentification('cololight', params);
+
+  if (!window.readOnlyMode) {
+    $('#btn_wiz_save').attr('disabled', false);  
+  }
 }
 
 //****************************

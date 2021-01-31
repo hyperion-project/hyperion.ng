@@ -60,8 +60,7 @@ IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
 	SET ( DEFAULT_USB_HID     ON )
 	SET ( DEFAULT_CEC         ON )
 ELSEIF ( WIN32 )
-	SET ( DEFAULT_DX ON )
-	SET ( DEFAULT_MF ON )
+	SET ( DEFAULT_DX OFF )
 ELSE()
 	SET ( DEFAULT_V4L2        OFF )
 	SET ( DEFAULT_FB          OFF )
@@ -345,7 +344,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	# Search for DirectX9
 	if (ENABLE_DX)
 		find_package(DirectX9 REQUIRED)
-	endif()
+	endif(ENABLE_DX)
 
 endif()
 

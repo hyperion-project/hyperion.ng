@@ -36,7 +36,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 		cropRight = width >> 1;
 		break;
 	case VideoMode::VIDEO_3DTAB:
-		cropBottom = width >> 1;
+		cropBottom = height >> 1;
 		break;
 	default:
 		break;

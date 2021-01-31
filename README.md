@@ -4,6 +4,7 @@
 [![GitHub Actions](https://github.com/hyperion-project/hyperion.ng/workflows/Hyperion%20CI%20Build/badge.svg?branch=master)](https://github.com/hyperion-project/hyperion.ng/actions)
 [![LGTM](https://img.shields.io/lgtm/alerts/g/hyperion-project/hyperion.ng.svg)](https://lgtm.com/projects/g/hyperion-project/hyperion.ng/alerts/)
 [![Documentation](https://codedocs.xyz/hyperion-project/hyperion.ng.svg)](https://codedocs.xyz/hyperion-project/hyperion.ng/)
+[![made-with-love](https://img.shields.io/badge/Made%20with-&#9829;-ff0000.svg)](#)
 
 ## About Hyperion
 
@@ -18,7 +19,7 @@
 * A command line utility for testing and integration in automated environment
 * Priority channels are not coupled to a specific led data provider which means that a provider can post led data and leave without the need to maintain a connection to Hyperion. This is ideal for a remote application (like our [Android app](https://play.google.com/store/apps/details?id=nl.hyperion.hyperionpro)).
 * Black border detector and processor
-* A scriptable (Python) effect engine
+* A scriptable (Python) effect engine with 39 build-in effects for your inspiration
 * A multi language web interface to configure and remote control hyperion
 
 If you need further support please open a topic at the forum!<br>

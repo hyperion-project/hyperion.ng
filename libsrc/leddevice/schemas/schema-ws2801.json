@@ -5,7 +5,7 @@
 		"output": {
 			"type": "string",
 			"title":"edt_dev_spec_spipath_title",
-			"enum" : ["/dev/spidev0.0","/dev/spidev0.1"],
+			"enum" : ["/dev/spidev0.0","/dev/spidev0.1","/dev/spidev1.0","/dev/spidev1.1"],
 			"propertyOrder" : 1
 		},
 		"rate": {
