@@ -470,6 +470,8 @@ async function requestLedDeviceProperties(type, params)
 
 function requestLedDeviceIdentification(type, params)
 {
-	sendToHyperion("leddevice", "identify", '"ledDeviceType": "'+type+'","params": '+JSON.stringify(params)+'');
+    //sendToHyperion("leddevice", "identify", '"ledDeviceType": "'+type+'","params": '+JSON.stringify(params)+'');
+    let data = { ledDeviceType: type, params: params };
+    return sendAsyncToHyperion("leddevice", "identify", data, Math.floor(Math.random() * 1000));
 }
 
