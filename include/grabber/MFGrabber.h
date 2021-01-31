@@ -40,20 +40,16 @@ class MFGrabber : public Grabber
 	friend class SourceReaderCB;
 
 public:
-	struct DevicePropertiesItem
-	{
-		int         x, y,fps,fps_a,fps_b;
-		PixelFormat pf;
-		GUID        guid;
-	};
-
 	struct DeviceProperties
 	{
-		QString name						= QString();
-		QMultiMap<QString, int>	inputs		= QMultiMap<QString, int>();
-		QStringList displayResolutions		= QStringList();
-		QStringList framerates				= QStringList();
-		QList<DevicePropertiesItem> valid	= QList<DevicePropertiesItem>();
+		QString symlink = QString();
+		int	width		= 0;
+		int	height		= 0;
+		int	fps			= 0;
+		int numerator	= 0;
+		int denominator = 0;
+		PixelFormat pf	= PixelFormat::NO_CHANGE;
+		GUID guid		= GUID_NULL;
 	};
 
 	MFGrabber(const QString & device, const unsigned width, const unsigned height, const unsigned fps, int pixelDecimation, QString flipMode);
@@ -63,12 +59,11 @@ public:
 	QRectF getSignalDetectionOffset() const { return QRectF(_x_frac_min, _y_frac_min, _x_frac_max, _y_frac_max); }
 	bool getSignalDetectionEnabled() const { return _signalDetectionEnabled; }
 	bool getCecDetectionEnabled() const { return _cecDetectionEnabled; }
-	QStringList getV4L2devices() const override;
-	QString getV4L2deviceName(const QString& devicePath) const override { return devicePath; }
-	QMultiMap<QString, int> getV4L2deviceInputs(const QString& devicePath) const override { return _deviceProperties.value(devicePath).inputs; }
-	QStringList getResolutions(const QString& devicePath) const override { return _deviceProperties.value(devicePath).displayResolutions; }
-	QStringList getFramerates(const QString& devicePath) const override { return _deviceProperties.value(devicePath).framerates; }
-	QStringList getV4L2EncodingFormats(const QString& devicePath) const override;
+	QStringList getDevices() const override;
+	QString getDeviceName(const QString& devicePath) const override { return devicePath; }
+	QStringList getAvailableEncodingFormats(const QString& devicePath, const int& /*deviceInput*/) const override;
+	QStringList getAvailableDeviceResolutions(const QString& devicePath, const int& /*deviceInput*/, const PixelFormat& encFormat) const override;
+	QStringList getAvailableDeviceFramerates(const QString& devicePath, const int& /*deviceInput*/, const PixelFormat& encFormat, const unsigned width, const unsigned height) const override;
 	void setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold, int noSignalCounterThreshold) override;
 	void setSignalDetectionOffset( double verticalMin, double horizontalMin, double verticalMax, double horizontalMax) override;
 	void setSignalDetectionEnable(bool enable) override;
@@ -95,7 +90,7 @@ signals:
 private:
 	bool init();
 	void uninit();
-	HRESULT init_device(QString device, DevicePropertiesItem props);
+	HRESULT init_device(QString device, DeviceProperties props);
 	void uninit_device();
 	void enumVideoCaptureDevices();
 	void start_capturing();
@@ -103,7 +98,7 @@ private:
 	void checkSignalDetectionEnabled(Image<ColorRgb> image);
 
 	QString										_currentDeviceName, _newDeviceName;
-	QMap<QString, MFGrabber::DeviceProperties>	_deviceProperties;
+	QMap<QString, QList<DeviceProperties>>		_deviceProperties;
 	HRESULT										_hr;
 	SourceReaderCB*								_sourceReaderCB;
 	PixelFormat									_pixelFormat, _pixelFormatConfig;

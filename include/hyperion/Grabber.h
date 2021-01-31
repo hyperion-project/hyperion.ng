@@ -15,8 +15,7 @@
 
 ///
 /// @brief The Grabber class is responsible to apply image resizes (with or without ImageResampler)
-/// Overwrite the videoMode with setVideoMode()
-/// Overwrite setCropping()
+
 class Grabber : public QObject
 {
 	Q_OBJECT
@@ -127,45 +126,52 @@ public:
 	void setEnabled(bool enable);
 
 	///
-	/// @brief Get a list of all available V4L devices
-	/// @return List of all available V4L devices on success else empty List
+	/// @brief Get a list of all available devices
+	/// @return List of all available devices on success else empty List
 	///
-	virtual QStringList getV4L2devices() const { return QStringList(); }
+	virtual QStringList getDevices() const { return QStringList(); }
 
 	///
-	/// @brief Get the V4L device name
+	/// @brief Get the device name by path
 	/// @param devicePath The device path
-	/// @return The name of the V4L device on success else empty String
+	/// @return The name of the device on success else empty String
 	///
-	virtual QString getV4L2deviceName(const QString& /*devicePath*/) const { return QString(); }
+	virtual QString getDeviceName(const QString& /*devicePath*/) const { return QString(); }
 
 	///
 	/// @brief Get a name/index pair of supported device inputs
 	/// @param devicePath The device path
 	/// @return multi pair of name/index on success else empty pair
 	///
-	virtual QMultiMap<QString, int> getV4L2deviceInputs(const QString& /*devicePath*/) const { return QMultiMap<QString, int>(); }
+	virtual QMultiMap<QString, int> getDeviceInputs(const QString& /*devicePath*/) const { return {{ "", 0}}; }
 
 	///
-	/// @brief Get a list of supported hardware encoding formats
+	/// @brief Get a list of all available device encoding formats depends on device input
 	/// @param devicePath The device path
-	/// @return List of hardware encoding formats on success else empty List
+	/// @param inputIndex The device input index
+	/// @return List of device encoding formats on success else empty List
 	///
-	virtual QStringList getV4L2EncodingFormats(const QString& /*devicePath*/) const { return QStringList(); }
+	virtual QStringList getAvailableEncodingFormats(const QString& /*devicePath*/, const int& /*deviceInput*/) const { return QStringList(); }
 
 	///
-	/// @brief Get a list of supported device resolutions
+	/// @brief Get a list of available device resolutions depends on device input and encoding format
 	/// @param devicePath The device path
+	/// @param inputIndex The device input index
+	/// @param encFormat The device encoding format
 	/// @return List of resolutions on success else empty List
 	///
-	virtual QStringList getResolutions(const QString& /*devicePath*/) const { return QStringList(); }
+	virtual QStringList getAvailableDeviceResolutions(const QString& /*devicePath*/, const int& /*deviceInput*/, const PixelFormat& /*encFormat*/) const { return QStringList(); }
 
 	///
-	/// @brief Get a list of supported device framerates
+	/// @brief Get a list of available device framerates depends on device input, encoding format and resolution
 	/// @param devicePath The device path
+	/// @param inputIndex The device input index
+	/// @param encFormat The device encoding format
+	/// @param width The device width
+	/// @param heigth The device heigth
 	/// @return List of framerates on success else empty List
 	///
-	virtual QStringList getFramerates(const QString& devicePath) const { return QStringList(); }
+	virtual QStringList getAvailableDeviceFramerates(const QString& /*devicePath*/, const int& /*deviceInput*/, const PixelFormat& /*encFormat*/, const unsigned /*width*/, const unsigned /*height*/) const { return QStringList(); }
 
 protected:
 	ImageResampler _imageResampler;

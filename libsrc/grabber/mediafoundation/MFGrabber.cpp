@@ -91,26 +91,26 @@ bool MFGrabber::init()
 			return false;
 		}
 
-		MFGrabber::DeviceProperties dev = _deviceProperties[foundDevice];
+		QList<DeviceProperties> dev = _deviceProperties[foundDevice];
 
 		Debug(_log,  "Searching for %s %d x %d @ %d fps (%s)", QSTRING_CSTR(foundDevice), _width, _height,_fps, QSTRING_CSTR(pixelFormatToString(_pixelFormat)));
 
-		for( int i = 0; i < dev.valid.count() && foundIndex < 0; ++i )
+		for( int i = 0; i < dev.count() && foundIndex < 0; ++i )
 		{
 			bool strict = false;
-			const auto& val = dev.valid[i];
+			const auto& val = dev[i];
 
-			if(bestGuess == -1 || (val.x <= bestGuessMinX && val.x >= 640 && val.fps <= bestGuessMinFPS && val.fps >= 10))
+			if(bestGuess == -1 || (val.width <= bestGuessMinX && val.width >= 640 && val.fps <= bestGuessMinFPS && val.fps >= 10))
 			{
 				bestGuess = i;
 				bestGuessMinFPS = val.fps;
-				bestGuessMinX = val.x;
+				bestGuessMinX = val.width;
 			}
 
 			if(_width && _height)
 			{
 				strict = true;
-				if(val.x != _width || val.y != _height)
+				if(val.width != _width || val.height != _height)
 					continue;
 			}
 
@@ -144,7 +144,7 @@ bool MFGrabber::init()
 
 		if(foundIndex>=0)
 		{
-			if(SUCCEEDED(init_device(foundDevice, dev.valid[foundIndex])))
+			if(SUCCEEDED(init_device(foundDevice, dev[foundIndex])))
 				_initialized = true;
 		}
 		else
@@ -164,22 +164,18 @@ void MFGrabber::uninit()
 	}
 }
 
-HRESULT MFGrabber::init_device(QString deviceName, DevicePropertiesItem props)
+HRESULT MFGrabber::init_device(QString deviceName, DeviceProperties props)
 {
 	PixelFormat pixelformat = GetPixelFormatForGuid(props.guid);
-	QString error, guid = _deviceProperties[deviceName].name;
-	int size = guid.length() + 1024;
-	wchar_t *name = new wchar_t[size];
-	memset(name, 0, size);
-	guid.toWCharArray(name);
+	QString error;
 	IMFMediaSource* device = nullptr;
 	IMFAttributes* deviceAttributes = nullptr, *sourceReaderAttributes = nullptr;
 	IAMVideoProcAmp *pProcAmp = nullptr;
 	IMFMediaType* type = nullptr;
 	HRESULT hr = S_OK;
 
-	Debug(_log, "Init %s, %d x %d @ %d fps (%s)", QSTRING_CSTR(deviceName), props.x, props.y, props.fps, QSTRING_CSTR(pixelFormatToString(pixelformat)));
-	DebugIf(verbose, _log, "Symbolic link: %s", QSTRING_CSTR(guid));
+	Debug(_log, "Init %s, %d x %d @ %d fps (%s)", QSTRING_CSTR(deviceName), props.width, props.height, props.fps, QSTRING_CSTR(pixelFormatToString(pixelformat)));
+	DebugIf(verbose, _log, "Symbolic link: %s", QSTRING_CSTR(props.symlink));
 
 	hr = MFCreateAttributes(&deviceAttributes, 2);
 	if(FAILED(hr))
@@ -195,7 +191,7 @@ HRESULT MFGrabber::init_device(QString deviceName, DevicePropertiesItem props)
 		goto done;
 	}
 
-	if(FAILED(deviceAttributes->SetString(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK, (LPCWSTR)name)) && _sourceReaderCB)
+	if(FAILED(deviceAttributes->SetString(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK, (LPCWSTR)props.symlink.toStdString().c_str())) && _sourceReaderCB)
 	{
 		error = QString("IMFAttributes_SetString_MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK (%1)").arg(hr);
 		goto done;
@@ -343,14 +339,14 @@ HRESULT MFGrabber::init_device(QString deviceName, DevicePropertiesItem props)
 		goto done;
 	}
 
-	hr = MFSetAttributeSize(type, MF_MT_FRAME_SIZE, props.x, props.y);
+	hr = MFSetAttributeSize(type, MF_MT_FRAME_SIZE, props.width, props.height);
 	if(FAILED(hr))
 	{
 		error = QString("Could not set stream parameter: SMFSetAttributeSize_MF_MT_FRAME_SIZE (%1)").arg(hr);
 		goto done;
 	}
 
-	hr = MFSetAttributeSize(type, MF_MT_FRAME_RATE, props.fps_a, props.fps_b);
+	hr = MFSetAttributeSize(type, MF_MT_FRAME_RATE, props.numerator, props.denominator);
 	if(FAILED(hr))
 	{
 		error = QString("Could not set stream parameter: MFSetAttributeSize_MF_MT_FRAME_RATE (%1)").arg(hr);
@@ -386,15 +382,14 @@ done:
 	else
 	{
 		_pixelFormat = props.pf;
-		_width = props.x;
-		_height = props.y;
-		_frameByteSize = props.x * props.y * 3;
-		_lineLength = props.x * 3;
+		_width = props.width;
+		_height = props.height;
+		_frameByteSize = _width * _height * 3;
+		_lineLength = _width * 3;
 	}
 
 	// Cleanup
 	SAFE_RELEASE(deviceAttributes);
-	delete[] name;
 	SAFE_RELEASE(device);
 	SAFE_RELEASE(pProcAmp);
 	SAFE_RELEASE(type);
@@ -438,11 +433,10 @@ void MFGrabber::enumVideoCaptureDevices()
 					{
 						if(SUCCEEDED(devices[i]->GetAllocatedString(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK, &symlink, &length)))
 						{
+							QList<DeviceProperties> devicePropertyList;
 							QString dev = QString::fromUtf16((const ushort*)name);
-							MFGrabber::DeviceProperties properties;
-							properties.name = QString::fromUtf16((const ushort*)symlink);
-
 							Debug(_log, "Found capture device: %s", QSTRING_CSTR(dev));
+
 							IMFMediaSource *pSource = nullptr;
 							if(SUCCEEDED(devices[i]->ActivateObject(IID_PPV_ARGS(&pSource))))
 							{
@@ -456,42 +450,27 @@ void MFGrabber::enumVideoCaptureDevices()
 											break;
 
 										GUID format;
-										UINT64 frame_size;
-										UINT64 frame_rate;
+										UINT32 width = 0, height = 0, numerator = 0, denominator = 0;
 
 										if( SUCCEEDED(pType->GetGUID(MF_MT_SUBTYPE, &format)) &&
-											SUCCEEDED(pType->GetUINT64(MF_MT_FRAME_SIZE, &frame_size)) &&
-											SUCCEEDED(pType->GetUINT64(MF_MT_FRAME_RATE, &frame_rate)) &&
-											frame_rate > 0)
+											SUCCEEDED(MFGetAttributeSize(pType, MF_MT_FRAME_SIZE, &width, &height)) &&
+											SUCCEEDED(MFGetAttributeRatio(pType, MF_MT_FRAME_RATE, &numerator, &denominator)))
 										{
 											PixelFormat pixelformat = GetPixelFormatForGuid(format);
-											DWORD w = frame_size >> 32;
-											DWORD h = (DWORD) frame_size;
-											DWORD fr1 = frame_rate >> 32;
-											DWORD fr2 = (DWORD) frame_rate;
 											if (pixelformat != PixelFormat::NO_CHANGE)
 											{
-												int framerate = fr1/fr2;
-												QString sFrame = QString::number(framerate).rightJustified(2,' ').trimmed();
-												QString displayResolutions = QString::number(w).rightJustified(4,' ').trimmed() +"x"+ QString::number(h).rightJustified(4,' ').trimmed();
+												DeviceProperties properties;
+												properties.symlink = QString::fromUtf16((const ushort*)symlink);
+												properties.width = width;
+												properties.height = height;
+												properties.fps = numerator / denominator;
+												properties.numerator = numerator;
+												properties.denominator = denominator;
+												properties.pf = pixelformat;
+												properties.guid = format;
+												devicePropertyList.append(properties);
 
-												if (!properties.displayResolutions.contains(displayResolutions))
-													properties.displayResolutions << displayResolutions;
-
-												if (!properties.framerates.contains(sFrame))
-													properties.framerates << sFrame;
-
-												DevicePropertiesItem di;
-												di.x = w;
-												di.y = h;
-												di.fps = framerate;
-												di.fps_a = fr1;
-												di.fps_b = fr2;
-												di.pf = pixelformat;
-												di.guid = format;
-												properties.valid.append(di);
-
-												DebugIf(verbose, _log,  "%s %d x %d @ %d fps (%s)", QSTRING_CSTR(dev), di.x, di.y, di.fps, QSTRING_CSTR(pixelFormatToString(di.pf)));
+												DebugIf(verbose, _log,  "%s %d x %d @ %d fps (%s)", QSTRING_CSTR(dev), properties.width, properties.height, properties.fps, QSTRING_CSTR(pixelFormatToString(properties.pf)));
 											}
 										}
 
@@ -502,9 +481,7 @@ void MFGrabber::enumVideoCaptureDevices()
 								pSource->Release();
 							}
 
-							properties.displayResolutions.sort();
-							properties.framerates.sort();
-							_deviceProperties.insert(dev, properties);
+							_deviceProperties.insert(dev, devicePropertyList);
 						}
 
 						CoTaskMemFree(symlink);
@@ -710,7 +687,7 @@ void MFGrabber::checkSignalDetectionEnabled(Image<ColorRgb> image)
 		emit newFrame(image);
 }
 
-QStringList MFGrabber::getV4L2devices() const
+QStringList MFGrabber::getDevices() const
 {
 	QStringList result = QStringList();
 	for(auto it = _deviceProperties.begin(); it != _deviceProperties.end(); ++it)
@@ -719,13 +696,41 @@ QStringList MFGrabber::getV4L2devices() const
 	return result;
 }
 
-QStringList MFGrabber::getV4L2EncodingFormats(const QString& devicePath) const
+QStringList MFGrabber::getAvailableEncodingFormats(const QString& devicePath, const int& /*device input not used on windows*/) const
 {
 	QStringList result = QStringList();
 
-	for(int i = 0; i < _deviceProperties[devicePath].valid.count(); ++i )
-		if(!result.contains(pixelFormatToString(_deviceProperties[devicePath].valid[i].pf), Qt::CaseInsensitive))
-			result << pixelFormatToString(_deviceProperties[devicePath].valid[i].pf).toLower();
+	for(int i = 0; i < _deviceProperties[devicePath].count(); ++i )
+		if(!result.contains(pixelFormatToString(_deviceProperties[devicePath][i].pf), Qt::CaseInsensitive))
+			result << pixelFormatToString(_deviceProperties[devicePath][i].pf).toLower();
+
+	return result;
+}
+
+QStringList MFGrabber::getAvailableDeviceResolutions(const QString& devicePath, const int& /*device input not used on windows*/, const PixelFormat& encFormat) const
+{
+	QStringList result = QStringList();
+
+	for(int i = 0; i < _deviceProperties[devicePath].count(); ++i )
+	{
+		QString displayResolutions = QString::number(_deviceProperties[devicePath][i].width) +"x"+ QString::number(_deviceProperties[devicePath][i].height);
+		if(!result.contains(displayResolutions, Qt::CaseInsensitive) && _deviceProperties[devicePath][i].pf == encFormat)
+			result << displayResolutions;
+	}
+
+	return result;
+}
+
+QStringList MFGrabber::getAvailableDeviceFramerates(const QString& devicePath, const int& /*device input not used on windows*/, const PixelFormat& encFormat, const unsigned width, const unsigned height) const
+{
+	QStringList result = QStringList();
+
+	for(int i = 0; i < _deviceProperties[devicePath].count(); ++i )
+	{
+		QString fps = QString::number(_deviceProperties[devicePath][i].numerator / _deviceProperties[devicePath][i].denominator);
+		if(!result.contains(fps, Qt::CaseInsensitive) && _deviceProperties[devicePath][i].pf == encFormat && _deviceProperties[devicePath][i].width == width && _deviceProperties[devicePath][i].height == height)
+			result << fps;
+	}
 
 	return result;
 }

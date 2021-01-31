@@ -65,20 +65,35 @@ $(document).ready(function () {
               ? enumTitelVals.push(v4l2_properties[i]['name'])
               : enumTitelVals.push(v4l2_properties[i]['device']);
           }
-        } else if (key == 'resolutions' || key == 'framerates' || key == 'encoding_format') {
+        } else if (key == 'device_inputs') {
+          for (var i = 0; i < v4l2_properties.length; i++) {
+            if (v4l2_properties[i]['device'] == device) {
+              for (var index = 0; index < v4l2_properties[i]['device_inputs'].length; index++) {
+                enumVals.push(v4l2_properties[i]['device_inputs'][index]['inputIndex'].toString());
+                enumTitelVals.push(v4l2_properties[i]['device_inputs'][index]['inputName']);
+              }
+              break;
+            }
+          }
+        } else if (key == 'encoding_format') {
           for (var i = 0; i < v4l2_properties.length; i++) {
             if (v4l2_properties[i]['device'] == device) {
               enumVals = enumTitelVals = v4l2_properties[i][key];
               break;
             }
           }
-        } else if (key == 'device_inputs') {
+        }
+        else if (key == 'resolutions') {
           for (var i = 0; i < v4l2_properties.length; i++) {
             if (v4l2_properties[i]['device'] == device) {
-              for (var index = 0; index < v4l2_properties[i]['inputs'].length; index++) {
-                enumVals.push(v4l2_properties[i]['inputs'][index]['inputIndex'].toString());
-                enumTitelVals.push(v4l2_properties[i]['inputs'][index]['inputName']);
-              }
+              enumVals = enumTitelVals = v4l2_properties[i][key];
+              break;
+            }
+          }
+        } else if (key == 'framerates') {
+          for (var i = 0; i < v4l2_properties.length; i++) {
+            if (v4l2_properties[i]['device'] == device) {
+              enumVals = enumTitelVals = v4l2_properties[i][key];
               break;
             }
           }
@@ -88,7 +103,6 @@ $(document).ready(function () {
           "type": schema[key].type,
           "title": schema[key].title,
           ...(schema[key].custom ? {"enum": [].concat(["auto"], enumVals, ["custom"]),} : {"enum": [].concat(["auto"], enumVals),}),
-          // "enum": [].concat(["auto"], enumVals, ["custom"]),
           "options":
           {
             "enum_titles": [].concat(["edt_conf_enum_automatic"], enumTitelVals, ["edt_conf_enum_custom"]),
@@ -362,9 +376,6 @@ $(document).ready(function () {
   conf_editor_fg.on('ready', function () {
 
     var availableGrabbers = window.serverInfo.grabbers.available;
-
-    console.log("conf_editor_fg.on->ready, availableGrabbers: ", availableGrabbers);
-
     var fgOptions = conf_editor_fg.getEditor('root.framegrabber');
     var orginalGrabberTypes = fgOptions.schema.properties.type.enum;
     var orginalGrabberTitles = fgOptions.schema.properties.type.options.enum_titles;
@@ -383,8 +394,6 @@ $(document).ready(function () {
 
     var activeGrabbers = window.serverInfo.grabbers.active.map(v => v.toLowerCase());
 
-    console.log("conf_editor_fg.on->ready, activeGrabbers: ", activeGrabbers);
-
     // Select first active platform grabber
     for (var i = 0; i < enumVals.length; i++) {
       var grabberType = enumVals[i];
@@ -397,13 +406,8 @@ $(document).ready(function () {
   });
 
   conf_editor_fg.on('change', function () {
-
     var selectedType = conf_editor_fg.getEditor("root.framegrabber.type").getValue();
-
-    console.log("conf_editor_fg.on->change, selectedType: ", selectedType);
-
     filerFgGrabberOptions(selectedType);
-
     conf_editor_fg.validate().length || window.readOnlyMode ? $('#btn_submit_fg').attr('disabled', true) : $('#btn_submit_fg').attr('disabled', false);
   });
 

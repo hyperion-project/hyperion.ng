@@ -222,50 +222,50 @@ void GrabberWrapper::tryStart()
 	}
 }
 
-QStringList GrabberWrapper::getV4L2devices() const
+QStringList GrabberWrapper::getDevices() const
 {
 	if(_grabberName.startsWith("V4L"))
-		return _ggrabber->getV4L2devices();
+		return _ggrabber->getDevices();
 
 	return QStringList();
 }
 
-QString GrabberWrapper::getV4L2deviceName(const QString& devicePath) const
+QString GrabberWrapper::getDeviceName(const QString& devicePath) const
 {
 	if(_grabberName.startsWith("V4L"))
-		return _ggrabber->getV4L2deviceName(devicePath);
+		return _ggrabber->getDeviceName(devicePath);
 
 	return QString();
 }
 
-QMultiMap<QString, int> GrabberWrapper::getV4L2deviceInputs(const QString& devicePath) const
+QMultiMap<QString, int> GrabberWrapper::getDeviceInputs(const QString& devicePath) const
 {
 	if(_grabberName.startsWith("V4L"))
-		return _ggrabber->getV4L2deviceInputs(devicePath);
+		return _ggrabber->getDeviceInputs(devicePath);
 
-	return QMultiMap<QString, int>();
+	return {{ "", 0}};
 }
 
-QStringList GrabberWrapper::getV4L2EncodingFormats(const QString& devicePath) const
+QStringList GrabberWrapper::getAvailableEncodingFormats(const QString& devicePath, const int& deviceInput) const
 {
 	if(_grabberName.startsWith("V4L"))
-		return _ggrabber->getV4L2EncodingFormats(devicePath);
+		return _ggrabber->getAvailableEncodingFormats(devicePath, deviceInput);
 
 	return QStringList();
 }
 
-QStringList GrabberWrapper::getResolutions(const QString& devicePath) const
+QStringList GrabberWrapper::getAvailableDeviceResolutions(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat) const
 {
 	if(_grabberName.startsWith("V4L"))
-		return _ggrabber->getResolutions(devicePath);
+		return _ggrabber->getAvailableDeviceResolutions(devicePath, deviceInput, encFormat);
 
 	return QStringList();
 }
 
-QStringList GrabberWrapper::getFramerates(const QString& devicePath) const
+QStringList GrabberWrapper::getAvailableDeviceFramerates(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat, const unsigned width, const unsigned height) const
 {
 	if(_grabberName.startsWith("V4L"))
-		return _ggrabber->getFramerates(devicePath);
+		return _ggrabber->getAvailableDeviceFramerates(devicePath, deviceInput, encFormat, width, height);
 
 	return QStringList();
 }

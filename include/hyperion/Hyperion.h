@@ -192,7 +192,7 @@ public slots:
 	bool clear(int priority, bool forceClearAll=false);
 
 	/// #############
-	// EFFECTENGINE
+	/// EFFECTENGINE
 	///
 	/// @brief Get a pointer to the effect engine
 	/// @return     EffectEngine instance pointer

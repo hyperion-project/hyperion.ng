@@ -491,52 +491,53 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 
 #if defined(ENABLE_V4L2) || defined(ENABLE_MF)
 
-	QJsonArray availableV4L2devices;
-	for (const auto& devicePath : GrabberWrapper::getInstance()->getV4L2devices())
+	QJsonArray availableDevices;
+	for (const auto& devicePath : GrabberWrapper::getInstance()->getDevices())
 	{
 		QJsonObject device;
 		device["device"] = devicePath;
-		device["name"] = GrabberWrapper::getInstance()->getV4L2deviceName(devicePath);
+		device["name"] = GrabberWrapper::getInstance()->getDeviceName(devicePath);
 
-		QJsonArray availableInputs;
-		QMultiMap<QString, int> inputs = GrabberWrapper::getInstance()->getV4L2deviceInputs(devicePath);
+		QJsonObject availableInputs;
+		QMultiMap<QString, int> inputs = GrabberWrapper::getInstance()->getDeviceInputs(devicePath);
 		for (auto input = inputs.begin(); input != inputs.end(); input++)
 		{
-			QJsonObject availableInput;
-			availableInput["inputName"] = input.key();
-			availableInput["inputIndex"] = input.value();
-			availableInputs.append(availableInput);
-		}
-		device.insert("inputs", availableInputs);
+			QJsonObject availableEncodingFormats;
+			availableInputs["inputName"] = input.key();
+			availableInputs["inputIndex"] = input.value();
 
-		QJsonArray availableEncodingFormats;
-		QStringList encodingFormats = GrabberWrapper::getInstance()->getV4L2EncodingFormats(devicePath);
-		for (auto encodingFormat : encodingFormats)
-		{
-			availableEncodingFormats.append(encodingFormat);
-		}
-		device.insert("encoding_format", availableEncodingFormats);
+			QStringList encodingFormats = GrabberWrapper::getInstance()->getAvailableEncodingFormats(devicePath, input.value());
+			for (auto encodingFormat : encodingFormats)
+			{
+				QJsonArray formats;
+				QStringList resolutions = GrabberWrapper::getInstance()->getAvailableDeviceResolutions(devicePath, input.value(), parsePixelFormat(encodingFormat));
+				for (auto resolution : resolutions)
+				{
+					QJsonObject format;
+					format["resolution"] = resolution;
 
-		QJsonArray availableResolutions;
-		QStringList resolutions = GrabberWrapper::getInstance()->getResolutions(devicePath);
-		for (auto resolution : resolutions)
-		{
-			availableResolutions.append(resolution);
-		}
-		device.insert("resolutions", availableResolutions);
+					QJsonArray availableFramerates;
+					QStringList framerates = GrabberWrapper::getInstance()->getAvailableDeviceFramerates(devicePath, input.value(), parsePixelFormat(encodingFormat), resolution.split("x")[0].toInt(), resolution.split("x")[1].toInt());
+					for (auto framerate : framerates)
+					{
+						availableFramerates.append(framerate);
+					}
 
-		QJsonArray availableFramerates;
-		QStringList framerates = GrabberWrapper::getInstance()->getFramerates(devicePath);
-		for (auto framerate : framerates)
-		{
-			availableFramerates.append(framerate);
-		}
-		device.insert("framerates", availableFramerates);
+					format["framerates"] = availableFramerates;
+					formats.append(format);
+				}
 
-		availableV4L2devices.append(device);
+				availableEncodingFormats[encodingFormat] = formats;
+			}
+
+			availableInputs["encoding_formats"] = availableEncodingFormats;
+		}
+
+		device["device_inputs"] = availableInputs;
+		availableDevices.append(device);
 	}
 
-	grabbers["v4l2_properties"] = availableV4L2devices;
+	grabbers["v4l2_properties"] = availableDevices;
 
 #endif
 
