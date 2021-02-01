@@ -48,6 +48,7 @@
     "conf_leds_contr_label_contrtype": "Controller type:",
     "conf_leds_device_intro": "Hyperion supports a lot of controllers to transmit data to your target device. Select a LED controller out of the sorted list and configure it. We have chosen the best default settings for each device.",
     "conf_leds_layout_advanced": "Advanced Settings",
+    "conf_leds_device_info_log": "In case your LEDs do not work, check here for errors:",
     "conf_leds_layout_btn_checklist": "Show checklist",
     "conf_leds_layout_button_savelay": "Save Layout",
     "conf_leds_layout_button_updsim": "Update Preview",
