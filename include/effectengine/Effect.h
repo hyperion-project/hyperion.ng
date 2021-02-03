@@ -44,10 +44,22 @@ public:
 	void requestInterruption() { _interupt = true; }
 
 	///
-	/// @brief Check if the interruption flag has been set
+	/// @brief Check an interruption was requested.
+	///        This can come from requestInterruption()
+	///        or the effect's timeout expiring.
+	///
 	/// @return    The flag state
 	///
-	bool isInterruptionRequested() { return _interupt; }
+	bool isInterruptionRequested();
+
+	///
+	/// @brief Get the remaining timeout, or 0 if there
+	///        is no timeout for this effect.
+	///
+	/// @return    The flag state
+	///
+	int getRemaining();
+
 
 	QString getScript() const { return _script; }
 	QString getName() const { return _name; }

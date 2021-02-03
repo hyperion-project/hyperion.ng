@@ -47,6 +47,25 @@ Effect::~Effect()
 	_imageStack.clear();
 }
 
+bool Effect::isInterruptionRequested()
+{
+	return _interupt || getRemaining() < 0;
+}
+
+int Effect::getRemaining()
+{
+	// determine the timeout
+	int timeout = _timeout;
+
+	if (timeout > 0)
+	{
+		timeout = _endTime - QDateTime::currentMSecsSinceEpoch();
+		return timeout;
+	}
+
+	return timeout;
+}
+
 void Effect::setModuleParameters()
 {
 	// import the buildtin Hyperion module
