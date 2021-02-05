@@ -243,7 +243,7 @@ QMultiMap<QString, int> GrabberWrapper::getDeviceInputs(const QString& devicePat
 	if(_grabberName.startsWith("V4L"))
 		return _ggrabber->getDeviceInputs(devicePath);
 
-	return {{ "", 0}};
+	return QMultiMap<QString, int>();
 }
 
 QStringList GrabberWrapper::getAvailableEncodingFormats(const QString& devicePath, const int& deviceInput) const
@@ -254,12 +254,12 @@ QStringList GrabberWrapper::getAvailableEncodingFormats(const QString& devicePat
 	return QStringList();
 }
 
-QStringList GrabberWrapper::getAvailableDeviceResolutions(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat) const
+QMultiMap<int, int> GrabberWrapper::getAvailableDeviceResolutions(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat) const
 {
 	if(_grabberName.startsWith("V4L"))
 		return _ggrabber->getAvailableDeviceResolutions(devicePath, deviceInput, encFormat);
 
-	return QStringList();
+	return QMultiMap<int, int>();
 }
 
 QStringList GrabberWrapper::getAvailableDeviceFramerates(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat, const unsigned width, const unsigned height) const

@@ -35,9 +35,10 @@
 	#include <turbojpeg.h>
 #endif
 
+///
 /// Capture class for V4L2 devices
 ///
-/// @see http://linuxtv.org/downloads/v4l-dvb-apis/capture-example.html
+
 class V4L2Grabber : public Grabber
 {
 	Q_OBJECT
@@ -45,10 +46,19 @@ class V4L2Grabber : public Grabber
 public:
 	struct DeviceProperties
 	{
-		QString					name		= QString();
-		QMultiMap<QString, int>	inputs		= QMultiMap<QString, int>();
-		QStringList				resolutions	= QStringList();
-		QStringList				framerates	= QStringList();
+		QString name = QString();
+		struct InputProperties
+		{
+			QString inputName = QString();
+			struct EncodingProperties
+			{
+				unsigned int width		= 0;
+				unsigned int height		= 0;
+				QList<int> framerates	= QList<int>();
+			};
+			QMultiMap<PixelFormat, EncodingProperties> encodingFormats = QMultiMap<PixelFormat, EncodingProperties>();
+		};
+		QMap<int, InputProperties> inputs = QMap<int, InputProperties>();
 	};
 
 	V4L2Grabber(const QString & device, const unsigned width, const unsigned height, const unsigned fps, const unsigned input, VideoStandard videoStandard, PixelFormat pixelFormat, int pixelDecimation);
@@ -120,27 +130,33 @@ public:
 	///
 	/// @brief overwrite Grabber.h implementation
 	///
-	QStringList getV4L2devices() const override;
+	QStringList getDevices() const override;
 
 	///
 	/// @brief overwrite Grabber.h implementation
 	///
-	QString getV4L2deviceName(const QString& devicePath) const override;
+	QString getDeviceName(const QString& devicePath) const override;
 
 	///
 	/// @brief overwrite Grabber.h implementation
 	///
-	QMultiMap<QString, int> getV4L2deviceInputs(const QString& devicePath) const override;
+	QMultiMap<QString, int> getDeviceInputs(const QString& devicePath) const override;
 
 	///
 	/// @brief overwrite Grabber.h implementation
 	///
-	QStringList getResolutions(const QString& devicePath) const override;
+	QStringList getAvailableEncodingFormats(const QString& devicePath, const int& deviceInput) const override;
 
 	///
 	/// @brief overwrite Grabber.h implementation
 	///
-	QStringList getFramerates(const QString& devicePath) const override;
+	QMultiMap<int, int> getAvailableDeviceResolutions(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat) const override;
+
+	///
+	/// @brief overwrite Grabber.h implementation
+	///
+	QStringList getAvailableDeviceFramerates(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat, const unsigned width, const unsigned height) const override;
+
 
 public slots:
 
@@ -275,5 +291,5 @@ private:
 	bool _deviceAutoDiscoverEnabled;
 
 protected:
-	void enumFrameIntervals(QStringList &framerates, int fileDescriptor, int pixelformat, int width, int height);
+	void enumFrameIntervals(QList<int> &framerates, int fileDescriptor, int pixelformat, int width, int height);
 };

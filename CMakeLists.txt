@@ -53,7 +53,7 @@ SET ( DEFAULT_EXPERIMENTAL                OFF )
 SET ( DEFAULT_MF                          OFF )
 
 IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
-	SET ( DEFAULT_V4L2        OFF ) # TODO: Reactivate when refactor of V4L2 grabber is finished.
+	SET ( DEFAULT_V4L2        ON )
 	SET ( DEFAULT_SPIDEV      ON )
 	SET ( DEFAULT_TINKERFORGE ON )
 	SET ( DEFAULT_FB          ON )

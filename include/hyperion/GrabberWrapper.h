@@ -71,7 +71,7 @@ public:
 	virtual QString getDeviceName(const QString& devicePath) const;
 
 	///
-	/// @brief Get a name/index pair of supported device inputs
+	/// @brief Get a map of name/index pair of supported device inputs
 	/// @param devicePath The device path
 	/// @return multi pair of name/index on success else empty pair
 	///
@@ -86,13 +86,13 @@ public:
 	virtual QStringList getAvailableEncodingFormats(const QString& devicePath, const int& deviceInput) const;
 
 	///
-	/// @brief Get a list of available device resolutions depends on device input and encoding format
+	/// @brief Get a map of available device resolutions (width/heigth) depends on device input and encoding format
 	/// @param devicePath The device path
 	/// @param inputIndex The device input index
 	/// @param encFormat The device encoding format
-	/// @return List of resolutions on success else empty List
+	/// @return Map of resolutions (width/heigth) on success else empty List
 	///
-	virtual QStringList getAvailableDeviceResolutions(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat) const;
+	virtual QMultiMap<int, int> getAvailableDeviceResolutions(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat) const;
 
 	///
 	/// @brief Get a list of available device framerates depends on encoding format and resolution

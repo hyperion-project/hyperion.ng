@@ -30,6 +30,18 @@
 #define V4L2_CAP_META_CAPTURE 0x00800000 // Specified in kernel header v4.16. Required for backward compatibility.
 #endif
 
+static PixelFormat GetPixelFormat(const unsigned int format)
+{
+	if (format == V4L2_PIX_FMT_RGB32) return PixelFormat::RGB32;
+	if (format == V4L2_PIX_FMT_RGB24) return PixelFormat::BGR24;
+	if (format == V4L2_PIX_FMT_YUYV) return PixelFormat::YUYV;
+	if (format == V4L2_PIX_FMT_UYVY) return PixelFormat::UYVY;
+	if (format == V4L2_PIX_FMT_MJPEG) return  PixelFormat::MJPEG;
+	if (format == V4L2_PIX_FMT_NV12) return  PixelFormat::NV12;
+	if (format == V4L2_PIX_FMT_YUV420) return  PixelFormat::I420;
+	return PixelFormat::NO_CHANGE;
+};
+
 V4L2Grabber::V4L2Grabber(const QString & device, unsigned width, unsigned height, unsigned fps, unsigned input, VideoStandard videoStandard, PixelFormat pixelFormat, int pixelDecimation)
 	: Grabber("V4L2:"+device)
 	, _deviceName()
@@ -64,6 +76,7 @@ V4L2Grabber::V4L2Grabber(const QString & device, unsigned width, unsigned height
 	setWidthHeight(width, height);
 	setFramerate(fps);
 	setDeviceVideoStandard(device, videoStandard);
+	Debug(_log,"Init pixel format: %i", static_cast<int>(_pixelFormat));
 }
 
 V4L2Grabber::~V4L2Grabber()
@@ -210,42 +223,69 @@ void V4L2Grabber::getV4Ldevices()
 			V4L2Grabber::DeviceProperties properties;
 
 			// collect available device inputs (index & name)
-			int inputIndex;
-			if (xioctl(fd, VIDIOC_G_INPUT, &inputIndex) == 0)
+			struct v4l2_input input;
+			CLEAR(input);
+
+			input.index = 0;
+			while (xioctl(fd, VIDIOC_ENUMINPUT, &input) >= 0)
 			{
-				struct v4l2_input input;
-				CLEAR(input);
+				V4L2Grabber::DeviceProperties::InputProperties inputProperties;
+				inputProperties.inputName = QString((char*)input.name);
 
-				input.index = 0;
-				while (xioctl(fd, VIDIOC_ENUMINPUT, &input) >= 0)
+				// Enumerate pixel formats
+				struct v4l2_fmtdesc desc;
+				CLEAR(desc);
+
+				desc.index = 0;
+				desc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+				while (xioctl(fd, VIDIOC_ENUM_FMT, &desc) == 0)
 				{
-					properties.inputs.insert(QString((char*)input.name), input.index);
-					input.index++;
-				}
-			}
-
-			// collect available device resolutions & frame rates
-			struct v4l2_frmsizeenum frmsizeenum;
-			CLEAR(frmsizeenum);
-
-			frmsizeenum.index = 0;
-			frmsizeenum.pixel_format = fmt.fmt.pix.pixelformat;
-			while (xioctl(fd, VIDIOC_ENUM_FRAMESIZES, &frmsizeenum) >= 0)
-			{
-				switch (frmsizeenum.type)
-				{
-					case V4L2_FRMSIZE_TYPE_DISCRETE:
+					PixelFormat encodingFormat = GetPixelFormat(desc.pixelformat);
+					if (encodingFormat != PixelFormat::NO_CHANGE)
 					{
-						properties.resolutions << QString::number(frmsizeenum.discrete.width) + "x" + QString::number(frmsizeenum.discrete.height);
-						enumFrameIntervals(properties.framerates, fd, fmt.fmt.pix.pixelformat, frmsizeenum.discrete.width, frmsizeenum.discrete.height);
+						V4L2Grabber::DeviceProperties::InputProperties::EncodingProperties encodingProperties;
+
+						// Enumerate frame sizes and frame rates
+						struct v4l2_frmsizeenum frmsizeenum;
+						CLEAR(frmsizeenum);
+
+						frmsizeenum.index = 0;
+						frmsizeenum.pixel_format = desc.pixelformat;
+						while (xioctl(fd, VIDIOC_ENUM_FRAMESIZES, &frmsizeenum) >= 0)
+						{
+							switch (frmsizeenum.type)
+							{
+								case V4L2_FRMSIZE_TYPE_DISCRETE:
+								{
+									encodingProperties.width	= frmsizeenum.discrete.width;
+									encodingProperties.height	= frmsizeenum.discrete.height;
+									enumFrameIntervals(encodingProperties.framerates, fd, desc.pixelformat, frmsizeenum.discrete.width, frmsizeenum.discrete.height);
+								}
+								break;
+								case V4L2_FRMSIZE_TYPE_CONTINUOUS:
+								case V4L2_FRMSIZE_TYPE_STEPWISE: // We do not take care of V4L2_FRMSIZE_TYPE_CONTINUOUS or V4L2_FRMSIZE_TYPE_STEPWISE
+									break;
+							}
+
+							inputProperties.encodingFormats.insert(encodingFormat, encodingProperties);
+							frmsizeenum.index++;
+						}
+
+						// Failsafe: In case VIDIOC_ENUM_FRAMESIZES fails, insert current heigth, width and fps.
+						if (xioctl(fd, VIDIOC_ENUM_FRAMESIZES, &frmsizeenum) == -1)
+						{
+							encodingProperties.width	= fmt.fmt.pix.width;
+							encodingProperties.height	= fmt.fmt.pix.height;
+							enumFrameIntervals(encodingProperties.framerates, fd, desc.pixelformat, encodingProperties.width, encodingProperties.height);
+							inputProperties.encodingFormats.insert(encodingFormat, encodingProperties);
+						}
 					}
-					break;
-					case V4L2_FRMSIZE_TYPE_CONTINUOUS:
-					case V4L2_FRMSIZE_TYPE_STEPWISE:
-						// We do not take care of V4L2_FRMSIZE_TYPE_CONTINUOUS or V4L2_FRMSIZE_TYPE_STEPWISE
-						break;
+
+					desc.index++;
 				}
-				frmsizeenum.index++;
+
+				properties.inputs.insert(input.index, inputProperties);
+				input.index++;
 			}
 
 			if (close(fd) < 0) continue;
@@ -1238,7 +1278,7 @@ int V4L2Grabber::xioctl(int fileDescriptor, int request, void *arg)
 	return r;
 }
 
-void V4L2Grabber::enumFrameIntervals(QStringList &framerates, int fileDescriptor, int pixelformat, int width, int height)
+void V4L2Grabber::enumFrameIntervals(QList<int> &framerates, int fileDescriptor, int pixelformat, int width, int height)
 {
 	// collect available frame rates
 	struct v4l2_frmivalenum frmivalenum;
@@ -1259,8 +1299,8 @@ void V4L2Grabber::enumFrameIntervals(QStringList &framerates, int fileDescriptor
 				if (frmivalenum.discrete.numerator != 0)
 				{
 					rate = frmivalenum.discrete.denominator / frmivalenum.discrete.numerator;
-					if (!framerates.contains(QString::number(rate)))
-						framerates.append(QString::number(rate));
+					if (!framerates.contains(rate))
+						framerates.append(rate);
 				}
 			}
 			break;
@@ -1270,12 +1310,23 @@ void V4L2Grabber::enumFrameIntervals(QStringList &framerates, int fileDescriptor
 				if (frmivalenum.stepwise.min.denominator != 0)
 				{
 					rate = frmivalenum.stepwise.min.denominator / frmivalenum.stepwise.min.numerator;
-					if (!framerates.contains(QString::number(rate)))
-						framerates.append(QString::number(rate));
+					if (!framerates.contains(rate))
+						framerates.append(rate);
 				}
 			}
 		}
 		frmivalenum.index++;
+	}
+
+	// If VIDIOC_ENUM_FRAMEINTERVALS fails, try to read the current fps via VIDIOC_G_PARM if possible and insert it into 'framerates'.
+	if (xioctl(fileDescriptor, VIDIOC_ENUM_FRAMESIZES, &frmivalenum) == -1)
+	{
+		struct v4l2_streamparm streamparms;
+		CLEAR(streamparms);
+		streamparms.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+		if (xioctl(fileDescriptor, VIDIOC_G_PARM, &streamparms) >= 0)
+			framerates.append(streamparms.parm.capture.timeperframe.denominator / streamparms.parm.capture.timeperframe.numerator);
 	}
 }
 
@@ -1360,34 +1411,77 @@ bool V4L2Grabber::setFramerate(int fps)
 	return false;
 }
 
-QStringList V4L2Grabber::getV4L2devices() const
+QStringList V4L2Grabber::getDevices() const
 {
 	QStringList result = QStringList();
-	for (auto it = _deviceProperties.begin(); it != _deviceProperties.end(); ++it)
-	{
+	for(auto it = _deviceProperties.begin(); it != _deviceProperties.end(); ++it)
 		result << it.key();
-	}
+
 	return result;
 }
 
-QString V4L2Grabber::getV4L2deviceName(const QString& devicePath) const
+QString V4L2Grabber::getDeviceName(const QString& devicePath) const
 {
 	return _deviceProperties.value(devicePath).name;
 }
 
-QMultiMap<QString, int> V4L2Grabber::getV4L2deviceInputs(const QString& devicePath) const
+QMultiMap<QString, int> V4L2Grabber::getDeviceInputs(const QString& devicePath) const
 {
-	return _deviceProperties.value(devicePath).inputs;
+	QMultiMap<QString, int> result = QMultiMap<QString, int>();
+	for(auto it = _deviceProperties.begin(); it != _deviceProperties.end(); ++it)
+		if (it.key() == devicePath)
+			for (auto input = it.value().inputs.begin(); input != it.value().inputs.end(); input++)
+				if (!result.contains(input.value().inputName, input.key()))
+					result.insert(input.value().inputName, input.key());
+
+	return result;
 }
 
-QStringList V4L2Grabber::getResolutions(const QString& devicePath) const
+QStringList V4L2Grabber::getAvailableEncodingFormats(const QString& devicePath, const int& deviceInput) const
 {
-	return _deviceProperties.value(devicePath).resolutions;
+	QStringList result = QStringList();
+
+	for(auto it = _deviceProperties.begin(); it != _deviceProperties.end(); ++it)
+		if (it.key() == devicePath)
+			for (auto input = it.value().inputs.begin(); input != it.value().inputs.end(); input++)
+				if (input.key() == deviceInput)
+					for (auto enc = input.value().encodingFormats.begin(); enc != input.value().encodingFormats.end(); enc++)
+						if (!result.contains(pixelFormatToString(enc.key()).toLower(), Qt::CaseInsensitive))
+							result << pixelFormatToString(enc.key()).toLower();
+
+	return result;
 }
 
-QStringList V4L2Grabber::getFramerates(const QString& devicePath) const
+QMultiMap<int, int> V4L2Grabber::getAvailableDeviceResolutions(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat) const
 {
-	return _deviceProperties.value(devicePath).framerates;
+	QMultiMap<int, int> result = QMultiMap<int, int>();
+
+	for(auto it = _deviceProperties.begin(); it != _deviceProperties.end(); ++it)
+		if (it.key() == devicePath)
+			for (auto input = it.value().inputs.begin(); input != it.value().inputs.end(); input++)
+				if (input.key() == deviceInput)
+					for (auto enc = input.value().encodingFormats.begin(); enc != input.value().encodingFormats.end(); enc++)
+						if (!result.contains(enc.value().width, enc.value().height))
+							result.insert(enc.value().width, enc.value().height);
+
+	return result;
+}
+
+QStringList V4L2Grabber::getAvailableDeviceFramerates(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat, const unsigned width, const unsigned height) const
+{
+	QStringList result = QStringList();
+
+	for(auto it = _deviceProperties.begin(); it != _deviceProperties.end(); ++it)
+		if (it.key() == devicePath)
+			for (auto input = it.value().inputs.begin(); input != it.value().inputs.end(); input++)
+				if (input.key() == deviceInput)
+					for (auto enc = input.value().encodingFormats.begin(); enc != input.value().encodingFormats.end(); enc++)
+						if(enc.key() == encFormat && enc.value().width == width && enc.value().height == height)
+							for (auto fps = enc.value().framerates.begin(); fps != enc.value().framerates.end(); fps++)
+								if(!result.contains(QString::number(*fps)))
+									result << QString::number(*fps);
+
+	return result;
 }
 
 void V4L2Grabber::handleCecEvent(CECEvent event)

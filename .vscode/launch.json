@@ -8,7 +8,7 @@
       "name": "(Linux) hyperiond",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${command:cmake.launchTargetDirectory}/hyperiond",
+      "program": "${workspaceFolder}/build/bin/hyperiond",
       "args": ["-d"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",

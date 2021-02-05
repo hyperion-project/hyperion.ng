@@ -128,7 +128,7 @@ void V4L2Wrapper::handleSettingsUpdate(settings::type type, const QJsonDocument&
 			obj["cropBottom"].toInt(0));
 
 		// device input
-		_grabber.setInput(obj["input"].toInt(-1));
+		_grabber.setInput(obj["input"].toInt(0));
 
 		// device resolution
 		_grabber.setWidthHeight(obj["width"].toInt(0), obj["height"].toInt(0));
