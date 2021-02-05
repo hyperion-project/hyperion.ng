@@ -707,16 +707,13 @@ QStringList MFGrabber::getAvailableEncodingFormats(const QString& devicePath, co
 	return result;
 }
 
-QStringList MFGrabber::getAvailableDeviceResolutions(const QString& devicePath, const int& /*device input not used on windows*/, const PixelFormat& encFormat) const
+QMultiMap<int, int> MFGrabber::getAvailableDeviceResolutions(const QString& devicePath, const int& /*device input not used on windows*/, const PixelFormat& encFormat) const
 {
-	QStringList result = QStringList();
+	QMultiMap<int, int> result = QMultiMap<int, int>();
 
 	for(int i = 0; i < _deviceProperties[devicePath].count(); ++i )
-	{
-		QString displayResolutions = QString::number(_deviceProperties[devicePath][i].width) +"x"+ QString::number(_deviceProperties[devicePath][i].height);
-		if(!result.contains(displayResolutions, Qt::CaseInsensitive) && _deviceProperties[devicePath][i].pf == encFormat)
-			result << displayResolutions;
-	}
+		if(!result.contains(_deviceProperties[devicePath][i].width, _deviceProperties[devicePath][i].height) && _deviceProperties[devicePath][i].pf == encFormat)
+			result.insert(_deviceProperties[devicePath][i].width, _deviceProperties[devicePath][i].height);
 
 	return result;
 }
