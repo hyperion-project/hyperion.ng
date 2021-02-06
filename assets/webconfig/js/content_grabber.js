@@ -55,7 +55,7 @@ $(document).ready(function () {
       if (schema[key]) {
         var enumVals = [];
         var enumTitelVals = [];
-        var v4l2_properties = JSON.parse(JSON.stringify(window.serverInfo.grabbers.v4l2_properties));
+        var v4l2_properties = JSON.parse(JSON.stringify(window.serverInfo.grabbers.video_sources));
 
         if (key == 'available_devices') {
           for (var i = 0; i < v4l2_properties.length; i++) {
@@ -66,6 +66,7 @@ $(document).ready(function () {
               : enumTitelVals.push(v4l2_properties[i]['device']);
           }
         } else if (key == 'device_inputs') {
+          return; // TODO Fix V4L2 WebUI
           for (var i = 0; i < v4l2_properties.length; i++) {
             if (v4l2_properties[i]['device'] == device) {
               for (var index = 0; index < v4l2_properties[i]['device_inputs'].length; index++) {

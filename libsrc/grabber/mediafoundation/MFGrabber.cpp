@@ -191,7 +191,7 @@ HRESULT MFGrabber::init_device(QString deviceName, DeviceProperties props)
 		goto done;
 	}
 
-	if(FAILED(deviceAttributes->SetString(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK, (LPCWSTR)props.symlink.toStdString().c_str())) && _sourceReaderCB)
+	if(FAILED(deviceAttributes->SetString(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK, (LPCWSTR)props.symlink.utf16())) && _sourceReaderCB)
 	{
 		error = QString("IMFAttributes_SetString_MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK (%1)").arg(hr);
 		goto done;
