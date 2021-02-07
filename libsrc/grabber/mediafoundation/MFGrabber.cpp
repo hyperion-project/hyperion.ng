@@ -718,14 +718,14 @@ QMultiMap<int, int> MFGrabber::getAvailableDeviceResolutions(const QString& devi
 	return result;
 }
 
-QStringList MFGrabber::getAvailableDeviceFramerates(const QString& devicePath, const int& /*device input not used on windows*/, const PixelFormat& encFormat, const unsigned width, const unsigned height) const
+QIntList MFGrabber::getAvailableDeviceFramerates(const QString& devicePath, const int& /*device input not used on windows*/, const PixelFormat& encFormat, const unsigned width, const unsigned height) const
 {
-	QStringList result = QStringList();
+	QIntList result = QIntList();
 
 	for(int i = 0; i < _deviceProperties[devicePath].count(); ++i )
 	{
-		QString fps = QString::number(_deviceProperties[devicePath][i].numerator / _deviceProperties[devicePath][i].denominator);
-		if(!result.contains(fps, Qt::CaseInsensitive) && _deviceProperties[devicePath][i].pf == encFormat && _deviceProperties[devicePath][i].width == width && _deviceProperties[devicePath][i].height == height)
+		int fps = _deviceProperties[devicePath][i].numerator / _deviceProperties[devicePath][i].denominator;
+		if(!result.contains(fps) && _deviceProperties[devicePath][i].pf == encFormat && _deviceProperties[devicePath][i].width == width && _deviceProperties[devicePath][i].height == height)
 			result << fps;
 	}
 

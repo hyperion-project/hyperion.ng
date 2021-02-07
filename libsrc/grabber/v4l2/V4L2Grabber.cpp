@@ -1467,9 +1467,9 @@ QMultiMap<int, int> V4L2Grabber::getAvailableDeviceResolutions(const QString& de
 	return result;
 }
 
-QStringList V4L2Grabber::getAvailableDeviceFramerates(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat, const unsigned width, const unsigned height) const
+QIntList V4L2Grabber::getAvailableDeviceFramerates(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat, const unsigned width, const unsigned height) const
 {
-	QStringList result = QStringList();
+	QIntList result = QIntList();
 
 	for(auto it = _deviceProperties.begin(); it != _deviceProperties.end(); ++it)
 		if (it.key() == devicePath)
@@ -1478,8 +1478,8 @@ QStringList V4L2Grabber::getAvailableDeviceFramerates(const QString& devicePath,
 					for (auto enc = input.value().encodingFormats.begin(); enc != input.value().encodingFormats.end(); enc++)
 						if(enc.key() == encFormat && enc.value().width == width && enc.value().height == height)
 							for (auto fps = enc.value().framerates.begin(); fps != enc.value().framerates.end(); fps++)
-								if(!result.contains(QString::number(*fps)))
-									result << QString::number(*fps);
+								if(!result.contains(*fps))
+									result << *fps;
 
 	return result;
 }

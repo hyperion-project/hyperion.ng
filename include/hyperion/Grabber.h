@@ -171,7 +171,7 @@ public:
 	/// @param heigth The device heigth
 	/// @return List of framerates on success else empty List
 	///
-	virtual QStringList getAvailableDeviceFramerates(const QString& /*devicePath*/, const int& /*deviceInput*/, const PixelFormat& /*encFormat*/, const unsigned /*width*/, const unsigned /*height*/) const { return QStringList(); }
+	virtual QIntList getAvailableDeviceFramerates(const QString& /*devicePath*/, const int& /*deviceInput*/, const PixelFormat& /*encFormat*/, const unsigned /*width*/, const unsigned /*height*/) const { return QIntList(); }
 
 protected:
 	ImageResampler _imageResampler;

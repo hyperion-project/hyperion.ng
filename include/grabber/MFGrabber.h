@@ -64,7 +64,7 @@ public:
 	QMultiMap<QString, int> getDeviceInputs(const QString& devicePath) const override { return {{ devicePath, 0}}; }
 	QStringList getAvailableEncodingFormats(const QString& devicePath, const int& /*deviceInput*/) const override;
 	QMultiMap<int, int> getAvailableDeviceResolutions(const QString& devicePath, const int& /*deviceInput*/, const PixelFormat& encFormat) const override;
-	QStringList getAvailableDeviceFramerates(const QString& devicePath, const int& /*deviceInput*/, const PixelFormat& encFormat, const unsigned width, const unsigned height) const override;
+	QIntList getAvailableDeviceFramerates(const QString& devicePath, const int& /*deviceInput*/, const PixelFormat& encFormat, const unsigned width, const unsigned height) const override;
 	void setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold, int noSignalCounterThreshold) override;
 	void setSignalDetectionOffset( double verticalMin, double horizontalMin, double verticalMax, double horizontalMax) override;
 	void setSignalDetectionEnable(bool enable) override;

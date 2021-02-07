@@ -155,7 +155,7 @@ public:
 	///
 	/// @brief overwrite Grabber.h implementation
 	///
-	QStringList getAvailableDeviceFramerates(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat, const unsigned width, const unsigned height) const override;
+	QIntList getAvailableDeviceFramerates(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat, const unsigned width, const unsigned height) const override;
 
 
 public slots:

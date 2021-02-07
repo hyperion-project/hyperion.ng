@@ -103,7 +103,7 @@ public:
 	/// @param heigth The device heigth
 	/// @return List of framerates on success else empty List
 	///
-	virtual QStringList getAvailableDeviceFramerates(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat, const unsigned width, const unsigned height) const;
+	virtual QIntList getAvailableDeviceFramerates(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat, const unsigned width, const unsigned height) const;
 
 	///
 	/// @brief Get active grabber name
