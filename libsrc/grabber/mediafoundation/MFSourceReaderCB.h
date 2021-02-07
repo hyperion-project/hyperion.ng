@@ -9,6 +9,7 @@
 #include <shlwapi.h>
 #include <mferror.h>
 #include <strmif.h>
+#include <comdef.h>
 
 #pragma comment (lib, "ole32.lib")
 #pragma comment (lib, "mf.lib")
@@ -111,127 +112,61 @@ public:
 			SAFE_RELEASE(type);
 		}
 
-		if (SUCCEEDED(hrStatus))
+		// Variables declaration
+		IMFMediaBuffer* buffer = nullptr;
+
+		if (FAILED(hrStatus))
 		{
-			QString error = "";
-
-			if (pSample)
-			{
-				//variables declaration
-				IMFMediaBuffer* buffer = nullptr, *mediaBuffer = nullptr;
-				IMFSample* sampleOut = nullptr;
-
-				if(_pixelformat == PixelFormat::MJPEG || _pixelformat == PixelFormat::NO_CHANGE)
-				{
-					hrStatus = pSample->ConvertToContiguousBuffer(&buffer);
-					if (SUCCEEDED(hrStatus))
-					{
-						BYTE* data = nullptr;
-						DWORD maxLength = 0, currentLength = 0;
-
-						hrStatus = buffer->Lock(&data, &maxLength, &currentLength);
-						if(SUCCEEDED(hrStatus))
-						{
-							_grabber->receive_image(data,currentLength);
-							buffer->Unlock();
-						}
-						else
-							error = QString("buffer->Lock failed => %1").arg(hrStatus);
-					}
-					else
-						error = QString("pSample->ConvertToContiguousBuffer failed => %1").arg(hrStatus);
-				}
-				else
-				{
-					// Send our input sample to the transform
-					_transform->ProcessInput(0, pSample, 0);
-
-					MFT_OUTPUT_STREAM_INFO streamInfo;
-					hrStatus = _transform->GetOutputStreamInfo(0, &streamInfo);
-					if (SUCCEEDED(hrStatus))
-					{
-						hrStatus = MFCreateMemoryBuffer(streamInfo.cbSize, &buffer);
-						if (SUCCEEDED(hrStatus))
-						{
-							hrStatus = MFCreateSample(&sampleOut);
-							if (SUCCEEDED(hrStatus))
-							{
-								hrStatus = sampleOut->AddBuffer(buffer);
-								if (SUCCEEDED(hrStatus))
-								{
-									MFT_OUTPUT_DATA_BUFFER outputDataBuffer = {0};
-									memset(&outputDataBuffer, 0, sizeof outputDataBuffer);
-									outputDataBuffer.dwStreamID = 0;
-									outputDataBuffer.dwStatus = 0;
-									outputDataBuffer.pEvents = nullptr;
-									outputDataBuffer.pSample = sampleOut;
-
-									DWORD status = 0;
-									hrStatus = _transform->ProcessOutput(0, 1, &outputDataBuffer, &status);
-									if (hrStatus == MF_E_TRANSFORM_NEED_MORE_INPUT)
-									{
-										SAFE_RELEASE(sampleOut);
-										SAFE_RELEASE(buffer);
-										return S_OK;
-									}
-
-									hrStatus = sampleOut->ConvertToContiguousBuffer(&mediaBuffer);
-									if (SUCCEEDED(hrStatus))
-									{
-										BYTE* data = nullptr;
-										DWORD currentLength = 0;
-
-										hrStatus = mediaBuffer->Lock(&data, 0, &currentLength);
-										if(SUCCEEDED(hrStatus))
-										{
-											_grabber->receive_image(data, currentLength);
-											mediaBuffer->Unlock();
-										}
-										else
-											error = QString("mediaBuffer->Lock failed => %1").arg(hrStatus);
-									}
-									else
-										error = QString("sampleOut->ConvertToContiguousBuffer failed => %1").arg(hrStatus);
-								}
-								else
-									error = QString("AddBuffer failed %1").arg(hrStatus);
-							}
-							else
-								error = QString("MFCreateSample failed %1").arg(hrStatus);
-						}
-						else
-							error = QString("MFCreateMemoryBuffer failed %1").arg(hrStatus);
-					}
-					else
-						error = QString("GetOutputStreamInfo failed %1").arg(hrStatus);
-				}
-
-				SAFE_RELEASE(buffer);
-				SAFE_RELEASE(mediaBuffer);
-				SAFE_RELEASE(sampleOut);
-			}
-			else
-				error = "pSample is NULL";
-
-			if (!error.isEmpty())
-				Error(_grabber->_log, "%s", QSTRING_CSTR(error));
+			_hrStatus = hrStatus;
+			_com_error error(_hrStatus);
+			Error(_grabber->_log, "Source Reader error => %s", error.ErrorMessage());
+			goto done;
 		}
-		else
+
+		if (!pSample)
 		{
-			// Streaming error.
-			NotifyError(hrStatus);
+			Error(_grabber->_log, "Media sample is empty");
+			goto done;
 		}
+
+		if(_pixelformat != PixelFormat::MJPEG && _pixelformat != PixelFormat::NO_CHANGE)
+			pSample = TransformSample(_transform, pSample);
+
+		_hrStatus = pSample->ConvertToContiguousBuffer(&buffer);
+		if (FAILED(_hrStatus))
+		{
+			_com_error error(_hrStatus);
+			Error(_grabber->_log, "Buffer conversion failed => %s", error.ErrorMessage());
+			goto done;
+		}
+
+		BYTE* data = nullptr;
+		DWORD maxLength = 0, currentLength = 0;
+		_hrStatus = buffer->Lock(&data, &maxLength, &currentLength);
+		if (FAILED(_hrStatus))
+		{
+			_com_error error(_hrStatus);
+			Error(_grabber->_log, "Access to the buffer memory failed => %s", error.ErrorMessage());
+			goto done;
+		}
+
+		_grabber->receive_image(data,currentLength);
+
+		_hrStatus = buffer->Unlock();
+		if (FAILED(_hrStatus))
+		{
+			_com_error error(_hrStatus);
+			Error(_grabber->_log, "Unlocking the buffer memory failed => %s", error.ErrorMessage());
+		}
+
+	done:
+		SAFE_RELEASE(buffer);
 
 		if (MF_SOURCE_READERF_ENDOFSTREAM & dwStreamFlags)
-		{
-			// Reached the end of the stream.
-			_bEOS = TRUE;
-		}
-
-		_hrStatus = hrStatus;
+			_bEOS = TRUE; // Reached the end of the stream.
 
 		LeaveCriticalSection(&_critsec);
-		return S_OK;
+		return _hrStatus;
 	}
 
 	HRESULT SourceReaderCB::InitializeVideoEncoder(IMFMediaType* type, PixelFormat format)
@@ -246,85 +181,87 @@ public:
 		QString error = "";
 
 		// Create instance of IMFTransform interface pointer as CColorConvertDMO
-		if (SUCCEEDED(CoCreateInstance(CLSID_CColorConvertDMO, nullptr, CLSCTX_INPROC_SERVER, IID_IMFTransform, (void**)&_transform)))
+		_hrStatus = CoCreateInstance(CLSID_CColorConvertDMO, nullptr, CLSCTX_INPROC_SERVER, IID_IMFTransform, (void**)&_transform);
+		if (FAILED(_hrStatus))
 		{
-			// Set input type as media type of our input stream
-			_hrStatus = _transform->SetInputType(0, type, 0);
-			if (SUCCEEDED(_hrStatus))
-			{
-				// Create new media type
-				_hrStatus = MFCreateMediaType(&output);
-				if (SUCCEEDED(_hrStatus))
-				{
-					// Copy data from input type to output type
-					_hrStatus = type->CopyAllItems(output);
-					if (SUCCEEDED(_hrStatus))
-					{
-						UINT32 width, height;
-						UINT32 numerator, denominator;
-
-						// Fill the missing attributes
-						output->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
-						output->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB24);
-						output->SetUINT32(MF_MT_FIXED_SIZE_SAMPLES, TRUE);
-						output->SetUINT32(MF_MT_ALL_SAMPLES_INDEPENDENT, TRUE);
-						output->SetUINT32(MF_MT_INTERLACE_MODE, MFVideoInterlace_Progressive);
-						MFGetAttributeSize(type, MF_MT_FRAME_SIZE, &width, &height);
-						MFSetAttributeSize(output, MF_MT_FRAME_SIZE, width, height);
-						MFGetAttributeRatio(type, MF_MT_FRAME_RATE, &numerator, &denominator);
-						MFSetAttributeRatio(output, MF_MT_FRAME_RATE, numerator, denominator);
-						MFSetAttributeRatio(output, MF_MT_PIXEL_ASPECT_RATIO, 1, 1);
-
-						if (SUCCEEDED(_hrStatus))
-						{
-							// Set transform output type
-							_hrStatus = _transform->SetOutputType(0, output, 0);
-							if (SUCCEEDED(_hrStatus))
-							{
-								// Check if encoder parameters set properly
-								_hrStatus = _transform->GetInputStatus(0, &mftStatus);
-								if (SUCCEEDED(_hrStatus))
-								{
-									if (MFT_INPUT_STATUS_ACCEPT_DATA == mftStatus)
-									{
-										// Notify the transform we are about to begin streaming data
-										if (FAILED(_transform->ProcessMessage(MFT_MESSAGE_COMMAND_FLUSH, 0)) ||
-											FAILED(_transform->ProcessMessage(MFT_MESSAGE_NOTIFY_BEGIN_STREAMING, 0)) ||
-											FAILED(_transform->ProcessMessage(MFT_MESSAGE_NOTIFY_START_OF_STREAM, 0)))
-										{
-											error = QString("ProcessMessage failed %1").arg(_hrStatus);
-										}
-									}
-									else
-									{
-										_hrStatus = S_FALSE;
-										error = QString("GetInputStatus failed %1").arg(_hrStatus);
-									}
-								}
-								else
-									error = QString("GetInputStatus failed %1").arg(_hrStatus);
-							}
-							else
-								error = QString("SetOutputType failed %1").arg(_hrStatus);
-						}
-						else
-							error = QString("Can not set output attributes %1").arg(_hrStatus);
-					}
-					else
-						error = QString("CopyAllItems failed %1").arg(_hrStatus);
-				}
-				else
-					error = QString("MFCreateMediaType failed %1").arg(_hrStatus);
-			}
-			else
-				error = QString("SetInputType failed %1").arg(_hrStatus);
+			_com_error error(_hrStatus);
+			Error(_grabber->_log, "Creation of the Color Converter failed => %s", error.ErrorMessage());
+			goto done;
 		}
-		else
-			error = QString("CoCreateInstance failed %1").arg(_hrStatus);
 
-		if (!error.isEmpty())
-			Error(_grabber->_log, "%s", QSTRING_CSTR(error));
+		// Set input type as media type of our input stream
+		_hrStatus = _transform->SetInputType(0, type, 0);
+		if (FAILED(_hrStatus))
+		{
+			_com_error error(_hrStatus);
+			Error(_grabber->_log, "Setting the input media type failed => %s", error.ErrorMessage());
+			goto done;
+		}
 
+		// Create new media type
+		_hrStatus = MFCreateMediaType(&output);
+		if (FAILED(_hrStatus))
+		{
+			_com_error error(_hrStatus);
+			Error(_grabber->_log, "Creating a new media type failed => %s", error.ErrorMessage());
+			goto done;
+		}
+
+		// Copy all attributes from input type to output media type
+		_hrStatus = type->CopyAllItems(output);
+		if (FAILED(_hrStatus))
+		{
+			_com_error error(_hrStatus);
+			Error(_grabber->_log, "Copying of all attributes from input to output media type failed => %s", error.ErrorMessage());
+			goto done;
+		}
+
+		UINT32 width, height;
+		UINT32 numerator, denominator;
+
+		// Fill the missing attributes
+		_hrStatus = output->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video) && output->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB24) &&
+			output->SetUINT32(MF_MT_FIXED_SIZE_SAMPLES, TRUE) && output->SetUINT32(MF_MT_ALL_SAMPLES_INDEPENDENT, TRUE) &&
+			output->SetUINT32(MF_MT_INTERLACE_MODE, MFVideoInterlace_Progressive) && MFGetAttributeSize(type, MF_MT_FRAME_SIZE, &width, &height) &&
+			MFSetAttributeSize(output, MF_MT_FRAME_SIZE, width, height) && MFGetAttributeRatio(type, MF_MT_FRAME_RATE, &numerator, &denominator) &&
+			MFSetAttributeRatio(output, MF_MT_FRAME_RATE, numerator, denominator) && MFSetAttributeRatio(output, MF_MT_PIXEL_ASPECT_RATIO, 1, 1);
+
+		if (FAILED(_hrStatus))
+		{
+			Error(_grabber->_log, "Setting output media type attributes failed");
+			goto done;
+		}
+
+		// Set transform output type
+		_hrStatus = _transform->SetOutputType(0, output, 0);
+		if (FAILED(_hrStatus))
+		{
+			_com_error error(_hrStatus);
+			Error(_grabber->_log, "Setting the output media type failed => %s", error.ErrorMessage());
+			goto done;
+		}
+
+		// Check if encoder parameters set properly
+		_hrStatus = _transform->GetInputStatus(0, &mftStatus);
+		if (FAILED(_hrStatus))
+		{
+			_com_error error(_hrStatus);
+			Error(_grabber->_log, "Failed to query the input stream for more data => %s", error.ErrorMessage());
+			goto done;
+		}
+
+		if (MFT_INPUT_STATUS_ACCEPT_DATA == mftStatus)
+		{
+			// Notify the transform we are about to begin streaming data
+			if (FAILED(_transform->ProcessMessage(MFT_MESSAGE_COMMAND_FLUSH, 0)) ||
+				FAILED(_transform->ProcessMessage(MFT_MESSAGE_NOTIFY_BEGIN_STREAMING, 0)) ||
+				FAILED(_transform->ProcessMessage(MFT_MESSAGE_NOTIFY_START_OF_STREAM, 0)))
+			{
+				Error(_grabber->_log, "Failed to begin streaming data");
+			}
+		}
+
+	done:
 		SAFE_RELEASE(output);
 		return _hrStatus;
 	}
@@ -344,7 +281,84 @@ private:
 		SAFE_RELEASE(_transform);
 	}
 
-	void NotifyError(HRESULT hr) { Error(_grabber->_log, "Source Reader error"); }
+	IMFSample* SourceReaderCB::TransformSample(IMFTransform* transform, IMFSample* in_sample)
+	{
+		IMFSample* result = nullptr;
+		IMFMediaBuffer* out_buffer = nullptr;
+
+		// Process the input sample
+		_hrStatus = transform->ProcessInput(0, in_sample, 0);
+		if (FAILED(_hrStatus))
+		{
+			_com_error error(_hrStatus);
+			Error(_grabber->_log, "Failed to process the input sample => %s", error.ErrorMessage());
+			goto done;
+		}
+
+		// Gets the buffer demand for the output stream
+		MFT_OUTPUT_STREAM_INFO streamInfo;
+		_hrStatus = transform->GetOutputStreamInfo(0, &streamInfo);
+		if (FAILED(_hrStatus))
+		{
+			_com_error error(_hrStatus);
+			Error(_grabber->_log, "Failed to retrieve buffer requirement for output current => %s", error.ErrorMessage());
+			goto done;
+		}
+
+		// Create an output media buffer
+		_hrStatus = MFCreateMemoryBuffer(streamInfo.cbSize, &out_buffer);
+		if (FAILED(_hrStatus))
+		{
+			_com_error error(_hrStatus);
+			Error(_grabber->_log, "Failed to create an output media buffer => %s", error.ErrorMessage());
+			goto done;
+		}
+
+		// Create an empty media sample
+		_hrStatus = MFCreateSample(&result);
+		if (FAILED(_hrStatus))
+		{
+			_com_error error(_hrStatus);
+			Error(_grabber->_log, "Failed to create an empty media sample => %s", error.ErrorMessage());
+			goto done;
+		}
+
+		// Add the output media buffer to the media sample
+		_hrStatus = result->AddBuffer(out_buffer);
+		if (FAILED(_hrStatus))
+		{
+			_com_error error(_hrStatus);
+			Error(_grabber->_log, "Failed to add the output media buffer to the media sample => %s", error.ErrorMessage());
+			goto done;
+		}
+
+		// Create the output buffer structure
+		MFT_OUTPUT_DATA_BUFFER outputDataBuffer = {0};
+		memset(&outputDataBuffer, 0, sizeof outputDataBuffer);
+		outputDataBuffer.dwStreamID = 0;
+		outputDataBuffer.dwStatus = 0;
+		outputDataBuffer.pEvents = nullptr;
+		outputDataBuffer.pSample = result;
+
+		DWORD status = 0;
+
+		// Generate the output sample
+		_hrStatus = transform->ProcessOutput(0, 1, &outputDataBuffer, &status);
+		if (FAILED(_hrStatus))
+		{
+			_com_error error(_hrStatus);
+			Error(_grabber->_log, "Failed to generate the output sample => %s", error.ErrorMessage());
+		}
+		else
+		{
+			SAFE_RELEASE(out_buffer);
+			return result;
+		}
+
+	done:
+		SAFE_RELEASE(out_buffer);
+		return nullptr;
+	}
 
 private:
 	long				_nRefCount;
