@@ -14,7 +14,7 @@
 // util includes
 #include <utils/PixelFormat.h>
 #include <hyperion/Grabber.h>
-#include <grabber/VideoStandard.h>
+#include <utils/VideoStandard.h>
 #include <utils/Components.h>
 #include <cec/CECEvent.h>
 
@@ -50,6 +50,7 @@ public:
 		struct InputProperties
 		{
 			QString inputName = QString();
+			QList<VideoStandard> standards = QList<VideoStandard>();
 			struct EncodingProperties
 			{
 				unsigned int width		= 0;
@@ -145,6 +146,11 @@ public:
 	///
 	/// @brief overwrite Grabber.h implementation
 	///
+	QList<VideoStandard> getAvailableDeviceStandards(const QString& devicePath, const int& deviceInput) const override;
+
+	///
+	/// @brief overwrite Grabber.h implementation
+	///
 	QStringList getAvailableEncodingFormats(const QString& devicePath, const int& deviceInput) const override;
 
 	///
@@ -155,7 +161,7 @@ public:
 	///
 	/// @brief overwrite Grabber.h implementation
 	///
-	QStringList getAvailableDeviceFramerates(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat, const unsigned width, const unsigned height) const override;
+	QIntList getAvailableDeviceFramerates(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat, const unsigned width, const unsigned height) const override;
 
 
 public slots:

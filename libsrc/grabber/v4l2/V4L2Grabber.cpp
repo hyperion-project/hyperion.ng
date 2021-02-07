@@ -232,6 +232,26 @@ void V4L2Grabber::getV4Ldevices()
 				V4L2Grabber::DeviceProperties::InputProperties inputProperties;
 				inputProperties.inputName = QString((char*)input.name);
 
+				// Enumerate video standards
+				struct v4l2_standard standard;
+				CLEAR(standard);
+
+				standard.index = 0;
+				while (xioctl(fd, VIDIOC_ENUMSTD, &standard) >= 0)
+				{
+					if (standard.id & input.std)
+					{
+						if (standard.id == V4L2_STD_PAL)
+							inputProperties.standards.append(VideoStandard::PAL);
+						else if (standard.id == V4L2_STD_NTSC)
+							inputProperties.standards.append(VideoStandard::NTSC);
+						else if (standard.id == V4L2_STD_SECAM)
+							inputProperties.standards.append(VideoStandard::SECAM);
+					}
+
+					standard.index++;
+				}
+
 				// Enumerate pixel formats
 				struct v4l2_fmtdesc desc;
 				CLEAR(desc);
@@ -1437,6 +1457,21 @@ QMultiMap<QString, int> V4L2Grabber::getDeviceInputs(const QString& devicePath) 
 	return result;
 }
 
+QList<VideoStandard> V4L2Grabber::getAvailableDeviceStandards(const QString& devicePath, const int& deviceInput) const
+{
+	QList<VideoStandard> result =QList<VideoStandard>();
+
+	for(auto it = _deviceProperties.begin(); it != _deviceProperties.end(); ++it)
+		if (it.key() == devicePath)
+			for (auto input = it.value().inputs.begin(); input != it.value().inputs.end(); input++)
+				if (input.key() == deviceInput)
+					for (auto standard = input.value().standards.begin(); standard != input.value().standards.end(); standard++)
+						if(!result.contains(*standard))
+							result << *standard;
+
+	return result;
+}
+
 QStringList V4L2Grabber::getAvailableEncodingFormats(const QString& devicePath, const int& deviceInput) const
 {
 	QStringList result = QStringList();
@@ -1467,9 +1502,9 @@ QMultiMap<int, int> V4L2Grabber::getAvailableDeviceResolutions(const QString& de
 	return result;
 }
 
-QStringList V4L2Grabber::getAvailableDeviceFramerates(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat, const unsigned width, const unsigned height) const
+QIntList V4L2Grabber::getAvailableDeviceFramerates(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat, const unsigned width, const unsigned height) const
 {
-	QStringList result = QStringList();
+	QIntList result = QIntList();
 
 	for(auto it = _deviceProperties.begin(); it != _deviceProperties.end(); ++it)
 		if (it.key() == devicePath)
@@ -1478,8 +1513,8 @@ QStringList V4L2Grabber::getAvailableDeviceFramerates(const QString& devicePath,
 					for (auto enc = input.value().encodingFormats.begin(); enc != input.value().encodingFormats.end(); enc++)
 						if(enc.key() == encFormat && enc.value().width == width && enc.value().height == height)
 							for (auto fps = enc.value().framerates.begin(); fps != enc.value().framerates.end(); fps++)
-								if(!result.contains(QString::number(*fps)))
-									result << QString::number(*fps);
+								if(!result.contains(*fps))
+									result << *fps;
 
 	return result;
 }

@@ -14,6 +14,7 @@
 #include <utils/VideoMode.h>
 #include <utils/PixelFormat.h>
 #include <utils/settings.h>
+#include <utils/VideoStandard.h>
 
 class Grabber;
 class GlobalSignals;
@@ -78,6 +79,14 @@ public:
 	virtual QMultiMap<QString, int> getDeviceInputs(const QString& devicePath) const;
 
 	///
+	/// @brief Get a list of available device video standards depends on device input
+	/// @param devicePath The device path
+	/// @param inputIndex The device input index
+	/// @return List of video standards on success else empty List
+	///
+	virtual QList<VideoStandard> getAvailableDeviceStandards(const QString& devicePath, const int& deviceInput) const;
+
+	///
 	/// @brief Get a list of all available device encoding formats depends on device input
 	/// @param devicePath The device path
 	/// @param inputIndex The device input index
@@ -95,7 +104,7 @@ public:
 	virtual QMultiMap<int, int> getAvailableDeviceResolutions(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat) const;
 
 	///
-	/// @brief Get a list of available device framerates depends on encoding format and resolution
+	/// @brief Get a list of available device framerates depends on device input, encoding format and resolution
 	/// @param devicePath The device path
 	/// @param inputIndex The device input index
 	/// @param encFormat The device encoding format
@@ -103,7 +112,7 @@ public:
 	/// @param heigth The device heigth
 	/// @return List of framerates on success else empty List
 	///
-	virtual QStringList getAvailableDeviceFramerates(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat, const unsigned width, const unsigned height) const;
+	virtual QIntList getAvailableDeviceFramerates(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat, const unsigned width, const unsigned height) const;
 
 	///
 	/// @brief Get active grabber name
