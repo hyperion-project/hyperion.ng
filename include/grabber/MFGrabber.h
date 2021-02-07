@@ -61,7 +61,7 @@ public:
 	bool getCecDetectionEnabled() const { return _cecDetectionEnabled; }
 	QStringList getDevices() const override;
 	QString getDeviceName(const QString& devicePath) const override { return devicePath; }
-	QMultiMap<QString, int> getDeviceInputs(const QString& devicePath) const override { return {{ devicePath, 0}}; }
+	QMultiMap<QString, int> getDeviceInputs(const QString& devicePath) const override { return { {devicePath, 0} }; }
 	QStringList getAvailableEncodingFormats(const QString& devicePath, const int& /*deviceInput*/) const override;
 	QMultiMap<int, int> getAvailableDeviceResolutions(const QString& devicePath, const int& /*deviceInput*/, const PixelFormat& encFormat) const override;
 	QIntList getAvailableDeviceFramerates(const QString& devicePath, const int& /*deviceInput*/, const PixelFormat& encFormat, const unsigned width, const unsigned height) const override;

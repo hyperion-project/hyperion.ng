@@ -508,6 +508,13 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 			in["name"] = input.key();
 			in["inputIdx"] = input.value();
 
+			QJsonArray standards;
+			QList<VideoStandard> videoStandards = GrabberWrapper::getInstance()->getAvailableDeviceStandards(devicePath, input.value());
+			for (auto standard : videoStandards)
+			{
+				standards.append(VideoStandard2String(standard));
+			}
+
 			QJsonArray formats;
 			QStringList encodingFormats = GrabberWrapper::getInstance()->getAvailableEncodingFormats(devicePath, input.value());
 			for (auto encodingFormat : encodingFormats)
@@ -538,6 +545,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 				formats.append(format);
 			}
 
+			in["standards"] = standards;
 			in["formats"] = formats;
 			video_inputs.append(in);
 		}

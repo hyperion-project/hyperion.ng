@@ -246,6 +246,14 @@ QMultiMap<QString, int> GrabberWrapper::getDeviceInputs(const QString& devicePat
 	return QMultiMap<QString, int>();
 }
 
+QList<VideoStandard> GrabberWrapper::getAvailableDeviceStandards(const QString& devicePath, const int& deviceInput) const
+{
+	if(_grabberName.startsWith("V4L"))
+		return _ggrabber->getAvailableDeviceStandards(devicePath, deviceInput);
+
+	return QList<VideoStandard>();
+}
+
 QStringList GrabberWrapper::getAvailableEncodingFormats(const QString& devicePath, const int& deviceInput) const
 {
 	if(_grabberName.startsWith("V4L"))

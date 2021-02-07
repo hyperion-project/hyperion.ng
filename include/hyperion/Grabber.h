@@ -6,7 +6,7 @@
 #include <utils/ColorRgb.h>
 #include <utils/Image.h>
 #include <utils/VideoMode.h>
-#include <grabber/VideoStandard.h>
+#include <utils/VideoStandard.h>
 #include <utils/ImageResampler.h>
 #include <utils/Logger.h>
 #include <utils/Components.h>
@@ -144,6 +144,14 @@ public:
 	/// @return multi pair of name/index on success else empty pair
 	///
 	virtual QMultiMap<QString, int> getDeviceInputs(const QString& /*devicePath*/) const { return QMultiMap<QString, int>(); }
+
+	///
+	/// @brief Get a list of available device video standards depends on device input
+	/// @param devicePath The device path
+	/// @param inputIndex The device input index
+	/// @return List of video standards on success else empty List
+	///
+	virtual QList<VideoStandard> getAvailableDeviceStandards(const QString& /*devicePath*/, const int& /*deviceInput*/) const { return QList<VideoStandard>(); }
 
 	///
 	/// @brief Get a list of all available device encoding formats depends on device input
