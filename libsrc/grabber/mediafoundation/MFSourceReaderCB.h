@@ -220,13 +220,16 @@ public:
 		UINT32 numerator, denominator;
 
 		// Fill the missing attributes
-		_hrStatus = output->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video) && output->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB24) &&
-			output->SetUINT32(MF_MT_FIXED_SIZE_SAMPLES, TRUE) && output->SetUINT32(MF_MT_ALL_SAMPLES_INDEPENDENT, TRUE) &&
-			output->SetUINT32(MF_MT_INTERLACE_MODE, MFVideoInterlace_Progressive) && MFGetAttributeSize(type, MF_MT_FRAME_SIZE, &width, &height) &&
-			MFSetAttributeSize(output, MF_MT_FRAME_SIZE, width, height) && MFGetAttributeRatio(type, MF_MT_FRAME_RATE, &numerator, &denominator) &&
-			MFSetAttributeRatio(output, MF_MT_FRAME_RATE, numerator, denominator) && MFSetAttributeRatio(output, MF_MT_PIXEL_ASPECT_RATIO, 1, 1);
 
-		if (FAILED(_hrStatus))
+		if (FAILED(output->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video)) ||
+			FAILED(output->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB24)) ||
+			FAILED(output->SetUINT32(MF_MT_FIXED_SIZE_SAMPLES, TRUE)) ||
+			FAILED(output->SetUINT32(MF_MT_ALL_SAMPLES_INDEPENDENT, TRUE)) ||
+			FAILED(output->SetUINT32(MF_MT_INTERLACE_MODE, MFVideoInterlace_Progressive)) ||
+			FAILED(MFGetAttributeSize(type, MF_MT_FRAME_SIZE, &width, &height)) ||
+			FAILED(MFSetAttributeSize(output, MF_MT_FRAME_SIZE, width, height)) ||
+			FAILED(MFGetAttributeRatio(type, MF_MT_FRAME_RATE, &numerator, &denominator)) ||
+			FAILED(MFSetAttributeRatio(output, MF_MT_PIXEL_ASPECT_RATIO, 1, 1)))
 		{
 			Error(_grabber->_log, "Setting output media type attributes failed");
 			goto done;
@@ -285,6 +288,7 @@ private:
 	{
 		IMFSample* result = nullptr;
 		IMFMediaBuffer* out_buffer = nullptr;
+		MFT_OUTPUT_DATA_BUFFER outputDataBuffer = {0};
 
 		// Process the input sample
 		_hrStatus = transform->ProcessInput(0, in_sample, 0);
@@ -333,7 +337,6 @@ private:
 		}
 
 		// Create the output buffer structure
-		MFT_OUTPUT_DATA_BUFFER outputDataBuffer = {0};
 		memset(&outputDataBuffer, 0, sizeof outputDataBuffer);
 		outputDataBuffer.dwStreamID = 0;
 		outputDataBuffer.dwStatus = 0;
