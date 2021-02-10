@@ -114,6 +114,17 @@ QJsonDocument SettingsManager::getSetting(settings::type type) const
 	return _sTable->getSettingsRecord(settings::typeToString(type));
 }
 
+QJsonObject SettingsManager::getSettings() const
+{
+	QJsonObject config;
+	for(const auto & key : _qconfig.keys())
+	{
+		//Read all records from database to ensure that global settings are read across instances
+		config.insert(key, _sTable->getSettingsRecord(key).object());
+	}
+	return config;
+}
+
 bool SettingsManager::saveSettings(QJsonObject config, bool correct)
 {
 	// optional data upgrades e.g. imported legacy/older configs
