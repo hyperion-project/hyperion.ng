@@ -416,30 +416,33 @@ void LedDevice::setLatchTime( int latchTime_ms )
 void LedDevice::setRewriteTime( int rewriteTime_ms )
 {
 	assert(rewriteTime_ms >= 0);
-	assert(_refreshTimer != nullptr);
 
-	_refreshTimerInterval_ms = rewriteTime_ms;
-
-	if ( _refreshTimerInterval_ms > 0 )
+	//Check, if refresh timer was not initialised due to getProperties/identify sceanrios
+	if (_refreshTimer != nullptr)
 	{
+		_refreshTimerInterval_ms = rewriteTime_ms;
 
-		_isRefreshEnabled = true;
-
-		if (_refreshTimerInterval_ms <= _latchTime_ms )
+		if (_refreshTimerInterval_ms > 0)
 		{
-			int new_refresh_timer_interval = _latchTime_ms + 10;
-			Warning(_log, "latchTime(%d) is bigger/equal rewriteTime(%d), set rewriteTime to %dms", _latchTime_ms, _refreshTimerInterval_ms, new_refresh_timer_interval);
-			_refreshTimerInterval_ms = new_refresh_timer_interval;
-			_refreshTimer->setInterval( _refreshTimerInterval_ms );
+
+			_isRefreshEnabled = true;
+
+			if (_refreshTimerInterval_ms <= _latchTime_ms)
+			{
+				int new_refresh_timer_interval = _latchTime_ms + 10;
+				Warning(_log, "latchTime(%d) is bigger/equal rewriteTime(%d), set rewriteTime to %dms", _latchTime_ms, _refreshTimerInterval_ms, new_refresh_timer_interval);
+				_refreshTimerInterval_ms = new_refresh_timer_interval;
+				_refreshTimer->setInterval(_refreshTimerInterval_ms);
+			}
+
+			Debug(_log, "Refresh interval = %dms", _refreshTimerInterval_ms);
+			_refreshTimer->setInterval(_refreshTimerInterval_ms);
+
+			_lastWriteTime = QDateTime::currentDateTime();
 		}
 
-		Debug(_log, "Refresh interval = %dms",_refreshTimerInterval_ms );
-		_refreshTimer->setInterval( _refreshTimerInterval_ms );
-
-		_lastWriteTime = QDateTime::currentDateTime();
+		Debug(_log, "RewriteTime updated to %dms", _refreshTimerInterval_ms);
 	}
-
-	Debug(_log, "RewriteTime updated to %dms", _refreshTimerInterval_ms);
 }
 
 void LedDevice::printLedValues(const std::vector<ColorRgb>& ledValues)

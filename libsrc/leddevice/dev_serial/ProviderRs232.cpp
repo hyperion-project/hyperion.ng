@@ -301,6 +301,8 @@ QJsonObject ProviderRs232::discover(const QJsonObject& /*params*/)
 	}
 
 	devicesDiscovered.insert("devices", deviceList);
+	DebugIf(verbose, _log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+
 	return devicesDiscovered;
 }
 
@@ -312,7 +314,7 @@ void ProviderRs232::identify(const QJsonObject& params)
 	if (!deviceName.isEmpty())
 	{
 		_devConfig = params;
-		start();
+		init(_devConfig);
 		{
 			if ( open() == 0 )
 			{
