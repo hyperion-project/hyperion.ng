@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Breaking
 
 ### Added
+- LED-Devices: basic support for Hue Play Gradient Lightstrip
 
 ### Changed
 - Updated dependency rpi_ws281x to latest upstream
