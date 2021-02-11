@@ -662,7 +662,7 @@ QJsonObject LedDeviceCololight::discover(const QJsonObject& /*params*/)
 	devicesDiscovered.insert("discoveryMethod", discoveryMethod);
 	devicesDiscovered.insert("devices", deviceList);
 
-	//Debug(_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	DebugIf(verbose, _log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return devicesDiscovered;
 }
@@ -682,6 +682,7 @@ QJsonObject LedDeviceCololight::getProperties(const QJsonObject& params)
 
 		deviceConfig.insert("host", hostName);
 		deviceConfig.insert("port", apiPort);
+
 		if (ProviderUdp::init(deviceConfig))
 		{
 			if (getInfo())

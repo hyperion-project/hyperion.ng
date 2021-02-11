@@ -11,6 +11,8 @@
 // Constants
 namespace {
 
+const bool verbose = false;
+
 // Configuration settings
 const char CONFIG_ADDRESS[] = "host";
 const char CONFIG_RESTORE_STATE[] = "restoreOriginalState";
@@ -57,7 +59,6 @@ LedDevice* LedDeviceWled::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceWled::init(const QJsonObject &deviceConfig)
 {
-	Debug(_log, "");
 	bool isInitOK = false;
 
 	// Initialise LedDevice sub-class, ProviderUdp::init will be executed later, if connectivity is defined
@@ -107,13 +108,11 @@ bool LedDeviceWled::init(const QJsonObject &deviceConfig)
 			}
 		}
 	}
-	Debug(_log, "[%d]", isInitOK);
 	return isInitOK;
 }
 
 bool LedDeviceWled::initRestAPI(const QString &hostname, int port)
 {
-	Debug(_log, "");
 	bool isInitOK = false;
 
 	if ( _restApi == nullptr )
@@ -123,8 +122,6 @@ bool LedDeviceWled::initRestAPI(const QString &hostname, int port)
 
 		isInitOK = true;
 	}
-
-	Debug(_log, "[%d]", isInitOK);
 	return isInitOK;
 }
 
@@ -187,7 +184,6 @@ bool LedDeviceWled::powerOn()
 
 bool LedDeviceWled::powerOff()
 {
-	Debug(_log, "");
 	bool off = true;
 	if ( _isDeviceReady)
 	{
@@ -225,7 +221,7 @@ bool LedDeviceWled::storeState()
 		else
 		{
 			_originalStateProperties = response.getBody().object();
-			Debug(_log, "state: [%s]", QString(QJsonDocument(_originalStateProperties).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+			DebugIf(verbose, _log, "state: [%s]", QString(QJsonDocument(_originalStateProperties).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 		}
 	}
 
@@ -261,15 +257,14 @@ QJsonObject LedDeviceWled::discover(const QJsonObject& /*params*/)
 
 	QJsonArray deviceList;
 	devicesDiscovered.insert("devices", deviceList);
-
-	//Debug(_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+	DebugIf(verbose, _log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 
 	return devicesDiscovered;
 }
 
 QJsonObject LedDeviceWled::getProperties(const QJsonObject& params)
 {
-	Debug(_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 	QJsonObject properties;
 
 	QString hostName = params["host"].toString("");
@@ -303,14 +298,14 @@ QJsonObject LedDeviceWled::getProperties(const QJsonObject& params)
 
 		properties.insert("properties", response.getBody().object());
 
-		Debug(_log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+		DebugIf(verbose, _log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 	}
 	return properties;
 }
 
 void LedDeviceWled::identify(const QJsonObject& params)
 {
-	//Debug(_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	QString hostName = params["host"].toString("");
 
