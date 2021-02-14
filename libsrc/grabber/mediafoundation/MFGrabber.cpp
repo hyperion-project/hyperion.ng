@@ -435,11 +435,12 @@ void MFGrabber::enumVideoCaptureDevices()
 						{
 							QList<DeviceProperties> devicePropertyList;
 							QString dev = QString::fromUtf16((const ushort*)name);
-							Debug(_log, "Found capture device: %s", QSTRING_CSTR(dev));
 
 							IMFMediaSource *pSource = nullptr;
 							if(SUCCEEDED(devices[i]->ActivateObject(IID_PPV_ARGS(&pSource))))
 							{
+								Debug(_log, "Found capture device: %s", QSTRING_CSTR(dev));
+
 								IMFMediaType *pType = nullptr;
 								IMFSourceReader* reader;
 								if(SUCCEEDED(MFCreateSourceReaderFromMediaSource(pSource, NULL, &reader)))
@@ -481,7 +482,8 @@ void MFGrabber::enumVideoCaptureDevices()
 								pSource->Release();
 							}
 
-							_deviceProperties.insert(dev, devicePropertyList);
+							if (!devicePropertyList.isEmpty())
+								_deviceProperties.insert(dev, devicePropertyList);
 						}
 
 						CoTaskMemFree(symlink);
