@@ -174,6 +174,8 @@ proceed:
 		handleInstanceCommand(message, command, tan);
 	else if (command == "leddevice")
 		handleLedDeviceCommand(message, command, tan);
+	else if (command == "inputsource")
+		handleInputSourceCommand(message, command, tan);
 
 	// BEGIN | The following commands are deprecated but used to ensure backward compatibility with hyperion Classic remote control
 	else if (command == "clearall")
@@ -486,75 +488,6 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	{
 		availableGrabbers.append(grabber);
 	}
-
-#endif
-
-#if defined(ENABLE_V4L2) || defined(ENABLE_MF)
-
-	QJsonArray availableDevices;
-	for (const auto& devicePath : GrabberWrapper::getInstance()->getDevices())
-	{
-		QJsonObject device;
-		device["device"] = devicePath;
-		device["device_name"] = GrabberWrapper::getInstance()->getDeviceName(devicePath);
-		device["type"] = "v4l2";
-
-		QJsonArray video_inputs;
-
-		QMultiMap<QString, int> inputs = GrabberWrapper::getInstance()->getDeviceInputs(devicePath);
-		for (auto input = inputs.begin(); input != inputs.end(); input++)
-		{
-			QJsonObject in;
-			in["name"] = input.key();
-			in["inputIdx"] = input.value();
-
-			QJsonArray standards;
-			QList<VideoStandard> videoStandards = GrabberWrapper::getInstance()->getAvailableDeviceStandards(devicePath, input.value());
-			for (auto standard : videoStandards)
-			{
-				standards.append(VideoStandard2String(standard));
-			}
-
-			QJsonArray formats;
-			QStringList encodingFormats = GrabberWrapper::getInstance()->getAvailableEncodingFormats(devicePath, input.value());
-			for (auto encodingFormat : encodingFormats)
-			{
-				QJsonObject format;
-				format["format"] = encodingFormat;
-
-				QJsonArray resolutionArray;
-				QMultiMap<int, int> deviceResolutions = GrabberWrapper::getInstance()->getAvailableDeviceResolutions(devicePath, input.value(), parsePixelFormat(encodingFormat));
-				for (auto width_height = deviceResolutions.begin(); width_height != deviceResolutions.end(); width_height++)
-				{
-					QJsonObject resolution;
-					resolution["width"] = width_height.key();
-					resolution["height"] = width_height.value();
-
-					QJsonArray fps;
-					QIntList framerates = GrabberWrapper::getInstance()->getAvailableDeviceFramerates(devicePath, input.value(), parsePixelFormat(encodingFormat), width_height.key(), width_height.value());
-					for (auto framerate : framerates)
-					{
-						fps.append(framerate);
-					}
-
-					resolution["fps"] = fps;
-					resolutionArray.append(resolution);
-				}
-
-				format["resolutions"] = resolutionArray;
-				formats.append(format);
-			}
-
-			in["standards"] = standards;
-			in["formats"] = formats;
-			video_inputs.append(in);
-		}
-
-		device["video_inputs"] = video_inputs;
-		availableDevices.append(device);
-	}
-
-	grabbers["video_sources"] = availableDevices;
 
 #endif
 
@@ -1484,6 +1417,117 @@ void JsonAPI::handleLedDeviceCommand(const QJsonObject &message, const QString &
 		delete  ledDevice;
 	}
 }
+
+void JsonAPI::handleInputSourceCommand(const QJsonObject& message, const QString& command, int tan)
+{
+	Debug(_log, "message: [%s]", QString(QJsonDocument(message).toJson(QJsonDocument::Compact)).toUtf8().constData());
+
+	const QString& subc = message["subcommand"].toString().trimmed();
+	const QString& sourceType = message["sourceType"].toString().trimmed();
+
+	QString full_command = command + "-" + subc;
+
+	// TODO: Validate that source type is a valid one
+/*	if ( ! valid type )
+	{
+		sendErrorReply("Unknown device", full_command, tan);
+	}
+	else
+*/ {
+		if (subc == "discover")
+		{
+			QJsonObject inputSourcesDiscovered;
+			inputSourcesDiscovered.insert("sourceType", sourceType);
+
+			QJsonArray videoInputs;
+
+#if defined(ENABLE_V4L2) || defined(ENABLE_MF)
+
+			if (sourceType == "video" )
+			{
+				//for (const auto& instance : GrabberWrapper::getInstance()->getDevices())
+				//{
+
+				for (const auto& devicePath : GrabberWrapper::getInstance()->getDevices())
+				{
+
+					QJsonObject device;
+					device["device"] = devicePath;
+					device["device_name"] = GrabberWrapper::getInstance()->getDeviceName(devicePath);
+					device["type"] = "v4l2";
+
+					QJsonArray video_inputs;
+
+					QMultiMap<QString, int> inputs = GrabberWrapper::getInstance()->getDeviceInputs(devicePath);
+					for (auto input = inputs.begin(); input != inputs.end(); input++)
+					{
+						QJsonObject in;
+						in["name"] = input.key();
+						in["inputIdx"] = input.value();
+
+						QJsonArray standards;
+						QList<VideoStandard> videoStandards = GrabberWrapper::getInstance()->getAvailableDeviceStandards(devicePath, input.value());
+						for (auto standard : videoStandards)
+						{
+							standards.append(VideoStandard2String(standard));
+						}
+						if (!standards.isEmpty())
+						{
+							in["standards"] = standards;
+						}
+
+						QJsonArray formats;
+						QStringList encodingFormats = GrabberWrapper::getInstance()->getAvailableEncodingFormats(devicePath, input.value());
+						for (auto encodingFormat : encodingFormats)
+						{
+							QJsonObject format;
+							format["format"] = encodingFormat;
+
+							QJsonArray resolutionArray;
+							QMultiMap<int, int> deviceResolutions = GrabberWrapper::getInstance()->getAvailableDeviceResolutions(devicePath, input.value(), parsePixelFormat(encodingFormat));
+							for (auto width_height = deviceResolutions.begin(); width_height != deviceResolutions.end(); width_height++)
+							{
+								QJsonObject resolution;
+								resolution["width"] = width_height.key();
+								resolution["height"] = width_height.value();
+
+								QJsonArray fps;
+								QIntList framerates = GrabberWrapper::getInstance()->getAvailableDeviceFramerates(devicePath, input.value(), parsePixelFormat(encodingFormat), width_height.key(), width_height.value());
+								for (auto framerate : framerates)
+								{
+									fps.append(framerate);
+								}
+
+								resolution["fps"] = fps;
+								resolutionArray.append(resolution);
+							}
+
+							format["resolutions"] = resolutionArray;
+							formats.append(format);
+						}
+						in["formats"] = formats;
+						video_inputs.append(in);
+
+					}
+
+					device["video_inputs"] = video_inputs;
+					videoInputs.append(device);
+				}
+			}
+#endif
+			inputSourcesDiscovered["video_sources"] = videoInputs;
+
+			Debug(_log, "response: [%s]", QString(QJsonDocument(inputSourcesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+
+			sendSuccessDataReply(QJsonDocument(inputSourcesDiscovered), full_command, tan);
+		}
+		else
+		{
+			sendErrorReply("Unknown or missing subcommand", full_command, tan);
+		}
+	}
+}
+
 
 void JsonAPI::handleNotImplemented(const QString &command, int tan)
 {

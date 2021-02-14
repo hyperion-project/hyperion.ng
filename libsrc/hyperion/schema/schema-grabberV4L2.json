@@ -2,345 +2,350 @@
 	"type" : "object",
 	"required" : true,
 	"title" : "edt_conf_v4l2_heading_title",
-	"properties" :
-	{
-		"device" :
-		{
-			"type" : "string",
-			"title" : "edt_conf_enum_custom",
-			"default" : "auto",
-			"options" : {
-				"hidden":true
+	"properties": {
+		"available_devices": {
+			"type": "string",
+			"title": "edt_conf_v4l2_device_title",
+			"propertyOrder": 1,
+			"required": true
+		},
+		"device": {
+			"type": "string",
+			"title": "edt_conf_enum_custom",
+			"options": {
+				"hidden": true
 			},
-			"required" : true,
-			"propertyOrder" : 2,
-			"comment" : "The 'available_devices' settings are dynamically inserted into the WebUI under PropertyOrder '1'."
+			"required": true,
+			"comment": "The 'available_devices' settings are dynamically inserted into the WebUI under PropertyOrder '1'.",
+			"propertyOrder": 2
 		},
-		"input" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_enum_custom",
-			"default" : 0,
-			"options" : {
-				"hidden":true
+		"device_inputs": {
+			"type": "string",
+			"title": "edt_conf_v4l2_input_title",
+			"propertyOrder": 3,
+			"required": true
+		},
+		"input": {
+			"type": "integer",
+			"title": "edt_conf_enum_custom",
+			"default": 0,
+			"options": {
+				"hidden": true
 			},
-			"required" : true,
-			"propertyOrder" : 4,
-			"comment" : "The 'device_inputs' settings are dynamically inserted into the WebUI under PropertyOrder '3'."
+			"required": true,
+			"propertyOrder": 4,
+			"comment": "The 'device_inputs' settings are dynamically inserted into the WebUI under PropertyOrder '3'."
 		},
-		"encoding" :
-		{
-			"type" : "string",
-			"title" : "edt_conf_enum_custom",
-			"default" : "auto",
-			"options" : {
-				"hidden":true
+
+		"standard": {
+			"type": "string",
+			"title": "edt_conf_v4l2_standard_title",
+			"default": "auto",
+			"required": true,
+			"propertyOrder": 5
+		},
+		"encoding": {
+			"type": "string",
+			"title": "edt_conf_v4l2_encoding_title",
+			"default": "auto",
+			"required": true,
+			"propertyOrder": 6
+		},
+		"resolutions": {
+			"type": "string",
+			"title": "edt_conf_v4l2_resolution_title",
+			"propertyOrder": 7,
+			"required": true
+		},
+		"width": {
+			"type": "integer",
+			"title": "edt_conf_fg_width_title",
+			"default": 0,
+			"minimum": 0,
+			"append": "edt_append_pixel",
+			"options": {
+				"hidden": true
 			},
-			"required" : true,
-			"propertyOrder" : 6,
-			"comment" : "The 'device_encodings' settings are dynamically inserted into the WebUI under PropertyOrder '5'."
+			"required": true,
+			"propertyOrder": 8,
+			"comment": "The 'resolutions' settings are dynamically inserted into the WebUI under PropertyOrder '7'."
 		},
-		"standard" :
-		{
-			"type" : "string",
-			"title" : "edt_conf_v4l2_standard_title",
-			"enum" : ["NO_CHANGE", "PAL","NTSC","SECAM"],
-			"default" : "NO_CHANGE",
-			"options" : {
-				"enum_titles" : ["edt_conf_enum_NO_CHANGE", "edt_conf_enum_PAL", "edt_conf_enum_NTSC", "edt_conf_enum_SECAM"]
+		"height": {
+			"type": "integer",
+			"title": "edt_conf_fg_height_title",
+			"default": 0,
+			"minimum": 0,
+			"append": "edt_append_pixel",
+			"options": {
+				"hidden": true
 			},
-			"required" : true,
-			"propertyOrder" : 7
+			"required": true,
+			"propertyOrder": 9,
+			"comment": "The 'resolutions' settings are dynamically inserted into the WebUI under PropertyOrder '7'."
 		},
-		"flip" :
-		{
-			"type" : "string",
-			"title" : "edt_conf_v4l2_flip_title",
-			"enum" : ["NO_CHANGE", "HORIZONTAL","VERTICAL","BOTH"],
-			"default" : "NO_CHANGE",
-			"options" : {
-				"enum_titles" : ["edt_conf_enum_NO_CHANGE", "edt_conf_enum_HORIZONTAL", "edt_conf_enum_VERTICAL", "edt_conf_enum_BOTH"]
+		"framerates": {
+			"type": "string",
+			"title": "edt_conf_v4l2_framerate_title",
+			"propertyOrder": 10,
+			"required": true
+		},
+		"fps": {
+			"type": "integer",
+			"title": "edt_conf_enum_custom",
+			"default": 15,
+			"minimum": 0,
+			"append": "fps",
+			"options": {
+				"hidden": true
 			},
-			"required" : true,
-			"propertyOrder" : 8
+			"required": true,
+			"propertyOrder": 11,
+			"comment": "The 'framerates' setting is dynamically inserted into the WebUI under PropertyOrder '10'."
 		},
-		"width" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_fg_width_title",
-			"default" : 0,
-			"minimum" : 0,
-			"append" : "edt_append_pixel",
-			"options" : {
-				"hidden":true
+		"fpsSoftwareDecimation": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_fpsSoftwareDecimation_title",
+			"minimum": 0,
+			"maximum": 60,
+			"default": 0,
+			"required": true,
+			"access": "advanced",
+			"propertyOrder": 12
+		},
+		"flip": {
+			"type": "string",
+			"title": "edt_conf_v4l2_flip_title",
+			"enum": [ "NO_CHANGE", "HORIZONTAL", "VERTICAL", "BOTH" ],
+			"default": "NO_CHANGE",
+			"options": {
+				"enum_titles": [ "edt_conf_enum_NO_CHANGE", "edt_conf_enum_HORIZONTAL", "edt_conf_enum_VERTICAL", "edt_conf_enum_BOTH" ]
 			},
-			"required" : true,
-			"propertyOrder" : 10,
-			"comment" : "The 'resolutions' settings are dynamically inserted into the WebUI under PropertyOrder '9'."
+			"required": true,
+			"access": "advanced",
+			"propertyOrder": 13
 		},
-		"height" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_fg_height_title",
-			"default" : 0,
-			"minimum" : 0,
-			"append" : "edt_append_pixel",
-			"options" : {
-				"hidden":true
-			},
-			"required" : true,
-			"propertyOrder" : 11,
-			"comment" : "The 'resolutions' settings are dynamically inserted into the WebUI under PropertyOrder '9'."
+		"sizeDecimation": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_sizeDecimation_title",
+			"minimum": 1,
+			"maximum": 30,
+			"default": 6,
+			"required": true,
+			"propertyOrder": 14
 		},
-		"fps" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_enum_custom",
-			"default" : 15,
-			"minimum" : 1,
-			"append" : "fps",
-			"options" : {
-				"hidden":true
-			},
-			"required" : true,
-			"propertyOrder" : 13,
-			"comment" : "The 'framerates' setting is dynamically inserted into the WebUI under PropertyOrder '12'."
+		"cropLeft": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_cropLeft_title",
+			"minimum": 0,
+			"default": 0,
+			"append": "edt_append_pixel",
+			"required": true,
+			"access": "advanced",
+			"propertyOrder": 15
 		},
-		"fpsSoftwareDecimation" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_fpsSoftwareDecimation_title",
-			"minimum" : 0,
-			"maximum" : 60,
-			"default" : 0,
-			"required" : true,
-			"propertyOrder" : 14
+		"cropRight": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_cropRight_title",
+			"minimum": 0,
+			"default": 0,
+			"append": "edt_append_pixel",
+			"required": true,
+			"access": "advanced",
+			"propertyOrder": 16
 		},
-		"sizeDecimation" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_sizeDecimation_title",
-			"minimum" : 1,
-			"maximum" : 30,
-			"default" : 6,
-			"required" : true,
-			"propertyOrder" : 15
+		"cropTop": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_cropTop_title",
+			"minimum": 0,
+			"default": 0,
+			"append": "edt_append_pixel",
+			"required": true,
+			"access": "advanced",
+			"propertyOrder": 17
 		},
-		"cropLeft" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_cropLeft_title",
-			"minimum" : 0,
-			"default" : 0,
-			"append" : "edt_append_pixel",
-			"required" : true,
-			"propertyOrder" : 16
+		"cropBottom": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_cropBottom_title",
+			"minimum": 0,
+			"default": 0,
+			"append": "edt_append_pixel",
+			"required": true,
+			"access": "advanced",
+			"propertyOrder": 18
 		},
-		"cropRight" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_cropRight_title",
-			"minimum" : 0,
-			"default" : 0,
-			"append" : "edt_append_pixel",
-			"required" : true,
-			"propertyOrder" : 17
+		"cecDetection": {
+			"type": "boolean",
+			"title": "edt_conf_v4l2_cecDetection_title",
+			"default": false,
+			"required": true,
+			"propertyOrder": 19
 		},
-		"cropTop" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_cropTop_title",
-			"minimum" : 0,
-			"default" : 0,
-			"append" : "edt_append_pixel",
-			"required" : true,
-			"propertyOrder" : 18
+		"signalDetection": {
+			"type": "boolean",
+			"title": "edt_conf_v4l2_signalDetection_title",
+			"default": false,
+			"required": true,
+			"access": "advanced",
+			"propertyOrder": 20
 		},
-		"cropBottom" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_cropBottom_title",
-			"minimum" : 0,
-			"default" : 0,
-			"append" : "edt_append_pixel",
-			"required" : true,
-			"propertyOrder" : 19
-		},
-		"cecDetection" :
-		{
-			"type" : "boolean",
-			"title" : "edt_conf_v4l2_cecDetection_title",
-			"default" : false,
-			"required" : true,
-			"propertyOrder" : 20
-		},
-		"signalDetection" :
-		{
-			"type" : "boolean",
-			"title" : "edt_conf_v4l2_signalDetection_title",
-			"default" : false,
-			"required" : true,
-			"propertyOrder" : 21
-		},
-		"redSignalThreshold" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_redSignalThreshold_title",
-			"minimum" : 0,
-			"maximum" : 100,
-			"default" : 5,
-			"append" : "edt_append_percent",
+		"redSignalThreshold": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_redSignalThreshold_title",
+			"minimum": 0,
+			"maximum": 100,
+			"default": 5,
+			"append": "edt_append_percent",
 			"options": {
 				"dependencies": {
 					"signalDetection": true
 				}
 			},
-			"required" : true,
-			"propertyOrder" : 22
+			"access": "advanced",
+			"required": true,
+			"propertyOrder": 21
 		},
-		"greenSignalThreshold" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_greenSignalThreshold_title",
-			"minimum" : 0,
-			"maximum" : 100,
-			"default" : 5,
-			"append" : "edt_append_percent",
+		"greenSignalThreshold": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_greenSignalThreshold_title",
+			"minimum": 0,
+			"maximum": 100,
+			"default": 5,
+			"append": "edt_append_percent",
 			"options": {
 				"dependencies": {
 					"signalDetection": true
 				}
 			},
-			"required" : true,
-			"propertyOrder" : 23
+			"required": true,
+			"access": "advanced",
+			"propertyOrder": 22
 		},
-		"blueSignalThreshold" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_blueSignalThreshold_title",
-			"minimum" : 0,
-			"maximum" : 100,
-			"default" : 5,
-			"append" : "edt_append_percent",
+		"blueSignalThreshold": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_blueSignalThreshold_title",
+			"minimum": 0,
+			"maximum": 100,
+			"default": 5,
+			"append": "edt_append_percent",
 			"options": {
 				"dependencies": {
 					"signalDetection": true
 				}
 			},
-			"required" : true,
-			"propertyOrder" : 24
+			"required": true,
+			"access": "advanced",
+			"propertyOrder": 23
 		},
-		"noSignalCounterThreshold" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_noSignalCounterThreshold_title",
-			"minimum" : 1,
-			"maximum" : 1000,
-			"default" : 200,
+		"noSignalCounterThreshold": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_noSignalCounterThreshold_title",
+			"minimum": 1,
+			"maximum": 1000,
+			"default": 200,
 			"options": {
 				"dependencies": {
 					"signalDetection": true
 				}
 			},
-			"required" : true,
-			"propertyOrder" : 25
+			"required": true,
+			"access": "advanced",
+			"propertyOrder": 24
 		},
-		"sDVOffsetMin" :
-		{
-			"type" : "number",
-			"title" : "edt_conf_v4l2_sDVOffsetMin_title",
-			"minimum" : 0.0,
-			"maximum" : 1.0,
-			"default" : 0.25,
-			"step" : 0.01,
+		"sDVOffsetMin": {
+			"type": "number",
+			"title": "edt_conf_v4l2_sDVOffsetMin_title",
+			"minimum": 0.0,
+			"maximum": 1.0,
+			"default": 0.25,
+			"step": 0.01,
 			"options": {
 				"dependencies": {
 					"signalDetection": true
 				}
 			},
-			"required" : true,
-			"propertyOrder" : 26
+			"required": true,
+			"access": "advanced",
+			"propertyOrder": 25
 		},
-		"sDVOffsetMax" :
-		{
-			"type" : "number",
-			"title" : "edt_conf_v4l2_sDVOffsetMax_title",
-			"minimum" : 0.0,
-			"maximum" : 1.0,
-			"default" : 0.75,
-			"step" : 0.01,
+		"sDVOffsetMax": {
+			"type": "number",
+			"title": "edt_conf_v4l2_sDVOffsetMax_title",
+			"minimum": 0.0,
+			"maximum": 1.0,
+			"default": 0.75,
+			"step": 0.01,
 			"options": {
 				"dependencies": {
 					"signalDetection": true
 				}
 			},
-			"required" : true,
-			"propertyOrder" : 27
+			"required": true,
+			"access": "advanced",
+			"propertyOrder": 26
 		},
-		"sDHOffsetMin" :
-		{
-			"type" : "number",
-			"title" : "edt_conf_v4l2_sDHOffsetMin_title",
-			"minimum" : 0.0,
-			"maximum" : 1.0,
-			"default" : 0.25,
-			"step" : 0.01,
+		"sDHOffsetMin": {
+			"type": "number",
+			"title": "edt_conf_v4l2_sDHOffsetMin_title",
+			"minimum": 0.0,
+			"maximum": 1.0,
+			"default": 0.25,
+			"step": 0.01,
 			"options": {
 				"dependencies": {
 					"signalDetection": true
 				}
 			},
-			"required" : true,
-			"propertyOrder" : 28
+			"required": true,
+			"access": "advanced",
+			"propertyOrder": 27
 		},
-		"sDHOffsetMax" :
-		{
-			"type" : "number",
-			"title" : "edt_conf_v4l2_sDHOffsetMax_title",
-			"minimum" : 0.0,
-			"maximum" : 1.0,
-			"default" : 0.75,
-			"step" : 0.01,
+		"sDHOffsetMax": {
+			"type": "number",
+			"title": "edt_conf_v4l2_sDHOffsetMax_title",
+			"minimum": 0.0,
+			"maximum": 1.0,
+			"default": 0.75,
+			"step": 0.01,
 			"options": {
 				"dependencies": {
 					"signalDetection": true
 				}
 			},
-			"required" : true,
-			"propertyOrder" : 29
+			"required": true,
+			"propertyOrder": 28
 		},
-		"hardware_brightness" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_hardware_brightness_title",
-			"default" : 0,
-			"required" : true,
-			"propertyOrder" : 30
+		"hardware_brightness": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_hardware_brightness_title",
+			"default": 0,
+			"required": true,
+			"access": "advanced",
+			"propertyOrder": 29
 		},
-		"hardware_contrast" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_hardware_contrast_title",
-			"default" : 0,
-			"required" : true,
-			"propertyOrder" : 31
+		"hardware_contrast": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_hardware_contrast_title",
+			"default": 0,
+			"required": true,
+			"access": "advanced",
+			"propertyOrder": 30
 		},
-		"hardware_saturation" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_hardware_saturation_title",
-			"default" : 0,
-			"required" : true,
-			"propertyOrder" : 32
+		"hardware_saturation": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_hardware_saturation_title",
+			"default": 0,
+			"required": true,
+			"access": "advanced",
+			"propertyOrder": 31
 		},
-		"hardware_hue" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_hardware_hue_title",
-			"default" : 0,
-			"required" : true,
-			"propertyOrder" : 33
+		"hardware_hue": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_hardware_hue_title",
+			"default": 0,
+			"required": true,
+			"access": "advanced",
+			"propertyOrder": 32
 		}
 	},
-	"additionalProperties" : true
-}
+		"additionalProperties": true
+	}

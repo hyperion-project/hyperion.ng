@@ -3,214 +3,7 @@ $(document).ready(function () {
   var conf_editor_v4l2 = null;
   var conf_editor_fg = null;
   var conf_editor_instCapt = null;
-  var V4L2_AVAIL = window.serverInfo.grabbers.available.includes("v4l2");
-
-  if (V4L2_AVAIL) {
-    // Dynamic v4l2 enum schema
-    var v4l2_dynamic_enum_schema = {
-      "available_devices":
-      {
-        "type": "string",
-        "title": "edt_conf_v4l2_device_title",
-        "propertyOrder": 1,
-        "required": true,
-        "custom": true
-      },
-      "device_inputs":
-      {
-        "type": "string",
-        "title": "edt_conf_v4l2_input_title",
-        "propertyOrder": 3,
-        "required": true,
-        "custom": false
-      },
-      "encoding_format":
-      {
-        "type": "string",
-        "title": "edt_conf_v4l2_encoding_title",
-        "propertyOrder": 5,
-        "required": true,
-        "custom": false
-      },
-      "resolutions":
-      {
-        "type": "string",
-        "title": "edt_conf_v4l2_resolution_title",
-        "propertyOrder": 9,
-        "required": true,
-        "custom": true
-      },
-      "framerates":
-      {
-        "type": "string",
-        "title": "edt_conf_v4l2_framerate_title",
-        "propertyOrder": 12,
-        "required": true,
-        "custom": true
-      }
-    };
-
-    // Build dynamic v4l2 enum schema parts
-    var buildSchemaPart = function (key, schema, device) {
-      if (schema[key]) {
-        var enumVals = [];
-        var enumTitelVals = [];
-        var v4l2_properties = JSON.parse(JSON.stringify(window.serverInfo.grabbers.video_sources));
-
-        if (key == 'available_devices') {
-          for (var i = 0; i < v4l2_properties.length; i++) {
-            enumVals.push(v4l2_properties[i]['device']);
-
-            v4l2_properties[i].hasOwnProperty('name')
-              ? enumTitelVals.push(v4l2_properties[i]['name'])
-              : enumTitelVals.push(v4l2_properties[i]['device']);
-          }
-        } else if (key == 'device_inputs') {
-          return; // TODO Fix V4L2 WebUI
-          for (var i = 0; i < v4l2_properties.length; i++) {
-            if (v4l2_properties[i]['device'] == device) {
-              for (var index = 0; index < v4l2_properties[i]['device_inputs'].length; index++) {
-                enumVals.push(v4l2_properties[i]['device_inputs'][index]['inputIndex'].toString());
-                enumTitelVals.push(v4l2_properties[i]['device_inputs'][index]['inputName']);
-              }
-              break;
-            }
-          }
-        } else if (key == 'encoding_format') {
-          for (var i = 0; i < v4l2_properties.length; i++) {
-            if (v4l2_properties[i]['device'] == device) {
-              enumVals = enumTitelVals = v4l2_properties[i][key];
-              break;
-            }
-          }
-        }
-        else if (key == 'resolutions') {
-          for (var i = 0; i < v4l2_properties.length; i++) {
-            if (v4l2_properties[i]['device'] == device) {
-              enumVals = enumTitelVals = v4l2_properties[i][key];
-              break;
-            }
-          }
-        } else if (key == 'framerates') {
-          for (var i = 0; i < v4l2_properties.length; i++) {
-            if (v4l2_properties[i]['device'] == device) {
-              enumVals = enumTitelVals = v4l2_properties[i][key];
-              break;
-            }
-          }
-        }
-
-        window.schema.grabberV4L2.properties[key] = {
-          "type": schema[key].type,
-          "title": schema[key].title,
-          ...(schema[key].custom ? {"enum": [].concat(["auto"], enumVals, ["custom"]),} : {"enum": [].concat(["auto"], enumVals),}),
-          "options":
-          {
-            "enum_titles": [].concat(["edt_conf_enum_automatic"], enumTitelVals, ["edt_conf_enum_custom"]),
-          },
-          "propertyOrder": schema[key].propertyOrder,
-          "required": schema[key].required
-        };
-      }
-    };
-
-    // Switch between visible states
-    function toggleOption(option, state) {
-      $('[data-schemapath="root.grabberV4L2.' + option + '"]').toggle(state);
-      if (state) (
-        $('[data-schemapath="root.grabberV4L2.' + option + '"]').addClass('col-md-12'),
-        $('label[for="root_grabberV4L2_' + option + '"]').css('left', '10px'),
-        $('[id="root_grabberV4L2_' + option + '"]').css('left', '10px')
-      );
-    }
-
-    // Watch all v4l2 dynamic fields
-    var setWatchers = function (schema) {
-      var path = 'root.grabberV4L2.';
-      Object.keys(schema).forEach(function (key) {
-        conf_editor_v4l2.watch(path + key, function () {
-          var ed = conf_editor_v4l2.getEditor(path + key);
-          var val = ed.getValue();
-
-          if (key == 'available_devices') {
-            var V4L2properties = ['device_inputs', 'resolutions', 'framerates', 'encoding_format'];
-            if (val == 'custom') {
-              var grabberV4L2 = ed.parent;
-              V4L2properties.forEach(function (item) {
-                buildSchemaPart(item, v4l2_dynamic_enum_schema, 'none');
-                grabberV4L2.original_schema.properties[item] = window.schema.grabberV4L2.properties[item];
-                grabberV4L2.schema.properties[item] = window.schema.grabberV4L2.properties[item];
-                conf_editor_v4l2.validator.schema.properties.grabberV4L2.properties[item] = window.schema.grabberV4L2.properties[item];
-
-                grabberV4L2.removeObjectProperty(item);
-                delete grabberV4L2.cached_editors[item];
-                grabberV4L2.addObjectProperty(item);
-
-                conf_editor_v4l2.getEditor(path + item).enable();
-              });
-
-              conf_editor_v4l2.getEditor(path + 'standard').enable();
-              toggleOption('device', true);
-            } else if (val == 'auto') {
-              V4L2properties.forEach(function (item) {
-                conf_editor_v4l2.getEditor(path + item).setValue('auto');
-                conf_editor_v4l2.getEditor(path + item).disable();
-              });
-
-              conf_editor_v4l2.getEditor(path + 'standard').setValue('auto');
-              conf_editor_v4l2.getEditor(path + 'standard').disable();
-
-              (toggleOption('device', false), toggleOption('input', false),
-                toggleOption('width', false), toggleOption('height', false),
-                toggleOption('fps', false), toggleOption('encoding', false));
-            } else {
-              var grabberV4L2 = ed.parent;
-              V4L2properties.forEach(function (item) {
-                buildSchemaPart(item, v4l2_dynamic_enum_schema, val);
-                grabberV4L2.original_schema.properties[item] = window.schema.grabberV4L2.properties[item];
-                grabberV4L2.schema.properties[item] = window.schema.grabberV4L2.properties[item];
-                conf_editor_v4l2.validator.schema.properties.grabberV4L2.properties[item] = window.schema.grabberV4L2.properties[item];
-
-                grabberV4L2.removeObjectProperty(item);
-                delete grabberV4L2.cached_editors[item];
-                grabberV4L2.addObjectProperty(item);
-
-                conf_editor_v4l2.getEditor(path + item).enable();
-              });
-
-              conf_editor_v4l2.getEditor(path + 'standard').enable();
-              toggleOption('device', false);
-            }
-          }
-
-          if (key == 'resolutions')
-            val != 'custom'
-              ? (toggleOption('width', false), toggleOption('height', false))
-              : (toggleOption('width', true), toggleOption('height', true));
-
-          if (key == 'framerates')
-            val != 'custom'
-              ? toggleOption('fps', false)
-              : toggleOption('fps', true);
-
-          if (key == 'device_inputs')
-            val != 'custom'
-              ? toggleOption('input', false)
-              : toggleOption('input', true);
-
-          if (key == 'encoding_format')
-            val != 'custom'
-              ? toggleOption('encoding', false)
-              : toggleOption('encoding', true);
-        });
-      });
-    };
-
-    // Insert dynamic v4l2 enum schema parts
-    Object.keys(v4l2_dynamic_enum_schema).forEach(function (key) {
-      buildSchemaPart(key, v4l2_dynamic_enum_schema, window.serverConfig.grabberV4L2.device);
-    });
-  }
+  var VIDEOGRABBER_AVAIL = window.serverInfo.grabbers.available.includes("v4l2");
 
   if (window.showOptHelp) {
     // Instance Capture
@@ -224,7 +17,7 @@ $(document).ready(function () {
     $('#conf_cont_fg').append(createHelpTable(window.schema.framegrabber.properties, $.i18n("edt_conf_fg_heading_title")));
 
     // V4L2 - hide if not available
-    if (V4L2_AVAIL) {
+    if (VIDEOGRABBER_AVAIL) {
       $('#conf_cont').append(createRow('conf_cont_v4l'));
       $('#conf_cont_v4l').append(createOptPanel('fa-camera', $.i18n("edt_conf_v4l2_heading_title"), 'editor_container_v4l2', 'btn_submit_v4l2'));
       $('#conf_cont_v4l').append(createHelpTable(window.schema.grabberV4L2.properties, $.i18n("edt_conf_v4l2_heading_title")));
@@ -233,7 +26,7 @@ $(document).ready(function () {
     $('#conf_cont').addClass('row');
     $('#conf_cont').append(createOptPanel('fa-camera', $.i18n("edt_conf_instCapture_heading_title"), 'editor_container_instCapt', 'btn_submit_instCapt'));
     $('#conf_cont').append(createOptPanel('fa-camera', $.i18n("edt_conf_fg_heading_title"), 'editor_container_fg', 'btn_submit_fg'));
-    if (V4L2_AVAIL) {
+    if (VIDEOGRABBER_AVAIL) {
       $('#conf_cont').append(createOptPanel('fa-camera', $.i18n("edt_conf_v4l2_heading_title"), 'editor_container_v4l2', 'btn_submit_v4l2'));
     }
   }
@@ -244,14 +37,12 @@ $(document).ready(function () {
   }, true, true);
 
   // Hide V4L2 elements, if not available
-  if (!V4L2_AVAIL) {
-    var instCapOptions = conf_editor_instCapt;
+  if (!VIDEOGRABBER_AVAIL) {
     $('[data-schemapath*="root.instCapture.v4lEnable' + '"]').hide();
     $('[data-schemapath*="root.instCapture.v4lPriority' + '"]').hide();
   }
 
   conf_editor_instCapt.on('change', function () {
-
     var systemEnable = conf_editor_instCapt.getEditor("root.instCapture.systemEnable").getValue();
     if (systemEnable) {
       $('[data-schemapath*="root.instCapture.systemPriority' + '"]').show();
@@ -261,121 +52,40 @@ $(document).ready(function () {
       $('[data-schemapath*="root.instCapture.systemPriority' + '"]').hide();
     }
 
-    if (V4L2_AVAIL) {
+    if (VIDEOGRABBER_AVAIL) {
       var v4lEnable = conf_editor_instCapt.getEditor("root.instCapture.v4lEnable").getValue();
       if (v4lEnable) {
         $('[data-schemapath*="root.instCapture.v4lPriority' + '"]').show();
         $('#conf_cont_v4l').show();
-      } else {
+      }
+      else {
         $('[data-schemapath*="root.instCapture.v4lPriority' + '"]').hide();
         $('#conf_cont_v4l').hide();
       }
     }
+
     conf_editor_instCapt.validate().length || window.readOnlyMode ? $('#btn_submit_instCapt').attr('disabled', true) : $('#btn_submit_instCapt').attr('disabled', false);
+  });
+
+  conf_editor_instCapt.watch('root.instCapture.v4lEnable', () => {
+    if (VIDEOGRABBER_AVAIL) {
+      var v4lEnable = conf_editor_instCapt.getEditor("root.instCapture.v4lEnable").getValue();
+      if (v4lEnable) {
+        discoverInputSources("video");
+      }
+    }
   });
 
   $('#btn_submit_instCapt').off().on('click', function () {
     requestWriteConfig(conf_editor_instCapt.getValue());
   });
 
-  $('#btn_submit_fg').off().on('click', function () {
-    requestWriteConfig(conf_editor_fg.getValue());
-  });
-
-  if (V4L2_AVAIL) {
-    conf_editor_v4l2 = createJsonEditor('editor_container_v4l2', {
-      grabberV4L2: window.schema.grabberV4L2
-    }, true, true);
-
-    conf_editor_v4l2.on('change', function () {
-      conf_editor_v4l2.validate().length || window.readOnlyMode ? $('#btn_submit_v4l2').attr('disabled', true) : $('#btn_submit_v4l2').attr('disabled', false);
-    });
-
-    conf_editor_v4l2.on('ready', function () {
-      setWatchers(v4l2_dynamic_enum_schema);
-
-      if (window.serverConfig.grabberV4L2.available_devices == 'custom' && window.serverConfig.grabberV4L2.device != 'auto')
-        toggleOption('device', true);
-
-      if (window.serverConfig.grabberV4L2.device == 'auto')
-        conf_editor_v4l2.getEditor('root.grabberV4L2.available_devices').setValue('auto');
-
-      if (window.serverConfig.grabberV4L2.available_devices == 'auto') {
-        ['device_inputs', 'standard', 'resolutions', 'framerates', 'encoding_format'].forEach(function (item) {
-          conf_editor_v4l2.getEditor('root.grabberV4L2.' + item).setValue('auto');
-          conf_editor_v4l2.getEditor('root.grabberV4L2.' + item).disable();
-        });
-      }
-
-      if (window.serverConfig.grabberV4L2.device_inputs == 'custom' && window.serverConfig.grabberV4L2.device != 'auto')
-        toggleOption('input', true);
-
-      if (window.serverConfig.grabberV4L2.resolutions == 'custom' && window.serverConfig.grabberV4L2.device != 'auto')
-        (toggleOption('width', true), toggleOption('height', true));
-
-      if (window.serverConfig.grabberV4L2.framerates == 'custom' && window.serverConfig.grabberV4L2.device != 'auto')
-        toggleOption('fps', true);
-
-      if (window.serverConfig.grabberV4L2.encoding_format == 'custom' && window.serverConfig.grabberV4L2.device != 'auto')
-        toggleOption('encoding', true);
-    });
-
-    $('#btn_submit_v4l2').off().on('click', function () {
-      var v4l2Options = conf_editor_v4l2.getValue();
-
-      if (v4l2Options.grabberV4L2.available_devices != 'custom' && v4l2Options.grabberV4L2.available_devices != 'auto')
-        v4l2Options.grabberV4L2.device = v4l2Options.grabberV4L2.available_devices;
-
-      if (v4l2Options.grabberV4L2.available_devices == 'auto')
-        v4l2Options.grabberV4L2.device = 'auto';
-
-      if (v4l2Options.grabberV4L2.device_inputs != 'custom' && v4l2Options.grabberV4L2.device_inputs != 'auto' && v4l2Options.grabberV4L2.available_devices != 'auto')
-        v4l2Options.grabberV4L2.input = parseInt(v4l2Options.grabberV4L2.device_inputs);
-
-      if (v4l2Options.grabberV4L2.device_inputs == 'auto')
-        v4l2Options.grabberV4L2.input = -1;
-
-      if (v4l2Options.grabberV4L2.encoding_format != 'custom' && v4l2Options.grabberV4L2.encoding_format != 'auto' && v4l2Options.grabberV4L2.available_devices != 'auto')
-        v4l2Options.grabberV4L2.encoding = v4l2Options.grabberV4L2.encoding_format;
-
-      if (v4l2Options.grabberV4L2.encoding_format == 'auto' || v4l2Options.grabberV4L2.encoding_format == 'NO_CHANGE')
-        v4l2Options.grabberV4L2.encoding = 'NO_CHANGE';
-
-      if (v4l2Options.grabberV4L2.resolutions != 'custom' && v4l2Options.grabberV4L2.resolutions != 'auto' && v4l2Options.grabberV4L2.available_devices != 'auto')
-        (v4l2Options.grabberV4L2.width = parseInt(v4l2Options.grabberV4L2.resolutions.split('x')[0]),
-          v4l2Options.grabberV4L2.height = parseInt(v4l2Options.grabberV4L2.resolutions.split('x')[1]));
-
-      if (v4l2Options.grabberV4L2.resolutions == 'auto')
-        (v4l2Options.grabberV4L2.width = 0, v4l2Options.grabberV4L2.height = 0);
-
-      if (v4l2Options.grabberV4L2.framerates != 'custom' && v4l2Options.grabberV4L2.framerates != 'auto' && v4l2Options.grabberV4L2.available_devices != 'auto')
-        v4l2Options.grabberV4L2.fps = parseInt(v4l2Options.grabberV4L2.framerates);
-
-      if (v4l2Options.grabberV4L2.framerates == 'auto')
-        v4l2Options.grabberV4L2.fps = 15;
-
-      requestWriteConfig(v4l2Options);
-    });
-  }
-
-  //////////////////////////////////////////////////
-
-  //create introduction
-  if (window.showOptHelp) {
-    createHint("intro", $.i18n('conf_grabber_fg_intro'), "editor_container_fg");
-    if (V4L2_AVAIL) {
-      createHint("intro", $.i18n('conf_grabber_v4l_intro'), "editor_container_v4l2");
-    }
-  }
-
   // Framegrabber
   conf_editor_fg = createJsonEditor('editor_container_fg', {
     framegrabber: window.schema.framegrabber
   }, true, true);
 
-
   conf_editor_fg.on('ready', function () {
-
     var availableGrabbers = window.serverInfo.grabbers.available;
     var fgOptions = conf_editor_fg.getEditor('root.framegrabber');
     var orginalGrabberTypes = fgOptions.schema.properties.type.enum;
@@ -419,7 +129,6 @@ $(document).ready(function () {
   }
 
   function filerFgGrabberOptions(type) {
-
     //hide specific options for grabbers found
     var grabbers = window.serverInfo.grabbers.available;
     if (grabbers.indexOf(type) > -1) {
@@ -450,6 +159,344 @@ $(document).ready(function () {
     }
   };
 
-  removeOverlay();
-});
+  $('#btn_submit_fg').off().on('click', function () {
+    requestWriteConfig(conf_editor_fg.getValue());
+  });
 
+  // External Input Sources (Video-Grabbers)
+
+  var configuredDevice = "";
+  var discoveredInputSources = {};
+  var deviceProperties = {};
+
+  if (VIDEOGRABBER_AVAIL) {
+    conf_editor_v4l2 = createJsonEditor('editor_container_v4l2', {
+      grabberV4L2: window.schema.grabberV4L2
+    }, true, true);
+
+    conf_editor_v4l2.on('ready', function () {
+      var v4lEnable = conf_editor_instCapt.getEditor("root.instCapture.v4lEnable").getValue();
+      if (v4lEnable) {
+        discoverInputSources("video");
+      }
+    });
+
+    conf_editor_v4l2.on('change', function () {
+      var deviceSelected = conf_editor_v4l2.getEditor("root.grabberV4L2.available_devices").getValue();
+      if (!conf_editor_v4l2.validate().length) {
+        if (deviceSelected !== "NONE") {
+          window.readOnlyMode ? $('#btn_submit_v4l2').attr('disabled', true) : $('#btn_submit_v4l2').attr('disabled', false);
+        }
+      }
+    });
+
+    conf_editor_v4l2.watch('root.grabberV4L2.available_devices', () => {
+      var deviceSelected = conf_editor_v4l2.getEditor("root.grabberV4L2.available_devices").getValue();
+      if (deviceSelected === "NONE" || deviceSelected === "") {
+        $('#btn_submit_v4l2').attr('disabled', true);
+      }
+      else {
+        var addSchemaElements = {};
+        var enumVals = [];
+        var enumTitelVals = [];
+        var enumDefaultVal = "";
+
+        var deviceProperties = getPropertiesOfDevice(deviceSelected);
+
+        //Update hidden input element
+        conf_editor_v4l2.getEditor("root.grabberV4L2.device").setValue(deviceProperties.device);
+
+        var video_inputs = deviceProperties.video_inputs;
+        if (video_inputs.length <= 1) {
+          addSchemaElements.access = "expert";
+        }
+
+        for (const video_input of video_inputs) {
+          enumVals.push(video_input.inputIdx);
+          enumTitelVals.push(video_input.name);
+        }
+
+        if (enumVals.length > 0) {
+          if (deviceSelected === configuredDevice) {
+            var configuredVideoInput = window.serverConfig.grabberV4L2.input;
+            if ($.inArray(configuredVideoInput, enumVals) != -1) {
+              enumDefaultVal = configuredVideoInput;
+            }
+          }
+          updateJsonEditorSelection(conf_editor_v4l2.getEditor('root.grabberV4L2'),
+            'device_inputs', addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, false);
+        }
+
+        if (!window.readOnlyMode) {
+          $('#btn_submit_v4l2').attr('disabled', false);
+        }
+      }
+    });
+
+    conf_editor_v4l2.watch('root.grabberV4L2.device_inputs', () => {
+      var deviceSelected = conf_editor_v4l2.getEditor("root.grabberV4L2.available_devices").getValue();
+      var videoInputSelected = conf_editor_v4l2.getEditor("root.grabberV4L2.device_inputs").getValue();
+
+      var addSchemaElements = {};
+      var enumVals = [];
+      var enumTitelVals = [];
+      var enumDefaultVal = "";
+
+      var deviceProperties = getPropertiesOfDevice(deviceSelected);
+      var formats = deviceProperties.video_inputs[videoInputSelected].formats;
+      //Hide, if only one record available for selection
+      if (formats.length <= 1) {
+        addSchemaElements.access = "expert";
+      }
+
+      for (var i = 0; i < formats.length; i++) {
+        if (formats[i].format) {
+          enumVals.push(formats[i].format);
+          enumTitelVals.push(formats[i].format.toUpperCase());
+        }
+        else {
+          enumVals.push("NONE");
+        }
+      }
+
+      if (enumVals.length > 0) {
+        if (deviceSelected === configuredDevice) {
+          var configuredEncoding = window.serverConfig.grabberV4L2.encoding;
+          if ($.inArray(configuredEncoding, enumVals) != -1) {
+            enumDefaultVal = configuredEncoding;
+          }
+        }
+        updateJsonEditorSelection(conf_editor_v4l2.getEditor('root.grabberV4L2'),
+          'encoding', addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, false);
+      }
+
+      var enumVals = [];
+      var enumDefaultVal = "";
+
+      var standards = deviceProperties.video_inputs[videoInputSelected].standards;
+      if (!standards) {
+        enumVals.push("NONE");
+        addSchemaElements.options = { "hidden": true };
+      } else {
+        enumVals = standards;
+      }
+
+      if (enumVals.length > 0) {
+        if (deviceSelected === configuredDevice) {
+          var configuredStandard = window.serverConfig.grabberV4L2.standard;
+          if ($.inArray(configuredStandard, enumVals) != -1) {
+            enumDefaultVal = configuredStandard;
+          }
+        }
+
+        updateJsonEditorSelection(conf_editor_v4l2.getEditor('root.grabberV4L2'),
+          'standard', addSchemaElements, enumVals, [], enumDefaultVal, false);
+      }
+
+      if (!window.readOnlyMode) {
+        $('#btn_submit_v4l2').attr('disabled', false);
+      }
+    });
+
+    conf_editor_v4l2.watch('root.grabberV4L2.encoding', () => {
+      var deviceSelected = conf_editor_v4l2.getEditor("root.grabberV4L2.available_devices").getValue();
+      var videoInputSelected = conf_editor_v4l2.getEditor("root.grabberV4L2.device_inputs").getValue();
+      var formatSelected = conf_editor_v4l2.getEditor("root.grabberV4L2.encoding").getValue();
+
+      //Update hidden input element
+      conf_editor_v4l2.getEditor("root.grabberV4L2.input").setValue(parseInt(videoInputSelected));
+
+      var addSchemaElements = {};
+      var enumVals = [];
+      var enumTitelVals = [];
+      var enumDefaultVal = "";
+
+      var deviceProperties = getPropertiesOfDevice(deviceSelected);
+
+      var formats = deviceProperties.video_inputs[videoInputSelected].formats;
+      var formatIdx = 0;
+      if (formatSelected !== "NONE") {
+        formatIdx = formats.findIndex(x => x.format === formatSelected);
+      }
+
+      var resolutions = formats[formatIdx].resolutions;
+      if (resolutions.length <= 1) {
+        addSchemaElements.access = "expert";
+      } else {
+        resolutions.sort(compareTwoValues('width', 'height', 'asc'));
+      }
+
+      for (var i = 0; i < resolutions.length; i++) {
+        enumVals.push(i);
+        var resolutionText = resolutions[i].width + "x" + resolutions[i].height;
+        enumTitelVals.push(resolutionText);
+      }
+
+      if (enumVals.length > 0) {
+        if (deviceSelected === configuredDevice) {
+          var configuredResolutionText = window.serverConfig.grabberV4L2.width + "x" + window.serverConfig.grabberV4L2.height;
+          var idx = $.inArray(configuredResolutionText, enumTitelVals)
+          if (idx != -1) {
+            enumDefaultVal = idx;
+          }
+        }
+
+        updateJsonEditorSelection(conf_editor_v4l2.getEditor('root.grabberV4L2'),
+          'resolutions', addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, false);
+      }
+
+      if (!window.readOnlyMode) {
+        $('#btn_submit_v4l2').attr('disabled', false);
+      }
+    });
+
+    conf_editor_v4l2.watch('root.grabberV4L2.resolutions', () => {
+      var deviceSelected = conf_editor_v4l2.getEditor("root.grabberV4L2.available_devices").getValue();
+      var videoInputSelected = conf_editor_v4l2.getEditor("root.grabberV4L2.device_inputs").getValue();
+      var formatSelected = conf_editor_v4l2.getEditor("root.grabberV4L2.encoding").getValue();
+      var resolutionSelected = conf_editor_v4l2.getEditor("root.grabberV4L2.resolutions").getValue();
+
+      var addSchemaElements = {};
+      var enumVals = [];
+      var enumDefaultVal = "";
+
+      var deviceProperties = getPropertiesOfDevice(deviceSelected);
+
+      var formats = deviceProperties.video_inputs[videoInputSelected].formats;
+      var formatIdx = 0;
+      if (formatSelected !== "NONE") {
+        formatIdx = formats.findIndex(x => x.format === formatSelected);
+      }
+
+      //Update hidden resolution related elements
+      var width = parseInt(formats[formatIdx].resolutions[resolutionSelected].width);
+      conf_editor_v4l2.getEditor("root.grabberV4L2.width").setValue(width);
+
+      var height = parseInt(formats[formatIdx].resolutions[resolutionSelected].height);
+      conf_editor_v4l2.getEditor("root.grabberV4L2.height").setValue(height);
+
+      var fps = formats[formatIdx].resolutions[resolutionSelected].fps;
+      if (!fps) {
+        enumVals.push("NONE");
+        addSchemaElements.options = { "hidden": true };
+      } else {
+        fps.sort((a, b) => a - b);
+        for (var i = 0; i < fps.length; i++) {
+          enumVals.push(fps[i]);
+        }
+      }
+
+      if (enumVals.length <= 1) {
+        addSchemaElements.access = "expert";
+      }
+
+      if (enumVals.length > 0) {
+        if (deviceSelected === configuredDevice) {
+          var configuredFps = window.serverConfig.grabberV4L2.fps;
+          if ($.inArray(configuredFps, enumVals) != -1) {
+            enumDefaultVal = configuredFps;
+          }
+        }
+        updateJsonEditorSelection(conf_editor_v4l2.getEditor('root.grabberV4L2'),
+          'framerates', addSchemaElements, enumVals, [], enumDefaultVal, false);
+      }
+
+      if (!window.readOnlyMode) {
+        $('#btn_submit_v4l2').attr('disabled', false);
+      }
+    });
+
+    conf_editor_v4l2.watch('root.grabberV4L2.framerates', () => {
+      //Update hidden fps element
+      var fps = 0;
+      var framerates = conf_editor_v4l2.getEditor("root.grabberV4L2.framerates").getValue();
+      if (framerates !== "NONE") {
+        fps = parseInt(framerates);
+      }
+
+      //Show Frameskipping only when more than 2 fps
+      if (fps > 2) {
+        $('[data-schemapath*="root.grabberV4L2.fpsSoftwareDecimation').toggle(true);
+      }
+      else {
+        $('[data-schemapath*="root.grabberV4L2.fpsSoftwareDecimation').toggle(false);
+      }
+      conf_editor_v4l2.getEditor("root.grabberV4L2.fps").setValue(fps);
+    });
+
+    $('#btn_submit_v4l2').off().on('click', function () {
+      var v4l2Options = conf_editor_v4l2.getValue();
+      requestWriteConfig(v4l2Options);
+    });
+  }
+
+  //////////////////////////////////////////////////
+
+  //create introduction
+  if (window.showOptHelp) {
+    createHint("intro", $.i18n('conf_grabber_fg_intro'), "editor_container_fg");
+    if (VIDEOGRABBER_AVAIL) {
+      createHint("intro", $.i18n('conf_grabber_v4l_intro'), "editor_container_v4l2");
+    }
+  }
+
+  removeOverlay();
+
+  // build dynamic enum
+  var updateVideoSourcesList = function (type, discoveryInfo) {
+    var enumVals = [];
+    var enumTitelVals = [];
+    var enumDefaultVal = "";
+
+    if (jQuery.isEmptyObject(discoveryInfo)) {
+      enumVals.push("NONE");
+      enumTitelVals.push($.i18n('edt_conf_grabber_discovered_none'));
+
+      conf_editor_v4l2.getEditor('root.grabberV4L2').disable();
+    }
+    else {
+      for (const device of discoveryInfo) {
+        enumVals.push(device.device_name);
+      }
+      conf_editor_v4l2.getEditor('root.grabberV4L2').enable();
+    }
+
+    if (enumVals.length > 0) {
+      configuredDevice = window.serverConfig.grabberV4L2.available_devices;
+      if ($.inArray(configuredDevice, enumVals) != -1) {
+        enumDefaultVal = configuredDevice;
+      }
+
+      updateJsonEditorSelection(conf_editor_v4l2.getEditor('root.grabberV4L2'),
+        'available_devices', {}, enumVals, enumTitelVals, enumDefaultVal, false);
+    }
+  }
+
+  async function discoverInputSources(type, params) {
+    const result = await requestInputSourcesDiscovery(type, params);
+
+    var discoveryResult;
+    if (result && !result.error) {
+      discoveryResult = result.info;
+    }
+    else {
+      discoveryResult = {
+        "video_sources": []
+      }
+    }
+    discoveredInputSources = discoveryResult.video_sources;
+
+    updateVideoSourcesList(type, discoveredInputSources);
+  }
+
+  function getPropertiesOfDevice(deviceName) {
+    deviceProperties = {};
+    for (const deviceRecord of discoveredInputSources) {
+      if (deviceRecord.device_name === deviceName) {
+        deviceProperties = deviceRecord;
+        break;
+      }
+    }
+    return deviceProperties;
+  }
+});

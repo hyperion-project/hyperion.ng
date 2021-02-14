@@ -234,5 +234,18 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 			Debug(_log,"LED Layout migrated");
 		}
 	}
+
+	if (config.contains("grabberV4L2"))
+	{
+		QJsonObject newGrabberV4L2Config = config["grabberV4L2"].toObject();
+
+		if (newGrabberV4L2Config.contains("encoding_format"))
+		{
+			newGrabberV4L2Config.remove("encoding_format");
+			config["grabberV4L2"] = newGrabberV4L2Config;
+			migrated = true;
+			Debug(_log, "GrabberV4L2 Layout migrated");
+		}
+	}
 	return migrated;
 }
