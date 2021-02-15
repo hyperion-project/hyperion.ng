@@ -7,7 +7,7 @@
 			"type": "string",
 			"title": "edt_conf_v4l2_device_title",
 			"propertyOrder": 1,
-			"required": true
+			"required": false
 		},
 		"device": {
 			"type": "string",
@@ -23,7 +23,7 @@
 			"type": "string",
 			"title": "edt_conf_v4l2_input_title",
 			"propertyOrder": 3,
-			"required": true
+			"required": false
 		},
 		"input": {
 			"type": "integer",
@@ -40,8 +40,7 @@
 		"standard": {
 			"type": "string",
 			"title": "edt_conf_v4l2_standard_title",
-			"default": "auto",
-			"required": true,
+			"required": false,
 			"propertyOrder": 5
 		},
 		"encoding": {
@@ -55,7 +54,7 @@
 			"type": "string",
 			"title": "edt_conf_v4l2_resolution_title",
 			"propertyOrder": 7,
-			"required": true
+			"required": false
 		},
 		"width": {
 			"type": "integer",
@@ -87,7 +86,7 @@
 			"type": "string",
 			"title": "edt_conf_v4l2_framerate_title",
 			"propertyOrder": 10,
-			"required": true
+			"required": false
 		},
 		"fps": {
 			"type": "integer",

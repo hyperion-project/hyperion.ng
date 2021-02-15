@@ -151,6 +151,6 @@ void V4L2Wrapper::handleSettingsUpdate(settings::type type, const QJsonDocument&
 			obj["blueSignalThreshold"].toDouble(0.0)/100.0);
 		_grabber.setDeviceVideoStandard(
 			obj["device"].toString("auto"),
-			parseVideoStandard(obj["standard"].toString("no-change")));
+			parseVideoStandard(obj["standard"].toString("NO_CHANGE")));
 	}
 }
