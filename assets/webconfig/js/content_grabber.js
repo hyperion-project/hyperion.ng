@@ -80,6 +80,57 @@ $(document).ready(function () {
     requestWriteConfig(conf_editor_instCapt.getValue());
   });
 
+  JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
+    var errors = [];
+
+    if (path === "root.grabberV4L2" || path === "root.framegrabber") {
+      var editor;
+      switch (path) {
+        case "root.framegrabber":
+          editor = conf_editor_screen;
+          break;
+        case "root.grabberV4L2":
+          editor = conf_editor_video;
+          break;
+      }
+
+      if (value.cropLeft || value.cropRight) {
+        var width = editor.getEditor(path + ".width").getValue();
+        if (value.cropLeft + value.cropRight > width) {
+          errors.push({
+            path: path,
+            property: 'maximum',
+            message: $.i18n('edt_conf_v4l2_cropWidthValidation_error', width)
+          });
+        }
+      }
+
+      if (value.cropTop || value.cropBottom) {
+        var height = editor.getEditor(path + ".height").getValue();
+        if (value.cropTop + value.cropBottom > height) {
+          errors.push({
+            path: path,
+            property: 'maximum',
+            message: $.i18n('edt_conf_v4l2_cropHeightValidation_error', height)
+          });
+        }
+      }
+    }
+    return errors;
+  });
+
+  function updateCropForWidth(editor, path) {
+    var width = editor.getEditor(path+".width").getValue();
+    updateJsonEditorRange(editor.getEditor(path), 'cropLeft', 0, width);
+    updateJsonEditorRange(editor.getEditor(path), 'cropRight', 0, width);
+  }
+
+  function updateCropForHeight(editor, path) {
+    var height = editor.getEditor(path + ".height").getValue();
+    updateJsonEditorRange(editor.getEditor(path), 'cropTop', 0, height);
+    updateJsonEditorRange(editor.getEditor(path), 'cropBottom', 0, height);
+  }
+
   // Framegrabber
   conf_editor_screen = createJsonEditor('editor_container_screengrabber', {
     framegrabber: window.schema.framegrabber
@@ -116,10 +167,26 @@ $(document).ready(function () {
     updateJsonEditorSelection(screenGrabberOptions, "type", {}, enumVals, enumTitelVals, enumDefaultVal);
   });
 
+  conf_editor_screen.on('ready', function () {
+    updateCropForWidth(conf_editor_screen, "root.framegrabber");
+    updateCropForHeight(conf_editor_screen, "root.framegrabber");
+  });
+
   conf_editor_screen.on('change', function () {
+    conf_editor_screen.validate().length || window.readOnlyMode ? $('#btn_submit_screengrabber').attr('disabled', true) : $('#btn_submit_screengrabber').attr('disabled', false);
+  });
+
+  conf_editor_screen.watch('root.framegrabber.type', () => {
     var selectedType = conf_editor_screen.getEditor("root.framegrabber.type").getValue();
     filterScreenInputOptions(selectedType);
-    conf_editor_screen.validate().length || window.readOnlyMode ? $('#btn_submit_screengrabber').attr('disabled', true) : $('#btn_submit_screengrabber').attr('disabled', false);
+  });
+
+  conf_editor_screen.watch('root.framegrabber.width', () => {
+    updateCropForWidth(conf_editor_screen, "root.framegrabber");
+  });
+
+  conf_editor_screen.watch('root.framegrabber.height', () => {
+    updateCropForHeight(conf_editor_screen, "root.framegrabber");
   });
 
   function showScreenInputOptions(el, state) {
@@ -188,6 +255,9 @@ $(document).ready(function () {
           window.readOnlyMode ? $('#btn_submit_videograbber').attr('disabled', true) : $('#btn_submit_videograbber').attr('disabled', false);
         }
       }
+      else {
+        $('#btn_submit_videograbber').attr('disabled', true);
+      }
     });
 
     conf_editor_video.watch('root.grabberV4L2.available_devices', () => {
@@ -244,10 +314,8 @@ $(document).ready(function () {
 
       var deviceProperties = getPropertiesOfDevice(deviceSelected);
       var formats = deviceProperties.video_inputs[videoInputSelected].formats;
-      //Hide, if only one record available for selection
-      if (formats.length <= 1) {
-        addSchemaElements.access = "expert";
-      }
+
+      addSchemaElements.access = "advanced";
 
       for (var i = 0; i < formats.length; i++) {
         if (formats[i].format) {
@@ -375,6 +443,10 @@ $(document).ready(function () {
       var height = parseInt(formats[formatIdx].resolutions[resolutionSelected].height);
       conf_editor_video.getEditor("root.grabberV4L2.height").setValue(height);
 
+      //Update crop rage depending on selected resolution
+      updateCropForWidth(conf_editor_video, "root.grabberV4L2");
+      updateCropForHeight(conf_editor_video, "root.grabberV4L2");
+
       var fps = formats[formatIdx].resolutions[resolutionSelected].fps;
       if (!fps) {
         enumVals.push("NONE");
@@ -415,7 +487,7 @@ $(document).ready(function () {
       }
 
       //Show Frameskipping only when more than 2 fps
-      if (fps > 2) {
+      if (fps > 2 && storedAccess === "expert" ) {
         showVideoInputOptions(["fpsSoftwareDecimation"], true);
       }
       else {

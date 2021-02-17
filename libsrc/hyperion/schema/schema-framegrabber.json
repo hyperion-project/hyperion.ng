@@ -1,101 +1,90 @@
 {
 	"type" : "object",
 	"title" : "edt_conf_fg_heading_title",
-	"properties" :
-	{
-		"type" :
-		{
-			"type" : "string",
-			"title" : "edt_conf_fg_type_title",
-			"enum"  : ["auto","amlogic","dispmanx","dx","framebuffer","osx","qt","x11", "xcb"],
-			"options":
-			{
-				"enum_titles": ["edt_conf_enum_automatic","AMLogic","DispmanX","DirectX9","Framebuffer","OSX","QT","X11","XCB"]
+	"properties": {
+		"type": {
+			"type": "string",
+			"title": "edt_conf_fg_type_title",
+			"enum": [ "auto", "amlogic", "dispmanx", "dx", "framebuffer", "osx", "qt", "x11", "xcb" ],
+			"options": {
+				"enum_titles": [ "edt_conf_enum_automatic", "AMLogic", "DispmanX", "DirectX9", "Framebuffer", "OSX", "QT", "X11", "XCB" ]
 
 			},
-			"default" : "auto",
-			"propertyOrder" : 1
+			"default": "auto",
+			"propertyOrder": 1
 		},
-		"width" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_fg_width_title",
-			"minimum" : 10,
-			"default" : 80,
-			"append" : "edt_append_pixel",
-			"propertyOrder" : 2
+		"display": {
+			"type": "integer",
+			"title": "edt_conf_fg_display_title",
+			"minimum": 0,
+			"default": 0,
+			"propertyOrder": 2
 		},
-		"height" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_fg_height_title",
-			"minimum" : 10,
-			"default" : 45,
-			"append" : "edt_append_pixel",
-			"propertyOrder" : 3
+		"width": {
+			"type": "integer",
+			"title": "edt_conf_fg_width_title",
+			"minimum": 10,
+			"default": 80,
+			"append": "edt_append_pixel",
+			"propertyOrder": 3
 		},
-		"frequency_Hz" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_fg_frequency_Hz_title",
-			"minimum" : 1,
-			"default" : 10,
-			"append" : "edt_append_hz",
-			"propertyOrder" : 4
+		"height": {
+			"type": "integer",
+			"title": "edt_conf_fg_height_title",
+			"minimum": 10,
+			"default": 45,
+			"append": "edt_append_pixel",
+			"propertyOrder": 4
 		},
-		"cropLeft" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_cropLeft_title",
-			"minimum" : 0,
-			"default" : 0,
-			"append" : "edt_append_pixel",
-			"propertyOrder" : 5
+		"frequency_Hz": {
+			"type": "integer",
+			"title": "edt_conf_fg_frequency_Hz_title",
+			"minimum": 1,
+			"default": 10,
+			"append": "edt_append_hz",
+			"propertyOrder": 5
 		},
-		"cropRight" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_cropRight_title",
-			"minimum" : 0,
-			"default" : 0,
-			"append" : "edt_append_pixel",
-			"propertyOrder" : 6
+		"cropLeft": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_cropLeft_title",
+			"minimum": 0,
+			"default": 0,
+			"append": "edt_append_pixel",
+			"propertyOrder": 6
 		},
-		"cropTop" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_cropTop_title",
-			"minimum" : 0,
-			"default" : 0,
-			"append" : "edt_append_pixel",
-			"propertyOrder" : 7
+		"cropRight": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_cropRight_title",
+			"minimum": 0,
+			"default": 0,
+			"append": "edt_append_pixel",
+			"propertyOrder": 7
 		},
-		"cropBottom" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_cropBottom_title",
-			"minimum" : 0,
-			"default" : 0,
-			"append" : "edt_append_pixel",
-			"propertyOrder" : 8
+		"cropTop": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_cropTop_title",
+			"minimum": 0,
+			"default": 0,
+			"append": "edt_append_pixel",
+			"propertyOrder": 8
 		},
-		"pixelDecimation" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_fg_pixelDecimation_title",
-			"minimum" : 1,
-			"maximum" : 30,
-			"default" : 8,
-			"propertyOrder" : 9
+		"cropBottom": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_cropBottom_title",
+			"minimum": 0,
+			"default": 0,
+			"append": "edt_append_pixel",
+			"propertyOrder": 9
 		},
-		"display" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_fg_display_title",
-			"minimum" : 0,
-			"default" : 0,
-			"propertyOrder" : 10
+		"pixelDecimation": {
+			"type": "integer",
+			"title": "edt_conf_fg_pixelDecimation_title",
+			"minimum": 1,
+			"maximum": 30,
+			"default": 8,
+			"propertyOrder": 10
 		}
+
 	},
 	"additionalProperties" : false
 }

@@ -213,7 +213,6 @@ function initLanguageSelection()
       langText = availLangText[langIdx];
     }
   }
-  //console.log("langLocale: ", langLocale, "langText: ", langText);
 
   $('#language-select').prop('title', langText);
   $("#language-select").val(langIdx);
@@ -656,6 +655,33 @@ function updateJsonEditorMultiSelection(editor, key, addElements, newEnumVals, n
   editor.original_schema.properties[key] = orginalProperties;
   editor.schema.properties[key] = newSchema[key];
 
+  editor.removeObjectProperty(key);
+  delete editor.cached_editors[key];
+  editor.addObjectProperty(key);
+}
+
+function updateJsonEditorRange(editor, key, minimum, maximum, defaultValue, step) {
+
+  var orginalProperties = editor.schema.properties[key];
+  var newSchema = [];
+  newSchema[key] = orginalProperties;
+
+  if (minimum) {
+    newSchema[key]["minimum"] = minimum;
+  }
+  if (maximum) {
+    newSchema[key]["maximum"] = maximum;
+  }
+  if (defaultValue) {
+    newSchema[key]["default"] = defaultValue;
+  }
+  if (step) {
+    newSchema[key]["step"] = step;
+  }
+
+  editor.original_schema.properties[key] = orginalProperties;
+  editor.schema.properties[key] = newSchema[key];
+  
   editor.removeObjectProperty(key);
   delete editor.cached_editors[key];
   editor.addObjectProperty(key);

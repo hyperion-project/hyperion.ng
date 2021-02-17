@@ -49,6 +49,7 @@
 			"title": "edt_conf_v4l2_encoding_title",
 			"default": "auto",
 			"required": true,
+			"access": "advanced",
 			"propertyOrder": 6
 		},
 		"resolutions": {
@@ -109,7 +110,7 @@
 			"maximum": 60,
 			"default": 0,
 			"required": true,
-			"access": "advanced",
+			"access": "expert",
 			"propertyOrder": 12
 		},
 		"flip": {
@@ -133,6 +134,38 @@
 			"required": true,
 			"propertyOrder": 14
 		},
+		"hardware_brightness": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_hardware_brightness_title",
+			"default": 0,
+			"required": true,
+			"access": "expert",
+			"propertyOrder": 15
+		},
+		"hardware_contrast": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_hardware_contrast_title",
+			"default": 0,
+			"required": true,
+			"access": "expert",
+			"propertyOrder": 16
+		},
+		"hardware_saturation": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_hardware_saturation_title",
+			"default": 0,
+			"required": true,
+			"access": "expert",
+			"propertyOrder": 17
+		},
+		"hardware_hue": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_hardware_hue_title",
+			"default": 0,
+			"required": true,
+			"access": "expert",
+			"propertyOrder": 18
+		},
 		"cropLeft": {
 			"type": "integer",
 			"title": "edt_conf_v4l2_cropLeft_title",
@@ -140,8 +173,7 @@
 			"default": 0,
 			"append": "edt_append_pixel",
 			"required": true,
-			"access": "advanced",
-			"propertyOrder": 15
+			"propertyOrder": 19
 		},
 		"cropRight": {
 			"type": "integer",
@@ -150,8 +182,7 @@
 			"default": 0,
 			"append": "edt_append_pixel",
 			"required": true,
-			"access": "advanced",
-			"propertyOrder": 16
+			"propertyOrder": 20
 		},
 		"cropTop": {
 			"type": "integer",
@@ -160,8 +191,7 @@
 			"default": 0,
 			"append": "edt_append_pixel",
 			"required": true,
-			"access": "advanced",
-			"propertyOrder": 17
+			"propertyOrder": 21
 		},
 		"cropBottom": {
 			"type": "integer",
@@ -170,23 +200,23 @@
 			"default": 0,
 			"append": "edt_append_pixel",
 			"required": true,
-			"access": "advanced",
-			"propertyOrder": 18
+			"propertyOrder": 22
 		},
 		"cecDetection": {
 			"type": "boolean",
 			"title": "edt_conf_v4l2_cecDetection_title",
 			"default": false,
 			"required": true,
-			"propertyOrder": 19
+			"access": "advanced",
+			"propertyOrder": 23
 		},
 		"signalDetection": {
 			"type": "boolean",
 			"title": "edt_conf_v4l2_signalDetection_title",
 			"default": false,
 			"required": true,
-			"access": "advanced",
-			"propertyOrder": 20
+			"access": "expert",
+			"propertyOrder": 24
 		},
 		"redSignalThreshold": {
 			"type": "integer",
@@ -200,9 +230,9 @@
 					"signalDetection": true
 				}
 			},
-			"access": "advanced",
+			"access": "expert",
 			"required": true,
-			"propertyOrder": 21
+			"propertyOrder": 25
 		},
 		"greenSignalThreshold": {
 			"type": "integer",
@@ -217,8 +247,8 @@
 				}
 			},
 			"required": true,
-			"access": "advanced",
-			"propertyOrder": 22
+			"access": "expert",
+			"propertyOrder": 26
 		},
 		"blueSignalThreshold": {
 			"type": "integer",
@@ -233,8 +263,8 @@
 				}
 			},
 			"required": true,
-			"access": "advanced",
-			"propertyOrder": 23
+			"access": "expert",
+			"propertyOrder": 27
 		},
 		"noSignalCounterThreshold": {
 			"type": "integer",
@@ -248,8 +278,8 @@
 				}
 			},
 			"required": true,
-			"access": "advanced",
-			"propertyOrder": 24
+			"access": "expert",
+			"propertyOrder": 28
 		},
 		"sDVOffsetMin": {
 			"type": "number",
@@ -264,8 +294,8 @@
 				}
 			},
 			"required": true,
-			"access": "advanced",
-			"propertyOrder": 25
+			"access": "expert",
+			"propertyOrder": 29
 		},
 		"sDVOffsetMax": {
 			"type": "number",
@@ -280,8 +310,8 @@
 				}
 			},
 			"required": true,
-			"access": "advanced",
-			"propertyOrder": 26
+			"access": "expert",
+			"propertyOrder": 30
 		},
 		"sDHOffsetMin": {
 			"type": "number",
@@ -296,8 +326,8 @@
 				}
 			},
 			"required": true,
-			"access": "advanced",
-			"propertyOrder": 27
+			"access": "expert",
+			"propertyOrder": 31
 		},
 		"sDHOffsetMax": {
 			"type": "number",
@@ -312,38 +342,6 @@
 				}
 			},
 			"required": true,
-			"propertyOrder": 28
-		},
-		"hardware_brightness": {
-			"type": "integer",
-			"title": "edt_conf_v4l2_hardware_brightness_title",
-			"default": 0,
-			"required": true,
-			"access": "advanced",
-			"propertyOrder": 29
-		},
-		"hardware_contrast": {
-			"type": "integer",
-			"title": "edt_conf_v4l2_hardware_contrast_title",
-			"default": 0,
-			"required": true,
-			"access": "advanced",
-			"propertyOrder": 30
-		},
-		"hardware_saturation": {
-			"type": "integer",
-			"title": "edt_conf_v4l2_hardware_saturation_title",
-			"default": 0,
-			"required": true,
-			"access": "advanced",
-			"propertyOrder": 31
-		},
-		"hardware_hue": {
-			"type": "integer",
-			"title": "edt_conf_v4l2_hardware_hue_title",
-			"default": 0,
-			"required": true,
-			"access": "advanced",
 			"propertyOrder": 32
 		}
 	},

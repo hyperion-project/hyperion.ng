@@ -401,6 +401,8 @@
   "edt_conf_v4l2_cropRight_title": "Crop right",
   "edt_conf_v4l2_cropTop_expl": "Count of pixels on the top side that are removed from the picture.",
   "edt_conf_v4l2_cropTop_title": "Crop top",
+  "edt_conf_v4l2_cropWidthValidation_error": "Crop left + Crop right cannot be greater than Width ($1)",
+  "edt_conf_v4l2_cropHeightValidation_error": "Crop top + Crop bottom cannot be greater than Height ($1)",
   "edt_conf_v4l2_device_expl": "The path to the USB capture interface. Set to 'Automatic' for automatic detection. Example: '/dev/video0'",
   "edt_conf_v4l2_device_title": "Device",
   "edt_conf_v4l2_framerate_expl": "The supported frames per second of the active device",
