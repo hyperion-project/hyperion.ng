@@ -120,7 +120,15 @@ QJsonObject SettingsManager::getSettings() const
 	for(const auto & key : _qconfig.keys())
 	{
 		//Read all records from database to ensure that global settings are read across instances
-		config.insert(key, _sTable->getSettingsRecord(key).object());
+		QJsonDocument doc = _sTable->getSettingsRecord(key);
+		if(doc.isArray())
+		{
+			config.insert(key, doc.array());
+		}
+		else
+		{
+			config.insert(key, doc.object());
+		}
 	}
 	return config;
 }
@@ -243,6 +251,19 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 			config["leds"] = newLedarr;
 			migrated = true;
 			Debug(_log,"LED Layout migrated");
+		}
+	}
+
+	if (config.contains("grabberV4L2"))
+	{
+		QJsonObject newGrabberV4L2Config = config["grabberV4L2"].toObject();
+
+		if (newGrabberV4L2Config.contains("encoding_format"))
+		{
+			newGrabberV4L2Config.remove("encoding_format");
+			config["grabberV4L2"] = newGrabberV4L2Config;
+			migrated = true;
+			Debug(_log, "GrabberV4L2 Layout migrated");
 		}
 	}
 	return migrated;
