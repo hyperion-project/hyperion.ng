@@ -68,7 +68,6 @@
 		"width"                 : 0,
 		"height"                : 0,
 		"fps"                   : 15,
-		"standard"              : "NO_CHANGE",
 		"flip"                  : "NO_CHANGE",
 		"fpsSoftwareDecimation" : 0,
 		"sizeDecimation"        : 8,

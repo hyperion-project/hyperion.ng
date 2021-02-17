@@ -93,11 +93,11 @@ $(document).ready(function() {
 		if (sys.cpuRevision)
 		  info += 'CPU Revision:   ' + sys.cpuRevision + '\n';
 		if (sys.cpuHardware)
-		  info += 'CPU Hardware:   ' + sys.cpuHardware + '\n';	
+		  info += 'CPU Hardware:   ' + sys.cpuHardware + '\n';
 
 		info += 'Kernel:         ' + sys.kernelType+' ('+sys.kernelVersion+' (WS: '+sys.wordSize+'))' + '\n';
 		info += 'Qt Version:     ' + sys.qtVersion + '\n';
-		info += 'Python Version: ' + sys.pyVersion + '\n';			
+		info += 'Python Version: ' + sys.pyVersion + '\n';
 		info += 'Browser/OS:     ' + navigator.userAgent + '\n\n';
 
 		//create prios
@@ -169,11 +169,23 @@ $(document).ready(function() {
 			messages = (event.response.result.messages);
 			if(messages.length != 0 && !createdCont)
 			{
-				$('#log_content').html('<pre><div id="logmessages" style="overflow:scroll;max-height:400px"></div></pre><button class="btn btn-primary" id="btn_autoscroll"><i class="fa fa-long-arrow-down fa-fw"></i>'+$.i18n('conf_logging_btn_autoscroll')+'</button>');
+				$('#log_content').html('\
+          <pre><div id="logmessages" style="overflow:scroll;max-height:400px"></div></pre>\
+          <button class="btn btn-danger" id="btn_autoscroll"><i class="fa fa-long-arrow-down fa-fw"></i>'+$.i18n('conf_logging_btn_autoscroll')+'</button>\
+          <button class="btn btn-primary" id="btn_clipboard"><i class="fa fa-clipboard fa-fw"></i>Copy Log to Clipboard</button>');
 				createdCont = true;
 
 				$('#btn_autoscroll').off().on('click',function() {
 					toggleClass('#btn_autoscroll', "btn-success", "btn-danger");
+				});
+
+				$('#btn_clipboard').off().on('click',function() {
+          const temp = document.createElement('textarea');
+          temp.textContent = document.getElementById("logmessages").textContent;
+          document.body.append(temp);
+          temp.select();
+          document.execCommand("copy");
+          temp.remove();
 				});
 			}
 

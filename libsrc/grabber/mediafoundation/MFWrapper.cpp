@@ -127,7 +127,7 @@ void MFWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& c
 		_grabber.setPixelDecimation(obj["sizeDecimation"].toInt(8));
 
 		// flip mode
-		_grabber.setFlipMode(obj["flip"].toString("no-change"));
+		_grabber.setFlipMode(obj["flip"].toString("NO_CHANGE"));
 
 		// image cropping
 		_grabber.setCropping(
