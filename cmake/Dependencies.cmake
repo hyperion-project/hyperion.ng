@@ -318,30 +318,6 @@ macro(DeployWindows TARGET)
 			)
 		endforeach()
 
-		if(ENABLE_DX)
-			# Download DirectX End-User Runtimes (June 2010)
-			set(url "https://download.microsoft.com/download/8/4/A/84A35BF1-DAFE-4AE8-82AF-AD2AE20B6B14/directx_Jun2010_redist.exe")
-			if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/dx_redist.exe")
-				file(DOWNLOAD "${url}" "${CMAKE_CURRENT_BINARY_DIR}/dx_redist.exe"
-					STATUS result
-				)
-
-				# Check if the download is successful
-				list(GET result 0 result_code)
-				if(NOT result_code EQUAL 0)
-					list(GET result 1 reason)
-					message(FATAL_ERROR "Could not download DirectX End-User Runtimes: ${reason}")
-				endif()
-			endif()
-
-			# Copy DirectX End-User Runtimes to 'hyperion'
-			install(
-				FILES ${CMAKE_CURRENT_BINARY_DIR}/dx_redist.exe
-				DESTINATION "bin"
-				COMPONENT "Hyperion"
-			)
-		endif (ENABLE_DX)
-
 	else()
 		# Run CMake after target was built
 		add_custom_command(
