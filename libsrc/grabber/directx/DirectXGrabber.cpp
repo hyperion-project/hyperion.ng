@@ -161,12 +161,10 @@ int DirectXGrabber::grabFrame(Image<ColorRgb> & image)
 		return 0;
 	}
 
-	memcpy(image.memptr(), lockedRect.pBits, _width * _height * 3);
-	for (int idx = 0; idx < _width * _height; idx++)
-	{
-		const ColorRgb & color = image.memptr()[idx];
-		image.memptr()[idx] = ColorRgb{color.blue, color.green, color.red};
-	}
+	QImage imageFrame = QImage(_width, _height, QImage::Format_RGB888);
+	memcpy(imageFrame.bits(), lockedRect.pBits, _width * _height * 3);
+	for (int y = 0; y < imageFrame.height(); y++)
+		memcpy((unsigned char*)image.memptr() + y * image.width() * 3, (unsigned char*)imageFrame.scanLine(y), imageFrame.width() * 3);
 
 	if (FAILED(_surfaceDest->UnlockRect()))
 	{
