@@ -115,15 +115,15 @@ int QtGrabber::updateScreenDimensions(bool force)
 		return -1;
 
 	const QRect& geo = _screen->geometry();
-	if (!force && _width == geo.right() && _height == geo.bottom())
+	if (!force && _width == geo.width() && _height == geo.height())
 	{
 		// No update required
 		return 0;
 	}
 
-	Info(_log, "Update of screen resolution: [%dx%d] to [%dx%d]", _width, _height, geo.right(), geo.bottom());
-	_width  = geo.right() - geo.left();
-	_height = geo.bottom() - geo.top();
+	Info(_log, "Update of screen resolution: [%dx%d] to [%dx%d]", _width, _height, geo.width(), geo.height());
+	_width  = geo.width();
+	_height = geo.height();
 
 	int width=0, height=0;
 
