@@ -89,11 +89,13 @@ function loadContent(event, forceRefresh) {
 
   var lastSelectedInstance = getStorage('lastSelectedInstance', false);
 
-  if (lastSelectedInstance && (lastSelectedInstance != window.currentHyperionInstance))
-    if (typeof (window.serverInfo.instance[lastSelectedInstance].running) !== 'undefined' && window.serverInfo.instance[lastSelectedInstance].running)
+  if (lastSelectedInstance && (lastSelectedInstance != window.currentHyperionInstance)) {
+    if (window.serverInfo.instance[lastSelectedInstance] && window.serverInfo.instance[lastSelectedInstance].running) {
       instanceSwitch(lastSelectedInstance);
-    else
+    } else {
       removeStorage('lastSelectedInstance', false);
+    }
+  }
 
   if (typeof event != "undefined") {
     tag = event.currentTarget.hash;
@@ -132,13 +134,13 @@ function updateHyperionInstanceListing() {
     var currInstMarker = (data[key].instance == window.currentHyperionInstance) ? "component-on" : "";
 
     var html = '<li id="hyperioninstance_' + data[key].instance + '"> \
-      <a>  \
-        <div>  \
-          <i class="fa fa-circle fa-fw '+ currInstMarker + '"></i> \
-          <span>'+ data[key].friendly_name + '</span> \
-        </div> \
-      </a> \
-    </li> '
+			<a>  \
+				<div>  \
+					<i class="fa fa-circle fa-fw '+ currInstMarker + '"></i> \
+					<span>'+ data[key].friendly_name + '</span> \
+				</div> \
+			</a> \
+		</li> '
 
     if (data.length - 1 > key)
       html += '<li class="divider"></li>'
@@ -181,7 +183,6 @@ function initLanguageSelection() {
       langText = availLangText[langIdx];
     }
   }
-
   $('#language-select').prop('title', langText);
   $("#language-select").val(langIdx);
   $("#language-select").selectpicker("refresh");
