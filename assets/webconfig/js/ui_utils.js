@@ -134,13 +134,13 @@ function updateHyperionInstanceListing() {
     var currInstMarker = (data[key].instance == window.currentHyperionInstance) ? "component-on" : "";
 
     var html = '<li id="hyperioninstance_' + data[key].instance + '"> \
-			<a>  \
-				<div>  \
-					<i class="fa fa-circle fa-fw '+ currInstMarker + '"></i> \
-					<span>'+ data[key].friendly_name + '</span> \
-				</div> \
-			</a> \
-		</li> '
+      <a>  \
+        <div>  \
+          <i class="fa fa-circle fa-fw '+ currInstMarker + '"></i> \
+          <span>'+ data[key].friendly_name + '</span> \
+        </div> \
+      </a> \
+    </li> '
 
     if (data.length - 1 > key)
       html += '<li class="divider"></li>'
