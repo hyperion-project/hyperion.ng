@@ -1,6 +1,5 @@
 #include <windows.h>
 #include <grabber/DirectXGrabber.h>
-#include <QImage>
 
 #pragma comment(lib, "d3d9.lib")
 #pragma comment(lib,"d3dx9.lib")
@@ -161,9 +160,11 @@ int DirectXGrabber::grabFrame(Image<ColorRgb> & image)
 		return 0;
 	}
 
-	QImage imageFrame = QImage((uchar*)lockedRect.pBits, _width, _height, QImage::Format_BGR888).convertToFormat(QImage::Format_RGB888);
-	for (int y = 0; y < imageFrame.height(); y++)
-		memcpy((unsigned char*)image.memptr() + y * image.width() * 3, (unsigned char*)imageFrame.scanLine(y), imageFrame.width() * 3);
+	for(int i=0 ; i < _height ; i++)
+		memcpy((unsigned char*)image.memptr() + i * _width * 3, (unsigned char*)lockedRect.pBits + i * lockedRect.Pitch, _width * 3);
+
+	for (int idx = 0; idx < _width * _height; idx++)
+		image.memptr()[idx] = ColorRgb{image.memptr()[idx].blue, image.memptr()[idx].green, image.memptr()[idx].red};
 
 	if (FAILED(_surfaceDest->UnlockRect()))
 	{
