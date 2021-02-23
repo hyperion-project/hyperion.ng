@@ -15,7 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix High CPU load (RPI3B+) (#1013)
 
 ### Fixed
+
+- Fix issue #1127: LED-Devices: Correct total packet count in tpm2net implementation
 - LED-Hue: Proper black in Entertainement mode if min brightness is set
+
 
 ### Removed
 
