@@ -23,7 +23,7 @@ bool LedDeviceTpm2net::init(const QJsonObject &deviceConfig)
 	{
 		_tpm2_max  = deviceConfig["max-packet"].toInt(170);
 		_tpm2ByteCount = 3 * _ledCount;
-		_tpm2TotalPackets = 1 + _tpm2ByteCount / _tpm2_max;
+		_tpm2TotalPackets = (_tpm2ByteCount / _tpm2_max) + ((_tpm2ByteCount % _tpm2_max) != 0);
 
 		isInitOK = true;
 	}

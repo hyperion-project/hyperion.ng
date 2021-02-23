@@ -124,16 +124,6 @@ PyObject* EffectModule::wrapSetColor(PyObject *self, PyObject *args)
 	// check if we have aborted already
 	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
 
-	// determine the timeout
-	int timeout = getEffect()->_timeout;
-	if (timeout > 0)
-	{
-		timeout = getEffect()->_endTime - QDateTime::currentMSecsSinceEpoch();
-
-		// we are done if the time has passed
-		if (timeout <= 0) Py_RETURN_NONE;
-	}
-
 	// check the number of arguments
 	int argCount = PyTuple_Size(args);
 	if (argCount == 3)
@@ -144,7 +134,7 @@ PyObject* EffectModule::wrapSetColor(PyObject *self, PyObject *args)
 		{
 			getEffect()->_colors.fill(color);
 			QVector<ColorRgb> _cQV = getEffect()->_colors;
-			emit getEffect()->setInput(getEffect()->_priority, std::vector<ColorRgb>( _cQV.begin(), _cQV.end() ), timeout, false);
+			emit getEffect()->setInput(getEffect()->_priority, std::vector<ColorRgb>( _cQV.begin(), _cQV.end() ), getEffect()->getRemaining(), false);
 			Py_RETURN_NONE;
 		}
 		return nullptr;
@@ -163,7 +153,7 @@ PyObject* EffectModule::wrapSetColor(PyObject *self, PyObject *args)
 					char * data = PyByteArray_AS_STRING(bytearray);
 					memcpy(getEffect()->_colors.data(), data, length);
 					QVector<ColorRgb> _cQV = getEffect()->_colors;
-					emit getEffect()->setInput(getEffect()->_priority, std::vector<ColorRgb>( _cQV.begin(), _cQV.end() ), timeout, false);
+					emit getEffect()->setInput(getEffect()->_priority, std::vector<ColorRgb>( _cQV.begin(), _cQV.end() ), getEffect()->getRemaining(), false);
 					Py_RETURN_NONE;
 				}
 				else
@@ -195,16 +185,6 @@ PyObject* EffectModule::wrapSetImage(PyObject *self, PyObject *args)
 	// check if we have aborted already
 	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
 
-	// determine the timeout
-	int timeout = getEffect()->_timeout;
-	if (timeout > 0)
-	{
-		timeout = getEffect()->_endTime - QDateTime::currentMSecsSinceEpoch();
-
-		// we are done if the time has passed
-		if (timeout <= 0) Py_RETURN_NONE;
-	}
-
 	// bytearray of values
 	int width, height;
 	PyObject * bytearray = nullptr;
@@ -218,7 +198,7 @@ PyObject* EffectModule::wrapSetImage(PyObject *self, PyObject *args)
 				Image<ColorRgb> image(width, height);
 				char * data = PyByteArray_AS_STRING(bytearray);
 				memcpy(image.memptr(), data, length);
-				emit getEffect()->setInputImage(getEffect()->_priority, image, timeout, false);
+				emit getEffect()->setInputImage(getEffect()->_priority, image, getEffect()->getRemaining(), false);
 				Py_RETURN_NONE;
 			}
 			else
@@ -332,16 +312,6 @@ PyObject* EffectModule::wrapImageShow(PyObject *self, PyObject *args)
 	// check if we have aborted already
 	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
 
-	// determine the timeout
-	int timeout = getEffect()->_timeout;
-	if (timeout > 0)
-	{
-		timeout = getEffect()->_endTime - QDateTime::currentMSecsSinceEpoch();
-
-		// we are done if the time has passed
-		if (timeout <= 0) Py_RETURN_NONE;
-	}
-
 	int argCount = PyTuple_Size(args);
 	int imgId = -1;
 	bool argsOk = (argCount == 0);
@@ -375,7 +345,7 @@ PyObject* EffectModule::wrapImageShow(PyObject *self, PyObject *args)
 	}
 
 	memcpy(image.memptr(), binaryImage.data(), binaryImage.size());
-	emit getEffect()->setInputImage(getEffect()->_priority, image, timeout, false);
+	emit getEffect()->setInputImage(getEffect()->_priority, image, getEffect()->getRemaining(), false);
 
 	return Py_BuildValue("");
 }

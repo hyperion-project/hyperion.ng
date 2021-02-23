@@ -41,7 +41,7 @@
 
 using namespace hyperion;
 
-JsonAPI::JsonAPI(QString peerAddress, Logger *log, bool localConnection, QObject *parent, bool noListener)
+JsonAPI::JsonAPI(QString peerAddress, Logger* log, bool localConnection, QObject* parent, bool noListener)
 	: API(log, localConnection, parent)
 {
 	_noListener = noListener;
@@ -86,7 +86,7 @@ bool JsonAPI::handleInstanceSwitch(quint8 inst, bool forced)
 	return false;
 }
 
-void JsonAPI::handleMessage(const QString &messageString, const QString &httpAuthHeader)
+void JsonAPI::handleMessage(const QString& messageString, const QString& httpAuthHeader)
 {
 	const QString ident = "JsonRpc@" + _peerAddress;
 	QJsonObject message;
@@ -187,17 +187,17 @@ proceed:
 		handleNotImplemented(command, tan);
 }
 
-void JsonAPI::handleColorCommand(const QJsonObject &message, const QString &command, int tan)
+void JsonAPI::handleColorCommand(const QJsonObject& message, const QString& command, int tan)
 {
 	emit forwardJsonMessage(message);
 	int priority = message["priority"].toInt();
 	int duration = message["duration"].toInt(-1);
 	const QString origin = message["origin"].toString("JsonRpc") + "@" + _peerAddress;
 
-	const QJsonArray &jsonColor = message["color"].toArray();
+	const QJsonArray& jsonColor = message["color"].toArray();
 	std::vector<uint8_t> colors;
 	// TODO faster copy
-	for (const auto &entry : jsonColor)
+	for (const auto& entry : jsonColor)
 	{
 		colors.emplace_back(uint8_t(entry.toInt()));
 	}
@@ -206,7 +206,7 @@ void JsonAPI::handleColorCommand(const QJsonObject &message, const QString &comm
 	sendSuccessReply(command, tan);
 }
 
-void JsonAPI::handleImageCommand(const QJsonObject &message, const QString &command, int tan)
+void JsonAPI::handleImageCommand(const QJsonObject& message, const QString& command, int tan)
 {
 	emit forwardJsonMessage(message);
 
@@ -230,7 +230,7 @@ void JsonAPI::handleImageCommand(const QJsonObject &message, const QString &comm
 	sendSuccessReply(command, tan);
 }
 
-void JsonAPI::handleEffectCommand(const QJsonObject &message, const QString &command, int tan)
+void JsonAPI::handleEffectCommand(const QJsonObject& message, const QString& command, int tan)
 {
 	emit forwardJsonMessage(message);
 
@@ -249,19 +249,19 @@ void JsonAPI::handleEffectCommand(const QJsonObject &message, const QString &com
 		sendErrorReply("Effect '" + dat.effectName + "' not found", command, tan);
 }
 
-void JsonAPI::handleCreateEffectCommand(const QJsonObject &message, const QString &command, int tan)
+void JsonAPI::handleCreateEffectCommand(const QJsonObject& message, const QString& command, int tan)
 {
 	const QString resultMsg = API::saveEffect(message);
 	resultMsg.isEmpty() ? sendSuccessReply(command, tan) : sendErrorReply(resultMsg, command, tan);
 }
 
-void JsonAPI::handleDeleteEffectCommand(const QJsonObject &message, const QString &command, int tan)
+void JsonAPI::handleDeleteEffectCommand(const QJsonObject& message, const QString& command, int tan)
 {
 	const QString res = API::deleteEffect(message["name"].toString());
 	res.isEmpty() ? sendSuccessReply(command, tan) : sendErrorReply(res, command, tan);
 }
 
-void JsonAPI::handleSysInfoCommand(const QJsonObject &, const QString &command, int tan)
+void JsonAPI::handleSysInfoCommand(const QJsonObject&, const QString& command, int tan)
 {
 	// create result
 	QJsonObject result;
@@ -304,7 +304,7 @@ void JsonAPI::handleSysInfoCommand(const QJsonObject &, const QString &command, 
 	emit callbackMessage(result);
 }
 
-void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString &command, int tan)
+void JsonAPI::handleServerInfoCommand(const QJsonObject& message, const QString& command, int tan)
 {
 	QJsonObject info;
 
@@ -315,9 +315,9 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	activePriorities.removeAll(255);
 	int currentPriority = _hyperion->getCurrentPriority();
 
-	for(int priority : activePriorities)
+	for (int priority : activePriorities)
 	{
-		const Hyperion::InputInfo &priorityInfo = _hyperion->getPriorityInfo(priority);
+		const Hyperion::InputInfo& priorityInfo = _hyperion->getPriorityInfo(priority);
 		QJsonObject item;
 		item["priority"] = priority;
 		if (priorityInfo.timeoutTime_ms > 0)
@@ -349,9 +349,9 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 			// add HSL Value to Array
 			QJsonArray HSLValue;
 			ColorSys::rgb2hsl(priorityInfo.ledColors.begin()->red,
-							  priorityInfo.ledColors.begin()->green,
-							  priorityInfo.ledColors.begin()->blue,
-							  Hue, Saturation, Luminace);
+				priorityInfo.ledColors.begin()->green,
+				priorityInfo.ledColors.begin()->blue,
+				Hue, Saturation, Luminace);
 
 			HSLValue.append(Hue);
 			HSLValue.append(Saturation);
@@ -362,8 +362,8 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 		}
 
 		(priority == currentPriority)
-		? priorities.prepend(item)
-		: priorities.append(item);
+			? priorities.prepend(item)
+			: priorities.append(item);
 	}
 
 	info["priorities"] = priorities;
@@ -371,9 +371,9 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 
 	// collect adjustment information
 	QJsonArray adjustmentArray;
-	for (const QString &adjustmentId : _hyperion->getAdjustmentIds())
+	for (const QString& adjustmentId : _hyperion->getAdjustmentIds())
 	{
-		const ColorAdjustment *colorAdjustment = _hyperion->getAdjustment(adjustmentId);
+		const ColorAdjustment* colorAdjustment = _hyperion->getAdjustment(adjustmentId);
 		if (colorAdjustment == nullptr)
 		{
 			Error(_log, "Incorrect color adjustment id: %s", QSTRING_CSTR(adjustmentId));
@@ -440,8 +440,8 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 
 	// collect effect info
 	QJsonArray effects;
-	const std::list<EffectDefinition> &effectsDefinitions = _hyperion->getEffects();
-	for (const EffectDefinition &effectDefinition : effectsDefinitions)
+	const std::list<EffectDefinition>& effectsDefinitions = _hyperion->getEffects();
+	for (const EffectDefinition& effectDefinition : effectsDefinitions)
 	{
 		QJsonObject effect;
 		effect["name"] = effectDefinition.name;
@@ -469,7 +469,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 
 #if defined(ENABLE_DISPMANX) || defined(ENABLE_V4L2) || defined(ENABLE_FB) || defined(ENABLE_AMLOGIC) || defined(ENABLE_OSX) || defined(ENABLE_X11) || defined(ENABLE_XCB) || defined(ENABLE_QT)
 
-	if ( GrabberWrapper::getInstance() != nullptr )
+	if (GrabberWrapper::getInstance() != nullptr)
 	{
 		grabbers["active"] = GrabberWrapper::getInstance()->getActive();
 	}
@@ -547,7 +547,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	// add sessions
 	QJsonArray sessions;
 #ifdef ENABLE_AVAHI
-	for (auto session: BonjourBrowserWrapper::getInstance()->getAllServices())
+	for (auto session : BonjourBrowserWrapper::getInstance()->getAllServices())
 	{
 		if (session.port < 0)
 			continue;
@@ -564,7 +564,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 #endif
 	// add instance info
 	QJsonArray instanceInfo;
-	for (const auto &entry : API::getAllInstanceData())
+	for (const auto& entry : API::getAllInstanceData())
 	{
 		QJsonObject obj;
 		obj.insert("friendly_name", entry["friendly_name"].toString());
@@ -586,7 +586,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 
 	// TRANSFORM INFORMATION (DEFAULT VALUES)
 	QJsonArray transformArray;
-	for (const QString &transformId : _hyperion->getAdjustmentIds())
+	for (const QString& transformId : _hyperion->getAdjustmentIds())
 	{
 		QJsonObject transform;
 		QJsonArray blacklevel, whitelevel, gamma, threshold;
@@ -617,7 +617,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 
 	// ACTIVE EFFECT INFO
 	QJsonArray activeEffects;
-	for (const ActiveEffectDefinition &activeEffectDefinition : _hyperion->getActiveEffects())
+	for (const ActiveEffectDefinition& activeEffectDefinition : _hyperion->getActiveEffects())
 	{
 		if (activeEffectDefinition.priority != PriorityMuxer::LOWEST_PRIORITY - 1)
 		{
@@ -634,15 +634,15 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 
 	// ACTIVE STATIC LED COLOR
 	QJsonArray activeLedColors;
-	const Hyperion::InputInfo &priorityInfo = _hyperion->getPriorityInfo(_hyperion->getCurrentPriority());
+	const Hyperion::InputInfo& priorityInfo = _hyperion->getPriorityInfo(_hyperion->getCurrentPriority());
 	if (priorityInfo.componentId == hyperion::COMP_COLOR && !priorityInfo.ledColors.empty())
 	{
 		QJsonObject LEDcolor;
 		// check if LED Color not Black (0,0,0)
 		if ((priorityInfo.ledColors.begin()->red +
-				 priorityInfo.ledColors.begin()->green +
-				 priorityInfo.ledColors.begin()->blue !=
-			 0))
+			priorityInfo.ledColors.begin()->green +
+			priorityInfo.ledColors.begin()->blue !=
+			0))
 		{
 			QJsonObject LEDcolor;
 
@@ -659,9 +659,9 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 			// add HSL Value to Array
 			QJsonArray HSLValue;
 			ColorSys::rgb2hsl(priorityInfo.ledColors.begin()->red,
-							  priorityInfo.ledColors.begin()->green,
-							  priorityInfo.ledColors.begin()->blue,
-							  Hue, Saturation, Luminace);
+				priorityInfo.ledColors.begin()->green,
+				priorityInfo.ledColors.begin()->blue,
+				Hue, Saturation, Luminace);
 
 			HSLValue.append(Hue);
 			HSLValue.append(Saturation);
@@ -706,7 +706,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	}
 }
 
-void JsonAPI::handleClearCommand(const QJsonObject &message, const QString &command, int tan)
+void JsonAPI::handleClearCommand(const QJsonObject& message, const QString& command, int tan)
 {
 	emit forwardJsonMessage(message);
 	int priority = message["priority"].toInt();
@@ -720,7 +720,7 @@ void JsonAPI::handleClearCommand(const QJsonObject &message, const QString &comm
 	sendSuccessReply(command, tan);
 }
 
-void JsonAPI::handleClearallCommand(const QJsonObject &message, const QString &command, int tan)
+void JsonAPI::handleClearallCommand(const QJsonObject& message, const QString& command, int tan)
 {
 	emit forwardJsonMessage(message);
 	QString replyMsg;
@@ -728,12 +728,12 @@ void JsonAPI::handleClearallCommand(const QJsonObject &message, const QString &c
 	sendSuccessReply(command, tan);
 }
 
-void JsonAPI::handleAdjustmentCommand(const QJsonObject &message, const QString &command, int tan)
+void JsonAPI::handleAdjustmentCommand(const QJsonObject& message, const QString& command, int tan)
 {
-	const QJsonObject &adjustment = message["adjustment"].toObject();
+	const QJsonObject& adjustment = message["adjustment"].toObject();
 
 	const QString adjustmentId = adjustment["id"].toString(_hyperion->getAdjustmentIds().first());
-	ColorAdjustment *colorAdjustment = _hyperion->getAdjustment(adjustmentId);
+	ColorAdjustment* colorAdjustment = _hyperion->getAdjustment(adjustmentId);
 	if (colorAdjustment == nullptr)
 	{
 		Warning(_log, "Incorrect adjustment identifier: %s", adjustmentId.toStdString().c_str());
@@ -742,39 +742,39 @@ void JsonAPI::handleAdjustmentCommand(const QJsonObject &message, const QString 
 
 	if (adjustment.contains("red"))
 	{
-		const QJsonArray &values = adjustment["red"].toArray();
+		const QJsonArray& values = adjustment["red"].toArray();
 		colorAdjustment->_rgbRedAdjustment.setAdjustment(values[0u].toInt(), values[1u].toInt(), values[2u].toInt());
 	}
 
 	if (adjustment.contains("green"))
 	{
-		const QJsonArray &values = adjustment["green"].toArray();
+		const QJsonArray& values = adjustment["green"].toArray();
 		colorAdjustment->_rgbGreenAdjustment.setAdjustment(values[0u].toInt(), values[1u].toInt(), values[2u].toInt());
 	}
 
 	if (adjustment.contains("blue"))
 	{
-		const QJsonArray &values = adjustment["blue"].toArray();
+		const QJsonArray& values = adjustment["blue"].toArray();
 		colorAdjustment->_rgbBlueAdjustment.setAdjustment(values[0u].toInt(), values[1u].toInt(), values[2u].toInt());
 	}
 	if (adjustment.contains("cyan"))
 	{
-		const QJsonArray &values = adjustment["cyan"].toArray();
+		const QJsonArray& values = adjustment["cyan"].toArray();
 		colorAdjustment->_rgbCyanAdjustment.setAdjustment(values[0u].toInt(), values[1u].toInt(), values[2u].toInt());
 	}
 	if (adjustment.contains("magenta"))
 	{
-		const QJsonArray &values = adjustment["magenta"].toArray();
+		const QJsonArray& values = adjustment["magenta"].toArray();
 		colorAdjustment->_rgbMagentaAdjustment.setAdjustment(values[0u].toInt(), values[1u].toInt(), values[2u].toInt());
 	}
 	if (adjustment.contains("yellow"))
 	{
-		const QJsonArray &values = adjustment["yellow"].toArray();
+		const QJsonArray& values = adjustment["yellow"].toArray();
 		colorAdjustment->_rgbYellowAdjustment.setAdjustment(values[0u].toInt(), values[1u].toInt(), values[2u].toInt());
 	}
 	if (adjustment.contains("white"))
 	{
-		const QJsonArray &values = adjustment["white"].toArray();
+		const QJsonArray& values = adjustment["white"].toArray();
 		colorAdjustment->_rgbWhiteAdjustment.setAdjustment(values[0u].toInt(), values[1u].toInt(), values[2u].toInt());
 	}
 
@@ -814,7 +814,7 @@ void JsonAPI::handleAdjustmentCommand(const QJsonObject &message, const QString 
 	sendSuccessReply(command, tan);
 }
 
-void JsonAPI::handleSourceSelectCommand(const QJsonObject &message, const QString &command, int tan)
+void JsonAPI::handleSourceSelectCommand(const QJsonObject& message, const QString& command, int tan)
 {
 	if (message.contains("auto"))
 	{
@@ -832,7 +832,7 @@ void JsonAPI::handleSourceSelectCommand(const QJsonObject &message, const QStrin
 	sendSuccessReply(command, tan);
 }
 
-void JsonAPI::handleConfigCommand(const QJsonObject &message, const QString &command, int tan)
+void JsonAPI::handleConfigCommand(const QJsonObject& message, const QString& command, int tan)
 {
 	QString subcommand = message["subcommand"].toString("");
 	QString full_command = command + "-" + subcommand;
@@ -876,14 +876,14 @@ void JsonAPI::handleConfigCommand(const QJsonObject &message, const QString &com
 	}
 }
 
-void JsonAPI::handleConfigSetCommand(const QJsonObject &message, const QString &command, int tan)
+void JsonAPI::handleConfigSetCommand(const QJsonObject& message, const QString& command, int tan)
 {
 	if (message.contains("config"))
 	{
 		QJsonObject config = message["config"].toObject();
 		if (API::isHyperionEnabled())
 		{
-			if ( API::saveSettings(config) )
+			if (API::saveSettings(config))
 			{
 				sendSuccessReply(command, tan);
 			}
@@ -897,7 +897,7 @@ void JsonAPI::handleConfigSetCommand(const QJsonObject &message, const QString &
 	}
 }
 
-void JsonAPI::handleSchemaGetCommand(const QJsonObject &message, const QString &command, int tan)
+void JsonAPI::handleSchemaGetCommand(const QJsonObject& message, const QString& command, int tan)
 {
 	// create result
 	QJsonObject schemaJson, alldevices, properties;
@@ -912,7 +912,7 @@ void JsonAPI::handleSchemaGetCommand(const QJsonObject &message, const QString &
 	{
 		schemaJson = QJsonFactory::readSchema(schemaFile);
 	}
-	catch (const std::runtime_error &error)
+	catch (const std::runtime_error& error)
 	{
 		throw std::runtime_error(error.what());
 	}
@@ -923,36 +923,25 @@ void JsonAPI::handleSchemaGetCommand(const QJsonObject &message, const QString &
 	properties.insert("alldevices", alldevices);
 
 	// collect all available effect schemas
-	QJsonObject pyEffectSchemas, pyEffectSchema;
-	QJsonArray in, ex;
-	const std::list<EffectSchema> &effectsSchemas = _hyperion->getEffectSchemas();
-	for (const EffectSchema &effectSchema : effectsSchemas)
+	QJsonArray schemaList;
+	const std::list<EffectSchema>& effectsSchemas = _hyperion->getEffectSchemas();
+	for (const EffectSchema& effectSchema : effectsSchemas)
 	{
-		if (effectSchema.pyFile.mid(0, 1) == ":")
+		QJsonObject schema;
+		schema.insert("script", effectSchema.pyFile);
+		schema.insert("schemaLocation", effectSchema.schemaFile);
+		schema.insert("schemaContent", effectSchema.pySchema);
+		if (effectSchema.pyFile.startsWith(':'))
 		{
-			QJsonObject internal;
-			internal.insert("script", effectSchema.pyFile);
-			internal.insert("schemaLocation", effectSchema.schemaFile);
-			internal.insert("schemaContent", effectSchema.pySchema);
-			in.append(internal);
+			schema.insert("type", "system");
 		}
 		else
 		{
-			QJsonObject external;
-			external.insert("script", effectSchema.pyFile);
-			external.insert("schemaLocation", effectSchema.schemaFile);
-			external.insert("schemaContent", effectSchema.pySchema);
-			ex.append(external);
+			schema.insert("type", "custom");
 		}
+		schemaList.append(schema);
 	}
-
-	if (!in.empty())
-		pyEffectSchema.insert("internal", in);
-	if (!ex.empty())
-		pyEffectSchema.insert("external", ex);
-
-	pyEffectSchemas = pyEffectSchema;
-	properties.insert("effectSchemas", pyEffectSchemas);
+	properties.insert("effectSchemas", schemaList);
 
 	schemaJson.insert("properties", properties);
 
@@ -960,9 +949,9 @@ void JsonAPI::handleSchemaGetCommand(const QJsonObject &message, const QString &
 	sendSuccessDataReply(QJsonDocument(schemaJson), command, tan);
 }
 
-void JsonAPI::handleComponentStateCommand(const QJsonObject &message, const QString &command, int tan)
+void JsonAPI::handleComponentStateCommand(const QJsonObject& message, const QString& command, int tan)
 {
-	const QJsonObject &componentState = message["componentstate"].toObject();
+	const QJsonObject& componentState = message["componentstate"].toObject();
 	QString comp = componentState["component"].toString("invalid");
 	bool compState = componentState["state"].toBool(true);
 	QString replyMsg;
@@ -975,7 +964,7 @@ void JsonAPI::handleComponentStateCommand(const QJsonObject &message, const QStr
 	sendSuccessReply(command, tan);
 }
 
-void JsonAPI::handleLedColorsCommand(const QJsonObject &message, const QString &command, int tan)
+void JsonAPI::handleLedColorsCommand(const QJsonObject& message, const QString& command, int tan)
 {
 	// create result
 	QString subcommand = message["subcommand"].toString("");
@@ -989,22 +978,22 @@ void JsonAPI::handleLedColorsCommand(const QJsonObject &message, const QString &
 		_streaming_leds_reply["command"] = command + "-ledstream-update";
 		_streaming_leds_reply["tan"] = tan;
 
-		connect(_hyperion, &Hyperion::rawLedColors, this, [=](const std::vector<ColorRgb> &ledValues) {
+		connect(_hyperion, &Hyperion::rawLedColors, this, [=](const std::vector<ColorRgb>& ledValues) {
 			_currentLedValues = ledValues;
 
 			// necessary because Qt::UniqueConnection for lambdas does not work until 5.9
 			// see: https://bugreports.qt.io/browse/QTBUG-52438
 			if (!_ledStreamConnection)
 				_ledStreamConnection = connect(_ledStreamTimer, &QTimer::timeout, this, [=]() {
-					emit streamLedcolorsUpdate(_currentLedValues);
-				},
-											   Qt::UniqueConnection);
+				emit streamLedcolorsUpdate(_currentLedValues);
+					},
+					Qt::UniqueConnection);
 
 			// start the timer
 			if (!_ledStreamTimer->isActive() || _ledStreamTimer->interval() != streaming_interval)
 				_ledStreamTimer->start(streaming_interval);
-		},
-				Qt::UniqueConnection);
+			},
+			Qt::UniqueConnection);
 		// push once
 		_hyperion->update();
 	}
@@ -1034,7 +1023,7 @@ void JsonAPI::handleLedColorsCommand(const QJsonObject &message, const QString &
 	sendSuccessReply(command + "-" + subcommand, tan);
 }
 
-void JsonAPI::handleLoggingCommand(const QJsonObject &message, const QString &command, int tan)
+void JsonAPI::handleLoggingCommand(const QJsonObject& message, const QString& command, int tan)
 {
 	// create result
 	QString subcommand = message["subcommand"].toString("");
@@ -1076,25 +1065,25 @@ void JsonAPI::handleLoggingCommand(const QJsonObject &message, const QString &co
 	}
 }
 
-void JsonAPI::handleProcessingCommand(const QJsonObject &message, const QString &command, int tan)
+void JsonAPI::handleProcessingCommand(const QJsonObject& message, const QString& command, int tan)
 {
 	API::setLedMappingType(ImageProcessor::mappingTypeToInt(message["mappingType"].toString("multicolor_mean")));
 	sendSuccessReply(command, tan);
 }
 
-void JsonAPI::handleVideoModeCommand(const QJsonObject &message, const QString &command, int tan)
+void JsonAPI::handleVideoModeCommand(const QJsonObject& message, const QString& command, int tan)
 {
 	API::setVideoMode(parse3DMode(message["videoMode"].toString("2D")));
 	sendSuccessReply(command, tan);
 }
 
-void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &command, int tan)
+void JsonAPI::handleAuthorizeCommand(const QJsonObject& message, const QString& command, int tan)
 {
-	const QString &subc = message["subcommand"].toString().trimmed();
-	const QString &id = message["id"].toString().trimmed();
-	const QString &password = message["password"].toString().trimmed();
-	const QString &newPassword = message["newPassword"].toString().trimmed();
-	const QString &comment = message["comment"].toString().trimmed();
+	const QString& subc = message["subcommand"].toString().trimmed();
+	const QString& id = message["id"].toString().trimmed();
+	const QString& password = message["password"].toString().trimmed();
+	const QString& newPassword = message["newPassword"].toString().trimmed();
+	const QString& comment = message["comment"].toString().trimmed();
 
 	// catch test if auth is required
 	if (subc == "tokenRequired")
@@ -1205,8 +1194,8 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 	if (subc == "requestToken")
 	{
 		// use id/comment
-		const QString &comment = message["comment"].toString().trimmed();
-		const bool &acc = message["accept"].toBool(true);
+		const QString& comment = message["comment"].toString().trimmed();
+		const bool& acc = message["accept"].toBool(true);
 		if (acc)
 			API::setNewTokenRequest(comment, id, tan);
 		else
@@ -1222,7 +1211,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 		if (API::getPendingTokenRequests(vec))
 		{
 			QJsonArray arr;
-			for (const auto &entry : vec)
+			for (const auto& entry : vec)
 			{
 				QJsonObject obj;
 				obj["comment"] = entry.comment;
@@ -1244,7 +1233,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 	if (subc == "answerRequest")
 	{
 		// use id
-		const bool &accept = message["accept"].toBool(false);
+		const bool& accept = message["accept"].toBool(false);
 		if (!API::handlePendingTokenRequest(id, accept))
 			sendErrorReply("No Authorization", command + "-" + subc, tan);
 		return;
@@ -1257,7 +1246,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 		if (API::getTokenList(defVect))
 		{
 			QJsonArray tArr;
-			for (const auto &entry : defVect)
+			for (const auto& entry : defVect)
 			{
 				QJsonObject subO;
 				subO["comment"] = entry.comment;
@@ -1276,7 +1265,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 	// login
 	if (subc == "login")
 	{
-		const QString &token = message["token"].toString().trimmed();
+		const QString& token = message["token"].toString().trimmed();
 
 		// catch token
 		if (!token.isEmpty())
@@ -1324,11 +1313,11 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 	}
 }
 
-void JsonAPI::handleInstanceCommand(const QJsonObject &message, const QString &command, int tan)
+void JsonAPI::handleInstanceCommand(const QJsonObject& message, const QString& command, int tan)
 {
-	const QString &subc = message["subcommand"].toString();
-	const quint8 &inst = message["instance"].toInt();
-	const QString &name = message["name"].toString();
+	const QString& subc = message["subcommand"].toString();
+	const quint8& inst = message["instance"].toInt();
+	const QString& name = message["name"].toString();
 
 	if (subc == "switchTo")
 	{
@@ -1345,7 +1334,7 @@ void JsonAPI::handleInstanceCommand(const QJsonObject &message, const QString &c
 
 	if (subc == "startInstance")
 	{
-		connect(this, &API::onStartInstanceResponse, [=] (const int &tan) { sendSuccessReply(command + "-" + subc, tan); });
+		connect(this, &API::onStartInstanceResponse, [=](const int& tan) { sendSuccessReply(command + "-" + subc, tan); });
 		if (!API::startInstance(inst, tan))
 			sendErrorReply("Can't start Hyperion instance index " + QString::number(inst), command + "-" + subc, tan);
 
@@ -1395,12 +1384,12 @@ void JsonAPI::handleInstanceCommand(const QJsonObject &message, const QString &c
 	}
 }
 
-void JsonAPI::handleLedDeviceCommand(const QJsonObject &message, const QString &command, int tan)
+void JsonAPI::handleLedDeviceCommand(const QJsonObject& message, const QString& command, int tan)
 {
-	Debug(_log, "message: [%s]", QString(QJsonDocument(message).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+	Debug(_log, "message: [%s]", QString(QJsonDocument(message).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
-	const QString &subc = message["subcommand"].toString().trimmed();
-	const QString &devType = message["ledDeviceType"].toString().trimmed();
+	const QString& subc = message["subcommand"].toString().trimmed();
+	const QString& devType = message["ledDeviceType"].toString().trimmed();
 
 	QString full_command = command + "-" + subc;
 
@@ -1410,7 +1399,7 @@ void JsonAPI::handleLedDeviceCommand(const QJsonObject &message, const QString &
 		sendErrorReply("Unknown device", full_command, tan);
 	}
 	else
-*/	{
+*/ {
 		QJsonObject config;
 		config.insert("type", devType);
 		LedDevice* ledDevice = nullptr;
@@ -1418,27 +1407,27 @@ void JsonAPI::handleLedDeviceCommand(const QJsonObject &message, const QString &
 		if (subc == "discover")
 		{
 			ledDevice = LedDeviceFactory::construct(config);
-			const QJsonObject &params = message["params"].toObject();
+			const QJsonObject& params = message["params"].toObject();
 			const QJsonObject devicesDiscovered = ledDevice->discover(params);
 
-			Debug(_log, "response: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+			Debug(_log, "response: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 			sendSuccessDataReply(QJsonDocument(devicesDiscovered), full_command, tan);
 		}
 		else if (subc == "getProperties")
 		{
 			ledDevice = LedDeviceFactory::construct(config);
-			const QJsonObject &params = message["params"].toObject();
+			const QJsonObject& params = message["params"].toObject();
 			const QJsonObject deviceProperties = ledDevice->getProperties(params);
 
-			Debug(_log, "response: [%s]", QString(QJsonDocument(deviceProperties).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+			Debug(_log, "response: [%s]", QString(QJsonDocument(deviceProperties).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 			sendSuccessDataReply(QJsonDocument(deviceProperties), full_command, tan);
 		}
 		else if (subc == "identify")
 		{
 			ledDevice = LedDeviceFactory::construct(config);
-			const QJsonObject &params = message["params"].toObject();
+			const QJsonObject& params = message["params"].toObject();
 			ledDevice->identify(params);
 
 			sendSuccessReply(full_command, tan);
@@ -1452,12 +1441,12 @@ void JsonAPI::handleLedDeviceCommand(const QJsonObject &message, const QString &
 	}
 }
 
-void JsonAPI::handleNotImplemented(const QString &command, int tan)
+void JsonAPI::handleNotImplemented(const QString& command, int tan)
 {
 	sendErrorReply("Command not implemented", command, tan);
 }
 
-void JsonAPI::sendSuccessReply(const QString &command, int tan)
+void JsonAPI::sendSuccessReply(const QString& command, int tan)
 {
 	// create reply
 	QJsonObject reply;
@@ -1469,7 +1458,7 @@ void JsonAPI::sendSuccessReply(const QString &command, int tan)
 	emit callbackMessage(reply);
 }
 
-void JsonAPI::sendSuccessDataReply(const QJsonDocument &doc, const QString &command, int tan)
+void JsonAPI::sendSuccessDataReply(const QJsonDocument& doc, const QString& command, int tan)
 {
 	QJsonObject reply;
 	reply["success"] = true;
@@ -1483,7 +1472,7 @@ void JsonAPI::sendSuccessDataReply(const QJsonDocument &doc, const QString &comm
 	emit callbackMessage(reply);
 }
 
-void JsonAPI::sendErrorReply(const QString &error, const QString &command, int tan)
+void JsonAPI::sendErrorReply(const QString& error, const QString& command, int tan)
 {
 	// create reply
 	QJsonObject reply;
@@ -1496,12 +1485,12 @@ void JsonAPI::sendErrorReply(const QString &error, const QString &command, int t
 	emit callbackMessage(reply);
 }
 
-void JsonAPI::streamLedcolorsUpdate(const std::vector<ColorRgb> &ledColors)
+void JsonAPI::streamLedcolorsUpdate(const std::vector<ColorRgb>& ledColors)
 {
 	QJsonObject result;
 	QJsonArray leds;
 
-	for (const auto &color : ledColors)
+	for (const auto& color : ledColors)
 	{
 		leds << QJsonValue(color.red) << QJsonValue(color.green) << QJsonValue(color.blue);
 	}
@@ -1513,9 +1502,9 @@ void JsonAPI::streamLedcolorsUpdate(const std::vector<ColorRgb> &ledColors)
 	emit callbackMessage(_streaming_leds_reply);
 }
 
-void JsonAPI::setImage(const Image<ColorRgb> &image)
+void JsonAPI::setImage(const Image<ColorRgb>& image)
 {
-	QImage jpgImage((const uint8_t *)image.memptr(), image.width(), image.height(), 3 * image.width(), QImage::Format_RGB888);
+	QImage jpgImage((const uint8_t*)image.memptr(), image.width(), image.height(), 3 * image.width(), QImage::Format_RGB888);
 	QByteArray ba;
 	QBuffer buffer(&ba);
 	buffer.open(QIODevice::WriteOnly);
@@ -1527,7 +1516,7 @@ void JsonAPI::setImage(const Image<ColorRgb> &image)
 	emit callbackMessage(_streaming_image_reply);
 }
 
-void JsonAPI::incommingLogMessage(const Logger::T_LOG_MESSAGE &msg)
+void JsonAPI::incommingLogMessage(const Logger::T_LOG_MESSAGE& msg)
 {
 	QJsonObject result, message;
 	QJsonArray messageArray;
@@ -1535,7 +1524,7 @@ void JsonAPI::incommingLogMessage(const Logger::T_LOG_MESSAGE &msg)
 	if (!_streaming_logging_activated)
 	{
 		_streaming_logging_activated = true;
-		const QList<Logger::T_LOG_MESSAGE> *logBuffer = LoggerManager::getInstance()->getLogMessageBuffer();
+		const QList<Logger::T_LOG_MESSAGE>* logBuffer = LoggerManager::getInstance()->getLogMessageBuffer();
 		for (int i = 0; i < logBuffer->length(); i++)
 		{
 			message["appName"] = logBuffer->at(i).appName;
@@ -1571,7 +1560,7 @@ void JsonAPI::incommingLogMessage(const Logger::T_LOG_MESSAGE &msg)
 	emit callbackMessage(_streaming_logging_reply);
 }
 
-void JsonAPI::newPendingTokenRequest(const QString &id, const QString &comment)
+void JsonAPI::newPendingTokenRequest(const QString& id, const QString& comment)
 {
 	QJsonObject obj;
 	obj["comment"] = comment;
@@ -1581,7 +1570,7 @@ void JsonAPI::newPendingTokenRequest(const QString &id, const QString &comment)
 	sendSuccessDataReply(QJsonDocument(obj), "authorize-tokenRequest", 1);
 }
 
-void JsonAPI::handleTokenResponse(bool success, const QString &token, const QString &comment, const QString &id, const int &tan)
+void JsonAPI::handleTokenResponse(bool success, const QString& token, const QString& comment, const QString& id, const int& tan)
 {
 	const QString cmd = "authorize-requestToken";
 	QJsonObject result;
@@ -1595,7 +1584,7 @@ void JsonAPI::handleTokenResponse(bool success, const QString &token, const QStr
 		sendErrorReply("Token request timeout or denied", cmd, tan);
 }
 
-void JsonAPI::handleInstanceStateChange(InstanceState state, quint8 instance, const QString &name)
+void JsonAPI::handleInstanceStateChange(InstanceState state, quint8 instance, const QString& name)
 {
 	switch (state)
 	{
