@@ -234,12 +234,12 @@ int YeelightLight::writeCommand( const QJsonDocument &command, QJsonArray &resul
 			if ( ! _tcpSocket->waitForBytesWritten(WRITE_TIMEOUT.count()) )
 			{
 				QString errorReason = QString ("(%1) %2").arg(_tcpSocket->error()).arg( _tcpSocket->errorString());
-				log ( 2, "Error:", "bytesWritten: [%ll], %s", bytesWritten, QSTRING_CSTR(errorReason));
+				log ( 2, "Error:", "bytesWritten: [%d], %s", bytesWritten, QSTRING_CSTR(errorReason));
 				this->setInError ( errorReason );
 			}
 			else
 			{
-				log ( 3, "Success:", "Bytes written   [%ll]", bytesWritten );
+				log ( 3, "Success:", "Bytes written   [%d]", bytesWritten );
 
 				// Avoid to overrun the Yeelight Command Quota
 				qint64 elapsedTime = QDateTime::currentMSecsSinceEpoch() - _lastWriteTime;
@@ -258,7 +258,7 @@ int YeelightLight::writeCommand( const QJsonDocument &command, QJsonArray &resul
 			{
 				do
 				{
-					log ( 3, "Reading:", "Bytes available [%ll]", _tcpSocket->bytesAvailable() );
+					log ( 3, "Reading:", "Bytes available [%d]", _tcpSocket->bytesAvailable() );
 					while ( _tcpSocket->canReadLine() )
 					{
 						QByteArray response = _tcpSocket->readLine();
@@ -338,7 +338,7 @@ bool YeelightLight::streamCommand( const QJsonDocument &command )
 			{
 				int error = _tcpStreamSocket->error();
 				QString errorReason = QString ("(%1) %2").arg(error).arg( _tcpStreamSocket->errorString());
-				log ( 1, "Error:", "bytesWritten: [%ll], %s", bytesWritten, QSTRING_CSTR(errorReason));
+				log ( 1, "Error:", "bytesWritten: [%d], %s", bytesWritten, QSTRING_CSTR(errorReason));
 
 				if ( error == QAbstractSocket::RemoteHostClosedError )
 				{
@@ -353,7 +353,7 @@ bool YeelightLight::streamCommand( const QJsonDocument &command )
 			}
 			else
 			{
-				log ( 3, "Success:", "Bytes written   [%ll]", bytesWritten );
+				log ( 3, "Success:", "Bytes written   [%d]", bytesWritten );
 				rc = true;
 			}
 		}
@@ -956,7 +956,10 @@ void YeelightLight::log(int logLevel, const char* msg, const char* type, ...)
 		va_end(args);
 		std::string s = msg;
 		uint max = 20;
-		s.append(max - s.length(), ' ');
+		if (max > s.length())
+		{
+			s.append(max - s.length(), ' ');
+		}
 
 		Debug( _log, "%d|%15.15s| %s: %s", logLevel, QSTRING_CSTR(_name), s.c_str(), val);
 	}
