@@ -56,7 +56,7 @@ Most used because it's cheap and easy! An Arduino powered by an adalight sketch.
 #### tpm2
 
 ### Network
-Hue bridges, nodeMCU, AtmoOrbs everything that is reachable over network.
+Hue bridges, nodeMCU, AtmoOrbs, [WLED](https://github.com/Aircoookie/WLED) everything that is reachable over network.
 
 #### philipshue
 The well known [Philips Hue Bridge + Bulbs](https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=philips+hue+starter+set&rh=i%3Aaps%2Ck%3Aphilips+hue+starter+set&tag=hyperionpro05-20) is supported. How to configure them with Hyperion? Checkout: Web configuration
@@ -147,6 +147,9 @@ Hyperion cannot be held liable for any foreseeable, or unforeseeable, negative o
   * Brightness compensation influences the brightness across different color (Adjust at the color section)
   * To enable/disable the bridge control from Hyperion, disable Hyperion or just the led hardware component. The previous lamp state will be recovered
 
+#### WLED
+WLED is connected to Hyperion by selecting the "Controller type" als WLED and entering the IP-Adress of your WLED instance in the Hyperion UI.\
+Hyperion uses the brightness setting set in WLED. E.g. if you set the brightness in WLED to 10% the LEDs will light up to a maximum of 10%. If you would like Hyperion to override the brightness setting of WLED and use the maximum brightness you can do so by going to the WLED configuration -> Sync. Settings and enabling "Force max brightness".
 #### atmoorb
 #### tpm2net
 #### udpe131
