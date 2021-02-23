@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Updated dependency rpi_ws281x to latest upstream
+- Fix High CPU load (RPI3B+) (#1013)
 
 ### Fixed
 - LED-Hue: Proper black in Entertainement mode if min brightness is set
