@@ -54,6 +54,11 @@ public:
 	///
 	virtual void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom);
 
+	///
+	/// @brief Apply display index
+	///
+	void setDisplayIndex(int index) override;
+
 private:
 	///
 	/// @brief Setup a new capture display, will free the previous one
@@ -68,6 +73,7 @@ private:
 
 private:
 	int _pixelDecimation;
+	unsigned _display;
 	unsigned _displayWidth;
 	unsigned _displayHeight;
 	RECT* _srcRect;

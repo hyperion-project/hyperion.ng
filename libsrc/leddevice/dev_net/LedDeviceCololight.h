@@ -284,6 +284,14 @@ private:
 	///
 	bool readResponse(QByteArray& response);
 
+	///
+	/// @brief Discover Cololight devices available (for configuration).
+	/// Cololight specific UDP Broadcast discovery
+	///
+	/// @return A JSON structure holding a list of devices found
+	///
+	QJsonArray discover();
+
 	// Cololight model, e.g. CololightPlus, CololightStrip
 	int _modelType;
 
