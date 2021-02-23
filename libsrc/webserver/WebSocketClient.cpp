@@ -85,6 +85,17 @@ void WebSocketClient::handleWebSocketFrame()
 			case OPCODE::BINARY:
 			case OPCODE::TEXT:
 			{
+				// A fragmented message consists of a single frame with the FIN bit
+				// clear and an opcode other than 0, followed by zero or more frames
+				// with the FIN bit clear and the opcode set to 0, and terminated by
+				// a single frame with the FIN bit set and an opcode of 0.
+				//
+				// Store frame type given by first frame
+				if (_wsh.opCode != OPCODE::CONTINUATION )
+				{
+					_frameOpCode = _wsh.opCode;
+				}
+
 				// check for protocol violations
 				if (_onContinuation && !isContinuation)
 				{
@@ -117,15 +128,15 @@ void WebSocketClient::handleWebSocketFrame()
 				if (_wsh.fin)
 				{
 					_onContinuation = false;
-				if (_wsh.opCode == OPCODE::TEXT)
-				{
 
+					if (_frameOpCode == OPCODE::TEXT)
+					{
 						_jsonAPI->handleMessage(QString(_wsReceiveBuffer));
-				}
-				else
-				{
-					handleBinaryMessage(_wsReceiveBuffer);
-				}
+					}
+					else
+					{
+						handleBinaryMessage(_wsReceiveBuffer);
+					}
 					_wsReceiveBuffer.clear();
 
 				}
