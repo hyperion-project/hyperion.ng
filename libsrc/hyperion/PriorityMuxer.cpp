@@ -13,6 +13,8 @@
 // utils
 #include <utils/Logger.h>
 
+const int PriorityMuxer::FG_PRIORITY = 1;
+const int PriorityMuxer::BG_PRIORITY = 254;
 const int PriorityMuxer::LOWEST_PRIORITY = std::numeric_limits<uint8_t>::max();
 
 PriorityMuxer::PriorityMuxer(int ledCount, QObject * parent)
@@ -322,7 +324,7 @@ void PriorityMuxer::setCurrentTime()
 				newPriority = qMin(newPriority, infoIt->priority);
 
 			// call timeTrigger when effect or color is running with timeout > 0, blacklist prio 255
-			if(infoIt->priority < 254 && infoIt->timeoutTime_ms > 0 && (infoIt->componentId == hyperion::COMP_EFFECT || infoIt->componentId == hyperion::COMP_COLOR  || infoIt->componentId == hyperion::COMP_IMAGE))
+			if(infoIt->priority < BG_PRIORITY && infoIt->timeoutTime_ms > 0 && (infoIt->componentId == hyperion::COMP_EFFECT || infoIt->componentId == hyperion::COMP_COLOR  || infoIt->componentId == hyperion::COMP_IMAGE))
 				emit signalTimeTrigger(); // as signal to prevent Threading issues
 
 			++infoIt;

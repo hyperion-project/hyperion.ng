@@ -21,6 +21,9 @@ class Effect : public QThread
 	Q_OBJECT
 
 public:
+
+	static const int ENDLESS;
+
 	friend class EffectModule;
 
 	Effect(Hyperion *hyperion
@@ -53,12 +56,11 @@ public:
 	bool isInterruptionRequested();
 
 	///
-	/// @brief Get the remaining timeout, or 0 if there
-	///        is no timeout for this effect.
+	/// @brief Get the remaining timeout, or indication it is endless
 	///
 	/// @return    The flag state
 	///
-	int getRemaining();
+	int getRemaining() const;
 
 
 	QString getScript() const { return _script; }
@@ -88,7 +90,7 @@ private:
 	const QJsonObject _args;
 	const QString _imageData;
 
-	int64_t _endTime;
+	qint64 _endTime;
 
 	/// Buffer for colorData
 	QVector<ColorRgb> _colors;
