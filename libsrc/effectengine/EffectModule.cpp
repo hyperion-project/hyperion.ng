@@ -121,9 +121,6 @@ PyMethodDef EffectModule::effectMethods[] = {
 
 PyObject* EffectModule::wrapSetColor(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	// check the number of arguments
 	int argCount = PyTuple_Size(args);
 	if (argCount == 3)
@@ -182,9 +179,6 @@ PyObject* EffectModule::wrapSetColor(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapSetImage(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	// bytearray of values
 	int width, height;
 	PyObject * bytearray = nullptr;
@@ -225,9 +219,6 @@ PyObject* EffectModule::wrapSetImage(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapGetImage(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	QString file;
 	QBuffer buffer;
 	QImageReader reader;
@@ -309,9 +300,6 @@ PyObject* EffectModule::wrapAbort(PyObject *self, PyObject *)
 
 PyObject* EffectModule::wrapImageShow(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	int argCount = PyTuple_Size(args);
 	int imgId = -1;
 	bool argsOk = (argCount == 0);
@@ -352,9 +340,6 @@ PyObject* EffectModule::wrapImageShow(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageLinearGradient(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	int argCount = PyTuple_Size(args);
 	PyObject * bytearray = nullptr;
 	int startRX = 0;
@@ -422,9 +407,6 @@ PyObject* EffectModule::wrapImageLinearGradient(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageConicalGradient(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	int argCount = PyTuple_Size(args);
 	PyObject * bytearray = nullptr;
 	int centerX, centerY, angle;
@@ -491,9 +473,6 @@ PyObject* EffectModule::wrapImageConicalGradient(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageRadialGradient(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	int argCount = PyTuple_Size(args);
 	PyObject * bytearray = nullptr;
 	int centerX, centerY, radius, focalX, focalY, focalRadius, spread;
@@ -572,9 +551,6 @@ PyObject* EffectModule::wrapImageRadialGradient(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageDrawPolygon(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	PyObject * bytearray = nullptr;
 
 	int argCount = PyTuple_Size(args);
@@ -633,9 +609,6 @@ PyObject* EffectModule::wrapImageDrawPolygon(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageDrawPie(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	PyObject * bytearray = nullptr;
 
 	QString brush;
@@ -730,9 +703,6 @@ PyObject* EffectModule::wrapImageDrawPie(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageSolidFill(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	int argCount = PyTuple_Size(args);
 	int r, g, b;
 	int a = 255;
@@ -772,9 +742,6 @@ PyObject* EffectModule::wrapImageSolidFill(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageDrawLine(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	int argCount = PyTuple_Size(args);
 	int r, g, b;
 	int a      = 255;
@@ -813,9 +780,6 @@ PyObject* EffectModule::wrapImageDrawLine(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageDrawPoint(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	int argCount = PyTuple_Size(args);
 	int r, g, b, x, y;
 	int a      = 255;
@@ -849,9 +813,6 @@ PyObject* EffectModule::wrapImageDrawPoint(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageDrawRect(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	int argCount = PyTuple_Size(args);
 	int r, g, b;
 	int a      = 255;
@@ -891,9 +852,6 @@ PyObject* EffectModule::wrapImageDrawRect(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageSetPixel(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	int argCount = PyTuple_Size(args);
 	int r, g, b, x, y;
 
@@ -909,9 +867,6 @@ PyObject* EffectModule::wrapImageSetPixel(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageGetPixel(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	int argCount = PyTuple_Size(args);
 	int x, y;
 
@@ -925,9 +880,6 @@ PyObject* EffectModule::wrapImageGetPixel(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageSave(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	QImage img(getEffect()->_image.copy());
 	getEffect()->_imageStack.append(img);
 
@@ -936,9 +888,6 @@ PyObject* EffectModule::wrapImageSave(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageMinSize(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	int argCount = PyTuple_Size(args);
 	int w, h;
 	int width   = getEffect()->_imageSize.width();
@@ -961,25 +910,16 @@ PyObject* EffectModule::wrapImageMinSize(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageWidth(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	return Py_BuildValue("i", getEffect()->_imageSize.width());
 }
 
 PyObject* EffectModule::wrapImageHeight(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	return Py_BuildValue("i", getEffect()->_imageSize.height());
 }
 
 PyObject* EffectModule::wrapImageCRotate(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	int argCount = PyTuple_Size(args);
 	int angle;
 
@@ -994,9 +934,6 @@ PyObject* EffectModule::wrapImageCRotate(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageCOffset(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	int offsetX = 0;
 	int offsetY = 0;
 	int argCount = PyTuple_Size(args);
@@ -1012,9 +949,6 @@ PyObject* EffectModule::wrapImageCOffset(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageCShear(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	int sh,sv;
 	int argCount = PyTuple_Size(args);
 
@@ -1028,9 +962,6 @@ PyObject* EffectModule::wrapImageCShear(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageResetT(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	getEffect()->_painter->resetTransform();
 	Py_RETURN_NONE;
 }
