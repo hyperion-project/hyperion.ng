@@ -1079,12 +1079,12 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 		int configuredYeelightsCount = 0;
 		for (const QJsonValueRef light : configuredYeelightLights)
 		{
-			QString host = light.toObject().value("host").toString();
+			QString hostName = light.toObject().value("host").toString();
 			int port = light.toObject().value("port").toInt(API_DEFAULT_PORT);
-			if ( !host.isEmpty() )
+			if ( !hostName.isEmpty() )
 			{
 				QString name = light.toObject().value("name").toString();
-				Debug(_log, "Light [%u] - %s (%s:%d)", configuredYeelightsCount, QSTRING_CSTR(name), QSTRING_CSTR(host), port );
+				Debug(_log, "Light [%u] - %s (%s:%d)", configuredYeelightsCount, QSTRING_CSTR(name), QSTRING_CSTR(hostName), port );
 				++configuredYeelightsCount;
 			}
 		}
@@ -1110,10 +1110,10 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 			_lightsAddressList.clear();
 			for (int j = 0; j < static_cast<int>( configuredLedCount ); ++j)
 			{
-				QString address = configuredYeelightLights[j].toObject().value("host").toString();
+				QString hostName = configuredYeelightLights[j].toObject().value("host").toString();
 				int port = configuredYeelightLights[j].toObject().value("port").toInt(API_DEFAULT_PORT);
 
-				QStringList addressparts = QStringUtils::split(address,":", QStringUtils::SplitBehavior::SkipEmptyParts);
+				QStringList addressparts = QStringUtils::split(hostName,":", QStringUtils::SplitBehavior::SkipEmptyParts);
 				QString apiHost = addressparts[0];
 				int apiPort = port;
 
@@ -1350,14 +1350,10 @@ bool LedDeviceYeelight::restoreState()
 	return rc;
 }
 
-QJsonObject LedDeviceYeelight::discover(const QJsonObject& /*params*/)
+QJsonArray LedDeviceYeelight::discover()
 {
-	QJsonObject devicesDiscovered;
-	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );
-
 	QJsonArray deviceList;
 
-	// Discover Yeelight Devices
 	SSDPDiscover discover;
 	discover.setPort(SSDP_PORT);
 	discover.skipDuplicateKeys(true);
@@ -1368,25 +1364,36 @@ QJsonObject LedDeviceYeelight::discover(const QJsonObject& /*params*/)
 	{
 		deviceList = discover.getServicesDiscoveredJson();
 	}
+	return deviceList;
+}
+
+QJsonObject LedDeviceYeelight::discover(const QJsonObject& /*params*/)
+{
+	QJsonObject devicesDiscovered;
+	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );
+
+	QString discoveryMethod("ssdp");
+	QJsonArray deviceList;
+	deviceList = discover();
 
 	devicesDiscovered.insert("devices", deviceList);
-	Debug(_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+
+	DebugIf(verbose,_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 
 	return devicesDiscovered;
 }
 
 QJsonObject LedDeviceYeelight::getProperties(const QJsonObject& params)
 {
-	Debug(_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+	DebugIf(verbose,_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 	QJsonObject properties;
 
-	QString apiHostname = params["hostname"].toString("");
+	QString hostName = params["hostname"].toString("");
 	quint16 apiPort = static_cast<quint16>( params["port"].toInt(API_DEFAULT_PORT) );
-	Debug (_log, "apiHost [%s], apiPort [%d]", QSTRING_CSTR(apiHostname), apiPort);
 
-	if ( !apiHostname.isEmpty() )
+	if ( !hostName.isEmpty() )
 	{
-		YeelightLight yeelight(_log, apiHostname, apiPort);
+		YeelightLight yeelight(_log, hostName, apiPort);
 
 		//yeelight.setDebuglevel(3);
 		if ( yeelight.open() )
@@ -1402,15 +1409,15 @@ QJsonObject LedDeviceYeelight::getProperties(const QJsonObject& params)
 
 void LedDeviceYeelight::identify(const QJsonObject& params)
 {
-	Debug(_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+	DebugIf(verbose,_log,  "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 
-	QString apiHostname = params["hostname"].toString("");
+	QString hostName = params["hostname"].toString("");
 	quint16 apiPort = static_cast<quint16>( params["port"].toInt(API_DEFAULT_PORT) );
-	Debug (_log, "apiHost [%s], apiPort [%d]", QSTRING_CSTR(apiHostname), apiPort);
+	Debug (_log, "apiHost [%s], apiPort [%d]", QSTRING_CSTR(hostName), apiPort);
 
-	if ( !apiHostname.isEmpty() )
+	if ( !hostName.isEmpty() )
 	{
-		YeelightLight yeelight(_log, apiHostname, apiPort);
+		YeelightLight yeelight(_log, hostName, apiPort);
 		//yeelight.setDebuglevel(3);
 
 		if ( yeelight.open() )
