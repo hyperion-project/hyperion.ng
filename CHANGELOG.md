@@ -10,9 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- WLED: Support of ["live" property] (https://github.com/Aircoookie/WLED/issues/1308), addresses #1095
+- WLED: Support storing/restoring state, fixes #1101
+- LED-Devices: Allow to get properties for Atmo and Karatedevices to limit LED numbers configurable
+- LED-Devices: Add timeouts for REST-API calls
+
 ### Changed
 - Updated dependency rpi_ws281x to latest upstream
 - Fix High CPU load (RPI3B+) (#1013)
+- Nanoleaf: Consider Nanoleaf-Shape Controlers
+- LED-Devices: Show HW-Ledcount in all setting levels
 
 - Documentation: Add link to [Hyperion-py](https://github.com/dermotduffy/hyperion-py)
 
@@ -20,6 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fix issue #1127: LED-Devices: Correct total packet count in tpm2net implementation
 - LED-Hue: Proper black in Entertainement mode if min brightness is set
+- LED-Hue: Minor fix of setColor command
+- Nanoleaf: Fix,if external control mode cannot be set
 
 ### Removed
 
