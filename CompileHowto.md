@@ -41,7 +41,16 @@ wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/
 ```
 wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i armv7l -t buster
 ```
+## Cross compilation on x86_64 for developers
+Using additional options you can cross compile locally
+-l: use a local hyperion source code directory rather than cloning from GitHub
+-c: do incremental compiles, Note: you need to keep the image and tag stable
 
+**Compile code in $HYPERION_HOME incrementally for Raspberry Pi 2/3/4 (Debian Buster)**
+```
+cd $HYPERION_HOME
+./bin/scripts/docker-compile.sh -l -c -i armv7l -t buster
+```
 # The usual way
 
 ## Debian/Ubuntu/Win10LinuxSubsystem
@@ -179,6 +188,11 @@ To generate make files on OS X:
 Platform should be auto detected and refer to osx, you can also force osx:
 ```
 cmake -DPLATFORM=osx -DCMAKE_BUILD_TYPE=Release ..
+```
+
+In case you would like to build with a dedicated Qt version, provide the version's location via the CMAKE_PREFIX_PATH:
+```
+cmake -DCMAKE_PREFIX_PATH=/opt/Qt/5.15.2/gcc_64 -DCMAKE_BUILD_TYPE=Release ..
 ```
 
 To generate files on Windows (Release+Debug capable):
