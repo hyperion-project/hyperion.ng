@@ -654,8 +654,8 @@ $(document).ready(function () {
           break;
 
         case "adalight":
-            canIdentify = true;
-            canSave = true;
+          canIdentify = true;
+          canSave = true;
           break;
 
         default:
@@ -897,9 +897,9 @@ $(document).ready(function () {
       case "adalight":
         var currentLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue();
         params = Object.assign(conf_editor.getEditor("root.generalOptions").getValue(),
-                               conf_editor.getEditor("root.specificOptions").getValue(),
-                               { currentLedCount }
-                 );
+          conf_editor.getEditor("root.specificOptions").getValue(),
+          { currentLedCount }
+        );
       default:
     }
 
@@ -908,33 +908,87 @@ $(document).ready(function () {
 
   // Save LED device config
   $("#btn_submit_controller").off().on("click", function (event) {
-    var ledType = $("#leddevices").val();
-    var result = { device: {} };
 
-    var general = conf_editor.getEditor("root.generalOptions").getValue();
-    var specific = conf_editor.getEditor("root.specificOptions").getValue();
-    for (var key in general) {
-      result.device[key] = general[key];
+    var hardwareLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue();
+    var layoutLedCount = aceEdt.get().length;
+
+    if (hardwareLedCount === layoutLedCount) {
+      saveLedDeviceConfig(false);
+    } else {
+      if (hardwareLedCount > layoutLedCount) {
+        // More Hardware LEDs than on layout
+        $('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-warning">');
+        $('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n("conf_leds_config_warning") + '</h4>');
+        $('#id_body').append($.i18n('conf_leds_error_hwled_gt_layout', hardwareLedCount, layoutLedCount, hardwareLedCount - layoutLedCount));
+        $('#id_body').append('<hr>');
+        $('#id_body').append($.i18n('conf_leds_note_layout_overwrite', hardwareLedCount));
+        $('#id_footer').html('<button type="button" class="btn btn-secondary" id="btn_back" data-dismiss="modal"><i class="fa fa-fw fa-chevron-left"></i>' + $.i18n('general_btn_back') + '</button>');
+        $('#id_footer').append('<button type="button" class="btn btn-danger" id="btn_overwrite" data-dismiss="modal"><i class="fa fa-fw fa-save"></i>' + $.i18n('general_btn_overwrite') + '</button>');
+        $('#id_footer').append('<button type="button" class="btn btn-primary" id="btn_continue" data-dismiss="modal">' + $.i18n('general_btn_continue') + '<i style="margin-left:4px;"class="fa fa-fw fa-chevron-right"></i> </button>');
+      }
+      else {
+        // Less Hardware LEDs than on layout
+        $('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-error">');
+        $('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n("conf_leds_config_error") + '</h4>');
+        $('#id_body').append($.i18n('conf_leds_error_hwled_lt_layout', hardwareLedCount, layoutLedCount));
+        $('#id_body').append('<hr>');
+        $('#id_body').append($.i18n('conf_leds_note_layout_overwrite', hardwareLedCount));
+        $('#id_footer').html('<button type="button" class="btn btn-primary" id="btn_back" data-dismiss="modal"><i class="fa fa-fw fa-chevron-left"></i>' + $.i18n('general_btn_back') + '</button>');
+        $('#id_footer').append('<button type="button" class="btn btn-danger" id="btn_overwrite" data-dismiss="modal"><i class="fa fa-fw fa-save"></i>' + $.i18n('general_btn_overwrite') + '</button>');
+      }
+
+      $("#modal_dialog").modal({
+        backdrop: "static",
+        keyboard: false,
+        show: true
+      });
+
+      $('#btn_back').off().on('click', function () {
+        //Continue with configuration
+      });
+
+      $('#btn_continue').off().on('click', function () {
+        saveLedDeviceConfig(false);
+      });
+
+      $('#btn_overwrite').off().on('click', function () {
+        saveLedDeviceConfig(true);
+      });
     }
+  });
 
-    for (var key in specific) {
-      result.device[key] = specific[key];
-    }
-    result.device.type = ledType;
+  removeOverlay();
+});
 
-    var ledConfig = {};
-    var leds = [];
+function saveLedDeviceConfig(genDefLayout = false) {
+  var ledType = $("#leddevices").val();
+  var result = { device: {} };
 
-    // Special handling per LED-type
-    switch (ledType) {
-      case "cololight":
+  var general = conf_editor.getEditor("root.generalOptions").getValue();
+  var specific = conf_editor.getEditor("root.specificOptions").getValue();
+  for (var key in general) {
+    result.device[key] = general[key];
+  }
 
-        var host = conf_editor.getEditor("root.specificOptions.host").getValue();
+  for (var key in specific) {
+    result.device[key] = specific[key];
+  }
+  result.device.type = ledType;
 
-        var hardwareLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue();
-        result.device.hardwareLedCount = hardwareLedCount;
+  var ledConfig = {};
+  var leds = [];
 
-        // Generate default layout
+  var hardwareLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue();
+  result.device.hardwareLedCount = hardwareLedCount;
+
+  // Special handling per LED-type
+  switch (ledType) {
+    case "cololight":
+
+      var host = conf_editor.getEditor("root.specificOptions.host").getValue();
+      result.smoothing = { enable: false };
+
+      if (genDefLayout === true) {
         if (devicesProperties[ledType][host].modelType === "Strip") {
           ledConfig = {
             "classic": {
@@ -960,24 +1014,22 @@ $(document).ready(function () {
         }
         result.ledConfig = ledConfig;
         result.leds = leds;
+      }
 
-        result.smoothing = { enable: false };
+      break;
 
-        break;
+    case "nanoleaf":
+    case "wled":
+      result.smoothing = { enable: false };
 
-      case "wled":
-        result.smoothing = { enable: false };
-
-      case "adalight":
-      case "atmo":
-      case "dmx":
-      case "karate":
-      case "sedu":
-      case "tpm2":
-        var hardwareLedCount = parseInt(conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue());
-        result.device.hardwareLedCount = hardwareLedCount;
-
-        // Generate default layout
+    case "adalight":
+    case "atmo":
+    case "dmx":
+    case "karate":
+    case "sedu":
+    case "tpm2":
+    default:
+      if (genDefLayout === true) {
         ledConfig = {
           "classic": {
             "top": hardwareLedCount,
@@ -989,22 +1041,14 @@ $(document).ready(function () {
         result.ledConfig = ledConfig;
         leds = createClassicLedLayoutSimple(hardwareLedCount, 0, 0, 0, 0, false);
         result.leds = leds;
+      }
 
-        break;
+      break;
+  }
 
-      case "nanoleaf":
-
-        result.smoothing = { enable: false };
-
-        break;
-      default:
-    }
-
-    requestWriteConfig(result)
-  });
-
-  removeOverlay();
-});
+  requestWriteConfig(result)
+  location.reload();
+}
 
 // build dynamic enum
 var updateSelectList = function (ledType, discoveryInfo) {
@@ -1144,7 +1188,7 @@ var updateSelectList = function (ledType, discoveryInfo) {
     var specOpt = conf_editor.getEditor('root.specificOptions'); // get specificOptions of the editor
     updateJsonEditorSelection(specOpt, key, addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, addCustom);
   }
-};
+}
 
 async function discover_device(ledType, params) {
   const result = await requestLedDeviceDiscovery(ledType, params);
