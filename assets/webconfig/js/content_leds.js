@@ -50,9 +50,6 @@ function createLedPreview(leds, origin) {
 
   if ($('#leds_prev_toggle_num').hasClass('btn-success'))
     $('.led_prev_num').css("display", "inline");
-
-  // update ace Editor content
-  aceEdt.set(finalLedArray);
 }
 
 function createClassicLedLayoutSimple(ledstop, ledsleft, ledsright, ledsbottom, position, reverse) {
@@ -77,7 +74,6 @@ function createClassicLedLayoutSimple(ledstop, ledsleft, ledsright, ledsbottom, 
 }
 
 function createClassicLedLayout(params) {
-  //helper
   var edgeHGap = params.edgeVGap / (16 / 9);
   var ledArray = [];
 
@@ -259,6 +255,7 @@ function createClassicLeds() {
   }
 
   createLedPreview(finalLedArray, 'classic');
+  aceEdt.set(finalLedArray);
 }
 
 function createMatrixLayout(ledshoriz, ledsvert, cabling, start) {
@@ -336,6 +333,7 @@ function createMatrixLeds() {
 
   finalLedArray = createMatrixLayout(ledshoriz, ledsvert, cabling, start);
   createLedPreview(finalLedArray, 'matrix');
+  aceEdt.set(finalLedArray);
 }
 
 function migrateLedConfig(slConfig) {
@@ -382,6 +380,30 @@ function migrateLedConfig(slConfig) {
   return newLedConfig
 }
 
+function getLedConfig() {
+  var ledConfig = { classic: {}, matrix: {} };
+  var slConfig = window.serverConfig.ledConfig;
+
+  for (var key in slConfig.classic) {
+    if (typeof (slConfig.classic[key]) === "boolean")
+      ledConfig.classic[key] = $('#ip_cl_' + key).is(':checked');
+    else if (Number.isInteger(slConfig.classic[key]))
+      ledConfig.classic[key] = parseInt($('#ip_cl_' + key).val());
+    else
+      ledConfig.classic[key] = $('#ip_cl_' + key).val();
+  }
+
+  for (var key in slConfig.matrix) {
+    if (typeof (slConfig.matrix[key]) === "boolean")
+      ledConfig.matrix[key] = $('#ip_ma_' + key).is(':checked');
+    else if (Number.isInteger(slConfig.matrix[key]))
+      ledConfig.matrix[key] = parseInt($('#ip_ma_' + key).val());
+    else
+      ledConfig.matrix[key] = $('#ip_ma_' + key).val();
+  }
+  return ledConfig;
+}
+
 function isEmpty(obj) {
   for (var key in obj) {
     if (obj.hasOwnProperty(key))
@@ -401,10 +423,12 @@ $(document).ready(function () {
     $('#led_vis_help').html('<div><div class="led_ex" style="background-color:black;margin-right:5px;margin-top:3px"></div><div style="display:inline-block;vertical-align:top">' + $.i18n('conf_leds_layout_preview_l1') + '</div></div><div class="led_ex" style="background-color:grey;margin-top:3px;margin-right:2px"></div><div class="led_ex" style="background-color: rgb(169, 169, 169);margin-right:5px;margin-top:3px;"></div><div style="display:inline-block;vertical-align:top">' + $.i18n('conf_leds_layout_preview_l2') + '</div>');
   }
 
+  //**************************************************
+  // Handle LED-Layout Configuration
+  //**************************************************
   var slConfig = window.serverConfig.ledConfig;
 
   //Check, if structure is not aligned to expected -> migrate structure
-
   if (isEmpty(slConfig.classic)) {
     slConfig = migrateLedConfig(slConfig);
   }
@@ -425,29 +449,6 @@ $(document).ready(function () {
       $('#ip_ma_' + key).val(slConfig.matrix[key]);
   }
 
-  function saveValues() {
-    var ledConfig = { classic: {}, matrix: {} };
-
-    for (var key in slConfig.classic) {
-      if (typeof (slConfig.classic[key]) === "boolean")
-        ledConfig.classic[key] = $('#ip_cl_' + key).is(':checked');
-      else if (Number.isInteger(slConfig.classic[key]))
-        ledConfig.classic[key] = parseInt($('#ip_cl_' + key).val());
-      else
-        ledConfig.classic[key] = $('#ip_cl_' + key).val();
-    }
-
-    for (var key in slConfig.matrix) {
-      if (typeof (slConfig.matrix[key]) === "boolean")
-        ledConfig.matrix[key] = $('#ip_ma_' + key).is(':checked');
-      else if (Number.isInteger(slConfig.matrix[key]))
-        ledConfig.matrix[key] = parseInt($('#ip_ma_' + key).val());
-      else
-        ledConfig.matrix[key] = $('#ip_ma_' + key).val();
-    }
-    requestWriteConfig({ ledConfig });
-  }
-
   // check access level and adjust ui
   if (storedAccess == "default") {
     $('#texfield_panel').toggle(false);
@@ -465,6 +466,14 @@ $(document).ready(function () {
 
   $('.ledMAconstr').bind("change", function () {
     valValue(this.id, this.value, this.min, this.max);
+    createMatrixLeds();
+  });
+
+  $(document).on('click', "#classic_panel", function (e) {
+    createClassicLeds();
+  });
+
+  $(document).on('click', "#matrix_panel", function (e) {
     createMatrixLeds();
   });
 
@@ -508,13 +517,63 @@ $(document).ready(function () {
 
   $('.jsoneditor-menu').toggle();
 
-  // External properties properties, 2-dimensional arry of [ledType][key]
-  devicesProperties = {};
-
   // leds to finalLedArray
   finalLedArray = window.serverConfig.leds;
 
-  // create and update editor
+  // validate textfield and update preview
+  $("#leds_custom_updsim").off().on("click", function () {
+    createLedPreview(aceEdt.get(), 'text');
+  });
+
+  // save led layout, the generated textfield configuration always represents the latest layout
+  $("#btn_ma_save, #btn_cl_save, #leds_custom_save").off().on("click", function () {
+    var hardwareLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue();
+    var layoutLedCount = aceEdt.get().length;
+
+    if (hardwareLedCount < layoutLedCount) {
+      // Not enough hardware LEDs for configured layout
+      showInfoDialog('error', $.i18n("conf_leds_config_error"), $.i18n('conf_leds_error_hwled_lt_layout', hardwareLedCount, layoutLedCount));
+    } else {
+      saveLedConfig(false);
+    }
+  });
+
+  // toggle led numbers
+  $('#leds_prev_toggle_num').off().on("click", function () {
+    $('.led_prev_num').toggle();
+    toggleClass('#leds_prev_toggle_num', "btn-danger", "btn-success");
+  });
+
+  // open checklist
+  $('#leds_prev_checklist').off().on("click", function () {
+    var liList = [$.i18n('conf_leds_layout_checkp1'), $.i18n('conf_leds_layout_checkp3'), $.i18n('conf_leds_layout_checkp2'), $.i18n('conf_leds_layout_checkp4')];
+    var ul = document.createElement("ul");
+    ul.className = "checklist"
+
+    for (var i = 0; i < liList.length; i++) {
+      var li = document.createElement("li");
+      li.innerHTML = liList[i];
+      ul.appendChild(li);
+    }
+    showInfoDialog('checklist', "", ul);
+  });
+
+  // nav
+  $('#leds_cfg_nav a[data-toggle="tab"]').off().on('shown.bs.tab', function (e) {
+    var target = $(e.target).attr("href") // activated tab
+    if (target == "#menu_gencfg" && !ledsCustomCfgInitialized) {
+      $('#leds_custom_updsim').trigger('click');
+      ledsCustomCfgInitialized = true;
+    }
+  });
+
+  //**************************************************
+  // Handle LED-Device Configuration
+  //**************************************************
+
+  // External properties properties, 2-dimensional arry of [ledType][key]
+  devicesProperties = {};
+
   $("#leddevices").off().on("change", function () {
     var generalOptions = window.serverSchema.properties.device;
 
@@ -830,52 +889,6 @@ $(document).ready(function () {
   $("#leddevices").val(window.serverConfig.device.type);
   $("#leddevices").trigger("change");
 
-  // validate textfield and update preview
-  $("#leds_custom_updsim").off().on("click", function () {
-    createLedPreview(aceEdt.get(), 'text');
-  });
-
-  // save led config and saveValues - passing textfield
-  $("#btn_ma_save, #btn_cl_save").off().on("click", function () {
-    requestWriteConfig({ "leds": finalLedArray });
-    saveValues();
-  });
-
-  // save led config from textfield
-  $("#leds_custom_save").off().on("click", function () {
-    requestWriteConfig(JSON.parse('{"leds" :' + aceEdt.getText() + '}'));
-    saveValues();
-  });
-
-  // toggle led numbers
-  $('#leds_prev_toggle_num').off().on("click", function () {
-    $('.led_prev_num').toggle();
-    toggleClass('#leds_prev_toggle_num', "btn-danger", "btn-success");
-  });
-
-  // open checklist
-  $('#leds_prev_checklist').off().on("click", function () {
-    var liList = [$.i18n('conf_leds_layout_checkp1'), $.i18n('conf_leds_layout_checkp3'), $.i18n('conf_leds_layout_checkp2'), $.i18n('conf_leds_layout_checkp4')];
-    var ul = document.createElement("ul");
-    ul.className = "checklist"
-
-    for (var i = 0; i < liList.length; i++) {
-      var li = document.createElement("li");
-      li.innerHTML = liList[i];
-      ul.appendChild(li);
-    }
-    showInfoDialog('checklist', "", ul);
-  });
-
-  // nav
-  $('#leds_cfg_nav a[data-toggle="tab"]').off().on('shown.bs.tab', function (e) {
-    var target = $(e.target).attr("href") // activated tab
-    if (target == "#menu_gencfg" && !ledsCustomCfgInitialized) {
-      $('#leds_custom_updsim').trigger('click');
-      ledsCustomCfgInitialized = true;
-    }
-  });
-
   // Identify/ Test LED-Device
   $("#btn_test_controller").off().on("click", function () {
     var ledType = $("#leddevices").val();
@@ -908,12 +921,11 @@ $(document).ready(function () {
 
   // Save LED device config
   $("#btn_submit_controller").off().on("click", function (event) {
-
     var hardwareLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue();
     var layoutLedCount = aceEdt.get().length;
 
     if (hardwareLedCount === layoutLedCount) {
-      saveLedDeviceConfig(false);
+      saveLedConfig(false);
     } else {
       if (hardwareLedCount > layoutLedCount) {
         // More Hardware LEDs than on layout
@@ -944,15 +956,15 @@ $(document).ready(function () {
       });
 
       $('#btn_back').off().on('click', function () {
-        //Continue with configuration
+        //Continue with the configuration
       });
 
       $('#btn_continue').off().on('click', function () {
-        saveLedDeviceConfig(false);
+        saveLedConfig(false);
       });
 
       $('#btn_overwrite').off().on('click', function () {
-        saveLedDeviceConfig(true);
+        saveLedConfig(true);
       });
     }
   });
@@ -960,7 +972,7 @@ $(document).ready(function () {
   removeOverlay();
 });
 
-function saveLedDeviceConfig(genDefLayout = false) {
+function saveLedConfig(genDefLayout = false) {
   var ledType = $("#leddevices").val();
   var result = { device: {} };
 
@@ -1015,7 +1027,6 @@ function saveLedDeviceConfig(genDefLayout = false) {
         result.ledConfig = ledConfig;
         result.leds = leds;
       }
-
       break;
 
     case "nanoleaf":
@@ -1037,16 +1048,22 @@ function saveLedDeviceConfig(genDefLayout = false) {
             "left": 0,
             "right": 0
           }
-        };
+        }
+          ;
         result.ledConfig = ledConfig;
         leds = createClassicLedLayoutSimple(hardwareLedCount, 0, 0, 0, 0, false);
         result.leds = leds;
       }
-
       break;
   }
 
-  requestWriteConfig(result)
+  //Rewrite whole LED & Layout configuration, in case changes were done accross tabs and no default layout
+  if (genDefLayout !== true) {
+    result.ledConfig = getLedConfig();
+    result.leds = JSON.parse(aceEdt.getText());
+  }
+
+  requestWriteConfig(result);
   location.reload();
 }
 

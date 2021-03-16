@@ -46,12 +46,12 @@
         <div class="col-lg-6 col-md-12">
           <div class="panel-group" id="accordion">
             <div class="panel panel-primary">
-              <div class="panel-heading headcollapse" data-toggle="collapse" data-parent="#accordion" data-target="#collapse1">
+              <div class="panel-heading headcollapse" id="classic_panel" data-toggle="collapse" data-parent="#accordion" data-target="#collapse1">
                 <h4 class="panel-title">
                   <a><i class="fa fa-television fa-fw"></i><span data-i18n="conf_leds_layout_frame">Classic Layout (LED Frame)</span></a>
                 </h4>
               </div>
-              <div id="collapse1" class="panel-collapse collapse in">
+              <div id="collapse1" class="panel-collapse collapse">
                 <div class="panel-body">
                   <table class="table borderless">
                     <tbody>
@@ -261,7 +261,7 @@
               </div>
             </div>
             <div class="panel panel-primary">
-              <div class="panel-heading headcollapse" data-toggle="collapse" data-parent="#accordion" data-target="#collapse2">
+              <div class="panel-heading headcollapse" id="matrix_panel" data-toggle="collapse" data-parent="#accordion" data-target="#collapse2">
                 <h4 class="panel-title">
                   <a><i class="fa fa-th fa-fw"></i><span data-i18n="conf_leds_layout_matrix">Matrix Configuration (LED wall)</span></a>
                 </h4>
@@ -333,7 +333,7 @@
               </div>
             </div>
             <div id="texfield_panel" class="panel panel-primary">
-              <div class="panel-heading headcollapse" data-toggle="collapse" data-parent="#accordion" data-target="#collapse4">
+              <div class="panel-heading headcollapse" id="current_config_panel" data-toggle="collapse" data-parent="#accordion" data-target="#collapse4">
                 <h4 class="panel-title">
                   <a><i class="fa fa-wrench fa-fw"></i><span data-i18n="conf_leds_layout_generatedconf">Generated/Actual LED Configuration</span></a>
                 </h4>
