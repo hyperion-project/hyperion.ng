@@ -3,6 +3,7 @@
 #include <utils/Logger.h>
 #include <hyperion/Hyperion.h>
 #include <utils/settings.h>
+#include <effectengine/Effect.h>
 
 ///
 /// @brief Handle the background Effect settings, reacts on runtime to settings changes
@@ -37,7 +38,7 @@ private slots:
 
 			#define BGCONFIG_ARRAY bgColorConfig.toArray()
 			// clear background priority
-			_hyperion->clear(254);
+			_hyperion->clear(PriorityMuxer::BG_PRIORITY);
 			// initial background effect/color
 			if (BGEffectConfig["enable"].toBool(true))
 			{
@@ -53,12 +54,12 @@ private slots:
 							static_cast<uint8_t>(BGCONFIG_ARRAY.at(2).toInt(0))
 						}
 					};
-					_hyperion->setColor(254, bg_color);
+					_hyperion->setColor(PriorityMuxer::BG_PRIORITY, bg_color);
 					Info(Logger::getInstance("HYPERION"),"Initial background color set (%d %d %d)",bg_color.at(0).red, bg_color.at(0).green, bg_color.at(0).blue);
 				}
 				else
 				{
-					int result = _hyperion->setEffect(bgEffectConfig, 254);
+					int result = _hyperion->setEffect(bgEffectConfig, PriorityMuxer::BG_PRIORITY, Effect::ENDLESS);
 					Info(Logger::getInstance("HYPERION"),"Initial background effect '%s' %s", QSTRING_CSTR(bgEffectConfig), ((result == 0) ? "started" : "failed"));
 				}
 			}

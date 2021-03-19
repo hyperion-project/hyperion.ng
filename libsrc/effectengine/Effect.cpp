@@ -12,6 +12,8 @@
 // python utils
 #include <python/PythonProgram.h>
 
+const int Effect::ENDLESS = -1;
+
 Effect::Effect(Hyperion *hyperion, int priority, int timeout, const QString &script, const QString &name, const QJsonObject &args, const QString &imageData)
 	: QThread()
 	, _hyperion(hyperion)
@@ -22,7 +24,7 @@ Effect::Effect(Hyperion *hyperion, int priority, int timeout, const QString &scr
 	, _args(args)
 	, _imageData(imageData)
 	, _endTime(-1)
-	, _colors()
+	, _interupt(false)
 	, _imageSize(hyperion->getLedGridSize())
 	, _image(_imageSize,QImage::Format_ARGB32_Premultiplied)
 {
@@ -49,21 +51,20 @@ Effect::~Effect()
 
 bool Effect::isInterruptionRequested()
 {
-	return _interupt || getRemaining() < 0;
+	return _interupt || getRemaining() < ENDLESS;
 }
 
-int Effect::getRemaining()
+int Effect::getRemaining() const
 {
 	// determine the timeout
 	int timeout = _timeout;
 
 	if (timeout > 0)
 	{
-		timeout = _endTime - QDateTime::currentMSecsSinceEpoch();
+		timeout = static_cast<int>( _endTime - QDateTime::currentMSecsSinceEpoch());
 		return timeout;
 	}
-
-	return timeout;
+	return ENDLESS;
 }
 
 void Effect::setModuleParameters()
