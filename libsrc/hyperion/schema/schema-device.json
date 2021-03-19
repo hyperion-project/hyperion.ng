@@ -1,53 +1,45 @@
 {
-	"type" : "object",
-	"title" : " ",
-	"defaultProperties": ["hardwareLedCount", "colorOrder"],
-	"properties" :
-	{
-		"type" :
-		{
-			"type" : "string",
-			"propertyOrder" : 1
-		},
-		"hardwareLedCount" :
-		{
-			"type" : "integer",
-			"title" : "edt_dev_general_hardwareLedCount_title",
-			"minimum" : 1,
-			"default" : 1,
-			"options": {
-				"infoText": "edt_dev_general_hardwareLedCount_title_info"
-			},
-			"propertyOrder" : 2
-		},
-		"colorOrder" :
-		{
-			"type" : "string",
-			"title" : "edt_dev_general_colorOrder_title",
-			"enum" : ["rgb", "bgr", "rbg", "brg", "gbr", "grb"],
-			"default" : "rgb",
-			"required" : true,
-			"options": {
-				"enum_titles": [ "edt_conf_enum_rgb", "edt_conf_enum_bgr", "edt_conf_enum_rbg", "edt_conf_enum_brg", "edt_conf_enum_gbr", "edt_conf_enum_grb" ],
-				"infoText": "edt_dev_general_colorOrder_title_info"
-			},
-			"access" : "expert",
-			"propertyOrder" : 3
-		}
-	},
-	"dependencies" :
-	{
-		"rewriteTime" :
-		{
-			"properties" :
-			{
-				"type" :
-				{
-					"enum" : ["file", "apa102", "apa104", "ws2801", "lpd6803", "lpd8806", "p9813", "sk6812spi", "sk6822spi", "sk9822", "ws2812spi","ws281x", "piblaster", "adalight", "dmx", "atmo", "hyperionusbasp", "lightpack", "multilightpack", "paintpack", "rawhid", "sedu", "tpm2", "karate"]
-				}
-			},
-			"additionalProperties" : true
-		}
-	},
-	"additionalProperties" : true
+  "type": "object",
+  "title": " ",
+  "defaultProperties": [ "hardwareLedCount", "colorOrder" ],
+  "properties": {
+    "type": {
+      "type": "string",
+      "propertyOrder": 1
+    },
+    "hardwareLedCount": {
+      "type": "integer",
+      "title": "edt_dev_general_hardwareLedCount_title",
+      "minimum": 1,
+      "default": 1,
+      "options": {
+        "infoText": "edt_dev_general_hardwareLedCount_title_info"
+      },
+      "propertyOrder": 2
+    },
+    "colorOrder": {
+      "type": "string",
+      "title": "edt_dev_general_colorOrder_title",
+      "enum": [ "rgb", "bgr", "rbg", "brg", "gbr", "grb" ],
+      "default": "rgb",
+      "required": true,
+      "options": {
+        "enum_titles": [ "edt_conf_enum_rgb", "edt_conf_enum_bgr", "edt_conf_enum_rbg", "edt_conf_enum_brg", "edt_conf_enum_gbr", "edt_conf_enum_grb" ],
+        "infoText": "edt_dev_general_colorOrder_title_info"
+      },
+      "access": "expert",
+      "propertyOrder": 3
+    }
+  },
+  "dependencies": {
+    "rewriteTime": {
+      "properties": {
+        "type": {
+          "enum": [ "file", "apa102", "apa104", "ws2801", "lpd6803", "lpd8806", "p9813", "sk6812spi", "sk6822spi", "sk9822", "ws2812spi", "ws281x", "piblaster", "adalight", "dmx", "atmo", "hyperionusbasp", "lightpack", "multilightpack", "paintpack", "rawhid", "sedu", "tpm2", "karate" ]
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
 }

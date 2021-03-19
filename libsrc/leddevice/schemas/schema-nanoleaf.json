@@ -5,7 +5,11 @@
     "hostList": {
       "type": "string",
       "title": "edt_dev_spec_devices_discovered_title",
-      "options": { "infoText": "edt_dev_spec_devices_discovered_title_info" },
+      "enum": [ "NONE" ],
+      "options": {
+        "enum_titles": [ "edt_dev_spec_devices_discovery_inprogress" ],
+        "infoText": "edt_dev_spec_devices_discovered_title_info"
+      },
       "required": true,
       "propertyOrder": 1
     },
