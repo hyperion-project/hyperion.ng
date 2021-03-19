@@ -234,12 +234,12 @@ int YeelightLight::writeCommand( const QJsonDocument &command, QJsonArray &resul
 			if ( ! _tcpSocket->waitForBytesWritten(WRITE_TIMEOUT.count()) )
 			{
 				QString errorReason = QString ("(%1) %2").arg(_tcpSocket->error()).arg( _tcpSocket->errorString());
-				log ( 2, "Error:", "bytesWritten: [%ll], %s", bytesWritten, QSTRING_CSTR(errorReason));
+				log ( 2, "Error:", "bytesWritten: [%d], %s", bytesWritten, QSTRING_CSTR(errorReason));
 				this->setInError ( errorReason );
 			}
 			else
 			{
-				log ( 3, "Success:", "Bytes written   [%ll]", bytesWritten );
+				log ( 3, "Success:", "Bytes written   [%d]", bytesWritten );
 
 				// Avoid to overrun the Yeelight Command Quota
 				qint64 elapsedTime = QDateTime::currentMSecsSinceEpoch() - _lastWriteTime;
@@ -258,7 +258,7 @@ int YeelightLight::writeCommand( const QJsonDocument &command, QJsonArray &resul
 			{
 				do
 				{
-					log ( 3, "Reading:", "Bytes available [%ll]", _tcpSocket->bytesAvailable() );
+					log ( 3, "Reading:", "Bytes available [%d]", _tcpSocket->bytesAvailable() );
 					while ( _tcpSocket->canReadLine() )
 					{
 						QByteArray response = _tcpSocket->readLine();
@@ -338,7 +338,7 @@ bool YeelightLight::streamCommand( const QJsonDocument &command )
 			{
 				int error = _tcpStreamSocket->error();
 				QString errorReason = QString ("(%1) %2").arg(error).arg( _tcpStreamSocket->errorString());
-				log ( 1, "Error:", "bytesWritten: [%ll], %s", bytesWritten, QSTRING_CSTR(errorReason));
+				log ( 1, "Error:", "bytesWritten: [%d], %s", bytesWritten, QSTRING_CSTR(errorReason));
 
 				if ( error == QAbstractSocket::RemoteHostClosedError )
 				{
@@ -353,7 +353,7 @@ bool YeelightLight::streamCommand( const QJsonDocument &command )
 			}
 			else
 			{
-				log ( 3, "Success:", "Bytes written   [%ll]", bytesWritten );
+				log ( 3, "Success:", "Bytes written   [%d]", bytesWritten );
 				rc = true;
 			}
 		}
@@ -956,7 +956,10 @@ void YeelightLight::log(int logLevel, const char* msg, const char* type, ...)
 		va_end(args);
 		std::string s = msg;
 		uint max = 20;
-		s.append(max - s.length(), ' ');
+		if (max > s.length())
+		{
+			s.append(max - s.length(), ' ');
+		}
 
 		Debug( _log, "%d|%15.15s| %s: %s", logLevel, QSTRING_CSTR(_name), s.c_str(), val);
 	}
@@ -1076,12 +1079,12 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 		int configuredYeelightsCount = 0;
 		for (const QJsonValueRef light : configuredYeelightLights)
 		{
-			QString host = light.toObject().value("host").toString();
+			QString hostName = light.toObject().value("host").toString();
 			int port = light.toObject().value("port").toInt(API_DEFAULT_PORT);
-			if ( !host.isEmpty() )
+			if ( !hostName.isEmpty() )
 			{
 				QString name = light.toObject().value("name").toString();
-				Debug(_log, "Light [%u] - %s (%s:%d)", configuredYeelightsCount, QSTRING_CSTR(name), QSTRING_CSTR(host), port );
+				Debug(_log, "Light [%u] - %s (%s:%d)", configuredYeelightsCount, QSTRING_CSTR(name), QSTRING_CSTR(hostName), port );
 				++configuredYeelightsCount;
 			}
 		}
@@ -1107,10 +1110,10 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 			_lightsAddressList.clear();
 			for (int j = 0; j < static_cast<int>( configuredLedCount ); ++j)
 			{
-				QString address = configuredYeelightLights[j].toObject().value("host").toString();
+				QString hostName = configuredYeelightLights[j].toObject().value("host").toString();
 				int port = configuredYeelightLights[j].toObject().value("port").toInt(API_DEFAULT_PORT);
 
-				QStringList addressparts = QStringUtils::split(address,":", QStringUtils::SplitBehavior::SkipEmptyParts);
+				QStringList addressparts = QStringUtils::split(hostName,":", QStringUtils::SplitBehavior::SkipEmptyParts);
 				QString apiHost = addressparts[0];
 				int apiPort = port;
 
@@ -1347,14 +1350,10 @@ bool LedDeviceYeelight::restoreState()
 	return rc;
 }
 
-QJsonObject LedDeviceYeelight::discover(const QJsonObject& /*params*/)
+QJsonArray LedDeviceYeelight::discover()
 {
-	QJsonObject devicesDiscovered;
-	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );
-
 	QJsonArray deviceList;
 
-	// Discover Yeelight Devices
 	SSDPDiscover discover;
 	discover.setPort(SSDP_PORT);
 	discover.skipDuplicateKeys(true);
@@ -1365,25 +1364,36 @@ QJsonObject LedDeviceYeelight::discover(const QJsonObject& /*params*/)
 	{
 		deviceList = discover.getServicesDiscoveredJson();
 	}
+	return deviceList;
+}
+
+QJsonObject LedDeviceYeelight::discover(const QJsonObject& /*params*/)
+{
+	QJsonObject devicesDiscovered;
+	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );
+
+	QString discoveryMethod("ssdp");
+	QJsonArray deviceList;
+	deviceList = discover();
 
 	devicesDiscovered.insert("devices", deviceList);
-	Debug(_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+
+	DebugIf(verbose,_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 
 	return devicesDiscovered;
 }
 
 QJsonObject LedDeviceYeelight::getProperties(const QJsonObject& params)
 {
-	Debug(_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+	DebugIf(verbose,_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 	QJsonObject properties;
 
-	QString apiHostname = params["hostname"].toString("");
+	QString hostName = params["hostname"].toString("");
 	quint16 apiPort = static_cast<quint16>( params["port"].toInt(API_DEFAULT_PORT) );
-	Debug (_log, "apiHost [%s], apiPort [%d]", QSTRING_CSTR(apiHostname), apiPort);
 
-	if ( !apiHostname.isEmpty() )
+	if ( !hostName.isEmpty() )
 	{
-		YeelightLight yeelight(_log, apiHostname, apiPort);
+		YeelightLight yeelight(_log, hostName, apiPort);
 
 		//yeelight.setDebuglevel(3);
 		if ( yeelight.open() )
@@ -1399,15 +1409,15 @@ QJsonObject LedDeviceYeelight::getProperties(const QJsonObject& params)
 
 void LedDeviceYeelight::identify(const QJsonObject& params)
 {
-	Debug(_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+	DebugIf(verbose,_log,  "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 
-	QString apiHostname = params["hostname"].toString("");
+	QString hostName = params["hostname"].toString("");
 	quint16 apiPort = static_cast<quint16>( params["port"].toInt(API_DEFAULT_PORT) );
-	Debug (_log, "apiHost [%s], apiPort [%d]", QSTRING_CSTR(apiHostname), apiPort);
+	Debug (_log, "apiHost [%s], apiPort [%d]", QSTRING_CSTR(hostName), apiPort);
 
-	if ( !apiHostname.isEmpty() )
+	if ( !hostName.isEmpty() )
 	{
-		YeelightLight yeelight(_log, apiHostname, apiPort);
+		YeelightLight yeelight(_log, hostName, apiPort);
 		//yeelight.setDebuglevel(3);
 
 		if ( yeelight.open() )

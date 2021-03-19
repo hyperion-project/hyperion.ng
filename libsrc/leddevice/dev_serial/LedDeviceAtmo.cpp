@@ -1,6 +1,10 @@
 // hyperion local includes
 #include "LedDeviceAtmo.h"
 
+namespace {
+	const bool verbose = false;
+} //End of constants
+
 LedDeviceAtmo::LedDeviceAtmo(const QJsonObject &deviceConfig)
 	: ProviderRs232(deviceConfig)
 {
@@ -42,4 +46,21 @@ int LedDeviceAtmo::write(const std::vector<ColorRgb> &ledValues)
 {
 	memcpy(4 + _ledBuffer.data(), ledValues.data(), _ledCount * sizeof(ColorRgb));
 	return writeBytes(_ledBuffer.size(), _ledBuffer.data());
+}
+
+QJsonObject LedDeviceAtmo::getProperties(const QJsonObject& params)
+{
+	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	QJsonObject properties;
+
+	QString serialPort = params["serialPort"].toString("");
+
+	QJsonObject propertiesDetails;
+	QJsonArray possibleLedCounts = { 5 };
+	propertiesDetails.insert("ledCount", possibleLedCounts);
+
+	properties.insert("properties", propertiesDetails);
+
+	DebugIf(verbose, _log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	return properties;
 }

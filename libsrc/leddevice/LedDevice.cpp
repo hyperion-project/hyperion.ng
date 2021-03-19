@@ -265,12 +265,13 @@ bool LedDevice::switchOn()
 	{
 		if ( _isEnabled &&_isDeviceInitialised )
 		{
-			storeState();
-
-			if ( powerOn() )
+			if ( storeState() )
 			{
-				_isOn = true;
-				rc = true;
+				if ( powerOn() )
+				{
+					_isOn = true;
+					rc = true;
+				}
 			}
 		}
 	}

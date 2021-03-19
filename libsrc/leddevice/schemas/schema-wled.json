@@ -4,8 +4,16 @@
 	"properties":{
 		"host" : {
 			"type": "string",
-			"title":"edt_dev_spec_targetIpHost_title",
-			"propertyOrder" : 1
+			"title": "edt_dev_spec_targetIpHost_title",
+			"required": true,
+			"propertyOrder": 1
+		},
+		"restoreOriginalState": {
+			"type": "boolean",
+			"title": "edt_dev_spec_restoreOriginalState_title",
+			"default": false,
+			"required": true,
+			"propertyOrder": 2
 		},
 		"latchTime": {
 			"type": "integer",
@@ -15,7 +23,7 @@
 			"minimum": 0,
 			"maximum": 1000,
 			"access" : "expert",
-			"propertyOrder" : 2
+			"propertyOrder" : 3
 		}
 	},
 	"additionalProperties": true
