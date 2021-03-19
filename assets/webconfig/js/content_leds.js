@@ -477,6 +477,10 @@ $(document).ready(function () {
     createMatrixLeds();
   });
 
+  $(document).on('click', "#current_config_panel", function (e) {
+    aceEdt.set(finalLedArray);
+  });
+
   // v4 of json schema with diff required assignment - remove when hyperion schema moved to v4
   var ledschema = { "items": { "additionalProperties": false, "required": ["hmin", "hmax", "vmin", "vmax"], "properties": { "name": { "type": "string" }, "colorOrder": { "enum": ["rgb", "bgr", "rbg", "brg", "gbr", "grb"], "type": "string" }, "hmin": { "maximum": 1, "minimum": 0, "type": "number" }, "hmax": { "maximum": 1, "minimum": 0, "type": "number" }, "vmin": { "maximum": 1, "minimum": 0, "type": "number" }, "vmax": { "maximum": 1, "minimum": 0, "type": "number" } }, "type": "object" }, "type": "array" };
   //create jsonace editor
@@ -629,20 +633,6 @@ $(document).ready(function () {
       var atmoorb_title = 'wiz_atmoorb_title';
       changeWizard(data, atmoorb_title, startWizardAtmoOrb);
     }
-    /*
-      else if(ledType == "cololight") {
-        var ledWizardType = (this.checked) ? "cololight" : ledType;
-        var data = { type: ledWizardType };
-        var cololight_title = 'wiz_cololight_title';
-        changeWizard(data, cololight_title, startWizardCololight);
-      }
-      else if(ledType == "wled") {
-        var ledWizardType = (this.checked) ? "wled" : ledType;
-        var data = { type: ledWizardType };
-        var wled_title = 'wiz_wled_title';
-        changeWizard(data, wled_title, startWizardWLED);
-      }
-    */
     else if (ledType == "yeelight") {
       var ledWizardType = (this.checked) ? "yeelight" : ledType;
       var data = { type: ledWizardType };
@@ -657,34 +647,62 @@ $(document).ready(function () {
     }
 
     conf_editor.on('ready', function () {
+      var hwLedCountDefault = 1;
+      var colorOrderDefault = "rgb";
+
       switch (ledType) {
+        case "cololight":
+        case "wled":
+        case "nanoleaf":
+          showAllDeviceInputOptions("hostList", false);
         case "adalight":
         case "atmo":
         case "dmx":
         case "karate":
         case "sedu":
         case "tpm2":
-        case "cololight":
-        case "wled":
-        case "nanoleaf":
-
           discover_device(ledType);
+          hwLedCountDefault = 1;
+          colorOrderDefault = "rgb";
+          break;
 
-          if (ledType !== window.serverConfig.device.type) {
-            var hwLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount")
-            if (hwLedCount) {
-              hwLedCount.setValue(1);
-            }
+        case "philipshue":
+          var lights = conf_editor.getEditor("root.specificOptions.lightIds").getValue();
+          hwLedCountDefault = lights.length;
+          colorOrderDefault = "rgb";
+          break;
 
-            var colorOrder = conf_editor.getEditor("root.generalOptions.colorOrder")
-            if (colorOrder) {
-              colorOrder.setValue("rgb");
-            }
+        case "yeelight":
+          conf_editor.getEditor("root.generalOptions").disable();
+          var lights = conf_editor.getEditor("root.specificOptions.lights").getValue();
+          hwLedCountDefault = lights.length;
+          colorOrderDefault = "rgb";
+          break;
+
+        case "atmoorb":
+          conf_editor.getEditor("root.generalOptions").disable();
+
+          var configruedOrbIds = conf_editor.getEditor("root.specificOptions.orbIds").getValue().trim();
+          if (configruedOrbIds.length !== 0) {
+            hwLedCountDefault = configruedOrbIds.split(",").map(Number).length;
+          } else {
+            hwLedCountDefault = 0;
           }
-
+          colorOrderDefault = "rgb";
           break;
 
         default:
+      }
+
+      if (ledType !== window.serverConfig.device.type) {
+        var hwLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount")
+        if (hwLedCount) {
+          hwLedCount.setValue(hwLedCountDefault);
+        }
+        var colorOrder = conf_editor.getEditor("root.generalOptions.colorOrder")
+        if (colorOrder) {
+          colorOrder.setValue(colorOrderDefault);
+        }
       }
     });
 
@@ -696,27 +714,43 @@ $(document).ready(function () {
       switch (ledType) {
         case "cololight":
         case "wled":
-          var host = conf_editor.getEditor("root.specificOptions.host").getValue();
-          if (host !== "") {
-            canIdentify = true;
-            canSave = true;
+          var hostList = conf_editor.getEditor("root.specificOptions.hostList").getValue();
+          if (hostList !== "SELECT") {
+            var host = conf_editor.getEditor("root.specificOptions.host").getValue();
+            if (host !== "") {
+              canIdentify = true;
+              canSave = true;
+            }
           }
           break;
 
         case "nanoleaf":
-          var host = conf_editor.getEditor("root.specificOptions.host").getValue();
-          var token = conf_editor.getEditor("root.specificOptions.token").getValue();
-          if (host !== "" && token !== "") {
-            canIdentify = true;
-            canSave = true;
+          var hostList = conf_editor.getEditor("root.specificOptions.hostList").getValue();
+          if (hostList !== "SELECT") {
+            var host = conf_editor.getEditor("root.specificOptions.host").getValue();
+            var token = conf_editor.getEditor("root.specificOptions.token").getValue();
+            if (host !== "" && token !== "") {
+              canIdentify = true;
+              canSave = true;
+            }
           }
           break;
 
         case "adalight":
-          canIdentify = true;
-          canSave = true;
+          var output = conf_editor.getEditor("root.specificOptions.output").getValue();
+          if (output !== "NONE" && output !== "SELECT" && output !== "") {
+            canIdentify = true;
+          }
+        case "atmo":
+        case "dmx":
+        case "karate":
+        case "sedu":
+        case "tpm2":
+          var output = conf_editor.getEditor("root.specificOptions.output").getValue();
+          if (output !== "NONE" && output !== "SELECT" && output !== "") {
+            canSave = true;
+          }
           break;
-
         default:
           canIdentify = false;
           canSave = true;
@@ -728,6 +762,11 @@ $(document).ready(function () {
       }
       else {
         $('#btn_test_controller').attr('disabled', true);
+      }
+
+      var hardwareLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue();
+      if (hardwareLedCount < 1) {
+        canSave = false;
       }
 
       if (canSave) {
@@ -753,21 +792,30 @@ $(document).ready(function () {
       var hostList = conf_editor.getEditor("root.specificOptions.hostList")
       if (hostList) {
         var val = hostList.getValue();
+        var showOptions = true;
 
-        if (val === 'NONE') {
-          conf_editor.getEditor(specOptPath + "host").enable()
-        }
-        else {
-          if (val === 'custom' || val === "") {
-            conf_editor.getEditor(specOptPath + "host").enable()
+        switch (val) {
+          case 'CUSTOM':
+          case '':
+            conf_editor.getEditor(specOptPath + "host").enable();
             conf_editor.getEditor(specOptPath + "host").setValue("");
-          }
-          else {
+            break;
+          case 'NONE':
+            conf_editor.getEditor(specOptPath + "host").enable();
+            break;
+          case 'SELECT':
+            conf_editor.getEditor(specOptPath + "host").setValue("");
+            conf_editor.getEditor(specOptPath + "host").disable();
+            showOptions = false;
+            break;
+          default:
             conf_editor.getEditor(specOptPath + "host").disable();
             conf_editor.getEditor(specOptPath + "host").setValue(val);
-          }
+            break;
         }
       }
+
+      showAllDeviceInputOptions("hostList", showOptions);
     });
 
     conf_editor.watch('root.specificOptions.host', () => {
@@ -803,12 +851,12 @@ $(document).ready(function () {
 
     conf_editor.watch('root.specificOptions.output', () => {
       var output = conf_editor.getEditor("root.specificOptions.output").getValue();
-
-      if (output === "NONE" || output === "") {
+      if (output === "NONE" || output === "SELECT" || output === "") {
         conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(1);
-        $('#btn_submit_controller').attr('disabled', true);
+        showAllDeviceInputOptions("output", false);
       }
       else {
+        showAllDeviceInputOptions("output", true);
         let params = {};
         switch (ledType) {
           case "atmo":
@@ -816,9 +864,6 @@ $(document).ready(function () {
             params = { serialPort: output };
             getProperties_device(ledType, output, params);
             break;
-        }
-        if (!window.readOnlyMode) {
-          $('#btn_submit_controller').attr('disabled', false);
         }
       }
     });
@@ -842,6 +887,46 @@ $(document).ready(function () {
         }
 
         getProperties_device(ledType, host, params);
+      }
+    });
+
+    //Yeelight
+    conf_editor.watch('root.specificOptions.lights', () => {
+      //Disable General Options, as LED count will be resolved from number of lights configured
+      conf_editor.getEditor("root.generalOptions").disable();
+
+      var hwLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount")
+      if (hwLedCount) {
+        var lights = conf_editor.getEditor("root.specificOptions.lights").getValue();
+        hwLedCount.setValue(lights.length);
+      }
+    });
+
+    //Philips Hue
+    conf_editor.watch('root.specificOptions.lightIds', () => {
+      //Disable General Options, as LED count will be resolved from number of lights configured
+      conf_editor.getEditor("root.generalOptions").disable();
+
+      var hwLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount")
+      if (hwLedCount) {
+        var lights = conf_editor.getEditor("root.specificOptions.lightIds").getValue();
+        hwLedCount.setValue(lights.length);
+      }
+    });
+
+    //Atmo Orb
+    conf_editor.watch('root.specificOptions.orbIds', () => {
+      //Disable General Options, as LED count will be resolved from number of lights configured
+      conf_editor.getEditor("root.generalOptions").disable();
+
+      var hwLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount")
+      if (hwLedCount) {
+        var lights = 0;
+        var configruedOrbIds = conf_editor.getEditor("root.specificOptions.orbIds").getValue().trim();
+        if (configruedOrbIds.length !== 0) {
+          lights = configruedOrbIds.split(",").map(Number);
+        }
+        hwLedCount.setValue(lights.length);
       }
     });
   });
@@ -1080,6 +1165,7 @@ var updateSelectList = function (ledType, discoveryInfo) {
   var enumVals = [];
   var enumTitelVals = [];
   var enumDefaultVal = "";
+  var addSelect = false;
   var addCustom = false;
 
   var ledTypeGroup;
@@ -1093,6 +1179,8 @@ var updateSelectList = function (ledType, discoveryInfo) {
   } else if ($.inArray(ledType, devSerial) != -1) {
     ledTypeGroup = "devSerial";
   }
+
+  var specOpt = conf_editor.getEditor('root.specificOptions'); // get specificOptions of the editor
 
   switch (ledTypeGroup) {
     case "devNET":
@@ -1158,8 +1246,12 @@ var updateSelectList = function (ledType, discoveryInfo) {
           // Select configured device
           var configuredDeviceType = window.serverConfig.device.type;
           var configuredHost = window.serverConfig.device.hostList;
-          if (ledType === configuredDeviceType && configuredHost) {
+          if (ledType === configuredDeviceType && $.inArray(configuredHost, enumVals) != -1) {
             enumDefaultVal = configuredHost;
+          }
+          else {
+            addSelect = true;
+            addCustom = true;
           }
         }
       }
@@ -1172,6 +1264,7 @@ var updateSelectList = function (ledType, discoveryInfo) {
         enumVals.push("NONE");
         enumTitelVals.push($.i18n('edt_dev_spec_devices_discovered_none'));
         $('#btn_submit_controller').attr('disabled', true);
+        showAllDeviceInputOptions(key, false);
       }
       else {
         switch (ledType) {
@@ -1189,8 +1282,11 @@ var updateSelectList = function (ledType, discoveryInfo) {
             // Select configured device
             var configuredDeviceType = window.serverConfig.device.type;
             var configuredOutput = window.serverConfig.device.output;
-            if (ledType === configuredDeviceType && configuredOutput) {
+            if (ledType === configuredDeviceType && $.inArray(configuredOutput, enumVals) != -1) {
               enumDefaultVal = configuredOutput;
+            }
+            else {
+              addSelect = true;
             }
 
             break;
@@ -1202,8 +1298,7 @@ var updateSelectList = function (ledType, discoveryInfo) {
   }
 
   if (enumVals.length > 0) {
-    var specOpt = conf_editor.getEditor('root.specificOptions'); // get specificOptions of the editor
-    updateJsonEditorSelection(specOpt, key, addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, addCustom);
+    updateJsonEditorSelection(specOpt, key, addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, addSelect, addCustom);
   }
 }
 
@@ -1220,6 +1315,7 @@ async function discover_device(ledType, params) {
       ledDevicetype: ledType
     }
   }
+
   updateSelectList(ledType, discoveryResult);
 }
 
@@ -1321,4 +1417,25 @@ function updateElements(ledType, key) {
       default:
     }
   }
+}
+
+function showInputOptions(path, elements, state) {
+  for (var i = 0; i < elements.length; i++) {
+    $('[data-schemapath="' + path + '.' + elements[i] + '"]').toggle(state);
+  }
+}
+
+function showInputOptionsForKey(editor, item, showForKey, state) {
+  var elements = [];
+  for (var key in editor.schema.properties[item].properties) {
+    if (showForKey !== key) {
+      elements.push(key);
+    }
+  }
+  showInputOptions("root." + item, elements, state);
+}
+
+function showAllDeviceInputOptions(showForKey, state) {
+  showInputOptionsForKey(conf_editor, "generalOptions", showForKey, state);
+  showInputOptionsForKey(conf_editor, "specificOptions", showForKey, state);
 }

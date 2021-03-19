@@ -53,7 +53,7 @@ function updateSessions() {
   if (sess && sess.length) {
     window.wSess = [];
     for (var i = 0; i < sess.length; i++) {
-      if ( sess[i].type == "_http._tcp." || sess[i].type == "_https._tcp." || sess[i].type == "_hyperiond-http._tcp." ) {
+      if (sess[i].type == "_http._tcp." || sess[i].type == "_https._tcp." || sess[i].type == "_hyperiond-http._tcp.") {
         window.wSess.push(sess[i]);
       }
     }
@@ -89,11 +89,13 @@ function loadContent(event, forceRefresh) {
 
   var lastSelectedInstance = getStorage('lastSelectedInstance', false);
 
-  if (lastSelectedInstance && (lastSelectedInstance != window.currentHyperionInstance))
-    if (typeof (window.serverInfo.instance[lastSelectedInstance].running) !== 'undefined' && window.serverInfo.instance[lastSelectedInstance].running)
+  if (lastSelectedInstance && (lastSelectedInstance != window.currentHyperionInstance)) {
+    if (window.serverInfo.instance[lastSelectedInstance] && window.serverInfo.instance[lastSelectedInstance].running) {
       instanceSwitch(lastSelectedInstance);
-    else
+    } else {
       removeStorage('lastSelectedInstance', false);
+    }
+  }
 
   if (typeof event != "undefined") {
     tag = event.currentTarget.hash;
@@ -181,8 +183,6 @@ function initLanguageSelection() {
       langText = availLangText[langIdx];
     }
   }
-  //console.log("langLocale: ", langLocale, "langText: ", langText);
-
   $('#language-select').prop('title', langText);
   $("#language-select").val(langIdx);
   $("#language-select").selectpicker("refresh");
@@ -420,53 +420,48 @@ function isJsonString(str) {
   return "";
 }
 
-function createJsonEditor(container,schema,setconfig,usePanel,arrayre)
-{
-	$('#'+container).off();
-	$('#'+container).html("");
+function createJsonEditor(container, schema, setconfig, usePanel, arrayre) {
+  $('#' + container).off();
+  $('#' + container).html("");
 
-	if (typeof arrayre === 'undefined')
-		arrayre = true;
+  if (typeof arrayre === 'undefined')
+    arrayre = true;
 
-	var editor = new JSONEditor(document.getElementById(container),
-	{
-		theme: 'bootstrap3',
-		iconlib: "fontawesome4",
-		disable_collapse: 'true',
-		form_name_root: 'sa',
-		disable_edit_json: true,
-		disable_properties: true,
-		disable_array_reorder: arrayre,
-		no_additional_properties: true,
-		disable_array_delete_all_rows: true,
-		disable_array_delete_last_row: true,
-		access: storedAccess,
-		schema: {
-			title:'',
-			properties: schema
-		}
-	});
+  var editor = new JSONEditor(document.getElementById(container),
+    {
+      theme: 'bootstrap3',
+      iconlib: "fontawesome4",
+      disable_collapse: 'true',
+      form_name_root: 'sa',
+      disable_edit_json: true,
+      disable_properties: true,
+      disable_array_reorder: arrayre,
+      no_additional_properties: true,
+      disable_array_delete_all_rows: true,
+      disable_array_delete_last_row: true,
+      access: storedAccess,
+      schema: {
+        title: '',
+        properties: schema
+      }
+    });
 
-	if(usePanel)
-	{
-		$('#'+container+' .well').first().removeClass('well well-sm');
-		$('#'+container+' h4').first().remove();
-		$('#'+container+' .well').first().removeClass('well well-sm');
-	}
+  if (usePanel) {
+    $('#' + container + ' .well').first().removeClass('well well-sm');
+    $('#' + container + ' h4').first().remove();
+    $('#' + container + ' .well').first().removeClass('well well-sm');
+  }
 
-	if (setconfig)
-	{
-		for(var key in editor.root.editors)
-		{
-			editor.getEditor("root."+key).setValue(Object.assign({}, editor.getEditor("root."+key).value, window.serverConfig[key] ));
-		}
-	}
+  if (setconfig) {
+    for (var key in editor.root.editors) {
+      editor.getEditor("root." + key).setValue(Object.assign({}, editor.getEditor("root." + key).value, window.serverConfig[key]));
+    }
+  }
 
-	return editor;
+  return editor;
 }
 
-function updateJsonEditorSelection(editor, key, addElements, newEnumVals, newTitelVals, newDefaultVal, addCustom) {
-
+function updateJsonEditorSelection(editor, key, addElements, newEnumVals, newTitelVals, newDefaultVal, addSelect, addCustom, addCustomAsFirst, customText) {
   var orginalProperties = editor.schema.properties[key];
 
   var newSchema = [];
@@ -499,13 +494,33 @@ function updateJsonEditorSelection(editor, key, addElements, newEnumVals, newTit
   }
 
   if (addCustom) {
-    newEnumVals.push("custom");
-    newTitelVals.push("edt_conf_enum_custom");
+
+    if (newTitelVals.length === 0) {
+      newTitelVals = [...newEnumVals];
+    }
+
+    if (!!!customText) {
+      customText = "edt_conf_enum_custom";
+    }
+
+    if (addCustomAsFirst) {
+      newEnumVals.unshift("CUSTOM");
+      newTitelVals.unshift(customText);
+    } else {
+      newEnumVals.push("CUSTOM");
+      newTitelVals.push(customText);
+    }
 
     if (newSchema[key].options.infoText) {
       var customInfoText = newSchema[key].options.infoText + "_custom";
       newSchema[key].options.infoText = customInfoText;
     }
+  }
+
+  if (addSelect) {
+    newEnumVals.unshift("SELECT");
+    newTitelVals.unshift("edt_conf_enum_please_select");
+    newDefaultVal = "SELECT";
   }
 
   if (newEnumVals) {
@@ -528,7 +543,6 @@ function updateJsonEditorSelection(editor, key, addElements, newEnumVals, newTit
 }
 
 function updateJsonEditorMultiSelection(editor, key, addElements, newEnumVals, newTitelVals, newDefaultVal) {
-
   var orginalProperties = editor.schema.properties[key];
 
   var newSchema = [];
@@ -573,8 +587,34 @@ function updateJsonEditorMultiSelection(editor, key, addElements, newEnumVals, n
     newSchema[key]["items"]["options"]["enum_titles"] = newTitelVals;
   }
 
-   if (newDefaultVal) {
+  if (newDefaultVal) {
     newSchema[key]["default"] = newDefaultVal;
+  }
+
+  editor.original_schema.properties[key] = orginalProperties;
+  editor.schema.properties[key] = newSchema[key];
+
+  editor.removeObjectProperty(key);
+  delete editor.cached_editors[key];
+  editor.addObjectProperty(key);
+}
+
+function updateJsonEditorRange(editor, key, minimum, maximum, defaultValue, step) {
+  var orginalProperties = editor.schema.properties[key];
+  var newSchema = [];
+  newSchema[key] = orginalProperties;
+
+  if (minimum) {
+    newSchema[key]["minimum"] = minimum;
+  }
+  if (maximum) {
+    newSchema[key]["maximum"] = maximum;
+  }
+  if (defaultValue) {
+    newSchema[key]["default"] = defaultValue;
+  }
+  if (step) {
+    newSchema[key]["step"] = step;
   }
 
   editor.original_schema.properties[key] = orginalProperties;
@@ -775,6 +815,48 @@ function createOptPanel(phicon, phead, bodyid, footerid) {
   pfooter.innerHTML = '<i class="fa fa-fw fa-save"></i>' + $.i18n('general_button_savesettings');
 
   return createPanel(phead, "", pfooter, "panel-default", bodyid);
+}
+
+function compareTwoValues(key1, key2, order = 'asc') {
+  return function innerSort(a, b) {
+    if (!a.hasOwnProperty(key1) || !b.hasOwnProperty(key1)) {
+      // property key1 doesn't exist on either object
+      return 0;
+    }
+
+    const varA1 = (typeof a[key1] === 'string')
+      ? a[key1].toUpperCase() : a[key1];
+    const varB1 = (typeof b[key1] === 'string')
+      ? b[key1].toUpperCase() : b[key1];
+
+    let comparison = 0;
+    if (varA1 > varB1) {
+      comparison = 1;
+    } else {
+      if (varA1 < varB1) {
+        comparison = -1;
+      } else {
+        if (!a.hasOwnProperty(key2) || !b.hasOwnProperty(key2)) {
+          // property key2 doesn't exist on either object
+          return 0;
+        }
+
+        const varA2 = (typeof a[key2] === 'string')
+          ? a[key2].toUpperCase() : a[key2];
+        const varB2 = (typeof b[key1] === 'string')
+          ? b[key2].toUpperCase() : b[key2];
+
+        if (varA2 > varB2) {
+          comparison = 1;
+        } else {
+          comparison = -1;
+        }
+      }
+    }
+    return (
+      (order === 'desc') ? (comparison * -1) : comparison
+    );
+  };
 }
 
 function sortProperties(list) {
