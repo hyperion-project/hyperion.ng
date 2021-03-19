@@ -233,6 +233,32 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 			migrated = true;
 			Debug(_log,"LED Layout migrated");
 		}
+
+		if (config.contains("device"))
+		{
+			QJsonObject newDeviceConfig = config["device"].toObject();
+
+			if (newDeviceConfig.contains("hardwareLedCount"))
+			{
+				int hwLedcount = newDeviceConfig["hardwareLedCount"].toInt();
+				if (config.contains("leds"))
+				{
+					const QJsonArray ledarr = config["leds"].toArray();
+					int layoutLedCount = ledarr.size();
+
+					if (hwLedcount < layoutLedCount )
+					{
+						Warning(_log, "HwLedCount/Layout mismatch! Setting Hardware LED count to number of LEDs configured via layout");
+						hwLedcount = layoutLedCount;
+						newDeviceConfig["hardwareLedCount"] = hwLedcount;
+
+						config["device"] = newDeviceConfig;
+						migrated = true;
+					}
+				}
+			}
+		}
+
 	}
 	return migrated;
 }
