@@ -869,7 +869,7 @@
     "wiz_cc_chooseid": "Wähle einen Namen für dieses Farb-Profil.",
     "wiz_cc_intro1": "Der Assistent wird dich durch die Kalibrierung deiner LEDs leiten. Sofern du Kodi nutzt, können die Bilder und Testvideos direkt an Kodi geschickt werden. Andernfalls musst du das Material selbst herunterladen und anwenden.",
     "wiz_cc_kodicon": "Kodi Webserver gefunden, fahre mit Kodi-Unterstützung fort.",
-    "wiz_cc_kodidiscon": "Kodi Webserver nicht gefunden, fahre ohne Kodi-Unterstützung fort.",
+    "wiz_cc_kodidiscon": "Kodi Webserver nicht gefunden, fahre ohne Kodi-Unterstützung fort (prüfe, ob Fernsteuerung durch Programme auf anderen Rechnern erlaubt ist).",
     "wiz_cc_kodidisconlink": "Download Link Bilder:",
     "wiz_cc_kodimsg_start": "Test bestanden - Zeit zu beginnen",
     "wiz_cc_kodishould": "Kodi sollte jetzt folgendes Bild anzeigen: $1",

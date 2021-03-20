@@ -54,6 +54,9 @@ public:
 		QString owner;
 	};
 
+	//Foreground and Background priorities
+	const static int FG_PRIORITY;
+	const static int BG_PRIORITY;
 	/// The lowest possible priority, which is used when no priority channels are active
 	const static int LOWEST_PRIORITY;
 

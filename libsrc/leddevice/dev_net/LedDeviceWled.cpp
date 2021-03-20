@@ -1,7 +1,6 @@
 // Local-Hyperion includes
 #include "LedDeviceWled.h"
 
-#include <ssdp/SSDPDiscover.h>
 #include <utils/QStringUtils.h>
 #include <utils/WaitTime.h>
 #include <QThread>

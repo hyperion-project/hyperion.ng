@@ -114,6 +114,25 @@ QJsonDocument SettingsManager::getSetting(settings::type type) const
 	return _sTable->getSettingsRecord(settings::typeToString(type));
 }
 
+QJsonObject SettingsManager::getSettings() const
+{
+	QJsonObject config;
+	for(const auto & key : _qconfig.keys())
+	{
+		//Read all records from database to ensure that global settings are read across instances
+		QJsonDocument doc = _sTable->getSettingsRecord(key);
+		if(doc.isArray())
+		{
+			config.insert(key, doc.array());
+		}
+		else
+		{
+			config.insert(key, doc.object());
+		}
+	}
+	return config;
+}
+
 bool SettingsManager::saveSettings(QJsonObject config, bool correct)
 {
 	// optional data upgrades e.g. imported legacy/older configs
@@ -259,6 +278,19 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 			}
 		}
 
+	}
+
+	if (config.contains("grabberV4L2"))
+	{
+		QJsonObject newGrabberV4L2Config = config["grabberV4L2"].toObject();
+
+		if (newGrabberV4L2Config.contains("encoding_format"))
+		{
+			newGrabberV4L2Config.remove("encoding_format");
+			config["grabberV4L2"] = newGrabberV4L2Config;
+			migrated = true;
+			Debug(_log, "GrabberV4L2 Layout migrated");
+		}
 	}
 	return migrated;
 }

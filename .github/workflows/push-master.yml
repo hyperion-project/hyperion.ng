@@ -146,43 +146,6 @@ jobs:
         with:
           path: build/Hyperion-*
 
-######################
-#### Documentation ###
-######################
-
-  Docs:
-    name: Documentation
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: docs
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      # Install dependencies
-      - name: Setup node 12
-        uses: actions/setup-node@v1
-        with:
-          node-version: '12'
-
-      # Build Docs
-      - name: Build docs
-        run: |
-          cd docs
-          npm install -g yarn
-          yarn install
-          yarn docs:build
-
-      # Deploy to gh-pages (only on tagged commit)
-      - name: Deploy to gh-pages
-        if: startsWith(github.event.ref, 'refs/tags')
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs/dist
-          cname: docs.hyperion-project.org
-
 ################################
 ###### Publish Releases ########
 ################################
@@ -190,7 +153,7 @@ jobs:
   publish:
     name: Publish Releases
     if: startsWith(github.event.ref, 'refs/tags')
-    needs: [Linux, macOS, windows, Docs]
+    needs: [Linux, macOS, windows]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

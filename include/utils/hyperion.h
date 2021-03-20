@@ -7,6 +7,7 @@
 #include <hyperion/LedString.h>
 // fg effect
 #include <hyperion/Hyperion.h>
+#include <hyperion/PriorityMuxer.h>
 
 ///
 /// @brief Provide utility methods for Hyperion class
@@ -16,7 +17,6 @@ namespace hyperion {
 	void handleInitialEffect(Hyperion* hyperion, const QJsonObject& FGEffectConfig)
 	{
 		#define FGCONFIG_ARRAY fgColorConfig.toArray()
-		const int FG_PRIORITY = 0;
 		const int DURATION_INFINITY = 0;
 
 		// initial foreground effect/color
@@ -41,12 +41,12 @@ namespace hyperion {
 						static_cast<uint8_t>(FGCONFIG_ARRAY.at(2).toInt(0))
 					}
 				};
-				hyperion->setColor(FG_PRIORITY, fg_color, fg_duration_ms);
+				hyperion->setColor(PriorityMuxer::FG_PRIORITY, fg_color, fg_duration_ms);
 				Info(Logger::getInstance("HYPERION"),"Initial foreground color set (%d %d %d)",fg_color.at(0).red,fg_color.at(0).green,fg_color.at(0).blue);
 			}
 			else
 			{
-				int result = hyperion->setEffect(fgEffectConfig, FG_PRIORITY, fg_duration_ms);
+				int result = hyperion->setEffect(fgEffectConfig, PriorityMuxer::FG_PRIORITY, fg_duration_ms);
 				Info(Logger::getInstance("HYPERION"),"Initial foreground effect '%s' %s", QSTRING_CSTR(fgEffectConfig), ((result == 0) ? "started" : "failed"));
 			}
 		}

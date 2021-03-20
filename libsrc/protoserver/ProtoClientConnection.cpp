@@ -1,11 +1,12 @@
-// project includes
-#include "ProtoClientConnection.h"
-
 // qt
 #include <QTcpSocket>
 #include <QHostAddress>
 #include <QTimer>
 #include <QRgb>
+
+// project includes
+#include "ProtoClientConnection.h"
+
 
 // TODO Remove this class if third-party apps have been migrated (eg. Hyperion Android Grabber, Windows Screen grabber etc.)
 

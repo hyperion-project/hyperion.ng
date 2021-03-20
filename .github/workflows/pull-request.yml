@@ -188,30 +188,3 @@ jobs:
         with:
           name: windows
           path: windows
-
-######################
-#### Documentation ###
-######################
-
-  docs:
-    name: Documentation
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: docs
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      # Install dependencies
-      - name: Setup node 12
-        uses: actions/setup-node@v1
-        with:
-          node-version: '12'
-
-      # Build Docs
-      - name: Build docs
-        run: |
-          npm install -g yarn
-          yarn install
-          yarn docs:build

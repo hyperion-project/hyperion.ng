@@ -183,6 +183,7 @@ function initLanguageSelection() {
       langText = availLangText[langIdx];
     }
   }
+
   $('#language-select').prop('title', langText);
   $("#language-select").val(langIdx);
   $("#language-select").selectpicker("refresh");
