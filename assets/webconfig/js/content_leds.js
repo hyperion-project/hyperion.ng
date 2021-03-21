@@ -970,7 +970,11 @@ $(document).ready(function () {
   $("#leddevices").append(createSel(optArr[2], $.i18n('conf_leds_optgroup_RPiGPIO')));
   $("#leddevices").append(createSel(optArr[3], $.i18n('conf_leds_optgroup_network')));
   $("#leddevices").append(createSel(optArr[4], $.i18n('conf_leds_optgroup_usb')));
-  $("#leddevices").append(createSel(optArr[5], $.i18n('conf_leds_optgroup_debug')));
+
+  if (storedAccess === 'expert' || window.serverConfig.device.type === "file" ) {
+    $("#leddevices").append(createSel(optArr[5], $.i18n('conf_leds_optgroup_other')));
+  }
+
   $("#leddevices").val(window.serverConfig.device.type);
   $("#leddevices").trigger("change");
 
