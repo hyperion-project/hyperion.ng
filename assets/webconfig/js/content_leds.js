@@ -677,7 +677,8 @@ $(document).ready(function () {
         case "sk6812spi":
         case "sk6822spi":
         case "sk9822":
-        case "ws2812spi":        
+        case "ws2812spi":
+        case "piblaster":
           discover_device(ledType);
           hwLedCountDefault = 1;
           colorOrderDefault = "rgb";
@@ -773,6 +774,7 @@ $(document).ready(function () {
         case "sk6822spi":
         case "sk9822":
         case "ws2812spi":
+        case "piblaster":
           var output = conf_editor.getEditor("root.specificOptions.output").getValue();
           if (output !== "NONE" && output !== "SELECT" && output !== "") {
             canSave = true;
@@ -1161,6 +1163,7 @@ function saveLedConfig(genDefLayout = false) {
     case "sk6822spi":
     case "sk9822":
     case "ws2812spi":
+    case "piblaster":
     default:
       if (genDefLayout === true) {
         ledConfig = {
@@ -1213,6 +1216,8 @@ var updateSelectList = function (ledType, discoveryInfo) {
     ledTypeGroup = "devSerial";
   } else if ($.inArray(ledType, devRPiSPI) != -1) {
     ledTypeGroup = "devRPiSPI";
+  } else if ($.inArray(ledType, devRPiGPIO) != -1) {
+    ledTypeGroup = "devRPiGPIO";
   }
 
   var specOpt = conf_editor.getEditor('root.specificOptions'); // get specificOptions of the editor
@@ -1330,6 +1335,7 @@ var updateSelectList = function (ledType, discoveryInfo) {
       }
       break;
     case "devRPiSPI":
+    case "devRPiGPIO":
       key = "output";
 
       if (discoveryInfo.devices.length == 0) {
@@ -1350,6 +1356,7 @@ var updateSelectList = function (ledType, discoveryInfo) {
           case "sk6822spi":
           case "sk9822":
           case "ws2812spi":
+          case "piblaster":
             for (const device of discoveryInfo.devices) {
               enumVals.push(device.systemLocation);
               enumTitelVals.push(device.deviceName + " (" + device.systemLocation + ")");
