@@ -3,6 +3,13 @@ var finalLedArray = [];
 var conf_editor = null;
 var aceEdt = null;
 
+var devRPiSPI = ['apa102', 'apa104', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'sk6822spi', 'sk9822', 'ws2812spi'];
+var devRPiPWM = ['ws281x'];
+var devRPiGPIO = ['piblaster'];
+var devNET = ['atmoorb', 'cololight', 'fadecandy', 'philipshue', 'nanoleaf', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udph801', 'udpraw', 'wled', 'yeelight'];
+var devSerial = ['adalight', 'dmx', 'atmo', 'sedu', 'tpm2', 'karate'];
+var devHID = ['hyperionusbasp', 'lightpack', 'paintpack', 'rawhid'];
+
 function round(number) {
   var factor = Math.pow(10, 4);
   var tempNumber = number * factor;
@@ -661,6 +668,16 @@ $(document).ready(function () {
         case "karate":
         case "sedu":
         case "tpm2":
+        case "apa102":
+        case "apa104":
+        case "ws2801":
+        case "lpd6803":
+        case "lpd8806":
+        case "p9813":
+        case "sk6812spi":
+        case "sk6822spi":
+        case "sk9822":
+        case "ws2812spi":        
           discover_device(ledType);
           hwLedCountDefault = 1;
           colorOrderDefault = "rgb";
@@ -746,6 +763,16 @@ $(document).ready(function () {
         case "karate":
         case "sedu":
         case "tpm2":
+        case "apa102":
+        case "apa104":
+        case "ws2801":
+        case "lpd6803":
+        case "lpd8806":
+        case "p9813":
+        case "sk6812spi":
+        case "sk6822spi":
+        case "sk9822":
+        case "ws2812spi":
           var output = conf_editor.getEditor("root.specificOptions.output").getValue();
           if (output !== "NONE" && output !== "SELECT" && output !== "") {
             canSave = true;
@@ -936,12 +963,6 @@ $(document).ready(function () {
 
   // create led device selection
   var ledDevices = window.serverInfo.ledDevices.available;
-  var devRPiSPI = ['apa102', 'apa104', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'sk6822spi', 'sk9822', 'ws2812spi'];
-  var devRPiPWM = ['ws281x'];
-  var devRPiGPIO = ['piblaster'];
-
-  var devNET = ['atmoorb', 'cololight', 'fadecandy', 'philipshue', 'nanoleaf', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udph801', 'udpraw', 'wled', 'yeelight'];
-  var devUSB = ['adalight', 'dmx', 'atmo', 'hyperionusbasp', 'lightpack', 'paintpack', 'rawhid', 'sedu', 'tpm2', 'karate'];
 
   var optArr = [[]];
   optArr[1] = [];
@@ -959,7 +980,9 @@ $(document).ready(function () {
       optArr[2].push(ledDevices[idx]);
     else if ($.inArray(ledDevices[idx], devNET) != -1)
       optArr[3].push(ledDevices[idx]);
-    else if ($.inArray(ledDevices[idx], devUSB) != -1)
+    else if ($.inArray(ledDevices[idx], devSerial) != -1)
+      optArr[4].push(ledDevices[idx]);
+    else if ($.inArray(ledDevices[idx], devHID) != -1)
       optArr[4].push(ledDevices[idx]);
     else
       optArr[5].push(ledDevices[idx]);
@@ -1128,6 +1151,16 @@ function saveLedConfig(genDefLayout = false) {
     case "karate":
     case "sedu":
     case "tpm2":
+    case "apa102":
+    case "apa104":
+    case "ws2801":
+    case "lpd6803":
+    case "lpd8806":
+    case "p9813":
+    case "sk6812spi":
+    case "sk6822spi":
+    case "sk9822":
+    case "ws2812spi":
     default:
       if (genDefLayout === true) {
         ledConfig = {
@@ -1174,14 +1207,12 @@ var updateSelectList = function (ledType, discoveryInfo) {
 
   var ledTypeGroup;
 
-  var devNET = ['atmoorb', 'cololight', 'fadecandy', 'philipshue', 'nanoleaf', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udph801', 'udpraw', 'wled', 'yeelight'];
-  var devSerial = ['adalight', 'dmx', 'atmo', 'sedu', 'tpm2', 'karate'];
-  //var devHID = ['hyperionusbasp', 'lightpack', 'paintpack', 'rawhid',];
-
   if ($.inArray(ledType, devNET) != -1) {
     ledTypeGroup = "devNET";
   } else if ($.inArray(ledType, devSerial) != -1) {
     ledTypeGroup = "devSerial";
+  } else if ($.inArray(ledType, devRPiSPI) != -1) {
+    ledTypeGroup = "devRPiSPI";
   }
 
   var specOpt = conf_editor.getEditor('root.specificOptions'); // get specificOptions of the editor
@@ -1281,6 +1312,47 @@ var updateSelectList = function (ledType, discoveryInfo) {
             for (const device of discoveryInfo.devices) {
               enumVals.push(device.portName);
               enumTitelVals.push(device.portName + " (" + device.vendorIdentifier + "|" + device.productIdentifier + ") - " + device.manufacturer);
+            }
+
+            // Select configured device
+            var configuredDeviceType = window.serverConfig.device.type;
+            var configuredOutput = window.serverConfig.device.output;
+            if (ledType === configuredDeviceType && $.inArray(configuredOutput, enumVals) != -1) {
+              enumDefaultVal = configuredOutput;
+            }
+            else {
+              addSelect = true;
+            }
+
+            break;
+          default:
+        }
+      }
+      break;
+    case "devRPiSPI":
+      key = "output";
+
+      if (discoveryInfo.devices.length == 0) {
+        enumVals.push("NONE");
+        enumTitelVals.push($.i18n('edt_dev_spec_devices_discovered_none'));
+        $('#btn_submit_controller').attr('disabled', true);
+        showAllDeviceInputOptions(key, false);
+      }
+      else {
+        switch (ledType) {
+          case "apa102":
+          case "apa104":
+          case "ws2801":
+          case "lpd6803":
+          case "lpd8806":
+          case "p9813":
+          case "sk6812spi":
+          case "sk6822spi":
+          case "sk9822":
+          case "ws2812spi":
+            for (const device of discoveryInfo.devices) {
+              enumVals.push(device.systemLocation);
+              enumTitelVals.push(device.deviceName + " (" + device.systemLocation + ")");
             }
 
             // Select configured device

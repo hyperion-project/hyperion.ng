@@ -519,7 +519,7 @@
     "edt_dev_spec_restoreOriginalState_title": "Restore lights' state",
     "edt_dev_spec_restoreOriginalState_title_info": "Restore the device's original state when device is disabled",
     "edt_dev_spec_serial_title": "Serial number",
-    "edt_dev_spec_spipath_title": "SPI path",
+    "edt_dev_spec_spipath_title": "SPI Device",
     "edt_dev_spec_sslHSTimeoutMax_title": "Streamer handshake timeout maximum",
     "edt_dev_spec_sslHSTimeoutMin_title": "Streamer handshake timeout minimum",
     "edt_dev_spec_sslReadTimeout_title": "Streamer read timeout",

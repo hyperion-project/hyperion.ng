@@ -14,6 +14,19 @@
 #include "ProviderSpi.h"
 #include <utils/Logger.h>
 
+// qt includes
+#include <QDir>
+
+// Constants
+namespace {
+	const bool verbose = false;
+
+	// SPI discovery service
+	const char DISCOVERY_DIRECTORY[] = "/dev/";
+	const char DISCOVERY_FILEPATTERN[] = "spidev*";
+
+} //End of constants
+
 ProviderSpi::ProviderSpi(const QJsonObject &deviceConfig)
 	: LedDevice(deviceConfig)
 	, _deviceName("/dev/spidev0.0")
@@ -147,4 +160,32 @@ int ProviderSpi::writeBytes(unsigned size, const uint8_t * data)
 	ErrorIf((retVal < 0), _log, "SPI failed to write. errno: %d, %s", errno,  strerror(errno) );
 
 	return retVal;
+}
+
+QJsonObject ProviderSpi::discover(const QJsonObject& /*params*/)
+{
+	QJsonObject devicesDiscovered;
+	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );
+
+	QJsonArray deviceList;
+
+	QDir deviceDirectory (DISCOVERY_DIRECTORY);
+	QStringList deviceFilter(DISCOVERY_FILEPATTERN);
+	deviceDirectory.setNameFilters(deviceFilter);
+	deviceDirectory.setSorting(QDir::Name);
+	QFileInfoList deviceFiles = deviceDirectory.entryInfoList(QDir::System);
+
+	QFileInfoList::const_iterator deviceFileIterator;
+	for (deviceFileIterator = deviceFiles.constBegin(); deviceFileIterator != deviceFiles.constEnd(); ++deviceFileIterator)
+	{
+		QJsonObject deviceInfo;
+		deviceInfo.insert("deviceName", (*deviceFileIterator).fileName().remove(6));
+		deviceInfo.insert("systemLocation", (*deviceFileIterator).absoluteFilePath());
+		deviceList.append(deviceInfo);
+	}
+	devicesDiscovered.insert("devices", deviceList);
+
+	DebugIf(verbose,_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+
+	return devicesDiscovered;
 }
