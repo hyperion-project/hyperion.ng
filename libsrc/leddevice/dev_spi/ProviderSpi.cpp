@@ -179,7 +179,7 @@ QJsonObject ProviderSpi::discover(const QJsonObject& /*params*/)
 	for (deviceFileIterator = deviceFiles.constBegin(); deviceFileIterator != deviceFiles.constEnd(); ++deviceFileIterator)
 	{
 		QJsonObject deviceInfo;
-		deviceInfo.insert("deviceName", (*deviceFileIterator).fileName().remove(6));
+		deviceInfo.insert("deviceName", (*deviceFileIterator).fileName().remove(0,6));
 		deviceInfo.insert("systemLocation", (*deviceFileIterator).absoluteFilePath());
 		deviceList.append(deviceInfo);
 	}
