@@ -1,354 +1,342 @@
 var instNameInit = false
 
 $(document).ready(function () {
+  var darkModeOverwrite = getStorage("darkModeOverwrite", true);
 
-	var darkModeOverwrite = getStorage("darkModeOverwrite", true);
+  if (darkModeOverwrite == "false" || darkModeOverwrite == null) {
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      handleDarkMode();
+    }
 
-	if(darkModeOverwrite == "false" || darkModeOverwrite == null)
-	{
-		if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-			handleDarkMode();
-		}
-	
-		if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-			setStorage("darkMode", "off", false);
-		}
-	}
-	
-	if(getStorage("darkMode", false) == "on")
-	{
-		handleDarkMode();
-	}
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+      setStorage("darkMode", "off", false);
+    }
+  }
 
-	loadContentTo("#container_connection_lost", "connection_lost");
-	loadContentTo("#container_restart", "restart");
-	initWebSocket();
+  if (getStorage("darkMode", false) == "on") {
+    handleDarkMode();
+  }
 
-	$(window.hyperion).on("cmd-serverinfo", function (event) {
-		window.serverInfo = event.response.info;
-		
-		window.readOnlyMode = window.sysInfo.hyperion.readOnlyMode;
-	
-		// comps
-		window.comps = event.response.info.components
+  loadContentTo("#container_connection_lost", "connection_lost");
+  loadContentTo("#container_restart", "restart");
+  initWebSocket();
 
-		$(window.hyperion).trigger("ready");
+  $(window.hyperion).on("cmd-serverinfo", function (event) {
+    window.serverInfo = event.response.info;
 
-		window.comps.forEach(function (obj) {
-			if (obj.name == "ALL") {
-				if (obj.enabled)
-					$("#hyperion_disabled_notify").fadeOut("fast");
-				else
-					$("#hyperion_disabled_notify").fadeIn("fast");
-			}
-		});
+    // comps
+    window.comps = event.response.info.components
 
-		// determine button visibility
-		var running = window.serverInfo.instance.filter(entry => entry.running);
-		if (running.length > 1)
-			$('#btn_hypinstanceswitch').toggle(true)
-		else
-			$('#btn_hypinstanceswitch').toggle(false)
-		// update listing at button
-		updateHyperionInstanceListing()
-		if (!instNameInit) {
-			window.currentHyperionInstanceName = getInstanceNameByIndex(0);
-			instNameInit = true;
-		}
+    $(window.hyperion).trigger("ready");
 
-		updateSessions();
-	}); // end cmd-serverinfo
+    window.comps.forEach(function (obj) {
+      if (obj.name == "ALL") {
+        if (obj.enabled)
+          $("#hyperion_disabled_notify").fadeOut("fast");
+        else
+          $("#hyperion_disabled_notify").fadeIn("fast");
+      }
+    });
 
-	// Update language selection
-	$("#language-select").on('changed.bs.select',function (e, clickedIndex, isSelected, previousValue){
-   	    var newLang = availLang[clickedIndex-1];
-	    if (newLang !== storedLang)
-	    {
-	    	setStorage("langcode", newLang);
-			reload();
-	    }
-	});
+    // determine button visibility
+    var running = window.serverInfo.instance.filter(entry => entry.running);
+    if (running.length > 1)
+      $('#btn_hypinstanceswitch').toggle(true)
+    else
+      $('#btn_hypinstanceswitch').toggle(false)
+    // update listing at button
+    updateHyperionInstanceListing()
+    if (!instNameInit) {
+      window.currentHyperionInstanceName = getInstanceNameByIndex(0);
+      instNameInit = true;
+    }
 
-	$("#language-select").selectpicker(
-	{
-		container: 'body'
-	});
+    updateSessions();
+  }); // end cmd-serverinfo
 
-	$(".bootstrap-select").click(function () {
-		$(this).addClass("open");
-	});
+  // Update language selection
+  $("#language-select").on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {
+    var newLang = availLang[clickedIndex - 1];
+    if (newLang !== storedLang) {
+      setStorage("langcode", newLang);
+      reload();
+    }
+  });
 
-	$(document).click(function(){
-		$(".bootstrap-select").removeClass("open");
-	});
+  $("#language-select").selectpicker(
+    {
+      container: 'body'
+    });
 
-	$(".bootstrap-select").click(function(e){
-		e.stopPropagation();
-	});
-	
-	//End language selection
-	
-	$(window.hyperion).on("cmd-sessions-update", function (event) {
-		window.serverInfo.sessions = event.response.data;
-		updateSessions();
-	});
+  $(".bootstrap-select").click(function () {
+    $(this).addClass("open");
+  });
 
-	$(window.hyperion).on("cmd-authorize-tokenRequest cmd-authorize-getPendingTokenRequests", function (event) {
-		var val = event.response.info;
-		if (Array.isArray(event.response.info)) {
-			if (event.response.info.length == 0) {
-				return
-			}
-			val = event.response.info[0]
-			if (val.comment == '')
-				$('#modal_dialog').modal('hide');
-		}
+  $(document).click(function () {
+    $(".bootstrap-select").removeClass("open");
+  });
 
-		showInfoDialog("grantToken", $.i18n('conf_network_tok_grantT'), $.i18n('conf_network_tok_grantMsg') + '<br><span style="font-weight:bold">App: ' + val.comment + '</span><br><span style="font-weight:bold">Code: ' + val.id + '</span>')
-		$("#tok_grant_acc").off().on('click', function () {
-			tokenList.push(val)
-			// forward event, in case we need to rebuild the list now
-			$(window.hyperion).trigger({ type: "build-token-list" });
-			requestHandleTokenRequest(val.id, true)
-		});
-		$("#tok_deny_acc").off().on('click', function () {
-			requestHandleTokenRequest(val.id, false)
-		});
-	});
+  $(".bootstrap-select").click(function (e) {
+    e.stopPropagation();
+  });
 
-	$(window.hyperion).one("cmd-authorize-getTokenList", function (event) {
-		tokenList = event.response.info;
-		requestServerInfo();
-	});
+  //End language selection
 
-	$(window.hyperion).on("cmd-sysinfo", function (event) {
-		requestServerInfo();
-		window.sysInfo = event.response.info;
+  $(window.hyperion).on("cmd-sessions-update", function (event) {
+    window.serverInfo.sessions = event.response.data;
+    updateSessions();
+  });
 
-		window.currentVersion = window.sysInfo.hyperion.version;
-		window.currentChannel = window.sysInfo.hyperion.channel;
-	});
+  $(window.hyperion).on("cmd-authorize-tokenRequest cmd-authorize-getPendingTokenRequests", function (event) {
+    var val = event.response.info;
+    if (Array.isArray(event.response.info)) {
+      if (event.response.info.length == 0) {
+        return
+      }
+      val = event.response.info[0]
+      if (val.comment == '')
+        $('#modal_dialog').modal('hide');
+    }
 
-	$(window.hyperion).one("cmd-config-getschema", function (event) {
-		window.serverSchema = event.response.info;
-		requestServerConfig();
+    showInfoDialog("grantToken", $.i18n('conf_network_tok_grantT'), $.i18n('conf_network_tok_grantMsg') + '<br><span style="font-weight:bold">App: ' + val.comment + '</span><br><span style="font-weight:bold">Code: ' + val.id + '</span>')
+    $("#tok_grant_acc").off().on('click', function () {
+      tokenList.push(val)
+      // forward event, in case we need to rebuild the list now
+      $(window.hyperion).trigger({ type: "build-token-list" });
+      requestHandleTokenRequest(val.id, true)
+    });
+    $("#tok_deny_acc").off().on('click', function () {
+      requestHandleTokenRequest(val.id, false)
+    });
+  });
+
+  $(window.hyperion).one("cmd-authorize-getTokenList", function (event) {
+    tokenList = event.response.info;
+    requestServerInfo();
+  });
+
+  $(window.hyperion).on("cmd-sysinfo", function (event) {
+    requestServerInfo();
+    window.sysInfo = event.response.info;
+
+    window.currentVersion = window.sysInfo.hyperion.version;
+    window.currentChannel = window.sysInfo.hyperion.channel;
+    window.readOnlyMode = window.sysInfo.hyperion.readOnlyMode;
+  });
+
+  $(window.hyperion).one("cmd-config-getschema", function (event) {
+    window.serverSchema = event.response.info;
+    requestServerConfig();
     requestTokenInfo();
     requestGetPendingTokenRequests();
 
-		window.schema = window.serverSchema.properties;
-	});
+    window.schema = window.serverSchema.properties;
+  });
 
-	$(window.hyperion).on("cmd-config-getconfig", function (event) {
-		window.serverConfig = event.response.info;
-		requestSysInfo();
+  $(window.hyperion).on("cmd-config-getconfig", function (event) {
+    window.serverConfig = event.response.info;
+    requestSysInfo();
 
-		window.showOptHelp = window.serverConfig.general.showOptHelp;
-	});
+    window.showOptHelp = window.serverConfig.general.showOptHelp;
+  });
 
-	$(window.hyperion).on("cmd-config-setconfig", function (event) {
-		if (event.response.success === true) {
-			showNotification('success', $.i18n('dashboard_alert_message_confsave_success'), $.i18n('dashboard_alert_message_confsave_success_t'))
-		}
-	});
+  $(window.hyperion).on("cmd-config-setconfig", function (event) {
+    if (event.response.success === true) {
+      showNotification('success', $.i18n('dashboard_alert_message_confsave_success'), $.i18n('dashboard_alert_message_confsave_success_t'))
+    }
+  });
 
-	$(window.hyperion).on("cmd-authorize-login", function (event) {
-		$("#main-nav").removeAttr('style')
-		$("#top-navbar").removeAttr('style')
+  $(window.hyperion).on("cmd-authorize-login", function (event) {
+    $("#main-nav").removeAttr('style')
+    $("#top-navbar").removeAttr('style')
 
-		if (window.defaultPasswordIsSet === true && getStorage("suppressDefaultPwWarning") !== "true" )
-		{
-			var supprPwWarnCheckbox = '<div class="text-right">'+$.i18n('dashboard_message_do_not_show_again')
-					+ ' <input id="chk_suppressDefaultPw" type="checkbox" onChange="suppressDefaultPwWarning()"> </div>'
-			showNotification('warning', $.i18n('dashboard_message_default_password'), $.i18n('dashboard_message_default_password_t'), '<a style="cursor:pointer" onClick="changePassword()">'
-					+ $.i18n('InfoDialog_changePassword_title') + '</a>' + supprPwWarnCheckbox)
-		}
-		else
-			//if logged on and pw != default show option to lock ui
-			$("#btn_lock_ui").removeAttr('style')
+    if (window.defaultPasswordIsSet === true && getStorage("suppressDefaultPwWarning") !== "true") {
+      var supprPwWarnCheckbox = '<div class="text-right">' + $.i18n('dashboard_message_do_not_show_again')
+        + ' <input id="chk_suppressDefaultPw" type="checkbox" onChange="suppressDefaultPwWarning()"> </div>'
+      showNotification('warning', $.i18n('dashboard_message_default_password'), $.i18n('dashboard_message_default_password_t'), '<a style="cursor:pointer" onClick="changePassword()">'
+        + $.i18n('InfoDialog_changePassword_title') + '</a>' + supprPwWarnCheckbox)
+    }
+    else
+      //if logged on and pw != default show option to lock ui
+      $("#btn_lock_ui").removeAttr('style')
 
+    if (event.response.hasOwnProperty('info'))
+      setStorage("loginToken", event.response.info.token, true);
 
-		if (event.response.hasOwnProperty('info'))
-			setStorage("loginToken", event.response.info.token, true);
+    requestServerConfigSchema();
+  });
 
-		requestServerConfigSchema();
-	});
+  $(window.hyperion).on("cmd-authorize-newPassword", function (event) {
+    if (event.response.success === true) {
+      showInfoDialog("success", $.i18n('InfoDialog_changePassword_success'));
+      // not necessarily true, but better than nothing
+      window.defaultPasswordIsSet = false;
+    }
+  });
 
-	$(window.hyperion).on("cmd-authorize-newPassword", function (event) {
-		if (event.response.success === true) {
-			showInfoDialog("success", $.i18n('InfoDialog_changePassword_success'));
-			// not necessarily true, but better than nothing
-			window.defaultPasswordIsSet = false;
-		}
-	});
+  $(window.hyperion).on("cmd-authorize-newPasswordRequired", function (event) {
+    var loginToken = getStorage("loginToken", true)
 
-	$(window.hyperion).on("cmd-authorize-newPasswordRequired", function (event) {
-		var loginToken = getStorage("loginToken", true)
+    if (event.response.info.newPasswordRequired == true) {
+      window.defaultPasswordIsSet = true;
 
-		if (event.response.info.newPasswordRequired == true) {
-			window.defaultPasswordIsSet = true;
+      if (loginToken)
+        requestTokenAuthorization(loginToken)
+      else
+        requestAuthorization('hyperion');
+    }
+    else {
+      $("#main-nav").attr('style', 'display:none')
+      $("#top-navbar").attr('style', 'display:none')
 
-			if (loginToken)
-				requestTokenAuthorization(loginToken)
-			else
-				requestAuthorization('hyperion');
-		}
-		else {
-			$("#main-nav").attr('style', 'display:none')
-			$("#top-navbar").attr('style', 'display:none')
+      if (loginToken)
+        requestTokenAuthorization(loginToken)
+      else
+        loadContentTo("#page-content", "login")
+    }
+  });
 
-			if (loginToken)
-				requestTokenAuthorization(loginToken)
-			else
-				loadContentTo("#page-content", "login")
-		}
-	});
+  $(window.hyperion).on("cmd-authorize-adminRequired", function (event) {
+    //Check if a admin login is required.
+    //If yes: check if default pw is set. If no: go ahead to get server config and render page
+    if (event.response.info.adminRequired === true)
+      requestRequiresDefaultPasswortChange();
+    else
+      requestServerConfigSchema();
+  });
 
-	$(window.hyperion).on("cmd-authorize-adminRequired", function (event) {
-		//Check if a admin login is required.
-		//If yes: check if default pw is set. If no: go ahead to get server config and render page
-		if (event.response.info.adminRequired === true)
-			requestRequiresDefaultPasswortChange();
-		else
-			requestServerConfigSchema();
-	});
+  $(window.hyperion).on("error", function (event) {
+    //If we are getting an error "No Authorization" back with a set loginToken we will forward to new Login (Token is expired.
+    //e.g.: hyperiond was started new in the meantime)
+    if (event.reason == "No Authorization" && getStorage("loginToken", true)) {
+      removeStorage("loginToken", true);
+      requestRequiresAdminAuth();
+    }
+    else {
+      showInfoDialog("error", "Error", event.reason);
+    }
+  });
 
-	$(window.hyperion).on("error", function (event) {
-		//If we are getting an error "No Authorization" back with a set loginToken we will forward to new Login (Token is expired.
-		//e.g.: hyperiond was started new in the meantime)
-		if (event.reason == "No Authorization" && getStorage("loginToken", true)) {
-			removeStorage("loginToken", true);
-			requestRequiresAdminAuth();
-		}
-		else {
-			showInfoDialog("error", "Error", event.reason);
-		}
-	});
+  $(window.hyperion).on("open", function (event) {
+    requestRequiresAdminAuth();
+  });
 
-	$(window.hyperion).on("open", function (event) {
-		requestRequiresAdminAuth();
-	});
+  $(window.hyperion).one("ready", function (event) {
+    loadContent();
+  });
 
-	$(window.hyperion).one("ready", function (event) {
-		loadContent();
-	});
+  $(window.hyperion).on("cmd-adjustment-update", function (event) {
+    window.serverInfo.adjustment = event.response.data
+  });
 
-	$(window.hyperion).on("cmd-adjustment-update", function (event) {
-		window.serverInfo.adjustment = event.response.data
-	});
+  $(window.hyperion).on("cmd-videomode-update", function (event) {
+    window.serverInfo.videomode = event.response.data.videomode
+  });
 
-	$(window.hyperion).on("cmd-videomode-update", function (event) {
-		window.serverInfo.videomode = event.response.data.videomode
-	});
+  $(window.hyperion).on("cmd-components-update", function (event) {
+    let obj = event.response.data
 
-	$(window.hyperion).on("cmd-components-update", function (event) {
-		let obj = event.response.data
+    // notfication in index
+    if (obj.name == "ALL") {
+      if (obj.enabled)
+        $("#hyperion_disabled_notify").fadeOut("fast");
+      else
+        $("#hyperion_disabled_notify").fadeIn("fast");
+    }
 
-		// notfication in index
-		if (obj.name == "ALL") {
-			if (obj.enabled)
-				$("#hyperion_disabled_notify").fadeOut("fast");
-			else
-				$("#hyperion_disabled_notify").fadeIn("fast");
-		}
+    window.comps.forEach((entry, index) => {
+      if (entry.name === obj.name) {
+        window.comps[index] = obj;
+      }
+    });
+    // notify the update
+    $(window.hyperion).trigger("components-updated", event.response.data);
+  });
 
-		window.comps.forEach((entry, index) => {
-			if (entry.name === obj.name) {
-				window.comps[index] = obj;
-			}
-		});
-		// notify the update
-		$(window.hyperion).trigger("components-updated", event.response.data);
-	});
+  $(window.hyperion).on("cmd-instance-update", function (event) {
+    window.serverInfo.instance = event.response.data
+    var avail = event.response.data;
+    // notify the update
+    $(window.hyperion).trigger("instance-updated");
 
-	$(window.hyperion).on("cmd-instance-update", function (event) {
-		window.serverInfo.instance = event.response.data
-		var avail = event.response.data;
-		// notify the update
-		$(window.hyperion).trigger("instance-updated");
+    // if our current instance is no longer available we are at instance 0 again.
+    var isInData = false;
+    for (var key in avail) {
+      if (avail[key].instance == currentHyperionInstance && avail[key].running) {
+        isInData = true;
+      }
+    }
 
-		// if our current instance is no longer available we are at instance 0 again.
-		var isInData = false;
-		for (var key in avail) {
-			if (avail[key].instance == currentHyperionInstance && avail[key].running) {
-				isInData = true;
-			}
-		}
+    if (!isInData) {
+      //Delete Storage information about the last used but now stopped instance
+      if (getStorage('lastSelectedInstance', false))
+        removeStorage('lastSelectedInstance', false)
 
-		if (!isInData) {
-			//Delete Storage information about the last used but now stopped instance
-			if (getStorage('lastSelectedInstance', false))
-				removeStorage('lastSelectedInstance', false)
+      currentHyperionInstance = 0;
+      currentHyperionInstanceName = getInstanceNameByIndex(0);
+      requestServerConfig();
+      setTimeout(requestServerInfo, 100)
+      setTimeout(requestTokenInfo, 200)
+      setTimeout(loadContent, 300, undefined, true)
+    }
 
-			currentHyperionInstance = 0;
-			currentHyperionInstanceName = getInstanceNameByIndex(0);
-			requestServerConfig();
-			setTimeout(requestServerInfo, 100)
-			setTimeout(requestTokenInfo, 200)
-			setTimeout(loadContent, 300, undefined, true)
-		}
+    // determine button visibility
+    var running = serverInfo.instance.filter(entry => entry.running);
+    if (running.length > 1)
+      $('#btn_hypinstanceswitch').toggle(true)
+    else
+      $('#btn_hypinstanceswitch').toggle(false)
 
-		// determine button visibility
-		var running = serverInfo.instance.filter(entry => entry.running);
-		if (running.length > 1)
-			$('#btn_hypinstanceswitch').toggle(true)
-		else
-			$('#btn_hypinstanceswitch').toggle(false)
+    // update listing for button
+    updateHyperionInstanceListing()
+  });
 
-		// update listing for button
-		updateHyperionInstanceListing()
-	});
+  $(window.hyperion).on("cmd-instance-switchTo", function (event) {
+    requestServerConfig();
+    setTimeout(requestServerInfo, 200)
+    setTimeout(requestTokenInfo, 400)
+    setTimeout(loadContent, 400, undefined, true)
+  });
 
-	$(window.hyperion).on("cmd-instance-switchTo", function (event) {
-		requestServerConfig();
-		setTimeout(requestServerInfo, 200)
-		setTimeout(requestTokenInfo, 400)
-		setTimeout(loadContent, 400, undefined, true)
-	});
+  $(window.hyperion).on("cmd-effects-update", function (event) {
+    window.serverInfo.effects = event.response.data.effects
+  });
 
-	$(window.hyperion).on("cmd-effects-update", function (event) {
-		window.serverInfo.effects = event.response.data.effects
-	});
-
-	$(".mnava").bind('click.menu', function (e) {
-		loadContent(e);
-		window.scrollTo(0, 0);
-	});
-
+  $(".mnava").bind('click.menu', function (e) {
+    loadContent(e);
+    window.scrollTo(0, 0);
+  });
 });
 
-function suppressDefaultPwWarning(){
-
-  if (document.getElementById('chk_suppressDefaultPw').checked) 
-	setStorage("suppressDefaultPwWarning", "true");
-  else 
-	setStorage("suppressDefaultPwWarning", "false");
+function suppressDefaultPwWarning() {
+  if (document.getElementById('chk_suppressDefaultPw').checked)
+    setStorage("suppressDefaultPwWarning", "true");
+  else
+    setStorage("suppressDefaultPwWarning", "false");
 }
 
 $(function () {
-	var sidebar = $('#side-menu');  // cache sidebar to a variable for performance
-	sidebar.delegate('a.inactive', 'click', function () {
-		sidebar.find('.active').toggleClass('active inactive');
-		$(this).toggleClass('active inactive');
-	});
+  var sidebar = $('#side-menu');  // cache sidebar to a variable for performance
+  sidebar.delegate('a.inactive', 'click', function () {
+    sidebar.find('.active').toggleClass('active inactive');
+    $(this).toggleClass('active inactive');
+  });
 });
 
 // hotfix body padding when bs modals overlap
 $(document.body).on('hide.bs.modal,hidden.bs.modal', function () {
-	$('body').css('padding-right', '0');
+  $('body').css('padding-right', '0');
 });
 
 //Dark Mode
-$("#btn_darkmode").off().on("click",function(e){
-
-	if(getStorage("darkMode", false) != "on")
-	{
-		handleDarkMode();
-		setStorage("darkModeOverwrite", true, true);
-	}
-	else {
-		setStorage("darkMode", "off", false);
-		setStorage("darkModeOverwrite", true, true);
-		location.reload();
-	}
-	
+$("#btn_darkmode").off().on("click", function (e) {
+  if (getStorage("darkMode", false) != "on") {
+    handleDarkMode();
+    setStorage("darkModeOverwrite", true, true);
+  }
+  else {
+    setStorage("darkMode", "off", false);
+    setStorage("darkModeOverwrite", true, true);
+    location.reload();
+  }
 });
