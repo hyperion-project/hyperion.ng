@@ -125,6 +125,7 @@
     "conf_logging_label_intro": "Area to check log messages, you will see more or less information depending on the logging level set.",
     "conf_logging_lastreports": "Previous reports",
     "conf_logging_nomessage": "No log messages available.",
+    "conf_logging_logoutput": "Log output",
     "conf_logging_report": "Report",
     "conf_logging_uplfailed": "Upload failed! Please check your internet connection!",
     "conf_logging_uploading": "Prepare data...",
