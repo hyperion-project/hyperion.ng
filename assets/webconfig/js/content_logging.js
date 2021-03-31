@@ -23,7 +23,12 @@ $(document).ready(function () {
   });
 
   $('#btn_submit').off().on('click', function () {
-    requestWriteConfig(conf_editor.getValue());
+
+    var displayedLogLevel = conf_editor.getEditor("root.logger.level").getValue();
+    var newLogLevel = {logger:{}};
+    newLogLevel.logger.level = displayedLogLevel;
+
+    requestWriteConfig(newLogLevel);
   });
 
   function infoSummary() {
