@@ -15,6 +15,8 @@ const bool verbose = false;
 // Configuration settings
 const char CONFIG_ADDRESS[] = "host";
 const char CONFIG_RESTORE_STATE[] = "restoreOriginalState";
+const char CONFIG_BRIGHTNESS[] = "brightness";
+const char CONFIG_BRIGHTNESS_OVERWRITE[] = "overwriteBrightness";
 
 // UDP elements
 const quint16 STREAM_DEFAULT_PORT = 19446;
@@ -42,6 +44,8 @@ LedDeviceWled::LedDeviceWled(const QJsonObject &deviceConfig)
 	: ProviderUdp(deviceConfig)
 	  ,_restApi(nullptr)
 	  ,_apiPort(API_DEFAULT_PORT)
+	  , _isBrightnessOverwrite(true)
+	  , _brightness (BRI_MAX)
 {
 }
 
@@ -70,8 +74,13 @@ bool LedDeviceWled::init(const QJsonObject &deviceConfig)
 		Debug(_log, "ColorOrder   : %s", QSTRING_CSTR( this->getColorOrder() ));
 		Debug(_log, "LatchTime    : %d", this->getLatchTime());
 
-		_isRestoreOrigState     = _devConfig[CONFIG_RESTORE_STATE].toBool(false);
+		_isRestoreOrigState    = _devConfig[CONFIG_RESTORE_STATE].toBool(false);
+		_isBrightnessOverwrite = _devConfig[CONFIG_BRIGHTNESS_OVERWRITE].toBool(true);
+		_brightness = _devConfig[CONFIG_BRIGHTNESS].toInt(BRI_MAX);
+
 		Debug(_log, "RestoreOrigState  : %d", _isRestoreOrigState);
+		Debug(_log, "Overwrite Brightn.: %d", _isBrightnessOverwrite);
+		Debug(_log, "Set Brightness to : %d", _brightness);
 
 		//Set hostname as per configuration
 		QString hostName = deviceConfig[ CONFIG_ADDRESS ].toString();
@@ -166,7 +175,14 @@ bool LedDeviceWled::powerOn()
 		//Power-on WLED device
 		_restApi->setPath(API_PATH_STATE);
 
-		httpResponse response = _restApi->put(QString("{%1,%2}").arg(getOnOffRequest(true)).arg(getBrightnessRequest(BRI_MAX)));
+		QString cmd = getOnOffRequest(true);
+
+		if ( _isBrightnessOverwrite)
+		{
+			cmd += "," + getBrightnessRequest(_brightness);
+		}
+
+		httpResponse response = _restApi->put(QString("{%1}").arg(cmd));
 		if ( response.error() )
 		{
 			QString errorReason = QString("Power-on request failed with error: '%1'").arg(response.getErrorReason());

@@ -154,6 +154,9 @@ private:
 
 	QJsonObject _originalStateProperties;
 
+	bool _isBrightnessOverwrite;
+	int _brightness;
+
 };
 
 #endif // LEDDEVICEWLED_H
