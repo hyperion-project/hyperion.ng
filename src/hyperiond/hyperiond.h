@@ -10,16 +10,10 @@
 	typedef QObject DispmanxWrapper;
 #endif
 
-#ifdef ENABLE_V4L2
-	#include <grabber/V4L2Wrapper.h>
+#if defined(ENABLE_V4L2) || defined(ENABLE_MF)
+	#include <grabber/VideoWrapper.h>
 #else
-	typedef QObject V4L2Wrapper;
-#endif
-
-#ifdef ENABLE_MF
-	#include <grabber/MFWrapper.h>
-#else
-	typedef QObject MFWrapper;
+	typedef QObject VideoWrapper;
 #endif
 
 #ifdef ENABLE_FB
@@ -176,8 +170,7 @@ private:
 	WebServer*                 _webserver;
 	WebServer*                 _sslWebserver;
 	JsonServer*                _jsonServer;
-	V4L2Wrapper*               _v4l2Grabber;
-	MFWrapper*                 _mfGrabber;
+	VideoWrapper*              _videoGrabber;
 	DispmanxWrapper*           _dispmanx;
 	X11Wrapper*                _x11Grabber;
 	XcbWrapper*                _xcbGrabber;

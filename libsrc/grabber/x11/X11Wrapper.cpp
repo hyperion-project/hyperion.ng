@@ -19,7 +19,7 @@ void X11Wrapper::action()
 	if (! _init )
 	{
 		_init = true;
-		if ( ! _grabber.Setup() )
+		if ( ! _grabber.setupDisplay() )
 		{
 			stop();
 		}

@@ -16,7 +16,6 @@
 			"title" : "edt_dev_general_hardwareLedCount_title",
 			"minimum" : 1,
 			"default" : 1,
-			"access" : "expert",
 			"propertyOrder" : 2
 		},
 		"colorOrder" :
@@ -25,9 +24,11 @@
 			"title" : "edt_dev_general_colorOrder_title",
 			"enum" : ["rgb", "bgr", "rbg", "brg", "gbr", "grb"],
 			"default" : "rgb",
-			"options" : {
-				"enum_titles" : ["edt_conf_enum_rgb", "edt_conf_enum_bgr", "edt_conf_enum_rbg", "edt_conf_enum_brg", "edt_conf_enum_gbr", "edt_conf_enum_grb"]
+			"required" : true,
+			"options": {
+				"enum_titles": [ "edt_conf_enum_rgb", "edt_conf_enum_bgr", "edt_conf_enum_rbg", "edt_conf_enum_brg", "edt_conf_enum_gbr", "edt_conf_enum_grb" ]
 			},
+			"access" : "expert",
 			"propertyOrder" : 3
 		}
 	},

@@ -62,7 +62,7 @@
 
 	"grabberV4L2" :
 	{
-		"device"                : "auto",
+		"device"                : "none",
 		"input"                 : 0,
 		"encoding"              : "NO_CHANGE",
 		"width"                 : 0,
@@ -93,16 +93,16 @@
 
 	"framegrabber" :
 	{
-		"type"               : "auto",
+		"device"             : "auto",
+		"input"              : 0,	
 		"width"              : 80,
 		"height"             : 45,
-		"frequency_Hz"       : 10,
+		"fps"                : 10,
 		"pixelDecimation"    : 8,
 		"cropLeft"           : 0,
 		"cropRight"          : 0,
 		"cropTop"            : 0,
-		"cropBottom"         : 0,
-		"display"            : 0
+		"cropBottom"         : 0
 	},
 
 	"blackborderdetector" :

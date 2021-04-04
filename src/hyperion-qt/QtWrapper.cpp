@@ -27,6 +27,11 @@ void QtWrapper::stop()
 	_timer.stop();
 }
 
+bool QtWrapper::displayInit()
+{
+	return _grabber.setupDisplay();
+}
+
 void QtWrapper::capture()
 {
 	if(unsigned(_grabber.getImageWidth()) != unsigned(_screenshot.width()) || unsigned(_grabber.getImageHeight()) != unsigned(_screenshot.height()))

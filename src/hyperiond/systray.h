@@ -24,7 +24,7 @@ public slots:
 	void showColorDialog();
 	void setColor(const QColor & color);
 	void closeEvent(QCloseEvent *event);
-	void settings();
+	void settings() const;
 	void setEffect();
 	void clearEfxColor();
 	void setAutorunState();

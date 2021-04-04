@@ -59,6 +59,7 @@ int main(int argc, char** argv)
 		IntOption          & argFps                 = parser.add<IntOption>    ('f', "framerate",  "Capture frame rate [default: %1]", "15", 1, 25);
 		IntOption          & argWidth               = parser.add<IntOption>    (0x0, "width",      "Width of the captured image [default: %1]", "160", 160);
 		IntOption          & argHeight              = parser.add<IntOption>    (0x0, "height",     "Height of the captured image [default: %1]", "160", 160);
+		SwitchOption<FlipMode> & argFlipMode = parser.add<SwitchOption<FlipMode>>(0x0, "flip-mode", "The used image flip mode. Valid values are HORIZONTAL, VERTICAL, BOTH or no-change. [default: %1]", "no-change");
 		IntOption          & argCropWidth           = parser.add<IntOption>    (0x0, "crop-width", "Number of pixels to crop from the left and right sides of the picture before decimation [default: %1]", "0");
 		IntOption          & argCropHeight          = parser.add<IntOption>    (0x0, "crop-height", "Number of pixels to crop from the top and the bottom of the picture before decimation [default: %1]", "0");
 		IntOption          & argCropLeft            = parser.add<IntOption>    (0x0, "crop-left", "Number of pixels to crop from the left of the picture before decimation (overrides --crop-width)");
@@ -99,6 +100,11 @@ int main(int argc, char** argv)
 #endif
 		argPixelFormat.addSwitch("no-change", PixelFormat::NO_CHANGE);
 
+		argFlipMode.addSwitch("horizontal", FlipMode::HORIZONTAL);
+		argFlipMode.addSwitch("vertical", FlipMode::VERTICAL);
+		argFlipMode.addSwitch("both", FlipMode::BOTH);
+		argFlipMode.addSwitch("no-change", FlipMode::NO_CHANGE);
+
 		// parse all options
 		parser.process(app);
 
@@ -109,15 +115,31 @@ int main(int argc, char** argv)
 		}
 
 		// initialize the grabber
-		V4L2Grabber grabber(
-					argDevice.value(parser),
-					argWidth.getInt(parser),
-					argHeight.getInt(parser),
-					1000 / argFps.getInt(parser),
-					argInput.getInt(parser),
-					argVideoStandard.switchValue(parser),
-					argPixelFormat.switchValue(parser),
-					std::max(1, argSizeDecimation.getInt(parser)));
+		V4L2Grabber grabber;
+
+		// set device
+		grabber.setDevice(argDevice.value(parser));
+
+		// set input
+		grabber.setInput(argInput.getInt(parser));
+
+		// set resolution
+		grabber.setWidthHeight(argWidth.getInt(parser), argHeight.getInt(parser));
+
+		// set fps
+		grabber.setFramerate(1000 / argFps.getInt(parser));
+
+		// TODO set encoding format
+		// grabber.setEncoding(argPixelFormat.switchValue(parser));
+
+		// set video standard
+		grabber.setVideoStandard(argVideoStandard.switchValue(parser));
+
+		// set image size decimation
+		grabber.setPixelDecimation(std::max(1, argSizeDecimation.getInt(parser)));
+
+		// set flip mode
+		grabber.setFlipMode(argFlipMode.switchValue(parser));
 
 		// set signal detection
 		grabber.setSignalDetectionEnable(! parser.isSet(argSignalDetection));

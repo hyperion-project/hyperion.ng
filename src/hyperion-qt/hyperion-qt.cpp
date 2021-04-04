@@ -56,7 +56,7 @@ int main(int argc, char ** argv)
 			parser.showHelp(0);
 		}
 
-		QtWrapper grabber(
+		QtWrapper qtWrapper(
 			1000 / argFps.getInt(parser),
 			argCropLeft.getInt(parser),
 			argCropRight.getInt(parser),
@@ -65,10 +65,13 @@ int main(int argc, char ** argv)
 			argSizeDecimation.getInt(parser),
 			argDisplay.getInt(parser));
 
+		if (!qtWrapper.displayInit())
+			return -1;
+
 		if (parser.isSet(argScreenshot))
 		{
 			// Capture a single screenshot and finish
-			const Image<ColorRgb> &screenshot = grabber.getScreenshot();
+			const Image<ColorRgb> &screenshot = qtWrapper.getScreenshot();
 			saveScreenshot("screenshot.png", screenshot);
 		}
 		else
@@ -89,10 +92,10 @@ int main(int argc, char ** argv)
 			FlatBufferConnection flatbuf("Qt Standalone", address, argPriority.getInt(parser), parser.isSet(argSkipReply));
 
 			// Connect the screen capturing to flatbuf connection processing
-			QObject::connect(&grabber, SIGNAL(sig_screenshot(const Image<ColorRgb> &)), &flatbuf, SLOT(setImage(Image<ColorRgb>)));
+			QObject::connect(&qtWrapper, SIGNAL(sig_screenshot(const Image<ColorRgb> &)), &flatbuf, SLOT(setImage(Image<ColorRgb>)));
 
 			// Start the capturing
-			grabber.start();
+			qtWrapper.start();
 
 			// Start the application
 			app.exec();

@@ -31,7 +31,7 @@ void X11Wrapper::stop()
 
 bool X11Wrapper::displayInit()
 {
-	return _grabber.Setup();
+	return _grabber.setupDisplay();
 }
 
 void X11Wrapper::capture()

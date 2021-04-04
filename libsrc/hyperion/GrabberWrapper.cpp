@@ -44,14 +44,19 @@ GrabberWrapper::~GrabberWrapper()
 
 bool GrabberWrapper::start()
 {
-	if (!_timer->isActive())
+	bool rc = false;
+	if ( open() )
 	{
-		// Start the timer with the pre configured interval
-		Debug(_log,"Grabber start()");
-		_timer->start();
-	}
+		if (!_timer->isActive())
+		{
+			// Start the timer with the pre configured interval
+			Debug(_log,"Grabber start()");
+			_timer->start();
+		}
 
-	return _timer->isActive();
+		rc = _timer->isActive();
+	}
+	return rc;
 }
 
 void GrabberWrapper::stop()
@@ -129,9 +134,14 @@ void GrabberWrapper::setVideoMode(VideoMode mode)
 {
 	if (_ggrabber != nullptr)
 	{
-		Info(_log,"setvideomode");
+		Info(_log,"setVideoMode");
 		_ggrabber->setVideoMode(mode);
 	}
+}
+
+void GrabberWrapper::setFlipMode(QString flipMode)
+{
+	_ggrabber->setFlipMode(parseFlipMode(flipMode));
 }
 
 void GrabberWrapper::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom)
@@ -165,7 +175,7 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 		_ggrabber->setWidthHeight(obj["width"].toInt(96), obj["height"].toInt(96));
 
 		// display index for MAC
-		_ggrabber->setDisplayIndex(obj["display"].toInt(0));
+		_ggrabber->setDisplayIndex(obj["input"].toInt(0));
 
 		// device path for Framebuffer
 		_ggrabber->setDevicePath(obj["device"].toString("/dev/fb0"));
@@ -181,7 +191,7 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 			obj["cropBottom"].toInt(0));
 
 		// eval new update time
-		updateTimer(1000/obj["frequency_Hz"].toInt(10));
+		updateTimer(1000/obj["fps"].toInt(10));
 	}
 }
 
@@ -220,60 +230,4 @@ void GrabberWrapper::tryStart()
 	{
 		start();
 	}
-}
-
-QStringList GrabberWrapper::getDevices() const
-{
-	if(_grabberName.startsWith("V4L"))
-		return _ggrabber->getDevices();
-
-	return QStringList();
-}
-
-QString GrabberWrapper::getDeviceName(const QString& devicePath) const
-{
-	if(_grabberName.startsWith("V4L"))
-		return _ggrabber->getDeviceName(devicePath);
-
-	return QString();
-}
-
-QMultiMap<QString, int> GrabberWrapper::getDeviceInputs(const QString& devicePath) const
-{
-	if(_grabberName.startsWith("V4L"))
-		return _ggrabber->getDeviceInputs(devicePath);
-
-	return QMultiMap<QString, int>();
-}
-
-QList<VideoStandard> GrabberWrapper::getAvailableDeviceStandards(const QString& devicePath, const int& deviceInput) const
-{
-	if(_grabberName.startsWith("V4L"))
-		return _ggrabber->getAvailableDeviceStandards(devicePath, deviceInput);
-
-	return QList<VideoStandard>();
-}
-
-QStringList GrabberWrapper::getAvailableEncodingFormats(const QString& devicePath, const int& deviceInput) const
-{
-	if(_grabberName.startsWith("V4L"))
-		return _ggrabber->getAvailableEncodingFormats(devicePath, deviceInput);
-
-	return QStringList();
-}
-
-QMultiMap<int, int> GrabberWrapper::getAvailableDeviceResolutions(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat) const
-{
-	if(_grabberName.startsWith("V4L"))
-		return _ggrabber->getAvailableDeviceResolutions(devicePath, deviceInput, encFormat);
-
-	return QMultiMap<int, int>();
-}
-
-QIntList GrabberWrapper::getAvailableDeviceFramerates(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat, const unsigned width, const unsigned height) const
-{
-	if(_grabberName.startsWith("V4L"))
-		return _ggrabber->getAvailableDeviceFramerates(devicePath, deviceInput, encFormat, width, height);
-
-	return QIntList();
 }

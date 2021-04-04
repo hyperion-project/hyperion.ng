@@ -21,6 +21,14 @@ struct GetGeometry
 	static constexpr auto ReplyFunction = xcb_get_geometry_reply;
 };
 
+struct GetProperty
+{
+	typedef xcb_get_property_reply_t  ResponseType;
+
+	static constexpr auto RequestFunction = xcb_get_property;
+	static constexpr auto ReplyFunction = xcb_get_property_reply;
+};
+
 struct ShmQueryVersion
 {
 	typedef xcb_shm_query_version_reply_t ResponseType;

@@ -16,7 +16,24 @@
 #include <leddevice/LedDevice.h>
 #include <leddevice/LedDeviceFactory.h>
 
+#include <HyperionConfig.h> // Required to determine the cmake options
+
 #include <hyperion/GrabberWrapper.h>
+#include <grabber/QtGrabber.h>
+
+#if defined(ENABLE_MF)
+	#include <grabber/MFGrabber.h>
+#elif defined(ENABLE_V4L2)
+	#include <grabber/V4L2Grabber.h>
+#endif
+
+#if defined(ENABLE_X11)
+	#include <grabber/X11Grabber.h>
+#endif
+#if defined(ENABLE_XCB)
+	#include <grabber/XcbGrabber.h>
+#endif
+
 #include <utils/jsonschema/QJsonFactory.h>
 #include <utils/jsonschema/QJsonSchemaChecker.h>
 #include <HyperionConfig.h>
@@ -40,6 +57,9 @@
 #include <hyperion/AuthManager.h>
 
 using namespace hyperion;
+
+// Constants
+namespace { const bool verbose = false; }
 
 JsonAPI::JsonAPI(QString peerAddress, Logger *log, bool localConnection, QObject *parent, bool noListener)
 	: API(log, localConnection, parent)
@@ -964,13 +984,13 @@ void JsonAPI::handleLedColorsCommand(const QJsonObject &message, const QString &
 				_ledStreamConnection = connect(_ledStreamTimer, &QTimer::timeout, this, [=]() {
 					emit streamLedcolorsUpdate(_currentLedValues);
 				},
-											   Qt::UniqueConnection);
+				Qt::UniqueConnection);
 
 			// start the timer
 			if (!_ledStreamTimer->isActive() || _ledStreamTimer->interval() != streaming_interval)
 				_ledStreamTimer->start(streaming_interval);
 		},
-				Qt::UniqueConnection);
+		Qt::UniqueConnection);
 		// push once
 		_hyperion->update();
 	}
@@ -1420,7 +1440,7 @@ void JsonAPI::handleLedDeviceCommand(const QJsonObject &message, const QString &
 
 void JsonAPI::handleInputSourceCommand(const QJsonObject& message, const QString& command, int tan)
 {
-	Debug(_log, "message: [%s]", QString(QJsonDocument(message).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	DebugIf(verbose, _log, "message: [%s]", QString(QJsonDocument(message).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	const QString& subc = message["subcommand"].toString().trimmed();
 	const QString& sourceType = message["sourceType"].toString().trimmed();
@@ -1438,86 +1458,66 @@ void JsonAPI::handleInputSourceCommand(const QJsonObject& message, const QString
 		{
 			QJsonObject inputSourcesDiscovered;
 			inputSourcesDiscovered.insert("sourceType", sourceType);
-
 			QJsonArray videoInputs;
 
 #if defined(ENABLE_V4L2) || defined(ENABLE_MF)
 
 			if (sourceType == "video" )
 			{
-				//for (const auto& instance : GrabberWrapper::getInstance()->getDevices())
-				//{
+#if defined(ENABLE_MF)
+				MFGrabber* grabber = new MFGrabber();
+#elif defined(ENABLE_V4L2)
+				V4L2Grabber* grabber = new V4L2Grabber();
+#endif
+				QJsonObject params;
+				videoInputs = grabber->discover(params);
+				delete grabber;
+			}
+			else
+#endif
+			{
+				DebugIf(verbose, _log, "sourceType: [%s]", QSTRING_CSTR(sourceType));
 
-				for (const auto& devicePath : GrabberWrapper::getInstance()->getDevices())
+				if (sourceType == "screen")
 				{
+					QJsonObject params;
 
 					QJsonObject device;
-					device["device"] = devicePath;
-					device["device_name"] = GrabberWrapper::getInstance()->getDeviceName(devicePath);
-					device["type"] = "v4l2";
-
-					QJsonArray video_inputs;
-
-					QMultiMap<QString, int> inputs = GrabberWrapper::getInstance()->getDeviceInputs(devicePath);
-					for (auto input = inputs.begin(); input != inputs.end(); input++)
+					#ifdef ENABLE_QT
+					QtGrabber* qtgrabber = new QtGrabber();
+					device = qtgrabber->discover(params);
+					if (!device.isEmpty() )
 					{
-						QJsonObject in;
-						in["name"] = input.key();
-						in["inputIdx"] = input.value();
-
-						QJsonArray standards;
-						QList<VideoStandard> videoStandards = GrabberWrapper::getInstance()->getAvailableDeviceStandards(devicePath, input.value());
-						for (auto standard : videoStandards)
-						{
-							standards.append(VideoStandard2String(standard));
-						}
-						if (!standards.isEmpty())
-						{
-							in["standards"] = standards;
-						}
-
-						QJsonArray formats;
-						QStringList encodingFormats = GrabberWrapper::getInstance()->getAvailableEncodingFormats(devicePath, input.value());
-						for (auto encodingFormat : encodingFormats)
-						{
-							QJsonObject format;
-							format["format"] = encodingFormat;
-
-							QJsonArray resolutionArray;
-							QMultiMap<int, int> deviceResolutions = GrabberWrapper::getInstance()->getAvailableDeviceResolutions(devicePath, input.value(), parsePixelFormat(encodingFormat));
-							for (auto width_height = deviceResolutions.begin(); width_height != deviceResolutions.end(); width_height++)
-							{
-								QJsonObject resolution;
-								resolution["width"] = width_height.key();
-								resolution["height"] = width_height.value();
-
-								QJsonArray fps;
-								QIntList framerates = GrabberWrapper::getInstance()->getAvailableDeviceFramerates(devicePath, input.value(), parsePixelFormat(encodingFormat), width_height.key(), width_height.value());
-								for (auto framerate : framerates)
-								{
-									fps.append(framerate);
-								}
-
-								resolution["fps"] = fps;
-								resolutionArray.append(resolution);
-							}
-
-							format["resolutions"] = resolutionArray;
-							formats.append(format);
-						}
-						in["formats"] = formats;
-						video_inputs.append(in);
-
+						videoInputs.append(device);
 					}
+					delete qtgrabber;
+					#endif
 
-					device["video_inputs"] = video_inputs;
-					videoInputs.append(device);
+					#ifdef ENABLE_X11
+					X11Grabber* x11Grabber = new X11Grabber();
+					device = x11Grabber->discover(params);
+					if (!device.isEmpty() )
+					{
+						videoInputs.append(device);
+					}
+					delete x11Grabber;
+					#endif
+
+					#ifdef ENABLE_XCB
+					XcbGrabber* xcbGrabber = new XcbGrabber();
+					device = xcbGrabber->discover(params);
+					if (!device.isEmpty() )
+					{
+						videoInputs.append(device);
+					}
+					delete xcbGrabber;
+					#endif
 				}
+
 			}
-#endif
 			inputSourcesDiscovered["video_sources"] = videoInputs;
 
-			Debug(_log, "response: [%s]", QString(QJsonDocument(inputSourcesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+			DebugIf(verbose, _log, "response: [%s]", QString(QJsonDocument(inputSourcesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 			sendSuccessDataReply(QJsonDocument(inputSourcesDiscovered), full_command, tan);
 		}
@@ -1527,7 +1527,6 @@ void JsonAPI::handleInputSourceCommand(const QJsonObject& message, const QString
 		}
 	}
 }
-
 
 void JsonAPI::handleNotImplemented(const QString &command, int tan)
 {

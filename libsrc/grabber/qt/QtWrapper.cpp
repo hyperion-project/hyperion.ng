@@ -5,6 +5,11 @@ QtWrapper::QtWrapper(int cropLeft, int cropRight, int cropTop, int cropBottom, i
 	, _grabber(cropLeft, cropRight, cropTop, cropBottom, pixelDecimation, display)
 {}
 
+bool QtWrapper::open()
+{
+	return _grabber.open();
+}
+
 void QtWrapper::action()
 {
 	transferFrame(_grabber);

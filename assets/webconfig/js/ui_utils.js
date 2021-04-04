@@ -53,7 +53,7 @@ function updateSessions() {
   if (sess && sess.length) {
     window.wSess = [];
     for (var i = 0; i < sess.length; i++) {
-      if (sess[i].type == "_hyperiond-http._tcp.") {
+      if (sess[i].type == "_http._tcp." || sess[i].type == "_https._tcp." || sess[i].type == "_hyperiond-http._tcp.") {
         window.wSess.push(sess[i]);
       }
     }
@@ -461,7 +461,7 @@ function createJsonEditor(container, schema, setconfig, usePanel, arrayre) {
   return editor;
 }
 
-function updateJsonEditorSelection(editor, key, addElements, newEnumVals, newTitelVals, newDefaultVal, addCustom) {
+function updateJsonEditorSelection(editor, key, addElements, newEnumVals, newTitelVals, newDefaultVal, addSelect, addCustom, addCustomAsFirst, customText) {
   var orginalProperties = editor.schema.properties[key];
 
   var newSchema = [];
@@ -494,13 +494,33 @@ function updateJsonEditorSelection(editor, key, addElements, newEnumVals, newTit
   }
 
   if (addCustom) {
-    newEnumVals.push("custom");
-    newTitelVals.push("edt_conf_enum_custom");
+
+    if (newTitelVals.length === 0) {
+      newTitelVals = [...newEnumVals];
+    }
+
+    if (!!!customText) {
+      customText = "edt_conf_enum_custom";
+    }
+
+    if (addCustomAsFirst) {
+      newEnumVals.unshift("CUSTOM");
+      newTitelVals.unshift(customText);
+    } else {
+      newEnumVals.push("CUSTOM");
+      newTitelVals.push(customText);
+    }
 
     if (newSchema[key].options.infoText) {
       var customInfoText = newSchema[key].options.infoText + "_custom";
       newSchema[key].options.infoText = customInfoText;
     }
+  }
+
+  if (addSelect) {
+    newEnumVals.unshift("SELECT");
+    newTitelVals.unshift("edt_conf_enum_please_select");
+    newDefaultVal = "SELECT";
   }
 
   if (newEnumVals) {

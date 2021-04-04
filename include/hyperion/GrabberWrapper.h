@@ -59,62 +59,6 @@ public:
 	virtual bool isActive() const;
 
 	///
-	/// @brief Get a list of all available devices
-	/// @return List of all available devices on success else empty List
-	///
-	virtual QStringList getDevices() const;
-
-	///
-	/// @brief Get the device name by path
-	/// @param devicePath The device path
-	/// @return The name of the device on success else empty String
-	///
-	virtual QString getDeviceName(const QString& devicePath) const;
-
-	///
-	/// @brief Get a map of name/index pair of supported device inputs
-	/// @param devicePath The device path
-	/// @return multi pair of name/index on success else empty pair
-	///
-	virtual QMultiMap<QString, int> getDeviceInputs(const QString& devicePath) const;
-
-	///
-	/// @brief Get a list of available device video standards depends on device input
-	/// @param devicePath The device path
-	/// @param inputIndex The device input index
-	/// @return List of video standards on success else empty List
-	///
-	virtual QList<VideoStandard> getAvailableDeviceStandards(const QString& devicePath, const int& deviceInput) const;
-
-	///
-	/// @brief Get a list of all available device encoding formats depends on device input
-	/// @param devicePath The device path
-	/// @param inputIndex The device input index
-	/// @return List of device encoding formats on success else empty List
-	///
-	virtual QStringList getAvailableEncodingFormats(const QString& devicePath, const int& deviceInput) const;
-
-	///
-	/// @brief Get a map of available device resolutions (width/heigth) depends on device input and encoding format
-	/// @param devicePath The device path
-	/// @param inputIndex The device input index
-	/// @param encFormat The device encoding format
-	/// @return Map of resolutions (width/heigth) on success else empty List
-	///
-	virtual QMultiMap<int, int> getAvailableDeviceResolutions(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat) const;
-
-	///
-	/// @brief Get a list of available device framerates depends on device input, encoding format and resolution
-	/// @param devicePath The device path
-	/// @param inputIndex The device input index
-	/// @param encFormat The device encoding format
-	/// @param width The device width
-	/// @param heigth The device heigth
-	/// @return List of framerates on success else empty List
-	///
-	virtual QIntList getAvailableDeviceFramerates(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat, const unsigned width, const unsigned height) const;
-
-	///
 	/// @brief Get active grabber name
 	/// @param hyperionInd The instance index
 	/// @return Active grabbers
@@ -156,6 +100,12 @@ public slots:
 	virtual void setVideoMode(VideoMode videoMode);
 
 	///
+	/// Set the Flip mode
+	/// @param flipMode The new flip mode
+	///
+	virtual void setFlipMode(QString flipMode);
+
+	///
 	/// Set the crop values
 	/// @param  cropLeft    Left pixel crop
 	/// @param  cropRight   Right pixel crop
@@ -166,7 +116,7 @@ public slots:
 
 	///
 	/// @brief Handle settings update from HyperionDaemon Settingsmanager emit
-	/// @param type   settingyType from enum
+	/// @param type   settingsType from enum
 	/// @param config configuration object
 	///
 	virtual void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
@@ -189,6 +139,22 @@ private slots:
 	void updateTimer(int interval);
 
 protected:
+
+	///
+/// @brief Opens the input device.
+///
+/// @return True, on success (i.e. device is ready)
+///
+	virtual bool open() { return true; }
+
+	///
+	/// @brief Closes the input device.
+	///
+	/// @return True on success (i.e. device is closed)
+	///
+	virtual bool close() { return true; }
+
+
 	QString _grabberName;
 
 	/// The timer for generating events with the specified update rate

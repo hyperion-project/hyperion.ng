@@ -16,7 +16,12 @@
 #include <hyperion/Grabber.h>
 #include <utils/VideoStandard.h>
 #include <utils/Components.h>
-#include <cec/CECEvent.h>
+
+#include <HyperionConfig.h> // Required to determine the cmake options
+
+#if defined(ENABLE_CEC)
+	#include <cec/CECEvent.h>
+#endif
 
 // general JPEG decoder includes
 #ifdef HAVE_JPEG_DECODER
@@ -53,8 +58,8 @@ public:
 			QList<VideoStandard> standards = QList<VideoStandard>();
 			struct EncodingProperties
 			{
-				unsigned int width		= 0;
-				unsigned int height		= 0;
+				int width		= 0;
+				int height		= 0;
 				QList<int> framerates	= QList<int>();
 			};
 			QMultiMap<PixelFormat, EncodingProperties> encodingFormats = QMultiMap<PixelFormat, EncodingProperties>();
@@ -62,115 +67,40 @@ public:
 		QMap<int, InputProperties> inputs = QMap<int, InputProperties>();
 	};
 
-	V4L2Grabber(const QString & device, const unsigned width, const unsigned height, const unsigned fps, const unsigned input, VideoStandard videoStandard, PixelFormat pixelFormat, int pixelDecimation);
+	V4L2Grabber();
 	~V4L2Grabber() override;
 
-	QRectF getSignalDetectionOffset() const
-	{
-		return QRectF(_x_frac_min, _y_frac_min, _x_frac_max, _y_frac_max);
-	}
-
-	bool getSignalDetectionEnabled() const { return _signalDetectionEnabled; }
-	bool getCecDetectionEnabled() const { return _cecDetectionEnabled; }
-
 	int grabFrame(Image<ColorRgb> &);
-
-	///
-	/// @brief  set new PixelDecimation value to ImageResampler
-	/// @param  pixelDecimation  The new pixelDecimation value
-	///
-	void setPixelDecimation(int pixelDecimation) override;
-
-	///
-	/// @brief  overwrite Grabber.h implementation
-	///
-	void setSignalThreshold(
-					double redSignalThreshold,
-					double greenSignalThreshold,
-					double blueSignalThreshold,
-					int noSignalCounterThreshold = 50) override;
-
-	///
-	/// @brief  overwrite Grabber.h implementation
-	///
-	void setSignalDetectionOffset(
-					double verticalMin,
-					double horizontalMin,
-					double verticalMax,
-					double horizontalMax) override;
-	///
-	/// @brief  overwrite Grabber.h implementation
-	///
-	void setSignalDetectionEnable(bool enable) override;
-
-	///
-	/// @brief  overwrite Grabber.h implementation
-	///
-	void setCecDetectionEnable(bool enable) override;
-
-	///
-	/// @brief overwrite Grabber.h implementation
-	///
-	void setDeviceVideoStandard(QString device, VideoStandard videoStandard) override;
-
-	///
-	/// @brief overwrite Grabber.h implementation
-	///
+	void setDevice(const QString& device);
 	bool setInput(int input) override;
-
-	///
-	/// @brief overwrite Grabber.h implementation
-	///
 	bool setWidthHeight(int width, int height) override;
+	void setEncoding(QString enc);
+	void setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue);
+	void setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold, int noSignalCounterThreshold = 50);
+	void setSignalDetectionOffset( double verticalMin, double horizontalMin, double verticalMax, double horizontalMax);
+	void setSignalDetectionEnable(bool enable);
+	void setCecDetectionEnable(bool enable);
+	bool reload(bool force = false);
+
+	QRectF getSignalDetectionOffset() const { return QRectF(_x_frac_min, _y_frac_min, _x_frac_max, _y_frac_max); } //used from hyperion-v4l2
+
+
 
 	///
-	/// @brief overwrite Grabber.h implementation
+	/// @brief Discover available V4L2 USB devices (for configuration).
+	/// @param[in] params Parameters used to overwrite discovery default behaviour
+	/// @return A JSON structure holding a list of USB devices found
 	///
-	bool setFramerate(int fps) override;
-
-	///
-	/// @brief overwrite Grabber.h implementation
-	///
-	QStringList getDevices() const override;
-
-	///
-	/// @brief overwrite Grabber.h implementation
-	///
-	QString getDeviceName(const QString& devicePath) const override;
-
-	///
-	/// @brief overwrite Grabber.h implementation
-	///
-	QMultiMap<QString, int> getDeviceInputs(const QString& devicePath) const override;
-
-	///
-	/// @brief overwrite Grabber.h implementation
-	///
-	QList<VideoStandard> getAvailableDeviceStandards(const QString& devicePath, const int& deviceInput) const override;
-
-	///
-	/// @brief overwrite Grabber.h implementation
-	///
-	QStringList getAvailableEncodingFormats(const QString& devicePath, const int& deviceInput) const override;
-
-	///
-	/// @brief overwrite Grabber.h implementation
-	///
-	QMultiMap<int, int> getAvailableDeviceResolutions(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat) const override;
-
-	///
-	/// @brief overwrite Grabber.h implementation
-	///
-	QIntList getAvailableDeviceFramerates(const QString& devicePath, const int& deviceInput, const PixelFormat& encFormat, const unsigned width, const unsigned height) const override;
-
+	QJsonArray discover(const QJsonObject& params);
 
 public slots:
-
+	bool prepare() { return true; }
 	bool start();
-
 	void stop();
 
+#if defined(ENABLE_CEC)
 	void handleCecEvent(CECEvent event);
+#endif
 
 signals:
 	void newFrame(const Image<ColorRgb> & image);
@@ -180,36 +110,21 @@ private slots:
 	int read_frame();
 
 private:
-	void getV4Ldevices();
-
+	void enumVideoCaptureDevices();
 	bool init();
-
 	void uninit();
-
 	bool open_device();
-
 	void close_device();
-
 	void init_read(unsigned int buffer_size);
-
 	void init_mmap();
-
 	void init_userp(unsigned int buffer_size);
-
 	void init_device(VideoStandard videoStandard);
-
 	void uninit_device();
-
 	void start_capturing();
-
 	void stop_capturing();
-
 	bool process_image(const void *p, int size);
-
 	void process_image(const uint8_t *p, int size);
-
 	int xioctl(int request, void *arg);
-
 	int xioctl(int fileDescriptor, int request, void *arg);
 
 	void throw_exception(const QString & error)
@@ -264,16 +179,14 @@ private:
 #endif
 
 private:
-	QString _deviceName;
-	std::map<QString, QString> _v4lDevices;
+	QString _currentDeviceName, _newDeviceName;
 	QMap<QString, V4L2Grabber::DeviceProperties> _deviceProperties;
 
-	VideoStandard       _videoStandard;
 	io_method           _ioMethod;
 	int                 _fileDescriptor;
 	std::vector<buffer> _buffers;
 
-	PixelFormat _pixelFormat;
+	PixelFormat _pixelFormat, _pixelFormatConfig;
 	int         _pixelDecimation;
 	int         _lineLength;
 	int         _frameByteSize;
@@ -281,10 +194,7 @@ private:
 	// signal detection
 	int      _noSignalCounterThreshold;
 	ColorRgb _noSignalThresholdColor;
-	bool     _signalDetectionEnabled;
-	bool     _cecDetectionEnabled;
-	bool     _cecStandbyActivated;
-	bool     _noSignalDetected;
+	bool     _cecDetectionEnabled, _cecStandbyActivated, _signalDetectionEnabled, _noSignalDetected;
 	int      _noSignalCounter;
 	double   _x_frac_min;
 	double   _y_frac_min;
@@ -293,8 +203,7 @@ private:
 
 	QSocketNotifier *_streamNotifier;
 
-	bool _initialized;
-	bool _deviceAutoDiscoverEnabled;
+	bool _initialized, _reload;
 
 protected:
 	void enumFrameIntervals(QList<int> &framerates, int fileDescriptor, int pixelformat, int width, int height);

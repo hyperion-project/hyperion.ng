@@ -21,6 +21,11 @@ public:
 	///
 	QtWrapper(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation, int display, unsigned updateRate_Hz);
 
+	///
+	/// Starts the grabber which produces led values with the specified update rate
+	///
+	bool open() override;
+
 public slots:
 	///
 	/// Performs a single frame grab and computes the led-colors

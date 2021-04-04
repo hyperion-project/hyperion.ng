@@ -64,12 +64,12 @@ private:
 	///
 	/// @brief Load the effect definition, called by updateEffects()
 	///
-	bool loadEffectDefinition(const QString & path, const QString & effectConfigFile, EffectDefinition &effectDefinition);
+	bool loadEffectDefinition(const QString& path, const QString& effectConfigFile, EffectDefinition& effectDefinition);
 
 	///
 	/// @brief load effect schemas, called by updateEffects()
 	///
-	bool loadEffectSchema(const QString & path, const QString & effectSchemaFile, EffectSchema &effectSchema);
+	bool loadEffectSchema(const QString& path, const QString& effectSchemaFile, EffectSchema& effectSchema);
 
 private:
 	QJsonObject _effectConfig;

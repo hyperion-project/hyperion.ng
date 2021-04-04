@@ -1,7 +1,11 @@
 #pragma once
 
 #include <QAbstractNativeEventFilter>
+// QT includes
 #include <QObject>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonDocument>
 
 #include <utils/ColorRgb.h>
 #include <hyperion/Grabber.h>
@@ -21,16 +25,28 @@ class XcbGrabber : public Grabber, public QAbstractNativeEventFilter
 	Q_OBJECT
 
 public:
-	XcbGrabber(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation);
+	XcbGrabber(int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0, int pixelDecimation=8);
+
 	~XcbGrabber() override;
 
-	bool Setup();
+	bool open();
+	bool setupDisplay();
+
 	int grabFrame(Image<ColorRgb> & image, bool forceUpdate = false);
 	int updateScreenDimensions(bool force = false);
 	void setVideoMode(VideoMode mode) override;
 	bool setWidthHeight(int width, int height) override { return true; }
-	void setPixelDecimation(int pixelDecimation) override;
+	bool setPixelDecimation(int pixelDecimation) override;
 	void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom) override;
+
+	///
+	/// @brief Discover XCB screens available (for configuration).
+	///
+	/// @param[in] params Parameters used to overwrite discovery default behaviour
+	///
+	/// @return A JSON structure holding a list of devices found
+	///
+	QJsonObject discover(const QJsonObject& params);
 
 private:
 	bool nativeEventFilter(const QByteArray & eventType, void * message, long int * result) override;
@@ -54,6 +70,7 @@ private:
 
 	int _pixelDecimation;
 
+	int _screen_num;
 	unsigned _screenWidth;
 	unsigned _screenHeight;
 	unsigned _src_x;
@@ -63,6 +80,8 @@ private:
 	bool _XcbRandRAvailable;
 	bool _XcbShmAvailable;
 	bool _XcbShmPixmapAvailable;
+	bool _isWayland;
+
 	Logger * _logger;
 
 	uint8_t * _shmData;

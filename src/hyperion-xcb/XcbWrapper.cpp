@@ -31,7 +31,7 @@ void XcbWrapper::stop()
 
 bool XcbWrapper::displayInit()
 {
-	return _grabber.Setup();
+	return _grabber.setupDisplay();
 }
 
 void XcbWrapper::capture()

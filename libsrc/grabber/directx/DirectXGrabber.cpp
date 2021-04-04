@@ -1,12 +1,13 @@
 #include <windows.h>
 #include <grabber/DirectXGrabber.h>
-#include <QImage>
+
 #pragma comment(lib, "d3d9.lib")
 #pragma comment(lib,"d3dx9.lib")
 
 DirectXGrabber::DirectXGrabber(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation, int display)
 	: Grabber("DXGRABBER", 0, 0, cropLeft, cropRight, cropTop, cropBottom)
 	, _pixelDecimation(pixelDecimation)
+	, _display(unsigned(display))
 	, _displayWidth(0)
 	, _displayHeight(0)
 	, _srcRect(0)
@@ -43,6 +44,8 @@ bool DirectXGrabber::setupDisplay()
 
 	D3DDISPLAYMODE ddm;
 	D3DPRESENT_PARAMETERS d3dpp;
+	HMONITOR hMonitor = nullptr;
+	MONITORINFO monitorInfo = { 0 };
 
 	if ((_d3d9 = Direct3DCreate9(D3D_SDK_VERSION)) == nullptr)
 	{
@@ -50,7 +53,17 @@ bool DirectXGrabber::setupDisplay()
 		return false;
 	}
 
-	if (FAILED(_d3d9->GetAdapterDisplayMode(D3DADAPTER_DEFAULT, &ddm)))
+	SecureZeroMemory(&monitorInfo, sizeof(monitorInfo));
+	monitorInfo.cbSize = sizeof(MONITORINFO);
+
+	hMonitor = _d3d9->GetAdapterMonitor(_display);
+	if (hMonitor == nullptr || GetMonitorInfo(hMonitor, &monitorInfo) == FALSE)
+	{
+		Info(_log, "Specified display %d is not available. Primary display %d is used", _display, D3DADAPTER_DEFAULT);
+		_display = D3DADAPTER_DEFAULT;
+	}
+
+	if (FAILED(_d3d9->GetAdapterDisplayMode(_display, &ddm)))
 	{
 		Error(_log, "Failed to get current display mode");
 		return false;
@@ -69,7 +82,7 @@ bool DirectXGrabber::setupDisplay()
 	d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;
 	d3dpp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
 
-	if (FAILED(_d3d9->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, nullptr, D3DCREATE_SOFTWARE_VERTEXPROCESSING, &d3dpp, &_device)))
+	if (FAILED(_d3d9->CreateDevice(_display, D3DDEVTYPE_HAL, nullptr, D3DCREATE_SOFTWARE_VERTEXPROCESSING, &d3dpp, &_device)))
 	{
 		Error(_log, "CreateDevice failed");
 		return false;
@@ -147,12 +160,11 @@ int DirectXGrabber::grabFrame(Image<ColorRgb> & image)
 		return 0;
 	}
 
-	memcpy(image.memptr(), lockedRect.pBits, _width * _height * 3);
+	for(int i=0 ; i < _height ; i++)
+		memcpy((unsigned char*)image.memptr() + i * _width * 3, (unsigned char*)lockedRect.pBits + i * lockedRect.Pitch, _width * 3);
+
 	for (int idx = 0; idx < _width * _height; idx++)
-	{
-		const ColorRgb & color = image.memptr()[idx];
-		image.memptr()[idx] = ColorRgb{color.blue, color.green, color.red};
-	}
+		image.memptr()[idx] = ColorRgb{image.memptr()[idx].blue, image.memptr()[idx].green, image.memptr()[idx].red};
 
 	if (FAILED(_surfaceDest->UnlockRect()))
 	{
@@ -178,4 +190,13 @@ void DirectXGrabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned
 {
 	Grabber::setCropping(cropLeft, cropRight, cropTop, cropBottom);
 	setupDisplay();
+}
+
+void DirectXGrabber::setDisplayIndex(int index)
+{
+	if(_display != unsigned(index))
+	{
+		_display = unsigned(index);
+		setupDisplay();
+	}
 }
