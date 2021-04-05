@@ -13,6 +13,15 @@
 // write config to filesystem
 #include <utils/JsonUtils.h>
 
+#include <utils/semver.hpp>
+using namespace semver;
+
+// Constants
+namespace {
+constexpr semver::version BUILD_VERSION(HYPERION_VERSION);
+constexpr semver::version DEFAULT_VERSION {2,0,0, semver::prerelease::alpha, 8};
+} //End of constants
+
 QJsonObject SettingsManager::schemaJson;
 
 SettingsManager::SettingsManager(quint8 instance, QObject* parent, bool readonlyMode)
@@ -81,32 +90,37 @@ SettingsManager::SettingsManager(quint8 instance, QObject* parent, bool readonly
 	//Check, if database requires migration
 	bool isNewRelease = false;
 	// Use instance independent SettingsManager to track migration status
-	if ( instance == 255)
+	if ( instance == GLOABL_INSTANCE_ID)
 	{
-		if (dbConfig.contains("general"))
+		if ( resolveConfigVersion(dbConfig) )
 		{
 			QJsonObject newGeneralConfig = dbConfig["general"].toObject();
 
-			QString configVersion = newGeneralConfig["configVersion"].toString();
-			QString previousVersion = newGeneralConfig["previousVersion"].toString();
-
-			if ( configVersion == HYPERION_VERSION && previousVersion != HYPERION_VERSION )
+			if ( _configVersion > BUILD_VERSION )
 			{
-				newGeneralConfig["previousVersion"] = HYPERION_VERSION;
-				dbConfig["general"] = newGeneralConfig;
-				isNewRelease = true;
-				Debug(_log, "Migration completed to version [%s]", HYPERION_VERSION);
+				Error(_log, "Database version [%s] is greater that current Hyperion version [%s]", _configVersion.to_string().c_str(), BUILD_VERSION.to_string().c_str());
+				// TODO: Remove version checking and Settlingsmanger from components' constructor to be able to stop herperion.
 			}
 			else
 			{
-				if ( previousVersion != HYPERION_VERSION )
+				if ( _previousVersion < BUILD_VERSION )
 				{
-					Debug(_log, "Migration from current version [%s] to new version [%s] started", QSTRING_CSTR(previousVersion), HYPERION_VERSION);
+					if ( _configVersion == BUILD_VERSION )
+					{
+						newGeneralConfig["previousVersion"] = BUILD_VERSION.to_string().c_str();
+						dbConfig["general"] = newGeneralConfig;
+						isNewRelease = true;
+						Info(_log, "Migration completed to version [%s]", BUILD_VERSION.to_string().c_str());
+					}
+					else
+					{
+						Info(_log, "Migration from current version [%s] to new version [%s] started", _previousVersion.to_string().c_str(), BUILD_VERSION.to_string().c_str());
 
-					newGeneralConfig["previousVersion"] = configVersion;
-					newGeneralConfig["configVersion"] = HYPERION_VERSION;
-					dbConfig["general"] = newGeneralConfig;
-					isNewRelease = true;
+						newGeneralConfig["previousVersion"] = _configVersion.to_string().c_str();
+						newGeneralConfig["configVersion"] = BUILD_VERSION.to_string().c_str();
+						dbConfig["general"] = newGeneralConfig;
+						isNewRelease = true;
+					}
 				}
 			}
 		}
@@ -230,100 +244,138 @@ bool SettingsManager::saveSettings(QJsonObject config, bool correct)
 	return rc;
 }
 
+bool SettingsManager::resolveConfigVersion(QJsonObject& config)
+{
+	bool success = false;
+	if (config.contains("general"))
+	{
+		QJsonObject generalConfig = config["general"].toObject();
+		QString configVersion = generalConfig["configVersion"].toString();
+		QString previousVersion = generalConfig["previousVersion"].toString();
+
+		if ( !configVersion.isEmpty() )
+		{
+			success = _configVersion.from_string_noexcept(configVersion.toStdString());
+		}
+		else
+		{
+			_configVersion = DEFAULT_VERSION;
+			success = true;
+		}
+
+		if ( !previousVersion.isEmpty() && success )
+		{
+			success =  _previousVersion.from_string_noexcept(previousVersion.toStdString());
+		}
+		else
+		{
+			_previousVersion = DEFAULT_VERSION;
+			success = true;
+		}
+	}
+	return success;
+}
+
+
 bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 {
 	bool migrated = false;
 
-	QJsonObject generalConfig = config["general"].toObject();
-	QString configVersion = generalConfig["configVersion"].toString();
-	QString previousVersion = generalConfig["previousVersion"].toString();
+	resolveConfigVersion(config);
 
-	if (previousVersion != configVersion)
+	//Do only migrate, if configuration is not up to date
+	if (_previousVersion < _configVersion)
 	{
-		Debug(_log, "Instance [%u]: Migrate from current version [%s] to new version [%s]", _instance, QSTRING_CSTR(previousVersion), QSTRING_CSTR(configVersion));
-
-		// LED LAYOUT UPGRADE
-		// from { hscan: { minimum: 0.2, maximum: 0.3 }, vscan: { minimum: 0.2, maximumn: 0.3 } }
-		// from { h: { min: 0.2, max: 0.3 }, v: { min: 0.2, max: 0.3 } }
-		// to   { hmin: 0.2, hmax: 0.3, vmin: 0.2, vmax: 0.3}
-		if(config.contains("leds"))
+		constexpr semver::version targetVersion {2,0,0, semver::prerelease::alpha, 9};
+		if (_previousVersion < targetVersion)
 		{
-			const QJsonArray ledarr = config["leds"].toArray();
-			const QJsonObject led = ledarr[0].toObject();
+			Info(_log, "Instance [%u]: Migrate LED Layout from current version [%s] to version [%s] or later", _instance, _previousVersion.to_string().c_str(), targetVersion.to_string().c_str());
 
-			if(led.contains("hscan") || led.contains("h"))
+			// LED LAYOUT UPGRADE
+			// from { hscan: { minimum: 0.2, maximum: 0.3 }, vscan: { minimum: 0.2, maximumn: 0.3 } }
+			// from { h: { min: 0.2, max: 0.3 }, v: { min: 0.2, max: 0.3 } }
+			// to   { hmin: 0.2, hmax: 0.3, vmin: 0.2, vmax: 0.3}
+			if(config.contains("leds"))
 			{
-				const bool whscan = led.contains("hscan");
-				QJsonArray newLedarr;
+				const QJsonArray ledarr = config["leds"].toArray();
+				const QJsonObject led = ledarr[0].toObject();
 
-				for(const auto & entry : ledarr)
+				if(led.contains("hscan") || led.contains("h"))
 				{
-					const QJsonObject led = entry.toObject();
-					QJsonObject hscan;
-					QJsonObject vscan;
-					QJsonValue hmin;
-					QJsonValue hmax;
-					QJsonValue vmin;
-					QJsonValue vmax;
-					QJsonObject nL;
+					const bool whscan = led.contains("hscan");
+					QJsonArray newLedarr;
 
-					if(whscan)
+					for(const auto & entry : ledarr)
 					{
-						hscan = led["hscan"].toObject();
-						vscan = led["vscan"].toObject();
-						hmin = hscan["minimum"];
-						hmax = hscan["maximum"];
-						vmin = vscan["minimum"];
-						vmax = vscan["maximum"];
-					}
-					else
-					{
-						hscan = led["h"].toObject();
-						vscan = led["v"].toObject();
-						hmin = hscan["min"];
-						hmax = hscan["max"];
-						vmin = vscan["min"];
-						vmax = vscan["max"];
-					}
-					// append to led object
-					nL["hmin"] = hmin;
-					nL["hmax"] = hmax;
-					nL["vmin"] = vmin;
-					nL["vmax"] = vmax;
-					newLedarr.append(nL);
-				}
-				// replace
-				config["leds"] = newLedarr;
-				migrated = true;
-				Debug(_log,"Instance [%u]: LED Layout migrated", _instance);
-			}
+						const QJsonObject led = entry.toObject();
+						QJsonObject hscan;
+						QJsonObject vscan;
+						QJsonValue hmin;
+						QJsonValue hmax;
+						QJsonValue vmin;
+						QJsonValue vmax;
+						QJsonObject nL;
 
-			if (config.contains("device"))
-			{
-				QJsonObject newDeviceConfig = config["device"].toObject();
-
-				if (newDeviceConfig.contains("hardwareLedCount"))
-				{
-					int hwLedcount = newDeviceConfig["hardwareLedCount"].toInt();
-					if (config.contains("leds"))
-					{
-						const QJsonArray ledarr = config["leds"].toArray();
-						int layoutLedCount = ledarr.size();
-
-						if (hwLedcount < layoutLedCount )
+						if(whscan)
 						{
-							Warning(_log, "Instance [%u]: HwLedCount/Layout mismatch! Setting Hardware LED count to number of LEDs configured via layout", _instance);
-							hwLedcount = layoutLedCount;
-							newDeviceConfig["hardwareLedCount"] = hwLedcount;
+							hscan = led["hscan"].toObject();
+							vscan = led["vscan"].toObject();
+							hmin = hscan["minimum"];
+							hmax = hscan["maximum"];
+							vmin = vscan["minimum"];
+							vmax = vscan["maximum"];
+						}
+						else
+						{
+							hscan = led["h"].toObject();
+							vscan = led["v"].toObject();
+							hmin = hscan["min"];
+							hmax = hscan["max"];
+							vmin = vscan["min"];
+							vmax = vscan["max"];
+						}
+						// append to led object
+						nL["hmin"] = hmin;
+						nL["hmax"] = hmax;
+						nL["vmin"] = vmin;
+						nL["vmax"] = vmax;
+						newLedarr.append(nL);
+					}
+					// replace
+					config["leds"] = newLedarr;
+					migrated = true;
+					Info(_log,"Instance [%u]: LED Layout migrated", _instance);
+				}
 
-							config["device"] = newDeviceConfig;
-							migrated = true;
+
+				// LED Hardware count is leading for versions after alpha 9
+				// Setting Hardware LED count to number of LEDs configured via layout, if layout number is greater than number of hardware LEDs
+				if (config.contains("device"))
+				{
+					QJsonObject newDeviceConfig = config["device"].toObject();
+
+					if (newDeviceConfig.contains("hardwareLedCount"))
+					{
+						int hwLedcount = newDeviceConfig["hardwareLedCount"].toInt();
+						if (config.contains("leds"))
+						{
+							const QJsonArray ledarr = config["leds"].toArray();
+							int layoutLedCount = ledarr.size();
+
+							if (hwLedcount < layoutLedCount )
+							{
+								Warning(_log, "Instance [%u]: HwLedCount/Layout mismatch! Setting Hardware LED count to number of LEDs configured via layout", _instance);
+								hwLedcount = layoutLedCount;
+								newDeviceConfig["hardwareLedCount"] = hwLedcount;
+
+								config["device"] = newDeviceConfig;
+								migrated = true;
+							}
 						}
 					}
 				}
 			}
 		}
 	}
-
 	return migrated;
 }

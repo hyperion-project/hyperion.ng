@@ -97,7 +97,7 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
 
 	// init settings, this settingsManager accesses global settings which are independent from instances
-	_settingsManager = new SettingsManager(255, this, readonlyMode);
+	_settingsManager = new SettingsManager(GLOABL_INSTANCE_ID, this, readonlyMode);
 
 	// set inital log lvl if the loglvl wasn't overwritten by arg
 	if (!logLvlOverwrite)
