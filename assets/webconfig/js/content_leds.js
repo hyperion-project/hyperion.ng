@@ -343,50 +343,6 @@ function createMatrixLeds() {
   aceEdt.set(finalLedArray);
 }
 
-function migrateLedConfig(slConfig) {
-  var newLedConfig = { classic: {}, matrix: {} };
-
-  //Default Classic layout
-  newLedConfig.classic = {
-    "top": 1,
-    "bottom": 0,
-    "left": 0,
-    "right": 0,
-    "glength": 0,
-    "gpos": 0,
-    "position": 0,
-    "reverse": false,
-    "hdepth": 8,
-    "vdepth": 5,
-    "overlap": 0,
-    "edgegap": 0
-  }
-
-  //Move Classic layout
-  newLedConfig.classic.top = slConfig.top;
-  newLedConfig.classic.bottom = slConfig.bottom;
-  newLedConfig.classic.left = slConfig.left;
-  newLedConfig.classic.right = slConfig.right;
-  newLedConfig.classic.glength = slConfig.glength;
-  newLedConfig.classic.position = slConfig.position;
-  newLedConfig.classic.reverse = slConfig.reverse;
-  newLedConfig.classic.hdepth = slConfig.hdepth;
-  newLedConfig.classic.vdepth = slConfig.vdepth;
-  newLedConfig.classic.overlap = slConfig.overlap;
-
-  //Default Matrix layout
-  newLedConfig["matrix"] = {
-    "ledshoriz": 1,
-    "ledsvert": 1,
-    "cabling": "snake",
-    "start": "top-left"
-  }
-
-  // Persit new structure
-  requestWriteConfig({ ledConfig: newLedConfig })
-  return newLedConfig
-}
-
 function getLedConfig() {
   var ledConfig = { classic: {}, matrix: {} };
   var slConfig = window.serverConfig.ledConfig;
@@ -434,11 +390,6 @@ $(document).ready(function () {
   // Handle LED-Layout Configuration
   //**************************************************
   var slConfig = window.serverConfig.ledConfig;
-
-  //Check, if structure is not aligned to expected -> migrate structure
-  if (isEmpty(slConfig.classic)) {
-    slConfig = migrateLedConfig(slConfig);
-  }
 
   //restore ledConfig - Classic
   for (var key in slConfig.classic) {
