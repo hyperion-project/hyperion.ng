@@ -3,8 +3,13 @@
 #include <utils/Logger.h>
 #include <utils/settings.h>
 
+#include <utils/version.hpp>
+using namespace semver;
+
 // qt includes
 #include <QJsonObject>
+
+const int GLOABL_INSTANCE_ID = 255;
 
 class Hyperion;
 class SettingsTable;
@@ -60,6 +65,9 @@ private:
 	///
 	bool handleConfigUpgrade(QJsonObject& config);
 
+
+	bool resolveConfigVersion(QJsonObject& config);
+
 	/// Logger instance
 	Logger* _log;
 
@@ -77,6 +85,9 @@ private:
 
 	/// the current configuration of this instance
 	QJsonObject _qconfig;
+
+	semver::version _configVersion;
+	semver::version _previousVersion;
 
 	bool	_readonlyMode;
 };

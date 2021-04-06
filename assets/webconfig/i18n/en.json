@@ -334,6 +334,7 @@
     "edt_conf_fw_json_expl": "One json target per line. Contains IP:PORT (Example: 127.0.0.1:19446)",
     "edt_conf_fw_json_itemtitle": "Json target",
     "edt_conf_fw_json_title": "List of json targets",
+    "edt_conf_gen_configVersion_title": "Configuration version",
     "edt_conf_gen_heading_title": "General Settings",
     "edt_conf_gen_name_expl": "A user defined name which is used to detect Hyperion. (Helpful with more than one Hyperion instance)",
     "edt_conf_gen_name_title": "Configuration name",
