@@ -341,6 +341,8 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	if (ENABLE_DX)
 		find_package(DirectX9 REQUIRED)
 	endif(ENABLE_DX)
+		
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++latest")
 
 endif()
 

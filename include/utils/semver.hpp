@@ -46,7 +46,9 @@
 #include <cstdint>
 #include <iosfwd>
 #include <limits>
+#if defined(__GNUC__) && __GNUC__ >= 7
 #include <optional>
+#endif
 #include <string>
 #include <string_view>
 #if __has_include(<charconv>)
@@ -432,13 +434,15 @@ struct version {
   return v.to_chars(first, last);
 }
 
+#if defined(__GNUC__) && __GNUC__ >= 7
 [[nodiscard]] constexpr std::optional<version> from_string_noexcept(std::string_view str) noexcept {
   if (version v{}; v.from_string_noexcept(str)) {
-    return v;
+	return v;
   }
 
   return std::nullopt;
 }
+#endif
 
 [[nodiscard]] constexpr version from_string(std::string_view str) {
   return version{str};
