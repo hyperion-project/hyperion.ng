@@ -3,7 +3,7 @@
 #include <utils/Logger.h>
 #include <utils/settings.h>
 
-#include <utils/semver.hpp>
+#include <utils/version.hpp>
 using namespace semver;
 
 // qt includes

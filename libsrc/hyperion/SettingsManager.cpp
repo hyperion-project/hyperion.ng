@@ -13,13 +13,12 @@
 // write config to filesystem
 #include <utils/JsonUtils.h>
 
-#include <utils/semver.hpp>
+#include <utils/version.hpp>
 using namespace semver;
 
 // Constants
 namespace {
-constexpr semver::version BUILD_VERSION(HYPERION_VERSION);
-constexpr semver::version DEFAULT_VERSION {2,0,0, semver::prerelease::alpha, 8};
+const char DEFAULT_VERSION[] = "2.0.0-alpha.8";
 } //End of constants
 
 QJsonObject SettingsManager::schemaJson;
@@ -29,6 +28,8 @@ SettingsManager::SettingsManager(quint8 instance, QObject* parent, bool readonly
 	, _log(Logger::getInstance("SETTINGSMGR"))
 	, _instance(instance)
 	, _sTable(new SettingsTable(instance, this))
+	, _configVersion(DEFAULT_VERSION)
+	, _previousVersion(DEFAULT_VERSION)
 	, _readonlyMode(readonlyMode)
 {
 	_sTable->setReadonlyMode(_readonlyMode);
@@ -49,7 +50,9 @@ SettingsManager::SettingsManager(quint8 instance, QObject* parent, bool readonly
 	// get default config
 	QJsonObject defaultConfig;
 	if(!JsonUtils::readFile(":/hyperion_default.config", defaultConfig, _log))
+	{
 		throw std::runtime_error("Failed to read default config");
+	}
 
 	// transform json to string lists
 	QStringList keyList = defaultConfig.keys();
@@ -75,7 +78,7 @@ SettingsManager::SettingsManager(quint8 instance, QObject* parent, bool readonly
 			_sTable->createSettingsRecord(key,val);
 	}
 
-	// need to validate all data in database constuct the entire data object
+	// need to validate all data in database construct the entire data object
 	// TODO refactor schemaChecker to accept QJsonArray in validate(); QJsonDocument container? To validate them per entry...
 	QJsonObject dbConfig;
 	for(const auto & key : keyList)
@@ -96,10 +99,11 @@ SettingsManager::SettingsManager(quint8 instance, QObject* parent, bool readonly
 		{
 			QJsonObject newGeneralConfig = dbConfig["general"].toObject();
 
+			semver::version BUILD_VERSION(HYPERION_VERSION);
 			if ( _configVersion > BUILD_VERSION )
 			{
-				Error(_log, "Database version [%s] is greater that current Hyperion version [%s]", _configVersion.to_string().c_str(), BUILD_VERSION.to_string().c_str());
-				// TODO: Remove version checking and Settlingsmanger from components' constructor to be able to stop herperion.
+				Error(_log, "Database version [%s] is greater that current Hyperion version [%s]", _configVersion.getVersion().c_str(), BUILD_VERSION.getVersion().c_str());
+				// TODO: Remove version checking and Settingsmanager from components' constructor to be able to stop hyperion.
 			}
 			else
 			{
@@ -107,17 +111,17 @@ SettingsManager::SettingsManager(quint8 instance, QObject* parent, bool readonly
 				{
 					if ( _configVersion == BUILD_VERSION )
 					{
-						newGeneralConfig["previousVersion"] = BUILD_VERSION.to_string().c_str();
+						newGeneralConfig["previousVersion"] = BUILD_VERSION.getVersion().c_str();
 						dbConfig["general"] = newGeneralConfig;
 						isNewRelease = true;
-						Info(_log, "Migration completed to version [%s]", BUILD_VERSION.to_string().c_str());
+						Info(_log, "Migration completed to version [%s]", BUILD_VERSION.getVersion().c_str());
 					}
 					else
 					{
-						Info(_log, "Migration from current version [%s] to new version [%s] started", _previousVersion.to_string().c_str(), BUILD_VERSION.to_string().c_str());
+						Info(_log, "Migration from current version [%s] to new version [%s] started", _previousVersion.getVersion().c_str(), BUILD_VERSION.getVersion().c_str());
 
-						newGeneralConfig["previousVersion"] = _configVersion.to_string().c_str();
-						newGeneralConfig["configVersion"] = BUILD_VERSION.to_string().c_str();
+						newGeneralConfig["previousVersion"] = _configVersion.getVersion().c_str();
+						newGeneralConfig["configVersion"] = BUILD_VERSION.getVersion().c_str();
 						dbConfig["general"] = newGeneralConfig;
 						isNewRelease = true;
 					}
@@ -246,7 +250,7 @@ bool SettingsManager::saveSettings(QJsonObject config, bool correct)
 
 bool SettingsManager::resolveConfigVersion(QJsonObject& config)
 {
-	bool success = false;
+	bool isValid = false;
 	if (config.contains("general"))
 	{
 		QJsonObject generalConfig = config["general"].toObject();
@@ -255,25 +259,25 @@ bool SettingsManager::resolveConfigVersion(QJsonObject& config)
 
 		if ( !configVersion.isEmpty() )
 		{
-			success = _configVersion.from_string_noexcept(configVersion.toStdString());
+			isValid = _configVersion.setVersion(configVersion.toStdString());
 		}
 		else
 		{
-			_configVersion = DEFAULT_VERSION;
-			success = true;
+			_configVersion.setVersion(DEFAULT_VERSION);
+			isValid = true;
 		}
 
-		if ( !previousVersion.isEmpty() && success )
+		if ( !previousVersion.isEmpty() && isValid )
 		{
-			success =  _previousVersion.from_string_noexcept(previousVersion.toStdString());
+			isValid = _previousVersion.setVersion(previousVersion.toStdString());
 		}
 		else
 		{
-			_previousVersion = DEFAULT_VERSION;
-			success = true;
+			_previousVersion.setVersion(DEFAULT_VERSION);
+			isValid = true;
 		}
 	}
-	return success;
+	return isValid;
 }
 
 
@@ -286,13 +290,14 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 	//Do only migrate, if configuration is not up to date
 	if (_previousVersion < _configVersion)
 	{
-		constexpr semver::version targetVersion {2,0,0, semver::prerelease::alpha, 9};
-		if (_previousVersion < targetVersion)
+		//Migration steps for versions <= alpha 9
+		semver::version targetVersion {"2.0.0-alpha.9"};
+		if (_previousVersion <= targetVersion )
 		{
-			Info(_log, "Instance [%u]: Migrate LED Layout from current version [%s] to version [%s] or later", _instance, _previousVersion.to_string().c_str(), targetVersion.to_string().c_str());
+			Info(_log, "Instance [%u]: Migrate LED Layout from current version [%s] to version [%s] or later", _instance, _previousVersion.getVersion().c_str(), targetVersion.getVersion().c_str());
 
 			// LED LAYOUT UPGRADE
-			// from { hscan: { minimum: 0.2, maximum: 0.3 }, vscan: { minimum: 0.2, maximumn: 0.3 } }
+			// from { hscan: { minimum: 0.2, maximum: 0.3 }, vscan: { minimum: 0.2, maximum: 0.3 } }
 			// from { h: { min: 0.2, max: 0.3 }, v: { min: 0.2, max: 0.3 } }
 			// to   { hmin: 0.2, hmax: 0.3, vmin: 0.2, vmax: 0.3}
 			if(config.contains("leds"))
