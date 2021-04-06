@@ -17,6 +17,7 @@ QJsonObject SettingsManager::schemaJson;
 SettingsManager::SettingsManager(quint8 instance, QObject* parent, bool readonlyMode)
 	: QObject(parent)
 	, _log(Logger::getInstance("SETTINGSMGR"))
+	, _instance(instance)
 	, _sTable(new SettingsTable(instance, this))
 	, _readonlyMode(readonlyMode)
 {
@@ -250,47 +251,56 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 			// replace
 			config["leds"] = newLedarr;
 			migrated = true;
-			Debug(_log,"LED Layout migrated");
+			Info(_log,"Instance [%u]: LED Layout migrated", _instance);
 		}
+	}
 
-		if (config.contains("device"))
+	if(config.contains("ledConfig"))
+	{
+		QJsonObject oldLedConfig = config["ledConfig"].toObject();
+		if ( !oldLedConfig.contains("classic"))
 		{
-			QJsonObject newDeviceConfig = config["device"].toObject();
+			QJsonObject newLedConfig;
+			newLedConfig.insert("classic", oldLedConfig );
+			QJsonObject defaultMatrixConfig {{"ledshoriz", 1}
+											 ,{"ledsvert", 1}
+											 ,{"cabling","snake"}
+											 ,{"start","top-left"}
+											};
+			newLedConfig.insert("matrix", defaultMatrixConfig );
 
-			if (newDeviceConfig.contains("hardwareLedCount"))
+			config["ledConfig"] = newLedConfig;
+			migrated = true;
+			Info(_log,"Instance [%u]: LED-Config migrated", _instance);
+		}
+	}
+
+	// LED Hardware count is leading for versions after alpha 9
+	// Setting Hardware LED count to number of LEDs configured via layout, if layout number is greater than number of hardware LEDs
+	if (config.contains("device"))
+	{
+		QJsonObject newDeviceConfig = config["device"].toObject();
+
+		if (newDeviceConfig.contains("hardwareLedCount"))
+		{
+			int hwLedcount = newDeviceConfig["hardwareLedCount"].toInt();
+			if (config.contains("leds"))
 			{
-				int hwLedcount = newDeviceConfig["hardwareLedCount"].toInt();
-				if (config.contains("leds"))
+				const QJsonArray ledarr = config["leds"].toArray();
+				int layoutLedCount = ledarr.size();
+
+				if (hwLedcount < layoutLedCount )
 				{
-					const QJsonArray ledarr = config["leds"].toArray();
-					int layoutLedCount = ledarr.size();
+					Warning(_log, "Instance [%u]: HwLedCount/Layout mismatch! Setting Hardware LED count to number of LEDs configured via layout", _instance);
+					hwLedcount = layoutLedCount;
+					newDeviceConfig["hardwareLedCount"] = hwLedcount;
 
-					if (hwLedcount < layoutLedCount )
-					{
-						Warning(_log, "HwLedCount/Layout mismatch! Setting Hardware LED count to number of LEDs configured via layout");
-						hwLedcount = layoutLedCount;
-						newDeviceConfig["hardwareLedCount"] = hwLedcount;
-
-						config["device"] = newDeviceConfig;
-						migrated = true;
-					}
+					config["device"] = newDeviceConfig;
+					migrated = true;
 				}
 			}
 		}
-
 	}
 
-	if (config.contains("grabberV4L2"))
-	{
-		QJsonObject newGrabberV4L2Config = config["grabberV4L2"].toObject();
-
-		if (newGrabberV4L2Config.contains("encoding_format"))
-		{
-			newGrabberV4L2Config.remove("encoding_format");
-			config["grabberV4L2"] = newGrabberV4L2Config;
-			migrated = true;
-			Debug(_log, "GrabberV4L2 Layout migrated");
-		}
-	}
 	return migrated;
 }

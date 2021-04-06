@@ -60,12 +60,14 @@ private:
 	///
 	bool handleConfigUpgrade(QJsonObject& config);
 
+	/// Logger instance
+	Logger* _log;
 
 	/// Hyperion instance
 	Hyperion* _hyperion;
 
-	/// Logger instance
-	Logger* _log;
+	/// Instance number
+	quint8 _instance;
 
 	/// instance of database table interface
 	SettingsTable* _sTable;
