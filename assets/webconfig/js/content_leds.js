@@ -1074,7 +1074,8 @@ function saveLedConfig(genDefLayout = false) {
               "left": hardwareLedCount / 4,
               "right": hardwareLedCount / 4,
               "position": hardwareLedCount / 4 * 3
-            }
+            },
+             "matrix": { "cabling": "snake", "ledshoriz": 1, "ledsvert": 1, "start": "top-left" }
           };
           leds = createClassicLedLayoutSimple(hardwareLedCount / 2, hardwareLedCount / 4, hardwareLedCount / 4, 0, hardwareLedCount / 4 * 3, false);
         }
@@ -1085,7 +1086,8 @@ function saveLedConfig(genDefLayout = false) {
               "bottom": 0,
               "left": 0,
               "right": 0
-            }
+            },
+            "matrix": { "cabling": "snake", "ledshoriz": 1, "ledsvert": 1, "start": "top-left" }
           };
           leds = createClassicLedLayoutSimple(hardwareLedCount, 0, 0, 0, 0, false);
         }
@@ -1123,7 +1125,8 @@ function saveLedConfig(genDefLayout = false) {
             "bottom": 0,
             "left": 0,
             "right": 0
-          }
+          },
+          "matrix": { "cabling": "snake", "ledshoriz": 1, "ledsvert": 1, "start": "top-left" }
         }
           ;
         result.ledConfig = ledConfig;
