@@ -34,6 +34,15 @@
       },
       "propertyOrder": 3
     },
+    "overwriteSync": {
+      "type": "boolean",
+      "format": "checkbox",
+      "title": "edt_dev_spec_syncOverwrite_title",
+      "default": true,
+      "required": true,
+      "access": "advanced",
+      "propertyOrder": 4
+    },
     "overwriteBrightness": {
       "type": "boolean",
       "format": "checkbox",
@@ -41,7 +50,7 @@
       "default": true,
       "required": true,
       "access": "advanced",
-      "propertyOrder": 4
+      "propertyOrder": 5
     },
     "brightness": {
       "type": "integer",
@@ -55,7 +64,7 @@
         }
       },
       "access": "advanced",
-      "propertyOrder": 5
+      "propertyOrder": 6
     },
     "latchTime": {
       "type": "integer",
@@ -68,7 +77,7 @@
       "options": {
         "infoText": "edt_dev_spec_latchtime_title_info"
       },
-      "propertyOrder": 6
+      "propertyOrder": 7
     }
   },
   "additionalProperties": true

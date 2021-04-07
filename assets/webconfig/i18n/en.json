@@ -528,6 +528,7 @@
     "edt_dev_spec_sslReadTimeout_title": "Streamer read timeout",
     "edt_dev_spec_switchOffOnBlack_title": "Switch off on black",
     "edt_dev_spec_switchOffOnbelowMinBrightness_title": "Switch-off, below minimum",
+    "edt_dev_spec_syncOverwrite_title": "Disable synchronisation",
     "edt_dev_spec_targetIpHost_title": "Target Hostname/IP-address",
     "edt_dev_spec_targetIpHost_title_info": "The device's hostname or IP-address",
     "edt_dev_spec_targetIp_title": "Target IP-address",
