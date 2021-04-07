@@ -257,7 +257,9 @@ namespace semver {
 			setVersion(version);
         }
 
-        ~version() {}
+		version(const version&) = default;
+
+		~version() = default;
 
 		/**
 		 * Set version
