@@ -1081,3 +1081,19 @@ function handleDarkMode() {
   $('#btn_darkmode_icon').removeClass('fa fa-moon-o');
   $('#btn_darkmode_icon').addClass('fa fa-sun-o');
 }
+
+function isAccessLevelCompliant(accessLevel) {
+  var isOK = true;
+  if (accessLevel) {
+    if (accessLevel === 'system') {
+      isOK = false;
+    }
+    else if (accessLevel === 'advanced' && storedAccess === 'default') {
+      isOK = false;
+    }
+    else if (accessLevel === 'expert' && storedAccess !== 'expert') {
+      isOK = false;
+    }
+  }
+  return isOK
+}

@@ -947,7 +947,7 @@ $(document).ready(function () {
   $("#leddevices").append(createSel(optArr[3], $.i18n('conf_leds_optgroup_network')));
   $("#leddevices").append(createSel(optArr[4], $.i18n('conf_leds_optgroup_usb')));
 
-  if (storedAccess === 'expert' || window.serverConfig.device.type === "file" ) {
+  if (storedAccess === 'expert' || window.serverConfig.device.type === "file") {
     $("#leddevices").append(createSel(optArr[5], $.i18n('conf_leds_optgroup_other')));
   }
 
@@ -1075,7 +1075,7 @@ function saveLedConfig(genDefLayout = false) {
               "right": hardwareLedCount / 4,
               "position": hardwareLedCount / 4 * 3
             },
-             "matrix": { "cabling": "snake", "ledshoriz": 1, "ledsvert": 1, "start": "top-left" }
+            "matrix": { "cabling": "snake", "ledshoriz": 1, "ledsvert": 1, "start": "top-left" }
           };
           leds = createClassicLedLayoutSimple(hardwareLedCount / 2, hardwareLedCount / 4, hardwareLedCount / 4, 0, hardwareLedCount / 4 * 3, false);
         }
@@ -1466,10 +1466,15 @@ function showInputOptionsForKey(editor, item, showForKey, state) {
   var elements = [];
   for (var key in editor.schema.properties[item].properties) {
     if (showForKey !== key) {
-      elements.push(key);
+      var accessLevel = editor.schema.properties[item].properties[key].access;
+
+      //Only enable elements, if access level compliant
+      if (state && isAccessLevelCompliant(accessLevel)) {
+        elements.push(key);
+      }
     }
+    showInputOptions("root." + item, elements, state);
   }
-  showInputOptions("root." + item, elements, state);
 }
 
 function showAllDeviceInputOptions(showForKey, state) {
