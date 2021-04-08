@@ -1,6 +1,9 @@
 var ledsCustomCfgInitialized = false;
+var nonBlacklistLedArray = [];
+var ledBlacklist = [];
 var finalLedArray = [];
 var conf_editor = null;
+var blacklist_editor = null;
 var aceEdt = null;
 
 var devRPiSPI = ['apa102', 'apa104', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'sk6822spi', 'sk9822', 'ws2812spi'];
@@ -249,7 +252,8 @@ function createClassicLeds() {
     pttrv: parseInt($("#ip_cl_ptrv").val()) / 100,
   }
 
-  finalLedArray = createClassicLedLayout(params);
+  nonBlacklistLedArray = createClassicLedLayout(params);
+  finalLedArray = blackListLeds(nonBlacklistLedArray, ledBlacklist);
 
   //check led gap pos
   if (params.ledsgpos + params.ledsglength > finalLedArray.length) {
@@ -338,9 +342,38 @@ function createMatrixLeds() {
   var cabling = $("#ip_ma_cabling").val();
   var start = $("#ip_ma_start").val();
 
-  finalLedArray = createMatrixLayout(ledshoriz, ledsvert, cabling, start);
+  nonBlacklistLedArray = createMatrixLayout(ledshoriz, ledsvert, cabling, start);
+  finalLedArray = blackListLeds(nonBlacklistLedArray, ledBlacklist);
+
   createLedPreview(finalLedArray, 'matrix');
   aceEdt.set(finalLedArray);
+}
+
+function blackListLeds(nonBlacklistLedArray, blackList) {
+
+  var blacklistedLedArray = [...nonBlacklistLedArray];
+  if (blackList && blackList.length > 0) {
+
+    for (let item of blackList) {
+      start = item.start;
+      num = item.num
+      var layoutSize = blacklistedLedArray.length;
+
+      //Only consider rules which are in rage of defined number of LEDs
+      if (start >= 0 && start < layoutSize) {
+        // If number of LEDs exceeds layoutSize, use apply number until layout size
+        if (start + num > layoutSize) {
+          num = layoutSize - start;
+
+        }
+        for (var i = 0; i < num; i++) {
+          blacklistedLedArray[start + i] = { hmax: 0, hmin: 0, vmax: 0, vmin: 0 };
+        }
+      }
+    }
+  }
+
+  return blacklistedLedArray;
 }
 
 function getLedConfig() {
@@ -364,6 +397,9 @@ function getLedConfig() {
     else
       ledConfig.matrix[key] = $('#ip_ma_' + key).val();
   }
+
+  ledConfig.ledBlacklist = blacklist_editor.getEditor("root.ledBlacklist").getValue();
+
   return ledConfig;
 }
 
@@ -413,7 +449,7 @@ $(document).ready(function () {
     $('#previewcreator').toggle(false);
   }
 
-  //Wiki link
+  // Wiki link
   $('#leds_wl').append('<p style="font-weight:bold">' + $.i18n('general_wiki_moreto', $.i18n('conf_leds_nav_label_ledlayout')) + buildWL("user/advanced/Advanced.html#led-layout", "Wiki") + '</p>');
 
   // bind change event to all inputs
@@ -438,6 +474,17 @@ $(document).ready(function () {
   $(document).on('click', "#current_config_panel", function (e) {
     aceEdt.set(finalLedArray);
   });
+
+  // Initialise from config and apply blacklist rules
+  nonBlacklistLedArray = window.serverConfig.leds;
+  ledBlacklist = window.serverConfig.ledConfig.ledBlacklist;
+  finalLedArray = blackListLeds(nonBlacklistLedArray, ledBlacklist);
+
+  var blacklistOptions = window.serverSchema.properties.ledConfig.properties.ledBlacklist;
+  blacklist_editor = createJsonEditor('editor_container_blacklist_conf', {
+    ledBlacklist: blacklistOptions,
+  });
+  blacklist_editor.getEditor("root.ledBlacklist").setValue(ledBlacklist);
 
   // v4 of json schema with diff required assignment - remove when hyperion schema moved to v4
   var ledschema = { "items": { "additionalProperties": false, "required": ["hmin", "hmax", "vmin", "vmax"], "properties": { "name": { "type": "string" }, "colorOrder": { "enum": ["rgb", "bgr", "rbg", "brg", "gbr", "grb"], "type": "string" }, "hmin": { "maximum": 1, "minimum": 0, "type": "number" }, "hmax": { "maximum": 1, "minimum": 0, "type": "number" }, "vmin": { "maximum": 1, "minimum": 0, "type": "number" }, "vmax": { "maximum": 1, "minimum": 0, "type": "number" } }, "type": "object" }, "type": "array" };
@@ -467,7 +514,7 @@ $(document).ready(function () {
         $('#leds_custom_save').attr('disabled', true);
       }
     }
-  }, window.serverConfig.leds);
+  }, finalLedArray);
 
   //TODO: HACK! No callback for schema validation - Add it!
   setInterval(function () {
@@ -479,16 +526,15 @@ $(document).ready(function () {
 
   $('.jsoneditor-menu').toggle();
 
-  // leds to finalLedArray
-  finalLedArray = window.serverConfig.leds;
-
   // validate textfield and update preview
   $("#leds_custom_updsim").off().on("click", function () {
-    createLedPreview(aceEdt.get(), 'text');
+    nonBlacklistLedArray = aceEdt.get();
+    finalLedArray = blackListLeds(nonBlacklistLedArray, ledBlacklist);
+    createLedPreview(finalLedArray, 'text');
   });
 
   // save led layout, the generated textfield configuration always represents the latest layout
-  $("#btn_ma_save, #btn_cl_save, #leds_custom_save").off().on("click", function () {
+  $("#btn_ma_save, #btn_cl_save, #btn_bl_save, #leds_custom_save").off().on("click", function () {
     var hardwareLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue();
     var layoutLedCount = aceEdt.get().length;
 
@@ -527,6 +573,21 @@ $(document).ready(function () {
       $('#leds_custom_updsim').trigger('click');
       ledsCustomCfgInitialized = true;
     }
+
+    blacklist_editor.on('change', function () {
+      // only update preview, if config is valid
+      if (blacklist_editor.validate().length <= 0) {
+
+        ledBlacklist = blacklist_editor.getEditor("root.ledBlacklist").getValue();
+        finalLedArray = blackListLeds(nonBlacklistLedArray, ledBlacklist);
+        createLedPreview(finalLedArray);
+        aceEdt.set(finalLedArray);
+      }
+
+      // change save button state based on validation result
+      blacklist_editor.validate().length || window.readOnlyMode ? $('#btn_bl_save').attr('disabled', true) : $('#btn_bl_save').attr('disabled', false);
+    });
+
   });
 
   //**************************************************
@@ -541,7 +602,7 @@ $(document).ready(function () {
 
     var ledType = $(this).val();
 
-    //philipshueentertainment backward fix
+    // philipshueentertainment backward fix
     if (ledType == "philipshueentertainment")
       ledType = "philipshue";
 

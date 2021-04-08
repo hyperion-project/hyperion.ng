@@ -299,18 +299,6 @@
                           </select>
                         </td>
                       </tr>
-                      <!---		<tr>
-                              <td class="ltd">
-                                <label class="ltdlabel" for="ip_ma_order" data-i18n="conf_leds_layout_ma_order">Order</label>
-                              </td>
-                              <td class="itd">
-                                <select class="form-control ledMAconstr" id="ip_ma_order">
-                                  <option value="horizontal"  data-i18n="conf_leds_layout_ma_opthoriz">Horizontal</option>
-                                  <option value="vertical"  data-i18n="conf_leds_layout_ma_optvert">Vertical</option>
-                                </select>
-                              </td>
-                            </tr>
-                      --->
                       <tr>
                         <td class="ltd">
                           <label class="ltdlabel" for="ip_ma_start" data-i18n="conf_leds_layout_ma_position">Input</label>
@@ -332,13 +320,28 @@
                 </div>
               </div>
             </div>
+            <div id="blacklist_panel" class="panel panel-primary">
+              <div class="panel-heading headcollapse" id="blacklist_config_panel" data-toggle="collapse" data-parent="#accordion" data-target="#collapse4">
+                <h4 class="panel-title">
+                  <a><i class="fa fa-ban fa-fw"></i><span data-i18n="conf_leds_layout_blacklistleds_title">Blacklist LEDs</span></a>
+                </h4>
+              </div>
+              <div id="collapse4" class="panel-collapse collapse">
+                <div class="panel-body">
+                  <div id="editor_container_blacklist_conf"></div>
+                </div>
+                <div class="panel-footer" style="text-align:right;">
+                  <button id="btn_bl_save" class="btn btn-primary"><i class="fa fa-fw fa-save"></i><span data-i18n="conf_leds_layout_button_savelay">Save layout</span></button>
+                </div>
+              </div>
+            </div>
             <div id="texfield_panel" class="panel panel-primary">
-              <div class="panel-heading headcollapse" id="current_config_panel" data-toggle="collapse" data-parent="#accordion" data-target="#collapse4">
+              <div class="panel-heading headcollapse" id="current_config_panel" data-toggle="collapse" data-parent="#accordion" data-target="#collapse5">
                 <h4 class="panel-title">
                   <a><i class="fa fa-wrench fa-fw"></i><span data-i18n="conf_leds_layout_generatedconf">Generated/Actual LED Configuration</span></a>
                 </h4>
               </div>
-              <div id="collapse4" class="panel-collapse collapse in">
+              <div id="collapse5" class="panel-collapse collapse in">
                 <div class="panel-body">
                   <p id="leds_wl" data-i18n="conf_leds_layout_textf1">This textfield shows by default your current loaded layout and will be overwritten if you generate a new one above. Optional you could perform further edits.</p>
                   <div id="aceedit" style="width:100%;height:500px"></div>
