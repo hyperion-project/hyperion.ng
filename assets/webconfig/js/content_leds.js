@@ -1148,7 +1148,9 @@ function saveLedConfig(genDefLayout = false) {
 
 // build dynamic enum
 var updateSelectList = function (ledType, discoveryInfo) {
-  if (!discoveryInfo.devices) {
+
+  // Only update, if ledType is equal of selected controller type and discovery info exists
+  if (ledType !== $("#leddevices").val() || !discoveryInfo.devices) {
     return;
   }
 
