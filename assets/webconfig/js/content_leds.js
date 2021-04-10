@@ -355,8 +355,8 @@ function blackListLeds(nonBlacklistLedArray, blackList) {
   if (blackList && blackList.length > 0) {
 
     for (let item of blackList) {
-      start = item.start;
-      num = item.num
+      var start = item.start;
+      var num = item.num
       var layoutSize = blacklistedLedArray.length;
 
       //Only consider rules which are in rage of defined number of LEDs
