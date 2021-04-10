@@ -131,8 +131,7 @@ echo "---> or if already used by another service try: ${NET_IP}:8091"
 $REBOOTMESSAGE
 echo "-----------------------------------------------------------------------------"
 echo "Webpage: www.hyperion-project.org"
-echo "Wiki: wiki.hyperion-project.org"
-echo "Forum: forum.hyperion-project.org"
+echo "Forum: www.hyperion-project.org"
 echo "-----------------------------------------------------------------------------"
 
 
