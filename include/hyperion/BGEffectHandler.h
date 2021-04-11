@@ -17,14 +17,17 @@ public:
 	BGEffectHandler(Hyperion* hyperion)
 		: QObject(hyperion)
 		, _hyperion(hyperion)
-		, _prioMuxer(nullptr)
+		, _prioMuxer(_hyperion->getMuxerInstance())
 		, _isBgEffectConfigured(false)
 	{
 		// listen for config changes
-		connect(_hyperion, &Hyperion::settingsChanged, this, &BGEffectHandler::handleSettingsUpdate);
+		connect(_hyperion, &Hyperion::settingsChanged,
+				[=](settings::type type, const QJsonDocument& config) { this->handleSettingsUpdate(type, config); }
+		);
 
-		_prioMuxer = _hyperion->getMuxerInstance();
-		connect(_prioMuxer,&PriorityMuxer::prioritiesChanged, this, &BGEffectHandler::handlePriorityUpdate);
+		connect(_prioMuxer, &PriorityMuxer::prioritiesChanged,
+				[=]() { this->handlePriorityUpdate(); }
+		);
 
 		// initialization
 		handleSettingsUpdate(settings::BGEFFECT, _hyperion->getSetting(settings::BGEFFECT));
@@ -88,12 +91,9 @@ private slots:
 			Debug(Logger::getInstance("HYPERION"),"Stop background (color-) effect as it moved out of scope");
 			_hyperion->clear(PriorityMuxer::BG_PRIORITY);
 		}
-		else
+		else if (_prioMuxer->getCurrentPriority() == PriorityMuxer::LOWEST_PRIORITY && _isBgEffectConfigured)
 		{
-			if (_prioMuxer->getCurrentPriority() == PriorityMuxer::LOWEST_PRIORITY && _isBgEffectConfigured)
-			{
-				emit handleSettingsUpdate (settings::BGEFFECT, _bgEffectConfig);
-			}
+			emit handleSettingsUpdate (settings::BGEFFECT, _bgEffectConfig);
 		}
 	}
 
