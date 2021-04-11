@@ -13,6 +13,8 @@
 // Constants
 namespace {
 
+const bool verbose = false;
+const bool verbose3 = false;
 const QString MULTICAST_GROUP_DEFAULT_ADDRESS = "239.255.255.250";
 const quint16 MULTICAST_GROUP_DEFAULT_PORT = 49692;
 
@@ -272,13 +274,13 @@ void LedDeviceAtmoOrb::setColor(int orbId, const ColorRgb &color, int commandTyp
 
 void LedDeviceAtmoOrb::sendCommand(const QByteArray &bytes)
 {
-	//Debug ( _log, "command: [%s] -> %s:%u", QSTRING_CSTR( QString(bytes.toHex())), QSTRING_CSTR(_groupAddress.toString()), _multiCastGroupPort );
+	DebugIf(verbose3, _log, "command: [%s] -> %s:%u", QSTRING_CSTR( QString(bytes.toHex())), QSTRING_CSTR(_groupAddress.toString()), _multiCastGroupPort );
 	_udpSocket->writeDatagram(bytes.data(), bytes.size(), _groupAddress, _multiCastGroupPort);
 }
 
 QJsonObject LedDeviceAtmoOrb::discover(const QJsonObject& params)
 {
-	//Debug(_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	QJsonObject devicesDiscovered;
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );
@@ -353,14 +355,14 @@ QJsonObject LedDeviceAtmoOrb::discover(const QJsonObject& params)
 	}
 
 	devicesDiscovered.insert("devices", deviceList);
-	Debug(_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+	DebugIf(verbose, _log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 
 	return devicesDiscovered;
 }
 
 void LedDeviceAtmoOrb::identify(const QJsonObject& params)
 {
-	//Debug(_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	int orbId = 0;
 	if ( params["id"].isString() )

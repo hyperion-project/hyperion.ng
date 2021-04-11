@@ -19,8 +19,6 @@
 
 EffectEngine::EffectEngine(Hyperion * hyperion)
 	: _hyperion(hyperion)
-	, _availableEffects()
-	, _activeEffects()
 	, _log(Logger::getInstance("EFFECTENGINE"))
 	, _effectFileHandler(EffectFileHandler::getInstance())
 {
@@ -202,7 +200,7 @@ void EffectEngine::allChannelsCleared()
 {
 	for (Effect * effect : _activeEffects)
 	{
-		if (effect->getPriority() != 254 && !effect->isInterruptionRequested())
+		if (effect->getPriority() != PriorityMuxer::BG_PRIORITY && !effect->isInterruptionRequested())
 		{
 			effect->requestInterruption();
 		}

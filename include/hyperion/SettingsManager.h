@@ -42,7 +42,7 @@ public:
 	/// @brief get the full settings object of this instance (with global settings)
 	/// @return The requested json
 	///
-	const QJsonObject & getSettings() const { return _qconfig; }
+	QJsonObject getSettings() const;
 
 signals:
 	///

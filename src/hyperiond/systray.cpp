@@ -15,7 +15,9 @@
 
 #include <utils/ColorRgb.h>
 #include <effectengine/EffectDefinition.h>
+#include <effectengine/Effect.h>
 #include <webserver/WebServer.h>
+#include <hyperion/PriorityMuxer.h>
 
 #include "hyperiond.h"
 #include "systray.h"
@@ -165,7 +167,7 @@ void SysTray::closeEvent(QCloseEvent *event)
 	event->ignore();
 }
 
-void SysTray::settings()
+void SysTray::settings() const
 {
 	#ifndef _WIN32
 	// Hide error messages when opening webbrowser
@@ -201,7 +203,7 @@ void SysTray::settings()
 void SysTray::setEffect()
 {
 	QString efxName = qobject_cast<QAction*>(sender())->text();
-	_hyperion->setEffect(efxName, 1);
+	_hyperion->setEffect(efxName, PriorityMuxer::FG_PRIORITY, Effect::ENDLESS);
 }
 
 void SysTray::clearEfxColor()
@@ -209,7 +211,7 @@ void SysTray::clearEfxColor()
 	_hyperion->clear(1);
 }
 
-void SysTray::handleInstanceStateChange(InstanceState state, quint8 instance, const QString& name)
+void SysTray::handleInstanceStateChange(InstanceState state, quint8 instance, const QString& /*name*/)
 {
 	switch(state){
 		case InstanceState::H_STARTED:

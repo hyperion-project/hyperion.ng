@@ -52,6 +52,9 @@ private:
 	// websocket header store
 	WebSocketHeader _wsh;
 
+	//opCode of first frame (in case of fragmented frames)
+	quint8 _frameOpCode;
+
 	// masks for fields in the basic header
 	static uint8_t const BHB0_OPCODE = 0x0F;
 	static uint8_t const BHB0_RSV3   = 0x10;
