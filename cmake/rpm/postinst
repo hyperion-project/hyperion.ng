@@ -132,6 +132,7 @@ $REBOOTMESSAGE
 echo "-----------------------------------------------------------------------------"
 echo "Webpage: www.hyperion-project.org"
 echo "Forum: www.hyperion-project.org"
+echo "Documenation: docs.hyperion-project.org"
 echo "-----------------------------------------------------------------------------"
 
 
