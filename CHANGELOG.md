@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - LED-Hue: Proper black in Entertainement mode if min brightness is set
 - LED-Hue: Minor fix of setColor command
 - Nanoleaf: Fix,if external control mode cannot be set
+- Fix issue #1229: "LED Test" effect description is in wrong order
 
 ### Removed
 
