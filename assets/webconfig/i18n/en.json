@@ -580,7 +580,7 @@
     "edt_eff_knightrider_header_desc": "K.I.T.T is back! The front-scanner of the well known car, this time not just in red.",
     "edt_eff_ledlist": "Led List",
     "edt_eff_ledtest_header": "Led Test",
-    "edt_eff_ledtest_header_desc": "Rotating output: Red, Blue, Green, White, Black",
+    "edt_eff_ledtest_header_desc": "Rotating output: Red, Green, Blue, White, Black",
     "edt_eff_length": "Length",
     "edt_eff_lightclock_header": "Light Clock",
     "edt_eff_lightclock_header_desc": "A real clock as light! Adjust the colors of hours, minute, seconds. A optional 3/6/9/12 o'clock marker is also available. In case the clock is wrong, you need to check your system clock.",
