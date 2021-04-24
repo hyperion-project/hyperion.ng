@@ -15,6 +15,9 @@ const bool verbose = false;
 // Configuration settings
 const char CONFIG_ADDRESS[] = "host";
 const char CONFIG_RESTORE_STATE[] = "restoreOriginalState";
+const char CONFIG_BRIGHTNESS[] = "brightness";
+const char CONFIG_BRIGHTNESS_OVERWRITE[] = "overwriteBrightness";
+const char CONFIG_SYNC_OVERWRITE[] = "overwriteSync";
 
 // UDP elements
 const quint16 STREAM_DEFAULT_PORT = 19446;
@@ -32,7 +35,10 @@ const char STATE_VALUE_TRUE[] = "true";
 const char STATE_VALUE_FALSE[] = "false";
 const char STATE_LIVE[] = "live";
 
+const bool DEFAULT_IS_RESTORE_STATE = false;
+const bool DEFAULT_IS_BRIGHTNESS_OVERWRITE = true;
 const int BRI_MAX = 255;
+const bool DEFAULT_IS_SYNC_OVERWRITE = true;
 
 constexpr std::chrono::milliseconds DEFAULT_IDENTIFY_TIME{ 2000 };
 
@@ -42,6 +48,11 @@ LedDeviceWled::LedDeviceWled(const QJsonObject &deviceConfig)
 	: ProviderUdp(deviceConfig)
 	  ,_restApi(nullptr)
 	  ,_apiPort(API_DEFAULT_PORT)
+	  ,_isBrightnessOverwrite(DEFAULT_IS_BRIGHTNESS_OVERWRITE)
+	  ,_brightness (BRI_MAX)
+	  ,_isSyncOverwrite(DEFAULT_IS_SYNC_OVERWRITE)
+	  ,_originalStateUdpnSend(false)
+	  ,_originalStateUdpnRecv(true)
 {
 }
 
@@ -70,8 +81,15 @@ bool LedDeviceWled::init(const QJsonObject &deviceConfig)
 		Debug(_log, "ColorOrder   : %s", QSTRING_CSTR( this->getColorOrder() ));
 		Debug(_log, "LatchTime    : %d", this->getLatchTime());
 
-		_isRestoreOrigState     = _devConfig[CONFIG_RESTORE_STATE].toBool(false);
+		_isRestoreOrigState = _devConfig[CONFIG_RESTORE_STATE].toBool(DEFAULT_IS_RESTORE_STATE);
+		_isSyncOverwrite = _devConfig[CONFIG_SYNC_OVERWRITE].toBool(DEFAULT_IS_SYNC_OVERWRITE);
+		_isBrightnessOverwrite = _devConfig[CONFIG_BRIGHTNESS_OVERWRITE].toBool(DEFAULT_IS_BRIGHTNESS_OVERWRITE);
+		_brightness = _devConfig[CONFIG_BRIGHTNESS].toInt(BRI_MAX);
+
 		Debug(_log, "RestoreOrigState  : %d", _isRestoreOrigState);
+		Debug(_log, "Overwrite Sync.   : %d", _isSyncOverwrite);
+		Debug(_log, "Overwrite Brightn.: %d", _isBrightnessOverwrite);
+		Debug(_log, "Set Brightness to : %d", _brightness);
 
 		//Set hostname as per configuration
 		QString hostName = deviceConfig[ CONFIG_ADDRESS ].toString();
@@ -145,6 +163,13 @@ QString LedDeviceWled::getLorRequest(int lor) const
 	return QString( "\"lor\":%1" ).arg(lor);
 }
 
+QString LedDeviceWled::getUdpnRequest(bool isSendOn, bool isRecvOn) const
+{
+	QString send = isSendOn ? STATE_VALUE_TRUE : STATE_VALUE_FALSE;
+	QString recv = isRecvOn ? STATE_VALUE_TRUE : STATE_VALUE_FALSE;
+	return QString( "\"udpn\":{\"send\":%1,\"recv\":%2}" ).arg(send, recv);
+}
+
 bool LedDeviceWled::sendStateUpdateRequest(const QString &request)
 {
 	bool rc = true;
@@ -166,7 +191,20 @@ bool LedDeviceWled::powerOn()
 		//Power-on WLED device
 		_restApi->setPath(API_PATH_STATE);
 
-		httpResponse response = _restApi->put(QString("{%1,%2}").arg(getOnOffRequest(true)).arg(getBrightnessRequest(BRI_MAX)));
+		QString cmd = getOnOffRequest(true);
+
+		if ( _isBrightnessOverwrite)
+		{
+			cmd += "," + getBrightnessRequest(_brightness);
+		}
+
+		if (_isSyncOverwrite)
+		{
+			Debug( _log, "Disable synchronisation with other WLED devices");
+			cmd += "," + getUdpnRequest(false, false);
+		}
+
+		httpResponse response = _restApi->put(QString("{%1}").arg(cmd));
 		if ( response.error() )
 		{
 			QString errorReason = QString("Power-on request failed with error: '%1'").arg(response.getErrorReason());
@@ -191,7 +229,16 @@ bool LedDeviceWled::powerOff()
 
 		//Power-off the WLED device physically
 		_restApi->setPath(API_PATH_STATE);
-		httpResponse response = _restApi->put(QString("{%1}").arg(getOnOffRequest(false)));
+
+		QString cmd = getOnOffRequest(false);
+
+		if (_isSyncOverwrite)
+		{
+			Debug( _log, "Restore synchronisation with other WLED devices");
+			cmd += "," + getUdpnRequest(_originalStateUdpnSend, _originalStateUdpnRecv);
+		}
+
+		httpResponse response = _restApi->put(QString("{%1}").arg(cmd));
 		if ( response.error() )
 		{
 			QString errorReason = QString("Power-off request failed with error: '%1'").arg(response.getErrorReason());
@@ -206,7 +253,7 @@ bool LedDeviceWled::storeState()
 {
 	bool rc = true;
 
-	if ( _isRestoreOrigState )
+	if ( _isRestoreOrigState || _isSyncOverwrite )
 	{
 		_restApi->setPath(API_PATH_STATE);
 
@@ -221,6 +268,13 @@ bool LedDeviceWled::storeState()
 		{
 			_originalStateProperties = response.getBody().object();
 			DebugIf(verbose, _log, "state: [%s]", QString(QJsonDocument(_originalStateProperties).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+
+			QJsonObject udpn = _originalStateProperties.value("udpn").toObject();
+			if (!udpn.isEmpty())
+			{
+				_originalStateUdpnSend = udpn["send"].toBool(false);
+				_originalStateUdpnRecv = udpn["recv"].toBool(true);
+			}
 		}
 	}
 
@@ -233,7 +287,6 @@ bool LedDeviceWled::restoreState()
 
 	if ( _isRestoreOrigState )
 	{
-		//powerOff();
 		_restApi->setPath(API_PATH_STATE);
 
 		_originalStateProperties[STATE_LIVE] = false;

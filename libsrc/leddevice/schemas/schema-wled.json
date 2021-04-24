@@ -1,30 +1,84 @@
 {
-	"type":"object",
-	"required":true,
-	"properties":{
-		"host" : {
-			"type": "string",
-			"title": "edt_dev_spec_targetIpHost_title",
-			"required": true,
-			"propertyOrder": 1
-		},
-		"restoreOriginalState": {
-			"type": "boolean",
-			"title": "edt_dev_spec_restoreOriginalState_title",
-			"default": false,
-			"required": true,
-			"propertyOrder": 2
-		},
-		"latchTime": {
-			"type": "integer",
-			"title":"edt_dev_spec_latchtime_title",
-			"default": 0,
-			"append" : "edt_append_ms",
-			"minimum": 0,
-			"maximum": 1000,
-			"access" : "expert",
-			"propertyOrder" : 3
-		}
-	},
-	"additionalProperties": true
+  "type": "object",
+  "title": "",
+  "required": true,
+  "properties": {
+    "hostList": {
+      "type": "string",
+      "title": "edt_dev_spec_devices_discovered_title",
+      "enum": [ "NONE" ],
+      "options": {
+        "enum_titles": [ "edt_dev_spec_devices_discovery_inprogress" ],
+        "infoText": "edt_dev_spec_devices_discovered_title_info"
+      },
+      "required": true,
+      "propertyOrder": 1
+    },
+    "host": {
+      "type": "string",
+      "title": "edt_dev_spec_targetIpHost_title",
+      "options": {
+        "infoText": "edt_dev_spec_targetIpHost_title_info"
+      },
+      "required": true,
+      "propertyOrder": 2
+    },
+    "restoreOriginalState": {
+      "type": "boolean",
+      "format": "checkbox",
+      "title": "edt_dev_spec_restoreOriginalState_title",
+      "default": false,
+      "required": true,
+      "options": {
+        "infoText": "edt_dev_spec_restoreOriginalState_title_info"
+      },
+      "propertyOrder": 3
+    },
+    "overwriteSync": {
+      "type": "boolean",
+      "format": "checkbox",
+      "title": "edt_dev_spec_syncOverwrite_title",
+      "default": true,
+      "required": true,
+      "access": "advanced",
+      "propertyOrder": 4
+    },
+    "overwriteBrightness": {
+      "type": "boolean",
+      "format": "checkbox",
+      "title": "edt_dev_spec_brightnessOverwrite_title",
+      "default": true,
+      "required": true,
+      "access": "advanced",
+      "propertyOrder": 5
+    },
+    "brightness": {
+      "type": "integer",
+      "title": "edt_dev_spec_brightness_title",
+      "default": 255,
+      "minimum": 1,
+      "maximum": 255,
+      "options": {
+        "dependencies": {
+          "overwriteBrightness": true
+        }
+      },
+      "access": "advanced",
+      "propertyOrder": 6
+    },
+    "latchTime": {
+      "type": "integer",
+      "title": "edt_dev_spec_latchtime_title",
+      "default": 0,
+      "append": "edt_append_ms",
+      "minimum": 0,
+      "maximum": 1000,
+      "access": "expert",
+      "options": {
+        "infoText": "edt_dev_spec_latchtime_title_info"
+      },
+      "propertyOrder": 7
+    }
+  },
+  "additionalProperties": true
 }

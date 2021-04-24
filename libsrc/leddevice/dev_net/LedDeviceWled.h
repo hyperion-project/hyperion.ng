@@ -140,9 +140,11 @@ private:
 	/// @return Command to switch device on/off
 	///
 	QString getOnOffRequest (bool isOn ) const;
+
 	QString getBrightnessRequest (int bri ) const;
 	QString getEffectRequest(int effect, int speed=128) const;
 	QString getLorRequest(int lor) const;
+	QString getUdpnRequest(bool send, bool recv) const;
 
 	bool sendStateUpdateRequest(const QString &request);
 
@@ -154,6 +156,12 @@ private:
 
 	QJsonObject _originalStateProperties;
 
+	bool _isBrightnessOverwrite;
+	int _brightness;
+
+	bool _isSyncOverwrite;
+	bool _originalStateUdpnSend;
+	bool _originalStateUdpnRecv;
 };
 
 #endif // LEDDEVICEWLED_H

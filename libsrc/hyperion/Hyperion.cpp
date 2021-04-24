@@ -83,7 +83,7 @@ void Hyperion::start()
 	}
 
 	// handle hwLedCount
-	_hwLedCount = qMax(getSetting(settings::DEVICE).object()["hardwareLedCount"].toInt(getLedCount()), getLedCount());
+	_hwLedCount = getSetting(settings::DEVICE).object()["hardwareLedCount"].toInt(getLedCount());
 
 	// Initialize colororder vector
 	for (const Led& led : _ledString.leds())
@@ -217,7 +217,7 @@ void Hyperion::handleSettingsUpdate(settings::type type, const QJsonDocument& co
 		}
 
 		// handle hwLedCount update
-		_hwLedCount = qMax(getSetting(settings::DEVICE).object()["hardwareLedCount"].toInt(getLedCount()), getLedCount());
+		_hwLedCount = getSetting(settings::DEVICE).object()["hardwareLedCount"].toInt(getLedCount());
 
 		// change in leds are also reflected in adjustment
 		delete _raw2ledAdjustment;
@@ -231,7 +231,7 @@ void Hyperion::handleSettingsUpdate(settings::type type, const QJsonDocument& co
 		QJsonObject dev = config.object();
 
 		// handle hwLedCount update
-		_hwLedCount = qMax(dev["hardwareLedCount"].toInt(getLedCount()), getLedCount());
+		_hwLedCount = dev["hardwareLedCount"].toInt(getLedCount());
 
 		// force ledString update, if device ByteOrder changed
 		if(_ledDeviceWrapper->getColorOrder() != dev["colorOrder"].toString("rgb"))
