@@ -53,7 +53,7 @@ function updateSessions() {
   if (sess && sess.length) {
     window.wSess = [];
     for (var i = 0; i < sess.length; i++) {
-      if (sess[i].type == "_hyperiond-http._tcp.") {
+      if (sess[i].type == "_http._tcp." || sess[i].type == "_https._tcp." || sess[i].type == "_hyperiond-http._tcp.") {
         window.wSess.push(sess[i]);
       }
     }
@@ -134,13 +134,13 @@ function updateHyperionInstanceListing() {
     var currInstMarker = (data[key].instance == window.currentHyperionInstance) ? "component-on" : "";
 
     var html = '<li id="hyperioninstance_' + data[key].instance + '"> \
-			<a>  \
-				<div>  \
-					<i class="fa fa-circle fa-fw '+ currInstMarker + '"></i> \
-					<span>'+ data[key].friendly_name + '</span> \
-				</div> \
-			</a> \
-		</li> '
+      <a>  \
+        <div>  \
+          <i class="fa fa-circle fa-fw '+ currInstMarker + '"></i> \
+          <span>'+ data[key].friendly_name + '</span> \
+        </div> \
+      </a> \
+    </li> '
 
     if (data.length - 1 > key)
       html += '<li class="divider"></li>'
@@ -183,7 +183,6 @@ function initLanguageSelection() {
       langText = availLangText[langIdx];
     }
   }
-  //console.log("langLocale: ", langLocale, "langText: ", langText);
 
   $('#language-select').prop('title', langText);
   $("#language-select").val(langIdx);
@@ -463,6 +462,170 @@ function createJsonEditor(container, schema, setconfig, usePanel, arrayre) {
   return editor;
 }
 
+function updateJsonEditorSelection(editor, key, addElements, newEnumVals, newTitelVals, newDefaultVal, addSelect, addCustom, addCustomAsFirst, customText) {
+  var orginalProperties = editor.schema.properties[key];
+
+  var newSchema = [];
+  newSchema[key] =
+  {
+    "type": "string",
+    "enum": [],
+    "required": true,
+    "options": { "enum_titles": [], "infoText": "" },
+    "propertyOrder": 1
+  };
+
+  //Add additional elements to overwrite defaults
+  for (var item in addElements) {
+    newSchema[key][item] = addElements[item];
+  }
+
+  if (orginalProperties) {
+    if (orginalProperties["title"]) {
+      newSchema[key]["title"] = orginalProperties["title"];
+    }
+
+    if (orginalProperties["options"] && orginalProperties["options"]["infoText"]) {
+      newSchema[key]["options"]["infoText"] = orginalProperties["options"]["infoText"];
+    }
+
+    if (orginalProperties["propertyOrder"]) {
+      newSchema[key]["propertyOrder"] = orginalProperties["propertyOrder"];
+    }
+  }
+
+  if (addCustom) {
+
+    if (newTitelVals.length === 0) {
+      newTitelVals = [...newEnumVals];
+    }
+
+    if (!!!customText) {
+      customText = "edt_conf_enum_custom";
+    }
+
+    if (addCustomAsFirst) {
+      newEnumVals.unshift("CUSTOM");
+      newTitelVals.unshift(customText);
+    } else {
+      newEnumVals.push("CUSTOM");
+      newTitelVals.push(customText);
+    }
+
+    if (newSchema[key].options.infoText) {
+      var customInfoText = newSchema[key].options.infoText + "_custom";
+      newSchema[key].options.infoText = customInfoText;
+    }
+  }
+
+  if (addSelect) {
+    newEnumVals.unshift("SELECT");
+    newTitelVals.unshift("edt_conf_enum_please_select");
+    newDefaultVal = "SELECT";
+  }
+
+  if (newEnumVals) {
+    newSchema[key]["enum"] = newEnumVals;
+  }
+
+  if (newTitelVals) {
+    newSchema[key]["options"]["enum_titles"] = newTitelVals;
+  }
+  if (newDefaultVal) {
+    newSchema[key]["default"] = newDefaultVal;
+  }
+
+  editor.original_schema.properties[key] = orginalProperties;
+  editor.schema.properties[key] = newSchema[key];
+
+  editor.removeObjectProperty(key);
+  delete editor.cached_editors[key];
+  editor.addObjectProperty(key);
+}
+
+function updateJsonEditorMultiSelection(editor, key, addElements, newEnumVals, newTitelVals, newDefaultVal) {
+  var orginalProperties = editor.schema.properties[key];
+
+  var newSchema = [];
+  newSchema[key] =
+  {
+    "type": "array",
+    "format": "select",
+    "items": {
+      "type": "string",
+      "enum": [],
+      "options": { "enum_titles": [] },
+    },
+    "options": { "infoText": "" },
+    "default": [],
+    "propertyOrder": 1
+  };
+
+  //Add additional elements to overwrite defaults
+  for (var item in addElements) {
+    newSchema[key][item] = addElements[item];
+  }
+
+  if (orginalProperties) {
+    if (orginalProperties["title"]) {
+      newSchema[key]["title"] = orginalProperties["title"];
+    }
+
+    if (orginalProperties["options"] && orginalProperties["options"]["infoText"]) {
+      newSchema[key]["options"]["infoText"] = orginalProperties["options"]["infoText"];
+    }
+
+    if (orginalProperties["propertyOrder"]) {
+      newSchema[key]["propertyOrder"] = orginalProperties["propertyOrder"];
+    }
+  }
+
+  if (newEnumVals) {
+    newSchema[key]["items"]["enum"] = newEnumVals;
+  }
+
+  if (newTitelVals) {
+    newSchema[key]["items"]["options"]["enum_titles"] = newTitelVals;
+  }
+
+  if (newDefaultVal) {
+    newSchema[key]["default"] = newDefaultVal;
+  }
+
+  editor.original_schema.properties[key] = orginalProperties;
+  editor.schema.properties[key] = newSchema[key];
+
+  editor.removeObjectProperty(key);
+  delete editor.cached_editors[key];
+  editor.addObjectProperty(key);
+}
+
+function updateJsonEditorRange(editor, key, minimum, maximum, defaultValue, step) {
+  var orginalProperties = editor.schema.properties[key];
+  var newSchema = [];
+  newSchema[key] = orginalProperties;
+
+  if (minimum) {
+    newSchema[key]["minimum"] = minimum;
+  }
+  if (maximum) {
+    newSchema[key]["maximum"] = maximum;
+  }
+  if (defaultValue) {
+    newSchema[key]["default"] = defaultValue;
+  }
+  if (step) {
+    newSchema[key]["step"] = step;
+  }
+
+  editor.original_schema.properties[key] = orginalProperties;
+  editor.schema.properties[key] = newSchema[key];
+
+  editor.removeObjectProperty(key);
+  delete editor.cached_editors[key];
+  editor.addObjectProperty(key);
+}
+
 function buildWL(link, linkt, cl) {
   var baseLink = "https://docs.hyperion-project.org/";
   var lang;
@@ -653,6 +816,48 @@ function createOptPanel(phicon, phead, bodyid, footerid) {
   pfooter.innerHTML = '<i class="fa fa-fw fa-save"></i>' + $.i18n('general_button_savesettings');
 
   return createPanel(phead, "", pfooter, "panel-default", bodyid);
+}
+
+function compareTwoValues(key1, key2, order = 'asc') {
+  return function innerSort(a, b) {
+    if (!a.hasOwnProperty(key1) || !b.hasOwnProperty(key1)) {
+      // property key1 doesn't exist on either object
+      return 0;
+    }
+
+    const varA1 = (typeof a[key1] === 'string')
+      ? a[key1].toUpperCase() : a[key1];
+    const varB1 = (typeof b[key1] === 'string')
+      ? b[key1].toUpperCase() : b[key1];
+
+    let comparison = 0;
+    if (varA1 > varB1) {
+      comparison = 1;
+    } else {
+      if (varA1 < varB1) {
+        comparison = -1;
+      } else {
+        if (!a.hasOwnProperty(key2) || !b.hasOwnProperty(key2)) {
+          // property key2 doesn't exist on either object
+          return 0;
+        }
+
+        const varA2 = (typeof a[key2] === 'string')
+          ? a[key2].toUpperCase() : a[key2];
+        const varB2 = (typeof b[key1] === 'string')
+          ? b[key2].toUpperCase() : b[key2];
+
+        if (varA2 > varB2) {
+          comparison = 1;
+        } else {
+          comparison = -1;
+        }
+      }
+    }
+    return (
+      (order === 'desc') ? (comparison * -1) : comparison
+    );
+  };
 }
 
 function sortProperties(list) {
@@ -912,4 +1117,20 @@ function handleDarkMode() {
   setStorage("darkMode", "on", false);
   $('#btn_darkmode_icon').removeClass('fa fa-moon-o');
   $('#btn_darkmode_icon').addClass('fa fa-sun-o');
+}
+
+function isAccessLevelCompliant(accessLevel) {
+  var isOK = true;
+  if (accessLevel) {
+    if (accessLevel === 'system') {
+      isOK = false;
+    }
+    else if (accessLevel === 'advanced' && storedAccess === 'default') {
+      isOK = false;
+    }
+    else if (accessLevel === 'expert' && storedAccess !== 'expert') {
+      isOK = false;
+    }
+  }
+  return isOK
 }

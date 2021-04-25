@@ -340,3 +340,16 @@ $("#btn_darkmode").off().on("click", function (e) {
     location.reload();
   }
 });
+
+// Menuitem toggle;
+function SwitchToMenuItem(target) {
+  document.getElementById(target).click(); // Get <a href menu item;
+  let sidebar = $('#side-menu');  // Get sidebar menu;
+  sidebar.find('.active').toggleClass('inactive'); // find all active classes and set inactive;
+  sidebar.find('.in').removeClass("in"); // Find all collapsed menu items and close it by remove "in" class;
+  $('#' + target).removeClass('inactive'); // Remove inactive state by classname;
+  $('#' + target).addClass('active'); // Add active state by classname;
+  let cl_object = $('#' + target).closest('ul'); // Find closest ul sidemenu header;
+  cl_object.addClass('in'); // add class "in" to expand header in sidebar menu;
+};
+
