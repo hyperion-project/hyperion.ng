@@ -1,5 +1,9 @@
 $(document).ready( function() {
 	performTranslation();
+
+	// update instance listing
+	updateHyperionInstanceListing();
+
 	var oldEffects = [];
 	var effects_editor = null;
 	var confFgEff = window.serverConfig.foregroundEffect.effect;

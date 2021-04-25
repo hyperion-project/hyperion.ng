@@ -1,5 +1,9 @@
 $(document).ready(function () {
   performTranslation();
+
+	// update instance listing
+	updateHyperionInstanceListing();
+
   var oldDelList = [];
   var effectName = "";
   var imageData = "";

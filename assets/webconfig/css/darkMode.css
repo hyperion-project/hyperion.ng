@@ -14,6 +14,10 @@ body {
     border-color: #212121;
 }
 
+.navbar-default li a {
+    color: #C6C6C6 !important;
+}
+
 .panel-body {
     background-color: #424242;
 }
@@ -189,7 +193,7 @@ tr:hover td {
 }
 
 .dropdown-menu>li>a {
-    color: #2e6da4;
+    color: #DDDDDD;
 }
 
 /*Panels*/
@@ -216,6 +220,18 @@ tr:hover td {
 
 .panel-default>.panel-heading{
     background-color: #424242 !important;
+    border-color: #212121 !important;
+    color: #DDDDDD;
+}
+
+.panel-default>.panel-system{
+    background-color: #0E83E7 !important;
+    border-color: #ddd !important;
+    color: #fff ;
+}
+
+.panel-default>.panel-instance{
+    background-color:#E18300 !important;
     border-color: #212121 !important;
     color: #DDDDDD;
 }
@@ -416,7 +432,7 @@ button.close:hover {
 }
 
 .bs-callout-success {
-    border-left-color: greenyellow;
+    border-left-color: #67FF01;
 }
 
 .bs-callout-success h4 {

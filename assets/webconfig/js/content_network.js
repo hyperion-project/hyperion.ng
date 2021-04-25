@@ -12,34 +12,34 @@ $(document).ready( function() {
 	{
 		//network
 		$('#conf_cont').append(createRow('conf_cont_net'))
-		$('#conf_cont_net').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_net_heading_title"), 'editor_container_net', 'btn_submit_net'));
+		$('#conf_cont_net').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_net_heading_title"), 'editor_container_net', 'btn_submit_net', 'panel-system'));
 		$('#conf_cont_net').append(createHelpTable(window.schema.network.properties, $.i18n("edt_conf_net_heading_title")));
 
 		//jsonserver
 		$('#conf_cont').append(createRow('conf_cont_json'))
-		$('#conf_cont_json').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_js_heading_title"), 'editor_container_jsonserver', 'btn_submit_jsonserver'));
+		$('#conf_cont_json').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_js_heading_title"), 'editor_container_jsonserver', 'btn_submit_jsonserver', 'panel-system'));
 		$('#conf_cont_json').append(createHelpTable(window.schema.jsonServer.properties, $.i18n("edt_conf_js_heading_title")));
 
 		//flatbufserver
 		$('#conf_cont').append(createRow('conf_cont_flatbuf'))
-		$('#conf_cont_flatbuf').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_fbs_heading_title"), 'editor_container_fbserver', 'btn_submit_fbserver'));
+		$('#conf_cont_flatbuf').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_fbs_heading_title"), 'editor_container_fbserver', 'btn_submit_fbserver', 'panel-system'));
 		$('#conf_cont_flatbuf').append(createHelpTable(window.schema.flatbufServer.properties, $.i18n("edt_conf_fbs_heading_title")));
 
 		//protoserver
 		$('#conf_cont').append(createRow('conf_cont_proto'))
-		$('#conf_cont_proto').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_pbs_heading_title"), 'editor_container_protoserver', 'btn_submit_protoserver'));
+		$('#conf_cont_proto').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_pbs_heading_title"), 'editor_container_protoserver', 'btn_submit_protoserver', 'panel-system'));
 		$('#conf_cont_proto').append(createHelpTable(window.schema.protoServer.properties, $.i18n("edt_conf_pbs_heading_title")));
 
 		//boblight
 		$('#conf_cont').append(createRow('conf_cont_bobl'))
-		$('#conf_cont_bobl').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_bobls_heading_title"), 'editor_container_boblightserver', 'btn_submit_boblightserver'));
+		$('#conf_cont_bobl').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_bobls_heading_title"), 'editor_container_boblightserver', 'btn_submit_boblightserver', 'panel-system'));
 		$('#conf_cont_bobl').append(createHelpTable(window.schema.boblightServer.properties, $.i18n("edt_conf_bobls_heading_title")));
 
 		//forwarder
 		if(storedAccess != 'default')
 		{
 			$('#conf_cont').append(createRow('conf_cont_fw'))
-			$('#conf_cont_fw').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_fw_heading_title"), 'editor_container_forwarder', 'btn_submit_forwarder'));
+			$('#conf_cont_fw').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_fw_heading_title"), 'editor_container_forwarder', 'btn_submit_forwarder', 'panel-system'));
 			$('#conf_cont_fw').append(createHelpTable(window.schema.forwarder.properties, $.i18n("edt_conf_fw_heading_title")));
 		}
 	}
@@ -213,6 +213,6 @@ $(document).ready( function() {
 	})
 
 	checkApiTokenState(window.serverConfig.network.apiAuth);
-	
+
 	removeOverlay();
 });

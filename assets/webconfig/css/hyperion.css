@@ -77,13 +77,39 @@ table.input-group{width:100%}
 table.borderless td,table.borderless th{border: none !important;}
 .borderless {margin-bottom:0px}
 table label{margin:0}
+table.first_cell_borderless td:first-child,table.first_cell_borderless th:first-child{border: none !important;}
 
 /*Header*/
-.navbar-brand{padding-top:0px;padding-bottom:5px;padding-left:20px;height:60px;}
-.sidebar{margin-top:62px;padding-top:20px;}
+.navbar-brand{padding-top:4px;padding-bottom:0px;padding-left:2;}
+.sidebar{margin-top:65px;}
 .dropdown{font-size:18px;}
 @media (max-width: 767px) {.sidebar{margin-top:0px;padding-top:0px !important;}}
-.page-header{margin-top:15px;}
+.page-header{margin-top:0px;}
+
+.navbar-top-links li a {
+	min-height: 64px;
+    display: flex;
+    align-items: center;
+}
+
+.navbar-default li a {
+    color: #303030 !important;
+}
+
+.sidebar ul li a.active{
+	padding-left:5px;
+	border-left:10px solid #0E83E7;
+}
+
+.sidebar ul li ul li a.active{
+	padding-left:27px;
+	border-left:10px solid #0E83E7;
+}
+
+.itbody td:not(:first-child){
+	width: 1px;
+	text-align: center;
+}
 
 /*Panels*/
 .panel-heading{font-size:18px;}
@@ -94,17 +120,29 @@ table label{margin:0}
 	border-color:#d0d0d0 !important;
 }
 .panel-default>.panel-heading{
-	background-color:#f3f3f3 !important;
+	background-color:#F3F3F3  !important;
 	border-color:#ddd !important;
+}
+
+.panel-default>.panel-system{
+	background-color:#0E83E7 !important;
+	border-color:#ddd !important;
+	color: #fff ;
+}
+
+.panel-default>.panel-instance{
+	background-color:#E18300 !important;
+	border-color:#ddd !important;
+	color: #fff ;
 }
 
 /*remote page*/
 @media (max-width: 500px) {.ssthead th:nth-child(1), .sstbody td:nth-child(1){display:none}}
 
 /*Dashboard*/
-.component-on{color:green;}
-.component-off{color:grey;}
-#dash_news hr{margin:10px 0}
+.component-on{color: #67FF01;}
+.component-off{color: grey;}
+#dash_news hr{margin: 10px 0}
 
 /*Colorpicker 2x*/
 .colorpicker-2x {z-index:99999}
@@ -175,7 +213,7 @@ table label{margin:0}
 }
 
 /*led preview & led visualisation*/
-#leds_canvas {background-color:#AAAAAA; position:absolute; margin:15px; background-image:url(/img/hyperion/hyperionlogo.png); background-repeat:no-repeat; background-position: center;}
+#leds_canvas {position:absolute; margin:15px; background-repeat:no-repeat; background-position: center;} */
 .led { display:inline-block; border: 1px solid black; position:absolute; opacity:0.8; text-align:center; vertical-align:middle; padding:4px;  border-radius:2px;}
 .led_num, .led_prev_num {display:none; position:relative; color:black; background-color: white; border-radius:2px; padding:1px; vertical-align:middle; text-align:center;  font-size:0.8em;}
 .led_ex{height:15px;width:25px;border-radius:3px;display:inline-block;border:1px solid black}
@@ -209,7 +247,7 @@ table label{margin:0}
 }
 
 .overlay {
-	background-image: url('/img/hyperion/hyperionwhitelogo.png');
+	background-image: url('/img/hyperion/logo_negativ.png');
 	background-repeat: no-repeat;
 	background-position: center center;
 	background-color: rgba(1, 1, 1, 0.7);
@@ -307,7 +345,7 @@ li a:active:after {
     color: #428bca;
 }
 .bs-callout-success {
-    border-left-color: #5cb85c;
+    border-left-color: #67FF01;
 }
 .bs-callout-success h4 {
     color: #5cb85c;

@@ -1,6 +1,9 @@
 $(document).ready(function() {
   performTranslation();
 
+  // update instance listing
+  updateHyperionInstanceListing();
+
   var oldEffects = [];
   var cpcolor = '#B500FF';
   var mappingList = window.serverSchema.properties.color.properties.imageToLedMappingType.enum;

@@ -1,5 +1,9 @@
 $(document).ready(function () {
   performTranslation();
+
+  // update instance listing
+  updateHyperionInstanceListing();
+
   var editor_color = null;
   var editor_smoothing = null;
   var editor_blackborder = null;

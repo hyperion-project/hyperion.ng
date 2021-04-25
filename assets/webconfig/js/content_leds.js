@@ -5,6 +5,9 @@ var finalLedArray = [];
 var conf_editor = null;
 var blacklist_editor = null;
 var aceEdt = null;
+var imageCanvasNodeCtx;
+var canvas_height;
+var canvas_width;
 
 var devRPiSPI = ['apa102', 'apa104', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'sk6822spi', 'sk9822', 'ws2812spi'];
 var devRPiPWM = ['ws281x'];
@@ -39,8 +42,11 @@ function createLedPreview(leds, origin) {
 
   $('.st_helper').css("border", "8px solid grey");
 
-  var canvas_height = $('#leds_preview').innerHeight();
-  var canvas_width = $('#leds_preview').innerWidth();
+  canvas_height = $('#leds_preview').innerHeight();
+  canvas_width = $('#leds_preview').innerWidth();
+
+  imageCanvasNodeCtx = document.getElementById("image_preview").getContext("2d");
+  $('#image_preview').css({"width":canvas_width, "height":canvas_height});
 
   var leds_html = "";
   for (var idx = 0; idx < leds.length; idx++) {
@@ -415,6 +421,9 @@ $(document).ready(function () {
   // translate
   performTranslation();
 
+	// update instance listing
+	updateHyperionInstanceListing();
+
   //add intros
   if (window.showOptHelp) {
     createHintH("intro", $.i18n('conf_leds_device_intro'), "leddevice_intro");
@@ -551,6 +560,31 @@ $(document).ready(function () {
     $('.led_prev_num').toggle();
     toggleClass('#leds_prev_toggle_num', "btn-danger", "btn-success");
   });
+
+	// toggle live video
+	$('#leds_prev_toggle_live_video').off().on("click", function() {
+		setClassByBool('#leds_prev_toggle_live_video', window.imageStreamActive, "btn-success", "btn-danger");
+		if (window.imageStreamActive)
+		{
+			requestLedImageStop();
+      imageCanvasNodeCtx.clear();
+		}
+		else
+		{
+			requestLedImageStart();
+		}
+	});
+
+	$(window.hyperion).on("cmd-ledcolors-imagestream-update",function(event){
+    setClassByBool('#leds_prev_toggle_live_video', window.imageStreamActive, "btn-danger", "btn-success");
+    var imageData = (event.response.result.image);
+
+    var image = new Image();
+    image.onload = function() {
+      imageCanvasNodeCtx.drawImage(image, 0, 0, imageCanvasNodeCtx.canvas.width, imageCanvasNodeCtx.canvas.height);
+    };
+    image.src = imageData;
+	});
 
   // open checklist
   $('#leds_prev_checklist').off().on("click", function () {

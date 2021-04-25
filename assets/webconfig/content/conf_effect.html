@@ -2,6 +2,19 @@
 	<div class="row">
 		<div class="col-lg-12">
 			<h3 class="page-header"><i class="fa fa-spinner fa-fw"></i><span  data-i18n="main_menu_effect_conf_token">Effects</span></h3>
+
+			<div id="active_instance" class="panel panel-default" style="display:none;">
+				<div class="panel-heading panel-instance" style="display:flex;align-items:center">
+					<div id="active_instance_friendly_name">Instance</div>
+					<div class="dropdown" id="btn_hypinstanceswitch" style="cursor:pointer;margin-left:10px">
+						<a class="dropdown-toggle" data-toggle="dropdown" href="#">
+							<i class="mdi mdi-lightbulb-group mdi-24px"></i><i class="mdi mdi-menu-down mdi-24px"></i>
+						</a>
+						<ul id="hyp_inst_listing" class="dropdown-menu dropdown-alerts"></ul>
+					</div>
+				</div>
+			</div>
+
 			<div id="conf_cont"></div>
 		</div>
 	</div>
