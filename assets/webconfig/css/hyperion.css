@@ -213,7 +213,7 @@ table.first_cell_borderless td:first-child,table.first_cell_borderless th:first-
 }
 
 /*led preview & led visualisation*/
-#leds_canvas {position:absolute; margin:15px; background-repeat:no-repeat; background-position: center;} */
+#leds_canvas {position:absolute; margin:15px; background-repeat:no-repeat; background-position: center;}
 .led { display:inline-block; border: 1px solid black; position:absolute; opacity:0.8; text-align:center; vertical-align:middle; padding:4px;  border-radius:2px;}
 .led_num, .led_prev_num {display:none; position:relative; color:black; background-color: white; border-radius:2px; padding:1px; vertical-align:middle; text-align:center;  font-size:0.8em;}
 .led_ex{height:15px;width:25px;border-radius:3px;display:inline-block;border:1px solid black}
