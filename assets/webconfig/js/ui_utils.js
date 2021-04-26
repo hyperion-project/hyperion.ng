@@ -333,7 +333,7 @@ function showInfoDialog(type, header, message) {
 
   $(document).on('click', '[data-dismiss-modal]', function () {
     var target = $(this).attr('data-dismiss-modal');
-    $.find(target).modal.hide();
+    $(target).modal('hide');
   });
 }
 
@@ -1071,6 +1071,43 @@ function getReleases(callback) {
       callback(true);
     }
   });
+}
+
+function getSystemInfo() {
+  var sys = window.sysInfo.system;
+  var shy = window.sysInfo.hyperion;
+
+  var info = "Hyperion Server: \n";
+  info += '- Build:           ' + shy.build + '\n';
+  info += '- Build time:      ' + shy.time + '\n';
+  info += '- Git Remote:      ' + shy.gitremote + '\n';
+  info += '- Version:         ' + shy.version + '\n';
+  info += '- UI Lang:         ' + storedLang + ' (BrowserLang: ' + navigator.language + ')\n';
+  info += '- UI Access:       ' + storedAccess + '\n';
+  //info += '- Log lvl:         ' + window.serverConfig.logger.level + '\n';
+  info += '- Avail Capt:      ' + window.serverInfo.grabbers.available + '\n';
+  info += '- Database:        ' + (shy.readOnlyMode ? "ready-only" : "read/write") + '\n';
+
+  info += '\n';
+
+  info += 'Hyperion Server OS: \n';
+  info += '- Distribution:   ' + sys.prettyName + '\n';
+  info += '- Architecture:   ' + sys.architecture + '\n';
+
+  if (sys.cpuModelName)
+    info += '- CPU Model:      ' + sys.cpuModelName + '\n';
+  if (sys.cpuModelType)
+    info += '- CPU Type:       ' + sys.cpuModelType + '\n';
+  if (sys.cpuRevision)
+    info += '- CPU Revision:   ' + sys.cpuRevision + '\n';
+  if (sys.cpuHardware)
+    info += '- CPU Hardware:   ' + sys.cpuHardware + '\n';
+
+  info += '- Kernel:         ' + sys.kernelType + ' (' + sys.kernelVersion + ' (WS: ' + sys.wordSize + '))\n';
+  info += '- Qt Version:     ' + sys.qtVersion + '\n';
+  info += '- Python Version: ' + sys.pyVersion + '\n';
+  info += '- Browser:        ' + navigator.userAgent;
+  return info;
 }
 
 function handleDarkMode() {

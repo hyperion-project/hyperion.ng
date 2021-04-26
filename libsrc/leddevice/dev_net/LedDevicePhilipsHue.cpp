@@ -652,7 +652,7 @@ const std::set<QString> PhilipsHueLight::GAMUT_A_MODEL_IDS =
 const std::set<QString> PhilipsHueLight::GAMUT_B_MODEL_IDS =
 	{ "LCT001", "LCT002", "LCT003", "LCT007", "LLM001" };
 const std::set<QString> PhilipsHueLight::GAMUT_C_MODEL_IDS =
-	{ "LCA001", "LCA002", "LCA003", "LCG002", "LCP001", "LCP002", "LCT010", "LCT011", "LCT012", "LCT014", "LCT015", "LCT016", "LCT024", "LLC020", "LST002" };
+	{ "LCA001", "LCA002", "LCA003", "LCG002", "LCP001", "LCP002", "LCT010", "LCT011", "LCT012", "LCT014", "LCT015", "LCT016", "LCT024", "LCX001", "LLC020", "LST002" };
 
 PhilipsHueLight::PhilipsHueLight(Logger* log, unsigned int id, QJsonObject values, unsigned int ledidx)
 	: _log(log)

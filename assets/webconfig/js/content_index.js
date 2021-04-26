@@ -24,8 +24,6 @@ $(document).ready(function () {
   $(window.hyperion).on("cmd-serverinfo", function (event) {
     window.serverInfo = event.response.info;
 
-    window.readOnlyMode = window.sysInfo.hyperion.readOnlyMode;
-
     // comps
     window.comps = event.response.info.components
 
@@ -123,6 +121,7 @@ $(document).ready(function () {
 
     window.currentVersion = window.sysInfo.hyperion.version;
     window.currentChannel = window.sysInfo.hyperion.channel;
+    window.readOnlyMode = window.sysInfo.hyperion.readOnlyMode;
   });
 
   $(window.hyperion).one("cmd-config-getschema", function (event) {
@@ -340,7 +339,6 @@ $("#btn_darkmode").off().on("click", function (e) {
     setStorage("darkModeOverwrite", true, true);
     location.reload();
   }
-  
 });
 
 // Menuitem toggle;

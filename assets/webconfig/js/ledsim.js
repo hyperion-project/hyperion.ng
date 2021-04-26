@@ -253,12 +253,16 @@ $(document).ready(function() {
 
 	// ------------------------------------------------------------------
 	$(window.hyperion).on("cmd-settings-update",function(event){
+
 		var obj = event.response.data
-		Object.getOwnPropertyNames(obj).forEach(function(val, idx, array) {
-			window.serverInfo[val] = obj[val];
-	  	});
-		leds = window.serverConfig.leds
-		updateLedLayout();
+		if ( obj.leds) {	
+		  	console.log("ledsim: cmd-settings-update", event.response.data);			
+			Object.getOwnPropertyNames(obj).forEach(function(val, idx, array) {
+				window.serverInfo[val] = obj[val];
+		  	});
+			leds = window.serverConfig.leds
+			updateLedLayout();
+		}
 	});
 
 	function resetImage(){
