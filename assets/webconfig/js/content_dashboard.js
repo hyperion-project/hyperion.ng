@@ -54,7 +54,6 @@ $(document).ready( function() {
 			if(components[idx].name != "ALL")
 			{
         var comp_enabled = components[idx].enabled ? "checked" : "";
-        console.log(comp_enabled);
 				const general_comp = "general_comp_"+components[idx].name;
 				var componentBtn = '<input ' +
 					'id="'+general_comp+'" '+ comp_enabled +
