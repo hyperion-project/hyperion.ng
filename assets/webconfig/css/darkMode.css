@@ -287,16 +287,16 @@ select.form-control {
 }
 
 .checklist li::before {
-    color: greenyellow;
+    color: #DDDDDD;
 }
 
-.checkbox-success input[type="checkbox"]:checked + label::before, .checkbox-success input[type="radio"]:checked + label::before {
-    background-color: greenyellow;
-    border-color: #5cb85c;
+.checkbox input[type="checkbox"]:checked + label::before, .checkbox-success input[type="checkbox"]:checked + label::before, .checkbox-success input[type="radio"]:checked + label::before {
+    border-color: #616161;
+    background-color: #212121;
 }
 
-.checkbox-success input[type="checkbox"]:checked + label::after, .checkbox-success input[type="radio"]:checked + label::after {
-    color: #1e1e1e;
+.checkbox input[type="checkbox"]:checked + label::after, .checkbox-success input[type="checkbox"]:checked + label::after, .checkbox-success input[type="radio"]:checked + label::after {
+    color: #DDDDDD;
 }
 
 .btn-group>.btn:first-child:not(:last-child):not(.dropdown-toggle) {

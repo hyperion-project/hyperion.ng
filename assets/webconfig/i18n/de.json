@@ -133,7 +133,7 @@
     "conf_network_bobl_intro": "Boblight Empfänger",
     "conf_network_createToken_btn": "Erstelle Token",
     "conf_network_fbs_intro": "Google Flatbuffers Empfänger. Wird genutzt für schnellen Bildempfang.",
-    "conf_network_forw_intro": "Leite alles an eine zweite Hyperion Instanz weiter, diese kann dann mit einer anderen LED-Steuerung genutzt werden",
+    "conf_network_forw_intro": "Leite alles an eine zweite Hyperion Installation weiter, diese kann dann mit einer anderen LED-Steuerung genutzt werden",
     "conf_network_json_intro": "Der JSON-RPC-Port aller Hyperion-Instanzen, wird genutzt zur Fernsteuerung.",
     "conf_network_net_intro": "Einstellungen zum Netzwerk die für alle Netzwerk-Dienste gelten",
     "conf_network_proto_intro": "Der PROTO-Port aller Hyperion-Instanzen, wird genutzt für \"Bildstreams\" (HyperionScreenCap, Kodi Add-on, Android Hyperion Grabber, ...)",

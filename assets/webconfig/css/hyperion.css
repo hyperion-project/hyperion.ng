@@ -71,7 +71,7 @@ table.input-group{width:100%}
 @media (max-width: 767px) {.ltd{white-space:normal;}}
 
 /*icon spacing*/
-.fa-fw{margin-right:5px;}
+.fa-fw,.mdi-24px{margin-right:5px;}
 
 /*table*/
 table.borderless td,table.borderless th{border: none !important;}
@@ -189,6 +189,11 @@ table.first_cell_borderless td:first-child,table.first_cell_borderless th:first-
     margin-bottom: 0;
 }
 
+/*backported bootstrap 4 font weight*/
+.font-weight-bold {
+  font-weight: 700;
+}
+
 /*wizard button*/
 .btn-wizard {
     color: #fff;
@@ -211,6 +216,10 @@ table.first_cell_borderless td:first-child,table.first_cell_borderless th:first-
   background-color: transparent;
   border-style: none;
 }
+
+/*general instance management button*/
+[id^=instdel_], [id^=instren_] { padding: 0px 12px;}
+.mdi-lead-pencil, .mdi-delete-forever {font-size: 22px;}
 
 /*led preview & led visualisation*/
 #leds_canvas {position:absolute; margin:15px; background-repeat:no-repeat; background-position: center;}
@@ -853,11 +862,14 @@ li a:active:after {
   color: #fff;
 }
 
+.checkbox input[type="checkbox"]:checked + label::before,
 .checkbox-success input[type="checkbox"]:checked + label::before,
 .checkbox-success input[type="radio"]:checked + label::before {
   background-color: #5cb85c;
   border-color: #5cb85c;
 }
+
+.checkbox input[type="checkbox"]:checked + label::after,
 .checkbox-success input[type="checkbox"]:checked + label::after,
 .checkbox-success input[type="radio"]:checked + label::after {
   color: #fff;

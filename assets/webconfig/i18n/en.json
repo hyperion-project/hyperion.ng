@@ -134,7 +134,7 @@
     "conf_network_bobl_intro": "Receiver for Boblight",
     "conf_network_createToken_btn": "Create Token",
     "conf_network_fbs_intro": "Google Flatbuffers Receiver. Used for fast image transmission.",
-    "conf_network_forw_intro": "Forward all input to a second Hyperion instance which could be driven with another led controller",
+    "conf_network_forw_intro": "Forward all input to a second Hyperion installation which could be driven with another led controller",
     "conf_network_json_intro": "The JSON-RPC-Port of all Hyperion instances, used for remote control.",
     "conf_network_net_intro": "Network related settings which are applied to all network services.",
     "conf_network_proto_intro": "The PROTO-Port of all Hyperion instances, used for picture streams (HyperionScreenCap, Kodi Addon, Android Hyperion Grabber, ...)",

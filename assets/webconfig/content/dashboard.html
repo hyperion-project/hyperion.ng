@@ -2,37 +2,22 @@
 				<div class="row">
 					<div class="col-lg-12">
 						<h3 class="page-header"><i class="fa fa-dashboard fa-fw"></i><span  data-i18n="main_menu_dashboard_token">Dashboard</span></h3>
-						<div id="dash_intro">
-						<div class="row">
-							<div class="col-md-6 col-xxl-4">
+
+						<!-- Infobox -->
+            <div id="dash_intro">
+
+              <!-- Instance(s) -->
+						  <div class="row instances">
+
+							<!-- Config status -->
+							<div class="col-md-6 col-xxl-3">
 								<div class="panel panel-default">
 									<div class="panel-heading panel-system">
-										<i class="fa fa-info-circle fa-fw"></i>
-										<span  data-i18n="dashboard_infobox_label_title">Information</span>
+										<span id="dash_config_status">Status</span>
 									</div>
 									<div class="panel-body">
 										<table class="table borderless">
 											<tbody>
-												<tr>
-													<td  data-i18n="dashboard_infobox_label_statush"></td>
-													<td id="dash_statush" style="font-weight:bold">unknown</td>
-												</tr>
-												<tr>
-													<td  data-i18n="dashboard_infobox_label_platform">Platform:</td>
-													<td id="dash_platform"></td>
-												</tr>
-												<tr>
-													<td  data-i18n="conf_leds_contr_label_contrtype">LED type:</td>
-													<td id="dash_leddevice"></td>
-												</tr>
-												<tr>
-													<td  data-i18n="dashboard_infobox_label_instance">Instance</td>
-													<td id="dash_instance"></td>
-												</tr>
-												<tr>
-													<td  data-i18n="dashboard_infobox_label_ports">Ports</td>
-													<td id="dash_ports"></td>
-												</tr>
 												<tr>
 													<td  data-i18n="dashboard_infobox_label_currenthyp">Hyperion version:</td>
 													<td id="dash_currv">unknown</td>
@@ -48,45 +33,11 @@
 											</tbody>
 										</table>
 										<hr>
-										<p style="font-weight:bold" data-i18n="dashboard_infobox_label_smartacc">Smart Access<p>
-										<span id="btn_hsc"></span>
-										<hr>
 										<span id="versioninforesult"></span>
 									</div>
 								</div>
 							</div>
-							<div class="col-md-6 col-xxl-3">
-								<div class="panel panel-default">
-									<div class="panel-heading">
-										<i class="fa fa-eye fa-fw"></i>
-										<span  data-i18n="dashboard_componentbox_label_title">Components status</span>
-									</div>
-									<div class="panel-body">
-										  <table class="table">
-											<thead>
-												<tr>
-													<th  data-i18n="dashboard_componentbox_label_comp">Component</th>
-													<th  data-i18n="dashboard_componentbox_label_status">Status</th>
-												</tr>
-											</thead>
-											<tbody id="tab_components">
-											</tbody>
-										</table>
-									</div>
-								</div>
-							</div>
-							<div class="col-md-12 col-xxl-5" style="display:none">
-								<div class="panel panel-default">
-									<div class="panel-heading">
-										<i class="fa fa-newspaper-o fa-fw"></i>
-										<span data-i18n="dashboard_newsbox_label_title">Visit Hyperion Blog</span>
-									</div>
-									<div class="panel-body">
-										<div id="dash_news" style="margin-bottom:7px"></div>
-										<a href="https://hyperion-project.org/blog/?pk_campaign=WebUI&pk_kwd=visitblog" target="_blank" data-i18n="dashboard_newsbox_visitblog"></a>
-									</div>
-								</div>
-							</div>
+
 						</div>
 					</div>
 					<!-- /.col-lg-12 -->
