@@ -104,7 +104,7 @@ $(document).ready( function() {
 			if (semverLite.gt(window.latestVersion.tag_name, window.currentVersion))
 				$('#versioninforesult').html('<div class="bs-callout bs-callout-warning" style="margin:0px"><a target="_blank" href="' + window.latestVersion.html_url + '">'+$.i18n('dashboard_infobox_message_updatewarning', window.latestVersion.tag_name) + '</a></div>');
 			else
-				$('#versioninforesult').html('<div class="bs-callout bs-callout-success" style="margin:0px">'+$.i18n('dashboard_infobox_message_updatesuccess')+'</div>');
+				$('#versioninforesult').html('<div class="bs-callout bs-callout-info" style="margin:0px">'+$.i18n('dashboard_infobox_message_updatesuccess')+'</div>');
 
 			}
 	});
