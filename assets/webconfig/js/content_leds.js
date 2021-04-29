@@ -1553,27 +1553,6 @@ function updateElements(ledType, key) {
   }
 }
 
-function showInputOptions(path, elements, state) {
-  for (var i = 0; i < elements.length; i++) {
-    $('[data-schemapath="' + path + '.' + elements[i] + '"]').toggle(state);
-  }
-}
-
-function showInputOptionsForKey(editor, item, showForKey, state) {
-  var elements = [];
-  for (var key in editor.schema.properties[item].properties) {
-    if (showForKey !== key) {
-      var accessLevel = editor.schema.properties[item].properties[key].access;
-
-      //Only enable elements, if access level compliant
-      if (state && isAccessLevelCompliant(accessLevel)) {
-        elements.push(key);
-      }
-    }
-    showInputOptions("root." + item, elements, state);
-  }
-}
-
 function showAllDeviceInputOptions(showForKey, state) {
   showInputOptionsForKey(conf_editor, "generalOptions", showForKey, state);
   showInputOptionsForKey(conf_editor, "specificOptions", showForKey, state);

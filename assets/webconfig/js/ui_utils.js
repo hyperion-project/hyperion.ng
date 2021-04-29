@@ -875,7 +875,7 @@ function sortProperties(list) {
   });
 }
 
-function createHelpTable(list, phead) {
+function createHelpTable(list, phead, panelId) {
   var table = document.createElement('table');
   var thead = document.createElement('thead');
   var tbody = document.createElement('tbody');
@@ -914,10 +914,10 @@ function createHelpTable(list, phead) {
   table.appendChild(thead);
   table.appendChild(tbody);
 
-  return createPanel(phead, table);
+  return createPanel(phead, table, undefined, undefined, undefined, undefined, panelId);
 }
 
-function createPanel(head, body, footer, type, bodyid, css) {
+function createPanel(head, body, footer, type, bodyid, css, panelId) {
   var cont = document.createElement('div');
   var p = document.createElement('div');
   var phead = document.createElement('div');
@@ -930,6 +930,10 @@ function createPanel(head, body, footer, type, bodyid, css) {
     type = 'panel-default';
 
   p.className = 'panel ' + type;
+  if (typeof panelId != 'undefined') {
+    p.setAttribute("id", panelId);
+  }
+
   phead.className = 'panel-heading ' + css;
   pbody.className = 'panel-body';
   pfooter.className = 'panel-footer';
@@ -1137,4 +1141,25 @@ function isAccessLevelCompliant(accessLevel) {
     }
   }
   return isOK
+}
+
+function showInputOptions(path, elements, state) {
+  for (var i = 0; i < elements.length; i++) {
+    $('[data-schemapath="' + path + '.' + elements[i] + '"]').toggle(state);
+  }
+}
+
+function showInputOptionsForKey(editor, item, showForKey, state) {
+  var elements = [];
+  for (var key in editor.schema.properties[item].properties) {
+    if (showForKey !== key) {
+      var accessLevel = editor.schema.properties[item].properties[key].access;
+
+      //Always disable all elements, but only enable elements, if access level compliant
+      if (!state || isAccessLevelCompliant(accessLevel)) {
+        elements.push(key);
+      }
+    }
+  }
+  showInputOptions("root." + item, elements, state);
 }
