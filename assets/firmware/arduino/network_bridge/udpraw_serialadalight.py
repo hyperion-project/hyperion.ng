@@ -138,7 +138,7 @@ to this service over the network.
         sys.stderr.write(
             '--- UDP to Serial redirector\n'
             '--- listening on udp port {a.localport}\n'
-	    '--- sending to {p.name}  {p.baudrate},{p.bytesize}{p.parity}{p.stopbits}\n'
+        '--- sending to {p.name}  {p.baudrate},{p.bytesize}{p.parity}{p.stopbits}\n'
             '--- type Ctrl-C / BREAK to quit\n'.format(p=ser, a=args))
 
     try:
@@ -153,7 +153,7 @@ to this service over the network.
 
     srv = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    srv.bind(('0.0.0.0', args.localport))
+    srv.bind(('0.0.0.0', args.localport)) # lgtm [py/bind-socket-all-network-interfaces]
 
     try:
         intentional_exit = False
@@ -165,12 +165,12 @@ to this service over the network.
                         if not data:
                             break
 
-			if args.ada:
-				numleds = len(data)/3
-				hi = (numleds-1)/256
-				lo = (numleds-1)&255
-				sum = hi^lo^0x55
-				ser.write ("Ada"+ chr(hi) + chr(lo) + chr(sum))
+            if args.ada:
+                numleds = len(data)/3
+                hi = (numleds-1)/256
+                lo = (numleds-1)&255
+                sum = hi^lo^0x55
+                ser.write ("Ada"+ chr(hi) + chr(lo) + chr(sum))
 
                         ser.write(data)                 # get a bunch of bytes and send them
                     except socket.error as msg:

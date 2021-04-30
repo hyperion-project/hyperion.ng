@@ -759,11 +759,11 @@ $(document).ready(function () {
       }
 
       if (ledType !== window.serverConfig.device.type) {
-        var hwLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount")
+        var hwLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount");
         if (hwLedCount) {
           hwLedCount.setValue(hwLedCountDefault);
         }
-        var colorOrder = conf_editor.getEditor("root.generalOptions.colorOrder")
+        var colorOrder = conf_editor.getEditor("root.generalOptions.colorOrder");
         if (colorOrder) {
           colorOrder.setValue(colorOrderDefault);
         }
@@ -864,7 +864,7 @@ $(document).ready(function () {
       //Disable General Options, as LED count will be resolved from device itself
       conf_editor.getEditor("root.generalOptions").disable();
 
-      var hostList = conf_editor.getEditor("root.specificOptions.hostList")
+      var hostList = conf_editor.getEditor("root.specificOptions.hostList");
       if (hostList) {
         var val = hostList.getValue();
         var showOptions = true;
@@ -909,7 +909,7 @@ $(document).ready(function () {
           case "nanoleaf":
             var token = conf_editor.getEditor("root.specificOptions.token").getValue();
             if (token === "") {
-              return
+              return;
             }
             params = { host: host, token: token };
             break;
@@ -1434,7 +1434,7 @@ var updateSelectList = function (ledType, discoveryInfo) {
   if (enumVals.length > 0) {
     updateJsonEditorSelection(specOpt, key, addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, addSelect, addCustom);
   }
-}
+};
 
 async function discover_device(ledType, params) {
   const result = await requestLedDeviceDiscovery(ledType, params);

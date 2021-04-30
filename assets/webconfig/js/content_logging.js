@@ -153,16 +153,13 @@ $(document).ready(function () {
 
     $(window.hyperion).on("cmd-logging-update", function (event) {
 
-      messages = (event.response.result.messages);
+     var messages = (event.response.result.messages);
 
       if (messages.length != 0) {
         if (!createdCont) {
           createLogContainer();
           createdCont = true;
         }
-
-        var currentlogLevel = window.serverConfig.logger.level;
-
         updateLogOutput(messages)
       }
     });
@@ -177,13 +174,8 @@ $(document).ready(function () {
       });
 
       var currentlogLevel = window.serverConfig.logger.level;
-      var displayedLogLevel = conf_editor.getEditor("root.logger.level").getValue();
-
-      //if ( currentlogLevel !== displayedLogLevel )
-      {
-        conf_editor.getEditor("root.logger.level").setValue(currentlogLevel);
-        location.reload();
-      }
+      conf_editor.getEditor("root.logger.level").setValue(currentlogLevel);
+      location.reload();
     }
 
   });
