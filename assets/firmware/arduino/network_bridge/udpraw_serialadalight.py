@@ -138,7 +138,7 @@ to this service over the network.
         sys.stderr.write(
             '--- UDP to Serial redirector\n'
             '--- listening on udp port {a.localport}\n'
-        '--- sending to {p.name}  {p.baudrate},{p.bytesize}{p.parity}{p.stopbits}\n'
+            '--- sending to {p.name}  {p.baudrate},{p.bytesize}{p.parity}{p.stopbits}\n'
             '--- type Ctrl-C / BREAK to quit\n'.format(p=ser, a=args))
 
     try:
@@ -165,14 +165,14 @@ to this service over the network.
                         if not data:
                             break
 
-            if args.ada:
-                numleds = len(data)/3
-                hi = (numleds-1)/256
-                lo = (numleds-1)&255
-                sum = hi^lo^0x55
-                ser.write ("Ada"+ chr(hi) + chr(lo) + chr(sum))
+                        if args.ada:
+                            numleds = len(data)/3
+                            hi = (numleds-1)/256
+                            lo = (numleds-1)&255
+                            sum = hi^lo^0x55
+                            ser.write ("Ada"+ chr(hi) + chr(lo) + chr(sum))
 
-                        ser.write(data)                 # get a bunch of bytes and send them
+                        ser.write(data)  # get a bunch of bytes and send them
                     except socket.error as msg:
                         if args.develop:
                             raise
