@@ -133,7 +133,7 @@ table.first_cell_borderless td:first-child,table.first_cell_borderless th:first-
 .panel-default>.panel-instance{
 	background-color:#E18300 !important;
 	border-color:#ddd !important;
-	color: #fff ;
+	color: #fff;
 }
 
 /*remote page*/
@@ -255,6 +255,7 @@ table.first_cell_borderless td:first-child,table.first_cell_borderless th:first-
 	background-color:#3579b6;
 }
 
+/* Overlay for desktop devices */
 .overlay {
 	background-image: url('/img/hyperion/logo_negativ.png');
 	background-repeat: no-repeat;
@@ -266,6 +267,13 @@ table.first_cell_borderless td:first-child,table.first_cell_borderless th:first-
 	right: 0;
 	top: 0;
 	z-index:99999;
+}
+
+/* Overlay for mobile devices */
+@media only screen and (max-width: 767px) {
+  .overlay {
+    background-size: contain;
+  }
 }
 
 /*simple ripple effect for li a and btn*/

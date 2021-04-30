@@ -190,14 +190,11 @@ function initLanguageSelection() {
 }
 
 function updateUiOnInstance(inst) {
-  if (window.serverInfo.instance.length > 1) {
-    var currentURL = $(location).attr("href");
-    $("#active_instance_friendly_name").html(window.serverInfo.instance[inst].friendly_name);
-    $("#active_instance").fadeIn("fast");
-  }
-  else {
-    $("#active_instance").attr("style", "display:none");
-  }
+  $("#active_instance_friendly_name").html(window.serverInfo.instance[inst].friendly_name);
+  if (window.serverInfo.instance.filter(entry => entry.running).length > 1)
+      $('#btn_hypinstanceswitch').toggle(true)
+  else
+    $('#btn_hypinstanceswitch').toggle(false)
 }
 
 function instanceSwitch(inst) {

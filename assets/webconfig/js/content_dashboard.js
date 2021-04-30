@@ -79,11 +79,6 @@ $(document).ready( function() {
     updateUiOnInstance(window.currentHyperionInstance);
     updateHyperionInstanceListing();
 
-    if (window.serverInfo.instance.filter(entry => entry.running).length > 1)
-      $('#btn_hypinstanceswitch').toggle(true)
-    else
-      $('#btn_hypinstanceswitch').toggle(false)
-
 		$('#instanceButton').bootstrapToggle();
 		$('#instanceButton').change(e => {
       requestSetComponentState('ALL',e.currentTarget.checked);
