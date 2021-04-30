@@ -6,9 +6,16 @@ $(document).ready( function() {
     $("div[class*='currentInstance']").remove();
 
     var instances_html = '<div class="col-md-6 col-xxl-4 currentInstance-"><div class="panel panel-default">';
-    instances_html += '<div class="panel-heading panel-instance"><span>'+window.currentHyperionInstanceName+'</span></div>';
-    instances_html += '<div class="panel-body">';
+    instances_html += '<div class="panel-heading panel-instance" style="display:flex;align-items:center">';
+    instances_html += '<div id="active_instance_friendly_name">Instance</div>';
+    instances_html += '<div class="dropdown" id="btn_hypinstanceswitch" style="cursor:pointer;margin-left:10px">';
+    instances_html += '<a class="dropdown-toggle" data-toggle="dropdown" href="#">';
+    instances_html += '<i class="mdi mdi-lightbulb-group mdi-24px"></i><i class="mdi mdi-menu-down mdi-24px"></i>';
+    instances_html += '</a><ul id="hyp_inst_listing" class="dropdown-menu dropdown-alerts"></ul>'
+    instances_html += '</div></div>';
 
+
+    instances_html += '<div class="panel-body">';
 		instances_html += '<table class="table borderless">';
 		instances_html += '<thead><tr><th style="vertical-align:middle"><i class="mdi mdi-lightbulb-on fa-fw"></i>';
 		instances_html += '<span>'+$.i18n('dashboard_componentbox_label_status')+'</span></th>';
@@ -37,10 +44,7 @@ $(document).ready( function() {
 		instances_html += '<tbody><tr><td></td>';
 		instances_html += '<td>'+$.i18n('conf_leds_contr_label_contrtype')+'</td>';
 		instances_html += '<td style="text-align:right">'+window.serverConfig.device.type+'</td>';
-		instances_html += '</tr><tr><td></td>';
-		instances_html += '<td>'+$.i18n('dashboard_infobox_label_ports')+'</td>';
-		instances_html += '<td style="text-align:right">'+window.serverConfig.flatbufServer.port+' | '+window.serverConfig.protoServer.port+'</td>';
-		instances_html += '</tr></tbody></table>';
+		instances_html += '</tr><tr></tbody></table>';
 
 		instances_html += '<table class="table first_cell_borderless">';
 		instances_html += '<thead><tr><th colspan="3">';
@@ -72,6 +76,13 @@ $(document).ready( function() {
 		instances_html += '</div></div></div>';
 
 		$('.instances').prepend(instances_html);
+    updateUiOnInstance(window.currentHyperionInstance);
+    updateHyperionInstanceListing();
+
+    if (window.serverInfo.instance.filter(entry => entry.running).length > 1)
+      $('#btn_hypinstanceswitch').toggle(true)
+    else
+      $('#btn_hypinstanceswitch').toggle(false)
 
 		$('#instanceButton').bootstrapToggle();
 		$('#instanceButton').change(e => {
@@ -86,13 +97,13 @@ $(document).ready( function() {
         $("#general_comp_"+components[idx].name).bootstrapToggle(hyperion_enabled ? "enable" : "disable")
 				$("#general_comp_"+components[idx].name).change(e => {
 					requestSetComponentState(e.currentTarget.id.split('_')[2], e.currentTarget.checked);
-
 				});
 			}
 		}
 	}
 
 	// add more info
+  $('#dash_ports').html(window.serverConfig.flatbufServer.port+' | '+window.serverConfig.protoServer.port);
 	$('#dash_currv').html(window.currentVersion);
 	$('#dash_watchedversionbranch').html(window.serverConfig.general.watchedVersionBranch);
 
@@ -105,7 +116,6 @@ $(document).ready( function() {
 				$('#versioninforesult').html('<div class="bs-callout bs-callout-warning" style="margin:0px"><a target="_blank" href="' + window.latestVersion.html_url + '">'+$.i18n('dashboard_infobox_message_updatewarning', window.latestVersion.tag_name) + '</a></div>');
 			else
 				$('#versioninforesult').html('<div class="bs-callout bs-callout-info" style="margin:0px">'+$.i18n('dashboard_infobox_message_updatesuccess')+'</div>');
-
 			}
 	});
 

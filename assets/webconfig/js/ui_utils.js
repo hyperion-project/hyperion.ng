@@ -192,16 +192,10 @@ function initLanguageSelection() {
 function updateUiOnInstance(inst) {
   if (window.serverInfo.instance.length > 1) {
     var currentURL = $(location).attr("href");
-    if (currentURL.indexOf('#conf_network') != -1 || currentURL.indexOf('#update') != -1 || currentURL.indexOf('#conf_webconfig') != -1 || currentURL.indexOf('#conf_grabber') != -1 || currentURL.indexOf('#conf_logging') != -1)
-      $("#hyperion_global_setting_notify").fadeIn("fast");
-    else
-      $("#hyperion_global_setting_notify").attr("style", "display:none");
-
     $("#active_instance_friendly_name").html(window.serverInfo.instance[inst].friendly_name);
     $("#active_instance").fadeIn("fast");
   }
   else {
-    $("#hyperion_global_setting_notify").fadeOut("fast");
     $("#active_instance").attr("style", "display:none");
   }
 }
