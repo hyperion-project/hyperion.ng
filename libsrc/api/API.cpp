@@ -205,8 +205,20 @@ bool API::setComponentState(const QString &comp, bool &compState, QString &reply
 
     if (component != COMP_INVALID)
     {
-        QMetaObject::invokeMethod(_hyperion, "compStateChangeRequest", Qt::QueuedConnection, Q_ARG(hyperion::Components, component), Q_ARG(bool, compState));
-        return true;
+		if (component == COMP_FORWARDER ||
+			component == COMP_GRABBER ||
+			component == COMP_V4L ||
+			component == COMP_FLATBUFSERVER ||
+			component == COMP_PROTOSERVER)
+		{
+			QMetaObject::invokeMethod(_instanceManager, "compStateChangeRequest", Qt::QueuedConnection, Q_ARG(hyperion::Components, component), Q_ARG(bool, compState));
+			return true;
+		}
+		else
+		{
+			QMetaObject::invokeMethod(_hyperion, "compStateChangeRequest", Qt::QueuedConnection, Q_ARG(hyperion::Components, component), Q_ARG(bool, compState));
+			return true;
+		}
     }
     replyMsg = QString("Unknown component name: %1").arg(comp);
     return false;
