@@ -50,7 +50,7 @@
     "conf_leds_contr_label_contrtype": "Tipo de controlador:",
     "conf_leds_device_info_log": "Caso seus LEDs não funcionem, verifique aqui se há erros:",
     "conf_leds_device_intro": "Hyperion suporta vários controladores para transmitir sinal para o seu dispositivo. Selecione o contolador de LED da lista e configure. Nós escolhemos as melhores configurações padrão para cada dispositivo.",
-    "conf_leds_error_hwled_gt_layout": "A contagem de LEDs do hardware ($1) é maior do que os LEDs configurados via layout ($2),<br>$3 {{plural:$1|LED|LEDs}} permanecerá preto se você continuar.",
+    "conf_leds_error_hwled_gt_layout": "A contagem de LEDs do hardware ($1) é maior do que os LEDs configurados via layout ($2),<br>$3 {{plural:$3|LED|LEDs}} permanecerá preto se você continuar.",
     "conf_leds_error_hwled_lt_layout": "A contagem de LEDs do hardware ($1) é menor do que os LEDs configurados por layout ($2).<br>O número de LEDs configurados no layout não deve exceder os LEDs disponíveis",
     "conf_leds_layout_advanced": "Configurações Avançadas",
     "conf_leds_layout_blacklist_num_title": "Número de LEDs",
