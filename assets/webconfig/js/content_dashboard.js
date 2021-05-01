@@ -5,12 +5,12 @@ $(document).ready(function () {
     $("div[class*='currentInstance']").remove();
 
     var instances_html = '<div class="col-md-6 col-xxl-4 currentInstance-"><div class="panel panel-default">';
-    instances_html += '<div class="panel-heading panel-instance" style="display:flex;align-items:center">';
-    instances_html += '<div id="active_instance_friendly_name">Instance</div>';
-    instances_html += '<div class="dropdown" id="btn_hypinstanceswitch" style="cursor:pointer;margin-left:10px">';
-    instances_html += '<a class="dropdown-toggle" data-toggle="dropdown" href="#">';
-    instances_html += '<i class="mdi mdi-lightbulb-group mdi-24px"></i><i class="mdi mdi-menu-down mdi-24px"></i>';
-    instances_html += '</a><ul id="hyp_inst_listing" class="dropdown-menu dropdown-alerts"></ul>'
+    instances_html += '<div class="panel-heading panel-instance">';
+    instances_html += '<div class="dropdown">';
+    instances_html += '<a id="active_instance_dropdown" class="dropdown-toggle" data-toggle="dropdown" href="#" style="text-decoration:none;display:flex;align-items:center;">';
+    instances_html += '<div id="active_instance_friendly_name"></div>';
+    instances_html += '<div id="btn_hypinstanceswitch" style="white-space:nowrap;"><span class="mdi mdi-lightbulb-group mdi-24px" style="margin-right:0;margin-left:5px;"></span><span class="mdi mdi-menu-down mdi-24px"></span></div>';
+    instances_html += '</a><ul id="hyp_inst_listing" class="dropdown-menu dropdown-alerts" style="cursor:pointer;"></ul>'
     instances_html += '</div></div>';
 
 
