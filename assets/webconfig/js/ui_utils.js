@@ -192,9 +192,9 @@ function initLanguageSelection() {
 function updateUiOnInstance(inst) {
   $("#active_instance_friendly_name").text(window.serverInfo.instance[inst].friendly_name);
   if (window.serverInfo.instance.filter(entry => entry.running).length > 1) {
-      $('#btn_hypinstanceswitch').toggle(true);
-      $('#active_instance_dropdown').prop('disabled', false);
-      $('#active_instance_dropdown').css('cursor', 'pointer');
+    $('#btn_hypinstanceswitch').toggle(true);
+    $('#active_instance_dropdown').prop('disabled', false);
+    $('#active_instance_dropdown').css('cursor', 'pointer');
   } else {
     $('#btn_hypinstanceswitch').toggle(false);
     $('#active_instance_dropdown').prop('disabled', true);
@@ -290,7 +290,7 @@ function showInfoDialog(type, header, message) {
     $('#id_body_rename').html('<i style="margin-bottom:20px" class="fa fa-key modal-icon-edit"><br>');
     $('#id_body_rename').append('<h4>' + header + '</h4>');
     $('#id_body_rename').append('<input class="form-control" id="oldPw" placeholder="Old" type="text"> <br />');
-    $('#id_body_rename').append('<input class="form-control" id="newPw" placeholder="New" type="text">');
+    $('#id_body_rename').append('<input class="form-control" id="newPw" placeholder="New" type="password">');
     $('#id_footer_rename').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-dismiss-modal="#modal_dialog_rename" disabled><i class="fa fa-fw fa-save"></i>' + $.i18n('general_btn_ok') + '</button>');
     $('#id_footer_rename').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
   }
