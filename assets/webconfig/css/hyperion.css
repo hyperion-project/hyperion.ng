@@ -25,6 +25,7 @@ body{
 /* fixed brand icon */
 @media (min-width: 768px){
 	.navbar-brand{position:fixed}
+  #main-nav{position:absolute !important;}
 }
 
 /*mobile nav*/
@@ -270,7 +271,7 @@ table.first_cell_borderless td:first-child,table.first_cell_borderless th:first-
 }
 
 /* Overlay for mobile devices */
-@media only screen and (max-width: 767px) {
+@media (max-width: 768px) {
   .overlay {
     background-size: contain;
   }

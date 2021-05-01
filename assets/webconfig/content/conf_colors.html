@@ -5,13 +5,13 @@
 			<h3 class="page-header"><i class="fa fa-photo fa-fw"></i><span  data-i18n="main_menu_colors_conf_token">Image Processing</span></h3>
 
       <div class="panel panel-default" style="border:0px;">
-        <div class="panel-heading panel-instance" style="display:flex;align-items:center;border-radius:3px; border-bottom:0px;">
-          <div id="active_instance_friendly_name">Instance</div>
-          <div class="dropdown" id="btn_hypinstanceswitch" style="cursor:pointer;margin-left:10px">
-            <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-              <i class="mdi mdi-lightbulb-group mdi-24px"></i><i class="mdi mdi-menu-down mdi-24px"></i>
+        <div class="panel-heading panel-instance" style="border-radius:3px; border-bottom:0px;">
+          <div class="dropdown">
+            <a id="active_instance_dropdown" class="dropdown-toggle" data-toggle="dropdown" href="#" style="text-decoration:none;display:flex;align-items:center;">
+              <div id="active_instance_friendly_name"></div>
+              <div id="btn_hypinstanceswitch" style="white-space:nowrap;"><span class="mdi mdi-lightbulb-group mdi-24px" style="margin-right:0; margin-left:5px;"></span><span class="mdi mdi-menu-down mdi-24px"></span></div>
             </a>
-            <ul id="hyp_inst_listing" class="dropdown-menu dropdown-alerts"></ul>
+            <ul id="hyp_inst_listing" class="dropdown-menu dropdown-alerts" style="cursor:pointer;"></ul>
           </div>
         </div>
       </div>

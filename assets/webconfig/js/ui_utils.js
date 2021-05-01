@@ -190,11 +190,16 @@ function initLanguageSelection() {
 }
 
 function updateUiOnInstance(inst) {
-  $("#active_instance_friendly_name").html(window.serverInfo.instance[inst].friendly_name);
-  if (window.serverInfo.instance.filter(entry => entry.running).length > 1)
-      $('#btn_hypinstanceswitch').toggle(true)
-  else
-    $('#btn_hypinstanceswitch').toggle(false)
+  $("#active_instance_friendly_name").text(window.serverInfo.instance[inst].friendly_name);
+  if (window.serverInfo.instance.filter(entry => entry.running).length > 1) {
+      $('#btn_hypinstanceswitch').toggle(true);
+      $('#active_instance_dropdown').prop('disabled', false);
+      $('#active_instance_dropdown').css('cursor', 'pointer');
+  } else {
+    $('#btn_hypinstanceswitch').toggle(false);
+    $('#active_instance_dropdown').prop('disabled', true);
+    $("#active_instance_dropdown").css('cursor', 'default');
+  }
 }
 
 function instanceSwitch(inst) {
