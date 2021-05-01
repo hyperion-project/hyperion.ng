@@ -306,6 +306,13 @@ $(document).ready(function () {
     loadContent(e);
     window.scrollTo(0, 0);
   });
+
+  $(window).scroll(function(){
+    if ($(window).scrollTop() > 65)
+      $("#navbar_brand_logo").css("display", "none");
+    else
+      $("#navbar_brand_logo").css("display", "");
+    });
 });
 
 function suppressDefaultPwWarning() {

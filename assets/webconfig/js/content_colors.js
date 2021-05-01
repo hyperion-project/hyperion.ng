@@ -1,5 +1,9 @@
 $(document).ready(function () {
   performTranslation();
+
+  // update instance listing
+  updateHyperionInstanceListing();
+
   var editor_color = null;
   var editor_smoothing = null;
   var editor_blackborder = null;
@@ -13,12 +17,12 @@ $(document).ready(function () {
     //smoothing
     $('#conf_cont').append(createRow('conf_cont_smoothing'));
     $('#conf_cont_smoothing').append(createOptPanel('fa-photo', $.i18n("edt_conf_smooth_heading_title"), 'editor_container_smoothing', 'btn_submit_smoothing'));
-    $('#conf_cont_smoothing').append(createHelpTable(window.schema.smoothing.properties, $.i18n("edt_conf_smooth_heading_title")));
+    $('#conf_cont_smoothing').append(createHelpTable(window.schema.smoothing.properties, $.i18n("edt_conf_smooth_heading_title"), "smoothingHelpPanelId"));
 
     //blackborder
     $('#conf_cont').append(createRow('conf_cont_blackborder'));
     $('#conf_cont_blackborder').append(createOptPanel('fa-photo', $.i18n("edt_conf_bb_heading_title"), 'editor_container_blackborder', 'btn_submit_blackborder'));
-    $('#conf_cont_blackborder').append(createHelpTable(window.schema.blackborderdetector.properties, $.i18n("edt_conf_bb_heading_title")));
+    $('#conf_cont_blackborder').append(createHelpTable(window.schema.blackborderdetector.properties, $.i18n("edt_conf_bb_heading_title"), "blackborderHelpPanelId"))
   }
   else {
     $('#conf_cont').addClass('row');
@@ -46,6 +50,14 @@ $(document).ready(function () {
   }, true, true);
 
   editor_smoothing.on('change', function () {
+    var smoothingEnable = editor_smoothing.getEditor("root.smoothing.enable").getValue();
+    if (smoothingEnable) {
+      showInputOptionsForKey(editor_smoothing, "smoothing", "enable", true);
+      $('#smoothingHelpPanelId').show();
+    } else {
+      showInputOptionsForKey(editor_smoothing, "smoothing", "enable", false);
+      $('#smoothingHelpPanelId').hide();
+    }
     editor_smoothing.validate().length || window.readOnlyMode ? $('#btn_submit_smoothing').attr('disabled', true) : $('#btn_submit_smoothing').attr('disabled', false);
   });
 
@@ -59,6 +71,17 @@ $(document).ready(function () {
   }, true, true);
 
   editor_blackborder.on('change', function () {
+    var blackborderEnable = editor_blackborder.getEditor("root.blackborderdetector.enable").getValue();
+    if (blackborderEnable) {
+      showInputOptionsForKey(editor_blackborder, "blackborderdetector", "enable", true);
+      $('#blackborderHelpPanelId').show();
+      $('#blackborderWikiLinkId').show();
+
+    } else {
+      showInputOptionsForKey(editor_blackborder, "blackborderdetector", "enable", false);
+      $('#blackborderHelpPanelId').hide();
+      $('#blackborderWikiLinkId').hide();
+    }
     editor_blackborder.validate().length || window.readOnlyMode ? $('#btn_submit_blackborder').attr('disabled', true) : $('#btn_submit_blackborder').attr('disabled', false);
   });
 
@@ -67,7 +90,9 @@ $(document).ready(function () {
   });
 
   //wiki links
-  $('#editor_container_blackborder').append(buildWL("user/advanced/Advanced.html#blackbar-detection", "edt_conf_bb_mode_title", true));
+  var wikiElement = $(buildWL("user/advanced/Advanced.html#blackbar-detection", "edt_conf_bb_mode_title", true));
+  wikiElement.attr('id', 'blackborderWikiLinkId');
+  $('#editor_container_blackborder').append(wikiElement);
 
   //create introduction
   if (window.showOptHelp) {

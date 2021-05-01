@@ -35,7 +35,7 @@ SET ( CPACK_PACKAGE_NAME "Hyperion" )
 SET ( CPACK_PACKAGE_DESCRIPTION_SUMMARY "Hyperion is an open source ambient light implementation" )
 SET ( CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.md" )
 
-# Replease "+", as cmake/rpm has an issue if "+" occurs in CPACK_PACKAGE_VERSION 
+# Replease "+", as cmake/rpm has an issue if "+" occurs in CPACK_PACKAGE_VERSION
 string(REPLACE "+" "." HYPERION_PACKAGE_VERSION ${HYPERION_VERSION})
 SET ( CPACK_PACKAGE_FILE_NAME "Hyperion-${HYPERION_PACKAGE_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 
@@ -90,8 +90,8 @@ if(WIN32)
 	STRING(REGEX REPLACE "\\\\" "\\\\\\\\" CPACK_PACKAGE_ICON ${CPACK_PACKAGE_ICON})
 endif()
 file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/nsis/installer.ico" NSIS_HYP_ICO)
-file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/nsis/hyperion-logo.bmp" NSIS_HYP_LOGO_HORI)
-file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/nsis/hyperion-logo-vert.bmp" NSIS_HYP_LOGO_VERT)
+file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/nsis/header.bmp" NSIS_HYP_LOGO_HORI)
+file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/nsis/logo.bmp" NSIS_HYP_LOGO_VERT)
 STRING(REGEX REPLACE "\\\\" "\\\\\\\\" NSIS_HYP_ICO "${NSIS_HYP_ICO}")
 STRING(REGEX REPLACE "\\\\" "\\\\\\\\" NSIS_HYP_LOGO_VERT "${NSIS_HYP_LOGO_VERT}")
 STRING(REGEX REPLACE "\\\\" "\\\\\\\\" NSIS_HYP_LOGO_HORI "${NSIS_HYP_LOGO_HORI}")

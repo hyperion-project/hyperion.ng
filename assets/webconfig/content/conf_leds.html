@@ -4,7 +4,20 @@
   <title>Hyperion - LED Device Configuration</title>
 </head>
 <div class="container-fluid">
-  <h3 class="page-header"><i class="fa fa-lightbulb-o fa-fw"></i><span data-i18n="main_menu_leds_conf_token">LED Hardware</span></h3>
+  <h3 class="page-header"><i class="mdi mdi-lightbulb-on fa-fw"></i><span data-i18n="main_menu_leds_conf_token">LED Hardware</span></h3>
+
+	<div class="panel panel-default" style="border:0px;">
+		<div class="panel-heading panel-instance" style="border-radius:3px; border-bottom:0px;">
+			<div class="dropdown">
+				<a id="active_instance_dropdown" class="dropdown-toggle" data-toggle="dropdown" href="#" style="text-decoration:none;display:flex;align-items:center;">
+          <div id="active_instance_friendly_name"></div>
+					<div id="btn_hypinstanceswitch" style="white-space:nowrap;"><span class="mdi mdi-lightbulb-group mdi-24px" style="margin-right:0; margin-left:5px;"></span><span class="mdi mdi-menu-down mdi-24px"></span></div>
+				</a>
+				<ul id="hyp_inst_listing" class="dropdown-menu dropdown-alerts" style="cursor:pointer;"></ul>
+			</div>
+		</div>
+	</div>
+
   <ul id="leds_cfg_nav" class="nav nav-tabs">
     <li class="active"><a data-toggle="tab" href="#menu_controller" data-i18n="conf_leds_nav_label_ledcontroller">LED Controller</a></li>
     <li><a data-toggle="tab" href="#menu_gencfg" data-i18n="conf_leds_nav_label_ledlayout">LED Layout</a></li>
@@ -364,12 +377,14 @@
               <p id="previewledcount" style="font-weight:bold"></p>
               <p id="previewledpower" style="font-weight:bold"></p>
               <div id="led_vis_help"></div>
-              <div class="col-lg-12 st_helper" style="padding-left:0px; padding-right:0px">
+              <div class="col-lg-12 st_helper" style="position:relative; padding-left:0px; padding-right:0px">
+                <canvas id="image_preview" style="position:absolute; z-index:0"></canvas>
                 <div id="leds_preview"></div>
               </div>
             </div>
             <div class="panel-footer">
               <button type="button" class="btn btn-danger" id="leds_prev_toggle_num"><i class="fa fa-info fa-fw"></i><span data-i18n="main_ledsim_btn_togglelednumber">toggle led numbers</span></button>
+              <button type="button" class="btn btn-danger" id="leds_prev_toggle_live_video"><i class="fa fa-fw fa-television"></i><span data-i18n="main_ledsim_btn_togglelivevideo">toggle live video</span></button>
               <button type="button" class="btn btn-primary" id="leds_prev_checklist"><i class="fa fa-info-circle fa-fw"></i><span data-i18n="conf_leds_layout_btn_checklist">toggle led numbers</span></button>
             </div>
           </div>

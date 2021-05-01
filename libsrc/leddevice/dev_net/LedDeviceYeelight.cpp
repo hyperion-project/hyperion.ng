@@ -234,12 +234,12 @@ int YeelightLight::writeCommand( const QJsonDocument &command, QJsonArray &resul
 			if ( ! _tcpSocket->waitForBytesWritten(WRITE_TIMEOUT.count()) )
 			{
 				QString errorReason = QString ("(%1) %2").arg(_tcpSocket->error()).arg( _tcpSocket->errorString());
-				log ( 2, "Error:", "bytesWritten: [%d], %s", bytesWritten, QSTRING_CSTR(errorReason));
+				log ( 2, "Error:", "bytesWritten: [%lld], %s", bytesWritten, QSTRING_CSTR(errorReason));
 				this->setInError ( errorReason );
 			}
 			else
 			{
-				log ( 3, "Success:", "Bytes written   [%d]", bytesWritten );
+				log ( 3, "Success:", "Bytes written   [%lld]", bytesWritten );
 
 				// Avoid to overrun the Yeelight Command Quota
 				qint64 elapsedTime = QDateTime::currentMSecsSinceEpoch() - _lastWriteTime;
@@ -258,7 +258,7 @@ int YeelightLight::writeCommand( const QJsonDocument &command, QJsonArray &resul
 			{
 				do
 				{
-					log ( 3, "Reading:", "Bytes available [%d]", _tcpSocket->bytesAvailable() );
+					log ( 3, "Reading:", "Bytes available [%lld]", _tcpSocket->bytesAvailable() );
 					while ( _tcpSocket->canReadLine() )
 					{
 						QByteArray response = _tcpSocket->readLine();
@@ -338,7 +338,7 @@ bool YeelightLight::streamCommand( const QJsonDocument &command )
 			{
 				int error = _tcpStreamSocket->error();
 				QString errorReason = QString ("(%1) %2").arg(error).arg( _tcpStreamSocket->errorString());
-				log ( 1, "Error:", "bytesWritten: [%d], %s", bytesWritten, QSTRING_CSTR(errorReason));
+				log ( 1, "Error:", "bytesWritten: [%lld], %s", bytesWritten, QSTRING_CSTR(errorReason));
 
 				if ( error == QAbstractSocket::RemoteHostClosedError )
 				{
@@ -353,7 +353,7 @@ bool YeelightLight::streamCommand( const QJsonDocument &command )
 			}
 			else
 			{
-				log ( 3, "Success:", "Bytes written   [%d]", bytesWritten );
+				log ( 3, "Success:", "Bytes written   [%lld]", bytesWritten );
 				rc = true;
 			}
 		}
