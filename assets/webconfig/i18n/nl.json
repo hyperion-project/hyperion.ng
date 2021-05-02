@@ -170,7 +170,7 @@
     "dashboard_infobox_label_watchedversionbranch": "Bekeken versie branch:",
     "dashboard_infobox_message_updatesuccess": "Je draait de laatste versie van Hyperion",
     "dashboard_infobox_message_updatewarning": "Een nieuwe versie van Hyperion is beschikbaar!",
-    "dashboard_label_intro": "Het dashboard geeft je een overzicht van de status van Hyperion en toont de laatste updates van de Hyperion blog.",
+    "dashboard_label_intro": "Het dashboard geeft je een overzicht van de status van Hyperion.",
     "dashboard_message_default_password": "Het standaard wachtwoord voor de WebUi is ingesteld. We raden je aan dit te veranderen",
     "dashboard_message_default_password_t": "WebUi standaard wachtwoord is ingesteld",
     "dashboard_message_do_not_show_again": "Laat dit bericht niet meer zien",
