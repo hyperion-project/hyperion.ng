@@ -119,7 +119,7 @@
     "dashboard_infobox_label_title": "Bilgi",
     "dashboard_infobox_message_updatesuccess": "Hyperion'un en güncel versiyonuna sahipsiniz.",
     "dashboard_infobox_message_updatewarning": "Hyperion'un güncel bir versiyonu mevcut! ($1)",
-    "dashboard_label_intro": "Gösterge paneli, Hyperion'un genel durumu ve Hyperion Blog'dan son gelişmeler hakkında bilgiler içerir",
+    "dashboard_label_intro": "Gösterge paneli, Hyperion'un genel durumu hakkında bilgiler içerir.",
     "dashboard_newsbox_label_title": "Hyperion-Blog",
     "dashboard_newsbox_noconn": "Son gelişmeleri almak için Hyperion Suncusu'na bağlanılamıyor, internet bağlantınız çalışıyor mu?",
     "dashboard_newsbox_readmore": "Daha fazla oku",
