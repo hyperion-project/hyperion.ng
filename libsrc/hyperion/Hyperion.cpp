@@ -580,7 +580,7 @@ void Hyperion::update()
 
 	// copy image & process OR copy ledColors from muxer
 	Image<ColorRgb> image = priorityInfo.image;
-	if(image.size() > 3)
+	if (image.width() > 1 || image.height() > 1)
 	{
 		emit currentImage(image);
 		_ledBuffer = _imageProcessor->process(image);
