@@ -149,7 +149,7 @@
     "dashboard_infobox_label_watchedversionbranch": "Branche surveillée :",
     "dashboard_infobox_message_updatesuccess": "Vous utilisez la dernière version d'Hyperion.",
     "dashboard_infobox_message_updatewarning": "Une nouvelle version d'Hyperion est disponible ! ($1)",
-    "dashboard_label_intro": "Ce dashboard vous donne une vue rapide sur l'état d'Hyperion et affiche les dernières actualités du blog d'Hyperion.",
+    "dashboard_label_intro": "Ce dashboard vous donne une vue rapide sur l'état d'Hyperion.",
     "dashboard_message_do_not_show_again": "Ne plus afficher ce message",
     "dashboard_newsbox_label_title": "Hyperion - Blog",
     "dashboard_newsbox_noconn": "Impossible d'accéder au blog d'Hyperion. Votre connexion internet fonctionne-t-elle ?",
