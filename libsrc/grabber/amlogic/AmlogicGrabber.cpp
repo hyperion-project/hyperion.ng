@@ -132,8 +132,9 @@ int AmlogicGrabber::grabFrame_amvideocap(Image<ColorRgb> & image)
 		long r1 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_WIDTH, _width);
 		long r2 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_HEIGHT, _height);
 		long r3 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_AT_FLAGS, CAP_FLAG_AT_END);
+		long r4 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_WAIT_MAX_MS, 500);
 
-		if (r1<0 || r2<0 || r3<0 || _height==0 || _width==0)
+		if (r1<0 || r2<0 || r3<0 || r4<0 || _height==0 || _width==0)
 		{
 			ErrorIf(_lastError != 2,_log,"Failed to configure capture device (%d - %s)", errno, strerror(errno));
 			_lastError = 2;

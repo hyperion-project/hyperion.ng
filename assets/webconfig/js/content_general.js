@@ -5,7 +5,7 @@ $(document).ready( function() {
 	var confName;
 	var conf_editor = null;
 
-	$('#conf_cont').append(createOptPanel('fa-wrench', $.i18n("edt_conf_gen_heading_title"), 'editor_container', 'btn_submit'));
+	$('#conf_cont').append(createOptPanel('fa-wrench', $.i18n("edt_conf_gen_heading_title"), 'editor_container', 'btn_submit', 'panel-system'));
 	if(window.showOptHelp)
 	{
 		$('#conf_cont').append(createHelpTable(window.schema.general.properties, $.i18n("edt_conf_gen_heading_title")));
@@ -28,12 +28,12 @@ $(document).ready( function() {
 	// Instance handling
 	function handleInstanceRename(e)
 	{
-	
+
 		conf_editor.on('change',function() {
 		window.readOnlyMode ? $('#btn_cl_save').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
 		window.readOnlyMode ? $('#btn_ma_save').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
 		});
-		
+
 		var inst = e.currentTarget.id.split("_")[1];
 		showInfoDialog('renInst', $.i18n('conf_general_inst_renreq_t'), getInstanceNameByIndex(inst));
 
@@ -44,13 +44,6 @@ $(document).ready( function() {
 		$('#renInst_name').off().on('input',function(e) {
 			(e.currentTarget.value.length >= 5 && e.currentTarget.value != getInstanceNameByIndex(inst)) ? $('#id_btn_ok').attr('disabled', false) : $('#id_btn_ok').attr('disabled', true);
 		});
-	}
-
-	function handleInstanceStartStop(e)
-	{
-		var inst = e.currentTarget.id.split("_")[1];
-		var start = (e.currentTarget.className == "btn btn-danger")
-		requestInstanceStartStop(inst, start)
 	}
 
 	function handleInstanceDelete(e)
@@ -68,22 +61,25 @@ $(document).ready( function() {
 		$('.itbody').html("");
 		for(var key in inst)
 		{
-			var startBtnColor = inst[key].running ? "success" : "danger";
-			var startBtnIcon = inst[key].running ? "stop" : "play";
-			var startBtnText = inst[key].running ? $.i18n('general_btn_stop') : $.i18n('general_btn_start');
-			var renameBtn = '<button id="instren_'+inst[key].instance+'" type="button" class="btn btn-primary"><i class="fa fa-fw fa-pencil"></i>'+$.i18n('general_btn_rename')+'</button>';
+			var enable_style = inst[key].running ? "checked" : "";
+			var renameBtn = '<button id="instren_'+inst[key].instance+'" type="button" class="btn btn-primary"><i class="mdi mdi-lead-pencil""></i></button>';
 			var startBtn = ""
 			var delBtn = "";
 			if(inst[key].instance > 0)
 			{
-				delBtn = '<button id="instdel_'+inst[key].instance+'" type="button" class="btn btn-warning"><i class="fa fa-fw fa-remove"></i>'+$.i18n('general_btn_delete')+'</button>';
-				startBtn = '<button id="inst_'+inst[key].instance+'" type="button" class="btn btn-'+startBtnColor+'"><i class="fa fa-fw fa-'+startBtnIcon+'"></i>'+startBtnText+'</button>';
+				delBtn = '<button id="instdel_'+inst[key].instance+'" type="button" class="btn btn-danger"><i class="mdi mdi-delete-forever""></i></button>';
+				startBtn = '<input id="inst_'+inst[key].instance+'"'+enable_style+' type="checkbox" data-toggle="toggle" data-onstyle="success font-weight-bold" data-on="'+$.i18n('general_btn_on')+'" data-offstyle="default font-weight-bold" data-off="'+$.i18n('general_btn_off')+'">';
+
 			}
-			$('.itbody').append(createTableRow([inst[key].friendly_name, renameBtn, startBtn, delBtn], false, true));
+			$('.itbody').append(createTableRow([inst[key].friendly_name, startBtn, renameBtn, delBtn], false, true));
 			$('#instren_'+inst[key].instance).off().on('click', handleInstanceRename);
-			$('#inst_'+inst[key].instance).off().on('click', handleInstanceStartStop);
+
+			$('#inst_'+inst[key].instance).bootstrapToggle();
+			$('#inst_'+inst[key].instance).change(e => {
+				requestInstanceStartStop(e.currentTarget.id.split('_').pop(), e.currentTarget.checked);
+			});
 			$('#instdel_'+inst[key].instance).off().on('click', handleInstanceDelete);
-			
+
 			window.readOnlyMode ? $('#instren_'+inst[key].instance).attr('disabled', true) : $('#btn_submit').attr('disabled', false);
 			window.readOnlyMode ? $('#inst_'+inst[key].instance).attr('disabled', true) : $('#btn_submit').attr('disabled', false);
 			window.readOnlyMode ? $('#instdel_'+inst[key].instance).attr('disabled', true) : $('#btn_submit').attr('disabled', false);

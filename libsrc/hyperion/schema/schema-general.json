@@ -34,6 +34,25 @@
 			"default" : true,
 			"required" : true,
 			"propertyOrder" : 3
+		},
+		"configVersion" :
+		{
+			"type" : "string",
+			"title" : "edt_conf_gen_configVersion_title",
+			"options" : {
+				"hidden":true
+			},
+			"access" : "expert",
+			"propertyOrder" : 4
+		},
+		"previousVersion" :
+		{
+			"type" : "string",
+			"options" : {
+				"hidden":true
+			},
+			"access" : "expert",
+			"propertyOrder" : 5
 		}
 	},
 	"additionalProperties" : false

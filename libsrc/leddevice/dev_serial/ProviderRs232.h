@@ -26,6 +26,20 @@ public:
 	///
 	~ProviderRs232() override;
 
+	///
+	/// @brief Send an update to the RS232 device to identify it.
+	///
+	/// Following parameters are required
+	/// @code
+	/// {
+	///     "deviceConfig"  : 
+	/// }
+	///@endcode
+	///
+	/// @param[in] params Parameters to configure device
+	///
+	void identify(const QJsonObject& params) override;
+
 protected:
 
 	///

@@ -1,4 +1,4 @@
-![Hyperion](https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/assets/webconfig/img/hyperion/hyperionlogo.png)
+![Hyperion](doc/logo.png)
 
 [![Latest-Release](https://img.shields.io/github/v/release/hyperion-project/hyperion.ng?include_prereleases)](https://github.com/hyperion-project/hyperion.ng/releases)
 [![GitHub Actions](https://github.com/hyperion-project/hyperion.ng/workflows/Hyperion%20CI%20Build/badge.svg?branch=master)](https://github.com/hyperion-project/hyperion.ng/actions)

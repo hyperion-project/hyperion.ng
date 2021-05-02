@@ -4,10 +4,21 @@
 #include <csignal>
 
 // QT includes
+#include <QDir>
 #include <QFile>
 
 // Local LedDevice includes
 #include "LedDevicePiBlaster.h"
+
+// Constants
+namespace {
+	const bool verbose = false;
+
+	// Pi-Blaster discovery service
+	const char DISCOVERY_DIRECTORY[] = "/dev/";
+	const char DISCOVERY_FILEPATTERN[] = "pi-blaster";
+
+} //End of constants
 
 LedDevicePiBlaster::LedDevicePiBlaster(const QJsonObject &deviceConfig)
 	: LedDevice(deviceConfig)
@@ -183,4 +194,32 @@ int LedDevicePiBlaster::write(const std::vector<ColorRgb> & ledValues)
 	}
 
 	return 0;
+}
+
+QJsonObject LedDevicePiBlaster::discover(const QJsonObject& /*params*/)
+{
+	QJsonObject devicesDiscovered;
+	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );
+
+	QJsonArray deviceList;
+
+	QDir deviceDirectory (DISCOVERY_DIRECTORY);
+	QStringList deviceFilter(DISCOVERY_FILEPATTERN);
+	deviceDirectory.setNameFilters(deviceFilter);
+	deviceDirectory.setSorting(QDir::Name);
+	QFileInfoList deviceFiles = deviceDirectory.entryInfoList(QDir::System);
+
+	QFileInfoList::const_iterator deviceFileIterator;
+	for (deviceFileIterator = deviceFiles.constBegin(); deviceFileIterator != deviceFiles.constEnd(); ++deviceFileIterator)
+	{
+		QJsonObject deviceInfo;
+		deviceInfo.insert("deviceName", (*deviceFileIterator).fileName());
+		deviceInfo.insert("systemLocation", (*deviceFileIterator).absoluteFilePath());
+		deviceList.append(deviceInfo);
+	}
+	devicesDiscovered.insert("devices", deviceList);
+
+	DebugIf(verbose,_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+
+	return devicesDiscovered;
 }

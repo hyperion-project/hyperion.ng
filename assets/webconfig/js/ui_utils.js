@@ -183,25 +183,22 @@ function initLanguageSelection() {
       langText = availLangText[langIdx];
     }
   }
+
   $('#language-select').prop('title', langText);
   $("#language-select").val(langIdx);
   $("#language-select").selectpicker("refresh");
 }
 
 function updateUiOnInstance(inst) {
-  if (inst != 0) {
-    var currentURL = $(location).attr("href");
-    if (currentURL.indexOf('#conf_network') != -1 || currentURL.indexOf('#update') != -1 || currentURL.indexOf('#conf_webconfig') != -1 || currentURL.indexOf('#conf_grabber') != -1 || currentURL.indexOf('#conf_logging') != -1)
-      $("#hyperion_global_setting_notify").fadeIn("fast");
-    else
-      $("#hyperion_global_setting_notify").attr("style", "display:none");
-
-    $("#dashboard_active_instance_friendly_name").html($.i18n('dashboard_active_instance') + ': ' + window.serverInfo.instance[inst].friendly_name);
-    $("#dashboard_active_instance").removeAttr("style");
-  }
-  else {
-    $("#hyperion_global_setting_notify").fadeOut("fast");
-    $("#dashboard_active_instance").attr("style", "display:none");
+  $("#active_instance_friendly_name").text(window.serverInfo.instance[inst].friendly_name);
+  if (window.serverInfo.instance.filter(entry => entry.running).length > 1) {
+    $('#btn_hypinstanceswitch').toggle(true);
+    $('#active_instance_dropdown').prop('disabled', false);
+    $('#active_instance_dropdown').css('cursor', 'pointer');
+  } else {
+    $('#btn_hypinstanceswitch').toggle(false);
+    $('#active_instance_dropdown').prop('disabled', true);
+    $("#active_instance_dropdown").css('cursor', 'default');
   }
 }
 
@@ -259,17 +256,17 @@ function showInfoDialog(type, header, message) {
     $('#id_footer').html('<button type="button" class="btn btn-danger" data-dismiss="modal">' + $.i18n('general_btn_ok') + '</button>');
   }
   else if (type == "select") {
-    $('#id_body').html('<img style="margin-bottom:20px" src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
+    $('#id_body').html('<img style="margin-bottom:20px" id="id_logo" src="img/hyperion/logo_positiv.png" alt="Redefine ambient light!">');
     $('#id_footer').html('<button type="button" id="id_btn_saveset" class="btn btn-primary" data-dismiss="modal"><i class="fa fa-fw fa-save"></i>' + $.i18n('general_btn_saveandreload') + '</button>');
     $('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
   }
   else if (type == "iswitch") {
-    $('#id_body').html('<img style="margin-bottom:20px" src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
+    $('#id_body').html('<img style="margin-bottom:20px" id="id_logo" src="img/hyperion/logo_positiv.png" alt="Redefine ambient light!">');
     $('#id_footer').html('<button type="button" id="id_btn_saveset" class="btn btn-primary" data-dismiss="modal"><i class="fa fa-fw fa-exchange"></i>' + $.i18n('general_btn_iswitch') + '</button>');
     $('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
   }
   else if (type == "uilock") {
-    $('#id_body').html('<img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
+    $('#id_body').html('<img id="id_logo" src="img/hyperion/logo_positiv.png" alt="Redefine ambient light!">');
     $('#id_footer').html('<b>' + $.i18n('InfoDialog_nowrite_foottext') + '</b>');
   }
   else if (type == "import") {
@@ -293,22 +290,22 @@ function showInfoDialog(type, header, message) {
     $('#id_body_rename').html('<i style="margin-bottom:20px" class="fa fa-key modal-icon-edit"><br>');
     $('#id_body_rename').append('<h4>' + header + '</h4>');
     $('#id_body_rename').append('<input class="form-control" id="oldPw" placeholder="Old" type="text"> <br />');
-    $('#id_body_rename').append('<input class="form-control" id="newPw" placeholder="New" type="text">');
+    $('#id_body_rename').append('<input class="form-control" id="newPw" placeholder="New" type="password">');
     $('#id_footer_rename').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-dismiss-modal="#modal_dialog_rename" disabled><i class="fa fa-fw fa-save"></i>' + $.i18n('general_btn_ok') + '</button>');
     $('#id_footer_rename').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
   }
   else if (type == "checklist") {
-    $('#id_body').html('<img style="margin-bottom:20px" src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
+    $('#id_body').html('<img style="margin-bottom:20px" id="id_logo" src="img/hyperion/logo_positiv.png" alt="Redefine ambient light!">');
     $('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n('infoDialog_checklist_title') + '</h4>');
     $('#id_body').append(header);
     $('#id_footer').html('<button type="button" class="btn btn-primary" data-dismiss="modal">' + $.i18n('general_btn_ok') + '</button>');
   }
   else if (type == "newToken") {
-    $('#id_body').html('<img style="margin-bottom:20px" src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
+    $('#id_body').html('<img style="margin-bottom:20px" id="id_logo" src="img/hyperion/logo_positiv.png" alt="Redefine ambient light!">');
     $('#id_footer').html('<button type="button" class="btn btn-primary" data-dismiss="modal">' + $.i18n('general_btn_ok') + '</button>');
   }
   else if (type == "grantToken") {
-    $('#id_body').html('<img style="margin-bottom:20px" src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">');
+    $('#id_body').html('<img style="margin-bottom:20px" id="id_logo" src="img/hyperion/logo_positiv.png" alt="Redefine ambient light!">');
     $('#id_footer').html('<button type="button" class="btn btn-primary" data-dismiss="modal" id="tok_grant_acc">' + $.i18n('general_btn_grantAccess') + '</button>');
     $('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss="modal" id="tok_deny_acc">' + $.i18n('general_btn_denyAccess') + '</button>');
   }
@@ -321,6 +318,9 @@ function showInfoDialog(type, header, message) {
   if (type == "select" || type == "iswitch")
     $('#id_body').append('<select id="id_select" class="form-control" style="margin-top:10px;width:auto;"></select>');
 
+  if (getStorage("darkMode", false) == "on")
+    $('#id_logo').attr("src", 'img/hyperion/logo_negativ.png');
+
   $(type == "renInst" || type == "changePassword" ? "#modal_dialog_rename" : "#modal_dialog").modal({
     backdrop: "static",
     keyboard: false,
@@ -329,7 +329,7 @@ function showInfoDialog(type, header, message) {
 
   $(document).on('click', '[data-dismiss-modal]', function () {
     var target = $(this).attr('data-dismiss-modal');
-    $.find(target).modal.hide();
+    $(target).modal('hide'); // lgtm [js/xss-through-dom]
   });
 }
 
@@ -807,14 +807,14 @@ function createRow(id) {
   return el;
 }
 
-function createOptPanel(phicon, phead, bodyid, footerid) {
+function createOptPanel(phicon, phead, bodyid, footerid, css) {
   phead = '<i class="fa ' + phicon + ' fa-fw"></i>' + phead;
   var pfooter = document.createElement('button');
   pfooter.className = "btn btn-primary";
   pfooter.setAttribute("id", footerid);
   pfooter.innerHTML = '<i class="fa fa-fw fa-save"></i>' + $.i18n('general_button_savesettings');
 
-  return createPanel(phead, "", pfooter, "panel-default", bodyid);
+  return createPanel(phead, "", pfooter, "panel-default", bodyid, css);
 }
 
 function compareTwoValues(key1, key2, order = 'asc') {
@@ -871,7 +871,7 @@ function sortProperties(list) {
   });
 }
 
-function createHelpTable(list, phead) {
+function createHelpTable(list, phead, panelId) {
   var table = document.createElement('table');
   var thead = document.createElement('thead');
   var tbody = document.createElement('tbody');
@@ -910,10 +910,10 @@ function createHelpTable(list, phead) {
   table.appendChild(thead);
   table.appendChild(tbody);
 
-  return createPanel(phead, table);
+  return createPanel(phead, table, undefined, undefined, undefined, undefined, panelId);
 }
 
-function createPanel(head, body, footer, type, bodyid) {
+function createPanel(head, body, footer, type, bodyid, css, panelId) {
   var cont = document.createElement('div');
   var p = document.createElement('div');
   var phead = document.createElement('div');
@@ -926,7 +926,11 @@ function createPanel(head, body, footer, type, bodyid) {
     type = 'panel-default';
 
   p.className = 'panel ' + type;
-  phead.className = 'panel-heading';
+  if (typeof panelId != 'undefined') {
+    p.setAttribute("id", panelId);
+  }
+
+  phead.className = 'panel-heading ' + css;
   pbody.className = 'panel-body';
   pfooter.className = 'panel-footer';
 
@@ -1069,6 +1073,43 @@ function getReleases(callback) {
   });
 }
 
+function getSystemInfo() {
+  var sys = window.sysInfo.system;
+  var shy = window.sysInfo.hyperion;
+
+  var info = "Hyperion Server: \n";
+  info += '- Build:           ' + shy.build + '\n';
+  info += '- Build time:      ' + shy.time + '\n';
+  info += '- Git Remote:      ' + shy.gitremote + '\n';
+  info += '- Version:         ' + shy.version + '\n';
+  info += '- UI Lang:         ' + storedLang + ' (BrowserLang: ' + navigator.language + ')\n';
+  info += '- UI Access:       ' + storedAccess + '\n';
+  //info += '- Log lvl:         ' + window.serverConfig.logger.level + '\n';
+  info += '- Avail Capt:      ' + window.serverInfo.grabbers.available + '\n';
+  info += '- Database:        ' + (shy.readOnlyMode ? "ready-only" : "read/write") + '\n';
+
+  info += '\n';
+
+  info += 'Hyperion Server OS: \n';
+  info += '- Distribution:   ' + sys.prettyName + '\n';
+  info += '- Architecture:   ' + sys.architecture + '\n';
+
+  if (sys.cpuModelName)
+    info += '- CPU Model:      ' + sys.cpuModelName + '\n';
+  if (sys.cpuModelType)
+    info += '- CPU Type:       ' + sys.cpuModelType + '\n';
+  if (sys.cpuRevision)
+    info += '- CPU Revision:   ' + sys.cpuRevision + '\n';
+  if (sys.cpuHardware)
+    info += '- CPU Hardware:   ' + sys.cpuHardware + '\n';
+
+  info += '- Kernel:         ' + sys.kernelType + ' (' + sys.kernelVersion + ' (WS: ' + sys.wordSize + '))\n';
+  info += '- Qt Version:     ' + sys.qtVersion + '\n';
+  info += '- Python Version: ' + sys.pyVersion + '\n';
+  info += '- Browser:        ' + navigator.userAgent;
+  return info;
+}
+
 function handleDarkMode() {
   $("<link/>", {
     rel: "stylesheet",
@@ -1078,5 +1119,43 @@ function handleDarkMode() {
 
   setStorage("darkMode", "on", false);
   $('#btn_darkmode_icon').removeClass('fa fa-moon-o');
-  $('#btn_darkmode_icon').addClass('fa fa-sun-o');
+  $('#btn_darkmode_icon').addClass('mdi mdi-white-balance-sunny');
+  $('#navbar_brand_logo').attr("src", 'img/hyperion/logo_negativ.png');
+}
+
+function isAccessLevelCompliant(accessLevel) {
+  var isOK = true;
+  if (accessLevel) {
+    if (accessLevel === 'system') {
+      isOK = false;
+    }
+    else if (accessLevel === 'advanced' && storedAccess === 'default') {
+      isOK = false;
+    }
+    else if (accessLevel === 'expert' && storedAccess !== 'expert') {
+      isOK = false;
+    }
+  }
+  return isOK
+}
+
+function showInputOptions(path, elements, state) {
+  for (var i = 0; i < elements.length; i++) {
+    $('[data-schemapath="' + path + '.' + elements[i] + '"]').toggle(state);
+  }
+}
+
+function showInputOptionsForKey(editor, item, showForKey, state) {
+  var elements = [];
+  for (var key in editor.schema.properties[item].properties) {
+    if (showForKey !== key) {
+      var accessLevel = editor.schema.properties[item].properties[key].access;
+
+      //Always disable all elements, but only enable elements, if access level compliant
+      if (!state || isAccessLevelCompliant(accessLevel)) {
+        elements.push(key);
+      }
+    }
+  }
+  showInputOptions("root." + item, elements, state);
 }

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Breaking
 
 ### Added
+- LED-Devices: basic support for Hue Play Gradient Lightstrip
 
 - WLED: Support of ["live" property] (https://github.com/Aircoookie/WLED/issues/1308), addresses #1095
 - WLED: Support storing/restoring state, fixes #1101
@@ -29,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - LED-Hue: Proper black in Entertainement mode if min brightness is set
 - LED-Hue: Minor fix of setColor command
 - Nanoleaf: Fix,if external control mode cannot be set
+- Fix issue #1229: "LED Test" effect description is in wrong order
 
 ### Removed
 
