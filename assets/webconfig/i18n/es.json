@@ -183,7 +183,7 @@
     "dashboard_infobox_label_watchedversionbranch": "Rama de la versión visualizada:",
     "dashboard_infobox_message_updatesuccess": "Ejecutas la última versión de Hyperion.",
     "dashboard_infobox_message_updatewarning": "¡Una versión más nueva de Hyperion está disponible! ($1)",
-    "dashboard_label_intro": "El cuadro de mandos te ofrece una visión general sobre el estado de Hyperion y te muestra las últimas noticias del Blog de Hyperion.",
+    "dashboard_label_intro": "El cuadro de mandos te ofrece una visión general sobre el estado de Hyperion.",
     "dashboard_message_default_password": "Establecida la contraseña predeterminada para la WebUi. Recomendamos encarecidamente cambiar esto.",
     "dashboard_message_default_password_t": "Establecida la contraseña predeterminada de WebUi",
     "dashboard_message_do_not_show_again": "No mostrar este mensaje de nuevo",
