@@ -40,8 +40,8 @@ $(document).ready(function () {
     instances_html += '<span>' + $.i18n('dashboard_infobox_label_title') + '</span>';
     instances_html += '</th></tr></thead>';
     instances_html += '<tbody><tr><td></td>';
-    instances_html += '<td>' + $.i18n('conf_leds_contr_label_contrtype') + '</td>';
-    instances_html += '<td style="text-align:right">' + window.serverConfig.device.type + '</td>';
+    instances_html += '<td><a onclick="SwitchToMenuItem(\'MenuItemLeds\')" href="#">' + $.i18n('conf_leds_contr_label_contrtype') + '</a></td>';
+     instances_html += '<td style="text-align:right">' + window.serverConfig.device.type + '</td>';
     instances_html += '</tr><tr></tbody></table>';
 
     instances_html += '<table class="table first_cell_borderless">';
@@ -50,28 +50,46 @@ $(document).ready(function () {
     instances_html += '<span>' + $.i18n('dashboard_componentbox_label_title') + '</span>';
     instances_html += '</th></tr></thead>';
 
-    var tab_components = "";
+    var instance_components = "";
+    var global_components = "";
     for (var idx = 0; idx < components.length; idx++) {
       if (components[idx].name != "ALL") {
-        var comp_enabled = components[idx].enabled ? "checked" : "";
-        const general_comp = "general_comp_" + components[idx].name;
-        var componentBtn = '<input ' +
-          'id="' + general_comp + '" ' + comp_enabled +
-          ' type="checkbox" ' +
-          'data-toggle="toggle" ' +
-          'data-size="mini" ' +
-          'data-onstyle="success" ' +
-          'data-on="' + $.i18n('general_btn_on') + '" ' +
-          'data-off="' + $.i18n('general_btn_off') + '">';
+        if (components[idx].name != "FORWARDER" && components[idx].name != "GRABBER" && components[idx].name != "V4L") {
+          var comp_enabled = components[idx].enabled ? "checked" : "";
+          const general_comp = "general_comp_" + components[idx].name;
+          var componentBtn = '<input ' +
+            'id="' + general_comp + '" ' + comp_enabled +
+            ' type="checkbox" ' +
+            'data-toggle="toggle" ' +
+            'data-size="mini" ' +
+            'data-onstyle="success" ' +
+            'data-on="' + $.i18n('general_btn_on') + '" ' +
+            'data-off="' + $.i18n('general_btn_off') + '">';
 
-        tab_components += '<tr><td></td><td>' + $.i18n('general_comp_' + components[idx].name) + '</td><td style="text-align:right">' + componentBtn + '</td></tr>';
+            instance_components += '<tr><td></td><td>' + $.i18n('general_comp_' + components[idx].name) + '</td><td style="text-align:right">' + componentBtn + '</td></tr>';
+        } else {
+          var comp_enabled = components[idx].enabled ? "checked" : "";
+          const general_comp = "general_comp_" + components[idx].name;
+          var componentBtn = '<input ' +
+            'id="' + general_comp + '" ' + comp_enabled +
+            ' type="checkbox" ' +
+            'data-toggle="toggle" ' +
+            'data-size="mini" ' +
+            'data-onstyle="success" ' +
+            'data-on="' + $.i18n('general_btn_on') + '" ' +
+            'data-off="' + $.i18n('general_btn_off') + '">';
+
+            global_components += '<tr><td></td><td>' + $.i18n('general_comp_' + components[idx].name) + '</td><td style="text-align:right">' + componentBtn + '</td></tr>';
+        }
       }
     }
 
-    instances_html += '<tbody>' + tab_components + '</tbody></table>';
+    instances_html += '<tbody>' + instance_components + '</tbody></table>';
     instances_html += '</div></div></div>';
 
     $('.instances').prepend(instances_html);
+    $('.glob_components').html(global_components);
+
     updateUiOnInstance(window.currentHyperionInstance);
     updateHyperionInstanceListing();
 
@@ -83,7 +101,10 @@ $(document).ready(function () {
     for (var idx = 0; idx < components.length; idx++) {
       if (components[idx].name != "ALL") {
         $("#general_comp_" + components[idx].name).bootstrapToggle();
-        $("#general_comp_" + components[idx].name).bootstrapToggle(hyperion_enabled ? "enable" : "disable")
+
+        if (components[idx].name != "FORWARDER" && components[idx].name != "GRABBER" && components[idx].name != "V4L")
+          $("#general_comp_" + components[idx].name).bootstrapToggle(hyperion_enabled ? "enable" : "disable")
+
         $("#general_comp_" + components[idx].name).change(e => {
           requestSetComponentState(e.currentTarget.id.split('_')[2], e.currentTarget.checked);
         });

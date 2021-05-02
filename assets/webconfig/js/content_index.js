@@ -307,12 +307,18 @@ $(document).ready(function () {
     window.scrollTo(0, 0);
   });
 
-  $(window).scroll(function(){
+  $(window).scroll(function() {
     if ($(window).scrollTop() > 65)
       $("#navbar_brand_logo").css("display", "none");
     else
       $("#navbar_brand_logo").css("display", "");
     });
+
+  $('#side-menu li a, #side-menu li ul li a').click(function() {
+    console.log('test');
+    $('#side-menu').find('.active').toggleClass('inactive'); // find all active classes and set inactive;
+    $(this).addClass('active');
+  });
 });
 
 function suppressDefaultPwWarning() {
@@ -349,7 +355,7 @@ $("#btn_darkmode").off().on("click", function (e) {
 });
 
 // Menuitem toggle;
-function SwitchToMenuItem(target) {
+function SwitchToMenuItem(target, item) {
   document.getElementById(target).click(); // Get <a href menu item;
   let sidebar = $('#side-menu');  // Get sidebar menu;
   sidebar.find('.active').toggleClass('inactive'); // find all active classes and set inactive;
@@ -357,6 +363,21 @@ function SwitchToMenuItem(target) {
   $('#' + target).removeClass('inactive'); // Remove inactive state by classname;
   $('#' + target).addClass('active'); // Add active state by classname;
   let cl_object = $('#' + target).closest('ul'); // Find closest ul sidemenu header;
-  cl_object.addClass('in'); // add class "in" to expand header in sidebar menu;
+  cl_object.addClass('in'); // Add class "in" to expand header in sidebar menu;
+  if (item) { // Jump to div "item" if available. Time limit 3 seconds
+    function scrollTo(counter) {
+      if(counter < 30) {
+        setTimeout(function() {
+          counter++;
+          if ($('#' + item).length)
+            $('#' + item)[0].scrollIntoView();
+          else
+            scrollTo(counter);
+        }, 100);
+      }
+    }
+
+    scrollTo(0);
+  }
 };
 
