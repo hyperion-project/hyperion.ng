@@ -163,7 +163,7 @@
     "dashboard_infobox_label_instance": "Istanza:",
     "dashboard_infobox_label_latesthyp": "L'ultima versione di Hyperion:",
     "dashboard_infobox_label_platform": "Piattaforma:",
-    "dashboard_infobox_label_ports": "Porte (json|proto):",
+    "dashboard_infobox_label_ports": "Porte",
     "dashboard_infobox_label_smartacc": "Accesso Smart",
     "dashboard_infobox_label_statush": "Status Hyperion:",
     "dashboard_infobox_label_title": "Informazioni",
