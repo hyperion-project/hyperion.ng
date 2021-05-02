@@ -20,16 +20,24 @@
                   <thead>
                     <tr>
                       <th colspan="3">
-                        <i class="fa fa-eye fa-fw"></i>
-                        <span data-i18n="dashboard_componentbox_label_title">Components</span>
+                        <i class="mdi mdi-camera"></i>
+                        <span data-i18n="main_menu_grabber_conf_token">Capturing Hardware</span>
                       </th>
                     </tr>
                   </thead>
-                  <tbody class="glob_components"></tbody>
+                  <tbody>
+                    <tr>
+                      <td></td>
+                      <td data-i18n="edt_conf_fg_heading_title">Screen Capture</td>
+                      <td id="dash_screen_capture" style="text-align:right">unknown</td>
+                    </tr>
+                    <tr>
+                      <td></td>
+                      <td data-i18n="edt_conf_v4l2_heading_title">USB Capture</td>
+                      <td id="dash_usb_capture" style="text-align:right">unknown</td>
+                    </tr>
+                  </tbody>
                 </table>
-
-
-
                 <table class="table borderless">
                   <thead>
                     <tr>
@@ -42,17 +50,17 @@
                   <tbody>
                     <tr>
                       <td></td>
-                      <td><a onclick="SwitchToMenuItem('MenuItemNetwork', 'conf_cont_proto')" href="#" data-i18n="dashboard_infobox_label_port_proto">proto</a></td>
+                      <td><a onclick="SwitchToMenuItem('MenuItemNetwork', 'editor_container_protoserver')" href="#" data-i18n="dashboard_infobox_label_port_proto">proto</a></td>
                       <td id="dash_pbPort" style="text-align:right">unknown</td>
                     </tr>
                     <tr>
                       <td></td>
-                      <td><a onclick="SwitchToMenuItem('MenuItemNetwork', 'conf_cont_flatbuf')" href="#" data-i18n="dashboard_infobox_label_port_flat">flat</a></td>
+                      <td><a onclick="SwitchToMenuItem('MenuItemNetwork', 'editor_container_fbserver')" href="#" data-i18n="dashboard_infobox_label_port_flat">flat</a></td>
                       <td id="dash_fbPort" style="text-align:right">unknown</td>
                     </tr>
                     <tr>
                       <td></td>
-                      <td><a onclick="SwitchToMenuItem('MenuItemNetwork', 'conf_cont_json')" href="#" data-i18n="dashboard_infobox_label_port_json">json</a></td>
+                      <td><a onclick="SwitchToMenuItem('MenuItemNetwork', 'editor_container_jsonserver')" href="#" data-i18n="dashboard_infobox_label_port_json">json</a></td>
                       <td id="dash_jsonPort" style="text-align:right">unknown</td>
                     </tr>
                     <tr>

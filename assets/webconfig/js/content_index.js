@@ -312,7 +312,7 @@ $(document).ready(function () {
       $("#navbar_brand_logo").css("display", "none");
     else
       $("#navbar_brand_logo").css("display", "");
-    });
+  });
 
   $('#side-menu li a, #side-menu li ul li a').click(function() {
     console.log('test');

@@ -51,36 +51,23 @@ $(document).ready(function () {
     instances_html += '</th></tr></thead>';
 
     var instance_components = "";
-    var global_components = "";
     for (var idx = 0; idx < components.length; idx++) {
       if (components[idx].name != "ALL") {
-        if (components[idx].name != "FORWARDER" && components[idx].name != "GRABBER" && components[idx].name != "V4L") {
-          var comp_enabled = components[idx].enabled ? "checked" : "";
-          const general_comp = "general_comp_" + components[idx].name;
-          var componentBtn = '<input ' +
-            'id="' + general_comp + '" ' + comp_enabled +
-            ' type="checkbox" ' +
-            'data-toggle="toggle" ' +
-            'data-size="mini" ' +
-            'data-onstyle="success" ' +
-            'data-on="' + $.i18n('general_btn_on') + '" ' +
-            'data-off="' + $.i18n('general_btn_off') + '">';
+        if (components[idx].name === "FORWARDER" && window.currentHyperionInstance != 0)
+          continue;
 
-            instance_components += '<tr><td></td><td>' + $.i18n('general_comp_' + components[idx].name) + '</td><td style="text-align:right">' + componentBtn + '</td></tr>';
-        } else {
-          var comp_enabled = components[idx].enabled ? "checked" : "";
-          const general_comp = "general_comp_" + components[idx].name;
-          var componentBtn = '<input ' +
-            'id="' + general_comp + '" ' + comp_enabled +
-            ' type="checkbox" ' +
-            'data-toggle="toggle" ' +
-            'data-size="mini" ' +
-            'data-onstyle="success" ' +
-            'data-on="' + $.i18n('general_btn_on') + '" ' +
-            'data-off="' + $.i18n('general_btn_off') + '">';
+        var comp_enabled = components[idx].enabled ? "checked" : "";
+        const general_comp = "general_comp_" + components[idx].name;
+        var componentBtn = '<input ' +
+          'id="' + general_comp + '" ' + comp_enabled +
+          ' type="checkbox" ' +
+          'data-toggle="toggle" ' +
+          'data-size="mini" ' +
+          'data-onstyle="success" ' +
+          'data-on="' + $.i18n('general_btn_on') + '" ' +
+          'data-off="' + $.i18n('general_btn_off') + '">';
 
-            global_components += '<tr><td></td><td>' + $.i18n('general_comp_' + components[idx].name) + '</td><td style="text-align:right">' + componentBtn + '</td></tr>';
-        }
+        instance_components += '<tr><td></td><td>' + $.i18n('general_comp_' + components[idx].name) + '</td><td style="text-align:right">' + componentBtn + '</td></tr>';
       }
     }
 
@@ -88,7 +75,6 @@ $(document).ready(function () {
     instances_html += '</div></div></div>';
 
     $('.instances').prepend(instances_html);
-    $('.glob_components').html(global_components);
 
     updateUiOnInstance(window.currentHyperionInstance);
     updateHyperionInstanceListing();
@@ -113,6 +99,11 @@ $(document).ready(function () {
   }
 
   // add more info
+  var screenCapture = window.serverConfig.instCapture.systemEnable ? $.i18n('general_enabled') : $.i18n('general_disabled');
+  $('#dash_screen_capture').html(screenCapture);
+  var usbCapture = window.serverConfig.instCapture.v4lEnable ? $.i18n('general_enabled') : $.i18n('general_disabled');
+  $('#dash_usb_capture').html(usbCapture);
+
   var fbPort = window.serverConfig.flatbufServer.enable ? window.serverConfig.flatbufServer.port : $.i18n('general_disabled');
   $('#dash_fbPort').html(fbPort);
   var pbPort = window.serverConfig.protoServer.enable ? window.serverConfig.protoServer.port : $.i18n('general_disabled');
