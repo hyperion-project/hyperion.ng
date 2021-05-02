@@ -1,4 +1,4 @@
-﻿#include "LedDeviceYeelight.h"
+#include "LedDeviceYeelight.h"
 
 #include <ssdp/SSDPDiscover.h>
 #include <utils/QStringUtils.h>
@@ -234,12 +234,12 @@ int YeelightLight::writeCommand( const QJsonDocument &command, QJsonArray &resul
 			if ( ! _tcpSocket->waitForBytesWritten(WRITE_TIMEOUT.count()) )
 			{
 				QString errorReason = QString ("(%1) %2").arg(_tcpSocket->error()).arg( _tcpSocket->errorString());
-				log ( 2, "Error:", "bytesWritten: [%d], %s", bytesWritten, QSTRING_CSTR(errorReason));
+				log ( 2, "Error:", "bytesWritten: [%lld], %s", bytesWritten, QSTRING_CSTR(errorReason));
 				this->setInError ( errorReason );
 			}
 			else
 			{
-				log ( 3, "Success:", "Bytes written   [%d]", bytesWritten );
+				log ( 3, "Success:", "Bytes written   [%lld]", bytesWritten );
 
 				// Avoid to overrun the Yeelight Command Quota
 				qint64 elapsedTime = QDateTime::currentMSecsSinceEpoch() - _lastWriteTime;
@@ -258,7 +258,7 @@ int YeelightLight::writeCommand( const QJsonDocument &command, QJsonArray &resul
 			{
 				do
 				{
-					log ( 3, "Reading:", "Bytes available [%d]", _tcpSocket->bytesAvailable() );
+					log ( 3, "Reading:", "Bytes available [%lld]", _tcpSocket->bytesAvailable() );
 					while ( _tcpSocket->canReadLine() )
 					{
 						QByteArray response = _tcpSocket->readLine();
@@ -338,7 +338,7 @@ bool YeelightLight::streamCommand( const QJsonDocument &command )
 			{
 				int error = _tcpStreamSocket->error();
 				QString errorReason = QString ("(%1) %2").arg(error).arg( _tcpStreamSocket->errorString());
-				log ( 1, "Error:", "bytesWritten: [%d], %s", bytesWritten, QSTRING_CSTR(errorReason));
+				log ( 1, "Error:", "bytesWritten: [%lld], %s", bytesWritten, QSTRING_CSTR(errorReason));
 
 				if ( error == QAbstractSocket::RemoteHostClosedError )
 				{
@@ -353,7 +353,7 @@ bool YeelightLight::streamCommand( const QJsonDocument &command )
 			}
 			else
 			{
-				log ( 3, "Success:", "Bytes written   [%d]", bytesWritten );
+				log ( 3, "Success:", "Bytes written   [%lld]", bytesWritten );
 				rc = true;
 			}
 		}
@@ -1018,10 +1018,9 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 
 		//Get device specific configuration
 
-		bool ok;
 		if ( deviceConfig[ CONFIG_COLOR_MODEL ].isString() )
 		{
-			_outputColorModel = deviceConfig[ CONFIG_COLOR_MODEL ].toString().toInt(&ok,MODEL_RGB);
+			_outputColorModel = deviceConfig[ CONFIG_COLOR_MODEL ].toString(QString(MODEL_RGB)).toInt();
 		}
 		else
 		{
@@ -1030,7 +1029,7 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 
 		if ( deviceConfig[ CONFIG_TRANS_EFFECT ].isString() )
 		{
-			_transitionEffect = static_cast<YeelightLight::API_EFFECT>( deviceConfig[ CONFIG_TRANS_EFFECT ].toString().toInt(&ok, YeelightLight::API_EFFECT_SMOOTH) );
+			_transitionEffect = static_cast<YeelightLight::API_EFFECT>( deviceConfig[ CONFIG_TRANS_EFFECT ].toString(QString(YeelightLight::API_EFFECT_SMOOTH)).toInt() );
 		}
 		else
 		{
@@ -1047,7 +1046,7 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 
 		if (  deviceConfig[ CONFIG_DEBUGLEVEL ].isString() )
 		{
-			_debuglevel = deviceConfig[ CONFIG_DEBUGLEVEL ].toString().toInt();
+			_debuglevel = deviceConfig[ CONFIG_DEBUGLEVEL ].toString(QString("0")).toInt();
 		}
 		else
 		{

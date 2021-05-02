@@ -36,6 +36,12 @@ public:
 	///
 	int open() override;
 
+	/// @param[in] params Parameters used to overwrite discovery default behaviour
+	///
+	/// @return A JSON structure holding a list of devices found
+	///
+	QJsonObject discover(const QJsonObject& params) override;
+
 public slots:
 	///
 	/// Closes the output device.

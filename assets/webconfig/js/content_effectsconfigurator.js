@@ -1,5 +1,9 @@
 $(document).ready(function () {
   performTranslation();
+
+	// update instance listing
+	updateHyperionInstanceListing();
+
   var oldDelList = [];
   var effectName = "";
   var imageData = "";
@@ -92,7 +96,7 @@ $(document).ready(function () {
 
         var desc = $.i18n(effects[idx].schemaContent.title + '_desc');
         if (desc === effects[idx].schemaContent.title + '_desc') {
-          desc = ""
+          desc = "";
         }
 
         $("#eff_desc").html(createEffHint($.i18n(effects[idx].schemaContent.title), desc));

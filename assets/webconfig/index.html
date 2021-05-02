@@ -44,12 +44,13 @@
 	<script src="js/lib/jsoneditor.js"></script>
 
 	<!--Language Support -->
-	<script src="js/lib/jquery.i18n.js"></script>
-	<script src="js/lib/jquery.i18n.messagestore.js"></script>
-	<script src="js/lib/jquery.i18n.fallbacks.js"></script>
-	<script src="js/lib/jquery.i18n.parser.js"></script>
-	<script src="js/lib/jquery.i18n.emitter.js"></script>
-	<script src="js/lib/jquery.i18n.language.js"></script>
+	<script src="js/lib/jquery.i18n/jquery.i18n.js"></script>
+	<script src="js/lib/jquery.i18n/jquery.i18n.messagestore.js"></script>
+	<script src="js/lib/jquery.i18n/jquery.i18n.fallbacks.js"></script>
+	<script src="js/lib/jquery.i18n/jquery.i18n.parser.js"></script>
+	<script src="js/lib/jquery.i18n/jquery.i18n.emitter.js"></script>
+	<script src="js/lib/jquery.i18n/jquery.i18n.language.js"></script>
+	<script src="js/lib/jquery.i18n/CLDRPluralRuleParser.js"></script>
 
 	<!-- Bootstrap Core CSS -->
 	<link href="css/bootstrap.min.css" rel="stylesheet">
@@ -72,6 +73,9 @@
 	<!-- Custom Fonts -->
 	<link href="css/font-awesome.min.css" rel="stylesheet" type="text/css">
 
+  	<!-- Material Design Icons - https://github.com/Templarian/MaterialDesign-Webfont -->
+	<link href="css/materialdesignicons.min.css" media="all" rel="stylesheet" type="text/css">
+
 	<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
 	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
 	<!--[if lt IE 9]>
@@ -83,7 +87,7 @@
 <body>
 	<noscript>
 		<div style="color:red;margin: 40px 0;text-align:center">
-			<img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!">
+			<img src="img/hyperion/logo_positiv.png" alt="Redefine ambient light!">
 			<h3>Hyperion Web Configuration requires Javascript. Please enable Javascript in your browser for this page in order to use it!</h3>
 		</div>
 		<style type="text/css"> #loading_overlay, #wrapper{ display: none } </style>
@@ -93,7 +97,7 @@
 	<div id="wrapper">
 
 		<!-- Navigation -->
-		<nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+		<nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0; min-height: 65px">
 			<div class="navbar-header">
 				<button type="button" class="navbar-toggle closed" aria-controls="navbar">
 					<span class="sr-only">Toggle navigation</span>
@@ -101,7 +105,7 @@
 					<span class="icon-bar middle-bar"></span>
 					<span class="icon-bar bottom-bar"></span>
 				</button>
-				<a class="navbar-brand" href="https://www.hyperion-project.org?pk_campaign=WebUI&pk_kwd=mainlogo" target="_blank"><img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!" height="55"></a>
+				<a class="navbar-brand" href="https://www.hyperion-project.org" target="_blank"><img id="navbar_brand_logo" src="img/hyperion/logo_positiv.png" alt="Redefine ambient light!" height="60"></a>
 
 			</div>
 			<!-- /.navbar-header -->
@@ -121,21 +125,6 @@
 					<i id="btn_darkmode_icon" class="fa fa-moon-o"></i>
 				</a>
 			</li>
-				<!-- instance switcher -->
-				<li class="dropdown" id="btn_hypinstanceswitch" style="display:none">
-					<a class="dropdown-toggle" data-toggle="dropdown" href="#">
-						<i class="fa fa-exchange fa-fw"></i> <i class="fa fa-caret-down"></i>
-					</a>
-					<ul id="hyp_inst_listing" class="dropdown-menu dropdown-alerts">
-					</ul>
-				</li>
-			<!--
-				<li class="dropdown" id="btn_instanceswitch" style="display:none">
-					<a>
-						<i class="fa fa-exchange fa-fw"></i>
-					</a>
-				</li>
-			-->
 				<li class="dropdown" id="btn_open_ledsim">
 					<a>
 						<i class="fa fa-television fa-fw"></i>
@@ -216,17 +205,17 @@
 				<div class="sidebar-nav navbar-collapse">
 					<ul class="nav" id="side-menu">
 						<li> <a class="inactive mnava" href="#dashboard"><i class="fa fa-dashboard fa-fw"></i><span  data-i18n="main_menu_dashboard_token">Dashboard</span></a> </li>
+            <li> <a class="inactive mnava" href="#conf_general"><i class="fa fa-wrench fa-fw"></i><span  data-i18n="main_menu_general_conf_token">General</span></a> </li>
 						<li>
 							<a class="inactive"><i class="fa fa-cog fa-fw"></i><span  data-i18n="main_menu_configuration_token">Configuration</span><span class="fa arrow"></span></a>
 							<ul class="nav nav-second-level">
-								<li> <a class="inactive mnava" href="#conf_general"><i class="fa fa-wrench fa-fw"></i><span  data-i18n="main_menu_general_conf_token">General</span></a> </li>
-								<li> <a class="inactive mnava" href="#conf_leds"><i class="fa fa-lightbulb-o fa-fw"></i><span  data-i18n="main_menu_leds_conf_token">LED Hardware</span></a> </li>
-								<li> <a class="inactive mnava" href="#conf_grabber"><i class="fa fa-camera fa-fw"></i><span  data-i18n="main_menu_grabber_conf_token">Capturing Hardware</span></a> </li>
+								<li> <a class="inactive mnava" href="#conf_leds"><i class="mdi mdi-lightbulb-on fa-fw"></i><span  data-i18n="main_menu_leds_conf_token">LED Hardware</span></a> </li>
 								<li> <a class="inactive mnava" href="#conf_effect"><i class="fa fa-spinner fa-fw"></i><span  data-i18n="main_menu_effect_conf_token">Effects</span></a> </li>
 								<li> <a class="inactive mnava" href="#conf_colors"><i class="fa fa-photo fa-fw"></i><span  data-i18n="main_menu_colors_conf_token">Image Processing</span></a> </li>
-								<li> <a class="inactive mnava" href="#conf_network"><i class="fa fa-sitemap fa-fw"></i><span  data-i18n="main_menu_network_conf_token">Network</span></a> </li>
 							</ul>
 						</li>
+            <li> <a class="inactive mnava" href="#conf_grabber"><i class="fa fa-camera fa-fw"></i><span  data-i18n="main_menu_grabber_conf_token">Capturing Hardware</span></a> </li>
+            <li> <a class="inactive mnava" href="#conf_network"><i class="fa fa-sitemap fa-fw"></i><span  data-i18n="main_menu_network_conf_token">Network</span></a> </li>
 						<li> <a class="inactive mnava" href="#remote"><i class="fa fa-wifi fa-fw"></i><span  data-i18n="main_menu_remotecontrol_token">Remote Control</span></a>	</li>
 						<li> <a class="inactive mnava" href="#effects_configurator"><i class="fa fa-cogs fa-fw"></i><span  data-i18n="main_menu_effectsconfigurator_token">Effects Configurator</span></a>	</li>
 						<li> <a class="inactive mnava" href="#support"><i class="fa fa-info fa-fw"></i><span  data-i18n="main_menu_support_token">Support</span></a> </li>
@@ -234,7 +223,7 @@
 							<a class="inactive"><i class="fa fa-industry fa-fw"></i><span  data-i18n="main_menu_system_token">System</span><span class="fa arrow"></span></a>
 							<ul class="nav nav-second-level">
 								<li> <a class="inactive mnava" href="#conf_webconfig" id="load_webconfig"><i class="fa fa-wrench fa-fw"></i><span  data-i18n="main_menu_webconfig_token">Webconfiguration</span></a> </li>
-								<li> <a class="inactive mnava" href="#conf_logging"><i class="fa fa-reorder fa-fw"></i><span  data-i18n="main_menu_logging_token">Log</span></a> </li>
+								<li> <a class="inactive mnava" id="MenuItemLogging" href="#conf_logging"><i class="fa fa-reorder fa-fw"></i><span  data-i18n="main_menu_logging_token">Log</span></a> </li>
 							 	<li> <a class="inactive mnava" href="#update"><i class="fa fa-download fa-fw"></i><span  data-i18n="main_menu_update_token">Update</span></a> </li>
 								<li> <a class="inactive mnava" href="#about"><i class="fa fa-info-circle fa-fw"></i><span  data-i18n="main_menu_about_token">About</span></a> </li>
 							</ul>
@@ -248,17 +237,6 @@
 
 		<!-- Page Content -->
 		<div id="page-wrapper" style="padding-top:10px; overflow: hidden;">
-		<div id="dashboard_active_instance" style="display:none;padding:0 10px;margin:0">
-			<div class="bs-callout bs-callout-success">
-				<h4 id="dashboard_active_instance_friendly_name"></h4>
-			</div>
-		</div>
-		<div id="hyperion_global_setting_notify" style="display:none;padding:0 10px;margin:0">
-			<div class="bs-callout bs-callout-warning">
-				<h4 data-i18n="dashboard_message_global_setting_t"></h4>
-				<span data-i18n="dashboard_message_global_setting"></span>
-			</div>
-		</div>
 		<div id="hyperion_disabled_notify" style="display:none;padding:0 10px;margin:0">
 			<div class="bs-callout bs-callout-danger">
 				<h4 data-i18n="dashboard_alert_message_disabled_t"></h4>
@@ -306,7 +284,7 @@
 				<div id="wiz_header" class="modal-header"></div>
 				<div id="wizp1">
 					<div class="modal-body" style="text-align:center">
-						<img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!" style="margin-bottom:15px">
+						<img id="wizard_logo" src="img/hyperion/logo_positiv.png" alt="Redefine ambient light!" style="margin-bottom:15px">
 						<div id="wizp1_body" ></div>
 					</div>
 					<div id="wizp1_footer" class="modal-footer" style="text-align:center"></div>
@@ -314,7 +292,7 @@
 				<div id="wizp2" style="display:none">
 					<center>
 						<div class="modal-body">
-							<img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!" style="margin-bottom:15px">
+							<img id="wizard_logo" src="img/hyperion/logo_positiv.png" alt="Redefine ambient light!" style="margin-bottom:15px">
 							<div id="wizp2_body"></div>
 						</div>
 					</center>
@@ -323,7 +301,7 @@
 				<div id="wizp3" style="display:none">
 					<center>
 						<div class="modal-body">
-							<img src="img/hyperion/hyperionlogo.png" alt="Redefine ambient light!" style="margin-bottom:15px">
+							<img id="wizard_logo" src="img/hyperion/logo_positiv.png" alt="Redefine ambient light!" style="margin-bottom:15px">
 							<div id="wizp3_body"></div>
 						</div>
 					</center>

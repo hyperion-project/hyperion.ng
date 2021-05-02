@@ -1,212 +1,184 @@
 var conf_editor = null;
 var createdCont = false;
+var isScroll = true;
 
 performTranslation();
+requestLoggingStop();
 requestLoggingStart();
 
-$(document).ready(function() {
-	var messages;
-	var loguplmess = "";
-	var reportUrl = 'https://report.hyperion-project.org/#';
+$(document).ready(function () {
 
-	$('#conf_cont').append(createOptPanel('fa-reorder', $.i18n("edt_conf_log_heading_title"), 'editor_container', 'btn_submit'));
-	if(window.showOptHelp)
-	{
-		$('#conf_cont').append(createHelpTable(window.schema.logger.properties, $.i18n("edt_conf_log_heading_title")));
-		createHintH("intro", $.i18n('conf_logging_label_intro'), "log_head");
-	}
-	$("#log_upl_pol").append('<span style="color:grey;font-size:80%">'+$.i18n("conf_logging_uplpolicy")+' '+buildWL("user/support#report_privacy_policy",$.i18n("conf_logging_contpolicy")));
+  $('#conf_cont').append(createOptPanel('fa-reorder', $.i18n("edt_conf_log_heading_title"), 'editor_container', 'btn_submit'));
+  if (window.showOptHelp) {
+    $('#conf_cont').append(createHelpTable(window.schema.logger.properties, $.i18n("edt_conf_log_heading_title")));
+    createHintH("intro", $.i18n('conf_logging_label_intro'), "log_head");
+  }
 
-	conf_editor = createJsonEditor('editor_container', {
-		logger : window.schema.logger
-	}, true, true);
+  conf_editor = createJsonEditor('editor_container', {
+    logger: window.schema.logger
+  }, true, true);
 
-	conf_editor.on('change',function() {
-		conf_editor.validate().length || window.readOnlyMode ? $('#btn_submit').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
-	});
+  conf_editor.on('change', function () {
+    conf_editor.validate().length || window.readOnlyMode ? $('#btn_submit').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
+  });
 
-	$('#btn_submit').off().on('click',function() {
-		requestWriteConfig(conf_editor.getValue());
-	});
+  $('#btn_submit').off().on('click', function () {
 
-	$('#btn_logupload').off().on('click',function() {
-		uploadLog();
-		$(this).attr("disabled", true);
-		$('#upl_link').html($.i18n('conf_logging_uploading'))
-	});
+    var displayedLogLevel = conf_editor.getEditor("root.logger.level").getValue();
+    var newLogLevel = {logger:{}};
+    newLogLevel.logger.level = displayedLogLevel;
 
-	//show prev uploads
-	var ent;
+    requestWriteConfig(newLogLevel);
+  });
 
-	if(getStorage("prev_reports"))
-	{
-		ent = JSON.parse(getStorage("prev_reports"));
-		$('#prev_reports').append('<h4 style="margin-top:30px">'+$.i18n('conf_logging_lastreports')+'</h4>');
-		for(var i = 0; i<ent.length; i++)
-		{
-			$('#prev_reports').append('<p><a href="'+reportUrl+ent[i].id+'" target="_blank">'+ent[i].title+'('+ent[i].time+')</a></p>');
-		}
-	}
-	else
-		ent = [];
+  function infoSummary() {
+    var info = "";
 
-	function updateLastReports(id,time,title)
-	{
-		if(ent.length > 4)
-			ent.pop();
-		ent.unshift({"id": id ,"time": time,"title": title})
-		setStorage("prev_reports",JSON.stringify(ent));
-	}
+    info += 'Hyperion System Summary Report (' + window.serverConfig.general.name + '), Reported instance: ' + window.currentHyperionInstanceName + '\n';
 
-	function uploadLog()
-	{
-		var log = "";
-		var config = JSON.stringify(window.serverConfig, null).replace(/"/g, '\\"');
-		var prios = window.serverInfo.priorities;
-		var comps = window.serverInfo.components;
-		var sys = window.sysInfo.system;
-		var shy = window.sysInfo.hyperion;
-		var info;
+    info += "\n< ----- System information -------------------- >\n";
+    info += getSystemInfo() + '\n';
 
-		//create log
-		log = (messages ? loguplmess : "Log was empty!");
+    info += "\n< ----- Configured Instances ------------------ >\n";
+    var instances = window.serverInfo.instance;
+    for (var i = 0; i < instances.length; i++) {
+      info += instances[i].instance + ': ' + instances[i].friendly_name + ' Running: ' + instances[i].running + '\n';
+    }
 
-		//create general info
-		info = "### GENERAL ### \n";
-		info += 'Build:          '+shy.build+'\n';
-		info += 'Build time:     '+shy.time+'\n';
-		info += 'Version:        '+shy.version+'\n';
-		info += 'UI Lang:        '+storedLang+' (BrowserL: '+navigator.language+')\n';
-		info += 'UI Access:      '+storedAccess+'\n';
-		info += 'Log lvl:        '+window.serverConfig.logger.level+'\n';
-		info += 'Avail Capt:     '+window.serverInfo.grabbers.available+'\n';
-		info += 'Database:       '+(shy.readOnlyMode ? "ready-only" : "read/write")+'\n';
-		info += '\n';
+    info += "\n< ----- This instance's priorities ------------ >\n";
+    var prios = window.serverInfo.priorities;
+    for (var i = 0; i < prios.length; i++) {
+      info += prios[i].priority + ': ';
+      if (prios[i].visible) {
+        info += ' VISIBLE!';
+      }
+      else {
+        info += '         ';
+      }
+      info += ' (' + prios[i].componentId + ') Owner: ' + prios[i].owner + '\n';
+    }
+    info += 'priorities_autoselect: ' + window.serverInfo.priorities_autoselect + '\n';
 
-		info += 'Distribution:   '+sys.prettyName+'\n';
-		info += 'Architecture:   '+sys.architecture+'\n';
+    info += "\n< ----- This instance components' status ------->\n";
+    var comps = window.serverInfo.components;
+    for (var i = 0; i < comps.length; i++) {
+      info += comps[i].name + ' - ' + comps[i].enabled + '\n';
+    }
 
-		if (sys.cpuModelName)
-		  info += 'CPU Model:      ' + sys.cpuModelName + '\n';
-		if (sys.cpuModelType)
-		  info += 'CPU Type:       ' + sys.cpuModelType + '\n';
-		if (sys.cpuRevision)
-		  info += 'CPU Revision:   ' + sys.cpuRevision + '\n';
-		if (sys.cpuHardware)
-		  info += 'CPU Hardware:   ' + sys.cpuHardware + '\n';	
+    info += "\n< ----- This instance's configuration --------- >\n";
+    info += JSON.stringify(window.serverConfig) + '\n';
 
-		info += 'Kernel:         ' + sys.kernelType+' ('+sys.kernelVersion+' (WS: '+sys.wordSize+'))' + '\n';
-		info += 'Qt Version:     ' + sys.qtVersion + '\n';
-		info += 'Python Version: ' + sys.pyVersion + '\n';			
-		info += 'Browser/OS:     ' + navigator.userAgent + '\n\n';
+    info += "\n< ----- Current Log --------------------------- >\n";
+    var logMsgs = document.getElementById("logmessages").textContent;
+    if (logMsgs.length !== 0) {
+      info += logMsgs;
+    } else {
+      info += "Log is empty!";
+    }
 
-		//create prios
-		info += "### PRIORITIES ### \n";
-		for(var i = 0; i<prios.length; i++)
-		{
-			info += prios[i].priority;
-			if(prios[i].visible)
-				info += ' VISIBLE!';
-			else
-				info += '         ';
-			info += ' ('+prios[i].component+') Owner: '+prios[i].owner+'\n';
-		}
-		info += '\npriorities_autoselect: '+window.serverInfo.priorities_autoselect+'\n\n';
+    return info;
+  }
 
-		//create comps
-		info += '### COMPONENTS ### \n';
-		for(var i = 0; i<comps.length; i++)
-		{
-			info += comps[i].enabled+' - '+comps[i].name+'\n';
-		}
+  function createLogContainer() {
 
-		//escape data
-		info = JSON.stringify(info);
-		log = JSON.stringify(log);
-		config = JSON.stringify(config);
-		var title = 'Hyperion '+window.currentVersion+' Report ('+window.serverConfig.general.name+' ('+window.serverInfo.ledDevices.active+'))';
+    const isScrollEnableStyle = (isScroll ? "checked" : "");
 
-		$.ajax({
-			url: 'https://api.hyperion-project.org/report.php',
-			crossDomain: true,
-			contentType: 'application/json',
-			type: 'POST',
-			timeout: 7000,
-			data: '{"title":"'+title+'","info":'+info+',"log":'+log+',"config":'+config+'}'
-		})
-		.done( function( data, textStatus, jqXHR ) {
-			reportUrl += data.id;
-			if(textStatus == "success")
-			{
-				$('#upl_link').html($.i18n('conf_logging_yourlink')+': <a href="'+reportUrl+'" target="_blank">'+reportUrl+'</a>');
-				$("html, body").animate({ scrollTop: 9999 }, "fast");
-				updateLastReports(data.id,data.time,title);
-			}
-			else
-			{
-				$('#btn_logupload').attr("disabled", false);
-				$('#upl_link').html('<span style="color:red">'+$.i18n('conf_logging_uplfailed')+'<span>');
-			}
-		})
-		.fail( function( jqXHR, textStatus ) {
-			console.log(jqXHR,textStatus);
-			$('#btn_logupload').attr("disabled", false);
-			$('#upl_link').html('<span style="color:red">'+$.i18n('conf_logging_uplfailed')+'<span>');
-		});
-	}
+    $('#log_content').html('<pre><div id="logmessages" style="overflow:scroll;max-height:400px"></div></pre>');
+    $('#log_footer').append('<label class="checkbox-inline">'
+      + '<input id = "btn_scroll"' + isScrollEnableStyle + ' type = "checkbox"'
+      + 'data-toggle="toggle" data-onstyle="success" data-on="' + $.i18n('general_btn_on') + '" data-off="' + $.i18n('general_btn_off') + '">'
+      + $.i18n('conf_logging_btn_autoscroll') + '</label>'
+    );
 
-	if (!window.loggingHandlerInstalled)
-	{
-		window.loggingHandlerInstalled = true;
-		$(window.hyperion).on("cmd-logging-update",function(event){
+    $(`#btn_scroll`).bootstrapToggle();
+    $(`#btn_scroll`).change(e => {
+      if (e.currentTarget.checked) {
+        //Scroll to end of log
+        isScroll = true;
+        if ($("#logmessages").length > 0) {
+          $('#logmessages')[0].scrollTop = $('#logmessages')[0].scrollHeight;
+        }
+      } else {
+        isScroll = false;
+      }
+    });
 
-			if ($("#logmessages").length == 0 && window.loggingStreamActive)
-			{
-				requestLoggingStop();
-				window.loggingStreamActive = false;
-			}
+    $('#log_footer').append('<button class="btn btn-primary pull-right" id="btn_clipboard"><i class="fa fa-fw fa-clipboard"></i>Copy Log to Clipboard</button>');
 
-			messages = (event.response.result.messages);
-			if(messages.length != 0 && !createdCont)
-			{
-				$('#log_content').html('<pre><div id="logmessages" style="overflow:scroll;max-height:400px"></div></pre><button class="btn btn-primary" id="btn_autoscroll"><i class="fa fa-long-arrow-down fa-fw"></i>'+$.i18n('conf_logging_btn_autoscroll')+'</button>');
-				createdCont = true;
+    $('#btn_clipboard').off().on('click', function () {
+      const temp = document.createElement('textarea');
+      temp.textContent = infoSummary();
+      document.body.append(temp);
+      temp.select();
+      document.execCommand("copy");
+      temp.remove();
+    });
+  }
 
-				$('#btn_autoscroll').off().on('click',function() {
-					toggleClass('#btn_autoscroll', "btn-success", "btn-danger");
-				});
-			}
+  function updateLogOutput(messages) {
 
-			for(var idx = 0; idx < messages.length; idx++)
-			{
-				var app_name = messages[idx].appName;
-				var logger_name = messages[idx].loggerName;
-				var function_ = messages[idx].function;
-				var line = messages[idx].line;
-				var file_name = messages[idx].fileName;
-				var msg = messages[idx].message;
-				var level_string = messages[idx].levelString;
-				var utime = messages[idx].utime;
+    if (messages.length != 0) {
 
-				var debug = "";
-				if(level_string == "DEBUG") {
-					debug = "("+file_name+":"+line+":"+function_+"()) ";
-				}
+      for (var idx = 0; idx < messages.length; idx++) {
+        var app_name = messages[idx].appName;
+        var logger_name = messages[idx].loggerName;
+        var function_ = messages[idx].function;
+        var line = messages[idx].line;
+        var file_name = messages[idx].fileName;
+        var msg = messages[idx].message;
+        var level_string = messages[idx].levelString;
+        var utime = messages[idx].utime;
 
-				var date = new Date(parseInt(utime));
+        var debug = "";
+        if (level_string == "DEBUG") {
+          debug = "(" + file_name + ":" + line + ":" + function_ + "()) ";
+        }
 
-				$("#logmessages").append("\n <code>"+date.toISOString()+" ["+app_name+" "+logger_name+"] ("+level_string+") "+debug+msg+"</code>");
-				loguplmess += "["+app_name+" "+logger_name+"] ("+level_string+") "+debug+msg+"\n";
-			}
+        var date = new Date(parseInt(utime));
+        var newLogLine = date.toISOString() + " [" + app_name + " " + logger_name + "] (" + level_string + ") " + debug + msg;
 
-			if($("#btn_autoscroll").hasClass('btn-success'))
-			{
-				$('#logmessages').stop().animate({
-					scrollTop: $('#logmessages')[0].scrollHeight
-				}, 800);
-			}
-		});
-	}
+        $("#logmessages").append("<code>" + newLogLine + "</code>\n");
+      }
 
-	removeOverlay();
+      if (isScroll && $("#logmessages").length > 0) {
+        $('#logmessages').stop().animate({
+          scrollTop: $('#logmessages')[0].scrollHeight
+        }, 800);
+      }
+    }
+  }
+
+  if (!window.loggingHandlerInstalled) {
+    window.loggingHandlerInstalled = true;
+
+    $(window.hyperion).on("cmd-logging-update", function (event) {
+
+     var messages = (event.response.result.messages);
+
+      if (messages.length != 0) {
+        if (!createdCont) {
+          createLogContainer();
+          createdCont = true;
+        }
+        updateLogOutput(messages)
+      }
+    });
+  }
+
+  $(window.hyperion).on("cmd-settings-update", function (event) {
+
+    var obj = event.response.data
+    if (obj.logger) {
+      Object.getOwnPropertyNames(obj).forEach(function (val, idx, array) {
+        window.serverConfig[val] = obj[val];
+      });
+
+      var currentlogLevel = window.serverConfig.logger.level;
+      conf_editor.getEditor("root.logger.level").setValue(currentlogLevel);
+      location.reload();
+    }
+
+  });
+
+  removeOverlay();
 });
