@@ -28,7 +28,7 @@
     "dashboard_infobox_label_title": "Informasjon",
     "dashboard_infobox_message_updatesuccess": "Du kjører siste versjon av Hyperion.",
     "dashboard_infobox_message_updatewarning": "En nyere versjon av Hyperion er tilgjengelig! ($1)",
-    "dashboard_label_intro": "Dashbordet gir en enkel oversikt over statusen til Hyperion og viser siste nyheter fra Hyperion Bloggen",
+    "dashboard_label_intro": "Dashbordet gir en enkel oversikt over statusen til Hyperion.",
     "dashboard_newsbox_label_title": "Hyperion-Blogg",
     "dashboard_newsbox_noconn": "Kan ikke koble Hyperion Serveren for å motta siste inlegg, fungerer internettilkoblingen?",
     "dashboard_newsbox_readmore": "Les mer",
