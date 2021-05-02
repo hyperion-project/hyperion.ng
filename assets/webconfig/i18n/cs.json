@@ -144,7 +144,7 @@
     "dashboard_infobox_label_instance": "Instance:",
     "dashboard_infobox_label_latesthyp": "Poslední dostupná verze Hyperionu",
     "dashboard_infobox_label_platform": "Platforma:",
-    "dashboard_infobox_label_ports": "Port (json|proto):",
+    "dashboard_infobox_label_ports": "Port",
     "dashboard_infobox_label_smartacc": "Inteligentní přístup",
     "dashboard_infobox_label_statush": "Stav Hyperionu:",
     "dashboard_infobox_label_title": "Informace",
