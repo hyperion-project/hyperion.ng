@@ -26,6 +26,7 @@
     "dashboard_alert_message_confsave_success": "Configurația ta Hyperion a fost salvată cu succes. Modificările sunt active acum.",
     "dashboard_componentbox_label_title": "Stare componente",
     "dashboard_infobox_label_currenthyp": "Versiunea ta Hyperion:",
+    "dashboard_infobox_label_disableh": "Dezactivare Hyperion",
     "dashboard_infobox_label_enableh": "Activare Instans: $1",
     "dashboard_infobox_label_instance": "Instanță:",
     "dashboard_infobox_label_latesthyp": "Cea mai nouă versiune Hyperion:",
