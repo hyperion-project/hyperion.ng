@@ -10,7 +10,7 @@
     "dashboard_infobox_label_instance": "Instância",
     "dashboard_infobox_label_latesthyp": "Última versão do Hyperion:",
     "dashboard_infobox_label_platform": "Plataforma:",
-    "dashboard_infobox_label_ports": "Portos (flat| proto):",
+    "dashboard_infobox_label_ports": "Portos",
     "dashboard_infobox_label_smartacc": "Acesso Inteligente",
     "dashboard_infobox_label_statush": "Hyperion estado:",
     "dashboard_infobox_label_title": "Informação",
