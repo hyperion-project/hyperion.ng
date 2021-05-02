@@ -909,36 +909,25 @@ void JsonAPI::handleSchemaGetCommand(const QJsonObject &message, const QString &
 	properties.insert("alldevices", alldevices);
 
 	// collect all available effect schemas
-	QJsonObject pyEffectSchemas, pyEffectSchema;
-	QJsonArray in, ex;
-	const std::list<EffectSchema> &effectsSchemas = _hyperion->getEffectSchemas();
-	for (const EffectSchema &effectSchema : effectsSchemas)
+	QJsonArray schemaList;
+	const std::list<EffectSchema>& effectsSchemas = _hyperion->getEffectSchemas();
+	for (const EffectSchema& effectSchema : effectsSchemas)
 	{
-		if (effectSchema.pyFile.mid(0, 1) == ":")
+		QJsonObject schema;
+		schema.insert("script", effectSchema.pyFile);
+		schema.insert("schemaLocation", effectSchema.schemaFile);
+		schema.insert("schemaContent", effectSchema.pySchema);
+		if (effectSchema.pyFile.startsWith(':'))
 		{
-			QJsonObject internal;
-			internal.insert("script", effectSchema.pyFile);
-			internal.insert("schemaLocation", effectSchema.schemaFile);
-			internal.insert("schemaContent", effectSchema.pySchema);
-			in.append(internal);
+			schema.insert("type", "system");
 		}
 		else
 		{
-			QJsonObject external;
-			external.insert("script", effectSchema.pyFile);
-			external.insert("schemaLocation", effectSchema.schemaFile);
-			external.insert("schemaContent", effectSchema.pySchema);
-			ex.append(external);
+			schema.insert("type", "custom");
 		}
+		schemaList.append(schema);
 	}
-
-	if (!in.empty())
-		pyEffectSchema.insert("internal", in);
-	if (!ex.empty())
-		pyEffectSchema.insert("external", ex);
-
-	pyEffectSchemas = pyEffectSchema;
-	properties.insert("effectSchemas", pyEffectSchemas);
+	properties.insert("effectSchemas", schemaList);
 
 	schemaJson.insert("properties", properties);
 
