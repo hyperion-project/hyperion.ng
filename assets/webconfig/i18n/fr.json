@@ -142,7 +142,7 @@
     "dashboard_infobox_label_instance": "Instance",
     "dashboard_infobox_label_latesthyp": "Dernière version d'Hyperion : ",
     "dashboard_infobox_label_platform": "Plateforme",
-    "dashboard_infobox_label_ports": "Ports (flat|proto)",
+    "dashboard_infobox_label_ports": "Ports",
     "dashboard_infobox_label_smartacc": "Accès simplifié",
     "dashboard_infobox_label_statush": "Statut d'Hyperion : ",
     "dashboard_infobox_label_title": "Information",
