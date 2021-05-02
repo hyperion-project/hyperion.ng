@@ -22,7 +22,7 @@
     "dashboard_infobox_label_instance": "Forekomst:",
     "dashboard_infobox_label_latesthyp": "Siste Hyperion versjon:",
     "dashboard_infobox_label_platform": "Plattform:",
-    "dashboard_infobox_label_ports": "Porter (flat|proto):",
+    "dashboard_infobox_label_ports": "Porter",
     "dashboard_infobox_label_smartacc": "Smart Adgang",
     "dashboard_infobox_label_statush": "Hyperion status:",
     "dashboard_infobox_label_title": "Informasjon",
