@@ -187,7 +187,7 @@
     "dashboard_infobox_label_watchedversionbranch": "Ausgewählter Versionszweig:",
     "dashboard_infobox_message_updatesuccess": "Du nutzt die aktuellste Version von Hyperion.",
     "dashboard_infobox_message_updatewarning": "Eine aktuellere Version von Hyperion ist verfügbar! ($1)",
-    "dashboard_label_intro": "Das Dashboard zeigt dir Informationen zum Systemstatus, ob Updates verfügbar sind, den Komponentenstatus sowie die letzten Blog-Posts vom Hyperion Team.",
+    "dashboard_label_intro": "Das Dashboard zeigt dir Informationen zum Status und ob Updates verfügbar.",
     "dashboard_message_default_password": "Das Standardpasswort der WebUI ist gesetzt. Wir empfehlen dringend, dieses zu ändern.",
     "dashboard_message_default_password_t": "WebUI Standardpasswort gesetzt",
     "dashboard_message_do_not_show_again": "Diese Meldung nicht mehr anzeigen",
