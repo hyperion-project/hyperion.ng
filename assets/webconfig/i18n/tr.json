@@ -113,7 +113,7 @@
     "dashboard_infobox_label_instance": "Olay",
     "dashboard_infobox_label_latesthyp": "En güncel Hyperion versiyonu:",
     "dashboard_infobox_label_platform": "Plaform:",
-    "dashboard_infobox_label_ports": "Portlar (flat|proto):",
+    "dashboard_infobox_label_ports": "Portlar",
     "dashboard_infobox_label_smartacc": "Akıllı Erişim",
     "dashboard_infobox_label_statush": "Hyperion durumu:",
     "dashboard_infobox_label_title": "Bilgi",
