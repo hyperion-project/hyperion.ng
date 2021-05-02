@@ -163,7 +163,7 @@
     "dashboard_infobox_label_instance": "Instantie",
     "dashboard_infobox_label_latesthyp": "Laatste Hyperion versie",
     "dashboard_infobox_label_platform": "Platform",
-    "dashboard_infobox_label_ports": "Poorten (flat|proto):",
+    "dashboard_infobox_label_ports": "Poorten",
     "dashboard_infobox_label_smartacc": "Slimme toegang",
     "dashboard_infobox_label_statush": "Hyperion status:",
     "dashboard_infobox_label_title": "Informatie",
