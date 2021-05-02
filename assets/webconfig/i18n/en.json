@@ -187,7 +187,7 @@
     "dashboard_infobox_label_watchedversionbranch": "Watched version branch:",
     "dashboard_infobox_message_updatesuccess": "You run the latest version of Hyperion.",
     "dashboard_infobox_message_updatewarning": "A newer version of Hyperion is available! ($1)",
-    "dashboard_label_intro": "The dashboard give you a quick overview about the status of Hyperion and show you the latest news of the Hyperion Blog.",
+    "dashboard_label_intro": "The dashboard give you a quick overview about the status of Hyperion.",
     "dashboard_message_default_password": "The default password for the WebUi is set. We strongly recommend to change this.",
     "dashboard_message_default_password_t": "WebUI default password is set",
     "dashboard_message_do_not_show_again": "Do not show this message again",
