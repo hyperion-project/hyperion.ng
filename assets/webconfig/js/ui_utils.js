@@ -1141,7 +1141,7 @@ function isAccessLevelCompliant(accessLevel) {
 
 function showInputOptions(path, elements, state) {
   for (var i = 0; i < elements.length; i++) {
-    $('[data-schemapath="' + path + '.' + elements[i] + '"]').toggle(state);
+    $('[data-schemapath="root.' + path + '.' + elements[i] + '"]').toggle(state);
   }
 }
 
@@ -1157,5 +1157,5 @@ function showInputOptionsForKey(editor, item, showForKey, state) {
       }
     }
   }
-  showInputOptions("root." + item, elements, state);
+  showInputOptions(item, elements, state);
 }

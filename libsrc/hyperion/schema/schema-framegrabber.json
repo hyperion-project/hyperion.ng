@@ -4,7 +4,11 @@
 	"properties": {
 		"available_devices": {
 			"type": "string",
-			"title": "edt_conf_v4l2_device_title",
+			"title": "edt_conf_grabber_discovered_title",
+			"default": "NONE",
+			"options": {
+				"infoText": "edt_conf_grabber_discovered_title_info"
+			},
 			"propertyOrder": 1,
 			"required": false
 		},
