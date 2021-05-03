@@ -398,6 +398,43 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 					}
 				}
 			}
+
+			if (config.contains("grabberV4L2"))
+			{
+				QJsonObject newGrabberV4L2Config = config["grabberV4L2"].toObject();
+
+				if (newGrabberV4L2Config.contains("encoding_format"))
+				{
+					newGrabberV4L2Config.remove("encoding_format");
+					config["grabberV4L2"] = newGrabberV4L2Config;
+					migrated = true;
+					Debug(_log, "GrabberV4L2 records migrated");
+				}
+			}
+
+			if (config.contains("framegrabber"))
+			{
+				QJsonObject newFramegrabberConfig = config["framegrabber"].toObject();
+
+				//Align element namings with grabberV4L2
+				//Rename element type -> device
+				if (newFramegrabberConfig.contains("type"))
+				{
+					newFramegrabberConfig["device"] = newFramegrabberConfig["type"];
+					newFramegrabberConfig.remove("type");
+					migrated = true;
+				}
+				//Rename element frequency_Hz -> fps
+				if (newFramegrabberConfig.contains("frequency_Hz"))
+				{
+					newFramegrabberConfig["fps"] = newFramegrabberConfig["frequency_Hz"];
+					newFramegrabberConfig.remove("frequency_Hz");
+					migrated = true;
+				}
+
+				config["framegrabber"] = newFramegrabberConfig;
+				Debug(_log, "Framegrabber records migrated");
+			}
 		}
 	}
 	return migrated;
