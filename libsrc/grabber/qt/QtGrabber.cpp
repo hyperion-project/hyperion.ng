@@ -48,11 +48,13 @@ bool QtGrabber::open()
 {
 	bool rc = false;
 
+#ifndef _WIN32
 	if (getenv("WAYLAND_DISPLAY") != nullptr)
 	{
 		_isWayland = true;
 	}
 	else
+#endif
 	{
 		rc = true;
 	}

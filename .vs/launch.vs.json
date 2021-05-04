@@ -1,0 +1,17 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "hyperiond.exe (bin\\hyperiond.exe)",
+      "name": "Run hyperion with debug option and external console",
+      "args": [
+        "-d",
+        "-c"
+      ],
+      "externalConsole": true
+    }
+  ]
+}

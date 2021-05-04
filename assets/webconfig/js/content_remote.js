@@ -201,7 +201,7 @@ $(document).ready(function () {
     });
 
     for (const comp of components) {
-      if (comp.name === "ALL")
+      if (comp.name === "ALL" || (comp.name === "FORWARDER" && window.currentHyperionInstance != 0))
         continue;
 
       const enable_style = (comp.enabled ? "checked" : "");

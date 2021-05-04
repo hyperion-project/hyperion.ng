@@ -195,10 +195,12 @@ function updateUiOnInstance(inst) {
     $('#btn_hypinstanceswitch').toggle(true);
     $('#active_instance_dropdown').prop('disabled', false);
     $('#active_instance_dropdown').css('cursor', 'pointer');
+    $("#active_instance_dropdown").css("pointer-events", "auto");
   } else {
     $('#btn_hypinstanceswitch').toggle(false);
     $('#active_instance_dropdown').prop('disabled', true);
     $("#active_instance_dropdown").css('cursor', 'default');
+    $("#active_instance_dropdown").css("pointer-events", "none");
   }
 }
 

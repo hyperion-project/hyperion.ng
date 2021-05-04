@@ -76,9 +76,11 @@ table.input-group{width:100%}
 
 /*table*/
 table.borderless td,table.borderless th{border: none !important;}
+table.borderless td:first-child{width: 25px !important;}
 .borderless {margin-bottom:0px}
 table label{margin:0}
 table.first_cell_borderless td:first-child,table.first_cell_borderless th:first-child{border: none !important;}
+table.first_cell_borderless td:first-child{width: 25px !important;}
 
 /*Header*/
 .navbar-brand{padding-top:4px;padding-bottom:0px;padding-left:2;}

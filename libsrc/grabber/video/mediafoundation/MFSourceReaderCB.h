@@ -175,6 +175,9 @@ public:
 		if (MF_SOURCE_READERF_ENDOFSTREAM & dwStreamFlags)
 			_bEOS = TRUE; // Reached the end of the stream.
 
+		if (_pixelformat != PixelFormat::MJPEG && _pixelformat != PixelFormat::BGR24 && _pixelformat != PixelFormat::NO_CHANGE)
+			SAFE_RELEASE(pSample);
+
 		_isBusy = false;
 		LeaveCriticalSection(&_critsec);
 		return _hrStatus;
