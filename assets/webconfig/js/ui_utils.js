@@ -809,14 +809,15 @@ function createRow(id) {
   return el;
 }
 
-function createOptPanel(phicon, phead, bodyid, footerid, css) {
+function createOptPanel(phicon, phead, bodyid, footerid, css, panelId) {
   phead = '<i class="fa ' + phicon + ' fa-fw"></i>' + phead;
+
   var pfooter = document.createElement('button');
   pfooter.className = "btn btn-primary";
   pfooter.setAttribute("id", footerid);
   pfooter.innerHTML = '<i class="fa fa-fw fa-save"></i>' + $.i18n('general_button_savesettings');
 
-  return createPanel(phead, "", pfooter, "panel-default", bodyid, css);
+  return createPanel(phead, "", pfooter, "panel-default", bodyid, css, panelId);
 }
 
 function compareTwoValues(key1, key2, order = 'asc') {

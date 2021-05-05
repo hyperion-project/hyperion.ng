@@ -13,21 +13,21 @@ $(document).ready(function () {
 
     // Screen-Grabber
     $('#conf_cont').append(createRow('conf_cont_screen'));
-    $('#conf_cont_screen').append(createOptPanel('fa-camera', $.i18n("edt_conf_fg_heading_title"), 'editor_container_screengrabber', 'btn_submit_screengrabber', 'panel-system'));
-    $('#conf_cont_screen').append(createHelpTable(window.schema.framegrabber.properties, $.i18n("edt_conf_fg_heading_title")));
+    $('#conf_cont_screen').append(createOptPanel('fa-camera', $.i18n("edt_conf_fg_heading_title"), 'editor_container_screengrabber', 'btn_submit_screengrabber', 'panel-system', 'screengrabberPanelId'));
+    $('#conf_cont_screen').append(createHelpTable(window.schema.framegrabber.properties, $.i18n("edt_conf_fg_heading_title"), "screengrabberHelpPanelId"));
 
     // Video-Grabber - hide if not available
     if (VIDEOGRABBER_AVAIL) {
       $('#conf_cont').append(createRow('conf_cont_video'));
-      $('#conf_cont_video').append(createOptPanel('fa-camera', $.i18n("edt_conf_v4l2_heading_title"), 'editor_container_videograbber', 'btn_submit_videograbber', 'panel-system'));
-      $('#conf_cont_video').append(createHelpTable(window.schema.grabberV4L2.properties, $.i18n("edt_conf_v4l2_heading_title")));
+      $('#conf_cont_video').append(createOptPanel('fa-camera', $.i18n("edt_conf_v4l2_heading_title"), 'editor_container_videograbber', 'btn_submit_videograbber', 'panel-system', 'videograbberPanelId'));
+      $('#conf_cont_video').append(createHelpTable(window.schema.grabberV4L2.properties, $.i18n("edt_conf_v4l2_heading_title"), "videograbberHelpPanelId"));
     }
   } else {
     $('#conf_cont').addClass('row');
     $('#conf_cont').append(createOptPanel('fa-camera', $.i18n("edt_conf_instCapture_heading_title"), 'editor_container_instCapt', 'btn_submit_instCapt', 'panel-system'));
-    $('#conf_cont').append(createOptPanel('fa-camera', $.i18n("edt_conf_fg_heading_title"), 'editor_container_screengrabber', 'btn_submit_screengrabber', 'panel-system'));
+    $('#conf_cont').append(createOptPanel('fa-camera', $.i18n("edt_conf_fg_heading_title"), 'editor_container_screengrabber', 'btn_submit_screengrabber', 'panel-system', 'screengrabberPanelId'));
     if (VIDEOGRABBER_AVAIL) {
-      $('#conf_cont').append(createOptPanel('fa-camera', $.i18n("edt_conf_v4l2_heading_title"), 'editor_container_videograbber', 'btn_submit_videograbber', 'panel-system'));
+      $('#conf_cont').append(createOptPanel('fa-camera', $.i18n("edt_conf_v4l2_heading_title"), 'editor_container_videograbber', 'btn_submit_videograbber', 'panel-system', 'videograbberPanelId'));
     }
   }
 
@@ -46,9 +46,13 @@ $(document).ready(function () {
     var screenEnable = conf_editor_instCapt.getEditor("root.instCapture.systemEnable").getValue();
     if (screenEnable) {
       showInputOptions("instCapture", ["systemPriority"], true);
-      $('#conf_cont_screen').show();
+      $('#screengrabberPanelId').show();
+      if (window.showOptHelp) {
+        $('#screengrabberHelpPanelId').show();
+      }
     } else {
-      $('#conf_cont_screen').hide();
+      $('#screengrabberPanelId').hide();
+      $('#screengrabberHelpPanelId').hide();
       showInputOptions("instCapture", ["systemPriority"], false);
     }
 
@@ -56,11 +60,15 @@ $(document).ready(function () {
       var videoEnable = conf_editor_instCapt.getEditor("root.instCapture.v4lEnable").getValue();
       if (videoEnable) {
         showInputOptions("instCapture", ["v4lPriority"], true);
-        $('#conf_cont_video').show();
+        $('#videograbberPanelId').show();
+        if (window.showOptHelp) {
+          $('#videograbberHelpPanelId').show();
+        }
       }
       else {
         showInputOptions("instCapture", ["v4lPriority"], false);
-        $('#conf_cont_video').hide();
+        $('#videograbberPanelId').hide();
+        $('#videograbberHelpPanelId').hide();
       }
     }
 
