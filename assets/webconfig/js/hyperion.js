@@ -82,7 +82,7 @@ function initWebSocket()
       else if (document.location.port == '' && document.location.protocol == "https:")
         window.jsonPort = '443';
       else
-        window.jsonPort = document.location.port;	
+        window.jsonPort = document.location.port;
       window.websocket = (document.location.protocol == "https:") ? new WebSocket('wss://'+document.location.hostname+":"+window.jsonPort) : new WebSocket('ws://'+document.location.hostname+":"+window.jsonPort);
 
       window.websocket.onopen = function (event) {

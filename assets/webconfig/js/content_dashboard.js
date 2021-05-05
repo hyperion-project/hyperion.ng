@@ -39,9 +39,11 @@ $(document).ready(function () {
     instances_html += '<span>' + $.i18n('dashboard_infobox_label_title') + '</span>';
     instances_html += '</th></tr></thead>';
     instances_html += '<tbody><tr><td></td>';
-    instances_html += '<td><a onclick="SwitchToMenuItem(\'MenuItemLeds\')" href="#" style="text-decoration:none">' + $.i18n('conf_leds_contr_label_contrtype') + '</a></td>';
-    instances_html += '<td style="text-align:right">' + window.serverConfig.device.type + '</td>';
-    instances_html += '</tr><tr></tbody></table>';
+    instances_html += '<td>' + $.i18n('conf_leds_contr_label_contrtype') + '</td>';
+    instances_html += '<td style="text-align:right; padding-right:0">';
+    instances_html += '<span>' + window.serverConfig.device.type + ' </span>';
+    instances_html += '<a class="fa fa-cog fa-fw" onclick="SwitchToMenuItem(\'MenuItemLeds\')" style="text-decoration:none;cursor:pointer"></a>';
+    instances_html += '</td></tr><tr></tbody></table>';
 
     instances_html += '<table class="table first_cell_borderless">';
     instances_html += '<thead><tr><th colspan="3">';
@@ -53,14 +55,11 @@ $(document).ready(function () {
     var instance_components = "";
     for (var idx = 0; idx < components.length; idx++) {
       if (components[idx].name != "ALL") {
-        if (components[idx].name === "FORWARDER" && window.currentHyperionInstance != 0)
-          continue;
+        if ((components[idx].name === "FORWARDER" && window.currentHyperionInstance != 0) ||
+          (components[idx].name === "GRABBER" && !window.serverConfig.instCapture.systemEnable) ||
+          (components[idx].name === "V4L" && !window.serverConfig.instCapture.v4lEnable))
+            continue;
 
-
-        if ((components[idx].name === "GRABBER" && !window.serverConfig.instCapture.systemEnable) || (components[idx].name === "V4L" && !window.serverConfig.instCapture.v4lEnable))
-        {
-          componentBtn = '<a class="fa fa-cog fa-fw" onclick="SwitchToMenuItem(\'MenuItemGrabber\')" href="#" style="text-decoration: none"></a>';
-        } else {
           var comp_enabled = components[idx].enabled ? "checked" : "";
           const general_comp = "general_comp_" + components[idx].name;
           componentBtn = '<input ' +
@@ -71,7 +70,6 @@ $(document).ready(function () {
             'data-onstyle="success" ' +
             'data-on="' + $.i18n('general_btn_on') + '" ' +
             'data-off="' + $.i18n('general_btn_off') + '">';
-        }
 
         instance_components += '<tr><td></td><td>' + $.i18n('general_comp_' + components[idx].name) + '</td><td style="text-align:right">' + componentBtn + '</td></tr>';
       }

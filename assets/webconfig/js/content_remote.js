@@ -201,7 +201,9 @@ $(document).ready(function () {
     });
 
     for (const comp of components) {
-      if (comp.name === "ALL" || (comp.name === "FORWARDER" && window.currentHyperionInstance != 0))
+      if (comp.name === "ALL" || (comp.name === "FORWARDER" && window.currentHyperionInstance != 0) ||
+      (comp.name === "GRABBER" && !window.serverConfig.instCapture.systemEnable) ||
+      (comp.name === "V4L" && !window.serverConfig.instCapture.v4lEnable))
         continue;
 
       const enable_style = (comp.enabled ? "checked" : "");

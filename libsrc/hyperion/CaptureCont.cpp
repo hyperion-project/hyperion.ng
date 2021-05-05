@@ -77,7 +77,7 @@ void CaptureCont::setSystemCaptureEnable(bool enable)
 		}
 		else
 		{
-			disconnect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, 0, 0);
+			disconnect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, this, 0);
 			_hyperion->clear(_systemCaptPrio);
 			_systemInactiveTimer->stop();
 			_systemCaptName = "";
@@ -100,7 +100,7 @@ void CaptureCont::setV4LCaptureEnable(bool enable)
 		}
 		else
 		{
-			disconnect(GlobalSignals::getInstance(), &GlobalSignals::setV4lImage, 0, 0);
+			disconnect(GlobalSignals::getInstance(), &GlobalSignals::setV4lImage, this, 0);
 			_hyperion->clear(_v4lCaptPrio);
 			_v4lInactiveTimer->stop();
 			_v4lCaptName = "";
