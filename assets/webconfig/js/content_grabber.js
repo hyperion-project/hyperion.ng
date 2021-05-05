@@ -226,7 +226,7 @@ $(document).ready(function () {
           'device_inputs', addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, false);
       }
 
-      if (!window.readOnlyMode) {
+      if (conf_editor_screen.validate().length && !window.readOnlyMode) {
         $('#btn_submit_screengrabber').attr('disabled', false);
       }
     }
@@ -275,8 +275,8 @@ $(document).ready(function () {
         'resolutions', addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, false);
     }
 
-    if (!window.readOnlyMode) {
-      $('#btn_submit_videograbber').attr('disabled', false);
+    if (conf_editor_screen.validate().length && !window.readOnlyMode) {
+      $('#btn_submit_screengrabber').attr('disabled', false);
     }
   });
 
@@ -331,7 +331,7 @@ $(document).ready(function () {
         'framerates', addSchemaElements, enumVals, [], enumDefaultVal, false);
     }
 
-    if (!window.readOnlyMode) {
+    if (conf_editor_screen.validate().length && !window.readOnlyMode) {
       $('#btn_submit_screengrabber').attr('disabled', false);
     }
   });
@@ -453,7 +453,7 @@ $(document).ready(function () {
             'device_inputs', addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, false, false);
         }
 
-        if (!window.readOnlyMode) {
+        if (conf_editor_video.validate().length && !window.readOnlyMode) {
           $('#btn_submit_videograbber').attr('disabled', false);
         }
       }
@@ -517,7 +517,7 @@ $(document).ready(function () {
           'standard', addSchemaElements, enumVals, [], enumDefaultVal, false);
       }
 
-      if (!window.readOnlyMode) {
+      if (conf_editor_video.validate().length && !window.readOnlyMode) {
         $('#btn_submit_videograbber').attr('disabled', false);
       }
     });
@@ -569,7 +569,7 @@ $(document).ready(function () {
           'resolutions', addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, false);
       }
 
-      if (!window.readOnlyMode) {
+      if (conf_editor_video.validate().length && !window.readOnlyMode) {
         $('#btn_submit_videograbber').attr('disabled', false);
       }
     });
@@ -629,7 +629,7 @@ $(document).ready(function () {
           'framerates', addSchemaElements, enumVals, [], enumDefaultVal, false);
       }
 
-      if (!window.readOnlyMode) {
+      if (conf_editor_video.validate().length && !window.readOnlyMode) {
         $('#btn_submit_videograbber').attr('disabled', false);
       }
     });
