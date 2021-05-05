@@ -421,8 +421,8 @@ $(document).ready(function () {
   // translate
   performTranslation();
 
-	// update instance listing
-	updateHyperionInstanceListing();
+  // update instance listing
+  updateHyperionInstanceListing();
 
   //add intros
   if (window.showOptHelp) {
@@ -561,21 +561,21 @@ $(document).ready(function () {
     toggleClass('#leds_prev_toggle_num', "btn-danger", "btn-success");
   });
 
-	// toggle live video
-	$('#leds_prev_toggle_live_video').off().on("click", function() {
-		setClassByBool('#leds_prev_toggle_live_video', window.imageStreamActive, "btn-success", "btn-danger");
-		if (window.imageStreamActive)
-		{
-			requestLedImageStop();
+  // toggle live video
+  $('#leds_prev_toggle_live_video').off().on("click", function() {
+    setClassByBool('#leds_prev_toggle_live_video', window.imageStreamActive, "btn-success", "btn-danger");
+    if (window.imageStreamActive)
+    {
+      requestLedImageStop();
       imageCanvasNodeCtx.clear();
-		}
-		else
-		{
-			requestLedImageStart();
-		}
-	});
+    }
+    else
+    {
+      requestLedImageStart();
+    }
+  });
 
-	$(window.hyperion).on("cmd-ledcolors-imagestream-update",function(event){
+  $(window.hyperion).on("cmd-ledcolors-imagestream-update",function(event){
     setClassByBool('#leds_prev_toggle_live_video', window.imageStreamActive, "btn-danger", "btn-success");
     var imageData = (event.response.result.image);
 
@@ -584,7 +584,7 @@ $(document).ready(function () {
       imageCanvasNodeCtx.drawImage(image, 0, 0, imageCanvasNodeCtx.canvas.width, imageCanvasNodeCtx.canvas.height);
     };
     image.src = imageData;
-	});
+  });
 
   // open checklist
   $('#leds_prev_checklist').off().on("click", function () {
@@ -831,28 +831,30 @@ $(document).ready(function () {
           canSave = true;
       }
 
-      if (canIdentify) {
-        $("#btn_test_controller").removeClass('hidden');
-        $('#btn_test_controller').attr('disabled', false);
-      }
-      else {
-        $('#btn_test_controller').attr('disabled', true);
-      }
+      if (!conf_editor.validate().length) {
 
-      var hardwareLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue();
-      if (hardwareLedCount < 1) {
-        canSave = false;
-      }
+        if (canIdentify) {
+          $("#btn_test_controller").removeClass('hidden');
+          $('#btn_test_controller').attr('disabled', false);
+        }
+        else {
+          $('#btn_test_controller').attr('disabled', true);
+        }
 
-      if (canSave) {
-        if (!window.readOnlyMode) {
-          $('#btn_submit_controller').attr('disabled', false);
+        var hardwareLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue();
+        if (hardwareLedCount < 1) {
+          canSave = false;
+        }
+
+        if (canSave) {
+          if (!window.readOnlyMode) {
+            $('#btn_submit_controller').attr('disabled', false);
+          }
+        }
+        else {
+          $('#btn_submit_controller').attr('disabled', true);
         }
       }
-      else {
-        $('#btn_submit_controller').attr('disabled', true);
-      }
-
       window.readOnlyMode ? $('#btn_cl_save').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
       window.readOnlyMode ? $('#btn_ma_save').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
       window.readOnlyMode ? $('#leds_custom_save').attr('disabled', true) : $('#btn_submit').attr('disabled', false);

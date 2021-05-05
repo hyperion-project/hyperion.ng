@@ -5,7 +5,7 @@
 		"available_devices": {
 			"type": "string",
 			"title": "edt_conf_grabber_discovered_title",
-			"default": "NONE",
+			"default": "edt_conf_grabber_discovery_inprogress",
 			"options": {
 				"infoText": "edt_conf_grabber_discovered_title_info"
 			},
