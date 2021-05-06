@@ -839,6 +839,7 @@
     "main_ledsim_btn_togglelednumber": "LED numbers",
     "main_ledsim_btn_toggleleds": "Show LEDs",
     "main_ledsim_btn_togglelivevideo": "Live video",
+    "main_ledsim_btn_togglesigdetect": "Signal detection area",
     "main_ledsim_text": "Live visualization of led colors and optional the current video stream of your capture device.",
     "main_ledsim_title": "LED Visualization",
     "main_menu_about_token": "About Hyperion",
