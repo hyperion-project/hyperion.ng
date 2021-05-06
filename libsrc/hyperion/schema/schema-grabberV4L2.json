@@ -345,6 +345,7 @@
 				}
 			},
 			"required": true,
+			"access": "expert",
 			"propertyOrder": 32
 		}
 	},
