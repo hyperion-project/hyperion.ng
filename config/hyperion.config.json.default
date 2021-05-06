@@ -2,6 +2,8 @@
 	"general" :
 	{
 		"name"       : "My Hyperion Config",
+	    "configVersion": "2.0.0-alpha.9",
+	    "previousVersion": "2.0.0-alpha.9",
 		"watchedVersionBranch" : "Stable",
 		"showOptHelp" : true
 	},
