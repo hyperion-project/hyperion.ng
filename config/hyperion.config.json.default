@@ -2,8 +2,8 @@
 	"general" :
 	{
 		"name"       : "My Hyperion Config",
-	    "configVersion": "2.0.0-alpha.9",
-	    "previousVersion": "2.0.0-alpha.9",
+	    "configVersion": "configVersionValue",
+	    "previousVersion": "previousVersionValue",
 		"watchedVersionBranch" : "Stable",
 		"showOptHelp" : true
 	},
@@ -96,7 +96,7 @@
 	"framegrabber" :
 	{
 		"device"             : "auto",
-		"input"              : 0,	
+		"input"              : 0,
 		"width"              : 80,
 		"height"             : 45,
 		"fps"                : 10,
