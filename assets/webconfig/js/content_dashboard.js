@@ -26,6 +26,8 @@ $(document).ready(function () {
       }
     });
 
+    requestServerConfig();
+
     var instBtn = '<span style="display:block; margin:3px"><input id="instanceButton"'
       + (hyperion_enabled ? "checked" : "") + ' type="checkbox" data-toggle="toggle" data-size="small" data-onstyle="success" data-on="'
       + $.i18n('general_btn_on') + '" data-off="'
@@ -38,12 +40,23 @@ $(document).ready(function () {
     instances_html += '<i class="fa fa-info-circle fa-fw"></i>';
     instances_html += '<span>' + $.i18n('dashboard_infobox_label_title') + '</span>';
     instances_html += '</th></tr></thead>';
-    instances_html += '<tbody><tr><td></td>';
-    instances_html += '<td>' + $.i18n('conf_leds_contr_label_contrtype') + '</td>';
+    instances_html += '<tbody>';
+    instances_html += '<tr><td></td><td>' + $.i18n('conf_leds_contr_label_contrtype') + '</td>';
     instances_html += '<td style="text-align:right; padding-right:0">';
-    instances_html += '<span>' + window.serverConfig.device.type + ' </span>';
+    instances_html += '<span>' + window.serverConfig.device.type + '</span>';
     instances_html += '<a class="fa fa-cog fa-fw" onclick="SwitchToMenuItem(\'MenuItemLeds\')" style="text-decoration:none;cursor:pointer"></a>';
-    instances_html += '</td></tr><tr></tbody></table>';
+    instances_html += '</td></tr>';
+    instances_html += '<tr><td></td><td>' + $.i18n('edt_conf_fg_heading_title') + '</td>';
+    instances_html += '<td style="text-align:right; padding-right:0">';
+    instances_html += '<span id="dash_screen_grabber">disabled</span>';
+    instances_html += '<a class="fa fa-cog fa-fw" onclick="SwitchToMenuItem(\'MenuItemGrabber\')" style="text-decoration:none;cursor:pointer"></a>';
+    instances_html += '</td></tr>';
+    instances_html += '<tr><td></td><td>' + $.i18n('edt_conf_v4l2_heading_title') + '</td>';
+    instances_html += '<td style="text-align:right; padding-right:0">';
+    instances_html += '<span id="dash_video_grabber">disabled</span>';
+    instances_html += '<a class="fa fa-cog fa-fw" onclick="SwitchToMenuItem(\'MenuItemGrabber\')" style="text-decoration:none;cursor:pointer"></a>';
+    instances_html += '</td></tr>';
+    instances_html += '</tbody></table>';
 
     instances_html += '<table class="table first_cell_borderless">';
     instances_html += '<thead><tr><th colspan="3">';
@@ -100,11 +113,6 @@ $(document).ready(function () {
   }
 
   // add more info
-  var screenGrabber = window.serverConfig.instCapture.systemEnable ? $.i18n('general_enabled') : $.i18n('general_disabled');
-  $('#dash_screen_grabber').html(screenGrabber);
-  var videoGrabber = window.serverConfig.instCapture.v4lEnable ? $.i18n('general_enabled') : $.i18n('general_disabled');
-  $('#dash_video_grabber').html(videoGrabber);
-
   var fbPort = window.serverConfig.flatbufServer.enable ? window.serverConfig.flatbufServer.port : $.i18n('general_disabled');
   $('#dash_fbPort').html(fbPort);
   var pbPort = window.serverConfig.protoServer.enable ? window.serverConfig.protoServer.port : $.i18n('general_disabled');

@@ -191,6 +191,8 @@ function initLanguageSelection() {
 
 function updateUiOnInstance(inst) {
   $("#active_instance_friendly_name").text(window.serverInfo.instance[inst].friendly_name);
+  $('#dash_screen_grabber').text(window.serverConfig.instCapture.systemEnable ? $.i18n('general_enabled') : $.i18n('general_disabled'));
+  $('#dash_video_grabber').text(window.serverConfig.instCapture.v4lEnable ? $.i18n('general_enabled') : $.i18n('general_disabled'));
   if (window.serverInfo.instance.filter(entry => entry.running).length > 1) {
     $('#btn_hypinstanceswitch').toggle(true);
     $('#active_instance_dropdown').prop('disabled', false);
