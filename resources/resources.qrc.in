@@ -1,5 +1,6 @@
 <RCC>
 	<qresource prefix="/">
+		<file alias="hyperion_default.config">${CMAKE_BINARY_DIR}/config/hyperion.config.json.default</file>
 		${HYPERION_RES}
 	</qresource>
 </RCC>
