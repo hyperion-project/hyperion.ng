@@ -223,7 +223,7 @@ $(document).ready(function () {
         if (deviceSelected === configuredDevice) {
           var configuredVideoInput = window.serverConfig.framegrabber.input;
           if ($.inArray(configuredVideoInput, enumVals) != -1) {
-            enumDefaultVal = configuredVideoInput;
+            enumDefaultVal = configuredVideoInput.toString();
           }
         }
         updateJsonEditorSelection(conf_editor_screen.getEditor('root.framegrabber'),
@@ -271,7 +271,7 @@ $(document).ready(function () {
         var configuredResolutionText = window.serverConfig.framegrabber.width + "x" + window.serverConfig.framegrabber.height;
         var idx = $.inArray(configuredResolutionText, enumTitelVals)
         if (idx != -1) {
-          enumDefaultVal = idx;
+          enumDefaultVal = idx.toString();
         }
       }
 
@@ -328,7 +328,7 @@ $(document).ready(function () {
       if (deviceSelected === configuredDevice) {
         var configuredFps = window.serverConfig.framegrabber.fps;
         if ($.inArray(configuredFps, enumVals) != -1) {
-          enumDefaultVal = configuredFps;
+          enumDefaultVal = configuredFps.toString();
         }
       }
       updateJsonEditorSelection(conf_editor_screen.getEditor('root.framegrabber'),
@@ -449,7 +449,7 @@ $(document).ready(function () {
           if (deviceSelected === configuredDevice) {
             var configuredVideoInput = window.serverConfig.grabberV4L2.input;
             if ($.inArray(configuredVideoInput, enumVals) != -1) {
-              enumDefaultVal = configuredVideoInput;
+              enumDefaultVal = configuredVideoInput.toString();
             }
           }
 
@@ -565,7 +565,7 @@ $(document).ready(function () {
           var configuredResolutionText = window.serverConfig.grabberV4L2.width + "x" + window.serverConfig.grabberV4L2.height;
           var idx = $.inArray(configuredResolutionText, enumTitelVals)
           if (idx != -1) {
-            enumDefaultVal = idx;
+            enumDefaultVal = idx.toString();
           }
         }
 
@@ -626,7 +626,7 @@ $(document).ready(function () {
         if (deviceSelected === configuredDevice) {
           var configuredFps = window.serverConfig.grabberV4L2.fps;
           if ($.inArray(configuredFps, enumVals) != -1) {
-            enumDefaultVal = configuredFps;
+            enumDefaultVal = configuredFps.toString();
           }
         }
         updateJsonEditorSelection(conf_editor_video.getEditor('root.grabberV4L2'),
