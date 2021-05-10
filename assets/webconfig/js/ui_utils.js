@@ -162,25 +162,22 @@ function initLanguageSelection() {
 
   var langLocale = storedLang;
 
-  // If no language has been set, resolve browser locale
-  if (langLocale === 'auto') {
-    langLocale = $.i18n().locale.substring(0, 2);
-  }
-
-  // Resolve text for language code
-  var langText = 'Please Select';
-
   //Test, if language is supported by hyperion
   var langIdx = availLang.indexOf(langLocale);
   if (langIdx > -1) {
     langText = availLangText[langIdx];
-  }
-  else {
+  } else {
     // If language is not supported by hyperion, try fallback language
     langLocale = $.i18n().options.fallbackLocale.substring(0, 2);
     langIdx = availLang.indexOf(langLocale);
     if (langIdx > -1) {
       langText = availLangText[langIdx];
+    } else {
+      langLocale = 'en';
+      langIdx = availLang.indexOf(langLocale);
+      if (langIdx > -1) {
+        langText = availLangText[langIdx];
+      }
     }
   }
 
