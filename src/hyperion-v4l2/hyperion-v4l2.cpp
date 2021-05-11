@@ -31,7 +31,7 @@ using namespace commandline;
 int main(int argc, char** argv)
 {
 	Logger *log = Logger::getInstance("V4L2GRABBER");
-	Logger::setLogLevel(Logger::WARNING);
+	Logger::setLogLevel(Logger::INFO);
 
 	std::cout
 		<< "hyperion-v4l2:" << std::endl
@@ -85,6 +85,7 @@ int main(int argc, char** argv)
 		Option             & argAddress             = parser.add<Option>       ('a', "address", "Set the address of the hyperion server [default: %1]", "127.0.0.1:19400");
 		IntOption          & argPriority            = parser.add<IntOption>    ('p', "priority", "Use the provided priority channel (suggested 100-199) [default: %1]", "150");
 		BooleanOption      & argSkipReply           = parser.add<BooleanOption>(0x0, "skip-reply", "Do not receive and check reply messages from Hyperion");
+		BooleanOption      & argDebug               = parser.add<BooleanOption>(0x0, "debug", "Enable debug logging");
 		BooleanOption      & argHelp                = parser.add<BooleanOption>('h', "help", "Show this help message and exit");
 
 		argVideoStandard.addSwitch("pal", VideoStandard::PAL);
@@ -107,6 +108,12 @@ int main(int argc, char** argv)
 
 		// parse all options
 		parser.process(app);
+
+		// check if debug logging is required
+		if (parser.isSet(argDebug))
+		{
+			Logger::setLogLevel(Logger::DEBUG);
+		}
 
 		// check if we need to display the usage. exit if we do.
 		if (parser.isSet(argHelp))

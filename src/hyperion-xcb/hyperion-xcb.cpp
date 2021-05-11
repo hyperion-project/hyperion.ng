@@ -24,6 +24,9 @@ void saveScreenshot(QString filename, const Image<ColorRgb> & image)
 
 int main(int argc, char ** argv)
 {
+	Logger *log = Logger::getInstance("XCBGRABBER");
+	Logger::setLogLevel(Logger::INFO);
+
 	 std::cout
 		<< "hyperion-xcb:" << std::endl
 		<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
@@ -49,10 +52,17 @@ int main(int argc, char ** argv)
 		Option              & argAddress         = parser.add<Option>       ('a', "address", "Set the address of the hyperion server [default: %1]", "127.0.0.1:19400");
 		IntOption           & argPriority        = parser.add<IntOption>    ('p', "priority", "Use the provided priority channel (suggested 100-199) [default: %1]", "150");
 		BooleanOption       & argSkipReply       = parser.add<BooleanOption>(0x0, "skip-reply", "Do not receive and check reply messages from Hyperion");
+		BooleanOption       & argDebug           = parser.add<BooleanOption>(0x0, "debug", "Enable debug logging");
 		BooleanOption       & argHelp            = parser.add<BooleanOption>('h', "help", "Show this help message and exit");
 
 		// parse all options
 		parser.process(app);
+
+		// check if debug logging is required
+		if (parser.isSet(argDebug))
+		{
+			Logger::setLogLevel(Logger::DEBUG);
+		}
 
 		// check if we need to display the usage. exit if we do.
 		if (parser.isSet(argHelp))
@@ -106,8 +116,8 @@ int main(int argc, char ** argv)
 	}
 	catch (const std::runtime_error & e)
 	{
-		// An error occured. Display error and quit
-		Error(Logger::getInstance("XCBGRABBER"), "%s", e.what());
+		// An error occurred. Display error and quit
+		Error(log, "%s", e.what());
 		return -1;
 	}
 
