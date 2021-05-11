@@ -64,6 +64,7 @@
 
 	"grabberV4L2" :
 	{
+		"enable"                : false,
 		"device"                : "none",
 		"input"                 : 0,
 		"encoding"              : "NO_CHANGE",
@@ -95,6 +96,7 @@
 
 	"framegrabber" :
 	{
+		"enable"             : false,
 		"device"             : "auto",
 		"input"              : 0,
 		"width"              : 80,
@@ -186,9 +188,11 @@
 
 	"instCapture" :
 	{
-		"systemEnable" : true,
+		"systemEnable" : false,
+		"systemGrabberDevice" : "NONE",
 		"systemPriority" : 250,
 		"v4lEnable" : false,
+		"v4lGrabberDevice" : "NONE",
 		"v4lPriority" : 240
 	},
 

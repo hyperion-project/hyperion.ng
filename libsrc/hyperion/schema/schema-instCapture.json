@@ -7,7 +7,7 @@
 			"type": "boolean",
 			"required": true,
 			"title": "edt_conf_instC_systemEnable_title",
-			"default": true,
+			"default": false,
 			"propertyOrder": 1
 		},
 		"systemGrabberDevice": {
