@@ -26,8 +26,6 @@ $(document).ready(function () {
       }
     });
 
-    requestServerConfig();
-
     var instBtn = '<span style="display:block; margin:3px"><input id="instanceButton"'
       + (hyperion_enabled ? "checked" : "") + ' type="checkbox" data-toggle="toggle" data-size="small" data-onstyle="success" data-on="'
       + $.i18n('general_btn_on') + '" data-off="'
@@ -46,16 +44,6 @@ $(document).ready(function () {
     instances_html += '<span>' + window.serverConfig.device.type + '</span>';
     instances_html += '<a class="fa fa-cog fa-fw" onclick="SwitchToMenuItem(\'MenuItemLeds\')" style="text-decoration:none;cursor:pointer"></a>';
     instances_html += '</td></tr>';
-    instances_html += '<tr><td></td><td>' + $.i18n('edt_conf_fg_heading_title') + '</td>';
-    instances_html += '<td style="text-align:right; padding-right:0">';
-    instances_html += '<span id="dash_screen_grabber">disabled</span>';
-    instances_html += '<a class="fa fa-cog fa-fw" onclick="SwitchToMenuItem(\'MenuItemGrabber\')" style="text-decoration:none;cursor:pointer"></a>';
-    instances_html += '</td></tr>';
-    instances_html += '<tr><td></td><td>' + $.i18n('edt_conf_v4l2_heading_title') + '</td>';
-    instances_html += '<td style="text-align:right; padding-right:0">';
-    instances_html += '<span id="dash_video_grabber">disabled</span>';
-    instances_html += '<a class="fa fa-cog fa-fw" onclick="SwitchToMenuItem(\'MenuItemGrabber\')" style="text-decoration:none;cursor:pointer"></a>';
-    instances_html += '</td></tr>';
     instances_html += '</tbody></table>';
 
     instances_html += '<table class="table first_cell_borderless">';
@@ -69,8 +57,8 @@ $(document).ready(function () {
     for (var idx = 0; idx < components.length; idx++) {
       if (components[idx].name != "ALL") {
         if ((components[idx].name === "FORWARDER" && window.currentHyperionInstance != 0) ||
-          (components[idx].name === "GRABBER" && !window.serverConfig.instCapture.systemEnable) ||
-          (components[idx].name === "V4L" && !window.serverConfig.instCapture.v4lEnable))
+          (components[idx].name === "GRABBER" && !window.serverConfig.framegrabber.enable) ||
+          (components[idx].name === "V4L" && !window.serverConfig.grabberV4L2.enable))
             continue;
 
           var comp_enabled = components[idx].enabled ? "checked" : "";
@@ -113,6 +101,12 @@ $(document).ready(function () {
   }
 
   // add more info
+
+  var screenGrabber = window.serverConfig.framegrabber.enable ? $.i18n('general_enabled') : $.i18n('general_disabled');
+  $('#dash_screen_grabber').html(screenGrabber);
+  var videoGrabber = window.serverConfig.grabberV4L2.enable ? $.i18n('general_enabled') : $.i18n('general_disabled');
+  $('#dash_video_grabber').html(videoGrabber);
+
   var fbPort = window.serverConfig.flatbufServer.enable ? window.serverConfig.flatbufServer.port : $.i18n('general_disabled');
   $('#dash_fbPort').html(fbPort);
   var pbPort = window.serverConfig.protoServer.enable ? window.serverConfig.protoServer.port : $.i18n('general_disabled');

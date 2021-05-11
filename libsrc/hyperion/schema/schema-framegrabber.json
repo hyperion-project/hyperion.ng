@@ -1,7 +1,15 @@
 {
 	"type" : "object",
 	"title" : "edt_conf_fg_heading_title",
-	"properties": {
+	"properties":
+	{
+		"enable": {
+			"type": "boolean",
+			"title": "edt_conf_general_enable_title",
+			"required": true,
+			"default": false,
+			"propertyOrder": 1
+		},
 		"available_devices": {
 			"type": "string",
 			"title": "edt_conf_grabber_discovered_title",
@@ -9,7 +17,7 @@
 			"options": {
 				"infoText": "edt_conf_grabber_discovered_title_info"
 			},
-			"propertyOrder": 1,
+			"propertyOrder": 2,
 			"required": false
 		},
 		"device": {
@@ -19,13 +27,13 @@
 				"hidden": true
 			},
 			"required": true,
-			"comment": "The 'available_devices' settings are dynamically inserted into the WebUI under PropertyOrder '1'.",
-			"propertyOrder": 2
+			"comment": "The 'available_devices' settings are dynamically inserted into the WebUI under PropertyOrder '2'.",
+			"propertyOrder": 3
 		},
 		"device_inputs": {
 			"type": "string",
 			"title": "edt_conf_v4l2_input_title",
-			"propertyOrder": 3,
+			"propertyOrder": 4,
 			"required": false
 		},
 		"input": {
@@ -37,13 +45,13 @@
 				"hidden": true
 			},
 			"required": true,
-			"propertyOrder": 4,
-			"comment": "The 'device_inputs' settings are dynamically inserted into the WebUI under PropertyOrder '3'."
+			"propertyOrder": 5,
+			"comment": "The 'device_inputs' settings are dynamically inserted into the WebUI under PropertyOrder '4'."
 		},
 		"resolutions": {
 			"type": "string",
 			"title": "edt_conf_v4l2_resolution_title",
-			"propertyOrder": 5,
+			"propertyOrder": 6,
 			"required": false
 		},
 		"width": {
@@ -56,8 +64,8 @@
 				"hidden": true
 			},
 			"required": true,
-			"propertyOrder": 8,
-			"comment": "The 'resolutions' settings are dynamically inserted into the WebUI under PropertyOrder '5'."
+			"propertyOrder": 9,
+			"comment": "The 'resolutions' settings are dynamically inserted into the WebUI under PropertyOrder '6'."
 		},
 		"height": {
 			"type": "integer",
@@ -67,13 +75,13 @@
 				"hidden": true
 			},
 			"required": true,
-			"propertyOrder": 9,
-			"comment": "The 'resolutions' settings are dynamically inserted into the WebUI under PropertyOrder '5'."
+			"propertyOrder": 10,
+			"comment": "The 'resolutions' settings are dynamically inserted into the WebUI under PropertyOrder '6'."
 		},
 		"framerates": {
 			"type": "string",
 			"title": "edt_conf_fg_frequency_Hz_title",
-			"propertyOrder": 10,
+			"propertyOrder": 11,
 			"required": false
 		},
 		"fps": {
@@ -85,8 +93,8 @@
 				"hidden": true
 			},
 			"required": true,
-			"propertyOrder": 11,
-			"comment": "The 'framerates' setting is dynamically inserted into the WebUI under PropertyOrder '10'."
+			"propertyOrder": 12,
+			"comment": "The 'framerates' setting is dynamically inserted into the WebUI under PropertyOrder '11'."
 		},
 		"pixelDecimation": {
 			"type": "integer",
@@ -95,7 +103,7 @@
 			"maximum": 30,
 			"default": 8,
 			"required": true,
-			"propertyOrder": 12
+			"propertyOrder": 13
 		},
 		"cropLeft": {
 			"type": "integer",
@@ -103,7 +111,7 @@
 			"minimum": 0,
 			"default": 0,
 			"append": "edt_append_pixel",
-			"propertyOrder": 13
+			"propertyOrder": 14
 		},
 		"cropRight": {
 			"type": "integer",
@@ -111,7 +119,7 @@
 			"minimum": 0,
 			"default": 0,
 			"append": "edt_append_pixel",
-			"propertyOrder": 14
+			"propertyOrder": 15
 		},
 		"cropTop": {
 			"type": "integer",
@@ -119,7 +127,7 @@
 			"minimum": 0,
 			"default": 0,
 			"append": "edt_append_pixel",
-			"propertyOrder": 15
+			"propertyOrder": 16
 		},
 		"cropBottom": {
 			"type": "integer",
@@ -127,7 +135,7 @@
 			"minimum": 0,
 			"default": 0,
 			"append": "edt_append_pixel",
-			"propertyOrder": 16
+			"propertyOrder": 17
 		}
 	},
 	"additionalProperties" : false

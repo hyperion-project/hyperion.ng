@@ -273,7 +273,7 @@ $(document).ready(function () {
 
     var obj = event.response.data
     if (obj.leds || obj.grabberV4L2) {
-      console.log("ledsim: cmd-settings-update", event.response.data);
+      //console.log("ledsim: cmd-settings-update", event.response.data);
       Object.getOwnPropertyNames(obj).forEach(function (val, idx, array) {
         window.serverInfo[val] = obj[val];
       });
