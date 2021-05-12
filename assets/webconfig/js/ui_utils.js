@@ -1145,10 +1145,22 @@ function showInputOptions(path, elements, state) {
   }
 }
 
-function showInputOptionsForKey(editor, item, showForKey, state) {
+function showInputOptionsForKey(editor, item, showForKeys, state) {
   var elements = [];
+  var keysToshow = [];
+
+  if (Array.isArray(showForKeys)) {
+    keysToshow = showForKeys;
+  } else {
+    if (typeof showForKeys === 'string') {
+      keysToshow.push(showForKeys);
+    } else {
+      return
+    }
+  }
+
   for (var key in editor.schema.properties[item].properties) {
-    if (showForKey !== key) {
+    if ($.inArray(key, keysToshow) === -1) {
       var accessLevel = editor.schema.properties[item].properties[key].access;
 
       //Always disable all elements, but only enable elements, if access level compliant
