@@ -128,7 +128,7 @@ $(document).ready(function () {
 
   function printLedsToCanvas(colors) {
 
-    if (grabberConfig.signalDetection && toggleSigDetectArea && storedAccess === 'expert') {
+    if (grabberConfig.enable && grabberConfig.signalDetection && toggleSigDetectArea && storedAccess === 'expert') {
 
       sigDetectAreaCanvasNodeCtx.setLineDash([5, 5]);
       sigDetectAreaCanvasNodeCtx.stroke(build2DPath(grabberConfig.sDHOffsetMin * canvas_width,
@@ -178,7 +178,7 @@ $(document).ready(function () {
   }
 
   function updateLedLayout() {
-    if (grabberConfig.signalDetection && storedAccess === 'expert') {
+    if (grabberConfig.enable && grabberConfig.signalDetection && storedAccess === 'expert') {
       $("#sigDetectArea_toggle").show();
     } else {
       $("#sigDetectArea_toggle").hide();
