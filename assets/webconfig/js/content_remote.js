@@ -202,8 +202,8 @@ $(document).ready(function () {
 
     for (const comp of components) {
       if (comp.name === "ALL" || (comp.name === "FORWARDER" && window.currentHyperionInstance != 0) ||
-      (comp.name === "GRABBER" && !window.serverConfig.instCapture.systemEnable) ||
-      (comp.name === "V4L" && !window.serverConfig.instCapture.v4lEnable))
+        (comp.name === "GRABBER" && !window.serverConfig.framegrabber.enable) ||
+        (comp.name === "V4L" && !window.serverConfig.grabberV4L2.enable))
         continue;
 
       const enable_style = (comp.enabled ? "checked" : "");
