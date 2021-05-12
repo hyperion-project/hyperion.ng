@@ -11,6 +11,7 @@ $(document).ready(function () {
     $('#conf_cont_screen').append(createHelpTable(window.schema.framegrabber.properties, $.i18n("edt_conf_fg_heading_title"), "screengrabberHelpPanelId"));
   }
 
+  // Video-Grabber
   $('#conf_cont').append(createRow('conf_cont_video'));
   $('#conf_cont_video').append(createOptPanel('fa-camera', $.i18n("edt_conf_v4l2_heading_title"), 'editor_container_videograbber', 'btn_submit_videograbber', 'panel-system', 'videograbberPanelId'));
   if (window.showOptHelp) {
@@ -85,9 +86,10 @@ $(document).ready(function () {
       var deviceSelected = conf_editor_screen.getEditor("root.framegrabber.available_devices").getValue();
       switch (deviceSelected) {
         case "SELECT":
-          showInputOptionsForKey(conf_editor_screen, "framegrabber", "available_devices", false);
+          showInputOptionsForKey(conf_editor_screen, "framegrabber", ["enable", "available_devices"], false);
           break;
-        case "NONE": conf_editor_video.on
+        case "NONE":
+          showInputOptionsForKey(conf_editor_screen, "framegrabber", ["enable", "available_devices"], false);
           break;
         default:
           window.readOnlyMode ? $('#btn_submit_screengrabber').attr('disabled', true) : $('#btn_submit_screengrabber').attr('disabled', false);
@@ -110,9 +112,9 @@ $(document).ready(function () {
       discoverInputSources("screen");
     }
     else {
+      $('#btn_submit_screengrabber').attr('disabled', false);
       showInputOptionsForKey(conf_editor_screen, "framegrabber", "enable", false);
       $('#screengrabberHelpPanelId').hide();
-      $('#btn_submit_screengrabber').attr('disabled', true);
     }
 
   });
@@ -122,10 +124,10 @@ $(document).ready(function () {
     var deviceSelected = conf_editor_screen.getEditor("root.framegrabber.available_devices").getValue();
     if (deviceSelected === "SELECT" || deviceSelected === "NONE" || deviceSelected === "") {
       $('#btn_submit_screengrabber').attr('disabled', true);
-      showInputOptionsForKey(conf_editor_screen, "framegrabber", "available_devices", false);
+      showInputOptionsForKey(conf_editor_screen, "framegrabber", ["enable", "available_devices"], false);
     }
     else {
-      showInputOptionsForKey(conf_editor_screen, "framegrabber", "available_devices", true);
+      showInputOptionsForKey(conf_editor_screen, "framegrabber", ["enable", "available_devices"], true);
       var addSchemaElements = {};
       var enumVals = [];
       var enumTitelVals = [];
@@ -326,9 +328,10 @@ $(document).ready(function () {
       var deviceSelected = conf_editor_video.getEditor("root.grabberV4L2.available_devices").getValue();
       switch (deviceSelected) {
         case "SELECT":
-          showInputOptionsForKey(conf_editor_video, "grabberV4L2", "available_devices", false);
+          showInputOptionsForKey(conf_editor_video, "grabberV4L2", ["enable", "available_devices"], false);
           break;
         case "NONE":
+          showInputOptionsForKey(conf_editor_video, "grabberV4L2", ["enable", "available_devices"], false);
           break;
         default:
           window.readOnlyMode ? $('#btn_submit_videograbber').attr('disabled', true) : $('#btn_submit_videograbber').attr('disabled', false);
@@ -351,7 +354,7 @@ $(document).ready(function () {
       discoverInputSources("video");
     }
     else {
-      $('#btn_submit_videograbber').attr('disabled', true);
+      $('#btn_submit_videograbber').attr('disabled', false);
       showInputOptionsForKey(conf_editor_video, "grabberV4L2", "enable", false);
       $('#videograbberHelpPanelId').hide();
     }
@@ -361,10 +364,10 @@ $(document).ready(function () {
     var deviceSelected = conf_editor_video.getEditor("root.grabberV4L2.available_devices").getValue();
     if (deviceSelected === "SELECT" || deviceSelected === "NONE" || deviceSelected === "") {
       $('#btn_submit_videograbber').attr('disabled', true);
-      showInputOptionsForKey(conf_editor_video, "grabberV4L2", "available_devices", false);
+      showInputOptionsForKey(conf_editor_video, "grabberV4L2", ["enable","available_devices"], false);
     }
     else {
-      showInputOptionsForKey(conf_editor_video, "grabberV4L2", "available_devices", true);
+      showInputOptionsForKey(conf_editor_video, "grabberV4L2", ["enable", "available_devices"], true);
       var addSchemaElements = {};
       var enumVals = [];
       var enumTitelVals = [];
@@ -621,30 +624,29 @@ $(document).ready(function () {
     var enumVals = [];
     var enumTitelVals = [];
     var enumDefaultVal = "";
+    var addSelect = false;
 
     if (jQuery.isEmptyObject(discoveryInfo)) {
       enumVals.push("NONE");
       enumTitelVals.push($.i18n('edt_conf_grabber_discovered_none'));
-
-      conf_editor_screen.getEditor('root.framegrabber').disable();
-      showInputOptionsForKey(conf_editor_screen, "framegrabber", "available_devices", false);
     }
     else {
       for (const device of discoveryInfo) {
         enumVals.push(device.device_name);
       }
       conf_editor_screen.getEditor('root.framegrabber').enable();
-    }
-
-    if (enumVals.length > 0) {
       configuredDevice = window.serverConfig.framegrabber.available_devices;
+
       if ($.inArray(configuredDevice, enumVals) != -1) {
         enumDefaultVal = configuredDevice;
       }
-
+      else {
+        addSelect = true;
+      }
+    }
+    if (enumVals.length > 0) {
       updateJsonEditorSelection(conf_editor_screen.getEditor('root.framegrabber'),
-        'available_devices', {}, enumVals, enumTitelVals, enumDefaultVal, false, false);
-
+        'available_devices', {}, enumVals, enumTitelVals, enumDefaultVal, addSelect, false);
     }
   }
 
@@ -717,3 +719,4 @@ $(document).ready(function () {
   }
 
 });
+
