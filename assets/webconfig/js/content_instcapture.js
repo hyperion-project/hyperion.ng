@@ -18,6 +18,12 @@ $(document).ready(function () {
     instCapture: window.schema.instCapture
   }, true, true);
 
+  grabber_config_info_html = '<div class="bs-callout bs-callout-info" style="margin-top:0px"><h4>' + $.i18n('dashboard_infobox_label_title') + '</h4 >';
+  grabber_config_info_html += '<span>' + $.i18n('conf_grabber_inst_grabber_config_info') + '</span>';
+  grabber_config_info_html += '<a class="fa fa-cog fa-fw" onclick="SwitchToMenuItem(\'MenuItemGrabber\')" style="text-decoration:none;cursor:pointer"></a>';
+  grabber_config_info_html += '</div>';
+  $('#editor_container_instCapt').append(grabber_config_info_html);
+
   conf_editor_instCapt.on('ready', function () {
 
     if (!window.serverConfig.framegrabber.enable) {
