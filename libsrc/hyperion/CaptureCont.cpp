@@ -127,8 +127,8 @@ void CaptureCont::handleSettingsUpdate(settings::type type, const QJsonDocument&
 			_systemCaptPrio = obj["systemPriority"].toInt(250);
 		}
 
-		setV4LCaptureEnable(obj["v4lEnable"].toBool(true));
-		setSystemCaptureEnable(obj["systemEnable"].toBool(true));
+		setV4LCaptureEnable(obj["v4lEnable"].toBool(false));
+		setSystemCaptureEnable(obj["systemEnable"].toBool(false));
 	}
 }
 

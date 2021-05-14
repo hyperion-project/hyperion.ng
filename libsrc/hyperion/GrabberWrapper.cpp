@@ -165,33 +165,38 @@ void GrabberWrapper::updateTimer(int interval)
 }
 
 void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
-{
-	if(type == settings::SYSTEMCAPTURE && !_grabberName.startsWith("V4L"))
+{	if(type == settings::SYSTEMCAPTURE && !_grabberName.startsWith("V4L"))
 	{
 		// extract settings
 		const QJsonObject& obj = config.object();
 
-		// width/height
-		_ggrabber->setWidthHeight(obj["width"].toInt(96), obj["height"].toInt(96));
+		// global grabber state
+		GLOBAL_GRABBER_SYS_ENABLE = obj["enable"].toBool(false);
 
-		// display index for MAC
-		_ggrabber->setDisplayIndex(obj["input"].toInt(0));
+		if (GLOBAL_GRABBER_SYS_ENABLE)
+		{
+			// width/height
+			_ggrabber->setWidthHeight(obj["width"].toInt(96), obj["height"].toInt(96));
 
-		// device path for Framebuffer
-		_ggrabber->setDevicePath(obj["device"].toString("/dev/fb0"));
+			// display index for MAC
+			_ggrabber->setDisplayIndex(obj["input"].toInt(0));
 
-		// pixel decimation for x11
-		_ggrabber->setPixelDecimation(obj["pixelDecimation"].toInt(8));
+			// device path for Framebuffer
+			_ggrabber->setDevicePath(obj["device"].toString("/dev/fb0"));
 
-		// crop for system capture
-		_ggrabber->setCropping(
-			obj["cropLeft"].toInt(0),
-			obj["cropRight"].toInt(0),
-			obj["cropTop"].toInt(0),
-			obj["cropBottom"].toInt(0));
+			// pixel decimation for x11
+			_ggrabber->setPixelDecimation(obj["pixelDecimation"].toInt(8));
 
-		// eval new update time
-		updateTimer(1000/obj["fps"].toInt(10));
+			// crop for system capture
+			_ggrabber->setCropping(
+				obj["cropLeft"].toInt(0),
+				obj["cropRight"].toInt(0),
+				obj["cropTop"].toInt(0),
+				obj["cropBottom"].toInt(0));
+
+			// eval new update time
+			updateTimer(1000/obj["fps"].toInt(10));
+		}
 	}
 }
 
@@ -204,7 +209,7 @@ void GrabberWrapper::handleSourceRequest(hyperion::Components component, int hyp
 		else
 			GRABBER_SYS_CLIENTS.remove(hyperionInd);
 
-		if(GRABBER_SYS_CLIENTS.empty())
+		if(GRABBER_SYS_CLIENTS.empty() || !GLOBAL_GRABBER_SYS_ENABLE)
 			stop();
 		else
 			start();
@@ -216,7 +221,7 @@ void GrabberWrapper::handleSourceRequest(hyperion::Components component, int hyp
 		else
 			GRABBER_V4L_CLIENTS.remove(hyperionInd);
 
-		if(GRABBER_V4L_CLIENTS.empty())
+		if(GRABBER_V4L_CLIENTS.empty() || !GLOBAL_GRABBER_V4L_ENABLE)
 			stop();
 		else
 			start();
@@ -226,8 +231,6 @@ void GrabberWrapper::handleSourceRequest(hyperion::Components component, int hyp
 void GrabberWrapper::tryStart()
 {
 	// verify start condition
-	if((_grabberName.startsWith("V4L") && !GRABBER_V4L_CLIENTS.empty()) || (!_grabberName.startsWith("V4L") && !GRABBER_SYS_CLIENTS.empty()))
-	{
+	if(!_grabberName.startsWith("V4L") && !GRABBER_SYS_CLIENTS.empty() && GLOBAL_GRABBER_SYS_ENABLE)
 		start();
-	}
 }

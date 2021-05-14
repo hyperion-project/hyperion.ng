@@ -16,7 +16,7 @@ install_file()
 }
 
 
-echo "---Hyperion ambient light postinstall ---"
+echo "--- Hyperion ambient light postinstall ---"
 
 #check system
 CPU_RPI=`grep -m1 -c 'BCM2708\|BCM2709\|BCM2710\|BCM2835\|BCM2836\|BCM2837\|BCM2711' /proc/cpuinfo`

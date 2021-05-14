@@ -23,6 +23,8 @@ class QTimer;
 /// Map of Hyperion instances with grabber name that requested screen capture
 static QMap<int, QString> GRABBER_SYS_CLIENTS;
 static QMap<int, QString> GRABBER_V4L_CLIENTS;
+static bool GLOBAL_GRABBER_SYS_ENABLE;
+static bool GLOBAL_GRABBER_V4L_ENABLE;
 
 ///
 /// This class will be inherted by FramebufferWrapper and others which contains the real capture interface

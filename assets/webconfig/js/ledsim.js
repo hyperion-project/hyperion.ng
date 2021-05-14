@@ -112,6 +112,7 @@ $(document).ready(function () {
       },
       closed: function (e) {
         modalOpened = false;
+        lC = false;
       },
       resizeStop: function (e) {
         setStorage("ledsim_width", $("#ledsim_dialog").outerWidth());

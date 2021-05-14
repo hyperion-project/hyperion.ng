@@ -493,7 +493,8 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 					createGrabberFramebuffer(grabberConfig);
 				}
 				#ifdef ENABLE_FB
-				_fbGrabber->tryStart();
+					_dispmanx->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
+					_dispmanx->tryStart();
 				#endif
 			}
 			else if (type == "dispmanx")
@@ -503,7 +504,8 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 					createGrabberDispmanx();
 				}
 				#ifdef ENABLE_DISPMANX
-				_dispmanx->tryStart();
+					_dispmanx->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
+					_dispmanx->tryStart();
 				#endif
 			}
 			else if (type == "amlogic")
@@ -513,7 +515,8 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 					createGrabberAmlogic();
 				}
 				#ifdef ENABLE_AMLOGIC
-				_amlGrabber->tryStart();
+					_amlGrabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
+					_amlGrabber->tryStart();
 				#endif
 			}
 			else if (type == "osx")
@@ -523,7 +526,8 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 					createGrabberOsx(grabberConfig);
 				}
 				#ifdef ENABLE_OSX
-				_osxGrabber->tryStart();
+					_osxGrabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
+					_osxGrabber->tryStart();
 				#endif
 			}
 			else if (type == "x11")
@@ -533,7 +537,8 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 					createGrabberX11(grabberConfig);
 				}
 				#ifdef ENABLE_X11
-				_x11Grabber->tryStart();
+					_x11Grabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
+					_x11Grabber->tryStart();
 				#endif
 			}
 			else if (type == "xcb")
@@ -543,7 +548,8 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 					createGrabberXcb(grabberConfig);
 				}
 				#ifdef ENABLE_XCB
-				_xcbGrabber->tryStart();
+					_xcbGrabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
+					_xcbGrabber->tryStart();
 				#endif
 			}
 			else if (type == "qt")
@@ -553,7 +559,8 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 					createGrabberQt(grabberConfig);
 				}
 				#ifdef ENABLE_QT
-				_qtGrabber->tryStart();
+					_qtGrabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
+					_qtGrabber->tryStart();
 				#endif
 			}
 			else if (type == "dx")
@@ -563,7 +570,7 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 					createGrabberDx(grabberConfig);
 				}
 				#ifdef ENABLE_DX
-				_dxGrabber->tryStart();
+				// _dxGrabber->tryStart();
 				#endif
 			}
 			else
@@ -577,11 +584,8 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 	else if (settingsType == settings::V4L2)
 	{
 
-#if defined(ENABLE_CEC) || defined(ENABLE_V4L2) || defined(ENABLE_MF)
-		const QJsonObject& grabberConfig = config.object();
-#endif
-
 #ifdef ENABLE_CEC
+		const QJsonObject& grabberConfig = config.object();
 		if (_cecHandler != nullptr && grabberConfig["cecDetection"].toBool(false))
 		{
 			QMetaObject::invokeMethod(_cecHandler, "start", Qt::QueuedConnection);
@@ -596,7 +600,7 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 		if (_videoGrabber == nullptr)
 		{
 			_videoGrabber = new VideoWrapper();
-			_videoGrabber->handleSettingsUpdate(settings::V4L2, QJsonDocument(grabberConfig));
+			_videoGrabber->handleSettingsUpdate(settings::V4L2, getSetting(settings::V4L2));
 
 #if defined(ENABLE_MF)
 			Debug(_log, "Media Foundation grabber created");
