@@ -28,7 +28,7 @@ QString ImageProcessor::mappingTypeToStr(int mappingType)
 
 ImageProcessor::ImageProcessor(const LedString& ledString, Hyperion* hyperion)
 	: QObject(hyperion)
-	, _log(Logger::getInstance("BLACKBORDER"))
+	, _log(Logger::getInstance("IMAGETOLED"))
 	, _ledString(ledString)
 	, _borderProcessor(new BlackBorderProcessor(hyperion, this))
 	, _imageToLeds(nullptr)

@@ -114,7 +114,7 @@ int LedDeviceFile::write(const std::vector<ColorRgb> & ledValues)
 	}
 
 	#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-		out << "]" << Qt::endl;
+		out << QString("]") << Qt::endl;
 	#else
 		out << "]" << endl;
 	#endif
