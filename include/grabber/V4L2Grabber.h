@@ -17,27 +17,14 @@
 #include <utils/VideoStandard.h>
 #include <utils/Components.h>
 
-#include <HyperionConfig.h> // Required to determine the cmake options
+// decoder thread includes
+#include <grabber/EncoderThread.h>
+
+// Determine the cmake options
+#include <HyperionConfig.h>
 
 #if defined(ENABLE_CEC)
 	#include <cec/CECEvent.h>
-#endif
-
-// general JPEG decoder includes
-#ifdef HAVE_JPEG_DECODER
-	#include <QImage>
-	#include <QColor>
-#endif
-
-// System JPEG decoder
-#ifdef HAVE_JPEG
-	#include <jpeglib.h>
-	#include <csetjmp>
-#endif
-
-// TurboJPEG decoder
-#ifdef HAVE_TURBO_JPEG
-	#include <turbojpeg.h>
 #endif
 
 ///
@@ -71,7 +58,7 @@ public:
 	~V4L2Grabber() override;
 
 	int grabFrame(Image<ColorRgb> &);
-	void setDevice(const QString& device);
+	void setDevice(const QString& devicePath, const QString& deviceName);
 	bool setInput(int input) override;
 	bool setWidthHeight(int width, int height) override;
 	void setEncoding(QString enc);
@@ -94,9 +81,10 @@ public:
 	QJsonArray discover(const QJsonObject& params);
 
 public slots:
-	bool prepare() { return true; }
+	bool prepare();
 	bool start();
 	void stop();
+	void newThreadFrame(Image<ColorRgb> image);
 
 #if defined(ENABLE_CEC)
 	void handleCecEvent(CECEvent event);
@@ -110,7 +98,6 @@ private slots:
 	int read_frame();
 
 private:
-	void enumVideoCaptureDevices();
 	bool init();
 	void uninit();
 	bool open_device();
@@ -123,7 +110,6 @@ private:
 	void start_capturing();
 	void stop_capturing();
 	bool process_image(const void *p, int size);
-	void process_image(const uint8_t *p, int size);
 	int xioctl(int request, void *arg);
 	int xioctl(int fileDescriptor, int request, void *arg);
 
@@ -151,35 +137,9 @@ private:
 			size_t  length;
 	};
 
-#ifdef HAVE_JPEG
-	struct errorManager
-	{
-		jpeg_error_mgr pub;
-		jmp_buf setjmp_buffer;
-	};
-
-	static void errorHandler(j_common_ptr cInfo)
-	{
-		errorManager* mgr = reinterpret_cast<errorManager*>(cInfo->err);
-		longjmp(mgr->setjmp_buffer, 1);
-	}
-
-	static void outputHandler(j_common_ptr cInfo)
-	{
-		// Suppress fprintf warnings.
-	}
-
-	jpeg_decompress_struct* _decompress;
-	errorManager* _error;
-#endif
-
-#ifdef HAVE_TURBO_JPEG
-	tjhandle _decompress = nullptr;
-	int _subsamp;
-#endif
-
 private:
-	QString _currentDeviceName, _newDeviceName;
+	QString _currentDevicePath, _currentDeviceName;
+	EncoderThreadManager* _threadManager;
 	QMap<QString, V4L2Grabber::DeviceProperties> _deviceProperties;
 
 	io_method           _ioMethod;
@@ -187,9 +147,10 @@ private:
 	std::vector<buffer> _buffers;
 
 	PixelFormat _pixelFormat, _pixelFormatConfig;
-	int         _pixelDecimation;
 	int         _lineLength;
 	int         _frameByteSize;
+
+	QAtomicInt _currentFrame;
 
 	// signal detection
 	int      _noSignalCounterThreshold;
@@ -206,5 +167,6 @@ private:
 	bool _initialized, _reload;
 
 protected:
+	void enumVideoCaptureDevices();
 	void enumFrameIntervals(QList<int> &framerates, int fileDescriptor, int pixelformat, int width, int height);
 };

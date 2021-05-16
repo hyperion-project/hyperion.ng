@@ -1,31 +1,39 @@
-#include "grabber/MFThread.h"
+#include "grabber/EncoderThread.h"
 
-MFThread::MFThread()
+EncoderThread::EncoderThread()
 	: _localData(nullptr)
 	, _scalingFactorsCount(0)
-	, _scalingFactors(nullptr)
+	, _imageResampler()
+#ifdef HAVE_TURBO_JPEG
 	, _transform(nullptr)
 	, _decompress(nullptr)
+	, _scalingFactors(nullptr)
 	, _xform(nullptr)
-	, _imageResampler()
+#endif
 {}
 
-MFThread::~MFThread()
+EncoderThread::~EncoderThread()
 {
+#ifdef HAVE_TURBO_JPEG
 	if (_transform)
 		tjDestroy(_transform);
 
 	if (_decompress)
 		tjDestroy(_decompress);
+#endif
 
 	if (_localData)
+#ifdef HAVE_TURBO_JPEG
 		tjFree(_localData);
+#else
+		delete[] _localData;
+#endif
 }
 
-void MFThread::setup(
+void EncoderThread::setup(
 	PixelFormat pixelFormat, uint8_t* sharedData,
 	int size, int width, int height, int lineLength,
-	int subsamp, unsigned cropLeft, unsigned cropTop, unsigned cropBottom, unsigned cropRight,
+	unsigned cropLeft, unsigned cropTop, unsigned cropBottom, unsigned cropRight,
 	VideoMode videoMode, FlipMode flipMode, int pixelDecimation)
 {
 	_lineLength = lineLength;
@@ -33,7 +41,6 @@ void MFThread::setup(
 	_size = (unsigned long) size;
 	_width = width;
 	_height = height;
-	_subsamp = subsamp;
 	_cropLeft = cropLeft;
 	_cropTop = cropTop;
 	_cropBottom = cropBottom;
@@ -47,23 +54,32 @@ void MFThread::setup(
 	_imageResampler.setHorizontalPixelDecimation(_pixelDecimation);
 	_imageResampler.setVerticalPixelDecimation(_pixelDecimation);
 
+#ifdef HAVE_TURBO_JPEG
 	if (_localData)
 		tjFree(_localData);
 
 	_localData = (uint8_t*)tjAlloc(size + 1);
+#else
+	delete[] _localData;
+	_localData = nullptr;
+	_localData = new uint8_t(size + 1);
+#endif
+
 	memcpy(_localData, sharedData, size);
 }
 
-void MFThread::process()
+void EncoderThread::process()
 {
 	_busy = true;
 	if (_width > 0 && _height > 0)
 	{
+#ifdef HAVE_TURBO_JPEG
 		if (_pixelFormat == PixelFormat::MJPEG)
 		{
 			processImageMjpeg();
 		}
 		else
+#endif
 		{
 			if (_pixelFormat == PixelFormat::BGR24)
 			{
@@ -78,14 +94,27 @@ void MFThread::process()
 			}
 
 			Image<ColorRgb> image = Image<ColorRgb>();
-			_imageResampler.processImage(_localData, _width, _height, _lineLength, PixelFormat::BGR24, image);
+			_imageResampler.processImage(
+				_localData,
+				_width,
+				_height,
+				_lineLength,
+#if defined(ENABLE_V4L2)
+				_pixelFormat,
+#else
+				PixelFormat::BGR24,
+#endif
+				image
+			);
+
 			emit newFrame(image);
 		}
 	}
 	_busy = false;
 }
 
-void MFThread::processImageMjpeg()
+#ifdef HAVE_TURBO_JPEG
+void EncoderThread::processImageMjpeg()
 {
 	if (!_transform && _flipMode != FlipMode::NO_CHANGE)
 	{
@@ -111,7 +140,8 @@ void MFThread::processImageMjpeg()
 		_scalingFactors = tjGetScalingFactors(&_scalingFactorsCount);
 	}
 
-	if (tjDecompressHeader2(_decompress, _localData, _size, &_width, &_height, &_subsamp) != 0)
+	int subsamp = 0;
+	if (tjDecompressHeader2(_decompress, _localData, _size, &_width, &_height, &subsamp) != 0)
 	{
 		if (tjGetErrorCode(_decompress) == TJERR_FATAL)
 			return;
@@ -176,3 +206,4 @@ void MFThread::processImageMjpeg()
 		emit newFrame(destImage);
 	}
 }
+#endif

@@ -21,12 +21,7 @@
 #include <hyperion/Grabber.h>
 
 // decoder thread includes
-#include <grabber/MFThread.h>
-
-// TurboJPEG decoder
-#ifdef HAVE_TURBO_JPEG
-	#include <turbojpeg.h>
-#endif
+#include <grabber/EncoderThread.h>
 
 /// Forward class declaration
 class SourceReaderCB;
@@ -99,7 +94,7 @@ private:
 	HRESULT										_hr;
 	IMFSourceReader*							_sourceReader;
 	SourceReaderCB*								_sourceReaderCB;
-	MFThreadManager*							_threadManager;
+	EncoderThreadManager*						_threadManager;
 	PixelFormat									_pixelFormat,
 												_pixelFormatConfig;
 	int											_lineLength,
@@ -120,8 +115,4 @@ private:
 												_y_frac_min,
 												_x_frac_max,
 												_y_frac_max;
-
-#ifdef HAVE_TURBO_JPEG
-	int											_subsamp;
-#endif
 };

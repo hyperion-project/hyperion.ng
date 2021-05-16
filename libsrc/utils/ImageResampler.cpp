@@ -156,7 +156,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 					break;
 				}
 				break;
-#ifdef HAVE_JPEG_DECODER
+#ifdef HAVE_TURBO_JPEG
 				case PixelFormat::MJPEG:
 				break;
 #endif

@@ -25,7 +25,6 @@ sudo apt-get install                 \
 	libavahi-core-dev            \
 	libavahi-compat-libdnssd-dev \
 	libssl-dev                   \
-	libjpeg-dev                  \
 	libqt5sql5-sqlite            \
 	libqt5svg5-dev               \
 	zlib1g-dev                   \

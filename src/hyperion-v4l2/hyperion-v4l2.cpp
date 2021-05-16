@@ -56,9 +56,9 @@ int main(int argc, char** argv)
 		IntOption          & argInput               = parser.add<IntOption>    ('i', "input",  "The device input [default: %1]", "0");
 		SwitchOption<VideoStandard> & argVideoStandard= parser.add<SwitchOption<VideoStandard>>('v', "video-standard", "The used video standard. Valid values are PAL, NTSC, SECAM or no-change. [default: %1]", "no-change");
 		SwitchOption<PixelFormat> & argPixelFormat    = parser.add<SwitchOption<PixelFormat>>  (0x0, "pixel-format", "The use pixel format. Valid values are YUYV, UYVY, RGB32, MJPEG or no-change. [default: %1]", "no-change");
-		IntOption          & argFps                 = parser.add<IntOption>    ('f', "framerate",  "Capture frame rate [default: %1]", "15", 1, 25);
-		IntOption          & argWidth               = parser.add<IntOption>    (0x0, "width",      "Width of the captured image [default: %1]", "160", 160);
-		IntOption          & argHeight              = parser.add<IntOption>    (0x0, "height",     "Height of the captured image [default: %1]", "160", 160);
+		IntOption          & argFps                 = parser.add<IntOption>    ('f', "framerate",  "Capture frame rate [default: %1]", "25", 25);
+		IntOption          & argWidth               = parser.add<IntOption>    ('w', "width",      "Width of the captured image [default: %1]", "640", 640);
+		IntOption          & argHeight              = parser.add<IntOption>    ('h', "height",     "Height of the captured image [default: %1]", "480", 480);
 		SwitchOption<FlipMode> & argFlipMode = parser.add<SwitchOption<FlipMode>>(0x0, "flip-mode", "The used image flip mode. Valid values are HORIZONTAL, VERTICAL, BOTH or no-change. [default: %1]", "no-change");
 		IntOption          & argCropWidth           = parser.add<IntOption>    (0x0, "crop-width", "Number of pixels to crop from the left and right sides of the picture before decimation [default: %1]", "0");
 		IntOption          & argCropHeight          = parser.add<IntOption>    (0x0, "crop-height", "Number of pixels to crop from the top and the bottom of the picture before decimation [default: %1]", "0");
@@ -66,15 +66,14 @@ int main(int argc, char** argv)
 		IntOption          & argCropRight           = parser.add<IntOption>    (0x0, "crop-right", "Number of pixels to crop from the right of the picture before decimation (overrides --crop-width)");
 		IntOption          & argCropTop             = parser.add<IntOption>    (0x0, "crop-top", "Number of pixels to crop from the top of the picture before decimation (overrides --crop-height)");
 		IntOption          & argCropBottom          = parser.add<IntOption>    (0x0, "crop-bottom", "Number of pixels to crop from the bottom of the picture before decimation (overrides --crop-height)");
-		IntOption          & argSizeDecimation      = parser.add<IntOption>    ('s', "size-decimator", "Decimation factor for the output size [default=%1]", "6", 1);
-		BooleanOption      & argScreenshot          = parser.add<BooleanOption>(0x0, "screenshot", "Take a single screenshot, save it to file and quit");
+		IntOption          & argSizeDecimation      = parser.add<IntOption>    ('s', "size-decimator", "Decimation factor for the output size [default=%1]", "8", 1);
+		BooleanOption      & argScreenshot          = parser.add<BooleanOption>('S', "screenshot", "Take a single screenshot, save it to file and quit");
 
-		BooleanOption      & argSignalDetection     = parser.add<BooleanOption>('s', "signal-detection-disabled", "disable signal detection");
-		DoubleOption       & argSignalThreshold     = parser.add<DoubleOption> ('t', "signal-threshold", "The signal threshold for detecting the presence of a signal. Value should be between 0.0 and 1.0.", QString(), 0.0, 1.0);
+		BooleanOption      & argSignalDetection     = parser.add<BooleanOption>(0x0, "signal-detection-disabled", "disable signal detection");
+		DoubleOption       & argSignalThreshold     = parser.add<DoubleOption> (0x0, "signal-threshold", "The signal threshold for detecting the presence of a signal. Value should be between 0.0 and 1.0.", QString(), 0.0, 1.0);
 		DoubleOption       & argRedSignalThreshold  = parser.add<DoubleOption> (0x0, "red-threshold", "The red signal threshold. Value should be between 0.0 and 1.0. (overrides --signal-threshold)");
 		DoubleOption       & argGreenSignalThreshold= parser.add<DoubleOption> (0x0, "green-threshold", "The green signal threshold. Value should be between 0.0 and 1.0. (overrides --signal-threshold)");
 		DoubleOption       & argBlueSignalThreshold = parser.add<DoubleOption> (0x0, "blue-threshold", "The blue signal threshold. Value should be between 0.0 and 1.0. (overrides --signal-threshold)");
-
 		DoubleOption       & argSignalHorizontalMin = parser.add<DoubleOption> (0x0, "signal-horizontal-min", "area for signal detection - horizontal minimum offset value. Values between 0.0 and 1.0");
 		DoubleOption       & argSignalVerticalMin   = parser.add<DoubleOption> (0x0, "signal-vertical-min"  , "area for signal detection - vertical minimum offset value. Values between 0.0 and 1.0");
 		DoubleOption       & argSignalHorizontalMax = parser.add<DoubleOption> (0x0, "signal-horizontal-max", "area for signal detection - horizontal maximum offset value. Values between 0.0 and 1.0");
@@ -86,7 +85,7 @@ int main(int argc, char** argv)
 		IntOption          & argPriority            = parser.add<IntOption>    ('p', "priority", "Use the provided priority channel (suggested 100-199) [default: %1]", "150");
 		BooleanOption      & argSkipReply           = parser.add<BooleanOption>(0x0, "skip-reply", "Do not receive and check reply messages from Hyperion");
 		BooleanOption      & argDebug               = parser.add<BooleanOption>(0x0, "debug", "Enable debug logging");
-		BooleanOption      & argHelp                = parser.add<BooleanOption>('h', "help", "Show this help message and exit");
+		BooleanOption      & argHelp                = parser.add<BooleanOption>(0x0, "help", "Show this help message and exit");
 
 		argVideoStandard.addSwitch("pal", VideoStandard::PAL);
 		argVideoStandard.addSwitch("ntsc", VideoStandard::NTSC);
@@ -125,7 +124,7 @@ int main(int argc, char** argv)
 		V4L2Grabber grabber;
 
 		// set device
-		grabber.setDevice(argDevice.value(parser));
+		grabber.setDevice(argDevice.value(parser), "");
 
 		// set input
 		grabber.setInput(argInput.getInt(parser));
@@ -134,13 +133,16 @@ int main(int argc, char** argv)
 		grabber.setWidthHeight(argWidth.getInt(parser), argHeight.getInt(parser));
 
 		// set fps
-		grabber.setFramerate(1000 / argFps.getInt(parser));
+		if (parser.isSet(argFps))
+			grabber.setFramerate(argFps.getInt(parser));
 
-		// TODO set encoding format
-		// grabber.setEncoding(argPixelFormat.switchValue(parser));
+		// set encoding format
+		if (parser.isSet(argPixelFormat))
+			grabber.setEncoding(pixelFormatToString(argPixelFormat.switchValue(parser)));
 
 		// set video standard
-		grabber.setVideoStandard(argVideoStandard.switchValue(parser));
+		if (parser.isSet(argVideoStandard))
+			grabber.setVideoStandard(argVideoStandard.switchValue(parser));
 
 		// set image size decimation
 		grabber.setPixelDecimation(std::max(1, argSizeDecimation.getInt(parser)));
@@ -243,7 +245,8 @@ int main(int argc, char** argv)
 			QObject::connect(&grabber, SIGNAL(newFrame(const Image<ColorRgb> &)), &flatbuf, SLOT(setImage(Image<ColorRgb>)));
 
 			// Start the capturing
-			grabber.start();
+			if (grabber.prepare())
+				grabber.start();
 
 			// Start the application
 			app.exec();

@@ -493,8 +493,8 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 					createGrabberFramebuffer(grabberConfig);
 				}
 				#ifdef ENABLE_FB
-					_dispmanx->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
-					_dispmanx->tryStart();
+					_fbGrabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
+					_fbGrabber->tryStart();
 				#endif
 			}
 			else if (type == "dispmanx")

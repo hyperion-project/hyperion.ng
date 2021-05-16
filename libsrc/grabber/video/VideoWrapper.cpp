@@ -2,7 +2,7 @@
 
 #include <grabber/VideoWrapper.h>
 
-// qt
+// qt includes
 #include <QTimer>
 
 VideoWrapper::VideoWrapper()
@@ -53,13 +53,20 @@ void VideoWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument
 		// extract settings
 		const QJsonObject& obj = config.object();
 
-		// global grabber state
-		GLOBAL_GRABBER_V4L_ENABLE = obj["enable"].toBool(false);
+		// set global grabber state
+		setV4lGrabberState(obj["enable"].toBool(false));
 
-		if (GLOBAL_GRABBER_V4L_ENABLE)
+		if (getV4lGrabberState())
 		{
-			// Device
-			_grabber.setDevice(obj["device"].toString("auto"));
+#if defined(ENABLE_MF)
+			// Device path
+			_grabber.setDevice(obj["device"].toString("none"));
+#endif
+
+#if defined(ENABLE_V4L2)
+			// Device path and name
+			_grabber.setDevice(obj["device"].toString("none"), obj["available_devices"].toString("none"));
+#endif
 
 			// Device input
 			_grabber.setInput(obj["input"].toInt(0));
@@ -118,8 +125,10 @@ void VideoWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument
 				obj["noSignalCounterThreshold"].toInt(50));
 
 			// Reload the Grabber if any settings have been changed that require it
-			_grabber.reload();
+			_grabber.reload(getV4lGrabberState());
 		}
+		else
+			stop();
 	}
 }
 

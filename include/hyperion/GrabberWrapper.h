@@ -67,6 +67,11 @@ public:
 	///
 	virtual QStringList getActive(int inst) const;
 
+	virtual bool getSysGrabberState(){ return GLOBAL_GRABBER_SYS_ENABLE; }
+	virtual void setSysGrabberState(bool sysGrabberState){ GLOBAL_GRABBER_SYS_ENABLE = sysGrabberState; }
+	virtual bool getV4lGrabberState(){ return GLOBAL_GRABBER_V4L_ENABLE; }
+	virtual void setV4lGrabberState(bool v4lGrabberState){ GLOBAL_GRABBER_V4L_ENABLE = v4lGrabberState; }
+
 	static QStringList availableGrabbers();
 
 public:

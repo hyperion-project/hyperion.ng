@@ -7,25 +7,26 @@
 #include <utils/PixelFormat.h>
 #include <utils/ImageResampler.h>
 
-// TurboJPEG decoder
+// Determine the cmake options
+#include <HyperionConfig.h>
+
+// Turbo JPEG decoder
 #ifdef HAVE_TURBO_JPEG
-	#include <QImage>
-	#include <QColor>
 	#include <turbojpeg.h>
 #endif
 
 /// Encoder thread for USB devices
-class MFThread : public QObject
+class EncoderThread : public QObject
 {
 	Q_OBJECT
 public:
-	explicit MFThread();
-	~MFThread();
+	explicit EncoderThread();
+	~EncoderThread();
 
 	void setup(
 		PixelFormat pixelFormat, uint8_t* sharedData,
 		int size, int width, int height, int lineLength,
-		int subsamp, unsigned cropLeft, unsigned cropTop, unsigned cropBottom, unsigned cropRight,
+		unsigned cropLeft, unsigned cropTop, unsigned cropBottom, unsigned cropRight,
 		VideoMode videoMode, FlipMode flipMode, int pixelDecimation);
 
 	void process();
@@ -37,15 +38,6 @@ signals:
 	void newFrame(const Image<ColorRgb>& data);
 
 private:
-	void processImageMjpeg();
-
-#ifdef HAVE_TURBO_JPEG
-	tjhandle			_transform,
-			 			_decompress;
-	tjscalingfactor*	_scalingFactors;
-	tjtransform*		_xform;
-#endif
-
 	PixelFormat			_pixelFormat;
 	uint8_t*			_localData,
 						*_flipBuffer;
@@ -53,7 +45,6 @@ private:
 						_width,
 						_height,
 						_lineLength,
-						_subsamp,
 						_currentFrame,
 						_pixelDecimation;
 	unsigned long		_size;
@@ -63,6 +54,14 @@ private:
 						_cropRight;
 	FlipMode			_flipMode;
 	ImageResampler		_imageResampler;
+
+#ifdef HAVE_TURBO_JPEG
+	tjhandle			_transform, _decompress;
+	tjscalingfactor*	_scalingFactors;
+	tjtransform*		_xform;
+
+	void processImageMjpeg();
+#endif
 };
 
 template <typename TThread> class Thread : public QThread
@@ -83,36 +82,36 @@ public:
 		wait();
 	}
 
-	MFThread* thread() const { return qobject_cast<MFThread*>(_thread); }
+	EncoderThread* thread() const { return qobject_cast<EncoderThread*>(_thread); }
 
 	void setup(
 		PixelFormat pixelFormat, uint8_t* sharedData,
 		int size, int width, int height, int lineLength,
-		int subsamp, unsigned cropLeft, unsigned cropTop, unsigned cropBottom, unsigned cropRight,
+		unsigned cropLeft, unsigned cropTop, unsigned cropBottom, unsigned cropRight,
 		VideoMode videoMode, FlipMode flipMode, int pixelDecimation)
 	{
-		auto mfthread = qobject_cast<MFThread*>(_thread);
-		if (mfthread != nullptr)
-			mfthread->setup(pixelFormat, sharedData,
+		auto encThread = qobject_cast<EncoderThread*>(_thread);
+		if (encThread != nullptr)
+			encThread->setup(pixelFormat, sharedData,
 				size, width, height, lineLength,
-				subsamp, cropLeft, cropTop, cropBottom, cropRight,
+				cropLeft, cropTop, cropBottom, cropRight,
 				videoMode, flipMode, pixelDecimation);
 	}
 
 	bool isBusy()
 	{
-		auto mfthread = qobject_cast<MFThread*>(_thread);
-		if (mfthread != nullptr)
-			return mfthread->isBusy();
+		auto encThread = qobject_cast<EncoderThread*>(_thread);
+		if (encThread != nullptr)
+			return encThread->isBusy();
 
 		return true;
 	}
 
 	void process()
 	{
-		auto mfthread = qobject_cast<MFThread*>(_thread);
-		if (mfthread != nullptr)
-			mfthread->process();
+		auto encThread = qobject_cast<EncoderThread*>(_thread);
+		if (encThread != nullptr)
+			encThread->process();
 	}
 
 protected:
@@ -123,24 +122,24 @@ protected:
 	}
 };
 
-class MFThreadManager : public QObject
+class EncoderThreadManager : public QObject
 {
     Q_OBJECT
 public:
-	explicit MFThreadManager(QObject *parent = nullptr)
+	explicit EncoderThreadManager(QObject *parent = nullptr)
 		: QObject(parent)
 		, _threadCount(qMax(QThread::idealThreadCount(), 1))
 		, _threads(nullptr)
 	{
-		_threads = new Thread<MFThread>*[_threadCount];
+		_threads = new Thread<EncoderThread>*[_threadCount];
 		for (int i = 0; i < _threadCount; i++)
 		{
-			_threads[i] = new Thread<MFThread>(new MFThread, this);
-			_threads[i]->setObjectName("MFThread " + i);
+			_threads[i] = new Thread<EncoderThread>(new EncoderThread, this);
+			_threads[i]->setObjectName("Encoder " + i);
 		}
 	}
 
-	~MFThreadManager()
+	~EncoderThreadManager()
 	{
 		if (_threads != nullptr)
 		{
@@ -159,7 +158,7 @@ public:
 	{
 		if (_threads != nullptr)
 			for (int i = 0; i < _threadCount; i++)
-				connect(_threads[i]->thread(), &MFThread::newFrame, this, &MFThreadManager::newFrame);
+				connect(_threads[i]->thread(), &EncoderThread::newFrame, this, &EncoderThreadManager::newFrame);
 	}
 
 	void stop()
@@ -170,7 +169,7 @@ public:
 	}
 
 	int					_threadCount;
-	Thread<MFThread>**	_threads;
+	Thread<EncoderThread>**	_threads;
 
 signals:
 	void newFrame(const Image<ColorRgb>& data);

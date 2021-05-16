@@ -400,31 +400,6 @@ find_package(libusb-1.0 REQUIRED)
 find_package(Threads REQUIRED)
 add_definitions(${QT_DEFINITIONS})
 
-# Add JPEG library
-if (ENABLE_V4L2 OR ENABLE_MF)
-	# Turbo JPEG
-	find_package(TurboJPEG)
-	if (TURBOJPEG_FOUND)
-		add_definitions(-DHAVE_TURBO_JPEG)
-		message( STATUS "Using Turbo JPEG library: ${TurboJPEG_LIBRARY}")
-		include_directories(${TurboJPEG_INCLUDE_DIRS})
-	elseif(ENABLE_V4L2)
-		# System JPEG
-		find_package(JPEG)
-		if (JPEG_FOUND)
-			add_definitions(-DHAVE_JPEG)
-			message( STATUS "Using system JPEG library: ${JPEG_LIBRARIES}")
-			include_directories(${JPEG_INCLUDE_DIR})
-		else()
-			message( STATUS "JPEG library not found, MJPEG camera format won't work in V4L2 grabber.")
-		endif()
-	endif ()
-
-	if (TURBOJPEG_FOUND OR JPEG_FOUND)
-		add_definitions(-DHAVE_JPEG_DECODER)
-	endif()
-endif()
-
 if(APPLE)
 	set(CMAKE_EXE_LINKER_FLAGS "-framework CoreGraphics")
 endif()

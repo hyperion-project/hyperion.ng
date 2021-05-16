@@ -62,7 +62,7 @@ bool MFGrabber::prepare()
 			_sourceReaderCB = new SourceReaderCB(this);
 
 		if (!_threadManager)
-			_threadManager = new MFThreadManager(this);
+			_threadManager = new EncoderThreadManager(this);
 
 		return (_sourceReaderCB != nullptr && _threadManager != nullptr);
 	}
@@ -76,7 +76,7 @@ bool MFGrabber::start()
 	{
 		if (init())
 		{
-			connect(_threadManager, &MFThreadManager::newFrame, this, &MFGrabber::newThreadFrame);
+			connect(_threadManager, &EncoderThreadManager::newFrame, this, &MFGrabber::newThreadFrame);
 			_threadManager->start();
 			DebugIf(verbose, _log, "Decoding threads: %d", _threadManager->_threadCount);
 
@@ -518,7 +518,7 @@ void MFGrabber::process_image(const void *frameImageBuffer, int size)
 		{
 			if (!_threadManager->_threads[i]->isBusy())
 			{
-				_threadManager->_threads[i]->setup(_pixelFormat, (uint8_t*)frameImageBuffer, size, _width, _height, _lineLength, _subsamp, _cropLeft, _cropTop, _cropBottom, _cropRight, _videoMode, _flipMode, _pixelDecimation);
+				_threadManager->_threads[i]->setup(_pixelFormat, (uint8_t*)frameImageBuffer, size, _width, _height, _lineLength, _cropLeft, _cropTop, _cropBottom, _cropRight, _videoMode, _flipMode, _pixelDecimation);
 				_threadManager->_threads[i]->process();
 				break;
 			}

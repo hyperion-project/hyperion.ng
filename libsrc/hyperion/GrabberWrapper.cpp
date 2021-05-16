@@ -170,10 +170,10 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 		// extract settings
 		const QJsonObject& obj = config.object();
 
-		// global grabber state
-		GLOBAL_GRABBER_SYS_ENABLE = obj["enable"].toBool(false);
+		// set global grabber state
+		setSysGrabberState(obj["enable"].toBool(false));
 
-		if (GLOBAL_GRABBER_SYS_ENABLE)
+		if (getSysGrabberState())
 		{
 			// width/height
 			_ggrabber->setWidthHeight(obj["width"].toInt(96), obj["height"].toInt(96));
@@ -197,6 +197,8 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 			// eval new update time
 			updateTimer(1000/obj["fps"].toInt(10));
 		}
+		else
+			stop();
 	}
 }
 
@@ -209,7 +211,7 @@ void GrabberWrapper::handleSourceRequest(hyperion::Components component, int hyp
 		else
 			GRABBER_SYS_CLIENTS.remove(hyperionInd);
 
-		if(GRABBER_SYS_CLIENTS.empty() || !GLOBAL_GRABBER_SYS_ENABLE)
+		if(GRABBER_SYS_CLIENTS.empty() || !getSysGrabberState())
 			stop();
 		else
 			start();
@@ -221,7 +223,7 @@ void GrabberWrapper::handleSourceRequest(hyperion::Components component, int hyp
 		else
 			GRABBER_V4L_CLIENTS.remove(hyperionInd);
 
-		if(GRABBER_V4L_CLIENTS.empty() || !GLOBAL_GRABBER_V4L_ENABLE)
+		if(GRABBER_V4L_CLIENTS.empty() || !getV4lGrabberState())
 			stop();
 		else
 			start();
@@ -231,6 +233,6 @@ void GrabberWrapper::handleSourceRequest(hyperion::Components component, int hyp
 void GrabberWrapper::tryStart()
 {
 	// verify start condition
-	if(!_grabberName.startsWith("V4L") && !GRABBER_SYS_CLIENTS.empty() && GLOBAL_GRABBER_SYS_ENABLE)
+	if(!_grabberName.startsWith("V4L") && !GRABBER_SYS_CLIENTS.empty() && getSysGrabberState())
 		start();
 }
