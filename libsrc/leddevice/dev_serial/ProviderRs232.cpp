@@ -7,6 +7,7 @@
 // qt includes
 #include <QSerialPortInfo>
 #include <QEventLoop>
+#include <QDir>
 
 #include <chrono>
 
@@ -20,6 +21,10 @@ namespace {
 	const int NUM_POWEROFF_WRITE_BLACK = 2;	// Number of write "BLACK" during powering off
 
 	constexpr std::chrono::milliseconds DEFAULT_IDENTIFY_TIME{ 500 };
+
+	// tty discovery service
+	const char DISCOVERY_DIRECTORY[] = "/dev/";
+	const char DISCOVERY_FILEPATTERN[] = "tty*";
 } //End of constants
 
 ProviderRs232::ProviderRs232(const QJsonObject &deviceConfig)
@@ -47,18 +52,26 @@ bool ProviderRs232::init(const QJsonObject &deviceConfig)
 		Debug(_log, "LatchTime    : %d", this->getLatchTime());
 
 		_deviceName           = deviceConfig["output"].toString("auto");
+		_isAutoDeviceName     = _deviceName.toLower() == "auto";
 
 		// If device name was given as unix /dev/ system-location, get port name
 		if ( _deviceName.startsWith(QLatin1String("/dev/")) )
 		{
+			_location = _deviceName;
+			//Handle udev devices
+			QFileInfo file_info(_deviceName);
+			if (file_info.isSymLink())
+			{
+				_deviceName = file_info.symLinkTarget();
+			}
 			_deviceName = _deviceName.mid(5);
 		}
 
-		_isAutoDeviceName     = _deviceName.toLower() == "auto";
 		_baudRate_Hz          = deviceConfig["rate"].toInt();
 		_delayAfterConnect_ms = deviceConfig["delayAfterConnect"].toInt(1500);
 
-		Debug(_log, "deviceName   : %s", QSTRING_CSTR(_deviceName));
+		Debug(_log, "DeviceName   : %s", QSTRING_CSTR(_deviceName));
+		DebugIf(!_location.isEmpty(), _log, "Location     : %s", QSTRING_CSTR(_location));
 		Debug(_log, "AutoDevice   : %d", _isAutoDeviceName);
 		Debug(_log, "baudRate_Hz  : %d", _baudRate_Hz);
 		Debug(_log, "delayAfCon ms: %d", _delayAfterConnect_ms);
@@ -141,7 +154,14 @@ bool ProviderRs232::tryOpen(int delayAfterConnect_ms)
 
 	if (!_rs232Port.isOpen())
 	{
-		Info(_log, "Opening UART: %s", QSTRING_CSTR(_deviceName));
+		if (!_location.isEmpty())
+		{
+			Info(_log, "Opening UART: %s (%s)", QSTRING_CSTR(_deviceName), QSTRING_CSTR(_location));
+		}
+		else
+		{
+			Info(_log, "Opening UART: %s", QSTRING_CSTR(_deviceName));
+		}
 
 		_frameDropCounter = 0;
 
@@ -168,7 +188,7 @@ bool ProviderRs232::tryOpen(int delayAfterConnect_ms)
 		}
 		else
 		{
-			QString errortext = QString("Invalid serial device name: [%1]!").arg(_deviceName);
+			QString errortext = QString("Invalid serial device name: %1 %2!").arg(_deviceName, _location);
 			this->setInError( errortext );
 
 			// List available device
@@ -299,6 +319,37 @@ QJsonObject ProviderRs232::discover(const QJsonObject& /*params*/)
 			deviceList.append(portInfo);
 		}
 	}
+
+#ifndef _WIN32
+	//Check all /dev/tty* files, if they are udev-serial devices
+	QDir deviceDirectory (DISCOVERY_DIRECTORY);
+	QStringList deviceFilter(DISCOVERY_FILEPATTERN);
+	deviceDirectory.setNameFilters(deviceFilter);
+	deviceDirectory.setSorting(QDir::Name);
+	QFileInfoList deviceFiles = deviceDirectory.entryInfoList(QDir::AllEntries);
+
+	QFileInfoList::const_iterator deviceFileIterator;
+	for (deviceFileIterator = deviceFiles.constBegin(); deviceFileIterator != deviceFiles.constEnd(); ++deviceFileIterator)
+	{
+		if ((*deviceFileIterator).isSymLink())
+		{
+			QSerialPortInfo port = QSerialPortInfo(QSerialPort((*deviceFileIterator).symLinkTarget()));
+
+			QJsonObject portInfo;
+			portInfo.insert("portName", (*deviceFileIterator).fileName());
+			portInfo.insert("systemLocation", (*deviceFileIterator).absoluteFilePath());
+			portInfo.insert("udev", true);
+
+			portInfo.insert("description", port.description());
+			portInfo.insert("manufacturer", port.manufacturer());
+			portInfo.insert("productIdentifier", QString("0x%1").arg(port.productIdentifier(), 0, 16));
+			portInfo.insert("serialNumber", port.serialNumber());
+			portInfo.insert("vendorIdentifier", QString("0x%1").arg(port.vendorIdentifier(), 0, 16));
+
+			deviceList.append(portInfo);
+		}
+	}
+#endif
 
 	devicesDiscovered.insert("devices", deviceList);
 	DebugIf(verbose,_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
