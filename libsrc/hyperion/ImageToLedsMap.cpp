@@ -59,7 +59,7 @@ ImageToLedsMap::ImageToLedsMap(
 		const auto maxYLedCount = qMin(maxY_idx, yOffset+actualHeight);
 		const auto maxXLedCount = qMin(maxX_idx, xOffset+actualWidth);
 
-		std::vector<unsigned> ledColors;
+		std::vector<int32_t> ledColors;
 		ledColors.reserve((size_t) maxXLedCount*maxYLedCount);
 
 		for (unsigned y = minY_idx; y < maxYLedCount; ++y)
