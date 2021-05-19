@@ -2,7 +2,24 @@
 #include "grabber/MFGrabber.h"
 
 // Constants
-namespace { const bool verbose = false; }
+namespace { const bool verbose = true; }
+
+// Need more video properties? Visit https://docs.microsoft.com/en-us/windows/win32/api/strmif/ne-strmif-videoprocampproperty
+using VideoProcAmpPropertyMap = QMap<VideoProcAmpProperty, QString>;
+inline QMap<VideoProcAmpProperty, QString> initVideoProcAmpPropertyMap()
+{
+	QMap<VideoProcAmpProperty, QString> _videoProcAmpPropertyMap
+	{
+		{VideoProcAmp_Brightness, "brightness"	},
+		{VideoProcAmp_Contrast	, "contrast"	},
+		{VideoProcAmp_Saturation, "saturation"	},
+		{VideoProcAmp_Hue		, "hue"			}
+	};
+
+	return _videoProcAmpPropertyMap;
+};
+
+Q_GLOBAL_STATIC_WITH_ARGS(VideoProcAmpPropertyMap, _videoProcAmpPropertyMap, (initVideoProcAmpPropertyMap()));
 
 MFGrabber::MFGrabber()
 	: Grabber("V4L2:MEDIA_FOUNDATION")
@@ -102,9 +119,10 @@ void MFGrabber::stop()
 		_threadManager->stop();
 		disconnect(_threadManager, nullptr, nullptr, nullptr);
 		_sourceReader->Flush(MF_SOURCE_READER_FIRST_VIDEO_STREAM);
-		while (_sourceReaderCB->isBusy()) {}
+		_sourceReaderCB->Wait();
 		SAFE_RELEASE(_sourceReader);
 		_deviceProperties.clear();
+		_deviceControls.clear();
 		Info(_log, "Stopped");
 	}
 }
@@ -171,7 +189,6 @@ HRESULT MFGrabber::init_device(QString deviceName, DeviceProperties props)
 	QString error;
 	IMFMediaSource* device = nullptr;
 	IMFAttributes* deviceAttributes = nullptr, *sourceReaderAttributes = nullptr;
-	IAMVideoProcAmp *pProcAmp = nullptr;
 	IMFMediaType* type = nullptr;
 	HRESULT hr = S_OK;
 
@@ -213,86 +230,43 @@ HRESULT MFGrabber::init_device(QString deviceName, DeviceProperties props)
 	else
 		Debug(_log, "Device opened");
 
-	// Set Brightness/Contrast/Saturation/Hue
-	if (_brightness != 0 || _contrast != 0 || _saturation != 0 || _hue != 0)
+	IAMVideoProcAmp *pProcAmp = nullptr;
+	if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&pProcAmp))))
 	{
-		if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&pProcAmp))))
+		for (auto control : _deviceControls[deviceName])
 		{
-			long lMin, lMax, lStep, lDefault, lCaps, Val;
-			if (_brightness != 0)
+			switch (_videoProcAmpPropertyMap->key(control.property))
 			{
-				if (SUCCEEDED(pProcAmp->GetRange(VideoProcAmp_Brightness, &lMin, &lMax, &lStep, &lDefault, &lCaps)))
-				{
-					Debug(_log, "Brightness: min=%i, max=%i, default=%i", lMin, lMax, lDefault);
-
-					if (SUCCEEDED(pProcAmp->Get(VideoProcAmp_Brightness, &Val,  &lCaps)))
-						Debug(_log, "Current brightness set to: %i",Val);
-
-					if (SUCCEEDED(pProcAmp->Set(VideoProcAmp_Brightness, _brightness, VideoProcAmp_Flags_Manual)))
-						Debug(_log, "Brightness set to: %i",_brightness);
-					else
-						Error(_log, "Could not set brightness");
-				}
-				else
-					Error(_log, "Brightness is not supported by the grabber");
-			}
-
-			if (_contrast != 0)
-			{
-				if (SUCCEEDED(pProcAmp->GetRange(VideoProcAmp_Contrast, &lMin, &lMax, &lStep, &lDefault, &lCaps)))
-				{
-					Debug(_log, "Contrast: min=%i, max=%i, default=%i", lMin, lMax, lDefault);
-
-					if (SUCCEEDED(pProcAmp->Get(VideoProcAmp_Contrast, &Val,  &lCaps)))
-						Debug(_log, "Current contrast set to: %i",Val);
-
-					if (SUCCEEDED(pProcAmp->Set(VideoProcAmp_Contrast, _contrast, VideoProcAmp_Flags_Manual)))
-						Debug(_log, "Contrast set to: %i",_contrast);
-					else
-						Error(_log, "Could not set contrast");
-				}
-				else
-					Error(_log, "Contrast is not supported by the grabber");
-			}
-
-			if (_saturation != 0)
-			{
-				if (SUCCEEDED(pProcAmp->GetRange(VideoProcAmp_Saturation, &lMin, &lMax, &lStep, &lDefault, &lCaps)))
-				{
-					Debug(_log, "Saturation: min=%i, max=%i, default=%i", lMin, lMax, lDefault);
-
-					if (SUCCEEDED(pProcAmp->Get(VideoProcAmp_Saturation, &Val,  &lCaps)))
-						Debug(_log, "Current saturation set to: %i",Val);
-
-					if (SUCCEEDED(pProcAmp->Set(VideoProcAmp_Saturation, _saturation, VideoProcAmp_Flags_Manual)))
-						Debug(_log, "Saturation set to: %i",_saturation);
-					else
-						Error(_log, "Could not set saturation");
-				}
-				else
-					Error(_log, "Saturation is not supported by the grabber");
-			}
-
-			if (_hue != 0)
-			{
-				hr = pProcAmp->GetRange(VideoProcAmp_Hue, &lMin, &lMax, &lStep, &lDefault, &lCaps);
-
-				if (SUCCEEDED(hr))
-				{
-					Debug(_log, "Hue: min=%i, max=%i, default=%i", lMin, lMax, lDefault);
-
-					hr = pProcAmp->Get(VideoProcAmp_Hue, &Val,  &lCaps);
-					if (SUCCEEDED(hr))
-						Debug(_log, "Current hue set to: %i",Val);
-
-					hr = pProcAmp->Set(VideoProcAmp_Hue, _hue, VideoProcAmp_Flags_Manual);
-					if (SUCCEEDED(hr))
-						Debug(_log, "Hue set to: %i",_hue);
-					else
-						Error(_log, "Could not set hue");
-				}
-				else
-					Error(_log, "Hue is not supported by the grabber");
+				case VideoProcAmpProperty::VideoProcAmp_Brightness:
+					if (_brightness >= control.minValue && _brightness <= control.maxValue && _brightness != control.currentValue)
+					{
+						Debug(_log,"Set brightness to %i", _brightness);
+						pProcAmp->Set(VideoProcAmp_Brightness, _brightness, VideoProcAmp_Flags_Manual);
+					}
+				break;
+				case VideoProcAmpProperty::VideoProcAmp_Contrast:
+					if (_contrast >= control.minValue && _contrast <= control.maxValue && _contrast != control.currentValue)
+					{
+						Debug(_log,"Set contrast to %i", _contrast);
+						pProcAmp->Set(VideoProcAmp_Contrast, _contrast, VideoProcAmp_Flags_Manual);
+					}
+				break;
+				case VideoProcAmpProperty::VideoProcAmp_Saturation:
+					if (_saturation >= control.minValue && _saturation <= control.maxValue && _saturation != control.currentValue)
+					{
+						Debug(_log,"Set saturation to %i", _saturation);
+						pProcAmp->Set(VideoProcAmp_Saturation, _saturation, VideoProcAmp_Flags_Manual);
+					}
+				break;
+				case VideoProcAmpProperty::VideoProcAmp_Hue:
+					if (_hue >= control.minValue && _hue <= control.maxValue && _hue != control.currentValue)
+					{
+						Debug(_log,"Set hue to %i", _hue);
+						pProcAmp->Set(VideoProcAmp_Hue, _hue, VideoProcAmp_Flags_Manual);
+					}
+				break;
+				default:
+					break;
 			}
 		}
 	}
@@ -402,6 +376,7 @@ done:
 void MFGrabber::enumVideoCaptureDevices()
 {
 	_deviceProperties.clear();
+	_deviceControls.clear();
 
 	IMFAttributes* attr;
 	if (SUCCEEDED(MFCreateAttributes(&attr, 1)))
@@ -461,15 +436,55 @@ void MFGrabber::enumVideoCaptureDevices()
 												properties.guid = format;
 												devicePropertyList.append(properties);
 
-												DebugIf (verbose, _log,  "%s %d x %d @ %d fps (%s)", QSTRING_CSTR(dev), properties.width, properties.height, properties.fps, QSTRING_CSTR(pixelFormatToString(properties.pf)));
+												DebugIf (verbose, _log, "%s %d x %d @ %d fps (%s)", QSTRING_CSTR(dev), properties.width, properties.height, properties.fps, QSTRING_CSTR(pixelFormatToString(properties.pf)));
 											}
 										}
 
-										pType->Release();
+										SAFE_RELEASE(pType);
 									}
-									reader->Release();
+
+									IAMVideoProcAmp *videoProcAmp = nullptr;
+									if (SUCCEEDED(pSource->QueryInterface(IID_PPV_ARGS(&videoProcAmp))))
+									{
+										QList<DeviceControls> deviceControlList;
+										for (auto it = _videoProcAmpPropertyMap->begin(); it != _videoProcAmpPropertyMap->end(); it++)
+										{
+											long minVal, maxVal, stepVal, defaultVal, flag;
+											if (SUCCEEDED(videoProcAmp->GetRange(it.key(), &minVal, &maxVal, &stepVal, &defaultVal, &flag)))
+											{
+												if (flag & VideoProcAmp_Flags_Manual)
+												{
+													DeviceControls control;
+													control.property = it.value();
+													control.minValue = minVal;
+													control.maxValue = maxVal;
+													control.step = stepVal;
+													control.default = defaultVal;
+
+													long currentVal;
+													if (SUCCEEDED(videoProcAmp->Get(it.key(), &currentVal,  &flag)))
+													{
+														control.currentValue = currentVal;
+														DebugIf(verbose, _log, "%s: min=%i, max=%i, step=%i, default=%i, current=%i", QSTRING_CSTR(it.value()), minVal, maxVal, stepVal, defaultVal, currentVal);
+													}
+													else
+														break;
+
+													deviceControlList.append(control);
+												}
+											}
+
+										}
+
+										if (!deviceControlList.isEmpty())
+											_deviceControls.insert(dev, deviceControlList);
+									}
+
+									SAFE_RELEASE(videoProcAmp);
+									SAFE_RELEASE(reader);
 								}
-								pSource->Release();
+
+								SAFE_RELEASE(pSource);
 							}
 
 							if (!devicePropertyList.isEmpty())
@@ -480,13 +495,13 @@ void MFGrabber::enumVideoCaptureDevices()
 					}
 
 					CoTaskMemFree(name);
-					devices[i]->Release();
+					SAFE_RELEASE(devices[i]);
 				}
 
 				CoTaskMemFree(devices);
 			}
 
-			attr->Release();
+			SAFE_RELEASE(attr);
 		}
 	}
 }
@@ -628,9 +643,6 @@ void MFGrabber::setBrightnessContrastSaturationHue(int brightness, int contrast,
 {
 	if (_brightness != brightness || _contrast != contrast || _saturation != saturation || _hue != hue)
 	{
-		if (_initialized)
-			Debug(_log,"Set brightness to %i, contrast to %i, saturation to %i, hue to %i", _brightness, _contrast, _saturation, _hue);
-
 		_brightness = brightness;
 		_contrast = contrast;
 		_saturation = saturation;
@@ -677,14 +689,18 @@ void MFGrabber::setSignalDetectionEnable(bool enable)
 
 bool MFGrabber::reload(bool force)
 {
-	if (_sourceReader && (_reload || force))
+	if (_reload || force)
 	{
-		Info(_log,"Reloading Media Foundation Grabber");
-		uninit();
-		_pixelFormat = _pixelFormatConfig;
-		_newDeviceName = _currentDeviceName;
+		if (_sourceReader)
+		{
+			Info(_log,"Reloading Media Foundation Grabber");
+			uninit();
+			_pixelFormat = _pixelFormatConfig;
+			_newDeviceName = _currentDeviceName;
+		}
+
 		_reload = false;
-		return start();
+		return prepare() && start();
 	}
 
 	return false;
@@ -754,12 +770,39 @@ QJsonArray MFGrabber::discover(const QJsonObject& params)
 		}
 		in["formats"] = formats;
 		video_inputs.append(in);
-
 		device["video_inputs"] = video_inputs;
+
+		QJsonObject controls, controls_default;
+		for (auto control : _deviceControls[it.key()])
+		{
+			QJsonObject property;
+			property["minValue"] = control.minValue;
+			property["maxValue"] = control.maxValue;
+			property["step"] = control.step;
+			controls[control.property] = property;
+			controls_default[control.property] = control.default;
+		}
+		device["properties"] = controls;
+
+		QJsonObject default, video_inputs_default, format_default, resolution_default;
+		resolution_default["width"] = 640;
+		resolution_default["height"] = 480;
+		resolution_default["fps"] = 25;
+		format_default["format"] = "bgr24";
+		format_default["resolution"] = resolution_default;
+		video_inputs_default["inputIdx"] = 0;
+		video_inputs_default["standards"] = "PAL";
+		video_inputs_default["formats"] = format_default;
+
+		default["video_input"] = video_inputs_default;
+		default["properties"] = controls_default;
+		device["default"] = default;
+
 		inputsDiscovered.append(device);
 	}
 
 	_deviceProperties.clear();
+	_deviceControls.clear();
 	DebugIf (verbose, _log, "device: [%s]", QString(QJsonDocument(inputsDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return inputsDiscovered;

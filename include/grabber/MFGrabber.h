@@ -49,6 +49,16 @@ public:
 		GUID guid		= GUID_NULL;
 	};
 
+	struct DeviceControls
+	{
+		QString property = QString();
+		int minValue = 0;
+		int maxValue = 0;
+		int step = 0;
+		int default = 0;
+		int currentValue = 0;
+	};
+
 	MFGrabber();
 	~MFGrabber() override;
 
@@ -91,6 +101,7 @@ private:
 	QString										_currentDeviceName,
 												_newDeviceName;
 	QMap<QString, QList<DeviceProperties>>		_deviceProperties;
+	QMap<QString, QList<DeviceControls>>		_deviceControls;
 	HRESULT										_hr;
 	IMFSourceReader*							_sourceReader;
 	SourceReaderCB*								_sourceReaderCB;

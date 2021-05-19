@@ -31,13 +31,12 @@ body{
   }
   .navbar-brand{
     position:fixed;
-    padding: 0px;
     height: 80px;
   }
   #main-nav{
     position:absolute !important;
   }
-  .navbar-top-links li a {
+  .navbar-top-links li a > .fa{
     font-size: 22px;
   }
 }
@@ -93,7 +92,7 @@ table.input-group{width:100%}
 @media (max-width: 767px) {.ltd{white-space:normal;}}
 
 /*icon spacing*/
-.fa-fw,.mdi-24px{margin-right:5px;}
+.fa-fw, .mdi-24px{margin-right:5px;}
 
 /*table*/
 table.borderless td,table.borderless th{border: none !important;}
@@ -104,7 +103,7 @@ table.first_cell_borderless td:first-child,table.first_cell_borderless th:first-
 table.first_cell_borderless td:first-child{width: 25px !important;}
 
 /*Header*/
-.navbar-brand{padding-top:0px;padding-left:2;}
+.navbar-brand{top:0px;left:17px;padding-top:0;}
 .sidebar{margin-top:85px;}
 .dropdown{font-size:18px;}
 @media (max-width: 767px) {.sidebar{margin-top:0px;padding-top:0px !important;}}
@@ -239,6 +238,7 @@ table.first_cell_borderless td:first-child{width: 25px !important;}
 .btn-transparent {
   background-color: transparent;
   border-style: none;
+  padding-left: 0;
 }
 
 /*general instance management button*/
