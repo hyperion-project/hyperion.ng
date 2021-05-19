@@ -6,17 +6,17 @@
 <div class="container-fluid">
   <h3 class="page-header"><i class="mdi mdi-lightbulb-on fa-fw"></i><span data-i18n="main_menu_leds_conf_token">LED Hardware</span></h3>
 
-	<div class="panel panel-default" style="border:0px;">
-		<div class="panel-heading panel-instance" style="border-radius:3px; border-bottom:0px;">
-			<div class="dropdown">
-				<a id="active_instance_dropdown" class="dropdown-toggle" data-toggle="dropdown" href="#" style="text-decoration:none;display:flex;align-items:center;">
+  <div class="panel panel-default" style="border:0px;">
+    <div class="panel-heading panel-instance" style="border-radius:3px; border-bottom:0px;">
+      <div class="dropdown">
+        <a id="active_instance_dropdown" class="dropdown-toggle" data-toggle="dropdown" href="#" style="text-decoration:none;display:flex;align-items:center;">
           <div id="active_instance_friendly_name"></div>
-					<div id="btn_hypinstanceswitch" style="white-space:nowrap;"><span class="mdi mdi-lightbulb-group mdi-24px" style="margin-right:0; margin-left:5px;"></span><span class="mdi mdi-menu-down mdi-24px"></span></div>
-				</a>
-				<ul id="hyp_inst_listing" class="dropdown-menu dropdown-alerts" style="cursor:pointer;"></ul>
-			</div>
-		</div>
-	</div>
+          <div id="btn_hypinstanceswitch" style="white-space:nowrap;"><span class="mdi mdi-lightbulb-group mdi-24px" style="margin-right:0; margin-left:5px;"></span><span class="mdi mdi-menu-down mdi-24px"></span></div>
+        </a>
+        <ul id="hyp_inst_listing" class="dropdown-menu dropdown-alerts" style="cursor:pointer;"></ul>
+      </div>
+    </div>
+  </div>
 
   <ul id="leds_cfg_nav" class="nav nav-tabs">
     <li class="active"><a data-toggle="tab" href="#menu_controller" data-i18n="conf_leds_nav_label_ledcontroller">LED Controller</a></li>
@@ -40,7 +40,7 @@
               <div class="bs-callout bs-callout-info" style="margin-top:0px"><h4 data-i18n="dashboard_infobox_label_title">Information</h4><span data-i18n="conf_leds_device_info_log"> In case your LEDs do not work, check here for errors: </span> <a onclick="SwitchToMenuItem('MenuItemLogging')" data-i18n="main_menu_logging_token" style="cursor:pointer"></a></div>
             </div>
             <div class="panel-footer" style="text-align:right">
-              <button id='btn_test_controller' class="btn btn-primary hidden" disabled data-toggle="tooltip" data-placement="top" title="Identify configured device by lighting it up">
+              <button id='btn_test_controller' class="btn btn-primary" disabled data-toggle="tooltip" data-placement="top" title="Identify configured device by lighting it up">
                 <i class="fa fa-fw fa-save"></i><span data-i18n="wiz_identify">Identify/Test</span>
               </button>
               <button id='btn_submit_controller' class="btn btn-primary" data-toggle="tooltip" data-placement="top" title="Save the device's connectivity configuration">

@@ -46,7 +46,7 @@ function createLedPreview(leds, origin) {
   canvas_width = $('#leds_preview').innerWidth();
 
   imageCanvasNodeCtx = document.getElementById("image_preview").getContext("2d");
-  $('#image_preview').css({"width":canvas_width, "height":canvas_height});
+  $('#image_preview').css({ "width": canvas_width, "height": canvas_height });
 
   var leds_html = "";
   for (var idx = 0; idx < leds.length; idx++) {
@@ -562,25 +562,23 @@ $(document).ready(function () {
   });
 
   // toggle live video
-  $('#leds_prev_toggle_live_video').off().on("click", function() {
+  $('#leds_prev_toggle_live_video').off().on("click", function () {
     setClassByBool('#leds_prev_toggle_live_video', window.imageStreamActive, "btn-success", "btn-danger");
-    if (window.imageStreamActive)
-    {
+    if (window.imageStreamActive) {
       requestLedImageStop();
       imageCanvasNodeCtx.clear();
     }
-    else
-    {
+    else {
       requestLedImageStart();
     }
   });
 
-  $(window.hyperion).on("cmd-ledcolors-imagestream-update",function(event){
+  $(window.hyperion).on("cmd-ledcolors-imagestream-update", function (event) {
     setClassByBool('#leds_prev_toggle_live_video', window.imageStreamActive, "btn-danger", "btn-success");
     var imageData = (event.response.result.image);
 
     var image = new Image();
-    image.onload = function() {
+    image.onload = function () {
       imageCanvasNodeCtx.drawImage(image, 0, 0, imageCanvasNodeCtx.canvas.width, imageCanvasNodeCtx.canvas.height);
     };
     image.src = imageData;
@@ -703,6 +701,8 @@ $(document).ready(function () {
       var hwLedCountDefault = 1;
       var colorOrderDefault = "rgb";
 
+      $('#btn_test_controller').hide();
+
       switch (ledType) {
         case "cololight":
         case "wled":
@@ -771,11 +771,38 @@ $(document).ready(function () {
     });
 
     conf_editor.on('change', function () {
-      //Check, if device can be identified/tested and/or saved
+      // //Check, if device can be identified/tested and/or saved
       var canIdentify = false;
       var canSave = false;
 
       switch (ledType) {
+
+        case "atmoorb":
+        case "fadecandy":
+        case "tinkerforge":
+        case "tpm2net":
+        case "udpe131":
+        case "udpartnet":
+        case "udph801":
+        case "udpraw":
+          var host = conf_editor.getEditor("root.specificOptions.host").getValue();
+          if (host !== "") {
+            canSave = true;
+          }
+          break;
+
+        case "philipshue":
+          var host = conf_editor.getEditor("root.specificOptions.host").getValue();
+          var username = conf_editor.getEditor("root.specificOptions.username").getValue();
+          if (host !== "" && username != "") {
+            var useEntertainmentAPI = conf_editor.getEditor("root.specificOptions.useEntertainmentAPI").getValue();
+            var clientkey = conf_editor.getEditor("root.specificOptions.clientkey").getValue();
+            if (!useEntertainmentAPI || clientkey !== "") {
+              canSave = true;
+            }
+          }
+          break;
+
         case "cololight":
         case "wled":
           var hostList = conf_editor.getEditor("root.specificOptions.hostList").getValue();
@@ -799,62 +826,32 @@ $(document).ready(function () {
             }
           }
           break;
-
-        case "adalight":
-          var output = conf_editor.getEditor("root.specificOptions.output").getValue();
-          if (output !== "NONE" && output !== "SELECT" && output !== "") {
-            canIdentify = true;
-          }
-        case "atmo":
-        case "dmx":
-        case "karate":
-        case "sedu":
-        case "tpm2":
-        case "apa102":
-        case "apa104":
-        case "ws2801":
-        case "lpd6803":
-        case "lpd8806":
-        case "p9813":
-        case "sk6812spi":
-        case "sk6822spi":
-        case "sk9822":
-        case "ws2812spi":
-        case "piblaster":
-          var output = conf_editor.getEditor("root.specificOptions.output").getValue();
-          if (output !== "NONE" && output !== "SELECT" && output !== "") {
-            canSave = true;
-          }
-          break;
         default:
           canIdentify = false;
           canSave = true;
       }
 
       if (!conf_editor.validate().length) {
-
         if (canIdentify) {
-          $("#btn_test_controller").removeClass('hidden');
+          $("#btn_test_controller").show();
           $('#btn_test_controller').attr('disabled', false);
-        }
-        else {
+        } else {
+          $('#btn_test_controller').hide();
           $('#btn_test_controller').attr('disabled', true);
         }
+      } else {
+        canSave = false;
+      }
 
-        var hardwareLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue();
-        if (hardwareLedCount < 1) {
-          canSave = false;
-        }
-
-        if (canSave) {
-          if (!window.readOnlyMode) {
-            $('#btn_submit_controller').attr('disabled', false);
-          }
-        }
-        else {
-          $('#btn_submit_controller').attr('disabled', true);
+      if (canSave) {
+        if (!window.readOnlyMode) {
+          $('#btn_submit_controller').attr('disabled', false);
         }
       }
+      else {
+        $('#btn_submit_controller').attr('disabled', true);
+      }
+
       window.readOnlyMode ? $('#btn_cl_save').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
       window.readOnlyMode ? $('#btn_ma_save').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
       window.readOnlyMode ? $('#leds_custom_save').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
@@ -890,9 +887,9 @@ $(document).ready(function () {
             conf_editor.getEditor(specOptPath + "host").setValue(val);
             break;
         }
-      }
 
-      showAllDeviceInputOptions("hostList", showOptions);
+        showAllDeviceInputOptions("hostList", showOptions);
+      }
     });
 
     conf_editor.watch('root.specificOptions.host', () => {
@@ -904,8 +901,10 @@ $(document).ready(function () {
       else {
         let params = {};
         switch (ledType) {
+
           case "cololight":
             params = { host: host };
+            getProperties_device(ledType, host, params);
             break;
 
           case "nanoleaf":
@@ -914,33 +913,70 @@ $(document).ready(function () {
               return;
             }
             params = { host: host, token: token };
+            getProperties_device(ledType, host, params);
             break;
 
           case "wled":
             params = { host: host, filter: "info" };
+            getProperties_device(ledType, host, params);
             break;
           default:
         }
-
-        getProperties_device(ledType, host, params);
       }
     });
 
     conf_editor.watch('root.specificOptions.output', () => {
       var output = conf_editor.getEditor("root.specificOptions.output").getValue();
       if (output === "NONE" || output === "SELECT" || output === "") {
+
+        $('#btn_submit_controller').attr('disabled', true);
+        $('#btn_test_controller').attr('disabled', true);
+        $('#btn_test_controller').hide();
+
         conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(1);
         showAllDeviceInputOptions("output", false);
       }
       else {
         showAllDeviceInputOptions("output", true);
         let params = {};
+        var canIdentify = false;
         switch (ledType) {
+          case "adalight":
+            canIdentify = true;
+            break;
           case "atmo":
           case "karate":
             params = { serialPort: output };
             getProperties_device(ledType, output, params);
             break;
+          case "dmx":
+          case "sedu":
+          case "tpm2":
+          case "apa102":
+          case "apa104":
+          case "ws2801":
+          case "lpd6803":
+          case "lpd8806":
+          case "p9813":
+          case "sk6812spi":
+          case "sk6822spi":
+          case "sk9822":
+          case "ws2812spi":
+          case "piblaster":
+          default:
+        }
+
+        if (!conf_editor.validate().length) {
+          if (canIdentify) {
+            $("#btn_test_controller").show();
+            $('#btn_test_controller').attr('disabled', false);
+          } else {
+            $('#btn_test_controller').hide();
+            $('#btn_test_controller').attr('disabled', true);
+          }
+          if (!window.readOnlyMode) {
+            $('#btn_submit_controller').attr('disabled', false);
+          }
         }
       }
     });
@@ -1233,6 +1269,8 @@ function saveLedConfig(genDefLayout = false) {
       break;
   }
 
+  
+
   //Rewrite whole LED & Layout configuration, in case changes were done accross tabs and no default layout
   if (genDefLayout !== true) {
     result.ledConfig = getLedConfig();
@@ -1439,6 +1477,9 @@ var updateSelectList = function (ledType, discoveryInfo) {
 };
 
 async function discover_device(ledType, params) {
+
+  $('#btn_submit_controller').attr('disabled', true);
+
   const result = await requestLedDeviceDiscovery(ledType, params);
 
   var discoveryResult;
@@ -1479,6 +1520,7 @@ async function getProperties_device(ledType, key, params) {
       }
       else {
         $('#btn_submit_controller').attr('disabled', true);
+        $('#btn_test_controller').attr('disabled', true);
       }
     }
   }

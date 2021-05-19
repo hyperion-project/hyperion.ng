@@ -2,7 +2,7 @@
   "type": "object",
   "required": true,
   "properties": {
-    "output": {
+    "host": {
       "type": "string",
       "title": "edt_dev_spec_targetIp_title",
       "default": "",

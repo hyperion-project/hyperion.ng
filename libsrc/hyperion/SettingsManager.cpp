@@ -391,11 +391,29 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 							Warning(_log, "Instance [%u]: HwLedCount/Layout mismatch! Setting Hardware LED count to number of LEDs configured via layout", _instance);
 							hwLedcount = layoutLedCount;
 							newDeviceConfig["hardwareLedCount"] = hwLedcount;
-
-							config["device"] = newDeviceConfig;
 							migrated = true;
 						}
 					}
+				}
+
+				if (newDeviceConfig.contains("type"))
+				{
+					QString type = newDeviceConfig["type"].toString();
+					if (type == "atmoorb" || type == "fadecandy" || type == "philipshue" )
+					{
+						if (newDeviceConfig.contains("output"))
+						{
+							newDeviceConfig["host"] = newDeviceConfig["output"].toString();
+							newDeviceConfig.remove("output");
+							migrated = true;
+						}
+					}
+				}
+
+				if (migrated)
+				{
+					config["device"] = newDeviceConfig;
+					Debug(_log, "LED-Device records migrated");
 				}
 			}
 

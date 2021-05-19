@@ -12,7 +12,7 @@ namespace {
 bool verbose = false;
 
 // Configuration settings
-const char CONFIG_ADDRESS[] = "output";
+const char CONFIG_ADDRESS[] = "host";
 //const char CONFIG_PORT[] = "port";
 const char CONFIG_USERNAME[] = "username";
 const char CONFIG_CLIENTKEY[] = "clientkey";
