@@ -5,7 +5,6 @@
 // qt incl
 #include <QDateTime>
 #include <QTimer>
-#include <QDebug>
 
 // Hyperion includes
 #include <hyperion/PriorityMuxer.h>
@@ -273,7 +272,7 @@ bool PriorityMuxer::clearInput(int priority)
 		// on clear success update _currentPriority
 		setCurrentTime();
 		// emit 'prioritiesChanged' only if _sourceAutoSelectEnabled is false
-		if (!_sourceAutoSelectEnabled || _currentPriority < priority)
+		if ((!_sourceAutoSelectEnabled && (_currentPriority < priority)) || _currentPriority == BG_PRIORITY)
 			emit prioritiesChanged();
 		return true;
 	}
