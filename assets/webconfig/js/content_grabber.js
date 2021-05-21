@@ -278,12 +278,12 @@ $(document).ready(function () {
     }
 
     //Show Frameskipping only when more than 2 fps
-    if (fps > 2) {
-      showInputOptionForItem(conf_editor_screen, "framegrabber", "fpsSoftwareDecimation", true);
-    }
-    else {
-      showInputOptionForItem(conf_editor_screen, "framegrabber", "fpsSoftwareDecimation", false);
-    }
+    //if (fps > 2) {
+    //  showInputOptionForItem(conf_editor_screen, "framegrabber", "fpsSoftwareDecimation", true);
+    //}
+    //else {
+    //  showInputOptionForItem(conf_editor_screen, "framegrabber", "fpsSoftwareDecimation", false);
+    //}
     conf_editor_screen.getEditor("root.framegrabber.fps").setValue(fps);
   });
 
