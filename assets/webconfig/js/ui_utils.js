@@ -1155,6 +1155,14 @@ function showInputOptions(path, elements, state) {
   }
 }
 
+function showInputOptionForItem(editor, path, item, state) {
+  var accessLevel = editor.schema.properties[path].properties[item].access;
+  // Enable element only, if access level compliant
+  if (!state || isAccessLevelCompliant(accessLevel)) {
+    showInputOptions(path, [item], state);
+  }
+}
+
 function showInputOptionsForKey(editor, item, showForKeys, state) {
   var elements = [];
   var keysToshow = [];

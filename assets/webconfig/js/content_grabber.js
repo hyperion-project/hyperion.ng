@@ -278,11 +278,11 @@ $(document).ready(function () {
     }
 
     //Show Frameskipping only when more than 2 fps
-    if (fps > 2 && storedAccess === "expert") {
-      showInputOptions("framegrabber", ["fpsSoftwareDecimation"], true);
+    if (fps > 2) {
+      showInputOptionForItem(conf_editor_screen, "framegrabber", "fpsSoftwareDecimation", true);
     }
     else {
-      showInputOptions("framegrabber", ["fpsSoftwareDecimation"], false);
+      showInputOptionForItem(conf_editor_screen, "framegrabber", "fpsSoftwareDecimation", false);
     }
     conf_editor_screen.getEditor("root.framegrabber.fps").setValue(fps);
   });
@@ -317,9 +317,9 @@ $(document).ready(function () {
       true);
 
     if (jQuery.isEmptyObject(properties)) {
-      showInputOptions("grabberV4L2", [key], false);
+      showInputOptionForItem(conf_editor_video, "grabberV4L2", key, false);
     } else {
-      showInputOptions("grabberV4L2", [key], true);
+      showInputOptionForItem(conf_editor_video, "grabberV4L2", key, true);
     }
   }
 
@@ -620,13 +620,12 @@ $(document).ready(function () {
     if (framerates !== "NONE") {
       fps = parseInt(framerates);
     }
-
     //Show Frameskipping only when more than 2 fps
-    if (fps > 2 && storedAccess === "expert") {
-      showInputOptions("grabberV4L2", ["fpsSoftwareDecimation"], true);
+    if (fps > 2) {
+      showInputOptionForItem(conf_editor_video, "grabberV4L2", "fpsSoftwareDecimation", true);
     }
     else {
-      showInputOptions("grabberV4L2", ["fpsSoftwareDecimation"], false);
+      showInputOptionForItem(conf_editor_video, "grabberV4L2", "fpsSoftwareDecimation", false);
     }
     conf_editor_video.getEditor("root.grabberV4L2.fps").setValue(fps);
   });
