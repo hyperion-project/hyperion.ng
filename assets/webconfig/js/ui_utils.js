@@ -598,26 +598,36 @@ function updateJsonEditorMultiSelection(editor, key, addElements, newEnumVals, n
   editor.addObjectProperty(key);
 }
 
-function updateJsonEditorRange(editor, key, minimum, maximum, defaultValue, step) {
+function updateJsonEditorRange(rootEditor, path, key, minimum, maximum, defaultValue, step, clear) {
+  var editor = rootEditor.getEditor(path);
+
   var orginalProperties = editor.schema.properties[key];
   var newSchema = [];
   newSchema[key] = orginalProperties;
 
-  if (minimum) {
+  if (clear) {
+    delete newSchema[key]["minimum"];
+    delete newSchema[key]["maximum"];
+    delete newSchema[key]["default"];
+    delete newSchema[key]["step"];
+  }
+
+  if (typeof minimum !== "undefined") {
     newSchema[key]["minimum"] = minimum;
   }
-  if (maximum) {
+  if (typeof maximum !== "undefined") {
     newSchema[key]["maximum"] = maximum;
   }
-  if (defaultValue) {
+  if (typeof defaultValue !== "undefined") {
     newSchema[key]["default"] = defaultValue;
   }
-  if (step) {
+  if (typeof step !== "undefined") {
     newSchema[key]["step"] = step;
   }
 
   editor.original_schema.properties[key] = orginalProperties;
   editor.schema.properties[key] = newSchema[key];
+  rootEditor.validator.schema.properties[editor.key].properties[key] = orginalProperties;
 
   editor.removeObjectProperty(key);
   delete editor.cached_editors[key];

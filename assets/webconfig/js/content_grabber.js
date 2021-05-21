@@ -59,14 +59,14 @@ $(document).ready(function () {
 
   function updateCropForWidth(editor, path) {
     var width = editor.getEditor(path + ".width").getValue();
-    updateJsonEditorRange(editor.getEditor(path), 'cropLeft', 0, width);
-    updateJsonEditorRange(editor.getEditor(path), 'cropRight', 0, width);
+    updateJsonEditorRange(editor, path, 'cropLeft', 0, width);
+    updateJsonEditorRange(editor, path, 'cropRight', 0, width);
   }
 
   function updateCropForHeight(editor, path) {
     var height = editor.getEditor(path + ".height").getValue();
-    updateJsonEditorRange(editor.getEditor(path), 'cropTop', 0, height);
-    updateJsonEditorRange(editor.getEditor(path), 'cropBottom', 0, height);
+    updateJsonEditorRange(editor, path, 'cropTop', 0, height);
+    updateJsonEditorRange(editor, path, 'cropBottom', 0, height);
   }
 
   // Screen-Grabber
@@ -279,22 +279,14 @@ $(document).ready(function () {
 
     //Show Frameskipping only when more than 2 fps
     if (fps > 2 && storedAccess === "expert") {
-      showInputOptions(["fpsSoftwareDecimation"], true);
+      showInputOptions("framegrabber", ["fpsSoftwareDecimation"], true);
     }
     else {
-      showInputOptions(["fpsSoftwareDecimation"], false);
+      showInputOptions("framegrabber", ["fpsSoftwareDecimation"], false);
     }
     conf_editor_screen.getEditor("root.framegrabber.fps").setValue(fps);
   });
 
-
-  conf_editor_screen.watch('root.framegrabber.width', () => {
-    updateCropForWidth(conf_editor_screen, "root.framegrabber");
-  });
-
-  conf_editor_screen.watch('root.framegrabber.height', () => {
-    updateCropForHeight(conf_editor_screen, "root.framegrabber");
-  });
 
   $('#btn_submit_screengrabber').off().on('click', function () {
     var saveOptions = conf_editor_screen.getValue();
@@ -311,6 +303,25 @@ $(document).ready(function () {
   var configuredDevice = "";
   var discoveredInputSources = {};
   var deviceProperties = {};
+
+  function updateDeviceProperties(deviceProperties, defaultDeviceProperties, property, key) {
+    var properties = {};
+    if (deviceProperties.hasOwnProperty(property)) {
+      properties = deviceProperties[property];
+    }
+    updateJsonEditorRange(conf_editor_video, "root.grabberV4L2", key,
+      properties.minValue,
+      properties.maxValue,
+      defaultDeviceProperties[property],
+      properties.step,
+      true);
+
+    if (jQuery.isEmptyObject(properties)) {
+      showInputOptions("grabberV4L2", [key], false);
+    } else {
+      showInputOptions("grabberV4L2", [key], true);
+    }
+  }
 
   conf_editor_video = createJsonEditor('editor_container_videograbber', {
     grabberV4L2: window.schema.grabberV4L2
@@ -364,7 +375,7 @@ $(document).ready(function () {
     var deviceSelected = conf_editor_video.getEditor("root.grabberV4L2.available_devices").getValue();
     if (deviceSelected === "SELECT" || deviceSelected === "NONE" || deviceSelected === "") {
       $('#btn_submit_videograbber').attr('disabled', true);
-      showInputOptionsForKey(conf_editor_video, "grabberV4L2", ["enable","available_devices"], false);
+      showInputOptionsForKey(conf_editor_video, "grabberV4L2", ["enable", "available_devices"], false);
     }
     else {
       showInputOptionsForKey(conf_editor_video, "grabberV4L2", ["enable", "available_devices"], true);
@@ -377,6 +388,27 @@ $(document).ready(function () {
 
       //Update hidden input element
       conf_editor_video.getEditor("root.grabberV4L2.device").setValue(deviceProperties.device);
+
+      var defaultDeviceProperties = {};
+      if (deviceProperties.hasOwnProperty('default')) {
+        if (deviceProperties.default.hasOwnProperty('properties')) {
+          defaultDeviceProperties = deviceProperties.default.properties;
+        }
+      }
+
+      //If configured device is selected, use the saved values as default, when updating the validation ranges
+      if (deviceSelected === configuredDevice) {
+
+        defaultDeviceProperties.brightness = window.serverConfig.grabberV4L2.hardware_brightness;
+        defaultDeviceProperties.contrast = window.serverConfig.grabberV4L2.hardware_contrast;
+        defaultDeviceProperties.saturation = window.serverConfig.grabberV4L2.hardware_saturation;
+        defaultDeviceProperties.hue = window.serverConfig.grabberV4L2.hardware_hue;
+      }
+
+      updateDeviceProperties(deviceProperties.properties, defaultDeviceProperties, "brightness", "hardware_brightness");
+      updateDeviceProperties(deviceProperties.properties, defaultDeviceProperties, "contrast", "hardware_contrast");
+      updateDeviceProperties(deviceProperties.properties, defaultDeviceProperties, "saturation", "hardware_saturation");
+      updateDeviceProperties(deviceProperties.properties, defaultDeviceProperties, "hue", "hardware_hue");
 
       var video_inputs = deviceProperties.video_inputs;
       if (video_inputs.length <= 1) {
@@ -591,10 +623,10 @@ $(document).ready(function () {
 
     //Show Frameskipping only when more than 2 fps
     if (fps > 2 && storedAccess === "expert") {
-      showInputOptions(["fpsSoftwareDecimation"], true);
+      showInputOptions("grabberV4L2", ["fpsSoftwareDecimation"], true);
     }
     else {
-      showInputOptions(["fpsSoftwareDecimation"], false);
+      showInputOptions("grabberV4L2", ["fpsSoftwareDecimation"], false);
     }
     conf_editor_video.getEditor("root.grabberV4L2.fps").setValue(fps);
   });
@@ -719,4 +751,3 @@ $(document).ready(function () {
   }
 
 });
-
