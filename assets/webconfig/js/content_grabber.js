@@ -144,18 +144,18 @@ $(document).ready(function () {
       }
 
       for (const video_input of video_inputs) {
-        enumVals.push(video_input.inputIdx);
+        enumVals.push(video_input.inputIdx.toString());
         enumTitelVals.push(video_input.name);
       }
 
       if (enumVals.length > 0) {
         if (deviceSelected === configuredDevice) {
-          var configuredVideoInput = window.serverConfig.framegrabber.input;
+          var configuredVideoInput = window.serverConfig.framegrabber.input.toString();
           if ($.inArray(configuredVideoInput, enumVals) != -1) {
-            enumDefaultVal = configuredVideoInput.toString();
+            enumDefaultVal = configuredVideoInput;
           }
         }
-        updateJsonEditorSelection(conf_editor_screen.getEditor('root.framegrabber'),
+        updateJsonEditorSelection(conf_editor_screen, 'root.framegrabber',
           'device_inputs', addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, false);
       }
 
@@ -190,7 +190,7 @@ $(document).ready(function () {
     }
 
     for (var i = 0; i < resolutions.length; i++) {
-      enumVals.push(i);
+      enumVals.push(i.toString());
       var resolutionText = resolutions[i].width + "x" + resolutions[i].height;
       enumTitelVals.push(resolutionText);
     }
@@ -204,7 +204,7 @@ $(document).ready(function () {
         }
       }
 
-      updateJsonEditorSelection(conf_editor_screen.getEditor('root.framegrabber'),
+      updateJsonEditorSelection(conf_editor_screen, 'root.framegrabber',
         'resolutions', addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, false);
     }
 
@@ -245,7 +245,7 @@ $(document).ready(function () {
     } else {
       fps.sort((a, b) => a - b);
       for (var i = 0; i < fps.length; i++) {
-        enumVals.push(fps[i]);
+        enumVals.push(fps[i].toString());
       }
     }
 
@@ -255,12 +255,12 @@ $(document).ready(function () {
 
     if (enumVals.length > 0) {
       if (deviceSelected === configuredDevice) {
-        var configuredFps = window.serverConfig.framegrabber.fps;
+        var configuredFps = window.serverConfig.framegrabber.fps.toString();
         if ($.inArray(configuredFps, enumVals) != -1) {
-          enumDefaultVal = configuredFps.toString();
+          enumDefaultVal = configuredFps;
         }
       }
-      updateJsonEditorSelection(conf_editor_screen.getEditor('root.framegrabber'),
+      updateJsonEditorSelection(conf_editor_screen, 'root.framegrabber',
         'framerates', addSchemaElements, enumVals, [], enumDefaultVal, false);
     }
 
@@ -306,8 +306,10 @@ $(document).ready(function () {
 
   function updateDeviceProperties(deviceProperties, defaultDeviceProperties, property, key) {
     var properties = {};
-    if (deviceProperties.hasOwnProperty(property)) {
-      properties = deviceProperties[property];
+    if (deviceProperties) {
+      if (deviceProperties.hasOwnProperty(property)) {
+        properties = deviceProperties[property];
+      }
     }
     updateJsonEditorRange(conf_editor_video, "root.grabberV4L2", key,
       properties.minValue,
@@ -416,19 +418,19 @@ $(document).ready(function () {
       }
 
       for (const video_input of video_inputs) {
-        enumVals.push(video_input.inputIdx);
+        enumVals.push(video_input.inputIdx.toString());
         enumTitelVals.push(video_input.name);
       }
 
       if (enumVals.length > 0) {
         if (deviceSelected === configuredDevice) {
-          var configuredVideoInput = window.serverConfig.grabberV4L2.input;
+          var configuredVideoInput = window.serverConfig.grabberV4L2.input.toString();
           if ($.inArray(configuredVideoInput, enumVals) != -1) {
-            enumDefaultVal = configuredVideoInput.toString();
+            enumDefaultVal = configuredVideoInput;
           }
         }
 
-        updateJsonEditorSelection(conf_editor_video.getEditor('root.grabberV4L2'),
+        updateJsonEditorSelection(conf_editor_video, 'root.grabberV4L2',
           'device_inputs', addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, false, false);
       }
 
@@ -469,7 +471,7 @@ $(document).ready(function () {
           enumDefaultVal = configuredEncoding;
         }
       }
-      updateJsonEditorSelection(conf_editor_video.getEditor('root.grabberV4L2'),
+      updateJsonEditorSelection(conf_editor_video, 'root.grabberV4L2',
         'encoding', addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, false);
     }
 
@@ -492,7 +494,7 @@ $(document).ready(function () {
         }
       }
 
-      updateJsonEditorSelection(conf_editor_video.getEditor('root.grabberV4L2'),
+      updateJsonEditorSelection(conf_editor_video, 'root.grabberV4L2',
         'standard', addSchemaElements, enumVals, [], enumDefaultVal, false);
     }
 
@@ -530,7 +532,7 @@ $(document).ready(function () {
     }
 
     for (var i = 0; i < resolutions.length; i++) {
-      enumVals.push(i);
+      enumVals.push(i.toString());
       var resolutionText = resolutions[i].width + "x" + resolutions[i].height;
       enumTitelVals.push(resolutionText);
     }
@@ -544,7 +546,7 @@ $(document).ready(function () {
         }
       }
 
-      updateJsonEditorSelection(conf_editor_video.getEditor('root.grabberV4L2'),
+      updateJsonEditorSelection(conf_editor_video, 'root.grabberV4L2',
         'resolutions', addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, false);
     }
 
@@ -584,12 +586,11 @@ $(document).ready(function () {
 
     var fps = formats[formatIdx].resolutions[resolutionSelected].fps;
     if (!fps) {
-      enumVals.push("NONE");
       addSchemaElements.options = { "hidden": true };
     } else {
       fps.sort((a, b) => a - b);
       for (var i = 0; i < fps.length; i++) {
-        enumVals.push(fps[i]);
+        enumVals.push(fps[i].toString());
       }
     }
 
@@ -599,12 +600,12 @@ $(document).ready(function () {
 
     if (enumVals.length > 0) {
       if (deviceSelected === configuredDevice) {
-        var configuredFps = window.serverConfig.grabberV4L2.fps;
+        var configuredFps = window.serverConfig.grabberV4L2.fps.toString();
         if ($.inArray(configuredFps, enumVals) != -1) {
-          enumDefaultVal = configuredFps.toString();
+          enumDefaultVal = configuredFps;
         }
       }
-      updateJsonEditorSelection(conf_editor_video.getEditor('root.grabberV4L2'),
+      updateJsonEditorSelection(conf_editor_video, 'root.grabberV4L2',
         'framerates', addSchemaElements, enumVals, [], enumDefaultVal, false);
     }
 
@@ -676,7 +677,7 @@ $(document).ready(function () {
       }
     }
     if (enumVals.length > 0) {
-      updateJsonEditorSelection(conf_editor_screen.getEditor('root.framegrabber'),
+      updateJsonEditorSelection(conf_editor_screen, 'root.framegrabber',
         'available_devices', {}, enumVals, enumTitelVals, enumDefaultVal, addSelect, false);
     }
   }
@@ -708,7 +709,7 @@ $(document).ready(function () {
     }
 
     if (enumVals.length > 0) {
-      updateJsonEditorSelection(conf_editor_video.getEditor('root.grabberV4L2'),
+      updateJsonEditorSelection(conf_editor_video, 'root.grabberV4L2',
         'available_devices', {}, enumVals, enumTitelVals, enumDefaultVal, addSelect, false);
     }
   }

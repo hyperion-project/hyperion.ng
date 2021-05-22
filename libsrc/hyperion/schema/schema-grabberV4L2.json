@@ -58,8 +58,7 @@
 		"encoding": {
 			"type": "string",
 			"title": "edt_conf_v4l2_encoding_title",
-			"default": "auto",
-			"required": true,
+			"required": false,
 			"access": "advanced",
 			"propertyOrder": 7
 		},

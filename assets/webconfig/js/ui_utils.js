@@ -460,7 +460,8 @@ function createJsonEditor(container, schema, setconfig, usePanel, arrayre) {
   return editor;
 }
 
-function updateJsonEditorSelection(editor, key, addElements, newEnumVals, newTitelVals, newDefaultVal, addSelect, addCustom, addCustomAsFirst, customText) {
+function updateJsonEditorSelection(rootEditor, path, key, addElements, newEnumVals, newTitelVals, newDefaultVal, addSelect, addCustom, addCustomAsFirst, customText) {
+  var editor = rootEditor.getEditor(path);
   var orginalProperties = editor.schema.properties[key];
 
   var newSchema = [];
@@ -535,13 +536,15 @@ function updateJsonEditorSelection(editor, key, addElements, newEnumVals, newTit
 
   editor.original_schema.properties[key] = orginalProperties;
   editor.schema.properties[key] = newSchema[key];
+  rootEditor.validator.schema.properties[editor.key].properties[key] = newSchema[key];
 
   editor.removeObjectProperty(key);
   delete editor.cached_editors[key];
   editor.addObjectProperty(key);
 }
 
-function updateJsonEditorMultiSelection(editor, key, addElements, newEnumVals, newTitelVals, newDefaultVal) {
+function updateJsonEditorMultiSelection(rootEditor, path, key, addElements, newEnumVals, newTitelVals, newDefaultVal) {
+  var editor = rootEditor.getEditor(path);
   var orginalProperties = editor.schema.properties[key];
 
   var newSchema = [];
@@ -592,6 +595,7 @@ function updateJsonEditorMultiSelection(editor, key, addElements, newEnumVals, n
 
   editor.original_schema.properties[key] = orginalProperties;
   editor.schema.properties[key] = newSchema[key];
+  rootEditor.validator.schema.properties[editor.key].properties[key] = newSchema[key];
 
   editor.removeObjectProperty(key);
   delete editor.cached_editors[key];
@@ -627,7 +631,7 @@ function updateJsonEditorRange(rootEditor, path, key, minimum, maximum, defaultV
 
   editor.original_schema.properties[key] = orginalProperties;
   editor.schema.properties[key] = newSchema[key];
-  rootEditor.validator.schema.properties[editor.key].properties[key] = orginalProperties;
+  rootEditor.validator.schema.properties[editor.key].properties[key] = newSchema[key];
 
   editor.removeObjectProperty(key);
   delete editor.cached_editors[key];

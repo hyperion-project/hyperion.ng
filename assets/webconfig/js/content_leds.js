@@ -1269,7 +1269,7 @@ function saveLedConfig(genDefLayout = false) {
       break;
   }
 
-  
+
 
   //Rewrite whole LED & Layout configuration, in case changes were done accross tabs and no default layout
   if (genDefLayout !== true) {
@@ -1310,8 +1310,6 @@ var updateSelectList = function (ledType, discoveryInfo) {
   } else if ($.inArray(ledType, devRPiGPIO) != -1) {
     ledTypeGroup = "devRPiGPIO";
   }
-
-  var specOpt = conf_editor.getEditor('root.specificOptions'); // get specificOptions of the editor
 
   switch (ledTypeGroup) {
     case "devNET":
@@ -1472,7 +1470,7 @@ var updateSelectList = function (ledType, discoveryInfo) {
   }
 
   if (enumVals.length > 0) {
-    updateJsonEditorSelection(specOpt, key, addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, addSelect, addCustom);
+    updateJsonEditorSelection(conf_editor, 'root.specificOptions', key, addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, addSelect, addCustom);
   }
 };
 
@@ -1586,8 +1584,7 @@ function updateElements(ledType, key) {
         if (ledProperties && ledProperties.ledCount) {
           if (ledProperties.ledCount.length > 0) {
             var configuredLedCount = window.serverConfig.device.hardwareLedCount;
-            var generalOpt = conf_editor.getEditor('root.generalOptions');
-            updateJsonEditorSelection(generalOpt, "hardwareLedCount", {}, ledProperties.ledCount, [], configuredLedCount);
+            updateJsonEditorSelection(conf_editor, 'root.generalOptions', "hardwareLedCount", {}, ledProperties.ledCount, [], configuredLedCount);
           }
         }
         break;
