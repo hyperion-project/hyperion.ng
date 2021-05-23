@@ -97,6 +97,8 @@ protected:
 
 	/// The name of the output device
 	QString _deviceName;
+	/// The system location of the output device
+	QString _location;
 	/// The RS232 serial-device
 	QSerialPort _rs232Port;
 	/// The used baud-rate of the output device

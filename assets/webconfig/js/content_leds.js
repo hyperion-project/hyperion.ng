@@ -46,7 +46,7 @@ function createLedPreview(leds, origin) {
   canvas_width = $('#leds_preview').innerWidth();
 
   imageCanvasNodeCtx = document.getElementById("image_preview").getContext("2d");
-  $('#image_preview').css({"width":canvas_width, "height":canvas_height});
+  $('#image_preview').css({ "width": canvas_width, "height": canvas_height });
 
   var leds_html = "";
   for (var idx = 0; idx < leds.length; idx++) {
@@ -421,8 +421,8 @@ $(document).ready(function () {
   // translate
   performTranslation();
 
-	// update instance listing
-	updateHyperionInstanceListing();
+  // update instance listing
+  updateHyperionInstanceListing();
 
   //add intros
   if (window.showOptHelp) {
@@ -561,30 +561,28 @@ $(document).ready(function () {
     toggleClass('#leds_prev_toggle_num', "btn-danger", "btn-success");
   });
 
-	// toggle live video
-	$('#leds_prev_toggle_live_video').off().on("click", function() {
-		setClassByBool('#leds_prev_toggle_live_video', window.imageStreamActive, "btn-success", "btn-danger");
-		if (window.imageStreamActive)
-		{
-			requestLedImageStop();
+  // toggle live video
+  $('#leds_prev_toggle_live_video').off().on("click", function () {
+    setClassByBool('#leds_prev_toggle_live_video', window.imageStreamActive, "btn-success", "btn-danger");
+    if (window.imageStreamActive) {
+      requestLedImageStop();
       imageCanvasNodeCtx.clear();
-		}
-		else
-		{
-			requestLedImageStart();
-		}
-	});
+    }
+    else {
+      requestLedImageStart();
+    }
+  });
 
-	$(window.hyperion).on("cmd-ledcolors-imagestream-update",function(event){
+  $(window.hyperion).on("cmd-ledcolors-imagestream-update", function (event) {
     setClassByBool('#leds_prev_toggle_live_video', window.imageStreamActive, "btn-danger", "btn-success");
     var imageData = (event.response.result.image);
 
     var image = new Image();
-    image.onload = function() {
+    image.onload = function () {
       imageCanvasNodeCtx.drawImage(image, 0, 0, imageCanvasNodeCtx.canvas.width, imageCanvasNodeCtx.canvas.height);
     };
     image.src = imageData;
-	});
+  });
 
   // open checklist
   $('#leds_prev_checklist').off().on("click", function () {
@@ -1366,7 +1364,11 @@ var updateSelectList = function (ledType, discoveryInfo) {
           case "sedu":
           case "tpm2":
             for (const device of discoveryInfo.devices) {
-              enumVals.push(device.portName);
+              if (device.udev) {
+                enumVals.push(device.systemLocation);
+              } else {
+                enumVals.push(device.portName);
+              }
               enumTitelVals.push(device.portName + " (" + device.vendorIdentifier + "|" + device.productIdentifier + ") - " + device.manufacturer);
             }
 
@@ -1557,3 +1559,4 @@ function showAllDeviceInputOptions(showForKey, state) {
   showInputOptionsForKey(conf_editor, "generalOptions", showForKey, state);
   showInputOptionsForKey(conf_editor, "specificOptions", showForKey, state);
 }
+
