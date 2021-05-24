@@ -2,7 +2,7 @@
 #include "grabber/MFGrabber.h"
 
 // Constants
-namespace { const bool verbose = true; }
+namespace { const bool verbose = false; }
 
 // Need more video properties? Visit https://docs.microsoft.com/en-us/windows/win32/api/strmif/ne-strmif-videoprocampproperty
 using VideoProcAmpPropertyMap = QMap<VideoProcAmpProperty, QString>;
@@ -61,6 +61,10 @@ MFGrabber::~MFGrabber()
 	uninit();
 
 	SAFE_RELEASE(_sourceReader);
+
+	if (_sourceReaderCB != nullptr)
+		while (_sourceReaderCB->isBusy()) {}
+
 	SAFE_RELEASE(_sourceReaderCB);
 
 	if (_threadManager)
@@ -119,7 +123,6 @@ void MFGrabber::stop()
 		_threadManager->stop();
 		disconnect(_threadManager, nullptr, nullptr, nullptr);
 		_sourceReader->Flush(MF_SOURCE_READER_FIRST_VIDEO_STREAM);
-		while (_sourceReaderCB->isBusy()) {}
 		SAFE_RELEASE(_sourceReader);
 		_deviceProperties.clear();
 		_deviceControls.clear();
@@ -209,7 +212,7 @@ HRESULT MFGrabber::init_device(QString deviceName, DeviceProperties props)
 		goto done;
 	}
 
-	if (FAILED(deviceAttributes->SetString(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK, (LPCWSTR)props.symlink.utf16())) && _sourceReaderCB)
+	if (FAILED(deviceAttributes->SetString(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK, (LPCWSTR)props.symlink.utf16())))
 	{
 		error = QString("IMFAttributes_SetString_MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK (%1)").arg(hr);
 		goto done;
