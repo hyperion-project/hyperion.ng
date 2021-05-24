@@ -42,15 +42,14 @@ public:
 	SourceReaderCB(MFGrabber* grabber)
 		: _nRefCount(1)
 		, _grabber(grabber)
+		, _bEOS(FALSE)
 		, _hrStatus(S_OK)
+		, _isBusy(false)
 		, _transform(nullptr)
 		, _pixelformat(PixelFormat::NO_CHANGE)
 	{
 		// Initialize critical section.
 		InitializeCriticalSection(&_critsec);
-
-		// Create event handler
-		_event = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 	}
 
 	// IUnknown methods
@@ -84,11 +83,12 @@ public:
 		DWORD dwStreamFlags, LONGLONG llTimestamp, IMFSample* pSample)
 	{
 		EnterCriticalSection(&_critsec);
+		_isBusy = true;
 
 		if (_grabber->_sourceReader == nullptr)
 		{
+			_isBusy = false;
 			LeaveCriticalSection(&_critsec);
-			SetEvent(_event);
 			return S_OK;
 		}
 
@@ -172,11 +172,14 @@ public:
 	done:
 		SAFE_RELEASE(buffer);
 
+		if (MF_SOURCE_READERF_ENDOFSTREAM & dwStreamFlags)
+			_bEOS = TRUE; // Reached the end of the stream.
+
 		if (_pixelformat != PixelFormat::MJPEG && _pixelformat != PixelFormat::BGR24 && _pixelformat != PixelFormat::NO_CHANGE)
 			SAFE_RELEASE(pSample);
 
+		_isBusy = false;
 		LeaveCriticalSection(&_critsec);
-		SetEvent(_event);
 		return _hrStatus;
 	}
 
@@ -280,7 +283,15 @@ public:
 		return _hrStatus;
 	}
 
-	void Wait() { WaitForSingleObject(_event, INFINITE); }
+	BOOL SourceReaderCB::isBusy()
+	{
+		EnterCriticalSection(&_critsec);
+		BOOL result = _isBusy;
+		LeaveCriticalSection(&_critsec);
+
+		return result;
+	}
+
 	STDMETHODIMP OnEvent(DWORD, IMFMediaEvent*) { return S_OK; }
 	STDMETHODIMP OnFlush(DWORD) { return S_OK; }
 
@@ -386,5 +397,5 @@ private:
 	HRESULT				_hrStatus;
 	IMFTransform*		_transform;
 	PixelFormat			_pixelformat;
-	HANDLE				_event;
+	std::atomic<bool>	_isBusy;
 };

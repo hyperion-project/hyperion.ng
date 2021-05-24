@@ -119,7 +119,7 @@ void MFGrabber::stop()
 		_threadManager->stop();
 		disconnect(_threadManager, nullptr, nullptr, nullptr);
 		_sourceReader->Flush(MF_SOURCE_READER_FIRST_VIDEO_STREAM);
-		_sourceReaderCB->Wait();
+		while (_sourceReaderCB->isBusy()) {}
 		SAFE_RELEASE(_sourceReader);
 		_deviceProperties.clear();
 		_deviceControls.clear();
@@ -784,7 +784,7 @@ QJsonArray MFGrabber::discover(const QJsonObject& params)
 		}
 		device["properties"] = controls;
 
-		QJsonObject default, video_inputs_default, format_default, resolution_default;
+		QJsonObject defaults, video_inputs_default, format_default, resolution_default;
 		resolution_default["width"] = 640;
 		resolution_default["height"] = 480;
 		resolution_default["fps"] = 25;
@@ -794,9 +794,9 @@ QJsonArray MFGrabber::discover(const QJsonObject& params)
 		video_inputs_default["standards"] = "PAL";
 		video_inputs_default["formats"] = format_default;
 
-		default["video_input"] = video_inputs_default;
-		default["properties"] = controls_default;
-		device["default"] = default;
+		defaults["video_input"] = video_inputs_default;
+		defaults["properties"] = controls_default;
+		device["default"] = defaults;
 
 		inputsDiscovered.append(device);
 	}

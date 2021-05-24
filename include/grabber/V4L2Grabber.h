@@ -54,6 +54,16 @@ public:
 		QMap<int, InputProperties> inputs = QMap<int, InputProperties>();
 	};
 
+	struct DeviceControls
+	{
+		QString property = QString();
+		int minValue = 0;
+		int maxValue = 0;
+		int step = 0;
+		int defaultValue = 0;
+		int currentValue = 0;
+	};
+
 	V4L2Grabber();
 	~V4L2Grabber() override;
 
@@ -141,6 +151,7 @@ private:
 	QString _currentDevicePath, _currentDeviceName;
 	EncoderThreadManager* _threadManager;
 	QMap<QString, V4L2Grabber::DeviceProperties> _deviceProperties;
+	QMap<QString, QList<DeviceControls>> _deviceControls;
 
 	io_method           _ioMethod;
 	int                 _fileDescriptor;
@@ -157,6 +168,7 @@ private:
 	ColorRgb _noSignalThresholdColor;
 	bool     _cecDetectionEnabled, _cecStandbyActivated, _signalDetectionEnabled, _noSignalDetected;
 	int      _noSignalCounter;
+	int		_brightness, _contrast, _saturation, _hue;
 	double   _x_frac_min;
 	double   _y_frac_min;
 	double   _x_frac_max;
