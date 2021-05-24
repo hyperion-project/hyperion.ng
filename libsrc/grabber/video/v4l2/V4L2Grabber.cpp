@@ -37,7 +37,7 @@ namespace { const bool verbose = false; }
 using ControlIDPropertyMap = QMap<unsigned int, QString>;
 inline QMap<unsigned int, QString> initControlIDPropertyMap()
 {
-	QMap<unsigned int, QString> _controlIDPropertyMap
+	QMap<unsigned int, QString> propertyMap
 	{
 		{V4L2_CID_BRIGHTNESS	, "brightness"	},
 		{V4L2_CID_CONTRAST		, "contrast"	},
@@ -45,7 +45,7 @@ inline QMap<unsigned int, QString> initControlIDPropertyMap()
 		{V4L2_CID_HUE 			, "hue"			}
 	};
 
-	return _controlIDPropertyMap;
+	return propertyMap;
 };
 
 Q_GLOBAL_STATIC_WITH_ARGS(ControlIDPropertyMap, _controlIDPropertyMap, (initControlIDPropertyMap()));

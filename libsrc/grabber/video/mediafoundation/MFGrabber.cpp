@@ -8,7 +8,7 @@ namespace { const bool verbose = true; }
 using VideoProcAmpPropertyMap = QMap<VideoProcAmpProperty, QString>;
 inline QMap<VideoProcAmpProperty, QString> initVideoProcAmpPropertyMap()
 {
-	QMap<VideoProcAmpProperty, QString> _videoProcAmpPropertyMap
+	QMap<VideoProcAmpProperty, QString> propertyMap
 	{
 		{VideoProcAmp_Brightness, "brightness"	},
 		{VideoProcAmp_Contrast	, "contrast"	},
@@ -16,7 +16,7 @@ inline QMap<VideoProcAmpProperty, QString> initVideoProcAmpPropertyMap()
 		{VideoProcAmp_Hue		, "hue"			}
 	};
 
-	return _videoProcAmpPropertyMap;
+	return propertyMap;
 };
 
 Q_GLOBAL_STATIC_WITH_ARGS(VideoProcAmpPropertyMap, _videoProcAmpPropertyMap, (initVideoProcAmpPropertyMap()));
