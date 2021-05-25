@@ -276,14 +276,6 @@ $(document).ready(function () {
     if (framerates !== "NONE") {
       fps = parseInt(framerates);
     }
-
-    //Show Frameskipping only when more than 2 fps
-    //if (fps > 2) {
-    //  showInputOptionForItem(conf_editor_screen, "framegrabber", "fpsSoftwareDecimation", true);
-    //}
-    //else {
-    //  showInputOptionForItem(conf_editor_screen, "framegrabber", "fpsSoftwareDecimation", false);
-    //}
     conf_editor_screen.getEditor("root.framegrabber.fps").setValue(fps);
   });
 
@@ -337,6 +329,12 @@ $(document).ready(function () {
 
   conf_editor_video.on('change', function () {
 
+    // Hide elements not supported by the backend running on specific platforms
+    if (window.sysInfo.system.productType === "windows") {
+      showInputOptionForItem(conf_editor_video, "grabberV4L2", "cecDetection", false);
+    }
+
+    // Validate the current editor's content
     if (!conf_editor_video.validate().length) {
       var deviceSelected = conf_editor_video.getEditor("root.grabberV4L2.available_devices").getValue();
       switch (deviceSelected) {
@@ -371,6 +369,10 @@ $(document).ready(function () {
       showInputOptionsForKey(conf_editor_video, "grabberV4L2", "enable", false);
       $('#videograbberHelpPanelId').hide();
     }
+
+
+    //}
+
   });
 
   conf_editor_video.watch('root.grabberV4L2.available_devices', () => {
