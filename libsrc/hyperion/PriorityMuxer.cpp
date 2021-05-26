@@ -188,6 +188,9 @@ bool PriorityMuxer::setInput(int priority, const std::vector<ColorRgb>& ledColor
 	// detect active <-> inactive changes
 	bool activeChange = false;
 	bool active = true;
+	if(timeout_ms <= 0 && input.timeoutTime_ms > 0)
+		timeout_ms = QDateTime::currentMSecsSinceEpoch();
+
 	if(input.timeoutTime_ms == -100 && timeout_ms != -100)
 	{
 		activeChange = true;
@@ -232,6 +235,9 @@ bool PriorityMuxer::setInputImage(int priority, const Image<ColorRgb>& image, in
 	// detect active <-> inactive changes
 	bool activeChange = false;
 	bool active = true;
+	if(timeout_ms <= 0 && input.timeoutTime_ms > 0)
+		timeout_ms = QDateTime::currentMSecsSinceEpoch();
+
 	if(input.timeoutTime_ms == -100 && timeout_ms != -100)
 	{
 		activeChange = true;
