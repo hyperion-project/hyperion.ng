@@ -14,6 +14,13 @@ $(document).ready(function () {
   // Video-Grabber
   $('#conf_cont').append(createRow('conf_cont_video'));
   $('#conf_cont_video').append(createOptPanel('fa-camera', $.i18n("edt_conf_v4l2_heading_title"), 'editor_container_videograbber', 'btn_submit_videograbber', 'panel-system', 'videograbberPanelId'));
+
+  if (storedAccess === 'expert') {
+    var conf_cont_video_footer = document.getElementById("editor_container_videograbber").nextElementSibling;
+    $(conf_cont_video_footer).prepend('<button class="btn btn-primary mdi-24px" id="btn_videograbber_set_defaults" disabled data-toggle="tooltip" data-placement="top" title="' + $.i18n("edt_conf_v4l2_hardware_set_defaults_tip") + '">'
+      + '<i class= "fa fa-fw fa-undo" ></i >' + $.i18n("edt_conf_v4l2_hardware_set_defaults") + '</button > ');
+  }
+
   if (window.showOptHelp) {
     $('#conf_cont_video').append(createHelpTable(window.schema.grabberV4L2.properties, $.i18n("edt_conf_v4l2_heading_title"), "videograbberHelpPanelId"));
   }
@@ -296,7 +303,7 @@ $(document).ready(function () {
   var discoveredInputSources = {};
   var deviceProperties = {};
 
-  function updateDeviceProperties(deviceProperties, defaultDeviceProperties, property, key) {
+  function updateDeviceProperties(deviceProperties, property, key) {
     var properties = {};
     if (deviceProperties) {
       if (deviceProperties.hasOwnProperty(property)) {
@@ -306,7 +313,7 @@ $(document).ready(function () {
     updateJsonEditorRange(conf_editor_video, "root.grabberV4L2", key,
       properties.minValue,
       properties.maxValue,
-      defaultDeviceProperties[property],
+      properties.current,
       properties.step,
       true);
 
@@ -359,6 +366,7 @@ $(document).ready(function () {
     var videoEnable = conf_editor_video.getEditor("root.grabberV4L2.enable").getValue();
     if (videoEnable) {
       showInputOptionsForKey(conf_editor_video, "grabberV4L2", "enable", true);
+      $('#btn_videograbber_set_defaults').show();
       if (window.showOptHelp) {
         $('#videograbberHelpPanelId').show();
       }
@@ -366,13 +374,10 @@ $(document).ready(function () {
     }
     else {
       $('#btn_submit_videograbber').attr('disabled', false);
+      $('#btn_videograbber_set_defaults').hide();
       showInputOptionsForKey(conf_editor_video, "grabberV4L2", "enable", false);
       $('#videograbberHelpPanelId').hide();
     }
-
-
-    //}
-
   });
 
   conf_editor_video.watch('root.grabberV4L2.available_devices', () => {
@@ -393,26 +398,30 @@ $(document).ready(function () {
       //Update hidden input element
       conf_editor_video.getEditor("root.grabberV4L2.device").setValue(deviceProperties.device);
 
-      var defaultDeviceProperties = {};
-      if (deviceProperties.hasOwnProperty('default')) {
-        if (deviceProperties.default.hasOwnProperty('properties')) {
-          defaultDeviceProperties = deviceProperties.default.properties;
+      if (deviceProperties.hasOwnProperty('default') && !jQuery.isEmptyObject(deviceProperties.default.properties)) {
+        $('#btn_videograbber_set_defaults').attr('disabled', false);
+      } else {
+        $('#btn_videograbber_set_defaults').attr('disabled', true);
+      }
+
+      //If configured device is selected, use the saved values as current values
+      if (deviceSelected === configuredDevice) {
+        // Only if the device reported properties, use the configured values. In case no properties are presented, the device properties cannot be controlled.
+        if (deviceProperties.hasOwnProperty('properties') && !jQuery.isEmptyObject(deviceProperties.properties)) {
+          let properties = {
+            brightness: { current: window.serverConfig.grabberV4L2.hardware_brightness },
+            contrast: { current: window.serverConfig.grabberV4L2.hardware_contrast },
+            saturation: { current: window.serverConfig.grabberV4L2.hardware_saturation },
+            hue: { current: window.serverConfig.grabberV4L2.hardware_hue }
+          }
+          deviceProperties.properties = properties;
         }
       }
 
-      //If configured device is selected, use the saved values as default, when updating the validation ranges
-      if (deviceSelected === configuredDevice) {
-
-        defaultDeviceProperties.brightness = window.serverConfig.grabberV4L2.hardware_brightness;
-        defaultDeviceProperties.contrast = window.serverConfig.grabberV4L2.hardware_contrast;
-        defaultDeviceProperties.saturation = window.serverConfig.grabberV4L2.hardware_saturation;
-        defaultDeviceProperties.hue = window.serverConfig.grabberV4L2.hardware_hue;
-      }
-
-      updateDeviceProperties(deviceProperties.properties, defaultDeviceProperties, "brightness", "hardware_brightness");
-      updateDeviceProperties(deviceProperties.properties, defaultDeviceProperties, "contrast", "hardware_contrast");
-      updateDeviceProperties(deviceProperties.properties, defaultDeviceProperties, "saturation", "hardware_saturation");
-      updateDeviceProperties(deviceProperties.properties, defaultDeviceProperties, "hue", "hardware_hue");
+      updateDeviceProperties(deviceProperties.properties, "brightness", "hardware_brightness");
+      updateDeviceProperties(deviceProperties.properties, "contrast", "hardware_contrast");
+      updateDeviceProperties(deviceProperties.properties, "saturation", "hardware_saturation");
+      updateDeviceProperties(deviceProperties.properties, "hue", "hardware_hue");
 
       var video_inputs = deviceProperties.video_inputs;
       if (video_inputs.length <= 1) {
@@ -642,6 +651,34 @@ $(document).ready(function () {
 
     requestWriteConfig(saveOptions);
   });
+
+  // ------------------------------------------------------------------
+
+  $('#btn_videograbber_set_defaults').off().on('click', function () {
+    var deviceSelected = conf_editor_video.getEditor("root.grabberV4L2.available_devices").getValue();
+    var deviceProperties = getPropertiesOfDevice("video", deviceSelected);
+
+    var defaultDeviceProperties = {};
+    if (deviceProperties.hasOwnProperty('default')) {
+      if (deviceProperties.default.hasOwnProperty('properties')) {
+        defaultDeviceProperties = deviceProperties.default.properties;
+        if (defaultDeviceProperties.brightness) {
+          conf_editor_video.getEditor("root.grabberV4L2.hardware_brightness").setValue(defaultDeviceProperties.brightness);
+        }
+        if (defaultDeviceProperties.contrast) {
+          conf_editor_video.getEditor("root.grabberV4L2.hardware_contrast").setValue(defaultDeviceProperties.contrast);
+        }
+        if (defaultDeviceProperties.saturation) {
+          conf_editor_video.getEditor("root.grabberV4L2.hardware_saturation").setValue(defaultDeviceProperties.saturation);
+        }
+        if (defaultDeviceProperties.hue) {
+          conf_editor_video.getEditor("root.grabberV4L2.hardware_hue").setValue(defaultDeviceProperties.hue);
+        }
+      }
+    }
+  });
+
+  // ------------------------------------------------------------------
 
   //////////////////////////////////////////////////
 

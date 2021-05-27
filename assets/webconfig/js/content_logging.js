@@ -25,7 +25,7 @@ $(document).ready(function () {
   $('#btn_submit').off().on('click', function () {
 
     var displayedLogLevel = conf_editor.getEditor("root.logger.level").getValue();
-    var newLogLevel = {logger:{}};
+    var newLogLevel = { logger: {} };
     newLogLevel.logger.level = displayedLogLevel;
 
     requestWriteConfig(newLogLevel);
@@ -103,7 +103,7 @@ $(document).ready(function () {
       }
     });
 
-    $('#log_footer').append('<button class="btn btn-primary pull-right" id="btn_clipboard"><i class="fa fa-fw fa-clipboard"></i>Copy Log to Clipboard</button>');
+    $('#log_footer').append('<button class="btn btn-primary pull-right" id="btn_clipboard"><i class="fa fa-fw fa-clipboard"></i>' + $.i18n("conf_logging_btn_clipboard") + '</button>');
 
     $('#btn_clipboard').off().on('click', function () {
       const temp = document.createElement('textarea');
@@ -153,7 +153,7 @@ $(document).ready(function () {
 
     $(window.hyperion).on("cmd-logging-update", function (event) {
 
-     var messages = (event.response.result.messages);
+      var messages = (event.response.result.messages);
 
       if (messages.length != 0) {
         if (!createdCont) {
