@@ -782,6 +782,7 @@ QJsonArray MFGrabber::discover(const QJsonObject& params)
 			property["minValue"] = control.minValue;
 			property["maxValue"] = control.maxValue;
 			property["step"] = control.step;
+			property["current"] = control.currentValue;
 			controls[control.property] = property;
 			controls_default[control.property] = control.default;
 		}

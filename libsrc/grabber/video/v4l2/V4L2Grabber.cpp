@@ -1362,6 +1362,7 @@ QJsonArray V4L2Grabber::discover(const QJsonObject& params)
 			property["minValue"] = control.minValue;
 			property["maxValue"] = control.maxValue;
 			property["step"] = control.step;
+			property["current"] = control.currentValue;
 			controls[control.property] = property;
 			controls_default[control.property] = control.defaultValue;
 		}
@@ -1583,7 +1584,7 @@ void V4L2Grabber::enumVideoCaptureDevices()
 
 			_deviceProperties.insert("/dev/"+it.fileName(), properties);
 		}
-    }
+	}
 }
 
 void V4L2Grabber::enumFrameIntervals(QList<int> &framerates, int fileDescriptor, int pixelformat, int width, int height)
