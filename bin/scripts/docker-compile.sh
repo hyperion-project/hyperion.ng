@@ -59,7 +59,7 @@ echo "########################################################
 ## A script to compile Hyperion inside a docker container
 ## Requires installed Docker: https://www.docker.com/
 ## Without arguments it will compile Hyperion for Debian Buster (x86_64) and uses Hyperion code from GitHub repository.
-## Supports Raspberry Pi (armv6l, armv7l) cross compilation (Debian Stretch/Buster) and native compilation (Raspbian Stretch/Buster)
+## Supports Raspberry Pi (armv6l, armv7l) cross compilation (Debian Stretch/Buster) and native compilation (Raspbian Stretch/Buster - Raspberry Pi OS)
 ##
 ## Homepage: https://www.hyperion-project.org
 ## Forum: https://forum.hyperion-project.org
@@ -94,7 +94,7 @@ do
  p) BUILD_PACKAGES=${OPTARG};;
  l) BUILD_LOCAL=1;;
  c) BUILD_INCREMENTAL=1;;
- v) _VERBOSE=1;;    
+ v) _VERBOSE=1;;
  h) printHelp; exit 0;;
  esac
 done

@@ -142,10 +142,7 @@ void EncoderThread::processImageMjpeg()
 
 	int subsamp = 0;
 	if (tjDecompressHeader2(_decompress, _localData, _size, &_width, &_height, &subsamp) != 0)
-	{
-		if (tjGetErrorCode(_decompress) == TJERR_FATAL)
-			return;
-	}
+		return;
 
 	int scaledWidth = _width, scaledHeight = _height;
 	if(_scalingFactors != nullptr && _pixelDecimation > 1)
@@ -172,13 +169,10 @@ void EncoderThread::processImageMjpeg()
 	Image<ColorRgb> srcImage(scaledWidth, scaledHeight);
 
 	if (tjDecompress2(_decompress, _localData , _size, (unsigned char*)srcImage.memptr(), scaledWidth, 0, scaledHeight, TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0)
-	{
-		if (tjGetErrorCode(_decompress) == TJERR_FATAL)
 			return;
-	}
 
 	// got image, process it
-	if ( !(_cropLeft > 0 || _cropTop > 0 || _cropBottom > 0 || _cropRight > 0))
+	if (!(_cropLeft > 0 || _cropTop > 0 || _cropBottom > 0 || _cropRight > 0))
 		emit newFrame(srcImage);
 	else
     {
