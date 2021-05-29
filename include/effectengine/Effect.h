@@ -67,6 +67,7 @@ public:
 	QString getName() const { return _name; }
 
 	int getTimeout() const {return _timeout; }
+	bool isEndless() const { return _isEndless; }
 
 	QJsonObject getArgs() const { return _args; }
 
@@ -83,6 +84,7 @@ private:
 	const int _priority;
 
 	const int _timeout;
+	bool _isEndless;
 
 	const QString _script;
 	const QString _name;

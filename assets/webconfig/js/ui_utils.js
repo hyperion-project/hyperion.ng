@@ -67,7 +67,7 @@ function updateSessions() {
 
 function validateDuration(d) {
   if (typeof d === "undefined" || d < 0)
-    return 0;
+    return ENDLESS;
   else
     return d *= 1000;
 }

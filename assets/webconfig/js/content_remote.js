@@ -7,7 +7,7 @@ $(document).ready(function () {
   var oldEffects = [];
   var cpcolor = '#B500FF';
   var mappingList = window.serverSchema.properties.color.properties.imageToLedMappingType.enum;
-  var duration = 0;
+  var duration = ENDLESS;
   var rgb = { r: 255, g: 0, b: 0 };
   var lastImgData = "";
   var lastFileName = "";

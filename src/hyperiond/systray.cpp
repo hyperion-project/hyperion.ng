@@ -141,13 +141,13 @@ void SysTray::createTrayIcon()
 bool SysTray::getCurrentAutorunState()
 {
 	QSettings reg("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::NativeFormat);
-    if (reg.value("Hyperion", 0).toString() == qApp->applicationFilePath().replace('/', '\\'))
+	if (reg.value("Hyperion", 0).toString() == qApp->applicationFilePath().replace('/', '\\'))
 	{
 		autorunAction->setText(tr("&Disable autostart"));
-        return true;
+		return true;
 	}
 
-    autorunAction->setText(tr("&Enable autostart"));
+	autorunAction->setText(tr("&Enable autostart"));
 	return false;
 }
 #endif
@@ -167,7 +167,7 @@ void SysTray::setColor(const QColor & color)
 {
 	std::vector<ColorRgb> rgbColor{ ColorRgb{ (uint8_t)color.red(), (uint8_t)color.green(), (uint8_t)color.blue() } };
 
- 	_hyperion->setColor(1 ,rgbColor, 0);
+	_hyperion->setColor(PriorityMuxer::FG_PRIORITY,rgbColor, Effect::ENDLESS);
 }
 
 void SysTray::showColorDialog()

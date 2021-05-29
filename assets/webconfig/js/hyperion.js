@@ -33,6 +33,8 @@ window.comps = [];
 window.defaultPasswordIsSet = null;
 tokenList = {};
 
+const ENDLESS = -1;
+
 function initRestart()
 {
   $(window.hyperion).off();

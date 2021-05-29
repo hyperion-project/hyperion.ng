@@ -99,7 +99,7 @@ public:
 	///
 	QString getActiveDeviceType() const;
 
-	bool getReadOnlyMode() {return _readOnlyMode; };
+	bool getReadOnlyMode() {return _readOnlyMode; }
 
 public slots:
 
