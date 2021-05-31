@@ -285,7 +285,7 @@ qint64 WebSocketClient::sendMessage(QJsonObject obj)
 		quint64 position  = i * FRAME_SIZE_IN_BYTES;
 		quint32 frameSize = (payloadSize-position >= FRAME_SIZE_IN_BYTES) ? FRAME_SIZE_IN_BYTES : (payloadSize-position);
 
-		QByteArray buf = makeFrameHeader(OPCODE::TEXT, frameSize, isLastFrame);
+		QByteArray buf = makeFrameHeader((i == 0) ? OPCODE::TEXT : OPCODE::CONTINUATION, frameSize, isLastFrame);
 		sendMessage_Raw(buf);
 
 		qint64 written = sendMessage_Raw(payload+position,frameSize);
