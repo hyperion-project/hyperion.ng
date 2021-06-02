@@ -132,7 +132,7 @@ jobs:
       - name: Install Python, NSIS, OpenSSL, DirectX SDK
         shell: powershell
         run: |
-          choco install --no-progress python nsis openssl -y
+          choco install --no-progress python nsis openssl directx-sdk -y
 
       - name: Install libjpeg-turbo
         run: |
