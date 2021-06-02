@@ -570,7 +570,8 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 					createGrabberDx(grabberConfig);
 				}
 				#ifdef ENABLE_DX
-				// _dxGrabber->tryStart();
+					_dxGrabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
+					_dxGrabber->tryStart();
 				#endif
 			}
 			else

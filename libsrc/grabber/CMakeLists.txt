@@ -14,10 +14,6 @@ if (ENABLE_OSX)
 	add_subdirectory(osx)
 endif(ENABLE_OSX)
 
-# if (ENABLE_V4L2)
-# 	add_subdirectory(v4l2)
-# endif (ENABLE_V4L2)
-
 if (ENABLE_V4L2 OR ENABLE_MF)
 	add_subdirectory(video)
 endif ()

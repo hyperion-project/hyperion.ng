@@ -4,9 +4,13 @@
 #pragma comment(lib, "d3d9.lib")
 #pragma comment(lib,"d3dx9.lib")
 
+// Constants
+namespace {
+	const bool verbose = true;
+} //End of constants
+
 DirectXGrabber::DirectXGrabber(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation, int display)
 	: Grabber("DXGRABBER", 0, 0, cropLeft, cropRight, cropTop, cropBottom)
-	, _pixelDecimation(pixelDecimation)
 	, _display(unsigned(display))
 	, _displayWidth(0)
 	, _displayHeight(0)
@@ -15,8 +19,6 @@ DirectXGrabber::DirectXGrabber(int cropLeft, int cropRight, int cropTop, int cro
 	, _device(nullptr)
 	, _surface(nullptr)
 {
-	// init
-	setupDisplay();
 }
 
 DirectXGrabber::~DirectXGrabber()
@@ -141,14 +143,23 @@ bool DirectXGrabber::setupDisplay()
 int DirectXGrabber::grabFrame(Image<ColorRgb> & image)
 {
 	if (!_enabled)
+	{
+		qDebug() << "AUS";
 		return 0;
+	}
+
+	if (_device == nullptr)
+	{
+		// reinit, this will disable capture on failure
+		bool result = setupDisplay();
+		setEnabled(result);
+		return -1;
+	}
 
 	if (FAILED(_device->GetFrontBufferData(0, _surface)))
 	{
-		// reinit, this will disable capture on failure
 		Error(_log, "Unable to get Buffer Surface Data");
-		setEnabled(setupDisplay());
-		return -1;
+		return 0;
 	}
 
 	D3DXLoadSurfaceFromSurface(_surfaceDest, nullptr, nullptr, _surface, nullptr, _srcRect, D3DX_DEFAULT, 0);
@@ -181,9 +192,12 @@ void DirectXGrabber::setVideoMode(VideoMode mode)
 	setupDisplay();
 }
 
-void DirectXGrabber::setPixelDecimation(int pixelDecimation)
+bool DirectXGrabber::setPixelDecimation(int pixelDecimation)
 {
-	_pixelDecimation = pixelDecimation;
+	if(Grabber::setPixelDecimation(pixelDecimation))
+		return setupDisplay();
+
+	return false;
 }
 
 void DirectXGrabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom)
@@ -199,4 +213,68 @@ void DirectXGrabber::setDisplayIndex(int index)
 		_display = unsigned(index);
 		setupDisplay();
 	}
+}
+
+QJsonObject DirectXGrabber::discover(const QJsonObject& params)
+{
+	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
+
+	QJsonObject inputsDiscovered;
+	if ((_d3d9 = Direct3DCreate9(D3D_SDK_VERSION)) != nullptr)
+	{
+		int adapterCount = (int)_d3d9->GetAdapterCount();
+		if(adapterCount > 0)
+		{
+			inputsDiscovered["device"] = "dx";
+			inputsDiscovered["device_name"] = "DX";
+			inputsDiscovered["type"] = "screen";
+
+			QJsonArray video_inputs;
+			QJsonArray fps = { 1, 5, 10, 15, 20, 25, 30, 40, 50, 60 };
+
+			for(int adapter = 0; adapter < adapterCount; adapter++)
+			{
+				QJsonObject in;
+				in["inputIdx"] = adapter;
+
+				D3DADAPTER_IDENTIFIER9 identifier;
+				_d3d9->GetAdapterIdentifier(adapter, D3DENUM_WHQL_LEVEL, &identifier);
+
+				QString name = identifier.DeviceName;
+				int pos = name.lastIndexOf('\\');
+				if (pos != -1)
+					name = name.right(name.length()-pos-1);
+
+				in["name"] = name;
+
+				D3DDISPLAYMODE ddm;
+				_d3d9->GetAdapterDisplayMode(adapter, &ddm);
+
+				QJsonArray formats, resolutionArray;
+				QJsonObject format, resolution;
+
+				resolution["width"] = (int)ddm.Width;
+				resolution["height"] = (int)ddm.Height;
+				resolution["fps"] = fps;
+
+				resolutionArray.append(resolution);
+				format["resolutions"] = resolutionArray;
+
+				formats.append(format);
+
+
+				in["formats"] = formats;
+				video_inputs.append(in);
+			}
+			inputsDiscovered["video_inputs"] = video_inputs;
+		}
+		else
+		{
+			DebugIf(verbose, _log, "No displays found to capture from!");
+		}
+	}
+	DebugIf(verbose, _log, "device: [%s]", QString(QJsonDocument(inputsDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+
+	return inputsDiscovered;
+
 }

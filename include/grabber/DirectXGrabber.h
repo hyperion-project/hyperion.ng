@@ -10,6 +10,11 @@
 #include <utils/ColorRgb.h>
 #include <hyperion/Grabber.h>
 
+// qt includes
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonDocument>
+
 ///
 /// @brief The DirectX9 capture implementation
 ///
@@ -17,7 +22,7 @@ class DirectXGrabber : public Grabber
 {
 public:
 
-	DirectXGrabber(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation, int display);
+	DirectXGrabber(int cropLeft = 0, int cropRight = 0, int cropTop = 0, int cropBottom = 0, int pixelDecimation = 8, int display = 8);
 
 	virtual ~DirectXGrabber();
 
@@ -43,7 +48,7 @@ public:
 	///
 	/// @brief Apply new pixelDecimation
 	///
-	virtual void setPixelDecimation(int pixelDecimation);
+	virtual bool setPixelDecimation(int pixelDecimation)  override;
 
 	///
 	/// Set the crop values
@@ -59,6 +64,14 @@ public:
 	///
 	void setDisplayIndex(int index) override;
 
+	/// @brief Discover QT screens available (for configuration).
+	///
+	/// @param[in] params Parameters used to overwrite discovery default behaviour
+	///
+	/// @return A JSON structure holding a list of devices found
+	///
+	QJsonObject discover(const QJsonObject& params);
+
 private:
 	///
 	/// @brief Setup a new capture display, will free the previous one
@@ -72,7 +85,6 @@ private:
 	void freeResources();
 
 private:
-	int _pixelDecimation;
 	unsigned _display;
 	unsigned _displayWidth;
 	unsigned _displayHeight;

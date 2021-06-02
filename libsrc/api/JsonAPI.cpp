@@ -30,8 +30,13 @@
 #if defined(ENABLE_X11)
 	#include <grabber/X11Grabber.h>
 #endif
+
 #if defined(ENABLE_XCB)
 	#include <grabber/XcbGrabber.h>
+#endif
+
+#if defined(ENABLE_DX)
+	#include <grabber/DirectXGrabber.h>
 #endif
 
 #include <utils/jsonschema/QJsonFactory.h>
@@ -1480,6 +1485,16 @@ void JsonAPI::handleInputSourceCommand(const QJsonObject& message, const QString
 						videoInputs.append(device);
 					}
 					delete qtgrabber;
+					#endif
+
+					#ifdef ENABLE_DX
+					DirectXGrabber* dxgrabber = new DirectXGrabber();
+					device = dxgrabber->discover(params);
+					if (!device.isEmpty() )
+					{
+						videoInputs.append(device);
+					}
+					delete dxgrabber;
 					#endif
 
 					#ifdef ENABLE_X11

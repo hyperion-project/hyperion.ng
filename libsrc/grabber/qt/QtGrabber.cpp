@@ -19,7 +19,6 @@ namespace {
 QtGrabber::QtGrabber(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation, int display)
 	: Grabber("QTGRABBER", 0, 0, cropLeft, cropRight, cropTop, cropBottom)
 	, _display(display)
-	, _pixelDecimation(pixelDecimation)
 	, _calculatedWidth(0)
 	, _calculatedHeight(0)
 	, _src_x(0)
@@ -250,6 +249,14 @@ void QtGrabber::setVideoMode(VideoMode mode)
 {
 	Grabber::setVideoMode(mode);
 	updateScreenDimensions(true);
+}
+
+bool QtGrabber::setPixelDecimation(int pixelDecimation)
+{
+	if(Grabber::setPixelDecimation(pixelDecimation))
+		return updateScreenDimensions(true);
+
+	return false;
 }
 
 void QtGrabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom)

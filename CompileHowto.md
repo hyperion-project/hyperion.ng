@@ -111,7 +111,7 @@ We assume a 64bit Windows 10. Install the following;
 
 ###  Optional:
 - For DirectX9 grabber:
-  - DirectX Software Development Kit. The download link is no longer available, so you will have to search for it yourself.
+  - [DirectX Software Development Kit](https://www.microsoft.com/en-us/download/details.aspx?id=6812) ([direct link](https://download.microsoft.com/download/A/E/7/AE743F1F-632B-4809-87A9-AA1BB3458E31/DXSDK_Jun10.exe))
 - For package creation:
   - [NSIS 3.x](https://sourceforge.net/projects/nsis/files/NSIS%203/) ([direct link](https://sourceforge.net/projects/nsis/files/latest/download))
 
