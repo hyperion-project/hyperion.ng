@@ -66,7 +66,7 @@ int vc_dispmanx_snapshot(int, DISPMANX_RESOURCE_HANDLE_T resource, int vc_flags)
 	if (__bcm_frame_counter < 25)
 	{
 		color[0] = ColorRgba::WHITE;
-0		color[1] = ColorRgba::RED;
+		color[1] = ColorRgba::RED;
 		color[2] = ColorRgba::BLUE;
 		color[3] = ColorRgba::GREEN;
 	}
