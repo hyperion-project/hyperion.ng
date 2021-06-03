@@ -87,6 +87,7 @@
 		"fps": {
 			"type": "integer",
 			"title": "edt_conf_enum_custom",
+			"default":10,
 			"minimum": 1,
 			"append": "fps",
 			"options": {

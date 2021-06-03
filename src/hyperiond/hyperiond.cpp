@@ -356,7 +356,7 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 
 		_grabber_width = grabberConfig["width"].toInt(96);
 		_grabber_height = grabberConfig["height"].toInt(96);
-		_grabber_frequency = grabberConfig["frequency_Hz"].toInt(10);
+		_grabber_frequency = grabberConfig["frequency_Hz"].toInt(GrabberWrapper::DEFAULT_RATE_HZ);
 
 		_grabber_cropLeft = grabberConfig["cropLeft"].toInt(0);
 		_grabber_cropRight = grabberConfig["cropRight"].toInt(0);

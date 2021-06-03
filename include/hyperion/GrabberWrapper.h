@@ -27,18 +27,20 @@ static bool GLOBAL_GRABBER_SYS_ENABLE;
 static bool GLOBAL_GRABBER_V4L_ENABLE;
 
 ///
-/// This class will be inherted by FramebufferWrapper and others which contains the real capture interface
+/// This class will be inherited by FramebufferWrapper and others which contains the real capture interface
 ///
 class GrabberWrapper : public QObject
 {
 	Q_OBJECT
 public:
-	GrabberWrapper(const QString& grabberName, Grabber * ggrabber, unsigned width, unsigned height, unsigned updateRate_Hz = 0);
+	GrabberWrapper(const QString& grabberName, Grabber * ggrabber, unsigned width, unsigned height, unsigned updateRate_Hz = DEFAULT_RATE_HZ);
 
 	~GrabberWrapper() override;
 
 	static GrabberWrapper* instance;
 	static GrabberWrapper* getInstance(){ return instance; }
+
+	static const int DEFAULT_RATE_HZ;
 
 	///
 	/// Starts the grabber which produces led values with the specified update rate
@@ -141,7 +143,7 @@ private slots:
 
 	///
 	/// @brief Update Update capture rate
-	/// @param type   interval between frames in millisecons
+	/// @param type   interval between frames in milliseconds
 	///
 	void updateTimer(int interval);
 
@@ -167,7 +169,7 @@ protected:
 	/// The timer for generating events with the specified update rate
 	QTimer* _timer;
 
-	/// The calced update rate [ms]
+	/// The calculated update rate [ms]
 	int _updateInterval_ms;
 
 	/// The Logger instance

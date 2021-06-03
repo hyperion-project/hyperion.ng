@@ -10,6 +10,7 @@
 #include <QTimer>
 
 GrabberWrapper* GrabberWrapper::instance = nullptr;
+const int GrabberWrapper::DEFAULT_RATE_HZ = 10;
 
 GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber * ggrabber, unsigned width, unsigned height, unsigned updateRate_Hz)
 	: _grabberName(grabberName)
@@ -196,7 +197,7 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 				obj["cropBottom"].toInt(0));
 
 			// eval new update time
-			updateTimer(1000/obj["fps"].toInt(10));
+			updateTimer(1000/obj["fps"].toInt(DEFAULT_RATE_HZ));
 		}
 		else
 			stop();
