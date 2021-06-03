@@ -22,6 +22,7 @@ GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber * ggrabber, u
 	GrabberWrapper::instance = this;
 
 	// Configure the timer to generate events every n milliseconds
+	_timer->setTimerType(Qt::PreciseTimer);
 	_timer->setInterval(_updateInterval_ms);
 
 	_image.resize(width, height);
