@@ -1,0 +1,47 @@
+name: Hyperion PPA Build
+on:
+  push:
+    tags:
+      - '*'
+
+env:
+  DEBFULLNAME: "Hyperion Project"
+  DEBEMAIL: "admin@hyperion-project.org"
+
+jobs:
+  build:
+    name: Ubuntu ${{ matrix.distribution }} (amd64)
+    if: startsWith(github.event.ref, 'refs/tags')
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        distribution: [Bionic, Focal, Groovy, Hirsute, Impish]
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v3.1.0
+        with:
+          gpg-private-key: ${{ secrets.LAUNCHPAD_GPG }}
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install devscripts debhelper-compat dput cmake build-essential qtbase5-dev libqt5serialport5-dev libqt5sql5-sqlite libqt5svg5-dev libqt5x11extras5-dev libusb-1.0-0-dev python3-dev libcec-dev libxcb-image0-dev libxcb-util0-dev libxcb-shm0-dev libxcb-render0-dev libxcb-randr0-dev libxrandr-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev libturbojpeg0-dev libssl-dev zlib1g-dev libmbedtls-dev
+
+      - name: Modify changelog file
+        shell: bash
+        run: |
+          tr -d '\n' < version > temp && mv temp version
+          echo "version=$(cat version)" >> $GITHUB_ENV
+          dch --create --distribution $(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]') --package "hyperion.ng" -v "$(cat version)~$(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]')" "${{ github.event.commits[0].message }}"
+
+      - name: Make -> Build -> Push
+        run: |
+          tar cf ../hyperion.ng_${{env.version}}.orig.tar .
+          xz -9 ../hyperion.ng_${{env.version}}.orig.tar
+          debuild -S -sa
+          dput ppa:hyperion-project/hyperion ../*_source.changes
