@@ -37,11 +37,11 @@ jobs:
         run: |
           tr -d '\n' < version > temp && mv temp version
           echo "version=$(cat version)" >> $GITHUB_ENV
-          dch --create --distribution $(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]') --package "hyperion.ng" -v "$(cat version)~$(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]')" "${{ github.event.commits[0].message }}"
+          dch --create --distribution $(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]') --package "hyperion" -v "$(cat version)~$(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]')" "${{ github.event.commits[0].message }}"
 
       - name: Make -> Build -> Push
         run: |
-          tar cf ../hyperion.ng_${{env.version}}.orig.tar .
-          xz -9 ../hyperion.ng_${{env.version}}.orig.tar
+          tar cf ../hyperion_${{env.version}}.orig.tar .
+          xz -9 ../hyperion_${{env.version}}.orig.tar
           debuild -S -sa
           dput ppa:hyperion-project/hyperion ../*_source.changes

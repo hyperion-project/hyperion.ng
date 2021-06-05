@@ -4,7 +4,86 @@ on:
     types: [published]
 
 jobs:
+  apt:
+    name: Update APT (armhf) Repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v3.1.0
+        with:
+          gpg-private-key: ${{ secrets.LAUNCHPAD_GPG }}
+
+      - name: Install reprepro
+        run: sudo apt -y install reprepro
+
+      - name: Make build folders and export public GPG key
+        run: |
+          mkdir -p apt/{conf,dists,db}
+          gpg --armor --output apt/hyperion.pub.key --export 'admin@hyperion-project.org'
+      
+      - name: Create distributions file
+        run: |
+          cat > apt/conf/distributions <<EOF
+          Origin: Hyperion-Project
+          Label: apt.hyperion-project.org
+          Suite: oldstable
+          Codename: stretch
+          Architectures: armhf amd64
+          Components: main
+          Description: Official APT Repository by Hyperion Project
+          SignWith: yes
+          
+          Origin: Hyperion-Project
+          Label: apt.hyperion-project.org
+          Suite: stable
+          Codename: buster
+          Architectures: armhf amd64
+          Components: main
+          Description: Official APT Repository by Hyperion Project
+          SignWith: yes
+          
+          Origin: Hyperion-Project
+          Label: apt.hyperion-project.org
+          Suite: unstable
+          Codename: sid
+          Architectures: armhf amd64
+          Components: main
+          Description: Official APT Repository by Hyperion Project
+          SignWith: yes
+          EOF
+
+      - name: Create initial structure/packages files and symbolic links
+        run: |
+          reprepro -Vb apt createsymlinks
+          reprepro -Vb apt export
+
+      - name: Download latest armv6l/x86_64 release and add package to the repository
+        run: |
+          HYPERION_DOWNLOAD_URL="https://github.com/hyperion-project/hyperion.ng/releases/download"
+          HYPERION_RELEASES_URL="https://api.github.com/repos/hyperion-project/hyperion.ng/releases"
+          HYPERION_LATEST_VERSION=$(curl -sL "$HYPERION_RELEASES_URL" | grep "tag_name" | head -1 | cut -d '"' -f 4)
+          HYPERION_ARMHF_RELEASE=$HYPERION_DOWNLOAD_URL/$HYPERION_LATEST_VERSION/Hyperion-$HYPERION_LATEST_VERSION-Linux-armv6l.deb
+          HYPERION_AMD64_RELEASE=$HYPERION_DOWNLOAD_URL/$HYPERION_LATEST_VERSION/Hyperion-$HYPERION_LATEST_VERSION-Linux-x86_64.deb
+          curl -L $HYPERION_ARMHF_RELEASE --output armv6l.deb && curl -L $HYPERION_AMD64_RELEASE --output x86_64.deb
+          for dist in stretch buster sid; do
+            for file in armv6l x86_64; do
+              reprepro -Vb apt includedeb "$dist" "$file".deb
+            done
+          done
+          rm *.deb
+
+      - name: Sync files
+        uses: SamKirkland/FTP-Deploy-Action@4.0.0
+        with:
+          server: hyperion-project.org
+          username: ${{ secrets.NETCUP_USER }}
+          password: ${{ secrets.NETCUP_PASSWORD }}
+          local-dir: "./apt/"
+          server-dir: "./apt.hyperion-project.org/"
+
   hyperbian:
+    name: Update HyperBian Release
+    needs: [apt]
     runs-on: ubuntu-latest
     steps:
       # Dispatch event to build new HyperBian image

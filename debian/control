@@ -1,4 +1,4 @@
-Source: hyperion.ng
+Source: hyperion
 Section: devel
 Priority: optional
 Build-Depends: git,
@@ -29,7 +29,7 @@ Standards-Version: 2.0.0
 Maintainer: Hyperion Project <admin@hyperion-project.org>
 Homepage: https://hyperion-project.org/
 
-Package: hyperion.ng
+Package: hyperion
 Architecture: amd64
 Depends: libqt5widgets5,
          libqt5x11extras5,
@@ -38,4 +38,4 @@ Depends: libqt5widgets5,
          libavahi-compat-libdnssd1,
          libmbedtls12 | libmbedtls10,
          libturbojpeg
-Description: Hyperion.NG is an opensource Bias or Ambient Lighting implementation which you might know from TV manufactures. It supports many LED devices and video grabbers.
+Description: Hyperion is an opensource Bias or Ambient Lighting implementation which you might know from TV manufactures. It supports many LED devices and video grabbers.

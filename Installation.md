@@ -1,21 +1,20 @@
 # Installation
 
-Installation is a different process dependent on which platform you run. At present, Hyperion supports three platforms: Linux, MacOS and Windows.
+## Raspberry Pi OS (armhf) or Debian Stretch (9) and later (armhf/x64)
 
-- Linux
-  - [HyperBian](#HyperBian)
-  - [Raspberry Pi OS](#Raspberry-Pi-OS)
-  - [Ubuntu](#Ubuntu)
-  - [Debian](#Debian)
-- [Windows](#Windows)
-- [macOS](#macOS)
+```bash
+# Add the release GPG key to your system:
+wget -qO- https://apt.hyperion-project.org/hyperion.pub.key | sudo apt-key add -
 
-# Linux
-### HyperBian
+# Add Hyperion to your APT sources:
+echo "deb https://apt.hyperion-project.org/ stable main" | sudo tee /etc/apt/sources.list.d/hyperion.list
 
-### Raspberry Pi OS
+# Update your local package index and install Hyperion:
+sudo apt-get update
+sudo apt-get install hyperion
+```
 
-### Ubuntu
+## Ubuntu 16.04 and later (64-bit)
 
 ```bash
 # Add Hyperion PPA
@@ -23,19 +22,10 @@ sudo add-apt-repository ppa:hyperion-project/hyperion
 sudo apt-get update
 
 # Install Hyperion
-sudo apt-get install hyperion.ng
+sudo apt-get install hyperion
 ```
 
-### Debian
+## Windows:
 
-```bash
-# Download the `.deb` package for your hardware architecture
-$ wget https://github.com/hyperion-project/hyperion.ng/releases/download/2.0.0-alpha.9/Hyperion-2.0.0-alpha.9-Linux-x86_64.deb
-
-# Installation
-$ sudo apt install ./YOUR-PREVIOUSLY-DOWNLOADED-FILE.deb
-```
-
-# Windows:
-
-# macOS:
+For Windows 10 we provide a .exe file. A one click installation package that does the job for you.  
+Download the file from the [Release page](https://github.com/hyperion-project/hyperion.ng/releases).
