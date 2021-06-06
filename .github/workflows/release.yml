@@ -75,11 +75,11 @@ jobs:
       - name: Sync files
         uses: SamKirkland/FTP-Deploy-Action@4.0.0
         with:
-          server: hyperion-project.org
-          username: ${{ secrets.NETCUP_USER }}
-          password: ${{ secrets.NETCUP_PASSWORD }}
+          server: apt.hyperion-project.org
+          username: ${{ secrets.REPO_USER }}
+          password: ${{ secrets.REPO_PASSWORD }}
           local-dir: "./apt/"
-          server-dir: "./apt.hyperion-project.org/"
+          server-dir: "./"
 
   hyperbian:
     name: Update HyperBian Release
