@@ -9,10 +9,14 @@ env:
   DEBEMAIL: "admin@hyperion-project.org"
 
 jobs:
-  build:
+  Ubuntu:
     name: Ubuntu ${{ matrix.distribution }} (amd64)
     if: startsWith(github.event.ref, 'refs/tags')
     runs-on: ubuntu-latest
+    env:
+      BUILD_DEPENDS: 'git, cmake, build-essential, qtbase5-dev, libqt5serialport5-dev, libqt5sql5-sqlite, libqt5svg5-dev, libqt5x11extras5-dev, libusb-1.0-0-dev, python3-dev, libcec-dev, libxcb-image0-dev, libxcb-util0-dev, libxcb-shm0-dev, libxcb-render0-dev, libxcb-randr0-dev, libxrandr-dev, libxrender-dev, libavahi-core-dev, libavahi-compat-libdnssd-dev, libturbojpeg0-dev, libssl-dev, zlib1g-dev, libmbedtls-dev'
+      DEPENDS: 'libqt5widgets5, libqt5x11extras5, libqt5sql5, libqt5serialport5, libavahi-compat-libdnssd1, libmbedtls12 | libmbedtls10, libturbojpeg'
+      ARCHITECTURE: 'amd64'
     strategy:
       matrix:
         distribution: [Bionic, Focal, Groovy, Hirsute, Impish]
@@ -29,18 +33,20 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt update
-          sudo apt install devscripts debhelper-compat dput cmake build-essential qtbase5-dev libqt5serialport5-dev libqt5sql5-sqlite libqt5svg5-dev libqt5x11extras5-dev libusb-1.0-0-dev python3-dev libcec-dev libxcb-image0-dev libxcb-util0-dev libxcb-shm0-dev libxcb-render0-dev libxcb-randr0-dev libxrandr-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev libturbojpeg0-dev libssl-dev zlib1g-dev libmbedtls-dev
+          sudo apt-get update
+          sudo apt-get -y install devscripts debhelper-compat dput $(echo "${{env.BUILD_DEPENDS}}" | tr "," " ")
 
-      - name: Modify changelog file
+      - name: Create changelog, copyright and control file
         shell: bash
         run: |
           tr -d '\n' < version > temp && mv temp version
-          echo "version=$(cat version)" >> $GITHUB_ENV
           dch --create --distribution $(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]') --package "hyperion" -v "$(cat version)~$(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]')" "${{ github.event.commits[0].message }}"
+          cp -fr LICENSE debian/copyright
+          sed 's/@BUILD_DEPENDS@/${{env.BUILD_DEPENDS}}/g; s/@DEPENDS@/${{env.DEPENDS}}/g; s/@ARCHITECTURE@/${{env.ARCHITECTURE}}/g' debian/control.in > debian/control
 
       - name: Make -> Build -> Push
         run: |
+          echo "version=$(cat version)" >> $GITHUB_ENV
           tar cf ../hyperion_${{env.version}}.orig.tar .
           xz -9 ../hyperion_${{env.version}}.orig.tar
           debuild -S -sa
