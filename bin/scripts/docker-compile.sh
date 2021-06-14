@@ -106,35 +106,38 @@ fi
 
 echo "---> Initialize with IMAGE:TAG=${BUILD_IMAGE}:${BUILD_TAG}, BUILD_TYPE=${BUILD_TYPE}, BUILD_PACKAGES=${BUILD_PACKAGES}, BUILD_LOCAL=${BUILD_LOCAL}, BUILD_INCREMENTAL=${BUILD_INCREMENTAL}"
 
-CODE_PATH=${BASE_PATH};
-BUILD_DIR="build-${BUILD_IMAGE}-${BUILD_TAG}"
-BUILD_PATH="${BASE_PATH}/${BUILD_DIR}"
-DEPLOY_DIR="deploy/${BUILD_IMAGE}/${BUILD_TAG}"
-DEPLOY_PATH="${BASE_PATH}/${DEPLOY_DIR}"
-
 log "---> BASE_PATH  = ${BASE_PATH}"
+CODE_PATH=${BASE_PATH};
+
+# get Hyperion source, cleanup previous folder
+if [ ${BUILD_LOCAL} == 0 ]; then
+CODE_PATH="${CODE_PATH}/hyperion/"
+
+echo "---> Downloading Hyperion source code from ${GIT_REPO_URL}"
+sudo rm -fr ${CODE_PATH} >/dev/null 2>&1
+git clone --recursive --depth 1 -q ${GIT_REPO_URL} ${CODE_PATH} || { echo "---> Failed to download Hyperion source code! Abort"; exit 1; }
+fi
+log "---> CODE_PATH  = ${CODE_PATH}"
+
+BUILD_DIR="build-${BUILD_IMAGE}-${BUILD_TAG}"
+BUILD_PATH="${CODE_PATH}/${BUILD_DIR}"
+DEPLOY_DIR="deploy/${BUILD_IMAGE}/${BUILD_TAG}"
+DEPLOY_PATH="${CODE_PATH}/${DEPLOY_DIR}"
+
 log "---> BUILD_DIR  = ${BUILD_DIR}"
 log "---> BUILD_PATH = ${BUILD_PATH}"
 log "---> DEPLOY_DIR = ${DEPLOY_DIR}"
 log "---> DEPLOY_PATH = ${DEPLOY_PATH}"
 
 # cleanup deploy folder, create folder for ownership
-sudo rm -fr ${DEPLOY_PATH} >/dev/null 2>&1
-mkdir -p ${DEPLOY_PATH} >/dev/null 2>&1
-
-# get Hyperion source, cleanup previous folder
-if [ ${BUILD_LOCAL} == 0 ]; then
-CODE_PATH="${CODE_PATH}/hyperion/"
-echo "---> Downloading Hyperion source code from ${GIT_REPO_URL}"
-sudo rm -fr ${CODE_PATH} >/dev/null 2>&1
-git clone --recursive --depth 1 -q ${GIT_REPO_URL} ${CODE_PATH} || { echo "---> Failed to download Hyperion source code! Abort"; exit 1; }
-fi
+sudo rm -fr "${DEPLOY_PATH}" >/dev/null 2>&1
+mkdir -p "${DEPLOY_PATH}" >/dev/null 2>&1
 
 #Remove previous build area, if no incremental build
 if [ ${BUILD_INCREMENTAL} != 1 ]; then
-sudo rm -fr ${BASE_PATH}/${BUILD_PATH} >/dev/null 2>&1
+sudo rm -fr "${BUILD_PATH}" >/dev/null 2>&1
 fi
-mkdir -p ${BASE_PATH}/${BUILD_PATH} >/dev/null 2>&1
+mkdir -p "${BUILD_PATH}" >/dev/null 2>&1
 
 echo "---> Compiling Hyperion from source code at ${CODE_PATH}"
 
