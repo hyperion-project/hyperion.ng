@@ -156,22 +156,26 @@ $DOCKER run --rm \
 	${REGISTRY_URL}/${BUILD_IMAGE}:${BUILD_TAG} \
 	/bin/bash -c "mkdir -p /source/${BUILD_DIR} && cd /source/${BUILD_DIR} &&
 	cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. || exit 2 &&
-	make -j $(nproc) ${PACKAGES} || exit 3 &&
-	echo '---> Copying packages to host folder: ${DEPLOY_PATH}' &&
-	cp -v /source/${BUILD_DIR}/Hyperion-* /deploy 2>/dev/null || : &&
+	make -j $(nproc) ${PACKAGES} || exit 3 || : &&
 	exit 0;
 	exit 1 " || { echo "---> Hyperion compilation failed! Abort"; exit 4; }
+
+DOCKERRC=${?}
 
 # overwrite file owner to current user
 sudo chown -fR $(stat -c "%U:%G" ${BASE_PATH}) ${BUILD_PATH}
 sudo chown -fR $(stat -c "%U:%G" ${BASE_PATH}) ${DEPLOY_PATH}
 
-if [ ${BUILD_LOCAL} == 1 ]; then
- echo "---> Find compiled binaries in: ${BUILD_PATH}/bin"
-fi
+if [ ${DOCKERRC} == 0 ]; then
+	if [ ${BUILD_LOCAL} == 1 ]; then
+	 echo "---> Find compiled binaries in: ${BUILD_PATH}/bin"
+	fi
 
-if [ ${BUILD_PACKAGES} == "true" ]; then
- echo "---> Find deployment packages in: ${DEPLOY_PATH}"
+	if [ ${BUILD_PACKAGES} == "true" ]; then
+	 echo "---> Copying packages to host folder: ${DEPLOY_PATH}" &&
+	 cp -v ${BUILD_PATH}/Hyperion-* ${DEPLOY_PATH} 2>/dev/null  
+	 echo "---> Find deployment packages in: ${DEPLOY_PATH}"
+	fi
 fi
- echo "---> Script finished"
-exit 0
+echo "---> Script finished [${DOCKERRC}]"
+exit ${DOCKERRC}
