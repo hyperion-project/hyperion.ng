@@ -40,7 +40,7 @@ jobs:
           docker run --rm \
             -v "${GITHUB_WORKSPACE}/deploy:/deploy" \
             -v "${GITHUB_WORKSPACE}:/source:rw" \
-            ghcr.io/paulchen-panther/${{ matrix.architecture }}:$(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]') \
+            ghcr.io/hyperion-project/${{ matrix.architecture }}:$(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]') \
             /bin/bash -c "cd /source && \
             mkdir -p debian/source && echo '3.0 (quilt)' > debian/source/format && \
             dch --create --distribution $(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]') --package 'hyperion' -v '$(cat version)~$(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]')' '${{ github.event.commits[0].message }}' && \
