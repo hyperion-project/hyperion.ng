@@ -25,14 +25,14 @@ if ( CCACHE_FOUND )
 	set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 endif(CCACHE_FOUND)
 
-if (NOT CMAKE_VERSION VERSION_LESS "3.12")
-	find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
-	if(Python_FOUND)
+if ("${CMAKE_VERSION}" VERSION_LESS "3.12.0")
+	set(Python_ADDITIONAL_VERSIONS 3.5)
+	find_package(PythonInterp 3.5 REQUIRED)
+else()
+	find_package(Python3 3.5 COMPONENTS Interpreter Development REQUIRED)
+	if(Python3_FOUND)
 		set(PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
 	endif()
-else()
-	set(Python_ADDITIONAL_VERSIONS 3.5)
-	find_package( PythonInterp 3.5 REQUIRED )
 endif()
 
 # Set build variables
@@ -50,6 +50,7 @@ SET ( DEFAULT_USE_SYSTEM_PROTO_LIBS       OFF )
 SET ( DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     OFF )
 SET ( DEFAULT_TESTS                       OFF )
 SET ( DEFAULT_EXPERIMENTAL                OFF )
+SET ( DEFAULT_DEPLOY_DEPENDENCIES         ON  )
 
 IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
 	SET ( DEFAULT_V4L2        ON )
@@ -204,6 +205,9 @@ message(STATUS "ENABLE_PROFILER = ${ENABLE_PROFILER}")
 option(ENABLE_EXPERIMENTAL "Compile experimental features" ${DEFAULT_EXPERIMENTAL})
 message(STATUS "ENABLE_EXPERIMENTAL = ${ENABLE_EXPERIMENTAL}")
 
+option(ENABLE_DEPLOY_DEPENDENCIES "Deploy with dependencies" ${DEFAULT_DEPLOY_DEPENDENCIES})
+message(STATUS "ENABLE_DEPLOY_DEPENDENCIES = ${ENABLE_DEPLOY_DEPENDENCIES}")
+
 SET ( FLATBUFFERS_INSTALL_BIN_DIR ${CMAKE_BINARY_DIR}/flatbuf )
 SET ( FLATBUFFERS_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/flatbuf )
 
@@ -349,17 +353,19 @@ if (NOT WIN32)
 	include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/LDGold.cmake)
 endif()
 
-# Don't create new dynamic tags (RUNPATH)
-if (NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--disable-new-dtags")
-endif()
+if (ENABLE_DEPLOY_DEPENDENCIES)
+	# Don't create new dynamic tags (RUNPATH)
+	if (NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--disable-new-dtags")
+	endif()
 
-# setup -rpath to search for shared libs in BINARY/../lib folder
-if (UNIX AND NOT APPLE)
-	SET(CMAKE_SKIP_BUILD_RPATH FALSE)
-	SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-	SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH}:$ORIGIN/../lib")
-	SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+	# setup -rpath to search for shared libs in BINARY/../lib folder
+	if (UNIX AND NOT APPLE)
+		SET(CMAKE_SKIP_BUILD_RPATH FALSE)
+		SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+		SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH}:$ORIGIN/../lib")
+		SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+	endif ()
 endif ()
 
 # add QT5 dependency

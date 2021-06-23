@@ -1,0 +1,66 @@
+Origin: Hyperion-Project
+Label: apt.hyperion-project.org
+Codename: bionic
+Architectures: amd64
+Components: main
+Description: Official APT Repository by Hyperion Project
+SignWith: yes
+
+Origin: Hyperion-Project
+Label: apt.hyperion-project.org
+Codename: focal
+Architectures: amd64
+Components: main
+Description: Official APT Repository by Hyperion Project
+SignWith: yes
+
+Origin: Hyperion-Project
+Label: apt.hyperion-project.org
+Codename: groovy
+Architectures: amd64
+Components: main
+Description: Official APT Repository by Hyperion Project
+SignWith: yes
+
+Origin: Hyperion-Project
+Label: apt.hyperion-project.org
+Codename: hirsute
+Architectures: amd64
+Components: main
+Description: Official APT Repository by Hyperion Project
+SignWith: yes
+
+Origin: Hyperion-Project
+Label: apt.hyperion-project.org
+Codename: impish
+Architectures: amd64
+Components: main
+Description: Official APT Repository by Hyperion Project
+SignWith: yes
+
+Origin: Hyperion-Project
+Label: apt.hyperion-project.org
+Suite: oldstable
+Codename: stretch
+Architectures: armhf amd64
+Components: main
+Description: Official APT Repository by Hyperion Project
+SignWith: yes
+
+Origin: Hyperion-Project
+Label: apt.hyperion-project.org
+Suite: stable
+Codename: buster
+Architectures: armhf amd64
+Components: main
+Description: Official APT Repository by Hyperion Project
+SignWith: yes
+
+Origin: Hyperion-Project
+Label: apt.hyperion-project.org
+Suite: unstable
+Codename: bullseye
+Architectures: armhf amd64
+Components: main
+Description: Official APT Repository by Hyperion Project
+SignWith: yes
