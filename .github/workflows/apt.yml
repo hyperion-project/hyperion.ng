@@ -2,7 +2,7 @@ name: Hyperion APT Build
 on:
   push:
     branches:
-      - master
+      - '**'
     tags:
       - '*'
 
