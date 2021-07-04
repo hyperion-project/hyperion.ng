@@ -106,35 +106,38 @@ fi
 
 echo "---> Initialize with IMAGE:TAG=${BUILD_IMAGE}:${BUILD_TAG}, BUILD_TYPE=${BUILD_TYPE}, BUILD_PACKAGES=${BUILD_PACKAGES}, BUILD_LOCAL=${BUILD_LOCAL}, BUILD_INCREMENTAL=${BUILD_INCREMENTAL}"
 
-CODE_PATH=${BASE_PATH};
-BUILD_DIR="build-${BUILD_IMAGE}-${BUILD_TAG}"
-BUILD_PATH="${BASE_PATH}/${BUILD_DIR}"
-DEPLOY_DIR="deploy/${BUILD_IMAGE}/${BUILD_TAG}"
-DEPLOY_PATH="${BASE_PATH}/${DEPLOY_DIR}"
-
 log "---> BASE_PATH  = ${BASE_PATH}"
+CODE_PATH=${BASE_PATH};
+
+# get Hyperion source, cleanup previous folder
+if [ ${BUILD_LOCAL} == 0 ]; then
+CODE_PATH="${CODE_PATH}/hyperion/"
+
+echo "---> Downloading Hyperion source code from ${GIT_REPO_URL}"
+sudo rm -fr ${CODE_PATH} >/dev/null 2>&1
+git clone --recursive --depth 1 -q ${GIT_REPO_URL} ${CODE_PATH} || { echo "---> Failed to download Hyperion source code! Abort"; exit 1; }
+fi
+log "---> CODE_PATH  = ${CODE_PATH}"
+
+BUILD_DIR="build-${BUILD_IMAGE}-${BUILD_TAG}"
+BUILD_PATH="${CODE_PATH}/${BUILD_DIR}"
+DEPLOY_DIR="deploy/${BUILD_IMAGE}/${BUILD_TAG}"
+DEPLOY_PATH="${CODE_PATH}/${DEPLOY_DIR}"
+
 log "---> BUILD_DIR  = ${BUILD_DIR}"
 log "---> BUILD_PATH = ${BUILD_PATH}"
 log "---> DEPLOY_DIR = ${DEPLOY_DIR}"
 log "---> DEPLOY_PATH = ${DEPLOY_PATH}"
 
 # cleanup deploy folder, create folder for ownership
-sudo rm -fr ${DEPLOY_PATH} >/dev/null 2>&1
-mkdir -p ${DEPLOY_PATH} >/dev/null 2>&1
-
-# get Hyperion source, cleanup previous folder
-if [ ${BUILD_LOCAL} == 0 ]; then
-CODE_PATH="${CODE_PATH}/hyperion/"
-echo "---> Downloading Hyperion source code from ${GIT_REPO_URL}"
-sudo rm -fr ${CODE_PATH} >/dev/null 2>&1
-git clone --recursive --depth 1 -q ${GIT_REPO_URL} ${CODE_PATH} || { echo "---> Failed to download Hyperion source code! Abort"; exit 1; }
-fi
+sudo rm -fr "${DEPLOY_PATH}" >/dev/null 2>&1
+mkdir -p "${DEPLOY_PATH}" >/dev/null 2>&1
 
 #Remove previous build area, if no incremental build
 if [ ${BUILD_INCREMENTAL} != 1 ]; then
-sudo rm -fr ${BASE_PATH}/${BUILD_PATH} >/dev/null 2>&1
+sudo rm -fr "${BUILD_PATH}" >/dev/null 2>&1
 fi
-mkdir -p ${BASE_PATH}/${BUILD_PATH} >/dev/null 2>&1
+mkdir -p "${BUILD_PATH}" >/dev/null 2>&1
 
 echo "---> Compiling Hyperion from source code at ${CODE_PATH}"
 
@@ -153,22 +156,26 @@ $DOCKER run --rm \
 	${REGISTRY_URL}/${BUILD_IMAGE}:${BUILD_TAG} \
 	/bin/bash -c "mkdir -p /source/${BUILD_DIR} && cd /source/${BUILD_DIR} &&
 	cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. || exit 2 &&
-	make -j $(nproc) ${PACKAGES} || exit 3 &&
-	echo '---> Copying packages to host folder: ${DEPLOY_PATH}' &&
-	cp -v /source/${BUILD_DIR}/Hyperion-* /deploy 2>/dev/null || : &&
+	make -j $(nproc) ${PACKAGES} || exit 3 || : &&
 	exit 0;
 	exit 1 " || { echo "---> Hyperion compilation failed! Abort"; exit 4; }
+
+DOCKERRC=${?}
 
 # overwrite file owner to current user
 sudo chown -fR $(stat -c "%U:%G" ${BASE_PATH}) ${BUILD_PATH}
 sudo chown -fR $(stat -c "%U:%G" ${BASE_PATH}) ${DEPLOY_PATH}
 
-if [ ${BUILD_LOCAL} == 1 ]; then
- echo "---> Find compiled binaries in: ${BUILD_PATH}/bin"
-fi
+if [ ${DOCKERRC} == 0 ]; then
+	if [ ${BUILD_LOCAL} == 1 ]; then
+	 echo "---> Find compiled binaries in: ${BUILD_PATH}/bin"
+	fi
 
-if [ ${BUILD_PACKAGES} == "true" ]; then
- echo "---> Find deployment packages in: ${DEPLOY_PATH}"
+	if [ ${BUILD_PACKAGES} == "true" ]; then
+	 echo "---> Copying packages to host folder: ${DEPLOY_PATH}" &&
+	 cp -v ${BUILD_PATH}/Hyperion-* ${DEPLOY_PATH} 2>/dev/null  
+	 echo "---> Find deployment packages in: ${DEPLOY_PATH}"
+	fi
 fi
- echo "---> Script finished"
-exit 0
+echo "---> Script finished [${DOCKERRC}]"
+exit ${DOCKERRC}

@@ -1404,7 +1404,11 @@ var updateSelectList = function (ledType, discoveryInfo) {
           case "sedu":
           case "tpm2":
             for (const device of discoveryInfo.devices) {
-              enumVals.push(device.portName);
+              if (device.udev) {
+                enumVals.push(device.systemLocation);
+              } else {
+                enumVals.push(device.portName);
+              }
               enumTitelVals.push(device.portName + " (" + device.vendorIdentifier + "|" + device.productIdentifier + ") - " + device.manufacturer);
             }
 
@@ -1598,3 +1602,4 @@ function showAllDeviceInputOptions(showForKey, state) {
   showInputOptionsForKey(conf_editor, "generalOptions", showForKey, state);
   showInputOptionsForKey(conf_editor, "specificOptions", showForKey, state);
 }
+
