@@ -172,7 +172,7 @@ jobs:
 
       - name: Install libjpeg-turbo
         run: |
-          Invoke-WebRequest https://netcologne.dl.sourceforge.net/project/libjpeg-turbo/2.0.6/libjpeg-turbo-2.0.6-vc64.exe -OutFile libjpeg-turbo.exe
+          Invoke-WebRequest https://netcologne.dl.sourceforge.net/project/libjpeg-turbo/2.0.6/libjpeg-turbo-2.0.6-vc64.exe -OutFile libjpeg-turbo.exe -UserAgent NativeHost
           .\libjpeg-turbo /S
 
       - name: Set up x64 build architecture environment
