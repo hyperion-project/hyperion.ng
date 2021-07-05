@@ -15,6 +15,8 @@ BUILD_TAG="buster"
 BUILD_PACKAGES=true
 # packages string inserted to cmake cmd
 PACKAGES=""
+# platform string inserted to cmake cmd
+BUILD_PLATFORM=""
 #Run build using GitHub code files
 BUILD_LOCAL=0
 #Build from scratch
@@ -59,7 +61,7 @@ echo "########################################################
 ## A script to compile Hyperion inside a docker container
 ## Requires installed Docker: https://www.docker.com/
 ## Without arguments it will compile Hyperion for Debian Buster (x86_64) and uses Hyperion code from GitHub repository.
-## Supports Raspberry Pi (armv6l, armv7l) cross compilation (Debian Stretch/Buster) and native compilation (Raspbian Stretch/Buster - Raspberry Pi OS)
+## Supports Raspberry Pi (armv6l, armv7l) cross compilation (Debian Stretch/Buster) and native compilation (Raspbian Stretch/Buster)
 ##
 ## Homepage: https://www.hyperion-project.org
 ## Forum: https://forum.hyperion-project.org
@@ -73,6 +75,7 @@ echo "########################################################
 # docker-compile.sh -p true       # If true, build packages with CPack
 # docker-compile.sh -l            # Run build using local code files
 # docker-compile.sh -c            # Run incremental build, i.e. do not delete files created during previous build
+# docker-compile.sh -f x11        # cmake PLATFORM parameter
 # More informations to docker tags at: https://github.com/Hyperion-Project/hyperion.docker-ci"
 }
 
@@ -84,7 +87,7 @@ function log () {
 
 echo "Compile Hyperion using a Docker container"
 
-while getopts i:t:b:p:lcvh option
+while getopts i:t:b:p:f:lcvh option
 do
  case "${option}"
  in
@@ -92,6 +95,7 @@ do
  t) BUILD_TAG=${OPTARG};;
  b) BUILD_TYPE=${OPTARG};;
  p) BUILD_PACKAGES=${OPTARG};;
+ f) BUILD_PLATFORM=${OPTARG,,};; 
  l) BUILD_LOCAL=1;;
  c) BUILD_INCREMENTAL=1;;
  v) _VERBOSE=1;;
@@ -104,7 +108,32 @@ if [ ${BUILD_PACKAGES} == "true" ]; then
 	PACKAGES="package"
 fi
 
-echo "---> Initialize with IMAGE:TAG=${BUILD_IMAGE}:${BUILD_TAG}, BUILD_TYPE=${BUILD_TYPE}, BUILD_PACKAGES=${BUILD_PACKAGES}, BUILD_LOCAL=${BUILD_LOCAL}, BUILD_INCREMENTAL=${BUILD_INCREMENTAL}"
+# determine platform cmake parameter
+if [[ ! -z ${BUILD_PLATFORM} ]]; then
+	PLATFORM="-DPLATFORM=${BUILD_PLATFORM}"
+fi
+
+<<<<<<< HEAD
+log "---> BASE_PATH  = ${BASE_PATH}"
+CODE_PATH=${BASE_PATH};
+
+# get Hyperion source, cleanup previous folder
+if [ ${BUILD_LOCAL} == 0 ]; then
+CODE_PATH="${CODE_PATH}/hyperion/"
+
+echo "---> Downloading Hyperion source code from ${GIT_REPO_URL}"
+sudo rm -fr ${CODE_PATH} >/dev/null 2>&1
+git clone --recursive --depth 1 -q ${GIT_REPO_URL} ${CODE_PATH} || { echo "---> Failed to download Hyperion source code! Abort"; exit 1; }
+fi
+log "---> CODE_PATH  = ${CODE_PATH}"
+
+BUILD_DIR="build-${BUILD_IMAGE}-${BUILD_TAG}"
+BUILD_PATH="${CODE_PATH}/${BUILD_DIR}"
+DEPLOY_DIR="deploy/${BUILD_IMAGE}/${BUILD_TAG}"
+DEPLOY_PATH="${CODE_PATH}/${DEPLOY_DIR}"
+
+=======
+echo "---> Initialize with IMAGE:TAG=${BUILD_IMAGE}:${BUILD_TAG}, BUILD_TYPE=${BUILD_TYPE}, BUILD_PACKAGES=${BUILD_PACKAGES}, PLATFORM=${BUILD_PLATFORM}, BUILD_LOCAL=${BUILD_LOCAL}, BUILD_INCREMENTAL=${BUILD_INCREMENTAL}"
 
 log "---> BASE_PATH  = ${BASE_PATH}"
 CODE_PATH=${BASE_PATH};
@@ -124,6 +153,7 @@ BUILD_PATH="${CODE_PATH}/${BUILD_DIR}"
 DEPLOY_DIR="deploy/${BUILD_IMAGE}/${BUILD_TAG}"
 DEPLOY_PATH="${CODE_PATH}/${DEPLOY_DIR}"
 
+>>>>>>> docker-compile Add PLATFORM parameter, only copy output file after successful compile
 log "---> BUILD_DIR  = ${BUILD_DIR}"
 log "---> BUILD_PATH = ${BUILD_PATH}"
 log "---> DEPLOY_DIR = ${DEPLOY_DIR}"
@@ -155,7 +185,11 @@ $DOCKER run --rm \
 	-v "${CODE_PATH}/:/source:rw" \
 	${REGISTRY_URL}/${BUILD_IMAGE}:${BUILD_TAG} \
 	/bin/bash -c "mkdir -p /source/${BUILD_DIR} && cd /source/${BUILD_DIR} &&
+<<<<<<< HEAD
 	cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. || exit 2 &&
+=======
+	cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${PLATFORM} .. || exit 2 &&
+>>>>>>> docker-compile Add PLATFORM parameter, only copy output file after successful compile
 	make -j $(nproc) ${PACKAGES} || exit 3 || : &&
 	exit 0;
 	exit 1 " || { echo "---> Hyperion compilation failed! Abort"; exit 4; }
@@ -164,7 +198,6 @@ DOCKERRC=${?}
 
 # overwrite file owner to current user
 sudo chown -fR $(stat -c "%U:%G" ${BASE_PATH}) ${BUILD_PATH}
-sudo chown -fR $(stat -c "%U:%G" ${BASE_PATH}) ${DEPLOY_PATH}
 
 if [ ${DOCKERRC} == 0 ]; then
 	if [ ${BUILD_LOCAL} == 1 ]; then
@@ -175,6 +208,10 @@ if [ ${DOCKERRC} == 0 ]; then
 	 echo "---> Copying packages to host folder: ${DEPLOY_PATH}" &&
 	 cp -v ${BUILD_PATH}/Hyperion-* ${DEPLOY_PATH} 2>/dev/null  
 	 echo "---> Find deployment packages in: ${DEPLOY_PATH}"
+<<<<<<< HEAD
+=======
+	 sudo chown -fR $(stat -c "%U:%G" ${BASE_PATH}) ${DEPLOY_PATH}
+>>>>>>> docker-compile Add PLATFORM parameter, only copy output file after successful compile
 	fi
 fi
 echo "---> Script finished [${DOCKERRC}]"
