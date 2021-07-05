@@ -9,8 +9,8 @@ namespace {
 	const bool verbose = true;
 } //End of constants
 
-DirectXGrabber::DirectXGrabber(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation, int display)
-	: Grabber("DXGRABBER", 0, 0, cropLeft, cropRight, cropTop, cropBottom)
+DirectXGrabber::DirectXGrabber(int display, int cropLeft, int cropRight, int cropTop, int cropBottom)
+	: Grabber("DXGRABBER", cropLeft, cropRight, cropTop, cropBottom)
 	, _display(unsigned(display))
 	, _displayWidth(0)
 	, _displayHeight(0)
@@ -142,7 +142,7 @@ bool DirectXGrabber::setupDisplay()
 
 int DirectXGrabber::grabFrame(Image<ColorRgb> & image)
 {
-	if (!_enabled)
+	if (!_isEnabled)
 	{
 		qDebug() << "AUS";
 		return 0;
@@ -206,13 +206,15 @@ void DirectXGrabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned
 	setupDisplay();
 }
 
-void DirectXGrabber::setDisplayIndex(int index)
+bool DirectXGrabber::setDisplayIndex(int index)
 {
+	bool rc (true);
 	if(_display != unsigned(index))
 	{
 		_display = unsigned(index);
-		setupDisplay();
+		rc = setupDisplay();
 	}
+	return rc;
 }
 
 QJsonObject DirectXGrabber::discover(const QJsonObject& params)

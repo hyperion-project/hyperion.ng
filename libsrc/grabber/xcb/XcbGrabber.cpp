@@ -21,8 +21,8 @@ namespace {
 
 #define DOUBLE_TO_FIXED(d) ((xcb_render_fixed_t) ((d) * 65536))
 
-XcbGrabber::XcbGrabber(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation)
-	: Grabber("XCBGRABBER", 0, 0, cropLeft, cropRight, cropTop, cropBottom)
+XcbGrabber::XcbGrabber(int cropLeft, int cropRight, int cropTop, int cropBottom)
+	: Grabber("XCBGRABBER", cropLeft, cropRight, cropTop, cropBottom)
 	, _connection{}
 	, _screen{}
 	, _pixmap{}
@@ -32,7 +32,6 @@ XcbGrabber::XcbGrabber(int cropLeft, int cropRight, int cropTop, int cropBottom,
 	, _dstPicture{}
 	, _transform{}
 	, _shminfo{}
-	, _pixelDecimation(pixelDecimation)
 	, _screenWidth{}
 	, _screenHeight{}
 	, _src_x(cropLeft)
@@ -263,7 +262,7 @@ bool XcbGrabber::setupDisplay()
 
 int XcbGrabber::grabFrame(Image<ColorRgb> & image, bool forceUpdate)
 {
-	if (!_enabled)
+	if (!_isEnabled)
 		return 0;
 
 	if (forceUpdate)
@@ -351,7 +350,7 @@ int XcbGrabber::updateScreenDimensions(bool force)
 		return -1;
 	}
 
-	if (!_enabled)
+	if (!_isEnabled)
 		setEnabled(true);
 
 	if (!force && _screenWidth == unsigned(geometry->width) &&
@@ -426,21 +425,29 @@ int XcbGrabber::updateScreenDimensions(bool force)
 void XcbGrabber::setVideoMode(VideoMode mode)
 {
 	Grabber::setVideoMode(mode);
-	updateScreenDimensions(true);
+	if(_connection != nullptr)
+	{
+		updateScreenDimensions(true);
+	}
 }
 
 bool XcbGrabber::setPixelDecimation(int pixelDecimation)
 {
-	if(Grabber::setPixelDecimation(pixelDecimation))
+	bool rc (true);
+	if (Grabber::setPixelDecimation(pixelDecimation))
 	{
-		updateScreenDimensions(true);
-		return true;
+		if(_connection != nullptr)
+		{
+			if ( updateScreenDimensions(true) < 0 )
+			{
+				rc = false;
+			}
+		}
 	}
-
-	return false;
+	return rc;
 }
 
-void XcbGrabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom)
+void XcbGrabber::setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom)
 {
 	Grabber::setCropping(cropLeft, cropRight, cropTop, cropBottom);
 	if(_connection != nullptr)

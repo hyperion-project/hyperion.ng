@@ -39,6 +39,22 @@
 	#include <grabber/DirectXGrabber.h>
 #endif
 
+#if defined(ENABLE_FB)
+	#include <grabber/FramebufferFrameGrabber.h>
+#endif
+
+#if defined(ENABLE_DISPMANX)
+	#include <grabber/DispmanxFrameGrabber.h>
+#endif
+
+#if defined(ENABLE_AMLOGIC)
+	#include <grabber/AmlogicGrabber.h>
+#endif
+
+#if defined(ENABLE_OSX)
+	#include <grabber/OsxFrameGrabber.h>
+#endif
+
 #include <utils/jsonschema/QJsonFactory.h>
 #include <utils/jsonschema/QJsonSchemaChecker.h>
 #include <HyperionConfig.h>
@@ -1515,6 +1531,46 @@ void JsonAPI::handleInputSourceCommand(const QJsonObject& message, const QString
 						videoInputs.append(device);
 					}
 					delete xcbGrabber;
+					#endif
+
+					#ifdef ENABLE_FB
+					FramebufferFrameGrabber* fbGrabber = new FramebufferFrameGrabber();
+					device = fbGrabber->discover(params);
+					if (!device.isEmpty() )
+					{
+						videoInputs.append(device);
+					}
+					delete fbGrabber;
+					#endif
+
+					#if defined(ENABLE_DISPMANX)
+					DispmanxFrameGrabber* dispmanx = new DispmanxFrameGrabber();
+					device = dispmanx->discover(params);
+					if (!device.isEmpty() )
+					{
+						videoInputs.append(device);
+					}
+					delete dispmanx;
+					#endif
+
+					#if defined(ENABLE_AMLOGIC)
+					AmlogicGrabber* amlGrabber = new AmlogicGrabber();
+					device = amlGrabber->discover(params);
+					if (!device.isEmpty() )
+					{
+						videoInputs.append(device);
+					}
+					delete amlGrabber;
+					#endif
+
+					#if defined(ENABLE_OSX)
+					OsxFrameGrabber* osxGrabber = new OsxFrameGrabber();
+					device = osxGrabber->discover(params);
+					if (!device.isEmpty() )
+					{
+						videoInputs.append(device);
+					}
+					delete osxGrabber;
 					#endif
 				}
 

@@ -1,10 +1,12 @@
 #include <grabber/DispmanxWrapper.h>
 
-DispmanxWrapper::DispmanxWrapper(unsigned grabWidth, unsigned grabHeight, unsigned updateRate_Hz)
-	: GrabberWrapper("Dispmanx", &_grabber, grabWidth, grabHeight, updateRate_Hz)
-	, _grabber(grabWidth, grabHeight)
+DispmanxWrapper::DispmanxWrapper( int updateRate_Hz,
+								  int pixelDecimation
+								  )
+	: GrabberWrapper("Dispmanx", &_grabber, updateRate_Hz)
+	  , _grabber()
 {
-
+	_grabber.setPixelDecimation(pixelDecimation);
 }
 
 void DispmanxWrapper::action()

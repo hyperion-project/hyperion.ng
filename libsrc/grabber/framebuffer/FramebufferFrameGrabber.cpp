@@ -10,109 +10,261 @@
 // STL includes
 #include <iostream>
 
+//Qt
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QDir>
+#include <QSize>
+
+// Constants
+namespace {
+const bool verbose = false;
+
+// fb discovery service
+const char DISCOVERY_DIRECTORY[] = "/dev/";
+const char DISCOVERY_FILEPATTERN[] = "fb?";
+
+} //End of constants
+
 // Local includes
 #include <grabber/FramebufferFrameGrabber.h>
 
-FramebufferFrameGrabber::FramebufferFrameGrabber(const QString & device, unsigned width, unsigned height)
-	: Grabber("FRAMEBUFFERGRABBER", width, height)
-	, _fbDevice()
+FramebufferFrameGrabber::FramebufferFrameGrabber(const QString & device)
+	: Grabber("FRAMEBUFFERGRABBER")
+	  , _fbDevice(device)
+	  , _fbfd (-1)
 {
-	setDevicePath(device);
+	_useImageResampler = true;
+}
+
+FramebufferFrameGrabber::~FramebufferFrameGrabber()
+{
+	closeDevice();
+}
+
+bool FramebufferFrameGrabber::setupScreen()
+{
+	bool rc (false);
+
+	if ( _fbfd >= 0 )
+	{
+		closeDevice();
+	}
+
+	rc = getScreenInfo();
+	setEnabled(rc);
+
+	return rc;
+}
+
+bool FramebufferFrameGrabber::setWidthHeight(int width, int height)
+{
+	bool rc (false);
+	if(Grabber::setWidthHeight(width, height))
+	{
+		rc = setupScreen();
+	}
+	return rc;
 }
 
 int FramebufferFrameGrabber::grabFrame(Image<ColorRgb> & image)
 {
-	if (!_enabled) return 0;
+	int rc = 0;
 
-	/* Open the framebuffer device */
-	int fbfd = open(QSTRING_CSTR(_fbDevice), O_RDONLY);
-	if (fbfd == -1)
+	if (_isEnabled && !_isDeviceInError)
 	{
-		Error(_log, "Error opening %s, %s : ", QSTRING_CSTR(_fbDevice), std::strerror(errno));
-		setEnabled(false);
-		return -1;
-	}
-
-	/* get variable screen information */
-	struct fb_var_screeninfo vinfo;
-	int result = ioctl (fbfd, FBIOGET_VSCREENINFO, &vinfo);
-	if (result != 0)
-	{
-		Error(_log, "Could not get screen information, %s", std::strerror(errno));
-		close(fbfd);
-		setEnabled(false);
-		return -1;
-	}
-
-	unsigned bytesPerPixel = vinfo.bits_per_pixel / 8;
-	unsigned capSize = vinfo.xres * vinfo.yres * bytesPerPixel;
-
-	PixelFormat pixelFormat;
-	switch (vinfo.bits_per_pixel)
-	{
-		case 16: pixelFormat = PixelFormat::BGR16; break;
-		case 24: pixelFormat = PixelFormat::BGR24; break;
-#ifdef ENABLE_AMLOGIC
-		case 32: pixelFormat = PixelFormat::PIXELFORMAT_RGB32; break;
-#else
-		case 32: pixelFormat = PixelFormat::BGR32; break;
-#endif
-		default:
-			Error(_log, "Unknown pixel format: %d bits per pixel", vinfo.bits_per_pixel);
-			close(fbfd);
-			return -1;
-	}
-
-	/* map the device to memory */
-	unsigned char * fbp = (unsigned char*)mmap(0, capSize, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, fbfd, 0);
-	if (fbp == MAP_FAILED) {
-		Error(_log, "Error mapping %s, %s : ", QSTRING_CSTR(_fbDevice), std::strerror(errno));
-		return -1;
-	}
-
-	_imageResampler.setHorizontalPixelDecimation(vinfo.xres/_width);
-	_imageResampler.setVerticalPixelDecimation(vinfo.yres/_height);
-	_imageResampler.processImage(fbp,
-								vinfo.xres,
-								vinfo.yres,
-								vinfo.xres * bytesPerPixel,
-								pixelFormat,
-								image);
-
-	munmap(fbp, capSize);
-	close(fbfd);
-
-	return 0;
-}
-
-void FramebufferFrameGrabber::setDevicePath(const QString& path)
-{
-	if(_fbDevice != path)
-	{
-		_fbDevice = path;
-
-		// Check if the framebuffer device can be opened and display the current resolution
-		int fbfd = open(QSTRING_CSTR(_fbDevice), O_RDONLY);
-		if (fbfd == -1)
+		if ( getScreenInfo() )
 		{
-			Error(_log, "Error opening %s, %s : ", QSTRING_CSTR(_fbDevice), std::strerror(errno));
-			setEnabled(false);
-		}
-		else
-		{
-			// get variable screen information
-			struct fb_var_screeninfo vinfo;
-			int result = ioctl (fbfd, FBIOGET_VSCREENINFO, &vinfo);
-			if (result != 0)
-			{
-				Error(_log, "Could not get screen information, %s", std::strerror(errno));
-				setEnabled(false);
+			/* map the device to memory */
+			uint8_t * fbp = static_cast<uint8_t*>(mmap(nullptr, _fixInfo.smem_len, PROT_READ, MAP_PRIVATE | MAP_NORESERVE, _fbfd, 0));
+			if (fbp == MAP_FAILED) {
+
+				QString errorReason = QString ("Error mapping %1, [%2] %3").arg(_fbDevice).arg(errno).arg(std::strerror(errno));
+				this->setInError ( errorReason );
+				closeDevice();
+				rc = -1;
 			}
 			else
 			{
-				Info(_log, "Display opened with resolution: %dx%d@%dbit", vinfo.xres, vinfo.yres, vinfo.bits_per_pixel);
+				_imageResampler.processImage(fbp,
+											  static_cast<int>(_varInfo.xres),
+											  static_cast<int>(_varInfo.yres),
+											  static_cast<int>(_fixInfo.line_length),
+											  _pixelFormat,
+											  image);
+				munmap(fbp, _fixInfo.smem_len);
 			}
-			close(fbfd);
+		}
+		closeDevice();
+	}
+	return rc;
+}
+
+bool FramebufferFrameGrabber::openDevice()
+{
+	bool rc = true;
+
+	/* Open the framebuffer device */
+	_fbfd = ::open(QSTRING_CSTR(_fbDevice), O_RDONLY);
+	if (_fbfd < 0)
+	{
+		QString errorReason = QString ("Error opening %1, [%2] %3").arg(_fbDevice).arg(errno).arg(std::strerror(errno));
+		this->setInError ( errorReason );
+		rc = false;
+	}
+	return rc;
+}
+
+bool FramebufferFrameGrabber::closeDevice()
+{
+	bool rc = false;
+	if (_fbfd >= 0)
+	{
+		if( ::close(_fbfd) == 0) {
+			rc = true;
+		}
+		_fbfd = -1;
+	}
+	return rc;
+}
+
+QSize FramebufferFrameGrabber::getScreenSize() const
+{
+	return getScreenSize(_fbDevice);
+}
+
+QSize FramebufferFrameGrabber::getScreenSize(const QString& device) const
+{
+	int width (0);
+	int height(0);
+
+	int fbfd = ::open(QSTRING_CSTR(device), O_RDONLY);
+	if (fbfd != -1)
+	{
+		struct fb_var_screeninfo vinfo;
+		int result = ioctl (fbfd, FBIOGET_VSCREENINFO, &vinfo);
+		if (result == 0)
+		{
+			width = static_cast<int>(vinfo.xres);
+			height = static_cast<int>(vinfo.yres);
+			DebugIf(verbose, _log, "FB device [%s] found with resolution: %dx%d", QSTRING_CSTR(device), width, height);
+		}
+		::close(fbfd);
+	}
+	return QSize(width, height);
+}
+
+bool FramebufferFrameGrabber::getScreenInfo()
+{
+	bool rc (false);
+
+	if ( openDevice() )
+	{
+		if (ioctl(_fbfd, FBIOGET_FSCREENINFO, &_fixInfo) < 0 || ioctl (_fbfd, FBIOGET_VSCREENINFO, &_varInfo) < 0)
+		{
+			QString errorReason = QString ("Error getting screen information for %1, [%2] %3").arg(_fbDevice).arg(errno).arg(std::strerror(errno));
+			this->setInError ( errorReason );
+			closeDevice();
+		}
+		else
+		{
+			rc = true;
+			switch (_varInfo.bits_per_pixel)
+			{
+			case 16: _pixelFormat = PixelFormat::BGR16;
+				break;
+			case 24: _pixelFormat = PixelFormat::BGR24;
+				break;
+#ifdef ENABLE_AMLOGIC
+			case 32: _pixelFormat = PixelFormat::PIXELFORMAT_RGB32;
+				break;
+#else
+			case 32: _pixelFormat = PixelFormat::BGR32;
+				break;
+#endif
+			default:
+				rc= false;
+				QString errorReason = QString ("Unknown pixel format: %1 bits per pixel").arg(static_cast<int>(_varInfo.bits_per_pixel));
+				this->setInError ( errorReason );
+				closeDevice();
+			}
 		}
 	}
+	return rc;
+}
+
+QJsonObject FramebufferFrameGrabber::discover(const QJsonObject& params)
+{
+	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
+
+	QJsonObject inputsDiscovered;
+
+	//Find framebuffer devices 0-9
+	QDir deviceDirectory (DISCOVERY_DIRECTORY);
+	QStringList deviceFilter(DISCOVERY_FILEPATTERN);
+	deviceDirectory.setNameFilters(deviceFilter);
+	deviceDirectory.setSorting(QDir::Name);
+	QFileInfoList deviceFiles = deviceDirectory.entryInfoList(QDir::System);
+
+	int fbIdx (0);
+	QJsonArray video_inputs;
+
+	QFileInfoList::const_iterator deviceFileIterator;
+	for (deviceFileIterator = deviceFiles.constBegin(); deviceFileIterator != deviceFiles.constEnd(); ++deviceFileIterator)
+	{
+		fbIdx = (*deviceFileIterator).fileName().rightRef(1).toInt();
+		QString device = (*deviceFileIterator).absoluteFilePath();
+		DebugIf(verbose, _log, "FB device [%s] found", QSTRING_CSTR(device));
+
+		QSize screenSize = getScreenSize(device);
+		if ( !screenSize.isEmpty() )
+		{
+			QJsonArray fps = { "1", "5", "10", "15", "20", "25", "30", "40", "50", "60" };
+
+			QJsonObject in;
+
+			QString displayName;
+			displayName = QString("FB%1").arg(fbIdx);
+
+			in["name"] = displayName;
+			in["inputIdx"] = fbIdx;
+
+			QJsonArray formats;
+			QJsonObject format;
+
+			QJsonArray resolutionArray;
+
+			QJsonObject resolution;
+
+			resolution["width"] = screenSize.width();
+			resolution["height"] = screenSize.height();
+			resolution["fps"] = fps;
+
+			resolutionArray.append(resolution);
+
+			format["resolutions"] = resolutionArray;
+			formats.append(format);
+
+			in["formats"] = formats;
+			video_inputs.append(in);
+		}
+
+		if (!video_inputs.isEmpty())
+		{
+			inputsDiscovered["device"] = "framebuffer";
+			inputsDiscovered["device_name"] = "Framebuffer";
+			inputsDiscovered["type"] = "screen";
+			inputsDiscovered["video_inputs"] = video_inputs;
+		}
+	}
+
+	if (inputsDiscovered.isEmpty())
+	{
+		DebugIf(verbose, _log, "No displays found to capture from!");
+	}
+
+	DebugIf(verbose, _log, "device: [%s]", QString(QJsonDocument(inputsDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+
+	return inputsDiscovered;
 }

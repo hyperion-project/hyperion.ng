@@ -9,8 +9,8 @@ namespace {
 	const bool verbose = false;
 } //End of constants
 
-X11Grabber::X11Grabber(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation)
-	: Grabber("X11GRABBER", 0, 0, cropLeft, cropRight, cropTop, cropBottom)
+X11Grabber::X11Grabber(int cropLeft, int cropRight, int cropTop, int cropBottom)
+	: Grabber("X11GRABBER", cropLeft, cropRight, cropTop, cropBottom)
 	, _x11Display(nullptr)
 	, _xImage(nullptr)
 	, _pixmap(None)
@@ -18,7 +18,6 @@ X11Grabber::X11Grabber(int cropLeft, int cropRight, int cropTop, int cropBottom,
 	, _dstFormat(nullptr)
 	, _srcPicture(None)
 	, _dstPicture(None)
-	, _pixelDecimation(pixelDecimation)
 	, _calculatedWidth(0)
 	, _calculatedHeight(0)
 	, _src_x(cropLeft)
@@ -187,7 +186,7 @@ bool X11Grabber::setupDisplay()
 
 int X11Grabber::grabFrame(Image<ColorRgb> & image, bool forceUpdate)
 {
-	if (!_enabled) return 0;
+	if (!_isEnabled) return 0;
 
 	if (forceUpdate)
 		updateScreenDimensions(forceUpdate);
@@ -348,21 +347,29 @@ int X11Grabber::updateScreenDimensions(bool force)
 void X11Grabber::setVideoMode(VideoMode mode)
 {
 	Grabber::setVideoMode(mode);
-	updateScreenDimensions(true);
+	if(_x11Display != nullptr)
+	{
+		updateScreenDimensions(true);
+	}
 }
 
 bool X11Grabber::setPixelDecimation(int pixelDecimation)
 {
-	if(Grabber::setPixelDecimation(pixelDecimation))
+	bool rc (true);
+	if (Grabber::setPixelDecimation(pixelDecimation))
 	{
-		updateScreenDimensions(true);
-		return true;
+		if(_x11Display != nullptr)
+		{
+			if ( updateScreenDimensions(true) < 0 )
+			{
+				rc = false;
+			}
+		}
 	}
-
-	return false;
+	return rc;
 }
 
-void X11Grabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom)
+void X11Grabber::setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom)
 {
 	Grabber::setCropping(cropLeft, cropRight, cropTop, cropBottom);
 	if(_x11Display != nullptr)

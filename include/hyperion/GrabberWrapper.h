@@ -27,13 +27,13 @@ static bool GLOBAL_GRABBER_SYS_ENABLE;
 static bool GLOBAL_GRABBER_V4L_ENABLE;
 
 ///
-/// This class will be inherited by FramebufferWrapper and others which contains the real capture interface
+/// This class will be inherited by GrabberWrappers which contains the real capture interface
 ///
 class GrabberWrapper : public QObject
 {
 	Q_OBJECT
 public:
-	GrabberWrapper(const QString& grabberName, Grabber * ggrabber, unsigned width, unsigned height, unsigned updateRate_Hz = DEFAULT_RATE_HZ);
+	GrabberWrapper(const QString& grabberName, Grabber * ggrabber,int updateRate_Hz = DEFAULT_RATE_HZ);
 
 	~GrabberWrapper() override;
 
@@ -41,6 +41,9 @@ public:
 	static GrabberWrapper* getInstance(){ return instance; }
 
 	static const int DEFAULT_RATE_HZ;
+	static const int DEFAULT_MIN_GRAB_RATE_HZ;
+	static const int DEFAULT_MAX_GRAB_RATE_HZ;
+	static const int DEFAULT_PIXELDECIMATION;
 
 	///
 	/// Starts the grabber which produces led values with the specified update rate
@@ -112,7 +115,7 @@ public slots:
 	/// Set the Flip mode
 	/// @param flipMode The new flip mode
 	///
-	virtual void setFlipMode(QString flipMode);
+	virtual void setFlipMode(const QString &flipMode);
 
 	///
 	/// Set the crop values
@@ -121,7 +124,7 @@ public slots:
 	/// @param  cropTop     Top pixel crop
 	/// @param  cropBottom  Bottom pixel crop
 	///
-	virtual void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom);
+	virtual void setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom);
 
 	///
 	/// @brief Handle settings update from HyperionDaemon Settingsmanager emit
@@ -150,10 +153,10 @@ private slots:
 protected:
 
 	///
-/// @brief Opens the input device.
-///
-/// @return True, on success (i.e. device is ready)
-///
+	/// @brief Opens the input device.
+	///
+	/// @return True, on success (i.e. device is ready)
+	///
 	virtual bool open() { return true; }
 
 	///
@@ -166,14 +169,14 @@ protected:
 
 	QString _grabberName;
 
+	/// The Logger instance
+	Logger * _log;
+
 	/// The timer for generating events with the specified update rate
 	QTimer* _timer;
 
 	/// The calculated update rate [ms]
 	int _updateInterval_ms;
-
-	/// The Logger instance
-	Logger * _log;
 
 	Grabber *_ggrabber;
 

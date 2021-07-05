@@ -356,18 +356,16 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 
 		_grabber_width = grabberConfig["width"].toInt(96);
 		_grabber_height = grabberConfig["height"].toInt(96);
-		_grabber_frequency = grabberConfig["frequency_Hz"].toInt(GrabberWrapper::DEFAULT_RATE_HZ);
+		_grabber_pixelDecimation = grabberConfig["pixelDecimation"].toInt(GrabberWrapper::DEFAULT_PIXELDECIMATION);
+		_grabber_frequency = grabberConfig["fps"].toInt(GrabberWrapper::DEFAULT_RATE_HZ);
 
 		_grabber_cropLeft = grabberConfig["cropLeft"].toInt(0);
 		_grabber_cropRight = grabberConfig["cropRight"].toInt(0);
 		_grabber_cropTop = grabberConfig["cropTop"].toInt(0);
 		_grabber_cropBottom = grabberConfig["cropBottom"].toInt(0);
 
-		_grabber_ge2d_mode = grabberConfig["ge2d_mode"].toInt(0);
-		_grabber_device = grabberConfig["amlogic_grabber"].toString("amvideocap0");
-
 		#ifdef ENABLE_OSX
-		QString type = "osx";
+		QString type = grabberConfig["device"].toString("osx");
 		#else
 		QString type = grabberConfig["device"].toString("auto");
 		#endif
@@ -387,9 +385,10 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 				{
 					type = "amlogic";
 
-					if (!QFile::exists("/dev/" + _grabber_device))
+					QString amlDevice ("/dev/amvideocap0");
+					if (!QFile::exists(amlDevice))
 					{
-						Error(_log, "grabber device '%s' for type amlogic not found!", QSTRING_CSTR(_grabber_device));
+						Error(_log, "grabber device '%s' for type amlogic not found!", QSTRING_CSTR(amlDevice));
 					}
 				}
 				else
@@ -501,7 +500,7 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 			{
 				if (_dispmanx == nullptr)
 				{
-					createGrabberDispmanx();
+					createGrabberDispmanx(grabberConfig);
 				}
 				#ifdef ENABLE_DISPMANX
 					_dispmanx->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
@@ -512,7 +511,7 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 			{
 				if (_amlGrabber == nullptr)
 				{
-					createGrabberAmlogic();
+					createGrabberAmlogic(grabberConfig);
 				}
 				#ifdef ENABLE_AMLOGIC
 					_amlGrabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
@@ -619,10 +618,13 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 	}
 }
 
-void HyperionDaemon::createGrabberDispmanx()
+void HyperionDaemon::createGrabberDispmanx(const QJsonObject& /*grabberConfig*/)
 {
 #ifdef ENABLE_DISPMANX
-	_dispmanx = new DispmanxWrapper(_grabber_width, _grabber_height, _grabber_frequency);
+	_dispmanx = new DispmanxWrapper(
+		_grabber_frequency,
+		_grabber_pixelDecimation
+		);
 	_dispmanx->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
 
 	// connect to HyperionDaemon signal
@@ -635,10 +637,13 @@ void HyperionDaemon::createGrabberDispmanx()
 #endif
 }
 
-void HyperionDaemon::createGrabberAmlogic()
+void HyperionDaemon::createGrabberAmlogic(const QJsonObject& /*grabberConfig*/)
 {
 #ifdef ENABLE_AMLOGIC
-	_amlGrabber = new AmlogicWrapper(_grabber_width, _grabber_height);
+	_amlGrabber = new AmlogicWrapper(
+		_grabber_frequency,
+		_grabber_pixelDecimation
+		);
 	_amlGrabber->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
 
 	// connect to HyperionDaemon signal
@@ -651,13 +656,14 @@ void HyperionDaemon::createGrabberAmlogic()
 #endif
 }
 
-void HyperionDaemon::createGrabberX11(const QJsonObject& grabberConfig)
+void HyperionDaemon::createGrabberX11(const QJsonObject& /*grabberConfig*/)
 {
 #ifdef ENABLE_X11
 	_x11Grabber = new X11Wrapper(
-		_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom,
-		grabberConfig["pixelDecimation"].toInt(8),
-		_grabber_frequency);
+		_grabber_frequency,
+		_grabber_pixelDecimation,
+		_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom
+		);
 	_x11Grabber->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
 
 	// connect to HyperionDaemon signal
@@ -670,13 +676,14 @@ void HyperionDaemon::createGrabberX11(const QJsonObject& grabberConfig)
 #endif
 }
 
-void HyperionDaemon::createGrabberXcb(const QJsonObject& grabberConfig)
+void HyperionDaemon::createGrabberXcb(const QJsonObject& /*grabberConfig*/)
 {
 #ifdef ENABLE_XCB
 	_xcbGrabber = new XcbWrapper(
-		_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom,
-		grabberConfig["pixelDecimation"].toInt(8),
-		_grabber_frequency);
+		_grabber_frequency,
+		_grabber_pixelDecimation,
+		_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom
+		);
 	_xcbGrabber->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
 
 	// connect to HyperionDaemon signal
@@ -693,10 +700,11 @@ void HyperionDaemon::createGrabberQt(const QJsonObject& grabberConfig)
 {
 #ifdef ENABLE_QT
 	_qtGrabber = new QtWrapper(
-		_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom,
-		grabberConfig["pixelDecimation"].toInt(8),
+		_grabber_frequency,
 		grabberConfig["input"].toInt(0),
-		_grabber_frequency);
+		_grabber_pixelDecimation,
+		_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom
+		);
 
 	// connect to HyperionDaemon signal
 	connect(this, &HyperionDaemon::videoMode, _qtGrabber, &QtWrapper::setVideoMode);
@@ -712,10 +720,11 @@ void HyperionDaemon::createGrabberDx(const QJsonObject& grabberConfig)
 {
 #ifdef ENABLE_DX
 	_dxGrabber = new DirectXWrapper(
-		_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom,
-		grabberConfig["pixelDecimation"].toInt(8),
+		_grabber_frequency,
 		grabberConfig["display"].toInt(0),
-		_grabber_frequency);
+		_grabber_pixelDecimation,
+		_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom
+		);
 
 	// connect to HyperionDaemon signal
 	connect(this, &HyperionDaemon::videoMode, _dxGrabber, &DirectXWrapper::setVideoMode);
@@ -731,9 +740,14 @@ void HyperionDaemon::createGrabberFramebuffer(const QJsonObject& grabberConfig)
 {
 #ifdef ENABLE_FB
 	// Construct and start the framebuffer grabber if the configuration is present
+
+	int fbIdx = grabberConfig["input"].toInt(0);
+	QString devicePath = QString("/dev/fb%1").arg(fbIdx);
 	_fbGrabber = new FramebufferWrapper(
-		grabberConfig["device"].toString("/dev/fb0"),
-		_grabber_width, _grabber_height, _grabber_frequency);
+		_grabber_frequency,
+		devicePath,
+		_grabber_pixelDecimation
+		);
 	_fbGrabber->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
 	// connect to HyperionDaemon signal
 	connect(this, &HyperionDaemon::videoMode, _fbGrabber, &FramebufferWrapper::setVideoMode);
@@ -745,13 +759,16 @@ void HyperionDaemon::createGrabberFramebuffer(const QJsonObject& grabberConfig)
 #endif
 }
 
-void HyperionDaemon::createGrabberOsx(const QJsonObject& grabberConfig)
+	void HyperionDaemon::createGrabberOsx(const QJsonObject& grabberConfig)
 {
 #ifdef ENABLE_OSX
 	// Construct and start the osx grabber if the configuration is present
 	_osxGrabber = new OsxWrapper(
-		grabberConfig["display"].toInt(0),
-		_grabber_width, _grabber_height, _grabber_frequency);
+		_grabber_frequency,
+		grabberConfig["input"].toInt(0),
+		_grabber_pixelDecimation
+		);
+	_osxGrabber->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
 
 	// connect to HyperionDaemon signal
 	connect(this, &HyperionDaemon::videoMode, _osxGrabber, &OsxWrapper::setVideoMode);

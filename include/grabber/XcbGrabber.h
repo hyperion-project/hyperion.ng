@@ -25,7 +25,7 @@ class XcbGrabber : public Grabber, public QAbstractNativeEventFilter
 	Q_OBJECT
 
 public:
-	XcbGrabber(int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0, int pixelDecimation=8);
+	XcbGrabber(int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
 
 	~XcbGrabber() override;
 
@@ -37,7 +37,7 @@ public:
 	void setVideoMode(VideoMode mode) override;
 	bool setWidthHeight(int width, int height) override { return true; }
 	bool setPixelDecimation(int pixelDecimation) override;
-	void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom) override;
+	void setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom) override;
 
 	///
 	/// @brief Discover XCB screens available (for configuration).
@@ -67,8 +67,6 @@ private:
 	xcb_render_picture_t _dstPicture;
 	xcb_render_transform_t _transform;
 	xcb_shm_seg_t  _shminfo;
-
-	int _pixelDecimation;
 
 	int _screen_num;
 	unsigned _screenWidth;

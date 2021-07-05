@@ -13,21 +13,21 @@
 
 // Constants
 namespace {
-	const bool verbose = false;
+const bool verbose = false;
 } //End of constants
 
-QtGrabber::QtGrabber(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation, int display)
-	: Grabber("QTGRABBER", 0, 0, cropLeft, cropRight, cropTop, cropBottom)
-	, _display(display)
-	, _calculatedWidth(0)
-	, _calculatedHeight(0)
-	, _src_x(0)
-	, _src_y(0)
-	, _src_x_max(0)
-	, _src_y_max(0)
-	, _isWayland(false)
-	, _screen(nullptr)
-	, _isVirtual(false)
+QtGrabber::QtGrabber(int display, int cropLeft, int cropRight, int cropTop, int cropBottom)
+	: Grabber("QTGRABBER", cropLeft, cropRight, cropTop, cropBottom)
+	  , _display(display)
+	  , _calculatedWidth(0)
+	  , _calculatedHeight(0)
+	  , _src_x(0)
+	  , _src_y(0)
+	  , _src_x_max(0)
+	  , _src_y_max(0)
+	  , _isWayland(false)
+	  , _screen(nullptr)
+	  , _isVirtual(false)
 {
 	_logger = Logger::getInstance("Qt");
 	_useImageResampler = false;
@@ -103,8 +103,14 @@ bool QtGrabber::setupDisplay()
 			for(auto * screen : qAsConst(screens))
 			{
 				const QRect geo = screen->geometry();
-				Info(_log,"Display %d: Name:%s Geometry: (L,T,R,B) %d,%d,%d,%d Depth:%dbit", index, QSTRING_CSTR(screen->name()), geo.left(), geo.top() ,geo.right(), geo.bottom(), screen->depth());
+				Info(_log,"Display %d: Name: %s Geometry: (L,T,R,B) %d,%d,%d,%d Depth:%dbit", index, QSTRING_CSTR(screen->name()), geo.left(), geo.top() ,geo.right(), geo.bottom(), screen->depth());
 				++index;
+			}
+
+			if (screens.at(0)->size() != screens.at(0)->virtualSize())
+			{
+				const QRect vgeo = screens.at(0)->virtualGeometry();
+				Info(_log,"Display %d: Name: %s Geometry: (L,T,R,B) %d,%d,%d,%d Depth:%dbit", _numberOfSDisplays, "All Displays", vgeo.left(), vgeo.top() ,vgeo.right(), vgeo.bottom(), screens.at(0)->depth());
 			}
 
 			_isVirtual = false;
@@ -112,9 +118,8 @@ bool QtGrabber::setupDisplay()
 			if (_display > _numberOfSDisplays - 1 )
 			{
 
-				if (screens.at(0)->size() != screens.at(0)->virtualSize())
+				if ((screens.at(0)->size() != screens.at(0)->virtualSize()) && (_display == _numberOfSDisplays))
 				{
-					Info(_log, "Using virtual display across all screens");
 					_isVirtual = true;
 					_display = 0;
 
@@ -131,7 +136,14 @@ bool QtGrabber::setupDisplay()
 			connect(_screen, &QScreen::geometryChanged, this, &QtGrabber::geometryChanged);
 			updateScreenDimensions(true);
 
-			Info(_log,"Initialized display %d", _display);
+			if (_isVirtual)
+			{
+				Info(_log, "Using virtual display across all screens");
+			}
+			else
+			{
+				Info(_log,"Initialized display %d", _display);
+			}
 			result =  true;
 		}
 	}
@@ -146,29 +158,36 @@ void QtGrabber::geometryChanged(const QRect &geo)
 
 int QtGrabber::grabFrame(Image<ColorRgb> & image)
 {
-	if (!_enabled)
+	int rc = 0;
+	if (_isEnabled && !_isDeviceInError)
 	{
-		return 0;
+		if(_screen == nullptr)
+		{
+			// reinit, this will disable capture on failure
+			bool result = setupDisplay();
+			setEnabled(result);
+		}
+
+		if (_isEnabled)
+		{
+			QPixmap originalPixmap = _screen->grabWindow(0, _src_x, _src_y, _src_x_max, _src_y_max);
+			if (originalPixmap.isNull())
+			{
+				rc = -1;
+			}
+			else
+			{
+				QImage imageFrame = originalPixmap.toImage().scaled(_calculatedWidth, _calculatedHeight).convertToFormat( QImage::Format_RGB888);
+				image.resize(static_cast<uint>(_calculatedWidth), static_cast<uint>(_calculatedHeight));
+
+				for (int y = 0; y < imageFrame.height(); y++)
+				{
+					memcpy((unsigned char*)image.memptr() + y * image.width() * 3, static_cast<unsigned char*>(imageFrame.scanLine(y)), imageFrame.width() * 3);
+				}
+			}
+		}
 	}
-
-	if(_screen == nullptr)
-	{
-		// reinit, this will disable capture on failure
-		bool result = setupDisplay();
-		setEnabled(result);
-		return -1;
-	}
-
-	QPixmap originalPixmap = _screen->grabWindow(0, _src_x, _src_y, _src_x_max, _src_y_max);
-	QImage imageFrame = originalPixmap.toImage().scaled(_calculatedWidth, _calculatedHeight).convertToFormat( QImage::Format_RGB888);
-	image.resize(static_cast<uint>(_calculatedWidth), static_cast<uint>(_calculatedHeight));
-
-	for (int y = 0; y < imageFrame.height(); y++)
-	{
-		memcpy((unsigned char*)image.memptr() + y * image.width() * 3, static_cast<unsigned char*>(imageFrame.scanLine(y)), imageFrame.width() * 3);
-	}
-
-	return 0;
+	return rc;
 }
 
 int QtGrabber::updateScreenDimensions(bool force)
@@ -203,12 +222,12 @@ int QtGrabber::updateScreenDimensions(bool force)
 
 	// Image scaling is performed by Qt
 	width  =  (_width > (_cropLeft + _cropRight))
-		? ((_width - _cropLeft - _cropRight) / _pixelDecimation)
-		: (_width / _pixelDecimation);
+				? ((_width - _cropLeft - _cropRight) / _pixelDecimation)
+				: (_width / _pixelDecimation);
 
 	height =  (_height > (_cropTop + _cropBottom))
-		? ((_height - _cropTop - _cropBottom) / _pixelDecimation)
-		: (_height / _pixelDecimation);
+				 ? ((_height - _cropTop - _cropBottom) / _pixelDecimation)
+				 : (_height / _pixelDecimation);
 
 
 	// calculate final image dimensions and adjust top/left cropping in 3D modes
@@ -253,20 +272,26 @@ void QtGrabber::setVideoMode(VideoMode mode)
 
 bool QtGrabber::setPixelDecimation(int pixelDecimation)
 {
+	bool rc (true);
 	if(Grabber::setPixelDecimation(pixelDecimation))
-		return updateScreenDimensions(true);
-
-	return false;
+	{
+		if ( updateScreenDimensions(true) < 0)
+		{
+			rc = false;
+		}
+	}
+	return rc;
 }
 
-void QtGrabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom)
+void QtGrabber::setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom)
 {
 	Grabber::setCropping(cropLeft, cropRight, cropTop, cropBottom);
 	updateScreenDimensions(true);
 }
 
-void QtGrabber::setDisplayIndex(int index)
+bool QtGrabber::setDisplayIndex(int index)
 {
+	bool rc (true);
 	if (_display != index)
 	{
 		if (index <= _numberOfSDisplays)
@@ -276,8 +301,9 @@ void QtGrabber::setDisplayIndex(int index)
 		else {
 			_display = 0;
 		}
-		setupDisplay();
+		rc = setupDisplay();
 	}
+	return rc;
 }
 
 QJsonObject QtGrabber::discover(const QJsonObject& params)
@@ -288,15 +314,13 @@ QJsonObject QtGrabber::discover(const QJsonObject& params)
 	if ( open() )
 	{
 		QList<QScreen*> screens = QGuiApplication::screens();
-
-		inputsDiscovered["device"] = "qt";
-		inputsDiscovered["device_name"] = "QT";
-		inputsDiscovered["type"] = "screen";
-
-		QJsonArray video_inputs;
-
 		if (!screens.isEmpty())
 		{
+			inputsDiscovered["device"] = "qt";
+			inputsDiscovered["device_name"] = "QT";
+			inputsDiscovered["type"] = "screen";
+
+			QJsonArray video_inputs;
 			QJsonArray fps = { 1, 5, 10, 15, 20, 25, 30, 40, 50, 60 };
 
 			for (int i = 0; i < screens.size(); ++i)
@@ -304,7 +328,6 @@ QJsonObject QtGrabber::discover(const QJsonObject& params)
 				QJsonObject in;
 
 				QString name = screens.at(i)->name();
-
 				int pos = name.lastIndexOf('\\');
 				if (pos != -1)
 				{
@@ -362,7 +385,8 @@ QJsonObject QtGrabber::discover(const QJsonObject& params)
 			}
 			inputsDiscovered["video_inputs"] = video_inputs;
 		}
-		else
+
+		if (inputsDiscovered.isEmpty())
 		{
 			DebugIf(verbose, _log, "No displays found to capture from!");
 		}

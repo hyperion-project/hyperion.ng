@@ -7,9 +7,9 @@
 
 VideoWrapper::VideoWrapper()
 #if defined(ENABLE_V4L2)
-	: GrabberWrapper("V4L2", &_grabber, 0, 0, 10)
+	: GrabberWrapper("V4L2", &_grabber)
 #elif defined(ENABLE_MF)
-	: GrabberWrapper("V4L2:MEDIA_FOUNDATION", &_grabber, 0, 0, 10)
+	: GrabberWrapper("V4L2:MEDIA_FOUNDATION", &_grabber)
 #endif
 	, _grabber()
 {

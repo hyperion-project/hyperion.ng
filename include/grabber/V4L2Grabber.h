@@ -14,6 +14,7 @@
 // util includes
 #include <utils/PixelFormat.h>
 #include <hyperion/Grabber.h>
+#include <hyperion/GrabberWrapper.h>
 #include <utils/VideoStandard.h>
 #include <utils/Components.h>
 

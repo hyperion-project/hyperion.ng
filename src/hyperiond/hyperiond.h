@@ -151,8 +151,8 @@ private slots:
 	void setVideoMode(VideoMode mode);
 
 private:
-	void createGrabberDispmanx();
-	void createGrabberAmlogic();
+	void createGrabberDispmanx(const QJsonObject & grabberConfig);
+	void createGrabberAmlogic(const QJsonObject & grabberConfig);
 	void createGrabberFramebuffer(const QJsonObject & grabberConfig);
 	void createGrabberOsx(const QJsonObject & grabberConfig);
 	void createGrabberX11(const QJsonObject & grabberConfig);
@@ -184,15 +184,14 @@ private:
 	FlatBufferServer*          _flatBufferServer;
 	ProtoServer*               _protoServer;
 
-	unsigned                   _grabber_width;
-	unsigned                   _grabber_height;
-	unsigned                   _grabber_frequency;
-	unsigned                   _grabber_cropLeft;
-	unsigned                   _grabber_cropRight;
-	unsigned                   _grabber_cropTop;
-	unsigned                   _grabber_cropBottom;
-	int                        _grabber_ge2d_mode;
-	QString                    _grabber_device;
+	int                        _grabber_width;
+	int                        _grabber_height;
+	int                        _grabber_pixelDecimation;
+	int                        _grabber_frequency;
+	int                        _grabber_cropLeft;
+	int                        _grabber_cropRight;
+	int                        _grabber_cropTop;
+	int                        _grabber_cropBottom;
 
 	QString                    _prevType;
 

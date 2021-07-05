@@ -23,12 +23,16 @@ public:
 	///
 	/// Construct a DispmanxFrameGrabber that will capture snapshots with specified dimensions.
 	///
-	/// @param[in] width  The width of the captured screenshot
-	/// @param[in] height The heigth of the captured screenshot
-	///
-	DispmanxFrameGrabber(unsigned width, unsigned height);
+	DispmanxFrameGrabber();
 	~DispmanxFrameGrabber() override;
 
+	bool open();
+
+	///
+	/// @brief Setup a new capture screen, will free the previous one
+	/// @return True on success, false if no screen is found
+	///
+	bool setupScreen();
 
 	///
 	/// Captures a single snapshot of the display and writes the data to the given image. The
@@ -44,13 +48,24 @@ public:
 	///@brief Set new width and height for dispmanx, overwrite Grabber.h impl
 	bool setWidthHeight(int width, int height) override;
 
+	QSize getScreenSize(int display=0) const;
+
+	///
+	/// @brief Discover DispmanX screens available (for configuration).
+	///
+	/// @param[in] params Parameters used to overwrite discovery default behaviour
+	///
+	/// @return A JSON structure holding a list of devices found
+	///
+	QJsonObject discover(const QJsonObject& params);
+
 private:
 	///
 	/// Updates the frame-grab flags as used by the VC library for frame grabbing
 	///
 	/// @param vc_flags  The snapshot grabbing mask
 	///
-	void setFlags(int vc_flags);
+	void setFlags(DISPMANX_TRANSFORM_T vc_flags);
 
 	///
 	/// @brief free _vc_resource and captureBuffer
@@ -63,11 +78,11 @@ private:
 	/// Handle to the resource for storing the captured snapshot
 	DISPMANX_RESOURCE_HANDLE_T _vc_resource;
 
-	/// Rectangle of the captured resource that is transfered to user space
+	/// Rectangle of the captured resource that is transferred to user space
 	VC_RECT_T _rectangle;
 
 	/// Flags (transforms) for creating snapshots
-	int _vc_flags;
+	DISPMANX_TRANSFORM_T _vc_flags;
 
 	// temp buffer when capturing with unsupported pitch size or
 	// when we need to crop the image
@@ -78,5 +93,4 @@ private:
 
 	// rgba output buffer
 	Image<ColorRgba>  _image_rgba;
-
 };

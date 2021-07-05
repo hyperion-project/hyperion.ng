@@ -1,13 +1,20 @@
 
-// Hyperion-X11 includes
 #include "X11Wrapper.h"
 
-X11Wrapper::X11Wrapper(int grabInterval, int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation) :
-	_timer(this),
-	_grabber(cropLeft, cropRight, cropTop, cropBottom, pixelDecimation)
+X11Wrapper::X11Wrapper( int updateRate_Hz,
+						int pixelDecimation,
+						int cropLeft, int cropRight,
+						int cropTop, int cropBottom
+						) :
+	  _timer(this),
+	  _grabber(cropLeft, cropRight, cropTop, cropBottom)
 {
+	_grabber.setFramerate(updateRate_Hz);
+	_grabber.setPixelDecimation(pixelDecimation);
+
+	_timer.setTimerType(Qt::PreciseTimer);
 	_timer.setSingleShot(false);
-	_timer.setInterval(grabInterval);
+	_timer.setInterval(_grabber.getUpdateInterval());
 
 	// Connect capturing to the timeout signal of the timer
 	connect(&_timer, SIGNAL(timeout()), this, SLOT(capture()));

@@ -10,24 +10,26 @@
 
 ///
 /// The X11Wrapper uses an instance of the X11Grabber to obtain ImageRgb's from the
-/// displayed content. This ImageRgb is processed to a ColorRgb for each led and commmited to the
+/// displayed content. This ImageRgb is processed to a ColorRgb for each led and committed to the
 /// attached Hyperion.
 ///
 class X11Wrapper: public GrabberWrapper
 {
 public:
 	///
-	/// Constructs the framebuffer frame grabber with a specified grab size and update rate.
+	/// Constructs the X11 frame grabber with a specified grab size and update rate.
 	///
-	/// @param[in] device X11 device name/path
-	/// @param[in] grabWidth  The width of the grabbed image [pixels]
-	/// @param[in] grabHeight  The height of the grabbed images [pixels]
 	/// @param[in] updateRate_Hz  The image grab rate [Hz]
+	/// @param[in] pixelDecimation   Decimation factor for image [pixels]
 	///
-	X11Wrapper(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation, unsigned updateRate_Hz);
+	X11Wrapper(	int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ,
+				int pixelDecimation=GrabberWrapper::DEFAULT_PIXELDECIMATION,
+				int cropLeft=0, int cropRight=0,
+				int cropTop=0, int cropBottom=0
+				);
 
 	///
-	/// Destructor of this framebuffer frame grabber. Releases any claimed resources.
+	/// Destructor of this frame grabber. Releases any claimed resources.
 	///
 	~X11Wrapper() override;
 

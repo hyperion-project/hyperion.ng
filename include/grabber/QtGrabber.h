@@ -15,7 +15,7 @@ class QtGrabber : public Grabber
 {
 public:
 
-	QtGrabber(int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0, int pixelDecimation=8, int display=0);
+	QtGrabber(int display=0, int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
 
 	~QtGrabber() override;
 
@@ -37,7 +37,7 @@ public:
 	///
 	/// @brief Apply new width/height values, overwrite Grabber.h implementation as qt doesn't use width/height, just pixelDecimation to calc dimensions
 	///
-	bool setWidthHeight(int width, int height) override { return true; }
+	bool setWidthHeight(int /*width*/, int /*height*/) override { return true; }
 
 	///
 	/// @brief Apply new pixelDecimation
@@ -51,12 +51,12 @@ public:
 	/// @param  cropTop     Top pixel crop
 	/// @param  cropBottom  Bottom pixel crop
 	///
-	void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom) override;
+	void setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom) override;
 
 	///
 	/// @brief Apply display index
 	///
-	void setDisplayIndex(int index) override;
+	bool setDisplayIndex(int index) override;
 
 	///
 	/// @brief Discover QT screens available (for configuration).
@@ -81,6 +81,7 @@ public:
 	bool open();
 
 private slots:
+
 	///
 	/// @brief is called whenever the current _screen changes it's geometry
 	/// @param geo   The new geometry
@@ -88,7 +89,6 @@ private slots:
 	void geometryChanged(const QRect &geo);
 
 private:
-
 
 	///
 	/// @brief Is called whenever we need new screen dimension calculations based on window geometry

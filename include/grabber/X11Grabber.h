@@ -26,7 +26,7 @@ class X11Grabber : public Grabber , public QAbstractNativeEventFilter
 {
 public:
 
-	X11Grabber(int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0, int pixelDecimation=8);
+	X11Grabber(int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
 
 	~X11Grabber() override;
 
@@ -67,7 +67,7 @@ public:
 	/// @param  cropTop     Top pixel crop
 	/// @param  cropBottom  Bottom pixel crop
 	///
-	void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom) override;
+	void setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom) override;
 
 	///
 	/// @brief Discover X11 screens available (for configuration).
@@ -104,7 +104,6 @@ private:
 	int _XRandREventBase;
 
 	XTransform _transform;
-	int _pixelDecimation;
 
 	unsigned _calculatedWidth;
 	unsigned _calculatedHeight;

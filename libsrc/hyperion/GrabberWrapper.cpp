@@ -11,22 +11,23 @@
 
 GrabberWrapper* GrabberWrapper::instance = nullptr;
 const int GrabberWrapper::DEFAULT_RATE_HZ = 10;
+const int GrabberWrapper::DEFAULT_MIN_GRAB_RATE_HZ = 1;
+const int GrabberWrapper::DEFAULT_MAX_GRAB_RATE_HZ = 30;
+const int GrabberWrapper::DEFAULT_PIXELDECIMATION = 8;
 
-GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber * ggrabber, unsigned width, unsigned height, unsigned updateRate_Hz)
+GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber * ggrabber, int updateRate_Hz)
 	: _grabberName(grabberName)
-	, _timer(new QTimer(this))
-	, _updateInterval_ms(1000/updateRate_Hz)
-	, _log(Logger::getInstance(grabberName.toUpper()))
-	, _ggrabber(ggrabber)
-	, _image(0,0)
+	  , _log(Logger::getInstance(grabberName.toUpper()))
+	  , _timer(new QTimer(this))
+	  , _updateInterval_ms(1000/updateRate_Hz)
+	  , _ggrabber(ggrabber)
+	  , _image(0,0)
 {
 	GrabberWrapper::instance = this;
 
 	// Configure the timer to generate events every n milliseconds
 	_timer->setTimerType(Qt::PreciseTimer);
 	_timer->setInterval(_updateInterval_ms);
-
-	_image.resize(width, height);
 
 	connect(_timer, &QTimer::timeout, this, &GrabberWrapper::action);
 
@@ -65,7 +66,7 @@ void GrabberWrapper::stop()
 {
 	if (_timer->isActive())
 	{
-		// Stop the timer, effectivly stopping the process
+		// Stop the timer, effectively stopping the process
 		Debug(_log,"Grabber stop()");
 		_timer->stop();
 	}
@@ -93,41 +94,41 @@ QStringList GrabberWrapper::availableGrabbers()
 {
 	QStringList grabbers;
 
-	#ifdef ENABLE_DISPMANX
+#ifdef ENABLE_DISPMANX
 	grabbers << "dispmanx";
-	#endif
+#endif
 
-	#if defined(ENABLE_V4L2) || defined(ENABLE_MF)
+#if defined(ENABLE_V4L2) || defined(ENABLE_MF)
 	grabbers << "v4l2";
-	#endif
+#endif
 
-	#ifdef ENABLE_FB
+#ifdef ENABLE_FB
 	grabbers << "framebuffer";
-	#endif
+#endif
 
-	#ifdef ENABLE_AMLOGIC
+#ifdef ENABLE_AMLOGIC
 	grabbers << "amlogic";
-	#endif
+#endif
 
-	#ifdef ENABLE_OSX
+#ifdef ENABLE_OSX
 	grabbers << "osx";
-	#endif
+#endif
 
-	#ifdef ENABLE_X11
+#ifdef ENABLE_X11
 	grabbers << "x11";
-	#endif
+#endif
 
-	#ifdef ENABLE_XCB
+#ifdef ENABLE_XCB
 	grabbers << "xcb";
-	#endif
+#endif
 
-	#ifdef ENABLE_QT
+#ifdef ENABLE_QT
 	grabbers << "qt";
-	#endif
+#endif
 
-	#ifdef ENABLE_DX
-		grabbers << "dx";
-	#endif
+#ifdef ENABLE_DX
+	grabbers << "dx";
+#endif
 
 	return grabbers;
 }
@@ -141,12 +142,12 @@ void GrabberWrapper::setVideoMode(VideoMode mode)
 	}
 }
 
-void GrabberWrapper::setFlipMode(QString flipMode)
+void GrabberWrapper::setFlipMode(const QString& flipMode)
 {
 	_ggrabber->setFlipMode(parseFlipMode(flipMode));
 }
 
-void GrabberWrapper::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom)
+void GrabberWrapper::setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom)
 {
 	_ggrabber->setCropping(cropLeft, cropRight, cropTop, cropBottom);
 }
@@ -183,11 +184,8 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 			// display index for MAC
 			_ggrabber->setDisplayIndex(obj["input"].toInt(0));
 
-			// device path for Framebuffer
-			_ggrabber->setDevicePath(obj["device"].toString("/dev/fb0"));
-
 			// pixel decimation for x11
-			_ggrabber->setPixelDecimation(obj["pixelDecimation"].toInt(8));
+			_ggrabber->setPixelDecimation(obj["pixelDecimation"].toInt(DEFAULT_PIXELDECIMATION));
 
 			// crop for system capture
 			_ggrabber->setCropping(
@@ -196,11 +194,14 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 				obj["cropTop"].toInt(0),
 				obj["cropBottom"].toInt(0));
 
+			_ggrabber->setFramerate(obj["fps"].toInt(DEFAULT_RATE_HZ));
 			// eval new update time
-			updateTimer(1000/obj["fps"].toInt(DEFAULT_RATE_HZ));
+			updateTimer(_ggrabber->getUpdateInterval());
 		}
 		else
+		{
 			stop();
+		}
 	}
 }
 

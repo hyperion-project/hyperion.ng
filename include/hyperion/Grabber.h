@@ -11,8 +11,6 @@
 #include <utils/Logger.h>
 #include <utils/Components.h>
 
-#include <QMultiMap>
-
 ///
 /// @brief The Grabber class is responsible to apply image resizes (with or without ImageResampler)
 
@@ -21,7 +19,8 @@ class Grabber : public QObject
 	Q_OBJECT
 
 public:
-	Grabber(const QString& grabberName = "", int width=0, int height=0, int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
+
+	Grabber(const QString& grabberName = "", int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
 
 	///
 	/// Set the video mode (2D/3D)
@@ -38,7 +37,7 @@ public:
 	///
 	/// @brief Apply new crop values, on errors reject the values
 	///
-	virtual void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom);
+	virtual void setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom);
 
 	///
 	/// @brief Apply new video input (used from v4l2/MediaFoundation)
@@ -53,7 +52,7 @@ public:
 	virtual bool setWidthHeight(int width, int height);
 
 	///
-	/// @brief Apply new framerate (used from v4l2/MediaFoundation)
+	/// @brief Apply new capture framerate in Hz
 	/// @param fps framesPerSecond
 	///
 	virtual bool setFramerate(int fps);
@@ -70,40 +69,62 @@ public:
 	virtual void setVideoStandard(VideoStandard videoStandard);
 
 	///
-	/// @brief  Apply new pixelDecimation (used from v4l2, MediaFoundation, x11, xcb and qt)
+	/// @brief  Apply new pixelDecimation
 	///
 	virtual bool setPixelDecimation(int pixelDecimation);
 
 	///
 	/// @brief Apply display index (used from qt)
 	///
-	virtual void setDisplayIndex(int index) {}
-
-	///
-	/// @brief Apply path for device (used from framebuffer)
-	///
-	virtual void setDevicePath(const QString& path) {}
-
-	///
-	/// @brief get current resulting height of image (after crop)
-	///
-	virtual int getImageWidth() { return _width; }
-
-	///
-	/// @brief get current resulting width of image (after crop)
-	///
-	virtual int getImageHeight() { return _height; }
+	virtual bool setDisplayIndex(int /*index*/) { return true; }
 
 	///
 	/// @brief Prevent the real capture implementation from capturing if disabled
 	///
-	void setEnabled(bool enable);
+	virtual void setEnabled(bool enable);
+
+	///
+	/// @brief get current resulting height of image (after crop)
+	///
+	int getImageWidth() const { return _width; }
+
+	///
+	/// @brief get current resulting width of image (after crop)
+	///
+	int getImageHeight() const { return _height; }
+
+	///
+	/// @brief Get current capture framerate in Hz
+	/// @param fps framesPerSecond
+	///
+	int getFramerate() const { return _fps; }
+
+	///
+	/// @brief Get capture interval in ms
+	///
+	int getUpdateInterval() const { return 1000/_fps; }
+
+	///
+	/// @brief  Get pixelDecimation
+	///
+	int getPixelDecimation() const { return _pixelDecimation; }
 
 	QString getGrabberName() const { return _grabberName; }
+
+protected slots:
+	///
+	/// @brief Set device in error state
+	///
+	/// @param[in] errorMsg The error message to be logged
+	///
+	virtual void setInError( const QString& errorMsg);
 
 protected:
 
 	QString _grabberName;
+
+	/// logger instance
+	Logger * _log;
 
 	ImageResampler _imageResampler;
 
@@ -139,9 +160,12 @@ protected:
 	/// number of pixels to crop after capturing
 	int _cropLeft, _cropRight, _cropTop, _cropBottom;
 
-	bool _enabled;
+	// Device states
 
-	/// logger instance
-	Logger * _log;
+	/// Is the device enabled?
+	bool _isEnabled;
+
+	/// Is the device in error state and stopped?
+	bool _isDeviceInError;
 
 };

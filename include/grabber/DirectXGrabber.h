@@ -8,6 +8,7 @@
 
 // Hyperion-utils includes
 #include <utils/ColorRgb.h>
+#include <hyperion/GrabberWrapper.h>
 #include <hyperion/Grabber.h>
 
 // qt includes
@@ -22,7 +23,7 @@ class DirectXGrabber : public Grabber
 {
 public:
 
-	DirectXGrabber(int cropLeft = 0, int cropRight = 0, int cropTop = 0, int cropBottom = 0, int pixelDecimation = 8, int display = 8);
+	DirectXGrabber(int display=0, int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
 
 	virtual ~DirectXGrabber();
 
@@ -33,22 +34,22 @@ public:
 	///
 	/// @param[out] image  The snapped screenshot
 	///
-	virtual int grabFrame(Image<ColorRgb> & image);
+	int grabFrame(Image<ColorRgb> & image);
 
 	///
 	/// @brief Set a new video mode
 	///
-	virtual void setVideoMode(VideoMode mode);
+	void setVideoMode(VideoMode mode) override;
 
 	///
 	/// @brief Apply new width/height values, overwrite Grabber.h implementation
 	///
-	virtual bool setWidthHeight(int width, int height) { return true; };
+	bool setWidthHeight(int /* width */, int /*height*/) override { return true; }
 
 	///
 	/// @brief Apply new pixelDecimation
 	///
-	virtual bool setPixelDecimation(int pixelDecimation)  override;
+	bool setPixelDecimation(int pixelDecimation) override;
 
 	///
 	/// Set the crop values
@@ -57,12 +58,12 @@ public:
 	/// @param  cropTop     Top pixel crop
 	/// @param  cropBottom  Bottom pixel crop
 	///
-	virtual void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom);
+	void setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom);
 
 	///
 	/// @brief Apply display index
 	///
-	void setDisplayIndex(int index) override;
+	bool setDisplayIndex(int index) override;
 
 	/// @brief Discover QT screens available (for configuration).
 	///

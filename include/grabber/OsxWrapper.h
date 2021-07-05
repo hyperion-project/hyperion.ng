@@ -5,7 +5,7 @@
 
 ///
 /// The OsxWrapper uses an instance of the OsxFrameGrabber to obtain ImageRgb's from the
-/// displayed content. This ImageRgb is processed to a ColorRgb for each led and commmited to the
+/// displayed content. This ImageRgb is processed to a ColorRgb for each led and committed to the
 /// attached Hyperion.
 ///
 class OsxWrapper: public GrabberWrapper
@@ -15,12 +15,14 @@ public:
 	///
 	/// Constructs the osx frame grabber with a specified grab size and update rate.
 	///
-	/// @param[in] display Index of the display to grab
-	/// @param[in] grabWidth  The width of the grabbed image [pixels]
-	/// @param[in] grabHeight  The height of the grabbed images [pixels]
 	/// @param[in] updateRate_Hz  The image grab rate [Hz]
+	/// @param[in] display Index of the display to grab
+	/// @param[in] pixelDecimation   Decimation factor for image [pixels]
 	///
-	OsxWrapper(unsigned display, unsigned grabWidth, unsigned grabHeight, unsigned updateRate_Hz);
+	OsxWrapper( int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ,
+				int display = kCGDirectMainDisplay,
+				int pixelDecimation=GrabberWrapper::DEFAULT_PIXELDECIMATION
+				);
 
 public slots:
 	///

@@ -5,6 +5,7 @@
 unsigned  __bcm_frame_counter = 0;
 const int __screenWidth  = 800;
 const int __screenHeight = 600;
+const int __display_num = 0;
 
 void bcm_host_init()
 {
@@ -27,6 +28,7 @@ int vc_dispmanx_display_get_info(int, DISPMANX_MODEINFO_T *vc_info)
 {
 	vc_info->width  = __screenWidth;
 	vc_info->height = __screenHeight;
+	vc_info->display_num = __display_num;
 	return 0;
 }
 
@@ -54,7 +56,7 @@ void vc_dispmanx_rect_set(VC_RECT_T *rectangle, int left, int top, int width, in
 	rectangle->top    = top;
 }
 
-int vc_dispmanx_snapshot(int, DISPMANX_RESOURCE_HANDLE_T resource, int vc_flags)
+int vc_dispmanx_snapshot(DISPMANX_DISPLAY_HANDLE_T /*display*/, DISPMANX_RESOURCE_HANDLE_T resource, DISPMANX_TRANSFORM_T /*vc_flags*/)
 {
 	__bcm_frame_counter++;
 	if (__bcm_frame_counter > 100)
