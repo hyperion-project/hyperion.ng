@@ -1,21 +1,46 @@
 
 # Installation
 
-## Raspberry Pi OS (armhf) <br> Debian Stretch (9) and later (armhf/x64) <br> Ubuntu 16.04 and later (64-bit)
+This page contains general installation steps for Hyperion. For Linux please follow the instructions below. For Windows an installation file is available on our [Release page](https://github.com/hyperion-project/hyperion.ng/releases).
 
+## Linux:
+On the following operating systems, Hyperion can currently be installed/updated using the method listed below:
+- Raspbian Stretch/Raspberry Pi OS and later (armhf)
+- Debian Stretch (9) and later (armhf/x64)
+- Ubuntu 16.04 and later (armhf/x64)
+
+***
+
+### Install Hyperion:
+1. Add Hyperion’s official GPG key:
 ```bash
-# Add the release GPG key to your system:
 wget -qO- https://apt.hyperion-project.org/hyperion.pub.key | sudo apt-key add -
-
-# Add Hyperion to your APT sources:
-echo "deb https://apt.hyperion-project.org/ stable main" | sudo tee /etc/apt/sources.list.d/hyperion.list
-
-# Update your local package index and install Hyperion:
-sudo apt-get update
-sudo apt-get install hyperion
 ```
 
-## Windows:
+2. Add Hyperion to your APT sources:
+```bash
+echo "deb https://apt.hyperion-project.org/ stable main" | sudo tee /etc/apt/sources.list.d/hyperion.list
+```
 
-For Windows 10 we provide a .exe file. A one click installation package that does the job for you.  
-Download the file from the [Release page](https://github.com/hyperion-project/hyperion.ng/releases).
+3. Update your local package index and install Hyperion:
+```bash
+sudo apt-get update && sudo apt-get install hyperion
+```
+***
+
+### Update Hyperion:
+```bash
+sudo apt-get install hyperion
+```
+***
+
+### If you want to uninstall Hyperion, use the following commands:
+1. Remove Hyperion:
+```bash
+sudo apt-get --purge autoremove hyperion
+```
+
+2. Remove the Hyperion APT source from your system:
+```bash
+sudo rm /etc/apt/sources.list.d/hyperion.list
+```
