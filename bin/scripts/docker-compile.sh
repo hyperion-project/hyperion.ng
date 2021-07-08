@@ -98,7 +98,7 @@ do
  f) BUILD_PLATFORM=${OPTARG,,};; 
  l) BUILD_LOCAL=1;;
  c) BUILD_INCREMENTAL=1;;
- v) _VERBOSE=1;;
+ v) _VERBOSE=1;;    
  h) printHelp; exit 0;;
  esac
 done
@@ -113,26 +113,6 @@ if [[ ! -z ${BUILD_PLATFORM} ]]; then
 	PLATFORM="-DPLATFORM=${BUILD_PLATFORM}"
 fi
 
-<<<<<<< HEAD
-log "---> BASE_PATH  = ${BASE_PATH}"
-CODE_PATH=${BASE_PATH};
-
-# get Hyperion source, cleanup previous folder
-if [ ${BUILD_LOCAL} == 0 ]; then
-CODE_PATH="${CODE_PATH}/hyperion/"
-
-echo "---> Downloading Hyperion source code from ${GIT_REPO_URL}"
-sudo rm -fr ${CODE_PATH} >/dev/null 2>&1
-git clone --recursive --depth 1 -q ${GIT_REPO_URL} ${CODE_PATH} || { echo "---> Failed to download Hyperion source code! Abort"; exit 1; }
-fi
-log "---> CODE_PATH  = ${CODE_PATH}"
-
-BUILD_DIR="build-${BUILD_IMAGE}-${BUILD_TAG}"
-BUILD_PATH="${CODE_PATH}/${BUILD_DIR}"
-DEPLOY_DIR="deploy/${BUILD_IMAGE}/${BUILD_TAG}"
-DEPLOY_PATH="${CODE_PATH}/${DEPLOY_DIR}"
-
-=======
 echo "---> Initialize with IMAGE:TAG=${BUILD_IMAGE}:${BUILD_TAG}, BUILD_TYPE=${BUILD_TYPE}, BUILD_PACKAGES=${BUILD_PACKAGES}, PLATFORM=${BUILD_PLATFORM}, BUILD_LOCAL=${BUILD_LOCAL}, BUILD_INCREMENTAL=${BUILD_INCREMENTAL}"
 
 log "---> BASE_PATH  = ${BASE_PATH}"
@@ -153,7 +133,6 @@ BUILD_PATH="${CODE_PATH}/${BUILD_DIR}"
 DEPLOY_DIR="deploy/${BUILD_IMAGE}/${BUILD_TAG}"
 DEPLOY_PATH="${CODE_PATH}/${DEPLOY_DIR}"
 
->>>>>>> docker-compile Add PLATFORM parameter, only copy output file after successful compile
 log "---> BUILD_DIR  = ${BUILD_DIR}"
 log "---> BUILD_PATH = ${BUILD_PATH}"
 log "---> DEPLOY_DIR = ${DEPLOY_DIR}"
@@ -185,11 +164,7 @@ $DOCKER run --rm \
 	-v "${CODE_PATH}/:/source:rw" \
 	${REGISTRY_URL}/${BUILD_IMAGE}:${BUILD_TAG} \
 	/bin/bash -c "mkdir -p /source/${BUILD_DIR} && cd /source/${BUILD_DIR} &&
-<<<<<<< HEAD
-	cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. || exit 2 &&
-=======
 	cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${PLATFORM} .. || exit 2 &&
->>>>>>> docker-compile Add PLATFORM parameter, only copy output file after successful compile
 	make -j $(nproc) ${PACKAGES} || exit 3 || : &&
 	exit 0;
 	exit 1 " || { echo "---> Hyperion compilation failed! Abort"; exit 4; }
@@ -208,10 +183,7 @@ if [ ${DOCKERRC} == 0 ]; then
 	 echo "---> Copying packages to host folder: ${DEPLOY_PATH}" &&
 	 cp -v ${BUILD_PATH}/Hyperion-* ${DEPLOY_PATH} 2>/dev/null  
 	 echo "---> Find deployment packages in: ${DEPLOY_PATH}"
-<<<<<<< HEAD
-=======
 	 sudo chown -fR $(stat -c "%U:%G" ${BASE_PATH}) ${DEPLOY_PATH}
->>>>>>> docker-compile Add PLATFORM parameter, only copy output file after successful compile
 	fi
 fi
 echo "---> Script finished [${DOCKERRC}]"
