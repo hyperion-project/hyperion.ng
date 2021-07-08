@@ -200,7 +200,7 @@ bool DirectXGrabber::setPixelDecimation(int pixelDecimation)
 	return false;
 }
 
-void DirectXGrabber::setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom)
+void DirectXGrabber::setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom)
 {
 	Grabber::setCropping(cropLeft, cropRight, cropTop, cropBottom);
 	setupDisplay();
