@@ -1,7 +1,7 @@
 
 # Installation
 
-This page contains general installation steps for Hyperion. For Linux please follow the instructions below. For Windows an installation file is available on our [Release page](https://github.com/hyperion-project/hyperion.ng/releases).
+This page contains general installation steps for Hyperion. For Linux please follow the instructions below. For Windows is an installation file available on our [Release page](https://github.com/hyperion-project/hyperion.ng/releases).
 
 ## Linux:
 On the following operating systems, Hyperion can currently be installed/updated using the method listed below:
@@ -17,7 +17,7 @@ On the following operating systems, Hyperion can currently be installed/updated 
 wget -qO- https://apt.hyperion-project.org/hyperion.pub.key | sudo apt-key add -
 ```
 
-2. Add Hyperion to your APT sources:
+2. Add Hyperion-Project to your APT sources:
 ```bash
 echo "deb https://apt.hyperion-project.org/ stable main" | sudo tee /etc/apt/sources.list.d/hyperion.list
 ```
@@ -40,7 +40,7 @@ sudo apt-get install hyperion
 sudo apt-get --purge autoremove hyperion
 ```
 
-2. Remove the Hyperion APT source from your system:
+2. Remove the Hyperion-Project APT source from your system:
 ```bash
 sudo rm /etc/apt/sources.list.d/hyperion.list
 ```
