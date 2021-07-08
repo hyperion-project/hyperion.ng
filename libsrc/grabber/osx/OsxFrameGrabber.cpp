@@ -62,7 +62,7 @@ int OsxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 			}
 		}
 		imgData   = CGDataProviderCopyData(CGImageGetDataProvider(dispImage));
-		pImgData  = static_cast<unsigned char*>(CFDataGetBytePtr(imgData));
+		pImgData  = (unsigned char*) CFDataGetBytePtr(imgData);
 		dspWidth  = CGImageGetWidth(dispImage);
 		dspHeight = CGImageGetHeight(dispImage);
 
