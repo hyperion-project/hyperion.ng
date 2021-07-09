@@ -536,6 +536,14 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	info["videomode"] = QString(videoMode2String(_hyperion->getCurrentVideoMode()));
 	info["grabbers"] = grabbers;
 
+	QJsonObject cecInfo;
+#if defined(ENABLE_CEC)
+	cecInfo["enabled"] = true;
+#else
+	cecInfo["enabled"] = false;
+#endif
+	info["cec"] = cecInfo;
+
 	// get available components
 	QJsonArray component;
 	std::map<hyperion::Components, bool> components = _hyperion->getComponentRegister().getRegister();

@@ -336,8 +336,8 @@ $(document).ready(function () {
 
   conf_editor_video.on('change', function () {
 
-    // Hide elements not supported by the backend running on specific platforms
-    if (window.sysInfo.system.productType === "windows") {
+    // Hide elements not supported by the backend
+    if (window.serverInfo.cec.enabled === false) {
       showInputOptionForItem(conf_editor_video, "grabberV4L2", "cecDetection", false);
     }
 
