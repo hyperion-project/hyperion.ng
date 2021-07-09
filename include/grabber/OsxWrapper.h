@@ -4,9 +4,8 @@
 #include <grabber/OsxFrameGrabber.h>
 
 ///
-/// The OsxWrapper uses an instance of the OsxFrameGrabber to obtain ImageRgb's from the
-/// displayed content. This ImageRgb is processed to a ColorRgb for each led and committed to the
-/// attached Hyperion.
+/// The OsxWrapper uses an instance of the OsxFrameGrabber to obtain ImageRgb's from the displayed content.
+/// This ImageRgb is processed to a ColorRgb for each led and committed to the attached Hyperion.
 ///
 class OsxWrapper: public GrabberWrapper
 {

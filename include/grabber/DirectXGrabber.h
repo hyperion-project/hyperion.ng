@@ -29,8 +29,7 @@ public:
 
 	///
 	/// Captures a single snapshot of the display and writes the data to the given image. The
-	/// provided image should have the same dimensions as the configured values (_width and
-	/// _height)
+	/// provided image should have the same dimensions as the configured values (_width and _height)
 	///
 	/// @param[out] image  The snapped screenshot
 	///

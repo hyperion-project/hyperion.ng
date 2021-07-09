@@ -14,8 +14,7 @@
 #include <hyperion/Grabber.h>
 
 ///
-/// The DispmanxFrameGrabber is used for creating snapshots of the display (screenshots) with a
-/// downsized and scaled resolution.
+/// The DispmanxFrameGrabber is used for creating snapshots of the display (screenshots) with a downsized and scaled resolution.
 ///
 class DispmanxFrameGrabber : public Grabber
 {

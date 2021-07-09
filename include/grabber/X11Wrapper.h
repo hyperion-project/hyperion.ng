@@ -9,9 +9,8 @@
 
 
 ///
-/// The X11Wrapper uses an instance of the X11Grabber to obtain ImageRgb's from the
-/// displayed content. This ImageRgb is processed to a ColorRgb for each led and committed to the
-/// attached Hyperion.
+/// The X11Wrapper uses an instance of the X11Grabber to obtain ImageRgb's from the displayed content.
+/// This ImageRgb is processed to a ColorRgb for each led and committed to the attached Hyperion.
 ///
 class X11Wrapper: public GrabberWrapper
 {
