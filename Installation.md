@@ -7,7 +7,7 @@ This page contains general installation steps for Hyperion. For Linux please fol
 On the following operating systems, Hyperion can currently be installed/updated using the method listed below:
 - Raspbian Stretch/Raspberry Pi OS and later (armhf)
 - Debian Stretch (9) and later (armhf/x64)
-- Ubuntu 16.04 and later (armhf/x64)
+- Ubuntu 18.04 and later (x64)
 
 ***
 
