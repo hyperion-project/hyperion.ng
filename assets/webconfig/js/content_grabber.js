@@ -66,14 +66,14 @@ $(document).ready(function () {
 
   function updateCropForWidth(editor, path) {
     var width = editor.getEditor(path + ".width").getValue();
-    updateJsonEditorRange(editor, path, 'cropLeft', 0, width);
-    updateJsonEditorRange(editor, path, 'cropRight', 0, width);
+    updateJsonEditorRange(editor, path, 'cropLeft', 0, width, editor.getEditor(path + ".cropLeft").getValue());
+    updateJsonEditorRange(editor, path, 'cropRight', 0, width, editor.getEditor(path + ".cropRight").getValue());
   }
 
   function updateCropForHeight(editor, path) {
     var height = editor.getEditor(path + ".height").getValue();
-    updateJsonEditorRange(editor, path, 'cropTop', 0, height);
-    updateJsonEditorRange(editor, path, 'cropBottom', 0, height);
+    updateJsonEditorRange(editor, path, 'cropTop', 0, height, editor.getEditor(path + ".cropTop").getValue());
+    updateJsonEditorRange(editor, path, 'cropBottom', 0, height, editor.getEditor(path + ".cropBottom").getValue());
   }
 
   // Screen-Grabber
