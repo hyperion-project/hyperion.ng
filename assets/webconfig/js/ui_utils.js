@@ -605,6 +605,9 @@ function updateJsonEditorMultiSelection(rootEditor, path, key, addElements, newE
 function updateJsonEditorRange(rootEditor, path, key, minimum, maximum, defaultValue, step, clear) {
   var editor = rootEditor.getEditor(path);
 
+  //Preserve current value when updating range
+  var currentValue = rootEditor.getEditor(path + "." + key).getValue();
+
   var orginalProperties = editor.schema.properties[key];
   var newSchema = [];
   newSchema[key] = orginalProperties;
@@ -636,6 +639,9 @@ function updateJsonEditorRange(rootEditor, path, key, minimum, maximum, defaultV
   editor.removeObjectProperty(key);
   delete editor.cached_editors[key];
   editor.addObjectProperty(key);
+
+  // Restore current value for new range
+  rootEditor.getEditor(path + "." + key).setValue(currentValue);
 }
 
 function buildWL(link, linkt, cl) {
