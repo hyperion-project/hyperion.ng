@@ -15,6 +15,8 @@ $(document).ready(function () {
   var toggleLedsNum = false;
   var toggleSigDetectArea = false;
 
+  var activeComponent = "";
+
   /// add prototype for simple canvas clear() method
   CanvasRenderingContext2D.prototype.clear = function () {
     this.clearRect(0, 0, this.canvas.width, this.canvas.height)
@@ -281,6 +283,16 @@ $(document).ready(function () {
       leds = window.serverConfig.leds;
       grabberConfig = window.serverConfig.grabberV4L2;
       updateLedLayout();
+    }
+  });
+
+  $(window.hyperion).on("cmd-priorities-update", function (event) {
+    var prios = event.response.data.priorities;
+
+    //Clear image when new input
+    if (prios[0].componentId !== activeComponent) {
+      resetImage();
+      activeComponent = prios[0].componentId;
     }
   });
 
