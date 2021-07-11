@@ -287,10 +287,12 @@ function showInfoDialog(type, header, message) {
   }
   else if (type == "changePassword") {
     $('#id_body_rename').html('<i style="margin-bottom:20px" class="fa fa-key modal-icon-edit"><br>');
-    $('#id_body_rename').append('<h4>' + header + '</h4>');
-    $('#id_body_rename').append('<input class="form-control" id="oldPw" placeholder="Old" type="text"> <br />');
-    $('#id_body_rename').append('<input class="form-control" id="newPw" placeholder="New" type="password">');
-    $('#id_footer_rename').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-dismiss-modal="#modal_dialog_rename" disabled><i class="fa fa-fw fa-save"></i>' + $.i18n('general_btn_ok') + '</button>');
+    $('#id_body_rename').append('<h4>' + header + '</h4><br>');
+    $('#id_body_rename').append('<div class="row"><div class="col-md-3"><p class="text-left">' + $.i18n('infoDialog_password_current_text') + 
+    '</p></div><div class="col-md-8"><input class="form-control" id="oldPw" placeholder="Old" type="password"></div></div><br>');
+    $('#id_body_rename').append('<div class="row"><div class="col-md-3"><p class="text-left">' + $.i18n('infoDialog_password_new_text')+ 
+    '</p></div><div class="col-md-8"><input class="form-control" id="newPw" placeholder="New" type="password"></div></div>');
+    $('#id_footer_rename').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-dismiss-modal="#modal_dialog_rename" disabled><i class="fa fa-fw fa-save"></ul>' +    $.i18n('general_btn_ok') + '</button>');
     $('#id_footer_rename').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
   }
   else if (type == "checklist") {

@@ -10,6 +10,8 @@
     "InfoDialog_nowrite_foottext": "The WebUI will be unlocked automatically after you solved the problem!",
     "InfoDialog_nowrite_text": "Hyperion can't write to your current loaded configuration file. Please repair the file permissions to proceed.",
     "InfoDialog_nowrite_title": "write permission error!",
+    "infoDialog_password_current_text": "Current password",
+    "infoDialog_password_new_text": "New password",
     "about_3rd_party_licenses": "3rd party licenses",
     "about_3rd_party_licenses_error": "We had trouble collecting 3rd party licenses information from web. <br />Please follow this link to the GitHub Resource.",
     "about_build": "Build",
