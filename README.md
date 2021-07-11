@@ -35,7 +35,7 @@ For an example, you can participate in the translation.<br>
 
 ## Supported Platforms
 
-Find here more details on [supported platforms and configuration sets](SupportedPlatforms.md)
+Find here more details on [supported platforms and configuration sets](doc/development/SupportedPlatforms.md)
 
 ## Documentation
 Covers these topics (WorkInProgress)
@@ -50,7 +50,7 @@ Covers these topics (WorkInProgress)
 Released and unreleased changes at [Changelog.md](CHANGELOG.md)
 
 ## Building
-See [CompileHowto](CompileHowto.md).
+See [CompileHowto](doc/development/CompileHowto.md).
 
 ## Download
 Alpha releases available from the [Hyperion release page](https://github.com/hyperion-project/hyperion.ng/releases)
