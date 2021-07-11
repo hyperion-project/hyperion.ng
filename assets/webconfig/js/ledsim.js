@@ -250,6 +250,7 @@ $(document).ready(function () {
 
   // ------------------------------------------------------------------
   $(window.hyperion).on("cmd-ledcolors-imagestream-update", function (event) {
+    //console.log("cmd-ledcolors-imagestream-update", event.response);
     setClassByBool('#leds_toggle_live_video', window.imageStreamActive, "btn-danger", "btn-success");
     if (!modalOpened) {
       if ($('#leds_prev_toggle_live_video').length > 0)
@@ -287,24 +288,30 @@ $(document).ready(function () {
   });
 
   $(window.hyperion).on("cmd-priorities-update", function (event) {
-    var prios = event.response.data.priorities;
+    //console.log("cmd-priorities-update", event.response.data);
 
+    var prios = event.response.data.priorities;
     //Clear image when new input
     if (prios[0].componentId !== activeComponent) {
       resetImage();
       activeComponent = prios[0].componentId;
     }
+    else if (!prios[0].active) {
+      resetImage();
+    }
   });
 
   function resetImage() {
-    if (getStorage("darkMode", false) == "on") {
-      imageCanvasNodeCtx.clear();
-    } else {
-      imageCanvasNodeCtx.fillStyle = "rgb(225,225,225)"
-      imageCanvasNodeCtx.fillRect(0, 0, canvas_width, canvas_height);
-    }
+    if (typeof imageCanvasNodeCtx !== "undefined") {
+      if (getStorage("darkMode", false) == "on") {
+        imageCanvasNodeCtx.clear();
+      } else {
+        imageCanvasNodeCtx.fillStyle = "rgb(225,225,225)"
+        imageCanvasNodeCtx.fillRect(0, 0, canvas_width, canvas_height);
+      }
 
-    var image = document.getElementById('navbar_brand_logo');
-    imageCanvasNodeCtx.drawImage(image, canvas_width / 2 - image.width / 2, canvas_height / 2 - image.height / 2, image.width, image.height);
+      var image = document.getElementById('navbar_brand_logo');
+      imageCanvasNodeCtx.drawImage(image, canvas_width / 2 - image.width / 2, canvas_height / 2 - image.height / 2, image.width, image.height);
+    }
   }
 });
