@@ -4,15 +4,15 @@ Hyperion is currently suported on the following sets of configuration:
 In case of problems, it is recommended checking with the wider Hyperion community (https://hyperion-project.org/forum/).
 
 ## Official
-| Hardware  | OS              | Version            | Grabber                                 | Package                                                                         | Comments                           |
-|-----------|-----------------|--------------------|-----------------------------------------|---------------------------------------------------------------------------------|------------------------------------|
-| X64       | Windows         | 10                 | QT&#xB9;                                | [Windows-AMD64.exe](https://github.com/hyperion-project/hyperion.ng/releases)   | Direct X9 Grabber via self-compile |
-| X64       | Ubuntu          | 18.04, 20.04&#xB2; | QT&#xB9;<br/>XCB/X11&#xB9;              | [Linux-x86_64.deb](https://github.com/hyperion-project/hyperion.ng/releases)    |                                    |
-| X64       | Debian          | 9, 10&#xB3;        | QT&#xB9;<br/>XCB/X11&#xB9;              | [Linux-x86_64.deb](https://github.com/hyperion-project/hyperion.ng/releases)    |                                    |
-| RPi 4     | HyperBian       | 9, 10&#xB3;        | QT&#xB9;<br/>XCB/X11&#xB9;<br/>DispmanX | [HyperBian.zip](https://github.com/Hyperion-Project/HyperBian/releases)         |                                    |
-| RPi 4     | Raspberry Pi OS | 9, 10&#xB3;        | QT&#xB9;<br/>XCB/X11&#xB9;<br/>DispmanX | [Linux-armv7l.tar.gz](https://github.com/hyperion-project/hyperion.ng/releases) |                                    |
-| RPi 3 /3+ | HyperBian       | 9, 10&#xB3;        | QT&#xB9;<br/>XCB/X11&#xB9;<br/>DispmanX | [HyperBian.zip](https://github.com/hyperion-project/hyperion.ng/releases)       |                                    |
-| RPi 3 /3+ | Raspberry Pi OS | 9, 10&#xB3;        | QT&#xB9;<br/>XCB/X11&#xB9;<br/>DispmanX | [Linux-armv7l.tar.gz](https://github.com/hyperion-project/hyperion.ng/releases) |                                    |
+| Hardware  | OS              | Version            | Grabber                                 | Package                                                                       | Comments                           |
+|-----------|-----------------|--------------------|-----------------------------------------|-------------------------------------------------------------------------------|------------------------------------|
+| X64       | Windows         | 10                 | QT&#xB9;                                | [Windows-AMD64.exe](https://github.com/hyperion-project/hyperion.ng/releases) | Direct X9 Grabber via self-compile |
+| X64       | Ubuntu          | 18.04, 20.04&#xB2; | QT&#xB9;<br/>XCB/X11&#xB9;              | [Linux-x86_64.deb](https://github.com/hyperion-project/hyperion.ng/releases)  |                                    |
+| X64       | Debian          | 9, 10&#xB3;        | QT&#xB9;<br/>XCB/X11&#xB9;              | [Linux-x86_64.deb](https://github.com/hyperion-project/hyperion.ng/releases)  |                                    |
+| RPi 4     | HyperBian       | 9, 10&#xB3;        | QT&#xB9;<br/>XCB/X11&#xB9;<br/>DispmanX | [HyperBian.zip](https://github.com/Hyperion-Project/HyperBian/releases)       |                                    |
+| RPi 4     | Raspberry Pi OS | 9, 10&#xB3;        | QT&#xB9;<br/>XCB/X11&#xB9;<br/>DispmanX | [Linux-armv7l.deb](https://github.com/hyperion-project/hyperion.ng/releases)  |                                    |
+| RPi 3 /3+ | HyperBian       | 9, 10&#xB3;        | QT&#xB9;<br/>XCB/X11&#xB9;<br/>DispmanX | [HyperBian.zip](https://github.com/hyperion-project/hyperion.ng/releases)     |                                    |
+| RPi 3 /3+ | Raspberry Pi OS | 9, 10&#xB3;        | QT&#xB9;<br/>XCB/X11&#xB9;<br/>DispmanX | [Linux-armv7l.deb](https://github.com/hyperion-project/hyperion.ng/releases)  |                                    |
 
 ## Unofficial
 In case you have an additional working setups you would like to share with the community, please get in touch or issue a PR to have the table updated.
