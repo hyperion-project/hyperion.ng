@@ -627,7 +627,9 @@ function updateJsonEditorRange(rootEditor, path, key, minimum, maximum, defaultV
   }
   if (typeof defaultValue !== "undefined") {
     newSchema[key]["default"] = defaultValue;
+    currentValue = defaultValue;
   }
+
   if (typeof step !== "undefined") {
     newSchema[key]["step"] = step;
   }
@@ -640,7 +642,7 @@ function updateJsonEditorRange(rootEditor, path, key, minimum, maximum, defaultV
   delete editor.cached_editors[key];
   editor.addObjectProperty(key);
 
-  // Restore current value for new range
+  // Restore current (new default) value for new range
   rootEditor.getEditor(path + "." + key).setValue(currentValue);
 }
 
