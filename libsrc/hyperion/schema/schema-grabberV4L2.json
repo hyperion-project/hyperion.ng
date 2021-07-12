@@ -233,7 +233,7 @@
 			"title": "edt_conf_v4l2_redSignalThreshold_title",
 			"minimum": 0,
 			"maximum": 100,
-			"default": 5,
+			"default": 0,
 			"append": "edt_append_percent",
 			"options": {
 				"dependencies": {
@@ -249,7 +249,7 @@
 			"title": "edt_conf_v4l2_greenSignalThreshold_title",
 			"minimum": 0,
 			"maximum": 100,
-			"default": 5,
+			"default": 100,
 			"append": "edt_append_percent",
 			"options": {
 				"dependencies": {
@@ -265,7 +265,7 @@
 			"title": "edt_conf_v4l2_blueSignalThreshold_title",
 			"minimum": 0,
 			"maximum": 100,
-			"default": 5,
+			"default": 0,
 			"append": "edt_append_percent",
 			"options": {
 				"dependencies": {
@@ -296,7 +296,7 @@
 			"title": "edt_conf_v4l2_sDVOffsetMin_title",
 			"minimum": 0.0,
 			"maximum": 1.0,
-			"default": 0.25,
+			"default": 0.1,
 			"step": 0.01,
 			"options": {
 				"dependencies": {
@@ -312,7 +312,7 @@
 			"title": "edt_conf_v4l2_sDVOffsetMax_title",
 			"minimum": 0.0,
 			"maximum": 1.0,
-			"default": 0.75,
+			"default": 0.9,
 			"step": 0.01,
 			"options": {
 				"dependencies": {
@@ -328,7 +328,7 @@
 			"title": "edt_conf_v4l2_sDHOffsetMin_title",
 			"minimum": 0.0,
 			"maximum": 1.0,
-			"default": 0.25,
+			"default": 0.4,
 			"step": 0.01,
 			"options": {
 				"dependencies": {
@@ -344,7 +344,7 @@
 			"title": "edt_conf_v4l2_sDHOffsetMax_title",
 			"minimum": 0.0,
 			"maximum": 1.0,
-			"default": 0.75,
+			"default": 0.46,
 			"step": 0.01,
 			"options": {
 				"dependencies": {
