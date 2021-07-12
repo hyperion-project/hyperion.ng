@@ -291,13 +291,16 @@ $(document).ready(function () {
     //console.log("cmd-priorities-update", event.response.data);
 
     var prios = event.response.data.priorities;
-    //Clear image when new input
-    if (prios[0].componentId !== activeComponent) {
-      resetImage();
-      activeComponent = prios[0].componentId;
-    }
-    else if (!prios[0].active) {
-      resetImage();
+    if (prios.length > 0)
+    {
+      //Clear image when new input
+      if (prios[0].componentId !== activeComponent) {
+        resetImage();
+        activeComponent = prios[0].componentId;
+      }
+      else if (!prios[0].active) {
+        resetImage();
+      }
     }
   });
 
