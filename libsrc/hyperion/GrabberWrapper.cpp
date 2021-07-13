@@ -15,6 +15,12 @@ const int GrabberWrapper::DEFAULT_MIN_GRAB_RATE_HZ = 1;
 const int GrabberWrapper::DEFAULT_MAX_GRAB_RATE_HZ = 30;
 const int GrabberWrapper::DEFAULT_PIXELDECIMATION = 8;
 
+/// Map of Hyperion instances with grabber name that requested screen capture
+QMap<int, QString> GrabberWrapper::GRABBER_SYS_CLIENTS = QMap<int, QString>();
+QMap<int, QString> GrabberWrapper::GRABBER_V4L_CLIENTS = QMap<int, QString>();
+bool GrabberWrapper::GLOBAL_GRABBER_SYS_ENABLE = false;
+bool GrabberWrapper::GLOBAL_GRABBER_V4L_ENABLE = false;
+
 GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber * ggrabber, int updateRate_Hz)
 	: _grabberName(grabberName)
 	  , _log(Logger::getInstance(grabberName.toUpper()))

@@ -20,12 +20,6 @@ class Grabber;
 class GlobalSignals;
 class QTimer;
 
-/// Map of Hyperion instances with grabber name that requested screen capture
-static QMap<int, QString> GRABBER_SYS_CLIENTS;
-static QMap<int, QString> GRABBER_V4L_CLIENTS;
-static bool GLOBAL_GRABBER_SYS_ENABLE;
-static bool GLOBAL_GRABBER_V4L_ENABLE;
-
 ///
 /// This class will be inherited by GrabberWrappers which contains the real capture interface
 ///
@@ -44,6 +38,11 @@ public:
 	static const int DEFAULT_MIN_GRAB_RATE_HZ;
 	static const int DEFAULT_MAX_GRAB_RATE_HZ;
 	static const int DEFAULT_PIXELDECIMATION;
+
+	static QMap<int, QString> GRABBER_SYS_CLIENTS;
+	static QMap<int, QString> GRABBER_V4L_CLIENTS;
+	static bool GLOBAL_GRABBER_SYS_ENABLE;
+	static bool GLOBAL_GRABBER_V4L_ENABLE;
 
 	///
 	/// Starts the grabber which produces led values with the specified update rate
@@ -72,10 +71,10 @@ public:
 	///
 	virtual QStringList getActive(int inst) const;
 
-	virtual bool getSysGrabberState(){ return GLOBAL_GRABBER_SYS_ENABLE; }
-	virtual void setSysGrabberState(bool sysGrabberState){ GLOBAL_GRABBER_SYS_ENABLE = sysGrabberState; }
-	virtual bool getV4lGrabberState(){ return GLOBAL_GRABBER_V4L_ENABLE; }
-	virtual void setV4lGrabberState(bool v4lGrabberState){ GLOBAL_GRABBER_V4L_ENABLE = v4lGrabberState; }
+	bool getSysGrabberState() const { return GLOBAL_GRABBER_SYS_ENABLE; }
+	void setSysGrabberState(bool sysGrabberState){ GLOBAL_GRABBER_SYS_ENABLE = sysGrabberState; }
+	bool getV4lGrabberState() const { return GLOBAL_GRABBER_V4L_ENABLE; }
+	void setV4lGrabberState(bool v4lGrabberState){ GLOBAL_GRABBER_V4L_ENABLE = v4lGrabberState; }
 
 	static QStringList availableGrabbers();
 
