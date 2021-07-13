@@ -1262,10 +1262,6 @@ QJsonArray V4L2Grabber::discover(const QJsonObject& params)
 		QJsonObject device, in;
 		QJsonArray video_inputs, formats;
 
-		device["device"] = it.key();
-		device["device_name"] = _deviceProperties.value(it.key()).name;
-		device["type"] = "v4l2";
-
 		QMultiMap<QString, int> inputs = QMultiMap<QString, int>();
 		for(auto i = _deviceProperties.begin(); i != _deviceProperties.end(); ++i)
 			if (i.key() == it.key())
@@ -1273,116 +1269,125 @@ QJsonArray V4L2Grabber::discover(const QJsonObject& params)
 					if (!inputs.contains(y.value().inputName, y.key()))
 						inputs.insert(y.value().inputName, y.key());
 
-		for (auto input = inputs.begin(); input != inputs.end(); input++)
+		if (!inputs.isEmpty())
 		{
-			in["name"] = input.key();
-			in["inputIdx"] = input.value();
+			device["device"] = it.key();
+			device["device_name"] = _deviceProperties.value(it.key()).name;
+			device["type"] = "v4l2";
 
-			QJsonArray standards;
-			QList<VideoStandard> videoStandards = QList<VideoStandard>();
-			for(auto i = _deviceProperties.begin(); i != _deviceProperties.end(); ++i)
-				if (i.key() == it.key())
-					for (auto y = i.value().inputs.begin(); y != i.value().inputs.end(); y++)
-						if (y.key() == input.value())
-							for (auto std = y.value().standards.begin(); std != y.value().standards.end(); std++)
-								if(!videoStandards.contains(*std))
-									videoStandards << *std;
+			Debug( _log, "inputs size [%d], isEmpty [%d]", inputs.size(), inputs.isEmpty());
 
-			for (auto standard : videoStandards)
-				standards.append(VideoStandard2String(standard));
-
-			if (!standards.isEmpty())
-				in["standards"] = standards;
-
-			QList<PixelFormat> encodingFormats = QList<PixelFormat>();
-			for(auto i = _deviceProperties.begin(); i != _deviceProperties.end(); ++i)
-				if (i.key() == it.key())
-					for (auto y = i.value().inputs.begin(); y != i.value().inputs.end(); y++)
-						if (y.key() == input.value())
-							for (auto enc = y.value().encodingFormats.begin(); enc != y.value().encodingFormats.end(); enc++)
-								if (!encodingFormats.contains(enc.key()))
-									encodingFormats << enc.key();
-
-			for (auto encodingFormat : encodingFormats)
+			for (auto input = inputs.begin(); input != inputs.end(); input++)
 			{
-				QJsonObject format;
-				QJsonArray resolutionArray;
+				in["name"] = input.key();
+				in["inputIdx"] = input.value();
 
-				format["format"] = pixelFormatToString(encodingFormat);
+				QJsonArray standards;
+				QList<VideoStandard> videoStandards = QList<VideoStandard>();
+				for(auto i = _deviceProperties.begin(); i != _deviceProperties.end(); ++i)
+					if (i.key() == it.key())
+						for (auto y = i.value().inputs.begin(); y != i.value().inputs.end(); y++)
+							if (y.key() == input.value())
+								for (auto std = y.value().standards.begin(); std != y.value().standards.end(); std++)
+									if(!videoStandards.contains(*std))
+										videoStandards << *std;
 
-				QMultiMap<int, int> deviceResolutions = QMultiMap<int, int>();
+				for (auto standard : videoStandards)
+					standards.append(VideoStandard2String(standard));
+
+				if (!standards.isEmpty())
+					in["standards"] = standards;
+
+				QList<PixelFormat> encodingFormats = QList<PixelFormat>();
 				for(auto i = _deviceProperties.begin(); i != _deviceProperties.end(); ++i)
 					if (i.key() == it.key())
 						for (auto y = i.value().inputs.begin(); y != i.value().inputs.end(); y++)
 							if (y.key() == input.value())
 								for (auto enc = y.value().encodingFormats.begin(); enc != y.value().encodingFormats.end(); enc++)
-									if (enc.key() == encodingFormat && !deviceResolutions.contains(enc.value().width, enc.value().height))
-										deviceResolutions.insert(enc.value().width, enc.value().height);
+									if (!encodingFormats.contains(enc.key()))
+										encodingFormats << enc.key();
 
-				for (auto width_height = deviceResolutions.begin(); width_height != deviceResolutions.end(); width_height++)
+				for (auto encodingFormat : encodingFormats)
 				{
-					QJsonObject resolution;
-					QJsonArray fps;
+					QJsonObject format;
+					QJsonArray resolutionArray;
 
-					resolution["width"] = int(width_height.key());
-					resolution["height"] = int(width_height.value());
+					format["format"] = pixelFormatToString(encodingFormat);
 
-					QIntList framerates = QIntList();
+					QMultiMap<int, int> deviceResolutions = QMultiMap<int, int>();
 					for(auto i = _deviceProperties.begin(); i != _deviceProperties.end(); ++i)
 						if (i.key() == it.key())
 							for (auto y = i.value().inputs.begin(); y != i.value().inputs.end(); y++)
 								if (y.key() == input.value())
 									for (auto enc = y.value().encodingFormats.begin(); enc != y.value().encodingFormats.end(); enc++)
+										if (enc.key() == encodingFormat && !deviceResolutions.contains(enc.value().width, enc.value().height))
+											deviceResolutions.insert(enc.value().width, enc.value().height);
+
+					for (auto width_height = deviceResolutions.begin(); width_height != deviceResolutions.end(); width_height++)
+					{
+						QJsonObject resolution;
+						QJsonArray fps;
+
+						resolution["width"] = int(width_height.key());
+						resolution["height"] = int(width_height.value());
+
+						QIntList framerates = QIntList();
+						for(auto i = _deviceProperties.begin(); i != _deviceProperties.end(); ++i)
+							if (i.key() == it.key())
+								for (auto y = i.value().inputs.begin(); y != i.value().inputs.end(); y++)
+									if (y.key() == input.value())
+										for (auto enc = y.value().encodingFormats.begin(); enc != y.value().encodingFormats.end(); enc++)
 											if(enc.key() == encodingFormat && enc.value().width == width_height.key() && enc.value().height == width_height.value())
 												for (auto fps = enc.value().framerates.begin(); fps != enc.value().framerates.end(); fps++)
 													if(!framerates.contains(*fps))
 														framerates << *fps;
 
-					for (auto framerate : framerates)
-						fps.append(framerate);
+						for (auto framerate : framerates)
+							fps.append(framerate);
 
-					resolution["fps"] = fps;
-					resolutionArray.append(resolution);
+						resolution["fps"] = fps;
+						resolutionArray.append(resolution);
+					}
+
+					format["resolutions"] = resolutionArray;
+					formats.append(format);
 				}
+				in["formats"] = formats;
+				video_inputs.append(in);
 
-				format["resolutions"] = resolutionArray;
-				formats.append(format);
 			}
-			in["formats"] = formats;
-			video_inputs.append(in);
 
+			device["video_inputs"] = video_inputs;
+
+			QJsonObject controls, controls_default;
+			for (auto control : _deviceControls[it.key()])
+			{
+				QJsonObject property;
+				property["minValue"] = control.minValue;
+				property["maxValue"] = control.maxValue;
+				property["step"] = control.step;
+				property["current"] = control.currentValue;
+				controls[control.property] = property;
+				controls_default[control.property] = control.defaultValue;
+			}
+			device["properties"] = controls;
+
+			QJsonObject defaults, video_inputs_default, format_default, resolution_default;
+			resolution_default["width"] = 640;
+			resolution_default["height"] = 480;
+			resolution_default["fps"] = 25;
+			format_default["format"] = "yuyv";
+			format_default["resolution"] = resolution_default;
+			video_inputs_default["inputIdx"] = 0;
+			video_inputs_default["standards"] = "PAL";
+			video_inputs_default["formats"] = format_default;
+
+			defaults["video_input"] = video_inputs_default;
+			defaults["properties"] = controls_default;
+			device["default"] = defaults;
+
+			inputsDiscovered.append(device);
 		}
-
-		device["video_inputs"] = video_inputs;
-
-		QJsonObject controls, controls_default;
-		for (auto control : _deviceControls[it.key()])
-		{
-			QJsonObject property;
-			property["minValue"] = control.minValue;
-			property["maxValue"] = control.maxValue;
-			property["step"] = control.step;
-			property["current"] = control.currentValue;
-			controls[control.property] = property;
-			controls_default[control.property] = control.defaultValue;
-		}
-		device["properties"] = controls;
-
-		QJsonObject defaults, video_inputs_default, format_default, resolution_default;
-		resolution_default["width"] = 640;
-		resolution_default["height"] = 480;
-		resolution_default["fps"] = 25;
-		format_default["format"] = "yuyv";
-		format_default["resolution"] = resolution_default;
-		video_inputs_default["inputIdx"] = 0;
-		video_inputs_default["standards"] = "PAL";
-		video_inputs_default["formats"] = format_default;
-
-		defaults["video_input"] = video_inputs_default;
-		defaults["properties"] = controls_default;
-		device["default"] = defaults;
-
-		inputsDiscovered.append(device);
 	}
 
 	_deviceProperties.clear();
