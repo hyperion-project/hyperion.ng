@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WLED: Support storing/restoring state, fixes #1101
 - LED-Devices: Allow to get properties for Atmo and Karatedevices to limit LED numbers configurable
 - LED-Devices: Add timeouts for REST-API calls
+- new Flags: Russia, Cameroon, Great Britain, England, Scotland
 
 ### Changed
 - Updated dependency rpi_ws281x to latest upstream
