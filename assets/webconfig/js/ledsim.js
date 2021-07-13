@@ -316,7 +316,7 @@ $(document).ready(function () {
         imageCanvasNodeCtx.fillRect(0, 0, canvas_width, canvas_height);
       }
 
-      var image = document.getElementById('navbar_brand_logo');
+      var image = document.getElementById('ledsim_logo');
       imageCanvasNodeCtx.drawImage(image, canvas_width / 2 - image.width / 2, canvas_height / 2 - image.height / 2, image.width, image.height);
     }
   }
