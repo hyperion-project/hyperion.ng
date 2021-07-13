@@ -302,6 +302,9 @@ $(document).ready(function () {
         resetImage();
       }
     }
+    else {
+      resetImage();
+    }
   });
 
   function resetImage() {
