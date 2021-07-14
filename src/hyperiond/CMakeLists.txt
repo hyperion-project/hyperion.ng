@@ -150,11 +150,13 @@ if(WIN32)
 	add_custom_command(TARGET hyperiond POST_BUILD COMMAND ${WINDEPLOYQT_EXECUTABLE} ${WINDEPLOYQT_PARAMS} "$<TARGET_FILE:hyperiond>")
 endif()
 
-# Deploy all dependencies for package creation (not for OSX)
-include(${CMAKE_SOURCE_DIR}/cmake/Dependencies.cmake)
+if(ENABLE_DEPLOY_DEPENDENCIES)
+	# Deploy all dependencies for package creation (not for OSX)
+	include(${CMAKE_SOURCE_DIR}/cmake/Dependencies.cmake)
 
-if (NOT ENABLE_OSX AND NOT WIN32) # Unix
-	DeployUnix("hyperiond")
-elseif(WIN32) # Windows
-	DeployWindows("hyperiond")
-endif ()
+	if (NOT ENABLE_OSX AND NOT WIN32) # Unix
+		DeployUnix("hyperiond")
+	elseif(WIN32) # Windows
+		DeployWindows("hyperiond")
+	endif ()
+endif(ENABLE_DEPLOY_DEPENDENCIES)

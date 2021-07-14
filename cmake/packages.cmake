@@ -52,6 +52,11 @@ SET ( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE" )
 SET ( CPACK_PACKAGE_EXECUTABLES "hyperiond;Hyperion" )
 SET ( CPACK_CREATE_DESKTOP_LINKS "hyperiond;Hyperion" )
 
+# Append pre-release version to CPACK_PACKAGE_VERSION_PATCH if exists
+if (NOT "${HYPERION_VERSION_PRE}" STREQUAL "")
+	string(APPEND CPACK_PACKAGE_VERSION_PATCH ${HYPERION_VERSION_PRE})
+endif()
+
 # Define the install prefix path for cpack
 IF ( UNIX )
 	#SET ( CPACK_PACKAGING_INSTALL_PREFIX "share/hyperion")

@@ -10,7 +10,7 @@
 			"uniqueItems": true,
 			"items": {
 				"type": "string",
-				"enum": ["at","be","bg","ch","cmr","cz","de","dk","ee","es","fi","fr","gr","hu","ie","it","lt","lu","lv","mt","nl","pl","pt","ro","ru","se","sl"]
+				"enum": ["at","be","bg","ch","cmr","cz","de","dk","ee","es","fi","fr","gb","gb-eng","gb-sct","gr","hu","ie","it","lt","lu","lv","mt","nl","pl","pt","ro","ru","se","sl"]
 			},
 			"propertyOrder" : 1
 		},
