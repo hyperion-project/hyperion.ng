@@ -24,14 +24,34 @@ body{
 */
 /* fixed brand icon */
 @media (min-width: 768px){
-    .navbar-brand{position:fixed}
-  #main-nav{position:absolute !important;}
+  #wrapper{
+    padding-left: 10px;
+    padding-bottom: 10px;
+    padding-right: 10px;
+  }
+  .navbar-brand{
+    position:fixed;
+    height: 80px;
+  }
+  #main-nav{
+    position:absolute !important;
+  }
+  .navbar-top-links li a > .fa{
+    font-size: 22px;
+  }
 }
 
 /*mobile nav*/
 @media (max-width: 768px){
-    .navbar-toggle{position:fixed;right:0px;}
-    #main-nav{position:fixed;right:-200px;}
+    #wrapper{
+      padding: 0px;
+    }
+    .navbar-toggle{
+      position:fixed;right:0px;
+    }
+    #main-nav{
+      position:fixed;right:-200px;
+    }
 }
 .navbar-toggle .icon-bar {
   background-color:#4c4c4c !important;
@@ -72,23 +92,25 @@ table.input-group{width:100%}
 @media (max-width: 767px) {.ltd{white-space:normal;}}
 
 /*icon spacing*/
-.fa-fw,.mdi-24px{margin-right:5px;}
+.fa-fw, .mdi-24px{margin-right:5px;}
 
 /*table*/
 table.borderless td,table.borderless th{border: none !important;}
+table.borderless td:first-child{width: 25px !important;}
 .borderless {margin-bottom:0px}
 table label{margin:0}
 table.first_cell_borderless td:first-child,table.first_cell_borderless th:first-child{border: none !important;}
+table.first_cell_borderless td:first-child{width: 25px !important;}
 
 /*Header*/
-.navbar-brand{padding-top:4px;padding-bottom:0px;padding-left:2;}
-.sidebar{margin-top:65px;}
+.navbar-brand{top:0px;left:17px;padding-top:0;}
+.sidebar{margin-top:85px;}
 .dropdown{font-size:18px;}
 @media (max-width: 767px) {.sidebar{margin-top:0px;padding-top:0px !important;}}
 .page-header{margin-top:0px;}
 
 .navbar-top-links li a {
-    min-height: 64px;
+    min-height: 84px;
     display: flex;
     align-items: center;
 }
@@ -216,6 +238,7 @@ table.first_cell_borderless td:first-child,table.first_cell_borderless th:first-
 .btn-transparent {
   background-color: transparent;
   border-style: none;
+  padding-left: 0;
 }
 
 /*general instance management button*/

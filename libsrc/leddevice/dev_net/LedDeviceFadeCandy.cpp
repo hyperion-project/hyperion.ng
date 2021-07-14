@@ -55,7 +55,7 @@ bool LedDeviceFadeCandy::init(const QJsonObject& deviceConfig)
 		}
 		else
 		{
-			_host = deviceConfig["output"].toString("127.0.0.1");
+			_host = deviceConfig["host"].toString("127.0.0.1");
 			_port = deviceConfig["port"].toInt(STREAM_DEFAULT_PORT);
 
 			//If host not configured the init fails

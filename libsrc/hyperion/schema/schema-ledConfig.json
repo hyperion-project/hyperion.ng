@@ -147,7 +147,6 @@
 		"ledBlacklist": {
 			"type": "array",
 			"title": "conf_leds_layout_blacklist_rules_title",
-			"minimum": 1,
 			"uniqueItems": true,
 			"items": {
 				"type": "object",

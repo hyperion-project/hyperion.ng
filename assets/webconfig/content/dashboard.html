@@ -20,6 +20,34 @@
                   <thead>
                     <tr>
                       <th colspan="3">
+                        <i class="mdi mdi-camera"></i>
+                        <span data-i18n="main_menu_grabber_conf_token">Capturing Hardware</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td></td>
+                      <td data-i18n="edt_conf_fg_heading_title">Screen-Grabber</td>
+                      <td style="text-align: right; padding-right: 0">
+                        <span id="dash_screen_grabber">disabled</span>
+                        <a class="fa fa-cog fa-fw" onclick="SwitchToMenuItem('MenuItemGrabber', 'editor_container_screengrabber')" style="text-decoration: none; cursor: pointer"></a>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td></td>
+                      <td data-i18n="edt_conf_v4l2_heading_title">Video-Grabber</td>
+                      <td style="text-align: right; padding-right: 0">
+                        <span id="dash_video_grabber">disabled</span>
+                        <a class="fa fa-cog fa-fw" onclick="SwitchToMenuItem('MenuItemGrabber', 'editor_container_videograbber')" style="text-decoration: none; cursor: pointer"></a>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <table class="table borderless">
+                  <thead>
+                    <tr>
+                      <th colspan="3">
                         <i class="mdi mdi-lan"></i>
                         <span data-i18n="dashboard_infobox_label_ports">Ports</span>
                       </th>
@@ -29,22 +57,34 @@
                     <tr>
                       <td></td>
                       <td data-i18n="dashboard_infobox_label_port_proto">proto</td>
-                      <td id="dash_pbPort" style="text-align:right">unknown</td>
+                      <td style="text-align: right; padding-right: 0">
+                        <span id="dash_pbPort">unknown</span>
+                        <a class="fa fa-cog fa-fw" onclick="SwitchToMenuItem('MenuItemNetwork', 'editor_container_protoserver')" style="text-decoration: none; cursor: pointer"></a>
+                      </td>
                     </tr>
                     <tr>
                       <td></td>
                       <td data-i18n="dashboard_infobox_label_port_flat">flat</td>
-                      <td id="dash_fbPort" style="text-align:right">unknown</td>
+                      <td style="text-align: right; padding-right: 0">
+                        <span id="dash_fbPort">unknown</span>
+                        <a class="fa fa-cog fa-fw" onclick="SwitchToMenuItem('MenuItemNetwork', 'editor_container_fbserver')" style="text-decoration: none; cursor: pointer"></a>
+                      </td>
                     </tr>
                     <tr>
                       <td></td>
                       <td data-i18n="dashboard_infobox_label_port_json">json</td>
-                      <td id="dash_jsonPort" style="text-align:right">unknown</td>
+                      <td style="text-align: right; padding-right: 0">
+                        <span id="dash_jsonPort">unknown</span>
+                        <a class="fa fa-cog fa-fw" onclick="SwitchToMenuItem('MenuItemNetwork', 'editor_container_jsonserver')" style="text-decoration: none; cursor: pointer"></a>
+                      </td>
                     </tr>
                     <tr>
                       <td></td>
                       <td data-i18n="dashboard_infobox_label_ports_websocket">websocket</td>
-                      <td id="dash_wsPorts" style="text-align:right">unknown</td>
+                      <td style="text-align: right; padding-right: 0">
+                        <span id="dash_wsPorts">unknown</span>
+                        <a class="fa fa-cog fa-fw" onclick="SwitchToMenuItem('MenuItemWeb')" style="text-decoration: none; cursor: pointer"></a>
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -61,17 +101,17 @@
                     <tr>
                       <td></td>
                       <td data-i18n="dashboard_infobox_label_currenthyp">Hyperion version:</td>
-                      <td id="dash_currv" style="text-align:right">unknown</td>
+                      <td id="dash_currv" style="text-align: right">unknown</td>
                     </tr>
                     <tr>
                       <td></td>
                       <td data-i18n="dashboard_infobox_label_watchedversionbranch">Watched version branch:</td>
-                      <td id="dash_watchedversionbranch" style="text-align:right">unknown</td>
+                      <td id="dash_watchedversionbranch" style="text-align: right">unknown</td>
                     </tr>
                     <tr>
                       <td></td>
                       <td data-i18n="dashboard_infobox_label_latesthyp">Latest version:</td>
-                      <td id="dash_latev" style="text-align:right">unknown</td>
+                      <td id="dash_latev" style="text-align: right">unknown</td>
                     </tr>
                   </tbody>
                 </table>

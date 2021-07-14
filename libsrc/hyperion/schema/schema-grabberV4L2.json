@@ -2,263 +2,359 @@
 	"type" : "object",
 	"required" : true,
 	"title" : "edt_conf_v4l2_heading_title",
-	"properties" :
+	"properties":
 	{
-		"device" :
-		{
-			"type" : "string",
-			"title" : "edt_conf_enum_custom",
-			"default" : "auto",
-			"options" : {
-				"hidden":true
+		"enable": {
+			"type": "boolean",
+			"title": "edt_conf_general_enable_title",
+			"required": true,
+			"default": false,
+			"propertyOrder": 1
+		},
+		"available_devices": {
+			"type": "string",
+			"title": "edt_conf_grabber_discovered_title",
+			"default": "edt_conf_grabber_discovery_inprogress",
+			"options": {
+				"infoText": "edt_conf_grabber_discovered_title_info"
 			},
-			"required" : true,
-			"propertyOrder" : 2,
-			"comment" : "The 'available_devices' settings are dynamically inserted into the WebUI under PropertyOrder '1'."
+			"propertyOrder": 2,
+			"required": false
 		},
-		"input" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_enum_custom",
-			"default" : 0,
-			"options" : {
-				"hidden":true
+		"device": {
+			"type": "string",
+			"title": "edt_conf_enum_custom",
+			"options": {
+				"hidden": true
 			},
-			"required" : true,
-			"propertyOrder" : 4,
-			"comment" : "The 'device_inputs' settings are dynamically inserted into the WebUI under PropertyOrder '3'."
+			"required": true,
+			"comment": "The 'available_devices' settings are dynamically inserted into the WebUI under PropertyOrder '2'.",
+			"propertyOrder": 3
 		},
-		"standard" :
-		{
-			"type" : "string",
-			"title" : "edt_conf_v4l2_standard_title",
-			"enum" : ["NO_CHANGE", "PAL","NTSC","SECAM"],
-			"default" : "NO_CHANGE",
-			"options" : {
-				"enum_titles" : ["edt_conf_enum_NO_CHANGE", "edt_conf_enum_PAL", "edt_conf_enum_NTSC", "edt_conf_enum_SECAM"]
+		"device_inputs": {
+			"type": "string",
+			"title": "edt_conf_v4l2_input_title",
+			"propertyOrder": 4,
+			"required": false
+		},
+		"input": {
+			"type": "integer",
+			"title": "edt_conf_enum_custom",
+			"default": 0,
+			"options": {
+				"hidden": true
 			},
-			"required" : true,
-			"propertyOrder" : 5
+			"required": true,
+			"propertyOrder": 5,
+			"comment": "The 'device_inputs' settings are dynamically inserted into the WebUI under PropertyOrder '4'."
 		},
-		"width" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_fg_width_title",
-			"default" : 0,
-			"minimum" : 0,
-			"append" : "edt_append_pixel",
-			"options" : {
-				"hidden":true
+
+		"standard": {
+			"type": "string",
+			"title": "edt_conf_v4l2_standard_title",
+			"required": false,
+			"propertyOrder": 6
+		},
+		"encoding": {
+			"type": "string",
+			"title": "edt_conf_v4l2_encoding_title",
+			"required": false,
+			"access": "advanced",
+			"propertyOrder": 7
+		},
+		"resolutions": {
+			"type": "string",
+			"title": "edt_conf_v4l2_resolution_title",
+			"propertyOrder": 8,
+			"required": false
+		},
+		"width": {
+			"type": "integer",
+			"title": "edt_conf_fg_width_title",
+			"default": 0,
+			"minimum": 0,
+			"append": "edt_append_pixel",
+			"options": {
+				"hidden": true
 			},
-			"required" : true,
-			"propertyOrder" : 7,
-			"comment" : "The 'resolutions' settings are dynamically inserted into the WebUI under PropertyOrder '6'."
+			"required": true,
+			"propertyOrder": 9,
+			"comment": "The 'resolutions' settings are dynamically inserted into the WebUI under PropertyOrder '8'."
 		},
-		"height" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_fg_height_title",
-			"default" : 0,
-			"minimum" : 0,
-			"append" : "edt_append_pixel",
-			"options" : {
-				"hidden":true
+		"height": {
+			"type": "integer",
+			"title": "edt_conf_fg_height_title",
+			"default": 0,
+			"minimum": 0,
+			"append": "edt_append_pixel",
+			"options": {
+				"hidden": true
 			},
-			"required" : true,
-			"propertyOrder" : 8
+			"required": true,
+			"propertyOrder": 10,
+			"comment": "The 'resolutions' settings are dynamically inserted into the WebUI under PropertyOrder '8'."
 		},
-		"fps" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_enum_custom",
-			"default" : 15,
-			"minimum" : 1,
-			"append" : "fps",
-			"options" : {
-				"hidden":true
+		"framerates": {
+			"type": "string",
+			"title": "edt_conf_v4l2_framerate_title",
+			"propertyOrder": 11,
+			"required": false
+		},
+		"fps": {
+			"type": "integer",
+			"title": "edt_conf_enum_custom",
+			"default": 15,
+			"minimum": 0,
+			"append": "fps",
+			"options": {
+				"hidden": true
 			},
-			"required" : true,
-			"propertyOrder" : 10,
-			"comment" : "The 'framerates' setting is dynamically inserted into the WebUI under PropertyOrder '9'."
+			"required": true,
+			"propertyOrder": 12,
+			"comment": "The 'framerates' setting is dynamically inserted into the WebUI under PropertyOrder '11'."
 		},
-		"sizeDecimation" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_sizeDecimation_title",
-			"minimum" : 1,
-			"maximum" : 30,
-			"default" : 6,
-			"required" : true,
-			"propertyOrder" : 11
+		"fpsSoftwareDecimation": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_fpsSoftwareDecimation_title",
+			"minimum": 0,
+			"maximum": 60,
+			"default": 0,
+			"required": true,
+			"access": "expert",
+			"propertyOrder": 13
 		},
-		"cropLeft" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_cropLeft_title",
-			"minimum" : 0,
-			"default" : 0,
-			"append" : "edt_append_pixel",
-			"required" : true,
-			"propertyOrder" : 12
+		"flip": {
+			"type": "string",
+			"title": "edt_conf_v4l2_flip_title",
+			"enum": [ "NO_CHANGE", "HORIZONTAL", "VERTICAL", "BOTH" ],
+			"default": "NO_CHANGE",
+			"options": {
+				"enum_titles": [ "edt_conf_enum_NO_CHANGE", "edt_conf_enum_HORIZONTAL", "edt_conf_enum_VERTICAL", "edt_conf_enum_BOTH" ]
+			},
+			"required": true,
+			"access": "advanced",
+			"propertyOrder": 14
 		},
-		"cropRight" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_cropRight_title",
-			"minimum" : 0,
-			"default" : 0,
-			"append" : "edt_append_pixel",
-			"required" : true,
-			"propertyOrder" : 13
+		"sizeDecimation": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_sizeDecimation_title",
+			"minimum": 1,
+			"maximum": 30,
+			"default": 8,
+			"required": true,
+			"propertyOrder": 15
 		},
-		"cropTop" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_cropTop_title",
-			"minimum" : 0,
-			"default" : 0,
-			"append" : "edt_append_pixel",
-			"required" : true,
-			"propertyOrder" : 14
+		"hardware_brightness": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_hardware_brightness_title",
+			"default": 0,
+			"required": true,
+			"access": "expert",
+			"propertyOrder": 16
 		},
-		"cropBottom" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_cropBottom_title",
-			"minimum" : 0,
-			"default" : 0,
-			"append" : "edt_append_pixel",
-			"required" : true,
-			"propertyOrder" : 15
+		"hardware_contrast": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_hardware_contrast_title",
+			"default": 0,
+			"required": true,
+			"access": "expert",
+			"propertyOrder": 17
 		},
-		"cecDetection" :
-		{
-			"type" : "boolean",
-			"title" : "edt_conf_v4l2_cecDetection_title",
-			"default" : false,
-			"required" : true,
-			"propertyOrder" : 16
+		"hardware_saturation": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_hardware_saturation_title",
+			"default": 0,
+			"required": true,
+			"access": "expert",
+			"propertyOrder": 18
 		},
-		"signalDetection" :
-		{
-			"type" : "boolean",
-			"title" : "edt_conf_v4l2_signalDetection_title",
-			"default" : false,
-			"required" : true,
-			"propertyOrder" : 17
+		"hardware_hue": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_hardware_hue_title",
+			"default": 0,
+			"required": true,
+			"access": "expert",
+			"propertyOrder": 19
 		},
-		"redSignalThreshold" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_redSignalThreshold_title",
-			"minimum" : 0,
-			"maximum" : 100,
-			"default" : 5,
-			"append" : "edt_append_percent",
+		"cropLeft": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_cropLeft_title",
+			"minimum": 0,
+			"default": 0,
+			"append": "edt_append_pixel",
+			"required": true,
+			"propertyOrder": 20
+		},
+		"cropRight": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_cropRight_title",
+			"minimum": 0,
+			"default": 0,
+			"append": "edt_append_pixel",
+			"required": true,
+			"propertyOrder": 21
+		},
+		"cropTop": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_cropTop_title",
+			"minimum": 0,
+			"default": 0,
+			"append": "edt_append_pixel",
+			"required": true,
+			"propertyOrder": 22
+		},
+		"cropBottom": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_cropBottom_title",
+			"minimum": 0,
+			"default": 0,
+			"append": "edt_append_pixel",
+			"required": true,
+			"propertyOrder": 23
+		},
+		"cecDetection": {
+			"type": "boolean",
+			"title": "edt_conf_v4l2_cecDetection_title",
+			"default": false,
+			"required": true,
+			"access": "advanced",
+			"propertyOrder": 24
+		},
+		"signalDetection": {
+			"type": "boolean",
+			"title": "edt_conf_v4l2_signalDetection_title",
+			"default": false,
+			"required": true,
+			"access": "expert",
+			"propertyOrder": 25
+		},
+		"redSignalThreshold": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_redSignalThreshold_title",
+			"minimum": 0,
+			"maximum": 100,
+			"default": 0,
+			"append": "edt_append_percent",
 			"options": {
 				"dependencies": {
 					"signalDetection": true
 				}
 			},
-			"required" : true,
-			"propertyOrder" : 18
+			"access": "expert",
+			"required": true,
+			"propertyOrder": 26
 		},
-		"greenSignalThreshold" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_greenSignalThreshold_title",
-			"minimum" : 0,
-			"maximum" : 100,
-			"default" : 5,
-			"append" : "edt_append_percent",
+		"greenSignalThreshold": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_greenSignalThreshold_title",
+			"minimum": 0,
+			"maximum": 100,
+			"default": 100,
+			"append": "edt_append_percent",
 			"options": {
 				"dependencies": {
 					"signalDetection": true
 				}
 			},
-			"required" : true,
-			"propertyOrder" : 19
+			"required": true,
+			"access": "expert",
+			"propertyOrder": 27
 		},
-		"blueSignalThreshold" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_blueSignalThreshold_title",
-			"minimum" : 0,
-			"maximum" : 100,
-			"default" : 5,
-			"append" : "edt_append_percent",
+		"blueSignalThreshold": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_blueSignalThreshold_title",
+			"minimum": 0,
+			"maximum": 100,
+			"default": 0,
+			"append": "edt_append_percent",
 			"options": {
 				"dependencies": {
 					"signalDetection": true
 				}
 			},
-			"required" : true,
-			"propertyOrder" : 20
+			"required": true,
+			"access": "expert",
+			"propertyOrder": 28
 		},
-		"sDVOffsetMin" :
-		{
-			"type" : "number",
-			"title" : "edt_conf_v4l2_sDVOffsetMin_title",
-			"minimum" : 0.0,
-			"maximum" : 1.0,
-			"default" : 0.25,
-			"step" : 0.01,
+		"noSignalCounterThreshold": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_noSignalCounterThreshold_title",
+			"minimum": 1,
+			"maximum": 1000,
+			"default": 200,
 			"options": {
 				"dependencies": {
 					"signalDetection": true
 				}
 			},
-			"required" : true,
-			"propertyOrder" : 21
+			"required": true,
+			"access": "expert",
+			"propertyOrder": 29
 		},
-		"sDVOffsetMax" :
-		{
-			"type" : "number",
-			"title" : "edt_conf_v4l2_sDVOffsetMax_title",
-			"minimum" : 0.0,
-			"maximum" : 1.0,
-			"default" : 0.75,
-			"step" : 0.01,
+		"sDVOffsetMin": {
+			"type": "number",
+			"title": "edt_conf_v4l2_sDVOffsetMin_title",
+			"minimum": 0.0,
+			"maximum": 1.0,
+			"default": 0.1,
+			"step": 0.01,
 			"options": {
 				"dependencies": {
 					"signalDetection": true
 				}
 			},
-			"required" : true,
-			"propertyOrder" : 22
+			"required": true,
+			"access": "expert",
+			"propertyOrder": 30
 		},
-		"sDHOffsetMin" :
-		{
-			"type" : "number",
-			"title" : "edt_conf_v4l2_sDHOffsetMin_title",
-			"minimum" : 0.0,
-			"maximum" : 1.0,
-			"default" : 0.25,
-			"step" : 0.01,
+		"sDVOffsetMax": {
+			"type": "number",
+			"title": "edt_conf_v4l2_sDVOffsetMax_title",
+			"minimum": 0.0,
+			"maximum": 1.0,
+			"default": 0.9,
+			"step": 0.01,
 			"options": {
 				"dependencies": {
 					"signalDetection": true
 				}
 			},
-			"required" : true,
-			"propertyOrder" : 23
+			"required": true,
+			"access": "expert",
+			"propertyOrder": 31
 		},
-		"sDHOffsetMax" :
-		{
-			"type" : "number",
-			"title" : "edt_conf_v4l2_sDHOffsetMax_title",
-			"minimum" : 0.0,
-			"maximum" : 1.0,
-			"default" : 0.75,
-			"step" : 0.01,
+		"sDHOffsetMin": {
+			"type": "number",
+			"title": "edt_conf_v4l2_sDHOffsetMin_title",
+			"minimum": 0.0,
+			"maximum": 1.0,
+			"default": 0.4,
+			"step": 0.01,
 			"options": {
 				"dependencies": {
 					"signalDetection": true
 				}
 			},
-			"required" : true,
-			"propertyOrder" : 24
+			"required": true,
+			"access": "expert",
+			"propertyOrder": 32
+		},
+		"sDHOffsetMax": {
+			"type": "number",
+			"title": "edt_conf_v4l2_sDHOffsetMax_title",
+			"minimum": 0.0,
+			"maximum": 1.0,
+			"default": 0.46,
+			"step": 0.01,
+			"options": {
+				"dependencies": {
+					"signalDetection": true
+				}
+			},
+			"required": true,
+			"access": "expert",
+			"propertyOrder": 33
 		}
 	},
-	"additionalProperties" : true
-}
+		"additionalProperties": true
+	}

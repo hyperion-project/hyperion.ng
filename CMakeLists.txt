@@ -4,10 +4,15 @@ message( STATUS "CMake Version: ${CMAKE_VERSION}" )
 
 PROJECT(hyperion)
 
-# Parse semantic version of version file
+# Parse semantic version of version file and write version to config
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.cmake)
 file (STRINGS "version" HYPERION_VERSION)
 SetVersionNumber(HYPERION ${HYPERION_VERSION})
+set(DEFAULT_JSON_CONFIG_FILE ${CMAKE_CURRENT_SOURCE_DIR}/config/hyperion.config.json.default)
+file(READ ${DEFAULT_JSON_CONFIG_FILE} DEFAULT_JSON_CONFIG_VAR)
+string(REPLACE "configVersionValue" ${HYPERION_VERSION} DEFAULT_JSON_CONFIG_VAR "${DEFAULT_JSON_CONFIG_VAR}")
+string(REPLACE "previousVersionValue" ${HYPERION_VERSION} DEFAULT_JSON_CONFIG_VAR "${DEFAULT_JSON_CONFIG_VAR}")
+file(WRITE ${CMAKE_BINARY_DIR}/config/hyperion.config.json.default "${DEFAULT_JSON_CONFIG_VAR}")
 
 # Instruct CMake to run moc automatically when needed.
 set(CMAKE_AUTOMOC ON)
@@ -50,6 +55,7 @@ SET ( DEFAULT_USE_SYSTEM_PROTO_LIBS       OFF )
 SET ( DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     OFF )
 SET ( DEFAULT_TESTS                       OFF )
 SET ( DEFAULT_EXPERIMENTAL                OFF )
+SET ( DEFAULT_MF                          OFF )
 SET ( DEFAULT_DEPLOY_DEPENDENCIES         ON  )
 
 IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
@@ -60,7 +66,8 @@ IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
 	SET ( DEFAULT_USB_HID     ON )
 	SET ( DEFAULT_CEC         ON )
 ELSEIF ( WIN32 )
-	SET ( DEFAULT_DX OFF )
+	SET ( DEFAULT_DX ON )
+	SET ( DEFAULT_MF ON )
 ELSE()
 	SET ( DEFAULT_V4L2        OFF )
 	SET ( DEFAULT_FB          OFF )
@@ -121,9 +128,14 @@ elseif ( "${PLATFORM}" MATCHES "rpi" )
 	SET ( DEFAULT_DISPMANX   ON )
 	SET ( DEFAULT_WS281XPWM  ON )
 elseif ( "${PLATFORM}" STREQUAL "amlogic" )
-	SET ( DEFAULT_AMLOGIC    ON )
+	SET ( DEFAULT_AMLOGIC     ON )
+elseif ( "${PLATFORM}" STREQUAL "amlogic-dev" )
+	SET ( DEFAULT_AMLOGIC     ON )
+	SET ( DEFAULT_DISPMANX    OFF )
+	SET ( DEFAULT_QT 		  OFF )
+	SET ( DEFAULT_CEC         OFF )
 elseif ( "${PLATFORM}" STREQUAL "amlogic64" )
-	SET ( DEFAULT_AMLOGIC    ON )
+	SET ( DEFAULT_AMLOGIC     ON )
 elseif ( "${PLATFORM}" MATCHES "x11" )
 	SET ( DEFAULT_X11        ON )
 	SET ( DEFAULT_XCB        ON )
@@ -150,17 +162,18 @@ ADD_DEFINITIONS( ${PLATFORM_DEFINE} )
 option(ENABLE_AMLOGIC "Enable the AMLOGIC video grabber" ${DEFAULT_AMLOGIC} )
 message(STATUS "ENABLE_AMLOGIC = ${ENABLE_AMLOGIC}")
 
-option(ENABLE_DISPMANX "Enable the RPi dispmanx grabber" ${DEFAULT_DISPMANX} )
-message(STATUS "ENABLE_DISPMANX = ${ENABLE_DISPMANX}")
-
 if (ENABLE_AMLOGIC)
 	SET(ENABLE_FB ON)
 else()
 	option(ENABLE_FB "Enable the framebuffer grabber" ${DEFAULT_FB} )
 endif()
+
 message(STATUS "ENABLE_FB = ${ENABLE_FB}")
 
-option(ENABLE_OSX "Enable the osx grabber" ${DEFAULT_OSX} )
+option(ENABLE_DISPMANX "Enable the RPi dispmanx grabber" ${DEFAULT_DISPMANX} )
+message(STATUS "ENABLE_DISPMANX = ${ENABLE_DISPMANX}")
+
+option(ENABLE_OSX "Enable the OSX grabber" ${DEFAULT_OSX} )
 message(STATUS "ENABLE_OSX = ${ENABLE_OSX}")
 
 option(ENABLE_SPIDEV   "Enable the SPIDEV device" ${DEFAULT_SPIDEV} )
@@ -171,6 +184,9 @@ message(STATUS "ENABLE_TINKERFORGE = ${ENABLE_TINKERFORGE}")
 
 option(ENABLE_V4L2 "Enable the V4L2 grabber" ${DEFAULT_V4L2})
 message(STATUS "ENABLE_V4L2 = ${ENABLE_V4L2}")
+
+option(ENABLE_MF "Enable the Media Foundation grabber" ${DEFAULT_MF})
+message(STATUS "ENABLE_MF = ${ENABLE_MF}")
 
 option(ENABLE_WS281XPWM "Enable the WS281x-PWM device" ${DEFAULT_WS281XPWM} )
 message(STATUS "ENABLE_WS281XPWM = ${ENABLE_WS281XPWM}")
@@ -190,7 +206,7 @@ message(STATUS "ENABLE_X11 = ${ENABLE_X11}")
 option(ENABLE_XCB "Enable the XCB grabber" ${DEFAULT_XCB})
 message(STATUS "ENABLE_XCB = ${ENABLE_XCB}")
 
-option(ENABLE_QT "Enable the qt grabber" ${DEFAULT_QT})
+option(ENABLE_QT "Enable the Qt grabber" ${DEFAULT_QT})
 message(STATUS "ENABLE_QT = ${ENABLE_QT}")
 
 option(ENABLE_DX "Enable the DirectX grabber" ${DEFAULT_DX})
@@ -216,10 +232,7 @@ SET ( PROTOBUF_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/proto )
 
 # check all json files
 FILE ( GLOB_RECURSE HYPERION_SCHEMAS RELATIVE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/libsrc/*schema*.json )
-SET( JSON_FILES
-	config/hyperion.config.json.default
-	${HYPERION_SCHEMAS}
-)
+SET( JSON_FILES ${CMAKE_BINARY_DIR}/config/hyperion.config.json.default	${HYPERION_SCHEMAS})
 
 EXECUTE_PROCESS (
 	COMMAND ${PYTHON_EXECUTABLE} test/jsonchecks/checkjson.py ${JSON_FILES}
@@ -243,7 +256,7 @@ ENDIF ()
 # TODO on windows it can't resolve the path inside the file (Das System kann den angegebenen Pfad nicht finden: '\\schema\\schema-general.json')
 IF (NOT WIN32)
 	EXECUTE_PROCESS (
-		COMMAND python test/jsonchecks/checkschema.py config/hyperion.config.json.default libsrc/hyperion/hyperion.schema.json
+		COMMAND python test/jsonchecks/checkschema.py ${CMAKE_BINARY_DIR}/config/hyperion.config.json.default libsrc/hyperion/hyperion.schema.json
 		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 		RESULT_VARIABLE CHECK_CONFIG_FAILED
 	)
@@ -398,31 +411,6 @@ ENDIF()
 find_package(libusb-1.0 REQUIRED)
 find_package(Threads REQUIRED)
 add_definitions(${QT_DEFINITIONS})
-
-# Add JPEG library
-if (ENABLE_V4L2)
-	# Turbo JPEG
-	find_package(TurboJPEG)
-	if (TURBOJPEG_FOUND)
-		add_definitions(-DHAVE_TURBO_JPEG)
-		message( STATUS "Using Turbo JPEG library: ${TurboJPEG_LIBRARY}")
-		include_directories(${TurboJPEG_INCLUDE_DIRS})
-	else()
-		# System JPEG
-		find_package(JPEG)
-		if (JPEG_FOUND)
-			add_definitions(-DHAVE_JPEG)
-			message( STATUS "Using system JPEG library: ${JPEG_LIBRARIES}")
-			include_directories(${JPEG_INCLUDE_DIR})
-		else()
-			message( STATUS "JPEG library not found, MJPEG camera format won't work in V4L2 grabber.")
-		endif()
-	endif (TURBOJPEG_FOUND)
-
-	if (TURBOJPEG_FOUND OR JPEG_FOUND)
-		add_definitions(-DHAVE_JPEG_DECODER)
-	endif()
-endif()
 
 if(APPLE)
 	set(CMAKE_EXE_LINKER_FLAGS "-framework CoreGraphics")

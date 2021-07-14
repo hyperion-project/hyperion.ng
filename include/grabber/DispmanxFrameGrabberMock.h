@@ -16,6 +16,7 @@ typedef int DISPMANX_TRANSFORM_T;
 struct DISPMANX_MODEINFO_T {
 	int width;
 	int height;
+	uint32_t display_num;
 };
 
 struct VC_RECT_T {
@@ -34,6 +35,6 @@ DISPMANX_RESOURCE_HANDLE_T vc_dispmanx_resource_create(int,int width,int height,
 void vc_dispmanx_resource_delete(DISPMANX_RESOURCE_HANDLE_T resource);
 int  vc_dispmanx_resource_read_data(DISPMANX_RESOURCE_HANDLE_T vc_resource, VC_RECT_T *rectangle, void* capturePtr, unsigned capturePitch);
 void vc_dispmanx_rect_set(VC_RECT_T *rectangle, int left, int top, int width, int height);
-int vc_dispmanx_snapshot(int, DISPMANX_RESOURCE_HANDLE_T resource, int vc_flags);
+int vc_dispmanx_snapshot(int, DISPMANX_RESOURCE_HANDLE_T resource, DISPMANX_TRANSFORM_T vc_flags);
 
 #endif

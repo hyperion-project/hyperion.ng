@@ -5,15 +5,20 @@
 
 // Hyperion-Qt includes
 #include <grabber/QtGrabber.h>
-
-//Utils includes
-#include <utils/VideoMode.h>
+#include <hyperion/GrabberWrapper.h>
 
 class QtWrapper : public QObject
 {
 	Q_OBJECT
 public:
-	QtWrapper(int grabInterval, int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation, int display);
+
+	QtWrapper( int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ,
+			   int display=0,
+			   int pixelDecimation=GrabberWrapper::DEFAULT_PIXELDECIMATION,
+			   int cropLeft=0, int cropRight=0,
+			   int cropTop=0, int cropBottom=0
+			   );
+
 
 	const Image<ColorRgb> & getScreenshot();
 
@@ -23,6 +28,8 @@ public:
 	void start();
 
 	void stop();
+
+	bool displayInit();
 
 signals:
 	void sig_screenshot(const Image<ColorRgb> & screenshot);

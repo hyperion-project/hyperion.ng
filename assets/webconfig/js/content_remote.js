@@ -7,7 +7,7 @@ $(document).ready(function () {
   var oldEffects = [];
   var cpcolor = '#B500FF';
   var mappingList = window.serverSchema.properties.color.properties.imageToLedMappingType.enum;
-  var duration = 0;
+  var duration = ENDLESS;
   var rgb = { r: 255, g: 0, b: 0 };
   var lastImgData = "";
   var lastFileName = "";
@@ -201,7 +201,9 @@ $(document).ready(function () {
     });
 
     for (const comp of components) {
-      if (comp.name === "ALL")
+      if (comp.name === "ALL" || (comp.name === "FORWARDER" && window.currentHyperionInstance != 0) ||
+        (comp.name === "GRABBER" && !window.serverConfig.framegrabber.enable) ||
+        (comp.name === "V4L" && !window.serverConfig.grabberV4L2.enable))
         continue;
 
       const enable_style = (comp.enabled ? "checked" : "");

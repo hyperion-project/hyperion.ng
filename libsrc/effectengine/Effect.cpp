@@ -19,6 +19,7 @@ Effect::Effect(Hyperion *hyperion, int priority, int timeout, const QString &scr
 	, _hyperion(hyperion)
 	, _priority(priority)
 	, _timeout(timeout)
+	, _isEndless(timeout <= ENDLESS)
 	, _script(script)
 	, _name(name)
 	, _args(args)
@@ -51,7 +52,7 @@ Effect::~Effect()
 
 bool Effect::isInterruptionRequested()
 {
-	return _interupt || getRemaining() < ENDLESS;
+	return _interupt || (!_isEndless && getRemaining() <= 0);
 }
 
 int Effect::getRemaining() const
@@ -59,12 +60,11 @@ int Effect::getRemaining() const
 	// determine the timeout
 	int timeout = _timeout;
 
-	if (timeout > 0)
+	if (timeout >= 0)
 	{
 		timeout = static_cast<int>( _endTime - QDateTime::currentMSecsSinceEpoch());
-		return timeout;
 	}
-	return ENDLESS;
+	return timeout;
 }
 
 void Effect::setModuleParameters()

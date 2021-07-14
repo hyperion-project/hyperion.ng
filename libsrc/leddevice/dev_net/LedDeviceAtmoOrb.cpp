@@ -50,7 +50,7 @@ bool LedDeviceAtmoOrb::init(const QJsonObject &deviceConfig)
 	if ( LedDevice::init(deviceConfig) )
 	{
 
-		_multicastGroup     = deviceConfig["output"].toString(MULTICAST_GROUP_DEFAULT_ADDRESS);
+		_multicastGroup     = deviceConfig["host"].toString(MULTICAST_GROUP_DEFAULT_ADDRESS);
 		_multiCastGroupPort = static_cast<quint16>(deviceConfig["port"].toInt(MULTICAST_GROUP_DEFAULT_PORT));
 		_useOrbSmoothing    = deviceConfig["useOrbSmoothing"].toBool(false);
 		_skipSmoothingDiff  = deviceConfig["skipSmoothingDiff"].toInt(0);

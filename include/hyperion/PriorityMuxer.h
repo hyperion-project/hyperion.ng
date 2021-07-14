@@ -57,8 +57,11 @@ public:
 	//Foreground and Background priorities
 	const static int FG_PRIORITY;
 	const static int BG_PRIORITY;
+	const static int MANUAL_SELECTED_PRIORITY;
 	/// The lowest possible priority, which is used when no priority channels are active
 	const static int LOWEST_PRIORITY;
+	/// Timeout used to identify a non active priority
+	const static int TIMEOUT_NOT_ACTIVE_PRIO;
 
 	///
 	/// Constructs the PriorityMuxer for the given number of LEDs (used to switch to black when
@@ -84,7 +87,7 @@ public:
 	/// @param   update   True to update _currentPriority - INTERNAL usage.
 	/// @return           True if changed has been applied, false if the state is unchanged
 	///
-	bool setSourceAutoSelectEnabled(bool enabel, bool update = true);
+	bool setSourceAutoSelectEnabled(bool enable, bool update = true);
 
 	///
 	/// @brief Get the state of source auto selection

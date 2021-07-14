@@ -89,11 +89,31 @@ void SysTray::createTrayIcon()
 	_trayIconEfxMenu = new QMenu(_trayIconMenu);
 	_trayIconEfxMenu->setTitle(tr("Effects"));
 	_trayIconEfxMenu->setIcon(QPixmap(":/effects.svg"));
+
+	// custom effects
 	for (auto efx : efxs)
 	{
-		QAction *efxAction = new QAction(efx.name, this);
-		connect(efxAction, SIGNAL(triggered()), this, SLOT(setEffect()));
-		_trayIconEfxMenu->addAction(efxAction);
+		if (efx.file.mid(0, 1)  != ":")
+		{
+			QAction *efxAction = new QAction(efx.name, this);
+			connect(efxAction, SIGNAL(triggered()), this, SLOT(setEffect()));
+			_trayIconEfxMenu->addAction(efxAction);
+		}
+	}
+
+	// add seperator if custom effects exists
+	if (!_trayIconEfxMenu->isEmpty())
+		_trayIconEfxMenu->addSeparator();
+
+	// build in effects
+	for (auto efx : efxs)
+	{
+		if (efx.file.mid(0, 1)  == ":")
+		{
+			QAction *efxAction = new QAction(efx.name, this);
+			connect(efxAction, SIGNAL(triggered()), this, SLOT(setEffect()));
+			_trayIconEfxMenu->addAction(efxAction);
+		}
 	}
 
 #ifdef _WIN32
@@ -121,13 +141,13 @@ void SysTray::createTrayIcon()
 bool SysTray::getCurrentAutorunState()
 {
 	QSettings reg("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::NativeFormat);
-    if (reg.value("Hyperion", 0).toString() == qApp->applicationFilePath().replace('/', '\\'))
+	if (reg.value("Hyperion", 0).toString() == qApp->applicationFilePath().replace('/', '\\'))
 	{
 		autorunAction->setText(tr("&Disable autostart"));
-        return true;
+		return true;
 	}
 
-    autorunAction->setText(tr("&Enable autostart"));
+	autorunAction->setText(tr("&Enable autostart"));
 	return false;
 }
 #endif
@@ -147,7 +167,7 @@ void SysTray::setColor(const QColor & color)
 {
 	std::vector<ColorRgb> rgbColor{ ColorRgb{ (uint8_t)color.red(), (uint8_t)color.green(), (uint8_t)color.blue() } };
 
- 	_hyperion->setColor(1 ,rgbColor, 0);
+	_hyperion->setColor(PriorityMuxer::FG_PRIORITY,rgbColor, Effect::ENDLESS);
 }
 
 void SysTray::showColorDialog()

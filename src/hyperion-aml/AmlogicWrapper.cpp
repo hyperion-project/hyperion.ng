@@ -1,18 +1,27 @@
 
-// Hyperion-AmLogic includes
 #include "AmlogicWrapper.h"
 
 // Linux includes
 #include <unistd.h>
 
-AmlogicWrapper::AmlogicWrapper(unsigned grabWidth, unsigned grabHeight) :
-	_thread(this),
-	_grabber(grabWidth, grabHeight)
+AmlogicWrapper::AmlogicWrapper( int updateRate_Hz,
+								int pixelDecimation,
+								int cropLeft, int cropRight,
+								int cropTop, int cropBottom
+								) :
+	  _timer(this),
+	  _grabber()
 {
-	_thread.setObjectName("AmlogicWrapperThread");
+	_grabber.setFramerate(updateRate_Hz);
+	_grabber.setCropping(cropLeft, cropRight, cropTop, cropBottom);
+	_grabber.setPixelDecimation(pixelDecimation);
+
+	_timer.setTimerType(Qt::PreciseTimer);
+	_timer.setSingleShot(false);
+	_timer.setInterval(_grabber.getUpdateInterval());
 
 	// Connect capturing to the timeout signal of the timer
-	connect(&_thread, SIGNAL (started()), this, SLOT(capture()));
+	connect(&_timer, SIGNAL(timeout()), this, SLOT(capture()));
 }
 
 const Image<ColorRgb> & AmlogicWrapper::getScreenshot()
@@ -23,20 +32,27 @@ const Image<ColorRgb> & AmlogicWrapper::getScreenshot()
 
 void AmlogicWrapper::start()
 {
-	_thread.start();
+	_timer.start();
 }
 
 void AmlogicWrapper::stop()
 {
-	_thread.quit();
+	_timer.stop();
+}
+
+bool AmlogicWrapper::screenInit()
+{
+	return _grabber.setupScreen();
 }
 
 void AmlogicWrapper::capture()
 {
-	while (_thread.isRunning())
-	{
-		_grabber.grabFrame(_screenshot);
-		emit sig_screenshot(_screenshot);
-		usleep(1 * 1000);
-	}
+	_grabber.grabFrame(_screenshot);
+
+	emit sig_screenshot(_screenshot);
+}
+
+void AmlogicWrapper::setVideoMode(VideoMode mode)
+{
+	_grabber.setVideoMode(mode);
 }

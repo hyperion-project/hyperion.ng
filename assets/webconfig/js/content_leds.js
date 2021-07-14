@@ -701,6 +701,8 @@ $(document).ready(function () {
       var hwLedCountDefault = 1;
       var colorOrderDefault = "rgb";
 
+      $('#btn_test_controller').hide();
+
       switch (ledType) {
         case "cololight":
         case "wled":
@@ -769,11 +771,38 @@ $(document).ready(function () {
     });
 
     conf_editor.on('change', function () {
-      //Check, if device can be identified/tested and/or saved
+      // //Check, if device can be identified/tested and/or saved
       var canIdentify = false;
       var canSave = false;
 
       switch (ledType) {
+
+        case "atmoorb":
+        case "fadecandy":
+        case "tinkerforge":
+        case "tpm2net":
+        case "udpe131":
+        case "udpartnet":
+        case "udph801":
+        case "udpraw":
+          var host = conf_editor.getEditor("root.specificOptions.host").getValue();
+          if (host !== "") {
+            canSave = true;
+          }
+          break;
+
+        case "philipshue":
+          var host = conf_editor.getEditor("root.specificOptions.host").getValue();
+          var username = conf_editor.getEditor("root.specificOptions.username").getValue();
+          if (host !== "" && username != "") {
+            var useEntertainmentAPI = conf_editor.getEditor("root.specificOptions.useEntertainmentAPI").getValue();
+            var clientkey = conf_editor.getEditor("root.specificOptions.clientkey").getValue();
+            if (!useEntertainmentAPI || clientkey !== "") {
+              canSave = true;
+            }
+          }
+          break;
+
         case "cololight":
         case "wled":
           var hostList = conf_editor.getEditor("root.specificOptions.hostList").getValue();
@@ -797,48 +826,20 @@ $(document).ready(function () {
             }
           }
           break;
-
-        case "adalight":
-          var output = conf_editor.getEditor("root.specificOptions.output").getValue();
-          if (output !== "NONE" && output !== "SELECT" && output !== "") {
-            canIdentify = true;
-          }
-        case "atmo":
-        case "dmx":
-        case "karate":
-        case "sedu":
-        case "tpm2":
-        case "apa102":
-        case "apa104":
-        case "ws2801":
-        case "lpd6803":
-        case "lpd8806":
-        case "p9813":
-        case "sk6812spi":
-        case "sk6822spi":
-        case "sk9822":
-        case "ws2812spi":
-        case "piblaster":
-          var output = conf_editor.getEditor("root.specificOptions.output").getValue();
-          if (output !== "NONE" && output !== "SELECT" && output !== "") {
-            canSave = true;
-          }
-          break;
         default:
           canIdentify = false;
           canSave = true;
       }
 
-      if (canIdentify) {
-        $("#btn_test_controller").removeClass('hidden');
-        $('#btn_test_controller').attr('disabled', false);
-      }
-      else {
-        $('#btn_test_controller').attr('disabled', true);
-      }
-
-      var hardwareLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue();
-      if (hardwareLedCount < 1) {
+      if (!conf_editor.validate().length) {
+        if (canIdentify) {
+          $("#btn_test_controller").show();
+          $('#btn_test_controller').attr('disabled', false);
+        } else {
+          $('#btn_test_controller').hide();
+          $('#btn_test_controller').attr('disabled', true);
+        }
+      } else {
         canSave = false;
       }
 
@@ -886,9 +887,9 @@ $(document).ready(function () {
             conf_editor.getEditor(specOptPath + "host").setValue(val);
             break;
         }
-      }
 
-      showAllDeviceInputOptions("hostList", showOptions);
+        showAllDeviceInputOptions("hostList", showOptions);
+      }
     });
 
     conf_editor.watch('root.specificOptions.host', () => {
@@ -900,8 +901,10 @@ $(document).ready(function () {
       else {
         let params = {};
         switch (ledType) {
+
           case "cololight":
             params = { host: host };
+            getProperties_device(ledType, host, params);
             break;
 
           case "nanoleaf":
@@ -910,33 +913,70 @@ $(document).ready(function () {
               return;
             }
             params = { host: host, token: token };
+            getProperties_device(ledType, host, params);
             break;
 
           case "wled":
             params = { host: host, filter: "info" };
+            getProperties_device(ledType, host, params);
             break;
           default:
         }
-
-        getProperties_device(ledType, host, params);
       }
     });
 
     conf_editor.watch('root.specificOptions.output', () => {
       var output = conf_editor.getEditor("root.specificOptions.output").getValue();
       if (output === "NONE" || output === "SELECT" || output === "") {
+
+        $('#btn_submit_controller').attr('disabled', true);
+        $('#btn_test_controller').attr('disabled', true);
+        $('#btn_test_controller').hide();
+
         conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(1);
         showAllDeviceInputOptions("output", false);
       }
       else {
         showAllDeviceInputOptions("output", true);
         let params = {};
+        var canIdentify = false;
         switch (ledType) {
+          case "adalight":
+            canIdentify = true;
+            break;
           case "atmo":
           case "karate":
             params = { serialPort: output };
             getProperties_device(ledType, output, params);
             break;
+          case "dmx":
+          case "sedu":
+          case "tpm2":
+          case "apa102":
+          case "apa104":
+          case "ws2801":
+          case "lpd6803":
+          case "lpd8806":
+          case "p9813":
+          case "sk6812spi":
+          case "sk6822spi":
+          case "sk9822":
+          case "ws2812spi":
+          case "piblaster":
+          default:
+        }
+
+        if (!conf_editor.validate().length) {
+          if (canIdentify) {
+            $("#btn_test_controller").show();
+            $('#btn_test_controller').attr('disabled', false);
+          } else {
+            $('#btn_test_controller').hide();
+            $('#btn_test_controller').attr('disabled', true);
+          }
+          if (!window.readOnlyMode) {
+            $('#btn_submit_controller').attr('disabled', false);
+          }
         }
       }
     });
@@ -1229,6 +1269,8 @@ function saveLedConfig(genDefLayout = false) {
       break;
   }
 
+
+
   //Rewrite whole LED & Layout configuration, in case changes were done accross tabs and no default layout
   if (genDefLayout !== true) {
     result.ledConfig = getLedConfig();
@@ -1268,8 +1310,6 @@ var updateSelectList = function (ledType, discoveryInfo) {
   } else if ($.inArray(ledType, devRPiGPIO) != -1) {
     ledTypeGroup = "devRPiGPIO";
   }
-
-  var specOpt = conf_editor.getEditor('root.specificOptions'); // get specificOptions of the editor
 
   switch (ledTypeGroup) {
     case "devNET":
@@ -1434,11 +1474,14 @@ var updateSelectList = function (ledType, discoveryInfo) {
   }
 
   if (enumVals.length > 0) {
-    updateJsonEditorSelection(specOpt, key, addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, addSelect, addCustom);
+    updateJsonEditorSelection(conf_editor, 'root.specificOptions', key, addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, addSelect, addCustom);
   }
 };
 
 async function discover_device(ledType, params) {
+
+  $('#btn_submit_controller').attr('disabled', true);
+
   const result = await requestLedDeviceDiscovery(ledType, params);
 
   var discoveryResult;
@@ -1479,6 +1522,7 @@ async function getProperties_device(ledType, key, params) {
       }
       else {
         $('#btn_submit_controller').attr('disabled', true);
+        $('#btn_test_controller').attr('disabled', true);
       }
     }
   }
@@ -1544,8 +1588,7 @@ function updateElements(ledType, key) {
         if (ledProperties && ledProperties.ledCount) {
           if (ledProperties.ledCount.length > 0) {
             var configuredLedCount = window.serverConfig.device.hardwareLedCount;
-            var generalOpt = conf_editor.getEditor('root.generalOptions');
-            updateJsonEditorSelection(generalOpt, "hardwareLedCount", {}, ledProperties.ledCount, [], configuredLedCount);
+            updateJsonEditorSelection(conf_editor, 'root.generalOptions', "hardwareLedCount", {}, ledProperties.ledCount, [], configuredLedCount);
           }
         }
         break;
