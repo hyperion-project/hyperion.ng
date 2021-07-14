@@ -17,6 +17,9 @@ $(document).ready(function () {
 
   var activeComponent = "";
 
+  const image = new Image()
+  image.src = "img/hyperion/logo_negativ.png",
+
   /// add prototype for simple canvas clear() method
   CanvasRenderingContext2D.prototype.clear = function () {
     this.clearRect(0, 0, this.canvas.width, this.canvas.height)
@@ -163,6 +166,7 @@ $(document).ready(function () {
 
       ledsCanvasNodeCtx.fillStyle = (useColor) ? "rgba(" + colors[cPos] + "," + colors[cPos + 1] + "," + colors[cPos + 2] + ",0.75)" : "hsla(" + (idx * 360 / leds.length) + ",100%,50%,0.75)";
       ledsCanvasNodeCtx.fill(twoDPaths[idx]);
+      ledsCanvasNodeCtx.strokeStyle = '#323232';
       ledsCanvasNodeCtx.stroke(twoDPaths[idx]);
 
       if (toggleLedsNum) {
@@ -218,6 +222,12 @@ $(document).ready(function () {
     toggleLeds = !toggleLeds
     ledsCanvasNodeCtx.clear();
     toggleClass('#leds_toggle', "btn-success", "btn-danger");
+
+    if (!toggleLeds) {
+      $("#leds_toggle_num").show();
+    } else {
+      $("#leds_toggle_num").hide();
+    }
   });
 
   // ------------------------------------------------------------------
@@ -305,18 +315,14 @@ $(document).ready(function () {
     else {
       resetImage();
     }
+
   });
 
   function resetImage() {
     if (typeof imageCanvasNodeCtx !== "undefined") {
-      if (getStorage("darkMode", false) == "on") {
-        imageCanvasNodeCtx.clear();
-      } else {
-        imageCanvasNodeCtx.fillStyle = "rgb(225,225,225)"
-        imageCanvasNodeCtx.fillRect(0, 0, canvas_width, canvas_height);
-      }
 
-      var image = document.getElementById('ledsim_logo');
+      imageCanvasNodeCtx.fillStyle = "#1c1c1c"; //90% gray
+      imageCanvasNodeCtx.fillRect(0, 0, canvas_width, canvas_height);
       imageCanvasNodeCtx.drawImage(image, canvas_width / 2 - image.width / 2, canvas_height / 2 - image.height / 2, image.width, image.height);
     }
   }
