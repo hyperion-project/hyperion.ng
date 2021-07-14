@@ -1,9 +1,8 @@
 name: Hyperion CI Build
 on:
   push:
-    branches-ignore:
-      - 'gh-pages'
-      - 'docker-ci'
+    branches:
+      - '**'
     tags:
       - '*'
 

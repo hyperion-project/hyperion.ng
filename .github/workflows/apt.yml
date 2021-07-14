@@ -1,0 +1,124 @@
+name: Hyperion APT Build
+on:
+  push:
+    branches:
+      - '**'
+    tags:
+      - '*'
+
+jobs:
+  setup:
+    name: Setup APT build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set APT matrix
+        id: apt-ppa
+        run: |
+          APT=$(echo $(cat .github/workflows/apt.json) | jq --compact-output .)
+          echo "::set-output name=apt::$APT"
+    outputs:
+      apt-matrix: ${{ steps.apt-ppa.outputs.apt }}
+
+  build:
+    name: ${{ matrix.description }}
+    needs: [setup]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.setup.outputs.apt-matrix) }}
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Build package
+        shell: bash
+        run: |
+          tr -d '\n' < version > temp && mv temp version
+          mkdir -p "${GITHUB_WORKSPACE}/deploy"
+          docker run --rm \
+            -v "${GITHUB_WORKSPACE}/deploy:/deploy" \
+            -v "${GITHUB_WORKSPACE}:/source:rw" \
+            ghcr.io/hyperion-project/${{ matrix.architecture }}:$(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]') \
+            /bin/bash -c "cd /source && \
+            mkdir -p debian/source && echo '3.0 (quilt)' > debian/source/format && \
+            dch --create --distribution $(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]') --package 'hyperion' -v '$(cat version)~$(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]')' '${{ github.event.commits[0].message }}' && \
+            cp -fr LICENSE debian/copyright && \
+            sed 's/@BUILD_DEPENDS@/${{ matrix.build-depends }}/g; s/@DEPENDS@/${{ matrix.package-depends }}/g; s/@ARCHITECTURE@/${{ matrix.architecture }}/g' debian/control.in > debian/control && \
+            tar cf ../hyperion_2.0.0.orig.tar . && \
+            xz -9 ../hyperion_2.0.0.orig.tar && \
+            debuild --no-lintian -uc -us && \
+            cp ../hyperion_* /deploy"
+
+      - name: Upload package artifact
+        if: startsWith(github.event.ref, 'refs/tags')
+        uses: actions/upload-artifact@v2.2.4
+        with:
+          path: deploy
+          retention-days: 1
+
+  publish:
+    name: Publish APT packages
+    if: startsWith(github.event.ref, 'refs/tags')
+    needs: [setup, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v3.1.0
+        with:
+          gpg-private-key: ${{ secrets.APT_GPG }}
+
+      - name: Install reprepro
+        run: sudo apt -y install reprepro
+
+      - name: Make build folders, export public GPG key and copy distributions file
+        run: |
+          mkdir -p apt/{conf,dists,db}
+          gpg --armor --output apt/hyperion.pub.key --export 'admin@hyperion-project.org'
+          cp debian/distributions apt/conf/distributions
+
+      - name: Create initial structure/packages files and symbolic links
+        run: |
+          reprepro -Vb apt createsymlinks
+          reprepro -Vb apt export
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v2.0.10
+
+      - name: Include artifacts into the package source
+        run: |
+          for file in artifact/*.deb; do
+            if [ -f "$file" ]; then
+              dist=${file#*~}
+              dist=${dist%_*}
+              reprepro -Vb apt/ includedeb "$dist" "$file"
+            fi
+          done
+
+      - name: Upload packages to APT server
+        uses: SamKirkland/FTP-Deploy-Action@4.0.0
+        with:
+          server: apt.hyperion-project.org
+          username: ${{ secrets.APT_USER }}
+          password: ${{ secrets.APT_PASSWORD }}
+          local-dir: "./apt/"
+          server-dir: "./"
+
+  hyperbian:
+    name: Update HyperBian Release
+    if: startsWith(github.event.ref, 'refs/tags')
+    needs: [setup, build, publish]
+    runs-on: ubuntu-latest
+    steps:
+      # Dispatch event to build new HyperBian image
+      - name: Dispatch HyperBian build
+        uses: peter-evans/repository-dispatch@v1
+        if: ${{ github.repository_owner == 'hyperion-project'}}
+        with:
+          repository: hyperion-project/HyperBian
+          token: ${{ secrets.HYPERION_BOT_TOKEN }}
+          event-type: hyperion_push
