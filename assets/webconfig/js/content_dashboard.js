@@ -10,7 +10,7 @@ $(document).ready(function () {
     instances_html += '<a id="active_instance_dropdown" class="dropdown-toggle" data-toggle="dropdown" href="#" style="text-decoration:none;display:flex;align-items:center;">';
     instances_html += '<div id="active_instance_friendly_name"></div>';
     instances_html += '<div id="btn_hypinstanceswitch" style="white-space:nowrap;"><span class="mdi mdi-lightbulb-group mdi-24px" style="margin-right:0;margin-left:5px;"></span><span class="mdi mdi-menu-down mdi-24px"></span></div>';
-    instances_html += '</a><ul id="hyp_inst_listing" class="dropdown-menu dropdown-alerts" style="cursor:pointer;"></ul>'
+    instances_html += '</a><ul id="hyp_inst_listing" class="dropdown-menu dropdown-alerts" style="cursor:pointer;"></ul>';
     instances_html += '</div></div>';
 
     instances_html += '<div class="panel-body">';
@@ -114,7 +114,7 @@ $(document).ready(function () {
 
   var jsonPort = window.serverConfig.jsonServer.port;
   $('#dash_jsonPort').html(jsonPort);
-  var wsPorts = window.serverConfig.webConfig.port + ' | ' + window.serverConfig.webConfig.sslPort
+  var wsPorts = window.serverConfig.webConfig.port + ' | ' + window.serverConfig.webConfig.sslPort;
   $('#dash_wsPorts').html(wsPorts);
 
   $('#dash_currv').html(window.currentVersion);

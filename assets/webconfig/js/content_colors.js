@@ -22,7 +22,7 @@ $(document).ready(function () {
     //blackborder
     $('#conf_cont').append(createRow('conf_cont_blackborder'));
     $('#conf_cont_blackborder').append(createOptPanel('fa-photo', $.i18n("edt_conf_bb_heading_title"), 'editor_container_blackborder', 'btn_submit_blackborder'));
-    $('#conf_cont_blackborder').append(createHelpTable(window.schema.blackborderdetector.properties, $.i18n("edt_conf_bb_heading_title"), "blackborderHelpPanelId"))
+    $('#conf_cont_blackborder').append(createHelpTable(window.schema.blackborderdetector.properties, $.i18n("edt_conf_bb_heading_title"), "blackborderHelpPanelId"));
   }
   else {
     $('#conf_cont').addClass('row');
