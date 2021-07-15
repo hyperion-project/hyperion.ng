@@ -5,8 +5,6 @@
     "InfoDialog_changePassword_title": "Alterar a senha",
     "InfoDialog_iswitch_text": "Se você executar o Hyperion mais de uma vez em sua rede local, poderá alternar entre as configurações da web. Selecione a instância do Hyperion abaixo e mude!",
     "InfoDialog_iswitch_title": "Switcher Hyperion",
-    "InfoDialog_lang_text": "Se não gostar do resultado da detecção automática de idioma, você pode sobrescrevê-lo aqui.",
-    "InfoDialog_lang_title": "Configuração de idioma",
     "InfoDialog_nowrite_foottext": "O WebUI será desbloqueado automaticamente depois que você resolver o problema!",
     "InfoDialog_nowrite_text": "O Hyperion não pode gravar em seu arquivo de configuração carregado atualmente. Repare as permissões do arquivo para continuar.",
     "InfoDialog_nowrite_title": "erro de permissão de gravação!",
