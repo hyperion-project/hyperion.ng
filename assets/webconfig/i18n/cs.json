@@ -5,8 +5,6 @@
     "InfoDialog_changePassword_title": "Změnit heslo",
     "InfoDialog_iswitch_text": "Pokud spustíte program Hyperion více než jednou v místní síti, můžete přepínat mezi webovými konfiguracemi. Vyberte níže uvedenou instanci Hyperion a přepněte ji!",
     "InfoDialog_iswitch_title": "Přepínač Hyperion",
-    "InfoDialog_lang_text": "Pokud se vám výsledek automatické detekce jazyka nelíbí, můžete jej zde přepsat. \nIf you don't like the result of the automatic language detection you can overwrite it here.\n",
-    "InfoDialog_lang_title": "Nastavení jazyka",
     "InfoDialog_nowrite_foottext": "Po vyřešení problému bude WebUI automaticky odemknut!",
     "InfoDialog_nowrite_text": "Hyperion nemůže zapisovat do aktuálně načteného konfiguračního souboru. Opravte oprávnění souboru, abyste mohli pokračovat.",
     "InfoDialog_nowrite_title": "Chyba při zápisu!",
