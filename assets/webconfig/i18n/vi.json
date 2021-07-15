@@ -5,8 +5,6 @@
     "InfoDialog_changePassword_title": "Đổi mật khẩu",
     "InfoDialog_iswitch_text": "Nếu bạn chạy nhiều hơn một Hyperion Instance trên mạng cục bộ của mình, bạn có thể chuyển đổi giữa các cấu hình web. Chọn đối tượng Hyperion muốn điều khiển bên dưới và chuyển đổi!",
     "InfoDialog_iswitch_title": "Bộ chuyển đổi Hyperion",
-    "InfoDialog_lang_text": "Nếu bạn không thích kết quả của việc phát hiện ngôn ngữ tự động, bạn có thể ghi đè lên đây.",
-    "InfoDialog_lang_title": "Cài đặt ngôn ngữ",
     "InfoDialog_nowrite_foottext": "WebUI sẽ được mở khóa tự động sau khi bạn giải quyết vấn đề!",
     "InfoDialog_nowrite_text": "Hyperion không thể ghi vào tập tin cấu hình được tải hiện tại của bạn. Vui lòng sửa các quyền của tập tin để tiến hành.",
     "InfoDialog_nowrite_title": "viết lỗi cho phép!",

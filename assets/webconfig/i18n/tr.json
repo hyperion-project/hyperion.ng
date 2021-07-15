@@ -1,8 +1,6 @@
 {
     "InfoDialog_changePassword_success": "Parola başarıyla değiştirildi!",
     "InfoDialog_changePassword_title": "Parolayı Değiştir",
-    "InfoDialog_lang_text": "Eğer otomatık dil seçimini beğenmediyseniz buradan değiştirebilirsiniz.",
-    "InfoDialog_lang_title": "Dil ayarları",
     "about_build": "Yapılandırma",
     "about_builddate": "Yapılandırma tarıhı",
     "about_contribute": "Hyperion'u bizimle birlikte geliştirin!",

@@ -3,8 +3,6 @@
     "InfoDialog_access_title": "Niveau des paramètres",
     "InfoDialog_iswitch_text": "Si vous faites fonctionner plus d'une instance Hyperion sur votre réseau local, vous pouvez basculer entre les différentes configurations. Sélectionnez l'instance d'Hyperion que vous souhaitez contrôler ci-dessous !",
     "InfoDialog_iswitch_title": "Commutateur Hyperion",
-    "InfoDialog_lang_text": "Si la détection automatique de la langue ne correspond pas à celle attendue, vous pouvez la modifier ici.",
-    "InfoDialog_lang_title": "Paramètres de langue",
     "InfoDialog_nowrite_foottext": "Le Web UI sera débloqué automatiquement après que vous ayez résolu les problèmes.",
     "InfoDialog_nowrite_text": "Hyperion ne peut pas écrire votre fichier de configuration actuellement chargé. Réparez les permissions sur le fichier afin de poursuivre.",
     "InfoDialog_nowrite_title": "Erreur de droit d'écriture !",
