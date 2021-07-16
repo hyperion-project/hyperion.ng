@@ -7,17 +7,18 @@ function changePassword(){
 
   // fill default pw if default is set
   if(window.defaultPasswordIsSet)
-    $('#oldPw').val('hyperion')
+    $('#current-password').val('hyperion')
 
   $('#id_btn_ok').off().on('click',function() {
-    var oldPw = $('#oldPw').val();
-    var newPw = $('#newPw').val();
+    var oldPw = $('#current-password').val();
+    var newPw = $('#new-password').val();
 
-    requestChangePassword(oldPw, newPw)
+    requestChangePassword(oldPw, newPw);
+    history.pushState({}, "New password");
   });
 
-  $('#newPw, #oldPw').off().on('input',function(e) {
-    ($('#oldPw').val().length >= 8 && $('#newPw').val().length >= 8) && !window.readOnlyMode ? $('#id_btn_ok').attr('disabled', false) : $('#id_btn_ok').attr('disabled', true);
+  $('#new-password, #current-password').off().on('input',function(e) {
+    ($('#current-password').val().length >= 8 && $('#new-password').val().length >= 8) && !window.readOnlyMode ? $('#id_btn_ok').attr('disabled', false) : $('#id_btn_ok').attr('disabled', true);
   });
 }
 
