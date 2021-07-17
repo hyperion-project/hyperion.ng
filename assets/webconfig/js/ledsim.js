@@ -17,8 +17,8 @@ $(document).ready(function () {
 
   var activeComponent = "";
 
-  const image = new Image()
-  image.src = "img/hyperion/logo_negativ.png",
+  const image = new Image();
+  image.src = "img/hyperion/logo_negativ.png";
 
   /// add prototype for simple canvas clear() method
   CanvasRenderingContext2D.prototype.clear = function () {

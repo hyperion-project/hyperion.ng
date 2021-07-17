@@ -884,6 +884,8 @@ $(document).ready(function () {
             break;
           default:
             conf_editor.getEditor(specOptPath + "host").disable();
+            //Reset host value, to trigger getProperties via host value
+            conf_editor.getEditor(specOptPath + "host").setValue("");
             conf_editor.getEditor(specOptPath + "host").setValue(val);
             break;
         }
@@ -1199,7 +1201,8 @@ function saveLedConfig(genDefLayout = false) {
       result.smoothing = { enable: false };
 
       if (genDefLayout === true) {
-        if (devicesProperties[ledType][host].modelType === "Strip") {
+
+        if (!jQuery.isEmptyObject(devicesProperties) && devicesProperties[ledType][host].modelType === "Strip") {
           ledConfig = {
             "classic": {
               "top": hardwareLedCount / 2,
@@ -1269,8 +1272,6 @@ function saveLedConfig(genDefLayout = false) {
       break;
   }
 
-
-
   //Rewrite whole LED & Layout configuration, in case changes were done accross tabs and no default layout
   if (genDefLayout !== true) {
     result.ledConfig = getLedConfig();
@@ -1283,7 +1284,6 @@ function saveLedConfig(genDefLayout = false) {
 
 // build dynamic enum
 var updateSelectList = function (ledType, discoveryInfo) {
-
   // Only update, if ledType is equal of selected controller type and discovery info exists
   if (ledType !== $("#leddevices").val() || !discoveryInfo.devices) {
     return;
@@ -1369,19 +1369,18 @@ var updateSelectList = function (ledType, discoveryInfo) {
           else {
             enumTitelVals.push(host);
           }
+        }
 
-          addCustom = true;
-
-          // Select configured device
-          var configuredDeviceType = window.serverConfig.device.type;
-          var configuredHost = window.serverConfig.device.hostList;
-          if (ledType === configuredDeviceType && $.inArray(configuredHost, enumVals) != -1) {
-            enumDefaultVal = configuredHost;
-          }
-          else {
-            addSelect = true;
-            addCustom = true;
-          }
+        //Always allow to add custom configuration
+        addCustom = true;
+        // Select configured device
+        var configuredDeviceType = window.serverConfig.device.type;
+        var configuredHost = window.serverConfig.device.hostList;
+        if (ledType === configuredDeviceType && $.inArray(configuredHost, enumVals) != -1) {
+          enumDefaultVal = configuredHost;
+        }
+        else {
+          addSelect = true;
         }
       }
       break;

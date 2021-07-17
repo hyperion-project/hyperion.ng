@@ -267,8 +267,17 @@ QJsonObject DirectXGrabber::discover(const QJsonObject& params)
 
 				in["formats"] = formats;
 				video_inputs.append(in);
+
+
 			}
 			inputsDiscovered["video_inputs"] = video_inputs;
+
+			QJsonObject defaults, video_inputs_default, resolution_default;
+			resolution_default["fps"] = _fps;
+			video_inputs_default["resolution"] = resolution_default;
+			video_inputs_default["inputIdx"] = 0;
+			defaults["video_input"] = video_inputs_default;
+			inputsDiscovered["default"] = defaults;
 		}
 		else
 		{

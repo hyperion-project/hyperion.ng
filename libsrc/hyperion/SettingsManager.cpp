@@ -424,10 +424,18 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 				if (newGrabberV4L2Config.contains("encoding_format"))
 				{
 					newGrabberV4L2Config.remove("encoding_format");
-					config["grabberV4L2"] = newGrabberV4L2Config;
+					newGrabberV4L2Config["grabberV4L2"] = newGrabberV4L2Config;
 					migrated = true;
-					Debug(_log, "GrabberV4L2 records migrated");
 				}
+
+				//Add new element enable
+				if (!newGrabberV4L2Config.contains("enable"))
+				{
+					newGrabberV4L2Config["enable"] = false;
+					migrated = true;
+				}
+				config["grabberV4L2"] = newGrabberV4L2Config;
+				Debug(_log, "GrabberV4L2 records migrated");
 			}
 
 			if (config.contains("framegrabber"))
@@ -438,15 +446,30 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 				//Rename element type -> device
 				if (newFramegrabberConfig.contains("type"))
 				{
-					newFramegrabberConfig["device"] = newFramegrabberConfig["type"];
+					newFramegrabberConfig["device"] = "auto"; //newFramegrabberConfig["type"].toString();
 					newFramegrabberConfig.remove("type");
 					migrated = true;
 				}
 				//Rename element frequency_Hz -> fps
 				if (newFramegrabberConfig.contains("frequency_Hz"))
 				{
-					newFramegrabberConfig["fps"] = newFramegrabberConfig["frequency_Hz"];
+					newFramegrabberConfig["fps"] = newFramegrabberConfig["frequency_Hz"].toInt(25);
 					newFramegrabberConfig.remove("frequency_Hz");
+					migrated = true;
+				}
+
+				//Rename element display -> input
+				if (newFramegrabberConfig.contains("display"))
+				{
+					newFramegrabberConfig["input"] = newFramegrabberConfig["display"];
+					newFramegrabberConfig.remove("display");
+					migrated = true;
+				}
+
+				//Add new element enable
+				if (!newFramegrabberConfig.contains("enable"))
+				{
+					newFramegrabberConfig["enable"] = false;
 					migrated = true;
 				}
 

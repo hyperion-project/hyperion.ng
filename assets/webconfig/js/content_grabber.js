@@ -205,7 +205,7 @@ $(document).ready(function () {
     if (enumVals.length > 0) {
       if (deviceSelected === configuredDevice) {
         var configuredResolutionText = window.serverConfig.framegrabber.width + "x" + window.serverConfig.framegrabber.height;
-        var idx = $.inArray(configuredResolutionText, enumTitelVals)
+        var idx = $.inArray(configuredResolutionText, enumTitelVals);
         if (idx != -1) {
           enumDefaultVal = idx.toString();
         }
@@ -266,6 +266,10 @@ $(document).ready(function () {
         if ($.inArray(configuredFps, enumVals) != -1) {
           enumDefaultVal = configuredFps;
         }
+      } else if (deviceProperties.hasOwnProperty('default') && !jQuery.isEmptyObject(deviceProperties.default.video_input)) {
+          if (deviceProperties.default.video_input.resolution.fps) {
+            enumDefaultVal = deviceProperties.default.video_input.resolution.fps;
+          }
       }
       updateJsonEditorSelection(conf_editor_screen, 'root.framegrabber',
         'framerates', addSchemaElements, enumVals, [], enumDefaultVal, false);
@@ -413,7 +417,7 @@ $(document).ready(function () {
             contrast: { current: window.serverConfig.grabberV4L2.hardware_contrast },
             saturation: { current: window.serverConfig.grabberV4L2.hardware_saturation },
             hue: { current: window.serverConfig.grabberV4L2.hardware_hue }
-          }
+          };
           deviceProperties.properties = properties;
         }
       }
@@ -551,7 +555,7 @@ $(document).ready(function () {
     if (enumVals.length > 0) {
       if (deviceSelected === configuredDevice) {
         var configuredResolutionText = window.serverConfig.grabberV4L2.width + "x" + window.serverConfig.grabberV4L2.height;
-        var idx = $.inArray(configuredResolutionText, enumTitelVals)
+        var idx = $.inArray(configuredResolutionText, enumTitelVals);
         if (idx != -1) {
           enumDefaultVal = idx.toString();
         }
@@ -719,7 +723,7 @@ $(document).ready(function () {
       updateJsonEditorSelection(conf_editor_screen, 'root.framegrabber',
         'available_devices', {}, enumVals, enumTitelVals, enumDefaultVal, addSelect, false);
     }
-  }
+  };
 
   // build dynamic video input enum
   var updateVideoSourcesList = function (type, discoveryInfo) {
@@ -763,7 +767,7 @@ $(document).ready(function () {
     else {
       discoveryResult = {
         "video_sources": []
-      }
+      };
     }
 
     switch (type) {

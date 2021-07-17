@@ -288,11 +288,14 @@ function showInfoDialog(type, header, message) {
   else if (type == "changePassword") {
     $('#id_body_rename').html('<i style="margin-bottom:20px" class="fa fa-key modal-icon-edit"><br>');
     $('#id_body_rename').append('<h4>' + header + '</h4><br>');
-    $('#id_body_rename').append('<div class="row"><div class="col-md-3"><p class="text-left">' + $.i18n('infoDialog_password_current_text') + 
-    '</p></div><div class="col-md-8"><input class="form-control" id="oldPw" placeholder="Old" type="password"></div></div><br>');
-    $('#id_body_rename').append('<div class="row"><div class="col-md-3"><p class="text-left">' + $.i18n('infoDialog_password_new_text')+ 
-    '</p></div><div class="col-md-8"><input class="form-control" id="newPw" placeholder="New" type="password"></div></div>');
-    $('#id_footer_rename').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-dismiss-modal="#modal_dialog_rename" disabled><i class="fa fa-fw fa-save"></ul>' +    $.i18n('general_btn_ok') + '</button>');
+    $('#id_body_rename').append('<div class="row"><div class="col-md-4"><p class="text-left">' + $.i18n('infoDialog_username_text') +
+      '</p></div><div class="col-md-8"><input class="form-control" id="username" type="text" value="Hyperion" disabled></div></div><br>');
+    $('#id_body_rename').append('<div class="row"><div class="col-md-4"><p class="text-left">' + $.i18n('infoDialog_password_current_text') + 
+    '</p></div><div class="col-md-8"><input class="form-control" id="current-password" placeholder="Old" type="password" autocomplete="current-password"></div></div><br>');
+    $('#id_body_rename').append('<div class="row"><div class="col-md-4"><p class="text-left">' + $.i18n('infoDialog_password_new_text')+ 
+      '</p></div><div class="col-md-8"><input class="form-control" id="new-password" placeholder="New" type="password" autocomplete="new-password"></div></div>');
+    $('#id_body_rename').append('<div class="bs-callout bs-callout-info"><span>' + $.i18n('infoDialog_password_minimum_length') + '</span></div>');
+    $('#id_footer_rename').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-dismiss-modal="#modal_dialog_rename" disabled><i class="fa fa-fw fa-save"></i>' + $.i18n('general_btn_ok') + '</button></div>');
     $('#id_footer_rename').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
   }
   else if (type == "checklist") {
