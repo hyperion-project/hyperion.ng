@@ -32,7 +32,7 @@ Details about the installation can be found in the [installation.md](https://git
 - Linux V4L2 Grabber now supports the following formats: NV12, YUV420
 - Image flipping ability in ImageResampler/Turbo-JPEG
 - UI: Simplified screens for non-expert usage, do only show elements relevant
-- Discover Grabbers available (incl. their capabilities for selection), not supported grabbers are not presented. Note: Screen capturing on Wayland is not supported (given the Wayland security architecture)
+- Discover available Grabbers (incl. their capabilities for selection), not supported grabbers are not presented. Note: Screen capturing on Wayland is not supported (given the Wayland security architecture)
 - USB Grabber: New ability to configure hardware controls (brightness, contrast, saturation, hue), as well as populating defaults
 - Configuration item ranges are automatically adopted based on grabber capabilities,
 - Grabbers can only be saved with a valid configuration
@@ -91,7 +91,7 @@ Details about the installation can be found in the [installation.md](https://git
 - Fix/no signal detection (#1087)
 
 - Fix that global settings were not correctly reflected across instances after updates in other non default instance (#1131,#1186,#1188)
-- Fix UI: Handle error scenario properly, when last last instance number used does not exist any longer.
+- Fix UI: Handle error scenario properly, when last instance number used does not exist any longer.
 - UI Allow to have password handled by Password-Manager (#1263)
 
 - Fixed effect freezing during startup
