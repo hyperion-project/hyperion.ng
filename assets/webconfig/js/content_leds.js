@@ -1284,7 +1284,6 @@ function saveLedConfig(genDefLayout = false) {
 
 // build dynamic enum
 var updateSelectList = function (ledType, discoveryInfo) {
-
   // Only update, if ledType is equal of selected controller type and discovery info exists
   if (ledType !== $("#leddevices").val() || !discoveryInfo.devices) {
     return;
@@ -1370,19 +1369,18 @@ var updateSelectList = function (ledType, discoveryInfo) {
           else {
             enumTitelVals.push(host);
           }
+        }
 
-          addCustom = true;
-
-          // Select configured device
-          var configuredDeviceType = window.serverConfig.device.type;
-          var configuredHost = window.serverConfig.device.hostList;
-          if (ledType === configuredDeviceType && $.inArray(configuredHost, enumVals) != -1) {
-            enumDefaultVal = configuredHost;
-          }
-          else {
-            addSelect = true;
-            addCustom = true;
-          }
+        //Always allow to add custom configuration
+        addCustom = true;
+        // Select configured device
+        var configuredDeviceType = window.serverConfig.device.type;
+        var configuredHost = window.serverConfig.device.hostList;
+        if (ledType === configuredDeviceType && $.inArray(configuredHost, enumVals) != -1) {
+          enumDefaultVal = configuredHost;
+        }
+        else {
+          addSelect = true;
         }
       }
       break;
