@@ -446,7 +446,7 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 				//Rename element type -> device
 				if (newFramegrabberConfig.contains("type"))
 				{
-					newFramegrabberConfig["device"] = "auto"; //newFramegrabberConfig["type"].toString();
+					newFramegrabberConfig["device"] = newFramegrabberConfig["type"].toString();
 					newFramegrabberConfig.remove("type");
 					migrated = true;
 				}

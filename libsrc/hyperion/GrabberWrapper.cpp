@@ -178,6 +178,9 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 	{
 		// extract settings
 		const QJsonObject& obj = config.object();
+		
+		// save current state
+		bool isEnabled = getSysGrabberState();
 
 		// set global grabber state
 		setSysGrabberState(obj["enable"].toBool(false));
@@ -203,6 +206,12 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 			_ggrabber->setFramerate(obj["fps"].toInt(DEFAULT_RATE_HZ));
 			// eval new update time
 			updateTimer(_ggrabber->getUpdateInterval());
+			
+			// start if current state is not true
+			if (!isEnabled)
+			{
+				start();
+			}
 		}
 		else
 		{
