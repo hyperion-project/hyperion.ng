@@ -4,7 +4,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.0.0-alpha.9...HEAD)
+## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.0.0-alpha.10...HEAD)
+
+### Breaking
+
+### Added
+
+### Changed
+
+### Fixed
+
+### Removed
+
+## [2.0.0-alpha.10](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.10) - 2021-07-17
 
 The focus of this release is on user experience.
 We tried as much as possible supporting you in getting valid setup done, as well as providing enough room for expert users to tweak configurations here and there.
@@ -198,8 +210,6 @@ Details about the installation can be found in the [installation.md](https://git
 - Fix OSX build (#952)
 - AtmoOrb Fix (#988)
 - Return TAN to API requests whenever possible (#1002)
-
-### Removed
 
 ## [2.0.0-alpha.7](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.7) - 2020-07-23
 ### Added
