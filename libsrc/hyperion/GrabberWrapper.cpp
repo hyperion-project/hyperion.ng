@@ -10,7 +10,7 @@
 #include <QTimer>
 
 GrabberWrapper* GrabberWrapper::instance = nullptr;
-const int GrabberWrapper::DEFAULT_RATE_HZ = 10;
+const int GrabberWrapper::DEFAULT_RATE_HZ = 25;
 const int GrabberWrapper::DEFAULT_MIN_GRAB_RATE_HZ = 1;
 const int GrabberWrapper::DEFAULT_MAX_GRAB_RATE_HZ = 30;
 const int GrabberWrapper::DEFAULT_PIXELDECIMATION = 8;

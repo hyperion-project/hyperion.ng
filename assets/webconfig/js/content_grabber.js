@@ -266,6 +266,10 @@ $(document).ready(function () {
         if ($.inArray(configuredFps, enumVals) != -1) {
           enumDefaultVal = configuredFps;
         }
+      } else if (deviceProperties.hasOwnProperty('default') && !jQuery.isEmptyObject(deviceProperties.default.video_input)) {
+          if (deviceProperties.default.video_input.resolution.fps) {
+            enumDefaultVal = deviceProperties.default.video_input.resolution.fps;
+          }
       }
       updateJsonEditorSelection(conf_editor_screen, 'root.framegrabber',
         'framerates', addSchemaElements, enumVals, [], enumDefaultVal, false);
