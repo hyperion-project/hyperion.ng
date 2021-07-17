@@ -884,6 +884,8 @@ $(document).ready(function () {
             break;
           default:
             conf_editor.getEditor(specOptPath + "host").disable();
+            //Reset host value, to trigger getProperties via host value
+            conf_editor.getEditor(specOptPath + "host").setValue("");
             conf_editor.getEditor(specOptPath + "host").setValue(val);
             break;
         }
@@ -1199,7 +1201,8 @@ function saveLedConfig(genDefLayout = false) {
       result.smoothing = { enable: false };
 
       if (genDefLayout === true) {
-        if (devicesProperties[ledType][host].modelType === "Strip") {
+
+        if (!jQuery.isEmptyObject(devicesProperties) && devicesProperties[ledType][host].modelType === "Strip") {
           ledConfig = {
             "classic": {
               "top": hardwareLedCount / 2,
@@ -1268,8 +1271,6 @@ function saveLedConfig(genDefLayout = false) {
       }
       break;
   }
-
-
 
   //Rewrite whole LED & Layout configuration, in case changes were done accross tabs and no default layout
   if (genDefLayout !== true) {
