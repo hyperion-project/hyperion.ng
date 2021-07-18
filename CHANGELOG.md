@@ -27,6 +27,9 @@ Of course, the release brings new features (e.g. USB Capture on Windows), as wel
 
 Note: 
 
+- **IMPORTANT:** Due to the rework of the grabbers, both screen- and video grabbers are disabled after the upgrade to the new version.
+Please, re-enable the grabber of choice via the UI, validate the configuration and save the setup. The grabber should the restart.
+
 - Hyperion packages can now be installed under Ubuntu (x64) and Debian (amd64/armhf) (incl. Raspberry Pi OS) via our own APT server. 
 Details about the installation can be found in the [installation.md](https://github.com/hyperion-project/hyperion.ng/blob/master/Installation.md) and at [apt.hyperion-project.org](apt.hyperion-project.org).
 - Find here more details on [supported platforms and configuration sets](https://github.com/hyperion-project/hyperion.ng/blob/master/doc/development/SupportedPlatforms.md)
