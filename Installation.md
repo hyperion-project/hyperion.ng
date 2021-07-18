@@ -19,7 +19,7 @@ wget -qO- https://apt.hyperion-project.org/hyperion.pub.key | sudo apt-key add -
 
 2. Add Hyperion-Project to your APT sources:
 ```bash
-echo "deb https://apt.hyperion-project.org/ stable main" | sudo tee /etc/apt/sources.list.d/hyperion.list
+echo "deb https://apt.hyperion-project.org/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hyperion.list
 ```
 
 3. Update your local package index and install Hyperion:
