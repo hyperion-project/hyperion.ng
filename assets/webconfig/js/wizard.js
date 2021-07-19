@@ -696,24 +696,27 @@ function startWizardPhilipsHue(e) {
 function checkHueBridge(cb, hueUser) {
   var usr = (typeof hueUser != "undefined") ? hueUser : 'config';
   if (usr == 'config') $('#wiz_hue_discovered').html("");
-  $.ajax({
-    url: 'http://' + hueIPs[hueIPsinc].internalipaddress + '/api/' + usr,
-    type: "GET",
-    dataType: "json",
-    success: function (json) {
-      if (json.config) {
-        cb(true, usr);
-      } else if (json.name && json.bridgeid && json.modelid) {
-        $('#wiz_hue_discovered').html("Bridge: " + json.name + ", Modelid: " + json.modelid + ", API-Version: " + json.apiversion);
-        cb(true);
-      } else {
-        cb(false);
-      }
-    },
-    timeout: 2500
-  }).fail(function () {
-    cb(false);
-  });
+
+  if (hueIPs[hueIPsinc]) {
+    $.ajax({
+      url: 'http://' + hueIPs[hueIPsinc].internalipaddress + '/api/' + usr,
+      type: "GET",
+      dataType: "json",
+      success: function (json) {
+        if (json.config) {
+          cb(true, usr);
+        } else if (json.name && json.bridgeid && json.modelid) {
+          $('#wiz_hue_discovered').html("Bridge: " + json.name + ", Modelid: " + json.modelid + ", API-Version: " + json.apiversion);
+          cb(true);
+        } else {
+          cb(false);
+        }
+      },
+      timeout: 2500
+    }).fail(function () {
+      cb(false);
+    });
+  }
 }
 
 function checkBridgeResult(reply, usr) {
@@ -788,25 +791,41 @@ function useGroupId(id) {
 }
 
 async function discover_hue_bridges() {
+  $('#wiz_hue_ipstate').html($.i18n('edt_dev_spec_devices_discovery_inprogress'));
+  $('#wiz_hue_discovered').html("")
   const res = await requestLedDeviceDiscovery('philipshue');
 
   // TODO: error case unhandled
   // res can be: false (timeout) or res.error (not found)
   if (res && !res.error) {
     const r = res.info;
-
+    
     // Process devices returned by discovery
-    if (r.devices.length == 0)
+    if (r.devices.length == 0) {
       $('#wiz_hue_ipstate').html($.i18n('wiz_hue_failure_ip'));
+      $('#wiz_hue_discovered').html("")
+    }
     else {
       for (const device of r.devices) {
-        console.log("Device:", device);
+        //console.log("Device:", device);
+        if (device && device.ip && device.port) {
 
-        var ip = device.hostname + ":" + device.port;
-        console.log("Host:", ip);
+          var ip;
+          if (device.hostname && device.domain) {
+            ip = device.hostname + "." + device.domain + ":" + device.port;
+          } else {
+            ip = device.ip + ":" + device.port;
+          }
 
-        hueIPs.push({ internalipaddress: ip });
+          if (ip) {
+
+            if (!hueIPs.some(item => item.internalipaddress === ip)) {
+              hueIPs.push({ internalipaddress: ip });
+            }
+          }
+        }
       }
+
       var usr = $('#user').val();
       if (usr != "") {
         checkHueBridge(checkUserResult, usr);
@@ -884,12 +903,12 @@ function beginWizardHue() {
     }
   }
   //check if ip is empty/reachable/search for bridge
-  if (eV("output") == "") {
+  if (eV("host") == "") {
     //getHueIPs();
     discover_hue_bridges();
   }
   else {
-    var ip = eV("output");
+    var ip = eV("host");
     $('#ip').val(ip);
     hueIPs.unshift({ internalipaddress: ip });
     if (usr != "") {
@@ -954,7 +973,7 @@ function beginWizardHue() {
 
     //Start with a clean configuration
     var d = {};
-    d.output = $('#ip').val();
+    d.host = $('#ip').val();
     d.username = $('#user').val();
     d.type = 'philipshue';
     d.colorOrder = 'rgb';
@@ -1534,7 +1553,7 @@ function beginWizardAtmoOrb() {
     configuredLights = configruedOrbIds.split(",").map(Number);
   }
 
-  var multiCastGroup = conf_editor.getEditor("root.specificOptions.output").getValue();
+  var multiCastGroup = conf_editor.getEditor("root.specificOptions.host").getValue();
   var multiCastPort = parseInt(conf_editor.getEditor("root.specificOptions.port").getValue());
 
   discover_atmoorb_lights(multiCastGroup, multiCastPort);
@@ -1576,7 +1595,7 @@ function beginWizardAtmoOrb() {
     d.orbIds = finalLights.toString();
     d.useOrbSmoothing = (eV("useOrbSmoothing") == true);
 
-    d.output = conf_editor.getEditor("root.specificOptions.output").getValue();
+    d.host = conf_editor.getEditor("root.specificOptions.host").getValue();
     d.port = parseInt(conf_editor.getEditor("root.specificOptions.port").getValue());
     d.latchTime = parseInt(conf_editor.getEditor("root.specificOptions.latchTime").getValue());;
 
