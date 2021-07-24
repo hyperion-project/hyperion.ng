@@ -1541,7 +1541,9 @@ void JsonAPI::handleInputSourceCommand(const QJsonObject& message, const QString
 					delete xcbGrabber;
 					#endif
 
-					#ifdef ENABLE_FB
+					//Ignore FB for Amlogic, as it is embedded in the Amlogic grabber itself
+					#if defined(ENABLE_FB) && !defined(ENABLE_AMLOGIC)
+
 					FramebufferFrameGrabber* fbGrabber = new FramebufferFrameGrabber();
 					device = fbGrabber->discover(params);
 					if (!device.isEmpty() )
