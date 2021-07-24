@@ -244,7 +244,7 @@ QJsonObject AmlogicGrabber::discover(const QJsonObject& params)
 			int fbIdx = _fbGrabber.getPath().rightRef(1).toInt();
 
 			DebugIf(verbose, _log, "FB device [%s] found with resolution: %dx%d", QSTRING_CSTR(_fbGrabber.getPath()), screenSize.width(), screenSize.height());
-			QJsonArray fps = { 1, 5, 10, 15, 20, 25, 30, 40, 50, 60 };
+			QJsonArray fps = { 1, 5, 10, 15, 20, 25, 30};
 
 			QJsonObject in;
 
