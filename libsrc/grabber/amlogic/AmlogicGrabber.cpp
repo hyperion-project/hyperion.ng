@@ -31,8 +31,6 @@ const char DEFAULT_FB_DEVICE[] = "/dev/fb0";
 const char DEFAULT_VIDEO_DEVICE[] = "/dev/amvideo";
 const char DEFAULT_CAPTURE_DEVICE[] = "/dev/amvideocap0";
 
-const int AMVIDEOCAP_WAIT_MAX_MS = 50;
-
 } //End of constants
 
 AmlogicGrabber::AmlogicGrabber()
@@ -44,7 +42,6 @@ AmlogicGrabber::AmlogicGrabber()
 	  , _grabbingModeNotification(0)
 {
 	_image_ptr = _image_bgr.memptr();
-
 	_useImageResampler = true;
 }
 
@@ -92,7 +89,6 @@ bool AmlogicGrabber::isVideoPlaying()
 	bool rc = false;
 	if(QFile::exists(DEFAULT_VIDEO_DEVICE))
 	{
-
 		int videoDisabled = 1;
 		if (!openDevice(_videoDev, DEFAULT_VIDEO_DEVICE))
 		{
@@ -148,8 +144,6 @@ int AmlogicGrabber::grabFrame(Image<ColorRgb> & image)
 				_lastError = 0;
 			}
 			rc = _fbGrabber.grabFrame(image);
-
-			//usleep(50 * 1000);
 		}
 	}
 	return rc;
@@ -173,10 +167,9 @@ int AmlogicGrabber::grabFrame_amvideocap(Image<ColorRgb> & image)
 
 	long r1 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_WIDTH, _width);
 	long r2 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_HEIGHT, _height);
-	long r3 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_AT_FLAGS, CAP_FLAG_AT_END);
-	long r4 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_WAIT_MAX_MS, AMVIDEOCAP_WAIT_MAX_MS);
+	long r3 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_AT_FLAGS, CAP_FLAG_AT_CURRENT);
 
-	if (r1<0 || r2<0 || r3<0 || r4<0 || _height==0 || _width==0)
+	if (r1<0 || r2<0 || r3<0 || _height==0 || _width==0)
 	{
 		ErrorIf(_lastError != 2,_log,"Failed to configure capture device (%d - %s)", errno, strerror(errno));
 		_lastError = 2;
@@ -193,12 +186,7 @@ int AmlogicGrabber::grabFrame_amvideocap(Image<ColorRgb> & image)
 		{
 			int state;
 			ioctl(_captureDev, AMVIDEOCAP_IOR_GET_STATE, &state);
-			if (state == AMVIDEOCAP_STATE_ON_CAPTURE)
-			{
-				DebugIf(_lastError != 5, _log,"Video playback has been paused");
-				_lastError = 5;
-			}
-			else
+			if (state == AMVIDEOCAP_STATE_ERROR)
 			{
 				ErrorIf(_lastError != 3, _log,"Read of device failed: %d - %s", errno, strerror(errno));
 				_lastError = 3;
@@ -328,7 +316,7 @@ bool AmlogicGrabber::setWidthHeight(int width, int height)
 		_height = height;
 		_bytesToRead = _image_bgr.size();
 		_image_ptr = _image_bgr.memptr();
-		 rc = _fbGrabber.setWidthHeight(width, height);
+		rc = _fbGrabber.setWidthHeight(width, height);
 	}
 	return rc;
 }
