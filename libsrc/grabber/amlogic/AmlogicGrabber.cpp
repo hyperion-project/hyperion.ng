@@ -30,7 +30,7 @@ const bool verbose = false;
 const char DEFAULT_FB_DEVICE[] = "/dev/fb0";
 const char DEFAULT_VIDEO_DEVICE[] = "/dev/amvideo";
 const char DEFAULT_CAPTURE_DEVICE[] = "/dev/amvideocap0";
-
+const int  AMVIDEOCAP_WAIT_MAX_MS = 40;
 } //End of constants
 
 AmlogicGrabber::AmlogicGrabber()
@@ -68,11 +68,16 @@ bool AmlogicGrabber::setupScreen()
 
 bool AmlogicGrabber::openDevice(int &fd, const char* dev)
 {
+	bool rc = true;
 	if (fd<0)
 	{
 		fd = ::open(dev, O_RDWR);
+		if ( fd < 0)
+		{
+			rc = false;
+		}
 	}
-	return fd >= 0;
+	return rc;
 }
 
 void AmlogicGrabber::closeDevice(int &fd)
@@ -167,9 +172,10 @@ int AmlogicGrabber::grabFrame_amvideocap(Image<ColorRgb> & image)
 
 	long r1 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_WIDTH, _width);
 	long r2 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_HEIGHT, _height);
-	long r3 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_AT_FLAGS, CAP_FLAG_AT_CURRENT);
+	long r3 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_AT_FLAGS, CAP_FLAG_AT_END);
+	long r4 = ioctl(_captureDev, AMVIDEOCAP_IOW_SET_WANTFRAME_WAIT_MAX_MS, AMVIDEOCAP_WAIT_MAX_MS);
 
-	if (r1<0 || r2<0 || r3<0 || _height==0 || _width==0)
+	if (r1<0 || r2<0 || r3<0 || r4<0 || _height==0 || _width==0)
 	{
 		ErrorIf(_lastError != 2,_log,"Failed to configure capture device (%d - %s)", errno, strerror(errno));
 		_lastError = 2;
@@ -182,20 +188,16 @@ int AmlogicGrabber::grabFrame_amvideocap(Image<ColorRgb> & image)
 
 		// Read the snapshot into the memory
 		ssize_t bytesRead   = pread(_captureDev, _image_ptr, _bytesToRead, 0);
-		if (bytesRead < 0)
+
+		if ( bytesRead < 0 && !EAGAIN && errno > 0 )
 		{
-			int state;
-			ioctl(_captureDev, AMVIDEOCAP_IOR_GET_STATE, &state);
-			if (state == AMVIDEOCAP_STATE_ERROR)
-			{
-				ErrorIf(_lastError != 3, _log,"Read of device failed: %d - %s", errno, strerror(errno));
-				_lastError = 3;
-			}
+			ErrorIf(_lastError != 3, _log,"Capture frame failed  failed - Retrying. Error [%d] - %s", errno, strerror(errno));
+			_lastError = 3;
 			rc = -1;
 		}
 		else
 		{
-			if (static_cast<ssize_t>(_bytesToRead) != bytesRead)
+			if (bytesRead != -1 && static_cast<ssize_t>(_bytesToRead) != bytesRead)
 			{
 				// Read of snapshot failed
 				ErrorIf(_lastError != 4, _log,"Capture failed to grab entire image [bytesToRead(%d) != bytesRead(%d)]", _bytesToRead, bytesRead);
@@ -203,6 +205,9 @@ int AmlogicGrabber::grabFrame_amvideocap(Image<ColorRgb> & image)
 				rc = -1;
 			}
 			else {
+				//If bytesRead = -1 but no error or EAGAIN or ENODATA, return last image to cover video pausing scenario
+				// EAGAIN : // 11 - Resource temporarily unavailable
+				// ENODATA: // 61 - No data available
 				_imageResampler.processImage(static_cast<uint8_t*>(_image_ptr),
 											  _width,
 											  _height,
