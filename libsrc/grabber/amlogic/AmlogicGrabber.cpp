@@ -31,6 +31,8 @@ const char DEFAULT_FB_DEVICE[] = "/dev/fb0";
 const char DEFAULT_VIDEO_DEVICE[] = "/dev/amvideo";
 const char DEFAULT_CAPTURE_DEVICE[] = "/dev/amvideocap0";
 const int  AMVIDEOCAP_WAIT_MAX_MS = 40;
+const int  AMVIDEOCAP_DEFAULT_RATE_HZ = 25;
+
 } //End of constants
 
 AmlogicGrabber::AmlogicGrabber()
@@ -275,7 +277,7 @@ QJsonObject AmlogicGrabber::discover(const QJsonObject& params)
 			inputsDiscovered["video_inputs"] = video_inputs;
 
 			QJsonObject defaults, video_inputs_default, resolution_default;
-			resolution_default["fps"] = _fps;
+			resolution_default["fps"] = AMVIDEOCAP_DEFAULT_RATE_HZ;
 			video_inputs_default["resolution"] = resolution_default;
 			video_inputs_default["inputIdx"] = 0;
 			defaults["video_input"] = video_inputs_default;
