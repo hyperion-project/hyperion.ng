@@ -327,7 +327,7 @@
     "edt_conf_fbs_timeout_title": "Timeout",
     "edt_conf_fg_display_expl": "Select which desktop should be captured (multi monitor setup)",
     "edt_conf_fg_display_title": "Display",
-    "edt_conf_fg_frequency_Hz_expl": "How fast new pictures are captured",
+    "edt_conf_fg_frequency_Hz_expl": "How fast new pictures are captured, i.e. it is the sampling rate. Note: The video might be played at a higher or lower frame rate.",
     "edt_conf_fg_frequency_Hz_title": "Capture frequency",
     "edt_conf_fg_heading_title": "Screen Capture",
     "edt_conf_fg_height_expl": "Shrink picture to this height, as raw picture needs a lot of CPU time.",

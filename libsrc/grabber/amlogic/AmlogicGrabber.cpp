@@ -30,8 +30,8 @@ const bool verbose = false;
 const char DEFAULT_FB_DEVICE[] = "/dev/fb0";
 const char DEFAULT_VIDEO_DEVICE[] = "/dev/amvideo";
 const char DEFAULT_CAPTURE_DEVICE[] = "/dev/amvideocap0";
-
-const int AMVIDEOCAP_WAIT_MAX_MS = 50;
+const int  AMVIDEOCAP_WAIT_MAX_MS = 40;
+const int  AMVIDEOCAP_DEFAULT_RATE_HZ = 25;
 
 } //End of constants
 
@@ -44,7 +44,6 @@ AmlogicGrabber::AmlogicGrabber()
 	  , _grabbingModeNotification(0)
 {
 	_image_ptr = _image_bgr.memptr();
-
 	_useImageResampler = true;
 }
 
@@ -71,11 +70,16 @@ bool AmlogicGrabber::setupScreen()
 
 bool AmlogicGrabber::openDevice(int &fd, const char* dev)
 {
+	bool rc = true;
 	if (fd<0)
 	{
 		fd = ::open(dev, O_RDWR);
+		if ( fd < 0)
+		{
+			rc = false;
+		}
 	}
-	return fd >= 0;
+	return rc;
 }
 
 void AmlogicGrabber::closeDevice(int &fd)
@@ -92,7 +96,6 @@ bool AmlogicGrabber::isVideoPlaying()
 	bool rc = false;
 	if(QFile::exists(DEFAULT_VIDEO_DEVICE))
 	{
-
 		int videoDisabled = 1;
 		if (!openDevice(_videoDev, DEFAULT_VIDEO_DEVICE))
 		{
@@ -148,8 +151,6 @@ int AmlogicGrabber::grabFrame(Image<ColorRgb> & image)
 				_lastError = 0;
 			}
 			rc = _fbGrabber.grabFrame(image);
-
-			//usleep(50 * 1000);
 		}
 	}
 	return rc;
@@ -189,25 +190,16 @@ int AmlogicGrabber::grabFrame_amvideocap(Image<ColorRgb> & image)
 
 		// Read the snapshot into the memory
 		ssize_t bytesRead   = pread(_captureDev, _image_ptr, _bytesToRead, 0);
-		if (bytesRead < 0)
+
+		if ( bytesRead < 0 && !EAGAIN && errno > 0 )
 		{
-			int state;
-			ioctl(_captureDev, AMVIDEOCAP_IOR_GET_STATE, &state);
-			if (state == AMVIDEOCAP_STATE_ON_CAPTURE)
-			{
-				DebugIf(_lastError != 5, _log,"Video playback has been paused");
-				_lastError = 5;
-			}
-			else
-			{
-				ErrorIf(_lastError != 3, _log,"Read of device failed: %d - %s", errno, strerror(errno));
-				_lastError = 3;
-			}
+			ErrorIf(_lastError != 3, _log,"Capture frame failed  failed - Retrying. Error [%d] - %s", errno, strerror(errno));
+			_lastError = 3;
 			rc = -1;
 		}
 		else
 		{
-			if (static_cast<ssize_t>(_bytesToRead) != bytesRead)
+			if (bytesRead != -1 && static_cast<ssize_t>(_bytesToRead) != bytesRead)
 			{
 				// Read of snapshot failed
 				ErrorIf(_lastError != 4, _log,"Capture failed to grab entire image [bytesToRead(%d) != bytesRead(%d)]", _bytesToRead, bytesRead);
@@ -215,6 +207,9 @@ int AmlogicGrabber::grabFrame_amvideocap(Image<ColorRgb> & image)
 				rc = -1;
 			}
 			else {
+				//If bytesRead = -1 but no error or EAGAIN or ENODATA, return last image to cover video pausing scenario
+				// EAGAIN : // 11 - Resource temporarily unavailable
+				// ENODATA: // 61 - No data available
 				_imageResampler.processImage(static_cast<uint8_t*>(_image_ptr),
 											  _width,
 											  _height,
@@ -244,7 +239,7 @@ QJsonObject AmlogicGrabber::discover(const QJsonObject& params)
 			int fbIdx = _fbGrabber.getPath().rightRef(1).toInt();
 
 			DebugIf(verbose, _log, "FB device [%s] found with resolution: %dx%d", QSTRING_CSTR(_fbGrabber.getPath()), screenSize.width(), screenSize.height());
-			QJsonArray fps = { 1, 5, 10, 15, 20, 25, 30, 40, 50, 60 };
+			QJsonArray fps = { 1, 5, 10, 15, 20, 25, 30};
 
 			QJsonObject in;
 
@@ -282,7 +277,7 @@ QJsonObject AmlogicGrabber::discover(const QJsonObject& params)
 			inputsDiscovered["video_inputs"] = video_inputs;
 
 			QJsonObject defaults, video_inputs_default, resolution_default;
-			resolution_default["fps"] = _fps;
+			resolution_default["fps"] = AMVIDEOCAP_DEFAULT_RATE_HZ;
 			video_inputs_default["resolution"] = resolution_default;
 			video_inputs_default["inputIdx"] = 0;
 			defaults["video_input"] = video_inputs_default;
@@ -328,7 +323,7 @@ bool AmlogicGrabber::setWidthHeight(int width, int height)
 		_height = height;
 		_bytesToRead = _image_bgr.size();
 		_image_ptr = _image_bgr.memptr();
-		 rc = _fbGrabber.setWidthHeight(width, height);
+		rc = _fbGrabber.setWidthHeight(width, height);
 	}
 	return rc;
 }
