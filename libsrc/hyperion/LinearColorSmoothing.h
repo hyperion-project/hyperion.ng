@@ -222,12 +222,6 @@ private:
 	/// The queue of temporarily remembered frames
 	std::deque<REMEMBERED_FRAME> _frameQueue;
 
-	/// Prevent sending data to device when no intput data is sent
-	bool _writeToLedsEnable;
-
-	/// Flag for dis/enable continuous output to led device regardless there is new data or not
-	bool _continuousOutput;
-
 	/// Flag for pausing
 	bool _pause;
 

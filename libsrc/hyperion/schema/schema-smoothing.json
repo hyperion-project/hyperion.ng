@@ -86,13 +86,6 @@
 			"default" : 0,
 			"append" : "edt_append_ms",
 			"propertyOrder" : 9
-		},
-		"continuousOutput" :
-		{
-			"type" : "boolean",
-			"title" : "edt_conf_smooth_continuousOutput_title",
-			"default" : true,
-			"propertyOrder" : 10
 		}
 	},
 	"additionalProperties" : false
