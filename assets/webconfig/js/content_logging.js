@@ -125,7 +125,7 @@ $(document).ready(function () {
         var function_ = messages[idx].function;
         var line = messages[idx].line;
         var file_name = messages[idx].fileName;
-        var msg = messages[idx].message;
+        var msg = encodeHTML(messages[idx].message);
         var level_string = messages[idx].levelString;
         var utime = messages[idx].utime;
 
