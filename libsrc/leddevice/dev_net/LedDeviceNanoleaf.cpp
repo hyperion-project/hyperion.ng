@@ -71,7 +71,7 @@ const int STREAM_FRAME_PANEL_INFO_SIZE = 8;
 // Nanoleaf ssdp services
 const char SSDP_ID[] = "ssdp:all";
 const char SSDP_FILTER_HEADER[] = "ST";
-const char SSDP_CANVAS[] = "nanoleaf:nl29";
+const char SSDP_NANOLEAF[] = "nanoleaf:nl*";
 const char SSDP_LIGHTPANELS[] = "nanoleaf_aurora:light";
 } //End of constants
 
@@ -392,7 +392,7 @@ QJsonArray LedDeviceNanoleaf::discover()
 	SSDPDiscover discover;
 
 	// Search for Canvas and Light-Panels
-	QString searchTargetFilter = QString("%1|%2").arg(SSDP_CANVAS, SSDP_LIGHTPANELS);
+	QString searchTargetFilter = QString("%1|%2").arg(SSDP_NANOLEAF, SSDP_LIGHTPANELS);
 
 	discover.setSearchFilter(searchTargetFilter, SSDP_FILTER_HEADER);
 	QString searchTarget = SSDP_ID;
