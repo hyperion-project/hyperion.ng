@@ -516,7 +516,11 @@ bool LedDeviceNanoleaf::powerOn()
 				QString errorReason = QString("Power-on request failed with error: '%1'").arg(response.getErrorReason());
 				this->setInError ( errorReason );
 				on = false;
+			} else
+			{
+				on = true;
 			}
+
 		}
 	}
 	return on;
