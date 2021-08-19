@@ -1206,3 +1206,7 @@ function showInputOptionsForKey(editor, item, showForKeys, state) {
   }
   showInputOptions(item, elements, state);
 }
+
+function encodeHTML(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+}
