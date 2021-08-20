@@ -88,7 +88,7 @@ function loadContent(event, forceRefresh) {
   var tag;
 
   var lastSelectedInstance = getStorage('lastSelectedInstance', false);
-
+  
   if (lastSelectedInstance && (lastSelectedInstance != window.currentHyperionInstance)) {
     if (window.serverInfo.instance[lastSelectedInstance] && window.serverInfo.instance[lastSelectedInstance].running) {
       instanceSwitch(lastSelectedInstance);
@@ -128,12 +128,13 @@ function getInstanceNameByIndex(index) {
 }
 
 function updateHyperionInstanceListing() {
-  var data = window.serverInfo.instance.filter(entry => entry.running);
-  $('#hyp_inst_listing').html("");
-  for (var key in data) {
-    var currInstMarker = (data[key].instance == window.currentHyperionInstance) ? "component-on" : "";
+  if (window.serverInfo.instance) {
+    var data = window.serverInfo.instance.filter(entry => entry.running);
+    $('#hyp_inst_listing').html("");
+    for (var key in data) {
+      var currInstMarker = (data[key].instance == window.currentHyperionInstance) ? "component-on" : "";
 
-    var html = '<li id="hyperioninstance_' + data[key].instance + '"> \
+      var html = '<li id="hyperioninstance_' + data[key].instance + '"> \
       <a>  \
         <div>  \
           <i class="fa fa-circle fa-fw '+ currInstMarker + '"></i> \
@@ -142,15 +143,16 @@ function updateHyperionInstanceListing() {
       </a> \
     </li> '
 
-    if (data.length - 1 > key)
-      html += '<li class="divider"></li>'
+      if (data.length - 1 > key)
+        html += '<li class="divider"></li>'
 
-    $('#hyp_inst_listing').append(html);
+      $('#hyp_inst_listing').append(html);
 
-    $('#hyperioninstance_' + data[key].instance).off().on("click", function (e) {
-      var inst = e.currentTarget.id.split("_")[1]
-      instanceSwitch(inst)
-    });
+      $('#hyperioninstance_' + data[key].instance).off().on("click", function (e) {
+        var inst = e.currentTarget.id.split("_")[1]
+        instanceSwitch(inst)
+      });
+    }
   }
 }
 
