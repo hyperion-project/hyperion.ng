@@ -14,7 +14,7 @@ On the following operating systems, Hyperion can currently be installed/updated 
 ### Install Hyperion:
 1. Add Hyperion’s official GPG key:
 ```bash
-wget -q0- https://apt.hyperion-project.org/hyperion.pub.key | sudo gpg --dearmor -o /usr/share/keyrings/hyperion.pub.gpg
+wget -qO- https://apt.hyperion-project.org/hyperion.pub.key | sudo gpg --dearmor -o /usr/share/keyrings/hyperion.pub.gpg
 ```
 
 2. Add Hyperion-Project to your APT sources:
