@@ -14,12 +14,12 @@ On the following operating systems, Hyperion can currently be installed/updated 
 ### Install Hyperion:
 1. Add Hyperion’s official GPG key:
 ```bash
-wget -qO- https://apt.hyperion-project.org/hyperion.pub.key | sudo apt-key add -
+wget -q0- https://apt.hyperion-project.org/hyperion.pub.key | sudo gpg --dearmor -o /usr/share/keyrings/hyperion.pub.gpg
 ```
 
 2. Add Hyperion-Project to your APT sources:
 ```bash
-echo "deb https://apt.hyperion-project.org/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hyperion.list
+echo "deb [signed-by=/usr/share/keyrings/hyperion.pub.gpg] https://apt.hyperion-project.org/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hyperion.list
 ```
 
 3. Update your local package index and install Hyperion:
@@ -42,5 +42,5 @@ sudo apt-get --purge autoremove hyperion
 
 2. Remove the Hyperion-Project APT source from your system:
 ```bash
-sudo rm /etc/apt/sources.list.d/hyperion.list
+sudo rm /usr/keyrings/hyperion.pub.gpg /etc/apt/sources.list.d/hyperion.list
 ```
