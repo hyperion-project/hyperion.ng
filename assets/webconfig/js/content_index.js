@@ -1,5 +1,3 @@
-var instNameInit = false
-
 $(document).ready(function () {
   var darkModeOverwrite = getStorage("darkModeOverwrite", true);
 
