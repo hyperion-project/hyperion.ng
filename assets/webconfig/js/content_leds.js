@@ -876,6 +876,8 @@ $(document).ready(function () {
             break;
           case 'NONE':
             conf_editor.getEditor(specOptPath + "host").enable();
+            //Trigger getProperties via host value
+            conf_editor.notifyWatchers(specOptPath + "host");
             break;
           case 'SELECT':
             conf_editor.getEditor(specOptPath + "host").setValue("");
@@ -884,9 +886,8 @@ $(document).ready(function () {
             break;
           default:
             conf_editor.getEditor(specOptPath + "host").disable();
-            //Reset host value, to trigger getProperties via host value
-            conf_editor.getEditor(specOptPath + "host").setValue("");
-            conf_editor.getEditor(specOptPath + "host").setValue(val);
+            //Trigger getProperties via host value
+            conf_editor.notifyWatchers(specOptPath + "host");
             break;
         }
 
@@ -1510,10 +1511,10 @@ async function getProperties_device(ledType, key, params) {
   if (!devicesProperties[ledType][key]) {
     const res = await requestLedDeviceProperties(ledType, params);
     if (res && !res.error) {
-      var deviceProperties = res.info.properties;
+      var ledDeviceProperties = res.info.properties;
 
-      if (!jQuery.isEmptyObject(deviceProperties)) {
-        devicesProperties[ledType][key] = deviceProperties;
+      if (!jQuery.isEmptyObject(ledDeviceProperties)) {
+        devicesProperties[ledType][key] = ledDeviceProperties;
 
         if (!window.readOnlyMode) {
           $('#btn_submit_controller').attr('disabled', false);

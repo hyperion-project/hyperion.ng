@@ -9,7 +9,8 @@
       "name": "Run hyperion with debug option and external console",
       "args": [
         "-d",
-        "-c"
+        "-c",
+        "-u test"
       ],
       "externalConsole": true
     }
