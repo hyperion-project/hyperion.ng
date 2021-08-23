@@ -11,7 +11,7 @@
       "windows": {
         "command": "cmake -G \"Visual Studio 16 2019\" -A x64 -B ${workspaceFolder}/build"
       },
-      "group": "build",
+      "group": "build"
     },
     {
       "label": "cmake:conf Debug",
@@ -21,7 +21,7 @@
       "windows": {
         "command": "cmake -G \"Visual Studio 16 2019\" -A x64 -B ${workspaceFolder}/build"
       },
-      "group": "build",
+      "group": "build"
     },
     {
       "label": "build:debug hyperiond",

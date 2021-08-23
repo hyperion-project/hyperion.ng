@@ -10,10 +10,10 @@
 
 AuthManager *AuthManager::manager = nullptr;
 
-AuthManager::AuthManager(QObject *parent)
+AuthManager::AuthManager(QObject *parent, bool readonlyMode)
 	: QObject(parent)
-	, _authTable(new AuthTable("", this))
-	, _metaTable(new MetaTable(this))
+	, _authTable(new AuthTable("", this, readonlyMode))
+	, _metaTable(new MetaTable(this, readonlyMode))
 	, _pendingRequests()
 	, _authRequired(true)
 	, _timer(new QTimer(this))
@@ -150,18 +150,18 @@ bool AuthManager::resetHyperionUser()
 	return _authTable->resetHyperionUser();
 }
 
-void AuthManager::setNewTokenRequest(QObject *caller, const QString &comment, const QString &id)
+void AuthManager::setNewTokenRequest(QObject *caller, const QString &comment, const QString &id, const int &tan)
 {
 	if (!_pendingRequests.contains(id))
 	{
-		AuthDefinition newDef{id, comment, caller, uint64_t(QDateTime::currentMSecsSinceEpoch() + 180000)};
+		AuthDefinition newDef{id, comment, caller, tan, uint64_t(QDateTime::currentMSecsSinceEpoch() + 180000)};
 		_pendingRequests[id] = newDef;
 		_timer->start();
 		emit newPendingTokenRequest(id, comment);
 	}
 }
 
-void AuthManager::cancelNewTokenRequest(QObject *caller, const QString &comment, const QString &id)
+void AuthManager::cancelNewTokenRequest(QObject *caller, const QString &, const QString &id)
 {
 	if (_pendingRequests.contains(id))
 	{
@@ -182,12 +182,12 @@ void AuthManager::handlePendingTokenRequest(const QString &id, bool accept)
 		{
 			const QString token = QUuid::createUuid().toString().remove("{").remove("}");
 			_authTable->createToken(token, def.comment, id);
-			emit tokenResponse(true, def.caller, token, def.comment, id);
+			emit tokenResponse(true, def.caller, token, def.comment, id, def.tan);
 			emit tokenChange(getTokenList());
 		}
 		else
 		{
-			emit tokenResponse(false, def.caller, QString(), def.comment, id);
+			emit tokenResponse(false, def.caller, QString(), def.comment, id, def.tan);
 		}
 	}
 }
@@ -249,7 +249,7 @@ void AuthManager::checkTimeout()
 		const AuthDefinition &def = i.value();
 		if (def.timeoutTime <= now)
 		{
-			emit tokenResponse(false, def.caller, QString(), def.comment, def.id);
+			emit tokenResponse(false, def.caller, QString(), def.comment, def.id, def.tan);
 			_pendingRequests.remove(i.key());
 		}
 	}

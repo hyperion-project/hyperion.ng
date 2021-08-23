@@ -2,7 +2,7 @@
 #include <utils/Logger.h>
 #include <hyperion/MultiColorAdjustment.h>
 
-MultiColorAdjustment::MultiColorAdjustment(unsigned ledCnt)
+MultiColorAdjustment::MultiColorAdjustment(int ledCnt)
 	: _ledAdjustments(ledCnt, nullptr)
 	, _log(Logger::getInstance("ADJUSTMENT"))
 {
@@ -25,7 +25,7 @@ void MultiColorAdjustment::addAdjustment(ColorAdjustment * adjustment)
 	_adjustment.push_back(adjustment);
 }
 
-void MultiColorAdjustment::setAdjustmentForLed(const QString& id, unsigned startLed, unsigned endLed)
+void MultiColorAdjustment::setAdjustmentForLed(const QString& id, int startLed, int endLed)
 {
 	// abort
 	if(startLed > endLed)
@@ -34,19 +34,19 @@ void MultiColorAdjustment::setAdjustmentForLed(const QString& id, unsigned start
 		return;
 	}
 	// catch wrong values
-	if(endLed > _ledAdjustments.size()-1)
+	if(endLed > static_cast<int>(_ledAdjustments.size()-1))
 	{
-		Warning(_log,"The color calibration 'LED index' field has leds specified which aren't part of your led layout");
-		endLed = _ledAdjustments.size()-1;
+		Warning(_log,"The color calibration 'LED index' field has LEDs specified which aren't part of your led layout");
+		endLed = static_cast<int>(_ledAdjustments.size()-1);
 	}
 
 	// Get the identified adjustment (don't care if is nullptr)
 	ColorAdjustment * adjustment = getAdjustment(id);
 
-	//Debug(_log,"ColorAdjustment Profile [%s], startLed[%u], endLed[%u]", QSTRING_CSTR(id), startLed, endLed);
-	for (unsigned iLed=startLed; iLed<=endLed; ++iLed)
+	//Debug(_log,"ColorAdjustment Profile [%s], startLed[%d], endLed[%d]", QSTRING_CSTR(id), startLed, endLed);
+	for (int iLed=startLed; iLed<=endLed; ++iLed)
 	{
-		//Debug(_log,"_ledAdjustments [%u] -> [%p]", iLed, adjustment);
+		//Debug(_log,"_ledAdjustments [%d] -> [%p]", iLed, adjustment);
 		_ledAdjustments[iLed] = adjustment;
 	}
 }

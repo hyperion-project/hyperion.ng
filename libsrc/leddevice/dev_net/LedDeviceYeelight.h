@@ -435,12 +435,11 @@ public:
 	///
 	static LedDevice* construct(const QJsonObject &deviceConfig);
 
-	///
-	/// @brief Discover Yeelight devices available (for configuration).
+	/// @param[in] params Parameters used to overwrite discovery default behaviour
 	///
 	/// @return A JSON structure holding a list of devices found
 	///
-	QJsonObject discover() override;
+	QJsonObject discover(const QJsonObject& params) override;
 
 	///
 	/// @brief Get a Yeelight device's resource properties
@@ -591,6 +590,14 @@ private:
 	/// @return Number of Yeelight lights
 	///
 	uint getLightsCount() const { return _lightsCount; }
+
+	///
+	/// @brief Discover Yeelight devices available (for configuration).
+	/// Yeelight specific UDP Broadcast discovery
+	///
+	/// @return A JSON structure holding a list of devices found
+	///
+	QJsonArray discover();
 
 	/// Array of the Yeelight addresses handled by the LED-device
 	QVector<yeelightAddress> _lightsAddressList;

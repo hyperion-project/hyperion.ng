@@ -72,12 +72,10 @@ bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
 
 	if(type == "priorities-update")
 	{
-		if(unsubscribe){
+		if (unsubscribe)
 			disconnect(_prioMuxer,0 ,0 ,0);
-		} else {
+		else
 			connect(_prioMuxer, &PriorityMuxer::prioritiesChanged, this, &JsonCB::handlePriorityUpdate, Qt::UniqueConnection);
-			connect(_prioMuxer, &PriorityMuxer::autoSelectChanged, this, &JsonCB::handlePriorityUpdate, Qt::UniqueConnection);
-		}
 	}
 
 	if(type == "imageToLedMapping-update")

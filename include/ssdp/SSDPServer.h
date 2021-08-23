@@ -66,45 +66,62 @@ public:
 	/// @brief Overwrite description address
 	/// @param addr  new address
 	///
-	void setDescriptionAddress(const QString& addr) { _descAddress = addr; };
+	void setDescriptionAddress( const QString &addr ) { _descAddress = addr; }
 
 	///
 	/// @brief Set uuid
 	/// @param uuid  The uuid
 	///
-	void setUuid(const QString& uuid) { _uuid = uuid; };
+	void setUuid( const QString &uuid ) { _uuid = uuid; }
 
 	///
 	/// @brief set new flatbuffer server port
 	///
-	void setFlatBufPort(quint16 port) { _fbsPort = QString::number(port); };
+	void setFlatBufPort( quint16 port ){_fbsPort = QString::number( port ); }
 
 	///
 	/// @brief Get current flatbuffer server port
 	///
-	quint16 getFlatBufPort() const { return _fbsPort.toInt(); };
+	quint16 getFlatBufPort() const
+	{
+		return _fbsPort.toInt();
+	}
+	///
+	/// @brief set new protobuf server port
+	///
+	void setProtoBufPort( quint16 port ) { _pbsPort = QString::number( port ); }
 
 	///
-	/// @brief set new jsonserver server port
+	/// @brief Get current protobuf server port
 	///
-	void setJsonServerPort(quint16 port) { _jssPort = QString::number(port); };
+	quint16 getProtoBufPort() const { return _pbsPort.toInt(); }
+	///
+	/// @brief set new json server port
+	///
+	void setJsonServerPort( quint16 port ) { _jssPort = QString::number( port ); }
+	///
+	/// @brief get new json server port
+	///
+	quint16 getJsonServerPort() const { return _jssPort.toInt(); }
+	///
+	/// @brief set new ssl server port
+	///
+	void setSSLServerPort( quint16 port ) { _sslPort = QString::number( port ); }
+	///
+	/// @brief get new ssl server port
+	///
+	quint16 getSSLServerPort() const { return _sslPort.toInt(); }
 
 	///
-	/// @brief get new jsonserver server port
-	///
-	quint16 getJsonServerPort() const { return _jssPort.toInt(); };
-
-		///
 	/// @brief set new hyperion name
 	///
-	void setHyperionName(const QString &name) { _name = name; };
+	void setHyperionName( const QString &name ) { _name = name; }
 
 	///
 	/// @brief get hyperion name
 	///
-	QString getHyperionName() const { return _name; };
-
-
+	QString getHyperionName() const { return _name; }
+	
 signals:
 	///
 	/// @brief Emits whenever a new SSDP search "man : ssdp:discover" is received along with the service type
@@ -113,21 +130,18 @@ signals:
 	/// @param address The ip of the caller
 	/// @param port    The port of the caller
 	///
-	void msearchRequestReceived(const QString& target, const QString& mx, const QString address, quint16 port);
+	void msearchRequestReceived( const QString &target,
+								 const QString &mx,
+								 const QString address,
+								 quint16 port );
 
 private:
-	Logger* _log;
-	QUdpSocket* _udpSocket;
+	Logger *_log;
+	QUdpSocket *_udpSocket;
 
-	QString _serverHeader;
-	QString _uuid;
-	QString _fbsPort;
-	QString _jssPort;
-	QString _name;
-	QString _descAddress;
-	bool    _running;
+	QString _serverHeader, _uuid, _fbsPort, _pbsPort, _jssPort, _sslPort, _name, _descAddress;
+	bool _running;
 
 private slots:
 	void readPendingDatagrams();
-
 };

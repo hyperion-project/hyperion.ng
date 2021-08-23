@@ -9,7 +9,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/bin/hyperiond",
-      "args": [],
+      "args": ["-d"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
@@ -27,12 +27,12 @@
       "name": "(Windows) hyperiond",
       "type": "cppvsdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/bin/Debug/hyperiond.exe",
-      "args": [],
+      "program": "${command:cmake.launchTargetDirectory}/hyperiond",
+      "args": ["-d"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
-      "externalConsole": false
+      "console": "internalConsole"
     }
   ]
 }

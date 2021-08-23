@@ -3,48 +3,34 @@
 #include <cassert>
 #include <iostream>
 
+//Qt
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QSize>
+
+// Constants
+namespace {
+const bool verbose = false;
+const int DEFAULT_DEVICE = 0;
+
+} //End of constants
+
 // Local includes
 #include "grabber/DispmanxFrameGrabber.h"
 
-DispmanxFrameGrabber::DispmanxFrameGrabber(unsigned width, unsigned height)
-	: Grabber("DISPMANXGRABBER", 0, 0)
-	, _vc_display(0)
-	, _vc_resource(0)
-	, _vc_flags(0)
-	, _captureBuffer(new ColorRgba[0])
-	, _captureBufferSize(0)
-	, _image_rgba(width, height)
+DispmanxFrameGrabber::DispmanxFrameGrabber()
+	: Grabber("DISPMANXGRABBER")
+	  , _vc_display(0)
+	  , _vc_resource(0)
+	  , _vc_flags(DISPMANX_TRANSFORM_T(0))
+	  , _captureBuffer(new ColorRgba[0])
+	  , _captureBufferSize(0)
+	  , _image_rgba()
 {
-	_useImageResampler = false;
-
-	// Initiase BCM
+	_useImageResampler = true;
+	// Initialise BCM
 	bcm_host_init();
-
-	// Check if the display can be opened and display the current resolution
-	// Open the connection to the display
-	_vc_display = vc_dispmanx_display_open(0);
-	assert(_vc_display > 0);
-
-	// Obtain the display information
-	DISPMANX_MODEINFO_T vc_info;
-	int result = vc_dispmanx_display_get_info(_vc_display, &vc_info);
-	// Keep compiler happy in 'release' mode
-	(void)result;
-
-	// Close the display
-	vc_dispmanx_display_close(_vc_display);
-
-	if(result != 0)
-	{
-		Error(_log, "Failed to open display! Probably no permissions to access the capture interface");
-		setEnabled(false);
-		return;
-	}
-	else
-		Info(_log, "Display opened with resolution: %dx%d", vc_info.width, vc_info.height);
-
-	// init the resource and capture rectangle
-	setWidthHeight(width, height);
 }
 
 DispmanxFrameGrabber::~DispmanxFrameGrabber()
@@ -53,6 +39,28 @@ DispmanxFrameGrabber::~DispmanxFrameGrabber()
 
 	// De-init BCM
 	bcm_host_deinit();
+}
+
+bool DispmanxFrameGrabber::setupScreen()
+{
+	bool rc (false);
+
+	int deviceIdx (DEFAULT_DEVICE);
+
+	QSize screenSize = getScreenSize(deviceIdx);
+	if ( screenSize.isEmpty() )
+	{
+		Error(_log, "Failed to open display [%d]! Probably no permissions to access the capture interface", deviceIdx);
+		setEnabled(false);
+	}
+	else
+	{
+		setWidthHeight(screenSize.width(), screenSize.height());
+		Info(_log, "Display [%d] opened with resolution: %dx%d", deviceIdx, screenSize.width(), screenSize.height());
+		setEnabled(true);
+		rc = true;
+	}
+	return rc;
 }
 
 void DispmanxFrameGrabber::freeResources()
@@ -64,152 +72,226 @@ void DispmanxFrameGrabber::freeResources()
 
 bool DispmanxFrameGrabber::setWidthHeight(int width, int height)
 {
+	bool rc = false;
 	if(Grabber::setWidthHeight(width, height))
 	{
-		if(_vc_resource != 0)
+		if(_vc_resource != 0) {
 			vc_dispmanx_resource_delete(_vc_resource);
-		// Create the resources for capturing image
+		}
+
+		Debug(_log,"Create the resources for capturing image");
 		uint32_t vc_nativeImageHandle;
 		_vc_resource = vc_dispmanx_resource_create(
-				VC_IMAGE_RGBA32,
-				width,
-				height,
-				&vc_nativeImageHandle);
+			VC_IMAGE_RGBA32,
+			width,
+			height,
+			&vc_nativeImageHandle);
 		assert(_vc_resource);
 
-		// Define the capture rectangle with the same size
-		vc_dispmanx_rect_set(&_rectangle, 0, 0, width, height);
-		return true;
+		if (_vc_resource != 0)
+		{
+			Debug(_log,"Define the capture rectangle with the same size");
+			vc_dispmanx_rect_set(&_rectangle, 0, 0, width, height);
+			rc = true;
+		}
 	}
-	return false;
+	return rc;
 }
 
-void DispmanxFrameGrabber::setFlags(int vc_flags)
+void DispmanxFrameGrabber::setFlags(DISPMANX_TRANSFORM_T vc_flags)
 {
 	_vc_flags = vc_flags;
 }
 
 int DispmanxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 {
-	if (!_enabled) return 0;
-
-	int ret;
-
-	// vc_dispmanx_resource_read_data doesn't seem to work well
-	// with arbitrary positions so we have to handle cropping by ourselves
-	unsigned cropLeft   = _cropLeft;
-	unsigned cropRight  = _cropRight;
-	unsigned cropTop    = _cropTop;
-	unsigned cropBottom = _cropBottom;
-
-	if (_vc_flags & DISPMANX_SNAPSHOT_FILL)
+	int rc = 0;
+	if (_isEnabled && !_isDeviceInError)
 	{
-		// disable cropping, we are capturing the video overlay window
-		cropLeft = cropRight = cropTop = cropBottom = 0;
-	}
+		// vc_dispmanx_resource_read_data doesn't seem to work well
+		// with arbitrary positions so we have to handle cropping by ourselves
+		int cropLeft   = _cropLeft;
+		int cropRight  = _cropRight;
+		int cropTop    = _cropTop;
+		int cropBottom = _cropBottom;
 
-	unsigned imageWidth  = _width - cropLeft - cropRight;
-	unsigned imageHeight = _height - cropTop - cropBottom;
-
-	// calculate final image dimensions and adjust top/left cropping in 3D modes
-	switch (_videoMode)
-	{
-	case VideoMode::VIDEO_3DSBS:
-		imageWidth /= 2;
-		cropLeft /= 2;
-		break;
-	case VideoMode::VIDEO_3DTAB:
-		imageHeight /= 2;
-		cropTop /= 2;
-		break;
-	case VideoMode::VIDEO_2D:
-	default:
-		break;
-	}
-
-	// resize the given image if needed
-	if (image.width() != imageWidth || image.height() != imageHeight)
-	{
-		image.resize(imageWidth, imageHeight);
-	}
-
-	if (_image_rgba.width() != imageWidth || _image_rgba.height() != imageHeight)
-	{
-		_image_rgba.resize(imageWidth, imageHeight);
-	}
-
-	// Open the connection to the display
-	_vc_display = vc_dispmanx_display_open(0);
-	if (_vc_display < 0)
-	{
-		Error(_log, "Cannot open display: %d", _vc_display);
-		return -1;
-	}
-
-	// Create the snapshot (incl down-scaling)
-	ret = vc_dispmanx_snapshot(_vc_display, _vc_resource, (DISPMANX_TRANSFORM_T) _vc_flags);
-	if (ret < 0)
-	{
-		Error(_log, "Snapshot failed: %d", ret);
-		vc_dispmanx_display_close(_vc_display);
-		return ret;
-	}
-
-	// Read the snapshot into the memory
-	void* imagePtr   = _image_rgba.memptr();
-	void* capturePtr = imagePtr;
-
-	unsigned imagePitch = imageWidth * sizeof(ColorRgba);
-
-	// dispmanx seems to require the pitch to be a multiple of 64
-	unsigned capturePitch = (_rectangle.width * sizeof(ColorRgba) + 63) & (~63);
-
-	// grab to temp buffer if image pitch isn't valid or if we are cropping
-	if (imagePitch != capturePitch
-	    || (unsigned)_rectangle.width != imageWidth
-	    || (unsigned)_rectangle.height != imageHeight)
-	{
-		// check if we need to resize the capture buffer
-		unsigned captureSize = capturePitch * _rectangle.height / sizeof(ColorRgba);
-		if (_captureBufferSize != captureSize)
+		if (_vc_flags & DISPMANX_SNAPSHOT_FILL)
 		{
-			delete[] _captureBuffer;
-			_captureBuffer = new ColorRgba[captureSize];
-			_captureBufferSize = captureSize;
+			// disable cropping, we are capturing the video overlay window
+			Debug(_log,"Disable cropping, as the video overlay window is captured");
+			cropLeft = cropRight = cropTop = cropBottom = 0;
 		}
 
-		capturePtr = &_captureBuffer[0];
-	}
+		unsigned imageWidth  = static_cast<unsigned>(_width - cropLeft - cropRight);
+		unsigned imageHeight = static_cast<unsigned>(_height - cropTop - cropBottom);
 
-	ret = vc_dispmanx_resource_read_data(_vc_resource, &_rectangle, capturePtr, capturePitch);
-	if (ret < 0)
-	{
-		Error(_log, "vc_dispmanx_resource_read_data failed: %d", ret);
-		vc_dispmanx_display_close(_vc_display);
-		return ret;
-	}
-
-	// copy capture data to image if we captured to temp buffer
-	if (imagePtr != capturePtr)
-	{
-		// adjust source pointer to top/left cropping
-		uint8_t* src_ptr = (uint8_t*) capturePtr
-			+ cropLeft * sizeof(ColorRgba)
-			+ cropTop * capturePitch;
-
-		for (unsigned y = 0; y < imageHeight; y++)
+		// resize the given image if needed
+		if (image.width() != imageWidth || image.height() != imageHeight)
 		{
-			memcpy((uint8_t*)imagePtr + y * imagePitch,
-				src_ptr + y * capturePitch,
-				imagePitch);
+			image.resize(imageWidth, imageHeight);
+		}
+
+		if (_image_rgba.width() != imageWidth || _image_rgba.height() != imageHeight)
+		{
+			_image_rgba.resize(imageWidth, imageHeight);
+		}
+
+		// Open the connection to the display
+		_vc_display = vc_dispmanx_display_open(DEFAULT_DEVICE);
+		if (_vc_display < 0)
+		{
+			Error(_log, "Cannot open display: %d", DEFAULT_DEVICE);
+			rc = -1;
+		}
+		else {
+
+			// Create the snapshot (incl down-scaling)
+			int ret = vc_dispmanx_snapshot(_vc_display, _vc_resource, _vc_flags);
+			if (ret < 0)
+			{
+				Error(_log, "Snapshot failed: %d", ret);
+				rc = ret;
+			}
+			else
+			{
+				// Read the snapshot into the memory
+				void* imagePtr   = _image_rgba.memptr();
+				void* capturePtr = imagePtr;
+
+				unsigned imagePitch = imageWidth * sizeof(ColorRgba);
+
+				// dispmanx seems to require the pitch to be a multiple of 64
+				unsigned capturePitch = (_rectangle.width * sizeof(ColorRgba) + 63) & (~63);
+
+				// grab to temp buffer if image pitch isn't valid or if we are cropping
+				if (imagePitch != capturePitch
+					 || static_cast<unsigned>(_rectangle.width) != imageWidth
+					 || static_cast<unsigned>(_rectangle.height) != imageHeight)
+				{
+					// check if we need to resize the capture buffer
+					unsigned captureSize = capturePitch * static_cast<unsigned>(_rectangle.height) / sizeof(ColorRgba);
+					if (_captureBufferSize != captureSize)
+					{
+						delete[] _captureBuffer;
+						_captureBuffer = new ColorRgba[captureSize];
+						_captureBufferSize = captureSize;
+					}
+
+					capturePtr = &_captureBuffer[0];
+				}
+
+				ret = vc_dispmanx_resource_read_data(_vc_resource, &_rectangle, capturePtr, capturePitch);
+				if (ret < 0)
+				{
+					Error(_log, "vc_dispmanx_resource_read_data failed: %d", ret);
+					rc = ret;
+				}
+				else
+				{
+					_imageResampler.processImage(static_cast<uint8_t*>(capturePtr),
+												  _width,
+												  _height,
+												  static_cast<int>(capturePitch),
+												  PixelFormat::RGB32,
+												  image);
+				}
+			}
+			vc_dispmanx_display_close(_vc_display);
 		}
 	}
+	return rc;
+}
 
-	// Close the displaye
-	vc_dispmanx_display_close(_vc_display);
+QSize DispmanxFrameGrabber::getScreenSize(int device) const
+{
+	int width (0);
+	int height(0);
 
-	// image to output image
-	_image_rgba.toRgb(image);
+	DISPMANX_DISPLAY_HANDLE_T vc_display = vc_dispmanx_display_open(device);
+	if ( vc_display > 0)
+	{
+		// Obtain the display information
+		DISPMANX_MODEINFO_T vc_info;
+		int result = vc_dispmanx_display_get_info(vc_display, &vc_info);
+		(void)result;
 
-	return 0;
+		if (result == 0)
+		{
+			width = vc_info.width;
+			height = vc_info.height;
+
+			DebugIf(verbose, _log, "Display found with resolution: %dx%d", width, height);
+		}
+		// Close the display
+		vc_dispmanx_display_close(vc_display);
+	}
+
+	return QSize(width, height);
+}
+
+QJsonObject DispmanxFrameGrabber::discover(const QJsonObject& params)
+{
+	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
+
+	QJsonObject inputsDiscovered;
+
+	int deviceIdx (DEFAULT_DEVICE);
+	QJsonArray video_inputs;
+
+	QSize screenSize = getScreenSize(deviceIdx);
+	if ( !screenSize.isEmpty() )
+	{
+		QJsonArray fps = { 1, 5, 10, 15, 20, 25, 30, 40, 50, 60 };
+
+		QJsonObject in;
+
+		QString displayName;
+		displayName = QString("Screen:%1").arg(deviceIdx);
+
+		in["name"] = displayName;
+		in["inputIdx"] = deviceIdx;
+
+		QJsonArray formats;
+		QJsonObject format;
+
+		QJsonArray resolutionArray;
+
+		QJsonObject resolution;
+
+		resolution["width"] = screenSize.width();
+		resolution["height"] = screenSize.height();
+		resolution["fps"] = fps;
+
+		resolutionArray.append(resolution);
+
+		format["resolutions"] = resolutionArray;
+		formats.append(format);
+
+		in["formats"] = formats;
+		video_inputs.append(in);
+	}
+
+	if (!video_inputs.isEmpty())
+	{
+		inputsDiscovered["device"] = "dispmanx";
+		inputsDiscovered["device_name"] = "DispmanX";
+		inputsDiscovered["type"] = "screen";
+		inputsDiscovered["video_inputs"] = video_inputs;
+
+		QJsonObject defaults, video_inputs_default, resolution_default;
+		resolution_default["fps"] = _fps;
+		video_inputs_default["resolution"] = resolution_default;
+		video_inputs_default["inputIdx"] = 0;
+		defaults["video_input"] = video_inputs_default;
+		inputsDiscovered["default"] = defaults;
+	}
+
+	if (inputsDiscovered.isEmpty())
+	{
+		DebugIf(verbose, _log, "No displays found to capture from!");
+	}
+
+	DebugIf(verbose, _log, "device: [%s]", QString(QJsonDocument(inputsDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+
+	return inputsDiscovered;
 }

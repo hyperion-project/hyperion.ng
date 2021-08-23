@@ -1,0 +1,76 @@
+name: hyperion-ng
+base: core20
+summary: The successor to Hyperion aka Hyperion Next Generation
+description: |
+  Hyperion is an opensource Bias or Ambient Lighting implementation which you might know from TV manufacturers.
+  It supports many LED devices and video grabbers. The project is still in a alpha development stage.
+
+license: MIT
+icon: resources/icons/hyperion-icon-512px.png
+adopt-info: hyperion-ng
+architectures:
+  - build-on: amd64
+confinement: strict
+
+parts:
+  hyperion-ng:
+    plugin: cmake
+    source: https://github.com/hyperion-project/hyperion.ng.git
+    source-type: git
+    override-pull: |
+      snapcraftctl pull
+      snapcraftctl set-version "$(cat "$SNAPCRAFT_PART_SRC/version")"
+      snapcraftctl set-grade "stable"
+    cmake-generator: Ninja
+    cmake-parameters:
+      - "-DCMAKE_BUILD_TYPE=Release"
+    build-packages:
+      - git
+      - cmake
+      - build-essential
+      - qtbase5-dev
+      - libqt5serialport5-dev
+      - libqt5sql5-sqlite
+      - libqt5x11extras5-dev
+      - libusb-1.0-0-dev
+      - python3-dev
+      - libcec-dev
+      - libxcb-image0-dev
+      - libxcb-util0-dev
+      - libxcb-shm0-dev
+      - libxcb-render0-dev
+      - libxcb-randr0-dev
+      - libxrandr-dev
+      - libxrender-dev
+      - libavahi-core-dev
+      - libavahi-compat-libdnssd-dev
+      - libturbojpeg0-dev
+      - libssl-dev
+      - zlib1g-dev
+    stage-packages:
+      - libfontconfig1
+      - libfreetype6
+      - libgl1
+      - libglvnd0
+      - libglx0
+      - libusb-1.0-0
+      - libx11-6
+
+apps:
+  hyperion-ng:
+    command: usr/local/bin/hyperiond
+    desktop: usr/local/share/hyperion/desktop/hyperiond.desktop
+    plugs:
+      - camera
+      - framebuffer
+      - hidraw
+      - home
+      - network-control
+      - network-status
+      - network-bind
+      - network
+      - raw-usb
+      - serial-port
+      - tpm
+      - unity7
+      - x11

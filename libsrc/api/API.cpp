@@ -56,7 +56,18 @@ API::API(Logger *log, bool localConnection, QObject *parent)
     //connect(ApiSync::getInstance(), &ApiSync::requestActiveRegister, this, &API::requestActiveRegister, Qt::QueuedConnection);
 
     // connect to possible token responses that has been requested
-    connect(_authManager, &AuthManager::tokenResponse, this, &API::checkTokenResponse);
+    connect(_authManager, &AuthManager::tokenResponse, [=] (bool success, QObject *caller, const QString &token, const QString &comment, const QString &id, const int &tan)
+    {
+        if (this == caller)
+            emit onTokenResponse(success, token, comment, id, tan);
+    });
+
+    // connect to possible startInstance responses that has been requested
+    connect(_instanceManager, &HyperionIManager::startInstanceResponse, [=] (QObject *caller, const int &tan)
+    {
+        if (this == caller)
+            emit onStartInstanceResponse(tan);
+    });
 }
 
 void API::init()
@@ -211,16 +222,19 @@ void API::setVideoMode(VideoMode mode, hyperion::Components callerComp)
     QMetaObject::invokeMethod(_hyperion, "setVideoMode", Qt::QueuedConnection, Q_ARG(VideoMode, mode));
 }
 
-void API::setEffect(const EffectCmdData &dat, hyperion::Components callerComp)
+bool API::setEffect(const EffectCmdData &dat, hyperion::Components callerComp)
 {
+    int res;
     if (!dat.args.isEmpty())
     {
-        QMetaObject::invokeMethod(_hyperion, "setEffect", Qt::QueuedConnection, Q_ARG(QString, dat.effectName), Q_ARG(QJsonObject, dat.args), Q_ARG(int, dat.priority), Q_ARG(int, dat.duration), Q_ARG(QString, dat.pythonScript), Q_ARG(QString, dat.origin), Q_ARG(QString, dat.data));
+        QMetaObject::invokeMethod(_hyperion, "setEffect", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, res), Q_ARG(QString, dat.effectName), Q_ARG(QJsonObject, dat.args), Q_ARG(int, dat.priority), Q_ARG(int, dat.duration), Q_ARG(QString, dat.pythonScript), Q_ARG(QString, dat.origin), Q_ARG(QString, dat.data));
     }
     else
     {
-        QMetaObject::invokeMethod(_hyperion, "setEffect", Qt::QueuedConnection, Q_ARG(QString, dat.effectName), Q_ARG(int, dat.priority), Q_ARG(int, dat.duration), Q_ARG(QString, dat.origin));
+        QMetaObject::invokeMethod(_hyperion, "setEffect", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, res), Q_ARG(QString, dat.effectName), Q_ARG(int, dat.priority), Q_ARG(int, dat.duration), Q_ARG(QString, dat.origin));
     }
+
+    return res >= 0;
 }
 
 void API::setSourceAutoSelect(bool state, hyperion::Components callerComp)
@@ -285,9 +299,14 @@ QVector<QVariantMap> API::getAllInstanceData()
     return vec;
 }
 
-void API::startInstance(quint8 index)
+bool API::startInstance(quint8 index, int tan)
 {
-    QMetaObject::invokeMethod(_instanceManager, "startInstance", Qt::QueuedConnection, Q_ARG(quint8, index));
+    bool res;
+    (_instanceManager->thread() != this->thread())
+    ? QMetaObject::invokeMethod(_instanceManager, "startInstance", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, res), Q_ARG(quint8, index), Q_ARG(bool, false), Q_ARG(QObject*, this), Q_ARG(int, tan))
+    : res = _instanceManager->startInstance(index, false, this, tan);
+
+    return res;
 }
 
 void API::stopInstance(quint8 index)
@@ -359,11 +378,18 @@ QString API::saveEffect(const QJsonObject &data)
     return NO_AUTH;
 }
 
-void API::saveSettings(const QJsonObject &data)
+bool API::saveSettings(const QJsonObject &data)
 {
+	bool rc = true;
     if (!_adminAuthorized)
-        return;
-    QMetaObject::invokeMethod(_hyperion, "saveSettings", Qt::QueuedConnection, Q_ARG(QJsonObject, data), Q_ARG(bool, true));
+	{
+		rc = false;
+	}
+	else
+	{
+		QMetaObject::invokeMethod(_hyperion, "saveSettings", Qt::DirectConnection, Q_RETURN_ARG(bool, rc), Q_ARG(QJsonObject, data), Q_ARG(bool, true));
+	}
+	return rc;
 }
 
 bool API::updateHyperionPassword(const QString &password, const QString &newPassword)
@@ -407,9 +433,9 @@ QString API::deleteToken(const QString &id)
     return "";
 }
 
-void API::setNewTokenRequest(const QString &comment, const QString &id)
+void API::setNewTokenRequest(const QString &comment, const QString &id, const int &tan)
 {
-    QMetaObject::invokeMethod(_authManager, "setNewTokenRequest", Qt::QueuedConnection, Q_ARG(QObject *, this), Q_ARG(QString, comment), Q_ARG(QString, id));
+    QMetaObject::invokeMethod(_authManager, "setNewTokenRequest", Qt::QueuedConnection, Q_ARG(QObject *, this), Q_ARG(QString, comment), Q_ARG(QString, id), Q_ARG(int, tan));
 }
 
 void API::cancelNewTokenRequest(const QString &comment, const QString &id)
@@ -465,12 +491,11 @@ bool API::getUserToken(QString &userToken)
 
 bool API::isTokenAuthorized(const QString &token)
 {
-    bool res;
-    QMetaObject::invokeMethod(_authManager, "isTokenAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, res), Q_ARG(QString, token));
-    if (res)
-        _authorized = true;
+	(_authManager->thread() != this->thread())
+	? QMetaObject::invokeMethod(_authManager, "isTokenAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, _authorized), Q_ARG(QString, token))
+	: _authorized = _authManager->isTokenAuthorized(token);
 
-    return res;
+    return _authorized;
 }
 
 bool API::isUserAuthorized(const QString &password)
@@ -501,12 +526,6 @@ void API::logout()
     // Stop listenig for ADMIN ACCESS protected signals
     disconnect(_authManager, &AuthManager::newPendingTokenRequest, this, &API::onPendingTokenRequest);
     stopDataConnectionss();
-}
-
-void API::checkTokenResponse(bool success, QObject *caller, const QString &token, const QString &comment, const QString &id)
-{
-    if (this == caller)
-        emit onTokenResponse(success, token, comment, id);
 }
 
 void API::stopDataConnectionss()

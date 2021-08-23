@@ -105,11 +105,12 @@ protected:
 private:
 
 	///
-	/// Test if the device is a (or the) lightpack we are looking for
+	/// Search for a LightPack Device (first one found or matching a given serial number)
 	///
-	/// @return Zero on succes else negative
+	/// @param[in] requestedSerialNumber serial number of Lightpack to be search
+	/// @return True on Lightpack found
 	///
-	int testAndOpen(libusb_device * device, const QString & requestedSerialNumber);
+	bool searchDevice(libusb_device * device, const QString & requestedSerialNumber);
 
 	/// write bytes to the device
 	int writeBytes(uint8_t *data, int size);
@@ -123,8 +124,11 @@ private:
 		int minorVersion;
 	};
 
-	static libusb_device_handle * openDevice(libusb_device * device);
-	static QString getString(libusb_device * device, int stringDescriptorIndex);
+
+	int openDevice(libusb_device *device, libusb_device_handle ** deviceHandle);
+	int closeDevice(libusb_device_handle * deviceHandle);
+
+	QString getProperty(libusb_device * device, int stringDescriptorIndex);
 
 	/// libusb context
 	libusb_context * _libusbContext;

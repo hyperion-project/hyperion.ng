@@ -1839,7 +1839,14 @@ JSONEditor.AbstractEditor = Class.extend({
     this.parent = null;
   },
   getDefault: function() {
-    if(this.schema["default"]) return this.schema["default"];
+    var def = this.schema["default"];
+    if(def) {
+      if (typeof def === "string") {
+        return $.i18n(def);
+      } else {
+        return def;
+      }
+    }
     if(this.schema["enum"]) return this.schema["enum"][0];
 
     var type = this.schema.type || this.schema.oneOf;

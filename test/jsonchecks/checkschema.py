@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import json, sys, glob
+import json, sys
 from os import path
 from jsonschema import Draft3Validator, RefResolver
 

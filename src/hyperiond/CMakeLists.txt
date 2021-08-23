@@ -12,7 +12,7 @@ find_package(Qt6Widgets REQUIRED)
 if (WIN32)
 	include(${CMAKE_SOURCE_DIR}/cmake/win/win_rc.cmake)
 	generate_win_rc_file(hyperiond)
-endif()
+endif(WIN32)
 
 add_executable(hyperiond
 	console.h
@@ -27,7 +27,7 @@ add_executable(hyperiond
 # promote hyperiond as GUI app
 if (WIN32)
 	target_link_options(hyperiond PUBLIC /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup)
-endif()
+endif(WIN32)
 
 target_link_libraries(hyperiond
 	commandline
@@ -52,14 +52,14 @@ endif()
 
 if (ENABLE_AVAHI)
 	target_link_libraries(hyperiond bonjour)
-endif ()
+endif (ENABLE_AVAHI)
 
 if (ENABLE_AMLOGIC)
 	target_link_libraries(hyperiond
 		Qt6::Core
 		pcre16 dl z
 	)
-endif()
+endif(ENABLE_AMLOGIC)
 
 if (ENABLE_DISPMANX)
 	IF ( "${PLATFORM}" MATCHES rpi)
@@ -70,42 +70,51 @@ if (ENABLE_DISPMANX)
 		SET(BCM_LIBRARIES "")
 	ENDIF()
 	target_link_libraries(hyperiond dispmanx-grabber)
-endif ()
+endif (ENABLE_DISPMANX)
 
 if (ENABLE_FB)
 	target_link_libraries(hyperiond framebuffer-grabber)
-endif ()
+endif (ENABLE_FB)
 
 if (ENABLE_OSX)
 	target_link_libraries(hyperiond osx-grabber)
-endif ()
+endif (ENABLE_OSX)
 
 if (ENABLE_V4L2)
 	target_link_libraries(hyperiond v4l2-grabber)
 endif ()
 
+if (ENABLE_MF)
+	target_link_libraries(hyperiond mf-grabber)
+endif (ENABLE_MF)
+
 if (ENABLE_AMLOGIC)
 	target_link_libraries(hyperiond amlogic-grabber)
-endif ()
+endif (ENABLE_AMLOGIC)
 
 if (ENABLE_X11)
 	if(APPLE)
 		include_directories("/opt/X11/include")
 	endif(APPLE)
 	target_link_libraries(hyperiond	x11-grabber)
-endif ()
+endif (ENABLE_X11)
 
 if (ENABLE_XCB)
 	target_link_libraries(hyperiond	xcb-grabber)
-endif ()
+endif (ENABLE_XCB)
 
 if (ENABLE_QT)
 	target_link_libraries(hyperiond	qt-grabber)
-endif ()
+endif (ENABLE_QT)
+
+if (ENABLE_DX)
+	include_directories(${DIRECTX9_INCLUDE_DIRS})
+	target_link_libraries(hyperiond	directx-grabber)
+endif (ENABLE_DX)
 
 if (ENABLE_CEC)
         target_link_libraries(hyperiond cechandler)
-endif ()
+endif (ENABLE_CEC)
 
 if(NOT WIN32)
 	install ( TARGETS hyperiond DESTINATION "share/hyperion/bin" COMPONENT "Hyperion" )
@@ -131,11 +140,23 @@ if(CMAKE_HOST_UNIX)
 	install( CODE "FILE (REMOVE ${CMAKE_BINARY_DIR}/symlink_hyperiond )" COMPONENT "Hyperion" )
 endif()
 
-# Copy dependencies (not for OSX)
-include(${CMAKE_SOURCE_DIR}/cmake/Dependencies.cmake)
+# Deploy Qt DLLs into the binary folder.
+# This is necessary for starting the application from within the IDE
+if(WIN32)
+	get_target_property(QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
+	get_filename_component(QT_BIN_DIR "${QT_QMAKE_EXECUTABLE}" DIRECTORY)
+	find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${QT_BIN_DIR}")
+	set(WINDEPLOYQT_PARAMS --verbose 0 --no-compiler-runtime --no-opengl-sw --no-system-d3d-compiler)
+	add_custom_command(TARGET hyperiond POST_BUILD COMMAND ${WINDEPLOYQT_EXECUTABLE} ${WINDEPLOYQT_PARAMS} "$<TARGET_FILE:hyperiond>")
+endif()
 
-if (NOT ENABLE_OSX AND NOT WIN32) # Unix
-	DeployUnix("hyperiond")
-elseif(WIN32) # Windows
-	DeployWindows("hyperiond")
-endif ()
+if(ENABLE_DEPLOY_DEPENDENCIES)
+	# Deploy all dependencies for package creation (not for OSX)
+	include(${CMAKE_SOURCE_DIR}/cmake/Dependencies.cmake)
+
+	if (NOT ENABLE_OSX AND NOT WIN32) # Unix
+		DeployUnix("hyperiond")
+	elseif(WIN32) # Windows
+		DeployWindows("hyperiond")
+	endif ()
+endif(ENABLE_DEPLOY_DEPENDENCIES)

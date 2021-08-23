@@ -17,9 +17,11 @@ class MetaTable : public DBManager
 
 public:
 	/// construct wrapper with plugins table and columns
-	MetaTable(QObject* parent = nullptr)
+	MetaTable(QObject* parent = nullptr, bool readonlyMode = false)
 		: DBManager(parent)
 	{
+		setReadonlyMode(readonlyMode);
+
 		setTable("meta");
 		createTable(QStringList()<<"uuid TEXT"<<"created_at TEXT");
 	};

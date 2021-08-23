@@ -1,5 +1,9 @@
 $(document).ready( function() {
 	performTranslation();
+
+	// update instance listing
+	updateHyperionInstanceListing();
+
 	var oldEffects = [];
 	var effects_editor = null;
 	var confFgEff = window.serverConfig.foregroundEffect.effect;
@@ -12,12 +16,12 @@ $(document).ready( function() {
 		//foreground effect
 		$('#conf_cont').append(createRow('conf_cont_fge'));
 		$('#conf_cont_fge').append(createOptPanel('fa-spinner', $.i18n("edt_conf_fge_heading_title"), 'editor_container_foregroundEffect', 'btn_submit_foregroundEffect'));
-		$('#conf_cont_fge').append(createHelpTable(window.schema.foregroundEffect.properties, $.i18n("edt_conf_fge_heading_title")));
+    $('#conf_cont_fge').append(createHelpTable(window.schema.foregroundEffect.properties, $.i18n("edt_conf_fge_heading_title"), "foregroundEffectHelpPanelId"));
 
 		//background effect
 		$('#conf_cont').append(createRow('conf_cont_bge'));
 		$('#conf_cont_bge').append(createOptPanel('fa-spinner', $.i18n("edt_conf_bge_heading_title"), 'editor_container_backgroundEffect', 'btn_submit_backgroundEffect'));
-		$('#conf_cont_bge').append(createHelpTable(window.schema.backgroundEffect.properties, $.i18n("edt_conf_bge_heading_title")));
+    $('#conf_cont_bge').append(createHelpTable(window.schema.backgroundEffect.properties, $.i18n("edt_conf_bge_heading_title"), "backgroundEffectHelpPanelId"));
 
 		//effect path
 		if(storedAccess != 'default')
@@ -43,7 +47,7 @@ $(document).ready( function() {
 		}, true, true);
 
 		effects_editor.on('change',function() {
-			effects_editor.validate().length ? $('#btn_submit_effects').attr('disabled', true) : $('#btn_submit_effects').attr('disabled', false);
+			effects_editor.validate().length || window.readOnlyMode ? $('#btn_submit_effects').attr('disabled', true) : $('#btn_submit_effects').attr('disabled', false);
 		});
 
 		$('#btn_submit_effects').off().on('click',function() {
@@ -64,12 +68,32 @@ $(document).ready( function() {
 		updateEffectlist();
 	});
 
-	foregroundEffect_editor.on('change',function() {
-		foregroundEffect_editor.validate().length ? $('#btn_submit_foregroundEffect').attr('disabled', true) : $('#btn_submit_foregroundEffect').attr('disabled', false);
+  foregroundEffect_editor.on('change', function () {
+    var foregroundEffectEnable = foregroundEffect_editor.getEditor("root.foregroundEffect.enable").getValue();
+    if (foregroundEffectEnable) {
+      showInputOptionsForKey(foregroundEffect_editor, "foregroundEffect", "enable", true);
+      $('#foregroundEffectHelpPanelId').show();
+
+    } else {
+      showInputOptionsForKey(foregroundEffect_editor, "foregroundEffect", "enable", false);
+      $('#foregroundEffectHelpPanelId').hide();
+    }
+
+		foregroundEffect_editor.validate().length || window.readOnlyMode ? $('#btn_submit_foregroundEffect').attr('disabled', true) : $('#btn_submit_foregroundEffect').attr('disabled', false);
 	});
 
-	backgroundEffect_editor.on('change',function() {
-		backgroundEffect_editor.validate().length ? $('#btn_submit_backgroundEffect').attr('disabled', true) : $('#btn_submit_backgroundEffect').attr('disabled', false);
+  backgroundEffect_editor.on('change', function () {
+    var backgroundEffectEnable = backgroundEffect_editor.getEditor("root.backgroundEffect.enable").getValue();
+    if (backgroundEffectEnable) {
+      showInputOptionsForKey(backgroundEffect_editor, "backgroundEffect", "enable", true);
+      $('#backgroundEffectHelpPanelId').show();
+
+    } else {
+      showInputOptionsForKey(backgroundEffect_editor, "backgroundEffect", "enable", false);
+      $('#backgroundEffectHelpPanelId').hide();
+    }
+
+		backgroundEffect_editor.validate().length || window.readOnlyMode ? $('#btn_submit_backgroundEffect').attr('disabled', true) : $('#btn_submit_backgroundEffect').attr('disabled', false);
 	});
 
 	$('#btn_submit_foregroundEffect').off().on('click',function() {

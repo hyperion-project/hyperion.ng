@@ -85,6 +85,17 @@ void WebSocketClient::handleWebSocketFrame()
 			case OPCODE::BINARY:
 			case OPCODE::TEXT:
 			{
+				// A fragmented message consists of a single frame with the FIN bit
+				// clear and an opcode other than 0, followed by zero or more frames
+				// with the FIN bit clear and the opcode set to 0, and terminated by
+				// a single frame with the FIN bit set and an opcode of 0.
+				//
+				// Store frame type given by first frame
+				if (_wsh.opCode != OPCODE::CONTINUATION )
+				{
+					_frameOpCode = _wsh.opCode;
+				}
+
 				// check for protocol violations
 				if (_onContinuation && !isContinuation)
 				{
@@ -117,15 +128,15 @@ void WebSocketClient::handleWebSocketFrame()
 				if (_wsh.fin)
 				{
 					_onContinuation = false;
-				if (_wsh.opCode == OPCODE::TEXT)
-				{
 
+					if (_frameOpCode == OPCODE::TEXT)
+					{
 						_jsonAPI->handleMessage(QString(_wsReceiveBuffer));
-				}
-				else
-				{
-					handleBinaryMessage(_wsReceiveBuffer);
-				}
+					}
+					else
+					{
+						handleBinaryMessage(_wsReceiveBuffer);
+					}
 					_wsReceiveBuffer.clear();
 
 				}
@@ -223,7 +234,7 @@ void WebSocketClient::sendClose(int status, QString reason)
 		sendBuffer.append(quint8(length));
 	}
 
-	sendBuffer.append(reason);
+	sendBuffer.append(reason.toUtf8());
 
 	_socket->write(sendBuffer);
 	_socket->flush();
@@ -274,7 +285,7 @@ qint64 WebSocketClient::sendMessage(QJsonObject obj)
 		quint64 position  = i * FRAME_SIZE_IN_BYTES;
 		quint32 frameSize = (payloadSize-position >= FRAME_SIZE_IN_BYTES) ? FRAME_SIZE_IN_BYTES : (payloadSize-position);
 
-		QByteArray buf = makeFrameHeader(OPCODE::TEXT, frameSize, isLastFrame);
+		QByteArray buf = makeFrameHeader((i == 0) ? OPCODE::TEXT : OPCODE::CONTINUATION, frameSize, isLastFrame);
 		sendMessage_Raw(buf);
 
 		qint64 written = sendMessage_Raw(payload+position,frameSize);

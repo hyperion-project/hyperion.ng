@@ -198,6 +198,16 @@ int main(int argc, char** argv)
 
 	parser.process(*qApp);
 
+	if (parser.isSet(versionOption))
+	{
+		std::cout
+			<< "Hyperion Ambilight Deamon" << std::endl
+			<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
+			<< "\tBuild Time: " << __DATE__ << " " << __TIME__ << std::endl;
+
+		return 0;
+	}
+
 	if (!parser.isSet(waitOption))
 	{
 		if (getProcessIdsByProcessName(processName).size() > 1)
@@ -246,16 +256,6 @@ int main(int argc, char** argv)
 		return 0;
 	}
 
-	if (parser.isSet(versionOption))
-	{
-		std::cout
-			<< "Hyperion Ambilight Deamon" << std::endl
-			<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
-			<< "\tBuild Time: " << __DATE__ << " " << __TIME__ << std::endl;
-
-		return 0;
-	}
-
 	if (parser.isSet(exportEfxOption))
 	{
 		Q_INIT_RESOURCE(EffectEngine);
@@ -263,7 +263,7 @@ int main(int argc, char** argv)
 		QDir destDir(exportEfxOption.value(parser));
 		if (directory.exists() && destDir.exists())
 		{
-			std::cout << "extract to folder: " << std::endl;
+			std::cout << "Extract to folder: " << destDir.absolutePath().toStdString() << std::endl;
 			QStringList filenames = directory.entryList(QStringList() << "*", QDir::Files, QDir::Name | QDir::IgnoreCase);
 			QString destFileName;
 			for (const QString & filename : filenames)
@@ -276,68 +276,126 @@ int main(int argc, char** argv)
 				if (QFile::copy(QString(":/effects/")+filename, destFileName))
 				{
 					QFile::setPermissions(destFileName, PERM0664 );
-					std::cout << "ok" << std::endl;
+					std::cout << "OK" << std::endl;
 				}
 				else
 				{
-					 std::cout << "error, aborting" << std::endl;
-					 return 1;
+					std::cout << "Error, aborting" << std::endl;
+					return 1;
 				}
 			}
 			return 0;
 		}
 
-		Error(log, "can not export to %s",exportEfxOption.getCString(parser));
+		Error(log, "Can not export to %s",exportEfxOption.getCString(parser));
 		return 1;
 	}
 
 	int rc = 1;
+	bool readonlyMode = false;
+
+	QString userDataPath(userDataOption.value(parser));
+
+	QDir userDataDirectory(userDataPath);
+	QFileInfo dbFile(userDataDirectory.absolutePath() +"/db/hyperion.db");
 
 	try
 	{
-		// handle and create userDataPath for user data, default path is home directory + /.hyperion
-		// NOTE: No further checks inside Hyperion. FileUtils::writeFile() will resolve permission errors and others that occur during runtime
-		QString userDataPath(userDataOption.value(parser));
-		QDir mDir(userDataPath);
-		QFileInfo mFi(userDataPath);
-		if(!mDir.mkpath(userDataPath) || !mFi.isWritable() || !mDir.isReadable())
-			throw std::runtime_error("The user data path '"+mDir.absolutePath().toStdString()+"' can't be created or isn't read/writeable. Please setup permissions correctly!");
 
-		Info(log, "Set user data path to '%s'", QSTRING_CSTR(mDir.absolutePath()));
+
+		if (dbFile.exists())
+		{
+			if (!dbFile.isReadable())
+			{
+				throw std::runtime_error("Configuration database '" + dbFile.absoluteFilePath().toStdString() + "' is not readable. Please setup permissions correctly!");
+			}
+			else
+			{
+				if (!dbFile.isWritable())
+				{
+					readonlyMode = true;
+				}
+			}
+		}
+		else
+		{
+			if (!userDataDirectory.mkpath(dbFile.absolutePath()))
+			{
+				if (!userDataDirectory.isReadable() || !dbFile.isWritable())
+				{
+					throw std::runtime_error("The user data path '" + userDataDirectory.absolutePath().toStdString() + "' can't be created or isn't read/writeable. Please setup permissions correctly!");
+				}
+			}
+		}
 
 		// reset Password without spawning daemon
 		if(parser.isSet(resetPassword))
 		{
-			AuthTable* table = new AuthTable(userDataPath);
-			if(table->resetHyperionUser()){
-				Info(log,"Password reset successfull");
-				delete table;
-				exit(0);
-			} else {
-				Error(log,"Failed to reset password!");
-				delete table;
-				exit(1);
+			if ( readonlyMode )
+			{
+				Error(log,"Password reset is not possible. The user data path '%s' is not writeable.", QSTRING_CSTR(userDataDirectory.absolutePath()));
+				throw std::runtime_error("Password reset failed");
+			}
+			else
+			{
+				AuthTable* table = new AuthTable(userDataDirectory.absolutePath());
+				if(table->resetHyperionUser()){
+					Info(log,"Password reset successful");
+					delete table;
+					exit(0);
+				} else {
+					Error(log,"Failed to reset password!");
+					delete table;
+					exit(1);
+				}
 			}
 		}
 
 		// delete database before start
 		if(parser.isSet(deleteDB))
 		{
-			const QString dbFile = mDir.absolutePath() + "/db/hyperion.db";
-			if (QFile::exists(dbFile))
+			if ( readonlyMode )
 			{
-				if (!QFile::remove(dbFile))
+				Error(log,"Deleting the configuration database is not possible. The user data path '%s' is not writeable.", QSTRING_CSTR(dbFile.absolutePath()));
+				throw std::runtime_error("Deleting the configuration database failed");
+			}
+			else
+			{
+				if (QFile::exists(dbFile.absoluteFilePath()))
 				{
-					Info(log,"Failed to delete Database!");
-					exit(1);
+					if (!QFile::remove(dbFile.absoluteFilePath()))
+					{
+						Info(log,"Failed to delete Database!");
+						exit(1);
+					}
+					else
+					{
+						Info(log,"Configuration database deleted successfully.");
+					}
+				}
+				else
+				{
+					Warning(log,"Configuration database [%s] does not exist!", QSTRING_CSTR(dbFile.absoluteFilePath()));
 				}
 			}
+		}
+
+		Info(log,"Starting Hyperion - %s, %s, built: %s:%s", HYPERION_VERSION, HYPERION_BUILD_ID, __DATE__, __TIME__);
+		Debug(log,"QtVersion [%s]", QT_VERSION_STR);
+
+		if ( !readonlyMode )
+		{
+			Info(log, "Set user data path to '%s'", QSTRING_CSTR(userDataDirectory.absolutePath()));
+		}
+		else
+		{
+			Warning(log,"The user data path '%s' is not writeable. Hyperion starts in read-only mode. Configuration updates will not be persisted!", QSTRING_CSTR(userDataDirectory.absolutePath()));
 		}
 
 		HyperionDaemon* hyperiond = nullptr;
 		try
 		{
-			hyperiond = new HyperionDaemon(userDataPath, qApp, bool(logLevelCheck));
+			hyperiond = new HyperionDaemon(userDataDirectory.absolutePath(), qApp, bool(logLevelCheck), readonlyMode);
 		}
 		catch (std::exception& e)
 		{
@@ -368,5 +426,13 @@ int main(int argc, char** argv)
 
 	// delete components
 	Logger::deleteInstance();
+
+#ifdef _WIN32
+	if (parser.isSet(consoleOption))
+	{
+		system("pause");
+	}
+#endif
+
 	return rc;
 }

@@ -21,7 +21,7 @@ class AuthManager : public QObject
 private:
 	friend class HyperionDaemon;
 	/// constructor is private, can be called from HyperionDaemon
-	AuthManager(QObject *parent = 0);
+	AuthManager(QObject *parent = nullptr, bool readonlyMode = false);
 
 public:
 	struct AuthDefinition
@@ -29,6 +29,7 @@ public:
 		QString id;
 		QString comment;
 		QObject *caller;
+		int      tan;
 		uint64_t timeoutTime;
 		QString token;
 		QString lastUse;
@@ -142,16 +143,16 @@ public slots:
 	/// @param  caller  The QObject of the caller to deliver the reply
 	/// @param  comment The comment as ident helper
 	/// @param  id      The id created by the caller
+	/// @param  tan     The tan created by the caller
 	///
-	void setNewTokenRequest(QObject *caller, const QString &comment, const QString &id);
+	void setNewTokenRequest(QObject *caller, const QString &comment, const QString &id, const int &tan = 0);
 
 	///
 	/// @brief Cancel a pending token request with the provided comment and id as identifier helper
 	/// @param  caller  The QObject of the caller to deliver the reply
-	/// @param  comment The comment as ident helper
 	/// @param  id      The id created by the caller
 	///
-	void cancelNewTokenRequest(QObject *caller, const QString &comment, const QString &id);
+	void cancelNewTokenRequest(QObject *caller, const QString &, const QString &id);
 
 	///
 	/// @brief Handle a token request by id, generate token and inform token caller or deny
@@ -200,8 +201,9 @@ signals:
 	/// @param  token   The new token that is now valid
 	/// @param  comment The comment that was part of the request
 	/// @param  id      The id that was part of the request
+	/// @param  tan     The tan that was part of the request
 	///
-	void tokenResponse(bool success, QObject *caller, const QString &token, const QString &comment, const QString &id);
+	void tokenResponse(bool success, QObject *caller, const QString &token, const QString &comment, const QString &id, const int &tan);
 
 	///
 	/// @brief Emits whenever the token list changes

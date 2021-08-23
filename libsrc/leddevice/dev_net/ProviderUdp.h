@@ -21,12 +21,14 @@ public:
 	///
 	/// @brief Constructs an UDP LED-device
 	///
-	ProviderUdp(const QJsonObject &deviceConfig);
+	ProviderUdp(const QJsonObject& deviceConfig);
 
 	///
 	/// @brief Destructor of the UDP LED-device
 	///
 	~ProviderUdp() override;
+
+	QHostAddress getAddress() const { return _address; }
 
 protected:
 
@@ -36,7 +38,7 @@ protected:
 	/// @param[in] deviceConfig the JSON device configuration
 	/// @return True, if success
 	///
-	bool init(const QJsonObject &deviceConfig) override;
+	bool init(const QJsonObject& deviceConfig) override;
 
 	///
 	/// @brief Opens the output device.
@@ -53,18 +55,26 @@ protected:
 	int close() override;
 
 	///
-	/// @brief Writes the given bytes/bits to the UDP-device and sleeps the latch time to ensure that the
-	/// values are latched.
+	/// @brief Writes the given bytes to the UDP-device
 	///
 	/// @param[in] size The length of the data
 	/// @param[in] data The data
 	///
 	/// @return Zero on success, else negative
 	///
-	int writeBytes(const unsigned size, const uint8_t *data);
+	int writeBytes(const unsigned size, const uint8_t* data);
 
 	///
-	QUdpSocket * _udpSocket;
+	/// @brief Writes the given bytes to the UDP-device
+	///
+	/// @param[in] data The data
+	///
+	/// @return Zero on success, else negative
+	///
+	int writeBytes(const QByteArray& bytes);
+
+	///
+	QUdpSocket* _udpSocket;
 	QHostAddress _address;
 	quint16       _port;
 	QString      _defaultHost;

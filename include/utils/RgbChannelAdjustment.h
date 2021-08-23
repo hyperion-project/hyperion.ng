@@ -19,9 +19,6 @@ public:
 	/// @param adjustB
 	RgbChannelAdjustment(uint8_t adjustR, uint8_t adjustG, uint8_t adjustB, QString channelName="");
 
-	/// Destructor
-	~RgbChannelAdjustment();
-
 	///
 	/// Transform the given array value
 	///

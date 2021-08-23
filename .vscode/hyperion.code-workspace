@@ -16,9 +16,7 @@
 			"ms-vscode.cmake-tools",
 			"spmeesseman.vscode-taskexplorer",
 			"yzhang.markdown-all-in-one",
-			"formulahendry.auto-rename-tag",
 			"CoenraadS.bracket-pair-colorizer",
-			"eamodio.gitlens",
 			"vscode-icons-team.vscode-icons",
 			"editorconfig.editorconfig"
 		]

@@ -34,7 +34,10 @@ endif()
 SET ( CPACK_PACKAGE_NAME "Hyperion" )
 SET ( CPACK_PACKAGE_DESCRIPTION_SUMMARY "Hyperion is an open source ambient light implementation" )
 SET ( CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_SOURCE_DIR}/README.md" )
-SET ( CPACK_PACKAGE_FILE_NAME "Hyperion-${HYPERION_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
+
+# Replease "+", as cmake/rpm has an issue if "+" occurs in CPACK_PACKAGE_VERSION
+string(REPLACE "+" "." HYPERION_PACKAGE_VERSION ${HYPERION_VERSION})
+SET ( CPACK_PACKAGE_FILE_NAME "Hyperion-${HYPERION_PACKAGE_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 
 SET ( CPACK_PACKAGE_CONTACT "packages@hyperion-project.org")
 SET ( CPACK_PACKAGE_VENDOR "hyperion-project")
@@ -49,6 +52,11 @@ SET ( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE" )
 SET ( CPACK_PACKAGE_EXECUTABLES "hyperiond;Hyperion" )
 SET ( CPACK_CREATE_DESKTOP_LINKS "hyperiond;Hyperion" )
 
+# Append pre-release version to CPACK_PACKAGE_VERSION_PATCH if exists
+if (NOT "${HYPERION_VERSION_PRE}" STREQUAL "")
+	string(APPEND CPACK_PACKAGE_VERSION_PATCH ${HYPERION_VERSION_PRE})
+endif()
+
 # Define the install prefix path for cpack
 IF ( UNIX )
 	#SET ( CPACK_PACKAGING_INSTALL_PREFIX "share/hyperion")
@@ -58,7 +66,7 @@ ENDIF()
 # https://cmake.org/Wiki/CMake:CPackPackageGenerators
 # .deb files for apt
 SET ( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/preinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/postinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/prerm" )
-SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "libcec4" )
+SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "libcec6 | libcec4" )
 SET ( CPACK_DEBIAN_PACKAGE_SECTION "Miscellaneous" )
 
 # .rpm for rpm
@@ -66,7 +74,7 @@ SET ( CPACK_DEBIAN_PACKAGE_SECTION "Miscellaneous" )
 SET ( CPACK_RPM_PACKAGE_RELEASE 1 )
 SET ( CPACK_RPM_PACKAGE_LICENSE "MIT" )
 SET ( CPACK_RPM_PACKAGE_GROUP "Applications" )
-SET ( CPACK_RPM_PACKAGE_REQUIRES "libcec4" )
+SET ( CPACK_RPM_PACKAGE_REQUIRES "libcec >= 4.0.0" )
 SET ( CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/preinst" )
 SET ( CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/postinst" )
 SET ( CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/prerm" )
@@ -87,8 +95,8 @@ if(WIN32)
 	STRING(REGEX REPLACE "\\\\" "\\\\\\\\" CPACK_PACKAGE_ICON ${CPACK_PACKAGE_ICON})
 endif()
 file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/nsis/installer.ico" NSIS_HYP_ICO)
-file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/nsis/hyperion-logo.bmp" NSIS_HYP_LOGO_HORI)
-file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/nsis/hyperion-logo-vert.bmp" NSIS_HYP_LOGO_VERT)
+file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/nsis/header.bmp" NSIS_HYP_LOGO_HORI)
+file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/nsis/logo.bmp" NSIS_HYP_LOGO_VERT)
 STRING(REGEX REPLACE "\\\\" "\\\\\\\\" NSIS_HYP_ICO "${NSIS_HYP_ICO}")
 STRING(REGEX REPLACE "\\\\" "\\\\\\\\" NSIS_HYP_LOGO_VERT "${NSIS_HYP_LOGO_VERT}")
 STRING(REGEX REPLACE "\\\\" "\\\\\\\\" NSIS_HYP_LOGO_HORI "${NSIS_HYP_LOGO_HORI}")
@@ -105,18 +113,11 @@ SET ( CPACK_NSIS_HELP_LINK "https://www.hyperion-project.org")
 SET ( CPACK_NSIS_URL_INFO_ABOUT "https://www.hyperion-project.org")
 SET ( CPACK_NSIS_MUI_FINISHPAGE_RUN "hyperiond.exe")
 SET ( CPACK_NSIS_BRANDING_TEXT "Hyperion-${HYPERION_VERSION}")
+# custom nsis plugin directory
+SET ( CPACK_NSIS_EXTRA_DEFS "!addplugindir ${CMAKE_SOURCE_DIR}/cmake/nsis/plugins")
 # additional hyperiond startmenu link, won't be created if the user disables startmenu links
 SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Hyperion (Console).lnk' '$INSTDIR\\\\bin\\\\hyperiond.exe' '-d -c'")
 SET ( CPACK_NSIS_DELETE_ICONS_EXTRA "Delete '$SMPROGRAMS\\\\$MUI_TEMP\\\\Hyperion (Console).lnk'")
-
-
-#SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Hyperion.lnk' '$INSTDIR\\\\bin\\\\hyperiond.exe'")
-#SET ( CPACK_NSIS_DELETE_ICONS_EXTRA "Delete '$SMPROGRAMS\\\\$START_MENU\\\\Hyperion.lnk'")
-# hyperiond desktop link
-#SET ( CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '$DESKTOP\\\\Hyperion.lnk' '$INSTDIR\\\\bin\\\\hyperiond.exe' ")
-#SET ( CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Delete '$DESKTOP\\\\Hyperion.lnk' ")
-#SET ( CPACK_NSIS_EXTRA_INSTALL_COMMANDS "CreateShortCut \\\"$DESKTOP\\\\Hyperion.lnk\\\" \\\"$INSTDIR\\\\bin\\\\hyperiond.exe\\\" ")
-#SET ( CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "Delete \\\"$DESKTOP\\\\Hyperion.lnk\\\" ")
 
 # define the install components
 # See also https://gitlab.kitware.com/cmake/community/-/wikis/doc/cpack/Component-Install-With-CPack

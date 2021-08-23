@@ -8,22 +8,22 @@
 				"top": {
 					"type": "integer",
 					"minimum": 0,
-					"default": 8
+					"default": 1
 				},
 				"bottom": {
 					"type": "integer",
 					"minimum": 0,
-					"default": 8
+					"default": 0
 				},
 				"left": {
 					"type": "integer",
 					"minimum": 0,
-					"default": 5
+					"default": 0
 				},
 				"right": {
 					"type": "integer",
 					"minimum": 0,
-					"default": 5
+					"default": 0
 				},
 				"glength": {
 					"type": "integer",
@@ -135,15 +135,44 @@
 				},
 				"cabling": {
 					"type": "string",
-					"enum": ["snake", "parallel"]
+					"enum": [ "snake", "parallel" ]
 				},
 				"start": {
 					"type": "string",
-					"enum": ["top-left", "top-right", "bottom-left", "bottom-right"]
+					"enum": [ "top-left", "top-right", "bottom-left", "bottom-right" ]
 				}
 			},
 			"additionalProperties": false
+		},
+		"ledBlacklist": {
+			"type": "array",
+			"title": "conf_leds_layout_blacklist_rules_title",
+			"uniqueItems": true,
+			"items": {
+				"type": "object",
+				"title": "conf_leds_layout_blacklist_rule_title",
+				"required": true,
+				"properties": {
+					"start": {
+						"type": "integer",
+						"minimum": 0,
+						"default": 0,
+						"title": "conf_leds_layout_blacklist_start_title",
+						"required": true,
+						"propertyOrder": 1
+					},
+					"num": {
+						"type": "integer",
+						"minimum": 1,
+						"default": 1,
+						"title": "conf_leds_layout_blacklist_num_title",
+						"required": true,
+						"propertyOrder": 2
+					}
+				}
+			},
+			"propertyOrder": 1
 		}
 	},
-	"additionalProperties": true
-}
+		"additionalProperties": true
+	}

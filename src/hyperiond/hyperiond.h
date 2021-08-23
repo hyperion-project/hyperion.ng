@@ -10,10 +10,10 @@
 	typedef QObject DispmanxWrapper;
 #endif
 
-#ifdef ENABLE_V4L2
-	#include <grabber/V4L2Wrapper.h>
+#if defined(ENABLE_V4L2) || defined(ENABLE_MF)
+	#include <grabber/VideoWrapper.h>
 #else
-	typedef QObject V4L2Wrapper;
+	typedef QObject VideoWrapper;
 #endif
 
 #ifdef ENABLE_FB
@@ -52,6 +52,12 @@
 	typedef QObject QtWrapper;
 #endif
 
+#ifdef ENABLE_DX
+	#include <grabber/DirectXWrapper.h>
+#else
+	typedef QObject DirectXWrapper;
+#endif
+
 #include <utils/Logger.h>
 #include <utils/VideoMode.h>
 
@@ -80,18 +86,18 @@ class HyperionDaemon : public QObject
 	friend SysTray;
 
 public:
-	HyperionDaemon(QString rootPath, QObject *parent, bool logLvlOverwrite);
+	HyperionDaemon(const QString& rootPath, QObject *parent, bool logLvlOverwrite, bool readonlyMode = false);
 	~HyperionDaemon();
 
 	///
 	/// @brief Get webserver pointer (systray)
 	///
-	WebServer* getWebServerInstance() { return _webserver; };
+	WebServer *getWebServerInstance() { return _webserver; }
 
 	///
 	/// @brief Get the current videoMode
 	///
-	VideoMode getVideoMode() const { return _currVideoMode; };
+	VideoMode getVideoMode() const { return _currVideoMode; }
 
 	///
 	/// @brief get the settings
@@ -100,7 +106,7 @@ public:
 
 	void startNetworkServices();
 
-	static HyperionDaemon* getInstance() { return daemon; };
+	static HyperionDaemon* getInstance() { return daemon; }
 	static HyperionDaemon* daemon;
 
 public slots:
@@ -145,14 +151,15 @@ private slots:
 	void setVideoMode(VideoMode mode);
 
 private:
-	void createGrabberDispmanx();
-	void createGrabberAmlogic();
+	void createGrabberDispmanx(const QJsonObject & grabberConfig);
+	void createGrabberAmlogic(const QJsonObject & grabberConfig);
 	void createGrabberFramebuffer(const QJsonObject & grabberConfig);
 	void createGrabberOsx(const QJsonObject & grabberConfig);
 	void createGrabberX11(const QJsonObject & grabberConfig);
 	void createGrabberXcb(const QJsonObject & grabberConfig);
 	void createGrabberQt(const QJsonObject & grabberConfig);
 	void createCecHandler();
+	void createGrabberDx(const QJsonObject & grabberConfig);
 
 	Logger*                    _log;
 	HyperionIManager*          _instanceManager;
@@ -163,7 +170,7 @@ private:
 	WebServer*                 _webserver;
 	WebServer*                 _sslWebserver;
 	JsonServer*                _jsonServer;
-	V4L2Wrapper*               _v4l2Grabber;
+	VideoWrapper*              _videoGrabber;
 	DispmanxWrapper*           _dispmanx;
 	X11Wrapper*                _x11Grabber;
 	XcbWrapper*                _xcbGrabber;
@@ -171,20 +178,20 @@ private:
 	FramebufferWrapper*        _fbGrabber;
 	OsxWrapper*                _osxGrabber;
 	QtWrapper*                 _qtGrabber;
+	DirectXWrapper*            _dxGrabber;
 	SSDPHandler*               _ssdp;
 	CECHandler*                _cecHandler;
 	FlatBufferServer*          _flatBufferServer;
 	ProtoServer*               _protoServer;
 
-	unsigned                   _grabber_width;
-	unsigned                   _grabber_height;
-	unsigned                   _grabber_frequency;
-	unsigned                   _grabber_cropLeft;
-	unsigned                   _grabber_cropRight;
-	unsigned                   _grabber_cropTop;
-	unsigned                   _grabber_cropBottom;
-	int                        _grabber_ge2d_mode;
-	QString                    _grabber_device;
+	int                        _grabber_width;
+	int                        _grabber_height;
+	int                        _grabber_pixelDecimation;
+	int                        _grabber_frequency;
+	int                        _grabber_cropLeft;
+	int                        _grabber_cropRight;
+	int                        _grabber_cropTop;
+	int                        _grabber_cropBottom;
 
 	QString                    _prevType;
 

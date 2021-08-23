@@ -32,7 +32,7 @@ public:
 	///
 	/// @param deviceConfig Device's configuration as JSON-Object
 	///
-	explicit LedDeviceNanoleaf(const QJsonObject &deviceConfig);
+	explicit LedDeviceNanoleaf(const QJsonObject& deviceConfig);
 
 	///
 	/// @brief Destructor of the LED-device
@@ -44,14 +44,16 @@ public:
 	///
 	/// @param[in] deviceConfig Device's configuration as JSON-Object
 	/// @return LedDevice constructed
-	static LedDevice* construct(const QJsonObject &deviceConfig);
+	static LedDevice* construct(const QJsonObject& deviceConfig);
 
 	///
 	/// @brief Discover Nanoleaf devices available (for configuration).
 	///
+	/// @param[in] params Parameters used to overwrite discovery default behaviour
+	///
 	/// @return A JSON structure holding a list of devices found
 	///
-	QJsonObject discover() override;
+	QJsonObject discover(const QJsonObject& params) override;
 
 	///
 	/// @brief Get the Nanoleaf device's resource properties
@@ -93,7 +95,7 @@ protected:
 	/// @param[in] deviceConfig the JSON device configuration
 	/// @return True, if success
 	///
-	bool init(const QJsonObject &deviceConfig) override;
+	bool init(const QJsonObject& deviceConfig) override;
 
 	///
 	/// @brief Opens the output device.
@@ -108,7 +110,7 @@ protected:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	//////
-	int write(const std::vector<ColorRgb> & ledValues) override;
+	int write(const std::vector<ColorRgb>& ledValues) override;
 
 	///
 	/// @brief Power-/turn on the Nanoleaf device.
@@ -135,7 +137,7 @@ private:
 	///
 	/// @return True, if success
 	///
-	bool initRestAPI(const QString &hostname, int port, const QString &token );
+	bool initRestAPI(const QString& hostname, int port, const QString& token);
 
 	///
 	/// @brief Get Nanoleaf device details and configuration
@@ -147,9 +149,15 @@ private:
 	///
 	/// @brief Change Nanoleaf device to External Control (UDP) mode
 	///
-	/// @return Response from device
-	///@brief
-	QJsonDocument changeToExternalControlMode();
+	/// @return True, if success
+	bool changeToExternalControlMode();
+	///
+	/// @brief Change Nanoleaf device to External Control (UDP) mode
+	///
+	/// @param[out] response from device
+	///
+	/// @return True, if success
+	bool changeToExternalControlMode(QJsonDocument& resp);
 
 	///
 	/// @brief Get command to power Nanoleaf device on or off
@@ -157,26 +165,27 @@ private:
 	/// @param isOn True, if to switch on device
 	/// @return Command to switch device on/off
 	///
-	QString getOnOffRequest (bool isOn ) const;
+	QString getOnOffRequest(bool isOn) const;
 
 	///
-	/// @brief Convert vector to hex string
+	/// @brief Discover Nanoleaf devices available (for configuration).
+	/// Nanoleaf specific ssdp discovery
 	///
-	/// @param uint8_t vector
-	/// @return vector as string of hex values
-	std::string uint8_vector_to_hex_string( const std::vector<uint8_t>& buffer ) const;
+	/// @return A JSON structure holding a list of devices found
+	///
+	QJsonArray discover();
 
 	///REST-API wrapper
 	ProviderRestApi* _restApi;
 
-	QString _hostname;
+	QString _hostName;
 	int  _apiPort;
 	QString _authToken;
 
 	bool _topDown;
 	bool _leftRight;
-	uint _startPos;
-	uint _endPos;
+	int _startPos;
+	int _endPos;
 
 	//Nanoleaf device details
 	QString _deviceModel;
@@ -184,11 +193,10 @@ private:
 	ushort _extControlVersion;
 
 	/// The number of panels with LEDs
-	uint _panelLedCount;
+	int _panelLedCount;
 
 	/// Array of the panel ids.
-	QVector<uint> _panelIds;
-
+	QVector<int> _panelIds;
 };
 
 #endif // LEDEVICENANOLEAF_H

@@ -2,18 +2,18 @@
 // QT includes
 #include <QTimer>
 
-// Hyperion-Dispmanx includes
 #include <grabber/DispmanxFrameGrabber.h>
+#include <hyperion/GrabberWrapper.h>
 
 class DispmanxWrapper : public QObject
 {
 	Q_OBJECT
 public:
-	DispmanxWrapper(unsigned grabWidth, unsigned grabHeight,
-		VideoMode videoMode,
-		unsigned cropLeft, unsigned cropRight,
-		unsigned cropTop, unsigned cropBottom,
-		unsigned updateRate_Hz);
+	DispmanxWrapper( int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ,
+					 int pixelDecimation=GrabberWrapper::DEFAULT_PIXELDECIMATION,
+					 int cropLeft=0, int cropRight=0,
+					 int cropTop=0, int cropBottom=0
+					 );
 
 	const Image<ColorRgb> & getScreenshot();
 
@@ -24,8 +24,17 @@ public:
 
 	void stop();
 
+	bool screenInit();
+
 signals:
 	void sig_screenshot(const Image<ColorRgb> & screenshot);
+
+public slots:
+	///
+	/// Set the video mode (2D/3D)
+	/// @param[in] mode The new video mode
+	///
+	void setVideoMode(VideoMode videoMode);
 
 private slots:
 	///

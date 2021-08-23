@@ -14,30 +14,24 @@
 // util includes
 #include <utils/PixelFormat.h>
 #include <hyperion/Grabber.h>
-#include <grabber/VideoStandard.h>
+#include <hyperion/GrabberWrapper.h>
+#include <utils/VideoStandard.h>
 #include <utils/Components.h>
-#include <cec/CECEvent.h>
 
-// general JPEG decoder includes
-#ifdef HAVE_JPEG_DECODER
-	#include <QImage>
-	#include <QColor>
+// decoder thread includes
+#include <grabber/EncoderThread.h>
+
+// Determine the cmake options
+#include <HyperionConfig.h>
+
+#if defined(ENABLE_CEC)
+	#include <cec/CECEvent.h>
 #endif
 
-// System JPEG decoder
-#ifdef HAVE_JPEG
-	#include <jpeglib.h>
-	#include <csetjmp>
-#endif
-
-// TurboJPEG decoder
-#ifdef HAVE_TURBO_JPEG
-	#include <turbojpeg.h>
-#endif
-
+///
 /// Capture class for V4L2 devices
 ///
-/// @see http://linuxtv.org/downloads/v4l-dvb-apis/capture-example.html
+
 class V4L2Grabber : public Grabber
 {
 	Q_OBJECT
@@ -45,118 +39,67 @@ class V4L2Grabber : public Grabber
 public:
 	struct DeviceProperties
 	{
-		QString					name		= QString();
-		QMultiMap<QString, int>	inputs		= QMultiMap<QString, int>();
-		QStringList				resolutions	= QStringList();
-		QStringList				framerates	= QStringList();
+		QString name = QString();
+		struct InputProperties
+		{
+			QString inputName = QString();
+			QList<VideoStandard> standards = QList<VideoStandard>();
+			struct EncodingProperties
+			{
+				int width		= 0;
+				int height		= 0;
+				QList<int> framerates	= QList<int>();
+			};
+			QMultiMap<PixelFormat, EncodingProperties> encodingFormats = QMultiMap<PixelFormat, EncodingProperties>();
+		};
+		QMap<int, InputProperties> inputs = QMap<int, InputProperties>();
 	};
 
-	V4L2Grabber(const QString & device,
-			const unsigned width,
-			const unsigned height,
-			const unsigned fps,
-			const unsigned input,
-			VideoStandard videoStandard,
-			PixelFormat pixelFormat,
-			int pixelDecimation
-	);
+	struct DeviceControls
+	{
+		QString property = QString();
+		int minValue = 0;
+		int maxValue = 0;
+		int step = 0;
+		int defaultValue = 0;
+		int currentValue = 0;
+	};
+
+	V4L2Grabber();
 	~V4L2Grabber() override;
 
-	QRectF getSignalDetectionOffset() const
-	{
-		return QRectF(_x_frac_min, _y_frac_min, _x_frac_max, _y_frac_max);
-	}
-
-	bool getSignalDetectionEnabled() const { return _signalDetectionEnabled; }
-	bool getCecDetectionEnabled() const { return _cecDetectionEnabled; }
-
 	int grabFrame(Image<ColorRgb> &);
-
-	///
-	/// @brief  set new PixelDecimation value to ImageResampler
-	/// @param  pixelDecimation  The new pixelDecimation value
-	///
-	void setPixelDecimation(int pixelDecimation) override;
-
-	///
-	/// @brief  overwrite Grabber.h implementation
-	///
-	void setSignalThreshold(
-					double redSignalThreshold,
-					double greenSignalThreshold,
-					double blueSignalThreshold,
-					int noSignalCounterThreshold = 50) override;
-
-	///
-	/// @brief  overwrite Grabber.h implementation
-	///
-	void setSignalDetectionOffset(
-					double verticalMin,
-					double horizontalMin,
-					double verticalMax,
-					double horizontalMax) override;
-	///
-	/// @brief  overwrite Grabber.h implementation
-	///
-	void setSignalDetectionEnable(bool enable) override;
-
-	///
-	/// @brief  overwrite Grabber.h implementation
-	///
-	void setCecDetectionEnable(bool enable) override;
-
-	///
-	/// @brief overwrite Grabber.h implementation
-	///
-	void setDeviceVideoStandard(QString device, VideoStandard videoStandard) override;
-
-	///
-	/// @brief overwrite Grabber.h implementation
-	///
+	void setDevice(const QString& devicePath, const QString& deviceName);
 	bool setInput(int input) override;
-
-	///
-	/// @brief overwrite Grabber.h implementation
-	///
 	bool setWidthHeight(int width, int height) override;
+	void setEncoding(QString enc);
+	void setBrightnessContrastSaturationHue(int brightness, int contrast, int saturation, int hue);
+	void setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold, int noSignalCounterThreshold = 50);
+	void setSignalDetectionOffset( double verticalMin, double horizontalMin, double verticalMax, double horizontalMax);
+	void setSignalDetectionEnable(bool enable);
+	void setCecDetectionEnable(bool enable);
+	bool reload(bool force = false);
+
+	QRectF getSignalDetectionOffset() const { return QRectF(_x_frac_min, _y_frac_min, _x_frac_max, _y_frac_max); } //used from hyperion-v4l2
+
+
 
 	///
-	/// @brief overwrite Grabber.h implementation
+	/// @brief Discover available V4L2 USB devices (for configuration).
+	/// @param[in] params Parameters used to overwrite discovery default behaviour
+	/// @return A JSON structure holding a list of USB devices found
 	///
-	bool setFramerate(int fps) override;
-
-	///
-	/// @brief overwrite Grabber.h implementation
-	///
-	QStringList getV4L2devices() const override;
-
-	///
-	/// @brief overwrite Grabber.h implementation
-	///
-	QString getV4L2deviceName(const QString& devicePath) const override;
-
-	///
-	/// @brief overwrite Grabber.h implementation
-	///
-	QMultiMap<QString, int> getV4L2deviceInputs(const QString& devicePath) const override;
-
-	///
-	/// @brief overwrite Grabber.h implementation
-	///
-	QStringList getResolutions(const QString& devicePath) const override;
-
-	///
-	/// @brief overwrite Grabber.h implementation
-	///
-	QStringList getFramerates(const QString& devicePath) const override;
+	QJsonArray discover(const QJsonObject& params);
 
 public slots:
-
+	bool prepare();
 	bool start();
-
 	void stop();
+	void newThreadFrame(Image<ColorRgb> image);
 
+#if defined(ENABLE_CEC)
 	void handleCecEvent(CECEvent event);
+#endif
 
 signals:
 	void newFrame(const Image<ColorRgb> & image);
@@ -166,36 +109,19 @@ private slots:
 	int read_frame();
 
 private:
-	void getV4Ldevices();
-
 	bool init();
-
 	void uninit();
-
 	bool open_device();
-
 	void close_device();
-
 	void init_read(unsigned int buffer_size);
-
 	void init_mmap();
-
 	void init_userp(unsigned int buffer_size);
-
 	void init_device(VideoStandard videoStandard);
-
 	void uninit_device();
-
 	void start_capturing();
-
 	void stop_capturing();
-
 	bool process_image(const void *p, int size);
-
-	void process_image(const uint8_t *p, int size);
-
 	int xioctl(int request, void *arg);
-
 	int xioctl(int fileDescriptor, int request, void *arg);
 
 	void throw_exception(const QString & error)
@@ -222,56 +148,28 @@ private:
 			size_t  length;
 	};
 
-#ifdef HAVE_JPEG
-	struct errorManager
-	{
-		jpeg_error_mgr pub;
-		jmp_buf setjmp_buffer;
-	};
-
-	static void errorHandler(j_common_ptr cInfo)
-	{
-		errorManager* mgr = reinterpret_cast<errorManager*>(cInfo->err);
-		longjmp(mgr->setjmp_buffer, 1);
-	}
-
-	static void outputHandler(j_common_ptr cInfo)
-	{
-		// Suppress fprintf warnings.
-	}
-
-	jpeg_decompress_struct* _decompress;
-	errorManager* _error;
-#endif
-
-#ifdef HAVE_TURBO_JPEG
-	tjhandle _decompress = nullptr;
-	int _subsamp;
-#endif
-
 private:
-	QString _deviceName;
-	std::map<QString, QString> _v4lDevices;
+	QString _currentDevicePath, _currentDeviceName;
+	EncoderThreadManager* _threadManager;
 	QMap<QString, V4L2Grabber::DeviceProperties> _deviceProperties;
+	QMap<QString, QList<DeviceControls>> _deviceControls;
 
-	VideoStandard       _videoStandard;
 	io_method           _ioMethod;
 	int                 _fileDescriptor;
 	std::vector<buffer> _buffers;
 
-	PixelFormat _pixelFormat;
-	int         _pixelDecimation;
+	PixelFormat _pixelFormat, _pixelFormatConfig;
 	int         _lineLength;
 	int         _frameByteSize;
+
+	QAtomicInt _currentFrame;
 
 	// signal detection
 	int      _noSignalCounterThreshold;
 	ColorRgb _noSignalThresholdColor;
-	bool     _signalDetectionEnabled;
-	bool     _cecDetectionEnabled;
-	bool     _cecStandbyActivated;
-	bool     _noSignalDetected;
+	bool     _cecDetectionEnabled, _cecStandbyActivated, _signalDetectionEnabled, _noSignalDetected;
 	int      _noSignalCounter;
+	int		_brightness, _contrast, _saturation, _hue;
 	double   _x_frac_min;
 	double   _y_frac_min;
 	double   _x_frac_max;
@@ -279,9 +177,9 @@ private:
 
 	QSocketNotifier *_streamNotifier;
 
-	bool _initialized;
-	bool _deviceAutoDiscoverEnabled;
+	bool _initialized, _reload;
 
 protected:
-	void enumFrameIntervals(QStringList &framerates, int fileDescriptor, int pixelformat, int width, int height);
+	void enumVideoCaptureDevices();
+	void enumFrameIntervals(QList<int> &framerates, int fileDescriptor, int pixelformat, int width, int height);
 };

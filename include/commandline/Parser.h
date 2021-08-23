@@ -1,7 +1,6 @@
 #pragma once
 
 #include <QtCore>
-#include <QtGui>
 #include "ColorOption.h"
 #include "ColorsOption.h"
 #include "DoubleOption.h"
@@ -24,8 +23,8 @@ protected:
 	/* No public inheritance because we need to modify a few methods */
 	QCommandLineParser _parser;
 
-	QStringList _getNames(const char shortOption, const QString longOption);
-	QString _getDescription(const QString description, const QString default_=QString());
+	QStringList _getNames(const char shortOption, const QString& longOption);
+	QString _getDescription(const QString& description, const QString& default_=QString());
 
 public:
 	~Parser() override;
@@ -97,24 +96,24 @@ public:
 	{
 		if(description.size())
 			setApplicationDescription(description);
-	};
+	}
 
 	QCommandLineOption addHelpOption()
 	{
 		return _parser.addHelpOption();
-	};
+	}
 
 	bool addOption(Option &option);
 	bool addOption(Option *option);
 	void addPositionalArgument(const QString &name, const QString &description, const QString &syntax = QString())
 	{
 		_parser.addPositionalArgument(name, description, syntax);
-	};
+	}
 
 	QCommandLineOption addVersionOption()
 	{
 		return _parser.addVersionOption();
-	};
+	}
 
 	QString applicationDescription() const
 	{
@@ -166,7 +165,7 @@ public:
 		_parser.setSingleDashWordOptionMode(singleDashWordOptionMode);
 	}
 
-	void showHelp(int exitCode = 0)
+	[[ noreturn ]] void showHelp(int exitCode = 0)
 	{
 		_parser.showHelp(exitCode);
 	}

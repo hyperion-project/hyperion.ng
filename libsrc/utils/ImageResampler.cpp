@@ -3,28 +3,15 @@
 #include <utils/Logger.h>
 
 ImageResampler::ImageResampler()
-	: _horizontalDecimation(1)
-	, _verticalDecimation(1)
+	: _horizontalDecimation(8)
+	, _verticalDecimation(8)
 	, _cropLeft(0)
 	, _cropRight(0)
 	, _cropTop(0)
 	, _cropBottom(0)
 	, _videoMode(VideoMode::VIDEO_2D)
+	, _flipMode(FlipMode::NO_CHANGE)
 {
-}
-
-ImageResampler::~ImageResampler()
-{
-}
-
-void ImageResampler::setHorizontalPixelDecimation(int decimator)
-{
-	_horizontalDecimation = decimator;
-}
-
-void ImageResampler::setVerticalPixelDecimation(int decimator)
-{
-	_verticalDecimation = decimator;
 }
 
 void ImageResampler::setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom)
@@ -35,15 +22,12 @@ void ImageResampler::setCropping(int cropLeft, int cropRight, int cropTop, int c
 	_cropBottom = cropBottom;
 }
 
-void ImageResampler::setVideoMode(VideoMode mode)
-{
-	_videoMode = mode;
-}
-
 void ImageResampler::processImage(const uint8_t * data, int width, int height, int lineLength, PixelFormat pixelFormat, Image<ColorRgb> &outputImage) const
 {
 	int cropRight  = _cropRight;
 	int cropBottom = _cropBottom;
+	int xDestFlip = 0, yDestFlip = 0;
+	int uOffset = 0, vOffset = 0;
 
 	// handle 3D mode
 	switch (_videoMode)
@@ -52,7 +36,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 		cropRight = width >> 1;
 		break;
 	case VideoMode::VIDEO_3DTAB:
-		cropBottom = width >> 1;
+		cropBottom = height >> 1;
 		break;
 	default:
 		break;
@@ -67,11 +51,40 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 	for (int yDest = 0, ySource = _cropTop + (_verticalDecimation >> 1); yDest < outputHeight; ySource += _verticalDecimation, ++yDest)
 	{
 		int yOffset = lineLength * ySource;
+		if (pixelFormat == PixelFormat::NV12)
+		{
+			uOffset = (height + ySource / 2) * lineLength;
+		}
+		else if (pixelFormat == PixelFormat::I420)
+		{
+			uOffset = width * height + (ySource/2) * width/2;
+			vOffset = width * height * 1.25 + (ySource/2) * width/2;
+		}
 
 		for (int xDest = 0, xSource = _cropLeft + (_horizontalDecimation >> 1); xDest < outputWidth; xSource += _horizontalDecimation, ++xDest)
 		{
-			ColorRgb & rgb = outputImage(xDest, yDest);
+			switch (_flipMode)
+			{
+				case FlipMode::HORIZONTAL:
 
+					xDestFlip = xDest;
+					yDestFlip = outputHeight-yDest-1;
+					break;
+				case FlipMode::VERTICAL:
+					xDestFlip = outputWidth-xDest-1;
+					yDestFlip = yDest;
+					break;
+				case FlipMode::BOTH:
+					xDestFlip = outputWidth-xDest-1;
+					yDestFlip = outputHeight-yDest-1;
+					break;
+				case FlipMode::NO_CHANGE:
+					xDestFlip = xDest;
+					yDestFlip = yDest;
+					break;
+			}
+
+			ColorRgb &rgb = outputImage(xDestFlip, yDestFlip);
 			switch (pixelFormat)
 			{
 				case PixelFormat::UYVY:
@@ -124,7 +137,24 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 					rgb.red   = data[index+2];
 				}
 				break;
-#ifdef HAVE_JPEG_DECODER
+				case PixelFormat::NV12:
+				{
+					uint8_t y = data[yOffset + xSource];
+					uint8_t u = data[uOffset + ((xSource >> 1) << 1)];
+					uint8_t v = data[uOffset + ((xSource >> 1) << 1) + 1];
+					ColorSys::yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
+				}
+				break;
+				case PixelFormat::I420:
+				{
+					int y = data[yOffset + xSource];
+					int u = data[uOffset + (xSource >> 1)];
+					int v = data[vOffset + (xSource >> 1)];
+					ColorSys::yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
+					break;
+				}
+				break;
+#ifdef HAVE_TURBO_JPEG
 				case PixelFormat::MJPEG:
 				break;
 #endif

@@ -3,14 +3,19 @@
 #include <utils/Logger.h>
 #include <utils/settings.h>
 
-// qt incl
+#include <utils/version.hpp>
+using namespace semver;
+
+// qt includes
 #include <QJsonObject>
+
+const int GLOABL_INSTANCE_ID = 255;
 
 class Hyperion;
 class SettingsTable;
 
 ///
-/// @brief Manage the settings read write from/to config file, on settings changed will emit a signal to update components accordingly
+/// @brief Manage the settings read write from/to configuration file, on settings changed will emit a signal to update components accordingly
 ///
 class SettingsManager : public QObject
 {
@@ -21,10 +26,10 @@ public:
 	/// @params  instance   Instance index of HyperionInstanceManager
 	/// @params  parent    The parent hyperion instance
 	///
-	SettingsManager(quint8 instance, QObject* parent = nullptr);
+	SettingsManager(quint8 instance, QObject* parent = nullptr, bool readonlyMode = false);
 
 	///
-	/// @brief Save a complete json config
+	/// @brief Save a complete json configuration
 	/// @param config  The entire config object
 	/// @param correct If true will correct json against schema before save
 	/// @return True on success else false
@@ -32,7 +37,7 @@ public:
 	bool saveSettings(QJsonObject config, bool correct = false);
 
 	///
-	/// @brief get a single setting json from config
+	/// @brief get a single setting json from configuration
 	/// @param type   The settings::type from enum
 	/// @return The requested json data as QJsonDocument
 	///
@@ -42,11 +47,11 @@ public:
 	/// @brief get the full settings object of this instance (with global settings)
 	/// @return The requested json
 	///
-	const QJsonObject & getSettings() const { return _qconfig; };
+	QJsonObject getSettings() const;
 
 signals:
 	///
-	/// @brief Emits whenever a config part changed.
+	/// @brief Emits whenever a configuration part changed.
 	/// @param type The settings type from enum
 	/// @param data The data as QJsonDocument
 	///
@@ -54,18 +59,23 @@ signals:
 
 private:
 	///
-	/// @brief Add possile migrations steps for config here
+	/// @brief Add possible migrations steps for configuration here
 	/// @param config The configuration object
 	/// @return True when a migration has been triggered
 	///
 	bool handleConfigUpgrade(QJsonObject& config);
 
 
-	/// Hyperion instance
-	Hyperion* _hyperion;
+	bool resolveConfigVersion(QJsonObject& config);
 
 	/// Logger instance
 	Logger* _log;
+
+	/// Hyperion instance
+	Hyperion* _hyperion;
+
+	/// Instance number
+	quint8 _instance;
 
 	/// instance of database table interface
 	SettingsTable* _sTable;
@@ -73,6 +83,11 @@ private:
 	/// the schema
 	static QJsonObject schemaJson;
 
-	/// the current config of this instance
+	/// the current configuration of this instance
 	QJsonObject _qconfig;
+
+	semver::version _configVersion;
+	semver::version _previousVersion;
+
+	bool	_readonlyMode;
 };

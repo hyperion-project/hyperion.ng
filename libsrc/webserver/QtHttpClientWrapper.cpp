@@ -153,7 +153,7 @@ void QtHttpClientWrapper::onClientDataReceived (void)
 				case RequestParsed: // a valid request has ben fully parsed
 				{
 					// Catch websocket header "Upgrade"
-					if(m_currentRequest->getHeader(QtHttpHeader::Upgrade) == "websocket")
+					if(m_currentRequest->getHeader(QtHttpHeader::Upgrade).toLower() == "websocket")
 					{
 						if(m_websocketClient == Q_NULLPTR)
 						{
@@ -242,7 +242,7 @@ void QtHttpClientWrapper::onReplySendHeadersRequested (void)
 	{
 		QByteArray data;
 		// HTTP Version + Status Code + Status Msg
-		data.append (QtHttpServer::HTTP_VERSION);
+		data.append (QtHttpServer::HTTP_VERSION.toUtf8());
 		data.append (SPACE);
 		data.append (QByteArray::number (reply->getStatusCode ()));
 		data.append (SPACE);

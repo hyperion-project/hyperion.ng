@@ -146,8 +146,8 @@ QString LedDeviceWrapper::getColorOrder() const
 
 unsigned int LedDeviceWrapper::getLedCount() const
 {
-	unsigned int value = 0;
-	QMetaObject::invokeMethod(_ledDevice, "getLedCount", Qt::BlockingQueuedConnection, Q_RETURN_ARG(unsigned int, value));
+	int value = 0;
+	QMetaObject::invokeMethod(_ledDevice, "getLedCount", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, value));
 	return value;
 }
 

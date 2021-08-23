@@ -1,335 +1,796 @@
-$(document).ready( function() {
+$(document).ready(function () {
   performTranslation();
-  var conf_editor_v4l2 = null;
-  var conf_editor_fg = null;
-  var conf_editor_instCapt = null;
-  var V4L2_AVAIL = window.serverInfo.grabbers.available.includes("v4l2");
 
-  if(V4L2_AVAIL) {
-    // Dynamic v4l2 enum schema
-    var v4l2_dynamic_enum_schema = {
-      "available_devices":
-      {
-        "type": "string",
-        "title": "edt_conf_v4l2_device_title",
-        "propertyOrder" : 1,
-        "required" : true
-      },
-      "device_inputs":
-      {
-        "type": "string",
-        "title": "edt_conf_v4l2_input_title",
-        "propertyOrder" : 3,
-        "required" : true
-      },
-      "resolutions":
-      {
-        "type": "string",
-        "title": "edt_conf_v4l2_resolution_title",
-        "propertyOrder" : 6,
-        "required" : true
-      },
-      "framerates":
-      {
-        "type": "string",
-        "title": "edt_conf_v4l2_framerate_title",
-        "propertyOrder" : 9,
-        "required" : true
+  var conf_editor_video = null;
+  var conf_editor_screen = null;
+
+  // Screen-Grabber
+  $('#conf_cont').append(createRow('conf_cont_screen'));
+  $('#conf_cont_screen').append(createOptPanel('fa-camera', $.i18n("edt_conf_fg_heading_title"), 'editor_container_screengrabber', 'btn_submit_screengrabber', 'panel-system', 'screengrabberPanelId'));
+  if (window.showOptHelp) {
+    $('#conf_cont_screen').append(createHelpTable(window.schema.framegrabber.properties, $.i18n("edt_conf_fg_heading_title"), "screengrabberHelpPanelId"));
+  }
+
+  // Video-Grabber
+  $('#conf_cont').append(createRow('conf_cont_video'));
+  $('#conf_cont_video').append(createOptPanel('fa-camera', $.i18n("edt_conf_v4l2_heading_title"), 'editor_container_videograbber', 'btn_submit_videograbber', 'panel-system', 'videograbberPanelId'));
+
+  if (storedAccess === 'expert') {
+    var conf_cont_video_footer = document.getElementById("editor_container_videograbber").nextElementSibling;
+    $(conf_cont_video_footer).prepend('<button class="btn btn-primary mdi-24px" id="btn_videograbber_set_defaults" disabled data-toggle="tooltip" data-placement="top" title="' + $.i18n("edt_conf_v4l2_hardware_set_defaults_tip") + '">'
+      + '<i class= "fa fa-fw fa-undo" ></i >' + $.i18n("edt_conf_v4l2_hardware_set_defaults") + '</button > ');
+  }
+
+  if (window.showOptHelp) {
+    $('#conf_cont_video').append(createHelpTable(window.schema.grabberV4L2.properties, $.i18n("edt_conf_v4l2_heading_title"), "videograbberHelpPanelId"));
+  }
+
+  JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
+    var errors = [];
+
+    if (path === "root.grabberV4L2" || path === "root.framegrabber") {
+      var editor;
+      switch (path) {
+        case "root.framegrabber":
+          editor = conf_editor_screen;
+          break;
+        case "root.grabberV4L2":
+          editor = conf_editor_video;
+          break;
       }
-    };
 
-    // Build dynamic v4l2 enum schema parts
-    var buildSchemaPart = function(key, schema, device) {
-      if (schema[key]) {
-        var enumVals = [];
-        var enumTitelVals = [];
-        var v4l2_properties = JSON.parse(JSON.stringify(window.serverInfo.grabbers.v4l2_properties));
-
-        if (key === 'available_devices') {
-          for (var i = 0; i < v4l2_properties.length; i++) {
-            enumVals.push(v4l2_properties[i]['device']);
-
-            v4l2_properties[i].hasOwnProperty('name')
-              ? enumTitelVals.push(v4l2_properties[i]['name'])
-              : enumTitelVals.push(v4l2_properties[i]['device']);
-          }
-        } else if (key == 'resolutions' || key == 'framerates') {
-          for (var i = 0; i < v4l2_properties.length; i++) {
-            if (v4l2_properties[i]['device'] == device) {
-              enumVals = enumTitelVals = v4l2_properties[i][key];
-              break;
-            }
-          }
-        } else if (key == 'device_inputs') {
-          for (var i = 0; i < v4l2_properties.length; i++) {
-            if (v4l2_properties[i]['device'] == device) {
-              for (var index = 0; index < v4l2_properties[i]['inputs'].length; index++) {
-                enumVals.push(v4l2_properties[i]['inputs'][index]['inputIndex'].toString());
-                enumTitelVals.push(v4l2_properties[i]['inputs'][index]['inputName']);
-              }
-              break;
-            }
-          }
+      if (value.cropLeft || value.cropRight) {
+        var width = editor.getEditor(path + ".width").getValue();
+        if (value.cropLeft + value.cropRight > width) {
+          errors.push({
+            path: path,
+            property: 'maximum',
+            message: $.i18n('edt_conf_v4l2_cropWidthValidation_error', width)
+          });
         }
-
-        window.schema.grabberV4L2.properties[key] = {
-          "type": schema[key].type,
-          "title": schema[key].title,
-          "enum": [].concat(["auto"], enumVals, ["custom"]),
-          "options" :
-          {
-            "enum_titles" : [].concat(["edt_conf_enum_automatic"], enumTitelVals, ["edt_conf_enum_custom"]),
-          },
-          "propertyOrder" : schema[key].propertyOrder,
-          "required" : schema[key].required
-        };
       }
-    };
 
-    // Switch between visible states
-    function toggleOption(option, state) {
-      $('[data-schemapath="root.grabberV4L2.'+option+'"]').toggle(state);
-      if (state) (
-        $('[data-schemapath="root.grabberV4L2.'+option+'"]').addClass('col-md-12'),
-        $('label[for="root_grabberV4L2_'+option+'"]').css('left','10px'),
-        $('[id="root_grabberV4L2_'+option+'"]').css('left','10px')
-      );
+      if (value.cropTop || value.cropBottom) {
+        var height = editor.getEditor(path + ".height").getValue();
+        if (value.cropTop + value.cropBottom > height) {
+          errors.push({
+            path: path,
+            property: 'maximum',
+            message: $.i18n('edt_conf_v4l2_cropHeightValidation_error', height)
+          });
+        }
+      }
     }
-
-    // Watch all v4l2 dynamic fields
-    var setWatchers = function(schema) {
-      var path = 'root.grabberV4L2.';
-      Object.keys(schema).forEach(function(key) {
-        conf_editor_v4l2.watch(path + key, function() {
-          var ed = conf_editor_v4l2.getEditor(path + key);
-          var val = ed.getValue();
-
-          if (key == 'available_devices') {
-            var V4L2properties = ['device_inputs', 'resolutions', 'framerates'];
-            if (val == 'custom') {
-              var grabberV4L2 = ed.parent;
-              V4L2properties.forEach(function(item) {
-                buildSchemaPart(item, v4l2_dynamic_enum_schema, 'none');
-                grabberV4L2.original_schema.properties[item] = window.schema.grabberV4L2.properties[item];
-                grabberV4L2.schema.properties[item] = window.schema.grabberV4L2.properties[item];
-                conf_editor_v4l2.validator.schema.properties.grabberV4L2.properties[item] = window.schema.grabberV4L2.properties[item];
-
-                grabberV4L2.removeObjectProperty(item);
-                delete grabberV4L2.cached_editors[item];
-                grabberV4L2.addObjectProperty(item);
-
-                conf_editor_v4l2.getEditor(path + item).enable();
-              });
-
-              conf_editor_v4l2.getEditor(path + 'standard').enable();
-              toggleOption('device', true);
-
-            } else if (val == 'auto') {
-              V4L2properties.forEach(function(item) {
-                conf_editor_v4l2.getEditor(path + item).setValue('auto');
-                conf_editor_v4l2.getEditor(path + item).disable();
-              });
-
-              conf_editor_v4l2.getEditor(path + 'standard').setValue('auto');
-              conf_editor_v4l2.getEditor(path + 'standard').disable();
-
-              (toggleOption('device', false), toggleOption('input', false),
-               toggleOption('width', false), toggleOption('height', false),
-               toggleOption('fps', false));
-
-            } else {
-              var grabberV4L2 = ed.parent;
-              V4L2properties.forEach(function(item) {
-                buildSchemaPart(item, v4l2_dynamic_enum_schema, val);
-                grabberV4L2.original_schema.properties[item] = window.schema.grabberV4L2.properties[item];
-                grabberV4L2.schema.properties[item] = window.schema.grabberV4L2.properties[item];
-                conf_editor_v4l2.validator.schema.properties.grabberV4L2.properties[item] = window.schema.grabberV4L2.properties[item];
-
-                grabberV4L2.removeObjectProperty(item);
-                delete grabberV4L2.cached_editors[item];
-                grabberV4L2.addObjectProperty(item);
-
-                conf_editor_v4l2.getEditor(path + item).enable();
-              });
-
-              conf_editor_v4l2.getEditor(path + 'standard').enable();
-              toggleOption('device', false);
-            }
-          }
-
-          if (key == 'resolutions')
-            val != 'custom'
-              ? (toggleOption('width', false), toggleOption('height', false))
-              : (toggleOption('width', true), toggleOption('height', true));
-
-          if (key == 'framerates')
-            val != 'custom'
-              ? toggleOption('fps', false)
-              : toggleOption('fps', true);
-
-          if (key == 'device_inputs')
-            val != 'custom'
-              ? toggleOption('input', false)
-              : toggleOption('input', true);
-        });
-      });
-    };
-
-    // Insert dynamic v4l2 enum schema parts
-    Object.keys(v4l2_dynamic_enum_schema).forEach(function(key) {
-      buildSchemaPart(key, v4l2_dynamic_enum_schema, window.serverConfig.grabberV4L2.device);
-    });
-  }
-
-  if(window.showOptHelp) {
-    // Instance Capture
-    $('#conf_cont').append(createRow('conf_cont_instCapt'));
-    $('#conf_cont_instCapt').append(createOptPanel('fa-camera', $.i18n("edt_conf_instCapture_heading_title"), 'editor_container_instCapt', 'btn_submit_instCapt'));
-    $('#conf_cont_instCapt').append(createHelpTable(window.schema.instCapture.properties, $.i18n("edt_conf_instCapture_heading_title")));
-
-    // Framegrabber
-    $('#conf_cont').append(createRow('conf_cont_fg'));
-    $('#conf_cont_fg').append(createOptPanel('fa-camera', $.i18n("edt_conf_fg_heading_title"), 'editor_container_fg', 'btn_submit_fg'));
-    $('#conf_cont_fg').append(createHelpTable(window.schema.framegrabber.properties, $.i18n("edt_conf_fg_heading_title")));
-
-    // V4L2 - hide if not available
-    if(V4L2_AVAIL) {
-      $('#conf_cont').append(createRow('conf_cont_v4l'));
-      $('#conf_cont_v4l').append(createOptPanel('fa-camera', $.i18n("edt_conf_v4l2_heading_title"), 'editor_container_v4l2', 'btn_submit_v4l2'));
-      $('#conf_cont_v4l').append(createHelpTable(window.schema.grabberV4L2.properties, $.i18n("edt_conf_v4l2_heading_title")));
-    }
-  } else {
-    $('#conf_cont').addClass('row');
-    $('#conf_cont').append(createOptPanel('fa-camera', $.i18n("edt_conf_instCapture_heading_title"), 'editor_container_instCapt', 'btn_submit_instCapt'));
-    $('#conf_cont').append(createOptPanel('fa-camera', $.i18n("edt_conf_fg_heading_title"), 'editor_container_fg', 'btn_submit_fg'));
-    if(V4L2_AVAIL) {
-      $('#conf_cont').append(createOptPanel('fa-camera', $.i18n("edt_conf_v4l2_heading_title"), 'editor_container_v4l2', 'btn_submit_v4l2'));
-    }
-  }
-
-  // Instance Capture
-  conf_editor_instCapt = createJsonEditor('editor_container_instCapt', {
-    instCapture: window.schema.instCapture
-  }, true, true);
-
-  conf_editor_instCapt.on('change',function() {
-    conf_editor_instCapt.validate().length ? $('#btn_submit_instCapt').attr('disabled', true) : $('#btn_submit_instCapt').attr('disabled', false);
+    return errors;
   });
 
-  $('#btn_submit_instCapt').off().on('click',function() {
-    requestWriteConfig(conf_editor_instCapt.getValue());
-  });
+  function updateCropForWidth(editor, path) {
+    var width = editor.getEditor(path + ".width").getValue();
+    updateJsonEditorRange(editor, path, 'cropLeft', 0, width);
+    updateJsonEditorRange(editor, path, 'cropRight', 0, width);
+  }
 
-  // Framegrabber
-  conf_editor_fg = createJsonEditor('editor_container_fg', {
+  function updateCropForHeight(editor, path) {
+    var height = editor.getEditor(path + ".height").getValue();
+    updateJsonEditorRange(editor, path, 'cropTop', 0, height);
+    updateJsonEditorRange(editor, path, 'cropBottom', 0, height);
+  }
+
+  // Screen-Grabber
+  conf_editor_screen = createJsonEditor('editor_container_screengrabber', {
     framegrabber: window.schema.framegrabber
   }, true, true);
 
-  conf_editor_fg.on('change',function() {
-    conf_editor_fg.validate().length ? $('#btn_submit_fg').attr('disabled', true) : $('#btn_submit_fg').attr('disabled', false);
+  conf_editor_screen.on('ready', function () {
+    // Trigger conf_editor_screen.watch - 'root.framegrabber.enable'
+    var screenEnable = window.serverConfig.framegrabber.enable;
+    conf_editor_screen.getEditor("root.framegrabber.enable").setValue(screenEnable);
   });
 
-  $('#btn_submit_fg').off().on('click',function() {
-    requestWriteConfig(conf_editor_fg.getValue());
+  conf_editor_screen.on('change', function () {
+
+    if (!conf_editor_screen.validate().length) {
+      var deviceSelected = conf_editor_screen.getEditor("root.framegrabber.available_devices").getValue();
+      switch (deviceSelected) {
+        case "SELECT":
+          showInputOptionsForKey(conf_editor_screen, "framegrabber", ["enable", "available_devices"], false);
+          break;
+        case "NONE":
+          showInputOptionsForKey(conf_editor_screen, "framegrabber", ["enable", "available_devices"], false);
+          break;
+        default:
+          window.readOnlyMode ? $('#btn_submit_screengrabber').attr('disabled', true) : $('#btn_submit_screengrabber').attr('disabled', false);
+          break;
+      }
+    }
+    else {
+      $('#btn_submit_screengrabber').attr('disabled', true);
+    }
   });
 
-  if(V4L2_AVAIL) {
-    conf_editor_v4l2 = createJsonEditor('editor_container_v4l2', {
-      grabberV4L2 : window.schema.grabberV4L2
-    }, true, true);
+  conf_editor_screen.watch('root.framegrabber.enable', () => {
 
-    conf_editor_v4l2.on('change',function() {
-      conf_editor_v4l2.validate().length ? $('#btn_submit_v4l2').attr('disabled', true) : $('#btn_submit_v4l2').attr('disabled', false);
-    });
+    var screenEnable = conf_editor_screen.getEditor("root.framegrabber.enable").getValue();
+    if (screenEnable) {
+      showInputOptionsForKey(conf_editor_screen, "framegrabber", "enable", true);
+      if (window.showOptHelp) {
+        $('#screengrabberHelpPanelId').show();
+      }
+      discoverInputSources("screen");
+    }
+    else {
+      $('#btn_submit_screengrabber').attr('disabled', false);
+      showInputOptionsForKey(conf_editor_screen, "framegrabber", "enable", false);
+      $('#screengrabberHelpPanelId').hide();
+    }
 
-    conf_editor_v4l2.on('ready', function() {
-      setWatchers(v4l2_dynamic_enum_schema);
+  });
 
-      if (window.serverConfig.grabberV4L2.available_devices == 'custom' && window.serverConfig.grabberV4L2.device != 'auto')
-        toggleOption('device', true);
+  conf_editor_screen.watch('root.framegrabber.available_devices', () => {
 
-      if (window.serverConfig.grabberV4L2.device == 'auto')
-        conf_editor_v4l2.getEditor('root.grabberV4L2.available_devices').setValue('auto');
+    var deviceSelected = conf_editor_screen.getEditor("root.framegrabber.available_devices").getValue();
+    if (deviceSelected === "SELECT" || deviceSelected === "NONE" || deviceSelected === "") {
+      $('#btn_submit_screengrabber').attr('disabled', true);
+      showInputOptionsForKey(conf_editor_screen, "framegrabber", ["enable", "available_devices"], false);
+    }
+    else {
+      showInputOptionsForKey(conf_editor_screen, "framegrabber", ["enable", "available_devices"], true);
+      var addSchemaElements = {};
+      var enumVals = [];
+      var enumTitelVals = [];
+      var enumDefaultVal = "";
 
-      if (window.serverConfig.grabberV4L2.available_devices == 'auto') {
-        ['device_inputs', 'standard', 'resolutions', 'framerates'].forEach(function(item) {
-          conf_editor_v4l2.getEditor('root.grabberV4L2.' + item).setValue('auto');
-          conf_editor_v4l2.getEditor('root.grabberV4L2.' + item).disable();
-        });
+      var deviceProperties = getPropertiesOfDevice("screen", deviceSelected);
+
+      //Update hidden input element
+      conf_editor_screen.getEditor("root.framegrabber.device").setValue(deviceProperties.device);
+
+      var video_inputs = deviceProperties.video_inputs;
+      if (video_inputs.length <= 1) {
+        addSchemaElements.access = "expert";
       }
 
-      if (window.serverConfig.grabberV4L2.device_inputs == 'custom' && window.serverConfig.grabberV4L2.device != 'auto')
-        toggleOption('input', true);
+      for (const video_input of video_inputs) {
+        enumVals.push(video_input.inputIdx.toString());
+        enumTitelVals.push(video_input.name);
+      }
 
-      if (window.serverConfig.grabberV4L2.resolutions == 'custom' && window.serverConfig.grabberV4L2.device != 'auto')
-        (toggleOption('width', true), toggleOption('height', true));
+      if (enumVals.length > 0) {
+        if (deviceSelected === configuredDevice) {
+          var configuredVideoInput = window.serverConfig.framegrabber.input.toString();
+          if ($.inArray(configuredVideoInput, enumVals) != -1) {
+            enumDefaultVal = configuredVideoInput;
+          }
+        }
+        updateJsonEditorSelection(conf_editor_screen, 'root.framegrabber',
+          'device_inputs', addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, false);
+      }
 
-      if (window.serverConfig.grabberV4L2.framerates == 'custom' && window.serverConfig.grabberV4L2.device != 'auto')
-        toggleOption('fps', true);
+      if (conf_editor_screen.validate().length && !window.readOnlyMode) {
+        $('#btn_submit_screengrabber').attr('disabled', false);
+      }
+    }
+  });
 
-    });
+  conf_editor_screen.watch('root.framegrabber.device_inputs', () => {
+    var deviceSelected = conf_editor_screen.getEditor("root.framegrabber.available_devices").getValue();
+    var videoInputSelected = conf_editor_screen.getEditor("root.framegrabber.device_inputs").getValue();
 
-    $('#btn_submit_v4l2').off().on('click',function() {
-      var v4l2Options = conf_editor_v4l2.getValue();
+    //Update hidden input element
+    conf_editor_screen.getEditor("root.framegrabber.input").setValue(parseInt(videoInputSelected));
 
-      if (v4l2Options.grabberV4L2.available_devices != 'custom' && v4l2Options.grabberV4L2.available_devices != 'auto')
-        v4l2Options.grabberV4L2.device = v4l2Options.grabberV4L2.available_devices;
+    var addSchemaElements = {};
+    var enumVals = [];
+    var enumTitelVals = [];
+    var enumDefaultVal = "";
 
-      if (v4l2Options.grabberV4L2.available_devices == 'auto')
-        v4l2Options.grabberV4L2.device = 'auto';
+    var deviceProperties = getPropertiesOfDevice("screen", deviceSelected);
 
-      if (v4l2Options.grabberV4L2.device_inputs != 'custom' && v4l2Options.grabberV4L2.device_inputs != 'auto' && v4l2Options.grabberV4L2.available_devices != 'auto')
-        v4l2Options.grabberV4L2.input = parseInt(v4l2Options.grabberV4L2.device_inputs);
+    var formats = deviceProperties.video_inputs[videoInputSelected].formats;
+    var formatIdx = 0;
 
-      if (v4l2Options.grabberV4L2.device_inputs == 'auto')
-        v4l2Options.grabberV4L2.input = -1;
+    var resolutions = formats[formatIdx].resolutions;
+    if (resolutions.length <= 1) {
+      addSchemaElements.access = "advanced";
+    } else {
+      resolutions.sort(compareTwoValues('width', 'height', 'asc'));
+    }
 
-      if (v4l2Options.grabberV4L2.resolutions != 'custom' && v4l2Options.grabberV4L2.resolutions != 'auto' && v4l2Options.grabberV4L2.available_devices != 'auto')
-        (v4l2Options.grabberV4L2.width = parseInt(v4l2Options.grabberV4L2.resolutions.split('x')[0]),
-          v4l2Options.grabberV4L2.height = parseInt(v4l2Options.grabberV4L2.resolutions.split('x')[1]));
+    for (var i = 0; i < resolutions.length; i++) {
+      enumVals.push(i.toString());
+      var resolutionText = resolutions[i].width + "x" + resolutions[i].height;
+      enumTitelVals.push(resolutionText);
+    }
 
-      if (v4l2Options.grabberV4L2.resolutions == 'auto')
-        (v4l2Options.grabberV4L2.width = 0, v4l2Options.grabberV4L2.height = 0);
+    if (enumVals.length > 0) {
+      if (deviceSelected === configuredDevice) {
+        var configuredResolutionText = window.serverConfig.framegrabber.width + "x" + window.serverConfig.framegrabber.height;
+        var idx = $.inArray(configuredResolutionText, enumTitelVals);
+        if (idx != -1) {
+          enumDefaultVal = idx.toString();
+        }
+      }
 
-      if (v4l2Options.grabberV4L2.framerates != 'custom' && v4l2Options.grabberV4L2.framerates != 'auto' && v4l2Options.grabberV4L2.available_devices != 'auto')
-        v4l2Options.grabberV4L2.fps = parseInt(v4l2Options.grabberV4L2.framerates);
+      updateJsonEditorSelection(conf_editor_screen, 'root.framegrabber',
+        'resolutions', addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, false);
+    }
 
-      if (v4l2Options.grabberV4L2.framerates == 'auto')
-        v4l2Options.grabberV4L2.fps = 15;
+    if (conf_editor_screen.validate().length && !window.readOnlyMode) {
+      $('#btn_submit_screengrabber').attr('disabled', false);
+    }
+  });
 
-      requestWriteConfig(v4l2Options);
-    });
+  conf_editor_screen.watch('root.framegrabber.resolutions', () => {
+    var deviceSelected = conf_editor_screen.getEditor("root.framegrabber.available_devices").getValue();
+    var videoInputSelected = conf_editor_screen.getEditor("root.framegrabber.device_inputs").getValue();
+    var resolutionSelected = conf_editor_screen.getEditor("root.framegrabber.resolutions").getValue();
+
+    var addSchemaElements = {};
+    var enumVals = [];
+    var enumDefaultVal = "";
+
+    var deviceProperties = getPropertiesOfDevice("screen", deviceSelected);
+
+    var formats = deviceProperties.video_inputs[videoInputSelected].formats;
+    var formatIdx = 0;
+
+    //Update hidden resolution related elements
+    var width = parseInt(formats[formatIdx].resolutions[resolutionSelected].width);
+    conf_editor_screen.getEditor("root.framegrabber.width").setValue(width);
+
+    var height = parseInt(formats[formatIdx].resolutions[resolutionSelected].height);
+    conf_editor_screen.getEditor("root.framegrabber.height").setValue(height);
+
+    //Update crop rage depending on selected resolution
+    updateCropForWidth(conf_editor_screen, "root.framegrabber");
+    updateCropForHeight(conf_editor_screen, "root.framegrabber");
+
+    var fps = formats[formatIdx].resolutions[resolutionSelected].fps;
+    if (!fps) {
+      enumVals.push("NONE");
+      addSchemaElements.options = { "hidden": true };
+    } else {
+      fps.sort((a, b) => a - b);
+      for (var i = 0; i < fps.length; i++) {
+        enumVals.push(fps[i].toString());
+      }
+    }
+
+    if (enumVals.length <= 1) {
+      addSchemaElements.access = "expert";
+    }
+
+    if (enumVals.length > 0) {
+      if (deviceSelected === configuredDevice) {
+        var configuredFps = window.serverConfig.framegrabber.fps.toString();
+        if ($.inArray(configuredFps, enumVals) != -1) {
+          enumDefaultVal = configuredFps;
+        }
+      } else if (deviceProperties.hasOwnProperty('default') && !jQuery.isEmptyObject(deviceProperties.default.video_input)) {
+          if (deviceProperties.default.video_input.resolution.fps) {
+            enumDefaultVal = deviceProperties.default.video_input.resolution.fps;
+          }
+      }
+      updateJsonEditorSelection(conf_editor_screen, 'root.framegrabber',
+        'framerates', addSchemaElements, enumVals, [], enumDefaultVal, false);
+    }
+
+    if (conf_editor_screen.validate().length && !window.readOnlyMode) {
+      $('#btn_submit_screengrabber').attr('disabled', false);
+    }
+  });
+
+  conf_editor_screen.watch('root.framegrabber.framerates', () => {
+    //Update hidden fps element
+    var fps = 0;
+    var framerates = conf_editor_screen.getEditor("root.framegrabber.framerates").getValue();
+    if (framerates !== "NONE") {
+      fps = parseInt(framerates);
+    }
+    conf_editor_screen.getEditor("root.framegrabber.fps").setValue(fps);
+  });
+
+
+  $('#btn_submit_screengrabber').off().on('click', function () {
+    var saveOptions = conf_editor_screen.getValue();
+
+    var instCaptOptions = window.serverConfig.instCapture;
+    instCaptOptions.systemEnable = true;
+    saveOptions.instCapture = instCaptOptions;
+
+    requestWriteConfig(saveOptions);
+  });
+
+  // External Input Sources (Video-Grabbers)
+
+  var configuredDevice = "";
+  var discoveredInputSources = {};
+  var deviceProperties = {};
+
+  function updateDeviceProperties(deviceProperties, property, key) {
+    var properties = {};
+    if (deviceProperties) {
+      if (deviceProperties.hasOwnProperty(property)) {
+        properties = deviceProperties[property];
+      }
+    }
+    updateJsonEditorRange(conf_editor_video, "root.grabberV4L2", key,
+      properties.minValue,
+      properties.maxValue,
+      properties.current,
+      properties.step,
+      true);
+
+    if (jQuery.isEmptyObject(properties)) {
+      showInputOptionForItem(conf_editor_video, "grabberV4L2", key, false);
+    } else {
+      showInputOptionForItem(conf_editor_video, "grabberV4L2", key, true);
+    }
   }
+
+  conf_editor_video = createJsonEditor('editor_container_videograbber', {
+    grabberV4L2: window.schema.grabberV4L2
+  }, true, true);
+
+  conf_editor_video.on('ready', function () {
+    // Trigger conf_editor_video.watch - 'root.grabberV4L2.enable'
+    var videoEnable = window.serverConfig.grabberV4L2.enable;
+    conf_editor_video.getEditor("root.grabberV4L2.enable").setValue(videoEnable);
+  });
+
+  conf_editor_video.on('change', function () {
+
+    // Hide elements not supported by the backend
+    if (window.serverInfo.cec.enabled === false) {
+      showInputOptionForItem(conf_editor_video, "grabberV4L2", "cecDetection", false);
+    }
+
+    // Validate the current editor's content
+    if (!conf_editor_video.validate().length) {
+      var deviceSelected = conf_editor_video.getEditor("root.grabberV4L2.available_devices").getValue();
+      switch (deviceSelected) {
+        case "SELECT":
+          showInputOptionsForKey(conf_editor_video, "grabberV4L2", ["enable", "available_devices"], false);
+          break;
+        case "NONE":
+          showInputOptionsForKey(conf_editor_video, "grabberV4L2", ["enable", "available_devices"], false);
+          break;
+        default:
+          window.readOnlyMode ? $('#btn_submit_videograbber').attr('disabled', true) : $('#btn_submit_videograbber').attr('disabled', false);
+          break;
+      }
+    }
+    else {
+      $('#btn_submit_videograbber').attr('disabled', true);
+    }
+  });
+
+  conf_editor_video.watch('root.grabberV4L2.enable', () => {
+
+    var videoEnable = conf_editor_video.getEditor("root.grabberV4L2.enable").getValue();
+    if (videoEnable) {
+      showInputOptionsForKey(conf_editor_video, "grabberV4L2", "enable", true);
+      $('#btn_videograbber_set_defaults').show();
+      if (window.showOptHelp) {
+        $('#videograbberHelpPanelId').show();
+      }
+      discoverInputSources("video");
+    }
+    else {
+      $('#btn_submit_videograbber').attr('disabled', false);
+      $('#btn_videograbber_set_defaults').hide();
+      showInputOptionsForKey(conf_editor_video, "grabberV4L2", "enable", false);
+      $('#videograbberHelpPanelId').hide();
+    }
+  });
+
+  conf_editor_video.watch('root.grabberV4L2.available_devices', () => {
+    var deviceSelected = conf_editor_video.getEditor("root.grabberV4L2.available_devices").getValue();
+    if (deviceSelected === "SELECT" || deviceSelected === "NONE" || deviceSelected === "") {
+      $('#btn_submit_videograbber').attr('disabled', true);
+      showInputOptionsForKey(conf_editor_video, "grabberV4L2", ["enable", "available_devices"], false);
+    }
+    else {
+      showInputOptionsForKey(conf_editor_video, "grabberV4L2", ["enable", "available_devices"], true);
+      var addSchemaElements = {};
+      var enumVals = [];
+      var enumTitelVals = [];
+      var enumDefaultVal = "";
+
+      var deviceProperties = getPropertiesOfDevice("video", deviceSelected);
+
+      //Update hidden input element
+      conf_editor_video.getEditor("root.grabberV4L2.device").setValue(deviceProperties.device);
+
+      if (deviceProperties.hasOwnProperty('default') && !jQuery.isEmptyObject(deviceProperties.default.properties)) {
+        $('#btn_videograbber_set_defaults').attr('disabled', false);
+      } else {
+        $('#btn_videograbber_set_defaults').attr('disabled', true);
+      }
+
+      //If configured device is selected, use the saved values as current values
+      if (deviceSelected === configuredDevice) {
+        // Only if the device reported properties, use the configured values. In case no properties are presented, the device properties cannot be controlled.
+        if (deviceProperties.hasOwnProperty('properties') && !jQuery.isEmptyObject(deviceProperties.properties)) {
+          let properties = {
+            brightness: { current: window.serverConfig.grabberV4L2.hardware_brightness },
+            contrast: { current: window.serverConfig.grabberV4L2.hardware_contrast },
+            saturation: { current: window.serverConfig.grabberV4L2.hardware_saturation },
+            hue: { current: window.serverConfig.grabberV4L2.hardware_hue }
+          };
+          deviceProperties.properties = properties;
+        }
+      }
+
+      updateDeviceProperties(deviceProperties.properties, "brightness", "hardware_brightness");
+      updateDeviceProperties(deviceProperties.properties, "contrast", "hardware_contrast");
+      updateDeviceProperties(deviceProperties.properties, "saturation", "hardware_saturation");
+      updateDeviceProperties(deviceProperties.properties, "hue", "hardware_hue");
+
+      var video_inputs = deviceProperties.video_inputs;
+      if (video_inputs.length <= 1) {
+        addSchemaElements.access = "expert";
+      }
+
+      for (const video_input of video_inputs) {
+        enumVals.push(video_input.inputIdx.toString());
+        enumTitelVals.push(video_input.name);
+      }
+
+      if (enumVals.length > 0) {
+        if (deviceSelected === configuredDevice) {
+          var configuredVideoInput = window.serverConfig.grabberV4L2.input.toString();
+          if ($.inArray(configuredVideoInput, enumVals) != -1) {
+            enumDefaultVal = configuredVideoInput;
+          }
+        }
+
+        updateJsonEditorSelection(conf_editor_video, 'root.grabberV4L2',
+          'device_inputs', addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, false, false);
+      }
+
+      if (conf_editor_video.validate().length && !window.readOnlyMode) {
+        $('#btn_submit_videograbber').attr('disabled', false);
+      }
+    }
+  });
+
+  conf_editor_video.watch('root.grabberV4L2.device_inputs', () => {
+    var deviceSelected = conf_editor_video.getEditor("root.grabberV4L2.available_devices").getValue();
+    var videoInputSelected = conf_editor_video.getEditor("root.grabberV4L2.device_inputs").getValue();
+
+    var addSchemaElements = {};
+    var enumVals = [];
+    var enumTitelVals = [];
+    var enumDefaultVal = "";
+
+    var deviceProperties = getPropertiesOfDevice("video", deviceSelected);
+    var formats = deviceProperties.video_inputs[videoInputSelected].formats;
+
+    addSchemaElements.access = "advanced";
+
+    for (var i = 0; i < formats.length; i++) {
+      if (formats[i].format) {
+        enumVals.push(formats[i].format);
+        enumTitelVals.push(formats[i].format.toUpperCase());
+      }
+      else {
+        enumVals.push("NONE");
+      }
+    }
+
+    if (enumVals.length > 0) {
+      if (deviceSelected === configuredDevice) {
+        var configuredEncoding = window.serverConfig.grabberV4L2.encoding;
+        if ($.inArray(configuredEncoding, enumVals) != -1) {
+          enumDefaultVal = configuredEncoding;
+        }
+      }
+      updateJsonEditorSelection(conf_editor_video, 'root.grabberV4L2',
+        'encoding', addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, false);
+    }
+
+    var enumVals = [];
+    var enumDefaultVal = "";
+
+    var standards = deviceProperties.video_inputs[videoInputSelected].standards;
+    if (!standards) {
+      enumVals.push("NONE");
+      addSchemaElements.options = { "hidden": true };
+    } else {
+      enumVals = standards;
+    }
+
+    if (enumVals.length > 0) {
+      if (deviceSelected === configuredDevice) {
+        var configuredStandard = window.serverConfig.grabberV4L2.standard;
+        if ($.inArray(configuredStandard, enumVals) != -1) {
+          enumDefaultVal = configuredStandard;
+        }
+      }
+
+      updateJsonEditorSelection(conf_editor_video, 'root.grabberV4L2',
+        'standard', addSchemaElements, enumVals, [], enumDefaultVal, false);
+    }
+
+    if (conf_editor_video.validate().length && !window.readOnlyMode) {
+      $('#btn_submit_videograbber').attr('disabled', false);
+    }
+  });
+
+  conf_editor_video.watch('root.grabberV4L2.encoding', () => {
+    var deviceSelected = conf_editor_video.getEditor("root.grabberV4L2.available_devices").getValue();
+    var videoInputSelected = conf_editor_video.getEditor("root.grabberV4L2.device_inputs").getValue();
+    var formatSelected = conf_editor_video.getEditor("root.grabberV4L2.encoding").getValue();
+
+    //Update hidden input element
+    conf_editor_video.getEditor("root.grabberV4L2.input").setValue(parseInt(videoInputSelected));
+
+    var addSchemaElements = {};
+    var enumVals = [];
+    var enumTitelVals = [];
+    var enumDefaultVal = "";
+
+    var deviceProperties = getPropertiesOfDevice("video", deviceSelected);
+
+    var formats = deviceProperties.video_inputs[videoInputSelected].formats;
+    var formatIdx = 0;
+    if (formatSelected !== "NONE") {
+      formatIdx = formats.findIndex(x => x.format === formatSelected);
+    }
+
+    var resolutions = formats[formatIdx].resolutions;
+    if (resolutions.length <= 1) {
+      addSchemaElements.access = "advanced";
+    } else {
+      resolutions.sort(compareTwoValues('width', 'height', 'asc'));
+    }
+
+    for (var i = 0; i < resolutions.length; i++) {
+      enumVals.push(i.toString());
+      var resolutionText = resolutions[i].width + "x" + resolutions[i].height;
+      enumTitelVals.push(resolutionText);
+    }
+
+    if (enumVals.length > 0) {
+      if (deviceSelected === configuredDevice) {
+        var configuredResolutionText = window.serverConfig.grabberV4L2.width + "x" + window.serverConfig.grabberV4L2.height;
+        var idx = $.inArray(configuredResolutionText, enumTitelVals);
+        if (idx != -1) {
+          enumDefaultVal = idx.toString();
+        }
+      }
+
+      updateJsonEditorSelection(conf_editor_video, 'root.grabberV4L2',
+        'resolutions', addSchemaElements, enumVals, enumTitelVals, enumDefaultVal, false);
+    }
+
+    if (conf_editor_video.validate().length && !window.readOnlyMode) {
+      $('#btn_submit_videograbber').attr('disabled', false);
+    }
+  });
+
+  conf_editor_video.watch('root.grabberV4L2.resolutions', () => {
+    var deviceSelected = conf_editor_video.getEditor("root.grabberV4L2.available_devices").getValue();
+    var videoInputSelected = conf_editor_video.getEditor("root.grabberV4L2.device_inputs").getValue();
+    var formatSelected = conf_editor_video.getEditor("root.grabberV4L2.encoding").getValue();
+    var resolutionSelected = conf_editor_video.getEditor("root.grabberV4L2.resolutions").getValue();
+
+    var addSchemaElements = {};
+    var enumVals = [];
+    var enumDefaultVal = "";
+
+    var deviceProperties = getPropertiesOfDevice("video", deviceSelected);
+
+    var formats = deviceProperties.video_inputs[videoInputSelected].formats;
+    var formatIdx = 0;
+    if (formatSelected !== "NONE") {
+      formatIdx = formats.findIndex(x => x.format === formatSelected);
+    }
+
+    //Update hidden resolution related elements
+    var width = parseInt(formats[formatIdx].resolutions[resolutionSelected].width);
+    conf_editor_video.getEditor("root.grabberV4L2.width").setValue(width);
+
+    var height = parseInt(formats[formatIdx].resolutions[resolutionSelected].height);
+    conf_editor_video.getEditor("root.grabberV4L2.height").setValue(height);
+
+    //Update crop rage depending on selected resolution
+    updateCropForWidth(conf_editor_video, "root.grabberV4L2");
+    updateCropForHeight(conf_editor_video, "root.grabberV4L2");
+
+    var fps = formats[formatIdx].resolutions[resolutionSelected].fps;
+    if (!fps) {
+      addSchemaElements.options = { "hidden": true };
+    } else {
+      fps.sort((a, b) => a - b);
+      for (var i = 0; i < fps.length; i++) {
+        enumVals.push(fps[i].toString());
+      }
+    }
+
+    if (enumVals.length <= 1) {
+      addSchemaElements.access = "expert";
+    }
+
+    if (enumVals.length > 0) {
+      if (deviceSelected === configuredDevice) {
+        var configuredFps = window.serverConfig.grabberV4L2.fps.toString();
+        if ($.inArray(configuredFps, enumVals) != -1) {
+          enumDefaultVal = configuredFps;
+        }
+      }
+      updateJsonEditorSelection(conf_editor_video, 'root.grabberV4L2',
+        'framerates', addSchemaElements, enumVals, [], enumDefaultVal, false);
+    }
+
+    if (conf_editor_video.validate().length && !window.readOnlyMode) {
+      $('#btn_submit_videograbber').attr('disabled', false);
+    }
+  });
+
+  conf_editor_video.watch('root.grabberV4L2.framerates', () => {
+    //Update hidden fps element
+    var fps = 0;
+    var framerates = conf_editor_video.getEditor("root.grabberV4L2.framerates").getValue();
+    if (framerates !== "NONE") {
+      fps = parseInt(framerates);
+    }
+    //Show Frameskipping only when more than 2 fps
+    if (fps > 2) {
+      showInputOptionForItem(conf_editor_video, "grabberV4L2", "fpsSoftwareDecimation", true);
+    }
+    else {
+      showInputOptionForItem(conf_editor_video, "grabberV4L2", "fpsSoftwareDecimation", false);
+    }
+    conf_editor_video.getEditor("root.grabberV4L2.fps").setValue(fps);
+  });
+
+  $('#btn_submit_videograbber').off().on('click', function () {
+    var saveOptions = conf_editor_video.getValue();
+
+    var instCaptOptions = window.serverConfig.instCapture;
+    instCaptOptions.v4lEnable = true;
+    saveOptions.instCapture = instCaptOptions;
+
+    requestWriteConfig(saveOptions);
+  });
+
+  // ------------------------------------------------------------------
+
+  $('#btn_videograbber_set_defaults').off().on('click', function () {
+    var deviceSelected = conf_editor_video.getEditor("root.grabberV4L2.available_devices").getValue();
+    var deviceProperties = getPropertiesOfDevice("video", deviceSelected);
+
+    var defaultDeviceProperties = {};
+    if (deviceProperties.hasOwnProperty('default')) {
+      if (deviceProperties.default.hasOwnProperty('properties')) {
+        defaultDeviceProperties = deviceProperties.default.properties;
+        if (defaultDeviceProperties.brightness) {
+          conf_editor_video.getEditor("root.grabberV4L2.hardware_brightness").setValue(defaultDeviceProperties.brightness);
+        }
+        if (defaultDeviceProperties.contrast) {
+          conf_editor_video.getEditor("root.grabberV4L2.hardware_contrast").setValue(defaultDeviceProperties.contrast);
+        }
+        if (defaultDeviceProperties.saturation) {
+          conf_editor_video.getEditor("root.grabberV4L2.hardware_saturation").setValue(defaultDeviceProperties.saturation);
+        }
+        if (defaultDeviceProperties.hue) {
+          conf_editor_video.getEditor("root.grabberV4L2.hardware_hue").setValue(defaultDeviceProperties.hue);
+        }
+      }
+    }
+  });
+
+  // ------------------------------------------------------------------
 
   //////////////////////////////////////////////////
 
   //create introduction
-  if(window.showOptHelp) {
-    createHint("intro", $.i18n('conf_grabber_fg_intro'), "editor_container_fg");
-    if(V4L2_AVAIL){
-      createHint("intro", $.i18n('conf_grabber_v4l_intro'), "editor_container_v4l2");
-    }
+  if (window.showOptHelp) {
+    createHint("intro", $.i18n('conf_grabber_fg_intro'), "editor_container_screengrabber");
+    createHint("intro", $.i18n('conf_grabber_v4l_intro'), "editor_container_videograbber");
   }
-
-  function hideEl(el) {
-    for(var i = 0; i<el.length; i++) {
-      $('[data-schemapath*="root.framegrabber.'+el[i]+'"]').toggle(false);
-    }
-  }
-
-  //hide specific options
-  conf_editor_fg.on('ready',function() {
-    var grabbers = window.serverInfo.grabbers.available;
-
-    if (grabbers.indexOf('dispmanx') > -1)
-      hideEl(["device","pixelDecimation"]);
-    else if (grabbers.indexOf('x11') > -1 || grabbers.indexOf('xcb') > -1)
-      hideEl(["device","width","height"]);
-    else if (grabbers.indexOf('osx')  > -1 )
-      hideEl(["device","pixelDecimation"]);
-    else if (grabbers.indexOf('amlogic')  > -1)
-      hideEl(["pixelDecimation"]);
-  });
 
   removeOverlay();
+
+  // build dynamic screen input enum
+  var updateScreenSourcesList = function (type, discoveryInfo) {
+    var enumVals = [];
+    var enumTitelVals = [];
+    var enumDefaultVal = "";
+    var addSelect = false;
+
+    if (jQuery.isEmptyObject(discoveryInfo)) {
+      enumVals.push("NONE");
+      enumTitelVals.push($.i18n('edt_conf_grabber_discovered_none'));
+    }
+    else {
+      for (const device of discoveryInfo) {
+        enumVals.push(device.device_name);
+      }
+      conf_editor_screen.getEditor('root.framegrabber').enable();
+      configuredDevice = window.serverConfig.framegrabber.available_devices;
+
+      if ($.inArray(configuredDevice, enumVals) != -1) {
+        enumDefaultVal = configuredDevice;
+      }
+      else {
+        addSelect = true;
+      }
+    }
+    if (enumVals.length > 0) {
+      updateJsonEditorSelection(conf_editor_screen, 'root.framegrabber',
+        'available_devices', {}, enumVals, enumTitelVals, enumDefaultVal, addSelect, false);
+    }
+  };
+
+  // build dynamic video input enum
+  var updateVideoSourcesList = function (type, discoveryInfo) {
+    var enumVals = [];
+    var enumTitelVals = [];
+    var enumDefaultVal = "";
+    var addSelect = false;
+
+    if (jQuery.isEmptyObject(discoveryInfo)) {
+      enumVals.push("NONE");
+      enumTitelVals.push($.i18n('edt_conf_grabber_discovered_none'));
+    }
+    else {
+      for (const device of discoveryInfo) {
+        enumVals.push(device.device_name);
+      }
+      conf_editor_video.getEditor('root.grabberV4L2').enable();
+      configuredDevice = window.serverConfig.grabberV4L2.available_devices;
+
+      if ($.inArray(configuredDevice, enumVals) != -1) {
+        enumDefaultVal = configuredDevice;
+      }
+      else {
+        addSelect = true;
+      }
+    }
+
+    if (enumVals.length > 0) {
+      updateJsonEditorSelection(conf_editor_video, 'root.grabberV4L2',
+        'available_devices', {}, enumVals, enumTitelVals, enumDefaultVal, addSelect, false);
+    }
+  }
+
+  async function discoverInputSources(type, params) {
+    const result = await requestInputSourcesDiscovery(type, params);
+
+    var discoveryResult;
+    if (result && !result.error) {
+      discoveryResult = result.info;
+    }
+    else {
+      discoveryResult = {
+        "video_sources": []
+      };
+    }
+
+    switch (type) {
+      case "screen":
+        discoveredInputSources.screen = discoveryResult.video_sources;
+        updateScreenSourcesList(type, discoveredInputSources.screen);
+        break;
+      case "video":
+        discoveredInputSources.video = discoveryResult.video_sources;
+        updateVideoSourcesList(type, discoveredInputSources.video);
+        break;
+    }
+  }
+
+  function getPropertiesOfDevice(type, deviceName) {
+    deviceProperties = {};
+    for (const deviceRecord of discoveredInputSources[type]) {
+      if (deviceRecord.device_name === deviceName) {
+        deviceProperties = deviceRecord;
+        break;
+      }
+    }
+    return deviceProperties;
+  }
+
 });

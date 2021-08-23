@@ -11,11 +11,16 @@
 class XcbWrapper: public GrabberWrapper
 {
 public:
-	XcbWrapper(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation, const unsigned updateRate_Hz);
+	XcbWrapper(	int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ,
+				int pixelDecimation=GrabberWrapper::DEFAULT_PIXELDECIMATION,
+				int cropLeft=0, int cropRight=0,
+				int cropTop=0, int cropBottom=0
+				);
+
 	~XcbWrapper() override;
 
 public slots:
-	virtual void action();
+	void action() override;
 
 private:
 	XcbGrabber _grabber;

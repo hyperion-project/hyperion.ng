@@ -316,24 +316,40 @@ QJsonArray SSDPDiscover::getServicesDiscoveredJson() const
 		obj.insert("usn", i.value().uniqueServiceName);
 
 		QUrl url (i.value().location);
-		obj.insert("ip", url.host());
+		QString ipAddress = url.host();
+
+		obj.insert("ip", ipAddress);
 		obj.insert("port", url.port());
 
 		QHostInfo hostInfo = QHostInfo::fromName(url.host());
-		if (hostInfo.error() == QHostInfo::NoError )
+		if (hostInfo.error() == QHostInfo::NoError)
 		{
 			QString hostname = hostInfo.hostName();
-			//Seems that for Windows no local domain name is resolved
-			if (!hostInfo.localDomainName().isEmpty() )
+
+			if (!QHostInfo::localDomainName().isEmpty())
 			{
-				obj.insert("hostname", hostname.remove("."+hostInfo.localDomainName()));
-				obj.insert("domain", hostInfo.localDomainName());
+				obj.insert("hostname", hostname.remove("." + QHostInfo::localDomainName()));
+				obj.insert("domain", QHostInfo::localDomainName());
 			}
 			else
 			{
-				int domainPos = hostname.indexOf('.');
-				obj.insert("hostname", hostname.left(domainPos));
-				obj.insert("domain", hostname.mid(domainPos+1));
+				if (hostname.startsWith(ipAddress))
+				{
+					obj.insert("hostname", ipAddress);
+
+					QString domain = hostname.remove(ipAddress);
+					if (domain.at(0) == '.')
+					{
+						domain.remove(0, 1);
+					}
+					obj.insert("domain", domain);
+				}
+				else
+				{
+					int domainPos = hostname.indexOf('.');
+					obj.insert("hostname", hostname.left(domainPos));
+					obj.insert("domain", hostname.mid(domainPos + 1));
+				}
 			}
 		}
 

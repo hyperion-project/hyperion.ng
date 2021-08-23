@@ -1,0 +1,31 @@
+#!/usr/bin/make -f
+export DH_VERBOSE = 1
+
+BUILDDIR = build
+
+build: 
+	mkdir $(BUILDDIR);
+	cd $(BUILDDIR); cmake -DUSE_SYSTEM_MBEDTLS_LIBS=ON -DENABLE_DEPLOY_DEPENDENCIES=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../debian/tmp/usr ..
+	make -j4 -C $(BUILDDIR)
+
+binary: binary-indep binary-arch
+
+binary-indep:
+
+binary-arch:
+	cd $(BUILDDIR); cmake -P cmake_install.cmake
+	mkdir debian/tmp/DEBIAN
+	cp cmake/debian/postinst debian/tmp/DEBIAN
+	chmod 0775 debian/tmp/DEBIAN/postinst
+	cp cmake/debian/preinst debian/tmp/DEBIAN
+	chmod 0775 debian/tmp/DEBIAN/preinst
+	cp cmake/debian/prerm debian/tmp/DEBIAN
+	chmod 0775 debian/tmp/DEBIAN/prerm
+	dpkg-gencontrol -phyperion
+	dpkg --build debian/tmp ..
+	rm -rf debian/tmp
+
+clean:
+	rm -rf $(BUILDDIR)
+
+.PHONY: build binary binary-arch binary-indep clean

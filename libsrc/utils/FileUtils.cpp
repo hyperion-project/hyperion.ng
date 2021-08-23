@@ -3,7 +3,6 @@
 // qt incl
 #include <QDir>
 #include <QFileInfo>
-#include <QDebug>
 
 // hyperion include
 #include <hyperion/Hyperion.h>

@@ -1,12 +1,7 @@
 #include "LedDeviceTemplate.h"
 
-LedDeviceTemplate::LedDeviceTemplate(const QJsonObject &deviceConfig)
-	: LedDevice()
+LedDeviceTemplate::LedDeviceTemplate(const QJsonObject & /*deviceConfig*/)
 {
-	_devConfig = deviceConfig;
-	_isDeviceReady = false;
-
-	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
 
 LedDevice* LedDeviceTemplate::construct(const QJsonObject &deviceConfig)
@@ -23,7 +18,7 @@ bool LedDeviceTemplate::init(const QJsonObject &deviceConfig)
 	{
 		// Initialise LedDevice configuration and execution environment
 		// ...
-		if ( 0 /*Error during init*/)
+		if ( false /*Error during init*/)
 		{
 			//Build an errortext, illustrative
 			QString errortext = QString ("Error message: %1").arg("errno/text");
@@ -60,7 +55,7 @@ int LedDeviceTemplate::open()
 	}
 
 	// On error/exceptions, set LedDevice in error
-	if ( retval < 0 )
+	if ( false /* retval < 0*/ )
 	{
 		this->setInError( errortext );
 	}

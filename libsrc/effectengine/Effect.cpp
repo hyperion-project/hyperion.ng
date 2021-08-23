@@ -12,17 +12,20 @@
 // python utils
 #include <python/PythonProgram.h>
 
+const int Effect::ENDLESS = -1;
+
 Effect::Effect(Hyperion *hyperion, int priority, int timeout, const QString &script, const QString &name, const QJsonObject &args, const QString &imageData)
 	: QThread()
 	, _hyperion(hyperion)
 	, _priority(priority)
 	, _timeout(timeout)
+	, _isEndless(timeout <= ENDLESS)
 	, _script(script)
 	, _name(name)
 	, _args(args)
 	, _imageData(imageData)
 	, _endTime(-1)
-	, _colors()
+	, _interupt(false)
 	, _imageSize(hyperion->getLedGridSize())
 	, _image(_imageSize,QImage::Format_ARGB32_Premultiplied)
 {
@@ -47,6 +50,23 @@ Effect::~Effect()
 	_imageStack.clear();
 }
 
+bool Effect::isInterruptionRequested()
+{
+	return _interupt || (!_isEndless && getRemaining() <= 0);
+}
+
+int Effect::getRemaining() const
+{
+	// determine the timeout
+	int timeout = _timeout;
+
+	if (timeout >= 0)
+	{
+		timeout = static_cast<int>( _endTime - QDateTime::currentMSecsSinceEpoch());
+	}
+	return timeout;
+}
+
 void Effect::setModuleParameters()
 {
 	// import the buildtin Hyperion module
@@ -56,8 +76,8 @@ void Effect::setModuleParameters()
 	PyModule_AddObject(module, "__effectObj", PyCapsule_New((void*)this, "hyperion.__effectObj", nullptr));
 
 	// add ledCount variable to the interpreter
-	unsigned ledCount = 0;
-	QMetaObject::invokeMethod(_hyperion, "getLedCount", Qt::BlockingQueuedConnection, Q_RETURN_ARG(unsigned, ledCount));
+	int ledCount = 0;
+	QMetaObject::invokeMethod(_hyperion, "getLedCount", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, ledCount));
 	PyObject_SetAttrString(module, "ledCount", Py_BuildValue("i", ledCount));
 
 	// add minimumWriteTime variable to the interpreter

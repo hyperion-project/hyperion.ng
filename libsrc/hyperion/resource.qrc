@@ -1,7 +1,6 @@
 <RCC>
 	<qresource prefix="/">
 		<file alias="hyperion-schema">hyperion.schema.json</file>
-		<file alias="hyperion_default.config">../../config/hyperion.config.json.default</file>
 		<file alias="schema-general.json">schema/schema-general.json</file>
 		<file alias="schema-logger.json">schema/schema-logger.json</file>
 		<file alias="schema-device.json">schema/schema-device.json</file>

@@ -40,7 +40,7 @@ public:
 	///
 	/// @param deviceConfig Device's configuration as JSON-Object
 	///
-	explicit LedDeviceFadeCandy(const QJsonObject &deviceConfig);
+	explicit LedDeviceFadeCandy(const QJsonObject& deviceConfig);
 
 	///
 	/// @brief Destructor of the LedDevice
@@ -52,7 +52,7 @@ public:
 	///
 	/// @param[in] deviceConfig Device's configuration as JSON-Object
 	/// @return LedDevice constructed
-	static LedDevice* construct(const QJsonObject &deviceConfig);
+	static LedDevice* construct(const QJsonObject& deviceConfig);
 
 protected:
 
@@ -62,7 +62,7 @@ protected:
 	/// @param[in] deviceConfig the JSON device configuration
 	/// @return True, if success
 	///
-	bool init(const QJsonObject &deviceConfig) override;
+	bool init(const QJsonObject& deviceConfig) override;
 
 	///
 	/// @brief Opens the output device.
@@ -84,7 +84,7 @@ protected:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	int write(const std::vector<ColorRgb> & ledValues) override;
+	int write(const std::vector<ColorRgb>& ledValues) override;
 
 private:
 
@@ -113,7 +113,7 @@ private:
 	///
 	/// @return amount of transferred bytes. -1 error while transferring, -2 error while connecting
 	///
-	int transferData();
+	qint64 transferData();
 
 	///
 	/// @brief Send system exclusive commands
@@ -122,7 +122,7 @@ private:
 	/// @param[in] commandId id of command
 	/// @param[in] msg the sysEx message
 	/// @return amount bytes written, -1 if failed
-	int sendSysEx(uint8_t systemId, uint8_t commandId, const QByteArray& msg);
+	qint64 sendSysEx(uint8_t systemId, uint8_t commandId, const QByteArray& msg);
 
 	///
 	/// @brief Sends the configuration to fadecandy cserver
@@ -131,8 +131,8 @@ private:
 
 	QTcpSocket* _client;
 	QString     _host;
-	uint16_t    _port;
-	unsigned    _channel;
+	int    _port;
+	int    _channel;
 	QByteArray  _opc_data;
 
 	// fadecandy sysEx
@@ -145,7 +145,6 @@ private:
 	bool        _noInterp;
 	bool        _manualLED;
 	bool        _ledOnOff;
-
 };
 
 #endif // LEDEVICEFADECANDY_H

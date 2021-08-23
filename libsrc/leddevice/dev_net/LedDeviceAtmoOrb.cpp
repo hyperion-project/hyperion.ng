@@ -13,6 +13,8 @@
 // Constants
 namespace {
 
+const bool verbose = false;
+const bool verbose3 = false;
 const QString MULTICAST_GROUP_DEFAULT_ADDRESS = "239.255.255.250";
 const quint16 MULTICAST_GROUP_DEFAULT_PORT = 49692;
 
@@ -48,14 +50,14 @@ bool LedDeviceAtmoOrb::init(const QJsonObject &deviceConfig)
 	if ( LedDevice::init(deviceConfig) )
 	{
 
-		_multicastGroup     = deviceConfig["output"].toString(MULTICAST_GROUP_DEFAULT_ADDRESS);
+		_multicastGroup     = deviceConfig["host"].toString(MULTICAST_GROUP_DEFAULT_ADDRESS);
 		_multiCastGroupPort = static_cast<quint16>(deviceConfig["port"].toInt(MULTICAST_GROUP_DEFAULT_PORT));
 		_useOrbSmoothing    = deviceConfig["useOrbSmoothing"].toBool(false);
 		_skipSmoothingDiff  = deviceConfig["skipSmoothingDiff"].toInt(0);
 		QStringList orbIds = QStringUtils::split(deviceConfig["orbIds"].toString().simplified().remove(" "),",", QStringUtils::SplitBehavior::SkipEmptyParts);
 
 		Debug(_log, "DeviceType        : %s", QSTRING_CSTR( this->getActiveDeviceType() ));
-		Debug(_log, "LedCount          : %u", this->getLedCount());
+		Debug(_log, "LedCount          : %d", this->getLedCount());
 		Debug(_log, "ColorOrder        : %s", QSTRING_CSTR( this->getColorOrder() ));
 		Debug(_log, "RefreshTime       : %d", _refreshTimerInterval_ms);
 		Debug(_log, "LatchTime         : %d", this->getLatchTime());
@@ -89,8 +91,8 @@ bool LedDeviceAtmoOrb::init(const QJsonObject &deviceConfig)
 			}
 		}
 
-		uint numberOrbs = _orbIds.size();
-		uint configuredLedCount = this->getLedCount();
+		int numberOrbs = _orbIds.size();
+		int configuredLedCount = this->getLedCount();
 
 		if ( _orbIds.empty() )
 		{
@@ -111,7 +113,7 @@ bool LedDeviceAtmoOrb::init(const QJsonObject &deviceConfig)
 			{
 				if ( numberOrbs > configuredLedCount )
 				{
-					Info(_log, "%s: More Orbs [%u] than configured LEDs [%u].", QSTRING_CSTR(this->getActiveDeviceType()), numberOrbs, configuredLedCount );
+					Info(_log, "%s: More Orbs [%d] than configured LEDs [%d].", QSTRING_CSTR(this->getActiveDeviceType()), numberOrbs, configuredLedCount );
 				}
 
 				isInitOK = true;
@@ -272,20 +274,25 @@ void LedDeviceAtmoOrb::setColor(int orbId, const ColorRgb &color, int commandTyp
 
 void LedDeviceAtmoOrb::sendCommand(const QByteArray &bytes)
 {
-	//Debug ( _log, "command: [%s] -> %s:%u", QSTRING_CSTR( QString(bytes.toHex())), QSTRING_CSTR(_groupAddress.toString()), _multiCastGroupPort );
+	DebugIf(verbose3, _log, "command: [%s] -> %s:%u", QSTRING_CSTR( QString(bytes.toHex())), QSTRING_CSTR(_groupAddress.toString()), _multiCastGroupPort );
 	_udpSocket->writeDatagram(bytes.data(), bytes.size(), _groupAddress, _multiCastGroupPort);
 }
 
-QJsonObject LedDeviceAtmoOrb::discover()
+QJsonObject LedDeviceAtmoOrb::discover(const QJsonObject& params)
 {
+	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
+
 	QJsonObject devicesDiscovered;
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );
 
 	QJsonArray deviceList;
 
+	_multicastGroup     = params["multiCastGroup"].toString(MULTICAST_GROUP_DEFAULT_ADDRESS);
+	_multiCastGroupPort = static_cast<quint16>(params["multiCastPort"].toInt(MULTICAST_GROUP_DEFAULT_PORT));
+
 	if ( open() == 0 )
 	{
-		Debug ( _log, "Send discovery requests to all AtmoOrbs" );
+		Debug ( _log, "Send discovery requests to all AtmoOrbs listening to %s:%d", QSTRING_CSTR(_multicastGroup),_multiCastGroupPort );
 		setColor(0, ColorRgb::BLACK, 8);
 
 		if ( _udpSocket->waitForReadyRead(DEFAULT_DISCOVERY_TIMEOUT.count()) )
@@ -348,14 +355,14 @@ QJsonObject LedDeviceAtmoOrb::discover()
 	}
 
 	devicesDiscovered.insert("devices", deviceList);
-	Debug(_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+	DebugIf(verbose, _log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 
 	return devicesDiscovered;
 }
 
 void LedDeviceAtmoOrb::identify(const QJsonObject& params)
 {
-	//Debug(_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	int orbId = 0;
 	if ( params["id"].isString() )

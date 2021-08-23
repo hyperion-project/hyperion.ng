@@ -154,7 +154,7 @@ namespace hyperion
 		const unsigned _verticalBorder;
 
 		/// The absolute indices into the image for each led
-		std::vector<std::vector<unsigned>> _colorsMap;
+		std::vector<std::vector<int32_t>> _colorsMap;
 
 		///
 		/// Calculates the 'mean color' of the given list. This is the mean over each color-channel
@@ -166,7 +166,7 @@ namespace hyperion
 		/// @return The mean of the given list of colors (or black when empty)
 		///
 		template <typename Pixel_T>
-		ColorRgb calcMeanColor(const Image<Pixel_T> & image, const std::vector<unsigned> & colors) const
+		ColorRgb calcMeanColor(const Image<Pixel_T> & image, const std::vector<int32_t> & colors) const
 		{
 			const auto colorVecSize = colors.size();
 
@@ -175,7 +175,7 @@ namespace hyperion
 				return ColorRgb::BLACK;
 			}
 
-			// Accumulate the sum of each seperate color channel
+			// Accumulate the sum of each separate color channel
 			uint_fast32_t cummRed   = 0;
 			uint_fast32_t cummGreen = 0;
 			uint_fast32_t cummBlue  = 0;
@@ -209,7 +209,7 @@ namespace hyperion
 		template <typename Pixel_T>
 		ColorRgb calcMeanColor(const Image<Pixel_T> & image) const
 		{
-			// Accumulate the sum of each seperate color channel
+			// Accumulate the sum of each separate color channel
 			uint_fast32_t cummRed   = 0;
 			uint_fast32_t cummGreen = 0;
 			uint_fast32_t cummBlue  = 0;

@@ -1,110 +1,110 @@
 {
 	"type":"object",
 	"required":true,
-	"properties":{
-		"output" : {
+	"properties": {
+		"host": {
 			"type": "string",
-			"title":"edt_dev_spec_targetIp_title",
-			"default" : "127.0.0.1",
-			"propertyOrder" : 1
+			"title": "edt_dev_spec_targetIp_title",
+			"default": "127.0.0.1",
+			"propertyOrder": 1
 		},
-		"port" : {
+		"port": {
 			"type": "number",
-			"title":"edt_dev_spec_port_title",
+			"title": "edt_dev_spec_port_title",
 			"default": 7890,
-			"propertyOrder" : 2
+			"propertyOrder": 2
 		},
 		"latchTime": {
 			"type": "integer",
-			"title":"edt_dev_spec_latchtime_title",
+			"title": "edt_dev_spec_latchtime_title",
 			"default": 0,
-			"append" : "edt_append_ms",
+			"append": "edt_append_ms",
 			"minimum": 0,
 			"maximum": 1000,
-			"access" : "expert",
-			"propertyOrder" : 3
+			"access": "expert",
+			"propertyOrder": 3
 		},
 		"setFcConfig": {
 			"type": "boolean",
-			"title":"edt_dev_spec_FCsetConfig_title",
+			"title": "edt_dev_spec_FCsetConfig_title",
 			"default": false,
-			"propertyOrder" : 4
+			"propertyOrder": 4
 		},
 		"manualLed": {
 			"type": "boolean",
-			"title":"edt_dev_spec_FCmanualControl_title",
+			"title": "edt_dev_spec_FCmanualControl_title",
 			"default": false,
 			"options": {
 				"dependencies": {
 					"setFcConfig": true
 				}
 			},
-			"propertyOrder" : 5
+			"propertyOrder": 5
 		},
 		"ledOn": {
 			"type": "boolean",
-			"title":"edt_dev_spec_FCledToOn_title",
+			"title": "edt_dev_spec_FCledToOn_title",
 			"default": false,
 			"options": {
 				"dependencies": {
 					"setFcConfig": true
 				}
 			},
-			"propertyOrder" : 6
+			"propertyOrder": 6
 		},
 		"interpolation": {
 			"type": "boolean",
-			"title":"edt_dev_spec_interpolation_title",
+			"title": "edt_dev_spec_interpolation_title",
 			"default": false,
 			"options": {
 				"dependencies": {
 					"setFcConfig": true
 				}
 			},
-			"propertyOrder" : 7
+			"propertyOrder": 7
 		},
 		"dither": {
 			"type": "boolean",
-			"title":"edt_dev_spec_dithering_title",
+			"title": "edt_dev_spec_dithering_title",
 			"default": false,
 			"options": {
 				"dependencies": {
 					"setFcConfig": true
 				}
 			},
-			"propertyOrder" : 8
+			"propertyOrder": 8
 		},
-		"gamma" : {
-			"type" : "number",
-			"title" : "edt_dev_spec_gamma_title",
+		"gamma": {
+			"type": "number",
+			"title": "edt_dev_spec_gamma_title",
 			"default": 1.0,
-			"minimum" : 0.1,
+			"minimum": 0.1,
 			"maximum": 5.0,
 			"options": {
 				"dependencies": {
 					"setFcConfig": true
 				}
 			},
-			"propertyOrder" : 9
+			"propertyOrder": 9
 		},
-		"whitepoint" : {
-			"type" : "array",
-			"title" : "edt_dev_spec_whitepoint_title",
+		"whitepoint": {
+			"type": "array",
+			"title": "edt_dev_spec_whitepoint_title",
 			"options": {
 				"dependencies": {
 					"setFcConfig": true
 				}
 			},
-			"propertyOrder" : 10,
-			"default" : [255,255,255],
-			"maxItems" : 3,
-			"minItems" : 3,
-			"format" : "colorpicker",
-			"items" : {
-				"type" : "integer",
-				"minimum" : 0,
+			"propertyOrder": 10,
+			"default": [ 255, 255, 255 ],
+			"maxItems": 3,
+			"minItems": 3,
+			"format": "colorpicker",
+			"items": {
+				"type": "integer",
+				"minimum": 0,
 				"maximum": 255,
-				"default" : 255
+				"default": 255
 			}
 		}
 	},

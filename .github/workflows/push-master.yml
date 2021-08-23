@@ -1,9 +1,8 @@
 name: Hyperion CI Build
 on:
   push:
-    branches-ignore:
-      - 'gh-pages'
-      - 'docker-ci'
+    branches:
+      - '**'
     tags:
       - '*'
 
@@ -95,29 +94,49 @@ jobs:
     runs-on: windows-latest
     env:
       VCINSTALLDIR: 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC'
+      QT_VERSION: 5.15.0
     steps:
       - name: Checkout
         uses: actions/checkout@v1
         with:
           submodules: true
 
+      - name: Cache Qt
+        uses: actions/cache@v2
+        id: cache-qt-windows
+        with:
+          path: ${{ runner.workspace }}/Qt
+          key: ${{ runner.os }}-Qt.${{ env.QT_VERSION }}
+
       - name: Install Qt
         uses: jurplel/install-qt-action@v2
         with:
-          version: '5.15.0'
+          version: ${{ env.QT_VERSION }}
           target: 'desktop'
           arch: 'win64_msvc2019_64'
+          cached: ${{ steps.cache-qt-windows.outputs.cache-hit }}
 
-      - name: Install Python
-        uses: actions/setup-python@v1
+      - name: Cache Chocolatey downloads
+        uses: actions/cache@v2
         with:
-          python-version: '3.x'
+          path: C:\Users\runneradmin\AppData\Local\Temp\chocolatey
+          key: ${{ runner.os }}-chocolatey
 
-      - name: Install NSIS
-        run: choco install --no-progress nsis -y
+      - name: "Remove Redistributable"
+        shell: cmd
+        run: |
+          MsiExec.exe /passive /X{F0C3E5D1-1ADE-321E-8167-68EF0DE699A5}
+          MsiExec.exe /passive /X{1D8E6291-B0D5-35EC-8441-6616F567A0F7}
 
-      - name: Install OpenSSL
-        run: choco install --no-progress openssl -y
+      - name: Install Python, NSIS, OpenSSL, DirectX SDK
+        shell: powershell
+        run: |
+          choco install --no-progress python nsis openssl directx-sdk -y
+
+      - name: Install libjpeg-turbo
+        run: |
+          Invoke-WebRequest https://netcologne.dl.sourceforge.net/project/libjpeg-turbo/2.0.6/libjpeg-turbo-2.0.6-vc64.exe -OutFile libjpeg-turbo.exe -UserAgent NativeHost
+          .\libjpeg-turbo /S
 
       - name: Set up x64 build architecture environment
         shell: cmd
@@ -137,51 +156,39 @@ jobs:
         with:
           path: build/Hyperion-*
 
-######################
-#### Documentation ###
-######################
+##########################
+#### Snap (x86_64) #######
+##########################
 
-  Docs:
-    name: Documentation
+  snap:
+    name: Snap (x86_64)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: docs
+
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v2
 
-      # Install dependencies
-      - name: Setup node 12
-        uses: actions/setup-node@v1
-        with:
-          node-version: '12'
+      # Build snap package
+      - name: Build snap
+        id: build
+        uses: snapcore/action-build@v1
 
-      # Build Docs
-      - name: Build docs
-        run: |
-          cd docs
-          npm install -g yarn
-          yarn install
-          yarn docs:build
-
-      # Deploy to gh-pages (only on tagged commit)
-      - name: Deploy to gh-pages
+      # Upload snap artifact (only on tagged commit)
+      - name: Upload snap artifact
         if: startsWith(github.event.ref, 'refs/tags')
-        uses: peaceiris/actions-gh-pages@v3
+        uses: actions/upload-artifact@v2
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs/dist
-          cname: docs.hyperion-project.org
+          name: snap
+          path: ${{ steps.build.outputs.snap }}
 
-################################
-###### Publish Releases ########
-################################
+#######################################
+###### Publish GitHub Releases ########
+#######################################
 
-  publish:
-    name: Publish Releases
+  github_publish:
+    name: Publish GitHub Releases
     if: startsWith(github.event.ref, 'refs/tags')
-    needs: [Linux, macOS, windows, Docs]
+    needs: [Linux, macOS, windows]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -190,14 +197,14 @@ jobs:
       # generate environment variables
       - name: Generate environment variables from version and tag
         run: |
-          echo ::set-env name=TAG::${GITHUB_REF/refs\/tags\//}
-          echo ::set-env name=VERSION::$(tr -d '\n' < version)
-          echo ::set-env name=preRelease::false
+          echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
+          echo "VERSION=$(tr -d '\n' < version)" >> $GITHUB_ENV
+          echo "preRelease=false" >> $GITHUB_ENV
 
       # If version contains alpha or beta, mark draft release as pre-release
       - name: Mark release as pre-release
         if: contains(env.VERSION, 'alpha') || contains(env.VERSION, 'beta')
-        run: echo ::set-env name=preRelease::true
+        run: echo "preRelease=true" >> $GITHUB_ENV
 
       # Download artifacts from previous build process
       - name: Download artifacts
@@ -216,3 +223,35 @@ jobs:
           prerelease: ${{ env.preRelease }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+############################
+###### Snap Release ########
+############################
+
+  snap_publish:
+    name: Publish Snap Release
+    if: startsWith(github.event.ref, 'refs/tags')
+    needs: [snap]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      # Download snap from snap job
+      - name: Download snap from snap build
+        id: download-artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: snap
+
+      # Get file name of the snap
+      - name: Get file name of the snap
+        run: echo "snap=$(ls ${{ steps.download-artifact.outputs.download-path }}/hyperion-ng_*.snap)" >> $GITHUB_ENV
+
+      # Publish snap build to edge channel
+      - name: Publish snap build to edge channel
+        uses: snapcore/action-publish@v1
+        with:
+          store_login: ${{ secrets.SNAP_STORE_LOGIN }}
+          snap: ${{ env.snap }}
+          release: edge

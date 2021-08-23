@@ -21,6 +21,11 @@ Option::Option(const QCommandLineOption &other)
 	: QCommandLineOption(other)
 {}
 
+Option::~Option()
+{
+
+}
+
 QString Option::value(Parser &parser) const
 {
 	return parser.value(*this);

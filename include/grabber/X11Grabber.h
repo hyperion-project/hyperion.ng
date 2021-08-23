@@ -2,7 +2,13 @@
 #include <QAbstractEventDispatcher>
 #include <QAbstractNativeEventFilter>
 #include <QCoreApplication>
+
+// QT includes
 #include <QObject>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonDocument>
+
 
 // Hyperion-utils includes
 #include <utils/ColorRgb.h>
@@ -20,11 +26,13 @@ class X11Grabber : public Grabber , public QAbstractNativeEventFilter
 {
 public:
 
-	X11Grabber(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation);
+	X11Grabber(int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
 
 	~X11Grabber() override;
 
-	bool Setup();
+	bool open();
+
+	bool setupDisplay();
 
 	///
 	/// Captures a single snapshot of the display and writes the data to the given image. The
@@ -45,12 +53,12 @@ public:
 	///
 	/// @brief Apply new width/height values, overwrite Grabber.h implementation as X11 doesn't use width/height, just pixelDecimation to calc dimensions
 	///
-	bool setWidthHeight(int width, int height) override { return true; };
+	bool setWidthHeight(int width, int height) override { return true; }
 
 	///
 	/// @brief Apply new pixelDecimation
 	///
-	void setPixelDecimation(int pixelDecimation) override;
+	bool setPixelDecimation(int pixelDecimation) override;
 
 	///
 	/// Set the crop values
@@ -59,21 +67,32 @@ public:
 	/// @param  cropTop     Top pixel crop
 	/// @param  cropBottom  Bottom pixel crop
 	///
-	void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom) override;
+	void setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom) override;
+
+	///
+	/// @brief Discover X11 screens available (for configuration).
+	///
+	/// @param[in] params Parameters used to overwrite discovery default behaviour
+	///
+	/// @return A JSON structure holding a list of devices found
+	///
+	QJsonObject discover(const QJsonObject& params);
 
 protected:
 	bool nativeEventFilter(const QByteArray & eventType, void * message, long int * result) override;
 
 private:
-	bool _XShmAvailable, _XShmPixmapAvailable, _XRenderAvailable,  _XRandRAvailable;
 
-	XImage* _xImage;
-	XShmSegmentInfo _shminfo;
+	void freeResources();
+	void setupResources();
 
 	/// Reference to the X11 display (nullptr if not opened)
 	Display* _x11Display;
 	Window _window;
 	XWindowAttributes _windowAttr;
+
+	XImage* _xImage;
+	XShmSegmentInfo _shminfo;
 
 	Pixmap _pixmap;
 	XRenderPictFormat* _srcFormat;
@@ -85,15 +104,19 @@ private:
 	int _XRandREventBase;
 
 	XTransform _transform;
-	int _pixelDecimation;
 
-	unsigned _screenWidth;
-	unsigned _screenHeight;
+	unsigned _calculatedWidth;
+	unsigned _calculatedHeight;
 	unsigned _src_x;
 	unsigned _src_y;
 
-	Image<ColorRgb> _image;
+	bool _XShmAvailable;
+	bool _XShmPixmapAvailable;
+	bool _XRenderAvailable;
+	bool _XRandRAvailable;
+	bool _isWayland;
 
-	void freeResources();
-	void setupResources();
+	Logger * _logger;
+
+	Image<ColorRgb> _image;
 };

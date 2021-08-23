@@ -6,23 +6,21 @@
 #include <utils/ColorRgb.h>
 #include <utils/Image.h>
 #include <utils/VideoMode.h>
-#include <grabber/VideoStandard.h>
+#include <utils/VideoStandard.h>
 #include <utils/ImageResampler.h>
 #include <utils/Logger.h>
 #include <utils/Components.h>
 
-#include <QMultiMap>
-
 ///
 /// @brief The Grabber class is responsible to apply image resizes (with or without ImageResampler)
-/// Overwrite the videoMode with setVideoMode()
-/// Overwrite setCropping()
+
 class Grabber : public QObject
 {
 	Q_OBJECT
 
 public:
-	Grabber(const QString& grabberName = "", int width=0, int height=0, int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
+
+	Grabber(const QString& grabberName = "", int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
 
 	///
 	/// Set the video mode (2D/3D)
@@ -31,12 +29,18 @@ public:
 	virtual void setVideoMode(VideoMode mode);
 
 	///
-	/// @brief Apply new crop values, on errors reject the values
+	/// Apply new flip mode (vertical/horizontal/both)
+	/// @param[in] mode The new flip mode
 	///
-	virtual void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom);
+	virtual void setFlipMode(FlipMode mode);
 
 	///
-	/// @brief Apply new video input (used from v4l)
+	/// @brief Apply new crop values, on errors reject the values
+	///
+	virtual void setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom);
+
+	///
+	/// @brief Apply new video input (used from v4l2/MediaFoundation)
 	/// @param input device input
 	///
 	virtual bool setInput(int input);
@@ -48,114 +52,95 @@ public:
 	virtual bool setWidthHeight(int width, int height);
 
 	///
-	/// @brief Apply new framerate (used from v4l)
+	/// @brief Apply new capture framerate in Hz
 	/// @param fps framesPerSecond
 	///
 	virtual bool setFramerate(int fps);
 
 	///
-	/// @brief Apply new pixelDecimation (used from x11, xcb and qt)
+	/// @brief Apply new framerate software decimation (used from v4l2/MediaFoundation)
+	/// @param decimation how many frames per second to omit
 	///
-	virtual void setPixelDecimation(int pixelDecimation) {}
+	virtual void setFpsSoftwareDecimation(int decimation);
 
 	///
-	/// @brief Apply new signalThreshold (used from v4l)
+	/// @brief Apply videoStandard (used from v4l2)
 	///
-	virtual void setSignalThreshold(
-					double redSignalThreshold,
-					double greenSignalThreshold,
-					double blueSignalThreshold,
-					int noSignalCounterThreshold = 50) {}
-	///
-	/// @brief Apply new SignalDetectionOffset  (used from v4l)
-	///
-	virtual void setSignalDetectionOffset(
-					double verticalMin,
-					double horizontalMin,
-					double verticalMax,
-					double horizontalMax) {}
+	virtual void setVideoStandard(VideoStandard videoStandard);
 
 	///
-	/// @brief Apply SignalDetectionEnable (used from v4l)
+	/// @brief  Apply new pixelDecimation
 	///
-	virtual void setSignalDetectionEnable(bool enable) {}
-
-	///
-	/// @brief Apply CecDetectionEnable (used from v4l)
-	///
-	virtual void setCecDetectionEnable(bool enable) {}
-
-	///
-	/// @brief Apply device and videoStanded (used from v4l)
-	///
-	virtual void setDeviceVideoStandard(QString device, VideoStandard videoStandard) {}
+	virtual bool setPixelDecimation(int pixelDecimation);
 
 	///
 	/// @brief Apply display index (used from qt)
 	///
-	virtual void setDisplayIndex(int index) {}
-
-	///
-	/// @brief Apply path for device (used from framebuffer)
-	///
-	virtual void setDevicePath(const QString& path) {}
-
-	///
-	/// @brief get current resulting height of image (after crop)
-	///
-	virtual int getImageWidth() { return _width; }
-
-	///
-	/// @brief get current resulting width of image (after crop)
-	///
-	virtual int getImageHeight() { return _height; }
+	virtual bool setDisplayIndex(int /*index*/) { return true; }
 
 	///
 	/// @brief Prevent the real capture implementation from capturing if disabled
 	///
-	void setEnabled(bool enable);
+	virtual void setEnabled(bool enable);
 
 	///
-	/// @brief Get a list of all available V4L devices
-	/// @return List of all available V4L devices on success else empty List
+	/// @brief get current resulting height of image (after crop)
 	///
-	virtual QStringList getV4L2devices() const { return QStringList(); }
+	int getImageWidth() const { return _width; }
 
 	///
-	/// @brief Get the V4L device name
-	/// @param devicePath The device path
-	/// @return The name of the V4L device on success else empty String
+	/// @brief get current resulting width of image (after crop)
 	///
-	virtual QString getV4L2deviceName(const QString& /*devicePath*/) const { return QString(); }
+	int getImageHeight() const { return _height; }
 
 	///
-	/// @brief Get a name/index pair of supported device inputs
-	/// @param devicePath The device path
-	/// @return multi pair of name/index on success else empty pair
+	/// @brief Get current capture framerate in Hz
+	/// @param fps framesPerSecond
 	///
-	virtual QMultiMap<QString, int> getV4L2deviceInputs(const QString& /*devicePath*/) const { return QMultiMap<QString, int>(); }
+	int getFramerate() const { return _fps; }
 
 	///
-	/// @brief Get a list of supported device resolutions
-	/// @param devicePath The device path
-	/// @return List of resolutions on success else empty List
+	/// @brief Get capture interval in ms
 	///
-	virtual QStringList getResolutions(const QString& /*devicePath*/) const { return QStringList(); }
+	int getUpdateInterval() const { return 1000/_fps; }
 
 	///
-	/// @brief Get a list of supported device framerates
-	/// @param devicePath The device path
-	/// @return List of framerates on success else empty List
+	/// @brief  Get pixelDecimation
 	///
-	virtual QStringList getFramerates(const QString& devicePath) const { return QStringList(); }
+	int getPixelDecimation() const { return _pixelDecimation; }
+
+	QString getGrabberName() const { return _grabberName; }
+
+protected slots:
+	///
+	/// @brief Set device in error state
+	///
+	/// @param[in] errorMsg The error message to be logged
+	///
+	virtual void setInError( const QString& errorMsg);
 
 protected:
+
+	QString _grabberName;
+
+	/// logger instance
+	Logger * _log;
+
 	ImageResampler _imageResampler;
 
 	bool _useImageResampler;
 
 	/// the selected VideoMode
-	VideoMode    _videoMode;
+	VideoMode _videoMode;
+
+	/// the used video standard
+	VideoStandard _videoStandard;
+
+	/// Image size decimation
+	int _pixelDecimation;
+
+	/// the used Flip Mode
+	FlipMode _flipMode;
 
 	/// With of the captured snapshot [pixels]
 	int _width;
@@ -166,15 +151,21 @@ protected:
 	/// frame per second
 	int _fps;
 
+	/// fps software decimation
+	int _fpsSoftwareDecimation;
+
 	/// device input
 	int _input;
 
 	/// number of pixels to crop after capturing
 	int _cropLeft, _cropRight, _cropTop, _cropBottom;
 
-	bool _enabled;
+	// Device states
 
-	/// logger instance
-	Logger * _log;
+	/// Is the device enabled?
+	bool _isEnabled;
+
+	/// Is the device in error state and stopped?
+	bool _isDeviceInError;
 
 };

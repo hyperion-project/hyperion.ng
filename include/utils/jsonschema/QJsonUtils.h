@@ -48,7 +48,7 @@ public:
 		{
 			case QJsonValue::Array:
 			{
-				for (const QJsonValue &v : value.toArray())
+				for (const QJsonValueRef v : value.toArray())
 				{
 					ret = getDefaultValue(v);
 					if (!ret.isEmpty())

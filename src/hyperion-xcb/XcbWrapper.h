@@ -5,6 +5,7 @@
 
 // Hyperion-Xcb includes
 #include <grabber/XcbGrabber.h>
+#include <hyperion/GrabberWrapper.h>
 
 //Utils includes
 #include <utils/VideoMode.h>
@@ -13,7 +14,11 @@ class XcbWrapper : public QObject
 {
 	Q_OBJECT
 public:
-	XcbWrapper(int grabInterval, int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation);
+	XcbWrapper( int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ,
+				int pixelDecimation=GrabberWrapper::DEFAULT_PIXELDECIMATION,
+				int cropLeft=0, int cropRight=0,
+				int cropTop=0, int cropBottom=0
+				);
 
 	const Image<ColorRgb> & getScreenshot();
 

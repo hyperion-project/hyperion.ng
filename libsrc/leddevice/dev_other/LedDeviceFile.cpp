@@ -26,6 +26,14 @@ bool LedDeviceFile::init(const QJsonObject &deviceConfig)
 	bool initOK = LedDevice::init(deviceConfig);
 
 	_fileName = deviceConfig["output"].toString("/dev/null");
+
+#if _WIN32
+	if (_fileName == "/dev/null" )
+	{
+		_fileName = "NULL";
+	}
+#endif
+
 	_printTimeStamp = deviceConfig["printTimeStamp"].toBool(false);
 
 	initFile(_fileName);
@@ -106,7 +114,7 @@ int LedDeviceFile::write(const std::vector<ColorRgb> & ledValues)
 	}
 
 	#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
-		out << "]" << Qt::endl;
+		out << QString("]") << Qt::endl;
 	#else
 		out << "]" << endl;
 	#endif

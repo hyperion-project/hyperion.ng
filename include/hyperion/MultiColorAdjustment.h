@@ -11,22 +11,22 @@
 
 ///
 /// The LedColorTransform is responsible for performing color transformation from 'raw' colors
-/// received as input to colors mapped to match the color-properties of the leds.
+/// received as input to colors mapped to match the color-properties of the LEDs.
 ///
 class MultiColorAdjustment
 {
 public:
-	MultiColorAdjustment(unsigned ledCnt);
+	MultiColorAdjustment(int ledCnt);
 	~MultiColorAdjustment();
 
 	/**
 	 * Adds a new ColorAdjustment to this MultiColorTransform
 	 *
-	 * @param adjustment The new ColorAdjustment (ownership is transfered)
+	 * @param adjustment The new ColorAdjustment (ownership is transferred)
 	 */
 	void addAdjustment(ColorAdjustment * adjustment);
 
-	void setAdjustmentForLed(const QString& id, unsigned startLed, unsigned endLed);
+	void setAdjustmentForLed(const QString& id, int startLed, int endLed);
 
 	bool verifyAdjustments() const;
 

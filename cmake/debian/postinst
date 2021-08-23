@@ -16,11 +16,12 @@ install_file()
 }
 
 
-echo "---Hyperion ambient light postinstall ---"
+echo "--- Hyperion ambient light postinstall ---"
 
 #check system
 CPU_RPI=`grep -m1 -c 'BCM2708\|BCM2709\|BCM2710\|BCM2835\|BCM2836\|BCM2837\|BCM2711' /proc/cpuinfo`
 CPU_X32X64=`uname -m | grep 'x86_32\|i686\|x86_64' | wc -l`
+OS_HYPERBIAN=`grep ID /etc/os-release | grep -m1 -c HyperBian`
 
 #Check for a bootloader as Berryboot
 BOOT_BERRYBOOT=$(grep -m1 -c '\(/var/media\|/media/pi\)/berryboot' /etc/mtab)
@@ -47,12 +48,19 @@ if grep -m1 systemd /proc/1/comm > /dev/null
 then
 	echo "---> init deamon: systemd"
 	# systemd
-	install_file /usr/share/hyperion/service/hyperion.systemd /etc/systemd/system/hyperiond@.service
-	# service registration just on Raspberry Pi, probably need to ask the user how we should use the service. TODO service start in user login scope eg for x11?!
-	if [ $ENABLE_SERVICE -eq 1 ]; then
-		systemctl enable hyperiond"@${FOUND_USR}".service
-		start_msg="--> systemctl start hyperiond for user ${FOUND_USR}"
-		systemctl start hyperiond"@${FOUND_USR}"
+	if [ $OS_HYPERBIAN -eq 1 ]; then
+		# start service only
+		echo "--> Service file already exists, skip creation"
+		start_msg="--> systemctl start hyperion"
+		systemctl start hyperion
+	else
+		install_file /usr/share/hyperion/service/hyperion.systemd /etc/systemd/system/hyperiond@.service
+		# service registration just on Raspberry Pi, probably need to ask the user how we should use the service. TODO service start in user login scope eg for x11?!
+		if [ $ENABLE_SERVICE -eq 1 ]; then
+			systemctl enable hyperiond"@${FOUND_USR}".service
+			start_msg="--> systemctl start hyperiond for user ${FOUND_USR}"
+			systemctl start hyperiond"@${FOUND_USR}"
+		fi
 	fi
 
 elif [ -e /sbin/initctl ]
@@ -92,11 +100,13 @@ ln -fs $BINSP/hyperion-xcb $BINTP/hyperion-xcb 2>/dev/null
 ln -fs $BINSP/hyperion-aml $BINTP/hyperion-aml 2>/dev/null
 ln -fs $BINSP/hyperion-qt $BINTP/hyperion-qt 2>/dev/null
 
-# install desktop icons
-echo "---> Install Hyperion desktop icons"
-mkdir /usr/share/pixmaps/hyperion 2>/dev/null
-cp /usr/share/hyperion/desktop/*.png /usr/share/pixmaps/hyperion 2>/dev/null
-desktop-file-install /usr/share/hyperion/desktop/hyperiond.desktop 2>/dev/null
+# install desktop icons / not on HyperBian
+if [ $OS_HYPERBIAN -ne 1 ]; then
+	echo "---> Install Hyperion desktop icons"
+	mkdir /usr/share/pixmaps/hyperion 2>/dev/null
+	cp /usr/share/hyperion/desktop/*.png /usr/share/pixmaps/hyperion 2>/dev/null
+	desktop-file-install /usr/share/hyperion/desktop/hyperiond.desktop 2>/dev/null
+fi
 
 # cleanup desktop icons
 rm -r /usr/share/hyperion/desktop 2>/dev/null
@@ -131,8 +141,8 @@ echo "---> or if already used by another service try: ${NET_IP}:8091"
 $REBOOTMESSAGE
 echo "-----------------------------------------------------------------------------"
 echo "Webpage: www.hyperion-project.org"
-echo "Wiki: wiki.hyperion-project.org"
-echo "Forum: forum.hyperion-project.org"
+echo "Forum: www.hyperion-project.org"
+echo "Documenation: docs.hyperion-project.org"
 echo "-----------------------------------------------------------------------------"
 
 

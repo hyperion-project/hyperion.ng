@@ -190,7 +190,7 @@ void ProviderHID::unblockAfterDelay()
 	_blockedForDelay = false;
 }
 
-QJsonObject ProviderHID::discover()
+QJsonObject ProviderHID::discover(const QJsonObject& /*params*/)
 {
 	QJsonObject devicesDiscovered;
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );

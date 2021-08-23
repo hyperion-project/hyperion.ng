@@ -1,9 +1,13 @@
 #include <grabber/FramebufferWrapper.h>
 
-FramebufferWrapper::FramebufferWrapper(const QString & device, unsigned grabWidth, unsigned grabHeight, unsigned updateRate_Hz)
-	: GrabberWrapper("FrameBuffer", &_grabber, grabWidth, grabHeight, updateRate_Hz)
-	, _grabber(device, grabWidth, grabHeight)
-{}
+FramebufferWrapper::FramebufferWrapper( int updateRate_Hz,
+										const QString & device,
+										int pixelDecimation)
+	: GrabberWrapper("FrameBuffer", &_grabber, updateRate_Hz)
+	  , _grabber(device)
+{
+	_grabber.setPixelDecimation(pixelDecimation);
+}
 
 void FramebufferWrapper::action()
 {

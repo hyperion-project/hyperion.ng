@@ -19,8 +19,6 @@
 
 EffectEngine::EffectEngine(Hyperion * hyperion)
 	: _hyperion(hyperion)
-	, _availableEffects()
-	, _activeEffects()
 	, _log(Logger::getInstance("EFFECTENGINE"))
 	, _effectFileHandler(EffectFileHandler::getInstance())
 {
@@ -141,8 +139,6 @@ int EffectEngine::runEffect(const QString &effectName, int priority, int timeout
 
 int EffectEngine::runEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout, const QString &pythonScript, const QString &origin, unsigned smoothCfg, const QString &imageData)
 {
-	Info( _log, "Run effect \"%s\" on channel %d", QSTRING_CSTR(effectName), priority);
-
 	if (pythonScript.isEmpty())
 	{
 		const EffectDefinition *effectDefinition = nullptr;
@@ -157,12 +153,14 @@ int EffectEngine::runEffect(const QString &effectName, const QJsonObject &args, 
 		if (effectDefinition == nullptr)
 		{
 			// no such effect
-			Error(_log, "Effect %s not found",  QSTRING_CSTR(effectName));
+			Error(_log, "Effect \"%s\" not found",  QSTRING_CSTR(effectName));
 			return -1;
 		}
 
+		Info( _log, "Run effect \"%s\" on channel %d", QSTRING_CSTR(effectName), priority);
 		return runEffectScript(effectDefinition->script, effectName, (args.isEmpty() ? effectDefinition->args : args), priority, timeout, origin, effectDefinition->smoothCfg);
 	}
+	Info( _log, "Run effect \"%s\" on channel %d", QSTRING_CSTR(effectName), priority);
 	return runEffectScript(pythonScript, effectName, args, priority, timeout, origin, smoothCfg, imageData);
 }
 
@@ -202,7 +200,7 @@ void EffectEngine::allChannelsCleared()
 {
 	for (Effect * effect : _activeEffects)
 	{
-		if (effect->getPriority() != 254 && !effect->isInterruptionRequested())
+		if (effect->getPriority() != PriorityMuxer::BG_PRIORITY && !effect->isInterruptionRequested())
 		{
 			effect->requestInterruption();
 		}

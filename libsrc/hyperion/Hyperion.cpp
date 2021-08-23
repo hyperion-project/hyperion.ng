@@ -18,7 +18,7 @@
 #include <utils/GlobalSignals.h>
 #include <utils/Logger.h>
 
-// Leddevice includes
+// LedDevice includes
 #include <leddevice/LedDeviceWrapper.h>
 
 #include <hyperion/MultiColorAdjustment.h>
@@ -39,21 +39,27 @@
 // Boblight
 #include <boblightserver/BoblightServer.h>
 
-Hyperion::Hyperion(quint8 instance)
+Hyperion::Hyperion(quint8 instance, bool readonlyMode)
 	: QObject()
 	, _instIndex(instance)
-	, _settingsManager(new SettingsManager(instance, this))
+	, _settingsManager(new SettingsManager(instance, this, readonlyMode))
 	, _componentRegister(this)
 	, _ledString(hyperion::createLedString(getSetting(settings::LEDS).array(), hyperion::createColorOrder(getSetting(settings::DEVICE).object())))
 	, _imageProcessor(new ImageProcessor(_ledString, this))
-	, _muxer(_ledString.leds().size(), this)
-	, _raw2ledAdjustment(hyperion::createLedColorsAdjustment(_ledString.leds().size(), getSetting(settings::COLOR).object()))
+	, _muxer(static_cast<int>(_ledString.leds().size()), this)
+	, _raw2ledAdjustment(hyperion::createLedColorsAdjustment(static_cast<int>(_ledString.leds().size()), getSetting(settings::COLOR).object()))
+	, _ledDeviceWrapper(nullptr)
+	, _deviceSmooth(nullptr)
 	, _effectEngine(nullptr)
 	, _messageForwarder(nullptr)
 	, _log(Logger::getInstance("HYPERION"))
 	, _hwLedCount()
 	, _ledGridSize(hyperion::getLedLayoutGridSize(getSetting(settings::LEDS).array()))
+	, _BGEffectHandler(nullptr)
+	, _captureCont(nullptr)
 	, _ledBuffer(_ledString.leds().size(), ColorRgb::BLACK)
+	, _boblightServer(nullptr)
+	, _readOnlyMode(readonlyMode)
 {
 
 }
@@ -77,9 +83,9 @@ void Hyperion::start()
 	}
 
 	// handle hwLedCount
-	_hwLedCount = qMax(unsigned(getSetting(settings::DEVICE).object()["hardwareLedCount"].toInt(getLedCount())), getLedCount());
+	_hwLedCount = getSetting(settings::DEVICE).object()["hardwareLedCount"].toInt(getLedCount());
 
-	// init colororder vector
+	// Initialize colororder vector
 	for (const Led& led : _ledString.leds())
 	{
 		_ledStringColorOrder.push_back(led.colorOrder);
@@ -87,7 +93,7 @@ void Hyperion::start()
 
 	// connect Hyperion::update with Muxer visible priority changes as muxer updates independent
 	connect(&_muxer, &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::update);
-	connect(&_muxer, &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::handlPriorityChangedLedDevice);
+	connect(&_muxer, &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::handlePriorityChangedLedDevice);
 	connect(&_muxer, &PriorityMuxer::visibleComponentChanged, this, &Hyperion::handleVisibleComponentChanged);
 
 	// listens for ComponentRegister changes of COMP_ALL to perform core enable/disable actions
@@ -96,12 +102,14 @@ void Hyperion::start()
 	// listen for settings updates of this instance (LEDS & COLOR)
 	connect(_settingsManager, &SettingsManager::settingsChanged, this, &Hyperion::handleSettingsUpdate);
 
+	#if 0
 	// set color correction activity state
 	const QJsonObject color = getSetting(settings::COLOR).object();
+	#endif
 
-	// initialize leddevices
+	// initialize LED-devices
 	QJsonObject ledDevice = getSetting(settings::DEVICE).object();
-	ledDevice["currentLedCount"] = int(_hwLedCount); // Inject led count info
+	ledDevice["currentLedCount"] = _hwLedCount; // Inject led count info
 
 	_ledDeviceWrapper = new LedDeviceWrapper(this);
 	connect(this, &Hyperion::compStateChangeRequest, _ledDeviceWrapper, &LedDeviceWrapper::handleComponentState);
@@ -114,7 +122,9 @@ void Hyperion::start()
 
 	// create the message forwarder only on main instance
 	if (_instIndex == 0)
+	{
 		_messageForwarder = new MessageForwarder(this);
+	}
 
 	// create the effect engine; needs to be initialized after smoothing!
 	_effectEngine = new EffectEngine(this);
@@ -135,14 +145,14 @@ void Hyperion::start()
 	connect(GlobalSignals::getInstance(), &GlobalSignals::setGlobalColor, this, &Hyperion::setColor);
 	connect(GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage, this, &Hyperion::setInputImage);
 
-	// if there is no startup / background eff and no sending capture interface we probably want to push once BLACK (as PrioMuxer won't emit a prioritiy change)
+	// if there is no startup / background effect and no sending capture interface we probably want to push once BLACK (as PrioMuxer won't emit a priority change)
 	update();
 
 	// boblight, can't live in global scope as it depends on layout
 	_boblightServer = new BoblightServer(this, getSetting(settings::BOBLSERVER));
 	connect(this, &Hyperion::settingsChanged, _boblightServer, &BoblightServer::handleSettingsUpdate);
 
-	// instance inited, enter thread event loop
+	// instance initiated, enter thread event loop
 	emit started();
 }
 
@@ -177,7 +187,7 @@ void Hyperion::handleSettingsUpdate(settings::type type, const QJsonDocument& co
 		const QJsonObject obj = config.object();
 		// change in color recreate ledAdjustments
 		delete _raw2ledAdjustment;
-		_raw2ledAdjustment = hyperion::createLedColorsAdjustment(_ledString.leds().size(), obj);
+		_raw2ledAdjustment = hyperion::createLedColorsAdjustment(static_cast<int>(_ledString.leds().size()), obj);
 
 		if (!_raw2ledAdjustment->verifyAdjustments())
 		{
@@ -188,13 +198,13 @@ void Hyperion::handleSettingsUpdate(settings::type type, const QJsonDocument& co
 	{
 		const QJsonArray leds = config.array();
 
-		// stop and cache all running effects, as effects depend heavily on ledlayout
+		// stop and cache all running effects, as effects depend heavily on LED-layout
 		_effectEngine->cacheRunningEffects();
 
-		// ledstring, img processor, muxer, ledGridSize (eff engine image based effects), _ledBuffer and ByteOrder of ledstring
+		// ledstring, img processor, muxer, ledGridSize (effect-engine image based effects), _ledBuffer and ByteOrder of ledstring
 		_ledString = hyperion::createLedString(leds, hyperion::createColorOrder(getSetting(settings::DEVICE).object()));
 		_imageProcessor->setLedString(_ledString);
-		_muxer.updateLedColorsLength(_ledString.leds().size());
+		_muxer.updateLedColorsLength(static_cast<int>(_ledString.leds().size()));
 		_ledGridSize = hyperion::getLedLayoutGridSize(leds);
 
 		std::vector<ColorRgb> color(_ledString.leds().size(), ColorRgb{0,0,0});
@@ -207,11 +217,11 @@ void Hyperion::handleSettingsUpdate(settings::type type, const QJsonDocument& co
 		}
 
 		// handle hwLedCount update
-		_hwLedCount = qMax(unsigned(getSetting(settings::DEVICE).object()["hardwareLedCount"].toInt(getLedCount())), getLedCount());
+		_hwLedCount = getSetting(settings::DEVICE).object()["hardwareLedCount"].toInt(getLedCount());
 
 		// change in leds are also reflected in adjustment
 		delete _raw2ledAdjustment;
-		_raw2ledAdjustment = hyperion::createLedColorsAdjustment(_ledString.leds().size(), getSetting(settings::COLOR).object());
+		_raw2ledAdjustment = hyperion::createLedColorsAdjustment(static_cast<int>(_ledString.leds().size()), getSetting(settings::COLOR).object());
 
 		// start cached effects
 		_effectEngine->startCachedEffects();
@@ -221,7 +231,7 @@ void Hyperion::handleSettingsUpdate(settings::type type, const QJsonDocument& co
 		QJsonObject dev = config.object();
 
 		// handle hwLedCount update
-		_hwLedCount = qMax(unsigned(dev["hardwareLedCount"].toInt(getLedCount())), getLedCount());
+		_hwLedCount = dev["hardwareLedCount"].toInt(getLedCount());
 
 		// force ledString update, if device ByteOrder changed
 		if(_ledDeviceWrapper->getColorOrder() != dev["colorOrder"].toString("rgb"))
@@ -237,7 +247,7 @@ void Hyperion::handleSettingsUpdate(settings::type type, const QJsonDocument& co
 		}
 
 		// do always reinit until the led devices can handle dynamic changes
-		dev["currentLedCount"] = int(_hwLedCount); // Inject led count info
+		dev["currentLedCount"] = _hwLedCount; // Inject led count info
 		_ledDeviceWrapper->createLedDevice(dev);
 
 		// TODO: Check, if framegrabber frequency is lower than latchtime..., if yes, stop
@@ -276,9 +286,9 @@ unsigned Hyperion::updateSmoothingConfig(unsigned id, int settlingTime_ms, doubl
 	return _deviceSmooth->updateConfig(id, settlingTime_ms, ledUpdateFrequency_hz, updateDelay);
 }
 
-unsigned Hyperion::getLedCount() const
+int Hyperion::getLedCount() const
 {
-	return _ledString.leds().size();
+	return static_cast<int>(_ledString.leds().size());
 }
 
 void Hyperion::setSourceAutoSelect(bool state)
@@ -322,7 +332,9 @@ bool Hyperion::setInput(int priority, const std::vector<ColorRgb>& ledColors, in
 	{
 		// clear effect if this call does not come from an effect
 		if(clearEffect)
+		{
 			_effectEngine->channelCleared(priority);
+		}
 
 		// if this priority is visible, update immediately
 		if(priority == _muxer.getCurrentPriority())
@@ -347,7 +359,9 @@ bool Hyperion::setInputImage(int priority, const Image<ColorRgb>& image, int64_t
 	{
 		// clear effect if this call does not come from an effect
 		if(clearEffect)
+		{
 			_effectEngine->channelCleared(priority);
+		}
 
 		// if this priority is visible, update immediately
 		if(priority == _muxer.getCurrentPriority())
@@ -369,7 +383,9 @@ void Hyperion::setColor(int priority, const std::vector<ColorRgb> &ledColors, in
 {
 	// clear effect if this call does not come from an effect
 	if (clearEffects)
+	{
 		_effectEngine->channelCleared(priority);
+	}
 
 	// create full led vector from single/multiple colors
 	size_t size = _ledString.leds().size();
@@ -380,21 +396,23 @@ void Hyperion::setColor(int priority, const std::vector<ColorRgb> &ledColors, in
 		{
 			newLedColors.emplace_back(entry);
 			if (newLedColors.size() == size)
+			{
 				goto end;
+			}
 		}
 	}
 end:
 
 	if (getPriorityInfo(priority).componentId != hyperion::COMP_COLOR)
+	{
 		clear(priority);
+	}
 
 	// register color
 	registerInput(priority, hyperion::COMP_COLOR, origin);
 
-	// write color to muxer & queuePush
+	// write color to muxer
 	setInput(priority, newLedColors, timeout_ms);
-	if (timeout_ms <= 0)
-		_muxer.queuePush();
 }
 
 QStringList Hyperion::getAdjustmentIds() const
@@ -415,13 +433,14 @@ void Hyperion::adjustmentsUpdated()
 
 bool Hyperion::clear(int priority, bool forceClearAll)
 {
+	bool isCleared = false;
 	if (priority < 0)
 	{
 		_muxer.clearAll(forceClearAll);
 
 		// send clearall signal to the effect engine
 		_effectEngine->allChannelsCleared();
-		return true;
+		isCleared = true;
 	}
 	else
 	{
@@ -430,9 +449,11 @@ bool Hyperion::clear(int priority, bool forceClearAll)
 		_effectEngine->channelCleared(priority);
 
 		if (_muxer.clearInput(priority))
-			return true;
+		{
+			isCleared = true;
+		}
 	}
-	return false;
+	return isCleared;
 }
 
 int Hyperion::getCurrentPriority() const
@@ -531,11 +552,11 @@ void Hyperion::handleVisibleComponentChanged(hyperion::Components comp)
 	_raw2ledAdjustment->setBacklightEnabled((comp != hyperion::COMP_COLOR && comp != hyperion::COMP_EFFECT));
 }
 
-void Hyperion::handlPriorityChangedLedDevice(const quint8& priority)
+void Hyperion::handlePriorityChangedLedDevice(const quint8& priority)
 {
-	quint8 previousPriority = _muxer.getPreviousPriority();
+	int previousPriority = _muxer.getPreviousPriority();
 
-	Debug(_log,"priority[%u], previousPriority[%u]", priority, previousPriority);
+	Debug(_log,"priority[%d], previousPriority[%d]", priority, previousPriority);
 	if ( priority == PriorityMuxer::LOWEST_PRIORITY)
 	{
 		Debug(_log,"No source left -> switch LED-Device off");
@@ -559,7 +580,7 @@ void Hyperion::update()
 
 	// copy image & process OR copy ledColors from muxer
 	Image<ColorRgb> image = priorityInfo.image;
-	if(image.size() > 3)
+	if (image.width() > 1 || image.height() > 1)
 	{
 		emit currentImage(image);
 		_ledBuffer = _imageProcessor->process(image);
@@ -605,8 +626,8 @@ void Hyperion::update()
 		i++;
 	}
 
-	// fill additional hw leds with black
-	if ( _hwLedCount > _ledBuffer.size() )
+	// fill additional hardware LEDs with black
+	if ( _hwLedCount > static_cast<int>(_ledBuffer.size()) )
 	{
 		_ledBuffer.resize(_hwLedCount, ColorRgb::BLACK);
 	}
@@ -624,16 +645,18 @@ void Hyperion::update()
 		{
 			_deviceSmooth->selectConfig(priorityInfo.smooth_cfg);
 
-			// feed smoothing in pause mode to maintain a smooth transistion back to smooth mode
+			// feed smoothing in pause mode to maintain a smooth transition back to smooth mode
 			if (_deviceSmooth->enabled() || _deviceSmooth->pause())
 			{
 				_deviceSmooth->updateLedValues(_ledBuffer);
 			}
 		}
 	}
-	//else
-	//{
-	//	/LEDDevice is disabled
-	//	Debug(_log, "LEDDevice is disabled - no update required");
-	//}
+	#if 0
+	else
+	{
+		//LEDDevice is disabled
+		Debug(_log, "LEDDevice is disabled - no update required");
+	}
+	#endif
 }

@@ -5,15 +5,33 @@ unsigned __osx_frame_counter = 0;
 const int __screenWidth  = 800;
 const int __screenHeight = 600;
 
-void CGGetActiveDisplayList(int max, CGDirectDisplayID *displays, CGDisplayCount *displayCount)
+CGError CGGetActiveDisplayList(uint32_t maxDisplays, CGDirectDisplayID *activeDisplays, uint32_t *displayCount)
 {
-	*displayCount = 1;
-	displays[0]   = 1;
+	if (maxDisplays == 0 || activeDisplays == nullptr)
+	{
+		*displayCount = 2;
+	}
+	else
+	{
+		displayCount = &maxDisplays;
+		if (activeDisplays != nullptr)
+		{
+			for (CGDirectDisplayID i = 0; i < maxDisplays; ++i)
+			{
+				activeDisplays[i] = i;
+			}
+		}
+		else
+		{
+			return kCGErrorFailure;
+		}
+	}
+	return kCGErrorSuccess;
 }
 
 CGImageRef CGDisplayCreateImage(CGDirectDisplayID display)
 {
-	CGImageRef image = new CGImage(__screenWidth, __screenHeight);
+	CGImageRef image = new CGImage(__screenWidth / (display+1), __screenHeight / (display+1));
 
 	return image;
 }
@@ -121,6 +139,21 @@ unsigned CGImageGetBitsPerPixel(CGImageRef)
 void CFRelease(CFDataRef imgData)
 {
 	delete imgData;
+}
+
+CGDisplayModeRef CGDisplayCopyDisplayMode(CGDirectDisplayID display)
+{
+	return nullptr;
+}
+CGRect CGDisplayBounds(CGDirectDisplayID display)
+{
+	CGRect rect;
+	rect.size.width  = __screenWidth / (display+1);
+	rect.size.height = __screenHeight / (display+1);
+	return rect;
+}
+void CGDisplayModeRelease(CGDisplayModeRef mode)
+{
 }
 
 #endif

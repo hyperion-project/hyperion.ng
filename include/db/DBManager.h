@@ -119,6 +119,13 @@ public:
 	///
 	bool deleteTable(const QString& table) const;
 
+	///
+	/// @brief Sets a table in read-only mode.
+	/// Updates will not written to the table
+	/// @param[in]  readOnly True read-only, false - read/write
+	///
+	void setReadonlyMode(bool readOnly) { _readonlyMode = readOnly; };
+
 private:
 
 	Logger* _log;
@@ -126,6 +133,8 @@ private:
 	QString _dbn = "hyperion";
 	/// table in database
 	QString _table;
+
+	bool _readonlyMode;
 
 	/// addBindValue to query given by QVariantList
 	void doAddBindValue(QSqlQuery& query, const QVariantList& variants) const;

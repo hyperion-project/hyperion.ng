@@ -8,8 +8,6 @@
 
 ///
 /// Implementation of a WLED-device
-/// ...
-///
 ///
 class LedDeviceWled : public ProviderUdp
 {
@@ -37,9 +35,11 @@ public:
 	///
 	/// @brief Discover WLED devices available (for configuration).
 	///
+	/// @param[in] params Parameters used to overwrite discovery default behaviour
+	///
 	/// @return A JSON structure holding a list of devices found
 	///
-	QJsonObject discover() override;
+	QJsonObject discover(const QJsonObject& params) override;
 
 	///
 	/// @brief Get the WLED device's resource properties
@@ -92,7 +92,7 @@ protected:
 	///
 	/// @brief Power-/turn on the WLED device.
 	///
-	/// @brief Store the device's original state.
+	/// @return True if success
 	///
 	bool powerOn() override;
 
@@ -102,6 +102,25 @@ protected:
 	/// @return True if success
 	///
 	bool powerOff() override;
+
+	///
+	/// @brief Store the device's original state.
+	///
+	/// Save the device's state before hyperion color streaming starts allowing to restore state during switchOff().
+	///
+	/// @return True if success
+	///
+	bool storeState() override;
+
+	///
+	/// @brief Restore the device's original state.
+	///
+	/// Restore the device's state as before hyperion color streaming started.
+	/// This includes the on/off state of the device.
+	///
+	/// @return True, if success
+	///
+	bool restoreState() override;
 
 private:
 
@@ -122,11 +141,27 @@ private:
 	///
 	QString getOnOffRequest (bool isOn ) const;
 
+	QString getBrightnessRequest (int bri ) const;
+	QString getEffectRequest(int effect, int speed=128) const;
+	QString getLorRequest(int lor) const;
+	QString getUdpnRequest(bool send, bool recv) const;
+
+	bool sendStateUpdateRequest(const QString &request);
+
 	///REST-API wrapper
 	ProviderRestApi* _restApi;
 
 	QString _hostname;
 	int		_apiPort;
+
+	QJsonObject _originalStateProperties;
+
+	bool _isBrightnessOverwrite;
+	int _brightness;
+
+	bool _isSyncOverwrite;
+	bool _originalStateUdpnSend;
+	bool _originalStateUdpnRecv;
 };
 
 #endif // LEDDEVICEWLED_H

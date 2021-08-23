@@ -5,16 +5,6 @@
 // hyperion includes
 #include <hyperion/LedString.h>
 
-LedString::LedString()
-{
-	// empty
-}
-
-LedString::~LedString()
-{
-	// empty
-}
-
 std::vector<Led>& LedString::leds()
 {
 	return mLeds;

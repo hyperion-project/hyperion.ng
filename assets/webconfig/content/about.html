@@ -1,90 +1,78 @@
 <div class="container-fluid">
-	<h3 class="page-header"><i class="fa fa-info-circle fa-fw"></i><span data-i18n="main_menu_about_token">About
-			Hyperion</span></h3>
-	<div class="row">
-		<div class="col-lg-12">
-			<div id="about_cont"></div>
+  <h3 class="page-header">
+    <i class="fa fa-info-circle fa-fw"></i><span data-i18n="main_menu_about_token">
+      About
+      Hyperion
+    </span>
+  </h3>
+  <div class="row">
+    <div class="col-lg-12">
+      <div id="about_cont"></div>
 
-		</div>
-		<div id="danger_act" class="col-lg-6" style="display:none;padding-top:20px">
-			<h4>You found a hidden service menu!</h4>
-			<button id="reset_cache" class="btn btn-danger">Reset Browser Cache</button>
-			<button id="hyp_restart" class="btn btn-danger">Force Hyperion Restart</button>
-		</div>
-	</div>
+    </div>
+    <div id="danger_act" class="col-lg-6" style="display:none;padding-top:20px">
+      <h4>You found a hidden service menu!</h4>
+      <button id="reset_cache" class="btn btn-danger">Reset Browser Cache</button>
+      <button id="hyp_restart" class="btn btn-danger">Force Hyperion Restart</button>
+    </div>
+  </div>
 </div>
 
 <script type="text/javascript">
-	performTranslation();
+  performTranslation();
 
-	var si = sysInfo.hyperion;
-	var libs = { "Bootstrap 3": "http://getbootstrap.com/", "JQuery": "https://jquery.com/", "Bootstrap Colorpicker": "https://itsjavi.com/bootstrap-colorpicker/", "Bootstrap Toggle": "https://www.bootstraptoggle.com/", "Bootstrap Select": "https://developer.snapappointments.com/bootstrap-select/", "JSON-Editor": "http://jeremydorn.com/json-editor/", "jQuery.i18n": "https://github.com/wikimedia/jquery.i18n", "metisMenu": "http://mm.onokumus.com/index.html", "download.js": "http://danml.com/download.html", "gijgo": "http://gijgo.com/" };
-	var libh = "";
-	var lang = [];
-	var dcount = 0;
+  var si = window.sysInfo.hyperion;
+  var libs = { "Bootstrap 3": "https://getbootstrap.com/", "JQuery": "https://jquery.com/", "Bootstrap Colorpicker": "https://itsjavi.com/bootstrap-colorpicker/", "Bootstrap Toggle": "https://www.bootstraptoggle.com/", "Bootstrap Select": "https://developer.snapappointments.com/bootstrap-select/", "JSON-Editor": "https://www.jeremydorn.com/json-editor", "jQuery.i18n": "https://github.com/wikimedia/jquery.i18n", "metisMenu": "https://mm.onokumus.com/index.html", "download.js": "https://github.com/rndme/download", "gijgo": "https://gijgo.com/" };
+  var libh = "";
+  var lang = [];
+  var dcount = 0;
 
-	for (var i = 0; i < availLang.length; i++)
-		lang.push($.i18n('general_speech_' + availLang[i]));
-	lang.sort();
-	for (key in libs)
-		libh += '<a href="' + libs[key] + '" target="_blank">' + key + '</a>, ';
-	libh += "<br/>" + $.i18n("about_credits");
-	lang = lang.toString().replace(/,/g, ", ");
+  for (var i = 0; i < availLang.length; i++)
+    lang.push($.i18n('general_speech_' + availLang[i]));
+  lang.sort();
+  for (key in libs)
+    libh += '<a href="' + libs[key] + '" target="_blank">' + key + '</a>, ';
+  libh += "<br/>" + $.i18n("about_credits");
+  lang = lang.toString().replace(/,/g, ", ");
 
-	// Github Issue bugreport infos
-	var sys = window.sysInfo.system;
-	var shy = window.sysInfo.hyperion;
-	var info = "<pre>Hyperion Server: \n";
-	info += '- Build:       ' + shy.build + '\n';
-	info += '- Build time:  ' + shy.time + '\n';
-	info += '- Git Remote:  ' + shy.gitremote + '\n';
-	info += '- Version:     ' + shy.version + '\n';
-	info += '- UI Lang:     ' + storedLang + ' (BrowserLang: ' + navigator.language + ')\n';
-	info += '- UI Access:   ' + storedAccess + '\n';
-	//info += 'Log lvl:     ' + window.serverConfig.logger.level + '\n';
-	info += '- Avail Capt:  ' + window.serverInfo.grabbers.available + '\n\n';
-	info += 'Hyperion Server OS: \n';
-	info += '- Distribution: ' + sys.prettyName + '\n';
-	info += '- Arch:         ' + sys.architecture + '\n';
-	info += '- Kernel:       ' + sys.kernelType + ' (' + sys.kernelVersion + ' (WS: ' + sys.wordSize + '))\n';
-	info += '- Browser:      ' + navigator.userAgent + ' </pre>';
+  var info = '<pre>' + getSystemInfo() + '</pre>';
 
-	var fc = ['<span id="danger_trig">' + $.i18n("about_version") + '<span>', $.i18n("about_build"), $.i18n("about_builddate"), $.i18n("about_translations"), $.i18n("about_resources", $.i18n("general_webui_title")), "System info (Github Issue)", $.i18n("about_3rd_party_licenses")];
-	var sc = [currentVersion, si.build, si.time, '(' + availLang.length + ')<p>' + lang + '</p><p><a href="https://github.com/hyperion-project/hyperion.ng" target="_blank">' + $.i18n("about_contribute") + '</a></p>', libh, info, '<pre><div id="3rdpartylicenses" style="overflow:scroll;max-height:400px"></div></pre>'];
+  var fc = ['<span id="danger_trig">' + $.i18n("about_version") + '<span>', $.i18n("about_build"), $.i18n("about_builddate"), $.i18n("about_translations"), $.i18n("about_resources", $.i18n("general_webui_title")), "System info (Github Issue)", $.i18n("about_3rd_party_licenses")];
+  var sc = [currentVersion, si.build, si.time, '(' + availLang.length + ')<p>' + lang + '</p><p><a href="https://github.com/hyperion-project/hyperion.ng" target="_blank">' + $.i18n("about_contribute") + '</a></p>', libh, info, '<pre><div id="3rdpartylicenses" style="overflow:scroll;max-height:400px"></div></pre>'];
 
-	createTable("", "atb", "about_cont");
-	for (var i = 0; i < fc.length; i++)
-		$('.atb').append(createTableRow([fc[i], sc[i]], "atb", false));
+  createTable("", "atb", "about_cont");
+  for (var i = 0; i < fc.length; i++)
+    $('.atb').append(createTableRow([fc[i], sc[i]], "atb", false));
 
-	$('#danger_trig').off().on('click', function () {
-		dcount++;
-		if (dcount > 2)
-			$('#danger_act').toggle(true);
-	});
+  $('#danger_trig').off().on('click', function () {
+    dcount++;
+    if (dcount > 2)
+      $('#danger_act').toggle(true);
+  });
 
-	$('#reset_cache').off().on('click', function () {
-		localStorage.clear();
-	});
+  $('#reset_cache').off().on('click', function () {
+    localStorage.clear();
+  });
 
-	$('#hyp_restart').off().on('click', function () {
-		initRestart();
-	});
+  $('#hyp_restart').off().on('click', function () {
+    initRestart();
+  });
 
-	var url = 'https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/3RD_PARTY_LICENSES';
-	fetch(url)
-		.then(function (response) {
-			if (!response.ok) {
-				$("#3rdpartylicenses").html('<a href="' + url + '">' + $.i18n("about_3rd_party_licenses_error") + '</a>');
-			}
-			else {
-				response.text().then(function (text) {
-					$("#3rdpartylicenses").html('<code>' + text + '</code>');
-				});
-			}
-		})
-		.catch(function (rejected) {
-			$("#3rdpartylicenses").html('<a href="' + url + '">' + $.i18n("about_3rd_party_licenses_error") + '</a>');
-		});
+  var url = 'https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/3RD_PARTY_LICENSES';
+  fetch(url)
+    .then(function (response) {
+      if (!response.ok) {
+        $("#3rdpartylicenses").html('<a href="' + url + '">' + $.i18n("about_3rd_party_licenses_error") + '</a>');
+      }
+      else {
+        response.text().then(function (text) {
+          $("#3rdpartylicenses").html('<code>' + text + '</code>');
+        });
+      }
+    })
+    .catch(function (rejected) {
+      $("#3rdpartylicenses").html('<a href="' + url + '">' + $.i18n("about_3rd_party_licenses_error") + '</a>');
+    });
 
-	removeOverlay();
+  removeOverlay();
 </script>

@@ -1,10 +1,14 @@
 #include <grabber/XcbWrapper.h>
 
-XcbWrapper::XcbWrapper(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation, const unsigned updateRate_Hz)
-	: GrabberWrapper("Xcb", &_grabber, 0, 0, updateRate_Hz)
-	, _grabber(cropLeft, cropRight, cropTop, cropBottom, pixelDecimation)
+XcbWrapper::XcbWrapper( int updateRate_Hz,
+						int pixelDecimation,
+						int cropLeft, int cropRight, int cropTop, int cropBottom)
+	: GrabberWrapper("Xcb", &_grabber, updateRate_Hz)
+	, _grabber(cropLeft, cropRight, cropTop, cropBottom)
 	, _init(false)
-{}
+{
+	_grabber.setPixelDecimation(pixelDecimation);
+}
 
 XcbWrapper::~XcbWrapper()
 {
@@ -19,7 +23,7 @@ void XcbWrapper::action()
 	if (! _init )
 	{
 		_init = true;
-		if ( ! _grabber.Setup() )
+		if ( ! _grabber.setupDisplay() )
 		{
 			stop();
 		}

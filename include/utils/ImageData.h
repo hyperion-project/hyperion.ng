@@ -38,7 +38,7 @@ public:
 		_height(other._height),
 		_pixels(new Pixel_T[other._width * other._height + 1])
 	{
-		memcpy(_pixels, other._pixels, (long) other._width * other._height * sizeof(Pixel_T));
+		memcpy(_pixels, other._pixels, static_cast<ulong>(other._width) * static_cast<ulong>(other._height) * sizeof(Pixel_T));
 	}
 
 	ImageData& operator=(ImageData rhs)
@@ -150,7 +150,7 @@ public:
 
 	ssize_t size() const
 	{
-		return  (ssize_t) _width * _height * sizeof(Pixel_T);
+		return  static_cast<ssize_t>(_width) * static_cast<ssize_t>(_height) * sizeof(Pixel_T);
 	}
 
 	void clear()
@@ -163,7 +163,7 @@ public:
 			_pixels = new Pixel_T[2];
 		}
 
-		memset(_pixels, 0, (unsigned long) _width * _height * sizeof(Pixel_T));
+		memset(_pixels, 0, static_cast<unsigned long>(_width) * static_cast<unsigned long>(_height) * sizeof(Pixel_T));
 	}
 
 private:

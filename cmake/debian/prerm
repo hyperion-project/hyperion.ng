@@ -13,10 +13,10 @@ if grep -m1 systemd /proc/1/comm > /dev/null
 then
 	echo "---> stop init deamon: systemd"
 	# systemd
-	$HYPERION_RUNNING && systemctl stop hyperiond"@${FOUND_USR}" 2> /dev/null
-	# disable user specific symlink
+	$HYPERION_RUNNING && systemctl stop hyperion hyperiond"@${FOUND_USR}" 2> /dev/null
+	# disable user specific symlink / not on HyperBian
 	echo "---> Disable service and remove entry"
-	systemctl -q disable hyperiond"@${FOUND_USR}"
+	systemctl -q disable hyperiond"@${FOUND_USR}" 2> /dev/null
 	rm -v /etc/systemd/system/hyperiond@.service 2>/dev/null
 
 elif [ -e /sbin/initctl ]

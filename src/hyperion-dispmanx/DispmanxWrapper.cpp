@@ -1,19 +1,21 @@
 
-// Hyperion-Dispmanx includes
 #include "DispmanxWrapper.h"
 
-DispmanxWrapper::DispmanxWrapper(unsigned grabWidth, unsigned grabHeight,
-	VideoMode videoMode,
-	unsigned cropLeft, unsigned cropRight,
-	unsigned cropTop, unsigned cropBottom,
-	unsigned updateRate_Hz) :
+DispmanxWrapper::DispmanxWrapper( int updateRate_Hz,
+								  int pixelDecimation,
+								  int cropLeft, int cropRight,
+								  int cropTop, int cropBottom
+								  ) :
 	_timer(this),
-	_grabber(grabWidth, grabHeight)
+	_grabber()
 {
-	_grabber.setVideoMode(videoMode);
+	_grabber.setFramerate(updateRate_Hz);
 	_grabber.setCropping(cropLeft, cropRight, cropTop, cropBottom);
+	_grabber.setPixelDecimation(pixelDecimation);
+
+	_timer.setTimerType(Qt::PreciseTimer);
 	_timer.setSingleShot(false);
-	_timer.setInterval(updateRate_Hz);
+	_timer.setInterval(_grabber.getUpdateInterval());
 
 	// Connect capturing to the timeout signal of the timer
 	connect(&_timer, SIGNAL(timeout()), this, SLOT(capture()));
@@ -35,8 +37,19 @@ void DispmanxWrapper::stop()
 	_timer.stop();
 }
 
+bool DispmanxWrapper::screenInit()
+{
+	return _grabber.setupScreen();
+}
+
 void DispmanxWrapper::capture()
 {
 	_grabber.grabFrame(_screenshot);
 	emit sig_screenshot(_screenshot);
 }
+
+void DispmanxWrapper::setVideoMode(VideoMode mode)
+{
+	_grabber.setVideoMode(mode);
+}
+

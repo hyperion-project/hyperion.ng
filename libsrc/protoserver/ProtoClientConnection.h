@@ -1,13 +1,15 @@
 #pragma once
 
+// protobuffer PROTO
+// protobuf defines an Error() function itself, so undef it here
+#undef Error
+#include "message.pb.h"
+
 // util
 #include <utils/Logger.h>
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
 #include <utils/Components.h>
-
-// protobuffer PROTO
-#include "message.pb.h"
 
 class QTcpSocket;
 class QTimer;

@@ -54,14 +54,20 @@ public:
 		QString owner;
 	};
 
+	//Foreground and Background priorities
+	const static int FG_PRIORITY;
+	const static int BG_PRIORITY;
+	const static int MANUAL_SELECTED_PRIORITY;
 	/// The lowest possible priority, which is used when no priority channels are active
 	const static int LOWEST_PRIORITY;
+	/// Timeout used to identify a non active priority
+	const static int TIMEOUT_NOT_ACTIVE_PRIO;
 
 	///
-	/// Constructs the PriorityMuxer for the given number of leds (used to switch to black when
+	/// Constructs the PriorityMuxer for the given number of LEDs (used to switch to black when
 	/// there are no priority channels
 	///
-	/// @param ledCount The number of leds
+	/// @param ledCount The number of LEDs
 	///
 	PriorityMuxer(int ledCount, QObject * parent);
 
@@ -81,24 +87,24 @@ public:
 	/// @param   update   True to update _currentPriority - INTERNAL usage.
 	/// @return           True if changed has been applied, false if the state is unchanged
 	///
-	bool setSourceAutoSelectEnabled(bool enabel, bool update = true);
+	bool setSourceAutoSelectEnabled(bool enable, bool update = true);
 
 	///
 	/// @brief Get the state of source auto selection
 	/// @return  True if enabled, else false
 	///
-	bool isSourceAutoSelectEnabled() const { return _sourceAutoSelectEnabled; };
+	bool isSourceAutoSelectEnabled() const { return _sourceAutoSelectEnabled; }
 
 	///
-	/// @brief  Overwrite current lowest piority with manual selection; On success disables aito selection
+	/// @brief  Overwrite current lowest priority with manual selection; On success disables auto selection
 	/// @param   priority  The
 	/// @return            True on success, false if priority not found
 	///
-	bool setPriority(uint8_t priority);
+	bool setPriority(int priority);
 
 	///
-	/// @brief Update all ledColos with min length of >= 1 to fit the new led length
-	/// @param[in] ledCount   The count of leds
+	/// @brief Update all LED-Colors with min length of >= 1 to fit the new led length
+	/// @param[in] ledCount   The count of LEDs
 	///
 	void updateLedColorsLength(int ledCount);
 
@@ -146,13 +152,13 @@ public:
 	/// @param[in] priority    The priority of the channel
 	/// @param[in] component   The component of the channel
 	/// @param[in] origin      Who set the channel (CustomString@IP)
-	/// @param[in] owner       Speicifc owner string, might be empty
+	/// @param[in] owner       Specific owner string, might be empty
 	/// @param[in] smooth_cfg  The smooth id to use
 	///
 	void registerInput(int priority, hyperion::Components component, const QString& origin = "System", const QString& owner = "", unsigned smooth_cfg = SMOOTHING_MODE_DEFAULT);
 
 	///
-	/// @brief   Update the current color of a priority (prev registered with registerInput())
+	/// @brief   Update the current color of a priority (previous registered with registerInput())
 	/// @param  priority    The priority to update
 	/// @param  ledColors   The colors
 	/// @param  timeout_ms  The new timeout (defaults to -1 endless)
@@ -174,7 +180,7 @@ public:
 	/// @param priority  The priority
 	/// @return True on success false if not found
 	///
-	bool setInputInactive(quint8 priority);
+	bool setInputInactive(int priority);
 
 	///
 	/// Clears the specified priority channel and update _currentPriority on success
@@ -182,7 +188,7 @@ public:
 	/// @param[in] priority  The priority of the channel to clear
 	/// @return              True if priority has been cleared else false (not found)
 	///
-	bool clearInput(uint8_t priority);
+	bool clearInput(int priority);
 
 	///
 	/// Clears all priority channels
@@ -190,7 +196,7 @@ public:
 	void clearAll(bool forceClearAll=false);
 
 	///
-	/// @brief Queue a manual push where muxer doesn't recognize them (e.g. continous single color pushes)
+	/// @brief Queue a manual push where muxer doesn't recognize them (e.g. continuous single color pushes)
 	///
 	void queuePush() { emit timeRunner(); }
 
@@ -211,19 +217,6 @@ signals:
 	/// @param comp  The new component
 	///
 	void visibleComponentChanged(hyperion::Components comp);
-
-	///
-	/// @brief Emits whenever a priority changes active state
-	/// @param  priority  The priority who changed the active state
-	/// @param  state     The new state, state true = active else false
-	///
-	void activeStateChanged(quint8 priority, bool state);
-
-	///
-	/// @brief Emits whenever the auto selection state has been changed
-	/// @param  state  The new state of auto selection; True enabled else false
-	///
-	void autoSelectChanged(bool state);
 
 	///
 	/// @brief Emits whenever something changes which influences the priorities listing

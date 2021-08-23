@@ -47,6 +47,7 @@ void CaptureCont::handleV4lImage(const QString& name, const Image<ColorRgb> & im
 	{
 		_hyperion->registerInput(_v4lCaptPrio, hyperion::COMP_V4L, "System", name);
 		_v4lCaptName = name;
+		emit GlobalSignals::getInstance()->requestSource(hyperion::COMP_V4L, int(_hyperion->getInstanceIndex()), _v4lCaptEnabled);
 	}
 	_v4lInactiveTimer->start();
 	_hyperion->setInputImage(_v4lCaptPrio, image);
@@ -58,6 +59,7 @@ void CaptureCont::handleSystemImage(const QString& name, const Image<ColorRgb>& 
 	{
 		_hyperion->registerInput(_systemCaptPrio, hyperion::COMP_GRABBER, "System", name);
 		_systemCaptName = name;
+		emit GlobalSignals::getInstance()->requestSource(hyperion::COMP_GRABBER, int(_hyperion->getInstanceIndex()), _systemCaptEnabled);
 	}
 	_systemInactiveTimer->start();
 	_hyperion->setInputImage(_systemCaptPrio, image);
@@ -75,7 +77,7 @@ void CaptureCont::setSystemCaptureEnable(bool enable)
 		}
 		else
 		{
-			disconnect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, 0, 0);
+			disconnect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, this, 0);
 			_hyperion->clear(_systemCaptPrio);
 			_systemInactiveTimer->stop();
 			_systemCaptName = "";
@@ -98,7 +100,7 @@ void CaptureCont::setV4LCaptureEnable(bool enable)
 		}
 		else
 		{
-			disconnect(GlobalSignals::getInstance(), &GlobalSignals::setV4lImage, 0, 0);
+			disconnect(GlobalSignals::getInstance(), &GlobalSignals::setV4lImage, this, 0);
 			_hyperion->clear(_v4lCaptPrio);
 			_v4lInactiveTimer->stop();
 			_v4lCaptName = "";
@@ -125,8 +127,8 @@ void CaptureCont::handleSettingsUpdate(settings::type type, const QJsonDocument&
 			_systemCaptPrio = obj["systemPriority"].toInt(250);
 		}
 
-		setV4LCaptureEnable(obj["v4lEnable"].toBool(true));
-		setSystemCaptureEnable(obj["systemEnable"].toBool(true));
+		setV4LCaptureEnable(obj["v4lEnable"].toBool(false));
+		setSystemCaptureEnable(obj["systemEnable"].toBool(false));
 	}
 }
 

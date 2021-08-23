@@ -41,7 +41,7 @@ jobs:
         shell: bash
         run: |
           tr -d '\n' < version > temp && mv temp version
-          echo -n -PR#${{ github.event.pull_request.number }} >> version
+          echo -n "+PR${{ github.event.pull_request.number }}" >> version
 
       # Build packages
       - name: Build packages
@@ -63,7 +63,7 @@ jobs:
 
       # Upload artifacts
       - name: Upload artifacts
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.dockerImage }}
           path: ${{ matrix.dockerImage }}
@@ -87,7 +87,7 @@ jobs:
         shell: bash
         run: |
           tr -d '\n' < version > temp && mv temp version
-          echo -n "-PR#${{ github.event.pull_request.number }}" >> version
+          echo -n "+PR${{ github.event.pull_request.number }}" >> version
 
       # Install dependencies
       - name: Install dependencies
@@ -110,7 +110,7 @@ jobs:
 
       # Upload artifacts
       - name: Upload artifacts
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: macOS
           path: macOS
@@ -124,6 +124,7 @@ jobs:
     runs-on: windows-latest
     env:
       VCINSTALLDIR: 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC'
+      QT_VERSION: 5.15.0
     steps:
       - name: Checkout
         uses: actions/checkout@v1
@@ -135,25 +136,44 @@ jobs:
         shell: bash
         run: |
           tr -d '\n' < version > temp && mv temp version
-          echo -n "-PR#${{ github.event.pull_request.number }}" >> version
+          echo -n "+PR${{ github.event.pull_request.number }}" >> version
+
+      - name: Cache Qt
+        uses: actions/cache@v2
+        id: cache-qt-windows
+        with:
+          path: ${{ runner.workspace }}/Qt
+          key: ${{ runner.os }}-Qt.${{ env.QT_VERSION }}
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v2
         with:
-          version: '5.15.0'
+          version: ${{env.QT_VERSION}}
           target: 'desktop'
           arch: 'win64_msvc2019_64'
+          cached: ${{ steps.cache-qt-windows.outputs.cache-hit }}
 
-      - name: Install Python
-        uses: actions/setup-python@v1
+      - name: Cache Chocolatey downloads
+        uses: actions/cache@v2
         with:
-          python-version: '3.x'
+          path: C:\Users\runneradmin\AppData\Local\Temp\chocolatey
+          key: ${{ runner.os }}-chocolatey
 
-      - name: Install NSIS
-        run: choco install --no-progress nsis -y
+      - name: "Remove Redistributable"
+        shell: cmd
+        run: |
+          MsiExec.exe /passive /X{F0C3E5D1-1ADE-321E-8167-68EF0DE699A5}
+          MsiExec.exe /passive /X{1D8E6291-B0D5-35EC-8441-6616F567A0F7}
 
-      - name: Install OpenSSL
-        run: choco install --no-progress openssl -y
+      - name: Install Python, NSIS, OpenSSL, DirectX SDK
+        shell: powershell
+        run: |
+          choco install --no-progress python nsis openssl directx-sdk -y
+
+      - name: Install libjpeg-turbo
+        run: |
+          Invoke-WebRequest https://netcologne.dl.sourceforge.net/project/libjpeg-turbo/2.0.6/libjpeg-turbo-2.0.6-vc64.exe -OutFile libjpeg-turbo.exe -UserAgent NativeHost
+          .\libjpeg-turbo /S
 
       - name: Set up x64 build architecture environment
         shell: cmd
@@ -171,38 +191,35 @@ jobs:
         shell: bash
         run: |
           mkdir -p windows
-          mv build/*.zip windows
+          mv build/*.exe windows
 
       # Upload artifacts
       - name: Upload artifacts
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: windows
           path: windows
 
-######################
-#### Documentation ###
-######################
+##########################
+#### Snap (x86_64) #######
+##########################
 
-  docs:
-    name: Documentation
+  snap:
+    name: Snap (x86_64)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: docs
+
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v2
 
-      # Install dependencies
-      - name: Setup node 12
-        uses: actions/setup-node@v1
-        with:
-          node-version: '12'
+      # Build snap package
+      - name: Build snap
+        id: build
+        uses: snapcore/action-build@v1
 
-      # Build Docs
-      - name: Build docs
-        run: |
-          npm install -g yarn
-          yarn install
-          yarn docs:build
+      # Upload snap artifact (only on tagged commit)
+      - name: Upload snap artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: snap
+          path: ${{ steps.build.outputs.snap }}
