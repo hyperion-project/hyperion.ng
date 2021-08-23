@@ -56,7 +56,7 @@ $(document).ready(function () {
 
   // Update language selection
   $("#language-select").on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {
-    var newLang = availLang[clickedIndex - 1];
+    var newLang = availLang[clickedIndex];
     if (newLang !== storedLang) {
       setStorage("langcode", newLang);
       reload();
