@@ -42,5 +42,5 @@ sudo apt-get --purge autoremove hyperion
 
 2. Remove the Hyperion-Project APT source from your system:
 ```bash
-sudo rm /usr/keyrings/hyperion.pub.gpg /etc/apt/sources.list.d/hyperion.list
+sudo rm /usr/share/keyrings/hyperion.pub.gpg /etc/apt/sources.list.d/hyperion.list
 ```
