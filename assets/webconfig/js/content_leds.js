@@ -383,22 +383,24 @@ function blackListLeds(nonBlacklistLedArray, blackList) {
 }
 
 function getLedConfig() {
-  var ledConfig = { classic: {}, matrix: {} };
-  var slConfig = window.serverConfig.ledConfig;
 
-  for (var key in slConfig.classic) {
-    if (typeof (slConfig.classic[key]) === "boolean")
+  var ledConfig = { classic: {}, matrix: {} };
+
+  var classicSchema = window.serverSchema.properties.ledConfig.properties.classic.properties;
+  for (var key in classicSchema) {
+    if (classicSchema[key].type === "boolean")
       ledConfig.classic[key] = $('#ip_cl_' + key).is(':checked');
-    else if (Number.isInteger(slConfig.classic[key]))
+    else if (classicSchema[key].type === "integer")
       ledConfig.classic[key] = parseInt($('#ip_cl_' + key).val());
     else
       ledConfig.classic[key] = $('#ip_cl_' + key).val();
   }
 
-  for (var key in slConfig.matrix) {
-    if (typeof (slConfig.matrix[key]) === "boolean")
+  var matrixSchema = window.serverSchema.properties.ledConfig.properties.matrix.properties;
+  for (var key in matrixSchema) {
+    if (matrixSchema[key].type === "boolean")
       ledConfig.matrix[key] = $('#ip_ma_' + key).is(':checked');
-    else if (Number.isInteger(slConfig.matrix[key]))
+    else if (matrixSchema[key].type === "integer")
       ledConfig.matrix[key] = parseInt($('#ip_ma_' + key).val());
     else
       ledConfig.matrix[key] = $('#ip_ma_' + key).val();
