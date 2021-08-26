@@ -1275,8 +1275,6 @@ QJsonArray V4L2Grabber::discover(const QJsonObject& params)
 			device["device_name"] = _deviceProperties.value(it.key()).name;
 			device["type"] = "v4l2";
 
-			Debug( _log, "inputs size [%d], isEmpty [%d]", inputs.size(), inputs.isEmpty());
-
 			for (auto input = inputs.begin(); input != inputs.end(); input++)
 			{
 				in["name"] = input.key();
