@@ -110,8 +110,16 @@ function loadContent(event, forceRefresh) {
     $("#page-content").off();
     $("#page-content").load("/content/" + tag + ".html", function (response, status, xhr) {
       if (status == "error") {
-        $("#page-content").html('<h3>' + $.i18n('info_404') + '</h3>');
-        removeOverlay();
+        tag = 'dashboard';
+        console.log("Could not find page:", prevTag, ", Redirecting to:", tag);
+        setStorage('lasthashtag', tag, true);
+
+        $("#page-content").load("/content/" + tag + ".html", function (response, status, xhr) {
+          if (status == "error") {
+            $("#page-content").html('<h3>' + tag + '<br/>' + $.i18n('info_404') + '</h3>');
+            removeOverlay();
+          }
+        });
       }
       updateUiOnInstance(window.currentHyperionInstance);
     });
@@ -688,7 +696,11 @@ function hexToRgb(hex) {
     r: parseInt(result[1], 16),
     g: parseInt(result[2], 16),
     b: parseInt(result[3], 16)
-  } : null;
+  } : {
+    r: 0,
+    g: 0,
+    b: 0
+  };
 }
 
 /*
