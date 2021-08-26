@@ -144,12 +144,14 @@ int ProviderSpi::writeBytes(unsigned size, const uint8_t * data)
 		return -1;
 	}
 
+	uint8_t * newdata {nullptr};
+
 	_spi.tx_buf = __u64(data);
 	_spi.len    = __u32(size);
 
 	if (_spiDataInvert)
 	{
-		uint8_t * newdata = (uint8_t *)malloc(size);
+		newdata = static_cast<uint8_t *>(malloc(size));
 		for (unsigned i = 0; i<size; i++) {
 			newdata[i] = data[i] ^ 0xff;
 		}
@@ -158,6 +160,8 @@ int ProviderSpi::writeBytes(unsigned size, const uint8_t * data)
 
 	int retVal = ioctl(_fid, SPI_IOC_MESSAGE(1), &_spi);
 	ErrorIf((retVal < 0), _log, "SPI failed to write. errno: %d, %s", errno,  strerror(errno) );
+
+	free (newdata);
 
 	return retVal;
 }
