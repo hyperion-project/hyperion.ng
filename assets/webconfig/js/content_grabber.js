@@ -755,7 +755,7 @@ $(document).ready(function () {
       updateJsonEditorSelection(conf_editor_video, 'root.grabberV4L2',
         'available_devices', {}, enumVals, enumTitelVals, enumDefaultVal, addSelect, false);
     }
-  }
+  };
 
   async function discoverInputSources(type, params) {
     const result = await requestInputSourcesDiscovery(type, params);
