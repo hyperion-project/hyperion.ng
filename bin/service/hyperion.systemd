@@ -1,5 +1,6 @@
 [Unit]
 Description=Hyperion ambient light systemd service  for user %i
+Documentation=https://docs.hyperion-project.org
 After=network.target
 
 [Service]

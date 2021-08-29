@@ -1,5 +1,14 @@
 #!/bin/sh
 
+echo "--- postinst called with args= " $1 $2
+
+# If $1=configure and $2 is set, this is an upgrade
+if [ "$1" = configure ] && [ "$2" != "" ]; then
+	IS_UPGRADE=true
+else
+	IS_UPGRADE=false
+fi
+
 install_file()
 {
 	src="$1"
@@ -15,11 +24,10 @@ install_file()
 	fi
 }
 
-
-echo "---Hyperion ambient light postinstall ---"
+echo "--- Hyperion ambient light postinstall ---"
 
 #check system
-CPU_RPI=`grep -m1 -c 'BCM2708\|BCM2709\|BCM2710\|BCM2835' /proc/cpuinfo`
+CPU_RPI=`grep -m1 -c 'BCM2708\|BCM2709\|BCM2710\|BCM2835\|BCM2836\|BCM2837\|BCM2711' /proc/cpuinfo`
 CPU_X32X64=`uname -m | grep 'x86_32\|i686\|x86_64' | wc -l`
 
 #Check for a bootloader as Berryboot
@@ -31,47 +39,38 @@ NET_IP=`hostname -I | cut -d " " -f1`
 # search for users in system, returns first entry
 FOUND_USR=`who | grep -o -m1 '^\w*\b'` || "root"
 
-# determine if we should use a service
-ENABLE_SERVICE=0
-STARTUP_MSG="echo ---> You can start Hyperion from your menu now"
-
-if [ $CPU_RPI -eq 1 ]; then
-	ENABLE_SERVICE=1
-	STARTUP_MSG="echo ---> Hyperion has been installed as service, it will start on each system startup"
-fi
-
 start_msg=""
 restart_msg=""
 
-if grep -m1 systemd /proc/1/comm > /dev/null
-then
-	echo "---> init deamon: systemd"
-	# systemd
-	install_file /usr/share/hyperion/service/hyperion.systemd /etc/systemd/system/hyperiond@.service
-	# service registration just on Raspberry Pi, probably need to ask the user how we should use the service. TODO service start in user login scope eg for x11?!
-	if [ $ENABLE_SERVICE -eq 1 ]; then
-		systemctl enable hyperiond"@${FOUND_USR}".service
-		start_msg="--> systemctl start hyperiond for user ${FOUND_USR}"
-		systemctl start hyperiond"@${FOUND_USR}"
-	fi
+# service registration if no gui is present (only on initial installation and not upgrade)
+if [ "$IS_UPGRADE" = false ]; then
+	if [ -z "${DISPLAY}" ] && [ -z "${WAYLAND_DISPLAY}" ] && [ -z "${XDG_CURRENT_DESKTOP}" ]; then
+		STARTUP_MSG="echo ---> Hyperion has been installed as service, it will start on each system startup"
 
-elif [ -e /sbin/initctl ]
-then
-	echo "---> init deamon: upstart"
-	# upstart
-	if [ $ENABLE_SERVICE -eq 1 ]; then
-		install_file /usr/share/hyperion/service/hyperiond.initctl /etc/init/hyperion.conf && initctl reload-configuration
-		start_msg="--> initctl start hyperiond"
-		initctl start hyperiond
-	fi
-
-else
-	echo "---> init deamon: sysV"
-	# sysV
-	if [ $ENABLE_SERVICE -eq 1 ]; then
-		install_file /usr/share/hyperion/service/hyperion.init /etc/init.d/hyperiond && chmod +x /etc/init.d/hyperiond && update-rc.d hyperiond defaults 98 02
-		start_msg="---> service hyperiond start"
-		service hyperiond start
+		if grep -m1 systemd /proc/1/comm > /dev/null
+		then
+			# systemd
+			echo "---> init deamon: systemd"
+			install_file /usr/share/hyperion/service/hyperion.systemd /etc/systemd/system/hyperion@.service
+			systemctl enable hyperion"@${FOUND_USR}".service
+			start_msg="--> systemctl start hyperion for user ${FOUND_USR}"
+			systemctl start hyperion"@${FOUND_USR}"
+		elif [ -e /sbin/initctl ]
+		then
+			# upstart
+			echo "---> init deamon: upstart"
+			install_file /usr/share/hyperion/service/hyperion.initctl /etc/init/hyperion.conf && initctl reload-configuration
+			start_msg="--> initctl start hyperion"
+			initctl start hyperion
+		else
+			# sysV
+			echo "---> init deamon: sysV"
+			install_file /usr/share/hyperion/service/hyperion.init /etc/init.d/hyperion && chmod +x /etc/init.d/hyperion && update-rc.d hyperion defaults 98 02
+			start_msg="---> service hyperion start"
+			service hyperion start
+		fi
+	else
+		STARTUP_MSG="echo ---> You can start Hyperion from your menu now"
 	fi
 fi
 
@@ -92,11 +91,15 @@ ln -fs $BINSP/hyperion-xcb $BINTP/hyperion-xcb 2>/dev/null
 ln -fs $BINSP/hyperion-aml $BINTP/hyperion-aml 2>/dev/null
 ln -fs $BINSP/hyperion-qt $BINTP/hyperion-qt 2>/dev/null
 
-# install desktop icons
-echo "---> Install Hyperion desktop icons"
-mkdir /usr/share/pixmaps/hyperion 2>/dev/null
-cp /usr/share/hyperion/desktop/*.png /usr/share/pixmaps/hyperion 2>/dev/null
-desktop-file-install /usr/share/hyperion/desktop/hyperiond.desktop 2>/dev/null
+# install desktop icons (only on initial installation and not upgrade)
+if [ "$IS_UPGRADE" = false ]; then
+	if hash desktop-file-install 2>/dev/null; then
+		echo "---> Install Hyperion desktop icons"
+		mkdir /usr/share/pixmaps/hyperion 2>/dev/null
+		cp /usr/share/hyperion/desktop/*.png /usr/share/pixmaps/hyperion 2>/dev/null
+		desktop-file-install /usr/share/hyperion/desktop/hyperiond.desktop 2>/dev/null
+	fi
+fi
 
 # cleanup desktop icons
 rm -r /usr/share/hyperion/desktop 2>/dev/null
@@ -123,7 +126,11 @@ fi
 echo ${start_msg}
 
 echo "-----------------------------------------------------------------------------"
-echo "---> Hyperion has been installed/updated!"
+if [ "$IS_UPGRADE" = true ]; then
+	echo "---> Hyperion has been upgraded!"
+else
+	echo "---> Hyperion has been installed!"
+fi
 echo "---> "
 $STARTUP_MSG
 echo "---> For configuration, visit with your browser: ${NET_IP}:8090"

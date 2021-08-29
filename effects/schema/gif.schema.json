@@ -16,6 +16,38 @@
 			"default": "",
 			"propertyOrder" : 1
 		},
+		"cropLeft": {
+			"type": "integer",
+			"title":"edt_conf_v4l2_cropLeft_title",
+			"default": 0,
+			"minimum" : 0,
+			"step" : 1,
+			"propertyOrder" : 2
+		},
+		"cropTop": {
+			"type": "integer",
+			"title":"edt_conf_v4l2_cropTop_title",
+			"default": 0,
+			"minimum" : 0,
+			"step" : 1,
+			"propertyOrder" : 3
+		},
+		"cropRight": {
+			"type": "integer",
+			"title":"edt_conf_v4l2_cropRight_title",
+			"default": 0,
+			"minimum" : 0,
+			"step" : 1,
+			"propertyOrder" : 4
+		},
+		"cropBottom": {
+			"type": "integer",
+			"title":"edt_conf_v4l2_cropBottom_title",
+			"default": 0,
+			"minimum" : 0,
+			"step" : 1,
+			"propertyOrder" : 5
+		},
 		"fps": {
 			"type": "integer",
 			"title":"edt_eff_fps",
@@ -23,13 +55,13 @@
 			"minimum" : 1,
 			"maximum" : 100,
 			"step" : 1,
-			"propertyOrder" : 2
+			"propertyOrder" : 6
 		},
 		"reverse": {
 			"type": "boolean",
 			"title":"edt_eff_reversedirection",
 			"default": false,
-			"propertyOrder" : 3
+			"propertyOrder" : 7
 		}
 	},
 	"additionalProperties": false

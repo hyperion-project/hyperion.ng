@@ -12,6 +12,10 @@
 #include <QDateTime>
 #include <QImageReader>
 #include <QBuffer>
+#include <QUrl>
+#include <QNetworkReply>
+#include <QNetworkAccessManager>
+#include <QEventLoop>
 
 // Get the effect from the capsule
 #define getEffect() static_cast<Effect*>((Effect*)PyCapsule_Import("hyperion.__effectObj", 0))
@@ -219,31 +223,56 @@ PyObject* EffectModule::wrapSetImage(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapGetImage(PyObject *self, PyObject *args)
 {
-	QString file;
 	QBuffer buffer;
 	QImageReader reader;
+	char *source;
+	int cropLeft = 0, cropTop = 0, cropRight = 0, cropBottom = 0;
 
 	if (getEffect()->_imageData.isEmpty())
 	{
 		Q_INIT_RESOURCE(EffectEngine);
 
-		char *source;
-		if(!PyArg_ParseTuple(args, "s", &source))
+		if(!PyArg_ParseTuple(args, "s|iiii", &source, &cropLeft, &cropTop, &cropRight, &cropBottom))
 		{
 			PyErr_SetString(PyExc_TypeError, "String required");
 			return nullptr;
 		}
 
-		file = QString::fromUtf8(source);
+		const QUrl url = QUrl(source);
+		if (url.isValid())
+		{
+			QNetworkAccessManager *networkManager = new QNetworkAccessManager();
+			QNetworkReply * networkReply = networkManager->get(QNetworkRequest(url));
 
-		if (file.mid(0, 1)  == ":")
-			file = ":/effects/"+file.mid(1);
+			QEventLoop eventLoop;
+			connect(networkReply, &QNetworkReply::finished, &eventLoop, &QEventLoop::quit);
+			eventLoop.exec();
 
-		reader.setDecideFormatFromContent(true);
-		reader.setFileName(file);
+			if (networkReply->error() == QNetworkReply::NoError)
+			{
+				buffer.setData(networkReply->readAll());
+				buffer.open(QBuffer::ReadOnly);
+				reader.setDecideFormatFromContent(true);
+				reader.setDevice(&buffer);
+			}
+
+			delete networkReply;
+    		delete networkManager;
+		}
+		else
+		{
+			QString file = QString::fromUtf8(source);
+
+			if (file.mid(0, 1)  == ":")
+				file = ":/effects/"+file.mid(1);
+
+			reader.setDecideFormatFromContent(true);
+			reader.setFileName(file);
+		}
 	}
 	else
 	{
+		PyArg_ParseTuple(args, "|siiii", &source, &cropLeft, &cropTop, &cropRight, &cropBottom);
 		buffer.setData(QByteArray::fromBase64(getEffect()->_imageData.toUtf8()));
 		buffer.open(QBuffer::ReadOnly);
 		reader.setDecideFormatFromContent(true);
@@ -260,9 +289,22 @@ PyObject* EffectModule::wrapGetImage(PyObject *self, PyObject *args)
 			if (reader.canRead())
 			{
 				QImage qimage = reader.read();
-
 				int width = qimage.width();
 				int height = qimage.height();
+
+				if (cropLeft > 0 || cropTop > 0 || cropRight > 0 || cropBottom > 0)
+				{
+					if (cropLeft + cropRight >= width || cropTop + cropBottom >= height)
+					{
+						QString errorStr = QString("Rejecting invalid crop values: left: %1, right: %2, top: %3, bottom: %4, higher than height/width %5/%6").arg(cropLeft).arg(cropRight).arg(cropTop).arg(cropBottom).arg(height).arg(width);
+						PyErr_SetString(PyExc_RuntimeError, qPrintable(errorStr));
+						return nullptr;
+					}
+
+					qimage = qimage.copy(cropLeft, cropTop, width - cropLeft - cropRight, height - cropTop - cropBottom);
+					width = qimage.width();
+					height = qimage.height();
+				}
 
 				QByteArray binaryImage;
 				for (int i = 0; i<height; ++i)
@@ -283,6 +325,7 @@ PyObject* EffectModule::wrapGetImage(PyObject *self, PyObject *args)
 				return nullptr;
 			}
 		}
+
 		return result;
 	}
 	else

@@ -8,8 +8,10 @@
 
 class Effect;
 
-class EffectModule
+class EffectModule: public QObject
 {
+	Q_OBJECT
+
 public:
 	// Python 3 module def
 	static struct PyModuleDef moduleDef;
