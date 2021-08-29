@@ -636,6 +636,7 @@
     "edt_eff_flag_header": "Flaggen",
     "edt_eff_flag_header_desc": "Verpasse deinen LEDs die Farben deines Landes. Du kannst mehr als eine Flagge auswählen, je nach Intervall werden diese dann abwechselnd angezeigt.",
     "edt_eff_fps": "Bilder pro Sekunde",
+    "edt_eff_grayscale": "Graustufen",
     "edt_eff_frequency": "Frequenz",
     "edt_eff_gif_header": "GIFs",
     "edt_eff_gif_header_desc": "Dieser Effekt spielt .gif Dateien ab. Bietet die Möglichkeit kleine GIF-Videos abzuspielen.",

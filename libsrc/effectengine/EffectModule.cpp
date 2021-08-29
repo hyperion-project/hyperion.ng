@@ -227,12 +227,13 @@ PyObject* EffectModule::wrapGetImage(PyObject *self, PyObject *args)
 	QImageReader reader;
 	char *source;
 	int cropLeft = 0, cropTop = 0, cropRight = 0, cropBottom = 0;
+	bool grayscale = false;
 
 	if (getEffect()->_imageData.isEmpty())
 	{
 		Q_INIT_RESOURCE(EffectEngine);
 
-		if(!PyArg_ParseTuple(args, "s|iiii", &source, &cropLeft, &cropTop, &cropRight, &cropBottom))
+		if(!PyArg_ParseTuple(args, "s|iiiii", &source, &cropLeft, &cropTop, &cropRight, &cropBottom, &grayscale))
 		{
 			PyErr_SetString(PyExc_TypeError, "String required");
 			return nullptr;
@@ -272,7 +273,7 @@ PyObject* EffectModule::wrapGetImage(PyObject *self, PyObject *args)
 	}
 	else
 	{
-		PyArg_ParseTuple(args, "|siiii", &source, &cropLeft, &cropTop, &cropRight, &cropBottom);
+		PyArg_ParseTuple(args, "|siiiii", &source, &cropLeft, &cropTop, &cropRight, &cropBottom, &grayscale);
 		buffer.setData(QByteArray::fromBase64(getEffect()->_imageData.toUtf8()));
 		buffer.open(QBuffer::ReadOnly);
 		reader.setDecideFormatFromContent(true);
@@ -307,14 +308,15 @@ PyObject* EffectModule::wrapGetImage(PyObject *self, PyObject *args)
 				}
 
 				QByteArray binaryImage;
-				for (int i = 0; i<height; ++i)
+				for (int i = 0; i<height; i++)
 				{
 					const QRgb *scanline = reinterpret_cast<const QRgb *>(qimage.scanLine(i));
-					for (int j = 0; j< width; ++j)
+					const QRgb *end = scanline + qimage.width();
+					for (; scanline != end; scanline++)
 					{
-						binaryImage.append((char) qRed(scanline[j]));
-						binaryImage.append((char) qGreen(scanline[j]));
-						binaryImage.append((char) qBlue(scanline[j]));
+						binaryImage.append(!grayscale ? (char) qRed(scanline[0]) : (char) qGray(scanline[0]));
+						binaryImage.append(!grayscale ? (char) qGreen(scanline[1]) : (char) qGray(scanline[1]));
+						binaryImage.append(!grayscale ? (char) qBlue(scanline[2]) : (char) qGray(scanline[2]));
 					}
 				}
 				PyList_SET_ITEM(result, i, Py_BuildValue("{s:i,s:i,s:O}", "imageWidth", width, "imageHeight", height, "imageData", PyByteArray_FromStringAndSize(binaryImage.constData(),binaryImage.size())));

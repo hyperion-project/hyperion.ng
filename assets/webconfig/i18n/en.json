@@ -641,6 +641,7 @@
     "edt_eff_flag_header_desc": "Let your LEDs shine bright in the colours of your country. You can select more than one flag and they will change based on the interval time.",
     "edt_eff_fps": "Frames per seconds",
     "edt_eff_frequency": "Frequency",
+    "edt_eff_grayscale": "Grayscale",
     "edt_eff_gif_header": "GIF's",
     "edt_eff_gif_header_desc": "This effect plays .gif files, provide a simple video like loop as effect.",
     "edt_eff_height": "Height",

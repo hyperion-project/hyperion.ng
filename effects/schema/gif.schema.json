@@ -48,6 +48,12 @@
 			"step" : 1,
 			"propertyOrder" : 5
 		},
+		"grayscale": {
+			"type": "boolean",
+			"title":"edt_eff_grayscale",
+			"default": false,
+			"propertyOrder" : 6
+		},
 		"fps": {
 			"type": "integer",
 			"title":"edt_eff_fps",
@@ -55,13 +61,13 @@
 			"minimum" : 1,
 			"maximum" : 100,
 			"step" : 1,
-			"propertyOrder" : 6
+			"propertyOrder" : 7
 		},
 		"reverse": {
 			"type": "boolean",
 			"title":"edt_eff_reversedirection",
 			"default": false,
-			"propertyOrder" : 7
+			"propertyOrder" : 8
 		}
 	},
 	"additionalProperties": false
