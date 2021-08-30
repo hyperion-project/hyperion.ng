@@ -102,6 +102,8 @@ public slots:
 	///
 	bool saveName(quint8 inst, const QString& name);
 
+	QString getRootPath() const { return _rootPath; }
+
 signals:
 	///
 	/// @brief Emits whenever the state of a instance changes according to enum instanceState

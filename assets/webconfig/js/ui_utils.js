@@ -1125,6 +1125,7 @@ function getSystemInfo() {
   info += '- UI Access:       ' + storedAccess + '\n';
   //info += '- Log lvl:         ' + window.serverConfig.logger.level + '\n';
   info += '- Avail Capt:      ' + window.serverInfo.grabbers.available + '\n';
+  info += '- Config path:     ' + shy.rootPath + '\n';
   info += '- Database:        ' + (shy.readOnlyMode ? "ready-only" : "read/write") + '\n';
 
   info += '\n';
@@ -1143,6 +1144,7 @@ function getSystemInfo() {
     info += '- CPU Hardware:   ' + sys.cpuHardware + '\n';
 
   info += '- Kernel:         ' + sys.kernelType + ' (' + sys.kernelVersion + ' (WS: ' + sys.wordSize + '))\n';
+  info += '- Root/Admin:     ' + sys.isUserAdmin + '\n';
   info += '- Qt Version:     ' + sys.qtVersion + '\n';
   info += '- Python Version: ' + sys.pyVersion + '\n';
   info += '- Browser:        ' + navigator.userAgent;
