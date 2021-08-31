@@ -81,8 +81,8 @@ macro(DeployUnix TARGET)
 		endif(OPENSSL_FOUND)
 
 		# Detect the Qt plugin directory, source: https://github.com/lxde/lxqt-qtplugin/blob/master/src/CMakeLists.txt
-		if ( Qt${Qt_VERSION}Core_FOUND )			
-			get_target_property(QT_QMAKE_EXECUTABLE ${Qt${Qt_VERSION}Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)
+		if ( TARGET Qt${Qt_VERSION}::qmake )
+			get_target_property(QT_QMAKE_EXECUTABLE Qt${Qt_VERSION}::qmake IMPORTED_LOCATION)
 			execute_process(
 				COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_PLUGINS
 				OUTPUT_VARIABLE QT_PLUGINS_DIR

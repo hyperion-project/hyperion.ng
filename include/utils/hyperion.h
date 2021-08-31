@@ -109,7 +109,7 @@ namespace hyperion {
 		MultiColorAdjustment * adjustment = new MultiColorAdjustment(ledCnt);
 
 		const QJsonValue adjustmentConfig = colorConfig["channelAdjustment"];
-		const QRegularExpression overallExp("^([0-9]+(\\-[0-9]+)?)(,[ ]*([0-9]+(\\-[0-9]+)?))*$");
+		const QRegularExpression overallExp("([0-9]+(\\-[0-9]+)?)(,[ ]*([0-9]+(\\-[0-9]+)?))*");
 
 		const QJsonArray & adjustmentConfigArray = adjustmentConfig.toArray();
 		for (signed i = 0; i < adjustmentConfigArray.size(); ++i)
