@@ -192,6 +192,13 @@ public:
 	///
 	httpResponse get(const QUrl &url);
 
+	/// @brief Execute PUT request
+	///
+	/// @param[in] body The body of the request in JSON
+	/// @return Response The body of the response in JSON
+	///
+	httpResponse put(const QJsonObject &body);
+
 	///
 	/// @brief Execute PUT request
 	///
@@ -207,7 +214,7 @@ public:
 	/// @param[in] body The body of the request in JSON
 	/// @return Response The body of the response in JSON
 	///
-	httpResponse put(const QUrl &url, const QString &body = "");
+	httpResponse put(const QUrl &url, const QByteArray &body);
 
 	///
 	/// @brief Execute POST request
