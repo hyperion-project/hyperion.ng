@@ -89,10 +89,18 @@ void SysInfo::getCPUInfo()
 
 QString SysInfo::userName()
 {
-#if defined (WIN32)
-	return qEnvironmentVariable("USERNAME");
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
+	#if defined (WIN32)
+		return qEnvironmentVariable("USERNAME");
+	#else
+		return qEnvironmentVariable("USER");
+	#endif
 #else
-	return qEnvironmentVariable("USER");
+	#if defined (WIN32)
+		return getenv("USERNAME");
+	#else
+		return getenv("USER");
+	#endif
 #endif
 }
 
