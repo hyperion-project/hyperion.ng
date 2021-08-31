@@ -177,7 +177,7 @@ bool FramebufferFrameGrabber::getScreenInfo()
 			case 24: _pixelFormat = PixelFormat::BGR24;
 				break;
 #ifdef ENABLE_AMLOGIC
-			case 32: _pixelFormat = PixelFormat::PIXELFORMAT_RGB32;
+			case 32: _pixelFormat = PixelFormat::RGB32;
 				break;
 #else
 			case 32: _pixelFormat = PixelFormat::BGR32;
