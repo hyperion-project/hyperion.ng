@@ -46,7 +46,9 @@ class ColorAdjustment;
 class SettingsManager;
 class BGEffectHandler;
 class CaptureCont;
+#if defined(ENABLE_BOBLIGHT)
 class BoblightServer;
+#endif
 class LedDeviceWrapper;
 class Logger;
 
@@ -542,8 +544,10 @@ private:
 
 	VideoMode _currVideoMode = VideoMode::VIDEO_2D;
 
+#if defined(ENABLE_BOBLIGHT)
 	/// Boblight instance
 	BoblightServer* _boblightServer;
+#endif
 
 	bool _readOnlyMode;
 };

@@ -45,6 +45,9 @@
 // Define to enable CEC
 #cmakedefine ENABLE_CEC
 
+// Define to enable boblight server
+#cmakedefine ENABLE_BOBLIGHT
+
 // Define to enable the USB / HID devices
 #cmakedefine ENABLE_USB_HID
 
