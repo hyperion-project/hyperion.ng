@@ -9,6 +9,6 @@ add_library(ssdp
 )
 
 target_link_libraries(ssdp
-	Qt6::Network
+	Qt${Qt_VERSION}::Network
 	webserver
 )

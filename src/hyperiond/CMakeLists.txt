@@ -6,7 +6,7 @@ else()
 	include_directories(${PYTHON_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS}/..)
 endif()
 
-find_package(Qt6Widgets REQUIRED)
+find_package(Qt${Qt_VERSION} COMPONENTS Core Network Gui Widgets REQUIRED)
 
 # generate windows .rc file for this binary
 if (WIN32)
@@ -41,7 +41,10 @@ target_link_libraries(hyperiond
 	database
 	python
 	resources
-	Qt6::Widgets
+	Qt${Qt_VERSION}::Core
+	Qt${Qt_VERSION}::Gui
+	Qt${Qt_VERSION}::Network
+	Qt${Qt_VERSION}::Widgets
 )
 
 if (NOT CMAKE_VERSION VERSION_LESS "3.12")
@@ -56,7 +59,7 @@ endif (ENABLE_AVAHI)
 
 if (ENABLE_AMLOGIC)
 	target_link_libraries(hyperiond
-		Qt6::Core
+		#Qt${Qt_VERSION}::Core
 		pcre16 dl z
 	)
 endif(ENABLE_AMLOGIC)
@@ -113,7 +116,7 @@ if (ENABLE_DX)
 endif (ENABLE_DX)
 
 if (ENABLE_CEC)
-        target_link_libraries(hyperiond cechandler)
+		target_link_libraries(hyperiond cechandler)
 endif (ENABLE_CEC)
 
 if(NOT WIN32)
@@ -143,11 +146,23 @@ endif()
 # Deploy Qt DLLs into the binary folder.
 # This is necessary for starting the application from within the IDE
 if(WIN32)
-	get_target_property(QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
-	get_filename_component(QT_BIN_DIR "${QT_QMAKE_EXECUTABLE}" DIRECTORY)
-	find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${QT_BIN_DIR}")
-	set(WINDEPLOYQT_PARAMS --verbose 0 --no-compiler-runtime --no-opengl-sw --no-system-d3d-compiler)
-	add_custom_command(TARGET hyperiond POST_BUILD COMMAND ${WINDEPLOYQT_EXECUTABLE} ${WINDEPLOYQT_PARAMS} "$<TARGET_FILE:hyperiond>")
+		if (Qt_VERSION EQUAL 5)
+			get_target_property(QT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)
+			get_filename_component(QT_BIN_DIR "${QT_QMAKE_EXECUTABLE}" DIRECTORY)
+			find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${QT_BIN_DIR}")
+		else()
+			get_filename_component(My_Qt6Core_EXECUTABLE_DIR ${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS} ABSOLUTE)
+			find_program(WINDEPLOYQT_EXECUTABLE windeployqt PATHS "${My_Qt6Core_EXECUTABLE_DIR}" NO_DEFAULT_PATH)
+			if (NOT WINDEPLOYQT_EXECUTABLE)
+				find_program(WINDEPLOYQT_EXECUTABLE windeployqt)
+			endif()
+		endif()
+
+		if (WINDEPLOYQT_EXECUTABLE AND NOT CMAKE_GITHUB_ACTION)
+			set(WINDEPLOYQT_PARAMS_RUNTIME --verbose 0 --no-compiler-runtime --no-opengl-sw --no-system-d3d-compiler)
+			message(STATUS "Found windeployqt: ${WINDEPLOYQT_EXECUTABLE} PATH_HINT:${My_Qt6Core_EXECUTABLE_DIR}${QT_BIN_DIR}")
+			add_custom_command(TARGET hyperiond POST_BUILD COMMAND ${WINDEPLOYQT_EXECUTABLE} ${WINDEPLOYQT_PARAMS_RUNTIME} "$<TARGET_FILE:hyperiond>")			
+		endif()
 endif()
 
 if(ENABLE_DEPLOY_DEPENDENCIES)

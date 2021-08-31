@@ -10,7 +10,7 @@ add_library(bonjour ${Bonjour_SOURCES} )
 target_link_libraries(bonjour
 		hyperion
 		hyperion-utils
-		Qt6::Network
+		Qt${Qt_VERSION}::Network
 )
 
 IF (NOT APPLE)

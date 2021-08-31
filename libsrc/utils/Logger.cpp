@@ -17,7 +17,12 @@
 #include <QThreadStorage>
 #include <time.h>
 
-QMutex                 Logger::MapLock              { QMutex::Recursive };
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+	QRecursiveMutex        Logger::MapLock;
+#else
+	QMutex                 Logger::MapLock{ QMutex::Recursive };
+#endif
+
 QMap<QString,Logger*>  Logger::LoggerMap            { };
 QAtomicInteger<int>    Logger::GLOBAL_MIN_LOG_LEVEL { static_cast<int>(Logger::UNSET)};
 
@@ -39,24 +44,25 @@ QThreadStorage<Logger::T_LOG_MESSAGE> RepeatMessage;
 
 QString getApplicationName()
 {
-#ifdef __GLIBC__
-    const char* _appname_char = program_invocation_short_name;
-#elif !defined(_WIN32)
-    const char* _appname_char = getprogname();
-#else
-	char fileName[MAX_PATH];
-	char *_appname_char;
-	HINSTANCE hinst = GetModuleHandle(NULL);
-	if (GetModuleFileNameA(hinst, fileName, sizeof(fileName)))
-	{
-		_appname_char = PathFindFileName(fileName);
-		*(PathFindExtension(fileName)) = 0;
-	}
-	else
-		_appname_char = "unknown";
-#endif
-	return QString(_appname_char).toLower();
-
+//#ifdef __GLIBC__
+//    const char* _appname_char = program_invocation_short_name;
+//#elif !defined(_WIN32)
+//    const char* _appname_char = getprogname();
+//#else
+//	char fileName[MAX_PATH];
+//	char *_appname_char;
+//	HINSTANCE hinst = GetModuleHandle(NULL);
+//	if (GetModuleFileNameA(hinst, fileName, sizeof(fileName)))
+//	{
+//		_appname_char = PathFindFileName(fileName);
+//		*(PathFindExtension(fileName)) = 0;
+//	}
+//	else
+//		_appname_char = "unknown";
+//#endif
+//	return QString(_appname_char).toLower();
+//
+	return "";
 }
 } // namespace
 

@@ -41,6 +41,7 @@ else()
 endif()
 
 # Set build variables
+SET ( DEFAULT_BUILD_WITH_QT6              OFF )
 SET ( DEFAULT_AMLOGIC                     OFF )
 SET ( DEFAULT_DISPMANX                    OFF )
 SET ( DEFAULT_OSX                         OFF )
@@ -132,7 +133,7 @@ elseif ( "${PLATFORM}" STREQUAL "amlogic" )
 elseif ( "${PLATFORM}" STREQUAL "amlogic-dev" )
 	SET ( DEFAULT_AMLOGIC     ON )
 	SET ( DEFAULT_DISPMANX    OFF )
-	SET ( DEFAULT_QT 		  OFF )
+	SET ( DEFAULT_QT          OFF )
 	SET ( DEFAULT_CEC         OFF )
 elseif ( "${PLATFORM}" STREQUAL "amlogic64" )
 	SET ( DEFAULT_AMLOGIC     ON )
@@ -223,6 +224,8 @@ message(STATUS "ENABLE_EXPERIMENTAL = ${ENABLE_EXPERIMENTAL}")
 
 option(ENABLE_DEPLOY_DEPENDENCIES "Deploy with dependencies" ${DEFAULT_DEPLOY_DEPENDENCIES})
 message(STATUS "ENABLE_DEPLOY_DEPENDENCIES = ${ENABLE_DEPLOY_DEPENDENCIES}")
+
+message(STATUS "DEFAULT_BUILD_WITH_QT6 = ${DEFAULT_BUILD_WITH_QT6}")
 
 SET ( FLATBUFFERS_INSTALL_BIN_DIR ${CMAKE_BINARY_DIR}/flatbuf )
 SET ( FLATBUFFERS_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/flatbuf )
@@ -329,6 +332,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	#    }
 	#  ]
 
+if (DEFAULT_BUILD_WITH_QT6 STREQUAL "ON")	
 	if (NOT DEFINED ENV{Qt6_BASE_DIR})
 		FIRSTSUBDIR(SUBDIRQT "C:/Qt")
 		SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SUBDIRQT}/msvc2019_64")
@@ -351,9 +355,9 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	message(STATUS "Add ${qt_module_path} to CMAKE_MODULE_PATH")
 	SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${qt_module_path}")
 
-	#message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
-	#message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
-
+	message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
+	message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
+endif()
 	# Search for DirectX9
 	if (ENABLE_DX)
 		find_package(DirectX9 REQUIRED)
@@ -382,7 +386,7 @@ if (ENABLE_DEPLOY_DEPENDENCIES)
 endif ()
 
 # add Qt6 dependency
-IF ( CMAKE_CROSSCOMPILING )
+IF ( FALSE AND CMAKE_CROSSCOMPILING )
 
 	file(GLOB QT_BIN ${QT_BIN_PATH})
 
@@ -400,12 +404,26 @@ IF ( CMAKE_CROSSCOMPILING )
 
 ENDIF()
 
-SET(QT_MIN_VERSION "5.5.0")
-find_package(Qt6 COMPONENTS Core Gui Network Sql SerialPort REQUIRED)
-message( STATUS "Found Qt Version: ${Qt6Core_VERSION}" )
-IF ( "${Qt6Core_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
-	message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )
+# find QT libs
+if (DEFAULT_BUILD_WITH_QT6 STREQUAL "ON")
+	SET(QT_MIN_VERSION "6.2.0")
+	find_package(Qt6 COMPONENTS Core Gui Network Sql Widgets REQUIRED)
+	IF ( "${Qt6Core_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
+		message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )
+	ENDIF()
+	message( STATUS "Found Qt Version: ${Qt6Core_VERSION}" )
+	SET( Qt_VERSION 6 )	
+ELSE()
+	SET(QT_MIN_VERSION "5.5.0")
+	find_package(Qt5 COMPONENTS Core Gui Network Sql Widgets REQUIRED)
+	message( STATUS "Found Qt Version: ${Qt5Core_VERSION}" )
+	IF ( "${Qt5Core_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
+		message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )
+	ENDIF()
+	SET( Qt_VERSION 5 )	
 ENDIF()
+
+message( STATUS "Qt version used: ${Qt_VERSION}" )
 
 # Add libusb and pthreads
 find_package(libusb-1.0 REQUIRED)

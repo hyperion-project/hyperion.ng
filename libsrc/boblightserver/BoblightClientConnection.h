@@ -81,7 +81,7 @@ private:
 	/// @param ok whether the result is ok
 	/// @return the parsed byte value in range 0 to 255, or 0
 	///
-	uint8_t parseByte(const QStringRef& s, bool *ok = nullptr) const;
+	uint8_t parseByte(const QString& s, bool *ok = nullptr) const;
 
 	///
 	/// Parse the given QString as unsigned int value.
@@ -90,7 +90,7 @@ private:
 	/// @param ok whether the result is ok
 	/// @return the parsed unsigned int value
 	///
-	unsigned parseUInt(const QStringRef& s, bool *ok = nullptr) const;
+	unsigned parseUInt(const QString& s, bool *ok = nullptr) const;
 
 	///
 	/// Parse the given QString as float value, e.g. the 16-bit (wide char) QString "1" shall represent 1, "0.5" is 0.5 and so on.
@@ -99,7 +99,7 @@ private:
 	/// @param ok whether the result is ok
 	/// @return the parsed float value, or 0
 	///
-	float parseFloat(const QStringRef& s, bool *ok = nullptr) const;
+	float parseFloat(const QString& s, bool *ok = nullptr) const;
 
 	///
 	/// Read an incoming boblight message as QString

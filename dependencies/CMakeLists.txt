@@ -77,6 +77,12 @@ if (USE_SYSTEM_PROTO_LIBS)
 	find_package(Protobuf REQUIRED)
 else ()
 	set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared protobuf library")
+	set(protobuf_BUILD_SHARED_LIBS OFF CACHE BOOL "Build protobuf shared")
+
+	if (WIN32)
+		set(protobuf_MSVC_STATIC_RUNTIME OFF CACHE BOOL "Build protobuf static")
+	endif()
+
 	add_subdirectory(external/protobuf)
 
 	if(CMAKE_CROSSCOMPILING)
@@ -89,11 +95,13 @@ else ()
 	endif()
 
 	# define the include for the protobuf library at the parent scope
-    set(PROTOBUF_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/external/protobuf/src")
+	set(PROTOBUF_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/external/protobuf/src")
 
 	# define the protoc executable at the parent scope
 	get_property(PROTOBUF_PROTOC_EXECUTABLE TARGET protoc_compiler PROPERTY LOCATION)
 endif()
+option(protobuf_BUILD_TESTS "" OFF)
+
 set(PROTOBUF_PROTOC_EXECUTABLE ${PROTOBUF_PROTOC_EXECUTABLE} PARENT_SCOPE)
 set(PROTOBUF_INCLUDE_DIRS ${PROTOBUF_INCLUDE_DIRS} PARENT_SCOPE)
 include_directories(${PROTOBUF_INCLUDE_DIRS})

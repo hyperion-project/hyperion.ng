@@ -600,8 +600,7 @@ QJsonArray LedDeviceCololight::discover()
 	}
 
 	QJsonArray deviceList;
-	QMap<QString, QMap <QString, QString>>::iterator i;
-	for (i = _services.begin(); i != _services.end(); ++i)
+	for (auto i = _services.begin(); i != _services.end(); ++i)
 	{
 		QJsonObject obj;
 

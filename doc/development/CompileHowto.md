@@ -58,7 +58,19 @@ cd $HYPERION_HOME
 
 ```console
 sudo apt-get update
-sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libqt5sql5-sqlite libqt5svg5-dev libqt5x11extras5-dev libusb-1.0-0-dev python3-dev libcec-dev libxcb-image0-dev libxcb-util0-dev libxcb-shm0-dev libxcb-render0-dev libxcb-randr0-dev libxrandr-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev libturbojpeg0-dev libssl-dev zlib1g-dev
+sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libqt5sql5-sqlite libqt5svg5-dev libqt5x11extras5-dev libusb-1.0-0-dev python3-dev libavahi-core-dev libavahi-compat-libdnssd-dev libturbojpeg0-dev libssl-dev zlib1g-dev
+```
+
+**For Linux X11/XXCB grabber support**
+
+```console
+sudo apt-get install libxrandr-dev libxrender-dev libxcb-image0-dev libxcb-util0-dev libxcb-shm0-dev libxcb-render0-dev libxcb-randr0-dev 
+```
+
+**For Linux CEC support**
+
+```console
+sudo apt-get install libcec-dev libp8-platform-dev libudev-dev
 ```
 
 **on RPI you need the videocore IV headers**

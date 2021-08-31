@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(hyperion-v4l2)
 
-find_package(Qt6Widgets REQUIRED)
+find_package(Qt${Qt_VERSION} COMPONENTS Core Network Widgets REQUIRED)
 
 include_directories(
 	${CMAKE_CURRENT_BINARY_DIR}/../../libsrc/flatbufserver
@@ -29,9 +29,9 @@ target_link_libraries(${PROJECT_NAME}
 	flatbufserver
 	flatbuffers
 	ssdp
-	Qt6::Core
-	Qt6::Gui
-	Qt6::Network
+	Qt${Qt_VERSION}::Core
+	Qt${Qt_VERSION}::Network
+	Qt${Qt_VERSION}::Widgets
 )
 
 if (ENABLE_AMLOGIC)

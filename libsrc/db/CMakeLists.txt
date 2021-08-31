@@ -1,5 +1,3 @@
-find_package(Qt6 COMPONENTS Sql REQUIRED)
-
 # Define the current source locations
 SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/db)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/db)
@@ -13,6 +11,6 @@ add_library(database
 target_link_libraries(database
 	hyperion
 	hyperion-utils
-	Qt6::Core
-	Qt6::Sql
+	Qt${Qt_VERSION}::Core
+	Qt${Qt_VERSION}::Sql
 )

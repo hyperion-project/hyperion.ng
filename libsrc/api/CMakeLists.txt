@@ -29,7 +29,7 @@ endif(ENABLE_DX)
 target_link_libraries(hyperion-api
 	hyperion
 	hyperion-utils
-	Qt6::Core
-	Qt6::Gui
-	Qt6::Network
+	Qt${Qt_VERSION}::Core
+	Qt${Qt_VERSION}::Gui
+	Qt${Qt_VERSION}::Network
 )

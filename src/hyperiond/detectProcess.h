@@ -3,7 +3,7 @@
 #include <QByteArray>
 #include <QDir>
 #include <QFile>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QString>
 #include <QTextStream>
 
@@ -40,7 +40,7 @@ QStringList getProcessIdsByProcessName(const char *processName)
 	/* Walk through the snapshot of processes */
 	do
 	{
-		if (strcmp(processName, pe32.szExeFile) == 0)
+		if (QString::compare(processName, QString::fromUtf16(reinterpret_cast<char16_t*>(pe32.szExeFile)), Qt::CaseInsensitive) == 0)
 			listOfPids.append(QString::number(pe32.th32ProcessID));
 
 	} while(Process32Next(hProcessSnap, &pe32));
@@ -54,8 +54,8 @@ QStringList getProcessIdsByProcessName(const char *processName)
 	dir.setSorting(QDir::Name | QDir::Reversed);
 
 	for (const QString & pid : dir.entryList()) {
-		QRegExp regexp("\\d*");
-		if (!regexp.exactMatch(pid))
+		QRegularExpression regexp("^\\d*$");
+		if (!regexp.match(pid).hasMatch())
 		{
 			/* Not a number, can not be PID */
 			continue;

@@ -5,7 +5,6 @@
 #include <QPixmap>
 #include <QWindow>
 #include <QGuiApplication>
-#include <QWidget>
 #include <QScreen>
 #include <QJsonObject>
 #include <QJsonArray>

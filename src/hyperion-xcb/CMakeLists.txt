@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(hyperion-xcb)
 
+find_package(Qt${Qt_VERSION} COMPONENTS Core Network Widgets REQUIRED)
+
 include_directories(
 	${CMAKE_CURRENT_BINARY_DIR}/../../libsrc/flatbufserver
 	${FLATBUFFERS_INCLUDE_DIRS}
@@ -27,6 +29,9 @@ target_link_libraries(${PROJECT_NAME}
 	flatbuffers
 	xcb-grabber
 	ssdp
+	Qt${Qt_VERSION}::Core
+	Qt${Qt_VERSION}::Network
+	Qt${Qt_VERSION}::Widgets
 )
 
 install (TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin" COMPONENT "hyperion_xcb")

@@ -1,7 +1,7 @@
 # Needed for testing non-public components
 include_directories(../libsrc)
 
-find_package(Qt6Widgets REQUIRED)
+find_package(Qt${Qt_VERSION} COMPONENTS Widgets REQUIRED)
 
 MACRO (link_to_hyperion TARGET)
 	target_link_libraries( ${TARGET} blackborder leddevice jsonserver hyperion-utils hyperion effectengine )
@@ -25,15 +25,15 @@ add_executable(test_blackborderdetector TestBlackBorderDetector.cpp)
 link_to_hyperion(test_blackborderdetector)
 
 add_executable(test_qregexp TestQRegExp.cpp)
-target_link_libraries(test_qregexp Qt6::Widgets)
+target_link_libraries(test_qregexp Qt${Qt_VERSION}::Widgets)
 
 add_executable(test_qtscreenshot TestQtScreenshot.cpp)
-target_link_libraries(test_qtscreenshot Qt6::Widgets)
+target_link_libraries(test_qtscreenshot Qt${Qt_VERSION}::Widgets)
 
 if(ENABLE_X11)
 	find_package(X11 REQUIRED)
 	add_executable(test_x11performance TestX11Performance.cpp)
-	target_link_libraries(test_x11performance ${X11_LIBRARIES} Qt6::Widgets)
+	target_link_libraries(test_x11performance ${X11_LIBRARIES} Qt${Qt_VERSION}::Widgets)
 endif(ENABLE_X11)
 
 ######### These tests are broken. May they fix someone ##########

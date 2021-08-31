@@ -3,7 +3,14 @@
 SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/leddevice)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/leddevice)
 
-find_package(Qt6 COMPONENTS Network SerialPort REQUIRED)
+find_package(Qt${Qt_VERSION} COMPONENTS Network SerialPort REQUIRED)
+IF ( Qt5SerialPort_FOUND OR Qt6SerialPort_FOUND )
+	SET( HAVE_SERIAL_LED ON) 
+	MESSAGE (STATUS "Qt SerialPort library found.")
+	include_directories( dev_serial )
+else()
+	MESSAGE (WARNING "Qt SerialPort library was not found. Serial devices are disabled.")
+endif()
 
 include_directories(
 	dev_hid
@@ -85,10 +92,13 @@ target_link_libraries(leddevice
 	hyperion
 	hyperion-utils
 	${CMAKE_THREAD_LIBS_INIT}
-	Qt6::Network
-	Qt6::SerialPort
+	Qt${Qt_VERSION}::Network
 	ssdp
 )
+
+IF ( HAVE_SERIAL_LED )
+	target_link_libraries(leddevice Qt${Qt_VERSION}::SerialPort)
+endif()
 
 if(WIN32)
 	target_link_libraries(leddevice ws2_32)
