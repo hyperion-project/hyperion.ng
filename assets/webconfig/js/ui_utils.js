@@ -88,7 +88,7 @@ function loadContent(event, forceRefresh) {
   var tag;
 
   var lastSelectedInstance = getStorage('lastSelectedInstance', false);
-
+  
   if (lastSelectedInstance && (lastSelectedInstance != window.currentHyperionInstance)) {
     if (window.serverInfo.instance[lastSelectedInstance] && window.serverInfo.instance[lastSelectedInstance].running) {
       instanceSwitch(lastSelectedInstance);
@@ -128,12 +128,13 @@ function getInstanceNameByIndex(index) {
 }
 
 function updateHyperionInstanceListing() {
-  var data = window.serverInfo.instance.filter(entry => entry.running);
-  $('#hyp_inst_listing').html("");
-  for (var key in data) {
-    var currInstMarker = (data[key].instance == window.currentHyperionInstance) ? "component-on" : "";
+  if (window.serverInfo.instance) {
+    var data = window.serverInfo.instance.filter(entry => entry.running);
+    $('#hyp_inst_listing').html("");
+    for (var key in data) {
+      var currInstMarker = (data[key].instance == window.currentHyperionInstance) ? "component-on" : "";
 
-    var html = '<li id="hyperioninstance_' + data[key].instance + '"> \
+      var html = '<li id="hyperioninstance_' + data[key].instance + '"> \
       <a>  \
         <div>  \
           <i class="fa fa-circle fa-fw '+ currInstMarker + '"></i> \
@@ -142,15 +143,16 @@ function updateHyperionInstanceListing() {
       </a> \
     </li> '
 
-    if (data.length - 1 > key)
-      html += '<li class="divider"></li>'
+      if (data.length - 1 > key)
+        html += '<li class="divider"></li>'
 
-    $('#hyp_inst_listing').append(html);
+      $('#hyp_inst_listing').append(html);
 
-    $('#hyperioninstance_' + data[key].instance).off().on("click", function (e) {
-      var inst = e.currentTarget.id.split("_")[1]
-      instanceSwitch(inst)
-    });
+      $('#hyperioninstance_' + data[key].instance).off().on("click", function (e) {
+        var inst = e.currentTarget.id.split("_")[1]
+        instanceSwitch(inst)
+      });
+    }
   }
 }
 
@@ -290,9 +292,9 @@ function showInfoDialog(type, header, message) {
     $('#id_body_rename').append('<h4>' + header + '</h4><br>');
     $('#id_body_rename').append('<div class="row"><div class="col-md-4"><p class="text-left">' + $.i18n('infoDialog_username_text') +
       '</p></div><div class="col-md-8"><input class="form-control" id="username" type="text" value="Hyperion" disabled></div></div><br>');
-    $('#id_body_rename').append('<div class="row"><div class="col-md-4"><p class="text-left">' + $.i18n('infoDialog_password_current_text') + 
-    '</p></div><div class="col-md-8"><input class="form-control" id="current-password" placeholder="Old" type="password" autocomplete="current-password"></div></div><br>');
-    $('#id_body_rename').append('<div class="row"><div class="col-md-4"><p class="text-left">' + $.i18n('infoDialog_password_new_text')+ 
+    $('#id_body_rename').append('<div class="row"><div class="col-md-4"><p class="text-left">' + $.i18n('infoDialog_password_current_text') +
+      '</p></div><div class="col-md-8"><input class="form-control" id="current-password" placeholder="Old" type="password" autocomplete="current-password"></div></div><br>');
+    $('#id_body_rename').append('<div class="row"><div class="col-md-4"><p class="text-left">' + $.i18n('infoDialog_password_new_text') +
       '</p></div><div class="col-md-8"><input class="form-control" id="new-password" placeholder="New" type="password" autocomplete="new-password"></div></div>');
     $('#id_body_rename').append('<div class="bs-callout bs-callout-info"><span>' + $.i18n('infoDialog_password_minimum_length') + '</span></div>');
     $('#id_footer_rename').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-dismiss-modal="#modal_dialog_rename" disabled><i class="fa fa-fw fa-save"></i>' + $.i18n('general_btn_ok') + '</button></div>');
@@ -469,6 +471,9 @@ function updateJsonEditorSelection(rootEditor, path, key, addElements, newEnumVa
   var editor = rootEditor.getEditor(path);
   var orginalProperties = editor.schema.properties[key];
 
+  var orginalWatchFunctions = rootEditor.watchlist[path + "." + key];
+  rootEditor.unwatch(path + "." + key);
+
   var newSchema = [];
   newSchema[key] =
   {
@@ -546,11 +551,21 @@ function updateJsonEditorSelection(rootEditor, path, key, addElements, newEnumVa
   editor.removeObjectProperty(key);
   delete editor.cached_editors[key];
   editor.addObjectProperty(key);
+
+  if (orginalWatchFunctions) {
+    for (var i = 0; i < orginalWatchFunctions.length; i++) {
+      rootEditor.watch(path + "." + key, orginalWatchFunctions[i]);
+    }
+  }
+  rootEditor.notifyWatchers(path + "." + key);
 }
 
 function updateJsonEditorMultiSelection(rootEditor, path, key, addElements, newEnumVals, newTitelVals, newDefaultVal) {
   var editor = rootEditor.getEditor(path);
   var orginalProperties = editor.schema.properties[key];
+
+  var orginalWatchFunctions = rootEditor.watchlist[path + "." + key];
+  rootEditor.unwatch(path + "." + key);
 
   var newSchema = [];
   newSchema[key] =
@@ -605,6 +620,13 @@ function updateJsonEditorMultiSelection(rootEditor, path, key, addElements, newE
   editor.removeObjectProperty(key);
   delete editor.cached_editors[key];
   editor.addObjectProperty(key);
+
+  if (orginalWatchFunctions) {
+    for (var i = 0; i < orginalWatchFunctions.length; i++) {
+      rootEditor.watch(path + "." + key, orginalWatchFunctions[i]);
+    }
+  }
+  rootEditor.notifyWatchers(path + "." + key);
 }
 
 function updateJsonEditorRange(rootEditor, path, key, minimum, maximum, defaultValue, step, clear) {
