@@ -116,7 +116,7 @@ function loadContent(event, forceRefresh) {
 
         $("#page-content").load("/content/" + tag + ".html", function (response, status, xhr) {
           if (status == "error") {
-            $("#page-content").html('<h3>' + tag + '<br/>' + $.i18n('info_404') + '</h3>');
+            $("#page-content").html('<h3>' + encode_utf8(tag) + '<br/>' + $.i18n('info_404') + '</h3>');
             removeOverlay();
           }
         });
