@@ -5,6 +5,7 @@
 #include <QEventLoop>
 #include <QNetworkReply>
 #include <QByteArray>
+#include <QJsonObject>
 
 //std includes
 #include <iostream>
@@ -154,16 +155,21 @@ httpResponse ProviderRestApi::get(const QUrl &url)
 	return response;
 }
 
-httpResponse ProviderRestApi::put(const QString &body)
+httpResponse ProviderRestApi::put(const QJsonObject &body)
 {
-	return put( getUrl(), body );
+	return put( getUrl(), QJsonDocument(body).toJson(QJsonDocument::Compact));
 }
 
-httpResponse ProviderRestApi::put(const QUrl &url, const QString &body)
+httpResponse ProviderRestApi::put(const QString &body)
+{
+	return put( getUrl(), body.toUtf8() );
+}
+
+httpResponse ProviderRestApi::put(const QUrl &url, const QByteArray &body)
 {
 	// Perform request
 	QNetworkRequest request(url);
-	QNetworkReply* reply = _networkManager->put(request, body.toUtf8());
+	QNetworkReply* reply = _networkManager->put(request, body);
 	// Connect requestFinished signal to quit slot of the loop.
 	QEventLoop loop;
 	QEventLoop::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
@@ -178,7 +184,7 @@ httpResponse ProviderRestApi::put(const QUrl &url, const QString &body)
 	{
 		if(reply->error() != QNetworkReply::NoError)
 		{
-			Debug(_log, "PUT: [%s] [%s]", QSTRING_CSTR( url.toString() ), QSTRING_CSTR( body ) );
+			Debug(_log, "PUT: [%s] [%s]", QSTRING_CSTR( url.toString() ),body.constData() );
 		}
 		response = getResponse(reply);
 	}

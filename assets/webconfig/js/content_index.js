@@ -1,5 +1,3 @@
-var instNameInit = false
-
 $(document).ready(function () {
   var darkModeOverwrite = getStorage("darkModeOverwrite", true);
 
@@ -27,8 +25,6 @@ $(document).ready(function () {
     // comps
     window.comps = event.response.info.components
 
-    $(window.hyperion).trigger("ready");
-
     window.comps.forEach(function (obj) {
       if (obj.name == "ALL") {
         if (obj.enabled)
@@ -44,19 +40,13 @@ $(document).ready(function () {
       $('#btn_hypinstanceswitch').toggle(true)
     else
       $('#btn_hypinstanceswitch').toggle(false)
-    // update listing at button
-    updateHyperionInstanceListing()
-    if (!instNameInit) {
-      window.currentHyperionInstanceName = getInstanceNameByIndex(0);
-      instNameInit = true;
-    }
 
     updateSessions();
   }); // end cmd-serverinfo
 
   // Update language selection
   $("#language-select").on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {
-    var newLang = availLang[clickedIndex - 1];
+    var newLang = availLang[clickedIndex];
     if (newLang !== storedLang) {
       setStorage("langcode", newLang);
       reload();
@@ -112,11 +102,9 @@ $(document).ready(function () {
 
   $(window.hyperion).one("cmd-authorize-getTokenList", function (event) {
     tokenList = event.response.info;
-    requestServerInfo();
   });
 
   $(window.hyperion).on("cmd-sysinfo", function (event) {
-    requestServerInfo();
     window.sysInfo = event.response.info;
 
     window.currentVersion = window.sysInfo.hyperion.version;
@@ -126,16 +114,22 @@ $(document).ready(function () {
 
   $(window.hyperion).one("cmd-config-getschema", function (event) {
     window.serverSchema = event.response.info;
-    requestServerConfig();
+    window.schema = window.serverSchema.properties;
+
     requestTokenInfo();
     requestGetPendingTokenRequests();
 
-    window.schema = window.serverSchema.properties;
+    //Switch to last selected instance and load related config
+    var lastSelectedInstance = getStorage('lastSelectedInstance', false);
+    if (!window.serverInfo.instance[lastSelectedInstance]) {
+      lastSelectedInstance = 0;
+    }
+    instanceSwitch(lastSelectedInstance);
+
   });
 
   $(window.hyperion).on("cmd-config-getconfig", function (event) {
     window.serverConfig = event.response.info;
-    requestSysInfo();
 
     window.showOptHelp = window.serverConfig.general.showOptHelp;
   });
@@ -163,6 +157,8 @@ $(document).ready(function () {
     if (event.response.hasOwnProperty('info'))
       setStorage("loginToken", event.response.info.token, true);
 
+    requestSysInfo();
+    requestServerInfo();
     requestServerConfigSchema();
   });
 
