@@ -93,7 +93,7 @@ void Hyperion::start()
 
 	// connect Hyperion::update with Muxer visible priority changes as muxer updates independent
 	connect(&_muxer, &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::update);
-	connect(&_muxer, &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::handlePriorityChangedLedDevice);
+	connect(&_muxer, &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::handleSourceAvailability);
 	connect(&_muxer, &PriorityMuxer::visibleComponentChanged, this, &Hyperion::handleVisibleComponentChanged);
 
 	// listens for ComponentRegister changes of COMP_ALL to perform core enable/disable actions
@@ -552,22 +552,23 @@ void Hyperion::handleVisibleComponentChanged(hyperion::Components comp)
 	_raw2ledAdjustment->setBacklightEnabled((comp != hyperion::COMP_COLOR && comp != hyperion::COMP_EFFECT));
 }
 
-void Hyperion::handlePriorityChangedLedDevice(const quint8& priority)
-{
-	int previousPriority = _muxer.getPreviousPriority();
+void Hyperion::handleSourceAvailability(const quint8& priority)
+{	int previousPriority = _muxer.getPreviousPriority();
 
 	Debug(_log,"priority[%d], previousPriority[%d]", priority, previousPriority);
 	if ( priority == PriorityMuxer::LOWEST_PRIORITY)
 	{
-		Debug(_log,"No source left -> switch LED-Device off");
+		Debug(_log,"No source left -> Pause output processing and switch LED-Device off");
 		emit _ledDeviceWrapper->switchOff();
+		emit _deviceSmooth->setPause(true);
 	}
 	else
 	{
 		if ( previousPriority == PriorityMuxer::LOWEST_PRIORITY )
 		{
-			Debug(_log,"new source available -> switch LED-Device on");
+			Debug(_log,"new source available -> Resume output processing and switch LED-Device on");
 			emit _ledDeviceWrapper->switchOn();
+			emit _deviceSmooth->setPause(false);
 		}
 	}
 }

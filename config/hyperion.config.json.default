@@ -58,8 +58,7 @@
 		"outputRate"        : 25.0000,
 		"decay"             : 1,
 		"dithering"         : false,
-		"updateDelay"       : 0,
-		"continuousOutput"  : true
+		"updateDelay"       : 0
 	},
 
 	"grabberV4L2" :
