@@ -1,8 +1,8 @@
 $(document).ready(function () {
   performTranslation();
 
-	// update instance listing
-	updateHyperionInstanceListing();
+  // update instance listing
+  updateHyperionInstanceListing();
 
   var oldDelList = [];
   var effectName = "";
@@ -120,7 +120,7 @@ $(document).ready(function () {
 
   // disable or enable control elements
   $("#name-input").on('change keyup', function (event) {
-    effectName = $(this).val();
+    effectName = encodeHTML($(this).val());
     if ($(this).val() == '') {
       effects_editor.disable();
       $("#eff_footer").children().attr('disabled', true);

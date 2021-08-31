@@ -37,7 +37,7 @@ $(document).ready(function () {
     showInfoDialog('renInst', $.i18n('conf_general_inst_renreq_t'), getInstanceNameByIndex(inst));
 
     $("#id_btn_ok").off().on('click', function () {
-      requestInstanceRename(inst, $('#renInst_name').val())
+      requestInstanceRename(inst, encodeHTML($('#renInst_name').val()))
     });
 
     $('#renInst_name').off().on('input', function (e) {
@@ -94,7 +94,7 @@ $(document).ready(function () {
   });
 
   $('#btn_create_inst').off().on('click', function (e) {
-    requestInstanceCreate($('#inst_name').val());
+    requestInstanceCreate(encodeHTML($('#inst_name').val()));
     $('#inst_name').val("");
     $('#btn_create_inst').attr('disabled', true)
   });

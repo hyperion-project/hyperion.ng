@@ -163,6 +163,7 @@ $(document).ready(function () {
         showInputOptionsForKey(conf_editor_forw, "forwarder", "enable", false);
         $('#forwarderHelpPanelId').hide();
       }
+
       conf_editor_forw.validate().length || window.readOnlyMode ? $('#btn_submit_forwarder').attr('disabled', true) : $('#btn_submit_forwarder').attr('disabled', false);
     });
 
