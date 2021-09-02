@@ -888,6 +888,7 @@ $(document).ready(function () {
             break;
           default:
             conf_editor.getEditor(specOptPath + "host").disable();
+            conf_editor.getEditor(specOptPath + "host").setValue(val);
             //Trigger getProperties via host value
             conf_editor.notifyWatchers(specOptPath + "host");
             break;
