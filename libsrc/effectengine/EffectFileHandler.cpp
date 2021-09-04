@@ -70,9 +70,9 @@ QString EffectFileHandler::deleteEffect(const QString& effectName)
 		{
 			if (effectConfigurationFile.exists())
 			{
-				if ((it->script == ":/effects/gif.py") && !it->args.value("image").toString("").isEmpty())
+				if ((it->script == ":/effects/gif.py") && !it->args.value("file").toString("").isEmpty())
 				{
-					QFileInfo effectImageFile(it->args.value("image").toString());
+					QFileInfo effectImageFile(it->args.value("file").toString());
 					if (effectImageFile.exists())
 					{
 						QFile::remove(effectImageFile.absoluteFilePath());
@@ -159,19 +159,26 @@ QString EffectFileHandler::saveEffect(const QJsonObject& message)
 					newFileName.setFile(f);
 				}
 
-				if (!message["imageData"].toString("").isEmpty() && !message["args"].toObject().value("image").toString("").isEmpty())
+				if (!message["imageData"].toString("").isEmpty() && !message["args"].toObject().value("file").toString("").isEmpty())
 				{
 					QJsonObject args = message["args"].toObject();
-					QString imageFilePath = effectArray[0].toString().replace("$ROOT", _rootPath) + '/' + args.value("image").toString();
+					QString imageFilePath = effectArray[0].toString().replace("$ROOT", _rootPath) + '/' + args.value("file").toString();
 
 					QFileInfo imageFileName(imageFilePath);
 					if (!FileUtils::writeFile(imageFileName.absoluteFilePath(), QByteArray::fromBase64(message["imageData"].toString("").toUtf8()), _log))
 					{
-						return "Error while saving image file '" + message["args"].toObject().value("image").toString() + ", please check the Hyperion Log";
+						return "Error while saving image file '" + message["args"].toObject().value("file").toString() + ", please check the Hyperion Log";
 					}
 
 					//Update json with image file location
-					args["image"] = imageFilePath;
+					args["file"] = imageFilePath;
+					effectJson["args"] = args;
+				}
+
+				if (message["args"].toObject().value("imageSource").toString("") == "url" || message["args"].toObject().value("imageSource").toString("") == "file")
+				{
+					QJsonObject args = message["args"].toObject();
+					args.remove(args.value("imageSource").toString("") == "url" ? "file" : "url");
 					effectJson["args"] = args;
 				}
 
