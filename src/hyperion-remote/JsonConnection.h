@@ -108,7 +108,7 @@ public:
 	///
 	/// Enable/Disable components during runtime
 	///
-	/// @param component The component [SMOOTHING, BLACKBORDER, FORWARDER, BOBLIGHT_SERVER, GRABBER]
+	/// @param component The component [SMOOTHING, BLACKBORDER, FORWARDER, BOBLIGHTSERVER, GRABBER]
 	/// @param state The state of the component [true | false]
 	///
 	void setComponentState(const QString & component, bool state);

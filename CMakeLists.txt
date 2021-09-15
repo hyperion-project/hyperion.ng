@@ -42,11 +42,15 @@ endif()
 
 # Set build variables
 SET ( DEFAULT_AMLOGIC                     OFF )
+SET ( DEFAULT_BOBLIGHT                    ON  )
 SET ( DEFAULT_DISPMANX                    OFF )
+SET ( DEFAULT_DX                          OFF )
+SET ( DEFAULT_MF                          OFF )
 SET ( DEFAULT_OSX                         OFF )
 SET ( DEFAULT_QT                          ON  )
 SET ( DEFAULT_X11                         OFF )
 SET ( DEFAULT_XCB                         OFF )
+SET ( DEFAULT_V4L2                        OFF )
 SET ( DEFAULT_WS281XPWM                   OFF )
 SET ( DEFAULT_AVAHI                       ON  )
 SET ( DEFAULT_USE_SHARED_AVAHI_LIBS       ON  )
@@ -55,7 +59,7 @@ SET ( DEFAULT_USE_SYSTEM_PROTO_LIBS       OFF )
 SET ( DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     OFF )
 SET ( DEFAULT_TESTS                       OFF )
 SET ( DEFAULT_EXPERIMENTAL                OFF )
-SET ( DEFAULT_MF                          OFF )
+SET ( DEFAULT_CEC                         OFF )
 SET ( DEFAULT_DEPLOY_DEPENDENCIES         ON  )
 
 IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
@@ -159,6 +163,10 @@ STRING( REPLACE "-DEV" "" PLATFORM_DEFINE "${PLATFORM_DEFINE}" )
 ADD_DEFINITIONS( ${PLATFORM_DEFINE} )
 
 # set the build options
+
+option(ENABLE_BOBLIGHT "Enable BOBLIGHT server" ${DEFAULT_BOBLIGHT} )
+message(STATUS "ENABLE_BOBLIGHT = ${ENABLE_BOBLIGHT}")
+
 option(ENABLE_AMLOGIC "Enable the AMLOGIC video grabber" ${DEFAULT_AMLOGIC} )
 message(STATUS "ENABLE_AMLOGIC = ${ENABLE_AMLOGIC}")
 

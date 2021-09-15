@@ -176,13 +176,8 @@ bool FramebufferFrameGrabber::getScreenInfo()
 				break;
 			case 24: _pixelFormat = PixelFormat::BGR24;
 				break;
-#ifdef ENABLE_AMLOGIC
-			case 32: _pixelFormat = PixelFormat::PIXELFORMAT_RGB32;
-				break;
-#else
 			case 32: _pixelFormat = PixelFormat::BGR32;
 				break;
-#endif
 			default:
 				rc= false;
 				QString errorReason = QString ("Unknown pixel format: %1 bits per pixel").arg(static_cast<int>(_varInfo.bits_per_pixel));

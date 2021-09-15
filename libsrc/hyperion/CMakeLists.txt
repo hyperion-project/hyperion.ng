@@ -22,11 +22,14 @@ target_link_libraries(hyperion
 	flatbufserver
 	flatbuffers
 	leddevice
-	boblightserver
 	effectengine
 	database
 	${QT_LIBRARIES}
 )
+
+if(ENABLE_BOBLIGHT)
+	target_link_libraries(hyperion boblightserver)
+endif()
 
 if (ENABLE_AVAHI)
 	target_link_libraries(hyperion bonjour)

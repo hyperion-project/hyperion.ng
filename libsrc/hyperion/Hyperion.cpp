@@ -37,7 +37,9 @@
 #include <hyperion/CaptureCont.h>
 
 // Boblight
+#if defined(ENABLE_BOBLIGHT)
 #include <boblightserver/BoblightServer.h>
+#endif
 
 Hyperion::Hyperion(quint8 instance, bool readonlyMode)
 	: QObject()
@@ -58,7 +60,9 @@ Hyperion::Hyperion(quint8 instance, bool readonlyMode)
 	, _BGEffectHandler(nullptr)
 	, _captureCont(nullptr)
 	, _ledBuffer(_ledString.leds().size(), ColorRgb::BLACK)
+#if defined(ENABLE_BOBLIGHT)
 	, _boblightServer(nullptr)
+#endif
 	, _readOnlyMode(readonlyMode)
 {
 
@@ -148,9 +152,11 @@ void Hyperion::start()
 	// if there is no startup / background effect and no sending capture interface we probably want to push once BLACK (as PrioMuxer won't emit a priority change)
 	update();
 
+#if defined(ENABLE_BOBLIGHT)
 	// boblight, can't live in global scope as it depends on layout
 	_boblightServer = new BoblightServer(this, getSetting(settings::BOBLSERVER));
 	connect(this, &Hyperion::settingsChanged, _boblightServer, &BoblightServer::handleSettingsUpdate);
+#endif
 
 	// instance initiated, enter thread event loop
 	emit started();
@@ -168,7 +174,9 @@ void Hyperion::freeObjects()
 	clear(-1,true);
 
 	// delete components on exit of hyperion core
+#if defined(ENABLE_BOBLIGHT)
 	delete _boblightServer;
+#endif
 	delete _captureCont;
 	delete _effectEngine;
 	delete _raw2ledAdjustment;
