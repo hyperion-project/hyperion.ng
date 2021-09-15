@@ -4,9 +4,10 @@ var isScroll = true;
 
 performTranslation();
 requestLoggingStop();
-requestLoggingStart();
 
 $(document).ready(function () {
+
+  requestLoggingStart();
 
   $('#conf_cont').append(createOptPanel('fa-reorder', $.i18n("edt_conf_log_heading_title"), 'editor_container', 'btn_submit'));
   if (window.showOptHelp) {

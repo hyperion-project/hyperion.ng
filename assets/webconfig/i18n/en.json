@@ -57,6 +57,7 @@
     "conf_leds_device_intro": "Hyperion supports a lot of controllers to transmit data to your target device. Select a LED controller out of the sorted list and configure it. We have chosen the best default settings for each device.",
     "conf_leds_error_hwled_gt_layout": "The hardware LED count ($1) is greater than LEDs configured via layout ($2),<br>$3 {{plural:$3|LED|LEDs}} will stay black if you continue.",
     "conf_leds_error_hwled_lt_layout": "The hardware LED count ($1) is less than LEDs configured via layout ($2). <br> The number of LEDs configured in the layout must not exceed the available LEDs",
+    "conf_leds_info_ws281x": "Hyperion must run with 'root' privileges for this controller type!",
     "conf_leds_layout_advanced": "Advanced Settings",
     "conf_leds_layout_blacklist_num_title": "Number of LEDs",
     "conf_leds_layout_blacklist_rule_title": "Blacklist rule",

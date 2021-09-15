@@ -16,6 +16,8 @@ var devNET = ['atmoorb', 'cololight', 'fadecandy', 'philipshue', 'nanoleaf', 'ti
 var devSerial = ['adalight', 'dmx', 'atmo', 'sedu', 'tpm2', 'karate'];
 var devHID = ['hyperionusbasp', 'lightpack', 'paintpack', 'rawhid'];
 
+var infoTextDefault = '<span>' + $.i18n("conf_leds_device_info_log") + ' </span><a href="" onclick="SwitchToMenuItem(\'MenuItemLogging\')" style="cursor:pointer">' + $.i18n("main_menu_logging_token") + '</a>';
+
 function round(number) {
   var factor = Math.pow(10, 4);
   var tempNumber = number * factor;
@@ -664,6 +666,8 @@ $(document).ready(function () {
       conf_editor.getEditor("root.specificOptions").setValue(values_specific);
     };
 
+    $("#info_container_text").html(infoTextDefault);
+
     // change save button state based on validation result
     conf_editor.validate().length || window.readOnlyMode ? $('#btn_submit_controller').attr('disabled', true) : $('#btn_submit_controller').attr('disabled', false);
 
@@ -727,6 +731,7 @@ $(document).ready(function () {
         case "sk9822":
         case "ws2812spi":
         case "piblaster":
+        case "ws281x":
           discover_device(ledType);
           hwLedCountDefault = 1;
           colorOrderDefault = "rgb";
@@ -1313,6 +1318,8 @@ var updateSelectList = function (ledType, discoveryInfo) {
     ledTypeGroup = "devRPiSPI";
   } else if ($.inArray(ledType, devRPiGPIO) != -1) {
     ledTypeGroup = "devRPiGPIO";
+  } else if ($.inArray(ledType, devRPiPWM) != -1) {
+    ledTypeGroup = "devRPiPWM";
   }
 
   switch (ledTypeGroup) {
@@ -1471,6 +1478,18 @@ var updateSelectList = function (ledType, discoveryInfo) {
             break;
           default:
         }
+      }
+      break;
+    case "devRPiPWM":
+      key = ledType;
+
+      if (discoveryInfo.devices.length == 0) {
+        enumVals.push("NONE");
+        enumTitelVals.push($.i18n('edt_dev_spec_devices_discovered_none'));
+        $('#btn_submit_controller').attr('disabled', true);
+        showAllDeviceInputOptions(key, false);
+
+        $("#info_container_text").html($.i18n("conf_leds_info_ws281x"));
       }
       break;
     default:
