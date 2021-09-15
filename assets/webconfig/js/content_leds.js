@@ -1572,11 +1572,11 @@ async function identify_device(type, params) {
 
 function updateElements(ledType, key) {
   if (devicesProperties[ledType][key]) {
+    var hardwareLedCount = 1;
     switch (ledType) {
       case "cololight":
         var ledProperties = devicesProperties[ledType][key];
 
-        var hardwareLedCount = 1;
         if (ledProperties) {
           hardwareLedCount = ledProperties.ledCount;
         }
@@ -1585,12 +1585,14 @@ function updateElements(ledType, key) {
       case "wled":
         var ledProperties = devicesProperties[ledType][key];
 
-        if (ledProperties && ledProperties.maxLedCount) {
-          updateJsonEditorRange(conf_editor, "root.generalOptions", "hardwareLedCount", 1, ledProperties.maxLedCount);
-        }
-
-        if (ledProperties && ledProperties.leds) {
+        if (ledProperties && ledProperties.leds && ledProperties.maxLedCount) {
           hardwareLedCount = ledProperties.leds.count;
+          var maxLedCount = ledProperties.maxLedCount
+          if (hardwareLedCount > maxLedCount)
+          {
+	        showInfoDialog('warning', $.i18n("conf_leds_config_warning"), $.i18n('conf_leds_error_hwled_gt_maxled', hardwareLedCount, maxLedCount, maxLedCount));
+            hardwareLedCount = maxLedCount;
+          }
         }
         conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(hardwareLedCount);
         break;
@@ -1616,7 +1618,14 @@ function updateElements(ledType, key) {
         var ledProperties = devicesProperties[ledType][key];
 
         if (ledProperties && ledProperties.maxLedCount) {
-          updateJsonEditorRange(conf_editor, "root.generalOptions", "hardwareLedCount", 1, ledProperties.maxLedCount);
+          hardwareLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue();
+          var maxLedCount = ledProperties.maxLedCount
+          if (hardwareLedCount > maxLedCount)
+          {
+            showInfoDialog('warning', $.i18n("conf_leds_config_warning"), $.i18n('conf_leds_error_hwled_gt_maxled', hardwareLedCount, maxLedCount, maxLedCount));
+            hardwareLedCount = maxLedCount;
+          }
+          updateJsonEditorRange(conf_editor, "root.generalOptions", "hardwareLedCount", 1, maxLedCount, hardwareLedCount);
         }
         break;
 
