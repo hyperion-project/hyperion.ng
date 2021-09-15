@@ -931,6 +931,11 @@ $(document).ready(function () {
             params = { host: host, filter: "info" };
             getProperties_device(ledType, host, params);
             break;
+
+          case "udpraw":
+            getProperties_device(ledType, host, params);
+            break;
+
           default:
         }
       }
@@ -1580,6 +1585,10 @@ function updateElements(ledType, key) {
       case "wled":
         var ledProperties = devicesProperties[ledType][key];
 
+        if (ledProperties && ledProperties.maxLedCount) {
+          updateJsonEditorRange(conf_editor, "root.generalOptions", "hardwareLedCount", 1, ledProperties.maxLedCount);
+        }
+
         if (ledProperties && ledProperties.leds) {
           hardwareLedCount = ledProperties.leds.count;
         }
@@ -1601,6 +1610,14 @@ function updateElements(ledType, key) {
         }
         conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(hardwareLedCount);
 
+        break;
+
+      case "udpraw":
+        var ledProperties = devicesProperties[ledType][key];
+
+        if (ledProperties && ledProperties.maxLedCount) {
+          updateJsonEditorRange(conf_editor, "root.generalOptions", "hardwareLedCount", 1, ledProperties.maxLedCount);
+        }
         break;
 
       case "atmo":

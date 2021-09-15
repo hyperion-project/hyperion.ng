@@ -26,6 +26,14 @@ public:
 	///
 	static LedDevice* construct(const QJsonObject &deviceConfig);
 
+	///
+	/// @brief Get a UDP-Raw device's resource properties
+	///
+	/// @param[in] params Parameters to query device
+	/// @return A JSON structure holding the device's properties
+	///
+	QJsonObject getProperties(const QJsonObject& params) override;
+
 protected:
 
 	///
