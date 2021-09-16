@@ -1,4 +1,5 @@
 var ledsCustomCfgInitialized = false;
+var onLedLayoutTab = false;
 var nonBlacklistLedArray = [];
 var ledBlacklist = [];
 var finalLedArray = [];
@@ -578,14 +579,17 @@ $(document).ready(function () {
   });
 
   $(window.hyperion).on("cmd-ledcolors-imagestream-update", function (event) {
-    setClassByBool('#leds_prev_toggle_live_video', window.imageStreamActive, "btn-danger", "btn-success");
-    var imageData = (event.response.result.image);
+    //Only update Image, if LED Layout Tab is visible  
+    if (onLedLayoutTab) {
+      setClassByBool('#leds_prev_toggle_live_video', window.imageStreamActive, "btn-danger", "btn-success");
+      var imageData = (event.response.result.image);
 
-    var image = new Image();
-    image.onload = function () {
-      imageCanvasNodeCtx.drawImage(image, 0, 0, imageCanvasNodeCtx.canvas.width, imageCanvasNodeCtx.canvas.height);
-    };
-    image.src = imageData;
+      var image = new Image();
+      image.onload = function () {
+        imageCanvasNodeCtx.drawImage(image, 0, 0, imageCanvasNodeCtx.canvas.width, imageCanvasNodeCtx.canvas.height);
+      };
+      image.src = imageData;
+    }
   });
 
   // open checklist
@@ -605,9 +609,14 @@ $(document).ready(function () {
   // nav
   $('#leds_cfg_nav a[data-toggle="tab"]').off().on('shown.bs.tab', function (e) {
     var target = $(e.target).attr("href") // activated tab
-    if (target == "#menu_gencfg" && !ledsCustomCfgInitialized) {
-      $('#leds_custom_updsim').trigger('click');
-      ledsCustomCfgInitialized = true;
+    if (target == "#menu_gencfg") {
+      onLedLayoutTab = true;
+      if (!ledsCustomCfgInitialized) {
+        $('#leds_custom_updsim').trigger('click');
+        ledsCustomCfgInitialized = true;
+      }
+    } else {
+      onLedLayoutTab = false;
     }
 
     blacklist_editor.on('change', function () {
