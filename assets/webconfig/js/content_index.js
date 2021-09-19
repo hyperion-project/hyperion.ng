@@ -1,5 +1,3 @@
-var instNameInit = false
-
 $(document).ready(function () {
   var darkModeOverwrite = getStorage("darkModeOverwrite", true);
 
@@ -44,13 +42,6 @@ $(document).ready(function () {
       $('#btn_hypinstanceswitch').toggle(true)
     else
       $('#btn_hypinstanceswitch').toggle(false)
-    // update listing at button
-    updateHyperionInstanceListing()
-    if (!instNameInit) {
-      window.currentHyperionInstanceName = getInstanceNameByIndex(0);
-      instNameInit = true;
-    }
-
     updateSessions();
   }); // end cmd-serverinfo
 
@@ -112,11 +103,9 @@ $(document).ready(function () {
 
   $(window.hyperion).one("cmd-authorize-getTokenList", function (event) {
     tokenList = event.response.info;
-    requestServerInfo();
   });
 
   $(window.hyperion).on("cmd-sysinfo", function (event) {
-    requestServerInfo();
     window.sysInfo = event.response.info;
 
     window.currentVersion = window.sysInfo.hyperion.version;
@@ -128,14 +117,21 @@ $(document).ready(function () {
     window.serverSchema = event.response.info;
     window.schema = window.serverSchema.properties;
 
-    requestServerConfig();
     requestTokenInfo();
     requestGetPendingTokenRequests();
+
+    //Switch to last selected instance and load related config
+    var lastSelectedInstance = getStorage('lastSelectedInstance', false);
+    if (lastSelectedInstance == null || window.serverInfo.instance && !window.serverInfo.instance[lastSelectedInstance]) {
+      lastSelectedInstance = 0;
+    }
+    instanceSwitch(lastSelectedInstance);
+
+    requestSysInfo();
   });
 
   $(window.hyperion).on("cmd-config-getconfig", function (event) {
     window.serverConfig = event.response.info;
-    requestSysInfo();
 
     window.showOptHelp = window.serverConfig.general.showOptHelp;
   });
@@ -222,7 +218,7 @@ $(document).ready(function () {
   });
 
   $(window.hyperion).one("ready", function (event) {
-    loadContent();
+    // Content will be loaded by the instance load/switch
   });
 
   $(window.hyperion).on("cmd-adjustment-update", function (event) {
