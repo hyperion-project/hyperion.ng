@@ -569,9 +569,12 @@ $(document).ready(function () {
   // toggle live video
   $('#leds_prev_toggle_live_video').off().on("click", function () {
     setClassByBool('#leds_prev_toggle_live_video', window.imageStreamActive, "btn-success", "btn-danger");
-    if (window.imageStreamActive) {
-      requestLedImageStop();
+
+    if (onLedLayoutTab && window.imageStreamActive) {
       imageCanvasNodeCtx.clear();
+      if (!$('#leds_toggle_live_video').hasClass("btn-success")) {
+        requestLedImageStop();
+      }
     }
     else {
       requestLedImageStart();
@@ -580,7 +583,7 @@ $(document).ready(function () {
 
   $(window.hyperion).on("cmd-ledcolors-imagestream-update", function (event) {
     //Only update Image, if LED Layout Tab is visible  
-    if (onLedLayoutTab) {
+    if (onLedLayoutTab && window.imageStreamActive) {
       setClassByBool('#leds_prev_toggle_live_video', window.imageStreamActive, "btn-danger", "btn-success");
       var imageData = (event.response.result.image);
 
