@@ -1,7 +1,10 @@
 [Unit]
 Description=Hyperion ambient light systemd service  for user %i
 Documentation=https://docs.hyperion-project.org
-After=network.target
+Requisite=network.target
+Wants=network-online.target
+After=network-online.target
+After=systemd-resolved.service
 
 [Service]
 ExecStart=/usr/bin/hyperiond
