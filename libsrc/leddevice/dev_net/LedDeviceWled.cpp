@@ -21,6 +21,7 @@ const char CONFIG_SYNC_OVERWRITE[] = "overwriteSync";
 
 // UDP elements
 const quint16 STREAM_DEFAULT_PORT = 19446;
+const int UDP_MAX_LED_NUM = 490;
 
 // WLED JSON-API elements
 const int API_DEFAULT_PORT = -1; //Use default port per communication scheme
@@ -80,6 +81,13 @@ bool LedDeviceWled::init(const QJsonObject &deviceConfig)
 		Debug(_log, "LedCount     : %d", configuredLedCount);
 		Debug(_log, "ColorOrder   : %s", QSTRING_CSTR( this->getColorOrder() ));
 		Debug(_log, "LatchTime    : %d", this->getLatchTime());
+
+		if (configuredLedCount > UDP_MAX_LED_NUM)
+		{
+			QString errorReason = QString("Device type %1 can only be run with maximum %2 LEDs!").arg(this->getActiveDeviceType()).arg(UDP_MAX_LED_NUM);
+			this->setInError ( errorReason );
+			return false;
+		}
 
 		_isRestoreOrigState = _devConfig[CONFIG_RESTORE_STATE].toBool(DEFAULT_IS_RESTORE_STATE);
 		_isSyncOverwrite = _devConfig[CONFIG_SYNC_OVERWRITE].toBool(DEFAULT_IS_SYNC_OVERWRITE);
@@ -348,7 +356,10 @@ QJsonObject LedDeviceWled::getProperties(const QJsonObject& params)
 			Warning (_log, "%s get properties failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
 		}
 
-		properties.insert("properties", response.getBody().object());
+		QJsonObject propertiesDetails = response.getBody().object();
+		propertiesDetails.insert("maxLedCount", UDP_MAX_LED_NUM);
+
+		properties.insert("properties", propertiesDetails);
 
 		DebugIf(verbose, _log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 	}
