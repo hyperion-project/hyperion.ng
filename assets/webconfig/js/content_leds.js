@@ -750,6 +750,8 @@ $(document).ready(function () {
           break;
 
         case "philipshue":
+          conf_editor.getEditor("root.generalOptions").disable();
+
           var lights = conf_editor.getEditor("root.specificOptions.lightIds").getValue();
           hwLedCountDefault = lights.length;
           colorOrderDefault = "rgb";
@@ -757,6 +759,7 @@ $(document).ready(function () {
 
         case "yeelight":
           conf_editor.getEditor("root.generalOptions").disable();
+
           var lights = conf_editor.getEditor("root.specificOptions.lights").getValue();
           hwLedCountDefault = lights.length;
           colorOrderDefault = "rgb";
