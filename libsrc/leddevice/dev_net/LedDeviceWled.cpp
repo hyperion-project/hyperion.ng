@@ -10,7 +10,7 @@
 // Constants
 namespace {
 
-const bool verbose = true;
+const bool verbose = false;
 
 // Configuration settings
 const char CONFIG_ADDRESS[] = "host";
