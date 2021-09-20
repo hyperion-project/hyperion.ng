@@ -138,10 +138,7 @@ if(CMAKE_HOST_UNIX)
 	install( CODE "EXECUTE_PROCESS(COMMAND ln -sf \"../share/hyperion/bin/hyperiond\" \"${CMAKE_BINARY_DIR}/symlink_hyperiond\" )" COMPONENT "Hyperion" )
 	install( FILES ${CMAKE_BINARY_DIR}/symlink_hyperiond DESTINATION "bin" RENAME hyperiond COMPONENT "Hyperion" )
 	install( CODE "FILE (REMOVE ${CMAKE_BINARY_DIR}/symlink_hyperiond )" COMPONENT "Hyperion" )
-
-	if(ENABLE_WS281XPWM)
-		install ( FILES ${CMAKE_SOURCE_DIR}/bin/scripts/runHyperionAsRoot.sh DESTINATION "share/hyperion/scripts" COMPONENT "Hyperion" )
-	endif()
+	install ( FILES ${CMAKE_SOURCE_DIR}/bin/scripts/runHyperionAsRoot.sh DESTINATION "share/hyperion/scripts" COMPONENT "Hyperion" )
 endif()
 
 # Deploy Qt DLLs into the binary folder.
