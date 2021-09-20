@@ -35,7 +35,7 @@ jobs:
       - name: Build package
         shell: bash
         run: |
-          tr -d '\n' < version > temp && mv temp version
+          tr -d '\n' < .version > temp && mv temp .version
           mkdir -p "${GITHUB_WORKSPACE}/deploy"
           docker run --rm \
             -v "${GITHUB_WORKSPACE}/deploy:/deploy" \
@@ -43,7 +43,7 @@ jobs:
             ghcr.io/hyperion-project/${{ matrix.architecture }}:$(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]') \
             /bin/bash -c "cd /source && \
             mkdir -p debian/source && echo '3.0 (quilt)' > debian/source/format && \
-            dch --create --distribution $(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]') --package 'hyperion' -v '$(cat version)~$(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]')' '${{ github.event.commits[0].message }}' && \
+            dch --create --distribution $(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]') --package 'hyperion' -v '$(cat .version)~$(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]')' '${{ github.event.commits[0].message }}' && \
             cp -fr LICENSE debian/copyright && \
             sed 's/@BUILD_DEPENDS@/${{ matrix.build-depends }}/g; s/@DEPENDS@/${{ matrix.package-depends }}/g; s/@ARCHITECTURE@/${{ matrix.architecture }}/g' debian/control.in > debian/control && \
             tar cf ../hyperion_2.0.0.orig.tar . && \
