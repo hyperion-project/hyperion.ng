@@ -199,27 +199,3 @@ jobs:
         with:
           name: windows
           path: windows
-
-##########################
-#### Snap (x86_64) #######
-##########################
-
-  snap:
-    name: Snap (x86_64)
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      # Build snap package
-      - name: Build snap
-        id: build
-        uses: snapcore/action-build@v1
-
-      # Upload snap artifact (only on tagged commit)
-      - name: Upload snap artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: snap
-          path: ${{ steps.build.outputs.snap }}
