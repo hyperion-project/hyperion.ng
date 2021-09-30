@@ -2,28 +2,28 @@
 
 # help print function
 function printHelp {
-echo "########################################################
-## A script to update the user Hyperion is executed uner by the system and service manager (after start-up)
-## Without arguments it will configure Hyperion being executed under the current user
-##
-## Homepage: https://www.hyperion-project.org
-## Forum: https://forum.hyperion-project.org
-########################################################
-# These are possible arguments to modify the script behaviour with their default values
-#
-# updateHyperionUser.sh -u username   # The user name Hyperion to executed under
-# updateHyperionUser.sh -h            # Shows this help message"
+echo "The script updates the user Hyperion is executed by system and service manager (after start-up).
+Without arguments it will configure Hyperion being executed under the current user.
+The script must be executed as root, i.e. sudo $0
+
+Options:
+-u username   The user name Hyperion to executed to be with
+-h            Shows this help message and exits"
 }
 
 function prompt () {
-	while true; do
-		read -p "$1 " yn
-		case "${yn:-Y}" in
-			[Yes]* ) return 1;;
-			[No]* ) return 0;;
-			* ) echo "Please answer Yes or No.";;
-		esac
-	done
+        while true; do
+                read -p "$1 " yn
+                if [[ $yn = "" ]]; then
+                        echo "Please answer Yes or No."
+                else
+                        case "${yn:-Y}" in
+                                [Yes]* ) return 1;;
+                                [No]* ) return 0;;
+                                * ) echo "Please answer Yes or No.";;
+                        esac
+                fi
+        done
 }
 
 # Default username
@@ -39,17 +39,17 @@ do
  esac
 done
 
-echo "Configure the hyperion daemon to be executed under user: ${USERNAME}"
-
 if [ "`id -u`" -ne 0 ]; then
     echo "Please run this script as root, i.e. sudo $0"
 	exit 99
 fi
 
 if ! id ${USERNAME} >/dev/null 2>&1; then
-	echo "The given username does not exist. Exiting..."
+	echo "The given username \"${USERNAME}\" does not exist. Exiting..."
 	exit 99
 fi
+
+echo "Configure the hyperion daemon to be executed under user: ${USERNAME}"
 
 if [ ${USERNAME} == "root" ]; then
 	echo ''
@@ -62,8 +62,13 @@ if [ ${USERNAME} == "root" ]; then
 fi
 
 #Disable current service
-CURRENT_SERVICE=`systemctl --type service | { grep -o "hyperion.*@.*\.service" || true; }`
+CURRENT_SERVICE=$(systemctl --type service | { grep -o "hyperion.*@.*\.service" || true; })
 if [[ ! -z ${CURRENT_SERVICE} ]]; then
+	CURRENT_SERVICE_USER=$(expr "${CURRENT_SERVICE}" : 'hyperion.*@\(.*\).service')
+	if [ "${USERNAME}" == "${CURRENT_SERVICE_USER}" ]; then
+		echo "Hyperion is already running under the user: ${USERNAME}. No updates required."
+		exit 0;
+	fi
 	echo "Disable current service: ${CURRENT_SERVICE}"
 	systemctl is-active --quiet ${CURRENT_SERVICE} && systemctl disable --quiet ${CURRENT_SERVICE} --now >/dev/null 2>&1
 fi
@@ -80,7 +85,7 @@ echo "Restarting Hyperion Service: ${NEW_SERVICE}"
 systemctl enable --quiet ${NEW_SERVICE} --now >/dev/null 2>&1
 
 # Update HyperBian splash screen
-sed -i 's/${CURRENT_SERVICE}/${NEW_SERVICE}/' /etc/update-motd.d/10-hyperbian >/dev/null 2>&1
+sed -i "s/${CURRENT_SERVICE}/${NEW_SERVICE}/" /etc/update-motd.d/10-hyperbian >/dev/null 2>&1
 
 echo "Done."
 exit 0
