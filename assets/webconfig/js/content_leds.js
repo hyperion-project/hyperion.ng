@@ -750,6 +750,8 @@ $(document).ready(function () {
           break;
 
         case "philipshue":
+          conf_editor.getEditor("root.generalOptions").disable();
+
           var lights = conf_editor.getEditor("root.specificOptions.lightIds").getValue();
           hwLedCountDefault = lights.length;
           colorOrderDefault = "rgb";
@@ -757,6 +759,7 @@ $(document).ready(function () {
 
         case "yeelight":
           conf_editor.getEditor("root.generalOptions").disable();
+
           var lights = conf_editor.getEditor("root.specificOptions.lights").getValue();
           hwLedCountDefault = lights.length;
           colorOrderDefault = "rgb";
@@ -1070,6 +1073,13 @@ $(document).ready(function () {
         hwLedCount.setValue(lights.length);
       }
     });
+ 
+    //Handle Hardware Led Count constraint list
+    conf_editor.watch('root.generalOptions.hardwareLedCountList', () => {
+      var hwLedCountSelected = conf_editor.getEditor("root.generalOptions.hardwareLedCountList").getValue();
+      conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(Number(hwLedCountSelected));
+    });
+
   });
 
   //philipshueentertainment backward fix
@@ -1648,7 +1658,9 @@ function updateElements(ledType, key) {
         if (ledProperties && ledProperties.ledCount) {
           if (ledProperties.ledCount.length > 0) {
             var configuredLedCount = window.serverConfig.device.hardwareLedCount;
-            updateJsonEditorSelection(conf_editor, 'root.generalOptions', "hardwareLedCount", {}, ledProperties.ledCount, [], configuredLedCount);
+            showInputOptionForItem(conf_editor, 'generalOptions', "hardwareLedCount", false);
+            updateJsonEditorSelection(conf_editor, 'root.generalOptions', "hardwareLedCountList", {"title": "edt_dev_general_hardwareLedCount_title"},
+                                      ledProperties.ledCount.map(String), [], configuredLedCount);
           }
         }
         break;
