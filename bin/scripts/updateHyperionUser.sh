@@ -40,7 +40,7 @@ do
 done
 
 if [ "`id -u`" -ne 0 ]; then
-    echo "Please run this script as root, i.e. sudo $0"
+	printHelp
 	exit 99
 fi
 
