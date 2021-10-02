@@ -156,31 +156,6 @@ jobs:
         with:
           path: build/Hyperion-*
 
-##########################
-#### Snap (x86_64) #######
-##########################
-
-  snap:
-    name: Snap (x86_64)
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      # Build snap package
-      - name: Build snap
-        id: build
-        uses: snapcore/action-build@v1
-
-      # Upload snap artifact (only on tagged commit)
-      - name: Upload snap artifact
-        if: startsWith(github.event.ref, 'refs/tags')
-        uses: actions/upload-artifact@v2
-        with:
-          name: snap
-          path: ${{ steps.build.outputs.snap }}
-
 #######################################
 ###### Publish GitHub Releases ########
 #######################################
@@ -195,10 +170,10 @@ jobs:
         uses: actions/checkout@v2
 
       # generate environment variables
-      - name: Generate environment variables from version and tag
+      - name: Generate environment variables from .version and tag
         run: |
           echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
-          echo "VERSION=$(tr -d '\n' < version)" >> $GITHUB_ENV
+          echo "VERSION=$(tr -d '\n' < .version)" >> $GITHUB_ENV
           echo "preRelease=false" >> $GITHUB_ENV
 
       # If version contains alpha or beta, mark draft release as pre-release
@@ -223,35 +198,3 @@ jobs:
           prerelease: ${{ env.preRelease }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-############################
-###### Snap Release ########
-############################
-
-  snap_publish:
-    name: Publish Snap Release
-    if: startsWith(github.event.ref, 'refs/tags')
-    needs: [snap]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      # Download snap from snap job
-      - name: Download snap from snap build
-        id: download-artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: snap
-
-      # Get file name of the snap
-      - name: Get file name of the snap
-        run: echo "snap=$(ls ${{ steps.download-artifact.outputs.download-path }}/hyperion-ng_*.snap)" >> $GITHUB_ENV
-
-      # Publish snap build to edge channel
-      - name: Publish snap build to edge channel
-        uses: snapcore/action-publish@v1
-        with:
-          store_login: ${{ secrets.SNAP_STORE_LOGIN }}
-          snap: ${{ env.snap }}
-          release: edge

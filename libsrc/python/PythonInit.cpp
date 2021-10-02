@@ -23,17 +23,26 @@ PythonInit::PythonInit()
 	// register modules
 	EffectModule::registerHyperionExtensionModule();
 
+	// Set Program name
+	Py_SetProgramName(L"Hyperion");
+
 	// set Python module path when exists
-	QString py_patch = QDir::cleanPath(qApp->applicationDirPath() + "/../lib/python");
+	QString py_patch = QDir::cleanPath(qApp->applicationDirPath() + "/../lib/python" + STRINGIFY(PYTHON_VERSION_MAJOR_MINOR));
 	QString py_file  = QDir::cleanPath(qApp->applicationDirPath() + "/python" + STRINGIFY(PYTHON_VERSION_MAJOR_MINOR) + ".zip");
 
 	if (QFile(py_file).exists() || QDir(py_patch).exists())
 	{
 		Py_NoSiteFlag++;
 		if (QFile(py_file).exists())
+		{
+			Py_SetPythonHome(Py_DecodeLocale(py_file.toLatin1().data(), nullptr));
 			Py_SetPath(Py_DecodeLocale(py_file.toLatin1().data(), nullptr));
+		}
 		else if (QDir(py_patch).exists())
+		{
+			Py_SetPythonHome(Py_DecodeLocale(py_file.toLatin1().data(), nullptr));
 			Py_SetPath(Py_DecodeLocale(py_patch.toLatin1().data(), nullptr));
+		}
 	}
 
 	// init Python

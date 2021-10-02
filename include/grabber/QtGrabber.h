@@ -79,6 +79,15 @@ public:
 	///
 	bool open();
 
+#ifdef _WIN32
+	///
+	/// @brief Replacement for the virtual QWindowsScreen Function grabWindow (only on Windows).
+	///
+	/// @return QPixmap
+	///
+	QPixmap grabWindow(quintptr window, int xIn, int yIn, int width, int height) const;
+#endif
+
 private slots:
 
 	///

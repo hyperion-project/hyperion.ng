@@ -1,5 +1,5 @@
 {
-	"name" : "Fire",
+	"name" : "Matrix",
 	"script" : "gif.py",
 	"args" :
 	{
@@ -7,10 +7,10 @@
 		"cropLeft": 0,
 		"cropRight": 0,
 		"cropTop": 0,
-		"file" : ":fire.gif",
-		"fps" :25,
+		"fps": 30,
 		"grayscale": false,
-		"imageSource": "file",
-		"reverse" : false
+		"imageSource": "url",
+		"reverse": false,
+		"url": "https://i.gifer.com/1j6F.gif"
 	}
 }

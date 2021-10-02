@@ -764,6 +764,88 @@ li a:active:after {
     padding: 15px;
 }
 
+/*https://github.com/json-editor/json-editor/blob/2e005a2bd34c05803702d8bc1347efde7a4926ce/docs/radio.html#L37 radiobox for Json-Editor*/
+.radio {
+  position: relative;
+  display: inline-block;
+  min-width: 1.625rem;
+  min-height: 1.625rem;
+  max-width: 100%;
+}
+
+.radio:first-child {
+  margin-right: 20px;
+}
+
+.radio__field {
+  display: none;
+}
+
+.radio__icon {
+  position: absolute;
+  top: -0.125rem;
+  left: -0.125rem;
+  width: 1.875rem;
+  height: 1.875rem;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  border: 0.125rem solid #616161;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.radio__icon::before {
+  position: absolute;
+  content: '';
+  top: 50%;
+  left: 50%;
+  width: 0.75rem;
+  height: 0.75rem;
+  -webkit-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  visibility: hidden;
+}
+
+.radio__icon::after {
+  position: absolute;
+  content: '';
+  top: -0.4375rem;
+  right: -0.4375rem;
+  bottom: -0.4375rem;
+  left: -0.4375rem;
+}
+
+.radio__label {
+  line-height: 1.5rem;
+  display: block;
+  padding: 0.0625rem 0 0 2.375rem;
+  cursor: pointer;
+}
+
+.radio__field:checked ~ .radio__icon::before {
+  background: #616161;
+  visibility: visible;
+}
+
+/* disabled state css */
+.radio__field:disabled:checked ~ .radio__icon,
+.radio__field:disabled:not(:checked) ~ .radio__icon {
+  cursor: default;
+  border-color: #959899;
+}
+
+.radio__field:disabled:checked ~ .radio__label,
+.radio__field:disabled:not(:checked) ~ .radio__label {
+  cursor: default;
+  color: #959899;
+}
+
+.radio__field:disabled:checked ~ .radio__icon::before,
+.radio__field:disabled:not(:checked) ~ .radio__icon::before {
+  cursor: default;
+  background-color: #959899;
+}
 
 /*https://github.com/flatlogic/awesome-bootstrap-checkbox slighty edited for our purposes*/
 .checkbox {

@@ -55,7 +55,11 @@ $(document).ready(function () {
     testrun = true;
 
     var args = effects_editor.getEditor('root.args');
-    requestTestEffect(effectName, effectPyScript, JSON.stringify(args.getValue()), imageData);
+    if ($('input[type=radio][value=url]').is(':checked')) {
+      requestTestEffect(effectName, effectPyScript, JSON.stringify(args.getValue()), "");
+    } else {
+      requestTestEffect(effectName, effectPyScript, JSON.stringify(args.getValue()), imageData);
+    }
   };
 
   // Specify upload handler for image files
@@ -133,7 +137,12 @@ $(document).ready(function () {
 
   // Save Effect
   $('#btn_write').off().on('click', function () {
-    requestWriteEffect(effectName, effectPyScript, JSON.stringify(effects_editor.getValue()), imageData);
+    if ($('input[type=radio][value=url]').is(':checked')) {
+      requestWriteEffect(effectName, effectPyScript, JSON.stringify(effects_editor.getValue()), "");
+    } else {
+      requestWriteEffect(effectName, effectPyScript, JSON.stringify(effects_editor.getValue()), imageData);
+    }
+
     $(window.hyperion).one("cmd-create-effect", function (event) {
       if (event.response.success)
         showInfoDialog('success', "", $.i18n('infoDialog_effconf_created_text', effectName));
