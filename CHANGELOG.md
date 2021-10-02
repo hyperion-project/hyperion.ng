@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 ### Fixed
+Missing apt package dependancy (libqt5sql5-sqlite)
 
 ### Removed
 
