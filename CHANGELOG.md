@@ -25,31 +25,32 @@ Besides bug fixing, you will find some smaller enhancements which make everybody
 The fact that WS281x devices must run under root caused many headaches before in getting them running.
 We did not weaken security, but provide you with an easy to use script to switch the user-id of hyperion going forward. Furthermore, device configuration is blocked, if the environment does not allow it.
 
-### Added
+### Added:
 - Script to change the user Hyperion is executed with.
 To run Hyperion with root privileges (e.g. for WS281x) execute <br> `sudo updateHyperionUser -u root`
 - Gif effects can source Gifs via URLs in addition to local files as input 
-- Smoothing is paused when no input source is available (to save resources)
+
 - System info screen: Added used config path and "is run under root/admin"
-- #### LED-Devices
+- LED-Device enhancements
   - WS281x: Ensure that a device cannot be configured via the UI when Hyperion is not run with root privileges
-  - WS281x: Update DMA default as per rpi_ws281x recommendation
   - Nanoleaf: Support discovering additional Nanoleaf devices, e.g. Shapes
-  - Nanoleaf: Ability to restore state when Hyperion stops streaming
-  Note: In case previous state was a dynamic/temporary effect, the state cannot be restored
+  - Nanoleaf: Ability to restore state when Hyperion stops streaming<br>
+    Note: In case previous state was a dynamic/temporary effect, the state cannot be restored
   - Nanoleaf: New Feature: allow to overwrite brightness by Hyperion
 
-### Changed
+### Changed:
 
 - The Systemd/Upstart/System-V-Init service registers Hyperion under the name hyperion instead of hyperiond, as this has caused confusion among users in the past.
-- Limit maximum LEDs number for WLED and UDP-Raw to 490
+- WLED and UDP-Raw: Limit maximum LEDs number to 490
+- WS281x: Update DMA default as per rpi_ws281x recommendation
+- Smoothing is paused when no input source is available (to save resources)
 - Disable LED update streaming, if LED updates are not required, Sync. Video-Streaming between Layout and Simulation
 - Load configuration of last instance used when loading the UI page, Streamline API requests to avoid unnecessary invocations (#1311)
 - BobLight: Priorities are not limited any longer. BobLight can feed Priorities [2-253], default is still 128 (#1269)
 - Amlogic grabber: Limit grabber to 30fps during discovery
 - Amlogic grabber: Continuous image feed even when paused (to not have LEDs switched off), plus no delay when pausing/unpausing
 
-### Fixed
+### Fixed:
 
 - Fixed that Smoothing with "Continuous Updates" disabled does not provides LED updates (#1068, #1240)
 - Fixed Issue Blinking / flickering cursor with QT screen capture on Windows (#1328)
@@ -60,7 +61,7 @@ To run Hyperion with root privileges (e.g. for WS281x) execute <br> `sudo update
 - Include libqt5sql5-sqlite packaging dependency
 - Fixed embedded Python location (#1109)
  
-- #### LED-Devices
+- LED-Devices
   - Fixed Philips Hue wizard (#1276)
   - Fixed AtmoOrb wizard
   - Fixed that Lightpack device does not core when lack of permissions error (LIBUSB_ERROR_ACCESS)
@@ -71,7 +72,7 @@ To run Hyperion with root privileges (e.g. for WS281x) execute <br> `sudo update
   - Fixed LED layout - Additional parameters for classic layout were not saved (#1314)
   - Fixed Network LED-Device UI: Trigger getProperties for the configured host, when no hosts were discovered
 
-### Removed
+### Removed:
 
 - Smoothing: Removed "Continuous Updates" flag as it is obsolete.
 In case an LED-device requires continuous updates, use the LED-Device's "Rewrite Time" parameter.
