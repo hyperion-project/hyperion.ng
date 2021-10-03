@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "--- postinst called with args= " $1 $2
+# echo "--- postinst called with args: " $1 $2
 
 # If $1=configure and $2 is set, this is an upgrade
 if [ "$1" = configure ] && [ "$2" != "" ]; then

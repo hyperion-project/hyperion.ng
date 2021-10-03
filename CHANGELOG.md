@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.0.0-alpha.11...HEAD)
+## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.0.0-alpha.10.1...HEAD)
 
 ### Breaking
 
@@ -27,22 +27,21 @@ We did not weaken security, but provide you with an easy to use script to switch
 
 ### Added
 - Script to change the user Hyperion is executed with.
-To run Hyperion with root privileges (e.g. for WS281x) execute <br> `sudo updateHyperionUser.sh -u root`
+To run Hyperion with root privileges (e.g. for WS281x) execute <br> `sudo updateHyperionUser -u root`
 - Gif effects can source Gifs via URLs in addition to local files as input 
 - Smoothing is paused when no input source is available (to save resources)
 - System info screen: Added used config path and "is run under root/admin"
-
-#### LED-Devices
-- WS281x: Ensure that a device cannot be configured via the UI when Hyperion is not run with root privileges
-- WS281x: Update DMA default as per rpi_ws281x recommendation
-- Nanoleaf: Support discovering additional Nanoleaf devices, e.g. Shapes
-- Nanoleaf: Ability to restore state when Hyperion stops streaming
-Note: In case previous state was a dynamic/temporary effect, the state cannot be restored
-- Nanoleaf: New Feature: allow to overwrite brightness by Hyperion
+- #### LED-Devices
+  - WS281x: Ensure that a device cannot be configured via the UI when Hyperion is not run with root privileges
+  - WS281x: Update DMA default as per rpi_ws281x recommendation
+  - Nanoleaf: Support discovering additional Nanoleaf devices, e.g. Shapes
+  - Nanoleaf: Ability to restore state when Hyperion stops streaming
+  Note: In case previous state was a dynamic/temporary effect, the state cannot be restored
+  - Nanoleaf: New Feature: allow to overwrite brightness by Hyperion
 
 ### Changed
 
-- The Systemd service registers Hyperion under the name hyperion instead of hyperiond, as this has caused confusion among users in the past.
+- The Systemd/Upstart/System-V-Init service registers Hyperion under the name hyperion instead of hyperiond, as this has caused confusion among users in the past.
 - Limit maximum LEDs number for WLED and UDP-Raw to 490
 - Disable LED update streaming, if LED updates are not required, Sync. Video-Streaming between Layout and Simulation
 - Load configuration of last instance used when loading the UI page, Streamline API requests to avoid unnecessary invocations (#1311)
@@ -61,16 +60,16 @@ Note: In case previous state was a dynamic/temporary effect, the state cannot be
 - Include libqt5sql5-sqlite packaging dependency
 - Fixed embedded Python location (#1109)
  
-#### LED-Devices
-- Fixed Philips Hue wizard (#1276)
-- Fixed AtmoOrb wizard
-- Fixed that Lightpack device does not core when lack of permissions error (LIBUSB_ERROR_ACCESS)
-- Fixed Atmo/Karate LED count constraint handling
-- Fixed Hue, Disable LED general options (HW Led count & RGB Byte order) as calculated
-- Fixed SPI, Tpm2.Net - Memory issues
-- Fixed: Nanoleaf does not turn on
-- Fixed LED layout - Additional parameters for classic layout were not saved (#1314)
-- Fixed Network LED-Device UI: Trigger getProperties for the configured host, when no hosts were discovered
+- #### LED-Devices
+  - Fixed Philips Hue wizard (#1276)
+  - Fixed AtmoOrb wizard
+  - Fixed that Lightpack device does not core when lack of permissions error (LIBUSB_ERROR_ACCESS)
+  - Fixed Atmo/Karate LED count constraint handling
+  - Fixed Hue, Disable LED general options (HW Led count & RGB Byte order) as calculated
+  - Fixed SPI, Tpm2.Net - Memory issues
+  - Fixed: Nanoleaf does not turn on
+  - Fixed LED layout - Additional parameters for classic layout were not saved (#1314)
+  - Fixed Network LED-Device UI: Trigger getProperties for the configured host, when no hosts were discovered
 
 ### Removed
 
@@ -437,3 +436,4 @@ If you used a `.deb` package please uninstall it before you upgrade
 ## [2.0.0-alpha.1](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.1) - 2020-02-16
 ### Added
 - Initial Release
+
