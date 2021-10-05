@@ -3,11 +3,13 @@
 if (NOT CMAKE_VERSION VERSION_LESS "3.12")
 	find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 	include_directories(${Python3_INCLUDE_DIRS} ${Python3_INCLUDE_DIRS}/..)
-	add_compile_definitions(PYTHON_VERSION_MAJOR_MINOR=${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR})
+	add_compile_definitions(PYTHON_VERSION_MAJOR=${Python3_VERSION_MAJOR})
+	add_compile_definitions(PYTHON_VERSION_MINOR=${Python3_VERSION_MINOR})
 else()
 	find_package (PythonLibs ${PYTHON_VERSION_STRING} EXACT) # Maps PythonLibs to the PythonInterp version of the main cmake
 	include_directories(${PYTHON_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS}/..)
-	add_definitions(-DPYTHON_VERSION_MAJOR_MINOR=${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR})
+	add_definitions(-DPYTHON_VERSION_MAJOR=${PYTHON_VERSION_MAJOR})
+	add_definitions(-DPYTHON_VERSION_MINOR=${PYTHON_VERSION_MINOR})
 endif()
 
 # Define the current source locations

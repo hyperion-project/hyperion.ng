@@ -39,8 +39,7 @@ NET_IP=`hostname -I | cut -d " " -f1`
 # search for users in system, returns first entry
 FOUND_USR=`who | grep -o -m1 '^\w*\b'` || "root"
 
-start_msg=""
-restart_msg=""
+START_MSG=""
 
 # service registration if no gui is present (only on initial installation and not upgrade)
 if [ "$IS_UPGRADE" = false ]; then
@@ -53,34 +52,39 @@ if [ "$IS_UPGRADE" = false ]; then
 			echo "---> init deamon: systemd"
 			install_file /usr/share/hyperion/service/hyperion.systemd /etc/systemd/system/hyperion@.service
 			systemctl enable hyperion"@${FOUND_USR}".service
-			start_msg="--> systemctl start hyperion for user ${FOUND_USR}"
+			START_MSG="--> systemctl start hyperion for user ${FOUND_USR}"
 			systemctl start hyperion"@${FOUND_USR}"
 		elif [ -e /sbin/initctl ]
 		then
 			# upstart
 			echo "---> init deamon: upstart"
 			install_file /usr/share/hyperion/service/hyperion.initctl /etc/init/hyperion.conf && initctl reload-configuration
-			start_msg="--> initctl start hyperion"
+			START_MSG="--> initctl start hyperion"
 			initctl start hyperion
 		else
 			# sysV
 			echo "---> init deamon: sysV"
 			install_file /usr/share/hyperion/service/hyperion.init /etc/init.d/hyperion && chmod +x /etc/init.d/hyperion && update-rc.d hyperion defaults 98 02
-			start_msg="---> service hyperion start"
+			START_MSG="---> service hyperion start"
 			service hyperion start
 		fi
+
+		#after registration cleanup service files
+		rm -r /usr/share/hyperion/service 2>/dev/null
 	else
 		STARTUP_MSG="echo ---> You can start Hyperion from your menu now"
 	fi
+else
+	if [ -z "${DISPLAY}" ] && [ -z "${WAYLAND_DISPLAY}" ] && [ -z "${XDG_CURRENT_DESKTOP}" ]; then
+		#cleanup service files also on upgrade (non gui user)
+		rm -r /usr/share/hyperion/service 2>/dev/null
+	fi
 fi
-
-#cleanup
-rm -r /usr/share/hyperion/service
 
 #link binarys and set exec bit
 BINSP=/usr/share/hyperion
 BINTP=/usr/bin
-chmod +x -R $BINSP/bin
+chmod +x -R $BINSP/bin $BINSP/scripts
 ln -fs $BINSP/bin/hyperiond $BINTP/hyperiond
 ln -fs $BINSP/bin/hyperion-remote $BINTP/hyperion-remote
 ln -fs $BINSP/bin/hyperion-v4l2 $BINTP/hyperion-v4l2
@@ -126,7 +130,7 @@ if [ $CPU_RPI -eq 1 ]; then
 	fi
 fi
 
-echo ${start_msg}
+echo ${START_MSG}
 
 echo "-----------------------------------------------------------------------------"
 if [ "$IS_UPGRADE" = true ]; then

@@ -57,6 +57,9 @@
 // Define to enable experimental features
 #cmakedefine ENABLE_EXPERIMENTAL
 
+// Define to enable deploy dependencies to packages
+#cmakedefine ENABLE_DEPLOY_DEPENDENCIES
+
 // the hyperion build id string
 #define HYPERION_BUILD_ID "${HYPERION_BUILD_ID}"
 #define HYPERION_GIT_REMOTE "${HYPERION_GIT_REMOTE}"
