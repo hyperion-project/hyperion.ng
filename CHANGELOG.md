@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.0.0-alpha.10.1...HEAD)
+## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.0.0-alpha.11...HEAD)
 
 ### Breaking
 
@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-## [2.0.0-alpha.10.1](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.10.1) - 2021-10-03
+## [2.0.0-alpha.11](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.11) - 2021-10-06
 
 The release is primarily fixing issues introduced with alpha 10, but covering other findings too.
 Thanks to everybody highlighting real problem areas, as well as to those proactively providing fixes for integration via pull requests.
