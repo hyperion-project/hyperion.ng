@@ -1,9 +1,13 @@
-name: Hyperion APT Build
-on: [workflow_call]
+name: Nightly build
+
+# Create nightly builds at the end of every day
+on:
+ schedule:
+   - cron: '0 0 * * *'
 
 jobs:
   setup:
-    name: Setup APT build
+    name: Setup nightly build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -27,10 +31,15 @@ jobs:
         with:
           submodules: true
 
+      - name: Generate nightly version
+        id: vars
+        run: |
+          VERSION="$(tr -d '\n' < .version)+nightly$(date '+%Y%m%d')$(git rev-parse --short HEAD)"
+          echo "$VERSION" > .version
+
       - name: Build package
         shell: bash
         run: |
-          tr -d '\n' < .version > temp && mv temp .version
           mkdir -p "${GITHUB_WORKSPACE}/deploy"
           docker run --rm \
             -v "${GITHUB_WORKSPACE}/deploy:/deploy" \
@@ -47,15 +56,13 @@ jobs:
             cp ../hyperion_* /deploy"
 
       - name: Upload package artifact
-        if: startsWith(github.event.ref, 'refs/tags')
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v2.2.4
         with:
           path: deploy
           retention-days: 1
 
   publish:
-    name: Publish APT packages
-    if: startsWith(github.event.ref, 'refs/tags')
+    name: Publish nightly packages
     needs: [setup, build]
     runs-on: ubuntu-latest
     steps:
@@ -70,10 +77,9 @@ jobs:
       - name: Install reprepro
         run: sudo apt -y install reprepro
 
-      - name: Make build folders, export public GPG key and copy distributions file
+      - name: Make build folders and copy distributions file
         run: |
           mkdir -p apt/{conf,dists,db}
-          gpg --armor --output apt/hyperion.pub.key --export 'admin@hyperion-project.org'
           cp debian/distributions apt/conf/distributions
 
       - name: Create initial structure/packages files and symbolic links
@@ -94,12 +100,18 @@ jobs:
             fi
           done
 
-      - name: Upload packages to APT server (DRAFT)
+      - name: Upload packages to APT server (Nightly)
         uses: SamKirkland/FTP-Deploy-Action@4.1.0
         with:
           server: apt.hyperion-project.org
           username: ${{ secrets.APT_USER }}
           password: ${{ secrets.APT_PASSWORD }}
           local-dir: "./apt/"
-          server-dir: ${{ secrets.APT_DRAFT }}
+          server-dir: ${{ secrets.APT_NIGHTLY }}
           dangerous-clean-slate: true
+
+      - name: Remove intermediate artifacts
+        uses: geekyeggo/delete-artifact@v1
+        with:
+          name: artifact
+          failOnError: false

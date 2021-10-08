@@ -199,3 +199,11 @@ jobs:
         with:
           name: windows
           path: windows
+
+##########################
+###### APT workflow ######
+##########################
+
+  apt_build:
+    name: APT Build
+    uses: hyperion-project/hyperion.ng/.github/workflows/apt.yml@master
