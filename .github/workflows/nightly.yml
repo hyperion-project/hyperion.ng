@@ -6,8 +6,26 @@ on:
    - cron: '0 0 * * *'
 
 jobs:
+  check:
+    name: Compare local <-> nightly
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check if commit has changed
+        id: build-necessary
+        run: |
+          if wget --spider "https://nightly.hyperion-project.org/$(git rev-parse --short HEAD)" 2>/dev/null; then
+              echo "::set-output name=commit-has-changed::false"
+          else
+              echo "::set-output name=commit-has-changed::true"
+          fi
+    outputs:
+      build-nightly: ${{ steps.build-necessary.outputs.commit-has-changed }}
+
   setup:
     name: Setup nightly build
+    needs: [check]
+    if: ${{ needs.check.outputs.build-nightly == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -77,15 +95,17 @@ jobs:
       - name: Install reprepro
         run: sudo apt -y install reprepro
 
-      - name: Make build folders and copy distributions file
+      - name: Make build folders, export public GPG key, copy distributions file and create short sha file for nightly build check
         run: |
-          mkdir -p apt/{conf,dists,db}
-          cp debian/distributions apt/conf/distributions
+          mkdir -p nightly/{conf,dists,db}
+          gpg --armor --output nightly/hyperion.pub.key --export 'admin@hyperion-project.org'
+          cp debian/distributions nightly/conf/distributions
+          touch "nightly/$(git rev-parse --short HEAD)"
 
       - name: Create initial structure/packages files and symbolic links
         run: |
-          reprepro -Vb apt createsymlinks
-          reprepro -Vb apt export
+          reprepro -Vb nightly createsymlinks
+          reprepro -Vb nightly export
 
       - name: Download artifacts
         uses: actions/download-artifact@v2.0.10
@@ -96,18 +116,18 @@ jobs:
             if [ -f "$file" ]; then
               dist=${file#*~}
               dist=${dist%_*}
-              reprepro -Vb apt/ includedeb "$dist" "$file"
+              reprepro -Vb nightly/ includedeb "$dist" "$file"
             fi
           done
 
       - name: Upload packages to APT server (Nightly)
         uses: SamKirkland/FTP-Deploy-Action@4.1.0
         with:
-          server: apt.hyperion-project.org
-          username: ${{ secrets.APT_USER }}
-          password: ${{ secrets.APT_PASSWORD }}
-          local-dir: "./apt/"
-          server-dir: ${{ secrets.APT_NIGHTLY }}
+          server: nightly.hyperion-project.org
+          username: ${{ secrets.NIGHTLY_USER }}
+          password: ${{ secrets.NIGHTLY_PASSWORD }}
+          local-dir: "./nightly/"
+          server-dir: "./"
           dangerous-clean-slate: true
 
       - name: Remove intermediate artifacts
