@@ -29,20 +29,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Set APT matrix
-        id: apt-ppa
+      - name: Set nightly matrix
+        id: nightly-ppa
         run: |
-          APT=$(echo $(cat .github/workflows/apt.json) | jq --compact-output .)
-          echo "::set-output name=apt::$APT"
+          NIGHTLY=$(echo $(cat .github/workflows/apt.json) | jq --compact-output .)
+          echo "::set-output name=nightly::$NIGHTLY"
     outputs:
-      apt-matrix: ${{ steps.apt-ppa.outputs.apt }}
+      nightly-matrix: ${{ steps.nightly-ppa.outputs.nightly }}
 
   build:
     name: ${{ matrix.description }}
     needs: [setup]
     runs-on: ubuntu-latest
     strategy:
-      matrix: ${{ fromJson(needs.setup.outputs.apt-matrix) }}
+      matrix: ${{ fromJson(needs.setup.outputs.nightly-matrix) }}
 
     steps:
       - uses: actions/checkout@v2
