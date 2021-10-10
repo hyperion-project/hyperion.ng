@@ -98,6 +98,8 @@ void JsonAPI::initialize()
 {
 	// init API, REQUIRED!
 	API::init();
+	// Initialise jsonCB with current instance
+	_jsonCB->setSubscriptionsTo(_hyperion);
 
 	// setup auth interface
 	connect(this, &API::onPendingTokenRequest, this, &JsonAPI::newPendingTokenRequest);
@@ -129,6 +131,8 @@ void JsonAPI::handleMessage(const QString &messageString, const QString &httpAut
 {
 	const QString ident = "JsonRpc@" + _peerAddress;
 	QJsonObject message;
+	//std::cout << "JsonAPI::handleMessage | [" << static_cast<int>(_hyperion->getInstanceIndex()) << "] Received: ["<< messageString.toStdString() << "]" << std::endl;
+
 	// parse the message
 	if (!JsonUtils::parse(ident, messageString, message, _log))
 	{
