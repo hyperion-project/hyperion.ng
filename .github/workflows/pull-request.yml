@@ -106,7 +106,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p macOS
-          mv build/*.tar.gz macOS
+          mv build/*.dmg macOS
 
       # Upload artifacts
       - name: Upload artifacts
