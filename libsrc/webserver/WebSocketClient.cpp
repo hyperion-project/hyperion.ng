@@ -212,7 +212,7 @@ void WebSocketClient::getWsFrameHeader(WebSocketHeader* header)
 /// See http://tools.ietf.org/html/rfc6455#section-5.2 for more information
 void WebSocketClient::sendClose(int status, QString reason)
 {
-	Debug(_log, "send close: %d %s", status, QSTRING_CSTR(reason));
+	Debug(_log, "Send close to %s: %d %s", QSTRING_CSTR(_socket->peerAddress().toString()), status, QSTRING_CSTR(reason));
 	ErrorIf(!reason.isEmpty(), _log, QSTRING_CSTR(reason));
 	_receiveBuffer.clear();
 	QByteArray sendBuffer;

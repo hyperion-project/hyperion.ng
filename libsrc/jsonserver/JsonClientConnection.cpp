@@ -57,3 +57,8 @@ void JsonClientConnection::disconnected()
 {
 	emit connectionClosed();
 }
+
+QHostAddress JsonClientConnection::getClientAddress()
+{
+	return _socket->peerAddress();
+}
