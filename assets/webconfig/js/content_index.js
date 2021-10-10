@@ -25,6 +25,8 @@ $(document).ready(function () {
     // comps
     window.comps = event.response.info.components
 
+    $(window.hyperion).trigger("ready");
+
     window.comps.forEach(function (obj) {
       if (obj.name == "ALL") {
         if (obj.enabled)
@@ -40,7 +42,6 @@ $(document).ready(function () {
       $('#btn_hypinstanceswitch').toggle(true)
     else
       $('#btn_hypinstanceswitch').toggle(false)
-
     updateSessions();
   }); // end cmd-serverinfo
 
@@ -121,11 +122,12 @@ $(document).ready(function () {
 
     //Switch to last selected instance and load related config
     var lastSelectedInstance = getStorage('lastSelectedInstance', false);
-    if (!window.serverInfo.instance[lastSelectedInstance]) {
+    if (lastSelectedInstance == null || window.serverInfo.instance && !window.serverInfo.instance[lastSelectedInstance]) {
       lastSelectedInstance = 0;
     }
     instanceSwitch(lastSelectedInstance);
 
+    requestSysInfo();
   });
 
   $(window.hyperion).on("cmd-config-getconfig", function (event) {
@@ -157,8 +159,6 @@ $(document).ready(function () {
     if (event.response.hasOwnProperty('info'))
       setStorage("loginToken", event.response.info.token, true);
 
-    requestSysInfo();
-    requestServerInfo();
     requestServerConfigSchema();
   });
 
@@ -218,7 +218,7 @@ $(document).ready(function () {
   });
 
   $(window.hyperion).one("ready", function (event) {
-    loadContent();
+    // Content will be loaded by the instance load/switch
   });
 
   $(window.hyperion).on("cmd-adjustment-update", function (event) {

@@ -1,4 +1,10 @@
 #include "LedDeviceWS281x.h"
+#include <utils/SysInfo.h>
+
+// Constants
+namespace {
+const bool verbose = false;
+} //End of constants
 
 LedDeviceWS281x::LedDeviceWS281x(const QJsonObject &deviceConfig)
 	: LedDevice(deviceConfig)
@@ -75,19 +81,26 @@ int LedDeviceWS281x::open()
 	int retval = -1;
 	_isDeviceReady = false;
 
-	// Try to open the LedDevice
-
-	ws2811_return_t rc = ws2811_init(&_led_string);
-	if ( rc != WS2811_SUCCESS )
+	if (!SysInfo::isUserAdmin())
 	{
-		QString errortext = QString ("Failed to open. Error message: %1").arg( ws2811_get_return_t_str(rc) );
+		QString errortext = QString ("Hyperion must run with \"root\" privileges for this device. Current user is: \"%1\"").arg(SysInfo::userName());
 		this->setInError( errortext );
 	}
 	else
 	{
-		// Everything is OK, device is ready
-		_isDeviceReady = true;
-		retval = 0;
+		// Try to open the LedDevice
+		ws2811_return_t rc = ws2811_init(&_led_string);
+		if ( rc != WS2811_SUCCESS )
+		{
+			QString errortext = QString ("Failed to open. Error message: %1").arg( ws2811_get_return_t_str(rc) );
+			this->setInError( errortext );
+		}
+		else
+		{
+			// Everything is OK, device is ready
+			_isDeviceReady = true;
+			retval = 0;
+		}
 	}
 	return retval;
 }
@@ -137,4 +150,23 @@ int LedDeviceWS281x::write(const std::vector<ColorRgb> &ledValues)
 	}
 
 	return ws2811_render(&_led_string) ? -1 : 0;
+}
+
+QJsonObject LedDeviceWS281x::discover(const QJsonObject& /*params*/)
+{
+	QJsonObject devicesDiscovered;
+	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
+
+	QJsonArray deviceList;
+
+	if (SysInfo::isUserAdmin())
+	{
+		//Indicate the general availability of the device, if hyperion is run under root
+		deviceList << QJsonObject ({{"found",true}});
+		devicesDiscovered.insert("devices", deviceList);
+	}
+
+	DebugIf(verbose,_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+
+	return devicesDiscovered;
 }

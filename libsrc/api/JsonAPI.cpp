@@ -98,8 +98,6 @@ void JsonAPI::initialize()
 {
 	// init API, REQUIRED!
 	API::init();
-	// REMOVE when jsonCB is migrated
-	handleInstanceSwitch(0);
 
 	// setup auth interface
 	connect(this, &API::onPendingTokenRequest, this, &JsonAPI::newPendingTokenRequest);
@@ -328,6 +326,7 @@ void JsonAPI::handleSysInfoCommand(const QJsonObject &, const QString &command, 
 	system["prettyName"] = data.prettyName;
 	system["hostName"] = data.hostName;
 	system["domainName"] = data.domainName;
+	system["isUserAdmin"] = data.isUserAdmin;
 	system["qtVersion"] = data.qtVersion;
 	system["pyVersion"] = data.pyVersion;
 	info["system"] = system;
@@ -338,6 +337,7 @@ void JsonAPI::handleSysInfoCommand(const QJsonObject &, const QString &command, 
 	hyperion["gitremote"] = QString(HYPERION_GIT_REMOTE);
 	hyperion["time"] = QString(__DATE__ " " __TIME__);
 	hyperion["id"] = _authManager->getID();
+	hyperion["rootPath"] = _instanceManager->getRootPath();
 	hyperion["readOnlyMode"] = _hyperion->getReadOnlyMode();
 
 	info["hyperion"] = hyperion;

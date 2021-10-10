@@ -1,4 +1,5 @@
 var ledsCustomCfgInitialized = false;
+var onLedLayoutTab = false;
 var nonBlacklistLedArray = [];
 var ledBlacklist = [];
 var finalLedArray = [];
@@ -15,6 +16,8 @@ var devRPiGPIO = ['piblaster'];
 var devNET = ['atmoorb', 'cololight', 'fadecandy', 'philipshue', 'nanoleaf', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udph801', 'udpraw', 'wled', 'yeelight'];
 var devSerial = ['adalight', 'dmx', 'atmo', 'sedu', 'tpm2', 'karate'];
 var devHID = ['hyperionusbasp', 'lightpack', 'paintpack', 'rawhid'];
+
+var infoTextDefault = '<span>' + $.i18n("conf_leds_device_info_log") + ' </span><a href="" onclick="SwitchToMenuItem(\'MenuItemLogging\')" style="cursor:pointer">' + $.i18n("main_menu_logging_token") + '</a>';
 
 function round(number) {
   var factor = Math.pow(10, 4);
@@ -566,9 +569,12 @@ $(document).ready(function () {
   // toggle live video
   $('#leds_prev_toggle_live_video').off().on("click", function () {
     setClassByBool('#leds_prev_toggle_live_video', window.imageStreamActive, "btn-success", "btn-danger");
-    if (window.imageStreamActive) {
-      requestLedImageStop();
+
+    if (onLedLayoutTab && window.imageStreamActive) {
       imageCanvasNodeCtx.clear();
+      if (!$('#leds_toggle_live_video').hasClass("btn-success")) {
+        requestLedImageStop();
+      }
     }
     else {
       requestLedImageStart();
@@ -576,14 +582,17 @@ $(document).ready(function () {
   });
 
   $(window.hyperion).on("cmd-ledcolors-imagestream-update", function (event) {
-    setClassByBool('#leds_prev_toggle_live_video', window.imageStreamActive, "btn-danger", "btn-success");
-    var imageData = (event.response.result.image);
+    //Only update Image, if LED Layout Tab is visible  
+    if (onLedLayoutTab && window.imageStreamActive) {
+      setClassByBool('#leds_prev_toggle_live_video', window.imageStreamActive, "btn-danger", "btn-success");
+      var imageData = (event.response.result.image);
 
-    var image = new Image();
-    image.onload = function () {
-      imageCanvasNodeCtx.drawImage(image, 0, 0, imageCanvasNodeCtx.canvas.width, imageCanvasNodeCtx.canvas.height);
-    };
-    image.src = imageData;
+      var image = new Image();
+      image.onload = function () {
+        imageCanvasNodeCtx.drawImage(image, 0, 0, imageCanvasNodeCtx.canvas.width, imageCanvasNodeCtx.canvas.height);
+      };
+      image.src = imageData;
+    }
   });
 
   // open checklist
@@ -603,9 +612,14 @@ $(document).ready(function () {
   // nav
   $('#leds_cfg_nav a[data-toggle="tab"]').off().on('shown.bs.tab', function (e) {
     var target = $(e.target).attr("href") // activated tab
-    if (target == "#menu_gencfg" && !ledsCustomCfgInitialized) {
-      $('#leds_custom_updsim').trigger('click');
-      ledsCustomCfgInitialized = true;
+    if (target == "#menu_gencfg") {
+      onLedLayoutTab = true;
+      if (!ledsCustomCfgInitialized) {
+        $('#leds_custom_updsim').trigger('click');
+        ledsCustomCfgInitialized = true;
+      }
+    } else {
+      onLedLayoutTab = false;
     }
 
     blacklist_editor.on('change', function () {
@@ -663,6 +677,8 @@ $(document).ready(function () {
       };
       conf_editor.getEditor("root.specificOptions").setValue(values_specific);
     };
+
+    $("#info_container_text").html(infoTextDefault);
 
     // change save button state based on validation result
     conf_editor.validate().length || window.readOnlyMode ? $('#btn_submit_controller').attr('disabled', true) : $('#btn_submit_controller').attr('disabled', false);
@@ -727,12 +743,15 @@ $(document).ready(function () {
         case "sk9822":
         case "ws2812spi":
         case "piblaster":
+        case "ws281x":
           discover_device(ledType);
           hwLedCountDefault = 1;
           colorOrderDefault = "rgb";
           break;
 
         case "philipshue":
+          conf_editor.getEditor("root.generalOptions").disable();
+
           var lights = conf_editor.getEditor("root.specificOptions.lightIds").getValue();
           hwLedCountDefault = lights.length;
           colorOrderDefault = "rgb";
@@ -740,6 +759,7 @@ $(document).ready(function () {
 
         case "yeelight":
           conf_editor.getEditor("root.generalOptions").disable();
+
           var lights = conf_editor.getEditor("root.specificOptions.lights").getValue();
           hwLedCountDefault = lights.length;
           colorOrderDefault = "rgb";
@@ -888,6 +908,7 @@ $(document).ready(function () {
             break;
           default:
             conf_editor.getEditor(specOptPath + "host").disable();
+            conf_editor.getEditor(specOptPath + "host").setValue(val);
             //Trigger getProperties via host value
             conf_editor.notifyWatchers(specOptPath + "host");
             break;
@@ -925,6 +946,11 @@ $(document).ready(function () {
             params = { host: host, filter: "info" };
             getProperties_device(ledType, host, params);
             break;
+
+          case "udpraw":
+            getProperties_device(ledType, host, params);
+            break;
+
           default:
         }
       }
@@ -1047,6 +1073,13 @@ $(document).ready(function () {
         hwLedCount.setValue(lights.length);
       }
     });
+ 
+    //Handle Hardware Led Count constraint list
+    conf_editor.watch('root.generalOptions.hardwareLedCountList', () => {
+      var hwLedCountSelected = conf_editor.getEditor("root.generalOptions.hardwareLedCountList").getValue();
+      conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(Number(hwLedCountSelected));
+    });
+
   });
 
   //philipshueentertainment backward fix
@@ -1312,6 +1345,8 @@ var updateSelectList = function (ledType, discoveryInfo) {
     ledTypeGroup = "devRPiSPI";
   } else if ($.inArray(ledType, devRPiGPIO) != -1) {
     ledTypeGroup = "devRPiGPIO";
+  } else if ($.inArray(ledType, devRPiPWM) != -1) {
+    ledTypeGroup = "devRPiPWM";
   }
 
   switch (ledTypeGroup) {
@@ -1472,6 +1507,18 @@ var updateSelectList = function (ledType, discoveryInfo) {
         }
       }
       break;
+    case "devRPiPWM":
+      key = ledType;
+
+      if (discoveryInfo.devices.length == 0) {
+        enumVals.push("NONE");
+        enumTitelVals.push($.i18n('edt_dev_spec_devices_discovered_none'));
+        $('#btn_submit_controller').attr('disabled', true);
+        showAllDeviceInputOptions(key, false);
+
+        $("#info_container_text").html($.i18n("conf_leds_info_ws281x"));
+      }
+      break;
     default:
   }
 
@@ -1547,11 +1594,11 @@ async function identify_device(type, params) {
 
 function updateElements(ledType, key) {
   if (devicesProperties[ledType][key]) {
+    var hardwareLedCount = 1;
     switch (ledType) {
       case "cololight":
         var ledProperties = devicesProperties[ledType][key];
 
-        var hardwareLedCount = 1;
         if (ledProperties) {
           hardwareLedCount = ledProperties.ledCount;
         }
@@ -1560,8 +1607,14 @@ function updateElements(ledType, key) {
       case "wled":
         var ledProperties = devicesProperties[ledType][key];
 
-        if (ledProperties && ledProperties.leds) {
+        if (ledProperties && ledProperties.leds && ledProperties.maxLedCount) {
           hardwareLedCount = ledProperties.leds.count;
+          var maxLedCount = ledProperties.maxLedCount
+          if (hardwareLedCount > maxLedCount)
+          {
+	        showInfoDialog('warning', $.i18n("conf_leds_config_warning"), $.i18n('conf_leds_error_hwled_gt_maxled', hardwareLedCount, maxLedCount, maxLedCount));
+            hardwareLedCount = maxLedCount;
+          }
         }
         conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(hardwareLedCount);
         break;
@@ -1583,6 +1636,21 @@ function updateElements(ledType, key) {
 
         break;
 
+      case "udpraw":
+        var ledProperties = devicesProperties[ledType][key];
+
+        if (ledProperties && ledProperties.maxLedCount) {
+          hardwareLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue();
+          var maxLedCount = ledProperties.maxLedCount
+          if (hardwareLedCount > maxLedCount)
+          {
+            showInfoDialog('warning', $.i18n("conf_leds_config_warning"), $.i18n('conf_leds_error_hwled_gt_maxled', hardwareLedCount, maxLedCount, maxLedCount));
+            hardwareLedCount = maxLedCount;
+          }
+          updateJsonEditorRange(conf_editor, "root.generalOptions", "hardwareLedCount", 1, maxLedCount, hardwareLedCount);
+        }
+        break;
+
       case "atmo":
       case "karate":
         var ledProperties = devicesProperties[ledType][key];
@@ -1590,7 +1658,9 @@ function updateElements(ledType, key) {
         if (ledProperties && ledProperties.ledCount) {
           if (ledProperties.ledCount.length > 0) {
             var configuredLedCount = window.serverConfig.device.hardwareLedCount;
-            updateJsonEditorSelection(conf_editor, 'root.generalOptions', "hardwareLedCount", {}, ledProperties.ledCount, [], configuredLedCount);
+            showInputOptionForItem(conf_editor, 'generalOptions', "hardwareLedCount", false);
+            updateJsonEditorSelection(conf_editor, 'root.generalOptions', "hardwareLedCountList", {"title": "edt_dev_general_hardwareLedCount_title"},
+                                      ledProperties.ledCount.map(String), [], configuredLedCount);
           }
         }
         break;

@@ -1,6 +1,8 @@
 #pragma once
 #include <QString>
 
+#include "HyperionConfig.h"
+
 namespace hyperion
 {
 
@@ -14,7 +16,9 @@ enum Components
 	COMP_SMOOTHING,
 	COMP_BLACKBORDER,
 	COMP_FORWARDER,
+#if defined(ENABLE_BOBLIGHT)
 	COMP_BOBLIGHTSERVER,
+#endif
 	COMP_GRABBER,
 	COMP_V4L,
 	COMP_COLOR,
@@ -33,7 +37,9 @@ inline const char* componentToString(Components c)
 		case COMP_SMOOTHING:     return "Smoothing";
 		case COMP_BLACKBORDER:   return "Blackborder detector";
 		case COMP_FORWARDER:     return "Json/Proto forwarder";
+#if defined(ENABLE_BOBLIGHT)
 		case COMP_BOBLIGHTSERVER:return "Boblight server";
+#endif
 		case COMP_GRABBER:       return "Framegrabber";
 		case COMP_V4L:           return "V4L capture device";
 		case COMP_COLOR:         return "Solid color";
@@ -54,7 +60,9 @@ inline const char* componentToIdString(Components c)
 		case COMP_SMOOTHING:     return "SMOOTHING";
 		case COMP_BLACKBORDER:   return "BLACKBORDER";
 		case COMP_FORWARDER:     return "FORWARDER";
+#if defined(ENABLE_BOBLIGHT)
 		case COMP_BOBLIGHTSERVER:return "BOBLIGHTSERVER";
+#endif
 		case COMP_GRABBER:       return "GRABBER";
 		case COMP_V4L:           return "V4L";
 		case COMP_COLOR:         return "COLOR";
@@ -74,7 +82,9 @@ inline Components stringToComponent(const QString& component)
 	if (cmp == "SMOOTHING")     return COMP_SMOOTHING;
 	if (cmp == "BLACKBORDER")   return COMP_BLACKBORDER;
 	if (cmp == "FORWARDER")     return COMP_FORWARDER;
+#if defined(ENABLE_BOBLIGHT)
 	if (cmp == "BOBLIGHTSERVER")return COMP_BOBLIGHTSERVER;
+#endif
 	if (cmp == "GRABBER")       return COMP_GRABBER;
 	if (cmp == "V4L")           return COMP_V4L;
 	if (cmp == "COLOR")         return COMP_COLOR;

@@ -11,7 +11,7 @@ $(document).ready(function () {
   var canvas_height;
   var canvas_width;
   var twoDPaths = [];
-  var toggleLeds = false;
+  var toggleLeds = true;
   var toggleLedsNum = false;
   var toggleSigDetectArea = false;
 
@@ -109,7 +109,10 @@ $(document).ready(function () {
           lC = true;
         }
         modalOpened = true;
-        requestLedColorsStart();
+
+        setClassByBool('#leds_toggle', toggleLeds, "btn-danger", "btn-success");
+        if ($('#leds_toggle').hasClass('btn-success'))
+          requestLedColorsStart();
 
         setClassByBool('#leds_toggle_live_video', window.imageStreamActive, "btn-danger", "btn-success");
         if ($('#leds_toggle_live_video').hasClass('btn-success'))
@@ -145,7 +148,7 @@ $(document).ready(function () {
     }
 
     // toggle leds, do not print
-    if (toggleLeds)
+    if (!toggleLeds)
       return;
 
     var useColor = false;
@@ -220,10 +223,16 @@ $(document).ready(function () {
 
   $('#leds_toggle').off().on("click", function () {
     toggleLeds = !toggleLeds
-    ledsCanvasNodeCtx.clear();
+
+    if (window.ledStreamActive) {
+      requestLedColorsStop();
+      ledsCanvasNodeCtx.clear();
+    } else {
+      requestLedColorsStart();
+    }
     toggleClass('#leds_toggle', "btn-success", "btn-danger");
 
-    if (!toggleLeds) {
+    if (toggleLeds) {
       $("#leds_toggle_num").show();
     } else {
       $("#leds_toggle_num").hide();
@@ -234,6 +243,7 @@ $(document).ready(function () {
   $('#leds_toggle_live_video').off().on("click", function () {
     setClassByBool('#leds_toggle_live_video', window.imageStreamActive, "btn-success", "btn-danger");
     if (window.imageStreamActive) {
+      $('#leds_prev_toggle_live_video').trigger('click');
       requestLedImageStop();
       resetImage();
     }
@@ -260,12 +270,11 @@ $(document).ready(function () {
 
   // ------------------------------------------------------------------
   $(window.hyperion).on("cmd-ledcolors-imagestream-update", function (event) {
-    //console.log("cmd-ledcolors-imagestream-update", event.response);
     setClassByBool('#leds_toggle_live_video', window.imageStreamActive, "btn-danger", "btn-success");
     if (!modalOpened) {
-      if ($('#leds_prev_toggle_live_video').length > 0)
-        return;
-      requestLedImageStop();
+      if (!$('#leds_prev_toggle_live_video').hasClass("btn-success")) {
+        requestLedImageStop();
+      }
     }
     else {
       var imageData = (event.response.result.image);

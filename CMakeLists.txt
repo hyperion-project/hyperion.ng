@@ -6,7 +6,7 @@ PROJECT(hyperion)
 
 # Parse semantic version of version file and write version to config
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.cmake)
-file (STRINGS "version" HYPERION_VERSION)
+file (STRINGS ".version" HYPERION_VERSION)
 SetVersionNumber(HYPERION ${HYPERION_VERSION})
 set(DEFAULT_JSON_CONFIG_FILE ${CMAKE_CURRENT_SOURCE_DIR}/config/hyperion.config.json.default)
 file(READ ${DEFAULT_JSON_CONFIG_FILE} DEFAULT_JSON_CONFIG_VAR)
@@ -43,11 +43,15 @@ endif()
 # Set build variables
 SET ( DEFAULT_BUILD_WITH_QT6              OFF )
 SET ( DEFAULT_AMLOGIC                     OFF )
+SET ( DEFAULT_BOBLIGHT                    ON  )
 SET ( DEFAULT_DISPMANX                    OFF )
+SET ( DEFAULT_DX                          OFF )
+SET ( DEFAULT_MF                          OFF )
 SET ( DEFAULT_OSX                         OFF )
 SET ( DEFAULT_QT                          ON  )
 SET ( DEFAULT_X11                         OFF )
 SET ( DEFAULT_XCB                         OFF )
+SET ( DEFAULT_V4L2                        OFF )
 SET ( DEFAULT_WS281XPWM                   OFF )
 SET ( DEFAULT_AVAHI                       ON  )
 SET ( DEFAULT_USE_SHARED_AVAHI_LIBS       ON  )
@@ -56,7 +60,7 @@ SET ( DEFAULT_USE_SYSTEM_PROTO_LIBS       OFF )
 SET ( DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     OFF )
 SET ( DEFAULT_TESTS                       OFF )
 SET ( DEFAULT_EXPERIMENTAL                OFF )
-SET ( DEFAULT_MF                          OFF )
+SET ( DEFAULT_CEC                         OFF )
 SET ( DEFAULT_DEPLOY_DEPENDENCIES         ON  )
 
 IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
@@ -160,6 +164,10 @@ STRING( REPLACE "-DEV" "" PLATFORM_DEFINE "${PLATFORM_DEFINE}" )
 ADD_DEFINITIONS( ${PLATFORM_DEFINE} )
 
 # set the build options
+
+option(ENABLE_BOBLIGHT "Enable BOBLIGHT server" ${DEFAULT_BOBLIGHT} )
+message(STATUS "ENABLE_BOBLIGHT = ${ENABLE_BOBLIGHT}")
+
 option(ENABLE_AMLOGIC "Enable the AMLOGIC video grabber" ${DEFAULT_AMLOGIC} )
 message(STATUS "ENABLE_AMLOGIC = ${ENABLE_AMLOGIC}")
 

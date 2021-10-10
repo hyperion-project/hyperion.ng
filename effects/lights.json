@@ -3,8 +3,14 @@
 	"script" : "gif.py",
 	"args" :
 	{
-		"image" : ":lights.gif",
+		"cropBottom": 0,
+		"cropLeft": 0,
+		"cropRight": 0,
+		"cropTop": 0,
+		"file" : ":lights.gif",
 		"fps" :25,
-		"reverse" : false
+		"grayscale": false,
+		"imageSource": "file",
+		"reverse": false
 	}
 }

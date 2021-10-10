@@ -10,6 +10,10 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 // Constants
 namespace {
 const bool verbose = false;
@@ -155,6 +159,58 @@ void QtGrabber::geometryChanged(const QRect &geo)
 	updateScreenDimensions(true);
 }
 
+#ifdef _WIN32
+extern QPixmap qt_pixmapFromWinHBITMAP(HBITMAP bitmap, int format = 0);
+
+QPixmap QtGrabber::grabWindow(quintptr window, int xIn, int yIn, int width, int height) const
+{
+	QSize windowSize;
+	int x = xIn;
+	int y = yIn;
+	HWND hwnd = reinterpret_cast<HWND>(window);
+	if (hwnd)
+	{
+		RECT r;
+		GetClientRect(hwnd, &r);
+		windowSize = QSize(r.right - r.left, r.bottom - r.top);
+	}
+	else
+	{
+		hwnd = GetDesktopWindow();
+		const QRect screenGeometry = _screen->geometry();
+		windowSize = screenGeometry.size();
+		x += screenGeometry.x();
+		y += screenGeometry.y();
+	}
+
+	if (width < 0)
+		width = windowSize.width() - x;
+
+	if (height < 0)
+		height = windowSize.height() - y;
+
+	// Create and setup bitmap
+	HDC display_dc = GetDC(nullptr);
+	HDC bitmap_dc = CreateCompatibleDC(display_dc);
+	HBITMAP bitmap = CreateCompatibleBitmap(display_dc, width, height);
+	HGDIOBJ null_bitmap = SelectObject(bitmap_dc, bitmap);
+
+	// copy data
+	HDC window_dc = GetDC(hwnd);
+	BitBlt(bitmap_dc, 0, 0, width, height, window_dc, x, y, SRCCOPY);
+
+	// clean up all but bitmap
+	ReleaseDC(hwnd, window_dc);
+	SelectObject(bitmap_dc, null_bitmap);
+	DeleteDC(bitmap_dc);
+	const QPixmap pixmap = qt_pixmapFromWinHBITMAP(bitmap);
+	DeleteObject(bitmap);
+	ReleaseDC(nullptr, display_dc);
+
+	return pixmap;
+}
+#endif
+
 int QtGrabber::grabFrame(Image<ColorRgb> & image)
 {
 	int rc = 0;
@@ -169,7 +225,11 @@ int QtGrabber::grabFrame(Image<ColorRgb> & image)
 
 		if (_isEnabled)
 		{
+#ifdef _WIN32
+			QPixmap originalPixmap = grabWindow(0, _src_x, _src_y, _src_x_max, _src_y_max);
+#else
 			QPixmap originalPixmap = _screen->grabWindow(0, _src_x, _src_y, _src_x_max, _src_y_max);
+#endif
 			if (originalPixmap.isNull())
 			{
 				rc = -1;

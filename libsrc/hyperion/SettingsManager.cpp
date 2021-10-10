@@ -100,9 +100,16 @@ SettingsManager::SettingsManager(quint8 instance, QObject* parent, bool readonly
 			QJsonObject newGeneralConfig = dbConfig["general"].toObject();
 
 			semver::version BUILD_VERSION(HYPERION_VERSION);
+
+			if (!BUILD_VERSION.isValid())
+			{
+				Error(_log, "Current Hyperion version [%s] is invalid. Exiting...", BUILD_VERSION.getVersion().c_str());
+				exit(1);
+			}
+
 			if ( _configVersion > BUILD_VERSION )
 			{
-				Error(_log, "Database version [%s] is greater that current Hyperion version [%s]", _configVersion.getVersion().c_str(), BUILD_VERSION.getVersion().c_str());
+				Error(_log, "Database version [%s] is greater than current Hyperion version [%s]", _configVersion.getVersion().c_str(), BUILD_VERSION.getVersion().c_str());
 				// TODO: Remove version checking and Settingsmanager from components' constructor to be able to stop hyperion.
 			}
 			else

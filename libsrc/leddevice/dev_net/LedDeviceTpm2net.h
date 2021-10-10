@@ -19,6 +19,11 @@ public:
 	explicit LedDeviceTpm2net(const QJsonObject &deviceConfig);
 
 	///
+	/// @brief Destructor of the TPM2 LED-device
+	///
+	~LedDeviceTpm2net() override;
+
+	///
 	/// @brief Constructs the LED-device
 	///
 	/// @param[in] deviceConfig Device's configuration as JSON-Object
@@ -48,6 +53,8 @@ private:
 	int _tpm2ByteCount;
 	int _tpm2TotalPackets;
 	int _tpm2ThisPacket;
+
+	uint8_t * _tpm2_buffer;
 };
 
 #endif // LEDEVICETPM2NET_H

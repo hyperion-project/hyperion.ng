@@ -11,6 +11,9 @@
 // modules to init
 #include <effectengine/EffectModule.h>
 
+// Required to determine the cmake options
+#include <HyperionConfig.h>
+
 #ifdef _WIN32
 	#include <stdexcept>
 #endif
@@ -23,18 +26,29 @@ PythonInit::PythonInit()
 	// register modules
 	EffectModule::registerHyperionExtensionModule();
 
+#if defined(ENABLE_DEPLOY_DEPENDENCIES)
+	// Set Program name
+	Py_SetProgramName(L"Hyperion");
+
 	// set Python module path when exists
-	QString py_patch = QDir::cleanPath(qApp->applicationDirPath() + "/../lib/python");
-	QString py_file  = QDir::cleanPath(qApp->applicationDirPath() + "/python" + STRINGIFY(PYTHON_VERSION_MAJOR_MINOR) + ".zip");
+	QString py_patch = QDir::cleanPath(qApp->applicationDirPath() + "/../lib/python" + STRINGIFY(PYTHON_VERSION_MAJOR) + "." + STRINGIFY(PYTHON_VERSION_MINOR));
+	QString py_file  = QDir::cleanPath(qApp->applicationDirPath() + "/python" + STRINGIFY(PYTHON_VERSION_MAJOR) + STRINGIFY(PYTHON_VERSION_MINOR) + ".zip");
 
 	if (QFile(py_file).exists() || QDir(py_patch).exists())
 	{
 		Py_NoSiteFlag++;
 		if (QFile(py_file).exists())
+		{
+			Py_SetPythonHome(Py_DecodeLocale(py_file.toLatin1().data(), nullptr));
 			Py_SetPath(Py_DecodeLocale(py_file.toLatin1().data(), nullptr));
+		}
 		else if (QDir(py_patch).exists())
+		{
+			Py_SetPythonHome(Py_DecodeLocale(py_patch.toLatin1().data(), nullptr));
 			Py_SetPath(Py_DecodeLocale(py_patch.toLatin1().data(), nullptr));
+		}
 	}
+#endif
 
 	// init Python
 	Debug(Logger::getInstance("DAEMON"), "Initializing Python interpreter");

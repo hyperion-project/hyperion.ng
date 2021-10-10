@@ -2,6 +2,17 @@
 
 echo "---Hyperion ambient light prerm ---"
 
+UPGRADE="$1"
+if [ "$2" = "in-favour" ]; then
+	# Treat conflict remove as an upgrade.
+	UPGRADE="upgrade"
+fi
+
+# Don't clean-up just for an upgrade.`
+if [ "$action" = "upgrade" ] ; then
+  exit 0
+fi
+
 # search for users in system, returns first entry
 FOUND_USR=`who | grep -o -m1 '^\w*\b'` || "root"
 
@@ -13,17 +24,18 @@ if grep -m1 systemd /proc/1/comm > /dev/null
 then
 	echo "---> stop init deamon: systemd"
 	# systemd
-	$HYPERION_RUNNING && systemctl stop hyperiond"@${FOUND_USR}" 2> /dev/null
+	$HYPERION_RUNNING && systemctl stop hyperion hyperiond"@${FOUND_USR}" hyperion"@${FOUND_USR}" "hyperiond@root" "hyperion@root" 2> /dev/null
 	# disable user specific symlink
 	echo "---> Disable service and remove entry"
-	systemctl -q disable hyperiond"@${FOUND_USR}"
-	rm -v /etc/systemd/system/hyperiond@.service 2>/dev/null
+	systemctl -q disable hyperion hyperiond"@${FOUND_USR}" hyperion"@${FOUND_USR}" 2> /dev/null
+	rm -v /etc/systemd/system/hyperion.service /etc/systemd/system/hyperiond@.service /etc/systemd/system/hyperion@.service 2> /dev/null
 
 elif [ -e /sbin/initctl ]
 then
 	echo "---> stop init deamon: upstart"
 	# upstart
 	$HYPERION_RUNNING && initctl stop hyperiond
+	$HYPERION_RUNNING && initctl stop hyperion
 	echo "---> Remove upstart service"
 	rm -v /etc/init/hyperion* 2>/dev/null
 	initctl reload-configuration
@@ -31,7 +43,8 @@ then
 else
 	echo "---> stop init deamon: sysV"
 	# sysV
-	$HYPERION_RUNNING && service hyperiond stop 2>/dev/null
+	$HYPERION_RUNNING && service hyperiond stop 2> /dev/null
+	$HYPERION_RUNNING && service hyperion stop 2> /dev/null
 	echo "---> Remove sysV service"
 	update-rc.d -f hyperion remove
 	rm /etc/init.d/hyperion* 2>/dev/null
@@ -43,8 +56,8 @@ killall hyperiond 2> /dev/null
 # delete desktop icons; desktop-file-edit is a workaround to hide the entry and delete it afterwards manual.
 # TODO Better way for deletion and keep the desktop in sync without logout/login or desktop dependend cmds?
 echo "---> Delete Hyperion desktop icons"
-desktop-file-edit --set-key=NoDisplay --set-value=true /usr/share/applications/hyperiond.desktop 2>/dev/null
-rm -v /usr/share/applications/hyperion* 2>/dev/null
-rm -rv /usr/share/pixmaps/hyperion 2>/dev/null
+desktop-file-edit --set-key=NoDisplay --set-value=true /usr/share/applications/hyperiond.desktop 2> /dev/null
+rm -v /usr/share/applications/hyperion* 2> /dev/null
+rm -rv /usr/share/pixmaps/hyperion 2> /dev/null
 
 exit 0

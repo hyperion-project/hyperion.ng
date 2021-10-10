@@ -28,7 +28,7 @@
     "useEntertainmentAPI": {
       "type": "boolean",
       "title": "edt_dev_spec_useEntertainmentAPI_title",
-      "default": false,
+      "default": true,
       "propertyOrder": 4
     },
     "transitiontime": {

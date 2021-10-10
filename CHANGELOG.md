@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.0.0-alpha.10...HEAD)
+## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.0.0-alpha.11...HEAD)
 
 ### Breaking
 
@@ -15,6 +15,67 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Removed
+
+## [2.0.0-alpha.11](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.11) - 2021-10-06
+
+The release is primarily fixing issues introduced with alpha 10, but covering other findings too.
+Thanks to everybody highlighting real problem areas, as well as to those proactively providing fixes for integration via pull requests.
+Besides bug fixing, you will find some smaller enhancements which make everybody’s life easier.
+
+The fact that WS281x devices must run under root caused many headaches before in getting them running.
+We did not weaken security, but provide you with an easy to use script to switch the user-id of hyperion going forward. Furthermore, device configuration is blocked, if the environment does not allow it.
+
+### Added:
+- Script to change the user Hyperion is executed with.
+To run Hyperion with root privileges (e.g. for WS281x) execute <br> `sudo updateHyperionUser -u root`
+- Gif effects can source Gifs via URLs in addition to local files as input 
+
+- System info screen: Added used config path and "is run under root/admin"
+- LED-Device enhancements
+  - WS281x: Ensure that a device cannot be configured via the UI when Hyperion is not run with root privileges
+  - Nanoleaf: Support discovering additional Nanoleaf devices, e.g. Shapes
+  - Nanoleaf: Ability to restore state when Hyperion stops streaming<br>
+    Note: In case previous state was a dynamic/temporary effect, the state cannot be restored
+  - Nanoleaf: New Feature: allow to overwrite brightness by Hyperion
+
+### Changed:
+
+- The Systemd/Upstart/System-V-Init service registers Hyperion under the name hyperion instead of hyperiond, as this has caused confusion among users in the past.
+- WLED and UDP-Raw: Limit maximum LEDs number to 490
+- WS281x: Update DMA default as per rpi_ws281x recommendation
+- Smoothing is paused when no input source is available (to save resources)
+- Disable LED update streaming, if LED updates are not required, Sync. Video-Streaming between Layout and Simulation
+- Load configuration of last instance used when loading the UI page, Streamline API requests to avoid unnecessary invocations (#1311)
+- BobLight: Priorities are not limited any longer. BobLight can feed Priorities [2-253], default is still 128 (#1269)
+- Amlogic grabber: Limit grabber to 30fps during discovery
+- Amlogic grabber: Continuous image feed even when paused (to not have LEDs switched off), plus no delay when pausing/unpausing
+
+### Fixed:
+
+- Fixed that Smoothing with "Continuous Updates" disabled does not provides LED updates (#1068, #1240)
+- Fixed Issue Blinking / flickering cursor with QT screen capture on Windows (#1328)
+- Fixed Colour effect priority is not deleted when Colorpicker is open (double click on delete is required)
+- Fixed reuse local SSDP address (#1324)
+- Exclude FB Grabber on Amlogic platform, as FB is included in Amlogic Grabber
+- Escape XSS payload to avoid execution (#1292)
+- Include libqt5sql5-sqlite packaging dependency
+- Fixed embedded Python location (#1109)
+ 
+- LED-Devices
+  - Fixed Philips Hue wizard (#1276)
+  - Fixed AtmoOrb wizard
+  - Fixed that Lightpack device does not core when lack of permissions error (LIBUSB_ERROR_ACCESS)
+  - Fixed Atmo/Karate LED count constraint handling
+  - Fixed Hue, Disable LED general options (HW Led count & RGB Byte order) as calculated
+  - Fixed SPI, Tpm2.Net - Memory issues
+  - Fixed: Nanoleaf does not turn on
+  - Fixed LED layout - Additional parameters for classic layout were not saved (#1314)
+  - Fixed Network LED-Device UI: Trigger getProperties for the configured host, when no hosts were discovered
+
+### Removed:
+
+- Smoothing: Removed "Continuous Updates" flag as it is obsolete.
+In case an LED-device requires continuous updates, use the LED-Device's "Rewrite Time" parameter.
 
 ## [2.0.0-alpha.10](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.10) - 2021-07-17
 
@@ -376,3 +437,4 @@ If you used a `.deb` package please uninstall it before you upgrade
 ## [2.0.0-alpha.1](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.1) - 2020-02-16
 ### Added
 - Initial Release
+

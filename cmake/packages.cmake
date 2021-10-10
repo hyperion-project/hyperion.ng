@@ -65,7 +65,7 @@ ENDIF()
 # Specific CPack Package Generators
 # https://cmake.org/Wiki/CMake:CPackPackageGenerators
 # .deb files for apt
-SET ( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/preinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/postinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/debian/prerm" )
+SET ( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/cmake/package-scripts/preinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/package-scripts/postinst;${CMAKE_CURRENT_SOURCE_DIR}/cmake/package-scripts/prerm" )
 SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "libcec6 | libcec4" )
 SET ( CPACK_DEBIAN_PACKAGE_SECTION "Miscellaneous" )
 
@@ -75,9 +75,9 @@ SET ( CPACK_RPM_PACKAGE_RELEASE 1 )
 SET ( CPACK_RPM_PACKAGE_LICENSE "MIT" )
 SET ( CPACK_RPM_PACKAGE_GROUP "Applications" )
 SET ( CPACK_RPM_PACKAGE_REQUIRES "libcec >= 4.0.0" )
-SET ( CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/preinst" )
-SET ( CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/postinst" )
-SET ( CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/rpm/prerm" )
+SET ( CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/package-scripts/preinst" )
+SET ( CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/package-scripts/postinst" )
+SET ( CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/package-scripts/prerm" )
 
 # OSX "Bundle" generator TODO Add more osx generators
 # https://cmake.org/cmake/help/v3.10/module/CPackBundle.html

@@ -1,0 +1,33 @@
+#!/bin/sh
+
+echo "---Hyperion ambient light preinst ---"
+
+# search for users in system, returns first entry
+FOUND_USR=`who | grep -o -m1 '^\w*\b'` || "root"
+
+# stop running daemon before we install/upgrade
+if pgrep hyperiond > /dev/null 2>&1
+then
+	if grep -m1 systemd /proc/1/comm > /dev/null
+	then
+		echo "--> stop init deamon: systemd"
+		# systemd
+		systemctl stop hyperion hyperiond"@${FOUND_USR}" hyperion"@${FOUND_USR}" "hyperiond@root" "hyperion@root" 2> /dev/null
+	elif [ -e /sbin/initctl ]
+	then
+		echo "--> stop init deamon: upstart"
+		# upstart
+		initctl stop hyperiond 2>/dev/null
+		initctl stop hyperion 2>/dev/null
+	else
+		echo "--> stop init deamon: sysV"
+		# sysV
+		service hyperiond stop 2>/dev/null
+		service hyperion stop 2>/dev/null
+	fi
+fi
+
+# In case we don't use a service kill all instances
+killall hyperiond 2> /dev/null
+
+exit 0

@@ -160,12 +160,12 @@ macro(DeployUnix TARGET)
 
 		endif()
 
-		# Copy Python modules to 'share/hyperion/lib/python' and ignore the unnecessary stuff listed below
+		# Copy Python modules to 'share/hyperion/lib/pythonXX' and ignore the unnecessary stuff listed below
 		if (PYTHON_MODULES_DIR)
 
 			install(
 				DIRECTORY ${PYTHON_MODULES_DIR}/
-				DESTINATION "share/hyperion/lib/python"
+				DESTINATION "share/hyperion/lib/python${PYTHON_VERSION_MAJOR_MINOR}"
 				COMPONENT "Hyperion"
 				PATTERN "*.pyc"                                 EXCLUDE # compiled bytecodes
 				PATTERN "__pycache__"                           EXCLUDE # any cache

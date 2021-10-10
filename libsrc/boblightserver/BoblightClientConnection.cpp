@@ -21,11 +21,19 @@
 #include "HyperionConfig.h"
 #include <hyperion/Hyperion.h>
 #include <utils/QStringUtils.h>
+#include <hyperion/PriorityMuxer.h>
 
 // project includes
 #include "BoblightClientConnection.h"
 
-BoblightClientConnection::BoblightClientConnection(Hyperion* hyperion, QTcpSocket *socket, int priority)
+// Constants
+namespace {
+	const int BOBLIGHT_DEFAULT_PRIORITY = 128;
+	const int BOBLIGHT_MIN_PRIORITY = PriorityMuxer::FG_PRIORITY+1;
+	const int BOBLIGHT_MAX_PRIORITY = PriorityMuxer::BG_PRIORITY-1;
+} //End of constants
+
+BoblightClientConnection::BoblightClientConnection(Hyperion* hyperion, QTcpSocket* socket, int priority)
 	: QObject()
 	, _locale(QLocale::C)
 	, _socket(socket)
@@ -47,8 +55,8 @@ BoblightClientConnection::BoblightClientConnection(Hyperion* hyperion, QTcpSocke
 
 BoblightClientConnection::~BoblightClientConnection()
 {
-	 // clear the current channel
-	if (_priority != 0 && _priority >= 128 && _priority < 254)
+	// clear the current channel
+	if (_priority != 0 && _priority >= BOBLIGHT_MIN_PRIORITY && _priority <= BOBLIGHT_MAX_PRIORITY)
 		_hyperion->clear(_priority);
 
 	delete _socket;
@@ -59,7 +67,7 @@ void BoblightClientConnection::readData()
 	_receiveBuffer.append(_socket->readAll());
 
 	int bytes = _receiveBuffer.indexOf('\n') + 1;
-	while(bytes > 0)
+	while (bytes > 0)
 	{
 		// create message string (strip the newline)
 		const QString message = readMessage(_receiveBuffer.data(), bytes);
@@ -71,7 +79,7 @@ void BoblightClientConnection::readData()
 		_receiveBuffer.remove(0, bytes);
 
 		// drop messages if the buffer is too full
-		if (_receiveBuffer.size() > 100*1024)
+		if (_receiveBuffer.size() > 100 * 1024)
 		{
 			Debug(_log, "server drops messages (buffer full)");
 			_receiveBuffer.clear();
@@ -82,9 +90,9 @@ void BoblightClientConnection::readData()
 	}
 }
 
-QString BoblightClientConnection::readMessage(const char *data, const size_t size) const
+QString BoblightClientConnection::readMessage(const char* data, const size_t size) const
 {
-	char *end = (char *)data + size - 1;
+	char* end = (char*)data + size - 1;
 
 	// Trim left
 	while (data < end && std::isspace(*data))
@@ -100,7 +108,7 @@ QString BoblightClientConnection::readMessage(const char *data, const size_t siz
 
 	// create message string (strip the newline)
 	const int len = end - data + 1;
-	const QString message =  QString::fromLatin1(data, len);
+	const QString message = QString::fromLatin1(data, len);
 
 	//std::cout << bytes << ": \"" << message.toUtf8().constData() << "\"" << std::endl;
 
@@ -109,15 +117,15 @@ QString BoblightClientConnection::readMessage(const char *data, const size_t siz
 
 void BoblightClientConnection::socketClosed()
 {
-	 // clear the current channel
-	if (_priority >= 128 && _priority < 254)
+	// clear the current channel
+	if (_priority >= BOBLIGHT_MIN_PRIORITY && _priority <= BOBLIGHT_MAX_PRIORITY)
 		_hyperion->clear(_priority);
 
 	emit connectionClosed(this);
 }
 
 
-void BoblightClientConnection::handleMessage(const QString & message)
+void BoblightClientConnection::handleMessage(const QString& message)
 {
 	//std::cout << "boblight message: " << message.toStdString() << std::endl;
 	QStringList messageParts = QStringUtils::split(message, ' ', QStringUtils::SplitBehavior::SkipEmptyParts);
@@ -166,16 +174,16 @@ void BoblightClientConnection::handleMessage(const QString & message)
 
 						if (rc1 && rc2 && rc3)
 						{
-							ColorRgb & rgb =  _ledColors[ledIndex];
+							ColorRgb& rgb = _ledColors[ledIndex];
 							rgb.red = red;
 							rgb.green = green;
 							rgb.blue = blue;
 
-							if (_priority == 0 || _priority < 128 || _priority >= 254)
+							if (_priority == 0 || _priority < BOBLIGHT_MIN_PRIORITY || _priority > BOBLIGHT_MAX_PRIORITY)
 								return;
 
 							// send current color values to hyperion if this is the last led assuming leds values are send in order of id
-							if (ledIndex == _ledColors.size() -1)
+							if (ledIndex == _ledColors.size() - 1)
 							{
 								_hyperion->setInput(_priority, _ledColors);
 							}
@@ -183,10 +191,10 @@ void BoblightClientConnection::handleMessage(const QString & message)
 							return;
 						}
 					}
-					else if(messageParts[3] == "speed" ||
-						      messageParts[3] == "interpolation" ||
-						      messageParts[3] == "use" ||
-						      messageParts[3] == "singlechange")
+					else if (messageParts[3] == "speed" ||
+						messageParts[3] == "interpolation" ||
+						messageParts[3] == "use" ||
+						messageParts[3] == "singlechange")
 					{
 						// these message are ignored by Hyperion
 						return;
@@ -202,16 +210,17 @@ void BoblightClientConnection::handleMessage(const QString & message)
 					if (_priority != 0 && _hyperion->getPriorityInfo(_priority).componentId == hyperion::COMP_BOBLIGHTSERVER)
 						_hyperion->clear(_priority);
 
-					if (prio < 128 || prio >= 254)
+					if (prio < BOBLIGHT_MIN_PRIORITY || prio > BOBLIGHT_MAX_PRIORITY)
 					{
-						_priority = 128;
+						_priority = BOBLIGHT_DEFAULT_PRIORITY;
 						while (_hyperion->getActivePriorities().contains(_priority))
 						{
 							_priority += 1;
 						}
 
 						// warn against invalid priority
-						Warning(_log, "The priority %i is not in the priority range between 128 and 253. Priority %i is used instead.", prio, _priority);
+						Warning(_log, "The priority %i is not in the priority range of [%d-%d]. Priority %i is used instead.",
+							prio, BOBLIGHT_MIN_PRIORITY, BOBLIGHT_MAX_PRIORITY, _priority);
 						// register new priority (previously modified)
 						_hyperion->registerInput(_priority, hyperion::COMP_BOBLIGHTSERVER, QString("Boblight@%1").arg(_socket->peerAddress().toString()));
 					}
@@ -228,7 +237,7 @@ void BoblightClientConnection::handleMessage(const QString & message)
 		}
 		else if (messageParts[0] == "sync")
 		{
-			if ( _priority >= 128 && _priority < 254)
+			if (_priority >= BOBLIGHT_MIN_PRIORITY && _priority <= BOBLIGHT_MAX_PRIORITY)
 				_hyperion->setInput(_priority, _ledColors); // send current color values to hyperion
 
 			return;
@@ -248,7 +257,7 @@ const float ipows[] = {
 	1.0f / 100000.0f,
 	1.0f / 1000000.0f,
 	1.0f / 10000000.0f,
-	1.0f / 100000000.0f};
+	1.0f / 100000000.0f };
 
 float BoblightClientConnection::parseFloat(const QString& s, bool *ok) const
 {
@@ -389,7 +398,7 @@ void BoblightClientConnection::sendLightMessage()
 	for (int i = 0; i < _hyperion->getLedCount(); ++i)
 	{
 		_imageProcessor->getScanParameters(i, h0, h1, v0, v1);
-		n = snprintf(buffer, sizeof(buffer), "light %03d scan %f %f %f %f\n", i, 100*v0, 100*v1, 100*h0, 100*h1);
+		n = snprintf(buffer, sizeof(buffer), "light %03d scan %f %f %f %f\n", i, 100 * v0, 100 * v1, 100 * h0, 100 * h1);
 		sendMessage(QByteArray(buffer, n));
 	}
 }

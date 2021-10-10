@@ -110,8 +110,16 @@ function loadContent(event, forceRefresh) {
     $("#page-content").off();
     $("#page-content").load("/content/" + tag + ".html", function (response, status, xhr) {
       if (status == "error") {
-        $("#page-content").html('<h3>' + $.i18n('info_404') + '</h3>');
-        removeOverlay();
+        tag = 'dashboard';
+        console.log("Could not find page:", prevTag, ", Redirecting to:", tag);
+        setStorage('lasthashtag', tag, true);
+
+        $("#page-content").load("/content/" + tag + ".html", function (response, status, xhr) {
+          if (status == "error") {
+            $("#page-content").html('<h3>' + encode_utf8(tag) + '<br/>' + $.i18n('info_404') + '</h3>');
+            removeOverlay();
+          }
+        });
       }
       updateUiOnInstance(window.currentHyperionInstance);
     });
@@ -710,7 +718,11 @@ function hexToRgb(hex) {
     r: parseInt(result[1], 16),
     g: parseInt(result[2], 16),
     b: parseInt(result[3], 16)
-  } : null;
+  } : {
+    r: 0,
+    g: 0,
+    b: 0
+  };
 }
 
 /*
@@ -1135,6 +1147,7 @@ function getSystemInfo() {
   info += '- UI Access:       ' + storedAccess + '\n';
   //info += '- Log lvl:         ' + window.serverConfig.logger.level + '\n';
   info += '- Avail Capt:      ' + window.serverInfo.grabbers.available + '\n';
+  info += '- Config path:     ' + shy.rootPath + '\n';
   info += '- Database:        ' + (shy.readOnlyMode ? "ready-only" : "read/write") + '\n';
 
   info += '\n';
@@ -1153,6 +1166,7 @@ function getSystemInfo() {
     info += '- CPU Hardware:   ' + sys.cpuHardware + '\n';
 
   info += '- Kernel:         ' + sys.kernelType + ' (' + sys.kernelVersion + ' (WS: ' + sys.wordSize + '))\n';
+  info += '- Root/Admin:     ' + sys.isUserAdmin + '\n';
   info += '- Qt Version:     ' + sys.qtVersion + '\n';
   info += '- Python Version: ' + sys.pyVersion + '\n';
   info += '- Browser:        ' + navigator.userAgent;
