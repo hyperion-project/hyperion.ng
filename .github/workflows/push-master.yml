@@ -8,9 +8,9 @@ on:
 
 jobs:
 
-######################
-###### Linux #########
-######################
+###################
+###### Linux ######
+###################
 
   Linux:
     name: ${{ matrix.dockerName }}
@@ -37,7 +37,7 @@ jobs:
         with:
           submodules: true
 
-      # build process
+      # Build process
       - name: Build packages
         env:
           DOCKER_IMAGE: ${{ matrix.dockerImage }}
@@ -47,16 +47,16 @@ jobs:
         shell: bash
         run: ./.ci/ci_build.sh
 
-      # upload artifacts (only on tagged commit)
+      # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
         if: startsWith(github.event.ref, 'refs/tags')
         uses: actions/upload-artifact@v2
         with:
           path: deploy/Hyperion-*
 
-######################
-###### macOS #########
-######################
+###################
+###### macOS ######
+###################
 
   macOS:
     name: macOS
@@ -66,28 +66,28 @@ jobs:
         with:
           submodules: true
 
-      # install dependencies
+      # Install dependencies
       - name: Install dependencies
         shell: bash
         run: ./.ci/ci_install.sh
 
-      # build process
+      # Build process
       - name: Build packages
         env:
           PLATFORM: osx
         shell: bash
         run: ./.ci/ci_build.sh
 
-      # upload artifacts (only on tagged commit)
+      # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
         if: startsWith(github.event.ref, 'refs/tags')
         uses: actions/upload-artifact@v2
         with:
           path: build/Hyperion-*
 
-######################
-###### Windows #######
-######################
+#####################
+###### Windows ######
+#####################
 
   windows:
     name: Windows
@@ -149,16 +149,17 @@ jobs:
         shell: bash
         run: ./.ci/ci_build.sh
 
-      # upload artifacts (only on tagged commit)
+      # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
         if: startsWith(github.event.ref, 'refs/tags')
         uses: actions/upload-artifact@v2
         with:
           path: build/Hyperion-*
+          retention-days: 1
 
-#######################################
-###### Publish GitHub Releases ########
-#######################################
+#####################################
+###### Publish GitHub Releases ######
+#####################################
 
   github_publish:
     name: Publish GitHub Releases
@@ -169,7 +170,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      # generate environment variables
+      # Generate environment variables
       - name: Generate environment variables from .version and tag
         run: |
           echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
@@ -187,7 +188,7 @@ jobs:
         with:
           path: artifacts
 
-      # create draft release and upload artifacts
+      # Create draft release and upload artifacts
       - name: Create draft release
         uses: softprops/action-gh-release@v1
         with:
@@ -198,3 +199,12 @@ jobs:
           prerelease: ${{ env.preRelease }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+##########################
+###### APT workflow ######
+##########################
+
+  apt_build:
+    name: APT Build
+    needs: [Linux, macOS, windows]
+    uses: hyperion-project/hyperion.ng/.github/workflows/apt.yml@master

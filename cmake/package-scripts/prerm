@@ -27,7 +27,7 @@ then
 	$HYPERION_RUNNING && systemctl stop hyperion hyperiond"@${FOUND_USR}" hyperion"@${FOUND_USR}" "hyperiond@root" "hyperion@root" 2> /dev/null
 	# disable user specific symlink
 	echo "---> Disable service and remove entry"
-	systemctl -q disable hyperion hyperiond"@${FOUND_USR}" hyperion"@${FOUND_USR}" 2> /dev/null
+	systemctl -q disable hyperion hyperiond"@${FOUND_USR}" hyperion"@${FOUND_USR}" "hyperiond@root" "hyperion@root" 2> /dev/null
 	rm -v /etc/systemd/system/hyperion.service /etc/systemd/system/hyperiond@.service /etc/systemd/system/hyperion@.service 2> /dev/null
 
 elif [ -e /sbin/initctl ]
