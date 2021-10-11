@@ -125,7 +125,7 @@ if ( "${PLATFORM}" MATCHES "osx" )
 	# add specific prefix paths
 	FIRSTSUBDIR(SUBDIRQT "/usr/local/Cellar/qt")
 	FIRSTSUBDIR(SUBDIRPY "/usr/local/opt/python3/Frameworks/Python.framework/Versions")
-	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${SUBDIRQT} ${SUBDIRPY} "/usr/local/opt/Qt6" )
+	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${SUBDIRQT} ${SUBDIRPY} "/usr/local/opt/Qt5" "/usr/local/opt/Qt6")
 	include_directories("/opt/X11/include/")
 	SET ( DEFAULT_OSX        ON )
 	SET ( DEFAULT_USB_HID    ON )
@@ -233,7 +233,8 @@ message(STATUS "ENABLE_EXPERIMENTAL = ${ENABLE_EXPERIMENTAL}")
 option(ENABLE_DEPLOY_DEPENDENCIES "Deploy with dependencies" ${DEFAULT_DEPLOY_DEPENDENCIES})
 message(STATUS "ENABLE_DEPLOY_DEPENDENCIES = ${ENABLE_DEPLOY_DEPENDENCIES}")
 
-message(STATUS "DEFAULT_BUILD_WITH_QT6 = ${DEFAULT_BUILD_WITH_QT6}")
+option(ENABLE_BUILD_WITH_QT6 "Build with QT version 6" ${DEFAULT_BUILD_WITH_QT6})
+message(STATUS "ENABLE_BUILD_WITH_QT6 = ${ENABLE_BUILD_WITH_QT6}")
 
 SET ( FLATBUFFERS_INSTALL_BIN_DIR ${CMAKE_BINARY_DIR}/flatbuf )
 SET ( FLATBUFFERS_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/flatbuf )
@@ -306,6 +307,13 @@ if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 	CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
 
+	if(APPLE AND DEFAULT_BUILD_WITH_QT6 STREQUAL "ON")
+		CHECK_CXX_COMPILER_FLAG("Werror=unguarded-availability" REQUIRED_UNGUARDED_AVAILABILITY)
+		if(REQUIRED_UNGUARDED_AVAILABILITY)
+			list(APPEND CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS} "Werror=unguarded-availability")
+		endif()
+	endif()
+
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 	if (CMAKE_COMPILER_IS_GNUCXX)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-psabi")
@@ -331,7 +339,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	# The Qt6_DIR should point to Qt6Config.cmake   -> C:/Qt/5.xx/msvc2017_64/lib/cmake/Qt6
 	# The CMAKE_PREFIX_PATH should point to the install directory -> C:/Qt/6.xx/msvc2017_64
 	#
-	# Alternatively, use Qt6_BASE_DIR environment variable to point to Qt version to be used 
+	# Alternatively, use Qt6_BASE_DIR environment variable to point to Qt version to be used
 	# In MSVC19 add into CMakeSettings.json
 	#
 	#      "environments": [
@@ -340,7 +348,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	#    }
 	#  ]
 
-if (DEFAULT_BUILD_WITH_QT6 STREQUAL "ON")	
+if (DEFAULT_BUILD_WITH_QT6 STREQUAL "ON")
 	if (NOT DEFINED ENV{Qt6_BASE_DIR})
 		FIRSTSUBDIR(SUBDIRQT "C:/Qt")
 		SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SUBDIRQT}/msvc2019_64")
@@ -412,6 +420,14 @@ IF ( FALSE AND CMAKE_CROSSCOMPILING )
 
 ENDIF()
 
+IF(APPLE AND DEFAULT_BUILD_WITH_QT6 STREQUAL "ON")
+	set(CMAKE_THREAD_LIBS_INIT "-lpthread")
+	set(CMAKE_HAVE_THREADS_LIBRARY 1)
+	set(CMAKE_USE_WIN32_THREADS_INIT 0)
+	set(CMAKE_USE_PTHREADS_INIT 1)
+	set(THREADS_PREFER_PTHREAD_FLAG ON)
+ENDIF()
+
 # find QT libs
 if (DEFAULT_BUILD_WITH_QT6 STREQUAL "ON")
 	SET(QT_MIN_VERSION "6.2.0")
@@ -420,7 +436,7 @@ if (DEFAULT_BUILD_WITH_QT6 STREQUAL "ON")
 		message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )
 	ENDIF()
 	message( STATUS "Found Qt Version: ${Qt6Core_VERSION}" )
-	SET( Qt_VERSION 6 )	
+	SET( Qt_VERSION 6 )
 ELSE()
 	SET(QT_MIN_VERSION "5.5.0")
 	find_package(Qt5 COMPONENTS Core Gui Network Sql Widgets REQUIRED)
@@ -428,7 +444,7 @@ ELSE()
 	IF ( "${Qt5Core_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
 		message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )
 	ENDIF()
-	SET( Qt_VERSION 5 )	
+	SET( Qt_VERSION 5 )
 ENDIF()
 
 message( STATUS "Qt version used: ${Qt_VERSION}" )
