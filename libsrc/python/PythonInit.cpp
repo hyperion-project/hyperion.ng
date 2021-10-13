@@ -51,8 +51,8 @@ PythonInit::PythonInit()
 			QStringList python_paths;
 			python_paths.append(QDir(py_path).absolutePath());
 			python_paths.append(QDir(py_path + "/lib-dynload").absolutePath());
-			QVector<wchar_t> joined_paths(python_paths.join(";").size() + 1, 0);
-			python_paths.join(";").toWCharArray(joined_paths.data());
+			QVector<wchar_t> joined_paths(python_paths.join(":").size() + 1, 0);
+			python_paths.join(":").toWCharArray(joined_paths.data());
 			Py_SetPath(joined_paths.data());
 			py_path = QDir::cleanPath(qApp->applicationDirPath() + "/../");
 			Py_SetPythonHome(Py_DecodeLocale(py_path.toLatin1().data(), nullptr));

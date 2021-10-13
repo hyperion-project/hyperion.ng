@@ -64,7 +64,7 @@ endif()
 
 # .deb files for apt
 # https://cmake.org/cmake/help/latest/cpack_gen/deb.html
-SET ( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/cmake/debian/preinst;${CMAKE_SOURCE_DIR}/cmake/debian/postinst;${CMAKE_SOURCE_DIR}/cmake/debian/prerm" )
+SET ( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/cmake/package-scripts/preinst;${CMAKE_SOURCE_DIR}/cmake/package-scripts/postinst;${CMAKE_SOURCE_DIR}/cmake/package-scripts/prerm" )
 SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "libcec6 | libcec4" )
 SET ( CPACK_DEBIAN_PACKAGE_SECTION "Miscellaneous" )
 
@@ -74,9 +74,9 @@ SET ( CPACK_RPM_PACKAGE_RELEASE 1 )
 SET ( CPACK_RPM_PACKAGE_LICENSE "MIT" )
 SET ( CPACK_RPM_PACKAGE_GROUP "Applications" )
 SET ( CPACK_RPM_PACKAGE_REQUIRES "libcec >= 4.0.0" )
-SET ( CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${CMAKE_SOURCE_DIR}/cmake/rpm/preinst" )
-SET ( CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_SOURCE_DIR}/cmake/rpm/postinst" )
-SET ( CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "${CMAKE_SOURCE_DIR}/cmake/rpm/prerm" )
+SET ( CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${CMAKE_SOURCE_DIR}/cmake/package-scripts/preinst" )
+SET ( CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${CMAKE_SOURCE_DIR}/cmake/package-scripts/postinst" )
+SET ( CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "${CMAKE_SOURCE_DIR}/cmake/package-scripts/prerm" )
 
 # .dmg for Apple macOS
 # https://cmake.org/cmake/help/latest/cpack_gen/dmg.html
