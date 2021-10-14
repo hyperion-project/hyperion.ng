@@ -1,7 +1,7 @@
 # this is only available on real pi
 IF ( "${PLATFORM}" MATCHES rpi)
 
-	find_package(Qt${Qt_VERSION} COMPONENTS Gui REQUIRED)
+	find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Gui REQUIRED)
 
 	# Find the BCM-package (VC control)
 	find_package(BCM REQUIRED)
@@ -15,5 +15,5 @@ IF ( "${PLATFORM}" MATCHES rpi)
 
 	target_link_libraries(dispmanx2png
 		dispmanx-grabber
-		Qt${Qt_VERSION::Gui)
+		Qt${QT_VERSION_MAJOR::Gui)
 ENDIF()

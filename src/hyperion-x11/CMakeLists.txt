@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0.0)
 project(hyperion-x11)
 
 find_package(X11 REQUIRED)
-find_package(Qt${Qt_VERSION} COMPONENTS Core Gui Network Widgets REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Gui Network Widgets REQUIRED)
 
 
 include_directories(
@@ -39,10 +39,10 @@ target_link_libraries(${PROJECT_NAME}
 	${X11_LIBRARIES}
 	${X11_Xrandr_LIB}
 	${X11_Xrender_LIB}
-	Qt${Qt_VERSION}::Core
-	Qt${Qt_VERSION}::Gui
-	Qt${Qt_VERSION}::Network
-	Qt${Qt_VERSION}::Widgets
+	Qt${QT_VERSION_MAJOR}::Core
+	Qt${QT_VERSION_MAJOR}::Gui
+	Qt${QT_VERSION_MAJOR}::Network
+	Qt${QT_VERSION_MAJOR}::Widgets
 )
 
 install ( TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin" COMPONENT "hyperion_x11" )

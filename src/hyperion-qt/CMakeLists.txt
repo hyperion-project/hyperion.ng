@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(hyperion-qt)
 
-find_package(Qt${Qt_VERSION} COMPONENTS Core Gui Network Widgets REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Gui Network Widgets REQUIRED)
 
 include_directories(
 	${CMAKE_CURRENT_BINARY_DIR}/../../libsrc/flatbufserver
@@ -35,10 +35,10 @@ target_link_libraries(${PROJECT_NAME}
 	flatbufserver
 	flatbuffers
 	ssdp
-	Qt${Qt_VERSION}::Core
-	Qt${Qt_VERSION}::Gui
-	Qt${Qt_VERSION}::Network
-	Qt${Qt_VERSION}::Widgets
+	Qt${QT_VERSION_MAJOR}::Core
+	Qt${QT_VERSION_MAJOR}::Gui
+	Qt${QT_VERSION_MAJOR}::Network
+	Qt${QT_VERSION_MAJOR}::Widgets
 )
 
 if(NOT WIN32)

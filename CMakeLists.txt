@@ -41,7 +41,6 @@ else()
 endif()
 
 # Set build variables
-SET ( DEFAULT_BUILD_WITH_QT6              OFF )
 SET ( DEFAULT_AMLOGIC                     OFF )
 SET ( DEFAULT_BOBLIGHT                    ON  )
 SET ( DEFAULT_DISPMANX                    OFF )
@@ -233,9 +232,6 @@ message(STATUS "ENABLE_EXPERIMENTAL = ${ENABLE_EXPERIMENTAL}")
 option(ENABLE_DEPLOY_DEPENDENCIES "Deploy with dependencies" ${DEFAULT_DEPLOY_DEPENDENCIES})
 message(STATUS "ENABLE_DEPLOY_DEPENDENCIES = ${ENABLE_DEPLOY_DEPENDENCIES}")
 
-option(ENABLE_BUILD_WITH_QT6 "Build with QT version 6" ${DEFAULT_BUILD_WITH_QT6})
-message(STATUS "ENABLE_BUILD_WITH_QT6 = ${ENABLE_BUILD_WITH_QT6}")
-
 SET ( FLATBUFFERS_INSTALL_BIN_DIR ${CMAKE_BINARY_DIR}/flatbuf )
 SET ( FLATBUFFERS_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/flatbuf )
 
@@ -301,32 +297,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 # Prefer static linking over dynamic
 #set(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.so")
 
-# enable C++11; MSVC doesn't have c++11 feature switch
-if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-	include(CheckCXXCompilerFlag)
-	CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-	CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-
-	if(APPLE AND DEFAULT_BUILD_WITH_QT6 STREQUAL "ON")
-		CHECK_CXX_COMPILER_FLAG("Werror=unguarded-availability" REQUIRED_UNGUARDED_AVAILABILITY)
-		if(REQUIRED_UNGUARDED_AVAILABILITY)
-			list(APPEND CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS} "Werror=unguarded-availability")
-		endif()
-	endif()
-
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-	if (CMAKE_COMPILER_IS_GNUCXX)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-psabi")
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-psabi")
-	endif()
-	if(COMPILER_SUPPORTS_CXX11)
-			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-	elseif(COMPILER_SUPPORTS_CXX0X)
-			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-	else()
-			message(STATUS "No support for C++11 detected. Compilation will most likely fail on your compiler")
-	endif()
-endif()
+message(STATUS "QTDIR: $ENV{QTDIR}")
 
 # MSVC options
 if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
@@ -335,45 +306,6 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	message(STATUS "WINDOWS SDK: ${WINDOWSSDK_LATEST_DIR} ${WINDOWSSDK_LATEST_NAME}")
 	message(STATUS "MSVC VERSION: ${MSVC_VERSION}")
 
-	# Qt6 default install path with msvc2017 64bit component
-	# The Qt6_DIR should point to Qt6Config.cmake   -> C:/Qt/5.xx/msvc2017_64/lib/cmake/Qt6
-	# The CMAKE_PREFIX_PATH should point to the install directory -> C:/Qt/6.xx/msvc2017_64
-	#
-	# Alternatively, use Qt6_BASE_DIR environment variable to point to Qt version to be used
-	# In MSVC19 add into CMakeSettings.json
-	#
-	#      "environments": [
-	#    {
-	#      "Qt6_BASE_DIR": "D:/Qt/6.0.0/msvc2019_64"
-	#    }
-	#  ]
-
-if (DEFAULT_BUILD_WITH_QT6 STREQUAL "ON")
-	if (NOT DEFINED ENV{Qt6_BASE_DIR})
-		FIRSTSUBDIR(SUBDIRQT "C:/Qt")
-		SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SUBDIRQT}/msvc2019_64")
-	else()
-		message(STATUS "QT6_BASE_DIR: $ENV{QT6_BASE_DIR}")
-		message(STATUS "Add QT6_BASE_DIR: $ENV{QT6_BASE_DIR} to CMAKE_PREFIX_PATH")
-		SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "$ENV{Qt6_BASE_DIR}")
-	endif()
-
-	if (NOT DEFINED ENV{Qt6_DIR})
-		if (NOT DEFINED ENV{Qt6_BASE_DIR})
-			SET (qt_module_path "${SUBDIRQT}/msvc2019_64/lib/cmake/Qt6")
-		else ()
-			SET (qt_module_path "$ENV{Qt6_BASE_DIR}/lib/cmake/Qt6")
-		endif()
-	else()
-		SET (qt_module_path "$ENV{Qt6_DIR}")
-	endif()
-
-	message(STATUS "Add ${qt_module_path} to CMAKE_MODULE_PATH")
-	SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${qt_module_path}")
-
-	message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
-	message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
-endif()
 	# Search for DirectX9
 	if (ENABLE_DX)
 		find_package(DirectX9 REQUIRED)
@@ -401,62 +333,27 @@ if (ENABLE_DEPLOY_DEPENDENCIES)
 	endif ()
 endif ()
 
-# add Qt6 dependency
-IF ( FALSE AND CMAKE_CROSSCOMPILING )
-
-	file(GLOB QT_BIN ${QT_BIN_PATH})
-
-	set(QT_MOC_EXECUTABLE ${QT_BIN}/moc)
-	add_executable(Qt6::moc IMPORTED)
-	set_property(TARGET Qt6::moc PROPERTY IMPORTED_LOCATION ${QT_MOC_EXECUTABLE})
-
-	set(QT_RCC_EXECUTABLE ${QT_BIN}/rcc)
-	add_executable(Qt6::rcc IMPORTED)
-	set_property(TARGET Qt6::rcc PROPERTY IMPORTED_LOCATION ${QT_RCC_EXECUTABLE})
-
-	message(STATUS "QT_BIN_PATH = ${QT_BIN}")
-	message(STATUS "QT_MOC_EXECUTABLE = ${QT_MOC_EXECUTABLE}")
-	message(STATUS "QT_RCC_EXECUTABLE = ${QT_RCC_EXECUTABLE}")
-
-ENDIF()
-
-IF(APPLE AND DEFAULT_BUILD_WITH_QT6 STREQUAL "ON")
-	set(CMAKE_THREAD_LIBS_INIT "-lpthread")
-	set(CMAKE_HAVE_THREADS_LIBRARY 1)
-	set(CMAKE_USE_WIN32_THREADS_INIT 0)
-	set(CMAKE_USE_PTHREADS_INIT 1)
-	set(THREADS_PREFER_PTHREAD_FLAG ON)
-ENDIF()
-
 # find QT libs
-if (DEFAULT_BUILD_WITH_QT6 STREQUAL "ON")
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Gui Network SerialPort Sql Widgets REQUIRED)
+message( STATUS "Found Qt Version: ${QT_VERSION}" )
+
+if (${QT_VERSION_MAJOR} GREATER_EQUAL 6 )
 	SET(QT_MIN_VERSION "6.2.0")
-	find_package(Qt6 COMPONENTS Core Gui Network Sql Widgets REQUIRED)
-	IF ( "${Qt6Core_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
-		message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )
-	ENDIF()
-	message( STATUS "Found Qt Version: ${Qt6Core_VERSION}" )
-	SET( Qt_VERSION 6 )
 ELSE()
 	SET(QT_MIN_VERSION "5.5.0")
-	find_package(Qt5 COMPONENTS Core Gui Network Sql Widgets REQUIRED)
-	message( STATUS "Found Qt Version: ${Qt5Core_VERSION}" )
-	IF ( "${Qt5Core_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
-		message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )
-	ENDIF()
-	SET( Qt_VERSION 5 )
 ENDIF()
 
-message( STATUS "Qt version used: ${Qt_VERSION}" )
+IF ( "${QT_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
+	message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )
+ENDIF()
+
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Gui Network SerialPort Sql Widgets REQUIRED)
+message( STATUS "Qt version used: ${QT_VERSION}" )
 
 # Add libusb and pthreads
 find_package(libusb-1.0 REQUIRED)
 find_package(Threads REQUIRED)
 add_definitions(${QT_DEFINITIONS})
-
-if(APPLE)
-	set(CMAKE_EXE_LINKER_FLAGS "-framework CoreGraphics")
-endif()
 
 # Add the source/lib directories
 add_subdirectory(dependencies)
@@ -476,6 +373,46 @@ LIST( APPEND GENERATED_QRC
 	${CMAKE_BINARY_DIR}/HyperionConfig.h
 )
 set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${GENERATED_QRC}" )
+
+# enable C++11; MSVC doesn't have c++11 feature switch
+if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+	include(CheckCXXCompilerFlag)
+	CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+	CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
+
+	if(APPLE AND ${QT_VERSION_MAJOR} GREATER_EQUAL 6)
+		CHECK_CXX_COMPILER_FLAG("Werror=unguarded-availability" REQUIRED_UNGUARDED_AVAILABILITY)
+		if(REQUIRED_UNGUARDED_AVAILABILITY)
+			list(APPEND CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS} "Werror=unguarded-availability")
+		endif()
+	endif()
+
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+	if (CMAKE_COMPILER_IS_GNUCXX)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-psabi")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-psabi")
+	endif()
+	if(COMPILER_SUPPORTS_CXX11)
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+	elseif(COMPILER_SUPPORTS_CXX0X)
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+	else()
+			message(STATUS "No support for C++11 detected. Compilation will most likely fail on your compiler")
+	endif()
+endif()
+
+
+IF(APPLE AND ${QT_VERSION_MAJOR} GREATER_EQUAL 6)
+	set(CMAKE_THREAD_LIBS_INIT "-lpthread")
+	set(CMAKE_HAVE_THREADS_LIBRARY 1)
+	set(CMAKE_USE_WIN32_THREADS_INIT 0)
+	set(CMAKE_USE_PTHREADS_INIT 1)
+	set(THREADS_PREFER_PTHREAD_FLAG ON)
+ENDIF()
+
+if(APPLE)
+	set(CMAKE_EXE_LINKER_FLAGS "-framework CoreGraphics")
+endif()
 
 # uninstall target
 configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake" IMMEDIATE @ONLY)

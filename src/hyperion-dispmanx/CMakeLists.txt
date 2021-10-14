@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(hyperion-dispmanx)
 
-find_package(Qt${Qt_VERSION} COMPONENTS Core Network Widgets REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Network Widgets REQUIRED)
 
 IF ( "${PLATFORM}" MATCHES rpi)
 	find_package(BCM REQUIRED)
@@ -38,9 +38,9 @@ target_link_libraries( ${PROJECT_NAME}
 	dispmanx-grabber
 	${Dispmanx_LIBRARIES}
 	ssdp
-	Qt${Qt_VERSION}::Core
-	Qt${Qt_VERSION}::Network
-	Qt${Qt_VERSION}::Widgets
+	Qt${QT_VERSION_MAJOR}::Core
+	Qt${QT_VERSION_MAJOR}::Network
+	Qt${QT_VERSION_MAJOR}::Widgets
 )
 
 install ( TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin" COMPONENT "hyperion_dispmanx" )

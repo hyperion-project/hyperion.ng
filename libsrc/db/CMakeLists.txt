@@ -11,6 +11,6 @@ add_library(database
 target_link_libraries(database
 	hyperion
 	hyperion-utils
-	Qt${Qt_VERSION}::Core
-	Qt${Qt_VERSION}::Sql
+	Qt${QT_VERSION_MAJOR}::Core
+	Qt${QT_VERSION_MAJOR}::Sql
 )

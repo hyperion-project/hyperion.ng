@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(hyperion-remote)
 
-find_package(Qt${Qt_VERSION} COMPONENTS Core Network Widgets REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Network Widgets REQUIRED)
 
 # The following I do not understand completely...
 # libQtCore.so uses some hardcoded library path inside which are incorrect after copying the file RPi file system
@@ -34,9 +34,9 @@ target_link_libraries(${PROJECT_NAME}
 	commandline
 	hyperion-utils
 	ssdp
-	Qt${Qt_VERSION}::Core
-	Qt${Qt_VERSION}::Network
-	Qt${Qt_VERSION}::Widgets
+	Qt${QT_VERSION_MAJOR}::Core
+	Qt${QT_VERSION_MAJOR}::Network
+	Qt${QT_VERSION_MAJOR}::Widgets
 )
 
 if (ENABLE_AMLOGIC)

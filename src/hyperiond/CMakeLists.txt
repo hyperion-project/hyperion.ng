@@ -6,7 +6,7 @@ else()
 	include_directories(${PYTHON_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS}/..)
 endif()
 
-find_package(Qt${Qt_VERSION} COMPONENTS Core Network Gui Widgets REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Network Gui Widgets REQUIRED)
 
 # generate windows .rc file for this binary
 if (WIN32)
@@ -41,10 +41,10 @@ target_link_libraries(hyperiond
 	database
 	python
 	resources
-	Qt${Qt_VERSION}::Core
-	Qt${Qt_VERSION}::Gui
-	Qt${Qt_VERSION}::Network
-	Qt${Qt_VERSION}::Widgets
+	Qt${QT_VERSION_MAJOR}::Core
+	Qt${QT_VERSION_MAJOR}::Gui
+	Qt${QT_VERSION_MAJOR}::Network
+	Qt${QT_VERSION_MAJOR}::Widgets
 )
 
 if (NOT CMAKE_VERSION VERSION_LESS "3.12")
@@ -59,7 +59,7 @@ endif (ENABLE_AVAHI)
 
 if (ENABLE_AMLOGIC)
 	target_link_libraries(hyperiond
-		#Qt${Qt_VERSION}::Core
+		#Qt${QT_VERSION_MAJOR}::Core
 		pcre16 dl z
 	)
 endif(ENABLE_AMLOGIC)
@@ -147,7 +147,7 @@ endif()
 # Deploy Qt DLLs into the binary folder.
 # This is necessary for starting the application from within the IDE
 if(WIN32)
-		if (Qt_VERSION EQUAL 5)
+		if (QT_VERSION_MAJOR EQUAL 5)
 			get_target_property(QT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)
 			get_filename_component(QT_BIN_DIR "${QT_QMAKE_EXECUTABLE}" DIRECTORY)
 			find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${QT_BIN_DIR}")

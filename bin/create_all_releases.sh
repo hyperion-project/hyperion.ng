@@ -9,6 +9,9 @@ make_release()
 	RELEASE=$1
 	PLATFORM=$2
 	shift 2
+	
+	export QTDIR=$QT_BASE_DIR
+	export PATH=$QT_BASE_DIR/bin:$PATH	
 
 	rm -rf build-${RELEASE}
 	mkdir -p build-${RELEASE}
@@ -24,6 +27,9 @@ make_release()
 	cd ..
 	bin/create_release.sh . ${RELEASE}
 }
+
+#QT_BASE_DIR="/opt/Qt/6.2.0/gcc_64"
+#QT_BASE_DIR="/opt/Qt/5.15.2/gcc_64"
 
 CMAKE_PROTOC_FLAG="-DIMPORT_PROTOC=../build-x86x64/protoc_export.cmake"
 CMAKE_FLATC_FLAG="-DIMPORT_FLATC=../build-x86x64/flatc_export.cmake"

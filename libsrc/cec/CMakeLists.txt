@@ -12,6 +12,6 @@ include_directories(${CEC_INCLUDE_DIRS})
 target_link_libraries(cechandler
 	dl
 	${CEC_LIBRARIES}
-	Qt${Qt_VERSION}::Core
+	Qt${QT_VERSION_MAJOR}::Core
 )
 
