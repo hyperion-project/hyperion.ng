@@ -1,36 +1,64 @@
-name: Hyperion APT Build
-on: [workflow_call]
+name: Nightly build
+
+# Create nightly builds at the end of every day
+on:
+ schedule:
+   - cron: '0 0 * * *'
 
 jobs:
-  setup:
-    name: Setup APT build
+  check:
+    name: Compare local <-> nightly
+    if: github.repository_owner == 'hyperion-project'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Set APT matrix
-        id: apt-ppa
+      - name: Check if commit has changed
+        id: build-necessary
         run: |
-          APT=$(echo $(cat .github/workflows/apt.json) | jq --compact-output .)
-          echo "::set-output name=apt::$APT"
+          if wget --spider "https://nightly.hyperion-project.org/$(git rev-parse --short HEAD)" 2>/dev/null; then
+              echo "::set-output name=commit-has-changed::false"
+          else
+              echo "::set-output name=commit-has-changed::true"
+          fi
     outputs:
-      apt-matrix: ${{ steps.apt-ppa.outputs.apt }}
+      build-nightly: ${{ steps.build-necessary.outputs.commit-has-changed }}
+
+  setup:
+    name: Setup nightly build
+    needs: [check]
+    if: ${{ needs.check.outputs.build-nightly == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set nightly matrix
+        id: nightly-ppa
+        run: |
+          NIGHTLY=$(echo $(cat .github/workflows/apt.json) | jq --compact-output .)
+          echo "::set-output name=nightly::$NIGHTLY"
+    outputs:
+      nightly-matrix: ${{ steps.nightly-ppa.outputs.nightly }}
 
   build:
     name: ${{ matrix.description }}
     needs: [setup]
     runs-on: ubuntu-latest
     strategy:
-      matrix: ${{ fromJson(needs.setup.outputs.apt-matrix) }}
+      matrix: ${{ fromJson(needs.setup.outputs.nightly-matrix) }}
 
     steps:
       - uses: actions/checkout@v2
         with:
           submodules: true
 
+      - name: Generate nightly version
+        id: vars
+        run: |
+          VERSION="$(tr -d '\n' < .version)+nightly$(date '+%Y%m%d')$(git rev-parse --short HEAD)"
+          echo "$VERSION" > .version
+
       - name: Build package
         shell: bash
         run: |
-          tr -d '\n' < .version > temp && mv temp .version
           mkdir -p "${GITHUB_WORKSPACE}/deploy"
           docker run --rm \
             -v "${GITHUB_WORKSPACE}/deploy:/deploy" \
@@ -47,15 +75,13 @@ jobs:
             cp ../hyperion_* /deploy"
 
       - name: Upload package artifact
-        if: startsWith(github.event.ref, 'refs/tags')
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v2.2.4
         with:
           path: deploy
           retention-days: 1
 
   publish:
-    name: Publish APT packages
-    if: startsWith(github.event.ref, 'refs/tags')
+    name: Publish nightly packages
     needs: [setup, build]
     runs-on: ubuntu-latest
     steps:
@@ -70,16 +96,17 @@ jobs:
       - name: Install reprepro
         run: sudo apt -y install reprepro
 
-      - name: Make build folders, export public GPG key and copy distributions file
+      - name: Make build folders, export public GPG key, copy distributions file and create short sha file for nightly build check
         run: |
-          mkdir -p apt/{conf,dists,db}
-          gpg --armor --output apt/hyperion.pub.key --export 'admin@hyperion-project.org'
-          cp debian/distributions apt/conf/distributions
+          mkdir -p nightly/{conf,dists,db}
+          gpg --armor --output nightly/hyperion.pub.key --export 'admin@hyperion-project.org'
+          cp debian/distributions nightly/conf/distributions
+          touch "nightly/$(git rev-parse --short HEAD)"
 
       - name: Create initial structure/packages files and symbolic links
         run: |
-          reprepro -Vb apt createsymlinks
-          reprepro -Vb apt export
+          reprepro -Vb nightly createsymlinks
+          reprepro -Vb nightly export
 
       - name: Download artifacts
         uses: actions/download-artifact@v2.0.10
@@ -90,16 +117,22 @@ jobs:
             if [ -f "$file" ]; then
               dist=${file#*~}
               dist=${dist%_*}
-              reprepro -Vb apt/ includedeb "$dist" "$file"
+              reprepro -Vb nightly/ includedeb "$dist" "$file"
             fi
           done
 
-      - name: Upload packages to APT server (DRAFT)
+      - name: Upload packages to APT server (Nightly)
         uses: SamKirkland/FTP-Deploy-Action@4.1.0
         with:
-          server: apt.hyperion-project.org
-          username: ${{ secrets.APT_USER }}
-          password: ${{ secrets.APT_PASSWORD }}
-          local-dir: "./apt/"
-          server-dir: ${{ secrets.APT_DRAFT }}
+          server: nightly.hyperion-project.org
+          username: ${{ secrets.NIGHTLY_USER }}
+          password: ${{ secrets.NIGHTLY_PASSWORD }}
+          local-dir: "./nightly/"
+          server-dir: "./"
           dangerous-clean-slate: true
+
+      - name: Remove intermediate artifacts
+        uses: geekyeggo/delete-artifact@v1
+        with:
+          name: artifact
+          failOnError: false
