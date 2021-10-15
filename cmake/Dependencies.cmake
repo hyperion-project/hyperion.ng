@@ -81,8 +81,8 @@ macro(DeployUnix TARGET)
 		endif(OPENSSL_FOUND)
 
 		# Detect the Qt plugin directory, source: https://github.com/lxde/lxqt-qtplugin/blob/master/src/CMakeLists.txt
-		if ( TARGET Qt${Qt_VERSION}::qmake )
-			get_target_property(QT_QMAKE_EXECUTABLE Qt${Qt_VERSION}::qmake IMPORTED_LOCATION)
+		if ( TARGET Qt${QT_VERSION_MAJOR}::qmake )
+			get_target_property(QT_QMAKE_EXECUTABLE Qt${QT_VERSION_MAJOR}::qmake IMPORTED_LOCATION)
 			execute_process(
 				COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_PLUGINS
 				OUTPUT_VARIABLE QT_PLUGINS_DIR
@@ -193,17 +193,17 @@ endmacro()
 macro(DeployWindows TARGET)
 	if (EXISTS ${TARGET_FILE})
 		message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
-		find_package(Qt${Qt_VERSION}Core REQUIRED)
+		find_package(Qt${QT_VERSION_MAJOR}Core REQUIRED)
 		find_package(OpenSSL REQUIRED)
 
 		# Find the windeployqt binaries
-		get_target_property(QMAKE_EXECUTABLE Qt${Qt_VERSION}::qmake IMPORTED_LOCATION)
+		get_target_property(QMAKE_EXECUTABLE Qt${QT_VERSION_MAJOR}::qmake IMPORTED_LOCATION)
 		get_filename_component(QT_BIN_DIR "${QMAKE_EXECUTABLE}" DIRECTORY)
 		find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${QT_BIN_DIR}")
 
 		# Collect the runtime libraries
 		get_filename_component(COMPILER_PATH "${CMAKE_CXX_COMPILER}" DIRECTORY)
-		if (Qt_VERSION EQUAL 5)
+		if (QT_VERSION_MAJOR EQUAL 5)
 			set(WINDEPLOYQT_PARAMS --no-angle --no-opengl-sw)
 		else()
 			set(WINDEPLOYQT_PARAMS --no-opengl-sw)

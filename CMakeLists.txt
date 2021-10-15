@@ -297,14 +297,20 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 # Prefer static linking over dynamic
 #set(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.so")
 
-message(STATUS "QTDIR: $ENV{QTDIR}")
-
 # MSVC options
 if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	# Search for Windows SDK
 	find_package(WindowsSDK REQUIRED)
 	message(STATUS "WINDOWS SDK: ${WINDOWSSDK_LATEST_DIR} ${WINDOWSSDK_LATEST_NAME}")
 	message(STATUS "MSVC VERSION: ${MSVC_VERSION}")
+
+	if (NOT DEFINED ENV{QTDIR})
+		FIRSTSUBDIR(SUBDIRQT "C:/Qt")
+		SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SUBDIRQT}/msvc2019_64")
+	else()
+		message(STATUS "Add QTDIR: $ENV{QTDIR} to CMAKE_PREFIX_PATH")
+		SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "$ENV{QTDIR}")
+	endif()
 
 	# Search for DirectX9
 	if (ENABLE_DX)
@@ -348,6 +354,7 @@ IF ( "${QT_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
 ENDIF()
 
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Gui Network SerialPort Sql Widgets REQUIRED)
+
 message( STATUS "Qt version used: ${QT_VERSION}" )
 
 # Add libusb and pthreads
