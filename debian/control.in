@@ -2,7 +2,7 @@ Source: hyperion
 Section: devel
 Priority: optional
 Build-Depends: @BUILD_DEPENDS@
-Standards-Version: 2.0.0
+Standards-Version: @STANDARDS_VERSION@
 Maintainer: Hyperion Project <admin@hyperion-project.org>
 Homepage: https://hyperion-project.org/
 
