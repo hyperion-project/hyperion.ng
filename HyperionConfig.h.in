@@ -60,9 +60,6 @@
 // Define to enable deploy dependencies to packages
 #cmakedefine ENABLE_DEPLOY_DEPENDENCIES
 
-// Define to enable build with QT version 6
-#cmakedefine ENABLE_BUILD_WITH_QT6
-
 // the hyperion build id string
 #define HYPERION_BUILD_ID "${HYPERION_BUILD_ID}"
 #define HYPERION_GIT_REMOTE "${HYPERION_GIT_REMOTE}"

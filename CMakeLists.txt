@@ -122,9 +122,23 @@ ENDMACRO()
 
 if ( "${PLATFORM}" MATCHES "osx" )
 	# add specific prefix paths
-	FIRSTSUBDIR(SUBDIRQT "/usr/local/Cellar/qt")
 	FIRSTSUBDIR(SUBDIRPY "/usr/local/opt/python3/Frameworks/Python.framework/Versions")
-	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${SUBDIRQT} ${SUBDIRPY} "/usr/local/opt/Qt5" "/usr/local/opt/Qt6")
+	set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${SUBDIRPY})
+
+	if(EXISTS /usr/local/opt/qt6)
+		include(CheckCXXCompilerFlag)
+		CHECK_CXX_COMPILER_FLAG("-Werror=unguarded-availability" REQUIRES_UNGUARDED_AVAILABILITY)
+		if(REQUIRES_UNGUARDED_AVAILABILITY)
+			list(APPEND CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS} "-Werror=unguarded-availability")
+		endif()
+		set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "/usr/local/opt/qt6")
+		set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
+	endif()
+
+	if(EXISTS /usr/local/opt/qt5)
+		set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "/usr/local/opt/qt5")
+	endif()
+
 	include_directories("/opt/X11/include/")
 	SET ( DEFAULT_OSX        ON )
 	SET ( DEFAULT_USB_HID    ON )
@@ -320,24 +334,20 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 endif()
 
 # Use GNU gold linker if available
-if (NOT WIN32)
+if (NOT WIN32 AND NOT APPLE)
 	include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/LDGold.cmake)
 endif()
 
-if (ENABLE_DEPLOY_DEPENDENCIES)
-	# Don't create new dynamic tags (RUNPATH)
-	if (NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--disable-new-dtags")
-	endif()
-
-	# setup -rpath to search for shared libs in BINARY/../lib folder
-	if (UNIX AND NOT APPLE)
-		SET(CMAKE_SKIP_BUILD_RPATH FALSE)
-		SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-		SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH}:$ORIGIN/../lib")
-		SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-	endif ()
+# Don't create new dynamic tags (RUNPATH) and setup -rpath to search for shared libs in BINARY/../lib folder (only for Unix)
+if (ENABLE_DEPLOY_DEPENDENCIES AND UNIX AND NOT APPLE)
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--disable-new-dtags")
+	SET(CMAKE_SKIP_BUILD_RPATH FALSE)
+	SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+	SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH}:$ORIGIN/../lib")
+	SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 endif ()
+
+find_package(Threads REQUIRED)
 
 # find QT libs
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Gui Network SerialPort Sql Widgets REQUIRED)
@@ -359,7 +369,6 @@ message( STATUS "Qt version used: ${QT_VERSION}" )
 
 # Add libusb and pthreads
 find_package(libusb-1.0 REQUIRED)
-find_package(Threads REQUIRED)
 add_definitions(${QT_DEFINITIONS})
 
 # Add the source/lib directories
@@ -407,15 +416,6 @@ if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 			message(STATUS "No support for C++11 detected. Compilation will most likely fail on your compiler")
 	endif()
 endif()
-
-
-IF(APPLE AND ${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-	set(CMAKE_THREAD_LIBS_INIT "-lpthread")
-	set(CMAKE_HAVE_THREADS_LIBRARY 1)
-	set(CMAKE_USE_WIN32_THREADS_INIT 0)
-	set(CMAKE_USE_PTHREADS_INIT 1)
-	set(THREADS_PREFER_PTHREAD_FLAG ON)
-ENDIF()
 
 if(APPLE)
 	set(CMAKE_EXE_LINKER_FLAGS "-framework CoreGraphics")
