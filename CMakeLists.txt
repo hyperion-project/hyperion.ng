@@ -347,6 +347,10 @@ if (ENABLE_DEPLOY_DEPENDENCIES AND UNIX AND NOT APPLE)
 	SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 endif ()
 
+if(APPLE)
+	set(CMAKE_EXE_LINKER_FLAGS "-framework CoreGraphics")
+endif()
+
 find_package(Threads REQUIRED)
 
 # find QT libs
@@ -415,10 +419,6 @@ if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	else()
 			message(STATUS "No support for C++11 detected. Compilation will most likely fail on your compiler")
 	endif()
-endif()
-
-if(APPLE)
-	set(CMAKE_EXE_LINKER_FLAGS "-framework CoreGraphics")
 endif()
 
 # uninstall target
