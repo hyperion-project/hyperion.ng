@@ -73,7 +73,7 @@ bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
 	if(type == "priorities-update")
 	{
 		if (unsubscribe)
-			disconnect(_prioMuxer,0 ,0 ,0);
+			disconnect(_prioMuxer, &PriorityMuxer::prioritiesChanged, this, &JsonCB::handlePriorityUpdate);
 		else
 			connect(_prioMuxer, &PriorityMuxer::prioritiesChanged, this, &JsonCB::handlePriorityUpdate, Qt::UniqueConnection);
 	}
@@ -156,6 +156,8 @@ void JsonCB::resetSubscriptions()
 
 void JsonCB::setSubscriptionsTo(Hyperion* hyperion)
 {
+	//std::cout << "JsonCB::setSubscriptions for instance [" << static_cast<int>(hyperion->getInstanceIndex()) << "] " << std::endl;
+
 	// get current subs
 	QStringList currSubs(getSubscribedCommands());
 
@@ -179,10 +181,12 @@ void JsonCB::doCallback(const QString& cmd, const QVariant& data)
 	QJsonObject obj;
 	obj["command"] = cmd;
 
-	if(static_cast<QMetaType::Type>(data.type()) == QMetaType::QJsonArray)
+	if(data.userType() == QMetaType::QJsonArray)
 		obj["data"] = data.toJsonArray();
 	else
 		obj["data"] = data.toJsonObject();
+
+	//std::cout << "JsonCB::doCallback | [" << static_cast<int>(_hyperion->getInstanceIndex()) << "] Send: [" << QJsonDocument(obj).toJson(QJsonDocument::Compact).toStdString() << "]" << std::endl;
 
 	emit newCallback(obj);
 }

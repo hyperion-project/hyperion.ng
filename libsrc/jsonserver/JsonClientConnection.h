@@ -4,6 +4,7 @@
 #include <QString>
 #include <QByteArray>
 #include <QJsonObject>
+#include <QHostAddress>
 
 // util includes
 #include <utils/Logger.h>
@@ -24,6 +25,7 @@ public:
 	/// @param socket The Socket object for this connection
 	///
 	JsonClientConnection(QTcpSocket * socket, bool localConnection);
+	QHostAddress getClientAddress();
 
 signals:
 	void connectionClosed();

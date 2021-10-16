@@ -102,7 +102,7 @@ void JsonServer::newConnection()
 		{
 			if(_netOrigin->accessAllowed(socket->peerAddress(), socket->localAddress()))
 			{
-				Debug(_log, "New connection from: %s ",socket->localAddress().toString().toStdString().c_str());
+				Debug(_log, "New connection from: %s",QSTRING_CSTR(socket->peerAddress().toString()));
 				JsonClientConnection * connection = new JsonClientConnection(socket, _netOrigin->isLocalAddress(socket->peerAddress(), socket->localAddress()));
 				_openConnections.insert(connection);
 
@@ -118,7 +118,7 @@ void JsonServer::newConnection()
 void JsonServer::closedConnection()
 {
 	JsonClientConnection* connection = qobject_cast<JsonClientConnection*>(sender());
-	Debug(_log, "Connection closed");
+	Debug(_log, "Connection closed for %s", QSTRING_CSTR(connection->getClientAddress().toString()));
 	_openConnections.remove(connection);
 
 	// schedule to delete the connection object
