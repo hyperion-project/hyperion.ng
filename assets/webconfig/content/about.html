@@ -61,13 +61,13 @@
   $.ajax({
     url:'3RD_PARTY_LICENSES',
     dataType: "text",
-    success: function()
-    {
-        $("#3rdpartylicenses").html('<a href="https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/3RD_PARTY_LICENSES">' + $.i18n("about_3rd_party_licenses_error") + '</a>');
-    },
-    error: function(data)
+    success: function(data)
     {
       $("#3rdpartylicenses").html('<code>' + data + '</code>');
+    },
+    error: function()
+    {
+      $("#3rdpartylicenses").html('<a href="https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/3RD_PARTY_LICENSES">' + $.i18n("about_3rd_party_licenses_error") + '</a>');
     }
   });
 
