@@ -121,10 +121,6 @@ macro(DeployLinux TARGET)
 			list(APPEND SYSTEM_LIBS_SKIP "libcec")
 		endif()
 
-		if (APPLE)
-			set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
-		endif(APPLE)
-
 		# Extract dependencies ignoring the system ones
 		get_prerequisites(${TARGET_FILE} DEPENDENCIES 0 1 "" "")
 
@@ -133,6 +129,7 @@ macro(DeployLinux TARGET)
 		foreach(DEPENDENCY ${DEPENDENCIES})
 			get_filename_component(resolved ${DEPENDENCY} NAME_WE)
 			list(FIND SYSTEM_LIBS_SKIP ${resolved} _index)
+
 			if (${_index} GREATER -1)
 				continue() # Skip system libraries
 			else()
@@ -184,10 +181,9 @@ macro(DeployLinux TARGET)
 		if (QT_PLUGINS_DIR)
 			foreach(PLUGIN "platforms" "sqldrivers" "imageformats")
 				if (EXISTS ${QT_PLUGINS_DIR}/${PLUGIN})
-					file(GLOB files "${QT_PLUGINS_DIR}/${PLUGIN}/*")
+					file(GLOB files "${QT_PLUGINS_DIR}/${PLUGIN}/*.so")
 					foreach(file ${files})
 						get_prerequisites(${file} PLUGINS 0 1 "" "")
-
 						foreach(DEPENDENCY ${PLUGINS})
 							get_filename_component(resolved ${DEPENDENCY} NAME_WE)
 							list(FIND SYSTEM_LIBS_SKIP ${resolved} _index)

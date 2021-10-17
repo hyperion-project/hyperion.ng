@@ -84,6 +84,11 @@ sudo apt-get install libraspberrypi-dev
 sudo apt-get install rbp-userland-dev-osmc
 ```
 
+**Additionally for QT6**
+```console
+sudo apt-get install postgresql unixodbc libxkbcommon-dev
+```
+
 **ATTENTION Win10LinuxSubsystem** we do not (/we can't) support using hyperion in linux subsystem of MS Windows 10, albeit some users tested it with success. Keep in mind to disable
 all linux specific led and grabber hardware via cmake. Because we use QT as framework in hyperion, serialport leds and network driven devices could work.
 
@@ -158,10 +163,8 @@ bin/hyperiond
 # webui is located on localhost:8090 or 8091
 ```
 
-In case you would like to build with a dedicated Qt version, provide the version's location via the QTDIR environment variable before running cmake :
-```console
-export QTDIR=/opt/Qt/6.2.0/gcc_64
-```
+In case you would like to build with a dedicated Qt version, Either supply ``QTDIR`` as ``-DQTDIR=<path>`` to cmake or set and environment variable ``QTDIR`` pointing to the Qt installation.
+
 On Windows MSVC2019 set it via the CMakeSettings.json:
 ```posh
   "configurations": [
@@ -256,4 +259,5 @@ If you want to install into another location call this before installing
 cmake -DCMAKE_INSTALL_PREFIX=/home/pi/apps ..
 ```
 This will install to ``/home/pi/apps/share/hyperion``
+
 
