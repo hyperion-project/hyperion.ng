@@ -27,10 +27,15 @@ jobs:
         with:
           submodules: true
 
+      - name: Extract major.minor.patch from file .version
+        run: |
+          tr -d '\n' < .version > temp && mv temp .version
+          VERSION=$(tr -d '\n' < .version)
+          echo "MAJOR_MINOR_PATCH=$(echo "${VERSION%.*}.$((${VERSION##*.}))")" >> $GITHUB_ENV
+
       - name: Build package
         shell: bash
         run: |
-          tr -d '\n' < .version > temp && mv temp .version
           mkdir -p "${GITHUB_WORKSPACE}/deploy"
           docker run --rm \
             -v "${GITHUB_WORKSPACE}/deploy:/deploy" \
@@ -40,9 +45,8 @@ jobs:
             mkdir -p debian/source && echo '3.0 (quilt)' > debian/source/format && \
             dch --create --distribution $(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]') --package 'hyperion' -v '$(cat .version)~$(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]')' '${{ github.event.commits[0].message }}' && \
             cp -fr LICENSE debian/copyright && \
-            sed 's/@BUILD_DEPENDS@/${{ matrix.build-depends }}/g; s/@DEPENDS@/${{ matrix.package-depends }}/g; s/@ARCHITECTURE@/${{ matrix.architecture }}/g' debian/control.in > debian/control && \
-            tar cf ../hyperion_2.0.0.orig.tar . && \
-            xz -9 ../hyperion_2.0.0.orig.tar && \
+            sed 's/@BUILD_DEPENDS@/${{ matrix.build-depends }}/g; s/@DEPENDS@/${{ matrix.package-depends }}/g; s/@ARCHITECTURE@/${{ matrix.architecture }}/g; s/@STANDARDS_VERSION@/${{ env.MAJOR_MINOR_PATCH }}/g' debian/control.in > debian/control && \
+            tar -cJf ../hyperion_$(cat .version)~$(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]').orig.tar.xz . && \
             debuild --no-lintian -uc -us && \
             cp ../hyperion_* /deploy"
 

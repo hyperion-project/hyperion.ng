@@ -255,6 +255,21 @@ bool SettingsManager::saveSettings(QJsonObject config, bool correct)
 	return rc;
 }
 
+inline QString fixVersion (const QString& version)
+{
+	QString newVersion;
+	//Try fixing version number, remove dot separated pre-release identifiers not supported
+	QRegularExpression regEx("(\\d+\\.\\d+\\.\\d+-?[a-zA-Z-\\d]*\\.?[\\d]*)", QRegularExpression::CaseInsensitiveOption | QRegularExpression::MultilineOption);
+	QRegularExpressionMatch match;
+
+	match = regEx.match(version);
+	if (match.hasMatch())
+	{
+		newVersion = match.captured(1);
+	}
+	return newVersion;
+}
+
 bool SettingsManager::resolveConfigVersion(QJsonObject& config)
 {
 	bool isValid = false;
@@ -267,6 +282,14 @@ bool SettingsManager::resolveConfigVersion(QJsonObject& config)
 		if ( !configVersion.isEmpty() )
 		{
 			isValid = _configVersion.setVersion(configVersion.toStdString());
+			if (!isValid)
+			{
+				isValid = _configVersion.setVersion( fixVersion(configVersion).toStdString() );
+				if (isValid)
+				{
+					Info(_log, "Invalid config version [%s] fixed. Updated to [%s]", QSTRING_CSTR(configVersion), _configVersion.getVersion().c_str());
+				}
+			}
 		}
 		else
 		{
@@ -277,6 +300,14 @@ bool SettingsManager::resolveConfigVersion(QJsonObject& config)
 		if ( !previousVersion.isEmpty() && isValid )
 		{
 			isValid = _previousVersion.setVersion(previousVersion.toStdString());
+			if (!isValid)
+			{
+				isValid = _previousVersion.setVersion( fixVersion(previousVersion).toStdString() );
+				if (isValid)
+				{
+					Info(_log, "Invalid previous version [%s] fixed. Updated to [%s]", QSTRING_CSTR(previousVersion), _previousVersion.getVersion().c_str());
+				}
+			}
 		}
 		else
 		{
@@ -291,199 +322,206 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 {
 	bool migrated = false;
 
-	resolveConfigVersion(config);
-
-	//Do only migrate, if configuration is not up to date
-	if (_previousVersion < _configVersion)
+	//Only migrate, if valid versions are available
+	if ( !resolveConfigVersion(config) )
 	{
-		//Migration steps for versions <= alpha 9
-		semver::version targetVersion {"2.0.0-alpha.9"};
-		if (_previousVersion <= targetVersion )
+		Warning(_log, "Invalid version information found in configuration. No database migration executed.");
+	}
+	else
+	{
+		//Do only migrate, if configuration is not up to date
+		if (_previousVersion < _configVersion)
 		{
-			Info(_log, "Instance [%u]: Migrate LED Layout from current version [%s] to version [%s] or later", _instance, _previousVersion.getVersion().c_str(), targetVersion.getVersion().c_str());
-
-			// LED LAYOUT UPGRADE
-			// from { hscan: { minimum: 0.2, maximum: 0.3 }, vscan: { minimum: 0.2, maximum: 0.3 } }
-			// from { h: { min: 0.2, max: 0.3 }, v: { min: 0.2, max: 0.3 } }
-			// to   { hmin: 0.2, hmax: 0.3, vmin: 0.2, vmax: 0.3}
-			if(config.contains("leds"))
+			//Migration steps for versions <= alpha 9
+			semver::version targetVersion {"2.0.0-alpha.9"};
+			if (_previousVersion <= targetVersion )
 			{
-				const QJsonArray ledarr = config["leds"].toArray();
-				const QJsonObject led = ledarr[0].toObject();
+				Info(_log, "Instance [%u]: Migrate LED Layout from current version [%s] to version [%s] or later", _instance, _previousVersion.getVersion().c_str(), targetVersion.getVersion().c_str());
 
-				if(led.contains("hscan") || led.contains("h"))
+				// LED LAYOUT UPGRADE
+				// from { hscan: { minimum: 0.2, maximum: 0.3 }, vscan: { minimum: 0.2, maximum: 0.3 } }
+				// from { h: { min: 0.2, max: 0.3 }, v: { min: 0.2, max: 0.3 } }
+				// to   { hmin: 0.2, hmax: 0.3, vmin: 0.2, vmax: 0.3}
+				if(config.contains("leds"))
 				{
-					const bool whscan = led.contains("hscan");
-					QJsonArray newLedarr;
+					const QJsonArray ledarr = config["leds"].toArray();
+					const QJsonObject led = ledarr[0].toObject();
 
-					for(const auto & entry : ledarr)
+					if(led.contains("hscan") || led.contains("h"))
 					{
-						const QJsonObject led = entry.toObject();
-						QJsonObject hscan;
-						QJsonObject vscan;
-						QJsonValue hmin;
-						QJsonValue hmax;
-						QJsonValue vmin;
-						QJsonValue vmax;
-						QJsonObject nL;
+						const bool whscan = led.contains("hscan");
+						QJsonArray newLedarr;
 
-						if(whscan)
+						for(const auto & entry : ledarr)
 						{
-							hscan = led["hscan"].toObject();
-							vscan = led["vscan"].toObject();
-							hmin = hscan["minimum"];
-							hmax = hscan["maximum"];
-							vmin = vscan["minimum"];
-							vmax = vscan["maximum"];
+							const QJsonObject led = entry.toObject();
+							QJsonObject hscan;
+							QJsonObject vscan;
+							QJsonValue hmin;
+							QJsonValue hmax;
+							QJsonValue vmin;
+							QJsonValue vmax;
+							QJsonObject nL;
+
+							if(whscan)
+							{
+								hscan = led["hscan"].toObject();
+								vscan = led["vscan"].toObject();
+								hmin = hscan["minimum"];
+								hmax = hscan["maximum"];
+								vmin = vscan["minimum"];
+								vmax = vscan["maximum"];
+							}
+							else
+							{
+								hscan = led["h"].toObject();
+								vscan = led["v"].toObject();
+								hmin = hscan["min"];
+								hmax = hscan["max"];
+								vmin = vscan["min"];
+								vmax = vscan["max"];
+							}
+							// append to led object
+							nL["hmin"] = hmin;
+							nL["hmax"] = hmax;
+							nL["vmin"] = vmin;
+							nL["vmax"] = vmax;
+							newLedarr.append(nL);
 						}
-						else
-						{
-							hscan = led["h"].toObject();
-							vscan = led["v"].toObject();
-							hmin = hscan["min"];
-							hmax = hscan["max"];
-							vmin = vscan["min"];
-							vmax = vscan["max"];
-						}
-						// append to led object
-						nL["hmin"] = hmin;
-						nL["hmax"] = hmax;
-						nL["vmin"] = vmin;
-						nL["vmax"] = vmax;
-						newLedarr.append(nL);
-					}
-					// replace
-					config["leds"] = newLedarr;
-					migrated = true;
-					Info(_log,"Instance [%u]: LED Layout migrated", _instance);
-				}
-			}
-
-			if(config.contains("ledConfig"))
-			{
-				QJsonObject oldLedConfig = config["ledConfig"].toObject();
-				if ( !oldLedConfig.contains("classic"))
-				{
-					QJsonObject newLedConfig;
-					newLedConfig.insert("classic", oldLedConfig );
-					QJsonObject defaultMatrixConfig {{"ledshoriz", 1}
-													 ,{"ledsvert", 1}
-													 ,{"cabling","snake"}
-													 ,{"start","top-left"}
-													};
-					newLedConfig.insert("matrix", defaultMatrixConfig );
-
-					config["ledConfig"] = newLedConfig;
-					migrated = true;
-					Info(_log,"Instance [%u]: LED-Config migrated", _instance);
-				}
-			}
-
-			// LED Hardware count is leading for versions after alpha 9
-			// Setting Hardware LED count to number of LEDs configured via layout, if layout number is greater than number of hardware LEDs
-			if (config.contains("device"))
-			{
-				QJsonObject newDeviceConfig = config["device"].toObject();
-
-				if (newDeviceConfig.contains("hardwareLedCount"))
-				{
-					int hwLedcount = newDeviceConfig["hardwareLedCount"].toInt();
-					if (config.contains("leds"))
-					{
-						const QJsonArray ledarr = config["leds"].toArray();
-						int layoutLedCount = ledarr.size();
-
-						if (hwLedcount < layoutLedCount )
-						{
-							Warning(_log, "Instance [%u]: HwLedCount/Layout mismatch! Setting Hardware LED count to number of LEDs configured via layout", _instance);
-							hwLedcount = layoutLedCount;
-							newDeviceConfig["hardwareLedCount"] = hwLedcount;
-							migrated = true;
-						}
+						// replace
+						config["leds"] = newLedarr;
+						migrated = true;
+						Info(_log,"Instance [%u]: LED Layout migrated", _instance);
 					}
 				}
 
-				if (newDeviceConfig.contains("type"))
+				if(config.contains("ledConfig"))
 				{
-					QString type = newDeviceConfig["type"].toString();
-					if (type == "atmoorb" || type == "fadecandy" || type == "philipshue" )
+					QJsonObject oldLedConfig = config["ledConfig"].toObject();
+					if ( !oldLedConfig.contains("classic"))
 					{
-						if (newDeviceConfig.contains("output"))
-						{
-							newDeviceConfig["host"] = newDeviceConfig["output"].toString();
-							newDeviceConfig.remove("output");
-							migrated = true;
-						}
+						QJsonObject newLedConfig;
+						newLedConfig.insert("classic", oldLedConfig );
+						QJsonObject defaultMatrixConfig {{"ledshoriz", 1}
+							,{"ledsvert", 1}
+							,{"cabling","snake"}
+							,{"start","top-left"}
+						};
+						newLedConfig.insert("matrix", defaultMatrixConfig );
+
+						config["ledConfig"] = newLedConfig;
+						migrated = true;
+						Info(_log,"Instance [%u]: LED-Config migrated", _instance);
 					}
 				}
 
-				if (migrated)
+				// LED Hardware count is leading for versions after alpha 9
+				// Setting Hardware LED count to number of LEDs configured via layout, if layout number is greater than number of hardware LEDs
+				if (config.contains("device"))
 				{
-					config["device"] = newDeviceConfig;
-					Debug(_log, "LED-Device records migrated");
-				}
-			}
+					QJsonObject newDeviceConfig = config["device"].toObject();
 
-			if (config.contains("grabberV4L2"))
-			{
-				QJsonObject newGrabberV4L2Config = config["grabberV4L2"].toObject();
+					if (newDeviceConfig.contains("hardwareLedCount"))
+					{
+						int hwLedcount = newDeviceConfig["hardwareLedCount"].toInt();
+						if (config.contains("leds"))
+						{
+							const QJsonArray ledarr = config["leds"].toArray();
+							int layoutLedCount = ledarr.size();
 
-				if (newGrabberV4L2Config.contains("encoding_format"))
-				{
-					newGrabberV4L2Config.remove("encoding_format");
-					newGrabberV4L2Config["grabberV4L2"] = newGrabberV4L2Config;
-					migrated = true;
-				}
+							if (hwLedcount < layoutLedCount )
+							{
+								Warning(_log, "Instance [%u]: HwLedCount/Layout mismatch! Setting Hardware LED count to number of LEDs configured via layout", _instance);
+								hwLedcount = layoutLedCount;
+								newDeviceConfig["hardwareLedCount"] = hwLedcount;
+								migrated = true;
+							}
+						}
+					}
 
-				//Add new element enable
-				if (!newGrabberV4L2Config.contains("enable"))
-				{
-					newGrabberV4L2Config["enable"] = false;
-					migrated = true;
-				}
-				config["grabberV4L2"] = newGrabberV4L2Config;
-				Debug(_log, "GrabberV4L2 records migrated");
-			}
+					if (newDeviceConfig.contains("type"))
+					{
+						QString type = newDeviceConfig["type"].toString();
+						if (type == "atmoorb" || type == "fadecandy" || type == "philipshue" )
+						{
+							if (newDeviceConfig.contains("output"))
+							{
+								newDeviceConfig["host"] = newDeviceConfig["output"].toString();
+								newDeviceConfig.remove("output");
+								migrated = true;
+							}
+						}
+					}
 
-			if (config.contains("framegrabber"))
-			{
-				QJsonObject newFramegrabberConfig = config["framegrabber"].toObject();
-
-				//Align element namings with grabberV4L2
-				//Rename element type -> device
-				if (newFramegrabberConfig.contains("type"))
-				{
-					newFramegrabberConfig["device"] = newFramegrabberConfig["type"].toString();
-					newFramegrabberConfig.remove("type");
-					migrated = true;
-				}
-				//Rename element frequency_Hz -> fps
-				if (newFramegrabberConfig.contains("frequency_Hz"))
-				{
-					newFramegrabberConfig["fps"] = newFramegrabberConfig["frequency_Hz"].toInt(25);
-					newFramegrabberConfig.remove("frequency_Hz");
-					migrated = true;
+					if (migrated)
+					{
+						config["device"] = newDeviceConfig;
+						Debug(_log, "LED-Device records migrated");
+					}
 				}
 
-				//Rename element display -> input
-				if (newFramegrabberConfig.contains("display"))
+				if (config.contains("grabberV4L2"))
 				{
-					newFramegrabberConfig["input"] = newFramegrabberConfig["display"];
-					newFramegrabberConfig.remove("display");
-					migrated = true;
+					QJsonObject newGrabberV4L2Config = config["grabberV4L2"].toObject();
+
+					if (newGrabberV4L2Config.contains("encoding_format"))
+					{
+						newGrabberV4L2Config.remove("encoding_format");
+						newGrabberV4L2Config["grabberV4L2"] = newGrabberV4L2Config;
+						migrated = true;
+					}
+
+					//Add new element enable
+					if (!newGrabberV4L2Config.contains("enable"))
+					{
+						newGrabberV4L2Config["enable"] = false;
+						migrated = true;
+					}
+					config["grabberV4L2"] = newGrabberV4L2Config;
+					Debug(_log, "GrabberV4L2 records migrated");
 				}
 
-				//Add new element enable
-				if (!newFramegrabberConfig.contains("enable"))
+				if (config.contains("framegrabber"))
 				{
-					newFramegrabberConfig["enable"] = false;
-					migrated = true;
-				}
+					QJsonObject newFramegrabberConfig = config["framegrabber"].toObject();
 
-				config["framegrabber"] = newFramegrabberConfig;
-				Debug(_log, "Framegrabber records migrated");
+					//Align element namings with grabberV4L2
+					//Rename element type -> device
+					if (newFramegrabberConfig.contains("type"))
+					{
+						newFramegrabberConfig["device"] = newFramegrabberConfig["type"].toString();
+						newFramegrabberConfig.remove("type");
+						migrated = true;
+					}
+					//Rename element frequency_Hz -> fps
+					if (newFramegrabberConfig.contains("frequency_Hz"))
+					{
+						newFramegrabberConfig["fps"] = newFramegrabberConfig["frequency_Hz"].toInt(25);
+						newFramegrabberConfig.remove("frequency_Hz");
+						migrated = true;
+					}
+
+					//Rename element display -> input
+					if (newFramegrabberConfig.contains("display"))
+					{
+						newFramegrabberConfig["input"] = newFramegrabberConfig["display"];
+						newFramegrabberConfig.remove("display");
+						migrated = true;
+					}
+
+					//Add new element enable
+					if (!newFramegrabberConfig.contains("enable"))
+					{
+						newFramegrabberConfig["enable"] = false;
+						migrated = true;
+					}
+
+					config["framegrabber"] = newFramegrabberConfig;
+					Debug(_log, "Framegrabber records migrated");
+				}
 			}
 		}
 	}
+
 	return migrated;
 }

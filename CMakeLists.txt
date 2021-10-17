@@ -121,6 +121,8 @@ MACRO(FIRSTSUBDIR result curdir)
 ENDMACRO()
 
 if ( "${PLATFORM}" MATCHES "osx" )
+	# specify the min version of the target platform
+	SET ( CMAKE_OSX_DEPLOYMENT_TARGET "10.15" )
 	# add specific prefix paths
 	FIRSTSUBDIR(SUBDIRPY "/usr/local/opt/python3/Frameworks/Python.framework/Versions")
 	set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${SUBDIRPY})

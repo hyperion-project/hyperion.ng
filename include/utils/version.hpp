@@ -406,12 +406,12 @@ namespace semver {
 
         friend bool operator== (version &lft, version &rgt)
         {
-            return lft.getVersion().compare(rgt.getVersion()) == 0;
+			return !(lft != rgt);
         }
 
         friend bool operator!= (version &lft, version &rgt)
         {
-            return !(lft == rgt);
+			return (lft > rgt) || (lft < rgt);
         }
 
         friend bool operator> (version &lft, version &rgt)

@@ -1,4 +1,94 @@
-macro(DeployUnix TARGET)
+macro(DeployMacOS TARGET)
+	if (EXISTS ${TARGET_FILE})
+		message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
+
+		get_target_property(QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
+		execute_process(
+			COMMAND ${QMAKE_EXECUTABLE} -query QT_INSTALL_PLUGINS
+			OUTPUT_VARIABLE QT_PLUGIN_DIR
+			OUTPUT_STRIP_TRAILING_WHITESPACE
+		)
+
+		install(CODE "set(TARGET_FILE \"${TARGET_FILE}\") \n set(TARGET_BUNDLE_NAME \"${TARGET}.app\") \n set(PLUGIN_DIR \"${QT_PLUGIN_DIR}\")" COMPONENT "Hyperion")
+		install(CODE [[
+			file(GET_RUNTIME_DEPENDENCIES
+				EXECUTABLES ${TARGET_FILE}
+				RESOLVED_DEPENDENCIES_VAR resolved_deps
+				UNRESOLVED_DEPENDENCIES_VAR unresolved_deps
+				PRE_INCLUDE_REGEXES ".dylib"
+				PRE_EXCLUDE_REGEXES ".*"
+			)
+
+			foreach(dependency ${resolved_deps})
+				file(INSTALL
+					FILES "${dependency}"
+					DESTINATION "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/Frameworks"
+					TYPE SHARED_LIBRARY
+				)
+			endforeach()
+
+			list(LENGTH unresolved_deps unresolved_length)
+			if("${unresolved_length}" GREATER 0)
+				message(WARNING "The following unresolved dependencies were discovered: ${unresolved_deps}")
+			endif()
+
+			foreach(PLUGIN "platforms" "sqldrivers" "imageformats")
+				if(EXISTS ${PLUGIN_DIR}/${PLUGIN})
+					file(GLOB files "${PLUGIN_DIR}/${PLUGIN}/*")
+					foreach(file ${files})
+						get_filename_component(plugin ${file} NAME)
+						list(APPEND QT_PLUGINS "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/plugins/${PLUGIN}/${plugin}")
+						file(INSTALL
+							FILES ${file}
+							DESTINATION "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/plugins/${PLUGIN}"
+							TYPE SHARED_LIBRARY
+						)
+					endforeach()
+				endif()
+			endforeach()
+
+			include(BundleUtilities)
+			fixup_bundle("${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}" "${QT_PLUGINS}" "" IGNORE_ITEM "python;python3;Python;Python3;.Python;.Python3")
+
+			# Detect the Python version and modules directory
+			find_package(Python3 3.5 REQUIRED)
+			execute_process(
+				COMMAND ${Python3_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(standard_lib=True))"
+				OUTPUT_VARIABLE PYTHON_MODULES_DIR
+				OUTPUT_STRIP_TRAILING_WHITESPACE
+			)
+
+			# Copy Python modules to '/../Frameworks/Python.framework/Versions/Current/lib/PythonMAJOR.MINOR' and ignore the unnecessary stuff listed below
+			if (PYTHON_MODULES_DIR)
+				set(PYTHON_VERSION_MAJOR_MINOR "${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}")
+				file(
+					COPY ${PYTHON_MODULES_DIR}/
+					DESTINATION "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/Frameworks/Python.framework/Versions/Current/lib/python${PYTHON_VERSION_MAJOR_MINOR}"
+					PATTERN "*.pyc"                                 EXCLUDE # compiled bytecodes
+					PATTERN "__pycache__"                           EXCLUDE # any cache
+					PATTERN "config-${PYTHON_VERSION_MAJOR_MINOR}*" EXCLUDE # static libs
+					PATTERN "lib2to3"                               EXCLUDE # automated Python 2 to 3 code translation
+					PATTERN "tkinter"                               EXCLUDE # Tk interface
+					PATTERN "turtledemo"                            EXCLUDE # Tk demo folder
+					PATTERN "turtle.py"                             EXCLUDE # Tk demo file
+					PATTERN "test"                                  EXCLUDE # unittest module
+					PATTERN "sitecustomize.py"                      EXCLUDE # site-specific configs
+				)
+			endif(PYTHON_MODULES_DIR)
+		]] COMPONENT "Hyperion")
+
+	else()
+		add_custom_command(
+			TARGET ${TARGET} POST_BUILD
+			COMMAND "${CMAKE_COMMAND}" "-DTARGET_FILE=$<TARGET_FILE:${TARGET}>"
+			ARGS ${CMAKE_SOURCE_DIR}
+			WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+			VERBATIM
+		)
+	endif()
+endmacro()
+
+macro(DeployLinux TARGET)
 	if (EXISTS ${TARGET_FILE})
 		message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
 		include(GetPrerequisites)
@@ -141,26 +231,18 @@ macro(DeployUnix TARGET)
 
 		# Detect the Python version and modules directory
 		if (NOT CMAKE_VERSION VERSION_LESS "3.12")
-
 			set(PYTHON_VERSION_MAJOR_MINOR "${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}")
-			execute_process(
-				COMMAND ${Python3_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(standard_lib=True))"
-				OUTPUT_VARIABLE PYTHON_MODULES_DIR
-				OUTPUT_STRIP_TRAILING_WHITESPACE
-			)
-
+			set(PYTHON_MODULES_DIR "${Python3_STDLIB}")
 		else()
-
 			set(PYTHON_VERSION_MAJOR_MINOR "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
 			execute_process(
 				COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(standard_lib=True))"
 				OUTPUT_VARIABLE PYTHON_MODULES_DIR
 				OUTPUT_STRIP_TRAILING_WHITESPACE
 			)
-
 		endif()
 
-		# Copy Python modules to 'share/hyperion/lib/pythonXX' and ignore the unnecessary stuff listed below
+		# Copy Python modules to 'share/hyperion/lib/pythonMAJOR.MINOR' and ignore the unnecessary stuff listed below
 		if (PYTHON_MODULES_DIR)
 
 			install(

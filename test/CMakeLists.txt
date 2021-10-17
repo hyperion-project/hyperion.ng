@@ -36,6 +36,9 @@ if(ENABLE_X11)
 	target_link_libraries(test_x11performance ${X11_LIBRARIES} Qt${QT_VERSION_MAJOR}::Widgets)
 endif(ENABLE_X11)
 
+add_executable(test_versions TestVersions.cpp)
+target_link_libraries(test_versions Qt5::Core)
+
 ######### These tests are broken. May they fix someone ##########
 
 # add_executable(test_image2ledsmap TestImage2LedsMap.cpp)
