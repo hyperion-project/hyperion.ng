@@ -37,7 +37,7 @@ if(ENABLE_X11)
 endif(ENABLE_X11)
 
 add_executable(test_versions TestVersions.cpp)
-target_link_libraries(test_versions Qt5::Core)
+target_link_libraries(test_versions Qt${QT_VERSION_MAJOR}::Core)
 
 ######### These tests are broken. May they fix someone ##########
 

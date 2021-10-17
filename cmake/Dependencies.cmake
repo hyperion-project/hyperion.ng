@@ -2,7 +2,7 @@ macro(DeployMacOS TARGET)
 	if (EXISTS ${TARGET_FILE})
 		message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
 
-		get_target_property(QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
+		get_target_property(QMAKE_EXECUTABLE Qt${QT_VERSION_MAJOR}::qmake IMPORTED_LOCATION)
 		execute_process(
 			COMMAND ${QMAKE_EXECUTABLE} -query QT_INSTALL_PLUGINS
 			OUTPUT_VARIABLE QT_PLUGIN_DIR
