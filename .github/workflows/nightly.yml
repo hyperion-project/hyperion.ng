@@ -50,12 +50,13 @@ jobs:
         with:
           submodules: true
 
-      - name: Generate nightly version
-        id: vars
+      - name: Generate environment variables
         run: |
-          VERSION="$(tr -d '\n' < .version)+nightly$(date '+%Y%m%d')$(git rev-parse --short HEAD)"
-          echo "MAJOR_MINOR_PATCH=$(echo "${VERSION%.*}.$((${VERSION##*.}))")" >> $GITHUB_ENV
-          echo "$VERSION" > .version
+          echo "$(tr -d '\n' < .version)+nightly$(date '+%Y%m%d')$(git rev-parse --short HEAD)" > .version
+          VERSION=$(cat .version)
+          echo VERSION=${VERSION} >> $GITHUB_ENV
+          echo STANDARDS_VERSION=$(echo ${VERSION%+*}) >> $GITHUB_ENV
+          echo DISTRIBUTION=$(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
 
       - name: Build package
         shell: bash
@@ -64,13 +65,13 @@ jobs:
           docker run --rm \
             -v "${GITHUB_WORKSPACE}/deploy:/deploy" \
             -v "${GITHUB_WORKSPACE}:/source:rw" \
-            ghcr.io/hyperion-project/${{ matrix.architecture }}:$(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]') \
+            ghcr.io/hyperion-project/${{ matrix.architecture }}:${{ env.DISTRIBUTION }} \
             /bin/bash -c "cd /source && \
-            mkdir -p debian/source && echo '3.0 (quilt)' > debian/source/format && \
-            dch --create --distribution $(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]') --package 'hyperion' -v '$(cat .version)~$(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]')' '${{ github.event.commits[0].message }}' && \
+            mkdir -p debian/source && echo '3.0 (native)' > debian/source/format && \
+            dch --create --distribution ${{ env.DISTRIBUTION }} --package 'hyperion' -v '${{ env.VERSION }}~${{ env.DISTRIBUTION }}' '${{ github.event.commits[0].message }}' && \
             cp -fr LICENSE debian/copyright && \
-            sed 's/@BUILD_DEPENDS@/${{ matrix.build-depends }}/g; s/@DEPENDS@/${{ matrix.package-depends }}/g; s/@ARCHITECTURE@/${{ matrix.architecture }}/g; s/@STANDARDS_VERSION@/${{ env.MAJOR_MINOR_PATCH }}/g' debian/control.in > debian/control && \
-            tar -cJf ../hyperion_$(cat .version)~$(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]').orig.tar.xz . && \
+            sed 's/@BUILD_DEPENDS@/${{ matrix.build-depends }}/g; s/@DEPENDS@/${{ matrix.package-depends }}/g; s/@ARCHITECTURE@/${{ matrix.architecture }}/g; s/@STANDARDS_VERSION@/${{ env.STANDARDS_VERSION }}/g' debian/control.in > debian/control && \
+            tar -cJf ../hyperion_${{ env.VERSION }}~${{ env.DISTRIBUTION }}.orig.tar.xz . && \
             debuild --no-lintian -uc -us && \
             cp ../hyperion_* /deploy"
 
@@ -121,7 +122,7 @@ jobs:
             fi
           done
 
-      - name: Upload packages to APT server (Nightly)
+      - name: Upload packages to nightly server
         uses: SamKirkland/FTP-Deploy-Action@4.1.0
         with:
           server: nightly.hyperion-project.org
