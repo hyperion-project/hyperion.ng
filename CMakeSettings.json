@@ -10,13 +10,15 @@
       "cmakeCommandArgs": "",
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
+      "variables": [
+        // Replace path with your TurboJPEG installation path
+        //{ "name": "TurboJPEG_INCLUDE_DIRS", "type": "PATH", "value": "YourTurboJPEGPath/libjpeg-turbo64/include" },
+        //{ "name": "TurboJPEG_LIBRARY", "value": "YourTurboJPEGPath/libjpeg-turbo64/lib/turbojpeg.lib", "type": "FILEPATH" }
+      ],
       "environments": [
-        {
-          "Qt6_BASE_DIR": "D:/Qt/6.0.0/msvc2019_64"
-        },
-        {
-          "Qt6_DIR": "D:/Qt/6.0.0/msvc2019_64/lib/cmake/Qt6"
-        }
+        // Replace path with your installation path
+        //{ "QTDIR": "C:/Qt/6.2.0/msvc2019_64/" },
+        //{ "VULKAN_SDK": "C:/VulkanSDK/1.2.182.0" }
       ]
     },
     {
@@ -29,10 +31,15 @@
       "buildCommandArgs": "package",
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "msvc_x64_x64" ],
+      "variables": [
+        // Replace path with your TurboJPEG installation path
+        //{ "name": "TurboJPEG_INCLUDE_DIRS", "type": "PATH", "value": "YourTurboJPEGPath/libjpeg-turbo64/include" },
+        //{ "name": "TurboJPEG_LIBRARY", "value": "YourTurboJPEGPath/libjpeg-turbo64/lib/turbojpeg.lib", "type": "FILEPATH" }
+      ],
       "environments": [
-        {
-          "Qt6_BASE_DIR": "D:/Qt/6.0.0/msvc2019_64"
-        }
+        // Replace path with your installation path
+        //{ "QTDIR": "C:/Qt/6.2.0/msvc2019_64/" },
+        //{ "VULKAN_SDK": "C:/VulkanSDK/1.2.182.0" }
       ]
     }
   ]
