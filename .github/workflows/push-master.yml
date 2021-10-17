@@ -175,12 +175,6 @@ jobs:
         run: |
           echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
           echo "VERSION=$(tr -d '\n' < .version)" >> $GITHUB_ENV
-          echo "preRelease=false" >> $GITHUB_ENV
-
-      # If version contains alpha or beta, mark draft release as pre-release
-      - name: Mark release as pre-release
-        if: contains(env.VERSION, 'alpha') || contains(env.VERSION, 'beta')
-        run: echo "preRelease=true" >> $GITHUB_ENV
 
       # Download artifacts from previous build process
       - name: Download artifacts
@@ -196,7 +190,6 @@ jobs:
           tag_name: ${{ env.TAG }}
           files: "artifacts/**"
           draft: true
-          prerelease: ${{ env.preRelease }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
