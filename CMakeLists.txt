@@ -125,20 +125,6 @@ if ( "${PLATFORM}" MATCHES "osx" )
 	FIRSTSUBDIR(SUBDIRPY "/usr/local/opt/python3/Frameworks/Python.framework/Versions")
 	set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${SUBDIRPY})
 
-	if(EXISTS /usr/local/opt/qt6)
-		include(CheckCXXCompilerFlag)
-		CHECK_CXX_COMPILER_FLAG("-Werror=unguarded-availability" REQUIRES_UNGUARDED_AVAILABILITY)
-		if(REQUIRES_UNGUARDED_AVAILABILITY)
-			list(APPEND CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS} "-Werror=unguarded-availability")
-		endif()
-		set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "/usr/local/opt/qt6")
-		set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
-	endif()
-
-	if(EXISTS /usr/local/opt/qt5)
-		set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "/usr/local/opt/qt5")
-	endif()
-
 	include_directories("/opt/X11/include/")
 	SET ( DEFAULT_OSX        ON )
 	SET ( DEFAULT_USB_HID    ON )
@@ -318,14 +304,6 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	message(STATUS "WINDOWS SDK: ${WINDOWSSDK_LATEST_DIR} ${WINDOWSSDK_LATEST_NAME}")
 	message(STATUS "MSVC VERSION: ${MSVC_VERSION}")
 
-	if (NOT DEFINED ENV{QTDIR})
-		FIRSTSUBDIR(SUBDIRQT "C:/Qt")
-		SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SUBDIRQT}/msvc2019_64")
-	else()
-		message(STATUS "Add QTDIR: $ENV{QTDIR} to CMAKE_PREFIX_PATH")
-		SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "$ENV{QTDIR}")
-	endif()
-
 	# Search for DirectX9
 	if (ENABLE_DX)
 		find_package(DirectX9 REQUIRED)
@@ -352,6 +330,22 @@ if(APPLE)
 endif()
 
 find_package(Threads REQUIRED)
+
+# Allow to overwrite QT base directory
+if (DEFINED ENV{QTDIR})
+	message(STATUS "Add QTDIR: $ENV{QTDIR} to CMAKE_PREFIX_PATH")
+	list(PREPEND CMAKE_PREFIX_PATH $ENV{QTDIR})
+else()
+	if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+		FIRSTSUBDIR(SUBDIRQT "C:/Qt")
+		if (NOT ${SUBDIRQT} STREQUAL "")
+			message(STATUS "Set CMAKE_PREFIX_PATH to ${SUBDIRQT}/msvc2019_64")
+			list(PREPEND CMAKE_PREFIX_PATH "${SUBDIRQT}/msvc2019_64")
+		endif()
+	endif()
+endif()
+
+message( STATUS "CMAKE_PREFIX_PATH used: ${CMAKE_PREFIX_PATH}" )
 
 # find QT libs
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Gui Network SerialPort Sql Widgets REQUIRED)
@@ -400,7 +394,7 @@ if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 	CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
 
-	if(APPLE AND ${QT_VERSION_MAJOR} GREATER_EQUAL 6)
+	if(APPLE)
 		CHECK_CXX_COMPILER_FLAG("Werror=unguarded-availability" REQUIRED_UNGUARDED_AVAILABILITY)
 		if(REQUIRED_UNGUARDED_AVAILABILITY)
 			list(APPEND CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS} "Werror=unguarded-availability")

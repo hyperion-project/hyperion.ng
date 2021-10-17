@@ -107,7 +107,7 @@ First you need to install the dependencies:
 brew install qt5 python3 cmake libusb doxygen zlib
 ```
 
-## Windows (WIP)
+## Windows
 We assume a 64bit Windows 10. Install the following;
 - [Git](https://git-scm.com/downloads) (Check: Add to PATH)
 - [CMake (Windows win64-x64 installer)](https://cmake.org/download/) (Check: Add to PATH)
@@ -118,6 +118,7 @@ We assume a 64bit Windows 10. Install the following;
 - [Python 3 (Windows x86-64 executable installer)](https://www.python.org/downloads/windows/) (Check: Add to PATH and Debug Symbols)
   - Open a console window and execute `pip install aqtinstall`.
   - Now we can download Qt to _C:\Qt_ `mkdir c:\Qt && aqt install -O c:\Qt 5.15.0 windows desktop win64_msvc2019_64`
+  - QT6.2 requires the [Vulkan SDK](https://vulkan.lunarg.com/sdk/home) to be installed
 - [libjpeg-turbo SDK for Visual C++](https://sourceforge.net/projects/libjpeg-turbo/files/)
   - Download the latest 64bit installer (currently `libjpeg-turbo-2.1.0-vc64.exe`) and install to its default location `C:\libjpeg-turbo64`.
 
@@ -155,6 +156,23 @@ sudo make uninstall
 # ... or run it from compile directory
 bin/hyperiond
 # webui is located on localhost:8090 or 8091
+```
+
+In case you would like to build with a dedicated Qt version, provide the version's location via the QTDIR environment variable before running cmake :
+```console
+export QTDIR=/opt/Qt/6.2.0/gcc_64
+```
+On Windows MSVC2019 set it via the CMakeSettings.json:
+```posh
+  "configurations": [
+    {
+      ...
+      "environments": [
+        {
+          "QTDIR": "C:/Qt/6.2.0/msvc2019_64/"
+        }
+      ]
+    },
 ```
 
 ## The detailed way (with many comments)
@@ -198,11 +216,6 @@ Platform should be auto detected and refer to osx, you can also force osx:
 cmake -DPLATFORM=osx -DCMAKE_BUILD_TYPE=Release ..
 ```
 
-In case you would like to build with a dedicated Qt version, provide the version's location via the CMAKE_PREFIX_PATH:
-```console
-cmake -DCMAKE_PREFIX_PATH=/opt/Qt/5.15.2/gcc_64 -DCMAKE_BUILD_TYPE=Release ..
-```
-
 To generate files on Windows (Release+Debug capable):
 
 Platform should be auto detected and refer to windows, you can also force windows:
@@ -244,7 +257,3 @@ cmake -DCMAKE_INSTALL_PREFIX=/home/pi/apps ..
 ```
 This will install to ``/home/pi/apps/share/hyperion``
 
-
-**Integrating hyperion into your system:**
-
-... ToDo
