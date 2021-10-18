@@ -208,7 +208,10 @@ $(document).ready(function () {
       removeStorage("loginToken", true);
       requestRequiresAdminAuth();
     }
-    else {
+    else if (event.reason == "Selected Hyperion instance isn't running") {
+      //Switch to default instance
+      instanceSwitch(0);
+    } else {
       showInfoDialog("error", "Error", event.reason);
     }
   });
