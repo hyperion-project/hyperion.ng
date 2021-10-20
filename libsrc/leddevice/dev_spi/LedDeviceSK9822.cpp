@@ -39,10 +39,6 @@ bool LedDeviceSK9822::init(const QJsonObject &deviceConfig)
 
 		_ledBuffer.resize(0, 0x00);
 		_ledBuffer.resize(bufferSize, 0x00);
-		//_ledBuffer[0] = 0x00;
-		//_ledBuffer[1] = 0x00;
-		//_ledBuffer[2] = 0x00;
-		//_ledBuffer[3] = 0x00;
 
 		isInitOK = true;
 	}

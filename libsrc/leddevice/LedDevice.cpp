@@ -275,6 +275,7 @@ bool LedDevice::switchOn()
 				if ( powerOn() )
 				{
 					_isOn = true;
+					_isInSwitchOff = false;
 					rc = true;
 				}
 			}
