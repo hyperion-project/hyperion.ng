@@ -37,6 +37,7 @@ ProviderSpi::ProviderSpi(const QJsonObject &deviceConfig)
 {
 	memset(&_spi, 0, sizeof(_spi));
 	_latchTime_ms = 1;
+	_isInSwitchOff = false;
 }
 
 ProviderSpi::~ProviderSpi()
@@ -68,6 +69,7 @@ int ProviderSpi::open()
 	int retval = -1;
 	QString errortext;
 	_isDeviceReady = false;
+	_isInSwitchOff = false;
 
 	const int bitsPerWord = 8;
 
