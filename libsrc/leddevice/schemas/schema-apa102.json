@@ -5,8 +5,6 @@
 		"output": {
 			"type": "string",
 			"title":"edt_dev_spec_spipath_title",
-			"enum" : ["/dev/spidev0.0","/dev/spidev0.1"],
-			"default" : "/dev/spidev0.0",
 			"propertyOrder" : 1
 		},
 		"rate": {
@@ -21,20 +19,18 @@
 			"default": false,
 			"propertyOrder" : 3
 		},
-		"latchTime": {
+		"brightnessControlMaxLevel": {
 			"type": "integer",
-			"title":"edt_dev_spec_latchtime_title",
-			"default": 0,
-			"append" : "edt_append_ms",
-			"minimum": 0,
-			"maximum": 1000,
-			"access" : "expert",
+			"title":"edt_conf_color_brightness_title",
+			"default": 31,
+			"minimum": 1,
+			"maximum": 31,
 			"propertyOrder" : 4
 		},
 		"rewriteTime": {
 			"type": "integer",
 			"title":"edt_dev_general_rewriteTime_title",
-			"default": 1000,
+			"default": 0,
 			"append" : "edt_append_ms",
 			"minimum": 0,
 			"access" : "expert",

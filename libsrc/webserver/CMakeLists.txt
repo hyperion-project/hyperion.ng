@@ -5,9 +5,10 @@ set(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/webserver)
 
 FILE ( GLOB WebConfig_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
 FILE ( GLOB_RECURSE webFiles RELATIVE ${CMAKE_BINARY_DIR}  ${CMAKE_SOURCE_DIR}/assets/webconfig/* )
+FILE ( RELATIVE_PATH webConfigPath ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/assets/webconfig)
 
 FOREACH( f ${webFiles} )
-    STRING ( REPLACE "../assets/webconfig/" "" fname ${f})
+    STRING ( REPLACE "${webConfigPath}/" "" fname ${f})
     SET(HYPERION_WEBCONFIG_RES "${HYPERION_WEBCONFIG_RES}\n\t\t<file alias=\"/webconfig/${fname}\">${f}</file>")
 ENDFOREACH()
 CONFIGURE_FILE(${CURRENT_SOURCE_DIR}/WebConfig.qrc.in ${CMAKE_BINARY_DIR}/WebConfig.qrc )

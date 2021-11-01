@@ -8,7 +8,13 @@
 
 // Hyperion-utils includes
 #include <utils/ColorRgb.h>
+#include <hyperion/GrabberWrapper.h>
 #include <hyperion/Grabber.h>
+
+// qt includes
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonDocument>
 
 ///
 /// @brief The DirectX9 capture implementation
@@ -17,33 +23,32 @@ class DirectXGrabber : public Grabber
 {
 public:
 
-	DirectXGrabber(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation, int display);
+	DirectXGrabber(int display=0, int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
 
 	virtual ~DirectXGrabber();
 
 	///
 	/// Captures a single snapshot of the display and writes the data to the given image. The
-	/// provided image should have the same dimensions as the configured values (_width and
-	/// _height)
+	/// provided image should have the same dimensions as the configured values (_width and _height)
 	///
 	/// @param[out] image  The snapped screenshot
 	///
-	virtual int grabFrame(Image<ColorRgb> & image);
+	int grabFrame(Image<ColorRgb> & image);
 
 	///
 	/// @brief Set a new video mode
 	///
-	virtual void setVideoMode(VideoMode mode);
+	void setVideoMode(VideoMode mode) override;
 
 	///
 	/// @brief Apply new width/height values, overwrite Grabber.h implementation
 	///
-	virtual bool setWidthHeight(int width, int height) { return true; };
+	bool setWidthHeight(int /* width */, int /*height*/) override { return true; }
 
 	///
 	/// @brief Apply new pixelDecimation
 	///
-	virtual void setPixelDecimation(int pixelDecimation);
+	bool setPixelDecimation(int pixelDecimation) override;
 
 	///
 	/// Set the crop values
@@ -52,7 +57,20 @@ public:
 	/// @param  cropTop     Top pixel crop
 	/// @param  cropBottom  Bottom pixel crop
 	///
-	virtual void setCropping(unsigned cropLeft, unsigned cropRight, unsigned cropTop, unsigned cropBottom);
+	void setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom);
+
+	///
+	/// @brief Apply display index
+	///
+	bool setDisplayIndex(int index) override;
+
+	/// @brief Discover QT screens available (for configuration).
+	///
+	/// @param[in] params Parameters used to overwrite discovery default behaviour
+	///
+	/// @return A JSON structure holding a list of devices found
+	///
+	QJsonObject discover(const QJsonObject& params);
 
 private:
 	///
@@ -67,7 +85,7 @@ private:
 	void freeResources();
 
 private:
-	int _pixelDecimation;
+	unsigned _display;
 	unsigned _displayWidth;
 	unsigned _displayHeight;
 	RECT* _srcRect;

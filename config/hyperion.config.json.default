@@ -2,6 +2,8 @@
 	"general" :
 	{
 		"name"       : "My Hyperion Config",
+	    "configVersion": "configVersionValue",
+	    "previousVersion": "previousVersionValue",
 		"watchedVersionBranch" : "Stable",
 		"showOptHelp" : true
 	},
@@ -35,9 +37,9 @@
 				"cyan"    : [0,255,255],
 				"magenta" : [255,0,255],
 				"yellow"  : [255,255,0],
-				"gammaRed"   : 1.5,
-				"gammaGreen" : 1.5,
-				"gammaBlue"  : 1.5,
+				"gammaRed"   : 2.2,
+				"gammaGreen" : 2.2,
+				"gammaBlue"  : 2.2,
 				"backlightThreshold"  : 0,
 				"backlightColored"  : false,
 				"brightness" : 100,
@@ -56,46 +58,54 @@
 		"outputRate"        : 25.0000,
 		"decay"             : 1,
 		"dithering"         : false,
-		"updateDelay"       : 0,
-		"continuousOutput"  : true
+		"updateDelay"       : 0
 	},
 
 	"grabberV4L2" :
 	{
-		"device"                : "auto",
+		"enable"                : false,
+		"device"                : "none",
 		"input"                 : 0,
+		"encoding"              : "NO_CHANGE",
 		"width"                 : 0,
 		"height"                : 0,
 		"fps"                   : 15,
-		"standard"              : "NO_CHANGE",
+		"flip"                  : "NO_CHANGE",
+		"fpsSoftwareDecimation" : 0,
 		"sizeDecimation"        : 8,
 		"cropLeft"              : 0,
 		"cropRight"             : 0,
 		"cropTop"               : 0,
 		"cropBottom"            : 0,
-		"redSignalThreshold"    : 5,
-		"greenSignalThreshold"  : 5,
-		"blueSignalThreshold"   : 5,
+		"redSignalThreshold"    : 0,
+		"greenSignalThreshold"  : 100,
+		"blueSignalThreshold"   : 0,
 		"signalDetection"       : false,
+		"noSignalCounterThreshold" : 200,
 		"cecDetection"          : false,
-		"sDVOffsetMin"          : 0.25,
-		"sDHOffsetMin"          : 0.25,
-		"sDVOffsetMax"          : 0.75,
-		"sDHOffsetMax"          : 0.75
+		"sDVOffsetMin"          : 0.1,
+		"sDVOffsetMax"          : 0.9,
+		"sDHOffsetMin"          : 0.4,
+		"sDHOffsetMax"          : 0.46,
+		"hardware_brightness"   : 0,
+		"hardware_contrast"     : 0,
+		"hardware_saturation"   : 0,
+		"hardware_hue"          : 0
 	},
 
 	"framegrabber" :
 	{
-		"type"               : "auto",
+		"enable"             : false,
+		"device"             : "auto",
+		"input"              : 0,
 		"width"              : 80,
 		"height"             : 45,
-		"frequency_Hz"       : 10,
+		"fps"                : 10,
 		"pixelDecimation"    : 8,
 		"cropLeft"           : 0,
 		"cropRight"          : 0,
 		"cropTop"            : 0,
-		"cropBottom"         : 0,
-		"display"            : 0
+		"cropBottom"         : 0
 	},
 
 	"blackborderdetector" :
@@ -177,9 +187,11 @@
 
 	"instCapture" :
 	{
-		"systemEnable" : true,
+		"systemEnable" : false,
+		"systemGrabberDevice" : "NONE",
 		"systemPriority" : 250,
 		"v4lEnable" : false,
+		"v4lGrabberDevice" : "NONE",
 		"v4lPriority" : 240
 	},
 

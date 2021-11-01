@@ -1,5 +1,95 @@
-macro(DeployUnix TARGET)
-	if(EXISTS ${TARGET_FILE})
+macro(DeployMacOS TARGET)
+	if (EXISTS ${TARGET_FILE})
+		message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
+
+		get_target_property(QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
+		execute_process(
+			COMMAND ${QMAKE_EXECUTABLE} -query QT_INSTALL_PLUGINS
+			OUTPUT_VARIABLE QT_PLUGIN_DIR
+			OUTPUT_STRIP_TRAILING_WHITESPACE
+		)
+
+		install(CODE "set(TARGET_FILE \"${TARGET_FILE}\") \n set(TARGET_BUNDLE_NAME \"${TARGET}.app\") \n set(PLUGIN_DIR \"${QT_PLUGIN_DIR}\")" COMPONENT "Hyperion")
+		install(CODE [[
+			file(GET_RUNTIME_DEPENDENCIES
+				EXECUTABLES ${TARGET_FILE}
+				RESOLVED_DEPENDENCIES_VAR resolved_deps
+				UNRESOLVED_DEPENDENCIES_VAR unresolved_deps
+				PRE_INCLUDE_REGEXES ".dylib"
+				PRE_EXCLUDE_REGEXES ".*"
+			)
+
+			foreach(dependency ${resolved_deps})
+				file(INSTALL
+					FILES "${dependency}"
+					DESTINATION "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/Frameworks"
+					TYPE SHARED_LIBRARY
+				)
+			endforeach()
+
+			list(LENGTH unresolved_deps unresolved_length)
+			if("${unresolved_length}" GREATER 0)
+				message(WARNING "The following unresolved dependencies were discovered: ${unresolved_deps}")
+			endif()
+
+			foreach(PLUGIN "platforms" "sqldrivers" "imageformats")
+				if(EXISTS ${PLUGIN_DIR}/${PLUGIN})
+					file(GLOB files "${PLUGIN_DIR}/${PLUGIN}/*")
+					foreach(file ${files})
+						get_filename_component(plugin ${file} NAME)
+						list(APPEND QT_PLUGINS "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/plugins/${PLUGIN}/${plugin}")
+						file(INSTALL
+							FILES ${file}
+							DESTINATION "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/plugins/${PLUGIN}"
+							TYPE SHARED_LIBRARY
+						)
+					endforeach()
+				endif()
+			endforeach()
+
+			include(BundleUtilities)
+			fixup_bundle("${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}" "${QT_PLUGINS}" "" IGNORE_ITEM "python;python3;Python;Python3;.Python;.Python3")
+
+			# Detect the Python version and modules directory
+			find_package(Python3 3.5 REQUIRED)
+			execute_process(
+				COMMAND ${Python3_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(standard_lib=True))"
+				OUTPUT_VARIABLE PYTHON_MODULES_DIR
+				OUTPUT_STRIP_TRAILING_WHITESPACE
+			)
+
+			# Copy Python modules to '/../Frameworks/Python.framework/Versions/Current/lib/PythonMAJOR.MINOR' and ignore the unnecessary stuff listed below
+			if (PYTHON_MODULES_DIR)
+				set(PYTHON_VERSION_MAJOR_MINOR "${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}")
+				file(
+					COPY ${PYTHON_MODULES_DIR}/
+					DESTINATION "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/Frameworks/Python.framework/Versions/Current/lib/python${PYTHON_VERSION_MAJOR_MINOR}"
+					PATTERN "*.pyc"                                 EXCLUDE # compiled bytecodes
+					PATTERN "__pycache__"                           EXCLUDE # any cache
+					PATTERN "config-${PYTHON_VERSION_MAJOR_MINOR}*" EXCLUDE # static libs
+					PATTERN "lib2to3"                               EXCLUDE # automated Python 2 to 3 code translation
+					PATTERN "tkinter"                               EXCLUDE # Tk interface
+					PATTERN "turtledemo"                            EXCLUDE # Tk demo folder
+					PATTERN "turtle.py"                             EXCLUDE # Tk demo file
+					PATTERN "test"                                  EXCLUDE # unittest module
+					PATTERN "sitecustomize.py"                      EXCLUDE # site-specific configs
+				)
+			endif(PYTHON_MODULES_DIR)
+		]] COMPONENT "Hyperion")
+
+	else()
+		add_custom_command(
+			TARGET ${TARGET} POST_BUILD
+			COMMAND "${CMAKE_COMMAND}" "-DTARGET_FILE=$<TARGET_FILE:${TARGET}>"
+			ARGS ${CMAKE_SOURCE_DIR}
+			WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+			VERBATIM
+		)
+	endif()
+endmacro()
+
+macro(DeployLinux TARGET)
+	if (EXISTS ${TARGET_FILE})
 		message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
 		include(GetPrerequisites)
 
@@ -27,7 +117,7 @@ macro(DeployUnix TARGET)
 			"libz"
 		)
 
-		if(ENABLE_DISPMANX)
+		if (ENABLE_DISPMANX)
 			list(APPEND SYSTEM_LIBS_SKIP "libcec")
 		endif()
 
@@ -80,8 +170,8 @@ macro(DeployUnix TARGET)
 			endforeach()
 		endif(OPENSSL_FOUND)
 
-		# Detect the Qt5 plugin directory, source: https://github.com/lxde/lxqt-qtplugin/blob/master/src/CMakeLists.txt
-		get_target_property(QT_QMAKE_EXECUTABLE ${Qt5Core_QMAKE_EXECUTABLE} IMPORTED_LOCATION)
+		# Detect the Qt5 plugin directory
+		get_target_property(QT_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
 		execute_process(
 			COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_PLUGINS
 			OUTPUT_VARIABLE QT_PLUGINS_DIR
@@ -89,9 +179,9 @@ macro(DeployUnix TARGET)
 		)
 
 		# Copy Qt plugins to 'share/hyperion/lib'
-		if(QT_PLUGINS_DIR)
+		if (QT_PLUGINS_DIR)
 			foreach(PLUGIN "platforms" "sqldrivers" "imageformats")
-				if(EXISTS ${QT_PLUGINS_DIR}/${PLUGIN})
+				if (EXISTS ${QT_PLUGINS_DIR}/${PLUGIN})
 					file(GLOB files "${QT_PLUGINS_DIR}/${PLUGIN}/*")
 					foreach(file ${files})
 						get_prerequisites(${file} PLUGINS 0 1 "" "")
@@ -139,34 +229,33 @@ macro(DeployUnix TARGET)
 
 		# Detect the Python version and modules directory
 		if (NOT CMAKE_VERSION VERSION_LESS "3.12")
-
-			set(PYTHON_VERSION_MAJOR_MINOR "${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}")
-			execute_process(
-				COMMAND ${Python3_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(standard_lib=True))"
-				OUTPUT_VARIABLE PYTHON_MODULES_DIR
-				OUTPUT_STRIP_TRAILING_WHITESPACE
-			)
-
+			set(PYTHON_VERSION_MAJOR_MINOR "${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}")
+			set(PYTHON_MODULES_DIR "${Python3_STDLIB}")
 		else()
-
-			set(PYTHON_VERSION_MAJOR_MINOR "${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}")
+			set(PYTHON_VERSION_MAJOR_MINOR "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
 			execute_process(
 				COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(standard_lib=True))"
 				OUTPUT_VARIABLE PYTHON_MODULES_DIR
 				OUTPUT_STRIP_TRAILING_WHITESPACE
 			)
-
 		endif()
 
-		# Copy Python modules to 'share/hyperion/lib/python'
+		# Copy Python modules to 'share/hyperion/lib/pythonMAJOR.MINOR' and ignore the unnecessary stuff listed below
 		if (PYTHON_MODULES_DIR)
 
 			install(
 				DIRECTORY ${PYTHON_MODULES_DIR}/
-				DESTINATION "share/hyperion/lib/python"
+				DESTINATION "share/hyperion/lib/python${PYTHON_VERSION_MAJOR_MINOR}"
 				COMPONENT "Hyperion"
+				PATTERN "*.pyc"                                 EXCLUDE # compiled bytecodes
+				PATTERN "__pycache__"                           EXCLUDE # any cache
+				PATTERN "config-${PYTHON_VERSION_MAJOR_MINOR}*" EXCLUDE # static libs
+				PATTERN "lib2to3"                               EXCLUDE # automated Python 2 to 3 code translation
+				PATTERN "tkinter"                               EXCLUDE # Tk interface
+				PATTERN "turtle.py"                             EXCLUDE # Tk demo
+				PATTERN "test"                                  EXCLUDE # unittest module
+				PATTERN "sitecustomize.py"                      EXCLUDE # site-specific configs
 			)
-
 		endif(PYTHON_MODULES_DIR)
 
 	else()
@@ -182,7 +271,7 @@ macro(DeployUnix TARGET)
 endmacro()
 
 macro(DeployWindows TARGET)
-	if(EXISTS ${TARGET_FILE})
+	if (EXISTS ${TARGET_FILE})
 		message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
 		find_package(Qt5Core REQUIRED)
 		find_package(OpenSSL REQUIRED)
@@ -234,14 +323,14 @@ macro(DeployWindows TARGET)
 			list(REMOVE_AT DEPENDENCIES 0 1)
 		endwhile()
 
-		# Copy OpenSSL Libs
+		# Copy libssl/libcrypto to 'hyperion'
 		if (OPENSSL_FOUND)
 			string(REGEX MATCHALL "[0-9]+" openssl_versions "${OPENSSL_VERSION}")
 			list(GET openssl_versions 0 openssl_version_major)
 			list(GET openssl_versions 1 openssl_version_minor)
 
 			set(library_suffix "-${openssl_version_major}_${openssl_version_minor}")
-			if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+			if (CMAKE_SIZEOF_VOID_P EQUAL 8)
 			  string(APPEND library_suffix "-x64")
 			endif()
 
@@ -264,6 +353,31 @@ macro(DeployWindows TARGET)
 			)
 		endif(OPENSSL_FOUND)
 
+		# Copy libjpeg-turbo to 'hyperion'
+		if (ENABLE_MF)
+			find_package(TurboJPEG)
+
+			if (TURBOJPEG_FOUND)
+				find_file(TURBOJPEG_DLL
+					NAMES "turbojpeg.dll"
+					PATHS ${TurboJPEG_INCLUDE_DIRS}/.. ${TurboJPEG_INCLUDE_DIRS}/../bin
+					NO_DEFAULT_PATH
+				)
+
+				find_file(JPEG_DLL
+					NAMES "jpeg62.dll"
+					PATHS ${TurboJPEG_INCLUDE_DIRS}/.. ${TurboJPEG_INCLUDE_DIRS}/../bin
+					NO_DEFAULT_PATH
+				)
+
+				install(
+					FILES ${TURBOJPEG_DLL} ${JPEG_DLL}
+					DESTINATION "bin"
+					COMPONENT "Hyperion"
+				)
+			endif(TURBOJPEG_FOUND)
+		endif(ENABLE_MF)
+
 		# Create a qt.conf file in 'bin' to override hard-coded search paths in Qt plugins
 		file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/\n")
 		install(
@@ -272,12 +386,12 @@ macro(DeployWindows TARGET)
 			COMPONENT "Hyperion"
 		)
 
-		# Download embed python package
+		# Download embed python package (only release build package available)
 		# Currently only cmake version >= 3.12 implemented
 		set(url "https://www.python.org/ftp/python/${Python3_VERSION}/")
 		set(filename "python-${Python3_VERSION}-embed-amd64.zip")
 
-		if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/${filename}" OR NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/python")
+		if (NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/${filename}" OR NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/python")
 			file(DOWNLOAD "${url}${filename}" "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
 				STATUS result
 			)
@@ -311,27 +425,29 @@ macro(DeployWindows TARGET)
 			)
 		endforeach()
 
-		# Download DirectX End-User Runtimes (June 2010)
-		set(url "https://download.microsoft.com/download/8/4/A/84A35BF1-DAFE-4AE8-82AF-AD2AE20B6B14/directx_Jun2010_redist.exe")
-		if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/dx_redist.exe")
-			file(DOWNLOAD "${url}" "${CMAKE_CURRENT_BINARY_DIR}/dx_redist.exe"
-				STATUS result
-			)
+		if (ENABLE_DX)
+			# Download DirectX End-User Runtimes (June 2010)
+			set(url "https://download.microsoft.com/download/8/4/A/84A35BF1-DAFE-4AE8-82AF-AD2AE20B6B14/directx_Jun2010_redist.exe")
+			if (NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/dx_redist.exe")
+				file(DOWNLOAD "${url}" "${CMAKE_CURRENT_BINARY_DIR}/dx_redist.exe"
+					STATUS result
+				)
 
-			# Check if the download is successful
-			list(GET result 0 result_code)
-			if(NOT result_code EQUAL 0)
-				list(GET result 1 reason)
-				message(FATAL_ERROR "Could not download DirectX End-User Runtimes: ${reason}")
+				# Check if the download is successful
+				list(GET result 0 result_code)
+				if (NOT result_code EQUAL 0)
+					list(GET result 1 reason)
+					message(FATAL_ERROR "Could not download DirectX End-User Runtimes: ${reason}")
+				endif()
 			endif()
-		endif()
 
-		# Copy DirectX End-User Runtimes to 'hyperion'
-		install(
-			FILES ${CMAKE_CURRENT_BINARY_DIR}/dx_redist.exe
-			DESTINATION "bin"
-			COMPONENT "Hyperion"
-		)
+			# Copy DirectX End-User Runtimes to 'hyperion'
+			install(
+				FILES ${CMAKE_CURRENT_BINARY_DIR}/dx_redist.exe
+				DESTINATION "bin"
+				COMPONENT "Hyperion"
+			)
+		endif (ENABLE_DX)
 
 	else()
 		# Run CMake after target was built

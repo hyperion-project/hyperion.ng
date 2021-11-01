@@ -27,12 +27,24 @@
       "name": "(Windows) hyperiond",
       "type": "cppvsdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/bin/Debug/hyperiond.exe",
+      "program": "${command:cmake.launchTargetDirectory}/hyperiond",
       "args": ["-d"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
-      "externalConsole": false
+      "console": "internalConsole"
+    },
+    {
+      "name": "(macOS) Hyperion.app",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/bin/hyperiond.app/Contents/MacOS/hyperiond",
+      "args": ["-d"],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "console": "internalConsole",
+      "MIMode": "lldb"
     }
   ]
 }

@@ -36,12 +36,12 @@ jobs:
         with:
           submodules: true
 
-      # Append PR number to version
+      # Append PR number to .version
       - name: Append PR number to version
         shell: bash
         run: |
-          tr -d '\n' < version > temp && mv temp version
-          echo -n -PR#${{ github.event.pull_request.number }} >> version
+          tr -d '\n' < .version > temp && mv temp .version
+          echo -n "+PR${{ github.event.pull_request.number }}" >> .version
 
       # Build packages
       - name: Build packages
@@ -63,7 +63,7 @@ jobs:
 
       # Upload artifacts
       - name: Upload artifacts
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.dockerImage }}
           path: ${{ matrix.dockerImage }}
@@ -82,12 +82,12 @@ jobs:
         with:
           submodules: true
 
-      # Append PR number to version
+      # Append PR number to .version
       - name: Append PR number to version
         shell: bash
         run: |
-          tr -d '\n' < version > temp && mv temp version
-          echo -n "-PR#${{ github.event.pull_request.number }}" >> version
+          tr -d '\n' < .version > temp && mv temp .version
+          echo -n "+PR${{ github.event.pull_request.number }}" >> .version
 
       # Install dependencies
       - name: Install dependencies
@@ -106,11 +106,11 @@ jobs:
         shell: bash
         run: |
           mkdir -p macOS
-          mv build/*.tar.gz macOS
+          mv build/*.dmg macOS
 
       # Upload artifacts
       - name: Upload artifacts
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: macOS
           path: macOS
@@ -131,12 +131,12 @@ jobs:
         with:
           submodules: true
 
-      # Append PR number to version
+      # Append PR number to .version
       - name: Append PR number to version
         shell: bash
         run: |
-          tr -d '\n' < version > temp && mv temp version
-          echo -n "-PR#${{ github.event.pull_request.number }}" >> version
+          tr -d '\n' < .version > temp && mv temp .version
+          echo -n "+PR${{ github.event.pull_request.number }}" >> .version
 
       - name: Cache Qt
         uses: actions/cache@v2
@@ -170,6 +170,11 @@ jobs:
         run: |
           choco install --no-progress python nsis openssl directx-sdk -y
 
+      - name: Install libjpeg-turbo
+        run: |
+          Invoke-WebRequest https://netcologne.dl.sourceforge.net/project/libjpeg-turbo/2.0.6/libjpeg-turbo-2.0.6-vc64.exe -OutFile libjpeg-turbo.exe -UserAgent NativeHost
+          .\libjpeg-turbo /S
+
       - name: Set up x64 build architecture environment
         shell: cmd
         run: call "${{env.VCINSTALLDIR}}\Auxiliary\Build\vcvars64.bat"
@@ -190,34 +195,15 @@ jobs:
 
       # Upload artifacts
       - name: Upload artifacts
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: windows
           path: windows
 
-######################
-#### Documentation ###
-######################
+##########################
+###### APT workflow ######
+##########################
 
-  docs:
-    name: Documentation
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: docs
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      # Install dependencies
-      - name: Setup node 12
-        uses: actions/setup-node@v1
-        with:
-          node-version: '12'
-
-      # Build Docs
-      - name: Build docs
-        run: |
-          npm install -g yarn
-          yarn install
-          yarn docs:build
+  apt_build:
+    name: APT Build
+    uses: hyperion-project/hyperion.ng/.github/workflows/apt.yml@master

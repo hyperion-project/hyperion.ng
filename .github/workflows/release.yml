@@ -5,11 +5,12 @@ on:
 
 jobs:
   hyperbian:
+    name: Let HyperBian create
     runs-on: ubuntu-latest
     steps:
       # Dispatch event to build new HyperBian image
       - name: Dispatch HyperBian build
-        uses: peter-evans/repository-dispatch@v1
+        uses: peter-evans/repository-dispatch@v1.1.3
         if: ${{ github.repository_owner == 'hyperion-project'}}
         with:
           repository: hyperion-project/HyperBian

@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.0.0-alpha.9...HEAD)
+## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.0.0-alpha.11...HEAD)
 
 ### Breaking
 
@@ -13,6 +13,187 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 ### Fixed
+
+### Removed
+
+## [2.0.0-alpha.11](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.11) - 2021-10-06
+
+The release is primarily fixing issues introduced with alpha 10, but covering other findings too.
+Thanks to everybody highlighting real problem areas, as well as to those proactively providing fixes for integration via pull requests.
+Besides bug fixing, you will find some smaller enhancements which make everybody’s life easier.
+
+The fact that WS281x devices must run under root caused many headaches before in getting them running.
+We did not weaken security, but provide you with an easy to use script to switch the user-id of hyperion going forward. Furthermore, device configuration is blocked, if the environment does not allow it.
+
+### Added:
+- Script to change the user Hyperion is executed with.
+To run Hyperion with root privileges (e.g. for WS281x) execute <br> `sudo updateHyperionUser -u root`
+- Gif effects can source Gifs via URLs in addition to local files as input 
+
+- System info screen: Added used config path and "is run under root/admin"
+- LED-Device enhancements
+  - WS281x: Ensure that a device cannot be configured via the UI when Hyperion is not run with root privileges
+  - Nanoleaf: Support discovering additional Nanoleaf devices, e.g. Shapes
+  - Nanoleaf: Ability to restore state when Hyperion stops streaming<br>
+    Note: In case previous state was a dynamic/temporary effect, the state cannot be restored
+  - Nanoleaf: New Feature: allow to overwrite brightness by Hyperion
+
+### Changed:
+
+- The Systemd/Upstart/System-V-Init service registers Hyperion under the name hyperion instead of hyperiond, as this has caused confusion among users in the past.
+- WLED and UDP-Raw: Limit maximum LEDs number to 490
+- WS281x: Update DMA default as per rpi_ws281x recommendation
+- Smoothing is paused when no input source is available (to save resources)
+- Disable LED update streaming, if LED updates are not required, Sync. Video-Streaming between Layout and Simulation
+- Load configuration of last instance used when loading the UI page, Streamline API requests to avoid unnecessary invocations (#1311)
+- BobLight: Priorities are not limited any longer. BobLight can feed Priorities [2-253], default is still 128 (#1269)
+- Amlogic grabber: Limit grabber to 30fps during discovery
+- Amlogic grabber: Continuous image feed even when paused (to not have LEDs switched off), plus no delay when pausing/unpausing
+
+### Fixed:
+
+- Fixed that Smoothing with "Continuous Updates" disabled does not provides LED updates (#1068, #1240)
+- Fixed Issue Blinking / flickering cursor with QT screen capture on Windows (#1328)
+- Fixed Colour effect priority is not deleted when Colorpicker is open (double click on delete is required)
+- Fixed reuse local SSDP address (#1324)
+- Exclude FB Grabber on Amlogic platform, as FB is included in Amlogic Grabber
+- Escape XSS payload to avoid execution (#1292)
+- Include libqt5sql5-sqlite packaging dependency
+- Fixed embedded Python location (#1109)
+ 
+- LED-Devices
+  - Fixed Philips Hue wizard (#1276)
+  - Fixed AtmoOrb wizard
+  - Fixed that Lightpack device does not core when lack of permissions error (LIBUSB_ERROR_ACCESS)
+  - Fixed Atmo/Karate LED count constraint handling
+  - Fixed Hue, Disable LED general options (HW Led count & RGB Byte order) as calculated
+  - Fixed SPI, Tpm2.Net - Memory issues
+  - Fixed: Nanoleaf does not turn on
+  - Fixed LED layout - Additional parameters for classic layout were not saved (#1314)
+  - Fixed Network LED-Device UI: Trigger getProperties for the configured host, when no hosts were discovered
+
+### Removed:
+
+- Smoothing: Removed "Continuous Updates" flag as it is obsolete.
+In case an LED-device requires continuous updates, use the LED-Device's "Rewrite Time" parameter.
+
+## [2.0.0-alpha.10](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.10) - 2021-07-17
+
+The focus of this release is on user experience.
+We tried as much as possible supporting you in getting valid setup done, as well as providing enough room for expert users to tweak configurations here and there.
+The reworked dashboard provides you now with the ability to control individual components, jump to key configuration items, as well as to switch between LED instances easily.
+The refined color coding in the user-interfaces, helps you to quickly identify instance specific and global configuration items.
+
+Of course, the release brings new features (e.g. USB Capture on Windows), as well as minor enhancements and a good number of fixes.
+
+Note: 
+
+- **IMPORTANT:** Due to the rework of the grabbers, both screen- and video grabbers are disabled after the upgrade to the new version.
+Please, re-enable the grabber of choice via the UI, validate the configuration and save the setup. The grabber should the restart.
+
+- Hyperion packages can now be installed under Ubuntu (x64) and Debian (amd64/armhf) (incl. Raspberry Pi OS) via our own APT server. 
+Details about the installation can be found in the [installation.md](https://github.com/hyperion-project/hyperion.ng/blob/master/Installation.md) and at [apt.hyperion-project.org](apt.hyperion-project.org).
+- Find here more details on [supported platforms and configuration sets](https://github.com/hyperion-project/hyperion.ng/blob/master/doc/development/SupportedPlatforms.md)
+
+### Breaking
+
+### Added
+
+- The Dashboard is now a one-stop control element to control instances and link into configuration areas
+- LED Instance independent configuration objects (e.g. capturing hardware) are now separated out in the menu
+- New menu item "Sources" per LED instances configuration to enable/disable screen or usb grabber per instance
+
+#### Grabbers
+- Windows Media Foundation USB grabber (incl. Media Foundation transform/Turbo-JPEG scaling)
+- Linux V4L2 Grabber now supports the following formats: NV12, YUV420
+- Image flipping ability in ImageResampler/Turbo-JPEG
+- UI: Simplified screens for non-expert usage, do only show elements relevant
+- Discover available Grabbers (incl. their capabilities for selection), not supported grabbers are not presented. Note: Screen capturing on Wayland is not supported (given the Wayland security architecture)
+- USB Grabber: New ability to configure hardware controls (brightness, contrast, saturation, hue), as well as populating defaults
+- Configuration item ranges are automatically adopted based on grabber capabilities,
+- Grabbers can only be saved with a valid configuration
+- Standalone grabbers: Added consistent options/capabilities for standalone grabbers, debug logging support
+- Screen grabbers: Allow to set capture frequency, size decimation and cropping across all grabber types
+- Screen grabber: QT-Grabber allows to capture individual displays or all displays in a multi-display setup
+- Display Signal Detection area in preview (expert users)
+- UI: Only show CEC detection, if supported by platform
+
+#### LED-Devices
+- Select device from list of available devices (UI Optimization - Select device from list of available devices #1053) - Cololight, Nanoleaf, Serial Devices (e.g. Adalight), SPI-Device, Pi-Blaster
+- Get device properties for automatic configuration of number of LEDs and initial layout (WLED, Cololight, Nanoleaf)
+- Identify/Test device (WLED, Cololight, Nanoleaf, Adalight)
+- For selected devices a default layout configuration is created, if the user chooses "Overwrite" (WLED, Cololight, Nanoleaf, all serial devices, all spi device, pi-blaster)
+- Ensure Hardware LED count matches number of lights (Philips Hue, Yeelight, Atmo Orb)
+- User is presented a warning/error, if there is a mismatch between configured LED number and available hardware LEDs
+- Add udev support for Serial-Devices
+- Allow to get properties for Atmo and Karatedevices to limit LED numbers configurable
+- Philips Hue: Add basic support for the Play Gradient Lightstrip
+- WLED: Support of ["live" property] (https://github.com/Aircoookie/WLED/issues/1308) (#1095)
+- WLED: Brightness overwrite control by configuration
+- WLED: Allow to disable WLED synchronization when streaming via hyperion
+- WLED: Support storing/restoring state (#1101)
+- Adalight: Fix LED Num for non analogue output in arduino firmware
+
+- Allow to blacklist LEDs in layout via UI
+- Live Video image to LedLayout preview (#1136)
+
+#### Other
+
+- Effects: Support Custom Effect Templates in UI for custom effect creation and configuration
+- Effects: Custom effect separation in the systray menu
+
+- New languages - Portuguese (Std/Brazil) & Norwegian (Bokmål)
+- New Flags: Russia, Cameroon, Great Britain, England, Scotland
+
+- Provide cross compilation on x86_64 for developers using docker. This includes the ability to use local code, as well as build incrementally
+
+### Changed
+
+- Grabbers use now precise timings for better timing accuracy
+
+- Nanoleaf: Consider Nanoleaf-Shape Controllers
+- LED-Devices: Show HW-Ledcount in all setting levels
+
+- System Log Screen: Support to copy loglines, system info and status of the current instance to the clipboard (to share it for investigation)
+
+- Updated dependency rpi_ws281x to latest upstream
+- Fix High CPU load (RPI3B+) (#1013)
+
+### Fixed
+
+- Active grabbers are displayed correctly after updating the WebUI
+- Issue Crop values are checked against decimated resolution (#1160)
+- Framebuffer grabber is deactivated in case of error
+- Fix/no signal detection (#1087)
+
+- Fix that global settings were not correctly reflected across instances after updates in other non default instance (#1131,#1186,#1188)
+- Fix UI: Handle error scenario properly, when last instance number used does not exist any longer.
+- UI Allow to have password handled by Password-Manager (#1263)
+
+- Fixed effect freezing during startup
+- Effects were not started from tray (#1199)
+- Interrupt effect on timeout (#1013)
+- Fixed color and effect handling and duplicate priorities (#993,#1113,#1216)
+- Stop background effect, when it gets out of scope (to not use resources unnecessarily)
+- Custom Effect Templates (schemas) are now loaded
+- Effects: Uploaded images were not found executing custom image effects
+- "LED Test" effect description is in wrong order (#1229)
+
+- LED-Devices: Only consider Hardware LED count (#673)
+- LED-Devices: Correct total packet count in tpm2net implementation (#1127)
+- LED-Hue: Proper black in Entertainment mode if min brightness is set
+- LED-Hue: Minor fix of setColor command
+- Nanoleaf: Fixed behaviour, if external control mode cannot be set
+
+- System Log Screen: Fixed Auto-Scrolling, Update Look & Feel, Works across multiple Browser tabs/windows, as log stream is not stopped by a new UI
+
+- Rename Instance and Change Password: Modal did not close
+- Read-Only mode was not handled in the SysInfo function
+
+- WebSockets: Handling of fragmented frames fixed
+- Fixed libcec dependencies
+
+- General language and grammar updates
 
 ### Removed
 
@@ -93,8 +274,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix OSX build (#952)
 - AtmoOrb Fix (#988)
 - Return TAN to API requests whenever possible (#1002)
-
-### Removed
 
 ## [2.0.0-alpha.7](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.7) - 2020-07-23
 ### Added
@@ -258,3 +437,4 @@ If you used a `.deb` package please uninstall it before you upgrade
 ## [2.0.0-alpha.1](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.1) - 2020-02-16
 ### Added
 - Initial Release
+

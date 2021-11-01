@@ -7,6 +7,8 @@
 #include <hyperion/LedString.h>
 // fg effect
 #include <hyperion/Hyperion.h>
+#include <hyperion/PriorityMuxer.h>
+#include <effectengine/Effect.h>
 
 ///
 /// @brief Provide utility methods for Hyperion class
@@ -16,8 +18,6 @@ namespace hyperion {
 	void handleInitialEffect(Hyperion* hyperion, const QJsonObject& FGEffectConfig)
 	{
 		#define FGCONFIG_ARRAY fgColorConfig.toArray()
-		const int FG_PRIORITY = 0;
-		const int DURATION_INFINITY = 0;
 
 		// initial foreground effect/color
 		if (FGEffectConfig["enable"].toBool(true))
@@ -27,7 +27,7 @@ namespace hyperion {
 			const QJsonValue fgColorConfig = FGEffectConfig["color"];
 			int default_fg_duration_ms = 3000;
 			int fg_duration_ms = FGEffectConfig["duration_ms"].toInt(default_fg_duration_ms);
-			if (fg_duration_ms == DURATION_INFINITY)
+			if (fg_duration_ms <= Effect::ENDLESS)
 			{
 				fg_duration_ms = default_fg_duration_ms;
 				Warning(Logger::getInstance("HYPERION"), "foreground effect duration 'infinity' is forbidden, set to default value %d ms",default_fg_duration_ms);
@@ -41,12 +41,12 @@ namespace hyperion {
 						static_cast<uint8_t>(FGCONFIG_ARRAY.at(2).toInt(0))
 					}
 				};
-				hyperion->setColor(FG_PRIORITY, fg_color, fg_duration_ms);
+				hyperion->setColor(PriorityMuxer::FG_PRIORITY, fg_color, fg_duration_ms);
 				Info(Logger::getInstance("HYPERION"),"Initial foreground color set (%d %d %d)",fg_color.at(0).red,fg_color.at(0).green,fg_color.at(0).blue);
 			}
 			else
 			{
-				int result = hyperion->setEffect(fgEffectConfig, FG_PRIORITY, fg_duration_ms);
+				int result = hyperion->setEffect(fgEffectConfig, PriorityMuxer::FG_PRIORITY, fg_duration_ms);
 				Info(Logger::getInstance("HYPERION"),"Initial foreground effect '%s' %s", QSTRING_CSTR(fgEffectConfig), ((result == 0) ? "started" : "failed"));
 			}
 		}

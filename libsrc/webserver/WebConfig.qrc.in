@@ -1,5 +1,6 @@
 <RCC>
 	<qresource prefix="/">
+		<file alias="/webconfig/3RD_PARTY_LICENSES">${CMAKE_SOURCE_DIR}/3RD_PARTY_LICENSES</file>
 		${HYPERION_WEBCONFIG_RES}
 	</qresource>
 </RCC>

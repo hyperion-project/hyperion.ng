@@ -1,0 +1,16 @@
+{
+	"name" : "Matrix",
+	"script" : "gif.py",
+	"args" :
+	{
+		"cropBottom": 0,
+		"cropLeft": 0,
+		"cropRight": 0,
+		"cropTop": 0,
+		"fps": 30,
+		"grayscale": false,
+		"imageSource": "url",
+		"reverse": false,
+		"url": "https://i.gifer.com/1j6F.gif"
+	}
+}

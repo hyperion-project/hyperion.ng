@@ -139,7 +139,7 @@ void setup() {
   }
 
   int ledCount = MAX_LEDS;
-  if (ANALOG_MODE == ANALOG_MODE_LAST_LED) {
+  if (ANALOG_OUTPUT_ENABLED == true && ANALOG_MODE == ANALOG_MODE_LAST_LED) {
     ledCount--;
   }
 
@@ -170,7 +170,7 @@ void setup() {
   showColor(CRGB(0, 0, 0));
 
   Serial.print("Ada\n"); // Send "Magic Word" string to host
-
+  Serial.println("Ada: LED num: " +  String(FastLED.size())); //Return number of LEDs configured
 
   boolean transmissionSuccess;
   unsigned long sum_r, sum_g, sum_b;
@@ -254,4 +254,3 @@ void setup() {
 void loop() {
   // Not used. See note in setup() function.
 }
-

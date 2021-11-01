@@ -126,6 +126,25 @@ protected:
 	///
 	bool powerOff() override;
 
+	///
+	/// @brief Store the device's original state.
+	///
+	/// Save the device's state before hyperion color streaming starts allowing to restore state during switchOff().
+	///
+	/// @return True if success
+	///
+	bool storeState() override;
+
+	///
+	/// @brief Restore the device's original state.
+	///
+	/// Restore the device's state as before hyperion color streaming started.
+	/// This includes the on/off state of the device.
+	///
+	/// @return True, if success
+	///
+	bool restoreState() override;
+
 private:
 
 	///
@@ -149,22 +168,28 @@ private:
 	///
 	/// @brief Change Nanoleaf device to External Control (UDP) mode
 	///
-	/// @return Response from device
-	///@brief
-	QJsonDocument changeToExternalControlMode();
+	/// @return True, if success
+	bool changeToExternalControlMode();
+	///
+	/// @brief Change Nanoleaf device to External Control (UDP) mode
+	///
+	/// @param[out] response from device
+	///
+	/// @return True, if success
+	bool changeToExternalControlMode(QJsonDocument& resp);
 
 	///
-	/// @brief Get command to power Nanoleaf device on or off
+	/// @brief Discover Nanoleaf devices available (for configuration).
+	/// Nanoleaf specific ssdp discovery
 	///
-	/// @param isOn True, if to switch on device
-	/// @return Command to switch device on/off
+	/// @return A JSON structure holding a list of devices found
 	///
-	QString getOnOffRequest(bool isOn) const;
+	QJsonArray discover();
 
 	///REST-API wrapper
 	ProviderRestApi* _restApi;
 
-	QString _hostname;
+	QString _hostName;
 	int  _apiPort;
 	QString _authToken;
 
@@ -183,6 +208,21 @@ private:
 
 	/// Array of the panel ids.
 	QVector<int> _panelIds;
+
+	QJsonObject _originalStateProperties;
+
+	bool _isBrightnessOverwrite;
+	int _brightness;
+
+	QString _originalColorMode;
+	bool _originalIsOn;
+	int _originalHue;
+	int _originalSat;
+	int _originalCt;
+	int _originalBri;
+	QString _originalEffect;
+	bool _originalIsDynEffect {false};
+
 };
 
 #endif // LEDEVICENANOLEAF_H

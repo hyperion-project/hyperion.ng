@@ -22,7 +22,7 @@ void check_error(xcb_generic_error_t * error)
 // Requests with void response type
 template<class Request, class ...Args>
 	typename std::enable_if<std::is_same<typename Request::ResponseType, xcb_void_cookie_t>::value, void>::type
-		query(xcb_connection_t * connection, Args&& ...args)
+		static query(xcb_connection_t * connection, Args&& ...args)
 {
 	auto cookie = Request::RequestFunction(connection, std::forward<Args>(args)...);
 
@@ -33,9 +33,8 @@ template<class Request, class ...Args>
 
 // Requests with non-void response type
 template<class Request, class ...Args>
-	typename std::enable_if<!std::is_same<typename Request::ResponseType, xcb_void_cookie_t>::value,
-		std::unique_ptr<typename Request::ResponseType, decltype(&free)>>::type
-			query(xcb_connection_t * connection, Args&& ...args)
+	typename std::enable_if<!std::is_same<typename Request::ResponseType, xcb_void_cookie_t>::value, std::unique_ptr<typename Request::ResponseType, decltype(&free)>>::type
+		static query(xcb_connection_t * connection, Args&& ...args)
 {
 	auto cookie = Request::RequestFunction(connection, std::forward<Args>(args)...);
 

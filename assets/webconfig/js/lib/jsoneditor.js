@@ -1421,7 +1421,7 @@ JSONEditor.AbstractEditor = Class.extend({
     this.template_engine = this.jsoneditor.template;
     this.iconlib = this.jsoneditor.iconlib;
 	this.access = this.jsoneditor.access;
-	
+
     this.translate = this.jsoneditor.translate || JSONEditor.defaults.translate;
 
     this.original_schema = options.schema;
@@ -1447,7 +1447,7 @@ JSONEditor.AbstractEditor = Class.extend({
     if (!deps) {
       return;
     }
-    
+
     var self = this;
     Object.keys(deps).forEach(function(dependency) {
       var path = self.path.split('.');
@@ -1464,13 +1464,13 @@ JSONEditor.AbstractEditor = Class.extend({
     if (this.path === path || !wrapper) {
       return;
     }
-    
+
     var self = this;
     var editor = this.jsoneditor.getEditor(path);
     var value = editor ? editor.getValue() : undefined;
     var previousStatus = this.dependenciesFulfilled;
     this.dependenciesFulfilled = false;
-    
+
 	if (!editor || !editor.dependenciesFulfilled) {
       this.dependenciesFulfilled = false;
     } else if (Array.isArray(choices)) {
@@ -1504,7 +1504,7 @@ JSONEditor.AbstractEditor = Class.extend({
         this.dependenciesFulfilled = !value;
       }
     }
-	
+
     if (this.dependenciesFulfilled !== previousStatus) {
       this.notify();
     }
@@ -1535,7 +1535,7 @@ JSONEditor.AbstractEditor = Class.extend({
     this.updateHeaderText();
     this.register();
     this.onWatchedFieldChange();
-	
+
 	//hide input fields, if they didn't match the current access level
 	var storedAccess = this.access
 	if(this.schema.access){
@@ -1544,12 +1544,12 @@ JSONEditor.AbstractEditor = Class.extend({
       else if(this.schema.access == 'advanced' && storedAccess == 'default')
       {
         this.container.style.display = "none";
-      }	
+      }
     else if(this.schema.access == 'expert' && storedAccess != 'expert')
     {
 			this.container.style.display = "none";
 			//this.disable();
-		}	
+		}
 	}
   },
 
@@ -1839,7 +1839,14 @@ JSONEditor.AbstractEditor = Class.extend({
     this.parent = null;
   },
   getDefault: function() {
-    if(this.schema["default"]) return this.schema["default"];
+    var def = this.schema["default"];
+    if(def) {
+      if (typeof def === "string") {
+        return $.i18n(def);
+      } else {
+        return def;
+      }
+    }
     if(this.schema["enum"]) return this.schema["enum"][0];
 
     var type = this.schema.type || this.schema.oneOf;
@@ -2039,7 +2046,7 @@ JSONEditor.defaults.editors.string = JSONEditor.AbstractEditor.extend({
 	if(this.schema.append) this.append = this.theme.getFormInputAppend(this.getAppend());
 
     this.placeholder = this.schema.default;
-	
+
 	this.format = this.schema.format;
     if(!this.format && this.schema.media && this.schema.media.type) {
       this.format = this.schema.media.type.replace(/(^(application|text)\/(x-)?(script\.)?)|(-source$)/g,'');
@@ -2050,7 +2057,7 @@ JSONEditor.defaults.editors.string = JSONEditor.AbstractEditor.extend({
     if(this.options.format) {
       this.format = this.options.format;
     }
-	
+
     // Specific format
     if(this.format) {
       // Text Area
@@ -2139,7 +2146,7 @@ JSONEditor.defaults.editors.string = JSONEditor.AbstractEditor.extend({
     }
 	// Number or integer adds html5 tag 'number'
 	else if (this.schema.type == "number" || this.schema.type == "integer"){
-		
+
 		var min = this.schema.minimum
 		var max = this.schema.maximum
 		var step = this.schema.step
@@ -2233,7 +2240,7 @@ JSONEditor.defaults.editors.string = JSONEditor.AbstractEditor.extend({
     if(this.format) this.input.setAttribute('data-schemaformat',this.format);
 	if(this.defaultValue) this.input.setAttribute('data-schemaformat',this.format);
 	if(this.formname && this.label)this.label.setAttribute('for',this.formname);
-	
+
     this.control = this.theme.getFormControl(this.label, this.input, this.description, this.append, this.placeholder);
 	this.container.appendChild(this.control);
 
@@ -5097,7 +5104,7 @@ JSONEditor.defaults.editors.select = JSONEditor.AbstractEditor.extend({
     if(!this.options.compact) this.header = this.label = this.theme.getFormInputLabel(this.getTitle());
     if(this.schema.description) this.description = this.theme.getFormInputDescription(this.schema.description);
 	if(this.schema.append) this.append = this.theme.getFormInputAppend(this.getAppend());
-	
+
     if(this.options.compact) this.container.className += ' compact';
 
     this.input = this.theme.getSelectInput(this.enum_options);
@@ -5115,7 +5122,7 @@ JSONEditor.defaults.editors.select = JSONEditor.AbstractEditor.extend({
     });
 
 	if(this.formname)this.label.setAttribute('for',this.formname);
-	
+
     this.control = this.theme.getFormControl(this.label, this.input, this.description);
     this.container.appendChild(this.control);
 
@@ -6220,6 +6227,121 @@ JSONEditor.defaults.editors.arraySelectize = JSONEditor.AbstractEditor.extend({
   }
 });
 
+// Imported from Version 1.4.0.beta.0 | https://cdn.jsdelivr.net/npm/@json-editor/json-editor@1.4.0-beta.0/dist/jsoneditor.js
+JSONEditor.defaults.editors.radio = JSONEditor.defaults.editors.string.extend({
+  build: function () {
+    var self = this;
+
+    if(!this.options.compact) this.header = this.label = this.theme.getFormInputLabel(this.getTitle());
+    if(this.schema.description) this.description = this.theme.getFormInputDescription(this.schema.description);
+    if(this.options.infoText) this.infoButton = this.theme.getInfoButton(this.options.infoText);
+    if(this.options.compact) this.container.classList.add('compact');
+
+    this.radioContainer = document.createElement('div');
+
+    this.enum_values = this.schema.enum;
+    this.enum_titles = this.options.enum_titles || [];
+    this.radioGroup = [];
+
+    var radioInputEventhandler = function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      self.setValue(this.value);
+      self.onChange(true);
+    };
+
+    for(var i = 0; i < this.enum_values.length; i++) {
+
+      var id = this.key + '-' + i;
+
+      // form radio elements
+      var radioInput = this.theme.getFormInputField('radio');
+      radioInput.name = this.formname;
+      radioInput.value = this.enum_values[i];
+      radioInput.id = id;
+      radioInput.classList.add('radio__field');
+      radioInput.addEventListener('change', radioInputEventhandler, false);
+      this.radioGroup.push(radioInput);
+
+      // form-label for radio elements
+      var radioLabel = document.createElement('label');
+      radioLabel.htmlFor = id;
+      radioLabel.classList.add('radio');
+
+      // contains the displayed text to the label
+      var radioLabelText = document.createElement('span');
+      radioLabelText.innerText = $.i18n(this.options.enum_titles[i]) || this.enum_values[i];
+      radioLabelText.classList.add('radio__label');
+
+      // permits the addition of styles for the radio itself (if you want it to look differently than browser default)
+      var radioLabelIcon = document.createElement('span');
+      radioLabelIcon.classList.add('radio__icon');
+
+      radioLabel.appendChild(radioInput);
+      radioLabel.appendChild(radioLabelIcon);
+      radioLabel.appendChild(radioLabelText);
+
+      this.radioContainer.appendChild(radioLabel);
+    }
+
+    if(this.schema.readOnly || this.schema.readonly) {
+      this.always_disabled = true;
+      for (var j = 0; j < this.radioGroup.length; j++) {
+        this.radioGroup[j].disabled = true;
+      }
+      this.radioContainer.classList.add('readonly');
+    }
+
+    var radioContainerWrapper = this.theme.getContainer();
+    radioContainerWrapper.appendChild(this.radioContainer);
+
+    this.input = radioContainerWrapper;
+
+    this.control = this.theme.getFormControl(this.label, radioContainerWrapper, this.description, this.infoButton);
+    this.container.appendChild(this.control);
+  },
+  enable: function() {
+    if(!this.always_disabled) {
+      for (var i = 0; i<this.radioGroup.length; i++) {
+        this.radioGroup[i].disabled = false;
+      }
+      this.radioContainer.classList.remove('readonly');
+      this._super();
+    }
+  },
+  disable: function(always_disabled) {
+    if(always_disabled) this.always_disabled = true;
+    for (var i = 0; i<this.radioGroup.length; i++) {
+      this.radioGroup[i].disabled = true;
+    }
+    this.radioContainer.classList.add('readonly');
+    this._super();
+  },
+  destroy: function() {
+    if(this.radioContainer.parentNode && this.radioContainer.parentNode.parentNode) this.radioContainer.parentNode.parentNode.removeChild(this.radioContainer.parentNode);
+    if(this.label && this.label.parentNode) this.label.parentNode.removeChild(this.label);
+    if(this.description && this.description.parentNode) this.description.parentNode.removeChild(this.description);
+    this._super();
+  },
+  getNumColumns: function() {
+    return 2;
+  },
+  setValue: function (val) {
+    for(var i = 0; i < this.radioGroup.length; i++) {
+
+      if(this.radioGroup[i].value == val) {
+        this.radioGroup[i].checked = true;
+        this.value = val;
+        if(this.options.displayValue) {
+          this.displayRating.innerHTML = this.value;
+        }
+        this.onChange();
+        break;
+      }
+    }
+  }
+});
+
 // colorpicker creation and handling, build on top of strings editor
 JSONEditor.defaults.editors.colorPicker = JSONEditor.defaults.editors.string.extend({
     getValue: function() {
@@ -6246,9 +6368,9 @@ JSONEditor.defaults.editors.colorPicker = JSONEditor.defaults.editors.string.ext
         $(this.input).colorpicker('updatePicker', rgb2hex(val));
         $(this.input).colorpicker('updateComponent', 'rgb('+val+')');
      },
-   
-   
-   
+
+
+
     build: function() {
         this._super();
         var myinput = this;
@@ -6270,12 +6392,12 @@ JSONEditor.defaults.editors.colorPicker = JSONEditor.defaults.editors.string.ext
 
         $("#event_catcher").detach().insertAfter(myinput.input);
         $("#event_catcher").attr("id", "selector");
-       
+
         $(this.input).colorpicker().on('changeColor', function(e) {
             $(myinput).val(e.color.toRGB()).change();
-        });     
+        });
     },
-	
+
   destroy: function() {
 	$(this.input).colorpicker('destroy');
   }
@@ -6299,9 +6421,9 @@ JSONEditor.defaults.editors.colorPickerRGBA = JSONEditor.defaults.editors.string
        // $(this.input).colorpicker('updatePicker', rgb2hex(val));
         $(this.input).colorpicker('updateComponent', 'rgba('+val+')');
      },
-   
-   
-   
+
+
+
     build: function() {
         this._super();
         var myinput = this;
@@ -6326,12 +6448,12 @@ JSONEditor.defaults.editors.colorPickerRGBA = JSONEditor.defaults.editors.string
 
         $("#event_catcher").detach().insertAfter(myinput.input);
         $("#event_catcher").attr("id", "selector");
-       
+
         $(this.input).colorpicker().on('changeColor', function(e) {
             $(myinput).val(e.color.toRGB()).change();
-        });     
+        });
     },
-  
+
   destroy: function() {
 	$(this.input).colorpicker('destroy');
   }
@@ -6501,7 +6623,7 @@ JSONEditor.AbstractTheme = Class.extend({
   },
   getRangeInput: function(min,max,step) {
     if (typeof step == "undefined") step = 1;
-	
+
 	var el = this.getFormInputField('number');
     if (typeof min != "undefined") el.setAttribute('min',min);
     if (typeof max != "undefined") el.setAttribute('max',max);
@@ -6741,13 +6863,13 @@ JSONEditor.defaults.themes.bootstrap3 = JSONEditor.AbstractTheme.extend({
   getFormControl: function(label, input, description, append, placeholder) {
     var group = document.createElement('div');
 	var subgroup = document.createElement('div');
-	
+
 	if(placeholder)
 		input.setAttribute('placeholder',placeholder);
-	
+
 	if (input.type === 'checkbox'){
 		var helplabel = document.createElement("label")
-		
+
 		group.className += ' form-group';
 		group.style.minHeight = "30px";
 		label.className += ' col-form-label col-sm-5 col-md-3 col-lg-5 col-xxl-4';
@@ -6783,7 +6905,7 @@ JSONEditor.defaults.themes.bootstrap3 = JSONEditor.AbstractTheme.extend({
 	      subgroup.className += ' input-group col-sm-7 col-md-9 col-lg-7 col-xxl-8';
 	      subgroup.appendChild(input);
 	  }
-    
+
 
     if(description) group.appendChild(description);
 
@@ -7089,10 +7211,10 @@ JSONEditor.defaults.template = 'default';
 JSONEditor.defaults.options = {};
 
 // String translate function
-JSONEditor.defaults.translate = function(key, variables) {  
-  
+JSONEditor.defaults.translate = function(key, variables) {
+
   return $.i18n(key, variables);
-  
+
 };
 
 // Miscellaneous Plugin Settings
@@ -7167,7 +7289,12 @@ JSONEditor.defaults.resolvers.unshift(function(schema) {
 });
 // Use the `select` editor for dynamic enumSource enums
 JSONEditor.defaults.resolvers.unshift(function(schema) {
-  if(schema.enumSource) return (JSONEditor.plugins.selectize.enable) ? 'selectize' : 'select';
+  if(schema.enumSource) {
+    if(schema.format === "radio") {
+      return "radio";
+    }
+    return (JSONEditor.plugins.selectize.enable) ? 'selectize' : 'select';
+  }
 });
 // Use the `enum` or `select` editors for schemas with enumerated properties
 JSONEditor.defaults.resolvers.unshift(function(schema) {
@@ -7176,6 +7303,11 @@ JSONEditor.defaults.resolvers.unshift(function(schema) {
       return "enum";
     }
     else if(schema.type === "number" || schema.type === "integer" || schema.type === "string") {
+
+      if(schema.format === "radio") {
+        return "radio";
+      }
+
       return (JSONEditor.plugins.selectize.enable) ? 'selectize' : 'select';
     }
   }

@@ -5,15 +5,18 @@
 
 // Hyperion-X11 includes
 #include <grabber/X11Grabber.h>
-
-//Utils includes
-#include <utils/VideoMode.h>
+#include <hyperion/GrabberWrapper.h>
 
 class X11Wrapper : public QObject
 {
 	Q_OBJECT
 public:
-	X11Wrapper(int grabInterval, int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation);
+
+	X11Wrapper( int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ,
+				int pixelDecimation=GrabberWrapper::DEFAULT_PIXELDECIMATION,
+				int cropLeft=0, int cropRight=0,
+				int cropTop=0, int cropBottom=0
+				);
 
 	const Image<ColorRgb> & getScreenshot();
 

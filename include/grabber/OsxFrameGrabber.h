@@ -21,11 +21,16 @@ public:
 	/// Construct a OsxFrameGrabber that will capture snapshots with specified dimensions.
 	///
 	/// @param[in] display The index of the display to capture
-	/// @param[in] width  The width of the captured screenshot
-	/// @param[in] height The heigth of the captured screenshot
+
 	///
-	OsxFrameGrabber(unsigned display, unsigned width, unsigned height);
+	OsxFrameGrabber(int display=kCGDirectMainDisplay);
 	~OsxFrameGrabber() override;
+
+	///
+	/// @brief Setup a new capture screen, will free the previous one
+	/// @return True on success, false if no screen is found
+	///
+	bool setupDisplay();
 
 	///
 	/// Captures a single snapshot of the display and writes the data to the given image. The
@@ -40,12 +45,21 @@ public:
 	///
 	/// @brief Overwrite Grabber.h implementation
 	///
-	void setDisplayIndex(int index) override;
+	bool setDisplayIndex(int index) override;
+
+	///
+	/// @brief Discover OSX screens available (for configuration).
+	///
+	/// @param[in] params Parameters used to overwrite discovery default behaviour
+	///
+	/// @return A JSON structure holding a list of devices found
+	///
+	QJsonObject discover(const QJsonObject& params);
 
 private:
 	/// display
-	unsigned _screenIndex;
+	int _screenIndex;
 
-	/// Reference to the captured diaplay
+	/// Reference to the captured display
 	CGDirectDisplayID _display;
 };

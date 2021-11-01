@@ -50,19 +50,17 @@ const unsigned DEFAUL_OUTPUTDEPLAY = 0;														// outputdelay in ms
 
 LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument &config, Hyperion *hyperion)
 	: QObject(hyperion)
-	, _log(Logger::getInstance("SMOOTHING"))
-	, _hyperion(hyperion)
-	, _updateInterval(DEFAUL_UPDATEINTERVALL.count())
-	, _settlingTime(DEFAUL_SETTLINGTIME)
-	, _timer(new QTimer(this))
-	, _outputDelay(DEFAUL_OUTPUTDEPLAY)
-	, _smoothingType(SmoothingType::Linear)
-	, _writeToLedsEnable(false)
-	, _continuousOutput(false)
-	, _pause(false)
-	, _currentConfigId(0)
-	, _enabled(false)
-	, tempValues(std::vector<uint64_t>(0, 0L))
+	  , _log(Logger::getInstance("SMOOTHING"))
+	  , _hyperion(hyperion)
+	  , _updateInterval(DEFAUL_UPDATEINTERVALL.count())
+	  , _settlingTime(DEFAUL_SETTLINGTIME)
+	  , _timer(new QTimer(this))
+	  , _outputDelay(DEFAUL_OUTPUTDEPLAY)
+	  , _smoothingType(SmoothingType::Linear)
+	  , _pause(false)
+	  , _currentConfigId(0)
+	  , _enabled(false)
+	  , tempValues(std::vector<uint64_t>(0, 0L))
 {
 	// init cfg 0 (default)
 	addConfig(DEFAUL_SETTLINGTIME, DEFAUL_UPDATEFREQUENCY, DEFAUL_OUTPUTDEPLAY);
@@ -93,8 +91,6 @@ void LinearColorSmoothing::handleSettingsUpdate(settings::type type, const QJson
 		{
 			setEnable(obj["enable"].toBool(true));
 		}
-
-		_continuousOutput = obj["continuousOutput"].toBool(true);
 
 		SMOOTHING_CFG cfg = {SmoothingType::Linear,true, 0, 0, 0, 0, 0, false, 1};
 
@@ -192,7 +188,6 @@ void LinearColorSmoothing::writeDirect()
 	_previousWriteTime = now;
 
 	queueColors(_previousValues);
-	_writeToLedsEnable = _continuousOutput;
 }
 
 
@@ -201,7 +196,6 @@ void LinearColorSmoothing::writeFrame()
 	const int64_t now = micros();
 	_previousWriteTime = now;
 	queueColors(_previousValues);
-	_writeToLedsEnable = _continuousOutput;
 }
 
 
@@ -402,12 +396,12 @@ void LinearColorSmoothing::performDecay(const int64_t now) {
 	if ((now > (_renderedStatTime + 30 * 1000000)) && (_renderedCounter > _renderedStatCounter))
 	{
 		Debug(_log, "decay - rendered frames [%d] (%f/s), interpolated frames [%d] (%f/s) in [%f ms]"
-		, _renderedCounter - _renderedStatCounter
-		, (1.0F * (_renderedCounter - _renderedStatCounter) / ((now - _renderedStatTime) / 1000000.0F))
-		, _interpolationCounter - _interpolationStatCounter
-		, (1.0F * (_interpolationCounter - _interpolationStatCounter) / ((now - _renderedStatTime) / 1000000.0F))
-		, (now - _renderedStatTime) / 1000.0F
-		);
+			   , _renderedCounter - _renderedStatCounter
+			   , (1.0F * (_renderedCounter - _renderedStatCounter) / ((now - _renderedStatTime) / 1000000.0F))
+			   , _interpolationCounter - _interpolationStatCounter
+			   , (1.0F * (_interpolationCounter - _interpolationStatCounter) / ((now - _renderedStatTime) / 1000000.0F))
+			   , (now - _renderedStatTime) / 1000.0F
+			   );
 		_renderedStatTime = now;
 		_renderedStatCounter = _renderedCounter;
 		_interpolationStatCounter = _interpolationCounter;
@@ -505,30 +499,23 @@ void LinearColorSmoothing::clearRememberedFrames()
 
 void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> &ledColors)
 {
-	//Debug(_log, "queueColors -  _outputDelay[%d] _outputQueue.size() [%d], _writeToLedsEnable[%d]", _outputDelay, _outputQueue.size(), _writeToLedsEnable);
 	if (_outputDelay == 0)
 	{
 		// No output delay => immediate write
-		if (_writeToLedsEnable && !_pause)
+		if (!_pause)
 		{
-			//			if ( ledColors.size() == 0 )
-			//				qFatal ("No LedValues! - in LinearColorSmoothing::queueColors() - _outputDelay == 0");
-			//			else
 			emit _hyperion->ledDeviceData(ledColors);
 		}
 	}
 	else
 	{
 		// Push new colors in the delay-buffer
-		if (_writeToLedsEnable)
-		{
-			_outputQueue.push_back(ledColors);
-		}
+		_outputQueue.push_back(ledColors);
 
 		// If the delay-buffer is filled pop the front and write to device
 		if (!_outputQueue.empty())
 		{
-			if (_outputQueue.size() > _outputDelay || !_writeToLedsEnable)
+			if (_outputQueue.size() > _outputDelay)
 			{
 				if (!_pause)
 				{
@@ -552,7 +539,6 @@ void LinearColorSmoothing::clearQueuedColors()
 
 void LinearColorSmoothing::componentStateChange(hyperion::Components component, bool state)
 {
-	_writeToLedsEnable = state;
 	if (component == hyperion::COMP_LEDDEVICE)
 	{
 		clearQueuedColors();
@@ -682,7 +668,7 @@ bool LinearColorSmoothing::selectConfig(unsigned cfg, bool force)
 
 			QMetaObject::invokeMethod(_timer, "stop", Qt::QueuedConnection);
 			_updateInterval = _cfgList[cfg].updateInterval;
-			if (this->enabled() && this->_writeToLedsEnable)
+			if (this->enabled())
 			{
 				//Debug( _log, "_cfgList[cfg].updateInterval != _updateInterval - Restart timer - _updateInterval [%d]", _updateInterval);
 				QMetaObject::invokeMethod(_timer, "start", Qt::QueuedConnection, Q_ARG(int, _updateInterval));

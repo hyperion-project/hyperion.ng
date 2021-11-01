@@ -21,11 +21,15 @@ public:
 		QString prettyName;
 		QString hostName;
 		QString domainName;
+		bool isUserAdmin;
 		QString qtVersion;
 		QString pyVersion;
 	};
 
 	static HyperionSysInfo get();
+
+	static bool isUserAdmin();
+	static QString userName();
 
 private:
 	SysInfo();

@@ -10,6 +10,48 @@
 #include <QUrlQuery>
 #include <QJsonDocument>
 
+#include <QBasicTimer>
+#include <QTimerEvent>
+
+//Set QNetworkReply timeout without external timer
+//https://stackoverflow.com/questions/37444539/how-to-set-qnetworkreply-timeout-without-external-timer
+
+class ReplyTimeout : public QObject {
+	Q_OBJECT
+public:
+	enum HandleMethod { Abort, Close };
+	ReplyTimeout(QNetworkReply* reply, const int timeout, HandleMethod method = Abort) :
+		  QObject(reply), m_method(method)
+	{
+		Q_ASSERT(reply);
+		if (reply && reply->isRunning()) {
+			m_timer.start(timeout, this);
+			connect(reply, &QNetworkReply::finished, this, &QObject::deleteLater);
+		}
+	}
+	static void set(QNetworkReply* reply, const int timeout, HandleMethod method = Abort)
+	{
+		new ReplyTimeout(reply, timeout, method);
+	}
+
+protected:
+	QBasicTimer m_timer;
+	HandleMethod m_method;
+	void timerEvent(QTimerEvent * ev) override {
+		if (!m_timer.isActive() || ev->timerId() != m_timer.timerId())
+			return;
+		auto reply = static_cast<QNetworkReply*>(parent());
+		if (reply->isRunning())
+		{
+			if (m_method == Close)
+				reply->close();
+			else if (m_method == Abort)
+				reply->abort();
+			m_timer.stop();
+		}
+	}
+};
+
 ///
 /// Response object for REST-API calls and JSON-responses
 ///
@@ -171,6 +213,13 @@ public:
 	///
 	httpResponse get(const QUrl& url);
 
+	/// @brief Execute PUT request
+	///
+	/// @param[in] body The body of the request in JSON
+	/// @return Response The body of the response in JSON
+	///
+	httpResponse put(const QJsonObject &body);
+
 	///
 	/// @brief Execute PUT request
 	///
@@ -186,15 +235,7 @@ public:
 	/// @param[in] body The body of the request in JSON
 	/// @return Response The body of the response in JSON
 	///
-	httpResponse put(const QUrl& url, const QString& body = "");
-
-	///
-	/// @brief Execute POST request
-	///
-	/// @param[in] body The body of the request in JSON
-	/// @return Response The body of the response in JSON
-	///
-	httpResponse post(const QString& body = "");
+	httpResponse put(const QUrl &url, const QByteArray &body);
 
 	///
 	/// @brief Execute POST request
@@ -243,7 +284,7 @@ private:
 	/// @param[in/out] path to be updated
 	/// @param[in] path, element to be appended
 	///
-	void appendPath(QString& path, const QString& appendPath) const;
+	static void appendPath (QString &path, const QString &appendPath) ;
 
 	Logger* _log;
 

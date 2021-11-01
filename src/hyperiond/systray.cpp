@@ -15,7 +15,9 @@
 
 #include <utils/ColorRgb.h>
 #include <effectengine/EffectDefinition.h>
+#include <effectengine/Effect.h>
 #include <webserver/WebServer.h>
+#include <hyperion/PriorityMuxer.h>
 
 #include "hyperiond.h"
 #include "systray.h"
@@ -87,11 +89,31 @@ void SysTray::createTrayIcon()
 	_trayIconEfxMenu = new QMenu(_trayIconMenu);
 	_trayIconEfxMenu->setTitle(tr("Effects"));
 	_trayIconEfxMenu->setIcon(QPixmap(":/effects.svg"));
+
+	// custom effects
 	for (auto efx : efxs)
 	{
-		QAction *efxAction = new QAction(efx.name, this);
-		connect(efxAction, SIGNAL(triggered()), this, SLOT(setEffect()));
-		_trayIconEfxMenu->addAction(efxAction);
+		if (efx.file.mid(0, 1)  != ":")
+		{
+			QAction *efxAction = new QAction(efx.name, this);
+			connect(efxAction, SIGNAL(triggered()), this, SLOT(setEffect()));
+			_trayIconEfxMenu->addAction(efxAction);
+		}
+	}
+
+	// add seperator if custom effects exists
+	if (!_trayIconEfxMenu->isEmpty())
+		_trayIconEfxMenu->addSeparator();
+
+	// build in effects
+	for (auto efx : efxs)
+	{
+		if (efx.file.mid(0, 1)  == ":")
+		{
+			QAction *efxAction = new QAction(efx.name, this);
+			connect(efxAction, SIGNAL(triggered()), this, SLOT(setEffect()));
+			_trayIconEfxMenu->addAction(efxAction);
+		}
 	}
 
 #ifdef _WIN32
@@ -119,13 +141,13 @@ void SysTray::createTrayIcon()
 bool SysTray::getCurrentAutorunState()
 {
 	QSettings reg("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::NativeFormat);
-    if (reg.value("Hyperion", 0).toString() == qApp->applicationFilePath().replace('/', '\\'))
+	if (reg.value("Hyperion", 0).toString() == qApp->applicationFilePath().replace('/', '\\'))
 	{
 		autorunAction->setText(tr("&Disable autostart"));
-        return true;
+		return true;
 	}
 
-    autorunAction->setText(tr("&Enable autostart"));
+	autorunAction->setText(tr("&Enable autostart"));
 	return false;
 }
 #endif
@@ -145,7 +167,7 @@ void SysTray::setColor(const QColor & color)
 {
 	std::vector<ColorRgb> rgbColor{ ColorRgb{ (uint8_t)color.red(), (uint8_t)color.green(), (uint8_t)color.blue() } };
 
- 	_hyperion->setColor(1 ,rgbColor, 0);
+	_hyperion->setColor(PriorityMuxer::FG_PRIORITY,rgbColor, Effect::ENDLESS);
 }
 
 void SysTray::showColorDialog()
@@ -165,7 +187,7 @@ void SysTray::closeEvent(QCloseEvent *event)
 	event->ignore();
 }
 
-void SysTray::settings()
+void SysTray::settings() const
 {
 	#ifndef _WIN32
 	// Hide error messages when opening webbrowser
@@ -201,7 +223,7 @@ void SysTray::settings()
 void SysTray::setEffect()
 {
 	QString efxName = qobject_cast<QAction*>(sender())->text();
-	_hyperion->setEffect(efxName, 1);
+	_hyperion->setEffect(efxName, PriorityMuxer::FG_PRIORITY, Effect::ENDLESS);
 }
 
 void SysTray::clearEfxColor()
@@ -209,7 +231,7 @@ void SysTray::clearEfxColor()
 	_hyperion->clear(1);
 }
 
-void SysTray::handleInstanceStateChange(InstanceState state, quint8 instance, const QString& name)
+void SysTray::handleInstanceStateChange(InstanceState state, quint8 instance, const QString& /*name*/)
 {
 	switch(state){
 		case InstanceState::H_STARTED:

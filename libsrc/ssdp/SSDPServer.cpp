@@ -107,7 +107,7 @@ void SSDPServer::initServer()
 
 bool SSDPServer::start()
 {
-	if(!_running && _udpSocket->bind(QHostAddress::AnyIPv4, SSDP_PORT, QAbstractSocket::ShareAddress))
+	if(!_running && _udpSocket->bind(QHostAddress::AnyIPv4, SSDP_PORT, QUdpSocket::ReuseAddressHint | QUdpSocket::ShareAddress))
 	{
 		_udpSocket->joinMulticastGroup(SSDP_ADDR);
 		_running = true;

@@ -1,48 +1,54 @@
 // Generated config file
 
-// Define to enable the dispmanx grabber
+// Define to enable the DispmanX grabber
 #cmakedefine ENABLE_DISPMANX
 
-// Define to enable the v4l2 grabber
+// Define to enable the V4L2 grabber
 #cmakedefine ENABLE_V4L2
 
-// Define to enable the framebuffer grabber
+// Define to enable the Media Foundation grabber
+#cmakedefine ENABLE_MF
+
+// Define to enable the Framebuffer grabber
 #cmakedefine ENABLE_FB
 
-// Define to enable the amlogic grabber
+// Define to enable the AMLogic grabber
 #cmakedefine ENABLE_AMLOGIC
 
-// Define to enable the osx grabber
+// Define to enable the OSX grabber
 #cmakedefine ENABLE_OSX
 
-// Define to enable the x11 grabber
+// Define to enable the X11 grabber
 #cmakedefine ENABLE_X11
 
-// Define to enable the xcb grabber
+// Define to enable the XCB grabber
 #cmakedefine ENABLE_XCB
 
-// Define to enable the qt grabber
+// Define to enable the Qt grabber
 #cmakedefine ENABLE_QT
 
 // Define to enable the DirectX grabber
 #cmakedefine ENABLE_DX
 
-// Define to enable the spi-device
+// Define to enable the SPI-Device
 #cmakedefine ENABLE_SPIDEV
 
-// Define to enable the ws281x-pwm-via-dma-device using jgarff's library
+// Define to enable the WS281x-PWM-via-DMA-device using jgarff's library
 #cmakedefine ENABLE_WS281XPWM
 
-// Define to enable the tinkerforge device
+// Define to enable the Tinkerforge device
 #cmakedefine ENABLE_TINKERFORGE
 
-// Define to enable avahi
+// Define to enable AVAHI
 #cmakedefine ENABLE_AVAHI
 
-// Define to enable cec
+// Define to enable CEC
 #cmakedefine ENABLE_CEC
 
-// Define to enable the usb / hid devices
+// Define to enable boblight server
+#cmakedefine ENABLE_BOBLIGHT
+
+// Define to enable the USB / HID devices
 #cmakedefine ENABLE_USB_HID
 
 // Define to enable profiler for development purpose
@@ -50,6 +56,9 @@
 
 // Define to enable experimental features
 #cmakedefine ENABLE_EXPERIMENTAL
+
+// Define to enable deploy dependencies to packages
+#cmakedefine ENABLE_DEPLOY_DEPENDENCIES
 
 // the hyperion build id string
 #define HYPERION_BUILD_ID "${HYPERION_BUILD_ID}"

@@ -14,6 +14,10 @@ body {
     border-color: #212121;
 }
 
+.navbar-default li a {
+    color: #C6C6C6 !important;
+}
+
 .panel-body {
     background-color: #424242;
 }
@@ -189,7 +193,7 @@ tr:hover td {
 }
 
 .dropdown-menu>li>a {
-    color: #2e6da4;
+    color: #DDDDDD;
 }
 
 /*Panels*/
@@ -216,6 +220,18 @@ tr:hover td {
 
 .panel-default>.panel-heading{
     background-color: #424242 !important;
+    border-color: #212121 !important;
+    color: #DDDDDD;
+}
+
+.panel-default>.panel-system{
+    background-color: #0E83E7 !important;
+    border-color: #212121 !important;
+    color: #fff ;
+}
+
+.panel-default>.panel-instance{
+    background-color:#E18300 !important;
     border-color: #212121 !important;
     color: #DDDDDD;
 }
@@ -271,17 +287,21 @@ select.form-control {
 }
 
 .checklist li::before {
-    color: greenyellow;
+    color: #DDDDDD;
 }
 
-.checkbox-success input[type="checkbox"]:checked + label::before, .checkbox-success input[type="radio"]:checked + label::before {
-    background-color: greenyellow;
-    border-color: #5cb85c;
+.checkbox input[type="checkbox"]:checked + label::before, .checkbox-success input[type="checkbox"]:checked + label::before, .checkbox-success input[type="radio"]:checked + label::before {
+    border-color: #616161;
+    background-color: #212121;
 }
 
-.checkbox-success input[type="checkbox"]:checked + label::after, .checkbox-success input[type="radio"]:checked + label::after {
-    color: #1e1e1e;
+.checkbox input[type="checkbox"]:checked + label::after, .checkbox-success input[type="checkbox"]:checked + label::after, .checkbox-success input[type="radio"]:checked + label::after {
+    color: #DDDDDD;
 }
+
+.radio__field:checked ~ .radio__icon::before {
+    background: #fff;
+  }
 
 .btn-group>.btn:first-child:not(:last-child):not(.dropdown-toggle) {
     border-bottom-right-radius: 4px;
@@ -416,7 +436,7 @@ button.close:hover {
 }
 
 .bs-callout-success {
-    border-left-color: greenyellow;
+    border-left-color: #67FF01;
 }
 
 .bs-callout-success h4 {

@@ -233,7 +233,7 @@ if (NOT USE_SYSTEM_MBEDTLS_LIBS)
 		FetchContent_Declare(
 			mbedtls
 			GIT_REPOSITORY        https://github.com/ARMmbed/mbedtls.git
-			GIT_TAG               origin/master
+			GIT_TAG               "v2.27.0" # Latest 2.x Version
 			BUILD_ALWAYS          OFF
 			GIT_PROGRESS          1
 			DOWNLOAD_DIR          "${MBEDTLS_DOWNLOAD_DIR}"

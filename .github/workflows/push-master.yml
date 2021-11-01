@@ -1,17 +1,16 @@
 name: Hyperion CI Build
 on:
   push:
-    branches-ignore:
-      - 'gh-pages'
-      - 'docker-ci'
+    branches:
+      - '**'
     tags:
       - '*'
 
 jobs:
 
-######################
-###### Linux #########
-######################
+###################
+###### Linux ######
+###################
 
   Linux:
     name: ${{ matrix.dockerName }}
@@ -38,7 +37,7 @@ jobs:
         with:
           submodules: true
 
-      # build process
+      # Build process
       - name: Build packages
         env:
           DOCKER_IMAGE: ${{ matrix.dockerImage }}
@@ -48,16 +47,16 @@ jobs:
         shell: bash
         run: ./.ci/ci_build.sh
 
-      # upload artifacts (only on tagged commit)
+      # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
         if: startsWith(github.event.ref, 'refs/tags')
         uses: actions/upload-artifact@v2
         with:
           path: deploy/Hyperion-*
 
-######################
-###### macOS #########
-######################
+###################
+###### macOS ######
+###################
 
   macOS:
     name: macOS
@@ -67,28 +66,28 @@ jobs:
         with:
           submodules: true
 
-      # install dependencies
+      # Install dependencies
       - name: Install dependencies
         shell: bash
         run: ./.ci/ci_install.sh
 
-      # build process
+      # Build process
       - name: Build packages
         env:
           PLATFORM: osx
         shell: bash
         run: ./.ci/ci_build.sh
 
-      # upload artifacts (only on tagged commit)
+      # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
         if: startsWith(github.event.ref, 'refs/tags')
         uses: actions/upload-artifact@v2
         with:
           path: build/Hyperion-*
 
-######################
-###### Windows #######
-######################
+#####################
+###### Windows ######
+#####################
 
   windows:
     name: Windows
@@ -134,6 +133,11 @@ jobs:
         run: |
           choco install --no-progress python nsis openssl directx-sdk -y
 
+      - name: Install libjpeg-turbo
+        run: |
+          Invoke-WebRequest https://netcologne.dl.sourceforge.net/project/libjpeg-turbo/2.0.6/libjpeg-turbo-2.0.6-vc64.exe -OutFile libjpeg-turbo.exe -UserAgent NativeHost
+          .\libjpeg-turbo /S
+
       - name: Set up x64 build architecture environment
         shell: cmd
         run: call "${{env.VCINSTALLDIR}}\Auxiliary\Build\vcvars64.bat"
@@ -145,74 +149,32 @@ jobs:
         shell: bash
         run: ./.ci/ci_build.sh
 
-      # upload artifacts (only on tagged commit)
+      # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
         if: startsWith(github.event.ref, 'refs/tags')
         uses: actions/upload-artifact@v2
         with:
           path: build/Hyperion-*
+          retention-days: 1
 
-######################
-#### Documentation ###
-######################
+#####################################
+###### Publish GitHub Releases ######
+#####################################
 
-  Docs:
-    name: Documentation
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: docs
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      # Install dependencies
-      - name: Setup node 12
-        uses: actions/setup-node@v1
-        with:
-          node-version: '12'
-
-      # Build Docs
-      - name: Build docs
-        run: |
-          cd docs
-          npm install -g yarn
-          yarn install
-          yarn docs:build
-
-      # Deploy to gh-pages (only on tagged commit)
-      - name: Deploy to gh-pages
-        if: startsWith(github.event.ref, 'refs/tags')
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs/dist
-          cname: docs.hyperion-project.org
-
-################################
-###### Publish Releases ########
-################################
-
-  publish:
-    name: Publish Releases
+  github_publish:
+    name: Publish GitHub Releases
     if: startsWith(github.event.ref, 'refs/tags')
-    needs: [Linux, macOS, windows, Docs]
+    needs: [Linux, macOS, windows]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
-      # generate environment variables
-      - name: Generate environment variables from version and tag
+      # Generate environment variables
+      - name: Generate environment variables from .version and tag
         run: |
           echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
-          echo "VERSION=$(tr -d '\n' < version)" >> $GITHUB_ENV
-          echo "preRelease=false" >> $GITHUB_ENV
-
-      # If version contains alpha or beta, mark draft release as pre-release
-      - name: Mark release as pre-release
-        if: contains(env.VERSION, 'alpha') || contains(env.VERSION, 'beta')
-        run: echo "preRelease=true" >> $GITHUB_ENV
+          echo "VERSION=$(tr -d '\n' < .version)" >> $GITHUB_ENV
 
       # Download artifacts from previous build process
       - name: Download artifacts
@@ -220,7 +182,7 @@ jobs:
         with:
           path: artifacts
 
-      # create draft release and upload artifacts
+      # Create draft release and upload artifacts
       - name: Create draft release
         uses: softprops/action-gh-release@v1
         with:
@@ -228,6 +190,14 @@ jobs:
           tag_name: ${{ env.TAG }}
           files: "artifacts/**"
           draft: true
-          prerelease: ${{ env.preRelease }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+##########################
+###### APT workflow ######
+##########################
+
+  apt_build:
+    name: APT Build
+    needs: [Linux, macOS, windows]
+    uses: hyperion-project/hyperion.ng/.github/workflows/apt.yml@master

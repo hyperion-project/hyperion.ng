@@ -1,126 +1,142 @@
-$(document).ready( function() {
-	performTranslation();
+$(document).ready(function () {
+  performTranslation();
 
-// 	function newsCont(t,e,l)
-// 	{
-// 		var h = '<div style="padding-left:9px;border-left:6px solid #0088cc;">';
-// 		h += '<h4 style="font-weight:bold;font-size:17px">'+t+'</h4>';
-// 		h += e;
-// 		h += '<a href="'+l+'" class="" target="_blank"><i class="fa fa-fw fa-newspaper-o"></i>'+$.i18n('dashboard_newsbox_readmore')+'</a>';
-// 		h += '</div><hr/>';
-// 		$('#dash_news').append(h);
-// 	}
+  function updateComponents() {
+    $("div[class*='currentInstance']").remove();
 
-// 	function createNews(d)
-// 	{
-// 		for(var i = 0; i<d.length; i++)
-// 		{
-// 			if(i > 5)
-// 				break;
-//
-// 			var title = d[i].title.rendered;
-// 			var excerpt = d[i].excerpt.rendered;
-// 			var link = d[i].link+'?pk_campaign=WebUI&pk_kwd=news_'+d[i].slug;
-//
-// 			newsCont(title,excerpt,link);
-// 		}
-// 	}
+    var instances_html = '<div class="col-md-6 col-xxl-4 currentInstance-"><div class="panel panel-default">';
+    instances_html += '<div class="panel-heading panel-instance">';
+    instances_html += '<div class="dropdown">';
+    instances_html += '<a id="active_instance_dropdown" class="dropdown-toggle" data-toggle="dropdown" href="#" style="text-decoration:none;display:flex;align-items:center;">';
+    instances_html += '<div id="active_instance_friendly_name"></div>';
+    instances_html += '<div id="btn_hypinstanceswitch" style="white-space:nowrap;"><span class="mdi mdi-lightbulb-group mdi-24px" style="margin-right:0;margin-left:5px;"></span><span class="mdi mdi-menu-down mdi-24px"></span></div>';
+    instances_html += '</a><ul id="hyp_inst_listing" class="dropdown-menu dropdown-alerts" style="cursor:pointer;"></ul>';
+    instances_html += '</div></div>';
 
-// 	function getNews()
-// 	{
-// 		var h = '<span style="color:red;font-weight:bold">'+$.i18n('dashboard_newsbox_noconn')+'</span>';
-// 		$.ajax({
-// 			url: 'https://hyperion-project.org/wp-json/wp/v2/posts?_embed',
-// 			dataType: 'json',
-// 			type: 'GET',
-// 			timeout: 2000
-// 		})
-// 		.done( function( data, textStatus, jqXHR ) {
-// 			if(jqXHR.status == 200)
-// 				createNews(data);
-// 			else
-// 				$('#dash_news').html(h);
-// 		})
-// 		.fail( function( jqXHR, textStatus ) {
-// 				$('#dash_news').html(h);
-// 		});
-// 	}
+    instances_html += '<div class="panel-body">';
+    instances_html += '<table class="table borderless">';
+    instances_html += '<thead><tr><th style="vertical-align:middle"><i class="mdi mdi-lightbulb-on fa-fw"></i>';
+    instances_html += '<span>' + $.i18n('dashboard_componentbox_label_status') + '</span></th>';
 
-//	getNews();
+    var components = window.comps;
+    var hyperion_enabled = true;
+    components.forEach(function (obj) {
+      if (obj.name == "ALL") {
+        hyperion_enabled = obj.enabled;
+      }
+    });
 
-	function updateComponents()
-	{
-		var components = window.comps;
-		var components_html = "";
-		for (var idx=0; idx<components.length;idx++)
-		{
-			if(components[idx].name != "ALL")
-				components_html += '<tr><td>'+$.i18n('general_comp_'+components[idx].name)+'</td><td><i class="fa fa-circle component-'+(components[idx].enabled?"on":"off")+'"></i></td></tr>';
-		}
-		$("#tab_components").html(components_html);
+    var instBtn = '<span style="display:block; margin:3px"><input id="instanceButton"'
+      + (hyperion_enabled ? "checked" : "") + ' type="checkbox" data-toggle="toggle" data-size="small" data-onstyle="success" data-on="'
+      + $.i18n('general_btn_on') + '" data-off="'
+      + $.i18n('general_btn_off') + '"></span>';
 
-		//info
-		var hyperion_enabled = true;
+    instances_html += '<th style="width:1px;text-align:right">' + instBtn + '</th></tr></thead></table>';
 
-		components.forEach( function(obj) {
-			if (obj.name == "ALL")
-			{
-				hyperion_enabled = obj.enabled
-			}
-		});
+    instances_html += '<table class="table borderless">';
+    instances_html += '<thead><tr><th colspan="3">';
+    instances_html += '<i class="fa fa-info-circle fa-fw"></i>';
+    instances_html += '<span>' + $.i18n('dashboard_infobox_label_title') + '</span>';
+    instances_html += '</th></tr></thead>';
+    instances_html += '<tbody>';
+    instances_html += '<tr><td></td><td>' + $.i18n('conf_leds_contr_label_contrtype') + '</td>';
+    instances_html += '<td style="text-align:right; padding-right:0">';
+    instances_html += '<span>' + window.serverConfig.device.type + '</span>';
+    instances_html += '<a class="fa fa-cog fa-fw" onclick="SwitchToMenuItem(\'MenuItemLeds\')" style="text-decoration:none;cursor:pointer"></a>';
+    instances_html += '</td></tr>';
+    instances_html += '</tbody></table>';
 
-		var instancename = window.currentHyperionInstanceName;
+    instances_html += '<table class="table first_cell_borderless">';
+    instances_html += '<thead><tr><th colspan="3">';
+    instances_html += '<i class="fa fa-eye fa-fw"></i>';
+    instances_html += '<span>' + $.i18n('dashboard_componentbox_label_title') + '</span>';
+    instances_html += '</th></tr></thead>';
 
-		$('#dash_statush').html(hyperion_enabled ? '<span style="color:green">'+$.i18n('general_btn_on')+'</span>' : '<span style="color:red">'+$.i18n('general_btn_off')+'</span>');
-		$('#btn_hsc').html(hyperion_enabled ? '<button class="btn btn-sm btn-danger" onClick="requestSetComponentState(\'ALL\',false)">'+$.i18n('dashboard_infobox_label_disableh', instancename)+'</button>' : '<button class="btn btn-sm btn-success" onClick="requestSetComponentState(\'ALL\',true)">'+$.i18n('dashboard_infobox_label_enableh', instancename)+'</button>');
-	}
+    var componentBtn = "";
+    var instance_components = "";
+    for (var idx = 0; idx < components.length; idx++) {
+      if (components[idx].name != "ALL") {
+        if ((components[idx].name === "FORWARDER" && window.currentHyperionInstance != 0) ||
+          (components[idx].name === "GRABBER" && !window.serverConfig.framegrabber.enable) ||
+          (components[idx].name === "V4L" && !window.serverConfig.grabberV4L2.enable))
+            continue;
 
-	// add more info
-	$('#dash_leddevice').html(window.serverConfig.device.type);
-	$('#dash_currv').html(window.currentVersion);
-	$('#dash_instance').html(window.currentHyperionInstanceName);
-	$('#dash_ports').html(window.serverConfig.flatbufServer.port+' | '+window.serverConfig.protoServer.port);
-	$('#dash_watchedversionbranch').html(window.serverConfig.general.watchedVersionBranch);
+          var comp_enabled = components[idx].enabled ? "checked" : "";
+          const general_comp = "general_comp_" + components[idx].name;
+          componentBtn = '<input ' +
+            'id="' + general_comp + '" ' + comp_enabled +
+            ' type="checkbox" ' +
+            'data-toggle="toggle" ' +
+            'data-size="mini" ' +
+            'data-onstyle="success" ' +
+            'data-on="' + $.i18n('general_btn_on') + '" ' +
+            'data-off="' + $.i18n('general_btn_off') + '">';
 
-	getReleases(function(callback){
-		if(callback)
-		{
-			$('#dash_latev').html(window.latestVersion.tag_name);
+        instance_components += '<tr><td></td><td>' + $.i18n('general_comp_' + components[idx].name) + '</td><td style="text-align:right">' + componentBtn + '</td></tr>';
+      }
+    }
 
-			if (semverLite.gt(window.latestVersion.tag_name, window.currentVersion))
-				$('#versioninforesult').html('<div class="bs-callout bs-callout-warning" style="margin:0px"><a target="_blank" href="' + window.latestVersion.html_url + '">'+$.i18n('dashboard_infobox_message_updatewarning', window.latestVersion.tag_name) + '</a></div>');
-			else
-				$('#versioninforesult').html('<div class="bs-callout bs-callout-success" style="margin:0px">'+$.i18n('dashboard_infobox_message_updatesuccess')+'</div>');
+    instances_html += '<tbody>' + instance_components + '</tbody></table>';
+    instances_html += '</div></div></div>';
 
-			}
-	});
+    $('.instances').prepend(instances_html);
 
+    updateUiOnInstance(window.currentHyperionInstance);
+    updateHyperionInstanceListing();
 
+    $('#instanceButton').bootstrapToggle();
+    $('#instanceButton').change(e => {
+      requestSetComponentState('ALL', e.currentTarget.checked);
+    });
 
-	//determine platform
-	var grabbers = window.serverInfo.grabbers.available;
-	var html = "";
+    for (var idx = 0; idx < components.length; idx++) {
+      if (components[idx].name != "ALL") {
+        $("#general_comp_" + components[idx].name).bootstrapToggle();
+        $("#general_comp_" + components[idx].name).bootstrapToggle(hyperion_enabled ? "enable" : "disable");
+        $("#general_comp_" + components[idx].name).change(e => {
+          requestSetComponentState(e.currentTarget.id.split('_')[2], e.currentTarget.checked);
+        });
+      }
+    }
+  }
 
-	if(grabbers.indexOf('dispmanx') > -1)
-		html += 'Raspberry Pi';
-	else if(grabbers.indexOf('x11') > -1 || grabbers.indexOf('xcb') > -1)
-		html += 'X86';
-	else if(grabbers.indexOf('osx')  > -1)
-		html += 'OSX';
-	else if(grabbers.indexOf('amlogic')  > -1)
-		html += 'Amlogic';
-	else
-		html += 'Framebuffer';
+  // add more info
 
-	$('#dash_platform').html(html);
+  var screenGrabber = window.serverConfig.framegrabber.enable ? $.i18n('general_enabled') : $.i18n('general_disabled');
+  $('#dash_screen_grabber').html(screenGrabber);
+  var videoGrabber = window.serverConfig.grabberV4L2.enable ? $.i18n('general_enabled') : $.i18n('general_disabled');
+  $('#dash_video_grabber').html(videoGrabber);
 
+  var fbPort = window.serverConfig.flatbufServer.enable ? window.serverConfig.flatbufServer.port : $.i18n('general_disabled');
+  $('#dash_fbPort').html(fbPort);
+  var pbPort = window.serverConfig.protoServer.enable ? window.serverConfig.protoServer.port : $.i18n('general_disabled');
+  $('#dash_pbPort').html(pbPort);
 
-	//interval update
-	updateComponents();
-	$(window.hyperion).on("components-updated",updateComponents);
+  var jsonPort = window.serverConfig.jsonServer.port;
+  $('#dash_jsonPort').html(jsonPort);
+  var wsPorts = window.serverConfig.webConfig.port + ' | ' + window.serverConfig.webConfig.sslPort;
+  $('#dash_wsPorts').html(wsPorts);
 
-	if(window.showOptHelp)
-		createHintH("intro", $.i18n('dashboard_label_intro'), "dash_intro");
+  $('#dash_currv').html(window.currentVersion);
+  $('#dash_watchedversionbranch').html(window.serverConfig.general.watchedVersionBranch);
 
-	removeOverlay();
+  getReleases(function (callback) {
+    if (callback) {
+      $('#dash_latev').html(window.latestVersion.tag_name);
+
+      if (semverLite.gt(window.latestVersion.tag_name, window.currentVersion))
+        $('#versioninforesult').html('<div class="bs-callout bs-callout-warning" style="margin:0px"><a target="_blank" href="' + window.latestVersion.html_url + '">' + $.i18n('dashboard_infobox_message_updatewarning', window.latestVersion.tag_name) + '</a></div>');
+      else
+        $('#versioninforesult').html('<div class="bs-callout bs-callout-info" style="margin:0px">' + $.i18n('dashboard_infobox_message_updatesuccess') + '</div>');
+    }
+  });
+
+  //interval update
+  updateComponents();
+  $(window.hyperion).on("components-updated", updateComponents);
+
+  if (window.showOptHelp)
+    createHintH("intro", $.i18n('dashboard_label_intro'), "dash_intro");
+
+  removeOverlay();
 });

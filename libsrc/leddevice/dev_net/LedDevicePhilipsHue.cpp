@@ -12,7 +12,7 @@ namespace {
 bool verbose = false;
 
 // Configuration settings
-const char CONFIG_ADDRESS[] = "output";
+const char CONFIG_ADDRESS[] = "host";
 //const char CONFIG_PORT[] = "port";
 const char CONFIG_USERNAME[] = "username";
 const char CONFIG_CLIENTKEY[] = "clientkey";
@@ -115,7 +115,7 @@ CiColor CiColor::rgbToCiColor(double red, double green, double blue, const CiCol
 	double cy;
 	double bri;
 
-	if(red + green + blue > 0)
+	if( (red + green + blue) > 0)
 	{
 		// Apply gamma correction.
 		double r = (red > 0.04045) ? pow((red + 0.055) / (1.0 + 0.055), 2.4) : (red / 12.92);
@@ -157,7 +157,7 @@ CiColor CiColor::rgbToCiColor(double red, double green, double blue, const CiCol
 
 	CiColor xy = { cx, cy, bri };
 
-	if(red + green + blue > 0)
+	if( (red + green + blue) > 0)
 	{
 		// Check if the given XY value is within the color reach of our lamps.
 		if (!isPointInLampsReach(xy, colorSpace))
@@ -387,8 +387,11 @@ void LedDevicePhilipsHueBridge::log(const char* msg, const char* type, ...) cons
 	vsnprintf(val, max_val_length, type, args);
 	va_end(args);
 	std::string s = msg;
-	int max = 30;
-	s.append(max - s.length(), ' ');
+	size_t max = 30;
+	if (max > s.length())
+	{
+		s.append(max - s.length(), ' ');
+	}
 	Debug( _log, "%s: %s", s.c_str(), val );
 }
 
@@ -649,7 +652,7 @@ const std::set<QString> PhilipsHueLight::GAMUT_A_MODEL_IDS =
 const std::set<QString> PhilipsHueLight::GAMUT_B_MODEL_IDS =
 	{ "LCT001", "LCT002", "LCT003", "LCT007", "LLM001" };
 const std::set<QString> PhilipsHueLight::GAMUT_C_MODEL_IDS =
-	{ "LCA001", "LCA002", "LCA003", "LCG002", "LCP001", "LCP002", "LCT010", "LCT011", "LCT012", "LCT014", "LCT015", "LCT016", "LCT024", "LLC020", "LST002" };
+	{ "LCA001", "LCA002", "LCA003", "LCG002", "LCP001", "LCP002", "LCT010", "LCT011", "LCT012", "LCT014", "LCT015", "LCT016", "LCT024", "LCX001", "LLC020", "LST002" };
 
 PhilipsHueLight::PhilipsHueLight(Logger* log, unsigned int id, QJsonObject values, unsigned int ledidx)
 	: _log(log)
@@ -859,7 +862,7 @@ bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
 
 			if( _groupId == 0 )
 			{
-				log( "Group-ID is invalid", "%d", _groupId );
+				Error(_log, "Disabling Entertainment API as Group-ID is invalid" );
 				_useHueEntertainmentAPI = false;
 			}
 		}
@@ -888,7 +891,7 @@ bool LedDevicePhilipsHue::setLights()
 		if( _useHueEntertainmentAPI )
 		{
 			_useHueEntertainmentAPI = false;
-			Debug(_log, "Group-ID [%u] is not usable - Entertainment API usage was disabled!", _groupId );
+			Error(_log, "Group-ID [%u] is not usable - Entertainment API usage was disabled!", _groupId );
 		}
 		lArray = _devConfig[ CONFIG_LIGHTIDS ].toArray();
 	}
@@ -1018,7 +1021,7 @@ bool LedDevicePhilipsHue::updateLights(const QMap<quint16, QJsonObject> &map)
 
 	if( lightsCount == 0 )
 	{
-		Debug(_log, "No usable lights found!" );
+		Error(_log, "No usable lights found!" );
 		isInitOK = false;
 	}
 
@@ -1073,18 +1076,18 @@ bool LedDevicePhilipsHue::openStream()
 
 		if( isInitOK )
 		{
-			Info(_log, "Philips Hue Entertaiment API successful connected! Start Streaming." );
+			Info(_log, "Philips Hue Entertainment API successful connected! Start Streaming." );
 			_allLightsBlack = true;
 			noSignalDetection();
 		}
 		else
 		{
-			Error(_log, "Philips Hue Entertaiment API not connected!" );
+			Error(_log, "Philips Hue Entertainment API not connected!" );
 		}
 	}
 	else
 	{
-		Error(_log, "Philips Hue Entertaiment API could not initialisized!" );
+		Error(_log, "Philips Hue Entertainment API could not be initialised!" );
 	}
 
 	return isInitOK;
@@ -1235,7 +1238,7 @@ QByteArray LedDevicePhilipsHue::prepareStreamData() const
 		CiColor lightC = light.getColor();
 		quint64 R = lightC.x * 0xffff;
 		quint64 G = lightC.y * 0xffff;
-		quint64 B = lightC.bri * 0xffff;
+		quint64 B = (lightC.x || lightC.y) ? lightC.bri * 0xffff : 0;
 		unsigned int id = light.getId();
 		const uint8_t payload[] = {
 			0x00, 0x00, static_cast<uint8_t>(id),
@@ -1315,7 +1318,7 @@ bool LedDevicePhilipsHue::switchOff()
 	stop_retry_left = 3;
 	if (_useHueEntertainmentAPI)
 	{
-	stopStream();
+		stopStream();
 	}
 
 	return LedDevicePhilipsHueBridge::switchOff();
@@ -1467,7 +1470,7 @@ void LedDevicePhilipsHue::setColor(PhilipsHueLight& light, CiColor& color)
 		if( !_useHueEntertainmentAPI )
 		{
 			const int bri = qRound(qMin(254.0, _brightnessFactor * qMax(1.0, color.bri * 254.0)));
-			QString stateCmd = QString("\"%1\":[%2,%3],\"%4\":%5").arg( API_XY_COORDINATES ).arg( color.x, 0, 'd', 4 ).arg( color.y, 0, 'd', 4 ).arg( API_BRIGHTNESS ).arg( bri );
+			QString stateCmd = QString("{\"%1\":[%2,%3],\"%4\":%5}").arg( API_XY_COORDINATES ).arg( color.x, 0, 'd', 4 ).arg( color.y, 0, 'd', 4 ).arg( API_BRIGHTNESS ).arg( bri );
 			setLightState( light.getId(), stateCmd );
 		}
 		else

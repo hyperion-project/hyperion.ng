@@ -171,6 +171,44 @@ def printFlag(country):
 		hyperion.imageSolidFill(255, 0, 0)
 		hyperion.imageDrawLine(int(iW*0.5), int(iH*0.25), int(iW*0.5), int(iH*0.75), int(iH*0.15), 255, 255, 255)
 		hyperion.imageDrawLine(int(iW*0.26), int(iH*0.5), int(iW*0.75), int(iH*0.5), int(iH*0.15), 255, 255, 255)
+		
+	# cmr flag (Cameroon)
+	if country == "cmr":
+		hyperion.imageSolidFill(0, 0, int(iW*0.33), iH, 0, 255, 0)
+		hyperion.imageSolidFill(int(iW*0.33), 0, int(iW*0.33), iH, 255, 0, 0)
+		hyperion.imageSolidFill(int(iW*0.66), 0, iW, iH, 255, 255, 0)
+		
+	# ru flag (Russia)
+	if country == "ru":
+		hyperion.imageSolidFill(0, 0, iW, int(iH*0.33), 255, 255, 255)
+		hyperion.imageSolidFill(0, int(iH*0.33), iW, int(iH*0.33), 0, 57, 166)
+		hyperion.imageSolidFill(0, int(iH*0.66), iW, iH, 213, 43, 30)
+
+	# gb-eng flag (England)
+	if country == "gb-eng":
+		hyperion.imageSolidFill(255, 255, 255)
+		hyperion.imageDrawLine(0, int(iH*0.50), iW, int(iH*0.50), int(iW*0.10), 255, 0, 0)
+		hyperion.imageDrawLine(int(iW*0.50), 0, int(iW*0.50), iH, int(iW*0.10), 255, 0, 0)
+
+	# gb-sct flag (Scotland)
+	if country == "gb-sct":
+		hyperion.imageSolidFill(0, 0, 255)
+		hyperion.imageDrawLine(0, 0, iW, iH, int(iW*0.15), 255, 255, 255)
+		hyperion.imageDrawLine(0, iH, iW, 0, int(iW*0.15), 255, 255, 255)                                        
+
+	# gb flag (United Kingdom)
+	if country == "gb":
+		hyperion.imageSolidFill(0, 0, 255)
+		hyperion.imageDrawLine(0, int(iH*0.50), iW, int(iH*0.50), int(iW*0.25), 255, 255, 255)
+		hyperion.imageDrawLine(int(iW*0.50), 0, int(iW*0.50), iH, int(iW*0.25), 255, 255, 255)
+		hyperion.imageDrawLine(0, 0, iW, iH, int(iH*0.25), 255, 255, 255)
+		hyperion.imageDrawLine(0, iH, iW, 0, int(iH*0.25), 255, 255, 255)
+		hyperion.imageDrawLine(0, int(iH*0.50), iW, int(iH*0.50), int(iW*0.15), 255, 0, 0)
+		hyperion.imageDrawLine(int(iW*0.50), 0, int(iW*0.50), iH, int(iW*0.15), 255, 0, 0)
+		hyperion.imageDrawLine(int(iW*0.95), 0, int(iW*0.475), int(iH*0.50), int(iH*0.10), 255, 0, 0)
+		hyperion.imageDrawLine(int(iW*0.05), iH, int(iW*0.525), int(iH*0.50), int(iH*0.10), 255, 0, 0)
+		hyperion.imageDrawLine(int(-iW*0.05), 0, int(iW*0.475), int(iH*0.50), int(iH*0.10), 255, 0, 0)
+		hyperion.imageDrawLine(int(iW*1.05), iH, int(iW*0.475), int(iH*0.50), int(iH*0.10), 255, 0, 0)
 
 #prepare wanted flags
 for cf in countries:

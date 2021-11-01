@@ -14,6 +14,19 @@
 #include "ProviderSpi.h"
 #include <utils/Logger.h>
 
+// qt includes
+#include <QDir>
+
+// Constants
+namespace {
+	const bool verbose = false;
+
+	// SPI discovery service
+	const char DISCOVERY_DIRECTORY[] = "/dev/";
+	const char DISCOVERY_FILEPATTERN[] = "spidev*";
+
+} //End of constants
+
 ProviderSpi::ProviderSpi(const QJsonObject &deviceConfig)
 	: LedDevice(deviceConfig)
 	, _deviceName("/dev/spidev0.0")
@@ -24,6 +37,7 @@ ProviderSpi::ProviderSpi(const QJsonObject &deviceConfig)
 {
 	memset(&_spi, 0, sizeof(_spi));
 	_latchTime_ms = 1;
+	_isInSwitchOff = false;
 }
 
 ProviderSpi::~ProviderSpi()
@@ -55,6 +69,7 @@ int ProviderSpi::open()
 	int retval = -1;
 	QString errortext;
 	_isDeviceReady = false;
+	_isInSwitchOff = false;
 
 	const int bitsPerWord = 8;
 
@@ -131,12 +146,14 @@ int ProviderSpi::writeBytes(unsigned size, const uint8_t * data)
 		return -1;
 	}
 
+	uint8_t * newdata {nullptr};
+
 	_spi.tx_buf = __u64(data);
 	_spi.len    = __u32(size);
 
 	if (_spiDataInvert)
 	{
-		uint8_t * newdata = (uint8_t *)malloc(size);
+		newdata = static_cast<uint8_t *>(malloc(size));
 		for (unsigned i = 0; i<size; i++) {
 			newdata[i] = data[i] ^ 0xff;
 		}
@@ -146,5 +163,35 @@ int ProviderSpi::writeBytes(unsigned size, const uint8_t * data)
 	int retVal = ioctl(_fid, SPI_IOC_MESSAGE(1), &_spi);
 	ErrorIf((retVal < 0), _log, "SPI failed to write. errno: %d, %s", errno,  strerror(errno) );
 
+	free (newdata);
+
 	return retVal;
+}
+
+QJsonObject ProviderSpi::discover(const QJsonObject& /*params*/)
+{
+	QJsonObject devicesDiscovered;
+	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );
+
+	QJsonArray deviceList;
+
+	QDir deviceDirectory (DISCOVERY_DIRECTORY);
+	QStringList deviceFilter(DISCOVERY_FILEPATTERN);
+	deviceDirectory.setNameFilters(deviceFilter);
+	deviceDirectory.setSorting(QDir::Name);
+	QFileInfoList deviceFiles = deviceDirectory.entryInfoList(QDir::System);
+
+	QFileInfoList::const_iterator deviceFileIterator;
+	for (deviceFileIterator = deviceFiles.constBegin(); deviceFileIterator != deviceFiles.constEnd(); ++deviceFileIterator)
+	{
+		QJsonObject deviceInfo;
+		deviceInfo.insert("deviceName", (*deviceFileIterator).fileName().remove(0,6));
+		deviceInfo.insert("systemLocation", (*deviceFileIterator).absoluteFilePath());
+		deviceList.append(deviceInfo);
+	}
+	devicesDiscovered.insert("devices", deviceList);
+
+	DebugIf(verbose,_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+
+	return devicesDiscovered;
 }

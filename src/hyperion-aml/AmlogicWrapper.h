@@ -1,15 +1,19 @@
-
+﻿
 // QT includes
-#include <QThread>
+#include <QTimer>
 
-// Hyperion-Dispmanx includes
 #include <grabber/AmlogicGrabber.h>
+#include <hyperion/GrabberWrapper.h>
 
 class AmlogicWrapper : public QObject
 {
 	Q_OBJECT
 public:
-	AmlogicWrapper(unsigned grabWidth, unsigned grabHeight);
+	AmlogicWrapper( int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ,
+					int pixelDecimation=GrabberWrapper::DEFAULT_PIXELDECIMATION,
+					int cropLeft=0, int cropRight=0,
+					int cropTop=0, int cropBottom=0
+					);
 
 	const Image<ColorRgb> & getScreenshot();
 
@@ -20,8 +24,17 @@ public:
 
 	void stop();
 
+	bool screenInit();
+
 signals:
 	void sig_screenshot(const Image<ColorRgb> & screenshot);
+
+public slots:
+	///
+	/// Set the video mode (2D/3D)
+	/// @param[in] mode The new video mode
+	///
+	void setVideoMode(VideoMode videoMode);
 
 private slots:
 	///
@@ -30,8 +43,9 @@ private slots:
 	void capture();
 
 private:
-	/// The QT thread to generate capture-publish events
-	QThread _thread;
+
+	/// The QT timer to generate capture-publish events
+	QTimer _timer;
 
 	/// The grabber for creating screenshots
 	AmlogicGrabber   _grabber;

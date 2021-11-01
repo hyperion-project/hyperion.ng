@@ -12,6 +12,10 @@
 #include <QDateTime>
 #include <QImageReader>
 #include <QBuffer>
+#include <QUrl>
+#include <QNetworkReply>
+#include <QNetworkAccessManager>
+#include <QEventLoop>
 
 // Get the effect from the capsule
 #define getEffect() static_cast<Effect*>((Effect*)PyCapsule_Import("hyperion.__effectObj", 0))
@@ -121,19 +125,6 @@ PyMethodDef EffectModule::effectMethods[] = {
 
 PyObject* EffectModule::wrapSetColor(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
-	// determine the timeout
-	int timeout = getEffect()->_timeout;
-	if (timeout > 0)
-	{
-		timeout = getEffect()->_endTime - QDateTime::currentMSecsSinceEpoch();
-
-		// we are done if the time has passed
-		if (timeout <= 0) Py_RETURN_NONE;
-	}
-
 	// check the number of arguments
 	int argCount = PyTuple_Size(args);
 	if (argCount == 3)
@@ -144,7 +135,7 @@ PyObject* EffectModule::wrapSetColor(PyObject *self, PyObject *args)
 		{
 			getEffect()->_colors.fill(color);
 			QVector<ColorRgb> _cQV = getEffect()->_colors;
-			emit getEffect()->setInput(getEffect()->_priority, std::vector<ColorRgb>( _cQV.begin(), _cQV.end() ), timeout, false);
+			emit getEffect()->setInput(getEffect()->_priority, std::vector<ColorRgb>( _cQV.begin(), _cQV.end() ), getEffect()->getRemaining(), false);
 			Py_RETURN_NONE;
 		}
 		return nullptr;
@@ -163,7 +154,7 @@ PyObject* EffectModule::wrapSetColor(PyObject *self, PyObject *args)
 					char * data = PyByteArray_AS_STRING(bytearray);
 					memcpy(getEffect()->_colors.data(), data, length);
 					QVector<ColorRgb> _cQV = getEffect()->_colors;
-					emit getEffect()->setInput(getEffect()->_priority, std::vector<ColorRgb>( _cQV.begin(), _cQV.end() ), timeout, false);
+					emit getEffect()->setInput(getEffect()->_priority, std::vector<ColorRgb>( _cQV.begin(), _cQV.end() ), getEffect()->getRemaining(), false);
 					Py_RETURN_NONE;
 				}
 				else
@@ -192,19 +183,6 @@ PyObject* EffectModule::wrapSetColor(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapSetImage(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
-	// determine the timeout
-	int timeout = getEffect()->_timeout;
-	if (timeout > 0)
-	{
-		timeout = getEffect()->_endTime - QDateTime::currentMSecsSinceEpoch();
-
-		// we are done if the time has passed
-		if (timeout <= 0) Py_RETURN_NONE;
-	}
-
 	// bytearray of values
 	int width, height;
 	PyObject * bytearray = nullptr;
@@ -218,7 +196,7 @@ PyObject* EffectModule::wrapSetImage(PyObject *self, PyObject *args)
 				Image<ColorRgb> image(width, height);
 				char * data = PyByteArray_AS_STRING(bytearray);
 				memcpy(image.memptr(), data, length);
-				emit getEffect()->setInputImage(getEffect()->_priority, image, timeout, false);
+				emit getEffect()->setInputImage(getEffect()->_priority, image, getEffect()->getRemaining(), false);
 				Py_RETURN_NONE;
 			}
 			else
@@ -245,34 +223,57 @@ PyObject* EffectModule::wrapSetImage(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapGetImage(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
-	QString file;
 	QBuffer buffer;
 	QImageReader reader;
+	char *source;
+	int cropLeft = 0, cropTop = 0, cropRight = 0, cropBottom = 0;
+	bool grayscale = false;
 
 	if (getEffect()->_imageData.isEmpty())
 	{
 		Q_INIT_RESOURCE(EffectEngine);
 
-		char *source;
-		if(!PyArg_ParseTuple(args, "s", &source))
+		if(!PyArg_ParseTuple(args, "s|iiiii", &source, &cropLeft, &cropTop, &cropRight, &cropBottom, &grayscale))
 		{
 			PyErr_SetString(PyExc_TypeError, "String required");
 			return nullptr;
 		}
 
-		file = QString::fromUtf8(source);
+		const QUrl url = QUrl(source);
+		if (url.isValid())
+		{
+			QNetworkAccessManager *networkManager = new QNetworkAccessManager();
+			QNetworkReply * networkReply = networkManager->get(QNetworkRequest(url));
 
-		if (file.mid(0, 1)  == ":")
-			file = ":/effects/"+file.mid(1);
+			QEventLoop eventLoop;
+			connect(networkReply, &QNetworkReply::finished, &eventLoop, &QEventLoop::quit);
+			eventLoop.exec();
 
-		reader.setDecideFormatFromContent(true);
-		reader.setFileName(file);
+			if (networkReply->error() == QNetworkReply::NoError)
+			{
+				buffer.setData(networkReply->readAll());
+				buffer.open(QBuffer::ReadOnly);
+				reader.setDecideFormatFromContent(true);
+				reader.setDevice(&buffer);
+			}
+
+			delete networkReply;
+    		delete networkManager;
+		}
+		else
+		{
+			QString file = QString::fromUtf8(source);
+
+			if (file.mid(0, 1)  == ":")
+				file = ":/effects/"+file.mid(1);
+
+			reader.setDecideFormatFromContent(true);
+			reader.setFileName(file);
+		}
 	}
 	else
 	{
+		PyArg_ParseTuple(args, "|siiiii", &source, &cropLeft, &cropTop, &cropRight, &cropBottom, &grayscale);
 		buffer.setData(QByteArray::fromBase64(getEffect()->_imageData.toUtf8()));
 		buffer.open(QBuffer::ReadOnly);
 		reader.setDecideFormatFromContent(true);
@@ -289,19 +290,33 @@ PyObject* EffectModule::wrapGetImage(PyObject *self, PyObject *args)
 			if (reader.canRead())
 			{
 				QImage qimage = reader.read();
-
 				int width = qimage.width();
 				int height = qimage.height();
 
+				if (cropLeft > 0 || cropTop > 0 || cropRight > 0 || cropBottom > 0)
+				{
+					if (cropLeft + cropRight >= width || cropTop + cropBottom >= height)
+					{
+						QString errorStr = QString("Rejecting invalid crop values: left: %1, right: %2, top: %3, bottom: %4, higher than height/width %5/%6").arg(cropLeft).arg(cropRight).arg(cropTop).arg(cropBottom).arg(height).arg(width);
+						PyErr_SetString(PyExc_RuntimeError, qPrintable(errorStr));
+						return nullptr;
+					}
+
+					qimage = qimage.copy(cropLeft, cropTop, width - cropLeft - cropRight, height - cropTop - cropBottom);
+					width = qimage.width();
+					height = qimage.height();
+				}
+
 				QByteArray binaryImage;
-				for (int i = 0; i<height; ++i)
+				for (int i = 0; i<height; i++)
 				{
 					const QRgb *scanline = reinterpret_cast<const QRgb *>(qimage.scanLine(i));
-					for (int j = 0; j< width; ++j)
+					const QRgb *end = scanline + qimage.width();
+					for (; scanline != end; scanline++)
 					{
-						binaryImage.append((char) qRed(scanline[j]));
-						binaryImage.append((char) qGreen(scanline[j]));
-						binaryImage.append((char) qBlue(scanline[j]));
+						binaryImage.append(!grayscale ? (char) qRed(scanline[0]) : (char) qGray(scanline[0]));
+						binaryImage.append(!grayscale ? (char) qGreen(scanline[1]) : (char) qGray(scanline[1]));
+						binaryImage.append(!grayscale ? (char) qBlue(scanline[2]) : (char) qGray(scanline[2]));
 					}
 				}
 				PyList_SET_ITEM(result, i, Py_BuildValue("{s:i,s:i,s:O}", "imageWidth", width, "imageHeight", height, "imageData", PyByteArray_FromStringAndSize(binaryImage.constData(),binaryImage.size())));
@@ -312,6 +327,7 @@ PyObject* EffectModule::wrapGetImage(PyObject *self, PyObject *args)
 				return nullptr;
 			}
 		}
+
 		return result;
 	}
 	else
@@ -329,19 +345,6 @@ PyObject* EffectModule::wrapAbort(PyObject *self, PyObject *)
 
 PyObject* EffectModule::wrapImageShow(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
-	// determine the timeout
-	int timeout = getEffect()->_timeout;
-	if (timeout > 0)
-	{
-		timeout = getEffect()->_endTime - QDateTime::currentMSecsSinceEpoch();
-
-		// we are done if the time has passed
-		if (timeout <= 0) Py_RETURN_NONE;
-	}
-
 	int argCount = PyTuple_Size(args);
 	int imgId = -1;
 	bool argsOk = (argCount == 0);
@@ -375,16 +378,13 @@ PyObject* EffectModule::wrapImageShow(PyObject *self, PyObject *args)
 	}
 
 	memcpy(image.memptr(), binaryImage.data(), binaryImage.size());
-	emit getEffect()->setInputImage(getEffect()->_priority, image, timeout, false);
+	emit getEffect()->setInputImage(getEffect()->_priority, image, getEffect()->getRemaining(), false);
 
 	return Py_BuildValue("");
 }
 
 PyObject* EffectModule::wrapImageLinearGradient(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	int argCount = PyTuple_Size(args);
 	PyObject * bytearray = nullptr;
 	int startRX = 0;
@@ -452,9 +452,6 @@ PyObject* EffectModule::wrapImageLinearGradient(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageConicalGradient(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	int argCount = PyTuple_Size(args);
 	PyObject * bytearray = nullptr;
 	int centerX, centerY, angle;
@@ -521,9 +518,6 @@ PyObject* EffectModule::wrapImageConicalGradient(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageRadialGradient(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	int argCount = PyTuple_Size(args);
 	PyObject * bytearray = nullptr;
 	int centerX, centerY, radius, focalX, focalY, focalRadius, spread;
@@ -602,9 +596,6 @@ PyObject* EffectModule::wrapImageRadialGradient(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageDrawPolygon(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	PyObject * bytearray = nullptr;
 
 	int argCount = PyTuple_Size(args);
@@ -663,9 +654,6 @@ PyObject* EffectModule::wrapImageDrawPolygon(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageDrawPie(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	PyObject * bytearray = nullptr;
 
 	QString brush;
@@ -760,9 +748,6 @@ PyObject* EffectModule::wrapImageDrawPie(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageSolidFill(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	int argCount = PyTuple_Size(args);
 	int r, g, b;
 	int a = 255;
@@ -802,9 +787,6 @@ PyObject* EffectModule::wrapImageSolidFill(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageDrawLine(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	int argCount = PyTuple_Size(args);
 	int r, g, b;
 	int a      = 255;
@@ -843,9 +825,6 @@ PyObject* EffectModule::wrapImageDrawLine(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageDrawPoint(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	int argCount = PyTuple_Size(args);
 	int r, g, b, x, y;
 	int a      = 255;
@@ -879,9 +858,6 @@ PyObject* EffectModule::wrapImageDrawPoint(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageDrawRect(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	int argCount = PyTuple_Size(args);
 	int r, g, b;
 	int a      = 255;
@@ -921,9 +897,6 @@ PyObject* EffectModule::wrapImageDrawRect(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageSetPixel(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	int argCount = PyTuple_Size(args);
 	int r, g, b, x, y;
 
@@ -939,9 +912,6 @@ PyObject* EffectModule::wrapImageSetPixel(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageGetPixel(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	int argCount = PyTuple_Size(args);
 	int x, y;
 
@@ -955,9 +925,6 @@ PyObject* EffectModule::wrapImageGetPixel(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageSave(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	QImage img(getEffect()->_image.copy());
 	getEffect()->_imageStack.append(img);
 
@@ -966,9 +933,6 @@ PyObject* EffectModule::wrapImageSave(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageMinSize(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	int argCount = PyTuple_Size(args);
 	int w, h;
 	int width   = getEffect()->_imageSize.width();
@@ -991,25 +955,16 @@ PyObject* EffectModule::wrapImageMinSize(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageWidth(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	return Py_BuildValue("i", getEffect()->_imageSize.width());
 }
 
 PyObject* EffectModule::wrapImageHeight(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	return Py_BuildValue("i", getEffect()->_imageSize.height());
 }
 
 PyObject* EffectModule::wrapImageCRotate(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	int argCount = PyTuple_Size(args);
 	int angle;
 
@@ -1024,9 +979,6 @@ PyObject* EffectModule::wrapImageCRotate(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageCOffset(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	int offsetX = 0;
 	int offsetY = 0;
 	int argCount = PyTuple_Size(args);
@@ -1042,9 +994,6 @@ PyObject* EffectModule::wrapImageCOffset(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageCShear(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	int sh,sv;
 	int argCount = PyTuple_Size(args);
 
@@ -1058,9 +1007,6 @@ PyObject* EffectModule::wrapImageCShear(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageResetT(PyObject *self, PyObject *args)
 {
-	// check if we have aborted already
-	if (getEffect()->isInterruptionRequested()) Py_RETURN_NONE;
-
 	getEffect()->_painter->resetTransform();
 	Py_RETURN_NONE;
 }

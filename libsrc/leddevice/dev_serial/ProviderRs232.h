@@ -26,6 +26,20 @@ public:
 	///
 	~ProviderRs232() override;
 
+	///
+	/// @brief Send an update to the RS232 device to identify it.
+	///
+	/// Following parameters are required
+	/// @code
+	/// {
+	///     "deviceConfig"  : 
+	/// }
+	///@endcode
+	///
+	/// @param[in] params Parameters to configure device
+	///
+	void identify(const QJsonObject& params) override;
+
 protected:
 
 	///
@@ -83,6 +97,8 @@ protected:
 
 	/// The name of the output device
 	QString _deviceName;
+	/// The system location of the output device
+	QString _location;
 	/// The RS232 serial-device
 	QSerialPort _rs232Port;
 	/// The used baud-rate of the output device

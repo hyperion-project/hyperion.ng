@@ -26,6 +26,7 @@
 
 // Effect engine includes
 #include <effectengine/EffectDefinition.h>
+#include <effectengine/Effect.h>
 #include <effectengine/ActiveEffectDefinition.h>
 #include <effectengine/EffectSchema.h>
 
@@ -45,7 +46,9 @@ class ColorAdjustment;
 class SettingsManager;
 class BGEffectHandler;
 class CaptureCont;
+#if defined(ENABLE_BOBLIGHT)
 class BoblightServer;
+#endif
 class LedDeviceWrapper;
 class Logger;
 
@@ -98,7 +101,7 @@ public:
 	///
 	QString getActiveDeviceType() const;
 
-	bool getReadOnlyMode() {return _readOnlyMode; };
+	bool getReadOnlyMode() {return _readOnlyMode; }
 
 public slots:
 
@@ -192,7 +195,7 @@ public slots:
 	bool clear(int priority, bool forceClearAll=false);
 
 	/// #############
-	// EFFECTENGINE
+	/// EFFECTENGINE
 	///
 	/// @brief Get a pointer to the effect engine
 	/// @return     EffectEngine instance pointer
@@ -217,7 +220,7 @@ public slots:
 	/// @param effectName Name of the effec to run
 	///	@param priority The priority channel of the effect
 	/// @param timeout The timeout of the effect (after the timout, the effect will be cleared)
-	int setEffect(const QString & effectName, int priority, int timeout = -1, const QString & origin="System");
+	int setEffect(const QString & effectName, int priority, int timeout = Effect::ENDLESS, const QString & origin="System");
 
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	/// @param effectName Name of the effec to run
@@ -227,7 +230,7 @@ public slots:
 	int setEffect(const QString &effectName
 				, const QJsonObject &args
 				, int priority
-				, int timeout = -1
+				, int timeout = Effect::ENDLESS
 				, const QString &pythonScript = ""
 				, const QString &origin="System"
 				, const QString &imageData = ""
@@ -475,8 +478,11 @@ private slots:
 	///
 	void handleNewVideoMode(VideoMode mode) { _currVideoMode = mode; }
 
-
-	void handlePriorityChangedLedDevice(const quint8& priority);
+	///
+	/// @brief Handle the scenario when no/an input source is available
+	///	@param priority   Current priority
+	///
+	void handleSourceAvailability(const quint8& priority);
 
 private:
 	friend class HyperionDaemon;
@@ -541,8 +547,10 @@ private:
 
 	VideoMode _currVideoMode = VideoMode::VIDEO_2D;
 
+#if defined(ENABLE_BOBLIGHT)
 	/// Boblight instance
 	BoblightServer* _boblightServer;
+#endif
 
 	bool _readOnlyMode;
 };

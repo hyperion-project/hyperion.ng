@@ -300,10 +300,21 @@ protected:
 	/// even if the device is not in enabled state (allowing to have a defined state during device power-off).
 	/// @note: latch-time is considered between each write
 	///
-	/// @param[in] numberOfWrites Write Black given number of times
+	/// @param[in] numberOfWrites Write Black a given number of times
 	/// @return Zero on success else negative
 	///
-	virtual int writeBlack(int numberOfBlack=1);
+	virtual int writeBlack(int numberOfWrites = 1);
+
+	///
+	/// @brief Writes a color to the output stream,
+	/// even if the device is not in enabled state (allowing to have a defined state during device power-off).
+	/// @note: latch-time is considered between each write
+	///
+	/// @param[in] color to be written
+	/// @param[in] numberOfWrites Write the color a given number of times
+	/// @return Zero on success else negative
+	///
+	virtual int writeColor(const ColorRgb& color, int numberOfWrites = 1);
 
 	///
 	/// @brief Power-/turn on the LED-device.

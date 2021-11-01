@@ -1,0 +1,28 @@
+{
+	"type":"object",
+	"required":true,
+	"properties": {
+		"command": {
+			"type": "string",
+			"required": true,
+			"enum": [ "inputsource" ]
+		},
+		"tan": {
+			"type": "integer"
+		},
+		"subcommand": {
+			"type": "string",
+			"required": true,
+			"enum": [ "discover", "getProperties" ]
+		},
+		"sourceType": {
+			"type": "string",
+			"required": true
+		},
+		"params": {
+			"type": "object",
+			"required": false
+		}
+	},
+	"additionalProperties": false
+}

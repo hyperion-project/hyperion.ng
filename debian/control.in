@@ -1,0 +1,12 @@
+Source: hyperion
+Section: devel
+Priority: optional
+Build-Depends: @BUILD_DEPENDS@
+Standards-Version: @STANDARDS_VERSION@
+Maintainer: Hyperion Project <admin@hyperion-project.org>
+Homepage: https://hyperion-project.org/
+
+Package: hyperion
+Architecture: @ARCHITECTURE@
+Depends: @DEPENDS@
+Description: Hyperion is an opensource Bias or Ambient Lighting implementation which you might know from TV manufactures. It supports many LED devices and video grabbers.

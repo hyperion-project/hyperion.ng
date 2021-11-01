@@ -1,9 +1,16 @@
 #include <grabber/DirectXWrapper.h>
 
-DirectXWrapper::DirectXWrapper(int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation, int display, const unsigned updateRate_Hz)
-	: GrabberWrapper("DirectX", &_grabber, 0, 0, updateRate_Hz)
-	, _grabber(cropLeft, cropRight, cropTop, cropBottom, pixelDecimation, display)
-{}
+DirectXWrapper::DirectXWrapper( int updateRate_Hz,
+								int display,
+								int pixelDecimation,
+								int cropLeft, int cropRight, int cropTop, int cropBottom
+								)
+	: GrabberWrapper("DirectX", &_grabber, updateRate_Hz)
+	  , _grabber(display, cropLeft, cropRight, cropTop, cropBottom)
+
+{
+	_grabber.setPixelDecimation(pixelDecimation);
+}
 
 void DirectXWrapper::action()
 {

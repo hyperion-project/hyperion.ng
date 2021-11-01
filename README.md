@@ -1,9 +1,10 @@
-![Hyperion](https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/assets/webconfig/img/hyperion/hyperionlogo.png)
+![Hyperion](doc/logo.png)
 
 [![Latest-Release](https://img.shields.io/github/v/release/hyperion-project/hyperion.ng?include_prereleases)](https://github.com/hyperion-project/hyperion.ng/releases)
 [![GitHub Actions](https://github.com/hyperion-project/hyperion.ng/workflows/Hyperion%20CI%20Build/badge.svg?branch=master)](https://github.com/hyperion-project/hyperion.ng/actions)
 [![LGTM](https://img.shields.io/lgtm/alerts/g/hyperion-project/hyperion.ng.svg)](https://lgtm.com/projects/g/hyperion-project/hyperion.ng/alerts/)
 [![Documentation](https://codedocs.xyz/hyperion-project/hyperion.ng.svg)](https://codedocs.xyz/hyperion-project/hyperion.ng/)
+[![made-with-love](https://img.shields.io/badge/Made%20with-&#9829;-ff0000.svg)](#)
 
 ## About Hyperion
 
@@ -18,7 +19,7 @@
 * A command line utility for testing and integration in automated environment
 * Priority channels are not coupled to a specific led data provider which means that a provider can post led data and leave without the need to maintain a connection to Hyperion. This is ideal for a remote application (like our [Android app](https://play.google.com/store/apps/details?id=nl.hyperion.hyperionpro)).
 * Black border detector and processor
-* A scriptable (Python) effect engine
+* A scriptable (Python) effect engine with 39 build-in effects for your inspiration
 * A multi language web interface to configure and remote control hyperion
 
 If you need further support please open a topic at the forum!<br>
@@ -32,10 +33,9 @@ Contributions are welcome! Feel free to join us! We are looking always for peopl
 For an example, you can participate in the translation.<br>
 [![Join Translation](https://img.shields.io/badge/POEditor-translate-green.svg)](https://poeditor.com/join/project/Y4F6vHRFjA)
 
-## Requirements
-Debian 9, Ubuntu 16.04 or higher.
+## Supported Platforms
 
-We provide a macOS Build but we can not support this.
+Find here more details on [supported platforms and configuration sets](doc/development/SupportedPlatforms.md)
 
 ## Documentation
 Covers these topics (WorkInProgress)
@@ -50,7 +50,7 @@ Covers these topics (WorkInProgress)
 Released and unreleased changes at [Changelog.md](CHANGELOG.md)
 
 ## Building
-See [CompileHowto](CompileHowto.md) and [CrossCompileHowto](CrossCompileHowto.md).
+See [CompileHowto](doc/development/CompileHowto.md).
 
 ## Download
 Alpha releases available from the [Hyperion release page](https://github.com/hyperion-project/hyperion.ng/releases)

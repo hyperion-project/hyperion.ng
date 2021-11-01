@@ -12,24 +12,24 @@ endif (ENABLE_FB)
 
 if (ENABLE_OSX)
 	add_subdirectory(osx)
-endif()
+endif(ENABLE_OSX)
 
-if (ENABLE_V4L2)
-	add_subdirectory(v4l2)
-endif (ENABLE_V4L2)
+if (ENABLE_V4L2 OR ENABLE_MF)
+	add_subdirectory(video)
+endif ()
 
 if (ENABLE_X11)
 	add_subdirectory(x11)
-endif()
+endif(ENABLE_X11)
 
 if (ENABLE_XCB)
 	add_subdirectory(xcb)
-endif()
+endif(ENABLE_XCB)
 
 if (ENABLE_QT)
 	add_subdirectory(qt)
-endif()
+endif(ENABLE_QT)
 
 if (ENABLE_DX)
 	add_subdirectory(directx)
-endif()
+endif(ENABLE_DX)

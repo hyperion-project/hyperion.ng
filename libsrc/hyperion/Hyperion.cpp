@@ -37,7 +37,9 @@
 #include <hyperion/CaptureCont.h>
 
 // Boblight
+#if defined(ENABLE_BOBLIGHT)
 #include <boblightserver/BoblightServer.h>
+#endif
 
 Hyperion::Hyperion(quint8 instance, bool readonlyMode)
 	: QObject()
@@ -56,9 +58,11 @@ Hyperion::Hyperion(quint8 instance, bool readonlyMode)
 	, _hwLedCount()
 	, _ledGridSize(hyperion::getLedLayoutGridSize(getSetting(settings::LEDS).array()))
 	, _BGEffectHandler(nullptr)
-	,_captureCont(nullptr)
+	, _captureCont(nullptr)
 	, _ledBuffer(_ledString.leds().size(), ColorRgb::BLACK)
+#if defined(ENABLE_BOBLIGHT)
 	, _boblightServer(nullptr)
+#endif
 	, _readOnlyMode(readonlyMode)
 {
 
@@ -83,7 +87,7 @@ void Hyperion::start()
 	}
 
 	// handle hwLedCount
-	_hwLedCount = qMax(getSetting(settings::DEVICE).object()["hardwareLedCount"].toInt(getLedCount()), getLedCount());
+	_hwLedCount = getSetting(settings::DEVICE).object()["hardwareLedCount"].toInt(getLedCount());
 
 	// Initialize colororder vector
 	for (const Led& led : _ledString.leds())
@@ -93,7 +97,7 @@ void Hyperion::start()
 
 	// connect Hyperion::update with Muxer visible priority changes as muxer updates independent
 	connect(&_muxer, &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::update);
-	connect(&_muxer, &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::handlePriorityChangedLedDevice);
+	connect(&_muxer, &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::handleSourceAvailability);
 	connect(&_muxer, &PriorityMuxer::visibleComponentChanged, this, &Hyperion::handleVisibleComponentChanged);
 
 	// listens for ComponentRegister changes of COMP_ALL to perform core enable/disable actions
@@ -148,9 +152,11 @@ void Hyperion::start()
 	// if there is no startup / background effect and no sending capture interface we probably want to push once BLACK (as PrioMuxer won't emit a priority change)
 	update();
 
+#if defined(ENABLE_BOBLIGHT)
 	// boblight, can't live in global scope as it depends on layout
 	_boblightServer = new BoblightServer(this, getSetting(settings::BOBLSERVER));
 	connect(this, &Hyperion::settingsChanged, _boblightServer, &BoblightServer::handleSettingsUpdate);
+#endif
 
 	// instance initiated, enter thread event loop
 	emit started();
@@ -168,7 +174,9 @@ void Hyperion::freeObjects()
 	clear(-1,true);
 
 	// delete components on exit of hyperion core
+#if defined(ENABLE_BOBLIGHT)
 	delete _boblightServer;
+#endif
 	delete _captureCont;
 	delete _effectEngine;
 	delete _raw2ledAdjustment;
@@ -217,7 +225,7 @@ void Hyperion::handleSettingsUpdate(settings::type type, const QJsonDocument& co
 		}
 
 		// handle hwLedCount update
-		_hwLedCount = qMax(getSetting(settings::DEVICE).object()["hardwareLedCount"].toInt(getLedCount()), getLedCount());
+		_hwLedCount = getSetting(settings::DEVICE).object()["hardwareLedCount"].toInt(getLedCount());
 
 		// change in leds are also reflected in adjustment
 		delete _raw2ledAdjustment;
@@ -231,7 +239,7 @@ void Hyperion::handleSettingsUpdate(settings::type type, const QJsonDocument& co
 		QJsonObject dev = config.object();
 
 		// handle hwLedCount update
-		_hwLedCount = qMax(dev["hardwareLedCount"].toInt(getLedCount()), getLedCount());
+		_hwLedCount = dev["hardwareLedCount"].toInt(getLedCount());
 
 		// force ledString update, if device ByteOrder changed
 		if(_ledDeviceWrapper->getColorOrder() != dev["colorOrder"].toString("rgb"))
@@ -552,22 +560,23 @@ void Hyperion::handleVisibleComponentChanged(hyperion::Components comp)
 	_raw2ledAdjustment->setBacklightEnabled((comp != hyperion::COMP_COLOR && comp != hyperion::COMP_EFFECT));
 }
 
-void Hyperion::handlePriorityChangedLedDevice(const quint8& priority)
-{
-	int previousPriority = _muxer.getPreviousPriority();
+void Hyperion::handleSourceAvailability(const quint8& priority)
+{	int previousPriority = _muxer.getPreviousPriority();
 
 	Debug(_log,"priority[%d], previousPriority[%d]", priority, previousPriority);
 	if ( priority == PriorityMuxer::LOWEST_PRIORITY)
 	{
-		Debug(_log,"No source left -> switch LED-Device off");
+		Debug(_log,"No source left -> Pause output processing and switch LED-Device off");
 		emit _ledDeviceWrapper->switchOff();
+		emit _deviceSmooth->setPause(true);
 	}
 	else
 	{
 		if ( previousPriority == PriorityMuxer::LOWEST_PRIORITY )
 		{
-			Debug(_log,"new source available -> switch LED-Device on");
+			Debug(_log,"new source available -> Resume output processing and switch LED-Device on");
 			emit _ledDeviceWrapper->switchOn();
+			emit _deviceSmooth->setPause(false);
 		}
 	}
 }
@@ -580,7 +589,7 @@ void Hyperion::update()
 
 	// copy image & process OR copy ledColors from muxer
 	Image<ColorRgb> image = priorityInfo.image;
-	if(image.size() > 3)
+	if (image.width() > 1 || image.height() > 1)
 	{
 		emit currentImage(image);
 		_ledBuffer = _imageProcessor->process(image);

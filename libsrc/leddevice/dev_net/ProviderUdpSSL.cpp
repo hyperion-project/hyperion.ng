@@ -11,6 +11,7 @@
 
 // Local Hyperion includes
 #include "ProviderUdpSSL.h"
+#include <utils/QStringUtils.h>
 
 const int MAX_RETRY = 5;
 const ushort MAX_PORT_SSL = 65535;
@@ -73,6 +74,10 @@ bool ProviderUdpSSL::init(const QJsonObject &deviceConfig)
 		if( deviceConfig.contains("hs_attempts") )    _handshake_attempts    = deviceConfig["hs_attempts"].toInt(5);
 
 		QString host = deviceConfig["host"].toString(_defaultHost);
+		//Split hostname from API-port in case given
+		QStringList addressparts = QStringUtils::split(host, ":", QStringUtils::SplitBehavior::SkipEmptyParts);
+		QString udpHost = addressparts[0];
+
 		QStringList debugLevels = QStringList() << "No Debug" << "Error" << "State Change" << "Informational" << "Verbose";
 
 		configLog( "SSL Streamer Debug", "%s", ( _debugStreamer ) ? "yes" : "no" );
@@ -91,24 +96,24 @@ bool ProviderUdpSSL::init(const QJsonObject &deviceConfig)
 		configLog( "SSL Handshake Timeout max", "%d", _handshake_timeout_max );
 		configLog( "SSL Handshake attempts", "%d", _handshake_attempts );
 
-		if ( _address.setAddress(host) )
+		if ( _address.setAddress(udpHost) )
 		{
-			Debug( _log, "Successfully parsed %s as an ip address.", QSTRING_CSTR( host ) );
+			Debug( _log, "Successfully parsed %s as an ip address.", QSTRING_CSTR(udpHost) );
 		}
 		else
 		{
-			Debug( _log, "Failed to parse [%s] as an ip address.", QSTRING_CSTR( host ) );
-			QHostInfo info = QHostInfo::fromName(host);
+			Debug( _log, "Failed to parse [%s] as an ip address.", QSTRING_CSTR(udpHost) );
+			QHostInfo info = QHostInfo::fromName(udpHost);
 			if ( info.addresses().isEmpty() )
 			{
-				Debug( _log, "Failed to parse [%s] as a hostname.", QSTRING_CSTR( host ) );
+				Debug( _log, "Failed to parse [%s] as a hostname.", QSTRING_CSTR(udpHost) );
 				QString errortext = QString("Invalid target address [%1]!").arg(host);
 				this->setInError( errortext );
 				isInitOK = false;
 			}
 			else
 			{
-				Debug( _log, "Successfully parsed %s as a hostname.", QSTRING_CSTR( host ) );
+				Debug( _log, "Successfully parsed %s as a hostname.", QSTRING_CSTR(udpHost) );
 				_address = info.addresses().first();
 			}
 		}

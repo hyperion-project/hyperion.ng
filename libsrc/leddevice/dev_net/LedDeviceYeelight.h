@@ -591,6 +591,14 @@ private:
 	///
 	uint getLightsCount() const { return _lightsCount; }
 
+	///
+	/// @brief Discover Yeelight devices available (for configuration).
+	/// Yeelight specific UDP Broadcast discovery
+	///
+	/// @return A JSON structure holding a list of devices found
+	///
+	QJsonArray discover();
+
 	/// Array of the Yeelight addresses handled by the LED-device
 	QVector<yeelightAddress> _lightsAddressList;
 

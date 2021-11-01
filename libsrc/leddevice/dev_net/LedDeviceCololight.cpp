@@ -1,52 +1,50 @@
 #include "LedDeviceCololight.h"
 
 #include <utils/QStringUtils.h>
+#include <utils/WaitTime.h>
 #include <QUdpSocket>
 #include <QHostInfo>
 #include <QtEndian>
-#include <QEventLoop>
 
 #include <chrono>
 
 // Constants
 namespace {
-const bool verbose = false;
-const bool verbose3 = false;
+	const bool verbose = false;
+	const bool verbose3 = false;
 
-// Configuration settings
+	// Configuration settings
 
-const char CONFIG_HW_LED_COUNT[] = "hardwareLedCount";
+	const char CONFIG_HW_LED_COUNT[] = "hardwareLedCount";
 
-// Cololight discovery service
+	const int COLOLIGHT_BEADS_PER_MODULE = 19;
 
-const int API_DEFAULT_PORT = 8900;
+	// Cololight discovery service
 
-const char DISCOVERY_ADDRESS[] = "255.255.255.255";
-const quint16 DISCOVERY_PORT = 12345;
-const char DISCOVERY_MESSAGE[] = "Z-SEARCH * \r\n";
-constexpr std::chrono::milliseconds DEFAULT_DISCOVERY_TIMEOUT{ 5000 };
-constexpr std::chrono::milliseconds DEFAULT_READ_TIMEOUT{ 1000 };
-constexpr std::chrono::milliseconds DEFAULT_IDENTIFY_TIME{ 2000 };
+	const int API_DEFAULT_PORT = 8900;
 
-const char COLOLIGHT_MODEL[] = "mod";
-const char COLOLIGHT_MODEL_TYPE[] = "subkey";
-const char COLOLIGHT_MAC[] = "sn";
-const char COLOLIGHT_NAME[] = "name";
+	const char DISCOVERY_ADDRESS[] = "255.255.255.255";
+	const quint16 DISCOVERY_PORT = 12345;
+	const char DISCOVERY_MESSAGE[] = "Z-SEARCH * \r\n";
+	constexpr std::chrono::milliseconds DEFAULT_DISCOVERY_TIMEOUT{ 2000 };
+	constexpr std::chrono::milliseconds DEFAULT_READ_TIMEOUT{ 1000 };
+	constexpr std::chrono::milliseconds DEFAULT_IDENTIFY_TIME{ 2000 };
 
-const char COLOLIGHT_MODEL_IDENTIFIER[] = "OD_WE_QUAN";
+	const char COLOLIGHT_MODEL[] = "mod";
+	const char COLOLIGHT_MODEL_TYPE[] = "subkey";
+	const char COLOLIGHT_MAC[] = "sn";
+	const char COLOLIGHT_NAME[] = "name";
 
-const int COLOLIGHT_BEADS_PER_MODULE = 19;
-const int COLOLIGHT_MIN_STRIP_SEGMENT_SIZE = 30;
-
+	const char COLOLIGHT_MODEL_IDENTIFIER[] = "OD_WE_QUAN";
 } //End of constants
 
 LedDeviceCololight::LedDeviceCololight(const QJsonObject& deviceConfig)
 	: ProviderUdp(deviceConfig)
-	  , _modelType(-1)
-	  , _ledLayoutType(STRIP_LAYOUT)
-	  , _ledBeadCount(0)
-	  , _distance(0)
-	  , _sequenceNumber(1)
+	, _modelType(-1)
+	, _ledLayoutType(-1)
+	, _ledBeadCount(0)
+	, _distance(0)
+	, _sequenceNumber(1)
 {
 	_packetFixPart.append(reinterpret_cast<const char*>(PACKET_HEADER), sizeof(PACKET_HEADER));
 	_packetFixPart.append(reinterpret_cast<const char*>(PACKET_SECU), sizeof(PACKET_SECU));
@@ -94,11 +92,11 @@ bool LedDeviceCololight::initLedsConfiguration()
 		QString modelTypeText;
 
 		switch (_modelType) {
-		case 0:
+		case STRIP:
 			modelTypeText = "Strip";
 			_ledLayoutType = STRIP_LAYOUT;
 			break;
-		case 1:
+		case PLUS:
 			_ledLayoutType = MODLUE_LAYOUT;
 			modelTypeText = "Plus";
 			break;
@@ -116,33 +114,24 @@ bool LedDeviceCololight::initLedsConfiguration()
 			setLedCount(_devConfig[CONFIG_HW_LED_COUNT].toInt(0));
 		}
 
-		if (_modelType == STRIP && (getLedCount() % COLOLIGHT_MIN_STRIP_SEGMENT_SIZE != 0))
+		Debug(_log, "LedCount     : %d", getLedCount());
+
+		int configuredLedCount = _devConfig["currentLedCount"].toInt(1);
+
+		if (getLedCount() < configuredLedCount)
 		{
-			QString errorReason = QString("Hardware LED count must be multiple of %1 for Cololight Strip!")
-									  .arg(COLOLIGHT_MIN_STRIP_SEGMENT_SIZE);
+			QString errorReason = QString("Not enough LEDs [%1] for configured LEDs in layout [%2] found!")
+									  .arg(getLedCount())
+									  .arg(configuredLedCount);
 			this->setInError(errorReason);
 		}
 		else
 		{
-			Debug(_log, "LedCount     : %d", getLedCount());
-
-			int configuredLedCount = _devConfig["currentLedCount"].toInt(1);
-
-			if (getLedCount() < configuredLedCount)
+			if (getLedCount() > configuredLedCount)
 			{
-				QString errorReason = QString("Not enough LEDs [%1] for configured LEDs in layout [%2] found!")
-										  .arg(getLedCount())
-										  .arg(configuredLedCount);
-				this->setInError(errorReason);
+				Info(_log, "%s: More LEDs [%d] than configured LEDs in layout [%d].", QSTRING_CSTR(this->getActiveDeviceType()), getLedCount(), configuredLedCount);
 			}
-			else
-			{
-				if (getLedCount() > configuredLedCount)
-				{
-					Info(_log, "%s: More LEDs [%d] than configured LEDs in layout [%d].", QSTRING_CSTR(this->getActiveDeviceType()), getLedCount(), configuredLedCount);
-				}
-				isInitOK = true;
-			}
+			isInitOK = true;
 		}
 	}
 
@@ -197,29 +186,42 @@ bool LedDeviceCololight::getInfo()
 		QByteArray response;
 		if (readResponse(response))
 		{
-			DebugIf(verbose, _log, "#[0x%x], Data returned: [%s]", _sequenceNumber, QSTRING_CSTR(toHex(response)));
+			DebugIf(verbose,_log, "#[0x%x], Data returned: [%s]", _sequenceNumber, QSTRING_CSTR(toHex(response)));
 
 			quint16 ledNum = qFromBigEndian<quint16>(response.data() + 1);
 
 			if (ledNum != 0xFFFF)
 			{
 				_ledBeadCount = ledNum;
+				// Cololight types are not identifyable currently
+				// Work under the assumption that modules (Cololight Plus) have a number of beads and a Colologht Strip does not have a multiple of beads
+				// The assumption will not hold true, if a user cuts the Strip to a multiple of beads...
 				if (ledNum % COLOLIGHT_BEADS_PER_MODULE == 0)
 				{
-					_modelType = MODLUE_LAYOUT;
+					_modelType = PLUS;
+					_ledLayoutType = MODLUE_LAYOUT;
 					_distance = ledNum / COLOLIGHT_BEADS_PER_MODULE;
 					setLedCount(_distance);
 				}
+				else
+				{
+					_modelType = STRIP;
+					_ledLayoutType = STRIP_LAYOUT;
+					_distance = 0;
+					setLedCount(ledNum);
+				}
+				isCmdOK = true;
+				Debug(_log, "#LEDs found [0x%x], [%u], distance [%d]", _ledBeadCount, _ledBeadCount, _distance);
 			}
 			else
 			{
-				_modelType = STRIP;
+				_modelType = -1;
+				_ledLayoutType = -1;
+				_distance = 0;
 				setLedCount(0);
+				isCmdOK = false;
+				Error(_log, "Number of LEDs cannot be resolved");
 			}
-
-			Debug(_log, "#LEDs found [0x%x], [%u], distance [%d]", _ledBeadCount, _ledBeadCount, _distance);
-
-			isCmdOK = true;
 		}
 	}
 
@@ -265,7 +267,7 @@ bool LedDeviceCololight::setColor(const uint32_t color)
 		QByteArray response;
 		if (readResponse(response))
 		{
-			DebugIf(verbose, _log, "#[0x%x], Data returned: [%s]", _sequenceNumber, QSTRING_CSTR(toHex(response)));
+			DebugIf(verbose,_log, "#[0x%x], Data returned: [%s]", _sequenceNumber, QSTRING_CSTR(toHex(response)));
 			isCmdOK = true;
 		}
 	}
@@ -301,7 +303,7 @@ bool LedDeviceCololight::setState(bool isOn)
 		QByteArray response;
 		if (readResponse(response))
 		{
-			DebugIf(verbose, _log, "#[0x%x], Data returned: [%s]", _sequenceNumber, QSTRING_CSTR(toHex(response)));
+			DebugIf(verbose,_log, "#[0x%x], Data returned: [%s]", _sequenceNumber, QSTRING_CSTR(toHex(response)));
 			isCmdOK = true;
 		}
 	}
@@ -325,7 +327,7 @@ bool LedDeviceCololight::setStateDirect(bool isOn)
 		QByteArray response;
 		if (readResponse(response))
 		{
-			DebugIf(verbose, _log, "#[0x%x], Data returned: [%s]", _sequenceNumber, QSTRING_CSTR(toHex(response)));
+			DebugIf(verbose,_log, "#[0x%x], Data returned: [%s]", _sequenceNumber, QSTRING_CSTR(toHex(response)));
 			isCmdOK = true;
 		}
 	}
@@ -379,7 +381,7 @@ bool LedDeviceCololight::setTL1CommandMode(bool isOn)
 		QByteArray response;
 		if (readResponse(response))
 		{
-			DebugIf(verbose, _log, "#[0x%x], Data returned: [%s]", _sequenceNumber, QSTRING_CSTR(toHex(response)));
+			DebugIf(verbose,_log, "#[0x%x], Data returned: [%s]", _sequenceNumber, QSTRING_CSTR(toHex(response)));
 			isCmdOK = true;
 		}
 	}
@@ -496,7 +498,7 @@ bool LedDeviceCololight::readResponse(QByteArray& response)
 							}
 							else
 							{
-								DebugIf(verbose, _log, "No additional data returned");
+								DebugIf(verbose,_log, "No additional data returned");
 							}
 						}
 						isRequestOK = true;
@@ -545,20 +547,15 @@ bool LedDeviceCololight::powerOff()
 	return off;
 }
 
-QJsonObject LedDeviceCololight::discover(const QJsonObject& /*params*/)
+QJsonArray LedDeviceCololight::discover()
 {
-	QJsonObject devicesDiscovered;
-	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
-
-	QJsonArray deviceList;
-
 	QUdpSocket udpSocket;
 
 	udpSocket.writeDatagram(QString(DISCOVERY_MESSAGE).toUtf8(), QHostAddress(DISCOVERY_ADDRESS), DISCOVERY_PORT);
 
 	if (udpSocket.waitForReadyRead(DEFAULT_DISCOVERY_TIMEOUT.count()))
 	{
-		while (udpSocket.waitForReadyRead(500))
+		while (udpSocket.waitForReadyRead(200))
 		{
 			QByteArray datagram;
 
@@ -602,12 +599,13 @@ QJsonObject LedDeviceCololight::discover(const QJsonObject& /*params*/)
 		}
 	}
 
+	QJsonArray deviceList;
 	QMap<QString, QMap <QString, QString>>::iterator i;
 	for (i = _services.begin(); i != _services.end(); ++i)
 	{
 		QJsonObject obj;
 
-		QString ipAddress = i.key();
+		const QString& ipAddress = i.key();
 		obj.insert("ip", ipAddress);
 		obj.insert("model", i.value().value(COLOLIGHT_MODEL));
 		obj.insert("type", i.value().value(COLOLIGHT_MODEL_TYPE));
@@ -647,27 +645,43 @@ QJsonObject LedDeviceCololight::discover(const QJsonObject& /*params*/)
 
 		deviceList << obj;
 	}
+	return deviceList;
+}
 
+QJsonObject LedDeviceCololight::discover(const QJsonObject& /*params*/)
+{
+	QJsonObject devicesDiscovered;
+	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
+
+	QString discoveryMethod("ssdp");
+	QJsonArray deviceList;
+
+	deviceList = discover();
+
+	devicesDiscovered.insert("discoveryMethod", discoveryMethod);
 	devicesDiscovered.insert("devices", deviceList);
-	DebugIf(verbose, _log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
+
+	DebugIf(verbose,_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return devicesDiscovered;
 }
 
 QJsonObject LedDeviceCololight::getProperties(const QJsonObject& params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	DebugIf(verbose,_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 	QJsonObject properties;
 
-	QString apiHostname = params["host"].toString("");
+	QString hostName = params["host"].toString("");
 	quint16 apiPort = static_cast<quint16>(params["port"].toInt(API_DEFAULT_PORT));
 
-	if (!apiHostname.isEmpty())
+	QJsonObject propertiesDetails;
+	if (!hostName.isEmpty())
 	{
 		QJsonObject deviceConfig;
 
-		deviceConfig.insert("host", apiHostname);
+		deviceConfig.insert("host", hostName);
 		deviceConfig.insert("port", apiPort);
+
 		if (ProviderUdp::init(deviceConfig))
 		{
 			if (getInfo())
@@ -675,38 +689,43 @@ QJsonObject LedDeviceCololight::getProperties(const QJsonObject& params)
 				QString modelTypeText;
 
 				switch (_modelType) {
-				case 1:
+				case STRIP:
+					modelTypeText = "Strip";
+					break;
+				case PLUS:
 					modelTypeText = "Plus";
 					break;
 				default:
 					modelTypeText = "Strip";
 					break;
 				}
-				properties.insert("modelType", modelTypeText);
-				properties.insert("ledCount", static_cast<int>(getLedCount()));
-				properties.insert("ledBeadCount", _ledBeadCount);
-				properties.insert("distance", _distance);
+				propertiesDetails.insert("modelType", modelTypeText);
+				propertiesDetails.insert("ledCount", static_cast<int>(getLedCount()));
+				propertiesDetails.insert("ledBeadCount", _ledBeadCount);
+				propertiesDetails.insert("distance", _distance);
 			}
 		}
 	}
 
-	DebugIf(verbose, _log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	properties.insert("properties", propertiesDetails);
+
+	DebugIf(verbose,_log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return properties;
 }
 
 void LedDeviceCololight::identify(const QJsonObject& params)
 {
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	DebugIf(verbose,_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
-	QString apiHostname = params["host"].toString("");
+	QString hostName = params["host"].toString("");
 	quint16 apiPort = static_cast<quint16>(params["port"].toInt(API_DEFAULT_PORT));
 
-	if (!apiHostname.isEmpty())
+	if (!hostName.isEmpty())
 	{
 		QJsonObject deviceConfig;
 
-		deviceConfig.insert("host", apiHostname);
+		deviceConfig.insert("host", hostName);
 		deviceConfig.insert("port", apiPort);
 		if (ProviderUdp::init(deviceConfig))
 		{
@@ -714,9 +733,7 @@ void LedDeviceCololight::identify(const QJsonObject& params)
 			{
 				setEffect(THE_CIRCUS);
 
-				QEventLoop loop;
-				QTimer::singleShot(DEFAULT_IDENTIFY_TIME.count(), &loop, &QEventLoop::quit);
-				loop.exec();
+				wait(DEFAULT_IDENTIFY_TIME);
 
 				setColor(ColorRgb::BLACK);
 			}

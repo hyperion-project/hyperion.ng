@@ -1,100 +1,141 @@
 {
 	"type" : "object",
 	"title" : "edt_conf_fg_heading_title",
-	"properties" :
+	"properties":
 	{
-		"type" :
-		{
-			"type" : "string",
-			"title" : "edt_conf_fg_type_title",
-			"enum"  : ["auto","amlogic","dispmanx","dx","framebuffer","osx","qt","x11", "xcb"],
-			"options":
-			{
-				"enum_titles": ["edt_conf_enum_automatic","AMLogic","DispmanX","DirectX9","Framebuffer","OSX","QT","X11","XCB"]
-
+		"enable": {
+			"type": "boolean",
+			"title": "edt_conf_general_enable_title",
+			"required": true,
+			"default": false,
+			"propertyOrder": 1
+		},
+		"available_devices": {
+			"type": "string",
+			"title": "edt_conf_grabber_discovered_title",
+			"default": "edt_conf_grabber_discovery_inprogress",
+			"options": {
+				"infoText": "edt_conf_grabber_discovered_title_info"
 			},
-			"default" : "auto",
-			"propertyOrder" : 1
+			"propertyOrder": 2,
+			"required": false
 		},
-		"width" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_fg_width_title",
-			"minimum" : 10,
-			"default" : 80,
-			"append" : "edt_append_pixel",
-			"propertyOrder" : 2
+		"device": {
+			"type": "string",
+			"title": "edt_conf_enum_custom",
+			"options": {
+				"hidden": true
+			},
+			"required": true,
+			"comment": "The 'available_devices' settings are dynamically inserted into the WebUI under PropertyOrder '2'.",
+			"propertyOrder": 3
 		},
-		"height" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_fg_height_title",
-			"minimum" : 10,
-			"default" : 45,
-			"append" : "edt_append_pixel",
-			"propertyOrder" : 3
+		"device_inputs": {
+			"type": "string",
+			"title": "edt_conf_v4l2_input_title",
+			"propertyOrder": 4,
+			"required": false
 		},
-		"frequency_Hz" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_fg_frequency_Hz_title",
-			"minimum" : 1,
-			"default" : 10,
-			"append" : "edt_append_hz",
-			"propertyOrder" : 4
+		"input": {
+			"type": "integer",
+			"title": "edt_conf_enum_custom",
+			"minimum": 0,
+			"default": 0,
+			"options": {
+				"hidden": true
+			},
+			"required": true,
+			"propertyOrder": 5,
+			"comment": "The 'device_inputs' settings are dynamically inserted into the WebUI under PropertyOrder '4'."
 		},
-		"cropLeft" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_cropLeft_title",
-			"minimum" : 0,
-			"default" : 0,
-			"append" : "edt_append_pixel",
-			"propertyOrder" : 5
+		"resolutions": {
+			"type": "string",
+			"title": "edt_conf_v4l2_resolution_title",
+			"propertyOrder": 6,
+			"required": false
 		},
-		"cropRight" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_cropRight_title",
-			"minimum" : 0,
-			"default" : 0,
-			"append" : "edt_append_pixel",
-			"propertyOrder" : 6
+		"width": {
+			"type": "integer",
+			"title": "edt_conf_enum_custom",
+			"minimum": 10,
+			"default": 80,
+			"append": "edt_append_pixel",
+			"options": {
+				"hidden": true
+			},
+			"required": true,
+			"propertyOrder": 9,
+			"comment": "The 'resolutions' settings are dynamically inserted into the WebUI under PropertyOrder '6'."
 		},
-		"cropTop" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_cropTop_title",
-			"minimum" : 0,
-			"default" : 0,
-			"append" : "edt_append_pixel",
-			"propertyOrder" : 7
+		"height": {
+			"type": "integer",
+			"title": "edt_conf_enum_custom",
+			"append": "edt_append_pixel",
+			"options": {
+				"hidden": true
+			},
+			"required": true,
+			"propertyOrder": 10,
+			"comment": "The 'resolutions' settings are dynamically inserted into the WebUI under PropertyOrder '6'."
 		},
-		"cropBottom" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_v4l2_cropBottom_title",
-			"minimum" : 0,
-			"default" : 0,
-			"append" : "edt_append_pixel",
-			"propertyOrder" : 8
+		"framerates": {
+			"type": "string",
+			"title": "edt_conf_fg_frequency_Hz_title",
+			"propertyOrder": 11,
+			"required": false
 		},
-		"pixelDecimation" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_fg_pixelDecimation_title",
-			"minimum" : 1,
-			"maximum" : 30,
-			"default" : 8,
-			"propertyOrder" : 9
+		"fps": {
+			"type": "integer",
+			"title": "edt_conf_enum_custom",
+			"default":10,
+			"append": "fps",
+			"options": {
+				"hidden": true
+			},
+			"required": true,
+			"propertyOrder": 12,
+			"comment": "The 'framerates' setting is dynamically inserted into the WebUI under PropertyOrder '11'."
 		},
-		"display" :
-		{
-			"type" : "integer",
-			"title" : "edt_conf_fg_display_title",
-			"minimum" : 0,
-			"default" : 0,
-			"propertyOrder" : 10
+		"pixelDecimation": {
+			"type": "integer",
+			"title": "edt_conf_fg_pixelDecimation_title",
+			"minimum": 1,
+			"maximum": 30,
+			"default": 8,
+			"required": true,
+			"propertyOrder": 13
+		},
+		"cropLeft": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_cropLeft_title",
+			"minimum": 0,
+			"default": 0,
+			"append": "edt_append_pixel",
+			"propertyOrder": 14
+		},
+		"cropRight": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_cropRight_title",
+			"minimum": 0,
+			"default": 0,
+			"append": "edt_append_pixel",
+			"propertyOrder": 15
+		},
+		"cropTop": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_cropTop_title",
+			"minimum": 0,
+			"default": 0,
+			"append": "edt_append_pixel",
+			"propertyOrder": 16
+		},
+		"cropBottom": {
+			"type": "integer",
+			"title": "edt_conf_v4l2_cropBottom_title",
+			"minimum": 0,
+			"default": 0,
+			"append": "edt_append_pixel",
+			"propertyOrder": 17
 		}
 	},
 	"additionalProperties" : false

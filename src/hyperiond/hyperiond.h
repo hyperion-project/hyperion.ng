@@ -10,10 +10,10 @@
 	typedef QObject DispmanxWrapper;
 #endif
 
-#ifdef ENABLE_V4L2
-	#include <grabber/V4L2Wrapper.h>
+#if defined(ENABLE_V4L2) || defined(ENABLE_MF)
+	#include <grabber/VideoWrapper.h>
 #else
-	typedef QObject V4L2Wrapper;
+	typedef QObject VideoWrapper;
 #endif
 
 #ifdef ENABLE_FB
@@ -151,8 +151,8 @@ private slots:
 	void setVideoMode(VideoMode mode);
 
 private:
-	void createGrabberDispmanx();
-	void createGrabberAmlogic();
+	void createGrabberDispmanx(const QJsonObject & grabberConfig);
+	void createGrabberAmlogic(const QJsonObject & grabberConfig);
 	void createGrabberFramebuffer(const QJsonObject & grabberConfig);
 	void createGrabberOsx(const QJsonObject & grabberConfig);
 	void createGrabberX11(const QJsonObject & grabberConfig);
@@ -170,7 +170,7 @@ private:
 	WebServer*                 _webserver;
 	WebServer*                 _sslWebserver;
 	JsonServer*                _jsonServer;
-	V4L2Wrapper*               _v4l2Grabber;
+	VideoWrapper*              _videoGrabber;
 	DispmanxWrapper*           _dispmanx;
 	X11Wrapper*                _x11Grabber;
 	XcbWrapper*                _xcbGrabber;
@@ -184,15 +184,14 @@ private:
 	FlatBufferServer*          _flatBufferServer;
 	ProtoServer*               _protoServer;
 
-	unsigned                   _grabber_width;
-	unsigned                   _grabber_height;
-	unsigned                   _grabber_frequency;
-	unsigned                   _grabber_cropLeft;
-	unsigned                   _grabber_cropRight;
-	unsigned                   _grabber_cropTop;
-	unsigned                   _grabber_cropBottom;
-	int                        _grabber_ge2d_mode;
-	QString                    _grabber_device;
+	int                        _grabber_width;
+	int                        _grabber_height;
+	int                        _grabber_pixelDecimation;
+	int                        _grabber_frequency;
+	int                        _grabber_cropLeft;
+	int                        _grabber_cropRight;
+	int                        _grabber_cropTop;
+	int                        _grabber_cropBottom;
 
 	QString                    _prevType;
 

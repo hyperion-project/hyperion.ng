@@ -17,7 +17,7 @@
 		"dma": {
 			"type": "integer",
 			"title":"edt_dev_spec_dmaNumber_title",
-			"default": 5,
+			"default": 10,
 			"propertyOrder" : 3
 		},
 		"pwmchannel": {

@@ -1,13 +1,21 @@
 
-// Hyperion-Xcb includes
+
 #include "XcbWrapper.h"
 
-XcbWrapper::XcbWrapper(int grabInterval, int cropLeft, int cropRight, int cropTop, int cropBottom, int pixelDecimation) :
-	_timer(this),
-	_grabber(cropLeft, cropRight, cropTop, cropBottom, pixelDecimation)
+XcbWrapper::XcbWrapper( int updateRate_Hz,
+						int pixelDecimation,
+						int cropLeft, int cropRight,
+						int cropTop, int cropBottom
+						) :
+	  _timer(this),
+	  _grabber(cropLeft, cropRight, cropTop, cropBottom)
 {
+	_grabber.setFramerate(updateRate_Hz);
+	_grabber.setPixelDecimation(pixelDecimation);
+
+	_timer.setTimerType(Qt::PreciseTimer);
 	_timer.setSingleShot(false);
-	_timer.setInterval(grabInterval);
+	_timer.setInterval(_grabber.getUpdateInterval());
 
 	// Connect capturing to the timeout signal of the timer
 	connect(&_timer, SIGNAL(timeout()), this, SLOT(capture()));
@@ -31,7 +39,7 @@ void XcbWrapper::stop()
 
 bool XcbWrapper::displayInit()
 {
-	return _grabber.Setup();
+	return _grabber.setupDisplay();
 }
 
 void XcbWrapper::capture()

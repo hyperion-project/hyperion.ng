@@ -23,8 +23,8 @@
 		{
 			"type" : "integer",
 			"title" : "edt_conf_general_priority_title",
-			"minimum" : 100,
-			"maximum" : 254,
+			"minimum" : 2,
+			"maximum" : 253,
 			"default" : 128,
 			"propertyOrder" : 3
 		}
