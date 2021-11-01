@@ -216,18 +216,18 @@ int LedDeviceRazer::write(const std::vector<ColorRgb>& ledValues)
 {
 	int retval = -1;
 
+	QJsonObject effectObj;
+	effectObj.insert("effect", "CHROMA_STATIC");
+
 	ColorRgb color = ledValues[0];
 	int colorParam = (color.red * 65536) + (color.green * 256) + color.blue;
 
-	QJsonObject effectObj;
-	effectObj.insert("effect", "CHROMA_STATIC");
 	QJsonObject param;
 	param.insert("color", colorParam);
 	effectObj.insert("param", param);
-	QJsonDocument data = QJsonDocument(effectObj);
 
 	_restApi->setPath(_razerDeviceType);
-	httpResponse response = _restApi->put(data.toJson(QJsonDocument::Compact));
+	httpResponse response = _restApi->put(effectObj);
 	if (!checkApiError(response))
 	{
 		retval = 0;
