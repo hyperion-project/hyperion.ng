@@ -777,6 +777,12 @@ $(document).ready(function () {
           colorOrderDefault = "rgb";
           break;
 
+        case "razer":
+          conf_editor.getEditor("root.generalOptions").disable();
+          hwLedCountDefault = 1;
+          colorOrderDefault = "bgr";
+          break;
+
         default:
       }
 
@@ -1289,6 +1295,7 @@ function saveLedConfig(genDefLayout = false) {
     case "sk9822":
     case "ws2812spi":
     case "piblaster":
+    case "razer":
     default:
       if (genDefLayout === true) {
         ledConfig = {
@@ -1612,7 +1619,7 @@ function updateElements(ledType, key) {
           var maxLedCount = ledProperties.maxLedCount
           if (hardwareLedCount > maxLedCount)
           {
-	        showInfoDialog('warning', $.i18n("conf_leds_config_warning"), $.i18n('conf_leds_error_hwled_gt_maxled', hardwareLedCount, maxLedCount, maxLedCount));
+          showInfoDialog('warning', $.i18n("conf_leds_config_warning"), $.i18n('conf_leds_error_hwled_gt_maxled', hardwareLedCount, maxLedCount, maxLedCount));
             hardwareLedCount = maxLedCount;
           }
         }
