@@ -218,7 +218,7 @@ public:
 	/// @param[in] body The body of the request in JSON
 	/// @return Response The body of the response in JSON
 	///
-	httpResponse put(const QJsonObject &body);
+	httpResponse put(const QJsonObject& body);
 
 	///
 	/// @brief Execute PUT request
@@ -235,7 +235,22 @@ public:
 	/// @param[in] body The body of the request in JSON
 	/// @return Response The body of the response in JSON
 	///
-	httpResponse put(const QUrl &url, const QByteArray &body);
+	httpResponse put(const QUrl &url, const QByteArray& body);
+
+	///
+	/// @brief Execute POST request
+	///
+	/// @param[in] body The body of the request in JSON
+	/// @return Response The body of the response in JSON
+	///
+	httpResponse post(const QString& body = "");
+
+	/// @brief Execute POST request
+	///
+	/// @param[in] body The body of the request in JSON
+	/// @return Response The body of the response in JSON
+	///
+	httpResponse post(const QJsonObject& body);
 
 	///
 	/// @brief Execute POST request
@@ -244,7 +259,7 @@ public:
 	/// @param[in] body The body of the request in JSON
 	/// @return Response The body of the response in JSON
 	///
-	httpResponse post(const QUrl& url, const QString& body = "");
+	httpResponse post(const QUrl &url, const QByteArray& body);
 
 	///
 	/// @brief Execute DELETE request

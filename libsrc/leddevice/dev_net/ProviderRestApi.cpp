@@ -133,7 +133,9 @@ httpResponse ProviderRestApi::get()
 httpResponse ProviderRestApi::get(const QUrl& url)
 {
 	// Perform request
-	QNetworkRequest request(url);
+	QNetworkRequest request(_networkRequestHeaders);
+	request.setUrl(url);
+
 	QNetworkReply* reply = _networkManager->get(request);
 
 	// Connect requestFinished signal to quit slot of the loop.
@@ -173,7 +175,9 @@ httpResponse ProviderRestApi::put(const QString &body)
 httpResponse ProviderRestApi::put(const QUrl &url, const QByteArray &body)
 {
 	// Perform request
-	QNetworkRequest request(url);
+	QNetworkRequest request(_networkRequestHeaders);
+	request.setUrl(url);
+
 	QNetworkReply* reply = _networkManager->put(request, body);
 	// Connect requestFinished signal to quit slot of the loop.
 	QEventLoop loop;
@@ -200,19 +204,23 @@ httpResponse ProviderRestApi::put(const QUrl &url, const QByteArray &body)
 	return response;
 }
 
-httpResponse ProviderRestApi::post(const QString& body)
+httpResponse ProviderRestApi::post(const QJsonObject& body)
 {
-	return post(getUrl(), body);
+	return post( getUrl(), QJsonDocument(body).toJson(QJsonDocument::Compact));
 }
 
-httpResponse ProviderRestApi::post(const QUrl& url, const QString& body)
+httpResponse ProviderRestApi::post(const QString& body)
 {
-	DebugIf(verbose, _log, "POST: [%s] [%s]", QSTRING_CSTR(url.toString()), QSTRING_CSTR(body));
+	return post( getUrl(), body.toUtf8() );
+}
+
+httpResponse ProviderRestApi::post(const QUrl& url, const QByteArray& body)
+{
 	// Perform request
 	QNetworkRequest request(_networkRequestHeaders);
 	request.setUrl(url);
 
-	QNetworkReply* reply = _networkManager->post(request, body.toUtf8());
+	QNetworkReply* reply = _networkManager->post(request, body);
 	// Connect requestFinished signal to quit slot of the loop.
 	QEventLoop loop;
 	QEventLoop::connect(reply,&QNetworkReply::finished,&loop,&QEventLoop::quit);
@@ -222,6 +230,10 @@ httpResponse ProviderRestApi::post(const QUrl& url, const QString& body)
 	httpResponse response;
 	if (reply->operation() == QNetworkAccessManager::PostOperation)
 	{
+		if(reply->error() != QNetworkReply::NoError)
+		{
+			Debug(_log, "POST: [%s] [%s]", QSTRING_CSTR( url.toString() ),body.constData() );
+		}
 		response = getResponse(reply);
 	}
 	// Free space.
@@ -233,7 +245,6 @@ httpResponse ProviderRestApi::post(const QUrl& url, const QString& body)
 
 httpResponse ProviderRestApi::deleteResource(const QUrl& url)
 {
-	DebugIf(verbose, _log, "DELETE: [%s]", QSTRING_CSTR(url.toString()));
 	// Perform request
 	QNetworkRequest request(_networkRequestHeaders);
 	request.setUrl(url);
@@ -248,6 +259,10 @@ httpResponse ProviderRestApi::deleteResource(const QUrl& url)
 	httpResponse response;
 	if (reply->operation() == QNetworkAccessManager::DeleteOperation)
 	{
+		if(reply->error() != QNetworkReply::NoError)
+		{
+			Debug(_log, "DELETE: [%s]", QSTRING_CSTR(url.toString()));
+		}
 		response = getResponse(reply);
 	}
 	// Free space.

@@ -151,12 +151,10 @@ int LedDeviceRazer::open()
 
 	obj.insert("category", "application");
 
-	QJsonDocument data = QJsonDocument(obj);
-
 	_restApi->setPort(API_DEFAULT_PORT);
 	_restApi->setBasePath(API_BASE_PATH);
 
-	httpResponse response = _restApi->post(data.toJson(QJsonDocument::Compact));
+	httpResponse response = _restApi->post(obj);
 	if (!checkApiError(response))
 	{
 		QJsonObject jsonObj = response.getBody().object();
@@ -176,15 +174,14 @@ int LedDeviceRazer::open()
 			QJsonObject param;
 			param.insert("color", 255);
 			effectObj.insert("param", param);
-			data = QJsonDocument(effectObj);
 
 			_restApi->setPath(_razerDeviceType);
-			response = _restApi->put(data.toJson(QJsonDocument::Compact));
+			response = _restApi->put(effectObj);
 
 			if (!checkApiError(response))
 			{
 				_restApi->setPath(_razerDeviceType);
-				response = _restApi->put(data.toJson(QJsonDocument::Compact));
+				response = _restApi->put(effectObj);
 
 				if (!checkApiError(response))
 				{
