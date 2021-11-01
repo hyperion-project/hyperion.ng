@@ -16,9 +16,11 @@ make_release()
 	mkdir -p deploy/${RELEASE}
 
 	cd  build-${RELEASE}
+
 	cmake -DCMAKE_INSTALL_PREFIX=/usr -DPLATFORM=${PLATFORM} $@ -DCMAKE_BUILD_TYPE=Release -Wno-dev .. || exit 1
+	#cmake  -DCMAKE_INSTALL_PREFIX=/usr -DPLATFORM=${PLATFORM} $@ -DCMAKE_BUILD_TYPE=Debug  .. || exit 1
 	make -j $(nproc)  || exit 1
-	#strip bin/*
+	strip bin/*
 	make package -j $(nproc)
 	mv Hyperion-* ../deploy/${RELEASE}
 	cd ..

@@ -15,7 +15,7 @@ jobs:
       - name: Check if commit has changed
         id: build-necessary
         run: |
-          if wget --spider "https://nightly.hyperion-project.org/$(git rev-parse --short HEAD)" 2>/dev/null; then
+          if wget --spider "https://nightly.apt.hyperion-project.org/$(git rev-parse --short HEAD)" 2>/dev/null; then
               echo "::set-output name=commit-has-changed::false"
           else
               echo "::set-output name=commit-has-changed::true"
@@ -125,7 +125,7 @@ jobs:
       - name: Upload packages to nightly server
         uses: SamKirkland/FTP-Deploy-Action@4.1.0
         with:
-          server: nightly.hyperion-project.org
+          server: nightly.apt.hyperion-project.org
           username: ${{ secrets.NIGHTLY_USER }}
           password: ${{ secrets.NIGHTLY_PASSWORD }}
           local-dir: "./nightly/"

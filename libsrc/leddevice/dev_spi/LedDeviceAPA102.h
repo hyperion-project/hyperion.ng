@@ -4,6 +4,9 @@
 // hyperion includes
 #include "ProviderSpi.h"
 
+/// The maximal level supported by the APA  brightness control field, 31
+const int APA102_BRIGHTNESS_MAX_LEVEL = 31;
+
 ///
 /// Implementation of the LedDevice interface for writing to APA102 led device.
 ///
@@ -43,6 +46,18 @@ private:
 	/// @return Zero on success, else negative
 	///
 	int write(const std::vector<ColorRgb> & ledValues) override;
+
+	///
+	/// @brief Writes the RGB-Color values to the SPI Tx buffer setting considering a given brightness level
+	///
+	/// @param[in,out] txBuf The packed spi transfer buffer of the LED's color values
+	/// @param[in] ledValues The RGB-color per LED
+	/// @param[in] brightness The current brightness level 1 .. 31
+	///
+	void bufferWithBrightness(std::vector<uint8_t> &txBuf, const std::vector<ColorRgb> & ledValues, const int brightness = APA102_BRIGHTNESS_MAX_LEVEL);
+
+	/// The brighness level. Possibile values 1 .. 31.
+	int _brightnessControlMaxLevel;
 };
 
 #endif // LEDEVICEAPA102_H
