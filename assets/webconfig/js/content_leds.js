@@ -1,4 +1,3 @@
-var ledsCustomCfgInitialized = false;
 var onLedLayoutTab = false;
 var nonBlacklistLedArray = [];
 var ledBlacklist = [];
@@ -614,10 +613,7 @@ $(document).ready(function () {
     var target = $(e.target).attr("href") // activated tab
     if (target == "#menu_gencfg") {
       onLedLayoutTab = true;
-      if (!ledsCustomCfgInitialized) {
-        $('#leds_custom_updsim').trigger('click');
-        ledsCustomCfgInitialized = true;
-      }
+      $('#leds_custom_updsim').trigger('click');
     } else {
       onLedLayoutTab = false;
     }
@@ -781,6 +777,10 @@ $(document).ready(function () {
           conf_editor.getEditor("root.generalOptions").disable();
           hwLedCountDefault = 1;
           colorOrderDefault = "bgr";
+
+          var subType = conf_editor.getEditor("root.specificOptions.subType").getValue();
+          params = { subType: subType };
+          getProperties_device(ledType, subType, params);
           break;
 
         default:
@@ -1015,6 +1015,19 @@ $(document).ready(function () {
             $('#btn_submit_controller').attr('disabled', false);
           }
         }
+      }
+    });
+
+    conf_editor.watch('root.specificOptions.subType', () => {
+      var subType = conf_editor.getEditor("root.specificOptions.subType").getValue();
+      let params = {};
+
+      switch (ledType) {
+        case "razer":
+          params = { subType: subType };
+          getProperties_device(ledType, subType, params);
+          break;
+        default:
       }
     });
 
@@ -1295,7 +1308,6 @@ function saveLedConfig(genDefLayout = false) {
     case "sk9822":
     case "ws2812spi":
     case "piblaster":
-    case "razer":
     default:
       if (genDefLayout === true) {
         ledConfig = {
@@ -1669,6 +1681,18 @@ function updateElements(ledType, key) {
             updateJsonEditorSelection(conf_editor, 'root.generalOptions', "hardwareLedCountList", {"title": "edt_dev_general_hardwareLedCount_title"},
                                       ledProperties.ledCount.map(String), [], configuredLedCount);
           }
+        }
+        break;
+
+      case "razer":
+        var ledProperties = devicesProperties[ledType][key];
+        if (ledProperties) {
+          conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(ledProperties.maxLedCount);
+          $("#ip_ma_ledshoriz").val(ledProperties.maxColumn);
+          $("#ip_ma_ledsvert").val(ledProperties.maxRow);
+          $("#ip_ma_cabling").val("parallel");
+          $("#ip_ma_start").val("top-left");
+          createMatrixLeds();
         }
         break;
 
