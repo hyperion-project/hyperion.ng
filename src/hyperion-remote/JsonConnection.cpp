@@ -10,6 +10,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QHostInfo>
+#include <QUrl>
 
 // hyperion-remote includes
 #include "JsonConnection.h"
@@ -17,31 +18,45 @@
 // util includes
 #include <utils/JsonUtils.h>
 
+// Constants
+namespace {
+const int JSON_DEFAULT_PORT = 19444;
+} //End of constants
+
 JsonConnection::JsonConnection(const QString & address, bool printJson)
 	: _printJson(printJson)
 	, _log(Logger::getInstance("REMOTE"))
-	, _socket()
 {
-	QStringList parts = address.split(":");
-	if (parts.size() != 2)
+	// Resolve hostname and port (or use default JSON-port)
+	QString testUrl;
+	if (address.at(0) != '[' && address.count(':') > 1)
+	{
+		testUrl = QString("http://[%1]").arg(address);
+	}
+	else
+	{
+		testUrl = QString("http://%1").arg(address);
+	}
+
+	QUrl url(testUrl);
+	if (!url.isValid())
 	{
 		throw std::runtime_error(QString("Wrong address: unable to parse address (%1)").arg(address).toStdString());
 	}
 
-	bool ok;
-	uint16_t port = parts[1].toUShort(&ok);
-	if (!ok)
+	int port = url.port();
+	if (port == -1)
 	{
-		throw std::runtime_error(QString("Wrong address: Unable to parse the port number (%1)").arg(parts[1]).toStdString());
+		port = JSON_DEFAULT_PORT;
 	}
 
-	_socket.connectToHost(parts[0], port);
+	_socket.connectToHost(url.host(), static_cast<quint16>(port));
 	if (!_socket.waitForConnected())
 	{
-		throw std::runtime_error("Unable to connect to host");
+		throw std::runtime_error(QString("Unable to connect to host (%1), port (%2)").arg(address).arg(port).toStdString());
 	}
 
-    qDebug() << "Connected to:" << address;
+	qDebug() << "Connected to:" << url.host() << "port:" << port;
 }
 
 JsonConnection::~JsonConnection()
