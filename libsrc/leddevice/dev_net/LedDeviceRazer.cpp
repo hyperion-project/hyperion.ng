@@ -17,7 +17,7 @@ using namespace Chroma::Chromalink;
 
 // Constants
 namespace {
-	bool verbose = true;
+	bool verbose = false;
 
 	// Configuration settings
 	const char CONFIG_RAZER_DEVICE_TYPE[] = "subType";
