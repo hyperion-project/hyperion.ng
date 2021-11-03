@@ -779,7 +779,7 @@ $(document).ready(function () {
           colorOrderDefault = "bgr";
 
           var subType = conf_editor.getEditor("root.specificOptions.subType").getValue();
-          params = { subType: subType };
+          let params = { subType: subType };
           getProperties_device(ledType, subType, params);
           break;
 
