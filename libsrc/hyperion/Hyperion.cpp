@@ -113,7 +113,7 @@ void Hyperion::start()
 
 	// initialize LED-devices
 	QJsonObject ledDevice = getSetting(settings::DEVICE).object();
-	ledDevice["currentLedCount"] = getLedCount(); // Inject led count info
+	ledDevice["currentLedCount"] = _hwLedCount; // Inject led count info
 
 	_ledDeviceWrapper = new LedDeviceWrapper(this);
 	connect(this, &Hyperion::compStateChangeRequest, _ledDeviceWrapper, &LedDeviceWrapper::handleComponentState);
