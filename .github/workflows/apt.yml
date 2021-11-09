@@ -58,7 +58,7 @@ jobs:
             cp ../hyperion_* /deploy"
 
       - name: Upload package artifact
-        if: startsWith(github.event.ref, 'refs/tags')
+#        if: startsWith(github.event.ref, 'refs/tags')
         uses: actions/upload-artifact@v2
         with:
           path: deploy
