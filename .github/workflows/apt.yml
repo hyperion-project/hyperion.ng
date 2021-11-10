@@ -1,10 +1,5 @@
 name: Hyperion APT Build
-on:
-  push:
-    branches:
-      - '**'
-    tags:
-      - '*'
+on: [workflow_call]
 
 jobs:
   setup:
@@ -58,7 +53,7 @@ jobs:
             cp ../hyperion_* /deploy"
 
       - name: Upload package artifact
-#        if: startsWith(github.event.ref, 'refs/tags')
+        if: startsWith(github.event.ref, 'refs/tags')
         uses: actions/upload-artifact@v2
         with:
           path: deploy
@@ -66,7 +61,7 @@ jobs:
 
   publish:
     name: Publish APT packages
-#    if: startsWith(github.event.ref, 'refs/tags')
+    if: startsWith(github.event.ref, 'refs/tags')
     needs: [setup, build]
     runs-on: ubuntu-latest
     steps:
@@ -105,12 +100,12 @@ jobs:
             fi
           done
 
-#      - name: Upload packages to APT server (DRAFT)
-#        uses: SamKirkland/FTP-Deploy-Action@4.1.0
-#        with:
-#          server: apt.hyperion-project.org
-#          username: ${{ secrets.APT_USER }}
-#          password: ${{ secrets.APT_PASSWORD }}
-#          local-dir: "./apt/"
-#          server-dir: ${{ secrets.APT_DRAFT }}
-#          dangerous-clean-slate: true
+      - name: Upload packages to APT server (DRAFT)
+        uses: SamKirkland/FTP-Deploy-Action@4.1.0
+        with:
+          server: apt.hyperion-project.org
+          username: ${{ secrets.APT_USER }}
+          password: ${{ secrets.APT_PASSWORD }}
+          local-dir: "./apt/"
+          server-dir: ${{ secrets.APT_DRAFT }}
+          dangerous-clean-slate: true
