@@ -88,7 +88,7 @@ function loadContent(event, forceRefresh) {
   var tag;
 
   var lastSelectedInstance = getStorage('lastSelectedInstance', false);
-  
+
   if (lastSelectedInstance && (lastSelectedInstance != window.currentHyperionInstance)) {
     if (window.serverInfo.instance[lastSelectedInstance] && window.serverInfo.instance[lastSelectedInstance].running) {
       instanceSwitch(lastSelectedInstance);
@@ -1245,4 +1245,44 @@ function showInputOptionsForKey(editor, item, showForKeys, state) {
 
 function encodeHTML(s) {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+}
+
+function isValidIPv4(value) {
+  const parts = value.split('.')
+  if (parts.length !== 4) {
+    return false;
+  }
+  for (let part of parts) {
+    if (isNaN(part) || part < 0 || part > 255) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function isValidIPv6(value) {
+  if (value.match(
+    '^(?:(?:(?:[a-fA-F0-9]{1,4}:){6}|(?=(?:[a-fA-F0-9]{0,4}:){2,6}(?:[0-9]{1,3}.){3}[0-9]{1,3}$)(([0-9a-fA-F]{1,4}:){1,5}|:)((:[0-9a-fA-F]{1,4}){1,5}:|:)|::(?:[a-fA-F0-9]{1,4}:){5})(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])|(?:[a-fA-F0-9]{1,4}:){7}[a-fA-F0-9]{1,4}|(?=(?:[a-fA-F0-9]{0,4}:){0,7}[a-fA-F0-9]{0,4}$)(([0-9a-fA-F]{1,4}:){1,7}|:)((:[0-9a-fA-F]{1,4}){1,7}|:)|(?:[a-fA-F0-9]{1,4}:){7}:|:(:[a-fA-F0-9]{1,4}){7})$'
+  ))
+    return true;
+  else
+    return false;
+}
+
+function isValidHostname(value) {
+  if (value.match(
+    '(?=^.{4,253}$)(^((?!-)[a-zA-Z0-9-]{0,62}[a-zA-Z0-9].)+[a-zA-Z]{2,63}$)'
+  ))
+    return true;
+  else
+    return false;
+}
+
+function isValidHostnameOrIP4(value) {
+  return (isValidHostname(value) || isValidIPv4(value));
+
+}
+
+function isValidHostnameOrIP(value) {
+  return (isValidHostnameOrIP4(value) || isValidIPv6(value));
 }

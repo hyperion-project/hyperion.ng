@@ -18,6 +18,7 @@
     },
     "host": {
       "type": "string",
+      "format": "ipv4",
       "title": "edt_dev_spec_multicastGroup_title",
       "default": "239.255.255.250",
       "propertyOrder": 3

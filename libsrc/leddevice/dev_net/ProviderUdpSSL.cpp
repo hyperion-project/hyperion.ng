@@ -74,9 +74,6 @@ bool ProviderUdpSSL::init(const QJsonObject &deviceConfig)
 		if( deviceConfig.contains("hs_attempts") )    _handshake_attempts    = deviceConfig["hs_attempts"].toInt(5);
 
 		QString host = deviceConfig["host"].toString(_defaultHost);
-		//Split hostname from API-port in case given
-		QStringList addressparts = QStringUtils::split(host, ":", QStringUtils::SplitBehavior::SkipEmptyParts);
-		QString udpHost = addressparts[0];
 
 		QStringList debugLevels = QStringList() << "No Debug" << "Error" << "State Change" << "Informational" << "Verbose";
 
@@ -96,25 +93,24 @@ bool ProviderUdpSSL::init(const QJsonObject &deviceConfig)
 		configLog( "SSL Handshake Timeout max", "%d", _handshake_timeout_max );
 		configLog( "SSL Handshake attempts", "%d", _handshake_attempts );
 
-		if ( _address.setAddress(udpHost) )
+		if (_address.setAddress(host))
 		{
-			Debug( _log, "Successfully parsed %s as an ip address.", QSTRING_CSTR(udpHost) );
+			Debug(_log, "Successfully parsed %s as an IP-address.", QSTRING_CSTR(_address.toString()));
 		}
 		else
 		{
-			Debug( _log, "Failed to parse [%s] as an ip address.", QSTRING_CSTR(udpHost) );
-			QHostInfo info = QHostInfo::fromName(udpHost);
-			if ( info.addresses().isEmpty() )
+			QHostInfo hostInfo = QHostInfo::fromName(host);
+			if (hostInfo.error() == QHostInfo::NoError)
 			{
-				Debug( _log, "Failed to parse [%s] as a hostname.", QSTRING_CSTR(udpHost) );
-				QString errortext = QString("Invalid target address [%1]!").arg(host);
-				this->setInError( errortext );
-				isInitOK = false;
+				_address = hostInfo.addresses().first();
+				Debug(_log, "Successfully resolved IP-address (%s) for hostname (%s).", QSTRING_CSTR(_address.toString()), QSTRING_CSTR(host));
 			}
 			else
 			{
-				Debug( _log, "Successfully parsed %s as a hostname.", QSTRING_CSTR(udpHost) );
-				_address = info.addresses().first();
+				QString errortext = QString("Failed resolving IP-address for [%1], (%2) %3").arg(host).arg(hostInfo.error()).arg(hostInfo.errorString());
+				this->setInError(errortext);
+				isInitOK = false;
+				return isInitOK;
 			}
 		}
 
@@ -129,7 +125,7 @@ bool ProviderUdpSSL::init(const QJsonObject &deviceConfig)
 		else
 		{
 			_ssl_port = config_port;
-			Debug( _log, "UDP SSL using %s:%u", QSTRING_CSTR( _address.toString() ), _ssl_port );
+			Debug(_log, "UDP SSL will write to %s port: %u", QSTRING_CSTR(_address.toString()), _ssl_port);
 			isInitOK = true;
 		}
 	}
@@ -250,23 +246,26 @@ bool ProviderUdpSSL::initConnection()
 
 bool ProviderUdpSSL::seedingRNG()
 {
-	int ret = 0;
-
-	sslLog( "Seeding the random number generator..." );
+	sslLog("Seeding the random number generator...");
 
 	mbedtls_entropy_init(&entropy);
 
-	sslLog( "Set mbedtls_ctr_drbg_seed..." );
+	sslLog("Set mbedtls_ctr_drbg_seed...");
 
-	const char* custom = QSTRING_CSTR( _custom );
+	QByteArray customDataArray = _custom.toLocal8Bit();
+	const char* customData = customDataArray.constData();
 
-	if ((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, reinterpret_cast<const unsigned char *>(custom), strlen(custom))) != 0)
+	int ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func,
+		&entropy, reinterpret_cast<const unsigned char*>(customData),
+		std::min(strlen(customData), (size_t)MBEDTLS_CTR_DRBG_MAX_SEED_INPUT));
+
+	if (ret != 0)
 	{
-		sslLog( QString("mbedtls_ctr_drbg_seed FAILED %1").arg( errorMsg( ret ) ), "error" );
+		sslLog(QString("mbedtls_ctr_drbg_seed FAILED %1").arg(errorMsg(ret)), "error");
 		return false;
 	}
 
-	sslLog( "Seeding the random number generator...ok" );
+	sslLog("Seeding the random number generator...ok");
 
 	return true;
 }

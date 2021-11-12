@@ -61,7 +61,7 @@ public:
 	/// Following parameters are required
 	/// @code
 	/// {
-	///     "host"  : "hostname or IP [:port]",
+	///     "host"  : "hostname or IP",
 	///     "token" : "authentication token",
 	///     "filter": "resource to query", root "/" is used, if empty
 	/// }
@@ -78,7 +78,7 @@ public:
 	/// Following parameters are required
 	/// @code
 	/// {
-	///     "host"  : "hostname or IP [:port]",
+	///     "host"  : "hostname or IP",
 	///     "token" : "authentication token",
 	/// }
 	///@endcode

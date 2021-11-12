@@ -645,6 +645,66 @@ $(document).ready(function () {
   // External properties properties, 2-dimensional arry of [ledType][key]
   devicesProperties = {};
 
+  // Add custom Hostname/IP validation
+  JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
+    var errors = [];
+
+    if (!isEmpty(value)) {
+      switch (schema.format) {
+        case "hostname_or_ip":
+          if (!isValidHostnameOrIP(value)) {
+            errors.push({
+              path: path,
+              property: 'format',
+              message: $.i18n('edt_msgcust_error_hostname_ip')
+            });
+          }
+          break;
+        case "hostname_or_ip4":
+          if (!isValidHostnameOrIP4(value)) {
+            errors.push({
+              path: path,
+              property: 'format',
+              message: $.i18n('edt_msgcust_error_hostname_ip4')
+            });
+          }
+          break;
+
+        //Remove, when new json-editor 2.x is used
+        case "ipv4":
+          if (!isValidIPv4(value)) {
+            errors.push({
+              path: path,
+              property: 'format',
+              message: $.i18n('edt_msg_error_ipv4')
+            });
+          }
+          break;
+        case "ipv6":
+          if (!isValidIPv6(value)) {
+            errors.push({
+              path: path,
+              property: 'format',
+              message: $.i18n('edt_msg_error_ipv6')
+            });
+          }
+          break;
+        case "hostname":
+          if (!isValidHostname(value)) {
+            errors.push({
+              path: path,
+              property: 'format',
+              message: $.i18n('edt_msg_error_hostname')
+            });
+          }
+          break;
+
+        default:
+      }
+    }
+    return errors;
+  });
+
   $("#leddevices").off().on("change", function () {
     var generalOptions = window.serverSchema.properties.device;
 
@@ -1073,7 +1133,7 @@ $(document).ready(function () {
         hwLedCount.setValue(lights.length);
       }
     });
- 
+
     //Handle Hardware Led Count constraint list
     conf_editor.watch('root.generalOptions.hardwareLedCountList', () => {
       var hwLedCountSelected = conf_editor.getEditor("root.generalOptions.hardwareLedCountList").getValue();
@@ -1610,9 +1670,8 @@ function updateElements(ledType, key) {
         if (ledProperties && ledProperties.leds && ledProperties.maxLedCount) {
           hardwareLedCount = ledProperties.leds.count;
           var maxLedCount = ledProperties.maxLedCount
-          if (hardwareLedCount > maxLedCount)
-          {
-	        showInfoDialog('warning', $.i18n("conf_leds_config_warning"), $.i18n('conf_leds_error_hwled_gt_maxled', hardwareLedCount, maxLedCount, maxLedCount));
+          if (hardwareLedCount > maxLedCount) {
+            showInfoDialog('warning', $.i18n("conf_leds_config_warning"), $.i18n('conf_leds_error_hwled_gt_maxled', hardwareLedCount, maxLedCount, maxLedCount));
             hardwareLedCount = maxLedCount;
           }
         }
@@ -1642,8 +1701,7 @@ function updateElements(ledType, key) {
         if (ledProperties && ledProperties.maxLedCount) {
           hardwareLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue();
           var maxLedCount = ledProperties.maxLedCount
-          if (hardwareLedCount > maxLedCount)
-          {
+          if (hardwareLedCount > maxLedCount) {
             showInfoDialog('warning', $.i18n("conf_leds_config_warning"), $.i18n('conf_leds_error_hwled_gt_maxled', hardwareLedCount, maxLedCount, maxLedCount));
             hardwareLedCount = maxLedCount;
           }
@@ -1659,8 +1717,8 @@ function updateElements(ledType, key) {
           if (ledProperties.ledCount.length > 0) {
             var configuredLedCount = window.serverConfig.device.hardwareLedCount;
             showInputOptionForItem(conf_editor, 'generalOptions', "hardwareLedCount", false);
-            updateJsonEditorSelection(conf_editor, 'root.generalOptions', "hardwareLedCountList", {"title": "edt_dev_general_hardwareLedCount_title"},
-                                      ledProperties.ledCount.map(String), [], configuredLedCount);
+            updateJsonEditorSelection(conf_editor, 'root.generalOptions', "hardwareLedCountList", { "title": "edt_dev_general_hardwareLedCount_title" },
+              ledProperties.ledCount.map(String), [], configuredLedCount);
           }
         }
         break;

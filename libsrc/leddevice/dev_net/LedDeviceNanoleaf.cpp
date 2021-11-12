@@ -19,7 +19,6 @@ const bool verbose3 = false;
 
 // Configuration settings
 const char CONFIG_ADDRESS[] = "host";
-//const char CONFIG_PORT[] = "port";
 const char CONFIG_AUTH_TOKEN[] = "token";
 const char CONFIG_RESTORE_STATE[] = "restoreOriginalState";
 const char CONFIG_BRIGHTNESS[] = "brightness";
@@ -181,8 +180,6 @@ bool LedDeviceNanoleaf::init(const QJsonObject& deviceConfig)
 		}
 
 		_startPos = deviceConfig[CONFIG_PANEL_START_POS].toInt(0);
-
-		// TODO: Allow to handle port dynamically
 
 		//Set hostname as per configuration and_defaultHost default port
 		_hostName = deviceConfig[CONFIG_ADDRESS].toString();
@@ -442,21 +439,7 @@ QJsonObject LedDeviceNanoleaf::getProperties(const QJsonObject& params)
 		QString authToken = params["token"].toString("");
 		QString filter = params["filter"].toString("");
 
-		// Resolve hostname and port (or use default API port)
-		QStringList addressparts = QStringUtils::split(hostName, ":", QStringUtils::SplitBehavior::SkipEmptyParts);
-		QString apiHost = addressparts[0];
-		int apiPort;
-
-		if (addressparts.size() > 1)
-		{
-			apiPort = addressparts[1].toInt();
-		}
-		else
-		{
-			apiPort = API_DEFAULT_PORT;
-		}
-
-		initRestAPI(apiHost, apiPort, authToken);
+		initRestAPI(hostName, API_DEFAULT_PORT, authToken);
 		_restApi->setPath(filter);
 
 		// Perform request
@@ -482,21 +465,7 @@ void LedDeviceNanoleaf::identify(const QJsonObject& params)
 	{
 		QString authToken = params["token"].toString("");
 
-		// Resolve hostname and port (or use default API port)
-		QStringList addressparts = QStringUtils::split(hostName, ":", QStringUtils::SplitBehavior::SkipEmptyParts);
-		QString apiHost = addressparts[0];
-		int apiPort;
-
-		if (addressparts.size() > 1)
-		{
-			apiPort = addressparts[1].toInt();
-		}
-		else
-		{
-			apiPort = API_DEFAULT_PORT;
-		}
-
-		initRestAPI(apiHost, apiPort, authToken);
+		initRestAPI(hostName, API_DEFAULT_PORT, authToken);
 		_restApi->setPath("identify");
 
 		// Perform request

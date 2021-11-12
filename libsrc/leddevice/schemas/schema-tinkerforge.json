@@ -2,11 +2,12 @@
 	"type":"object",
 	"required":true,
 	"properties":{
-		"output": {
+		"host": {
 			"type": "string",
-			"title":"edt_dev_spec_targetIp_title",
-			"default" : "127.0.0.1",
-			"propertyOrder" : 1
+			"format": "hostname_or_ip",
+			"title": "edt_dev_spec_targetIpHost_title",
+			"default": "127.0.0.1",
+			"propertyOrder": 1
 		},
 		"port": {
 			"type": "integer",

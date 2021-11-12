@@ -47,7 +47,7 @@ public:
 	/// Following parameters are required
 	/// @code
 	/// {
-	///     "host"  : "hostname or IP [:port]",
+	///     "host"  : "hostname or IP",
 	///     "filter": "resource to query", root "/" is used, if empty
 	/// }
 	///@endcode
@@ -63,7 +63,7 @@ public:
 	/// Following parameters are required
 	/// @code
 	/// {
-	///     "host"  : "hostname or IP [:port]",
+	///     "host"  : "hostname or IP",
 	/// }
 	///@endcode
 	///

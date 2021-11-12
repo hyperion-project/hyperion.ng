@@ -112,8 +112,9 @@
         "properties": {
           "host": {
             "type": "string",
+            "format": "hostname_or_ip",
             "minLength": 7,
-            "title": "edt_dev_spec_networkDeviceName_title",
+            "title": "edt_dev_spec_targetIpHost_title",
             "required": true,
             "propertyOrder": 1
           },
@@ -122,7 +123,7 @@
             "minimum": 0,
             "maximum": 65535,
             "default": 55443,
-            "title": "edt_dev_spec_networkDevicePort_title",
+            "title": "edt_dev_spec_port_title",
             "required": false,
             "access": "expert",
             "propertyOrder": 2

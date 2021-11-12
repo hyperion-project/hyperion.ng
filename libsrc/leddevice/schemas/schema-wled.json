@@ -16,6 +16,7 @@
     },
     "host": {
       "type": "string",
+      "format": "hostname_or_ip4",
       "title": "edt_dev_spec_targetIpHost_title",
       "options": {
         "infoText": "edt_dev_spec_targetIpHost_title_info"

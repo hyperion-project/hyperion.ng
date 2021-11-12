@@ -12,8 +12,8 @@ namespace {
 bool verbose = false;
 
 // Configuration settings
-const char CONFIG_ADDRESS[] = "host";
-//const char CONFIG_PORT[] = "port";
+const char CONFIG_HOST[] = "host";
+const char CONFIG_PORT[] = "port";
 const char CONFIG_USERNAME[] = "username";
 const char CONFIG_CLIENTKEY[] = "clientkey";
 const char CONFIG_BRIGHTNESSFACTOR[] = "brightnessFactor";
@@ -282,31 +282,30 @@ bool LedDevicePhilipsHueBridge::init(const QJsonObject &deviceConfig)
 		log( "LatchTime", "%d", this->getLatchTime() );
 
 		//Set hostname as per configuration and_defaultHost default port
-		QString address = deviceConfig[ CONFIG_ADDRESS ].toString();
+		_hostname = deviceConfig[CONFIG_HOST].toString();
 
 		//If host not configured the init failed
-		if ( address.isEmpty() )
+		if (_hostname.isEmpty())
 		{
-			this->setInError("No target hostname nor IP defined");
+			this->setInError("No target hostname defined");
 			isInitOK = false;
 		}
 		else
 		{
-			QStringList addressparts = QStringUtils::split(address,":", QStringUtils::SplitBehavior::SkipEmptyParts);
-			_hostname = addressparts[0];
-			log( "Hostname/IP", "%s", QSTRING_CSTR( _hostname ) );
+			log("Hostname", "%s", QSTRING_CSTR(_hostname));
 
-			if ( addressparts.size() > 1 )
+			int _apiPort = deviceConfig[CONFIG_PORT].toInt();
+			if (_apiPort == 0)
 			{
-				_apiPort = addressparts[1].toInt();
-				log( "Port", "%u",  _apiPort );
+				_apiPort = API_DEFAULT_PORT;
 			}
+			log("Port", "%d", _apiPort);
 
-			_username = deviceConfig[ CONFIG_USERNAME ].toString();
+			_username = deviceConfig[CONFIG_USERNAME].toString();
 
-			if ( initRestAPI( _hostname, _apiPort, _username ) )
+			if (initRestAPI(_hostname, _apiPort, _username))
 			{
-				if ( initMaps() )
+				if (initMaps())
 				{
 					isInitOK = ProviderUdpSSL::init(_devConfig);
 				}
@@ -1602,7 +1601,7 @@ QJsonObject LedDevicePhilipsHue::discover(const QJsonObject& /*params*/)
 	// Discover Devices
 	SSDPDiscover discover;
 
-	discover.skipDuplicateKeys(false);
+	discover.skipDuplicateKeys(true);
 	discover.setSearchFilter(SSDP_FILTER, SSDP_FILTER_HEADER);
 	QString searchTarget = SSDP_ID;
 
@@ -1619,37 +1618,39 @@ QJsonObject LedDevicePhilipsHue::discover(const QJsonObject& /*params*/)
 
 QJsonObject LedDevicePhilipsHue::getProperties(const QJsonObject& params)
 {
+	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 	QJsonObject properties;
 
 	// Get Phillips-Bridge device properties
-	QString host = params["host"].toString("");
-	if ( !host.isEmpty() )
+	QString hostName = params[CONFIG_HOST].toString("");
+	if (!hostName.isEmpty())
 	{
 		QString username = params["user"].toString("");
 		QString filter = params["filter"].toString("");
 
-		// Resolve hostname and port (or use default API port)
-		QStringList addressparts = QStringUtils::split(host,":", QStringUtils::SplitBehavior::SkipEmptyParts);
-		QString apiHost = addressparts[0];
 		int apiPort;
-
-		if ( addressparts.size() > 1 )
+		if (params[CONFIG_PORT].isString())
 		{
-			apiPort = addressparts[1].toInt();
+			apiPort = params[CONFIG_PORT].toString().toInt();
 		}
 		else
+		{
+			apiPort = params[CONFIG_PORT].toInt();
+		}
+
+		if (apiPort == 0)
 		{
 			apiPort = API_DEFAULT_PORT;
 		}
 
-		initRestAPI(apiHost, apiPort, username);
+		initRestAPI(hostName, apiPort, username);
 		_restApi->setPath(filter);
 
 		// Perform request
 		httpResponse response = _restApi->get();
-		if ( response.error() )
+		if (response.error())
 		{
-			Warning (_log, "%s get properties failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+			Warning(_log, "%s get properties failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
 		}
 
 		// Perform request
@@ -1660,45 +1661,46 @@ QJsonObject LedDevicePhilipsHue::getProperties(const QJsonObject& params)
 
 void LedDevicePhilipsHue::identify(const QJsonObject& params)
 {
-	Debug(_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 	QJsonObject properties;
 
 	// Identify Phillips-Bridge device
-	QString host = params["host"].toString("");
-	if ( !host.isEmpty() )
+	QString hostName = params[CONFIG_HOST].toString("");
+	if (!hostName.isEmpty())
 	{
 		QString username = params["user"].toString("");
 		int lightId = params["lightId"].toInt(0);
 
-		// Resolve hostname and port (or use default API port)
-		QStringList addressparts = QStringUtils::split(host,":", QStringUtils::SplitBehavior::SkipEmptyParts);
-		QString apiHost = addressparts[0];
 		int apiPort;
-
-		if ( addressparts.size() > 1 )
+		if (params[CONFIG_PORT].isString())
 		{
-			apiPort = addressparts[1].toInt();
+			apiPort = params[CONFIG_PORT].toString().toInt();
 		}
 		else
 		{
-			apiPort   = API_DEFAULT_PORT;
+			apiPort = params[CONFIG_PORT].toInt();
 		}
 
-		initRestAPI(apiHost, apiPort, username);
+		if (apiPort == 0)
+		{
+			apiPort = API_DEFAULT_PORT;
+		}
 
-		QString resource = QString("%1/%2/%3").arg( API_LIGHTS ).arg( lightId ).arg( API_STATE);
+		initRestAPI(hostName, apiPort, username);
+
+		QString resource = QString("%1/%2/%3").arg(API_LIGHTS).arg(lightId).arg(API_STATE);
 		_restApi->setPath(resource);
 
 		QString stateCmd;
-		stateCmd += QString("\"%1\":%2,").arg( API_STATE_ON, API_STATE_VALUE_TRUE );
-		stateCmd += QString("\"%1\":\"%2\"").arg( "alert", "select" );
+		stateCmd += QString("\"%1\":%2,").arg(API_STATE_ON, API_STATE_VALUE_TRUE);
+		stateCmd += QString("\"%1\":\"%2\"").arg("alert", "select");
 		stateCmd = "{" + stateCmd + "}";
 
 		// Perform request
 		httpResponse response = _restApi->put(stateCmd);
-		if ( response.error() )
+		if (response.error())
 		{
-			Warning (_log, "%s identification failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+			Warning(_log, "%s identification failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
 		}
 	}
 }
