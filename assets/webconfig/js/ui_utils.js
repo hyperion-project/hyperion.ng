@@ -681,6 +681,68 @@ function updateJsonEditorRange(rootEditor, path, key, minimum, maximum, defaultV
   rootEditor.getEditor(path + "." + key).setValue(currentValue);
 }
 
+function addJsonEditorHostValidation() {
+
+  JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
+    var errors = [];
+
+    if (!jQuery.isEmptyObject(value)) {
+      switch (schema.format) {
+        case "hostname_or_ip":
+          if (!isValidHostnameOrIP(value)) {
+            errors.push({
+              path: path,
+              property: 'format',
+              message: $.i18n('edt_msgcust_error_hostname_ip')
+            });
+          }
+          break;
+        case "hostname_or_ip4":
+          if (!isValidHostnameOrIP4(value)) {
+            errors.push({
+              path: path,
+              property: 'format',
+              message: $.i18n('edt_msgcust_error_hostname_ip4')
+            });
+          }
+          break;
+
+        //Remove, when new json-editor 2.x is used
+        case "ipv4":
+          if (!isValidIPv4(value)) {
+            errors.push({
+              path: path,
+              property: 'format',
+              message: $.i18n('edt_msg_error_ipv4')
+            });
+          }
+          break;
+        case "ipv6":
+          if (!isValidIPv6(value)) {
+            errors.push({
+              path: path,
+              property: 'format',
+              message: $.i18n('edt_msg_error_ipv6')
+            });
+          }
+          break;
+        case "hostname":
+          if (!isValidHostname(value)) {
+            errors.push({
+              path: path,
+              property: 'format',
+              message: $.i18n('edt_msg_error_hostname')
+            });
+          }
+          break;
+
+        default:
+      }
+    }
+    return errors;
+  });
+}
+
 function buildWL(link, linkt, cl) {
   var baseLink = "https://docs.hyperion-project.org/";
   var lang;
@@ -1280,7 +1342,6 @@ function isValidHostname(value) {
 
 function isValidHostnameOrIP4(value) {
   return (isValidHostname(value) || isValidIPv4(value));
-
 }
 
 function isValidHostnameOrIP(value) {

@@ -1146,7 +1146,6 @@ bool LedDeviceYeelight::startMusicModeServer()
 		}
 		else
 		{
-			QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
 			// use the first non-localhost IPv4 address, IPv6 are not supported by Yeelight currently
 			for (const auto& address : QNetworkInterface::allAddresses())
 			{
