@@ -17,15 +17,18 @@ bool ColorsOption::validate(Parser & parser, QString & value)
 		return true;
 	}
 
-	// check if we can create the color by hex RRGGBB getColors
-	QRegularExpression hexRe("^([0-9A-F]{6})+$", QRegularExpression::CaseInsensitiveOption);
-	QRegularExpressionMatch match = hexRe.match(value);
-	if(match.hasMatch())
+	// check if we can create the colors by hex RRGGBB getColors
+	QRegularExpression re("(([A-F0-9]){6})(?=(?:..)*)");
+	QRegularExpressionMatchIterator i = re.globalMatch(value);
+
+	while (i.hasNext()) {
+		QRegularExpressionMatch match = i.next();
+		QString captured = match.captured(1);
+		_colors.push_back(QColor(QString("#%1").arg(captured)));
+	}
+
+	if (!_colors.isEmpty() && (_colors.size() * 6) == value.length())
 	{
-		for(const QString & m : match.capturedTexts())
-		{
-			_colors.push_back(QColor(QString("#%1").arg(m)));
-		}
 		return true;
 	}
 
