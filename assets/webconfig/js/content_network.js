@@ -10,6 +10,8 @@ $(document).ready(function () {
   var conf_editor_bobl = null;
   var conf_editor_forw = null;
 
+  addJsonEditorHostValidation();
+
   if (window.showOptHelp) {
     //network
     $('#conf_cont').append(createRow('conf_cont_net'))

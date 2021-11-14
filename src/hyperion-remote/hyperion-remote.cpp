@@ -9,14 +9,16 @@
 #include <QCoreApplication>
 #include <QLocale>
 
+#include "HyperionConfig.h"
+#include <commandline/Parser.h>
+
 // hyperion-remote include
 #include "JsonConnection.h"
 
 // ssdp discover
 #include <ssdp/SSDPDiscover.h>
+#include <utils/NetUtils.h>
 
-#include "HyperionConfig.h"
-#include <commandline/Parser.h>
 #include <utils/DefaultSignalHandler.h>
 
 using namespace commandline;
@@ -196,8 +198,17 @@ int main(int argc, char * argv[])
 			}
 		}
 
+		// Resolve hostname and port (or use default port)
+		QString host;
+		quint16 port{ JSON_DEFAULT_PORT };
+
+		if (!NetUtils::resolveHostPort(address, host, port))
+		{
+			throw std::runtime_error(QString("Wrong address: unable to parse address (%1)").arg(address).toStdString());
+		}
+
 		// create the connection to the hyperion server
-		JsonConnection connection(address, parser.isSet(argPrint));
+		JsonConnection connection(host, parser.isSet(argPrint), port);
 
 		// authorization token specified. Use it first
 		if (parser.isSet(argToken))

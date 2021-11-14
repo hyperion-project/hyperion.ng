@@ -11,33 +11,21 @@
 #include "hyperion_reply_generated.h"
 #include "hyperion_request_generated.h"
 
-FlatBufferConnection::FlatBufferConnection(const QString& origin, const QString & address, int priority, bool skipReply)
+FlatBufferConnection::FlatBufferConnection(const QString& origin, const QString& host, int priority, bool skipReply, quint16 port)
 	: _socket()
 	, _origin(origin)
 	, _priority(priority)
+	, _host(host)
+	, _port(port)
 	, _prevSocketState(QAbstractSocket::UnconnectedState)
 	, _log(Logger::getInstance("FLATBUFCONN"))
 	, _registered(false)
 {
-	QStringList parts = address.split(":");
-	if (parts.size() != 2)
-	{
-		throw std::runtime_error(QString("FLATBUFCONNECTION ERROR: Unable to parse address (%1)").arg(address).toStdString());
-	}
-	_host = parts[0];
-
-	bool ok;
-	_port = parts[1].toUShort(&ok);
-	if (!ok)
-	{
-		throw std::runtime_error(QString("FLATBUFCONNECTION ERROR: Unable to parse the port (%1)").arg(parts[1]).toStdString());
-	}
-
 	if(!skipReply)
 		connect(&_socket, &QTcpSocket::readyRead, this, &FlatBufferConnection::readData, Qt::UniqueConnection);
 
 	// init connect
-	Info(_log, "Connecting to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
+	Info(_log, "Connecting to Hyperion: %s:%u", QSTRING_CSTR(_host), _port);
 	connectToHost();
 
 	// start the connection timer
@@ -167,13 +155,13 @@ void FlatBufferConnection::sendMessage(const uint8_t* buffer, uint32_t size)
 		switch (_socket.state() )
 		{
 			case QAbstractSocket::UnconnectedState:
-				Info(_log, "No connection to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
+				Info(_log, "No connection to Hyperion: %s:%u", QSTRING_CSTR(_host), _port);
 				break;
 			case QAbstractSocket::ConnectedState:
-				Info(_log, "Connected to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
+				Info(_log, "Connected to Hyperion: %s:%u", QSTRING_CSTR(_host), _port);
 				break;
 			default:
-				Debug(_log, "Connecting to Hyperion: %s:%d", _host.toStdString().c_str(), _port);
+				Debug(_log, "Connecting to Hyperion: %s:%u", QSTRING_CSTR(_host), _port);
 				break;
 	  }
 	  _prevSocketState = _socket.state();

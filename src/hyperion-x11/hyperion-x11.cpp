@@ -11,6 +11,7 @@
 
 // ssdp discover
 #include <ssdp/SSDPDiscover.h>
+#include <utils/NetUtils.h>
 
 using namespace commandline;
 
@@ -121,8 +122,18 @@ int main(int argc, char ** argv)
 					address = argAddress.value(parser);
 				}
 			}
-			// Create the Flatbuf-connection
-			FlatBufferConnection flatbuf("X11 Standalone", address, argPriority.getInt(parser), parser.isSet(argSkipReply));
+
+			// Resolve hostname and port (or use default port)
+			QString host;
+			quint16 port{ FLATBUFFER_DEFAULT_PORT };
+
+			if (!NetUtils::resolveHostPort(address, host, port))
+			{
+				throw std::runtime_error(QString("Wrong address: unable to parse address (%1)").arg(address).toStdString());
+			}
+
+			// Create the Flabuf-connection
+			FlatBufferConnection flatbuf("X11 Standalone", host, argPriority.getInt(parser), parser.isSet(argSkipReply), port);
 
 			// Connect the screen capturing to flatbuf connection processing
 			QObject::connect(&x11Wrapper, SIGNAL(sig_screenshot(const Image<ColorRgb> &)), &flatbuf, SLOT(setImage(Image<ColorRgb>)));
