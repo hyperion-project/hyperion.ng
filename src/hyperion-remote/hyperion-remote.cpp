@@ -93,8 +93,8 @@ int main(int argc, char * argv[])
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//      art             variable definition       append art to Parser     short-, long option              description, optional default value      //
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		Option          & argAddress            = parser.add<Option>       ('a', "address"                , "Set the address of the hyperion server [default: %1]", "127.0.0.1:19444");
-		Option          & argToken              = parser.add<Option>       ('t', "token  "                , "If authorization tokens are required, this token is used");
+		Option          & argAddress            = parser.add<Option>       ('a', "address"                , "The hostname or IP-address (IPv4 or IPv6) of the hyperion server.\nDefault port: 19444.\nSample addresses:\nHost : hyperion.fritz.box\nIPv4 : 127.0.0.1:19444\nIPv6 : [2001:1:2:3:4:5:6:7]");
+		Option          & argToken              = parser.add<Option>       ('t', "token"                  , "If authorization tokens are required, this token is used");
 		Option          & argInstance           = parser.add<Option>       ('I', "instance"               , "Select a specific target instance by name for your command. By default it uses always the first instance");
 		IntOption       & argPriority           = parser.add<IntOption>    ('p', "priority"               , "Used to the provided priority channel (suggested 2-99) [default: %1]", "50");
 		IntOption       & argDuration           = parser.add<IntOption>    ('d', "duration"               , "Specify how long the LEDs should be switched on in milliseconds [default: infinity]");
