@@ -37,6 +37,14 @@ public:
 	bool saveSettings(QJsonObject config, bool correct = false);
 
 	///
+	/// @brief Restore a complete json configuration
+	/// @param config  The entire config object
+	/// @param correct If true will correct json against schema before save
+	/// @return True on success else false
+	///
+	bool restoreSettings(QJsonObject config, bool correct = false);
+
+	///
 	/// @brief get a single setting json from configuration
 	/// @param type   The settings::type from enum
 	/// @return The requested json data as QJsonDocument

@@ -27,6 +27,7 @@
 				"hidden": true
 			},
 			"required": true,
+			"default": "",
 			"comment": "The 'available_devices' settings are dynamically inserted into the WebUI under PropertyOrder '2'.",
 			"propertyOrder": 3
 		},

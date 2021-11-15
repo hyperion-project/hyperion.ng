@@ -860,6 +860,13 @@ void JsonAPI::handleConfigCommand(const QJsonObject &message, const QString &com
 	{
 		handleSchemaGetCommand(message, full_command, tan);
 	}
+	else if (subcommand == "getconfig")
+	{
+		if (_adminAuthorized)
+			sendSuccessDataReply(QJsonDocument(_hyperion->getQJsonConfig()), full_command, tan);
+		else
+			sendErrorReply("No Authorization", command, tan);
+	}
 	else if (subcommand == "setconfig")
 	{
 		if (_adminAuthorized)
@@ -867,10 +874,10 @@ void JsonAPI::handleConfigCommand(const QJsonObject &message, const QString &com
 		else
 			sendErrorReply("No Authorization", command, tan);
 	}
-	else if (subcommand == "getconfig")
+	else if (subcommand == "restoreconfig")
 	{
 		if (_adminAuthorized)
-			sendSuccessDataReply(QJsonDocument(_hyperion->getQJsonConfig()), full_command, tan);
+			handleConfigRestoreCommand(message, full_command, tan);
 		else
 			sendErrorReply("No Authorization", command, tan);
 	}
@@ -913,6 +920,27 @@ void JsonAPI::handleConfigSetCommand(const QJsonObject &message, const QString &
 		}
 		else
 			sendErrorReply("Saving configuration while Hyperion is disabled isn't possible", command, tan);
+	}
+}
+
+void JsonAPI::handleConfigRestoreCommand(const QJsonObject &message, const QString &command, int tan)
+{
+	if (message.contains("config"))
+	{
+		QJsonObject config = message["config"].toObject();
+		if (API::isHyperionEnabled())
+		{
+			if ( API::restoreSettings(config) )
+			{
+				sendSuccessReply(command, tan);
+			}
+			else
+			{
+				sendErrorReply("Restore settings failed", command, tan);
+			}
+		}
+		else
+			sendErrorReply("Restoring configuration while Hyperion is disabled isn't possible", command, tan);
 	}
 }
 

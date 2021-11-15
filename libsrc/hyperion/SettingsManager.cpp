@@ -21,19 +21,19 @@ using namespace semver;
 
 // Constants
 namespace {
-	const char DEFAULT_VERSION[] = "2.0.0-alpha.8";
+const char DEFAULT_VERSION[] = "2.0.0-alpha.8";
 } //End of constants
 
 QJsonObject SettingsManager::schemaJson;
 
 SettingsManager::SettingsManager(quint8 instance, QObject* parent, bool readonlyMode)
 	: QObject(parent)
-	, _log(Logger::getInstance("SETTINGSMGR"))
-	, _instance(instance)
-	, _sTable(new SettingsTable(instance, this))
-	, _configVersion(DEFAULT_VERSION)
-	, _previousVersion(DEFAULT_VERSION)
-	, _readonlyMode(readonlyMode)
+	  , _log(Logger::getInstance("SETTINGSMGR"))
+	  , _instance(instance)
+	  , _sTable(new SettingsTable(instance, this))
+	  , _configVersion(DEFAULT_VERSION)
+	  , _previousVersion(DEFAULT_VERSION)
+	  , _readonlyMode(readonlyMode)
 {
 	_sTable->setReadonlyMode(_readonlyMode);
 	// get schema
@@ -210,11 +210,15 @@ QJsonObject SettingsManager::getSettings() const
 	return config;
 }
 
-bool SettingsManager::saveSettings(QJsonObject config, bool correct)
+bool SettingsManager::restoreSettings(QJsonObject config, bool correct)
 {
 	// optional data upgrades e.g. imported legacy/older configs
-	// handleConfigUpgrade(config);
+	handleConfigUpgrade(config);
+	return saveSettings(config, correct);
+}
 
+bool SettingsManager::saveSettings(QJsonObject config, bool correct)
+{
 	// we need to validate data against schema
 	QJsonSchemaChecker schemaChecker;
 	schemaChecker.setSchema(schemaJson);
@@ -310,7 +314,6 @@ bool SettingsManager::resolveConfigVersion(QJsonObject& config)
 		}
 		else
 		{
-			_configVersion.setVersion(DEFAULT_VERSION);
 			isValid = true;
 		}
 
@@ -576,21 +579,20 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 					}
 				}
 
-				// Migrate global objects only once
-				if (_instance == GLOABL_INSTANCE_ID)
+				// Have Hostname/IP-address separate from port for Forwarder
+				if (config.contains("forwarder"))
 				{
-					// Have Hostname/IP-address separate from port for Forwarder
-					if (config.contains("forwarder"))
+					QJsonObject newForwarderConfig = config["forwarder"].toObject();
+
+					QJsonArray json;
+					if (newForwarderConfig.contains("json"))
 					{
-						QJsonObject newForwarderConfig = config["forwarder"].toObject();
+						QJsonArray oldJson = newForwarderConfig["json"].toArray();
+						QJsonObject newJsonConfig;
 
-						QJsonArray json;
-						if (newForwarderConfig.contains("json"))
+						for (const QJsonValue& value : qAsConst(oldJson))
 						{
-							QJsonArray oldJson = newForwarderConfig["json"].toArray();
-							QJsonObject newJsonConfig;
-
-							for (const QJsonValue& value : qAsConst(oldJson))
+							if (value.isString())
 							{
 								QString oldHost = value.toString();
 								// Resolve hostname and port
@@ -613,24 +615,27 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 									migrated = true;
 								}
 							}
-
-							if (!json.isEmpty())
-							{
-								newForwarderConfig["json"] = json;
-							}
-							else
-							{
-								newForwarderConfig.remove("json");
-							}
 						}
 
-						QJsonArray flatbuffer;
-						if (newForwarderConfig.contains("flat"))
+						if (!json.isEmpty())
 						{
-							QJsonArray oldFlatbuffer = newForwarderConfig["flat"].toArray();
-							QJsonObject newFlattbufferConfig;
+							newForwarderConfig["json"] = json;
+						}
+						else
+						{
+							newForwarderConfig.remove("json");
+						}
+					}
 
-							for (const QJsonValue& value : qAsConst(oldFlatbuffer))
+					QJsonArray flatbuffer;
+					if (newForwarderConfig.contains("flat"))
+					{
+						QJsonArray oldFlatbuffer = newForwarderConfig["flat"].toArray();
+						QJsonObject newFlattbufferConfig;
+
+						for (const QJsonValue& value : qAsConst(oldFlatbuffer))
+						{
+							if (value.isString())
 							{
 								QString oldHost = value.toString();
 								// Resolve hostname and port
@@ -664,17 +669,17 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 								newForwarderConfig.remove("flat");
 							}
 						}
+					}
 
-						if (json.isEmpty() && flatbuffer.isEmpty())
-						{
-							newForwarderConfig["enable"] = false;
-						}
+					if (json.isEmpty() && flatbuffer.isEmpty())
+					{
+						newForwarderConfig["enable"] = false;
+					}
 
-						if (migrated)
-						{
-							config["forwarder"] = newForwarderConfig;
-							Debug(_log, "Forwarder records migrated");
-						}
+					if (migrated)
+					{
+						config["forwarder"] = newForwarderConfig;
+						Debug(_log, "Forwarder records migrated");
 					}
 				}
 			}

@@ -324,6 +324,14 @@ public slots:
 	///
 	bool saveSettings(const QJsonObject& config, bool correct = false);
 
+	///
+	/// @brief Restore a complete json config
+	/// @param config  The entire config object
+	/// @param correct If true will correct json against schema before save
+	/// @return        True on success else false
+	///
+	bool restoreSettings(const QJsonObject& config, bool correct = false);
+
 	/// ############
 	/// COMPONENTREGISTER
 	///

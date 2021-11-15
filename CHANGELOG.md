@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - LED-Devices: Removed IPv6 limitations
 - Philips-Hue Wizard optimizations
 - JSON/Flatbuffer forwarder: Removed IPv6 limitations
+- Allow to import configurations from previous versions
 
 Note: Existing configurations are migrated to new structures automatically
 

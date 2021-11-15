@@ -392,6 +392,20 @@ bool API::saveSettings(const QJsonObject &data)
 	return rc;
 }
 
+bool API::restoreSettings(const QJsonObject &data)
+{
+	bool rc = true;
+	if (!_adminAuthorized)
+	{
+		rc = false;
+	}
+	else
+	{
+		QMetaObject::invokeMethod(_hyperion, "restoreSettings", Qt::DirectConnection, Q_RETURN_ARG(bool, rc), Q_ARG(QJsonObject, data), Q_ARG(bool, true));
+	}
+	return rc;
+}
+
 bool API::updateHyperionPassword(const QString &password, const QString &newPassword)
 {
     if (!_adminAuthorized)

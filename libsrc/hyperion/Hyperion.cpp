@@ -279,6 +279,11 @@ bool Hyperion::saveSettings(const QJsonObject& config, bool correct)
 	return _settingsManager->saveSettings(config, correct);
 }
 
+bool Hyperion::restoreSettings(const QJsonObject& config, bool correct)
+{
+	return _settingsManager->restoreSettings(config, correct);
+}
+
 int Hyperion::getLatchTime() const
 {
 	return _ledDeviceWrapper->getLatchTime();

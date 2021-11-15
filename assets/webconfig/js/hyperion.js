@@ -410,6 +410,10 @@ function requestWriteConfig(config, full)
   sendToHyperion("config","setconfig", '"config":'+JSON.stringify(window.serverConfig));
 }
 
+function requestRestoreConfig(config) {
+  sendToHyperion("config", "restoreconfig", '"config":' + JSON.stringify(config));
+}
+
 function requestWriteEffect(effectName,effectPy,effectArgs,data)
 {
   var cutArgs = effectArgs.slice(1, -1);
