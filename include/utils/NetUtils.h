@@ -17,7 +17,7 @@ namespace NetUtils {
 	/// @param         log   The logger of the caller to print
 	/// @return        True on success else false
 	///
-	static bool portAvailable(quint16& port, Logger* log)
+	inline bool portAvailable(quint16& port, Logger* log)
 	{
 		const quint16 prevPort = port;
 		QTcpServer server;
@@ -42,7 +42,7 @@ namespace NetUtils {
 	/// @param[in] host  A hostname/IP-address to make reference to during logging
 	/// @return          True on success else false
 	///
-	static bool isValidPort(Logger* log, int port, const QString& host)
+	inline bool isValidPort(Logger* log, int port, const QString& host)
 	{
 		if (port <= 0 || port > MAX_PORT)
 		{
@@ -59,7 +59,7 @@ namespace NetUtils {
 	/// @param[in/out] port    The resolved port, if available.
 	/// @return        True on success else false
 	///
-	static bool resolveHostPort(const QString& address, QString& host, quint16& port)
+	inline bool resolveHostPort(const QString& address, QString& host, quint16& port)
 	{
 		QString testUrl;
 		if (address.at(0) != '[' && address.count(':') > 1)
@@ -93,10 +93,9 @@ namespace NetUtils {
 	/// @return          True on success else false
 	///
 
-	static bool resolveHostAddress(Logger* log, const QString& address, QHostAddress& hostAddress)
+	inline bool resolveHostAddress(Logger* log, const QString& address, QHostAddress& hostAddress)
 	{
 		bool isHostAddressOK{ false };
-
 
 		if (hostAddress.setAddress(address))
 		{
@@ -121,7 +120,4 @@ namespace NetUtils {
 		}
 		return isHostAddressOK;
 	}
-
-
-
 }

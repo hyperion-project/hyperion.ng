@@ -9,7 +9,7 @@
 
 // utils includes
 #include <utils/Logger.h>
-#include <utils/Netutils.h>
+#include <utils/NetUtils.h>
 
 // qt includes
 #include <QTcpServer>
