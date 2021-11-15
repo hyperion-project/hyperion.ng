@@ -18,7 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Philips-Hue Wizard optimizations
 - JSON/Flatbuffer forwarder: Removed IPv6 limitations
 
+Note: Existing configurations are migrated to new structures automatically
+
 ### Fixed
+
+- Fixed hyperion-remote when sending multiple Hex-Colors with "Set Color" option
 
 ### Removed
 
