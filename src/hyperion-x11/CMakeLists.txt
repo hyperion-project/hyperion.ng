@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.0.0)
 project(hyperion-x11)
 
-find_package(Qt5Widgets REQUIRED)
 find_package(X11 REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Gui Network Widgets REQUIRED)
+
 
 include_directories(
 	${CMAKE_CURRENT_BINARY_DIR}/../../libsrc/flatbufserver
@@ -38,10 +39,10 @@ target_link_libraries(${PROJECT_NAME}
 	${X11_LIBRARIES}
 	${X11_Xrandr_LIB}
 	${X11_Xrender_LIB}
-	Qt5::Core
-	Qt5::Gui
-	Qt5::Network
-	Qt5::Widgets
+	Qt${QT_VERSION_MAJOR}::Core
+	Qt${QT_VERSION_MAJOR}::Gui
+	Qt${QT_VERSION_MAJOR}::Network
+	Qt${QT_VERSION_MAJOR}::Widgets
 )
 
 install ( TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin" COMPONENT "hyperion_x11" )

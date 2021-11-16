@@ -90,7 +90,7 @@ void X11Grabber::setupResources()
 
 	if (_XRenderAvailable)
 	{
-        _useImageResampler = false;
+		_useImageResampler = false;
 		_imageResampler.setHorizontalPixelDecimation(1);
 		_imageResampler.setVerticalPixelDecimation(1);
 
@@ -111,7 +111,7 @@ void X11Grabber::setupResources()
 	}
 	else
 	{
-        _useImageResampler = true;
+		_useImageResampler = true;
 		_imageResampler.setHorizontalPixelDecimation(_pixelDecimation);
 		_imageResampler.setVerticalPixelDecimation(_pixelDecimation);
 	}
@@ -378,7 +378,11 @@ void X11Grabber::setCropping(int cropLeft, int cropRight, int cropTop, int cropB
 	}
 }
 
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+bool X11Grabber::nativeEventFilter(const QByteArray & eventType, void * message, qintptr * /*result*/)
+#else
 bool X11Grabber::nativeEventFilter(const QByteArray & eventType, void * message, long int * /*result*/)
+#endif
 {
 	if (!_XRandRAvailable || eventType != "xcb_generic_event_t") {
 		return false;

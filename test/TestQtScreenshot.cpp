@@ -4,7 +4,6 @@
 
 // QT includes
 #include <QApplication>
-#include <QDesktopWidget>
 #include <QPixmap>
 #include <QFile>
 #include <QRgb>
@@ -23,7 +22,7 @@ void createScreenshot(const int cropHorizontal, const int cropVertical, const in
 	const QRect screenSize = screen->availableGeometry();
 	const int croppedWidth  = screenSize.width()  - 2*cropVertical;
 	const int croppedHeight = screenSize.height() - 2*cropHorizontal;
-	const QPixmap fullSizeScreenshot = screen->grabWindow(QApplication::desktop()->winId(), cropVertical, cropHorizontal, croppedWidth, croppedHeight);
+	const QPixmap fullSizeScreenshot = screen->grabWindow(0, cropVertical, cropHorizontal, croppedWidth, croppedHeight);
 
 	// Scale the screenshot to the required size
 	const int width  = fullSizeScreenshot.width()/decimation;

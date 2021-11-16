@@ -7,7 +7,9 @@
 #include <hyperion/AuthManager.h>
 
 #include <QNetworkInterface>
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 #include <QNetworkConfigurationManager>
+#endif
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 10, 0))
 #include <QRandomGenerator>
@@ -19,7 +21,9 @@ SSDPHandler::SSDPHandler(WebServer* webserver, quint16 flatBufPort, quint16 prot
 	: SSDPServer(parent)
 	, _webserver(webserver)
 	, _localAddress()
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 	, _NCA(nullptr)
+#endif
 {
 	setFlatBufPort(flatBufPort);
 	setProtoBufPort(protoBufPort);
@@ -45,13 +49,14 @@ void SSDPHandler::initServer()
 
 	// prep server
 	SSDPServer::initServer();
-
+	
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 	_NCA = new QNetworkConfigurationManager(this);
-
+	connect(_NCA, &QNetworkConfigurationManager::configurationChanged, this, &SSDPHandler::handleNetworkConfigurationChanged);
+#endif	
+	
 	// listen for mSearchRequestes
 	connect(this, &SSDPServer::msearchRequestReceived, this, &SSDPHandler::handleMSearchRequest);
-
-	connect(_NCA, &QNetworkConfigurationManager::configurationChanged, this, &SSDPHandler::handleNetworkConfigurationChanged);
 
 	// get localAddress from interface
 	if(!getLocalAddress().isEmpty())
@@ -138,6 +143,7 @@ void SSDPHandler::handleWebServerStateChange(bool newState)
 	}
 }
 
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 void SSDPHandler::handleNetworkConfigurationChanged(const QNetworkConfiguration &config)
 {
 	// get localAddress from interface
@@ -154,6 +160,7 @@ void SSDPHandler::handleNetworkConfigurationChanged(const QNetworkConfiguration 
 		sendAnnounceList(true);
 	}
 }
+#endif
 
 QString SSDPHandler::getLocalAddress() const
 {

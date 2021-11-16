@@ -16,7 +16,12 @@
 #include <QDir>
 
 LedDeviceRegistry LedDeviceWrapper::_ledDeviceMap {};
-QMutex LedDeviceWrapper::_ledDeviceMapLock {QMutex::Recursive};
+
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+	QRecursiveMutex        LedDeviceWrapper::_ledDeviceMapLock;
+#else
+	QMutex                 LedDeviceWrapper::_ledDeviceMapLock{ QMutex::Recursive };
+#endif
 
 LedDeviceWrapper::LedDeviceWrapper(Hyperion* hyperion)
 	: QObject(hyperion)

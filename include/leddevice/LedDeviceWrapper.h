@@ -6,7 +6,11 @@
 #include <utils/ColorRgb.h>
 #include <utils/Components.h>
 
-#include <QMutex>
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+	#include <QRecursiveMutex>
+#else
+	#include <QMutex>
+#endif
 
 class LedDevice;
 class Hyperion;
@@ -124,8 +128,12 @@ private slots:
 protected:
 	/// contains all available led device constructors
 	static LedDeviceRegistry _ledDeviceMap;
-	static QMutex _ledDeviceMapLock;
-
+	
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))	
+	static QRecursiveMutex       _ledDeviceMapLock;
+#else
+	static QMutex                _ledDeviceMapLock;
+#endif
 private:
 	///
 	/// @brief switchOff() the device and Stops the device thread

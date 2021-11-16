@@ -181,7 +181,7 @@ void JsonCB::doCallback(const QString& cmd, const QVariant& data)
 	QJsonObject obj;
 	obj["command"] = cmd;
 
-	if(data.userType() == QMetaType::QJsonArray)
+	if (data.userType() == QMetaType::QJsonArray)
 		obj["data"] = data.toJsonArray();
 	else
 		obj["data"] = data.toJsonObject();

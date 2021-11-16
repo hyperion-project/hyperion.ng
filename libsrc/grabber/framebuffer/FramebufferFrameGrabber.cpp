@@ -208,7 +208,7 @@ QJsonObject FramebufferFrameGrabber::discover(const QJsonObject& params)
 	QFileInfoList::const_iterator deviceFileIterator;
 	for (deviceFileIterator = deviceFiles.constBegin(); deviceFileIterator != deviceFiles.constEnd(); ++deviceFileIterator)
 	{
-		fbIdx = (*deviceFileIterator).fileName().rightRef(1).toInt();
+		fbIdx = (*deviceFileIterator).fileName().right(1).toInt();
 		QString device = (*deviceFileIterator).absoluteFilePath();
 		DebugIf(verbose, _log, "FB device [%s] found", QSTRING_CSTR(device));
 

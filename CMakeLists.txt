@@ -112,10 +112,10 @@ MACRO(FIRSTSUBDIR result curdir)
   FILE(GLOB children RELATIVE ${curdir} ${curdir}/*)
   SET(dirlist "")
   FOREACH(child ${children})
-    IF(IS_DIRECTORY ${curdir}/${child})
-      LIST(APPEND dirlist "${curdir}/${child}")
-	  	BREAK()
-    ENDIF()
+	IF(IS_DIRECTORY ${curdir}/${child})
+	  LIST(APPEND dirlist "${curdir}/${child}")
+		BREAK()
+	ENDIF()
   ENDFOREACH()
   SET(${result} ${dirlist})
 ENDMACRO()
@@ -124,9 +124,9 @@ if ( "${PLATFORM}" MATCHES "osx" )
 	# specify the min version of the target platform
 	SET ( CMAKE_OSX_DEPLOYMENT_TARGET "10.15" )
 	# add specific prefix paths
-	FIRSTSUBDIR(SUBDIRQT "/usr/local/Cellar/qt")
 	FIRSTSUBDIR(SUBDIRPY "/usr/local/opt/python3/Frameworks/Python.framework/Versions")
-	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${SUBDIRQT} ${SUBDIRPY} "/usr/local/opt/qt5" )
+	set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${SUBDIRPY})
+
 	include_directories("/opt/X11/include/")
 	SET ( DEFAULT_OSX        ON )
 	SET ( DEFAULT_USB_HID    ON )
@@ -138,7 +138,7 @@ elseif ( "${PLATFORM}" STREQUAL "amlogic" )
 elseif ( "${PLATFORM}" STREQUAL "amlogic-dev" )
 	SET ( DEFAULT_AMLOGIC     ON )
 	SET ( DEFAULT_DISPMANX    OFF )
-	SET ( DEFAULT_QT 		  OFF )
+	SET ( DEFAULT_QT          OFF )
 	SET ( DEFAULT_CEC         OFF )
 elseif ( "${PLATFORM}" STREQUAL "amlogic64" )
 	SET ( DEFAULT_AMLOGIC     ON )
@@ -299,70 +299,12 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 # Prefer static linking over dynamic
 #set(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.so")
 
-# enable C++11; MSVC doesn't have c++11 feature switch
-if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-	include(CheckCXXCompilerFlag)
-	CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-	CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-	if (CMAKE_COMPILER_IS_GNUCXX)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-psabi")
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-psabi")
-	endif()
-	if(COMPILER_SUPPORTS_CXX11)
-			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-	elseif(COMPILER_SUPPORTS_CXX0X)
-			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-	else()
-			message(STATUS "No support for C++11 detected. Compilation will most likely fail on your compiler")
-	endif()
-endif()
-
 # MSVC options
 if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	# Search for Windows SDK
 	find_package(WindowsSDK REQUIRED)
 	message(STATUS "WINDOWS SDK: ${WINDOWSSDK_LATEST_DIR} ${WINDOWSSDK_LATEST_NAME}")
 	message(STATUS "MSVC VERSION: ${MSVC_VERSION}")
-
-	# Qt5 default install path with msvc2017 64bit component
-	# The Qt5_DIR should point to Qt5Config.cmake   -> C:/Qt/5.xx/msvc2017_64/lib/cmake/Qt5
-	# The CMAKE_PREFIX_PATH should point to the install directory -> C:/Qt/5.xx/msvc2017_64
-	#
-	# Alternatively, use Qt5_BASE_DIR environment variable to point to Qt version to be used
-	# In MSVC19 add into CMakeSettings.json
-	#
-	#      "environments": [
-	#    {
-	#      "Qt5_BASE_DIR": "D:/Qt/5.15.1/msvc2019_64"
-	#    }
-	#  ]
-
-	if (NOT DEFINED ENV{Qt5_BASE_DIR})
-		FIRSTSUBDIR(SUBDIRQT "C:/Qt")
-		SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "${SUBDIRQT}/msvc2019_64")
-	else()
-		message(STATUS "Qt5_BASE_DIR: $ENV{Qt5_BASE_DIR}")
-		message(STATUS "Add Qt5_BASE_DIR: $ENV{Qt5_BASE_DIR} to CMAKE_PREFIX_PATH")
-		SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} "$ENV{Qt5_BASE_DIR}")
-	endif()
-
-	if (NOT DEFINED ENV{Qt5_DIR})
-		if (NOT DEFINED ENV{Qt5_BASE_DIR})
-			SET (qt_module_path "${SUBDIRQT}/msvc2019_64/lib/cmake/Qt5")
-		else ()
-			SET (qt_module_path "$ENV{Qt5_BASE_DIR}/lib/cmake/Qt5")
-		endif()
-	else()
-		SET (qt_module_path "$ENV{Qt5_DIR}")
-	endif()
-
-	message(STATUS "Add ${qt_module_path} to CMAKE_MODULE_PATH")
-	SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${qt_module_path}")
-
-	#message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
-	#message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
 
 	# Search for DirectX9
 	if (ENABLE_DX)
@@ -372,59 +314,79 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 endif()
 
 # Use GNU gold linker if available
-if (NOT WIN32)
+if (NOT WIN32 AND NOT APPLE)
 	include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/LDGold.cmake)
 endif()
 
-if (ENABLE_DEPLOY_DEPENDENCIES)
-	# Don't create new dynamic tags (RUNPATH)
-	if (NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--disable-new-dtags")
-	endif()
-
-	# setup -rpath to search for shared libs in BINARY/../lib folder
-	if (UNIX AND NOT APPLE)
-		SET(CMAKE_SKIP_BUILD_RPATH FALSE)
-		SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-		SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH}:$ORIGIN/../lib")
-		SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-	endif ()
+# Don't create new dynamic tags (RUNPATH) and setup -rpath to search for shared libs in BINARY/../lib folder (only for Unix)
+if (ENABLE_DEPLOY_DEPENDENCIES AND UNIX AND NOT APPLE)
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--disable-new-dtags")
+	SET(CMAKE_SKIP_BUILD_RPATH FALSE)
+	SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+	SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH}:$ORIGIN/../lib")
+	SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 endif ()
-
-# add QT5 dependency
-IF ( CMAKE_CROSSCOMPILING )
-
-	file(GLOB QT_BIN ${QT_BIN_PATH})
-
-	set(QT_MOC_EXECUTABLE ${QT_BIN}/moc)
-	add_executable(Qt5::moc IMPORTED)
-	set_property(TARGET Qt5::moc PROPERTY IMPORTED_LOCATION ${QT_MOC_EXECUTABLE})
-
-	set(QT_RCC_EXECUTABLE ${QT_BIN}/rcc)
-	add_executable(Qt5::rcc IMPORTED)
-	set_property(TARGET Qt5::rcc PROPERTY IMPORTED_LOCATION ${QT_RCC_EXECUTABLE})
-
-	message(STATUS "QT_BIN_PATH = ${QT_BIN}")
-	message(STATUS "QT_MOC_EXECUTABLE = ${QT_MOC_EXECUTABLE}")
-	message(STATUS "QT_RCC_EXECUTABLE = ${QT_RCC_EXECUTABLE}")
-
-ENDIF()
-
-SET(QT_MIN_VERSION "5.5.0")
-find_package(Qt5 COMPONENTS Core Gui Network SerialPort Sql REQUIRED)
-message( STATUS "Found Qt Version: ${Qt5Core_VERSION}" )
-IF ( "${Qt5Core_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
-	message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )
-ENDIF()
-
-# Add libusb and pthreads
-find_package(libusb-1.0 REQUIRED)
-find_package(Threads REQUIRED)
-add_definitions(${QT_DEFINITIONS})
 
 if(APPLE)
 	set(CMAKE_EXE_LINKER_FLAGS "-framework CoreGraphics")
 endif()
+
+find_package(Threads REQUIRED)
+
+# Allow to overwrite QT base directory
+# Either supply QTDIR as -DQTDIR=<path> to cmake or set and environment variable QTDIR pointing to the Qt installation
+# For Windows and OSX, the default Qt installation path are tried to resolved automatically
+if (NOT DEFINED QTDIR)
+	if (DEFINED ENV{QTDIR})
+		set(QTDIR $ENV{QTDIR})
+	else()
+		if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+			FIRSTSUBDIR(SUBDIRQT "C:/Qt")
+			if (NOT ${SUBDIRQT} STREQUAL "")
+				set(QTDIR "${SUBDIRQT}/msvc2019_64")
+			endif()
+		elseif ( "${PLATFORM}" MATCHES "osx" )
+			if (EXISTS /usr/local/opt/qt6)
+				set(QTDIR "/usr/local/opt/qt6")
+			elseif (EXISTS /usr/local/opt/qt5)
+				set(QTDIR "/usr/local/opt/qt5")
+			endif()
+		endif()
+	endif()
+endif()	
+
+if (DEFINED QTDIR)
+	message(STATUS "Add QTDIR: ${QTDIR} to CMAKE_PREFIX_PATH")
+	list(PREPEND CMAKE_PREFIX_PATH ${QTDIR} "${QTDIR}/lib")
+endif()
+
+message( STATUS "CMAKE_PREFIX_PATH used: ${CMAKE_PREFIX_PATH}" )
+
+# find QT libs
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Gui Network SerialPort Sql Widgets REQUIRED)
+message( STATUS "Found Qt Version: ${QT_VERSION}" )
+
+if (${QT_VERSION_MAJOR} GREATER_EQUAL 6 )
+	SET(QT_MIN_VERSION "6.2.0")
+ELSE()
+	SET(QT_MIN_VERSION "5.5.0")
+ENDIF()
+
+IF ( "${QT_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
+	message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )
+ENDIF()
+
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Gui Network SerialPort Sql Widgets REQUIRED)
+
+message( STATUS "Qt version used: ${QT_VERSION}" )
+
+if (APPLE AND (${QT_VERSION_MAJOR} GREATER_EQUAL 6) )
+	set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
+ENDIF()
+
+# Add libusb and pthreads
+find_package(libusb-1.0 REQUIRED)
+add_definitions(${QT_DEFINITIONS})
 
 # Add the source/lib directories
 add_subdirectory(dependencies)
@@ -444,6 +406,33 @@ LIST( APPEND GENERATED_QRC
 	${CMAKE_BINARY_DIR}/HyperionConfig.h
 )
 set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${GENERATED_QRC}" )
+
+# enable C++11; MSVC doesn't have c++11 feature switch
+if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+	include(CheckCXXCompilerFlag)
+	CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+	CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
+
+	if(APPLE)
+		CHECK_CXX_COMPILER_FLAG("Werror=unguarded-availability" REQUIRED_UNGUARDED_AVAILABILITY)
+		if(REQUIRED_UNGUARDED_AVAILABILITY)
+			list(APPEND CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS} "Werror=unguarded-availability")
+		endif()
+	endif()
+
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+	if (CMAKE_COMPILER_IS_GNUCXX)
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-psabi")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-psabi")
+	endif()
+	if(COMPILER_SUPPORTS_CXX11)
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+	elseif(COMPILER_SUPPORTS_CXX0X)
+			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+	else()
+			message(STATUS "No support for C++11 detected. Compilation will most likely fail on your compiler")
+	endif()
+endif()
 
 # uninstall target
 configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake" IMMEDIATE @ONLY)

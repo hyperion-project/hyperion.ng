@@ -172,7 +172,6 @@ bool MFGrabber::init()
 		}
 
 	}
-
 	return _initialized;
 }
 
@@ -194,6 +193,7 @@ HRESULT MFGrabber::init_device(QString deviceName, DeviceProperties props)
 	IMFAttributes* deviceAttributes = nullptr, *sourceReaderAttributes = nullptr;
 	IMFMediaType* type = nullptr;
 	HRESULT hr = S_OK;
+	IAMVideoProcAmp* pProcAmp = nullptr;
 
 	Debug(_log, "Init %s, %d x %d @ %d fps (%s)", QSTRING_CSTR(deviceName), props.width, props.height, props.fps, QSTRING_CSTR(pixelFormatToString(pixelformat)));
 	DebugIf (verbose, _log, "Symbolic link: %s", QSTRING_CSTR(props.symlink));
@@ -233,7 +233,6 @@ HRESULT MFGrabber::init_device(QString deviceName, DeviceProperties props)
 	else
 		Debug(_log, "Device opened");
 
-	IAMVideoProcAmp *pProcAmp = nullptr;
 	if (SUCCEEDED(device->QueryInterface(IID_PPV_ARGS(&pProcAmp))))
 	{
 		for (auto control : _deviceControls[deviceName])
@@ -402,7 +401,7 @@ void MFGrabber::enumVideoCaptureDevices()
 						if (SUCCEEDED(devices[i]->GetAllocatedString(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK, &symlink, &length)))
 						{
 							QList<DeviceProperties> devicePropertyList;
-							QString dev = QString::fromUtf16((const ushort*)name);
+							QString dev = QString::fromUtf16((const char16_t*)name);
 
 							IMFMediaSource *pSource = nullptr;
 							if (SUCCEEDED(devices[i]->ActivateObject(IID_PPV_ARGS(&pSource))))
@@ -429,7 +428,7 @@ void MFGrabber::enumVideoCaptureDevices()
 											if (pixelformat != PixelFormat::NO_CHANGE)
 											{
 												DeviceProperties properties;
-												properties.symlink = QString::fromUtf16((const ushort*)symlink);
+												properties.symlink = QString::fromUtf16((const char16_t*)symlink);
 												properties.width = width;
 												properties.height = height;
 												properties.fps = numerator / denominator;
@@ -462,7 +461,7 @@ void MFGrabber::enumVideoCaptureDevices()
 													control.minValue = minVal;
 													control.maxValue = maxVal;
 													control.step = stepVal;
-													control.default = defaultVal;
+													control.def = defaultVal;
 
 													long currentVal;
 													if (SUCCEEDED(videoProcAmp->Get(it.key(), &currentVal,  &flag)))
@@ -515,7 +514,9 @@ void MFGrabber::start_capturing()
 	{
 		HRESULT hr = _sourceReader->ReadSample(MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, NULL, NULL, NULL, NULL);
 		if (!SUCCEEDED(hr))
+		{
 			Error(_log, "ReadSample (%i)", hr);
+		}
 	}
 }
 
@@ -784,7 +785,7 @@ QJsonArray MFGrabber::discover(const QJsonObject& params)
 			property["step"] = control.step;
 			property["current"] = control.currentValue;
 			controls[control.property] = property;
-			controls_default[control.property] = control.default;
+			controls_default[control.property] = control.def;
 		}
 		device["properties"] = controls;
 

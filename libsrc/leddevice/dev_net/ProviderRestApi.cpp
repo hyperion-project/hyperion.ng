@@ -252,7 +252,7 @@ httpResponse ProviderRestApi::getResponse(QNetworkReply* const &reply)
 			default:
 				break;
 			}
-			errorReason = QString ("[%3 %4] - %5").arg(QString(httpStatusCode) , httpReason, advise);
+			errorReason = QString ("[%3 %4] - %5").arg(httpStatusCode).arg(httpReason, advise);
 		}
 		else {
 
