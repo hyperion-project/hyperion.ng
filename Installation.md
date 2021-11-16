@@ -5,16 +5,16 @@ This page contains general installation steps for Hyperion. For Linux please fol
 
 ## Linux:
 On the following operating systems, Hyperion can currently be installed/updated using the method listed below:
-- Raspbian Stretch/Raspberry Pi OS and later (armhf)
-- Debian Stretch (9) and later (armhf/x64)
-- Ubuntu 18.04 and later (x64)
+- Raspbian Stretch/Raspberry Pi OS and later (armhf/arm64)
+- Debian Stretch (9) and later (armhf/arm64/x86_64)
+- Ubuntu 18.04 and later (armhf/arm64/x86_64)
 
 ***
 
 ### Install Hyperion:
 1. Add necessary packages for the installation:
 ```bash
-sudo apt-get update && sudo apt-get install wget gpg apt-transport-https lsb_release
+sudo apt-get update && sudo apt-get install wget gpg apt-transport-https lsb-release
 ```
 
 2. Add Hyperion’s official GPG key:

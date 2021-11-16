@@ -1,11 +1,13 @@
 # Find the BCM-package (VC control)
-IF ( "${PLATFORM}" MATCHES rpi)
-	find_package(BCM REQUIRED)
-	include_directories(${BCM_INCLUDE_DIRS})
-ELSE()
-	SET(BCM_INCLUDE_DIRS "")
-	SET(BCM_LIBRARIES "")
-ENDIF()
+if (ENABLE_DISPMANX)
+	if ( "${PLATFORM}" MATCHES rpi)
+		find_package(BCM REQUIRED)
+		include_directories(${BCM_INCLUDE_DIRS})
+	else()
+		set(BCM_INCLUDE_DIRS "")
+		set(BCM_LIBRARIES "")
+	endif()
+endif (ENABLE_DISPMANX)
 
 # Define the current source locations
 

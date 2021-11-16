@@ -10,7 +10,7 @@ jobs:
       - name: Set APT matrix
         id: apt-ppa
         run: |
-          APT=$(echo $(cat .github/workflows/apt.json) | jq --compact-output .)
+          APT=$(jq -n '.include |= [inputs[]]' .github/workflows/apt/*.json --compact-output)
           echo "::set-output name=apt::$APT"
     outputs:
       apt-matrix: ${{ steps.apt-ppa.outputs.apt }}
@@ -48,6 +48,7 @@ jobs:
             dch --create --distribution ${{ env.DISTRIBUTION }} --package 'hyperion' -v '${{ env.VERSION }}~${{ env.DISTRIBUTION }}' '${{ github.event.commits[0].message }}' && \
             cp -fr LICENSE debian/copyright && \
             sed 's/@BUILD_DEPENDS@/${{ matrix.build-depends }}/g; s/@DEPENDS@/${{ matrix.package-depends }}/g; s/@ARCHITECTURE@/${{ matrix.architecture }}/g; s/@STANDARDS_VERSION@/${{ env.STANDARDS_VERSION }}/g' debian/control.in > debian/control && \
+            sed 's/@CMAKE_ENVIRONMENT@/${{ matrix.cmake-environment }}/g' debian/rules.in > debian/rules && \
             tar -cJf ../hyperion_${{ env.VERSION }}~${{ env.DISTRIBUTION }}.orig.tar.xz . && \
             debuild --no-lintian -uc -us && \
             cp ../hyperion_* /deploy"
