@@ -5,7 +5,7 @@ BUILDDIR = build
 
 build:
 	mkdir $(BUILDDIR);
-	cd $(BUILDDIR); cmake -DUSE_SYSTEM_MBEDTLS_LIBS=ON -DENABLE_DEPLOY_DEPENDENCIES=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=../debian/tmp/usr ..
+	cd $(BUILDDIR); cmake @CMAKE_ENVIRONMENT@ -DCMAKE_INSTALL_PREFIX=../debian/tmp/usr ..
 	make -j4 -C $(BUILDDIR)
 
 binary: binary-indep binary-arch

@@ -55,7 +55,7 @@ public:
 		int minValue = 0;
 		int maxValue = 0;
 		int step = 0;
-		int default = 0;
+		int def = 0;
 		int currentValue = 0;
 	};
 

@@ -17,10 +17,10 @@ namespace {
 // as per upnp spec 1.1, section 1.2.2.
 const QString UPNP_DISCOVER_MESSAGE = "M-SEARCH * HTTP/1.1\r\n"
 										  "HOST: %1:%2\r\n"
-                                          "MAN: \"ssdp:discover\"\r\n"
+										  "MAN: \"ssdp:discover\"\r\n"
 										  "MX: %3\r\n"
 										  "ST: %4\r\n"
-                                          "\r\n";
+										  "\r\n";
 } //End of constants
 
 SSDPDiscover::SSDPDiscover(QObject* parent)
@@ -300,7 +300,7 @@ QJsonArray SSDPDiscover::getServicesDiscoveredJson() const
 {
 	QJsonArray result;
 
-	QMap<QString, SSDPService>::const_iterator i;
+	QMultiMap<QString, SSDPService>::const_iterator i;
 	for (i = _services.begin(); i != _services.end(); ++i)
 	{
 		//Debug(_log, "Device discovered at [%s]", QSTRING_CSTR( i.key() ));

@@ -227,13 +227,13 @@ PyObject* EffectModule::wrapGetImage(PyObject *self, PyObject *args)
 	QImageReader reader;
 	char *source;
 	int cropLeft = 0, cropTop = 0, cropRight = 0, cropBottom = 0;
-	bool grayscale = false;
+	int grayscale = false;
 
 	if (getEffect()->_imageData.isEmpty())
 	{
 		Q_INIT_RESOURCE(EffectEngine);
 
-		if(!PyArg_ParseTuple(args, "s|iiiii", &source, &cropLeft, &cropTop, &cropRight, &cropBottom, &grayscale))
+		if(!PyArg_ParseTuple(args, "s|iiiip", &source, &cropLeft, &cropTop, &cropRight, &cropBottom, &grayscale))
 		{
 			PyErr_SetString(PyExc_TypeError, "String required");
 			return nullptr;
@@ -273,7 +273,7 @@ PyObject* EffectModule::wrapGetImage(PyObject *self, PyObject *args)
 	}
 	else
 	{
-		PyArg_ParseTuple(args, "|siiiii", &source, &cropLeft, &cropTop, &cropRight, &cropBottom, &grayscale);
+		PyArg_ParseTuple(args, "|siiiip", &source, &cropLeft, &cropTop, &cropRight, &cropBottom, &grayscale);
 		buffer.setData(QByteArray::fromBase64(getEffect()->_imageData.toUtf8()));
 		buffer.open(QBuffer::ReadOnly);
 		reader.setDecideFormatFromContent(true);

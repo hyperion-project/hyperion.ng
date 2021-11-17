@@ -33,7 +33,7 @@ jobs:
       - name: Set nightly matrix
         id: nightly-ppa
         run: |
-          NIGHTLY=$(echo $(cat .github/workflows/apt.json) | jq --compact-output .)
+          NIGHTLY=$(jq -n '.include |= [inputs[]]' .github/workflows/apt/*.json --compact-output)
           echo "::set-output name=nightly::$NIGHTLY"
     outputs:
       nightly-matrix: ${{ steps.nightly-ppa.outputs.nightly }}

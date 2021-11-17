@@ -30,6 +30,13 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     endif()
 endif()
 
+# Overwrite CMAKE_SYSTEM_PROCESSOR for Windows (visual)
+if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "AMD64")
+    if(${CMAKE_HOST_WIN32})
+        set(CMAKE_SYSTEM_PROCESSOR "x64")
+    endif()
+endif()
+
 # Apply to all packages, some of these can be overwritten with generator specific content
 # https://cmake.org/cmake/help/v3.5/module/CPack.html
 

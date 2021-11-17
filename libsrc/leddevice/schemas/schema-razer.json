@@ -1,0 +1,28 @@
+{
+  "type": "object",
+  "required": true,
+  "properties": {
+    "subType": {
+      "type": "string",
+      "title": "edt_dev_spec_razer_device_title",
+      "enum": [ "keyboard", "mouse", "headset", "mousepad", "keypad", "chromalink" ],
+      "default": "keyboard",
+      "options": {
+        "enum_titles": [ "Keyboard", "Mouse", "Headset", "Mousepad", "Keypad", "Chromalink" ]
+      },
+      "propertyOrder": 1
+    },
+    "latchTime": {
+      "type": "integer",
+      "title": "edt_dev_spec_latchtime_title",
+      "default": 0,
+      "append": "edt_append_ms",
+      "minimum": 0,
+      "maximum": 1000,
+      "access": "expert",
+      "propertyOrder": 2
+    }
+  },
+  "additionalProperties": true
+}
+

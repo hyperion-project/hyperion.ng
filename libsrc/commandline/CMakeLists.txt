@@ -8,5 +8,5 @@ add_library(commandline ${Parser_SOURCES} )
 
 target_link_libraries(commandline
 	hyperion
-	Qt5::Gui
+	Qt${QT_VERSION_MAJOR}::Gui
 )

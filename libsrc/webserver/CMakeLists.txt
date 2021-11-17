@@ -8,8 +8,8 @@ FILE ( GLOB_RECURSE webFiles RELATIVE ${CMAKE_BINARY_DIR}  ${CMAKE_SOURCE_DIR}/a
 FILE ( RELATIVE_PATH webConfigPath ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/assets/webconfig)
 
 FOREACH( f ${webFiles} )
-    STRING ( REPLACE "${webConfigPath}/" "" fname ${f})
-    SET(HYPERION_WEBCONFIG_RES "${HYPERION_WEBCONFIG_RES}\n\t\t<file alias=\"/webconfig/${fname}\">${f}</file>")
+	STRING ( REPLACE "${webConfigPath}/" "" fname ${f})
+	SET(HYPERION_WEBCONFIG_RES "${HYPERION_WEBCONFIG_RES}\n\t\t<file alias=\"/webconfig/${fname}\">${f}</file>")
 ENDFOREACH()
 CONFIGURE_FILE(${CURRENT_SOURCE_DIR}/WebConfig.qrc.in ${CMAKE_BINARY_DIR}/WebConfig.qrc )
 SET(WebConfig_RESOURCES ${CMAKE_BINARY_DIR}/WebConfig.qrc)
@@ -23,5 +23,5 @@ target_link_libraries(webserver
 	hyperion
 	hyperion-utils
 	hyperion-api
-	Qt5::Network
+	Qt${QT_VERSION_MAJOR}::Network
 )

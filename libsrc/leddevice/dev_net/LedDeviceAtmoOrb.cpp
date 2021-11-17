@@ -325,8 +325,7 @@ QJsonObject LedDeviceAtmoOrb::discover(const QJsonObject& params)
 		close();
 	}
 
-	QMap<int, QHostAddress>::iterator i;
-	for (i = _services.begin(); i != _services.end(); ++i)
+	for (auto i = _services.begin(); i != _services.end(); ++i)
 	{
 		QJsonObject obj;
 

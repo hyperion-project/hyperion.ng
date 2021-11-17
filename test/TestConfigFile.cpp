@@ -102,7 +102,7 @@ int main(int argc, char** argv)
 			qDebug() << "PASSED";
 		return 0;
 	}
-	catch (std::runtime_error exception)
+	catch (std::runtime_error& exception)
 	{
 		qDebug() << "FAILED";
 		qDebug() << exception.what();

@@ -35,6 +35,7 @@
 		<file alias="schema-nanoleaf">schemas/schema-nanoleaf.json</file>
 		<file alias="schema-wled">schemas/schema-wled.json</file>
 		<file alias="schema-yeelight">schemas/schema-yeelight.json</file>
+		<file alias="schema-razer">schemas/schema-razer.json</file>		
 		<file alias="schema-cololight">schemas/schema-cololight.json</file>
 	</qresource>
 </RCC>

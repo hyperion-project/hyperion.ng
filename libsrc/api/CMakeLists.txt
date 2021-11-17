@@ -1,11 +1,13 @@
 # Find the BCM-package (VC control)
-IF ( "${PLATFORM}" MATCHES rpi)
-	find_package(BCM REQUIRED)
-	include_directories(${BCM_INCLUDE_DIRS})
-ELSE()
-	SET(BCM_INCLUDE_DIRS "")
-	SET(BCM_LIBRARIES "")
-ENDIF()
+if (ENABLE_DISPMANX)
+	if ( "${PLATFORM}" MATCHES rpi)
+		find_package(BCM REQUIRED)
+		include_directories(${BCM_INCLUDE_DIRS})
+	else()
+		set(BCM_INCLUDE_DIRS "")
+		set(BCM_LIBRARIES "")
+	endif()
+endif (ENABLE_DISPMANX)
 
 # Define the current source locations
 
@@ -29,7 +31,7 @@ endif(ENABLE_DX)
 target_link_libraries(hyperion-api
 	hyperion
 	hyperion-utils
-	Qt5::Core
-	Qt5::Gui
-	Qt5::Network
+	Qt${QT_VERSION_MAJOR}::Core
+	Qt${QT_VERSION_MAJOR}::Gui
+	Qt${QT_VERSION_MAJOR}::Network
 )

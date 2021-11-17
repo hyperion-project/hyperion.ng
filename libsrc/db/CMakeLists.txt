@@ -1,5 +1,3 @@
-find_package(Qt5 COMPONENTS Sql REQUIRED)
-
 # Define the current source locations
 SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/db)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/db)
@@ -13,6 +11,6 @@ add_library(database
 target_link_libraries(database
 	hyperion
 	hyperion-utils
-	Qt5::Core
-	Qt5::Sql
+	Qt${QT_VERSION_MAJOR}::Core
+	Qt${QT_VERSION_MAJOR}::Sql
 )

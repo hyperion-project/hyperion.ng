@@ -29,8 +29,8 @@ struct EffectCmdData
 
 struct registerData
 {
-    const hyperion::Components component;
-    const QString origin;
-    const QString owner;
-    const hyperion::Components callerComp;
+	hyperion::Components component;
+	QString origin;
+	QString owner;
+	hyperion::Components callerComp;
 };

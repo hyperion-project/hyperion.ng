@@ -36,8 +36,8 @@ add_library(effectengine
 target_link_libraries(effectengine
 	hyperion
 	python
-	Qt5::Core
-	Qt5::Gui
+	Qt${QT_VERSION_MAJOR}::Core
+	Qt${QT_VERSION_MAJOR}::Gui
 )
 
 if (NOT CMAKE_VERSION VERSION_LESS "3.12")

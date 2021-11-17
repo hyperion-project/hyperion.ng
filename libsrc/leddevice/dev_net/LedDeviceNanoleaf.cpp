@@ -247,12 +247,12 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 		QJsonObject jsonLayout = jsonPanelLayout[PANEL_LAYOUT].toObject();
 
 		int panelNum = jsonLayout[PANEL_NUM].toInt();
-		QJsonArray positionData = jsonLayout[PANEL_POSITIONDATA].toArray();
+		const QJsonArray positionData = jsonLayout[PANEL_POSITIONDATA].toArray();
 
 		std::map<int, std::map<int, int>> panelMap;
 
 		// Loop over all children.
-		foreach(const QJsonValue & value, positionData)
+		for(const QJsonValue & value : positionData)
 		{
 			QJsonObject panelObj = value.toObject();
 
