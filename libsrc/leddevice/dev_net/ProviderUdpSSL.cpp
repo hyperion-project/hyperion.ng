@@ -2,6 +2,7 @@
 // STL includes
 #include <cstdio>
 #include <exception>
+#include <algorithm>
 
 // Linux includes
 #include <fcntl.h>
@@ -11,7 +12,6 @@
 
 // Local Hyperion includes
 #include "ProviderUdpSSL.h"
-#include <utils/QStringUtils.h>
 
 const int MAX_RETRY = 5;
 const ushort MAX_PORT_SSL = 65535;
@@ -22,6 +22,7 @@ ProviderUdpSSL::ProviderUdpSSL(const QJsonObject &deviceConfig)
 	, entropy()
 	, ssl()
 	, conf()
+	, cacert()
 	, ctr_drbg()
 	, timer()
 	, _transport_type("DTLS")
@@ -246,34 +247,32 @@ bool ProviderUdpSSL::initConnection()
 
 bool ProviderUdpSSL::seedingRNG()
 {
-	sslLog("Seeding the random number generator...");
+	sslLog( "Seeding the random number generator..." );
 
 	mbedtls_entropy_init(&entropy);
 
-	sslLog("Set mbedtls_ctr_drbg_seed...");
+	sslLog( "Set mbedtls_ctr_drbg_seed..." );
 
 	QByteArray customDataArray = _custom.toLocal8Bit();
 	const char* customData = customDataArray.constData();
 
 	int ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func,
-		&entropy, reinterpret_cast<const unsigned char*>(customData),
-		std::min(strlen(customData), (size_t)MBEDTLS_CTR_DRBG_MAX_SEED_INPUT));
+		                            &entropy, reinterpret_cast<const unsigned char*>(customData),
+		                            std::min(strlen(customData), (size_t)MBEDTLS_CTR_DRBG_MAX_SEED_INPUT));
 
 	if (ret != 0)
 	{
-		sslLog(QString("mbedtls_ctr_drbg_seed FAILED %1").arg(errorMsg(ret)), "error");
+		sslLog( QString("mbedtls_ctr_drbg_seed FAILED %1").arg( errorMsg( ret ) ), "error" );
 		return false;
 	}
 
-	sslLog("Seeding the random number generator...ok");
+	sslLog( "Seeding the random number generator...ok" );
 
 	return true;
 }
 
 bool ProviderUdpSSL::setupStructure()
 {
-	int ret = 0;
-
 	sslLog( QString( "Setting up the %1 structure").arg( _transport_type ) );
 
 	//TLS  MBEDTLS_SSL_TRANSPORT_STREAM
@@ -281,7 +280,9 @@ bool ProviderUdpSSL::setupStructure()
 
 	int transport = ( _transport_type == "DTLS" ) ? MBEDTLS_SSL_TRANSPORT_DATAGRAM : MBEDTLS_SSL_TRANSPORT_STREAM;
 
-	if ((ret = mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_CLIENT, transport, MBEDTLS_SSL_PRESET_DEFAULT)) != 0)
+	int ret = mbedtls_ssl_config_defaults(&conf, MBEDTLS_SSL_IS_CLIENT, transport, MBEDTLS_SSL_PRESET_DEFAULT);
+
+	if (ret != 0)
 	{
 		sslLog( QString("mbedtls_ssl_config_defaults FAILED %1").arg( errorMsg( ret ) ), "error" );
 		return false;
@@ -291,12 +292,11 @@ bool ProviderUdpSSL::setupStructure()
 
 	if( _debugStreamer )
 	{
-		int s = ( sizeof( ciphersuites ) ) / sizeof( int );
-
 		QString cipher_values;
-		for(int i=0; i<s; i++)
+		for(int i=0; ciphersuites != nullptr && ciphersuites[i] != 0; i++)
 		{
-			if(i > 0) cipher_values.append(", ");
+			if (i > 0)
+				cipher_values.append(", ");
 			cipher_values.append(QString::number(ciphersuites[i]));
 		}
 
@@ -304,8 +304,6 @@ bool ProviderUdpSSL::setupStructure()
 	}
 
 	mbedtls_ssl_conf_authmode(&conf, MBEDTLS_SSL_VERIFY_REQUIRED);
-	//mbedtls_ssl_conf_authmode(&conf, MBEDTLS_SSL_VERIFY_OPTIONAL);
-	//mbedtls_ssl_conf_authmode(&conf, MBEDTLS_SSL_VERIFY_NONE);
 	mbedtls_ssl_conf_ca_chain(&conf, &cacert, NULL);
 
 	mbedtls_ssl_conf_ciphersuites(&conf, ciphersuites);
@@ -343,15 +341,15 @@ bool ProviderUdpSSL::startUPDConnection()
 {
 	sslLog( "init SSL Network -> startUPDConnection" );
 
-	int ret = 0;
-
 	mbedtls_ssl_session_reset(&ssl);
 
 	if(!setupPSK()) return false;
 
 	sslLog( QString("Connecting to udp %1:%2").arg( _address.toString() ).arg( _ssl_port ) );
 
-	if ((ret = mbedtls_net_connect( &client_fd, _address.toString().toUtf8(), std::to_string(_ssl_port).c_str(), MBEDTLS_NET_PROTO_UDP)) != 0)
+	int ret = mbedtls_net_connect(&client_fd, _address.toString().toUtf8(), std::to_string(_ssl_port).c_str(), MBEDTLS_NET_PROTO_UDP);
+
+	if (ret != 0)
 	{
 		sslLog( QString("mbedtls_net_connect FAILED %1").arg( errorMsg( ret ) ), "error" );
 		return false;
@@ -367,15 +365,19 @@ bool ProviderUdpSSL::startUPDConnection()
 
 bool ProviderUdpSSL::setupPSK()
 {
-	int ret;
-
 	QByteArray pskArray = _psk.toUtf8();
 	QByteArray pskRawArray = QByteArray::fromHex(pskArray);
 
 	QByteArray pskIdArray = _psk_identity.toUtf8();
 	QByteArray pskIdRawArray = pskIdArray;
 
-	if (0 != (ret = mbedtls_ssl_conf_psk( &conf, ( const unsigned char* ) pskRawArray.data(), pskRawArray.length() * sizeof(char), reinterpret_cast<const unsigned char *> ( pskIdRawArray.data() ), pskIdRawArray.length() * sizeof(char) ) ) )
+	int ret = mbedtls_ssl_conf_psk( &conf,
+									reinterpret_cast<const unsigned char*> (pskRawArray.constData()),
+									pskRawArray.length() * sizeof(char),
+									reinterpret_cast<const unsigned char*> (pskIdRawArray.constData()),
+									pskIdRawArray.length() * sizeof(char));
+
+	if (ret != 0)
 	{
 		sslLog( QString("mbedtls_ssl_conf_psk FAILED %1").arg( errorMsg( ret ) ), "error" );
 		return false;
@@ -460,9 +462,12 @@ void ProviderUdpSSL::freeSSLConnection()
 	}
 }
 
-void ProviderUdpSSL::writeBytes(unsigned size, const unsigned char * data)
+void ProviderUdpSSL::writeBytes(unsigned int size, const uint8_t* data)
 {
-	if( _stopConnection ) return;
+	if ( _stopConnection )
+	{
+		return;
+	}
 
 	QMutexLocker locker(&_hueMutex);
 
@@ -526,6 +531,46 @@ QString ProviderUdpSSL::errorMsg(int ret) {
 #else
 	switch (ret)
 	{
+#if defined(MBEDTLS_ERR_SSL_DECODE_ERROR)
+	case MBEDTLS_ERR_SSL_DECODE_ERROR:
+		msg = "The requested feature is not available. - MBEDTLS_ERR_SSL_DECODE_ERROR -0x7300";
+		break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER)
+	case MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER:
+		msg = "The requested feature is not available. - MBEDTLS_ERR_SSL_ILLEGAL_PARAMETER -0x6600";
+		break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE)
+	case MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE:
+		msg = "The requested feature is not available. - MBEDTLS_ERR_SSL_HANDSHAKE_FAILURE -0x6E00";
+		break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION)
+	case MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION:
+		msg = "The requested feature is not available. - MBEDTLS_ERR_SSL_BAD_PROTOCOL_VERSION -0x6E80";
+		break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_BAD_CERTIFICATE)
+	case MBEDTLS_ERR_SSL_BAD_CERTIFICATE:
+		msg = "The requested feature is not available. - MBEDTLS_ERR_SSL_BAD_CERTIFICATE -0x7A00";
+		break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_UNRECOGNIZED_NAME)
+	case MBEDTLS_ERR_SSL_UNRECOGNIZED_NAME:
+		msg = "The requested feature is not available. - MBEDTLS_ERR_SSL_UNRECOGNIZED_NAME -0x7800";
+		break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION)
+	case MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION:
+		msg = "The requested feature is not available. - MBEDTLS_ERR_SSL_UNSUPPORTED_EXTENSION -0x7500";
+		break;
+#endif
+#if defined(MBEDTLS_ERR_SSL_NO_APPLICATION_PROTOCOL)
+	case MBEDTLS_ERR_SSL_NO_APPLICATION_PROTOCOL:
+		msg = "The requested feature is not available. - MBEDTLS_ERR_SSL_NO_APPLICATION_PROTOCOL -0x7580";
+		break;
+#endif
 #if defined(MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE)
 		case MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE:
 			msg = "The requested feature is not available. - MBEDTLS_ERR_SSL_FEATURE_UNAVAILABLE -0x7080";
@@ -821,4 +866,41 @@ void ProviderUdpSSL::closeSSLNotify()
 	while (ret == MBEDTLS_ERR_SSL_WANT_WRITE);
 
 	sslLog( "SSL Connection successful closed" );
+}
+
+void ProviderUdpSSL::ProviderUdpSSLDebug(void* ctx, int level, const char* file, int line, const char* str)
+{
+	const char* p, * basename;
+	(void)ctx;
+	/* Extract basename from file */
+	for (p = basename = file; *p != '\0'; p++)
+	{
+		if (*p == '/' || *p == '\\')
+		{
+			basename = p + 1;
+		}
+	}
+	mbedtls_printf("%s:%04d: |%d| %s", basename, line, level, str);
+}
+
+int ProviderUdpSSL::ProviderUdpSSLVerify(void* data, mbedtls_x509_crt* crt, int depth, uint32_t* flags)
+{
+	const uint32_t buf_size = 1024;
+	char* buf = new char[buf_size];
+	(void)data;
+
+	mbedtls_printf("\nVerifying certificate at depth %d:\n", depth);
+	mbedtls_x509_crt_info(buf, buf_size - 1, "  ", crt);
+	mbedtls_printf("%s", buf);
+
+	if (*flags == 0)
+		mbedtls_printf("No verification issue for this certificate\n");
+	else
+	{
+		mbedtls_x509_crt_verify_info(buf, buf_size, "  ! ", *flags);
+		mbedtls_printf("%s\n", buf);
+	}
+
+	delete[] buf;
+	return 0;
 }
