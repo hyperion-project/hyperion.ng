@@ -10,7 +10,11 @@ inline uint8_t clamp(int x)
 void ColorSys::rgb2hsl(uint8_t red, uint8_t green, uint8_t blue, uint16_t & hue, float & saturation, float & luminance)
 {
 	QColor color(red,green,blue);
-	qreal h,s,l;
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+	float h, s, l;
+#else
+	qreal h, s, l;
+#endif
 	color.getHslF(&h,&s,&l);
 	hue        = h;
 	saturation = s;

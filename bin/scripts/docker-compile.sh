@@ -64,7 +64,7 @@ echo "########################################################
 ## Supports Raspberry Pi (armv6l, armv7l) cross compilation (Debian Stretch/Buster) and native compilation (Raspbian Stretch/Buster)
 ##
 ## Homepage: https://www.hyperion-project.org
-## Forum: https://forum.hyperion-project.org
+## Forum: https://hyperion-project.org/forum/
 ########################################################
 # These are possible arguments to modify the script behaviour with their default values
 #

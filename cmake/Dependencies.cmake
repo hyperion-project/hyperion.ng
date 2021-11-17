@@ -2,7 +2,7 @@ macro(DeployMacOS TARGET)
 	if (EXISTS ${TARGET_FILE})
 		message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
 
-		get_target_property(QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
+		get_target_property(QMAKE_EXECUTABLE Qt${QT_VERSION_MAJOR}::qmake IMPORTED_LOCATION)
 		execute_process(
 			COMMAND ${QMAKE_EXECUTABLE} -query QT_INSTALL_PLUGINS
 			OUTPUT_VARIABLE QT_PLUGIN_DIR
@@ -121,10 +121,6 @@ macro(DeployLinux TARGET)
 			list(APPEND SYSTEM_LIBS_SKIP "libcec")
 		endif()
 
-		if (APPLE)
-			set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
-		endif(APPLE)
-
 		# Extract dependencies ignoring the system ones
 		get_prerequisites(${TARGET_FILE} DEPENDENCIES 0 1 "" "")
 
@@ -133,6 +129,7 @@ macro(DeployLinux TARGET)
 		foreach(DEPENDENCY ${DEPENDENCIES})
 			get_filename_component(resolved ${DEPENDENCY} NAME_WE)
 			list(FIND SYSTEM_LIBS_SKIP ${resolved} _index)
+
 			if (${_index} GREATER -1)
 				continue() # Skip system libraries
 			else()
@@ -170,22 +167,23 @@ macro(DeployLinux TARGET)
 			endforeach()
 		endif(OPENSSL_FOUND)
 
-		# Detect the Qt5 plugin directory
-		get_target_property(QT_QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
-		execute_process(
-			COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_PLUGINS
-			OUTPUT_VARIABLE QT_PLUGINS_DIR
-			OUTPUT_STRIP_TRAILING_WHITESPACE
-		)
+		# Detect the Qt plugin directory, source: https://github.com/lxde/lxqt-qtplugin/blob/master/src/CMakeLists.txt
+		if ( TARGET Qt${QT_VERSION_MAJOR}::qmake )
+			get_target_property(QT_QMAKE_EXECUTABLE Qt${QT_VERSION_MAJOR}::qmake IMPORTED_LOCATION)
+			execute_process(
+				COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_PLUGINS
+				OUTPUT_VARIABLE QT_PLUGINS_DIR
+				OUTPUT_STRIP_TRAILING_WHITESPACE
+			)		
+		endif()
 
 		# Copy Qt plugins to 'share/hyperion/lib'
 		if (QT_PLUGINS_DIR)
 			foreach(PLUGIN "platforms" "sqldrivers" "imageformats")
 				if (EXISTS ${QT_PLUGINS_DIR}/${PLUGIN})
-					file(GLOB files "${QT_PLUGINS_DIR}/${PLUGIN}/*")
+					file(GLOB files "${QT_PLUGINS_DIR}/${PLUGIN}/*.so")
 					foreach(file ${files})
 						get_prerequisites(${file} PLUGINS 0 1 "" "")
-
 						foreach(DEPENDENCY ${PLUGINS})
 							get_filename_component(resolved ${DEPENDENCY} NAME_WE)
 							list(FIND SYSTEM_LIBS_SKIP ${resolved} _index)
@@ -273,17 +271,21 @@ endmacro()
 macro(DeployWindows TARGET)
 	if (EXISTS ${TARGET_FILE})
 		message(STATUS "Collecting Dependencies for target file: ${TARGET_FILE}")
-		find_package(Qt5Core REQUIRED)
+		find_package(Qt${QT_VERSION_MAJOR}Core REQUIRED)
 		find_package(OpenSSL REQUIRED)
 
 		# Find the windeployqt binaries
-		get_target_property(QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
+		get_target_property(QMAKE_EXECUTABLE Qt${QT_VERSION_MAJOR}::qmake IMPORTED_LOCATION)
 		get_filename_component(QT_BIN_DIR "${QMAKE_EXECUTABLE}" DIRECTORY)
 		find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${QT_BIN_DIR}")
 
 		# Collect the runtime libraries
 		get_filename_component(COMPILER_PATH "${CMAKE_CXX_COMPILER}" DIRECTORY)
-		set(WINDEPLOYQT_PARAMS --no-angle --no-opengl-sw)
+		if (QT_VERSION_MAJOR EQUAL 5)
+			set(WINDEPLOYQT_PARAMS --no-angle --no-opengl-sw)
+		else()
+			set(WINDEPLOYQT_PARAMS --no-opengl-sw)
+		endif()
 
 		execute_process(
 			COMMAND "${CMAKE_COMMAND}" -E

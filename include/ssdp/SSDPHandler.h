@@ -2,7 +2,9 @@
 
 #include <ssdp/SSDPServer.h>
 
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 #include <QNetworkConfiguration>
+#endif
 
 // utils
 #include <utils/settings.h>
@@ -89,12 +91,16 @@ private slots:
 	/// @brief Handle changes in the network configuration
 	/// @param conig New config
 	///
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))	
 	void handleNetworkConfigurationChanged(const QNetworkConfiguration &config);
+#endif
 
 private:
 	WebServer* _webserver;
 	QString    _localAddress;
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 	QNetworkConfigurationManager* _NCA;
+#endif
 	QString _uuid;
 	/// Targets for announcement
 	std::vector<QString> _deviceList;

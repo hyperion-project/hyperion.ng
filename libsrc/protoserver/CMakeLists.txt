@@ -33,12 +33,12 @@ target_link_libraries(protoclient
 	hyperion
 	hyperion-utils
 	protobuf
-	Qt5::Gui
+	Qt${QT_VERSION_MAJOR}::Gui
 )
 
 target_link_libraries(protoserver
 	hyperion
 	hyperion-utils
 	protoclient
-	Qt5::Gui
+	Qt${QT_VERSION_MAJOR}::Gui
 )

@@ -139,8 +139,8 @@ bool DBManager::recordExists(const VectorPair& conditions) const
 
 	int entry = 0;
 	while (query.next()) {
-        entry++;
-    }
+		entry++;
+	}
 
 	if(entry)
 		return true;
@@ -422,7 +422,7 @@ void DBManager::doAddBindValue(QSqlQuery& query, const QVariantList& variants) c
 {
 	for(const auto& variant : variants)
 	{
-		QVariant::Type t = variant.type();
+		auto t = variant.userType();
 		switch(t)
 		{
 			case QVariant::UInt:

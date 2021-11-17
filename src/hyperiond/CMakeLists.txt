@@ -12,7 +12,7 @@ else()
 	include_directories(${PYTHON_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS}/..)
 endif()
 
-find_package(Qt5Widgets REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Network Gui Widgets REQUIRED)
 
 # generate windows .rc file for this binary
 if (WIN32)
@@ -56,7 +56,10 @@ target_link_libraries(${PROJECT_NAME}
 	database
 	python
 	resources
-	Qt5::Widgets
+	Qt${QT_VERSION_MAJOR}::Core
+	Qt${QT_VERSION_MAJOR}::Gui
+	Qt${QT_VERSION_MAJOR}::Network
+	Qt${QT_VERSION_MAJOR}::Widgets
 )
 
 if (NOT CMAKE_VERSION VERSION_LESS "3.12")
@@ -71,7 +74,7 @@ endif (ENABLE_AVAHI)
 
 if (ENABLE_AMLOGIC)
 	target_link_libraries(${PROJECT_NAME}
-		Qt5::Core
+		#Qt${QT_VERSION_MAJOR}::Core
 		pcre16 dl z
 	)
 endif(ENABLE_AMLOGIC)
@@ -172,12 +175,20 @@ endif()
 
 # Deploy Qt DLLs into the binary folder.
 # This is necessary for starting the application from within the IDE
+
 if (WIN32)
-	get_target_property(QMAKE_EXECUTABLE Qt5::qmake IMPORTED_LOCATION)
+	get_target_property(QT_QMAKE_EXECUTABLE Qt${QT_VERSION_MAJOR}::qmake IMPORTED_LOCATION)
 	get_filename_component(QT_BIN_DIR "${QT_QMAKE_EXECUTABLE}" DIRECTORY)
 	find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${QT_BIN_DIR}")
-	set(WINDEPLOYQT_PARAMS --verbose 0 --no-compiler-runtime --no-opengl-sw --no-system-d3d-compiler)
-	add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${WINDEPLOYQT_EXECUTABLE} ${WINDEPLOYQT_PARAMS} "$<TARGET_FILE:${PROJECT_NAME}>")
+	if (NOT WINDEPLOYQT_EXECUTABLE)
+		find_program(WINDEPLOYQT_EXECUTABLE windeployqt)
+	endif()
+
+	if (WINDEPLOYQT_EXECUTABLE AND NOT CMAKE_GITHUB_ACTION)
+		set(WINDEPLOYQT_PARAMS_RUNTIME --verbose 0 --no-compiler-runtime --no-opengl-sw --no-system-d3d-compiler)
+		message(STATUS "Found windeployqt: ${WINDEPLOYQT_EXECUTABLE} PATH_HINT:${QT_BIN_DIR}")
+		add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${WINDEPLOYQT_EXECUTABLE} ${WINDEPLOYQT_PARAMS_RUNTIME} "$<TARGET_FILE:${PROJECT_NAME}>")
+	endif()
 endif(WIN32)
 
 if(ENABLE_DEPLOY_DEPENDENCIES)

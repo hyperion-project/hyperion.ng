@@ -66,7 +66,9 @@ void SysTray::iconActivated(QSystemTrayIcon::ActivationReason reason)
 
 void SysTray::createTrayIcon()
 {
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 	QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+#endif
 
 	quitAction = new QAction(tr("&Quit"), this);
 	quitAction->setIcon(QPixmap(":/quit.svg"));

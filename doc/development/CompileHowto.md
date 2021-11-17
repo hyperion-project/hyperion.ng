@@ -58,7 +58,19 @@ cd $HYPERION_HOME
 
 ```console
 sudo apt-get update
-sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libqt5sql5-sqlite libqt5svg5-dev libqt5x11extras5-dev libusb-1.0-0-dev python3-dev libcec-dev libxcb-image0-dev libxcb-util0-dev libxcb-shm0-dev libxcb-render0-dev libxcb-randr0-dev libxrandr-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev libturbojpeg0-dev libssl-dev zlib1g-dev
+sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libqt5sql5-sqlite libqt5svg5-dev libqt5x11extras5-dev libusb-1.0-0-dev python3-dev libavahi-core-dev libavahi-compat-libdnssd-dev libturbojpeg0-dev libssl-dev zlib1g-dev
+```
+
+**For Linux X11/XXCB grabber support**
+
+```console
+sudo apt-get install libxrandr-dev libxrender-dev libxcb-image0-dev libxcb-util0-dev libxcb-shm0-dev libxcb-render0-dev libxcb-randr0-dev 
+```
+
+**For Linux CEC support**
+
+```console
+sudo apt-get install libcec-dev libp8-platform-dev libudev-dev
 ```
 
 **on RPI you need the videocore IV headers**
@@ -70,6 +82,11 @@ sudo apt-get install libraspberrypi-dev
 **OSMC on Raspberry Pi**
 ```console
 sudo apt-get install rbp-userland-dev-osmc
+```
+
+**Additionally for QT6**
+```console
+sudo apt-get install postgresql unixodbc libxkbcommon-dev
 ```
 
 **ATTENTION Win10LinuxSubsystem** we do not (/we can't) support using hyperion in linux subsystem of MS Windows 10, albeit some users tested it with success. Keep in mind to disable
@@ -95,7 +112,7 @@ First you need to install the dependencies:
 brew install qt5 python3 cmake libusb doxygen zlib
 ```
 
-## Windows (WIP)
+## Windows
 We assume a 64bit Windows 10. Install the following;
 - [Git](https://git-scm.com/downloads) (Check: Add to PATH)
 - [CMake (Windows win64-x64 installer)](https://cmake.org/download/) (Check: Add to PATH)
@@ -106,6 +123,7 @@ We assume a 64bit Windows 10. Install the following;
 - [Python 3 (Windows x86-64 executable installer)](https://www.python.org/downloads/windows/) (Check: Add to PATH and Debug Symbols)
   - Open a console window and execute `pip install aqtinstall`.
   - Now we can download Qt to _C:\Qt_ `mkdir c:\Qt && aqt install -O c:\Qt 5.15.0 windows desktop win64_msvc2019_64`
+  - QT6.2 requires the [Vulkan SDK](https://vulkan.lunarg.com/sdk/home) to be installed
 - [libjpeg-turbo SDK for Visual C++](https://sourceforge.net/projects/libjpeg-turbo/files/)
   - Download the latest 64bit installer (currently `libjpeg-turbo-2.1.0-vc64.exe`) and install to its default location `C:\libjpeg-turbo64`.
 
@@ -143,6 +161,21 @@ sudo make uninstall
 # ... or run it from compile directory
 bin/hyperiond
 # webui is located on localhost:8090 or 8091
+```
+
+In case you would like to build with a dedicated Qt version, Either supply ``QTDIR`` as ``-DQTDIR=<path>`` to cmake or set and environment variable ``QTDIR`` pointing to the Qt installation.
+
+On Windows MSVC2019 set it via the CMakeSettings.json:
+```posh
+  "configurations": [
+    {
+      ...
+      "environments": [
+        {
+          "QTDIR": "C:/Qt/6.2.0/msvc2019_64/"
+        }
+      ]
+    },
 ```
 
 ## The detailed way (with many comments)
@@ -184,11 +217,6 @@ To generate make files on OS X:
 Platform should be auto detected and refer to osx, you can also force osx:
 ```console
 cmake -DPLATFORM=osx -DCMAKE_BUILD_TYPE=Release ..
-```
-
-In case you would like to build with a dedicated Qt version, provide the version's location via the CMAKE_PREFIX_PATH:
-```console
-cmake -DCMAKE_PREFIX_PATH=/opt/Qt/5.15.2/gcc_64 -DCMAKE_BUILD_TYPE=Release ..
 ```
 
 To generate files on Windows (Release+Debug capable):
@@ -233,6 +261,3 @@ cmake -DCMAKE_INSTALL_PREFIX=/home/pi/apps ..
 This will install to ``/home/pi/apps/share/hyperion``
 
 
-**Integrating hyperion into your system:**
-
-... ToDo

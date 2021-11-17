@@ -5,6 +5,8 @@
 #include <hyperion/ColorAdjustment.h>
 #include <hyperion/MultiColorAdjustment.h>
 #include <hyperion/LedString.h>
+#include <QRegularExpression>
+
 // fg effect
 #include <hyperion/Hyperion.h>
 #include <hyperion/PriorityMuxer.h>
@@ -107,7 +109,7 @@ namespace hyperion {
 		MultiColorAdjustment * adjustment = new MultiColorAdjustment(ledCnt);
 
 		const QJsonValue adjustmentConfig = colorConfig["channelAdjustment"];
-		const QRegExp overallExp("([0-9]+(\\-[0-9]+)?)(,[ ]*([0-9]+(\\-[0-9]+)?))*");
+		const QRegularExpression overallExp("([0-9]+(\\-[0-9]+)?)(,[ ]*([0-9]+(\\-[0-9]+)?))*");
 
 		const QJsonArray & adjustmentConfigArray = adjustmentConfig.toArray();
 		for (signed i = 0; i < adjustmentConfigArray.size(); ++i)
@@ -125,7 +127,7 @@ namespace hyperion {
 				continue;
 			}
 
-			if (!overallExp.exactMatch(ledIndicesStr))
+			if (!overallExp.match(ledIndicesStr).hasMatch())
 			{
 				//Error(Logger::getInstance("HYPERION"), "Given led indices %d not correct format: %s", i, QSTRING_CSTR(ledIndicesStr));
 				continue;

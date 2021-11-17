@@ -6,7 +6,7 @@
 
 // Constants
 namespace {
-	const bool verbose = true;
+	const bool verbose = false;
 } //End of constants
 
 DirectXGrabber::DirectXGrabber(int display, int cropLeft, int cropRight, int cropTop, int cropBottom)

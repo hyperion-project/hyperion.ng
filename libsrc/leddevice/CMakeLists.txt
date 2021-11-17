@@ -3,7 +3,7 @@
 SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/leddevice)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/leddevice)
 
-find_package(Qt5 COMPONENTS Network SerialPort REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Network SerialPort REQUIRED)
 
 include_directories(
 	dev_hid
@@ -85,8 +85,8 @@ target_link_libraries(leddevice
 	hyperion
 	hyperion-utils
 	${CMAKE_THREAD_LIBS_INIT}
-	Qt5::Network
-	Qt5::SerialPort
+	Qt${QT_VERSION_MAJOR}::Network
+	Qt${QT_VERSION_MAJOR}::SerialPort	
 	ssdp
 )
 
