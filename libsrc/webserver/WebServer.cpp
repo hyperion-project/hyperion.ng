@@ -56,7 +56,8 @@ void WebServer::onServerStarted (quint16 port)
 {
 	_inited = true;
 
-	Info(_log, "Started on port %d name '%s'", port ,_server->getServerName().toStdString().c_str());
+	Info(_log, "'%s' started on port %d",_server->getServerName().toStdString().c_str(), port);
+
 #ifdef ENABLE_AVAHI
 	if(_serviceRegister == nullptr)
 	{
