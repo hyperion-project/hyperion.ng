@@ -8,7 +8,7 @@
 
 ## About Hyperion
 
-[Hyperion](https://github.com/hyperion-project/hyperion.ng) is an opensource [Bias or Ambient Lighting](https://en.wikipedia.org/wiki/Bias_lighting) implementation which you might know from TV manufacturers. It supports many LED devices and video grabbers. The project is still in a alpha development stage (no stable release available).
+[Hyperion](https://github.com/hyperion-project/hyperion.ng) is an opensource [Bias or Ambient Lighting](https://en.wikipedia.org/wiki/Bias_lighting) implementation which you might know from TV manufacturers. It supports many LED devices and video grabbers.
 
 ![Screenshot](doc/screenshot.png)
 
@@ -53,7 +53,7 @@ Released and unreleased changes at [Changelog.md](CHANGELOG.md)
 See [CompileHowto](doc/development/CompileHowto.md).
 
 ## Download
-Alpha releases available from the [Hyperion release page](https://github.com/hyperion-project/hyperion.ng/releases)
+Releases available from the [Hyperion release page](https://github.com/hyperion-project/hyperion.ng/releases)
 
 ## License
 The source is released under MIT-License (see https://opensource.org/licenses/MIT).<br>

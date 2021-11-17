@@ -10,7 +10,7 @@ BUILD_TYPE="Release"
 # the docker image at GitHub Container Registry
 BUILD_IMAGE="x86_64"
 # the docker tag at GitHub Container Registry
-BUILD_TAG="buster"
+BUILD_TAG="bullseye"
 # build packages (.deb .zip ...)
 BUILD_PACKAGES=true
 # packages string inserted to cmake cmd
@@ -70,7 +70,7 @@ echo "########################################################
 #
 # docker-compile.sh -h            # Show this help message
 # docker-compile.sh -i x86_64     # The docker image, one of x86_64 | armv6l | armv7l | rpi-raspbian
-# docker-compile.sh -t stretch    # The docker tag, stretch or buster
+# docker-compile.sh -t buster     # The docker tag, stretch, buster or bullseye
 # docker-compile.sh -b Release    # cmake Release or Debug build
 # docker-compile.sh -p true       # If true, build packages with CPack
 # docker-compile.sh -l            # Run build using local code files
@@ -95,10 +95,10 @@ do
  t) BUILD_TAG=${OPTARG};;
  b) BUILD_TYPE=${OPTARG};;
  p) BUILD_PACKAGES=${OPTARG};;
- f) BUILD_PLATFORM=${OPTARG,,};; 
+ f) BUILD_PLATFORM=${OPTARG,,};;
  l) BUILD_LOCAL=1;;
  c) BUILD_INCREMENTAL=1;;
- v) _VERBOSE=1;;    
+ v) _VERBOSE=1;;
  h) printHelp; exit 0;;
  esac
 done
@@ -181,7 +181,7 @@ if [ ${DOCKERRC} == 0 ]; then
 
 	if [ ${BUILD_PACKAGES} == "true" ]; then
 	 echo "---> Copying packages to host folder: ${DEPLOY_PATH}" &&
-	 cp -v ${BUILD_PATH}/Hyperion-* ${DEPLOY_PATH} 2>/dev/null  
+	 cp -v ${BUILD_PATH}/Hyperion-* ${DEPLOY_PATH} 2>/dev/null
 	 echo "---> Find deployment packages in: ${DEPLOY_PATH}"
 	 sudo chown -fR $(stat -c "%U:%G" ${BASE_PATH}) ${DEPLOY_PATH}
 	fi

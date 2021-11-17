@@ -3,7 +3,7 @@ base: core20
 summary: The successor to Hyperion aka Hyperion Next Generation
 description: |
   Hyperion is an opensource Bias or Ambient Lighting implementation which you might know from TV manufacturers.
-  It supports many LED devices and video grabbers. The project is still in a alpha development stage.
+  It supports many LED devices and video grabbers.
 
 license: MIT
 icon: resources/icons/hyperion-icon-512px.png
