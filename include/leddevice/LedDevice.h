@@ -435,7 +435,7 @@ protected slots:
 	///
 	/// @return Zero on success else negative
 	///
-	int rewriteLEDs();
+	virtual int rewriteLEDs();
 
 	///
 	/// @brief Set device in error state

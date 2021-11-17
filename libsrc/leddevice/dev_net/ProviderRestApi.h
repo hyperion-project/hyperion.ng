@@ -60,20 +60,20 @@ class httpResponse
 public:
 	httpResponse() = default;
 
-	bool error() const { return _hasError;}
+	bool error() const { return _hasError; }
 	void setError(const bool hasError) { _hasError = hasError; }
 
 	QJsonDocument getBody() const { return _responseBody; }
-	void setBody(const QJsonDocument &body) { _responseBody = body; }
+	void setBody(const QJsonDocument& body) { _responseBody = body; }
 
 	QString getErrorReason() const { return _errorReason; }
-	void setErrorReason(const QString &errorReason) { _errorReason = errorReason; }
+	void setErrorReason(const QString& errorReason) { _errorReason = errorReason; }
 
 	int getHttpStatusCode() const { return _httpStatusCode; }
 	void setHttpStatusCode(int httpStatusCode) { _httpStatusCode = httpStatusCode; }
 
 	QNetworkReply::NetworkError getNetworkReplyError() const { return _networkReplyError; }
-	void setNetworkReplyError (const QNetworkReply::NetworkError networkReplyError) { _networkReplyError = networkReplyError; }
+	void setNetworkReplyError(const QNetworkReply::NetworkError networkReplyError) { _networkReplyError = networkReplyError; }
 
 private:
 
@@ -119,7 +119,7 @@ public:
 	/// @param[in] host
 	/// @param[in] port
 	///
-	explicit ProviderRestApi(const QString &host, int port);
+	explicit ProviderRestApi(const QString& host, int port);
 
 	///
 	/// @brief Constructor of the REST-API wrapper
@@ -128,12 +128,33 @@ public:
 	/// @param[in] port
 	/// @param[in] API base-path
 	///
-	explicit ProviderRestApi(const QString &host, int port, const QString &basePath);
+	explicit ProviderRestApi(const QString& host, int port, const QString& basePath);
 
 	///
 	/// @brief Destructor of the REST-API wrapper
 	///
 	virtual ~ProviderRestApi();
+
+	///
+	/// @brief Set an API's host
+	///
+	/// @param[in] host
+	///
+	void setHost(const QString& host) { _apiUrl.setHost(host); }
+
+	///
+	/// @brief Set an API's port
+	///
+	/// @param[in] port
+	///
+	void setPort(const int port) { _apiUrl.setPort(port); }
+
+	///
+	/// @brief Set an API's url
+	///
+	/// @param[in] url, e.g. "http://locahost:60351/chromalink/"
+	///
+	void setUrl(const QUrl& url);
 
 	///
 	/// @brief Get the URL as defined using scheme, host, port, API-basepath, path, query, fragment
@@ -147,35 +168,35 @@ public:
 	///
 	/// @param[in] basePath, e.g. "/api/v1/" or "/json"
 	///
-	void setBasePath(const QString &basePath);
+	void setBasePath(const QString& basePath);
 
 	///
 	/// @brief Set an API's path to address resources
 	///
 	/// @param[in] path, e.g. "/lights/1/state/"
 	///
-	void setPath ( const QString &path );
+	void setPath(const QString& path);
 
 	///
 	/// @brief Append an API's path element to path set before
 	///
 	/// @param[in] path
 	///
-	void appendPath (const QString &appendPath);
+	void appendPath(const QString& appendPath);
 
 	///
 	/// @brief Set an API's fragment
 	///
 	/// @param[in] fragment, e.g. "question3"
 	///
-	void setFragment(const QString&fragment);
+	void setFragment(const QString& fragment);
 
 	///
 	/// @brief Set an API's query string
 	///
 	/// @param[in] query, e.g. "&A=128&FX=0"
 	///
-	void setQuery(const QUrlQuery &query);
+	void setQuery(const QUrlQuery& query);
 
 	///
 	/// @brief Execute GET request
@@ -190,14 +211,14 @@ public:
 	/// @param[in] url GET request for URL
 	/// @return Response The body of the response in JSON
 	///
-	httpResponse get(const QUrl &url);
+	httpResponse get(const QUrl& url);
 
 	/// @brief Execute PUT request
 	///
 	/// @param[in] body The body of the request in JSON
 	/// @return Response The body of the response in JSON
 	///
-	httpResponse put(const QJsonObject &body);
+	httpResponse put(const QJsonObject& body);
 
 	///
 	/// @brief Execute PUT request
@@ -205,7 +226,7 @@ public:
 	/// @param[in] body The body of the request in JSON
 	/// @return Response The body of the response in JSON
 	///
-	httpResponse put(const QString &body = "");
+	httpResponse put(const QString& body = "");
 
 	///
 	/// @brief Execute PUT request
@@ -214,7 +235,7 @@ public:
 	/// @param[in] body The body of the request in JSON
 	/// @return Response The body of the response in JSON
 	///
-	httpResponse put(const QUrl &url, const QByteArray &body);
+	httpResponse put(const QUrl &url, const QByteArray& body);
 
 	///
 	/// @brief Execute POST request
@@ -222,7 +243,31 @@ public:
 	/// @param[in] body The body of the request in JSON
 	/// @return Response The body of the response in JSON
 	///
-	httpResponse post(QString body = "");
+	httpResponse post(const QString& body = "");
+
+	/// @brief Execute POST request
+	///
+	/// @param[in] body The body of the request in JSON
+	/// @return Response The body of the response in JSON
+	///
+	httpResponse post(const QJsonObject& body);
+
+	///
+	/// @brief Execute POST request
+	///
+	/// @param[in] URL for POST request
+	/// @param[in] body The body of the request in JSON
+	/// @return Response The body of the response in JSON
+	///
+	httpResponse post(const QUrl &url, const QByteArray& body);
+
+	///
+	/// @brief Execute DELETE request
+	///
+	/// @param[in] URL (Resource) for DELETE request
+	/// @return Response The body of the response in JSON
+	///
+	httpResponse deleteResource(const QUrl& url);
 
 	///
 	/// @brief Handle responses for REST requests
@@ -230,7 +275,21 @@ public:
 	/// @param[in] reply Network reply
 	/// @return Response The body of the response in JSON
 	///
-	httpResponse getResponse(QNetworkReply* const &reply);
+	httpResponse getResponse(QNetworkReply* const& reply);
+
+	///
+	/// Adds a header field.
+	///
+	/// @param[in] The type of the header field.
+	/// @param[in] The value of the header field.
+	/// If the header field exists, the value will be combined as comma separated string.
+
+	void setHeader(QNetworkRequest::KnownHeaders header, const QVariant& value);
+
+	///
+	/// Remove all header fields.
+	///
+	void removeAllHeaders() { _networkRequestHeaders = QNetworkRequest(); }
 
 private:
 
@@ -249,16 +308,13 @@ private:
 
 	QUrl _apiUrl;
 
-	QString _scheme;
-	QString _hostname;
-	int _port;
-
 	QString _basePath;
 	QString _path;
 
 	QString _fragment;
 	QUrlQuery _query;
 
+	QNetworkRequest _networkRequestHeaders;
 };
 
 #endif // PROVIDERRESTKAPI_H

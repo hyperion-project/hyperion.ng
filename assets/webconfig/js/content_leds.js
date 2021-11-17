@@ -1,4 +1,3 @@
-var ledsCustomCfgInitialized = false;
 var onLedLayoutTab = false;
 var nonBlacklistLedArray = [];
 var ledBlacklist = [];
@@ -13,7 +12,7 @@ var canvas_width;
 var devRPiSPI = ['apa102', 'apa104', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'sk6822spi', 'sk9822', 'ws2812spi'];
 var devRPiPWM = ['ws281x'];
 var devRPiGPIO = ['piblaster'];
-var devNET = ['atmoorb', 'cololight', 'fadecandy', 'philipshue', 'nanoleaf', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udph801', 'udpraw', 'wled', 'yeelight'];
+var devNET = ['atmoorb', 'cololight', 'fadecandy', 'philipshue', 'nanoleaf', 'razer', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udph801', 'udpraw', 'wled', 'yeelight'];
 var devSerial = ['adalight', 'dmx', 'atmo', 'sedu', 'tpm2', 'karate'];
 var devHID = ['hyperionusbasp', 'lightpack', 'paintpack', 'rawhid'];
 
@@ -614,10 +613,7 @@ $(document).ready(function () {
     var target = $(e.target).attr("href") // activated tab
     if (target == "#menu_gencfg") {
       onLedLayoutTab = true;
-      if (!ledsCustomCfgInitialized) {
-        $('#leds_custom_updsim').trigger('click');
-        ledsCustomCfgInitialized = true;
-      }
+      $('#leds_custom_updsim').trigger('click');
     } else {
       onLedLayoutTab = false;
     }
@@ -775,6 +771,16 @@ $(document).ready(function () {
             hwLedCountDefault = 0;
           }
           colorOrderDefault = "rgb";
+          break;
+
+        case "razer":
+          conf_editor.getEditor("root.generalOptions").disable();
+          hwLedCountDefault = 1;
+          colorOrderDefault = "bgr";
+
+          var subType = conf_editor.getEditor("root.specificOptions.subType").getValue();
+          let params = { subType: subType };
+          getProperties_device(ledType, subType, params);
           break;
 
         default:
@@ -1009,6 +1015,19 @@ $(document).ready(function () {
             $('#btn_submit_controller').attr('disabled', false);
           }
         }
+      }
+    });
+
+    conf_editor.watch('root.specificOptions.subType', () => {
+      var subType = conf_editor.getEditor("root.specificOptions.subType").getValue();
+      let params = {};
+
+      switch (ledType) {
+        case "razer":
+          params = { subType: subType };
+          getProperties_device(ledType, subType, params);
+          break;
+        default:
       }
     });
 
@@ -1612,7 +1631,7 @@ function updateElements(ledType, key) {
           var maxLedCount = ledProperties.maxLedCount
           if (hardwareLedCount > maxLedCount)
           {
-	        showInfoDialog('warning', $.i18n("conf_leds_config_warning"), $.i18n('conf_leds_error_hwled_gt_maxled', hardwareLedCount, maxLedCount, maxLedCount));
+          showInfoDialog('warning', $.i18n("conf_leds_config_warning"), $.i18n('conf_leds_error_hwled_gt_maxled', hardwareLedCount, maxLedCount, maxLedCount));
             hardwareLedCount = maxLedCount;
           }
         }
@@ -1662,6 +1681,18 @@ function updateElements(ledType, key) {
             updateJsonEditorSelection(conf_editor, 'root.generalOptions', "hardwareLedCountList", {"title": "edt_dev_general_hardwareLedCount_title"},
                                       ledProperties.ledCount.map(String), [], configuredLedCount);
           }
+        }
+        break;
+
+      case "razer":
+        var ledProperties = devicesProperties[ledType][key];
+        if (ledProperties) {
+          conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(ledProperties.maxLedCount);
+          $("#ip_ma_ledshoriz").val(ledProperties.maxColumn);
+          $("#ip_ma_ledsvert").val(ledProperties.maxRow);
+          $("#ip_ma_cabling").val("parallel");
+          $("#ip_ma_start").val("top-left");
+          createMatrixLeds();
         }
         break;
 
