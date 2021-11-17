@@ -624,6 +624,7 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 						else
 						{
 							newForwarderConfig.remove("json");
+							migrated = true;
 						}
 					}
 
@@ -667,6 +668,7 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 							else
 							{
 								newForwarderConfig.remove("flat");
+								migrated = true;
 							}
 						}
 					}
