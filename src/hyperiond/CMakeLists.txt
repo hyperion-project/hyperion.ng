@@ -178,6 +178,37 @@ if (WIN32)
 	find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${QT_BIN_DIR}")
 	set(WINDEPLOYQT_PARAMS --verbose 0 --no-compiler-runtime --no-opengl-sw --no-system-d3d-compiler)
 	add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${WINDEPLOYQT_EXECUTABLE} ${WINDEPLOYQT_PARAMS} "$<TARGET_FILE:${PROJECT_NAME}>")
+	
+	find_package(OpenSSL REQUIRED)
+	if (OPENSSL_FOUND)
+		string(REGEX MATCHALL "[0-9]+" openssl_versions "${OPENSSL_VERSION}")
+		list(GET openssl_versions 0 openssl_version_major)
+		list(GET openssl_versions 1 openssl_version_minor)
+
+		set(library_suffix "-${openssl_version_major}_${openssl_version_minor}")
+		if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+			string(APPEND library_suffix "-x64")
+		endif()
+
+		find_file(OPENSSL_SSL
+			NAMES "libssl${library_suffix}.dll"
+			PATHS ${OPENSSL_INCLUDE_DIR}/.. ${OPENSSL_INCLUDE_DIR}/../bin
+			NO_DEFAULT_PATH
+		)
+
+		find_file(OPENSSL_CRYPTO
+			NAMES "libcrypto${library_suffix}.dll"
+			PATHS ${OPENSSL_INCLUDE_DIR}/.. ${OPENSSL_INCLUDE_DIR}/../bin
+			NO_DEFAULT_PATH
+		)
+
+		add_custom_command(
+			TARGET ${PROJECT_NAME} POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E copy
+			${OPENSSL_SSL} ${OPENSSL_CRYPTO}
+			$<TARGET_FILE_DIR:${PROJECT_NAME}>
+		)
+	endif(OPENSSL_FOUND)
 endif(WIN32)
 
 if(ENABLE_DEPLOY_DEPENDENCIES)
