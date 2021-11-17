@@ -4,15 +4,25 @@
   "properties": {
     "host": {
       "type": "string",
-      "title": "edt_dev_spec_targetIp_title",
+      "format": "hostname_or_ip",
+      "title": "edt_dev_spec_targetIpHost_title",
       "default": "",
       "propertyOrder": 1
+    },
+    "port": {
+      "type": "integer",
+      "title": "edt_dev_spec_port_title",
+      "default": 0,
+      "minimum": 0,
+      "maximum": 65535,
+      "access": "expert",
+      "propertyOrder": 2
     },
     "username": {
       "type": "string",
       "title": "edt_dev_spec_username_title",
       "default": "",
-      "propertyOrder": 2
+      "propertyOrder": 3
     },
     "clientkey": {
       "type": "string",
@@ -23,13 +33,13 @@
           "useEntertainmentAPI": true
         }
       },
-      "propertyOrder": 3
+      "propertyOrder": 4
     },
     "useEntertainmentAPI": {
       "type": "boolean",
       "title": "edt_dev_spec_useEntertainmentAPI_title",
       "default": true,
-      "propertyOrder": 4
+      "propertyOrder": 5
     },
     "transitiontime": {
       "type": "number",
@@ -41,19 +51,19 @@
           "useEntertainmentAPI": false
         }
       },
-      "propertyOrder": 5
+      "propertyOrder": 6
     },
     "switchOffOnBlack": {
       "type": "boolean",
       "title": "edt_dev_spec_switchOffOnBlack_title",
       "default": false,
-      "propertyOrder": 6
+      "propertyOrder": 7
     },
     "restoreOriginalState": {
       "type": "boolean",
       "title": "edt_dev_spec_restoreOriginalState_title",
       "default": true,
-      "propertyOrder": 7
+      "propertyOrder": 8
     },
     "lightIds": {
       "type": "array",
@@ -71,7 +81,7 @@
           "useEntertainmentAPI": false
         }
       },
-      "propertyOrder": 8
+      "propertyOrder": 9
     },
     "groupId": {
       "type": "number",
@@ -82,7 +92,7 @@
           "useEntertainmentAPI": true
         }
       },
-      "propertyOrder": 9
+      "propertyOrder": 10
     },
     "blackLightsTimeout": {
       "type": "number",
@@ -98,7 +108,7 @@
           "useEntertainmentAPI": true
         }
       },
-      "propertyOrder": 10
+      "propertyOrder": 11
     },
     "brightnessThreshold": {
       "type": "number",
@@ -113,7 +123,7 @@
           "useEntertainmentAPI": true
         }
       },
-      "propertyOrder": 11
+      "propertyOrder": 12
     },
     "brightnessFactor": {
       "type": "number",
@@ -123,7 +133,7 @@
       "minimum": 0.5,
       "maximum": 10.0,
       "access": "advanced",
-      "propertyOrder": 12
+      "propertyOrder": 13
     },
     "brightnessMin": {
       "type": "number",
@@ -138,7 +148,7 @@
           "useEntertainmentAPI": true
         }
       },
-      "propertyOrder": 13
+      "propertyOrder": 14
     },
     "brightnessMax": {
       "type": "number",
@@ -153,7 +163,7 @@
           "useEntertainmentAPI": true
         }
       },
-      "propertyOrder": 14
+      "propertyOrder": 15
     },
     "sslReadTimeout": {
       "type": "number",
@@ -169,7 +179,7 @@
           "useEntertainmentAPI": true
         }
       },
-      "propertyOrder": 15
+      "propertyOrder": 16
     },
     "sslHSTimeoutMin": {
       "type": "number",
@@ -185,7 +195,7 @@
           "useEntertainmentAPI": true
         }
       },
-      "propertyOrder": 16
+      "propertyOrder": 17
     },
     "sslHSTimeoutMax": {
       "type": "number",
@@ -201,14 +211,14 @@
           "useEntertainmentAPI": true
         }
       },
-      "propertyOrder": 17
+      "propertyOrder": 18
     },
     "verbose": {
       "type": "boolean",
       "title": "edt_dev_spec_verbose_title",
       "default": false,
       "access": "expert",
-      "propertyOrder": 18
+      "propertyOrder": 19
     },
     "debugStreamer": {
       "type": "boolean",
@@ -220,7 +230,7 @@
           "useEntertainmentAPI": true
         }
       },
-      "propertyOrder": 19
+      "propertyOrder": 20
     },
     "debugLevel": {
       "type": "string",
@@ -236,7 +246,7 @@
       "minimum": 0,
       "maximum": 4,
       "access": "expert",
-      "propertyOrder": 20
+      "propertyOrder": 21
     }
   },
   "additionalProperties": true

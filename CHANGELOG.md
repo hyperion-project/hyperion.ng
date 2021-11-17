@@ -10,9 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- hyperion-remote & standalone grabbers: IPv6 support
+
 ### Changed
 
+- LED-Devices: Removed IPv6 limitations
+- Philips-Hue Wizard optimizations
+- JSON/Flatbuffer forwarder: Removed IPv6 limitations
+- Allow to import configurations from previous versions
+
+Note: Existing configurations are migrated to new structures automatically
+
 ### Fixed
+
+- Fixed hyperion-remote when sending multiple Hex-Colors with "Set Color" option
 
 ### Removed
 

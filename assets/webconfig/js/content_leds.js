@@ -641,6 +641,8 @@ $(document).ready(function () {
   // External properties properties, 2-dimensional arry of [ledType][key]
   devicesProperties = {};
 
+  addJsonEditorHostValidation();
+
   $("#leddevices").off().on("change", function () {
     var generalOptions = window.serverSchema.properties.device;
 
@@ -1092,7 +1094,7 @@ $(document).ready(function () {
         hwLedCount.setValue(lights.length);
       }
     });
- 
+
     //Handle Hardware Led Count constraint list
     conf_editor.watch('root.generalOptions.hardwareLedCountList', () => {
       var hwLedCountSelected = conf_editor.getEditor("root.generalOptions.hardwareLedCountList").getValue();
@@ -1629,9 +1631,8 @@ function updateElements(ledType, key) {
         if (ledProperties && ledProperties.leds && ledProperties.maxLedCount) {
           hardwareLedCount = ledProperties.leds.count;
           var maxLedCount = ledProperties.maxLedCount
-          if (hardwareLedCount > maxLedCount)
-          {
-          showInfoDialog('warning', $.i18n("conf_leds_config_warning"), $.i18n('conf_leds_error_hwled_gt_maxled', hardwareLedCount, maxLedCount, maxLedCount));
+          if (hardwareLedCount > maxLedCount) {
+            showInfoDialog('warning', $.i18n("conf_leds_config_warning"), $.i18n('conf_leds_error_hwled_gt_maxled', hardwareLedCount, maxLedCount, maxLedCount));
             hardwareLedCount = maxLedCount;
           }
         }
@@ -1661,8 +1662,7 @@ function updateElements(ledType, key) {
         if (ledProperties && ledProperties.maxLedCount) {
           hardwareLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue();
           var maxLedCount = ledProperties.maxLedCount
-          if (hardwareLedCount > maxLedCount)
-          {
+          if (hardwareLedCount > maxLedCount) {
             showInfoDialog('warning', $.i18n("conf_leds_config_warning"), $.i18n('conf_leds_error_hwled_gt_maxled', hardwareLedCount, maxLedCount, maxLedCount));
             hardwareLedCount = maxLedCount;
           }
@@ -1678,8 +1678,8 @@ function updateElements(ledType, key) {
           if (ledProperties.ledCount.length > 0) {
             var configuredLedCount = window.serverConfig.device.hardwareLedCount;
             showInputOptionForItem(conf_editor, 'generalOptions', "hardwareLedCount", false);
-            updateJsonEditorSelection(conf_editor, 'root.generalOptions', "hardwareLedCountList", {"title": "edt_dev_general_hardwareLedCount_title"},
-                                      ledProperties.ledCount.map(String), [], configuredLedCount);
+            updateJsonEditorSelection(conf_editor, 'root.generalOptions', "hardwareLedCountList", { "title": "edt_dev_general_hardwareLedCount_title" },
+              ledProperties.ledCount.map(String), [], configuredLedCount);
           }
         }
         break;

@@ -1,41 +1,42 @@
 {
-	"type":"object",
-	"required":true,
-	"properties":{
-		"host" : {
-			"type": "string",
-			"title":"edt_dev_spec_targetIp_title",
-			"propertyOrder" : 1
-		},
-		"port" : {
-			"type": "integer",
-			"title":"edt_dev_spec_port_title",
-			"default": 5568,
-			"minimum" : 0,
-			"maximum" : 65535,
-			"propertyOrder" : 2
-		},
-		"universe": {
-			"type": "integer",
-			"title":"edt_dev_spec_universe_title",
-			"default": 1,
-			"propertyOrder" : 3
-		},
-		"latchTime": {
-			"type": "integer",
-			"title":"edt_dev_spec_latchtime_title",
-			"default": 0,
-			"append" : "edt_append_ms",
-			"minimum": 0,
-			"maximum": 1000,
-			"access" : "expert",
-			"propertyOrder" : 4
-		},
-		"cid": {
-			"type": "string",
-			"title":"edt_dev_spec_cid_title",
-			"propertyOrder" : 5
-		}
-	},
-	"additionalProperties": true
+  "type": "object",
+  "required": true,
+  "properties": {
+    "host": {
+      "type": "string",
+      "format": "hostname_or_ip",
+      "title": "edt_dev_spec_targetIpHost_title",
+      "propertyOrder": 1
+    },
+    "port": {
+      "type": "integer",
+      "title": "edt_dev_spec_port_title",
+      "default": 5568,
+      "minimum": 0,
+      "maximum": 65535,
+      "propertyOrder": 2
+    },
+    "universe": {
+      "type": "integer",
+      "title": "edt_dev_spec_universe_title",
+      "default": 1,
+      "propertyOrder": 3
+    },
+    "latchTime": {
+      "type": "integer",
+      "title": "edt_dev_spec_latchtime_title",
+      "default": 0,
+      "append": "edt_append_ms",
+      "minimum": 0,
+      "maximum": 1000,
+      "access": "expert",
+      "propertyOrder": 4
+    },
+    "cid": {
+      "type": "string",
+      "title": "edt_dev_spec_cid_title",
+      "propertyOrder": 5
+    }
+  },
+  "additionalProperties": true
 }

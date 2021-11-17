@@ -70,7 +70,7 @@ bool ProviderUdp::init(const QJsonObject& deviceConfig)
 			else
 			{
 				_port = static_cast<quint16>(config_port);
-				Debug(_log, "UDP socket will write to %s:%u", QSTRING_CSTR(_address.toString()), _port);
+				Debug(_log, "UDP socket will write to %s port: %u", QSTRING_CSTR(_address.toString()), _port);
 
 				_udpSocket = new QUdpSocket(this);
 

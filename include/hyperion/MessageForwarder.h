@@ -36,8 +36,8 @@ public:
 	MessageForwarder(Hyperion* hyperion);
 	~MessageForwarder() override;
 
-	void addJsonSlave(const QString& slave);
-	void addFlatbufferSlave(const QString& slave);
+	void addJsonTarget(const QJsonObject& targetConfig);
+	void addFlatbufferTarget(const QJsonObject& targetConfig);
 
 private slots:
 	///
@@ -61,25 +61,36 @@ private slots:
 	void handlePriorityChanges(quint8 priority);
 
 	///
-	/// @brief Forward message to all json slaves
+	/// @brief Forward message to all json target hosts
 	/// @param message The JSON message to send
 	///
 	void forwardJsonMessage(const QJsonObject &message);
 
 	///
-	/// @brief Forward image to all flatbuffer slaves
+	/// @brief Forward image to all flatbuffer target hosts
 	/// @param image The flatbuffer image to send
 	///
 	void forwardFlatbufferMessage(const QString& name, const Image<ColorRgb> &image);
 
 	///
-	/// @brief Forward message to a single json slave
+	/// @brief Forward message to a single json target host
 	/// @param message The JSON message to send
-	/// @param socket The TCP-Socket with the connection to the slave
+	/// @param socket The TCP-Socket with the connection to the target host
 	///
 	void sendJsonMessage(const QJsonObject &message, QTcpSocket *socket);
 
 private:
+
+	struct TargetHost {
+		QHostAddress host;
+		quint16 port;
+
+		bool operator == (TargetHost const& a) const
+		{
+			return ((host == a.host) && (port == a.port));
+		}
+	};
+
 	/// Hyperion instance
 	Hyperion *_hyperion;
 
@@ -89,11 +100,11 @@ private:
 	/// Muxer instance
 	PriorityMuxer *_muxer;
 
-	// JSON connection for forwarding
-	QStringList   _jsonSlaves;
+	// JSON connections for forwarding
+	QList<TargetHost> _jsonTargets;
 
-	/// Proto connection for forwarding
-	QStringList _flatSlaves;
+	/// Flatbuffer connection for forwarding
+	QList<TargetHost> _flatbufferTargets;
 	QList<FlatBufferConnection*> _forwardClients;
 
 	/// Flag if forwarder is enabled

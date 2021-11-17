@@ -9,14 +9,16 @@
 #include <QCoreApplication>
 #include <QLocale>
 
+#include "HyperionConfig.h"
+#include <commandline/Parser.h>
+
 // hyperion-remote include
 #include "JsonConnection.h"
 
 // ssdp discover
 #include <ssdp/SSDPDiscover.h>
+#include <utils/NetUtils.h>
 
-#include "HyperionConfig.h"
-#include <commandline/Parser.h>
 #include <utils/DefaultSignalHandler.h>
 
 using namespace commandline;
@@ -66,6 +68,10 @@ int main(int argc, char * argv[])
 #ifndef _WIN32
 	setenv("AVAHI_COMPAT_NOWARN", "1", 1);
 #endif
+
+	Logger* log = Logger::getInstance("REMOTE");
+	Logger::setLogLevel(Logger::INFO);
+
 	std::cout
 		<< "hyperion-remote:" << std::endl
 		<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
@@ -87,8 +93,8 @@ int main(int argc, char * argv[])
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//      art             variable definition       append art to Parser     short-, long option              description, optional default value      //
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		Option          & argAddress            = parser.add<Option>       ('a', "address"                , "Set the address of the hyperion server [default: %1]", "127.0.0.1:19444");
-		Option          & argToken              = parser.add<Option>       ('t', "token  "                , "If authorization tokens are required, this token is used");
+		Option          & argAddress            = parser.add<Option>       ('a', "address"                , "The hostname or IP-address (IPv4 or IPv6) of the hyperion server.\nDefault port: 19444.\nSample addresses:\nHost : hyperion.fritz.box\nIPv4 : 127.0.0.1:19444\nIPv6 : [2001:1:2:3:4:5:6:7]");
+		Option          & argToken              = parser.add<Option>       ('t', "token"                  , "If authorization tokens are required, this token is used");
 		Option          & argInstance           = parser.add<Option>       ('I', "instance"               , "Select a specific target instance by name for your command. By default it uses always the first instance");
 		IntOption       & argPriority           = parser.add<IntOption>    ('p', "priority"               , "Used to the provided priority channel (suggested 2-99) [default: %1]", "50");
 		IntOption       & argDuration           = parser.add<IntOption>    ('d', "duration"               , "Specify how long the LEDs should be switched on in milliseconds [default: infinity]");
@@ -111,8 +117,6 @@ int main(int argc, char * argv[])
 		IntOption       & argBacklightThreshold = parser.add<IntOption>    ('n', "backlightThreshold"     , "threshold for activating backlight (minimum brightness)");
 		IntOption       & argBacklightColored   = parser.add<IntOption>    (0x0, "backlightColored"       , "0 = white backlight; 1 =  colored backlight");
 		DoubleOption    & argGamma              = parser.add<DoubleOption> ('g', "gamma"                  , "Set the overall gamma of the LEDs");
-		BooleanOption   & argPrint              = parser.add<BooleanOption>(0x0, "print"                  , "Print the JSON input and output messages on stdout");
-		BooleanOption   & argHelp               = parser.add<BooleanOption>('h', "help"                   , "Show this help message and exit");
 		ColorOption     & argRAdjust            = parser.add<ColorOption>  ('R', "redAdjustment"          , "Set the adjustment of the red color (requires colors in hex format as RRGGBB)");
 		ColorOption     & argGAdjust            = parser.add<ColorOption>  ('G', "greenAdjustment"        , "Set the adjustment of the green color (requires colors in hex format as RRGGBB)");
 		ColorOption     & argBAdjust            = parser.add<ColorOption>  ('B', "blueAdjustment"         , "Set the adjustment of the blue color (requires colors in hex format as RRGGBB)");
@@ -131,8 +135,18 @@ int main(int argc, char * argv[])
 		BooleanOption   & argSchemaGet          = parser.add<BooleanOption>(0x0, "schemaGet"              , "Print the JSON schema for Hyperion configuration");
 		Option          & argConfigSet          = parser.add<Option>       (0x0, "configSet"              , "Write to the actual loaded configuration file. Should be a JSON object string.");
 
+		BooleanOption   & argPrint              = parser.add<BooleanOption>(0x0, "print", "Print the JSON input and output messages on stdout");
+		BooleanOption   & argDebug              = parser.add<BooleanOption>(0x0, "debug", "Enable debug logging");
+		BooleanOption   & argHelp               = parser.add<BooleanOption>('h', "help", "Show this help message and exit");
+
 		// parse all _options
 		parser.process(app);
+
+		// check if debug logging is required
+		if (parser.isSet(argDebug))
+		{
+			Logger::setLogLevel(Logger::DEBUG);
+		}
 
 		// check if we need to display the usage. exit if we do.
 		if (parser.isSet(argHelp))
@@ -196,8 +210,17 @@ int main(int argc, char * argv[])
 			}
 		}
 
+		// Resolve hostname and port (or use default port)
+		QString host;
+		quint16 port{ JSON_DEFAULT_PORT };
+
+		if (!NetUtils::resolveHostPort(address, host, port))
+		{
+			throw std::runtime_error(QString("Wrong address: unable to parse address (%1)").arg(address).toStdString());
+		}
+
 		// create the connection to the hyperion server
-		JsonConnection connection(address, parser.isSet(argPrint));
+		JsonConnection connection(host, parser.isSet(argPrint), port);
 
 		// authorization token specified. Use it first
 		if (parser.isSet(argToken))
@@ -323,7 +346,7 @@ int main(int argc, char * argv[])
 	catch (const std::runtime_error & e)
 	{
 		// An error occurred. Display error and quit
-		std::cerr << e.what() << std::endl;
+		Error(log, "%s", e.what());
 		return 1;
 	}
 

@@ -144,7 +144,7 @@ $(document).ready(function () {
     showInfoDialog('import', $.i18n('infoDialog_import_confirm_title'), $.i18n('infoDialog_import_confirm_text', confName));
 
     $('#id_btn_import').off().on('click', function () {
-      requestWriteConfig(importedConf, true);
+      requestRestoreConfig(importedConf);
       setTimeout(initRestart, 100);
     });
   });

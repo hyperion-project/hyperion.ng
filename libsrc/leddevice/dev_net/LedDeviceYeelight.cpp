@@ -1112,11 +1112,7 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 				QString hostName = configuredYeelightLights[j].toObject().value("host").toString();
 				int port = configuredYeelightLights[j].toObject().value("port").toInt(API_DEFAULT_PORT);
 
-				QStringList addressparts = QStringUtils::split(hostName,":", QStringUtils::SplitBehavior::SkipEmptyParts);
-				QString apiHost = addressparts[0];
-				int apiPort = port;
-
-				_lightsAddressList.append( {apiHost, apiPort} );
+				_lightsAddressList.append( { hostName, port} );
 			}
 
 			if ( updateLights(_lightsAddressList) )
@@ -1150,19 +1146,19 @@ bool LedDeviceYeelight::startMusicModeServer()
 		}
 		else
 		{
-			QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
-			// use the first non-localhost IPv4 address
-			for (int i = 0; i < ipAddressesList.size(); ++i) {
-				if (ipAddressesList.at(i) != QHostAddress::LocalHost &&
-					 (ipAddressesList.at(i).toIPv4Address() != 0U))
+			// use the first non-localhost IPv4 address, IPv6 are not supported by Yeelight currently
+			for (const auto& address : QNetworkInterface::allAddresses())
+			{
+				// is valid when, no loopback, IPv4
+				if (!address.isLoopback() && (address.protocol() == QAbstractSocket::IPv4Protocol))
 				{
-					_musicModeServerAddress = ipAddressesList.at(i);
+					_musicModeServerAddress = address;
 					break;
 				}
 			}
-			if ( _musicModeServerAddress.isNull() )
+			if (_musicModeServerAddress.isNull())
 			{
-				Error( _log, "Failed to resolve IP for music mode server");
+				Error(_log, "Failed to resolve IP for music mode server");
 			}
 		}
 	}

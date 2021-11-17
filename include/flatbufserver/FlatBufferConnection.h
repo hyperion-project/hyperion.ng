@@ -7,6 +7,7 @@
 #include <QTcpSocket>
 #include <QTimer>
 #include <QMap>
+#include <QHostAddress>
 
 // hyperion util
 #include <utils/Image.h>
@@ -15,6 +16,8 @@
 #include <utils/Logger.h>
 
 #include <flatbuffers/flatbuffers.h>
+
+const int FLATBUFFER_DEFAULT_PORT = 19400;
 
 namespace hyperionnet
 {
@@ -32,10 +35,11 @@ class FlatBufferConnection : public QObject
 public:
 	///
 	/// @brief Constructor
-	/// @param address The address of the Hyperion server (for example "192.168.0.32:19444)
+	/// @param host The hostname or IP-address of the Hyperion Flatbuffer server (for example "192.168.0.32")
+	/// @param port The port of the Hyperion Flatpuffer server (default is 19400)
 	/// @param skipReply  If true skip reply
 	///
-	FlatBufferConnection(const QString& origin, const QString & address, int priority, bool skipReply);
+	FlatBufferConnection(const QString& origin, const QString& host, int priority, bool skipReply, quint16 port = FLATBUFFER_DEFAULT_PORT);
 
 	///
 	/// @brief Destructor

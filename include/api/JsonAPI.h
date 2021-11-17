@@ -229,6 +229,12 @@ private:
 	///
 	void handleConfigSetCommand(const QJsonObject &message, const QString &command, int tan);
 
+	/// Handle an incoming JSON RestoreConfig message from handleConfigCommand()
+	///
+	/// @param message the incoming message
+	///
+	void handleConfigRestoreCommand(const QJsonObject &message, const QString &command, int tan);
+
 	///
 	/// Handle an incoming JSON Component State message
 	///

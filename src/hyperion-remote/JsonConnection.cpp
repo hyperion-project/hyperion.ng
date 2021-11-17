@@ -10,6 +10,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QHostInfo>
+#include <QUrl>
 
 // hyperion-remote includes
 #include "JsonConnection.h"
@@ -17,31 +18,17 @@
 // util includes
 #include <utils/JsonUtils.h>
 
-JsonConnection::JsonConnection(const QString & address, bool printJson)
+JsonConnection::JsonConnection(const QString & host, bool printJson , quint16 port)
 	: _printJson(printJson)
 	, _log(Logger::getInstance("REMOTE"))
-	, _socket()
 {
-	QStringList parts = address.split(":");
-	if (parts.size() != 2)
-	{
-		throw std::runtime_error(QString("Wrong address: unable to parse address (%1)").arg(address).toStdString());
-	}
-
-	bool ok;
-	uint16_t port = parts[1].toUShort(&ok);
-	if (!ok)
-	{
-		throw std::runtime_error(QString("Wrong address: Unable to parse the port number (%1)").arg(parts[1]).toStdString());
-	}
-
-	_socket.connectToHost(parts[0], port);
+	_socket.connectToHost(host, port);
 	if (!_socket.waitForConnected())
 	{
-		throw std::runtime_error("Unable to connect to host");
+		throw std::runtime_error(QString("Unable to connect to host (%1), port (%2)").arg(host).arg(port).toStdString());
 	}
 
-    qDebug() << "Connected to:" << address;
+	Debug(_log, "Connected to: %s, port: %u", QSTRING_CSTR(host), port);
 }
 
 JsonConnection::~JsonConnection()
@@ -51,7 +38,7 @@ JsonConnection::~JsonConnection()
 
 void JsonConnection::setColor(std::vector<QColor> colors, int priority, int duration)
 {
-	qDebug() << "Set color to " << colors[0].red() << " " << colors[0].green() << " " << colors[0].blue() << (colors.size() > 1 ? " + ..." : "");
+	Debug(_log, "Set color to [%d,%d,%d] %s", colors[0].red(), colors[0].green(), colors[0].blue(), (colors.size() > 1 ? " + ..." : ""));
 
 	// create command
 	QJsonObject command;
@@ -81,7 +68,7 @@ void JsonConnection::setColor(std::vector<QColor> colors, int priority, int dura
 
 void JsonConnection::setImage(QImage &image, int priority, int duration)
 {
-	qDebug() << "Set image has size: " << image.width() << "x" << image.height();
+	Debug(_log, "Set image has size: %dx%d", image.width(), image.height());
 
 	// ensure the image has RGB888 format
 	image = image.convertToFormat(QImage::Format_ARGB32_Premultiplied);
@@ -121,7 +108,7 @@ void JsonConnection::setImage(QImage &image, int priority, int duration)
 
 void JsonConnection::setEffect(const QString &effectName, const QString & effectArgs, int priority, int duration)
 {
-	qDebug() << "Start effect " << effectName;
+	Debug(_log, "Start effect: %s", QSTRING_CSTR(effectName));
 
 	// create command
 	QJsonObject command, effect;
@@ -157,7 +144,7 @@ void JsonConnection::setEffect(const QString &effectName, const QString & effect
 
 void JsonConnection::createEffect(const QString &effectName, const QString &effectScript, const QString & effectArgs)
 {
-	qDebug() << "Create effect " << effectName;
+	Debug(_log, "Create effect: %s", QSTRING_CSTR(effectName));
 
 	// create command
 	QJsonObject effect;
@@ -185,7 +172,7 @@ void JsonConnection::createEffect(const QString &effectName, const QString &effe
 
 void JsonConnection::deleteEffect(const QString &effectName)
 {
-	qDebug() << "Delete effect configuration" << effectName;
+	Debug(_log, "Delete effect configuration: %s", QSTRING_CSTR(effectName));
 
 	// create command
 	QJsonObject effect;
@@ -208,7 +195,7 @@ QString JsonConnection::getServerInfoString()
 
 QJsonObject JsonConnection::getServerInfo()
 {
-	qDebug() << "Get server info";
+	Debug(_log, "Get server info");
 
 	// create command
 	QJsonObject command;
@@ -233,7 +220,7 @@ QJsonObject JsonConnection::getServerInfo()
 
 QString JsonConnection::getSysInfo()
 {
-	qDebug() << "Get system info";
+	Debug(_log, "Get system info");
 
 	// create command
 	QJsonObject command;
@@ -260,7 +247,7 @@ QString JsonConnection::getSysInfo()
 
 void JsonConnection::clear(int priority)
 {
-	qDebug() << "Clear priority channel " << priority;
+	Debug(_log, "Clear priority channel [%d]", priority);
 
 	// create command
 	QJsonObject command;
@@ -276,7 +263,7 @@ void JsonConnection::clear(int priority)
 
 void JsonConnection::clearAll()
 {
-	qDebug() << "Clear all priority channels";
+	Debug(_log, "Clear all priority channels");
 
 	// create command
 	QJsonObject command;
@@ -292,7 +279,7 @@ void JsonConnection::clearAll()
 
 void JsonConnection::setComponentState(const QString & component, bool state)
 {
-	qDebug() << (state ? "Enable" : "Disable") << "Component" << component;
+	Debug(_log, "%s Component: %s", (state ? "Enable" : "Disable"), QSTRING_CSTR(component));
 
 	// create command
 	QJsonObject command, parameter;
@@ -339,7 +326,7 @@ void JsonConnection::setSourceAutoSelect()
 QString JsonConnection::getConfig(std::string type)
 {
 	assert( type == "schema" || type == "config" );
-	qDebug() << "Get configuration file from Hyperion Server";
+	Debug(_log, "Get configuration file from Hyperion Server");
 
 	// create command
 	QJsonObject command;
@@ -408,7 +395,7 @@ void JsonConnection::setAdjustment(
 		int    *brightness,
 		int    *brightnessC)
 {
-	qDebug() << "Set color adjustments";
+	Debug(_log, "Set color adjustments");
 
 	// create command
 	QJsonObject command, adjust;

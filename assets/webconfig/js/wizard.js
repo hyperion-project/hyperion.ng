@@ -5,6 +5,10 @@ $(window.hyperion).one("ready", function (event) {
     setStorage("wizardactive", false);
     if (getStorage("kodiAddress") != null) {
       kodiAddress = getStorage("kodiAddress");
+
+      if (getStorage("kodiPort") != null) {
+        kodiPort = getStorage("kodiPort");
+      }
       sendToKodi("stop");
     }
   }
@@ -156,9 +160,14 @@ $('#btn_wizard_byteorder').off().on('click', startWizardRGB);
 
 //color calibration wizard
 
-var kodiHost = document.location.hostname;
-var kodiPort = 9090;
-var kodiAddress = kodiHost;
+const defaultKodiPort = 9090;
+
+var kodiAddress = document.location.hostname;
+var kodiPort = defaultKodiPort;
+
+var kodiUrl = new URL("ws://" + kodiAddress);
+kodiUrl.port = kodiPort;
+kodiUrl.pathname = "/jsonrpc/websocket";
 
 var wiz_editor;
 var colorLength;
@@ -175,14 +184,12 @@ var availVideos = ["Sweet_Cocoon", "Caminandes_2_GranDillama", "Caminandes_3_Lla
 if (getStorage("kodiAddress") != null) {
 
   kodiAddress = getStorage("kodiAddress");
-  [kodiHost, kodiPort] = kodiAddress.split(":", 2);
+  kodiUrl.host = kodiAddress;
+}
 
-  // Ensure that Kodi's default REST-API port is not used, as now the Web-Socket port is used
-  if (kodiPort === "8080") {
-    kodiAddress = kodiHost;
-    kodiPort = undefined;
-    setStorage("kodiAddress", kodiAddress);
-  }
+if (getStorage("kodiPort") != null) {
+  kodiPort = getStorage("kodiPort");
+  kodiUrl.port = kodiPort;
 }
 
 function switchPicture(pictures) {
@@ -221,12 +228,11 @@ function sendToKodi(type, content, cb) {
   }
 
   if ("WebSocket" in window) {
-    //Add kodi default web-socket port, in case port has been explicitly provided
-    if (kodiPort == undefined) {
-      kodiPort = 9090;
-    }
 
-    var ws = new WebSocket("ws://" + kodiHost + ":" + kodiPort + "/jsonrpc/websocket");
+    if (kodiUrl.port === '') {
+      kodiUrl.port = defaultKodiPort;
+    }
+    var ws = new WebSocket(kodiUrl);
 
     ws.onopen = function () {
       ws.send(JSON.stringify(command));
@@ -234,13 +240,18 @@ function sendToKodi(type, content, cb) {
 
     ws.onmessage = function (evt) {
       var response = JSON.parse(evt.data);
-
-      if (cb != undefined) {
-        if (response.result != undefined) {
-          if (response.result === "OK") {
-            cb("success");
-          } else {
-            cb("error");
+      if (response.method === "System.OnQuit") {
+        ws.close();
+      } else {
+        if (cb != undefined) {
+          if (response.result != undefined) {
+            if (response.result === "OK") {
+              cb("success");
+              ws.close();
+            } else {
+              cb("error");
+              ws.close();
+            }
           }
         }
       }
@@ -249,8 +260,13 @@ function sendToKodi(type, content, cb) {
     ws.onerror = function (evt) {
       if (cb != undefined) {
         cb("error");
+        ws.close();
       }
     };
+
+    ws.onclose = function (evt) {
+    };
+
   }
   else {
     console.log("Kodi Access: WebSocket NOT supported by this browser");
@@ -419,18 +435,24 @@ function updateWEditor(el, all) {
 
 function startWizardCC() {
 
-  // Ensure that Kodi's default REST-API port is not used, as now the Web-Socket port is used
-  [kodiHost, kodiPort] = kodiAddress.split(":", 2);
-  if (kodiPort === "8080") {
-    kodiAddress = kodiHost;
-    kodiPort = undefined;
-  }
   //create html
   $('#wiz_header').html('<i class="fa fa-magic fa-fw"></i>' + $.i18n('wiz_cc_title'));
-  $('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n('wiz_cc_title') + '</h4><p>' + $.i18n('wiz_cc_intro1') + '</p><label>' + $.i18n('wiz_cc_kwebs') + '</label><input class="form-control" style="width:170px;margin:auto" id="wiz_cc_kodiip" type="text" placeholder="' + kodiAddress + '" value="' + kodiAddress + '" /><span id="kodi_status"></span><span id="multi_cali"></span>');
-  $('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont" disabled="disabled"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
-  $('#wizp2_body').html('<div id="wiz_cc_desc" style="font-weight:bold"></div><div id="editor_container_wiz"></div>');
-  $('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_back"><i class="fa fa-fw fa-chevron-left"></i>' + $.i18n('general_btn_back') + '</button><button type="button" class="btn btn-primary" id="btn_wiz_next">' + $.i18n('general_btn_next') + '<i style="margin-left:4px;"class="fa fa-fw fa-chevron-right"></i></button><button type="button" class="btn btn-warning" id="btn_wiz_save" style="display:none"><i class="fa fa-fw fa-save"></i>' + $.i18n('general_btn_save') + '</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
+  $('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n('wiz_cc_title') + '</h4>' +
+    '<p>' + $.i18n('wiz_cc_intro1') + '</p>' +
+    '<label>' + $.i18n('wiz_cc_kwebs') + '</label>' +
+    '<input class="form-control" style="width:280px;margin:auto" id="wiz_cc_kodiip" type="text" placeholder="' + kodiAddress + '" value="' + kodiAddress + '" />' +
+    '<span id="kodi_status"></span><span id="multi_cali"></span>'
+  );
+  $('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont" disabled="disabled">' + '<i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_continue') + '</button>' +
+    '<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>'
+  );
+  $('#wizp2_body').html('<div id="wiz_cc_desc" style="font-weight:bold"></div><div id="editor_container_wiz"></div>'
+  );
+  $('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_back">' + '<i class="fa fa-fw fa-chevron-left"></i>' + $.i18n('general_btn_back') + '</button>' +
+    '<button type="button" class="btn btn-primary" id="btn_wiz_next">' + $.i18n('general_btn_next') + '<i style="margin-left:4px;"class="fa fa-fw fa-chevron-right"></i>' + '</button>' +
+    '<button type="button" class="btn btn-warning" id="btn_wiz_save" style="display:none"><i class="fa fa-fw fa-save"></i>' + $.i18n('general_btn_save') + '</button>' +
+    '<button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>'
+  );
 
   if (getStorage("darkMode", false) == "on")
     $('#wizard_logo').attr("src", 'img/hyperion/logo_negativ.png');
@@ -443,32 +465,44 @@ function startWizardCC() {
   });
 
   $('#wiz_cc_kodiip').off().on('change', function () {
+
     kodiAddress = $(this).val().trim();
-    $('#wizp1_body').find("kodiAddress").val(kodiAddress);
 
     $('#kodi_status').html('');
-
-    // Remove Kodi's default Web-Socket port (9090) from display and ensure Kodi's default REST-API port (8080) is mapped to web-socket port to ease migration
     if (kodiAddress !== "") {
-      [kodiHost, kodiPort] = kodiAddress.split(":", 2);
-      if (kodiPort === "9090" || kodiPort === "8080") {
-        kodiAddress = kodiHost;
-        kodiPort = undefined;
+
+      if (!isValidHostnameOrIP(kodiAddress)) {
+
+        $('#kodi_status').html('<p style="color:red;font-weight:bold;margin-top:5px">' + $.i18n('edt_msgcust_error_hostname_ip') + '</p>');
+        withKodi = false;
+
+      } else {
+
+        if (isValidIPv6(kodiAddress)) {
+          kodiUrl.hostname = "[" + kodiAddress + "]";
+        } else {
+          kodiUrl.hostname = kodiAddress;
+        }
+
+        $('#kodi_status').html('<p style="font-weight:bold;margin-top:5px">' + $.i18n('wiz_cc_try_connect') + '</p>');
+        $('#btn_wiz_cont').attr('disabled', true);
+
+        sendToKodi("msg", $.i18n('wiz_cc_kodimsg_start'), function (cb) {
+          if (cb == "error") {
+            $('#kodi_status').html('<p style="color:red;font-weight:bold;margin-top:5px">' + $.i18n('wiz_cc_kodidiscon') + '</p><p>' + $.i18n('wiz_cc_kodidisconlink') + ' <a href="https://sourceforge.net/projects/hyperion-project/files/resources/Hyperion_calibration_pictures.zip/download" target="_blank">' + $.i18n('wiz_cc_link') + '</p>');
+            withKodi = false;
+          }
+          else {
+            setStorage("kodiAddress", kodiAddress);
+            setStorage("kodiPort", defaultKodiPort);
+
+            $('#kodi_status').html('<p style="color:green;font-weight:bold;margin-top:5px">' + $.i18n('wiz_cc_kodicon') + '</p>');
+            withKodi = true;
+          }
+
+          $('#btn_wiz_cont').attr('disabled', false);
+        });
       }
-      sendToKodi("msg", $.i18n('wiz_cc_kodimsg_start'), function (cb) {
-        if (cb == "error") {
-          $('#kodi_status').html('<p style="color:red;font-weight:bold;margin-top:5px">' + $.i18n('wiz_cc_kodidiscon') + '</p><p>' + $.i18n('wiz_cc_kodidisconlink') + ' <a href="https://sourceforge.net/projects/hyperion-project/files/resources/Hyperion_calibration_pictures.zip/download" target="_blank">' + $.i18n('wiz_cc_link') + '</p>');
-          withKodi = false;
-        }
-        else {
-          setStorage("kodiAddress", kodiAddress);
-
-          $('#kodi_status').html('<p style="color:green;font-weight:bold;margin-top:5px">' + $.i18n('wiz_cc_kodicon') + '</p>');
-          withKodi = true;
-        }
-
-        $('#btn_wiz_cont').attr('disabled', false);
-      });
     }
   });
 
@@ -632,6 +666,8 @@ var groupLights = [];
 var groupLightsLocations = [];
 var hueType = "philipshue";
 
+let hueUrl = new URL('http://dummy');
+
 function startWizardPhilipsHue(e) {
   if (typeof e.data.type != "undefined") hueType = e.data.type;
 
@@ -651,24 +687,52 @@ function startWizardPhilipsHue(e) {
   $('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n(hue_title) + '</h4><p>' + $.i18n(hue_intro1) + '</p>');
   $('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
   $('#wizp2_body').html('<div id="wh_topcontainer"></div>');
-  $('#wh_topcontainer').append('<p style="font-weight:bold">' + $.i18n(hue_desc1) + '</p><div class="form-group"><label>' + $.i18n('wiz_hue_ip') + '</label><div class="input-group" style="width:175px"><input type="text" class="input-group form-control" id="ip"><span class="input-group-addon" id="retry_bridge" style="cursor:pointer"><i class="fa fa-refresh"></i></span></div></div><span style="font-weight:bold;color:red" id="wiz_hue_ipstate"></span><span style="font-weight:bold;" class="component-on" id="wiz_hue_discovered"></span>');
+
+  var hidePort = "hidden-lg";
+  if (storedAccess === 'expert') {
+    hidePort = "";
+  }
+    
+  $('#wh_topcontainer').append('<p class="text-left" style="font-weight:bold">' + $.i18n(hue_desc1) + '</p>' +
+    '<div class="row">' +
+    '<div class="col-md-2">' +
+    '  <p class="text-left">' + $.i18n('wiz_hue_ip') + '</p></div>' +
+    '  <div class="col-md-7"><div class="input-group">' +
+    '    <span class="input-group-addon" id="retry_bridge" style="cursor:pointer"><i class="fa fa-refresh"></i></span>' +
+    '    <input type="text" class="input-group form-control" id="host" placeholder="' + $.i18n('wiz_hue_ip') + '"></div></div>' +
+    '  <div class="col-md-3 ' + hidePort + '"><div class="input-group">' +
+    '    <span class="input-group-addon">:</span>' +
+    '    <input type="text" class="input-group form-control" id="port" placeholder="' + $.i18n('edt_conf_general_port_title') + '"></div></div>' +
+    '</div><p><span style="font-weight:bold;color:red" id="wiz_hue_ipstate"></span><span style="font-weight:bold;" id="wiz_hue_discovered"></span></p>'
+  );
   $('#wh_topcontainer').append();
   $('#wh_topcontainer').append('<div class="form-group" id="usrcont" style="display:none"></div>');
-  if (hueType == 'philipshue') {
-    $('#usrcont').append('<label>' + $.i18n('wiz_hue_username') + '</label><div class="input-group" style="width:250px"><input type="text" class="form-control" id="user"><span class="input-group-addon" id="retry_usr" style="cursor:pointer"><i class="fa fa-refresh"></i></span></div>');
-  }
+
+  $('#usrcont').append('<div class="row"><div class="col-md-2"><p class="text-left">' + $.i18n('wiz_hue_username') + '</p ></div>' +
+    '<div class="col-md-7">' +
+    '<div class="input-group">' +
+    '  <span class="input-group-addon" id="retry_usr" style="cursor:pointer"><i class="fa fa-refresh"></i></span>' +
+    '  <input type="text" class="input-group form-control" id="user">' +
+    '</div></div></div><br>' +
+    '</div><input type="hidden" id="groupId">'
+  );
+
   if (hueType == 'philipshueentertainment') {
-    $('#usrcont').append('<label>' + $.i18n('wiz_hue_username') + '</label><div class="input-group" style="width:250px"><input type="text" class="form-control" id="user"></div><label>' + $.i18n('wiz_hue_clientkey') + '</label><div class="input-group" style="width:250px"><input type="text" class="form-control" id="clientkey"><span class="input-group-addon" id="retry_usr" style="cursor:pointer"><i class="fa fa-refresh"></i></span></div><input type="hidden" id="groupId">');
+    $('#usrcont').append('<div class="row"><div class="col-md-2"><p class="text-left">' + $.i18n('wiz_hue_clientkey') +
+      '</p></div><div class="col-md-7"><input class="form-control" id="clientkey" type="text"></div></div><br>');
   }
-  $('#usrcont').append('<span style="font-weight:bold;color:red" id="wiz_hue_usrstate"></span><br><button type="button" class="btn btn-primary" style="display:none" id="wiz_hue_create_user"> <i class="fa fa-fw fa-plus"></i>' + $.i18n(hue_create_user) + '</button>');
+
+  $('#usrcont').append('<p><span style="font-weight:bold;color:red" id="wiz_hue_usrstate"></span><\p>' +
+    '<button type="button" class="btn btn-primary" style="display:none" id="wiz_hue_create_user"> <i class="fa fa-fw fa-plus"></i>' + $.i18n(hue_create_user) + '</button>');
+
   if (hueType == 'philipshueentertainment') {
-    $('#wizp2_body').append('<div id="hue_grp_ids_t" style="display:none"><p style="font-weight:bold">' + $.i18n('wiz_hue_e_desc2') + '</p></div>');
+    $('#wizp2_body').append('<div id="hue_grp_ids_t" style="display:none"><p class="text-left" style="font-weight:bold">' + $.i18n('wiz_hue_e_desc2') + '</p></div>');
     createTable("gidsh", "gidsb", "hue_grp_ids_t");
     $('.gidsh').append(createTableRow([$.i18n('edt_dev_spec_groupId_title'), $.i18n('wiz_hue_e_use_group')], true));
-    $('#wizp2_body').append('<div id="hue_ids_t" style="display:none"><p style="font-weight:bold" id="hue_id_headline">' + $.i18n('wiz_hue_e_desc3') + '</p></div>');
+    $('#wizp2_body').append('<div id="hue_ids_t" style="display:none"><p class="text-left" style="font-weight:bold" id="hue_id_headline">' + $.i18n('wiz_hue_e_desc3') + '</p></div>');
   }
   else {
-    $('#wizp2_body').append('<div id="hue_ids_t" style="display:none"><p style="font-weight:bold" id="hue_id_headline">' + $.i18n('wiz_hue_desc2') + '</p></div>');
+    $('#wizp2_body').append('<div id="hue_ids_t" style="display:none"><p class="text-left" style="font-weight:bold" id="hue_id_headline">' + $.i18n('wiz_hue_desc2') + '</p></div>');
   }
   createTable("lidsh", "lidsb", "hue_ids_t");
   $('.lidsh').append(createTableRow([$.i18n('edt_dev_spec_lightid_title'), $.i18n('wiz_pos'), $.i18n('wiz_identify')], true));
@@ -698,18 +762,36 @@ function checkHueBridge(cb, hueUser) {
   if (usr == 'config') $('#wiz_hue_discovered').html("");
 
   if (hueIPs[hueIPsinc]) {
+
+    hueUrl.hostname = "dummy";
+    var host = hueIPs[hueIPsinc].host;
+
+    if (isValidIPv6(host)) {
+      hueUrl.hostname = "[" + host + "]";
+    } else {
+      hueUrl.hostname = host;
+    }
+
+    var port = hueIPs[hueIPsinc].port;
+    if (port > 0) {
+      hueUrl.port = port;
+    }
+
+    hueUrl.pathname = '/api/' + usr;
     $.ajax({
-      url: 'http://' + hueIPs[hueIPsinc].internalipaddress + '/api/' + usr,
+      url: hueUrl,
       type: "GET",
       dataType: "json",
       success: function (json) {
         if (json.config) {
           cb(true, usr);
-        } else if (json.name && json.bridgeid && json.modelid) {
-          $('#wiz_hue_discovered').html("Bridge: " + json.name + ", Modelid: " + json.modelid + ", API-Version: " + json.apiversion);
-          cb(true);
         } else {
-          cb(false);
+          if (json.name && json.bridgeid && json.modelid) {
+            $('#wiz_hue_discovered').html("Bridge: " + json.name + ", Modelid: " + json.modelid + ", API-Version: " + json.apiversion);
+            cb(true);
+          } else {
+            cb(false);
+          }
         }
       },
       timeout: 2500
@@ -723,7 +805,8 @@ function checkBridgeResult(reply, usr) {
   if (reply) {
     //abort checking, first reachable result is used
     $('#wiz_hue_ipstate').html("");
-    $('#ip').val(hueIPs[hueIPsinc].internalipaddress)
+    $('#host').val(hueIPs[hueIPsinc].host)
+    $('#port').val(hueIPs[hueIPsinc].port)
 
     //now check hue user on this bridge
     $('#usrcont').toggle(true);
@@ -743,10 +826,11 @@ function checkBridgeResult(reply, usr) {
 };
 
 function checkUserResult(reply, usr) {
+  $('#usrcont').toggle(true);
   if (reply) {
     $('#user').val(usr);
     if (hueType == 'philipshueentertainment' && $('#clientkey').val() == "") {
-      $('#usrcont').toggle(true);
+
       $('#wiz_hue_usrstate').html($.i18n('wiz_hue_e_clientkey_needed'));
       $('#wiz_hue_create_user').toggle(true);
     } else {
@@ -761,6 +845,7 @@ function checkUserResult(reply, usr) {
     }
   }
   else {
+    //abort checking, first reachable result is used
     $('#wiz_hue_usrstate').html($.i18n('wiz_hue_failure_user'));
     $('#wiz_hue_create_user').toggle(true);
   }
@@ -775,8 +860,9 @@ function identHueId(id, off, oState) {
     var put_data = '{"on":' + oState.on + ',"bri":' + oState.bri + ',"hue":' + oState.hue + ',"sat":' + oState.sat + '}';
   }
 
+  hueUrl.pathname = '/api/' + $('#user').val() + '/lights/' + id + '/state',
   $.ajax({
-    url: 'http://' + $('#ip').val() + '/api/' + $('#user').val() + '/lights/' + id + '/state',
+    url: hueUrl,
     type: 'PUT',
     timeout: 2000,
     data: put_data
@@ -806,25 +892,32 @@ async function discover_hue_bridges() {
       $('#wiz_hue_discovered').html("")
     }
     else {
-      for (const device of r.devices) {
-        //console.log("Device:", device);
-        if (device && device.ip && device.port) {
+      hueIPs = [];
+      hueIPsinc = 0;
 
-          var ip;
+      for (const device of r.devices) {
+        if (device && device.ip && device.port) {
+          var host;
+          var port;
           if (device.hostname && device.domain) {
-            ip = device.hostname + "." + device.domain + ":" + device.port;
+            host = device.hostname + "." + device.domain;
+            port = device.port;
           } else {
-            ip = device.ip + ":" + device.port;
+            host = device.ip;
+            port = device.port;
           }
 
-          if (ip) {
+          if (host) {
 
-            if (!hueIPs.some(item => item.internalipaddress === ip)) {
-              hueIPs.push({ internalipaddress: ip });
+            if (!hueIPs.some(item => item.host === host)) {
+              hueIPs.push({ host: host, port: port });
             }
           }
         }
       }
+      $('#wiz_hue_ipstate').html("");
+      $('#host').val(hueIPs[hueIPsinc].host)
+      $('#port').val(hueIPs[hueIPsinc].port)
 
       var usr = $('#user').val();
       if (usr != "") {
@@ -836,8 +929,11 @@ async function discover_hue_bridges() {
   }
 }
 
-async function getProperties_hue_bridge(hostAddress, username, resourceFilter) {
+async function getProperties_hue_bridge(hostAddress, port, username, resourceFilter) {
   let params = { host: hostAddress, user: username, filter: resourceFilter };
+  if (port !== 'undefined') {
+    params.port = port;
+  }
 
   const res = await requestLedDeviceProperties('philipshue', params);
 
@@ -851,12 +947,15 @@ async function getProperties_hue_bridge(hostAddress, username, resourceFilter) {
   }
 }
 
-async function identify_hue_device(hostAddress, username, id) {
+async function identify_hue_device(hostAddress, port, username, id) {
 
   // Take care that new record cannot be save during background process
   $('#btn_wiz_save').attr('disabled', true);
 
   let params = { host: hostAddress, user: username, lightId: id };
+  if (port !== 'undefined') {
+    params.port = port;
+  }
   await requestLedDeviceIdentification('philipshue', params);
 
   if (!window.readOnlyMode) {
@@ -866,6 +965,7 @@ async function identify_hue_device(hostAddress, username, id) {
 
 function getHueIPs() {
   $('#wiz_hue_ipstate').html($.i18n('wiz_hue_searchb'));
+
   $.ajax({
     url: 'https://discovery.meethue.com',
     crossDomain: true,
@@ -902,15 +1002,28 @@ function beginWizardHue() {
       $('#clientkey').val(clkey);
     }
   }
-  //check if ip is empty/reachable/search for bridge
+
+  //check if host is empty/reachable/search for bridge
   if (eV("host") == "") {
+    hueIPs = [];
+    hueIPsinc = 0;
+
     //getHueIPs();
     discover_hue_bridges();
   }
   else {
-    var ip = eV("host");
-    $('#ip').val(ip);
-    hueIPs.unshift({ internalipaddress: ip });
+    var host = eV("host");
+    $('#host').val(host);
+
+    var port = eV("port");
+    if (port > 0) {
+      $('#port').val(port);
+    }
+    else {
+      $('#port').val('');
+    }
+    hueIPs.unshift({ host: host, port: port });
+
     if (usr != "") {
       checkHueBridge(checkUserResult, usr);
     } else {
@@ -919,11 +1032,16 @@ function beginWizardHue() {
   }
 
   $('#retry_bridge').off().on('click', function () {
-    if ($('#ip').val() != "") {
-      hueIPs.unshift({ internalipaddress: $('#ip').val() })
+
+    if ($('#host').val() != "") {
+
+      hueIPs = [];
       hueIPsinc = 0;
+      hueIPs.push({ host: $('#host').val(), port: $('#port').val() });
     }
-    else discover_hue_bridges();
+    else {
+      discover_hue_bridges();
+    }
 
     var usr = $('#user').val();
     if (usr != "") {
@@ -938,7 +1056,9 @@ function beginWizardHue() {
   });
 
   $('#wiz_hue_create_user').off().on('click', function () {
-    if ($('#ip').val() != "") hueIPs.unshift({ internalipaddress: $('#ip').val() });
+    if ($('#host').val() != "") {
+      hueIPs.unshift({ host: $('#host').val(), port: $('#port').val() });
+    }
     createHueUser();
   });
 
@@ -973,12 +1093,12 @@ function beginWizardHue() {
 
     //Start with a clean configuration
     var d = {};
-    d.host = $('#ip').val();
+    d.host = $('#host').val();
+    d.port = parseInt($('#port').val());
     d.username = $('#user').val();
     d.type = 'philipshue';
     d.colorOrder = 'rgb';
     d.lightIds = finalLightIds;
-    d.latchTime = 0;
     d.transitiontime = parseInt(eV("transitiontime"));
     d.restoreOriginalState = (eV("restoreOriginalState") == true);
     d.switchOffOnBlack = (eV("switchOffOnBlack") == true);
@@ -1000,7 +1120,6 @@ function beginWizardHue() {
     if (hueType == 'philipshue') {
       d.useEntertainmentAPI = false;
       d.hardwareLedCount = finalLightIds.length;
-      d.rewriteTime = 0;
       d.verbose = false;
       //smoothing off
       sc.smoothing.enable = false;
@@ -1030,9 +1149,11 @@ function createHueUser() {
     data = { "devicetype": "hyperion#" + Date.now(), "generateclientkey": true }
   }
   var UserInterval = setInterval(function () {
+
+    hueUrl.pathname = '/api/';
     $.ajax({
       type: "POST",
-      url: 'http://' + $("#ip").val() + '/api',
+      url: hueUrl,
       processData: false,
       timeout: 1000,
       contentType: 'application/json',
@@ -1081,9 +1202,10 @@ function createHueUser() {
 }
 
 function get_hue_groups() {
+  hueUrl.pathname = '/api/' + $("#user").val() + '/groups';
   $.ajax({
     type: "GET",
-    url: 'http://' + $("#ip").val() + '/api/' + $("#user").val() + '/groups',
+    url: hueUrl,
     processData: false,
     contentType: 'application/json',
     success: function (r) {
@@ -1125,9 +1247,10 @@ function noAPISupport(txt) {
 }
 
 function get_light_state(id) {
+  hueUrl.pathname = '/api/' + $("#user").val() + '/lights/' + id;
   $.ajax({
     type: "GET",
-    url: 'http://' + $("#ip").val() + '/api/' + $("#user").val() + '/lights/' + id,
+    url: hueUrl,
     processData: false,
     contentType: 'application/json',
     success: function (r) {
@@ -1139,9 +1262,10 @@ function get_light_state(id) {
 }
 
 function get_hue_lights() {
+  hueUrl.pathname = '/api/' + $("#user").val() + '/lights';
   $.ajax({
     type: "GET",
-    url: 'http://' + $("#ip").val() + '/api/' + $("#user").val() + '/lights',
+    url: hueUrl,
     processData: false,
     contentType: 'application/json',
     success: function (r) {
@@ -1199,7 +1323,7 @@ function get_hue_lights() {
           }
           $('.lidsb').append(createTableRow([lightid + ' (' + r[lightid].name + ')', '<select id="hue_' + lightid + '" class="hue_sel_watch form-control">'
             + options
-            + '</select>', '<button class="btn btn-sm btn-primary" onClick=identify_hue_device("' + $("#ip").val() + '","' + $("#user").val() + '",' + lightid + ')>' + $.i18n('wiz_hue_blinkblue', lightid) + '</button>']));
+            + '</select>', '<button class="btn btn-sm btn-primary" onClick=identify_hue_device("' + $("#host").val() + '","' + $("#port").val() + '","' + $("#user").val() + '",' + lightid + ')>' + $.i18n('wiz_hue_blinkblue', lightid) + '</button>']));
         }
 
         if (hueType != 'philipshueentertainment') {
@@ -1356,8 +1480,6 @@ async function discover_yeelight_lights() {
 
     // Process devices returned by discovery
     for (const device of r.devices) {
-      //console.log("Device:", device);
-
       if (device.hostname !== "") {
         if (getHostInLights(device.hostname).length === 0) {
           var light = {};
@@ -1381,7 +1503,7 @@ async function discover_yeelight_lights() {
 
     // Add additional items from configuration
     for (var keyConfig in configuredLights) {
-      var [host, port] = configuredLights[keyConfig].host.split(":", 2);
+      var host = configuredLights[keyConfig].host;
 
       //In case port has been explicitly provided, overwrite port given as part of hostname
       if (configuredLights[keyConfig].port !== 0)

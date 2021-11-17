@@ -233,6 +233,12 @@ protected:
     ///
 	bool saveSettings(const QJsonObject &data);
 
+	///
+	/// @brief Restore settings object. Requires ADMIN ACCESS
+	/// @param data  The data object
+	///
+	bool restoreSettings(const QJsonObject &data);
+
     ///
     /// @brief Test if we are authorized to use the interface
     /// @return The result

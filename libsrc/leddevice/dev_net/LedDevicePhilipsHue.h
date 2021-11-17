@@ -376,7 +376,8 @@ public:
 	/// Following parameters are required
 	/// @code
 	/// {
-	///     "host"  : "hostname or IP [:port]",
+	///     "host"  : "hostname or IP
+	///     "port"  : port
 	///     "user"  : "username",
 	///     "filter": "resource to query", root "/" is used, if empty
 	/// }
@@ -390,7 +391,15 @@ public:
 	///
 	/// @brief Send an update to the device to identify it.
 	///
-	/// Used in context of a set of devices of the same type.
+	/// Following parameters are required
+	/// @code
+	/// {
+	///     "host"  : "hostname or IP
+	///     "port"  : port
+	///     "user"  : "username",
+	///     "filter": "resource to query", root "/" is used, if empty
+	/// }
+	///@endcode
 	///
 	/// @param[in] params Parameters to address device
 	///

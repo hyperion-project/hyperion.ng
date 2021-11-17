@@ -26,6 +26,8 @@
 #include <QDir>
 #include <QStringList>
 #include <QSystemTrayIcon>
+#include <QNetworkInterface>
+#include <QHostInfo>
 
 #include "HyperionConfig.h"
 
@@ -47,7 +49,7 @@
 
 using namespace commandline;
 
-#define PERM0664 QFileDevice::ReadOwner | QFileDevice::ReadGroup | QFileDevice::ReadOther | QFileDevice::WriteOwner | QFileDevice::WriteGroup
+#define PERM0664 (QFileDevice::ReadOwner | QFileDevice::ReadGroup | QFileDevice::ReadOther | QFileDevice::WriteOwner | QFileDevice::WriteGroup)
 
 #ifndef _WIN32
 void signal_handler(int signum)
@@ -59,7 +61,6 @@ void signal_handler(int signum)
 	{
 		// only quit when a registered child process is gone
 		// currently this feature is not active ...
-		return;
 	}
 	else if (signum == SIGUSR1)
 	{
@@ -67,7 +68,6 @@ void signal_handler(int signum)
 		{
 			_hyperion->toggleStateAllInstances(false);
 		}
-		return;
 	}
 	else if (signum == SIGUSR2)
 	{
@@ -75,7 +75,6 @@ void signal_handler(int signum)
 		{
 			_hyperion->toggleStateAllInstances(true);
 		}
-		return;
 	}
 }
 #endif
@@ -106,8 +105,8 @@ QCoreApplication* createApplication(int &argc, char *argv[])
 	{
 		// if x11, then test if xserver is available
 		#if defined(ENABLE_X11)
-		Display* dpy = XOpenDisplay(NULL);
-		if (dpy != NULL)
+		Display* dpy = XOpenDisplay(nullptr);
+		if (dpy != nullptr)
 		{
 			XCloseDisplay(dpy);
 			isGuiApp = true;
@@ -165,7 +164,7 @@ int main(int argc, char** argv)
 	// Initialising QCoreApplication
 	QScopedPointer<QCoreApplication> app(createApplication(argc, argv));
 
-	bool isGuiApp = (qobject_cast<QApplication *>(app.data()) != 0 && QSystemTrayIcon::isSystemTrayAvailable());
+	bool isGuiApp = (qobject_cast<QApplication *>(app.data()) != nullptr && QSystemTrayIcon::isSystemTrayAvailable());
 
 	DefaultSignalHandler::install();
 
@@ -200,6 +199,13 @@ int main(int argc, char** argv)
 
 	parser.process(*qApp);
 
+#ifdef WIN32
+	if (parser.isSet(consoleOption))
+	{
+		CreateConsole();
+	}
+#endif
+
 	if (parser.isSet(versionOption))
 	{
 		std::cout
@@ -215,6 +221,24 @@ int main(int argc, char** argv)
 		if (getProcessIdsByProcessName(processName).size() > 1)
 		{
 			Error(log, "The Hyperion Daemon is already running, abort start");
+
+			// use the first non-localhost IPv4 address, IPv6 are not supported by Yeelight currently
+			for (const auto& address : QNetworkInterface::allAddresses())
+			{
+				if (!address.isLoopback() && (address.protocol() == QAbstractSocket::IPv4Protocol))
+				{
+					std::cout << "Access the Hyperion User-Interface for configuration and control via:" << std::endl;
+					std::cout << "http:://" << address.toString().toStdString() << ":8090" << std::endl;
+
+					QHostInfo hostInfo = QHostInfo::fromName(address.toString());
+					if (hostInfo.error() == QHostInfo::NoError)
+					{
+						QString hostname = hostInfo.hostName();
+						std::cout << "http:://" << hostname.toStdString() << ":8090" << std::endl;
+					}
+					break;
+				}
+			}
 			return 0;
 		}
 	}
@@ -225,13 +249,6 @@ int main(int argc, char** argv)
 			QThread::msleep(100);
 		}
 	}
-
-#ifdef WIN32
-	if (parser.isSet(consoleOption))
-	{
-		CreateConsole();
-	}
-#endif
 
 	int logLevelCheck = 0;
 	if (parser.isSet(silentOption))
@@ -268,11 +285,13 @@ int main(int argc, char** argv)
 			std::cout << "Extract to folder: " << destDir.absolutePath().toStdString() << std::endl;
 			QStringList filenames = directory.entryList(QStringList() << "*", QDir::Files, QDir::Name | QDir::IgnoreCase);
 			QString destFileName;
-			for (const QString & filename : filenames)
+			for (const QString & filename : qAsConst(filenames))
 			{
 				destFileName = destDir.dirName()+"/"+filename;
 				if (QFile::exists(destFileName))
+				{
 					QFile::remove(destFileName);
+				}
 
 				std::cout << "Extract: " << filename.toStdString() << " ... ";
 				if (QFile::copy(QString(":/effects/")+filename, destFileName))
@@ -303,20 +322,16 @@ int main(int argc, char** argv)
 
 	try
 	{
-
-
 		if (dbFile.exists())
 		{
 			if (!dbFile.isReadable())
 			{
 				throw std::runtime_error("Configuration database '" + dbFile.absoluteFilePath().toStdString() + "' is not readable. Please setup permissions correctly!");
 			}
-			else
+
+			if (!dbFile.isWritable())
 			{
-				if (!dbFile.isWritable())
-				{
-					readonlyMode = true;
-				}
+				readonlyMode = true;
 			}
 		}
 		else
@@ -338,18 +353,16 @@ int main(int argc, char** argv)
 				Error(log,"Password reset is not possible. The user data path '%s' is not writeable.", QSTRING_CSTR(userDataDirectory.absolutePath()));
 				throw std::runtime_error("Password reset failed");
 			}
-			else
-			{
-				AuthTable* table = new AuthTable(userDataDirectory.absolutePath());
-				if(table->resetHyperionUser()){
-					Info(log,"Password reset successful");
-					delete table;
-					exit(0);
-				} else {
-					Error(log,"Failed to reset password!");
-					delete table;
-					exit(1);
-				}
+
+			AuthTable* table = new AuthTable(userDataDirectory.absolutePath());
+			if(table->resetHyperionUser()){
+				Info(log,"Password reset successful");
+				delete table;
+				exit(0);
+			} else {
+				Error(log,"Failed to reset password!");
+				delete table;
+				exit(1);
 			}
 		}
 
@@ -361,24 +374,22 @@ int main(int argc, char** argv)
 				Error(log,"Deleting the configuration database is not possible. The user data path '%s' is not writeable.", QSTRING_CSTR(dbFile.absolutePath()));
 				throw std::runtime_error("Deleting the configuration database failed");
 			}
-			else
+
+			if (QFile::exists(dbFile.absoluteFilePath()))
 			{
-				if (QFile::exists(dbFile.absoluteFilePath()))
+				if (!QFile::remove(dbFile.absoluteFilePath()))
 				{
-					if (!QFile::remove(dbFile.absoluteFilePath()))
-					{
-						Info(log,"Failed to delete Database!");
-						exit(1);
-					}
-					else
-					{
-						Info(log,"Configuration database deleted successfully.");
-					}
+					Info(log,"Failed to delete Database!");
+					exit(1);
 				}
 				else
 				{
-					Warning(log,"Configuration database [%s] does not exist!", QSTRING_CSTR(dbFile.absoluteFilePath()));
+					Info(log,"Configuration database deleted successfully.");
 				}
+			}
+			else
+			{
+				Warning(log,"Configuration database [%s] does not exist!", QSTRING_CSTR(dbFile.absoluteFilePath()));
 			}
 		}
 
