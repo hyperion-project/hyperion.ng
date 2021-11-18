@@ -1483,7 +1483,15 @@ async function discover_yeelight_lights() {
       if (device.hostname !== "") {
         if (getHostInLights(device.hostname).length === 0) {
           var light = {};
+
           light.host = device.hostname;
+
+          //Create a valid hostname
+          if (device.domain)
+          {
+             light.host += '.' + device.domain;
+          }
+
           light.port = device.port;
 
           if (device.txt) {
