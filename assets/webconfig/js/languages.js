@@ -1,6 +1,6 @@
 var storedLang;
-var availLang = ['cs', 'de', 'en', 'es', 'fr', 'it', 'nl', 'nb', 'pl', 'pt', 'ro', 'sv', 'vi', 'ru', 'tr', 'zh-CN'];
-var availLangText = ['Čeština', 'Deutsch', 'English', 'Español', 'Français', 'Italiano', 'Nederlands', 'Norsk Bokmål', 'Polski', 'Português', 'Română', 'Svenska', 'Tiếng Việt', 'русский', 'Türkçe', '汉语'];
+var availLang = ['cs', 'da', 'de', 'en', 'es', 'fr', 'hu', 'it', 'nl', 'nb', 'pl', 'pt', 'ro', 'sv', 'vi', 'ru', 'tr', 'zh-CN'];
+var availLangText = ['Čeština', 'Dansk', 'Deutsch', 'English', 'Español', 'Français', 'Magyar', 'Italiano', 'Nederlands', 'Norsk Bokmål', 'Polski', 'Português', 'Română', 'Svenska', 'Tiếng Việt', 'русский', 'Türkçe', '汉语'];
 
 //$.i18n.debug = true;
 
