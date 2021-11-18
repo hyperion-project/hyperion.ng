@@ -11,7 +11,15 @@
 #include <QThread>
 
 //----------- mbedtls
+#if defined(USE_MBEDTLS3)
 #include <mbedtls/build_info.h>
+#else
+#if !defined(MBEDTLS_CONFIG_FILE)
+#include <mbedtls/config.h>
+#else
+#include MBEDTLS_CONFIG_FILE
+#endif
+#endif
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include <mbedtls/platform.h>

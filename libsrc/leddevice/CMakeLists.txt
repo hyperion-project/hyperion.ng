@@ -87,7 +87,7 @@ target_link_libraries(leddevice
 	hyperion-utils
 	${CMAKE_THREAD_LIBS_INIT}
 	Qt${QT_VERSION_MAJOR}::Network
-	Qt${QT_VERSION_MAJOR}::SerialPort	
+	Qt${QT_VERSION_MAJOR}::SerialPort
 	ssdp
 )
 
@@ -119,3 +119,7 @@ if (NOT DEFAULT_USE_SYSTEM_MBEDTLS_LIBS)
 	endif (MBEDTLS_LIBRARIES)
 endif ()
 
+string(REGEX MATCH "[0-9]+|-([A-Za-z0-9_.]+)" MBEDTLS_MAJOR ${MBEDTLS_VERSION})
+if (MBEDTLS_MAJOR EQUAL "3")
+	target_compile_definitions(leddevice PRIVATE USE_MBEDTLS3)
+endif()

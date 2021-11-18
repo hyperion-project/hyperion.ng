@@ -135,7 +135,7 @@ public:
 		for (int i = 0; i < _threadCount; i++)
 		{
 			_threads[i] = new Thread<EncoderThread>(new EncoderThread, this);
-			_threads[i]->setObjectName("Encoder " + i);
+			_threads[i]->setObjectName("Encoder " + QString::number(i));
 		}
 	}
 
