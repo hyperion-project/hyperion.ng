@@ -241,7 +241,7 @@ if (NOT USE_SYSTEM_MBEDTLS_LIBS)
 		FetchContent_Declare(
 			mbedtls
 			GIT_REPOSITORY        https://github.com/ARMmbed/mbedtls.git
-			GIT_TAG               "v2.27.0" # Latest 2.x Version
+			GIT_TAG               origin/master
 			BUILD_ALWAYS          OFF
 			GIT_PROGRESS          1
 			DOWNLOAD_DIR          "${MBEDTLS_DOWNLOAD_DIR}"
@@ -286,10 +286,18 @@ if (NOT USE_SYSTEM_MBEDTLS_LIBS)
 
 	set (MBEDTLS_INCLUDE_DIR "${MBEDTLS_SOURCE_DIR}/include")
 	set (MBEDTLS_INCLUDE_DIR ${MBEDTLS_INCLUDE_DIR} PARENT_SCOPE)
-	if (MBEDTLS_INCLUDE_DIR AND EXISTS "${MBEDTLS_INCLUDE_DIR}/mbedtls/version.h")
-		file(STRINGS "${MBEDTLS_INCLUDE_DIR}/mbedtls/version.h" _MBEDTLS_VERSION_STRING REGEX "^#[\t ]*define[\t ]+MBEDTLS_VERSION_STRING[\t ]+\"[0-9]+.[0-9]+.[0-9]+\"")
-		string(REGEX REPLACE "^.*MBEDTLS_VERSION_STRING.*([0-9]+.[0-9]+.[0-9]+).*" "\\1" MBEDTLS_VERSION "${_MBEDTLS_VERSION_STRING}")
-		message(STATUS "Using static mbedtls libraries (build version \"${MBEDTLS_VERSION}\")")
+	if (MBEDTLS_INCLUDE_DIR)
+		if (EXISTS "${MBEDTLS_INCLUDE_DIR}/mbedtls/build_info.h")
+			file(STRINGS ${MBEDTLS_INCLUDE_DIR}/mbedtls/build_info.h _MBEDTLS_VERSION_LINE REGEX "^#define[ \t]+MBEDTLS_VERSION_STRING[\t ].*")
+			string(REGEX REPLACE ".*MBEDTLS_VERSION_STRING[\t ]+\"(.*)\"" "\\1" MBEDTLS_VERSION ${_MBEDTLS_VERSION_LINE})
+			set (MBEDTLS_VERSION ${MBEDTLS_VERSION} PARENT_SCOPE)
+			message(STATUS "Using static mbedtls libraries (build version \"${MBEDTLS_VERSION}\")")
+		elseif(EXISTS "${MBEDTLS_INCLUDE_DIR}/mbedtls/version.h")
+			file(STRINGS "${MBEDTLS_INCLUDE_DIR}/mbedtls/version.h" _MBEDTLS_VERSION_STRING REGEX "^#[\t ]*define[\t ]+MBEDTLS_VERSION_STRING[\t ]+\"[0-9]+.[0-9]+.[0-9]+\"")
+			string(REGEX REPLACE "^.*MBEDTLS_VERSION_STRING.*([0-9]+.[0-9]+.[0-9]+).*" "\\1" MBEDTLS_VERSION "${_MBEDTLS_VERSION_STRING}")
+			set (MBEDTLS_VERSION ${MBEDTLS_VERSION} PARENT_SCOPE)
+			message(STATUS "Using static mbedtls libraries (build version \"${MBEDTLS_VERSION}\")")
+		endif()
 	endif ()
 
 	include_directories(${MBEDTLS_INCLUDE_DIR})

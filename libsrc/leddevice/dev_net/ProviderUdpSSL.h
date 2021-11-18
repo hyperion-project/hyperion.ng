@@ -11,11 +11,14 @@
 #include <QThread>
 
 //----------- mbedtls
-
+#if defined(USE_MBEDTLS3)
+#include <mbedtls/build_info.h>
+#else
 #if !defined(MBEDTLS_CONFIG_FILE)
 #include <mbedtls/config.h>
 #else
 #include MBEDTLS_CONFIG_FILE
+#endif
 #endif
 
 #if defined(MBEDTLS_PLATFORM_C)
@@ -106,7 +109,7 @@ protected:
 	/// @param[in] size The length of the data
 	/// @param[in] data The data
 	///
-	void writeBytes(unsigned size, const uint8_t *data);
+	void writeBytes(unsigned int size, const uint8_t *data);
 
 	///
 	/// get ciphersuites list from mbedtls_ssl_list_ciphersuites
@@ -123,46 +126,13 @@ protected:
 	 * Debug callback for mbed TLS
 	 * Just prints on the USB serial port
 	 */
-	static void ProviderUdpSSLDebug(void *ctx, int level, const char *file, int line, const char *str)
-	{
-		const char *p, *basename;
-		(void) ctx;
-		/* Extract basename from file */
-		for(p = basename = file; *p != '\0'; p++)
-		{
-			if(*p == '/' || *p == '\\')
-			{
-				basename = p + 1;
-			}
-		}
-		mbedtls_printf("%s:%04d: |%d| %s", basename, line, level, str);
-	}
+	static void ProviderUdpSSLDebug(void* ctx, int level, const char* file, int line, const char* str);
 
 	/**
 	 * Certificate verification callback for mbed TLS
 	 * Here we only use it to display information on each cert in the chain
 	 */
-	static int ProviderUdpSSLVerify(void *data, mbedtls_x509_crt *crt, int depth, uint32_t *flags)
-	{
-		const uint32_t buf_size = 1024;
-		char *buf = new char[buf_size];
-		(void) data;
-
-		mbedtls_printf("\nVerifying certificate at depth %d:\n", depth);
-		mbedtls_x509_crt_info(buf, buf_size - 1, "  ", crt);
-		mbedtls_printf("%s", buf);
-
-		if (*flags == 0)
-			mbedtls_printf("No verification issue for this certificate\n");
-		else
-		{
-			mbedtls_x509_crt_verify_info(buf, buf_size, "  ! ", *flags);
-			mbedtls_printf("%s\n", buf);
-		}
-
-		delete[] buf;
-		return 0;
-	}
+	static int ProviderUdpSSLVerify(void* data, mbedtls_x509_crt* crt, int depth, uint32_t* flags);
 
 	///
 	/// closeSSLNotify and freeSSLConnection
@@ -171,7 +141,6 @@ protected:
 
 private:
 
-	bool buildConnection();
 	bool initConnection();
 	bool seedingRNG();
 	bool setupStructure();
