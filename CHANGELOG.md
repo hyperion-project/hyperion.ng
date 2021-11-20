@@ -4,14 +4,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.0.0-alpha.11...HEAD)
+## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.0.12...HEAD)
 
 ### Breaking
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## Removed
+
+## [2.0.12](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.12) - 2021-11-20
+Hyperion's November release brings you some new features, removed IPv6 address related limitations, as well as fixing a couple of issues.
+
+Hyperion packages can be installed now under Ubuntu (x64) and Debian (amd64/armhf) (incl. Raspberry Pi OS) via our own APT server.
+Details about the installation can be found in the installation.md and at apt.hyperion-project.org.
+
+### Added
+
+- New LED-device type: Razor Chroma.
+Note: Due to Chroma Razer API limitations, only one device can be configured.
+- APA102 - Support setting maximum brightness level (1-31)
+- New installation method (Drag'n Drop) for macOS.
 - hyperion-remote & standalone grabbers: IPv6 support
-- New languages - Danish & Hungarian
+- New languages: Danish & Hungarian
 
 ### Changed
 
@@ -24,9 +42,17 @@ Note: Existing configurations are migrated to new structures automatically
 
 ### Fixed
 
+- Fixed API Subscription (e.g. as used by HomeAssistant) (#1351)
+- Fixed APA102 protocol aligning to the standard defined, removed Latch-Time as not required by APA102 protocol (#1352, #1132)
 - Fixed hyperion-remote when sending multiple Hex-Colors with "Set Color" option
+- UI: Fixed "Selected Hyperion instance isn't running" issue (#1357)
+- Fixed Database migration version handling
+- Fixed Python ModuleNotFoundError (#1109) 
 
-### Removed
+### Technical
+
+- Added Qt6 support
+- Migrated to MBEDTSL 3
 
 ## [2.0.0-alpha.11](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.0-alpha.11) - 2021-10-06
 
