@@ -570,12 +570,29 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 							}
 							migrated = true;
 						}
+					}
 
-						if (migrated)
+					if (newDeviceConfig.contains("type"))
+					{
+						QString type = newDeviceConfig["type"].toString();
+						if (type == "apa102")
 						{
-							config["device"] = newDeviceConfig;
-							Debug(_log, "LED-Device records migrated");
+							if (newDeviceConfig.contains("colorOrder"))
+							{
+								QString colorOrder = newDeviceConfig["colorOrder"].toString();
+								if (colorOrder == "bgr")
+								{
+									newDeviceConfig["colorOrder"] = "rgb";
+									migrated = true;
+								}
+							}
 						}
+					}
+
+					if (migrated)
+					{
+						config["device"] = newDeviceConfig;
+						Debug(_log, "LED-Device records migrated");
 					}
 				}
 
