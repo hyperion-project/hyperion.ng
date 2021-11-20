@@ -1630,7 +1630,7 @@ function updateElements(ledType, key) {
 
         if (ledProperties && ledProperties.leds && ledProperties.maxLedCount) {
           hardwareLedCount = ledProperties.leds.count;
-          var maxLedCount = ledProperties.maxLedCount
+          var maxLedCount = ledProperties.maxLedCount;
           if (hardwareLedCount > maxLedCount) {
             showInfoDialog('warning', $.i18n("conf_leds_config_warning"), $.i18n('conf_leds_error_hwled_gt_maxled', hardwareLedCount, maxLedCount, maxLedCount));
             hardwareLedCount = maxLedCount;
@@ -1661,7 +1661,7 @@ function updateElements(ledType, key) {
 
         if (ledProperties && ledProperties.maxLedCount) {
           hardwareLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue();
-          var maxLedCount = ledProperties.maxLedCount
+          var maxLedCount = ledProperties.maxLedCount;
           if (hardwareLedCount > maxLedCount) {
             showInfoDialog('warning', $.i18n("conf_leds_config_warning"), $.i18n('conf_leds_error_hwled_gt_maxled', hardwareLedCount, maxLedCount, maxLedCount));
             hardwareLedCount = maxLedCount;

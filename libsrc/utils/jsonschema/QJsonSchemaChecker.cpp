@@ -233,24 +233,28 @@ void QJsonSchemaChecker::checkProperties(const QJsonObject& value, const QJsonOb
 		{
 			validate(value[property], propertyValue.toObject());
 		}
-		else if (verifyDeps(property, value, schema))
+		else if (!verifyDeps(property, value, schema))
 		{
-		}
-		else if (required != propertyValue.toObject().end() && propertyValue.toObject().find("required").value().toBool() && !_ignoreRequired)
-		{
-			_error = true;
+			if (required != propertyValue.toObject().end() && propertyValue.toObject().find("required").value().toBool() && !_ignoreRequired)
+			{
+				_error = true;
 
-			if (_correct == "create")
+				if (_correct == "create")
+				{
+					QJsonUtils::modify(_autoCorrected, _currentPath, QJsonUtils::create(propertyValue, _ignoreRequired), property);
+					setMessage("Create property: " + property + " with value: " + QJsonUtils::getDefaultValue(propertyValue));
+				}
+
+				if (_correct == "")
+				{
+					setMessage("missing member");
+				}
+			}
+			else if (_correct == "create" && _ignoreRequired)
 			{
 				QJsonUtils::modify(_autoCorrected, _currentPath, QJsonUtils::create(propertyValue, _ignoreRequired), property);
-				setMessage("Create property: " + property + " with value: " + QJsonUtils::getDefaultValue(propertyValue));
 			}
-
-			if (_correct == "")
-				setMessage("missing member");
 		}
-		else if (_correct == "create" && _ignoreRequired)
-			QJsonUtils::modify(_autoCorrected, _currentPath, QJsonUtils::create(propertyValue, _ignoreRequired), property);
 
 		_currentPath.removeLast();
 	}
