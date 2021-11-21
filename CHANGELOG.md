@@ -12,7 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Colors Smoothing is started in pause mode to save resources, when Hyperion starts with no active source
+
 ### Fixed
+
+- Fixes that the Led-Device output flow was interrupted, by an enabling API request on an already enabled device (#967
 
 ## Removed
 
