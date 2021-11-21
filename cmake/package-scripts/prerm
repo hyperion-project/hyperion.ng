@@ -9,7 +9,7 @@ if [ "$2" = "in-favour" ]; then
 fi
 
 # Don't clean-up just for an upgrade.`
-if [ "$action" = "upgrade" ] ; then
+if [ "$UPGRADE" = "upgrade" ] ; then
   exit 0
 fi
 
@@ -22,18 +22,24 @@ pgrep hyperiond > /dev/null 2>&1 && HYPERION_RUNNING=true
 
 if grep -m1 systemd /proc/1/comm > /dev/null
 then
-	echo "---> stop init deamon: systemd"
 	# systemd
-	$HYPERION_RUNNING && systemctl stop hyperion hyperiond"@${FOUND_USR}" hyperion"@${FOUND_USR}" "hyperiond@root" "hyperion@root" 2> /dev/null
+	echo "---> stop init deamon: systemd"
+	CURRENT_SERVICE=$(systemctl list-units --all | { grep -o "hyperion*.*\.service" || true; })
+	if [ ! -z ${CURRENT_SERVICE} ]; then
+		$HYPERION_RUNNING && systemctl stop "${CURRENT_SERVICE}" 2> /dev/null
+		systemctl -q disable "${CURRENT_SERVICE}" 2> /dev/null
+	else
+		$HYPERION_RUNNING && systemctl stop hyperion hyperiond"@${FOUND_USR}" hyperion"@${FOUND_USR}" "hyperiond@root" "hyperion@root" 2> /dev/null
+		systemctl -q disable hyperion hyperiond"@${FOUND_USR}" hyperion"@${FOUND_USR}" "hyperiond@root" "hyperion@root" 2> /dev/null
+	fi
 	# disable user specific symlink
 	echo "---> Disable service and remove entry"
-	systemctl -q disable hyperion hyperiond"@${FOUND_USR}" hyperion"@${FOUND_USR}" "hyperiond@root" "hyperion@root" 2> /dev/null
 	rm -v /etc/systemd/system/hyperion.service /etc/systemd/system/hyperiond@.service /etc/systemd/system/hyperion@.service 2> /dev/null
 
 elif [ -e /sbin/initctl ]
 then
-	echo "---> stop init deamon: upstart"
 	# upstart
+	echo "---> stop init deamon: upstart"
 	$HYPERION_RUNNING && initctl stop hyperiond
 	$HYPERION_RUNNING && initctl stop hyperion
 	echo "---> Remove upstart service"
@@ -41,8 +47,8 @@ then
 	initctl reload-configuration
 
 else
-	echo "---> stop init deamon: sysV"
 	# sysV
+	echo "---> stop init deamon: sysV"
 	$HYPERION_RUNNING && service hyperiond stop 2> /dev/null
 	$HYPERION_RUNNING && service hyperion stop 2> /dev/null
 	echo "---> Remove sysV service"

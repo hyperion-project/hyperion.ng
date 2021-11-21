@@ -1,5 +1,15 @@
 name: Hyperion APT Build
-on: [workflow_call]
+on:
+  workflow_call:
+    secrets:
+      APT_GPG:
+        required: true
+      APT_USER:
+        required: true
+      APT_PASSWORD:
+        required: true
+      APT_DRAFT:
+        required: true
 
 jobs:
   setup:
@@ -93,7 +103,7 @@ jobs:
 
       - name: Include artifacts into the package source
         run: |
-          for file in artifact/*.deb; do
+          for file in artifact/hyperion_*.deb; do
             if [ -f "$file" ]; then
               dist=${file#*~}
               dist=${dist%_*}

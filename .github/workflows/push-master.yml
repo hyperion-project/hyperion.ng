@@ -201,3 +201,8 @@ jobs:
     name: APT Build
     needs: [Linux, macOS, windows]
     uses: hyperion-project/hyperion.ng/.github/workflows/apt.yml@master
+    secrets:
+      APT_GPG: ${{ secrets.APT_GPG }}
+      APT_USER: ${{ secrets.APT_USER }}
+      APT_PASSWORD: ${{ secrets.APT_PASSWORD }}
+      APT_DRAFT: ${{ secrets.APT_DRAFT }}
