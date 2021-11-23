@@ -1,4 +1,4 @@
-#include "LedDeviceYeelight.h"
+﻿#include "LedDeviceYeelight.h"
 
 #include <ssdp/SSDPDiscover.h>
 #include <utils/QStringUtils.h>
@@ -696,15 +696,17 @@ bool YeelightLight::setPower(bool on, YeelightLight::API_EFFECT effect, int dura
 	// Disable music mode to get power-off command executed
 	if ( !on && _isInMusicMode )
 	{
-		setMusicMode(false);
-
 		if ( _tcpStreamSocket != nullptr )
 		{
 			_tcpStreamSocket->close();
 		}
-	} else
+	}
+	else
 	{
-		setMusicMode(false);
+		if ( !_isInMusicMode && isInMusicMode(true) )
+		{
+			setMusicMode(false);
+		}
 	}
 
 	QString powerParam = on ? API_METHOD_POWER_ON : API_METHOD_POWER_OFF;
@@ -953,9 +955,12 @@ bool YeelightLight::setMusicMode(bool on, const QHostAddress &hostAddress, int p
 	}
 	else
 	{
-		writeCommand( getCommand( API_METHOD_MUSIC_MODE, paramlist ), true);
-		_isInMusicMode = false;
-		rc = true;
+		QJsonArray offParams = { API_METHOD_MUSIC_MODE_OFF };
+		if ( writeCommand( getCommand( API_METHOD_MUSIC_MODE, offParams ) ) > -1 )
+		{
+			_isInMusicMode = false;
+			rc = true;
+		}
 	}
 
 	log( 2,
