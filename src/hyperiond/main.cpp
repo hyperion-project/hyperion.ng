@@ -228,13 +228,13 @@ int main(int argc, char** argv)
 				if (!address.isLoopback() && (address.protocol() == QAbstractSocket::IPv4Protocol))
 				{
 					std::cout << "Access the Hyperion User-Interface for configuration and control via:" << std::endl;
-					std::cout << "http:://" << address.toString().toStdString() << ":8090" << std::endl;
+					std::cout << "http://" << address.toString().toStdString() << ":8090" << std::endl;
 
 					QHostInfo hostInfo = QHostInfo::fromName(address.toString());
 					if (hostInfo.error() == QHostInfo::NoError)
 					{
 						QString hostname = hostInfo.hostName();
-						std::cout << "http:://" << hostname.toStdString() << ":8090" << std::endl;
+						std::cout << "http://" << hostname.toStdString() << ":8090" << std::endl;
 					}
 					break;
 				}
