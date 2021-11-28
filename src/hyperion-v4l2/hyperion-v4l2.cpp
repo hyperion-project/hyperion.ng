@@ -57,7 +57,7 @@ int main(int argc, char** argv)
 		IntOption          & argInput               = parser.add<IntOption>    ('i', "input",  "The device input [default: %1]", "0");
 		SwitchOption<VideoStandard> & argVideoStandard= parser.add<SwitchOption<VideoStandard>>('v', "video-standard", "The used video standard. Valid values are PAL, NTSC, SECAM or no-change. [default: %1]", "no-change");
 		SwitchOption<PixelFormat> & argPixelFormat    = parser.add<SwitchOption<PixelFormat>>  (0x0, "pixel-format", "The use pixel format. Valid values are YUYV, UYVY, RGB32, MJPEG or no-change. [default: %1]", "no-change");
-		IntOption          & argFps			        = parser.add<IntOption>    ('f', "framerate",      "Capture frame rate [default: %1]", QString::number(GrabberWrapper::DEFAULT_RATE_HZ), GrabberWrapper::DEFAULT_MIN_GRAB_RATE_HZ, GrabberWrapper::DEFAULT_MAX_GRAB_RATE_HZ);
+		IntOption          & argFps			        = parser.add<IntOption>    ('f', "framerate",      "Capture frame rate. %1", QString("Range %1-%2fps, default: [%3]").arg(GrabberWrapper::DEFAULT_MIN_GRAB_RATE_HZ).arg(GrabberWrapper::DEFAULT_MAX_GRAB_RATE_HZ).arg(GrabberWrapper::DEFAULT_RATE_HZ), GrabberWrapper::DEFAULT_MIN_GRAB_RATE_HZ, GrabberWrapper::DEFAULT_MAX_GRAB_RATE_HZ);
 		SwitchOption<FlipMode> & argFlipMode = parser.add<SwitchOption<FlipMode>>(0x0, "flip-mode", "The used image flip mode. Valid values are HORIZONTAL, VERTICAL, BOTH or no-change. [default: %1]", "no-change");
 		IntOption          & argWidth               = parser.add<IntOption>    ('w', "width",      "Width of the captured image [default: %1]", "640", 640);
 		IntOption          & argHeight              = parser.add<IntOption>    ('h', "height",     "Height of the captured image [default: %1]", "480", 480);
@@ -82,7 +82,7 @@ int main(int argc, char** argv)
 		DoubleOption       & argSignalHorizontalMax = parser.add<DoubleOption> (0x0, "signal-horizontal-max", "area for signal detection - horizontal maximum offset value. Values between 0.0 and 1.0");
 		DoubleOption       & argSignalVerticalMax   = parser.add<DoubleOption> (0x0, "signal-vertical-max"  , "area for signal detection - vertical maximum offset value. Values between 0.0 and 1.0");
 
-		Option             & argAddress             = parser.add<Option>       ('a', "address", "The hostname or IP-address (IPv4 or IPv6) of the hyperion server.\nDefault port: 19400.\nSample addresses:\nHost : hyperion.fritz.box\nIPv4 : 127.0.0.1:19400\nIPv6 : [2001:1:2:3:4:5:6:7]");
+		Option             & argAddress             = parser.add<Option>       ('a', "address", "The hostname or IP-address (IPv4 or IPv6) of the hyperion server.\nDefault host: %1, port: 19400.\nSample addresses:\nHost : hyperion.fritz.box\nIPv4 : 127.0.0.1:19400\nIPv6 : [2001:1:2:3:4:5:6:7]", "127.0.0.1");
 		IntOption          & argPriority            = parser.add<IntOption>    ('p', "priority", "Use the provided priority channel (suggested 100-199) [default: %1]", "150");
 		BooleanOption      & argSkipReply           = parser.add<BooleanOption>(0x0, "skip-reply", "Do not receive and check reply messages from Hyperion");
 
@@ -232,7 +232,7 @@ int main(int argc, char** argv)
 		{
 			// server searching by ssdp
 			QString address = argAddress.value(parser);
-			if(argAddress.value(parser) == "127.0.0.1:19400")
+			if(address == "127.0.0.1" || address == "127.0.0.1:19400")
 			{
 				SSDPDiscover discover;
 				address = discover.getFirstService(searchType::STY_FLATBUFSERVER);
