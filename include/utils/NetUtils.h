@@ -61,6 +61,11 @@ namespace NetUtils {
 	///
 	inline bool resolveHostPort(const QString& address, QString& host, quint16& port)
 	{
+		if (address.isEmpty())
+		{
+			return false;
+		}
+
 		QString testUrl;
 		if (address.at(0) != '[' && address.count(':') > 1)
 		{
@@ -87,10 +92,10 @@ namespace NetUtils {
 
 	///
 	/// @brief Check if the port is in the valid range
-	/// @param     log   The logger of the caller to print
-	/// @param[in] address  The port to be tested
+	/// @param      log   The logger of the caller to print
+	/// @param[in]  address  The port to be tested
 	/// @param[out] hostAddress  A hostname to make reference to during logging 
-	/// @return          True on success else false
+	/// @return     True on success else false
 	///
 
 	inline bool resolveHostAddress(Logger* log, const QString& address, QHostAddress& hostAddress)
