@@ -4,8 +4,10 @@
 [![Latest-Release](https://img.shields.io/github/v/release/hyperion-project/hyperion.ng?include_prereleases)](https://github.com/hyperion-project/hyperion.ng/releases)
 [![GitHub Actions](https://github.com/hyperion-project/hyperion.ng/workflows/Hyperion%20CI%20Build/badge.svg?branch=master)](https://github.com/hyperion-project/hyperion.ng/actions)
 [![LGTM](https://img.shields.io/lgtm/alerts/g/hyperion-project/hyperion.ng.svg)](https://lgtm.com/projects/g/hyperion-project/hyperion.ng/alerts/)
-[![Documentation](https://codedocs.xyz/hyperion-project/hyperion.ng.svg)](https://codedocs.xyz/hyperion-project/hyperion.ng/)
-[![made-with-love](https://img.shields.io/badge/Made%20with-&#9829;-ff0000.svg)](#)
+[![Forum](https://img.shields.io/website/https/hyperion-project.org.svg?label=Forum&down_color=red&down_message=offline&up_color=green&up_message=online)](https://www.hyperion-project.org)
+[![Documentation](https://img.shields.io/website?down_message=offline&label=Documentation%20%20&up_message=online&url=https%3A%2F%2Fdocs.hyperion-project.org)](https://docs.hyperion-project.org)
+[![Discord](https://img.shields.io/discord/785578322167463937?label=Discord)](https://discord.gg/khkR8Vx3ff)
+![made-with-love](https://img.shields.io/badge/Made%20with-&#9829;-ff0000.svg)
 
 ## About Hyperion
 
@@ -24,12 +26,12 @@
 * A multi language web interface to configure and remote control hyperion
 
 If you need further support please open a topic at the forum!<br>
-[![Hyperion webpage/forum](https://img.shields.io/website/https/hyperion-project.org.svg?down_color=red&down_message=offline&up_color=green&up_message=online)](https://www.hyperion-project.org)
+[![Forum](https://img.shields.io/website/https/hyperion-project.org.svg?label=Forum&down_color=red&down_message=offline&up_color=green&up_message=online)](https://www.hyperion-project.org)
 
 ## Contributing
 
 Contributions are welcome! Feel free to join us! We are looking always for people who wants to participate.<br>
-[![Contributors](https://img.shields.io/github/contributors/hyperion-project/hyperion.ng.svg)](https://github.com/hyperion-project/hyperion.ng/graphs/contributors)
+[![Contributors](https://img.shields.io/github/contributors/hyperion-project/hyperion.ng.svg?label=Contributors)](https://github.com/hyperion-project/hyperion.ng/graphs/contributors)
 
 For an example, you can participate in the translation.<br>
 [![Join Translation](https://img.shields.io/badge/POEditor-translate-green.svg)](https://poeditor.com/join/project/Y4F6vHRFjA)
@@ -39,19 +41,22 @@ For an example, you can participate in the translation.<br>
 Find here more details on [supported platforms and configuration sets](doc/development/SupportedPlatforms.md)
 
 ## Documentation
-Covers these topics (WorkInProgress)
-- Installation
-- Configuration
-- Effect development
-- JSON API
+Covers these topics:
+- [Installation](https://docs.hyperion-project.org/en/user/Installation.html)
+- [Configuration](https://docs.hyperion-project.org/en/user/Configuration.html)
+- [Effect development](https://docs.hyperion-project.org/en/effects/#effect-files)
+- [JSON API](https://docs.hyperion-project.org/en/json/)
 
 [![Visit Documentation](https://img.shields.io/website?down_message=offline&label=Documentation%20%20&up_message=online&url=https%3A%2F%2Fdocs.hyperion-project.org)](https://docs.hyperion-project.org)
 
 ## Changelog
-Released and unreleased changes at [Changelog.md](CHANGELOG.md)
+Released and unreleased changes at [CHANGELOG.md](CHANGELOG.md)
 
 ## Building
 See [CompileHowto](doc/development/CompileHowto.md).
+
+## Installation
+See [Documentation](#documentation) or at [Installation.md](Installation.md).
 
 ## Download
 Releases available from the [Hyperion release page](https://github.com/hyperion-project/hyperion.ng/releases)
