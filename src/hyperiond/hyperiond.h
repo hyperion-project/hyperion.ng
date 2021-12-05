@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QJsonObject>
 
+#include <hyperion/GrabberWrapper.h>
+
 #ifdef ENABLE_DISPMANX
 	#include <grabber/DispmanxWrapper.h>
 #else
