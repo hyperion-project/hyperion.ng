@@ -17,7 +17,7 @@
 
 LedDeviceRegistry LedDeviceWrapper::_ledDeviceMap {};
 
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
 	QRecursiveMutex        LedDeviceWrapper::_ledDeviceMapLock;
 #else
 	QMutex                 LedDeviceWrapper::_ledDeviceMapLock{ QMutex::Recursive };
