@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Effects: Fix image URL in Matrix effect
 - Standalone grabbers: Improved fps help/error text, fixed default address and port
 
 ## Removed
