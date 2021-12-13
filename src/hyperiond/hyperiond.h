@@ -4,8 +4,6 @@
 #include <QObject>
 #include <QJsonObject>
 
-#include <hyperion/GrabberWrapper.h>
-
 #ifdef ENABLE_DISPMANX
 	#include <grabber/DispmanxWrapper.h>
 #else
@@ -59,6 +57,8 @@
 #else
 	typedef QObject DirectXWrapper;
 #endif
+
+#include <hyperion/GrabberWrapper.h>
 
 #include <utils/Logger.h>
 #include <utils/VideoMode.h>

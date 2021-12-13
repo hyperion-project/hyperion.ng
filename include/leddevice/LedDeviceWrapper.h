@@ -6,7 +6,7 @@
 #include <utils/ColorRgb.h>
 #include <utils/Components.h>
 
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
 	#include <QRecursiveMutex>
 #else
 	#include <QMutex>
@@ -129,7 +129,7 @@ protected:
 	/// contains all available led device constructors
 	static LedDeviceRegistry _ledDeviceMap;
 	
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))	
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
 	static QRecursiveMutex       _ledDeviceMapLock;
 #else
 	static QMutex                _ledDeviceMapLock;
