@@ -2,6 +2,18 @@ cmake_minimum_required(VERSION 3.0.0)
 
 message( STATUS "CMake Version: ${CMAKE_VERSION}" )
 
+macro(addIndent text)
+if(${CMAKE_VERSION} VERSION_GREATER "3.16.0")
+	list(APPEND CMAKE_MESSAGE_INDENT ${text})
+endif()
+endmacro()
+
+macro(removeIndent)
+if(${CMAKE_VERSION} VERSION_GREATER "3.16.0")
+	list(POP_BACK CMAKE_MESSAGE_INDENT)
+endif()
+endmacro()
+
 PROJECT(hyperion)
 
 # Parse semantic version of version file and write version to config
@@ -41,40 +53,53 @@ else()
 endif()
 
 # Set build variables
+#Grabber
 SET ( DEFAULT_AMLOGIC                     OFF )
-SET ( DEFAULT_BOBLIGHT                    ON  )
 SET ( DEFAULT_DISPMANX                    OFF )
 SET ( DEFAULT_DX                          OFF )
 SET ( DEFAULT_MF                          OFF )
 SET ( DEFAULT_OSX                         OFF )
 SET ( DEFAULT_QT                          ON  )
-SET ( DEFAULT_X11                         OFF )
-SET ( DEFAULT_XCB                         OFF )
 SET ( DEFAULT_V4L2                        OFF )
 SET ( DEFAULT_WS281XPWM                   OFF )
+SET ( DEFAULT_X11                         OFF )
+SET ( DEFAULT_XCB                         OFF )
+
+#Input
+SET ( DEFAULT_BOBLIGHT                    ON  )
+SET ( DEFAULT_CEC                         OFF )
+
+#Output
+SET ( DEFAULT_SPIDEV                      OFF )
+SET ( DEFAULT_TINKERFORGE                 OFF )
+SET ( DEFAULT_USB_HID                     OFF )
+SET ( DEFAULT_WS281XPWM                   OFF )
+
+#Services
 SET ( DEFAULT_AVAHI                       ON  )
+SET ( DEFAULT_EXPERIMENTAL                OFF )
+
+#Build
+SET ( DEFAULT_TESTS                       OFF )
+SET ( DEFAULT_DEPLOY_DEPENDENCIES         ON  )
 SET ( DEFAULT_USE_SHARED_AVAHI_LIBS       ON  )
 SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF )
 SET ( DEFAULT_USE_SYSTEM_PROTO_LIBS       OFF )
 SET ( DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     OFF )
-SET ( DEFAULT_TESTS                       OFF )
-SET ( DEFAULT_EXPERIMENTAL                OFF )
-SET ( DEFAULT_CEC                         OFF )
-SET ( DEFAULT_DEPLOY_DEPENDENCIES         ON  )
 
 IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
+	SET ( DEFAULT_FB          ON )
 	SET ( DEFAULT_V4L2        ON )
 	SET ( DEFAULT_SPIDEV      ON )
 	SET ( DEFAULT_TINKERFORGE ON )
-	SET ( DEFAULT_FB          ON )
 	SET ( DEFAULT_USB_HID     ON )
 	SET ( DEFAULT_CEC         ON )
 ELSEIF ( WIN32 )
 	SET ( DEFAULT_DX ON )
 	SET ( DEFAULT_MF ON )
 ELSE()
-	SET ( DEFAULT_V4L2        OFF )
 	SET ( DEFAULT_FB          OFF )
+	SET ( DEFAULT_V4L2        OFF )
 	SET ( DEFAULT_SPIDEV      OFF )
 	SET ( DEFAULT_TINKERFORGE OFF )
 	SET ( DEFAULT_USB_HID     OFF )
@@ -166,49 +191,37 @@ ADD_DEFINITIONS( ${PLATFORM_DEFINE} )
 
 # set the build options
 
-option(ENABLE_BOBLIGHT "Enable BOBLIGHT server" ${DEFAULT_BOBLIGHT} )
-message(STATUS "ENABLE_BOBLIGHT = ${ENABLE_BOBLIGHT}")
+message(STATUS "Grabber options:")
+
+addIndent(" - ")
 
 option(ENABLE_AMLOGIC "Enable the AMLOGIC video grabber" ${DEFAULT_AMLOGIC} )
 message(STATUS "ENABLE_AMLOGIC = ${ENABLE_AMLOGIC}")
 
-if (ENABLE_AMLOGIC)
-	SET(ENABLE_FB ON)
-else()
-	option(ENABLE_FB "Enable the framebuffer grabber" ${DEFAULT_FB} )
-endif()
-
-message(STATUS "ENABLE_FB = ${ENABLE_FB}")
-
 option(ENABLE_DISPMANX "Enable the RPi dispmanx grabber" ${DEFAULT_DISPMANX} )
 message(STATUS "ENABLE_DISPMANX = ${ENABLE_DISPMANX}")
 
-option(ENABLE_OSX "Enable the OSX grabber" ${DEFAULT_OSX} )
-message(STATUS "ENABLE_OSX = ${ENABLE_OSX}")
+option(ENABLE_DX "Enable the DirectX grabber" ${DEFAULT_DX})
+message(STATUS "ENABLE_DX = ${ENABLE_DX}")
 
-option(ENABLE_SPIDEV   "Enable the SPIDEV device" ${DEFAULT_SPIDEV} )
-message(STATUS "ENABLE_SPIDEV   = ${ENABLE_SPIDEV}")
-
-option(ENABLE_TINKERFORGE "Enable the TINKERFORGE device" ${DEFAULT_TINKERFORGE})
-message(STATUS "ENABLE_TINKERFORGE = ${ENABLE_TINKERFORGE}")
-
-option(ENABLE_V4L2 "Enable the V4L2 grabber" ${DEFAULT_V4L2})
-message(STATUS "ENABLE_V4L2 = ${ENABLE_V4L2}")
+if (ENABLE_AMLOGIC)
+	SET(ENABLE_FB ON)
+else()
+	option(ENABLE_FB " Enable the framebuffer grabber" ${DEFAULT_FB} )
+endif()
+message(STATUS "ENABLE_FB = ${ENABLE_FB}")
 
 option(ENABLE_MF "Enable the Media Foundation grabber" ${DEFAULT_MF})
 message(STATUS "ENABLE_MF = ${ENABLE_MF}")
 
-option(ENABLE_WS281XPWM "Enable the WS281x-PWM device" ${DEFAULT_WS281XPWM} )
-message(STATUS "ENABLE_WS281XPWM = ${ENABLE_WS281XPWM}")
+option(ENABLE_OSX "Enable the OSX grabber" ${DEFAULT_OSX} )
+message(STATUS "ENABLE_OSX = ${ENABLE_OSX}")
 
-option(ENABLE_AVAHI "Enable Zeroconf" ${DEFAULT_AVAHI})
-message(STATUS "ENABLE_AVAHI = " ${ENABLE_AVAHI})
+option(ENABLE_QT "Enable the Qt grabber" ${DEFAULT_QT})
+message(STATUS "ENABLE_QT = ${ENABLE_QT}")
 
-option(ENABLE_USB_HID "Enable the libusb and hid devices" ${DEFAULT_USB_HID} )
-message(STATUS "ENABLE_USB_HID = ${ENABLE_USB_HID}")
-
-option(ENABLE_CEC "Enable the libcec and CEC control" ${DEFAULT_CEC} )
-message(STATUS "ENABLE_CEC = ${ENABLE_CEC}")
+option(ENABLE_V4L2 "Enable the V4L2 grabber" ${DEFAULT_V4L2})
+message(STATUS "ENABLE_V4L2 = ${ENABLE_V4L2}")
 
 option(ENABLE_X11 "Enable the X11 grabber" ${DEFAULT_X11})
 message(STATUS "ENABLE_X11 = ${ENABLE_X11}")
@@ -216,11 +229,49 @@ message(STATUS "ENABLE_X11 = ${ENABLE_X11}")
 option(ENABLE_XCB "Enable the XCB grabber" ${DEFAULT_XCB})
 message(STATUS "ENABLE_XCB = ${ENABLE_XCB}")
 
-option(ENABLE_QT "Enable the Qt grabber" ${DEFAULT_QT})
-message(STATUS "ENABLE_QT = ${ENABLE_QT}")
+removeIndent()
 
-option(ENABLE_DX "Enable the DirectX grabber" ${DEFAULT_DX})
-message(STATUS "ENABLE_DX = ${ENABLE_DX}")
+message(STATUS "Input options:")
+addIndent(" - ")
+
+option(ENABLE_BOBLIGHT "Enable BOBLIGHT server" ${DEFAULT_BOBLIGHT} )
+message(STATUS "ENABLE_BOBLIGHT = ${ENABLE_BOBLIGHT}")
+
+option(ENABLE_CEC "Enable the libcec and CEC control" ${DEFAULT_CEC} )
+message(STATUS "ENABLE_CEC = ${ENABLE_CEC}")
+
+removeIndent()
+
+message(STATUS "Output options:")
+addIndent(" - ")
+
+option(ENABLE_SPIDEV   "Enable the SPIDEV device" ${DEFAULT_SPIDEV} )
+message(STATUS "ENABLE_SPIDEV   = ${ENABLE_SPIDEV}")
+
+option(ENABLE_TINKERFORGE "Enable the TINKERFORGE device" ${DEFAULT_TINKERFORGE})
+message(STATUS "ENABLE_TINKERFORGE = ${ENABLE_TINKERFORGE}")
+
+option(ENABLE_USB_HID "Enable the libusb and hid devices" ${DEFAULT_USB_HID} )
+message(STATUS "ENABLE_USB_HID = ${ENABLE_USB_HID}")
+
+option(ENABLE_WS281XPWM "Enable the WS281x-PWM device" ${DEFAULT_WS281XPWM} )
+message(STATUS "ENABLE_WS281XPWM = ${ENABLE_WS281XPWM}")
+
+removeIndent()
+
+message(STATUS "Services options:")
+addIndent(" - ")
+
+option(ENABLE_AVAHI "Enable Zeroconf" ${DEFAULT_AVAHI})
+message(STATUS "ENABLE_AVAHI = " ${ENABLE_AVAHI})
+
+option(ENABLE_EXPERIMENTAL "Compile experimental features" ${DEFAULT_EXPERIMENTAL})
+message(STATUS "ENABLE_EXPERIMENTAL = ${ENABLE_EXPERIMENTAL}")
+
+removeIndent()
+
+message(STATUS "Build options:")
+addIndent(" - ")
 
 option(ENABLE_TESTS "Compile additional test applications" ${DEFAULT_TESTS})
 message(STATUS "ENABLE_TESTS = ${ENABLE_TESTS}")
@@ -228,11 +279,17 @@ message(STATUS "ENABLE_TESTS = ${ENABLE_TESTS}")
 option(ENABLE_PROFILER "enable profiler capabilities - not for release code" OFF)
 message(STATUS "ENABLE_PROFILER = ${ENABLE_PROFILER}")
 
-option(ENABLE_EXPERIMENTAL "Compile experimental features" ${DEFAULT_EXPERIMENTAL})
-message(STATUS "ENABLE_EXPERIMENTAL = ${ENABLE_EXPERIMENTAL}")
-
 option(ENABLE_DEPLOY_DEPENDENCIES "Deploy with dependencies" ${DEFAULT_DEPLOY_DEPENDENCIES})
 message(STATUS "ENABLE_DEPLOY_DEPENDENCIES = ${ENABLE_DEPLOY_DEPENDENCIES}")
+
+if (ENABLE_AVAHI)
+message(STATUS "DEFAULT_USE_SHARED_AVAHI_LIBS = ${DEFAULT_USE_SHARED_AVAHI_LIBS}")
+endif()
+message(STATUS "DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS = ${DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS}")
+message(STATUS "DEFAULT_USE_SYSTEM_MBEDTLS_LIBS = ${DEFAULT_USE_SYSTEM_MBEDTLS_LIBS}")
+message(STATUS "DEFAULT_USE_SYSTEM_PROTO_LIBS = ${DEFAULT_USE_SYSTEM_PROTO_LIBS}")
+
+removeIndent()
 
 SET ( FLATBUFFERS_INSTALL_BIN_DIR ${CMAKE_BINARY_DIR}/flatbuf )
 SET ( FLATBUFFERS_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/flatbuf )
