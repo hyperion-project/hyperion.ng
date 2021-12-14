@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 
 #include <QObject>
 #include <QString>
@@ -35,7 +36,7 @@ private:
 	SysInfo();
 	void getCPUInfo();
 
-	static SysInfo* _instance;
+	static std::unique_ptr <SysInfo> _instance;
 
 	HyperionSysInfo _sysinfo;
 };
