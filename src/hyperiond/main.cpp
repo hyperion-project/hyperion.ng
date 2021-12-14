@@ -105,8 +105,8 @@ QCoreApplication* createApplication(int &argc, char *argv[])
 	{
 		// if x11, then test if xserver is available
 		#if defined(ENABLE_X11)
-		Display* dpy = XOpenDisplay(nullptr);
-		if (dpy != nullptr)
+		Display* dpy = XOpenDisplay(NULL);
+		if (dpy != NULL)
 		{
 			XCloseDisplay(dpy);
 			isGuiApp = true;
@@ -164,7 +164,7 @@ int main(int argc, char** argv)
 	// Initialising QCoreApplication
 	QScopedPointer<QCoreApplication> app(createApplication(argc, argv));
 
-	bool isGuiApp = (qobject_cast<QApplication *>(app.data()) != nullptr && QSystemTrayIcon::isSystemTrayAvailable());
+	bool isGuiApp = !(qobject_cast<QApplication *>(app.data()) == nullptr) && QSystemTrayIcon::isSystemTrayAvailable();
 
 	DefaultSignalHandler::install();
 
@@ -228,13 +228,13 @@ int main(int argc, char** argv)
 				if (!address.isLoopback() && (address.protocol() == QAbstractSocket::IPv4Protocol))
 				{
 					std::cout << "Access the Hyperion User-Interface for configuration and control via:" << std::endl;
-					std::cout << "http:://" << address.toString().toStdString() << ":8090" << std::endl;
+					std::cout << "http://" << address.toString().toStdString() << ":8090" << std::endl;
 
 					QHostInfo hostInfo = QHostInfo::fromName(address.toString());
 					if (hostInfo.error() == QHostInfo::NoError)
 					{
 						QString hostname = hostInfo.hostName();
-						std::cout << "http:://" << hostname.toStdString() << ":8090" << std::endl;
+						std::cout << "http://" << hostname.toStdString() << ":8090" << std::endl;
 					}
 					break;
 				}

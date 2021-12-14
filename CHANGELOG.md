@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Yeelight - Workaround: Ignore error when setting music mode = off, but the music-mode is already off (#1372)
+- Standalone grabbers: Improved fps help/error text, fixed default address and port
 
 ## Removed
 

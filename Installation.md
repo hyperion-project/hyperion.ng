@@ -1,7 +1,9 @@
 
 # Installation
+This page contains general installation steps for Hyperion.
 
-This page contains general installation steps for Hyperion. For Linux please follow the instructions below. For Windows is an installation file available on our [Release page](https://github.com/hyperion-project/hyperion.ng/releases).
+## Windows & macOS
+For Windows and macOS is an installation file available on our [Release page](https://github.com/hyperion-project/hyperion.ng/releases).
 
 ## Linux:
 On the following operating systems, Hyperion can currently be installed/updated using the method listed below:
