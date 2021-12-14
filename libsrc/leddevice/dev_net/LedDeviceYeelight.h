@@ -151,18 +151,20 @@ public:
 	/// @brief Execute a Yeelight-API command
 	///
 	/// @param[in] command The API command request in JSON
+	/// @param[in] ignoreErrors Return success, even if errors occured
 	/// @return 0: success, -1: error, -2: command quota exceeded
 	///
-	int writeCommand( const QJsonDocument &command );
+	int writeCommand( const QJsonDocument &command, bool ignoreErrors = false );
 
 	///
 	/// @brief Execute a Yeelight-API command
 	///
 	/// @param[in] command The API command request in JSON
 	/// @param[out] result The response to the command in JSON
+	/// @param[in] ignoreErrors Return success, even if errors occured
 	/// @return 0: success, -1: error, -2: command quota exceeded
 	///
-	int writeCommand( const QJsonDocument &command, QJsonArray &result );
+	int writeCommand( const QJsonDocument &command, QJsonArray &result, bool ignoreErrors = false );
 
 	///
 	/// @brief Stream a Yeelight-API command
