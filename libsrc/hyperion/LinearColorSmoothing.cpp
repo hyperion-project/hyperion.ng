@@ -539,11 +539,6 @@ void LinearColorSmoothing::clearQueuedColors()
 
 void LinearColorSmoothing::componentStateChange(hyperion::Components component, bool state)
 {
-	if (component == hyperion::COMP_LEDDEVICE)
-	{
-		clearQueuedColors();
-	}
-
 	if (component == hyperion::COMP_SMOOTHING)
 	{
 		setEnable(state);

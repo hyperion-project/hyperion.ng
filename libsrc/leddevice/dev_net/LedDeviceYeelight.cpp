@@ -1,4 +1,4 @@
-#include "LedDeviceYeelight.h"
+﻿#include "LedDeviceYeelight.h"
 
 #include <ssdp/SSDPDiscover.h>
 #include <utils/QStringUtils.h>
@@ -202,13 +202,13 @@ bool YeelightLight::close()
 	return rc;
 }
 
-int YeelightLight::writeCommand( const QJsonDocument &command )
+int YeelightLight::writeCommand( const QJsonDocument &command, bool ignoreErrors )
 {
 	QJsonArray result;
-	return writeCommand(command, result );
+	return writeCommand(command, result, ignoreErrors );
 }
 
-int YeelightLight::writeCommand( const QJsonDocument &command, QJsonArray &result )
+int YeelightLight::writeCommand( const QJsonDocument &command, QJsonArray &result, bool ignoreErrors )
 {
 	log( 3,
 		 "writeCommand()",
@@ -278,8 +278,16 @@ int YeelightLight::writeCommand( const QJsonDocument &command, QJsonArray &resul
 							QString errorReason = QString ("(%1) %2").arg(yeeResponse.getErrorCode()).arg( yeeResponse.getErrorReason() );
 							if ( yeeResponse.getErrorCode() != -1)
 							{
-								this->setInError ( errorReason );
-								rc =-1;
+								if (!ignoreErrors)
+								{
+									this->setInError ( errorReason );
+									rc =-1;
+								}
+								else
+								{
+									log ( 1, "writeCommand():", "Ignore Error: %s", QSTRING_CSTR(errorReason) );
+									rc = 0;
+								}
 							}
 							else
 							{
@@ -693,6 +701,13 @@ bool YeelightLight::setPower(bool on, YeelightLight::API_EFFECT effect, int dura
 			_tcpStreamSocket->close();
 		}
 	}
+	else
+	{
+		if ( !_isInMusicMode && isInMusicMode(true) )
+		{
+			setMusicMode(false);
+		}
+	}
 
 	QString powerParam = on ? API_METHOD_POWER_ON : API_METHOD_POWER_OFF;
 	QString effectParam = effect == YeelightLight::API_EFFECT_SMOOTH ? API_PARAM_EFFECT_SMOOTH : API_PARAM_EFFECT_SUDDEN;
@@ -711,7 +726,7 @@ bool YeelightLight::setPower(bool on, YeelightLight::API_EFFECT effect, int dura
 	}
 	log( 2,
 		 "setPower() rc",
-		 "%d, isON[%d], isInMusicMode[)%d]",
+		 "%d, isON[%d], isInMusicMode[%d]",
 		 static_cast<int>(rc), static_cast<int>( _isOn ), static_cast<int>( _isInMusicMode ) );
 
 	return rc;
@@ -930,13 +945,22 @@ bool YeelightLight::setMusicMode(bool on, const QHostAddress &hostAddress, int p
 	if ( on )
 	{
 		paramlist << hostAddress.toString() << port;
-	}
 
-	// Music Mode is only on, if write did not fail nor quota was exceeded
-	if ( writeCommand( getCommand( API_METHOD_MUSIC_MODE, paramlist ) ) > -1 )
+		// Music Mode is only on, if write did not fail nor quota was exceeded
+		if ( writeCommand( getCommand( API_METHOD_MUSIC_MODE, paramlist ) ) > -1 )
+		{
+			_isInMusicMode = on;
+			rc = true;
+		}
+	}
+	else
 	{
-		_isInMusicMode = on;
-		rc = true;
+		QJsonArray offParams = { API_METHOD_MUSIC_MODE_OFF };
+		if ( writeCommand( getCommand( API_METHOD_MUSIC_MODE, offParams ) ) > -1 )
+		{
+			_isInMusicMode = false;
+			rc = true;
+		}
 	}
 
 	log( 2,
