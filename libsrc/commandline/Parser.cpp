@@ -20,11 +20,11 @@ bool Parser::parse(const QStringList &arguments)
 		if (!option->validate(*this, value)) {
 			const QString error = option->getError();
 			if (!error.isEmpty()) {
-				_errorText = tr("%1 is not a valid option for %2\n%3").arg(value, option->name(), error);
+				_errorText = tr("\"%1\" is not a valid option for %2, %3").arg(value, option->name(), error);
 			}
 			else
 			{
-				_errorText = tr("%1 is not a valid option for %2").arg(value, option->name());
+				_errorText = tr("\"%1\" is not a valid option for %2").arg(value, option->name());
 			}
 			return false;
 		}
@@ -37,7 +37,7 @@ void Parser::process(const QStringList &arguments)
 	_parser.process(arguments);
 	if (!parse(arguments))
 	{
-		fprintf(stdout, "%s", qPrintable(tr("Error: %1").arg(_errorText)));
+		fprintf(stdout, "%s\n\n", qPrintable(tr("Error: %1").arg(_errorText)));
 		showHelp(EXIT_FAILURE);
 	}
 }

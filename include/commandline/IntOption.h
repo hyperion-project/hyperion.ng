@@ -12,6 +12,8 @@ class IntOption: public ValidatorOption
 {
 protected:
     int _int;
+	int _minimum;
+	int _maximum;
 
 public:
     IntOption(const QString &name,
@@ -31,18 +33,24 @@ public:
               int minimum = std::numeric_limits<int>::min(), int maximum = std::numeric_limits<int>::max())
         : ValidatorOption(names, description, valueName, defaultValue)
     {
-        setValidator(new QIntValidator(minimum, maximum));
+		_minimum = minimum;
+		_maximum = maximum;
+		setValidator(new QIntValidator(_minimum, _maximum));
     }
 
     IntOption(const QCommandLineOption &other,
               int minimum = std::numeric_limits<int>::min(), int maximum = std::numeric_limits<int>::max())
         : ValidatorOption(other)
     {
-        setValidator(new QIntValidator(minimum, maximum));
+		_minimum = minimum;
+		_maximum = maximum;
+		setValidator(new QIntValidator(_minimum, _maximum));
     }
 
     int getInt(Parser &parser, bool *ok = 0, int base = 10);
     int *getIntPtr(Parser &parser, bool *ok = 0, int base = 10);
+
+	bool validate(Parser & parser, QString & value) override;
 };
 
 }
