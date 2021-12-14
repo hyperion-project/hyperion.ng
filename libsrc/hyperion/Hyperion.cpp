@@ -124,6 +124,9 @@ void Hyperion::start()
 	_deviceSmooth = new LinearColorSmoothing(getSetting(settings::SMOOTHING), this);
 	connect(this, &Hyperion::settingsChanged, _deviceSmooth, &LinearColorSmoothing::handleSettingsUpdate);
 
+	//Start in pause mode, a new priority will activate smoothing (either start-effect or grabber)
+	_deviceSmooth->setPause(true);
+
 	// create the message forwarder only on main instance
 	if (_instIndex == 0)
 	{
