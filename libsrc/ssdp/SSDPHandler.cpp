@@ -51,17 +51,21 @@ void SSDPHandler::initServer()
 	SSDPServer::initServer();
 
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-#if QT_DEPRECATED_SINCE(5, 15)
+	#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
 	QT_WARNING_PUSH
-		QT_WARNING_DISABLE_DEPRECATED
-		_NCA = new QNetworkConfigurationManager(this);
+	QT_WARNING_DISABLE_DEPRECATED
+	#endif
+
+	_NCA = new QNetworkConfigurationManager(this);
 	connect(_NCA, &QNetworkConfigurationManager::configurationChanged, this, &SSDPHandler::handleNetworkConfigurationChanged);
+
+	#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
 	QT_WARNING_POP
-#endif	
+	#endif
 #endif	
 
-		// listen for mSearchRequestes
-		connect(this, &SSDPServer::msearchRequestReceived, this, &SSDPHandler::handleMSearchRequest);
+	// listen for mSearchRequestes
+	connect(this, &SSDPServer::msearchRequestReceived, this, &SSDPHandler::handleMSearchRequest);
 
 	// get localAddress from interface
 	if (!getLocalAddress().isEmpty())
@@ -149,9 +153,10 @@ void SSDPHandler::handleWebServerStateChange(bool newState)
 }
 
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-#if QT_DEPRECATED_SINCE(5, 15)
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
 QT_WARNING_PUSH
 QT_WARNING_DISABLE_DEPRECATED
+#endif
 void SSDPHandler::handleNetworkConfigurationChanged(const QNetworkConfiguration& config)
 {
 	// get localAddress from interface
@@ -168,6 +173,7 @@ void SSDPHandler::handleNetworkConfigurationChanged(const QNetworkConfiguration&
 		sendAnnounceList(true);
 	}
 }
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
 QT_WARNING_POP
 #endif
 #endif
