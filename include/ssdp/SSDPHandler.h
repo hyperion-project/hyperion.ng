@@ -22,7 +22,7 @@ class SSDPHandler : public SSDPServer
 {
 	Q_OBJECT
 public:
-	SSDPHandler(WebServer* webserver, quint16 flatBufPort, quint16 protoBufPort, quint16 jsonServerPort, quint16 sslPort, const QString &name,  QObject * parent = nullptr);
+	SSDPHandler(WebServer* webserver, quint16 flatBufPort, quint16 protoBufPort, quint16 jsonServerPort, quint16 sslPort, const QString& name, QObject* parent = nullptr);
 	~SSDPHandler() override;
 
 	///
@@ -91,17 +91,27 @@ private slots:
 	/// @brief Handle changes in the network configuration
 	/// @param conig New config
 	///
-#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))	
-	void handleNetworkConfigurationChanged(const QNetworkConfiguration &config);
+#if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
+#if QT_DEPRECATED_SINCE(5, 15)
+	QT_WARNING_PUSH
+		QT_WARNING_DISABLE_DEPRECATED
+		void handleNetworkConfigurationChanged(const QNetworkConfiguration& config);
+	QT_WARNING_POP
+#endif
 #endif
 
 private:
 	WebServer* _webserver;
 	QString    _localAddress;
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
-	QNetworkConfigurationManager* _NCA;
+#if QT_DEPRECATED_SINCE(5, 15)
+	QT_WARNING_PUSH
+		QT_WARNING_DISABLE_DEPRECATED
+		QNetworkConfigurationManager* _NCA;
+	QT_WARNING_POP
 #endif
-	QString _uuid;
+#endif
+		QString _uuid;
 	/// Targets for announcement
 	std::vector<QString> _deviceList;
 };
