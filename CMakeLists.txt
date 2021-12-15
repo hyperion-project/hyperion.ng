@@ -53,7 +53,7 @@ else()
 endif()
 
 # Set build variables
-#Grabber
+# Grabber
 SET ( DEFAULT_AMLOGIC                     OFF )
 SET ( DEFAULT_DISPMANX                    OFF )
 SET ( DEFAULT_DX                          OFF )
@@ -61,31 +61,40 @@ SET ( DEFAULT_MF                          OFF )
 SET ( DEFAULT_OSX                         OFF )
 SET ( DEFAULT_QT                          ON  )
 SET ( DEFAULT_V4L2                        OFF )
-SET ( DEFAULT_WS281XPWM                   OFF )
 SET ( DEFAULT_X11                         OFF )
 SET ( DEFAULT_XCB                         OFF )
 
-#Input
-SET ( DEFAULT_BOBLIGHT                    ON  )
+# Input
+SET ( DEFAULT_BOBLIGHT_SERVER             ON  )
 SET ( DEFAULT_CEC                         OFF )
+SET ( DEFAULT_FLATBUF_SERVER              ON  )
+SET ( DEFAULT_PROTOBUF_SERVER             ON  )
 
-#Output
+# Output
+SET ( DEFAULT_FORWARDER                   ON  )
+SET ( DEFAULT_FLATBUF_CONNECT             ON  )
+SET ( DEFAULT_PROTOBUF_CONNECT            OFF )
+
+# LED-Devices
 SET ( DEFAULT_SPIDEV                      OFF )
 SET ( DEFAULT_TINKERFORGE                 OFF )
 SET ( DEFAULT_USB_HID                     OFF )
 SET ( DEFAULT_WS281XPWM                   OFF )
 
-#Services
+# Services
 SET ( DEFAULT_AVAHI                       ON  )
 SET ( DEFAULT_EXPERIMENTAL                OFF )
 
-#Build
+# Build
 SET ( DEFAULT_TESTS                       OFF )
 SET ( DEFAULT_DEPLOY_DEPENDENCIES         ON  )
 SET ( DEFAULT_USE_SHARED_AVAHI_LIBS       ON  )
 SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF )
 SET ( DEFAULT_USE_SYSTEM_PROTO_LIBS       OFF )
 SET ( DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     OFF )
+
+# Build Hyperion with a reduced set of functionality, overwrites other default values
+SET ( DEFAULT_HYPERION_LIGHT              OFF )
 
 IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
 	SET ( DEFAULT_FB          ON )
@@ -191,6 +200,35 @@ ADD_DEFINITIONS( ${PLATFORM_DEFINE} )
 
 # set the build options
 
+option(HYPERION_LIGHT "Build Hyperion with a reduced set of functionality" ${DEFAULT_HYPERION_LIGHT} )
+message(STATUS "HYPERION_LIGHT = ${HYPERION_LIGHT}")
+
+if (HYPERION_LIGHT)
+	message(STATUS "HYPERION_LIGHT: Hyperion is build with a reduced set of functionality.")
+	# Disable Grabbers
+	SET ( DEFAULT_AMLOGIC                     OFF )
+	SET ( DEFAULT_DISPMANX                    OFF )
+	SET ( DEFAULT_DX                          OFF )
+	SET ( DEFAULT_FB                          OFF )
+	SET ( DEFAULT_MF                          OFF )
+	SET ( DEFAULT_OSX                         OFF )
+	SET ( DEFAULT_QT                          OFF )
+	SET ( DEFAULT_V4L2                        OFF )
+	SET ( DEFAULT_X11                         OFF )
+	SET ( DEFAULT_XCB                         OFF )
+
+	# Disable Input Servers
+	SET ( DEFAULT_BOBLIGHT_SERVER             OFF )
+	SET ( DEFAULT_CEC                         OFF )
+	SET ( DEFAULT_FLATBUF_SERVER              OFF )
+	SET ( DEFAULT_PROTOBUF_SERVER             OFF )
+
+	# Disable Output Connectors
+	SET ( DEFAULT_FORWARDER                   OFF )
+	SET ( DEFAULT_FLATBUF_CONNECT             OFF )
+	SET ( DEFAULT_PROTOBUF_CONNECT            OFF )
+endif()
+
 message(STATUS "Grabber options:")
 
 addIndent(" - ")
@@ -234,15 +272,39 @@ removeIndent()
 message(STATUS "Input options:")
 addIndent(" - ")
 
-option(ENABLE_BOBLIGHT "Enable BOBLIGHT server" ${DEFAULT_BOBLIGHT} )
-message(STATUS "ENABLE_BOBLIGHT = ${ENABLE_BOBLIGHT}")
+option(ENABLE_BOBLIGHT_SERVER "Enable BOBLIGHT server" ${DEFAULT_BOBLIGHT_SERVER} )
+message(STATUS "ENABLE_BOBLIGHT_SERVER = ${ENABLE_BOBLIGHT_SERVER}")
 
 option(ENABLE_CEC "Enable the libcec and CEC control" ${DEFAULT_CEC} )
 message(STATUS "ENABLE_CEC = ${ENABLE_CEC}")
 
+option(ENABLE_FLATBUF_SERVER "Enable Flatbuffers server" ${DEFAULT_FLATBUF_SERVER} )
+message(STATUS "ENABLE_FLATBUF_SERVER = ${ENABLE_FLATBUF_SERVER}")
+
+option(ENABLE_PROTOBUF_SERVER "Enable Protocol Buffers server" ${DEFAULT_PROTOBUF_SERVER} )
+message(STATUS "ENABLE_PROTOBUF_SERVER = ${ENABLE_PROTOBUF_SERVER}")
+
 removeIndent()
 
 message(STATUS "Output options:")
+addIndent(" - ")
+
+option(ENABLE_FORWARDER "Enable Hyperion forwarding" ${DEFAULT_FORWARDER} )
+message(STATUS "ENABLE_FORWARDER = ${ENABLE_FORWARDER}")
+
+if (ENABLE_FORWARDER)
+	SET(ENABLE_FLATBUF_CONNECT ON)
+else()
+	option(ENABLE_FLATBUF_CONNECT "Enable Flatbuffers connecting remotely" ${DEFAULT_FLATBUF_CONNECT} )
+endif()
+message(STATUS "ENABLE_FLATBUF_CONNECT = ${ENABLE_FLATBUF_CONNECT}")
+
+option(ENABLE_PROTOBUF_CONNECT "Enable Protocol Buffers connecting remotely" ${DEFAULT_PROTOBUF_CONNECT} )
+message(STATUS "ENABLE_PROTOBUF_CONNECT = ${ENABLE_PROTOBUF_CONNECT}")
+
+removeIndent()
+
+message(STATUS "LED-Device options:")
 addIndent(" - ")
 
 option(ENABLE_SPIDEV   "Enable the SPIDEV device" ${DEFAULT_SPIDEV} )

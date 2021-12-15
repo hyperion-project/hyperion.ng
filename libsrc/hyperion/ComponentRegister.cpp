@@ -11,10 +11,14 @@ ComponentRegister::ComponentRegister(Hyperion* hyperion)
 {
 	// init all comps to false
 	QVector<hyperion::Components> vect;
-	vect << COMP_ALL << COMP_SMOOTHING << COMP_BLACKBORDER << COMP_FORWARDER << COMP_GRABBER << COMP_V4L << COMP_LEDDEVICE;
+	vect << COMP_ALL << COMP_SMOOTHING << COMP_BLACKBORDER << COMP_GRABBER << COMP_V4L << COMP_LEDDEVICE;
 
-#if defined(ENABLE_BOBLIGHT)
+#if defined(ENABLE_BOBLIGHT_SERVER)
 	vect << COMP_BOBLIGHTSERVER;
+#endif
+
+#if defined(ENABLE_FORWARDER)
+	vect << COMP_FORWARDER;
 #endif
 
 	for(auto e : vect)

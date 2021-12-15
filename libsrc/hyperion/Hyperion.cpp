@@ -9,7 +9,11 @@
 
 // hyperion include
 #include <hyperion/Hyperion.h>
-#include <hyperion/MessageForwarder.h>
+
+#if defined(ENABLE_FORWARDER)
+#include <forwarder/MessageForwarder.h>
+#endif
+
 #include <hyperion/ImageProcessor.h>
 #include <hyperion/ColorAdjustment.h>
 
@@ -37,7 +41,7 @@
 #include <hyperion/CaptureCont.h>
 
 // Boblight
-#if defined(ENABLE_BOBLIGHT)
+#if defined(ENABLE_BOBLIGHT_SERVER)
 #include <boblightserver/BoblightServer.h>
 #endif
 
@@ -53,14 +57,16 @@ Hyperion::Hyperion(quint8 instance, bool readonlyMode)
 	, _ledDeviceWrapper(nullptr)
 	, _deviceSmooth(nullptr)
 	, _effectEngine(nullptr)
+#if defined(ENABLE_FORWARDER)
 	, _messageForwarder(nullptr)
+#endif
 	, _log(Logger::getInstance("HYPERION"))
 	, _hwLedCount()
 	, _ledGridSize(hyperion::getLedLayoutGridSize(getSetting(settings::LEDS).array()))
 	, _BGEffectHandler(nullptr)
 	, _captureCont(nullptr)
 	, _ledBuffer(_ledString.leds().size(), ColorRgb::BLACK)
-#if defined(ENABLE_BOBLIGHT)
+#if defined(ENABLE_BOBLIGHT_SERVER)
 	, _boblightServer(nullptr)
 #endif
 	, _readOnlyMode(readonlyMode)
@@ -127,11 +133,13 @@ void Hyperion::start()
 	//Start in pause mode, a new priority will activate smoothing (either start-effect or grabber)
 	_deviceSmooth->setPause(true);
 
+#if defined(ENABLE_FORWARDER)
 	// create the message forwarder only on main instance
 	if (_instIndex == 0)
 	{
 		_messageForwarder = new MessageForwarder(this);
 	}
+#endif
 
 	// create the effect engine; needs to be initialized after smoothing!
 	_effectEngine = new EffectEngine(this);
@@ -155,7 +163,7 @@ void Hyperion::start()
 	// if there is no startup / background effect and no sending capture interface we probably want to push once BLACK (as PrioMuxer won't emit a priority change)
 	update();
 
-#if defined(ENABLE_BOBLIGHT)
+#if defined(ENABLE_BOBLIGHT_SERVER)
 	// boblight, can't live in global scope as it depends on layout
 	_boblightServer = new BoblightServer(this, getSetting(settings::BOBLSERVER));
 	connect(this, &Hyperion::settingsChanged, _boblightServer, &BoblightServer::handleSettingsUpdate);
@@ -177,13 +185,18 @@ void Hyperion::freeObjects()
 	clear(-1,true);
 
 	// delete components on exit of hyperion core
-#if defined(ENABLE_BOBLIGHT)
+#if defined(ENABLE_BOBLIGHT_SERVER)
 	delete _boblightServer;
 #endif
+
 	delete _captureCont;
 	delete _effectEngine;
 	delete _raw2ledAdjustment;
+
+#if defined(ENABLE_FORWARDER)
 	delete _messageForwarder;
+#endif
+
 	delete _settingsManager;
 	delete _ledDeviceWrapper;
 }

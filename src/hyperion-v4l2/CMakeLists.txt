@@ -26,7 +26,7 @@ target_link_libraries(${PROJECT_NAME}
 	v4l2-grabber
 	commandline
 	hyperion-utils
-	flatbufserver
+	flatbufconnect
 	flatbuffers
 	ssdp
 	Qt${QT_VERSION_MAJOR}::Core

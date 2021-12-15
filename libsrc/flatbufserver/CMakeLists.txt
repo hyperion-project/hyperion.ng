@@ -8,8 +8,6 @@ include_directories(
 	${FLATBUFFERS_INCLUDE_DIRS}
 )
 
-FILE ( GLOB FLATBUFSERVER_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
-
 set(Flatbuffer_GENERATED_FBS
 	hyperion_reply_generated.h
 	hyperion_request_generated.h
@@ -28,14 +26,39 @@ set_source_files_properties(
 	${Flatbuffer_GENERATED_FBS} PROPERTIES GENERATED TRUE
 )
 
-add_library(flatbufserver
+### Split flatbufconnect from flatbufserver as flatbufserver relates to HyperionDaemon
+
+if(ENABLE_FLATBUF_CONNECT)
+add_library(flatbufconnect
+	${CURRENT_HEADER_DIR}/FlatBufferConnection.h
+	${CURRENT_SOURCE_DIR}/FlatBufferConnection.cpp
 	${FLATBUFSERVER_SOURCES}
 	${Flatbuffer_GENERATED_FBS}
-)
 
-target_link_libraries(flatbufserver
+)
+target_link_libraries(flatbufconnect
 	hyperion-utils
 	flatbuffers
 	Qt${QT_VERSION_MAJOR}::Network
 	Qt${QT_VERSION_MAJOR}::Core
 )
+endif()
+
+if(ENABLE_FLATBUF_SERVER)
+add_library(flatbufserver
+	${CURRENT_HEADER_DIR}/FlatBufferServer.h
+	${CURRENT_SOURCE_DIR}/FlatBufferServer.cpp
+	${CURRENT_SOURCE_DIR}/FlatBufferClient.h
+	${CURRENT_SOURCE_DIR}/FlatBufferClient.cpp
+	${FLATBUFSERVER_SOURCES}
+	${Flatbuffer_GENERATED_FBS}
+)
+
+target_link_libraries(flatbufserver
+hyperion-utils
+flatbuffers
+Qt${QT_VERSION_MAJOR}::Network
+Qt${QT_VERSION_MAJOR}::Core
+)
+endif()
+

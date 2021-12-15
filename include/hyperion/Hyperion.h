@@ -38,7 +38,9 @@
 // Forward class declaration
 class HyperionDaemon;
 class ImageProcessor;
+#if defined(ENABLE_FORWARDER)
 class MessageForwarder;
+#endif
 class LinearColorSmoothing;
 class EffectEngine;
 class MultiColorAdjustment;
@@ -46,7 +48,7 @@ class ColorAdjustment;
 class SettingsManager;
 class BGEffectHandler;
 class CaptureCont;
-#if defined(ENABLE_BOBLIGHT)
+#if defined(ENABLE_BOBLIGHT_SERVER)
 class BoblightServer;
 #endif
 class LedDeviceWrapper;
@@ -534,8 +536,10 @@ private:
 	/// Effect engine
 	EffectEngine * _effectEngine;
 
+#if defined(ENABLE_FORWARDER)
 	// Message forwarder
 	MessageForwarder * _messageForwarder;
+#endif
 
 	/// Logger instance
 	Logger * _log;
@@ -555,7 +559,7 @@ private:
 
 	VideoMode _currVideoMode = VideoMode::VIDEO_2D;
 
-#if defined(ENABLE_BOBLIGHT)
+#if defined(ENABLE_BOBLIGHT_SERVER)
 	/// Boblight instance
 	BoblightServer* _boblightServer;
 #endif

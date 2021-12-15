@@ -3,9 +3,11 @@
 SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/hyperion)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/hyperion)
 
+if(ENABLE_FLATBUF_SERVER)
 include_directories(
 	${CMAKE_CURRENT_BINARY_DIR}/../../libsrc/flatbufserver
 )
+endif()
 
 FILE ( GLOB Hyperion_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
 
@@ -19,16 +21,22 @@ add_library(hyperion
 target_link_libraries(hyperion
 	blackborder
 	hyperion-utils
-	flatbufserver
-	flatbuffers
 	leddevice
 	effectengine
 	database
 	${QT_LIBRARIES}
 )
 
-if(ENABLE_BOBLIGHT)
+if(ENABLE_BOBLIGHT_SERVER)
 	target_link_libraries(hyperion boblightserver)
+endif()
+
+if(ENABLE_FLATBUF_SERVER)
+	target_link_libraries(hyperion flatbufserver)
+endif()
+
+if(ENABLE_FORWARDER)
+	target_link_libraries(hyperion forwarder)
 endif()
 
 if (ENABLE_AVAHI)

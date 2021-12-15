@@ -32,7 +32,7 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
 	commandline
 	hyperion-utils
-	flatbufserver
+	flatbufconnect
 	flatbuffers
 	x11-grabber
 	ssdp

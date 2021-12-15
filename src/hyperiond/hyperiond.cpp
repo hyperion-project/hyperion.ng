@@ -29,10 +29,14 @@
 #include "hyperiond.h"
 
 // Flatbuffer Server
+#ifdef ENABLE_FLATBUF_SERVER
 #include <flatbufserver/FlatBufferServer.h>
+#endif
 
 // Protobuffer Server
+#ifdef ENABLE_PROTOBUF_SERVER
 #include <protoserver/ProtoServer.h>
+#endif
 
 // ssdp
 #include <ssdp/SSDPHandler.h>
@@ -83,7 +87,9 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	  , _qtGrabber(nullptr)
 	  , _dxGrabber(nullptr)
 	  , _ssdp(nullptr)
+#ifdef ENABLE_CEC
 	  , _cecHandler(nullptr)
+#endif
 	  , _currVideoMode(VideoMode::VIDEO_2D)
 {
 	HyperionDaemon::daemon = this;
@@ -179,6 +185,7 @@ void HyperionDaemon::freeObjects()
 	delete _jsonServer;
 	_jsonServer = nullptr;
 
+#if defined(ENABLE_FLATBUF_SERVER)
 	if (_flatBufferServer != nullptr)
 	{
 		auto flatBufferServerThread = _flatBufferServer->thread();
@@ -187,7 +194,9 @@ void HyperionDaemon::freeObjects()
 		delete flatBufferServerThread;
 		_flatBufferServer = nullptr;
 	}
+#endif
 
+#if defined(ENABLE_PROTOBUF_SERVER)
 	if (_protoServer != nullptr)
 	{
 		auto protoServerThread = _protoServer->thread();
@@ -196,6 +205,7 @@ void HyperionDaemon::freeObjects()
 		delete protoServerThread;
 		_protoServer = nullptr;
 	}
+#endif
 
 	//ssdp before webserver
 	if (_ssdp != nullptr)
@@ -268,6 +278,7 @@ void HyperionDaemon::startNetworkServices()
 	_jsonServer = new JsonServer(getSetting(settings::JSONSERVER));
 	connect(this, &HyperionDaemon::settingsChanged, _jsonServer, &JsonServer::handleSettingsUpdate);
 
+#if defined(ENABLE_FLATBUF_SERVER)
 	// Create FlatBuffer server in thread
 	_flatBufferServer = new FlatBufferServer(getSetting(settings::FLATBUFSERVER));
 	QThread* fbThread = new QThread(this);
@@ -277,7 +288,9 @@ void HyperionDaemon::startNetworkServices()
 	connect(fbThread, &QThread::finished, _flatBufferServer, &FlatBufferServer::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _flatBufferServer, &FlatBufferServer::handleSettingsUpdate);
 	fbThread->start();
+#endif
 
+#if defined(ENABLE_PROTOBU_SERVER)
 	// Create Proto server in thread
 	_protoServer = new ProtoServer(getSetting(settings::PROTOSERVER));
 	QThread* pThread = new QThread(this);
@@ -287,6 +300,7 @@ void HyperionDaemon::startNetworkServices()
 	connect(pThread, &QThread::finished, _protoServer, &ProtoServer::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _protoServer, &ProtoServer::handleSettingsUpdate);
 	pThread->start();
+#endif
 
 	// Create Webserver in thread
 	_webserver = new WebServer(getSetting(settings::WEBSERVER), false);

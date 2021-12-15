@@ -2,7 +2,7 @@
 #include <stdexcept>
 
 // project includes
-#include <hyperion/MessageForwarder.h>
+#include <forwarder/MessageForwarder.h>
 
 // hyperion includes
 #include <hyperion/Hyperion.h>

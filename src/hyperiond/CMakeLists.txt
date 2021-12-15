@@ -49,8 +49,6 @@ target_link_libraries(${PROJECT_NAME}
 	hyperion
 	effectengine
 	jsonserver
-	flatbufserver
-	protoserver
 	webserver
 	ssdp
 	database
@@ -66,6 +64,15 @@ if (NOT CMAKE_VERSION VERSION_LESS "3.12")
 	target_link_libraries( ${PROJECT_NAME} ${Python3_LIBRARIES} )
 else()
 	target_link_libraries( ${PROJECT_NAME} ${PYTHON_LIBRARIES} )
+endif()
+
+
+if(ENABLE_FLATBUF_SERVER)
+	target_link_libraries(${PROJECT_NAME} flatbufserver)
+endif()
+
+if(ENABLE_PROTOBUF_SERVER)
+	target_link_libraries(${PROJECT_NAME} protoserver)
 endif()
 
 if (ENABLE_AVAHI)
