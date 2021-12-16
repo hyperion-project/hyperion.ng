@@ -31,7 +31,8 @@ PythonInit::PythonInit()
 
 #if defined(ENABLE_DEPLOY_DEPENDENCIES)
 	// Set Program name
-	Py_SetProgramName(L"Hyperion");
+	wchar_t programName[] = L"Hyperion";
+	Py_SetProgramName(programName);
 
 	// set Python module path when exists
 	QString py_path = QDir::cleanPath(qApp->applicationDirPath() + "/../lib/python" + STRINGIFY(PYTHON_VERSION_MAJOR) + "." + STRINGIFY(PYTHON_VERSION_MINOR));
