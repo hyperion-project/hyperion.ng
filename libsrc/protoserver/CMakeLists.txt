@@ -33,14 +33,16 @@ add_library(protoserver
 endif()
 
 # disable warnings for auto generated proto files, we can't change the files ....
-SET_SOURCE_FILES_PROPERTIES ( ${ProtoServer_PROTO_SRCS} ${ProtoServer_PROTO_HDRS} ${ProtoServer_PROTOS} PROPERTIES COMPILE_FLAGS -w )
-
+set_source_files_properties(${ProtoServer_PROTO_SRCS} ${ProtoServer_PROTO_HDRS} ${ProtoServer_PROTOS} PROPERTIES GENERATED TRUE)
+if (MSVC)
+	set_source_files_properties(${ProtoServer_PROTO_SRCS} ${ProtoServer_PROTO_HDRS} ${ProtoServer_PROTOS} PROPERTIES COMPILE_FLAGS "/wd4244 /wd4267")
+endif (MSVC)
 
 if(ENABLE_PROTOBUF_CONNECT)
 target_link_libraries(protoconnect
 	hyperion
 	hyperion-utils
-	protobuf
+	libprotobuf
 	Qt${QT_VERSION_MAJOR}::Gui
 )
 endif()
@@ -49,7 +51,7 @@ if(ENABLE_PROTOBUF_SERVER)
 target_link_libraries(protoserver
 	hyperion
 	hyperion-utils
-	protobuf	
+	libprotobuf
 	Qt${QT_VERSION_MAJOR}::Gui
 )
 endif()

@@ -8,5 +8,4 @@
 	branch = master
 [submodule "dependencies/external/protobuf"]
 	path = dependencies/external/protobuf
-	url = https://github.com/hyperion-project/protobuf.git
-	branch = master
+	url = https://github.com/protocolbuffers/protobuf

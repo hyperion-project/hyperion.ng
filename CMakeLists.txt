@@ -31,10 +31,6 @@ set(CMAKE_AUTOMOC ON)
 # auto prepare .qrc files
 set(CMAKE_AUTORCC ON)
 
-if ( POLICY CMP0026 )
-	CMAKE_POLICY( SET CMP0026 OLD )
-endif()
-
 # Configure CCache if available
 find_program(CCACHE_FOUND ccache)
 if ( CCACHE_FOUND )
@@ -472,7 +468,7 @@ if (NOT DEFINED QTDIR)
 			endif()
 		endif()
 	endif()
-endif()	
+endif()
 
 if (DEFINED QTDIR)
 	message(STATUS "Add QTDIR: ${QTDIR} to CMAKE_PREFIX_PATH")
