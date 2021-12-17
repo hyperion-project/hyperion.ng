@@ -16,7 +16,7 @@
                 <span id="dash_config_status">Status</span>
               </div>
               <div class="panel-body">
-                <table class="table borderless">
+                <table id="dash_capture_hw" class="table borderless">
                   <thead>
                     <tr>
                       <th colspan="3">
@@ -26,7 +26,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
+                    <tr id="dash_screen_grabber_row">
                       <td></td>
                       <td data-i18n="edt_conf_fg_heading_title">Screen-Grabber</td>
                       <td style="text-align: right; padding-right: 0">
@@ -34,7 +34,7 @@
                         <a class="fa fa-cog fa-fw" onclick="SwitchToMenuItem('MenuItemGrabber', 'editor_container_screengrabber')" style="text-decoration: none; cursor: pointer"></a>
                       </td>
                     </tr>
-                    <tr>
+                    <tr id="dash_video_grabber_row">
                       <td></td>
                       <td data-i18n="edt_conf_v4l2_heading_title">Video-Grabber</td>
                       <td style="text-align: right; padding-right: 0">
@@ -44,7 +44,7 @@
                     </tr>
                   </tbody>
                 </table>
-                <table class="table borderless">
+                <table id="dash_ports" class="table borderless">
                   <thead>
                     <tr>
                       <th colspan="3">
@@ -54,20 +54,20 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td></td>
-                      <td data-i18n="dashboard_infobox_label_port_proto">proto</td>
-                      <td style="text-align: right; padding-right: 0">
-                        <span id="dash_pbPort">unknown</span>
-                        <a class="fa fa-cog fa-fw" onclick="SwitchToMenuItem('MenuItemNetwork', 'editor_container_protoserver')" style="text-decoration: none; cursor: pointer"></a>
-                      </td>
-                    </tr>
-                    <tr>
+                    <tr id="dash_ports_flat_row">
                       <td></td>
                       <td data-i18n="dashboard_infobox_label_port_flat">flat</td>
                       <td style="text-align: right; padding-right: 0">
                         <span id="dash_fbPort">unknown</span>
                         <a class="fa fa-cog fa-fw" onclick="SwitchToMenuItem('MenuItemNetwork', 'editor_container_fbserver')" style="text-decoration: none; cursor: pointer"></a>
+                      </td>
+                    </tr>
+                    <tr id="dash_ports_proto_row">
+                      <td></td>
+                      <td data-i18n="dashboard_infobox_label_port_proto">proto</td>
+                      <td style="text-align: right; padding-right: 0">
+                        <span id="dash_pbPort">unknown</span>
+                        <a class="fa fa-cog fa-fw" onclick="SwitchToMenuItem('MenuItemNetwork', 'editor_container_protoserver')" style="text-decoration: none; cursor: pointer"></a>
                       </td>
                     </tr>
                     <tr>

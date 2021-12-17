@@ -1,7 +1,10 @@
 $(document).ready(function () {
   performTranslation();
 
-  var BOBLIGHT_ENABLED = window.comps.find(element => element.name == "BOBLIGHTSERVER");
+  var BOBLIGHT_ENABLED = (jQuery.inArray("boblight", window.serverInfo.services) !== -1);
+  var FORWARDER_ENABLED = (jQuery.inArray("forwarder", window.serverInfo.services) !== -1);
+  var FLATBUF_SERVER_ENABLED = (jQuery.inArray("flatbuffer", window.serverInfo.services) !== -1);
+  var PROTOTBUF_SERVER_ENABLED = (jQuery.inArray("protobuffer", window.serverInfo.services) !== -1);
 
   var conf_editor_net = null;
   var conf_editor_json = null;
@@ -24,14 +27,18 @@ $(document).ready(function () {
     $('#conf_cont_json').append(createHelpTable(window.schema.jsonServer.properties, $.i18n("edt_conf_js_heading_title")));
 
     //flatbufserver
-    $('#conf_cont').append(createRow('conf_cont_flatbuf'));
-    $('#conf_cont_flatbuf').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_fbs_heading_title"), 'editor_container_fbserver', 'btn_submit_fbserver', 'panel-system'));
-    $('#conf_cont_flatbuf').append(createHelpTable(window.schema.flatbufServer.properties, $.i18n("edt_conf_fbs_heading_title"), "flatbufServerHelpPanelId"));
+    if (FLATBUF_SERVER_ENABLED) {
+      $('#conf_cont').append(createRow('conf_cont_flatbuf'));
+      $('#conf_cont_flatbuf').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_fbs_heading_title"), 'editor_container_fbserver', 'btn_submit_fbserver', 'panel-system'));
+      $('#conf_cont_flatbuf').append(createHelpTable(window.schema.flatbufServer.properties, $.i18n("edt_conf_fbs_heading_title"), "flatbufServerHelpPanelId"));
+    }
 
     //protoserver
-    $('#conf_cont').append(createRow('conf_cont_proto'));
-    $('#conf_cont_proto').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_pbs_heading_title"), 'editor_container_protoserver', 'btn_submit_protoserver', 'panel-system'));
-    $('#conf_cont_proto').append(createHelpTable(window.schema.protoServer.properties, $.i18n("edt_conf_pbs_heading_title"), "protoServerHelpPanelId"));
+    if (PROTOTBUF_SERVER_ENABLED) {
+      $('#conf_cont').append(createRow('conf_cont_proto'));
+      $('#conf_cont_proto').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_pbs_heading_title"), 'editor_container_protoserver', 'btn_submit_protoserver', 'panel-system'));
+      $('#conf_cont_proto').append(createHelpTable(window.schema.protoServer.properties, $.i18n("edt_conf_pbs_heading_title"), "protoServerHelpPanelId"));
+    }
 
     //boblight
     if (BOBLIGHT_ENABLED) {
@@ -41,21 +48,30 @@ $(document).ready(function () {
     }
 
     //forwarder
-    if (storedAccess != 'default') {
-      $('#conf_cont').append(createRow('conf_cont_fw'));
-      $('#conf_cont_fw').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_fw_heading_title"), 'editor_container_forwarder', 'btn_submit_forwarder', 'panel-system'));
-      $('#conf_cont_fw').append(createHelpTable(window.schema.forwarder.properties, $.i18n("edt_conf_fw_heading_title"), "forwarderHelpPanelId"));
+    if (FORWARDER_ENABLED) {
+      if (storedAccess != 'default') {
+        $('#conf_cont').append(createRow('conf_cont_fw'));
+        $('#conf_cont_fw').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_fw_heading_title"), 'editor_container_forwarder', 'btn_submit_forwarder', 'panel-system'));
+        $('#conf_cont_fw').append(createHelpTable(window.schema.forwarder.properties, $.i18n("edt_conf_fw_heading_title"), "forwarderHelpPanelId"));
+      }
     }
   }
   else {
     $('#conf_cont').addClass('row');
     $('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_net_heading_title"), 'editor_container_net', 'btn_submit_net'));
     $('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_js_heading_title"), 'editor_container_jsonserver', 'btn_submit_jsonserver'));
-    $('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_fbs_heading_title"), 'editor_container_fbserver', 'btn_submit_fbserver'));
-    $('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_pbs_heading_title"), 'editor_container_protoserver', 'btn_submit_protoserver'));
-    $('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_bobls_heading_title"), 'editor_container_boblightserver', 'btn_submit_boblightserver'));
-    $('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_fw_heading_title"), 'editor_container_forwarder', 'btn_submit_forwarder'));
-
+    if (FLATBUF_SERVER_ENABLED) {
+      $('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_fbs_heading_title"), 'editor_container_fbserver', 'btn_submit_fbserver'));
+    }
+    if (PROTOTBUF_SERVER_ENABLED) {
+      $('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_pbs_heading_title"), 'editor_container_protoserver', 'btn_submit_protoserver'));
+    }
+    if (BOBLIGHT_ENABLED) {
+      $('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_bobls_heading_title"), 'editor_container_boblightserver', 'btn_submit_boblightserver'));
+    }
+    if (FORWARDER_ENABLED) {
+      $('#conf_cont').append(createOptPanel('fa-sitemap', $.i18n("edt_conf_fw_heading_title"), 'editor_container_forwarder', 'btn_submit_forwarder'));
+    }
     $("#conf_cont_tok").removeClass('row');
   }
 
@@ -86,46 +102,50 @@ $(document).ready(function () {
   });
 
   //flatbuffer
-  conf_editor_fbs = createJsonEditor('editor_container_fbserver', {
-    flatbufServer: window.schema.flatbufServer
-  }, true, true);
+  if (FLATBUF_SERVER_ENABLED) {
+    conf_editor_fbs = createJsonEditor('editor_container_fbserver', {
+      flatbufServer: window.schema.flatbufServer
+    }, true, true);
 
-  conf_editor_fbs.on('change', function () {
-    var flatbufServerEnable = conf_editor_fbs.getEditor("root.flatbufServer.enable").getValue();
-    if (flatbufServerEnable) {
-      showInputOptionsForKey(conf_editor_fbs, "flatbufServer", "enable", true);
-      $('#flatbufServerHelpPanelId').show();
-    } else {
-      showInputOptionsForKey(conf_editor_fbs, "flatbufServer", "enable", false);
-      $('#flatbufServerHelpPanelId').hide();
-    }
-    conf_editor_fbs.validate().length || window.readOnlyMode ? $('#btn_submit_fbserver').attr('disabled', true) : $('#btn_submit_fbserver').attr('disabled', false);
-  });
+    conf_editor_fbs.on('change', function () {
+      var flatbufServerEnable = conf_editor_fbs.getEditor("root.flatbufServer.enable").getValue();
+      if (flatbufServerEnable) {
+        showInputOptionsForKey(conf_editor_fbs, "flatbufServer", "enable", true);
+        $('#flatbufServerHelpPanelId').show();
+      } else {
+        showInputOptionsForKey(conf_editor_fbs, "flatbufServer", "enable", false);
+        $('#flatbufServerHelpPanelId').hide();
+      }
+      conf_editor_fbs.validate().length || window.readOnlyMode ? $('#btn_submit_fbserver').attr('disabled', true) : $('#btn_submit_fbserver').attr('disabled', false);
+    });
 
-  $('#btn_submit_fbserver').off().on('click', function () {
-    requestWriteConfig(conf_editor_fbs.getValue());
-  });
+    $('#btn_submit_fbserver').off().on('click', function () {
+      requestWriteConfig(conf_editor_fbs.getValue());
+    });
+  }
 
   //protobuffer
-  conf_editor_proto = createJsonEditor('editor_container_protoserver', {
-    protoServer: window.schema.protoServer
-  }, true, true);
+  if (PROTOTBUF_SERVER_ENABLED) {
+    conf_editor_proto = createJsonEditor('editor_container_protoserver', {
+      protoServer: window.schema.protoServer
+    }, true, true);
 
-  conf_editor_proto.on('change', function () {
-    var protoServerEnable = conf_editor_proto.getEditor("root.protoServer.enable").getValue();
-    if (protoServerEnable) {
-      showInputOptionsForKey(conf_editor_proto, "protoServer", "enable", true);
-      $('#protoServerHelpPanelId').show();
-    } else {
-      showInputOptionsForKey(conf_editor_proto, "protoServer", "enable", false);
-      $('#protoServerHelpPanelId').hide();
-    }
-    conf_editor_proto.validate().length || window.readOnlyMode ? $('#btn_submit_protoserver').attr('disabled', true) : $('#btn_submit_protoserver').attr('disabled', false);
-  });
+    conf_editor_proto.on('change', function () {
+      var protoServerEnable = conf_editor_proto.getEditor("root.protoServer.enable").getValue();
+      if (protoServerEnable) {
+        showInputOptionsForKey(conf_editor_proto, "protoServer", "enable", true);
+        $('#protoServerHelpPanelId').show();
+      } else {
+        showInputOptionsForKey(conf_editor_proto, "protoServer", "enable", false);
+        $('#protoServerHelpPanelId').hide();
+      }
+      conf_editor_proto.validate().length || window.readOnlyMode ? $('#btn_submit_protoserver').attr('disabled', true) : $('#btn_submit_protoserver').attr('disabled', false);
+    });
 
-  $('#btn_submit_protoserver').off().on('click', function () {
-    requestWriteConfig(conf_editor_proto.getValue());
-  });
+    $('#btn_submit_protoserver').off().on('click', function () {
+      requestWriteConfig(conf_editor_proto.getValue());
+    });
+  }
 
   //boblight
   if (BOBLIGHT_ENABLED) {
@@ -150,39 +170,47 @@ $(document).ready(function () {
     });
   }
 
-  if (storedAccess != 'default') {
-    //forwarder
-    conf_editor_forw = createJsonEditor('editor_container_forwarder', {
-      forwarder: window.schema.forwarder
-    }, true, true);
+  //forwarder
+  if (FORWARDER_ENABLED) {
+    if (storedAccess != 'default') {
+      conf_editor_forw = createJsonEditor('editor_container_forwarder', {
+        forwarder: window.schema.forwarder
+      }, true, true);
 
-    conf_editor_forw.on('change', function () {
-      var forwarderEnable = conf_editor_forw.getEditor("root.forwarder.enable").getValue();
-      if (forwarderEnable) {
-        showInputOptionsForKey(conf_editor_forw, "forwarder", "enable", true);
-        $('#forwarderHelpPanelId').show();
-      } else {
-        showInputOptionsForKey(conf_editor_forw, "forwarder", "enable", false);
-        $('#forwarderHelpPanelId').hide();
-      }
-      conf_editor_forw.validate().length || window.readOnlyMode ? $('#btn_submit_forwarder').attr('disabled', true) : $('#btn_submit_forwarder').attr('disabled', false);
-    });
+      conf_editor_forw.on('change', function () {
+        var forwarderEnable = conf_editor_forw.getEditor("root.forwarder.enable").getValue();
+        if (forwarderEnable) {
+          showInputOptionsForKey(conf_editor_forw, "forwarder", "enable", true);
+          $('#forwarderHelpPanelId').show();
+        } else {
+          showInputOptionsForKey(conf_editor_forw, "forwarder", "enable", false);
+          $('#forwarderHelpPanelId').hide();
+        }
+        conf_editor_forw.validate().length || window.readOnlyMode ? $('#btn_submit_forwarder').attr('disabled', true) : $('#btn_submit_forwarder').attr('disabled', false);
+      });
 
-    $('#btn_submit_forwarder').off().on('click', function () {
-      requestWriteConfig(conf_editor_forw.getValue());
-    });
+      $('#btn_submit_forwarder').off().on('click', function () {
+        requestWriteConfig(conf_editor_forw.getValue());
+      });
+    }
   }
 
   //create introduction
   if (window.showOptHelp) {
     createHint("intro", $.i18n('conf_network_net_intro'), "editor_container_net");
     createHint("intro", $.i18n('conf_network_json_intro'), "editor_container_jsonserver");
-    createHint("intro", $.i18n('conf_network_fbs_intro'), "editor_container_fbserver");
-    createHint("intro", $.i18n('conf_network_proto_intro'), "editor_container_protoserver");
+    if (FLATBUF_SERVER_ENABLED) {
+      createHint("intro", $.i18n('conf_network_fbs_intro'), "editor_container_fbserver");
+    }
+    if (PROTOTBUF_SERVER_ENABLED) {
+      createHint("intro", $.i18n('conf_network_proto_intro'), "editor_container_protoserver");
+    }
     if (BOBLIGHT_ENABLED) {
       createHint("intro", $.i18n('conf_network_bobl_intro'), "editor_container_boblightserver");
     }
-    createHint("intro", $.i18n('conf_network_forw_intro'), "editor_container_forwarder");
+    if (FORWARDER_ENABLED) {
+      createHint("intro", $.i18n('conf_network_forw_intro'), "editor_container_forwarder");
+    }
     createHint("intro", $.i18n('conf_network_tok_intro'), "tok_desc_cont");
   }
 
