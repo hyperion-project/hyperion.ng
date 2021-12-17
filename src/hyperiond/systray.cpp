@@ -14,6 +14,7 @@
 #include <QSettings>
 
 #include <utils/ColorRgb.h>
+#include <utils/Process.h>
 #include <effectengine/EffectDefinition.h>
 #include <effectengine/Effect.h>
 #include <webserver/WebServer.h>
@@ -72,19 +73,23 @@ void SysTray::createTrayIcon()
 
 	quitAction = new QAction(tr("&Quit"), this);
 	quitAction->setIcon(QPixmap(":/quit.svg"));
-	connect(quitAction, SIGNAL(triggered()), qApp, SLOT(quit()));
+	connect(quitAction, &QAction::triggered, qApp, QApplication::quit);
+
+	restartAction = new QAction(tr("&Restart"), this);
+	restartAction->setIcon(QPixmap(":/restart.svg"));
+	connect(restartAction, &QAction::triggered, this , [=](){ Process::restartHyperion(); });
 
 	colorAction = new QAction(tr("&Color"), this);
 	colorAction->setIcon(QPixmap(":/color.svg"));
-	connect(colorAction, SIGNAL(triggered()), this, SLOT(showColorDialog()));
+	connect(colorAction, &QAction::triggered, this, &SysTray::showColorDialog);
 
 	settingsAction = new QAction(tr("&Settings"), this);
 	settingsAction->setIcon(QPixmap(":/settings.svg"));
-	connect(settingsAction, SIGNAL(triggered()), this, SLOT(settings()));
+	connect(settingsAction, &QAction::triggered, this, &SysTray::settings);
 
 	clearAction = new QAction(tr("&Clear"), this);
 	clearAction->setIcon(QPixmap(":/clear.svg"));
-	connect(clearAction, SIGNAL(triggered()), this, SLOT(clearEfxColor()));
+	connect(clearAction, &QAction::triggered, this, &SysTray::clearEfxColor);
 
 	const std::list<EffectDefinition> efxs = _hyperion->getEffects();
 	_trayIconMenu = new QMenu(this);
@@ -98,7 +103,7 @@ void SysTray::createTrayIcon()
 		if (efx.file.mid(0, 1)  != ":")
 		{
 			QAction *efxAction = new QAction(efx.name, this);
-			connect(efxAction, SIGNAL(triggered()), this, SLOT(setEffect()));
+			connect(efxAction, &QAction::triggered, this, &SysTray::setEffect);
 			_trayIconEfxMenu->addAction(efxAction);
 		}
 	}
@@ -113,7 +118,7 @@ void SysTray::createTrayIcon()
 		if (efx.file.mid(0, 1)  == ":")
 		{
 			QAction *efxAction = new QAction(efx.name, this);
-			connect(efxAction, SIGNAL(triggered()), this, SLOT(setEffect()));
+			connect(efxAction, &QAction::triggered, this, &SysTray::setEffect);
 			_trayIconEfxMenu->addAction(efxAction);
 		}
 	}
@@ -121,7 +126,7 @@ void SysTray::createTrayIcon()
 #ifdef _WIN32
 	autorunAction = new QAction(tr("&Disable autostart"), this);
 	autorunAction->setIcon(QPixmap(":/autorun.svg"));
-	connect(autorunAction, SIGNAL(triggered()), this, SLOT(setAutorunState()));
+	connect(autorunAction, &QAction::triggered, this, &SysTray::setAutorunState);
 
 	_trayIconMenu->addAction(autorunAction);
 	_trayIconMenu->addSeparator();
@@ -133,6 +138,7 @@ void SysTray::createTrayIcon()
 	_trayIconMenu->addMenu(_trayIconEfxMenu);
 	_trayIconMenu->addAction(clearAction);
 	_trayIconMenu->addSeparator();
+	_trayIconMenu->addAction(restartAction);
 	_trayIconMenu->addAction(quitAction);
 
 	_trayIcon = new QSystemTrayIcon(this);
@@ -242,12 +248,10 @@ void SysTray::handleInstanceStateChange(InstanceState state, quint8 instance, co
 				_hyperion = _instanceManager->getHyperionInstance(0);
 
 				createTrayIcon();
-				connect(_trayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
-					this, SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
-
+				connect(_trayIcon, &QSystemTrayIcon::activated, this, &SysTray::iconActivated);
 				connect(quitAction, &QAction::triggered, _trayIcon, &QSystemTrayIcon::hide, Qt::DirectConnection);
+				connect(&_colorDlg, &QColorDialog::currentColorChanged, this, &SysTray::setColor);
 
-				connect(&_colorDlg, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(setColor(const QColor &)));
 				QIcon icon(":/hyperion-icon-32px.png");
 				_trayIcon->setIcon(icon);
 				_trayIcon->show();

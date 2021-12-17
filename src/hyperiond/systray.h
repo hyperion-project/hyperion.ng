@@ -54,6 +54,7 @@ private:
 #endif
 
 	QAction          *quitAction;
+	QAction          *restartAction;
 	QAction          *startAction;
 	QAction          *stopAction;
 	QAction          *colorAction;
