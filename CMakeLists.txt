@@ -486,7 +486,7 @@ IF ( "${QT_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
 	message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )
 ENDIF()
 
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Gui Network SerialPort Sql Widgets REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} ${QT_VERSION} COMPONENTS Core Gui Network SerialPort Sql Widgets REQUIRED)
 
 message( STATUS "Qt version used: ${QT_VERSION}" )
 
