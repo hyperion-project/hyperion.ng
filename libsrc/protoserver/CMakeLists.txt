@@ -27,7 +27,7 @@ add_library(protoserver
 
 # disable warnings for auto generated proto files, we can't change the files ....
 if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-	set_source_files_properties(${ProtoServer_PROTO_SRCS} ${ProtoServer_PROTO_HDRS} ${ProtoServer_PROTOS} PROPERTIES COMPILE_FLAGS "-w")
+	set_source_files_properties(${ProtoServer_PROTO_SRCS} ${ProtoServer_PROTO_HDRS} ${ProtoServer_PROTOS} PROPERTIES COMPILE_FLAGS "-w -Wno-return-local-addr")
 elseif(MSVC)
 	set_source_files_properties(${ProtoServer_PROTO_SRCS} ${ProtoServer_PROTO_HDRS} ${ProtoServer_PROTOS} PROPERTIES COMPILE_FLAGS "/W0")
 endif()
