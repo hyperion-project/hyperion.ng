@@ -69,7 +69,6 @@ SET ( DEFAULT_PROTOBUF_SERVER             ON  )
 # Output
 SET ( DEFAULT_FORWARDER                   ON  )
 SET ( DEFAULT_FLATBUF_CONNECT             ON  )
-SET ( DEFAULT_PROTOBUF_CONNECT            OFF )
 
 # LED-Devices
 SET ( DEFAULT_SPIDEV                      OFF )
@@ -222,7 +221,6 @@ if (HYPERION_LIGHT)
 	# Disable Output Connectors
 	SET ( DEFAULT_FORWARDER                   OFF )
 	SET ( DEFAULT_FLATBUF_CONNECT             OFF )
-	SET ( DEFAULT_PROTOBUF_CONNECT            OFF )
 endif()
 
 message(STATUS "Grabber options:")
@@ -294,9 +292,6 @@ else()
 	option(ENABLE_FLATBUF_CONNECT "Enable Flatbuffers connecting remotely" ${DEFAULT_FLATBUF_CONNECT} )
 endif()
 message(STATUS "ENABLE_FLATBUF_CONNECT = ${ENABLE_FLATBUF_CONNECT}")
-
-option(ENABLE_PROTOBUF_CONNECT "Enable Protocol Buffers connecting remotely" ${DEFAULT_PROTOBUF_CONNECT} )
-message(STATUS "ENABLE_PROTOBUF_CONNECT = ${ENABLE_PROTOBUF_CONNECT}")
 
 removeIndent()
 

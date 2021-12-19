@@ -16,7 +16,7 @@ if(ENABLE_FLATBUF_SERVER OR ENABLE_FLATBUF_CONNECT)
 add_subdirectory(flatbufserver)
 endif()
 
-if(ENABLE_PROTOBUF_SERVER OR ENABLE_PROTOBUF_CONNECT)
+if(ENABLE_PROTOBUF_SERVER)
 add_subdirectory(protoserver)
 endif()
 

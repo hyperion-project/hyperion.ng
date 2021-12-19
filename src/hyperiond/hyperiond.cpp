@@ -290,7 +290,7 @@ void HyperionDaemon::startNetworkServices()
 	fbThread->start();
 #endif
 
-#if defined(ENABLE_PROTOBU_SERVER)
+#if defined(ENABLE_PROTOBUF_SERVER)
 	// Create Proto server in thread
 	_protoServer = new ProtoServer(getSetting(settings::PROTOSERVER));
 	QThread* pThread = new QThread(this);

@@ -73,7 +73,8 @@ endif()
 # PROTOBUFFER
 #=============================================================================
 
-if(ENABLE_PROTOBUF_SERVER OR ENABLE_PROTOBUF_CONNECT)
+if(ENABLE_PROTOBUF_SERVER)
+
 	set(USE_SYSTEM_PROTO_LIBS ${DEFAULT_USE_SYSTEM_PROTO_LIBS} CACHE BOOL "use protobuf library from system")
 
 	if (USE_SYSTEM_PROTO_LIBS)
