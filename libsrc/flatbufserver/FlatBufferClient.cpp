@@ -152,15 +152,30 @@ void FlatBufferClient::handleImageCommand(const hyperionnet::Image *image)
 		const int width = img->width();
 		const int height = img->height();
 
-		if ((int) imageData->size() != width*height*3)
+		// check consistency of the size of the received data
+		int channelCount = (int)imageData->size()/(width*height);
+		if (channelCount != 3 && channelCount != 4)
 		{
 			sendErrorReply("Size of image data does not match with the width and height");
 			return;
 		}
 
-		Image<ColorRgb> imageDest(width, height);
-		memmove(imageDest.memptr(), imageData->data(), imageData->size());
-		emit setGlobalInputImage(_priority, imageDest, duration);
+		// create ImageRgb
+		Image<ColorRgb> imageRGB(width, height);
+		if (channelCount == 3)
+		{
+			memmove(imageRGB.memptr(), imageData->data(), imageData->size());
+		}
+
+		if (channelCount == 4)
+		{
+			for (int source=0, destination=0; source < width * height * sizeof(ColorRgb); source+=sizeof(ColorRgb), destination+=sizeof(ColorRgba))
+			{
+				memmove((uint8_t*)imageRGB.memptr() + source, imageData->data() + destination, sizeof(ColorRgb));
+			}
+		}
+
+		emit setGlobalInputImage(_priority, imageRGB, duration);
 	}
 
 	// send reply

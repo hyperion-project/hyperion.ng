@@ -169,17 +169,29 @@ void ProtoClientConnection::handleImageCommand(const proto::ImageRequest &messag
 	}
 
 	// check consistency of the size of the received data
-	if ((int) imageData.size() != width*height*3)
+	int channelCount = (int)imageData.size()/(width*height);
+	if (channelCount != 3 && channelCount != 4)
 	{
 		sendErrorReply("Size of image data does not match with the width and height");
 		return;
 	}
 
 	// create ImageRgb
-	Image<ColorRgb> image(width, height);
-	memcpy(image.memptr(), imageData.c_str(), imageData.size());
+	Image<ColorRgb> imageRGB(width, height);
+	if (channelCount == 3)
+	{
+		memmove(imageRGB.memptr(), imageData.c_str(), imageData.size());
+	}
 
-	emit setGlobalInputImage(_priority, image, duration);
+	if (channelCount == 4)
+	{
+		for (int source=0, destination=0; source < width * height * sizeof(ColorRgb); source+=sizeof(ColorRgb), destination+=sizeof(ColorRgba))
+		{
+			memmove((uint8_t*)imageRGB.memptr() + source, imageData.c_str() + destination, sizeof(ColorRgb));
+		}
+	}
+
+	emit setGlobalInputImage(_priority, imageRGB, duration);
 
 	// send reply
 	sendSuccessReply();

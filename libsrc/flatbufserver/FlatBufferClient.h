@@ -4,6 +4,7 @@
 #include <utils/Logger.h>
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
+#include <utils/ColorRgba.h>
 #include <utils/Components.h>
 
 // flatbuffer FBS
