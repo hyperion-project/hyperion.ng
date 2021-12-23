@@ -152,6 +152,12 @@ void FlatBufferClient::handleImageCommand(const hyperionnet::Image *image)
 		const int width = img->width();
 		const int height = img->height();
 
+		if (width <= 0 || height <= 0)
+		{
+			sendErrorReply("Size of image data does not match with the width and height");
+			return;
+		}
+
 		// check consistency of the size of the received data
 		int channelCount = (int)imageData->size()/(width*height);
 		if (channelCount != 3 && channelCount != 4)
