@@ -1,6 +1,8 @@
 $(document).ready(function () {
   performTranslation();
 
+  var BORDERDETECT_ENABLED = (jQuery.inArray("borderdetection", window.serverInfo.services) !== -1);
+
   // update instance listing
   updateHyperionInstanceListing();
 
@@ -20,15 +22,19 @@ $(document).ready(function () {
     $('#conf_cont_smoothing').append(createHelpTable(window.schema.smoothing.properties, $.i18n("edt_conf_smooth_heading_title"), "smoothingHelpPanelId"));
 
     //blackborder
-    $('#conf_cont').append(createRow('conf_cont_blackborder'));
-    $('#conf_cont_blackborder').append(createOptPanel('fa-photo', $.i18n("edt_conf_bb_heading_title"), 'editor_container_blackborder', 'btn_submit_blackborder'));
-    $('#conf_cont_blackborder').append(createHelpTable(window.schema.blackborderdetector.properties, $.i18n("edt_conf_bb_heading_title"), "blackborderHelpPanelId"));
+    if (BORDERDETECT_ENABLED) {
+      $('#conf_cont').append(createRow('conf_cont_blackborder'));
+      $('#conf_cont_blackborder').append(createOptPanel('fa-photo', $.i18n("edt_conf_bb_heading_title"), 'editor_container_blackborder', 'btn_submit_blackborder'));
+      $('#conf_cont_blackborder').append(createHelpTable(window.schema.blackborderdetector.properties, $.i18n("edt_conf_bb_heading_title"), "blackborderHelpPanelId"));
+    }
   }
   else {
     $('#conf_cont').addClass('row');
     $('#conf_cont').append(createOptPanel('fa-photo', $.i18n("edt_conf_color_heading_title"), 'editor_container_color', 'btn_submit_color'));
     $('#conf_cont').append(createOptPanel('fa-photo', $.i18n("edt_conf_smooth_heading_title"), 'editor_container_smoothing', 'btn_submit_smoothing'));
-    $('#conf_cont').append(createOptPanel('fa-photo', $.i18n("edt_conf_bb_heading_title"), 'editor_container_blackborder', 'btn_submit_blackborder'));
+    if (BORDERDETECT_ENABLED) {
+      $('#conf_cont').append(createOptPanel('fa-photo', $.i18n("edt_conf_bb_heading_title"), 'editor_container_blackborder', 'btn_submit_blackborder'));
+    }
   }
 
   //color
@@ -66,28 +72,30 @@ $(document).ready(function () {
   });
 
   //blackborder
-  editor_blackborder = createJsonEditor('editor_container_blackborder', {
-    blackborderdetector: window.schema.blackborderdetector
-  }, true, true);
+  if (BORDERDETECT_ENABLED) {
+    editor_blackborder = createJsonEditor('editor_container_blackborder', {
+      blackborderdetector: window.schema.blackborderdetector
+    }, true, true);
 
-  editor_blackborder.on('change', function () {
-    var blackborderEnable = editor_blackborder.getEditor("root.blackborderdetector.enable").getValue();
-    if (blackborderEnable) {
-      showInputOptionsForKey(editor_blackborder, "blackborderdetector", "enable", true);
-      $('#blackborderHelpPanelId').show();
-      $('#blackborderWikiLinkId').show();
+    editor_blackborder.on('change', function () {
+      var blackborderEnable = editor_blackborder.getEditor("root.blackborderdetector.enable").getValue();
+      if (blackborderEnable) {
+        showInputOptionsForKey(editor_blackborder, "blackborderdetector", "enable", true);
+        $('#blackborderHelpPanelId').show();
+        $('#blackborderWikiLinkId').show();
 
-    } else {
-      showInputOptionsForKey(editor_blackborder, "blackborderdetector", "enable", false);
-      $('#blackborderHelpPanelId').hide();
-      $('#blackborderWikiLinkId').hide();
-    }
-    editor_blackborder.validate().length || window.readOnlyMode ? $('#btn_submit_blackborder').attr('disabled', true) : $('#btn_submit_blackborder').attr('disabled', false);
-  });
+      } else {
+        showInputOptionsForKey(editor_blackborder, "blackborderdetector", "enable", false);
+        $('#blackborderHelpPanelId').hide();
+        $('#blackborderWikiLinkId').hide();
+      }
+      editor_blackborder.validate().length || window.readOnlyMode ? $('#btn_submit_blackborder').attr('disabled', true) : $('#btn_submit_blackborder').attr('disabled', false);
+    });
 
-  $('#btn_submit_blackborder').off().on('click', function () {
-    requestWriteConfig(editor_blackborder.getValue());
-  });
+    $('#btn_submit_blackborder').off().on('click', function () {
+      requestWriteConfig(editor_blackborder.getValue());
+    });
+  }
 
   //wiki links
   var wikiElement = $(buildWL("user/advanced/Advanced.html#blackbar-detection", "edt_conf_bb_mode_title", true));
@@ -98,7 +106,9 @@ $(document).ready(function () {
   if (window.showOptHelp) {
     createHint("intro", $.i18n('conf_colors_color_intro'), "editor_container_color");
     createHint("intro", $.i18n('conf_colors_smoothing_intro'), "editor_container_smoothing");
-    createHint("intro", $.i18n('conf_colors_blackborder_intro'), "editor_container_blackborder");
+    if (BORDERDETECT_ENABLED) {
+      createHint("intro", $.i18n('conf_colors_blackborder_intro'), "editor_container_blackborder");
+    }
   }
 
   removeOverlay();

@@ -44,27 +44,36 @@ void BlackBorderProcessor::handleSettingsUpdate(settings::type type, const QJson
 {
 	if(type == settings::BLACKBORDER)
 	{
-		const QJsonObject& obj = config.object();
-		_unknownSwitchCnt = obj["unknownFrameCnt"].toInt(600);
-		_borderSwitchCnt = obj["borderFrameCnt"].toInt(50);
-		_maxInconsistentCnt = obj["maxInconsistentCnt"].toInt(10);
-		_blurRemoveCnt = obj["blurRemoveCnt"].toInt(1);
-		_detectionMode = obj["mode"].toString("default");
-		const double newThreshold = obj["threshold"].toDouble(5.0)/100.0;
-
-		if(_oldThreshold != newThreshold)
+		if (_hyperion->isComponentEnabled(COMP_BLACKBORDER) == -1)
 		{
-			_oldThreshold = newThreshold;
-
-			delete _detector;
-
-			_detector = new BlackBorderDetector(newThreshold);
+			//Disable, if service is not available
+			_enabled = false;
+			_userEnabled = false;
 		}
+		else
+		{
+			const QJsonObject& obj = config.object();
+			_unknownSwitchCnt = obj["unknownFrameCnt"].toInt(600);
+			_borderSwitchCnt = obj["borderFrameCnt"].toInt(50);
+			_maxInconsistentCnt = obj["maxInconsistentCnt"].toInt(10);
+			_blurRemoveCnt = obj["blurRemoveCnt"].toInt(1);
+			_detectionMode = obj["mode"].toString("default");
+			const double newThreshold = obj["threshold"].toDouble(5.0) / 100.0;
 
-		Debug(Logger::getInstance("BLACKBORDER"), "Set mode to: %s", QSTRING_CSTR(_detectionMode));
+			if (_oldThreshold != newThreshold)
+			{
+				_oldThreshold = newThreshold;
 
-		// eval the comp state
-		handleCompStateChangeRequest(hyperion::COMP_BLACKBORDER, obj["enable"].toBool(true));
+				delete _detector;
+
+				_detector = new BlackBorderDetector(newThreshold);
+			}
+
+			Debug(Logger::getInstance("BLACKBORDER"), "Set mode to: %s", QSTRING_CSTR(_detectionMode));
+
+			// eval the comp state
+			handleCompStateChangeRequest(hyperion::COMP_BLACKBORDER, obj["enable"].toBool(true));
+		}
 	}
 }
 

@@ -607,6 +607,12 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 #if defined(ENABLE_PROTOBUF_SERVER)
 	services.append("protobuffer");
 #endif
+
+	if (!availableScreenGrabbers.isEmpty() || !availableVideoGrabbers.isEmpty() || services.contains("flatbuffer") || services.contains("protobuffer"))
+	{
+		services.append("borderdetection");
+	}
+
 	info["services"] = services;
 
 	// get available components
