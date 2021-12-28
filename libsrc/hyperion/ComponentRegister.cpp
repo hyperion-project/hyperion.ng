@@ -13,18 +13,36 @@ ComponentRegister::ComponentRegister(Hyperion* hyperion)
 {
 	// init all comps to false
 	QVector<hyperion::Components> vect;
-	vect << COMP_ALL << COMP_SMOOTHING << COMP_BLACKBORDER << COMP_LEDDEVICE;
+	vect << COMP_ALL << COMP_SMOOTHING << COMP_LEDDEVICE;
 
+	bool areScreenGrabberAvailable = !GrabberWrapper::availableGrabbers(GrabberTypeFilter::VIDEO).isEmpty();
+	bool areVideoGrabberAvailable = !GrabberWrapper::availableGrabbers(GrabberTypeFilter::VIDEO).isEmpty();
+	bool flatBufServerAvailable { false };
+	bool protoBufServerAvailable{ false };
 
-	if (!GrabberWrapper::availableGrabbers(GrabberTypeFilter::SCREEN).isEmpty())
+#if defined(ENABLE_FLATBUF_SERVER)
+	flatBufServerAvailable = true;
+#endif
+
+#if defined(ENABLE_PROTOBUF_SERVER)
+	protoBufServerAvailable = true;
+#endif
+
+	if (areScreenGrabberAvailable)
 	{
 		vect << COMP_GRABBER;
 	}
 
-	if (!GrabberWrapper::availableGrabbers(GrabberTypeFilter::VIDEO).isEmpty())
+	if (areVideoGrabberAvailable)
 	{
 		vect << COMP_V4L;
 	}
+
+	if (areScreenGrabberAvailable || areVideoGrabberAvailable || flatBufServerAvailable || protoBufServerAvailable)
+	{
+		vect << COMP_BLACKBORDER;
+	}
+
 
 #if defined(ENABLE_BOBLIGHT_SERVER)
 	vect << COMP_BOBLIGHTSERVER;
