@@ -3,6 +3,8 @@
 
 #include <hyperion/Hyperion.h>
 
+#include <hyperion/GrabberWrapper.h>
+
 using namespace hyperion;
 
 ComponentRegister::ComponentRegister(Hyperion* hyperion)
@@ -11,7 +13,18 @@ ComponentRegister::ComponentRegister(Hyperion* hyperion)
 {
 	// init all comps to false
 	QVector<hyperion::Components> vect;
-	vect << COMP_ALL << COMP_SMOOTHING << COMP_BLACKBORDER << COMP_GRABBER << COMP_V4L << COMP_LEDDEVICE;
+	vect << COMP_ALL << COMP_SMOOTHING << COMP_BLACKBORDER << COMP_LEDDEVICE;
+
+
+	if (!GrabberWrapper::availableGrabbers(GrabberTypeFilter::SCREEN).isEmpty())
+	{
+		vect << COMP_GRABBER;
+	}
+
+	if (!GrabberWrapper::availableGrabbers(GrabberTypeFilter::VIDEO).isEmpty())
+	{
+		vect << COMP_V4L;
+	}
 
 #if defined(ENABLE_BOBLIGHT_SERVER)
 	vect << COMP_BOBLIGHTSERVER;
@@ -40,12 +53,16 @@ int ComponentRegister::isComponentEnabled(hyperion::Components comp) const
 
 void ComponentRegister::setNewComponentState(hyperion::Components comp, bool activated)
 {
-	if(_componentStates[comp] != activated)
+
+	if (_componentStates.count(comp) > 0)
 	{
-		Debug( _log, "%s: %s", componentToString(comp), (activated? "enabled" : "disabled"));
-		_componentStates[comp] = activated;
-		// emit component has changed state
-		emit updatedComponentState(comp, activated);
+		if (_componentStates[comp] != activated)
+		{
+			Debug(_log, "%s: %s", componentToString(comp), (activated ? "enabled" : "disabled"));
+			_componentStates[comp] = activated;
+			// emit component has changed state
+			emit updatedComponentState(comp, activated);
+		}
 	}
 }
 
