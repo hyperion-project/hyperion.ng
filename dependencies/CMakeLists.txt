@@ -13,6 +13,44 @@ if(ENABLE_WS281XPWM)
 endif()
 
 #=============================================================================
+#  QMdnsEngine is currently not supported under MacOS because no Devs
+#=============================================================================
+
+if(NOT APPLE)
+	if(NOT DEFINED BUILD_QMDNS_ONCE)
+		set(BUILD_QMDNS_ONCE CACHE INTERNAL "Done")
+		set(QMDNS_WORK_DIR "${CMAKE_BINARY_DIR}/dependencies/external/qmdnsengine")
+		set(QMDNS_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/qmdnsengine")
+		set(QMDNS_INSTALL_DIR ${CMAKE_BINARY_DIR})
+		set(QMDNS_CMAKE_ARGS
+			#-DBUILD_SHARED_LIBS:BOOL=OFF
+			-DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_BINARY_DIR}
+			-DBIN_INSTALL_DIR:STRING=lib
+			-DLIB_INSTALL_DIR:STRING=lib
+			-DINCLUDE_INSTALL_DIR:STRING=include
+			-DCMAKE_PREFIX_PATH:PATH=${Qt${QT_VERSION_MAJOR}Network_DIR}
+			-Wno-dev
+		)
+
+		if(WIN32)
+			set(QMDNS_CMAKE_ARGS ${QMDNS_CMAKE_ARGS} -DCMAKE_CXX_FLAGS:STRING=/wd4458)
+		endif(WIN32)
+
+		configure_file(${CMAKE_SOURCE_DIR}/dependencies/CMakeLists-qmdnsengine.txt.in ${QMDNS_WORK_DIR}/CMakeLists.txt @ONLY)
+		execute_process(COMMAND ${CMAKE_COMMAND} ${QMDNS_INSTALL_DIR} -G "${CMAKE_GENERATOR}" . WORKING_DIRECTORY ${QMDNS_WORK_DIR})
+		execute_process(COMMAND ${CMAKE_COMMAND} --build . WORKING_DIRECTORY ${QMDNS_WORK_DIR})
+	endif()
+
+	set(QMDNS_INCLUDE_DIR "${CMAKE_BINARY_DIR}/include")
+	set(QMDNS_INCLUDE_DIR ${QMDNS_INCLUDE_DIR} PARENT_SCOPE)
+	include_directories(${QMDNS_INCLUDE_DIR})
+
+	set(QMDNS_LIBRARIES ${CMAKE_BINARY_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}qmdnsengine${CMAKE_SHARED_LIBRARY_SUFFIX})
+	set(QMDNS_LIBRARIES ${QMDNS_LIBRARIES} PARENT_SCOPE)
+endif()
+
+
+#=============================================================================
 # FLATBUFFER
 #=============================================================================
 

@@ -325,6 +325,13 @@ macro(DeployWindows TARGET)
 			list(REMOVE_AT DEPENDENCIES 0 1)
 		endwhile()
 
+		# Copy QMdnsEngine Lib
+		install(
+			FILES ${CMAKE_BINARY_DIR}/lib/qmdnsengine.dll
+			DESTINATION "bin"
+			COMPONENT "Hyperion"
+		)		
+
 		# Copy libssl/libcrypto to 'hyperion'
 		if (OPENSSL_FOUND)
 			string(REGEX MATCHALL "[0-9]+" openssl_versions "${OPENSSL_VERSION}")

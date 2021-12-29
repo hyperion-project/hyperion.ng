@@ -9,17 +9,35 @@
 #include <QCoreApplication>
 #include <QLocale>
 
+#include <utils/Logger.h>
+
 #include "HyperionConfig.h"
 #include <commandline/Parser.h>
+
+// mDNS discover
+#include <qmdnsengine/server.h>
+#include <qmdnsengine/service.h>
+#include <qmdnsengine/browser.h>
+#include <qmdnsengine/resolver.h>
+#include <qmdnsengine/cache.h>
+#include <utils/NetUtils.h>
 
 // hyperion-remote include
 #include "JsonConnection.h"
 
-// ssdp discover
-#include <ssdp/SSDPDiscover.h>
-#include <utils/NetUtils.h>
-
 #include <utils/DefaultSignalHandler.h>
+
+// Constants
+namespace {
+
+const char HYPERION_MDNS_SERVICE_TYPE[] = "_hyperiond-json._tcp.local.";
+const char HYPERION_SERVICENAME[] = "hyperion-API";
+
+constexpr std::chrono::milliseconds DEFAULT_DISCOVER_TIMEOUT{ 2000 };
+constexpr std::chrono::milliseconds DEFAULT_ADDRESS_RESOLVE_TIMEOUT{ 2000 };
+
+} //End of constants
+
 
 using namespace commandline;
 
@@ -38,10 +56,10 @@ int count(std::initializer_list<bool> values)
 
 void showHelp(Option & option){
 	QString shortOption;
-	QString longOption = QString("--%1").arg(option.names().last());
+	QString longOption = QString("--%1").arg(option.names().constLast());
 
 	if(option.names().size() == 2){
-		shortOption = QString("-%1").arg(option.names().first());
+		shortOption = QString("-%1").arg(option.names().constFirst());
 	}
 
 	qWarning() << qPrintable(QString("\t%1\t%2\t%3").arg(shortOption, longOption, option.description()));
@@ -51,7 +69,7 @@ int getInstaneIdbyName(const QJsonObject & reply, const QString & name){
 	if(reply.contains("instance")){
 		QJsonArray list = reply.value("instance").toArray();
 
-		for (const QJsonValueRef entry : list)	{
+		for ( const auto &entry : qAsConst(list) ) {
 			const QJsonObject obj = entry.toObject();
 			if(obj["friendly_name"] == name && obj["running"].toBool())
 			{
@@ -198,29 +216,102 @@ int main(int argc, char * argv[])
 			return 1;
 		}
 
-		// server searching by ssdp
+		QString hostName;
+		QString serviceName {HYPERION_SERVICENAME};
+		quint16 port {JSON_DEFAULT_PORT};
+
+		// Split hostname and port (or use default port)
 		QString address = argAddress.value(parser);
-		if(address == "127.0.0.1" || address == "127.0.0.1:19444")
-		{
-			SSDPDiscover discover;
-			address = discover.getFirstService(searchType::STY_JSONSERVER);
-			if(address.isEmpty())
-			{
-				address = argAddress.value(parser);
-			}
-		}
-
-		// Resolve hostname and port (or use default port)
-		QString host;
-		quint16 port{ JSON_DEFAULT_PORT };
-
-		if (!NetUtils::resolveHostPort(address, host, port))
+		if (!NetUtils::resolveHostPort(address, hostName, port))
 		{
 			throw std::runtime_error(QString("Wrong address: unable to parse address (%1)").arg(address).toStdString());
 		}
 
+		QMdnsEngine::Server server;
+		QMdnsEngine::Cache cache;
+
+		// Search available Hyperion services via mDNS, if default/localhost IP is given
+		if(hostName == "127.0.0.1" || hostName == "::1")
+		{
+			QMdnsEngine::Service firstMdnsService;
+
+			QMdnsEngine::Browser browser(&server, HYPERION_MDNS_SERVICE_TYPE, &cache);
+			QObject::connect(&browser, &QMdnsEngine::Browser::serviceAdded, log,
+							  [&firstMdnsService, &log](const QMdnsEngine::Service &service) {
+								  Debug(log, "Discovered Hyperion service [%s] at host: %s, port: %u", service.name().constData(), service.hostname().constData(), service.port());
+
+								  // Use the first service discovered
+								  if (firstMdnsService.name().isEmpty())
+								  {
+									  firstMdnsService = service;
+								  }
+							  });
+
+			QEventLoop loop;
+			QTimer t;
+			QObject::connect(&browser, &QMdnsEngine::Browser::serviceAdded, &loop, &QEventLoop::quit);
+			QTimer::connect(&t, &QTimer::timeout, &loop, &QEventLoop::quit);
+			t.start(DEFAULT_DISCOVER_TIMEOUT.count());
+			loop.exec();
+
+			if (firstMdnsService.hostname().isEmpty())
+			{
+				throw std::runtime_error(QString("Automatic discovery failed! No Hyperion servers found providing a service of type: %1")
+											  .arg(QString(HYPERION_MDNS_SERVICE_TYPE)).toStdString()
+										  );
+
+			}
+			serviceName = firstMdnsService.name();
+			hostName = firstMdnsService.hostname();
+			port = firstMdnsService.port();
+		}
+
+		//Resolve Hostname to HostAddress
+		QString hostAddress;
+
+		if (hostName.endsWith(".local"))
+		{
+			hostName.append('.');
+		}
+
+		if (hostName.endsWith(".local."))
+		{
+			QMdnsEngine::Resolver resolver(&server, hostName.toUtf8(), &cache);
+			QObject::connect(&resolver, &QMdnsEngine::Resolver::resolved, log,
+							  [hostName, &log, &hostAddress](const QHostAddress &resolvedAddress) {
+								  Debug(log, "Resolved Hyperion hostname: %s to address: %s",  QSTRING_CSTR(hostName), QSTRING_CSTR(resolvedAddress.toString()));
+
+								  // Use the first resolved address
+								  if (hostAddress.isEmpty())
+								  {
+									  hostAddress = resolvedAddress.toString();
+								  }
+							  }
+							  );
+
+			QEventLoop loop;
+			QTimer t;
+			QObject::connect(&resolver, &QMdnsEngine::Resolver::resolved, &loop, &QEventLoop::quit);
+			QTimer::connect(&t, &QTimer::timeout, &loop, &QEventLoop::quit);
+			t.start(DEFAULT_ADDRESS_RESOLVE_TIMEOUT.count());
+			loop.exec();
+
+			if (hostAddress.isEmpty() )
+			{
+				throw std::runtime_error(QString("Address could not be resolved for hostname: %2").arg(QSTRING_CSTR(hostName)).toStdString());
+			}
+
+		}
+		else
+		{
+			hostAddress = hostName;
+		}
+
+		Info(log, "Connecting to Hyperion host: %s, port: %u using service: %s", QSTRING_CSTR(hostName), port, QSTRING_CSTR(serviceName));
+
+
 		// create the connection to the hyperion server
-		JsonConnection connection(host, parser.isSet(argPrint), port);
+		JsonConnection connection(hostAddress, parser.isSet(argPrint), port);
 
 		// authorization token specified. Use it first
 		if (parser.isSet(argToken))

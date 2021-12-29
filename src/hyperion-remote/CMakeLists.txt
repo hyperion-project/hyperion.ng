@@ -33,7 +33,6 @@ target_link_libraries(${PROJECT_NAME}
 	effectengine
 	commandline
 	hyperion-utils
-	ssdp
 	Qt${QT_VERSION_MAJOR}::Core
 	Qt${QT_VERSION_MAJOR}::Network
 	Qt${QT_VERSION_MAJOR}::Widgets
@@ -43,6 +42,11 @@ if (ENABLE_AMLOGIC)
 	target_link_libraries(${PROJECT_NAME}
 		pcre16 dl z
 	)
+endif()
+
+# QMdnsEngine is currently not supported under MacOS because no Devs
+if(NOT APPLE)
+        target_link_libraries(${PROJECT_NAME} mdns)
 endif()
 
 if(APPLE)

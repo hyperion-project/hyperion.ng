@@ -20,10 +20,13 @@
 
 #include <HyperionConfig.h> // Required to determine the cmake options
 
-// bonjour browser
-#ifdef ENABLE_AVAHI
-#include <bonjour/bonjourbrowserwrapper.h>
+// mDNS/bonjour wrapper
+#ifndef __APPLE__
+#include <mdns/mdnsEngine.h>
+#elif ENABLE_AVAHI
+#include <bonjour/bonjourserviceregister.h>
 #endif
+
 #include <jsonserver/JsonServer.h>
 #include <webserver/WebServer.h>
 #include "hyperiond.h"
@@ -69,7 +72,9 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	: QObject(parent), _log(Logger::getInstance("DAEMON"))
 	  , _instanceManager(new HyperionIManager(rootPath, this, readonlyMode))
 	  , _authManager(new AuthManager(this, readonlyMode))
-#ifdef ENABLE_AVAHI
+#ifndef __APPLE__
+	  , _mDNSEngine(nullptr)
+#elif ENABLE_AVAHI
 	  , _bonjourBrowserWrapper(new BonjourBrowserWrapper())
 #endif
 	  , _netOrigin(new NetOrigin(this))
@@ -217,6 +222,15 @@ void HyperionDaemon::freeObjects()
 		_ssdp = nullptr;
 	}
 
+	if (_mDNSEngine != nullptr)
+	{
+		auto mDnsThread = _mDNSEngine->thread();
+		mDnsThread->quit();
+		mDnsThread->wait();
+		delete mDnsThread;
+		_mDNSEngine = nullptr;
+	}
+
 	if (_webserver != nullptr)
 	{
 		auto webserverThread = _webserver->thread();
@@ -250,7 +264,7 @@ void HyperionDaemon::freeObjects()
 	// stop Hyperions (non blocking)
 	_instanceManager->stopAll();
 
-#ifdef ENABLE_AVAHI
+#if defined(__APPLE__) && defined(ENABLE_AVAHI)
 	delete _bonjourBrowserWrapper;
 	_bonjourBrowserWrapper = nullptr;
 #endif
@@ -321,6 +335,15 @@ void HyperionDaemon::startNetworkServices()
 	connect(sslWsThread, &QThread::finished, _sslWebserver, &WebServer::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _sslWebserver, &WebServer::handleSettingsUpdate);
 	sslWsThread->start();
+
+	// Create mDNS-Engine in thread
+	_mDNSEngine = new MdnsEngine();
+	QThread* mDnsThread = new QThread(this);
+	mDnsThread->setObjectName("mDNSEngineThread");
+	_mDNSEngine->moveToThread(mDnsThread);
+	connect(mDnsThread, &QThread::started, _mDNSEngine, &MdnsEngine::initEngine);
+	connect(mDnsThread, &QThread::finished, _mDNSEngine, &MdnsEngine::deleteLater);
+	mDnsThread->start();
 
 	// Create SSDP server in thread
 	_ssdp = new SSDPHandler(_webserver,
@@ -430,6 +453,8 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 
 		if (_prevType != type)
 		{
+			Info(_log, "set screen capture device to '%s'", QSTRING_CSTR(type));
+
 			// stop all capture interfaces
 			#ifdef ENABLE_FB
 			if (_fbGrabber != nullptr)

@@ -89,7 +89,7 @@ SET ( DEFAULT_USE_SYSTEM_PROTO_LIBS       OFF )
 SET ( DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     OFF )
 
 # Build Hyperion with a reduced set of functionality, overwrites other default values
-SET ( DEFAULT_HYPERION_LIGHT              OFF )
+SET ( DEFAULT_HYPERION_LIGHT              ON  )
 
 IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
 	SET ( DEFAULT_FB          ON )
@@ -207,7 +207,7 @@ if (HYPERION_LIGHT)
 	SET ( DEFAULT_FB                          OFF )
 	SET ( DEFAULT_MF                          OFF )
 	SET ( DEFAULT_OSX                         OFF )
-	SET ( DEFAULT_QT                          OFF )
+	SET ( DEFAULT_QT                          ON  )
 	SET ( DEFAULT_V4L2                        OFF )
 	SET ( DEFAULT_X11                         OFF )
 	SET ( DEFAULT_XCB                         OFF )
@@ -215,12 +215,12 @@ if (HYPERION_LIGHT)
 	# Disable Input Servers
 	SET ( DEFAULT_BOBLIGHT_SERVER             OFF )
 	SET ( DEFAULT_CEC                         OFF )
-	SET ( DEFAULT_FLATBUF_SERVER              OFF )
+	SET ( DEFAULT_FLATBUF_SERVER              ON  )
 	SET ( DEFAULT_PROTOBUF_SERVER             OFF )
 
 	# Disable Output Connectors
 	SET ( DEFAULT_FORWARDER                   OFF )
-	SET ( DEFAULT_FLATBUF_CONNECT             OFF )
+	SET ( DEFAULT_FLATBUF_CONNECT             ON  )
 endif()
 
 message(STATUS "Grabber options:")

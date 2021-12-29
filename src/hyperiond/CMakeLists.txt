@@ -141,6 +141,11 @@ if (ENABLE_CEC)
         target_link_libraries(${PROJECT_NAME} cechandler)
 endif (ENABLE_CEC)
 
+# QMdnsEngine is currently not supported under MacOS because no Devs
+if(NOT APPLE)
+	target_link_libraries(hyperiond mdns)
+endif()
+
 if (APPLE)
 	set_target_properties( ${PROJECT_NAME} PROPERTIES
 		MACOSX_BUNDLE TRUE
@@ -198,7 +203,7 @@ if (WIN32)
 		message(STATUS "Found windeployqt: ${WINDEPLOYQT_EXECUTABLE} PATH_HINT:${QT_BIN_DIR}")
 		add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${WINDEPLOYQT_EXECUTABLE} ${WINDEPLOYQT_PARAMS_RUNTIME} "$<TARGET_FILE:${PROJECT_NAME}>")
 	endif()
-  
+
   find_package(OpenSSL REQUIRED)
 	if (OPENSSL_FOUND)
 		string(REGEX MATCHALL "[0-9]+" openssl_versions "${OPENSSL_VERSION}")
