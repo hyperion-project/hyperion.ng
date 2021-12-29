@@ -1,0 +1,26 @@
+cmake_minimum_required(VERSION 3.2)
+
+project(qmdnsengine)
+
+set(WORK_DIR "@QMDNS_WORK_DIR@")
+set(SOURCE_DIR "@QMDNS_SOURCE_DIR@")
+set(INSTALL_DIR "@QMDNS_INSTALL_DIR@")
+set(CMAKE_ARGS "@QMDNS_CMAKE_ARGS@")
+set(QMDNS_LOGGING "@QMDNS_LOGGING@")
+
+include(ExternalProject)
+
+ExternalProject_Add(qmdnsengine
+    PREFIX                ${WORK_DIR}
+    BUILD_ALWAYS          OFF
+    DOWNLOAD_COMMAND      ""
+    SOURCE_DIR            ${SOURCE_DIR}
+    INSTALL_DIR           ${INSTALL_DIR}
+    CMAKE_ARGS            ${CMAKE_ARGS}
+    LOG_DOWNLOAD          ${QMDNS_LOGGING}
+    LOG_UPDATE            ${QMDNS_LOGGING}
+    LOG_CONFIGURE         ${QMDNS_LOGGING}
+    LOG_BUILD             ${QMDNS_LOGGING}
+    LOG_INSTALL           ${QMDNS_LOGGING}
+    LOG_TEST              ${QMDNS_LOGGING}
+)

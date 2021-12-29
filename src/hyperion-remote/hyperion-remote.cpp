@@ -4,6 +4,7 @@
 #include <limits>
 #include <iostream>
 #include <stdlib.h>
+#include <chrono>
 
 // Qt includes
 #include <QCoreApplication>

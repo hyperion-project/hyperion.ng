@@ -13,59 +13,47 @@ if(ENABLE_WS281XPWM)
 endif()
 
 #=============================================================================
-#  QMdnsEngine is currently not supported under MacOS because no Devs
+#  QMdnsEngine
 #=============================================================================
 
-if(NOT APPLE)
-	if(NOT DEFINED BUILD_QMDNS_ONCE)
-		set(BUILD_QMDNS_ONCE CACHE INTERNAL "Done")
-		set(QMDNS_WORK_DIR "${CMAKE_BINARY_DIR}/dependencies/external/qmdnsengine")
-		set(QMDNS_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/qmdnsengine")
-		set(QMDNS_INSTALL_DIR ${CMAKE_BINARY_DIR})
-		set(QMDNS_CMAKE_ARGS
-			-DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_BINARY_DIR}
-			-DBIN_INSTALL_DIR:STRING=lib
-			-DLIB_INSTALL_DIR:STRING=lib
-			-DINCLUDE_INSTALL_DIR:STRING=include
-			-DCMAKE_PREFIX_PATH:PATH=${Qt${QT_VERSION_MAJOR}Network_DIR}
-			-Wno-dev
-		)
+if(NOT DEFINED BUILD_QMDNS_ONCE)
+	set(BUILD_QMDNS_ONCE CACHE INTERNAL "Done")
+	set(QMDNS_WORK_DIR "${CMAKE_BINARY_DIR}/dependencies/external/qmdnsengine")
+	set(QMDNS_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/qmdnsengine")
+	set(QMDNS_INSTALL_DIR ${CMAKE_BINARY_DIR})
+	set(QMDNS_CMAKE_ARGS
+		-DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_BINARY_DIR}
+		-DBIN_INSTALL_DIR:STRING=lib
+		-DLIB_INSTALL_DIR:STRING=lib
+		-DINCLUDE_INSTALL_DIR:STRING=include
+		-DCMAKE_PREFIX_PATH:PATH=${Qt${QT_VERSION_MAJOR}Network_DIR}
+		-Wno-dev
+	)
 
-		if(${CMAKE_BUILD_TYPE} AND ${CMAKE_BUILD_TYPE} EQUAL "Debug")
-			set(QMDNS_LOGGING 1)
-		else ()
-			set(QMDNS_LOGGING 0)
-		endif ()
+	if(${CMAKE_BUILD_TYPE} AND ${CMAKE_BUILD_TYPE} EQUAL "Debug")
+		set(QMDNS_LOGGING 1)
+	else ()
+		set(QMDNS_LOGGING 0)
+	endif ()
 
-		include(ExternalProject)
-		ExternalProject_Add(qmdnsengine
-			PREFIX                ${QMDNS_WORK_DIR}
-			BUILD_ALWAYS          OFF
-			DOWNLOAD_COMMAND      ""
-			SOURCE_DIR            ${QMDNS_SOURCE_DIR}
-			INSTALL_DIR           ${QMDNS_INSTALL_DIR}
-			CMAKE_ARGS            ${QMDNS_CMAKE_ARGS}
-			LOG_DOWNLOAD          ${QMDNS_LOGGING}
-			LOG_UPDATE            ${QMDNS_LOGGING}
-			LOG_CONFIGURE         ${QMDNS_LOGGING}
-			LOG_BUILD             ${QMDNS_LOGGING}
-			LOG_INSTALL           ${QMDNS_LOGGING}
-			LOG_TEST              ${QMDNS_LOGGING}
-		)
-	endif()
-
-	set(QMDNS_INCLUDE_DIR "${CMAKE_BINARY_DIR}/include")
-	set(QMDNS_INCLUDE_DIR ${QMDNS_INCLUDE_DIR} PARENT_SCOPE)
-	include_directories(${QMDNS_INCLUDE_DIR})
-
-	if(WIN32)
-		set(QMDNS_LIBRARIES ${CMAKE_BINARY_DIR}/lib/qmdnsengine${CMAKE_STATIC_LIBRARY_SUFFIX})
-	else()
-		set(QMDNS_LIBRARIES ${CMAKE_BINARY_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}qmdnsengine${CMAKE_SHARED_LIBRARY_PREFIX})
-	endif()
-
-	set(QMDNS_LIBRARIES ${QMDNS_LIBRARIES} PARENT_SCOPE)
+	configure_file(${CMAKE_SOURCE_DIR}/dependencies/CMakeLists-qmdnsengine.txt.in ${QMDNS_WORK_DIR}/CMakeLists.txt @ONLY)
+	execute_process(COMMAND ${CMAKE_COMMAND} ${QMDNS_INSTALL_DIR} -G "${CMAKE_GENERATOR}" . WORKING_DIRECTORY ${QMDNS_WORK_DIR})
+	execute_process(COMMAND ${CMAKE_COMMAND} --build . WORKING_DIRECTORY ${QMDNS_WORK_DIR})
 endif()
+
+set(QMDNS_INCLUDE_DIR "${CMAKE_BINARY_DIR}/include")
+set(QMDNS_INCLUDE_DIR ${QMDNS_INCLUDE_DIR} PARENT_SCOPE)
+include_directories(${QMDNS_INCLUDE_DIR})
+
+if(WIN32)
+	set(QMDNS_LIBRARIES ${CMAKE_BINARY_DIR}/lib/qmdnsengine${CMAKE_STATIC_LIBRARY_SUFFIX})
+else()
+	set(QMDNS_LIBRARIES ${CMAKE_BINARY_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}qmdnsengine${CMAKE_SHARED_LIBRARY_SUFFIX})
+endif()
+
+set(QMDNS_LIBRARIES ${QMDNS_LIBRARIES} PARENT_SCOPE)
+
+mark_as_advanced (QMDNS_INCLUDE_DIR QMDNS_LIBRARIES)
 
 
 #=============================================================================
