@@ -204,7 +204,12 @@ if (WIN32)
 		add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${WINDEPLOYQT_EXECUTABLE} ${WINDEPLOYQT_PARAMS_RUNTIME} "$<TARGET_FILE:${PROJECT_NAME}>")
 	endif()
 
-  find_package(OpenSSL REQUIRED)
+	add_custom_command(
+		TARGET ${PROJECT_NAME} POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_BINARY_DIR}/lib/qmdnsengine${CMAKE_SHARED_LIBRARY_SUFFIX}" $<TARGET_FILE_DIR:${PROJECT_NAME}>
+	)
+
+	find_package(OpenSSL REQUIRED)
 	if (OPENSSL_FOUND)
 		string(REGEX MATCHALL "[0-9]+" openssl_versions "${OPENSSL_VERSION}")
 		list(GET openssl_versions 0 openssl_version_major)
