@@ -1,3 +1,5 @@
+// stl includes
+#include <chrono>
 
 // QT includes
 #include <QCoreApplication>
