@@ -22,9 +22,6 @@
 #include <utils/ColorSys.h>
 #include <utils/Process.h>
 
-// bonjour wrapper
-#include <bonjour/bonjourbrowserwrapper.h>
-
 // ledmapping int <> string transform methods
 #include <hyperion/ImageProcessor.h>
 

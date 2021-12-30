@@ -9,10 +9,6 @@
 // components
 
 #include <hyperion/ComponentRegister.h>
-// bonjour wrapper
-#ifdef ENABLE_AVAHI
-#include <bonjour/bonjourbrowserwrapper.h>
-#endif
 // priorityMuxer
 
 #include <hyperion/PriorityMuxer.h>
@@ -33,9 +29,6 @@ JsonCB::JsonCB(QObject* parent)
 	: QObject(parent)
 	, _hyperion(nullptr)
 	, _componentRegister(nullptr)
-	#ifdef ENABLE_AVAHI
-	, _bonjour(BonjourBrowserWrapper::getInstance())
-	#endif
 	, _prioMuxer(nullptr)
 {
 	_availableCommands << "components-update" << "sessions-update" << "priorities-update" << "imageToLedMapping-update"
@@ -62,12 +55,6 @@ bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
 
 	if(type == "sessions-update")
 	{
-#ifdef ENABLE_AVAHI
-		if(unsubscribe)
-			disconnect(_bonjour, &BonjourBrowserWrapper::browserChange, this, &JsonCB::handleBonjourChange);
-		else
-			connect(_bonjour, &BonjourBrowserWrapper::browserChange, this, &JsonCB::handleBonjourChange, Qt::UniqueConnection);
-#endif
 	}
 
 	if(type == "priorities-update")
@@ -199,26 +186,7 @@ void JsonCB::handleComponentState(hyperion::Components comp, bool state)
 
 	doCallback("components-update", QVariant(data));
 }
-#ifdef ENABLE_AVAHI
-void JsonCB::handleBonjourChange(const QMap<QString,BonjourRecord>& bRegisters)
-{
-	QJsonArray data;
-	for (const auto & session: bRegisters)
-	{
-		if (session.port<0) continue;
-		QJsonObject item;
-		item["name"]   = session.serviceName;
-		item["type"]   = session.registeredType;
-		item["domain"] = session.replyDomain;
-		item["host"]   = session.hostName;
-		item["address"]= session.address;
-		item["port"]   = session.port;
-		data.append(item);
-	}
 
-	doCallback("sessions-update", QVariant(data));
-}
-#endif
 void JsonCB::handlePriorityUpdate()
 {
 	QJsonObject data;

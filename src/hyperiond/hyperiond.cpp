@@ -20,11 +20,9 @@
 
 #include <HyperionConfig.h> // Required to determine the cmake options
 
-// mDNS/bonjour wrapper
-#ifndef __APPLE__
+// mDNS wrapper
+#ifdef ENABLE_MDNS
 #include <mdns/mdnsEngine.h>
-#elif ENABLE_AVAHI
-#include <bonjour/bonjourserviceregister.h>
 #endif
 
 #include <jsonserver/JsonServer.h>
@@ -72,10 +70,8 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	: QObject(parent), _log(Logger::getInstance("DAEMON"))
 	  , _instanceManager(new HyperionIManager(rootPath, this, readonlyMode))
 	  , _authManager(new AuthManager(this, readonlyMode))
-#ifndef __APPLE__
+#ifdef ENABLE_MDNS
 	  , _mDNSEngine(nullptr)
-#elif ENABLE_AVAHI
-	  , _bonjourBrowserWrapper(new BonjourBrowserWrapper())
 #endif
 	  , _netOrigin(new NetOrigin(this))
 	  , _pyInit(new PythonInit())
@@ -222,6 +218,7 @@ void HyperionDaemon::freeObjects()
 		_ssdp = nullptr;
 	}
 
+#ifdef ENABLE_MDNS
 	if (_mDNSEngine != nullptr)
 	{
 		auto mDnsThread = _mDNSEngine->thread();
@@ -230,6 +227,7 @@ void HyperionDaemon::freeObjects()
 		delete mDnsThread;
 		_mDNSEngine = nullptr;
 	}
+#endif
 
 	if (_webserver != nullptr)
 	{
@@ -263,11 +261,6 @@ void HyperionDaemon::freeObjects()
 
 	// stop Hyperions (non blocking)
 	_instanceManager->stopAll();
-
-#if defined(__APPLE__) && defined(ENABLE_AVAHI)
-	delete _bonjourBrowserWrapper;
-	_bonjourBrowserWrapper = nullptr;
-#endif
 
 	delete _amlGrabber;
 	delete _dispmanx;
@@ -337,6 +330,7 @@ void HyperionDaemon::startNetworkServices()
 	sslWsThread->start();
 
 	// Create mDNS-Engine in thread
+#ifdef ENABLE_MDNS
 	_mDNSEngine = new MdnsEngine();
 	QThread* mDnsThread = new QThread(this);
 	mDnsThread->setObjectName("mDNSEngineThread");
@@ -344,6 +338,7 @@ void HyperionDaemon::startNetworkServices()
 	connect(mDnsThread, &QThread::started, _mDNSEngine, &MdnsEngine::initEngine);
 	connect(mDnsThread, &QThread::finished, _mDNSEngine, &MdnsEngine::deleteLater);
 	mDnsThread->start();
+#endif
 
 	// Create SSDP server in thread
 	_ssdp = new SSDPHandler(_webserver,

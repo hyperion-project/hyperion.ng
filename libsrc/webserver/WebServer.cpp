@@ -6,10 +6,6 @@
 #include <QFileInfo>
 #include <QJsonObject>
 
-// bonjour
-#ifdef ENABLE_AVAHI
-#include <bonjour/bonjourserviceregister.h>
-#endif
 // netUtil
 #include <utils/NetUtils.h>
 
@@ -58,19 +54,6 @@ void WebServer::onServerStarted (quint16 port)
 
 	Info(_log, "'%s' started on port %d",_server->getServerName().toStdString().c_str(), port);
 
-#ifdef ENABLE_AVAHI
-	if(_serviceRegister == nullptr)
-	{
-		_serviceRegister = new BonjourServiceRegister(this);
-		_serviceRegister->registerService("_hyperiond-http._tcp", port);
-	}
-	else if( _serviceRegister->getPort() != port)
-	{
-		delete _serviceRegister;
-		_serviceRegister = new BonjourServiceRegister(this);
-		_serviceRegister->registerService("_hyperiond-http._tcp", port);
-	}
-#endif
 	emit stateChange(true);
 }
 

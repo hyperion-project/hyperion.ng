@@ -63,11 +63,6 @@
 #include <utils/Process.h>
 #include <utils/JsonUtils.h>
 
-// bonjour wrapper
-#ifdef ENABLE_AVAHI
-#include <bonjour/bonjourbrowserwrapper.h>
-#endif
-
 // ledmapping int <> string transform methods
 #include <hyperion/ImageProcessor.h>
 
@@ -632,22 +627,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 
 	// add sessions
 	QJsonArray sessions;
-#ifdef ENABLE_AVAHI
-	for (auto session: BonjourBrowserWrapper::getInstance()->getAllServices())
-	{
-		if (session.port < 0)
-			continue;
-		QJsonObject item;
-		item["name"] = session.serviceName;
-		item["type"] = session.registeredType;
-		item["domain"] = session.replyDomain;
-		item["host"] = session.hostName;
-		item["address"] = session.address;
-		item["port"] = session.port;
-		sessions.append(item);
-	}
-	info["sessions"] = sessions;
-#endif
+
 	// add instance info
 	QJsonArray instanceInfo;
 	for (const auto &entry : API::getAllInstanceData())

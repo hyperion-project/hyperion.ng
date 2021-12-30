@@ -44,8 +44,7 @@ if (ENABLE_AMLOGIC)
 	)
 endif()
 
-# QMdnsEngine is currently not supported under MacOS because no Devs
-if(NOT APPLE)
+if(ENABLE_MDNS)
         target_link_libraries(${PROJECT_NAME} mdns)
 endif()
 

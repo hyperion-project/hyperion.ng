@@ -35,13 +35,8 @@ add_subdirectory(python)
 
 add_subdirectory(ssdp)
 
-# QMdnsEngine is currently not supported under MacOS because no Devs
-if(NOT APPLE)
+if(ENABLE_MDNS)
 	add_subdirectory(mdns)
-endif()
-
-if(ENABLE_AVAHI)
-	add_subdirectory(bonjour)
 endif()
 
 if(ENABLE_CEC)

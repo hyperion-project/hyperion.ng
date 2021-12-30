@@ -75,10 +75,6 @@ if(ENABLE_PROTOBUF_SERVER)
 	target_link_libraries(${PROJECT_NAME} protoserver)
 endif()
 
-if (ENABLE_AVAHI)
-	target_link_libraries(${PROJECT_NAME} bonjour)
-endif (ENABLE_AVAHI)
-
 if (ENABLE_AMLOGIC)
 	target_link_libraries(${PROJECT_NAME}
 		#Qt${QT_VERSION_MAJOR}::Core
@@ -141,8 +137,7 @@ if (ENABLE_CEC)
         target_link_libraries(${PROJECT_NAME} cechandler)
 endif (ENABLE_CEC)
 
-# QMdnsEngine is currently not supported under MacOS because no Devs
-if(NOT APPLE)
+if (ENABLE_MDNS)
 	target_link_libraries(hyperiond mdns)
 endif()
 

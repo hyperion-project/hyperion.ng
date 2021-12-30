@@ -13,11 +13,14 @@
 #include <commandline/Parser.h>
 
 // mDNS discover
+#ifdef ENABLE_MDNS
 #include <qmdnsengine/server.h>
 #include <qmdnsengine/service.h>
 #include <qmdnsengine/browser.h>
 #include <qmdnsengine/resolver.h>
 #include <qmdnsengine/cache.h>
+#endif
+
 #include <utils/NetUtils.h>
 
 //flatbuf sending
@@ -134,6 +137,8 @@ int main(int argc, char ** argv)
 		{
 			QString hostName;
 			QString serviceName {HYPERION_SERVICENAME};
+
+			QString hostAddress;
 			quint16 port {FLATBUFFER_DEFAULT_PORT};
 
 			// Split hostname and port (or use default port)
@@ -143,6 +148,7 @@ int main(int argc, char ** argv)
 				throw std::runtime_error(QString("Wrong address: unable to parse address (%1)").arg(address).toStdString());
 			}
 
+#ifdef ENABLE_MDNS
 			QMdnsEngine::Server server;
 			QMdnsEngine::Cache cache;
 
@@ -183,8 +189,6 @@ int main(int argc, char ** argv)
 			}
 
 			//Resolve Hostname to HostAddress
-			QString hostAddress;
-
 			if (hostName.endsWith(".local"))
 			{
 				hostName.append('.');
@@ -219,6 +223,7 @@ int main(int argc, char ** argv)
 
 			}
 			else
+#endif
 			{
 				hostAddress = hostName;
 			}
