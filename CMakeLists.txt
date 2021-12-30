@@ -89,7 +89,7 @@ SET ( DEFAULT_USE_SYSTEM_PROTO_LIBS       OFF )
 SET ( DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     OFF )
 
 # Build Hyperion with a reduced set of functionality, overwrites other default values
-SET ( DEFAULT_HYPERION_LIGHT              ON  )
+SET ( DEFAULT_HYPERION_LIGHT              OFF )
 
 IF ( ${CMAKE_SYSTEM} MATCHES "Linux" )
 	SET ( DEFAULT_FB          ON )
@@ -205,7 +205,7 @@ if (HYPERION_LIGHT)
 	SET ( DEFAULT_FB                          OFF )
 	SET ( DEFAULT_MF                          OFF )
 	SET ( DEFAULT_OSX                         OFF )
-	SET ( DEFAULT_QT                          ON  )
+	SET ( DEFAULT_QT                          OFF )
 	SET ( DEFAULT_V4L2                        OFF )
 	SET ( DEFAULT_X11                         OFF )
 	SET ( DEFAULT_XCB                         OFF )
@@ -213,12 +213,12 @@ if (HYPERION_LIGHT)
 	# Disable Input Servers
 	SET ( DEFAULT_BOBLIGHT_SERVER             OFF )
 	SET ( DEFAULT_CEC                         OFF )
-	SET ( DEFAULT_FLATBUF_SERVER              ON  )
+	SET ( DEFAULT_FLATBUF_SERVER              OFF )
 	SET ( DEFAULT_PROTOBUF_SERVER             OFF )
 
 	# Disable Output Connectors
 	SET ( DEFAULT_FORWARDER                   OFF )
-	SET ( DEFAULT_FLATBUF_CONNECT             ON  )
+	SET ( DEFAULT_FLATBUF_CONNECT             OFF )
 endif()
 
 message(STATUS "Grabber options:")
@@ -336,9 +336,13 @@ message(STATUS "ENABLE_DEPLOY_DEPENDENCIES = ${ENABLE_DEPLOY_DEPENDENCIES}")
 if (ENABLE_MDNS)
 message(STATUS "DEFAULT_USE_SHARED_MDNS_LIBS = ${DEFAULT_USE_SHARED_MDNS_LIBS}")
 endif()
+if(ENABLE_FLATBUF_SERVER OR ENABLE_FLATBUF_CONNECT)
 message(STATUS "DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS = ${DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS}")
-message(STATUS "DEFAULT_USE_SYSTEM_MBEDTLS_LIBS = ${DEFAULT_USE_SYSTEM_MBEDTLS_LIBS}")
+endif()
+if(ENABLE_PROTOBUF_SERVER)
 message(STATUS "DEFAULT_USE_SYSTEM_PROTO_LIBS = ${DEFAULT_USE_SYSTEM_PROTO_LIBS}")
+endif()
+message(STATUS "DEFAULT_USE_SYSTEM_MBEDTLS_LIBS = ${DEFAULT_USE_SYSTEM_MBEDTLS_LIBS}")
 
 removeIndent()
 
@@ -468,7 +472,9 @@ if (DEFINED QTDIR)
 	list(PREPEND CMAKE_PREFIX_PATH ${QTDIR} "${QTDIR}/lib")
 endif()
 
-message( STATUS "CMAKE_PREFIX_PATH used: ${CMAKE_PREFIX_PATH}" )
+if (CMAKE_PREFIX_PATH)
+	message( STATUS "CMAKE_PREFIX_PATH used: ${CMAKE_PREFIX_PATH}" )
+endif()
 
 # find QT libs
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Gui Network SerialPort Sql Widgets REQUIRED)
@@ -476,21 +482,21 @@ message( STATUS "Found Qt Version: ${QT_VERSION}" )
 
 if (${QT_VERSION_MAJOR} GREATER_EQUAL 6 )
 	SET(QT_MIN_VERSION "6.2.0")
-ELSE()
+else()
 	SET(QT_MIN_VERSION "5.5.0")
-ENDIF()
+endif()
 
-IF ( "${QT_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
+if ( "${QT_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
 	message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )
-ENDIF()
+endif()
 
-find_package(Qt${QT_VERSION_MAJOR} ${QT_VERSION} COMPONENTS Core Gui Network SerialPort Sql Widgets REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Gui Network SerialPort Sql Widgets REQUIRED)
 
 message( STATUS "Qt version used: ${QT_VERSION}" )
 
 if (APPLE AND (${QT_VERSION_MAJOR} GREATER_EQUAL 6) )
 	set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
-ENDIF()
+endif()
 
 # Add libusb and pthreads
 find_package(libusb-1.0 REQUIRED)
