@@ -138,7 +138,7 @@ if (ENABLE_CEC)
 endif (ENABLE_CEC)
 
 if (ENABLE_MDNS)
-	target_link_libraries(hyperiond mdns)
+	target_link_libraries(${PROJECT_NAME} mdns)
 endif()
 
 if (APPLE)
