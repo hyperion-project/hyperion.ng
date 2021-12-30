@@ -9,7 +9,7 @@ macro(DeployMacOS TARGET)
 			OUTPUT_STRIP_TRAILING_WHITESPACE
 		)
 
-		install(CODE "set(TARGET_FILE \"${TARGET_FILE}\") \n set(TARGET_BUNDLE_NAME \"${TARGET}.app\") \n set(PLUGIN_DIR \"${QT_PLUGIN_DIR}\")" COMPONENT "Hyperion")
+		install(CODE "set(TARGET_FILE \"${TARGET_FILE}\") \n set(TARGET_BUNDLE_NAME \"${TARGET}.app\") \n set(PLUGIN_DIR \"${QT_PLUGIN_DIR}\") \n set(BUILD_DIR \"${CMAKE_BINARY_DIR}\")" COMPONENT "Hyperion")
 		install(CODE [[
 			file(GET_RUNTIME_DEPENDENCIES
 				EXECUTABLES ${TARGET_FILE}
@@ -32,6 +32,14 @@ macro(DeployMacOS TARGET)
 				message(WARNING "The following unresolved dependencies were discovered: ${unresolved_deps}")
 			endif()
 
+			file(INSTALL
+				DESTINATION "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/Frameworks"
+				TYPE SHARED_LIBRARY
+				FOLLOW_SYMLINK_CHAIN
+				FILES "${BUILD_DIR}/lib/libqmdnsengine.0.dylib"
+			)
+			set(QMDNSENGINE "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/Frameworks/libqmdnsengine.0.dylib")
+
 			foreach(PLUGIN "platforms" "sqldrivers" "imageformats")
 				if(EXISTS ${PLUGIN_DIR}/${PLUGIN})
 					file(GLOB files "${PLUGIN_DIR}/${PLUGIN}/*")
@@ -48,7 +56,7 @@ macro(DeployMacOS TARGET)
 			endforeach()
 
 			include(BundleUtilities)
-			fixup_bundle("${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}" "${QT_PLUGINS}" "" IGNORE_ITEM "python;python3;Python;Python3;.Python;.Python3")
+			fixup_bundle("${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}" "${QT_PLUGINS};${QMDNSENGINE}" "" IGNORE_ITEM "python;python3;Python;Python3;.Python;.Python3")
 
 			# Detect the Python version and modules directory
 			find_package(Python3 3.5 REQUIRED)
@@ -174,7 +182,7 @@ macro(DeployLinux TARGET)
 				COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_PLUGINS
 				OUTPUT_VARIABLE QT_PLUGINS_DIR
 				OUTPUT_STRIP_TRAILING_WHITESPACE
-			)		
+			)
 		endif()
 
 		# Copy Qt plugins to 'share/hyperion/lib'
@@ -327,10 +335,10 @@ macro(DeployWindows TARGET)
 
 		# Copy QMdnsEngine Lib
 		install(
-			FILES ${CMAKE_BINARY_DIR}/lib/qmdnsengine.dll
+			FILES "${CMAKE_BINARY_DIR}/lib/qmdnsengine${CMAKE_SHARED_LIBRARY_SUFFIX}"
 			DESTINATION "bin"
 			COMPONENT "Hyperion"
-		)		
+		)
 
 		# Copy libssl/libcrypto to 'hyperion'
 		if (OPENSSL_FOUND)
