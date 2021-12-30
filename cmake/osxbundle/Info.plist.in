@@ -5,19 +5,27 @@
 		<key>CFBundleDeveloperRegion</key>
 		<string>en</string>
 		<key>CFBundleIdentifier</key>
-		<string>com.hyperion-project.hyperiond</string>
+		<string>${MACOSX_BUNDLE_GUI_IDENTIFIER}</string>
 		<key>CFBundleName</key>
 		<string>Hyperion</string>
 		<key>CFBundleExecutable</key>
 		<string>Hyperion</string>
 		<key>CFBundleIconFile</key>
-		<string>Hyperion.icns</string>
+		<string>${MACOSX_BUNDLE_ICON_FILE}</string>
+		<key>CFBundleGetInfoString</key>
+		<string>${MACOSX_BUNDLE_INFO_STRING}</string>
+		<key>CFBundleVersion</key>
+		<string>${MACOSX_BUNDLE_BUNDLE_VERSION}</string>
+		<key>CFBundleShortVersionString</key>
+		<string>${MACOSX_BUNDLE_SHORT_VERSION_STRING}</string>
+		<key>CFBundleLongVersionString</key>
+		<string>${MACOSX_BUNDLE_LONG_VERSION_STRING}</string>
 		<key>CFBundleInfoDictionaryVersion</key>
 		<string>6.0</string>
 		<key>CFBundlePackageType</key>
 		<string>APPL</string>
 		<key>NSHumanReadableCopyright</key>
-		<string>MIT License</string>
+		<string>${MACOSX_BUNDLE_COPYRIGHT}</string>
 		<key>Source Code</key>
 		<string>"https://github.com/hyperion-project/hyperion.ng"</string>
 	</dict>
