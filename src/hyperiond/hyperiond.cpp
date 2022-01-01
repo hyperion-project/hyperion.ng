@@ -182,9 +182,25 @@ void HyperionDaemon::freeObjects()
 {
 	Debug(_log, "Cleaning up Hyperion before quit.");
 
-	// destroy network first as a client might want to access hyperion
-	delete _jsonServer;
-	_jsonServer = nullptr;
+#ifdef ENABLE_MDNS
+	if (_mDNSEngine != nullptr)
+	{
+		auto mDnsThread = _mDNSEngine->thread();
+		mDnsThread->quit();
+		mDnsThread->wait();
+		delete mDnsThread;
+		_mDNSEngine = nullptr;
+	}
+#endif
+
+	if (_jsonServer != nullptr)
+	{
+		auto jsonThread = _jsonServer->thread();
+		jsonThread->quit();
+		jsonThread->wait();
+		delete jsonThread;
+		_jsonServer = nullptr;
+	}
 
 #if defined(ENABLE_FLATBUF_SERVER)
 	if (_flatBufferServer != nullptr)
@@ -217,17 +233,6 @@ void HyperionDaemon::freeObjects()
 		delete ssdpThread;
 		_ssdp = nullptr;
 	}
-
-#ifdef ENABLE_MDNS
-	if (_mDNSEngine != nullptr)
-	{
-		auto mDnsThread = _mDNSEngine->thread();
-		mDnsThread->quit();
-		mDnsThread->wait();
-		delete mDnsThread;
-		_mDNSEngine = nullptr;
-	}
-#endif
 
 	if (_webserver != nullptr)
 	{
@@ -281,9 +286,29 @@ void HyperionDaemon::freeObjects()
 
 void HyperionDaemon::startNetworkServices()
 {
+	// Create mDNS-Engine in thread to allow publishing other services
+#ifdef ENABLE_MDNS
+	_mDNSEngine = new MdnsEngine();
+	QThread* mDnsThread = new QThread(this);
+	mDnsThread->setObjectName("mDNSEngineThread");
+	_mDNSEngine->moveToThread(mDnsThread);
+	connect(mDnsThread, &QThread::started, _mDNSEngine, &MdnsEngine::initEngine);
+	connect(mDnsThread, &QThread::finished, _mDNSEngine, &MdnsEngine::deleteLater);
+	mDnsThread->start();
+#endif
+
 	// Create Json server
 	_jsonServer = new JsonServer(getSetting(settings::JSONSERVER));
+	QThread* jsonThread = new QThread(this);
+	jsonThread->setObjectName("JSONServerThread");
+	_jsonServer->moveToThread(jsonThread);
+	connect(jsonThread, &QThread::started, _jsonServer, &JsonServer::initServer);
+	connect(jsonThread, &QThread::finished, _jsonServer, &JsonServer::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _jsonServer, &JsonServer::handleSettingsUpdate);
+#ifdef ENABLE_MDNS
+	connect(_jsonServer, &JsonServer::publishService, _mDNSEngine, &MdnsEngine::publishService);
+#endif
+	jsonThread->start();
 
 #if defined(ENABLE_FLATBUF_SERVER)
 	// Create FlatBuffer server in thread
@@ -294,6 +319,9 @@ void HyperionDaemon::startNetworkServices()
 	connect(fbThread, &QThread::started, _flatBufferServer, &FlatBufferServer::initServer);
 	connect(fbThread, &QThread::finished, _flatBufferServer, &FlatBufferServer::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _flatBufferServer, &FlatBufferServer::handleSettingsUpdate);
+#ifdef ENABLE_MDNS
+	connect(_flatBufferServer, &FlatBufferServer::publishService, _mDNSEngine, &MdnsEngine::publishService);
+#endif
 	fbThread->start();
 #endif
 
@@ -306,6 +334,9 @@ void HyperionDaemon::startNetworkServices()
 	connect(pThread, &QThread::started, _protoServer, &ProtoServer::initServer);
 	connect(pThread, &QThread::finished, _protoServer, &ProtoServer::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _protoServer, &ProtoServer::handleSettingsUpdate);
+#ifdef ENABLE_MDNS
+	connect(_protoServer, &ProtoServer::publishService, _mDNSEngine, &MdnsEngine::publishService);
+#endif
 	pThread->start();
 #endif
 
@@ -317,6 +348,9 @@ void HyperionDaemon::startNetworkServices()
 	connect(wsThread, &QThread::started, _webserver, &WebServer::initServer);
 	connect(wsThread, &QThread::finished, _webserver, &WebServer::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _webserver, &WebServer::handleSettingsUpdate);
+#ifdef ENABLE_MDNS
+	connect(_webserver, &WebServer::publishService, _mDNSEngine, &MdnsEngine::publishService);
+#endif
 	wsThread->start();
 
 	// Create SSL Webserver in thread
@@ -327,18 +361,10 @@ void HyperionDaemon::startNetworkServices()
 	connect(sslWsThread, &QThread::started, _sslWebserver, &WebServer::initServer);
 	connect(sslWsThread, &QThread::finished, _sslWebserver, &WebServer::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _sslWebserver, &WebServer::handleSettingsUpdate);
-	sslWsThread->start();
-
-	// Create mDNS-Engine in thread
 #ifdef ENABLE_MDNS
-	_mDNSEngine = new MdnsEngine();
-	QThread* mDnsThread = new QThread(this);
-	mDnsThread->setObjectName("mDNSEngineThread");
-	_mDNSEngine->moveToThread(mDnsThread);
-	connect(mDnsThread, &QThread::started, _mDNSEngine, &MdnsEngine::initEngine);
-	connect(mDnsThread, &QThread::finished, _mDNSEngine, &MdnsEngine::deleteLater);
-	mDnsThread->start();
+	connect(_sslWebserver, &WebServer::publishService, _mDNSEngine, &MdnsEngine::publishService);
 #endif
+	sslWsThread->start();
 
 	// Create SSDP server in thread
 	_ssdp = new SSDPHandler(_webserver,

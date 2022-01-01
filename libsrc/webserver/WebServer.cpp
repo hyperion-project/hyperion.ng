@@ -9,6 +9,14 @@
 // netUtil
 #include <utils/NetUtils.h>
 
+// Constants
+namespace {
+
+const char HTTP_MDNS_SERVICE_TYPE[]  = "_http._tcp.local.";
+const char HTTPS_MDNS_SERVICE_TYPE[] = "_https._tcp.local.";
+
+} //End of constants
+
 WebServer::WebServer(const QJsonDocument& config, bool useSsl, QObject * parent)
 	:  QObject(parent)
 	, _config(config)
@@ -16,7 +24,6 @@ WebServer::WebServer(const QJsonDocument& config, bool useSsl, QObject * parent)
 	, _log(Logger::getInstance("WEBSERVER"))
 	, _server()
 {
-
 }
 
 WebServer::~WebServer()
@@ -53,6 +60,15 @@ void WebServer::onServerStarted (quint16 port)
 	_inited = true;
 
 	Info(_log, "'%s' started on port %d",_server->getServerName().toStdString().c_str(), port);
+
+	if (_useSsl)
+	{
+		emit publishService(HTTPS_MDNS_SERVICE_TYPE, _port);
+	}
+	else
+	{
+		emit publishService(HTTP_MDNS_SERVICE_TYPE, _port);
+	}
 
 	emit stateChange(true);
 }

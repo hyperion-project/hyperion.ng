@@ -11,6 +11,14 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 
+// Constants
+namespace {
+
+const char HYPERION_MDNS_SERVICE_TYPE[] = "_hyperiond-flatbuf._tcp.local.";
+const char HYPERION_SERVICENAME[] = "FlatBuffers";
+
+} //End of constants
+
 FlatBufferServer::FlatBufferServer(const QJsonDocument& config, QObject* parent)
 	: QObject(parent)
 	, _server(new QTcpServer(this))
@@ -101,6 +109,8 @@ void FlatBufferServer::startServer()
 		else
 		{
 			Info(_log,"Started on port %d", _port);
+
+			emit publishService(HYPERION_MDNS_SERVICE_TYPE, _port, HYPERION_SERVICENAME);
 		}
 	}
 }

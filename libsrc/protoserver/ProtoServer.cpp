@@ -10,6 +10,14 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 
+// Constants
+namespace {
+
+const char HYPERION_MDNS_SERVICE_TYPE[] = "_hyperiond-protobuf._tcp.local.";
+const char HYPERION_SERVICENAME[] = "ProtocolBuffers";
+
+} //End of constants
+
 ProtoServer::ProtoServer(const QJsonDocument& config, QObject* parent)
 	: QObject(parent)
 	, _server(new QTcpServer(this))
@@ -95,11 +103,12 @@ void ProtoServer::startServer()
 	{
 		if(!_server->listen(QHostAddress::Any, _port))
 		{
-		Error(_log,"Failed to bind port %d", _port);
+			Error(_log,"Failed to bind port %d", _port);
 		}
 		else
 		{
-		Info(_log,"Started on port %d", _port);
+			Info(_log,"Started on port %d", _port);
+			emit publishService(HYPERION_MDNS_SERVICE_TYPE, _port, HYPERION_SERVICENAME);
 		}
 	}
 }

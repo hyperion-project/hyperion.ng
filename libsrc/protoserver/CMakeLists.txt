@@ -45,3 +45,7 @@ target_link_libraries(protoserver
 	protoclient
 	Qt${QT_VERSION_MAJOR}::Gui
 )
+
+if(ENABLE_MDNS)
+	target_link_libraries(protoserver mdns)
+endif()

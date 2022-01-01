@@ -14,20 +14,23 @@
 #include <QJsonDocument>
 #include <QByteArray>
 
+// Constants
+namespace {
+
+const char HYPERION_MDNS_SERVICE_TYPE[] = "_hyperiond-json._tcp.local.";
+const char HYPERION_SERVICENAME[] = "JSONAPI";
+
+} //End of constants
+
 JsonServer::JsonServer(const QJsonDocument& config)
 	: QObject()
 	, _server(new QTcpServer(this))
 	, _openConnections()
 	, _log(Logger::getInstance("JSONSERVER"))
 	, _netOrigin(NetOrigin::getInstance())
+	, _config(config)
 {
 	Debug(_log, "Created instance");
-
-	// Set trigger for incoming connections
-	connect(_server, &QTcpServer::newConnection, this, &JsonServer::newConnection);
-
-	// init
-	handleSettingsUpdate(settings::JSONSERVER, config);
 }
 
 JsonServer::~JsonServer()
@@ -35,17 +38,29 @@ JsonServer::~JsonServer()
 	qDeleteAll(_openConnections);
 }
 
+void JsonServer::initServer()
+{
+	// Set trigger for incoming connections
+	connect(_server, &QTcpServer::newConnection, this, &JsonServer::newConnection);
+
+	// init
+	handleSettingsUpdate(settings::JSONSERVER, _config);
+}
+
 void JsonServer::start()
 {
-	if(_server->isListening())
-		return;
-
-	if (!_server->listen(QHostAddress::Any, _port))
+	if(!_server->isListening())
 	{
-		Error(_log,"Could not bind to port '%d', please use an available port", _port);
-		return;
+		if (!_server->listen(QHostAddress::Any, _port))
+		{
+			Error(_log,"Could not bind to port '%d', please use an available port", _port);
+		}
+		else
+		{
+			Info(_log, "Started on port %d", _port);
+			emit publishService(HYPERION_MDNS_SERVICE_TYPE, _port, HYPERION_SERVICENAME);
+		}
 	}
-	Info(_log, "Started on port %d", _port);
 }
 
 void JsonServer::stop()
