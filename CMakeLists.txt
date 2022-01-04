@@ -218,7 +218,7 @@ if (HYPERION_LIGHT)
 
 	# Disable Output Connectors
 	SET ( DEFAULT_FORWARDER                   OFF )
-	SET ( DEFAULT_FLATBUF_CONNECT             OFF )
+	SET ( DEFAULT_FLATBUF_CONNECT             ON  )
 endif()
 
 message(STATUS "Grabber options:")
@@ -481,7 +481,7 @@ find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Gui Network SerialPort Sql Widgets
 message( STATUS "Found Qt Version: ${QT_VERSION}" )
 
 if (${QT_VERSION_MAJOR} GREATER_EQUAL 6 )
-	SET(QT_MIN_VERSION "6.2.0")
+	SET(QT_MIN_VERSION "6.2.2")
 else()
 	SET(QT_MIN_VERSION "5.5.0")
 endif()

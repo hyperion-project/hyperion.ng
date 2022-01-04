@@ -1,5 +1,5 @@
-#ifndef MDNSENGINE_H
-#define MDNSENGINE_H
+#ifndef MDNSPROVIDER_H
+#define MDNSPROVIDER_H
 
 #include <qmdnsengine/server.h>
 #include <qmdnsengine/hostname.h>
@@ -13,23 +13,22 @@
 // Utility includes
 #include <utils/Logger.h>
 
-class MdnsEngine : public QObject
+class MdnsProvider : public QObject
 {
-	Q_OBJECT
 
 public:
 
-	MdnsEngine(QObject* parent = nullptr);
-	~MdnsEngine() override;
+	MdnsProvider(QObject* parent = nullptr);
+	~MdnsProvider() override;
 
 	QList<QByteArray> getServiceTypesProvided() const { return _providedServiceTypes.keys(); }
 
 public slots:
 
 	///
-	/// @brief Init MdnsEngine after thread start
+	/// @brief Init MdnsProvider after thread start
 	///
-	void initEngine();
+	void init();
 
 	void publishService (const QByteArray& serviceType, quint16 servicePort, const QByteArray& serviceName = "");
 
@@ -49,4 +48,4 @@ private:
 	QMap<QByteArray, QMdnsEngine::Provider*> _providedServiceTypes;
 };
 
-#endif // MDNSENGINE_H
+#endif // MDNSPROVIDER_H

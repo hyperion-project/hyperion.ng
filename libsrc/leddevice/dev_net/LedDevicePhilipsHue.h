@@ -289,7 +289,7 @@ protected:
 	ProviderRestApi* _restApi;
 
 	/// Ip address of the bridge
-	QString _hostname;
+	QString _hostAddress;
 	int _apiPort;
 	/// User name for the API ("newdeveloper")
 	QString _username;
@@ -562,6 +562,14 @@ private:
 	void stopBlackTimeoutTimer();
 
 	QByteArray prepareStreamData() const;
+
+	///
+	/// @brief Discover Philips-Hue devices available (for configuration).
+	/// Philips-Hue specific ssdp discovery
+	///
+	/// @return A JSON structure holding a list of devices found
+	///
+	QJsonArray discover();
 
 	///
 	bool _switchOffOnBlack;

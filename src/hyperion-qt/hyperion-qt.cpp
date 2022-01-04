@@ -1,6 +1,3 @@
-// stl includes
-#include <chrono>
-
 // QT includes
 #include <QCoreApplication>
 #include <QImage>
@@ -14,13 +11,8 @@
 
 // mDNS discover
 #ifdef ENABLE_MDNS
-#include <qmdnsengine/server.h>
-#include <qmdnsengine/service.h>
-#include <qmdnsengine/browser.h>
-#include <qmdnsengine/resolver.h>
-#include <qmdnsengine/cache.h>
+#include <mdns/mdnsBrowser.h>
 #endif
-
 #include <utils/NetUtils.h>
 
 //flatbuf sending
@@ -31,9 +23,6 @@ namespace {
 
 const char HYPERION_MDNS_SERVICE_TYPE[] = "_hyperiond-flatbuf._tcp.local.";
 const char HYPERION_SERVICENAME[] = "hyperion-flatbuffer";
-
-constexpr std::chrono::milliseconds DEFAULT_DISCOVER_TIMEOUT{ 2000 };
-constexpr std::chrono::milliseconds DEFAULT_ADDRESS_RESOLVE_TIMEOUT{ 2000 };
 
 } //End of constants
 
@@ -135,104 +124,47 @@ int main(int argc, char ** argv)
 		}
 		else
 		{
-			QString hostName;
+			QString host;
 			QString serviceName {HYPERION_SERVICENAME};
-
-			QString hostAddress;
 			quint16 port {FLATBUFFER_DEFAULT_PORT};
 
 			// Split hostname and port (or use default port)
-			QString address = argAddress.value(parser);
-			if (!NetUtils::resolveHostPort(address, hostName, port))
+			QString givenAddress = argAddress.value(parser);
+			if (!NetUtils::resolveHostPort(givenAddress, host, port))
 			{
-				throw std::runtime_error(QString("Wrong address: unable to parse address (%1)").arg(address).toStdString());
+				throw std::runtime_error(QString("Wrong address: unable to parse address (%1)").arg(givenAddress).toStdString());
 			}
 
 #ifdef ENABLE_MDNS
-			QMdnsEngine::Server server;
-			QMdnsEngine::Cache cache;
-
 			// Search available Hyperion services via mDNS, if default/localhost IP is given
-			if(hostName == "127.0.0.1" || hostName == "::1")
+			if(host == "127.0.0.1" || host == "::1")
 			{
-				QMdnsEngine::Service firstMdnsService;
+				MdnsBrowser::getInstance().browseForServiceType(HYPERION_MDNS_SERVICE_TYPE);
+				QMdnsEngine::Service service = MdnsBrowser::getInstance().getFirstService(HYPERION_MDNS_SERVICE_TYPE);
 
-				QMdnsEngine::Browser browser(&server, HYPERION_MDNS_SERVICE_TYPE, &cache);
-				QObject::connect(&browser, &QMdnsEngine::Browser::serviceAdded, log,
-								  [&firstMdnsService, &log](const QMdnsEngine::Service &service) {
-									  Debug(log, "Discovered Hyperion service [%s] at host: %s, port: %u", service.name().constData(), service.hostname().constData(), service.port());
-
-									  // Use the first service discovered
-									  if (firstMdnsService.name().isEmpty())
-									  {
-										  firstMdnsService = service;
-									  }
-								  });
-
-				QEventLoop loop;
-				QTimer t;
-				QObject::connect(&browser, &QMdnsEngine::Browser::serviceAdded, &loop, &QEventLoop::quit);
-				QTimer::connect(&t, &QTimer::timeout, &loop, &QEventLoop::quit);
-				t.start(DEFAULT_DISCOVER_TIMEOUT.count());
-				loop.exec();
-
-				if (firstMdnsService.hostname().isEmpty())
+				if (service.hostname().isEmpty())
 				{
 					throw std::runtime_error(QString("Automatic discovery failed! No Hyperion servers found providing a service of type: %1")
 												  .arg(QString(HYPERION_MDNS_SERVICE_TYPE)).toStdString()
 											  );
-
 				}
-				serviceName = firstMdnsService.name();
-				hostName = firstMdnsService.hostname();
-				port = firstMdnsService.port();
+				serviceName = service.name();
+				host = service.hostname();
+				port = service.port();
 			}
 
-			//Resolve Hostname to HostAddress
-			if (hostName.endsWith(".local"))
+			QHostAddress address;
+			if (!NetUtils::resolveHostAddress(&MdnsBrowser::getInstance(), log, host, address))
 			{
-				hostName.append('.');
+				throw std::runtime_error(QString("Address could not be resolved for hostname: %2").arg(QSTRING_CSTR(host)).toStdString());
 			}
 
-			if (hostName.endsWith(".local."))
-			{
-				QMdnsEngine::Resolver resolver(&server, hostName.toUtf8(), &cache);
-				QObject::connect(&resolver, &QMdnsEngine::Resolver::resolved, log,
-								  [hostName, &log, &hostAddress](const QHostAddress &resolvedAddress) {
-									  Debug(log, "Resolved Hyperion hostname: %s to address: %s",  QSTRING_CSTR(hostName), QSTRING_CSTR(resolvedAddress.toString()));
-
-									  // Use the first resolved address
-									  if (hostAddress.isEmpty())
-									  {
-										  hostAddress = resolvedAddress.toString();
-									  }
-								  }
-								  );
-
-				QEventLoop loop;
-				QTimer t;
-				QObject::connect(&resolver, &QMdnsEngine::Resolver::resolved, &loop, &QEventLoop::quit);
-				QTimer::connect(&t, &QTimer::timeout, &loop, &QEventLoop::quit);
-				t.start(DEFAULT_ADDRESS_RESOLVE_TIMEOUT.count());
-				loop.exec();
-
-				if (hostAddress.isEmpty() )
-				{
-					throw std::runtime_error(QString("Address could not be resolved for hostname: %2").arg(QSTRING_CSTR(hostName)).toStdString());
-				}
-
-			}
-			else
+			host = address.toString();
 #endif
-			{
-				hostAddress = hostName;
-			}
-
-			Info(log, "Connecting to Hyperion host: %s, port: %u using service: %s", QSTRING_CSTR(hostName), port, QSTRING_CSTR(serviceName));
-
+			Info(log, "Connecting to Hyperion host: %s, port: %u using service: %s", QSTRING_CSTR(host), port, QSTRING_CSTR(serviceName));
 
 			// Create the Flabuf-connection
-			FlatBufferConnection flatbuf("Qt Standalone", hostAddress, argPriority.getInt(parser), parser.isSet(argSkipReply), port);
+			FlatBufferConnection flatbuf("Qt Standalone", host, argPriority.getInt(parser), parser.isSet(argSkipReply), port);
 
 			// Connect the screen capturing to flatbuf connection processing
 			QObject::connect(&qtWrapper, &QtWrapper::sig_screenshot, &flatbuf, &FlatBufferConnection::setImage);

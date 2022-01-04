@@ -148,10 +148,12 @@ private:
 
 	bool sendStateUpdateRequest(const QString &request);
 
+	QString resolveAddress (const QString& hostName);
+
 	///REST-API wrapper
 	ProviderRestApi* _restApi;
 
-	QString _hostname;
+	QString _hostAddress;
 	int		_apiPort;
 
 	QJsonObject _originalStateProperties;

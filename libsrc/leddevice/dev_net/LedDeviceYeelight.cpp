@@ -1,7 +1,7 @@
 ﻿#include "LedDeviceYeelight.h"
 
-#include <ssdp/SSDPDiscover.h>
-#include <utils/QStringUtils.h>
+#include <chrono>
+#include <thread>
 
 // Qt includes
 #include <QEventLoop>
@@ -11,8 +11,15 @@
 #include <QColor>
 #include <QDateTime>
 
-#include <chrono>
-#include <thread>
+#include <ssdp/SSDPDiscover.h>
+#include <utils/QStringUtils.h>
+
+// mDNS discover
+#ifdef ENABLE_MDNS
+#include <mdns/mdnsBrowser.h>
+#include <leddevice/LedDeviceMdnsRegister.h>
+#endif
+#include <utils/NetUtils.h>
 
 // Constants
 namespace {
@@ -111,7 +118,6 @@ YeelightLight::YeelightLight( Logger *log, const QString &hostname, quint16 port
 	  ,_isInMusicMode(false)
 {
 	_name = hostname;
-
 }
 
 YeelightLight::~YeelightLight()
@@ -1006,6 +1012,10 @@ LedDeviceYeelight::LedDeviceYeelight(const QJsonObject &deviceConfig)
 	  ,_debuglevel(0)
 	  ,_musicModeServerPort(-1)
 {
+#ifdef ENABLE_MDNS
+	QMetaObject::invokeMethod(&MdnsBrowser::getInstance(), "browseForServiceType",
+							   Qt::QueuedConnection, Q_ARG(QByteArray, LedDeviceMdnsRegister::getServiceType(_activeDeviceType)));
+#endif
 }
 
 LedDeviceYeelight::~LedDeviceYeelight()
@@ -1104,6 +1114,7 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 		{
 			QString hostName = light.toObject().value("host").toString();
 			int port = light.toObject().value("port").toInt(API_DEFAULT_PORT);
+
 			if ( !hostName.isEmpty() )
 			{
 				QString name = light.toObject().value("name").toString();
@@ -1136,7 +1147,11 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 				QString hostName = configuredYeelightLights[j].toObject().value("host").toString();
 				int port = configuredYeelightLights[j].toObject().value("port").toInt(API_DEFAULT_PORT);
 
-				_lightsAddressList.append( { hostName, port} );
+				QHostAddress address;
+				if (NetUtils::resolveHostAddress(this, _log, hostName, address))
+				{
+					_lightsAddressList.append( { address.toString(), port} );
+				}
 			}
 
 			if ( updateLights(_lightsAddressList) )
@@ -1391,10 +1406,21 @@ QJsonObject LedDeviceYeelight::discover(const QJsonObject& /*params*/)
 	QJsonObject devicesDiscovered;
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );
 
-	QString discoveryMethod("ssdp");
 	QJsonArray deviceList;
-	deviceList = discover();
 
+#ifdef ENABLE_MDNS
+	QString discoveryMethod("mDNS");
+	deviceList = MdnsBrowser::getInstance().getServicesDiscoveredJson(
+		LedDeviceMdnsRegister::getServiceType(_activeDeviceType),
+		LedDeviceMdnsRegister::getServiceNameFilter(_activeDeviceType),
+		DEFAULT_DISCOVER_TIMEOUT
+		);
+#else
+	QString discoveryMethod("ssdp");
+	deviceList = discover();
+#endif
+
+	devicesDiscovered.insert("discoveryMethod", discoveryMethod);
 	devicesDiscovered.insert("devices", deviceList);
 
 	DebugIf(verbose,_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData() );
@@ -1410,9 +1436,10 @@ QJsonObject LedDeviceYeelight::getProperties(const QJsonObject& params)
 	QString hostName = params["hostname"].toString("");
 	quint16 apiPort = static_cast<quint16>( params["port"].toInt(API_DEFAULT_PORT) );
 
-	if ( !hostName.isEmpty() )
+	QHostAddress address;
+	if (NetUtils::resolveHostAddress(this, _log, hostName, address))
 	{
-		YeelightLight yeelight(_log, hostName, apiPort);
+		YeelightLight yeelight(_log, address.toString(), apiPort);
 
 		//yeelight.setDebuglevel(3);
 		if ( yeelight.open() )
@@ -1434,9 +1461,10 @@ void LedDeviceYeelight::identify(const QJsonObject& params)
 	quint16 apiPort = static_cast<quint16>( params["port"].toInt(API_DEFAULT_PORT) );
 	Debug (_log, "apiHost [%s], apiPort [%d]", QSTRING_CSTR(hostName), apiPort);
 
-	if ( !hostName.isEmpty() )
+	QHostAddress address;
+	if (NetUtils::resolveHostAddress(this, _log, hostName, address))
 	{
-		YeelightLight yeelight(_log, hostName, apiPort);
+		YeelightLight yeelight(_log, address.toString(), apiPort);
 		//yeelight.setDebuglevel(3);
 
 		if ( yeelight.open() )

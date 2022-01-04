@@ -1,11 +1,17 @@
 // Local-Hyperion includes
 #include "LedDeviceWled.h"
 
+#include <chrono>
+
 #include <utils/QStringUtils.h>
 #include <utils/WaitTime.h>
-#include <QThread>
 
-#include <chrono>
+// mDNS discover
+#ifdef ENABLE_MDNS
+#include <mdns/mdnsBrowser.h>
+#include <leddevice/LedDeviceMdnsRegister.h>
+#endif
+#include <utils/NetUtils.h>
 
 // Constants
 namespace {
@@ -55,6 +61,10 @@ LedDeviceWled::LedDeviceWled(const QJsonObject &deviceConfig)
 	  ,_originalStateUdpnSend(false)
 	  ,_originalStateUdpnRecv(true)
 {
+#ifdef ENABLE_MDNS
+	QMetaObject::invokeMethod(&MdnsBrowser::getInstance(), "browseForServiceType",
+							   Qt::QueuedConnection, Q_ARG(QByteArray, LedDeviceMdnsRegister::getServiceType(_activeDeviceType)));
+#endif
 }
 
 LedDeviceWled::~LedDeviceWled()
@@ -102,35 +112,27 @@ bool LedDeviceWled::init(const QJsonObject &deviceConfig)
 		//Set hostname as per configuration
 		QString hostName = deviceConfig[ CONFIG_ADDRESS ].toString();
 
-		//If host not configured the init fails
-		if ( hostName.isEmpty() )
+		QHostAddress address;
+		if (NetUtils::resolveHostAddress(this, _log, hostName, address))
 		{
-			this->setInError("No target hostname nor IP defined");
-			return false;
-		}
-		else
-		{
-			QStringList addressparts = QStringUtils::split(hostName,":", QStringUtils::SplitBehavior::SkipEmptyParts);
-			_hostname = addressparts[0];
-			if ( addressparts.size() > 1 )
-			{
-				_apiPort = addressparts[1].toInt();
-			}
-			else
-			{
-				_apiPort = API_DEFAULT_PORT;
-			}
+			_hostAddress	= address.toString();
+			_apiPort = API_DEFAULT_PORT;
 
-			if ( initRestAPI( _hostname, _apiPort ) )
+			if ( initRestAPI( _hostAddress, _apiPort ) )
 			{
 				// Update configuration with hostname without port
-				_devConfig["host"] = _hostname;
+				_devConfig["host"] = _hostAddress;
 				_devConfig["port"] = STREAM_DEFAULT_PORT;
 
 				isInitOK = ProviderUdp::init(_devConfig);
-				Debug(_log, "Hostname/IP  : %s", QSTRING_CSTR( _hostname ));
+				Debug(_log, "Hostname/IP  : %s", QSTRING_CSTR( _hostAddress ));
 				Debug(_log, "Port         : %d", _port);
 			}
+		}
+		else
+		{
+			this->setInError("No or invalid hostname/IP defined");
+			return false;
 		}
 	}
 	return isInitOK;
@@ -316,6 +318,16 @@ QJsonObject LedDeviceWled::discover(const QJsonObject& /*params*/)
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );
 
 	QJsonArray deviceList;
+
+#ifdef ENABLE_MDNS
+	QString discoveryMethod("mDNS");
+	deviceList = MdnsBrowser::getInstance().getServicesDiscoveredJson(
+		LedDeviceMdnsRegister::getServiceType(_activeDeviceType),
+		LedDeviceMdnsRegister::getServiceNameFilter(_activeDeviceType),
+		DEFAULT_DISCOVER_TIMEOUT
+		);
+	devicesDiscovered.insert("discoveryMethod", discoveryMethod);
+#endif
 	devicesDiscovered.insert("devices", deviceList);
 	DebugIf(verbose, _log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 
@@ -329,25 +341,12 @@ QJsonObject LedDeviceWled::getProperties(const QJsonObject& params)
 
 	QString hostName = params["host"].toString("");
 
-	if ( !hostName.isEmpty() )
+	QHostAddress address;
+	if (NetUtils::resolveHostAddress(this, _log, hostName, address))
 	{
 		QString filter = params["filter"].toString("");
 
-		// Resolve hostname and port (or use default API port)
-		QStringList addressparts = QStringUtils::split(hostName,":", QStringUtils::SplitBehavior::SkipEmptyParts);
-		QString apiHost = addressparts[0];
-		int apiPort;
-
-		if ( addressparts.size() > 1)
-		{
-			apiPort = addressparts[1].toInt();
-		}
-		else
-		{
-			apiPort   = API_DEFAULT_PORT;
-		}
-
-		initRestAPI(apiHost, apiPort);
+		initRestAPI( address.toString(), API_DEFAULT_PORT);
 		_restApi->setPath(filter);
 
 		httpResponse response = _restApi->get();
@@ -372,23 +371,10 @@ void LedDeviceWled::identify(const QJsonObject& params)
 
 	QString hostName = params["host"].toString("");
 
-	if ( !hostName.isEmpty() )
+	QHostAddress address;
+	if (NetUtils::resolveHostAddress(this, _log, hostName, address))
 	{
-		// Resolve hostname and port (or use default API port)
-		QStringList addressparts = QStringUtils::split(hostName,":", QStringUtils::SplitBehavior::SkipEmptyParts);
-		QString apiHost = addressparts[0];
-		int apiPort;
-
-		if ( addressparts.size() > 1)
-		{
-			apiPort = addressparts[1].toInt();
-		}
-		else
-		{
-			apiPort   = API_DEFAULT_PORT;
-		}
-
-		initRestAPI(apiHost, apiPort);
+		initRestAPI( address.toString(), API_DEFAULT_PORT);
 
 		_isRestoreOrigState = true;
 		storeState();

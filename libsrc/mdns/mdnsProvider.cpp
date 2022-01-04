@@ -1,4 +1,4 @@
-#include <mdns/mdnsEngine.h>
+#include <mdns/mdnsProvider.h>
 
 //Qt includes
 #include <QHostInfo>
@@ -10,10 +10,10 @@
 #include <hyperion/AuthManager.h>
 
 namespace {
-	const bool verboseProvider = true;
+	const bool verboseProvider = false;
 } //End of constants
 
-MdnsEngine::MdnsEngine(QObject* parent)
+MdnsProvider::MdnsProvider(QObject* parent)
 	: QObject(parent)
 	, _log(Logger::getInstance("MDNS"))
 	, _server(nullptr)
@@ -21,24 +21,24 @@ MdnsEngine::MdnsEngine(QObject* parent)
 {
 }
 
-void MdnsEngine::initEngine()
+void MdnsProvider::init()
 {
 	_server = new QMdnsEngine::Server();
 	_hostname = new QMdnsEngine::Hostname(_server);
 
-	connect(_hostname, &QMdnsEngine::Hostname::hostnameChanged, this, &MdnsEngine::onHostnameChanged);
+	connect(_hostname, &QMdnsEngine::Hostname::hostnameChanged, this, &MdnsProvider::onHostnameChanged);
 	DebugIf(verboseProvider, _log, "Hostname [%s], isRegistered [%d]", _hostname->hostname().constData(), _hostname->isRegistered());
 }
 
-MdnsEngine::~MdnsEngine()
+MdnsProvider::~MdnsProvider()
 {
 	qDeleteAll(_providedServiceTypes);
 
-	delete _hostname;
-	delete _server;
+	_hostname->deleteLater();
+	_server->deleteLater();
 }
 
-void MdnsEngine::publishService(const QByteArray& serviceType, quint16 servicePort, const QByteArray& serviceName)
+void MdnsProvider::publishService(const QByteArray& serviceType, quint16 servicePort, const QByteArray& serviceName)
 {
 	DebugIf(verboseProvider, _log, "Publish new mDNS serviceType [%s], Thread: %s", serviceType.constData(), QSTRING_CSTR(QThread::currentThread()->objectName()));
 
@@ -75,7 +75,7 @@ void MdnsEngine::publishService(const QByteArray& serviceType, quint16 servicePo
 	provider->update(service);
 }
 
-void MdnsEngine::onHostnameChanged(const QByteArray& hostname)
+void MdnsProvider::onHostnameChanged(const QByteArray& hostname)
 {
 	DebugIf(verboseProvider, _log, "mDNS-hostname changed to hostname [%s]", hostname.constData());
 }

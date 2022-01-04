@@ -894,17 +894,30 @@ async function discover_hue_bridges() {
     else {
       hueIPs = [];
       hueIPsinc = 0;
+      
+      var discoveryMethod = "ssdp";
+      if (res.info.discoveryMethod) {
+        discoveryMethod = res.info.discoveryMethod;
+      }
 
       for (const device of r.devices) {
-        if (device && device.ip && device.port) {
+        console.log("Device: ", device);
+
+        if (device) {
           var host;
           var port;
-          if (device.hostname && device.domain) {
-            host = device.hostname + "." + device.domain;
-            port = device.port;
-          } else {
-            host = device.ip;
-            port = device.port;
+          if (discoveryMethod === "ssdp") {
+            if (device.hostname && device.domain) {
+              host = device.hostname + "." + device.domain;
+              port = device.port;
+            } else {
+              host = device.ip;
+              port = device.port;
+            }
+          } else
+          {
+              host = device.hostname;
+              port = device.port;
           }
 
           if (host) {
@@ -1477,6 +1490,41 @@ async function discover_yeelight_lights() {
   // res can be: false (timeout) or res.error (not found)
   if (res && !res.error) {
     const r = res.info;
+    
+    
+    var discoveryMethod = "ssdp";
+    if (res.info.discoveryMethod) {
+      discoveryMethod = res.info.discoveryMethod;
+    }
+
+      for (const device of r.devices) {
+        console.log("Device: ", device);
+
+        if (device) {
+          var host;
+          var port;
+          if (discoveryMethod === "ssdp") {
+            if (device.hostname && device.domain) {
+              host = device.hostname + "." + device.domain;
+              port = device.port;
+            } else {
+              host = device.ip;
+              port = device.port;
+            }
+          } else
+          {
+              host = device.hostname;
+              port = device.port;
+          }
+
+          if (host) {
+
+            if (!hueIPs.some(item => item.host === host)) {
+              hueIPs.push({ host: host, port: port });
+            }
+          }
+        }
+      }
 
     // Process devices returned by discovery
     for (const device of r.devices) {
@@ -1486,12 +1534,14 @@ async function discover_yeelight_lights() {
 
           light.host = device.hostname;
 
-          //Create a valid hostname
-          if (device.domain)
-          {
-             light.host += '.' + device.domain;
-          }
 
+          if (discoveryMethod === "ssdp") {
+            //Create a valid hostname
+            if (device.domain)
+            {
+               light.host += '.' + device.domain;
+            }
+          }
           light.port = device.port;
 
           if (device.txt) {

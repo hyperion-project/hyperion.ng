@@ -123,3 +123,7 @@ string(REGEX MATCH "[0-9]+|-([A-Za-z0-9_.]+)" MBEDTLS_MAJOR ${MBEDTLS_VERSION})
 if (MBEDTLS_MAJOR EQUAL "3")
 	target_compile_definitions(leddevice PRIVATE USE_MBEDTLS3)
 endif()
+
+if(ENABLE_MDNS)
+        target_link_libraries(leddevice mdns)
+endif()

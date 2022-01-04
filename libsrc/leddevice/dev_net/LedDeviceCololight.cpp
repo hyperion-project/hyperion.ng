@@ -8,13 +8,20 @@
 
 #include <chrono>
 
+// mDNS discover
+#ifdef ENABLE_MDNS
+#include <mdns/mdnsBrowser.h>
+#include <leddevice/LedDeviceMdnsRegister.h>
+#endif
+#include <utils/NetUtils.h>
+
 // Constants
 namespace {
 	const bool verbose = false;
 	const bool verbose3 = false;
 
 	// Configuration settings
-
+	const char CONFIG_ADDRESS[] = "host";
 	const char CONFIG_HW_LED_COUNT[] = "hardwareLedCount";
 
 	const int COLOLIGHT_BEADS_PER_MODULE = 19;
@@ -46,6 +53,11 @@ LedDeviceCololight::LedDeviceCololight(const QJsonObject& deviceConfig)
 	, _distance(0)
 	, _sequenceNumber(1)
 {
+#ifdef ENABLE_MDNS
+	QMetaObject::invokeMethod(&MdnsBrowser::getInstance(), "browseForServiceType",
+							   Qt::QueuedConnection, Q_ARG(QByteArray, LedDeviceMdnsRegister::getServiceType(_activeDeviceType)));
+#endif
+
 	_packetFixPart.append(reinterpret_cast<const char*>(PACKET_HEADER), sizeof(PACKET_HEADER));
 	_packetFixPart.append(reinterpret_cast<const char*>(PACKET_SECU), sizeof(PACKET_SECU));
 }
@@ -59,20 +71,34 @@ bool LedDeviceCololight::init(const QJsonObject& deviceConfig)
 {
 	bool isInitOK = false;
 
-	_port = API_DEFAULT_PORT;
+	//Set hostname as per configuration
+	QString hostName = deviceConfig[ CONFIG_ADDRESS ].toString();
 
-	if (ProviderUdp::init(deviceConfig))
+	QHostAddress address;
+	if (NetUtils::resolveHostAddress(this, _log, hostName, address))
 	{
-		// Initialise LedDevice configuration and execution environment
-		Debug(_log, "DeviceType   : %s", QSTRING_CSTR(this->getActiveDeviceType()));
-		Debug(_log, "ColorOrder   : %s", QSTRING_CSTR(this->getColorOrder()));
-		Debug(_log, "LatchTime    : %d", this->getLatchTime());
+		// Update configuration with hostname without port
+		_devConfig["host"] = address.toString();
+		_devConfig["port"] = API_DEFAULT_PORT;
 
-		if (initLedsConfiguration())
+		if (ProviderUdp::init(deviceConfig))
 		{
-			initDirectColorCmdTemplate();
-			isInitOK = true;
+			// Initialise LedDevice configuration and execution environment
+			Debug(_log, "DeviceType   : %s", QSTRING_CSTR(this->getActiveDeviceType()));
+			Debug(_log, "ColorOrder   : %s", QSTRING_CSTR(this->getColorOrder()));
+			Debug(_log, "LatchTime    : %d", this->getLatchTime());
+
+			if (initLedsConfiguration())
+			{
+				initDirectColorCmdTemplate();
+				isInitOK = true;
+			}
 		}
+	}
+	else
+	{
+		this->setInError("No or invalid hostname/IP defined");
+		return false;
 	}
 	return isInitOK;
 }
@@ -652,10 +678,19 @@ QJsonObject LedDeviceCololight::discover(const QJsonObject& /*params*/)
 	QJsonObject devicesDiscovered;
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
 
-	QString discoveryMethod("ssdp");
 	QJsonArray deviceList;
 
+#ifdef ENABLE_MDNS
+	QString discoveryMethod("mDNS");
+	deviceList = MdnsBrowser::getInstance().getServicesDiscoveredJson(
+		LedDeviceMdnsRegister::getServiceType(_activeDeviceType),
+		LedDeviceMdnsRegister::getServiceNameFilter(_activeDeviceType),
+		DEFAULT_DISCOVER_TIMEOUT
+		);
+#else
+	QString discoveryMethod("ssdp");
 	deviceList = discover();
+#endif
 
 	devicesDiscovered.insert("discoveryMethod", discoveryMethod);
 	devicesDiscovered.insert("devices", deviceList);
@@ -671,15 +706,14 @@ QJsonObject LedDeviceCololight::getProperties(const QJsonObject& params)
 	QJsonObject properties;
 
 	QString hostName = params["host"].toString("");
-	quint16 apiPort = static_cast<quint16>(params["port"].toInt(API_DEFAULT_PORT));
-
 	QJsonObject propertiesDetails;
-	if (!hostName.isEmpty())
+
+	QHostAddress address;
+	if (NetUtils::resolveHostAddress(this, _log, hostName, address))
 	{
 		QJsonObject deviceConfig;
-
-		deviceConfig.insert("host", hostName);
-		deviceConfig.insert("port", apiPort);
+		deviceConfig.insert("host", address.toString());
+		deviceConfig.insert("port", API_DEFAULT_PORT);
 
 		if (ProviderUdp::init(deviceConfig))
 		{
@@ -718,14 +752,14 @@ void LedDeviceCololight::identify(const QJsonObject& params)
 	DebugIf(verbose,_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	QString hostName = params["host"].toString("");
-	quint16 apiPort = static_cast<quint16>(params["port"].toInt(API_DEFAULT_PORT));
 
-	if (!hostName.isEmpty())
+	QHostAddress address;
+	if (NetUtils::resolveHostAddress(this, _log, hostName, address))
 	{
 		QJsonObject deviceConfig;
+		deviceConfig.insert("host", address.toString());
+		deviceConfig.insert("port", API_DEFAULT_PORT);
 
-		deviceConfig.insert("host", hostName);
-		deviceConfig.insert("port", apiPort);
 		if (ProviderUdp::init(deviceConfig))
 		{
 			if (setStateDirect(false) && setState(true))

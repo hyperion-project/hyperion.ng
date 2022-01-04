@@ -1,16 +1,23 @@
 // Local-Hyperion includes
 #include "LedDeviceNanoleaf.h"
 
-#include <ssdp/SSDPDiscover.h>
-#include <utils/QStringUtils.h>
+//std includes
+#include <sstream>
+#include <iomanip>
 
 // Qt includes
 #include <QNetworkReply>
 #include <QtEndian>
 
-//std includes
-#include <sstream>
-#include <iomanip>
+#include <ssdp/SSDPDiscover.h>
+#include <utils/QStringUtils.h>
+
+// mDNS discover
+#ifdef ENABLE_MDNS
+#include <mdns/mdnsBrowser.h>
+#include <leddevice/LedDeviceMdnsRegister.h>
+#endif
+#include <utils/NetUtils.h>
 
 // Constants
 namespace {
@@ -115,6 +122,10 @@ LedDeviceNanoleaf::LedDeviceNanoleaf(const QJsonObject& deviceConfig)
 	  , _extControlVersion(EXTCTRLVER_V2)
 	  , _panelLedCount(0)
 {
+#ifdef ENABLE_MDNS
+	QMetaObject::invokeMethod(&MdnsBrowser::getInstance(), "browseForServiceType",
+							   Qt::QueuedConnection, Q_ARG(QByteArray, LedDeviceMdnsRegister::getServiceType(_activeDeviceType)));
+#endif
 }
 
 LedDevice* LedDeviceNanoleaf::construct(const QJsonObject& deviceConfig)
@@ -181,33 +192,34 @@ bool LedDeviceNanoleaf::init(const QJsonObject& deviceConfig)
 
 		_startPos = deviceConfig[CONFIG_PANEL_START_POS].toInt(0);
 
-		//Set hostname as per configuration and_defaultHost default port
-		_hostName = deviceConfig[CONFIG_ADDRESS].toString();
+		//Set hostname as per configuration and default port
+		QString hostName = deviceConfig[CONFIG_ADDRESS].toString();
 		_apiPort = API_DEFAULT_PORT;
 		_authToken = deviceConfig[CONFIG_AUTH_TOKEN].toString();
 
-		//If host not configured the init failed
-		if (_hostName.isEmpty())
+		QHostAddress address;
+		if (NetUtils::resolveHostAddress(this, _log, hostName, address))
 		{
-			this->setInError("No target hostname nor IP defined");
-			isInitOK = false;
-		}
-		else
-		{
-			if (initRestAPI(_hostName, _apiPort, _authToken))
+			_hostAddress = address.toString();
+			if (initRestAPI(_hostAddress, _apiPort, _authToken))
 			{
 				// Read LedDevice configuration and validate against device configuration
 				if (initLedsConfiguration())
 				{
 					// Set UDP streaming host and port
-					_devConfig["host"] = _hostName;
+					_devConfig["host"] = _hostAddress;
 					_devConfig["port"] = STREAM_CONTROL_DEFAULT_PORT;
 
 					isInitOK = ProviderUdp::init(_devConfig);
-					Debug(_log, "Hostname/IP  : %s", QSTRING_CSTR(_hostName));
+					Debug(_log, "Hostname/IP  : %s", QSTRING_CSTR(_hostAddress));
 					Debug(_log, "Port         : %d", _port);
 				}
 			}
+		}
+		else
+		{
+			this->setInError("No or invalid hostname/IP defined.");
+			isInitOK = false;
 		}
 	}
 	return isInitOK;
@@ -414,13 +426,23 @@ QJsonObject LedDeviceNanoleaf::discover(const QJsonObject& /*params*/)
 	QJsonObject devicesDiscovered;
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
 
-	QString discoveryMethod("ssdp");
 	QJsonArray deviceList;
 
+#ifdef ENABLE_MDNS
+	QString discoveryMethod("mDNS");
+	deviceList = MdnsBrowser::getInstance().getServicesDiscoveredJson(
+		LedDeviceMdnsRegister::getServiceType(_activeDeviceType),
+		LedDeviceMdnsRegister::getServiceNameFilter(_activeDeviceType),
+		DEFAULT_DISCOVER_TIMEOUT
+		);
+#else
+	QString discoveryMethod("ssdp");
 	deviceList = discover();
+#endif
 
 	devicesDiscovered.insert("discoveryMethod", discoveryMethod);
 	devicesDiscovered.insert("devices", deviceList);
+
 	DebugIf(verbose,_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return devicesDiscovered;
@@ -434,12 +456,13 @@ QJsonObject LedDeviceNanoleaf::getProperties(const QJsonObject& params)
 	// Get Nanoleaf device properties
 	QString hostName = params["host"].toString("");
 
-	if (!hostName.isEmpty())
+	QHostAddress address;
+	if (NetUtils::resolveHostAddress(this, _log, hostName, address))
 	{
 		QString authToken = params["token"].toString("");
 		QString filter = params["filter"].toString("");
 
-		initRestAPI(hostName, API_DEFAULT_PORT, authToken);
+		initRestAPI(address.toString(), API_DEFAULT_PORT, authToken);
 		_restApi->setPath(filter);
 
 		// Perform request
@@ -461,11 +484,12 @@ void LedDeviceNanoleaf::identify(const QJsonObject& params)
 	DebugIf(verbose,_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	QString hostName = params["host"].toString("");
-	if (!hostName.isEmpty())
+
+	QHostAddress address;
+	if (NetUtils::resolveHostAddress(this, _log, hostName, address))
 	{
 		QString authToken = params["token"].toString("");
-
-		initRestAPI(hostName, API_DEFAULT_PORT, authToken);
+		initRestAPI(address.toString(), API_DEFAULT_PORT, authToken);
 		_restApi->setPath("identify");
 
 		// Perform request

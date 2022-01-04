@@ -20,9 +20,10 @@
 
 #include <HyperionConfig.h> // Required to determine the cmake options
 
-// mDNS wrapper
+// mDNS
 #ifdef ENABLE_MDNS
-#include <mdns/mdnsEngine.h>
+#include <mdns/mdnsProvider.h>
+#include <mdns/mdnsBrowser.h>
 #endif
 
 #include <jsonserver/JsonServer.h>
@@ -71,7 +72,7 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	  , _instanceManager(new HyperionIManager(rootPath, this, readonlyMode))
 	  , _authManager(new AuthManager(this, readonlyMode))
 #ifdef ENABLE_MDNS
-	  , _mDNSEngine(nullptr)
+	  , _mDNSProvider(nullptr)
 #endif
 	  , _netOrigin(new NetOrigin(this))
 	  , _pyInit(new PythonInit())
@@ -113,6 +114,11 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	}
 
 	createCecHandler();
+
+//Create MdnsBrowser singleton in main tread to ensure thread affinity during destruction
+#ifdef ENABLE_MDNS
+	MdnsBrowser::getInstance();
+#endif
 
 	// init EffectFileHandler
 	EffectFileHandler* efh = new EffectFileHandler(rootPath, getSetting(settings::EFFECTS), this);
@@ -183,13 +189,13 @@ void HyperionDaemon::freeObjects()
 	Debug(_log, "Cleaning up Hyperion before quit.");
 
 #ifdef ENABLE_MDNS
-	if (_mDNSEngine != nullptr)
+	if (_mDNSProvider != nullptr)
 	{
-		auto mDnsThread = _mDNSEngine->thread();
+		auto mDnsThread = _mDNSProvider->thread();
 		mDnsThread->quit();
 		mDnsThread->wait();
 		delete mDnsThread;
-		_mDNSEngine = nullptr;
+		_mDNSProvider = nullptr;
 	}
 #endif
 
@@ -286,14 +292,14 @@ void HyperionDaemon::freeObjects()
 
 void HyperionDaemon::startNetworkServices()
 {
-	// Create mDNS-Engine in thread to allow publishing other services
+	// Create mDNS-Provider in thread to allow publishing other services
 #ifdef ENABLE_MDNS
-	_mDNSEngine = new MdnsEngine();
+	_mDNSProvider = new MdnsProvider();
 	QThread* mDnsThread = new QThread(this);
-	mDnsThread->setObjectName("mDNSEngineThread");
-	_mDNSEngine->moveToThread(mDnsThread);
-	connect(mDnsThread, &QThread::started, _mDNSEngine, &MdnsEngine::initEngine);
-	connect(mDnsThread, &QThread::finished, _mDNSEngine, &MdnsEngine::deleteLater);
+	mDnsThread->setObjectName("mDNSProviderThread");
+	_mDNSProvider->moveToThread(mDnsThread);
+	connect(mDnsThread, &QThread::started, _mDNSProvider, &MdnsProvider::init);
+	connect(mDnsThread, &QThread::finished, _mDNSProvider, &MdnsProvider::deleteLater);
 	mDnsThread->start();
 #endif
 
@@ -306,7 +312,7 @@ void HyperionDaemon::startNetworkServices()
 	connect(jsonThread, &QThread::finished, _jsonServer, &JsonServer::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _jsonServer, &JsonServer::handleSettingsUpdate);
 #ifdef ENABLE_MDNS
-	connect(_jsonServer, &JsonServer::publishService, _mDNSEngine, &MdnsEngine::publishService);
+	connect(_jsonServer, &JsonServer::publishService, _mDNSProvider, &MdnsProvider::publishService);
 #endif
 	jsonThread->start();
 
@@ -320,7 +326,7 @@ void HyperionDaemon::startNetworkServices()
 	connect(fbThread, &QThread::finished, _flatBufferServer, &FlatBufferServer::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _flatBufferServer, &FlatBufferServer::handleSettingsUpdate);
 #ifdef ENABLE_MDNS
-	connect(_flatBufferServer, &FlatBufferServer::publishService, _mDNSEngine, &MdnsEngine::publishService);
+	connect(_flatBufferServer, &FlatBufferServer::publishService, _mDNSProvider, &MdnsProvider::publishService);
 #endif
 	fbThread->start();
 #endif
@@ -335,7 +341,7 @@ void HyperionDaemon::startNetworkServices()
 	connect(pThread, &QThread::finished, _protoServer, &ProtoServer::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _protoServer, &ProtoServer::handleSettingsUpdate);
 #ifdef ENABLE_MDNS
-	connect(_protoServer, &ProtoServer::publishService, _mDNSEngine, &MdnsEngine::publishService);
+	connect(_protoServer, &ProtoServer::publishService, _mDNSProvider, &MdnsProvider::publishService);
 #endif
 	pThread->start();
 #endif
@@ -349,7 +355,7 @@ void HyperionDaemon::startNetworkServices()
 	connect(wsThread, &QThread::finished, _webserver, &WebServer::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _webserver, &WebServer::handleSettingsUpdate);
 #ifdef ENABLE_MDNS
-	connect(_webserver, &WebServer::publishService, _mDNSEngine, &MdnsEngine::publishService);
+	connect(_webserver, &WebServer::publishService, _mDNSProvider, &MdnsProvider::publishService);
 #endif
 	wsThread->start();
 
@@ -362,7 +368,7 @@ void HyperionDaemon::startNetworkServices()
 	connect(sslWsThread, &QThread::finished, _sslWebserver, &WebServer::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _sslWebserver, &WebServer::handleSettingsUpdate);
 #ifdef ENABLE_MDNS
-	connect(_sslWebserver, &WebServer::publishService, _mDNSEngine, &MdnsEngine::publishService);
+	connect(_sslWebserver, &WebServer::publishService, _mDNSProvider, &MdnsProvider::publishService);
 #endif
 	sslWsThread->start();
 

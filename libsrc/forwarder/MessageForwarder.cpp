@@ -175,7 +175,7 @@ void MessageForwarder::addJsonTarget(const QJsonObject& targetConfig)
 	TargetHost targetHost;
 
 	QString config_host = targetConfig["host"].toString();
-	if (NetUtils::resolveHostAddress(_log, config_host, targetHost.host))
+	if (NetUtils::resolveHostAddress(this, _log, config_host, targetHost.host))
 	{
 		int config_port = targetConfig["port"].toInt();
 		if (NetUtils::isValidPort(_log, config_port, config_host))
@@ -213,7 +213,7 @@ void MessageForwarder::addFlatbufferTarget(const QJsonObject& targetConfig)
 	TargetHost targetHost;
 
 	QString config_host = targetConfig["host"].toString();
-	if (NetUtils::resolveHostAddress(_log, config_host, targetHost.host))
+	if (NetUtils::resolveHostAddress(this, _log, config_host, targetHost.host))
 	{
 		int config_port = targetConfig["port"].toInt();
 		if (NetUtils::isValidPort(_log, config_port, config_host))

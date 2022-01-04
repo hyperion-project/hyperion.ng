@@ -71,7 +71,7 @@ class HyperionIManager;
 class SysTray;
 class JsonServer;
 #ifdef ENABLE_MDNS
-class MdnsEngine;
+class MdnsProvider;
 #endif
 class WebServer;
 class SettingsManager;
@@ -169,7 +169,7 @@ private:
 	HyperionIManager*          _instanceManager;
 	AuthManager*               _authManager;
 #ifdef ENABLE_MDNS
-	MdnsEngine*                _mDNSEngine;
+	MdnsProvider*                _mDNSProvider;
 #endif
 	NetOrigin*                 _netOrigin;
 	PythonInit*                _pyInit;

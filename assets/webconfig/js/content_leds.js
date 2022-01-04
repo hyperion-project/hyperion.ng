@@ -1418,7 +1418,7 @@ var updateSelectList = function (ledType, discoveryInfo) {
             host = device.ip;
           }
           else {
-            host = device.name;
+            host = device.hostname;
           }
 
           enumVals.push(host);
