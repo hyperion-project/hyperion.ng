@@ -24,4 +24,3 @@ extraction:
       - "libavahi-compat-libdnssd-dev"
       - "libturbojpeg0-dev"
       - "libssl-dev"
-      - "zlib1g-dev"
