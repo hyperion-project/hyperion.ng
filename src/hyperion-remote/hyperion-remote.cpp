@@ -14,9 +14,12 @@
 #include "HyperionConfig.h"
 #include <commandline/Parser.h>
 
-// mDNS discover
 #ifdef ENABLE_MDNS
+// mDNS discover
 #include <mdns/mdnsBrowser.h>
+#else
+// ssdp discover
+#include <ssdp/SSDPDiscover.h>
 #endif
 #include <utils/NetUtils.h>
 
@@ -218,10 +221,10 @@ int main(int argc, char * argv[])
 			throw std::runtime_error(QString("Wrong address: unable to parse address (%1)").arg(givenAddress).toStdString());
 		}
 
-#ifdef ENABLE_MDNS
 		// Search available Hyperion services via mDNS, if default/localhost IP is given
 		if(host == "127.0.0.1" || host == "::1")
 		{
+#ifdef ENABLE_MDNS
 			MdnsBrowser::getInstance().browseForServiceType(HYPERION_MDNS_SERVICE_TYPE);
 			QMdnsEngine::Service service = MdnsBrowser::getInstance().getFirstService(HYPERION_MDNS_SERVICE_TYPE);
 
@@ -234,8 +237,14 @@ int main(int argc, char * argv[])
 			serviceName = service.name();
 			host = service.hostname();
 			port = service.port();
+#else
+				SSDPDiscover discover;
+				QString discoveredAddress = discover.getFirstService(searchType::STY_FLATBUFSERVER);
+				NetUtils::resolveHostPort(discoveredAddress, host, port);
+#endif
 		}
 
+#ifdef ENABLE_MDNS
 		QHostAddress address;
 		if (!NetUtils::resolveHostAddress(&MdnsBrowser::getInstance(), log, host, address))
 		{
@@ -244,6 +253,7 @@ int main(int argc, char * argv[])
 
 		host = address.toString();
 #endif
+
 		Info(log, "Connecting to Hyperion host: %s, port: %u using service: %s", QSTRING_CSTR(host), port, QSTRING_CSTR(serviceName));
 
 		// create the connection to the hyperion server

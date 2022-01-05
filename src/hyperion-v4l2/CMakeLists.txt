@@ -28,11 +28,16 @@ target_link_libraries(${PROJECT_NAME}
 	hyperion-utils
 	flatbufconnect
 	flatbuffers
-	ssdp
 	Qt${QT_VERSION_MAJOR}::Core
 	Qt${QT_VERSION_MAJOR}::Network
 	Qt${QT_VERSION_MAJOR}::Widgets
 )
+
+if(ENABLE_MDNS)
+        target_link_libraries(${PROJECT_NAME} mdns)
+else()
+        target_link_libraries(${PROJECT_NAME} ssdp)
+endif()
 
 if (ENABLE_AMLOGIC)
 	target_link_libraries(${PROJECT_NAME}

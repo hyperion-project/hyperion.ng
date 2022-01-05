@@ -21,11 +21,24 @@
 #include "HyperionConfig.h"
 #include <commandline/Parser.h>
 
+#ifdef ENABLE_MDNS
+// mDNS discover
+#include <mdns/mdnsBrowser.h>
+#else
 // ssdp discover
 #include <ssdp/SSDPDiscover.h>
+#endif
 #include <utils/NetUtils.h>
 
 #include <utils/DefaultSignalHandler.h>
+
+// Constants
+namespace {
+
+const char HYPERION_MDNS_SERVICE_TYPE[] = "_hyperiond-flatbuf._tcp.local.";
+const char HYPERION_SERVICENAME[] = "hyperion-flatbuffer";
+
+} //End of constants
 
 using namespace commandline;
 
@@ -231,28 +244,50 @@ int main(int argc, char** argv)
 		}
 		else
 		{
-			// server searching by ssdp
-			QString address = argAddress.value(parser);
-			if(address == "127.0.0.1" || address == "127.0.0.1:19400")
-			{
-				SSDPDiscover discover;
-				address = discover.getFirstService(searchType::STY_FLATBUFSERVER);
-				if(address.isEmpty())
-				{
-					address = argAddress.value(parser);
-				}
-			}
-
-			// Resolve hostname and port (or use default port)
 			QString host;
-			quint16 port{ FLATBUFFER_DEFAULT_PORT };
+			QString serviceName {HYPERION_SERVICENAME};
+			quint16 port {FLATBUFFER_DEFAULT_PORT};
 
-			if (!NetUtils::resolveHostPort(address, host, port))
+			// Split hostname and port (or use default port)
+			QString givenAddress = argAddress.value(parser);
+			if (!NetUtils::resolveHostPort(givenAddress, host, port))
 			{
-				throw std::runtime_error(QString("Wrong address: unable to parse address (%1)").arg(address).toStdString());
+				throw std::runtime_error(QString("Wrong address: unable to parse address (%1)").arg(givenAddress).toStdString());
 			}
 
-			// Create the Flabuf-connection
+			// Search available Hyperion services via mDNS, if default/localhost IP is given
+			if(host == "127.0.0.1" || host == "::1")
+			{
+#ifdef ENABLE_MDNS
+				MdnsBrowser::getInstance().browseForServiceType(HYPERION_MDNS_SERVICE_TYPE);
+				QMdnsEngine::Service service = MdnsBrowser::getInstance().getFirstService(HYPERION_MDNS_SERVICE_TYPE);
+
+				if (service.hostname().isEmpty())
+				{
+					throw std::runtime_error(QString("Automatic discovery failed! No Hyperion servers found providing a service of type: %1")
+												  .arg(QString(HYPERION_MDNS_SERVICE_TYPE)).toStdString()
+											  );
+				}
+				serviceName = service.name();
+				host = service.hostname();
+				port = service.port();
+#else
+				SSDPDiscover discover;
+				QString discoveredAddress = discover.getFirstService(searchType::STY_FLATBUFSERVER);
+				NetUtils::resolveHostPort(discoveredAddress, host, port);
+#endif
+			}
+
+#ifdef ENABLE_MDNS
+			QHostAddress address;
+			if (!NetUtils::resolveHostAddress(&MdnsBrowser::getInstance(), log, host, address))
+			{
+				throw std::runtime_error(QString("Address could not be resolved for hostname: %2").arg(QSTRING_CSTR(host)).toStdString());
+			}
+			host = address.toString();
+#endif
+
+			Info(log, "Connecting to Hyperion host: %s, port: %u using service: %s", QSTRING_CSTR(host), port, QSTRING_CSTR(serviceName));			// Create the Flabuf-connection
 			FlatBufferConnection flatbuf("V4L2 Standalone", host, argPriority.getInt(parser), parser.isSet(argSkipReply), port);
 
 			// Connect the screen capturing to flatbuf connection processing

@@ -46,6 +46,8 @@ endif()
 
 if(ENABLE_MDNS)
         target_link_libraries(${PROJECT_NAME} mdns)
+else()
+        target_link_libraries(${PROJECT_NAME} ssdp)
 endif()
 
 if(APPLE)

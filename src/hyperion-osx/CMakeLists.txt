@@ -28,11 +28,16 @@ target_link_libraries( ${PROJECT_NAME}
 	flatbufconnect
 	flatbuffers
 	osx-grabber
-	ssdp
 	Qt${QT_VERSION_MAJOR}::Core
 	Qt${QT_VERSION_MAJOR}::Gui
 	Qt${QT_VERSION_MAJOR}::Network
 	Qt${QT_VERSION_MAJOR}::Widgets
 )
+
+if(ENABLE_MDNS)
+        target_link_libraries(${PROJECT_NAME} mdns)
+else()
+        target_link_libraries(${PROJECT_NAME} ssdp)
+endif()
 
 install ( TARGETS ${PROJECT_NAME} DESTINATION "." COMPONENT "hyperion_osx" )
