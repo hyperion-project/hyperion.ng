@@ -1699,6 +1699,15 @@ function updateElements(ledType, key) {
       default:
     }
   }
+
+  if (!conf_editor.validate().length) {
+    if (!window.readOnlyMode) {
+      $('#btn_submit_controller').attr('disabled', false);
+    }
+  }
+  else {
+    $('#btn_submit_controller').attr('disabled', true);
+  }
 }
 
 function showAllDeviceInputOptions(showForKey, state) {
