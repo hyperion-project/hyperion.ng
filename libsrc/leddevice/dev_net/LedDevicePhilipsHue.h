@@ -251,8 +251,6 @@ public:
 
 	QJsonArray getGroupLights(quint16 groupId = 0) const;
 
-
-
 protected:
 
 	///
@@ -285,6 +283,34 @@ protected:
 	///
 	bool checkApiError(const QJsonDocument &response );
 
+	///
+	/// @brief Discover devices of this type available (for configuration).
+	/// @note Mainly used for network devices. Allows to find devices, e.g. via ssdp, mDNS or cloud ways.
+	///
+	/// @param[in] params Parameters used to overwrite discovery default behaviour
+	///
+	/// @return A JSON structure holding a list of devices found
+	///
+	QJsonObject discover(const QJsonObject& params) override;
+
+	///
+	/// @brief Get the Hue Bridge device's resource properties
+	///
+	/// Following parameters are required
+	/// @code
+	/// {
+	///     "host"  : "hostname or IP
+	///     "port"  : port
+	///     "user"  : "username",
+	///     "filter": "resource to query", root "/" is used, if empty
+	/// }
+	///@endcode
+	///
+	/// @param[in] params Parameters to query device
+	/// @return A JSON structure holding the device's properties
+	///
+	QJsonObject getProperties(const QJsonObject& params) override;
+
 	///REST-API wrapper
 	ProviderRestApi* _restApi;
 
@@ -307,6 +333,14 @@ protected:
 	const int * getCiphersuites() const override;
 
 private:
+
+	///
+	/// @brief Discover Philips-Hue devices available (for configuration).
+	/// Philips-Hue specific ssdp discovery
+	///
+	/// @return A JSON structure holding a list of devices found
+	///
+	QJsonArray discover();
 
 	QJsonDocument getAllBridgeInfos();
 	void setBridgeConfig( const QJsonDocument &doc );
@@ -359,34 +393,6 @@ public:
 	/// @param[in] deviceConfig Device's configuration as JSON-Object
 	/// @return LedDevice constructed
 	static LedDevice* construct(const QJsonObject &deviceConfig);
-
-	///
-	/// @brief Discover devices of this type available (for configuration).
-	/// @note Mainly used for network devices. Allows to find devices, e.g. via ssdp, mDNS or cloud ways.
-	///
-	/// @param[in] params Parameters used to overwrite discovery default behaviour
-	///
-	/// @return A JSON structure holding a list of devices found
-	///
-	QJsonObject discover(const QJsonObject& params) override;
-
-	///
-	/// @brief Get the Hue Bridge device's resource properties
-	///
-	/// Following parameters are required
-	/// @code
-	/// {
-	///     "host"  : "hostname or IP
-	///     "port"  : port
-	///     "user"  : "username",
-	///     "filter": "resource to query", root "/" is used, if empty
-	/// }
-	///@endcode
-	///
-	/// @param[in] params Parameters to query device
-	/// @return A JSON structure holding the device's properties
-	///
-	QJsonObject getProperties(const QJsonObject& params) override;
 
 	///
 	/// @brief Send an update to the device to identify it.
@@ -562,14 +568,6 @@ private:
 	void stopBlackTimeoutTimer();
 
 	QByteArray prepareStreamData() const;
-
-	///
-	/// @brief Discover Philips-Hue devices available (for configuration).
-	/// Philips-Hue specific ssdp discovery
-	///
-	/// @return A JSON structure holding a list of devices found
-	///
-	QJsonArray discover();
 
 	///
 	bool _switchOffOnBlack;

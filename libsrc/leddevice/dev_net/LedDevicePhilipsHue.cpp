@@ -658,6 +658,96 @@ bool LedDevicePhilipsHueBridge::isStreamOwner(const QString &streamOwner) const
 	return ( streamOwner != "" && streamOwner == _username );
 }
 
+QJsonArray LedDevicePhilipsHueBridge::discover()
+{
+	QJsonArray deviceList;
+
+	SSDPDiscover discover;
+
+	discover.skipDuplicateKeys(true);
+	discover.setSearchFilter(SSDP_FILTER, SSDP_FILTER_HEADER);
+	QString searchTarget = SSDP_ID;
+
+	if (discover.discoverServices(searchTarget) > 0)
+	{
+		deviceList = discover.getServicesDiscoveredJson();
+	}
+
+	return deviceList;
+}
+
+QJsonObject LedDevicePhilipsHueBridge::discover(const QJsonObject& /*params*/)
+{
+	QJsonObject devicesDiscovered;
+	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );
+
+	QJsonArray deviceList;
+
+#ifdef ENABLE_MDNS
+	QString discoveryMethod("mDNS");
+	deviceList = MdnsBrowser::getInstance().getServicesDiscoveredJson(
+		LedDeviceMdnsRegister::getServiceType(_activeDeviceType),
+		LedDeviceMdnsRegister::getServiceNameFilter(_activeDeviceType),
+		DEFAULT_DISCOVER_TIMEOUT
+		);
+#else
+	QString discoveryMethod("ssdp");
+	deviceList = discover();
+#endif
+
+	devicesDiscovered.insert("discoveryMethod", discoveryMethod);
+	devicesDiscovered.insert("devices", deviceList);
+
+	Debug(_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+
+	return devicesDiscovered;
+}
+
+QJsonObject LedDevicePhilipsHueBridge::getProperties(const QJsonObject& params)
+{
+	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	QJsonObject properties;
+
+	// Get Phillips-Bridge device properties
+	QString hostName = params[CONFIG_HOST].toString("");
+
+	QHostAddress address;
+	if (NetUtils::resolveHostAddress(this, _log, hostName, address))
+	{
+		QString username = params["user"].toString("");
+		QString filter = params["filter"].toString("");
+
+		int apiPort;
+		if (params[CONFIG_PORT].isString())
+		{
+			apiPort = params[CONFIG_PORT].toString().toInt();
+		}
+		else
+		{
+			apiPort = params[CONFIG_PORT].toInt();
+		}
+
+		if (apiPort == 0)
+		{
+			apiPort = API_DEFAULT_PORT;
+		}
+
+		initRestAPI(address.toString(), apiPort, username);
+		_restApi->setPath(filter);
+
+		// Perform request
+		httpResponse response = _restApi->get();
+		if (response.error())
+		{
+			Warning(_log, "%s get properties failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+		}
+
+		// Perform request
+		properties.insert("properties", response.getBody().object());
+	}
+	return properties;
+}
+
 const std::set<QString> PhilipsHueLight::GAMUT_A_MODEL_IDS =
 	{ "LLC001", "LLC005", "LLC006", "LLC007", "LLC010", "LLC011", "LLC012", "LLC013", "LLC014", "LST001" };
 const std::set<QString> PhilipsHueLight::GAMUT_B_MODEL_IDS =
@@ -1601,96 +1691,6 @@ bool LedDevicePhilipsHue::restoreState()
 	}
 
 	return rc;
-}
-
-QJsonArray LedDevicePhilipsHue::discover()
-{
-	QJsonArray deviceList;
-
-	SSDPDiscover discover;
-
-	discover.skipDuplicateKeys(true);
-	discover.setSearchFilter(SSDP_FILTER, SSDP_FILTER_HEADER);
-	QString searchTarget = SSDP_ID;
-
-	if (discover.discoverServices(searchTarget) > 0)
-	{
-		deviceList = discover.getServicesDiscoveredJson();
-	}
-
-	return deviceList;
-}
-
-QJsonObject LedDevicePhilipsHue::discover(const QJsonObject& /*params*/)
-{
-	QJsonObject devicesDiscovered;
-	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );
-
-	QJsonArray deviceList;
-
-#ifdef ENABLE_MDNS
-	QString discoveryMethod("mDNS");
-	deviceList = MdnsBrowser::getInstance().getServicesDiscoveredJson(
-		LedDeviceMdnsRegister::getServiceType(_activeDeviceType),
-		LedDeviceMdnsRegister::getServiceNameFilter(_activeDeviceType),
-		DEFAULT_DISCOVER_TIMEOUT
-		);
-#else
-	QString discoveryMethod("ssdp");
-	deviceList = discover();
-#endif
-
-	devicesDiscovered.insert("discoveryMethod", discoveryMethod);
-	devicesDiscovered.insert("devices", deviceList);
-
-	Debug(_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData() );
-
-	return devicesDiscovered;
-}
-
-QJsonObject LedDevicePhilipsHue::getProperties(const QJsonObject& params)
-{
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-	QJsonObject properties;
-
-	// Get Phillips-Bridge device properties
-	QString hostName = params[CONFIG_HOST].toString("");
-
-	QHostAddress address;
-	if (NetUtils::resolveHostAddress(this, _log, hostName, address))
-	{
-		QString username = params["user"].toString("");
-		QString filter = params["filter"].toString("");
-
-		int apiPort;
-		if (params[CONFIG_PORT].isString())
-		{
-			apiPort = params[CONFIG_PORT].toString().toInt();
-		}
-		else
-		{
-			apiPort = params[CONFIG_PORT].toInt();
-		}
-
-		if (apiPort == 0)
-		{
-			apiPort = API_DEFAULT_PORT;
-		}
-
-		initRestAPI(address.toString(), apiPort, username);
-		_restApi->setPath(filter);
-
-		// Perform request
-		httpResponse response = _restApi->get();
-		if (response.error())
-		{
-			Warning(_log, "%s get properties failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
-		}
-
-		// Perform request
-		properties.insert("properties", response.getBody().object());
-	}
-	return properties;
 }
 
 void LedDevicePhilipsHue::identify(const QJsonObject& params)

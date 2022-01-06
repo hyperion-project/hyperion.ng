@@ -917,6 +917,11 @@ async function discover_hue_bridges() {
               host = device.hostname;
               port = device.port;
           }
+          
+          //Remap https port to http port until Hue-API v2 is supported
+          if (port == 443) {
+            port = 80;
+          }
 
           if (host) {
 
