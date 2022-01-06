@@ -1,10 +1,9 @@
-# - Find the native BCM includes and library
+# Find Broadcom VideoCore firmware installation
 #
-
 # This module defines
-#  BCM_INCLUDE_DIR, where to find png.h, etc.
-#  BCM_LIBRARIES, the libraries to link against to use PNG.
-#  BCM_FOUND, If false, do not try to use PNG.
+#  BCM_INCLUDE_DIR - The Broadcom VideoCore include directory
+#  BCM_LIBRARIES - The Broadcom VideoCore BCM_HOST library.
+#  BCM_FOUND - BCM_HOST is available
 #
 
 FIND_PATH(BCM_INCLUDE_DIR
