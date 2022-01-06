@@ -57,7 +57,7 @@ function startWizardRGB() {
   $('#wizp2_body').append('<table class="table borderless" style="width:200px"><tbody><tr><td class="ltd"><label>' + $.i18n('wiz_rgb_qrend') + '</label></td><td class="itd"><select id="wiz_r_select" class="form-control wselect"></select></td></tr><tr><td class="ltd"><label>' + $.i18n('wiz_rgb_qgend') + '</label></td><td class="itd"><select id="wiz_g_select" class="form-control wselect"></select></td></tr></tbody></table>');
   $('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save"><i class="fa fa-fw fa-save"></i>' + $.i18n('general_btn_save') + '</button><button type="button" class="btn btn-primary" id="btn_wiz_checkok" style="display:none" data-dismiss="modal"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_ok') + '</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
 
-  if (getStorage("darkMode", false) == "on")
+  if (getStorage("darkMode") == "on")
     $('#wizard_logo').attr("src", 'img/hyperion/logo_negativ.png');
 
   //open modal
@@ -454,7 +454,7 @@ function startWizardCC() {
     '<button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>'
   );
 
-  if (getStorage("darkMode", false) == "on")
+  if (getStorage("darkMode") == "on")
     $('#wizard_logo').attr("src", 'img/hyperion/logo_negativ.png');
 
   //open modal
@@ -739,7 +739,7 @@ function startWizardPhilipsHue(e) {
   $('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save" style="display:none"><i class="fa fa-fw fa-save"></i>' + $.i18n('general_btn_save') + '</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
   $('#wizp3_body').html('<span>' + $.i18n('wiz_hue_press_link') + '</span> <br /><br /><center><span id="connectionTime"></span><br /><i class="fa fa-cog fa-spin" style="font-size:100px"></i></center>');
 
-  if (getStorage("darkMode", false) == "on")
+  if (getStorage("darkMode") == "on")
     $('#wizard_logo').attr("src", 'img/hyperion/logo_negativ.png');
 
   //open modal
@@ -1401,7 +1401,7 @@ function startWizardYeelight(e) {
     + $.i18n('general_btn_save') + '</button><buttowindow.serverConfig.device = d;n type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>'
     + $.i18n('general_btn_cancel') + '</button>');
 
-  if (getStorage("darkMode", false) == "on")
+  if (getStorage("darkMode") == "on")
     $('#wizard_logo').attr("src", 'img/hyperion/logo_negativ.png');
 
   //open modal
@@ -1710,7 +1710,7 @@ function startWizardAtmoOrb(e) {
     + $.i18n('general_btn_save') + '</button><buttowindow.serverConfig.device = d;n type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>'
     + $.i18n('general_btn_cancel') + '</button>');
 
-  if (getStorage("darkMode", false) == "on")
+  if (getStorage("darkMode") == "on")
     $('#wizard_logo').attr("src", 'img/hyperion/logo_negativ.png');
 
   //open modal

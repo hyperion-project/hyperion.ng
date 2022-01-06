@@ -42,7 +42,6 @@ $(document).ready(function () {
       $('#btn_hypinstanceswitch').toggle(true)
     else
       $('#btn_hypinstanceswitch').toggle(false)
-    updateSessions();
   }); // end cmd-serverinfo
 
   // Update language selection
@@ -72,11 +71,6 @@ $(document).ready(function () {
   });
 
   //End language selection
-
-  $(window.hyperion).on("cmd-sessions-update", function (event) {
-    window.serverInfo.sessions = event.response.data;
-    updateSessions();
-  });
 
   $(window.hyperion).on("cmd-authorize-tokenRequest cmd-authorize-getPendingTokenRequests", function (event) {
     var val = event.response.info;
@@ -347,13 +341,13 @@ $(document.body).on('hide.bs.modal,hidden.bs.modal', function () {
 
 //Dark Mode
 $("#btn_darkmode").off().on("click", function (e) {
-  if (getStorage("darkMode", false) != "on") {
+  if (getStorage("darkMode") != "on") {
     handleDarkMode();
-    setStorage("darkModeOverwrite", true, true);
+    setStorage("darkModeOverwrite", true);
   }
   else {
-    setStorage("darkMode", "off", false);
-    setStorage("darkModeOverwrite", true, true);
+    setStorage("darkMode", "off",);
+    setStorage("darkModeOverwrite", true);
     location.reload();
   }
 });

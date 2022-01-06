@@ -86,27 +86,4 @@ $(document).ready(function () {
   if (storedAccess != 'expert')
     $('#load_webconfig').toggle(false);
 
-
-  // instance switcher
-  $('#btn_instanceswitch').off().on('click',function() {
-    var lsys = window.sysInfo.system.hostName+':'+window.serverConfig.webConfig.port;
-    showInfoDialog('iswitch', $.i18n('InfoDialog_iswitch_title'), $.i18n('InfoDialog_iswitch_text'));
-
-    for (var i = 0; i<window.wSess.length; i++)
-    {
-      if(lsys != window.wSess[i].host+':'+window.wSess[i].port)
-      {
-        var hyperionAddress = window.wSess[i].address;
-        if(hyperionAddress.indexOf(':') > -1 && hyperionAddress.length == 36) hyperionAddress = '['+hyperionAddress+']';
-        hyperionAddress = 'http://'+hyperionAddress+':'+window.wSess[i].port;
-        $('#id_select').append(createSelOpt(hyperionAddress, window.wSess[i].name));
-      }
-    }
-
-    $('#id_btn_saveset').off().on('click',function() {
-      $("#loading_overlay").addClass("overlay");
-      window.location.href = $('#id_select').val();
-    });
-
-  });
 });

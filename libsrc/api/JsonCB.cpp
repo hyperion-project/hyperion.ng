@@ -31,7 +31,7 @@ JsonCB::JsonCB(QObject* parent)
 	, _componentRegister(nullptr)
 	, _prioMuxer(nullptr)
 {
-	_availableCommands << "components-update" << "sessions-update" << "priorities-update" << "imageToLedMapping-update"
+	_availableCommands << "components-update" << "priorities-update" << "imageToLedMapping-update"
 	<< "adjustment-update" << "videomode-update" << "effects-update" << "settings-update" << "leds-update" << "instance-update" << "token-update";
 }
 
@@ -51,10 +51,6 @@ bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
 			disconnect(_componentRegister, &ComponentRegister::updatedComponentState, this, &JsonCB::handleComponentState);
 		else
 			connect(_componentRegister, &ComponentRegister::updatedComponentState, this, &JsonCB::handleComponentState, Qt::UniqueConnection);
-	}
-
-	if(type == "sessions-update")
-	{
 	}
 
 	if(type == "priorities-update")

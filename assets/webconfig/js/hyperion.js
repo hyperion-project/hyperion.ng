@@ -26,7 +26,6 @@ window.loggingStreamActive = false;
 window.loggingHandlerInstalled = false;
 window.watchdog = 0;
 window.debugMessagesActive = true;
-window.wSess = [];
 window.currentHyperionInstance = 0;
 window.currentHyperionInstanceName = "?";
 window.comps = [];
@@ -307,7 +306,7 @@ function requestInstanceSwitch(inst)
 
 function requestServerInfo()
 {
-  sendToHyperion("serverinfo","",'"subscribe":["components-update","sessions-update","priorities-update", "imageToLedMapping-update", "adjustment-update", "videomode-update", "effects-update", "settings-update", "instance-update"]');
+  sendToHyperion("serverinfo","",'"subscribe":["components-update", "priorities-update", "imageToLedMapping-update", "adjustment-update", "videomode-update", "effects-update", "settings-update", "instance-update"]');
 }
 
 function requestSysInfo()

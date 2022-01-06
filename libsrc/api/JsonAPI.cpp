@@ -625,9 +625,6 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	info["components"] = component;
 	info["imageToLedMappingType"] = ImageProcessor::mappingTypeToStr(_hyperion->getLedMappingType());
 
-	// add sessions
-	QJsonArray sessions;
-
 	// add instance info
 	QJsonArray instanceInfo;
 	for (const auto &entry : API::getAllInstanceData())
