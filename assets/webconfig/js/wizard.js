@@ -894,15 +894,13 @@ async function discover_hue_bridges() {
     else {
       hueIPs = [];
       hueIPsinc = 0;
-      
+
       var discoveryMethod = "ssdp";
       if (res.info.discoveryMethod) {
         discoveryMethod = res.info.discoveryMethod;
       }
 
       for (const device of r.devices) {
-        console.log("Device: ", device);
-
         if (device) {
           var host;
           var port;
@@ -1490,16 +1488,13 @@ async function discover_yeelight_lights() {
   // res can be: false (timeout) or res.error (not found)
   if (res && !res.error) {
     const r = res.info;
-    
-    
+
     var discoveryMethod = "ssdp";
     if (res.info.discoveryMethod) {
       discoveryMethod = res.info.discoveryMethod;
     }
 
       for (const device of r.devices) {
-        console.log("Device: ", device);
-
         if (device) {
           var host;
           var port;

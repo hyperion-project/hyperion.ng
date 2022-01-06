@@ -90,22 +90,27 @@ void MdnsBrowser::getHostAddress(const QByteArray& hostname)
 	}
 	if (toBeResolvedHostName.endsWith(".local."))
 	{
-
-		QMdnsEngine::Record aRecord;
-		if (_cache.lookupRecord(toBeResolvedHostName, QMdnsEngine::A, aRecord))
+		QList<QMdnsEngine::Record> aRecords;
+		if (_cache.lookupRecords(toBeResolvedHostName, QMdnsEngine::A, aRecords))
 		{
-			hostAddress = aRecord.address();
-			Debug(_log, "Hostname [%s] translates to IPv4-address [%s]", toBeResolvedHostName.constData(), QSTRING_CSTR(hostAddress.toString()));
-			onHostNameResolved(hostAddress);
+			foreach(QMdnsEngine::Record record, aRecords)
+			{
+				hostAddress = record.address();
+				Debug(_log, "Hostname [%s] translates to IPv4-address [%s]", toBeResolvedHostName.constData(), QSTRING_CSTR(hostAddress.toString()));
+				onHostNameResolved(hostAddress);
+			}
 		}
 		else
 		{
-			QMdnsEngine::Record aaaaRecord;
-			if (_cache.lookupRecord(toBeResolvedHostName, QMdnsEngine::AAAA, aaaaRecord))
+			QList<QMdnsEngine::Record> aaaaRecords;
+			if (_cache.lookupRecords(toBeResolvedHostName, QMdnsEngine::AAAA, aaaaRecords))
 			{
-				hostAddress = aaaaRecord.address();
-				Debug(_log, "Hostname [%s] translates to IP-address [%s]", toBeResolvedHostName.constData(), QSTRING_CSTR(hostAddress.toString()));
-				onHostNameResolved(hostAddress);
+				foreach(QMdnsEngine::Record record, aaaaRecords)
+				{
+					hostAddress = record.address();
+					Debug(_log, "Hostname [%s] translates to IPv6-address [%s]", toBeResolvedHostName.constData(), QSTRING_CSTR(hostAddress.toString()));
+					onHostNameResolved(hostAddress);
+				}
 			}
 			else
 			{
@@ -137,7 +142,7 @@ void MdnsBrowser::onHostNameResolved(const QHostAddress& address)
 bool MdnsBrowser::resolveAddress (const QObject* context, Logger* log, const QString& hostname, QHostAddress& hostAddress, std::chrono::milliseconds timeout)
 {
 	bool isHostAddressOK { false };
-	if (hostname.endsWith(".local"))
+	if (hostname.endsWith(".local") || hostname.endsWith(".local."))
 	{
 		QMetaObject::invokeMethod(&MdnsBrowser::getInstance(), "getHostAddress", Qt::QueuedConnection, Q_ARG(QByteArray, hostname.toUtf8()));
 
@@ -220,7 +225,11 @@ QMdnsEngine::Service MdnsBrowser::getFirstService(const QByteArray& serviceType,
 								service.setName(srvRecord.name());
 							}
 							service.setPort(srvRecord.port());
-							service.setHostname(srvRecord.target());
+
+							QByteArray hostName = srvRecord.target();
+							//Remove trailing dot
+							hostName.chop(1);
+							service.setHostname(hostName);
 							service.setAttributes(srvRecord.attributes());
 							found = true;
 						}

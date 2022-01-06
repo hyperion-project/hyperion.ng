@@ -110,7 +110,7 @@ namespace NetUtils {
 		if (!hostname.isEmpty())
 		{
 			#ifdef ENABLE_MDNS
-			if (hostname.endsWith(".local"))
+			if (hostname.endsWith(".local") || hostname.endsWith(".local."))
 			{
 				isHostAddressOK = MdnsBrowser::getInstance().resolveAddress(context, log, hostname, hostAddress);
 			}
