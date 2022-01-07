@@ -5,7 +5,7 @@
 		<div class="panel-heading panel-instance" style="border-radius:3px; border-bottom:0px;">
 			<div class="dropdown">
 				<a id="active_instance_dropdown" class="dropdown-toggle" data-toggle="dropdown" href="#" style="text-decoration:none;display:flex;align-items:center;">
-          <div id="active_instance_friendly_name"></div>
+					<div id="active_instance_friendly_name"></div>
 					<div id="btn_hypinstanceswitch" style="white-space:nowrap;"><span class="mdi mdi-lightbulb-group mdi-24px" style="margin-right:0; margin-left:5px;"></span><span class="mdi mdi-menu-down mdi-24px"></span></div>
 				</a>
 				<ul id="hyp_inst_listing" class="dropdown-menu dropdown-alerts" style="cursor:pointer;"></ul>
@@ -14,8 +14,8 @@
 	</div>
 
 	<div class="row">
-		<div class="col-md-12 col-lg-8 col-xxl-7">
-			<div class="panel panel-default" >
+		<div class="col-md-12 col-lg-8 col-xxl-8">
+			<div class="panel panel-default">
 				<div class="panel-heading"><i class="fa fa-wifi fa-fw"></i><span data-i18n="remote_input_label">Source selection</span></div>
 				<div class="panel-body">
 					<div id="sstcont"></div>
@@ -24,17 +24,19 @@
 			</div>
 		</div>
 
-		<div class="col-md-6 col-lg-4 col-xxl-5">
-			<div class="panel panel-default" >
+		<div class="col-md-6 col-lg-4 col-xxl-4">
+			<div class="panel panel-default">
 				<div class="panel-heading"><i class="fa fa-wifi fa-fw"></i><span data-i18n="remote_components_label">Components control</span></div>
 				<div class="panel-body" id="comp_intro">
 					<div id="componentsbutton"></div>
 				</div>
 			</div>
 		</div>
+	</div>
 
+	<div class="row">
 		<div class="col-md-6 col-lg-6 col-xxl-4">
-			<div class="panel panel-default" >
+			<div class="panel panel-default">
 				<div class="panel-heading"><i class="fa fa-wifi fa-fw"></i><span data-i18n="remote_color_label">Colors/Effects</span></div>
 				<div class="panel-body" id="color_intro">
 					<table class="table borderless">
@@ -43,7 +45,7 @@
 								<td style="vertical-align:middle"><label for="cpeff" data-i18n="remote_color_label_color"></label></td>
 								<td>
 									<div id="cp2" class="colorpicker-component input-group">
-										<input type="text" id="cpeff" class="form-control"/>
+										<input type="text" id="cpeff" class="form-control" />
 										<span class="input-group-addon"><i></i></span>
 										<span class="input-group-addon" id="remote_input_rescol" title="Repeat Color" style="cursor:pointer"><i class="fa fa-repeat"></i></span>
 									</div>
@@ -57,16 +59,16 @@
 								</td>
 							</tr>
 							<tr>
-								<td style="vertical-align:middle"><label for="remote_input_img" data-i18n="remote_effects_label_picture" >Picture:</label></td>
+								<td style="vertical-align:middle"><label for="remote_input_img" data-i18n="remote_effects_label_picture">Picture:</label></td>
 								<td class="input-group custom-file">
-										<input class="form-control" id="remote_input_img" type="file" accept="image/*" />
-										<span class="input-group-addon" id="remote_input_repimg" title="Repeat Image" style="cursor:pointer"><i class="fa fa-repeat"></i></span>
+									<input class="form-control" id="remote_input_img" type="file" accept="image/*" />
+									<span class="input-group-addon" id="remote_input_repimg" title="Repeat Image" style="cursor:pointer"><i class="fa fa-repeat"></i></span>
 								</td>
 							</tr>
 							<tr>
 								<td style="vertical-align:middle"><label for="remote_duration" data-i18n="remote_input_duration"></label></td>
 								<td class="input-group">
-									<input id="remote_duration" type="number" class="form-control" value="0" min="0"/>
+									<input id="remote_duration" type="number" class="form-control" value="0" min="0" />
 									<span class="input-group-addon" data-i18n="edt_append_s"></span>
 								</td>
 							</tr>
@@ -77,7 +79,7 @@
 			</div>
 		</div>
 		<div class="col-md-6 col-lg-6 col-xxl-3">
-			<div class="panel panel-default" >
+			<div class="panel panel-default">
 				<div class="panel-heading"><i class="fa fa-wifi fa-fw"></i><span data-i18n="remote_maptype_label">Mapping types</span></div>
 				<div class="panel-body" id="maptype_intro">
 					<div id="mappingsbutton"></div>
@@ -85,7 +87,7 @@
 			</div>
 		</div>
 		<div class="col-md-6 col-lg-6 col-xxl-5">
-			<div class="panel panel-default" >
+			<div class="panel panel-default">
 				<div class="panel-heading"><i class="fa fa-wifi fa-fw"></i><span data-i18n="remote_videoMode_label"></span></div>
 				<div class="panel-body" id="videomode_intro">
 					<div id="videomodebtns"></div>
@@ -93,7 +95,7 @@
 			</div>
 		</div>
 		<div class="col-md-6 col-lg-6 col-xxl-5">
-			<div class="panel panel-default" >
+			<div class="panel panel-default">
 				<div class="panel-heading"><i class="fa fa-wifi fa-fw"></i><span data-i18n="remote_adjustment_label"></span></div>
 				<div class="panel-body" id="adjust_content">
 				</div>

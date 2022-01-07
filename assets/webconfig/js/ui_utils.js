@@ -1200,38 +1200,40 @@ function getSystemInfo() {
   var sys = window.sysInfo.system;
   var shy = window.sysInfo.hyperion;
 
-  var info = "Hyperion Server: \n";
-  info += '- Build:           ' + shy.build + '\n';
-  info += '- Build time:      ' + shy.time + '\n';
-  info += '- Git Remote:      ' + shy.gitremote + '\n';
-  info += '- Version:         ' + shy.version + '\n';
-  info += '- UI Lang:         ' + storedLang + ' (BrowserLang: ' + navigator.language + ')\n';
-  info += '- UI Access:       ' + storedAccess + '\n';
-  //info += '- Log lvl:         ' + window.serverConfig.logger.level + '\n';
-  info += '- Avail Capt:      ' + window.serverInfo.grabbers.available + '\n';
-  info += '- Config path:     ' + shy.rootPath + '\n';
-  info += '- Database:        ' + (shy.readOnlyMode ? "ready-only" : "read/write") + '\n';
+  var info = "Hyperion Server:\n";
+  info += '- Build:             ' + shy.build + '\n';
+  info += '- Build time:        ' + shy.time + '\n';
+  info += '- Git Remote:        ' + shy.gitremote + '\n';
+  info += '- Version:           ' + shy.version + '\n';
+  info += '- UI Lang:           ' + storedLang + ' (BrowserLang: ' + navigator.language + ')\n';
+  info += '- UI Access:         ' + storedAccess + '\n';
+  //info += '- Log lvl:           ' + window.serverConfig.logger.level + '\n';
+  info += '- Avail Screen Cap.: ' + window.serverInfo.grabbers.screen.available + '\n';
+  info += '- Avail Video  Cap.: ' + window.serverInfo.grabbers.video.available + '\n';
+  info += '- Avail Services:    ' + window.serverInfo.services + '\n';
+  info += '- Config path:       ' + shy.rootPath + '\n';
+  info += '- Database:          ' + (shy.readOnlyMode ? "ready-only" : "read/write") + '\n';
 
   info += '\n';
 
-  info += 'Hyperion Server OS: \n';
-  info += '- Distribution:   ' + sys.prettyName + '\n';
-  info += '- Architecture:   ' + sys.architecture + '\n';
+  info += 'Hyperion Server OS:\n';
+  info += '- Distribution:      ' + sys.prettyName + '\n';
+  info += '- Architecture:      ' + sys.architecture + '\n';
 
   if (sys.cpuModelName)
-    info += '- CPU Model:      ' + sys.cpuModelName + '\n';
+    info += '- CPU Model:       ' + sys.cpuModelName + '\n';
   if (sys.cpuModelType)
-    info += '- CPU Type:       ' + sys.cpuModelType + '\n';
+    info += '- CPU Type:        ' + sys.cpuModelType + '\n';
   if (sys.cpuRevision)
-    info += '- CPU Revision:   ' + sys.cpuRevision + '\n';
+    info += '- CPU Revision:    ' + sys.cpuRevision + '\n';
   if (sys.cpuHardware)
-    info += '- CPU Hardware:   ' + sys.cpuHardware + '\n';
+    info += '- CPU Hardware:    ' + sys.cpuHardware + '\n';
 
-  info += '- Kernel:         ' + sys.kernelType + ' (' + sys.kernelVersion + ' (WS: ' + sys.wordSize + '))\n';
-  info += '- Root/Admin:     ' + sys.isUserAdmin + '\n';
-  info += '- Qt Version:     ' + sys.qtVersion + '\n';
-  info += '- Python Version: ' + sys.pyVersion + '\n';
-  info += '- Browser:        ' + navigator.userAgent;
+  info += '- Kernel:            ' + sys.kernelType + ' (' + sys.kernelVersion + ' (WS: ' + sys.wordSize + '))\n';
+  info += '- Root/Admin:        ' + sys.isUserAdmin + '\n';
+  info += '- Qt Version:        ' + sys.qtVersion + '\n';
+  info += '- Python Version:    ' + sys.pyVersion + '\n';
+  info += '- Browser:           ' + navigator.userAgent;
   return info;
 }
 

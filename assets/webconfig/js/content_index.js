@@ -222,6 +222,12 @@ $(document).ready(function () {
 
   $(window.hyperion).one("ready", function (event) {
     // Content will be loaded by the instance load/switch
+
+    //Hide capture menu entries, if no grabbers are available
+    if ((window.serverInfo.grabbers.screen.available.length === 0) && (window.serverInfo.grabbers.video.available.length === 0)) {
+      $("#MenuItemGrabber").attr('style', 'display:none')
+      $("#MenuItemInstCapture").attr('style', 'display:none')
+    }
   });
 
   $(window.hyperion).on("cmd-adjustment-update", function (event) {

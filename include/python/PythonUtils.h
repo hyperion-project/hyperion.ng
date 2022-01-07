@@ -2,7 +2,7 @@
 
 #undef slots
 #include <Python.h>
-#define slots
+#define slots Q_SLOTS
 
 // decl
 extern PyThreadState* mainThreadState;

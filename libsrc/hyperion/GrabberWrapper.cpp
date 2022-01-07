@@ -83,58 +83,70 @@ bool GrabberWrapper::isActive() const
 	return _timer->isActive();
 }
 
-QStringList GrabberWrapper::getActive(int inst) const
+QStringList GrabberWrapper::getActive(int inst, GrabberTypeFilter type) const
 {
 	QStringList result = QStringList();
 
-	if(GRABBER_V4L_CLIENTS.contains(inst))
-		result << GRABBER_V4L_CLIENTS.value(inst);
+	if (type == GrabberTypeFilter::SCREEN || type == GrabberTypeFilter::ALL)
+	{
+		if (GRABBER_SYS_CLIENTS.contains(inst))
+			result << GRABBER_SYS_CLIENTS.value(inst);
+	}
 
-	if(GRABBER_SYS_CLIENTS.contains(inst))
-		result << GRABBER_SYS_CLIENTS.value(inst);
+	if (type == GrabberTypeFilter::VIDEO || type == GrabberTypeFilter::ALL)
+	{
+		if (GRABBER_V4L_CLIENTS.contains(inst))
+			result << GRABBER_V4L_CLIENTS.value(inst);
+	}
 
 	return result;
 }
 
-QStringList GrabberWrapper::availableGrabbers()
+QStringList GrabberWrapper::availableGrabbers(GrabberTypeFilter type)
 {
 	QStringList grabbers;
 
-#ifdef ENABLE_DISPMANX
-	grabbers << "dispmanx";
-#endif
+	if (type == GrabberTypeFilter::SCREEN || type == GrabberTypeFilter::ALL)
+	{
+		#ifdef ENABLE_DISPMANX
+				grabbers << "dispmanx";
+		#endif
 
-#if defined(ENABLE_V4L2) || defined(ENABLE_MF)
-	grabbers << "v4l2";
-#endif
+		#ifdef ENABLE_FB
+				grabbers << "framebuffer";
+		#endif
 
-#ifdef ENABLE_FB
-	grabbers << "framebuffer";
-#endif
+		#ifdef ENABLE_AMLOGIC
+				grabbers << "amlogic";
+		#endif
 
-#ifdef ENABLE_AMLOGIC
-	grabbers << "amlogic";
-#endif
+		#ifdef ENABLE_OSX
+				grabbers << "osx";
+		#endif
 
-#ifdef ENABLE_OSX
-	grabbers << "osx";
-#endif
+		#ifdef ENABLE_X11
+				grabbers << "x11";
+		#endif
 
-#ifdef ENABLE_X11
-	grabbers << "x11";
-#endif
+		#ifdef ENABLE_XCB
+				grabbers << "xcb";
+		#endif
 
-#ifdef ENABLE_XCB
-	grabbers << "xcb";
-#endif
+		#ifdef ENABLE_QT
+				grabbers << "qt";
+		#endif
 
-#ifdef ENABLE_QT
-	grabbers << "qt";
-#endif
+		#ifdef ENABLE_DX
+				grabbers << "dx";
+		#endif
+	}
 
-#ifdef ENABLE_DX
-	grabbers << "dx";
-#endif
+	if (type == GrabberTypeFilter::VIDEO || type == GrabberTypeFilter::ALL)
+	{
+		#if defined(ENABLE_V4L2) || defined(ENABLE_MF)
+			grabbers << "v4l2";
+		#endif
+	}
 
 	return grabbers;
 }

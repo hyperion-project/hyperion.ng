@@ -58,6 +58,8 @@
 	typedef QObject DirectXWrapper;
 #endif
 
+#include <hyperion/GrabberWrapper.h>
+
 #include <utils/Logger.h>
 #include <utils/VideoMode.h>
 
@@ -180,10 +182,16 @@ private:
 	QtWrapper*                 _qtGrabber;
 	DirectXWrapper*            _dxGrabber;
 	SSDPHandler*               _ssdp;
-	CECHandler*                _cecHandler;
-	FlatBufferServer*          _flatBufferServer;
-	ProtoServer*               _protoServer;
 
+	#ifdef ENABLE_CEC
+	CECHandler*                _cecHandler;
+	#endif
+	#if defined(ENABLE_FLATBUF_SERVER)
+	FlatBufferServer*          _flatBufferServer;
+	#endif
+	#if defined(ENABLE_PROTOBUF_SERVER)
+	ProtoServer*               _protoServer;
+	#endif
 	int                        _grabber_width;
 	int                        _grabber_height;
 	int                        _grabber_pixelDecimation;

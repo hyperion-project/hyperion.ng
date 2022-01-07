@@ -1,6 +1,9 @@
 $(document).ready(function () {
   performTranslation();
 
+  var screenGrabberAvailable = (window.serverInfo.grabbers.screen.available.length !== 0);
+  var videoGrabberAvailable = (window.serverInfo.grabbers.video.available.length !== 0);
+
   // update instance listing
   updateHyperionInstanceListing();
 
@@ -26,20 +29,33 @@ $(document).ready(function () {
 
   conf_editor_instCapt.on('ready', function () {
 
-    if (!window.serverConfig.framegrabber.enable) {
-      conf_editor_instCapt.getEditor("root.instCapture.systemEnable").setValue(false);
-      conf_editor_instCapt.getEditor("root.instCapture.systemEnable").disable();
-    }
-    else {
-      conf_editor_instCapt.getEditor("root.instCapture.systemEnable").setValue(window.serverConfig.instCapture.systemEnable);
+    if (screenGrabberAvailable) {
+      if (!window.serverConfig.framegrabber.enable) {
+        conf_editor_instCapt.getEditor("root.instCapture.systemEnable").setValue(false);
+        conf_editor_instCapt.getEditor("root.instCapture.systemEnable").disable();
+      }
+      else {
+        conf_editor_instCapt.getEditor("root.instCapture.systemEnable").setValue(window.serverConfig.instCapture.systemEnable);
+      }
+    } else {
+      showInputOptionForItem(conf_editor_instCapt, "instCapture", "systemEnable", false);
+      showInputOptionForItem(conf_editor_instCapt, "instCapture", "systemGrabberDevice", false);
+      showInputOptionForItem(conf_editor_instCapt, "instCapture", "systemPriority", false);
     }
 
-    if (!window.serverConfig.grabberV4L2.enable) {
-      conf_editor_instCapt.getEditor("root.instCapture.v4lEnable").setValue(false);
-      conf_editor_instCapt.getEditor("root.instCapture.v4lEnable").disable();
-    }
-    else {
-      conf_editor_instCapt.getEditor("root.instCapture.v4lEnable").setValue(window.serverConfig.instCapture.v4lEnable);
+    if (videoGrabberAvailable) {
+      if (!window.serverConfig.grabberV4L2.enable) {
+        conf_editor_instCapt.getEditor("root.instCapture.v4lEnable").setValue(false);
+        conf_editor_instCapt.getEditor("root.instCapture.v4lEnable").disable();
+      }
+      else {
+        conf_editor_instCapt.getEditor("root.instCapture.v4lEnable").setValue(window.serverConfig.instCapture.v4lEnable);
+
+      }
+    } else {
+      showInputOptionForItem(conf_editor_instCapt, "instCapture", "v4lGrabberDevice", false);
+      showInputOptionForItem(conf_editor_instCapt, "instCapture", "v4lEnable", false);
+      showInputOptionForItem(conf_editor_instCapt, "instCapture", "v4lPriority", false);
     }
 
   });
@@ -75,6 +91,7 @@ $(document).ready(function () {
   });
 
   conf_editor_instCapt.watch('root.instCapture.v4lEnable', () => {
+    console.log("instCapt.watch(root.instCapture.v4lEnable");
     var videoEnable = conf_editor_instCapt.getEditor("root.instCapture.v4lEnable").getValue();
     if (videoEnable) {
       conf_editor_instCapt.getEditor("root.instCapture.v4lGrabberDevice").setValue(window.serverConfig.grabberV4L2.available_devices);

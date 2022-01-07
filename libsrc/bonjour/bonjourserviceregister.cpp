@@ -118,6 +118,8 @@ void BonjourServiceRegister::registerService(const BonjourRecord &record, quint1
 			connect(bonjourSocket, &QSocketNotifier::activated, this, &BonjourServiceRegister::bonjourSocketReadyRead);
 		}
 	}
+
+	TXTRecordDeallocate(&txtRec);
 }
 
 

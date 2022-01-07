@@ -32,7 +32,7 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
 	commandline
 	qt-grabber
-	flatbufserver
+	flatbufconnect
 	flatbuffers
 	ssdp
 	Qt${QT_VERSION_MAJOR}::Core

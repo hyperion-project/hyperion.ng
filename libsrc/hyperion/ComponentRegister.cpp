@@ -3,6 +3,8 @@
 
 #include <hyperion/Hyperion.h>
 
+#include <hyperion/GrabberWrapper.h>
+
 using namespace hyperion;
 
 ComponentRegister::ComponentRegister(Hyperion* hyperion)
@@ -11,10 +13,43 @@ ComponentRegister::ComponentRegister(Hyperion* hyperion)
 {
 	// init all comps to false
 	QVector<hyperion::Components> vect;
-	vect << COMP_ALL << COMP_SMOOTHING << COMP_BLACKBORDER << COMP_FORWARDER << COMP_GRABBER << COMP_V4L << COMP_LEDDEVICE;
+	vect << COMP_ALL << COMP_SMOOTHING << COMP_LEDDEVICE;
 
-#if defined(ENABLE_BOBLIGHT)
+	bool areScreenGrabberAvailable = !GrabberWrapper::availableGrabbers(GrabberTypeFilter::VIDEO).isEmpty();
+	bool areVideoGrabberAvailable = !GrabberWrapper::availableGrabbers(GrabberTypeFilter::VIDEO).isEmpty();
+	bool flatBufServerAvailable { false };
+	bool protoBufServerAvailable{ false };
+
+#if defined(ENABLE_FLATBUF_SERVER)
+	flatBufServerAvailable = true;
+#endif
+
+#if defined(ENABLE_PROTOBUF_SERVER)
+	protoBufServerAvailable = true;
+#endif
+
+	if (areScreenGrabberAvailable)
+	{
+		vect << COMP_GRABBER;
+	}
+
+	if (areVideoGrabberAvailable)
+	{
+		vect << COMP_V4L;
+	}
+
+	if (areScreenGrabberAvailable || areVideoGrabberAvailable || flatBufServerAvailable || protoBufServerAvailable)
+	{
+		vect << COMP_BLACKBORDER;
+	}
+
+
+#if defined(ENABLE_BOBLIGHT_SERVER)
 	vect << COMP_BOBLIGHTSERVER;
+#endif
+
+#if defined(ENABLE_FORWARDER)
+	vect << COMP_FORWARDER;
 #endif
 
 	for(auto e : vect)
@@ -36,12 +71,16 @@ int ComponentRegister::isComponentEnabled(hyperion::Components comp) const
 
 void ComponentRegister::setNewComponentState(hyperion::Components comp, bool activated)
 {
-	if(_componentStates[comp] != activated)
+
+	if (_componentStates.count(comp) > 0)
 	{
-		Debug( _log, "%s: %s", componentToString(comp), (activated? "enabled" : "disabled"));
-		_componentStates[comp] = activated;
-		// emit component has changed state
-		emit updatedComponentState(comp, activated);
+		if (_componentStates[comp] != activated)
+		{
+			Debug(_log, "%s: %s", componentToString(comp), (activated ? "enabled" : "disabled"));
+			_componentStates[comp] = activated;
+			// emit component has changed state
+			emit updatedComponentState(comp, activated);
+		}
 	}
 }
 

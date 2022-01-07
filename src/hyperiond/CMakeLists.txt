@@ -49,8 +49,6 @@ target_link_libraries(${PROJECT_NAME}
 	hyperion
 	effectengine
 	jsonserver
-	flatbufserver
-	protoserver
 	webserver
 	ssdp
 	database
@@ -66,6 +64,15 @@ if (NOT CMAKE_VERSION VERSION_LESS "3.12")
 	target_link_libraries( ${PROJECT_NAME} ${Python3_LIBRARIES} )
 else()
 	target_link_libraries( ${PROJECT_NAME} ${PYTHON_LIBRARIES} )
+endif()
+
+
+if(ENABLE_FLATBUF_SERVER)
+	target_link_libraries(${PROJECT_NAME} flatbufserver)
+endif()
+
+if(ENABLE_PROTOBUF_SERVER)
+	target_link_libraries(${PROJECT_NAME} protoserver)
 endif()
 
 if (ENABLE_AVAHI)
@@ -137,13 +144,13 @@ endif (ENABLE_CEC)
 if (APPLE)
 	set_target_properties( ${PROJECT_NAME} PROPERTIES
 		MACOSX_BUNDLE TRUE
-		MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/cmake/osxbundle/Info.plist
+		MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/cmake/osxbundle/Info.plist.in
 		MACOSX_BUNDLE_BUNDLE_NAME "Hyperion"
 		MACOSX_BUNDLE_BUNDLE_VERSION ${HYPERION_VERSION}
 		MACOSX_BUNDLE_COPYRIGHT "Copyright (c) 2014-2021 Hyperion Project"
 		MACOSX_BUNDLE_GUI_IDENTIFIER "com.hyperion-project.${PROJECT_NAME}"
 		MACOSX_BUNDLE_ICON_FILE "Hyperion.icns"
-		MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} Version ${HYPERION_VERSION}"
+		MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} ${HYPERION_VERSION}"
 		MACOSX_BUNDLE_LONG_VERSION_STRING ${HYPERION_VERSION}
 		MACOSX_BUNDLE_SHORT_VERSION_STRING ${HYPERION_VERSION}
 	)
@@ -191,7 +198,7 @@ if (WIN32)
 		message(STATUS "Found windeployqt: ${WINDEPLOYQT_EXECUTABLE} PATH_HINT:${QT_BIN_DIR}")
 		add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${WINDEPLOYQT_EXECUTABLE} ${WINDEPLOYQT_PARAMS_RUNTIME} "$<TARGET_FILE:${PROJECT_NAME}>")
 	endif()
-  
+
   find_package(OpenSSL REQUIRED)
 	if (OPENSSL_FOUND)
 		string(REGEX MATCHALL "[0-9]+" openssl_versions "${OPENSSL_VERSION}")

@@ -512,33 +512,70 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	info["ledDevices"] = ledDevices;
 
 	QJsonObject grabbers;
-	QJsonArray availableGrabbers;
 
-#if defined(ENABLE_DISPMANX) || defined(ENABLE_V4L2) ||  defined(ENABLE_MF) || defined(ENABLE_FB) || defined(ENABLE_AMLOGIC) || defined(ENABLE_OSX) || defined(ENABLE_X11) || defined(ENABLE_XCB) || defined(ENABLE_QT)
+	// *** Deprecated ***
+	//QJsonArray availableGrabbers;
+	//if ( GrabberWrapper::getInstance() != nullptr )
+	//{
+	//	QStringList activeGrabbers = GrabberWrapper::getInstance()->getActive(_hyperion->getInstanceIndex());
+	//	QJsonArray activeGrabberNames;
+	//	for (auto grabberName : activeGrabbers)
+	//	{
+	//		activeGrabberNames.append(grabberName);
+	//	}
 
-	if ( GrabberWrapper::getInstance() != nullptr )
+	//	grabbers["active"] = activeGrabberNames;
+	//}
+	//for (auto grabber : GrabberWrapper::availableGrabbers(GrabberTypeFilter::ALL))
+	//{
+	//	availableGrabbers.append(grabber);
+	//}
+
+	//grabbers["available"] = availableGrabbers;
+
+	QJsonObject screenGrabbers;
+	if (GrabberWrapper::getInstance() != nullptr)
 	{
-		QStringList activeGrabbers = GrabberWrapper::getInstance()->getActive(_hyperion->getInstanceIndex());
+		QStringList activeGrabbers = GrabberWrapper::getInstance()->getActive(_hyperion->getInstanceIndex(), GrabberTypeFilter::SCREEN);
 		QJsonArray activeGrabberNames;
 		for (auto grabberName : activeGrabbers)
 		{
 			activeGrabberNames.append(grabberName);
 		}
 
-		grabbers["active"] = activeGrabberNames;
+		screenGrabbers["active"] = activeGrabberNames;
 	}
-
-	// get available grabbers
-	for (auto grabber : GrabberWrapper::availableGrabbers())
+	QJsonArray availableScreenGrabbers;
+	for (auto grabber : GrabberWrapper::availableGrabbers(GrabberTypeFilter::SCREEN))
 	{
-		availableGrabbers.append(grabber);
+		availableScreenGrabbers.append(grabber);
 	}
+	screenGrabbers["available"] = availableScreenGrabbers;
 
-#endif
+	QJsonObject videoGrabbers;
+	if (GrabberWrapper::getInstance() != nullptr)
+	{
+		QStringList activeGrabbers = GrabberWrapper::getInstance()->getActive(_hyperion->getInstanceIndex(), GrabberTypeFilter::VIDEO);
+		QJsonArray activeGrabberNames;
+		for (auto grabberName : activeGrabbers)
+		{
+			activeGrabberNames.append(grabberName);
+		}
 
-	grabbers["available"] = availableGrabbers;
-	info["videomode"] = QString(videoMode2String(_hyperion->getCurrentVideoMode()));
+		videoGrabbers["active"] = activeGrabberNames;
+	}
+	QJsonArray availableVideoGrabbers;
+	for (auto grabber : GrabberWrapper::availableGrabbers(GrabberTypeFilter::VIDEO))
+	{
+		availableVideoGrabbers.append(grabber);
+	}
+	videoGrabbers["available"] = availableVideoGrabbers;
+
+	grabbers.insert("screen", screenGrabbers);
+	grabbers.insert("video", videoGrabbers);
 	info["grabbers"] = grabbers;
+
+	info["videomode"] = QString(videoMode2String(_hyperion->getCurrentVideoMode()));
 
 	QJsonObject cecInfo;
 #if defined(ENABLE_CEC)
@@ -547,6 +584,36 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	cecInfo["enabled"] = false;
 #endif
 	info["cec"] = cecInfo;
+
+	// get available services
+	QJsonArray services;
+
+#if defined(ENABLE_BOBLIGHT_SERVER)
+	services.append("boblight");
+#endif
+
+#if defined(ENABLE_CEC)
+	services.append("cec");
+#endif
+
+#if defined(ENABLE_FORWARDER)
+	services.append("forwarder");
+#endif
+
+#if defined(ENABLE_FLATBUF_SERVER)
+	services.append("flatbuffer");
+#endif
+
+#if defined(ENABLE_PROTOBUF_SERVER)
+	services.append("protobuffer");
+#endif
+
+	if (!availableScreenGrabbers.isEmpty() || !availableVideoGrabbers.isEmpty() || services.contains("flatbuffer") || services.contains("protobuffer"))
+	{
+		services.append("borderdetection");
+	}
+
+	info["services"] = services;
 
 	// get available components
 	QJsonArray component;

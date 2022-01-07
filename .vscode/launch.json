@@ -38,7 +38,7 @@
       "name": "(macOS) Hyperion.app",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/bin/hyperiond.app/Contents/MacOS/hyperiond",
+      "program": "${workspaceFolder}/build/bin/Hyperion.app/Contents/MacOS/Hyperion",
       "args": ["-d"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",

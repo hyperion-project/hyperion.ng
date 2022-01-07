@@ -15,7 +15,7 @@
 #include <shlobj_core.h>
 #endif
 
-SysInfo* SysInfo::_instance = nullptr;
+std::unique_ptr<SysInfo> SysInfo::_instance = nullptr;
 
 SysInfo::SysInfo()
 	: QObject()
@@ -38,7 +38,7 @@ SysInfo::SysInfo()
 SysInfo::HyperionSysInfo SysInfo::get()
 {
 	if (SysInfo::_instance == nullptr)
-		SysInfo::_instance = new SysInfo();
+		SysInfo::_instance = std::unique_ptr<SysInfo>(new SysInfo());
 
 	return SysInfo::_instance->_sysinfo;
 }

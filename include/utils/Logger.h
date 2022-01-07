@@ -7,7 +7,7 @@
 #include <QAtomicInteger>
 #include <QList>
 
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
 	#include <QRecursiveMutex>
 #else
 	#include <QMutex>
@@ -86,7 +86,7 @@ protected:
 private:
 	void write(const Logger::T_LOG_MESSAGE & message);
 
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))	
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
 	static QRecursiveMutex       MapLock;
 #else
 	static QMutex                MapLock;

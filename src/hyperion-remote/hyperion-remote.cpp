@@ -93,7 +93,7 @@ int main(int argc, char * argv[])
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//      art             variable definition       append art to Parser     short-, long option              description, optional default value      //
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		Option          & argAddress            = parser.add<Option>       ('a', "address"                , "The hostname or IP-address (IPv4 or IPv6) of the hyperion server.\nDefault port: 19444.\nSample addresses:\nHost : hyperion.fritz.box\nIPv4 : 127.0.0.1:19444\nIPv6 : [2001:1:2:3:4:5:6:7]");
+		Option          & argAddress            = parser.add<Option>       ('a', "address"                , "The hostname or IP-address (IPv4 or IPv6) of the hyperion server.\nDefault port: 19444.\nSample addresses:\nHost : hyperion.fritz.box\nIPv4 : 127.0.0.1:19444\nIPv6 : [2001:1:2:3:4:5:6:7]", "127.0.0.1");
 		Option          & argToken              = parser.add<Option>       ('t', "token"                  , "If authorization tokens are required, this token is used");
 		Option          & argInstance           = parser.add<Option>       ('I', "instance"               , "Select a specific target instance by name for your command. By default it uses always the first instance");
 		IntOption       & argPriority           = parser.add<IntOption>    ('p', "priority"               , "Used to the provided priority channel (suggested 2-99) [default: %1]", "50");
@@ -200,7 +200,7 @@ int main(int argc, char * argv[])
 
 		// server searching by ssdp
 		QString address = argAddress.value(parser);
-		if(argAddress.value(parser) == "127.0.0.1:19444")
+		if(address == "127.0.0.1" || address == "127.0.0.1:19444")
 		{
 			SSDPDiscover discover;
 			address = discover.getFirstService(searchType::STY_JSONSERVER);
