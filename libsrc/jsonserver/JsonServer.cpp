@@ -18,7 +18,6 @@
 namespace {
 
 const char HYPERION_MDNS_SERVICE_TYPE[] = "_hyperiond-json._tcp.local.";
-const char HYPERION_SERVICENAME[] = "JSONAPI";
 
 } //End of constants
 
@@ -58,7 +57,7 @@ void JsonServer::start()
 		else
 		{
 			Info(_log, "Started on port %d", _port);
-			emit publishService(HYPERION_MDNS_SERVICE_TYPE, _port, HYPERION_SERVICENAME);
+			emit publishService(HYPERION_MDNS_SERVICE_TYPE, _port);
 		}
 	}
 }

@@ -58,12 +58,11 @@ void MdnsProvider::publishService(const QByteArray& serviceType, quint16 service
 	service.setType(serviceType);
 	service.setPort(servicePort);
 
-	QByteArray name("hyperion");
+	QByteArray name(QHostInfo::localHostName().toUtf8());
 	if (!serviceName.isEmpty())
 	{
-		name += "-" + serviceName;
+		name.prepend(serviceName + "@");
 	}
-	name += "@" + QHostInfo::localHostName().toUtf8();
 	service.setName(name);
 
 	QByteArray id = AuthManager::getInstance()->getID().toUtf8();
