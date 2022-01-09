@@ -191,7 +191,7 @@ void ProtoClientConnection::handleImageCommand(const proto::ImageRequest &messag
 
 	if (channelCount == 4)
 	{
-		for (int source=0, destination=0; source < width * height * sizeof(ColorRgb); source+=sizeof(ColorRgb), destination+=sizeof(ColorRgba))
+		for (int source=0, destination=0; source < width * height * static_cast<int>(sizeof(ColorRgb)); source+=sizeof(ColorRgb), destination+=sizeof(ColorRgba))
 		{
 			memmove((uint8_t*)imageRGB.memptr() + source, imageData.c_str() + destination, sizeof(ColorRgb));
 		}
