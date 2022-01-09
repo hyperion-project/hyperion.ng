@@ -22,12 +22,15 @@ EncoderThread::~EncoderThread()
 		tjDestroy(_decompress);
 #endif
 
-	if (_localData)
+	if (_localData != nullptr)
+	{
 #ifdef HAVE_TURBO_JPEG
 		tjFree(_localData);
 #else
 		delete[] _localData;
 #endif
+		_localData = nullptr;
+	}
 }
 
 void EncoderThread::setup(
@@ -55,14 +58,18 @@ void EncoderThread::setup(
 	_imageResampler.setVerticalPixelDecimation(_pixelDecimation);
 
 #ifdef HAVE_TURBO_JPEG
-	if (_localData)
+	if (_localData != nullptr)
 		tjFree(_localData);
 
 	_localData = (uint8_t*)tjAlloc(size + 1);
 #else
-	delete[] _localData;
-	_localData = nullptr;
-	_localData = new uint8_t(size + 1);
+	if (_localData != nullptr)
+	{
+		delete[] _localData;
+		_localData = nullptr;
+	}
+
+	_localData = new uint8_t[size];
 #endif
 
 	memcpy(_localData, sharedData, size);
@@ -177,23 +184,20 @@ void EncoderThread::processImageMjpeg()
 	else
     {
 		// calculate the output size
-		int outputWidth = (_width - _cropLeft - _cropRight);
-		int outputHeight = (_height - _cropTop - _cropBottom);
+		int outputWidth = (scaledWidth - _cropLeft - _cropRight);
+		int outputHeight = (scaledHeight - _cropTop - _cropBottom);
 
 		if (outputWidth <= 0 || outputHeight <= 0)
+		{
+			emit newFrame(srcImage);
 			return;
+		}
 
 		Image<ColorRgb> destImage(outputWidth, outputHeight);
 
 		for (unsigned int y = 0; y < destImage.height(); y++)
 		{
-			unsigned char* source = (unsigned char*)srcImage.memptr() + (y + _cropTop)*srcImage.width()*3 + _cropLeft*3;
-			unsigned char* dest = (unsigned char*)destImage.memptr() + y*destImage.width()*3;
-			memcpy(dest, source, destImage.width()*3);
-			free(source);
-			source = nullptr;
-			free(dest);
-			dest = nullptr;
+			memcpy((unsigned char*)destImage.memptr() + y * destImage.width() * 3, (unsigned char*)srcImage.memptr() + (y + _cropTop) * srcImage.width() * 3 + _cropLeft * 3, destImage.width() * 3);
 		}
 
     	// emit

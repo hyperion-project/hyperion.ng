@@ -30,7 +30,9 @@ static PixelFormat GetPixelFormatForGuid(const GUID guid)
 	if (IsEqualGUID(guid, MFVideoFormat_RGB24)) return PixelFormat::BGR24;
 	if (IsEqualGUID(guid, MFVideoFormat_YUY2)) return PixelFormat::YUYV;
 	if (IsEqualGUID(guid, MFVideoFormat_UYVY)) return PixelFormat::UYVY;
+#ifdef HAVE_TURBO_JPEG
 	if (IsEqualGUID(guid, MFVideoFormat_MJPG)) return  PixelFormat::MJPEG;
+#endif
 	if (IsEqualGUID(guid, MFVideoFormat_NV12)) return  PixelFormat::NV12;
 	if (IsEqualGUID(guid, MFVideoFormat_I420)) return  PixelFormat::I420;
 	return PixelFormat::NO_CHANGE;
@@ -142,7 +144,11 @@ public:
 			goto done;
 		}
 
+#ifdef HAVE_TURBO_JPEG
 		if (_pixelformat != PixelFormat::MJPEG && _pixelformat != PixelFormat::BGR24 && _pixelformat != PixelFormat::NO_CHANGE)
+#else
+		if (_pixelformat != PixelFormat::BGR24 && _pixelformat != PixelFormat::NO_CHANGE)
+#endif
 			pSample = TransformSample(_transform, pSample);
 
 		_hrStatus = pSample->ConvertToContiguousBuffer(&buffer);
@@ -174,7 +180,11 @@ public:
 		if (MF_SOURCE_READERF_ENDOFSTREAM & dwStreamFlags)
 			_bEOS = TRUE; // Reached the end of the stream.
 
+#ifdef HAVE_TURBO_JPEG
 		if (_pixelformat != PixelFormat::MJPEG && _pixelformat != PixelFormat::BGR24 && _pixelformat != PixelFormat::NO_CHANGE)
+#else
+		if (_pixelformat != PixelFormat::BGR24 && _pixelformat != PixelFormat::NO_CHANGE)
+#endif
 			SAFE_RELEASE(pSample);
 
 		_isBusy = false;
@@ -185,7 +195,11 @@ public:
 	HRESULT InitializeVideoEncoder(IMFMediaType* type, PixelFormat format)
 	{
 		_pixelformat = format;
+#ifdef HAVE_TURBO_JPEG
 		if (format == PixelFormat::MJPEG || format == PixelFormat::BGR24 || format == PixelFormat::NO_CHANGE)
+#else
+		if (format == PixelFormat::BGR24 || format == PixelFormat::NO_CHANGE)
+#endif
 			return S_OK;
 
 		// Variable declaration

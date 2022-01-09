@@ -30,7 +30,6 @@ body{
     padding-right: 10px;
   }
   .navbar-brand{
-    position:fixed;
     height: 80px;
   }
   #main-nav{
