@@ -1,4 +1,4 @@
-#include <mdns/mdnsBrowser.h>
+#include <mdns/MdnsBrowser.h>
 #include <qmdnsengine/message.h>
 #include <qmdnsengine/service.h>
 
@@ -25,19 +25,16 @@ MdnsBrowser::MdnsBrowser(QObject* parent)
 	: QObject(parent)
 	, _log(Logger::getInstance("MDNS"))
 {
-	qDebug() << "MdnsBrowser, Thread: " << QThread::currentThread()->objectName();
 	qRegisterMetaType<QHostAddress>("QHostAddress");
 }
 
 MdnsBrowser::~MdnsBrowser()
 {
-	qDebug() << "~MdnsBrowser, Thread: " << QThread::currentThread()->objectName();
 	qDeleteAll(_browsedServiceTypes);
 }
 
 void MdnsBrowser::browseForServiceType(const QByteArray& serviceType)
 {
-	qDebug() << "MdnsBrowser::browseForServiceType: " << serviceType << " Thread: " << QThread::currentThread()->objectName();
 	if (!_browsedServiceTypes.contains(serviceType))
 	{
 		DebugIf(verboseBrowser, _log, "Start new mDNS browser for serviceType [%s], Thread: %s", serviceType.constData(), QSTRING_CSTR(QThread::currentThread()->objectName()));
@@ -278,8 +275,6 @@ QJsonArray MdnsBrowser::getServicesDiscoveredJson(const QByteArray& serviceType,
 		int retries = 5;
 		do
 		{
-			qDebug() << "MdnsBrowser::getServicesDiscoveredJson retries left: "<< retries;
-
 			if (_cache.lookupRecords(serviceType, QMdnsEngine::PTR, ptrRecords))
 			{
 				for (int ptrCounter = 0; ptrCounter < ptrRecords.size(); ++ptrCounter)
@@ -303,9 +298,10 @@ QJsonArray MdnsBrowser::getServicesDiscoveredJson(const QByteArray& serviceType,
 							obj.insert("nameFull", QString(serviceNameFull));
 							obj.insert("type", QString(serviceType.left(serviceType.size()-domain.size())));
 
+							QString serviceName;
 							if (serviceNameFull.endsWith("." + serviceType))
 							{
-								QString serviceName = serviceNameFull.left(serviceNameFull.length() - serviceType.length() - 1);
+								serviceName = serviceNameFull.left(serviceNameFull.length() - serviceType.length() - 1);
 								obj.insert("name", QString(serviceName));
 							}
 
@@ -315,6 +311,17 @@ QJsonArray MdnsBrowser::getServicesDiscoveredJson(const QByteArray& serviceType,
 
 							obj.insert("hostname", QString(hostName));
 							obj.insert("domain", domain);
+
+							//Tag records where the service is provided by this host
+							QByteArray localHostname = QHostInfo::localHostName().toUtf8();
+							localHostname = localHostname.replace('.', '-');
+
+							bool isSameHost {false};
+							if ( serviceName == localHostname )
+							{
+								isSameHost = true;
+							}
+							obj.insert("sameHost", isSameHost);
 
 							quint16 port = srvRecord.port();
 							obj.insert("port", port);
@@ -344,7 +351,6 @@ QJsonArray MdnsBrowser::getServicesDiscoveredJson(const QByteArray& serviceType,
 			}
 
 		} while (result.isEmpty() && retries >= 0);
-
 
 		if (!result.isEmpty())
 		{

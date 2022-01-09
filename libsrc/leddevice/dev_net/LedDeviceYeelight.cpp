@@ -16,8 +16,8 @@
 
 // mDNS discover
 #ifdef ENABLE_MDNS
-#include <mdns/mdnsBrowser.h>
-#include <leddevice/LedDeviceMdnsRegister.h>
+#include <mdns/MdnsBrowser.h>
+#include <mdns/MdnsServiceRegister.h>
 #endif
 #include <utils/NetUtils.h>
 
@@ -1014,7 +1014,7 @@ LedDeviceYeelight::LedDeviceYeelight(const QJsonObject &deviceConfig)
 {
 #ifdef ENABLE_MDNS
 	QMetaObject::invokeMethod(&MdnsBrowser::getInstance(), "browseForServiceType",
-							   Qt::QueuedConnection, Q_ARG(QByteArray, LedDeviceMdnsRegister::getServiceType(_activeDeviceType)));
+							   Qt::QueuedConnection, Q_ARG(QByteArray, MdnsServiceRegister::getServiceType(_activeDeviceType)));
 #endif
 }
 
@@ -1411,8 +1411,8 @@ QJsonObject LedDeviceYeelight::discover(const QJsonObject& /*params*/)
 #ifdef ENABLE_MDNS
 	QString discoveryMethod("mDNS");
 	deviceList = MdnsBrowser::getInstance().getServicesDiscoveredJson(
-		LedDeviceMdnsRegister::getServiceType(_activeDeviceType),
-		LedDeviceMdnsRegister::getServiceNameFilter(_activeDeviceType),
+		MdnsServiceRegister::getServiceType(_activeDeviceType),
+		MdnsServiceRegister::getServiceNameFilter(_activeDeviceType),
 		DEFAULT_DISCOVER_TIMEOUT
 		);
 #else

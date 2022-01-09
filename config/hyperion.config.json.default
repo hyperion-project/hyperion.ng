@@ -138,9 +138,9 @@
 
 	"forwarder" :
 	{
-		"enable" : false,
-		"json"   : [],
-		"flat"  : []
+		"enable"     : false,
+		"jsonapi"    : [],
+		"flatbuffer" : []
 	},
 
 	"jsonServer" :

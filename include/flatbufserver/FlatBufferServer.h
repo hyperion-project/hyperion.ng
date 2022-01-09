@@ -19,6 +19,7 @@ class NetOrigin;
 class FlatBufferServer : public QObject
 {
 	Q_OBJECT
+
 public:
 	FlatBufferServer(const QJsonDocument& config, QObject* parent = nullptr);
 	~FlatBufferServer() override;
@@ -37,7 +38,7 @@ signals:
 	///
 	/// @emits whenever the server would like to announce its service details
 	///
-	void publishService(const QByteArray& serviceType, quint16 servicePort, const QByteArray& serviceName = "");
+	void publishService(const QString& serviceType, quint16 servicePort, const QByteArray& serviceName = "");
 
 private slots:
 	///

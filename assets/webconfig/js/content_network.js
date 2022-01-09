@@ -13,6 +13,9 @@ $(document).ready(function () {
   var conf_editor_bobl = null;
   var conf_editor_forw = null;
 
+  // Service properties , 2-dimensional array of [servicetype][id]
+  discoveredRemoteServices = {};
+
   addJsonEditorHostValidation();
 
   if (window.showOptHelp) {
@@ -177,16 +180,46 @@ $(document).ready(function () {
         forwarder: window.schema.forwarder
       }, true, true);
 
+      conf_editor_forw.on('ready', function () {
+
+        updateServiceCacheForwarderConfiguredItems("jsonapi");
+        updateServiceCacheForwarderConfiguredItems("flatbuffer");
+
+        var forwarderEnable = conf_editor_forw.getEditor("root.forwarder.enable").getValue();
+        if (forwarderEnable) {
+          discoverRemoteHyperionServices("jsonapi");
+          discoverRemoteHyperionServices("flatbuffer");
+        }
+      });
+
       conf_editor_forw.on('change', function () {
         var forwarderEnable = conf_editor_forw.getEditor("root.forwarder.enable").getValue();
         if (forwarderEnable) {
-          showInputOptionsForKey(conf_editor_forw, "forwarder", "enable", true);
           $('#forwarderHelpPanelId').show();
         } else {
           showInputOptionsForKey(conf_editor_forw, "forwarder", "enable", false);
           $('#forwarderHelpPanelId').hide();
         }
+
         conf_editor_forw.validate().length || window.readOnlyMode ? $('#btn_submit_forwarder').attr('disabled', true) : $('#btn_submit_forwarder').attr('disabled', false);
+      });
+
+
+      conf_editor_forw.watch('root.forwarder.jsonapiselect', () => {
+        updateForwarderServiceSections("jsonapi");
+      });
+
+      conf_editor_forw.watch('root.forwarder.flatbufferselect', () => {
+        updateForwarderServiceSections("flatbuffer");
+      });
+
+      conf_editor_forw.watch('root.forwarder.enable', () => {
+
+        var forwarderEnable = conf_editor_forw.getEditor("root.forwarder.enable").getValue();
+        if (forwarderEnable) {
+          discoverRemoteHyperionServices("jsonapi");
+          discoverRemoteHyperionServices("flatbuffer");
+        }
       });
 
       $('#btn_submit_forwarder').off().on('click', function () {
@@ -276,5 +309,147 @@ $(document).ready(function () {
   checkApiTokenState(window.serverConfig.network.apiAuth);
 
   removeOverlay();
+
+  function updateForwarderServiceSections(type) {
+
+    var editorPath = "root.forwarder." + type
+    var selectedServices = conf_editor_forw.getEditor(editorPath + "select").getValue();
+
+    if (jQuery.isEmptyObject(selectedServices) || selectedServices[0] === "NONE") {
+      conf_editor_forw.getEditor(editorPath).setValue([]);
+      showInputOptionForItem(conf_editor_forw, "forwarder", type, false);
+    } else {
+
+      var newServices = [];
+      for (var i = 0; i < selectedServices.length; ++i) {
+
+        var service = discoveredRemoteServices[type][selectedServices[i]];
+        var newrecord = {};
+
+        newrecord.id = service.id;
+        newrecord.host = service.hostname;
+        newrecord.port = service.port;
+
+        newServices.push(newrecord);
+      }
+      conf_editor_forw.getEditor(editorPath).setValue(newServices);
+
+      showInputOptionForItem(conf_editor_forw, "forwarder", type, true);
+      conf_editor_forw.getEditor(editorPath).disable();
+    }
+  }
+
+  function updateForwarderSelectList(type) {
+
+    var selectionElement = type + "select"
+
+    var enumVals = [];
+    var enumTitelVals = [];
+    var enumDefaultVals = [];
+
+    for (var key in discoveredRemoteServices[type]) {
+
+      var service = discoveredRemoteServices[type][key];
+      enumVals.push(service.id);
+      enumTitelVals.push(service.name);
+
+      if (service.inConfig == true) {
+        enumDefaultVals.push(service.id);
+      }
+    }
+
+    let addSchemaElements = {
+      "uniqueItems": true
+    };
+
+    if (jQuery.isEmptyObject(enumVals)) {
+      enumVals.push("NONE");
+      enumTitelVals.push($.i18n('edt_conf_fw_remote_service_discovered_none'));
+    }
+
+    updateJsonEditorMultiSelection(conf_editor_forw, 'root.forwarder', selectionElement, addSchemaElements, enumVals, enumTitelVals, enumDefaultVals);
+  };
+
+  function updateServiceCacheForwarderConfiguredItems(serviceType) {
+
+    var editor = conf_editor_forw.getEditor("root.forwarder." + serviceType);
+
+    if (editor) {
+      if (!discoveredRemoteServices[serviceType]) {
+        discoveredRemoteServices[serviceType] = {};
+      }
+
+      var configuredServices = JSON.parse(JSON.stringify(editor.getValue('items')));
+      for (const service of configuredServices) {
+
+        //Handle non mDNS sceanrios
+        if (!service.id) {
+          service.id = storeService.host;
+        }
+        if (!service.name) {
+          service.name = service.host;
+          service.hostname = service.host;
+        }
+        service.inConfig = true;
+
+        discoveredRemoteServices[serviceType][service.id] = service;
+      }
+    }
+  }
+
+  function updateRemoteServiceCache(discoveryInfo) {
+
+    for (var serviceType in discoveryInfo) {
+
+      if (!discoveredRemoteServices[serviceType]) {
+        discoveredRemoteServices[serviceType] = {};
+      }
+
+      var discoveredServices = discoveryInfo[serviceType];
+      for (const service of discoveredServices) {
+
+        if (!service.sameHost) {
+
+          if (!service.id) {
+            service.id = service.host;
+          }
+          if (!service.name) {
+            service.name = service.host;
+            service.hostname = service.host;
+          }
+
+          if (discoveredRemoteServices[serviceType][service.id]) {
+            service.inConfig = true;
+          }
+
+          discoveredRemoteServices[serviceType][service.id] = service;
+        }
+      }
+    }
+  };
+
+  async function discoverRemoteHyperionServices(type, params) {
+
+    const result = await requestServiceDiscovery(type, params);
+
+    var discoveryResult;
+    if (result && !result.error) {
+      discoveryResult = result.info;
+    }
+    else {
+      discoveryResult = {
+        "services": []
+      };
+    }
+
+    switch (type) {
+      case "jsonapi":
+      case "flatbuffer":
+        updateRemoteServiceCache(discoveryResult.services);
+        updateForwarderSelectList(type);
+        break;
+    }
+  };
+
 });
 

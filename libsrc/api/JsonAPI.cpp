@@ -72,6 +72,15 @@
 // auth manager
 #include <hyperion/AuthManager.h>
 
+#ifdef ENABLE_MDNS
+// mDNS discover
+#include <mdns/MdnsBrowser.h>
+#include <mdns/MdnsServiceRegister.h>
+#else
+// ssdp discover
+#include <ssdp/SSDPDiscover.h>
+#endif
+
 using namespace hyperion;
 
 // Constants
@@ -214,6 +223,8 @@ proceed:
 		handleLedDeviceCommand(message, command, tan);
 	else if (command == "inputsource")
 		handleInputSourceCommand(message, command, tan);
+	else if (command == "service")
+		handleServiceCommand(message, command, tan);
 
 	// BEGIN | The following commands are deprecated but used to ensure backward compatibility with hyperion Classic remote control
 	else if (command == "clearall")
@@ -602,6 +613,11 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 #if defined(ENABLE_PROTOBUF_SERVER)
 	services.append("protobuffer");
 #endif
+
+#if defined(ENABLE_MDNS)
+	services.append("mDNS");
+#endif
+	services.append("SSDP");
 
 	if (!availableScreenGrabbers.isEmpty() || !availableVideoGrabbers.isEmpty() || services.contains("flatbuffer") || services.contains("protobuffer"))
 	{
@@ -1671,6 +1687,55 @@ void JsonAPI::handleInputSourceCommand(const QJsonObject& message, const QString
 		{
 			sendErrorReply("Unknown or missing subcommand", full_command, tan);
 		}
+	}
+}
+
+void JsonAPI::handleServiceCommand(const QJsonObject &message, const QString &command, int tan)
+{
+	DebugIf(verbose, _log, "message: [%s]", QString(QJsonDocument(message).toJson(QJsonDocument::Compact)).toUtf8().constData());
+
+	const QString &subc = message["subcommand"].toString().trimmed();
+	const QString type = message["serviceType"].toString().trimmed();
+
+	QString full_command = command + "-" + subc;
+
+	if (subc == "discover")
+	{
+		QByteArray serviceType;
+
+		QJsonObject servicesDiscovered;
+		QJsonObject servicesOfType;
+		QJsonArray serviceList;
+
+#ifdef ENABLE_MDNS
+		QString discoveryMethod("mDNS");
+		serviceType = MdnsServiceRegister::getServiceType(type);
+#else
+		QString discoveryMethod("ssdp");
+#endif
+		if (!serviceType.isEmpty())
+		{
+#ifdef ENABLE_MDNS
+			QMetaObject::invokeMethod(&MdnsBrowser::getInstance(), "browseForServiceType",
+									   Qt::QueuedConnection, Q_ARG(QByteArray, serviceType));
+
+			serviceList = MdnsBrowser::getInstance().getServicesDiscoveredJson(serviceType, MdnsServiceRegister::getServiceNameFilter(type), DEFAULT_DISCOVER_TIMEOUT);
+#endif
+			servicesOfType.insert(type, serviceList);
+
+			servicesDiscovered.insert("discoveryMethod", discoveryMethod);
+			servicesDiscovered.insert("services", servicesOfType);
+
+			sendSuccessDataReply(QJsonDocument(servicesDiscovered), full_command, tan);
+		}
+		else
+		{
+			sendErrorReply(QString("Discovery of service type [%1] via %2 not supported").arg(type, discoveryMethod), full_command, tan);
+		}
+	}
+	else
+	{
+		sendErrorReply("Unknown or missing subcommand", full_command, tan);
 	}
 }
 

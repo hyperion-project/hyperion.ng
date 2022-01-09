@@ -9,7 +9,7 @@
 #include <utils/Logger.h>
 
 #ifdef ENABLE_MDNS
-#include <mdns/mdnsBrowser.h>
+#include <mdns/MdnsBrowser.h>
 #endif
 
 namespace NetUtils {

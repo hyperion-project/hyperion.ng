@@ -486,3 +486,9 @@ async function requestInputSourcesDiscovery(type, params) {
   return sendAsyncToHyperion("inputsource", "discover", data, Math.floor(Math.random() * 1000));
 }
 
+async function requestServiceDiscovery(type, params) {
+  let data = { serviceType: type, params: params };
+
+  return sendAsyncToHyperion("service", "discover", data, Math.floor(Math.random() * 1000));
+}
+

@@ -10,7 +10,7 @@
 
 #ifdef ENABLE_MDNS
 // mDNS discover
-#include <mdns/mdnsBrowser.h>
+#include <mdns/MdnsBrowser.h>
 #else
 // ssdp discover
 #include <ssdp/SSDPDiscover.h>

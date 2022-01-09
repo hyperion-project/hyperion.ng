@@ -61,18 +61,18 @@ void MessageForwarder::handleSettingsUpdate(settings::type type, const QJsonDocu
 
 		// build new one
 		const QJsonObject& obj = config.object();
-		if (!obj["json"].isNull())
+		if (!obj["jsonapi"].isNull())
 		{
-			const QJsonArray& addr = obj["json"].toArray();
+			const QJsonArray& addr = obj["jsonapi"].toArray();
 			for (const auto& entry : addr)
 			{
 				addJsonTarget(entry.toObject());
 			}
 		}
 
-		if (!obj["flat"].isNull())
+		if (!obj["flatbuffer"].isNull())
 		{
-			const QJsonArray& addr = obj["flat"].toArray();
+			const QJsonArray& addr = obj["flatbuffer"].toArray();
 			for (const auto& entry : addr)
 			{
 				addFlatbufferTarget(entry.toObject());
@@ -132,9 +132,9 @@ void MessageForwarder::handlePriorityChanges(quint8 priority)
 		hyperion::Components activeCompId = _hyperion->getPriorityInfo(priority).componentId;
 		if (activeCompId == hyperion::COMP_GRABBER || activeCompId == hyperion::COMP_V4L)
 		{
-			if (!obj["flat"].isNull())
+			if (!obj["flatbuffer"].isNull())
 			{
-				const QJsonArray& addr = obj["flat"].toArray();
+				const QJsonArray& addr = obj["flatbuffer"].toArray();
 				for (const auto& entry : addr)
 				{
 					addFlatbufferTarget(entry.toObject());

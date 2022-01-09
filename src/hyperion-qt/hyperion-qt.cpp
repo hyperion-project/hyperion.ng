@@ -11,7 +11,7 @@
 
 #ifdef ENABLE_MDNS
 // mDNS discover
-#include <mdns/mdnsBrowser.h>
+#include <mdns/MdnsBrowser.h>
 #else
 // ssdp discover
 #include <ssdp/SSDPDiscover.h>
@@ -25,7 +25,6 @@
 namespace {
 
 const char HYPERION_MDNS_SERVICE_TYPE[] = "_hyperiond-flatbuf._tcp.local.";
-const char HYPERION_SERVICENAME[] = "hyperion-flatbuffer";
 
 } //End of constants
 
@@ -128,7 +127,7 @@ int main(int argc, char ** argv)
 		else
 		{
 			QString host;
-			QString serviceName {HYPERION_SERVICENAME};
+			QString serviceName {QHostInfo::localHostName()};
 			quint16 port {FLATBUFFER_DEFAULT_PORT};
 
 			// Split hostname and port (or use default port)

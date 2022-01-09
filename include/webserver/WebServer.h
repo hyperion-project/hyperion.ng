@@ -54,7 +54,7 @@ signals:
 	///
 	/// @emits whenever the server would like to announce its service details
 	///
-	void publishService(const QByteArray& serviceType, quint16 servicePort, const QByteArray& serviceName = "");
+	void publishService(const QString& serviceType, quint16 servicePort, const QByteArray& serviceName = "");
 
 public slots:
 	///

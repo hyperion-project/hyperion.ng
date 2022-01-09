@@ -30,7 +30,7 @@ public slots:
 	///
 	void init();
 
-	void publishService (const QByteArray& serviceType, quint16 servicePort, const QByteArray& serviceName = "");
+	void publishService (const QString& serviceType, quint16 servicePort, const QByteArray& serviceName = "");
 
 private slots:
 

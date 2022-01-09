@@ -628,6 +628,8 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 									{
 										newJsonConfig["port"] = 19444;
 									}
+									newJsonConfig["id"] = oldHost;
+
 									json.append(newJsonConfig);
 									migrated = true;
 								}
@@ -636,13 +638,10 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 
 						if (!json.isEmpty())
 						{
-							newForwarderConfig["json"] = json;
+							newForwarderConfig["jsonapi"] = json;
 						}
-						else
-						{
-							newForwarderConfig.remove("json");
-							migrated = true;
-						}
+						newForwarderConfig.remove("json");
+						migrated = true;
 					}
 
 					QJsonArray flatbuffer;
@@ -672,6 +671,7 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 									{
 										newFlattbufferConfig["port"] = 19400;
 									}
+									newFlattbufferConfig["id"] = oldHost;
 
 									flatbuffer.append(newFlattbufferConfig);
 									migrated = true;
@@ -680,13 +680,10 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 
 							if (!flatbuffer.isEmpty())
 							{
-								newForwarderConfig["flat"] = flatbuffer;
+								newForwarderConfig["flatbuffer"] = flatbuffer;
 							}
-							else
-							{
-								newForwarderConfig.remove("flat");
-								migrated = true;
-							}
+							newForwarderConfig.remove("flat");
+							migrated = true;
 						}
 					}
 

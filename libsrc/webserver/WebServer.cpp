@@ -12,8 +12,8 @@
 // Constants
 namespace {
 
-const char HTTP_MDNS_SERVICE_TYPE[]  = "_http._tcp.local.";
-const char HTTPS_MDNS_SERVICE_TYPE[] = "_https._tcp.local.";
+const char HTTP_SERVICE_TYPE[]  = "http";
+const char HTTPS_SERVICE_TYPE[] = "https";
 const char HYPERION_SERVICENAME[] = "Hyperion";
 
 } //End of constants
@@ -64,11 +64,11 @@ void WebServer::onServerStarted (quint16 port)
 
 	if (_useSsl)
 	{
-		emit publishService(HTTPS_MDNS_SERVICE_TYPE, _port, HYPERION_SERVICENAME);
+		emit publishService(HTTPS_SERVICE_TYPE, _port, HYPERION_SERVICENAME);
 	}
 	else
 	{
-		emit publishService(HTTP_MDNS_SERVICE_TYPE, _port, HYPERION_SERVICENAME);
+		emit publishService(HTTP_SERVICE_TYPE, _port, HYPERION_SERVICENAME);
 	}
 
 	emit stateChange(true);

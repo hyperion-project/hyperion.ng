@@ -14,7 +14,7 @@
 // Constants
 namespace {
 
-const char HYPERION_MDNS_SERVICE_TYPE[] = "_hyperiond-flatbuf._tcp.local.";
+const char SERVICE_TYPE[] = "flatbuffer";
 
 } //End of constants
 
@@ -109,7 +109,7 @@ void FlatBufferServer::startServer()
 		{
 			Info(_log,"Started on port %d", _port);
 
-			emit publishService(HYPERION_MDNS_SERVICE_TYPE, _port);
+			emit publishService(SERVICE_TYPE, _port);
 		}
 	}
 }

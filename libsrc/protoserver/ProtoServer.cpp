@@ -13,7 +13,7 @@
 // Constants
 namespace {
 
-const char HYPERION_MDNS_SERVICE_TYPE[] = "_hyperiond-protobuf._tcp.local.";
+const char SERVICE_TYPE[] = "protobuffer";
 
 } //End of constants
 
@@ -107,7 +107,7 @@ void ProtoServer::startServer()
 		else
 		{
 			Info(_log,"Started on port %d", _port);
-			emit publishService(HYPERION_MDNS_SERVICE_TYPE, _port);
+			emit publishService(SERVICE_TYPE, _port);
 		}
 	}
 }

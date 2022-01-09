@@ -1,5 +1,5 @@
-#ifndef MdnsBrowser_H
-#define MdnsBrowser_H
+#ifndef MDNS_BROWSER_H
+#define MDNS_BROWSER_H
 
 #include <chrono>
 

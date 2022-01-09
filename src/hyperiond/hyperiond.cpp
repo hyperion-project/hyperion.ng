@@ -22,8 +22,8 @@
 
 // mDNS
 #ifdef ENABLE_MDNS
-#include <mdns/mdnsProvider.h>
-#include <mdns/mdnsBrowser.h>
+#include <mdns/MdnsProvider.h>
+#include <mdns/MdnsBrowser.h>
 #endif
 
 #include <jsonserver/JsonServer.h>

@@ -1,6 +1,12 @@
 // system includes
 #include <stdexcept>
 
+// qt includes
+#include <QTcpServer>
+#include <QTcpSocket>
+#include <QJsonDocument>
+#include <QByteArray>
+
 // project includes
 #include "HyperionConfig.h"
 #include <jsonserver/JsonServer.h>
@@ -8,16 +14,10 @@
 
 #include <utils/NetOrigin.h>
 
-// qt includes
-#include <QTcpServer>
-#include <QTcpSocket>
-#include <QJsonDocument>
-#include <QByteArray>
-
 // Constants
 namespace {
 
-const char HYPERION_MDNS_SERVICE_TYPE[] = "_hyperiond-json._tcp.local.";
+const char SERVICE_TYPE[] = "jsonapi";
 
 } //End of constants
 
@@ -57,7 +57,7 @@ void JsonServer::start()
 		else
 		{
 			Info(_log, "Started on port %d", _port);
-			emit publishService(HYPERION_MDNS_SERVICE_TYPE, _port);
+			emit publishService(SERVICE_TYPE, _port);
 		}
 	}
 }
