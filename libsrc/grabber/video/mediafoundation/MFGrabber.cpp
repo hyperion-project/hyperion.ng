@@ -529,7 +529,11 @@ void MFGrabber::process_image(const void *frameImageBuffer, int size)
 		return;
 
 	// We do want a new frame...
+#ifdef HAVE_TURBO_JPEG
 	if (size < _frameByteSize && _pixelFormat != PixelFormat::MJPEG)
+#else
+	if (size < _frameByteSize)
+#endif
 		Error(_log, "Frame too small: %d != %d", size, _frameByteSize);
 	else if (_threadManager != nullptr)
 	{

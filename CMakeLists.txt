@@ -218,7 +218,7 @@ if (HYPERION_LIGHT)
 
 	# Disable Output Connectors
 	SET ( DEFAULT_FORWARDER                   OFF )
-	SET ( DEFAULT_FLATBUF_CONNECT             ON  )
+	SET ( DEFAULT_FLATBUF_CONNECT             OFF )
 endif()
 
 message(STATUS "Grabber options:")
@@ -458,10 +458,18 @@ if (NOT DEFINED QTDIR)
 				set(QTDIR "${SUBDIRQT}/msvc2019_64")
 			endif()
 		elseif ( "${PLATFORM}" MATCHES "osx" )
+			# QT6 x86_64 location
 			if (EXISTS /usr/local/opt/qt6)
 				set(QTDIR "/usr/local/opt/qt6")
+			# QT6 arm64 location
+			elseif (EXISTS /opt/homebrew/opt/qt@6)
+				set(QTDIR "/opt/homebrew/opt/qt@6")
+			# QT5 x86_64 location
 			elseif (EXISTS /usr/local/opt/qt5)
 				set(QTDIR "/usr/local/opt/qt5")
+			# QT5 arm64 location
+			elseif (EXISTS /opt/homebrew/opt/qt@5)
+				set(QTDIR "/opt/homebrew/opt/qt@5")
 			endif()
 		endif()
 	endif()
@@ -490,7 +498,7 @@ if ( "${QT_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
 	message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )
 endif()
 
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Gui Network SerialPort Sql Widgets REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} ${QT_VERSION} COMPONENTS Core Gui Network SerialPort Sql Widgets REQUIRED)
 
 message( STATUS "Qt version used: ${QT_VERSION}" )
 

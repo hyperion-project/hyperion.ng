@@ -55,6 +55,7 @@ if (ENABLE_MDNS)
 	set(QMDNS_LIBRARIES ${QMDNS_LIBRARIES} PARENT_SCOPE)
 
 	mark_as_advanced (QMDNS_INCLUDE_DIR QMDNS_LIBRARIES)
+
 endif()
 
 #=============================================================================

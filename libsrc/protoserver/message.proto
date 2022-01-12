@@ -45,7 +45,7 @@ message ImageRequest {
 	// height of the image
 	required int32 imageheight = 3;
 
-	// image data
+	// image data (either RGB or RGBA data can be transferred)
 	required bytes imagedata = 4;
 
 	// duration of the request (negative results in infinite)

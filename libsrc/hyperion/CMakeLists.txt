@@ -38,4 +38,3 @@ endif()
 if(ENABLE_FORWARDER)
 	target_link_libraries(hyperion forwarder)
 endif()
-

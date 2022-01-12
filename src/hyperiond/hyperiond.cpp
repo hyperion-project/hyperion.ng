@@ -480,8 +480,6 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 
 		if (_prevType != type)
 		{
-			Info(_log, "set screen capture device to '%s'", QSTRING_CSTR(type));
-
 			// stop all capture interfaces
 			#ifdef ENABLE_FB
 			if (_fbGrabber != nullptr)

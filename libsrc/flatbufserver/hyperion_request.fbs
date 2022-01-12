@@ -14,6 +14,7 @@ table RawImage {
 
 union ImageType {RawImage}
 
+// Either RGB or RGBA data can be transferred
 table Image {
   data:ImageType (required);
   duration:int = -1;
