@@ -21,15 +21,15 @@ namespace {
 	const bool verbose3 = false;
 
 	// Configuration settings
+	const char CONFIG_ID[] = "id";
 	const char CONFIG_ADDRESS[] = "host";
 	const char CONFIG_HW_LED_COUNT[] = "hardwareLedCount";
 
 	const int COLOLIGHT_BEADS_PER_MODULE = 19;
 
+	const int STREAM_DEFAULT_PORT = 8900;
+
 	// Cololight discovery service
-
-	const int API_DEFAULT_PORT = 8900;
-
 	const char DISCOVERY_ADDRESS[] = "255.255.255.255";
 	const quint16 DISCOVERY_PORT = 12345;
 	const char DISCOVERY_MESSAGE[] = "Z-SEARCH * \r\n";
@@ -71,15 +71,36 @@ bool LedDeviceCololight::init(const QJsonObject& deviceConfig)
 {
 	bool isInitOK = false;
 
-	//Set hostname as per configuration
+	//Get host-/service name as per configuration
 	QString hostName = deviceConfig[ CONFIG_ADDRESS ].toString();
+
+#ifdef ENABLE_MDNS
+	if (hostName.endsWith("._tcp.local"))
+	{
+		Debug(_log, "Service      : %s", QSTRING_CSTR(hostName));
+		//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
+		//Ignore port (as the provided one is not used for streaming) and TXT-attributes
+		QString target = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8()).target();
+		//Ignore port and TXT-attributes
+
+		if (!target.isEmpty())
+		{
+			hostName = target;
+		}
+		else
+		{
+			this->setInError(QString("Cannot resolve host for given service [%1]!").arg(hostName));
+			return false;
+		}
+	}
+#endif
 
 	QHostAddress address;
 	if (NetUtils::resolveHostAddress(this, _log, hostName, address))
 	{
 		// Update configuration with hostname without port
 		_devConfig["host"] = address.toString();
-		_devConfig["port"] = API_DEFAULT_PORT;
+		_devConfig["port"] = STREAM_DEFAULT_PORT;
 
 		if (ProviderUdp::init(deviceConfig))
 		{
@@ -704,38 +725,48 @@ QJsonObject LedDeviceCololight::getProperties(const QJsonObject& params)
 {
 	DebugIf(verbose,_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 	QJsonObject properties;
-
-	QString hostName = params["host"].toString("");
 	QJsonObject propertiesDetails;
 
-	QHostAddress address;
-	if (NetUtils::resolveHostAddress(this, _log, hostName, address))
+	QString hostName = params["host"].toString("");
+#ifdef ENABLE_MDNS
+	if (hostName.endsWith("._tcp.local"))
 	{
-		QJsonObject deviceConfig;
-		deviceConfig.insert("host", address.toString());
-		deviceConfig.insert("port", API_DEFAULT_PORT);
+		//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
+		hostName = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8()).target();
+	}
+#endif
 
-		if (ProviderUdp::init(deviceConfig))
+	if (!hostName.isEmpty())
+	{
+		QHostAddress address;
+		if (NetUtils::resolveHostAddress(this, _log, hostName, address))
 		{
-			if (getInfo())
-			{
-				QString modelTypeText;
+			QJsonObject deviceConfig;
+			deviceConfig.insert("host", address.toString());
+			deviceConfig.insert("port", STREAM_DEFAULT_PORT);
 
-				switch (_modelType) {
-				case STRIP:
-					modelTypeText = "Strip";
-					break;
-				case PLUS:
-					modelTypeText = "Plus";
-					break;
-				default:
-					modelTypeText = "Strip";
-					break;
+			if (ProviderUdp::init(deviceConfig))
+			{
+				if (getInfo())
+				{
+					QString modelTypeText;
+
+					switch (_modelType) {
+					case STRIP:
+						modelTypeText = "Strip";
+						break;
+					case PLUS:
+						modelTypeText = "Plus";
+						break;
+					default:
+						modelTypeText = "Strip";
+						break;
+					}
+					propertiesDetails.insert("modelType", modelTypeText);
+					propertiesDetails.insert("ledCount", static_cast<int>(getLedCount()));
+					propertiesDetails.insert("ledBeadCount", _ledBeadCount);
+					propertiesDetails.insert("distance", _distance);
 				}
-				propertiesDetails.insert("modelType", modelTypeText);
-				propertiesDetails.insert("ledCount", static_cast<int>(getLedCount()));
-				propertiesDetails.insert("ledBeadCount", _ledBeadCount);
-				propertiesDetails.insert("distance", _distance);
 			}
 		}
 	}
@@ -753,22 +784,33 @@ void LedDeviceCololight::identify(const QJsonObject& params)
 
 	QString hostName = params["host"].toString("");
 
-	QHostAddress address;
-	if (NetUtils::resolveHostAddress(this, _log, hostName, address))
+#ifdef ENABLE_MDNS
+	if (hostName.endsWith("._tcp.local"))
 	{
-		QJsonObject deviceConfig;
-		deviceConfig.insert("host", address.toString());
-		deviceConfig.insert("port", API_DEFAULT_PORT);
+		//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
+		hostName = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8()).target();
+	}
+#endif
 
-		if (ProviderUdp::init(deviceConfig))
+	if (!hostName.isEmpty())
+	{
+		QHostAddress address;
+		if (NetUtils::resolveHostAddress(this, _log, hostName, address))
 		{
-			if (setStateDirect(false) && setState(true))
+			QJsonObject deviceConfig;
+			deviceConfig.insert("host", address.toString());
+			deviceConfig.insert("port", STREAM_DEFAULT_PORT);
+
+			if (ProviderUdp::init(deviceConfig))
 			{
-				setEffect(THE_CIRCUS);
+				if (setStateDirect(false) && setState(true))
+				{
+					setEffect(THE_CIRCUS);
 
-				wait(DEFAULT_IDENTIFY_TIME);
+					wait(DEFAULT_IDENTIFY_TIME);
 
-				setColor(ColorRgb::BLACK);
+					setColor(ColorRgb::BLACK);
+				}
 			}
 		}
 	}

@@ -71,6 +71,8 @@ public slots:
 
 	void onHostNameResolved(const QHostAddress& address);
 
+	QMdnsEngine::Record getServiceInstanceRecord(const QByteArray& serviceInstance, const std::chrono::milliseconds waitTime = DEFAULT_DISCOVER_TIMEOUT) const;
+
 	bool resolveAddress (const QObject* context, Logger* log, const QString& hostname, QHostAddress& hostAddress, std::chrono::milliseconds timeout = DEFAULT_ADDRESS_RESOLVE_TIMEOUT);
 
 Q_SIGNALS:

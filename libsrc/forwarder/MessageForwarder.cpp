@@ -174,73 +174,123 @@ void MessageForwarder::addJsonTarget(const QJsonObject& targetConfig)
 {
 	TargetHost targetHost;
 
-	QString config_host = targetConfig["host"].toString();
-	if (NetUtils::resolveHostAddress(this, _log, config_host, targetHost.host))
-	{
-		int config_port = targetConfig["port"].toInt();
-		if (NetUtils::isValidPort(_log, config_port, config_host))
-		{
-			targetHost.port = static_cast<quint16>(config_port);
+	QString hostName = targetConfig["host"].toString();
+	int port = targetConfig["port"].toInt();
 
-			// verify loop with JSON-server
-			const QJsonObject& obj = _hyperion->getSetting(settings::JSONSERVER).object();
-			if ((QNetworkInterface::allAddresses().indexOf(targetHost.host) != -1) && targetHost.port == static_cast<quint16>(obj["port"].toInt()))
+#if 0
+//#ifdef ENABLE_MDNS
+		if (hostName.endsWith("._tcp.local"))
+		{
+			Debug(_log, "Service      : %s", QSTRING_CSTR(hostName));
+			//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
+			QMdnsEngine::Record service = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8());
+
+			if (!service.target().isEmpty())
 			{
-				Error(_log, "Loop between JSON-Server and Forwarder! Configuration for host: %s, port: %d is ignored.", QSTRING_CSTR(config_host), config_port);
+				hostName = service.target();
+				port = service.port();
 			}
 			else
 			{
-				if (_forwarder_enabled)
+				Error(_log, "Cannot resolve host for given service [%s]!", QSTRING_CSTR(hostName));
+			}
+		}
+#endif
+
+		if (!hostName.isEmpty())
+		{
+			if (NetUtils::resolveHostAddress(_hyperion->parent(), _log, hostName, targetHost.host))
+			{
+
+				if (NetUtils::isValidPort(_log, port, targetHost.host.toString()))
 				{
-					if (_jsonTargets.indexOf(targetHost) == -1)
+					targetHost.port = static_cast<quint16>(port);
+
+					// verify loop with JSON-server
+					const QJsonObject& obj = _hyperion->getSetting(settings::JSONSERVER).object();
+					if ((QNetworkInterface::allAddresses().indexOf(targetHost.host) != -1) && targetHost.port == static_cast<quint16>(obj["port"].toInt()))
 					{
-						Info(_log, "JSON-Forwarder settings: Adding target host: %s port: %u", QSTRING_CSTR(targetHost.host.toString()), targetHost.port);
-						_jsonTargets << targetHost;
+						Error(_log, "Loop between JSON-Server and Forwarder! Configuration for host: %s, port: %d is ignored.", QSTRING_CSTR(targetHost.host.toString()), port);
 					}
 					else
 					{
-						Warning(_log, "JSON Forwarder settings: Duplicate target host configuration! Configuration for host: %s, port: %d is ignored.", QSTRING_CSTR(targetHost.host.toString()), targetHost.port);
+						if (_forwarder_enabled)
+						{
+							if (_jsonTargets.indexOf(targetHost) == -1)
+							{
+								Info(_log, "JSON-Forwarder settings: Adding target host: %s port: %u", QSTRING_CSTR(targetHost.host.toString()), targetHost.port);
+								_jsonTargets << targetHost;
+							}
+							else
+							{
+								Warning(_log, "JSON Forwarder settings: Duplicate target host configuration! Configuration for host: %s, port: %d is ignored.", QSTRING_CSTR(targetHost.host.toString()), targetHost.port);
+							}
+						}
+
 					}
 				}
-
 			}
 		}
-	}
 }
 
 void MessageForwarder::addFlatbufferTarget(const QJsonObject& targetConfig)
 {
 	TargetHost targetHost;
 
-	QString config_host = targetConfig["host"].toString();
-	if (NetUtils::resolveHostAddress(this, _log, config_host, targetHost.host))
+	QString hostName = targetConfig["host"].toString();
+	int port = targetConfig["port"].toInt();
+
+#if 0
+//#ifdef ENABLE_MDNS
+	if (hostName.endsWith("._tcp.local"))
 	{
-		int config_port = targetConfig["port"].toInt();
-		if (NetUtils::isValidPort(_log, config_port, config_host))
+		Debug(_log, "Service      : %s", QSTRING_CSTR(hostName));
+		//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
+		QMdnsEngine::Record service = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8());
+
+		if (!service.target().isEmpty())
 		{
-			targetHost.port = static_cast<quint16>(config_port);
+			hostName = service.target();
+			port = service.port();
+		}
+		else
+		{
+			Error(_log, "Cannot resolve host for given service [%s]!", QSTRING_CSTR(hostName));
+		}
+	}
+#endif
 
-			// verify loop with Flatbuffer-server
-			const QJsonObject& obj = _hyperion->getSetting(settings::FLATBUFSERVER).object();
-			if ((QNetworkInterface::allAddresses().indexOf(targetHost.host) != -1) && targetHost.port == static_cast<quint16>(obj["port"].toInt()))
+	if (!hostName.isEmpty())
+	{
+		if (NetUtils::resolveHostAddress(&MdnsBrowser::getInstance(), _log, hostName, targetHost.host))
+		{
+
+			if (NetUtils::isValidPort(_log, port, targetHost.host.toString()))
 			{
-				Error(_log, "Loop between Flatbuffer-Server and Forwarder! Configuration for host: %s, port: %d is ignored.", QSTRING_CSTR(config_host), config_port);
-			}
-			else
-			{
-				if (_forwarder_enabled)
+				targetHost.port = static_cast<quint16>(port);
+
+				// verify loop with Flatbuffer-server
+				const QJsonObject& obj = _hyperion->getSetting(settings::FLATBUFSERVER).object();
+				if ((QNetworkInterface::allAddresses().indexOf(targetHost.host) != -1) && targetHost.port == static_cast<quint16>(obj["port"].toInt()))
 				{
-					if (_flatbufferTargets.indexOf(targetHost) == -1)
+					Error(_log, "Loop between Flatbuffer-Server and Forwarder! Configuration for host: %s, port: %d is ignored.", QSTRING_CSTR(targetHost.host.toString()), port);
+				}
+				else
+				{
+					if (_forwarder_enabled)
 					{
-						Info(_log, "Flatbuffer-Forwarder settings: Adding target host: %s port: %u", QSTRING_CSTR(targetHost.host.toString()), targetHost.port);
-						_flatbufferTargets << targetHost;
+						if (_flatbufferTargets.indexOf(targetHost) == -1)
+						{
+							Info(_log, "Flatbuffer-Forwarder settings: Adding target host: %s port: %u", QSTRING_CSTR(targetHost.host.toString()), targetHost.port);
+							_flatbufferTargets << targetHost;
 
-						FlatBufferConnection* flatbuf = new FlatBufferConnection("Forwarder", targetHost.host.toString(), _priority, false, targetHost.port);
-						_forwardClients << flatbuf;
-					}
-					else
-					{
-						Warning(_log, "Flatbuffer Forwarder settings: Duplicate target host configuration! Configuration for host: %s, port: %d is ignored.", QSTRING_CSTR(targetHost.host.toString()), targetHost.port);
+							FlatBufferConnection* flatbuf = new FlatBufferConnection("Forwarder", targetHost.host.toString(), _priority, false, targetHost.port);
+							_forwardClients << flatbuf;
+						}
+						else
+						{
+							Warning(_log, "Flatbuffer Forwarder settings: Duplicate target host configuration! Configuration for host: %s, port: %d is ignored.", QSTRING_CSTR(targetHost.host.toString()), targetHost.port);
+						}
 					}
 				}
 			}

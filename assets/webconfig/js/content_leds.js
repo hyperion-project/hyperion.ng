@@ -896,33 +896,42 @@ $(document).ready(function () {
       var hostList = conf_editor.getEditor("root.specificOptions.hostList");
       if (hostList) {
         var val = hostList.getValue();
+        var host = conf_editor.getEditor("root.specificOptions.host");
         var showOptions = true;
 
         switch (val) {
           case 'CUSTOM':
           case '':
-            conf_editor.getEditor(specOptPath + "host").enable();
-            conf_editor.getEditor(specOptPath + "host").setValue("");
+            host.enable();
+            //Populate existing host for current custom config
+            if (ledType === window.serverConfig.device.type) {
+              host.setValue(window.serverConfig.device.host);
+            } else {
+              host.setValue("");
+            }
             break;
           case 'NONE':
-            conf_editor.getEditor(specOptPath + "host").enable();
+            host.enable();
             //Trigger getProperties via host value
             conf_editor.notifyWatchers(specOptPath + "host");
             break;
           case 'SELECT':
-            conf_editor.getEditor(specOptPath + "host").setValue("");
-            conf_editor.getEditor(specOptPath + "host").disable();
+            host.setValue("");
+            host.disable();
             showOptions = false;
             break;
           default:
-            conf_editor.getEditor(specOptPath + "host").disable();
-            conf_editor.getEditor(specOptPath + "host").setValue(val);
+            host.disable();
+            host.setValue(val);
             //Trigger getProperties via host value
             conf_editor.notifyWatchers(specOptPath + "host");
             break;
         }
 
         showAllDeviceInputOptions("hostList", showOptions);
+        if (val !== 'CUSTOM' && host.getValue().endsWith("._tcp.local")) {
+          //showInputOptionForItem(conf_editor, 'specificOptions', 'host', false);
+        }
       }
     });
 
@@ -1390,44 +1399,34 @@ var updateSelectList = function (ledType, discoveryInfo) {
           var name;
           var host;
 
-          switch (ledType) {
-            case "nanoleaf":
-              if (discoveryMethod === "ssdp") {
-                name = device.other["nl-devicename"];
-              }
-              else {
-                name = device.name;
-              }
-              break;
-            case "cololight":
-              if (discoveryMethod === "ssdp") {
-                name = device.hostname;
-              }
-              else {
-                name = device.name;
-              }
-              break;
-            case "wled":
-              name = device.name;
-              break;
-            default:
-              name = device.name;
-          }
-
           if (discoveryMethod === "ssdp") {
             host = device.ip;
           }
           else {
-            host = device.hostname;
+            host = device.service;
+          }
+
+          switch (ledType) {
+            case "nanoleaf":
+              if (discoveryMethod === "ssdp") {
+                name = device.other["nl-devicename"] + " (" + host + ")";
+              }
+              else {
+                name = device.name;
+              }
+              break;
+            default:
+              if (discoveryMethod === "ssdp") {
+                name = device.hostname + " (" + host + ")";
+              }
+              else {
+                name = device.name;
+              }
+              break;
           }
 
           enumVals.push(host);
-          if (host !== name) {
-            enumTitelVals.push(name + " (" + host + ")");
-          }
-          else {
-            enumTitelVals.push(host);
-          }
+          enumTitelVals.push(name);
         }
 
         //Always allow to add custom configuration

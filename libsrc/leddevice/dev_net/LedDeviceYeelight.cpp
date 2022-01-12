@@ -1,4 +1,4 @@
-﻿#include "LedDeviceYeelight.h"
+#include "LedDeviceYeelight.h"
 
 #include <chrono>
 #include <thread>
@@ -1147,6 +1147,24 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 				QString hostName = configuredYeelightLights[j].toObject().value("host").toString();
 				int port = configuredYeelightLights[j].toObject().value("port").toInt(API_DEFAULT_PORT);
 
+#ifdef ENABLE_MDNS
+				if (hostName.endsWith("._tcp.local"))
+				{
+					//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
+					QString target = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8()).target();
+					//Ignore port and TXT-attributes
+
+					if (!target.isEmpty())
+					{
+						hostName = target;
+					}
+					else
+					{
+						this->setInError(QString("Cannot resolve host for given service [%1]!").arg(hostName));
+						return false;
+					}
+				}
+#endif
 				QHostAddress address;
 				if (NetUtils::resolveHostAddress(this, _log, hostName, address))
 				{
@@ -1436,6 +1454,14 @@ QJsonObject LedDeviceYeelight::getProperties(const QJsonObject& params)
 	QString hostName = params["hostname"].toString("");
 	quint16 apiPort = static_cast<quint16>( params["port"].toInt(API_DEFAULT_PORT) );
 
+#ifdef ENABLE_MDNS
+	if (hostName.endsWith("._tcp.local"))
+	{
+		//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
+		hostName = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8()).target();
+	}
+#endif
+
 	QHostAddress address;
 	if (NetUtils::resolveHostAddress(this, _log, hostName, address))
 	{
@@ -1448,7 +1474,7 @@ QJsonObject LedDeviceYeelight::getProperties(const QJsonObject& params)
 			yeelight.close();
 		}
 	}
-	Debug(_log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+	DebugIf(verbose, _log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 
 	return properties;
 }
@@ -1459,7 +1485,14 @@ void LedDeviceYeelight::identify(const QJsonObject& params)
 
 	QString hostName = params["hostname"].toString("");
 	quint16 apiPort = static_cast<quint16>( params["port"].toInt(API_DEFAULT_PORT) );
-	Debug (_log, "apiHost [%s], apiPort [%d]", QSTRING_CSTR(hostName), apiPort);
+
+#ifdef ENABLE_MDNS
+	if (hostName.endsWith("._tcp.local"))
+	{
+		//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
+		hostName = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8()).target();
+	}
+#endif
 
 	QHostAddress address;
 	if (NetUtils::resolveHostAddress(this, _log, hostName, address))

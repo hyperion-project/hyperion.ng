@@ -326,8 +326,8 @@ $(document).ready(function () {
         var service = discoveredRemoteServices[type][selectedServices[i]];
         var newrecord = {};
 
-        newrecord.id = service.id;
-        newrecord.host = service.hostname;
+        newrecord.name = service.name;
+        newrecord.host = service.host;
         newrecord.port = service.port;
 
         newServices.push(newrecord);
@@ -350,11 +350,11 @@ $(document).ready(function () {
     for (var key in discoveredRemoteServices[type]) {
 
       var service = discoveredRemoteServices[type][key];
-      enumVals.push(service.id);
+      enumVals.push(service.host);
       enumTitelVals.push(service.name);
 
       if (service.inConfig == true) {
-        enumDefaultVals.push(service.id);
+        enumDefaultVals.push(service.host);
       }
     }
 
@@ -382,17 +382,14 @@ $(document).ready(function () {
       var configuredServices = JSON.parse(JSON.stringify(editor.getValue('items')));
       for (const service of configuredServices) {
 
-        //Handle non mDNS sceanrios
-        if (!service.id) {
-          service.id = storeService.host;
-        }
+        //Handle not named sceanrios
         if (!service.name) {
           service.name = service.host;
-          service.hostname = service.host;
         }
+
         service.inConfig = true;
 
-        discoveredRemoteServices[serviceType][service.id] = service;
+        discoveredRemoteServices[serviceType][service.host] = service;
       }
     }
   }
@@ -408,21 +405,20 @@ $(document).ready(function () {
       var discoveredServices = discoveryInfo[serviceType];
       for (const service of discoveredServices) {
 
-        if (!service.sameHost) {
-
-          if (!service.id) {
-            service.id = service.host;
-          }
+        if (!service.sameHost)
+        {
+          //Handle non mDNS sceanrios
           if (!service.name) {
             service.name = service.host;
-            service.hostname = service.host;
+          } else {
+            service.host = service.service;
           }
 
-          if (discoveredRemoteServices[serviceType][service.id]) {
+          if (discoveredRemoteServices[serviceType][service.host]) {
             service.inConfig = true;
           }
 
-          discoveredRemoteServices[serviceType][service.id] = service;
+          discoveredRemoteServices[serviceType][service.host] = service;
         }
       }
     }

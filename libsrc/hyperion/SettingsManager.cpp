@@ -628,7 +628,7 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 									{
 										newJsonConfig["port"] = 19444;
 									}
-									newJsonConfig["id"] = oldHost;
+									newJsonConfig["name"] = host;
 
 									json.append(newJsonConfig);
 									migrated = true;
@@ -671,7 +671,7 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 									{
 										newFlattbufferConfig["port"] = 19400;
 									}
-									newFlattbufferConfig["id"] = oldHost;
+									newFlattbufferConfig["name"] = host;
 
 									flatbuffer.append(newFlattbufferConfig);
 									migrated = true;

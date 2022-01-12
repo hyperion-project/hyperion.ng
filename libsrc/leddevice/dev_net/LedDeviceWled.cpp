@@ -111,13 +111,32 @@ bool LedDeviceWled::init(const QJsonObject &deviceConfig)
 
 		//Set hostname as per configuration
 		QString hostName = deviceConfig[ CONFIG_ADDRESS ].toString();
+		_apiPort = API_DEFAULT_PORT;
+
+#ifdef ENABLE_MDNS
+		if (hostName.endsWith("._tcp.local"))
+		{
+			Debug(_log, "Service      : %s", QSTRING_CSTR(hostName));
+			//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
+			QString target = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8()).target();
+			//Ignore port and TXT-attributes
+
+			if (!target.isEmpty())
+			{
+				hostName = target;
+			}
+			else
+			{
+				this->setInError(QString("Cannot resolve host for given service [%1]!").arg(hostName));
+				return false;
+			}
+		}
+#endif
 
 		QHostAddress address;
 		if (NetUtils::resolveHostAddress(this, _log, hostName, address))
 		{
 			_hostAddress	= address.toString();
-			_apiPort = API_DEFAULT_PORT;
-
 			if ( initRestAPI( _hostAddress, _apiPort ) )
 			{
 				// Update configuration with hostname without port
@@ -340,13 +359,22 @@ QJsonObject LedDeviceWled::getProperties(const QJsonObject& params)
 	QJsonObject properties;
 
 	QString hostName = params["host"].toString("");
+	_apiPort = API_DEFAULT_PORT;
+
+#ifdef ENABLE_MDNS
+	if (hostName.endsWith("._tcp.local"))
+	{
+		//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
+		hostName = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8()).target();
+	}
+#endif
 
 	QHostAddress address;
 	if (NetUtils::resolveHostAddress(this, _log, hostName, address))
 	{
 		QString filter = params["filter"].toString("");
 
-		initRestAPI( address.toString(), API_DEFAULT_PORT);
+		initRestAPI( address.toString(), _apiPort);
 		_restApi->setPath(filter);
 
 		httpResponse response = _restApi->get();
@@ -370,11 +398,20 @@ void LedDeviceWled::identify(const QJsonObject& params)
 	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	QString hostName = params["host"].toString("");
+	_apiPort = API_DEFAULT_PORT;
+
+#ifdef ENABLE_MDNS
+	if (hostName.endsWith("._tcp.local"))
+	{
+		//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
+		hostName = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8()).target();
+	}
+#endif
 
 	QHostAddress address;
 	if (NetUtils::resolveHostAddress(this, _log, hostName, address))
 	{
-		initRestAPI( address.toString(), API_DEFAULT_PORT);
+		initRestAPI( address.toString(), _apiPort);
 
 		_isRestoreOrigState = true;
 		storeState();

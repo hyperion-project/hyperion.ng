@@ -26,9 +26,9 @@
         "type": "object",
         "title": "edt_conf_fw_json_itemtitle",
         "properties": {
-          "id": {
+          "name": {
             "type": "string",
-            "title": "edt_conf_fw_service_id_title",
+            "title": "edt_conf_fw_service_name_title",
             "required": true,
             "access": "expert",
             "propertyOrder": 1
@@ -71,9 +71,9 @@
         "type": "object",
         "title": "edt_conf_fw_flat_itemtitle",
         "properties": {
-          "id": {
+          "name": {
             "type": "string",
-            "title": "edt_conf_fw_service_id_title",
+            "title": "edt_conf_fw_service_name_title",
             "access": "expert",
             "propertyOrder": 1
           },

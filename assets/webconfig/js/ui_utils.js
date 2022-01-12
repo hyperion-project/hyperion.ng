@@ -1309,7 +1309,16 @@ function isValidIPv6(value) {
 
 function isValidHostname(value) {
   if (value.match(
-    '(?=^.{4,253}$)(^((?!-)[a-zA-Z0-9-]{0,62}[a-zA-Z0-9].)+[a-zA-Z]{2,63}$)'
+    '^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[_a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$'
+  ))
+    return true;
+  else
+    return false;
+}
+
+function isValidServicename(value) {
+  if (value.match(
+    '^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9 \-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[_a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$'
   ))
     return true;
   else
@@ -1321,5 +1330,5 @@ function isValidHostnameOrIP4(value) {
 }
 
 function isValidHostnameOrIP(value) {
-  return (isValidHostnameOrIP4(value) || isValidIPv6(value));
+  return (isValidHostnameOrIP4(value) || isValidIPv6(value) || isValidServicename(value));
 }

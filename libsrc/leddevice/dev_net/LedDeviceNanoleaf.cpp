@@ -197,6 +197,25 @@ bool LedDeviceNanoleaf::init(const QJsonObject& deviceConfig)
 		_apiPort = API_DEFAULT_PORT;
 		_authToken = deviceConfig[CONFIG_AUTH_TOKEN].toString();
 
+#ifdef ENABLE_MDNS
+		if (hostName.endsWith("._tcp.local"))
+		{
+			Debug(_log, "Service      : %s", QSTRING_CSTR(hostName));
+			//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
+			QMdnsEngine::Record service = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8());
+
+			if (!service.target().isEmpty())
+			{
+				hostName = service.target();
+			}
+			else
+			{
+				this->setInError(QString("Cannot resolve host for given service [%1]!").arg(hostName));
+			}
+			_apiPort = service.port();
+		}
+#endif
+
 		QHostAddress address;
 		if (NetUtils::resolveHostAddress(this, _log, hostName, address))
 		{
@@ -455,26 +474,41 @@ QJsonObject LedDeviceNanoleaf::getProperties(const QJsonObject& params)
 
 	// Get Nanoleaf device properties
 	QString hostName = params["host"].toString("");
+	_apiPort = API_DEFAULT_PORT;
 
-	QHostAddress address;
-	if (NetUtils::resolveHostAddress(this, _log, hostName, address))
+#ifdef ENABLE_MDNS
+	if (hostName.endsWith("._tcp.local"))
 	{
-		QString authToken = params["token"].toString("");
-		QString filter = params["filter"].toString("");
+		//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
+		QMdnsEngine::Record service = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8());
 
-		initRestAPI(address.toString(), API_DEFAULT_PORT, authToken);
-		_restApi->setPath(filter);
+		hostName = service.target();
+		_apiPort = service.port();
+	}
 
-		// Perform request
-		httpResponse response = _restApi->get();
-		if (response.error())
+#endif
+
+	if (!hostName.isEmpty())
+	{
+		QHostAddress address;
+		if (NetUtils::resolveHostAddress(this, _log, hostName, address))
 		{
-			Warning(_log, "%s get properties failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+			QString authToken = params["token"].toString("");
+			QString filter = params["filter"].toString("");
+
+			initRestAPI(address.toString(), _apiPort, authToken);
+			_restApi->setPath(filter);
+
+			// Perform request
+			httpResponse response = _restApi->get();
+			if (response.error())
+			{
+				Warning(_log, "%s get properties failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+			}
+			properties.insert("properties", response.getBody().object());
 		}
 
-		properties.insert("properties", response.getBody().object());
-
-		DebugIf(verbose,_log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData());
+		DebugIf(verbose, _log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData());
 	}
 	return properties;
 }
@@ -484,19 +518,35 @@ void LedDeviceNanoleaf::identify(const QJsonObject& params)
 	DebugIf(verbose,_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	QString hostName = params["host"].toString("");
+	_apiPort = API_DEFAULT_PORT;
 
-	QHostAddress address;
-	if (NetUtils::resolveHostAddress(this, _log, hostName, address))
+#ifdef ENABLE_MDNS
+	if (hostName.endsWith("._tcp.local"))
 	{
-		QString authToken = params["token"].toString("");
-		initRestAPI(address.toString(), API_DEFAULT_PORT, authToken);
-		_restApi->setPath("identify");
+		//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
+		QMdnsEngine::Record service = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8());
 
-		// Perform request
-		httpResponse response = _restApi->put();
-		if (response.error())
+		hostName = service.target();
+		_apiPort = service.port();
+	}
+
+#endif
+
+	if (!hostName.isEmpty())
+	{
+		QHostAddress address;
+		if (NetUtils::resolveHostAddress(this, _log, hostName, address))
 		{
-			Warning(_log, "%s identification failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+			QString authToken = params["token"].toString("");
+			initRestAPI(address.toString(), API_DEFAULT_PORT, authToken);
+			_restApi->setPath("identify");
+
+			// Perform request
+			httpResponse response = _restApi->put();
+			if (response.error())
+			{
+				Warning(_log, "%s identification failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+			}
 		}
 	}
 }

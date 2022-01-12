@@ -257,7 +257,7 @@ LedDevicePhilipsHueBridge::LedDevicePhilipsHueBridge(const QJsonObject &deviceCo
 {
 #ifdef ENABLE_MDNS
 	QMetaObject::invokeMethod(&MdnsBrowser::getInstance(), "browseForServiceType",
-							   Qt::QueuedConnection, Q_ARG(QByteArray, MdnsServiceRegister::getServiceType(_activeDeviceType)));
+		Qt::QueuedConnection, Q_ARG(QByteArray, MdnsServiceRegister::getServiceType(_activeDeviceType)));
 #endif
 }
 
@@ -283,26 +283,48 @@ bool LedDevicePhilipsHueBridge::init(const QJsonObject &deviceConfig)
 
 	bool isInitOK = false;
 
-	if ( LedDevice::init(deviceConfig) )
+	if (LedDevice::init(deviceConfig))
 	{
 
-		log( "DeviceType", "%s", QSTRING_CSTR( this->getActiveDeviceType() ) );
-		log( "LedCount", "%d", this->getLedCount() );
-		log( "ColorOrder", "%s", QSTRING_CSTR( this->getColorOrder() ) );
-		log( "RefreshTime", "%d", _refreshTimerInterval_ms );
-		log( "LatchTime", "%d", this->getLatchTime() );
+		log("DeviceType", "%s", QSTRING_CSTR(this->getActiveDeviceType()));
+		log("LedCount", "%d", this->getLedCount());
+		log("ColorOrder", "%s", QSTRING_CSTR(this->getColorOrder()));
+		log("RefreshTime", "%d", _refreshTimerInterval_ms);
+		log("LatchTime", "%d", this->getLatchTime());
 
 		//Set hostname as per configuration and default port
 		QString hostName = deviceConfig[CONFIG_HOST].toString();
+		_apiPort = deviceConfig[CONFIG_PORT].toInt();
 
+#ifdef ENABLE_MDNS
+		if (hostName.endsWith("._tcp.local"))
+		{
+			log("Service", "%s", QSTRING_CSTR(hostName));
+			//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
+			QMdnsEngine::Record service = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8());
+
+			if (!service.target().isEmpty())
+			{
+				hostName = service.target();
+			}
+			else
+			{
+				this->setInError(QString("Cannot resolve host for given service [%1]!").arg(hostName));
+				return false;
+			}
+			_apiPort = service.port();
+		}
+#endif
 		QHostAddress address;
 		if (NetUtils::resolveHostAddress(this, _log, hostName, address))
 		{
 			log("Hostname", "%s", QSTRING_CSTR(hostName));
-			_hostAddress = address.toString();
 
-			_apiPort = deviceConfig[CONFIG_PORT].toInt();
-			if (_apiPort == 0)
+			_hostAddress = address.toString();
+			log("HostAddress", "%s", QSTRING_CSTR(_hostAddress));
+
+			//Workaround until API v2 with https is supported
+			if (_apiPort == 0 || _apiPort == 443)
 			{
 				_apiPort = API_DEFAULT_PORT;
 			}
@@ -314,6 +336,10 @@ bool LedDevicePhilipsHueBridge::init(const QJsonObject &deviceConfig)
 			{
 				if (initMaps())
 				{
+					// Set UDP streaming host and port
+					_devConfig["host"] = _hostAddress;
+					_devConfig["port"] = _apiPort;
+
 					isInitOK = ProviderUdpSSL::init(_devConfig);
 				}
 			}
@@ -710,40 +736,47 @@ QJsonObject LedDevicePhilipsHueBridge::getProperties(const QJsonObject& params)
 
 	// Get Phillips-Bridge device properties
 	QString hostName = params[CONFIG_HOST].toString("");
+	_apiPort = params[CONFIG_PORT].toInt();
 
-	QHostAddress address;
-	if (NetUtils::resolveHostAddress(this, _log, hostName, address))
+#ifdef ENABLE_MDNS
+	if (hostName.endsWith("._tcp.local"))
 	{
-		QString username = params["user"].toString("");
-		QString filter = params["filter"].toString("");
+		//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
+		QMdnsEngine::Record service = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8());
 
-		int apiPort;
-		if (params[CONFIG_PORT].isString())
+		hostName = service.target();
+		_apiPort = service.port();
+	}
+
+#endif
+
+	//Workaround until API v2 with https is supported
+	if (_apiPort == 0 || _apiPort == 443)
+	{
+		_apiPort = API_DEFAULT_PORT;
+	}
+
+	if (!hostName.isEmpty())
+	{
+		QHostAddress address;
+		if (NetUtils::resolveHostAddress(this, _log, hostName, address))
 		{
-			apiPort = params[CONFIG_PORT].toString().toInt();
-		}
-		else
-		{
-			apiPort = params[CONFIG_PORT].toInt();
-		}
+			QString username = params["user"].toString("");
+			QString filter = params["filter"].toString("");
 
-		if (apiPort == 0)
-		{
-			apiPort = API_DEFAULT_PORT;
+			initRestAPI(address.toString(), _apiPort, username);
+			_restApi->setPath(filter);
+
+			// Perform request
+			httpResponse response = _restApi->get();
+			if (response.error())
+			{
+				Warning(_log, "%s get properties failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+			}
+
+			// Perform request
+			properties.insert("properties", response.getBody().object());
 		}
-
-		initRestAPI(address.toString(), apiPort, username);
-		_restApi->setPath(filter);
-
-		// Perform request
-		httpResponse response = _restApi->get();
-		if (response.error())
-		{
-			Warning(_log, "%s get properties failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
-		}
-
-		// Perform request
-		properties.insert("properties", response.getBody().object());
 	}
 	return properties;
 }
@@ -753,7 +786,7 @@ const std::set<QString> PhilipsHueLight::GAMUT_A_MODEL_IDS =
 const std::set<QString> PhilipsHueLight::GAMUT_B_MODEL_IDS =
 	{ "LCT001", "LCT002", "LCT003", "LCT007", "LLM001" };
 const std::set<QString> PhilipsHueLight::GAMUT_C_MODEL_IDS =
-	{ "LCA001", "LCA002", "LCA003", "LCG002", "LCP001", "LCP002", "LCT010", "LCT011", "LCT012", "LCT014", "LCT015", "LCT016", "LCT024", "LCX001", "LLC020", "LST002" };
+	{ "LCA001", "LCA002", "LCA003", "LCG002", "LCP001", "LCP002", "LCT010", "LCT011", "LCT012", "LCT014", "LCT015", "LCT016", "LCT024", "LCX001", "LCX002", "LLC020", "LST002" };
 
 PhilipsHueLight::PhilipsHueLight(Logger* log, unsigned int id, QJsonObject values, unsigned int ledidx)
 	: _log(log)
@@ -1700,43 +1733,49 @@ void LedDevicePhilipsHue::identify(const QJsonObject& params)
 
 	// Identify Phillips-Bridge device
 	QString hostName = params[CONFIG_HOST].toString("");
+	_apiPort = params[CONFIG_PORT].toInt();
 
-	QHostAddress address;
-	if (NetUtils::resolveHostAddress(this, _log, hostName, address))
+#ifdef ENABLE_MDNS
+	if (hostName.endsWith("._tcp.local"))
 	{
-		QString username = params["user"].toString("");
-		int lightId = params["lightId"].toInt(0);
+		//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
+		QMdnsEngine::Record service = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8());
 
-		int apiPort;
-		if (params[CONFIG_PORT].isString())
+		hostName = service.target();
+		_apiPort = service.port();
+	}
+#endif
+
+	//Workaround until API v2 with https is supported
+	if (_apiPort == 0 || _apiPort == 443)
+	{
+		_apiPort = API_DEFAULT_PORT;
+	}
+
+	if (!hostName.isEmpty())
+	{
+		QHostAddress address;
+		if (NetUtils::resolveHostAddress(this, _log, hostName, address))
 		{
-			apiPort = params[CONFIG_PORT].toString().toInt();
-		}
-		else
-		{
-			apiPort = params[CONFIG_PORT].toInt();
-		}
+			QString username = params["user"].toString("");
+			int lightId = params["lightId"].toInt(0);
 
-		if (apiPort == 0)
-		{
-			apiPort = API_DEFAULT_PORT;
-		}
+			initRestAPI(address.toString(), _apiPort, username);
 
-		initRestAPI(address.toString(), apiPort, username);
+			QString resource = QString("%1/%2/%3").arg(API_LIGHTS).arg(lightId).arg(API_STATE);
+			_restApi->setPath(resource);
 
-		QString resource = QString("%1/%2/%3").arg(API_LIGHTS).arg(lightId).arg(API_STATE);
-		_restApi->setPath(resource);
+			QString stateCmd;
+			stateCmd += QString("\"%1\":%2,").arg(API_STATE_ON, API_STATE_VALUE_TRUE);
+			stateCmd += QString("\"%1\":\"%2\"").arg("alert", "select");
+			stateCmd = "{" + stateCmd + "}";
 
-		QString stateCmd;
-		stateCmd += QString("\"%1\":%2,").arg(API_STATE_ON, API_STATE_VALUE_TRUE);
-		stateCmd += QString("\"%1\":\"%2\"").arg("alert", "select");
-		stateCmd = "{" + stateCmd + "}";
-
-		// Perform request
-		httpResponse response = _restApi->put(stateCmd);
-		if (response.error())
-		{
-			Warning(_log, "%s identification failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+			// Perform request
+			httpResponse response = _restApi->put(stateCmd);
+			if (response.error())
+			{
+				Warning(_log, "%s identification failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+			}
 		}
 	}
 }

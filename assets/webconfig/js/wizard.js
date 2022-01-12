@@ -914,7 +914,7 @@ async function discover_hue_bridges() {
             }
           } else
           {
-              host = device.hostname;
+              host = device.service;
               port = device.port;
           }
           
@@ -1428,18 +1428,14 @@ function beginWizardYeelight() {
     //create yeelight led config
     for (var key in lights) {
       if ($('#yee_' + key).val() !== "disabled") {
-        //delete lights[key].model;
 
+        var name = lights[key].name;
         // Set Name to layout-position, if empty
-        if (lights[key].name === "") {
-          lights[key].name = $.i18n('conf_leds_layout_cl_' + $('#yee_' + key).val());
+        if (name === "") {
+          name = lights[key].host;
         }
 
         finalLights.push(lights[key]);
-
-        var name = lights[key].host;
-        if (lights[key].name !== "")
-          name += '_' + lights[key].name;
 
         var idx_content = assignLightPos(key, $('#yee_' + key).val(), name);
         yeelightLedConfig.push(JSON.parse(JSON.stringify(idx_content)));
@@ -1499,53 +1495,26 @@ async function discover_yeelight_lights() {
       discoveryMethod = res.info.discoveryMethod;
     }
 
-      for (const device of r.devices) {
-        if (device) {
-          var host;
-          var port;
-          if (discoveryMethod === "ssdp") {
-            if (device.hostname && device.domain) {
-              host = device.hostname + "." + device.domain;
-              port = device.port;
-            } else {
-              host = device.ip;
-              port = device.port;
-            }
-          } else
-          {
-              host = device.hostname;
-              port = device.port;
-          }
-
-          if (host) {
-
-            if (!hueIPs.some(item => item.host === host)) {
-              hueIPs.push({ host: host, port: port });
-            }
-          }
-        }
-      }
-
     // Process devices returned by discovery
     for (const device of r.devices) {
       if (device.hostname !== "") {
         if (getHostInLights(device.hostname).length === 0) {
           var light = {};
 
-          light.host = device.hostname;
 
 
           if (discoveryMethod === "ssdp") {
             //Create a valid hostname
-            if (device.domain)
-            {
-               light.host += '.' + device.domain;
+            if (device.domain) {
+              light.host += '.' + device.domain;
             }
+          } else {
+            light.host = device.service;
+            light.name = device.name;
           }
           light.port = device.port;
 
           if (device.txt) {
-            light.name = device.name;
             light.model = device.txt.md;
             //Yeelight does not provide correct API port with mDNS response, use default one
             light.port = 55443;
@@ -1610,7 +1579,7 @@ function assign_yeelight_lights() {
       var lightName = lights[lightid].name;
 
       if (lightName === "")
-        lightName = $.i18n('edt_dev_spec_lights_itemtitle');
+        lightName = $.i18n('edt_dev_spec_lights_itemtitle') + '(' + lightHostname + ')';
 
       var options = "";
       for (var opt in lightOptions) {
@@ -1627,10 +1596,10 @@ function assign_yeelight_lights() {
         options = '<option value=disabled>' + $.i18n('wiz_yeelight_unsupported') + '</option>';
       }
 
-      $('.lidsb').append(createTableRow([(parseInt(lightid, 10) + 1) + '. ' + lightName + '<br>(' + lightHostname + ')', '<select id="yee_' + lightid + '" ' + enabled + ' class="yee_sel_watch form-control">'
+      $('.lidsb').append(createTableRow([(parseInt(lightid, 10) + 1) + '. ' + lightName, '<select id="yee_' + lightid + '" ' + enabled + ' class="yee_sel_watch form-control">'
         + options
         + '</select>', '<button class="btn btn-sm btn-primary" onClick=identify_yeelight_device("' + lightHostname + '",' + lightPort + ')>'
-        + $.i18n('wiz_identify_light', lightName) + '</button>']));
+        + $.i18n('wiz_identify') + '</button>']));
     }
 
     $('.yee_sel_watch').bind("change", function () {
