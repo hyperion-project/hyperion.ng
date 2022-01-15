@@ -12,6 +12,7 @@
 #ifdef ENABLE_MDNS
 // mDNS discover
 #include <mdns/MdnsBrowser.h>
+#include <mdns/MdnsServiceRegister.h>
 #else
 // ssdp discover
 #include <ssdp/SSDPDiscover.h>
@@ -24,7 +25,7 @@
 // Constants
 namespace {
 
-const char HYPERION_MDNS_SERVICE_TYPE[] = "_hyperiond-flatbuf._tcp.local.";
+const char SERVICE_TYPE[] = "flatbuffer";
 
 } //End of constants
 
@@ -141,13 +142,13 @@ int main(int argc, char ** argv)
 			if(host == "127.0.0.1" || host == "::1")
 			{
 #ifdef ENABLE_MDNS
-				MdnsBrowser::getInstance().browseForServiceType(HYPERION_MDNS_SERVICE_TYPE);
-				QMdnsEngine::Service service = MdnsBrowser::getInstance().getFirstService(HYPERION_MDNS_SERVICE_TYPE);
+				MdnsBrowser::getInstance().browseForServiceType(MdnsServiceRegister::getServiceType(SERVICE_TYPE));
+				QMdnsEngine::Service service = MdnsBrowser::getInstance().getFirstService(MdnsServiceRegister::getServiceType(SERVICE_TYPE));
 
 				if (service.hostname().isEmpty())
 				{
 					throw std::runtime_error(QString("Automatic discovery failed! No Hyperion servers found providing a service of type: %1")
-												  .arg(QString(HYPERION_MDNS_SERVICE_TYPE)).toStdString()
+												  .arg(QString(MdnsServiceRegister::getServiceType(SERVICE_TYPE))).toStdString()
 											  );
 				}
 				serviceName = service.name();

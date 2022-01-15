@@ -24,6 +24,7 @@
 #ifdef ENABLE_MDNS
 // mDNS discover
 #include <mdns/MdnsBrowser.h>
+#include <mdns/MdnsServiceRegister.h>
 #else
 // ssdp discover
 #include <ssdp/SSDPDiscover.h>
@@ -35,8 +36,7 @@
 // Constants
 namespace {
 
-const char HYPERION_MDNS_SERVICE_TYPE[] = "_hyperiond-flatbuf._tcp.local.";
-const char HYPERION_SERVICENAME[] = "hyperion-flatbuffer";
+	const char SERVICE_TYPE[] = "flatbuffer";
 
 } //End of constants
 
@@ -245,8 +245,8 @@ int main(int argc, char** argv)
 		else
 		{
 			QString host;
-			QString serviceName {HYPERION_SERVICENAME};
-			quint16 port {FLATBUFFER_DEFAULT_PORT};
+			QString serviceName{ QHostInfo::localHostName() };
+			quint16 port{ FLATBUFFER_DEFAULT_PORT };
 
 			// Split hostname and port (or use default port)
 			QString givenAddress = argAddress.value(parser);
@@ -256,17 +256,17 @@ int main(int argc, char** argv)
 			}
 
 			// Search available Hyperion services via mDNS, if default/localhost IP is given
-			if(host == "127.0.0.1" || host == "::1")
+			if (host == "127.0.0.1" || host == "::1")
 			{
 #ifdef ENABLE_MDNS
-				MdnsBrowser::getInstance().browseForServiceType(HYPERION_MDNS_SERVICE_TYPE);
-				QMdnsEngine::Service service = MdnsBrowser::getInstance().getFirstService(HYPERION_MDNS_SERVICE_TYPE);
+				MdnsBrowser::getInstance().browseForServiceType(MdnsServiceRegister::getServiceType(SERVICE_TYPE));
+				QMdnsEngine::Service service = MdnsBrowser::getInstance().getFirstService(MdnsServiceRegister::getServiceType(SERVICE_TYPE));
 
 				if (service.hostname().isEmpty())
 				{
 					throw std::runtime_error(QString("Automatic discovery failed! No Hyperion servers found providing a service of type: %1")
-												  .arg(QString(HYPERION_MDNS_SERVICE_TYPE)).toStdString()
-											  );
+						.arg(QString(MdnsServiceRegister::getServiceType(SERVICE_TYPE))).toStdString()
+					);
 				}
 				serviceName = service.name();
 				host = service.hostname();
@@ -287,7 +287,9 @@ int main(int argc, char** argv)
 			host = address.toString();
 #endif
 
-			Info(log, "Connecting to Hyperion host: %s, port: %u using service: %s", QSTRING_CSTR(host), port, QSTRING_CSTR(serviceName));			// Create the Flabuf-connection
+			Info(log, "Connecting to Hyperion host: %s, port: %u using service: %s", QSTRING_CSTR(host), port, QSTRING_CSTR(serviceName));
+
+			// Create the Flabuf-connection
 			FlatBufferConnection flatbuf("V4L2 Standalone", host, argPriority.getInt(parser), parser.isSet(argSkipReply), port);
 
 			// Connect the screen capturing to flatbuf connection processing

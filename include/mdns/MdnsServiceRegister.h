@@ -15,8 +15,8 @@ typedef QMap<QString, mdnsConfig> MdnsServiceMap;
 const MdnsServiceMap mDnsServiceMap = {
 	//Hyperion
 	{"jsonapi"	    , {"_hyperiond-json._tcp.local.", ".*"}},
-	{"flatbuffer"	, {"_hyperiond-flat._tcp.local.", ".*"}},
-	{"protobuffer"	, {"_hyperiond-proto._tcp.local.", ".*"}},
+	{"flatbuffer"	, {"_hyperiond-flatbuf._tcp.local.", ".*"}},
+	{"protobuffer"	, {"_hyperiond-protobuf._tcp.local.", ".*"}},
 	{"http"	        , {"_http._tcp.local.", ".*"}},
 	{"https"	    , {"_https._tcp.local.", ".*"}},
 

@@ -17,6 +17,7 @@
 #ifdef ENABLE_MDNS
 // mDNS discover
 #include <mdns/MdnsBrowser.h>
+#include <mdns/MdnsServiceRegister.h>
 #else
 // ssdp discover
 #include <ssdp/SSDPDiscover.h>
@@ -31,8 +32,7 @@
 // Constants
 namespace {
 
-const char HYPERION_MDNS_SERVICE_TYPE[] = "_hyperiond-json._tcp.local.";
-const char HYPERION_SERVICENAME[] = "hyperion-API";
+	const char SERVICE_TYPE[] = "jsonapi";
 
 } //End of constants
 
@@ -209,10 +209,9 @@ int main(int argc, char * argv[])
 			showHelp(argYAdjust);
 			return 1;
 		}
-
 		QString host;
-		QString serviceName {HYPERION_SERVICENAME};
-		quint16 port {JSON_DEFAULT_PORT};
+		QString serviceName{ QHostInfo::localHostName() };
+		quint16 port{ JSONAPI_DEFAULT_PORT };
 
 		// Split hostname and port (or use default port)
 		QString givenAddress = argAddress.value(parser);
@@ -222,25 +221,25 @@ int main(int argc, char * argv[])
 		}
 
 		// Search available Hyperion services via mDNS, if default/localhost IP is given
-		if(host == "127.0.0.1" || host == "::1")
+		if (host == "127.0.0.1" || host == "::1")
 		{
 #ifdef ENABLE_MDNS
-			MdnsBrowser::getInstance().browseForServiceType(HYPERION_MDNS_SERVICE_TYPE);
-			QMdnsEngine::Service service = MdnsBrowser::getInstance().getFirstService(HYPERION_MDNS_SERVICE_TYPE);
+			MdnsBrowser::getInstance().browseForServiceType(MdnsServiceRegister::getServiceType(SERVICE_TYPE));
+			QMdnsEngine::Service service = MdnsBrowser::getInstance().getFirstService(MdnsServiceRegister::getServiceType(SERVICE_TYPE));
 
 			if (service.hostname().isEmpty())
 			{
 				throw std::runtime_error(QString("Automatic discovery failed! No Hyperion servers found providing a service of type: %1")
-											  .arg(QString(HYPERION_MDNS_SERVICE_TYPE)).toStdString()
-										  );
+					.arg(QString(MdnsServiceRegister::getServiceType(SERVICE_TYPE))).toStdString()
+				);
 			}
 			serviceName = service.name();
 			host = service.hostname();
 			port = service.port();
 #else
-				SSDPDiscover discover;
-				QString discoveredAddress = discover.getFirstService(searchType::STY_FLATBUFSERVER);
-				NetUtils::resolveHostPort(discoveredAddress, host, port);
+			SSDPDiscover discover;
+			QString discoveredAddress = discover.getFirstService(searchType::STY_FLATBUFSERVER);
+			NetUtils::resolveHostPort(discoveredAddress, host, port);
 #endif
 		}
 
@@ -250,7 +249,6 @@ int main(int argc, char * argv[])
 		{
 			throw std::runtime_error(QString("Address could not be resolved for hostname: %2").arg(QSTRING_CSTR(host)).toStdString());
 		}
-
 		host = address.toString();
 #endif
 
