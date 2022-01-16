@@ -28,7 +28,7 @@ QAtomicInteger<int>    Logger::GLOBAL_MIN_LOG_LEVEL { static_cast<int>(Logger::U
 
 namespace
 {
-const char * LogLevelStrings[]   = { "", "DEBUG", "INFO", "WARNING", "ERROR" };
+const char * LogLevelStrings[]   = { "", "DEBUG", "INFO", "WARNING", "ERROR", "OFF" };
 #ifndef _WIN32
 const int    LogLevelSysLog[]    = { LOG_DEBUG, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERR };
 #endif

@@ -1154,7 +1154,9 @@ void JsonAPI::handleLoggingCommand(const QJsonObject &message, const QString &co
 			{
 				_streaming_logging_reply["command"] = command + "-update";
 				connect(LoggerManager::getInstance(), &LoggerManager::newLogMessage, this, &JsonAPI::incommingLogMessage);
-				Debug(_log, "log streaming activated for client %s", _peerAddress.toStdString().c_str()); // needed to trigger log sending
+
+				emit incommingLogMessage (Logger::T_LOG_MESSAGE{}); // needed to trigger log sending
+				Debug(_log, "log streaming activated for client %s", _peerAddress.toStdString().c_str());
 			}
 		}
 		else if (subcommand == "stop")
@@ -1783,16 +1785,20 @@ void JsonAPI::incommingLogMessage(const Logger::T_LOG_MESSAGE &msg)
 		const QList<Logger::T_LOG_MESSAGE> *logBuffer = LoggerManager::getInstance()->getLogMessageBuffer();
 		for (int i = 0; i < logBuffer->length(); i++)
 		{
-			message["loggerName"] = logBuffer->at(i).loggerName;
-			message["loggerSubName"] = logBuffer->at(i).loggerSubName;
-			message["function"] = logBuffer->at(i).function;
-			message["line"] = QString::number(logBuffer->at(i).line);
-			message["fileName"] = logBuffer->at(i).fileName;
-			message["message"] = logBuffer->at(i).message;
-			message["levelString"] = logBuffer->at(i).levelString;
-			message["utime"] = QString::number(logBuffer->at(i).utime);
+			//Only present records of the current log-level
+			if ( logBuffer->at(i).level >= _log->getLogLevel())
+			{
+				message["loggerName"] = logBuffer->at(i).loggerName;
+				message["loggerSubName"] = logBuffer->at(i).loggerSubName;
+				message["function"] = logBuffer->at(i).function;
+				message["line"] = QString::number(logBuffer->at(i).line);
+				message["fileName"] = logBuffer->at(i).fileName;
+				message["message"] = logBuffer->at(i).message;
+				message["levelString"] = logBuffer->at(i).levelString;
+				message["utime"] = QString::number(logBuffer->at(i).utime);
 
-			messageArray.append(message);
+				messageArray.append(message);
+			}
 		}
 	}
 	else
