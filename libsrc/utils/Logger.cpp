@@ -41,39 +41,16 @@ QAtomicInteger<unsigned int> LoggerId    = 0;
 const int MaxRepeatCountSize = 200;
 QThreadStorage<int> RepeatCount;
 QThreadStorage<Logger::T_LOG_MESSAGE> RepeatMessage;
-
-QString getApplicationName()
-{
-//#ifdef __GLIBC__
-//    const char* _appname_char = program_invocation_short_name;
-//#elif !defined(_WIN32)
-//    const char* _appname_char = getprogname();
-//#else
-//	char fileName[MAX_PATH];
-//	char *_appname_char;
-//	HINSTANCE hinst = GetModuleHandle(NULL);
-//	if (GetModuleFileNameA(hinst, fileName, sizeof(fileName)))
-//	{
-//		_appname_char = PathFindFileName(fileName);
-//		*(PathFindExtension(fileName)) = 0;
-//	}
-//	else
-//		_appname_char = "unknown";
-//#endif
-//	return QString(_appname_char).toLower();
-//
-	return "";
-}
 } // namespace
 
-Logger* Logger::getInstance(const QString & name, Logger::LogLevel minLevel)
+Logger* Logger::getInstance(const QString & name, const QString & subName, Logger::LogLevel minLevel)
 {
 	QMutexLocker lock(&MapLock);
 
-	Logger* log = LoggerMap.value(name, nullptr);
+	Logger* log = LoggerMap.value(name + subName, nullptr);
 	if (log == nullptr)
 	{
-		log = new Logger(name, minLevel);
+		log = new Logger(name, subName, minLevel);
 		LoggerMap.insert(name, log); // compat version, replace it with following line if we have 100% c++11
 		//LoggerMap.emplace(name, log);  // not compat with older linux distro's e.g. wheezy
 		connect(log, &Logger::newLogMessage, LoggerManager::getInstance(), &LoggerManager::handleNewLogMessage);
@@ -82,25 +59,26 @@ Logger* Logger::getInstance(const QString & name, Logger::LogLevel minLevel)
 	return log;
 }
 
-void Logger::deleteInstance(const QString & name)
+void Logger::deleteInstance(const QString & name, const QString & subName)
 {
 	QMutexLocker lock(&MapLock);
 
 	if (name.isEmpty())
 	{
-		for (auto logger : LoggerMap)
+		for (auto *logger : qAsConst(LoggerMap)) {
 			delete logger;
+		}
 
 		LoggerMap.clear();
 	}
 	else
 	{
-		delete LoggerMap.value(name, nullptr);
-		LoggerMap.remove(name);
+		delete LoggerMap.value(name + subName, nullptr);
+		LoggerMap.remove(name + subName);
 	}
 }
 
-void Logger::setLogLevel(LogLevel level, const QString & name)
+void Logger::setLogLevel(LogLevel level, const QString & name, const QString & subName)
 {
 	if (name.isEmpty())
 	{
@@ -108,26 +86,26 @@ void Logger::setLogLevel(LogLevel level, const QString & name)
 	}
 	else
 	{
-		Logger* log = Logger::getInstance(name, level);
+		Logger* log = Logger::getInstance(name, subName, level);
 		log->setMinLevel(level);
 	}
 }
 
-Logger::LogLevel Logger::getLogLevel(const QString & name)
+Logger::LogLevel Logger::getLogLevel(const QString & name, const QString & subName)
 {
 	if (name.isEmpty())
 	{
 		return static_cast<Logger::LogLevel>(int(GLOBAL_MIN_LOG_LEVEL));
 	}
 
-	const Logger* log = Logger::getInstance(name);
+	const Logger* log = Logger::getInstance(name + subName);
 	return log->getMinLevel();
 }
 
-Logger::Logger (const QString & name, LogLevel minLevel)
+Logger::Logger (const QString & name, const QString & subName, LogLevel minLevel)
 	: QObject()
 	, _name(name)
-	, _appname(getApplicationName())
+	, _subname(subName)
 	, _syslogEnabled(true)
 	, _loggerId(LoggerId++)
 	, _minLevel(static_cast<int>(minLevel))
@@ -139,7 +117,7 @@ Logger::Logger (const QString & name, LogLevel minLevel)
 #ifndef _WIN32
 		if (_syslogEnabled)
 		{
-			openlog (_appname.toLocal8Bit(), LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL0);
+			openlog (nullptr, LOG_CONS | LOG_PID | LOG_NDELAY, LOG_LOCAL0);
 		}
 #endif
 	}
@@ -172,7 +150,7 @@ void Logger::write(const Logger::T_LOG_MESSAGE & message)
 			.arg(message.function);
 	}
 
-	QString name = message.appName + " " + message.loggerName;
+	QString name = "|" + message.loggerSubName + "| " + message.loggerName;
 	name.resize(MAX_IDENTIFICATION_LENGTH, ' ');
 
 	const QDateTime timestamp = QDateTime::fromMSecsSinceEpoch(message.utime);
@@ -220,6 +198,7 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 	};
 
 	if (RepeatMessage.localData().loggerName == _name  &&
+		RepeatMessage.localData().loggerSubName == _subname  &&
 		RepeatMessage.localData().function == func &&
 		RepeatMessage.localData().message == msg   &&
 		RepeatMessage.localData().line == line)
@@ -236,8 +215,8 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 
 		Logger::T_LOG_MESSAGE logMsg;
 
-		logMsg.appName     = _appname;
 		logMsg.loggerName  = _name;
+		logMsg.loggerSubName  = _subname;
 		logMsg.function    = QString(func);
 		logMsg.line        = line;
 		logMsg.fileName    = FileUtils::getBaseName(sourceFile);

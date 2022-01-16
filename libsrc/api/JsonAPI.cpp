@@ -617,7 +617,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 
 	// get available components
 	QJsonArray component;
-	std::map<hyperion::Components, bool> components = _hyperion->getComponentRegister().getRegister();
+	std::map<hyperion::Components, bool> components = _hyperion->getComponentRegister()->getRegister();
 	for (auto comp : components)
 	{
 		QJsonObject item;
@@ -1783,8 +1783,8 @@ void JsonAPI::incommingLogMessage(const Logger::T_LOG_MESSAGE &msg)
 		const QList<Logger::T_LOG_MESSAGE> *logBuffer = LoggerManager::getInstance()->getLogMessageBuffer();
 		for (int i = 0; i < logBuffer->length(); i++)
 		{
-			message["appName"] = logBuffer->at(i).appName;
 			message["loggerName"] = logBuffer->at(i).loggerName;
+			message["loggerSubName"] = logBuffer->at(i).loggerSubName;
 			message["function"] = logBuffer->at(i).function;
 			message["line"] = QString::number(logBuffer->at(i).line);
 			message["fileName"] = logBuffer->at(i).fileName;
@@ -1797,8 +1797,8 @@ void JsonAPI::incommingLogMessage(const Logger::T_LOG_MESSAGE &msg)
 	}
 	else
 	{
-		message["appName"] = msg.appName;
 		message["loggerName"] = msg.loggerName;
+		message["loggerSubName"] = msg.loggerSubName;
 		message["function"] = msg.function;
 		message["line"] = QString::number(msg.line);
 		message["fileName"] = msg.fileName;

@@ -54,8 +54,8 @@ public:
 
 	struct T_LOG_MESSAGE
 	{
-		QString      appName;
 		QString      loggerName;
+		QString      loggerSubName;
 		QString      function;
 		unsigned int line;
 		QString      fileName;
@@ -65,22 +65,22 @@ public:
 		QString      levelString;
 	};
 
-	static Logger*  getInstance(const QString & name = "", LogLevel minLevel=Logger::INFO);
-	static void     deleteInstance(const QString & name = "");
-	static void     setLogLevel(LogLevel level, const QString & name = "");
-	static LogLevel getLogLevel(const QString & name = "");
+	static Logger*  getInstance(const QString & name = "", const QString & subName = "__", LogLevel minLevel=Logger::INFO);
+	static void     deleteInstance(const QString & name = "", const QString & subName = "__");
+	static void     setLogLevel(LogLevel level, const QString & name = "", const QString & subName = "__");
+	static LogLevel getLogLevel(const QString & name = "", const QString & subName = "__");
 
 	void     Message(LogLevel level, const char* sourceFile, const char* func, unsigned int line, const char* fmt, ...);
 	void     setMinLevel(LogLevel level) { _minLevel = static_cast<int>(level); }
 	LogLevel getMinLevel() const { return static_cast<LogLevel>(int(_minLevel)); }
 	QString  getName() const { return _name; }
-	QString  getAppName() const { return _appname; }
+	QString  getSubName() const { return _subname; }
 
 signals:
 	void newLogMessage(Logger::T_LOG_MESSAGE);
 
 protected:
-	Logger(const QString & name="", LogLevel minLevel = INFO);
+	Logger(const QString & name="", const QString & subName = "__", LogLevel minLevel = INFO);
 	~Logger() override;
 
 private:
@@ -95,12 +95,12 @@ private:
 	static QAtomicInteger<int>   GLOBAL_MIN_LOG_LEVEL;
 
 	const QString                _name;
-	const QString                _appname;
+	const QString                _subname;
 	const bool                   _syslogEnabled;
 	const unsigned               _loggerId;
 
 	/* Only non-const member, hence the atomic */
-	QAtomicInteger<int> _minLevel;
+	QAtomicInteger<int>			 _minLevel;
 };
 
 class LoggerManager : public QObject

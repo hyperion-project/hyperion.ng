@@ -9,8 +9,11 @@ using namespace hyperion;
 
 ComponentRegister::ComponentRegister(Hyperion* hyperion)
 	: _hyperion(hyperion)
-	  , _log(Logger::getInstance("COMPONENTREG"))
+	, _log(nullptr)
 {
+	QString subComponent = hyperion->property("instance").toString();
+	_log= Logger::getInstance("COMPONENTREG", subComponent);
+
 	// init all comps to false
 	QVector<hyperion::Components> vect;
 	vect << COMP_ALL << COMP_SMOOTHING << COMP_LEDDEVICE;
