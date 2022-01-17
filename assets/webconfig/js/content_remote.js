@@ -350,8 +350,10 @@ $(document).ready(function () {
   });
 
   $("#remote_input_repimg").off().on("click", function () {
-    if (lastImgData != "")
+    if (lastImgData != "") {
+      requestPriorityClear();
       requestSetImage(lastImgData, duration, lastFileName);
+    }
   });
 
   $("#remote_input_img").change(function () {
@@ -362,6 +364,7 @@ $(document).ready(function () {
       else
         lastImgData = src;
 
+      requestPriorityClear();
       requestSetImage(lastImgData, duration, lastFileName);
     });
   });

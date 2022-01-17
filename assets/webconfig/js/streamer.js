@@ -107,18 +107,9 @@ $(document).ready(function () {
     }
   });
 
-  $(window.hyperion).on("cmd-priorities-update", function (event) {
-
+  $(window.hyperion).on("stopBrowerScreenCapture", function (event) {
     if (streamActive) {
-      var priorities = event.response.data.priorities;
-
-      if (priorities.length > 0) {
-        if (priorities[0].priority === window.webPrio && (priorities[0].componentId !== "IMAGE" || priorities[0].owner !== "Streaming")) {
-          stopCapture();
-        }
-      } else {
-        stopCapture();
-      }
+      stopCapture();
     }
   });
 

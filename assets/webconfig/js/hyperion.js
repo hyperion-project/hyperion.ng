@@ -359,21 +359,25 @@ function requestPriorityClear(prio)
   if(typeof prio !== 'number')
     prio = window.webPrio;
 
+  $(window.hyperion).trigger({type:"stopBrowerScreenCapture"});   
   sendToHyperion("clear", "", '"priority":'+prio+'');
 }
 
 function requestClearAll()
 {
+  $(window.hyperion).trigger({type:"stopBrowerScreenCapture"});   
   requestPriorityClear(-1)
 }
 
 function requestPlayEffect(effectName, duration)
 {
+  $(window.hyperion).trigger({type:"stopBrowerScreenCapture"});   
   sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'"},"priority":'+window.webPrio+',"duration":'+validateDuration(duration)+',"origin":"'+window.webOrigin+'"');
 }
 
 function requestSetColor(r,g,b,duration)
 {
+  $(window.hyperion).trigger({type:"stopBrowerScreenCapture"});   
   sendToHyperion("color", "",  '"color":['+r+','+g+','+b+'], "priority":'+window.webPrio+',"duration":'+validateDuration(duration)+',"origin":"'+window.webOrigin+'"');
 }
 
