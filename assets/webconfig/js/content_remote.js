@@ -311,6 +311,9 @@ $(document).ready(function () {
   if (getStorage('rmduration') != null) {
     $("#remote_duration").val(getStorage('rmduration'));
     duration = getStorage('rmduration');
+    if (duration == 0) {
+      duration = ENDLESS;
+    }
   }
 
   createCP('cp2', cpcolor, function (rgbT, hex) {
@@ -330,6 +333,9 @@ $(document).ready(function () {
   $("#remote_duration").off().on("change", function () {
     duration = valValue(this.id, this.value, this.min, this.max);
     setStorage('rmduration', duration);
+    if (duration == 0) {
+      duration = ENDLESS;
+    }
   });
 
   $("#effect_select").off().on("change", function (event) {
@@ -370,7 +376,6 @@ $(document).ready(function () {
   // interval updates
 
   $(window.hyperion).on('components-updated', function (e, comp) {
-    //console.log ("components-updated", e, comp);
     updateComponent(comp);
   });
 
