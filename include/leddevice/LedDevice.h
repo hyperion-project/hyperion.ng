@@ -152,6 +152,13 @@ public:
 	///
 	static void printLedValues(const std::vector<ColorRgb>& ledValues);
 
+	///
+	/// @brief Set the common logger for LED-devices.
+	///
+	/// @param[in] log The logger to be used
+	///
+	void setLogger(Logger* log) { _log = log; }
+
 public slots:
 
 	///

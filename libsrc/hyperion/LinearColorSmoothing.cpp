@@ -50,7 +50,7 @@ const unsigned DEFAUL_OUTPUTDEPLAY = 0;														// outputdelay in ms
 
 LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument &config, Hyperion *hyperion)
 	: QObject(hyperion)
-	  , _log(Logger::getInstance("SMOOTHING"))
+	  , _log(nullptr)
 	  , _hyperion(hyperion)
 	  , _updateInterval(DEFAUL_UPDATEINTERVALL.count())
 	  , _settlingTime(DEFAUL_SETTLINGTIME)
@@ -62,6 +62,9 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument &config, Hyperion
 	  , _enabled(false)
 	  , tempValues(std::vector<uint64_t>(0, 0L))
 {
+	QString subComponent = hyperion->property("instance").toString();
+	_log= Logger::getInstance("SMOOTHING", subComponent);
+
 	// init cfg 0 (default)
 	addConfig(DEFAUL_SETTLINGTIME, DEFAUL_UPDATEFREQUENCY, DEFAUL_OUTPUTDEPLAY);
 	handleSettingsUpdate(settings::SMOOTHING, config);

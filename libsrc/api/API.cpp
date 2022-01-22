@@ -72,6 +72,8 @@ API::API(Logger *log, bool localConnection, QObject *parent)
 
 void API::init()
 {
+	assert(_hyperion);
+
     bool apiAuthRequired = _authManager->isAuthRequired();
 
     // For security we block external connections if default PW is set

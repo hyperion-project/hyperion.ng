@@ -11,7 +11,7 @@ HyperionIManager* HyperionIManager::HIMinstance;
 
 HyperionIManager::HyperionIManager(const QString& rootPath, QObject* parent, bool readonlyMode)
 	: QObject(parent)
-	, _log(Logger::getInstance("HYPERION"))
+	, _log(Logger::getInstance("HYPERION-INSTMGR"))
 	, _instanceTable( new InstanceTable(rootPath, this, readonlyMode) )
 	, _rootPath( rootPath )
 	, _readonlyMode(readonlyMode)

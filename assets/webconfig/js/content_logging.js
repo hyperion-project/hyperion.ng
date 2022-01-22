@@ -121,8 +121,8 @@ $(document).ready(function () {
     if (messages.length != 0) {
 
       for (var idx = 0; idx < messages.length; idx++) {
-        var app_name = messages[idx].appName;
         var logger_name = messages[idx].loggerName;
+        var logger_subname = messages[idx].loggerSubName;
         var function_ = messages[idx].function;
         var line = messages[idx].line;
         var file_name = messages[idx].fileName;
@@ -136,7 +136,18 @@ $(document).ready(function () {
         }
 
         var date = new Date(parseInt(utime));
-        var newLogLine = date.toISOString() + " [" + app_name + " " + logger_name + "] (" + level_string + ") " + debug + msg;
+        var subComponent = "";
+        if (window.serverInfo.instance.length > 1) {
+          if (logger_subname.startsWith("I")) {
+            var instanceNum = logger_subname.substring(1);
+            if (window.serverInfo.instance[instanceNum]) {
+              subComponent = window.serverInfo.instance[instanceNum].friendly_name;
+            } else {
+              subComponent = instanceNum;
+            }
+          }
+        }
+        var newLogLine = date.toISOString() + " [" + logger_name + (subComponent ? "|" + subComponent : "") + "] (" + level_string + ") " + debug + msg;
 
         $("#logmessages").append("<code>" + newLogLine + "</code>\n");
       }
