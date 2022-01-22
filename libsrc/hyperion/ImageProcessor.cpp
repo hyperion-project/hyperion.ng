@@ -28,7 +28,7 @@ QString ImageProcessor::mappingTypeToStr(int mappingType)
 
 ImageProcessor::ImageProcessor(const LedString& ledString, Hyperion* hyperion)
 	: QObject(hyperion)
-	, _log(Logger::getInstance("IMAGETOLED"))
+	, _log(nullptr)
 	, _ledString(ledString)
 	, _borderProcessor(new BlackBorderProcessor(hyperion, this))
 	, _imageToLeds(nullptr)
@@ -37,6 +37,9 @@ ImageProcessor::ImageProcessor(const LedString& ledString, Hyperion* hyperion)
 	, _hardMappingType(0)
 	, _hyperion(hyperion)
 {
+	QString subComponent = hyperion->property("instance").toString();
+	_log= Logger::getInstance("IMAGETOLED", subComponent);
+
 	// init
 	handleSettingsUpdate(settings::COLOR, _hyperion->getSetting(settings::COLOR));
 	// listen for changes in color - ledmapping

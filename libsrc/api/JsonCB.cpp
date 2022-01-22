@@ -156,6 +156,7 @@ void JsonCB::resetSubscriptions()
 
 void JsonCB::setSubscriptionsTo(Hyperion* hyperion)
 {
+	assert(hyperion);
 	//std::cout << "JsonCB::setSubscriptions for instance [" << static_cast<int>(hyperion->getInstanceIndex()) << "] " << std::endl;
 
 	// get current subs
@@ -166,7 +167,7 @@ void JsonCB::setSubscriptionsTo(Hyperion* hyperion)
 
 	// update pointer
 	_hyperion = hyperion;
-	_componentRegister = &_hyperion->getComponentRegister();
+	_componentRegister = _hyperion->getComponentRegister();
 	_prioMuxer = _hyperion->getMuxerInstance();
 
 	// re-apply subs

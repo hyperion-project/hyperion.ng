@@ -56,6 +56,10 @@ void LedDeviceWrapper::createLedDevice(const QJsonObject& config)
 	QThread* thread = new QThread(this);
 	thread->setObjectName("LedDeviceThread");
 	_ledDevice = LedDeviceFactory::construct(config);
+
+	QString subComponent = parent()->property("instance").toString();
+	_ledDevice->setLogger(Logger::getInstance("LEDDEVICE", subComponent));
+
 	_ledDevice->moveToThread(thread);
 	// setup thread management
 	connect(thread, &QThread::started, _ledDevice, &LedDevice::start);
@@ -92,13 +96,13 @@ QJsonObject LedDeviceWrapper::getLedDeviceSchemas()
 		QString devName = item.remove("schema-");
 
 		QString data;
-		if(!FileUtils::readFile(schemaPath, data, Logger::getInstance("LedDevice")))
+		if(!FileUtils::readFile(schemaPath, data, Logger::getInstance("LEDDEVICE")))
 		{
 			throw std::runtime_error("ERROR: Schema not found: " + item.toStdString());
 		}
 
 		QJsonObject schema;
-		if(!JsonUtils::parse(schemaPath, data, schema, Logger::getInstance("LedDevice")))
+		if(!JsonUtils::parse(schemaPath, data, schema, Logger::getInstance("LEDDEVICE")))
 		{
 			throw std::runtime_error("ERROR: JSON schema wrong of file: " + item.toStdString());
 		}

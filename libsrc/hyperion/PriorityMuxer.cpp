@@ -20,7 +20,7 @@ const int PriorityMuxer::TIMEOUT_NOT_ACTIVE_PRIO = -100;
 
 PriorityMuxer::PriorityMuxer(int ledCount, QObject * parent)
 	: QObject(parent)
-	, _log(Logger::getInstance("HYPERION"))
+	, _log(nullptr)
 	, _currentPriority(PriorityMuxer::LOWEST_PRIORITY)
 	, _previousPriority(_currentPriority)
 	, _manualSelectedPriority(MANUAL_SELECTED_PRIORITY)
@@ -32,6 +32,9 @@ PriorityMuxer::PriorityMuxer(int ledCount, QObject * parent)
 	, _timer(new QTimer(this))
 	, _blockTimer(new QTimer(this))
 {
+	QString subComponent = parent->property("instance").toString();
+	_log= Logger::getInstance("MUXER", subComponent);
+
 	// init lowest priority info
 	_lowestPriorityInfo.priority       = PriorityMuxer::LOWEST_PRIORITY;
 	_lowestPriorityInfo.timeoutTime_ms = -1;

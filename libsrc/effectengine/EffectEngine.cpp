@@ -19,9 +19,12 @@
 
 EffectEngine::EffectEngine(Hyperion * hyperion)
 	: _hyperion(hyperion)
-	, _log(Logger::getInstance("EFFECTENGINE"))
+	, _log(nullptr)
 	, _effectFileHandler(EffectFileHandler::getInstance())
 {
+	QString subComponent = hyperion->property("instance").toString();
+	_log= Logger::getInstance("EFFECTENGINE", subComponent);
+
 	Q_INIT_RESOURCE(EffectEngine);
 	qRegisterMetaType<hyperion::Components>("hyperion::Components");
 
