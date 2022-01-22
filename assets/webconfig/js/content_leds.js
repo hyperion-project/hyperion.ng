@@ -277,7 +277,7 @@ function createClassicLeds() {
   aceEdt.set(finalLedArray);
 }
 
-function createMatrixLayout(ledshoriz, ledsvert, cabling, start) {
+function createMatrixLayout(ledshoriz, ledsvert, cabling, start, direction) {
   // Big thank you to RanzQ (Juha Rantanen) from Github for this script
   // https://raw.githubusercontent.com/RanzQ/hyperion-audio-effects/master/matrix-config.js
 
@@ -325,15 +325,30 @@ function createMatrixLayout(ledshoriz, ledsvert, cabling, start) {
 
   var x, y
 
-  for (y = startY; downward && y <= endY || !downward && y >= endY; y += downward ? 1 : -1) {
+  if (direction === 'vertical') {
     for (x = startX; forward && x <= endX || !forward && x >= endX; x += forward ? 1 : -1) {
-      addLed(x, y)
+      for (y = startY; downward && y <= endY || !downward && y >= endY; y += downward ? 1 : -1) {
+
+        addLed(x, y)
+      }
+      if (!parallel) {
+        downward = !downward
+        var tmp = startY
+        startY = endY
+        endY = tmp
+      }
     }
-    if (!parallel) {
-      forward = !forward
-      var tmp = startX
-      startX = endX
-      endX = tmp
+  } else {
+    for (y = startY; downward && y <= endY || !downward && y >= endY; y += downward ? 1 : -1) {
+      for (x = startX; forward && x <= endX || !forward && x >= endX; x += forward ? 1 : -1) {
+        addLed(x, y)
+      }
+      if (!parallel) {
+        forward = !forward
+        var tmp = startX
+        startX = endX
+        endX = tmp
+      }
     }
   }
 
@@ -348,9 +363,10 @@ function createMatrixLeds() {
   var ledshoriz = parseInt($("#ip_ma_ledshoriz").val());
   var ledsvert = parseInt($("#ip_ma_ledsvert").val());
   var cabling = $("#ip_ma_cabling").val();
+  var direction = $("#ip_ma_direction").val();
   var start = $("#ip_ma_start").val();
 
-  nonBlacklistLedArray = createMatrixLayout(ledshoriz, ledsvert, cabling, start);
+  nonBlacklistLedArray = createMatrixLayout(ledshoriz, ledsvert, cabling, start, direction);
   finalLedArray = blackListLeds(nonBlacklistLedArray, ledBlacklist);
 
   createLedPreview(finalLedArray, 'matrix');
@@ -1691,6 +1707,7 @@ function updateElements(ledType, key) {
           $("#ip_ma_ledshoriz").val(ledProperties.maxColumn);
           $("#ip_ma_ledsvert").val(ledProperties.maxRow);
           $("#ip_ma_cabling").val("parallel");
+          $("#ip_ma_direction").val("horizontal");
           $("#ip_ma_start").val("top-left");
           createMatrixLeds();
         }

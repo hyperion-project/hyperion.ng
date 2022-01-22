@@ -99,6 +99,7 @@
     "conf_leds_layout_generatedconf": "Generated/Current LED Configuration",
     "conf_leds_layout_intro": "You also need an LED layout, which reflects your LED positions. The classic layout is the usually used TV frame, but we also support LED matrix (LED walls) creation. The view on this layout is ALWAYS from the FRONT of your TV.",
     "conf_leds_layout_ma_cabling": "Cabling",
+    "conf_leds_layout_ma_direction": "Direction",
     "conf_leds_layout_ma_horiz": "Horizontal",
     "conf_leds_layout_ma_optbottomleft": "Bottom left",
     "conf_leds_layout_ma_optbottomright": "Bottom right",
