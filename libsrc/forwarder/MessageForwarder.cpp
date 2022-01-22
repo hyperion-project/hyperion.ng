@@ -21,11 +21,14 @@
 
 MessageForwarder::MessageForwarder(Hyperion* hyperion)
 	: _hyperion(hyperion)
-	, _log(Logger::getInstance("NETFORWARDER"))
+	, _log(nullptr)
 	, _muxer(_hyperion->getMuxerInstance())
 	, _forwarder_enabled(true)
 	, _priority(140)
 {
+	QString subComponent = hyperion->property("instance").toString();
+	_log= Logger::getInstance("NETFORWARDER", subComponent);
+
 	// get settings updates
 	connect(_hyperion, &Hyperion::settingsChanged, this, &MessageForwarder::handleSettingsUpdate);
 

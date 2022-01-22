@@ -49,10 +49,10 @@ Hyperion::Hyperion(quint8 instance, bool readonlyMode)
 	: QObject()
 	, _instIndex(instance)
 	, _settingsManager(new SettingsManager(instance, this, readonlyMode))
-	, _componentRegister(this)
+	, _componentRegister(nullptr)
 	, _ledString(hyperion::createLedString(getSetting(settings::LEDS).array(), hyperion::createColorOrder(getSetting(settings::DEVICE).object())))
-	, _imageProcessor(new ImageProcessor(_ledString, this))
-	, _muxer(static_cast<int>(_ledString.leds().size()), this)
+	, _imageProcessor(nullptr)
+	, _muxer(nullptr)
 	, _raw2ledAdjustment(hyperion::createLedColorsAdjustment(static_cast<int>(_ledString.leds().size()), getSetting(settings::COLOR).object()))
 	, _ledDeviceWrapper(nullptr)
 	, _deviceSmooth(nullptr)
@@ -60,7 +60,7 @@ Hyperion::Hyperion(quint8 instance, bool readonlyMode)
 #if defined(ENABLE_FORWARDER)
 	, _messageForwarder(nullptr)
 #endif
-	, _log(Logger::getInstance("HYPERION"))
+	, _log(nullptr)
 	, _hwLedCount()
 	, _ledGridSize(hyperion::getLedLayoutGridSize(getSetting(settings::LEDS).array()))
 	, _BGEffectHandler(nullptr)
@@ -71,7 +71,14 @@ Hyperion::Hyperion(quint8 instance, bool readonlyMode)
 #endif
 	, _readOnlyMode(readonlyMode)
 {
+	QString subComponent = "I"+QString::number(instance);
+	this->setProperty("instance", (QString) subComponent);
 
+	_log= Logger::getInstance("HYPERION", subComponent);
+
+	_componentRegister = new ComponentRegister(this);
+	_imageProcessor = new ImageProcessor(_ledString, this);
+	_muxer = new PriorityMuxer(static_cast<int>(_ledString.leds().size()), this);
 }
 
 Hyperion::~Hyperion()
@@ -102,9 +109,9 @@ void Hyperion::start()
 	}
 
 	// connect Hyperion::update with Muxer visible priority changes as muxer updates independent
-	connect(&_muxer, &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::update);
-	connect(&_muxer, &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::handleSourceAvailability);
-	connect(&_muxer, &PriorityMuxer::visibleComponentChanged, this, &Hyperion::handleVisibleComponentChanged);
+	connect(_muxer, &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::update);
+	connect(_muxer, &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::handleSourceAvailability);
+	connect(_muxer, &PriorityMuxer::visibleComponentChanged, this, &Hyperion::handleVisibleComponentChanged);
 
 	// listens for ComponentRegister changes of COMP_ALL to perform core enable/disable actions
 	// connect(&_componentRegister, &ComponentRegister::updatedComponentState, this, &Hyperion::updatedComponentState);
@@ -199,6 +206,10 @@ void Hyperion::freeObjects()
 
 	delete _settingsManager;
 	delete _ledDeviceWrapper;
+
+	delete _imageProcessor;
+	delete _muxer;
+	delete _componentRegister;
 }
 
 void Hyperion::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
@@ -228,7 +239,7 @@ void Hyperion::handleSettingsUpdate(settings::type type, const QJsonDocument& co
 		// ledstring, img processor, muxer, ledGridSize (effect-engine image based effects), _ledBuffer and ByteOrder of ledstring
 		_ledString = hyperion::createLedString(leds, hyperion::createColorOrder(getSetting(settings::DEVICE).object()));
 		_imageProcessor->setLedString(_ledString);
-		_muxer.updateLedColorsLength(static_cast<int>(_ledString.leds().size()));
+		_muxer->updateLedColorsLength(static_cast<int>(_ledString.leds().size()));
 		_ledGridSize = hyperion::getLedLayoutGridSize(leds);
 
 		std::vector<ColorRgb> color(_ledString.leds().size(), ColorRgb{0,0,0});
@@ -322,42 +333,42 @@ int Hyperion::getLedCount() const
 
 void Hyperion::setSourceAutoSelect(bool state)
 {
-	_muxer.setSourceAutoSelectEnabled(state);
+	_muxer->setSourceAutoSelectEnabled(state);
 }
 
 bool Hyperion::setVisiblePriority(int priority)
 {
-	return _muxer.setPriority(priority);
+	return _muxer->setPriority(priority);
 }
 
 bool Hyperion::sourceAutoSelectEnabled() const
 {
-	return _muxer.isSourceAutoSelectEnabled();
+	return _muxer->isSourceAutoSelectEnabled();
 }
 
 void Hyperion::setNewComponentState(hyperion::Components component, bool state)
 {
-	_componentRegister.setNewComponentState(component, state);
+	_componentRegister->setNewComponentState(component, state);
 }
 
 std::map<hyperion::Components, bool> Hyperion::getAllComponents() const
 {
-	return _componentRegister.getRegister();
+	return _componentRegister->getRegister();
 }
 
 int Hyperion::isComponentEnabled(hyperion::Components comp) const
 {
-	return _componentRegister.isComponentEnabled(comp);
+	return _componentRegister->isComponentEnabled(comp);
 }
 
 void Hyperion::registerInput(int priority, hyperion::Components component, const QString& origin, const QString& owner, unsigned smooth_cfg)
 {
-	_muxer.registerInput(priority, component, origin, owner, smooth_cfg);
+	_muxer->registerInput(priority, component, origin, owner, smooth_cfg);
 }
 
 bool Hyperion::setInput(int priority, const std::vector<ColorRgb>& ledColors, int timeout_ms, bool clearEffect)
 {
-	if(_muxer.setInput(priority, ledColors, timeout_ms))
+	if(_muxer->setInput(priority, ledColors, timeout_ms))
 	{
 		// clear effect if this call does not come from an effect
 		if(clearEffect)
@@ -366,7 +377,7 @@ bool Hyperion::setInput(int priority, const std::vector<ColorRgb>& ledColors, in
 		}
 
 		// if this priority is visible, update immediately
-		if(priority == _muxer.getCurrentPriority())
+		if(priority == _muxer->getCurrentPriority())
 		{
 			update();
 		}
@@ -378,13 +389,13 @@ bool Hyperion::setInput(int priority, const std::vector<ColorRgb>& ledColors, in
 
 bool Hyperion::setInputImage(int priority, const Image<ColorRgb>& image, int64_t timeout_ms, bool clearEffect)
 {
-	if (!_muxer.hasPriority(priority))
+	if (!_muxer->hasPriority(priority))
 	{
 		emit GlobalSignals::getInstance()->globalRegRequired(priority);
 		return false;
 	}
 
-	if(_muxer.setInputImage(priority, image, timeout_ms))
+	if(_muxer->setInputImage(priority, image, timeout_ms))
 	{
 		// clear effect if this call does not come from an effect
 		if(clearEffect)
@@ -393,7 +404,7 @@ bool Hyperion::setInputImage(int priority, const Image<ColorRgb>& image, int64_t
 		}
 
 		// if this priority is visible, update immediately
-		if(priority == _muxer.getCurrentPriority())
+		if(priority == _muxer->getCurrentPriority())
 		{
 			update();
 		}
@@ -405,7 +416,7 @@ bool Hyperion::setInputImage(int priority, const Image<ColorRgb>& image, int64_t
 
 bool Hyperion::setInputInactive(quint8 priority)
 {
-	return _muxer.setInputInactive(priority);
+	return _muxer->setInputInactive(priority);
 }
 
 void Hyperion::setColor(int priority, const std::vector<ColorRgb> &ledColors, int timeout_ms, const QString &origin, bool clearEffects)
@@ -465,7 +476,7 @@ bool Hyperion::clear(int priority, bool forceClearAll)
 	bool isCleared = false;
 	if (priority < 0)
 	{
-		_muxer.clearAll(forceClearAll);
+		_muxer->clearAll(forceClearAll);
 
 		// send clearall signal to the effect engine
 		_effectEngine->allChannelsCleared();
@@ -477,7 +488,7 @@ bool Hyperion::clear(int priority, bool forceClearAll)
 		// (outside the check so the effect gets cleared even when the effect is not sending colors)
 		_effectEngine->channelCleared(priority);
 
-		if (_muxer.clearInput(priority))
+		if (_muxer->clearInput(priority))
 		{
 			isCleared = true;
 		}
@@ -487,7 +498,7 @@ bool Hyperion::clear(int priority, bool forceClearAll)
 
 int Hyperion::getCurrentPriority() const
 {
-	return _muxer.getCurrentPriority();
+	return _muxer->getCurrentPriority();
 }
 
 bool Hyperion::isCurrentPriority(int priority) const
@@ -497,12 +508,12 @@ bool Hyperion::isCurrentPriority(int priority) const
 
 QList<int> Hyperion::getActivePriorities() const
 {
-	return _muxer.getPriorities();
+	return _muxer->getPriorities();
 }
 
 Hyperion::InputInfo Hyperion::getPriorityInfo(int priority) const
 {
-	return _muxer.getInputInfo(priority);
+	return _muxer->getInputInfo(priority);
 }
 
 QString Hyperion::saveEffect(const QJsonObject& obj)
@@ -582,7 +593,7 @@ void Hyperion::handleVisibleComponentChanged(hyperion::Components comp)
 }
 
 void Hyperion::handleSourceAvailability(const quint8& priority)
-{	int previousPriority = _muxer.getPreviousPriority();
+{	int previousPriority = _muxer->getPreviousPriority();
 
 	Debug(_log,"priority[%d], previousPriority[%d]", priority, previousPriority);
 	if ( priority == PriorityMuxer::LOWEST_PRIORITY)
@@ -605,8 +616,8 @@ void Hyperion::handleSourceAvailability(const quint8& priority)
 void Hyperion::update()
 {
 	// Obtain the current priority channel
-	int priority = _muxer.getCurrentPriority();
-	const PriorityMuxer::InputInfo priorityInfo = _muxer.getInputInfo(priority);
+	int priority = _muxer->getCurrentPriority();
+	const PriorityMuxer::InputInfo priorityInfo = _muxer->getInputInfo(priority);
 
 	// copy image & process OR copy ledColors from muxer
 	Image<ColorRgb> image = priorityInfo.image;

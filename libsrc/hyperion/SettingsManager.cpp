@@ -28,7 +28,7 @@ QJsonObject SettingsManager::schemaJson;
 
 SettingsManager::SettingsManager(quint8 instance, QObject* parent, bool readonlyMode)
 	: QObject(parent)
-	  , _log(Logger::getInstance("SETTINGSMGR"))
+	  , _log(Logger::getInstance("SETTINGSMGR", "I"+QString::number(instance)))
 	  , _instance(instance)
 	  , _sTable(new SettingsTable(instance, this))
 	  , _configVersion(DEFAULT_VERSION)

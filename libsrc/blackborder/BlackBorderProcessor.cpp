@@ -69,7 +69,7 @@ void BlackBorderProcessor::handleSettingsUpdate(settings::type type, const QJson
 				_detector = new BlackBorderDetector(newThreshold);
 			}
 
-			Debug(Logger::getInstance("BLACKBORDER"), "Set mode to: %s", QSTRING_CSTR(_detectionMode));
+			Debug(Logger::getInstance("BLACKBORDER", "I"+QString::number(_hyperion->getInstanceIndex())), "Set mode to: %s", QSTRING_CSTR(_detectionMode));
 
 			// eval the comp state
 			handleCompStateChangeRequest(hyperion::COMP_BLACKBORDER, obj["enable"].toBool(true));

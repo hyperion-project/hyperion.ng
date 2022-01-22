@@ -44,12 +44,12 @@ namespace hyperion {
 					}
 				};
 				hyperion->setColor(PriorityMuxer::FG_PRIORITY, fg_color, fg_duration_ms);
-				Info(Logger::getInstance("HYPERION"),"Initial foreground color set (%d %d %d)",fg_color.at(0).red,fg_color.at(0).green,fg_color.at(0).blue);
+				Info(Logger::getInstance("HYPERION","I"+QString::number(hyperion->getInstanceIndex())),"Initial foreground color set (%d %d %d)",fg_color.at(0).red,fg_color.at(0).green,fg_color.at(0).blue);
 			}
 			else
 			{
 				int result = hyperion->setEffect(fgEffectConfig, PriorityMuxer::FG_PRIORITY, fg_duration_ms);
-				Info(Logger::getInstance("HYPERION"),"Initial foreground effect '%s' %s", QSTRING_CSTR(fgEffectConfig), ((result == 0) ? "started" : "failed"));
+				Info(Logger::getInstance("HYPERION","I"+QString::number(hyperion->getInstanceIndex())),"Initial foreground effect '%s' %s", QSTRING_CSTR(fgEffectConfig), ((result == 0) ? "started" : "failed"));
 			}
 		}
 		#undef FGCONFIG_ARRAY

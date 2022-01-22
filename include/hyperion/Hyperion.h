@@ -256,7 +256,7 @@ public slots:
 	/// @brief Get a pointer to the priorityMuxer instance
 	/// @return      PriorityMuxer instance pointer
 	///
-	PriorityMuxer* getMuxerInstance() { return &_muxer; }
+	PriorityMuxer* getMuxerInstance() { return _muxer; }
 
 	///
 	/// @brief enable/disable automatic/priorized source selection
@@ -340,7 +340,7 @@ public slots:
 	/// @brief Get the component Register
 	/// return Component register pointer
 	///
-	ComponentRegister & getComponentRegister() { return _componentRegister; }
+	ComponentRegister* getComponentRegister() { return _componentRegister; }
 
 	///
 	/// @brief Called from components to update their current state. DO NOT CALL FROM USERS
@@ -511,7 +511,7 @@ private:
 	SettingsManager* _settingsManager;
 
 	/// Register that holds component states
-	ComponentRegister _componentRegister;
+	ComponentRegister* _componentRegister;
 
 	/// The specifiation of the led frame construction and picture integration
 	LedString _ledString;
@@ -522,7 +522,7 @@ private:
 	std::vector<ColorOrder> _ledStringColorOrder;
 
 	/// The priority muxer
-	PriorityMuxer _muxer;
+	PriorityMuxer* _muxer;
 
 	/// The adjustment from raw colors to led colors
 	MultiColorAdjustment * _raw2ledAdjustment;
