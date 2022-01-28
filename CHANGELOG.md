@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Allow to build a "light" version of Hyperion, i.e. no grabbers, or services like flat-/proto buffers, boblight, CEC
 - Allow to restart Hyperion via Systray
+- LED Matrix Layout - Support vertical cabling direction (#1420)
+- Support additional Yeelight models
 
 ### Changed
 
@@ -24,6 +26,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Yeelight - Workaround: Ignore error when setting music mode = off, but the music-mode is already off (#1372)
 - Standalone grabbers: Improved fps help/error text, fixed default address and port, fixed auto discovery of Hyperion server in hyperion-remote
 - Fixed Qt version override, e.g. set via QTDIR
+- Remote control UI: Treat duration=0 as endless
+- Stop Web-Browser capture when user triggers other activities
+- Treat http headers case insensitive (RFC 2616)
 
 ## Removed
 
