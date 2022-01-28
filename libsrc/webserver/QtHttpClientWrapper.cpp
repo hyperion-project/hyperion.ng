@@ -101,7 +101,11 @@ void QtHttpClientWrapper::onClientDataReceived (void)
 							QByteArray header = raw.left (pos).trimmed();
 							QByteArray value  = raw.mid  (pos +1).trimmed();
 							m_currentRequest->addHeader (header, value);
+							#if (QT_VERSION >= QT_VERSION_CHECK(5, 12, 0))
 							if (header.compare(QtHttpHeader::ContentLength, Qt::CaseInsensitive) == 0)
+							#else
+							if (header.toLower() == QtHttpHeader::ContentLength.toLower())
+							#endif
 							{
 								bool ok  = false;
 								const int len = value.toInt (&ok, 10);
