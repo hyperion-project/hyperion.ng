@@ -38,7 +38,7 @@ public:
 
 	QByteArray            getHeader      (const QByteArray & header) const
 	{
-		return m_headersHash.value (header, QByteArray ());
+		return m_headersHash.value (header.toLower(), QByteArray ());
 	};
 
 public slots:
