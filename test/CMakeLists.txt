@@ -10,13 +10,13 @@ MACRO (link_to_hyperion TARGET)
 	endif()
 ENDMACRO()
 
-if(ENABLE_SPIDEV)
+if(ENABLE_DEV_SPI)
 	# Add the simple test executable 'TestSpi'
 	add_executable(test_spi TestSpi.cpp)
 	target_link_libraries( test_spi leddevice hyperion-utils hyperion )
 	add_executable(spidev_test spidev_test.c)
 	add_executable(gpio2spi switchPinCtrl.c)
-endif(ENABLE_SPIDEV)
+endif(ENABLE_DEV_SPI)
 
 add_executable(test_configfile TestConfigFile.cpp)
 link_to_hyperion(test_configfile)
