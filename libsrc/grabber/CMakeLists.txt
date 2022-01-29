@@ -6,6 +6,10 @@ if (ENABLE_DISPMANX)
 	add_subdirectory(dispmanx)
 endif (ENABLE_DISPMANX)
 
+if (ENABLE_DRM)
+	add_subdirectory(drm)
+endif(ENABLE_DRM)
+
 if (ENABLE_FB)
 	add_subdirectory(framebuffer)
 endif (ENABLE_FB)
