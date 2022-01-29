@@ -14,7 +14,9 @@
 #include <QRegularExpressionMatch>
 
 #include <iostream>
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 
 #ifdef _WIN32
 #include <shlobj_core.h>
