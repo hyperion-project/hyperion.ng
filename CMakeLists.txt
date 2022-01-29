@@ -400,15 +400,12 @@ if(ENABLE_JSONCHECKS)
 		ENDIF ()
 	endif()
 
-	# for python 3 the checkschema.py file must be rewritten
-	# TODO on windows it can't resolve the path inside the file (Das System kann den angegebenen Pfad nicht finden: '\\schema\\schema-general.json')
-	IF (NOT WIN32)
-		EXECUTE_PROCESS (
-			COMMAND python test/jsonchecks/checkschema.py ${CMAKE_BINARY_DIR}/config/hyperion.config.json.default libsrc/hyperion/hyperion.schema.json
-			WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-			RESULT_VARIABLE CHECK_CONFIG_FAILED
-		)
-	ENDIF()
+	EXECUTE_PROCESS (
+		COMMAND ${PYTHON_EXECUTABLE} test/jsonchecks/checkschema.py ${CMAKE_BINARY_DIR}/config/hyperion.config.json.default libsrc/hyperion/hyperion.schema.json
+		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+		RESULT_VARIABLE CHECK_CONFIG_FAILED
+	)
+
 	IF ( ${CHECK_CONFIG_FAILED} )
 		MESSAGE (FATAL_ERROR "check of json default config failed" )
 	ENDIF ()
