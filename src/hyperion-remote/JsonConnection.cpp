@@ -12,6 +12,8 @@
 #include <QHostInfo>
 #include <QUrl>
 
+#include "HyperionConfig.h"
+
 // hyperion-remote includes
 #include "JsonConnection.h"
 
@@ -106,6 +108,7 @@ void JsonConnection::setImage(QImage &image, int priority, int duration)
 	parseReply(reply);
 }
 
+#if defined(ENABLE_EFFECTENGINE)
 void JsonConnection::setEffect(const QString &effectName, const QString & effectArgs, int priority, int duration)
 {
 	Debug(_log, "Start effect: %s", QSTRING_CSTR(effectName));
@@ -185,6 +188,7 @@ void JsonConnection::deleteEffect(const QString &effectName)
 	// parse reply message
 	parseReply(reply);
 }
+#endif
 
 QString JsonConnection::getServerInfoString()
 {

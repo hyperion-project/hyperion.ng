@@ -22,8 +22,6 @@ class Effect : public QThread
 
 public:
 
-	static const int ENDLESS;
-
 	friend class EffectModule;
 
 	Effect(Hyperion *hyperion

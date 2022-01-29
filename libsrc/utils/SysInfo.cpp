@@ -1,5 +1,9 @@
+#include "HyperionConfig.h"
+
+#if defined(ENABLE_EFFECTENGINE)
 // Python includes
 #include <Python.h>
+#endif
 
 #include "utils/SysInfo.h"
 #include "utils/FileUtils.h"
@@ -10,6 +14,7 @@
 #include <QRegularExpressionMatch>
 
 #include <iostream>
+#include <unistd.h>
 
 #ifdef _WIN32
 #include <shlobj_core.h>
@@ -32,7 +37,9 @@ SysInfo::SysInfo()
 	_sysinfo.isUserAdmin = isUserAdmin();
 	getCPUInfo();
 	_sysinfo.qtVersion = QT_VERSION_STR;
+#if defined(ENABLE_EFFECTENGINE)
 	_sysinfo.pyVersion = PY_VERSION;
+#endif
 }
 
 SysInfo::HyperionSysInfo SysInfo::get()

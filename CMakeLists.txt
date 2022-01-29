@@ -38,16 +38,6 @@ if ( CCACHE_FOUND )
 	set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 endif(CCACHE_FOUND)
 
-if ("${CMAKE_VERSION}" VERSION_LESS "3.12.0")
-	set(Python_ADDITIONAL_VERSIONS 3.5)
-	find_package(PythonInterp 3.5 REQUIRED)
-else()
-	find_package(Python3 3.5 COMPONENTS Interpreter Development REQUIRED)
-	if(Python3_FOUND)
-		set(PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
-	endif()
-endif()
-
 # Set build variables
 # Grabber
 SET ( DEFAULT_AMLOGIC                     OFF )
@@ -78,15 +68,17 @@ SET ( DEFAULT_WS281XPWM                   OFF )
 
 # Services
 SET ( DEFAULT_AVAHI                       ON  )
+SET ( DEFAULT_EFFECTENGINE                ON  )
 SET ( DEFAULT_EXPERIMENTAL                OFF )
 
 # Build
-SET ( DEFAULT_TESTS                       OFF )
+SET ( DEFAULT_JSONCHECKS                  ON  )
 SET ( DEFAULT_DEPLOY_DEPENDENCIES         ON  )
 SET ( DEFAULT_USE_SHARED_AVAHI_LIBS       ON  )
 SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF )
 SET ( DEFAULT_USE_SYSTEM_PROTO_LIBS       OFF )
 SET ( DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     OFF )
+SET ( DEFAULT_TESTS                       OFF )
 
 # Build Hyperion with a reduced set of functionality, overwrites other default values
 SET ( DEFAULT_HYPERION_LIGHT              OFF )
@@ -221,6 +213,9 @@ if (HYPERION_LIGHT)
 	# Disable Output Connectors
 	SET ( DEFAULT_FORWARDER                   OFF )
 	SET ( DEFAULT_FLATBUF_CONNECT             OFF )
+
+	# Disable Services
+	SET ( DEFAULT_EFFECTENGINE                OFF )
 endif()
 
 message(STATUS "Grabber options:")
@@ -315,6 +310,9 @@ removeIndent()
 message(STATUS "Services options:")
 addIndent(" - ")
 
+option(ENABLE_EFFECTENGINE "Enable Effect-Engine" ${DEFAULT_EFFECTENGINE})
+message(STATUS "ENABLE_EFFECTENGINE = " ${ENABLE_EFFECTENGINE})
+
 option(ENABLE_AVAHI "Enable Zeroconf" ${DEFAULT_AVAHI})
 message(STATUS "ENABLE_AVAHI = " ${ENABLE_AVAHI})
 
@@ -326,11 +324,8 @@ removeIndent()
 message(STATUS "Build options:")
 addIndent(" - ")
 
-option(ENABLE_TESTS "Compile additional test applications" ${DEFAULT_TESTS})
-message(STATUS "ENABLE_TESTS = ${ENABLE_TESTS}")
-
-option(ENABLE_PROFILER "enable profiler capabilities - not for release code" OFF)
-message(STATUS "ENABLE_PROFILER = ${ENABLE_PROFILER}")
+option(ENABLE_JSONCHECKS "Validate json schema files" ${DEFAULT_JSONCHECKS})
+message(STATUS "ENABLE_JSONCHECKS = ${ENABLE_JSONCHECKS}")
 
 option(ENABLE_DEPLOY_DEPENDENCIES "Deploy with dependencies" ${DEFAULT_DEPLOY_DEPENDENCIES})
 message(STATUS "ENABLE_DEPLOY_DEPENDENCIES = ${ENABLE_DEPLOY_DEPENDENCIES}")
@@ -342,6 +337,12 @@ message(STATUS "DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS = ${DEFAULT_USE_SYSTEM_FLATB
 message(STATUS "DEFAULT_USE_SYSTEM_MBEDTLS_LIBS = ${DEFAULT_USE_SYSTEM_MBEDTLS_LIBS}")
 message(STATUS "DEFAULT_USE_SYSTEM_PROTO_LIBS = ${DEFAULT_USE_SYSTEM_PROTO_LIBS}")
 
+option(ENABLE_PROFILER "enable profiler capabilities - not for release code" OFF)
+message(STATUS "ENABLE_PROFILER = ${ENABLE_PROFILER}")
+
+option(ENABLE_TESTS "Compile additional test applications" ${DEFAULT_TESTS})
+message(STATUS "ENABLE_TESTS = ${ENABLE_TESTS}")
+
 removeIndent()
 
 SET ( FLATBUFFERS_INSTALL_BIN_DIR ${CMAKE_BINARY_DIR}/flatbuf )
@@ -350,40 +351,60 @@ SET ( FLATBUFFERS_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/flatbuf )
 SET ( PROTOBUF_INSTALL_BIN_DIR ${CMAKE_BINARY_DIR}/proto )
 SET ( PROTOBUF_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/proto )
 
-# check all json files
-FILE ( GLOB_RECURSE HYPERION_SCHEMAS RELATIVE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/libsrc/*schema*.json )
-SET( JSON_FILES ${CMAKE_BINARY_DIR}/config/hyperion.config.json.default	${HYPERION_SCHEMAS})
+if(ENABLE_EFFECTENGINE)
+	if ("${CMAKE_VERSION}" VERSION_LESS "3.12.0")
+			set(Python_ADDITIONAL_VERSIONS 3.5)
+			find_package(PythonInterp 3.5 REQUIRED)
+	else()
+		find_package(Python3 3.5 COMPONENTS Interpreter Development REQUIRED)
+		if(Python3_FOUND)
+			set(PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
+		endif()
+	endif()
+else()
+	if(ENABLE_JSONCHECKS)
+		find_package(PythonInterp REQUIRED)
+	endif()		
+endif()
 
-EXECUTE_PROCESS (
-	COMMAND ${PYTHON_EXECUTABLE} test/jsonchecks/checkjson.py ${JSON_FILES}
-	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-	RESULT_VARIABLE CHECK_JSON_FAILED
-)
-IF ( ${CHECK_JSON_FAILED} )
-	MESSAGE (FATAL_ERROR "check of json files failed" )
-ENDIF ()
+if(ENABLE_JSONCHECKS)
+	# check all json files
+	FILE ( GLOB_RECURSE HYPERION_SCHEMAS RELATIVE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/libsrc/*schema*.json )
+	SET( JSON_FILES ${CMAKE_BINARY_DIR}/config/hyperion.config.json.default	${HYPERION_SCHEMAS})
 
-EXECUTE_PROCESS (
-	COMMAND ${PYTHON_EXECUTABLE} test/jsonchecks/checkeffects.py effects effects/schema
-	WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-	RESULT_VARIABLE CHECK_EFFECTS_FAILED
-)
-IF ( ${CHECK_EFFECTS_FAILED} )
-	MESSAGE (FATAL_ERROR "check of json effect files failed" )
-ENDIF ()
-
-# for python 3 the checkschema.py file must be rewritten
-# TODO on windows it can't resolve the path inside the file (Das System kann den angegebenen Pfad nicht finden: '\\schema\\schema-general.json')
-IF (NOT WIN32)
 	EXECUTE_PROCESS (
-		COMMAND python test/jsonchecks/checkschema.py ${CMAKE_BINARY_DIR}/config/hyperion.config.json.default libsrc/hyperion/hyperion.schema.json
+		COMMAND ${PYTHON_EXECUTABLE} test/jsonchecks/checkjson.py ${JSON_FILES}
 		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-		RESULT_VARIABLE CHECK_CONFIG_FAILED
+		RESULT_VARIABLE CHECK_JSON_FAILED
 	)
-ENDIF()
-IF ( ${CHECK_CONFIG_FAILED} )
-	MESSAGE (FATAL_ERROR "check of json default config failed" )
-ENDIF ()
+	IF ( ${CHECK_JSON_FAILED} )
+		MESSAGE (FATAL_ERROR "check of json files failed" )
+	ENDIF ()
+
+	if(ENABLE_EFFECTENGINE)
+		EXECUTE_PROCESS (
+			COMMAND ${PYTHON_EXECUTABLE} test/jsonchecks/checkeffects.py effects effects/schema
+			WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+			RESULT_VARIABLE CHECK_EFFECTS_FAILED
+		)
+		IF ( ${CHECK_EFFECTS_FAILED} )
+			MESSAGE (FATAL_ERROR "check of json effect files failed" )
+		ENDIF ()
+	endif()
+
+	# for python 3 the checkschema.py file must be rewritten
+	# TODO on windows it can't resolve the path inside the file (Das System kann den angegebenen Pfad nicht finden: '\\schema\\schema-general.json')
+	IF (NOT WIN32)
+		EXECUTE_PROCESS (
+			COMMAND python test/jsonchecks/checkschema.py ${CMAKE_BINARY_DIR}/config/hyperion.config.json.default libsrc/hyperion/hyperion.schema.json
+			WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+			RESULT_VARIABLE CHECK_CONFIG_FAILED
+		)
+	ENDIF()
+	IF ( ${CHECK_CONFIG_FAILED} )
+		MESSAGE (FATAL_ERROR "check of json default config failed" )
+	ENDIF ()
+endif(ENABLE_JSONCHECKS)
 
 # Add project specific cmake modules (find, etc)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
@@ -519,10 +540,16 @@ add_subdirectory(resources)
 
 # remove generated files on make cleaan too
 LIST( APPEND GENERATED_QRC
-	${CMAKE_BINARY_DIR}/EffectEngine.qrc
 	${CMAKE_BINARY_DIR}/WebConfig.qrc
 	${CMAKE_BINARY_DIR}/HyperionConfig.h
 )
+
+if(ENABLE_EFFECTENGINE)
+LIST( APPEND GENERATED_QRC
+	${CMAKE_BINARY_DIR}/EffectEngine.qrc
+)
+endif ()
+
 set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${GENERATED_QRC}" )
 
 # enable C++11; MSVC doesn't have c++11 feature switch

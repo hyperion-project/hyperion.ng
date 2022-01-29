@@ -66,6 +66,9 @@
 // Define to enable AVAHI
 #cmakedefine ENABLE_AVAHI
 
+// Define to enable EFFECTENGINE
+#cmakedefine ENABLE_EFFECTENGINE
+
 // Define to enable experimental features
 #cmakedefine ENABLE_EXPERIMENTAL
 

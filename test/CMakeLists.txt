@@ -4,7 +4,10 @@ include_directories(../libsrc)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
 
 MACRO (link_to_hyperion TARGET)
-	target_link_libraries( ${TARGET} blackborder leddevice jsonserver hyperion-utils hyperion effectengine )
+	target_link_libraries( ${TARGET} blackborder leddevice jsonserver hyperion-utils hyperion )
+	if(ENABLE_EFFECTENGINE)
+		target_link_libraries( ${TARGET} effectengine )
+	endif()
 ENDMACRO()
 
 if(ENABLE_SPIDEV)

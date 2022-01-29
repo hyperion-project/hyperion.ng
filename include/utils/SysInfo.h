@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QString>
 
+#include "HyperionConfig.h"
+
 class SysInfo : public QObject
 {
 public:
@@ -24,7 +26,9 @@ public:
 		QString domainName;
 		bool isUserAdmin;
 		QString qtVersion;
+#if defined(ENABLE_EFFECTENGINE)
 		QString pyVersion;
+#endif
 	};
 
 	static HyperionSysInfo get();

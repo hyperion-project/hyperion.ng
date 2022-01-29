@@ -1,6 +1,8 @@
 $(document).ready(function () {
   performTranslation();
 
+  var EFFECTENGINE_ENABLED = (jQuery.inArray("effectengine", window.serverInfo.services) !== -1);
+
   // update instance listing
   updateHyperionInstanceListing();
 
@@ -337,10 +339,13 @@ $(document).ready(function () {
   });
 
   $("#remote_input_reseff, #remote_input_rescol").off().on("click", function () {
-    if (this.id == "remote_input_rescol")
+    if (this.id == "remote_input_rescol") {
       sendColor();
-    else
-      sendEffect();
+    } else {
+      if (EFFECTENGINE_ENABLED) {
+        sendEffect();
+      }
+    }
   });
 
   $("#remote_input_repimg").off().on("click", function () {
@@ -365,7 +370,12 @@ $(document).ready(function () {
   updateInputSelect();
   updateLedMapping();
   updateVideoMode();
-  updateEffectlist();
+  if (EFFECTENGINE_ENABLED) {
+    updateEffectlist();
+  } else {
+    $('#effect_row').hide();
+  }
+
 
   // interval updates
 

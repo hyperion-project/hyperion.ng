@@ -15,8 +15,10 @@
 
 #include <utils/ColorRgb.h>
 #include <utils/Process.h>
+#if defined(ENABLE_EFFECTENGINE)
 #include <effectengine/EffectDefinition.h>
 #include <effectengine/Effect.h>
+#endif
 #include <webserver/WebServer.h>
 #include <hyperion/PriorityMuxer.h>
 
@@ -91,8 +93,10 @@ void SysTray::createTrayIcon()
 	clearAction->setIcon(QPixmap(":/clear.svg"));
 	connect(clearAction, &QAction::triggered, this, &SysTray::clearEfxColor);
 
-	const std::list<EffectDefinition> efxs = _hyperion->getEffects();
 	_trayIconMenu = new QMenu(this);
+
+#if defined(ENABLE_EFFECTENGINE)
+	const std::list<EffectDefinition> efxs = _hyperion->getEffects();
 	_trayIconEfxMenu = new QMenu(_trayIconMenu);
 	_trayIconEfxMenu->setTitle(tr("Effects"));
 	_trayIconEfxMenu->setIcon(QPixmap(":/effects.svg"));
@@ -122,6 +126,7 @@ void SysTray::createTrayIcon()
 			_trayIconEfxMenu->addAction(efxAction);
 		}
 	}
+#endif
 
 #ifdef _WIN32
 	autorunAction = new QAction(tr("&Disable autostart"), this);
@@ -135,7 +140,9 @@ void SysTray::createTrayIcon()
 	_trayIconMenu->addAction(settingsAction);
 	_trayIconMenu->addSeparator();
 	_trayIconMenu->addAction(colorAction);
+#if defined(ENABLE_EFFECTENGINE)
 	_trayIconMenu->addMenu(_trayIconEfxMenu);
+#endif
 	_trayIconMenu->addAction(clearAction);
 	_trayIconMenu->addSeparator();
 	_trayIconMenu->addAction(restartAction);
@@ -175,7 +182,7 @@ void SysTray::setColor(const QColor & color)
 {
 	std::vector<ColorRgb> rgbColor{ ColorRgb{ (uint8_t)color.red(), (uint8_t)color.green(), (uint8_t)color.blue() } };
 
-	_hyperion->setColor(PriorityMuxer::FG_PRIORITY,rgbColor, Effect::ENDLESS);
+	_hyperion->setColor(PriorityMuxer::FG_PRIORITY,rgbColor, PriorityMuxer::ENDLESS);
 }
 
 void SysTray::showColorDialog()
@@ -228,11 +235,13 @@ void SysTray::settings() const
 	#endif
 }
 
+#if defined(ENABLE_EFFECTENGINE)
 void SysTray::setEffect()
 {
 	QString efxName = qobject_cast<QAction*>(sender())->text();
-	_hyperion->setEffect(efxName, PriorityMuxer::FG_PRIORITY, Effect::ENDLESS);
+	_hyperion->setEffect(efxName, PriorityMuxer::FG_PRIORITY, PriorityMuxer::ENDLESS);
 }
+#endif
 
 void SysTray::clearEfxColor()
 {

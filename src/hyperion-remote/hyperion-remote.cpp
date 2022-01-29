@@ -100,11 +100,13 @@ int main(int argc, char * argv[])
 		IntOption       & argDuration           = parser.add<IntOption>    ('d', "duration"               , "Specify how long the LEDs should be switched on in milliseconds [default: infinity]");
 		ColorsOption    & argColor              = parser.add<ColorsOption> ('c', "color"                  , "Set all LEDs to a constant color (either RRGGBB hex getColors or a color name. The color may be repeated multiple time like: RRGGBBRRGGBB)");
 		ImageOption     & argImage              = parser.add<ImageOption>  ('i', "image"                  , "Set the LEDs to the colors according to the given image file");
+#if defined(ENABLE_EFFECTENGINE)
 		Option          & argEffect             = parser.add<Option>       ('e', "effect"                 , "Enable the effect with the given name");
 		Option          & argEffectFile         = parser.add<Option>       (0x0, "effectFile"             , "Arguments to use in combination with --createEffect");
 		Option          & argEffectArgs         = parser.add<Option>       (0x0, "effectArgs"             , "Arguments to use in combination with the specified effect. Should be a JSON object string.", "");
 		Option          & argCreateEffect       = parser.add<Option>       (0x0, "createEffect"           , "Write a new JSON Effect configuration file.\nFirst parameter = Effect name.\nSecond parameter = Effect file (--effectFile).\nLast parameter = Effect arguments (--effectArgs.)", "");
 		Option          & argDeleteEffect       = parser.add<Option>       (0x0, "deleteEffect"           , "Delete a custom created JSON Effect configuration file.");
+#endif
 		BooleanOption   & argServerInfo         = parser.add<BooleanOption>('l', "list"                   , "List server info and active effects with priority and duration");
 		BooleanOption   & argSysInfo            = parser.add<BooleanOption>('s', "sysinfo"                , "show system info");
 		BooleanOption   & argClear              = parser.add<BooleanOption>('x', "clear"                  , "Clear data for the priority channel provided by the -p option");
@@ -160,7 +162,10 @@ int main(int argc, char * argv[])
 			|| parser.isSet(argBacklightThreshold) || parser.isSet(argBacklightColored);
 
 		// check that exactly one command was given
-		int commandCount = count({ parser.isSet(argColor), parser.isSet(argImage), parser.isSet(argEffect), parser.isSet(argCreateEffect), parser.isSet(argDeleteEffect),
+		int commandCount = count({ parser.isSet(argColor), parser.isSet(argImage),
+#if defined(ENABLE_EFFECTENGINE)
+			parser.isSet(argEffect), parser.isSet(argCreateEffect), parser.isSet(argDeleteEffect),
+#endif
 		    parser.isSet(argServerInfo), parser.isSet(argSysInfo),parser.isSet(argClear), parser.isSet(argClearAll), parser.isSet(argEnableComponent), parser.isSet(argDisableComponent), colorAdjust,
 		    parser.isSet(argSource), parser.isSet(argSourceAuto), parser.isSet(argOff), parser.isSet(argOn), parser.isSet(argConfigGet), parser.isSet(argSchemaGet), parser.isSet(argConfigSet),
 		    parser.isSet(argMapping),parser.isSet(argVideoMode) });
@@ -169,9 +174,11 @@ int main(int argc, char * argv[])
 			qWarning() << (commandCount == 0 ? "No command found." : "Multiple commands found.") << " Provide exactly one of the following options:";
 			showHelp(argColor);
 			showHelp(argImage);
+#if defined(ENABLE_EFFECTENGINE)
 			showHelp(argEffect);
 			showHelp(argCreateEffect);
 			showHelp(argDeleteEffect);
+#endif
 			showHelp(argServerInfo);
 			showHelp(argSysInfo);
 			showHelp(argClear);
@@ -247,6 +254,7 @@ int main(int argc, char * argv[])
 		{
 			connection.setImage(argImage.getImage(parser), argPriority.getInt(parser), argDuration.getInt(parser));
 		}
+#if defined(ENABLE_EFFECTENGINE)
 		else if (parser.isSet(argEffect))
 		{
 			connection.setEffect(argEffect.value(parser), argEffectArgs.value(parser), argPriority.getInt(parser), argDuration.getInt(parser));
@@ -259,6 +267,7 @@ int main(int argc, char * argv[])
 		{
 			connection.deleteEffect(argDeleteEffect.value(parser));
 		}
+#endif
 		else if (parser.isSet(argServerInfo))
 		{
 			std::cout << "Server info:\n" << connection.getServerInfoString().toStdString() << std::endl;

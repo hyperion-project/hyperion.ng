@@ -99,10 +99,12 @@ private slots:
 	///
 	void handleVideoModeChange(VideoMode mode);
 
+#if defined(ENABLE_EFFECTENGINE)
 	///
 	/// @brief Handle effect list change
 	///
 	void handleEffectListChange();
+#endif
 
 	///
 	/// @brief Handle a config part change. This does NOT include (global) changes from other hyperion instances
