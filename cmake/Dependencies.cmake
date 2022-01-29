@@ -102,7 +102,7 @@ macro(DeployLinux TARGET)
 			"libgcc_s"
 			"libgcrypt"
 			"libGL"
-			"libGLdispatch"
+#			"libGLdispatch"
 			"libglib-2"
 			"libGLX"
 			"libgpg-error"

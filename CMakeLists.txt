@@ -48,6 +48,9 @@ else()
 	endif()
 endif()
 
+# Add project specific cmake modules (find, etc)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
 # Set build variables
 # Grabber
 SET ( DEFAULT_AMLOGIC                     OFF )
@@ -392,9 +395,6 @@ ENDIF()
 IF ( ${CHECK_CONFIG_FAILED} )
 	MESSAGE (FATAL_ERROR "check of json default config failed" )
 ENDIF ()
-
-# Add project specific cmake modules (find, etc)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 find_package(GitVersion)
 

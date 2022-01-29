@@ -31,9 +31,9 @@ static PixelFormat GetPixelFormatForDrmFormat(uint32_t format)
 {
 	switch (format)
 	{
-		case DRM_FORMAT_XRGB8888: return PixelFormat::RGB32;
-		case DRM_FORMAT_ARGB8888: return PixelFormat::RGB32;
-		case DRM_FORMAT_XBGR8888: return PixelFormat::BGR32;
+		case DRM_FORMAT_XRGB8888: return PixelFormat::BGR32;
+		case DRM_FORMAT_ARGB8888: return PixelFormat::BGR32;
+		case DRM_FORMAT_XBGR8888: return PixelFormat::RGB32;
 		case DRM_FORMAT_NV12: return PixelFormat::NV12;
 		case DRM_FORMAT_YUV420: return PixelFormat::I420;
 		default: return PixelFormat::NO_CHANGE;
@@ -169,11 +169,11 @@ int DRMFrameGrabber::grabFrame(Image<ColorRgb> & image)
 					uint8_t *mmapFrameBuffer;
 					if (_pixelFormat == PixelFormat::I420 || _pixelFormat == PixelFormat::NV12)
 					{
-						size = (6 * w * h) / 4;
-						mmapFrameBuffer = (uint8_t*)mmap(0, size, PROT_READ, MAP_PRIVATE, fb_dmafd, 0);
+						size = (w * h * 3) / 2;
+						mmapFrameBuffer = (uint8_t*)mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fb_dmafd, 0);
 						if (mmapFrameBuffer != MAP_FAILED)
 						{
-							_imageResampler.processImage(mmapFrameBuffer, w, h, size, _pixelFormat, image);
+							_imageResampler.processImage(mmapFrameBuffer, w, h, w, _pixelFormat, image);
 							munmap(mmapFrameBuffer, size);
 							close(fb_dmafd);
 							break;
@@ -193,10 +193,10 @@ int DRMFrameGrabber::grabFrame(Image<ColorRgb> & image)
 					else if (_pixelFormat == PixelFormat::RGB32 || _pixelFormat == PixelFormat::BGR32)
 					{
 						size = w * h * 4;
-						mmapFrameBuffer = (uint8_t*)mmap(0, size, PROT_READ, MAP_PRIVATE, fb_dmafd, 0);
+						mmapFrameBuffer = (uint8_t*)mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fb_dmafd, 0);
 						if (mmapFrameBuffer != MAP_FAILED)
 						{
-							_imageResampler.processImage(mmapFrameBuffer, w, h, size, _pixelFormat, image);
+							_imageResampler.processImage(mmapFrameBuffer, w, h, w * 4, _pixelFormat, image);
 							munmap(mmapFrameBuffer, size);
 							close(fb_dmafd);
 							break;

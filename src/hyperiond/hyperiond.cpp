@@ -85,6 +85,7 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	  , _fbGrabber(nullptr)
 	  , _osxGrabber(nullptr)
 	  , _qtGrabber(nullptr)
+	  , _drmGrabber(nullptr)
 	  , _dxGrabber(nullptr)
 	  , _ssdp(nullptr)
 #ifdef ENABLE_CEC
@@ -143,7 +144,7 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	connect(this, &HyperionDaemon::videoMode, _instanceManager, &HyperionIManager::newVideoMode);
 
 	// ---- grabber -----
-#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB) && !defined(ENABLE_X11) && !defined(ENABLE_XCB) && !defined(ENABLE_AMLOGIC) && !defined(ENABLE_QT) && !defined(ENABLE_DX)
+#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB) && !defined(ENABLE_X11) && !defined(ENABLE_XCB) && !defined(ENABLE_AMLOGIC) && !defined(ENABLE_QT) && !defined(ENABLE_DX) && !defined(ENABLE_DRM)
 	Info(_log, "No platform capture supported on this platform");
 #endif
 
@@ -262,6 +263,7 @@ void HyperionDaemon::freeObjects()
 	delete _qtGrabber;
 	delete _dxGrabber;
 	delete _videoGrabber;
+	delete _drmGrabber;
 
 	_videoGrabber = nullptr;
 	_amlGrabber  = nullptr;
@@ -270,6 +272,7 @@ void HyperionDaemon::freeObjects()
 	_osxGrabber  = nullptr;
 	_qtGrabber   = nullptr;
 	_dxGrabber   = nullptr;
+	_drmGrabber  = nullptr;
 }
 
 void HyperionDaemon::startNetworkServices()
@@ -495,6 +498,14 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 				_dxGrabber = nullptr;
 			}
 			#endif
+			#ifdef ENABLE_DRM
+			if (_drmGrabber != nullptr)
+			{
+				_drmGrabber->stop();
+				delete _drmGrabber;
+				_drmGrabber = nullptr;
+			}
+			#endif
 
 			// create/start capture interface
 			if (type == "framebuffer")
@@ -583,6 +594,17 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 				#ifdef ENABLE_DX
 					_dxGrabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
 					_dxGrabber->tryStart();
+				#endif
+			}
+			else if (type == "drm")
+			{
+				if (_drmGrabber == nullptr)
+				{
+					createGrabberDrm(grabberConfig);
+				}
+				#ifdef ENABLE_DRM
+					_drmGrabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
+					_drmGrabber->tryStart();
 				#endif
 			}
 			else
@@ -812,5 +834,28 @@ void HyperionDaemon::createCecHandler()
 	Info(_log, "CEC handler created");
 #else
 	Debug(_log, "The CEC handler is not supported on this platform");
+#endif
+}
+
+void HyperionDaemon::createGrabberDrm(const QJsonObject& grabberConfig)
+{
+#ifdef ENABLE_DRM
+	// Construct and start the DRM grabber if the configuration is present
+
+	int fbIdx = grabberConfig["input"].toInt(0);
+	QString devicePath = QString("/dev/dri/card%1").arg(fbIdx);
+	_drmGrabber = new DRMWrapper(
+		_grabber_frequency,
+		devicePath,
+		_grabber_pixelDecimation
+		);
+	_drmGrabber->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
+	// connect to HyperionDaemon signal
+	connect(this, &HyperionDaemon::videoMode, _drmGrabber, &DRMWrapper::setVideoMode);
+	connect(this, &HyperionDaemon::settingsChanged, _drmGrabber, &DRMWrapper::handleSettingsUpdate);
+
+	Info(_log, "DRM grabber created");
+#else
+	Debug(_log, "The DRM grabber is not supported on this platform");
 #endif
 }

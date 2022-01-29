@@ -55,6 +55,10 @@
 	#include <grabber/OsxFrameGrabber.h>
 #endif
 
+#if defined(ENABLE_DRM)
+	#include <grabber/DRMFrameGrabber.h>
+#endif
+
 #include <utils/jsonschema/QJsonFactory.h>
 #include <utils/jsonschema/QJsonSchemaChecker.h>
 #include <HyperionConfig.h>
@@ -1682,6 +1686,16 @@ void JsonAPI::handleInputSourceCommand(const QJsonObject& message, const QString
 						videoInputs.append(device);
 					}
 					delete osxGrabber;
+					#endif
+
+					#if defined(ENABLE_DRM)
+					DRMFrameGrabber* drmGrabber = new DRMFrameGrabber();
+					device = drmGrabber->discover(params);
+					if (!device.isEmpty() )
+					{
+						videoInputs.append(device);
+					}
+					delete drmGrabber;
 					#endif
 				}
 

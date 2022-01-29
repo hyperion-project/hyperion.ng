@@ -58,6 +58,12 @@
 	typedef QObject DirectXWrapper;
 #endif
 
+#ifdef ENABLE_DRM
+	#include <grabber/DRMWrapper.h>
+#else
+	typedef QObject DRMWrapper;
+#endif
+
 #include <hyperion/GrabberWrapper.h>
 
 #include <utils/Logger.h>
@@ -162,6 +168,7 @@ private:
 	void createGrabberQt(const QJsonObject & grabberConfig);
 	void createCecHandler();
 	void createGrabberDx(const QJsonObject & grabberConfig);
+	void createGrabberDrm(const QJsonObject & grabberConfig);
 
 	Logger*                    _log;
 	HyperionIManager*          _instanceManager;
@@ -180,6 +187,7 @@ private:
 	FramebufferWrapper*        _fbGrabber;
 	OsxWrapper*                _osxGrabber;
 	QtWrapper*                 _qtGrabber;
+	DRMWrapper*                _drmGrabber;
 	DirectXWrapper*            _dxGrabber;
 	SSDPHandler*               _ssdp;
 
