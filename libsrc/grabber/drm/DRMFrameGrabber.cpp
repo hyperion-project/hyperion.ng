@@ -20,24 +20,45 @@
 
 // Constants
 namespace {
-	const bool verbose = true;
+	const bool verbose = false;
 
 	// drm discovery service
 	const char DISCOVERY_DIRECTORY[] = "/dev/dri";
 	const char DISCOVERY_FILEPATTERN[] = "card?";
 } //End of constants
 
+#define DIV_ROUND_UP(n, d) (((n) + (d) - 1) / (d))
+#define ALIGN(v, a) (((v) + (a)-1) & ~((a)-1))
+
 static PixelFormat GetPixelFormatForDrmFormat(uint32_t format)
 {
 	switch (format)
 	{
-		case DRM_FORMAT_XRGB8888: return PixelFormat::BGR32;
-		case DRM_FORMAT_ARGB8888: return PixelFormat::BGR32;
-		case DRM_FORMAT_XBGR8888: return PixelFormat::RGB32;
-		case DRM_FORMAT_NV12: return PixelFormat::NV12;
-		case DRM_FORMAT_YUV420: return PixelFormat::I420;
-		default: return PixelFormat::NO_CHANGE;
+		case DRM_FORMAT_XRGB8888:	return PixelFormat::BGR32;
+		case DRM_FORMAT_ARGB8888:	return PixelFormat::BGR32;
+		case DRM_FORMAT_XBGR8888:	return PixelFormat::RGB32;
+		case DRM_FORMAT_NV12:		return PixelFormat::NV12;
+		case DRM_FORMAT_YUV420:		return PixelFormat::I420;
+		default:					return PixelFormat::NO_CHANGE;
 	}
+}
+
+// Code from: https://gitlab.freedesktop.org/drm/igt-gpu-tools/-/blob/master/lib/igt_vc4.c#L339
+static size_t vc4_sand_tiled_offset(size_t column_width, size_t column_size, size_t x, size_t y, size_t bpp)
+{
+	size_t offset = 0;
+	size_t cols_x;
+	size_t pix_x;
+
+	/* Offset to the beginning of the relevant column. */
+	cols_x = x / column_width;
+	offset += cols_x * column_size;
+
+	/* Offset to the relevant pixel. */
+	pix_x = x % column_width;
+	offset += (column_width * y + pix_x) * bpp / 8;
+
+	return offset;
 }
 
 DRMFrameGrabber::DRMFrameGrabber(const QString & device)
@@ -216,6 +237,131 @@ int DRMFrameGrabber::grabFrame(Image<ColorRgb> & image)
 
 					close(fb_dmafd);
 
+				}
+				else if (_pixelFormat == PixelFormat::NV12 && modifier >> 56ULL == DRM_FORMAT_MOD_VENDOR_BROADCOM)
+				{
+					switch (fourcc_mod_broadcom_mod(modifier))
+					{
+						case DRM_FORMAT_MOD_BROADCOM_SAND32:
+						case DRM_FORMAT_MOD_BROADCOM_SAND64:
+						case DRM_FORMAT_MOD_BROADCOM_SAND128:
+						case DRM_FORMAT_MOD_BROADCOM_SAND256:
+						{
+							uint64_t modifier_base = fourcc_mod_broadcom_mod(modifier);
+							uint32_t column_height = fourcc_mod_broadcom_param(modifier);
+							uint32_t column_width_bytes;
+
+							switch (modifier_base)
+							{
+								case DRM_FORMAT_MOD_BROADCOM_SAND32:
+								{
+									column_width_bytes = 32;
+									break;
+								}
+								case DRM_FORMAT_MOD_BROADCOM_SAND64:
+								{
+									column_width_bytes = 64;
+									break;
+								}
+								case DRM_FORMAT_MOD_BROADCOM_SAND128:
+								{
+									column_width_bytes = 128;
+									break;
+								}
+								case DRM_FORMAT_MOD_BROADCOM_SAND256:
+								{
+									column_width_bytes = 256;
+									break;
+								}
+							}
+
+							int ret = drmPrimeHandleToFD(_deviceFd, framebuffer.second->handles[0], O_RDONLY, &fb_dmafd);
+							if (ret < 0)
+							{
+								continue;
+							}
+
+							int w = framebuffer.second->width;
+							int h = framebuffer.second->height;
+							Grabber::setWidthHeight(w, h);
+
+							int num_planes = 0;
+							size_t plane_bpp[4] = {0, 0, 0, 0};
+							int plane_width[4] = {0, 0, 0, 0};
+							int plane_height[4] = {0, 0, 0, 0};
+							int plane_stride[4] = {0, 0, 0, 0};
+							uint32_t size = 0;
+
+							// TODO add NV21 and P030 format (DRM_FORMAT_NV21/DRM_FORMAT_P030)
+							if (_pixelFormat == PixelFormat::NV12)
+							{
+								num_planes = 1; // 2; // Need help for the UV information from the second plane
+								plane_bpp[0] = 8;
+								plane_bpp[1] = 16;
+								plane_width[0] = w;
+								plane_width[1] = DIV_ROUND_UP(w, 2);
+								plane_height[0] = h;
+								plane_height[1] = DIV_ROUND_UP(h, 2);
+								size = (w * h * 3) / 2;
+
+								for (int plane = 0; plane < num_planes; plane++)
+								{
+									uint32_t min_stride = plane_width[plane] * (plane_bpp[plane] / 8);
+									plane_stride[plane] = ALIGN(min_stride, column_width_bytes);
+								}
+							}
+
+							uint8_t *src_buf = (uint8_t*)mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fb_dmafd, 0);
+							if (src_buf != MAP_FAILED)
+							{
+								uint8_t *dst_buf = (uint8_t*)malloc(size);
+								uint32_t column_size = column_width_bytes * column_height;
+
+								for (int plane = 0; plane < num_planes; plane++)
+								{
+									for (int i = 0; i < plane_height[plane]; i++)
+									{
+										for (int j = 0; j < plane_width[plane]; j++)
+										{
+											size_t src_offset = framebuffer.second->offsets[plane];
+											size_t dst_offset = framebuffer.second->offsets[plane];
+
+											src_offset += vc4_sand_tiled_offset(column_width_bytes * plane_width[plane] / w, column_size, j, i, plane_bpp[plane]);
+											dst_offset += plane_stride[plane] * i + j * plane_bpp[plane] / 8;
+
+											switch (plane_bpp[plane])
+											{
+												case 8:
+													*(uint8_t *)(dst_buf + dst_offset) = *(uint8_t *)(src_buf + src_offset);
+													break;
+												case 16:
+													*(uint16_t *)(dst_buf + dst_offset) = *(uint16_t *)(src_buf + src_offset);
+													break;
+											}
+										}
+									}
+								}
+
+								_imageResampler.processImage(dst_buf, w, h, w, _pixelFormat, image);
+
+								munmap(src_buf, size);
+								free(dst_buf);
+								close(fb_dmafd);
+								break;
+							}
+
+							close(fb_dmafd);
+						}
+
+						case DRM_FORMAT_MOD_BROADCOM_VC4_T_TILED:
+						{
+							Debug(_log, "Broadcom modifier 'DRM_FORMAT_MOD_BROADCOM_VC4_T_TILED' currently not supported");
+							break;
+						}
+
+						default:
+							Debug(_log, "Unknown Broadcom modifier");
+					}
 				}
 				else
 					Debug(_log, "Currently unsupported format: %c%c%c%c"

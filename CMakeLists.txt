@@ -48,9 +48,6 @@ else()
 	endif()
 endif()
 
-# Add project specific cmake modules (find, etc)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-
 # Set build variables
 # Grabber
 SET ( DEFAULT_AMLOGIC                     OFF )
@@ -164,12 +161,8 @@ if ( "${PLATFORM}" MATCHES "osx" )
 	SET ( DEFAULT_OSX        ON )
 	SET ( DEFAULT_USB_HID    ON )
 elseif ( "${PLATFORM}" MATCHES "rpi" )
-	find_package(LibDRM 2.4.101 QUIET)
-	if(LIBDRM_FOUND)
-		SET ( DEFAULT_DRM        ON )
-	endif(LIBDRM_FOUND)
 	SET ( DEFAULT_DISPMANX   ON )
-	SET ( DEFAULT_WS281XPWM  ON  )
+	SET ( DEFAULT_WS281XPWM  ON )
 elseif ( "${PLATFORM}" STREQUAL "amlogic" )
 	SET ( DEFAULT_AMLOGIC     ON )
 elseif ( "${PLATFORM}" STREQUAL "amlogic-dev" )
@@ -395,6 +388,9 @@ ENDIF()
 IF ( ${CHECK_CONFIG_FAILED} )
 	MESSAGE (FATAL_ERROR "check of json default config failed" )
 ENDIF ()
+
+# Add project specific cmake modules (find, etc)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 find_package(GitVersion)
 
