@@ -98,8 +98,6 @@ if (ENABLE_DISPMANX)
 endif (ENABLE_DISPMANX)
 
 if (ENABLE_DRM)
-	find_package(LibDRM 2.4.101 REQUIRED)
-	include_directories(${LIBDRM_INCLUDE_DIRS})
 	target_link_libraries(hyperiond	drm-grabber)
 endif (ENABLE_DRM)
 
