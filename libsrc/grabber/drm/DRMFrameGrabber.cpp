@@ -180,7 +180,19 @@ int DRMFrameGrabber::grabFrame(Image<ColorRgb> & image)
 					int h = framebuffer.second->height;
 					Grabber::setWidthHeight(w, h);
 
-					int size;
+					int size = 0, lineLength = 0;
+
+					if (_pixelFormat == PixelFormat::I420 || _pixelFormat == PixelFormat::NV12)
+					{
+						size = (w * h * 3) / 2;
+						lineLength = w;
+					}
+					else if (_pixelFormat == PixelFormat::RGB32 || _pixelFormat == PixelFormat::BGR32)
+					{
+						size = w * h * 4;
+						lineLength = w * 4;
+					}
+
 					int ret = drmPrimeHandleToFD(_deviceFd, framebuffer.second->handles[0], O_RDONLY, &fb_dmafd);
 					if (ret < 0)
 					{
@@ -188,55 +200,27 @@ int DRMFrameGrabber::grabFrame(Image<ColorRgb> & image)
 					}
 
 					uint8_t *mmapFrameBuffer;
-					if (_pixelFormat == PixelFormat::I420 || _pixelFormat == PixelFormat::NV12)
+					mmapFrameBuffer = (uint8_t*)mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fb_dmafd, 0);
+					if (mmapFrameBuffer != MAP_FAILED)
 					{
-						size = (w * h * 3) / 2;
-						mmapFrameBuffer = (uint8_t*)mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fb_dmafd, 0);
-						if (mmapFrameBuffer != MAP_FAILED)
-						{
-							_imageResampler.processImage(mmapFrameBuffer, w, h, w, _pixelFormat, image);
-							munmap(mmapFrameBuffer, size);
-							close(fb_dmafd);
-							break;
-						}
-						else
-						{
-							Error(_log, "Format: %c%c%c%c failed. Error: %s"
-								, framebuffer.second->pixel_format         & 0xff
-								, (framebuffer.second->pixel_format >> 8)  & 0xff
-								, (framebuffer.second->pixel_format >> 16) & 0xff
-								, (framebuffer.second->pixel_format >> 24) & 0xff
-								, strerror(errno)
-							);
-							break;
-						}
+						_imageResampler.processImage(mmapFrameBuffer, w, h, lineLength, _pixelFormat, image);
+						munmap(mmapFrameBuffer, size);
+						close(fb_dmafd);
+						break;
 					}
-					else if (_pixelFormat == PixelFormat::RGB32 || _pixelFormat == PixelFormat::BGR32)
+					else
 					{
-						size = w * h * 4;
-						mmapFrameBuffer = (uint8_t*)mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fb_dmafd, 0);
-						if (mmapFrameBuffer != MAP_FAILED)
-						{
-							_imageResampler.processImage(mmapFrameBuffer, w, h, w * 4, _pixelFormat, image);
-							munmap(mmapFrameBuffer, size);
-							close(fb_dmafd);
-							break;
-						}
-						else
-						{
-							Error(_log, "Format: %c%c%c%c failed. Error: %s"
-								, framebuffer.second->pixel_format         & 0xff
-								, (framebuffer.second->pixel_format >> 8)  & 0xff
-								, (framebuffer.second->pixel_format >> 16) & 0xff
-								, (framebuffer.second->pixel_format >> 24) & 0xff
-								, strerror(errno)
-							);
-							break;
-						}
+						Error(_log, "Format: %c%c%c%c failed. Error: %s"
+							, framebuffer.second->pixel_format         & 0xff
+							, (framebuffer.second->pixel_format >> 8)  & 0xff
+							, (framebuffer.second->pixel_format >> 16) & 0xff
+							, (framebuffer.second->pixel_format >> 24) & 0xff
+							, strerror(errno)
+						);
+						break;
 					}
 
 					close(fb_dmafd);
-
 				}
 				else if (_pixelFormat == PixelFormat::NV12 && modifier >> 56ULL == DRM_FORMAT_MOD_VENDOR_BROADCOM)
 				{
