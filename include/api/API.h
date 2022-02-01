@@ -332,9 +332,9 @@ protected:
     bool getUserToken(QString &userToken);
 
     ///
-    /// @brief Is a token authrized. On success this will grant acces to the API (NOT ADMIN API)
+	/// @brief Is a token authorized. On success this will grant acces to the API (NOT ADMIN API)
     /// @param token   The user Token
-    /// @return True on succes
+	/// @return True on success
     ///
     bool isTokenAuthorized(const QString &token);
 
