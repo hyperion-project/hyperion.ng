@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow to restart Hyperion via Systray
 - LED Matrix Layout - Support vertical cabling direction (#1420)
 - Support additional Yeelight models
+- LED-Devices: Show warning, if get properties failed (Network devices: indication that network device is not reachable)
 
 ### Changed
 

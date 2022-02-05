@@ -1607,6 +1607,7 @@ async function getProperties_device(ledType, key, params) {
         }
       }
       else {
+        showNotification('warning', $.i18n('conf_leds_error_get_properties_text'), $.i18n('conf_leds_error_get_properties_title'))
         $('#btn_submit_controller').attr('disabled', true);
         $('#btn_test_controller').attr('disabled', true);
       }

@@ -55,6 +55,8 @@
     "conf_leds_contr_label_contrtype": "Controller type:",
     "conf_leds_device_info_log": "In case your LEDs do not work, check here for errors:",
     "conf_leds_device_intro": "Hyperion supports a lot of controllers to transmit data to your target device. Select a LED controller out of the sorted list and configure it. We have chosen the best default settings for each device.",
+    "conf_leds_error_get_properties_text" : "Failed to get the device's properties. Please check the configuration items.",
+    "conf_leds_error_get_properties_title" : "Device properties",
     "conf_leds_error_hwled_gt_layout": "The hardware LED count ($1) is greater than LEDs configured via layout ($2),<br>$3 {{plural:$3|LED|LEDs}} will stay black if you continue.",
     "conf_leds_error_hwled_lt_layout": "The hardware LED count ($1) is less than LEDs configured via layout ($2). <br> The number of LEDs configured in the layout must not exceed the available LEDs",
     "conf_leds_error_hwled_gt_maxled": "The hardware LED count ($1) is greater than the maximum number of LEDs supported by the device ($2). <br> The hardware LED count is set to ($3).",
