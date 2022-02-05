@@ -186,6 +186,7 @@
     "dashboard_infobox_label_instance": "Instance:",
     "dashboard_infobox_label_latesthyp": "Latest Hyperion version:",
     "dashboard_infobox_label_platform": "Platform:",
+    "dashboard_infobox_label_port_boblight": "Boblight Server:",
     "dashboard_infobox_label_port_flat": "Flatbuffer:",
     "dashboard_infobox_label_port_json": "JSON-Server:",
     "dashboard_infobox_label_port_proto": "Protobuffer:",
