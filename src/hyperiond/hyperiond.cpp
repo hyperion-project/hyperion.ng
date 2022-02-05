@@ -642,10 +642,6 @@ void HyperionDaemon::createGrabberDispmanx(const QJsonObject& /*grabberConfig*/)
 	// connect to HyperionDaemon signal
 	connect(this, &HyperionDaemon::videoMode, _dispmanx, &DispmanxWrapper::setVideoMode);
 	connect(this, &HyperionDaemon::settingsChanged, _dispmanx, &DispmanxWrapper::handleSettingsUpdate);
-
-	Info(_log, "DISPMANX frame grabber created");
-#else
-	Debug(_log, "The dispmanx framegrabber is not supported on this platform");
 #endif
 }
 

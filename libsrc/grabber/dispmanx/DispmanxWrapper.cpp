@@ -9,6 +9,11 @@ DispmanxWrapper::DispmanxWrapper( int updateRate_Hz,
 	_grabber.setPixelDecimation(pixelDecimation);
 }
 
+bool DispmanxWrapper::open()
+{
+	return _grabber.open();
+}
+
 void DispmanxWrapper::action()
 {
 	transferFrame(_grabber);

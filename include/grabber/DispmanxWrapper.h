@@ -24,6 +24,11 @@ public:
 					 );
 
 	bool screenInit();
+	
+	///
+	/// Starts the grabber which produces led values with the specified update rate
+	///
+	bool open() override;
 
 public slots:
 	///
