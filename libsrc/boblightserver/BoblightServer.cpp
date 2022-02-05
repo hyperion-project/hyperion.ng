@@ -22,9 +22,12 @@ BoblightServer::BoblightServer(Hyperion* hyperion,const QJsonDocument& config)
 	, _server(new QTcpServer(this))
 	, _openConnections()
 	, _priority(0)
-	, _log(Logger::getInstance("BOBLIGHT"))
+	, _log(nullptr)
 	, _port(0)
 {
+	QString subComponent = _hyperion->property("instance").toString();
+	_log= Logger::getInstance("BOBLIGHT", subComponent);
+
 	Debug(_log, "Instance created");
 
 	// listen for component change
@@ -49,7 +52,7 @@ void BoblightServer::start()
 	if (NetUtils::portAvailable(_port, _log))
 		_server->listen(QHostAddress::Any, _port);
 
-	Info(_log, "Started on port %d", _port);
+	Info(_log, "Started on port: %d", _port);
 
 	_hyperion->setNewComponentState(COMP_BOBLIGHTSERVER, _server->isListening());
 }
@@ -92,11 +95,9 @@ uint16_t BoblightServer::getPort() const
 void BoblightServer::newConnection()
 {
 	QTcpSocket * socket = _server->nextPendingConnection();
-
 	if (socket != nullptr)
 	{
-		Info(_log, "new connection");
-		_hyperion->registerInput(_priority, hyperion::COMP_BOBLIGHTSERVER, QString("Boblight@%1").arg(socket->peerAddress().toString()));
+		Info(_log, "New connection from %s ", QSTRING_CSTR(QString("Boblight@%1").arg(socket->peerAddress().toString())));
 		BoblightClientConnection * connection = new BoblightClientConnection(_hyperion, socket, _priority);
 		_openConnections.insert(connection);
 
@@ -107,7 +108,7 @@ void BoblightServer::newConnection()
 
 void BoblightServer::closedConnection(BoblightClientConnection *connection)
 {
-	Debug(_log, "connection closed");
+	Debug(_log, "Connection closed for %s", QSTRING_CSTR(QString("Boblight@%1").arg(connection->getClientAddress())));
 	_openConnections.remove(connection);
 
 	// schedule to delete the connection object
