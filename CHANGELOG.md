@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Colors Smoothing is started in pause mode to save resources, when Hyperion starts with no active source
+- Boblight: Support multiple Boblight clients with different priorities
+- UI: Allow configuration of a Boblight server per LED-instance
 
 ### Fixed
 
