@@ -24,7 +24,9 @@ public:
 					 );
 
 	bool screenInit();
-	
+
+	bool available = false;
+
 	///
 	/// Starts the grabber which produces led values with the specified update rate
 	///

@@ -31,6 +31,22 @@ DispmanxFrameGrabber::DispmanxFrameGrabber()
 	_useImageResampler = true;
 }
 
+bool DispmanxFrameGrabber::isAvailable()
+{
+#ifdef BCM_FOUND
+	void* bcm_host = dlopen(std::string("" BCM_LIBRARY).c_str(), RTLD_LAZY | RTLD_GLOBAL);
+	if (bcm_host != nullptr)
+	{
+		dlclose(bcm_host);
+		return true;
+	}
+
+	return false;
+#else
+	return false;
+#endif
+}
+
 bool DispmanxFrameGrabber::open()
 {
 #ifdef BCM_FOUND

@@ -1656,10 +1656,13 @@ void JsonAPI::handleInputSourceCommand(const QJsonObject& message, const QString
 
 					#if defined(ENABLE_DISPMANX)
 					DispmanxFrameGrabber* dispmanx = new DispmanxFrameGrabber();
-					device = dispmanx->discover(params);
-					if (!device.isEmpty() )
+					if (dispmanx->isAvailable())
 					{
-						videoInputs.append(device);
+						device = dispmanx->discover(params);
+						if (!device.isEmpty() )
+						{
+							videoInputs.append(device);
+						}
 					}
 					delete dispmanx;
 					#endif

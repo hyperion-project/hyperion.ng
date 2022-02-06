@@ -256,7 +256,8 @@ void HyperionDaemon::freeObjects()
 #endif
 
 	delete _amlGrabber;
-	delete _dispmanx;
+	if (_dispmanx != nullptr)
+		delete _dispmanx;
 	delete _fbGrabber;
 	delete _osxGrabber;
 	delete _qtGrabber;
@@ -514,9 +515,13 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 				{
 					createGrabberDispmanx(grabberConfig);
 				}
+
 				#ifdef ENABLE_DISPMANX
+				if (_dispmanx != nullptr)
+				{
 					_dispmanx->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
 					_dispmanx->tryStart();
+				}
 				#endif
 			}
 			else if (type == "amlogic")
@@ -636,12 +641,25 @@ void HyperionDaemon::createGrabberDispmanx(const QJsonObject& /*grabberConfig*/)
 	_dispmanx = new DispmanxWrapper(
 		_grabber_frequency,
 		_grabber_pixelDecimation
-		);
+	);
+
+	if (!_dispmanx->available)
+	{
+		delete _dispmanx;
+		_dispmanx = nullptr;
+		Debug(_log, "The dispmanx framegrabber is not supported on this platform");
+		return;
+	}
+
 	_dispmanx->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
 
 	// connect to HyperionDaemon signal
 	connect(this, &HyperionDaemon::videoMode, _dispmanx, &DispmanxWrapper::setVideoMode);
 	connect(this, &HyperionDaemon::settingsChanged, _dispmanx, &DispmanxWrapper::handleSettingsUpdate);
+
+	Info(_log, "DISPMANX frame grabber created");
+#else
+	Debug(_log, "The dispmanx framegrabber is not supported on this platform");
 #endif
 }
 
