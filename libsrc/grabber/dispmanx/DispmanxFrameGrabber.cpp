@@ -11,9 +11,8 @@
 
 // Constants
 namespace {
-const bool verbose = true;
-const int DEFAULT_DEVICE = 0;
-
+	const bool verbose = true;
+	const int DEFAULT_DEVICE = 0;
 } //End of constants
 
 // Local includes
@@ -38,37 +37,35 @@ bool DispmanxFrameGrabber::open()
 	if (_lib != nullptr)
 		return true;
 
-	const char *dlError = nullptr;
-	std::string BCM_HOST = std::string("" BCM_LIBRARY);
-	_lib = dlopen(BCM_HOST.c_str(), RTLD_LAZY | RTLD_GLOBAL);
+	std::string library = std::string("" BCM_LIBRARY);
+	_lib = dlopen(library.c_str(), RTLD_LAZY | RTLD_GLOBAL);
 	if (!_lib)
 	{
-		dlError = dlerror();
-		DebugIf(verbose, _log, "BCM_HOST cannot be loaded. Reason: %s", dlError);
+		DebugIf(verbose, _log, "dlopen for %s failed, error = %s", library.c_str(), dlerror());
 		return false;
 	}
 
-	if (!(wr_bcm_host_init = reinterpret_cast<void(*)()>(dlsym(_lib,"bcm_host_init")))) goto dlError;
-	if (!(wr_bcm_host_deinit = reinterpret_cast<void(*)()>(dlsym(_lib,"bcm_host_deinit")))) goto dlError;
-	if (!(wr_vc_dispmanx_display_close = reinterpret_cast<int(*)(DISPMANX_DISPLAY_HANDLE_T)>(dlsym(_lib,"vc_dispmanx_display_close")))) goto dlError;
-	if (!(wr_vc_dispmanx_display_open = reinterpret_cast<DISPMANX_DISPLAY_HANDLE_T(*)(uint32_t)>(dlsym(_lib,"vc_dispmanx_display_open")))) goto dlError;
-	if (!(wr_vc_dispmanx_display_get_info = reinterpret_cast<int(*)(DISPMANX_DISPLAY_HANDLE_T, DISPMANX_MODEINFO_T*)>(dlsym(_lib, "vc_dispmanx_display_get_info")))) goto dlError;
-	if (!(wr_vc_dispmanx_resource_create = reinterpret_cast<DISPMANX_RESOURCE_HANDLE_T(*)(VC_IMAGE_TYPE_T, uint32_t, uint32_t, uint32_t*)>(dlsym(_lib, "vc_dispmanx_resource_create")))) goto dlError;
-	if (!(wr_vc_dispmanx_resource_delete = reinterpret_cast<int(*)(DISPMANX_RESOURCE_HANDLE_T)>(dlsym(_lib, "vc_dispmanx_resource_delete")))) goto dlError;
-	if (!(wr_vc_dispmanx_resource_read_data = reinterpret_cast<int(*)(DISPMANX_RESOURCE_HANDLE_T, const VC_RECT_T*, void*, uint32_t)>(dlsym(_lib, "vc_dispmanx_resource_read_data")))) goto dlError;
-	if (!(wr_vc_dispmanx_rect_set = reinterpret_cast<void(*)(VC_RECT_T*, int, int, int, int)>(dlsym(_lib, "vc_dispmanx_rect_set")))) goto dlError;
-	if (!(wr_vc_dispmanx_snapshot = reinterpret_cast<int(*)(DISPMANX_DISPLAY_HANDLE_T, DISPMANX_RESOURCE_HANDLE_T, DISPMANX_TRANSFORM_T)>(dlsym(_lib, "vc_dispmanx_snapshot")))) goto dlError;
+	dlerror(); /* Clear any existing error */
+
+	if (!(*(void**)(&wr_bcm_host_init) =					dlsym(_lib,"bcm_host_init"))) goto dlError;
+	if (!(*(void**)(&wr_bcm_host_deinit) = 					dlsym(_lib,"bcm_host_deinit"))) goto dlError;
+	if (!(*(void**)(&wr_vc_dispmanx_display_close) = 		dlsym(_lib,"vc_dispmanx_display_close"))) goto dlError;
+	if (!(*(void**)(&wr_vc_dispmanx_display_open) = 		dlsym(_lib,"vc_dispmanx_display_open"))) goto dlError;
+	if (!(*(void**)(&wr_vc_dispmanx_display_get_info) =		dlsym(_lib, "vc_dispmanx_display_get_info"))) goto dlError;
+	if (!(*(void**)(&wr_vc_dispmanx_resource_create) = 		dlsym(_lib,"vc_dispmanx_resource_create"))) goto dlError;
+	if (!(*(void**)(&wr_vc_dispmanx_resource_delete) = 		dlsym(_lib, "vc_dispmanx_resource_delete"))) goto dlError;
+	if (!(*(void**)(&wr_vc_dispmanx_resource_read_data) =	dlsym(_lib, "vc_dispmanx_resource_read_data"))) goto dlError;
+	if (!(*(void**)(&wr_vc_dispmanx_rect_set) =				dlsym(_lib, "vc_dispmanx_rect_set"))) goto dlError;
+	if (!(*(void**)(&wr_vc_dispmanx_snapshot) =				dlsym(_lib, "vc_dispmanx_snapshot"))) goto dlError;
 
 	wr_bcm_host_init();
 	return true;
 
 dlError:
-	dlError = dlerror();
-	DebugIf(verbose, _log, "dlsym failed with error code %s", dlError);
+	DebugIf(verbose, _log, "dlsym for %s::%s failed, error = %s", library.c_str(), dlerror());
 	dlclose(_lib);
     return false;
 #else
-	qDebug() << "DISABLED";
 	return false;
 #endif
 }
@@ -103,17 +100,17 @@ bool DispmanxFrameGrabber::setupScreen()
 void DispmanxFrameGrabber::freeResources()
 {
 	delete[] _captureBuffer;
-	
+
 	if (_lib != nullptr)
 	{
 		// Clean up resources
 		wr_vc_dispmanx_resource_delete(_vc_resource);
 		// De-init BCM
 		wr_bcm_host_deinit();
-		
+
 		dlclose(_lib);
 		_lib = nullptr;
-	}	
+	}
 }
 
 bool DispmanxFrameGrabber::setWidthHeight(int width, int height)
@@ -243,7 +240,7 @@ int DispmanxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 												  image);
 				}
 			}
-			
+
 			wr_vc_dispmanx_display_close(_vc_display);
 		}
 	}

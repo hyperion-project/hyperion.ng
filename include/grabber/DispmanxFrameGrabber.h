@@ -50,7 +50,7 @@ public:
 	///
 	DispmanxFrameGrabber();
 	~DispmanxFrameGrabber() override;
-	
+
 	bool open();
 
 	///
@@ -96,7 +96,7 @@ private:
 	/// @brief free _vc_resource and captureBuffer
 	///
 	void freeResources();
-	
+
 	void* _lib;
 
 	/// Handle to the display that is being captured
