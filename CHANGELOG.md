@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remote control UI: Treat duration=0 as endless
 - Stop Web-Browser capture when user triggers other activities
 - Treat http headers case insensitive (RFC 2616)
+- Qt-Grabber: Fixed position handling of multiple monitors (#1320, #1403)
 
 ## Removed
 
