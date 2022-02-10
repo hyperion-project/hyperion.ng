@@ -199,14 +199,14 @@
                                 <label class="ltdlabel" for="ip_cl_ptl" data-i18n="conf_leds_layout_ptl">Point Top Left</label>
                               </td>
                               <td class="itd input-group">
-                                <input class="form-control ledCLconstr" id="ip_cl_ptlh" type="number" value="0" min="0" max="40" step="1"></input>
+                                <input class="form-control ledCLconstr" id="ip_cl_ptlh" type="number" value="0" min="0" max="100" step="1"></input>
                                 <div class="input-group-addon" data-i18n="edt_append_percent_h">%h</div>
                               </td>
                             </tr>
                             <tr>
                               <td class="ltd"></td>
                               <td class="itd input-group">
-                                <input class="form-control ledCLconstr" id="ip_cl_ptlv" type="number" value="0" min="0" max="40" step="1"></input>
+                                <input class="form-control ledCLconstr" id="ip_cl_ptlv" type="number" value="0" min="0" max="100" step="1"></input>
                                 <div class="input-group-addon" data-i18n="edt_append_percent_v">%v</div>
                               </td>
                             </tr>
@@ -215,14 +215,14 @@
                                 <label class="ltdlabel" for="ip_cl_ptr" data-i18n="conf_leds_layout_ptr">Point Top Right</label>
                               </td>
                               <td class="itd input-group">
-                                <input class="form-control ledCLconstr" id="ip_cl_ptrh" type="number" value="100" min="60" max="100" step="1"></input>
+                                <input class="form-control ledCLconstr" id="ip_cl_ptrh" type="number" value="100" min="0" max="100" step="1"></input>
                                 <div class="input-group-addon" data-i18n="edt_append_percent_h">%</div>
                               </td>
                             </tr>
                             <tr>
                               <td class="ltd"></td>
                               <td class="itd input-group">
-                                <input class="form-control ledCLconstr" id="ip_cl_ptrv" type="number" value="0" min="0" max="40" step="1"></input>
+                                <input class="form-control ledCLconstr" id="ip_cl_ptrv" type="number" value="0" min="0" max="100" step="1"></input>
                                 <div class="input-group-addon" data-i18n="edt_append_percent_v">%</div>
                               </td>
                             </tr>
@@ -231,14 +231,14 @@
                                 <label class="ltdlabel" for="ip_cl_pbr" data-i18n="conf_leds_layout_pbr">Point Bottom Right</label>
                               </td>
                               <td class="itd input-group">
-                                <input class="form-control ledCLconstr" id="ip_cl_pbrh" type="number" value="100" min="60" max="100" step="1"></input>
+                                <input class="form-control ledCLconstr" id="ip_cl_pbrh" type="number" value="100" min="0" max="100" step="1"></input>
                                 <div class="input-group-addon" data-i18n="edt_append_percent_h">%</div>
                               </td>
                             </tr>
                             <tr>
                               <td class="ltd"></td>
                               <td class="itd input-group">
-                                <input class="form-control ledCLconstr" id="ip_cl_pbrv" type="number" value="100" min="60" max="100" step="1"></input>
+                                <input class="form-control ledCLconstr" id="ip_cl_pbrv" type="number" value="100" min="0" max="100" step="1"></input>
                                 <div class="input-group-addon" data-i18n="edt_append_percent_v">%</div>
                               </td>
                             </tr>
@@ -247,14 +247,14 @@
                                 <label class="ltdlabel" for="ip_cl_pbl" data-i18n="conf_leds_layout_pbl">Point Bottom Left</label>
                               </td>
                               <td class="itd input-group">
-                                <input class="form-control ledCLconstr" id="ip_cl_pblh" type="number" value="0" min="0" max="40" step="1"></input>
+                                <input class="form-control ledCLconstr" id="ip_cl_pblh" type="number" value="0" min="0" max="100" step="1"></input>
                                 <div class="input-group-addon" data-i18n="edt_append_percent_h">%</div>
                               </td>
                             </tr>
                             <tr>
                               <td class="ltd"></td>
                               <td class="itd input-group">
-                                <input class="form-control ledCLconstr" id="ip_cl_pblv" type="number" value="100" min="60" max="100" step="1"></input>
+                                <input class="form-control ledCLconstr" id="ip_cl_pblv" type="number" value="100" min="0" max="100" step="1"></input>
                                 <div class="input-group-addon" data-i18n="edt_append_percent_v">%</div>
                               </td>
                             </tr>
@@ -315,17 +315,6 @@
                           <select class="form-control ledMAconstr" id="ip_ma_cabling">
                             <option value="snake" data-i18n="conf_leds_layout_ma_optsnake">Snake</option>
                             <option value="parallel" data-i18n="conf_leds_layout_ma_optparallel">Parallel</option>
-                          </select>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td class="ltd">
-                          <label class="ltdlabel" for="ip_ma_direction" data-i18n="conf_leds_layout_ma_direction">Cabling</label>
-                        </td>
-                        <td class="itd">
-                          <select class="form-control ledMAconstr" id="ip_ma_direction">
-                            <option value="horizontal" data-i18n="conf_leds_layout_ma_opthoriz">Snake</option>
-                            <option value="vertical" data-i18n="conf_leds_layout_ma_optvert">Parallel</option>
                           </select>
                         </td>
                       </tr>
@@ -412,4 +401,5 @@
 </div>
 
 <script src="/js/content_leds.js"></script>
+
 

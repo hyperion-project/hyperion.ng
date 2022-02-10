@@ -483,7 +483,63 @@ $(document).ready(function () {
 
   // bind change event to all inputs
   $('.ledCLconstr').bind("change", function () {
-    valValue(this.id, this.value, this.min, this.max);
+
+    //Ensure Values are in min/max ranges
+    if ($(this).val() < $(this).attr('min') * 1) { $(this).val($(this).attr('min')); }
+    if ($(this).val() > $(this).attr('max') * 1) { $(this).val($(this).attr('max')); }
+
+    //top/bottom and left/right must not overlap
+    switch (this.id) {
+      case "ip_cl_ptlh":
+        var ptrh = parseInt($("#ip_cl_ptrh").val());
+        if (this.value > ptrh) {
+          $(this).val(ptrh);
+        }
+        break;
+      case "ip_cl_ptrh":
+        var ptlh = parseInt($("#ip_cl_ptlh").val());
+        if (this.value < ptlh) {
+          $(this).val(ptlh);
+        }
+        break;
+      case "ip_cl_pblh":
+        var pbrh = parseInt($("#ip_cl_pbrh").val());
+        if (this.value > pbrh) {
+          $(this).val(pbrh);
+        }
+        break;
+      case "ip_cl_pbrh":
+        var pblh = parseInt($("#ip_cl_pblh").val());
+        if (this.value < pblh) {
+          $(this).val(pblh);
+        }
+        break;
+      case "ip_cl_ptlv":
+        var pblv = parseInt($("#ip_cl_pblv").val());
+        if (this.value > pblv) {
+          $(this).val(pblv);
+        }
+        break;
+      case "ip_cl_pblv":
+        var ptlv = parseInt($("#ip_cl_ptlv").val());
+        if (this.value < ptlv) {
+          $(this).val(ptlv);
+        }
+        break;
+      case "ip_cl_ptrv":
+        var pbrv = parseInt($("#ip_cl_pbrv").val());
+        if (this.value > pbrv) {
+          $(this).val(pbrv);
+        }
+        break;
+      case "ip_cl_pbrv":
+        var ptrv = parseInt($("#ip_cl_ptrv").val());
+        if (this.value < ptrv) {
+          $(this).val(ptrv);
+        }
+
+      default:
+    }
     createClassicLeds();
   });
 
