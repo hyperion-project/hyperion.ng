@@ -17,6 +17,7 @@ const int PriorityMuxer::BG_PRIORITY = 254;
 const int PriorityMuxer::MANUAL_SELECTED_PRIORITY = 256;
 const int PriorityMuxer::LOWEST_PRIORITY = std::numeric_limits<uint8_t>::max();
 const int PriorityMuxer::TIMEOUT_NOT_ACTIVE_PRIO = -100;
+const int PriorityMuxer::ENDLESS = -1;
 
 PriorityMuxer::PriorityMuxer(int ledCount, QObject * parent)
 	: QObject(parent)
@@ -37,7 +38,7 @@ PriorityMuxer::PriorityMuxer(int ledCount, QObject * parent)
 
 	// init lowest priority info
 	_lowestPriorityInfo.priority       = PriorityMuxer::LOWEST_PRIORITY;
-	_lowestPriorityInfo.timeoutTime_ms = -1;
+	_lowestPriorityInfo.timeoutTime_ms = PriorityMuxer::ENDLESS;
 	_lowestPriorityInfo.ledColors      = std::vector<ColorRgb>(ledCount, {0, 0, 0});
 	_lowestPriorityInfo.componentId    = hyperion::COMP_COLOR;
 	_lowestPriorityInfo.origin         = "System";
@@ -45,7 +46,7 @@ PriorityMuxer::PriorityMuxer(int ledCount, QObject * parent)
 
 	_activeInputs[PriorityMuxer::LOWEST_PRIORITY] = _lowestPriorityInfo;
 
-	// adapt to 1s interval for COLOR and EFFECT timeouts > -1
+	// adapt to 1s interval for COLOR and EFFECT timeouts > -1 (endless)
 	connect(_timer, &QTimer::timeout, this, &PriorityMuxer::timeTrigger);
 	_timer->setSingleShot(true);
 	_blockTimer->setSingleShot(true);

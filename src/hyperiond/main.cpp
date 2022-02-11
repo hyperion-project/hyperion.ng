@@ -192,7 +192,9 @@ int main(int argc, char** argv)
 #endif
 	                                      parser.add<BooleanOption> (0x0, "desktop", "Show systray on desktop");
 	                                      parser.add<BooleanOption> (0x0, "service", "Force hyperion to start as console service");
+#if defined(ENABLE_EFFECTENGINE)
 	Option        & exportEfxOption     = parser.add<Option>        (0x0, "export-effects", "Export effects to given path");
+#endif
 
 	/* Internal options, invisible to help */
 	BooleanOption & waitOption          = parser.addHidden<BooleanOption> (0x0, "wait-hyperion", "Do not exit if other Hyperion instances are running, wait them to finish");
@@ -275,6 +277,7 @@ int main(int argc, char** argv)
 		return 0;
 	}
 
+#if defined(ENABLE_EFFECTENGINE)
 	if (parser.isSet(exportEfxOption))
 	{
 		Q_INIT_RESOURCE(EffectEngine);
@@ -311,6 +314,7 @@ int main(int argc, char** argv)
 		Error(log, "Can not export to %s",exportEfxOption.getCString(parser));
 		return 1;
 	}
+#endif
 
 	int rc = 1;
 	bool readonlyMode = false;

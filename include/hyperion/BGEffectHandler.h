@@ -55,8 +55,12 @@ private slots:
 			{
 				_isBgEffectConfigured = true;
 
+				#if defined(ENABLE_EFFECTENGINE)
 				const QString bgTypeConfig = BGEffectConfig["type"].toString("effect");
 				const QString bgEffectConfig = BGEffectConfig["effect"].toString("Warm mood blobs");
+				#else
+				const QString bgTypeConfig = "color";
+				#endif
 				const QJsonValue bgColorConfig = BGEffectConfig["color"];
 				if (bgTypeConfig.contains("color"))
 				{
@@ -70,11 +74,13 @@ private slots:
 					_hyperion->setColor(PriorityMuxer::BG_PRIORITY, bg_color);
 					Info(Logger::getInstance("HYPERION"),"Initial background color set (%d %d %d)",bg_color.at(0).red, bg_color.at(0).green, bg_color.at(0).blue);
 				}
+				#if defined(ENABLE_EFFECTENGINE)
 				else
 				{
-					int result = _hyperion->setEffect(bgEffectConfig, PriorityMuxer::BG_PRIORITY, Effect::ENDLESS);
+					int result = _hyperion->setEffect(bgEffectConfig, PriorityMuxer::BG_PRIORITY, PriorityMuxer::ENDLESS);
 					Info(Logger::getInstance("HYPERION"),"Initial background effect '%s' %s", QSTRING_CSTR(bgEffectConfig), ((result == 0) ? "started" : "failed"));
 				}
+				#endif
 			}
 			#undef BGCONFIG_ARRAY
 		}

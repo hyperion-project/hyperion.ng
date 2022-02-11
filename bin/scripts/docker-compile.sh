@@ -23,6 +23,8 @@ BUILD_LOCAL=0
 BUILD_INCREMENTAL=0
 #Verbose output
 _VERBOSE=0
+#Additional args
+BUILD_ARGS=""
 
 # get current path to this script, independent of calling
 pushd . > /dev/null
@@ -62,20 +64,23 @@ echo "########################################################
 ## Requires installed Docker: https://www.docker.com/
 ## Without arguments it will compile Hyperion for Debian Buster (x86_64) and uses Hyperion code from GitHub repository.
 ## Supports Raspberry Pi (armv6l, armv7l) cross compilation (Debian Stretch/Buster) and native compilation (Raspbian Stretch/Buster)
+## For all images and tags currently available, see https://github.com/orgs/hyperion-project/packages
 ##
 ## Homepage: https://www.hyperion-project.org
 ## Forum: https://hyperion-project.org/forum/
 ########################################################
 # These are possible arguments to modify the script behaviour with their default values
 #
-# docker-compile.sh -h            # Show this help message
-# docker-compile.sh -i x86_64     # The docker image, one of x86_64 | armv6l | armv7l | rpi-raspbian
-# docker-compile.sh -t buster     # The docker tag, stretch, buster or bullseye
-# docker-compile.sh -b Release    # cmake Release or Debug build
-# docker-compile.sh -p true       # If true, build packages with CPack
-# docker-compile.sh -l            # Run build using local code files
-# docker-compile.sh -c            # Run incremental build, i.e. do not delete files created during previous build
-# docker-compile.sh -f x11        # cmake PLATFORM parameter
+# docker-compile.sh -h, --help          # Show this help message
+# docker-compile.sh -i, --image         # The docker image, e.g., x86_64, armv6l, armv7l, aarch64, rpi-raspbian 
+# docker-compile.sh -t, --tag           # The docker tag, e.g., stretch, buster, bullseye, bookworm
+# docker-compile.sh -b, --type          # Release or Debug build
+# docker-compile.sh -p, --packages      # If true, build packages with CPack
+# docker-compile.sh -l, --local         # Run build using local code files
+# docker-compile.sh -c, --incremental   # Run incremental build, i.e. do not delete files created during previous build
+# docker-compile.sh -f, --platform      # cmake PLATFORM parameter, e.g. x11, amlogic-dev
+# docker-compile.sh -v, --verbose       # Run the script in verbose mode
+# docker-compile.sh     -- args         # Additonal cmake arguments, e.g., -DHYPERION_LIGHT=ON
 # More informations to docker tags at: https://github.com/Hyperion-Project/hyperion.docker-ci"
 }
 
@@ -86,22 +91,53 @@ function log () {
 }
 
 echo "Compile Hyperion using a Docker container"
+options=$(getopt -l "image:,tag:,type:,packages:,platform:,local,incremental,verbose,help" -o "i:t:b:p:f:lcvh" -a -- "$@")
 
-while getopts i:t:b:p:f:lcvh option
+eval set -- "$options"
+while true
 do
- case "${option}"
- in
- i) BUILD_IMAGE=${OPTARG};;
- t) BUILD_TAG=${OPTARG};;
- b) BUILD_TYPE=${OPTARG};;
- p) BUILD_PACKAGES=${OPTARG};;
- f) BUILD_PLATFORM=${OPTARG,,};;
- l) BUILD_LOCAL=1;;
- c) BUILD_INCREMENTAL=1;;
- v) _VERBOSE=1;;
- h) printHelp; exit 0;;
- esac
+    case $1 in
+        -i|--image) 
+            shift
+            BUILD_IMAGE=$1
+            ;;
+        -t|--tag) 
+            shift
+            BUILD_TAG=$1
+            ;;
+        -b|--type) 
+            shift
+            BUILD_TYPE=$1
+            ;;
+        -p|--packages) 
+            shift
+            BUILD_PACKAGES=$1
+            ;;
+        -f|--platform) 
+            shift
+            BUILD_PLATFORM=$1
+            ;;
+        -l|--local) 
+            BUILD_LOCAL=1
+            ;;
+        -c|--incremental) 
+            BUILD_INCREMENTAL=1
+            ;;
+        -v|--verbose) 
+            _VERBOSE=1
+            ;;
+        -h|--help) 
+            printHelp
+            exit 0
+            ;;
+        --)
+            shift        
+            break;;
+    esac
+    shift
 done
+
+BUILD_ARGS=$@
 
 # determine package creation
 if [ ${BUILD_PACKAGES} == "true" ]; then
@@ -164,7 +200,7 @@ $DOCKER run --rm \
 	-v "${CODE_PATH}/:/source:rw" \
 	${REGISTRY_URL}/${BUILD_IMAGE}:${BUILD_TAG} \
 	/bin/bash -c "mkdir -p /source/${BUILD_DIR} && cd /source/${BUILD_DIR} &&
-	cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${PLATFORM} .. || exit 2 &&
+	cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${PLATFORM} ${BUILD_ARGS} .. || exit 2 &&
 	make -j $(nproc) ${PACKAGES} || exit 3 || : &&
 	exit 0;
 	exit 1 " || { echo "---> Hyperion compilation failed! Abort"; exit 4; }
