@@ -8,18 +8,17 @@
 #include <effectengine/EffectModule.h>
 #include <utils/Logger.h>
 #include <hyperion/Hyperion.h>
+#include <hyperion/PriorityMuxer.h>
 
 // python utils
 #include <python/PythonProgram.h>
-
-const int Effect::ENDLESS = -1;
 
 Effect::Effect(Hyperion *hyperion, int priority, int timeout, const QString &script, const QString &name, const QJsonObject &args, const QString &imageData)
 	: QThread()
 	, _hyperion(hyperion)
 	, _priority(priority)
 	, _timeout(timeout)
-	, _isEndless(timeout <= ENDLESS)
+	, _isEndless(timeout <= PriorityMuxer::ENDLESS)
 	, _script(script)
 	, _name(name)
 	, _args(args)

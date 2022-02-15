@@ -185,12 +185,14 @@ proceed:
 		handleColorCommand(message, command, tan);
 	else if (command == "image")
 		handleImageCommand(message, command, tan);
+#if defined(ENABLE_EFFECTENGINE)
 	else if (command == "effect")
 		handleEffectCommand(message, command, tan);
 	else if (command == "create-effect")
 		handleCreateEffectCommand(message, command, tan);
 	else if (command == "delete-effect")
 		handleDeleteEffectCommand(message, command, tan);
+#endif
 	else if (command == "sysinfo")
 		handleSysInfoCommand(message, command, tan);
 	else if (command == "serverinfo")
@@ -275,6 +277,7 @@ void JsonAPI::handleImageCommand(const QJsonObject &message, const QString &comm
 	sendSuccessReply(command, tan);
 }
 
+#if defined(ENABLE_EFFECTENGINE)
 void JsonAPI::handleEffectCommand(const QJsonObject &message, const QString &command, int tan)
 {
 	emit forwardJsonMessage(message);
@@ -305,6 +308,7 @@ void JsonAPI::handleDeleteEffectCommand(const QJsonObject &message, const QStrin
 	const QString res = API::deleteEffect(message["name"].toString());
 	res.isEmpty() ? sendSuccessReply(command, tan) : sendErrorReply(res, command, tan);
 }
+#endif
 
 void JsonAPI::handleSysInfoCommand(const QJsonObject &, const QString &command, int tan)
 {
@@ -332,7 +336,9 @@ void JsonAPI::handleSysInfoCommand(const QJsonObject &, const QString &command, 
 	system["domainName"] = data.domainName;
 	system["isUserAdmin"] = data.isUserAdmin;
 	system["qtVersion"] = data.qtVersion;
+#if defined(ENABLE_EFFECTENGINE)
 	system["pyVersion"] = data.pyVersion;
+#endif
 	info["system"] = system;
 
 	QJsonObject hyperion;
@@ -492,6 +498,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 
 	info["adjustment"] = adjustmentArray;
 
+#if defined(ENABLE_EFFECTENGINE)
 	// collect effect info
 	QJsonArray effects;
 	const std::list<EffectDefinition> &effectsDefinitions = _hyperion->getEffects();
@@ -506,6 +513,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	}
 
 	info["effects"] = effects;
+#endif
 
 	// get available led devices
 	QJsonObject ledDevices;
@@ -601,6 +609,10 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 
 #if defined(ENABLE_CEC)
 	services.append("cec");
+#endif
+
+#if defined(ENABLE_EFFECTENGINE)
+	services.append("effectengine");
 #endif
 
 #if defined(ENABLE_FORWARDER)
@@ -708,6 +720,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	}
 	info["transform"] = transformArray;
 
+#if defined(ENABLE_EFFECTENGINE)
 	// ACTIVE EFFECT INFO
 	QJsonArray activeEffects;
 	for (const ActiveEffectDefinition &activeEffectDefinition : _hyperion->getActiveEffects())
@@ -724,6 +737,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 		}
 	}
 	info["activeEffects"] = activeEffects;
+#endif
 
 	// ACTIVE STATIC LED COLOR
 	QJsonArray activeLedColors;
@@ -1043,6 +1057,7 @@ void JsonAPI::handleSchemaGetCommand(const QJsonObject &message, const QString &
 	alldevices = LedDeviceWrapper::getLedDeviceSchemas();
 	properties.insert("alldevices", alldevices);
 
+#if defined(ENABLE_EFFECTENGINE)
 	// collect all available effect schemas
 	QJsonArray schemaList;
 	const std::list<EffectSchema>& effectsSchemas = _hyperion->getEffectSchemas();
@@ -1063,6 +1078,7 @@ void JsonAPI::handleSchemaGetCommand(const QJsonObject &message, const QString &
 		schemaList.append(schema);
 	}
 	properties.insert("effectSchemas", schemaList);
+#endif
 
 	schemaJson.insert("properties", properties);
 

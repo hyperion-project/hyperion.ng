@@ -50,6 +50,7 @@ public:
 	///
 	void setImage(QImage &image, int priority, int duration, const QString& name = "");
 
+#if defined(ENABLE_EFFECTENGINE)
 	///
 	/// Start the given effect
 	///
@@ -75,6 +76,7 @@ public:
 	/// @param effectName The name of the effect
 	///
 	void deleteEffect(const QString &effectName);
+#endif
 
 	///
 	/// Retrieve entire serverinfo as String

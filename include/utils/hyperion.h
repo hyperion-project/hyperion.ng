@@ -10,7 +10,9 @@
 // fg effect
 #include <hyperion/Hyperion.h>
 #include <hyperion/PriorityMuxer.h>
+#if defined(ENABLE_EFFECTENGINE)
 #include <effectengine/Effect.h>
+#endif
 
 ///
 /// @brief Provide utility methods for Hyperion class
@@ -24,12 +26,16 @@ namespace hyperion {
 		// initial foreground effect/color
 		if (FGEffectConfig["enable"].toBool(true))
 		{
+			#if defined(ENABLE_EFFECTENGINE)
 			const QString fgTypeConfig = FGEffectConfig["type"].toString("effect");
 			const QString fgEffectConfig = FGEffectConfig["effect"].toString("Rainbow swirl fast");
+			#else
+			const QString fgTypeConfig = "color";
+			#endif
 			const QJsonValue fgColorConfig = FGEffectConfig["color"];
 			int default_fg_duration_ms = 3000;
 			int fg_duration_ms = FGEffectConfig["duration_ms"].toInt(default_fg_duration_ms);
-			if (fg_duration_ms <= Effect::ENDLESS)
+			if (fg_duration_ms <= PriorityMuxer::ENDLESS )
 			{
 				fg_duration_ms = default_fg_duration_ms;
 				Warning(Logger::getInstance("HYPERION"), "foreground effect duration 'infinity' is forbidden, set to default value %d ms",default_fg_duration_ms);
@@ -46,11 +52,13 @@ namespace hyperion {
 				hyperion->setColor(PriorityMuxer::FG_PRIORITY, fg_color, fg_duration_ms);
 				Info(Logger::getInstance("HYPERION","I"+QString::number(hyperion->getInstanceIndex())),"Initial foreground color set (%d %d %d)",fg_color.at(0).red,fg_color.at(0).green,fg_color.at(0).blue);
 			}
+			#if defined(ENABLE_EFFECTENGINE)
 			else
 			{
 				int result = hyperion->setEffect(fgEffectConfig, PriorityMuxer::FG_PRIORITY, fg_duration_ms);
 				Info(Logger::getInstance("HYPERION","I"+QString::number(hyperion->getInstanceIndex())),"Initial foreground effect '%s' %s", QSTRING_CSTR(fgEffectConfig), ((result == 0) ? "started" : "failed"));
 			}
+			#endif
 		}
 		#undef FGCONFIG_ARRAY
 	}

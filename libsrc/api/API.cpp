@@ -242,6 +242,7 @@ void API::setVideoMode(VideoMode mode, hyperion::Components callerComp)
     QMetaObject::invokeMethod(_hyperion, "setVideoMode", Qt::QueuedConnection, Q_ARG(VideoMode, mode));
 }
 
+#if defined(ENABLE_EFFECTENGINE)
 bool API::setEffect(const EffectCmdData &dat, hyperion::Components callerComp)
 {
     int res;
@@ -256,6 +257,7 @@ bool API::setEffect(const EffectCmdData &dat, hyperion::Components callerComp)
 
     return res >= 0;
 }
+#endif
 
 void API::setSourceAutoSelect(bool state, hyperion::Components callerComp)
 {
@@ -376,6 +378,7 @@ QString API::setInstanceName(quint8 index, const QString &name)
     return NO_AUTH;
 }
 
+#if defined(ENABLE_EFFECTENGINE)
 QString API::deleteEffect(const QString &name)
 {
     if (_adminAuthorized)
@@ -397,6 +400,7 @@ QString API::saveEffect(const QJsonObject &data)
     }
     return NO_AUTH;
 }
+#endif
 
 bool API::saveSettings(const QJsonObject &data)
 {

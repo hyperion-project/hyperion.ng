@@ -107,6 +107,7 @@ protected:
     ///
     void setVideoMode(VideoMode mode, hyperion::Components callerComp = hyperion::COMP_INVALID);
 
+#if defined(ENABLE_EFFECTENGINE)
     ///
     /// @brief Set an effect
     /// @param dat        The effect data
@@ -115,6 +116,7 @@ protected:
 	/// @return  True on success else false
     ///
     bool setEffect(const EffectCmdData &dat, hyperion::Components callerComp = hyperion::COMP_INVALID);
+#endif
 
     ///
     /// @brief Set source auto select enabled or disabled
@@ -213,6 +215,7 @@ protected:
     ///
     QString setInstanceName(quint8 index, const QString &name);
 
+#if defined(ENABLE_EFFECTENGINE)
     ///
     /// @brief Delete an effect. Requires ADMIN ACCESS
     /// @param name The effect name
@@ -226,6 +229,7 @@ protected:
     /// @return  True on success else false
     ///
     QString saveEffect(const QJsonObject &data);
+#endif
 
     ///
     /// @brief Save settings object. Requires ADMIN ACCESS

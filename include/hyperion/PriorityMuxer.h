@@ -63,6 +63,8 @@ public:
 	/// Timeout used to identify a non active priority
 	const static int TIMEOUT_NOT_ACTIVE_PRIO;
 
+	const static int ENDLESS;
+
 	///
 	/// Constructs the PriorityMuxer for the given number of LEDs (used to switch to black when
 	/// there are no priority channels
@@ -164,7 +166,7 @@ public:
 	/// @param  timeout_ms  The new timeout (defaults to -1 endless)
 	/// @return             True on success, false when priority is not found
 	///
-	bool setInput(int priority, const std::vector<ColorRgb>& ledColors, int64_t timeout_ms = -1);
+	bool setInput(int priority, const std::vector<ColorRgb>& ledColors, int64_t timeout_ms = ENDLESS);
 
 	///
 	/// @brief   Update the current image of a priority (prev registered with registerInput())
@@ -173,7 +175,7 @@ public:
 	/// @param  timeout_ms  The new timeout (defaults to -1 endless)
 	/// @return             True on success, false when priority is not found
 	///
-	bool setInputImage(int priority, const Image<ColorRgb>& image, int64_t timeout_ms = -1);
+	bool setInputImage(int priority, const Image<ColorRgb>& image, int64_t timeout_ms = ENDLESS);
 
 	///
 	/// @brief Set the given priority to inactive
@@ -211,9 +213,11 @@ signals:
 
 	///
 	/// @brief Emits whenever something changes which influences the priorities listing
+
 	///        Emits also in 1s interval when a COLOR or EFFECT is running with a timeout > -1
 	/// @param  currentPriority The current priority at time of emit
 	/// @param  activeInputs The current active input map at time of emit
+
 	///
 	void prioritiesChanged(int currentPriority, const QMap<int, PriorityMuxer::InputInfo> &activeInputs);
 

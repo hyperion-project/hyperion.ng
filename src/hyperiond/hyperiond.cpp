@@ -53,11 +53,13 @@
 // NetOrigin checks
 #include <utils/NetOrigin.h>
 
+#if defined(ENABLE_EFFECTENGINE)
 // Init Python
 #include <python/PythonInit.h>
 
 // EffectFileHandler
 #include <effectengine/EffectFileHandler.h>
+#endif
 
 #ifdef ENABLE_CEC
 #include <cec/CECHandler.h>
@@ -73,7 +75,9 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	  , _bonjourBrowserWrapper(new BonjourBrowserWrapper())
 #endif
 	  , _netOrigin(new NetOrigin(this))
+#if defined(ENABLE_EFFECTENGINE)
 	  , _pyInit(new PythonInit())
+#endif
 	  , _webserver(nullptr)
 	  , _sslWebserver(nullptr)
 	  , _jsonServer(nullptr)
@@ -113,9 +117,11 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 
 	createCecHandler();
 
+#if defined(ENABLE_EFFECTENGINE)
 	// init EffectFileHandler
 	EffectFileHandler* efh = new EffectFileHandler(rootPath, getSetting(settings::EFFECTS), this);
 	connect(this, &HyperionDaemon::settingsChanged, efh, &EffectFileHandler::handleSettingsUpdate);
+#endif
 
 	// connect and apply settings for AuthManager
 	connect(this, &HyperionDaemon::settingsChanged, _authManager, &AuthManager::handleSettingsUpdate);
@@ -160,7 +166,9 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 HyperionDaemon::~HyperionDaemon()
 {
 	delete _settingsManager;
+#if defined(ENABLE_EFFECTENGINE)
 	delete _pyInit;
+#endif
 }
 
 void HyperionDaemon::setVideoMode(VideoMode mode)
