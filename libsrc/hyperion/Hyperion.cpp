@@ -592,10 +592,9 @@ void Hyperion::handleVisibleComponentChanged(hyperion::Components comp)
 	_raw2ledAdjustment->setBacklightEnabled((comp != hyperion::COMP_COLOR && comp != hyperion::COMP_EFFECT));
 }
 
-void Hyperion::handleSourceAvailability(const quint8& priority)
+void Hyperion::handleSourceAvailability(int priority)
 {	int previousPriority = _muxer->getPreviousPriority();
 
-	Debug(_log,"priority[%d], previousPriority[%d]", priority, previousPriority);
 	if ( priority == PriorityMuxer::LOWEST_PRIORITY)
 	{
 		Debug(_log,"No source left -> Pause output processing and switch LED-Device off");

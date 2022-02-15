@@ -492,7 +492,7 @@ private slots:
 	/// @brief Handle the scenario when no/an input source is available
 	///	@param priority   Current priority
 	///
-	void handleSourceAvailability(const quint8& priority);
+	void handleSourceAvailability(int priority);
 
 private:
 	friend class HyperionDaemon;

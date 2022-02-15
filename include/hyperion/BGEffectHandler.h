@@ -86,7 +86,7 @@ private slots:
 	///
 	void handlePriorityUpdate()
 	{
-		if (_prioMuxer->getCurrentPriority() != PriorityMuxer::BG_PRIORITY && _prioMuxer->hasPriority(PriorityMuxer::BG_PRIORITY))
+		if (_prioMuxer->getCurrentPriority() > PriorityMuxer::BG_PRIORITY && _prioMuxer->hasPriority(PriorityMuxer::BG_PRIORITY))
 		{
 			Debug(Logger::getInstance("HYPERION"),"Stop background (color-) effect as it moved out of scope");
 			_hyperion->clear(PriorityMuxer::BG_PRIORITY);

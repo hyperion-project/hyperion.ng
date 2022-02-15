@@ -126,13 +126,13 @@ $(document).ready(function () {
 
       switch (compId) {
         case "EFFECT":
-          owner = $.i18n('remote_effects_label_effects') + '  ' + owner;
+          owner = $.i18n('remote_effects_label_effects') + ' ' + owner;
           break;
         case "COLOR":
           owner = $.i18n('remote_color_label_color') + '  ' + '<div style="width:18px; height:18px; border-radius:20px; margin-bottom:-4px; border:1px grey solid; background-color: rgb(' + value + '); display:inline-block" title="RGB: (' + value + ')"></div>';
           break;
         case "IMAGE":
-          owner = $.i18n('remote_effects_label_picture') + ' ' + owner;
+          owner = $.i18n('remote_effects_label_picture') + (owner !== undefined ? ('  ' + owner): "");
           break;
         case "GRABBER":
           owner = $.i18n('general_comp_GRABBER') + ': (' + owner + ')';
@@ -151,16 +151,19 @@ $(document).ready(function () {
           break;
       }
 
-      if (duration && compId != "GRABBER" && compId != "FLATBUFSERVER" && compId != "PROTOSERVER")
-        owner += '<br/><span style="font-size:80%; color:grey;">' + $.i18n('remote_input_duration') + ' ' + duration.toFixed(0) + $.i18n('edt_append_s') + '</span>';
+      if (!(duration && duration < 0))
+      {
+        if (duration && compId != "GRABBER" && compId != "FLATBUFSERVER" && compId != "PROTOSERVER")
+          owner += '<br/><span style="font-size:80%; color:grey;">' + $.i18n('remote_input_duration') + ' ' + duration.toFixed(0) + $.i18n('edt_append_s') + '</span>';
 
-      var btn = '<button id="srcBtn' + i + '" type="button" ' + btn_state + ' class="btn btn-' + btn_type + ' btn_input_selection" onclick="requestSetSource(' + priority + ');">' + btn_text + '</button>';
+        var btn = '<button id="srcBtn' + i + '" type="button" ' + btn_state + ' class="btn btn-' + btn_type + ' btn_input_selection" onclick="requestSetSource(' + priority + ');">' + btn_text + '</button>';
 
-      if ((compId == "EFFECT" || compId == "COLOR" || compId == "IMAGE") && priority < 254)
-        btn += '<button type="button" class="btn btn-sm btn-danger" style="margin-left:10px;" onclick="requestPriorityClear(' + priority + ');"><i class="fa fa-close"></button>';
+        if ((compId == "EFFECT" || compId == "COLOR" || compId == "IMAGE") && priority < 254)
+          btn += '<button type="button" class="btn btn-sm btn-danger" style="margin-left:10px;" onclick="requestPriorityClear(' + priority + ');"><i class="fa fa-close"></button>';
 
-      if (btn_type != 'default')
-        $('.sstbody').append(createTableRow([origin, owner, priority, btn], false, true));
+        if (btn_type != 'default')
+          $('.sstbody').append(createTableRow([origin, owner, priority, btn], false, true));
+      }
     }
     var btn_auto_color = (window.serverInfo.priorities_autoselect ? "btn-success" : "btn-danger");
     var btn_auto_state = (window.serverInfo.priorities_autoselect ? "disabled" : "enabled");
@@ -351,7 +354,6 @@ $(document).ready(function () {
 
   $("#remote_input_repimg").off().on("click", function () {
     if (lastImgData != "") {
-      requestPriorityClear();
       requestSetImage(lastImgData, duration, lastFileName);
     }
   });
@@ -364,7 +366,6 @@ $(document).ready(function () {
       else
         lastImgData = src;
 
-      requestPriorityClear();
       requestSetImage(lastImgData, duration, lastFileName);
     });
   });

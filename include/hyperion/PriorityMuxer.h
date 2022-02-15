@@ -195,22 +195,13 @@ public:
 	///
 	void clearAll(bool forceClearAll=false);
 
-	///
-	/// @brief Queue a manual push where muxer doesn't recognize them (e.g. continuous single color pushes)
-	///
-	void queuePush() { emit timeRunner(); }
-
 signals:
-	///
-	/// @brief Signal which emits when a effect or color with timeout > -1 is running, once per second
-	///
-	void timeRunner();
 
 	///
 	/// @brief Emits whenever the visible priority has changed
 	/// @param  priority  The new visible priority
 	///
-	void visiblePriorityChanged(quint8 priority);
+	void visiblePriorityChanged(int priority);
 
 	///
 	/// @brief Emits whenever the current visible component changed
@@ -221,8 +212,10 @@ signals:
 	///
 	/// @brief Emits whenever something changes which influences the priorities listing
 	///        Emits also in 1s interval when a COLOR or EFFECT is running with a timeout > -1
+	/// @param  currentPriority The current priority at time of emit
+	/// @param  activeInputs The current active input map at time of emit
 	///
-	void prioritiesChanged();
+	void prioritiesChanged(int currentPriority, const QMap<int, PriorityMuxer::InputInfo> &activeInputs);
 
 	///
 	/// internal used signal to resolve treading issues with timer
@@ -231,7 +224,7 @@ signals:
 
 private slots:
 	///
-	/// Slot which is called to adapt to 1s interval for signal timeRunner() / prioritiesChanged()
+	/// Slot which is called to adapt to 1s interval for signal prioritiesChanged()
 	///
 	void timeTrigger();
 
