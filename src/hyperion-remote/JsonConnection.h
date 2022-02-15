@@ -41,13 +41,14 @@ public:
 	void setColor(std::vector<QColor> color, int priority, int duration);
 
 	///
-	/// Set the leds according to the given image (assume the image is stretched to the display size)
+	/// Set the LEDs according to the given image (assume the image is stretched to the display size)
 	///
 	/// @param image The image
 	/// @param priority The priority
 	/// @param duration The duration in milliseconds
+	/// @param name The image's filename
 	///
-	void setImage(QImage &image, int priority, int duration);
+	void setImage(QImage &image, int priority, int duration, const QString& name = "");
 
 	///
 	/// Start the given effect
