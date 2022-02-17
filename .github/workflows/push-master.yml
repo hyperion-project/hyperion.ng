@@ -94,7 +94,7 @@ jobs:
     runs-on: windows-2022
     env:
       VCINSTALLDIR: 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC'
-      QT_VERSION: 5.15.0
+      QT_VERSION: 5.15.2
     steps:
       - name: Checkout
         uses: actions/checkout@v1
