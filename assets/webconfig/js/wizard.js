@@ -304,7 +304,7 @@ function performAction() {
       h += '<button id="wiz_cc_btn_sp" class="btn btn-primary">' + $.i18n('wiz_cc_btn_switchpic') + '</button>';
     }
     else
-      h += '<p>' + $.i18n('wiz_cc_lettvshowm', "gey_1, grey_2, grey_3, HGradient, VGradient") + '</p>';
+      h += '<p>' + $.i18n('wiz_cc_lettvshowm', "grey_1, grey_2, grey_3, HGradient, VGradient") + '</p>';
     $('#wiz_cc_desc').html(h);
     $('#wiz_cc_btn_sp').off().on('click', function () {
       switchPicture(["VGradient", "grey_1", "grey_2", "grey_3", "HGradient"]);
