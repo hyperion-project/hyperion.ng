@@ -44,8 +44,8 @@ JsonCB::JsonCB(QObject* parent)
 	#if defined(ENABLE_EFFECTENGINE)
 	_availableCommands << "effects-update";
 	#endif
-    
-	qRegisterMetaType<QMap<int,PriorityMuxer::InputInfo>>("QMap<int,PriorityMuxer::InputInfo>");
+
+	qRegisterMetaType<PriorityMuxer::InputsMap>("InputsMap");
 }
 
 bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
@@ -229,7 +229,7 @@ void JsonCB::handleBonjourChange(const QMap<QString,BonjourRecord>& bRegisters)
 }
 #endif
 
-void JsonCB::handlePriorityUpdate(int currentPriority, const QMap<int, PriorityMuxer::InputInfo> &activeInputs)
+void JsonCB::handlePriorityUpdate(int currentPriority, const PriorityMuxer::InputsMap& activeInputs)
 {
 	QJsonObject data;
 	QJsonArray priorities;

@@ -54,6 +54,8 @@ public:
 		QString owner;
 	};
 
+	typedef QMap<int, InputInfo> InputsMap;
+
 	//Foreground and Background priorities
 	const static int FG_PRIORITY;
 	const static int BG_PRIORITY;
@@ -62,6 +64,7 @@ public:
 	const static int LOWEST_PRIORITY;
 	/// Timeout used to identify a non active priority
 	const static int TIMEOUT_NOT_ACTIVE_PRIO;
+	const static int REMOVE_CLEARED_PRIO;
 
 	const static int ENDLESS;
 
@@ -219,7 +222,7 @@ signals:
 	/// @param  activeInputs The current active input map at time of emit
 
 	///
-	void prioritiesChanged(int currentPriority, const QMap<int, PriorityMuxer::InputInfo> &activeInputs);
+	void prioritiesChanged(int currentPriority, InputsMap activeInputs);
 
 	///
 	/// internal used signal to resolve treading issues with timer
@@ -233,10 +236,10 @@ private slots:
 	void timeTrigger();
 
 	///
-	/// Updates the current time. Channels with a configured time out will be checked and cleared if
-	/// required.
+	/// Updates the current priorities. Channels with a configured time out will be checked and cleared if
+	/// required. Cleared priorities will be removed.
 	///
-	void setCurrentTime();
+	void updatePriorities();
 
 private:
 	///
@@ -261,7 +264,7 @@ private:
 	hyperion::Components _prevVisComp = hyperion::COMP_INVALID;
 
 	/// The mapping from priority channel to led-information
-	QMap<int, InputInfo> _activeInputs;
+	InputsMap _activeInputs;
 
 	/// The information of the lowest priority channel
 	InputInfo _lowestPriorityInfo;

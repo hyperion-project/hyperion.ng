@@ -86,7 +86,7 @@ private slots:
 	/// @param  currentPriority The current priority at time of emit
 	/// @param  activeInputs The current active input map at time of emit
 	///
-	void handlePriorityUpdate(int currentPriority, const QMap<int, PriorityMuxer::InputInfo> &activeInputs);
+	void handlePriorityUpdate(int currentPriority, const PriorityMuxer::InputsMap& activeInputs);
 
 	///
 	/// @brief Handle imageToLedsMapping updates

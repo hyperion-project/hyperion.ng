@@ -17,6 +17,7 @@ const int PriorityMuxer::BG_PRIORITY = 254;
 const int PriorityMuxer::MANUAL_SELECTED_PRIORITY = 256;
 const int PriorityMuxer::LOWEST_PRIORITY = std::numeric_limits<uint8_t>::max();
 const int PriorityMuxer::TIMEOUT_NOT_ACTIVE_PRIO = -100;
+const int PriorityMuxer::REMOVE_CLEARED_PRIO = -101;
 const int PriorityMuxer::ENDLESS = -1;
 
 PriorityMuxer::PriorityMuxer(int ledCount, QObject * parent)
@@ -53,7 +54,7 @@ PriorityMuxer::PriorityMuxer(int ledCount, QObject * parent)
 	connect(this, &PriorityMuxer::signalTimeTrigger, this, &PriorityMuxer::timeTrigger);
 
 	// start muxer timer
-	connect(_updateTimer, &QTimer::timeout, this, &PriorityMuxer::setCurrentTime);
+	connect(_updateTimer, &QTimer::timeout, this, &PriorityMuxer::updatePriorities);
 	_updateTimer->setInterval(250);
 	_updateTimer->start();
 }
@@ -84,7 +85,7 @@ bool PriorityMuxer::setSourceAutoSelectEnabled(bool enable, bool update)
 		// update _currentPriority if called from external
 		if(update)
 		{
-			setCurrentTime();
+			updatePriorities();
 		}
 
 		return true;
@@ -175,7 +176,10 @@ void PriorityMuxer::registerInput(int priority, hyperion::Components component, 
 	{
 		Debug(_log,"Register new input '%s/%s' (%s) with priority %d as inactive", QSTRING_CSTR(origin), hyperion::componentToIdString(component), QSTRING_CSTR(owner), priority);
 	}
-	//else Debug(_log,"Reuse input '%s/%s' (%s) with priority %d", QSTRING_CSTR(origin), hyperion::componentToIdString(component), QSTRING_CSTR(owner), priority);
+	else
+	{
+		Debug(_log,"Reuse input '%s/%s' (%s) with priority %d", QSTRING_CSTR(origin), hyperion::componentToIdString(component), QSTRING_CSTR(owner), priority);
+	}
 }
 
 bool PriorityMuxer::setInput(int priority, const std::vector<ColorRgb>& ledColors, int64_t timeout_ms)
@@ -218,12 +222,12 @@ bool PriorityMuxer::setInput(int priority, const std::vector<ColorRgb>& ledColor
 	// emit active change
 	if(activeChange)
 	{
-		Debug(_log, "Priority %d is now %s", priority, active ? "active" : "inactive");
-		if (_currentPriority <= priority)
+		if (_currentPriority <= priority || !_sourceAutoSelectEnabled)
 		{
+			Debug(_log, "Priority %d is now %s", priority, active ? "active" : "inactive");
 			emit prioritiesChanged(_currentPriority,_activeInputs);
 		}
-		setCurrentTime();
+		updatePriorities();
 	}
 
 	return true;
@@ -269,12 +273,12 @@ bool PriorityMuxer::setInputImage(int priority, const Image<ColorRgb>& image, in
 	// emit active change
 	if(activeChange)
 	{
-		Debug(_log, "Priority %d is now %s", priority, active ? "active" : "inactive");
-		if (_currentPriority <= priority)
+		if (_currentPriority <= priority || !_sourceAutoSelectEnabled)
 		{
+			Debug(_log, "Priority %d is now %s", priority, active ? "active" : "inactive");
 			emit prioritiesChanged(_currentPriority,_activeInputs);
 		}
-		setCurrentTime();
+		updatePriorities();
 	}
 
 	return true;
@@ -290,13 +294,8 @@ bool PriorityMuxer::clearInput(int priority)
 {
 	if (priority < PriorityMuxer::LOWEST_PRIORITY)
 	{
-		if ( _activeInputs.remove(priority) > 0)
-		{
-			Debug(_log,"Removed source priority %d",priority);
-			// on clear success update _currentPriority
-			setCurrentTime();
-			return true;
-		}
+		_activeInputs[priority].timeoutTime_ms = REMOVE_CLEARED_PRIO;
+		return true;
 	}
 	return false;
 }
@@ -309,6 +308,7 @@ void PriorityMuxer::clearAll(bool forceClearAll)
 		_activeInputs.clear();
 		_currentPriority = PriorityMuxer::LOWEST_PRIORITY;
 		_activeInputs[_currentPriority] = _lowestPriorityInfo;
+		updatePriorities();
 	}
 	else
 	{
@@ -323,7 +323,7 @@ void PriorityMuxer::clearAll(bool forceClearAll)
 	}
 }
 
-void PriorityMuxer::setCurrentTime()
+void PriorityMuxer::updatePriorities()
 {
 	const int64_t now = QDateTime::currentMSecsSinceEpoch();
 	int newPriority;
@@ -335,34 +335,45 @@ void PriorityMuxer::setCurrentTime()
 	while (i.hasNext()) {
 		i.next();
 
-		if (i.value().timeoutTime_ms > 0 && i.value().timeoutTime_ms <= now)
+		if ( i.value().timeoutTime_ms == REMOVE_CLEARED_PRIO )
 		{
-			//Stop timer for deleted items to avoid additional priority update
-			_timer->stop();
 			int tPrio = i.value().priority;
 			i.remove();
 
-			Debug(_log,"Timeout clear for priority %d",tPrio);
+			Debug(_log,"Removed source priority %d", tPrio);
 			priorityChanged = true;
 		}
 		else
 		{
-			// timeoutTime of TIMEOUT_NOT_ACTIVE_PRIO is awaiting data (inactive); skip
-			if(i.value().timeoutTime_ms > TIMEOUT_NOT_ACTIVE_PRIO)
+			if (i.value().timeoutTime_ms > 0 && i.value().timeoutTime_ms <= now)
 			{
-				newPriority = qMin(newPriority, i.value().priority);
-			}
+				//Stop timer for deleted items to avoid additional priority update
+				_timer->stop();
+				int tPrio = i.value().priority;
+				i.remove();
 
-			// call timeTrigger when effect or color is running with timeout > 0, blacklist prio 255
-			if (i.value().priority < BG_PRIORITY &&
-				 i.value().timeoutTime_ms > 0 &&
-				 ( i.value().componentId == hyperion::COMP_EFFECT ||
-				   i.value().componentId == hyperion::COMP_COLOR ||
-				   (i.value().componentId == hyperion::COMP_IMAGE && i.value().owner != "Streaming")
-				 )
-			)
+				Debug(_log,"Timeout clear for priority %d",tPrio);
+				priorityChanged = true;
+			}
+			else
 			{
-				emit signalTimeTrigger(); // as signal to prevent Threading issues
+				// timeoutTime of TIMEOUT_NOT_ACTIVE_PRIO is awaiting data (inactive); skip
+				if(i.value().timeoutTime_ms > TIMEOUT_NOT_ACTIVE_PRIO)
+				{
+					newPriority = qMin(newPriority, i.value().priority);
+				}
+
+				// call timeTrigger when effect or color is running with timeout > 0, blacklist prio 255
+				if (i.value().priority < BG_PRIORITY &&
+					 i.value().timeoutTime_ms > 0 &&
+					 ( i.value().componentId == hyperion::COMP_EFFECT ||
+					   i.value().componentId == hyperion::COMP_COLOR ||
+					   (i.value().componentId == hyperion::COMP_IMAGE && i.value().owner != "Streaming")
+					   )
+					 )
+				{
+					emit signalTimeTrigger(); // as signal to prevent Threading issues
+				}
 			}
 		}
 	}
