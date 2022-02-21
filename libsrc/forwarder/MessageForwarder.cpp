@@ -23,9 +23,11 @@ MessageForwarder::MessageForwarder(Hyperion* hyperion)
 	: _hyperion(hyperion)
 	, _log(nullptr)
 	, _muxer(_hyperion->getMuxerInstance())
-	, _forwarder_enabled(true)
+	, _forwarder_enabled(false)
 	, _priority(140)
 {
+	qDebug() << "MessageForwarder::MessageForwarder : _hyperion: " << _hyperion;
+
 	QString subComponent = hyperion->property("instance").toString();
 	_log= Logger::getInstance("NETFORWARDER", subComponent);
 
@@ -62,57 +64,61 @@ void MessageForwarder::handleSettingsUpdate(settings::type type, const QJsonDocu
 			delete _forwardClients.takeFirst();
 		}
 
-		// build new one
 		const QJsonObject& obj = config.object();
-		if (!obj["jsonapi"].isNull())
-		{
-			const QJsonArray& addr = obj["jsonapi"].toArray();
-			for (const auto& entry : addr)
-			{
-				addJsonTarget(entry.toObject());
-			}
-		}
-
-		if (!obj["flatbuffer"].isNull())
-		{
-			const QJsonArray& addr = obj["flatbuffer"].toArray();
-			for (const auto& entry : addr)
-			{
-				addFlatbufferTarget(entry.toObject());
-			}
-		}
 
 		bool isForwarderEnabledinSettings = obj["enable"].toBool(false);
+		bool isEnabled {false};
 
-		if (!_jsonTargets.isEmpty() && isForwarderEnabledinSettings && _forwarder_enabled)
-		{
-			for (const auto& targetHost : qAsConst(_jsonTargets))
-			{
-				InfoIf(isForwarderEnabledinSettings, _log, "Forwarding now to JSON-target host: %s port: %u", QSTRING_CSTR(targetHost.host.toString()), targetHost.port);
-			}
-
-			connect(_hyperion, &Hyperion::forwardJsonMessage, this, &MessageForwarder::forwardJsonMessage, Qt::UniqueConnection);
-		}
-		else if (_jsonTargets.isEmpty() || !isForwarderEnabledinSettings || !_forwarder_enabled)
+		if (!isForwarderEnabledinSettings)
 		{
 			disconnect(_hyperion, &Hyperion::forwardJsonMessage, nullptr, nullptr);
-		}
-
-		if (!_flatbufferTargets.isEmpty() && isForwarderEnabledinSettings && _forwarder_enabled)
-		{
-			for (const auto& targetHost : qAsConst(_flatbufferTargets))
-			{
-				InfoIf(isForwarderEnabledinSettings, _log, "Forwarding now to Flatbuffer-target host: %s port: %u", QSTRING_CSTR(targetHost.host.toString()), targetHost.port);
-			}
-		}
-		else if (_flatbufferTargets.isEmpty() || !isForwarderEnabledinSettings || !_forwarder_enabled)
-		{
 			disconnect(_hyperion, &Hyperion::forwardSystemProtoMessage, nullptr, nullptr);
 			disconnect(_hyperion, &Hyperion::forwardV4lProtoMessage, nullptr, nullptr);
-		}
 
+		} else
+		{
+		// build new one
+
+			if (!obj["jsonapi"].isNull())
+			{
+				const QJsonArray& addr = obj["jsonapi"].toArray();
+				for (const auto& entry : addr)
+				{
+					addJsonTarget(entry.toObject());
+				}
+			}
+
+			if (!_jsonTargets.isEmpty())
+			{
+				for (const auto& targetHost : qAsConst(_jsonTargets))
+				{
+					InfoIf(isForwarderEnabledinSettings, _log, "Forwarding now to JSON-target host: %s port: %u", QSTRING_CSTR(targetHost.host.toString()), targetHost.port);
+				}
+
+				connect(_hyperion, &Hyperion::forwardJsonMessage, this, &MessageForwarder::forwardJsonMessage, Qt::UniqueConnection);
+				isEnabled = true;
+			}
+
+			if (!obj["flatbuffer"].isNull())
+			{
+				const QJsonArray& addr = obj["flatbuffer"].toArray();
+				for (const auto& entry : addr)
+				{
+					addFlatbufferTarget(entry.toObject());
+				}
+			}
+
+			if (!_flatbufferTargets.isEmpty())
+			{
+				for (const auto& targetHost : qAsConst(_flatbufferTargets))
+				{
+					InfoIf(isForwarderEnabledinSettings, _log, "Forwarding now to Flatbuffer-target host: %s port: %u", QSTRING_CSTR(targetHost.host.toString()), targetHost.port);
+				}
+				isEnabled = true;
+			}
+		}
 		// update comp state
-		_hyperion->setNewComponentState(hyperion::COMP_FORWARDER, isForwarderEnabledinSettings);
+		_hyperion->setNewComponentState(hyperion::COMP_FORWARDER, isEnabled);
 	}
 }
 
@@ -175,13 +181,14 @@ void MessageForwarder::handlePriorityChanges(quint8 priority)
 
 void MessageForwarder::addJsonTarget(const QJsonObject& targetConfig)
 {
+	qDebug() << " MessageForwarder::addJsonTarget - MdnsBrowser::getInstance(): " << &MdnsBrowser::getInstance();
+
 	TargetHost targetHost;
 
 	QString hostName = targetConfig["host"].toString();
 	int port = targetConfig["port"].toInt();
 
-#if 0
-//#ifdef ENABLE_MDNS
+#ifdef ENABLE_MDNS
 		if (hostName.endsWith("._tcp.local"))
 		{
 			Debug(_log, "Service      : %s", QSTRING_CSTR(hostName));
@@ -202,7 +209,8 @@ void MessageForwarder::addJsonTarget(const QJsonObject& targetConfig)
 
 		if (!hostName.isEmpty())
 		{
-			if (NetUtils::resolveHostAddress(_hyperion->parent(), _log, hostName, targetHost.host))
+			//if (NetUtils::resolveHostAddress(_hyperion->parent(), _log, hostName, targetHost.host))
+			if (NetUtils::resolveHostAddress(_log, _log, hostName, targetHost.host))
 			{
 
 				if (NetUtils::isValidPort(_log, port, targetHost.host.toString()))
@@ -265,7 +273,7 @@ void MessageForwarder::addFlatbufferTarget(const QJsonObject& targetConfig)
 
 	if (!hostName.isEmpty())
 	{
-		if (NetUtils::resolveHostAddress(&MdnsBrowser::getInstance(), _log, hostName, targetHost.host))
+		if (NetUtils::resolveHostAddress(_hyperion->parent(), _log, hostName, targetHost.host))
 		{
 
 			if (NetUtils::isValidPort(_log, port, targetHost.host.toString()))

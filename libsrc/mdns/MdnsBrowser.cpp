@@ -18,7 +18,7 @@
 #include <utils/NetUtils.h>
 
 namespace {
-	const bool verboseBrowser = false;
+	const bool verboseBrowser = true;
 } //End of constants
 
 MdnsBrowser::MdnsBrowser(QObject* parent)
@@ -26,6 +26,7 @@ MdnsBrowser::MdnsBrowser(QObject* parent)
 	, _log(Logger::getInstance("MDNS"))
 {
 	qRegisterMetaType<QHostAddress>("QHostAddress");
+	qDebug() << "MdnsBrowser::MdnsBrowser, Thread: " << QThread::currentThread()->objectName();
 }
 
 MdnsBrowser::~MdnsBrowser()

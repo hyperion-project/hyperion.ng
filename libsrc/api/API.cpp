@@ -37,6 +37,8 @@ API::API(Logger *log, bool localConnection, QObject *parent)
 	qRegisterMetaType<VideoMode>("VideoMode");
 	qRegisterMetaType<std::map<int, registerData>>("std::map<int,registerData>");
 
+	qDebug() << "API::API, Thread: " << QThread::currentThread()->objectName();
+
     // Init
     _log = log;
     _authManager = AuthManager::getInstance();
@@ -46,7 +48,6 @@ API::API(Logger *log, bool localConnection, QObject *parent)
     _authorized = false;
     _adminAuthorized = false;
 
-    _hyperion = _instanceManager->getHyperionInstance(0);
     _currInstanceIndex = 0;
     // TODO FIXME
     // report back current registers when a Hyperion instance request it
@@ -69,6 +70,8 @@ API::API(Logger *log, bool localConnection, QObject *parent)
 
 void API::init()
 {
+	qDebug() << "API::init, Thread: " << QThread::currentThread()->objectName();
+	_hyperion = _instanceManager->getHyperionInstance(0);
 	assert(_hyperion);
 
     bool apiAuthRequired = _authManager->isAuthRequired();

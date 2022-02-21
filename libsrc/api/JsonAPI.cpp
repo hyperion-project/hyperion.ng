@@ -96,10 +96,14 @@ JsonAPI::JsonAPI(QString peerAddress, Logger *log, bool localConnection, QObject
 	_ledStreamTimer = new QTimer(this);
 
 	Q_INIT_RESOURCE(JSONRPC_schemas);
+
+	qDebug() << "JsonAPI::JsonAPI, Thread: " << QThread::currentThread()->objectName();
 }
 
 void JsonAPI::initialize()
 {
+	qDebug() << "JsonAPI::initialize(), Thread: " << QThread::currentThread()->objectName();
+
 	// init API, REQUIRED!
 	API::init();
 	// Initialise jsonCB with current instance
