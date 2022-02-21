@@ -22,13 +22,16 @@ target_link_libraries(hyperion
 	blackborder
 	hyperion-utils
 	leddevice
-	effectengine
 	database
 	${QT_LIBRARIES}
 )
 
 if(ENABLE_BOBLIGHT_SERVER)
 	target_link_libraries(hyperion boblightserver)
+endif()
+
+if(ENABLE_EFFECTENGINE)
+	target_link_libraries(hyperion effectengine)
 endif()
 
 if(ENABLE_FLATBUF_SERVER)

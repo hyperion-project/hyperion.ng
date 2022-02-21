@@ -75,7 +75,9 @@ class MdnsProvider;
 #endif
 class WebServer;
 class SettingsManager;
+#if defined(ENABLE_EFFECTENGINE)
 class PythonInit;
+#endif
 class SSDPHandler;
 class FlatBufferServer;
 class ProtoServer;
@@ -172,7 +174,9 @@ private:
 	MdnsProvider*                _mDNSProvider;
 #endif
 	NetOrigin*                 _netOrigin;
+#if defined(ENABLE_EFFECTENGINE)
 	PythonInit*                _pyInit;
+#endif
 	WebServer*                 _webserver;
 	WebServer*                 _sslWebserver;
 	JsonServer*                _jsonServer;

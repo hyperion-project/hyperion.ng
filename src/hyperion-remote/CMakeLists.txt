@@ -30,7 +30,6 @@ add_executable(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
-	effectengine
 	commandline
 	hyperion-utils
 	Qt${QT_VERSION_MAJOR}::Core
@@ -48,6 +47,10 @@ if(ENABLE_MDNS)
         target_link_libraries(${PROJECT_NAME} mdns)
 else()
         target_link_libraries(${PROJECT_NAME} ssdp)
+endif()
+
+if(ENABLE_EFFECTENGINE)
+        target_link_libraries(${PROJECT_NAME} effectengine)
 endif()
 
 if(APPLE)

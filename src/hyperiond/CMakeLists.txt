@@ -4,13 +4,15 @@ else()
 	project(hyperiond)
 endif()
 
-if (NOT CMAKE_VERSION VERSION_LESS "3.12")
-	find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
-	include_directories(${Python3_INCLUDE_DIRS} ${Python3_INCLUDE_DIRS}/..)
-else()
-	find_package (PythonLibs ${PYTHON_VERSION_STRING} EXACT) # Maps PythonLibs to the PythonInterp version of the main cmake
-	include_directories(${PYTHON_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS}/..)
-endif()
+if(ENABLE_EFFECTENGINE)
+	if (NOT CMAKE_VERSION VERSION_LESS "3.12")
+		find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+		include_directories(${Python3_INCLUDE_DIRS} ${Python3_INCLUDE_DIRS}/..)
+	else()
+		find_package (PythonLibs ${PYTHON_VERSION_STRING} EXACT) # Maps PythonLibs to the PythonInterp version of the main cmake
+		include_directories(${PYTHON_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS}/..)
+	endif()
+endif ()
 
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Network Gui Widgets REQUIRED)
 
@@ -47,12 +49,10 @@ endif(WIN32)
 target_link_libraries(${PROJECT_NAME}
 	commandline
 	hyperion
-	effectengine
 	jsonserver
 	webserver
 	ssdp
 	database
-	python
 	resources
 	Qt${QT_VERSION_MAJOR}::Core
 	Qt${QT_VERSION_MAJOR}::Gui
@@ -60,12 +60,15 @@ target_link_libraries(${PROJECT_NAME}
 	Qt${QT_VERSION_MAJOR}::Widgets
 )
 
-if (NOT CMAKE_VERSION VERSION_LESS "3.12")
-	target_link_libraries( ${PROJECT_NAME} ${Python3_LIBRARIES} )
-else()
-	target_link_libraries( ${PROJECT_NAME} ${PYTHON_LIBRARIES} )
-endif()
+if(ENABLE_EFFECTENGINE)
+	target_link_libraries(${PROJECT_NAME} effectengine python)
 
+	if (NOT CMAKE_VERSION VERSION_LESS "3.12")
+		target_link_libraries( ${PROJECT_NAME} ${Python3_LIBRARIES} )
+	else()
+		target_link_libraries( ${PROJECT_NAME} ${PYTHON_LIBRARIES} )
+	endif()
+endif ()
 
 if(ENABLE_FLATBUF_SERVER)
 	target_link_libraries(${PROJECT_NAME} flatbufserver)

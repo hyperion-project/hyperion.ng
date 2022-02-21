@@ -26,17 +26,19 @@ endif()
 
 add_subdirectory(leddevice)
 add_subdirectory(utils)
-add_subdirectory(effectengine)
 add_subdirectory(grabber)
 add_subdirectory(webserver)
 add_subdirectory(db)
 add_subdirectory(api)
-add_subdirectory(python)
-
 add_subdirectory(ssdp)
 
 if(ENABLE_MDNS)
 	add_subdirectory(mdns)
+endif()	
+
+if(ENABLE_EFFECTENGINE)
+	add_subdirectory(effectengine)
+	add_subdirectory(python)
 endif()
 
 if(ENABLE_CEC)

@@ -1206,7 +1206,9 @@ function getSystemInfo() {
   info += '- Kernel:            ' + sys.kernelType + ' (' + sys.kernelVersion + ' (WS: ' + sys.wordSize + '))\n';
   info += '- Root/Admin:        ' + sys.isUserAdmin + '\n';
   info += '- Qt Version:        ' + sys.qtVersion + '\n';
-  info += '- Python Version:    ' + sys.pyVersion + '\n';
+  if (jQuery.inArray("effectengine", window.serverInfo.services) !== -1) {
+    info += '- Python Version:    ' + sys.pyVersion + '\n';
+  }
   info += '- Browser:           ' + navigator.userAgent;
   return info;
 }
@@ -1332,3 +1334,4 @@ function isValidHostnameOrIP4(value) {
 function isValidHostnameOrIP(value) {
   return (isValidHostnameOrIP4(value) || isValidIPv6(value) || isValidServicename(value));
 }
+

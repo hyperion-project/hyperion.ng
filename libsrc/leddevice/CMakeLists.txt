@@ -3,7 +3,13 @@
 SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/leddevice)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/leddevice)
 
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Network SerialPort REQUIRED)
+if ( ENABLE_DEV_NETWORK )
+	find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Network REQUIRED)
+endif()
+
+if ( ENABLE_DEV_SERIAL )
+	find_package(Qt${QT_VERSION_MAJOR} COMPONENTS SerialPort REQUIRED)
+endif()
 
 include_directories(
 	dev_hid
@@ -19,10 +25,6 @@ FILE ( GLOB Leddevice_SOURCES
 	"${CURRENT_HEADER_DIR}/*.h"
 	"${CURRENT_SOURCE_DIR}/*.h"
 	"${CURRENT_SOURCE_DIR}/*.cpp"
-	"${CURRENT_SOURCE_DIR}/dev_serial/*.h"
-	"${CURRENT_SOURCE_DIR}/dev_serial/*.cpp"
-	"${CURRENT_SOURCE_DIR}/dev_net/*.h"
-	"${CURRENT_SOURCE_DIR}/dev_net/*.cpp"
 	"${CURRENT_SOURCE_DIR}/dev_other/*.h"
 	"${CURRENT_SOURCE_DIR}/dev_other/*.cpp"
 )
@@ -32,7 +34,23 @@ if ( ENABLE_OSX OR WIN32 )
 	list(REMOVE_ITEM Leddevice_SOURCES "${CURRENT_SOURCE_DIR}/dev_other/LedDevicePiBlaster.cpp")
 endif()
 
-if ( ENABLE_USB_HID )
+if ( ENABLE_DEV_NETWORK )
+	FILE ( GLOB Leddevice_NETWORK_SOURCES "${CURRENT_SOURCE_DIR}/dev_net/*.h" "${CURRENT_SOURCE_DIR}/dev_net/*.cpp")
+endif()
+
+if ( ENABLE_DEV_SERIAL )
+	FILE ( GLOB Leddevice_SERIAL_SOURCES "${CURRENT_SOURCE_DIR}/dev_serial/*.h" "${CURRENT_SOURCE_DIR}/dev_serial/*.cpp")
+endif()
+
+if ( ENABLE_DEV_SPI )
+	FILE ( GLOB Leddevice_SPI_SOURCES "${CURRENT_SOURCE_DIR}/dev_spi/*.h" "${CURRENT_SOURCE_DIR}/dev_spi/*.cpp")
+endif()
+
+if ( ENABLE_DEV_TINKERFORGE )
+	FILE ( GLOB Leddevice_TINKER_SOURCES "${CURRENT_SOURCE_DIR}/dev_tinker/*.h" "${CURRENT_SOURCE_DIR}/dev_tinker/*.cpp")
+endif()
+
+if ( ENABLE_DEV_USB_HID )
 	find_package(libusb-1.0 REQUIRED)
 	include_directories(
 		${CMAKE_SOURCE_DIR}/include/hidapi
@@ -41,15 +59,7 @@ if ( ENABLE_USB_HID )
 	FILE ( GLOB Leddevice_USB_HID_SOURCES "${CURRENT_SOURCE_DIR}/dev_hid/*.h" "${CURRENT_SOURCE_DIR}/dev_hid/*.cpp")
 endif()
 
-if ( ENABLE_SPIDEV )
-	FILE ( GLOB Leddevice_SPI_SOURCES "${CURRENT_SOURCE_DIR}/dev_spi/*.h" "${CURRENT_SOURCE_DIR}/dev_spi/*.cpp")
-endif()
-
-if ( ENABLE_TINKERFORGE )
-	FILE ( GLOB Leddevice_TINKER_SOURCES "${CURRENT_SOURCE_DIR}/dev_tinker/*.h" "${CURRENT_SOURCE_DIR}/dev_tinker/*.cpp")
-endif()
-
-if ( ENABLE_WS281XPWM )
+if ( ENABLE_DEV_WS281XPWM )
 	include_directories(../../dependencies/external/rpi_ws281x)
 	FILE ( GLOB Leddevice_PWM_SOURCES "${CURRENT_SOURCE_DIR}/dev_rpi_pwm/*.h" "${CURRENT_SOURCE_DIR}/dev_rpi_pwm/*.cpp")
 endif()
@@ -59,10 +69,12 @@ set(LedDevice_RESOURCES ${CURRENT_SOURCE_DIR}/LedDeviceSchemas.qrc )
 SET( Leddevice_SOURCES
 	${Leddevice_SOURCES}
 	${LedDevice_RESOURCES}
-	${Leddevice_USB_HID_SOURCES}
-	${Leddevice_TINKER_SOURCES}
-	${Leddevice_SPI_SOURCES}
+	${Leddevice_NETWORK_SOURCES}
 	${Leddevice_PWM_SOURCES}
+	${Leddevice_SERIAL_SOURCES}		
+	${Leddevice_SPI_SOURCES}
+	${Leddevice_TINKER_SOURCES}
+	${Leddevice_USB_HID_SOURCES}
 )
 
 # auto generate header file that include all available leddevice headers
@@ -86,42 +98,47 @@ target_link_libraries(leddevice
 	hyperion
 	hyperion-utils
 	${CMAKE_THREAD_LIBS_INIT}
-	Qt${QT_VERSION_MAJOR}::Network
-	Qt${QT_VERSION_MAJOR}::SerialPort
-	ssdp
 )
 
 if(WIN32)
 	target_link_libraries(leddevice ws2_32)
 endif()
 
-if(ENABLE_TINKERFORGE)
+if(ENABLE_DEV_NETWORK)
+	target_link_libraries(leddevice Qt${QT_VERSION_MAJOR}::Network ssdp)
+	
+	if (NOT DEFAULT_USE_SYSTEM_MBEDTLS_LIBS)
+		if (MBEDTLS_LIBRARIES)
+			include_directories(${MBEDTLS_INCLUDE_DIR})
+			target_link_libraries(leddevice ${MBEDTLS_LIBRARIES})
+			target_include_directories(leddevice PRIVATE ${MBEDTLS_INCLUDE_DIR})
+		endif (MBEDTLS_LIBRARIES)
+	endif ()
+
+	string(REGEX MATCH "[0-9]+|-([A-Za-z0-9_.]+)" MBEDTLS_MAJOR ${MBEDTLS_VERSION})
+	if (MBEDTLS_MAJOR EQUAL "3")
+		target_compile_definitions(leddevice PRIVATE USE_MBEDTLS3)
+	endif()	
+endif()
+
+if(ENABLE_DEV_SERIAL)
+	target_link_libraries(leddevice Qt${QT_VERSION_MAJOR}::SerialPort)
+endif()
+
+if(ENABLE_DEV_TINKERFORGE)
 	target_link_libraries(leddevice tinkerforge)
 endif()
 
-if(ENABLE_WS281XPWM)
+if(ENABLE_DEV_WS281XPWM)
 	target_link_libraries(leddevice ws281x)
 endif()
 
-if (ENABLE_USB_HID)
+if (ENABLE_DEV_USB_HID)
 	if(APPLE)
 		target_link_libraries(leddevice ${LIBUSB_1_LIBRARIES} hidapi-mac)
 	else()
 		target_link_libraries(leddevice ${LIBUSB_1_LIBRARIES} hidapi-libusb)
 	endif()
-endif()
-
-if (NOT DEFAULT_USE_SYSTEM_MBEDTLS_LIBS)
-	if (MBEDTLS_LIBRARIES)
-		include_directories(${MBEDTLS_INCLUDE_DIR})
-		target_link_libraries(leddevice ${MBEDTLS_LIBRARIES})
-		target_include_directories(leddevice PRIVATE ${MBEDTLS_INCLUDE_DIR})
-	endif (MBEDTLS_LIBRARIES)
-endif ()
-
-string(REGEX MATCH "[0-9]+|-([A-Za-z0-9_.]+)" MBEDTLS_MAJOR ${MBEDTLS_VERSION})
-if (MBEDTLS_MAJOR EQUAL "3")
-	target_compile_definitions(leddevice PRIVATE USE_MBEDTLS3)
 endif()
 
 if(ENABLE_MDNS)

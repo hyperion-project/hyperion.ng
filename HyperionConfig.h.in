@@ -51,20 +51,29 @@
 // Define to enable protocol buffer connect
 #cmakedefine ENABLE_PROTOBUF_CONNECT
 
-// Define to enable the SPI-Device
-#cmakedefine ENABLE_SPIDEV
+// Define to enable the network devices
+#cmakedefine ENABLE_DEV_NETWORK
 
-// Define to enable the Tinkerforge device
-#cmakedefine ENABLE_TINKERFORGE
+// Define to enable the Serial devices
+#cmakedefine ENABLE_DEV_SERIAL
+
+// Define to enable the SPI devices
+#cmakedefine ENABLE_DEV_SPI
+
+// Define to enable the Tinkerforge devices
+#cmakedefine ENABLE_DEV_TINKERFORGE
 
 // Define to enable the USB / HID devices
-#cmakedefine ENABLE_USB_HID
+#cmakedefine ENABLE_DEV_USB_HID
 
 // Define to enable the WS281x-PWM-via-DMA-device using jgarff's library
-#cmakedefine ENABLE_WS281XPWM
+#cmakedefine ENABLE_DEV_WS281XPWM
 
 // Define to enable MDNS
 #cmakedefine ENABLE_MDNS
+
+// Define to enable EFFECTENGINE
+#cmakedefine ENABLE_EFFECTENGINE
 
 // Define to enable experimental features
 #cmakedefine ENABLE_EXPERIMENTAL

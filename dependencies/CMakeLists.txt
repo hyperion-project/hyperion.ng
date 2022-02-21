@@ -1,10 +1,10 @@
 add_subdirectory(build/hidapi)
 
-if ( ENABLE_TINKERFORGE )
+if (ENABLE_DEV_TINKERFORGE)
 	add_subdirectory(build/tinkerforge)
 endif()
 
-if(ENABLE_WS281XPWM)
+if(ENABLE_DEV_WS281XPWM)
 	add_library(ws281x
 		external/rpi_ws281x/mailbox.c external/rpi_ws281x/ws2811.c
 		external/rpi_ws281x/pwm.c external/rpi_ws281x/dma.c
@@ -240,135 +240,138 @@ endif()
 # MBEDTLS
 #=============================================================================
 
-set(USE_SYSTEM_MBEDTLS_LIBS ${DEFAULT_USE_SYSTEM_MBEDTLS_LIBS} CACHE BOOL "use mbedtls library from system")
+if(ENABLE_DEV_NETWORK)
+	set(USE_SYSTEM_MBEDTLS_LIBS ${DEFAULT_USE_SYSTEM_MBEDTLS_LIBS} CACHE BOOL "use mbedtls library from system")
 
-if (USE_SYSTEM_MBEDTLS_LIBS)
-	find_package(mbedtls REQUIRED)
-	if (NOT MBEDTLS_FOUND)
-		message(STATUS "Could NOT find mbedtls system libraries, build static mbedtls libraries")
-		#Fallback: build mbedtls static libray inside project
-		set(DEFAULT_USE_SYSTEM_MBEDTLS_LIBS OFF PARENT_SCOPE)
-		set(USE_SYSTEM_MBEDTLS_LIBS OFF)
-	endif (NOT MBEDTLS_FOUND)
-endif (USE_SYSTEM_MBEDTLS_LIBS)
+	if (USE_SYSTEM_MBEDTLS_LIBS)
+		find_package(mbedtls REQUIRED)
+		if (NOT MBEDTLS_FOUND)
+			message(STATUS "Could NOT find mbedtls system libraries, build static mbedtls libraries")
+			#Fallback: build mbedtls static libray inside project
+			set(DEFAULT_USE_SYSTEM_MBEDTLS_LIBS OFF PARENT_SCOPE)
+			set(USE_SYSTEM_MBEDTLS_LIBS OFF)
+		endif (NOT MBEDTLS_FOUND)
+	endif (USE_SYSTEM_MBEDTLS_LIBS)
 
-if (NOT USE_SYSTEM_MBEDTLS_LIBS)
-	set(DEFAULT_USE_SYSTEM_MBEDTLS_LIBS OFF CACHE BOOL "system mbedtls libraries not found, disable use system mbedtls libraries")
-	set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared mbedtls libraries")
+	if (NOT USE_SYSTEM_MBEDTLS_LIBS)
+		set(DEFAULT_USE_SYSTEM_MBEDTLS_LIBS OFF CACHE BOOL "system mbedtls libraries not found, disable use system mbedtls libraries")
+		set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared mbedtls libraries")
 
-	set(ENABLE_TESTING OFF CACHE BOOL "Disable mbedTLS tests")
-	set(ENABLE_PROGRAMS OFF CACHE BOOL "Disable mbedTLS programs")
-	set(USE_SHARED_MBEDTLS_LIBRARY OFF CACHE BOOL "Disable mbedTLS shared libraries")
-	set(USE_STATIC_MBEDTLS_LIBRARY ON CACHE BOOL "Enable mbedTLS static libraries")
+		set(ENABLE_TESTING OFF CACHE BOOL "Disable mbedTLS tests")
+		set(ENABLE_PROGRAMS OFF CACHE BOOL "Disable mbedTLS programs")
+		set(USE_SHARED_MBEDTLS_LIBRARY OFF CACHE BOOL "Disable mbedTLS shared libraries")
+		set(USE_STATIC_MBEDTLS_LIBRARY ON CACHE BOOL "Enable mbedTLS static libraries")
 
-	set(MBEDTLS_DOWNLOAD_DIR "${CMAKE_BINARY_DIR}/dependencies/external/mbedtls/download")
-	set(MBEDTLS_SOURCE_DIR "${CMAKE_BINARY_DIR}/dependencies/external/mbedtls/src")
-	set(MBEDTLS_BINARY_DIR "${CMAKE_BINARY_DIR}/dependencies/external/mbedtls/build")
-	set(MBEDTLS_INSTALL_DIR "${CMAKE_BINARY_DIR}")
-	if(${CMAKE_BUILD_TYPE} AND ${CMAKE_BUILD_TYPE} EQUAL "Debug")
-		set(MBEDTLS_LOGGING 1)
-	else ()
-		set(MBEDTLS_LOGGING 0)
-	endif ()
-
-	set(MBEDTLS_CMAKE_ARGS
-		-DCMAKE_INSTALL_PREFIX:PATH=${MBEDTLS_INSTALL_DIR}
-		-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
-		-DUSE_SHARED_MBEDTLS_LIBRARY:BOOL=OFF
-		-DUSE_STATIC_MBEDTLS_LIBRARY:BOOL=ON
-		-DENABLE_TESTING:BOOL=OFF
-		-DENABLE_PROGRAMS:BOOL=OFF
-		-DLINK_WITH_PTHREAD:BOOL=ON
-		-Wno-dev
-		#-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=TRUE
-	)
-
-	set(ENABLE_MBEDTLS_FETCH_CONTENT ON)
-
-	if (ENABLE_MBEDTLS_FETCH_CONTENT AND CMAKE_VERSION VERSION_GREATER_EQUAL 3.11)
-
-		include(FetchContent)
-
-		FetchContent_Declare(
-			mbedtls
-			GIT_REPOSITORY        https://github.com/ARMmbed/mbedtls.git
-			GIT_TAG               origin/master
-			BUILD_ALWAYS          OFF
-			GIT_PROGRESS          1
-			DOWNLOAD_DIR          "${MBEDTLS_DOWNLOAD_DIR}"
-			SOURCE_DIR            "${MBEDTLS_SOURCE_DIR}"
-			BINARY_DIR            "${MBEDTLS_BINARY_DIR}"
-			INSTALL_DIR           "${MBEDTLS_INSTALL_DIR}"
-			CMAKE_ARGS            ${MBEDTLS_CMAKE_ARGS}
-			BUILD_COMMAND         ""
-			INSTALL_COMMAND       ""
-			LOG_DOWNLOAD          ${MBEDTLS_LOGGING}
-			LOG_UPDATE            ${MBEDTLS_LOGGING}
-			LOG_PATCH             ${MBEDTLS_LOGGING}
-			LOG_CONFIGURE         ${MBEDTLS_LOGGING}
-			LOG_BUILD             ${MBEDTLS_LOGGING}
-			LOG_INSTALL           ${MBEDTLS_LOGGING}
-			LOG_TEST              ${MBEDTLS_LOGGING}
-			LOG_MERGED_STDOUTERR  ${MBEDTLS_LOGGING}
-			LOG_OUTPUT_ON_FAILURE ${MBEDTLS_LOGGING}
-		)
-
-		if (CMAKE_VERSION VERSION_LESS 3.14)
-			macro (FetchContent_MakeAvailable NAME)
-				FetchContent_GetProperties(${NAME})
-				if (NOT ${NAME}_POPULATED)
-					FetchContent_Populate(${NAME})
-					add_subdirectory(${${NAME}_SOURCE_DIR} ${${NAME}_BINARY_DIR})
-				endif ()
-			endmacro ()
+		set(MBEDTLS_DOWNLOAD_DIR "${CMAKE_BINARY_DIR}/dependencies/external/mbedtls/download")
+		set(MBEDTLS_SOURCE_DIR "${CMAKE_BINARY_DIR}/dependencies/external/mbedtls/src")
+		set(MBEDTLS_BINARY_DIR "${CMAKE_BINARY_DIR}/dependencies/external/mbedtls/build")
+		set(MBEDTLS_INSTALL_DIR "${CMAKE_BINARY_DIR}")
+		if(${CMAKE_BUILD_TYPE} AND ${CMAKE_BUILD_TYPE} EQUAL "Debug")
+			set(MBEDTLS_LOGGING 1)
+		else ()
+			set(MBEDTLS_LOGGING 0)
 		endif ()
 
-		FetchContent_MakeAvailable(mbedtls)
-	else ()
-		set(ENABLE_MBEDTLS_FETCH_CONTENT OFF PARENT_SCOPE)
-		if(NOT DEFINED BUILD_MBEDTLS_ONCE)
-			set(BUILD_MBEDTLS_ONCE CACHE INTERNAL "Done")
-			configure_file(${CMAKE_SOURCE_DIR}/dependencies/CMakeLists-mbedtls.txt.in ${MBEDTLS_DOWNLOAD_DIR}/CMakeLists.txt @ONLY)
-			execute_process(COMMAND ${CMAKE_COMMAND} -DCMAKE_INSTALL_PREFIX:PATH=${MBEDTLS_INSTALL_DIR} -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE} -G "${CMAKE_GENERATOR}" . WORKING_DIRECTORY ${MBEDTLS_DOWNLOAD_DIR})
-			execute_process(COMMAND ${CMAKE_COMMAND} --build . WORKING_DIRECTORY ${MBEDTLS_DOWNLOAD_DIR})
-			add_subdirectory(${MBEDTLS_SOURCE_DIR} ${MBEDTLS_BINARY_DIR})
-		endif()
-	endif ()
+		set(MBEDTLS_CMAKE_ARGS
+			-DCMAKE_INSTALL_PREFIX:PATH=${MBEDTLS_INSTALL_DIR}
+			-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
+			-DUSE_SHARED_MBEDTLS_LIBRARY:BOOL=OFF
+			-DUSE_STATIC_MBEDTLS_LIBRARY:BOOL=ON
+			-DENABLE_TESTING:BOOL=OFF
+			-DENABLE_PROGRAMS:BOOL=OFF
+			-DLINK_WITH_PTHREAD:BOOL=ON
+			-Wno-dev
+			#-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=TRUE
+		)
 
-	set (MBEDTLS_INCLUDE_DIR "${MBEDTLS_SOURCE_DIR}/include")
-	set (MBEDTLS_INCLUDE_DIR ${MBEDTLS_INCLUDE_DIR} PARENT_SCOPE)
-	if (MBEDTLS_INCLUDE_DIR)
-		if (EXISTS "${MBEDTLS_INCLUDE_DIR}/mbedtls/build_info.h")
-			file(STRINGS ${MBEDTLS_INCLUDE_DIR}/mbedtls/build_info.h _MBEDTLS_VERSION_LINE REGEX "^#define[ \t]+MBEDTLS_VERSION_STRING[\t ].*")
-			string(REGEX REPLACE ".*MBEDTLS_VERSION_STRING[\t ]+\"(.*)\"" "\\1" MBEDTLS_VERSION ${_MBEDTLS_VERSION_LINE})
-			set (MBEDTLS_VERSION ${MBEDTLS_VERSION} PARENT_SCOPE)
-			message(STATUS "Using static mbedtls libraries (build version \"${MBEDTLS_VERSION}\")")
-		elseif(EXISTS "${MBEDTLS_INCLUDE_DIR}/mbedtls/version.h")
-			file(STRINGS "${MBEDTLS_INCLUDE_DIR}/mbedtls/version.h" _MBEDTLS_VERSION_STRING REGEX "^#[\t ]*define[\t ]+MBEDTLS_VERSION_STRING[\t ]+\"[0-9]+.[0-9]+.[0-9]+\"")
-			string(REGEX REPLACE "^.*MBEDTLS_VERSION_STRING.*([0-9]+.[0-9]+.[0-9]+).*" "\\1" MBEDTLS_VERSION "${_MBEDTLS_VERSION_STRING}")
-			set (MBEDTLS_VERSION ${MBEDTLS_VERSION} PARENT_SCOPE)
-			message(STATUS "Using static mbedtls libraries (build version \"${MBEDTLS_VERSION}\")")
-		endif()
-	endif ()
+		set(ENABLE_MBEDTLS_FETCH_CONTENT ON)
 
-	include_directories(${MBEDTLS_INCLUDE_DIR})
+		if (ENABLE_MBEDTLS_FETCH_CONTENT AND CMAKE_VERSION VERSION_GREATER_EQUAL 3.11)
 
-	if(WIN32)
-		set (MBEDTLS_LIB_INSTALL_DIR_WITH_LIB_PREFIX "${MBEDTLS_INSTALL_DIR}/lib/${CMAKE_CFG_INTDIR}/")
-	else()
-		set (MBEDTLS_LIB_INSTALL_DIR_WITH_LIB_PREFIX "${MBEDTLS_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}")
-	endif ()
+			include(FetchContent)
 
-	set (MBEDTLS_SSL_LIBRARY "${MBEDTLS_LIB_INSTALL_DIR_WITH_LIB_PREFIX}mbedtls${CMAKE_STATIC_LIBRARY_SUFFIX}")
-	set (MBEDTLS_X509_LIBRARY "${MBEDTLS_LIB_INSTALL_DIR_WITH_LIB_PREFIX}mbedx509${CMAKE_STATIC_LIBRARY_SUFFIX}")
-	set (MBEDTLS_CRYPTO_LIBRARY "${MBEDTLS_LIB_INSTALL_DIR_WITH_LIB_PREFIX}mbedcrypto${CMAKE_STATIC_LIBRARY_SUFFIX}")
-	set (MBEDTLS_LIBRARIES ${MBEDTLS_SSL_LIBRARY} ${MBEDTLS_X509_LIBRARY} ${MBEDTLS_CRYPTO_LIBRARY})
-	set (MBEDTLS_LIBRARIES ${MBEDTLS_LIBRARIES} PARENT_SCOPE)
+			FetchContent_Declare(
+				mbedtls
+				GIT_REPOSITORY        https://github.com/ARMmbed/mbedtls.git
+				GIT_TAG               origin/master
+				BUILD_ALWAYS          OFF
+				GIT_PROGRESS          1
+				DOWNLOAD_DIR          "${MBEDTLS_DOWNLOAD_DIR}"
+				SOURCE_DIR            "${MBEDTLS_SOURCE_DIR}"
+				BINARY_DIR            "${MBEDTLS_BINARY_DIR}"
+				INSTALL_DIR           "${MBEDTLS_INSTALL_DIR}"
+				CMAKE_ARGS            ${MBEDTLS_CMAKE_ARGS}
+				BUILD_COMMAND         ""
+				INSTALL_COMMAND       ""
+				LOG_DOWNLOAD          ${MBEDTLS_LOGGING}
+				LOG_UPDATE            ${MBEDTLS_LOGGING}
+				LOG_PATCH             ${MBEDTLS_LOGGING}
+				LOG_CONFIGURE         ${MBEDTLS_LOGGING}
+				LOG_BUILD             ${MBEDTLS_LOGGING}
+				LOG_INSTALL           ${MBEDTLS_LOGGING}
+				LOG_TEST              ${MBEDTLS_LOGGING}
+				LOG_MERGED_STDOUTERR  ${MBEDTLS_LOGGING}
+				LOG_OUTPUT_ON_FAILURE ${MBEDTLS_LOGGING}
+			)
 
-	if(${CMAKE_BUILD_TYPE} AND ${CMAKE_BUILD_TYPE} EQUAL "Debug")
-		message(STATUS "mbedtls libraries: ${MBEDTLS_LIBRARIES}")
-	endif ()
+			if (CMAKE_VERSION VERSION_LESS 3.14)
+				macro (FetchContent_MakeAvailable NAME)
+					FetchContent_GetProperties(${NAME})
+					if (NOT ${NAME}_POPULATED)
+						FetchContent_Populate(${NAME})
+						add_subdirectory(${${NAME}_SOURCE_DIR} ${${NAME}_BINARY_DIR})
+					endif ()
+				endmacro ()
+			endif ()
 
-	mark_as_advanced (MBEDTLS_INCLUDE_DIR MBEDTLS_LIBRARIES MBEDTLS_SSL_LIBRARY MBEDTLS_X509_LIBRARY MBEDTLS_CRYPTO_LIBRARY)
+			FetchContent_MakeAvailable(mbedtls)
+		else ()
+			set(ENABLE_MBEDTLS_FETCH_CONTENT OFF PARENT_SCOPE)
+			if(NOT DEFINED BUILD_MBEDTLS_ONCE)
+				set(BUILD_MBEDTLS_ONCE CACHE INTERNAL "Done")
+				configure_file(${CMAKE_SOURCE_DIR}/dependencies/CMakeLists-mbedtls.txt.in ${MBEDTLS_DOWNLOAD_DIR}/CMakeLists.txt @ONLY)
+				execute_process(COMMAND ${CMAKE_COMMAND} -DCMAKE_INSTALL_PREFIX:PATH=${MBEDTLS_INSTALL_DIR} -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE} -G "${CMAKE_GENERATOR}" . WORKING_DIRECTORY ${MBEDTLS_DOWNLOAD_DIR})
+				execute_process(COMMAND ${CMAKE_COMMAND} --build . WORKING_DIRECTORY ${MBEDTLS_DOWNLOAD_DIR})
+				add_subdirectory(${MBEDTLS_SOURCE_DIR} ${MBEDTLS_BINARY_DIR})
+			endif()
+		endif ()
 
-endif (NOT USE_SYSTEM_MBEDTLS_LIBS)
+		set (MBEDTLS_INCLUDE_DIR "${MBEDTLS_SOURCE_DIR}/include")
+		set (MBEDTLS_INCLUDE_DIR ${MBEDTLS_INCLUDE_DIR} PARENT_SCOPE)
+		if (MBEDTLS_INCLUDE_DIR)
+			if (EXISTS "${MBEDTLS_INCLUDE_DIR}/mbedtls/build_info.h")
+				file(STRINGS ${MBEDTLS_INCLUDE_DIR}/mbedtls/build_info.h _MBEDTLS_VERSION_LINE REGEX "^#define[ \t]+MBEDTLS_VERSION_STRING[\t ].*")
+				string(REGEX REPLACE ".*MBEDTLS_VERSION_STRING[\t ]+\"(.*)\"" "\\1" MBEDTLS_VERSION ${_MBEDTLS_VERSION_LINE})
+				set (MBEDTLS_VERSION ${MBEDTLS_VERSION} PARENT_SCOPE)
+				message(STATUS "Using static mbedtls libraries (build version \"${MBEDTLS_VERSION}\")")
+			elseif(EXISTS "${MBEDTLS_INCLUDE_DIR}/mbedtls/version.h")
+				file(STRINGS "${MBEDTLS_INCLUDE_DIR}/mbedtls/version.h" _MBEDTLS_VERSION_STRING REGEX "^#[\t ]*define[\t ]+MBEDTLS_VERSION_STRING[\t ]+\"[0-9]+.[0-9]+.[0-9]+\"")
+				string(REGEX REPLACE "^.*MBEDTLS_VERSION_STRING.*([0-9]+.[0-9]+.[0-9]+).*" "\\1" MBEDTLS_VERSION "${_MBEDTLS_VERSION_STRING}")
+				set (MBEDTLS_VERSION ${MBEDTLS_VERSION} PARENT_SCOPE)
+				message(STATUS "Using static mbedtls libraries (build version \"${MBEDTLS_VERSION}\")")
+			endif()
+		endif ()
+
+		include_directories(${MBEDTLS_INCLUDE_DIR})
+
+		if(WIN32)
+			set (MBEDTLS_LIB_INSTALL_DIR_WITH_LIB_PREFIX "${MBEDTLS_INSTALL_DIR}/lib/${CMAKE_CFG_INTDIR}/")
+		else()
+			set (MBEDTLS_LIB_INSTALL_DIR_WITH_LIB_PREFIX "${MBEDTLS_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}")
+		endif ()
+
+		set (MBEDTLS_SSL_LIBRARY "${MBEDTLS_LIB_INSTALL_DIR_WITH_LIB_PREFIX}mbedtls${CMAKE_STATIC_LIBRARY_SUFFIX}")
+		set (MBEDTLS_X509_LIBRARY "${MBEDTLS_LIB_INSTALL_DIR_WITH_LIB_PREFIX}mbedx509${CMAKE_STATIC_LIBRARY_SUFFIX}")
+		set (MBEDTLS_CRYPTO_LIBRARY "${MBEDTLS_LIB_INSTALL_DIR_WITH_LIB_PREFIX}mbedcrypto${CMAKE_STATIC_LIBRARY_SUFFIX}")
+		set (MBEDTLS_LIBRARIES ${MBEDTLS_SSL_LIBRARY} ${MBEDTLS_X509_LIBRARY} ${MBEDTLS_CRYPTO_LIBRARY})
+		set (MBEDTLS_LIBRARIES ${MBEDTLS_LIBRARIES} PARENT_SCOPE)
+
+		if(${CMAKE_BUILD_TYPE} AND ${CMAKE_BUILD_TYPE} EQUAL "Debug")
+			message(STATUS "mbedtls libraries: ${MBEDTLS_LIBRARIES}")
+		endif ()
+
+		mark_as_advanced (MBEDTLS_INCLUDE_DIR MBEDTLS_LIBRARIES MBEDTLS_SSL_LIBRARY MBEDTLS_X509_LIBRARY MBEDTLS_CRYPTO_LIBRARY)
+
+	endif (NOT USE_SYSTEM_MBEDTLS_LIBS)
+endif(ENABLE_DEV_NETWORK)
+
