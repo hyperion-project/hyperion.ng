@@ -14,6 +14,8 @@
 // AuthManager
 #include <hyperion/AuthManager.h>
 
+#include <hyperion/PriorityMuxer.h>
+
 class Hyperion;
 class ComponentRegister;
 class PriorityMuxer;
@@ -70,8 +72,10 @@ private slots:
 
 	///
 	/// @brief handle emits from PriorityMuxer
+	/// @param  currentPriority The current priority at time of emit
+	/// @param  activeInputs The current active input map at time of emit
 	///
-	void handlePriorityUpdate();
+	void handlePriorityUpdate(int currentPriority, const PriorityMuxer::InputsMap& activeInputs);
 
 	///
 	/// @brief Handle imageToLedsMapping updates

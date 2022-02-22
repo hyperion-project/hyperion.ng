@@ -199,7 +199,7 @@ if (HYPERION_LIGHT)
 	SET ( DEFAULT_FB                          OFF )
 	SET ( DEFAULT_MF                          OFF )
 	SET ( DEFAULT_OSX                         OFF )
-	SET ( DEFAULT_QT                          ON  )
+	SET ( DEFAULT_QT                          OFF )
 	SET ( DEFAULT_V4L2                        OFF )
 	SET ( DEFAULT_X11                         OFF )
 	SET ( DEFAULT_XCB                         OFF )
@@ -207,7 +207,7 @@ if (HYPERION_LIGHT)
 	# Disable Input Servers
 	SET ( DEFAULT_BOBLIGHT_SERVER             OFF )
 	SET ( DEFAULT_CEC                         OFF )
-	SET ( DEFAULT_FLATBUF_SERVER              ON  )
+	SET ( DEFAULT_FLATBUF_SERVER              OFF )
 	SET ( DEFAULT_PROTOBUF_SERVER             OFF )
 
 	# Disable Output Connectors

@@ -231,13 +231,13 @@
 			"pbrv"		: 100
  		},
 
-		"matrix":
-		{
+		"matrix": {
 			"ledshoriz": 1,
-			"ledsvert" : 1,
-			"cabling"  : "snake",
-			"start"    : "top-left"
-    		}
+			"ledsvert": 1,
+			"cabling": "snake",
+			"direction": "horizontal",
+			"start": "top-left"
+		}
 	},
 
 	"leds":

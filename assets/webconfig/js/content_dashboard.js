@@ -137,7 +137,14 @@ $(document).ready(function () {
   } else {
     $("#dash_ports_proto_row").hide();
   }
-  
+
+  if (jQuery.inArray("boblight", window.serverInfo.services) !== -1) {
+    var boblightPort = window.serverConfig.boblightServer.enable ? window.serverConfig.boblightServer.port : $.i18n('general_disabled');
+    $('#dash_boblightPort').html(boblightPort);
+  } else {
+    $("#dash_ports_boblight_row").hide();
+  }
+
   var jsonPort = window.serverConfig.jsonServer.port;
   $('#dash_jsonPort').html(jsonPort);
   var wsPorts = window.serverConfig.webConfig.port + ' | ' + window.serverConfig.webConfig.sslPort;

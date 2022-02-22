@@ -1195,13 +1195,13 @@ function getSystemInfo() {
   info += '- Architecture:      ' + sys.architecture + '\n';
 
   if (sys.cpuModelName)
-    info += '- CPU Model:       ' + sys.cpuModelName + '\n';
+    info += '- CPU Model:         ' + sys.cpuModelName + '\n';
   if (sys.cpuModelType)
-    info += '- CPU Type:        ' + sys.cpuModelType + '\n';
+    info += '- CPU Type:          ' + sys.cpuModelType + '\n';
   if (sys.cpuRevision)
-    info += '- CPU Revision:    ' + sys.cpuRevision + '\n';
+    info += '- CPU Revision:      ' + sys.cpuRevision + '\n';
   if (sys.cpuHardware)
-    info += '- CPU Hardware:    ' + sys.cpuHardware + '\n';
+    info += '- CPU Hardware:      ' + sys.cpuHardware + '\n';
 
   info += '- Kernel:            ' + sys.kernelType + ' (' + sys.kernelVersion + ' (WS: ' + sys.wordSize + '))\n';
   info += '- Root/Admin:        ' + sys.isUserAdmin + '\n';

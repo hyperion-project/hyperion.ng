@@ -133,7 +133,7 @@ void MessageForwarder::handleCompStateChangeRequest(hyperion::Components compone
 	}
 }
 
-void MessageForwarder::handlePriorityChanges(quint8 priority)
+void MessageForwarder::handlePriorityChanges(int priority)
 {
 	const QJsonObject obj = _hyperion->getSetting(settings::NETFORWARD).object();
 	if (priority != 0 && _forwarder_enabled && obj["enable"].toBool())
