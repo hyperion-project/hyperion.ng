@@ -365,20 +365,26 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	QJsonArray priorities;
 	uint64_t now = QDateTime::currentMSecsSinceEpoch();
 	QList<int> activePriorities = _hyperion->getActivePriorities();
-	activePriorities.removeAll(255);
+	activePriorities.removeAll(PriorityMuxer::LOWEST_PRIORITY);
 	int currentPriority = _hyperion->getCurrentPriority();
 
-	for(int priority : activePriorities)
+	for(int priority : qAsConst(activePriorities))
 	{
 		const Hyperion::InputInfo &priorityInfo = _hyperion->getPriorityInfo(priority);
+
 		QJsonObject item;
 		item["priority"] = priority;
-		if (priorityInfo.timeoutTime_ms > 0)
+
+		if (priorityInfo.timeoutTime_ms > 0 )
+		{
 			item["duration_ms"] = int(priorityInfo.timeoutTime_ms - now);
+		}
 
 		// owner has optional informations to the component
 		if (!priorityInfo.owner.isEmpty())
+		{
 			item["owner"] = priorityInfo.owner;
+		}
 
 		item["componentId"] = QString(hyperion::componentToIdString(priorityInfo.componentId));
 		item["origin"] = priorityInfo.origin;
@@ -397,7 +403,8 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 			LEDcolor.insert("RGB", RGBValue);
 
 			uint16_t Hue;
-			float Saturation, Luminace;
+			float Saturation;
+			float Luminace;
 
 			// add HSL Value to Array
 			QJsonArray HSLValue;

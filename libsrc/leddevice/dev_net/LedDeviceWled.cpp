@@ -357,8 +357,10 @@ QJsonObject LedDeviceWled::getProperties(const QJsonObject& params)
 		}
 
 		QJsonObject propertiesDetails = response.getBody().object();
-		propertiesDetails.insert("maxLedCount", UDP_MAX_LED_NUM);
-
+		if (!propertiesDetails.isEmpty())
+		{
+			propertiesDetails.insert("maxLedCount", UDP_MAX_LED_NUM);
+		}
 		properties.insert("properties", propertiesDetails);
 
 		DebugIf(verbose, _log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData() );

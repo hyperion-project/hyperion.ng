@@ -103,23 +103,7 @@ QCoreApplication* createApplication(int &argc, char *argv[])
 #else
 	if (!forceNoGui)
 	{
-		// if x11, then test if xserver is available
-		#if defined(ENABLE_X11)
-		Display* dpy = XOpenDisplay(NULL);
-		if (dpy != NULL)
-		{
-			XCloseDisplay(dpy);
-			isGuiApp = true;
-		}
-		#elif defined(ENABLE_XCB)
-			int screen_num;
-			xcb_connection_t * connection = xcb_connect(nullptr, &screen_num);
-			if (!xcb_connection_has_error(connection))
-			{
-				isGuiApp = true;
-			}
-			xcb_disconnect(connection);
-		#endif
+		isGuiApp = (getenv("DISPLAY") != NULL && (getenv("XDG_SESSION_TYPE") != NULL || getenv("WAYLAND_DISPLAY") != NULL));
 	}
 #endif
 
@@ -397,7 +381,7 @@ int main(int argc, char** argv)
 			}
 		}
 
-		Info(log,"Starting Hyperion - %s, %s, built: %s:%s", HYPERION_VERSION, HYPERION_BUILD_ID, __DATE__, __TIME__);
+		Info(log,"Starting Hyperion [%sGUI mode] - %s, %s, built: %s:%s", isGuiApp ? "": "non-", HYPERION_VERSION, HYPERION_BUILD_ID, __DATE__, __TIME__);
 		Debug(log,"QtVersion [%s]", QT_VERSION_STR);
 
 		if ( !readonlyMode )
@@ -423,7 +407,7 @@ int main(int argc, char** argv)
 		// run the application
 		if (isGuiApp)
 		{
-			Info(log, "start systray");
+			Info(log, "Start Systray menu");
 			QApplication::setQuitOnLastWindowClosed(false);
 			SysTray tray(hyperiond);
 			tray.hide();

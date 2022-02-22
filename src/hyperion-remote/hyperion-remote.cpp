@@ -252,7 +252,8 @@ int main(int argc, char * argv[])
 		}
 		else if (parser.isSet(argImage))
 		{
-			connection.setImage(argImage.getImage(parser), argPriority.getInt(parser), argDuration.getInt(parser));
+			QFileInfo imageFile {argImage.getCString(parser)};
+			connection.setImage(argImage.getImage(parser), argPriority.getInt(parser), argDuration.getInt(parser), imageFile.fileName());
 		}
 #if defined(ENABLE_EFFECTENGINE)
 		else if (parser.isSet(argEffect))

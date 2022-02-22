@@ -193,7 +193,10 @@ void Hyperion::stop()
 
 void Hyperion::freeObjects()
 {
-	// switch off all leds
+	//delete Background effect first that it does not kick in when other priorities are stopped
+	delete _BGEffectHandler;
+
+	//Remove all priorities to switch off all leds
 	clear(-1,true);
 
 	// delete components on exit of hyperion core
@@ -462,11 +465,6 @@ void Hyperion::setColor(int priority, const std::vector<ColorRgb> &ledColors, in
 	}
 end:
 
-	if (getPriorityInfo(priority).componentId != hyperion::COMP_COLOR)
-	{
-		clear(priority);
-	}
-
 	// register color
 	registerInput(priority, hyperion::COMP_COLOR, origin);
 
@@ -618,10 +616,9 @@ void Hyperion::handleVisibleComponentChanged(hyperion::Components comp)
 	_raw2ledAdjustment->setBacklightEnabled((comp != hyperion::COMP_COLOR && comp != hyperion::COMP_EFFECT));
 }
 
-void Hyperion::handleSourceAvailability(const quint8& priority)
+void Hyperion::handleSourceAvailability(int priority)
 {	int previousPriority = _muxer->getPreviousPriority();
 
-	Debug(_log,"priority[%d], previousPriority[%d]", priority, previousPriority);
 	if ( priority == PriorityMuxer::LOWEST_PRIORITY)
 	{
 		Debug(_log,"No source left -> Pause output processing and switch LED-Device off");

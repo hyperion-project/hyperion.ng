@@ -36,6 +36,13 @@ public:
 	///
 	~BoblightClientConnection() override;
 
+	///
+	/// Get the Boblight client's IP-address
+	///
+	/// @returns IP-address as QString
+	///
+	QString getClientAddress() { return _clientAddress; }
+
 signals:
 	///
 	/// Signal which is emitted when the connection is being closed
@@ -67,7 +74,7 @@ private:
 	///
 	/// @param message The boblight message to send
 	///
-	void sendMessage(const QByteArray &message) { _socket->write(message); };
+	void sendMessage(const QByteArray &message);
 
 	///
 	/// Send a lights message the to connected client

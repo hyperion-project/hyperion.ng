@@ -219,7 +219,7 @@ void EffectEngine::effectFinished()
 		_hyperion->clear(effect->getPriority());
 	}
 
-	Info( _log, "effect finished");
+	Info( _log, "Effect [%s] finished", QSTRING_CSTR(effect->getName()));
 	for (auto effectIt = _activeEffects.begin(); effectIt != _activeEffects.end(); ++effectIt)
 	{
 		if (*effectIt == effect)

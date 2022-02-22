@@ -304,7 +304,7 @@ function performAction() {
       h += '<button id="wiz_cc_btn_sp" class="btn btn-primary">' + $.i18n('wiz_cc_btn_switchpic') + '</button>';
     }
     else
-      h += '<p>' + $.i18n('wiz_cc_lettvshowm', "gey_1, grey_2, grey_3, HGradient, VGradient") + '</p>';
+      h += '<p>' + $.i18n('wiz_cc_lettvshowm', "grey_1, grey_2, grey_3, HGradient, VGradient") + '</p>';
     $('#wiz_cc_desc').html(h);
     $('#wiz_cc_btn_sp').off().on('click', function () {
       switchPicture(["VGradient", "grey_1", "grey_2", "grey_3", "HGradient"]);
@@ -1534,8 +1534,8 @@ async function discover_yeelight_lights() {
 
 function assign_yeelight_lights() {
   // Model mappings, see https://www.home-assistant.io/integrations/yeelight/
-  var models = ['color', 'color1', 'YLDP02YL', 'YLDP02YL', 'color2', 'YLDP06YL', 'color4', 'YLDP13YL', 'stripe', 'YLDD04YL', 'strip1', 'YLDD01YL', 'YLDD02YL'];
-
+  var models = ['color', 'color1', 'YLDP02YL', 'YLDP02YL', 'color2', 'YLDP06YL', 'color4', 'YLDP13YL', 'color6', 'YLDP13AYL', 'colorc', "YLDP004-A", 'stripe', 'YLDD04YL', 'strip1', 'YLDD01YL', 'YLDD02YL', 'strip4', 'YLDD05YL', 'strip6', 'YLDD05YL'];
+  
   // If records are left for configuration
   if (Object.keys(lights).length > 0) {
     $('#wh_topcontainer').toggle(false);

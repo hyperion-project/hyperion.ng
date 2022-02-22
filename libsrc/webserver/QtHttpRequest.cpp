@@ -25,7 +25,7 @@ void QtHttpRequest::setClientInfo (const QHostAddress & server, const QHostAddre
 
 void QtHttpRequest::addHeader (const QByteArray & header, const QByteArray & value)
 {
-	QByteArray key = header.trimmed ();
+	QByteArray key = header.trimmed().toLower();
 
 	if (!key.isEmpty ())
 	{
