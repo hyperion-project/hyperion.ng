@@ -20,16 +20,13 @@ public:
 		, _prioMuxer(_hyperion->getMuxerInstance())
 		, _isBgEffectConfigured(false)
 	{
-		QObject *context = new QObject(this);
 
 		// listen for config changes
-		connect(_hyperion, &Hyperion::settingsChanged, context, [this, context] (settings::type type, const QJsonDocument& config) {
-			delete context;
+		connect(_hyperion, &Hyperion::settingsChanged, this, [=] (settings::type type, const QJsonDocument& config) {
 			this->handleSettingsUpdate(type, config);
 		});
 
-		connect(_prioMuxer, &PriorityMuxer::prioritiesChanged, context, [this, context] {
-			delete context;
+		connect(_prioMuxer, &PriorityMuxer::prioritiesChanged, this, [=] {
 			this->handlePriorityUpdate();
 		});
 
