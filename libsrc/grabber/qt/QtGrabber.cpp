@@ -222,12 +222,11 @@ int QtGrabber::grabFrame(Image<ColorRgb>& image)
 
 		if (_isEnabled)
 		{
-#if 0
-//#ifdef _WIN32
+#ifdef _WIN32
 			QPixmap originalPixmap = grabWindow(0, _src_x, _src_y, _src_x_max, _src_y_max);
-//#else
-#endif
+#else
 			QPixmap originalPixmap = _screen->grabWindow(0, _src_x, _src_y, _src_x_max, _src_y_max);
+#endif			
 			if (originalPixmap.isNull())
 			{
 				rc = -1;
