@@ -85,7 +85,7 @@ bool PriorityMuxer::setSourceAutoSelectEnabled(bool enable, bool update)
 		// update _currentPriority if called from external
 		if(update)
 		{
-			updatePriorities();
+			emit prioritiesChanged(_currentPriority,_activeInputs);
 		}
 
 		return true;
