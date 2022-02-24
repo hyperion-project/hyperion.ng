@@ -53,12 +53,12 @@ SET ( DEFAULT_XCB                         OFF )
 # Input
 SET ( DEFAULT_BOBLIGHT_SERVER             ON  )
 SET ( DEFAULT_CEC                         OFF )
-SET ( DEFAULT_FLATBUF_SERVER              ON  )
-SET ( DEFAULT_PROTOBUF_SERVER             ON  )
+SET ( DEFAULT_FLATBUF_SERVER              OFF )
+SET ( DEFAULT_PROTOBUF_SERVER             OFF )
 
 # Output
-SET ( DEFAULT_FORWARDER                   ON  )
-SET ( DEFAULT_FLATBUF_CONNECT             ON  )
+SET ( DEFAULT_FORWARDER                   OFF )
+SET ( DEFAULT_FLATBUF_CONNECT             OFF )
 
 # LED-Devices
 SET ( DEFAULT_DEV_NETWORK                 ON  )
@@ -72,6 +72,7 @@ SET ( DEFAULT_DEV_WS281XPWM               OFF )
 SET ( DEFAULT_AVAHI                       ON  )
 SET ( DEFAULT_EFFECTENGINE                ON  )
 SET ( DEFAULT_EXPERIMENTAL                OFF )
+SET ( DEFAULT_REMOTE_CTL                  ON  )
 
 # Build
 SET ( DEFAULT_JSONCHECKS                  ON  )
@@ -296,10 +297,10 @@ message(STATUS "LED-Device options:")
 addIndent(" - ")
 
 option(ENABLE_DEV_NETWORK "Enable the Network devices" ${DEFAULT_DEV_NETWORK} )
-message(STATUS "DEFAULT_DEV_NETWORK = ${DEFAULT_DEV_NETWORK}")
+message(STATUS "ENABLE_DEV_NETWORK = ${ENABLE_DEV_NETWORK}")
 
 option(ENABLE_DEV_SERIAL "Enable the Serial devices" ${DEFAULT_DEV_SERIAL} )
-message(STATUS "DEFAULT_DEV_SERIAL = ${DEFAULT_DEV_SERIAL}")
+message(STATUS "ENABLE_DEV_SERIAL = ${ENABLE_DEV_SERIAL}")
 
 option(ENABLE_DEV_SPI "Enable the SPI device" ${DEFAULT_DEV_SPI} )
 message(STATUS "ENABLE_DEV_SPI = ${ENABLE_DEV_SPI}")
@@ -318,14 +319,17 @@ removeIndent()
 message(STATUS "Services options:")
 addIndent(" - ")
 
-option(ENABLE_EFFECTENGINE "Enable Effect-Engine" ${DEFAULT_EFFECTENGINE})
-message(STATUS "ENABLE_EFFECTENGINE = " ${ENABLE_EFFECTENGINE})
-
 option(ENABLE_AVAHI "Enable Zeroconf" ${DEFAULT_AVAHI})
 message(STATUS "ENABLE_AVAHI = " ${ENABLE_AVAHI})
 
+option(ENABLE_EFFECTENGINE "Enable Effect-Engine" ${DEFAULT_EFFECTENGINE})
+message(STATUS "ENABLE_EFFECTENGINE = " ${ENABLE_EFFECTENGINE})
+
 option(ENABLE_EXPERIMENTAL "Compile experimental features" ${DEFAULT_EXPERIMENTAL})
 message(STATUS "ENABLE_EXPERIMENTAL = ${ENABLE_EXPERIMENTAL}")
+
+option(ENABLE_REMOTE_CTL "Enable Hyperion remote control" ${DEFAULT_REMOTE_CTL})
+message(STATUS "ENABLE_REMOTE_CTL = " ${ENABLE_REMOTE_CTL})
 
 removeIndent()
 
@@ -338,18 +342,18 @@ message(STATUS "ENABLE_JSONCHECKS = ${ENABLE_JSONCHECKS}")
 option(ENABLE_DEPLOY_DEPENDENCIES "Deploy with dependencies" ${DEFAULT_DEPLOY_DEPENDENCIES})
 message(STATUS "ENABLE_DEPLOY_DEPENDENCIES = ${ENABLE_DEPLOY_DEPENDENCIES}")
 
+option(ENABLE_PROFILER "enable profiler capabilities - not for release code" OFF)
+message(STATUS "ENABLE_PROFILER = ${ENABLE_PROFILER}")
+
+option(ENABLE_TESTS "Compile additional test applications" ${DEFAULT_TESTS})
+message(STATUS "ENABLE_TESTS = ${ENABLE_TESTS}")
+
 if (ENABLE_AVAHI)
 message(STATUS "DEFAULT_USE_SHARED_AVAHI_LIBS = ${DEFAULT_USE_SHARED_AVAHI_LIBS}")
 endif()
 message(STATUS "DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS = ${DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS}")
 message(STATUS "DEFAULT_USE_SYSTEM_MBEDTLS_LIBS = ${DEFAULT_USE_SYSTEM_MBEDTLS_LIBS}")
 message(STATUS "DEFAULT_USE_SYSTEM_PROTO_LIBS = ${DEFAULT_USE_SYSTEM_PROTO_LIBS}")
-
-option(ENABLE_PROFILER "enable profiler capabilities - not for release code" OFF)
-message(STATUS "ENABLE_PROFILER = ${ENABLE_PROFILER}")
-
-option(ENABLE_TESTS "Compile additional test applications" ${DEFAULT_TESTS})
-message(STATUS "ENABLE_TESTS = ${ENABLE_TESTS}")
 
 removeIndent()
 
