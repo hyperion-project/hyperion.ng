@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Qt-Grabber: Fixed position handling of multiple monitors (#1320, #1403)
 - Fixed: Signal detection does not switch off all instances (#1281)
 - Reworked PriorityMuxer and Sub-scriptions
+- Do not kill application on SIGILL-signal (#1435)
 
 ## Removed
 
