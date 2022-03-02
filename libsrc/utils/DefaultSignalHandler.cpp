@@ -26,7 +26,6 @@ const Signal ALL_SIGNALS[] = {
 	{ SIGABRT, "SIGABRT" },
 	{ SIGBUS,  "SIGBUS"  },
 	{ SIGFPE,  "SIGFPE"  },
-	{ SIGILL,  "SIGILL"  },
 	{ SIGSEGV, "SIGSEGV" },
 	{ SIGTERM, "SIGTERM" },
 	{ SIGHUP,  "SIGHUP"  },
