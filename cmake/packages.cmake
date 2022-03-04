@@ -138,33 +138,39 @@ SET ( CPACK_COMPONENTS_GROUPING "ALL_COMPONENTS_IN_ONE")
 # Components base (All builds)
 SET ( CPACK_COMPONENTS_ALL "Hyperion" )
 
-SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_remote" )
-
 # Optional compiled
-if(ENABLE_QT)
-	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_qt" )
+
+if(ENABLE_REMOTE_CTL)
+	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_remote" )
 endif()
-if(ENABLE_AMLOGIC)
-	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_aml" )
-endif()
-if(ENABLE_V4L2)
-	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_v4l2" )
-endif()
-if(ENABLE_X11)
-	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_x11" )
-endif()
-if(ENABLE_XCB)
-	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_xcb" )
-endif()
-if(ENABLE_DISPMANX)
-	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_dispmanx" )
-endif()
-if(ENABLE_FB)
-	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_framebuffer" )
-endif()
-if(ENABLE_OSX)
-	SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_osx" )
-endif()
+
+# only include standalone grabber with build was with flatbuffer client
+if(ENABLE_FLATBUF_CONNECT)
+	if(ENABLE_QT)
+		SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_qt" )
+	endif()
+	if(ENABLE_AMLOGIC)
+		SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_aml" )
+	endif()
+	if(ENABLE_V4L2)
+		SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_v4l2" )
+	endif()
+	if(ENABLE_X11)
+		SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_x11" )
+	endif()
+	if(ENABLE_XCB)
+		SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_xcb" )
+	endif()
+	if(ENABLE_DISPMANX)
+		SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_dispmanx" )
+	endif()
+	if(ENABLE_FB)
+		SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_framebuffer" )
+	endif()
+	if(ENABLE_OSX)
+		SET ( CPACK_COMPONENTS_ALL ${CPACK_COMPONENTS_ALL} "hyperion_osx" )
+	endif()
+endif(ENABLE_FLATBUF_CONNECT)
 
 # Only include Hyperion to macOS dmg package (without standalone programs)
 IF ( CPACK_GENERATOR MATCHES "DragNDrop" )
@@ -182,8 +188,7 @@ INCLUDE ( CPack )
 
 cpack_add_install_type(Full DISPLAY_NAME "Full")
 cpack_add_install_type(Min DISPLAY_NAME "Minimal")
-cpack_add_component_group(Runtime EXPANDED DESCRIPTION "Hyperion runtime and hyperion-remote commandline tool")
-cpack_add_component_group(Screencapture EXPANDED DESCRIPTION "Standalone Screencapture commandline programs")
+cpack_add_component_group(Runtime EXPANDED DESCRIPTION "Hyperion runtime")
 
 # Components base
 cpack_add_component(Hyperion
@@ -194,84 +199,92 @@ cpack_add_component(Hyperion
 	REQUIRED
 )
 
+# optional components
+
+if(ENABLE_REMOTE_CTL)
+cpack_add_component_group(Remote DESCRIPTION "hyperion-remote commandline tool")
 cpack_add_component(hyperion_remote
 	DISPLAY_NAME "Hyperion Remote"
 	DESCRIPTION "Hyperion remote cli tool"
 	INSTALL_TYPES Full
-	GROUP Runtime
+	GROUP Remote
 	DEPENDS Hyperion
 )
+endif()
 
-# optional compiled
-if(ENABLE_QT)
-	cpack_add_component(hyperion_qt
-		DISPLAY_NAME "Qt Standalone Screencap"
-		DESCRIPTION "Qt based standalone screen capture"
-		INSTALL_TYPES Full
-		GROUP Screencapture
-		DEPENDS Hyperion
-	)
-endif()
-if(ENABLE_AMLOGIC)
-	cpack_add_component(hyperion_aml
-		DISPLAY_NAME "Amlogic Standalone Screencap"
-		DESCRIPTION "Amlogic based standalone screen capture"
-		INSTALL_TYPES Full
-		GROUP Screencapture
-		DEPENDS Hyperion
-	)
-endif()
-if(ENABLE_V4L2)
-	cpack_add_component(hyperion_v4l2
-		DISPLAY_NAME "V4l2 Standalone Screencap"
-		DESCRIPTION "Video for Linux 2 based standalone screen capture"
-		INSTALL_TYPES Full
-		GROUP Screencapture
-		DEPENDS Hyperion
-	)
-endif()
-if(ENABLE_X11)
-	cpack_add_component(hyperion_x11
-		DISPLAY_NAME "X11 Standalone Screencap"
-		DESCRIPTION "X11 based standalone screen capture"
-		INSTALL_TYPES Full
-		GROUP Screencapture
-		DEPENDS Hyperion
-	)
-endif()
-if(ENABLE_X11)
-	cpack_add_component(hyperion_xcb
-		DISPLAY_NAME "XCB Standalone Screencap"
-		DESCRIPTION "XCB based standalone screen capture"
-		INSTALL_TYPES Full
-		GROUP Screencapture
-		DEPENDS Hyperion
-	)
-endif()
-if(ENABLE_DISPMANX)
-	cpack_add_component(hyperion_dispmanx
-		DISPLAY_NAME "RPi dispmanx Standalone Screencap"
-		DESCRIPTION "Raspbery Pi dispmanx based standalone screen capture"
-		INSTALL_TYPES Full
-		GROUP Screencapture
-		DEPENDS Hyperion
-	)
-endif()
-if(ENABLE_FB)
-	cpack_add_component(hyperion_framebuffer
-		DISPLAY_NAME "Framebuffer Standalone Screencap"
-		DESCRIPTION "Framebuffer based standalone screen capture"
-		INSTALL_TYPES Full
-		GROUP Screencapture
-		DEPENDS Hyperion
-	)
-endif()
-if(ENABLE_OSX)
-	cpack_add_component(hyperion_osx
-		DISPLAY_NAME "Mac osx Standalone Screencap"
-		DESCRIPTION "Mac osx based standalone screen capture"
-		INSTALL_TYPES Full
-		GROUP Screencapture
-		DEPENDS Hyperion
-	)
-endif()
+# only include standalone grabber with build was with flatbuffer client
+if(ENABLE_FLATBUF_CONNECT)
+	cpack_add_component_group(Screencapture EXPANDED DESCRIPTION "Standalone Screencapture commandline programs")
+	if(ENABLE_QT)
+		cpack_add_component(hyperion_qt
+			DISPLAY_NAME "Qt Standalone Screencap"
+			DESCRIPTION "Qt based standalone screen capture"
+			INSTALL_TYPES Full
+			GROUP Screencapture
+			DEPENDS Hyperion
+		)
+	endif()
+	if(ENABLE_AMLOGIC)
+		cpack_add_component(hyperion_aml
+			DISPLAY_NAME "Amlogic Standalone Screencap"
+			DESCRIPTION "Amlogic based standalone screen capture"
+			INSTALL_TYPES Full
+			GROUP Screencapture
+			DEPENDS Hyperion
+		)
+	endif()
+	if(ENABLE_V4L2)
+		cpack_add_component(hyperion_v4l2
+			DISPLAY_NAME "V4l2 Standalone Screencap"
+			DESCRIPTION "Video for Linux 2 based standalone screen capture"
+			INSTALL_TYPES Full
+			GROUP Screencapture
+			DEPENDS Hyperion
+		)
+	endif()
+	if(ENABLE_X11)
+		cpack_add_component(hyperion_x11
+			DISPLAY_NAME "X11 Standalone Screencap"
+			DESCRIPTION "X11 based standalone screen capture"
+			INSTALL_TYPES Full
+			GROUP Screencapture
+			DEPENDS Hyperion
+		)
+	endif()
+	if(ENABLE_X11)
+		cpack_add_component(hyperion_xcb
+			DISPLAY_NAME "XCB Standalone Screencap"
+			DESCRIPTION "XCB based standalone screen capture"
+			INSTALL_TYPES Full
+			GROUP Screencapture
+			DEPENDS Hyperion
+		)
+	endif()
+	if(ENABLE_DISPMANX)
+		cpack_add_component(hyperion_dispmanx
+			DISPLAY_NAME "RPi dispmanx Standalone Screencap"
+			DESCRIPTION "Raspbery Pi dispmanx based standalone screen capture"
+			INSTALL_TYPES Full
+			GROUP Screencapture
+			DEPENDS Hyperion
+		)
+	endif()
+	if(ENABLE_FB)
+		cpack_add_component(hyperion_framebuffer
+			DISPLAY_NAME "Framebuffer Standalone Screencap"
+			DESCRIPTION "Framebuffer based standalone screen capture"
+			INSTALL_TYPES Full
+			GROUP Screencapture
+			DEPENDS Hyperion
+		)
+	endif()
+	if(ENABLE_OSX)
+		cpack_add_component(hyperion_osx
+			DISPLAY_NAME "Mac osx Standalone Screencap"
+			DESCRIPTION "Mac osx based standalone screen capture"
+			INSTALL_TYPES Full
+			GROUP Screencapture
+			DEPENDS Hyperion
+		)
+	endif()
+endif(ENABLE_FLATBUF_CONNECT)
