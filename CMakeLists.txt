@@ -53,12 +53,12 @@ SET ( DEFAULT_XCB                         OFF )
 # Input
 SET ( DEFAULT_BOBLIGHT_SERVER             ON  )
 SET ( DEFAULT_CEC                         OFF )
-SET ( DEFAULT_FLATBUF_SERVER              OFF )
-SET ( DEFAULT_PROTOBUF_SERVER             OFF )
+SET ( DEFAULT_FLATBUF_SERVER              ON  )
+SET ( DEFAULT_PROTOBUF_SERVER             ON  )
 
 # Output
-SET ( DEFAULT_FORWARDER                   OFF )
-SET ( DEFAULT_FLATBUF_CONNECT             OFF )
+SET ( DEFAULT_FORWARDER                   ON  )
+SET ( DEFAULT_FLATBUF_CONNECT             ON  )
 
 # LED-Devices
 SET ( DEFAULT_DEV_NETWORK                 ON  )
