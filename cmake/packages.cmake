@@ -251,7 +251,7 @@ if(ENABLE_FLATBUF_CONNECT)
 			DEPENDS Hyperion
 		)
 	endif()
-	if(ENABLE_X11)
+	if(ENABLE_XCB)
 		cpack_add_component(hyperion_xcb
 			DISPLAY_NAME "XCB Standalone Screencap"
 			DESCRIPTION "XCB based standalone screen capture"
