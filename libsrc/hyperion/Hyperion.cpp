@@ -28,8 +28,10 @@
 #include <hyperion/MultiColorAdjustment.h>
 #include "LinearColorSmoothing.h"
 
+#if defined(ENABLE_EFFECTENGINE)
 // effect engine includes
 #include <effectengine/EffectEngine.h>
+#endif
 
 // settingsManagaer
 #include <hyperion/SettingsManager.h>
@@ -56,7 +58,9 @@ Hyperion::Hyperion(quint8 instance, bool readonlyMode)
 	, _raw2ledAdjustment(hyperion::createLedColorsAdjustment(static_cast<int>(_ledString.leds().size()), getSetting(settings::COLOR).object()))
 	, _ledDeviceWrapper(nullptr)
 	, _deviceSmooth(nullptr)
+#if defined(ENABLE_EFFECTENGINE)
 	, _effectEngine(nullptr)
+#endif
 #if defined(ENABLE_FORWARDER)
 	, _messageForwarder(nullptr)
 #endif
@@ -148,10 +152,11 @@ void Hyperion::start()
 	}
 #endif
 
+#if defined(ENABLE_EFFECTENGINE)
 	// create the effect engine; needs to be initialized after smoothing!
 	_effectEngine = new EffectEngine(this);
 	connect(_effectEngine, &EffectEngine::effectListUpdated, this, &Hyperion::effectListUpdated);
-
+#endif
 	// initial startup effect
 	hyperion::handleInitialEffect(this, getSetting(settings::FGEFFECT).object());
 
@@ -188,7 +193,10 @@ void Hyperion::stop()
 
 void Hyperion::freeObjects()
 {
-	// switch off all leds
+	//delete Background effect first that it does not kick in when other priorities are stopped
+	delete _BGEffectHandler;
+
+	//Remove all priorities to switch off all leds
 	clear(-1,true);
 
 	// delete components on exit of hyperion core
@@ -197,7 +205,11 @@ void Hyperion::freeObjects()
 #endif
 
 	delete _captureCont;
+
+#if defined(ENABLE_EFFECTENGINE)
 	delete _effectEngine;
+#endif
+
 	delete _raw2ledAdjustment;
 
 #if defined(ENABLE_FORWARDER)
@@ -233,8 +245,10 @@ void Hyperion::handleSettingsUpdate(settings::type type, const QJsonDocument& co
 	{
 		const QJsonArray leds = config.array();
 
+		#if defined(ENABLE_EFFECTENGINE)
 		// stop and cache all running effects, as effects depend heavily on LED-layout
 		_effectEngine->cacheRunningEffects();
+		#endif
 
 		// ledstring, img processor, muxer, ledGridSize (effect-engine image based effects), _ledBuffer and ByteOrder of ledstring
 		_ledString = hyperion::createLedString(leds, hyperion::createColorOrder(getSetting(settings::DEVICE).object()));
@@ -258,8 +272,10 @@ void Hyperion::handleSettingsUpdate(settings::type type, const QJsonDocument& co
 		delete _raw2ledAdjustment;
 		_raw2ledAdjustment = hyperion::createLedColorsAdjustment(static_cast<int>(_ledString.leds().size()), getSetting(settings::COLOR).object());
 
+		#if defined(ENABLE_EFFECTENGINE)
 		// start cached effects
 		_effectEngine->startCachedEffects();
+		#endif
 	}
 	else if(type == settings::DEVICE)
 	{
@@ -370,11 +386,13 @@ bool Hyperion::setInput(int priority, const std::vector<ColorRgb>& ledColors, in
 {
 	if(_muxer->setInput(priority, ledColors, timeout_ms))
 	{
+		#if defined(ENABLE_EFFECTENGINE)
 		// clear effect if this call does not come from an effect
 		if(clearEffect)
 		{
 			_effectEngine->channelCleared(priority);
 		}
+		#endif
 
 		// if this priority is visible, update immediately
 		if(priority == _muxer->getCurrentPriority())
@@ -397,11 +415,13 @@ bool Hyperion::setInputImage(int priority, const Image<ColorRgb>& image, int64_t
 
 	if(_muxer->setInputImage(priority, image, timeout_ms))
 	{
+		#if defined(ENABLE_EFFECTENGINE)
 		// clear effect if this call does not come from an effect
 		if(clearEffect)
 		{
 			_effectEngine->channelCleared(priority);
 		}
+		#endif
 
 		// if this priority is visible, update immediately
 		if(priority == _muxer->getCurrentPriority())
@@ -421,11 +441,13 @@ bool Hyperion::setInputInactive(quint8 priority)
 
 void Hyperion::setColor(int priority, const std::vector<ColorRgb> &ledColors, int timeout_ms, const QString &origin, bool clearEffects)
 {
+	#if defined(ENABLE_EFFECTENGINE)
 	// clear effect if this call does not come from an effect
 	if (clearEffects)
 	{
 		_effectEngine->channelCleared(priority);
 	}
+	#endif
 
 	// create full led vector from single/multiple colors
 	size_t size = _ledString.leds().size();
@@ -442,11 +464,6 @@ void Hyperion::setColor(int priority, const std::vector<ColorRgb> &ledColors, in
 		}
 	}
 end:
-
-	if (getPriorityInfo(priority).componentId != hyperion::COMP_COLOR)
-	{
-		clear(priority);
-	}
 
 	// register color
 	registerInput(priority, hyperion::COMP_COLOR, origin);
@@ -478,15 +495,20 @@ bool Hyperion::clear(int priority, bool forceClearAll)
 	{
 		_muxer->clearAll(forceClearAll);
 
+		#if defined(ENABLE_EFFECTENGINE)
 		// send clearall signal to the effect engine
 		_effectEngine->allChannelsCleared();
+		#endif
+
 		isCleared = true;
 	}
 	else
 	{
+		#if defined(ENABLE_EFFECTENGINE)
 		// send clear signal to the effect engine
 		// (outside the check so the effect gets cleared even when the effect is not sending colors)
 		_effectEngine->channelCleared(priority);
+		#endif
 
 		if (_muxer->clearInput(priority))
 		{
@@ -516,6 +538,7 @@ Hyperion::InputInfo Hyperion::getPriorityInfo(int priority) const
 	return _muxer->getInputInfo(priority);
 }
 
+#if defined(ENABLE_EFFECTENGINE)
 QString Hyperion::saveEffect(const QJsonObject& obj)
 {
 	return _effectEngine->saveEffect(obj);
@@ -541,11 +564,6 @@ std::list<EffectSchema> Hyperion::getEffectSchemas() const
 	return _effectEngine->getEffectSchemas();
 }
 
-QJsonObject Hyperion::getQJsonConfig() const
-{
-	return _settingsManager->getSettings();
-}
-
 int Hyperion::setEffect(const QString &effectName, int priority, int timeout, const QString & origin)
 {
 	return _effectEngine->runEffect(effectName, priority, timeout, origin);
@@ -554,6 +572,12 @@ int Hyperion::setEffect(const QString &effectName, int priority, int timeout, co
 int Hyperion::setEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout, const QString &pythonScript, const QString &origin, const QString &imageData)
 {
 	return _effectEngine->runEffect(effectName, args, priority, timeout, pythonScript, origin, 0, imageData);
+}
+#endif
+
+QJsonObject Hyperion::getQJsonConfig() const
+{
+	return _settingsManager->getSettings();
 }
 
 void Hyperion::setLedMappingType(int mappingType)
@@ -592,10 +616,9 @@ void Hyperion::handleVisibleComponentChanged(hyperion::Components comp)
 	_raw2ledAdjustment->setBacklightEnabled((comp != hyperion::COMP_COLOR && comp != hyperion::COMP_EFFECT));
 }
 
-void Hyperion::handleSourceAvailability(const quint8& priority)
+void Hyperion::handleSourceAvailability(int priority)
 {	int previousPriority = _muxer->getPreviousPriority();
 
-	Debug(_log,"priority[%d], previousPriority[%d]", priority, previousPriority);
 	if ( priority == PriorityMuxer::LOWEST_PRIORITY)
 	{
 		Debug(_log,"No source left -> Pause output processing and switch LED-Device off");

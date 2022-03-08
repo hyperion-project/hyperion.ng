@@ -53,13 +53,16 @@ Covers these topics:
 Released and unreleased changes at [CHANGELOG.md](CHANGELOG.md)
 
 ## Building
-See [CompileHowto](doc/development/CompileHowto.md).
+See [CompileHowto.md](doc/development/CompileHowto.md).
 
 ## Installation
 See [Documentation](#documentation) or at [Installation.md](Installation.md).
 
 ## Download
 Releases available from the [Hyperion release page](https://github.com/hyperion-project/hyperion.ng/releases)
+
+## Privacy Policy
+See [PRIVACY.md](PRIVACY.md).
 
 ## License
 The source is released under MIT-License (see https://opensource.org/licenses/MIT).<br>

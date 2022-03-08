@@ -10,6 +10,7 @@
 #include <QDateTime>
 #include <QCryptographicHash>
 #include <QImage>
+#include <QImageReader>
 #include <QBuffer>
 #include <QByteArray>
 #include <QTimer>
@@ -83,15 +84,19 @@ void API::init()
     }
     // if this is localConnection and network allows unauth locals, set authorized flag
     if (apiAuthRequired && _localConnection)
+	{
         _authorized = !_authManager->isLocalAuthRequired();
+	}
 
     // admin access is allowed, when the connection is local and the option for local admin isn't set. Con: All local connections get full access
     if (_localConnection)
     {
         _adminAuthorized = !_authManager->isLocalAdminAuthRequired();
         // just in positive direction
-        if (_adminAuthorized)
-            _authorized = true;
+		if (_adminAuthorized)
+		{
+			_authorized = true;
+		}
     }
 }
 
@@ -113,12 +118,25 @@ bool API::setImage(ImageCmdData &data, hyperion::Components comp, QString &reply
     // truncate name length
     data.imgName.truncate(16);
 
-    if (data.format == "auto")
-    {
-        QImage img = QImage::fromData(data.data);
+	if (!data.format.isEmpty())
+	{
+		if (data.format == "auto")
+		{
+			data.format = "";
+		}
+		else
+		{
+			if (!QImageReader::supportedImageFormats().contains(data.format.toLower().toUtf8()))
+			{
+				replyMsg = "The given format [" + data.format + "] is not supported";
+				return false;
+			}
+		}
+
+		QImage img = QImage::fromData(data.data, QSTRING_CSTR(data.format));
         if (img.isNull())
         {
-            replyMsg = "Failed to parse picture, the file might be corrupted";
+			replyMsg = "Failed to parse picture, the file might be corrupted or content does not match the given format [" + data.format + "]";
             return false;
         }
 
@@ -224,6 +242,7 @@ void API::setVideoMode(VideoMode mode, hyperion::Components callerComp)
     QMetaObject::invokeMethod(_hyperion, "setVideoMode", Qt::QueuedConnection, Q_ARG(VideoMode, mode));
 }
 
+#if defined(ENABLE_EFFECTENGINE)
 bool API::setEffect(const EffectCmdData &dat, hyperion::Components callerComp)
 {
     int res;
@@ -238,6 +257,7 @@ bool API::setEffect(const EffectCmdData &dat, hyperion::Components callerComp)
 
     return res >= 0;
 }
+#endif
 
 void API::setSourceAutoSelect(bool state, hyperion::Components callerComp)
 {
@@ -358,6 +378,7 @@ QString API::setInstanceName(quint8 index, const QString &name)
     return NO_AUTH;
 }
 
+#if defined(ENABLE_EFFECTENGINE)
 QString API::deleteEffect(const QString &name)
 {
     if (_adminAuthorized)
@@ -379,6 +400,7 @@ QString API::saveEffect(const QJsonObject &data)
     }
     return NO_AUTH;
 }
+#endif
 
 bool API::saveSettings(const QJsonObject &data)
 {

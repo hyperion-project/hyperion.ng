@@ -58,7 +58,7 @@ private slots:
 	/// @brief Handle priority updates from Priority Muxer
 	/// @param  priority  The new visible priority
 	///
-	void handlePriorityChanges(quint8 priority);
+	void handlePriorityChanges(int priority);
 
 	///
 	/// @brief Forward message to all json target hosts

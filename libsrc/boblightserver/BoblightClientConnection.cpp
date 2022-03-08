@@ -55,11 +55,7 @@ BoblightClientConnection::BoblightClientConnection(Hyperion* hyperion, QTcpSocke
 
 BoblightClientConnection::~BoblightClientConnection()
 {
-	// clear the current channel
-	if (_priority != 0 && _priority >= BOBLIGHT_MIN_PRIORITY && _priority <= BOBLIGHT_MAX_PRIORITY)
-		_hyperion->clear(_priority);
-
-	delete _socket;
+	_socket->deleteLater();
 }
 
 void BoblightClientConnection::readData()
@@ -117,9 +113,10 @@ QString BoblightClientConnection::readMessage(const char* data, const size_t siz
 
 void BoblightClientConnection::socketClosed()
 {
-	// clear the current channel
 	if (_priority >= BOBLIGHT_MIN_PRIORITY && _priority <= BOBLIGHT_MAX_PRIORITY)
+	{
 		_hyperion->clear(_priority);
+	}
 
 	emit connectionClosed(this);
 }
@@ -205,40 +202,58 @@ void BoblightClientConnection::handleMessage(const QString& message)
 			{
 				bool rc;
 				const int prio = static_cast<int>(parseUInt(messageParts[2], &rc));
-				if (rc && prio != _priority)
+				if (rc)
 				{
-					if (_priority != 0 && _hyperion->getPriorityInfo(_priority).componentId == hyperion::COMP_BOBLIGHTSERVER)
-						_hyperion->clear(_priority);
+					int currentPriority = _hyperion->getCurrentPriority();
 
-					if (prio < BOBLIGHT_MIN_PRIORITY || prio > BOBLIGHT_MAX_PRIORITY)
+					if (prio == currentPriority)
 					{
-						_priority = BOBLIGHT_DEFAULT_PRIORITY;
-						while (_hyperion->getActivePriorities().contains(_priority))
-						{
-							_priority += 1;
-						}
-
-						// warn against invalid priority
-						Warning(_log, "The priority %i is not in the priority range of [%d-%d]. Priority %i is used instead.",
-							prio, BOBLIGHT_MIN_PRIORITY, BOBLIGHT_MAX_PRIORITY, _priority);
-						// register new priority (previously modified)
-						_hyperion->registerInput(_priority, hyperion::COMP_BOBLIGHTSERVER, QString("Boblight@%1").arg(_socket->peerAddress().toString()));
+						Error(_log, "The priority %i is already in use onther component of type [%s]", prio, componentToString(_hyperion->getPriorityInfo(currentPriority).componentId));
+						_socket->close();
 					}
 					else
 					{
-						// register new priority
-						_hyperion->registerInput(prio, hyperion::COMP_BOBLIGHTSERVER, QString("Boblight@%1").arg(_socket->peerAddress().toString()));
-						_priority = prio;
-					}
+						if (prio < BOBLIGHT_MIN_PRIORITY || prio > BOBLIGHT_MAX_PRIORITY)
+						{
+							_priority = BOBLIGHT_DEFAULT_PRIORITY;
+							while (_hyperion->getActivePriorities().contains(_priority))
+							{
+								_priority += 1;
+							}
 
-					return;
+							// warn against invalid priority
+							Warning(_log, "The priority %i is not in the priority range of [%d-%d]. Priority %i is used instead.",
+									 prio, BOBLIGHT_MIN_PRIORITY, BOBLIGHT_MAX_PRIORITY, _priority);
+							// register new priority (previously modified)
+							_hyperion->registerInput(_priority, hyperion::COMP_BOBLIGHTSERVER, QString("Boblight@%1").arg(_clientAddress));
+						}
+						else
+						{
+							// register new priority
+							_hyperion->registerInput(prio, hyperion::COMP_BOBLIGHTSERVER, QString("Boblight@%1").arg(_clientAddress));
+							_priority = prio;
+						}
+					}
 				}
+				return;
 			}
 		}
 		else if (messageParts[0] == "sync")
 		{
 			if (_priority >= BOBLIGHT_MIN_PRIORITY && _priority <= BOBLIGHT_MAX_PRIORITY)
-				_hyperion->setInput(_priority, _ledColors); // send current color values to hyperion
+			{
+				int currentPriority = _hyperion->getCurrentPriority();
+				if ( _priority != currentPriority)
+				{
+					// register this connection's priority
+					_hyperion->registerInput(_priority, hyperion::COMP_BOBLIGHTSERVER, QString("Boblight@%1").arg(_clientAddress));
+				}
+
+				if (_priority >= BOBLIGHT_MIN_PRIORITY && _priority <= BOBLIGHT_MAX_PRIORITY)
+				{
+					_hyperion->setInput(_priority, _ledColors); // send current color values to hyperion
+				}
+			}
 
 			return;
 		}
@@ -385,6 +400,14 @@ uint8_t BoblightClientConnection::parseByte(const QString& s, bool *ok) const
 
 	// Clamp to byte range 0 to 255
 	return static_cast<uint8_t>(qBound(LO, int(HI * d), HI)); // qBound args are in order min, value, max; see: https://doc.qt.io/qt-5/qtglobal.html#qBound
+}
+
+void BoblightClientConnection::sendMessage(const QByteArray &message)
+{
+	if (_socket->isOpen())
+	{
+		_socket->write(message);
+	}
 }
 
 void BoblightClientConnection::sendLightMessage()

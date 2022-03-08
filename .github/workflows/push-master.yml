@@ -91,10 +91,10 @@ jobs:
 
   windows:
     name: Windows
-    runs-on: windows-latest
+    runs-on: windows-2022
     env:
-      VCINSTALLDIR: 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC'
-      QT_VERSION: 5.15.0
+      VCINSTALLDIR: 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC'
+      QT_VERSION: 5.15.2
     steps:
       - name: Checkout
         uses: actions/checkout@v1
@@ -122,16 +122,10 @@ jobs:
           path: C:\Users\runneradmin\AppData\Local\Temp\chocolatey
           key: ${{ runner.os }}-chocolatey
 
-      - name: "Remove Redistributable"
-        shell: cmd
-        run: |
-          MsiExec.exe /passive /X{F0C3E5D1-1ADE-321E-8167-68EF0DE699A5}
-          MsiExec.exe /passive /X{1D8E6291-B0D5-35EC-8441-6616F567A0F7}
-
-      - name: Install Python, NSIS, OpenSSL, DirectX SDK
+      - name: Install Python, OpenSSL, DirectX SDK
         shell: powershell
         run: |
-          choco install --no-progress python nsis openssl directx-sdk -y
+          choco install --no-progress python openssl directx-sdk -y
 
       - name: Install libjpeg-turbo
         run: |

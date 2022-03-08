@@ -20,14 +20,15 @@ public:
 		, _prioMuxer(_hyperion->getMuxerInstance())
 		, _isBgEffectConfigured(false)
 	{
-		// listen for config changes
-		connect(_hyperion, &Hyperion::settingsChanged,
-				[=](settings::type type, const QJsonDocument& config) { this->handleSettingsUpdate(type, config); }
-		);
 
-		connect(_prioMuxer, &PriorityMuxer::prioritiesChanged,
-				[=]() { this->handlePriorityUpdate(); }
-		);
+		// listen for config changes
+		connect(_hyperion, &Hyperion::settingsChanged, this, [=] (settings::type type, const QJsonDocument& config) {
+			this->handleSettingsUpdate(type, config);
+		});
+
+		connect(_prioMuxer, &PriorityMuxer::prioritiesChanged, this, [=] {
+			this->handlePriorityUpdate();
+		});
 
 		// initialization
 		handleSettingsUpdate(settings::BGEFFECT, _hyperion->getSetting(settings::BGEFFECT));
@@ -49,14 +50,21 @@ private slots:
 			const QJsonObject& BGEffectConfig = _bgEffectConfig.object();
 			#define BGCONFIG_ARRAY bgColorConfig.toArray()
 			// clear background priority
-			_hyperion->clear(PriorityMuxer::BG_PRIORITY);
+			if (_hyperion->getCurrentPriority() == PriorityMuxer::BG_PRIORITY)
+			{
+				_hyperion->clear(PriorityMuxer::BG_PRIORITY);
+			}
 			// initial background effect/color
 			if (BGEffectConfig["enable"].toBool(true))
 			{
 				_isBgEffectConfigured = true;
 
+				#if defined(ENABLE_EFFECTENGINE)
 				const QString bgTypeConfig = BGEffectConfig["type"].toString("effect");
 				const QString bgEffectConfig = BGEffectConfig["effect"].toString("Warm mood blobs");
+				#else
+				const QString bgTypeConfig = "color";
+				#endif
 				const QJsonValue bgColorConfig = BGEffectConfig["color"];
 				if (bgTypeConfig.contains("color"))
 				{
@@ -70,11 +78,13 @@ private slots:
 					_hyperion->setColor(PriorityMuxer::BG_PRIORITY, bg_color);
 					Info(Logger::getInstance("HYPERION"),"Initial background color set (%d %d %d)",bg_color.at(0).red, bg_color.at(0).green, bg_color.at(0).blue);
 				}
+				#if defined(ENABLE_EFFECTENGINE)
 				else
 				{
-					int result = _hyperion->setEffect(bgEffectConfig, PriorityMuxer::BG_PRIORITY, Effect::ENDLESS);
+					int result = _hyperion->setEffect(bgEffectConfig, PriorityMuxer::BG_PRIORITY, PriorityMuxer::ENDLESS);
 					Info(Logger::getInstance("HYPERION"),"Initial background effect '%s' %s", QSTRING_CSTR(bgEffectConfig), ((result == 0) ? "started" : "failed"));
 				}
+				#endif
 			}
 			#undef BGCONFIG_ARRAY
 		}
@@ -86,13 +96,14 @@ private slots:
 	///
 	void handlePriorityUpdate()
 	{
-		if (_prioMuxer->getCurrentPriority() != PriorityMuxer::BG_PRIORITY && _prioMuxer->hasPriority(PriorityMuxer::BG_PRIORITY))
+		if (_prioMuxer->getCurrentPriority() < PriorityMuxer::BG_PRIORITY && _prioMuxer->hasPriority(PriorityMuxer::BG_PRIORITY))
 		{
 			Debug(Logger::getInstance("HYPERION"),"Stop background (color-) effect as it moved out of scope");
 			_hyperion->clear(PriorityMuxer::BG_PRIORITY);
 		}
 		else if (_prioMuxer->getCurrentPriority() == PriorityMuxer::LOWEST_PRIORITY && _isBgEffectConfigured)
 		{
+			Debug(Logger::getInstance("HYPERION"),"Start background (color-) effect as it moved is scope");
 			emit handleSettingsUpdate (settings::BGEFFECT, _bgEffectConfig);
 		}
 	}

@@ -1221,18 +1221,20 @@ function getSystemInfo() {
   info += '- Architecture:      ' + sys.architecture + '\n';
 
   if (sys.cpuModelName)
-    info += '- CPU Model:       ' + sys.cpuModelName + '\n';
+    info += '- CPU Model:         ' + sys.cpuModelName + '\n';
   if (sys.cpuModelType)
-    info += '- CPU Type:        ' + sys.cpuModelType + '\n';
+    info += '- CPU Type:          ' + sys.cpuModelType + '\n';
   if (sys.cpuRevision)
-    info += '- CPU Revision:    ' + sys.cpuRevision + '\n';
+    info += '- CPU Revision:      ' + sys.cpuRevision + '\n';
   if (sys.cpuHardware)
-    info += '- CPU Hardware:    ' + sys.cpuHardware + '\n';
+    info += '- CPU Hardware:      ' + sys.cpuHardware + '\n';
 
   info += '- Kernel:            ' + sys.kernelType + ' (' + sys.kernelVersion + ' (WS: ' + sys.wordSize + '))\n';
   info += '- Root/Admin:        ' + sys.isUserAdmin + '\n';
   info += '- Qt Version:        ' + sys.qtVersion + '\n';
-  info += '- Python Version:    ' + sys.pyVersion + '\n';
+  if (jQuery.inArray("effectengine", window.serverInfo.services) !== -1) {
+    info += '- Python Version:    ' + sys.pyVersion + '\n';
+  }
   info += '- Browser:           ' + navigator.userAgent;
   return info;
 }
@@ -1349,3 +1351,4 @@ function isValidHostnameOrIP4(value) {
 function isValidHostnameOrIP(value) {
   return (isValidHostnameOrIP4(value) || isValidIPv6(value));
 }
+

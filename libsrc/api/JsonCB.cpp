@@ -39,7 +39,13 @@ JsonCB::JsonCB(QObject* parent)
 	, _prioMuxer(nullptr)
 {
 	_availableCommands << "components-update" << "sessions-update" << "priorities-update" << "imageToLedMapping-update"
-	<< "adjustment-update" << "videomode-update" << "effects-update" << "settings-update" << "leds-update" << "instance-update" << "token-update";
+	<< "adjustment-update" << "videomode-update" << "settings-update" << "leds-update" << "instance-update" << "token-update";
+
+	#if defined(ENABLE_EFFECTENGINE)
+	_availableCommands << "effects-update";
+	#endif
+
+	qRegisterMetaType<PriorityMuxer::InputsMap>("InputsMap");
 }
 
 bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
@@ -102,6 +108,7 @@ bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
 			connect(_hyperion, &Hyperion::newVideoMode, this, &JsonCB::handleVideoModeChange, Qt::UniqueConnection);
 	}
 
+#if defined(ENABLE_EFFECTENGINE)
 	if(type == "effects-update")
 	{
 		if(unsubscribe)
@@ -109,6 +116,7 @@ bool JsonCB::subscribeFor(const QString& type, bool unsubscribe)
 		else
 			connect(_hyperion, &Hyperion::effectListUpdated, this, &JsonCB::handleEffectListChange, Qt::UniqueConnection);
 	}
+#endif
 
 	if(type == "settings-update")
 	{
@@ -220,25 +228,33 @@ void JsonCB::handleBonjourChange(const QMap<QString,BonjourRecord>& bRegisters)
 	doCallback("sessions-update", QVariant(data));
 }
 #endif
-void JsonCB::handlePriorityUpdate()
+
+void JsonCB::handlePriorityUpdate(int currentPriority, const PriorityMuxer::InputsMap& activeInputs)
 {
 	QJsonObject data;
 	QJsonArray priorities;
 	uint64_t now = QDateTime::currentMSecsSinceEpoch();
-	QList<int> activePriorities = _prioMuxer->getPriorities();
-	activePriorities.removeAll(255);
-	int currentPriority = _prioMuxer->getCurrentPriority();
+	QList<int> activePriorities = activeInputs.keys();
 
-	for (int priority : activePriorities) {
-		const Hyperion::InputInfo priorityInfo = _prioMuxer->getInputInfo(priority);
+	activePriorities.removeAll(PriorityMuxer::LOWEST_PRIORITY);
+
+	for (int priority : qAsConst(activePriorities)) {
+
+		const Hyperion::InputInfo& priorityInfo = activeInputs[priority];
+
 		QJsonObject item;
 		item["priority"] = priority;
+
 		if (priorityInfo.timeoutTime_ms > 0 )
+		{
 			item["duration_ms"] = int(priorityInfo.timeoutTime_ms - now);
+		}
 
 		// owner has optional informations to the component
 		if(!priorityInfo.owner.isEmpty())
+		{
 			item["owner"] = priorityInfo.owner;
+		}
 
 		item["componentId"] = QString(hyperion::componentToIdString(priorityInfo.componentId));
 		item["origin"] = priorityInfo.origin;
@@ -257,7 +273,8 @@ void JsonCB::handlePriorityUpdate()
 			LEDcolor.insert("RGB", RGBValue);
 
 			uint16_t Hue;
-			float Saturation, Luminace;
+			float Saturation;
+			float Luminace;
 
 			// add HSL Value to Array
 			QJsonArray HSLValue;
@@ -367,6 +384,7 @@ void JsonCB::handleVideoModeChange(VideoMode mode)
 	doCallback("videomode-update", QVariant(data));
 }
 
+#if defined(ENABLE_EFFECTENGINE)
 void JsonCB::handleEffectListChange()
 {
 	QJsonArray effectList;
@@ -384,6 +402,7 @@ void JsonCB::handleEffectListChange()
 	effects["effects"] = effectList;
 	doCallback("effects-update", QVariant(effects));
 }
+#endif
 
 void JsonCB::handleSettingsChange(settings::type type, const QJsonDocument& data)
 {

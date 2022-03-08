@@ -24,11 +24,13 @@
 #include <hyperion/ColorAdjustment.h>
 #include <hyperion/ComponentRegister.h>
 
+#if defined(ENABLE_EFFECTENGINE)
 // Effect engine includes
 #include <effectengine/EffectDefinition.h>
 #include <effectengine/Effect.h>
 #include <effectengine/ActiveEffectDefinition.h>
 #include <effectengine/EffectSchema.h>
+#endif
 
 #include <leddevice/LedDevice.h>
 
@@ -42,7 +44,9 @@ class ImageProcessor;
 class MessageForwarder;
 #endif
 class LinearColorSmoothing;
+#if defined(ENABLE_EFFECTENGINE)
 class EffectEngine;
+#endif
 class MultiColorAdjustment;
 class ColorAdjustment;
 class SettingsManager;
@@ -138,7 +142,7 @@ public slots:
 	/// @param  clearEffect  Should be true when NOT called from an effect
 	/// @return              True on success, false when priority is not found
 	///
-	bool setInput(int priority, const std::vector<ColorRgb>& ledColors, int timeout_ms = -1, bool clearEffect = true);
+	bool setInput(int priority, const std::vector<ColorRgb>& ledColors, int timeout_ms = PriorityMuxer::ENDLESS, bool clearEffect = true);
 
 	///
 	/// @brief   Update the current image of a priority (prev registered with registerInput())
@@ -149,7 +153,7 @@ public slots:
 	/// @param  clearEffect  Should be true when NOT called from an effect
 	/// @return              True on success, false when priority is not found
 	///
-	bool setInputImage(int priority, const Image<ColorRgb>& image, int64_t timeout_ms = -1, bool clearEffect = true);
+	bool setInputImage(int priority, const Image<ColorRgb>& image, int64_t timeout_ms = PriorityMuxer::ENDLESS, bool clearEffect = true);
 
 	///
 	/// Writes a single color to all the leds for the given time and priority
@@ -162,7 +166,7 @@ public slots:
 	/// @param[in] origin   The setter
 	/// @param     clearEffect  Should be true when NOT called from an effect
 	///
-	void setColor(int priority, const std::vector<ColorRgb> &ledColors, int timeout_ms = -1, const QString& origin = "System" ,bool clearEffects = true);
+	void setColor(int priority, const std::vector<ColorRgb> &ledColors, int timeout_ms = PriorityMuxer::ENDLESS, const QString& origin = "System" ,bool clearEffects = true);
 
 	///
 	/// @brief Set the given priority to inactive
@@ -196,14 +200,15 @@ public slots:
 	///
 	bool clear(int priority, bool forceClearAll=false);
 
+#if defined(ENABLE_EFFECTENGINE)
 	/// #############
 	/// EFFECTENGINE
 	///
 	/// @brief Get a pointer to the effect engine
 	/// @return     EffectEngine instance pointer
 	///
-
 	EffectEngine* getEffectEngineInstance() const { return _effectEngine; }
+
 	///
 	/// @brief Save an effect
 	/// @param  obj  The effect args
@@ -222,7 +227,7 @@ public slots:
 	/// @param effectName Name of the effec to run
 	///	@param priority The priority channel of the effect
 	/// @param timeout The timeout of the effect (after the timout, the effect will be cleared)
-	int setEffect(const QString & effectName, int priority, int timeout = Effect::ENDLESS, const QString & origin="System");
+	int setEffect(const QString & effectName, int priority, int timeout = PriorityMuxer::ENDLESS, const QString & origin="System");
 
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	/// @param effectName Name of the effec to run
@@ -232,7 +237,7 @@ public slots:
 	int setEffect(const QString &effectName
 				, const QJsonObject &args
 				, int priority
-				, int timeout = Effect::ENDLESS
+				, int timeout = PriorityMuxer::ENDLESS
 				, const QString &pythonScript = ""
 				, const QString &origin="System"
 				, const QString &imageData = ""
@@ -249,6 +254,7 @@ public slots:
 	/// Get the list of available effect schema files
 	/// @return The list of available effect schema files
 	std::list<EffectSchema> getEffectSchemas() const;
+#endif
 
 	/// #############
 	/// PRIORITYMUXER
@@ -444,10 +450,12 @@ signals:
 	///
 	void adjustmentChanged();
 
+#if defined(ENABLE_EFFECTENGINE)
 	///
 	/// @brief Signal pipe from EffectEngine to external, emits when effect list has been updated
 	///
 	void effectListUpdated();
+#endif
 
 	///
 	/// @brief Emits whenever new data should be pushed to the LedDeviceWrapper which forwards it to the threaded LedDevice
@@ -492,7 +500,7 @@ private slots:
 	/// @brief Handle the scenario when no/an input source is available
 	///	@param priority   Current priority
 	///
-	void handleSourceAvailability(const quint8& priority);
+	void handleSourceAvailability(int priority);
 
 private:
 	friend class HyperionDaemon;
@@ -533,8 +541,10 @@ private:
 	/// The smoothing LedDevice
 	LinearColorSmoothing * _deviceSmooth;
 
+#if defined(ENABLE_EFFECTENGINE)
 	/// Effect engine
 	EffectEngine * _effectEngine;
+#endif
 
 #if defined(ENABLE_FORWARDER)
 	// Message forwarder

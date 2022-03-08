@@ -226,7 +226,14 @@ $(document).ready(function () {
     //Hide capture menu entries, if no grabbers are available
     if ((window.serverInfo.grabbers.screen.available.length === 0) && (window.serverInfo.grabbers.video.available.length === 0)) {
       $("#MenuItemGrabber").attr('style', 'display:none')
-      $("#MenuItemInstCapture").attr('style', 'display:none')
+      if ((jQuery.inArray("boblight", window.serverInfo.services) === -1)) {
+        $("#MenuItemInstCapture").attr('style', 'display:none')
+      }
+    }
+
+    //Hide effectsconfigurator menu entry, if effectengine is not available
+    if (jQuery.inArray("effectengine", window.serverInfo.services) === -1) {
+      $("#MenuItemEffectsConfig").attr('style', 'display:none')
     }
   });
 
@@ -312,14 +319,14 @@ $(document).ready(function () {
     window.scrollTo(0, 0);
   });
 
-  $(window).scroll(function() {
+  $(window).scroll(function () {
     if ($(window).scrollTop() > 65)
       $("#navbar_brand_logo").css("display", "none");
     else
       $("#navbar_brand_logo").css("display", "");
   });
 
-  $('#side-menu li a, #side-menu li ul li a').click(function() {
+  $('#side-menu li a, #side-menu li ul li a').click(function () {
     $('#side-menu').find('.active').toggleClass('inactive'); // find all active classes and set inactive;
     $(this).addClass('active');
   });
@@ -370,8 +377,8 @@ function SwitchToMenuItem(target, item) {
   cl_object.addClass('in'); // Add class "in" to expand header in sidebar menu;
   if (item) { // Jump to div "item" if available. Time limit 3 seconds
     function scrollTo(counter) {
-      if(counter < 30) {
-        setTimeout(function() {
+      if (counter < 30) {
+        setTimeout(function () {
           counter++;
           if ($('#' + item).length)
             $('#' + item)[0].scrollIntoView();

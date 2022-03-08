@@ -17,6 +17,8 @@
 // AuthManager
 #include <hyperion/AuthManager.h>
 
+#include <hyperion/PriorityMuxer.h>
+
 class Hyperion;
 class ComponentRegister;
 class BonjourBrowserWrapper;
@@ -78,10 +80,13 @@ private slots:
 	///
 	void handleBonjourChange(const QMap<QString,BonjourRecord>& bRegisters);
 #endif
+
 	///
 	/// @brief handle emits from PriorityMuxer
+	/// @param  currentPriority The current priority at time of emit
+	/// @param  activeInputs The current active input map at time of emit
 	///
-	void handlePriorityUpdate();
+	void handlePriorityUpdate(int currentPriority, const PriorityMuxer::InputsMap& activeInputs);
 
 	///
 	/// @brief Handle imageToLedsMapping updates
@@ -99,10 +104,12 @@ private slots:
 	///
 	void handleVideoModeChange(VideoMode mode);
 
+#if defined(ENABLE_EFFECTENGINE)
 	///
 	/// @brief Handle effect list change
 	///
 	void handleEffectListChange();
+#endif
 
 	///
 	/// @brief Handle a config part change. This does NOT include (global) changes from other hyperion instances

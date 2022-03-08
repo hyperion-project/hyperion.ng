@@ -12,18 +12,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Allow to build a "light" version of Hyperion, i.e. no grabbers, or services like flat-/proto buffers, boblight, CEC
 - Allow to restart Hyperion via Systray
+- LED Matrix Layout - Support vertical cabling direction (#1420)
+- Support additional Yeelight models
+- LED-Devices: Show warning, if get properties failed (Network devices: indication that network device is not reachable)
+- hyperion-remote: Show image filename in UI for images sent
 
 ### Changed
 
 - Colors Smoothing is started in pause mode to save resources, when Hyperion starts with no active source
+- Boblight: Support multiple Boblight clients with different priorities
+- UI: Allow configuration of a Boblight server per LED-instance
+- UI: LED Layout - Removed limitations on indention
 
 ### Fixed
 
 - Effects: Fix image URL in Matrix effect
+- Effects: Fix that start effect is stuck on UI
 - Fixes that the Led-Device output flow was interrupted, by an enabling API request on an already enabled device (#967
 - Yeelight - Workaround: Ignore error when setting music mode = off, but the music-mode is already off (#1372)
 - Standalone grabbers: Improved fps help/error text, fixed default address and port, fixed auto discovery of Hyperion server in hyperion-remote
 - Fixed Qt version override, e.g. set via QTDIR
+- Remote control UI: Treat duration=0 as endless
+- Stop Web-Browser capture when user triggers other activities
+- Treat http headers case insensitive (RFC 2616)
+- Qt-Grabber: Fixed position handling of multiple monitors (#1320, #1403)
+- Fixed: Signal detection does not switch off all instances (#1281)
+- Reworked PriorityMuxer and Sub-scriptions
+- Do not kill application on SIGILL-signal (#1435)
 
 ## Removed
 

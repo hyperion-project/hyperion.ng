@@ -4,16 +4,19 @@ include_directories(../libsrc)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
 
 MACRO (link_to_hyperion TARGET)
-	target_link_libraries( ${TARGET} blackborder leddevice jsonserver hyperion-utils hyperion effectengine )
+	target_link_libraries( ${TARGET} blackborder leddevice jsonserver hyperion-utils hyperion )
+	if(ENABLE_EFFECTENGINE)
+		target_link_libraries( ${TARGET} effectengine )
+	endif()
 ENDMACRO()
 
-if(ENABLE_SPIDEV)
+if(ENABLE_DEV_SPI)
 	# Add the simple test executable 'TestSpi'
 	add_executable(test_spi TestSpi.cpp)
 	target_link_libraries( test_spi leddevice hyperion-utils hyperion )
 	add_executable(spidev_test spidev_test.c)
 	add_executable(gpio2spi switchPinCtrl.c)
-endif(ENABLE_SPIDEV)
+endif(ENABLE_DEV_SPI)
 
 add_executable(test_configfile TestConfigFile.cpp)
 link_to_hyperion(test_configfile)

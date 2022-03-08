@@ -29,7 +29,7 @@ namespace NetUtils {
 		server.close();
 		if(port != prevPort)
 		{
-			Warning(log, "The requested Port '%d' was already in use, will use Port '%d' instead", prevPort, port);
+			Warning(log, "The requested Port '%d' is already in use, will use Port '%d' instead", prevPort, port);
 			return false;
 		}
 		return true;
