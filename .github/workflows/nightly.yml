@@ -6,8 +6,43 @@ on:
    - cron: '0 0 * * *'
 
 jobs:
+  update:
+    name: Update Submodules
+    if: github.repository_owner == 'hyperion-project'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Update submodules
+        id: update
+        run: git submodule update --remote --recursive
+
+      - name: Check git status
+        id: status
+        run: echo "::set-output name=status::$(git status -s)"
+
+      - name: Add and commit changes
+        if: ${{ steps.status.outputs.status }}
+        run: |
+          git config --local user.email "20935312+Hyperion-Bot@users.noreply.github.com"
+          git config --local user.name "Hyperion-Bot"
+          git config --local diff.ignoreSubmodules dirty
+          git commit -am "Update submodules"
+
+      - name: Push changes
+        if: ${{ steps.status.outputs.status }}
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.HYPERION_BOT_TOKEN }}
+          branch: ${{ github.ref }}
+
   check:
     name: Compare local <-> nightly
+    needs: [update]
     if: github.repository_owner == 'hyperion-project'
     runs-on: ubuntu-latest
     steps:
