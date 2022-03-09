@@ -7,7 +7,7 @@ on:
 
 jobs:
   update:
-    name: Update Submodules
+    name: Update Submodule rpi_ws281x
     if: github.repository_owner == 'hyperion-project'
     runs-on: ubuntu-latest
     steps:
@@ -17,9 +17,9 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
-      - name: Update submodules
+      - name: Update Submodule rpi_ws281x
         id: update
-        run: git submodule update --remote --recursive
+        run: git submodule update --remote --recursive dependencies/external/rpi_ws281x
 
       - name: Check git status
         id: status
@@ -31,7 +31,7 @@ jobs:
           git config --local user.email "20935312+Hyperion-Bot@users.noreply.github.com"
           git config --local user.name "Hyperion-Bot"
           git config --local diff.ignoreSubmodules dirty
-          git commit -am "Update submodules"
+          git commit -am "Update submodule rpi_ws281x"
 
       - name: Push changes
         if: ${{ steps.status.outputs.status }}
