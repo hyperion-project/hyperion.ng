@@ -11,7 +11,7 @@
 
 // Constants
 namespace {
-	const bool verbose = true;
+	const bool verbose = false;
 	const int DEFAULT_DEVICE = 0;
 } //End of constants
 
