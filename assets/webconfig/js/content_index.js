@@ -59,15 +59,15 @@ $(document).ready(function () {
       container: 'body'
     });
 
-  $(".bootstrap-select").click(function () {
+  $(".bootstrap-select").on("click", function () {
     $(this).addClass("open");
   });
 
-  $(document).click(function () {
+  $(document).on("click", function () {
     $(".bootstrap-select").removeClass("open");
   });
 
-  $(".bootstrap-select").click(function (e) {
+  $(".bootstrap-select").on("click", function (e) {
     e.stopPropagation();
   });
 
@@ -314,19 +314,19 @@ $(document).ready(function () {
     window.serverInfo.effects = event.response.data.effects
   });
 
-  $(".mnava").bind('click.menu', function (e) {
+  $(".mnava").on('click.menu', function (e) {
     loadContent(e);
     window.scrollTo(0, 0);
   });
 
-  $(window).scroll(function () {
+  $(window).on("scroll", function () {
     if ($(window).scrollTop() > 65)
       $("#navbar_brand_logo").css("display", "none");
     else
       $("#navbar_brand_logo").css("display", "");
   });
 
-  $('#side-menu li a, #side-menu li ul li a').click(function () {
+  $('#side-menu li a, #side-menu li ul li a').on("click", function () {
     $('#side-menu').find('.active').toggleClass('inactive'); // find all active classes and set inactive;
     $(this).addClass('active');
   });
@@ -341,7 +341,7 @@ function suppressDefaultPwWarning() {
 
 $(function () {
   var sidebar = $('#side-menu');  // cache sidebar to a variable for performance
-  sidebar.delegate('a.inactive', 'click', function () {
+  sidebar.on("click", 'a.inactive' , function () {
     sidebar.find('.active').toggleClass('active inactive');
     $(this).toggleClass('active inactive');
   });

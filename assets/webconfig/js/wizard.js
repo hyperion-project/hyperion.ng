@@ -82,7 +82,7 @@ function beginWizardRGB() {
     wIntveralId = setInterval(function () { changeColor(); }, time * 1000);
   });
 
-  $('.wselect').change(function () {
+  $('.wselect').on("change", function () {
     var rgb_order = window.serverConfig.device.colorOrder.split("");
     var redS = $("#wiz_r_select").val();
     var greenS = $("#wiz_g_select").val();
@@ -90,17 +90,17 @@ function beginWizardRGB() {
 
     for (var i = 0; i < rgb_order.length; i++) {
       if (redS == rgb_order[i])
-        $('#wiz_g_select option[value=' + rgb_order[i] + ']').attr('disabled', true);
+        $('#wiz_g_select option[value=' + rgb_order[i] + ']').prop('disabled', true);
       else
-        $('#wiz_g_select option[value=' + rgb_order[i] + ']').attr('disabled', false);
+        $('#wiz_g_select option[value=' + rgb_order[i] + ']').prop('disabled', false);
       if (greenS == rgb_order[i])
-        $('#wiz_r_select option[value=' + rgb_order[i] + ']').attr('disabled', true);
+        $('#wiz_r_select option[value=' + rgb_order[i] + ']').prop('disabled', true);
       else
-        $('#wiz_r_select option[value=' + rgb_order[i] + ']').attr('disabled', false);
+        $('#wiz_r_select option[value=' + rgb_order[i] + ']').prop('disabled', false);
     }
 
     if (redS != 'null' && greenS != 'null') {
-      $('#btn_wiz_save').attr('disabled', false);
+      $('#btn_wiz_save').prop('disabled', false);
 
       for (var i = 0; i < rgb_order.length; i++) {
         if (rgb_order[i] == "r")
@@ -117,18 +117,18 @@ function beginWizardRGB() {
         $('#btn_wiz_save').toggle(false);
         $('#btn_wiz_checkok').toggle(true);
 
-        window.readOnlyMode ? $('#btn_wiz_checkok').attr('disabled', true) : $('#btn_wiz_checkok').attr('disabled', false);
+        window.readOnlyMode ? $('#btn_wiz_checkok').prop('disabled', true) : $('#btn_wiz_checkok').prop('disabled', false);
       }
       else {
         $('#btn_wiz_save').toggle(true);
-        window.readOnlyMode ? $('#btn_wiz_save').attr('disabled', true) : $('#btn_wiz_save').attr('disabled', false);
+        window.readOnlyMode ? $('#btn_wiz_save').prop('disabled', true) : $('#btn_wiz_save').prop('disabled', false);
 
         $('#btn_wiz_checkok').toggle(false);
       }
       new_rgb_order = rgb_order;
     }
     else
-      $('#btn_wiz_save').attr('disabled', true);
+      $('#btn_wiz_save').prop('disabled', true);
   });
 
   $("#wiz_switchtime_select").append(createSelOpt('5', '5'), createSelOpt('10', '10'), createSelOpt('15', '15'), createSelOpt('30', '30'));
@@ -280,10 +280,10 @@ function performAction() {
   if (step == 1) {
     $('#wiz_cc_desc').html($.i18n('wiz_cc_chooseid'));
     updateWEditor(["id"]);
-    $('#btn_wiz_back').attr("disabled", true);
+    $('#btn_wiz_back').prop("disabled", true);
   }
   else
-    $('#btn_wiz_back').attr("disabled", false);
+    $('#btn_wiz_back').prop("disabled", false);
 
   if (step == 2) {
     updateWEditor(["white"]);
@@ -410,16 +410,16 @@ function performAction() {
       else
         sendToKodi("playV", e.target.id + '.mp4');
 
-      $(this).attr("disabled", true);
-      setTimeout(function () { $('.videobtn').attr("disabled", false) }, 10000);
+      $(this).prop("disabled", true);
+      setTimeout(function () { $('.videobtn').prop("disabled", false) }, 10000);
     });
 
-    $('#btn_wiz_next').attr("disabled", true);
+    $('#btn_wiz_next').prop("disabled", true);
     $('#btn_wiz_save').toggle(true);
-    window.readOnlyMode ? $('#btn_wiz_save').attr('disabled', true) : $('#btn_wiz_save').attr('disabled', false);
+    window.readOnlyMode ? $('#btn_wiz_save').prop('disabled', true) : $('#btn_wiz_save').prop('disabled', false);
   }
   else {
-    $('#btn_wiz_next').attr("disabled", false);
+    $('#btn_wiz_next').prop("disabled", false);
     $('#btn_wiz_save').toggle(false);
   }
 }
@@ -455,7 +455,7 @@ function startWizardCC() {
   );
 
   if (getStorage("darkMode", false) == "on")
-    $('#wizard_logo').attr("src", 'img/hyperion/logo_negativ.png');
+    $('#wizard_logo').prop("src", 'img/hyperion/logo_negativ.png');
 
   //open modal
   $("#wizard_modal").modal({
@@ -485,7 +485,7 @@ function startWizardCC() {
         }
 
         $('#kodi_status').html('<p style="font-weight:bold;margin-top:5px">' + $.i18n('wiz_cc_try_connect') + '</p>');
-        $('#btn_wiz_cont').attr('disabled', true);
+        $('#btn_wiz_cont').prop('disabled', true);
 
         sendToKodi("msg", $.i18n('wiz_cc_kodimsg_start'), function (cb) {
           if (cb == "error") {
@@ -500,7 +500,7 @@ function startWizardCC() {
             withKodi = true;
           }
 
-          $('#btn_wiz_cont').attr('disabled', false);
+          $('#btn_wiz_cont').prop('disabled', false);
         });
       }
     }
@@ -782,7 +782,9 @@ function checkHueBridge(cb, hueUser) {
       url: hueUrl,
       type: "GET",
       dataType: "json",
-      success: function (json) {
+      timeout: 2500
+    })
+      .done(function (json) {
         if (json.config) {
           cb(true, usr);
         } else {
@@ -793,11 +795,10 @@ function checkHueBridge(cb, hueUser) {
             cb(false);
           }
         }
-      },
-      timeout: 2500
-    }).fail(function () {
-      cb(false);
-    });
+      })
+      .fail(function () {
+        cb(false);
+      })
   }
 }
 
@@ -950,7 +951,7 @@ async function getProperties_hue_bridge(hostAddress, port, username, resourceFil
 async function identify_hue_device(hostAddress, port, username, id) {
 
   // Take care that new record cannot be save during background process
-  $('#btn_wiz_save').attr('disabled', true);
+  $('#btn_wiz_save').prop('disabled', true);
 
   let params = { host: hostAddress, user: username, lightId: id };
   if (port !== 'undefined') {
@@ -959,7 +960,7 @@ async function identify_hue_device(hostAddress, port, username, id) {
   await requestLedDeviceIdentification('philipshue', params);
 
   if (!window.readOnlyMode) {
-    $('#btn_wiz_save').attr('disabled', false);
+    $('#btn_wiz_save').prop('disabled', false);
   }
 }
 
@@ -1157,8 +1158,9 @@ function createHueUser() {
       processData: false,
       timeout: 1000,
       contentType: 'application/json',
-      data: JSON.stringify(data),
-      success: function (r) {
+      data: JSON.stringify(data)
+    })
+      .done(function (r) {
         $('#wizp1').toggle(false);
         $('#wizp2').toggle(false);
         $('#wizp3').toggle(true);
@@ -1190,14 +1192,13 @@ function createHueUser() {
             clearInterval(UserInterval);
           }
         }
-      },
-      error: function (XMLHttpRequest, textStatus, errorThrown) {
+      })
+      .fail(function (XMLHttpRequest, textStatus, errorThrown) {
         $('#wizp1').toggle(false);
         $('#wizp2').toggle(true);
         $('#wizp3').toggle(false);
         clearInterval(UserInterval);
-      }
-    });
+      })
   }, 1000);
 }
 
@@ -1207,8 +1208,9 @@ function get_hue_groups() {
     type: "GET",
     url: hueUrl,
     processData: false,
-    contentType: 'application/json',
-    success: function (r) {
+    contentType: 'application/json'
+  })
+    .done(function (r) {
       if (Object.keys(r).length > 0) {
         $('#wh_topcontainer').toggle(false);
         $('#hue_grp_ids_t').toggle(true);
@@ -1229,8 +1231,7 @@ function get_hue_groups() {
       else {
         noAPISupport('wiz_hue_e_nogrpids');
       }
-    }
-  });
+    })
 }
 
 function noAPISupport(txt) {
@@ -1252,13 +1253,13 @@ function get_light_state(id) {
     type: "GET",
     url: hueUrl,
     processData: false,
-    contentType: 'application/json',
-    success: function (r) {
+    contentType: 'application/json'
+  })
+    .done(function (r) {
       if (Object.keys(r).length > 0) {
         identHueId(id, false, r['state']);
       }
-    }
-  });
+    })
 }
 
 function get_hue_lights() {
@@ -1267,8 +1268,9 @@ function get_hue_lights() {
     type: "GET",
     url: hueUrl,
     processData: false,
-    contentType: 'application/json',
-    success: function (r) {
+    contentType: 'application/json'
+  })
+    .done(function (r) {
       if (Object.keys(r).length > 0) {
         if (hueType == 'philipshue') {
           $('#wh_topcontainer').toggle(false);
@@ -1327,7 +1329,7 @@ function get_hue_lights() {
         }
 
         if (hueType != 'philipshueentertainment') {
-          $('.hue_sel_watch').bind("change", function () {
+          $('.hue_sel_watch').on("change", function () {
             var cC = 0;
             for (var key in lightIDs) {
               if ($('#hue_' + key).val() != "disabled") {
@@ -1335,7 +1337,7 @@ function get_hue_lights() {
               }
             }
 
-            (cC == 0 || window.readOnlyMode) ? $('#btn_wiz_save').attr("disabled", true) : $('#btn_wiz_save').attr("disabled", false);
+            (cC == 0 || window.readOnlyMode) ? $('#btn_wiz_save').prop("disabled", true) : $('#btn_wiz_save').prop("disabled", false);
           });
         }
         $('.hue_sel_watch').trigger('change');
@@ -1344,8 +1346,7 @@ function get_hue_lights() {
         var txt = '<p style="font-weight:bold;color:red;">' + $.i18n('wiz_hue_noids') + '</p>';
         $('#wizp2_body').append(txt);
       }
-    }
-  });
+    })
 }
 
 function abortConnection(UserInterval) {
@@ -1583,7 +1584,7 @@ function assign_yeelight_lights() {
         + $.i18n('wiz_identify_light', lightName) + '</button>']));
     }
 
-    $('.yee_sel_watch').bind("change", function () {
+    $('.yee_sel_watch').on("change", function () {
       var cC = 0;
       for (var key in lights) {
         if ($('#yee_' + key).val() !== "disabled") {
@@ -1592,9 +1593,9 @@ function assign_yeelight_lights() {
       }
 
       if (cC === 0 || window.readOnlyMode)
-        $('#btn_wiz_save').attr("disabled", true);
+        $('#btn_wiz_save').prop("disabled", true);
       else
-        $('#btn_wiz_save').attr("disabled", false);
+        $('#btn_wiz_save').prop("disabled", false);
     });
     $('.yee_sel_watch').trigger('change');
   }
@@ -1621,13 +1622,13 @@ async function getProperties_yeelight(hostname, port) {
 
 async function identify_yeelight_device(hostname, port) {
   // Take care that new record cannot be save during background process
-  $('#btn_wiz_save').attr('disabled', true);
+  $('#btn_wiz_save').prop('disabled', true);
 
   let params = { hostname: hostname, port: port };
   await requestLedDeviceIdentification("yeelight", params);
 
   if (!window.readOnlyMode) {
-    $('#btn_wiz_save').attr('disabled', false);
+    $('#btn_wiz_save').prop('disabled', false);
   }
 }
 
@@ -1843,7 +1844,7 @@ function assign_atmoorb_lights() {
         + $.i18n('wiz_identify_light', orbId) + '</button>']));
     }
 
-    $('.orb_sel_watch').bind("change", function () {
+    $('.orb_sel_watch').on("change", function () {
       var cC = 0;
       for (var key in lights) {
         if ($('#orb_' + key).val() !== "disabled") {
@@ -1851,9 +1852,9 @@ function assign_atmoorb_lights() {
         }
       }
       if (cC === 0 || window.readOnlyMode)
-        $('#btn_wiz_save').attr("disabled", true);
+        $('#btn_wiz_save').prop("disabled", true);
       else
-        $('#btn_wiz_save').attr("disabled", false);
+        $('#btn_wiz_save').prop("disabled", false);
     });
     $('.orb_sel_watch').trigger('change');
   }
@@ -1865,12 +1866,12 @@ function assign_atmoorb_lights() {
 
 async function identify_atmoorb_device(orbId) {
   // Take care that new record cannot be save during background process
-  $('#btn_wiz_save').attr('disabled', true);
+  $('#btn_wiz_save').prop('disabled', true);
 
   let params = { id: orbId };
   await requestLedDeviceIdentification("atmoorb", params);
 
   if (!window.readOnlyMode) {
-    $('#btn_wiz_save').attr('disabled', false);
+    $('#btn_wiz_save').prop('disabled', false);
   }
 }

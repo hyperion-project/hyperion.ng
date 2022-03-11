@@ -87,13 +87,13 @@ $(document).ready(function () {
 
       if (!conf_editor_instCapt.validate().length) {
         if (!window.serverConfig.framegrabber.enable && !window.serverConfig.grabberV4L2.enable) {
-          $('#btn_submit_instCapt').attr('disabled', true);
+          $('#btn_submit_instCapt').prop('disabled', true);
         } else {
-          window.readOnlyMode ? $('#btn_submit_instCapt').attr('disabled', true) : $('#btn_submit_instCapt').attr('disabled', false);
+          window.readOnlyMode ? $('#btn_submit_instCapt').prop('disabled', true) : $('#btn_submit_instCapt').prop('disabled', false);
         }
       }
       else {
-        $('#btn_submit_instCapt').attr('disabled', true);
+        $('#btn_submit_instCapt').prop('disabled', true);
       }
     });
 
@@ -150,7 +150,7 @@ $(document).ready(function () {
     });
 
     conf_editor_bobl.on('change', function () {
-      conf_editor_bobl.validate().length || window.readOnlyMode ? $('#btn_submit_boblightserver').attr('disabled', true) : $('#btn_submit_boblightserver').attr('disabled', false);
+      conf_editor_bobl.validate().length || window.readOnlyMode ? $('#btn_submit_boblightserver').prop('disabled', true) : $('#btn_submit_boblightserver').prop('disabled', false);
     });
 
     conf_editor_bobl.watch('root.boblightServer.enable', () => {

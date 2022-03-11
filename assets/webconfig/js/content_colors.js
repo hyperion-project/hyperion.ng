@@ -43,7 +43,7 @@ $(document).ready(function () {
   }, true, true);
 
   editor_color.on('change', function () {
-    editor_color.validate().length || window.readOnlyMode ? $('#btn_submit_color').attr('disabled', true) : $('#btn_submit_color').attr('disabled', false);
+    editor_color.validate().length || window.readOnlyMode ? $('#btn_submit_color').prop('disabled', true) : $('#btn_submit_color').prop('disabled', false);
   });
 
   $('#btn_submit_color').off().on('click', function () {
@@ -64,7 +64,7 @@ $(document).ready(function () {
       showInputOptionsForKey(editor_smoothing, "smoothing", "enable", false);
       $('#smoothingHelpPanelId').hide();
     }
-    editor_smoothing.validate().length || window.readOnlyMode ? $('#btn_submit_smoothing').attr('disabled', true) : $('#btn_submit_smoothing').attr('disabled', false);
+    editor_smoothing.validate().length || window.readOnlyMode ? $('#btn_submit_smoothing').prop('disabled', true) : $('#btn_submit_smoothing').prop('disabled', false);
   });
 
   $('#btn_submit_smoothing').off().on('click', function () {
@@ -89,7 +89,7 @@ $(document).ready(function () {
         $('#blackborderHelpPanelId').hide();
         $('#blackborderWikiLinkId').hide();
       }
-      editor_blackborder.validate().length || window.readOnlyMode ? $('#btn_submit_blackborder').attr('disabled', true) : $('#btn_submit_blackborder').attr('disabled', false);
+      editor_blackborder.validate().length || window.readOnlyMode ? $('#btn_submit_blackborder').prop('disabled', true) : $('#btn_submit_blackborder').prop('disabled', false);
     });
 
     $('#btn_submit_blackborder').off().on('click', function () {
