@@ -14,7 +14,7 @@
 	}, true, true);
 
 	conf_editor.on('change',function() {
-		conf_editor.validate().length || window.readOnlyMode ? $('#btn_submit').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
+		conf_editor.validate().length || window.readOnlyMode ? $('#btn_submit').prop('disabled', true) : $('#btn_submit').prop('disabled', false);
 	});
 
 	$('#btn_submit').off().on('click',function() {

@@ -921,6 +921,7 @@ all code is your original work. `</legalese>`
 
 ## Marked
 
+Copyright (c) 2018+, MarkedJS (https://github.com/markedjs/)
 Copyright (c) 2011-2018, Christopher Jeffrey (https://github.com/chjj/)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -961,7 +962,7 @@ metismenu
 
 The MIT License (MIT)
 
-Copyright (c) 2014-2018 Osman Nuri Okumuş
+Copyright (c) 2014-2021 Osman Nuri Okumuş
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in

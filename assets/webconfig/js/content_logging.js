@@ -20,7 +20,7 @@ $(document).ready(function () {
   }, true, true);
 
   conf_editor.on('change', function () {
-    conf_editor.validate().length || window.readOnlyMode ? $('#btn_submit').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
+    conf_editor.validate().length || window.readOnlyMode ? $('#btn_submit').prop('disabled', true) : $('#btn_submit').prop('disabled', false);
   });
 
   $('#btn_submit').off().on('click', function () {
@@ -92,7 +92,7 @@ $(document).ready(function () {
     );
 
     $(`#btn_scroll`).bootstrapToggle();
-    $(`#btn_scroll`).change(e => {
+    $(`#btn_scroll`).on("change", e => {
       if (e.currentTarget.checked) {
         //Scroll to end of log
         isScroll = true;

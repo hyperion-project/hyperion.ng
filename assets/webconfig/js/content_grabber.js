@@ -113,12 +113,12 @@ $(document).ready(function () {
             showInputOptionsForKey(conf_editor_screen, "framegrabber", ["enable", "available_devices"], false);
             break;
           default:
-            window.readOnlyMode ? $('#btn_submit_screengrabber').attr('disabled', true) : $('#btn_submit_screengrabber').attr('disabled', false);
+            window.readOnlyMode ? $('#btn_submit_screengrabber').prop('disabled', true) : $('#btn_submit_screengrabber').prop('disabled', false);
             break;
         }
       }
       else {
-        $('#btn_submit_screengrabber').attr('disabled', true);
+        $('#btn_submit_screengrabber').prop('disabled', true);
       }
     });
 
@@ -133,7 +133,7 @@ $(document).ready(function () {
         discoverInputSources("screen");
       }
       else {
-        $('#btn_submit_screengrabber').attr('disabled', false);
+        $('#btn_submit_screengrabber').prop('disabled', false);
         showInputOptionsForKey(conf_editor_screen, "framegrabber", "enable", false);
         $('#screengrabberHelpPanelId').hide();
       }
@@ -144,7 +144,7 @@ $(document).ready(function () {
 
       var deviceSelected = conf_editor_screen.getEditor("root.framegrabber.available_devices").getValue();
       if (deviceSelected === "SELECT" || deviceSelected === "NONE" || deviceSelected === "") {
-        $('#btn_submit_screengrabber').attr('disabled', true);
+        $('#btn_submit_screengrabber').prop('disabled', true);
         showInputOptionsForKey(conf_editor_screen, "framegrabber", ["enable", "available_devices"], false);
       }
       else {
@@ -181,7 +181,7 @@ $(document).ready(function () {
         }
 
         if (conf_editor_screen.validate().length && !window.readOnlyMode) {
-          $('#btn_submit_screengrabber').attr('disabled', false);
+          $('#btn_submit_screengrabber').prop('disabled', false);
         }
       }
     });
@@ -230,7 +230,7 @@ $(document).ready(function () {
       }
 
       if (conf_editor_screen.validate().length && !window.readOnlyMode) {
-        $('#btn_submit_screengrabber').attr('disabled', false);
+        $('#btn_submit_screengrabber').prop('disabled', false);
       }
     });
 
@@ -290,7 +290,7 @@ $(document).ready(function () {
       }
 
       if (conf_editor_screen.validate().length && !window.readOnlyMode) {
-        $('#btn_submit_screengrabber').attr('disabled', false);
+        $('#btn_submit_screengrabber').prop('disabled', false);
       }
     });
 
@@ -367,12 +367,12 @@ $(document).ready(function () {
             showInputOptionsForKey(conf_editor_video, "grabberV4L2", ["enable", "available_devices"], false);
             break;
           default:
-            window.readOnlyMode ? $('#btn_submit_videograbber').attr('disabled', true) : $('#btn_submit_videograbber').attr('disabled', false);
+            window.readOnlyMode ? $('#btn_submit_videograbber').prop('disabled', true) : $('#btn_submit_videograbber').prop('disabled', false);
             break;
         }
       }
       else {
-        $('#btn_submit_videograbber').attr('disabled', true);
+        $('#btn_submit_videograbber').prop('disabled', true);
       }
     });
 
@@ -388,7 +388,7 @@ $(document).ready(function () {
         discoverInputSources("video");
       }
       else {
-        $('#btn_submit_videograbber').attr('disabled', false);
+        $('#btn_submit_videograbber').prop('disabled', false);
         $('#btn_videograbber_set_defaults').hide();
         showInputOptionsForKey(conf_editor_video, "grabberV4L2", "enable", false);
         $('#videograbberHelpPanelId').hide();
@@ -398,7 +398,7 @@ $(document).ready(function () {
     conf_editor_video.watch('root.grabberV4L2.available_devices', () => {
       var deviceSelected = conf_editor_video.getEditor("root.grabberV4L2.available_devices").getValue();
       if (deviceSelected === "SELECT" || deviceSelected === "NONE" || deviceSelected === "") {
-        $('#btn_submit_videograbber').attr('disabled', true);
+        $('#btn_submit_videograbber').prop('disabled', true);
         showInputOptionsForKey(conf_editor_video, "grabberV4L2", ["enable", "available_devices"], false);
       }
       else {
@@ -414,9 +414,9 @@ $(document).ready(function () {
         conf_editor_video.getEditor("root.grabberV4L2.device").setValue(deviceProperties.device);
 
         if (deviceProperties.hasOwnProperty('default') && !jQuery.isEmptyObject(deviceProperties.default.properties)) {
-          $('#btn_videograbber_set_defaults').attr('disabled', false);
+          $('#btn_videograbber_set_defaults').prop('disabled', false);
         } else {
-          $('#btn_videograbber_set_defaults').attr('disabled', true);
+          $('#btn_videograbber_set_defaults').prop('disabled', true);
         }
 
         //If configured device is selected, use the saved values as current values
@@ -461,7 +461,7 @@ $(document).ready(function () {
         }
 
         if (conf_editor_video.validate().length && !window.readOnlyMode) {
-          $('#btn_submit_videograbber').attr('disabled', false);
+          $('#btn_submit_videograbber').prop('disabled', false);
         }
       }
     });
@@ -525,7 +525,7 @@ $(document).ready(function () {
       }
 
       if (conf_editor_video.validate().length && !window.readOnlyMode) {
-        $('#btn_submit_videograbber').attr('disabled', false);
+        $('#btn_submit_videograbber').prop('disabled', false);
       }
     });
 
@@ -577,7 +577,7 @@ $(document).ready(function () {
       }
 
       if (conf_editor_video.validate().length && !window.readOnlyMode) {
-        $('#btn_submit_videograbber').attr('disabled', false);
+        $('#btn_submit_videograbber').prop('disabled', false);
       }
     });
 
@@ -636,7 +636,7 @@ $(document).ready(function () {
       }
 
       if (conf_editor_video.validate().length && !window.readOnlyMode) {
-        $('#btn_submit_videograbber').attr('disabled', false);
+        $('#btn_submit_videograbber').prop('disabled', false);
       }
     });
 
