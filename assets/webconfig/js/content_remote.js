@@ -225,7 +225,7 @@ $(document).ready(function () {
         $('#componentsbutton').append(d);
         $(`#${comp_btn_id}`).bootstrapToggle();
         $(`#${comp_btn_id}`).bootstrapToggle((hyperionEnabled ? "enable" : "disable"));
-        $(`#${comp_btn_id}`).change(e => {
+        $(`#${comp_btn_id}`).on("change", e => {
           requestSetComponentState(e.currentTarget.id.split('_').pop(), e.currentTarget.checked);
         });
       }
@@ -363,7 +363,7 @@ $(document).ready(function () {
     }
   });
 
-  $("#remote_input_img").change(function () {
+  $("#remote_input_img").on("change", function () {
     readImg(this, function (src, fileName) {
       lastFileName = fileName;
       if (src.includes(","))

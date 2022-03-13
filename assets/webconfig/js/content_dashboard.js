@@ -85,7 +85,7 @@ $(document).ready(function () {
     updateHyperionInstanceListing();
 
     $('#instanceButton').bootstrapToggle();
-    $('#instanceButton').change(e => {
+    $('#instanceButton').on("change", e => {
       requestSetComponentState('ALL', e.currentTarget.checked);
     });
 
@@ -93,7 +93,7 @@ $(document).ready(function () {
       if (components[idx].name != "ALL") {
         $("#general_comp_" + components[idx].name).bootstrapToggle();
         $("#general_comp_" + components[idx].name).bootstrapToggle(hyperion_enabled ? "enable" : "disable");
-        $("#general_comp_" + components[idx].name).change(e => {
+        $("#general_comp_" + components[idx].name).on("change", e => {
           requestSetComponentState(e.currentTarget.id.split('_')[2], e.currentTarget.checked);
         });
       }

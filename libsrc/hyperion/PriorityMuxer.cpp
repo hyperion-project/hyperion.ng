@@ -215,6 +215,19 @@ bool PriorityMuxer::setInput(int priority, const std::vector<ColorRgb>& ledColor
 		active = false;
 		activeChange = true;
 	}
+
+	if (input.componentId == hyperion::COMP_COLOR)
+	{
+		if (!input.ledColors.empty() && !ledColors.empty())
+		{
+			//Only issue priority update, if first LED change as value in update is representing first LED only
+			if (input.ledColors.begin() != ledColors.begin())
+			{
+				activeChange = true;
+			}
+		}
+	}
+
 	// update input
 	input.timeoutTime_ms = timeout_ms;
 	input.ledColors      = ledColors;

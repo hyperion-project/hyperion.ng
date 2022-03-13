@@ -11,7 +11,7 @@ var mInit = false;
 //collapses the sidebar on window resize.
 // Sets the min-height of #page-wrapper to window size
 $(function() {
-    $(window).bind("load resize", function() {
+    $(window).on("load resize", function() {
         var topOffset = 50;
         var width = (this.window.innerWidth > 0) ? this.window.innerWidth : this.screen.width;
 		if (width < 768)
@@ -31,7 +31,7 @@ $(function() {
 		else
 		{
 			$( "#main-nav" ).removeAttr('style').css({"position":"fixed"});
-			$( ".mnava" ).unbind('click.smnav');
+			$( ".mnava" ).off('click.smnav');
 			mInit = false;
 		}
 
