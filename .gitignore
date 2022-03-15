@@ -35,3 +35,6 @@ CMakeSettings.json
 
 # LedDevice 'File' output
 NULL
+
+# Docker deploy folder
+deploy/*
