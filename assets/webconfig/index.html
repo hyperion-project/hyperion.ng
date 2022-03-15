@@ -47,6 +47,8 @@
   <!-- JSONEditor -->
   <script src="js/lib/jsoneditor.js"></script>
 
+  <!-- PlainDraggable  -->
+  <script src="js/lib/plain-draggable.min.js"></script>
   <!--Language Support -->
   <script src="js/lib/jquery.i18n/jquery.i18n.js"></script>
   <script src="js/lib/jquery.i18n/jquery.i18n.messagestore.js"></script>
@@ -329,7 +331,11 @@
   <div id="ledsim_dialog" style="display:none; z-index:9998">
     <div data-role="body" style="padding:0px;">
       <div id="ledsim_text"></div>
-      <div id="leds_canvas"></div>
+      <div id="leds_canvas">
+        <canvas id="image_preview_canv" style="position: absolute; left: 0; top: 0; z-index: 99998;"></canvas>
+        <canvas id="leds_preview_canv" style="position: absolute; left: 0; top: 0; opacity: 0.75; z-index: 99999;"></canvas>
+        <canvas id="grab_preview_canv" style="position: absolute; left: 0; top: 0; z-index: 99999;"></canvas>
+      </div>
     </div>
     <div data-role="footer" style="text-align:center">
       <button type="button" class="btn btn-success" id="leds_toggle"><i class="fa fa-fw fa-lightbulb-o"></i><span data-i18n="main_ledsim_btn_toggleleds">leds</span></button>

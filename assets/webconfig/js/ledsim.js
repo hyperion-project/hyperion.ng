@@ -6,8 +6,9 @@ $(document).ready(function () {
   var leds;
   var grabberConfig;
   var lC = false;
-  var imageCanvasNodeCtx;
-  var ledsCanvasNodeCtx;
+  var imageCanvasNodeCtx = document.getElementById("image_preview_canv").getContext("2d");
+  var ledsCanvasNodeCtx = document.getElementById("leds_preview_canv").getContext("2d");
+  var sigDetectAreaCanvasNodeCtx = document.getElementById("grab_preview_canv").getContext("2d");
   var canvas_height;
   var canvas_width;
   var twoDPaths = [];
@@ -93,9 +94,9 @@ $(document).ready(function () {
       uiLibrary: 'bootstrap',
       resizable: true,
       modal: false,
-      minWidth: 250,
+      minWidth: 350,
       width: ledsim_width,
-      minHeight: 350,
+      minHeight: 400,
       height: ledsim_height,
       closeOnEscape: true,
       autoOpen: false,
@@ -167,7 +168,7 @@ $(document).ready(function () {
       //roundRect(ledsCanvasNodeCtx, led.hmin * canvas_width, led.vmin * canvas_height, (led.hmax-led.hmin) * canvas_width, (led.vmax-led.vmin) * canvas_height, 4, true, colors[idx])
       //ledsCanvasNodeCtx.fillRect(led.hmin * canvas_width, led.vmin * canvas_height, (led.hmax-led.hmin) * canvas_width, (led.vmax-led.vmin) * canvas_height);
 
-      ledsCanvasNodeCtx.fillStyle = (useColor) ? "rgba(" + colors[cPos] + "," + colors[cPos + 1] + "," + colors[cPos + 2] + ",0.75)" : "hsla(" + (idx * 360 / leds.length) + ",100%,50%,0.75)";
+      ledsCanvasNodeCtx.fillStyle = (useColor) ? "rgba(" + colors[cPos] + "," + colors[cPos + 1] + "," + colors[cPos + 2] + ",1.0)" : "hsla(" + (idx * 360 / leds.length) + ",100%,50%,1.0)";
       ledsCanvasNodeCtx.fill(twoDPaths[idx]);
       ledsCanvasNodeCtx.strokeStyle = '#323232';
       ledsCanvasNodeCtx.stroke(twoDPaths[idx]);
@@ -198,20 +199,14 @@ $(document).ready(function () {
     canvas_height = $('#ledsim_dialog').outerHeight() - $('#ledsim_text').outerHeight() - $('[data-role=footer]').outerHeight() - $('[data-role=header]').outerHeight() - 40;
     canvas_width = $('#ledsim_dialog').outerWidth() - 30;
 
-    $('#leds_canvas').html("");
-    var leds_html = '<canvas id="image_preview_canv" width="' + canvas_width + '" height="' + canvas_height + '"  style="position: absolute; left: 0; top: 0; z-index: 99998;"></canvas>';
-    leds_html += '<canvas id="leds_preview_canv" width="' + canvas_width + '" height="' + canvas_height + '"  style="position: absolute; left: 0; top: 0; z-index: 99999;"></canvas>';
-    leds_html += '<canvas id="grab_preview_canv" width="' + canvas_width + '" height="' + canvas_height + '"  style="position: absolute; left: 0; top: 0; z-index: 99999;"></canvas>';
+    $("[id$=_preview_canv]").prop({"width": canvas_width, "height": canvas_height});
+    $("body").get(0).style.setProperty("--width-var", canvas_width + "px");
+    $("body").get(0).style.setProperty("--height-var", canvas_height + "px");
 
-    $('#leds_canvas').html(leds_html);
-
-    imageCanvasNodeCtx = document.getElementById("image_preview_canv").getContext("2d");
-    ledsCanvasNodeCtx = document.getElementById("leds_preview_canv").getContext("2d");
-    sigDetectAreaCanvasNodeCtx = document.getElementById("grab_preview_canv").getContext("2d");
     create2dPaths();
     printLedsToCanvas();
+    $("body").get(0).style.setProperty("--background-var", "none");
     resetImage();
-
   }
 
   // ------------------------------------------------------------------
@@ -227,6 +222,7 @@ $(document).ready(function () {
     if (window.ledStreamActive) {
       requestLedColorsStop();
       ledsCanvasNodeCtx.clear();
+      $("body").get(0).style.setProperty("--background-var", "none");
     } else {
       requestLedColorsStart();
     }
@@ -262,9 +258,11 @@ $(document).ready(function () {
   $(window.hyperion).on("cmd-ledcolors-ledstream-update", function (event) {
     if (!modalOpened) {
       requestLedColorsStop();
+      $("body").get(0).style.setProperty("--background-var", "none");
     }
     else {
       printLedsToCanvas(event.response.result.leds)
+      $("body").get(0).style.setProperty("--background-var", "url(" + ($('#leds_preview_canv')[0]).toDataURL("image/jpg") + ") no-repeat top left");
     }
   });
 
@@ -332,7 +330,13 @@ $(document).ready(function () {
 
       imageCanvasNodeCtx.fillStyle = "#1c1c1c"; //90% gray
       imageCanvasNodeCtx.fillRect(0, 0, canvas_width, canvas_height);
-      imageCanvasNodeCtx.drawImage(image, canvas_width / 2 - image.width / 2, canvas_height / 2 - image.height / 2, image.width, image.height);
+      var destImageWidth = image.width;
+      var destImageHeight = image.height;
+      if (destImageWidth + 40 >= canvas_width) {
+        destImageWidth = image.width * (canvas_width - 40) / image.width;
+        destImageHeight = image.height * (canvas_width - 40) / image.width;
+      }
+      imageCanvasNodeCtx.drawImage(image, 0, 0, image.width - 31, image.height, canvas_width / 2 - destImageWidth / 2, canvas_height / 2 - destImageHeight / 2, destImageWidth, destImageHeight);
     }
   }
 });
