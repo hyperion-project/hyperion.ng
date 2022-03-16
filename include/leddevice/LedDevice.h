@@ -460,7 +460,10 @@ private:
 	void stopRefreshTimer();
 
 	/// Is last write refreshing enabled?
-	bool	_isRefreshEnabled;
+	bool _isRefreshEnabled;
+
+	/// Is device to be enabled during start
+	bool _isAutoStart;
 
 	/// Order of Colors supported by the device
 	/// "RGB", "BGR", "RBG", "BRG", "GBR", "GRB"

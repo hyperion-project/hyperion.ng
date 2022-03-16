@@ -504,6 +504,8 @@
     "edt_dev_enum_sub_min_warm_adjust": "Subtract warm white",
     "edt_dev_enum_subtract_minimum": "Subtract minimum",
     "edt_dev_enum_white_off": "White off",
+    "edt_dev_general_autostart_title": "Autostart",
+    "edt_dev_general_autostart_title_info": "The LED device is switched-on during startup or not",
     "edt_dev_general_colorOrder_title": "RGB byte order",
     "edt_dev_general_colorOrder_title_info": "The device's color order",
     "edt_dev_general_hardwareLedCount_title": "Hardware LED count",
