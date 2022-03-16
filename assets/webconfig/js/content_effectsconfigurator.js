@@ -154,6 +154,7 @@ $(document).ready(function () {
 
   // Start test
   $('#btn_start_test').off().on('click', function () {
+    $('#btn_start_test').prop('disabled', true);
     triggerTestEffect();
   });
 
@@ -161,6 +162,7 @@ $(document).ready(function () {
   $('#btn_stop_test').off().on('click', function () {
     requestPriorityClear();
     testrun = false;
+    $('#btn_start_test').prop('disabled', false);
   });
 
   // Continuous test

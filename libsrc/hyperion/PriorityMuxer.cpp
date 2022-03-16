@@ -44,6 +44,7 @@ PriorityMuxer::PriorityMuxer(int ledCount, QObject * parent)
 	_lowestPriorityInfo.componentId    = hyperion::COMP_COLOR;
 	_lowestPriorityInfo.origin         = "System";
 	_lowestPriorityInfo.owner          = "";
+	_lowestPriorityInfo.smooth_cfg	   = 0;
 
 	_activeInputs[PriorityMuxer::LOWEST_PRIORITY] = _lowestPriorityInfo;
 
