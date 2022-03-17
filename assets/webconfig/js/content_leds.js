@@ -51,7 +51,8 @@ function createLedPreview(leds, origin) {
   $('#image_preview').css({ "width": canvas_width, "height": canvas_height });
 
   var leds_html = "";
-  for (var idx = 0; idx < leds.length; idx++) {
+//  for (var idx = 0; idx < leds.length; idx++) {
+  for (var idx = leds.length-1; idx >= 0; idx--) {
     var led = leds[idx];
     var led_id = 'ledc_' + [idx];
     var bgcolor = "background-color:hsla(" + (idx * 360 / leds.length) + ",100%,50%,0.75);";
@@ -69,99 +70,162 @@ function createLedPreview(leds, origin) {
   if ($('#leds_prev_toggle_num').hasClass('btn-success'))
     $('.led_prev_num').css("display", "inline");
 
-  // TODO: "Input position" - "Reverse direction" - "Edge Gap" implementation
   if (origin == "classic") {
-    var topLeft = 0;
-    var topRight = parseInt($("#ip_cl_top").val());
-    var bottomRight = parseInt($("#ip_cl_top").val()) + parseInt($("#ip_cl_right").val());
-    var bottomLeft = parseInt($("#ip_cl_top").val()) + parseInt($("#ip_cl_right").val()) + parseInt($("#ip_cl_bottom").val());
+    var topLeft = topRight = bottomRight = bottomLeft = -1;
+
+    // create LED array
+    var LEDs = Array.from({length: leds.length}, (_, i) => i);
+
+    // reverse LED array if needed
+    if ($("#ip_cl_reverse").is(":checked"))
+      LEDs = LEDs.reverse();
+
+    // set input position
+    var position = parseInt($("#ip_cl_position").val());
+    if (position != 0)
+      LEDs = [...LEDs.slice(-Math.abs(position), LEDs.length), ...LEDs.slice(0, -Math.abs(position))];
+
+    // add gap length on specific position with value -1
+    var gapLength = parseInt($("#ip_cl_glength").val());
+    if (gapLength > 0)
+    {
+      var gapLEDs = Array.from({length: gapLength}, (_, i) => -1);
+      var gapPos = parseInt($("#ip_cl_gpos").val());
+      LEDs.splice(gapPos, 0, ...gapLEDs);
+    }
+
+    // assign begin and end value from array to vars and remove from array
+    if (parseInt($("#ip_cl_top").val()) > 1 && LEDs.length > 0)
+    {
+      topLeft = LEDs[0];
+      topRight = LEDs[$("#ip_cl_top").val() - 1];
+      LEDs.splice(0, $("#ip_cl_top").val());
+    }
+
+    if (parseInt($("#ip_cl_right").val()) > 1 && LEDs.length > 0)
+    {
+      if (topRight == -1)
+        topRight = LEDs[0];
+
+      bottomRight = LEDs[$("#ip_cl_right").val() - 1];
+      LEDs.splice(0, $("#ip_cl_right").val());
+    }
+
+    if (parseInt($("#ip_cl_bottom").val()) > 1 && LEDs.length > 0)
+    {
+      if (bottomRight == -1)
+        bottomRight = LEDs[0];
+
+      bottomLeft = LEDs[$("#ip_cl_bottom").val() - 1];
+      LEDs.splice(0, $("#ip_cl_bottom").val());
+    }
+
+    if (parseInt($("#ip_cl_left").val()) > 1 && LEDs.length > 0)
+    {
+      if (bottomLeft == -1)
+        bottomLeft = LEDs[0];
+
+      if (topLeft == -1)
+      {
+        topLeft = LEDs[$("#ip_cl_left").val() - 1];
+        LEDs.splice(0, $("#ip_cl_left").val());
+      }
+    }
 
     var maxWidth = $('#leds_preview').innerWidth() / 100 * 40;
     var maxHeight = $('#leds_preview').innerHeight() / 100 * 40;
 
-    // Top Left Led (Point Top Left)
-    var topLeftLed = new PlainDraggable(document.getElementById('ledc_' + topLeft), {
-      containment: {
-        left: $('#leds_preview').offset().left,
-        top: $('#leds_preview').offset().top,
-        width: parseInt(maxWidth + $('#ledc_' + topLeft).outerWidth()),
-        height: parseInt(maxHeight + $('#ledc_' + topLeft).outerHeight())
-      },
-      onMove: function(newPosition) {
-        var leds_preview_offsets = $('#leds_preview').offset();
-        var left = this.rect.left - leds_preview_offsets.left;
-        var top = this.rect.top - leds_preview_offsets.top;
-        var ptlh = Math.min(Math.max((((left * 1) / document.getElementById('leds_preview').clientWidth).toFixed(2) * 100).toFixed(0), 0), 40);
-        var ptlv = Math.min(Math.max((((top * 1) / document.getElementById('leds_preview').clientHeight).toFixed(2) * 100).toFixed(0), 0), 40);
+    if (topLeft != -1) {
+      // Top Left Led (Point Top Left)
+      new PlainDraggable(document.getElementById('ledc_' + topLeft), {
+        containment: {
+          left: $('#leds_preview').offset().left,
+          top: $('#leds_preview').offset().top,
+          width: parseInt(maxWidth + $('#ledc_' + topLeft).outerWidth()),
+          height: parseInt(maxHeight + $('#ledc_' + topLeft).outerHeight())
+        },
+        onMove: function(newPosition) {
+          var leds_preview_offsets = $('#leds_preview').offset();
+          var left = this.rect.left - leds_preview_offsets.left;
+          var top = this.rect.top - leds_preview_offsets.top;
+          var ptlh = Math.min(Math.max((((left * 1) / document.getElementById('leds_preview').clientWidth).toFixed(2) * 100).toFixed(0), 0), 40);
+          var ptlv = Math.min(Math.max((((top * 1) / document.getElementById('leds_preview').clientHeight).toFixed(2) * 100).toFixed(0), 0), 40);
 
-        $('#ip_cl_ptlh').val(ptlh);
-        $('#ip_cl_ptlv').val(ptlv);
-        $("#ip_cl_ptlh, #ip_cl_ptlv").trigger("change");
-      }
-    });
+          $('#ip_cl_ptlh').val(ptlh);
+          $('#ip_cl_ptlv').val(ptlv);
+          $("#ip_cl_ptlh, #ip_cl_ptlv").trigger("change");
+        }
+      });
+    }
 
-    // Top Right Led (Point Top Right)
-    var topRightLed = new PlainDraggable(document.getElementById('ledc_' + topRight), {
-      containment: {
-        left: parseInt($('#leds_preview').offset().left + $('#leds_preview').innerWidth() - maxWidth - $('#ledc_' + topRight).outerWidth()),
-        top: $('#leds_preview').offset().top,
-        width: parseInt(maxWidth + $('#ledc_' + topRight).outerWidth()),
-        height: parseInt(maxHeight + $('#ledc_' + topRight).outerHeight())
-      },
-      onMove: function(newPosition) {
-        var leds_preview_offsets = $('#leds_preview').offset();
-        var left = this.rect.left - leds_preview_offsets.left + $('#ledc_' + topRight).outerWidth();
-        var top = this.rect.top - leds_preview_offsets.top;
-        var ptrh = Math.min(Math.max((((left * 1) / document.getElementById('leds_preview').clientWidth).toFixed(2) * 100).toFixed(0), 60), 100);
-        var ptrv = Math.min(Math.max((((top * 1) / document.getElementById('leds_preview').clientHeight).toFixed(2) * 100).toFixed(0), 0), 40);
+    if (topRight != -1) {
+      // Top Right Led (Point Top Right)
+      new PlainDraggable(document.getElementById('ledc_' + topRight), {
+        containment: {
+          left: parseInt($('#leds_preview').offset().left + $('#leds_preview').innerWidth() - maxWidth - $('#ledc_' + topRight).outerWidth()),
+          top: $('#leds_preview').offset().top,
+          width: parseInt(maxWidth + $('#ledc_' + topRight).outerWidth()),
+          height: parseInt(maxHeight + $('#ledc_' + topRight).outerHeight())
+        },
+        onMove: function(newPosition) {
+          var leds_preview_offsets = $('#leds_preview').offset();
+          var left = this.rect.left - leds_preview_offsets.left + $('#ledc_' + topRight).outerWidth();
+          var top = this.rect.top - leds_preview_offsets.top;
+          var ptrh = Math.min(Math.max((((left * 1) / document.getElementById('leds_preview').clientWidth).toFixed(2) * 100).toFixed(0), 60), 100);
+          var ptrv = Math.min(Math.max((((top * 1) / document.getElementById('leds_preview').clientHeight).toFixed(2) * 100).toFixed(0), 0), 40);
 
-        $('#ip_cl_ptrh').val(ptrh);
-        $('#ip_cl_ptrv').val(ptrv);
-        $("#ip_cl_ptrh, #ip_cl_ptrv").trigger("change");
-      }
-    });
+          $('#ip_cl_ptrh').val(ptrh);
+          $('#ip_cl_ptrv').val(ptrv);
+          $("#ip_cl_ptrh, #ip_cl_ptrv").trigger("change");
+        }
+      });
+    }
 
-    // Bottom Right Led (Point Bottom Right)
-    var bottomRightLed = new PlainDraggable(document.getElementById('ledc_' + bottomRight), {
-      containment: {
-        left: parseInt($('#leds_preview').offset().left + $('#leds_preview').innerWidth() - maxWidth - $('#ledc_' + bottomRight).outerWidth()),
-        top: parseInt($('#leds_preview').offset().top + $('#leds_preview').innerHeight() - maxHeight - $('#ledc_' + bottomRight).outerHeight()),
-        width: parseInt(maxWidth + $('#ledc_' + bottomRight).outerWidth()),
-        height: parseInt(maxHeight + $('#ledc_' + bottomRight).outerHeight())
-      },
-      onMove: function(newPosition) {
-        var leds_preview_offsets = $('#leds_preview').offset();
-        var left = this.rect.left - leds_preview_offsets.left + $('#ledc_' + bottomRight).outerWidth();
-        var top = this.rect.top - leds_preview_offsets.top + $('#ledc_' + bottomRight).outerHeight();
-        var pbrh = Math.min(Math.max((((left * 1) / document.getElementById('leds_preview').clientWidth).toFixed(2) * 100).toFixed(0), 60), 100);
-        var pbrv = Math.min(Math.max((((top * 1) / document.getElementById('leds_preview').clientHeight).toFixed(2) * 100).toFixed(0), 60), 100);
+    if (bottomRight != -1) {
+      // Bottom Right Led (Point Bottom Right)
+      new PlainDraggable(document.getElementById('ledc_' + bottomRight), {
+        containment: {
+          left: parseInt($('#leds_preview').offset().left + $('#leds_preview').innerWidth() - maxWidth - $('#ledc_' + bottomRight).outerWidth()),
+          top: parseInt($('#leds_preview').offset().top + $('#leds_preview').innerHeight() - maxHeight - $('#ledc_' + bottomRight).outerHeight()),
+          width: parseInt(maxWidth + $('#ledc_' + bottomRight).outerWidth()),
+          height: parseInt(maxHeight + $('#ledc_' + bottomRight).outerHeight())
+        },
+        onMove: function(newPosition) {
+          var leds_preview_offsets = $('#leds_preview').offset();
+          var left = this.rect.left - leds_preview_offsets.left + $('#ledc_' + bottomRight).outerWidth();
+          var top = this.rect.top - leds_preview_offsets.top + $('#ledc_' + bottomRight).outerHeight();
+          var pbrh = Math.min(Math.max((((left * 1) / document.getElementById('leds_preview').clientWidth).toFixed(2) * 100).toFixed(0), 60), 100);
+          var pbrv = Math.min(Math.max((((top * 1) / document.getElementById('leds_preview').clientHeight).toFixed(2) * 100).toFixed(0), 60), 100);
 
-        $('#ip_cl_pbrh').val(pbrh);
-        $('#ip_cl_pbrv').val(pbrv);
-        $("#ip_cl_pbrh, #ip_cl_pbrv").trigger("change");
-      }
-    });
+          $('#ip_cl_pbrh').val(pbrh);
+          $('#ip_cl_pbrv').val(pbrv);
+          $("#ip_cl_pbrh, #ip_cl_pbrv").trigger("change");
+        }
+      });
+    }
 
-    // Bottom Left Led (Point Bottom Left)
-    var bottomLeftLed = new PlainDraggable(document.getElementById('ledc_' + bottomLeft), {
-      containment: {
-        left: $('#leds_preview').offset().left,
-        top: parseInt($('#leds_preview').offset().top + $('#leds_preview').innerHeight() - maxHeight - $('#ledc_' + bottomLeft).outerHeight()),
-        width: parseInt(maxWidth + $('#ledc_' + bottomLeft).outerWidth()),
-        height: parseInt(maxHeight + $('#ledc_' + bottomLeft).outerHeight())
-      },
-      onMove: function(newPosition) {
-        var leds_preview_offsets = $('#leds_preview').offset();
-        var left = this.rect.left - leds_preview_offsets.left;
-        var top = this.rect.top - leds_preview_offsets.top + $('#ledc_' + bottomLeft).outerHeight();
-        var pblh = Math.min(Math.max((((left * 1) / document.getElementById('leds_preview').clientWidth).toFixed(2) * 100).toFixed(0), 0), 40);
-        var pblv = Math.min(Math.max((((top * 1) / document.getElementById('leds_preview').clientHeight).toFixed(2) * 100).toFixed(0), 60), 100);
+    if (bottomLeft != -1) {
+      // Bottom Left Led (Point Bottom Left)
+      new PlainDraggable(document.getElementById('ledc_' + bottomLeft), {
+        containment: {
+          left: $('#leds_preview').offset().left,
+          top: parseInt($('#leds_preview').offset().top + $('#leds_preview').innerHeight() - maxHeight - $('#ledc_' + bottomLeft).outerHeight()),
+          width: parseInt(maxWidth + $('#ledc_' + bottomLeft).outerWidth()),
+          height: parseInt(maxHeight + $('#ledc_' + bottomLeft).outerHeight())
+        },
+        onMove: function(newPosition) {
+          var leds_preview_offsets = $('#leds_preview').offset();
+          var left = this.rect.left - leds_preview_offsets.left;
+          var top = this.rect.top - leds_preview_offsets.top + $('#ledc_' + bottomLeft).outerHeight();
+          var pblh = Math.min(Math.max((((left * 1) / document.getElementById('leds_preview').clientWidth).toFixed(2) * 100).toFixed(0), 0), 40);
+          var pblv = Math.min(Math.max((((top * 1) / document.getElementById('leds_preview').clientHeight).toFixed(2) * 100).toFixed(0), 60), 100);
 
-        $('#ip_cl_pblh').val(pblh);
-        $('#ip_cl_pblv').val(pblv);
-        $("#ip_cl_pblh, #ip_cl_pblv").trigger("change");
-      }
-    });
+          $('#ip_cl_pblh').val(pblh);
+          $('#ip_cl_pblv').val(pblv);
+          $("#ip_cl_pblh, #ip_cl_pblv").trigger("change");
+        }
+      });
+    }
   }
 
   // Change on window resize. Is this correct?
@@ -754,7 +818,7 @@ $(document).ready(function () {
   });
 
   $(window.hyperion).on("cmd-ledcolors-imagestream-update", function (event) {
-    //Only update Image, if LED Layout Tab is visible  
+    //Only update Image, if LED Layout Tab is visible
     if (onLedLayoutTab && window.imageStreamActive) {
       setClassByBool('#leds_prev_toggle_live_video', window.imageStreamActive, "btn-danger", "btn-success");
       var imageData = (event.response.result.image);
@@ -1764,7 +1828,7 @@ async function getProperties_device(ledType, key, params) {
         }
       }
       else {
-        showNotification('warning', $.i18n('conf_leds_error_get_properties_text'), $.i18n('conf_leds_error_get_properties_title'))
+        showNotification('warning', $.i18n('conf_leds_error_get_properties_text'), $.i18n('conf_leds_error_get_properties_title'));
         $('#btn_submit_controller').prop('disabled', true);
         $('#btn_test_controller').prop('disabled', true);
       }
