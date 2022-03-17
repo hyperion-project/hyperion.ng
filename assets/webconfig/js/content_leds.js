@@ -71,7 +71,10 @@ function createLedPreview(leds, origin) {
     $('.led_prev_num').css("display", "inline");
 
   if (origin == "classic") {
-    var topLeft = topRight = bottomRight = bottomLeft = -1;
+    var topLeft = -1;
+    var topRight = -1;
+    var bottomRight = -1;
+    var bottomLeft = -1;
 
     // create LED array
     var LEDs = Array.from({length: leds.length}, (_, i) => i);
