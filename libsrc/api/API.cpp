@@ -39,21 +39,16 @@ API::API(Logger *log, bool localConnection, QObject *parent)
 	qRegisterMetaType<VideoMode>("VideoMode");
 	qRegisterMetaType<std::map<int, registerData>>("std::map<int,registerData>");
 
-	qDebug() << "API::API, Thread: " << QThread::currentThread()->objectName();
-
     // Init
     _log = log;
     _authManager = AuthManager::getInstance();
-    _instanceManager = HyperionIManager::getInstance();
+	_instanceManager = HyperionIManager::getInstance();
     _localConnection = localConnection;
 
     _authorized = false;
     _adminAuthorized = false;
 
     _currInstanceIndex = 0;
-    // TODO FIXME
-    // report back current registers when a Hyperion instance request it
-    //connect(ApiSync::getInstance(), &ApiSync::requestActiveRegister, this, &API::requestActiveRegister, Qt::QueuedConnection);
 
     // connect to possible token responses that has been requested
     connect(_authManager, &AuthManager::tokenResponse, [=] (bool success, QObject *caller, const QString &token, const QString &comment, const QString &id, const int &tan)
@@ -72,9 +67,7 @@ API::API(Logger *log, bool localConnection, QObject *parent)
 
 void API::init()
 {
-	qDebug() << "API::init, Thread: " << QThread::currentThread()->objectName();
 	_hyperion = _instanceManager->getHyperionInstance(0);
-	assert(_hyperion);
 
     bool apiAuthRequired = _authManager->isAuthRequired();
 
@@ -335,13 +328,6 @@ bool API::startInstance(quint8 index, int tan)
 void API::stopInstance(quint8 index)
 {
     QMetaObject::invokeMethod(_instanceManager, "stopInstance", Qt::QueuedConnection, Q_ARG(quint8, index));
-}
-
-void API::requestActiveRegister(QObject *callerInstance)
-{
-    // TODO FIXME
-    //if (_activeRegisters.size())
-    //   QMetaObject::invokeMethod(ApiSync::getInstance(), "answerActiveRegister", Qt::QueuedConnection, Q_ARG(QObject *, callerInstance), Q_ARG(MapRegister, _activeRegisters));
 }
 
 bool API::deleteInstance(quint8 index, QString &replyMsg)

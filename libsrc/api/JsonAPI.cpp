@@ -107,8 +107,6 @@ void JsonAPI::initialize()
 
 	// init API, REQUIRED!
 	API::init();
-	// Initialise jsonCB with current instance
-	_jsonCB->setSubscriptionsTo(_hyperion);
 
 	// setup auth interface
 	connect(this, &API::onPendingTokenRequest, this, &JsonAPI::newPendingTokenRequest);
@@ -121,7 +119,12 @@ void JsonAPI::initialize()
 	connect(_jsonCB, &JsonCB::newCallback, this, &JsonAPI::callbackMessage);
 
 	// notify hyperion about a jsonMessageForward
-	connect(this, &JsonAPI::forwardJsonMessage, _hyperion, &Hyperion::forwardJsonMessage);
+	if (_hyperion != nullptr)
+	{
+		// Initialise jsonCB with current instance
+		_jsonCB->setSubscriptionsTo(_hyperion);
+		connect(this, &JsonAPI::forwardJsonMessage, _hyperion, &Hyperion::forwardJsonMessage);
+	}
 }
 
 bool JsonAPI::handleInstanceSwitch(quint8 inst, bool forced)
@@ -189,6 +192,12 @@ void JsonAPI::handleMessage(const QString &messageString, const QString &httpAut
 		return;
 	}
 proceed:
+	if (_hyperion == nullptr)
+	{
+		sendErrorReply("Service Unavailable", command, tan);
+		return;
+	}
+
 	// switch over all possible commands and handle them
 	if (command == "color")
 		handleColorCommand(message, command, tan);

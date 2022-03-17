@@ -135,7 +135,11 @@ function initWebSocket()
               // skip tan -1 error handling
               if(tan != -1){
                 var error = response.hasOwnProperty("error")? response.error : "unknown";
-                $(window.hyperion).trigger({type:"error",reason:error});
+                if (error == "Service Unavailable") {
+                  window.location.reload();
+                } else {
+                  $(window.hyperion).trigger({type:"error",reason:error});
+                }
                 console.log("[window.websocket::onmessage] ",error)
               }
           }

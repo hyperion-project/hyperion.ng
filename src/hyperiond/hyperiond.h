@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QJsonObject>
 
+#include <hyperion/HyperionIManager.h>
+
 #ifdef ENABLE_DISPMANX
 	#include <grabber/DispmanxWrapper.h>
 #else
@@ -155,6 +157,12 @@ private slots:
 	/// @param mode  The requested video mode
 	///
 	void setVideoMode(VideoMode mode);
+
+	/// @brief Handle whenever the state of a instance (HyperionIManager) changes according to enum instanceState
+	/// @param instaneState  A state from enum
+	/// @param instance      The index of instance
+	///
+	void handleInstanceStateChange(InstanceState state, quint8 instance);
 
 private:
 	void createGrabberDispmanx(const QJsonObject & grabberConfig);
