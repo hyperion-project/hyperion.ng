@@ -51,7 +51,6 @@ function createLedPreview(leds, origin) {
   $('#image_preview').css({ "width": canvas_width, "height": canvas_height });
 
   var leds_html = "";
-//  for (var idx = 0; idx < leds.length; idx++) {
   for (var idx = leds.length-1; idx >= 0; idx--) {
     var led = leds[idx];
     var led_id = 'ledc_' + [idx];
@@ -135,8 +134,8 @@ function createLedPreview(leds, origin) {
       }
     }
 
-    var maxWidth = $('#leds_preview').innerWidth() / 100 * 40;
-    var maxHeight = $('#leds_preview').innerHeight() / 100 * 40;
+    var maxWidth = $('#leds_preview').innerWidth();
+    var maxHeight = $('#leds_preview').innerHeight();
 
     if (topLeft != -1) {
       // Top Left Led (Point Top Left)
@@ -148,10 +147,11 @@ function createLedPreview(leds, origin) {
           height: parseInt(maxHeight + $('#ledc_' + topLeft).outerHeight())
         },
         onMove: function(newPosition) {
+          console.log("onMove");
           var leds_preview_offsets = $('#leds_preview').offset();
           var left = this.rect.left - leds_preview_offsets.left;
           var top = this.rect.top - leds_preview_offsets.top;
-          var ptlh = Math.min(Math.max((((left * 1) / document.getElementById('leds_preview').clientWidth).toFixed(2) * 100).toFixed(0), 0), 40);
+          var ptlh = Math.min(Math.max((((left * 1) / document.getElementById('leds_preview').clientWidth).toFixed(2) * 100).toFixed(0), 0), 60);
           var ptlv = Math.min(Math.max((((top * 1) / document.getElementById('leds_preview').clientHeight).toFixed(2) * 100).toFixed(0), 0), 40);
 
           $('#ip_cl_ptlh').val(ptlh);
@@ -797,6 +797,21 @@ $(document).ready(function () {
     } else {
       saveLedConfig(false);
     }
+  });
+
+  // toggle fullscreen button in led preview
+  $(".fullscreen-btn").mousedown(function(e) {
+    e.preventDefault();
+  });
+
+  $(".fullscreen-btn").click(function(e) {
+    e.preventDefault();
+		$(this).children('i')
+    	.toggleClass('fa-expand')
+    	.toggleClass('fa-compress');
+    $('#layout_type').toggle();
+    $('#layout_preview').toggleClass('col-lg-6 col-lg-12');
+    window.dispatchEvent(new Event('resize'));
   });
 
   // toggle led numbers

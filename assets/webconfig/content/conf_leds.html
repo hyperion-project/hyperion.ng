@@ -62,7 +62,7 @@
 
       <div class="row">
         <div class="col-lg-12" id="layout_intro"></div>
-        <div class="col-lg-6 col-md-12">
+        <div class="col-lg-6 col-md-12" id="layout_type">
           <div class="panel-group" id="accordion">
             <div class="panel panel-primary">
               <div class="panel-heading headcollapse" id="classic_panel" data-toggle="collapse" data-parent="#accordion" data-target="#collapse1">
@@ -373,10 +373,16 @@
             </div>
           </div>
         </div> <!-- accordion -->
-        <div class="col-lg-6 col-md-12">
+        <div class="col-lg-6 col-md-12" id="layout_preview">
           <div class="panel panel-default">
             <div class="panel-heading">
-              <h4 class="panel-title"><i class="fa fa-search fa-fw"></i><span data-i18n="conf_leds_layout_peview">LED Layout preview</span></h4>
+              <h4 class="panel-title">
+                <i class="fa fa-search fa-fw"></i>
+                <span data-i18n="conf_leds_layout_peview">LED Layout preview</span>
+                <a href="#" class='fullscreen-btn' role="button" title="Toggle fullscreen">
+                  <i class="fa fa-expand fa-fw pull-right"></i>
+                </a>
+              </h4>
             </div>
             <div class="panel-body">
               <p id="previewcreator" style="font-weight:bold"></p>
