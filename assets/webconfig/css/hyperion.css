@@ -285,6 +285,14 @@ body {
 .led_num, .led_prev_num {display:none; position:relative; color:black; background-color: white; border-radius:2px; padding:1px; vertical-align:middle; text-align:center;  font-size:0.8em;}
 .led_ex{height:15px;width:25px;border-radius:3px;display:inline-block;border:1px solid black}
 
+.keystone_correction_corners {
+  display:inline-block;
+  position:absolute;
+  opacity:1.0;
+  border-radius: 50%;
+  background-color:red;
+}
+
 /*checklists*/
 .checklist{list-style-type:none;padding-left:0px}
 .checklist li::before{content: "\f00c";font: normal normal normal 14px/1 FontAwesome;margin-right:5px;color:green;font-size:19px}

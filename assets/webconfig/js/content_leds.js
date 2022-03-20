@@ -8,6 +8,15 @@ var aceEdt = null;
 var imageCanvasNodeCtx;
 var canvas_height;
 var canvas_width;
+var topLeftPoint = null;
+var topRightPoint = null;
+var bottomRightPoint = null;
+var bottomLeftPoint = null;
+var topLeft2topRight = null;
+var topRight2bottomRight = null;
+var bottomRight2bottomLeft = null;
+var bottomLeft2topLeft = null;
+var toggleKeystoneCorrectionArea = false;
 
 var devRPiSPI = ['apa102', 'apa104', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'sk6822spi', 'sk9822', 'ws2812spi'];
 var devRPiPWM = ['ws281x'];
@@ -69,165 +78,176 @@ function createLedPreview(leds, origin) {
   if ($('#leds_prev_toggle_num').hasClass('btn-success'))
     $('.led_prev_num').css("display", "inline");
 
-  if (origin == "classic") {
-    var topLeft = -1;
-    var topRight = -1;
-    var bottomRight = -1;
-    var bottomLeft = -1;
+  console.log(onLedLayoutTab, origin, toggleKeystoneCorrectionArea);
 
-    // create LED array
-    var LEDs = Array.from({length: leds.length}, (_, i) => i);
+  if (onLedLayoutTab && origin == "classic" && toggleKeystoneCorrectionArea) {
+    // Calculate corner size (min/max:10px/30px)
+    var size = Math.min(Math.max(canvas_width / 100 * 2, 10), 30);
+    var corner_size = "width:" + size + "px; height:" + size + "px;";
 
-    // reverse LED array if needed
-    if ($("#ip_cl_reverse").is(":checked"))
-      LEDs = LEDs.reverse();
+    var corners =
+      '<div id="top_left_point" class="keystone_correction_corners" style="' + corner_size + ' cursor: nwse-resize;"></div>' +
+      '<div id="top_right_point" class="keystone_correction_corners" style="' + corner_size + ' cursor: nesw-resize"></div>' +
+      '<div id="bottom_right_point" class="keystone_correction_corners" style="' + corner_size + ' cursor: nwse-resize;"></div>' +
+      '<div id="bottom_left_point" class="keystone_correction_corners" style="' + corner_size + ' cursor: nesw-resize;"></div>';
+    $('#keystone_correction_area').html(corners).css({ "width": canvas_width, "height": canvas_height });
 
-    // set input position
-    var position = parseInt($("#ip_cl_position").val());
-    if (position != 0)
-      LEDs = [...LEDs.slice(-Math.abs(position), LEDs.length), ...LEDs.slice(0, -Math.abs(position))];
+    var top_left_point = document.getElementById('top_left_point'),
+      top_right_point = document.getElementById('top_right_point'),
+      bottom_right_point = document.getElementById('bottom_right_point'),
+      bottom_left_point = document.getElementById('bottom_left_point');
 
-    // add gap length on specific position with value -1
-    var gapLength = parseInt($("#ip_cl_glength").val());
-    if (gapLength > 0)
-    {
-      var gapLEDs = Array.from({length: gapLength}, (_, i) => -1);
-      var gapPos = parseInt($("#ip_cl_gpos").val());
-      LEDs.splice(gapPos, 0, ...gapLEDs);
-    }
+    var maxWidth = $('#keystone_correction_area').innerWidth(),
+      maxHeight = $('#keystone_correction_area').innerHeight();
 
-    // assign begin and end value from array to vars and remove from array
-    if (parseInt($("#ip_cl_top").val()) > 1 && LEDs.length > 0)
-    {
-      topLeft = LEDs[0];
-      topRight = LEDs[$("#ip_cl_top").val() - 1];
-      LEDs.splice(0, $("#ip_cl_top").val());
-    }
+    // Deactivate build-in cursor
+    PlainDraggable.draggableCursor = false;
+    PlainDraggable.draggingCursor = false;
 
-    if (parseInt($("#ip_cl_right").val()) > 1 && LEDs.length > 0)
-    {
-      if (topRight == -1)
-        topRight = LEDs[0];
+    // Top Left Point
+    topLeftPoint = new PlainDraggable(top_left_point, {
+      containment: {
+        left: $('#keystone_correction_area').offset().left,
+        top: $('#keystone_correction_area').offset().top,
+        width: parseInt(maxWidth + $('#top_left_point').outerWidth()),
+        height: parseInt(maxHeight + $('#top_left_point').outerHeight()),
+      },
+      onMove: function(newPosition) {
+        var keystone_correction_area_offsets = $('#keystone_correction_area').offset();
+        var left = newPosition.left - keystone_correction_area_offsets.left;
+        var top = newPosition.top - keystone_correction_area_offsets.top;
+        var ptlh = Math.min(Math.max((((left * 1) / maxWidth).toFixed(2) * 100).toFixed(0), 0), 60);
+        var ptlv = Math.min(Math.max((((top * 1) / maxHeight).toFixed(2) * 100).toFixed(0), 0), 40);
 
-      bottomRight = LEDs[$("#ip_cl_right").val() - 1];
-      LEDs.splice(0, $("#ip_cl_right").val());
-    }
-
-    if (parseInt($("#ip_cl_bottom").val()) > 1 && LEDs.length > 0)
-    {
-      if (bottomRight == -1)
-        bottomRight = LEDs[0];
-
-      bottomLeft = LEDs[$("#ip_cl_bottom").val() - 1];
-      LEDs.splice(0, $("#ip_cl_bottom").val());
-    }
-
-    if (parseInt($("#ip_cl_left").val()) > 1 && LEDs.length > 0)
-    {
-      if (bottomLeft == -1)
-        bottomLeft = LEDs[0];
-
-      if (topLeft == -1)
-      {
-        topLeft = LEDs[$("#ip_cl_left").val() - 1];
-        LEDs.splice(0, $("#ip_cl_left").val());
+        $('#ip_cl_ptlh').val(ptlh);
+        $('#ip_cl_ptlv').val(ptlv);
+        $("#ip_cl_ptlh, #ip_cl_ptlv").trigger("change");
       }
+    });
+
+    // Initialize position
+    topLeftPoint.left = $('#keystone_correction_area').offset().left + maxWidth / 100 * $('#ip_cl_ptlh').val();
+    topLeftPoint.top = $('#keystone_correction_area').offset().top + maxHeight / 100 * $('#ip_cl_ptlv').val();
+
+    // Top right point
+    topRightPoint = new PlainDraggable(top_right_point, {
+      containment: {
+        left: parseInt($('#keystone_correction_area').offset().left - $('#top_right_point').outerWidth()),
+        top: $('#keystone_correction_area').offset().top,
+        width: parseInt(maxWidth + $('#top_right_point').outerWidth()),
+        height: parseInt(maxHeight + $('#top_right_point').outerHeight())
+      },
+      onMove: function(newPosition) {
+        var keystone_correction_area_offsets = $('#keystone_correction_area').offset();
+        var left = newPosition.left - keystone_correction_area_offsets.left + $('#top_right_point').outerWidth();
+        var top = newPosition.top - keystone_correction_area_offsets.top;
+        var ptrh = Math.min(Math.max((((left * 1) / maxWidth).toFixed(2) * 100).toFixed(0), 60), 100);
+        var ptrv = Math.min(Math.max((((top * 1) / maxHeight).toFixed(2) * 100).toFixed(0), 0), 40);
+
+        $('#ip_cl_ptrh').val(ptrh);
+        $('#ip_cl_ptrv').val(ptrv);
+        $("#ip_cl_ptrh, #ip_cl_ptrv").trigger("change");
+      }
+    });
+
+    // Initialize position
+    topRightPoint.left = $('#keystone_correction_area').offset().left + maxWidth / 100 * $('#ip_cl_ptrh').val() - size;
+    topRightPoint.top = $('#keystone_correction_area').offset().top + maxHeight / 100 * $('#ip_cl_ptrv').val();
+
+    // Bottom right point
+    bottomRightPoint = new PlainDraggable(bottom_right_point, {
+      containment: {
+        left: parseInt($('#keystone_correction_area').offset().left - $('#bottom_right_point').outerWidth()),
+        top: parseInt($('#keystone_correction_area').offset().top - $('#bottom_right_point').outerHeight()),
+        width: parseInt(maxWidth + $('#bottom_right_point').outerWidth()),
+        height: parseInt(maxHeight + $('#bottom_right_point').outerHeight())
+      },
+      onMove: function(newPosition) {
+        var keystone_correction_area_offsets = $('#keystone_correction_area').offset();
+        var left = newPosition.left - keystone_correction_area_offsets.left + $('#bottom_right_point').outerWidth();
+        var top = newPosition.top - keystone_correction_area_offsets.top + $('#bottom_right_point').outerHeight();
+        var pbrh = Math.min(Math.max((((left * 1) / maxWidth).toFixed(2) * 100).toFixed(0), 60), 100);
+        var pbrv = Math.min(Math.max((((top * 1) / maxHeight).toFixed(2) * 100).toFixed(0), 60), 100);
+
+        $('#ip_cl_pbrh').val(pbrh);
+        $('#ip_cl_pbrv').val(pbrv);
+        $("#ip_cl_pbrh, #ip_cl_pbrv").trigger("change");
+      }
+    });
+
+    // Initialize position
+    bottomRightPoint.left = $('#keystone_correction_area').offset().left + maxWidth / 100 * $('#ip_cl_pbrh').val() - size;
+    bottomRightPoint.top = $('#keystone_correction_area').offset().top + maxHeight / 100 * $('#ip_cl_pbrv').val() - size;
+
+    // Bottom left point
+    bottomLeftPoint = new PlainDraggable(bottom_left_point, {
+      containment: {
+        left: $('#keystone_correction_area').offset().left,
+        top: parseInt($('#keystone_correction_area').offset().top - $('#bottom_left_point').outerHeight()),
+        width: parseInt(maxWidth + $('#bottom_left_point').outerWidth()),
+        height: parseInt(maxHeight + $('#bottom_left_point').outerHeight())
+      },
+      onMove: function(newPosition) {
+        var keystone_correction_area_offsets = $('#keystone_correction_area').offset();
+        var left = newPosition.left - keystone_correction_area_offsets.left;
+        var top = newPosition.top - keystone_correction_area_offsets.top + $('#bottom_left_point').outerHeight();
+        var pblh = Math.min(Math.max((((left * 1) / maxWidth).toFixed(2) * 100).toFixed(0), 0), 40);
+        var pblv = Math.min(Math.max((((top * 1) / maxHeight).toFixed(2) * 100).toFixed(0), 60), 100);
+
+        $('#ip_cl_pblh').val(pblh);
+        $('#ip_cl_pblv').val(pblv);
+        $("#ip_cl_pblh, #ip_cl_pblv").trigger("change");
+      }
+    });
+
+    // Initialize position
+    bottomLeftPoint.left = $('#keystone_correction_area').offset().left + maxWidth / 100 * $('#ip_cl_pblh').val();
+    bottomLeftPoint.top = $('#keystone_correction_area').offset().top + maxHeight / 100 * $('#ip_cl_pblv').val() - size;
+
+    // Remove existing lines
+    if (topLeft2topRight != null) {
+      topLeft2topRight.remove();
     }
 
-    var maxWidth = $('#leds_preview').innerWidth();
-    var maxHeight = $('#leds_preview').innerHeight();
-
-    if (topLeft != -1) {
-      // Top Left Led (Point Top Left)
-      new PlainDraggable(document.getElementById('ledc_' + topLeft), {
-        containment: {
-          left: $('#leds_preview').offset().left,
-          top: $('#leds_preview').offset().top,
-          width: parseInt(maxWidth + $('#ledc_' + topLeft).outerWidth()),
-          height: parseInt(maxHeight + $('#ledc_' + topLeft).outerHeight())
-        },
-        onMove: function(newPosition) {
-          console.log("onMove");
-          var leds_preview_offsets = $('#leds_preview').offset();
-          var left = this.rect.left - leds_preview_offsets.left;
-          var top = this.rect.top - leds_preview_offsets.top;
-          var ptlh = Math.min(Math.max((((left * 1) / document.getElementById('leds_preview').clientWidth).toFixed(2) * 100).toFixed(0), 0), 60);
-          var ptlv = Math.min(Math.max((((top * 1) / document.getElementById('leds_preview').clientHeight).toFixed(2) * 100).toFixed(0), 0), 40);
-
-          $('#ip_cl_ptlh').val(ptlh);
-          $('#ip_cl_ptlv').val(ptlv);
-          $("#ip_cl_ptlh, #ip_cl_ptlv").trigger("change");
-        }
-      });
+    if (topRight2bottomRight != null) {
+      topRight2bottomRight.remove();
     }
 
-    if (topRight != -1) {
-      // Top Right Led (Point Top Right)
-      new PlainDraggable(document.getElementById('ledc_' + topRight), {
-        containment: {
-          left: parseInt($('#leds_preview').offset().left + $('#leds_preview').innerWidth() - maxWidth - $('#ledc_' + topRight).outerWidth()),
-          top: $('#leds_preview').offset().top,
-          width: parseInt(maxWidth + $('#ledc_' + topRight).outerWidth()),
-          height: parseInt(maxHeight + $('#ledc_' + topRight).outerHeight())
-        },
-        onMove: function(newPosition) {
-          var leds_preview_offsets = $('#leds_preview').offset();
-          var left = this.rect.left - leds_preview_offsets.left + $('#ledc_' + topRight).outerWidth();
-          var top = this.rect.top - leds_preview_offsets.top;
-          var ptrh = Math.min(Math.max((((left * 1) / document.getElementById('leds_preview').clientWidth).toFixed(2) * 100).toFixed(0), 60), 100);
-          var ptrv = Math.min(Math.max((((top * 1) / document.getElementById('leds_preview').clientHeight).toFixed(2) * 100).toFixed(0), 0), 40);
-
-          $('#ip_cl_ptrh').val(ptrh);
-          $('#ip_cl_ptrv').val(ptrv);
-          $("#ip_cl_ptrh, #ip_cl_ptrv").trigger("change");
-        }
-      });
+    if (bottomRight2bottomLeft != null) {
+      bottomRight2bottomLeft.remove();
     }
 
-    if (bottomRight != -1) {
-      // Bottom Right Led (Point Bottom Right)
-      new PlainDraggable(document.getElementById('ledc_' + bottomRight), {
-        containment: {
-          left: parseInt($('#leds_preview').offset().left + $('#leds_preview').innerWidth() - maxWidth - $('#ledc_' + bottomRight).outerWidth()),
-          top: parseInt($('#leds_preview').offset().top + $('#leds_preview').innerHeight() - maxHeight - $('#ledc_' + bottomRight).outerHeight()),
-          width: parseInt(maxWidth + $('#ledc_' + bottomRight).outerWidth()),
-          height: parseInt(maxHeight + $('#ledc_' + bottomRight).outerHeight())
-        },
-        onMove: function(newPosition) {
-          var leds_preview_offsets = $('#leds_preview').offset();
-          var left = this.rect.left - leds_preview_offsets.left + $('#ledc_' + bottomRight).outerWidth();
-          var top = this.rect.top - leds_preview_offsets.top + $('#ledc_' + bottomRight).outerHeight();
-          var pbrh = Math.min(Math.max((((left * 1) / document.getElementById('leds_preview').clientWidth).toFixed(2) * 100).toFixed(0), 60), 100);
-          var pbrv = Math.min(Math.max((((top * 1) / document.getElementById('leds_preview').clientHeight).toFixed(2) * 100).toFixed(0), 60), 100);
-
-          $('#ip_cl_pbrh').val(pbrh);
-          $('#ip_cl_pbrv').val(pbrv);
-          $("#ip_cl_pbrh, #ip_cl_pbrv").trigger("change");
-        }
-      });
+    if (bottomLeft2topLeft != null) {
+      bottomLeft2topLeft.remove();
     }
 
-    if (bottomLeft != -1) {
-      // Bottom Left Led (Point Bottom Left)
-      new PlainDraggable(document.getElementById('ledc_' + bottomLeft), {
-        containment: {
-          left: $('#leds_preview').offset().left,
-          top: parseInt($('#leds_preview').offset().top + $('#leds_preview').innerHeight() - maxHeight - $('#ledc_' + bottomLeft).outerHeight()),
-          width: parseInt(maxWidth + $('#ledc_' + bottomLeft).outerWidth()),
-          height: parseInt(maxHeight + $('#ledc_' + bottomLeft).outerHeight())
-        },
-        onMove: function(newPosition) {
-          var leds_preview_offsets = $('#leds_preview').offset();
-          var left = this.rect.left - leds_preview_offsets.left;
-          var top = this.rect.top - leds_preview_offsets.top + $('#ledc_' + bottomLeft).outerHeight();
-          var pblh = Math.min(Math.max((((left * 1) / document.getElementById('leds_preview').clientWidth).toFixed(2) * 100).toFixed(0), 0), 40);
-          var pblv = Math.min(Math.max((((top * 1) / document.getElementById('leds_preview').clientHeight).toFixed(2) * 100).toFixed(0), 60), 100);
+    // Add lines
+    topLeft2topRight = new LeaderLine(LeaderLine.pointAnchor(top_left_point, {x: 0, y: 0}), LeaderLine.pointAnchor(top_right_point, {x: '100%', y: 0}), {path: 'straight', color: 'red', size: 1, endPlug: 'behind'});
+    topRight2bottomRight = new LeaderLine(LeaderLine.pointAnchor(top_right_point, {x: '100%', y: 0}), LeaderLine.pointAnchor(bottom_right_point, {x: '100%', y: '100%'}), {path: 'straight', color: 'red', size: 1, endPlug: 'behind'});
+    bottomRight2bottomLeft = new LeaderLine(LeaderLine.pointAnchor(bottom_right_point, {x: '100%', y: '100%'}), LeaderLine.pointAnchor(bottom_left_point, {x: 0, y: '100%'}), {path: 'straight', color: 'red', size: 1, endPlug: 'behind'});
+    bottomLeft2topLeft = new LeaderLine(LeaderLine.pointAnchor(bottom_left_point, {x: 0, y: '100%'}), LeaderLine.pointAnchor(top_left_point, {x: 0, y: 0}), {path: 'straight', color: 'red', size: 1, endPlug: 'behind'});
+  } else {
+    $('#keystone_correction_area').html("");
 
-          $('#ip_cl_pblh').val(pblh);
-          $('#ip_cl_pblv').val(pblv);
-          $("#ip_cl_pblh, #ip_cl_pblv").trigger("change");
-        }
-      });
+    // Remove existing lines
+    if (topLeft2topRight != null) {
+      topLeft2topRight.remove();
+      topLeft2topRight = null;
+    }
+
+    if (topRight2bottomRight != null) {
+      topRight2bottomRight.remove();
+      topRight2bottomRight = null;
+    }
+
+    if (bottomRight2bottomLeft != null) {
+      bottomRight2bottomLeft.remove();
+      bottomRight2bottomLeft = null;
+    }
+
+    if (bottomLeft2topLeft != null) {
+      bottomLeft2topLeft.remove();
+      bottomLeft2topLeft = null;
     }
   }
 
@@ -717,10 +737,12 @@ $(document).ready(function () {
   });
 
   $(document).on('click', "#classic_panel", function (e) {
+    $("#leds_prev_toggle_keystone_correction_area").show();
     createClassicLeds();
   });
 
   $(document).on('click', "#matrix_panel", function (e) {
+    $("#leds_prev_toggle_keystone_correction_area").hide();
     createMatrixLeds();
   });
 
@@ -799,6 +821,11 @@ $(document).ready(function () {
     }
   });
 
+  // toggle right icon on "Advanced Settings" click
+  $('#advanced_settings').on('click', function(e) {
+    $('#advanced_settings_right_icon').toggleClass('fa-angle-down fa-angle-up');
+  });
+
   // toggle fullscreen button in led preview
   $(".fullscreen-btn").mousedown(function(e) {
     e.preventDefault();
@@ -833,6 +860,13 @@ $(document).ready(function () {
     else {
       requestLedImageStart();
     }
+  });
+
+  // toggle keystone correction area
+  $('#leds_prev_toggle_keystone_correction_area').off().on("click", function () {
+    toggleKeystoneCorrectionArea = !toggleKeystoneCorrectionArea
+    toggleClass('#leds_prev_toggle_keystone_correction_area', "btn-success", "btn-danger");
+    window.dispatchEvent(new Event('resize'));
   });
 
   $(window.hyperion).on("cmd-ledcolors-imagestream-update", function (event) {
@@ -871,6 +905,7 @@ $(document).ready(function () {
       $('#leds_custom_updsim').trigger('click');
     } else {
       onLedLayoutTab = false;
+      window.dispatchEvent(new Event('resize'));
     }
 
     blacklist_editor.on('change', function () {

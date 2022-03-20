@@ -149,9 +149,13 @@
                     </tbody>
                   </table>
                   <div class="panel panel-default">
-                    <div class="panel-heading headcollapse" data-toggle="collapse" data-target="#collapse3">
+                    <div class="panel-heading headcollapse" data-toggle="collapse" data-target="#collapse3" id="advanced_settings">
                       <h4 class="panel-title">
-                        <a><i class="fa fa-fw fa-cogs"></i><span data-i18n="conf_leds_layout_advanced">Advanced settings</span></a>
+                        <a>
+                          <i class="fa fa-fw fa-cogs"></i>
+                          <span data-i18n="conf_leds_layout_advanced">Advanced settings</span>
+                          <i class="fa fa-angle-down pull-right" id="advanced_settings_right_icon"></i>
+                        </a>
                       </h4>
                     </div>
                     <div id="collapse3" class="panel-collapse collapse">
@@ -391,13 +395,15 @@
               <div id="led_vis_help"></div>
               <div class="col-lg-12 st_helper" style="position:relative; padding-left:0px; padding-right:0px">
                 <canvas id="image_preview" style="position:absolute; z-index:0"></canvas>
+                <div id="keystone_correction_area" style="position: absolute; z-index: 99999;"></div>
                 <div id="leds_preview"></div>
               </div>
             </div>
             <div class="panel-footer">
               <button type="button" class="btn btn-danger" id="leds_prev_toggle_num"><i class="fa fa-info fa-fw"></i><span data-i18n="main_ledsim_btn_togglelednumber">toggle led numbers</span></button>
               <button type="button" class="btn btn-danger" id="leds_prev_toggle_live_video"><i class="fa fa-fw fa-television"></i><span data-i18n="main_ledsim_btn_togglelivevideo">toggle live video</span></button>
-              <button type="button" class="btn btn-primary" id="leds_prev_checklist"><i class="fa fa-info-circle fa-fw"></i><span data-i18n="conf_leds_layout_btn_checklist">toggle led numbers</span></button>
+              <button type="button" class="btn btn-danger" id="leds_prev_toggle_keystone_correction_area"><i class="fa fa-fw fa-info"></i><span data-i18n="conf_leds_layout_btn_keystone">toggle keystone correction</span></button>
+              <button type="button" class="btn btn-primary pull-right" id="leds_prev_checklist"><i class="fa fa-info-circle fa-fw"></i><span data-i18n="conf_leds_layout_btn_checklist">show checklist</span></button>
             </div>
           </div>
         </div>
