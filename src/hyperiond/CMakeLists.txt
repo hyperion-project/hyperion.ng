@@ -90,13 +90,6 @@ if (ENABLE_AMLOGIC)
 endif(ENABLE_AMLOGIC)
 
 if (ENABLE_DISPMANX)
-	IF ( "${PLATFORM}" MATCHES rpi)
-		find_package(BCM REQUIRED)
-		include_directories(${BCM_INCLUDE_DIRS})
-	ELSE()
-		SET(BCM_INCLUDE_DIRS "")
-		SET(BCM_LIBRARIES "")
-	ENDIF()
 	target_link_libraries(${PROJECT_NAME} dispmanx-grabber)
 endif (ENABLE_DISPMANX)
 

@@ -6,7 +6,15 @@ DispmanxWrapper::DispmanxWrapper( int updateRate_Hz,
 	: GrabberWrapper("Dispmanx", &_grabber, updateRate_Hz)
 	  , _grabber()
 {
-	_grabber.setPixelDecimation(pixelDecimation);
+	if (available = _grabber.isAvailable())
+	{
+		_grabber.setPixelDecimation(pixelDecimation);
+	}
+}
+
+bool DispmanxWrapper::open()
+{
+	return _grabber.open();
 }
 
 void DispmanxWrapper::action()

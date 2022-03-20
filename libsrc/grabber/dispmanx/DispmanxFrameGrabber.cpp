@@ -11,9 +11,8 @@
 
 // Constants
 namespace {
-const bool verbose = false;
-const int DEFAULT_DEVICE = 0;
-
+	const bool verbose = false;
+	const int DEFAULT_DEVICE = 0;
 } //End of constants
 
 // Local includes
@@ -21,24 +20,75 @@ const int DEFAULT_DEVICE = 0;
 
 DispmanxFrameGrabber::DispmanxFrameGrabber()
 	: Grabber("DISPMANXGRABBER")
-	  , _vc_display(0)
-	  , _vc_resource(0)
-	  , _vc_flags(DISPMANX_TRANSFORM_T(0))
-	  , _captureBuffer(new ColorRgba[0])
-	  , _captureBufferSize(0)
-	  , _image_rgba()
+	, _lib(nullptr)
+	, _vc_display(0)
+	, _vc_resource(0)
+	, _vc_flags(DISPMANX_TRANSFORM_T(0))
+	, _captureBuffer(new ColorRgba[0])
+	, _captureBufferSize(0)
+	, _image_rgba()
 {
 	_useImageResampler = true;
-	// Initialise BCM
-	bcm_host_init();
+}
+
+bool DispmanxFrameGrabber::isAvailable()
+{
+#ifdef BCM_FOUND
+	void* bcm_host = dlopen(std::string("" BCM_LIBRARY).c_str(), RTLD_LAZY | RTLD_GLOBAL);
+	if (bcm_host != nullptr)
+	{
+		dlclose(bcm_host);
+		return true;
+	}
+
+	return false;
+#else
+	return false;
+#endif
+}
+
+bool DispmanxFrameGrabber::open()
+{
+#ifdef BCM_FOUND
+	if (_lib != nullptr)
+		return true;
+
+	std::string library = std::string("" BCM_LIBRARY);
+	_lib = dlopen(library.c_str(), RTLD_LAZY | RTLD_GLOBAL);
+	if (!_lib)
+	{
+		DebugIf(verbose, _log, "dlopen for %s failed, error = %s", library.c_str(), dlerror());
+		return false;
+	}
+
+	dlerror(); /* Clear any existing error */
+
+	if (!(*(void**)(&wr_bcm_host_init) =					dlsym(_lib,"bcm_host_init"))) goto dlError;
+	if (!(*(void**)(&wr_bcm_host_deinit) = 					dlsym(_lib,"bcm_host_deinit"))) goto dlError;
+	if (!(*(void**)(&wr_vc_dispmanx_display_close) = 		dlsym(_lib,"vc_dispmanx_display_close"))) goto dlError;
+	if (!(*(void**)(&wr_vc_dispmanx_display_open) = 		dlsym(_lib,"vc_dispmanx_display_open"))) goto dlError;
+	if (!(*(void**)(&wr_vc_dispmanx_display_get_info) =		dlsym(_lib, "vc_dispmanx_display_get_info"))) goto dlError;
+	if (!(*(void**)(&wr_vc_dispmanx_resource_create) = 		dlsym(_lib,"vc_dispmanx_resource_create"))) goto dlError;
+	if (!(*(void**)(&wr_vc_dispmanx_resource_delete) = 		dlsym(_lib, "vc_dispmanx_resource_delete"))) goto dlError;
+	if (!(*(void**)(&wr_vc_dispmanx_resource_read_data) =	dlsym(_lib, "vc_dispmanx_resource_read_data"))) goto dlError;
+	if (!(*(void**)(&wr_vc_dispmanx_rect_set) =				dlsym(_lib, "vc_dispmanx_rect_set"))) goto dlError;
+	if (!(*(void**)(&wr_vc_dispmanx_snapshot) =				dlsym(_lib, "vc_dispmanx_snapshot"))) goto dlError;
+
+	wr_bcm_host_init();
+	return true;
+
+dlError:
+	DebugIf(verbose, _log, "dlsym for %s::%s failed, error = %s", library.c_str(), dlerror());
+	dlclose(_lib);
+    return false;
+#else
+	return false;
+#endif
 }
 
 DispmanxFrameGrabber::~DispmanxFrameGrabber()
 {
 	freeResources();
-
-	// De-init BCM
-	bcm_host_deinit();
 }
 
 bool DispmanxFrameGrabber::setupScreen()
@@ -66,22 +116,32 @@ bool DispmanxFrameGrabber::setupScreen()
 void DispmanxFrameGrabber::freeResources()
 {
 	delete[] _captureBuffer;
-	// Clean up resources
-	vc_dispmanx_resource_delete(_vc_resource);
+
+	if (_lib != nullptr)
+	{
+		// Clean up resources
+		wr_vc_dispmanx_resource_delete(_vc_resource);
+		// De-init BCM
+		wr_bcm_host_deinit();
+
+		dlclose(_lib);
+		_lib = nullptr;
+	}
 }
 
 bool DispmanxFrameGrabber::setWidthHeight(int width, int height)
 {
 	bool rc = false;
-	if(Grabber::setWidthHeight(width, height))
+	if(open() && Grabber::setWidthHeight(width, height))
 	{
-		if(_vc_resource != 0) {
-			vc_dispmanx_resource_delete(_vc_resource);
+		if(_vc_resource != 0)
+		{
+			wr_vc_dispmanx_resource_delete(_vc_resource);
 		}
 
 		Debug(_log,"Create the resources for capturing image");
 		uint32_t vc_nativeImageHandle;
-		_vc_resource = vc_dispmanx_resource_create(
+		_vc_resource = wr_vc_dispmanx_resource_create(
 			VC_IMAGE_RGBA32,
 			width,
 			height,
@@ -91,7 +151,7 @@ bool DispmanxFrameGrabber::setWidthHeight(int width, int height)
 		if (_vc_resource != 0)
 		{
 			Debug(_log,"Define the capture rectangle with the same size");
-			vc_dispmanx_rect_set(&_rectangle, 0, 0, width, height);
+			wr_vc_dispmanx_rect_set(&_rectangle, 0, 0, width, height);
 			rc = true;
 		}
 	}
@@ -137,7 +197,7 @@ int DispmanxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 		}
 
 		// Open the connection to the display
-		_vc_display = vc_dispmanx_display_open(DEFAULT_DEVICE);
+		_vc_display = wr_vc_dispmanx_display_open(DEFAULT_DEVICE);
 		if (_vc_display < 0)
 		{
 			Error(_log, "Cannot open display: %d", DEFAULT_DEVICE);
@@ -146,7 +206,7 @@ int DispmanxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 		else {
 
 			// Create the snapshot (incl down-scaling)
-			int ret = vc_dispmanx_snapshot(_vc_display, _vc_resource, _vc_flags);
+			int ret = wr_vc_dispmanx_snapshot(_vc_display, _vc_resource, _vc_flags);
 			if (ret < 0)
 			{
 				Error(_log, "Snapshot failed: %d", ret);
@@ -180,7 +240,7 @@ int DispmanxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 					capturePtr = &_captureBuffer[0];
 				}
 
-				ret = vc_dispmanx_resource_read_data(_vc_resource, &_rectangle, capturePtr, capturePitch);
+				ret = wr_vc_dispmanx_resource_read_data(_vc_resource, &_rectangle, capturePtr, capturePitch);
 				if (ret < 0)
 				{
 					Error(_log, "vc_dispmanx_resource_read_data failed: %d", ret);
@@ -196,7 +256,8 @@ int DispmanxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 												  image);
 				}
 			}
-			vc_dispmanx_display_close(_vc_display);
+
+			wr_vc_dispmanx_display_close(_vc_display);
 		}
 	}
 	return rc;
@@ -207,12 +268,12 @@ QSize DispmanxFrameGrabber::getScreenSize(int device) const
 	int width (0);
 	int height(0);
 
-	DISPMANX_DISPLAY_HANDLE_T vc_display = vc_dispmanx_display_open(device);
+	DISPMANX_DISPLAY_HANDLE_T vc_display = wr_vc_dispmanx_display_open(device);
 	if ( vc_display > 0)
 	{
 		// Obtain the display information
 		DISPMANX_MODEINFO_T vc_info;
-		int result = vc_dispmanx_display_get_info(vc_display, &vc_info);
+		int result = wr_vc_dispmanx_display_get_info(vc_display, &vc_info);
 		(void)result;
 
 		if (result == 0)
@@ -223,7 +284,7 @@ QSize DispmanxFrameGrabber::getScreenSize(int device) const
 			DebugIf(verbose, _log, "Display found with resolution: %dx%d", width, height);
 		}
 		// Close the display
-		vc_dispmanx_display_close(vc_display);
+		wr_vc_dispmanx_display_close(vc_display);
 	}
 
 	return QSize(width, height);
@@ -234,61 +295,63 @@ QJsonObject DispmanxFrameGrabber::discover(const QJsonObject& params)
 	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	QJsonObject inputsDiscovered;
-
-	int deviceIdx (DEFAULT_DEVICE);
-	QJsonArray video_inputs;
-
-	QSize screenSize = getScreenSize(deviceIdx);
-	if ( !screenSize.isEmpty() )
+	if (open())
 	{
-		QJsonArray fps = { 1, 5, 10, 15, 20, 25, 30, 40, 50, 60 };
+		int deviceIdx (DEFAULT_DEVICE);
+		QJsonArray video_inputs;
 
-		QJsonObject in;
+		QSize screenSize = getScreenSize(deviceIdx);
+		if ( !screenSize.isEmpty() )
+		{
+			QJsonArray fps = { 1, 5, 10, 15, 20, 25, 30, 40, 50, 60 };
 
-		QString displayName;
-		displayName = QString("Screen:%1").arg(deviceIdx);
+			QJsonObject in;
 
-		in["name"] = displayName;
-		in["inputIdx"] = deviceIdx;
+			QString displayName;
+			displayName = QString("Screen:%1").arg(deviceIdx);
 
-		QJsonArray formats;
-		QJsonObject format;
+			in["name"] = displayName;
+			in["inputIdx"] = deviceIdx;
 
-		QJsonArray resolutionArray;
+			QJsonArray formats;
+			QJsonObject format;
 
-		QJsonObject resolution;
+			QJsonArray resolutionArray;
 
-		resolution["width"] = screenSize.width();
-		resolution["height"] = screenSize.height();
-		resolution["fps"] = fps;
+			QJsonObject resolution;
 
-		resolutionArray.append(resolution);
+			resolution["width"] = screenSize.width();
+			resolution["height"] = screenSize.height();
+			resolution["fps"] = fps;
 
-		format["resolutions"] = resolutionArray;
-		formats.append(format);
+			resolutionArray.append(resolution);
 
-		in["formats"] = formats;
-		video_inputs.append(in);
-	}
+			format["resolutions"] = resolutionArray;
+			formats.append(format);
 
-	if (!video_inputs.isEmpty())
-	{
-		inputsDiscovered["device"] = "dispmanx";
-		inputsDiscovered["device_name"] = "DispmanX";
-		inputsDiscovered["type"] = "screen";
-		inputsDiscovered["video_inputs"] = video_inputs;
+			in["formats"] = formats;
+			video_inputs.append(in);
+		}
 
-		QJsonObject defaults, video_inputs_default, resolution_default;
-		resolution_default["fps"] = _fps;
-		video_inputs_default["resolution"] = resolution_default;
-		video_inputs_default["inputIdx"] = 0;
-		defaults["video_input"] = video_inputs_default;
-		inputsDiscovered["default"] = defaults;
-	}
+		if (!video_inputs.isEmpty())
+		{
+			inputsDiscovered["device"] = "dispmanx";
+			inputsDiscovered["device_name"] = "DispmanX";
+			inputsDiscovered["type"] = "screen";
+			inputsDiscovered["video_inputs"] = video_inputs;
 
-	if (inputsDiscovered.isEmpty())
-	{
-		DebugIf(verbose, _log, "No displays found to capture from!");
+			QJsonObject defaults, video_inputs_default, resolution_default;
+			resolution_default["fps"] = _fps;
+			video_inputs_default["resolution"] = resolution_default;
+			video_inputs_default["inputIdx"] = 0;
+			defaults["video_input"] = video_inputs_default;
+			inputsDiscovered["default"] = defaults;
+		}
+
+		if (inputsDiscovered.isEmpty())
+		{
+			DebugIf(verbose, _log, "No displays found to capture from!");
+		}
 	}
 
 	DebugIf(verbose, _log, "device: [%s]", QString(QJsonDocument(inputsDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
