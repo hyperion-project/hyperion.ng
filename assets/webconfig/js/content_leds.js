@@ -227,7 +227,7 @@ function createLedPreview(leds, origin) {
     bottomRight2bottomLeft = new LeaderLine(LeaderLine.pointAnchor(bottom_right_point, {x: '100%', y: '100%'}), LeaderLine.pointAnchor(bottom_left_point, {x: 0, y: '100%'}), {path: 'straight', color: 'red', size: 1, endPlug: 'behind'});
     bottomLeft2topLeft = new LeaderLine(LeaderLine.pointAnchor(bottom_left_point, {x: 0, y: '100%'}), LeaderLine.pointAnchor(top_left_point, {x: 0, y: 0}), {path: 'straight', color: 'red', size: 1, endPlug: 'behind'});
   } else {
-    $('#keystone_correction_area').html("");
+    $('#keystone_correction_area').html("").css({ "width" : 0, "height" : 0 });
 
     // Remove existing lines
     if (topLeft2topRight != null) {
@@ -747,6 +747,7 @@ $(document).ready(function () {
   });
 
   $(document).on('click', "#current_config_panel", function (e) {
+    $("#leds_prev_toggle_keystone_correction_area").hide();
     aceEdt.set(finalLedArray);
   });
 
@@ -905,7 +906,7 @@ $(document).ready(function () {
       $('#leds_custom_updsim').trigger('click');
     } else {
       onLedLayoutTab = false;
-      window.dispatchEvent(new Event('resize'));
+      window.dispatchEvent(new Event('resize')); // remove keystone correction lines
     }
 
     blacklist_editor.on('change', function () {
