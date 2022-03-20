@@ -27,6 +27,8 @@ var devHID = ['hyperionusbasp', 'lightpack', 'paintpack', 'rawhid'];
 
 var infoTextDefault = '<span>' + $.i18n("conf_leds_device_info_log") + ' </span><a href="" onclick="SwitchToMenuItem(\'MenuItemLogging\')" style="cursor:pointer">' + $.i18n("main_menu_logging_token") + '</a>';
 
+var configPanel = "text";
+
 function round(number) {
   var factor = Math.pow(10, 4);
   var tempNumber = number * factor;
@@ -34,16 +36,16 @@ function round(number) {
   return roundedTempNumber / factor;
 };
 
-function createLedPreview(leds, origin) {
-  if (origin == "classic") {
+function createLedPreview(leds) {
+  if (configPanel == "classic") {
     $('#previewcreator').html($.i18n('conf_leds_layout_preview_originCL'));
     $('#leds_preview').css("padding-top", "56.25%");
   }
-  else if (origin == "text") {
+  else if (configPanel == "text") {
     $('#previewcreator').html($.i18n('conf_leds_layout_preview_originTEXT'));
     $('#leds_preview').css("padding-top", "56.25%");
   }
-  else if (origin == "matrix") {
+  else if (configPanel == "matrix") {
     $('#previewcreator').html($.i18n('conf_leds_layout_preview_originMA'));
     $('#leds_preview').css("padding-top", "100%");
   }
@@ -78,9 +80,7 @@ function createLedPreview(leds, origin) {
   if ($('#leds_prev_toggle_num').hasClass('btn-success'))
     $('.led_prev_num').css("display", "inline");
 
-  console.log(onLedLayoutTab, origin, toggleKeystoneCorrectionArea);
-
-  if (onLedLayoutTab && origin == "classic" && toggleKeystoneCorrectionArea) {
+  if (onLedLayoutTab && configPanel == "classic" && toggleKeystoneCorrectionArea) {
     // Calculate corner size (min/max:10px/30px)
     var size = Math.min(Math.max(canvas_width / 100 * 2, 10), 30);
     var corner_size = "width:" + size + "px; height:" + size + "px;";
@@ -254,7 +254,7 @@ function createLedPreview(leds, origin) {
   // Change on window resize. Is this correct?
   $(window).off("resize.createLedPreview");
   $(window).on("resize.createLedPreview",(function() {
-    createLedPreview(leds, origin);
+    createLedPreview(leds, configPanel);
   }));
 }
 
@@ -461,7 +461,7 @@ function createClassicLeds() {
     $('#ip_cl_ledsglength').val(finalLedArray.length - 1);
   }
 
-  createLedPreview(finalLedArray, 'classic');
+  createLedPreview(finalLedArray);
   aceEdt.set(finalLedArray);
 }
 
@@ -557,7 +557,7 @@ function createMatrixLeds() {
   nonBlacklistLedArray = createMatrixLayout(ledshoriz, ledsvert, cabling, start, direction);
   finalLedArray = blackListLeds(nonBlacklistLedArray, ledBlacklist);
 
-  createLedPreview(finalLedArray, 'matrix');
+  createLedPreview(finalLedArray);
   aceEdt.set(finalLedArray);
 }
 
@@ -725,6 +725,34 @@ $(document).ready(function () {
         if (this.value < ptrv) {
           $(this).val(ptrv);
         }
+        break;
+
+      case "ip_cl_top":
+      case "ip_cl_bottom":
+      case "ip_cl_left":
+      case "ip_cl_right":
+      case "ip_cl_glength":
+      case "ip_cl_gpos":      
+        var ledstop = parseInt($("#ip_cl_top").val());
+        var ledsbottom = parseInt($("#ip_cl_bottom").val());
+        var ledsleft = parseInt($("#ip_cl_left").val());
+        var ledsright = parseInt($("#ip_cl_right").val());
+        maxLEDs = ledstop + ledsbottom + ledsleft + ledsright;
+
+        var gpos = parseInt($("#ip_cl_gpos").val());
+        $("#ip_cl_gpos").attr({'max':maxLEDs-1});
+
+        var max = maxLEDs-gpos;
+        if (gpos == 0) {
+          --max;
+        }
+        $("#ip_cl_glength").attr({'max':max});
+
+       var glength = parseInt($("#ip_cl_glength").val());
+        if (glength+gpos >= maxLEDs) { 
+          $("#ip_cl_glength").val($("#ip_cl_glength").attr('max')); 
+        }
+        break;
 
       default:
     }
@@ -736,20 +764,24 @@ $(document).ready(function () {
     createMatrixLeds();
   });
 
-  $(document).on('click', "#classic_panel", function (e) {
+  $('#collapse1').on('shown.bs.collapse', function () {
+    configPanel = "classic";
     $("#leds_prev_toggle_keystone_correction_area").show();
-    createClassicLeds();
-  });
+    createClassicLeds();  
+});
 
-  $(document).on('click', "#matrix_panel", function (e) {
+  $('#collapse2').on('shown.bs.collapse', function () {
+    configPanel = "matrix";
     $("#leds_prev_toggle_keystone_correction_area").hide();
     createMatrixLeds();
-  });
+});
 
-  $(document).on('click', "#current_config_panel", function (e) {
+  $('#collapse5').on('shown.bs.collapse', function () {
+    configPanel = "text";
     $("#leds_prev_toggle_keystone_correction_area").hide();
+    createLedPreview(finalLedArray);
     aceEdt.set(finalLedArray);
-  });
+});
 
   // Initialise from config and apply blacklist rules
   nonBlacklistLedArray = window.serverConfig.leds;
