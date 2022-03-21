@@ -254,7 +254,7 @@ function createLedPreview(leds) {
   // Change on window resize. Is this correct?
   $(window).off("resize.createLedPreview");
   $(window).on("resize.createLedPreview",(function() {
-    createLedPreview(leds, configPanel);
+    createLedPreview(leds);
   }));
 }
 
@@ -737,7 +737,7 @@ $(document).ready(function () {
         var ledsbottom = parseInt($("#ip_cl_bottom").val());
         var ledsleft = parseInt($("#ip_cl_left").val());
         var ledsright = parseInt($("#ip_cl_right").val());
-        maxLEDs = ledstop + ledsbottom + ledsleft + ledsright;
+        var maxLEDs = ledstop + ledsbottom + ledsleft + ledsright;
 
         var gpos = parseInt($("#ip_cl_gpos").val());
         $("#ip_cl_gpos").attr({'max':maxLEDs-1});
@@ -838,7 +838,7 @@ $(document).ready(function () {
   $("#leds_custom_updsim").off().on("click", function () {
     nonBlacklistLedArray = aceEdt.get();
     finalLedArray = blackListLeds(nonBlacklistLedArray, ledBlacklist);
-    createLedPreview(finalLedArray, 'text');
+    createLedPreview(finalLedArray);
   });
 
   // save led layout, the generated textfield configuration always represents the latest layout
