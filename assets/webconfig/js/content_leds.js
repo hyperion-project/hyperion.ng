@@ -190,7 +190,7 @@ function createLedPreview(leds) {
       onMove: function(newPosition) {
         var keystone_correction_area_offsets = $('#keystone_correction_area').offset();
         var left = newPosition.left - keystone_correction_area_offsets.left + size / 2;
-        var top = newPosition.top - keystone_correction_area_offsets.top - $('#bottom_left_point').outerHeight() + size * 3 / 2;
+        var top = newPosition.top - keystone_correction_area_offsets.top + $('#bottom_left_point').outerHeight() - size / 2;
         var pblh = Math.min(Math.max((((left * 1) / maxWidth).toFixed(2) * 100).toFixed(0), 0), 40);
         var pblv = Math.min(Math.max((((top * 1) / maxHeight).toFixed(2) * 100).toFixed(0), 60), 100);
 
