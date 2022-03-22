@@ -289,9 +289,15 @@ body {
   display:inline-block;
   position:absolute;
   opacity:1.0;
-  border-radius: 50%;
-  background-color:red;
+  border:1px solid black;
 }
+
+.leader-line {
+  z-index: 15;
+}
+
+.cursor_nwse{cursor: nwse-resize;}
+.cursor_nesw{cursor: nesw-resize;}
 
 /*checklists*/
 .checklist{list-style-type:none;padding-left:0px}
