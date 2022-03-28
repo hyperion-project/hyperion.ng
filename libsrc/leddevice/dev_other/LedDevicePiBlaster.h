@@ -79,4 +79,4 @@ private:
 
 };
 
-#endif // LEDEVICETEMPLATE_H
+#endif // LEDEVICEPIBLASTER_H
