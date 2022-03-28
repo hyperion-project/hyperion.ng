@@ -41,6 +41,7 @@ endif(CCACHE_FOUND)
 # enable C++14; MSVC doesn't have c++14 feature switch
 if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	if(APPLE)
+		include(CheckCXXCompilerFlag)
 		CHECK_CXX_COMPILER_FLAG("Werror=unguarded-availability" REQUIRED_UNGUARDED_AVAILABILITY)
 		if(REQUIRED_UNGUARDED_AVAILABILITY)
 			list(APPEND CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS} "Werror=unguarded-availability")
