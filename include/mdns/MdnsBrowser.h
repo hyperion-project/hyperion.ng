@@ -66,14 +66,13 @@ public slots:
 	///
 	void browseForServiceType(const QByteArray& serviceType);
 
-	void getHostAddress(const QString& hostname);
 	void getHostAddress(const QByteArray& hostname);
 
 	void onHostNameResolved(const QHostAddress& address);
 
 	QMdnsEngine::Record getServiceInstanceRecord(const QByteArray& serviceInstance, const std::chrono::milliseconds waitTime = DEFAULT_DISCOVER_TIMEOUT) const;
 
-	bool resolveAddress (const QObject* context, Logger* log, const QString& hostname, QHostAddress& hostAddress, std::chrono::milliseconds timeout = DEFAULT_ADDRESS_RESOLVE_TIMEOUT);
+	bool resolveAddress (Logger* log, const QString& hostname, QHostAddress& hostAddress, std::chrono::milliseconds timeout = DEFAULT_ADDRESS_RESOLVE_TIMEOUT);
 
 Q_SIGNALS:
 
@@ -103,6 +102,61 @@ private slots:
 	void onServiceRemoved(const QMdnsEngine::Service& service);
 
 private:
+
+//	template <typename Func1, typename Func2, typename std::enable_if_t<std::is_member_pointer<Func2>::value, int> = 0>
+//	static inline QMetaObject::Connection weakConnect(typename QtPrivate::FunctionPointer<Func1>::Object* sender,
+//													   Func1 signal,
+//													   typename QtPrivate::FunctionPointer<Func2>::Object* receiver,
+//													   Func2 slot)
+//	{
+//		QMetaObject::Connection conn_normal = QObject::connect(sender, signal, receiver, slot);
+
+//		QMetaObject::Connection* conn_delete = new QMetaObject::Connection();
+
+//		*conn_delete = QObject::connect(sender, signal, [conn_normal, conn_delete]() {
+//			QObject::disconnect(conn_normal);
+//			QObject::disconnect(*conn_delete);
+//			delete conn_delete;
+//		});
+//		return conn_normal;
+//	}
+
+	template <typename Func1, typename Func2, typename std::enable_if_t<!std::is_member_pointer<Func2>::value, int> = 0>
+	static inline QMetaObject::Connection weakConnect(typename QtPrivate::FunctionPointer<Func1>::Object* sender,
+													   Func1 signal,
+													   Func2 slot)
+	{
+		QMetaObject::Connection conn_normal = QObject::connect(sender, signal, slot);
+
+		QMetaObject::Connection* conn_delete = new QMetaObject::Connection();
+
+		*conn_delete = QObject::connect(sender, signal, [conn_normal, conn_delete]() {
+			QObject::disconnect(conn_normal);
+			QObject::disconnect(*conn_delete);
+			delete conn_delete;
+		});
+		return conn_normal;
+	}
+
+//	template <typename Func1, typename Func2, typename std::enable_if_t<!std::is_member_pointer<Func2>::value, int> = 0>
+//	static inline QMetaObject::Connection weakConnect(typename QtPrivate::FunctionPointer<Func1>::Object* sender,
+//													   Func1 signal,
+//													   typename QtPrivate::FunctionPointer<Func2>::Object* receiver,
+//													   Func2 slot)
+//	{
+//		Q_UNUSED(receiver);
+//		QMetaObject::Connection conn_normal = QObject::connect(sender, signal, slot);
+
+//		QMetaObject::Connection* conn_delete = new QMetaObject::Connection();
+
+//		*conn_delete = QObject::connect(sender, signal, [conn_normal, conn_delete]() {
+//			QObject::disconnect(conn_normal);
+//			QObject::disconnect(*conn_delete);
+//			delete conn_delete;
+//		});
+//		return conn_normal;
+//	}
+
 
 	/// The logger instance for mDNS-Service
 	Logger* _log;

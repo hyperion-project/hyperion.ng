@@ -119,6 +119,7 @@ void LedDevice::enable()
 			if ( switchOn() )
 			{
 				emit enableStateChanged(_isEnabled);
+				Info(_log, "LedDevice '%s' enabled", QSTRING_CSTR(_activeDeviceType));
 			}
 		}
 	}

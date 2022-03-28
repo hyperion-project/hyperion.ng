@@ -97,13 +97,12 @@ namespace NetUtils {
 
 	///
 	/// @brief Resolve a hostname (DNS/mDNS) into an IP-address. A given IP address will be passed through
-	/// @param[in]     context     The QObject context of the call
 	/// @param[in/out] log         The logger of the caller to print
 	/// @param[in]     hostname    The hostname to be resolved
 	/// @param[in/out] hostAddress A hostname to make reference to during logging
 	/// @return        True on success else false
 	///
-	inline bool resolveHostAddress(const QObject* context, Logger* log, const QString& hostname, QHostAddress& hostAddress)
+	inline bool resolveHostAddress(Logger* log, const QString& hostname, QHostAddress& hostAddress)
 	{
 		bool isHostAddressOK{ false };
 
@@ -112,7 +111,10 @@ namespace NetUtils {
 			#ifdef ENABLE_MDNS
 			if (hostname.endsWith(".local") || hostname.endsWith(".local."))
 			{
-				isHostAddressOK = MdnsBrowser::getInstance().resolveAddress(context, log, hostname, hostAddress);
+				QMetaObject::invokeMethod(&MdnsBrowser::getInstance(), "resolveAddress",
+										   Qt::BlockingQueuedConnection,
+										   Q_RETURN_ARG(bool, isHostAddressOK),
+										   Q_ARG(Logger*, log), Q_ARG(QString, hostname), Q_ARG(QHostAddress&, hostAddress));
 			}
 			else
 			#endif

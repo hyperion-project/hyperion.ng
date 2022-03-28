@@ -21,7 +21,6 @@ namespace {
 	const bool verbose3 = false;
 
 	// Configuration settings
-	const char CONFIG_ID[] = "id";
 	const char CONFIG_ADDRESS[] = "host";
 	const char CONFIG_HW_LED_COUNT[] = "hardwareLedCount";
 
@@ -77,7 +76,6 @@ bool LedDeviceCololight::init(const QJsonObject& deviceConfig)
 #ifdef ENABLE_MDNS
 	if (hostName.endsWith("._tcp.local"))
 	{
-		Debug(_log, "Service      : %s", QSTRING_CSTR(hostName));
 		//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
 		//Ignore port (as the provided one is not used for streaming) and TXT-attributes
 		QString target = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8()).target();
@@ -85,21 +83,29 @@ bool LedDeviceCololight::init(const QJsonObject& deviceConfig)
 
 		if (!target.isEmpty())
 		{
+			Info(_log, "Resolved service [%s] to mDNS hostname [%s]", QSTRING_CSTR(hostName), QSTRING_CSTR(target));
 			hostName = target;
+
 		}
 		else
 		{
-			this->setInError(QString("Cannot resolve host for given service [%1]!").arg(hostName));
+			this->setInError(QString("Cannot resolve mDNS hostname for given service [%1]!").arg(hostName));
 			return false;
 		}
 	}
 #endif
 
-	QHostAddress address;
-	if (NetUtils::resolveHostAddress(this, _log, hostName, address))
+	QHostAddress resolvedAddress;
+	if (NetUtils::resolveHostAddress(_log, hostName, resolvedAddress))
 	{
+		QString address = resolvedAddress.toString();
+		if (hostName != address)
+		{
+			Info(_log, "Resolved hostname [%s] to address [%s]",  QSTRING_CSTR(hostName), QSTRING_CSTR(address));
+		}
+
 		// Update configuration with hostname without port
-		_devConfig["host"] = address.toString();
+		_devConfig["host"] = address;
 		_devConfig["port"] = STREAM_DEFAULT_PORT;
 
 		if (ProviderUdp::init(deviceConfig))
@@ -739,7 +745,7 @@ QJsonObject LedDeviceCololight::getProperties(const QJsonObject& params)
 	if (!hostName.isEmpty())
 	{
 		QHostAddress address;
-		if (NetUtils::resolveHostAddress(this, _log, hostName, address))
+		if (NetUtils::resolveHostAddress(_log, hostName, address))
 		{
 			QJsonObject deviceConfig;
 			deviceConfig.insert("host", address.toString());
@@ -795,7 +801,7 @@ void LedDeviceCololight::identify(const QJsonObject& params)
 	if (!hostName.isEmpty())
 	{
 		QHostAddress address;
-		if (NetUtils::resolveHostAddress(this, _log, hostName, address))
+		if (NetUtils::resolveHostAddress(_log, hostName, address))
 		{
 			QJsonObject deviceConfig;
 			deviceConfig.insert("host", address.toString());

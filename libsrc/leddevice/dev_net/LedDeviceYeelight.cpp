@@ -1156,19 +1156,25 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 
 					if (!target.isEmpty())
 					{
+						Info(_log, "Resolved service [%s] to mDNS hostname [%s]", QSTRING_CSTR(hostName), QSTRING_CSTR(target));
 						hostName = target;
 					}
 					else
 					{
-						this->setInError(QString("Cannot resolve host for given service [%1]!").arg(hostName));
+						this->setInError(QString("Cannot resolve mDNS hostname for given service [%1]!").arg(hostName));
 						return false;
 					}
 				}
 #endif
-				QHostAddress address;
-				if (NetUtils::resolveHostAddress(this, _log, hostName, address))
+				QHostAddress resolvedAddress;
+				if (NetUtils::resolveHostAddress(_log, hostName, resolvedAddress))
 				{
-					_lightsAddressList.append( { address.toString(), port} );
+					QString address = resolvedAddress.toString();
+					if (hostName != address)
+					{
+						Info(_log, "Resolved hostname [%s] to address [%s]",  QSTRING_CSTR(hostName), QSTRING_CSTR(address));
+					}
+					_lightsAddressList.append( { address, port} );
 				}
 			}
 
@@ -1463,7 +1469,7 @@ QJsonObject LedDeviceYeelight::getProperties(const QJsonObject& params)
 #endif
 
 	QHostAddress address;
-	if (NetUtils::resolveHostAddress(this, _log, hostName, address))
+	if (NetUtils::resolveHostAddress(_log, hostName, address))
 	{
 		YeelightLight yeelight(_log, address.toString(), apiPort);
 
@@ -1495,7 +1501,7 @@ void LedDeviceYeelight::identify(const QJsonObject& params)
 #endif
 
 	QHostAddress address;
-	if (NetUtils::resolveHostAddress(this, _log, hostName, address))
+	if (NetUtils::resolveHostAddress(_log, hostName, address))
 	{
 		YeelightLight yeelight(_log, address.toString(), apiPort);
 		//yeelight.setDebuglevel(3);

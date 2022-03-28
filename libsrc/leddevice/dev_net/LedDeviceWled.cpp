@@ -116,27 +116,33 @@ bool LedDeviceWled::init(const QJsonObject &deviceConfig)
 #ifdef ENABLE_MDNS
 		if (hostName.endsWith("._tcp.local"))
 		{
-			Debug(_log, "Service      : %s", QSTRING_CSTR(hostName));
 			//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
+			//Ignore port (as the provided one is not used for streaming) and TXT-attributes
 			QString target = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8()).target();
 			//Ignore port and TXT-attributes
 
 			if (!target.isEmpty())
 			{
+				Info(_log, "Resolved service [%s] to mDNS hostname [%s]", QSTRING_CSTR(hostName), QSTRING_CSTR(target));
 				hostName = target;
+
 			}
 			else
 			{
-				this->setInError(QString("Cannot resolve host for given service [%1]!").arg(hostName));
+				this->setInError(QString("Cannot resolve mDNS hostname for given service [%1]!").arg(hostName));
 				return false;
 			}
 		}
 #endif
 
-		QHostAddress address;
-		if (NetUtils::resolveHostAddress(this, _log, hostName, address))
+		QHostAddress resolvedAddress;
+		if (NetUtils::resolveHostAddress(_log, hostName, resolvedAddress))
 		{
-			_hostAddress	= address.toString();
+			_hostAddress = resolvedAddress.toString();
+			if (hostName != _hostAddress)
+			{
+				Info(_log, "Resolved hostname [%s] to address [%s]",  QSTRING_CSTR(hostName), QSTRING_CSTR(_hostAddress));
+			}
 			if ( initRestAPI( _hostAddress, _apiPort ) )
 			{
 				// Update configuration with hostname without port
@@ -370,7 +376,7 @@ QJsonObject LedDeviceWled::getProperties(const QJsonObject& params)
 #endif
 
 	QHostAddress address;
-	if (NetUtils::resolveHostAddress(this, _log, hostName, address))
+	if (NetUtils::resolveHostAddress(_log, hostName, address))
 	{
 		QString filter = params["filter"].toString("");
 
@@ -411,7 +417,7 @@ void LedDeviceWled::identify(const QJsonObject& params)
 #endif
 
 	QHostAddress address;
-	if (NetUtils::resolveHostAddress(this, _log, hostName, address))
+	if (NetUtils::resolveHostAddress(_log, hostName, address))
 	{
 		initRestAPI( address.toString(), _apiPort);
 

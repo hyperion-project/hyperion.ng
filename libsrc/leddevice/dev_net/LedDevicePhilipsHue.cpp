@@ -299,28 +299,30 @@ bool LedDevicePhilipsHueBridge::init(const QJsonObject &deviceConfig)
 #ifdef ENABLE_MDNS
 		if (hostName.endsWith("._tcp.local"))
 		{
-			log("Service", "%s", QSTRING_CSTR(hostName));
 			//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
 			QMdnsEngine::Record service = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8());
 
 			if (!service.target().isEmpty())
 			{
+				Info(_log, "Resolved service [%s] to mDNS hostname [%s], port [%d]", QSTRING_CSTR(hostName), service.target().constData(), service.port());
 				hostName = service.target();
 			}
 			else
 			{
-				this->setInError(QString("Cannot resolve host for given service [%1]!").arg(hostName));
+				this->setInError(QString("Cannot resolve mDNS hostname for given service [%1]!").arg(hostName));
 				return false;
 			}
 			_apiPort = service.port();
 		}
 #endif
-		QHostAddress address;
-		if (NetUtils::resolveHostAddress(this, _log, hostName, address))
+		QHostAddress resolvedAddress;
+		if (NetUtils::resolveHostAddress(_log, hostName, resolvedAddress))
 		{
-			log("Hostname", "%s", QSTRING_CSTR(hostName));
-
-			_hostAddress = address.toString();
+			_hostAddress = resolvedAddress.toString();
+			if (hostName != _hostAddress)
+			{
+				Info(_log, "Resolved hostname [%s] to address [%s]",  QSTRING_CSTR(hostName), QSTRING_CSTR(_hostAddress));
+			}
 			log("HostAddress", "%s", QSTRING_CSTR(_hostAddress));
 
 			//Workaround until API v2 with https is supported
@@ -759,7 +761,7 @@ QJsonObject LedDevicePhilipsHueBridge::getProperties(const QJsonObject& params)
 	if (!hostName.isEmpty())
 	{
 		QHostAddress address;
-		if (NetUtils::resolveHostAddress(this, _log, hostName, address))
+		if (NetUtils::resolveHostAddress(_log, hostName, address))
 		{
 			QString username = params["user"].toString("");
 			QString filter = params["filter"].toString("");
@@ -1755,7 +1757,7 @@ void LedDevicePhilipsHue::identify(const QJsonObject& params)
 	if (!hostName.isEmpty())
 	{
 		QHostAddress address;
-		if (NetUtils::resolveHostAddress(this, _log, hostName, address))
+		if (NetUtils::resolveHostAddress(_log, hostName, address))
 		{
 			QString username = params["user"].toString("");
 			int lightId = params["lightId"].toInt(0);

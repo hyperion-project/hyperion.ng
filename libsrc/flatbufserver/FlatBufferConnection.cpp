@@ -37,6 +37,7 @@ FlatBufferConnection::FlatBufferConnection(const QString& origin, const QString&
 
 FlatBufferConnection::~FlatBufferConnection()
 {
+	Debug(_log, "Closing connection to: %s:%u", QSTRING_CSTR(_host), _port);
 	_timer.stop();
 	_socket.close();
 }

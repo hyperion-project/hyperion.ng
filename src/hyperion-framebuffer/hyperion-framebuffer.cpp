@@ -163,7 +163,7 @@ int main(int argc, char ** argv)
 
 #ifdef ENABLE_MDNS
 			QHostAddress address;
-			if (!NetUtils::resolveHostAddress(&MdnsBrowser::getInstance(), log, host, address))
+			if (!NetUtils::resolveHostAddress(log, host, address))
 			{
 				throw std::runtime_error(QString("Address could not be resolved for hostname: %2").arg(QSTRING_CSTR(host)).toStdString());
 			}

@@ -149,6 +149,7 @@ void Hyperion::start()
 	if (_instIndex == 0)
 	{
 		_messageForwarder = new MessageForwarder(this);
+		_messageForwarder->handleSettingsUpdate(settings::NETFORWARD, getSetting(settings::NETFORWARD));
 	}
 #endif
 

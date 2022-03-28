@@ -200,26 +200,31 @@ bool LedDeviceNanoleaf::init(const QJsonObject& deviceConfig)
 #ifdef ENABLE_MDNS
 		if (hostName.endsWith("._tcp.local"))
 		{
-			Debug(_log, "Service      : %s", QSTRING_CSTR(hostName));
 			//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
 			QMdnsEngine::Record service = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8());
 
 			if (!service.target().isEmpty())
 			{
+				Info(_log, "Resolved service [%s] to mDNS hostname [%s], port [%d]", QSTRING_CSTR(hostName), service.target().constData(), service.port());
 				hostName = service.target();
 			}
 			else
 			{
-				this->setInError(QString("Cannot resolve host for given service [%1]!").arg(hostName));
+				this->setInError(QString("Cannot resolve mDNS hostname for given service [%1]!").arg(hostName));
 			}
 			_apiPort = service.port();
 		}
 #endif
 
-		QHostAddress address;
-		if (NetUtils::resolveHostAddress(this, _log, hostName, address))
+		QHostAddress resolvedAddress;
+		if (NetUtils::resolveHostAddress(_log, hostName, resolvedAddress))
 		{
-			_hostAddress = address.toString();
+			_hostAddress = resolvedAddress.toString();
+			if (hostName != _hostAddress)
+			{
+				Info(_log, "Resolved hostname [%s] to address [%s]",  QSTRING_CSTR(hostName), QSTRING_CSTR(_hostAddress));
+			}
+
 			if (initRestAPI(_hostAddress, _apiPort, _authToken))
 			{
 				// Read LedDevice configuration and validate against device configuration
@@ -491,7 +496,7 @@ QJsonObject LedDeviceNanoleaf::getProperties(const QJsonObject& params)
 	if (!hostName.isEmpty())
 	{
 		QHostAddress address;
-		if (NetUtils::resolveHostAddress(this, _log, hostName, address))
+		if (NetUtils::resolveHostAddress(_log, hostName, address))
 		{
 			QString authToken = params["token"].toString("");
 			QString filter = params["filter"].toString("");
@@ -535,7 +540,7 @@ void LedDeviceNanoleaf::identify(const QJsonObject& params)
 	if (!hostName.isEmpty())
 	{
 		QHostAddress address;
-		if (NetUtils::resolveHostAddress(this, _log, hostName, address))
+		if (NetUtils::resolveHostAddress(_log, hostName, address))
 		{
 			QString authToken = params["token"].toString("");
 			initRestAPI(address.toString(), API_DEFAULT_PORT, authToken);
