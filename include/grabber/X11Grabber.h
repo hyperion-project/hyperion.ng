@@ -22,6 +22,10 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
+#ifdef Bool
+	#undef Bool
+#endif
+
 class X11Grabber : public Grabber , public QAbstractNativeEventFilter
 {
 public:

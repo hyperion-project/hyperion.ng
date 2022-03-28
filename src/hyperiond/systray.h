@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef Status
+	#undef Status
+#endif
+
 #include <QSystemTrayIcon>
 #include <QMenu>
 #include <QWidget>

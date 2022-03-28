@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.0(VERSION 3.1.0)
 
 message( STATUS "CMake Version: ${CMAKE_VERSION}" )
 
@@ -37,6 +37,25 @@ if ( CCACHE_FOUND )
 	set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
 	set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 endif(CCACHE_FOUND)
+
+# enable C++14; MSVC doesn't have c++14 feature switch
+if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+	if(APPLE)
+		CHECK_CXX_COMPILER_FLAG("Werror=unguarded-availability" REQUIRED_UNGUARDED_AVAILABILITY)
+		if(REQUIRED_UNGUARDED_AVAILABILITY)
+			list(APPEND CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS} "Werror=unguarded-availability")
+		endif()
+	endif()
+
+	if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-psabi")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-psabi")
+	endif()
+
+	set(CMAKE_CXX_STANDARD 14)
+	set(CXX_STANDARD_REQUIRED ON)
+	set(CXX_EXTENSIONS OFF)
+endif()
 
 # Set build variables
 # Grabber
@@ -556,33 +575,6 @@ LIST( APPEND GENERATED_QRC
 endif ()
 
 set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${GENERATED_QRC}" )
-
-# enable C++11; MSVC doesn't have c++11 feature switch
-if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-	include(CheckCXXCompilerFlag)
-	CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-	CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-
-	if(APPLE)
-		CHECK_CXX_COMPILER_FLAG("Werror=unguarded-availability" REQUIRED_UNGUARDED_AVAILABILITY)
-		if(REQUIRED_UNGUARDED_AVAILABILITY)
-			list(APPEND CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS} "Werror=unguarded-availability")
-		endif()
-	endif()
-
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-	if (CMAKE_COMPILER_IS_GNUCXX)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-psabi")
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-psabi")
-	endif()
-	if(COMPILER_SUPPORTS_CXX11)
-			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-	elseif(COMPILER_SUPPORTS_CXX0X)
-			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-	else()
-			message(STATUS "No support for C++11 detected. Compilation will most likely fail on your compiler")
-	endif()
-endif()
 
 # uninstall target
 configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake" IMMEDIATE @ONLY)
