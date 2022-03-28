@@ -2,6 +2,7 @@
 #define MDNS_BROWSER_H
 
 #include <chrono>
+#include <type_traits>
 
 #include <qmdnsengine/server.h>
 #include <qmdnsengine/service.h>
