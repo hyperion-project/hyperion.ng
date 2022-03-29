@@ -482,7 +482,7 @@ $(document).ready(function () {
   $('#leds_wl').append('<p style="font-weight:bold">' + $.i18n('general_wiki_moreto', $.i18n('conf_leds_nav_label_ledlayout')) + buildWL("user/advanced/Advanced.html#led-layout", "Wiki") + '</p>');
 
   // bind change event to all inputs
-  $('.ledCLconstr').bind("change", function () {
+  $('.ledCLconstr').on("change", function () {
 
     //Ensure Values are in min/max ranges
     if ($(this).val() < $(this).attr('min') * 1) { $(this).val($(this).attr('min')); }
@@ -543,7 +543,7 @@ $(document).ready(function () {
     createClassicLeds();
   });
 
-  $('.ledMAconstr').bind("change", function () {
+  $('.ledMAconstr').on("change", function () {
     valValue(this.id, this.value, this.min, this.max);
     createMatrixLeds();
   });
@@ -587,16 +587,16 @@ $(document).ready(function () {
       }
 
       if (success) {
-        $('#leds_custom_updsim').attr("disabled", false);
-        $('#leds_custom_save').attr("disabled", false);
+        $('#leds_custom_updsim').prop("disabled", false);
+        $('#leds_custom_save').prop("disabled", false);
       }
       else {
-        $('#leds_custom_updsim').attr("disabled", true);
-        $('#leds_custom_save').attr("disabled", true);
+        $('#leds_custom_updsim').prop("disabled", true);
+        $('#leds_custom_save').prop("disabled", true);
       }
 
       if (window.readOnlyMode) {
-        $('#leds_custom_save').attr('disabled', true);
+        $('#leds_custom_save').prop('disabled', true);
       }
     }
   }, finalLedArray);
@@ -604,8 +604,8 @@ $(document).ready(function () {
   //TODO: HACK! No callback for schema validation - Add it!
   setInterval(function () {
     if ($('#aceedit table').hasClass('jsoneditor-text-errors')) {
-      $('#leds_custom_updsim').attr("disabled", true);
-      $('#leds_custom_save').attr("disabled", true);
+      $('#leds_custom_updsim').prop("disabled", true);
+      $('#leds_custom_save').prop("disabled", true);
     }
   }, 1000);
 
@@ -701,7 +701,7 @@ $(document).ready(function () {
       }
 
       // change save button state based on validation result
-      blacklist_editor.validate().length || window.readOnlyMode ? $('#btn_bl_save').attr('disabled', true) : $('#btn_bl_save').attr('disabled', false);
+      blacklist_editor.validate().length || window.readOnlyMode ? $('#btn_bl_save').prop('disabled', true) : $('#btn_bl_save').prop('disabled', false);
     });
 
   });
@@ -751,14 +751,14 @@ $(document).ready(function () {
     $("#info_container_text").html(infoTextDefault);
 
     // change save button state based on validation result
-    conf_editor.validate().length || window.readOnlyMode ? $('#btn_submit_controller').attr('disabled', true) : $('#btn_submit_controller').attr('disabled', false);
+    conf_editor.validate().length || window.readOnlyMode ? $('#btn_submit_controller').prop('disabled', true) : $('#btn_submit_controller').prop('disabled', false);
 
     // led controller sepecific wizards
     $('#btn_wiz_holder').html("");
     $('#btn_led_device_wiz').off();
 
     if (ledType == "philipshue") {
-      $('#root_specificOptions_useEntertainmentAPI').bind("change", function () {
+      $('#root_specificOptions_useEntertainmentAPI').on("change", function () {
         var ledWizardType = (this.checked) ? "philipshueentertainment" : ledType;
         var data = { type: ledWizardType };
         var hue_title = (this.checked) ? 'wiz_hue_e_title' : 'wiz_hue_title';
@@ -820,7 +820,7 @@ $(document).ready(function () {
           break;
 
         case "philipshue":
-          conf_editor.getEditor("root.generalOptions").disable();
+          disableAutoResolvedGeneralOptions();
 
           var lights = conf_editor.getEditor("root.specificOptions.lightIds").getValue();
           hwLedCountDefault = lights.length;
@@ -828,7 +828,7 @@ $(document).ready(function () {
           break;
 
         case "yeelight":
-          conf_editor.getEditor("root.generalOptions").disable();
+          disableAutoResolvedGeneralOptions();
 
           var lights = conf_editor.getEditor("root.specificOptions.lights").getValue();
           hwLedCountDefault = lights.length;
@@ -836,7 +836,7 @@ $(document).ready(function () {
           break;
 
         case "atmoorb":
-          conf_editor.getEditor("root.generalOptions").disable();
+          disableAutoResolvedGeneralOptions();
 
           var configruedOrbIds = conf_editor.getEditor("root.specificOptions.orbIds").getValue().trim();
           if (configruedOrbIds.length !== 0) {
@@ -848,7 +848,7 @@ $(document).ready(function () {
           break;
 
         case "razer":
-          conf_editor.getEditor("root.generalOptions").disable();
+          disableAutoResolvedGeneralOptions();
           hwLedCountDefault = 1;
           colorOrderDefault = "bgr";
 
@@ -936,10 +936,10 @@ $(document).ready(function () {
       if (!conf_editor.validate().length) {
         if (canIdentify) {
           $("#btn_test_controller").show();
-          $('#btn_test_controller').attr('disabled', false);
+          $('#btn_test_controller').prop('disabled', false);
         } else {
           $('#btn_test_controller').hide();
-          $('#btn_test_controller').attr('disabled', true);
+          $('#btn_test_controller').prop('disabled', true);
         }
       } else {
         canSave = false;
@@ -947,23 +947,23 @@ $(document).ready(function () {
 
       if (canSave) {
         if (!window.readOnlyMode) {
-          $('#btn_submit_controller').attr('disabled', false);
+          $('#btn_submit_controller').prop('disabled', false);
         }
       }
       else {
-        $('#btn_submit_controller').attr('disabled', true);
+        $('#btn_submit_controller').prop('disabled', true);
       }
 
-      window.readOnlyMode ? $('#btn_cl_save').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
-      window.readOnlyMode ? $('#btn_ma_save').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
-      window.readOnlyMode ? $('#leds_custom_save').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
+      window.readOnlyMode ? $('#btn_cl_save').prop('disabled', true) : $('#btn_submit').prop('disabled', false);
+      window.readOnlyMode ? $('#btn_ma_save').prop('disabled', true) : $('#btn_submit').prop('disabled', false);
+      window.readOnlyMode ? $('#leds_custom_save').prop('disabled', true) : $('#btn_submit').prop('disabled', false);
     });
 
     conf_editor.watch('root.specificOptions.hostList', () => {
       var specOptPath = 'root.specificOptions.';
 
       //Disable General Options, as LED count will be resolved from device itself
-      conf_editor.getEditor("root.generalOptions").disable();
+      disableAutoResolvedGeneralOptions();
 
       var hostList = conf_editor.getEditor("root.specificOptions.hostList");
       if (hostList) {
@@ -1049,8 +1049,8 @@ $(document).ready(function () {
       var output = conf_editor.getEditor("root.specificOptions.output").getValue();
       if (output === "NONE" || output === "SELECT" || output === "") {
 
-        $('#btn_submit_controller').attr('disabled', true);
-        $('#btn_test_controller').attr('disabled', true);
+        $('#btn_submit_controller').prop('disabled', true);
+        $('#btn_test_controller').prop('disabled', true);
         $('#btn_test_controller').hide();
 
         conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(1);
@@ -1089,13 +1089,13 @@ $(document).ready(function () {
         if (!conf_editor.validate().length) {
           if (canIdentify) {
             $("#btn_test_controller").show();
-            $('#btn_test_controller').attr('disabled', false);
+            $('#btn_test_controller').prop('disabled', false);
           } else {
             $('#btn_test_controller').hide();
-            $('#btn_test_controller').attr('disabled', true);
+            $('#btn_test_controller').prop('disabled', true);
           }
           if (!window.readOnlyMode) {
-            $('#btn_submit_controller').attr('disabled', false);
+            $('#btn_submit_controller').prop('disabled', false);
           }
         }
       }
@@ -1139,7 +1139,7 @@ $(document).ready(function () {
     //Yeelight
     conf_editor.watch('root.specificOptions.lights', () => {
       //Disable General Options, as LED count will be resolved from number of lights configured
-      conf_editor.getEditor("root.generalOptions").disable();
+      disableAutoResolvedGeneralOptions();
 
       var hwLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount")
       if (hwLedCount) {
@@ -1151,7 +1151,7 @@ $(document).ready(function () {
     //Philips Hue
     conf_editor.watch('root.specificOptions.lightIds', () => {
       //Disable General Options, as LED count will be resolved from number of lights configured
-      conf_editor.getEditor("root.generalOptions").disable();
+      disableAutoResolvedGeneralOptions();
 
       var hwLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount")
       if (hwLedCount) {
@@ -1163,7 +1163,7 @@ $(document).ready(function () {
     //Atmo Orb
     conf_editor.watch('root.specificOptions.orbIds', () => {
       //Disable General Options, as LED count will be resolved from number of lights configured
-      conf_editor.getEditor("root.generalOptions").disable();
+      disableAutoResolvedGeneralOptions();
 
       var hwLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount")
       if (hwLedCount) {
@@ -1521,7 +1521,7 @@ var updateSelectList = function (ledType, discoveryInfo) {
       if (discoveryInfo.devices.length == 0) {
         enumVals.push("NONE");
         enumTitelVals.push($.i18n('edt_dev_spec_devices_discovered_none'));
-        $('#btn_submit_controller').attr('disabled', true);
+        $('#btn_submit_controller').prop('disabled', true);
         showAllDeviceInputOptions(key, false);
       }
       else {
@@ -1563,7 +1563,7 @@ var updateSelectList = function (ledType, discoveryInfo) {
       if (discoveryInfo.devices.length == 0) {
         enumVals.push("NONE");
         enumTitelVals.push($.i18n('edt_dev_spec_devices_discovered_none'));
-        $('#btn_submit_controller').attr('disabled', true);
+        $('#btn_submit_controller').prop('disabled', true);
         showAllDeviceInputOptions(key, false);
       }
       else {
@@ -1605,7 +1605,7 @@ var updateSelectList = function (ledType, discoveryInfo) {
       if (discoveryInfo.devices.length == 0) {
         enumVals.push("NONE");
         enumTitelVals.push($.i18n('edt_dev_spec_devices_discovered_none'));
-        $('#btn_submit_controller').attr('disabled', true);
+        $('#btn_submit_controller').prop('disabled', true);
         showAllDeviceInputOptions(key, false);
 
         $("#info_container_text").html($.i18n("conf_leds_info_ws281x"));
@@ -1621,7 +1621,7 @@ var updateSelectList = function (ledType, discoveryInfo) {
 
 async function discover_device(ledType, params) {
 
-  $('#btn_submit_controller').attr('disabled', true);
+  $('#btn_submit_controller').prop('disabled', true);
 
   const result = await requestLedDeviceDiscovery(ledType, params);
 
@@ -1641,7 +1641,7 @@ async function discover_device(ledType, params) {
 
 async function getProperties_device(ledType, key, params) {
   // Take care that connfig cannot be saved during background processing
-  $('#btn_submit_controller').attr('disabled', true);
+  $('#btn_submit_controller').prop('disabled', true);
 
   //Create ledType cache entry
   if (!devicesProperties[ledType]) {
@@ -1658,13 +1658,13 @@ async function getProperties_device(ledType, key, params) {
         devicesProperties[ledType][key] = ledDeviceProperties;
 
         if (!window.readOnlyMode) {
-          $('#btn_submit_controller').attr('disabled', false);
+          $('#btn_submit_controller').prop('disabled', false);
         }
       }
       else {
         showNotification('warning', $.i18n('conf_leds_error_get_properties_text'), $.i18n('conf_leds_error_get_properties_title'))
-        $('#btn_submit_controller').attr('disabled', true);
-        $('#btn_test_controller').attr('disabled', true);
+        $('#btn_submit_controller').prop('disabled', true);
+        $('#btn_test_controller').prop('disabled', true);
       }
     }
   }
@@ -1674,14 +1674,14 @@ async function getProperties_device(ledType, key, params) {
 
 async function identify_device(type, params) {
   // Take care that connfig cannot be saved and identification cannot be retriggerred during background processing
-  $('#btn_submit_controller').attr('disabled', true);
-  $('#btn_test_controller').attr('disabled', true);
+  $('#btn_submit_controller').prop('disabled', true);
+  $('#btn_test_controller').prop('disabled', true);
 
   await requestLedDeviceIdentification(type, params);
 
-  $('#btn_test_controller').attr('disabled', false);
+  $('#btn_test_controller').prop('disabled', false);
   if (!window.readOnlyMode) {
-    $('#btn_submit_controller').attr('disabled', false);
+    $('#btn_submit_controller').prop('disabled', false);
   }
 }
 
@@ -1788,3 +1788,7 @@ function showAllDeviceInputOptions(showForKey, state) {
   showInputOptionsForKey(conf_editor, "specificOptions", showForKey, state);
 }
 
+function disableAutoResolvedGeneralOptions() {
+      conf_editor.getEditor("root.generalOptions.hardwareLedCount").disable();
+      conf_editor.getEditor("root.generalOptions.colorOrder").disable();
+}

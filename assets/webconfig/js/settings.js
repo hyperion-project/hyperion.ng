@@ -18,7 +18,7 @@ function changePassword(){
   });
 
   $('#new-password, #current-password').off().on('input',function(e) {
-    ($('#current-password').val().length >= 8 && $('#new-password').val().length >= 8) && !window.readOnlyMode ? $('#id_btn_ok').attr('disabled', false) : $('#id_btn_ok').attr('disabled', true);
+    ($('#current-password').val().length >= 8 && $('#new-password').val().length >= 8) && !window.readOnlyMode ? $('#id_btn_ok').prop('disabled', false) : $('#id_btn_ok').prop('disabled', true);
   });
 }
 
@@ -26,8 +26,8 @@ $(document).ready(function () {
 
   if (!storageComp()) {
     showInfoDialog('warning', "Can't store settings", "Your browser doesn't support localStorage. You can't save a specific language setting (fallback to 'auto detection') and access level (fallback to 'default'). Some wizards may be hidden. You could still use the webinterface without further issues");
-    $('#language-select').attr("disabled", true);
-    $('#btn_setaccess').attr("disabled", true);
+    $('#language-select').prop("disabled", true);
+    $('#btn_setaccess').prop("disabled", true);
   }
 
   initLanguageSelection();
@@ -41,7 +41,7 @@ $(document).ready(function () {
 
   if (!storageComp()) {
     showInfoDialog('warning', $.i18n('InfoDialog_nostorage_title'), $.i18n('InfoDialog_nostorage_text'));
-    $('#btn_setlang').attr("disabled", true);
+    $('#btn_setlang').prop("disabled", true);
   }
 
   $('#btn_setaccess').off().on('click',function() {
@@ -58,9 +58,9 @@ $(document).ready(function () {
     $('#id_select').off().on('change',function() {
       newAccess = $('#id_select').val();
       if (newAccess == storedAccess)
-        $('#id_btn_saveset').attr('disabled', true);
+        $('#id_btn_saveset').prop('disabled', true);
       else
-        $('#id_btn_saveset').attr('disabled', false);
+        $('#id_btn_saveset').prop('disabled', false);
     });
 
     $('#id_btn_saveset').off().on('click',function() {

@@ -1,4 +1,6 @@
-add_subdirectory(build/hidapi)
+if (ENABLE_DEV_USB_HID)
+	add_subdirectory(build/hidapi)
+endif()
 
 if (ENABLE_DEV_TINKERFORGE)
 	add_subdirectory(build/tinkerforge)

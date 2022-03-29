@@ -26,7 +26,7 @@
 #include <leddevice/LedDeviceWrapper.h>
 
 #include <hyperion/MultiColorAdjustment.h>
-#include "LinearColorSmoothing.h"
+#include <hyperion/LinearColorSmoothing.h>
 
 #if defined(ENABLE_EFFECTENGINE)
 // effect engine includes
@@ -303,10 +303,6 @@ void Hyperion::handleSettingsUpdate(settings::type type, const QJsonDocument& co
 		_ledDeviceWrapper->createLedDevice(dev);
 
 		// TODO: Check, if framegrabber frequency is lower than latchtime..., if yes, stop
-	}
-	else if(type == settings::SMOOTHING)
-	{
-		_deviceSmooth->handleSettingsUpdate( type, config);
 	}
 
 	// update once to push single color sets / adjustments/ ledlayout resizes and update ledBuffer color
@@ -708,8 +704,6 @@ void Hyperion::update()
 		}
 		else
 		{
-			_deviceSmooth->selectConfig(priorityInfo.smooth_cfg);
-
 			// feed smoothing in pause mode to maintain a smooth transition back to smooth mode
 			if (_deviceSmooth->enabled() || _deviceSmooth->pause())
 			{

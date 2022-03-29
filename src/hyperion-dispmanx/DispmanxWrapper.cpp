@@ -27,6 +27,11 @@ const Image<ColorRgb> & DispmanxWrapper::getScreenshot()
 	return _screenshot;
 }
 
+bool DispmanxWrapper::open()
+{
+	return _grabber.open();
+}
+
 void DispmanxWrapper::start()
 {
 	_timer.start();
@@ -39,13 +44,16 @@ void DispmanxWrapper::stop()
 
 bool DispmanxWrapper::screenInit()
 {
-	return _grabber.setupScreen();
+	return (open() && _grabber.setupScreen());
 }
 
 void DispmanxWrapper::capture()
 {
-	_grabber.grabFrame(_screenshot);
-	emit sig_screenshot(_screenshot);
+	if ( open() )
+	{
+		_grabber.grabFrame(_screenshot);
+		emit sig_screenshot(_screenshot);
+	}
 }
 
 void DispmanxWrapper::setVideoMode(VideoMode mode)

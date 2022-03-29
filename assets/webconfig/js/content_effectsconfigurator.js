@@ -113,11 +113,11 @@ $(document).ready(function () {
         triggerTestEffect();
       }
       if (effects_editor.validate().length == 0 && effectName != "") {
-        $('#btn_start_test').attr('disabled', false);
-        !window.readOnlyMode ? $('#btn_write').attr('disabled', false) : $('#btn_write').attr('disabled', true);
+        $('#btn_start_test').prop('disabled', false);
+        !window.readOnlyMode ? $('#btn_write').prop('disabled', false) : $('#btn_write').prop('disabled', true);
       }
       else {
-        $('#btn_start_test, #btn_write').attr('disabled', true);
+        $('#btn_start_test, #btn_write').prop('disabled', true);
       }
     });
   });
@@ -127,11 +127,11 @@ $(document).ready(function () {
     effectName = encodeHTML($(this).val());
     if ($(this).val() == '') {
       effects_editor.disable();
-      $("#eff_footer").children().attr('disabled', true);
+      $("#eff_footer").children().prop('disabled', true);
     } else {
       effects_editor.enable();
-      $("#eff_footer").children().attr('disabled', false);
-      !window.readOnlyMode ? $('#btn_write').attr('disabled', false) : $('#btn_write').attr('disabled', true);
+      $("#eff_footer").children().prop('disabled', false);
+      !window.readOnlyMode ? $('#btn_write').prop('disabled', false) : $('#btn_write').prop('disabled', true);
     }
   });
 
@@ -154,6 +154,7 @@ $(document).ready(function () {
 
   // Start test
   $('#btn_start_test').off().on('click', function () {
+    $('#btn_start_test').prop('disabled', true);
     triggerTestEffect();
   });
 
@@ -161,6 +162,7 @@ $(document).ready(function () {
   $('#btn_stop_test').off().on('click', function () {
     requestPriorityClear();
     testrun = false;
+    $('#btn_start_test').prop('disabled', false);
   });
 
   // Continuous test

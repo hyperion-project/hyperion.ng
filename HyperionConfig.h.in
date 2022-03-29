@@ -78,6 +78,9 @@
 // Define to enable experimental features
 #cmakedefine ENABLE_EXPERIMENTAL
 
+// Define to enable Hyperion remote control
+#cmakedefine ENABLE_REMOTE_CTL
+
 // Define to enable profiler for development purpose
 #cmakedefine ENABLE_PROFILER
 

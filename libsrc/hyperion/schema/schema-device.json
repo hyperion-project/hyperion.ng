@@ -29,6 +29,18 @@
       },
       "access": "expert",
       "propertyOrder": 3
+    },
+    "autoStart": {
+      "type": "boolean",
+      "format": "checkbox",
+      "title": "edt_dev_general_autostart_title",
+      "default": true,
+      "required": true,
+      "options": {
+        "infoText": "edt_dev_general_autostart_title_info"
+      },
+      "access": "advanced",
+      "propertyOrder": 4
     }
   },
   "dependencies": {

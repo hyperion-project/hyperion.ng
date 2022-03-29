@@ -62,7 +62,7 @@ $(document).ready(function () {
       }, true, true);
 
       effects_editor.on('change', function () {
-        effects_editor.validate().length || window.readOnlyMode ? $('#btn_submit_effects').attr('disabled', true) : $('#btn_submit_effects').attr('disabled', false);
+        effects_editor.validate().length || window.readOnlyMode ? $('#btn_submit_effects').prop('disabled', true) : $('#btn_submit_effects').prop('disabled', false);
       });
 
       $('#btn_submit_effects').off().on('click', function () {
@@ -96,7 +96,7 @@ $(document).ready(function () {
       $('#foregroundEffectHelpPanelId').hide();
     }
 
-    foregroundEffect_editor.validate().length || window.readOnlyMode ? $('#btn_submit_foregroundEffect').attr('disabled', true) : $('#btn_submit_foregroundEffect').attr('disabled', false);
+    foregroundEffect_editor.validate().length || window.readOnlyMode ? $('#btn_submit_foregroundEffect').prop('disabled', true) : $('#btn_submit_foregroundEffect').prop('disabled', false);
   });
 
   backgroundEffect_editor.on('change', function () {
@@ -110,7 +110,7 @@ $(document).ready(function () {
       $('#backgroundEffectHelpPanelId').hide();
     }
 
-    backgroundEffect_editor.validate().length || window.readOnlyMode ? $('#btn_submit_backgroundEffect').attr('disabled', true) : $('#btn_submit_backgroundEffect').attr('disabled', false);
+    backgroundEffect_editor.validate().length || window.readOnlyMode ? $('#btn_submit_backgroundEffect').prop('disabled', true) : $('#btn_submit_backgroundEffect').prop('disabled', false);
   });
 
   $('#btn_submit_foregroundEffect').off().on('click', function () {

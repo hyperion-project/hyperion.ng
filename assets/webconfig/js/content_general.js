@@ -17,7 +17,7 @@ $(document).ready(function () {
   }, true, true);
 
   conf_editor.on('change', function () {
-    conf_editor.validate().length || window.readOnlyMode ? $('#btn_submit').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
+    conf_editor.validate().length || window.readOnlyMode ? $('#btn_submit').prop('disabled', true) : $('#btn_submit').prop('disabled', false);
   });
 
   $('#btn_submit').off().on('click', function () {
@@ -29,8 +29,8 @@ $(document).ready(function () {
   function handleInstanceRename(e) {
 
     conf_editor.on('change', function () {
-      window.readOnlyMode ? $('#btn_cl_save').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
-      window.readOnlyMode ? $('#btn_ma_save').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
+      window.readOnlyMode ? $('#btn_cl_save').prop('disabled', true) : $('#btn_submit').prop('disabled', false);
+      window.readOnlyMode ? $('#btn_ma_save').prop('disabled', true) : $('#btn_submit').prop('disabled', false);
     });
 
     var inst = e.currentTarget.id.split("_")[1];
@@ -41,7 +41,7 @@ $(document).ready(function () {
     });
 
     $('#renInst_name').off().on('input', function (e) {
-      (e.currentTarget.value.length >= 5 && e.currentTarget.value != getInstanceNameByIndex(inst)) ? $('#id_btn_ok').attr('disabled', false) : $('#id_btn_ok').attr('disabled', true);
+      (e.currentTarget.value.length >= 5 && e.currentTarget.value != getInstanceNameByIndex(inst)) ? $('#id_btn_ok').prop('disabled', false) : $('#id_btn_ok').prop('disabled', true);
     });
   }
 
@@ -70,14 +70,14 @@ $(document).ready(function () {
       $('#instren_' + inst[key].instance).off().on('click', handleInstanceRename);
 
       $('#inst_' + inst[key].instance).bootstrapToggle();
-      $('#inst_' + inst[key].instance).change(e => {
+      $('#inst_' + inst[key].instance).on("change", e => {
         requestInstanceStartStop(e.currentTarget.id.split('_').pop(), e.currentTarget.checked);
       });
       $('#instdel_' + inst[key].instance).off().on('click', handleInstanceDelete);
 
-      window.readOnlyMode ? $('#instren_' + inst[key].instance).attr('disabled', true) : $('#btn_submit').attr('disabled', false);
-      window.readOnlyMode ? $('#inst_' + inst[key].instance).attr('disabled', true) : $('#btn_submit').attr('disabled', false);
-      window.readOnlyMode ? $('#instdel_' + inst[key].instance).attr('disabled', true) : $('#btn_submit').attr('disabled', false);
+      window.readOnlyMode ? $('#instren_' + inst[key].instance).prop('disabled', true) : $('#btn_submit').prop('disabled', false);
+      window.readOnlyMode ? $('#inst_' + inst[key].instance).prop('disabled', true) : $('#btn_submit').prop('disabled', false);
+      window.readOnlyMode ? $('#instdel_' + inst[key].instance).prop('disabled', true) : $('#btn_submit').prop('disabled', false);
     }
   }
 
@@ -86,7 +86,7 @@ $(document).ready(function () {
   buildInstanceList();
 
   $('#inst_name').off().on('input', function (e) {
-    (e.currentTarget.value.length >= 5) && !window.readOnlyMode ? $('#btn_create_inst').attr('disabled', false) : $('#btn_create_inst').attr('disabled', true);
+    (e.currentTarget.value.length >= 5) && !window.readOnlyMode ? $('#btn_create_inst').prop('disabled', false) : $('#btn_create_inst').prop('disabled', true);
     if (5 - e.currentTarget.value.length >= 1 && 5 - e.currentTarget.value.length <= 4)
       $('#inst_chars_needed').html(5 - e.currentTarget.value.length + " " + $.i18n('general_chars_needed'))
     else
@@ -96,7 +96,7 @@ $(document).ready(function () {
   $('#btn_create_inst').off().on('click', function (e) {
     requestInstanceCreate(encodeHTML($('#inst_name').val()));
     $('#inst_name').val("");
-    $('#btn_create_inst').attr('disabled', true)
+    $('#btn_create_inst').prop('disabled', true)
   });
 
   $(hyperion).off("instance-updated").on("instance-updated", function (event) {
@@ -105,7 +105,7 @@ $(document).ready(function () {
 
   //import
   function dis_imp_btn(state) {
-    state || window.readOnlyMode ? $('#btn_import_conf').attr('disabled', true) : $('#btn_import_conf').attr('disabled', false);
+    state || window.readOnlyMode ? $('#btn_import_conf').prop('disabled', true) : $('#btn_import_conf').prop('disabled', false);
   }
 
   function readFile(evt) {

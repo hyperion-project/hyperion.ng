@@ -112,14 +112,17 @@ void EffectEngine::handleUpdatedEffectList()
 {
 	_availableEffects.clear();
 
-	unsigned id = 2;
+	//Add smoothing config entry to support dynamic effects done in configurator
+	_hyperion->updateSmoothingConfig(SmoothingConfigID::EFFECT_DYNAMIC);
+
+	unsigned specificId = SmoothingConfigID::EFFECT_SPECIFIC;
 	for (auto def : _effectFileHandler->getEffects())
 	{
-		// add smoothing configs to Hyperion
+		// add smoothing configurations to Hyperion
 		if (def.args["smoothing-custom-settings"].toBool())
 		{
 			def.smoothCfg = _hyperion->updateSmoothingConfig(
-				id,
+				++specificId,
 				def.args["smoothing-time_ms"].toInt(),
 				def.args["smoothing-updateFrequency"].toDouble(),
 				0 );
@@ -127,7 +130,7 @@ void EffectEngine::handleUpdatedEffectList()
 		}
 		else
 		{
-			def.smoothCfg = _hyperion->updateSmoothingConfig(id);
+			def.smoothCfg = SmoothingConfigID::SYSTEM;
 			//Debug( _log, "Default Settings: Update effect %s, script %s, file %s, smoothCfg [%u]", QSTRING_CSTR(def.name), QSTRING_CSTR(def.script), QSTRING_CSTR(def.file), def.smoothCfg);
 		}
 		_availableEffects.push_back(def);
@@ -137,11 +140,30 @@ void EffectEngine::handleUpdatedEffectList()
 
 int EffectEngine::runEffect(const QString &effectName, int priority, int timeout, const QString &origin)
 {
-	return runEffect(effectName, QJsonObject(), priority, timeout, "", origin);
+	unsigned smoothCfg = SmoothingConfigID::SYSTEM;
+	for (const auto &def : _availableEffects)
+	{
+		if (def.name == effectName)
+		{
+			smoothCfg = def.smoothCfg;
+			break;
+		}
+	}
+	return runEffect(effectName, QJsonObject(), priority, timeout, "", origin, smoothCfg);
 }
 
 int EffectEngine::runEffect(const QString &effectName, const QJsonObject &args, int priority, int timeout, const QString &pythonScript, const QString &origin, unsigned smoothCfg, const QString &imageData)
 {
+	//In case smoothing information is provided dynamically use temp smoothing config item (2)
+	if (smoothCfg == SmoothingConfigID::SYSTEM && args["smoothing-custom-settings"].toBool())
+	{
+		smoothCfg = _hyperion->updateSmoothingConfig(
+			SmoothingConfigID::EFFECT_DYNAMIC,
+			args["smoothing-time_ms"].toInt(),
+			args["smoothing-updateFrequency"].toDouble(),
+			0 );
+	}
+
 	if (pythonScript.isEmpty())
 	{
 		const EffectDefinition *effectDefinition = nullptr;
@@ -181,7 +203,7 @@ int EffectEngine::runEffectScript(const QString &script, const QString &name, co
 	_activeEffects.push_back(effect);
 
 	// start the effect
-	Debug(_log, "Start the effect: name [%s], smoothCfg [%u]", QSTRING_CSTR(name), smoothCfg);
+	Debug(_log, "Start the effect: name [%s]", QSTRING_CSTR(name));
 	_hyperion->registerInput(priority, hyperion::COMP_EFFECT, origin, name ,smoothCfg);
 	effect->start();
 

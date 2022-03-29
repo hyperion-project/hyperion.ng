@@ -16,6 +16,7 @@
 	{
 		"type"       : "file",
 		"hardwareLedCount" : 1,
+		"autoStart" : true,
 		"output"     : "/dev/null",
 		"colorOrder" : "rgb",
 		"latchTime" : 0,

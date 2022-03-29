@@ -72,7 +72,7 @@ $(document).ready(function () {
   }, true, true);
 
   conf_editor_net.on('change', function () {
-    conf_editor_net.validate().length || window.readOnlyMode ? $('#btn_submit_net').attr('disabled', true) : $('#btn_submit_net').attr('disabled', false);
+    conf_editor_net.validate().length || window.readOnlyMode ? $('#btn_submit_net').prop('disabled', true) : $('#btn_submit_net').prop('disabled', false);
   });
 
   $('#btn_submit_net').off().on('click', function () {
@@ -85,7 +85,7 @@ $(document).ready(function () {
   }, true, true);
 
   conf_editor_json.on('change', function () {
-    conf_editor_json.validate().length || window.readOnlyMode ? $('#btn_submit_jsonserver').attr('disabled', true) : $('#btn_submit_jsonserver').attr('disabled', false);
+    conf_editor_json.validate().length || window.readOnlyMode ? $('#btn_submit_jsonserver').prop('disabled', true) : $('#btn_submit_jsonserver').prop('disabled', false);
   });
 
   $('#btn_submit_jsonserver').off().on('click', function () {
@@ -107,7 +107,7 @@ $(document).ready(function () {
         showInputOptionsForKey(conf_editor_fbs, "flatbufServer", "enable", false);
         $('#flatbufServerHelpPanelId').hide();
       }
-      conf_editor_fbs.validate().length || window.readOnlyMode ? $('#btn_submit_fbserver').attr('disabled', true) : $('#btn_submit_fbserver').attr('disabled', false);
+      conf_editor_fbs.validate().length || window.readOnlyMode ? $('#btn_submit_fbserver').prop('disabled', true) : $('#btn_submit_fbserver').prop('disabled', false);
     });
 
     $('#btn_submit_fbserver').off().on('click', function () {
@@ -130,7 +130,7 @@ $(document).ready(function () {
         showInputOptionsForKey(conf_editor_proto, "protoServer", "enable", false);
         $('#protoServerHelpPanelId').hide();
       }
-      conf_editor_proto.validate().length || window.readOnlyMode ? $('#btn_submit_protoserver').attr('disabled', true) : $('#btn_submit_protoserver').attr('disabled', false);
+      conf_editor_proto.validate().length || window.readOnlyMode ? $('#btn_submit_protoserver').prop('disabled', true) : $('#btn_submit_protoserver').prop('disabled', false);
     });
 
     $('#btn_submit_protoserver').off().on('click', function () {
@@ -165,7 +165,7 @@ $(document).ready(function () {
           showInputOptionsForKey(conf_editor_forw, "forwarder", "enable", false);
           $('#forwarderHelpPanelId').hide();
         }
-        conf_editor_forw.validate().length || window.readOnlyMode ? $('#btn_submit_forwarder').attr('disabled', true) : $('#btn_submit_forwarder').attr('disabled', false);
+        conf_editor_forw.validate().length || window.readOnlyMode ? $('#btn_submit_forwarder').prop('disabled', true) : $('#btn_submit_forwarder').prop('disabled', false);
       });
 
       conf_editor_forw.watch('root.forwarder.jsonapiselect', () => {
@@ -235,10 +235,10 @@ $(document).ready(function () {
   $('#btn_create_tok').off().on('click', function () {
     requestToken(encodeHTML($('#tok_comment').val()))
     $('#tok_comment').val("")
-    $('#btn_create_tok').attr('disabled', true)
+    $('#btn_create_tok').prop('disabled', true)
   });
   $('#tok_comment').off().on('input', function (e) {
-    (e.currentTarget.value.length >= 10) ? $('#btn_create_tok').attr('disabled', false) : $('#btn_create_tok').attr('disabled', true);
+    (e.currentTarget.value.length >= 10) ? $('#btn_create_tok').prop('disabled', false) : $('#btn_create_tok').prop('disabled', true);
     if (10 - e.currentTarget.value.length >= 1 && 10 - e.currentTarget.value.length <= 9)
       $('#tok_chars_needed').html(10 - e.currentTarget.value.length + " " + $.i18n('general_chars_needed'))
     else
@@ -261,7 +261,7 @@ $(document).ready(function () {
       $("#conf_cont_tok").removeAttr('style')
   }
 
-  $('#root_network_apiAuth').change(function () {
+  $('#root_network_apiAuth').on("change", function () {
     var state = $(this).is(":checked");
     checkApiTokenState(state);
   });

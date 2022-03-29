@@ -1,17 +1,25 @@
 #pragma once
 
-// BCM includes
-#ifdef PLATFORM_RPI
-	#pragma GCC system_header
-	#include <bcm_host.h>
-#else
-	#include <grabber/DispmanxFrameGrabberMock.h>
-#endif
-
 // Utils includes
 #include <utils/Image.h>
 #include <utils/ColorRgba.h>
 #include <hyperion/Grabber.h>
+
+// dynamic linking
+#include <dlfcn.h>
+
+// BCM includes
+#ifdef BCM_FOUND
+	#include <bcm_host.h>
+#else
+	typedef int DISPMANX_DISPLAY_HANDLE_T;
+	typedef Image<ColorRgba> DISPMANX_RESOURCE;
+	typedef DISPMANX_RESOURCE* DISPMANX_RESOURCE_HANDLE_T;
+	typedef int VC_IMAGE_TYPE_T, DISPMANX_TRANSFORM_T;
+	const int VC_IMAGE_RGBA32 = 1, DISPMANX_SNAPSHOT_FILL = 1;
+	struct VC_RECT_T { int left, top, width, height; };
+	struct DISPMANX_MODEINFO_T { int width, height; uint32_t display_num; };
+#endif
 
 ///
 /// The DispmanxFrameGrabber is used for creating snapshots of the display (screenshots) with a downsized and scaled resolution.
@@ -25,6 +33,18 @@ public:
 	DispmanxFrameGrabber();
 	~DispmanxFrameGrabber() override;
 
+	///
+	/// @brief Determine if the bcm library is available.
+	///
+	/// @return Zero, on success (i.e. library is present), else negative
+	///
+	bool isAvailable();
+
+	///
+	/// @brief Opens the input device.
+	///
+	/// @return Zero, on success (i.e. device is ready), else negative
+	///
 	bool open();
 
 	///
@@ -71,6 +91,8 @@ private:
 	///
 	void freeResources();
 
+	void* _lib;
+
 	/// Handle to the display that is being captured
 	DISPMANX_DISPLAY_HANDLE_T _vc_display;
 
@@ -92,4 +114,16 @@ private:
 
 	// rgba output buffer
 	Image<ColorRgba>  _image_rgba;
+
+private:
+	void (*wr_bcm_host_init)(void);
+	void (*wr_bcm_host_deinit)(void);
+	DISPMANX_DISPLAY_HANDLE_T (*wr_vc_dispmanx_display_open)(uint32_t device);
+	int (*wr_vc_dispmanx_display_close)(DISPMANX_DISPLAY_HANDLE_T display);
+	int (*wr_vc_dispmanx_display_get_info)(DISPMANX_DISPLAY_HANDLE_T display, DISPMANX_MODEINFO_T *pinfo);
+	DISPMANX_RESOURCE_HANDLE_T (*wr_vc_dispmanx_resource_create)(VC_IMAGE_TYPE_T type, uint32_t width, uint32_t height, uint32_t *native_image_handle);
+	int (*wr_vc_dispmanx_resource_delete)(DISPMANX_RESOURCE_HANDLE_T res);
+	int (*wr_vc_dispmanx_resource_read_data)(DISPMANX_RESOURCE_HANDLE_T handle, const VC_RECT_T *p_rect, void *dst_address, uint32_t dst_pitch);
+	void (*wr_vc_dispmanx_rect_set)(VC_RECT_T *rectangle, int left, int top, int width, int height);
+	int (*wr_vc_dispmanx_snapshot) (DISPMANX_DISPLAY_HANDLE_T display, DISPMANX_RESOURCE_HANDLE_T snapshot_resource, DISPMANX_TRANSFORM_T transform);
 };

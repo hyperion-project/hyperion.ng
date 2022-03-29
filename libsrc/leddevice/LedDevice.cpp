@@ -16,6 +16,22 @@
 #include <sstream>
 #include <iomanip>
 
+// Constants
+namespace {
+
+// Configuration settings
+const char CONFIG_CURRENT_LED_COUNT[] = "currentLedCount";
+const char CONFIG_COLOR_ORDER[] = "colorOrder";
+const char CONFIG_AUTOSTART[] = "autoStart";
+const char CONFIG_LATCH_TIME[] = "latchTime";
+const char CONFIG_REWRITE_TIME[] = "rewriteTime";
+
+int DEFAULT_LED_COUNT = 1;
+const char DEFAULT_COLOR_ORDER[] = "RGB";
+const bool DEFAULT_IS_AUTOSTART = true;
+
+} //End of constants
+
 LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 	: QObject(parent)
 	  , _devConfig(deviceConfig)
@@ -34,6 +50,7 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 	  , _isInSwitchOff (false)
 	  , _lastWriteTime(QDateTime::currentDateTime())
 	  , _isRefreshEnabled (false)
+	  , _isAutoStart(true)
 {
 	_activeDeviceType = deviceConfig["type"].toString("UNSPECIFIED").toLower();
 }
@@ -64,7 +81,10 @@ void LedDevice::start()
 	{
 		// Everything is OK -> enable device
 		_isDeviceInitialised = true;
-		this->enable();
+		if (_isAutoStart)
+		{
+			this->enable();
+		}
 	}
 }
 
@@ -148,11 +168,12 @@ bool LedDevice::init(const QJsonObject &deviceConfig)
 {
 	Debug(_log, "deviceConfig: [%s]", QString(QJsonDocument(_devConfig).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 
-	_colorOrder = deviceConfig["colorOrder"].toString("RGB");
+	_colorOrder = deviceConfig[CONFIG_COLOR_ORDER].toString(DEFAULT_COLOR_ORDER);
+	_isAutoStart = deviceConfig[CONFIG_AUTOSTART].toBool(DEFAULT_IS_AUTOSTART);
 
-	setLedCount( deviceConfig["currentLedCount"].toInt(1) ); // property injected to reflect real led count
-	setLatchTime( deviceConfig["latchTime"].toInt( _latchTime_ms ) );
-	setRewriteTime ( deviceConfig["rewriteTime"].toInt( _refreshTimerInterval_ms) );
+	setLedCount( deviceConfig[CONFIG_CURRENT_LED_COUNT].toInt(DEFAULT_LED_COUNT) ); // property injected to reflect real led count
+	setLatchTime( deviceConfig[CONFIG_LATCH_TIME].toInt( _latchTime_ms ) );
+	setRewriteTime ( deviceConfig[CONFIG_REWRITE_TIME].toInt( _refreshTimerInterval_ms) );
 
 	return true;
 }
