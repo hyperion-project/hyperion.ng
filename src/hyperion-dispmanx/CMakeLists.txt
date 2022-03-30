@@ -22,9 +22,6 @@ add_executable( ${PROJECT_NAME}
 	${Hyperion_Dispmanx_SOURCES}
 )
 
-SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-rdynamic")
-SET(CMAKE_C_FLAGS ${CMAKE_CXX_FLAGS} "-rdynamic")
-
 target_link_libraries( ${PROJECT_NAME}
 	commandline
 	hyperion-utils
