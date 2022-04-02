@@ -35,7 +35,7 @@ endif()
 target_link_libraries(protoclient
 	hyperion
 	hyperion-utils
-	protobuf
+	${PROTOBUF_LIBRARIES}
 	Qt${QT_VERSION_MAJOR}::Gui
 )
 
