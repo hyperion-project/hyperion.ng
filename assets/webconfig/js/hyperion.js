@@ -488,6 +488,12 @@ function requestLedDeviceIdentification(type, params)
   return sendAsyncToHyperion("leddevice", "identify", data, Math.floor(Math.random() * 1000));
 }
 
+async function requestLedDeviceAddAuthorization(type, params) {
+  let data = { ledDeviceType: type, params: params };
+
+  return sendAsyncToHyperion("leddevice", "addAuthorization", data, Math.floor(Math.random() * 1000));
+}
+
 async function requestInputSourcesDiscovery(type, params) {
   let data = { sourceType: type, params: params };
 

@@ -382,7 +382,8 @@ QJsonArray MdnsBrowser::getServicesDiscoveredJson(const QByteArray& serviceType,
 					}
 				}
 			}
-			else
+
+			if ( result.isEmpty())
 			{
 				wait(waitTime);
 				--retries;

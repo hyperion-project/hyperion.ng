@@ -51,7 +51,7 @@ const char DEV_DATA_APIVERSION[] = "apiversion";
 
 // Philips Hue OpenAPI URLs
 const int API_DEFAULT_PORT = -1; //Use default port per communication scheme
-const char API_BASE_PATH[] = "/api/%1/";
+const char API_BASE_PATH[] = "/api/%1";
 const char API_ROOT[] = "";
 const char API_STATE[] = "state";
 const char API_CONFIG[] = "config";
@@ -605,7 +605,7 @@ QJsonArray LedDevicePhilipsHueBridge::getGroupLights(quint16 groupId) const
 	return groupLights;
 }
 
-bool LedDevicePhilipsHueBridge::checkApiError(const QJsonDocument &response)
+bool LedDevicePhilipsHueBridge::checkApiError(const QJsonDocument &response, bool doLogging)
 {
 	bool apiError = false;
 	QString errorReason;
@@ -624,14 +624,20 @@ bool LedDevicePhilipsHueBridge::checkApiError(const QJsonDocument &response)
 			QString errorDesc    = map.value(API_ERROR).toMap().value(API_ERROR_DESCRIPTION).toString();
 			QString errorType    = map.value(API_ERROR).toMap().value(API_ERROR_TYPE).toString();
 
-			log( "Error Type", "%s", QSTRING_CSTR( errorType ) );
-			log( "Error Address", "%s", QSTRING_CSTR( errorAddress ) );
-			log( "Error Address Description", "%s", QSTRING_CSTR( errorDesc ) );
+			if (doLogging)
+			{
+				log("Error Type", "%s", QSTRING_CSTR(errorType));
+				log("Error Address", "%s", QSTRING_CSTR(errorAddress));
+				log("Error Address Description", "%s", QSTRING_CSTR(errorDesc));
+			}
 
 			if( errorType != "901" )
 			{
 				errorReason = QString ("(%1) %2, Resource:%3").arg(errorType, errorDesc, errorAddress);
-				this->setInError( errorReason );
+				if (doLogging)
+				{
+					this->setInError(errorReason);
+				}
 				apiError = true;
 			}
 		}
@@ -781,6 +787,60 @@ QJsonObject LedDevicePhilipsHueBridge::getProperties(const QJsonObject& params)
 		}
 	}
 	return properties;
+}
+
+QJsonObject LedDevicePhilipsHueBridge::addAuthorization(const QJsonObject& params)
+{
+	Debug(_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	QJsonObject responseBody;
+
+	// New Phillips-Bridge device client/application key
+	QString hostName = params[CONFIG_HOST].toString("");
+	_apiPort = params[CONFIG_PORT].toInt();
+
+#ifdef ENABLE_MDNS
+	if (hostName.endsWith("._tcp.local"))
+	{
+		//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
+		QMdnsEngine::Record service = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8());
+
+		hostName = service.target();
+		_apiPort = service.port();
+	}
+
+#endif
+
+	//Workaround until API v2 with https is supported
+	if (_apiPort == 0 || _apiPort == 443)
+	{
+		_apiPort = API_DEFAULT_PORT;
+	}
+
+	if (!hostName.isEmpty())
+	{
+		QHostAddress address;
+		if (NetUtils::resolveHostAddress(_log, hostName, address))
+		{
+			QJsonObject clientKeyCmd{ {"devicetype", "hyperion#" + QHostInfo::localHostName()}, {"generateclientkey", true } };
+
+			initRestAPI(address.toString(), _apiPort);
+			_restApi->setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+			httpResponse response = _restApi->post(clientKeyCmd);
+			if (response.error())
+			{
+				Warning(_log, "%s generation of authorization/client key failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+			}
+			else
+			{
+				if (!checkApiError(response.getBody(),false))
+				{
+					responseBody = response.getBody().array().first().toObject().value("success").toObject();
+				}
+			}
+		}
+	}
+	return responseBody;
 }
 
 const std::set<QString> PhilipsHueLight::GAMUT_A_MODEL_IDS =
@@ -1759,25 +1819,25 @@ void LedDevicePhilipsHue::identify(const QJsonObject& params)
 		QHostAddress address;
 		if (NetUtils::resolveHostAddress(_log, hostName, address))
 		{
-			QString username = params["user"].toString("");
-			int lightId = params["lightId"].toInt(0);
+				QString username = params["user"].toString("");
+				int lightId = params["lightId"].toInt(0);
 
-			initRestAPI(address.toString(), _apiPort, username);
+				initRestAPI(address.toString(), _apiPort, username);
 
-			QString resource = QString("%1/%2/%3").arg(API_LIGHTS).arg(lightId).arg(API_STATE);
-			_restApi->setPath(resource);
+				QString resource = QString("%1/%2/%3").arg(API_LIGHTS).arg(lightId).arg(API_STATE);
+				_restApi->setPath(resource);
 
-			QString stateCmd;
-			stateCmd += QString("\"%1\":%2,").arg(API_STATE_ON, API_STATE_VALUE_TRUE);
-			stateCmd += QString("\"%1\":\"%2\"").arg("alert", "select");
-			stateCmd = "{" + stateCmd + "}";
+				QString stateCmd;
+				stateCmd += QString("\"%1\":%2,").arg(API_STATE_ON, API_STATE_VALUE_TRUE);
+				stateCmd += QString("\"%1\":\"%2\"").arg("alert", "select");
+				stateCmd = "{" + stateCmd + "}";
 
-			// Perform request
-			httpResponse response = _restApi->put(stateCmd);
-			if (response.error())
-			{
-				Warning(_log, "%s identification failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
-			}
+				// Perform request
+				httpResponse response = _restApi->put(stateCmd);
+				if (response.error())
+				{
+					Warning(_log, "%s identification failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+				}
 		}
 	}
 }

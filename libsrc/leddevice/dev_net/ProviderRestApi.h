@@ -77,12 +77,12 @@ public:
 
 private:
 
-	QJsonDocument _responseBody;
+	QJsonDocument _responseBody {};
 	bool _hasError = false;
 	QString _errorReason;
 
 	int _httpStatusCode = 0;
-	QNetworkReply::NetworkError _networkReplyError = QNetworkReply::NoError;
+	QNetworkReply::NetworkError _networkReplyError { QNetworkReply::NoError };
 };
 
 ///

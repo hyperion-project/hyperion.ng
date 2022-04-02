@@ -1573,6 +1573,16 @@ void JsonAPI::handleLedDeviceCommand(const QJsonObject &message, const QString &
 
 			sendSuccessReply(full_command, tan);
 		}
+		else if (subc == "addAuthorization")
+		{
+			ledDevice = LedDeviceFactory::construct(config);
+			const QJsonObject& params = message["params"].toObject();
+			const QJsonObject response = ledDevice->addAuthorization(params);
+
+			Debug(_log, "response: [%s]", QString(QJsonDocument(response).toJson(QJsonDocument::Compact)).toUtf8().constData());
+
+			sendSuccessDataReply(QJsonDocument(response), full_command, tan);
+		}
 		else
 		{
 			sendErrorReply("Unknown or missing subcommand", full_command, tan);

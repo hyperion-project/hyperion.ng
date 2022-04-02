@@ -57,21 +57,12 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 
 LedDevice::~LedDevice()
 {
-	delete _refreshTimer;
+	this->stopRefreshTimer();
 }
 
 void LedDevice::start()
 {
 	Info(_log, "Start LedDevice '%s'.", QSTRING_CSTR(_activeDeviceType));
-
-	// setup refreshTimer
-	if ( _refreshTimer == nullptr )
-	{
-		_refreshTimer = new QTimer(this);
-		_refreshTimer->setTimerType(Qt::PreciseTimer);
-		_refreshTimer->setInterval( _refreshTimerInterval_ms );
-		connect(_refreshTimer, &QTimer::timeout, this, &LedDevice::rewriteLEDs );
-	}
 
 	close();
 
@@ -90,6 +81,7 @@ void LedDevice::start()
 
 void LedDevice::stop()
 {
+	Debug(_log, "Stop device");
 	this->disable();
 	this->stopRefreshTimer();
 	Info(_log, " Stopped LedDevice '%s'", QSTRING_CSTR(_activeDeviceType) );
@@ -113,6 +105,7 @@ int LedDevice::close()
 
 void LedDevice::setInError(const QString& errorMsg)
 {
+	_isOn = false;
 	_isDeviceInError = true;
 	_isDeviceReady = false;
 	_isEnabled = false;
@@ -124,6 +117,7 @@ void LedDevice::setInError(const QString& errorMsg)
 
 void LedDevice::enable()
 {
+	Debug(_log, "Enable device");
 	if ( !_isEnabled )
 	{
 		_isDeviceInError = false;
@@ -147,6 +141,7 @@ void LedDevice::enable()
 
 void LedDevice::disable()
 {
+	Debug(_log, "Disable device");
 	if ( _isEnabled )
 	{
 		_isEnabled = false;
@@ -180,9 +175,26 @@ bool LedDevice::init(const QJsonObject &deviceConfig)
 
 void LedDevice::startRefreshTimer()
 {
-	if ( _isDeviceReady && _isEnabled )
+	if (_refreshTimerInterval_ms > 0)
 	{
-		_refreshTimer->start();
+		if (_isDeviceReady && _isEnabled)
+		{
+			// setup refreshTimer
+			if (_refreshTimer == nullptr)
+			{
+				_refreshTimer = new QTimer(this);
+				_refreshTimer->setTimerType(Qt::PreciseTimer);
+				connect(_refreshTimer, &QTimer::timeout, this, &LedDevice::rewriteLEDs);
+			}
+			_refreshTimer->setInterval(_refreshTimerInterval_ms);
+
+			Debug(_log, "Start refresh timer with interval = %ims", _refreshTimer->interval());
+			_refreshTimer->start();
+		}
+		else
+		{
+			Debug(_log, "Device is not ready to start a refresh timer");
+		}
 	}
 }
 
@@ -190,11 +202,14 @@ void LedDevice::stopRefreshTimer()
 {
 	if ( _refreshTimer != nullptr )
 	{
+		Debug(_log, "Stopping refresh timer");
 		_refreshTimer->stop();
+		delete _refreshTimer;
+		_refreshTimer = nullptr;
 	}
 }
 
-int LedDevice::updateLeds(const std::vector<ColorRgb>& ledValues)
+int LedDevice::updateLeds(std::vector<ColorRgb> ledValues)
 {
 	int retval = 0;
 	if ( !_isEnabled || !_isOn || !_isDeviceReady || _isDeviceInError )
@@ -214,8 +229,8 @@ int LedDevice::updateLeds(const std::vector<ColorRgb>& ledValues)
 			// if device requires refreshing, save Led-Values and restart the timer
 			if ( _isRefreshEnabled && _isEnabled )
 			{
-				this->startRefreshTimer();
 				_lastLedValues = ledValues;
+				this->startRefreshTimer();
 			}
 		}
 		else
@@ -235,7 +250,7 @@ int LedDevice::rewriteLEDs()
 {
 	int retval = -1;
 
-	if ( _isDeviceReady && _isEnabled )
+	if (_isEnabled && _isOn && _isDeviceReady && !_isDeviceInError)
 	{
 //				qint64 elapsedTimeMs = _lastWriteTime.msecsTo(QDateTime::currentDateTime());
 //				std::cout << "LedDevice::rewriteLEDs(): Rewrite LEDs now, elapsedTime [" << elapsedTimeMs << "] ms" << std::endl;
@@ -245,8 +260,11 @@ int LedDevice::rewriteLEDs()
 //				printLedValues(_lastLedValues);
 //				//:TESTING:
 
-		retval = write(_lastLedValues);
-		_lastWriteTime = QDateTime::currentDateTime();
+		if (_lastLedValues.size() > 0)
+		{
+			retval = write(_lastLedValues);
+			_lastWriteTime = QDateTime::currentDateTime();
+		}
 	}
 	else
 	{
@@ -258,6 +276,7 @@ int LedDevice::rewriteLEDs()
 
 int LedDevice::writeBlack(int numberOfWrites)
 {
+	Debug(_log, "Set LED strip to black to switch of LEDs");
 	return writeColor(ColorRgb::BLACK, numberOfWrites);
 }
 
@@ -284,6 +303,8 @@ bool LedDevice::switchOn()
 {
 	bool rc = false;
 
+	Debug(_log, "Switch on");
+
 	if ( _isOn )
 	{
 		rc = true;
@@ -309,6 +330,8 @@ bool LedDevice::switchOn()
 bool LedDevice::switchOff()
 {
 	bool rc = false;
+
+	Debug(_log, "Switch off");
 
 	if ( !_isOn )
 	{
@@ -345,6 +368,8 @@ bool LedDevice::powerOff()
 {
 	bool rc = false;
 
+	Debug(_log, "Power Off");
+
 	// Simulate power-off by writing a final "Black" to have a defined outcome
 	if ( writeBlack() >= 0 )
 	{
@@ -356,6 +381,9 @@ bool LedDevice::powerOff()
 bool LedDevice::powerOn()
 {
 	bool rc = true;
+
+	Debug(_log, "Power On");
+
 	return rc;
 }
 
@@ -438,34 +466,29 @@ void LedDevice::setLatchTime( int latchTime_ms )
 
 void LedDevice::setRewriteTime( int rewriteTime_ms )
 {
-	assert(rewriteTime_ms >= 0);
+	_refreshTimerInterval_ms = qMax(rewriteTime_ms, 0);
 
-	//Check, if refresh timer was not initialised due to getProperties/identify sceanrios
-	if (_refreshTimer != nullptr)
+	if (_refreshTimerInterval_ms > 0)
 	{
-		_refreshTimerInterval_ms = rewriteTime_ms;
+		_isRefreshEnabled = true;
 
-		if (_refreshTimerInterval_ms > 0)
+		if (_refreshTimerInterval_ms <= _latchTime_ms)
 		{
-
-			_isRefreshEnabled = true;
-
-			if (_refreshTimerInterval_ms <= _latchTime_ms)
-			{
-				int new_refresh_timer_interval = _latchTime_ms + 10;
-				Warning(_log, "latchTime(%d) is bigger/equal rewriteTime(%d), set rewriteTime to %dms", _latchTime_ms, _refreshTimerInterval_ms, new_refresh_timer_interval);
-				_refreshTimerInterval_ms = new_refresh_timer_interval;
-				_refreshTimer->setInterval(_refreshTimerInterval_ms);
-			}
-
-			Debug(_log, "Refresh interval = %dms", _refreshTimerInterval_ms);
-			_refreshTimer->setInterval(_refreshTimerInterval_ms);
-
-			_lastWriteTime = QDateTime::currentDateTime();
+			int new_refresh_timer_interval = _latchTime_ms + 10;
+			Warning(_log, "latchTime(%d) is bigger/equal rewriteTime(%d), set rewriteTime to %dms", _latchTime_ms, _refreshTimerInterval_ms, new_refresh_timer_interval);
+			_refreshTimerInterval_ms = new_refresh_timer_interval;
 		}
 
-		Debug(_log, "RewriteTime updated to %dms", _refreshTimerInterval_ms);
+		Debug(_log, "Refresh interval = %dms", _refreshTimerInterval_ms);
+		startRefreshTimer();
 	}
+	else
+	{
+		_isRefreshEnabled = false;
+		stopRefreshTimer();
+	}
+
+	Debug(_log, "RewriteTime updated to %dms", _refreshTimerInterval_ms);
 }
 
 void LedDevice::printLedValues(const std::vector<ColorRgb>& ledValues)

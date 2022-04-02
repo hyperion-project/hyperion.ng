@@ -221,7 +221,7 @@ public:
 	///
 	/// @return True, if success
 	///
-	bool initRestAPI(const QString &hostname, int port, const QString &token );
+	bool initRestAPI(const QString &hostname, int port, const QString &token = "");
 
 	///
 	/// @brief Perform a REST-API GET
@@ -279,9 +279,11 @@ protected:
 	/// @brief Check, if Hue API response indicate error
 	///
 	/// @param[in] response from Hue-Bridge in JSON-format
+	/// @param[doLogging] provide log output on errors
+	/// 
 	/// return True, Hue Bridge reports error
 	///
-	bool checkApiError(const QJsonDocument &response );
+	bool checkApiError(const QJsonDocument &response, bool doLogging = true );
 
 	///
 	/// @brief Discover devices of this type available (for configuration).
@@ -299,7 +301,7 @@ protected:
 	/// Following parameters are required
 	/// @code
 	/// {
-	///     "host"  : "hostname or IP
+	///     "host"  : "hostname or IP",
 	///     "port"  : port
 	///     "user"  : "username",
 	///     "filter": "resource to query", root "/" is used, if empty
@@ -310,6 +312,22 @@ protected:
 	/// @return A JSON structure holding the device's properties
 	///
 	QJsonObject getProperties(const QJsonObject& params) override;
+
+	///
+	/// @brief Add an authorization/client-key to the Hue Bridge device
+	///
+	/// Following parameters are required
+	/// @code
+	/// {
+	///     "host"  : "hostname or IP",
+	///     "port"  : port
+	/// }
+	///@endcode
+	///
+	/// @param[in] params Parameters to query device
+	/// @return A JSON structure holding the authorization keys
+	///
+	QJsonObject addAuthorization(const QJsonObject& params) override;
 
 	///REST-API wrapper
 	ProviderRestApi* _restApi;

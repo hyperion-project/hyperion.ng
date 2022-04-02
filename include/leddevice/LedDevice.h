@@ -1,4 +1,4 @@
-﻿#ifndef LEDEVICE_H
+#ifndef LEDEVICE_H
 #define LEDEVICE_H
 
 // qt includes
@@ -121,6 +121,15 @@ public:
 	virtual void identify(const QJsonObject& /*params*/) {}
 
 	///
+	/// @brief Add an authorization/client-key or token to the device
+	///
+	/// Used in context of a set of devices of the same type.
+	///
+	/// @param[in] params Parameters to address device
+	/// @return A JSON structure holding the authorization key/token
+	virtual QJsonObject addAuthorization(const QJsonObject& /*params*/) { return QJsonObject(); }
+
+	///
 	/// @brief Check, if device is properly initialised
 	///
 	/// i.e. initialisation and configuration were successful.
@@ -181,7 +190,7 @@ public slots:
 	/// @param[in] ledValues The color per LED
 	/// @return Zero on success else negative (i.e. device is not ready)
 	///
-	virtual int updateLeds(const std::vector<ColorRgb>& ledValues);
+	virtual int updateLeds(std::vector<ColorRgb> ledValues);
 
 	///
 	/// @brief Get the currently defined LatchTime.
