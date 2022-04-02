@@ -32,14 +32,6 @@ macro(DeployMacOS TARGET)
 				message(WARNING "The following unresolved dependencies were discovered: ${unresolved_deps}")
 			endif()
 
-			file(INSTALL
-				DESTINATION "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/Frameworks"
-				TYPE SHARED_LIBRARY
-				FOLLOW_SYMLINK_CHAIN
-				FILES "${BUILD_DIR}/lib/libqmdnsengine.0.dylib"
-			)
-			set(QMDNSENGINE "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/Frameworks/libqmdnsengine.0.dylib")
-
 			foreach(PLUGIN "platforms" "sqldrivers" "imageformats")
 				if(EXISTS ${PLUGIN_DIR}/${PLUGIN})
 					file(GLOB files "${PLUGIN_DIR}/${PLUGIN}/*")
@@ -266,7 +258,7 @@ macro(DeployLinux TARGET)
 					PATTERN "sitecustomize.py"                      EXCLUDE # site-specific configs
 				)
 			endif(PYTHON_MODULES_DIR)
-		endif(ENABLE_EFFECTENGINE)		
+		endif(ENABLE_EFFECTENGINE)
 
 	else()
 		# Run CMake after target was built to run get_prerequisites on ${TARGET_FILE}
@@ -336,13 +328,6 @@ macro(DeployWindows TARGET)
 
 			list(REMOVE_AT DEPENDENCIES 0 1)
 		endwhile()
-
-		# Copy QMdnsEngine Lib
-		install(
-			FILES "${CMAKE_BINARY_DIR}/lib/qmdnsengine${CMAKE_SHARED_LIBRARY_SUFFIX}"
-			DESTINATION "bin"
-			COMPONENT "Hyperion"
-		)
 
 		# Copy libssl/libcrypto to 'hyperion'
 		if (OPENSSL_FOUND)

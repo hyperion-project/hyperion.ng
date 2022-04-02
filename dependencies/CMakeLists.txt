@@ -47,7 +47,7 @@ if (ENABLE_MDNS)
 
 			configure_file(${CMAKE_SOURCE_DIR}/dependencies/CMakeLists-qmdnsengine.txt.in ${QMDNS_WORK_DIR}/CMakeLists.txt @ONLY)
 			execute_process(COMMAND ${CMAKE_COMMAND} ${QMDNS_INSTALL_DIR} -G "${CMAKE_GENERATOR}" . WORKING_DIRECTORY ${QMDNS_WORK_DIR})
-			execute_process(COMMAND ${CMAKE_COMMAND} --build . WORKING_DIRECTORY ${QMDNS_WORK_DIR})
+			execute_process(COMMAND ${CMAKE_COMMAND} --build . --config "${CMAKE_BUILD_TYPE}" WORKING_DIRECTORY ${QMDNS_WORK_DIR})
 		endif()
 
 		set(QMDNS_INCLUDE_DIR "${CMAKE_BINARY_DIR}/include")
