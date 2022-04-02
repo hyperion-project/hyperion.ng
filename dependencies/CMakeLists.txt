@@ -39,6 +39,10 @@ if (ENABLE_MDNS)
 				-Wno-dev
 			)
 
+			if(NOT CMAKE_BUILD_TYPE)
+				set(CMAKE_BUILD_TYPE "Release")
+			endif()
+
 			if(${CMAKE_BUILD_TYPE} AND ${CMAKE_BUILD_TYPE} EQUAL "Debug")
 				set(QMDNS_LOGGING 1)
 			else ()
