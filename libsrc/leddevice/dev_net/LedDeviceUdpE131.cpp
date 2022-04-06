@@ -8,6 +8,13 @@
 
 // hyperion local includes
 #include "LedDeviceUdpE131.h"
+#include <utils/NetUtils.h>
+
+// Constants
+namespace {
+
+const char CONFIG_HOST[] = "host";
+const char CONFIG_PORT[] = "port";
 
 const ushort E131_DEFAULT_PORT = 5568;
 
@@ -23,6 +30,7 @@ const uint32_t VECTOR_E131_DATA_PACKET = 0x00000002;
 //#define E131_NETWORK_DATA_LOSS_TIMEOUT          2500       // milli econds
 //#define E131_DISCOVERY_UNIVERSE                 64214
 const int DMX_MAX = 512; // 512 usable slots
+}
 
 LedDeviceUdpE131::LedDeviceUdpE131(const QJsonObject &deviceConfig)
 	: ProviderUdp(deviceConfig)
@@ -36,13 +44,14 @@ LedDevice* LedDeviceUdpE131::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceUdpE131::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = false;
-
-	_port = E131_DEFAULT_PORT;
+	bool isInitOK {false};
 
 	// Initialise sub-class
 	if ( ProviderUdp::init(deviceConfig) )
 	{
+		_hostName = _devConfig[ CONFIG_HOST ].toString();
+		_port = deviceConfig[CONFIG_PORT].toInt(E131_DEFAULT_PORT);
+
 		_e131_universe = deviceConfig["universe"].toInt(1);
 		_e131_source_name = deviceConfig["source-name"].toString("hyperion on "+QHostInfo::localHostName());
 		QString _json_cid = deviceConfig["cid"].toString("");
@@ -68,6 +77,23 @@ bool LedDeviceUdpE131::init(const QJsonObject &deviceConfig)
 		}
 	}
 	return isInitOK;
+}
+
+int LedDeviceUdpE131::open()
+{
+	int retval = -1;
+	_isDeviceReady = false;
+
+	if (NetUtils::resolveHostToAddress(_log, _hostName, _address))
+	{
+		if (ProviderUdp::open() == 0)
+		{
+			// Everything is OK, device is ready
+			_isDeviceReady = true;
+			retval = 0;
+		}
+	}
+	return retval;
 }
 
 // populates the headers

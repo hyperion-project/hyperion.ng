@@ -174,29 +174,9 @@ void MessageForwarder::addJsonTarget(const QJsonObject& targetConfig)
 	QString hostName = targetConfig["host"].toString();
 	int port = targetConfig["port"].toInt();
 
-#ifdef ENABLE_MDNS
-	if (hostName.endsWith("._tcp.local"))
-	{
-		//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
-		QMdnsEngine::Record service = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8());
-
-		if (!service.target().isEmpty())
-		{
-			Info(_log, "Resolved service [%s] to mDNS hostname [%s], port [%d]", QSTRING_CSTR(hostName), service.target().constData(), service.port());
-			hostName = service.target();
-			port = service.port();
-		}
-		else
-		{
-			Error(_log, "Cannot resolve mDNS hostname for given service [%s]!", QSTRING_CSTR(hostName));
-			return;
-		}
-	}
-#endif
-
 	if (!hostName.isEmpty())
 	{
-		if (NetUtils::resolveHostAddress(_log, hostName, targetHost.host))
+		if (NetUtils::resolveHostToAddress(_log, hostName, targetHost.host, port))
 		{
 			QString address = targetHost.host.toString();
 			if (hostName != address)
@@ -285,29 +265,9 @@ void MessageForwarder::addFlatbufferTarget(const QJsonObject& targetConfig)
 	QString hostName = targetConfig["host"].toString();
 	int port = targetConfig["port"].toInt();
 
-#ifdef ENABLE_MDNS
-	if (hostName.endsWith("._tcp.local"))
-	{
-		//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
-		QMdnsEngine::Record service = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8());
-
-		if (!service.target().isEmpty())
-		{
-			Info(_log, "Resolved service [%s] to mDNS hostname [%s], port [%d]", QSTRING_CSTR(hostName), service.target().constData(), service.port());
-			hostName = service.target();
-			port = service.port();
-		}
-		else
-		{
-			Error(_log, "Cannot resolve mDNS hostname for given service [%s]!", QSTRING_CSTR(hostName));
-			return;
-		}
-	}
-#endif
-
 	if (!hostName.isEmpty())
 	{
-		if (NetUtils::resolveHostAddress(_log, hostName, targetHost.host))
+		if (NetUtils::resolveHostToAddress(_log, hostName, targetHost.host, port))
 		{
 			QString address = targetHost.host.toString();
 			if (hostName != address)

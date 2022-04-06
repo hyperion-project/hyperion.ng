@@ -20,7 +20,9 @@
 		"output"     : "/dev/null",
 		"colorOrder" : "rgb",
 		"latchTime" : 0,
-		"rewriteTime": 0
+		"rewriteTime": 0,
+		"enableAttempts": 6,
+		"enableAttemptsInterval": 15
 	},
 
 	"color" :

@@ -44,13 +44,6 @@ bool ProviderRs232::init(const QJsonObject &deviceConfig)
 	// Initialise sub-class
 	if ( LedDevice::init(deviceConfig) )
 	{
-
-		Debug(_log, "DeviceType   : %s", QSTRING_CSTR( this->getActiveDeviceType() ));
-		Debug(_log, "LedCount     : %d", this->getLedCount());
-		Debug(_log, "ColorOrder   : %s", QSTRING_CSTR( this->getColorOrder() ));
-		Debug(_log, "RefreshTime  : %d", _refreshTimerInterval_ms);
-		Debug(_log, "LatchTime    : %d", this->getLatchTime());
-
 		_deviceName           = deviceConfig["output"].toString("auto");
 		_isAutoDeviceName     = _deviceName.toLower() == "auto";
 
@@ -89,7 +82,6 @@ int ProviderRs232::open()
 {
 	int retval = -1;
 	_isDeviceReady = false;
-	_isInSwitchOff = false;
 
 	// open device physically
 	if ( tryOpen(_delayAfterConnect_ms) )
@@ -190,18 +182,6 @@ bool ProviderRs232::tryOpen(int delayAfterConnect_ms)
 		{
 			QString errortext = QString("Invalid serial device name: %1 %2!").arg(_deviceName, _location);
 			this->setInError( errortext );
-
-			// List available device
-			for (auto &port : QSerialPortInfo::availablePorts() ) {
-				Debug(_log, "Avail. serial device: [%s]-(%s|%s), Manufacturer: %s, Description: %s",
-					  QSTRING_CSTR(port.portName()),
-					  QSTRING_CSTR(QString("0x%1").arg(port.vendorIdentifier(), 0, 16)),
-					  QSTRING_CSTR(QString("0x%1").arg(port.productIdentifier(), 0, 16)),
-					  QSTRING_CSTR(port.manufacturer()),
-					  QSTRING_CSTR(port.description())
-					  );
-			}
-
 			return false;
 		}
 	}
@@ -295,17 +275,21 @@ QString ProviderRs232::discoverFirst()
 	return "";
 }
 
-QJsonObject ProviderRs232::discover(const QJsonObject& /*params*/)
+QJsonObject ProviderRs232::discover(const QJsonObject& params)
 {
+	DebugIf(verbose,_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
+
 	QJsonObject devicesDiscovered;
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );
 
 	QJsonArray deviceList;
 
+	bool showAll = params["discoverAll"].toBool(false);
+
 	// Discover serial Devices
 	for (auto &port : QSerialPortInfo::availablePorts() )
 	{
-		if ( !port.isNull() && port.vendorIdentifier() != 0)
+		if ( !port.isNull() && (showAll || port.vendorIdentifier() != 0) )
 		{
 			QJsonObject portInfo;
 			portInfo.insert("description", port.description());
@@ -364,6 +348,8 @@ void ProviderRs232::identify(const QJsonObject& params)
 	QString deviceName = params["output"].toString("");
 	if (!deviceName.isEmpty())
 	{
+		Info(_log, "Identify %s, device: %s", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(deviceName) );
+
 		_devConfig = params;
 		init(_devConfig);
 		{

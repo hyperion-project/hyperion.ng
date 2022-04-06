@@ -14,6 +14,7 @@
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <chrono>
 
 // Utility includes
 #include <utils/ColorRgb.h>
@@ -64,6 +65,8 @@ public:
 	///
 	void setLedCount(int ledCount);
 
+	void setColorOrder(const QString& colorOrder);
+
 	///
 	/// @brief Set a device's latch time.
 	///
@@ -82,6 +85,8 @@ public:
 	/// @param[in] rewriteTime_ms Rewrite time in milliseconds
 	///
 	void setRewriteTime(int rewriteTime_ms);
+
+	void setAutoStart(bool isAutoStart);
 
 	///
 	/// @brief Discover devices of this type available (for configuration).
@@ -403,10 +408,17 @@ protected:
 	/// e.g. some devices will switch off when they do not receive data at least every 15 seconds
 	QTimer*	_refreshTimer;
 
+	/// Timer that enables a device (used to retry enablement, if enabled failed before)
+	QTimer*	_enableRetryTimer;
+
 	// Device configuration parameters
 
 	/// Refresh interval in milliseconds
 	int _refreshTimerInterval_ms;
+
+	std::chrono::seconds _enableRetryTimerInterval;
+	int _enableRetries;
+	int _maxEnableRetries;
 
 	/// Time a device requires mandatorily between two writes (in milliseconds)
 	int _latchTime_ms;
@@ -438,9 +450,6 @@ protected:
 	/// Is the device in error state and stopped?
 	bool _isDeviceInError;
 
-	/// Is the device in the switchOff process?
-	bool _isInSwitchOff;
-
 	/// Timestamp of last write
 	QDateTime _lastWriteTime;
 
@@ -467,6 +476,12 @@ private:
 
 	/// @brief Stop refresh cycle
 	void stopRefreshTimer();
+
+	/// @brief Start a new enable cycle
+	void startEnableRetryTimer();
+
+	/// @brief Stop a new enable cycle
+	void stopEnableRetryTimer();
 
 	/// Is last write refreshing enabled?
 	bool _isRefreshEnabled;

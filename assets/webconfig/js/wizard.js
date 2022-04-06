@@ -935,6 +935,7 @@ async function getProperties_hue_bridge(cb, hostAddress, port, username, resourc
 }
 
 async function identify_hue_device(hostAddress, port, username, id) {
+  var disabled = $('#btn_wiz_save').is(':disabled');
   // Take care that new record cannot be save during background process
   $('#btn_wiz_save').prop('disabled', true);
 
@@ -947,7 +948,7 @@ async function identify_hue_device(hostAddress, port, username, id) {
   await requestLedDeviceIdentification('philipshue', params);
 
   if (!window.readOnlyMode) {
-    $('#btn_wiz_save').prop('disabled', false);
+    $('#btn_wiz_save').prop('disabled', disabled);
   }
 }
 
@@ -1564,8 +1565,8 @@ function assign_yeelight_lights() {
   }
 }
 
-async function getProperties_yeelight(hostname, port) {
-  let params = { hostname: hostname, port: port };
+async function getProperties_yeelight(host, port) {
+  let params = { host: host, port: port };
 
   const res = await requestLedDeviceProperties('yeelight', params);
 
@@ -1576,15 +1577,18 @@ async function getProperties_yeelight(hostname, port) {
   }
 }
 
-async function identify_yeelight_device(hostname, port) {
+async function identify_yeelight_device(host, port) {
+  
+  var disabled = $('#btn_wiz_save').is(':disabled');
+
   // Take care that new record cannot be save during background process
   $('#btn_wiz_save').prop('disabled', true);
 
-  let params = { hostname: hostname, port: port };
+  let params = { host: host, port: port };
   await requestLedDeviceIdentification("yeelight", params);
 
   if (!window.readOnlyMode) {
-    $('#btn_wiz_save').prop('disabled', false);
+    $('#btn_wiz_save').prop('disabled', disabled);
   }
 }
 
@@ -1821,6 +1825,8 @@ function assign_atmoorb_lights() {
 }
 
 async function identify_atmoorb_device(orbId) {
+  var disabled = $('#btn_wiz_save').is(':disabled');
+
   // Take care that new record cannot be save during background process
   $('#btn_wiz_save').prop('disabled', true);
 
@@ -1828,6 +1834,6 @@ async function identify_atmoorb_device(orbId) {
   await requestLedDeviceIdentification("atmoorb", params);
 
   if (!window.readOnlyMode) {
-    $('#btn_wiz_save').prop('disabled', false);
+    $('#btn_wiz_save').prop('disabled', disabled);
   }
 }

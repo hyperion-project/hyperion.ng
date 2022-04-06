@@ -35,6 +35,9 @@ constexpr std::chrono::milliseconds CONNECT_STREAM_TIMEOUT{1000}; // device stre
 const bool TEST_CORRELATION_IDS  = false; //Ignore, if yeelight sends responses in different order as request commands
 
 // Configuration settings
+const char CONFIG_HOST[] = "host";
+const char CONFIG_PORT[] = "port";
+
 const char CONFIG_LIGHTS [] = "lights";
 
 const char CONFIG_COLOR_MODEL [] = "colorModel";
@@ -157,25 +160,29 @@ bool YeelightLight::open()
 	}
 	else
 	{
-		_tcpSocket->connectToHost( _host, _port);
-
-		if ( _tcpSocket->waitForConnected( CONNECT_TIMEOUT.count() ) )
+		QHostAddress address;
+		if (NetUtils::resolveHostToAddress(_log, _host, address))
 		{
-			if ( _tcpSocket->state() != QAbstractSocket::ConnectedState )
+			_tcpSocket->connectToHost( address.toString(), _port);
+
+			if ( _tcpSocket->waitForConnected( CONNECT_TIMEOUT.count() ) )
+			{
+				if ( _tcpSocket->state() != QAbstractSocket::ConnectedState )
+				{
+					this->setInError( _tcpSocket->errorString() );
+					rc = false;
+				}
+				else
+				{
+					log (2,"open()","Successfully opened Yeelight: %s", QSTRING_CSTR(_host));
+					rc = true;
+				}
+			}
+			else
 			{
 				this->setInError( _tcpSocket->errorString() );
 				rc = false;
 			}
-			else
-			{
-				log (2,"open()","Successfully opened Yeelight: %s", QSTRING_CSTR(_host));
-				rc = true;
-			}
-		}
-		else
-		{
-			this->setInError( _tcpSocket->errorString() );
-			rc = false;
 		}
 	}
 	return rc;
@@ -1044,12 +1051,6 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 
 	if ( LedDevice::init(deviceConfig) )
 	{
-		Debug(_log, "DeviceType        : %s", QSTRING_CSTR( this->getActiveDeviceType() ));
-		Debug(_log, "LedCount          : %d", this->getLedCount());
-		Debug(_log, "ColorOrder        : %s", QSTRING_CSTR( this->getColorOrder() ));
-		Debug(_log, "RewriteTime  : %d", this->getRewriteTime());
-		Debug(_log, "LatchTime         : %d", this->getLatchTime());
-
 		//Get device specific configuration
 
 		if ( deviceConfig[ CONFIG_COLOR_MODEL ].isString() )
@@ -1112,8 +1113,8 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 		int configuredYeelightsCount = 0;
 		for (const QJsonValueRef light : configuredYeelightLights)
 		{
-			QString hostName = light.toObject().value("host").toString();
-			int port = light.toObject().value("port").toInt(API_DEFAULT_PORT);
+			QString hostName = light.toObject().value(CONFIG_HOST).toString();
+			int port = light.toObject().value(CONFIG_PORT).toInt(API_DEFAULT_PORT);
 
 			if ( !hostName.isEmpty() )
 			{
@@ -1144,38 +1145,9 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 			_lightsAddressList.clear();
 			for (int j = 0; j < static_cast<int>( configuredLedCount ); ++j)
 			{
-				QString hostName = configuredYeelightLights[j].toObject().value("host").toString();
-				int port = configuredYeelightLights[j].toObject().value("port").toInt(API_DEFAULT_PORT);
-
-#ifdef ENABLE_MDNS
-				if (hostName.endsWith("._tcp.local"))
-				{
-					//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
-					QString target = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8()).target();
-					//Ignore port and TXT-attributes
-
-					if (!target.isEmpty())
-					{
-						Info(_log, "Resolved service [%s] to mDNS hostname [%s]", QSTRING_CSTR(hostName), QSTRING_CSTR(target));
-						hostName = target;
-					}
-					else
-					{
-						this->setInError(QString("Cannot resolve mDNS hostname for given service [%1]!").arg(hostName));
-						return false;
-					}
-				}
-#endif
-				QHostAddress resolvedAddress;
-				if (NetUtils::resolveHostAddress(_log, hostName, resolvedAddress))
-				{
-					QString address = resolvedAddress.toString();
-					if (hostName != address)
-					{
-						Info(_log, "Resolved hostname [%s] to address [%s]",  QSTRING_CSTR(hostName), QSTRING_CSTR(address));
-					}
-					_lightsAddressList.append( { address, port} );
-				}
+				QString hostName = configuredYeelightLights[j].toObject().value(CONFIG_HOST).toString();
+				int port = configuredYeelightLights[j].toObject().value(CONFIG_PORT).toInt(API_DEFAULT_PORT);
+				_lightsAddressList.append( { hostName, port} );
 			}
 
 			if ( updateLights(_lightsAddressList) )
@@ -1199,13 +1171,10 @@ bool LedDeviceYeelight::startMusicModeServer()
 
 	if ( ! _tcpMusicModeServer->isListening() )
 	{
-		if (! _tcpMusicModeServer->listen())
+		if (! _tcpMusicModeServer->listen(QHostAddress::AnyIPv4))
 		{
-			QString errorReason = QString ("(%1) %2").arg(_tcpMusicModeServer->serverError()).arg( _tcpMusicModeServer->errorString());
-			Error( _log, "Error: MusicModeServer: %s", QSTRING_CSTR(errorReason));
+			QString errorReason = QString ("Failed to start music mode server: (%1) %2").arg(_tcpMusicModeServer->serverError()).arg( _tcpMusicModeServer->errorString());
 			this->setInError ( errorReason );
-
-			Error( _log, "Failed to start music mode server");
 		}
 		else
 		{
@@ -1221,12 +1190,14 @@ bool LedDeviceYeelight::startMusicModeServer()
 			}
 			if (_musicModeServerAddress.isNull())
 			{
-				Error(_log, "Failed to resolve IP for music mode server");
+				_tcpMusicModeServer->close();
+				QString errorReason = QString ("Network error - failed to resolve IP for music mode server");
+				this->setInError ( errorReason );
 			}
 		}
 	}
 
-	if ( _tcpMusicModeServer->isListening() )
+	if ( !_isDeviceInError && _tcpMusicModeServer->isListening() )
 	{
 		_musicModeServerPort = _tcpMusicModeServer->serverPort();
 		Debug (_log, "The music mode server is running at %s:%d", QSTRING_CSTR(_musicModeServerAddress.toString()), _musicModeServerPort);
@@ -1457,23 +1428,15 @@ QJsonObject LedDeviceYeelight::getProperties(const QJsonObject& params)
 	DebugIf(verbose,_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 	QJsonObject properties;
 
-	QString hostName = params["hostname"].toString("");
-	quint16 apiPort = static_cast<quint16>( params["port"].toInt(API_DEFAULT_PORT) );
+	QString hostName = params[CONFIG_HOST].toString("");
+	quint16 apiPort = static_cast<quint16>( params[CONFIG_PORT].toInt(API_DEFAULT_PORT) );
 
-#ifdef ENABLE_MDNS
-	if (hostName.endsWith("._tcp.local"))
-	{
-		//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
-		hostName = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8()).target();
-	}
-#endif
+	Info(_log, "Get properties for %s, hostname (%s)", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(hostName) );
 
 	QHostAddress address;
-	if (NetUtils::resolveHostAddress(_log, hostName, address))
+	if (NetUtils::resolveHostToAddress(_log, hostName, address))
 	{
 		YeelightLight yeelight(_log, address.toString(), apiPort);
-
-		//yeelight.setDebuglevel(3);
 		if ( yeelight.open() )
 		{
 			properties.insert("properties", yeelight.getProperties());
@@ -1489,23 +1452,15 @@ void LedDeviceYeelight::identify(const QJsonObject& params)
 {
 	DebugIf(verbose,_log,  "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 
-	QString hostName = params["hostname"].toString("");
-	quint16 apiPort = static_cast<quint16>( params["port"].toInt(API_DEFAULT_PORT) );
+	QString hostName = params[CONFIG_HOST].toString("");
+	quint16 apiPort = static_cast<quint16>( params[CONFIG_PORT].toInt(API_DEFAULT_PORT) );
 
-#ifdef ENABLE_MDNS
-	if (hostName.endsWith("._tcp.local"))
-	{
-		//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
-		hostName = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8()).target();
-	}
-#endif
+	Info(_log, "Identify %s, hostname (%s)", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(hostName) );
 
 	QHostAddress address;
-	if (NetUtils::resolveHostAddress(_log, hostName, address))
+	if (NetUtils::resolveHostToAddress(_log, hostName, address))
 	{
 		YeelightLight yeelight(_log, address.toString(), apiPort);
-		//yeelight.setDebuglevel(3);
-
 		if ( yeelight.open() )
 		{
 			yeelight.identify();

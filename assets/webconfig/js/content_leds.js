@@ -788,6 +788,7 @@ $(document).ready(function () {
     conf_editor.on('ready', function () {
       var hwLedCountDefault = 1;
       var colorOrderDefault = "rgb";
+      var filter = {};
 
       $('#btn_test_controller').hide();
 
@@ -796,12 +797,6 @@ $(document).ready(function () {
         case "wled":
         case "nanoleaf":
           showAllDeviceInputOptions("hostList", false);
-        case "adalight":
-        case "atmo":
-        case "dmx":
-        case "karate":
-        case "sedu":
-        case "tpm2":
         case "apa102":
         case "apa104":
         case "ws2801":
@@ -814,7 +809,18 @@ $(document).ready(function () {
         case "ws2812spi":
         case "piblaster":
         case "ws281x":
-          discover_device(ledType);
+
+        //Serial devices
+        case "adalight":
+        case "atmo":
+        case "dmx":
+        case "karate":
+        case "sedu":
+        case "tpm2":
+          if (storedAccess === 'expert') {
+            filter.discoverAll = true;
+          }
+          discover_device(ledType, filter);
           hwLedCountDefault = 1;
           colorOrderDefault = "rgb";
           break;
@@ -1002,7 +1008,7 @@ $(document).ready(function () {
 
         showAllDeviceInputOptions("hostList", showOptions);
         if (val !== 'CUSTOM' && host.getValue().endsWith("._tcp.local")) {
-          //showInputOptionForItem(conf_editor, 'specificOptions', 'host', false);
+          showInputOptionForItem(conf_editor, 'specificOptions', 'host', false);
         }
       }
     });

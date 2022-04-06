@@ -126,7 +126,7 @@ int main(int argc, char ** argv)
 		{
 			QString host;
 			QString serviceName{ QHostInfo::localHostName() };
-			quint16 port{ FLATBUFFER_DEFAULT_PORT };
+			int port{ FLATBUFFER_DEFAULT_PORT };
 
 			// Split hostname and port (or use default port)
 			QString givenAddress = argAddress.value(parser);
@@ -138,34 +138,17 @@ int main(int argc, char ** argv)
 			// Search available Hyperion services via mDNS, if default/localhost IP is given
 			if (host == "127.0.0.1" || host == "::1")
 			{
-#ifdef ENABLE_MDNS
-				MdnsBrowser::getInstance().browseForServiceType(MdnsServiceRegister::getServiceType(SERVICE_TYPE));
-				QMdnsEngine::Service service = MdnsBrowser::getInstance().getFirstService(MdnsServiceRegister::getServiceType(SERVICE_TYPE));
-
-				if (service.hostname().isEmpty())
-				{
-					throw std::runtime_error(QString("Automatic discovery failed! No Hyperion servers found providing a service of type: %1")
-						.arg(QString(MdnsServiceRegister::getServiceType(SERVICE_TYPE))).toStdString()
-					);
-				}
-				serviceName = service.name();
-				host = service.hostname();
-				port = service.port();
-#else
+#ifndef ENABLE_MDNS
 				SSDPDiscover discover;
-				QString discoveredAddress = discover.getFirstService(searchType::STY_FLATBUFSERVER);
-				NetUtils::resolveHostPort(discoveredAddress, host, port);
+				host = discover.getFirstService(searchType::STY_FLATBUFSERVER);
 #endif
+				QHostAddress address;
+				if (!NetUtils::resolveHostToAddress(log, host, address, port))
+				{
+					throw std::runtime_error(QString("Address could not be resolved for hostname: %2").arg(QSTRING_CSTR(host)).toStdString());
+				}
+				host = address.toString();
 			}
-
-#ifdef ENABLE_MDNS
-			QHostAddress address;
-			if (!NetUtils::resolveHostAddress(log, host, address))
-			{
-				throw std::runtime_error(QString("Address could not be resolved for hostname: %2").arg(QSTRING_CSTR(host)).toStdString());
-			}
-			host = address.toString();
-#endif
 
 			Info(log, "Connecting to Hyperion host: %s, port: %u using service: %s", QSTRING_CSTR(host), port, QSTRING_CSTR(serviceName));
 

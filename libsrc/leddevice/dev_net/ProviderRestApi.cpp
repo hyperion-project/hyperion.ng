@@ -360,16 +360,9 @@ httpResponse ProviderRestApi::getResponse(QNetworkReply* const& reply)
 			}
 			errorReason = QString ("[%3 %4] - %5").arg(httpStatusCode).arg(httpReason, advise);
 		}
-		else {
-
+		else
+		{
 			errorReason = reply->errorString();
-
-			if ( reply->error() == QNetworkReply::OperationCanceledError )
-			{
-				//Do not report errors caused by request cancellation because of timeouts
-				Debug(_log, "Reply: [%s]", QSTRING_CSTR(errorReason) );
-			}
-			else
 			{
 				response.setError(true);
 				response.setErrorReason(errorReason);

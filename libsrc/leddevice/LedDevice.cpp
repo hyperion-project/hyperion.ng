@@ -15,6 +15,7 @@
 //std includes
 #include <sstream>
 #include <iomanip>
+#include <chrono>
 
 // Constants
 namespace {
@@ -26,9 +27,12 @@ const char CONFIG_AUTOSTART[] = "autoStart";
 const char CONFIG_LATCH_TIME[] = "latchTime";
 const char CONFIG_REWRITE_TIME[] = "rewriteTime";
 
-int DEFAULT_LED_COUNT = 1;
-const char DEFAULT_COLOR_ORDER[] = "RGB";
-const bool DEFAULT_IS_AUTOSTART = true;
+int DEFAULT_LED_COUNT {1};
+const char DEFAULT_COLOR_ORDER[] {"RGB"};
+const bool DEFAULT_IS_AUTOSTART {true};
+
+int DEFAULT_MAX_ENABLE_RETRIES {5};
+constexpr std::chrono::seconds DEFAULT_ENABLE_RETRY_INTERVAL { 5 };
 
 } //End of constants
 
@@ -38,7 +42,11 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 	  , _log(Logger::getInstance("LEDDEVICE"))
 	  , _ledBuffer(0)
 	  , _refreshTimer(nullptr)
+	  , _enableRetryTimer(nullptr)
 	  , _refreshTimerInterval_ms(0)
+	  , _enableRetryTimerInterval(DEFAULT_ENABLE_RETRY_INTERVAL)
+	  , _enableRetries(0)
+	  , _maxEnableRetries(DEFAULT_MAX_ENABLE_RETRIES)
 	  , _latchTime_ms(0)
 	  , _ledCount(0)
 	  , _isRestoreOrigState(false)
@@ -47,7 +55,6 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 	  , _isDeviceReady(false)
 	  , _isOn(false)
 	  , _isDeviceInError(false)
-	  , _isInSwitchOff (false)
 	  , _lastWriteTime(QDateTime::currentDateTime())
 	  , _isRefreshEnabled (false)
 	  , _isAutoStart(true)
@@ -57,6 +64,8 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 
 LedDevice::~LedDevice()
 {
+	Debug(_log,"");
+	this->stopEnableRetryTimer();
 	this->stopRefreshTimer();
 }
 
@@ -65,16 +74,20 @@ void LedDevice::start()
 	Info(_log, "Start LedDevice '%s'.", QSTRING_CSTR(_activeDeviceType));
 
 	close();
-
 	_isDeviceInitialised = false;
-	// General initialisation and configuration of LedDevice
+
 	if ( init(_devConfig) )
 	{
 		// Everything is OK -> enable device
 		_isDeviceInitialised = true;
+
 		if (_isAutoStart)
 		{
-			this->enable();
+			if(!_isEnabled)
+			{
+				Debug(_log, "Not enabled -enable device");
+				emit enable();
+			}
 		}
 	}
 }
@@ -89,6 +102,7 @@ void LedDevice::stop()
 
 int LedDevice::open()
 {
+	Debug(_log,"");
 	_isDeviceReady = true;
 	int retval = 0;
 
@@ -118,22 +132,65 @@ void LedDevice::setInError(const QString& errorMsg)
 void LedDevice::enable()
 {
 	Debug(_log, "Enable device");
+	Debug(_log,"_enableRetries [%d], _maxEnableRetries [%d] ", _enableRetries, _maxEnableRetries);
+
 	if ( !_isEnabled )
 	{
+		if ( _enableRetryTimer != nullptr && _enableRetryTimer->isActive() )
+		{
+			Debug(_log, "Stop running enable Retry Timer");
+			_enableRetryTimer->stop();
+		}
+
 		_isDeviceInError = false;
+
+		if (!_isDeviceInitialised)
+		{
+			Debug(_log, "enable - NOT initialised");
+//			if (init(_devConfig))
+//			{
+//				Debug(_log, "enable - init - successful");
+//				_isDeviceInitialised = true;
+//			}
+//			else
+//			{
+//				Debug(_log, "enable - init - FAILED");
+//				_isDeviceInitialised = false;
+//			}
+		}
 
 		if ( ! _isDeviceReady )
 		{
 			open();
 		}
 
-		if ( _isDeviceReady )
+		bool isEnableFailed(true);
+
+		if (_isDeviceReady)
 		{
-			_isEnabled = true;
 			if ( switchOn() )
 			{
+				stopEnableRetryTimer();
+				_isEnabled = true;
+				isEnableFailed = false;
 				emit enableStateChanged(_isEnabled);
 				Info(_log, "LedDevice '%s' enabled", QSTRING_CSTR(_activeDeviceType));
+			}
+		}
+
+		if (isEnableFailed)
+		{
+			emit enableStateChanged(false);
+
+			if (_maxEnableRetries > 0)
+			{
+				Debug(_log,"Enabled /SwitchOn failed - Start retry timer. Retried already done [%d], isEnabled: [%d]", _enableRetries, _isEnabled);
+				++_enableRetries;
+				startEnableRetryTimer();
+			}
+			else
+			{
+				Debug(_log,"Enabled /SwitchOn failed");
 			}
 		}
 	}
@@ -145,6 +202,7 @@ void LedDevice::disable()
 	if ( _isEnabled )
 	{
 		_isEnabled = false;
+		this->stopEnableRetryTimer();
 		this->stopRefreshTimer();
 
 		switchOff();
@@ -163,12 +221,11 @@ bool LedDevice::init(const QJsonObject &deviceConfig)
 {
 	Debug(_log, "deviceConfig: [%s]", QString(QJsonDocument(_devConfig).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 
-	_colorOrder = deviceConfig[CONFIG_COLOR_ORDER].toString(DEFAULT_COLOR_ORDER);
-	_isAutoStart = deviceConfig[CONFIG_AUTOSTART].toBool(DEFAULT_IS_AUTOSTART);
-
 	setLedCount( deviceConfig[CONFIG_CURRENT_LED_COUNT].toInt(DEFAULT_LED_COUNT) ); // property injected to reflect real led count
+	setColorOrder(deviceConfig[CONFIG_COLOR_ORDER].toString(DEFAULT_COLOR_ORDER));
 	setLatchTime( deviceConfig[CONFIG_LATCH_TIME].toInt( _latchTime_ms ) );
 	setRewriteTime ( deviceConfig[CONFIG_REWRITE_TIME].toInt( _refreshTimerInterval_ms) );
+	setAutoStart( deviceConfig[CONFIG_AUTOSTART].toBool(DEFAULT_IS_AUTOSTART));
 
 	return true;
 }
@@ -206,6 +263,47 @@ void LedDevice::stopRefreshTimer()
 		_refreshTimer->stop();
 		delete _refreshTimer;
 		_refreshTimer = nullptr;
+
+	}
+}
+
+void LedDevice::startEnableRetryTimer()
+{
+	Debug(_log,"_enableRetries [%d], _maxEnableRetries [%d] ", _enableRetries, _maxEnableRetries);
+	if (_enableRetries <= _maxEnableRetries)
+	{
+		if (_enableRetryTimerInterval.count() > 0)
+		{
+			// setup enable retry timer
+			if (_enableRetryTimer == nullptr)
+			{
+				_enableRetryTimer = new QTimer(this);
+				_enableRetryTimer->setTimerType(Qt::PreciseTimer);
+				connect(_enableRetryTimer, &QTimer::timeout, this, &LedDevice::enable);
+			}
+			_enableRetryTimer->setInterval(static_cast<int>(_enableRetryTimerInterval.count() * 1000));
+
+			Info(_log, "Start %d. attempt of %d to enable the device in %d seconds", _enableRetries, _maxEnableRetries, _enableRetryTimerInterval.count());
+			_enableRetryTimer->start();
+		}
+	}
+	else
+	{
+		Error(_log, "Device disabled. Maximum number of %d attempts enabling the device reached. Tried for %d seconds.", _maxEnableRetries, _enableRetries * _enableRetryTimerInterval.count() );
+		_enableRetries = 0;
+	}
+}
+
+void LedDevice::stopEnableRetryTimer()
+{
+	Debug(_log,"");
+	if ( _enableRetryTimer != nullptr )
+	{
+		Debug(_log, "Stopping enable retry timer");
+		_enableRetryTimer->stop();
+		delete _enableRetryTimer;
+		_enableRetryTimer = nullptr;
+		_enableRetries = 0;
 	}
 }
 
@@ -311,14 +409,24 @@ bool LedDevice::switchOn()
 	}
 	else
 	{
-		if ( _isEnabled &&_isDeviceInitialised )
+		if(!_isEnabled)
+		{
+			Debug(_log, "Switch on - Not enabled device");
+		}
+		if(!_isDeviceInitialised)
+		{
+			Debug(_log, "Switch on - Not initialised device");
+		}
+
+		//if ( _isEnabled && _isDeviceInitialised )
+		//if ( _isDeviceInitialised )
+		if ( _isDeviceReady )
 		{
 			if ( storeState() )
 			{
 				if ( powerOn() )
 				{
 					_isOn = true;
-					_isInSwitchOff = false;
 					rc = true;
 				}
 			}
@@ -343,7 +451,6 @@ bool LedDevice::switchOff()
 		{
 			// Disable device to ensure no standard Led updates are written/processed
 			_isOn = false;
-			_isInSwitchOff = true;
 
 			rc = true;
 
@@ -455,16 +562,29 @@ void LedDevice::setLedCount(int ledCount)
 	_ledCount     = ledCount;
 	_ledRGBCount  = _ledCount * sizeof(ColorRgb);
 	_ledRGBWCount = _ledCount * sizeof(ColorRgbw);
+	Debug(_log, "LedCount set to %d", _ledCount);
 }
 
-void LedDevice::setLatchTime( int latchTime_ms )
+void LedDevice::setColorOrder(const QString& colorOrder)
+{
+	_colorOrder = colorOrder;
+	Debug(_log, "ColorOrder set to %s", QSTRING_CSTR(_colorOrder.toUpper()) );
+}
+
+void LedDevice::setLatchTime(int latchTime_ms)
 {
 	assert(latchTime_ms >= 0);
 	_latchTime_ms = latchTime_ms;
-	Debug(_log, "LatchTime updated to %dms", _latchTime_ms);
+	Debug(_log, "LatchTime set to %dms", _latchTime_ms);
 }
 
-void LedDevice::setRewriteTime( int rewriteTime_ms )
+void LedDevice::setAutoStart(bool isAutoStart)
+{
+	_isAutoStart = isAutoStart;
+	Debug(_log, "AutoStart %s",  (_isAutoStart ? "enabled" : "disabled"));
+}
+
+void LedDevice::setRewriteTime(int rewriteTime_ms)
 {
 	_refreshTimerInterval_ms = qMax(rewriteTime_ms, 0);
 
@@ -487,8 +607,6 @@ void LedDevice::setRewriteTime( int rewriteTime_ms )
 		_isRefreshEnabled = false;
 		stopRefreshTimer();
 	}
-
-	Debug(_log, "RewriteTime updated to %dms", _refreshTimerInterval_ms);
 }
 
 void LedDevice::printLedValues(const std::vector<ColorRgb>& ledValues)

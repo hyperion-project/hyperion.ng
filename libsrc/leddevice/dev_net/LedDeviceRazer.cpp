@@ -65,13 +65,6 @@ bool LedDeviceRazer::init(const QJsonObject& deviceConfig)
 	// Initialise sub-class
 	if (LedDevice::init(deviceConfig))
 	{
-		// Initialise LedDevice configuration and execution environment
-		uint configuredLedCount = this->getLedCount();
-		Debug(_log, "DeviceType   : %s", QSTRING_CSTR(this->getActiveDeviceType()));
-		Debug(_log, "LedCount     : %u", configuredLedCount);
-		Debug(_log, "ColorOrder   : %s", QSTRING_CSTR(this->getColorOrder()));
-		Debug(_log, "LatchTime    : %d", this->getLatchTime());
-		Debug(_log, "RefreshTime  : %d", _refreshTimerInterval_ms);
 
 		//Razer Chroma SDK allows localhost connection only
 		_hostname = API_DEFAULT_HOST;
@@ -86,6 +79,7 @@ bool LedDeviceRazer::init(const QJsonObject& deviceConfig)
 		Debug(_log, "Razer Device : %s", QSTRING_CSTR(_razerDeviceType));
 		Debug(_log, "Single Color : %d", _isSingleColor);
 
+		int configuredLedCount = this->getLedCount();
 		if (resolveDeviceProperties(_razerDeviceType))
 		{
 			if (_isSingleColor && configuredLedCount > 1)

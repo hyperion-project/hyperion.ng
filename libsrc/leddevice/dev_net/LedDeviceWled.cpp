@@ -19,14 +19,14 @@ namespace {
 const bool verbose = false;
 
 // Configuration settings
-const char CONFIG_ADDRESS[] = "host";
+const char CONFIG_HOST[] = "host";
 const char CONFIG_RESTORE_STATE[] = "restoreOriginalState";
 const char CONFIG_BRIGHTNESS[] = "brightness";
 const char CONFIG_BRIGHTNESS_OVERWRITE[] = "overwriteBrightness";
 const char CONFIG_SYNC_OVERWRITE[] = "overwriteSync";
 
 // UDP elements
-const quint16 STREAM_DEFAULT_PORT = 19446;
+const int STREAM_DEFAULT_PORT = 19446;
 const int UDP_MAX_LED_NUM = 490;
 
 // WLED JSON-API elements
@@ -80,101 +80,69 @@ LedDevice* LedDeviceWled::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceWled::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = false;
+	bool isInitOK {false};
 
-	// Initialise LedDevice sub-class, ProviderUdp::init will be executed later, if connectivity is defined
-	if ( LedDevice::init(deviceConfig) )
+	if ( ProviderUdp::init(deviceConfig) )
 	{
-		// Initialise LedDevice configuration and execution environment
-		int configuredLedCount = this->getLedCount();
-		Debug(_log, "DeviceType   : %s", QSTRING_CSTR( this->getActiveDeviceType() ));
-		Debug(_log, "LedCount     : %d", configuredLedCount);
-		Debug(_log, "ColorOrder   : %s", QSTRING_CSTR( this->getColorOrder() ));
-		Debug(_log, "LatchTime    : %d", this->getLatchTime());
-
-		if (configuredLedCount > UDP_MAX_LED_NUM)
+		if (this->getLedCount() > UDP_MAX_LED_NUM)
 		{
 			QString errorReason = QString("Device type %1 can only be run with maximum %2 LEDs!").arg(this->getActiveDeviceType()).arg(UDP_MAX_LED_NUM);
 			this->setInError ( errorReason );
-			return false;
-		}
-
-		_isRestoreOrigState = _devConfig[CONFIG_RESTORE_STATE].toBool(DEFAULT_IS_RESTORE_STATE);
-		_isSyncOverwrite = _devConfig[CONFIG_SYNC_OVERWRITE].toBool(DEFAULT_IS_SYNC_OVERWRITE);
-		_isBrightnessOverwrite = _devConfig[CONFIG_BRIGHTNESS_OVERWRITE].toBool(DEFAULT_IS_BRIGHTNESS_OVERWRITE);
-		_brightness = _devConfig[CONFIG_BRIGHTNESS].toInt(BRI_MAX);
-
-		Debug(_log, "RestoreOrigState  : %d", _isRestoreOrigState);
-		Debug(_log, "Overwrite Sync.   : %d", _isSyncOverwrite);
-		Debug(_log, "Overwrite Brightn.: %d", _isBrightnessOverwrite);
-		Debug(_log, "Set Brightness to : %d", _brightness);
-
-		//Set hostname as per configuration
-		QString hostName = deviceConfig[ CONFIG_ADDRESS ].toString();
-		_apiPort = API_DEFAULT_PORT;
-
-#ifdef ENABLE_MDNS
-		if (hostName.endsWith("._tcp.local"))
-		{
-			//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
-			//Ignore port (as the provided one is not used for streaming) and TXT-attributes
-			QString target = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8()).target();
-			//Ignore port and TXT-attributes
-
-			if (!target.isEmpty())
-			{
-				Info(_log, "Resolved service [%s] to mDNS hostname [%s]", QSTRING_CSTR(hostName), QSTRING_CSTR(target));
-				hostName = target;
-
-			}
-			else
-			{
-				this->setInError(QString("Cannot resolve mDNS hostname for given service [%1]!").arg(hostName));
-				return false;
-			}
-		}
-#endif
-
-		QHostAddress resolvedAddress;
-		if (NetUtils::resolveHostAddress(_log, hostName, resolvedAddress))
-		{
-			_hostAddress = resolvedAddress.toString();
-			if (hostName != _hostAddress)
-			{
-				Info(_log, "Resolved hostname [%s] to address [%s]",  QSTRING_CSTR(hostName), QSTRING_CSTR(_hostAddress));
-			}
-			if ( initRestAPI( _hostAddress, _apiPort ) )
-			{
-				// Update configuration with hostname without port
-				_devConfig["host"] = _hostAddress;
-				_devConfig["port"] = STREAM_DEFAULT_PORT;
-
-				isInitOK = ProviderUdp::init(_devConfig);
-				Debug(_log, "Hostname/IP  : %s", QSTRING_CSTR( _hostAddress ));
-				Debug(_log, "Port         : %d", _port);
-			}
 		}
 		else
 		{
-			this->setInError("No or invalid hostname/IP defined");
-			return false;
+			_hostName = _devConfig[ CONFIG_HOST ].toString();
+			_port = STREAM_DEFAULT_PORT;
+			_apiPort = API_DEFAULT_PORT;
+
+			_isRestoreOrigState = _devConfig[CONFIG_RESTORE_STATE].toBool(DEFAULT_IS_RESTORE_STATE);
+			_isSyncOverwrite = _devConfig[CONFIG_SYNC_OVERWRITE].toBool(DEFAULT_IS_SYNC_OVERWRITE);
+			_isBrightnessOverwrite = _devConfig[CONFIG_BRIGHTNESS_OVERWRITE].toBool(DEFAULT_IS_BRIGHTNESS_OVERWRITE);
+			_brightness = _devConfig[CONFIG_BRIGHTNESS].toInt(BRI_MAX);
+
+			Debug(_log, "Hostname/IP       : %s", QSTRING_CSTR(_hostName) );
+			Debug(_log, "RestoreOrigState  : %d", _isRestoreOrigState);
+			Debug(_log, "Overwrite Sync.   : %d", _isSyncOverwrite);
+			Debug(_log, "Overwrite Brightn.: %d", _isBrightnessOverwrite);
+			Debug(_log, "Set Brightness to : %d", _brightness);
+
 		}
+		isInitOK = true;
 	}
 	return isInitOK;
 }
 
-bool LedDeviceWled::initRestAPI(const QString &hostname, int port)
+bool LedDeviceWled::openRestAPI()
 {
-	bool isInitOK = false;
+	bool isInitOK {true};
 
 	if ( _restApi == nullptr )
 	{
-		_restApi = new ProviderRestApi(hostname, port);
+		_restApi = new ProviderRestApi(_address.toString(), _apiPort);
 		_restApi->setBasePath( API_BASE_PATH );
-
-		isInitOK = true;
 	}
 	return isInitOK;
+}
+
+int LedDeviceWled::open()
+{
+	Debug(_log,"");
+	int retval = -1;
+	_isDeviceReady = false;
+
+	if (NetUtils::resolveHostToAddress(_log, _hostName, _address, _apiPort))
+	{
+		if ( openRestAPI() )
+		{
+			if (ProviderUdp::open() == 0)
+			{
+				// Everything is OK, device is ready
+				_isDeviceReady = true;
+				retval = 0;
+			}
+		}
+	}
+	return retval;
 }
 
 QString LedDeviceWled::getOnOffRequest(bool isOn) const
@@ -364,37 +332,31 @@ QJsonObject LedDeviceWled::getProperties(const QJsonObject& params)
 	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 	QJsonObject properties;
 
-	QString hostName = params["host"].toString("");
+	_hostName = params[CONFIG_HOST].toString("");
 	_apiPort = API_DEFAULT_PORT;
 
-#ifdef ENABLE_MDNS
-	if (hostName.endsWith("._tcp.local"))
+	Info(_log, "Get properties for %s, hostname (%s)", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(_hostName) );
+
+	if (NetUtils::resolveHostToAddress(_log, _hostName, _address, _apiPort))
 	{
-		//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
-		hostName = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8()).target();
-	}
-#endif
-
-	QHostAddress address;
-	if (NetUtils::resolveHostAddress(_log, hostName, address))
-	{
-		QString filter = params["filter"].toString("");
-
-		initRestAPI( address.toString(), _apiPort);
-		_restApi->setPath(filter);
-
-		httpResponse response = _restApi->get();
-		if ( response.error() )
+		if ( openRestAPI() )
 		{
-			Warning (_log, "%s get properties failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
-		}
+			QString filter = params["filter"].toString("");
+			_restApi->setPath(filter);
 
-		QJsonObject propertiesDetails = response.getBody().object();
-		if (!propertiesDetails.isEmpty())
-		{
-			propertiesDetails.insert("maxLedCount", UDP_MAX_LED_NUM);
+			httpResponse response = _restApi->get();
+			if ( response.error() )
+			{
+				Warning (_log, "%s get properties failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+			}
+
+			QJsonObject propertiesDetails = response.getBody().object();
+			if (!propertiesDetails.isEmpty())
+			{
+				propertiesDetails.insert("maxLedCount", UDP_MAX_LED_NUM);
+			}
+			properties.insert("properties", propertiesDetails);
 		}
-		properties.insert("properties", propertiesDetails);
 
 		DebugIf(verbose, _log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 	}
@@ -405,31 +367,25 @@ void LedDeviceWled::identify(const QJsonObject& params)
 {
 	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
-	QString hostName = params["host"].toString("");
+	_hostName = params[CONFIG_HOST].toString("");
 	_apiPort = API_DEFAULT_PORT;
 
-#ifdef ENABLE_MDNS
-	if (hostName.endsWith("._tcp.local"))
+	Info(_log, "Identify %s, hostname (%s)", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(_hostName) );
+
+	if (NetUtils::resolveHostToAddress(_log, _hostName, _address, _apiPort))
 	{
-		//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
-		hostName = MdnsBrowser::getInstance().getServiceInstanceRecord(hostName.toUtf8()).target();
-	}
-#endif
+		if ( openRestAPI() )
+		{
+			_isRestoreOrigState = true;
+			storeState();
 
-	QHostAddress address;
-	if (NetUtils::resolveHostAddress(_log, hostName, address))
-	{
-		initRestAPI( address.toString(), _apiPort);
+			QString request = getOnOffRequest(true) + "," + getLorRequest(1) + "," + getEffectRequest(25);
+			sendStateUpdateRequest(request);
 
-		_isRestoreOrigState = true;
-		storeState();
+			wait(DEFAULT_IDENTIFY_TIME);
 
-		QString request = getOnOffRequest(true) + "," + getLorRequest(1) + "," + getEffectRequest(25);
-		sendStateUpdateRequest(request);
-
-		wait(DEFAULT_IDENTIFY_TIME);
-
-		restoreState();
+			restoreState();
+		}
 	}
 }
 

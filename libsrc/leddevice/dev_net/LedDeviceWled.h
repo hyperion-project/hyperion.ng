@@ -82,6 +82,13 @@ protected:
 	bool init(const QJsonObject &deviceConfig) override;
 
 	///
+	/// @brief Opens the output device.
+	///
+	/// @return Zero on success (i.e. device is ready), else negative
+	///
+	int open() override;
+
+	///
 	/// @brief Writes the RGB-Color values to the LEDs.
 	///
 	/// @param[in] ledValues The RGB-color per LED
@@ -127,11 +134,9 @@ private:
 	///
 	/// @brief Initialise the access to the REST-API wrapper
 	///
-	/// @param[in] host
-	/// @param[in] port
 	/// @return True, if success
 	///
-	bool initRestAPI(const QString &hostname, int port );
+	bool openRestAPI();
 
 	///
 	/// @brief Get command to power WLED-device on or off
