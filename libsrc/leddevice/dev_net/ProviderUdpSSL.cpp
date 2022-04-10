@@ -14,10 +14,25 @@
 #include "ProviderUdpSSL.h"
 #include <utils/NetUtils.h>
 
-const int MAX_RETRY = 20;
+#include "mbedtls/version.h"
+
+// Constants
+namespace {
+
+const int DEFAULT_SSLPORT = 2100;
+
+const char DEFAULT_TRANSPORT_TYPE[] = "DTLS";
+const char DEFAULT_SEED_CUSTOM[] = "dtls_client";
+
+const int DEFAULT_HANDSHAKE_ATTEMPTS = 5;
+const int DEFAULT_HANDSHAKE_TIMEOUT_MIN = 300;
+const int DEFAULT_HANDSHAKE_TIMEOUT_MAX = 1000;
+}
+
 
 ProviderUdpSSL::ProviderUdpSSL(const QJsonObject &deviceConfig)
 	: LedDevice(deviceConfig)
+	, _port(-1)
 	, client_fd()
 	, entropy()
 	, ssl()
@@ -25,19 +40,18 @@ ProviderUdpSSL::ProviderUdpSSL(const QJsonObject &deviceConfig)
 	, cacert()
 	, ctr_drbg()
 	, timer()
-	, _transport_type("DTLS")
-	, _custom("dtls_client")
-	, _port(-1)
+	, _transport_type(DEFAULT_TRANSPORT_TYPE)
+	, _custom(DEFAULT_SEED_CUSTOM)
 	, _ssl_port(1)
 	, _server_name()
 	, _psk()
 	, _psk_identity()
-	, _handshake_attempts(5)
-	, _retry_left(MAX_RETRY)
+	, _handshake_attempts(DEFAULT_HANDSHAKE_ATTEMPTS)
+	, _handshake_timeout_min(DEFAULT_HANDSHAKE_TIMEOUT_MIN)
+	, _handshake_timeout_max(DEFAULT_HANDSHAKE_TIMEOUT_MAX)
 	, _streamReady(false)
 	, _streamPaused(false)
-	, _handshake_timeout_min(300)
-	, _handshake_timeout_max(1000)
+
 {
 	bool error = false;
 
@@ -59,7 +73,7 @@ ProviderUdpSSL::ProviderUdpSSL(const QJsonObject &deviceConfig)
 
 ProviderUdpSSL::~ProviderUdpSSL()
 {
-	closeConnection();
+	stopConnection();
 
 	mbedtls_ctr_drbg_free(&ctr_drbg);
 	mbedtls_entropy_free(&entropy);
@@ -75,19 +89,18 @@ bool ProviderUdpSSL::init(const QJsonObject &deviceConfig)
 		//PSK Pre Shared Key
 		_psk           = deviceConfig["psk"].toString();
 		_psk_identity  = deviceConfig["psk_identity"].toString();
-		_ssl_port          = deviceConfig["sslport"].toInt(2100);
+		_ssl_port      = deviceConfig["sslport"].toInt(DEFAULT_SSLPORT);
 		_server_name   = deviceConfig["servername"].toString();
 
-		if( deviceConfig.contains("transport_type") ) _transport_type        = deviceConfig["transport_type"].toString("DTLS");
-		if( deviceConfig.contains("seed_custom") )    _custom                = deviceConfig["seed_custom"].toString("dtls_client");
-		if( deviceConfig.contains("retry_left") )     _retry_left            = deviceConfig["retry_left"].toInt(MAX_RETRY);
-		if( deviceConfig.contains("hs_attempts") )    _handshake_attempts    = deviceConfig["hs_attempts"].toInt(5);
-		if (deviceConfig.contains("hs_timeout_min"))  _handshake_timeout_min = deviceConfig["hs_timeout_min"].toInt(300);
-		if (deviceConfig.contains("hs_timeout_max"))  _handshake_timeout_max = deviceConfig["hs_timeout_max"].toInt(1000);
+		if( deviceConfig.contains("transport_type") ) { _transport_type        = deviceConfig["transport_type"].toString(DEFAULT_TRANSPORT_TYPE); }
+		if( deviceConfig.contains("seed_custom") )    { _custom                = deviceConfig["seed_custom"].toString(DEFAULT_SEED_CUSTOM); }
+		if( deviceConfig.contains("hs_attempts") )    { _handshake_attempts    = deviceConfig["hs_attempts"].toInt(DEFAULT_HANDSHAKE_ATTEMPTS); }
+		if (deviceConfig.contains("hs_timeout_min"))  { _handshake_timeout_min = static_cast<uint32_t>(deviceConfig["hs_timeout_min"].toInt(DEFAULT_HANDSHAKE_TIMEOUT_MIN)); }
+		if (deviceConfig.contains("hs_timeout_max"))  { _handshake_timeout_max = static_cast<uint32_t>(deviceConfig["hs_timeout_max"].toInt(DEFAULT_HANDSHAKE_TIMEOUT_MAX)); }
 
 		if (!NetUtils::isValidPort(_log,_ssl_port,_server_name))
 		{
-			QString errortext = QString ("Invalid SSL port [%1]!").arg(_port);
+			QString errortext = QString ("Invalid SSL port [%1]!").arg(_ssl_port);
 			this->setInError( errortext );
 			isInitOK = false;
 		}
@@ -103,6 +116,8 @@ int ProviderUdpSSL::open()
 {
 	int retval = -1;
 	_isDeviceReady = false;
+
+	Info(_log, "Open UDP SSL streaming to %s port: %d", QSTRING_CSTR(_address.toString()), _ssl_port);
 
 	if ( !initNetwork() )
 	{
@@ -124,9 +139,9 @@ int ProviderUdpSSL::close()
 	_isDeviceReady = false;
 
 	Debug(_log, "Close SSL UDP-device: %s", QSTRING_CSTR(this->getActiveDeviceType()));
-	closeConnection();
-	// Everything is OK -> device is closed
+	stopConnection();
 
+	// Everything is OK -> device is closed
 	return retval;
 }
 
@@ -139,15 +154,10 @@ bool ProviderUdpSSL::initNetwork()
 {
 	if ((!_isDeviceReady || _streamPaused) && _streamReady)
 	{
-		closeConnection();
+		stopConnection();
 	}
 
-	if (!initConnection())
-	{
-		return false;
-	}
-
-	return true;
+	return initConnection();
 }
 
 bool ProviderUdpSSL::initConnection()
@@ -166,41 +176,28 @@ bool ProviderUdpSSL::initConnection()
 	{
 		_streamReady = true;
 		_streamPaused = false;
-		_isDeviceReady = true;
 		return true;
 	}
 
 	return false;
 }
 
-void ProviderUdpSSL::closeConnection()
-{
-	if (_streamReady)
-	{
-		closeSSLNotify();
-		freeSSLConnection();
-		_streamReady = false;
-	}
-}
-
 bool ProviderUdpSSL::seedingRNG()
 {
-
 	mbedtls_entropy_init(&entropy);
 
 	QByteArray customDataArray = _custom.toLocal8Bit();
 	const char* customData = customDataArray.constData();
 
 	int ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func,
-		                            &entropy, reinterpret_cast<const unsigned char*>(customData),
-		                            std::min(strlen(customData), (size_t)MBEDTLS_CTR_DRBG_MAX_SEED_INPUT));
+									&entropy, reinterpret_cast<const unsigned char*>(customData),
+									 std::min(strlen(customData), static_cast<size_t>(MBEDTLS_CTR_DRBG_MAX_SEED_INPUT)));
 
 	if (ret != 0)
 	{
 		Error(_log, "%s", QSTRING_CSTR(QString("mbedtls_ctr_drbg_seed FAILED %1").arg(errorMsg(ret))));
 		return false;
 	}
-
 	return true;
 }
 
@@ -219,7 +216,7 @@ bool ProviderUdpSSL::setupStructure()
 	const int * ciphersuites = getCiphersuites();
 
 	mbedtls_ssl_conf_authmode(&conf, MBEDTLS_SSL_VERIFY_REQUIRED);
-	mbedtls_ssl_conf_ca_chain(&conf, &cacert, NULL);
+	mbedtls_ssl_conf_ca_chain(&conf, &cacert, nullptr);
 
 	mbedtls_ssl_conf_handshake_timeout(&conf, _handshake_timeout_min, _handshake_timeout_max);
 
@@ -232,15 +229,12 @@ bool ProviderUdpSSL::setupStructure()
 		return false;
 	}
 
-	return startUPDConnection();
+	return setupPSK();
 }
 
-bool ProviderUdpSSL::startUPDConnection()
+bool ProviderUdpSSL::startConnection()
 {
 	mbedtls_ssl_session_reset(&ssl);
-
-	if (!setupPSK())
-		return false;
 
 	int ret = mbedtls_net_connect(&client_fd, _address.toString().toUtf8(), std::to_string(_ssl_port).c_str(), MBEDTLS_NET_PROTO_UDP);
 
@@ -272,15 +266,13 @@ bool ProviderUdpSSL::setupPSK()
 		Error(_log, "%s", QSTRING_CSTR(QString("mbedtls_ssl_conf_psk FAILED %1").arg(errorMsg(ret))));
 		return false;
 	}
-
 	return true;
 }
 
 bool ProviderUdpSSL::startSSLHandshake()
 {
 	int ret = 0;
-
-	for (unsigned int attempt = 1; attempt <= _handshake_attempts; ++attempt)
+	for (int attempt = 1; attempt <= _handshake_attempts; ++attempt)
 	{
 		do
 		{
@@ -291,11 +283,8 @@ bool ProviderUdpSSL::startSSLHandshake()
 		{
 			break;
 		}
-		else
-		{
-			Warning(_log, "%s", QSTRING_CSTR(QString("mbedtls_ssl_handshake attempt %1/%2 FAILED. Reason: %3").arg(attempt).arg(_handshake_attempts).arg(errorMsg(ret))));
-		}
 
+		Warning(_log, "%s", QSTRING_CSTR(QString("mbedtls_ssl_handshake attempt %1/%2 FAILED. Reason: %3").arg(attempt).arg(_handshake_attempts).arg(errorMsg(ret))));
 		QThread::msleep(200);
 	}
 
@@ -304,23 +293,31 @@ bool ProviderUdpSSL::startSSLHandshake()
 		Error(_log, "%s", QSTRING_CSTR(QString("mbedtls_ssl_handshake FAILED %1").arg(errorMsg(ret))));
 		return false;
 	}
-	else
+
+	if (mbedtls_ssl_get_verify_result(&ssl) != 0)
 	{
-		if (mbedtls_ssl_get_verify_result(&ssl) != 0)
-		{
-			Error(_log, "SSL certificate verification failed!");
-			return false;
-		}
+		Error(_log, "SSL certificate verification failed!");
+		return false;
 	}
 
 	return true;
+}
+
+void ProviderUdpSSL::stopConnection()
+{
+	if (_streamReady)
+	{
+		closeSSLNotify();
+		freeSSLConnection();
+		_streamReady = false;
+	}
 }
 
 void ProviderUdpSSL::freeSSLConnection()
 {
 	try
 	{
-		Warning(_log, "Release mbedtls");
+		Debug(_log, "Release mbedtls");
 		mbedtls_ssl_session_reset(&ssl);
 		mbedtls_net_free(&client_fd);
 		mbedtls_ssl_free(&ssl);
@@ -360,41 +357,15 @@ void ProviderUdpSSL::writeBytes(unsigned int size, const uint8_t* data, bool flu
 
 	if (ret <= 0)
 	{
-		handleReturn(ret);
-	}
-}
+		Error(_log, "Error while writing UDP SSL stream updates. mbedtls_ssl_write returned: %s", QSTRING_CSTR(errorMsg(ret)));
 
-void ProviderUdpSSL::handleReturn(int ret)
-{
-	bool closeNotify = false;
-	bool gotoExit = false;
+		if (_streamReady)
+		{
+			stopConnection();
+			disable();
 
-	switch (ret)
-	{
-		case MBEDTLS_ERR_SSL_TIMEOUT:
-			Warning(_log, "%s", QSTRING_CSTR(errorMsg( ret ) ));
-			if ( _retry_left-- > 0 ) return;
-			gotoExit = true;
-			break;
-		case MBEDTLS_ERR_SSL_PEER_CLOSE_NOTIFY:
-			Warning(_log,"SSL Connection was closed gracefully");
-			ret = 0;
-			closeNotify = true;
-			break;
-		default:
-			Warning(_log, "mbedtls_ssl_read returned %s", QSTRING_CSTR(errorMsg( ret ) ));
-			gotoExit = true;
-	}
-
-	if (closeNotify)
-	{
-		closeSSLNotify();
-		gotoExit = true;
-	}
-
-	if (gotoExit)
-	{
-		_streamReady = false;
+			startEnableAttemptsTimer();
+		}
 	}
 }
 
@@ -409,7 +380,7 @@ QString ProviderUdpSSL::errorMsg(int ret)
 void ProviderUdpSSL::closeSSLNotify()
 {
 	/* No error checking, the connection might be closed already */
-	while (mbedtls_ssl_close_notify(&ssl) == MBEDTLS_ERR_SSL_WANT_WRITE);
+	while (mbedtls_ssl_close_notify(&ssl) == MBEDTLS_ERR_SSL_WANT_WRITE)
+	{
+	}
 }
-
-

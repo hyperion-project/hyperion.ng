@@ -119,6 +119,8 @@ bool LedDeviceRazer::initRestAPI(const QString& hostname, int port)
 	if (_restApi == nullptr)
 	{
 		_restApi = new ProviderRestApi(hostname, port);
+		_restApi->setLogger(_log);
+
 		_restApi->setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
 		isInitOK = true;

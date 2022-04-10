@@ -22,15 +22,15 @@ const int PriorityMuxer::ENDLESS = -1;
 
 PriorityMuxer::PriorityMuxer(int ledCount, QObject * parent)
 	: QObject(parent)
-	, _log(nullptr)
-	, _currentPriority(PriorityMuxer::LOWEST_PRIORITY)
-	, _previousPriority(_currentPriority)
-	, _manualSelectedPriority(MANUAL_SELECTED_PRIORITY)
-	, _prevVisComp (hyperion::Components::COMP_COLOR)
-	, _sourceAutoSelectEnabled(true)
-	, _updateTimer(new QTimer(this))
-	, _timer(new QTimer(this))
-	, _blockTimer(new QTimer(this))
+	  , _log(nullptr)
+	  , _currentPriority(PriorityMuxer::LOWEST_PRIORITY)
+	  , _previousPriority(_currentPriority)
+	  , _manualSelectedPriority(MANUAL_SELECTED_PRIORITY)
+	  , _prevVisComp (hyperion::Components::COMP_COLOR)
+	  , _sourceAutoSelectEnabled(true)
+	  , _updateTimer(new QTimer(this))
+	  , _timer(new QTimer(this))
+	  , _blockTimer(new QTimer(this))
 {
 	QString subComponent = parent->property("instance").toString();
 	_log= Logger::getInstance("MUXER", subComponent);
@@ -218,12 +218,13 @@ bool PriorityMuxer::setInput(int priority, const std::vector<ColorRgb>& ledColor
 
 	if (input.componentId == hyperion::COMP_COLOR)
 	{
+		activeChange = true;
 		if (!input.ledColors.empty() && !ledColors.empty())
 		{
 			//Only issue priority update, if first LED change as value in update is representing first LED only
-			if (input.ledColors.begin() != ledColors.begin())
+			if (input.ledColors.front() == ledColors.front())
 			{
-				activeChange = true;
+				activeChange = false;
 			}
 		}
 	}

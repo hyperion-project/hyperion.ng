@@ -272,6 +272,7 @@ if(ENABLE_DEV_NETWORK)
 	endif (USE_SYSTEM_MBEDTLS_LIBS)
 
 	if (NOT USE_SYSTEM_MBEDTLS_LIBS)
+		cmake_minimum_required(VERSION 3.2)
 		set(DEFAULT_USE_SYSTEM_MBEDTLS_LIBS OFF CACHE BOOL "system mbedtls libraries not found, disable use system mbedtls libraries")
 		set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared mbedtls libraries")
 
@@ -281,7 +282,7 @@ if(ENABLE_DEV_NETWORK)
 		set(USE_STATIC_MBEDTLS_LIBRARY ON CACHE BOOL "Enable mbedTLS static libraries")
 
 		set(MBEDTLS_DOWNLOAD_DIR "${CMAKE_BINARY_DIR}/dependencies/external/mbedtls/download")
-		set(MBEDTLS_SOURCE_DIR "${CMAKE_BINARY_DIR}/dependencies/external/mbedtls/src")
+		set(MBEDTLS_SOURCE_DIR "${CMAKE_SOURCE_DIR}/dependencies/external/mbedtls")
 		set(MBEDTLS_BINARY_DIR "${CMAKE_BINARY_DIR}/dependencies/external/mbedtls/build")
 		set(MBEDTLS_INSTALL_DIR "${CMAKE_BINARY_DIR}")
 		if(${CMAKE_BUILD_TYPE} AND ${CMAKE_BUILD_TYPE} EQUAL "Debug")

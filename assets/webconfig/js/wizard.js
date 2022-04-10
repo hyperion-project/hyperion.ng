@@ -591,6 +591,19 @@ var lightPosRightMiddle = { hmin: 0.85, hmax: 1.0, vmin: 0.25, vmax: 0.75 };
 var lightPosRightBottom = { hmin: 0.85, hmax: 1.0, vmin: 0.5, vmax: 1.0 };
 var lightPosEntire = { hmin: 0.0, hmax: 1.0, vmin: 0.0, vmax: 1.0 };
 
+var lightPosBottomLeft14 = { hmin: 0, hmax: 0.25, vmin: 0.85, vmax: 1.0 };
+var lightPosBottomLeft12 = { hmin: 0.25, hmax: 0.5, vmin: 0.85, vmax: 1.0 };
+var lightPosBottomLeft34 = { hmin: 0.5, hmax: 0.75, vmin: 0.85, vmax: 1.0 };
+var lightPosBottomLeft11 = { hmin: 0.75, hmax: 1, vmin: 0.85, vmax: 1.0 };
+
+var lightPosBottomLeft112 = { hmin: 0, hmax: 0.5, vmin: 0.85, vmax: 1.0 };
+var lightPosBottomLeft121 = { hmin: 0.5, hmax: 1, vmin: 0.85, vmax: 1.0 };
+var lightPosBottomLeftNewMid = { hmin: 0.25, hmax: 0.75, vmin: 0.85, vmax: 1.0 };
+
+var lightPosTopLeft112 = { hmin: 0, hmax: 0.5, vmin: 0, vmax: 0.15 };
+var lightPosTopLeft121 = { hmin: 0.5, hmax: 1, vmin: 0, vmax: 0.15 };
+var lightPosTopLeftNewMid = { hmin: 0.25, hmax: 0.75, vmin: 0, vmax: 0.15 };
+
 function assignLightPos(id, pos, name) {
   var i = null;
 
@@ -622,6 +635,26 @@ function assignLightPos(id, pos, name) {
     i = lightPosRightMiddle;
   else if (pos === "rightbottom")
     i = lightPosRightBottom;
+	else if (pos === "lightPosBottomLeft14")
+		i = lightPosBottomLeft14;
+	else if (pos === "lightPosBottomLeft12")
+		i = lightPosBottomLeft12;
+	else if (pos === "lightPosBottomLeft34")
+		i = lightPosBottomLeft34;
+	else if (pos === "lightPosBottomLeft11")
+		i = lightPosBottomLeft11;
+	else if (pos === "lightPosBottomLeft112")
+		i = lightPosBottomLeft112;
+	else if (pos === "lightPosBottomLeft121")
+		i = lightPosBottomLeft121;
+	else if (pos === "lightPosBottomLeftNewMid")
+		i = lightPosBottomLeftNewMid;
+	else if (pos === "lightPosTopLeft112")
+		i = lightPosTopLeft112;
+	else if (pos === "lightPosTopLeft121")
+		i = lightPosTopLeft121;
+	else if (pos === "lightPosTopLeftNewMid")
+		i = lightPosTopLeftNewMid;
   else
     i = lightPosEntire;
 
@@ -1065,23 +1098,28 @@ function beginWizardHue() {
     d.type = 'philipshue';
     d.colorOrder = 'rgb';
     d.lightIds = finalLightIds;
-    d.transitiontime = parseInt(eV("transitiontime"));
-    d.restoreOriginalState = (eV("restoreOriginalState") == true);
-    d.switchOffOnBlack = (eV("switchOffOnBlack") == true);
-    d.brightnessFactor = parseFloat(eV("brightnessFactor"));
+    d.transitiontime = parseInt(eV("transitiontime", 1));
+    d.restoreOriginalState = (eV("restoreOriginalState", false) == true);
+    d.switchOffOnBlack = (eV("switchOffOnBlack", false) == true);
+
+    d.blackLevel = parseFloat(eV("blackLevel", 0.009));
+    d.onBlackTimeToPowerOff = parseInt(eV("onBlackTimeToPowerOff", 600));
+    d.onBlackTimeToPowerOn = parseInt(eV("onBlackTimeToPowerOn", 300));
+    d.brightnessFactor = parseFloat(eV("brightnessFactor", 1));
 
     d.clientkey = $('#clientkey').val();
     d.groupId = parseInt($('#groupId').val());
-    d.blackLightsTimeout = parseInt(eV("blackLightsTimeout"));
-    d.brightnessMin = parseFloat(eV("brightnessMin"));
-    d.brightnessMax = parseFloat(eV("brightnessMax"));
-    d.brightnessThreshold = parseFloat(eV("brightnessThreshold"));
-    d.sslReadTimeout = parseInt(eV("sslReadTimeout"));
-    d.sslHSTimeoutMin = parseInt(eV("sslHSTimeoutMin"));
-    d.sslHSTimeoutMax = parseInt(eV("sslHSTimeoutMax"));
+	d.blackLightsTimeout = parseInt(eV("blackLightsTimeout", 5000));
+	d.brightnessMin = parseFloat(eV("brightnessMin", 0));
+	d.brightnessMax = parseFloat(eV("brightnessMax", 1));
+	d.brightnessThreshold = parseFloat(eV("brightnessThreshold", 0.0001));
+	d.handshakeTimeoutMin = parseInt(eV("handshakeTimeoutMin", 300));
+	d.handshakeTimeoutMax = parseInt(eV("handshakeTimeoutMax", 1000));
     d.verbose = (eV("verbose") == true);
-    d.debugStreamer = (eV("debugStreamer") == true);
-    d.debugLevel = (eV("debugLevel"));
+    
+    d.autoStart = conf_editor.getEditor("root.generalOptions.autoStart").getValue();
+    d.enableAttempts = parseInt(conf_editor.getEditor("root.generalOptions.enableAttempts").getValue(););
+    d.enableAttemptsInterval = parseInt(conf_editor.getEditor("root.generalOptions.enableAttemptsInterval").getValue(););
 
     if (hueType == 'philipshue') {
       d.useEntertainmentAPI = false;
@@ -1238,8 +1276,11 @@ function get_hue_lights() {
           "bottom", "bottomleft", "bottomright",
           "left", "lefttop", "leftmiddle", "leftbottom",
           "right", "righttop", "rightmiddle", "rightbottom",
-          "entire"
-        ];
+          "entire",
+          "lightPosTopLeft112", "lightPosTopLeftNewMid", "lightPosTopLeft121",
+          "lightPosBottomLeft14", "lightPosBottomLeft12", "lightPosBottomLeft34", "lightPosBottomLeft11",
+          "lightPosBottomLeft112", "lightPosBottomLeftNewMid", "lightPosBottomLeft121"
+         ];
 
         if (hueType == 'philipshue') {
           lightOptions.unshift("disabled");
@@ -1413,7 +1454,8 @@ function beginWizardYeelight() {
     window.serverConfig.device = d;
 
     //smoothing off
-    window.serverConfig.smoothing.enable = false;
+    if (!(window.serverConfig.smoothing == null))
+      window.serverConfig.smoothing.enable = false;
 
     requestWriteConfig(window.serverConfig, true);
     resetWizard();
@@ -1507,7 +1549,10 @@ function assign_yeelight_lights() {
       "bottom", "bottomleft", "bottomright",
       "left", "lefttop", "leftmiddle", "leftbottom",
       "right", "righttop", "rightmiddle", "rightbottom",
-      "entire"
+      "entire",
+      "lightPosTopLeft112", "lightPosTopLeftNewMid", "lightPosTopLeft121",
+      "lightPosBottomLeft14", "lightPosBottomLeft12", "lightPosBottomLeft34", "lightPosBottomLeft11",
+      "lightPosBottomLeft112", "lightPosBottomLeftNewMid", "lightPosBottomLeft121"
     ];
 
     lightOptions.unshift("disabled");
@@ -1762,7 +1807,10 @@ function assign_atmoorb_lights() {
       "bottom", "bottomleft", "bottomright",
       "left", "lefttop", "leftmiddle", "leftbottom",
       "right", "righttop", "rightmiddle", "rightbottom",
-      "entire"
+      "entire",
+      "lightPosTopLeft112", "lightPosTopLeftNewMid", "lightPosTopLeft121",
+      "lightPosBottomLeft14", "lightPosBottomLeft12", "lightPosBottomLeft34", "lightPosBottomLeft11",
+      "lightPosBottomLeft112", "lightPosBottomLeftNewMid", "lightPosBottomLeft121"
     ];
 
     lightOptions.unshift("disabled");

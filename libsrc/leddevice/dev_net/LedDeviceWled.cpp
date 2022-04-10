@@ -119,6 +119,8 @@ bool LedDeviceWled::openRestAPI()
 	if ( _restApi == nullptr )
 	{
 		_restApi = new ProviderRestApi(_address.toString(), _apiPort);
+		_restApi->setLogger(_log);
+
 		_restApi->setBasePath( API_BASE_PATH );
 	}
 	return isInitOK;

@@ -12,10 +12,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Allow to build a "light" version of Hyperion, i.e. no grabbers, or services like flat-/proto buffers, boblight, CEC
 - Allow to restart Hyperion via Systray
+- LED-Device: Support retry attempts enabling devices, e.g. to open devices after network or a device itself got available (#1302)
+ (Fixes that devices got "stuck", if initial open failed e.g. for WLED, Hue)
 - LED Matrix Layout - Support vertical cabling direction (#1420)
 - Support additional Yeelight models
 - LED-Devices: Show warning, if get properties failed (Network devices: indication that network device is not reachable)
 - hyperion-remote: Show image filename in UI for images sent
+- mDNS support for all platforms inkl. Windows (#740)
+- LED-Devices mDNS discovery support and ease of configuration (Cololight, Nanoleaf, Philips-Hue, WLED, Yeelight); removes the need to configure IP-Address, as address is resolved automatically.
+- Forwarder: mDNS discovery support and ease of configuration of other Hyperion instances 
+- Grabber: mDNS discovery for standalone grabbers
+
 
 ### Changed
 
@@ -23,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Boblight: Support multiple Boblight clients with different priorities
 - UI: Allow configuration of a Boblight server per LED-instance
 - UI: LED Layout - Removed limitations on indention
+- mDNS Publisher :Aligned Hyperion mDNS names to general conventions and simplified namings
+- Refactored Philips Hue wizard and LED-Device
 
 ### Fixed
 
@@ -30,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Effects: Fix that start effect is stuck on UI
 - Fixes that the Led-Device output flow was interrupted, by an enabling API request on an already enabled device (#967
 - Yeelight - Workaround: Ignore error when setting music mode = off, but the music-mode is already off (#1372)
+- Fixed: Hue Entertainment mode does not resume after no signal (#930)
 - Standalone grabbers: Improved fps help/error text, fixed default address and port, fixed auto discovery of Hyperion server in hyperion-remote
 - Fixed Qt version override, e.g. set via QTDIR
 - Remote control UI: Treat duration=0 as endless
@@ -39,8 +49,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed: Signal detection does not switch off all instances (#1281)
 - Reworked PriorityMuxer and Sub-scriptions
 - Do not kill application on SIGILL-signal (#1435)
+- Start JSON and WebServer only,  if Hyperion's instance 0 is available
 
 ## Removed
+- UI Removed sessions (of other Hyperions)
+- Replaced existing AVAHI/Bonjour code by QMdnsEngine
 
 ## [2.0.12](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.12) - 2021-11-20
 Hyperion's November release brings you some new features, removed IPv6 address related limitations, as well as fixing a couple of issues.

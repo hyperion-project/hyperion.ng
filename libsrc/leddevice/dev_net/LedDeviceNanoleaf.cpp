@@ -348,6 +348,7 @@ bool LedDeviceNanoleaf::openRestAPI()
 	if (_restApi == nullptr)
 	{
 		_restApi = new ProviderRestApi(_address.toString(), _apiPort);
+		_restApi->setLogger(_log);
 
 		//Base-path is api-path + authentication token
 		_restApi->setBasePath(QString(API_BASE_PATH).arg(_authToken));

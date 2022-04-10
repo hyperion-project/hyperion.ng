@@ -23,19 +23,6 @@
 
 #if defined(MBEDTLS_PLATFORM_C)
 #include <mbedtls/platform.h>
-#else
-#include <stdio.h>
-#include <stdlib.h>
-#define mbedtls_time         time
-#define mbedtls_time_t       time_t
-#define mbedtls_printf       printf
-#define mbedtls_fprintf      fprintf
-#define mbedtls_snprintf     snprintf
-#define mbedtls_calloc       calloc
-#define mbedtls_free         free
-#define mbedtls_exit         exit
-#define MBEDTLS_EXIT_SUCCESS EXIT_SUCCESS
-#define MBEDTLS_EXIT_FAILURE EXIT_FAILURE
 #endif
 
 #include <string.h>
@@ -49,12 +36,6 @@
 #include <mbedtls/ctr_drbg.h>
 #include <mbedtls/error.h>
 #include <mbedtls/debug.h>
-
-//----------- END mbedtls
-
-constexpr std::chrono::milliseconds STREAM_SSL_HANDSHAKE_TIMEOUT_MIN{400};
-constexpr std::chrono::milliseconds STREAM_SSL_HANDSHAKE_TIMEOUT_MAX{1000};
-constexpr std::chrono::milliseconds STREAM_SSL_READ_TIMEOUT{0};
 
 class ProviderUdpSSL : public LedDevice
 {
@@ -70,6 +51,11 @@ public:
 	/// @brief Destructor of the LED-device
 	///
 	~ProviderUdpSSL() override;
+
+	///
+	QString      _hostName;
+	QHostAddress _address;
+	int          _port;
 
 protected:
 
@@ -103,13 +89,25 @@ protected:
 	bool initNetwork();
 
 	///
+	/// @brief Start astreaming connection
+	///
+	/// @return True, if success
+	///
+	bool startConnection();
+
+	///
+	/// @brief Stop the streaming connection
+	///
+	void stopConnection();
+
+	///
 	/// Writes the given bytes/bits to the UDP-device and sleeps the latch time to ensure that the
 	/// values are latched.
 	///
 	/// @param[in] size The length of the data
 	/// @param[in] data The data
 	///
-	void writeBytes(unsigned int size, const uint8_t *data);
+	void writeBytes(unsigned int size, const uint8_t* data, bool flush = false);
 
 	///
 	/// get ciphersuites list from mbedtls_ssl_list_ciphersuites
@@ -118,36 +116,16 @@ protected:
 	///
 	virtual const int * getCiphersuites() const;
 
-	void sslLog(const QString &msg, const char* errorType = "debug");
-	void sslLog(const char* msg, const char* errorType = "debug");
-	void configLog(const char* msg, const char* type, ...);
-
-	/**
-	 * Debug callback for mbed TLS
-	 * Just prints on the USB serial port
-	 */
-	static void ProviderUdpSSLDebug(void* ctx, int level, const char* file, int line, const char* str);
-
-	/**
-	 * Certificate verification callback for mbed TLS
-	 * Here we only use it to display information on each cert in the chain
-	 */
-	static int ProviderUdpSSLVerify(void* data, mbedtls_x509_crt* crt, int depth, uint32_t* flags);
-
-	///
-	/// closeSSLNotify and freeSSLConnection
-	///
-	void closeSSLConnection();
-
 private:
 
 	bool initConnection();
+
 	bool seedingRNG();
 	bool setupStructure();
-	bool startUPDConnection();
+
 	bool setupPSK();
 	bool startSSLHandshake();
-	void handleReturn(int ret);
+
 	QString errorMsg(int ret);
 	void closeSSLNotify();
 	void freeSSLConnection();
@@ -160,24 +138,19 @@ private:
 	mbedtls_ctr_drbg_context     ctr_drbg;
 	mbedtls_timing_delay_context timer;
 
-	QMutex       _hueMutex;
 	QString      _transport_type;
 	QString      _custom;
-	QHostAddress _address;
-	QString      _defaultHost;
-	int          _port;
 	int          _ssl_port;
 	QString      _server_name;
 	QString      _psk;
 	QString      _psk_identity;
-	uint32_t     _read_timeout;
+
+	int          _handshake_attempts;
 	uint32_t     _handshake_timeout_min;
 	uint32_t     _handshake_timeout_max;
-	unsigned int _handshake_attempts;
-	int          _retry_left;
-	bool         _stopConnection;
-	bool         _debugStreamer;
-	int          _debugLevel;
+
+	bool         _streamReady;
+	bool         _streamPaused;
 };
 
 #endif // PROVIDERUDPSSL_H

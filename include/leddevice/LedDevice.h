@@ -52,6 +52,13 @@ public:
 	~LedDevice() override;
 
 	///
+	/// @brief Set the common logger for LED-devices.
+	///
+	/// @param[in] log The logger to be used
+	///
+	void setLogger(Logger* log);
+
+	///
 	/// @brief Set the current active LED-device type.
 	///
 	/// @param deviceType Device's type
@@ -86,6 +93,17 @@ public:
 	///
 	void setRewriteTime(int rewriteTime_ms);
 
+	/// @brief Set a device's enablement cycle's parameters.
+	///
+	/// @param[in] maxEnableRetries Maximum number of attempts to enable a device, if reached retries will be stopped
+	/// @param[in] enableAttemptsTimerInterval Interval in seconds between two enablement attempts
+	///
+	void setEnableAttempts(int maxEnablAttempts, std::chrono::seconds enableAttemptsTimerInterval);
+
+	/// @brief Enable a device automatically after Hyperion startup or not
+	///
+	/// @param[in] isAutoStart
+	///
 	void setAutoStart(bool isAutoStart);
 
 	///
@@ -141,7 +159,7 @@ public:
 	///
 	/// @return True, if device is initialised
 	///
-	bool isInitialised() const { return _isDeviceInitialised; }
+	bool isInitialised() const;
 
 	///
 	/// @brief Check, if device is ready to be used.
@@ -150,14 +168,14 @@ public:
 	///
 	/// @return True, if device is ready
 	///
-	bool isReady() const { return _isDeviceReady; }
+	bool isReady() const;
 
 	///
 	/// @brief Check, if device is in error state.
 	///
 	/// @return True, if device is in error
 	///
-	bool isInError() const { return _isDeviceInError; }
+	bool isInError() const;
 
 	///
 	/// @brief Prints the color values to stdout.
@@ -165,13 +183,6 @@ public:
 	/// @param[in] ledValues The color per led
 	///
 	static void printLedValues(const std::vector<ColorRgb>& ledValues);
-
-	///
-	/// @brief Set the common logger for LED-devices.
-	///
-	/// @param[in] log The logger to be used
-	///
-	void setLogger(Logger* log) { _log = log; }
 
 public slots:
 
@@ -202,40 +213,40 @@ public slots:
 	///
 	/// @return Latch time in milliseconds
 	///
-	int getLatchTime() const { return _latchTime_ms; }
+	int getLatchTime() const;
 
 	///
 	/// @brief Get the currently defined RewriteTime.
 	///
 	/// @return Rewrite time in milliseconds
 	///
-	int getRewriteTime() const { return _refreshTimerInterval_ms; }
+	int getRewriteTime() const;
 
 	///
 	/// @brief Get the number of LEDs supported by the device.
 	///
 	/// @return Number of device's LEDs, 0 = unknown number
 	///
-	int getLedCount() const { return _ledCount; }
+	int getLedCount() const;
 
 	///
 	/// @brief Get the current active LED-device type.
 	///
-	QString getActiveDeviceType() const { return _activeDeviceType; }
+	QString getActiveDeviceType() const;
 
 	///
 	/// @brief Get color order of device.
 	///
 	/// @return The color order
 	///
-	QString getColorOrder() const { return _colorOrder; }
+	QString getColorOrder() const;
 
 	///
 	/// @brief Get the LED-Device component's state.
 	///
 	/// @return True, if enabled
 	///
-	inline bool componentState() const { return _isEnabled; }
+	bool componentState() const;
 
 	///
 	/// @brief Enables the device for output.
@@ -270,11 +281,6 @@ public slots:
 	/// @return True, if success
 	///
 	virtual bool switchOff();
-
-	bool switchOnOff(bool onState)
-	{
-		return onState == true ? switchOn() : switchOff();
-	}
 
 signals:
 	///
@@ -376,13 +382,23 @@ protected:
 	virtual bool restoreState();
 
 	///
+	/// @brief Start a new enable cycle
+	///
+	void startEnableAttemptsTimer();
+
+	///
+	/// @brief Stop a new enable cycle
+	///
+	void stopEnableAttemptsTimer();
+
+	///
 	/// @brief Converts an uint8_t array to hex string.
 	///
 	/// @param data uint8_t array
 	/// @param size of the array
 	/// @param number Number of array items to be converted.
 	/// @return array as string of hex values
-	QString uint8_t_to_hex_string(const uint8_t * data, const int size, int number = -1) const;
+	static QString uint8_t_to_hex_string(const uint8_t * data, const int size, int number = -1) ;
 
 	///
 	/// @brief Converts a ByteArray to hex string.
@@ -390,7 +406,7 @@ protected:
 	/// @param data ByteArray
 	/// @param number Number of array items to be converted.
 	/// @return array as string of hex values
-	QString toHex(const QByteArray& data, int number = -1) const;
+	static QString toHex(const QByteArray& data, int number = -1) ;
 
 	/// Current device's type
 	QString _activeDeviceType;
@@ -408,17 +424,10 @@ protected:
 	/// e.g. some devices will switch off when they do not receive data at least every 15 seconds
 	QTimer*	_refreshTimer;
 
-	/// Timer that enables a device (used to retry enablement, if enabled failed before)
-	QTimer*	_enableRetryTimer;
-
 	// Device configuration parameters
 
 	/// Refresh interval in milliseconds
 	int _refreshTimerInterval_ms;
-
-	std::chrono::seconds _enableRetryTimerInterval;
-	int _enableRetries;
-	int _maxEnableRetries;
 
 	/// Time a device requires mandatorily between two writes (in milliseconds)
 	int _latchTime_ms;
@@ -435,6 +444,7 @@ protected:
 	QJsonObject _orignalStateValues;
 
 	// Device states
+
 	/// Is the device enabled?
 	bool _isEnabled;
 
@@ -477,11 +487,14 @@ private:
 	/// @brief Stop refresh cycle
 	void stopRefreshTimer();
 
-	/// @brief Start a new enable cycle
-	void startEnableRetryTimer();
+	/// Timer that enables a device (used to retry enablement, if enabled failed before)
+	QTimer*	_enableAttemptsTimer;
 
-	/// @brief Stop a new enable cycle
-	void stopEnableRetryTimer();
+	// Device configuration parameters
+
+	std::chrono::seconds _enableAttemptTimerInterval;
+	int _enableAttempts;
+	int _maxEnableAttempts;
 
 	/// Is last write refreshing enabled?
 	bool _isRefreshEnabled;

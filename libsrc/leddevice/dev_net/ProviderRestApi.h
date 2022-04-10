@@ -291,6 +291,13 @@ public:
 	///
 	void removeAllHeaders() { _networkRequestHeaders = QNetworkRequest(); }
 
+	///
+	/// @brief Set the common logger for LED-devices.
+	///
+	/// @param[in] log The logger to be used
+	///
+	void setLogger(Logger* log) { _log = log; }
+
 private:
 
 	///
