@@ -39,10 +39,6 @@ if (ENABLE_MDNS)
 				-Wno-dev
 			)
 
-			if(NOT CMAKE_BUILD_TYPE)
-				set(CMAKE_BUILD_TYPE "Release")
-			endif()
-
 			if(${CMAKE_BUILD_TYPE} AND ${CMAKE_BUILD_TYPE} EQUAL "Debug")
 				set(QMDNS_LOGGING 1)
 			else ()
@@ -50,7 +46,7 @@ if (ENABLE_MDNS)
 			endif ()
 
 			configure_file(${CMAKE_SOURCE_DIR}/dependencies/CMakeLists-qmdnsengine.txt.in ${QMDNS_WORK_DIR}/CMakeLists.txt @ONLY)
-			execute_process(COMMAND ${CMAKE_COMMAND} ${QMDNS_INSTALL_DIR} -G "${CMAKE_GENERATOR}" . WORKING_DIRECTORY ${QMDNS_WORK_DIR})
+			execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" . WORKING_DIRECTORY ${QMDNS_WORK_DIR})
 			execute_process(COMMAND ${CMAKE_COMMAND} --build . --config "${CMAKE_BUILD_TYPE}" WORKING_DIRECTORY ${QMDNS_WORK_DIR})
 		endif()
 
@@ -393,4 +389,3 @@ if(ENABLE_DEV_NETWORK)
 
 	endif (NOT USE_SYSTEM_MBEDTLS_LIBS)
 endif(ENABLE_DEV_NETWORK)
-
