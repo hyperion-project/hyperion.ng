@@ -16,20 +16,20 @@ function storageComp() {
 
 function getStorage(item) {
   if (storageComp()) {
-      return localStorage.getItem(item);
+    return localStorage.getItem(item);
   }
   return null;
 }
 
 function setStorage(item, value) {
   if (storageComp()) {
-      localStorage.setItem(item, value);
+    localStorage.setItem(item, value);
   }
 }
 
 function removeStorage(item) {
   if (storageComp()) {
-      localStorage.removeItem(item);
+    localStorage.removeItem(item);
   }
 }
 
@@ -306,7 +306,7 @@ function showInfoDialog(type, header, message) {
   if (type == "select" || type == "iswitch")
     $('#id_body').append('<select id="id_select" class="form-control" style="margin-top:10px;width:auto;"></select>');
 
-  if (getStorage("darkMode", false) == "on")
+  if (getStorage("darkMode") == "on")
     $('#id_logo').attr("src", 'img/hyperion/logo_negativ.png');
 
   $(type == "renInst" || type == "changePassword" ? "#modal_dialog_rename" : "#modal_dialog").modal({
@@ -1334,4 +1334,3 @@ function isValidHostnameOrIP4(value) {
 function isValidHostnameOrIP(value) {
   return (isValidHostnameOrIP4(value) || isValidIPv6(value) || isValidServicename(value));
 }
-

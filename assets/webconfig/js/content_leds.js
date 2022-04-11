@@ -1668,7 +1668,7 @@ async function getProperties_device(ledType, key, params) {
         }
       }
       else {
-        showNotification('warning', $.i18n('conf_leds_error_get_properties_text'), $.i18n('conf_leds_error_get_properties_title'))
+        showNotification('warning', $.i18n('conf_leds_error_get_properties_text'), $.i18n('conf_leds_error_get_properties_title'));
         $('#btn_submit_controller').prop('disabled', true);
         $('#btn_test_controller').prop('disabled', true);
       }
@@ -1795,6 +1795,6 @@ function showAllDeviceInputOptions(showForKey, state) {
 }
 
 function disableAutoResolvedGeneralOptions() {
-      conf_editor.getEditor("root.generalOptions.hardwareLedCount").disable();
-      conf_editor.getEditor("root.generalOptions.colorOrder").disable();
+  conf_editor.getEditor("root.generalOptions.hardwareLedCount").disable();
+  conf_editor.getEditor("root.generalOptions.colorOrder").disable();
 }

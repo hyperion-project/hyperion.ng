@@ -635,26 +635,26 @@ function assignLightPos(id, pos, name) {
     i = lightPosRightMiddle;
   else if (pos === "rightbottom")
     i = lightPosRightBottom;
-	else if (pos === "lightPosBottomLeft14")
-		i = lightPosBottomLeft14;
-	else if (pos === "lightPosBottomLeft12")
-		i = lightPosBottomLeft12;
-	else if (pos === "lightPosBottomLeft34")
-		i = lightPosBottomLeft34;
-	else if (pos === "lightPosBottomLeft11")
-		i = lightPosBottomLeft11;
-	else if (pos === "lightPosBottomLeft112")
-		i = lightPosBottomLeft112;
-	else if (pos === "lightPosBottomLeft121")
-		i = lightPosBottomLeft121;
-	else if (pos === "lightPosBottomLeftNewMid")
-		i = lightPosBottomLeftNewMid;
-	else if (pos === "lightPosTopLeft112")
-		i = lightPosTopLeft112;
-	else if (pos === "lightPosTopLeft121")
-		i = lightPosTopLeft121;
-	else if (pos === "lightPosTopLeftNewMid")
-		i = lightPosTopLeftNewMid;
+  else if (pos === "lightPosBottomLeft14")
+    i = lightPosBottomLeft14;
+  else if (pos === "lightPosBottomLeft12")
+    i = lightPosBottomLeft12;
+  else if (pos === "lightPosBottomLeft34")
+    i = lightPosBottomLeft34;
+  else if (pos === "lightPosBottomLeft11")
+    i = lightPosBottomLeft11;
+  else if (pos === "lightPosBottomLeft112")
+    i = lightPosBottomLeft112;
+  else if (pos === "lightPosBottomLeft121")
+    i = lightPosBottomLeft121;
+  else if (pos === "lightPosBottomLeftNewMid")
+    i = lightPosBottomLeftNewMid;
+  else if (pos === "lightPosTopLeft112")
+    i = lightPosTopLeft112;
+  else if (pos === "lightPosTopLeft121")
+    i = lightPosTopLeft121;
+  else if (pos === "lightPosTopLeftNewMid")
+    i = lightPosTopLeftNewMid;
   else
     i = lightPosEntire;
 
@@ -863,7 +863,7 @@ async function discover_hue_bridges() {
   $('#wiz_hue_ipstate').html($.i18n('edt_dev_spec_devices_discovery_inprogress'));
   $('#wiz_hue_discovered').html("")
   const res = await requestLedDeviceDiscovery('philipshue');
-    if (res && !res.error) {
+  if (res && !res.error) {
     const r = res.info;
 
     // Process devices returned by discovery
@@ -986,8 +986,9 @@ async function identify_hue_device(hostAddress, port, username, id) {
 }
 
 //return editor Value
-function eV(vn) {
-  return (vn) ? conf_editor.getEditor("root.specificOptions." + vn).getValue() : "";
+function eV(vn, defaultVal = "") {
+  var editor = (vn) ? conf_editor.getEditor("root.specificOptions." + vn) : null;
+  return (editor == null) ? defaultVal : ((defaultVal != "" && !isNaN(defaultVal) && isNaN(editor.getValue())) ? defaultVal : editor.getValue());
 }
 
 function beginWizardHue() {
@@ -1109,17 +1110,17 @@ function beginWizardHue() {
 
     d.clientkey = $('#clientkey').val();
     d.groupId = parseInt($('#groupId').val());
-	d.blackLightsTimeout = parseInt(eV("blackLightsTimeout", 5000));
-	d.brightnessMin = parseFloat(eV("brightnessMin", 0));
-	d.brightnessMax = parseFloat(eV("brightnessMax", 1));
-	d.brightnessThreshold = parseFloat(eV("brightnessThreshold", 0.0001));
-	d.handshakeTimeoutMin = parseInt(eV("handshakeTimeoutMin", 300));
-	d.handshakeTimeoutMax = parseInt(eV("handshakeTimeoutMax", 1000));
+    d.blackLightsTimeout = parseInt(eV("blackLightsTimeout", 5000));
+    d.brightnessMin = parseFloat(eV("brightnessMin", 0));
+    d.brightnessMax = parseFloat(eV("brightnessMax", 1));
+    d.brightnessThreshold = parseFloat(eV("brightnessThreshold", 0.0001));
+    d.handshakeTimeoutMin = parseInt(eV("handshakeTimeoutMin", 300));
+    d.handshakeTimeoutMax = parseInt(eV("handshakeTimeoutMax", 1000));
     d.verbose = (eV("verbose") == true);
-    
+
     d.autoStart = conf_editor.getEditor("root.generalOptions.autoStart").getValue();
-    d.enableAttempts = parseInt(conf_editor.getEditor("root.generalOptions.enableAttempts").getValue(););
-    d.enableAttemptsInterval = parseInt(conf_editor.getEditor("root.generalOptions.enableAttemptsInterval").getValue(););
+    d.enableAttempts = parseInt(conf_editor.getEditor("root.generalOptions.enableAttempts").getValue());
+    d.enableAttemptsInterval = parseInt(conf_editor.getEditor("root.generalOptions.enableAttemptsInterval").getValue());
 
     if (hueType == 'philipshue') {
       d.useEntertainmentAPI = false;
@@ -1280,7 +1281,7 @@ function get_hue_lights() {
           "lightPosTopLeft112", "lightPosTopLeftNewMid", "lightPosTopLeft121",
           "lightPosBottomLeft14", "lightPosBottomLeft12", "lightPosBottomLeft34", "lightPosBottomLeft11",
           "lightPosBottomLeft112", "lightPosBottomLeftNewMid", "lightPosBottomLeft121"
-         ];
+        ];
 
         if (hueType == 'philipshue') {
           lightOptions.unshift("disabled");
@@ -1538,7 +1539,7 @@ async function discover_yeelight_lights() {
 function assign_yeelight_lights() {
   // Model mappings, see https://www.home-assistant.io/integrations/yeelight/
   var models = ['color', 'color1', 'YLDP02YL', 'YLDP02YL', 'color2', 'YLDP06YL', 'color4', 'YLDP13YL', 'color6', 'YLDP13AYL', 'colorb', "YLDP005", 'colorc', "YLDP004-A", 'stripe', 'YLDD04YL', 'strip1', 'YLDD01YL', 'YLDD02YL', 'strip4', 'YLDD05YL', 'strip6', 'YLDD05YL'];
-  
+
   // If records are left for configuration
   if (Object.keys(lights).length > 0) {
     $('#wh_topcontainer').toggle(false);
@@ -1619,11 +1620,12 @@ async function getProperties_yeelight(host, port) {
   // res can be: false (timeout) or res.error (not found)
   if (res && !res.error) {
     const r = res.info
+    console.log("Yeelight properties: ", r);
   }
 }
 
 async function identify_yeelight_device(host, port) {
-  
+
   var disabled = $('#btn_wiz_save').is(':disabled');
 
   // Take care that new record cannot be save during background process
@@ -1885,3 +1887,4 @@ async function identify_atmoorb_device(orbId) {
     $('#btn_wiz_save').prop('disabled', disabled);
   }
 }
+
