@@ -203,7 +203,6 @@ void HyperionDaemon::handleInstanceStateChange(InstanceState state, quint8 insta
 			jsonThread->start();
 
 			// Start Webserver in own thread
-			_webserver = new WebServer(getSetting(settings::WEBSERVER), false);
 			QThread* wsThread = new QThread(this);
 			wsThread->setObjectName("WebServerThread");
 			_webserver->moveToThread(wsThread);
@@ -401,6 +400,9 @@ void HyperionDaemon::startNetworkServices()
 #endif
 	pThread->start();
 #endif
+
+	// Create Webserver
+	_webserver = new WebServer(getSetting(settings::WEBSERVER), false);
 
 	// Create SSDP server
 	_ssdp = new SSDPHandler(_webserver,
