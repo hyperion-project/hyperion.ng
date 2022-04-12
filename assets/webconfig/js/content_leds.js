@@ -797,7 +797,7 @@ $(document).ready(function () {
         case "wled":
         case "nanoleaf":
           showAllDeviceInputOptions("hostList", false);
-        case "apa102":
+         case "apa102":
         case "apa104":
         case "ws2801":
         case "lpd6803":
@@ -1646,6 +1646,7 @@ async function discover_device(ledType, params) {
 }
 
 async function getProperties_device(ledType, key, params) {
+  var disabled = $('#btn_submit_controller').is(':disabled');
   // Take care that connfig cannot be saved during background processing
   $('#btn_submit_controller').prop('disabled', true);
 
@@ -1664,7 +1665,7 @@ async function getProperties_device(ledType, key, params) {
         devicesProperties[ledType][key] = ledDeviceProperties;
 
         if (!window.readOnlyMode) {
-          $('#btn_submit_controller').prop('disabled', false);
+          $('#btn_submit_controller').prop('disabled', disabled);
         }
       }
       else {
@@ -1679,6 +1680,7 @@ async function getProperties_device(ledType, key, params) {
 }
 
 async function identify_device(type, params) {
+  var disabled = $('#btn_submit_controller').is(':disabled');
   // Take care that connfig cannot be saved and identification cannot be retriggerred during background processing
   $('#btn_submit_controller').prop('disabled', true);
   $('#btn_test_controller').prop('disabled', true);
@@ -1687,7 +1689,7 @@ async function identify_device(type, params) {
 
   $('#btn_test_controller').prop('disabled', false);
   if (!window.readOnlyMode) {
-    $('#btn_submit_controller').prop('disabled', false);
+    $('#btn_submit_controller').prop('disabled', disabled);
   }
 }
 
