@@ -619,7 +619,7 @@ void Hyperion::handleSourceAvailability(int priority)
 	if ( priority == PriorityMuxer::LOWEST_PRIORITY)
 	{
 		Debug(_log,"No source left -> Pause output processing and switch LED-Device off");
-		emit _ledDeviceWrapper->switchOff();
+		emit compStateChangeRequest(hyperion::COMP_LEDDEVICE, false);
 		emit _deviceSmooth->setPause(true);
 	}
 	else
@@ -627,7 +627,7 @@ void Hyperion::handleSourceAvailability(int priority)
 		if ( previousPriority == PriorityMuxer::LOWEST_PRIORITY )
 		{
 			Debug(_log,"new source available -> Resume output processing and switch LED-Device on");
-			emit _ledDeviceWrapper->switchOn();
+			emit compStateChangeRequest(hyperion::COMP_LEDDEVICE, true);
 			emit _deviceSmooth->setPause(false);
 		}
 	}
@@ -699,7 +699,6 @@ void Hyperion::update()
 		// Smoothing is disabled
 		if  (! _deviceSmooth->enabled())
 		{
-			//std::cout << "Hyperion::update()> Non-Smoothing - "; LedDevice::printLedValues ( _ledBuffer);
 			emit ledDeviceData(_ledBuffer);
 		}
 		else
@@ -711,11 +710,4 @@ void Hyperion::update()
 			}
 		}
 	}
-	#if 0
-	else
-	{
-		//LEDDevice is disabled
-		Debug(_log, "LEDDevice is disabled - no update required");
-	}
-	#endif
 }

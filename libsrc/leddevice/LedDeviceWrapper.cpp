@@ -67,9 +67,6 @@ void LedDeviceWrapper::createLedDevice(const QJsonObject& config)
 	// further signals
 	connect(this, &LedDeviceWrapper::updateLeds, _ledDevice, &LedDevice::updateLeds, Qt::QueuedConnection);
 
-	connect(this, &LedDeviceWrapper::switchOn, _ledDevice, &LedDevice::switchOn);
-	connect(this, &LedDeviceWrapper::switchOff, _ledDevice, &LedDevice::switchOff);
-
 	connect(this, &LedDeviceWrapper::stopLedDevice, _ledDevice, &LedDevice::stop, Qt::BlockingQueuedConnection);
 
 	connect(_ledDevice, &LedDevice::enableStateChanged, this, &LedDeviceWrapper::handleInternalEnableState, Qt::QueuedConnection);
