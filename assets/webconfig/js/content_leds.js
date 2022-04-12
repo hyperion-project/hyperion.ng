@@ -976,7 +976,7 @@ $(document).ready(function () {
         var val = hostList.getValue();
         var host = conf_editor.getEditor("root.specificOptions.host");
         var showOptions = true;
-
+ 
         switch (val) {
           case 'CUSTOM':
           case '':
@@ -1007,7 +1007,8 @@ $(document).ready(function () {
         }
 
         showAllDeviceInputOptions("hostList", showOptions);
-        if (val !== 'CUSTOM' && host.getValue().endsWith("._tcp.local")) {
+
+        if (!host.isEnabled() && host.getValue().endsWith("._tcp.local")) {
           showInputOptionForItem(conf_editor, 'specificOptions', 'host', false);
         }
       }
