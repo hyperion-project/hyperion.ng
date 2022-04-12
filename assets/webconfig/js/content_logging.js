@@ -137,7 +137,7 @@ $(document).ready(function () {
 
         var date = new Date(parseInt(utime));
         var subComponent = "";
-        if (window.serverInfo.instance.length > 1) {
+        if (window.serverInfo.instance.length >= 1) {
           if (logger_subname.startsWith("I")) {
             var instanceNum = logger_subname.substring(1);
             if (window.serverInfo.instance[instanceNum]) {
