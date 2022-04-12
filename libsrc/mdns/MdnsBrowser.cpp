@@ -69,7 +69,7 @@ void MdnsBrowser::onServiceRemoved(const QMdnsEngine::Service& service)
 	emit serviceRemoved(service);
 }
 
-void MdnsBrowser::getHostAddress(const QByteArray& hostname)
+QHostAddress MdnsBrowser::getHostFirstAddress(const QByteArray& hostname)
 {
 	DebugIf(verboseBrowser, _log, "for hostname [%s], Thread: %s", hostname.constData(), QSTRING_CSTR(QThread::currentThread()->objectName()));
 	QByteArray toBeResolvedHostName {hostname};
@@ -87,9 +87,17 @@ void MdnsBrowser::getHostAddress(const QByteArray& hostname)
 		{
 			foreach(QMdnsEngine::Record record, aRecords)
 			{
-				hostAddress = record.address();
-				DebugIf(verboseBrowser, _log, "Hostname [%s] translates to IPv4-address [%s]", toBeResolvedHostName.constData(), QSTRING_CSTR(hostAddress.toString()));
-				onHostNameResolved(hostAddress);
+				// Do not publish link local addresses
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+				if (!record.address().isLinkLocal())
+#else
+				if (!record.address().toString().startsWith("fe80"))
+#endif
+				{
+					hostAddress = record.address();
+					DebugIf(verboseBrowser, _log, "Hostname [%s] translates to IPv4-address [%s]", toBeResolvedHostName.constData(), QSTRING_CSTR(hostAddress.toString()));
+					break;
+				}
 			}
 		}
 		else
@@ -99,9 +107,17 @@ void MdnsBrowser::getHostAddress(const QByteArray& hostname)
 			{
 				foreach(QMdnsEngine::Record record, aaaaRecords)
 				{
-					hostAddress = record.address();
-					DebugIf(verboseBrowser,_log, "Hostname [%s] translates to IPv6-address [%s]", toBeResolvedHostName.constData(), QSTRING_CSTR(hostAddress.toString()));
-					onHostNameResolved(hostAddress);
+					// Do not publish link local addresses
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+					if (!record.address().isLinkLocal())
+#else
+					if (!record.address().toString().startsWith("fe80"))
+#endif
+					{
+						hostAddress = record.address();
+						DebugIf(verboseBrowser, _log, "Hostname [%s] translates to IPv6-address [%s]", toBeResolvedHostName.constData(), QSTRING_CSTR(hostAddress.toString()));
+						break;
+					}
 				}
 			}
 			else
@@ -113,6 +129,7 @@ void MdnsBrowser::getHostAddress(const QByteArray& hostname)
 			}
 		}
 	}
+	return hostAddress;
 }
 
 void MdnsBrowser::onHostNameResolved(const QHostAddress& address)
@@ -130,36 +147,42 @@ void MdnsBrowser::onHostNameResolved(const QHostAddress& address)
 	}
 }
 
-bool MdnsBrowser::resolveAddress (Logger* log, const QString& hostname, QHostAddress& hostAddress, std::chrono::milliseconds timeout)
+bool MdnsBrowser::resolveAddress(Logger* log, const QString& hostname, QHostAddress& hostAddress, std::chrono::milliseconds timeout)
 {
 	DebugIf(verboseBrowser, _log, "Get address for hostname [%s], Thread: %s", QSTRING_CSTR(hostname), QSTRING_CSTR(QThread::currentThread()->objectName()));
 
-	bool isHostAddressOK { false };
+	bool isHostAddressOK{ false };
 	if (hostname.endsWith(".local") || hostname.endsWith(".local."))
 	{
-		QEventLoop loop;
-		QTimer t;
-		QObject::connect(&MdnsBrowser::getInstance(), &MdnsBrowser::addressResolved, &loop, &QEventLoop::quit);
-		weakConnect(&MdnsBrowser::getInstance(), &MdnsBrowser::addressResolved,
-						  [&hostAddress, hostname](const QHostAddress &resolvedAddress){
-							DebugIf(verboseBrowser, Logger::getInstance("MDNS"), "Resolved hostname [%s] to address [%s], Thread: %s",  QSTRING_CSTR(hostname), QSTRING_CSTR(resolvedAddress.toString()), QSTRING_CSTR(QThread::currentThread()->objectName()));
-							  hostAddress = resolvedAddress;
-						  });
+		hostAddress = getHostFirstAddress(hostname.toUtf8());
 
-		QTimer::connect(&t, &QTimer::timeout, &loop, &QEventLoop::quit);
-		getHostAddress(hostname.toUtf8());
-
-		t.start(static_cast<int>(timeout.count()));
-		loop.exec();
-
-		if (!hostAddress.isNull() )
+		if (hostAddress.isNull())
 		{
-			Debug(log, "Resolved mDNS hostname [%s] to address [%s]",  QSTRING_CSTR(hostname), QSTRING_CSTR(hostAddress.toString()));
+			DebugIf(verboseBrowser, _log, "Wait for resolver on hostname [%s]", QSTRING_CSTR(hostname));
+
+			QEventLoop loop;
+			QTimer t;
+			QObject::connect(&MdnsBrowser::getInstance(), &MdnsBrowser::addressResolved, &loop, &QEventLoop::quit);
+
+			weakConnect(&MdnsBrowser::getInstance(), &MdnsBrowser::addressResolved,
+				[&hostAddress, hostname](const QHostAddress& resolvedAddress) {
+					DebugIf(verboseBrowser, Logger::getInstance("MDNS"), "Resolver resolved hostname [%s] to address [%s], Thread: %s", QSTRING_CSTR(hostname), QSTRING_CSTR(resolvedAddress.toString()), QSTRING_CSTR(QThread::currentThread()->objectName()));
+					hostAddress = resolvedAddress;
+				});
+
+			QTimer::connect(&t, &QTimer::timeout, &loop, &QEventLoop::quit);
+			t.start(static_cast<int>(timeout.count()));
+			loop.exec();
+		}
+
+		if (!hostAddress.isNull())
+		{
+			Debug(log, "Resolved mDNS hostname [%s] to address [%s]", QSTRING_CSTR(hostname), QSTRING_CSTR(hostAddress.toString()));
 			isHostAddressOK = true;
 		}
 		else
 		{
-			Error(log, "Resolved mDNS hostname [%s] timed out",  QSTRING_CSTR(hostname));
+			Error(log, "Resolved mDNS hostname [%s] timed out", QSTRING_CSTR(hostname));
 		}
 	}
 	else
@@ -167,7 +190,6 @@ bool MdnsBrowser::resolveAddress (Logger* log, const QString& hostname, QHostAdd
 		Error(log, "Hostname [%s] is not an mDNS hostname.", QSTRING_CSTR(hostname));
 		isHostAddressOK = false;
 	}
-
 	return isHostAddressOK;
 }
 

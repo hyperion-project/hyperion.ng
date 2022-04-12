@@ -20,9 +20,9 @@
 // Utility includes
 #include <utils/Logger.h>
 
-namespace  {
-constexpr std::chrono::milliseconds DEFAULT_DISCOVER_TIMEOUT{ 500 };
-constexpr std::chrono::milliseconds DEFAULT_ADDRESS_RESOLVE_TIMEOUT{ 1000 };
+namespace {
+	constexpr std::chrono::milliseconds DEFAULT_DISCOVER_TIMEOUT{ 500 };
+	constexpr std::chrono::milliseconds DEFAULT_ADDRESS_RESOLVE_TIMEOUT{ 1000 };
 
 } //End of constants
 
@@ -30,7 +30,7 @@ class MdnsBrowser : public QObject
 {
 	Q_OBJECT
 
-	// Run MdnsBrowser as singleton
+		// Run MdnsBrowser as singleton
 
 private:
 	///
@@ -38,7 +38,7 @@ private:
 	///        Searching for hyperion http service by default
 	///
 	// Run MdnsBrowser as singleton
-	MdnsBrowser(QObject * parent = nullptr);
+	MdnsBrowser(QObject* parent = nullptr);
 	~MdnsBrowser() override;
 
 public:
@@ -55,7 +55,7 @@ public:
 	MdnsBrowser& operator=(MdnsBrowser&&) = delete;
 
 	QMdnsEngine::Service getFirstService(const QByteArray& serviceType, const QString& filter = ".*", const std::chrono::milliseconds waitTime = DEFAULT_DISCOVER_TIMEOUT) const;
-	QJsonArray getServicesDiscoveredJson(const QByteArray& serviceType, const QString& filter = ".*", const std::chrono::milliseconds waitTime = std::chrono::milliseconds{0}) const;
+	QJsonArray getServicesDiscoveredJson(const QByteArray& serviceType, const QString& filter = ".*", const std::chrono::milliseconds waitTime = std::chrono::milliseconds{ 0 }) const;
 
 
 	void printCache(const QByteArray& name = QByteArray(), quint16 type = QMdnsEngine::ANY) const;
@@ -67,13 +67,13 @@ public slots:
 	///
 	void browseForServiceType(const QByteArray& serviceType);
 
-	void getHostAddress(const QByteArray& hostname);
+	QHostAddress getHostFirstAddress(const QByteArray& hostname);
 
 	void onHostNameResolved(const QHostAddress& address);
 
 	QMdnsEngine::Record getServiceInstanceRecord(const QByteArray& serviceInstance, const std::chrono::milliseconds waitTime = DEFAULT_DISCOVER_TIMEOUT) const;
 
-	bool resolveAddress (Logger* log, const QString& hostname, QHostAddress& hostAddress, std::chrono::milliseconds timeout = DEFAULT_ADDRESS_RESOLVE_TIMEOUT);
+	bool resolveAddress(Logger* log, const QString& hostname, QHostAddress& hostAddress, std::chrono::milliseconds timeout = DEFAULT_ADDRESS_RESOLVE_TIMEOUT);
 
 Q_SIGNALS:
 
@@ -83,7 +83,7 @@ Q_SIGNALS:
 	 * This signal is emitted when the SRV record for a service (identified by
 	 * its name and type) or a TXT record has changed.
 	 */
-	void serviceFound(const QMdnsEngine::Service &service);
+	void serviceFound(const QMdnsEngine::Service& service);
 
 	/**
 	 * @brief Indicate that the specified service was removed
@@ -92,9 +92,9 @@ Q_SIGNALS:
 	 * expiring from the cache. This will also occur when an updated PTR or
 	 * SRV record is received with a TTL of 0.
 	 */
-	void serviceRemoved(const QMdnsEngine::Service &service);
+	void serviceRemoved(const QMdnsEngine::Service& service);
 
-	void addressResolved(const QHostAddress& address);
+	void addressResolved(const QHostAddress address);
 
 private slots:
 
@@ -104,28 +104,28 @@ private slots:
 
 private:
 
-//	template <typename Func1, typename Func2, typename std::enable_if_t<std::is_member_pointer<Func2>::value, int> = 0>
-//	static inline QMetaObject::Connection weakConnect(typename QtPrivate::FunctionPointer<Func1>::Object* sender,
-//													   Func1 signal,
-//													   typename QtPrivate::FunctionPointer<Func2>::Object* receiver,
-//													   Func2 slot)
-//	{
-//		QMetaObject::Connection conn_normal = QObject::connect(sender, signal, receiver, slot);
+	//	template <typename Func1, typename Func2, typename std::enable_if_t<std::is_member_pointer<Func2>::value, int> = 0>
+	//	static inline QMetaObject::Connection weakConnect(typename QtPrivate::FunctionPointer<Func1>::Object* sender,
+	//													   Func1 signal,
+	//													   typename QtPrivate::FunctionPointer<Func2>::Object* receiver,
+	//													   Func2 slot)
+	//	{
+	//		QMetaObject::Connection conn_normal = QObject::connect(sender, signal, receiver, slot);
 
-//		QMetaObject::Connection* conn_delete = new QMetaObject::Connection();
+	//		QMetaObject::Connection* conn_delete = new QMetaObject::Connection();
 
-//		*conn_delete = QObject::connect(sender, signal, [conn_normal, conn_delete]() {
-//			QObject::disconnect(conn_normal);
-//			QObject::disconnect(*conn_delete);
-//			delete conn_delete;
-//		});
-//		return conn_normal;
-//	}
+	//		*conn_delete = QObject::connect(sender, signal, [conn_normal, conn_delete]() {
+	//			QObject::disconnect(conn_normal);
+	//			QObject::disconnect(*conn_delete);
+	//			delete conn_delete;
+	//		});
+	//		return conn_normal;
+	//	}
 
 	template <typename Func1, typename Func2, typename std::enable_if_t<!std::is_member_pointer<Func2>::value, int> = 0>
 	static inline QMetaObject::Connection weakConnect(typename QtPrivate::FunctionPointer<Func1>::Object* sender,
-													   Func1 signal,
-													   Func2 slot)
+		Func1 signal,
+		Func2 slot)
 	{
 		QMetaObject::Connection conn_normal = QObject::connect(sender, signal, slot);
 
@@ -135,29 +135,28 @@ private:
 			QObject::disconnect(conn_normal);
 			QObject::disconnect(*conn_delete);
 			delete conn_delete;
-		});
+			});
 		return conn_normal;
 	}
 
-//	template <typename Func1, typename Func2, typename std::enable_if_t<!std::is_member_pointer<Func2>::value, int> = 0>
-//	static inline QMetaObject::Connection weakConnect(typename QtPrivate::FunctionPointer<Func1>::Object* sender,
-//													   Func1 signal,
-//													   typename QtPrivate::FunctionPointer<Func2>::Object* receiver,
-//													   Func2 slot)
-//	{
-//		Q_UNUSED(receiver);
-//		QMetaObject::Connection conn_normal = QObject::connect(sender, signal, slot);
+	//	template <typename Func1, typename Func2, typename std::enable_if_t<!std::is_member_pointer<Func2>::value, int> = 0>
+	//	static inline QMetaObject::Connection weakConnect(typename QtPrivate::FunctionPointer<Func1>::Object* sender,
+	//													   Func1 signal,
+	//													   typename QtPrivate::FunctionPointer<Func2>::Object* receiver,
+	//													   Func2 slot)
+	//	{
+	//		Q_UNUSED(receiver);
+	//		QMetaObject::Connection conn_normal = QObject::connect(sender, signal, slot);
 
-//		QMetaObject::Connection* conn_delete = new QMetaObject::Connection();
+	//		QMetaObject::Connection* conn_delete = new QMetaObject::Connection();
 
-//		*conn_delete = QObject::connect(sender, signal, [conn_normal, conn_delete]() {
-//			QObject::disconnect(conn_normal);
-//			QObject::disconnect(*conn_delete);
-//			delete conn_delete;
-//		});
-//		return conn_normal;
-//	}
-
+	//		*conn_delete = QObject::connect(sender, signal, [conn_normal, conn_delete]() {
+	//			QObject::disconnect(conn_normal);
+	//			QObject::disconnect(*conn_delete);
+	//			delete conn_delete;
+	//		});
+	//		return conn_normal;
+	//	}
 
 	/// The logger instance for mDNS-Service
 	Logger* _log;
