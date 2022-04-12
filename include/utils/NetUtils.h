@@ -43,13 +43,13 @@ namespace NetUtils {
 	///
 	/// @brief Check if the port is in the valid range
 	/// @param     log   The logger of the caller to print/// 
-	/// @param[in] port  The port to be tested
+	/// @param[in] port  The port to be tested (port = -1 is ignored for testing)
 	/// @param[in] host  A hostname/IP-address to make reference to during logging
 	/// @return          True on success else false
 	///
 	inline bool isValidPort(Logger* log, int port, const QString& host)
 	{
-		if (port <= 0 || port > MAX_PORT)
+		if ((port <= 0 || port > MAX_PORT) && port != -1)
 		{
 			Error(log, "Invalid port [%d] for host: (%s)! - Port must be in range [0 - %d]", port, QSTRING_CSTR(host), MAX_PORT);
 			return false;
