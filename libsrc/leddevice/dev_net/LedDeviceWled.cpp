@@ -128,7 +128,6 @@ bool LedDeviceWled::openRestAPI()
 
 int LedDeviceWled::open()
 {
-	Debug(_log,"");
 	int retval = -1;
 	_isDeviceReady = false;
 

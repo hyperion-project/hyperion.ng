@@ -619,7 +619,7 @@ void Hyperion::handleSourceAvailability(int priority)
 	if ( priority == PriorityMuxer::LOWEST_PRIORITY)
 	{
 		Debug(_log,"No source left -> Pause output processing and switch LED-Device off");
-		emit compStateChangeRequest(hyperion::COMP_LEDDEVICE, false);
+		emit _ledDeviceWrapper->switchOff();
 		emit _deviceSmooth->setPause(true);
 	}
 	else
@@ -627,7 +627,7 @@ void Hyperion::handleSourceAvailability(int priority)
 		if ( previousPriority == PriorityMuxer::LOWEST_PRIORITY )
 		{
 			Debug(_log,"new source available -> Resume output processing and switch LED-Device on");
-			emit compStateChangeRequest(hyperion::COMP_LEDDEVICE, true);
+			emit _ledDeviceWrapper->switchOn();
 			emit _deviceSmooth->setPause(false);
 		}
 	}

@@ -64,7 +64,6 @@ MessageForwarder::MessageForwarder(Hyperion* hyperion)
 
 MessageForwarder::~MessageForwarder()
 {
-	Debug(_log,"");
 	stopJsonTargets();
 	stopFlatbufferTargets();
 }

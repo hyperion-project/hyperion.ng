@@ -606,7 +606,4 @@ private:
 	qint64 _lastConfirm;
 	int	_lastId;
 	bool _groupStreamState;
-
-	QMutex _updateLights;
-
 };

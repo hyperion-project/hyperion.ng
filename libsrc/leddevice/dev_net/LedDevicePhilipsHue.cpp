@@ -1467,14 +1467,14 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues)
 		return -1;
 	}
 
-	// more lights then leds, stop always
+	// more lights than LEDs, stop always
 	if( ledValues.size() < getLightsCount() )
 	{
-		Error(_log, "More light-IDs configured than leds, each light-ID requires one led!" );
+		Error(_log, "More light-IDs configured than LEDs, each light-ID requires one LED!" );
 		return -1;
 	}
 
-	if (_updateLights.tryLock(10))
+	if (_isOn)
 	{
 		writeSingleLights( ledValues );
 
@@ -1482,9 +1482,7 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues)
 		{
 			writeStream();
 		}
-		_updateLights.unlock();
 	}
-
 	return 0;
 }
 
@@ -1706,7 +1704,6 @@ bool LedDevicePhilipsHue::switchOn()
 							{
 								_isOn = true;
 								setRewriteTime(STREAM_REWRITE_TIME.count());
-								rc = true;
 							}
 						}
 					}
@@ -1716,7 +1713,6 @@ bool LedDevicePhilipsHue::switchOn()
 					if ( powerOn() )
 					{
 						_isOn = true;
-						rc = true;
 					}
 				}
 			}
@@ -1724,6 +1720,8 @@ bool LedDevicePhilipsHue::switchOn()
 			if (_isOn)
 			{
 				Info(_log, "Device %s is ON", QSTRING_CSTR(_activeDeviceType));
+				emit enableStateChanged(_isEnabled);
+				rc =true;
 			}
 			else
 			{
@@ -1754,7 +1752,6 @@ bool LedDevicePhilipsHue::switchOff()
 					_isOn = false;
 					setRewriteTime(0);
 
-					_updateLights.lock();
 					if ( _isRestoreOrigState )
 					{
 						stopStream();
@@ -1762,7 +1759,6 @@ bool LedDevicePhilipsHue::switchOff()
 					}
 					else
 					{
-
 						for (PhilipsHueLight& light : _lights)
 						{
 							light.setBlack();
@@ -1772,7 +1768,6 @@ bool LedDevicePhilipsHue::switchOff()
 						stopStream();
 						rc = powerOff();
 					}
-					_updateLights.unlock();
 
 					if (rc)
 					{
@@ -1787,9 +1782,7 @@ bool LedDevicePhilipsHue::switchOff()
 				}
 				else
 				{
-					_updateLights.lock();
 					rc = LedDevicePhilipsHueBridge::switchOff();
-					_updateLights.unlock();
 				}
 			}
 			else

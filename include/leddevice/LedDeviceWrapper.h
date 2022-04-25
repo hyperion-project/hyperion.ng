@@ -94,6 +94,16 @@ signals:
 	///
 	int updateLeds(const std::vector<ColorRgb>& ledValues);
 
+	///
+	/// @brief Switch the LEDs on.
+	///
+	void switchOn();
+
+	///
+	/// @brief Switch the LEDs off.
+	///
+	void switchOff();
+	
 	void stopLedDevice();
 
 private slots:

@@ -408,6 +408,7 @@ bool LedDevice::switchOn()
 				{
 					Info(_log, "Device %s is ON", QSTRING_CSTR(_activeDeviceType));
 					_isOn = true;
+					emit enableStateChanged(_isEnabled);
 					rc = true;
 				}
 				else
