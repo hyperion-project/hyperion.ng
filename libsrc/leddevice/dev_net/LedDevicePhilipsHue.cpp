@@ -316,13 +316,18 @@ bool LedDevicePhilipsHueBridge::openRestAPI()
 
 		//Base-path is api-path + authentication token (here username)
 		_restApi->setBasePath(QString(API_BASE_PATH).arg(_authToken));
+	}
+	else
+	{
+		_restApi->setHost(_address.toString());
+		_restApi->setPort(_apiPort);
+	}
 
-		//Workaround until API v2 with https is supported
-		if (_apiPort == 0 || _apiPort == 443)
-		{
-			_apiPort = API_DEFAULT_PORT;
-			_restApi->setPort(_apiPort);
-		}
+	//Workaround until API v2 with https is supported
+	if (_apiPort == 0 || _apiPort == 443)
+	{
+		_apiPort = API_DEFAULT_PORT;
+		_restApi->setPort(_apiPort);
 	}
 	return isInitOK;
 }
@@ -646,7 +651,8 @@ QJsonDocument LedDevicePhilipsHueBridge::get(const QString& route)
 	if (route.isEmpty() && response.error() &&
 		(  response.getNetworkReplyError() == QNetworkReply::UnknownNetworkError ||
 		   response.getNetworkReplyError() == QNetworkReply::ConnectionRefusedError ||
-		   response.getNetworkReplyError() == QNetworkReply::RemoteHostClosedError))
+		   response.getNetworkReplyError() == QNetworkReply::RemoteHostClosedError ||
+		   response.getNetworkReplyError() == QNetworkReply::OperationCanceledError ))
 	{
 		Warning(_log, "The Hue Bridge is not ready.");
 	}
@@ -727,12 +733,6 @@ QJsonObject LedDevicePhilipsHueBridge::getProperties(const QJsonObject& params)
 
 	if (NetUtils::resolveHostToAddress(_log, _hostName, _address, _apiPort))
 	{
-		//Workaround until API v2 with https is supported
-		if (_apiPort == 0 || _apiPort == 443)
-		{
-			_apiPort = API_DEFAULT_PORT;
-		}
-
 		if ( openRestAPI() )
 		{
 			QString filter = params["filter"].toString("");
@@ -767,12 +767,6 @@ QJsonObject LedDevicePhilipsHueBridge::addAuthorization(const QJsonObject& param
 
 	if (NetUtils::resolveHostToAddress(_log, _hostName, _address, _apiPort))
 	{
-		//Workaround until API v2 with https is supported
-		if (_apiPort == 0 || _apiPort == 443)
-		{
-			_apiPort = API_DEFAULT_PORT;
-		}
-
 		if ( openRestAPI() )
 		{
 			QJsonObject clientKeyCmd{ {"devicetype", "hyperion#" + QHostInfo::localHostName()}, {"generateclientkey", true } };
@@ -1867,12 +1861,6 @@ void LedDevicePhilipsHue::identify(const QJsonObject& params)
 
 	if (NetUtils::resolveHostToAddress(_log, _hostName, _address, _apiPort))
 	{
-		//Workaround until API v2 with https is supported
-		if (_apiPort == 0 || _apiPort == 443)
-		{
-			_apiPort = API_DEFAULT_PORT;
-		}
-
 		if ( openRestAPI() )
 		{
 				int lightId = params["lightId"].toInt(0);

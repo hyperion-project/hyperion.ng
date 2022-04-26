@@ -376,6 +376,11 @@ int LedDeviceNanoleaf::open()
 				}
 			}
 		}
+		else
+		{
+			_restApi->setHost(_address.toString());
+			_restApi->setPort(_apiPort);
+		}
 	}
 	return retval;
 }

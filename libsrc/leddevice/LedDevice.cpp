@@ -215,7 +215,7 @@ bool LedDevice::init(const QJsonObject& deviceConfig)
 	setRewriteTime(deviceConfig[CONFIG_REWRITE_TIME].toInt(_refreshTimerInterval_ms));
 	setAutoStart(deviceConfig[CONFIG_AUTOSTART].toBool(DEFAULT_IS_AUTOSTART));
 	setEnableAttempts(deviceConfig[CONFIG_ENABLE_ATTEMPTS].toInt(DEFAULT_MAX_ENABLE_ATTEMPTS),
-		std::chrono::seconds(deviceConfig[CONFIG_ENABLE_ATTEMPTS_INTERVALL].toInt(DEFAULT_ENABLE_ATTEMPTS_INTERVAL.count()))
+	std::chrono::seconds(deviceConfig[CONFIG_ENABLE_ATTEMPTS_INTERVALL].toInt(DEFAULT_ENABLE_ATTEMPTS_INTERVAL.count()))
 	);
 
 	return true;

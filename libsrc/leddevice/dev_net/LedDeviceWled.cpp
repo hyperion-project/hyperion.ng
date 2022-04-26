@@ -123,6 +123,12 @@ bool LedDeviceWled::openRestAPI()
 
 		_restApi->setBasePath( API_BASE_PATH );
 	}
+	else
+	{
+		_restApi->setHost(_address.toString());
+		_restApi->setPort(_apiPort);
+	}
+
 	return isInitOK;
 }
 
