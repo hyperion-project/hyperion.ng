@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow to restart Hyperion via Systray
 - LED-Device: Support retry attempts enabling devices, e.g. to open devices after network or a device itself got available (#1302)
  (Fixes that devices got "stuck", if initial open failed e.g. for WLED, Hue)
+- LED-Devices: New UDP-DDP (Distributed Display Protocol) device to overcome the 490 LEDs limitation of UDP-RAW
 - LED Matrix Layout - Support vertical cabling direction (#1420)
 - Support additional Yeelight models
 - LED-Devices: Show warning, if get properties failed (Network devices: indication that network device is not reachable)
@@ -23,7 +24,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Forwarder: mDNS discovery support and ease of configuration of other Hyperion instances 
 - Grabber: mDNS discovery for standalone grabbers
 
-
 ### Changed
 
 - Colors Smoothing is started in pause mode to save resources, when Hyperion starts with no active source
@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI: LED Layout - Removed limitations on indention
 - mDNS Publisher :Aligned Hyperion mDNS names to general conventions and simplified namings
 - Refactored Philips Hue wizard and LED-Device
+- LED-Devices: WLED's default streaming protocol is now UDP-DDP. More than 490 LEDs are supported now (requires minimum WLED 0.11.0). UDP-RAW is still supported in parallel (via expert settings).
 
 ### Fixed
 

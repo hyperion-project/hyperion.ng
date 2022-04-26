@@ -12,6 +12,7 @@
 #include <mdns/MdnsServiceRegister.h>
 #endif
 #include <utils/NetUtils.h>
+#include <utils/version.hpp>
 
 // Constants
 namespace {
@@ -20,14 +21,20 @@ const bool verbose = false;
 
 // Configuration settings
 const char CONFIG_HOST[] = "host";
+const char CONFIG_STREAM_PROTOCOL[] = "streamProtocol";
 const char CONFIG_RESTORE_STATE[] = "restoreOriginalState";
 const char CONFIG_BRIGHTNESS[] = "brightness";
 const char CONFIG_BRIGHTNESS_OVERWRITE[] = "overwriteBrightness";
 const char CONFIG_SYNC_OVERWRITE[] = "overwriteSync";
 
-// UDP elements
-const int STREAM_DEFAULT_PORT = 19446;
+const char DEFAULT_STREAM_PROTOCOL[] = "DDP";
+
+// UDP-RAW
+const int UDP_STREAM_DEFAULT_PORT = 19446;
 const int UDP_MAX_LED_NUM = 490;
+
+// DDP
+const char WLED_VERSION_DDP[] = "0.11.0";
 
 // WLED JSON-API elements
 const int API_DEFAULT_PORT = -1; //Use default port per communication scheme
@@ -52,7 +59,7 @@ constexpr std::chrono::milliseconds DEFAULT_IDENTIFY_TIME{ 2000 };
 } //End of constants
 
 LedDeviceWled::LedDeviceWled(const QJsonObject &deviceConfig)
-	: ProviderUdp(deviceConfig)
+	: ProviderUdp(deviceConfig), LedDeviceUdpDdp(deviceConfig), LedDeviceUdpRaw(deviceConfig)
 	  ,_restApi(nullptr)
 	  ,_apiPort(API_DEFAULT_PORT)
 	  ,_isBrightnessOverwrite(DEFAULT_IS_BRIGHTNESS_OVERWRITE)
@@ -60,6 +67,7 @@ LedDeviceWled::LedDeviceWled(const QJsonObject &deviceConfig)
 	  ,_isSyncOverwrite(DEFAULT_IS_SYNC_OVERWRITE)
 	  ,_originalStateUdpnSend(false)
 	  ,_originalStateUdpnRecv(true)
+	  ,_isStreamDDP(true)
 {
 #ifdef ENABLE_MDNS
 	QMetaObject::invokeMethod(&MdnsBrowser::getInstance(), "browseForServiceType",
@@ -82,33 +90,41 @@ bool LedDeviceWled::init(const QJsonObject &deviceConfig)
 {
 	bool isInitOK {false};
 
-	if ( ProviderUdp::init(deviceConfig) )
+	QString streamProtocol = _devConfig[CONFIG_STREAM_PROTOCOL].toString(DEFAULT_STREAM_PROTOCOL);
+
+	if (streamProtocol != DEFAULT_STREAM_PROTOCOL)
 	{
-		if (this->getLedCount() > UDP_MAX_LED_NUM)
-		{
-			QString errorReason = QString("Device type %1 can only be run with maximum %2 LEDs!").arg(this->getActiveDeviceType()).arg(UDP_MAX_LED_NUM);
-			this->setInError ( errorReason );
-		}
-		else
-		{
-			_hostName = _devConfig[ CONFIG_HOST ].toString();
-			_port = STREAM_DEFAULT_PORT;
-			_apiPort = API_DEFAULT_PORT;
+		_isStreamDDP = false;
+	}
+	Debug(_log, "Stream protocol   : %s", QSTRING_CSTR(streamProtocol));
+	Debug(_log, "Stream DDP        : %d", _isStreamDDP);
 
-			_isRestoreOrigState = _devConfig[CONFIG_RESTORE_STATE].toBool(DEFAULT_IS_RESTORE_STATE);
-			_isSyncOverwrite = _devConfig[CONFIG_SYNC_OVERWRITE].toBool(DEFAULT_IS_SYNC_OVERWRITE);
-			_isBrightnessOverwrite = _devConfig[CONFIG_BRIGHTNESS_OVERWRITE].toBool(DEFAULT_IS_BRIGHTNESS_OVERWRITE);
-			_brightness = _devConfig[CONFIG_BRIGHTNESS].toInt(BRI_MAX);
+	if (_isStreamDDP)
+	{
+		LedDeviceUdpDdp::init(deviceConfig);
+	}
+	else
+	{
+		_devConfig["port"] = UDP_STREAM_DEFAULT_PORT;
+		LedDeviceUdpRaw::init(_devConfig);
+	}
 
-			Debug(_log, "Hostname/IP       : %s", QSTRING_CSTR(_hostName) );
-			Debug(_log, "RestoreOrigState  : %d", _isRestoreOrigState);
-			Debug(_log, "Overwrite Sync.   : %d", _isSyncOverwrite);
-			Debug(_log, "Overwrite Brightn.: %d", _isBrightnessOverwrite);
-			Debug(_log, "Set Brightness to : %d", _brightness);
+	if (!_isDeviceInError)
+	{
+		_apiPort = API_DEFAULT_PORT;
+		_isRestoreOrigState = _devConfig[CONFIG_RESTORE_STATE].toBool(DEFAULT_IS_RESTORE_STATE);
+		_isSyncOverwrite = _devConfig[CONFIG_SYNC_OVERWRITE].toBool(DEFAULT_IS_SYNC_OVERWRITE);
+		_isBrightnessOverwrite = _devConfig[CONFIG_BRIGHTNESS_OVERWRITE].toBool(DEFAULT_IS_BRIGHTNESS_OVERWRITE);
+		_brightness = _devConfig[CONFIG_BRIGHTNESS].toInt(BRI_MAX);
 
-		}
+		Debug(_log, "RestoreOrigState  : %d", _isRestoreOrigState);
+		Debug(_log, "Overwrite Sync.   : %d", _isSyncOverwrite);
+		Debug(_log, "Overwrite Brightn.: %d", _isBrightnessOverwrite);
+		Debug(_log, "Set Brightness to : %d", _brightness);
+
 		isInitOK = true;
 	}
+
 	return isInitOK;
 }
 
@@ -141,13 +157,39 @@ int LedDeviceWled::open()
 	{
 		if ( openRestAPI() )
 		{
-			if (ProviderUdp::open() == 0)
+			if (_isStreamDDP)
 			{
-				// Everything is OK, device is ready
-				_isDeviceReady = true;
-				retval = 0;
+				if (LedDeviceUdpDdp::open() == 0)
+				{
+					// Everything is OK, device is ready
+					_isDeviceReady = true;
+					retval = 0;
+				}
+			}
+			else
+			{
+				if (LedDeviceUdpRaw::open() == 0)
+				{
+					// Everything is OK, device is ready
+					_isDeviceReady = true;
+					retval = 0;
+				}
 			}
 		}
+	}
+	return retval;
+}
+
+int LedDeviceWled::close()
+{
+	int retval = -1;
+	if (_isStreamDDP)
+	{
+		retval = LedDeviceUdpDdp::close();
+	}
+	else
+	{
+		retval = LedDeviceUdpRaw::close();
 	}
 	return retval;
 }
@@ -358,9 +400,23 @@ QJsonObject LedDeviceWled::getProperties(const QJsonObject& params)
 			}
 
 			QJsonObject propertiesDetails = response.getBody().object();
-			if (!propertiesDetails.isEmpty())
+
+			semver::version currentVersion {""};
+			if (currentVersion.setVersion(propertiesDetails.value("ver").toString().toStdString()))
 			{
-				propertiesDetails.insert("maxLedCount", UDP_MAX_LED_NUM);
+				semver::version ddpVersion{WLED_VERSION_DDP};
+				if (currentVersion < ddpVersion)
+				{
+					Warning(_log, "DDP streaming not supported by your WLED device version [%s], minimum version expected [%s]. Fall back to UDP-Streaming (%d LEDs max)", currentVersion.getVersion().c_str(), ddpVersion.getVersion().c_str(), UDP_MAX_LED_NUM);
+					if (!propertiesDetails.isEmpty())
+					{
+						propertiesDetails.insert("maxLedCount", UDP_MAX_LED_NUM);
+					}
+				}
+				else
+				{
+					Info(_log, "DDP streaming is supported by your WLED device version [%s]. No limitation in number of LEDs.", currentVersion.getVersion().c_str(), ddpVersion.getVersion().c_str());
+				}
 			}
 			properties.insert("properties", propertiesDetails);
 		}
@@ -398,7 +454,16 @@ void LedDeviceWled::identify(const QJsonObject& params)
 
 int LedDeviceWled::write(const std::vector<ColorRgb> &ledValues)
 {
-	const uint8_t * dataPtr = reinterpret_cast<const uint8_t *>(ledValues.data());
+	int rc {0};
 
-	return writeBytes( _ledRGBCount, dataPtr);
+	if (_isStreamDDP)
+	{
+		rc = LedDeviceUdpDdp::write(ledValues);
+	}
+	else
+	{
+		rc = LedDeviceUdpRaw::write(ledValues);
+	}
+
+	return rc;
 }

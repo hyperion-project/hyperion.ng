@@ -8,7 +8,7 @@
 /// Implementation of the LedDevice interface for sending LED colors via UDP and the Distributed Display Protocol (DDP)
 /// http://www.3waylabs.com/ddp/#Data%20Types
 ///
-class LedDeviceUdpDdp : public ProviderUdp
+class LedDeviceUdpDdp : public virtual ProviderUdp
 {
 public:
 

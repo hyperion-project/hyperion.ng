@@ -4,12 +4,13 @@
 // LedDevice includes
 #include <leddevice/LedDevice.h>
 #include "ProviderRestApi.h"
-#include "ProviderUdp.h"
+#include "LedDeviceUdpDdp.h"
+#include "LedDeviceUdpRaw.h"
 
 ///
 /// Implementation of a WLED-device
 ///
-class LedDeviceWled : public ProviderUdp
+class LedDeviceWled : public LedDeviceUdpDdp, LedDeviceUdpRaw
 {
 
 public:
@@ -87,6 +88,13 @@ protected:
 	/// @return Zero on success (i.e. device is ready), else negative
 	///
 	int open() override;
+
+	///
+	/// @brief Closes the UDP device.
+	///
+	/// @return Zero on success (i.e. device is closed), else negative
+	///
+	int close() override;
 
 	///
 	/// @brief Writes the RGB-Color values to the LEDs.
@@ -169,6 +177,8 @@ private:
 	bool _isSyncOverwrite;
 	bool _originalStateUdpnSend;
 	bool _originalStateUdpnRecv;
+
+	bool _isStreamDDP;
 };
 
 #endif // LEDDEVICEWLED_H

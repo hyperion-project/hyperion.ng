@@ -7,7 +7,7 @@
 ///
 /// Implementation of the LedDevice interface for sending LED colors via UDP
 ///
-class LedDeviceUdpRaw : public ProviderUdp
+class LedDeviceUdpRaw : public virtual ProviderUdp
 {
 public:
 

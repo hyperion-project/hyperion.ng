@@ -1710,12 +1710,18 @@ function updateElements(ledType, key) {
       case "wled":
         var ledProperties = devicesProperties[ledType][key];
 
-        if (ledProperties && ledProperties.leds && ledProperties.maxLedCount) {
+        if (ledProperties && ledProperties.leds) {
           hardwareLedCount = ledProperties.leds.count;
-          var maxLedCount = ledProperties.maxLedCount;
-          if (hardwareLedCount > maxLedCount) {
-            showInfoDialog('warning', $.i18n("conf_leds_config_warning"), $.i18n('conf_leds_error_hwled_gt_maxled', hardwareLedCount, maxLedCount, maxLedCount));
-            hardwareLedCount = maxLedCount;
+          if (ledProperties.maxLedCount) {
+            var maxLedCount = ledProperties.maxLedCount;
+            if (hardwareLedCount > maxLedCount) {
+              showInfoDialog('warning', $.i18n("conf_leds_config_warning"), $.i18n('conf_leds_error_hwled_gt_maxled', hardwareLedCount, maxLedCount, maxLedCount));
+              hardwareLedCount = maxLedCount;
+              conf_editor.getEditor("root.specificOptions.streamProtocol").setValue("RAW");
+              //Workaround, as value seems to getting updated property when a 'getEditor("root.specificOptions").getValue()' is done during save
+              var editor = conf_editor.getEditor("root.specificOptions");
+              editor.value["streamProtocol"] = "RAW";
+            }
           }
         }
         conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(hardwareLedCount);

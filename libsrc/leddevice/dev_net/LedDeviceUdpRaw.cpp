@@ -32,12 +32,12 @@ bool LedDeviceUdpRaw::init(const QJsonObject &deviceConfig)
 	{
 		if (this->getLedCount() > UDP_MAX_LED_NUM)
 		{
-			QString errorReason = QString("Device type %1 can only be run with maximum %2 LEDs!").arg(this->getActiveDeviceType()).arg(UDP_MAX_LED_NUM);
+			QString errorReason = QString("Device type %1 can only be run with maximum %2 LEDs for streaming protocol = UDP-RAW!").arg(this->getActiveDeviceType()).arg(UDP_MAX_LED_NUM);
 			this->setInError ( errorReason );
 		}
 		else
 		{
-			_hostName = _devConfig[ CONFIG_HOST ].toString();
+			_hostName = deviceConfig[ CONFIG_HOST ].toString();
 			_port = deviceConfig[CONFIG_PORT].toInt(RAW_DEFAULT_PORT);
 
 			Debug(_log, "Hostname/IP       : %s", QSTRING_CSTR(_hostName) );
