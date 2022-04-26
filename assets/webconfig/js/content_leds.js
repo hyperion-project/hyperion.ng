@@ -12,7 +12,7 @@ var canvas_width;
 var devRPiSPI = ['apa102', 'apa104', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'sk6822spi', 'sk9822', 'ws2812spi'];
 var devRPiPWM = ['ws281x'];
 var devRPiGPIO = ['piblaster'];
-var devNET = ['atmoorb', 'cololight', 'fadecandy', 'philipshue', 'nanoleaf', 'razer', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udph801', 'udpraw', 'wled', 'yeelight'];
+var devNET = ['atmoorb', 'cololight', 'fadecandy', 'philipshue', 'nanoleaf', 'razer', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udpddp', 'udph801', 'udpraw', 'wled', 'yeelight'];
 var devSerial = ['adalight', 'dmx', 'atmo', 'sedu', 'tpm2', 'karate'];
 var devHID = ['hyperionusbasp', 'lightpack', 'paintpack', 'rawhid'];
 
@@ -891,6 +891,7 @@ $(document).ready(function () {
         case "tpm2net":
         case "udpe131":
         case "udpartnet":
+        case "udpddp":
         case "udph801":
         case "udpraw":
           var host = conf_editor.getEditor("root.specificOptions.host").getValue();

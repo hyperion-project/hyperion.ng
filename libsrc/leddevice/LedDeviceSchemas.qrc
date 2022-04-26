@@ -27,6 +27,7 @@
 		<file alias="schema-udpartnet">schemas/schema-artnet.json</file>
 		<file alias="schema-udph801">schemas/schema-h801.json</file>
 		<file alias="schema-udpraw">schemas/schema-udpraw.json</file>
+		<file alias="schema-udpddp">schemas/schema-udpddp.json</file>
 		<file alias="schema-ws2801">schemas/schema-ws2801.json</file>
 		<file alias="schema-ws2812spi">schemas/schema-ws2812spi.json</file>
 		<file alias="schema-apa104">schemas/schema-apa104.json</file>
