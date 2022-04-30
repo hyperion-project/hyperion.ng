@@ -692,7 +692,7 @@ function startWizardPhilipsHue(e) {
   if (storedAccess === 'expert') {
     hidePort = "";
   }
-    
+
   $('#wh_topcontainer').append('<p class="text-left" style="font-weight:bold">' + $.i18n(hue_desc1) + '</p>' +
     '<div class="row">' +
     '<div class="col-md-2">' +
@@ -798,7 +798,7 @@ function checkHueBridge(cb, hueUser) {
       })
       .fail(function () {
         cb(false);
-      })
+      });
   }
 }
 
@@ -886,7 +886,7 @@ async function discover_hue_bridges() {
   // res can be: false (timeout) or res.error (not found)
   if (res && !res.error) {
     const r = res.info;
-    
+
     // Process devices returned by discovery
     if (r.devices.length == 0) {
       $('#wiz_hue_ipstate').html($.i18n('wiz_hue_failure_ip'));
@@ -1536,7 +1536,7 @@ async function discover_yeelight_lights() {
 function assign_yeelight_lights() {
   // Model mappings, see https://www.home-assistant.io/integrations/yeelight/
   var models = ['color', 'color1', 'YLDP02YL', 'YLDP02YL', 'color2', 'YLDP06YL', 'color4', 'YLDP13YL', 'color6', 'YLDP13AYL', 'colorb', "YLDP005", 'colorc', "YLDP004-A", 'stripe', 'YLDD04YL', 'strip1', 'YLDD01YL', 'YLDD02YL', 'strip4', 'YLDD05YL', 'strip6', 'YLDD05YL'];
-  
+
   // If records are left for configuration
   if (Object.keys(lights).length > 0) {
     $('#wh_topcontainer').toggle(false);

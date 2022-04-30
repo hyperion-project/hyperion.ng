@@ -820,8 +820,8 @@ function showNotification(type, message, title = "", addhtml = "") {
     // settings
     type: type,
     animate: {
-      enter: 'animated fadeInDown',
-      exit: 'animated fadeOutUp'
+      enter: 'animate__animated animate__fadeInDown',
+      exit: 'animate__animated animate__fadeOutUp'
     },
     placement: {
       align: 'center'
