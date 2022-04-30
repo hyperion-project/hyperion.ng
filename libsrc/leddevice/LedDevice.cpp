@@ -616,7 +616,7 @@ void LedDevice::setEnableAttempts(int maxEnableRetries, std::chrono::seconds ena
 	_maxEnableAttempts = maxEnableRetries;
 	_enableAttemptTimerInterval = enableRetryTimerInterval;
 
-	Debug(_log, "Max enable retries: %d, enable retry interval = %ds", _maxEnableAttempts, _enableAttemptTimerInterval.count());
+	Debug(_log, "Max enable retries: %d, enable retry interval = %llds", _maxEnableAttempts, static_cast<int>(_enableAttemptTimerInterval.count()));
 }
 
 void LedDevice::printLedValues(const std::vector<ColorRgb>& ledValues)
