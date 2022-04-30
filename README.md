@@ -27,7 +27,7 @@
 
 ### Supported Hardware
 
-You can find a list of supported hardware [here](https://docs.hyperion-project.org/en/user/leddevices/].
+You can find a list of supported hardware [here](https://docs.hyperion-project.org/en/user/leddevices/).
 
 If you need further support please open a topic at the forum!<br>
 [![Forum](https://img.shields.io/website/https/hyperion-project.org.svg?label=Forum&down_color=red&down_message=offline&up_color=4bc51d&up_message=online&logo=homeadvisor&logoColor=white)](https://www.hyperion-project.org)
