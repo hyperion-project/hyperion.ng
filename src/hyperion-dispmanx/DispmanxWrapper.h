@@ -16,6 +16,8 @@ public:
 					 );
 
 	const Image<ColorRgb> & getScreenshot();
+	
+	bool open();
 
 	///
 	/// Starts the timed capturing of screenshots

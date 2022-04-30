@@ -1074,7 +1074,7 @@ $(document).ready(function () {
           break;
 
         case "philipshue":
-          conf_editor.getEditor("root.generalOptions").disable();
+          disableAutoResolvedGeneralOptions();
 
           var lights = conf_editor.getEditor("root.specificOptions.lightIds").getValue();
           hwLedCountDefault = lights.length;
@@ -1082,7 +1082,7 @@ $(document).ready(function () {
           break;
 
         case "yeelight":
-          conf_editor.getEditor("root.generalOptions").disable();
+          disableAutoResolvedGeneralOptions();
 
           var lights = conf_editor.getEditor("root.specificOptions.lights").getValue();
           hwLedCountDefault = lights.length;
@@ -1090,7 +1090,7 @@ $(document).ready(function () {
           break;
 
         case "atmoorb":
-          conf_editor.getEditor("root.generalOptions").disable();
+          disableAutoResolvedGeneralOptions();
 
           var configruedOrbIds = conf_editor.getEditor("root.specificOptions.orbIds").getValue().trim();
           if (configruedOrbIds.length !== 0) {
@@ -1102,7 +1102,7 @@ $(document).ready(function () {
           break;
 
         case "razer":
-          conf_editor.getEditor("root.generalOptions").disable();
+          disableAutoResolvedGeneralOptions();
           hwLedCountDefault = 1;
           colorOrderDefault = "bgr";
 
@@ -1217,7 +1217,7 @@ $(document).ready(function () {
       var specOptPath = 'root.specificOptions.';
 
       //Disable General Options, as LED count will be resolved from device itself
-      conf_editor.getEditor("root.generalOptions").disable();
+      disableAutoResolvedGeneralOptions();
 
       var hostList = conf_editor.getEditor("root.specificOptions.hostList");
       if (hostList) {
@@ -1384,7 +1384,7 @@ $(document).ready(function () {
     //Yeelight
     conf_editor.watch('root.specificOptions.lights', () => {
       //Disable General Options, as LED count will be resolved from number of lights configured
-      conf_editor.getEditor("root.generalOptions").disable();
+      disableAutoResolvedGeneralOptions();
 
       var hwLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount")
       if (hwLedCount) {
@@ -1396,7 +1396,7 @@ $(document).ready(function () {
     //Philips Hue
     conf_editor.watch('root.specificOptions.lightIds', () => {
       //Disable General Options, as LED count will be resolved from number of lights configured
-      conf_editor.getEditor("root.generalOptions").disable();
+      disableAutoResolvedGeneralOptions();
 
       var hwLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount")
       if (hwLedCount) {
@@ -1408,7 +1408,7 @@ $(document).ready(function () {
     //Atmo Orb
     conf_editor.watch('root.specificOptions.orbIds', () => {
       //Disable General Options, as LED count will be resolved from number of lights configured
-      conf_editor.getEditor("root.generalOptions").disable();
+      disableAutoResolvedGeneralOptions();
 
       var hwLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount")
       if (hwLedCount) {
@@ -2034,3 +2034,7 @@ function showAllDeviceInputOptions(showForKey, state) {
   showInputOptionsForKey(conf_editor, "specificOptions", showForKey, state);
 }
 
+function disableAutoResolvedGeneralOptions() {
+      conf_editor.getEditor("root.generalOptions.hardwareLedCount").disable();
+      conf_editor.getEditor("root.generalOptions.colorOrder").disable();
+}

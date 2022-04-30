@@ -18,6 +18,8 @@
 #include <effectengine/EffectSchema.h>
 #include <utils/Logger.h>
 
+#include <hyperion/LinearColorSmoothing.h>
+
 // pre-declaration
 class Effect;
 class EffectFileHandler;
@@ -79,7 +81,7 @@ public slots:
 				, int timeout = PriorityMuxer::ENDLESS
 				, const QString &pythonScript = ""
 				, const QString &origin = "System"
-				, unsigned smoothCfg=0
+				, unsigned smoothCfg=SmoothingConfigID::SYSTEM
 				, const QString &imageData = ""
 	);
 
@@ -105,7 +107,7 @@ private:
 				, int priority
 				, int timeout = PriorityMuxer::ENDLESS
 				, const QString &origin="System"
-				, unsigned smoothCfg=0
+				, unsigned smoothCfg=SmoothingConfigID::SYSTEM
 				, const QString &imageData = ""
 	);
 

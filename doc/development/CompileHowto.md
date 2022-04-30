@@ -9,7 +9,7 @@ Note: call the script with `./docker-compile.sh -h` for more options.
 
 **Raspbian Stretch**
 ```console
-wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i rpi-raspbian
+wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i rpi-raspbian -t stretch
 ```
 **Raspbian Buster/Raspberry Pi OS**
 ```console
@@ -17,14 +17,14 @@ wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/
 ```
 **Raspberry Pi OS Bullseye**
 ```console
-wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i rpi-raspbian -t bullseye
+wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i rpi-raspbian
 ```
 
 ## Cross compilation on x86_64 for:
 
 **x86_64 (Debian Stretch):**
 ```console
-wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i x86_64
+wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i x86_64 -t stretch
 ```
 **x86_64 (Debian Buster):**
 ```console
@@ -32,11 +32,11 @@ wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/
 ```
 **x86_64 (Debian Bullseye):**
 ```console
-wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i x86_64 -t bullseye
+wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i x86_64
 ```
 **Raspberry Pi v1 & ZERO (Debian Stretch)**
 ```console
-wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i armv6l
+wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i armv6l -t stretch
 ```
 **Raspberry Pi v1 & ZERO (Debian Buster)**
 ```console
@@ -44,11 +44,11 @@ wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/
 ```
 **Raspberry Pi v1 & ZERO (Debian Bullseye)**
 ```console
-wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i armv6l -t bullseye
+wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i armv6l
 ```
 **Raspberry Pi 2/3/4 (Debian Stretch)**
 ```console
-wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i armv7l
+wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i armv7l -t stretch
 ```
 **Raspberry Pi 2/3/4 (Debian Buster)**
 ```console
@@ -56,7 +56,7 @@ wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/
 ```
 **Raspberry Pi 2/3/4 (Debian Bullseye)**
 ```console
-wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i armv7l -t bullseye
+wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i armv7l
 ```
 ## Cross compilation on x86_64 for developers
 Using additional options you can cross compile locally
