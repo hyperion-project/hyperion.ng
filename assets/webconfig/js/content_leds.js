@@ -116,8 +116,8 @@ function createLedPreview(leds) {
         var keystone_correction_area_offsets = $('#keystone_correction_area').offset();
         var left = newPosition.left - keystone_correction_area_offsets.left + size / 2;
         var top = newPosition.top - keystone_correction_area_offsets.top + size / 2;
-        var ptlh = Math.min(Math.max((((left * 1) / maxWidth).toFixed(2) * 100).toFixed(0), 0), 60);
-        var ptlv = Math.min(Math.max((((top * 1) / maxHeight).toFixed(2) * 100).toFixed(0), 0), 40);
+        var ptlh = Math.min(Math.max((((left * 1) / maxWidth).toFixed(2) * 100).toFixed(0), 0), 100);
+        var ptlv = Math.min(Math.max((((top * 1) / maxHeight).toFixed(2) * 100).toFixed(0), 0), 100);
 
         $('#ip_cl_ptlh').val(ptlh);
         $('#ip_cl_ptlv').val(ptlv);
@@ -141,8 +141,8 @@ function createLedPreview(leds) {
         var keystone_correction_area_offsets = $('#keystone_correction_area').offset();
         var left = newPosition.left - keystone_correction_area_offsets.left + $('#top_right_point').outerWidth() - size / 2;
         var top = newPosition.top - keystone_correction_area_offsets.top + size / 2;
-        var ptrh = Math.min(Math.max((((left * 1) / maxWidth).toFixed(2) * 100).toFixed(0), 60), 100);
-        var ptrv = Math.min(Math.max((((top * 1) / maxHeight).toFixed(2) * 100).toFixed(0), 0), 40);
+        var ptrh = Math.min(Math.max((((left * 1) / maxWidth).toFixed(2) * 100).toFixed(0), 0), 100);
+        var ptrv = Math.min(Math.max((((top * 1) / maxHeight).toFixed(2) * 100).toFixed(0), 0), 100);
 
         $('#ip_cl_ptrh').val(ptrh);
         $('#ip_cl_ptrv').val(ptrv);
@@ -166,8 +166,8 @@ function createLedPreview(leds) {
         var keystone_correction_area_offsets = $('#keystone_correction_area').offset();
         var left = newPosition.left - keystone_correction_area_offsets.left + $('#bottom_right_point').outerWidth() - size / 2;
         var top = newPosition.top - keystone_correction_area_offsets.top + $('#bottom_right_point').outerHeight() - size / 2;
-        var pbrh = Math.min(Math.max((((left * 1) / maxWidth).toFixed(2) * 100).toFixed(0), 60), 100);
-        var pbrv = Math.min(Math.max((((top * 1) / maxHeight).toFixed(2) * 100).toFixed(0), 60), 100);
+        var pbrh = Math.min(Math.max((((left * 1) / maxWidth).toFixed(2) * 100).toFixed(0), 0), 100);
+        var pbrv = Math.min(Math.max((((top * 1) / maxHeight).toFixed(2) * 100).toFixed(0), 0), 100);
 
         $('#ip_cl_pbrh').val(pbrh);
         $('#ip_cl_pbrv').val(pbrv);
@@ -191,8 +191,8 @@ function createLedPreview(leds) {
         var keystone_correction_area_offsets = $('#keystone_correction_area').offset();
         var left = newPosition.left - keystone_correction_area_offsets.left + size / 2;
         var top = newPosition.top - keystone_correction_area_offsets.top + $('#bottom_left_point').outerHeight() - size / 2;
-        var pblh = Math.min(Math.max((((left * 1) / maxWidth).toFixed(2) * 100).toFixed(0), 0), 40);
-        var pblv = Math.min(Math.max((((top * 1) / maxHeight).toFixed(2) * 100).toFixed(0), 60), 100);
+        var pblh = Math.min(Math.max((((left * 1) / maxWidth).toFixed(2) * 100).toFixed(0), 0), 100);
+        var pblv = Math.min(Math.max((((top * 1) / maxHeight).toFixed(2) * 100).toFixed(0), 0), 100);
 
         $('#ip_cl_pblh').val(pblh);
         $('#ip_cl_pblv').val(pblv);
@@ -686,11 +686,19 @@ $(document).ready(function () {
         if (this.value > ptrh) {
           $(this).val(ptrh);
         }
+        var pbrh = parseInt($("#ip_cl_pbrh").val());
+        if (this.value > pbrh) {
+          $(this).val(pbrh);
+        }
         break;
       case "ip_cl_ptrh":
         var ptlh = parseInt($("#ip_cl_ptlh").val());
         if (this.value < ptlh) {
           $(this).val(ptlh);
+        }
+        var pblh = parseInt($("#ip_cl_pblh").val());
+        if (this.value < pblh) {
+          $(this).val(pblh);
         }
         break;
       case "ip_cl_pblh":
@@ -698,11 +706,20 @@ $(document).ready(function () {
         if (this.value > pbrh) {
           $(this).val(pbrh);
         }
+        var ptrh = parseInt($("#ip_cl_ptrh").val());
+        if (this.value > ptrh) {
+          $(this).val(ptrh);
+        }
+
         break;
       case "ip_cl_pbrh":
         var pblh = parseInt($("#ip_cl_pblh").val());
         if (this.value < pblh) {
           $(this).val(pblh);
+        }
+        var ptlh = parseInt($("#ip_cl_ptlh").val());
+        if (this.value < ptlh) {
+          $(this).val(ptlh);
         }
         break;
       case "ip_cl_ptlv":
@@ -710,8 +727,16 @@ $(document).ready(function () {
         if (this.value > pblv) {
           $(this).val(pblv);
         }
+        var pbrv = parseInt($("#ip_cl_pbrv").val());
+        if (this.value > pbrv) {
+          $(this).val(pbrv);
+        }
         break;
       case "ip_cl_pblv":
+        var ptrv = parseInt($("#ip_cl_ptrv").val());
+        if (this.value < ptrv) {
+          $(this).val(ptrv);
+        }
         var ptlv = parseInt($("#ip_cl_ptlv").val());
         if (this.value < ptlv) {
           $(this).val(ptlv);
@@ -722,11 +747,19 @@ $(document).ready(function () {
         if (this.value > pbrv) {
           $(this).val(pbrv);
         }
+        var pblv = parseInt($("#ip_cl_pblv").val());
+        if (this.value > pblv) {
+          $(this).val(pblv);
+        }
         break;
       case "ip_cl_pbrv":
         var ptrv = parseInt($("#ip_cl_ptrv").val());
         if (this.value < ptrv) {
           $(this).val(ptrv);
+        }
+        var ptlv = parseInt($("#ip_cl_ptlv").val());
+        if (this.value < ptlv) {
+          $(this).val(ptlv);
         }
         break;
 
