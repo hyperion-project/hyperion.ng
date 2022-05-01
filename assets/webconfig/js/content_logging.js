@@ -192,5 +192,19 @@ $(document).ready(function () {
 
   });
 
+  // toggle fullscreen button in log output
+  $(".fullscreen-btn").mousedown(function(e) {
+    e.preventDefault();
+  });
+
+  $(".fullscreen-btn").click(function(e) {
+    e.preventDefault();
+    $(this).children('i')
+      .toggleClass('fa-expand')
+      .toggleClass('fa-compress');
+    $('#conf_cont').toggle();
+    $('#logmessages').css('max-height', $('#logmessages').css('max-height') !== 'none' ? 'none' : '400px' );
+  });
+
   removeOverlay();
 });
