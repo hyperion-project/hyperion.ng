@@ -130,7 +130,7 @@ private:
 	void sendFadeCandyConfiguration();
 
 	QTcpSocket* _client;
-	QString     _host;
+	QString     _hostName;
 	int    _port;
 	int    _channel;
 	QByteArray  _opc_data;

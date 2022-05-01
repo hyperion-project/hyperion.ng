@@ -1,10 +1,14 @@
 #include "LedDeviceUdpRaw.h"
 
+#include <utils/NetUtils.h>
+
 // Constants
 namespace {
 
 const bool verbose = false;
 
+const char CONFIG_HOST[] = "host";
+const char CONFIG_PORT[] = "port";
 const ushort RAW_DEFAULT_PORT=5568;
 const int UDP_MAX_LED_NUM = 490;
 
@@ -22,31 +26,44 @@ LedDevice* LedDeviceUdpRaw::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceUdpRaw::init(const QJsonObject &deviceConfig)
 {
-	_port = RAW_DEFAULT_PORT;
+	bool isInitOK {false};
 
-	bool isInitOK = false;
-	if ( LedDevice::init(deviceConfig) )
+	if ( ProviderUdp::init(deviceConfig) )
 	{
-		// Initialise LedDevice configuration and execution environment
-		int configuredLedCount = this->getLedCount();
-		Debug(_log, "DeviceType   : %s", QSTRING_CSTR( this->getActiveDeviceType() ));
-		Debug(_log, "LedCount     : %d", configuredLedCount);
-		Debug(_log, "ColorOrder   : %s", QSTRING_CSTR( this->getColorOrder() ));
-		Debug(_log, "LatchTime    : %d", this->getLatchTime());
-
-		if (configuredLedCount > UDP_MAX_LED_NUM)
+		if (this->getLedCount() > UDP_MAX_LED_NUM)
 		{
-			QString errorReason = QString("Device type %1 can only be run with maximum %2 LEDs!").arg(this->getActiveDeviceType()).arg(UDP_MAX_LED_NUM);
+			QString errorReason = QString("Device type %1 can only be run with maximum %2 LEDs for streaming protocol = UDP-RAW!").arg(this->getActiveDeviceType()).arg(UDP_MAX_LED_NUM);
 			this->setInError ( errorReason );
-			isInitOK = false;
 		}
 		else
 		{
-			// Initialise sub-class
-			isInitOK = ProviderUdp::init(deviceConfig);
+			_hostName = deviceConfig[ CONFIG_HOST ].toString();
+			_port = deviceConfig[CONFIG_PORT].toInt(RAW_DEFAULT_PORT);
+
+			Debug(_log, "Hostname/IP       : %s", QSTRING_CSTR(_hostName) );
+			Debug(_log, "Port              : %d", _port );
+
+			isInitOK = true;
 		}
 	}
 	return isInitOK;
+}
+
+int LedDeviceUdpRaw::open()
+{
+	int retval = -1;
+	_isDeviceReady = false;
+
+	if (NetUtils::resolveHostToAddress(_log, _hostName, _address))
+	{
+		if (ProviderUdp::open() == 0)
+		{
+			// Everything is OK, device is ready
+			_isDeviceReady = true;
+			retval = 0;
+		}
+	}
+	return retval;
 }
 
 int LedDeviceUdpRaw::write(const std::vector<ColorRgb> &ledValues)
@@ -59,7 +76,10 @@ int LedDeviceUdpRaw::write(const std::vector<ColorRgb> &ledValues)
 QJsonObject LedDeviceUdpRaw::getProperties(const QJsonObject& params)
 {
 	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+
 	QJsonObject properties;
+
+	Info(_log, "Get properties for %s", QSTRING_CSTR(_activeDeviceType));
 
 	QJsonObject propertiesDetails;
 	propertiesDetails.insert("maxLedCount", UDP_MAX_LED_NUM);

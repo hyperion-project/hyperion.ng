@@ -4,12 +4,13 @@
 // LedDevice includes
 #include <leddevice/LedDevice.h>
 #include "ProviderRestApi.h"
-#include "ProviderUdp.h"
+#include "LedDeviceUdpDdp.h"
+#include "LedDeviceUdpRaw.h"
 
 ///
 /// Implementation of a WLED-device
 ///
-class LedDeviceWled : public ProviderUdp
+class LedDeviceWled : public LedDeviceUdpDdp, LedDeviceUdpRaw
 {
 
 public:
@@ -82,6 +83,20 @@ protected:
 	bool init(const QJsonObject &deviceConfig) override;
 
 	///
+	/// @brief Opens the output device.
+	///
+	/// @return Zero on success (i.e. device is ready), else negative
+	///
+	int open() override;
+
+	///
+	/// @brief Closes the UDP device.
+	///
+	/// @return Zero on success (i.e. device is closed), else negative
+	///
+	int close() override;
+
+	///
 	/// @brief Writes the RGB-Color values to the LEDs.
 	///
 	/// @param[in] ledValues The RGB-color per LED
@@ -127,11 +142,9 @@ private:
 	///
 	/// @brief Initialise the access to the REST-API wrapper
 	///
-	/// @param[in] host
-	/// @param[in] port
 	/// @return True, if success
 	///
-	bool initRestAPI(const QString &hostname, int port );
+	bool openRestAPI();
 
 	///
 	/// @brief Get command to power WLED-device on or off
@@ -148,10 +161,12 @@ private:
 
 	bool sendStateUpdateRequest(const QString &request);
 
+	QString resolveAddress (const QString& hostName);
+
 	///REST-API wrapper
 	ProviderRestApi* _restApi;
 
-	QString _hostname;
+	QString _hostAddress;
 	int		_apiPort;
 
 	QJsonObject _originalStateProperties;
@@ -162,6 +177,8 @@ private:
 	bool _isSyncOverwrite;
 	bool _originalStateUdpnSend;
 	bool _originalStateUdpnRecv;
+
+	bool _isStreamDDP;
 };
 
 #endif // LEDDEVICEWLED_H

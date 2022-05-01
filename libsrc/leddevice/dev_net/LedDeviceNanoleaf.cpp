@@ -1,16 +1,23 @@
 // Local-Hyperion includes
 #include "LedDeviceNanoleaf.h"
 
-#include <ssdp/SSDPDiscover.h>
-#include <utils/QStringUtils.h>
+//std includes
+#include <sstream>
+#include <iomanip>
 
 // Qt includes
 #include <QNetworkReply>
 #include <QtEndian>
 
-//std includes
-#include <sstream>
-#include <iomanip>
+#include <ssdp/SSDPDiscover.h>
+#include <utils/QStringUtils.h>
+
+// mDNS discover
+#ifdef ENABLE_MDNS
+#include <mdns/MdnsBrowser.h>
+#include <mdns/MdnsServiceRegister.h>
+#endif
+#include <utils/NetUtils.h>
 
 // Constants
 namespace {
@@ -18,7 +25,7 @@ const bool verbose = false;
 const bool verbose3 = false;
 
 // Configuration settings
-const char CONFIG_ADDRESS[] = "host";
+const char CONFIG_HOST[] = "host";
 const char CONFIG_AUTH_TOKEN[] = "token";
 const char CONFIG_RESTORE_STATE[] = "restoreOriginalState";
 const char CONFIG_BRIGHTNESS[] = "brightness";
@@ -115,6 +122,10 @@ LedDeviceNanoleaf::LedDeviceNanoleaf(const QJsonObject& deviceConfig)
 	  , _extControlVersion(EXTCTRLVER_V2)
 	  , _panelLedCount(0)
 {
+#ifdef ENABLE_MDNS
+	QMetaObject::invokeMethod(&MdnsBrowser::getInstance(), "browseForServiceType",
+							   Qt::QueuedConnection, Q_ARG(QByteArray, MdnsServiceRegister::getServiceType(_activeDeviceType)));
+#endif
 }
 
 LedDevice* LedDeviceNanoleaf::construct(const QJsonObject& deviceConfig)
@@ -130,6 +141,8 @@ LedDeviceNanoleaf::~LedDeviceNanoleaf()
 
 bool LedDeviceNanoleaf::init(const QJsonObject& deviceConfig)
 {
+	bool isInitOK {false};
+
 	// Overwrite non supported/required features
 	setLatchTime(0);
 	setRewriteTime(0);
@@ -141,21 +154,19 @@ bool LedDeviceNanoleaf::init(const QJsonObject& deviceConfig)
 
 	DebugIf(verbose,_log, "deviceConfig: [%s]", QString(QJsonDocument(_devConfig).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
-	bool isInitOK = false;
-
-	if (LedDevice::init(deviceConfig))
+	if ( ProviderUdp::init(deviceConfig) )
 	{
-		int configuredLedCount = this->getLedCount();
-		Debug(_log, "DeviceType   : %s", QSTRING_CSTR(this->getActiveDeviceType()));
-		Debug(_log, "LedCount     : %d", configuredLedCount);
-		Debug(_log, "ColorOrder   : %s", QSTRING_CSTR(this->getColorOrder()));
-		Debug(_log, "RewriteTime  : %d", this->getRewriteTime());
-		Debug(_log, "LatchTime    : %d", this->getLatchTime());
+		//Set hostname as per configuration and default port
+		_hostName = deviceConfig[CONFIG_HOST].toString();
+		_port = STREAM_CONTROL_DEFAULT_PORT;
+		_apiPort = API_DEFAULT_PORT;
+		_authToken = deviceConfig[CONFIG_AUTH_TOKEN].toString();
 
 		_isRestoreOrigState = _devConfig[CONFIG_RESTORE_STATE].toBool(DEFAULT_IS_RESTORE_STATE);
 		_isBrightnessOverwrite = _devConfig[CONFIG_BRIGHTNESS_OVERWRITE].toBool(DEFAULT_IS_BRIGHTNESS_OVERWRITE);
 		_brightness = _devConfig[CONFIG_BRIGHTNESS].toInt(BRI_MAX);
 
+		Debug(_log, "Hostname/IP       : %s", QSTRING_CSTR(_hostName) );
 		Debug(_log, "RestoreOrigState  : %d", _isRestoreOrigState);
 		Debug(_log, "Overwrite Brightn.: %d", _isBrightnessOverwrite);
 		Debug(_log, "Set Brightness to : %d", _brightness);
@@ -178,37 +189,9 @@ bool LedDeviceNanoleaf::init(const QJsonObject& deviceConfig)
 		{
 			_leftRight = deviceConfig[CONFIG_PANEL_ORDER_LEFT_RIGHT].toInt() == 0;
 		}
-
 		_startPos = deviceConfig[CONFIG_PANEL_START_POS].toInt(0);
 
-		//Set hostname as per configuration and_defaultHost default port
-		_hostName = deviceConfig[CONFIG_ADDRESS].toString();
-		_apiPort = API_DEFAULT_PORT;
-		_authToken = deviceConfig[CONFIG_AUTH_TOKEN].toString();
-
-		//If host not configured the init failed
-		if (_hostName.isEmpty())
-		{
-			this->setInError("No target hostname nor IP defined");
-			isInitOK = false;
-		}
-		else
-		{
-			if (initRestAPI(_hostName, _apiPort, _authToken))
-			{
-				// Read LedDevice configuration and validate against device configuration
-				if (initLedsConfiguration())
-				{
-					// Set UDP streaming host and port
-					_devConfig["host"] = _hostName;
-					_devConfig["port"] = STREAM_CONTROL_DEFAULT_PORT;
-
-					isInitOK = ProviderUdp::init(_devConfig);
-					Debug(_log, "Hostname/IP  : %s", QSTRING_CSTR(_hostName));
-					Debug(_log, "Port         : %d", _port);
-				}
-			}
-		}
+		isInitOK = true;
 	}
 	return isInitOK;
 }
@@ -358,18 +341,17 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 	return isInitOK;
 }
 
-bool LedDeviceNanoleaf::initRestAPI(const QString& hostname, int port, const QString& token)
+bool LedDeviceNanoleaf::openRestAPI()
 {
-	bool isInitOK = false;
+	bool isInitOK {true};
 
 	if (_restApi == nullptr)
 	{
-		_restApi = new ProviderRestApi(hostname, port);
+		_restApi = new ProviderRestApi(_address.toString(), _apiPort);
+		_restApi->setLogger(_log);
 
 		//Base-path is api-path + authentication token
-		_restApi->setBasePath(QString(API_BASE_PATH).arg(token));
-
-		isInitOK = true;
+		_restApi->setBasePath(QString(API_BASE_PATH).arg(_authToken));
 	}
 	return isInitOK;
 }
@@ -379,13 +361,27 @@ int LedDeviceNanoleaf::open()
 	int retval = -1;
 	_isDeviceReady = false;
 
-	if (ProviderUdp::open() == 0)
+	if (NetUtils::resolveHostToAddress(_log, _hostName, _address, _apiPort))
 	{
-		// Everything is OK, device is ready
-		_isDeviceReady = true;
-		retval = 0;
+		if ( openRestAPI() )
+		{
+			// Read LedDevice configuration and validate against device configuration
+			if (initLedsConfiguration())
+			{
+				if (ProviderUdp::open() == 0)
+				{
+					// Everything is OK, device is ready
+					_isDeviceReady = true;
+					retval = 0;
+				}
+			}
+		}
+		else
+		{
+			_restApi->setHost(_address.toString());
+			_restApi->setPort(_apiPort);
+		}
 	}
-
 	return retval;
 }
 
@@ -414,13 +410,23 @@ QJsonObject LedDeviceNanoleaf::discover(const QJsonObject& /*params*/)
 	QJsonObject devicesDiscovered;
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
 
-	QString discoveryMethod("ssdp");
 	QJsonArray deviceList;
 
+#ifdef ENABLE_MDNS
+	QString discoveryMethod("mDNS");
+	deviceList = MdnsBrowser::getInstance().getServicesDiscoveredJson(
+		MdnsServiceRegister::getServiceType(_activeDeviceType),
+		MdnsServiceRegister::getServiceNameFilter(_activeDeviceType),
+		DEFAULT_DISCOVER_TIMEOUT
+		);
+#else
+	QString discoveryMethod("ssdp");
 	deviceList = discover();
+#endif
 
 	devicesDiscovered.insert("discoveryMethod", discoveryMethod);
 	devicesDiscovered.insert("devices", deviceList);
+
 	DebugIf(verbose,_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return devicesDiscovered;
@@ -431,27 +437,29 @@ QJsonObject LedDeviceNanoleaf::getProperties(const QJsonObject& params)
 	DebugIf(verbose,_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 	QJsonObject properties;
 
-	// Get Nanoleaf device properties
-	QString hostName = params["host"].toString("");
+	_hostName = params[CONFIG_HOST].toString("");
+	_apiPort = API_DEFAULT_PORT;
+	_authToken = params["token"].toString("");
 
-	if (!hostName.isEmpty())
+	Info(_log, "Get properties for %s, hostname (%s)", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(_hostName) );
+
+	if (NetUtils::resolveHostToAddress(_log, _hostName, _address, _apiPort))
 	{
-		QString authToken = params["token"].toString("");
-		QString filter = params["filter"].toString("");
-
-		initRestAPI(hostName, API_DEFAULT_PORT, authToken);
-		_restApi->setPath(filter);
-
-		// Perform request
-		httpResponse response = _restApi->get();
-		if (response.error())
+		if ( openRestAPI() )
 		{
-			Warning(_log, "%s get properties failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+			QString filter = params["filter"].toString("");
+			_restApi->setPath(filter);
+
+			// Perform request
+			httpResponse response = _restApi->get();
+			if (response.error())
+			{
+				Warning(_log, "%s get properties failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+			}
+			properties.insert("properties", response.getBody().object());
 		}
 
-		properties.insert("properties", response.getBody().object());
-
-		DebugIf(verbose,_log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData());
+		DebugIf(verbose, _log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData());
 	}
 	return properties;
 }
@@ -460,19 +468,24 @@ void LedDeviceNanoleaf::identify(const QJsonObject& params)
 {
 	DebugIf(verbose,_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
-	QString hostName = params["host"].toString("");
-	if (!hostName.isEmpty())
+	_hostName = params[CONFIG_HOST].toString("");
+	_apiPort = API_DEFAULT_PORT;if (NetUtils::resolveHostToAddress(_log, _hostName, _address))
+	_authToken = params["token"].toString("");
+
+	Info(_log, "Identify %s, hostname (%s)", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(_hostName) );
+
+	if (NetUtils::resolveHostToAddress(_log, _hostName, _address, _apiPort))
 	{
-		QString authToken = params["token"].toString("");
-
-		initRestAPI(hostName, API_DEFAULT_PORT, authToken);
-		_restApi->setPath("identify");
-
-		// Perform request
-		httpResponse response = _restApi->put();
-		if (response.error())
+		if ( openRestAPI() )
 		{
-			Warning(_log, "%s identification failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+			_restApi->setPath("identify");
+
+			// Perform request
+			httpResponse response = _restApi->put();
+			if (response.error())
+			{
+				Warning(_log, "%s identification failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+			}
 		}
 	}
 }
@@ -662,7 +675,7 @@ bool LedDeviceNanoleaf::restoreState()
 					Warning (_log, "%s restoring effect failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
 				}
 			} else {
-				Warning (_log, "%s restoring effect failed with error: Cannot restore dynamic or solid effect. Turning device off", QSTRING_CSTR(_activeDeviceType));
+				Warning (_log, "%s restoring effect failed with error: Cannot restore dynamic or solid effect. Device is switched off", QSTRING_CSTR(_activeDeviceType));
 				_originalIsOn = false;
 			}
 			break;

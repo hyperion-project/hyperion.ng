@@ -35,7 +35,7 @@ endif()
 target_link_libraries(protoclient
 	hyperion
 	hyperion-utils
-	libprotobuf
+	${PROTOBUF_LIBRARIES}
 	Qt${QT_VERSION_MAJOR}::Gui
 )
 
@@ -45,3 +45,7 @@ target_link_libraries(protoserver
 	protoclient
 	Qt${QT_VERSION_MAJOR}::Gui
 )
+
+if(ENABLE_MDNS)
+	target_link_libraries(protoserver mdns)
+endif()

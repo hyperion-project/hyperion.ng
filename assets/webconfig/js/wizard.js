@@ -57,7 +57,7 @@ function startWizardRGB() {
   $('#wizp2_body').append('<table class="table borderless" style="width:200px"><tbody><tr><td class="ltd"><label>' + $.i18n('wiz_rgb_qrend') + '</label></td><td class="itd"><select id="wiz_r_select" class="form-control wselect"></select></td></tr><tr><td class="ltd"><label>' + $.i18n('wiz_rgb_qgend') + '</label></td><td class="itd"><select id="wiz_g_select" class="form-control wselect"></select></td></tr></tbody></table>');
   $('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save"><i class="fa fa-fw fa-save"></i>' + $.i18n('general_btn_save') + '</button><button type="button" class="btn btn-primary" id="btn_wiz_checkok" style="display:none" data-dismiss="modal"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_ok') + '</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
 
-  if (getStorage("darkMode", false) == "on")
+  if (getStorage("darkMode") == "on")
     $('#wizard_logo').attr("src", 'img/hyperion/logo_negativ.png');
 
   //open modal
@@ -454,7 +454,7 @@ function startWizardCC() {
     '<button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>'
   );
 
-  if (getStorage("darkMode", false) == "on")
+  if (getStorage("darkMode") == "on")
     $('#wizard_logo').prop("src", 'img/hyperion/logo_negativ.png');
 
   //open modal
@@ -591,6 +591,19 @@ var lightPosRightMiddle = { hmin: 0.85, hmax: 1.0, vmin: 0.25, vmax: 0.75 };
 var lightPosRightBottom = { hmin: 0.85, hmax: 1.0, vmin: 0.5, vmax: 1.0 };
 var lightPosEntire = { hmin: 0.0, hmax: 1.0, vmin: 0.0, vmax: 1.0 };
 
+var lightPosBottomLeft14 = { hmin: 0, hmax: 0.25, vmin: 0.85, vmax: 1.0 };
+var lightPosBottomLeft12 = { hmin: 0.25, hmax: 0.5, vmin: 0.85, vmax: 1.0 };
+var lightPosBottomLeft34 = { hmin: 0.5, hmax: 0.75, vmin: 0.85, vmax: 1.0 };
+var lightPosBottomLeft11 = { hmin: 0.75, hmax: 1, vmin: 0.85, vmax: 1.0 };
+
+var lightPosBottomLeft112 = { hmin: 0, hmax: 0.5, vmin: 0.85, vmax: 1.0 };
+var lightPosBottomLeft121 = { hmin: 0.5, hmax: 1, vmin: 0.85, vmax: 1.0 };
+var lightPosBottomLeftNewMid = { hmin: 0.25, hmax: 0.75, vmin: 0.85, vmax: 1.0 };
+
+var lightPosTopLeft112 = { hmin: 0, hmax: 0.5, vmin: 0, vmax: 0.15 };
+var lightPosTopLeft121 = { hmin: 0.5, hmax: 1, vmin: 0, vmax: 0.15 };
+var lightPosTopLeftNewMid = { hmin: 0.25, hmax: 0.75, vmin: 0, vmax: 0.15 };
+
 function assignLightPos(id, pos, name) {
   var i = null;
 
@@ -622,6 +635,26 @@ function assignLightPos(id, pos, name) {
     i = lightPosRightMiddle;
   else if (pos === "rightbottom")
     i = lightPosRightBottom;
+  else if (pos === "lightPosBottomLeft14")
+    i = lightPosBottomLeft14;
+  else if (pos === "lightPosBottomLeft12")
+    i = lightPosBottomLeft12;
+  else if (pos === "lightPosBottomLeft34")
+    i = lightPosBottomLeft34;
+  else if (pos === "lightPosBottomLeft11")
+    i = lightPosBottomLeft11;
+  else if (pos === "lightPosBottomLeft112")
+    i = lightPosBottomLeft112;
+  else if (pos === "lightPosBottomLeft121")
+    i = lightPosBottomLeft121;
+  else if (pos === "lightPosBottomLeftNewMid")
+    i = lightPosBottomLeftNewMid;
+  else if (pos === "lightPosTopLeft112")
+    i = lightPosTopLeft112;
+  else if (pos === "lightPosTopLeft121")
+    i = lightPosTopLeft121;
+  else if (pos === "lightPosTopLeftNewMid")
+    i = lightPosTopLeftNewMid;
   else
     i = lightPosEntire;
 
@@ -653,20 +686,21 @@ function getIdInLights(id) {
   );
 }
 
+// External properties properties, 2-dimensional arry of [ledType][key]
+devicesProperties = {};
+
 //****************************
 // Wizard Philips Hue
 //****************************
 
 var hueIPs = [];
 var hueIPsinc = 0;
-var lightIDs = null;
-var groupIDs = null;
+var hueLights = null;
+var hueGroups = null;
 var lightLocation = [];
 var groupLights = [];
 var groupLightsLocations = [];
 var hueType = "philipshue";
-
-let hueUrl = new URL('http://dummy');
 
 function startWizardPhilipsHue(e) {
   if (typeof e.data.type != "undefined") hueType = e.data.type;
@@ -739,7 +773,7 @@ function startWizardPhilipsHue(e) {
   $('#wizp2_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_save" style="display:none"><i class="fa fa-fw fa-save"></i>' + $.i18n('general_btn_save') + '</button><button type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
   $('#wizp3_body').html('<span>' + $.i18n('wiz_hue_press_link') + '</span> <br /><br /><center><span id="connectionTime"></span><br /><i class="fa fa-cog fa-spin" style="font-size:100px"></i></center>');
 
-  if (getStorage("darkMode", false) == "on")
+  if (getStorage("darkMode") == "on")
     $('#wizard_logo').attr("src", 'img/hyperion/logo_negativ.png');
 
   //open modal
@@ -762,43 +796,10 @@ function checkHueBridge(cb, hueUser) {
   if (usr == 'config') $('#wiz_hue_discovered').html("");
 
   if (hueIPs[hueIPsinc]) {
-
-    hueUrl.hostname = "dummy";
     var host = hueIPs[hueIPsinc].host;
-
-    if (isValidIPv6(host)) {
-      hueUrl.hostname = "[" + host + "]";
-    } else {
-      hueUrl.hostname = host;
-    }
-
     var port = hueIPs[hueIPsinc].port;
-    if (port > 0) {
-      hueUrl.port = port;
-    }
 
-    hueUrl.pathname = '/api/' + usr;
-    $.ajax({
-      url: hueUrl,
-      type: "GET",
-      dataType: "json",
-      timeout: 2500
-    })
-      .done(function (json) {
-        if (json.config) {
-          cb(true, usr);
-        } else {
-          if (json.name && json.bridgeid && json.modelid) {
-            $('#wiz_hue_discovered').html("Bridge: " + json.name + ", Modelid: " + json.modelid + ", API-Version: " + json.apiversion);
-            cb(true);
-          } else {
-            cb(false);
-          }
-        }
-      })
-      .fail(function () {
-        cb(false);
-      });
+    getProperties_hue_bridge(cb, decodeURIComponent(host), port, usr);
   }
 }
 
@@ -809,7 +810,6 @@ function checkBridgeResult(reply, usr) {
     $('#host').val(hueIPs[hueIPsinc].host)
     $('#port').val(hueIPs[hueIPsinc].port)
 
-    //now check hue user on this bridge
     $('#usrcont').toggle(true);
     checkHueBridge(checkUserResult, $('#user').val() ? $('#user').val() : "newdeveloper");
   }
@@ -852,28 +852,10 @@ function checkUserResult(reply, usr) {
   }
 };
 
-function identHueId(id, off, oState) {
-  if (off !== true) {
-    setTimeout(identHueId, 1500, id, true, oState);
-    var put_data = '{"on":true,"bri":254,"hue":47000,"sat":254}';
-  }
-  else {
-    var put_data = '{"on":' + oState.on + ',"bri":' + oState.bri + ',"hue":' + oState.hue + ',"sat":' + oState.sat + '}';
-  }
-
-  hueUrl.pathname = '/api/' + $('#user').val() + '/lights/' + id + '/state',
-  $.ajax({
-    url: hueUrl,
-    type: 'PUT',
-    timeout: 2000,
-    data: put_data
-  })
-}
-
 function useGroupId(id) {
   $('#groupId').val(id);
-  groupLights = groupIDs[id].lights;
-  groupLightsLocations = groupIDs[id].locations;
+  groupLights = hueGroups[id].lights;
+  groupLightsLocations = hueGroups[id].locations;
   get_hue_lights();
 }
 
@@ -881,9 +863,6 @@ async function discover_hue_bridges() {
   $('#wiz_hue_ipstate').html($.i18n('edt_dev_spec_devices_discovery_inprogress'));
   $('#wiz_hue_discovered').html("")
   const res = await requestLedDeviceDiscovery('philipshue');
-
-  // TODO: error case unhandled
-  // res can be: false (timeout) or res.error (not found)
   if (res && !res.error) {
     const r = res.info;
 
@@ -896,16 +875,31 @@ async function discover_hue_bridges() {
       hueIPs = [];
       hueIPsinc = 0;
 
+      var discoveryMethod = "ssdp";
+      if (res.info.discoveryMethod) {
+        discoveryMethod = res.info.discoveryMethod;
+      }
+
       for (const device of r.devices) {
-        if (device && device.ip && device.port) {
+        if (device) {
           var host;
           var port;
-          if (device.hostname && device.domain) {
-            host = device.hostname + "." + device.domain;
-            port = device.port;
+          if (discoveryMethod === "ssdp") {
+            if (device.hostname && device.domain) {
+              host = device.hostname + "." + device.domain;
+              port = device.port;
+            } else {
+              host = device.ip;
+              port = device.port;
+            }
           } else {
-            host = device.ip;
+            host = device.service;
             port = device.port;
+          }
+
+          //Remap https port to http port until Hue-API v2 is supported
+          if (port == 443) {
+            port = 80;
           }
 
           if (host) {
@@ -930,65 +924,71 @@ async function discover_hue_bridges() {
   }
 }
 
-async function getProperties_hue_bridge(hostAddress, port, username, resourceFilter) {
+async function getProperties_hue_bridge(cb, hostAddress, port, username, resourceFilter) {
   let params = { host: hostAddress, user: username, filter: resourceFilter };
   if (port !== 'undefined') {
-    params.port = port;
+    params.port = parseInt(port);
   }
 
-  const res = await requestLedDeviceProperties('philipshue', params);
+  var ledType = 'philipshue';
+  var key = hostAddress;
 
-  // TODO: error case unhandled
-  // res can be: false (timeout) or res.error (not found)
-  if (res && !res.error) {
-    const r = res.info
+  //Create ledType cache entry
+  if (!devicesProperties[ledType]) {
+    devicesProperties[ledType] = {};
+  }
 
-    // Process properties returned
-    console.log(r);
+  // Use device's properties, if properties in chache
+  if (devicesProperties[ledType][key]) {
+    cb(true, username);
+  } else {
+    const res = await requestLedDeviceProperties(ledType, params);
+
+
+    if (res && !res.error) {
+      var ledDeviceProperties = res.info.properties;
+      if (!jQuery.isEmptyObject(ledDeviceProperties)) {
+
+        if (username === "config") {
+          if (ledDeviceProperties.name && ledDeviceProperties.bridgeid && ledDeviceProperties.modelid) {
+            $('#wiz_hue_discovered').html("Bridge: " + ledDeviceProperties.name + ", Modelid: " + ledDeviceProperties.modelid + ", API-Version: " + ledDeviceProperties.apiversion);
+            cb(true);
+          }
+        } else {
+          devicesProperties[ledType][key] = ledDeviceProperties;
+          cb(true, username);
+        }
+      } else {
+        cb(false, username);
+      }
+    } else {
+      cb(false, username);
+    }
   }
 }
 
 async function identify_hue_device(hostAddress, port, username, id) {
-
+  var disabled = $('#btn_wiz_save').is(':disabled');
   // Take care that new record cannot be save during background process
   $('#btn_wiz_save').prop('disabled', true);
 
-  let params = { host: hostAddress, user: username, lightId: id };
+  let params = { host: decodeURIComponent(hostAddress), user: username, lightId: id };
+
   if (port !== 'undefined') {
-    params.port = port;
+    params.port = parseInt(port);
   }
+
   await requestLedDeviceIdentification('philipshue', params);
 
   if (!window.readOnlyMode) {
-    $('#btn_wiz_save').prop('disabled', false);
+    $('#btn_wiz_save').prop('disabled', disabled);
   }
 }
 
-function getHueIPs() {
-  $('#wiz_hue_ipstate').html($.i18n('wiz_hue_searchb'));
-
-  $.ajax({
-    url: 'https://discovery.meethue.com',
-    crossDomain: true,
-    type: 'GET',
-    timeout: 3000
-  })
-    .done(function (data, textStatus, jqXHR) {
-      if (data.length == 0) {
-        $('#wiz_hue_ipstate').html($.i18n('wiz_hue_failure_ip'));
-      } else {
-        hueIPs = data;
-        checkHueBridge(checkBridgeResult);
-      }
-    })
-    .fail(function (jqXHR, textStatus) {
-      $('#wiz_hue_ipstate').html($.i18n('wiz_hue_failure_ip'));
-    });
-};
-
 //return editor Value
-function eV(vn) {
-  return (vn) ? conf_editor.getEditor("root.specificOptions." + vn).getValue() : "";
+function eV(vn, defaultVal = "") {
+  var editor = (vn) ? conf_editor.getEditor("root.specificOptions." + vn) : null;
+  return (editor == null) ? defaultVal : ((defaultVal != "" && !isNaN(defaultVal) && isNaN(editor.getValue())) ? defaultVal : editor.getValue());
 }
 
 function beginWizardHue() {
@@ -1009,7 +1009,6 @@ function beginWizardHue() {
     hueIPs = [];
     hueIPsinc = 0;
 
-    //getHueIPs();
     discover_hue_bridges();
   }
   else {
@@ -1068,13 +1067,13 @@ function beginWizardHue() {
     var finalLightIds = [];
 
     //create hue led config
-    for (var key in lightIDs) {
+    for (var key in hueLights) {
       if (hueType == 'philipshueentertainment') {
         if (groupLights.indexOf(key) == -1) continue;
       }
       if ($('#hue_' + key).val() != "disabled") {
         finalLightIds.push(key);
-        var idx_content = assignLightPos(key, $('#hue_' + key).val(), lightIDs[key].name);
+        var idx_content = assignLightPos(key, $('#hue_' + key).val(), hueLights[key].name);
         hueLedConfig.push(JSON.parse(JSON.stringify(idx_content)));
       }
     }
@@ -1100,23 +1099,28 @@ function beginWizardHue() {
     d.type = 'philipshue';
     d.colorOrder = 'rgb';
     d.lightIds = finalLightIds;
-    d.transitiontime = parseInt(eV("transitiontime"));
-    d.restoreOriginalState = (eV("restoreOriginalState") == true);
-    d.switchOffOnBlack = (eV("switchOffOnBlack") == true);
-    d.brightnessFactor = parseFloat(eV("brightnessFactor"));
+    d.transitiontime = parseInt(eV("transitiontime", 1));
+    d.restoreOriginalState = (eV("restoreOriginalState", false) == true);
+    d.switchOffOnBlack = (eV("switchOffOnBlack", false) == true);
+
+    d.blackLevel = parseFloat(eV("blackLevel", 0.009));
+    d.onBlackTimeToPowerOff = parseInt(eV("onBlackTimeToPowerOff", 600));
+    d.onBlackTimeToPowerOn = parseInt(eV("onBlackTimeToPowerOn", 300));
+    d.brightnessFactor = parseFloat(eV("brightnessFactor", 1));
 
     d.clientkey = $('#clientkey').val();
     d.groupId = parseInt($('#groupId').val());
-    d.blackLightsTimeout = parseInt(eV("blackLightsTimeout"));
-    d.brightnessMin = parseFloat(eV("brightnessMin"));
-    d.brightnessMax = parseFloat(eV("brightnessMax"));
-    d.brightnessThreshold = parseFloat(eV("brightnessThreshold"));
-    d.sslReadTimeout = parseInt(eV("sslReadTimeout"));
-    d.sslHSTimeoutMin = parseInt(eV("sslHSTimeoutMin"));
-    d.sslHSTimeoutMax = parseInt(eV("sslHSTimeoutMax"));
+    d.blackLightsTimeout = parseInt(eV("blackLightsTimeout", 5000));
+    d.brightnessMin = parseFloat(eV("brightnessMin", 0));
+    d.brightnessMax = parseFloat(eV("brightnessMax", 1));
+    d.brightnessThreshold = parseFloat(eV("brightnessThreshold", 0.0001));
+    d.handshakeTimeoutMin = parseInt(eV("handshakeTimeoutMin", 300));
+    d.handshakeTimeoutMax = parseInt(eV("handshakeTimeoutMax", 1000));
     d.verbose = (eV("verbose") == true);
-    d.debugStreamer = (eV("debugStreamer") == true);
-    d.debugLevel = (eV("debugLevel"));
+
+    d.autoStart = conf_editor.getEditor("root.generalOptions.autoStart").getValue();
+    d.enableAttempts = parseInt(conf_editor.getEditor("root.generalOptions.enableAttempts").getValue());
+    d.enableAttemptsInterval = parseInt(conf_editor.getEditor("root.generalOptions.enableAttemptsInterval").getValue());
 
     if (hueType == 'philipshue') {
       d.useEntertainmentAPI = false;
@@ -1129,7 +1133,6 @@ function beginWizardHue() {
     if (hueType == 'philipshueentertainment') {
       d.useEntertainmentAPI = true;
       d.hardwareLedCount = groupLights.length;
-      d.rewriteTime = 20;
       //smoothing on
       sc.smoothing.enable = true;
     }
@@ -1144,83 +1147,92 @@ function beginWizardHue() {
 }
 
 function createHueUser() {
-  var connectionRetries = 30;
-  var data = { "devicetype": "hyperion#" + Date.now() }
-  if (hueType == 'philipshueentertainment') {
-    data = { "devicetype": "hyperion#" + Date.now(), "generateclientkey": true }
+
+  var host = hueIPs[hueIPsinc].host;
+  var port = hueIPs[hueIPsinc].port;
+
+  let params = { host: host };
+  if (port !== 'undefined') {
+    params.port = parseInt(port);
   }
+
+  var retryTime = 30;
+  var retryInterval = 2;
+
   var UserInterval = setInterval(function () {
 
-    hueUrl.pathname = '/api/';
-    $.ajax({
-      type: "POST",
-      url: hueUrl,
-      processData: false,
-      timeout: 1000,
-      contentType: 'application/json',
-      data: JSON.stringify(data)
-    })
-      .done(function (r) {
-        $('#wizp1').toggle(false);
-        $('#wizp2').toggle(false);
-        $('#wizp3').toggle(true);
+    $('#wizp1').toggle(false);
+    $('#wizp2').toggle(false);
+    $('#wizp3').toggle(true);
 
-        connectionRetries--;
-        $("#connectionTime").html(connectionRetries);
-        if (connectionRetries == 0) {
-          abortConnection(UserInterval);
-        }
-        else {
-          if (typeof r[0].error != 'undefined') {
-            console.log(connectionRetries + ": link not pressed");
-          }
-          if (typeof r[0].success != 'undefined') {
+    (async () => {
+
+      retryTime -= retryInterval;
+      $("#connectionTime").html(retryTime);
+      if (retryTime <= 0) {
+        abortConnection(UserInterval);
+        clearInterval(UserInterval);
+      }
+      else {
+        const res = await requestLedDeviceAddAuthorization('philipshue', params);
+        if (res && !res.error) {
+          var response = res.info;
+
+          if (jQuery.isEmptyObject(response)) {
+            debugMessage(retryTime + ": link button not pressed or device not reachable");
+          } else {
             $('#wizp1').toggle(false);
             $('#wizp2').toggle(true);
             $('#wizp3').toggle(false);
-            if (r[0].success.username != 'undefined') {
-              $('#user').val(r[0].success.username);
-              conf_editor.getEditor("root.specificOptions.username").setValue(r[0].success.username);
+
+            var username = response.username;
+            if (username != 'undefined') {
+              $('#user').val(username);
+              conf_editor.getEditor("root.specificOptions.username").setValue(username);
+              conf_editor.getEditor("root.specificOptions.host").setValue(host);
+              conf_editor.getEditor("root.specificOptions.port").setValue(port);
             }
             if (hueType == 'philipshueentertainment') {
-              if (r[0].success.clientkey != 'undefined') {
-                $('#clientkey').val(r[0].success.clientkey);
-                conf_editor.getEditor("root.specificOptions.clientkey").setValue(r[0].success.clientkey);
+              var clientkey = response.clientkey;
+              if (clientkey != 'undefined') {
+                $('#clientkey').val(clientkey);
+                conf_editor.getEditor("root.specificOptions.clientkey").setValue(clientkey);
               }
             }
-            checkHueBridge(checkUserResult, r[0].success.username);
+            checkHueBridge(checkUserResult, username);
             clearInterval(UserInterval);
           }
+        } else {
+          $('#wizp1').toggle(false);
+          $('#wizp2').toggle(true);
+          $('#wizp3').toggle(false);
+          clearInterval(UserInterval);
         }
-      })
-      .fail(function (XMLHttpRequest, textStatus, errorThrown) {
-        $('#wizp1').toggle(false);
-        $('#wizp2').toggle(true);
-        $('#wizp3').toggle(false);
-        clearInterval(UserInterval);
-      })
-  }, 1000);
+      }
+    })();
+
+  }, retryInterval * 1000);
 }
 
 function get_hue_groups() {
-  hueUrl.pathname = '/api/' + $("#user").val() + '/groups';
-  $.ajax({
-    type: "GET",
-    url: hueUrl,
-    processData: false,
-    contentType: 'application/json'
-  })
-    .done(function (r) {
-      if (Object.keys(r).length > 0) {
+
+  var host = hueIPs[hueIPsinc].host;
+
+  if (devicesProperties['philipshue'][host]) {
+    var ledProperties = devicesProperties['philipshue'][host];
+
+    if (!jQuery.isEmptyObject(ledProperties)) {
+      hueGroups = ledProperties.groups;
+      if (Object.keys(hueGroups).length > 0) {
+
+        $('.lidsb').html("");
         $('#wh_topcontainer').toggle(false);
         $('#hue_grp_ids_t').toggle(true);
 
-        groupIDs = r;
-
         var gC = 0;
-        for (var groupid in r) {
-          if (r[groupid].type == 'Entertainment') {
-            $('.gidsb').append(createTableRow([groupid + ' (' + r[groupid].name + ')', '<button class="btn btn-sm btn-primary" onClick=useGroupId(' + groupid + ')>' + $.i18n('wiz_hue_e_use_groupid', groupid) + '</button>']));
+        for (var groupid in hueGroups) {
+          if (hueGroups[groupid].type == 'Entertainment') {
+            $('.gidsb').append(createTableRow([groupid + ' (' + hueGroups[groupid].name + ')', '<button class="btn btn-sm btn-primary" onClick=useGroupId(' + groupid + ')>' + $.i18n('wiz_hue_e_use_groupid', groupid) + '</button>']));
             gC++;
           }
         }
@@ -1228,10 +1240,8 @@ function get_hue_groups() {
           noAPISupport('wiz_hue_e_noegrpids');
         }
       }
-      else {
-        noAPISupport('wiz_hue_e_nogrpids');
-      }
-    })
+    }
+  }
 }
 
 function noAPISupport(txt) {
@@ -1247,42 +1257,30 @@ function noAPISupport(txt) {
   get_hue_lights();
 }
 
-function get_light_state(id) {
-  hueUrl.pathname = '/api/' + $("#user").val() + '/lights/' + id;
-  $.ajax({
-    type: "GET",
-    url: hueUrl,
-    processData: false,
-    contentType: 'application/json'
-  })
-    .done(function (r) {
-      if (Object.keys(r).length > 0) {
-        identHueId(id, false, r['state']);
-      }
-    })
-}
-
 function get_hue_lights() {
-  hueUrl.pathname = '/api/' + $("#user").val() + '/lights';
-  $.ajax({
-    type: "GET",
-    url: hueUrl,
-    processData: false,
-    contentType: 'application/json'
-  })
-    .done(function (r) {
-      if (Object.keys(r).length > 0) {
+
+  var host = hueIPs[hueIPsinc].host;
+
+  if (devicesProperties['philipshue'][host]) {
+    var ledProperties = devicesProperties['philipshue'][host];
+
+    if (!jQuery.isEmptyObject(ledProperties.lights)) {
+      hueLights = ledProperties.lights;
+      if (Object.keys(hueLights).length > 0) {
         if (hueType == 'philipshue') {
           $('#wh_topcontainer').toggle(false);
         }
         $('#hue_ids_t, #btn_wiz_save').toggle(true);
-        lightIDs = r;
+
         var lightOptions = [
           "top", "topleft", "topright",
           "bottom", "bottomleft", "bottomright",
           "left", "lefttop", "leftmiddle", "leftbottom",
           "right", "righttop", "rightmiddle", "rightbottom",
-          "entire"
+          "entire",
+          "lightPosTopLeft112", "lightPosTopLeftNewMid", "lightPosTopLeft121",
+          "lightPosBottomLeft14", "lightPosBottomLeft12", "lightPosBottomLeft34", "lightPosBottomLeft11",
+          "lightPosBottomLeft112", "lightPosBottomLeftNewMid", "lightPosBottomLeft121"
         ];
 
         if (hueType == 'philipshue') {
@@ -1291,7 +1289,7 @@ function get_hue_lights() {
 
         $('.lidsb').html("");
         var pos = "";
-        for (var lightid in r) {
+        for (var lightid in hueLights) {
           if (hueType == 'philipshueentertainment') {
             if (groupLights.indexOf(lightid) == -1) continue;
 
@@ -1323,15 +1321,15 @@ function get_hue_lights() {
             if (pos == val) options += ' selected="selected"';
             options += '>' + $.i18n(txt + val) + '</option>';
           }
-          $('.lidsb').append(createTableRow([lightid + ' (' + r[lightid].name + ')', '<select id="hue_' + lightid + '" class="hue_sel_watch form-control">'
+          $('.lidsb').append(createTableRow([lightid + ' (' + hueLights[lightid].name + ')', '<select id="hue_' + lightid + '" class="hue_sel_watch form-control">'
             + options
-            + '</select>', '<button class="btn btn-sm btn-primary" onClick=identify_hue_device("' + $("#host").val() + '","' + $("#port").val() + '","' + $("#user").val() + '",' + lightid + ')>' + $.i18n('wiz_hue_blinkblue', lightid) + '</button>']));
+            + '</select>', '<button class="btn btn-sm btn-primary" onClick=identify_hue_device("' + encodeURIComponent($("#host").val()) + '","' + $('#port').val() + '","' + $("#user").val() + '",' + lightid + ')>' + $.i18n('wiz_hue_blinkblue', lightid) + '</button>']));
         }
 
         if (hueType != 'philipshueentertainment') {
           $('.hue_sel_watch').on("change", function () {
             var cC = 0;
-            for (var key in lightIDs) {
+            for (var key in hueLights) {
               if ($('#hue_' + key).val() != "disabled") {
                 cC++;
               }
@@ -1346,7 +1344,8 @@ function get_hue_lights() {
         var txt = '<p style="font-weight:bold;color:red;">' + $.i18n('wiz_hue_noids') + '</p>';
         $('#wizp2_body').append(txt);
       }
-    })
+    }
+  }
 }
 
 function abortConnection(UserInterval) {
@@ -1386,7 +1385,7 @@ function startWizardYeelight(e) {
     + $.i18n('general_btn_save') + '</button><buttowindow.serverConfig.device = d;n type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>'
     + $.i18n('general_btn_cancel') + '</button>');
 
-  if (getStorage("darkMode", false) == "on")
+  if (getStorage("darkMode") == "on")
     $('#wizard_logo').attr("src", 'img/hyperion/logo_negativ.png');
 
   //open modal
@@ -1413,18 +1412,14 @@ function beginWizardYeelight() {
     //create yeelight led config
     for (var key in lights) {
       if ($('#yee_' + key).val() !== "disabled") {
-        //delete lights[key].model;
 
+        var name = lights[key].name;
         // Set Name to layout-position, if empty
-        if (lights[key].name === "") {
-          lights[key].name = $.i18n('conf_leds_layout_cl_' + $('#yee_' + key).val());
+        if (name === "") {
+          name = lights[key].host;
         }
 
         finalLights.push(lights[key]);
-
-        var name = lights[key].host;
-        if (lights[key].name !== "")
-          name += '_' + lights[key].name;
 
         var idx_content = assignLightPos(key, $('#yee_' + key).val(), name);
         yeelightLedConfig.push(JSON.parse(JSON.stringify(idx_content)));
@@ -1460,7 +1455,8 @@ function beginWizardYeelight() {
     window.serverConfig.device = d;
 
     //smoothing off
-    window.serverConfig.smoothing.enable = false;
+    if (!(window.serverConfig.smoothing == null))
+      window.serverConfig.smoothing.enable = false;
 
     requestWriteConfig(window.serverConfig, true);
     resetWizard();
@@ -1479,24 +1475,31 @@ async function discover_yeelight_lights() {
   if (res && !res.error) {
     const r = res.info;
 
+    var discoveryMethod = "ssdp";
+    if (res.info.discoveryMethod) {
+      discoveryMethod = res.info.discoveryMethod;
+    }
+
     // Process devices returned by discovery
     for (const device of r.devices) {
       if (device.hostname !== "") {
         if (getHostInLights(device.hostname).length === 0) {
           var light = {};
 
-          light.host = device.hostname;
 
-          //Create a valid hostname
-          if (device.domain)
-          {
-             light.host += '.' + device.domain;
+
+          if (discoveryMethod === "ssdp") {
+            //Create a valid hostname
+            if (device.domain) {
+              light.host += '.' + device.domain;
+            }
+          } else {
+            light.host = device.service;
+            light.name = device.name;
           }
-
           light.port = device.port;
 
           if (device.txt) {
-            light.name = device.name;
             light.model = device.txt.md;
             //Yeelight does not provide correct API port with mDNS response, use default one
             light.port = 55443;
@@ -1547,7 +1550,10 @@ function assign_yeelight_lights() {
       "bottom", "bottomleft", "bottomright",
       "left", "lefttop", "leftmiddle", "leftbottom",
       "right", "righttop", "rightmiddle", "rightbottom",
-      "entire"
+      "entire",
+      "lightPosTopLeft112", "lightPosTopLeftNewMid", "lightPosTopLeft121",
+      "lightPosBottomLeft14", "lightPosBottomLeft12", "lightPosBottomLeft34", "lightPosBottomLeft11",
+      "lightPosBottomLeft112", "lightPosBottomLeftNewMid", "lightPosBottomLeft121"
     ];
 
     lightOptions.unshift("disabled");
@@ -1561,7 +1567,7 @@ function assign_yeelight_lights() {
       var lightName = lights[lightid].name;
 
       if (lightName === "")
-        lightName = $.i18n('edt_dev_spec_lights_itemtitle');
+        lightName = $.i18n('edt_dev_spec_lights_itemtitle') + '(' + lightHostname + ')';
 
       var options = "";
       for (var opt in lightOptions) {
@@ -1578,10 +1584,10 @@ function assign_yeelight_lights() {
         options = '<option value=disabled>' + $.i18n('wiz_yeelight_unsupported') + '</option>';
       }
 
-      $('.lidsb').append(createTableRow([(parseInt(lightid, 10) + 1) + '. ' + lightName + '<br>(' + lightHostname + ')', '<select id="yee_' + lightid + '" ' + enabled + ' class="yee_sel_watch form-control">'
+      $('.lidsb').append(createTableRow([(parseInt(lightid, 10) + 1) + '. ' + lightName, '<select id="yee_' + lightid + '" ' + enabled + ' class="yee_sel_watch form-control">'
         + options
         + '</select>', '<button class="btn btn-sm btn-primary" onClick=identify_yeelight_device("' + lightHostname + '",' + lightPort + ')>'
-        + $.i18n('wiz_identify_light', lightName) + '</button>']));
+        + $.i18n('wiz_identify') + '</button>']));
     }
 
     $('.yee_sel_watch').on("change", function () {
@@ -1605,8 +1611,8 @@ function assign_yeelight_lights() {
   }
 }
 
-async function getProperties_yeelight(hostname, port) {
-  let params = { hostname: hostname, port: port };
+async function getProperties_yeelight(host, port) {
+  let params = { host: host, port: port };
 
   const res = await requestLedDeviceProperties('yeelight', params);
 
@@ -1614,21 +1620,22 @@ async function getProperties_yeelight(hostname, port) {
   // res can be: false (timeout) or res.error (not found)
   if (res && !res.error) {
     const r = res.info
-
-    // Process properties returned
-    console.log(r);
+    console.log("Yeelight properties: ", r);
   }
 }
 
-async function identify_yeelight_device(hostname, port) {
+async function identify_yeelight_device(host, port) {
+
+  var disabled = $('#btn_wiz_save').is(':disabled');
+
   // Take care that new record cannot be save during background process
   $('#btn_wiz_save').prop('disabled', true);
 
-  let params = { hostname: hostname, port: port };
+  let params = { host: host, port: port };
   await requestLedDeviceIdentification("yeelight", params);
 
   if (!window.readOnlyMode) {
-    $('#btn_wiz_save').prop('disabled', false);
+    $('#btn_wiz_save').prop('disabled', disabled);
   }
 }
 
@@ -1661,7 +1668,7 @@ function startWizardAtmoOrb(e) {
     + $.i18n('general_btn_save') + '</button><buttowindow.serverConfig.device = d;n type="button" class="btn btn-danger" id="btn_wiz_abort"><i class="fa fa-fw fa-close"></i>'
     + $.i18n('general_btn_cancel') + '</button>');
 
-  if (getStorage("darkMode", false) == "on")
+  if (getStorage("darkMode") == "on")
     $('#wizard_logo').attr("src", 'img/hyperion/logo_negativ.png');
 
   //open modal
@@ -1802,7 +1809,10 @@ function assign_atmoorb_lights() {
       "bottom", "bottomleft", "bottomright",
       "left", "lefttop", "leftmiddle", "leftbottom",
       "right", "righttop", "rightmiddle", "rightbottom",
-      "entire"
+      "entire",
+      "lightPosTopLeft112", "lightPosTopLeftNewMid", "lightPosTopLeft121",
+      "lightPosBottomLeft14", "lightPosBottomLeft12", "lightPosBottomLeft34", "lightPosBottomLeft11",
+      "lightPosBottomLeft112", "lightPosBottomLeftNewMid", "lightPosBottomLeft121"
     ];
 
     lightOptions.unshift("disabled");
@@ -1865,6 +1875,8 @@ function assign_atmoorb_lights() {
 }
 
 async function identify_atmoorb_device(orbId) {
+  var disabled = $('#btn_wiz_save').is(':disabled');
+
   // Take care that new record cannot be save during background process
   $('#btn_wiz_save').prop('disabled', true);
 
@@ -1872,6 +1884,7 @@ async function identify_atmoorb_device(orbId) {
   await requestLedDeviceIdentification("atmoorb", params);
 
   if (!window.readOnlyMode) {
-    $('#btn_wiz_save').prop('disabled', false);
+    $('#btn_wiz_save').prop('disabled', disabled);
   }
 }
+

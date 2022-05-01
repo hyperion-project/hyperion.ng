@@ -14,6 +14,7 @@
 #include <QBuffer>
 #include <QByteArray>
 #include <QTimer>
+#include <QThread>
 
 // hyperion includes
 #include <utils/jsonschema/QJsonFactory.h>
@@ -22,9 +23,6 @@
 #include <utils/SysInfo.h>
 #include <utils/ColorSys.h>
 #include <utils/Process.h>
-
-// bonjour wrapper
-#include <bonjour/bonjourbrowserwrapper.h>
 
 // ledmapping int <> string transform methods
 #include <hyperion/ImageProcessor.h>
@@ -44,17 +42,13 @@ API::API(Logger *log, bool localConnection, QObject *parent)
     // Init
     _log = log;
     _authManager = AuthManager::getInstance();
-    _instanceManager = HyperionIManager::getInstance();
+	_instanceManager = HyperionIManager::getInstance();
     _localConnection = localConnection;
 
     _authorized = false;
     _adminAuthorized = false;
 
-    _hyperion = _instanceManager->getHyperionInstance(0);
     _currInstanceIndex = 0;
-    // TODO FIXME
-    // report back current registers when a Hyperion instance request it
-    //connect(ApiSync::getInstance(), &ApiSync::requestActiveRegister, this, &API::requestActiveRegister, Qt::QueuedConnection);
 
     // connect to possible token responses that has been requested
     connect(_authManager, &AuthManager::tokenResponse, [=] (bool success, QObject *caller, const QString &token, const QString &comment, const QString &id, const int &tan)
@@ -73,7 +67,7 @@ API::API(Logger *log, bool localConnection, QObject *parent)
 
 void API::init()
 {
-	assert(_hyperion);
+	_hyperion = _instanceManager->getHyperionInstance(0);
 
     bool apiAuthRequired = _authManager->isAuthRequired();
 
@@ -334,13 +328,6 @@ bool API::startInstance(quint8 index, int tan)
 void API::stopInstance(quint8 index)
 {
     QMetaObject::invokeMethod(_instanceManager, "stopInstance", Qt::QueuedConnection, Q_ARG(quint8, index));
-}
-
-void API::requestActiveRegister(QObject *callerInstance)
-{
-    // TODO FIXME
-    //if (_activeRegisters.size())
-    //   QMetaObject::invokeMethod(ApiSync::getInstance(), "answerActiveRegister", Qt::QueuedConnection, Q_ARG(QObject *, callerInstance), Q_ARG(MapRegister, _activeRegisters));
 }
 
 bool API::deleteInstance(quint8 index, QString &replyMsg)

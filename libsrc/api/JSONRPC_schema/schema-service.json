@@ -1,0 +1,28 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["service"]
+		},
+		"tan" : {
+			"type" : "integer"
+		},
+		"subcommand": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["discover"]
+		},
+		"serviceType": {
+			"type" : "string",
+			"required" : true
+		},
+		"params": {
+			"type" : "object",
+			"required" : false
+		}
+	},
+	"additionalProperties": false
+}

@@ -26,7 +26,6 @@ window.loggingStreamActive = false;
 window.loggingHandlerInstalled = false;
 window.watchdog = 0;
 window.debugMessagesActive = true;
-window.wSess = [];
 window.currentHyperionInstance = 0;
 window.currentHyperionInstanceName = "?";
 window.comps = [];
@@ -136,7 +135,11 @@ function initWebSocket()
               // skip tan -1 error handling
               if(tan != -1){
                 var error = response.hasOwnProperty("error")? response.error : "unknown";
-                $(window.hyperion).trigger({type:"error",reason:error});
+                if (error == "Service Unavailable") {
+                  window.location.reload();
+                } else {
+                  $(window.hyperion).trigger({type:"error",reason:error});
+                }
                 console.log("[window.websocket::onmessage] ",error)
               }
           }
@@ -307,7 +310,7 @@ function requestInstanceSwitch(inst)
 
 function requestServerInfo()
 {
-  sendToHyperion("serverinfo","",'"subscribe":["components-update","sessions-update","priorities-update", "imageToLedMapping-update", "adjustment-update", "videomode-update", "effects-update", "settings-update", "instance-update"]');
+  sendToHyperion("serverinfo","",'"subscribe":["components-update", "priorities-update", "imageToLedMapping-update", "adjustment-update", "videomode-update", "effects-update", "settings-update", "instance-update"]');
 }
 
 function requestSysInfo()
@@ -485,9 +488,21 @@ function requestLedDeviceIdentification(type, params)
   return sendAsyncToHyperion("leddevice", "identify", data, Math.floor(Math.random() * 1000));
 }
 
+async function requestLedDeviceAddAuthorization(type, params) {
+  let data = { ledDeviceType: type, params: params };
+
+  return sendAsyncToHyperion("leddevice", "addAuthorization", data, Math.floor(Math.random() * 1000));
+}
+
 async function requestInputSourcesDiscovery(type, params) {
   let data = { sourceType: type, params: params };
 
   return sendAsyncToHyperion("inputsource", "discover", data, Math.floor(Math.random() * 1000));
+}
+
+async function requestServiceDiscovery(type, params) {
+  let data = { serviceType: type, params: params };
+
+  return sendAsyncToHyperion("service", "discover", data, Math.floor(Math.random() * 1000));
 }
 

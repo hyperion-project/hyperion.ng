@@ -77,12 +77,12 @@ public:
 
 private:
 
-	QJsonDocument _responseBody;
+	QJsonDocument _responseBody {};
 	bool _hasError = false;
 	QString _errorReason;
 
 	int _httpStatusCode = 0;
-	QNetworkReply::NetworkError _networkReplyError = QNetworkReply::NoError;
+	QNetworkReply::NetworkError _networkReplyError { QNetworkReply::NoError };
 };
 
 ///
@@ -290,6 +290,13 @@ public:
 	/// Remove all header fields.
 	///
 	void removeAllHeaders() { _networkRequestHeaders = QNetworkRequest(); }
+
+	///
+	/// @brief Set the common logger for LED-devices.
+	///
+	/// @param[in] log The logger to be used
+	///
+	void setLogger(Logger* log) { _log = log; }
 
 private:
 

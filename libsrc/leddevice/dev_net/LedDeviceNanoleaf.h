@@ -150,13 +150,9 @@ private:
 	///
 	/// @brief Initialise the access to the REST-API wrapper
 	///
-	/// @param[in] host
-	/// @param[in] port
-	/// @param[in] authentication token
-	///
 	/// @return True, if success
 	///
-	bool initRestAPI(const QString& hostname, int port, const QString& token);
+	bool openRestAPI();
 
 	///
 	/// @brief Get Nanoleaf device details and configuration
@@ -188,9 +184,7 @@ private:
 
 	///REST-API wrapper
 	ProviderRestApi* _restApi;
-
-	QString _hostName;
-	int  _apiPort;
+	int	_apiPort;
 	QString _authToken;
 
 	bool _topDown;

@@ -69,8 +69,8 @@
 // Define to enable the WS281x-PWM-via-DMA-device using jgarff's library
 #cmakedefine ENABLE_DEV_WS281XPWM
 
-// Define to enable AVAHI
-#cmakedefine ENABLE_AVAHI
+// Define to enable MDNS
+#cmakedefine ENABLE_MDNS
 
 // Define to enable EFFECTENGINE
 #cmakedefine ENABLE_EFFECTENGINE

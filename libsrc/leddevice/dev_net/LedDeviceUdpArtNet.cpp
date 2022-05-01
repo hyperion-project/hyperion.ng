@@ -9,7 +9,16 @@
 
 #include <QHostInfo>
 
+#include <utils/NetUtils.h>
+
+// Constants
+namespace {
+
+const char CONFIG_HOST[] = "host";
+const char CONFIG_PORT[] = "port";
+
 const ushort ARTNET_DEFAULT_PORT = 6454;
+}
 
 LedDeviceUdpArtNet::LedDeviceUdpArtNet(const QJsonObject &deviceConfig)
 	: ProviderUdp(deviceConfig)
@@ -23,19 +32,37 @@ LedDevice* LedDeviceUdpArtNet::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceUdpArtNet::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = false;
-
-	_port = ARTNET_DEFAULT_PORT;
+	bool isInitOK {false};
 
 	// Initialise sub-class
 	if ( ProviderUdp::init(deviceConfig) )
 	{
+		_hostName = _devConfig[ CONFIG_HOST ].toString();
+		_port = deviceConfig[CONFIG_PORT].toInt(ARTNET_DEFAULT_PORT);
+
 		_artnet_universe = deviceConfig["universe"].toInt(1);
 		_artnet_channelsPerFixture = deviceConfig["channelsPerFixture"].toInt(3);
 
 		isInitOK = true;
 	}
 	return isInitOK;
+}
+
+int LedDeviceUdpArtNet::open()
+{
+	int retval = -1;
+	_isDeviceReady = false;
+
+	if (NetUtils::resolveHostToAddress(_log, _hostName, _address))
+	{
+		if (ProviderUdp::open() == 0)
+		{
+			// Everything is OK, device is ready
+			_isDeviceReady = true;
+			retval = 0;
+		}
+	}
+	return retval;
 }
 
 // populates the headers

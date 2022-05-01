@@ -3,6 +3,7 @@
 # detect CI
 if [ "$HOME" != "" ]; then
 	# GitHub Actions
+	echo "Github Actions detected"
 	CI_NAME="$(uname -s | tr '[:upper:]' '[:lower:]')"
 	CI_BUILD_DIR="$GITHUB_WORKSPACE"
 else
@@ -20,8 +21,11 @@ else
 	PLATFORM=${PLATFORM}-dev
 fi
 
+echo "Platform: ${PLATFORM}, build type: ${BUILD_TYPE}, CI_NAME: $CI_NAME, docker image: ${DOCKER_IMAGE}, docker type: ${DOCKER_TAG}"
+
 # Build the package on osx or linux
 if [[ "$CI_NAME" == 'osx' || "$CI_NAME" == 'darwin' ]]; then
+	echo "Compile Hyperion on OSX or Darwin"
 	# compile prepare
 	mkdir build || exit 1
 	cd build
@@ -31,12 +35,13 @@ if [[ "$CI_NAME" == 'osx' || "$CI_NAME" == 'darwin' ]]; then
 	exit 0;
 	exit 1 || { echo "---> Hyperion compilation failed! Abort"; exit 5; }
 elif [[ $CI_NAME == *"mingw64_nt"* || "$CI_NAME" == 'windows_nt' ]]; then
+	echo "Compile Hyperion on Windows"
 	# compile prepare
 	echo "Number of Cores $NUMBER_OF_PROCESSORS"
 	mkdir build || exit 1
 	cd build
-	cmake -G "Visual Studio 17 2022" -A x64 -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ../ || exit 2
-	cmake --build . --target package --config Release -- -nologo -v:m -maxcpucount || exit 3
+	cmake -G "Visual Studio 17 2022" -A x64 -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE="Release" ../ || exit 2
+	cmake --build . --target package --config "Release" -- -nologo -v:m -maxcpucount || exit 3
 	exit 0;
 	exit 1 || { echo "---> Hyperion compilation failed! Abort"; exit 5; }
 elif [[ "$CI_NAME" == 'linux' ]]; then

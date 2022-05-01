@@ -45,22 +45,15 @@ LedDeviceAtmoOrb::~LedDeviceAtmoOrb()
 
 bool LedDeviceAtmoOrb::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = false;
+	bool isInitOK {false};
 
 	if ( LedDevice::init(deviceConfig) )
 	{
-
 		_multicastGroup     = deviceConfig["host"].toString(MULTICAST_GROUP_DEFAULT_ADDRESS);
 		_multiCastGroupPort = static_cast<quint16>(deviceConfig["port"].toInt(MULTICAST_GROUP_DEFAULT_PORT));
 		_useOrbSmoothing    = deviceConfig["useOrbSmoothing"].toBool(false);
 		_skipSmoothingDiff  = deviceConfig["skipSmoothingDiff"].toInt(0);
 		QStringList orbIds = QStringUtils::split(deviceConfig["orbIds"].toString().simplified().remove(" "),",", QStringUtils::SplitBehavior::SkipEmptyParts);
-
-		Debug(_log, "DeviceType        : %s", QSTRING_CSTR( this->getActiveDeviceType() ));
-		Debug(_log, "LedCount          : %d", this->getLedCount());
-		Debug(_log, "ColorOrder        : %s", QSTRING_CSTR( this->getColorOrder() ));
-		Debug(_log, "RefreshTime       : %d", _refreshTimerInterval_ms);
-		Debug(_log, "LatchTime         : %d", this->getLatchTime());
 
 		Debug(_log, "MulticastGroup    : %s", QSTRING_CSTR(_multicastGroup));
 		Debug(_log, "MulticastGroupPort: %d", _multiCastGroupPort);

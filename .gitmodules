@@ -9,3 +9,6 @@
 [submodule "dependencies/external/protobuf"]
 	path = dependencies/external/protobuf
 	url = https://github.com/protocolbuffers/protobuf
+[submodule "dependencies/external/qmdnsengine"]
+	path = dependencies/external/qmdnsengine
+	url = https://github.com/nitroshare/qmdnsengine.git

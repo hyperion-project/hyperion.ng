@@ -6,15 +6,17 @@
 #include <utils/NetOrigin.h>
 #include <utils/GlobalSignals.h>
 
-// bonjour
-#ifdef ENABLE_AVAHI
-#include <bonjour/bonjourserviceregister.h>
-#endif
-
 // qt
 #include <QJsonObject>
 #include <QTcpServer>
 #include <QTcpSocket>
+
+// Constants
+namespace {
+
+const char SERVICE_TYPE[] = "flatbuffer";
+
+} //End of constants
 
 FlatBufferServer::FlatBufferServer(const QJsonDocument& config, QObject* parent)
 	: QObject(parent)
@@ -106,19 +108,8 @@ void FlatBufferServer::startServer()
 		else
 		{
 			Info(_log,"Started on port %d", _port);
-#ifdef ENABLE_AVAHI
-			if(_serviceRegister == nullptr)
-			{
-				_serviceRegister = new BonjourServiceRegister(this);
-				_serviceRegister->registerService("_hyperiond-flatbuf._tcp", _port);
-			}
-			else if(_serviceRegister->getPort() != _port)
-			{
-				delete _serviceRegister;
-				_serviceRegister = new BonjourServiceRegister(this);
-				_serviceRegister->registerService("_hyperiond-flatbuf._tcp", _port);
-			}
-#endif
+
+			emit publishService(SERVICE_TYPE, _port);
 		}
 	}
 }

@@ -21,7 +21,7 @@ var toggleKeystoneCorrectionArea = false;
 var devRPiSPI = ['apa102', 'apa104', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'sk6822spi', 'sk9822', 'ws2812spi'];
 var devRPiPWM = ['ws281x'];
 var devRPiGPIO = ['piblaster'];
-var devNET = ['atmoorb', 'cololight', 'fadecandy', 'philipshue', 'nanoleaf', 'razer', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udph801', 'udpraw', 'wled', 'yeelight'];
+var devNET = ['atmoorb', 'cololight', 'fadecandy', 'philipshue', 'nanoleaf', 'razer', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udpddp', 'udph801', 'udpraw', 'wled', 'yeelight'];
 var devSerial = ['adalight', 'dmx', 'atmo', 'sedu', 'tpm2', 'karate'];
 var devHID = ['hyperionusbasp', 'lightpack', 'paintpack', 'rawhid'];
 
@@ -1075,6 +1075,7 @@ $(document).ready(function () {
     conf_editor.on('ready', function () {
       var hwLedCountDefault = 1;
       var colorOrderDefault = "rgb";
+      var filter = {};
 
       $('#btn_test_controller').hide();
 
@@ -1083,13 +1084,7 @@ $(document).ready(function () {
         case "wled":
         case "nanoleaf":
           showAllDeviceInputOptions("hostList", false);
-        case "adalight":
-        case "atmo":
-        case "dmx":
-        case "karate":
-        case "sedu":
-        case "tpm2":
-        case "apa102":
+         case "apa102":
         case "apa104":
         case "ws2801":
         case "lpd6803":
@@ -1101,7 +1096,18 @@ $(document).ready(function () {
         case "ws2812spi":
         case "piblaster":
         case "ws281x":
-          discover_device(ledType);
+
+        //Serial devices
+        case "adalight":
+        case "atmo":
+        case "dmx":
+        case "karate":
+        case "sedu":
+        case "tpm2":
+          if (storedAccess === 'expert') {
+            filter.discoverAll = true;
+          }
+          discover_device(ledType, filter);
           hwLedCountDefault = 1;
           colorOrderDefault = "rgb";
           break;
@@ -1172,6 +1178,7 @@ $(document).ready(function () {
         case "tpm2net":
         case "udpe131":
         case "udpartnet":
+        case "udpddp":
         case "udph801":
         case "udpraw":
           var host = conf_editor.getEditor("root.specificOptions.host").getValue();
@@ -1255,33 +1262,43 @@ $(document).ready(function () {
       var hostList = conf_editor.getEditor("root.specificOptions.hostList");
       if (hostList) {
         var val = hostList.getValue();
+        var host = conf_editor.getEditor("root.specificOptions.host");
         var showOptions = true;
-
+ 
         switch (val) {
           case 'CUSTOM':
           case '':
-            conf_editor.getEditor(specOptPath + "host").enable();
-            conf_editor.getEditor(specOptPath + "host").setValue("");
+            host.enable();
+            //Populate existing host for current custom config
+            if (ledType === window.serverConfig.device.type) {
+              host.setValue(window.serverConfig.device.host);
+            } else {
+              host.setValue("");
+            }
             break;
           case 'NONE':
-            conf_editor.getEditor(specOptPath + "host").enable();
+            host.enable();
             //Trigger getProperties via host value
             conf_editor.notifyWatchers(specOptPath + "host");
             break;
           case 'SELECT':
-            conf_editor.getEditor(specOptPath + "host").setValue("");
-            conf_editor.getEditor(specOptPath + "host").disable();
+            host.setValue("");
+            host.disable();
             showOptions = false;
             break;
           default:
-            conf_editor.getEditor(specOptPath + "host").disable();
-            conf_editor.getEditor(specOptPath + "host").setValue(val);
+            host.disable();
+            host.setValue(val);
             //Trigger getProperties via host value
             conf_editor.notifyWatchers(specOptPath + "host");
             break;
         }
 
         showAllDeviceInputOptions("hostList", showOptions);
+
+        if (!host.isEnabled() && host.getValue().endsWith("._tcp.local")) {
+          showInputOptionForItem(conf_editor, 'specificOptions', 'host', false);
+        }
       }
     });
 
@@ -1749,44 +1766,34 @@ var updateSelectList = function (ledType, discoveryInfo) {
           var name;
           var host;
 
-          switch (ledType) {
-            case "nanoleaf":
-              if (discoveryMethod === "ssdp") {
-                name = device.other["nl-devicename"];
-              }
-              else {
-                name = device.name;
-              }
-              break;
-            case "cololight":
-              if (discoveryMethod === "ssdp") {
-                name = device.hostname;
-              }
-              else {
-                name = device.name;
-              }
-              break;
-            case "wled":
-              name = device.name;
-              break;
-            default:
-              name = device.name;
-          }
-
           if (discoveryMethod === "ssdp") {
             host = device.ip;
           }
           else {
-            host = device.name;
+            host = device.service;
+          }
+
+          switch (ledType) {
+            case "nanoleaf":
+              if (discoveryMethod === "ssdp") {
+                name = device.other["nl-devicename"] + " (" + host + ")";
+              }
+              else {
+                name = device.name;
+              }
+              break;
+            default:
+              if (discoveryMethod === "ssdp") {
+                name = device.hostname + " (" + host + ")";
+              }
+              else {
+                name = device.name;
+              }
+              break;
           }
 
           enumVals.push(host);
-          if (host !== name) {
-            enumTitelVals.push(name + " (" + host + ")");
-          }
-          else {
-            enumTitelVals.push(host);
-          }
+          enumTitelVals.push(name);
         }
 
         //Always allow to add custom configuration
@@ -1794,8 +1801,14 @@ var updateSelectList = function (ledType, discoveryInfo) {
         // Select configured device
         var configuredDeviceType = window.serverConfig.device.type;
         var configuredHost = window.serverConfig.device.hostList;
-        if (ledType === configuredDeviceType && $.inArray(configuredHost, enumVals) != -1) {
-          enumDefaultVal = configuredHost;
+        if (ledType === configuredDeviceType) {
+          if ($.inArray(configuredHost, enumVals) != -1) {
+            enumDefaultVal = configuredHost;
+          } else if (configuredHost === "CUSTOM") {
+            enumDefaultVal = "CUSTOM";
+          } else {
+            addSelect = true;
+          }
         }
         else {
           addSelect = true;
@@ -1928,6 +1941,7 @@ async function discover_device(ledType, params) {
 }
 
 async function getProperties_device(ledType, key, params) {
+  var disabled = $('#btn_submit_controller').is(':disabled');
   // Take care that connfig cannot be saved during background processing
   $('#btn_submit_controller').prop('disabled', true);
 
@@ -1946,7 +1960,7 @@ async function getProperties_device(ledType, key, params) {
         devicesProperties[ledType][key] = ledDeviceProperties;
 
         if (!window.readOnlyMode) {
-          $('#btn_submit_controller').prop('disabled', false);
+          $('#btn_submit_controller').prop('disabled', disabled);
         }
       }
       else {
@@ -1961,6 +1975,7 @@ async function getProperties_device(ledType, key, params) {
 }
 
 async function identify_device(type, params) {
+  var disabled = $('#btn_submit_controller').is(':disabled');
   // Take care that connfig cannot be saved and identification cannot be retriggerred during background processing
   $('#btn_submit_controller').prop('disabled', true);
   $('#btn_test_controller').prop('disabled', true);
@@ -1969,7 +1984,7 @@ async function identify_device(type, params) {
 
   $('#btn_test_controller').prop('disabled', false);
   if (!window.readOnlyMode) {
-    $('#btn_submit_controller').prop('disabled', false);
+    $('#btn_submit_controller').prop('disabled', disabled);
   }
 }
 
@@ -1988,12 +2003,18 @@ function updateElements(ledType, key) {
       case "wled":
         var ledProperties = devicesProperties[ledType][key];
 
-        if (ledProperties && ledProperties.leds && ledProperties.maxLedCount) {
+        if (ledProperties && ledProperties.leds) {
           hardwareLedCount = ledProperties.leds.count;
-          var maxLedCount = ledProperties.maxLedCount;
-          if (hardwareLedCount > maxLedCount) {
-            showInfoDialog('warning', $.i18n("conf_leds_config_warning"), $.i18n('conf_leds_error_hwled_gt_maxled', hardwareLedCount, maxLedCount, maxLedCount));
-            hardwareLedCount = maxLedCount;
+          if (ledProperties.maxLedCount) {
+            var maxLedCount = ledProperties.maxLedCount;
+            if (hardwareLedCount > maxLedCount) {
+              showInfoDialog('warning', $.i18n("conf_leds_config_warning"), $.i18n('conf_leds_error_hwled_gt_maxled', hardwareLedCount, maxLedCount, maxLedCount));
+              hardwareLedCount = maxLedCount;
+              conf_editor.getEditor("root.specificOptions.streamProtocol").setValue("RAW");
+              //Workaround, as value seems to getting updated property when a 'getEditor("root.specificOptions").getValue()' is done during save
+              var editor = conf_editor.getEditor("root.specificOptions");
+              editor.value["streamProtocol"] = "RAW";
+            }
           }
         }
         conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(hardwareLedCount);
@@ -2060,6 +2081,15 @@ function updateElements(ledType, key) {
       default:
     }
   }
+
+  if (!conf_editor.validate().length) {
+    if (!window.readOnlyMode) {
+      $('#btn_submit_controller').attr('disabled', false);
+    }
+  }
+  else {
+    $('#btn_submit_controller').attr('disabled', true);
+  }
 }
 
 function showAllDeviceInputOptions(showForKey, state) {
@@ -2068,6 +2098,6 @@ function showAllDeviceInputOptions(showForKey, state) {
 }
 
 function disableAutoResolvedGeneralOptions() {
-      conf_editor.getEditor("root.generalOptions.hardwareLedCount").disable();
-      conf_editor.getEditor("root.generalOptions.colorOrder").disable();
+  conf_editor.getEditor("root.generalOptions.hardwareLedCount").disable();
+  conf_editor.getEditor("root.generalOptions.colorOrder").disable();
 }

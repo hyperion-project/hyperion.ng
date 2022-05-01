@@ -9,17 +9,33 @@
 #include <QCoreApplication>
 #include <QLocale>
 
+#include <utils/Logger.h>
+
 #include "HyperionConfig.h"
 #include <commandline/Parser.h>
+
+#ifdef ENABLE_MDNS
+// mDNS discover
+#include <mdns/MdnsBrowser.h>
+#include <mdns/MdnsServiceRegister.h>
+#else
+// ssdp discover
+#include <ssdp/SSDPDiscover.h>
+#endif
+#include <utils/NetUtils.h>
 
 // hyperion-remote include
 #include "JsonConnection.h"
 
-// ssdp discover
-#include <ssdp/SSDPDiscover.h>
-#include <utils/NetUtils.h>
-
 #include <utils/DefaultSignalHandler.h>
+
+// Constants
+namespace {
+
+	const char SERVICE_TYPE[] = "jsonapi";
+
+} //End of constants
+
 
 using namespace commandline;
 
@@ -38,10 +54,10 @@ int count(std::initializer_list<bool> values)
 
 void showHelp(Option & option){
 	QString shortOption;
-	QString longOption = QString("--%1").arg(option.names().last());
+	QString longOption = QString("--%1").arg(option.names().constLast());
 
 	if(option.names().size() == 2){
-		shortOption = QString("-%1").arg(option.names().first());
+		shortOption = QString("-%1").arg(option.names().constFirst());
 	}
 
 	qWarning() << qPrintable(QString("\t%1\t%2\t%3").arg(shortOption, longOption, option.description()));
@@ -51,7 +67,7 @@ int getInstaneIdbyName(const QJsonObject & reply, const QString & name){
 	if(reply.contains("instance")){
 		QJsonArray list = reply.value("instance").toArray();
 
-		for (const QJsonValueRef entry : list)	{
+		for ( const auto &entry : qAsConst(list) ) {
 			const QJsonObject obj = entry.toObject();
 			if(obj["friendly_name"] == name && obj["running"].toBool())
 			{
@@ -65,10 +81,6 @@ int getInstaneIdbyName(const QJsonObject & reply, const QString & name){
 
 int main(int argc, char * argv[])
 {
-#ifndef _WIN32
-	setenv("AVAHI_COMPAT_NOWARN", "1", 1);
-#endif
-
 	Logger* log = Logger::getInstance("REMOTE");
 	Logger::setLogLevel(Logger::INFO);
 
@@ -204,27 +216,33 @@ int main(int argc, char * argv[])
 			showHelp(argYAdjust);
 			return 1;
 		}
-
-		// server searching by ssdp
-		QString address = argAddress.value(parser);
-		if(address == "127.0.0.1" || address == "127.0.0.1:19444")
-		{
-			SSDPDiscover discover;
-			address = discover.getFirstService(searchType::STY_JSONSERVER);
-			if(address.isEmpty())
-			{
-				address = argAddress.value(parser);
-			}
-		}
-
-		// Resolve hostname and port (or use default port)
 		QString host;
-		quint16 port{ JSON_DEFAULT_PORT };
+		QString serviceName{ QHostInfo::localHostName() };
+		int port{ JSONAPI_DEFAULT_PORT };
 
-		if (!NetUtils::resolveHostPort(address, host, port))
+		// Split hostname and port (or use default port)
+		QString givenAddress = argAddress.value(parser);
+		if (!NetUtils::resolveHostPort(givenAddress, host, port))
 		{
-			throw std::runtime_error(QString("Wrong address: unable to parse address (%1)").arg(address).toStdString());
+			throw std::runtime_error(QString("Wrong address: unable to parse address (%1)").arg(givenAddress).toStdString());
 		}
+
+		// Search available Hyperion services via mDNS, if default/localhost IP is given
+		if (host == "127.0.0.1" || host == "::1")
+		{
+#ifndef ENABLE_MDNS
+			SSDPDiscover discover;
+			host = discover.getFirstService(searchType::STY_FLATBUFSERVER);
+#endif
+			QHostAddress address;
+			if (!NetUtils::resolveHostToAddress(log, host, address, port))
+			{
+				throw std::runtime_error(QString("Address could not be resolved for hostname: %2").arg(QSTRING_CSTR(host)).toStdString());
+			}
+			host = address.toString();
+		}
+
+		Info(log, "Connecting to Hyperion host: %s, port: %u using service: %s", QSTRING_CSTR(host), port, QSTRING_CSTR(serviceName));
 
 		// create the connection to the hyperion server
 		JsonConnection connection(host, parser.isSet(argPrint), port);

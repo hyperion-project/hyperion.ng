@@ -95,16 +95,6 @@ signals:
 	int updateLeds(const std::vector<ColorRgb>& ledValues);
 
 	///
-	/// @brief Enables the LED-Device.
-	///
-	void enable();
-
-	///
-	/// @brief Disables the LED-Device.
-	///
-	void disable();
-
-	///
 	/// @brief Switch the LEDs on.
 	///
 	void switchOn();
@@ -113,7 +103,7 @@ signals:
 	/// @brief Switch the LEDs off.
 	///
 	void switchOff();
-
+	
 	void stopLedDevice();
 
 private slots:

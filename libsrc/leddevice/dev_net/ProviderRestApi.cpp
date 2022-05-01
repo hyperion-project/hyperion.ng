@@ -136,13 +136,19 @@ httpResponse ProviderRestApi::get(const QUrl& url)
 	QNetworkRequest request(_networkRequestHeaders);
 	request.setUrl(url);
 
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
+	_networkManager->setTransferTimeout(DEFAULT_REST_TIMEOUT.count());
+#endif
+
 	QNetworkReply* reply = _networkManager->get(request);
 
 	// Connect requestFinished signal to quit slot of the loop.
 	QEventLoop loop;
 	QEventLoop::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
 
+#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 0))
 	ReplyTimeout::set(reply, DEFAULT_REST_TIMEOUT.count());
+#endif
 
 	// Go into the loop until the request is finished.
 	loop.exec();
@@ -178,12 +184,18 @@ httpResponse ProviderRestApi::put(const QUrl &url, const QByteArray &body)
 	QNetworkRequest request(_networkRequestHeaders);
 	request.setUrl(url);
 
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
+	_networkManager->setTransferTimeout(DEFAULT_REST_TIMEOUT.count());
+#endif
+
 	QNetworkReply* reply = _networkManager->put(request, body);
 	// Connect requestFinished signal to quit slot of the loop.
 	QEventLoop loop;
 	QEventLoop::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
 
+#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 0))
 	ReplyTimeout::set(reply, DEFAULT_REST_TIMEOUT.count());
+#endif
 
 	// Go into the loop until the request is finished.
 	loop.exec();
@@ -220,10 +232,19 @@ httpResponse ProviderRestApi::post(const QUrl& url, const QByteArray& body)
 	QNetworkRequest request(_networkRequestHeaders);
 	request.setUrl(url);
 
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
+	_networkManager->setTransferTimeout(DEFAULT_REST_TIMEOUT.count());
+#endif
+
 	QNetworkReply* reply = _networkManager->post(request, body);
 	// Connect requestFinished signal to quit slot of the loop.
 	QEventLoop loop;
 	QEventLoop::connect(reply,&QNetworkReply::finished,&loop,&QEventLoop::quit);
+
+#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 0))
+	ReplyTimeout::set(reply, DEFAULT_REST_TIMEOUT.count());
+#endif
+
 	// Go into the loop until the request is finished.
 	loop.exec();
 
@@ -249,12 +270,20 @@ httpResponse ProviderRestApi::deleteResource(const QUrl& url)
 	QNetworkRequest request(_networkRequestHeaders);
 	request.setUrl(url);
 
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
+	_networkManager->setTransferTimeout(DEFAULT_REST_TIMEOUT.count());
+#endif
+
 	QNetworkReply* reply = _networkManager->deleteResource(request);
 	// Connect requestFinished signal to quit slot of the loop.
 	QEventLoop loop;
 	QEventLoop::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
 	// Go into the loop until the request is finished.
 	loop.exec();
+
+#if (QT_VERSION < QT_VERSION_CHECK(5, 15, 0))
+	ReplyTimeout::set(reply, DEFAULT_REST_TIMEOUT.count());
+#endif
 
 	httpResponse response;
 	if (reply->operation() == QNetworkAccessManager::DeleteOperation)
@@ -331,16 +360,9 @@ httpResponse ProviderRestApi::getResponse(QNetworkReply* const& reply)
 			}
 			errorReason = QString ("[%3 %4] - %5").arg(httpStatusCode).arg(httpReason, advise);
 		}
-		else {
-
+		else
+		{
 			errorReason = reply->errorString();
-
-			if ( reply->error() == QNetworkReply::OperationCanceledError )
-			{
-				//Do not report errors caused by request cancellation because of timeouts
-				Debug(_log, "Reply: [%s]", QSTRING_CSTR(errorReason) );
-			}
-			else
 			{
 				response.setError(true);
 				response.setErrorReason(errorReason);

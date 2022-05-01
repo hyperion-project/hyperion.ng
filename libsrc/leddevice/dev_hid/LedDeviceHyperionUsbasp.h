@@ -33,7 +33,7 @@ public:
 	///
 	/// Sets configuration
 	///
-	/// @para#endif // LEDEVICETEMPLATE_Hm deviceConfig the json device config
+	/// @param deviceConfig the json device config
 	/// @return true if success
 	bool init(const QJsonObject &deviceConfig) override;
 

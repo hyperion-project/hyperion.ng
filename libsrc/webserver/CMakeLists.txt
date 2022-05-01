@@ -25,3 +25,7 @@ target_link_libraries(webserver
 	hyperion-api
 	Qt${QT_VERSION_MAJOR}::Network
 )
+
+if(ENABLE_MDNS)
+	target_link_libraries(webserver mdns)
+endif()

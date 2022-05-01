@@ -33,14 +33,6 @@ public:
 protected:
 
 	///
-	/// @brief Initialise the UDP device's configuration and network address details
-	///
-	/// @param[in] deviceConfig the JSON device configuration
-	/// @return True, if success
-	///
-	bool init(const QJsonObject& deviceConfig) override;
-
-	///
 	/// @brief Opens the output device.
 	///
 	/// @return Zero on success (i.e. device is ready), else negative
@@ -74,10 +66,10 @@ protected:
 	int writeBytes(const QByteArray& bytes);
 
 	///
-	QUdpSocket* _udpSocket;
+	QUdpSocket*  _udpSocket;
+	QString      _hostName;
 	QHostAddress _address;
-	quint16       _port;
-	QString      _defaultHost;
+	int       _port;
 };
 
 #endif // PROVIDERUDP_H

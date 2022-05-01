@@ -7,7 +7,6 @@
 // qt
 #include <QVector>
 
-class BonjourServiceRegister;
 class QTcpServer;
 class FlatBufferClient;
 class NetOrigin;
@@ -20,6 +19,7 @@ class NetOrigin;
 class FlatBufferServer : public QObject
 {
 	Q_OBJECT
+
 public:
 	FlatBufferServer(const QJsonDocument& config, QObject* parent = nullptr);
 	~FlatBufferServer() override;
@@ -33,6 +33,12 @@ public slots:
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 	void initServer();
+
+signals:
+	///
+	/// @emits whenever the server would like to announce its service details
+	///
+	void publishService(const QString& serviceType, quint16 servicePort, const QByteArray& serviceName = "");
 
 private slots:
 	///
@@ -64,7 +70,6 @@ private:
 	int _timeout;
 	quint16 _port;
 	const QJsonDocument _config;
-	BonjourServiceRegister * _serviceRegister = nullptr;
 
 	QVector<FlatBufferClient*> _openConnections;
 };

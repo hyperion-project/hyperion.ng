@@ -292,6 +292,12 @@ private:
 	///
 	void handleInputSourceCommand(const QJsonObject& message, const QString& command, int tan);
 
+	/// Handle an incoming JSON message to request remote hyperion servers providing a given hyperion service
+	///
+	/// @param message the incoming message
+	///
+	void handleServiceCommand(const QJsonObject &message, const QString &command, int tan);
+
 	///
 	/// Handle an incoming JSON message of unknown type
 	///

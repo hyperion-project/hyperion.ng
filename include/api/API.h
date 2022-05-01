@@ -402,13 +402,6 @@ signals:
     ///
     void onStartInstanceResponse(const int &tan);
 
-private slots:
-    ///
-    /// @brief Is called whenever a Hyperion instance wants the current register list
-    /// @param callerInstance  The instance should be returned in the answer call
-    ///
-    void requestActiveRegister(QObject *callerInstance);
-
 private:
     void stopDataConnectionss();
 

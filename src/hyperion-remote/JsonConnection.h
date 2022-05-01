@@ -9,7 +9,7 @@
 //forward class decl
 class Logger;
 
-const int JSON_DEFAULT_PORT = 19444;
+const int JSONAPI_DEFAULT_PORT = 19444;
 
 ///
 /// Connection class to setup an connection to the hyperion server and execute commands
@@ -24,7 +24,7 @@ public:
 	/// @param address The port of the Hyperion JSON-server (default port = 19444)
 	/// @param printJson Boolean indicating if the sent and received json is written to stdout
 	///
-	JsonConnection(const QString& host, bool printJson, quint16 port = JSON_DEFAULT_PORT);
+	JsonConnection(const QString& host, bool printJson, quint16 port = JSONAPI_DEFAULT_PORT);
 
 	///
 	/// Destructor

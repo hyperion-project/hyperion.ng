@@ -78,10 +78,6 @@ if(ENABLE_PROTOBUF_SERVER)
 	target_link_libraries(${PROJECT_NAME} protoserver)
 endif()
 
-if (ENABLE_AVAHI)
-	target_link_libraries(${PROJECT_NAME} bonjour)
-endif (ENABLE_AVAHI)
-
 if (ENABLE_AMLOGIC)
 	target_link_libraries(${PROJECT_NAME}
 		#Qt${QT_VERSION_MAJOR}::Core
@@ -137,18 +133,22 @@ if (ENABLE_CEC)
         target_link_libraries(${PROJECT_NAME} cechandler)
 endif (ENABLE_CEC)
 
+if (ENABLE_MDNS)
+	target_link_libraries(${PROJECT_NAME} mdns)
+endif()
+
 if (APPLE)
 	set_target_properties( ${PROJECT_NAME} PROPERTIES
 		MACOSX_BUNDLE TRUE
 		MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/cmake/osxbundle/Info.plist.in
 		MACOSX_BUNDLE_BUNDLE_NAME "Hyperion"
 		MACOSX_BUNDLE_BUNDLE_VERSION ${HYPERION_VERSION}
-		MACOSX_BUNDLE_COPYRIGHT "Copyright (c) 2014-2021 Hyperion Project"
+		MACOSX_BUNDLE_COPYRIGHT "Copyright(c) 2014-2022 Hyperion Project"
 		MACOSX_BUNDLE_GUI_IDENTIFIER "com.hyperion-project.${PROJECT_NAME}"
 		MACOSX_BUNDLE_ICON_FILE "Hyperion.icns"
 		MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} ${HYPERION_VERSION}"
-		MACOSX_BUNDLE_LONG_VERSION_STRING ${HYPERION_VERSION}
 		MACOSX_BUNDLE_SHORT_VERSION_STRING ${HYPERION_VERSION}
+		MACOSX_BUNDLE_LONG_VERSION_STRING ${HYPERION_VERSION}
 	)
 
 	install ( TARGETS ${PROJECT_NAME} DESTINATION . COMPONENT "Hyperion")
@@ -195,7 +195,7 @@ if (WIN32)
 		add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${WINDEPLOYQT_EXECUTABLE} ${WINDEPLOYQT_PARAMS_RUNTIME} "$<TARGET_FILE:${PROJECT_NAME}>")
 	endif()
 
-  find_package(OpenSSL REQUIRED)
+	find_package(OpenSSL REQUIRED)
 	if (OPENSSL_FOUND)
 		string(REGEX MATCHALL "[0-9]+" openssl_versions "${OPENSSL_VERSION}")
 		list(GET openssl_versions 0 openssl_version_major)

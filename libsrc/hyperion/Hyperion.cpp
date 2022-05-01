@@ -149,6 +149,7 @@ void Hyperion::start()
 	if (_instIndex == 0)
 	{
 		_messageForwarder = new MessageForwarder(this);
+		_messageForwarder->handleSettingsUpdate(settings::NETFORWARD, getSetting(settings::NETFORWARD));
 	}
 #endif
 
@@ -698,7 +699,6 @@ void Hyperion::update()
 		// Smoothing is disabled
 		if  (! _deviceSmooth->enabled())
 		{
-			//std::cout << "Hyperion::update()> Non-Smoothing - "; LedDevice::printLedValues ( _ledBuffer);
 			emit ledDeviceData(_ledBuffer);
 		}
 		else
@@ -710,11 +710,4 @@ void Hyperion::update()
 			}
 		}
 	}
-	#if 0
-	else
-	{
-		//LEDDevice is disabled
-		Debug(_log, "LEDDevice is disabled - no update required");
-	}
-	#endif
 }

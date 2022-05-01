@@ -6,10 +6,7 @@
 
 // components def
 #include <utils/Components.h>
-// bonjour
-#ifdef ENABLE_AVAHI
-#include <bonjour/bonjourrecord.h>
-#endif
+
 // videModes
 #include <utils/VideoMode.h>
 // settings
@@ -21,7 +18,6 @@
 
 class Hyperion;
 class ComponentRegister;
-class BonjourBrowserWrapper;
 class PriorityMuxer;
 
 class JsonCB : public QObject
@@ -73,13 +69,6 @@ private slots:
 	/// @brief handle component state changes
 	///
 	void handleComponentState(hyperion::Components comp, bool state);
-#ifdef ENABLE_AVAHI
-	///
-	/// @brief handle emits from bonjour wrapper
-	/// @param  bRegisters   The full register map
-	///
-	void handleBonjourChange(const QMap<QString,BonjourRecord>& bRegisters);
-#endif
 
 	///
 	/// @brief handle emits from PriorityMuxer
@@ -140,10 +129,7 @@ private:
 	Hyperion* _hyperion;
 	/// pointer of comp register
 	ComponentRegister* _componentRegister;
-#ifdef ENABLE_AVAHI
-	/// Bonjour instance
-	BonjourBrowserWrapper* _bonjour;
-#endif
+
 	/// priority muxer instance
 	PriorityMuxer* _prioMuxer;
 	/// contains all available commands

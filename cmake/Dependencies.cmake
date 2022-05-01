@@ -9,7 +9,7 @@ macro(DeployMacOS TARGET)
 			OUTPUT_STRIP_TRAILING_WHITESPACE
 		)
 
-		install(CODE "set(TARGET_FILE \"${TARGET_FILE}\") \n set(TARGET_BUNDLE_NAME \"${TARGET}.app\") \n set(PLUGIN_DIR \"${QT_PLUGIN_DIR}\")" COMPONENT "Hyperion")
+		install(CODE "set(TARGET_FILE \"${TARGET_FILE}\") \n set(TARGET_BUNDLE_NAME \"${TARGET}.app\") \n set(PLUGIN_DIR \"${QT_PLUGIN_DIR}\") \n set(BUILD_DIR \"${CMAKE_BINARY_DIR}\")" COMPONENT "Hyperion")
 		install(CODE [[
 			file(GET_RUNTIME_DEPENDENCIES
 				EXECUTABLES ${TARGET_FILE}
@@ -176,7 +176,7 @@ macro(DeployLinux TARGET)
 				COMMAND ${QT_QMAKE_EXECUTABLE} -query QT_INSTALL_PLUGINS
 				OUTPUT_VARIABLE QT_PLUGINS_DIR
 				OUTPUT_STRIP_TRAILING_WHITESPACE
-			)		
+			)
 		endif()
 
 		# Copy Qt plugins to 'share/hyperion/lib'
@@ -258,7 +258,7 @@ macro(DeployLinux TARGET)
 					PATTERN "sitecustomize.py"                      EXCLUDE # site-specific configs
 				)
 			endif(PYTHON_MODULES_DIR)
-		endif(ENABLE_EFFECTENGINE)		
+		endif(ENABLE_EFFECTENGINE)
 
 	else()
 		# Run CMake after target was built to run get_prerequisites on ${TARGET_FILE}

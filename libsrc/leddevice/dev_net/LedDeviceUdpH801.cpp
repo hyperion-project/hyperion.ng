@@ -1,7 +1,11 @@
 #include "LedDeviceUdpH801.h"
+#include <utils/NetUtils.h>
 
 // Constants
 namespace {
+
+const char CONFIG_HOST[] = "host";
+const char CONFIG_PORT[] = "port";
 
 const ushort H801_DEFAULT_PORT = 30977;
 const char H801_DEFAULT_HOST[] = "255.255.255.255";
@@ -20,16 +24,17 @@ LedDevice* LedDeviceUdpH801::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceUdpH801::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = false;
+	bool isInitOK {false};
 
 	/* The H801 port is fixed */
 	_latchTime_ms = 10;
-	_port = H801_DEFAULT_PORT;
-	_defaultHost = H801_DEFAULT_HOST;
 
 	// Initialise sub-class
 	if ( ProviderUdp::init(deviceConfig) )
 	{
+		_hostName = _devConfig[ CONFIG_HOST ].toString(H801_DEFAULT_HOST);
+		_port = deviceConfig[CONFIG_PORT].toInt(H801_DEFAULT_PORT);
+
 		_ids.clear();
 		QJsonArray lArray = deviceConfig["lightIds"].toArray();
 		for (int i = 0; i < lArray.size(); i++)
@@ -47,12 +52,26 @@ bool LedDeviceUdpH801::init(const QJsonObject &deviceConfig)
 			_message[_prefix_size + _colors + i * _id_size + 1] = (_ids[i] >> 0x08) & 0xFF;
 			_message[_prefix_size + _colors + i * _id_size + 2] = (_ids[i] >> 0x10) & 0xFF;
 		}
-
-		Debug(_log, "H801 using %s:%d", _address.toString().toStdString().c_str(), _port);
-
 		isInitOK = true;
 	}
 	return isInitOK;
+}
+
+int LedDeviceUdpH801::open()
+{
+	int retval = -1;
+	_isDeviceReady = false;
+
+	if (NetUtils::resolveHostToAddress(_log, _hostName, _address))
+	{
+		if (ProviderUdp::open() == 0)
+		{
+			// Everything is OK, device is ready
+			_isDeviceReady = true;
+			retval = 0;
+		}
+	}
+	return retval;
 }
 
 int LedDeviceUdpH801::write(const std::vector<ColorRgb> &ledValues)

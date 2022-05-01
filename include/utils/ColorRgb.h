@@ -31,6 +31,30 @@ struct ColorRgb
 	static const ColorRgb YELLOW;
 	/// 'White' RgbColor (255, 255, 255)
 	static const ColorRgb WHITE;
+
+	ColorRgb() = default;
+
+	ColorRgb(uint8_t _red, uint8_t _green,uint8_t _blue):
+		  red(_red),
+		  green(_green),
+		  blue(_blue)
+	{
+
+	}
+
+	ColorRgb operator-(const ColorRgb& b) const
+	{
+		ColorRgb a(*this);
+		a.red -= b.red;
+		a.green -= b.green;
+		a.blue -= b.blue;
+		return a;
+	}
+
+	QString toQString() const
+	{
+		return QString("(%1,%2,%3)").arg(red).arg(green).arg(blue);
+	}
 };
 
 /// Assert to ensure that the size of the structure is 'only' 3 bytes

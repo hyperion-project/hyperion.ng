@@ -141,3 +141,6 @@ if (ENABLE_DEV_USB_HID)
 	endif()
 endif()
 
+if(ENABLE_MDNS)
+        target_link_libraries(leddevice mdns)
+endif()

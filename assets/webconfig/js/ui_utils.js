@@ -14,54 +14,28 @@ function storageComp() {
   return false;
 }
 
-function getStorage(item, session) {
+function getStorage(item) {
   if (storageComp()) {
-    if (session === true)
-      return sessionStorage.getItem(item);
-    else
-      return localStorage.getItem(item);
+    return localStorage.getItem(item);
   }
   return null;
 }
 
-function setStorage(item, value, session) {
+function setStorage(item, value) {
   if (storageComp()) {
-    if (session === true)
-      sessionStorage.setItem(item, value);
-    else
-      localStorage.setItem(item, value);
+    localStorage.setItem(item, value);
   }
 }
 
-function removeStorage(item, session) {
+function removeStorage(item) {
   if (storageComp()) {
-    if (session === true)
-      sessionStorage.removeItem(item);
-    else
-      localStorage.removeItem(item);
+    localStorage.removeItem(item);
   }
 }
 
 function debugMessage(msg) {
   if (window.debugMessagesActive) {
     console.log(msg);
-  }
-}
-
-function updateSessions() {
-  var sess = window.serverInfo.sessions;
-  if (sess && sess.length) {
-    window.wSess = [];
-    for (var i = 0; i < sess.length; i++) {
-      if (sess[i].type == "_http._tcp." || sess[i].type == "_https._tcp." || sess[i].type == "_hyperiond-http._tcp.") {
-        window.wSess.push(sess[i]);
-      }
-    }
-
-    if (window.wSess.length > 1)
-      $('#btn_instanceswitch').toggle(true);
-    else
-      $('#btn_instanceswitch').toggle(false);
   }
 }
 
@@ -73,8 +47,8 @@ function validateDuration(d) {
 }
 
 function getHashtag() {
-  if (getStorage('lasthashtag', true) != null)
-    return getStorage('lasthashtag', true);
+  if (getStorage('lasthashtag') != null)
+    return getStorage('lasthashtag');
   else {
     var tag = document.URL;
     tag = tag.substr(tag.indexOf("#") + 1);
@@ -87,20 +61,20 @@ function getHashtag() {
 function loadContent(event, forceRefresh) {
   var tag;
 
-  var lastSelectedInstance = getStorage('lastSelectedInstance', false);
+  var lastSelectedInstance = getStorage('lastSelectedInstance');
 
   if (lastSelectedInstance && (lastSelectedInstance != window.currentHyperionInstance)) {
     if (window.serverInfo.instance[lastSelectedInstance] && window.serverInfo.instance[lastSelectedInstance].running) {
       instanceSwitch(lastSelectedInstance);
     } else {
-      removeStorage('lastSelectedInstance', false);
+      removeStorage('lastSelectedInstance');
     }
   }
 
   if (typeof event != "undefined") {
     tag = event.currentTarget.hash;
     tag = tag.substr(tag.indexOf("#") + 1);
-    setStorage('lasthashtag', tag, true);
+    setStorage('lasthashtag', tag);
   }
   else
     tag = getHashtag();
@@ -112,7 +86,7 @@ function loadContent(event, forceRefresh) {
       if (status == "error") {
         tag = 'dashboard';
         console.log("Could not find page:", prevTag, ", Redirecting to:", tag);
-        setStorage('lasthashtag', tag, true);
+        setStorage('lasthashtag', tag);
 
         $("#page-content").load("/content/" + tag + ".html", function (response, status, xhr) {
           if (status == "error") {
@@ -215,7 +189,7 @@ function instanceSwitch(inst) {
   requestInstanceSwitch(inst)
   window.currentHyperionInstance = inst;
   window.currentHyperionInstanceName = getInstanceNameByIndex(inst);
-  setStorage('lastSelectedInstance', inst, false)
+  setStorage('lastSelectedInstance', inst)
   updateHyperionInstanceListing()
 }
 
@@ -332,7 +306,7 @@ function showInfoDialog(type, header, message) {
   if (type == "select" || type == "iswitch")
     $('#id_body').append('<select id="id_select" class="form-control" style="margin-top:10px;width:auto;"></select>');
 
-  if (getStorage("darkMode", false) == "on")
+  if (getStorage("darkMode") == "on")
     $('#id_logo').attr("src", 'img/hyperion/logo_negativ.png');
 
   $(type == "renInst" || type == "changePassword" ? "#modal_dialog_rename" : "#modal_dialog").modal({
@@ -1246,7 +1220,7 @@ function handleDarkMode() {
     href: "../css/darkMode.css"
   }).appendTo("head");
 
-  setStorage("darkMode", "on", false);
+  setStorage("darkMode", "on");
   $('#btn_darkmode_icon').removeClass('fa fa-moon-o');
   $('#btn_darkmode_icon').addClass('mdi mdi-white-balance-sunny');
   $('#navbar_brand_logo').attr("src", 'img/hyperion/logo_negativ.png');
@@ -1337,7 +1311,16 @@ function isValidIPv6(value) {
 
 function isValidHostname(value) {
   if (value.match(
-    '(?=^.{4,253}$)(^((?!-)[a-zA-Z0-9-]{0,62}[a-zA-Z0-9].)+[a-zA-Z]{2,63}$)'
+    '^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[_a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$'
+  ))
+    return true;
+  else
+    return false;
+}
+
+function isValidServicename(value) {
+  if (value.match(
+    '^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9 \-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[_a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$'
   ))
     return true;
   else
@@ -1349,6 +1332,5 @@ function isValidHostnameOrIP4(value) {
 }
 
 function isValidHostnameOrIP(value) {
-  return (isValidHostnameOrIP4(value) || isValidIPv6(value));
+  return (isValidHostnameOrIP4(value) || isValidIPv6(value) || isValidServicename(value));
 }
-

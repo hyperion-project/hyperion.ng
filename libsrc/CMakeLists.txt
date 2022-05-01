@@ -32,9 +32,9 @@ add_subdirectory(db)
 add_subdirectory(api)
 add_subdirectory(ssdp)
 
-if(ENABLE_AVAHI)
-	add_subdirectory(bonjour)
-endif()
+if(ENABLE_MDNS)
+	add_subdirectory(mdns)
+endif()	
 
 if(ENABLE_EFFECTENGINE)
 	add_subdirectory(effectengine)

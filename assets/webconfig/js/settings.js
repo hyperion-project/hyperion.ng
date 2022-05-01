@@ -2,14 +2,14 @@ var availAccess = ['default', 'advanced', 'expert'];
 var storedAccess;
 
 //Change Password
-function changePassword(){
+function changePassword() {
   showInfoDialog('changePassword', $.i18n('InfoDialog_changePassword_title'));
 
   // fill default pw if default is set
-  if(window.defaultPasswordIsSet)
+  if (window.defaultPasswordIsSet)
     $('#current-password').val('hyperion')
 
-  $('#id_btn_ok').off().on('click',function() {
+  $('#id_btn_ok').off().on('click', function () {
     var oldPw = $('#current-password').val();
     var newPw = $('#new-password').val();
 
@@ -17,7 +17,7 @@ function changePassword(){
     history.pushState({}, "New password");
   });
 
-  $('#new-password, #current-password').off().on('input',function(e) {
+  $('#new-password, #current-password').off().on('input', function (e) {
     ($('#current-password').val().length >= 8 && $('#new-password').val().length >= 8) && !window.readOnlyMode ? $('#id_btn_ok').prop('disabled', false) : $('#id_btn_ok').prop('disabled', true);
   });
 }
@@ -44,18 +44,17 @@ $(document).ready(function () {
     $('#btn_setlang').prop("disabled", true);
   }
 
-  $('#btn_setaccess').off().on('click',function() {
+  $('#btn_setaccess').off().on('click', function () {
     var newAccess;
     showInfoDialog('select', $.i18n('InfoDialog_access_title'), $.i18n('InfoDialog_access_text'));
 
-    for (var lcx = 0; lcx<availAccess.length; lcx++)
-    {
-      $('#id_select').append(createSelOpt(availAccess[lcx], $.i18n('general_access_'+availAccess[lcx])));
+    for (var lcx = 0; lcx < availAccess.length; lcx++) {
+      $('#id_select').append(createSelOpt(availAccess[lcx], $.i18n('general_access_' + availAccess[lcx])));
     }
 
     $('#id_select').val(storedAccess);
 
-    $('#id_select').off().on('change',function() {
+    $('#id_select').off().on('change', function () {
       newAccess = $('#id_select').val();
       if (newAccess == storedAccess)
         $('#id_btn_saveset').prop('disabled', true);
@@ -63,7 +62,7 @@ $(document).ready(function () {
         $('#id_btn_saveset').prop('disabled', false);
     });
 
-    $('#id_btn_saveset').off().on('click',function() {
+    $('#id_btn_saveset').off().on('click', function () {
       setStorage("accesslevel", newAccess);
       reload();
     });
@@ -72,13 +71,13 @@ $(document).ready(function () {
   });
 
   // change pw btn
-  $('#btn_changePassword').off().on('click',function() {
+  $('#btn_changePassword').off().on('click', function () {
     changePassword();
   });
 
   //Lock Ui
-  $('#btn_lock_ui').off().on('click',function() {
-    removeStorage('loginToken', true);
+  $('#btn_lock_ui').off().on('click', function () {
+    removeStorage('loginToken');
     location.replace('/');
   });
 
@@ -86,27 +85,5 @@ $(document).ready(function () {
   if (storedAccess != 'expert')
     $('#load_webconfig').toggle(false);
 
-
-  // instance switcher
-  $('#btn_instanceswitch').off().on('click',function() {
-    var lsys = window.sysInfo.system.hostName+':'+window.serverConfig.webConfig.port;
-    showInfoDialog('iswitch', $.i18n('InfoDialog_iswitch_title'), $.i18n('InfoDialog_iswitch_text'));
-
-    for (var i = 0; i<window.wSess.length; i++)
-    {
-      if(lsys != window.wSess[i].host+':'+window.wSess[i].port)
-      {
-        var hyperionAddress = window.wSess[i].address;
-        if(hyperionAddress.indexOf(':') > -1 && hyperionAddress.length == 36) hyperionAddress = '['+hyperionAddress+']';
-        hyperionAddress = 'http://'+hyperionAddress+':'+window.wSess[i].port;
-        $('#id_select').append(createSelOpt(hyperionAddress, window.wSess[i].name));
-      }
-    }
-
-    $('#id_btn_saveset').off().on('click',function() {
-      $("#loading_overlay").addClass("overlay");
-      window.location.href = $('#id_select').val();
-    });
-
-  });
 });
+

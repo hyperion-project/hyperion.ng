@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.1.0)
 
 message( STATUS "CMake Version: ${CMAKE_VERSION}" )
 
@@ -38,6 +38,26 @@ if ( CCACHE_FOUND )
 	set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 endif(CCACHE_FOUND)
 
+# enable C++14; MSVC doesn't have c++14 feature switch
+if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+	if(APPLE)
+		include(CheckCXXCompilerFlag)
+		CHECK_CXX_COMPILER_FLAG("Werror=unguarded-availability" REQUIRED_UNGUARDED_AVAILABILITY)
+		if(REQUIRED_UNGUARDED_AVAILABILITY)
+			list(APPEND CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS} "Werror=unguarded-availability")
+		endif()
+	endif()
+
+	if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-psabi")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-psabi")
+	endif()
+
+	set(CMAKE_CXX_STANDARD 14)
+	set(CXX_STANDARD_REQUIRED ON)
+	set(CXX_EXTENSIONS OFF)
+endif()
+
 # Set build variables
 # Grabber
 SET ( DEFAULT_AMLOGIC                     OFF )
@@ -69,18 +89,18 @@ SET ( DEFAULT_DEV_USB_HID                 OFF )
 SET ( DEFAULT_DEV_WS281XPWM               OFF )
 
 # Services
-SET ( DEFAULT_AVAHI                       ON  )
 SET ( DEFAULT_EFFECTENGINE                ON  )
 SET ( DEFAULT_EXPERIMENTAL                OFF )
+SET ( DEFAULT_MDNS                        ON  )
 SET ( DEFAULT_REMOTE_CTL                  ON  )
 
 # Build
 SET ( DEFAULT_JSONCHECKS                  ON  )
 SET ( DEFAULT_DEPLOY_DEPENDENCIES         ON  )
-SET ( DEFAULT_USE_SHARED_AVAHI_LIBS       ON  )
 SET ( DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF )
 SET ( DEFAULT_USE_SYSTEM_PROTO_LIBS       OFF )
 SET ( DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     OFF )
+SET ( DEFAULT_USE_SYSTEM_QMDNS_LIBS       OFF )
 SET ( DEFAULT_TESTS                       OFF )
 
 # Build Hyperion with a reduced set of functionality, overwrites other default values
@@ -175,8 +195,6 @@ elseif ( "${PLATFORM}" MATCHES "x11" )
 	endif()
 elseif ( "${PLATFORM}" STREQUAL "imx6" )
 	SET ( DEFAULT_FB         ON )
-elseif (WIN32)
-	SET ( DEFAULT_AVAHI    OFF)
 endif()
 
 # enable tests for -dev builds
@@ -319,14 +337,14 @@ removeIndent()
 message(STATUS "Services options:")
 addIndent(" - ")
 
-option(ENABLE_AVAHI "Enable Zeroconf" ${DEFAULT_AVAHI})
-message(STATUS "ENABLE_AVAHI = " ${ENABLE_AVAHI})
-
 option(ENABLE_EFFECTENGINE "Enable Effect-Engine" ${DEFAULT_EFFECTENGINE})
 message(STATUS "ENABLE_EFFECTENGINE = " ${ENABLE_EFFECTENGINE})
 
 option(ENABLE_EXPERIMENTAL "Compile experimental features" ${DEFAULT_EXPERIMENTAL})
 message(STATUS "ENABLE_EXPERIMENTAL = ${ENABLE_EXPERIMENTAL}")
+
+option(ENABLE_MDNS "Enable mDNS (aka Zeroconf)" ${DEFAULT_MDNS})
+message(STATUS "ENABLE_MDNS = " ${ENABLE_MDNS})
 
 option(ENABLE_REMOTE_CTL "Enable Hyperion remote control" ${DEFAULT_REMOTE_CTL})
 message(STATUS "ENABLE_REMOTE_CTL = " ${ENABLE_REMOTE_CTL})
@@ -342,18 +360,26 @@ message(STATUS "ENABLE_JSONCHECKS = ${ENABLE_JSONCHECKS}")
 option(ENABLE_DEPLOY_DEPENDENCIES "Deploy with dependencies" ${DEFAULT_DEPLOY_DEPENDENCIES})
 message(STATUS "ENABLE_DEPLOY_DEPENDENCIES = ${ENABLE_DEPLOY_DEPENDENCIES}")
 
+if(ENABLE_FLATBUF_SERVER OR ENABLE_FLATBUF_CONNECT)
+	message(STATUS "DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS = ${DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS}")
+endif()
+
+if(ENABLE_PROTOBUF_SERVER)
+	message(STATUS "DEFAULT_USE_SYSTEM_PROTO_LIBS = ${DEFAULT_USE_SYSTEM_PROTO_LIBS}")
+endif()
+
+message(STATUS "DEFAULT_USE_SYSTEM_MBEDTLS_LIBS = ${DEFAULT_USE_SYSTEM_MBEDTLS_LIBS}")
+
+if (ENABLE_MDNS)
+	message(STATUS "DEFAULT_USE_SYSTEM_QMDNS_LIBS = ${DEFAULT_USE_SYSTEM_QMDNS_LIBS}")
+endif()
+
+
 option(ENABLE_PROFILER "enable profiler capabilities - not for release code" OFF)
 message(STATUS "ENABLE_PROFILER = ${ENABLE_PROFILER}")
 
 option(ENABLE_TESTS "Compile additional test applications" ${DEFAULT_TESTS})
 message(STATUS "ENABLE_TESTS = ${ENABLE_TESTS}")
-
-if (ENABLE_AVAHI)
-message(STATUS "DEFAULT_USE_SHARED_AVAHI_LIBS = ${DEFAULT_USE_SHARED_AVAHI_LIBS}")
-endif()
-message(STATUS "DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS = ${DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS}")
-message(STATUS "DEFAULT_USE_SYSTEM_MBEDTLS_LIBS = ${DEFAULT_USE_SYSTEM_MBEDTLS_LIBS}")
-message(STATUS "DEFAULT_USE_SYSTEM_PROTO_LIBS = ${DEFAULT_USE_SYSTEM_PROTO_LIBS}")
 
 removeIndent()
 
@@ -504,21 +530,23 @@ if (DEFINED QTDIR)
 	list(PREPEND CMAKE_PREFIX_PATH ${QTDIR} "${QTDIR}/lib")
 endif()
 
-message( STATUS "CMAKE_PREFIX_PATH used: ${CMAKE_PREFIX_PATH}" )
+if (CMAKE_PREFIX_PATH)
+	message( STATUS "CMAKE_PREFIX_PATH used: ${CMAKE_PREFIX_PATH}" )
+endif()
 
 # find QT libs
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Gui Network Sql Widgets REQUIRED)
 message( STATUS "Found Qt Version: ${QT_VERSION}" )
 
 if (${QT_VERSION_MAJOR} GREATER_EQUAL 6 )
-	SET(QT_MIN_VERSION "6.2.0")
-ELSE()
+	SET(QT_MIN_VERSION "6.2.2")
+else()
 	SET(QT_MIN_VERSION "5.5.0")
-ENDIF()
+endif()
 
-IF ( "${QT_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
+if ( "${QT_VERSION}" VERSION_LESS "${QT_MIN_VERSION}" )
 	message( FATAL_ERROR "Your Qt version is to old! Minimum required ${QT_MIN_VERSION}" )
-ENDIF()
+endif()
 
 find_package(Qt${QT_VERSION_MAJOR} ${QT_VERSION} COMPONENTS Core Gui Network Sql Widgets REQUIRED)
 
@@ -526,7 +554,7 @@ message( STATUS "Qt version used: ${QT_VERSION}" )
 
 if (APPLE AND (${QT_VERSION_MAJOR} GREATER_EQUAL 6) )
 	set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
-ENDIF()
+endif()
 
 # Add libusb and pthreads
 find_package(libusb-1.0 REQUIRED)
@@ -556,33 +584,6 @@ LIST( APPEND GENERATED_QRC
 endif ()
 
 set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${GENERATED_QRC}" )
-
-# enable C++11; MSVC doesn't have c++11 feature switch
-if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-	include(CheckCXXCompilerFlag)
-	CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-	CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-
-	if(APPLE)
-		CHECK_CXX_COMPILER_FLAG("Werror=unguarded-availability" REQUIRED_UNGUARDED_AVAILABILITY)
-		if(REQUIRED_UNGUARDED_AVAILABILITY)
-			list(APPEND CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS} "Werror=unguarded-availability")
-		endif()
-	endif()
-
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-	if (CMAKE_COMPILER_IS_GNUCXX)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-psabi")
-		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-psabi")
-	endif()
-	if(COMPILER_SUPPORTS_CXX11)
-			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-	elseif(COMPILER_SUPPORTS_CXX0X)
-			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-	else()
-			message(STATUS "No support for C++11 detected. Compilation will most likely fail on your compiler")
-	endif()
-endif()
 
 # uninstall target
 configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake" IMMEDIATE @ONLY)

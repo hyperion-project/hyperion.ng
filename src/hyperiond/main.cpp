@@ -130,9 +130,6 @@ QCoreApplication* createApplication(int &argc, char *argv[])
 
 int main(int argc, char** argv)
 {
-#ifndef _WIN32
-	setenv("AVAHI_COMPAT_NOWARN", "1", 1);
-#endif
 	// initialize main logger and set global log level
 	Logger *log = Logger::getInstance("MAIN");
 	Logger::setLogLevel(Logger::WARNING);

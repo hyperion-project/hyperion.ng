@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.1.0)
 project(hyperion-dispmanx)
 
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Network Widgets REQUIRED)
@@ -22,20 +22,22 @@ add_executable( ${PROJECT_NAME}
 	${Hyperion_Dispmanx_SOURCES}
 )
 
-SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-rdynamic")
-SET(CMAKE_C_FLAGS ${CMAKE_CXX_FLAGS} "-rdynamic")
-
 target_link_libraries( ${PROJECT_NAME}
 	commandline
 	hyperion-utils
 	flatbufconnect
 	flatbuffers
 	dispmanx-grabber
-	ssdp
 	Qt${QT_VERSION_MAJOR}::Core
 	Qt${QT_VERSION_MAJOR}::Network
 	Qt${QT_VERSION_MAJOR}::Widgets
 )
+
+if(ENABLE_MDNS)
+        target_link_libraries(${PROJECT_NAME} mdns)
+else()
+        target_link_libraries(${PROJECT_NAME} ssdp)
+endif()
 
 install ( TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin" COMPONENT "hyperion_dispmanx" )
 

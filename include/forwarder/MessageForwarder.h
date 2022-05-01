@@ -28,6 +28,17 @@
 class Hyperion;
 class QTcpSocket;
 class FlatBufferConnection;
+class MessageForwarderFlatbufferClientsHelper;
+
+struct TargetHost {
+	QHostAddress host;
+	quint16 port;
+
+	bool operator == (TargetHost const& a) const
+	{
+		return ((host == a.host) && (port == a.port));
+	}
+};
 
 class MessageForwarder : public QObject
 {
@@ -39,14 +50,15 @@ public:
 	void addJsonTarget(const QJsonObject& targetConfig);
 	void addFlatbufferTarget(const QJsonObject& targetConfig);
 
-private slots:
+public slots:
 	///
 	/// @brief Handle settings update from Hyperion Settingsmanager emit or this constructor
-	/// @param type   settingyType from enum
+	/// @param type   settingsType from enum
 	/// @param config configuration object
 	///
 	void handleSettingsUpdate(settings::type type, const QJsonDocument &config);
 
+private slots:
 	///
 	/// @brief Handle component state change MessageForwarder
 	/// @param component  The component from enum
@@ -81,15 +93,13 @@ private slots:
 
 private:
 
-	struct TargetHost {
-		QHostAddress host;
-		quint16 port;
+	void enableTargets(bool enable, const QJsonObject& config);
 
-		bool operator == (TargetHost const& a) const
-		{
-			return ((host == a.host) && (port == a.port));
-		}
-	};
+	int startJsonTargets(const QJsonObject& config);
+	void stopJsonTargets();
+
+	int startFlatbufferTargets(const QJsonObject& config);
+	void stopFlatbufferTargets();
 
 	/// Hyperion instance
 	Hyperion *_hyperion;
@@ -105,10 +115,37 @@ private:
 
 	/// Flatbuffer connection for forwarding
 	QList<TargetHost> _flatbufferTargets;
-	QList<FlatBufferConnection*> _forwardClients;
 
 	/// Flag if forwarder is enabled
 	bool _forwarder_enabled = true;
 
 	const int _priority;
+
+	MessageForwarderFlatbufferClientsHelper* _messageForwarderFlatBufHelper;
+};
+
+class MessageForwarderFlatbufferClientsHelper : public QObject
+{
+	Q_OBJECT
+
+
+public:
+	MessageForwarderFlatbufferClientsHelper();
+	~MessageForwarderFlatbufferClientsHelper();
+
+signals:
+	void addClient(const QString& origin, const TargetHost& targetHost, int priority, bool skipReply);
+	void clearClients();
+
+public slots:
+	bool isFree() const;
+
+	void forwardImage(const Image<ColorRgb>& image);
+	void addClientHandler(const QString& origin, const TargetHost& targetHost, int priority, bool skipReply);
+	void clearClientsHandler();
+
+private:
+
+	QList<FlatBufferConnection*> _forwardClients;
+	bool _free;
 };
