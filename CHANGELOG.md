@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - LED-Devices mDNS discovery support and ease of configuration (Cololight, Nanoleaf, Philips-Hue, WLED, Yeelight); removes the need to configure IP-Address, as address is resolved automatically.
 - Forwarder: mDNS discovery support and ease of configuration of other Hyperion instances 
 - Grabber: mDNS discovery for standalone grabbers
+- New language: Japanese
 
 ### Changed
 
