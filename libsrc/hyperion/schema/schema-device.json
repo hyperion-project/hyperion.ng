@@ -46,8 +46,8 @@
       "type": "integer",
       "title": "edt_dev_general_enableAttempts_title",
       "minimum": 0,
-      "maximum": 20,
-      "default": 6,
+      "maximum": 120,
+      "default": 12,
       "required": true,
       "options": {
         "infoText": "edt_dev_general_enableAttempts_title_info"
