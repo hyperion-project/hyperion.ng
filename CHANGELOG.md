@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support additional Yeelight models
 - LED-Devices: Show warning, if get properties failed (Network devices: indication that network device is not reachable)
 - hyperion-remote: Show image filename in UI for images sent
+- New language: Japanese
 
 ### Changed
 
