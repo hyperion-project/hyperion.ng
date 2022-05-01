@@ -1514,8 +1514,14 @@ var updateSelectList = function (ledType, discoveryInfo) {
         // Select configured device
         var configuredDeviceType = window.serverConfig.device.type;
         var configuredHost = window.serverConfig.device.hostList;
-        if (ledType === configuredDeviceType && $.inArray(configuredHost, enumVals) != -1) {
-          enumDefaultVal = configuredHost;
+        if (ledType === configuredDeviceType) {
+          if ($.inArray(configuredHost, enumVals) != -1) {
+            enumDefaultVal = configuredHost;
+          } else if (configuredHost === "CUSTOM") {
+            enumDefaultVal = "CUSTOM";
+          } else {
+            addSelect = true;
+          }
         }
         else {
           addSelect = true;
