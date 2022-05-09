@@ -103,7 +103,7 @@ private slots:
 		}
 		else if (_prioMuxer->getCurrentPriority() == PriorityMuxer::LOWEST_PRIORITY && _isBgEffectConfigured)
 		{
-			Debug(Logger::getInstance("HYPERION"),"Start background (color-) effect as it moved is scope");
+			Debug(Logger::getInstance("HYPERION"),"Start background (color-) effect as it moved in scope");
 			emit handleSettingsUpdate (settings::BGEFFECT, _bgEffectConfig);
 		}
 	}

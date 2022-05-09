@@ -346,6 +346,7 @@ void PriorityMuxer::updatePriorities()
 
 	_activeInputs.contains(0) ? newPriority = 0 : newPriority = PriorityMuxer::LOWEST_PRIORITY;
 
+	bool timeTrigger {false};
 	QMutableMapIterator<int, PriorityMuxer::InputInfo> i(_activeInputs);
 	while (i.hasNext()) {
 		i.next();
@@ -387,10 +388,15 @@ void PriorityMuxer::updatePriorities()
 					   )
 					 )
 				{
-					emit signalTimeTrigger(); // as signal to prevent Threading issues
+					timeTrigger = true;
 				}
 			}
 		}
+	}
+
+	if (timeTrigger)
+	{
+		emit signalTimeTrigger(); // signal to prevent Threading issues
 	}
 
 	// evaluate, if manual selected priority is still available
