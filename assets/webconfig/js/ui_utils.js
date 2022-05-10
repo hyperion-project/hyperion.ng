@@ -190,7 +190,6 @@ function instanceSwitch(inst) {
   window.currentHyperionInstance = inst;
   window.currentHyperionInstanceName = getInstanceNameByIndex(inst);
   setStorage('lastSelectedInstance', inst)
-  updateHyperionInstanceListing()
 }
 
 function loadContentTo(containerId, fileName) {
@@ -1334,3 +1333,4 @@ function isValidHostnameOrIP4(value) {
 function isValidHostnameOrIP(value) {
   return (isValidHostnameOrIP4(value) || isValidIPv6(value) || isValidServicename(value));
 }
+

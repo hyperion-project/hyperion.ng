@@ -214,8 +214,8 @@ $(document).ready(function () {
     requestRequiresAdminAuth();
   });
 
-  $(window.hyperion).one("ready", function (event) {
-    // Content will be loaded by the instance load/switch
+  $(window.hyperion).on("ready", function (event) {
+    loadContent(undefined,true);
 
     //Hide capture menu entries, if no grabbers are available
     if ((window.serverInfo.grabbers.screen.available.length === 0) && (window.serverInfo.grabbers.video.available.length === 0)) {
@@ -283,7 +283,6 @@ $(document).ready(function () {
       requestServerConfig();
       setTimeout(requestServerInfo, 100)
       setTimeout(requestTokenInfo, 200)
-      setTimeout(loadContent, 300, undefined, true)
     }
 
     // determine button visibility
@@ -294,14 +293,14 @@ $(document).ready(function () {
       $('#btn_hypinstanceswitch').toggle(false)
 
     // update listing for button
-    updateHyperionInstanceListing()
+    updateUiOnInstance(currentHyperionInstance);
+    updateHyperionInstanceListing();
   });
 
   $(window.hyperion).on("cmd-instance-switchTo", function (event) {
     requestServerConfig();
     setTimeout(requestServerInfo, 200)
     setTimeout(requestTokenInfo, 400)
-    setTimeout(loadContent, 400, undefined, true)
   });
 
   $(window.hyperion).on("cmd-effects-update", function (event) {
@@ -385,5 +384,4 @@ function SwitchToMenuItem(target, item) {
     scrollTo(0);
   }
 };
-
 
