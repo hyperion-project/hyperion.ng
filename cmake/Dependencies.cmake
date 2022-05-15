@@ -15,16 +15,23 @@ macro(DeployMacOS TARGET)
 				EXECUTABLES ${TARGET_FILE}
 				RESOLVED_DEPENDENCIES_VAR resolved_deps
 				UNRESOLVED_DEPENDENCIES_VAR unresolved_deps
-				PRE_INCLUDE_REGEXES ".dylib"
-				PRE_EXCLUDE_REGEXES ".*"
 			)
 
 			foreach(dependency ${resolved_deps})
-				file(INSTALL
-					FILES "${dependency}"
-					DESTINATION "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/Frameworks"
-					TYPE SHARED_LIBRARY
-				)
+				string(FIND ${dependency} "dylib" _index)
+				if (${_index} GREATER -1)
+					file(INSTALL
+						FILES "${dependency}"
+						DESTINATION "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/Frameworks"
+						TYPE SHARED_LIBRARY
+					)
+				else()
+					file(INSTALL
+						FILES "${dependency}"
+						DESTINATION "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/lib"
+						TYPE SHARED_LIBRARY
+					)
+				endif()
 			endforeach()
 
 			list(LENGTH unresolved_deps unresolved_length)
@@ -47,8 +54,41 @@ macro(DeployMacOS TARGET)
 				endif()
 			endforeach()
 
-			include(BundleUtilities)
-			fixup_bundle("${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}" "${QT_PLUGINS}" "" IGNORE_ITEM "python;python3;Python;Python3;.Python;.Python3")
+			foreach(PLUGIN "platforms" "sqldrivers" "imageformats")
+				if(EXISTS ${PLUGIN_DIR}/${PLUGIN})
+					file(GLOB files "${PLUGIN_DIR}/${PLUGIN}/*")
+					foreach(file ${files})
+							file(GET_RUNTIME_DEPENDENCIES
+							EXECUTABLES ${file}
+							RESOLVED_DEPENDENCIES_VAR PLUGINS
+							UNRESOLVED_DEPENDENCIES_VAR unresolved_deps
+							)
+
+						foreach(DEPENDENCY ${PLUGINS})
+								file(INSTALL
+									DESTINATION "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/lib"
+									TYPE SHARED_LIBRARY
+									FILES ${DEPENDENCY}
+								)
+						endforeach()
+
+						get_filename_component(singleQtLib ${file} NAME)
+						list(APPEND QT_PLUGINS "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/plugins/${PLUGIN}/${singleQtLib}")
+						file(INSTALL
+							FILES ${file}
+							DESTINATION "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/plugins/${PLUGIN}"
+							TYPE SHARED_LIBRARY
+						)
+
+					endforeach()
+				endif()
+			endforeach()
+
+			include(BundleUtilities)							
+			fixup_bundle("${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}" "${QT_PLUGINS}" "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/lib" IGNORE_ITEM "python;python3;Python;Python3;.Python;.Python3")
+
+			file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/lib")
+			file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/share")
 
 			if(ENABLE_EFFECTENGINE)
 				# Detect the Python version and modules directory
