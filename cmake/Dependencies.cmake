@@ -47,10 +47,10 @@ macro(DeployMacOS TARGET)
 				endif()
 			endforeach()
 
-			if(ENABLE_EFFECTENGINE)
-				include(BundleUtilities)
-				fixup_bundle("${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}" "${QT_PLUGINS}" "" IGNORE_ITEM "python;python3;Python;Python3;.Python;.Python3")
+			include(BundleUtilities)
+			fixup_bundle("${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}" "${QT_PLUGINS}" "" IGNORE_ITEM "python;python3;Python;Python3;.Python;.Python3")
 
+			if(ENABLE_EFFECTENGINE)
 				# Detect the Python version and modules directory
 				find_package(Python3 3.5 REQUIRED)
 				execute_process(
