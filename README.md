@@ -60,7 +60,7 @@ Released and unreleased changes at [CHANGELOG.md](CHANGELOG.md)
 See [CompileHowto.md](doc/development/CompileHowto.md).
 
 ## Installation
-See [Documentation](#documentation) or at [Installation.md](Installation.md).
+See [Documentation](https://docs.hyperion-project.org/en/user/Installation.html) or at [Installation.md](Installation.md).
 
 ## Download
 Releases available from the [Hyperion release page](https://github.com/hyperion-project/hyperion.ng/releases)
