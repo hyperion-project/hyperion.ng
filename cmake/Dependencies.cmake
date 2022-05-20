@@ -87,10 +87,10 @@ macro(DeployMacOS TARGET)
 			include(BundleUtilities)							
 			fixup_bundle("${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}" "${QT_PLUGINS}" "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/lib" IGNORE_ITEM "python;python3;Python;Python3;.Python;.Python3")
 
-			file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/lib")
-			file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/share")
+			#file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/lib")
+			#file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/share")
 
-			if(ENABLE_EFFECTENGINE)
+			#if(ENABLE_EFFECTENGINE)
 				# Detect the Python version and modules directory
 				find_package(Python3 3.5 REQUIRED)
 				execute_process(
@@ -116,7 +116,7 @@ macro(DeployMacOS TARGET)
 						PATTERN "sitecustomize.py"                      EXCLUDE # site-specific configs
 					)
 				endif(PYTHON_MODULES_DIR)
-			endif(ENABLE_EFFECTENGINE)
+			#endif(ENABLE_EFFECTENGINE)
 		]] COMPONENT "Hyperion")
 
 	else()
