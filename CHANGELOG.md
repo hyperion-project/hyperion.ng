@@ -6,55 +6,72 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.0.12...HEAD)
 
-### Breaking
-
 ### Added
 
 - Allow to build a "light" version of Hyperion, i.e. no grabbers, or services like flat-/proto buffers, boblight, CEC
 - Allow to restart Hyperion via Systray
-- LED-Device: Support retry attempts enabling devices, e.g. to open devices after network or a device itself got available (#1302)
- (Fixes that devices got "stuck", if initial open failed e.g. for WLED, Hue)
-- LED-Devices: New UDP-DDP (Distributed Display Protocol) device to overcome the 490 LEDs limitation of UDP-RAW
-- LED Matrix Layout - Support vertical cabling direction (#1420)
-- Support additional Yeelight models
-- LED-Devices: Show warning, if get properties failed (Network devices: indication that network device is not reachable)
-- hyperion-remote: Show image filename in UI for images sent
 - mDNS support for all platforms inkl. Windows (#740)
-- LED-Devices mDNS discovery support and ease of configuration (Cololight, Nanoleaf, Philips-Hue, WLED, Yeelight); removes the need to configure IP-Address, as address is resolved automatically.
 - Forwarder: mDNS discovery support and ease of configuration of other Hyperion instances 
 - Grabber: mDNS discovery for standalone grabbers
+- Grabber: Dynamic loading of the Dispmanx Grabber (#1418)
+- Flatbuffer/Protobuf are now able to receive RGBA data
+- Added the instance number as part of the logline (#910). In the UI Log the instance is presented as a readable name.
 - New language: Japanese
+
+##### LED-Devices
+- Support retry attempts enabling devices, e.g. to open devices after network or a device itself got available (#1302). Fixes that devices got "stuck", if initial open failed e.g. for WLED, Hue 
+- New UDP-DDP (Distributed Display Protocol) device to overcome the 490 LEDs limitation of UDP-RAW
+- mDNS discovery support and ease of configuration (Cololight, Nanoleaf, Philips-Hue, WLED, Yeelight); removes the need to configure IP-Address, as address is resolved automatically.
+- Allow to disable switching LEDs on during startup (#1390)
+- Support additional Yeelight models
+- Show warning, if get properties failed (Network devices: indication that network device is not reachable)
+- LED Layout Classic: Support keystone correction via draggable corner LEDs
+- LED Layout Matrix: Support vertical cabling direction (#1420)
 
 ### Changed
 
-- Colors Smoothing is started in pause mode to save resources, when Hyperion starts with no active source
+- Color Smoothing is started in pause mode to save resources, when Hyperion starts with no active source
 - Boblight: Support multiple Boblight clients with different priorities
+- UI: LED Preview has been given a touch of Ambilight.
 - UI: Allow configuration of a Boblight server per LED-instance
 - UI: LED Layout - Removed limitations on indention
-- mDNS Publisher :Aligned Hyperion mDNS names to general conventions and simplified namings
+- UI: Log output and LED preview window can be maximized
+- mDNS Publisher: Aligned Hyperion mDNS names to general conventions and simplified naming
+
+##### LED-Devices
 - Refactored Philips Hue wizard and LED-Device
-- LED-Devices: WLED's default streaming protocol is now UDP-DDP. More than 490 LEDs are supported now (requires minimum WLED 0.11.0). UDP-RAW is still supported in parallel (via expert settings).
+- WLED's default streaming protocol is now UDP-DDP. More than 490 LEDs are supported now (requires minimum WLED 0.11.0). UDP-RAW is still supported in parallel (via expert settings).
+- Present all serial/TTY devices during discovery in expert mode; no filtering on existing vendor-identifier (Adalight serial USB does not show up in GUI #1458)
 
 ### Fixed
 
+- UI: Ensure all configuration and system info response are there before reloading the page (#1430)
+- UI: Show all previous log lines in the Log UI (was only working for Debug before)
+- UI: Remote control: Treat duration=0 as endless
+- UI: Stop Web-Browser capture when user triggers other activities
 - Effects: Fix image URL in Matrix effect
 - Effects: Fix that start effect is stuck on UI
-- Fixes that the Led-Device output flow was interrupted, by an enabling API request on an already enabled device (#967
+- Effects: Fixed that effect specific smoothing setup was not applied when effect is started from available- or effects under configuration
+- Qt-Grabber: Fixed position handling of multiple monitors (#1320, #1403)
+- Standalone grabbers: Improved fps help/error text, fixed default address and port, fixed auto discovery of Hyperion server in hyperion-remote
+- hyperion-remote: Show image filename in UI for images sent
+- Reworked PriorityMuxer and Subscriptions
+- PriorityMuxer: Fix crash when running fore- and background effect in parallel during start-up
+- Update Priority, if first LED changes for COLOR update (to reflect color correctly in UI)
+- Start JSON and WebServer only,  if Hyperion's instance 0 is available
+- Treat http headers case insensitive (RFC 2616)
+- Fixed: Signal detection does not switch off all instances (#1281)
+- Do not kill application on SIGILL-signal (#1435)
+- Fixed Qt version override, e.g. set via QTDIR
+- Update jsonschema and checkschema to allow checking hyperion.config.json.default on Windows
+
+##### LED-Devices
+- Fixes that the Led-Device output flow was interrupted, by an enabling API request on an already enabled device (#967)
 - Yeelight - Workaround: Ignore error when setting music mode = off, but the music-mode is already off (#1372)
 - Fixed: Hue Entertainment mode does not resume after no signal (#930)
-- Standalone grabbers: Improved fps help/error text, fixed default address and port, fixed auto discovery of Hyperion server in hyperion-remote
-- Fixed Qt version override, e.g. set via QTDIR
-- Remote control UI: Treat duration=0 as endless
-- Stop Web-Browser capture when user triggers other activities
-- Treat http headers case insensitive (RFC 2616)
-- Qt-Grabber: Fixed position handling of multiple monitors (#1320, #1403)
-- Fixed: Signal detection does not switch off all instances (#1281)
-- Reworked PriorityMuxer and Sub-scriptions
-- Do not kill application on SIGILL-signal (#1435)
-- Start JSON and WebServer only,  if Hyperion's instance 0 is available
 
 ## Removed
-- UI Removed sessions (of other Hyperions)
+- UI: Removed sessions (of other Hyperions)
 - Replaced existing AVAHI/Bonjour code by QMdnsEngine
 
 ## [2.0.12](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.12) - 2021-11-20

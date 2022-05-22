@@ -132,16 +132,16 @@ brew install qt5 python3 cmake libusb doxygen
 We assume a 64bit Windows 10. Install the following;
 - [Git](https://git-scm.com/downloads) (Check: Add to PATH)
 - [CMake (Windows win64-x64 installer)](https://cmake.org/download/) (Check: Add to PATH)
-- [Visual Studio 2019 Build Tools](https://go.microsoft.com/fwlink/?linkid=840931) ([direct link](https://aka.ms/vs/16/release/vs_buildtools.exe))
-  - Select C++ Buildtools
-  - On the right, just select `MSVC v142 VS 2019 C++ x64/x86-Buildtools` and latest `Windows 10 SDK`. Everything else is not needed.
+- [Visual Studio 2022 Community Edition](https://visualstudio.microsoft.com/downloads/#visual-studio-community-2022)
+  - Select 'Desktop development with C++'
+  - On the right, just select `MSVC v143 VS 2022 C++ x64/x86-Buildtools` and latest `Windows 10 SDK`. Everything else is not needed.
 - [Win64 OpenSSL v1.1.1k](https://slproweb.com/products/Win32OpenSSL.html) ([direct link](https://slproweb.com/download/Win64OpenSSL-1_1_1k.exe))
 - [Python 3 (Windows x86-64 executable installer)](https://www.python.org/downloads/windows/) (Check: Add to PATH and Debug Symbols)
   - Open a console window and execute `pip install aqtinstall`.
-  - Now we can download Qt to _C:\Qt_ `mkdir c:\Qt && aqt install -O c:\Qt 5.15.0 windows desktop win64_msvc2019_64`
+  - Now we can download Qt to _C:\Qt_ `mkdir c:\Qt && aqt install -O c:\Qt 5.15.2 windows desktop win64_msvc2019_64`
   - QT6.2 requires the [Vulkan SDK](https://vulkan.lunarg.com/sdk/home) to be installed
 - [libjpeg-turbo SDK for Visual C++](https://sourceforge.net/projects/libjpeg-turbo/files/)
-  - Download the latest 64bit installer (currently `libjpeg-turbo-2.1.0-vc64.exe`) and install to its default location `C:\libjpeg-turbo64`.
+  - Download the latest 64bit installer (currently `libjpeg-turbo-2.1.3-vc64.exe`) and install to its default location `C:\libjpeg-turbo64`.
 
 ###  Optional:
 - For DirectX9 grabber:
@@ -181,14 +181,14 @@ bin/hyperiond
 
 In case you would like to build with a dedicated Qt version, Either supply ``QTDIR`` as ``-DQTDIR=<path>`` to cmake or set and environment variable ``QTDIR`` pointing to the Qt installation.
 
-On Windows MSVC2019 set it via the CMakeSettings.json:
+On Windows MSVC2022 set it via the CMakeSettings.json:
 ```posh
   "configurations": [
     {
       ...
       "environments": [
         {
-          "QTDIR": "C:/Qt/6.2.0/msvc2019_64/"
+          "QTDIR": "C:/Qt/6.2.2/msvc2019_64/"
         }
       ]
     },
@@ -241,8 +241,8 @@ Platform should be auto detected and refer to windows, you can also force window
 
 ```posh
 # You might need to setup MSVC env first
-call "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
-cmake -DPLATFORM=windows -G "Visual Studio 16 2019" ..
+call "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
+cmake -DPLATFORM=windows -G "Visual Studio 17 2022" ..
 ```
 
 **Run make to build Hyperion:**
@@ -261,7 +261,7 @@ On Windows run:
 ```posh
 cmake --build . --config Release -- -maxcpucount
 ```
-Maintainer: To build installer, install [NSIS](https://nsis.sourceforge.io/Main_Page) and set env `VCINSTALLDIR="C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC"`
+Maintainer: To build installer, install [NSIS](https://nsis.sourceforge.io/Main_Page) and set env `VCINSTALLDIR="C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC"`
 
 **Install hyperion into your system:**
 Copy all necessary files to ``/usr/local/share/hyperion``

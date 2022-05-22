@@ -338,16 +338,16 @@ message(STATUS "Services options:")
 addIndent(" - ")
 
 option(ENABLE_EFFECTENGINE "Enable Effect-Engine" ${DEFAULT_EFFECTENGINE})
-message(STATUS "ENABLE_EFFECTENGINE = " ${ENABLE_EFFECTENGINE})
+message(STATUS "ENABLE_EFFECTENGINE = ${ENABLE_EFFECTENGINE}")
 
 option(ENABLE_EXPERIMENTAL "Compile experimental features" ${DEFAULT_EXPERIMENTAL})
 message(STATUS "ENABLE_EXPERIMENTAL = ${ENABLE_EXPERIMENTAL}")
 
 option(ENABLE_MDNS "Enable mDNS (aka Zeroconf)" ${DEFAULT_MDNS})
-message(STATUS "ENABLE_MDNS = " ${ENABLE_MDNS})
+message(STATUS "ENABLE_MDNS = ${ENABLE_MDNS}")
 
 option(ENABLE_REMOTE_CTL "Enable Hyperion remote control" ${DEFAULT_REMOTE_CTL})
-message(STATUS "ENABLE_REMOTE_CTL = " ${ENABLE_REMOTE_CTL})
+message(STATUS "ENABLE_REMOTE_CTL = ${ENABLE_REMOTE_CTL}")
 
 removeIndent()
 
