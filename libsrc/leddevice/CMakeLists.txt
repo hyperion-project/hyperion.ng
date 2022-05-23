@@ -139,6 +139,21 @@ if (ENABLE_DEV_USB_HID)
 	else()
 		target_link_libraries(leddevice ${LIBUSB_1_LIBRARIES} hidapi-libusb)
 	endif()
+	if(NOT WIN32)
+		# Glibc compatibilty check
+		check_c_source_compiles("
+			#include <time.h>
+			#include <sys/time.h>
+
+			int main() {
+    			struct timespec t;
+    			return clock_gettime(CLOCK_REALTIME, &t);
+			}
+			" GLIBC_HAS_CLOCK_GETTIME)
+		IF(NOT GLIBC_HAS_CLOCK_GETTIME)
+			target_link_libraries(leddevice rt)
+		endif()
+	endif()
 endif()
 
 if(ENABLE_MDNS)
