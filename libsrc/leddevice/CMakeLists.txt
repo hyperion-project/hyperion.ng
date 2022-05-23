@@ -140,6 +140,7 @@ if (ENABLE_DEV_USB_HID)
 		target_link_libraries(leddevice ${LIBUSB_1_LIBRARIES} hidapi-libusb)
 	endif()
 	if(NOT WIN32)
+		include(CheckCSourceCompiles)
 		# Glibc compatibilty check
 		check_c_source_compiles("
 			#include <time.h>
