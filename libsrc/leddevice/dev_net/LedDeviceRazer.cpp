@@ -279,7 +279,7 @@ int LedDeviceRazer::write(const std::vector<ColorRgb>& ledValues)
 			for (int col = 0; col < _maxColumn; col++) {
 				int pos = row * _maxColumn + col;
 				int bgrColor;
-				if (pos < ledValues.size())
+				if (pos < static_cast<int>(ledValues.size()))
 				{
 					bgrColor = (ledValues[pos].red * 65536) + (ledValues[pos].green * 256) + ledValues[pos].blue;
 				}
