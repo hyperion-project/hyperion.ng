@@ -198,6 +198,7 @@ void ProtoClientConnection::handleImageCommand(const proto::ImageRequest &messag
 	}
 
 	emit setGlobalInputImage(_priority, imageRGB, duration);
+	emit setBufferImage("ProtoBuffer", imageRGB);
 
 	// send reply
 	sendSuccessReply();

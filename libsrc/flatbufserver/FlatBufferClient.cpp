@@ -182,6 +182,7 @@ void FlatBufferClient::handleImageCommand(const hyperionnet::Image *image)
 		}
 
 		emit setGlobalInputImage(_priority, imageRGB, duration);
+		emit setBufferImage("FlatBuffer", imageRGB);
 	}
 
 	// send reply
