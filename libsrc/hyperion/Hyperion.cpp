@@ -150,6 +150,9 @@ void Hyperion::start()
 	{
 		_messageForwarder = new MessageForwarder(this);
 		_messageForwarder->handleSettingsUpdate(settings::NETFORWARD, getSetting(settings::NETFORWARD));
+		#if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
+		connect(GlobalSignals::getInstance(), &GlobalSignals::setBufferImage, this, &Hyperion::forwardBufferMessage);
+		#endif
 	}
 #endif
 

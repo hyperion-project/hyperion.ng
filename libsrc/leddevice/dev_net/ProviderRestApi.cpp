@@ -14,8 +14,6 @@
 // Constants
 namespace {
 
-bool verbose = false;
-
 const QChar ONE_SLASH = '/';
 
 const int HTTP_STATUS_NO_CONTENT = 204;

@@ -78,11 +78,14 @@ private slots:
 	///
 	void forwardJsonMessage(const QJsonObject &message);
 
+#if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
 	///
 	/// @brief Forward image to all flatbuffer target hosts
 	/// @param image The flatbuffer image to send
 	///
+	///
 	void forwardFlatbufferMessage(const QString& name, const Image<ColorRgb> &image);
+#endif
 
 	///
 	/// @brief Forward message to a single json target host

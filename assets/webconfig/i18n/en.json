@@ -575,7 +575,7 @@
     "edt_dev_spec_intervall_title": "Interval",
     "edt_dev_spec_invert_title": "Invert signal",
     "edt_dev_spec_latchtime_title": "Latch time",
-    "edt_dev_spec_latchtime_title_info": "Latch time is the time-frame a device requires until the next update can be processed. During that time-frame any updates done via ignored.",
+    "edt_dev_spec_latchtime_title_info": "Latch time is the time-frame a device requires until the next update can be processed. During that time-frame any updates done are ignored.",
     "edt_dev_spec_ledIndex_title": "LED index",
     "edt_dev_spec_ledType_title": "LED Type",
     "edt_dev_spec_lightid_itemtitle": "ID",

@@ -107,13 +107,27 @@ void MessageForwarder::enableTargets(bool enable, const QJsonObject& config)
 		if (flatbufTargetNum > 0)
 		{
 			hyperion::Components activeCompId = _hyperion->getPriorityInfo(_hyperion->getCurrentPriority()).componentId;
-			if (activeCompId == hyperion::COMP_GRABBER)
-			{
+
+			switch (activeCompId) {
+			case hyperion::COMP_GRABBER:
 				connect(_hyperion, &Hyperion::forwardSystemProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage, Qt::UniqueConnection);
-			}
-			else if (activeCompId == hyperion::COMP_V4L)
-			{
+				break;
+			case hyperion::COMP_V4L:
 				connect(_hyperion, &Hyperion::forwardV4lProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage, Qt::UniqueConnection);
+				break;
+#if defined(ENABLE_FLATBUF_SERVER)
+			case hyperion::COMP_FLATBUFSERVER:
+#endif
+#if defined(ENABLE_PROTOBUF_SERVER)
+			case hyperion::COMP_PROTOSERVER:
+#endif
+#if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
+
+				connect(_hyperion, &Hyperion::forwardBufferMessage, this, &MessageForwarder::forwardFlatbufferMessage, Qt::UniqueConnection);
+				break;
+#endif
+			default:
+				break;
 			}
 		}
 
@@ -135,33 +149,41 @@ void MessageForwarder::handlePriorityChanges(int priority)
 	if (priority != 0 && _forwarder_enabled)
 	{
 		hyperion::Components activeCompId = _hyperion->getPriorityInfo(priority).componentId;
-		if (activeCompId == hyperion::COMP_GRABBER || activeCompId == hyperion::COMP_V4L)
-		{
-			switch (activeCompId)
-			{
-			case hyperion::COMP_GRABBER:
-			{
-				disconnect(_hyperion, &Hyperion::forwardV4lProtoMessage, nullptr, nullptr);
-				connect(_hyperion, &Hyperion::forwardSystemProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage, Qt::UniqueConnection);
-			}
+
+		switch (activeCompId) {
+		case hyperion::COMP_GRABBER:
+			disconnect(_hyperion, &Hyperion::forwardV4lProtoMessage, nullptr, nullptr);
+#if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
+			disconnect(_hyperion, &Hyperion::forwardBufferMessage, nullptr, nullptr);
+#endif
+			connect(_hyperion, &Hyperion::forwardSystemProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage, Qt::UniqueConnection);
 			break;
-			case hyperion::COMP_V4L:
-			{
-				disconnect(_hyperion, &Hyperion::forwardSystemProtoMessage, nullptr, nullptr);
-				connect(_hyperion, &Hyperion::forwardV4lProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage, Qt::UniqueConnection);
-			}
+		case hyperion::COMP_V4L:
+			disconnect(_hyperion, &Hyperion::forwardSystemProtoMessage, nullptr, nullptr);
+#if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
+			disconnect(_hyperion, &Hyperion::forwardBufferMessage, nullptr, nullptr);
+#endif
+			connect(_hyperion, &Hyperion::forwardV4lProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage, Qt::UniqueConnection);
 			break;
-			default:
-			{
-				disconnect(_hyperion, &Hyperion::forwardSystemProtoMessage, nullptr, nullptr);
-				disconnect(_hyperion, &Hyperion::forwardV4lProtoMessage, nullptr, nullptr);
-			}
-			}
-		}
-		else
-		{
+#if defined(ENABLE_FLATBUF_SERVER)
+		case hyperion::COMP_FLATBUFSERVER:
+#endif
+#if defined(ENABLE_PROTOBUF_SERVER)
+		case hyperion::COMP_PROTOSERVER:
+#endif
+#if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
 			disconnect(_hyperion, &Hyperion::forwardSystemProtoMessage, nullptr, nullptr);
 			disconnect(_hyperion, &Hyperion::forwardV4lProtoMessage, nullptr, nullptr);
+			connect(_hyperion, &Hyperion::forwardBufferMessage, this, &MessageForwarder::forwardFlatbufferMessage, Qt::UniqueConnection);
+			break;
+#endif
+		default:
+			disconnect(_hyperion, &Hyperion::forwardSystemProtoMessage, nullptr, nullptr);
+			disconnect(_hyperion, &Hyperion::forwardV4lProtoMessage, nullptr, nullptr);
+#if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
+			disconnect(_hyperion, &Hyperion::forwardBufferMessage, nullptr, nullptr);
+#endif
+			break;
 		}
 	}
 }
@@ -351,6 +373,9 @@ void MessageForwarder::stopFlatbufferTargets()
 	{
 		disconnect(_hyperion, &Hyperion::forwardSystemProtoMessage, nullptr, nullptr);
 		disconnect(_hyperion, &Hyperion::forwardV4lProtoMessage, nullptr, nullptr);
+#if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
+		disconnect(_hyperion, &Hyperion::forwardBufferMessage, nullptr, nullptr);
+#endif
 
 		if (_messageForwarderFlatBufHelper != nullptr)
 		{
