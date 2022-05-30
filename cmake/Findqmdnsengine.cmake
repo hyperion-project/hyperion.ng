@@ -8,7 +8,7 @@ find_path(QMDNS_INCLUDE_DIR
 )
 
 find_library(QMDNS_LIBRARIES
-    NAMES libqmdnsengine.a
+    NAMES libqmdnsengine.a libqmdnsengine.so
     PATHS /usr/local /usr
     PATH_SUFFIXES lib64 lib
 )
