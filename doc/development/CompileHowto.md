@@ -72,12 +72,21 @@ cd $HYPERION_HOME
 
 ## Debian/Ubuntu/Win10LinuxSubsystem
 
+**For Linux/Ubuntu(<= 21.10) - Qt5 based**
+
 ```console
 sudo apt-get update
-sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libqt5sql5-sqlite libqt5svg5-dev libqt5x11extras5-dev libusb-1.0-0-dev python3-dev libavahi-core-dev libavahi-compat-libdnssd-dev libturbojpeg0-dev libssl-dev
+sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libqt5sql5-sqlite libqt5svg5-dev libqt5x11extras5-dev libusb-1.0-0-dev python3-dev libturbojpeg0-dev libssl-dev
 ```
 
-**For Linux X11/XXCB grabber support**
+**Ubuntu (22.04+) - Qt6 based**
+
+```console
+sudo apt-get update
+sudo apt-get install git cmake build-essential qt6-base-dev libqt6serialport6-dev libvulkan-dev libgl1-mesa-dev libusb-1.0-0-dev python3-dev libturbojpeg0-dev libssl-dev pkg-config
+```
+
+**For Linux X11/XCB grabber support**
 
 ```console
 sudo apt-get install libxrandr-dev libxrender-dev libxcb-image0-dev libxcb-util0-dev libxcb-shm0-dev libxcb-render0-dev libxcb-randr0-dev
@@ -100,7 +109,7 @@ sudo apt-get install libraspberrypi-dev
 sudo apt-get install rbp-userland-dev-osmc
 ```
 
-**Additionally for QT6**
+**Additionally for QT6 when QT6 installed separately on Ubuntu < 22.04**
 ```console
 sudo apt-get install postgresql unixodbc libxkbcommon-dev
 ```
@@ -116,7 +125,7 @@ See [AUR](https://aur.archlinux.org/packages/?O=0&SeB=nd&K=hyperion&outdated=&SB
 The following dependencies are needed to build hyperion.ng on fedora.
 ```console
 sudo dnf -y groupinstall "Development Tools"
-sudo dnf install python3-devel qt-devel qt5-qtbase-devel qt5-qtserialport-devel xrandr xcb-util-image-devel qt5-qtx11extras-devel turbojpeg-devel libusb-devel avahi-libs avahi-compat-libdns_sd-devel xcb-util-devel dbus-devel openssl-devel fedora-packager rpmdevtools gcc libcec-devel
+sudo dnf install python3-devel qt-devel qt5-qtbase-devel qt5-qtserialport-devel xrandr xcb-util-image-devel qt5-qtx11extras-devel turbojpeg-devel libusb-devel xcb-util-devel dbus-devel openssl-devel fedora-packager rpmdevtools gcc libcec-devel
 ```
 After installing the dependencies, you can continue with the compile instructions later on this page (the more detailed way..).
 

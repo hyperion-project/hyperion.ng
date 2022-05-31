@@ -2,48 +2,40 @@
 	{
 		"distribution": "Bionic",
 		"architecture": "arm64",
-		"build-depends": "git, cmake, build-essential, qtbase5-dev, libqt5serialport5-dev, libqt5sql5-sqlite, libqt5svg5-dev, libqt5x11extras5-dev, libusb-1.0-0-dev, python3-dev, libcec-dev, libxcb-image0-dev, libxcb-util0-dev, libxcb-shm0-dev, libxcb-render0-dev, libxcb-randr0-dev, libxrandr-dev, libxrender-dev, libavahi-core-dev, libavahi-compat-libdnssd-dev, libturbojpeg0-dev, libssl1.0-dev, libmbedtls-dev",
-		"package-depends": "libpython3.6, libusb-1.0-0, libqt5widgets5, libqt5x11extras5, libqt5sql5, libqt5sql5-sqlite, libqt5serialport5, libavahi-compat-libdnssd1, libmbedtls10, libturbojpeg, libcec4",
+		"build-depends": "git, cmake, build-essential, qtbase5-dev, libqt5serialport5-dev, libqt5sql5-sqlite, libqt5svg5-dev, libqt5x11extras5-dev, libusb-1.0-0-dev, python3-dev, libcec-dev, libxcb-image0-dev, libxcb-util0-dev, libxcb-shm0-dev, libxcb-render0-dev, libxcb-randr0-dev, libxrandr-dev, libxrender-dev, libturbojpeg0-dev, libssl1.0-dev, libmbedtls-dev",
+		"package-depends": "libpython3.6, libusb-1.0-0, libqt5widgets5, libqt5x11extras5, libqt5sql5, libqt5sql5-sqlite, libqt5serialport5, libmbedtls10, libturbojpeg, libcec4",
 		"cmake-environment": "-DENABLE_DISPMANX=OFF -DENABLE_X11=ON -DENABLE_XCB=ON -DUSE_SYSTEM_MBEDTLS_LIBS=ON -DENABLE_DEPLOY_DEPENDENCIES=OFF -DCMAKE_BUILD_TYPE=Release",
 		"description": "Ubuntu 18.04 (Bionic Beaver) (arm64)"
 	},
 	{
 		"distribution": "Focal",
 		"architecture": "arm64",
-		"build-depends": "git, cmake, build-essential, qtbase5-dev, libqt5serialport5-dev, libqt5sql5-sqlite, libqt5svg5-dev, libqt5x11extras5-dev, libusb-1.0-0-dev, python3-dev, libcec-dev, libxcb-image0-dev, libxcb-util0-dev, libxcb-shm0-dev, libxcb-render0-dev, libxcb-randr0-dev, libxrandr-dev, libxrender-dev, libavahi-core-dev, libavahi-compat-libdnssd-dev, libturbojpeg0-dev, libssl-dev, libmbedtls-dev",
-		"package-depends": "libpython3.8, libusb-1.0-0, libqt5widgets5, libqt5x11extras5, libqt5sql5, libqt5sql5-sqlite, libqt5serialport5, libavahi-compat-libdnssd1, libmbedtls12, libturbojpeg, libcec4",
+		"build-depends": "git, cmake, build-essential, qtbase5-dev, libqt5serialport5-dev, libqt5sql5-sqlite, libqt5svg5-dev, libqt5x11extras5-dev, libusb-1.0-0-dev, python3-dev, libcec-dev, libxcb-image0-dev, libxcb-util0-dev, libxcb-shm0-dev, libxcb-render0-dev, libxcb-randr0-dev, libxrandr-dev, libxrender-dev, libturbojpeg0-dev, libssl-dev, libmbedtls-dev",
+		"package-depends": "libpython3.8, libusb-1.0-0, libqt5widgets5, libqt5x11extras5, libqt5sql5, libqt5sql5-sqlite, libqt5serialport5, libmbedtls12, libturbojpeg, libcec4",
 		"cmake-environment": "-DENABLE_DISPMANX=OFF -DENABLE_X11=ON -DENABLE_XCB=ON -DUSE_SYSTEM_MBEDTLS_LIBS=ON -DENABLE_DEPLOY_DEPENDENCIES=OFF -DCMAKE_BUILD_TYPE=Release",
 		"description": "Ubuntu 20.04 (Focal Fossa) (arm64)"
 	},
 	{
-		"distribution": "Hirsute",
-		"architecture": "arm64",
-		"build-depends": "git, cmake, build-essential, qtbase5-dev, libqt5serialport5-dev, libqt5sql5-sqlite, libqt5svg5-dev, libqt5x11extras5-dev, libusb-1.0-0-dev, python3-dev, libcec-dev, libxcb-image0-dev, libxcb-util0-dev, libxcb-shm0-dev, libxcb-render0-dev, libxcb-randr0-dev, libxrandr-dev, libxrender-dev, libavahi-core-dev, libavahi-compat-libdnssd-dev, libturbojpeg0-dev, libssl-dev, libmbedtls-dev",
-		"package-depends": "libpython3.9, libusb-1.0-0, libqt5widgets5, libqt5x11extras5, libqt5sql5, libqt5sql5-sqlite, libqt5serialport5, libavahi-compat-libdnssd1, libmbedtls12, libturbojpeg, libcec6",
-		"cmake-environment": "-DENABLE_DISPMANX=OFF -DENABLE_X11=ON -DENABLE_XCB=ON -DUSE_SYSTEM_MBEDTLS_LIBS=ON -DENABLE_DEPLOY_DEPENDENCIES=OFF -DCMAKE_BUILD_TYPE=Release",
-		"description": "Ubuntu 21.04 (Hirsute Hippo) (arm64)"
-	},
-	{
 		"distribution": "Impish",
 		"architecture": "arm64",
-		"build-depends": "git, cmake, build-essential, qtbase5-dev, libqt5serialport5-dev, libqt5sql5-sqlite, libqt5svg5-dev, libqt5x11extras5-dev, libusb-1.0-0-dev, python3-dev, libcec-dev, libxcb-image0-dev, libxcb-util0-dev, libxcb-shm0-dev, libxcb-render0-dev, libxcb-randr0-dev, libxrandr-dev, libxrender-dev, libavahi-core-dev, libavahi-compat-libdnssd-dev, libturbojpeg0-dev, libssl-dev, libmbedtls-dev",
-		"package-depends": "libpython3.9, libusb-1.0-0, libqt5widgets5, libqt5x11extras5, libqt5sql5, libqt5sql5-sqlite, libqt5serialport5, libavahi-compat-libdnssd1, libmbedtls12, libturbojpeg, libcec6",
+		"build-depends": "git, cmake, build-essential, qtbase5-dev, libqt5serialport5-dev, libqt5sql5-sqlite, libqt5svg5-dev, libqt5x11extras5-dev, libusb-1.0-0-dev, python3-dev, libcec-dev, libxcb-image0-dev, libxcb-util0-dev, libxcb-shm0-dev, libxcb-render0-dev, libxcb-randr0-dev, libxrandr-dev, libxrender-dev, libturbojpeg0-dev, libssl-dev, libmbedtls-dev",
+		"package-depends": "libpython3.9, libusb-1.0-0, libqt5widgets5, libqt5x11extras5, libqt5sql5, libqt5sql5-sqlite, libqt5serialport5, libmbedtls12, libturbojpeg, libcec6",
 		"cmake-environment": "-DENABLE_DISPMANX=OFF -DENABLE_X11=ON -DENABLE_XCB=ON -DUSE_SYSTEM_MBEDTLS_LIBS=ON -DENABLE_DEPLOY_DEPENDENCIES=OFF -DCMAKE_BUILD_TYPE=Release",
 		"description": "Ubuntu 21.10 (Impish Indri) (arm64)"
 	},
 	{
 		"distribution": "Buster",
 		"architecture": "arm64",
-		"build-depends": "git, cmake, python3-dev, qtbase5-dev, libqt5serialport5-dev, libqt5sql5-sqlite, libqt5svg5-dev, build-essential, libusb-1.0-0-dev, libcec-dev, libavahi-core-dev, libavahi-compat-libdnssd-dev, libssl-dev, libraspberrypi-dev, libturbojpeg0-dev, libmbedtls-dev",
-		"package-depends": "libpython3.7, libusb-1.0-0, libqt5widgets5, libqt5x11extras5, libqt5sql5, libqt5sql5-sqlite, libqt5serialport5, libavahi-compat-libdnssd1, libmbedtls12, libturbojpeg0, libcec4",
+		"build-depends": "git, cmake, python3-dev, qtbase5-dev, libqt5serialport5-dev, libqt5sql5-sqlite, libqt5svg5-dev, build-essential, libusb-1.0-0-dev, libcec-dev, libssl-dev, libraspberrypi-dev, libturbojpeg0-dev, libmbedtls-dev",
+		"package-depends": "libpython3.7, libusb-1.0-0, libqt5widgets5, libqt5x11extras5, libqt5sql5, libqt5sql5-sqlite, libqt5serialport5, libmbedtls12, libturbojpeg0, libcec4",
 		"cmake-environment": "-DUSE_SYSTEM_MBEDTLS_LIBS=ON -DENABLE_DEPLOY_DEPENDENCIES=OFF -DCMAKE_BUILD_TYPE=Release",
 		"description": "Debian 10.x (Buster) (arm64)"
 	},
 	{
 		"distribution": "Bullseye",
 		"architecture": "arm64",
-		"build-depends": "git, cmake, python3-dev, qtbase5-dev, libqt5serialport5-dev, libqt5sql5-sqlite, libqt5svg5-dev, build-essential, libusb-1.0-0-dev, libcec-dev, libavahi-core-dev, libavahi-compat-libdnssd-dev, libssl-dev, libraspberrypi-dev, libturbojpeg0-dev, libmbedtls-dev",
-		"package-depends": "libpython3.9, libusb-1.0-0, libqt5widgets5, libqt5x11extras5, libqt5sql5, libqt5sql5-sqlite, libqt5serialport5, libavahi-compat-libdnssd1, libmbedtls12, libturbojpeg0, libcec6",
+		"build-depends": "git, cmake, python3-dev, qtbase5-dev, libqt5serialport5-dev, libqt5sql5-sqlite, libqt5svg5-dev, build-essential, libusb-1.0-0-dev, libcec-dev, libssl-dev, libraspberrypi-dev, libturbojpeg0-dev, libmbedtls-dev",
+		"package-depends": "libpython3.9, libusb-1.0-0, libqt5widgets5, libqt5x11extras5, libqt5sql5, libqt5sql5-sqlite, libqt5serialport5, libmbedtls12, libturbojpeg0, libcec6",
 		"cmake-environment": "-DUSE_SYSTEM_MBEDTLS_LIBS=ON -DENABLE_DEPLOY_DEPENDENCIES=OFF -DCMAKE_BUILD_TYPE=Release",
 		"description": "Debian 11.x (Bullseye) (arm64)"
 	}
