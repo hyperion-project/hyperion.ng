@@ -546,6 +546,8 @@
     "edt_dev_spec_baudrate_title": "Baudrate",
     "edt_dev_spec_blackLightsTimeout_title": "Signal detection timeout on black",
     "edt_dev_spec_brightnessFactor_title": "Brightness factor",
+    "edt_dev_spec_brightnessMax_title": "Brightness maximum",
+    "edt_dev_spec_brightnessMin_title": "Brightness minimum",
     "edt_dev_spec_brightnessOverwrite_title": "Overwrite brightness",
     "edt_dev_spec_brightnessThreshold_title": "Signal detection brightness minimum",
     "edt_dev_spec_brightness_title": "Brightness",
