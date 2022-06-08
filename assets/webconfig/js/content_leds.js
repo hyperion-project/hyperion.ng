@@ -1631,7 +1631,10 @@ function saveLedConfig(genDefLayout = false) {
     case "cololight":
 
       var host = conf_editor.getEditor("root.specificOptions.host").getValue();
-      result.smoothing = { enable: false };
+      if (window.serverConfig.device.type !== ledType) {
+        //smoothing off, if new device
+        result.smoothing = { enable: false };
+      }
 
       if (genDefLayout === true) {
 
@@ -1667,7 +1670,11 @@ function saveLedConfig(genDefLayout = false) {
 
     case "nanoleaf":
     case "wled":
-      result.smoothing = { enable: false };
+    case "yeelight":
+      if (window.serverConfig.device.type !== ledType) {
+        //smoothing off, if new device
+        result.smoothing = { enable: false };
+      }
 
     case "adalight":
     case "atmo":
