@@ -1,6 +1,7 @@
 #include <utils/ColorSys.h>
 
 #include <QColor>
+#include <oklab/ok_color.h>
 
 inline uint8_t clamp(int x)
 {
@@ -55,4 +56,20 @@ void ColorSys::yuv2rgb(uint8_t y, uint8_t u, uint8_t v, uint8_t &r, uint8_t &g, 
 	r = clamp((298 * c + 409 * e + 128) >> 8);
 	g = clamp((298 * c - 100 * d - 208 * e + 128) >> 8);
 	b = clamp((298 * c + 516 * d + 128) >> 8);
+}
+
+void ColorSys::rgb2okhsv(uint8_t red, uint8_t green, uint8_t blue, float & hue, float & saturation, float & value)
+{
+	ok_color::HSV color = ok_color::srgb_to_okhsv({ (float)red / 255.f, (float)green / 255.f, (float)blue / 255.f });
+	hue = color.h;
+	saturation = color.s;
+	value = color.v;
+}
+
+void ColorSys::okhsv2rgb(float hue, float saturation, float value, uint8_t & red, uint8_t & green, uint8_t & blue)
+{
+	ok_color::RGB color = ok_color::okhsv_to_srgb({ hue, saturation, value });
+	red = std::roundf(color.r * 255.f);
+	green = std::roundf(color.g * 255.f);
+	blue = std::roundf(color.b * 255.f);
 }
