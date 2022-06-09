@@ -92,7 +92,7 @@ public:
 	static void rgb2okhsv(uint8_t red, uint8_t green, uint8_t blue, float & hue, float & saturation, float & value);
 
 	///
-	///	Translates an Okhsv (hue, saturation, value) color to an RGB (red, green, blue) color
+	/// Translates an Okhsv (hue, saturation, value) color to an RGB (red, green, blue) color
 	///
 	/// @param[in] hue The hue Okhsv-component
 	/// @param[in] saturation The saturation Okhsv-component
