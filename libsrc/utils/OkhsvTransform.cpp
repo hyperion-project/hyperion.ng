@@ -1,5 +1,13 @@
+#include <algorithm>
+
 #include <utils/OkhsvTransform.h>
 #include <utils/ColorSys.h>
+
+/// Clamps between 0.f and 1.f. Should generally be branchless
+float clamp(float value)
+{
+	return std::max(0.f, std::min(value, 1.f));
+}
 
 OkhsvTransform::OkhsvTransform()
 {
@@ -45,8 +53,8 @@ void OkhsvTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue)
 		, value;
 	ColorSys::rgb2okhsv(red, green, blue, hue, saturation, value);
 
-	saturation *= _saturationGain;
-	value      *= _valueGain;
+	saturation = clamp(saturation * _saturationGain);
+	value      = clamp(value      * _valueGain);
 
 	ColorSys::okhsv2rgb(hue, saturation, value, red, green, blue);
 }
