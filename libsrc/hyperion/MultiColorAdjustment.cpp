@@ -114,7 +114,10 @@ void MultiColorAdjustment::applyAdjustment(std::vector<ColorRgb>& ledColors)
 		uint8_t oblue  = color.blue;
 		uint8_t B_RGB = 0, B_CMY = 0, B_W = 0;
 
-		adjustment->_okhsvTransform.transform(ored, ogreen, oblue);
+		if (!adjustment->_okhsvTransform.isIdentity())
+		{
+			adjustment->_okhsvTransform.transform(ored, ogreen, oblue);
+		}
 		adjustment->_rgbTransform.transform(ored,ogreen,oblue);
 		adjustment->_rgbTransform.getBrightnessComponents(B_RGB, B_CMY, B_W);
 
