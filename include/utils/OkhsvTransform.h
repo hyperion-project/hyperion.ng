@@ -48,6 +48,13 @@ public:
 	void transform(uint8_t & red, uint8_t & green, uint8_t & blue);
 
 private:
+	/// Sets _isIdentity to true if both gain values are at their neutral setting
+	void updateIsIdentity();
+
+	/// Gain settings
 	float _saturationGain
 		, _valueGain;
+
+	/// Is true if the gain settings result in an identity transformation
+	bool _isIdentity;
 };
