@@ -138,7 +138,7 @@
 				"saturationGain" : {
 					"type" : "integer",
 					"required" : false,
-					"minimum" : 0.1,
+					"minimum" : 0.0,
 					"maximum": 100.0
 				},
 				"valueGain" : {

@@ -163,7 +163,7 @@
 						"type" : "number",
 						"title" : "edt_conf_color_saturationGain_title",
 						"required" : true,
-						"minimum" : 0.1,
+						"minimum" : 0.0,
 						"maximum": 100.0,
 						"default" : 1.0,
 						"step" : 0.1,
