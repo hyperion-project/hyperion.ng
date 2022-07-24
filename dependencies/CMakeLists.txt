@@ -308,7 +308,7 @@ if(ENABLE_DEV_NETWORK)
 			FetchContent_Declare(
 				mbedtls
 				GIT_REPOSITORY        https://github.com/ARMmbed/mbedtls.git
-				GIT_TAG               "v3.1.0 " # Bump versions manually if necessary, do not rely on origin/master to be stable
+				GIT_TAG               "v3.1.0" # Bump versions manually if necessary, do not rely on origin/master to be stable
 				BUILD_ALWAYS          OFF
 				GIT_PROGRESS          1
 				DOWNLOAD_DIR          "${MBEDTLS_DOWNLOAD_DIR}"
