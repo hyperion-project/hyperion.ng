@@ -90,7 +90,7 @@ jobs:
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@v5.0.0
         with:
-          gpg-private-key: ${{ secrets.APT_GPG }}
+          gpg_private_key: ${{ secrets.APT_GPG }}
 
       - name: Install reprepro
         run: sudo apt -y install reprepro
