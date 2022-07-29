@@ -65,5 +65,5 @@ void OkhsvTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue) c
 
 void OkhsvTransform::updateIsIdentity()
 {
-    _isIdentity = _saturationGain == 1.0 && _valueGain == 1.5;
+    _isIdentity = _saturationGain == 1.0 && _valueGain == 1.0;
 }
