@@ -56,10 +56,21 @@ $(document).ready(function () {
         });
       }
       else {
-        if (sColor[key].key == "brightness" || sColor[key].key == "brightnessCompensation" || sColor[key].key == "backlightThreshold")
-          property = '<div class="input-group"><input id="cr_' + sColor[key].key + '" type="number" class="form-control" min="0" max="100" step="10" value="' + value + '"/><span class="input-group-addon">' + $.i18n("edt_append_percent") + '</span></div>';
-        else
+        if (sColor[key].key == "brightness" || 
+            sColor[key].key == "brightnessCompensation" || 
+            sColor[key].key == "backlightThreshold" || 
+            sColor[key].key == "saturationGain"|| 
+            sColor[key].key == "valueGain" ) {
+          property = '<div class="input-group"><input id="cr_' + sColor[key].key + '" type="number" class="form-control" min="' + sColor[key].minimum + '" max="' + sColor[key].maximum + '" step="'  + sColor[key].step + '" value="' + value + '"/>';
+          if ( sColor[key].append === "edt_append_percent" ) {
+            property = '<div class="input-group"><input id="cr_' + sColor[key].key + '" type="number" class="form-control" min="' + sColor[key].minimum + '" max="' + sColor[key].maximum + '" step="'  + sColor[key].step + '" value="' + value + '"/><span class="input-group-addon">' + $.i18n("edt_append_percent") + '</span></div>';          
+          } else {
+              property = '<input id="cr_' + sColor[key].key + '" type="number" class="form-control" min="' + sColor[key].minimum + '" max="' + sColor[key].maximum + '" step="'  + sColor[key].step + '" value="' + value + '"/>';
+          }
+        } 
+        else {
           property = '<input id="cr_' + sColor[key].key + '" type="number" class="form-control" min="0.1" max="4.0" step="0.1" value="' + value + '"/>';
+        }
 
         $('.crtbody').append(createTableRow([title, property], false, true));
         $('#cr_' + sColor[key].key).off().on('change', function (e) {

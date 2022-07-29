@@ -136,13 +136,13 @@
 					"maximum" : 100
 				},
 				"saturationGain" : {
-					"type" : "integer",
+					"type" : "number",
 					"required" : false,
 					"minimum" : 0.0,
 					"maximum": 100.0
 				},
 				"valueGain" : {
-					"type" : "integer",
+					"type" : "number",
 					"required" : false,
 					"minimum" : 0.1,
 					"maximum": 100.0

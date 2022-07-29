@@ -4,9 +4,9 @@
 #include <utils/ColorSys.h>
 
 /// Clamps between 0.f and 1.f. Should generally be branchless
-float clamp(float value)
+double clamp(double value)
 {
-	return std::max(0.f, std::min(value, 1.f));
+    return std::max(0.0, std::min(value, 1.0));
 }
 
 OkhsvTransform::OkhsvTransform()
@@ -16,30 +16,30 @@ OkhsvTransform::OkhsvTransform()
 	_isIdentity = true;
 }
 
-OkhsvTransform::OkhsvTransform(float saturationGain, float valueGain)
+OkhsvTransform::OkhsvTransform(double saturationGain, double valueGain)
 {
 	_saturationGain = saturationGain;
 	_valueGain = valueGain;
 	updateIsIdentity();
 }
 
-float OkhsvTransform::getSaturationGain() const
+double OkhsvTransform::getSaturationGain() const
 {
 	return _saturationGain;
 }
 
-void OkhsvTransform::setSaturationGain(float saturationGain)
+void OkhsvTransform::setSaturationGain(double saturationGain)
 {
 	_saturationGain = saturationGain;
 	updateIsIdentity();
 }
 
-float OkhsvTransform::getValueGain() const
+double OkhsvTransform::getValueGain() const
 {
 	return _valueGain;
 }
 
-void OkhsvTransform::setValueGain(float valueGain)
+void OkhsvTransform::setValueGain(double valueGain)
 {
 	_valueGain = valueGain;
 	updateIsIdentity();
@@ -50,14 +50,14 @@ bool OkhsvTransform::isIdentity() const
 	return _isIdentity;
 }
 
-void OkhsvTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue)
+void OkhsvTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue) const
 {
-	float hue
-		, saturation
-		, value;
+    double hue;
+    double saturation;
+    double value;
 	ColorSys::rgb2okhsv(red, green, blue, hue, saturation, value);
 
-	saturation = clamp(saturation * _saturationGain);
+    saturation = clamp(saturation * _saturationGain);
 	value      = clamp(value      * _valueGain);
 
 	ColorSys::okhsv2rgb(hue, saturation, value, red, green, blue);
@@ -65,5 +65,5 @@ void OkhsvTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue)
 
 void OkhsvTransform::updateIsIdentity()
 {
-	_isIdentity = _saturationGain == 1.f && _valueGain == 1.5;
+    _isIdentity = _saturationGain == 1.0 && _valueGain == 1.5;
 }

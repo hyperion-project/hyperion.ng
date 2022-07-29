@@ -1,4 +1,5 @@
-#pragma once
+#ifndef COLORADJUSTMENT_H
+#define COLORADJUSTMENT_H
 
 // STL includes
 #include <QString>
@@ -34,3 +35,5 @@ public:
 	RgbTransform _rgbTransform;
 	OkhsvTransform _okhsvTransform;
 };
+
+#endif // COLORADJUSTMENT_H

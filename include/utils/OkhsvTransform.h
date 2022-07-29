@@ -1,4 +1,5 @@
-#pragma once
+#ifndef OKHSVTRANSFORM_H
+#define OKHSVTRANSFORM_H
 
 #include <cstdint>
 
@@ -19,19 +20,19 @@ public:
 	/// @param saturationGain gain factor to apply to saturation
 	/// @param valueGain gain factor to apply to value/brightness
 	///
-	OkhsvTransform(float saturationGain, float valueGain);
+    OkhsvTransform(double saturationGain, double valueGain);
 
 	/// @return The current saturation gain value
-	float getSaturationGain() const;
+    double getSaturationGain() const;
 
 	/// @param saturationGain new saturation gain
-	void setSaturationGain(float saturationGain);
+    void setSaturationGain(double saturationGain);
 
 	/// @return The current value gain value
-	float getValueGain() const;
+    double getValueGain() const;
 
 	/// @param valueGain new value/brightness gain
-	void setValueGain(float valueGain);
+    void setValueGain(double valueGain);
 
 	/// @return true if the current gain settings result in an identity transformation
 	bool isIdentity() const;
@@ -45,16 +46,18 @@ public:
 	///
 	/// @note The values are updated in place.
 	///
-	void transform(uint8_t & red, uint8_t & green, uint8_t & blue);
+	void transform(uint8_t & red, uint8_t & green, uint8_t & blue) const;
 
 private:
 	/// Sets _isIdentity to true if both gain values are at their neutral setting
 	void updateIsIdentity();
 
-	/// Gain settings
-	float _saturationGain
-		, _valueGain;
+    /// Gain settings
+    double _saturationGain;
+    double _valueGain;
 
 	/// Is true if the gain settings result in an identity transformation
 	bool _isIdentity;
 };
+
+#endif // OKHSVTRANSFORM_H
