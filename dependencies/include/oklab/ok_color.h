@@ -245,26 +245,26 @@ double find_gamut_intersection(double a, double b, double L1, double C1, double 
                 double mdt2 = 6 * m_dt * m_dt * m_;
                 double sdt2 = 6 * s_dt * s_dt * s_;
 
-                double r = 4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s - 1;
+                double r0 = 4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s - 1;
                 double r1 = 4.0767416621 * ldt - 3.3077115913 * mdt + 0.2309699292 * sdt;
                 double r2 = 4.0767416621 * ldt2 - 3.3077115913 * mdt2 + 0.2309699292 * sdt2;
 
-                double u_r = r1 / (r1 * r1 - 0.5 * r * r2);
-                double t_r = -r * u_r;
+                double u_r = r1 / (r1 * r1 - 0.5 * r0 * r2);
+                double t_r = -r0 * u_r;
 
-                double g = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s - 1;
+                double g0 = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s - 1;
                 double g1 = -1.2684380046 * ldt + 2.6097574011 * mdt - 0.3413193965 * sdt;
                 double g2 = -1.2684380046 * ldt2 + 2.6097574011 * mdt2 - 0.3413193965 * sdt2;
 
-                double u_g = g1 / (g1 * g1 - 0.5 * g * g2);
-                double t_g = -g * u_g;
+                double u_g = g1 / (g1 * g1 - 0.5 * g0 * g2);
+                double t_g = -g0 * u_g;
 
-                double b = -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s - 1;
+                double b0 = -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s - 1;
                 double b1 = -0.0041960863 * ldt - 0.7034186147 * mdt + 1.7076147010 * sdt;
                 double b2 = -0.0041960863 * ldt2 - 0.7034186147 * mdt2 + 1.7076147010 * sdt2;
 
-                double u_b = b1 / (b1 * b1 - 0.5 * b * b2);
-                double t_b = -b * u_b;
+                double u_b = b1 / (b1 * b1 - 0.5 * b0 * b2);
+                double t_b = -b0 * u_b;
 
                 t_r = u_r >= 0.0 ? t_r : DBL_MAX;
                 t_g = u_g >= 0.0 ? t_g : DBL_MAX;
