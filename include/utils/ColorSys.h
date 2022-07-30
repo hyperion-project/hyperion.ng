@@ -90,7 +90,7 @@ public:
 	///
 	/// @note See https://bottosson.github.io/posts/colorpicker/#okhsv
 	///
-    static void rgb2okhsv(uint8_t red, uint8_t green, uint8_t blue, double & hue, double & saturation, double & value);
+	static void rgb2okhsv(uint8_t red, uint8_t green, uint8_t blue, double & hue, double & saturation, double & value);
 
 	///
 	/// Translates an Okhsv (hue, saturation, value) color to an RGB (red, green, blue) color
@@ -104,7 +104,7 @@ public:
 	///
 	/// @note See https://bottosson.github.io/posts/colorpicker/#okhsv
 	///
-    static void okhsv2rgb(double hue, double saturation, double value, uint8_t & red, uint8_t & green, uint8_t & blue);
+	static void okhsv2rgb(double hue, double saturation, double value, uint8_t & red, uint8_t & green, uint8_t & blue);
 };
 
 #endif // COLORSYS_H

@@ -86,7 +86,7 @@ namespace hyperion {
 		const double saturationGain = colorConfig["saturationGain"].toDouble(1.0);
 		const double valueGain = colorConfig["valueGain"].toDouble(1.0);
 
-        return OkhsvTransform(saturationGain, valueGain);
+		return OkhsvTransform(saturationGain, valueGain);
 	}
 
 	RgbChannelAdjustment createRgbChannelAdjustment(const QJsonObject& colorConfig, const QString& channelName, int defaultR, int defaultG, int defaultB)

@@ -20,19 +20,19 @@ public:
 	/// @param saturationGain gain factor to apply to saturation
 	/// @param valueGain gain factor to apply to value/brightness
 	///
-    OkhsvTransform(double saturationGain, double valueGain);
+	OkhsvTransform(double saturationGain, double valueGain);
 
 	/// @return The current saturation gain value
-    double getSaturationGain() const;
+	double getSaturationGain() const;
 
 	/// @param saturationGain new saturation gain
-    void setSaturationGain(double saturationGain);
+	void setSaturationGain(double saturationGain);
 
 	/// @return The current value gain value
-    double getValueGain() const;
+	double getValueGain() const;
 
 	/// @param valueGain new value/brightness gain
-    void setValueGain(double valueGain);
+	void setValueGain(double valueGain);
 
 	/// @return true if the current gain settings result in an identity transformation
 	bool isIdentity() const;
@@ -52,9 +52,9 @@ private:
 	/// Sets _isIdentity to true if both gain values are at their neutral setting
 	void updateIsIdentity();
 
-    /// Gain settings
-    double _saturationGain;
-    double _valueGain;
+	/// Gain settings
+	double _saturationGain;
+	double _valueGain;
 
 	/// Is true if the gain settings result in an identity transformation
 	bool _isIdentity;

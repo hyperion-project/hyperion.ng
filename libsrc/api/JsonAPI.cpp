@@ -704,7 +704,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 		transform["id"] = transformId;
 		transform["saturationGain"] = 1.0;
 		transform["valueGain"] = 1.0;
-        transform["saturationLGain"] = 1.0;
+		transform["saturationLGain"] = 1.0;
 		transform["luminanceGain"] = 1.0;
 		transform["luminanceMinimum"] = 0.0;
 
