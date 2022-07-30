@@ -56,18 +56,17 @@ $(document).ready(function () {
         });
       }
       else {
-        if (sColor[key].key == "brightness" || 
-            sColor[key].key == "brightnessCompensation" || 
-            sColor[key].key == "backlightThreshold" || 
-            sColor[key].key == "saturationGain"|| 
-            sColor[key].key == "valueGain" ) {
-          property = '<div class="input-group"><input id="cr_' + sColor[key].key + '" type="number" class="form-control" min="' + sColor[key].minimum + '" max="' + sColor[key].maximum + '" step="'  + sColor[key].step + '" value="' + value + '"/>';
-          if ( sColor[key].append === "edt_append_percent" ) {
-            property = '<div class="input-group"><input id="cr_' + sColor[key].key + '" type="number" class="form-control" min="' + sColor[key].minimum + '" max="' + sColor[key].maximum + '" step="'  + sColor[key].step + '" value="' + value + '"/><span class="input-group-addon">' + $.i18n("edt_append_percent") + '</span></div>';          
-          } else {
-              property = '<input id="cr_' + sColor[key].key + '" type="number" class="form-control" min="' + sColor[key].minimum + '" max="' + sColor[key].maximum + '" step="'  + sColor[key].step + '" value="' + value + '"/>';
+        if (sColor[key].key == "brightness" ||
+          sColor[key].key == "brightnessCompensation" ||
+          sColor[key].key == "backlightThreshold" ||
+          sColor[key].key == "saturationGain" ||
+          sColor[key].key == "valueGain") {
+
+          property = '<input id="cr_' + sColor[key].key + '" type="number" class="form-control" min="' + sColor[key].minimum + '" max="' + sColor[key].maximum + '" step="' + sColor[key].step + '" value="' + value + '"/>';
+          if (sColor[key].append === "edt_append_percent") {
+            property = '<div class="input-group">' + property + '<span class="input-group-addon">' + $.i18n("edt_append_percent") + '</span></div>';
           }
-        } 
+        }
         else {
           property = '<input id="cr_' + sColor[key].key + '" type="number" class="form-control" min="0.1" max="4.0" step="0.1" value="' + value + '"/>';
         }
@@ -145,7 +144,7 @@ $(document).ready(function () {
           owner = $.i18n('remote_color_label_color') + '  ' + '<div style="width:18px; height:18px; border-radius:20px; margin-bottom:-4px; border:1px grey solid; background-color: rgb(' + value + '); display:inline-block" title="RGB: (' + value + ')"></div>';
           break;
         case "IMAGE":
-          owner = $.i18n('remote_effects_label_picture') + (owner !== undefined ? ('  ' + owner): "");
+          owner = $.i18n('remote_effects_label_picture') + (owner !== undefined ? ('  ' + owner) : "");
           break;
         case "GRABBER":
           owner = $.i18n('general_comp_GRABBER') + ': (' + owner + ')';
@@ -164,8 +163,7 @@ $(document).ready(function () {
           break;
       }
 
-      if (!(duration && duration < 0))
-      {
+      if (!(duration && duration < 0)) {
         if (duration && compId != "GRABBER" && compId != "FLATBUFSERVER" && compId != "PROTOSERVER")
           owner += '<br/><span style="font-size:80%; color:grey;">' + $.i18n('remote_input_duration') + ' ' + duration.toFixed(0) + $.i18n('edt_append_s') + '</span>';
 
@@ -397,7 +395,6 @@ $(document).ready(function () {
     $('#effect_row').hide();
   }
 
-
   // interval updates
 
   $(window.hyperion).on('components-updated', function (e, comp) {
@@ -426,3 +423,4 @@ $(document).ready(function () {
 
   removeOverlay();
 });
+
