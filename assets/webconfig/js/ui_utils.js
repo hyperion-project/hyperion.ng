@@ -171,7 +171,7 @@ function initLanguageSelection() {
 }
 
 function updateUiOnInstance(inst) {
-  $("#active_instance_friendly_name").text(window.serverInfo.instance[inst].friendly_name);
+  $("#active_instance_friendly_name").text(getInstanceNameByIndex(inst));
   if (window.serverInfo.instance.filter(entry => entry.running).length > 1) {
     $('#btn_hypinstanceswitch').toggle(true);
     $('#active_instance_dropdown').prop('disabled', false);

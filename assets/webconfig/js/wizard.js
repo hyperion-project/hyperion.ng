@@ -1126,15 +1126,19 @@ function beginWizardHue() {
       d.useEntertainmentAPI = false;
       d.hardwareLedCount = finalLightIds.length;
       d.verbose = false;
-      //smoothing off
-      sc.smoothing.enable = false;
+      if (window.serverConfig.device.type !== d.type) {
+        //smoothing off, if new device
+        sc.smoothing = { enable: false };
+      }
     }
 
     if (hueType == 'philipshueentertainment') {
       d.useEntertainmentAPI = true;
       d.hardwareLedCount = groupLights.length;
-      //smoothing on
-      sc.smoothing.enable = true;
+      if (window.serverConfig.device.type !== d.type) {
+        //smoothing on, if new device
+        sc.smoothing = { enable: true };
+      }
     }
 
     window.serverConfig.device = d;
@@ -1430,6 +1434,8 @@ function beginWizardYeelight() {
     window.serverConfig.leds = yeelightLedConfig;
 
     //LED device config
+    var currentDeviceType = window.serverConfig.device.type;
+
     //Start with a clean configuration
     var d = {};
 
@@ -1454,9 +1460,10 @@ function beginWizardYeelight() {
 
     window.serverConfig.device = d;
 
-    //smoothing off
-    if (!(window.serverConfig.smoothing == null))
-      window.serverConfig.smoothing.enable = false;
+    if (currentDeviceType !== d.type) {
+      //smoothing off, if new device
+      window.serverConfig.smoothing = { enable: false };
+    }
 
     requestWriteConfig(window.serverConfig, true);
     resetWizard();

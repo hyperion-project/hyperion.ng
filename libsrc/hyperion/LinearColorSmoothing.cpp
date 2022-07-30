@@ -113,10 +113,8 @@ void LinearColorSmoothing::handleSettingsUpdate(settings::type type, const QJson
 	if (type == settings::type::SMOOTHING)
 	{
 		QJsonObject obj = config.object();
-		if (enabled() != obj["enable"].toBool(true))
-		{
-			setEnable(obj["enable"].toBool(true));
-		}
+
+		setEnable(obj["enable"].toBool(_enabled));
 
 		SmoothingCfg cfg(false,
 						  static_cast<int64_t>(obj[SETTINGS_KEY_SETTLING_TIME].toInt(DEFAULT_SETTLINGTIME)),
