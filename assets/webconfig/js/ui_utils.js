@@ -1310,7 +1310,7 @@ function isValidIPv6(value) {
 
 function isValidHostname(value) {
   if (value.match(
-    '^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[_a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$'
+    '^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9])(.([a-zA-Z0-9]|[_a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]))*$'	//lgtm [js/redos]
   ))
     return true;
   else
@@ -1319,7 +1319,7 @@ function isValidHostname(value) {
 
 function isValidServicename(value) {
   if (value.match(
-    '^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9 \-]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[_a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9]))*$'
+    '^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9 -]{0,61}[a-zA-Z0-9])(.([a-zA-Z0-9]|[_a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]))*$'	//lgtm [js/redos]
   ))
     return true;
   else

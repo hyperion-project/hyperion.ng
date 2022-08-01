@@ -226,7 +226,7 @@ function pluralRuleParser(rule, number) {
 			return result;
 		}
 
-		result = parseFloat(number, 10);
+		result = parseFloat(number, 10); //lgtm [js/superfluous-trailing-arguments]
 		debug(' -- passed n ', result);
 
 		return result;

@@ -466,7 +466,7 @@ function startWizardCC() {
 
   $('#wiz_cc_kodiip').off().on('change', function () {
 
-    kodiAddress = $(this).val().trim();
+    kodiAddress = encodeURIComponent($(this).val().trim());
 
     $('#kodi_status').html('');
     if (kodiAddress !== "") {
