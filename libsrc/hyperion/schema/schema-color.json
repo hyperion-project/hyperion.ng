@@ -164,7 +164,7 @@
 						"title" : "edt_conf_color_saturationGain_title",
 						"required" : true,
 						"minimum" : 0.0,
-						"maximum": 100.0,
+						"maximum": 10.0,
 						"default" : 1.0,
 						"step" : 0.1,
 						"propertyOrder" : 11
@@ -216,7 +216,7 @@
 						"title" : "edt_conf_color_valueGain_title",
 						"required" : true,
 						"minimum" : 0.1,
-						"maximum": 100.0,
+						"maximum": 10.0,
 						"default" : 1.0,
 						"step" : 0.1,
 						"propertyOrder" : 16
