@@ -50,7 +50,7 @@ jobs:
       # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
         if: startsWith(github.event.ref, 'refs/tags')
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: deploy/Hyperion-*
 
@@ -81,7 +81,7 @@ jobs:
       # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
         if: startsWith(github.event.ref, 'refs/tags')
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: build/Hyperion-*
 
@@ -146,7 +146,7 @@ jobs:
       # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
         if: startsWith(github.event.ref, 'refs/tags')
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: build/Hyperion-*
           retention-days: 1

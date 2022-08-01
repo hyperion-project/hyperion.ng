@@ -73,7 +73,7 @@ jobs:
 
       - name: Upload package artifact
         if: startsWith(github.event.ref, 'refs/tags')
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: deploy
           retention-days: 1
