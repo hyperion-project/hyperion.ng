@@ -617,13 +617,18 @@ void Hyperion::handleVisibleComponentChanged(hyperion::Components comp)
 }
 
 void Hyperion::handleSourceAvailability(int priority)
-{	int previousPriority = _muxer->getPreviousPriority();
+{
+	int previousPriority = _muxer->getPreviousPriority();
 
 	if ( priority == PriorityMuxer::LOWEST_PRIORITY)
 	{
-		Debug(_log,"No source left -> Pause output processing and switch LED-Device off");
-		emit _ledDeviceWrapper->switchOff();
-		emit _deviceSmooth->setPause(true);
+		// Keep LED-device on, as background effect will kick-in shortly
+		if (!_BGEffectHandler->_isEnabled())
+		{
+			Debug(_log,"No source left -> Pause output processing and switch LED-Device off");
+			emit _ledDeviceWrapper->switchOff();
+			emit _deviceSmooth->setPause(true);
+		}
 	}
 	else
 	{

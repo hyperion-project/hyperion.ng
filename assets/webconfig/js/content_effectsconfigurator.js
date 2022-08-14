@@ -182,8 +182,9 @@ $(document).ready(function () {
 
   // Disable or enable Delete Effect Button
   $('#effectsdellist').off().on('change', function () {
-    $(this).val() == null ? $('#btn_edit, #btn_delete').prop('disabled', true) : "";
-    $(this).val().startsWith("int_") ? $('#btn_delete').prop('disabled', true) : $('#btn_delete').prop('disabled', false);
+    var value = $(this).val();
+    value == null ? $('#btn_edit, #btn_delete').prop('disabled', true) : "";
+    value.startsWith("int_") ? $('#btn_delete').prop('disabled', true) : $('#btn_delete').prop('disabled', false);
   });
 
   // Load Effect

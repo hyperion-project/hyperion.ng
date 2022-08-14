@@ -272,7 +272,7 @@ $(document).ready(function () {
 
   function updateForwarderServiceSections(type) {
 
-    var editorPath = "root.forwarder." + type
+    var editorPath = "root.forwarder." + type;
     var selectedServices = conf_editor_forw.getEditor(editorPath + "select").getValue();
 
     if (jQuery.isEmptyObject(selectedServices) || selectedServices[0] === "NONE") {
@@ -301,7 +301,7 @@ $(document).ready(function () {
 
   function updateForwarderSelectList(type) {
 
-    var selectionElement = type + "select"
+    var selectionElement = type + "select";
 
     var enumVals = [];
     var enumTitelVals = [];
