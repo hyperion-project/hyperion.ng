@@ -12,14 +12,14 @@ double clamp(double value)
 OkhsvTransform::OkhsvTransform()
 {
 	_saturationGain = 1.0;
-	_valueGain = 1.0;
+	_brightnessGain = 1.0;
 	_isIdentity = true;
 }
 
-OkhsvTransform::OkhsvTransform(double saturationGain, double valueGain)
+OkhsvTransform::OkhsvTransform(double saturationGain, double brightnessGain)
 {
 	_saturationGain = saturationGain;
-	_valueGain = valueGain;
+	_brightnessGain = brightnessGain;
 	updateIsIdentity();
 }
 
@@ -34,14 +34,14 @@ void OkhsvTransform::setSaturationGain(double saturationGain)
 	updateIsIdentity();
 }
 
-double OkhsvTransform::getValueGain() const
+double OkhsvTransform::getBrightnessGain() const
 {
-	return _valueGain;
+	return _brightnessGain;
 }
 
-void OkhsvTransform::setValueGain(double valueGain)
+void OkhsvTransform::setBrightnessGain(double brightnessGain)
 {
-	_valueGain = valueGain;
+	_brightnessGain= brightnessGain;
 	updateIsIdentity();
 }
 
@@ -54,16 +54,16 @@ void OkhsvTransform::transform(uint8_t & red, uint8_t & green, uint8_t & blue) c
 {
 	double hue;
 	double saturation;
-	double value;
-	ColorSys::rgb2okhsv(red, green, blue, hue, saturation, value);
+	double brightness;
+	ColorSys::rgb2okhsv(red, green, blue, hue, saturation, brightness);
 
 	saturation = clamp(saturation * _saturationGain);
-	value      = clamp(value      * _valueGain);
+	brightness = clamp(brightness * _brightnessGain);
 
-	ColorSys::okhsv2rgb(hue, saturation, value, red, green, blue);
+	ColorSys::okhsv2rgb(hue, saturation, brightness, red, green, blue);
 }
 
 void OkhsvTransform::updateIsIdentity()
 {
-	_isIdentity = _saturationGain == 1.0 && _valueGain == 1.0;
+	_isIdentity = _saturationGain == 1.0 && _brightnessGain == 1.0;
 }

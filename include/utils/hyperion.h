@@ -84,9 +84,9 @@ namespace hyperion {
 	OkhsvTransform createOkhsvTransform(const QJsonObject& colorConfig)
 	{
 		const double saturationGain = colorConfig["saturationGain"].toDouble(1.0);
-		const double valueGain = colorConfig["valueGain"].toDouble(1.0);
+		const double brightnessGain = colorConfig["brightnessGain"].toDouble(1.0);
 
-		return OkhsvTransform(saturationGain, valueGain);
+		return OkhsvTransform(saturationGain, brightnessGain);
 	}
 
 	RgbChannelAdjustment createRgbChannelAdjustment(const QJsonObject& colorConfig, const QString& channelName, int defaultR, int defaultG, int defaultB)

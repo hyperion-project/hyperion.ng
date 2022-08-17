@@ -141,7 +141,7 @@
 					"minimum" : 0.0,
 					"maximum": 10.0
 				},
-				"valueGain" : {
+				"brightnessGain" : {
 					"type" : "number",
 					"required" : false,
 					"minimum" : 0.1,

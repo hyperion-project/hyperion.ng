@@ -509,7 +509,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 		adjustment["gammaBlue"] = colorAdjustment->_rgbTransform.getGammaB();
 
 		adjustment["saturationGain"] = colorAdjustment->_okhsvTransform.getSaturationGain();
-		adjustment["valueGain"] = colorAdjustment->_okhsvTransform.getValueGain();
+		adjustment["brightnessGain"] = colorAdjustment->_okhsvTransform.getBrightnessGain();
 
 		adjustmentArray.append(adjustment);
 	}
@@ -703,7 +703,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 
 		transform["id"] = transformId;
 		transform["saturationGain"] = 1.0;
-		transform["valueGain"] = 1.0;
+		transform["brightnessGain"] = 1.0;
 		transform["saturationLGain"] = 1.0;
 		transform["luminanceGain"] = 1.0;
 		transform["luminanceMinimum"] = 0.0;
@@ -925,9 +925,9 @@ void JsonAPI::handleAdjustmentCommand(const QJsonObject &message, const QString 
         colorAdjustment->_okhsvTransform.setSaturationGain(adjustment["saturationGain"].toDouble());
     }
 
-    if (adjustment.contains("valueGain"))
+	if (adjustment.contains("brightnessGain"))
     {
-        colorAdjustment->_okhsvTransform.setValueGain(adjustment["valueGain"].toDouble());
+		colorAdjustment->_okhsvTransform.setBrightnessGain(adjustment["brightnessGain"].toDouble());
     }
 
 	// commit the changes

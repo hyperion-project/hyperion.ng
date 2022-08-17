@@ -210,10 +210,10 @@
 						"append" : "edt_append_percent",
 						"propertyOrder" : 15
 					},
-					"valueGain" :
+					"brightnessGain" :
 					{
 						"type" : "number",
-						"title" : "edt_conf_color_valueGain_title",
+						"title" : "edt_conf_color_brightnessGain_title",
 						"required" : true,
 						"minimum" : 0.1,
 						"maximum": 10.0,

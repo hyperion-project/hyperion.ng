@@ -60,7 +60,7 @@ $(document).ready(function () {
           sColor[key].key == "brightnessCompensation" ||
           sColor[key].key == "backlightThreshold" ||
           sColor[key].key == "saturationGain" ||
-          sColor[key].key == "valueGain") {
+          sColor[key].key == "brightnessGain") {
 
           property = '<input id="cr_' + sColor[key].key + '" type="number" class="form-control" min="' + sColor[key].minimum + '" max="' + sColor[key].maximum + '" step="' + sColor[key].step + '" value="' + value + '"/>';
           if (sColor[key].append === "edt_append_percent") {
