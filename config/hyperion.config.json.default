@@ -46,7 +46,9 @@
 				"backlightThreshold"  : 0,
 				"backlightColored"  : false,
 				"brightness" : 100,
-				"brightnessCompensation" : 100
+				"brightnessCompensation" : 100,
+				"saturationGain" : 1.0,
+				"brightnessGain" : 1.0
 			}
 		]
 	},

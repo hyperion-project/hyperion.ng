@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added saturation gain and brightness/value gain as new color processing settings
+
 ### Changed
 
 ### Fixed
@@ -22,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow to build a "light" version of Hyperion, i.e. no grabbers, or services like flat-/proto buffers, boblight, CEC
 - Allow to restart Hyperion via Systray
 - mDNS support for all platforms inkl. Windows (#740)
-- Forwarder: mDNS discovery support and ease of configuration of other Hyperion instances 
+- Forwarder: mDNS discovery support and ease of configuration of other Hyperion instances
 - Grabber: mDNS discovery for standalone grabbers
 - Grabber: Dynamic loading of the Dispmanx Grabber (#1418)
 - Flatbuffer/Protobuf are now able to receive RGBA data
@@ -30,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New language: Japanese
 
 ##### LED-Devices
-- Support retry attempts enabling devices, e.g. to open devices after network or a device itself got available (#1302). Fixes that devices got "stuck", if initial open failed e.g. for WLED, Hue 
+- Support retry attempts enabling devices, e.g. to open devices after network or a device itself got available (#1302). Fixes that devices got "stuck", if initial open failed e.g. for WLED, Hue
 - New UDP-DDP (Distributed Display Protocol) device to overcome the 490 LEDs limitation of UDP-RAW
 - mDNS discovery support and ease of configuration (Cololight, Nanoleaf, Philips-Hue, WLED, Yeelight); removes the need to configure IP-Address, as address is resolved automatically.
 - Allow to disable switching LEDs on during startup (#1390)
@@ -116,7 +118,7 @@ Note: Existing configurations are migrated to new structures automatically
 - Fixed hyperion-remote when sending multiple Hex-Colors with "Set Color" option
 - UI: Fixed "Selected Hyperion instance isn't running" issue (#1357)
 - Fixed Database migration version handling
-- Fixed Python ModuleNotFoundError (#1109) 
+- Fixed Python ModuleNotFoundError (#1109)
 
 ### Technical
 
@@ -135,7 +137,7 @@ We did not weaken security, but provide you with an easy to use script to switch
 ### Added:
 - Script to change the user Hyperion is executed with.
 To run Hyperion with root privileges (e.g. for WS281x) execute <br> `sudo updateHyperionUser -u root`
-- Gif effects can source Gifs via URLs in addition to local files as input 
+- Gif effects can source Gifs via URLs in addition to local files as input
 
 - System info screen: Added used config path and "is run under root/admin"
 - LED-Device enhancements
@@ -167,7 +169,7 @@ To run Hyperion with root privileges (e.g. for WS281x) execute <br> `sudo update
 - Escape XSS payload to avoid execution (#1292)
 - Include libqt5sql5-sqlite packaging dependency
 - Fixed embedded Python location (#1109)
- 
+
 - LED-Devices
   - Fixed Philips Hue wizard (#1276)
   - Fixed AtmoOrb wizard
@@ -193,12 +195,12 @@ The refined color coding in the user-interfaces, helps you to quickly identify i
 
 Of course, the release brings new features (e.g. USB Capture on Windows), as well as minor enhancements and a good number of fixes.
 
-Note: 
+Note:
 
 - **IMPORTANT:** Due to the rework of the grabbers, both screen- and video grabbers are disabled after the upgrade to the new version.
 Please, re-enable the grabber of choice via the UI, validate the configuration and save the setup. The grabber should the restart.
 
-- Hyperion packages can now be installed under Ubuntu (x64) and Debian (amd64/armhf) (incl. Raspberry Pi OS) via our own APT server. 
+- Hyperion packages can now be installed under Ubuntu (x64) and Debian (amd64/armhf) (incl. Raspberry Pi OS) via our own APT server.
 Details about the installation can be found in the [installation.md](https://github.com/hyperion-project/hyperion.ng/blob/master/Installation.md) and at [apt.hyperion-project.org](apt.hyperion-project.org).
 - Find here more details on [supported platforms and configuration sets](https://github.com/hyperion-project/hyperion.ng/blob/master/doc/development/SupportedPlatforms.md)
 

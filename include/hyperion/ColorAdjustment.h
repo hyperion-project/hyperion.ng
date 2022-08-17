@@ -1,4 +1,5 @@
-#pragma once
+#ifndef COLORADJUSTMENT_H
+#define COLORADJUSTMENT_H
 
 // STL includes
 #include <QString>
@@ -6,6 +7,7 @@
 // Utils includes
 #include <utils/RgbChannelAdjustment.h>
 #include <utils/RgbTransform.h>
+#include <utils/OkhsvTransform.h>
 
 class ColorAdjustment
 {
@@ -31,4 +33,7 @@ public:
 	RgbChannelAdjustment _rgbYellowAdjustment;
 
 	RgbTransform _rgbTransform;
+	OkhsvTransform _okhsvTransform;
 };
+
+#endif // COLORADJUSTMENT_H

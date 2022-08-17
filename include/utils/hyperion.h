@@ -81,6 +81,14 @@ namespace hyperion {
 		return RgbTransform(gammaR, gammaG, gammaB, backlightThreshold, backlightColored, static_cast<uint8_t>(brightness), static_cast<uint8_t>(brightnessComp));
 	}
 
+	OkhsvTransform createOkhsvTransform(const QJsonObject& colorConfig)
+	{
+		const double saturationGain = colorConfig["saturationGain"].toDouble(1.0);
+		const double brightnessGain = colorConfig["brightnessGain"].toDouble(1.0);
+
+		return OkhsvTransform(saturationGain, brightnessGain);
+	}
+
 	RgbChannelAdjustment createRgbChannelAdjustment(const QJsonObject& colorConfig, const QString& channelName, int defaultR, int defaultG, int defaultB)
 	{
 		const QJsonArray& channelConfig  = colorConfig[channelName].toArray();
@@ -107,6 +115,7 @@ namespace hyperion {
 		adjustment->_rgbMagentaAdjustment = createRgbChannelAdjustment(adjustmentConfig, "magenta", 255,  0,255);
 		adjustment->_rgbYellowAdjustment  = createRgbChannelAdjustment(adjustmentConfig, "yellow" , 255,255,  0);
 		adjustment->_rgbTransform         = createRgbTransform(adjustmentConfig);
+		adjustment->_okhsvTransform       = createOkhsvTransform(adjustmentConfig);
 
 		return adjustment;
 	}
