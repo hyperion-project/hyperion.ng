@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- V4L2-Grabber: Fixed a SEGFAULT in init() when compiled on Ubuntu Server 22.04
+
 ## Removed
 
 ## [2.0.13](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.13) - 2022-05-22
