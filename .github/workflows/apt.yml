@@ -120,7 +120,7 @@ jobs:
           done
 
       - name: Upload packages to APT server (DRAFT)
-        uses: SamKirkland/FTP-Deploy-Action@4.3.0
+        uses: SamKirkland/FTP-Deploy-Action@4.3.1
         with:
           server: apt.hyperion-project.org
           username: ${{ secrets.APT_USER }}

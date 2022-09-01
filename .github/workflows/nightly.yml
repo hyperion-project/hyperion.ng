@@ -167,7 +167,7 @@ jobs:
           done
 
       - name: Upload packages to nightly server
-        uses: SamKirkland/FTP-Deploy-Action@4.3.0
+        uses: SamKirkland/FTP-Deploy-Action@4.3.1
         with:
           server: nightly.apt.hyperion-project.org
           username: ${{ secrets.NIGHTLY_USER }}
