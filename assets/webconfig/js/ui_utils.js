@@ -889,7 +889,11 @@ function createTableRow(list, head, align) {
     if (align)
       el.style.verticalAlign = "middle";
 
-    el.innerHTML = list[i];
+    var purifyConfig = {
+            ADD_TAGS: ['button'],
+            ADD_ATTR: ['onclick']
+    };
+    el.innerHTML = DOMPurify.sanitize(list[i], purifyConfig);
     row.appendChild(el);
   }
   return row;
