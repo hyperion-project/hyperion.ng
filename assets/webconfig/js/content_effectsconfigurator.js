@@ -183,7 +183,7 @@ $(document).ready(function () {
   // Disable or enable Delete Effect Button
   $('#effectsdellist').off().on('change', function () {
     var value = $(this).val();
-    value == null ? $('#btn_edit, #btn_delete').prop('disabled', true) : "";
+    value == null ? $('#btn_edit).prop('disabled', true) : $('#btn_edit').prop('disabled', false);
     value.startsWith("int_") ? $('#btn_delete').prop('disabled', true) : $('#btn_delete').prop('disabled', false);
   });
 
