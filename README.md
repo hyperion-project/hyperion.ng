@@ -1,5 +1,8 @@
-![Hyperion](doc/logo_dark.png#gh-dark-mode-only)
-![Hyperion](doc/logo_light.png#gh-light-mode-only)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="doc/logo_dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="doc/logo_light.png">
+  <img alt="Hyperion" src="doc/logo_light.png">
+</picture>
 
 [![Latest-Release](https://img.shields.io/github/v/release/hyperion-project/hyperion.ng?include_prereleases&label=Latest%20Release&logo=github&logoColor=white&color=0f83e7)](https://github.com/hyperion-project/hyperion.ng/releases)
 [![GitHub Actions](https://github.com/hyperion-project/hyperion.ng/workflows/Hyperion%20CI%20Build/badge.svg?branch=master)](https://github.com/hyperion-project/hyperion.ng/actions)
