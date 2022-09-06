@@ -4,6 +4,8 @@ name: Nightly build
 on:
  schedule:
    - cron: '0 0 * * *'
+ repository_dispatch:
+   types: [hyperion_nightly_push]   
 
 jobs:
   update:
@@ -92,11 +94,9 @@ jobs:
           echo VERSION=${VERSION} >> $GITHUB_ENV
           if [[ $VERSION == *"-"* ]]; then
             echo STANDARDS_VERSION=$(echo ${VERSION%-*}) >> $GITHUB_ENV
-            echo TARBALL_VERSION=$(echo ${VERSION%-*}) >> $GITHUB_ENV
             echo DEBIAN_FORMAT='3.0 (quilt)' >> $GITHUB_ENV
           else
             echo STANDARDS_VERSION=$(echo ${VERSION%+*}) >> $GITHUB_ENV
-            echo TARBALL_VERSION=${VERSION}~$(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
             echo DEBIAN_FORMAT='3.0 (native)' >> $GITHUB_ENV
           fi
           echo DISTRIBUTION=$(echo ${{ matrix.distribution }} | tr '[:upper:]' '[:lower:]') >> $GITHUB_ENV
@@ -115,9 +115,8 @@ jobs:
             cp -fr LICENSE debian/copyright && \
             sed 's/@BUILD_DEPENDS@/${{ matrix.build-depends }}/g; s/@DEPENDS@/${{ matrix.package-depends }}/g; s/@ARCHITECTURE@/${{ matrix.architecture }}/g; s/@STANDARDS_VERSION@/${{ env.STANDARDS_VERSION }}/g' debian/control.in > debian/control && \
             sed 's/@CMAKE_ENVIRONMENT@/${{ matrix.cmake-environment }}/g' debian/rules.in > debian/rules && \
-            tar -cJf ../hyperion_${{ env.TARBALL_VERSION }}.orig.tar.xz . && \
             debuild --no-lintian -uc -us && \
-            cp ../hyperion_* /deploy"
+            cp ../hyperion_*.deb /deploy"
 
       - name: Upload package artifact
         uses: actions/upload-artifact@v3

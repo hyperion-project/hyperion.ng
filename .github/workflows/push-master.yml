@@ -192,7 +192,8 @@ jobs:
 ##########################
 
   apt_build:
-    name: APT Build
+    name: APT Build GitHub Releases
+    if: startsWith(github.event.ref, 'refs/tags')
     needs: [Linux, macOS, windows]
     uses: ./.github/workflows/apt.yml
     secrets:
