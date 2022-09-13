@@ -20,7 +20,7 @@ $(document).ready(function () {
   }, true, true);
 
   conf_editor.on('change', function () {
-    conf_editor.validate().length || window.readOnlyMode ? $('#btn_submit').attr('disabled', true) : $('#btn_submit').attr('disabled', false);
+    conf_editor.validate().length || window.readOnlyMode ? $('#btn_submit').prop('disabled', true) : $('#btn_submit').prop('disabled', false);
   });
 
   $('#btn_submit').off().on('click', function () {
@@ -92,7 +92,7 @@ $(document).ready(function () {
     );
 
     $(`#btn_scroll`).bootstrapToggle();
-    $(`#btn_scroll`).change(e => {
+    $(`#btn_scroll`).on("change", e => {
       if (e.currentTarget.checked) {
         //Scroll to end of log
         isScroll = true;
@@ -137,7 +137,7 @@ $(document).ready(function () {
 
         var date = new Date(parseInt(utime));
         var subComponent = "";
-        if (window.serverInfo.instance.length > 1) {
+        if (window.serverInfo.instance.length >= 1) {
           if (logger_subname.startsWith("I")) {
             var instanceNum = logger_subname.substring(1);
             if (window.serverInfo.instance[instanceNum]) {
@@ -190,6 +190,20 @@ $(document).ready(function () {
       location.reload();
     }
 
+  });
+
+  // toggle fullscreen button in log output
+  $(".fullscreen-btn").mousedown(function(e) {
+    e.preventDefault();
+  });
+
+  $(".fullscreen-btn").click(function(e) {
+    e.preventDefault();
+    $(this).children('i')
+      .toggleClass('fa-expand')
+      .toggleClass('fa-compress');
+    $('#conf_cont').toggle();
+    $('#logmessages').css('max-height', $('#logmessages').css('max-height') !== 'none' ? 'none' : '400px' );
   });
 
   removeOverlay();

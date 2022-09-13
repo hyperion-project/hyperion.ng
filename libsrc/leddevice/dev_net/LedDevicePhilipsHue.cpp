@@ -1,10 +1,17 @@
 // Local-Hyperion includes
 #include "LedDevicePhilipsHue.h"
 
+#include <chrono>
+
 #include <ssdp/SSDPDiscover.h>
 #include <utils/QStringUtils.h>
 
-#include <chrono>
+// mDNS discover
+#ifdef ENABLE_MDNS
+#include <mdns/MdnsBrowser.h>
+#include <mdns/MdnsServiceRegister.h>
+#endif
+#include <utils/NetUtils.h>
 
 // Constants
 namespace {
@@ -26,13 +33,6 @@ const char CONFIG_USE_HUE_ENTERTAINMENT_API[] = "useEntertainmentAPI";
 const char CONFIG_GROUPID[] = "groupId";
 
 const char CONFIG_VERBOSE[] = "verbose";
-const char CONFIG_BRIGHTNESS_MIN[] = "brightnessMin";
-const char CONFIG_BRIGHTNESS_MAX[] = "brightnessMax";
-const char CONFIG_BRIGHTNESS_THRESHOLD[] = "brightnessThreshold";
-
-const char CONFIG_SSL_HANDSHAKE_TIMEOUT_MIN[] = "sslHSTimeoutMin";
-const char CONFIG_SSL_HANDSHAKE_TIMEOUT_MAX[] = "sslHSTimeoutMax";
-const char CONFIG_SSL_READ_TIMEOUT[] = "sslReadTimeout";
 
 // Device Data elements
 const char DEV_DATA_BRIDGEID[] = "bridgeid";
@@ -44,7 +44,7 @@ const char DEV_DATA_APIVERSION[] = "apiversion";
 
 // Philips Hue OpenAPI URLs
 const int API_DEFAULT_PORT = -1; //Use default port per communication scheme
-const char API_BASE_PATH[] = "/api/%1/";
+const char API_BASE_PATH[] = "/api/%1";
 const char API_ROOT[] = "";
 const char API_STATE[] = "state";
 const char API_CONFIG[] = "config";
@@ -92,10 +92,12 @@ const char SSDP_FILTER_HEADER[] = "SERVER";
 const char API_SSL_SERVER_NAME[] = "Hue";
 const char API_SSL_SEED_CUSTOM[] = "dtls_client";
 const int API_SSL_SERVER_PORT = 2100;
-const int STREAM_CONNECTION_RETRYS = 5;
+const int STREAM_CONNECTION_RETRYS = 20;
 const int STREAM_SSL_HANDSHAKE_ATTEMPTS = 5;
-constexpr std::chrono::milliseconds STREAM_REWRITE_TIME{20};
 const int SSL_CIPHERSUITES[2] = { MBEDTLS_TLS_PSK_WITH_AES_128_GCM_SHA256, 0 };
+
+//Enable rewrites that Hue-Bridge does not close the connection ("After 10 seconds of no activity the connection is closed automatically, and status is set back to inactive.")
+constexpr std::chrono::milliseconds STREAM_REWRITE_TIME{5000};
 
 } //End of constants
 
@@ -109,18 +111,25 @@ bool operator != (const CiColor& p1, const CiColor& p2)
 	return !(p1 == p2);
 }
 
-CiColor CiColor::rgbToCiColor(double red, double green, double blue, const CiColorTriangle &colorSpace)
+CiColor CiColor::rgbToCiColor(double red, double green, double blue, const CiColorTriangle& colorSpace, bool candyGamma)
 {
 	double cx;
 	double cy;
 	double bri;
 
-	if( (red + green + blue) > 0)
+	if (red + green + blue > 0)
 	{
 		// Apply gamma correction.
-		double r = (red > 0.04045) ? pow((red + 0.055) / (1.0 + 0.055), 2.4) : (red / 12.92);
-		double g = (green > 0.04045) ? pow((green + 0.055) / (1.0 + 0.055), 2.4) : (green / 12.92);
-		double b = (blue > 0.04045) ? pow((blue + 0.055) / (1.0 + 0.055), 2.4) : (blue / 12.92);
+		double r = red;
+		double g = green;
+		double b = blue;
+
+		if (candyGamma)
+		{
+			r = (red > 0.04045) ? pow((red + 0.055) / (1.0 + 0.055), 2.4) : (red / 12.92);
+			g = (green > 0.04045) ? pow((green + 0.055) / (1.0 + 0.055), 2.4) : (green / 12.92);
+			b = (blue > 0.04045) ? pow((blue + 0.055) / (1.0 + 0.055), 2.4) : (blue / 12.92);
+		}
 
 		// Convert to XYZ space.
 		double X = r * 0.664511 + g * 0.154324 + b * 0.162028;
@@ -248,6 +257,10 @@ LedDevicePhilipsHueBridge::LedDevicePhilipsHueBridge(const QJsonObject &deviceCo
 	  , _api_patch(0)
 	  , _isHueEntertainmentReady(false)
 {
+#ifdef ENABLE_MDNS
+	QMetaObject::invokeMethod(&MdnsBrowser::getInstance(), "browseForServiceType",
+		Qt::QueuedConnection, Q_ARG(QByteArray, MdnsServiceRegister::getServiceType(_activeDeviceType)));
+#endif
 }
 
 LedDevicePhilipsHueBridge::~LedDevicePhilipsHueBridge()
@@ -258,80 +271,106 @@ LedDevicePhilipsHueBridge::~LedDevicePhilipsHueBridge()
 
 bool LedDevicePhilipsHueBridge::init(const QJsonObject &deviceConfig)
 {
-	_useHueEntertainmentAPI = deviceConfig[CONFIG_USE_HUE_ENTERTAINMENT_API].toBool(false);
-
-	// Overwrite non supported/required features
-	_devConfig["latchTime"] = 0;
-	if ( deviceConfig["rewriteTime"].toInt(0) > 0 )
-	{
-		InfoIf ( ( !_useHueEntertainmentAPI ), _log, "Device Philips Hue does not require rewrites. Refresh time is ignored." );
-		_devConfig["rewriteTime"] = 0;
-	}
-
 	DebugIf( verbose, _log, "deviceConfig: [%s]", QString(QJsonDocument(_devConfig).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 
 	bool isInitOK = false;
 
-	if ( LedDevice::init(deviceConfig) )
+	//Set hostname as per configuration and default port
+	_hostName = deviceConfig[CONFIG_HOST].toString();
+	_apiPort = deviceConfig[CONFIG_PORT].toInt();
+	_authToken = deviceConfig[CONFIG_USERNAME].toString();
+
+	Debug(_log, "Hostname/IP: %s", QSTRING_CSTR(_hostName) );
+
+	if( _useHueEntertainmentAPI )
 	{
+		setLatchTime( 0);
+		_devConfig["sslport"]        = API_SSL_SERVER_PORT;
+		_devConfig["servername"]     = API_SSL_SERVER_NAME;
+		_devConfig["psk"]            = _devConfig[ CONFIG_CLIENTKEY ].toString();
+		_devConfig["psk_identity"]   = _devConfig[ CONFIG_USERNAME ].toString();
+		_devConfig["seed_custom"]    = API_SSL_SEED_CUSTOM;
+		_devConfig["retry_left"]     = STREAM_CONNECTION_RETRYS;
+		_devConfig["hs_attempts"]    = STREAM_SSL_HANDSHAKE_ATTEMPTS;
+		_devConfig["hs_timeout_min"] = 600;
+		_devConfig["hs_timeout_max"] = 1000;
 
-		log( "DeviceType", "%s", QSTRING_CSTR( this->getActiveDeviceType() ) );
-		log( "LedCount", "%d", this->getLedCount() );
-		log( "ColorOrder", "%s", QSTRING_CSTR( this->getColorOrder() ) );
-		log( "RefreshTime", "%d", _refreshTimerInterval_ms );
-		log( "LatchTime", "%d", this->getLatchTime() );
-
-		//Set hostname as per configuration and_defaultHost default port
-		_hostname = deviceConfig[CONFIG_HOST].toString();
-
-		//If host not configured the init failed
-		if (_hostname.isEmpty())
-		{
-			this->setInError("No target hostname defined");
-			isInitOK = false;
-		}
-		else
-		{
-			log("Hostname", "%s", QSTRING_CSTR(_hostname));
-
-			int _apiPort = deviceConfig[CONFIG_PORT].toInt();
-			if (_apiPort == 0)
-			{
-				_apiPort = API_DEFAULT_PORT;
-			}
-			log("Port", "%d", _apiPort);
-
-			_username = deviceConfig[CONFIG_USERNAME].toString();
-
-			if (initRestAPI(_hostname, _apiPort, _username))
-			{
-				if (initMaps())
-				{
-					isInitOK = ProviderUdpSSL::init(_devConfig);
-				}
-			}
-		}
+		isInitOK = ProviderUdpSSL::init(_devConfig);
+	}
+	else
+	{
+		isInitOK = LedDevice::init(_devConfig); // NOLINT
 	}
 
 	return isInitOK;
 }
 
-bool LedDevicePhilipsHueBridge::initRestAPI(const QString &hostname, int port, const QString &token)
+bool LedDevicePhilipsHueBridge::openRestAPI()
 {
-	bool isInitOK = false;
+	bool isInitOK {true};
 
-	if ( _restApi == nullptr )
+	if (_restApi == nullptr)
 	{
-		_restApi = new ProviderRestApi(hostname, port);
+		_restApi = new ProviderRestApi(_address.toString(), _apiPort);
+		_restApi->setLogger(_log);
 
 		//Base-path is api-path + authentication token (here username)
-		_restApi->setBasePath( QString(API_BASE_PATH).arg(token) );
-
-		isInitOK = true;
+		_restApi->setBasePath(QString(API_BASE_PATH).arg(_authToken));
+	}
+	else
+	{
+		_restApi->setHost(_address.toString());
+		_restApi->setPort(_apiPort);
 	}
 
-
+	//Workaround until API v2 with https is supported
+	if (_apiPort == 0 || _apiPort == 443)
+	{
+		_apiPort = API_DEFAULT_PORT;
+		_restApi->setPort(_apiPort);
+	}
 	return isInitOK;
+}
+
+bool LedDevicePhilipsHueBridge::checkApiError(const QJsonDocument &response, bool supressError)
+{
+	bool apiError = false;
+	QString errorReason;
+
+	QString strJson(response.toJson(QJsonDocument::Compact));
+	DebugIf(verbose, _log, "Reply: [%s]", strJson.toUtf8().constData());
+
+	QVariantList rspList = response.toVariant().toList();
+	if ( !rspList.isEmpty() )
+	{
+		QVariantMap map = rspList.first().toMap();
+		if ( map.contains( API_ERROR ) )
+		{
+			// API call failed to execute an error message was returned
+			QString errorAddress = map.value(API_ERROR).toMap().value(API_ERROR_ADDRESS).toString();
+			QString errorDesc    = map.value(API_ERROR).toMap().value(API_ERROR_DESCRIPTION).toString();
+			QString errorType    = map.value(API_ERROR).toMap().value(API_ERROR_TYPE).toString();
+
+			log("Error Type", "%s", QSTRING_CSTR(errorType));
+			log("Error Address", "%s", QSTRING_CSTR(errorAddress));
+			log("Error Address Description", "%s", QSTRING_CSTR(errorDesc));
+
+			if( errorType != "901" )
+			{
+				errorReason = QString ("(%1) %2, Resource:%3").arg(errorType, errorDesc, errorAddress);
+				if (!supressError)
+				{
+					this->setInError(errorReason);
+				}
+				else
+				{
+					Warning(_log, "Suppresing error: %s", QSTRING_CSTR(errorReason));
+				}
+				apiError = true;
+			}
+		}
+	}
+	return apiError;
 }
 
 int LedDevicePhilipsHueBridge::open()
@@ -339,21 +378,30 @@ int LedDevicePhilipsHueBridge::open()
 	int retval = -1;
 	_isDeviceReady = false;
 
-	if( _useHueEntertainmentAPI )
+	if (NetUtils::resolveHostToAddress(_log, _hostName, _address, _apiPort))
 	{
-		// Open bridge for streaming
-		if ( ProviderUdpSSL::open() == 0 )
+		if ( openRestAPI() )
 		{
-			// Everything is OK, device is ready
-			_isDeviceReady = true;
-			retval = 0;
+			if (initMaps())
+			{
+				if ( _useHueEntertainmentAPI )
+				{
+					// Open bridge for streaming
+					if ( ProviderUdpSSL::open() == 0 )
+					{
+						// Everything is OK, device is ready
+						_isDeviceReady = true;
+						retval = 0;
+					}
+				}
+				else
+				{
+					// Everything is OK, device is ready
+					_isDeviceReady = true;
+					retval = 0;
+				}
+			}
 		}
-	}
-	else
-	{
-		// Everything is OK, device is ready
-		_isDeviceReady = true;
-		retval = 0;
 	}
 
 	return retval;
@@ -406,6 +454,11 @@ bool LedDevicePhilipsHueBridge::initMaps()
 	QJsonDocument doc = getAllBridgeInfos();
 
 	DebugIf( verbose, _log, "doc: [%s]", QString(QJsonDocument(doc).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+
+	if (doc.isEmpty())
+	{
+		setInError("Could not read the Hue Bridge details");
+	}
 
 	if ( this->isInError() )
 	{
@@ -510,17 +563,17 @@ void LedDevicePhilipsHueBridge::setGroupMap(const QJsonDocument &doc)
 	}
 }
 
-QMap<quint16,QJsonObject> LedDevicePhilipsHueBridge::getLightMap() const
+QMap<int,QJsonObject> LedDevicePhilipsHueBridge::getLightMap() const
 {
 	return _lightsMap;
 }
 
-QMap<quint16,QJsonObject> LedDevicePhilipsHueBridge::getGroupMap() const
+QMap<int,QJsonObject> LedDevicePhilipsHueBridge::getGroupMap() const
 {
 	return _groupsMap;
 }
 
-QString LedDevicePhilipsHueBridge::getGroupName(quint16 groupId) const
+QString LedDevicePhilipsHueBridge::getGroupName(int groupId) const
 {
 	QString groupName;
 	if( _groupsMap.contains( groupId ) )
@@ -535,7 +588,7 @@ QString LedDevicePhilipsHueBridge::getGroupName(quint16 groupId) const
 	return groupName;
 }
 
-QJsonArray LedDevicePhilipsHueBridge::getGroupLights(quint16 groupId) const
+QJsonArray LedDevicePhilipsHueBridge::getGroupLights(int groupId) const
 {
 	QJsonArray groupLights;
 	// search user groupid inside _groupsMap and create light if found
@@ -565,38 +618,28 @@ QJsonArray LedDevicePhilipsHueBridge::getGroupLights(quint16 groupId) const
 	return groupLights;
 }
 
-bool LedDevicePhilipsHueBridge::checkApiError(const QJsonDocument &response)
+QJsonDocument LedDevicePhilipsHueBridge::getLightState(int lightId)
 {
-	bool apiError = false;
-	QString errorReason;
+	DebugIf( verbose, _log, "GetLightState [%d]", lightId );
+	return get( QString("%1/%2").arg( API_LIGHTS ).arg( lightId ) );
+}
 
-	QString strJson(response.toJson(QJsonDocument::Compact));
-	DebugIf(verbose, _log, "Reply: [%s]", strJson.toUtf8().constData());
+void LedDevicePhilipsHueBridge::setLightState(int lightId, const QString &state)
+{
+	DebugIf( verbose, _log, "SetLightState [%d]: %s", lightId, QSTRING_CSTR(state) );
+	put( QString("%1/%2/%3").arg( API_LIGHTS ).arg( lightId ).arg( API_STATE ), state );
+}
 
-	QVariantList rspList = response.toVariant().toList();
-	if ( !rspList.isEmpty() )
-	{
-		QVariantMap map = rspList.first().toMap();
-		if ( map.contains( API_ERROR ) )
-		{
-			// API call failed to execute an error message was returned
-			QString errorAddress = map.value(API_ERROR).toMap().value(API_ERROR_ADDRESS).toString();
-			QString errorDesc    = map.value(API_ERROR).toMap().value(API_ERROR_DESCRIPTION).toString();
-			QString errorType    = map.value(API_ERROR).toMap().value(API_ERROR_TYPE).toString();
+QJsonDocument LedDevicePhilipsHueBridge::getGroupState(int groupId)
+{
+	DebugIf( verbose, _log, "GetGroupState [%d]", groupId );
+	return get( QString("%1/%2").arg( API_GROUPS ).arg( groupId ) );
+}
 
-			log( "Error Type", "%s", QSTRING_CSTR( errorType ) );
-			log( "Error Address", "%s", QSTRING_CSTR( errorAddress ) );
-			log( "Error Address Description", "%s", QSTRING_CSTR( errorDesc ) );
-
-			if( errorType != "901" )
-			{
-				errorReason = QString ("(%1) %2, Resource:%3").arg(errorType, errorDesc, errorAddress);
-				this->setInError( errorReason );
-				apiError = true;
-			}
-		}
-	}
-	return apiError;
+QJsonDocument LedDevicePhilipsHueBridge::setGroupState(int groupId, bool state)
+{
+	QString active = state ? API_STREAM_ACTIVE_VALUE_TRUE : API_STREAM_ACTIVE_VALUE_FALSE;
+	return put(QString("%1/%2").arg(API_GROUPS).arg(groupId), QString("{\"%1\":{\"%2\":%3}}").arg(API_STREAM, API_STREAM_ACTIVE, active), true);
 }
 
 QJsonDocument LedDevicePhilipsHueBridge::get(const QString& route)
@@ -604,46 +647,146 @@ QJsonDocument LedDevicePhilipsHueBridge::get(const QString& route)
 	_restApi->setPath(route);
 
 	httpResponse response = _restApi->get();
+
+	if (route.isEmpty() && response.error() &&
+		(  response.getNetworkReplyError() == QNetworkReply::UnknownNetworkError ||
+		   response.getNetworkReplyError() == QNetworkReply::ConnectionRefusedError ||
+		   response.getNetworkReplyError() == QNetworkReply::RemoteHostClosedError ||
+		   response.getNetworkReplyError() == QNetworkReply::OperationCanceledError ))
+	{
+		Warning(_log, "The Hue Bridge is not ready.");
+	}
+
 	checkApiError(response.getBody());
 	return response.getBody();
 }
 
-QJsonDocument LedDevicePhilipsHueBridge::post(const QString& route, const QString& content)
+QJsonDocument LedDevicePhilipsHueBridge::put(const QString& route, const QString& content, bool supressError)
 {
 	_restApi->setPath(route);
 
 	httpResponse response = _restApi->put(content);
-	checkApiError(response.getBody());
+	checkApiError(response.getBody(), supressError);
 	return response.getBody();
-}
-
-QJsonDocument LedDevicePhilipsHueBridge::getLightState(unsigned int lightId)
-{
-	DebugIf( verbose, _log, "GetLightState [%u]", lightId );
-	return get( QString("%1/%2").arg( API_LIGHTS ).arg( lightId ) );
-}
-
-void LedDevicePhilipsHueBridge::setLightState(unsigned int lightId, const QString &state)
-{
-	DebugIf( verbose, _log, "SetLightState [%u]: %s", lightId, QSTRING_CSTR(state) );
-	post( QString("%1/%2/%3").arg( API_LIGHTS ).arg( lightId ).arg( API_STATE ), state );
-}
-
-QJsonDocument LedDevicePhilipsHueBridge::getGroupState(unsigned int groupId)
-{
-	DebugIf( verbose, _log, "GetGroupState [%u]", groupId );
-	return get( QString("%1/%2").arg( API_GROUPS ).arg( groupId ) );
-}
-
-QJsonDocument LedDevicePhilipsHueBridge::setGroupState(unsigned int groupId, bool state)
-{
-	QString active = state ? API_STREAM_ACTIVE_VALUE_TRUE : API_STREAM_ACTIVE_VALUE_FALSE;
-	return post( QString("%1/%2").arg( API_GROUPS ).arg( groupId ), QString("{\"%1\":{\"%2\":%3}}").arg( API_STREAM, API_STREAM_ACTIVE, active ) );
 }
 
 bool LedDevicePhilipsHueBridge::isStreamOwner(const QString &streamOwner) const
 {
-	return ( streamOwner != "" && streamOwner == _username );
+	return ( streamOwner != "" && streamOwner == _authToken );
+}
+
+QJsonArray LedDevicePhilipsHueBridge::discover()
+{
+	QJsonArray deviceList;
+
+	SSDPDiscover discover;
+
+	discover.skipDuplicateKeys(true);
+	discover.setSearchFilter(SSDP_FILTER, SSDP_FILTER_HEADER);
+	QString searchTarget = SSDP_ID;
+
+	if (discover.discoverServices(searchTarget) > 0)
+	{
+		deviceList = discover.getServicesDiscoveredJson();
+	}
+
+	return deviceList;
+}
+
+QJsonObject LedDevicePhilipsHueBridge::discover(const QJsonObject& /*params*/)
+{
+	QJsonObject devicesDiscovered;
+	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );
+
+	QJsonArray deviceList;
+
+#ifdef ENABLE_MDNS
+	QString discoveryMethod("mDNS");
+	deviceList = MdnsBrowser::getInstance().getServicesDiscoveredJson(
+		MdnsServiceRegister::getServiceType(_activeDeviceType),
+		MdnsServiceRegister::getServiceNameFilter(_activeDeviceType),
+		DEFAULT_DISCOVER_TIMEOUT
+		);
+#else
+	QString discoveryMethod("ssdp");
+	deviceList = discover();
+#endif
+
+	devicesDiscovered.insert("discoveryMethod", discoveryMethod);
+	devicesDiscovered.insert("devices", deviceList);
+
+	Debug(_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+
+	return devicesDiscovered;
+}
+
+QJsonObject LedDevicePhilipsHueBridge::getProperties(const QJsonObject& params)
+{
+	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	QJsonObject properties;
+
+	_hostName = params[CONFIG_HOST].toString("");
+	_apiPort =  params[CONFIG_PORT].toInt();
+	_authToken = params["user"].toString("");
+
+	Info(_log, "Get properties for %s, hostname (%s)", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(_hostName) );
+
+	if (NetUtils::resolveHostToAddress(_log, _hostName, _address, _apiPort))
+	{
+		if ( openRestAPI() )
+		{
+			QString filter = params["filter"].toString("");
+			_restApi->setPath(filter);
+
+			// Perform request
+			httpResponse response = _restApi->get();
+			if (response.error())
+			{
+				Warning(_log, "%s get properties failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+			}
+
+			// Perform request
+			properties.insert("properties", response.getBody().object());
+		}
+
+		DebugIf(verbose, _log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	}
+	return properties;
+}
+
+QJsonObject LedDevicePhilipsHueBridge::addAuthorization(const QJsonObject& params)
+{
+	Debug(_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
+	QJsonObject responseBody;
+
+	// New Phillips-Bridge device client/application key
+	_hostName = params[CONFIG_HOST].toString("");
+	_apiPort =  params[CONFIG_PORT].toInt();
+
+	Info(_log, "Add authorized user for %s, hostname (%s)", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(_hostName) );
+
+	if (NetUtils::resolveHostToAddress(_log, _hostName, _address, _apiPort))
+	{
+		if ( openRestAPI() )
+		{
+			QJsonObject clientKeyCmd{ {"devicetype", "hyperion#" + QHostInfo::localHostName()}, {"generateclientkey", true } };
+			_restApi->setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+			httpResponse response = _restApi->post(clientKeyCmd);
+			if (response.error())
+			{
+				Warning(_log, "%s generation of authorization/client key failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+			}
+			else
+			{
+				if (!checkApiError(response.getBody(),false))
+				{
+					responseBody = response.getBody().array().first().toObject().value("success").toObject();
+				}
+			}
+		}
+	}
+	return responseBody;
 }
 
 const std::set<QString> PhilipsHueLight::GAMUT_A_MODEL_IDS =
@@ -651,16 +794,25 @@ const std::set<QString> PhilipsHueLight::GAMUT_A_MODEL_IDS =
 const std::set<QString> PhilipsHueLight::GAMUT_B_MODEL_IDS =
 	{ "LCT001", "LCT002", "LCT003", "LCT007", "LLM001" };
 const std::set<QString> PhilipsHueLight::GAMUT_C_MODEL_IDS =
-	{ "LCA001", "LCA002", "LCA003", "LCG002", "LCP001", "LCP002", "LCT010", "LCT011", "LCT012", "LCT014", "LCT015", "LCT016", "LCT024", "LCX001", "LLC020", "LST002" };
+	{ "LCA001", "LCA002", "LCA003", "LCG002", "LCP001", "LCP002", "LCT010", "LCT011", "LCT012", "LCT014", "LCT015", "LCT016", "LCT024", "LCX001", "LCX002", "LLC020", "LST002" };
 
-PhilipsHueLight::PhilipsHueLight(Logger* log, unsigned int id, QJsonObject values, unsigned int ledidx)
+PhilipsHueLight::PhilipsHueLight(Logger* log, int id, QJsonObject values, int ledidx, int onBlackTimeToPowerOff,
+	int onBlackTimeToPowerOn)
 	: _log(log)
-	  , _id(id)
-	  , _ledidx(ledidx)
-	  , _on(false)
-	  , _transitionTime(0)
-	  , _colorBlack({0.0, 0.0, 0.0})
-	  , _modelId(values[API_MODEID].toString().trimmed().replace("\"", ""))
+	, _id(id)
+	, _ledidx(ledidx)
+	, _on(false)
+	, _transitionTime(0)
+	, _color({ 0.0, 0.0, 0.0 })
+	, _hasColor(false)
+	, _colorBlack({ 0.0, 0.0, 0.0 })
+	, _modelId(values[API_MODEID].toString().trimmed().replace("\"", ""))
+	, _lastSendColorTime(0)
+	, _lastBlackTime(-1)
+	, _lastWhiteTime(-1)
+	, _blackScreenTriggered(false)
+	, _onBlackTimeToPowerOff(onBlackTimeToPowerOff)
+	, _onBlackTimeToPowerOn(onBlackTimeToPowerOn)
 {
 	// Find id in the sets and set the appropriate color space.
 	if (GAMUT_A_MODEL_IDS.find(_modelId) != GAMUT_A_MODEL_IDS.end())
@@ -697,15 +849,74 @@ PhilipsHueLight::PhilipsHueLight(Logger* log, unsigned int id, QJsonObject value
 	}
 
 	_lightname = values["name"].toString().trimmed().replace("\"", "");
-	Info(_log, "Light ID %d (\"%s\", LED index \"%d\") created", id, QSTRING_CSTR(_lightname), ledidx );
+	Info(_log, "Light ID %d (\"%s\", LED index \"%d\", onBlackTimeToPowerOff: %d, _onBlackTimeToPowerOn: %d) created", id, QSTRING_CSTR(_lightname), ledidx, _onBlackTimeToPowerOff, _onBlackTimeToPowerOn);
 }
 
-PhilipsHueLight::~PhilipsHueLight()
+void PhilipsHueLight::blackScreenTriggered()
 {
-	DebugIf(verbose, _log, "Light ID %d (\"%s\", LED index \"%d\") deconstructed", _id, QSTRING_CSTR(_lightname), _ledidx );
+	_blackScreenTriggered = true;
 }
 
-unsigned int PhilipsHueLight::getId() const
+bool PhilipsHueLight::isBusy()
+{
+	bool temp = true;
+
+	qint64 _currentTime = QDateTime::currentMSecsSinceEpoch();
+	if (_currentTime - _lastSendColorTime >= 100)
+	{
+		_lastSendColorTime = _currentTime;
+		temp = false;
+	}
+
+	return temp;
+}
+
+void PhilipsHueLight::setBlack()
+{
+	CiColor black;
+	black.bri = 0;
+	black.x = 0;
+	black.y = 0;
+	setColor(black);
+}
+
+bool PhilipsHueLight::isBlack(bool isBlack)
+{
+	if (!isBlack)
+	{
+		_lastBlackTime = 0;
+		return false;
+	}
+
+	if (_lastBlackTime == 0)
+	{
+		_lastBlackTime = QDateTime::currentMSecsSinceEpoch();
+		return false;
+	}
+
+	qint64 _currentTime = QDateTime::currentMSecsSinceEpoch();
+	return _currentTime - _lastBlackTime >= _onBlackTimeToPowerOff;
+}
+
+bool PhilipsHueLight::isWhite(bool isWhite)
+{
+	if (!isWhite)
+	{
+		_lastWhiteTime = 0;
+		return false;
+	}
+
+	if (_lastWhiteTime == 0)
+	{
+		_lastWhiteTime = QDateTime::currentMSecsSinceEpoch();
+		return false;
+	}
+
+	qint64 _currentTime = QDateTime::currentMSecsSinceEpoch();
+	return _currentTime - _lastWhiteTime >= _onBlackTimeToPowerOn;
+}
+
+int PhilipsHueLight::getId() const
 {
 	return _id;
 }
@@ -717,6 +928,11 @@ QString PhilipsHueLight::getOriginalState() const
 
 void PhilipsHueLight::saveOriginalState(const QJsonObject& values)
 {
+	if (_blackScreenTriggered)
+	{
+		_blackScreenTriggered = false;
+		return;
+	}
 	// Get state object values which are subject to change.
 	if (!values[API_STATE].toObject().contains("on"))
 	{
@@ -727,7 +943,10 @@ void PhilipsHueLight::saveOriginalState(const QJsonObject& values)
 
 	QJsonObject state;
 	state["on"] = lState["on"];
-	_originalColor = _colorBlack;
+	_originalColor = CiColor();
+	_originalColor.bri = 0;
+	_originalColor.x = 0;
+	_originalColor.y = 0;
 	QString c;
 	if (state[API_STATE_ON].toBool())
 	{
@@ -741,7 +960,7 @@ void PhilipsHueLight::saveOriginalState(const QJsonObject& values)
 		};
 		_originalColor = _color;
 		c = QString("{ \"%1\": [%2, %3], \"%4\": %5 }").arg(API_XY_COORDINATES).arg(_originalColor.x, 0, 'd', 4).arg(_originalColor.y, 0, 'd', 4).arg(API_BRIGHTNESS).arg((_originalColor.bri * 254.0), 0, 'd', 4);
-		DebugIf(verbose, _log, "OriginalColor state on: %s", QSTRING_CSTR(c));
+		Debug(_log, "Philips original state stored: %s", QSTRING_CSTR(c));
 		_transitionTime = values[API_STATE].toObject()[API_TRANSITIONTIME].toInt();
 	}
 	//Determine the original state.
@@ -760,6 +979,7 @@ void PhilipsHueLight::setTransitionTime(int transitionTime)
 
 void PhilipsHueLight::setColor(const CiColor& color)
 {
+	this->_hasColor = true;
 	this->_color = color;
 }
 
@@ -778,6 +998,10 @@ CiColor PhilipsHueLight::getColor() const
 	return _color;
 }
 
+bool PhilipsHueLight::hasColor() const
+{
+	return _hasColor;
+}
 CiColorTriangle PhilipsHueLight::getColorSpace() const
 {
 	return _colorSpace;
@@ -785,24 +1009,23 @@ CiColorTriangle PhilipsHueLight::getColorSpace() const
 
 LedDevicePhilipsHue::LedDevicePhilipsHue(const QJsonObject& deviceConfig)
 	: LedDevicePhilipsHueBridge(deviceConfig)
-	  , _switchOffOnBlack(false)
-	  , _brightnessFactor(1.0)
-	  , _transitionTime(1)
-	  , _isInitLeds(false)
-	  , _lightsCount(0)
-	  , _groupId(0)
-	  , _brightnessMin(0.0)
-	  , _brightnessMax(1.0)
-	  , _allLightsBlack(false)
-	  , _blackLightsTimer(nullptr)
-	  , _blackLightsTimeout(15000)
-	  , _brightnessThreshold(0.0)
-	  , _handshake_timeout_min(STREAM_SSL_HANDSHAKE_TIMEOUT_MIN.count())
-	  , _handshake_timeout_max(STREAM_SSL_HANDSHAKE_TIMEOUT_MAX.count())
-	  , _ssl_read_timeout(STREAM_SSL_READ_TIMEOUT.count())
-	  , _stopConnection(false)
-	  , start_retry_left(3)
-	  , stop_retry_left(3)
+	, _switchOffOnBlack(false)
+	, _brightnessFactor(1.0)
+	, _transitionTime(1)
+	, _isInitLeds(false)
+	, _lightsCount(0)
+	, _groupId(0)
+	, _blackLightsTimeout(15000)
+	, _blackLevel(0.0)
+	, _onBlackTimeToPowerOff(100)
+	, _onBlackTimeToPowerOn(100)
+	, _candyGamma(true)
+	, _handshake_timeout_min(600)
+	, _handshake_timeout_max(2000)
+	, _stopConnection(false)
+	, _lastConfirm(0)
+	, _lastId(-1)
+	, _groupStreamState(false)
 {
 }
 
@@ -813,60 +1036,67 @@ LedDevice* LedDevicePhilipsHue::construct(const QJsonObject &deviceConfig)
 
 LedDevicePhilipsHue::~LedDevicePhilipsHue()
 {
-		delete _blackLightsTimer;
 }
 
 bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
 {
-	verbose = deviceConfig[CONFIG_VERBOSE].toBool(false);
+	bool isInitOK {false};
 
-	bool isInitOK = LedDevicePhilipsHueBridge::init(deviceConfig);
-
-	if ( isInitOK )
+	if (!verbose)
 	{
-		// Initialise LedDevice configuration and execution environment
-		_switchOffOnBlack       = _devConfig[CONFIG_ON_OFF_BLACK].toBool(true);
-		_blackLightsTimeout     = _devConfig[CONFIG_BLACK_LIGHTS_TIMEOUT].toInt(15000);
-		_brightnessFactor       = _devConfig[CONFIG_BRIGHTNESSFACTOR].toDouble(1.0);
-		_transitionTime         = _devConfig[CONFIG_TRANSITIONTIME].toInt(1);
-		_isRestoreOrigState     = _devConfig[CONFIG_RESTORE_STATE].toBool(true);
-		_groupId                = static_cast<quint16>(_devConfig[CONFIG_GROUPID].toInt(0));
-		_brightnessMin          = _devConfig[CONFIG_BRIGHTNESS_MIN].toDouble(0.0);
-		_brightnessMax          = _devConfig[CONFIG_BRIGHTNESS_MAX].toDouble(1.0);
-		_brightnessThreshold    = _devConfig[CONFIG_BRIGHTNESS_THRESHOLD].toDouble(0.0);
-		_handshake_timeout_min  = _devConfig[CONFIG_SSL_HANDSHAKE_TIMEOUT_MIN].toInt(STREAM_SSL_HANDSHAKE_TIMEOUT_MIN.count());
-		_handshake_timeout_max  = _devConfig[CONFIG_SSL_HANDSHAKE_TIMEOUT_MAX].toInt(STREAM_SSL_HANDSHAKE_TIMEOUT_MAX.count());
-		_ssl_read_timeout       = _devConfig[CONFIG_SSL_READ_TIMEOUT].toInt(STREAM_SSL_READ_TIMEOUT.count());
+		verbose = deviceConfig[CONFIG_VERBOSE].toBool(false);
+	}
 
-		if( _brightnessMin < 0.0 ) { _brightnessMin = 0.0; }
-		if( _brightnessMax > 1.0 ) { _brightnessMax = 1.0; }
-		if( _brightnessThreshold < 0.0 ) { _brightnessThreshold = 0.0; }
-		if( _brightnessThreshold > 1.0 ) { _brightnessThreshold = 1.0; }
+	// Initialise LedDevice configuration and execution environment
+	_useHueEntertainmentAPI = deviceConfig[CONFIG_USE_HUE_ENTERTAINMENT_API].toBool(false);
 
-		if( _handshake_timeout_min <= 0 ) { _handshake_timeout_min = 1; }
+	// Overwrite non supported/required features
+	if ( deviceConfig["rewriteTime"].toInt(0) > 0 )
+	{
+		InfoIf ( ( !_useHueEntertainmentAPI ), _log, "Device Philips Hue does not require rewrites. Refresh time is ignored." );
+		_devConfig["rewriteTime"] = 0;
+	}
 
+	_switchOffOnBlack       = _devConfig[CONFIG_ON_OFF_BLACK].toBool(true);
+	_blackLightsTimeout     = _devConfig[CONFIG_BLACK_LIGHTS_TIMEOUT].toInt(15000);
+	_brightnessFactor       = _devConfig[CONFIG_BRIGHTNESSFACTOR].toDouble(1.0);
+	_transitionTime         = _devConfig[CONFIG_TRANSITIONTIME].toInt(1);
+	_isRestoreOrigState     = _devConfig[CONFIG_RESTORE_STATE].toBool(true);
+	_groupId                = _devConfig[CONFIG_GROUPID].toInt(0);
+	_blackLevel             = _devConfig["blackLevel"].toDouble(0.0);
+	_onBlackTimeToPowerOff  = _devConfig["onBlackTimeToPowerOff"].toInt(100);
+	_onBlackTimeToPowerOn   = _devConfig["onBlackTimeToPowerOn"].toInt(100);
+	_candyGamma             = _devConfig["candyGamma"].toBool(true);
+
+	if (_blackLevel < 0.0) { _blackLevel = 0.0; }
+	if (_blackLevel > 1.0) { _blackLevel = 1.0; }
+
+	if (LedDevicePhilipsHueBridge::init(_devConfig))
+	{
 		log( "Off on Black", "%d", static_cast<int>( _switchOffOnBlack ) );
 		log( "Brightness Factor", "%f", _brightnessFactor );
 		log( "Transition Time", "%d", _transitionTime );
 		log( "Restore Original State", "%d", static_cast<int>( _isRestoreOrigState ) );
 		log( "Use Hue Entertainment API", "%d", static_cast<int>( _useHueEntertainmentAPI) );
+		log("Brightness Threshold", "%f", _blackLevel);
+		log("CandyGamma", "%d", static_cast<int>(_candyGamma));
+		log("Time powering off when black", "%d", _onBlackTimeToPowerOff);
+		log("Time powering on when signalled", "%d", _onBlackTimeToPowerOn);
 
 		if( _useHueEntertainmentAPI )
 		{
 			log( "Entertainment API Group-ID", "%d", _groupId );
-			log( "Signal Timeout on Black", "%dms", _blackLightsTimeout );
-			log( "Brightness Min", "%f", _brightnessMin );
-			log( "Brightness Max", "%f", _brightnessMax );
-			log( "Brightness Threshold", "%f", _brightnessThreshold );
 
 			if( _groupId == 0 )
 			{
-				Error(_log, "Disabling Entertainment API as Group-ID is invalid" );
+				Error(_log, "Disabling usage of HueEntertainmentAPI: Group-ID is invalid", "%d", _groupId);
 				_useHueEntertainmentAPI = false;
 			}
 		}
 
-		isInitOK =  initLeds();
+		// Everything is OK -> enable
+		_isDeviceInitialised = true;
+		isInitOK = true;
 	}
 
 	return isInitOK;
@@ -899,9 +1129,9 @@ bool LedDevicePhilipsHue::setLights()
 
 	if( !lArray.empty() )
 	{
-		for (const QJsonValueRef id : lArray)
+		for (const QJsonValue &id : qAsConst(lArray))
 		{
-			unsigned int lightId = id.toString().toUInt();
+			int lightId = id.toString().toInt();
 			if( lightId > 0 )
 			{
 				if(std::find(_lightIds.begin(), _lightIds.end(), lightId) == _lightIds.end())
@@ -918,7 +1148,7 @@ bool LedDevicePhilipsHue::setLights()
 		std::sort( _lightIds.begin(), _lightIds.end() );
 	}
 
-	unsigned int configuredLightsCount = static_cast<unsigned int>(_lightIds.size());
+	int configuredLightsCount = static_cast<int>(_lightIds.size());
 
 	log( "Light-IDs configured", "%d", configuredLightsCount );
 
@@ -947,30 +1177,6 @@ bool LedDevicePhilipsHue::initLeds()
 			if( _useHueEntertainmentAPI )
 			{
 				_groupName = getGroupName( _groupId );
-				_devConfig["latchTime"]      = 0;
-				_devConfig["host"]           = _hostname;
-				_devConfig["sslport"]        = API_SSL_SERVER_PORT;
-				_devConfig["servername"]     = API_SSL_SERVER_NAME;
-				_devConfig["rewriteTime"]    = static_cast<int>( STREAM_REWRITE_TIME.count() );
-				_devConfig["psk"]            = _devConfig[ CONFIG_CLIENTKEY ].toString();
-				_devConfig["psk_identity"]   = _devConfig[ CONFIG_USERNAME ].toString();
-				_devConfig["seed_custom"]    = API_SSL_SEED_CUSTOM;
-				_devConfig["retry_left"]     = STREAM_CONNECTION_RETRYS;
-				_devConfig["hs_attempts"]    = STREAM_SSL_HANDSHAKE_ATTEMPTS;
-				_devConfig["hs_timeout_min"] = _handshake_timeout_min;
-				_devConfig["hs_timeout_max"] = _handshake_timeout_max;
-				_devConfig["read_timeout"]   = _ssl_read_timeout;
-
-				isInitOK = ProviderUdpSSL::init( _devConfig );
-
-				if( isInitOK )
-				{
-					if ( _blackLightsTimer == nullptr )
-					{
-						_blackLightsTimer = new QTimer(this);
-						connect( _blackLightsTimer, &QTimer::timeout, this, &LedDevicePhilipsHue::noSignalTimeout );
-					}
-				}
 			}
 			else
 			{
@@ -989,7 +1195,7 @@ bool LedDevicePhilipsHue::initLeds()
 	return isInitOK;
 }
 
-bool LedDevicePhilipsHue::updateLights(const QMap<quint16, QJsonObject> &map)
+bool LedDevicePhilipsHue::updateLights(const QMap<int, QJsonObject> &map)
 {
 	bool isInitOK = true;
 
@@ -998,13 +1204,13 @@ bool LedDevicePhilipsHue::updateLights(const QMap<quint16, QJsonObject> &map)
 
 	if(!_lightIds.empty())
 	{
-		unsigned int ledidx = 0;
+		int ledidx = 0;
 		_lights.reserve(_lightIds.size());
 		for(const auto id : _lightIds)
 		{
 			if (map.contains(id))
 			{
-				_lights.emplace_back(_log, id, map.value(id), ledidx);
+				_lights.emplace_back(_log, id, map.value(id), ledidx, _onBlackTimeToPowerOff, _onBlackTimeToPowerOn);
 			}
 			else
 			{
@@ -1030,9 +1236,6 @@ bool LedDevicePhilipsHue::updateLights(const QMap<quint16, QJsonObject> &map)
 bool LedDevicePhilipsHue::openStream()
 {
 	bool isInitOK = false;
-
-	start_retry_left = 3;
-
 	bool streamState = getStreamGroupState();
 
 	if ( !this->isInError() )
@@ -1075,18 +1278,16 @@ bool LedDevicePhilipsHue::openStream()
 
 		if( isInitOK )
 		{
-			Info(_log, "Philips Hue Entertainment API successful connected! Start Streaming." );
-			_allLightsBlack = true;
-			noSignalDetection();
+			Info(_log, "Philips Hue Entertainment API successful connected! Start Streaming.");
 		}
 		else
 		{
-			Error(_log, "Philips Hue Entertainment API not connected!" );
+			Error(_log, "Philips Hue Entertainment API not connected!");
 		}
 	}
 	else
 	{
-		Error(_log, "Philips Hue Entertainment API could not be initialised!" );
+		Error(_log, "Philips Hue Entertainment API could not be initialized!");
 	}
 
 	return isInitOK;
@@ -1094,61 +1295,44 @@ bool LedDevicePhilipsHue::openStream()
 
 bool LedDevicePhilipsHue::startStream()
 {
-	Debug(_log, "Start entertainment stream");
-
-	bool rc = false;
-	if ( setStreamGroupState( true ) )
+	int retries {3};
+	while (!setStreamGroupState(true) && --retries > 0)
 	{
-		start_retry_left = 3;
-		rc = true;
+		Debug(_log, "Start Entertainment stream. Retrying...");
+			QThread::msleep(500);
+	}
+
+	bool rc = (retries > 0);
+	if (rc)
+	{
+		Debug(_log, "The Entertainment stream started successfully");
 	}
 	else
 	{
-		if ( !this->isInError() )
-		{
-			QThread::msleep(500);
-			bool streamState = getStreamGroupState();
-
-			if ( !this->isInError() )
-			{
-				// stream is not active
-				if( !streamState )
-				{
-					rc = ( start_retry_left-- > 0 ) ? startStream() : false;
-				}
-			}
-		}
+		this->setInError("The Entertainment stream failed to start. Give up.");
 	}
-
 	return rc;
 }
 
 bool LedDevicePhilipsHue::stopStream()
 {
-	ProviderUdpSSL::closeSSLConnection();
+	stopConnection();
 
-	bool rc = false;
-	if ( setStreamGroupState( false ) )
+	int retries = 3;
+	while (!setStreamGroupState(false) && --retries > 0)
 	{
-		stop_retry_left = 3;
-		rc = true;
+		Debug(_log, "Stop Entertainment stream. Retrying...");
+		QThread::msleep(500);
+	}
+
+	bool rc = (retries > 0);
+	if (rc)
+	{
+		Debug(_log, "The Entertainment stream stopped successfully");
 	}
 	else
 	{
-		if ( !this->isInError() )
-		{
-			QThread::msleep(500);
-			bool streamState = getStreamGroupState();
-
-			if ( !this->isInError() )
-			{
-				// stream is still active
-				if( streamState )
-				{
-					rc = (stop_retry_left-- > 0) ? stopStream() : false;
-				}
-			}
-		}
+		this->setInError("The Entertainment stream did NOT stop. Give up.");
 	}
 
 	return rc;
@@ -1164,7 +1348,7 @@ bool LedDevicePhilipsHue::getStreamGroupState()
 
 		if( obj.isEmpty() )
 		{
-			this->setInError( "no Streaming Infos in Group found" );
+			this->setInError( "No Entertainment/Streaming details in Group found" );
 		}
 		else
 		{
@@ -1192,7 +1376,7 @@ bool LedDevicePhilipsHue::setStreamGroupState(bool state)
 
 		if ( !map.contains( API_SUCCESS ) )
 		{
-			this->setInError( QString("set stream to %1: Neither error nor success contained in Bridge response...").arg( active ) );
+			Warning(_log, "%s", QSTRING_CSTR(QString("Set stream to %1: Neither error nor success contained in Bridge response...").arg(active)));
 		}
 		else
 		{
@@ -1211,14 +1395,14 @@ bool LedDevicePhilipsHue::setStreamGroupState(bool state)
 				}
 				else
 				{
-					bool groupStreamState = diyHueActiveState[API_STREAM_ACTIVE].toBool();
-					return ( groupStreamState == state );
+					_groupStreamState = diyHueActiveState[API_STREAM_ACTIVE].toBool();
+					return (_groupStreamState == state);
 				}
 			}
 			else
 			{
-				bool groupStreamState = map.value( API_SUCCESS ).toMap().value( valueName ).toBool();
-				return ( groupStreamState == state );
+				_groupStreamState = map.value(API_SUCCESS).toMap().value(valueName).toBool();
+				return (_groupStreamState == state);
 			}
 		}
 	}
@@ -1253,74 +1437,20 @@ QByteArray LedDevicePhilipsHue::prepareStreamData() const
 
 void LedDevicePhilipsHue::stop()
 {
-	stopBlackTimeoutTimer();
 	LedDevicePhilipsHueBridge::stop();
 }
 
 int LedDevicePhilipsHue::open()
 {
-	int retval = 0;
-	_isDeviceReady = true;
-
-	return retval;
-}
-
-int LedDevicePhilipsHue::close()
-{
 	int retval = -1;
-
-	retval = LedDevicePhilipsHueBridge::close();
-
-	return retval;
-}
-
-bool LedDevicePhilipsHue::switchOn()
-{
-	Debug(_log, "");
-
-	bool rc = false;
-
-	if ( _isOn )
+	if ( LedDevicePhilipsHueBridge::open() == 0)
 	{
-		rc = true;
-	}
-	else
-	{
-		if ( _isEnabled && _isDeviceInitialised )
+		if (initLeds())
 		{
-			storeState();
-
-			if ( _useHueEntertainmentAPI)
-			{
-				if ( openStream() )
-				{
-					_isOn = true;
-					rc = true;
-				}
-			}
-			else if ( powerOn() )
-			{
-				_isOn = true;
-				rc = true;
-			}
+			retval = 0;
 		}
 	}
-	return rc;
-}
-
-bool LedDevicePhilipsHue::switchOff()
-{
-	Debug(_log, "");
-
-	this->stopBlackTimeoutTimer();
-
-	stop_retry_left = 3;
-	if (_useHueEntertainmentAPI)
-	{
-		stopStream();
-	}
-
-	return LedDevicePhilipsHueBridge::switchOff();
+	return retval;
 }
 
 int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues)
@@ -1331,121 +1461,117 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues)
 		return -1;
 	}
 
-	// more lights then leds, stop always
+	// more lights than LEDs, stop always
 	if( ledValues.size() < getLightsCount() )
 	{
-		Error(_log, "More light-IDs configured than leds, each light-ID requires one led!" );
+		Error(_log, "More light-IDs configured than LEDs, each light-ID requires one LED!" );
 		return -1;
 	}
 
-	writeSingleLights( ledValues );
-
-	if( _useHueEntertainmentAPI && !noSignalDetection() && _isInitLeds )
+	if (_isOn)
 	{
-		writeStream();
-	}
+		writeSingleLights( ledValues );
 
+		if (_useHueEntertainmentAPI && _isInitLeds)
+		{
+			writeStream();
+		}
+	}
 	return 0;
-}
-
-void LedDevicePhilipsHue::noSignalTimeout()
-{
-	Debug(_log, "No Signal (timeout: %dms), only black color detected - stop stream for \"%s\" [%u]", _blackLightsTimer->remainingTime(), QSTRING_CSTR(_groupName), _groupId );
-	_stopConnection = true;
-	switchOff();
-}
-
-void LedDevicePhilipsHue::stopBlackTimeoutTimer()
-{
-	if ( _blackLightsTimer != nullptr && _blackLightsTimer->isActive() )
-	{
-		_blackLightsTimer->stop();
-	}
-}
-
-bool LedDevicePhilipsHue::noSignalDetection()
-{
-	if( _allLightsBlack && _switchOffOnBlack)
-	{
-		if( !_stopConnection && _isInitLeds )
-		{
-			if ( !_blackLightsTimer->isActive() )
-			{
-				DebugIf( verbose, _log, "No Signal detected - timeout timer started" );
-				_blackLightsTimer->start( ( _blackLightsTimeout + 500 ) );
-			}
-		}
-	}
-	else
-	{
-		if ( _blackLightsTimer->isActive() )
-		{
-			DebugIf( verbose, _log, "Signal detected - timeout timer stopped" );
-			this->stopBlackTimeoutTimer();
-		}
-
-		if( _stopConnection )
-		{
-			_stopConnection = false;
-			Debug(_log, "Signal detected - restart stream for \"%s\" [%u]", QSTRING_CSTR(_groupName), _groupId );
-			switchOn();
-		}
-	}
-	return _stopConnection;
 }
 
 int LedDevicePhilipsHue::writeSingleLights(const std::vector<ColorRgb>& ledValues)
 {
 	// Iterate through lights and set colors.
 	unsigned int idx = 0;
-	unsigned int blackCounter = 0;
 	for ( PhilipsHueLight& light : _lights )
 	{
 		// Get color.
 		ColorRgb color = ledValues.at(idx);
 		// Scale colors from [0, 255] to [0, 1] and convert to xy space.
-		CiColor xy = CiColor::rgbToCiColor(color.red / 255.0, color.green / 255.0, color.blue / 255.0, light.getColorSpace());
+		CiColor xy = CiColor::rgbToCiColor(color.red / 255.0, color.green / 255.0, color.blue / 255.0, light.getColorSpace(), _candyGamma);
 
-		if( _useHueEntertainmentAPI )
+		if (_switchOffOnBlack && xy.bri <= _blackLevel && light.isBlack(true))
 		{
-			this->setColor(light, xy);
-			if( xy.bri >= 0.0 && xy.bri <= _brightnessThreshold )
+			xy.bri = 0;
+			xy.x = 0;
+			xy.y = 0;
+
+			if( _useHueEntertainmentAPI )
 			{
-				blackCounter++;
+				if (light.getOnOffState())
+				{
+					this->setColor(light, xy);
+					this->setOnOffState(light, false);
+				}
+			}
+			else
+			{
+				if (light.getOnOffState())
+				{
+					setState(light, false, xy);
+				}
 			}
 		}
 		else
 		{
-			if ( _switchOffOnBlack && xy.bri == 0.0 )
+			bool currentstate = light.getOnOffState();
+
+			if (_switchOffOnBlack && xy.bri > _blackLevel && light.isWhite(true))
 			{
-				this->setOnOffState( light, false );
+				if (!currentstate)
+				{
+					xy.bri = xy.bri / 2;
+				}
+
+				if (_useHueEntertainmentAPI)
+				{
+					this->setOnOffState(light, true);
+					this->setColor(light, xy);
+				}
+				else
+				{
+					this->setState(light, true, xy);
+				}
 			}
-			else
+			else if (!_switchOffOnBlack)
 			{
 				// Write color if color has been changed.
-				this->setState( light, true, xy );
+				if (_useHueEntertainmentAPI)
+				{
+					this->setOnOffState(light, true);
+					this->setColor(light, xy);
+				}
+				else
+				{
+					this->setState( light, true, xy );
+				}
 			}
 		}
-		idx++;
-	}
+		if (xy.bri > _blackLevel)
+		{
+			light.isBlack(false);
+		}
+		else if (xy.bri <= _blackLevel)
+		{
+			light.isWhite(false);
+		}
 
-	if( _useHueEntertainmentAPI )
-	{
-		_allLightsBlack = ( blackCounter == _lightsCount );
+		++idx;
 	}
 
 	return 0;
 }
 
-void LedDevicePhilipsHue::writeStream()
+void LedDevicePhilipsHue::writeStream(bool flush)
 {
 	QByteArray streamData = prepareStreamData();
-	writeBytes( static_cast<uint>(streamData.size()), reinterpret_cast<unsigned char *>( streamData.data() ) );
+	writeBytes(static_cast<uint>(streamData.size()), reinterpret_cast<unsigned char*>(streamData.data()), flush);
 }
 
-void LedDevicePhilipsHue::setOnOffState(PhilipsHueLight& light, bool on)
+void LedDevicePhilipsHue::setOnOffState(PhilipsHueLight& light, bool on, bool force)
 {
-	if (light.getOnOffState() != on)
+	if (light.getOnOffState() != on || force)
 	{
 		light.setOnOffState( on );
 		QString state = on ? API_STATE_VALUE_TRUE : API_STATE_VALUE_FALSE;
@@ -1464,7 +1590,7 @@ void LedDevicePhilipsHue::setTransitionTime(PhilipsHueLight& light)
 
 void LedDevicePhilipsHue::setColor(PhilipsHueLight& light, CiColor& color)
 {
-	if ( light.getColor() != color )
+	if (!light.hasColor() || light.getColor() != color)
 	{
 		if( !_useHueEntertainmentAPI )
 		{
@@ -1474,8 +1600,7 @@ void LedDevicePhilipsHue::setColor(PhilipsHueLight& light, CiColor& color)
 		}
 		else
 		{
-			color.bri = ( qMin( _brightnessMax, _brightnessFactor * qMax( _brightnessMin, color.bri ) ) );
-			//if(color.x == 0.0 && color.y == 0.0) color = colorBlack;
+			color.bri = (qMin((double)1.0, _brightnessFactor * qMax((double)0, color.bri)));
 		}
 		light.setColor( color );
 	}
@@ -1484,12 +1609,15 @@ void LedDevicePhilipsHue::setColor(PhilipsHueLight& light, CiColor& color)
 void LedDevicePhilipsHue::setState(PhilipsHueLight& light, bool on, const CiColor& color)
 {
 	QString stateCmd;
+	QString powerCmd;
+	bool priority = false;
 
 	if ( light.getOnOffState() != on )
 	{
 		light.setOnOffState( on );
 		QString state = on ? API_STATE_VALUE_TRUE : API_STATE_VALUE_FALSE;
-		stateCmd += QString("\"%1\":%2,").arg( API_STATE_ON, state );
+		powerCmd = QString("\"%1\":%2").arg(API_STATE_ON, state);
+		priority = true;
 	}
 
 	if ( light.getTransitionTime() != _transitionTime )
@@ -1499,16 +1627,42 @@ void LedDevicePhilipsHue::setState(PhilipsHueLight& light, bool on, const CiColo
 	}
 
 	const int bri = qRound( qMin( 254.0, _brightnessFactor * qMax( 1.0, color.bri * 254.0 ) ) );
-	if ( light.getColor() != color )
+	if (!light.hasColor() || light.getColor() != color)
 	{
-		light.setColor( color );
-		stateCmd += QString("\"%1\":[%2,%3],\"%4\":%5").arg( API_XY_COORDINATES ).arg( color.x, 0, 'd', 4 ).arg( color.y, 0, 'd', 4 ).arg( API_BRIGHTNESS ).arg( bri );
+		if (!light.isBusy() || priority)
+		{
+			light.setColor( color );
+			stateCmd += QString("\"%1\":[%2,%3],\"%4\":%5,").arg(API_XY_COORDINATES).arg(color.x, 0, 'd', 4).arg(color.y, 0, 'd', 4).arg(API_BRIGHTNESS).arg(bri);
+		}
 
 	}
 
-	if ( !stateCmd.isEmpty() )
+	if (!stateCmd.isEmpty() || !powerCmd.isEmpty())
 	{
-		setLightState( light.getId(), "{" + stateCmd + "}" );
+		if ( !stateCmd.isEmpty() )
+		{
+			stateCmd = QString("\"%1\":%2").arg(API_STATE_ON, "true") + "," + stateCmd;
+			stateCmd = stateCmd.left(stateCmd.length() - 1);
+		}
+
+		qint64 _currentTime = QDateTime::currentMSecsSinceEpoch();
+
+		if ((_currentTime - _lastConfirm > 1500 && ((int)light.getId()) != _lastId) ||
+			 (_currentTime - _lastConfirm > 3000))
+		{
+			_lastId = light.getId();
+			_lastConfirm = _currentTime;
+		}
+
+		if (!stateCmd.isEmpty())
+		{
+			setLightState( light.getId(), "{" + stateCmd + "}" );
+		}
+		if (!powerCmd.isEmpty() && !on)
+		{
+			QThread::msleep(50);
+			setLightState(light.getId(), "{" + powerCmd + "}");
+		}
 	}
 }
 
@@ -1517,46 +1671,152 @@ void LedDevicePhilipsHue::setLightsCount( unsigned int lightsCount )
 	_lightsCount = lightsCount;
 }
 
-bool LedDevicePhilipsHue::powerOn()
+
+bool LedDevicePhilipsHue::switchOn()
 {
-	if ( _isDeviceReady)
+	bool rc {false};
+
+	if ( _isOn )
 	{
-		// TODO: Question: Not clear, if setstream state on will turn of the lights
-		// or do they need to be turned off classically?
-		if ( !_useHueEntertainmentAPI )
+		Debug(_log, "Device %s is already on. Skipping.", QSTRING_CSTR(_activeDeviceType));
+		rc = true;
+	}
+	else
+	{
+		if ( _isDeviceReady )
 		{
-			//Switch off Philips Hue devices physically
-			for ( PhilipsHueLight& light : _lights )
+			Info(_log, "Switching device %s ON", QSTRING_CSTR(_activeDeviceType));
+			if ( storeState() )
 			{
-				setOnOffState( light, true );
+				if (_useHueEntertainmentAPI)
+				{
+					if (openStream())
+					{
+						if (startConnection())
+						{
+							if ( powerOn() )
+							{
+								_isOn = true;
+								setRewriteTime(STREAM_REWRITE_TIME.count());
+							}
+						}
+					}
+				}
+				else
+				{
+					if ( powerOn() )
+					{
+						_isOn = true;
+					}
+				}
+			}
+
+			if (_isOn)
+			{
+				Info(_log, "Device %s is ON", QSTRING_CSTR(_activeDeviceType));
+				emit enableStateChanged(_isEnabled);
+				rc =true;
+			}
+			else
+			{
+				Warning(_log, "Failed switching device %s ON", QSTRING_CSTR(_activeDeviceType));
 			}
 		}
 	}
-	return true;
+	return rc;
+}
+
+bool LedDevicePhilipsHue::switchOff()
+{
+	bool rc {false};
+
+	if ( !_isOn )
+	{
+		rc = true;
+	}
+	else
+	{
+		if ( _isDeviceInitialised )
+		{
+			if ( _isDeviceReady )
+			{
+				if (_useHueEntertainmentAPI && _groupStreamState)
+				{
+					Info(_log, "Switching device %s OFF", QSTRING_CSTR(_activeDeviceType));
+					_isOn = false;
+					setRewriteTime(0);
+
+					if ( _isRestoreOrigState )
+					{
+						stopStream();
+						rc = restoreState();
+					}
+					else
+					{
+						for (PhilipsHueLight& light : _lights)
+						{
+							light.setBlack();
+						}
+						writeStream(true);
+
+						stopStream();
+						rc = powerOff();
+					}
+
+					if (rc)
+					{
+						Info(_log, "Device %s is OFF", QSTRING_CSTR(_activeDeviceType));
+						rc = true;
+					}
+					else
+					{
+						Warning(_log, "Failed switching device %s OFF", QSTRING_CSTR(_activeDeviceType));
+					}
+
+				}
+				else
+				{
+					rc = LedDevicePhilipsHueBridge::switchOff();
+				}
+			}
+			else
+			{
+				rc = true;
+			}
+		}
+	}
+	return rc;
+}
+
+bool LedDevicePhilipsHue::powerOn()
+{
+	bool rc {true};
+	if (_isDeviceReady)
+	{
+		for ( PhilipsHueLight& light : _lights )
+		{
+			setOnOffState(light, true, true);
+		}
+	}
+	return rc;
 }
 
 bool LedDevicePhilipsHue::powerOff()
 {
-	if ( _isDeviceReady)
+	bool rc {true};
+	if (_isDeviceReady)
 	{
-		// TODO: Question: Not clear, if setstream state off will turn of the lights
-		// or do they need to be turned off classically
-		if ( !_useHueEntertainmentAPI )
+		for ( PhilipsHueLight& light : _lights )
 		{
-			//Switch off Philips Hue devices physically
-			for ( PhilipsHueLight& light : _lights )
-			{
-				setOnOffState( light, false );
-			}
+			setOnOffState(light, false, true);
 		}
 	}
-	return true;
+	return rc;
 }
 
 bool LedDevicePhilipsHue::storeState()
 {
-	bool rc = true;
-
+	bool rc {true};
 	if ( _isRestoreOrigState )
 	{
 		if( !_lightIds.empty() )
@@ -1568,14 +1828,12 @@ bool LedDevicePhilipsHue::storeState()
 			}
 		}
 	}
-
 	return rc;
 }
 
 bool LedDevicePhilipsHue::restoreState()
 {
-	bool rc = true;
-
+	bool rc {true};
 	if ( _isRestoreOrigState )
 	{
 		// Restore device's original state
@@ -1587,76 +1845,7 @@ bool LedDevicePhilipsHue::restoreState()
 			}
 		}
 	}
-
 	return rc;
-}
-
-QJsonObject LedDevicePhilipsHue::discover(const QJsonObject& /*params*/)
-{
-	QJsonObject devicesDiscovered;
-	devicesDiscovered.insert("ledDeviceType", _activeDeviceType );
-
-	QJsonArray deviceList;
-
-	// Discover Devices
-	SSDPDiscover discover;
-
-	discover.skipDuplicateKeys(true);
-	discover.setSearchFilter(SSDP_FILTER, SSDP_FILTER_HEADER);
-	QString searchTarget = SSDP_ID;
-
-	if ( discover.discoverServices(searchTarget) > 0 )
-	{
-		deviceList = discover.getServicesDiscoveredJson();
-	}
-
-	devicesDiscovered.insert("devices", deviceList);
-	Debug(_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData() );
-
-	return devicesDiscovered;
-}
-
-QJsonObject LedDevicePhilipsHue::getProperties(const QJsonObject& params)
-{
-	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-	QJsonObject properties;
-
-	// Get Phillips-Bridge device properties
-	QString hostName = params[CONFIG_HOST].toString("");
-	if (!hostName.isEmpty())
-	{
-		QString username = params["user"].toString("");
-		QString filter = params["filter"].toString("");
-
-		int apiPort;
-		if (params[CONFIG_PORT].isString())
-		{
-			apiPort = params[CONFIG_PORT].toString().toInt();
-		}
-		else
-		{
-			apiPort = params[CONFIG_PORT].toInt();
-		}
-
-		if (apiPort == 0)
-		{
-			apiPort = API_DEFAULT_PORT;
-		}
-
-		initRestAPI(hostName, apiPort, username);
-		_restApi->setPath(filter);
-
-		// Perform request
-		httpResponse response = _restApi->get();
-		if (response.error())
-		{
-			Warning(_log, "%s get properties failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
-		}
-
-		// Perform request
-		properties.insert("properties", response.getBody().object());
-	}
-	return properties;
 }
 
 void LedDevicePhilipsHue::identify(const QJsonObject& params)
@@ -1664,43 +1853,32 @@ void LedDevicePhilipsHue::identify(const QJsonObject& params)
 	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 	QJsonObject properties;
 
-	// Identify Phillips-Bridge device
-	QString hostName = params[CONFIG_HOST].toString("");
-	if (!hostName.isEmpty())
+	_hostName = params[CONFIG_HOST].toString("");
+	_apiPort =  params[CONFIG_PORT].toInt();
+	_authToken = params["user"].toString("");
+
+	Info(_log, "Identify %s, hostname (%s)", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(_hostName) );
+
+	if (NetUtils::resolveHostToAddress(_log, _hostName, _address, _apiPort))
 	{
-		QString username = params["user"].toString("");
-		int lightId = params["lightId"].toInt(0);
-
-		int apiPort;
-		if (params[CONFIG_PORT].isString())
+		if ( openRestAPI() )
 		{
-			apiPort = params[CONFIG_PORT].toString().toInt();
-		}
-		else
-		{
-			apiPort = params[CONFIG_PORT].toInt();
-		}
+				int lightId = params["lightId"].toInt(0);
 
-		if (apiPort == 0)
-		{
-			apiPort = API_DEFAULT_PORT;
-		}
+				QString resource = QString("%1/%2/%3").arg(API_LIGHTS).arg(lightId).arg(API_STATE);
+				_restApi->setPath(resource);
 
-		initRestAPI(hostName, apiPort, username);
+				QString stateCmd;
+				stateCmd += QString("\"%1\":%2,").arg(API_STATE_ON, API_STATE_VALUE_TRUE);
+				stateCmd += QString("\"%1\":\"%2\"").arg("alert", "select");
+				stateCmd = "{" + stateCmd + "}";
 
-		QString resource = QString("%1/%2/%3").arg(API_LIGHTS).arg(lightId).arg(API_STATE);
-		_restApi->setPath(resource);
-
-		QString stateCmd;
-		stateCmd += QString("\"%1\":%2,").arg(API_STATE_ON, API_STATE_VALUE_TRUE);
-		stateCmd += QString("\"%1\":\"%2\"").arg("alert", "select");
-		stateCmd = "{" + stateCmd + "}";
-
-		// Perform request
-		httpResponse response = _restApi->put(stateCmd);
-		if (response.error())
-		{
-			Warning(_log, "%s identification failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+				// Perform request
+				httpResponse response = _restApi->put(stateCmd);
+				if (response.error())
+				{
+					Warning(_log, "%s identification failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+				}
 		}
 	}
 }

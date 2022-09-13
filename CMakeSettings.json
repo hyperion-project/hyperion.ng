@@ -17,7 +17,7 @@
       ],
       "environments": [
         // Replace path with your installation path
-        //{ "QTDIR": "C:/Qt/6.2.0/msvc2019_64/" },
+        //{ "QTDIR": "C:/Qt/6.2.2/msvc2019_64/" },
         //{ "VULKAN_SDK": "C:/VulkanSDK/1.2.182.0" }
       ]
     },
@@ -38,7 +38,7 @@
       ],
       "environments": [
         // Replace path with your installation path
-        //{ "QTDIR": "C:/Qt/6.2.0/msvc2019_64/" },
+        //{ "QTDIR": "C:/Qt/6.2.2/msvc2019_64/" },
         //{ "VULKAN_SDK": "C:/VulkanSDK/1.2.182.0" }
       ]
     }

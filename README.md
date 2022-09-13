@@ -1,9 +1,12 @@
-![Hyperion](doc/logo_dark.png#gh-dark-mode-only)
-![Hyperion](doc/logo_light.png#gh-light-mode-only)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="doc/logo_dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="doc/logo_light.png">
+  <img alt="Hyperion" src="doc/logo_light.png">
+</picture>
 
 [![Latest-Release](https://img.shields.io/github/v/release/hyperion-project/hyperion.ng?include_prereleases&label=Latest%20Release&logo=github&logoColor=white&color=0f83e7)](https://github.com/hyperion-project/hyperion.ng/releases)
 [![GitHub Actions](https://github.com/hyperion-project/hyperion.ng/workflows/Hyperion%20CI%20Build/badge.svg?branch=master)](https://github.com/hyperion-project/hyperion.ng/actions)
-[![LGTM](https://img.shields.io/lgtm/alerts/g/hyperion-project/hyperion.ng.svg?label=LGTM%20Alerts&logo=lgtm&logoColor=white&color=e18200)](https://lgtm.com/projects/g/hyperion-project/hyperion.ng/alerts/)
+[![LGTM](https://img.shields.io/lgtm/grade/cpp/github/hyperion-project/hyperion.ng?label=Code%20Quality&logo=lgtm&logoColor=white&color=4bc51d)](https://lgtm.com/projects/g/hyperion-project/hyperion.ng/context:cpp)
 [![Forum](https://img.shields.io/website/https/hyperion-project.org.svg?label=Forum&down_color=red&down_message=offline&up_color=4bc51d&up_message=online&logo=homeadvisor&logoColor=white)](https://www.hyperion-project.org)
 [![Documentation](https://img.shields.io/website/https/docs.hyperion-project.org.svg?label=Documentation&down_color=red&down_message=offline&up_color=4bc51d&up_message=online&logo=read-the-docs)](https://docs.hyperion-project.org)
 [![Discord](https://img.shields.io/discord/785578322167463937?label=Discord&logo=discord&logoColor=white&color=4bc51d)](https://discord.gg/khkR8Vx3ff)
@@ -24,6 +27,10 @@
 * Black border detector and processor
 * A scriptable (Python) effect engine with 39 build-in effects for your inspiration
 * A multi language web interface to configure and remote control hyperion
+
+### Supported Hardware
+
+You can find a list of supported hardware [here](https://docs.hyperion-project.org/en/user/leddevices/).
 
 If you need further support please open a topic at the forum!<br>
 [![Forum](https://img.shields.io/website/https/hyperion-project.org.svg?label=Forum&down_color=red&down_message=offline&up_color=4bc51d&up_message=online&logo=homeadvisor&logoColor=white)](https://www.hyperion-project.org)
@@ -53,13 +60,16 @@ Covers these topics:
 Released and unreleased changes at [CHANGELOG.md](CHANGELOG.md)
 
 ## Building
-See [CompileHowto](doc/development/CompileHowto.md).
+See [CompileHowto.md](doc/development/CompileHowto.md).
 
 ## Installation
-See [Documentation](#documentation) or at [Installation.md](Installation.md).
+See [Documentation](https://docs.hyperion-project.org/en/user/Installation.html) or at [Installation.md](Installation.md).
 
 ## Download
 Releases available from the [Hyperion release page](https://github.com/hyperion-project/hyperion.ng/releases)
+
+## Privacy Policy
+See [PRIVACY.md](PRIVACY.md).
 
 ## License
 The source is released under MIT-License (see https://opensource.org/licenses/MIT).<br>

@@ -24,6 +24,17 @@
       "required": true,
       "propertyOrder": 2
     },
+    "streamProtocol": {
+      "type": "string",
+      "title": "edt_dev_spec_stream_protocol_title",
+      "enum": [ "DDP", "RAW" ],
+      "default": "DDP",
+      "options": {
+        "enum_titles": [ "edt_conf_enum_udp_ddp", "edt_conf_enum_udp_raw" ]
+      },
+      "access": "expert",
+      "propertyOrder": 3
+    },
     "restoreOriginalState": {
       "type": "boolean",
       "format": "checkbox",
@@ -33,7 +44,7 @@
       "options": {
         "infoText": "edt_dev_spec_restoreOriginalState_title_info"
       },
-      "propertyOrder": 3
+      "propertyOrder": 4
     },
     "overwriteSync": {
       "type": "boolean",
@@ -42,7 +53,7 @@
       "default": true,
       "required": true,
       "access": "advanced",
-      "propertyOrder": 4
+      "propertyOrder": 5
     },
     "overwriteBrightness": {
       "type": "boolean",
@@ -51,7 +62,7 @@
       "default": true,
       "required": true,
       "access": "advanced",
-      "propertyOrder": 5
+      "propertyOrder": 6
     },
     "brightness": {
       "type": "integer",
@@ -65,7 +76,7 @@
         }
       },
       "access": "advanced",
-      "propertyOrder": 6
+      "propertyOrder": 7
     },
     "latchTime": {
       "type": "integer",
@@ -78,7 +89,7 @@
       "options": {
         "infoText": "edt_dev_spec_latchtime_title_info"
       },
-      "propertyOrder": 7
+      "propertyOrder": 8
     }
   },
   "additionalProperties": true

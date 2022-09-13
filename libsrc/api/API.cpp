@@ -10,9 +10,11 @@
 #include <QDateTime>
 #include <QCryptographicHash>
 #include <QImage>
+#include <QImageReader>
 #include <QBuffer>
 #include <QByteArray>
 #include <QTimer>
+#include <QThread>
 
 // hyperion includes
 #include <utils/jsonschema/QJsonFactory.h>
@@ -21,9 +23,6 @@
 #include <utils/SysInfo.h>
 #include <utils/ColorSys.h>
 #include <utils/Process.h>
-
-// bonjour wrapper
-#include <bonjour/bonjourbrowserwrapper.h>
 
 // ledmapping int <> string transform methods
 #include <hyperion/ImageProcessor.h>
@@ -43,17 +42,13 @@ API::API(Logger *log, bool localConnection, QObject *parent)
     // Init
     _log = log;
     _authManager = AuthManager::getInstance();
-    _instanceManager = HyperionIManager::getInstance();
+	_instanceManager = HyperionIManager::getInstance();
     _localConnection = localConnection;
 
     _authorized = false;
     _adminAuthorized = false;
 
-    _hyperion = _instanceManager->getHyperionInstance(0);
     _currInstanceIndex = 0;
-    // TODO FIXME
-    // report back current registers when a Hyperion instance request it
-    //connect(ApiSync::getInstance(), &ApiSync::requestActiveRegister, this, &API::requestActiveRegister, Qt::QueuedConnection);
 
     // connect to possible token responses that has been requested
     connect(_authManager, &AuthManager::tokenResponse, [=] (bool success, QObject *caller, const QString &token, const QString &comment, const QString &id, const int &tan)
@@ -72,7 +67,7 @@ API::API(Logger *log, bool localConnection, QObject *parent)
 
 void API::init()
 {
-	assert(_hyperion);
+	_hyperion = _instanceManager->getHyperionInstance(0);
 
     bool apiAuthRequired = _authManager->isAuthRequired();
 
@@ -83,15 +78,19 @@ void API::init()
     }
     // if this is localConnection and network allows unauth locals, set authorized flag
     if (apiAuthRequired && _localConnection)
+	{
         _authorized = !_authManager->isLocalAuthRequired();
+	}
 
     // admin access is allowed, when the connection is local and the option for local admin isn't set. Con: All local connections get full access
     if (_localConnection)
     {
         _adminAuthorized = !_authManager->isLocalAdminAuthRequired();
         // just in positive direction
-        if (_adminAuthorized)
-            _authorized = true;
+		if (_adminAuthorized)
+		{
+			_authorized = true;
+		}
     }
 }
 
@@ -113,12 +112,25 @@ bool API::setImage(ImageCmdData &data, hyperion::Components comp, QString &reply
     // truncate name length
     data.imgName.truncate(16);
 
-    if (data.format == "auto")
-    {
-        QImage img = QImage::fromData(data.data);
+	if (!data.format.isEmpty())
+	{
+		if (data.format == "auto")
+		{
+			data.format = "";
+		}
+		else
+		{
+			if (!QImageReader::supportedImageFormats().contains(data.format.toLower().toUtf8()))
+			{
+				replyMsg = "The given format [" + data.format + "] is not supported";
+				return false;
+			}
+		}
+
+		QImage img = QImage::fromData(data.data, QSTRING_CSTR(data.format));
         if (img.isNull())
         {
-            replyMsg = "Failed to parse picture, the file might be corrupted";
+			replyMsg = "Failed to parse picture, the file might be corrupted or content does not match the given format [" + data.format + "]";
             return false;
         }
 
@@ -224,6 +236,7 @@ void API::setVideoMode(VideoMode mode, hyperion::Components callerComp)
     QMetaObject::invokeMethod(_hyperion, "setVideoMode", Qt::QueuedConnection, Q_ARG(VideoMode, mode));
 }
 
+#if defined(ENABLE_EFFECTENGINE)
 bool API::setEffect(const EffectCmdData &dat, hyperion::Components callerComp)
 {
     int res;
@@ -238,6 +251,7 @@ bool API::setEffect(const EffectCmdData &dat, hyperion::Components callerComp)
 
     return res >= 0;
 }
+#endif
 
 void API::setSourceAutoSelect(bool state, hyperion::Components callerComp)
 {
@@ -316,13 +330,6 @@ void API::stopInstance(quint8 index)
     QMetaObject::invokeMethod(_instanceManager, "stopInstance", Qt::QueuedConnection, Q_ARG(quint8, index));
 }
 
-void API::requestActiveRegister(QObject *callerInstance)
-{
-    // TODO FIXME
-    //if (_activeRegisters.size())
-    //   QMetaObject::invokeMethod(ApiSync::getInstance(), "answerActiveRegister", Qt::QueuedConnection, Q_ARG(QObject *, callerInstance), Q_ARG(MapRegister, _activeRegisters));
-}
-
 bool API::deleteInstance(quint8 index, QString &replyMsg)
 {
     if (_adminAuthorized)
@@ -358,6 +365,7 @@ QString API::setInstanceName(quint8 index, const QString &name)
     return NO_AUTH;
 }
 
+#if defined(ENABLE_EFFECTENGINE)
 QString API::deleteEffect(const QString &name)
 {
     if (_adminAuthorized)
@@ -379,6 +387,7 @@ QString API::saveEffect(const QJsonObject &data)
     }
     return NO_AUTH;
 }
+#endif
 
 bool API::saveSettings(const QJsonObject &data)
 {

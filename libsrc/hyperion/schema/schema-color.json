@@ -158,6 +158,17 @@
 						"maxItems" : 3,
 						"propertyOrder" : 10
 					},
+					"saturationGain" :
+					{
+						"type" : "number",
+						"title" : "edt_conf_color_saturationGain_title",
+						"required" : true,
+						"minimum" : 0.0,
+						"maximum": 10.0,
+						"default" : 1.0,
+						"step" : 0.1,
+						"propertyOrder" : 11
+					},
 					"backlightThreshold" :
 					{
 						"type" : "integer",
@@ -167,7 +178,7 @@
 						"maximum": 100,
 						"default" : 0,
 						"append" : "edt_append_percent",
-						"propertyOrder" : 11
+						"propertyOrder" : 12
 					},
 					"backlightColored" :
 					{
@@ -175,7 +186,7 @@
 						"title" : "edt_conf_color_backlightColored_title",
 						"required" : true,
 						"default" : false,
-						"propertyOrder" : 12
+						"propertyOrder" : 13
 					},
 					"brightness" :
 					{
@@ -186,7 +197,7 @@
 						"maximum": 100,
 						"default" : 100,
 						"append" : "edt_append_percent",
-						"propertyOrder" : 13
+						"propertyOrder" : 14
 					},
 					"brightnessCompensation" :
 					{
@@ -197,7 +208,18 @@
 						"maximum": 100,
 						"default" : 0,
 						"append" : "edt_append_percent",
-						"propertyOrder" : 14
+						"propertyOrder" : 15
+					},
+					"brightnessGain" :
+					{
+						"type" : "number",
+						"title" : "edt_conf_color_brightnessGain_title",
+						"required" : true,
+						"minimum" : 0.1,
+						"maximum": 10.0,
+						"default" : 1.0,
+						"step" : 0.1,
+						"propertyOrder" : 16
 					},
 					"gammaRed" :
 					{
@@ -208,7 +230,7 @@
 						"maximum": 100.0,
 						"default" : 2.2,
 						"step" : 0.1,
-						"propertyOrder" : 15
+						"propertyOrder" : 17
 					},
 					"gammaGreen" :
 					{
@@ -219,7 +241,7 @@
 						"maximum": 100.0,
 						"default" : 2.2,
 						"step" : 0.1,
-						"propertyOrder" : 16
+						"propertyOrder" : 18
 					},
 					"gammaBlue" :
 					{
@@ -230,7 +252,7 @@
 						"maximum": 100.0,
 						"default" : 2.2,
 						"step" : 0.1,
-						"propertyOrder" : 17
+						"propertyOrder" : 19
 					}
 				},
 				"additionalProperties" : false

@@ -1,7 +1,7 @@
 <div class="container-fluid">
-	<div class="row">
-		<div class="col-lg-12">
-			<h3 class="page-header"><i class="fa fa-cogs fa-fw"></i><span  data-i18n="main_menu_effectsconfigurator_token">Effects Configurator</span></h3>
+  <div class="row">
+    <div class="col-lg-12">
+      <h3 class="page-header"><i class="fa fa-cogs fa-fw"></i><span data-i18n="main_menu_effectsconfigurator_token">Effects Configurator</span></h3>
 
       <div class="panel panel-default" style="border:0px;">
         <div class="panel-heading panel-instance" style="border-radius:3px; border-bottom:0px;">
@@ -15,50 +15,51 @@
         </div>
       </div>
 
-			<div id="intro_effc">
-			</div>
-			<div class="row">
-			<div class="col-lg-6">
-				<div class="panel panel-default" >
-					<div class="panel-heading">
-						<label for="effectslist"  data-i18n="effectsconfigurator_label_chooseeff">Choose Base-Effect:</label>
-						<select id="effectslist" class="form-control" style="color:black;width:auto;margin-left:10px;display:inline-block" />
-					</div>
-					<div class="panel-body">
-						<div id="eff_desc"></div>
-						<table style="margin-bottom:8px" id="effc_nametable">
-							<tbody>
-								<tr>
-									<td class="ltd"><label for="name-input" data-i18n="effectsconfigurator_label_effectname">Effect name:</label></td>
-									<td class="itd"><input class="form-control" type="text" id="name-input" /></td>
-								</tr>
-							</tbody>
-						</table>
-						<div id="editor_container" />
-					</div>
-					 <div class="panel-footer" id="eff_footer">
-						<button  class="btn btn-warning" id='btn_start_test' data-i18n="effectsconfigurator_button_starttest">Start Effecttest</button>
-						<button  class="btn btn-warning" id='btn_stop_test' data-i18n="effectsconfigurator_button_stoptest">Stop Effecttest</button>
-						<button  class="btn btn-danger" id='btn_cont_test' data-i18n="effectsconfigurator_button_conttest">Toggle continuous testing</button>
-						<button  class="btn btn-primary" id='btn_write' data-i18n="effectsconfigurator_button_saveeffect">Save Effect</button>
-					</div>
-				</div>
-			</div>
-			<div class="col-lg-6">
-				<div class="panel panel-default" >
-					<div class="panel-heading">
-						<label for="effectsdellist"  data-i18n="effectsconfigurator_editdeleff"></label>
-						<select id="effectsdellist" class="form-control" style="color:black;width:auto;margin-left:10px;display:inline-block" />
-					</div>
-					<div class="panel-body">
-						<button  class="btn btn-primary" id='btn_delete' data-i18n="effectsconfigurator_button_deleffect">Delete Effect</button>
-						<button  class="btn btn-primary" id='btn_edit' data-i18n="effectsconfigurator_button_editeffect"></button>
-					</div>
-				</div>
-			</div>
-			</div>
-		</div>
-	</div>
+      <div id="intro_effc">
+      </div>
+      <div class="row">
+        <div class="col-lg-6">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <label for="effectslist" data-i18n="effectsconfigurator_label_chooseeff">Choose Base-Effect:</label>
+              <select id="effectslist" class="form-control" style="color:black;width:auto;margin-left:10px;display:inline-block"></select>
+            </div>
+            <div class="panel-body">
+              <div id="eff_desc"></div>
+              <table style="margin-bottom:8px" id="effc_nametable">
+                <tbody>
+                  <tr>
+                    <td class="ltd"><label for="name-input" data-i18n="effectsconfigurator_label_effectname">Effect name:</label></td>
+                    <td class="itd"><input class="form-control" type="text" id="name-input"></td>
+                  </tr>
+                </tbody>
+              </table>
+              <div id="editor_container"></div>
+            </div>
+            <div class="panel-footer" id="eff_footer">
+              <button class="btn btn-warning" id='btn_start_test' data-i18n="effectsconfigurator_button_starttest">Start Effecttest</button>
+              <button class="btn btn-warning" id='btn_stop_test' data-i18n="effectsconfigurator_button_stoptest">Stop Effecttest</button>
+              <button class="btn btn-danger" id='btn_cont_test' data-i18n="effectsconfigurator_button_conttest">Toggle continuous testing</button>
+              <button class="btn btn-primary" id='btn_write' data-i18n="effectsconfigurator_button_saveeffect">Save Effect</button>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              <label for="effectsdellist" data-i18n="effectsconfigurator_editdeleff"></label>
+              <select id="effectsdellist" class="form-control" style="color:black;width:auto;margin-left:10px;display:inline-block"></select>
+            </div>
+            <div class="panel-body">
+              <button class="btn btn-primary" id='btn_delete' data-i18n="effectsconfigurator_button_deleffect">Delete Effect</button>
+              <button class="btn btn-primary" id='btn_edit' data-i18n="effectsconfigurator_button_editeffect"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="/js/content_effectsconfigurator.js"></script>
+

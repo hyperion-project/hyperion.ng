@@ -134,6 +134,18 @@
 					"required" : false,
 					"minimum" : 0,
 					"maximum" : 100
+				},
+				"saturationGain" : {
+					"type" : "number",
+					"required" : false,
+					"minimum" : 0.0,
+					"maximum": 10.0
+				},
+				"brightnessGain" : {
+					"type" : "number",
+					"required" : false,
+					"minimum" : 0.1,
+					"maximum": 10.0
 				}
 			},
 			"additionalProperties": false

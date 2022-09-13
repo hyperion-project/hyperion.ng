@@ -1,5 +1,5 @@
 $(document).ready(function () {
-  var darkModeOverwrite = getStorage("darkModeOverwrite", true);
+  var darkModeOverwrite = getStorage("darkModeOverwrite");
 
   if (darkModeOverwrite == "false" || darkModeOverwrite == null) {
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -7,11 +7,11 @@ $(document).ready(function () {
     }
 
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-      setStorage("darkMode", "off", false);
+      setStorage("darkMode", "off");
     }
   }
 
-  if (getStorage("darkMode", false) == "on") {
+  if (getStorage("darkMode") == "on") {
     handleDarkMode();
   }
 
@@ -42,7 +42,6 @@ $(document).ready(function () {
       $('#btn_hypinstanceswitch').toggle(true)
     else
       $('#btn_hypinstanceswitch').toggle(false)
-    updateSessions();
   }); // end cmd-serverinfo
 
   // Update language selection
@@ -59,24 +58,19 @@ $(document).ready(function () {
       container: 'body'
     });
 
-  $(".bootstrap-select").click(function () {
+  $(".bootstrap-select").on("click", function () {
     $(this).addClass("open");
   });
 
-  $(document).click(function () {
+  $(document).on("click", function () {
     $(".bootstrap-select").removeClass("open");
   });
 
-  $(".bootstrap-select").click(function (e) {
+  $(".bootstrap-select").on("click", function (e) {
     e.stopPropagation();
   });
 
   //End language selection
-
-  $(window.hyperion).on("cmd-sessions-update", function (event) {
-    window.serverInfo.sessions = event.response.data;
-    updateSessions();
-  });
 
   $(window.hyperion).on("cmd-authorize-tokenRequest cmd-authorize-getPendingTokenRequests", function (event) {
     var val = event.response.info;
@@ -121,7 +115,7 @@ $(document).ready(function () {
     requestGetPendingTokenRequests();
 
     //Switch to last selected instance and load related config
-    var lastSelectedInstance = getStorage('lastSelectedInstance', false);
+    var lastSelectedInstance = getStorage('lastSelectedInstance');
     if (lastSelectedInstance == null || window.serverInfo.instance && !window.serverInfo.instance[lastSelectedInstance]) {
       lastSelectedInstance = 0;
     }
@@ -157,7 +151,7 @@ $(document).ready(function () {
       $("#btn_lock_ui").removeAttr('style')
 
     if (event.response.hasOwnProperty('info'))
-      setStorage("loginToken", event.response.info.token, true);
+      setStorage("loginToken", event.response.info.token);
 
     requestServerConfigSchema();
   });
@@ -171,7 +165,7 @@ $(document).ready(function () {
   });
 
   $(window.hyperion).on("cmd-authorize-newPasswordRequired", function (event) {
-    var loginToken = getStorage("loginToken", true)
+    var loginToken = getStorage("loginToken")
 
     if (event.response.info.newPasswordRequired == true) {
       window.defaultPasswordIsSet = true;
@@ -204,8 +198,8 @@ $(document).ready(function () {
   $(window.hyperion).on("error", function (event) {
     //If we are getting an error "No Authorization" back with a set loginToken we will forward to new Login (Token is expired.
     //e.g.: hyperiond was started new in the meantime)
-    if (event.reason == "No Authorization" && getStorage("loginToken", true)) {
-      removeStorage("loginToken", true);
+    if (event.reason == "No Authorization" && getStorage("loginToken")) {
+      removeStorage("loginToken");
       requestRequiresAdminAuth();
     }
     else if (event.reason == "Selected Hyperion instance isn't running") {
@@ -220,13 +214,20 @@ $(document).ready(function () {
     requestRequiresAdminAuth();
   });
 
-  $(window.hyperion).one("ready", function (event) {
-    // Content will be loaded by the instance load/switch
+  $(window.hyperion).on("ready", function (event) {
+    loadContent(undefined,true);
 
     //Hide capture menu entries, if no grabbers are available
     if ((window.serverInfo.grabbers.screen.available.length === 0) && (window.serverInfo.grabbers.video.available.length === 0)) {
       $("#MenuItemGrabber").attr('style', 'display:none')
-      $("#MenuItemInstCapture").attr('style', 'display:none')
+      if ((jQuery.inArray("boblight", window.serverInfo.services) === -1)) {
+        $("#MenuItemInstCapture").attr('style', 'display:none')
+      }
+    }
+
+    //Hide effectsconfigurator menu entry, if effectengine is not available
+    if (jQuery.inArray("effectengine", window.serverInfo.services) === -1) {
+      $("#MenuItemEffectsConfig").attr('style', 'display:none')
     }
   });
 
@@ -274,15 +275,14 @@ $(document).ready(function () {
 
     if (!isInData) {
       //Delete Storage information about the last used but now stopped instance
-      if (getStorage('lastSelectedInstance', false))
-        removeStorage('lastSelectedInstance', false)
+      if (getStorage('lastSelectedInstance'))
+        removeStorage('lastSelectedInstance')
 
       currentHyperionInstance = 0;
       currentHyperionInstanceName = getInstanceNameByIndex(0);
       requestServerConfig();
       setTimeout(requestServerInfo, 100)
       setTimeout(requestTokenInfo, 200)
-      setTimeout(loadContent, 300, undefined, true)
     }
 
     // determine button visibility
@@ -293,33 +293,33 @@ $(document).ready(function () {
       $('#btn_hypinstanceswitch').toggle(false)
 
     // update listing for button
-    updateHyperionInstanceListing()
+    updateUiOnInstance(currentHyperionInstance);
+    updateHyperionInstanceListing();
   });
 
   $(window.hyperion).on("cmd-instance-switchTo", function (event) {
     requestServerConfig();
     setTimeout(requestServerInfo, 200)
     setTimeout(requestTokenInfo, 400)
-    setTimeout(loadContent, 400, undefined, true)
   });
 
   $(window.hyperion).on("cmd-effects-update", function (event) {
     window.serverInfo.effects = event.response.data.effects
   });
 
-  $(".mnava").bind('click.menu', function (e) {
+  $(".mnava").on('click.menu', function (e) {
     loadContent(e);
     window.scrollTo(0, 0);
   });
 
-  $(window).scroll(function() {
+  $(window).on("scroll", function () {
     if ($(window).scrollTop() > 65)
       $("#navbar_brand_logo").css("display", "none");
     else
       $("#navbar_brand_logo").css("display", "");
   });
 
-  $('#side-menu li a, #side-menu li ul li a').click(function() {
+  $('#side-menu li a, #side-menu li ul li a').on("click", function () {
     $('#side-menu').find('.active').toggleClass('inactive'); // find all active classes and set inactive;
     $(this).addClass('active');
   });
@@ -334,7 +334,7 @@ function suppressDefaultPwWarning() {
 
 $(function () {
   var sidebar = $('#side-menu');  // cache sidebar to a variable for performance
-  sidebar.delegate('a.inactive', 'click', function () {
+  sidebar.on("click", 'a.inactive', function () {
     sidebar.find('.active').toggleClass('active inactive');
     $(this).toggleClass('active inactive');
   });
@@ -347,13 +347,13 @@ $(document.body).on('hide.bs.modal,hidden.bs.modal', function () {
 
 //Dark Mode
 $("#btn_darkmode").off().on("click", function (e) {
-  if (getStorage("darkMode", false) != "on") {
+  if (getStorage("darkMode") != "on") {
     handleDarkMode();
-    setStorage("darkModeOverwrite", true, true);
+    setStorage("darkModeOverwrite", true);
   }
   else {
-    setStorage("darkMode", "off", false);
-    setStorage("darkModeOverwrite", true, true);
+    setStorage("darkMode", "off",);
+    setStorage("darkModeOverwrite", true);
     location.reload();
   }
 });
@@ -370,8 +370,8 @@ function SwitchToMenuItem(target, item) {
   cl_object.addClass('in'); // Add class "in" to expand header in sidebar menu;
   if (item) { // Jump to div "item" if available. Time limit 3 seconds
     function scrollTo(counter) {
-      if(counter < 30) {
-        setTimeout(function() {
+      if (counter < 30) {
+        setTimeout(function () {
           counter++;
           if ($('#' + item).length)
             $('#' + item)[0].scrollIntoView();

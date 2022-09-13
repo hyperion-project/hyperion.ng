@@ -1,18 +1,10 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.1.0)
 project(hyperion-dispmanx)
 
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Network Widgets REQUIRED)
 
-IF ( "${PLATFORM}" MATCHES rpi)
-	find_package(BCM REQUIRED)
-ELSE()
-	SET(BCM_INCLUDE_DIRS "")
-	SET(BCM_LIBRARIES "")
-ENDIF()
-
 include_directories(
 	${CMAKE_CURRENT_BINARY_DIR}/../../libsrc/flatbufserver
-	${BCM_INCLUDE_DIRS}
 	${FLATBUFFERS_INCLUDE_DIRS}
 )
 
@@ -36,12 +28,16 @@ target_link_libraries( ${PROJECT_NAME}
 	flatbufconnect
 	flatbuffers
 	dispmanx-grabber
-	${Dispmanx_LIBRARIES}
-	ssdp
 	Qt${QT_VERSION_MAJOR}::Core
 	Qt${QT_VERSION_MAJOR}::Network
 	Qt${QT_VERSION_MAJOR}::Widgets
 )
+
+if(ENABLE_MDNS)
+        target_link_libraries(${PROJECT_NAME} mdns)
+else()
+        target_link_libraries(${PROJECT_NAME} ssdp)
+endif()
 
 install ( TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin" COMPONENT "hyperion_dispmanx" )
 

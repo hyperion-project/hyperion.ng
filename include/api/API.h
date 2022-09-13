@@ -107,6 +107,7 @@ protected:
     ///
     void setVideoMode(VideoMode mode, hyperion::Components callerComp = hyperion::COMP_INVALID);
 
+#if defined(ENABLE_EFFECTENGINE)
     ///
     /// @brief Set an effect
     /// @param dat        The effect data
@@ -115,6 +116,7 @@ protected:
 	/// @return  True on success else false
     ///
     bool setEffect(const EffectCmdData &dat, hyperion::Components callerComp = hyperion::COMP_INVALID);
+#endif
 
     ///
     /// @brief Set source auto select enabled or disabled
@@ -213,6 +215,7 @@ protected:
     ///
     QString setInstanceName(quint8 index, const QString &name);
 
+#if defined(ENABLE_EFFECTENGINE)
     ///
     /// @brief Delete an effect. Requires ADMIN ACCESS
     /// @param name The effect name
@@ -226,6 +229,7 @@ protected:
     /// @return  True on success else false
     ///
     QString saveEffect(const QJsonObject &data);
+#endif
 
     ///
     /// @brief Save settings object. Requires ADMIN ACCESS
@@ -332,9 +336,9 @@ protected:
     bool getUserToken(QString &userToken);
 
     ///
-    /// @brief Is a token authrized. On success this will grant acces to the API (NOT ADMIN API)
+	/// @brief Is a token authorized. On success this will grant acces to the API (NOT ADMIN API)
     /// @param token   The user Token
-    /// @return True on succes
+	/// @return True on success
     ///
     bool isTokenAuthorized(const QString &token);
 
@@ -397,13 +401,6 @@ signals:
     /// @param  tan     The tan that was part of the request
     ///
     void onStartInstanceResponse(const int &tan);
-
-private slots:
-    ///
-    /// @brief Is called whenever a Hyperion instance wants the current register list
-    /// @param callerInstance  The instance should be returned in the answer call
-    ///
-    void requestActiveRegister(QObject *callerInstance);
 
 private:
     void stopDataConnectionss();

@@ -9,72 +9,110 @@ macro(DeployMacOS TARGET)
 			OUTPUT_STRIP_TRAILING_WHITESPACE
 		)
 
-		install(CODE "set(TARGET_FILE \"${TARGET_FILE}\") \n set(TARGET_BUNDLE_NAME \"${TARGET}.app\") \n set(PLUGIN_DIR \"${QT_PLUGIN_DIR}\")" COMPONENT "Hyperion")
+		install(CODE "set(TARGET_FILE \"${TARGET_FILE}\")" 		 			COMPONENT "Hyperion")
+		install(CODE "set(TARGET_BUNDLE_NAME \"${TARGET}.app\")" 			COMPONENT "Hyperion")
+		install(CODE "set(PLUGIN_DIR \"${QT_PLUGIN_DIR}\")" 	 			COMPONENT "Hyperion")
+		install(CODE "set(BUILD_DIR \"${CMAKE_BINARY_DIR}\")"	 			COMPONENT "Hyperion")
+		install(CODE "set(ENABLE_EFFECTENGINE \"${ENABLE_EFFECTENGINE}\")"	COMPONENT "Hyperion")
+	
 		install(CODE [[
-			file(GET_RUNTIME_DEPENDENCIES
-				EXECUTABLES ${TARGET_FILE}
-				RESOLVED_DEPENDENCIES_VAR resolved_deps
-				UNRESOLVED_DEPENDENCIES_VAR unresolved_deps
-				PRE_INCLUDE_REGEXES ".dylib"
-				PRE_EXCLUDE_REGEXES ".*"
-			)
 
-			foreach(dependency ${resolved_deps})
-				file(INSTALL
-					FILES "${dependency}"
-					DESTINATION "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/Frameworks"
-					TYPE SHARED_LIBRARY
+				file(GET_RUNTIME_DEPENDENCIES
+					EXECUTABLES ${TARGET_FILE}
+					RESOLVED_DEPENDENCIES_VAR resolved_deps
+					UNRESOLVED_DEPENDENCIES_VAR unresolved_deps
 				)
-			endforeach()
 
-			list(LENGTH unresolved_deps unresolved_length)
-			if("${unresolved_length}" GREATER 0)
-				message(WARNING "The following unresolved dependencies were discovered: ${unresolved_deps}")
-			endif()
-
-			foreach(PLUGIN "platforms" "sqldrivers" "imageformats")
-				if(EXISTS ${PLUGIN_DIR}/${PLUGIN})
-					file(GLOB files "${PLUGIN_DIR}/${PLUGIN}/*")
-					foreach(file ${files})
-						get_filename_component(plugin ${file} NAME)
-						list(APPEND QT_PLUGINS "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/plugins/${PLUGIN}/${plugin}")
+				foreach(dependency ${resolved_deps})
+					string(FIND ${dependency} "dylib" _index)
+					if (${_index} GREATER -1)
 						file(INSTALL
-							FILES ${file}
-							DESTINATION "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/plugins/${PLUGIN}"
+							FILES "${dependency}"
+							DESTINATION "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/Frameworks"
 							TYPE SHARED_LIBRARY
 						)
-					endforeach()
+					else()
+						file(INSTALL
+							FILES "${dependency}"
+							DESTINATION "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/lib"
+							TYPE SHARED_LIBRARY
+						)
+					endif()
+				endforeach()
+
+				list(LENGTH unresolved_deps unresolved_length)
+				if("${unresolved_length}" GREATER 0)
+					MESSAGE("The following unresolved dependencies were discovered: ${unresolved_deps}")
 				endif()
-			endforeach()
 
-			include(BundleUtilities)
-			fixup_bundle("${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}" "${QT_PLUGINS}" "" IGNORE_ITEM "python;python3;Python;Python3;.Python;.Python3")
+				foreach(PLUGIN "platforms" "sqldrivers" "imageformats")
+					if(EXISTS ${PLUGIN_DIR}/${PLUGIN})
+						file(GLOB files "${PLUGIN_DIR}/${PLUGIN}/*")
+						foreach(file ${files})
+								file(GET_RUNTIME_DEPENDENCIES
+								EXECUTABLES ${file}
+								RESOLVED_DEPENDENCIES_VAR PLUGINS
+								UNRESOLVED_DEPENDENCIES_VAR unresolved_deps
+								)
 
-			# Detect the Python version and modules directory
-			find_package(Python3 3.5 REQUIRED)
-			execute_process(
-				COMMAND ${Python3_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(standard_lib=True))"
-				OUTPUT_VARIABLE PYTHON_MODULES_DIR
-				OUTPUT_STRIP_TRAILING_WHITESPACE
-			)
+								foreach(DEPENDENCY ${PLUGINS})
+										file(INSTALL
+											DESTINATION "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/lib"
+											TYPE SHARED_LIBRARY
+											FILES ${DEPENDENCY}
+										)
+								endforeach()
 
-			# Copy Python modules to '/../Frameworks/Python.framework/Versions/Current/lib/PythonMAJOR.MINOR' and ignore the unnecessary stuff listed below
-			if (PYTHON_MODULES_DIR)
-				set(PYTHON_VERSION_MAJOR_MINOR "${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}")
-				file(
-					COPY ${PYTHON_MODULES_DIR}/
-					DESTINATION "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/Frameworks/Python.framework/Versions/Current/lib/python${PYTHON_VERSION_MAJOR_MINOR}"
-					PATTERN "*.pyc"                                 EXCLUDE # compiled bytecodes
-					PATTERN "__pycache__"                           EXCLUDE # any cache
-					PATTERN "config-${PYTHON_VERSION_MAJOR_MINOR}*" EXCLUDE # static libs
-					PATTERN "lib2to3"                               EXCLUDE # automated Python 2 to 3 code translation
-					PATTERN "tkinter"                               EXCLUDE # Tk interface
-					PATTERN "turtledemo"                            EXCLUDE # Tk demo folder
-					PATTERN "turtle.py"                             EXCLUDE # Tk demo file
-					PATTERN "test"                                  EXCLUDE # unittest module
-					PATTERN "sitecustomize.py"                      EXCLUDE # site-specific configs
-				)
-			endif(PYTHON_MODULES_DIR)
+								get_filename_component(singleQtLib ${file} NAME)
+								list(APPEND QT_PLUGINS "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/plugins/${PLUGIN}/${singleQtLib}")
+								file(INSTALL
+									FILES ${file}
+									DESTINATION "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/plugins/${PLUGIN}"
+									TYPE SHARED_LIBRARY
+								)
+
+						endforeach()
+					endif()
+				endforeach()
+
+				include(BundleUtilities)							
+				fixup_bundle("${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}" "${QT_PLUGINS}" "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/lib" IGNORE_ITEM "python;python3;Python;Python3;.Python;.Python3")
+
+				if(ENABLE_EFFECTENGINE)
+
+					# Detect the Python version and modules directory
+					find_package(Python3 3.5 REQUIRED)
+					execute_process(
+						COMMAND ${Python3_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(standard_lib=True))"
+						OUTPUT_VARIABLE PYTHON_MODULES_DIR
+						OUTPUT_STRIP_TRAILING_WHITESPACE
+					)
+
+					MESSAGE("Add Python ${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR} to bundle")
+					MESSAGE("PYTHON_MODULES_DIR: ${PYTHON_MODULES_DIR}")
+
+					# Copy Python modules to '/../Frameworks/Python.framework/Versions/Current/lib/PythonMAJOR.MINOR' and ignore the unnecessary stuff listed below
+					if (PYTHON_MODULES_DIR)
+						set(PYTHON_VERSION_MAJOR_MINOR "${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}")
+						file(
+							COPY ${PYTHON_MODULES_DIR}/
+							DESTINATION "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/Frameworks/Python.framework/Versions/Current/lib/python${PYTHON_VERSION_MAJOR_MINOR}"
+							PATTERN "*.pyc"                                 EXCLUDE # compiled bytecodes
+							PATTERN "__pycache__"                           EXCLUDE # any cache
+							PATTERN "config-${PYTHON_VERSION_MAJOR_MINOR}*" EXCLUDE # static libs
+							PATTERN "lib2to3"                               EXCLUDE # automated Python 2 to 3 code translation
+							PATTERN "tkinter"                               EXCLUDE # Tk interface
+							PATTERN "turtledemo"                            EXCLUDE # Tk demo folder
+							PATTERN "turtle.py"                             EXCLUDE # Tk demo file
+							PATTERN "test"                                  EXCLUDE # unittest module
+							PATTERN "sitecustomize.py"                      EXCLUDE # site-specific configs
+						)
+					endif(PYTHON_MODULES_DIR)
+				endif(ENABLE_EFFECTENGINE)
+
+				file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/lib")
+				file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/share")
+
 		]] COMPONENT "Hyperion")
 
 	else()
@@ -224,36 +262,38 @@ macro(DeployLinux TARGET)
 			)
 		endforeach()
 
-		# Detect the Python version and modules directory
-		if (NOT CMAKE_VERSION VERSION_LESS "3.12")
-			set(PYTHON_VERSION_MAJOR_MINOR "${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}")
-			set(PYTHON_MODULES_DIR "${Python3_STDLIB}")
-		else()
-			set(PYTHON_VERSION_MAJOR_MINOR "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
-			execute_process(
-				COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(standard_lib=True))"
-				OUTPUT_VARIABLE PYTHON_MODULES_DIR
-				OUTPUT_STRIP_TRAILING_WHITESPACE
-			)
-		endif()
+		if(ENABLE_EFFECTENGINE)
+			# Detect the Python version and modules directory
+			if (NOT CMAKE_VERSION VERSION_LESS "3.12")
+				set(PYTHON_VERSION_MAJOR_MINOR "${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}")
+				set(PYTHON_MODULES_DIR "${Python3_STDLIB}")
+			else()
+				set(PYTHON_VERSION_MAJOR_MINOR "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
+				execute_process(
+					COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(standard_lib=True))"
+					OUTPUT_VARIABLE PYTHON_MODULES_DIR
+					OUTPUT_STRIP_TRAILING_WHITESPACE
+				)
+			endif()
 
-		# Copy Python modules to 'share/hyperion/lib/pythonMAJOR.MINOR' and ignore the unnecessary stuff listed below
-		if (PYTHON_MODULES_DIR)
+			# Copy Python modules to 'share/hyperion/lib/pythonMAJOR.MINOR' and ignore the unnecessary stuff listed below
+			if (PYTHON_MODULES_DIR)
 
-			install(
-				DIRECTORY ${PYTHON_MODULES_DIR}/
-				DESTINATION "share/hyperion/lib/python${PYTHON_VERSION_MAJOR_MINOR}"
-				COMPONENT "Hyperion"
-				PATTERN "*.pyc"                                 EXCLUDE # compiled bytecodes
-				PATTERN "__pycache__"                           EXCLUDE # any cache
-				PATTERN "config-${PYTHON_VERSION_MAJOR_MINOR}*" EXCLUDE # static libs
-				PATTERN "lib2to3"                               EXCLUDE # automated Python 2 to 3 code translation
-				PATTERN "tkinter"                               EXCLUDE # Tk interface
-				PATTERN "turtle.py"                             EXCLUDE # Tk demo
-				PATTERN "test"                                  EXCLUDE # unittest module
-				PATTERN "sitecustomize.py"                      EXCLUDE # site-specific configs
-			)
-		endif(PYTHON_MODULES_DIR)
+				install(
+					DIRECTORY ${PYTHON_MODULES_DIR}/
+					DESTINATION "share/hyperion/lib/python${PYTHON_VERSION_MAJOR_MINOR}"
+					COMPONENT "Hyperion"
+					PATTERN "*.pyc"                                 EXCLUDE # compiled bytecodes
+					PATTERN "__pycache__"                           EXCLUDE # any cache
+					PATTERN "config-${PYTHON_VERSION_MAJOR_MINOR}*" EXCLUDE # static libs
+					PATTERN "lib2to3"                               EXCLUDE # automated Python 2 to 3 code translation
+					PATTERN "tkinter"                               EXCLUDE # Tk interface
+					PATTERN "turtle.py"                             EXCLUDE # Tk demo
+					PATTERN "test"                                  EXCLUDE # unittest module
+					PATTERN "sitecustomize.py"                      EXCLUDE # site-specific configs
+				)
+			endif(PYTHON_MODULES_DIR)
+		endif(ENABLE_EFFECTENGINE)
 
 	else()
 		# Run CMake after target was built to run get_prerequisites on ${TARGET_FILE}
@@ -387,44 +427,46 @@ macro(DeployWindows TARGET)
 			COMPONENT "Hyperion"
 		)
 
-		# Download embed python package (only release build package available)
-		# Currently only cmake version >= 3.12 implemented
-		set(url "https://www.python.org/ftp/python/${Python3_VERSION}/")
-		set(filename "python-${Python3_VERSION}-embed-amd64.zip")
+		if(ENABLE_EFFECTENGINE)
+			# Download embed python package (only release build package available)
+			# Currently only cmake version >= 3.12 implemented
+			set(url "https://www.python.org/ftp/python/${Python3_VERSION}/")
+			set(filename "python-${Python3_VERSION}-embed-amd64.zip")
 
-		if (NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/${filename}" OR NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/python")
-			file(DOWNLOAD "${url}${filename}" "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
-				STATUS result
-			)
+			if (NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/${filename}" OR NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/python")
+				file(DOWNLOAD "${url}${filename}" "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
+					STATUS result
+				)
 
-			# Check if the download is successful
-			list(GET result 0 result_code)
-			if(NOT result_code EQUAL 0)
-				list(GET result 1 reason)
-				message(FATAL_ERROR "Could not download file ${url}${filename}: ${reason}")
+				# Check if the download is successful
+				list(GET result 0 result_code)
+				if(NOT result_code EQUAL 0)
+					list(GET result 1 reason)
+					message(FATAL_ERROR "Could not download file ${url}${filename}: ${reason}")
+				endif()
+
+				# Unpack downloaded embed python
+				file(REMOVE_RECURSE ${CMAKE_CURRENT_BINARY_DIR}/python)
+				file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/python)
+				execute_process(
+					COMMAND ${CMAKE_COMMAND} -E tar -xfz "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
+					WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/python
+					OUTPUT_QUIET
+				)
 			endif()
 
-			# Unpack downloaded embed python
-			file(REMOVE_RECURSE ${CMAKE_CURRENT_BINARY_DIR}/python)
-			file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/python)
-			execute_process(
-				COMMAND ${CMAKE_COMMAND} -E tar -xfz "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
-				WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/python
-				OUTPUT_QUIET
+			# Copy pythonXX.dll and pythonXX.zip to 'hyperion'
+			foreach(PYTHON_FILE
+				"python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}.dll"
+				"python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}.zip"
 			)
-		endif()
-
-		# Copy pythonXX.dll and pythonXX.zip to 'hyperion'
-		foreach(PYTHON_FILE
-			"python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}.dll"
-			"python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}.zip"
-		)
-			install(
-				FILES ${CMAKE_CURRENT_BINARY_DIR}/python/${PYTHON_FILE}
-				DESTINATION "bin"
-				COMPONENT "Hyperion"
-			)
-		endforeach()
+				install(
+					FILES ${CMAKE_CURRENT_BINARY_DIR}/python/${PYTHON_FILE}
+					DESTINATION "bin"
+					COMPONENT "Hyperion"
+				)
+			endforeach()
+		endif(ENABLE_EFFECTENGINE)
 
 		if (ENABLE_DX)
 			# Download DirectX End-User Runtimes (June 2010)

@@ -103,23 +103,7 @@ QCoreApplication* createApplication(int &argc, char *argv[])
 #else
 	if (!forceNoGui)
 	{
-		// if x11, then test if xserver is available
-		#if defined(ENABLE_X11)
-		Display* dpy = XOpenDisplay(NULL);
-		if (dpy != NULL)
-		{
-			XCloseDisplay(dpy);
-			isGuiApp = true;
-		}
-		#elif defined(ENABLE_XCB)
-			int screen_num;
-			xcb_connection_t * connection = xcb_connect(nullptr, &screen_num);
-			if (!xcb_connection_has_error(connection))
-			{
-				isGuiApp = true;
-			}
-			xcb_disconnect(connection);
-		#endif
+		isGuiApp = (getenv("DISPLAY") != NULL && (getenv("XDG_SESSION_TYPE") != NULL || getenv("WAYLAND_DISPLAY") != NULL));
 	}
 #endif
 
@@ -146,9 +130,6 @@ QCoreApplication* createApplication(int &argc, char *argv[])
 
 int main(int argc, char** argv)
 {
-#ifndef _WIN32
-	setenv("AVAHI_COMPAT_NOWARN", "1", 1);
-#endif
 	// initialize main logger and set global log level
 	Logger *log = Logger::getInstance("MAIN");
 	Logger::setLogLevel(Logger::WARNING);
@@ -192,7 +173,9 @@ int main(int argc, char** argv)
 #endif
 	                                      parser.add<BooleanOption> (0x0, "desktop", "Show systray on desktop");
 	                                      parser.add<BooleanOption> (0x0, "service", "Force hyperion to start as console service");
+#if defined(ENABLE_EFFECTENGINE)
 	Option        & exportEfxOption     = parser.add<Option>        (0x0, "export-effects", "Export effects to given path");
+#endif
 
 	/* Internal options, invisible to help */
 	BooleanOption & waitOption          = parser.addHidden<BooleanOption> (0x0, "wait-hyperion", "Do not exit if other Hyperion instances are running, wait them to finish");
@@ -275,6 +258,7 @@ int main(int argc, char** argv)
 		return 0;
 	}
 
+#if defined(ENABLE_EFFECTENGINE)
 	if (parser.isSet(exportEfxOption))
 	{
 		Q_INIT_RESOURCE(EffectEngine);
@@ -311,6 +295,7 @@ int main(int argc, char** argv)
 		Error(log, "Can not export to %s",exportEfxOption.getCString(parser));
 		return 1;
 	}
+#endif
 
 	int rc = 1;
 	bool readonlyMode = false;
@@ -393,7 +378,7 @@ int main(int argc, char** argv)
 			}
 		}
 
-		Info(log,"Starting Hyperion - %s, %s, built: %s:%s", HYPERION_VERSION, HYPERION_BUILD_ID, __DATE__, __TIME__);
+		Info(log,"Starting Hyperion [%sGUI mode] - %s, %s, built: %s:%s", isGuiApp ? "": "non-", HYPERION_VERSION, HYPERION_BUILD_ID, __DATE__, __TIME__);
 		Debug(log,"QtVersion [%s]", QT_VERSION_STR);
 
 		if ( !readonlyMode )
@@ -419,7 +404,7 @@ int main(int argc, char** argv)
 		// run the application
 		if (isGuiApp)
 		{
-			Info(log, "start systray");
+			Info(log, "Start Systray menu");
 			QApplication::setQuitOnLastWindowClosed(false);
 			SysTray tray(hyperiond);
 			tray.hide();

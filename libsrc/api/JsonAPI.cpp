@@ -67,11 +67,6 @@
 #include <utils/Process.h>
 #include <utils/JsonUtils.h>
 
-// bonjour wrapper
-#ifdef ENABLE_AVAHI
-#include <bonjour/bonjourbrowserwrapper.h>
-#endif
-
 // ledmapping int <> string transform methods
 #include <hyperion/ImageProcessor.h>
 
@@ -80,6 +75,15 @@
 
 // auth manager
 #include <hyperion/AuthManager.h>
+
+#ifdef ENABLE_MDNS
+// mDNS discover
+#include <mdns/MdnsBrowser.h>
+#include <mdns/MdnsServiceRegister.h>
+#else
+// ssdp discover
+#include <ssdp/SSDPDiscover.h>
+#endif
 
 using namespace hyperion;
 
@@ -102,8 +106,6 @@ void JsonAPI::initialize()
 {
 	// init API, REQUIRED!
 	API::init();
-	// Initialise jsonCB with current instance
-	_jsonCB->setSubscriptionsTo(_hyperion);
 
 	// setup auth interface
 	connect(this, &API::onPendingTokenRequest, this, &JsonAPI::newPendingTokenRequest);
@@ -116,7 +118,12 @@ void JsonAPI::initialize()
 	connect(_jsonCB, &JsonCB::newCallback, this, &JsonAPI::callbackMessage);
 
 	// notify hyperion about a jsonMessageForward
-	connect(this, &JsonAPI::forwardJsonMessage, _hyperion, &Hyperion::forwardJsonMessage);
+	if (_hyperion != nullptr)
+	{
+		// Initialise jsonCB with current instance
+		_jsonCB->setSubscriptionsTo(_hyperion);
+		connect(this, &JsonAPI::forwardJsonMessage, _hyperion, &Hyperion::forwardJsonMessage);
+	}
 }
 
 bool JsonAPI::handleInstanceSwitch(quint8 inst, bool forced)
@@ -184,17 +191,25 @@ void JsonAPI::handleMessage(const QString &messageString, const QString &httpAut
 		return;
 	}
 proceed:
+	if (_hyperion == nullptr)
+	{
+		sendErrorReply("Service Unavailable", command, tan);
+		return;
+	}
+
 	// switch over all possible commands and handle them
 	if (command == "color")
 		handleColorCommand(message, command, tan);
 	else if (command == "image")
 		handleImageCommand(message, command, tan);
+#if defined(ENABLE_EFFECTENGINE)
 	else if (command == "effect")
 		handleEffectCommand(message, command, tan);
 	else if (command == "create-effect")
 		handleCreateEffectCommand(message, command, tan);
 	else if (command == "delete-effect")
 		handleDeleteEffectCommand(message, command, tan);
+#endif
 	else if (command == "sysinfo")
 		handleSysInfoCommand(message, command, tan);
 	else if (command == "serverinfo")
@@ -223,6 +238,8 @@ proceed:
 		handleLedDeviceCommand(message, command, tan);
 	else if (command == "inputsource")
 		handleInputSourceCommand(message, command, tan);
+	else if (command == "service")
+		handleServiceCommand(message, command, tan);
 
 	// BEGIN | The following commands are deprecated but used to ensure backward compatibility with hyperion Classic remote control
 	else if (command == "clearall")
@@ -279,6 +296,7 @@ void JsonAPI::handleImageCommand(const QJsonObject &message, const QString &comm
 	sendSuccessReply(command, tan);
 }
 
+#if defined(ENABLE_EFFECTENGINE)
 void JsonAPI::handleEffectCommand(const QJsonObject &message, const QString &command, int tan)
 {
 	emit forwardJsonMessage(message);
@@ -309,6 +327,7 @@ void JsonAPI::handleDeleteEffectCommand(const QJsonObject &message, const QStrin
 	const QString res = API::deleteEffect(message["name"].toString());
 	res.isEmpty() ? sendSuccessReply(command, tan) : sendErrorReply(res, command, tan);
 }
+#endif
 
 void JsonAPI::handleSysInfoCommand(const QJsonObject &, const QString &command, int tan)
 {
@@ -336,7 +355,9 @@ void JsonAPI::handleSysInfoCommand(const QJsonObject &, const QString &command, 
 	system["domainName"] = data.domainName;
 	system["isUserAdmin"] = data.isUserAdmin;
 	system["qtVersion"] = data.qtVersion;
+#if defined(ENABLE_EFFECTENGINE)
 	system["pyVersion"] = data.pyVersion;
+#endif
 	info["system"] = system;
 
 	QJsonObject hyperion;
@@ -363,20 +384,26 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	QJsonArray priorities;
 	uint64_t now = QDateTime::currentMSecsSinceEpoch();
 	QList<int> activePriorities = _hyperion->getActivePriorities();
-	activePriorities.removeAll(255);
+	activePriorities.removeAll(PriorityMuxer::LOWEST_PRIORITY);
 	int currentPriority = _hyperion->getCurrentPriority();
 
-	for(int priority : activePriorities)
+	for(int priority : qAsConst(activePriorities))
 	{
 		const Hyperion::InputInfo &priorityInfo = _hyperion->getPriorityInfo(priority);
+
 		QJsonObject item;
 		item["priority"] = priority;
-		if (priorityInfo.timeoutTime_ms > 0)
+
+		if (priorityInfo.timeoutTime_ms > 0 )
+		{
 			item["duration_ms"] = int(priorityInfo.timeoutTime_ms - now);
+		}
 
 		// owner has optional informations to the component
 		if (!priorityInfo.owner.isEmpty())
+		{
 			item["owner"] = priorityInfo.owner;
+		}
 
 		item["componentId"] = QString(hyperion::componentToIdString(priorityInfo.componentId));
 		item["origin"] = priorityInfo.origin;
@@ -395,7 +422,8 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 			LEDcolor.insert("RGB", RGBValue);
 
 			uint16_t Hue;
-			float Saturation, Luminace;
+			float Saturation;
+			float Luminace;
 
 			// add HSL Value to Array
 			QJsonArray HSLValue;
@@ -484,11 +512,15 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 		adjustment["gammaGreen"] = colorAdjustment->_rgbTransform.getGammaG();
 		adjustment["gammaBlue"] = colorAdjustment->_rgbTransform.getGammaB();
 
+		adjustment["saturationGain"] = colorAdjustment->_okhsvTransform.getSaturationGain();
+		adjustment["brightnessGain"] = colorAdjustment->_okhsvTransform.getBrightnessGain();
+
 		adjustmentArray.append(adjustment);
 	}
 
 	info["adjustment"] = adjustmentArray;
 
+#if defined(ENABLE_EFFECTENGINE)
 	// collect effect info
 	QJsonArray effects;
 	const std::list<EffectDefinition> &effectsDefinitions = _hyperion->getEffects();
@@ -503,6 +535,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	}
 
 	info["effects"] = effects;
+#endif
 
 	// get available led devices
 	QJsonObject ledDevices;
@@ -600,6 +633,10 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	services.append("cec");
 #endif
 
+#if defined(ENABLE_EFFECTENGINE)
+	services.append("effectengine");
+#endif
+
 #if defined(ENABLE_FORWARDER)
 	services.append("forwarder");
 #endif
@@ -611,6 +648,11 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 #if defined(ENABLE_PROTOBUF_SERVER)
 	services.append("protobuffer");
 #endif
+
+#if defined(ENABLE_MDNS)
+	services.append("mDNS");
+#endif
+	services.append("SSDP");
 
 	if (!availableScreenGrabbers.isEmpty() || !availableVideoGrabbers.isEmpty() || services.contains("flatbuffer") || services.contains("protobuffer"))
 	{
@@ -634,24 +676,6 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	info["components"] = component;
 	info["imageToLedMappingType"] = ImageProcessor::mappingTypeToStr(_hyperion->getLedMappingType());
 
-	// add sessions
-	QJsonArray sessions;
-#ifdef ENABLE_AVAHI
-	for (auto session: BonjourBrowserWrapper::getInstance()->getAllServices())
-	{
-		if (session.port < 0)
-			continue;
-		QJsonObject item;
-		item["name"] = session.serviceName;
-		item["type"] = session.registeredType;
-		item["domain"] = session.replyDomain;
-		item["host"] = session.hostName;
-		item["address"] = session.address;
-		item["port"] = session.port;
-		sessions.append(item);
-	}
-	info["sessions"] = sessions;
-#endif
 	// add instance info
 	QJsonArray instanceInfo;
 	for (const auto &entry : API::getAllInstanceData())
@@ -683,7 +707,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 
 		transform["id"] = transformId;
 		transform["saturationGain"] = 1.0;
-		transform["valueGain"] = 1.0;
+		transform["brightnessGain"] = 1.0;
 		transform["saturationLGain"] = 1.0;
 		transform["luminanceGain"] = 1.0;
 		transform["luminanceMinimum"] = 0.0;
@@ -705,6 +729,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	}
 	info["transform"] = transformArray;
 
+#if defined(ENABLE_EFFECTENGINE)
 	// ACTIVE EFFECT INFO
 	QJsonArray activeEffects;
 	for (const ActiveEffectDefinition &activeEffectDefinition : _hyperion->getActiveEffects())
@@ -721,6 +746,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 		}
 	}
 	info["activeEffects"] = activeEffects;
+#endif
 
 	// ACTIVE STATIC LED COLOR
 	QJsonArray activeLedColors;
@@ -898,6 +924,16 @@ void JsonAPI::handleAdjustmentCommand(const QJsonObject &message, const QString 
 		colorAdjustment->_rgbTransform.setBrightnessCompensation(adjustment["brightnessCompensation"].toInt());
 	}
 
+    if (adjustment.contains("saturationGain"))
+    {
+        colorAdjustment->_okhsvTransform.setSaturationGain(adjustment["saturationGain"].toDouble());
+    }
+
+	if (adjustment.contains("brightnessGain"))
+    {
+		colorAdjustment->_okhsvTransform.setBrightnessGain(adjustment["brightnessGain"].toDouble());
+    }
+
 	// commit the changes
 	_hyperion->adjustmentsUpdated();
 
@@ -1040,6 +1076,7 @@ void JsonAPI::handleSchemaGetCommand(const QJsonObject &message, const QString &
 	alldevices = LedDeviceWrapper::getLedDeviceSchemas();
 	properties.insert("alldevices", alldevices);
 
+#if defined(ENABLE_EFFECTENGINE)
 	// collect all available effect schemas
 	QJsonArray schemaList;
 	const std::list<EffectSchema>& effectsSchemas = _hyperion->getEffectSchemas();
@@ -1060,6 +1097,7 @@ void JsonAPI::handleSchemaGetCommand(const QJsonObject &message, const QString &
 		schemaList.append(schema);
 	}
 	properties.insert("effectSchemas", schemaList);
+#endif
 
 	schemaJson.insert("properties", properties);
 
@@ -1552,6 +1590,16 @@ void JsonAPI::handleLedDeviceCommand(const QJsonObject &message, const QString &
 
 			sendSuccessReply(full_command, tan);
 		}
+		else if (subc == "addAuthorization")
+		{
+			ledDevice = LedDeviceFactory::construct(config);
+			const QJsonObject& params = message["params"].toObject();
+			const QJsonObject response = ledDevice->addAuthorization(params);
+
+			Debug(_log, "response: [%s]", QString(QJsonDocument(response).toJson(QJsonDocument::Compact)).toUtf8().constData());
+
+			sendSuccessDataReply(QJsonDocument(response), full_command, tan);
+		}
 		else
 		{
 			sendErrorReply("Unknown or missing subcommand", full_command, tan);
@@ -1660,10 +1708,13 @@ void JsonAPI::handleInputSourceCommand(const QJsonObject& message, const QString
 
 					#if defined(ENABLE_DISPMANX)
 					DispmanxFrameGrabber* dispmanx = new DispmanxFrameGrabber();
-					device = dispmanx->discover(params);
-					if (!device.isEmpty() )
+					if (dispmanx->isAvailable())
 					{
-						videoInputs.append(device);
+						device = dispmanx->discover(params);
+						if (!device.isEmpty() )
+						{
+							videoInputs.append(device);
+						}
 					}
 					delete dispmanx;
 					#endif
@@ -1710,6 +1761,55 @@ void JsonAPI::handleInputSourceCommand(const QJsonObject& message, const QString
 		{
 			sendErrorReply("Unknown or missing subcommand", full_command, tan);
 		}
+	}
+}
+
+void JsonAPI::handleServiceCommand(const QJsonObject &message, const QString &command, int tan)
+{
+	DebugIf(verbose, _log, "message: [%s]", QString(QJsonDocument(message).toJson(QJsonDocument::Compact)).toUtf8().constData());
+
+	const QString &subc = message["subcommand"].toString().trimmed();
+	const QString type = message["serviceType"].toString().trimmed();
+
+	QString full_command = command + "-" + subc;
+
+	if (subc == "discover")
+	{
+		QByteArray serviceType;
+
+		QJsonObject servicesDiscovered;
+		QJsonObject servicesOfType;
+		QJsonArray serviceList;
+
+#ifdef ENABLE_MDNS
+		QString discoveryMethod("mDNS");
+		serviceType = MdnsServiceRegister::getServiceType(type);
+#else
+		QString discoveryMethod("ssdp");
+#endif
+		if (!serviceType.isEmpty())
+		{
+#ifdef ENABLE_MDNS
+			QMetaObject::invokeMethod(&MdnsBrowser::getInstance(), "browseForServiceType",
+									   Qt::QueuedConnection, Q_ARG(QByteArray, serviceType));
+
+			serviceList = MdnsBrowser::getInstance().getServicesDiscoveredJson(serviceType, MdnsServiceRegister::getServiceNameFilter(type), DEFAULT_DISCOVER_TIMEOUT);
+#endif
+			servicesOfType.insert(type, serviceList);
+
+			servicesDiscovered.insert("discoveryMethod", discoveryMethod);
+			servicesDiscovered.insert("services", servicesOfType);
+
+			sendSuccessDataReply(QJsonDocument(servicesDiscovered), full_command, tan);
+		}
+		else
+		{
+			sendErrorReply(QString("Discovery of service type [%1] via %2 not supported").arg(type, discoveryMethod), full_command, tan);
+		}
+	}
+	else
+	{
+		sendErrorReply("Unknown or missing subcommand", full_command, tan);
 	}
 }
 

@@ -9,7 +9,7 @@
 //forward class decl
 class Logger;
 
-const int JSON_DEFAULT_PORT = 19444;
+const int JSONAPI_DEFAULT_PORT = 19444;
 
 ///
 /// Connection class to setup an connection to the hyperion server and execute commands
@@ -24,7 +24,7 @@ public:
 	/// @param address The port of the Hyperion JSON-server (default port = 19444)
 	/// @param printJson Boolean indicating if the sent and received json is written to stdout
 	///
-	JsonConnection(const QString& host, bool printJson, quint16 port = JSON_DEFAULT_PORT);
+	JsonConnection(const QString& host, bool printJson, quint16 port = JSONAPI_DEFAULT_PORT);
 
 	///
 	/// Destructor
@@ -41,14 +41,16 @@ public:
 	void setColor(std::vector<QColor> color, int priority, int duration);
 
 	///
-	/// Set the leds according to the given image (assume the image is stretched to the display size)
+	/// Set the LEDs according to the given image (assume the image is stretched to the display size)
 	///
 	/// @param image The image
 	/// @param priority The priority
 	/// @param duration The duration in milliseconds
+	/// @param name The image's filename
 	///
-	void setImage(QImage &image, int priority, int duration);
+	void setImage(QImage &image, int priority, int duration, const QString& name = "");
 
+#if defined(ENABLE_EFFECTENGINE)
 	///
 	/// Start the given effect
 	///
@@ -74,6 +76,7 @@ public:
 	/// @param effectName The name of the effect
 	///
 	void deleteEffect(const QString &effectName);
+#endif
 
 	///
 	/// Retrieve entire serverinfo as String

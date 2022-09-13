@@ -37,43 +37,74 @@
     },
     "useEntertainmentAPI": {
       "type": "boolean",
+      "format": "checkbox",
       "title": "edt_dev_spec_useEntertainmentAPI_title",
       "default": true,
       "propertyOrder": 5
     },
-    "transitiontime": {
-      "type": "number",
-      "title": "edt_dev_spec_transistionTime_title",
-      "default": 1,
-      "append": "x100ms",
-      "options": {
-        "dependencies": {
-          "useEntertainmentAPI": false
-        }
-      },
-      "propertyOrder": 6
-    },
     "switchOffOnBlack": {
       "type": "boolean",
+      "format": "checkbox",
       "title": "edt_dev_spec_switchOffOnBlack_title",
       "default": false,
-      "propertyOrder": 7
+      "propertyOrder": 6
     },
     "restoreOriginalState": {
       "type": "boolean",
+      "format": "checkbox",
       "title": "edt_dev_spec_restoreOriginalState_title",
-      "default": true,
+      "default": false,
+      "propertyOrder": 7
+    },
+    "blackLevel": {
+      "type": "number",
+      "format": "stepper",
+      "title": "edt_dev_spec_brightnessThreshold_title",
+      "default": 0.009,
+      "step": 0.01,
+      "minimum": 0.001,
+      "maximum": 1.0,
       "propertyOrder": 8
+    },
+    "onBlackTimeToPowerOff": {
+      "type": "integer",
+      "format": "stepper",
+      "step": 50,
+      "title": "edt_dev_spec_onBlackTimeToPowerOff",
+      "append": "edt_append_ms",
+      "minimum": 100,
+      "maximum": 100000,
+      "default": 600,
+      "required": true,
+      "propertyOrder": 9
+    },
+    "onBlackTimeToPowerOn": {
+      "type": "integer",
+      "format": "stepper",
+      "step": 50,
+      "title": "edt_dev_spec_onBlackTimeToPowerOn",
+      "append": "edt_append_ms",
+      "minimum": 100,
+      "maximum": 100000,
+      "default": 300,
+      "required": true,
+      "propertyOrder": 9
+    },
+    "candyGamma": {
+      "type": "boolean",
+      "format": "checkbox",
+      "title": "edt_dev_spec_candyGamma_title",
+      "default": true,
+      "propertyOrder": 10
     },
     "lightIds": {
       "type": "array",
       "title": "edt_dev_spec_lightid_title",
-      "minimum": 1,
+      "minItems": 1,
       "uniqueItems": true,
       "items": {
         "type": "string",
-        "minLength": 1,
-        "required": true,
+        "minimum": 0,
         "title": "edt_dev_spec_lightid_itemtitle"
       },
       "options": {
@@ -81,43 +112,14 @@
           "useEntertainmentAPI": false
         }
       },
-      "propertyOrder": 9
+      "propertyOrder": 11
     },
     "groupId": {
       "type": "number",
+      "format": "stepper",
+      "step": 1,
       "title": "edt_dev_spec_groupId_title",
       "default": 0,
-      "options": {
-        "dependencies": {
-          "useEntertainmentAPI": true
-        }
-      },
-      "propertyOrder": 10
-    },
-    "blackLightsTimeout": {
-      "type": "number",
-      "title": "edt_dev_spec_blackLightsTimeout_title",
-      "default": 15000,
-      "step": 500,
-      "minimum": 10000,
-      "maximum": 60000,
-      "access": "advanced",
-      "append": "edt_append_ms",
-      "options": {
-        "dependencies": {
-          "useEntertainmentAPI": true
-        }
-      },
-      "propertyOrder": 11
-    },
-    "brightnessThreshold": {
-      "type": "number",
-      "title": "edt_dev_spec_brightnessThreshold_title",
-      "default": 0,
-      "step": 0.005,
-      "minimum": 0,
-      "maximum": 1.0,
-      "access": "advanced",
       "options": {
         "dependencies": {
           "useEntertainmentAPI": true
@@ -127,6 +129,7 @@
     },
     "brightnessFactor": {
       "type": "number",
+      "format": "stepper",
       "title": "edt_dev_spec_brightnessFactor_title",
       "default": 1.0,
       "step": 0.25,
@@ -134,6 +137,82 @@
       "maximum": 10.0,
       "access": "advanced",
       "propertyOrder": 13
+    },
+    "handshakeTimeoutMin": {
+      "type": "number",
+      "format": "stepper",
+      "title": "edt_dev_spec_sslHSTimeoutMin_title",
+      "default": 600,
+      "step": 100,
+      "minimum": 100,
+      "maximum": 30000,
+      "access": "expert",
+      "append": "edt_append_ms",
+      "required": true,
+      "options": {
+        "dependencies": {
+          "useEntertainmentAPI": true
+        }
+      },
+      "propertyOrder": 14
+    },
+    "handshakeTimeoutMax": {
+      "type": "number",
+      "format": "stepper",
+      "title": "edt_dev_spec_sslHSTimeoutMax_title",
+      "default": 1000,
+      "step": 100,
+      "minimum": 100,
+      "maximum": 30000,
+      "access": "expert",
+      "append": "edt_append_ms",
+      "required": true,
+      "options": {
+        "dependencies": {
+          "useEntertainmentAPI": true
+        }
+      },
+      "propertyOrder": 15
+    },
+    "verbose": {
+      "type": "boolean",
+      "format": "checkbox",
+      "title": "edt_dev_spec_verbose_title",
+      "default": false,
+      "access": "expert",
+      "propertyOrder": 16
+    },
+    "transitiontime": {
+      "type": "number",
+      "title": "edt_dev_spec_transistionTime_title",
+      "default": 1,
+      "minimum": 0,
+      "maximum": 100000,
+      "required": true,
+      "append": "x100ms",
+      "options": {
+        "dependencies": {
+          "useEntertainmentAPI": false
+        }
+      },
+      "propertyOrder": 17
+    },
+    "blackLightsTimeout": {
+      "type": "number",
+      "default": 5000,
+      "options": {
+        "hidden": true
+      },
+      "propertyOrder": 18
+    },
+    "brightnessThreshold": {
+      "type": "number",
+      "title": "edt_dev_spec_brightnessThreshold_title",
+      "default": 0.0001,
+      "options": {
+        "hidden": true
+      },
+      "propertyOrder": 19
     },
     "brightnessMin": {
       "type": "number",
@@ -144,11 +223,9 @@
       "maximum": 1.0,
       "access": "advanced",
       "options": {
-        "dependencies": {
-          "useEntertainmentAPI": true
-        }
+        "hidden": true
       },
-      "propertyOrder": 14
+      "propertyOrder": 20
     },
     "brightnessMax": {
       "type": "number",
@@ -159,93 +236,8 @@
       "maximum": 1.0,
       "access": "advanced",
       "options": {
-        "dependencies": {
-          "useEntertainmentAPI": true
-        }
+        "hidden": true
       },
-      "propertyOrder": 15
-    },
-    "sslReadTimeout": {
-      "type": "number",
-      "title": "edt_dev_spec_sslReadTimeout_title",
-      "default": 0,
-      "step": 100,
-      "minimum": 0,
-      "maximum": 30000,
-      "access": "expert",
-      "append": "edt_append_ms",
-      "options": {
-        "dependencies": {
-          "useEntertainmentAPI": true
-        }
-      },
-      "propertyOrder": 16
-    },
-    "sslHSTimeoutMin": {
-      "type": "number",
-      "title": "edt_dev_spec_sslHSTimeoutMin_title",
-      "default": 400,
-      "step": 100,
-      "minimum": 0,
-      "maximum": 30000,
-      "access": "expert",
-      "append": "edt_append_ms",
-      "options": {
-        "dependencies": {
-          "useEntertainmentAPI": true
-        }
-      },
-      "propertyOrder": 17
-    },
-    "sslHSTimeoutMax": {
-      "type": "number",
-      "title": "edt_dev_spec_sslHSTimeoutMax_title",
-      "default": 1000,
-      "step": 100,
-      "minimum": 0,
-      "maximum": 30000,
-      "access": "expert",
-      "append": "edt_append_ms",
-      "options": {
-        "dependencies": {
-          "useEntertainmentAPI": true
-        }
-      },
-      "propertyOrder": 18
-    },
-    "verbose": {
-      "type": "boolean",
-      "title": "edt_dev_spec_verbose_title",
-      "default": false,
-      "access": "expert",
-      "propertyOrder": 19
-    },
-    "debugStreamer": {
-      "type": "boolean",
-      "title": "edt_dev_spec_debugStreamer_title",
-      "default": false,
-      "access": "expert",
-      "options": {
-        "dependencies": {
-          "useEntertainmentAPI": true
-        }
-      },
-      "propertyOrder": 20
-    },
-    "debugLevel": {
-      "type": "string",
-      "title": "edt_dev_spec_debugLevel_title",
-      "enum": [ "0", "1", "2", "3", "4" ],
-      "default": "0",
-      "options": {
-        "enum_titles": [ "edt_conf_enum_dl_nodebug", "edt_conf_enum_dl_error", "edt_conf_enum_dl_statechange", "edt_conf_enum_dl_informational", "edt_conf_enum_dl_verbose" ],
-        "dependencies": {
-          "useEntertainmentAPI": true
-        }
-      },
-      "minimum": 0,
-      "maximum": 4,
-      "access": "expert",
       "propertyOrder": 21
     }
   },

@@ -1,14 +1,3 @@
-# Find the BCM-package (VC control)
-if (ENABLE_DISPMANX)
-	if ( "${PLATFORM}" MATCHES rpi)
-		find_package(BCM REQUIRED)
-		include_directories(${BCM_INCLUDE_DIRS})
-	else()
-		set(BCM_INCLUDE_DIRS "")
-		set(BCM_LIBRARIES "")
-	endif()
-endif (ENABLE_DISPMANX)
-
 # Define the current source locations
 
 SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/api)

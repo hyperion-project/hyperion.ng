@@ -19,8 +19,13 @@
 
   <title data-i18n="general_webui_title">Hyperion - Web Configuration</title>
 
-  <!-- jQuery -->
-  <script src="js/lib/jquery.min.js"></script>
+  <!-- jQuery - Prod -->
+  <script src="js/lib/jquery/jquery-3.6.0.min.js"></script>
+  <script src="js/lib/jquery/jquery-migrate-3.3.2.min.js"></script>
+
+  <!-- jQuery - Dev -->
+  <!script src="js/lib/jquery/dev/jquery-3.6.0.js"></script>
+  <!script src="js/lib/jquery/dev/jquery-migrate-3.3.2.js"></script>
 
   <!-- SemVer -->
   <script src='js/lib/semver.js'></script>
@@ -41,6 +46,12 @@
 
   <!-- JSONEditor -->
   <script src="js/lib/jsoneditor.js"></script>
+
+  <!-- PlainDraggable -->
+  <script src="js/lib/plain-draggable.min.js"></script>
+
+  <!-- LeaderLine -->
+  <script src="js/lib/leader-line.min.js"></script>
 
   <!--Language Support -->
   <script src="js/lib/jquery.i18n/jquery.i18n.js"></script>
@@ -65,7 +76,11 @@
   <link href="css/bootstrap-select.min.css" rel="stylesheet">
 
   <!-- MetisMenu CSS -->
-  <link href="css/metisMenu.css" rel="stylesheet">
+  <link href="css/metisMenu.min.css" rel="stylesheet">
+
+  <!-- Gijgo CSS -->
+  <link href="css/gijgo/core.min.css" rel="stylesheet">
+  <link href="css/gijgo/dialog.min.css" rel="stylesheet">
 
   <!-- Custom CSS -->
   <link href="css/sb-admin-2.css" rel="stylesheet">
@@ -76,6 +91,9 @@
 
   <!-- Material Design Icons - https://github.com/Templarian/MaterialDesign-Webfont -->
   <link href="css/materialdesignicons.min.css" media="all" rel="stylesheet" type="text/css">
+
+  <!-- Animate.css -->
+  <link href="css/animate.min.css" rel="stylesheet" type="text/css">
 
   <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
   <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -222,7 +240,7 @@
             <li> <a class="inactive mnava" id="MenuItemGrabber" href="#conf_grabber"><i class="fa fa-camera fa-fw"></i><span data-i18n="main_menu_grabber_conf_token">Capturing Hardware</span></a> </li>
             <li> <a class="inactive mnava" id="MenuItemNetwork" href="#conf_network"><i class="fa fa-sitemap fa-fw"></i><span data-i18n="main_menu_network_conf_token">Network</span></a> </li>
             <li> <a class="inactive mnava" href="#remote"><i class="fa fa-wifi fa-fw"></i><span data-i18n="main_menu_remotecontrol_token">Remote Control</span></a>	</li>
-            <li> <a class="inactive mnava" href="#effects_configurator"><i class="fa fa-cogs fa-fw"></i><span data-i18n="main_menu_effectsconfigurator_token">Effects Configurator</span></a>	</li>
+            <li> <a class="inactive mnava" id="MenuItemEffectsConfig" href="#effects_configurator"><i class="fa fa-cogs fa-fw"></i><span data-i18n="main_menu_effectsconfigurator_token">Effects Configurator</span></a>	</li>
             <li> <a class="inactive mnava" href="#support"><i class="fa fa-info fa-fw"></i><span data-i18n="main_menu_support_token">Support</span></a> </li>
             <li>
               <a class="inactive"><i class="fa fa-industry fa-fw"></i><span data-i18n="main_menu_system_token">System</span><span class="fa arrow"></span></a>
@@ -320,7 +338,11 @@
   <div id="ledsim_dialog" style="display:none; z-index:9998">
     <div data-role="body" style="padding:0px;">
       <div id="ledsim_text"></div>
-      <div id="leds_canvas"></div>
+      <div id="leds_canvas">
+        <canvas id="image_preview_canv" style="position: absolute; left: 0; top: 0; z-index: 99998;"></canvas>
+        <canvas id="leds_preview_canv" style="position: absolute; left: 0; top: 0; opacity: 0.75; z-index: 99999;"></canvas>
+        <canvas id="grab_preview_canv" style="position: absolute; left: 0; top: 0; z-index: 99999;"></canvas>
+      </div>
     </div>
     <div data-role="footer" style="text-align:center">
       <button type="button" class="btn btn-success" id="leds_toggle"><i class="fa fa-fw fa-lightbulb-o"></i><span data-i18n="main_ledsim_btn_toggleleds">leds</span></button>
@@ -351,8 +373,9 @@
   <script src="js/wizard.js"></script>
 
   <!--gijgo dialog-->
-  <script src="js/lib/draggable.min.js"></script>
-  <script src="js/lib/dialog.min.js"></script>
+  <script src="js/lib/gijgo/core.min.js"></script>
+  <script src="js/lib/gijgo/draggable.min.js"></script>
+  <script src="js/lib/gijgo/dialog.min.js"></script>
   <script src="js/ledsim.js"></script>
 
   <!--Client-side download-->

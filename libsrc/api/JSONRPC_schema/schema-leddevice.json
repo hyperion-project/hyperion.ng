@@ -13,7 +13,7 @@
 		"subcommand": {
 			"type" : "string",
 			"required" : true,
-			"enum" : ["discover","getProperties","identify"]
+			"enum": [ "discover", "getProperties", "identify", "addAuthorization" ]
 		},
 		"ledDeviceType": {
 			"type" : "string",

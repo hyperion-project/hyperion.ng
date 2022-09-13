@@ -20,10 +20,12 @@
 
 #include <HyperionConfig.h> // Required to determine the cmake options
 
-// bonjour browser
-#ifdef ENABLE_AVAHI
-#include <bonjour/bonjourbrowserwrapper.h>
+// mDNS
+#ifdef ENABLE_MDNS
+#include <mdns/MdnsProvider.h>
+#include <mdns/MdnsBrowser.h>
 #endif
+
 #include <jsonserver/JsonServer.h>
 #include <webserver/WebServer.h>
 #include "hyperiond.h"
@@ -53,45 +55,49 @@
 // NetOrigin checks
 #include <utils/NetOrigin.h>
 
+#if defined(ENABLE_EFFECTENGINE)
 // Init Python
 #include <python/PythonInit.h>
 
 // EffectFileHandler
 #include <effectengine/EffectFileHandler.h>
+#endif
 
 #ifdef ENABLE_CEC
 #include <cec/CECHandler.h>
 #endif
 
-HyperionDaemon *HyperionDaemon::daemon = nullptr;
+HyperionDaemon* HyperionDaemon::daemon = nullptr;
 
 HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool logLvlOverwrite, bool readonlyMode)
 	: QObject(parent), _log(Logger::getInstance("DAEMON"))
-	  , _instanceManager(new HyperionIManager(rootPath, this, readonlyMode))
-	  , _authManager(new AuthManager(this, readonlyMode))
-#ifdef ENABLE_AVAHI
-	  , _bonjourBrowserWrapper(new BonjourBrowserWrapper())
+	, _instanceManager(new HyperionIManager(rootPath, this, readonlyMode))
+	, _authManager(new AuthManager(this, readonlyMode))
+#ifdef ENABLE_MDNS
+	, _mDNSProvider(nullptr)
 #endif
-	  , _netOrigin(new NetOrigin(this))
-	  , _pyInit(new PythonInit())
-	  , _webserver(nullptr)
-	  , _sslWebserver(nullptr)
-	  , _jsonServer(nullptr)
-	  , _videoGrabber(nullptr)
-	  , _dispmanx(nullptr)
-	  , _x11Grabber(nullptr)
-	  , _xcbGrabber(nullptr)
-	  , _amlGrabber(nullptr)
-	  , _fbGrabber(nullptr)
-	  , _osxGrabber(nullptr)
-	  , _qtGrabber(nullptr)
-	  , _drmGrabber(nullptr)
-	  , _dxGrabber(nullptr)
-	  , _ssdp(nullptr)
+	, _netOrigin(new NetOrigin(this))
+#if defined(ENABLE_EFFECTENGINE)
+	, _pyInit(new PythonInit())
+#endif
+	, _webserver(nullptr)
+	, _sslWebserver(nullptr)
+	, _jsonServer(nullptr)
+	, _videoGrabber(nullptr)
+	, _dispmanx(nullptr)
+	, _x11Grabber(nullptr)
+	, _xcbGrabber(nullptr)
+	, _amlGrabber(nullptr)
+	, _fbGrabber(nullptr)
+	, _osxGrabber(nullptr)
+	, _qtGrabber(nullptr)
+	, _dxGrabber(nullptr)
+	, _drmGrabber(nullptr)
+	, _ssdp(nullptr)
 #ifdef ENABLE_CEC
-	  , _cecHandler(nullptr)
+	, _cecHandler(nullptr)
 #endif
-	  , _currVideoMode(VideoMode::VIDEO_2D)
+	, _currVideoMode(VideoMode::VIDEO_2D)
 {
 	HyperionDaemon::daemon = this;
 
@@ -114,9 +120,16 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 
 	createCecHandler();
 
+	//Create MdnsBrowser singleton in main tread to ensure thread affinity during destruction
+#ifdef ENABLE_MDNS
+	MdnsBrowser::getInstance();
+#endif
+
+#if defined(ENABLE_EFFECTENGINE)
 	// init EffectFileHandler
 	EffectFileHandler* efh = new EffectFileHandler(rootPath, getSetting(settings::EFFECTS), this);
 	connect(this, &HyperionDaemon::settingsChanged, efh, &EffectFileHandler::handleSettingsUpdate);
+#endif
 
 	// connect and apply settings for AuthManager
 	connect(this, &HyperionDaemon::settingsChanged, _authManager, &AuthManager::handleSettingsUpdate);
@@ -130,7 +143,10 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	_instanceManager->startAll();
 
 	//Cleaning up Hyperion before quit
-	connect(parent, SIGNAL(aboutToQuit()), this, SLOT(freeObjects()));
+	connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit, this, &HyperionDaemon::freeObjects);
+
+	//Handle services dependent on the on first instance's availability
+	connect(_instanceManager, &HyperionIManager::instanceStateChanged, this, &HyperionDaemon::handleInstanceStateChange);
 
 	// pipe settings changes from HyperionIManager to Daemon
 	connect(_instanceManager, &HyperionIManager::settingsChanged, this, &HyperionDaemon::settingsChanged);
@@ -161,7 +177,65 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 HyperionDaemon::~HyperionDaemon()
 {
 	delete _settingsManager;
+#if defined(ENABLE_EFFECTENGINE)
 	delete _pyInit;
+#endif
+}
+
+void HyperionDaemon::handleInstanceStateChange(InstanceState state, quint8 instance)
+{
+	switch (state)
+	{
+	case InstanceState::H_STARTED:
+
+		if (instance == 0)
+		{
+			// Start Json server in own thread
+			_jsonServer = new JsonServer(getSetting(settings::JSONSERVER));
+			QThread* jsonThread = new QThread(this);
+			jsonThread->setObjectName("JSONServerThread");
+			_jsonServer->moveToThread(jsonThread);
+			connect(jsonThread, &QThread::started, _jsonServer, &JsonServer::initServer);
+			connect(jsonThread, &QThread::finished, _jsonServer, &JsonServer::deleteLater);
+			connect(this, &HyperionDaemon::settingsChanged, _jsonServer, &JsonServer::handleSettingsUpdate);
+#ifdef ENABLE_MDNS
+			connect(_jsonServer, &JsonServer::publishService, _mDNSProvider, &MdnsProvider::publishService);
+#endif
+			jsonThread->start();
+
+			// Start Webserver in own thread
+			QThread* wsThread = new QThread(this);
+			wsThread->setObjectName("WebServerThread");
+			_webserver->moveToThread(wsThread);
+			connect(wsThread, &QThread::started, _webserver, &WebServer::initServer);
+			connect(wsThread, &QThread::finished, _webserver, &WebServer::deleteLater);
+			connect(this, &HyperionDaemon::settingsChanged, _webserver, &WebServer::handleSettingsUpdate);
+#ifdef ENABLE_MDNS
+			connect(_webserver, &WebServer::publishService, _mDNSProvider, &MdnsProvider::publishService);
+#endif
+			wsThread->start();
+
+			// Start SSL Webserver in own thread
+			_sslWebserver = new WebServer(getSetting(settings::WEBSERVER), true);
+			QThread* sslWsThread = new QThread(this);
+			sslWsThread->setObjectName("SSLWebServerThread");
+			_sslWebserver->moveToThread(sslWsThread);
+			connect(sslWsThread, &QThread::started, _sslWebserver, &WebServer::initServer);
+			connect(sslWsThread, &QThread::finished, _sslWebserver, &WebServer::deleteLater);
+			connect(this, &HyperionDaemon::settingsChanged, _sslWebserver, &WebServer::handleSettingsUpdate);
+#ifdef ENABLE_MDNS
+			connect(_sslWebserver, &WebServer::publishService, _mDNSProvider, &MdnsProvider::publishService);
+#endif
+			sslWsThread->start();
+		}
+		break;
+
+	case InstanceState::H_STOPPED:
+		break;
+
+	default:
+		break;
+	}
 }
 
 void HyperionDaemon::setVideoMode(VideoMode mode)
@@ -182,9 +256,25 @@ void HyperionDaemon::freeObjects()
 {
 	Debug(_log, "Cleaning up Hyperion before quit.");
 
-	// destroy network first as a client might want to access hyperion
-	delete _jsonServer;
-	_jsonServer = nullptr;
+#ifdef ENABLE_MDNS
+	if (_mDNSProvider != nullptr)
+	{
+		auto mDnsThread = _mDNSProvider->thread();
+		mDnsThread->quit();
+		mDnsThread->wait();
+		delete mDnsThread;
+		_mDNSProvider = nullptr;
+	}
+#endif
+
+	if (_jsonServer != nullptr)
+	{
+		auto jsonThread = _jsonServer->thread();
+		jsonThread->quit();
+		jsonThread->wait();
+		delete jsonThread;
+		_jsonServer = nullptr;
+	}
 
 #if defined(ENABLE_FLATBUF_SERVER)
 	if (_flatBufferServer != nullptr)
@@ -251,13 +341,9 @@ void HyperionDaemon::freeObjects()
 	// stop Hyperions (non blocking)
 	_instanceManager->stopAll();
 
-#ifdef ENABLE_AVAHI
-	delete _bonjourBrowserWrapper;
-	_bonjourBrowserWrapper = nullptr;
-#endif
-
 	delete _amlGrabber;
-	delete _dispmanx;
+	if (_dispmanx != nullptr)
+		delete _dispmanx;
 	delete _fbGrabber;
 	delete _osxGrabber;
 	delete _qtGrabber;
@@ -277,9 +363,16 @@ void HyperionDaemon::freeObjects()
 
 void HyperionDaemon::startNetworkServices()
 {
-	// Create Json server
-	_jsonServer = new JsonServer(getSetting(settings::JSONSERVER));
-	connect(this, &HyperionDaemon::settingsChanged, _jsonServer, &JsonServer::handleSettingsUpdate);
+	// Create mDNS-Provider in thread to allow publishing other services
+#ifdef ENABLE_MDNS
+	_mDNSProvider = new MdnsProvider();
+	QThread* mDnsThread = new QThread(this);
+	mDnsThread->setObjectName("mDNSProviderThread");
+	_mDNSProvider->moveToThread(mDnsThread);
+	connect(mDnsThread, &QThread::started, _mDNSProvider, &MdnsProvider::init);
+	connect(mDnsThread, &QThread::finished, _mDNSProvider, &MdnsProvider::deleteLater);
+	mDnsThread->start();
+#endif
 
 #if defined(ENABLE_FLATBUF_SERVER)
 	// Create FlatBuffer server in thread
@@ -290,6 +383,9 @@ void HyperionDaemon::startNetworkServices()
 	connect(fbThread, &QThread::started, _flatBufferServer, &FlatBufferServer::initServer);
 	connect(fbThread, &QThread::finished, _flatBufferServer, &FlatBufferServer::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _flatBufferServer, &FlatBufferServer::handleSettingsUpdate);
+#ifdef ENABLE_MDNS
+	connect(_flatBufferServer, &FlatBufferServer::publishService, _mDNSProvider, &MdnsProvider::publishService);
+#endif
 	fbThread->start();
 #endif
 
@@ -302,36 +398,22 @@ void HyperionDaemon::startNetworkServices()
 	connect(pThread, &QThread::started, _protoServer, &ProtoServer::initServer);
 	connect(pThread, &QThread::finished, _protoServer, &ProtoServer::deleteLater);
 	connect(this, &HyperionDaemon::settingsChanged, _protoServer, &ProtoServer::handleSettingsUpdate);
+#ifdef ENABLE_MDNS
+	connect(_protoServer, &ProtoServer::publishService, _mDNSProvider, &MdnsProvider::publishService);
+#endif
 	pThread->start();
 #endif
 
-	// Create Webserver in thread
+	// Create Webserver
 	_webserver = new WebServer(getSetting(settings::WEBSERVER), false);
-	QThread* wsThread = new QThread(this);
-	wsThread->setObjectName("WebServerThread");
-	_webserver->moveToThread(wsThread);
-	connect(wsThread, &QThread::started, _webserver, &WebServer::initServer);
-	connect(wsThread, &QThread::finished, _webserver, &WebServer::deleteLater);
-	connect(this, &HyperionDaemon::settingsChanged, _webserver, &WebServer::handleSettingsUpdate);
-	wsThread->start();
 
-	// Create SSL Webserver in thread
-	_sslWebserver = new WebServer(getSetting(settings::WEBSERVER), true);
-	QThread* sslWsThread = new QThread(this);
-	sslWsThread->setObjectName("SSLWebServerThread");
-	_sslWebserver->moveToThread(sslWsThread);
-	connect(sslWsThread, &QThread::started, _sslWebserver, &WebServer::initServer);
-	connect(sslWsThread, &QThread::finished, _sslWebserver, &WebServer::deleteLater);
-	connect(this, &HyperionDaemon::settingsChanged, _sslWebserver, &WebServer::handleSettingsUpdate);
-	sslWsThread->start();
-
-	// Create SSDP server in thread
+	// Create SSDP server
 	_ssdp = new SSDPHandler(_webserver,
-							   getSetting(settings::FLATBUFSERVER).object()["port"].toInt(),
-							   getSetting(settings::PROTOSERVER).object()["port"].toInt(),
-							   getSetting(settings::JSONSERVER).object()["port"].toInt(),
-							   getSetting(settings::WEBSERVER).object()["sslPort"].toInt(),
-							   getSetting(settings::GENERAL).object()["name"].toString());
+		getSetting(settings::FLATBUFSERVER).object()["port"].toInt(),
+		getSetting(settings::PROTOSERVER).object()["port"].toInt(),
+		getSetting(settings::JSONSERVER).object()["port"].toInt(),
+		getSetting(settings::WEBSERVER).object()["sslPort"].toInt(),
+		getSetting(settings::GENERAL).object()["name"].toString());
 	QThread* ssdpThread = new QThread(this);
 	ssdpThread->setObjectName("SSDPThread");
 	_ssdp->moveToThread(ssdpThread);
@@ -381,11 +463,11 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 		_grabber_cropTop = grabberConfig["cropTop"].toInt(0);
 		_grabber_cropBottom = grabberConfig["cropBottom"].toInt(0);
 
-		#ifdef ENABLE_OSX
+#ifdef ENABLE_OSX
 		QString type = grabberConfig["device"].toString("osx");
-		#else
+#else
 		QString type = grabberConfig["device"].toString("auto");
-		#endif
+#endif
 
 		// auto eval of type
 		if (type == "auto")
@@ -402,7 +484,7 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 				{
 					type = "amlogic";
 
-					QString amlDevice ("/dev/amvideocap0");
+					QString amlDevice("/dev/amvideocap0");
 					if (!QFile::exists(amlDevice))
 					{
 						Error(_log, "grabber device '%s' for type amlogic not found!", QSTRING_CSTR(amlDevice));
@@ -414,13 +496,13 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 					QByteArray envDisplay = qgetenv("DISPLAY");
 					if (!envDisplay.isEmpty())
 					{
-						#if defined(ENABLE_X11)
+#if defined(ENABLE_X11)
 						type = "x11";
-						#elif defined(ENABLE_XCB)
+#elif defined(ENABLE_XCB)
 						type = "xcb";
-						#else
+#else
 						type = "qt";
-						#endif
+#endif
 					}
 					// qt -> if nothing other applies
 					else
@@ -434,78 +516,78 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 		if (_prevType != type)
 		{
 			// stop all capture interfaces
-			#ifdef ENABLE_FB
+#ifdef ENABLE_FB
 			if (_fbGrabber != nullptr)
 			{
 				_fbGrabber->stop();
 				delete _fbGrabber;
 				_fbGrabber = nullptr;
 			}
-			#endif
-			#ifdef ENABLE_DISPMANX
+#endif
+#ifdef ENABLE_DISPMANX
 			if (_dispmanx != nullptr)
 			{
 				_dispmanx->stop();
 				delete _dispmanx;
 				_dispmanx = nullptr;
 			}
-			#endif
-			#ifdef ENABLE_AMLOGIC
+#endif
+#ifdef ENABLE_AMLOGIC
 			if (_amlGrabber != nullptr)
 			{
 				_amlGrabber->stop();
 				delete _amlGrabber;
 				_amlGrabber = nullptr;
 			}
-			#endif
-			#ifdef ENABLE_OSX
+#endif
+#ifdef ENABLE_OSX
 			if (_osxGrabber != nullptr)
 			{
 				_osxGrabber->stop();
 				delete _osxGrabber;
 				_osxGrabber = nullptr;
 			}
-			#endif
-			#ifdef ENABLE_X11
+#endif
+#ifdef ENABLE_X11
 			if (_x11Grabber != nullptr)
 			{
 				_x11Grabber->stop();
 				delete _x11Grabber;
 				_x11Grabber = nullptr;
 			}
-			#endif
-			#ifdef ENABLE_XCB
+#endif
+#ifdef ENABLE_XCB
 			if (_xcbGrabber != nullptr)
 			{
 				_xcbGrabber->stop();
 				delete _xcbGrabber;
 				_xcbGrabber = nullptr;
 			}
-			#endif
-			#ifdef ENABLE_QT
+#endif
+#ifdef ENABLE_QT
 			if (_qtGrabber != nullptr)
 			{
 				_qtGrabber->stop();
 				delete _qtGrabber;
 				_qtGrabber = nullptr;
 			}
-			#endif
-			#ifdef ENABLE_DX
+#endif
+#ifdef ENABLE_DX
 			if (_dxGrabber != nullptr)
 			{
 				_dxGrabber->stop();
 				delete _dxGrabber;
 				_dxGrabber = nullptr;
 			}
-			#endif
-			#ifdef ENABLE_DRM
+#endif
+#ifdef ENABLE_DRM
 			if (_drmGrabber != nullptr)
 			{
 				_drmGrabber->stop();
 				delete _drmGrabber;
 				_drmGrabber = nullptr;
 			}
-			#endif
+#endif
 
 			// create/start capture interface
 			if (type == "framebuffer")
@@ -514,10 +596,10 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 				{
 					createGrabberFramebuffer(grabberConfig);
 				}
-				#ifdef ENABLE_FB
-					_fbGrabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
-					_fbGrabber->tryStart();
-				#endif
+#ifdef ENABLE_FB
+				_fbGrabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
+				_fbGrabber->tryStart();
+#endif
 			}
 			else if (type == "dispmanx")
 			{
@@ -525,10 +607,14 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 				{
 					createGrabberDispmanx(grabberConfig);
 				}
-				#ifdef ENABLE_DISPMANX
+
+#ifdef ENABLE_DISPMANX
+				if (_dispmanx != nullptr)
+				{
 					_dispmanx->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
 					_dispmanx->tryStart();
-				#endif
+				}
+#endif
 			}
 			else if (type == "amlogic")
 			{
@@ -536,10 +622,10 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 				{
 					createGrabberAmlogic(grabberConfig);
 				}
-				#ifdef ENABLE_AMLOGIC
-					_amlGrabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
-					_amlGrabber->tryStart();
-				#endif
+#ifdef ENABLE_AMLOGIC
+				_amlGrabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
+				_amlGrabber->tryStart();
+#endif
 			}
 			else if (type == "osx")
 			{
@@ -547,10 +633,10 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 				{
 					createGrabberOsx(grabberConfig);
 				}
-				#ifdef ENABLE_OSX
-					_osxGrabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
-					_osxGrabber->tryStart();
-				#endif
+#ifdef ENABLE_OSX
+				_osxGrabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
+				_osxGrabber->tryStart();
+#endif
 			}
 			else if (type == "x11")
 			{
@@ -558,10 +644,10 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 				{
 					createGrabberX11(grabberConfig);
 				}
-				#ifdef ENABLE_X11
-					_x11Grabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
-					_x11Grabber->tryStart();
-				#endif
+#ifdef ENABLE_X11
+				_x11Grabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
+				_x11Grabber->tryStart();
+#endif
 			}
 			else if (type == "xcb")
 			{
@@ -569,10 +655,10 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 				{
 					createGrabberXcb(grabberConfig);
 				}
-				#ifdef ENABLE_XCB
-					_xcbGrabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
-					_xcbGrabber->tryStart();
-				#endif
+#ifdef ENABLE_XCB
+				_xcbGrabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
+				_xcbGrabber->tryStart();
+#endif
 			}
 			else if (type == "qt")
 			{
@@ -580,10 +666,10 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 				{
 					createGrabberQt(grabberConfig);
 				}
-				#ifdef ENABLE_QT
-					_qtGrabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
-					_qtGrabber->tryStart();
-				#endif
+#ifdef ENABLE_QT
+				_qtGrabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
+				_qtGrabber->tryStart();
+#endif
 			}
 			else if (type == "dx")
 			{
@@ -591,10 +677,10 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 				{
 					createGrabberDx(grabberConfig);
 				}
-				#ifdef ENABLE_DX
-					_dxGrabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
-					_dxGrabber->tryStart();
-				#endif
+#ifdef ENABLE_DX
+				_dxGrabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
+				_dxGrabber->tryStart();
+#endif
 			}
 			else if (type == "drm")
 			{
@@ -658,7 +744,16 @@ void HyperionDaemon::createGrabberDispmanx(const QJsonObject& /*grabberConfig*/)
 	_dispmanx = new DispmanxWrapper(
 		_grabber_frequency,
 		_grabber_pixelDecimation
-		);
+	);
+
+	if (!_dispmanx->available)
+	{
+		delete _dispmanx;
+		_dispmanx = nullptr;
+		Debug(_log, "The dispmanx framegrabber is not supported on this platform");
+		return;
+	}
+
 	_dispmanx->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
 
 	// connect to HyperionDaemon signal
@@ -677,7 +772,7 @@ void HyperionDaemon::createGrabberAmlogic(const QJsonObject& /*grabberConfig*/)
 	_amlGrabber = new AmlogicWrapper(
 		_grabber_frequency,
 		_grabber_pixelDecimation
-		);
+	);
 	_amlGrabber->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
 
 	// connect to HyperionDaemon signal
@@ -697,7 +792,7 @@ void HyperionDaemon::createGrabberX11(const QJsonObject& /*grabberConfig*/)
 		_grabber_frequency,
 		_grabber_pixelDecimation,
 		_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom
-		);
+	);
 	_x11Grabber->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
 
 	// connect to HyperionDaemon signal
@@ -717,7 +812,7 @@ void HyperionDaemon::createGrabberXcb(const QJsonObject& /*grabberConfig*/)
 		_grabber_frequency,
 		_grabber_pixelDecimation,
 		_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom
-		);
+	);
 	_xcbGrabber->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
 
 	// connect to HyperionDaemon signal
@@ -738,7 +833,7 @@ void HyperionDaemon::createGrabberQt(const QJsonObject& grabberConfig)
 		grabberConfig["input"].toInt(0),
 		_grabber_pixelDecimation,
 		_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom
-		);
+	);
 
 	// connect to HyperionDaemon signal
 	connect(this, &HyperionDaemon::videoMode, _qtGrabber, &QtWrapper::setVideoMode);
@@ -758,7 +853,7 @@ void HyperionDaemon::createGrabberDx(const QJsonObject& grabberConfig)
 		grabberConfig["display"].toInt(0),
 		_grabber_pixelDecimation,
 		_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom
-		);
+	);
 
 	// connect to HyperionDaemon signal
 	connect(this, &HyperionDaemon::videoMode, _dxGrabber, &DirectXWrapper::setVideoMode);
@@ -781,7 +876,7 @@ void HyperionDaemon::createGrabberFramebuffer(const QJsonObject& grabberConfig)
 		_grabber_frequency,
 		devicePath,
 		_grabber_pixelDecimation
-		);
+	);
 	_fbGrabber->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
 	// connect to HyperionDaemon signal
 	connect(this, &HyperionDaemon::videoMode, _fbGrabber, &FramebufferWrapper::setVideoMode);
@@ -793,7 +888,7 @@ void HyperionDaemon::createGrabberFramebuffer(const QJsonObject& grabberConfig)
 #endif
 }
 
-	void HyperionDaemon::createGrabberOsx(const QJsonObject& grabberConfig)
+void HyperionDaemon::createGrabberOsx(const QJsonObject& grabberConfig)
 {
 #ifdef ENABLE_OSX
 	// Construct and start the osx grabber if the configuration is present
@@ -801,7 +896,7 @@ void HyperionDaemon::createGrabberFramebuffer(const QJsonObject& grabberConfig)
 		_grabber_frequency,
 		grabberConfig["input"].toInt(0),
 		_grabber_pixelDecimation
-		);
+	);
 	_osxGrabber->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
 
 	// connect to HyperionDaemon signal
@@ -829,7 +924,7 @@ void HyperionDaemon::createCecHandler()
 		{
 			_videoGrabber->handleCecEvent(event);
 		}
-	});
+		});
 
 	Info(_log, "CEC handler created");
 #else

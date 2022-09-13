@@ -78,7 +78,7 @@ namespace JsonUtils {
 					++errorLine;
 				}
 			}
-			Error(log,"Failed to parse json data from %s: Error: %s at Line: %i, Column: %i", QSTRING_CSTR(path), QSTRING_CSTR(error.errorString()), errorLine, errorColumn);
+			Error(log, "Failed to parse json data from %s: Error: %s at Line: %i, Column: %i, Data: '%s'", QSTRING_CSTR(path), QSTRING_CSTR(error.errorString()), errorLine, errorColumn, QSTRING_CSTR(data));
 			return false;
 		}
 		return true;

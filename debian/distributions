@@ -16,22 +16,6 @@ SignWith: yes
 
 Origin: Hyperion-Project
 Label: apt.hyperion-project.org
-Codename: groovy
-Architectures: amd64
-Components: main
-Description: Official APT Repository by Hyperion Project
-SignWith: yes
-
-Origin: Hyperion-Project
-Label: apt.hyperion-project.org
-Codename: hirsute
-Architectures: amd64 armhf arm64
-Components: main
-Description: Official APT Repository by Hyperion Project
-SignWith: yes
-
-Origin: Hyperion-Project
-Label: apt.hyperion-project.org
 Codename: impish
 Architectures: amd64 armhf arm64
 Components: main
@@ -41,6 +25,14 @@ SignWith: yes
 Origin: Hyperion-Project
 Label: apt.hyperion-project.org
 Codename: jammy
+Architectures: amd64
+Components: main
+Description: Official APT Repository by Hyperion Project
+SignWith: yes
+
+Origin: Hyperion-Project
+Label: apt.hyperion-project.org
+Codename: kinetic
 Architectures: amd64
 Components: main
 Description: Official APT Repository by Hyperion Project

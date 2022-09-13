@@ -1,6 +1,8 @@
 $(document).ready(function () {
   performTranslation();
 
+  var EFFECTENGINE_ENABLED = (jQuery.inArray("effectengine", window.serverInfo.services) !== -1);
+
   // update instance listing
   updateHyperionInstanceListing();
 
@@ -54,10 +56,20 @@ $(document).ready(function () {
         });
       }
       else {
-        if (sColor[key].key == "brightness" || sColor[key].key == "brightnessCompensation" || sColor[key].key == "backlightThreshold")
-          property = '<div class="input-group"><input id="cr_' + sColor[key].key + '" type="number" class="form-control" min="0" max="100" step="10" value="' + value + '"/><span class="input-group-addon">' + $.i18n("edt_append_percent") + '</span></div>';
-        else
+        if (sColor[key].key == "brightness" ||
+          sColor[key].key == "brightnessCompensation" ||
+          sColor[key].key == "backlightThreshold" ||
+          sColor[key].key == "saturationGain" ||
+          sColor[key].key == "brightnessGain") {
+
+          property = '<input id="cr_' + sColor[key].key + '" type="number" class="form-control" min="' + sColor[key].minimum + '" max="' + sColor[key].maximum + '" step="' + sColor[key].step + '" value="' + value + '"/>';
+          if (sColor[key].append === "edt_append_percent") {
+            property = '<div class="input-group">' + property + '<span class="input-group-addon">' + $.i18n("edt_append_percent") + '</span></div>';
+          }
+        }
+        else {
           property = '<input id="cr_' + sColor[key].key + '" type="number" class="form-control" min="0.1" max="4.0" step="0.1" value="' + value + '"/>';
+        }
 
         $('.crtbody').append(createTableRow([title, property], false, true));
         $('#cr_' + sColor[key].key).off().on('change', function (e) {
@@ -126,13 +138,13 @@ $(document).ready(function () {
 
       switch (compId) {
         case "EFFECT":
-          owner = $.i18n('remote_effects_label_effects') + '  ' + owner;
+          owner = $.i18n('remote_effects_label_effects') + ' ' + owner;
           break;
         case "COLOR":
           owner = $.i18n('remote_color_label_color') + '  ' + '<div style="width:18px; height:18px; border-radius:20px; margin-bottom:-4px; border:1px grey solid; background-color: rgb(' + value + '); display:inline-block" title="RGB: (' + value + ')"></div>';
           break;
         case "IMAGE":
-          owner = $.i18n('remote_effects_label_picture') + ' ' + owner;
+          owner = $.i18n('remote_effects_label_picture') + (owner !== undefined ? ('  ' + owner) : "");
           break;
         case "GRABBER":
           owner = $.i18n('general_comp_GRABBER') + ': (' + owner + ')';
@@ -151,16 +163,18 @@ $(document).ready(function () {
           break;
       }
 
-      if (duration && compId != "GRABBER" && compId != "FLATBUFSERVER" && compId != "PROTOSERVER")
-        owner += '<br/><span style="font-size:80%; color:grey;">' + $.i18n('remote_input_duration') + ' ' + duration.toFixed(0) + $.i18n('edt_append_s') + '</span>';
+      if (!(duration && duration < 0)) {
+        if (duration && compId != "GRABBER" && compId != "FLATBUFSERVER" && compId != "PROTOSERVER")
+          owner += '<br/><span style="font-size:80%; color:grey;">' + $.i18n('remote_input_duration') + ' ' + duration.toFixed(0) + $.i18n('edt_append_s') + '</span>';
 
-      var btn = '<button id="srcBtn' + i + '" type="button" ' + btn_state + ' class="btn btn-' + btn_type + ' btn_input_selection" onclick="requestSetSource(' + priority + ');">' + btn_text + '</button>';
+        var btn = '<button id="srcBtn' + i + '" type="button" ' + btn_state + ' class="btn btn-' + btn_type + ' btn_input_selection" onclick="requestSetSource(' + priority + ');">' + btn_text + '</button>';
 
-      if ((compId == "EFFECT" || compId == "COLOR" || compId == "IMAGE") && priority < 254)
-        btn += '<button type="button" class="btn btn-sm btn-danger" style="margin-left:10px;" onclick="requestPriorityClear(' + priority + ');"><i class="fa fa-close"></button>';
+        if ((compId == "EFFECT" || compId == "COLOR" || compId == "IMAGE") && priority < 254)
+          btn += '<button type="button" class="btn btn-sm btn-danger" style="margin-left:10px;" onclick="requestPriorityClear(' + priority + ');"><i class="fa fa-close"></button>';
 
-      if (btn_type != 'default')
-        $('.sstbody').append(createTableRow([origin, owner, priority, btn], false, true));
+        if (btn_type != 'default')
+          $('.sstbody').append(createTableRow([origin, owner, priority, btn], false, true));
+      }
     }
     var btn_auto_color = (window.serverInfo.priorities_autoselect ? "btn-success" : "btn-danger");
     var btn_auto_state = (window.serverInfo.priorities_autoselect ? "disabled" : "enabled");
@@ -220,7 +234,7 @@ $(document).ready(function () {
         $('#componentsbutton').append(d);
         $(`#${comp_btn_id}`).bootstrapToggle();
         $(`#${comp_btn_id}`).bootstrapToggle((hyperionEnabled ? "enable" : "disable"));
-        $(`#${comp_btn_id}`).change(e => {
+        $(`#${comp_btn_id}`).on("change", e => {
           requestSetComponentState(e.currentTarget.id.split('_').pop(), e.currentTarget.checked);
         });
       }
@@ -311,6 +325,9 @@ $(document).ready(function () {
   if (getStorage('rmduration') != null) {
     $("#remote_duration").val(getStorage('rmduration'));
     duration = getStorage('rmduration');
+    if (duration == 0) {
+      duration = ENDLESS;
+    }
   }
 
   createCP('cp2', cpcolor, function (rgbT, hex) {
@@ -330,6 +347,9 @@ $(document).ready(function () {
   $("#remote_duration").off().on("change", function () {
     duration = valValue(this.id, this.value, this.min, this.max);
     setStorage('rmduration', duration);
+    if (duration == 0) {
+      duration = ENDLESS;
+    }
   });
 
   $("#effect_select").off().on("change", function (event) {
@@ -337,18 +357,22 @@ $(document).ready(function () {
   });
 
   $("#remote_input_reseff, #remote_input_rescol").off().on("click", function () {
-    if (this.id == "remote_input_rescol")
+    if (this.id == "remote_input_rescol") {
       sendColor();
-    else
-      sendEffect();
+    } else {
+      if (EFFECTENGINE_ENABLED) {
+        sendEffect();
+      }
+    }
   });
 
   $("#remote_input_repimg").off().on("click", function () {
-    if (lastImgData != "")
+    if (lastImgData != "") {
       requestSetImage(lastImgData, duration, lastFileName);
+    }
   });
 
-  $("#remote_input_img").change(function () {
+  $("#remote_input_img").on("change", function () {
     readImg(this, function (src, fileName) {
       lastFileName = fileName;
       if (src.includes(","))
@@ -365,12 +389,15 @@ $(document).ready(function () {
   updateInputSelect();
   updateLedMapping();
   updateVideoMode();
-  updateEffectlist();
+  if (EFFECTENGINE_ENABLED) {
+    updateEffectlist();
+  } else {
+    $('#effect_row').hide();
+  }
 
   // interval updates
 
   $(window.hyperion).on('components-updated', function (e, comp) {
-    //console.log ("components-updated", e, comp);
     updateComponent(comp);
   });
 
@@ -396,3 +423,4 @@ $(document).ready(function () {
 
   removeOverlay();
 });
+

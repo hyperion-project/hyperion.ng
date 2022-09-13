@@ -274,6 +274,10 @@ select.form-control {
     color: #DDDDDD;
 }
 
+.keystone_correction_corners {
+    border:1px solid white;
+}
+
 .checkbox label::before {
     border-color: #616161;
     background-color: #212121;

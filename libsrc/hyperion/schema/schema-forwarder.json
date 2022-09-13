@@ -1,77 +1,106 @@
 {
-	"type" : "object",
-	"title" : "edt_conf_fw_heading_title",
-	"required" : true,
-	"properties": {
-		"enable": {
-			"type": "boolean",
-			"title": "edt_conf_general_enable_title",
-			"required": true,
-			"default": false,
-			"propertyOrder": 1
-		},
-		"json": {
-			"type": "array",
-			"title": "edt_conf_fw_json_title",
-			"propertyOrder": 2,
-			"uniqueItems": true,
-			"items": {
-				"type": "object",
-				"title": "edt_conf_fw_json_itemtitle",
-				"required": true,
-				"properties": {
-					"host": {
-						"type": "string",
-						"format": "hostname_or_ip",
-						"minLength": 7,
-						"title": "edt_dev_spec_targetIpHost_title",
-						"required": true,
-						"propertyOrder": 1
-					},
-					"port": {
-						"type": "integer",
-						"minimum": 1,
-						"maximum": 65535,
-						"default": 19444,
-						"title": "edt_dev_spec_port_title",
-						"required": true,
-						"access": "expert",
-						"propertyOrder": 2
-					}
-				}
-			}
-		},
-		"flat": {
-			"type": "array",
-			"title": "edt_conf_fw_flat_title",
-			"propertyOrder": 3,
-			"uniqueItems": true,
-			"items": {
-				"type": "object",
-				"title": "edt_conf_fw_flat_itemtitle",
-				"required": true,
-				"properties": {
-					"host": {
-						"type": "string",
-						"format": "hostname_or_ip",
-						"minLength": 7,
-						"title": "edt_dev_spec_targetIpHost_title",
-						"required": true,
-						"propertyOrder": 1
-					},
-					"port": {
-						"type": "integer",
-						"minimum": 1,
-						"maximum": 65535,
-						"default": 19400,
-						"title": "edt_dev_spec_port_title",
-						"required": true,
-						"access": "expert",
-						"propertyOrder": 2
-					}
-				}
-			}
-		}
-	},
-		"additionalProperties": false
-	}
+  "type": "object",
+  "title": "edt_conf_fw_heading_title",
+  "required": true,
+  "properties": {
+    "enable": {
+      "type": "boolean",
+      "title": "edt_conf_general_enable_title",
+      "required": true,
+      "default": false,
+      "propertyOrder": 1
+    },
+    "jsonapiselect": {
+      "type": "array",
+      "uniqueItems": true,
+      "format": "select",
+      "title": "edt_conf_fw_json_services_discovered_title",
+      "propertyOrder": 2
+    },
+    "jsonapi": {
+      "type": "array",
+      "title": "edt_conf_fw_json_title",
+      "uniqueItems": true,
+      "access": "expert",
+      "items": {
+        "type": "object",
+        "title": "edt_conf_fw_json_itemtitle",
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "edt_conf_fw_service_name_title",
+            "required": true,
+            "access": "expert",
+            "propertyOrder": 1
+          },
+          "host": {
+            "type": "string",
+            "format": "hostname_or_ip",
+            "minLength": 7,
+            "title": "edt_dev_spec_targetIpHost_title",
+            "required": true,
+            "access": "expert",
+            "propertyOrder": 2
+          },
+          "port": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535,
+            "title": "edt_dev_spec_port_title",
+            "required": true,
+            "access": "expert",
+            "propertyOrder": 3
+          }
+        }
+      },
+      "propertyOrder": 3
+    },
+    "flatbufferselect": {
+      "type": "array",
+      "uniqueItems": true,
+      "format": "select",
+      "title": "edt_conf_fw_flat_services_discovered_title",
+      "propertyOrder": 4
+    },
+    "flatbuffer": {
+      "type": "array",
+      "title": "edt_conf_fw_flat_title",
+      "uniqueItems": true,
+      "access": "expert",
+      "items": {
+        "type": "object",
+        "title": "edt_conf_fw_flat_itemtitle",
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "edt_conf_fw_service_name_title",
+            "access": "expert",
+            "propertyOrder": 1
+          },
+          "host": {
+            "type": "string",
+            "format": "hostname_or_ip",
+            "minLength": 7,
+            "title": "edt_dev_spec_targetIpHost_title",
+            "required": true,
+            "access": "expert",
+            "propertyOrder": 2
+          },
+          "port": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535,
+            "default": 19400,
+            "title": "edt_dev_spec_port_title",
+            "required": true,
+            "access": "expert",
+            "propertyOrder": 3
+          }
+        }
+      },
+      "propertyOrder": 5
+    }
+  },
+  "additionalProperties": false
+}
+

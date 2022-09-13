@@ -6,10 +6,7 @@
 
 // components def
 #include <utils/Components.h>
-// bonjour
-#ifdef ENABLE_AVAHI
-#include <bonjour/bonjourrecord.h>
-#endif
+
 // videModes
 #include <utils/VideoMode.h>
 // settings
@@ -17,9 +14,10 @@
 // AuthManager
 #include <hyperion/AuthManager.h>
 
+#include <hyperion/PriorityMuxer.h>
+
 class Hyperion;
 class ComponentRegister;
-class BonjourBrowserWrapper;
 class PriorityMuxer;
 
 class JsonCB : public QObject
@@ -71,17 +69,13 @@ private slots:
 	/// @brief handle component state changes
 	///
 	void handleComponentState(hyperion::Components comp, bool state);
-#ifdef ENABLE_AVAHI
-	///
-	/// @brief handle emits from bonjour wrapper
-	/// @param  bRegisters   The full register map
-	///
-	void handleBonjourChange(const QMap<QString,BonjourRecord>& bRegisters);
-#endif
+
 	///
 	/// @brief handle emits from PriorityMuxer
+	/// @param  currentPriority The current priority at time of emit
+	/// @param  activeInputs The current active input map at time of emit
 	///
-	void handlePriorityUpdate();
+	void handlePriorityUpdate(int currentPriority, const PriorityMuxer::InputsMap& activeInputs);
 
 	///
 	/// @brief Handle imageToLedsMapping updates
@@ -99,10 +93,12 @@ private slots:
 	///
 	void handleVideoModeChange(VideoMode mode);
 
+#if defined(ENABLE_EFFECTENGINE)
 	///
 	/// @brief Handle effect list change
 	///
 	void handleEffectListChange();
+#endif
 
 	///
 	/// @brief Handle a config part change. This does NOT include (global) changes from other hyperion instances
@@ -133,10 +129,7 @@ private:
 	Hyperion* _hyperion;
 	/// pointer of comp register
 	ComponentRegister* _componentRegister;
-#ifdef ENABLE_AVAHI
-	/// Bonjour instance
-	BonjourBrowserWrapper* _bonjour;
-#endif
+
 	/// priority muxer instance
 	PriorityMuxer* _prioMuxer;
 	/// contains all available commands

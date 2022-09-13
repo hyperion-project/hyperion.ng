@@ -1,6 +1,13 @@
 #include "LedDeviceTpm2net.h"
+#include <utils/NetUtils.h>
 
+// Constants
+namespace {
+
+const char CONFIG_HOST[] = "host";
+const char CONFIG_PORT[] = "port";
 const ushort TPM2_DEFAULT_PORT = 65506;
+}
 
 LedDeviceTpm2net::LedDeviceTpm2net(const QJsonObject &deviceConfig)
 	: ProviderUdp(deviceConfig)
@@ -20,13 +27,14 @@ LedDevice* LedDeviceTpm2net::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceTpm2net::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = false;
-
-	_port = TPM2_DEFAULT_PORT;
+	bool isInitOK {false};
 
 	// Initialise sub-class
 	if ( ProviderUdp::init(deviceConfig) )
 	{
+		_hostName = _devConfig[ CONFIG_HOST ].toString();
+		_port = deviceConfig[CONFIG_PORT].toInt(TPM2_DEFAULT_PORT);
+
 		_tpm2_max  = deviceConfig["max-packet"].toInt(170);
 		_tpm2ByteCount = 3 * _ledCount;
 		_tpm2TotalPackets = (_tpm2ByteCount / _tpm2_max) + ((_tpm2ByteCount % _tpm2_max) != 0);
@@ -36,6 +44,23 @@ bool LedDeviceTpm2net::init(const QJsonObject &deviceConfig)
 		isInitOK = true;
 	}
 	return isInitOK;
+}
+
+int LedDeviceTpm2net::open()
+{
+	int retval = -1;
+	_isDeviceReady = false;
+
+	if (NetUtils::resolveHostToAddress(_log, _hostName, _address))
+	{
+		if (ProviderUdp::open() == 0)
+		{
+			// Everything is OK, device is ready
+			_isDeviceReady = true;
+			retval = 0;
+		}
+	}
+	return retval;
 }
 
 int LedDeviceTpm2net::write(const std::vector<ColorRgb> &ledValues)

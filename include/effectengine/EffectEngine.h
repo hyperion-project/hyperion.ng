@@ -18,6 +18,8 @@
 #include <effectengine/EffectSchema.h>
 #include <utils/Logger.h>
 
+#include <hyperion/LinearColorSmoothing.h>
+
 // pre-declaration
 class Effect;
 class EffectFileHandler;
@@ -70,16 +72,16 @@ signals:
 
 public slots:
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
-	int runEffect(const QString &effectName, int priority, int timeout = Effect::ENDLESS, const QString &origin="System");
+	int runEffect(const QString &effectName, int priority, int timeout = PriorityMuxer::ENDLESS, const QString &origin="System");
 
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	int runEffect(const QString &effectName
 				, const QJsonObject &args
 				, int priority
-				, int timeout = Effect::ENDLESS
+				, int timeout = PriorityMuxer::ENDLESS
 				, const QString &pythonScript = ""
 				, const QString &origin = "System"
-				, unsigned smoothCfg=0
+				, unsigned smoothCfg=SmoothingConfigID::SYSTEM
 				, const QString &imageData = ""
 	);
 
@@ -103,9 +105,9 @@ private:
 				,const QString &name
 				, const QJsonObject &args
 				, int priority
-				, int timeout = Effect::ENDLESS
+				, int timeout = PriorityMuxer::ENDLESS
 				, const QString &origin="System"
-				, unsigned smoothCfg=0
+				, unsigned smoothCfg=SmoothingConfigID::SYSTEM
 				, const QString &imageData = ""
 	);
 

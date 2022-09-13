@@ -4,14 +4,51 @@ name: Nightly build
 on:
  schedule:
    - cron: '0 0 * * *'
+ repository_dispatch:
+   types: [hyperion_nightly_push]   
 
 jobs:
-  check:
-    name: Compare local <-> nightly
+  update:
+    name: Update Submodule rpi_ws281x
     if: github.repository_owner == 'hyperion-project'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Update Submodule rpi_ws281x
+        id: update
+        run: git submodule update --remote --recursive dependencies/external/rpi_ws281x
+
+      - name: Check git status
+        id: status
+        run: echo "::set-output name=status::$(git status -s)"
+
+      - name: Add and commit changes
+        if: ${{ steps.status.outputs.status }}
+        run: |
+          git config --local user.email "20935312+Hyperion-Bot@users.noreply.github.com"
+          git config --local user.name "Hyperion-Bot"
+          git config --local diff.ignoreSubmodules dirty
+          git commit -am "Update submodule rpi_ws281x"
+
+      - name: Push changes
+        if: ${{ steps.status.outputs.status }}
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.HYPERION_BOT_TOKEN }}
+          branch: ${{ github.ref }}
+
+  check:
+    name: Compare local <-> nightly
+    needs: [update]
+    if: github.repository_owner == 'hyperion-project'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
       - name: Check if commit has changed
         id: build-necessary
         run: |
@@ -29,7 +66,7 @@ jobs:
     if: ${{ needs.check.outputs.build-nightly == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set nightly matrix
         id: nightly-ppa
         run: |
@@ -46,7 +83,7 @@ jobs:
       matrix: ${{ fromJson(needs.setup.outputs.nightly-matrix) }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: true
 
@@ -82,10 +119,10 @@ jobs:
             sed 's/@CMAKE_ENVIRONMENT@/${{ matrix.cmake-environment }}/g' debian/rules.in > debian/rules && \
             tar -cJf ../hyperion_${{ env.TARBALL_VERSION }}.orig.tar.xz . && \
             debuild --no-lintian -uc -us && \
-            cp ../hyperion_* /deploy"
+            cp ../hyperion_*.deb /deploy"
 
       - name: Upload package artifact
-        uses: actions/upload-artifact@v2.2.4
+        uses: actions/upload-artifact@v3
         with:
           path: deploy
           retention-days: 1
@@ -96,12 +133,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v3.1.0
+        uses: crazy-max/ghaction-import-gpg@v5.1.0
         with:
-          gpg-private-key: ${{ secrets.APT_GPG }}
+          gpg_private_key: ${{ secrets.APT_GPG }}
 
       - name: Install reprepro
         run: sudo apt -y install reprepro
@@ -119,7 +156,7 @@ jobs:
           reprepro -Vb nightly export
 
       - name: Download artifacts
-        uses: actions/download-artifact@v2.0.10
+        uses: actions/download-artifact@v3.0.0
 
       - name: Include artifacts into the package source
         run: |
@@ -132,7 +169,7 @@ jobs:
           done
 
       - name: Upload packages to nightly server
-        uses: SamKirkland/FTP-Deploy-Action@4.1.0
+        uses: SamKirkland/FTP-Deploy-Action@4.3.1
         with:
           server: nightly.apt.hyperion-project.org
           username: ${{ secrets.NIGHTLY_USER }}

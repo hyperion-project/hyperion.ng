@@ -29,6 +29,45 @@
       },
       "access": "expert",
       "propertyOrder": 3
+    },
+    "autoStart": {
+      "type": "boolean",
+      "format": "checkbox",
+      "title": "edt_dev_general_autostart_title",
+      "default": true,
+      "required": true,
+      "options": {
+        "infoText": "edt_dev_general_autostart_title_info"
+      },
+      "access": "advanced",
+      "propertyOrder": 4
+    },
+    "enableAttempts": {
+      "type": "integer",
+      "title": "edt_dev_general_enableAttempts_title",
+      "minimum": 0,
+      "maximum": 120,
+      "default": 12,
+      "required": true,
+      "options": {
+        "infoText": "edt_dev_general_enableAttempts_title_info"
+      },
+      "access": "advanced",
+      "propertyOrder": 5
+    },
+    "enableAttemptsInterval": {
+      "type": "integer",
+      "title": "edt_dev_general_enableAttemptsInterval_title",
+      "minimum": 5,
+      "maximum": 120,
+      "default": 15,
+      "required": true,
+      "append": "edt_append_s",
+      "options": {
+        "infoText": "edt_dev_general_enableAttemptsInterval_title_info"
+      },
+      "access": "advanced",
+      "propertyOrder": 6
     }
   },
   "dependencies": {

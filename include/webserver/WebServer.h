@@ -11,7 +11,6 @@
 // settings
 #include <utils/settings.h>
 
-class BonjourServiceRegister;
 class StaticFileServing;
 class QtHttpServer;
 
@@ -51,6 +50,11 @@ signals:
 	/// @brief Emits whenever the port changes (doesn't compare prev <> now)
 	///
 	void portChanged(quint16 port);
+
+	///
+	/// @emits whenever the server would like to announce its service details
+	///
+	void publishService(const QString& serviceType, quint16 servicePort, const QByteArray& serviceName = "");
 
 public slots:
 	///
@@ -93,8 +97,6 @@ private:
 	const QString        WEBSERVER_DEFAULT_CRT_PATH = ":/hyperion.crt";
 	const QString        WEBSERVER_DEFAULT_KEY_PATH = ":/hyperion.key";
 	quint16              WEBSERVER_DEFAULT_PORT     = 8090;
-
-	BonjourServiceRegister * _serviceRegister = nullptr;
 };
 
 #endif // WEBSERVER_H

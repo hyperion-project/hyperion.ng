@@ -8,6 +8,8 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QDebug>
+#include <QFile>
 
 /* Enable to turn on detailed CEC logs */
 // #define VERBOSE_CEC
@@ -34,14 +36,15 @@ bool CECHandler::start()
 	if (_cecAdapter)
 		return true;
 
-	Info(_logger, "Starting CEC handler");
-
-	_cecAdapter = LibCecInitialise(&_cecConfig);
+	std::string library = std::string("" CEC_LIBRARY);
+	_cecAdapter = LibCecInitialise(&_cecConfig, QFile::exists(QString::fromStdString(library)) ? library.c_str() : nullptr);
 	if(!_cecAdapter)
 	{
-		Error(_logger, "Failed loading libcec.so");
+		Error(_logger, "Failed to loading libcec.so");
 		return false;
 	}
+
+	Info(_logger, "CEC handler started");
 
 	auto adapters = getAdapters();
 	if (adapters.isEmpty())

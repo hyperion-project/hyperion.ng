@@ -1,4 +1,5 @@
-#pragma once
+#ifndef LINEARCOLORSMOOTHING_H
+#define LINEARCOLORSMOOTHING_H
 
 // STL includes
 #include <vector>
@@ -10,6 +11,7 @@
 // hyperion includes
 #include <leddevice/LedDevice.h>
 #include <utils/Components.h>
+#include <hyperion/PriorityMuxer.h>
 
 // settings
 #include <utils/settings.h>
@@ -21,13 +23,12 @@ class QTimer;
 class Logger;
 class Hyperion;
 
-/// The type of smoothing to perform
-enum SmoothingType {
-	/// "Linear" smoothing algorithm
-	Linear,
-
-	/// Decay based smoothing algorithm
-	Decay,
+enum SmoothingConfigID
+{
+	SYSTEM = 0,
+	PAUSE = 1,
+	EFFECT_DYNAMIC = 2,
+	EFFECT_SPECIFIC = 3
 };
 
 /// Linear Smoothing class
@@ -80,6 +81,7 @@ public:
 	/// @param hyperion  The hyperion parent instance
 	///
 	LinearColorSmoothing(const QJsonDocument &config, Hyperion *hyperion);
+	~LinearColorSmoothing() override;
 
 	/// LED values as input for the smoothing filter
 	///
@@ -114,16 +116,16 @@ public:
 	///
 	/// @return The index of the configuration, which can be passed to selectConfig()
 	///
-	unsigned updateConfig(unsigned cfgID, int settlingTime_ms, double ledUpdateFrequency_hz = 25.0, unsigned updateDelay = 0);
+	unsigned updateConfig(int cfgID, int settlingTime_ms, double ledUpdateFrequency_hz = 25.0, unsigned updateDelay = 0);
 
 	///
 	/// @brief select a smoothing configuration given by cfg index from addConfig()
-	/// @param   cfg     The index to use
+	/// @param   cfgID   The index to use
 	/// @param   force   Overwrite in any case the current values (used for cfg 0 settings update)
 	///
 	/// @return  On success return else false (and falls back to cfg 0)
 	///
-	bool selectConfig(unsigned cfg, bool force = false);
+	bool selectConfig(int cfgID, bool force = false);
 
 public slots:
 	///
@@ -160,11 +162,16 @@ private:
 	///
 	virtual int write(const std::vector<ColorRgb> &ledValues);
 
+	QString getConfig(int cfgID);
+
 	/// Logger instance
 	Logger *_log;
 
 	/// Hyperion instance
 	Hyperion *_hyperion;
+
+	/// priority muxer instance
+	PriorityMuxer* _prioMuxer;
 
 	/// The interval at which to update the leds (msec)
 	int _updateInterval;
@@ -210,14 +217,12 @@ private:
 		REMEMBERED_FRAME ( const REMEMBERED_FRAME & ) = default;
 		REMEMBERED_FRAME & operator= ( const REMEMBERED_FRAME & ) = default;
 
-		REMEMBERED_FRAME(const int64_t time, const std::vector<ColorRgb> colors)
+		REMEMBERED_FRAME(int64_t time, const std::vector<ColorRgb> colors)
 		: time(time)
 		, colors(colors)
 		{}
 	};
 
-	/// The type of smoothing to perform
-	SmoothingType _smoothingType;
 
 	/// The queue of temporarily remembered frames
 	std::deque<REMEMBERED_FRAME> _frameQueue;
@@ -246,40 +251,52 @@ private:
 	/// Value of 1.0 / settlingTime; inverse of the window size used for weighting of frames.
 	floatT _invWindow;
 
-	struct SMOOTHING_CFG
-	{
-		/// The type of smoothing to perform
-		SmoothingType smoothingType;
+	enum class SmoothingType { Linear = 0, Decay = 1 };
 
+	class SmoothingCfg
+	{
+	public:
 		/// Whether to pause output
-		bool pause;
+		bool _pause;
 
 		/// The time of the smoothing window.
-		int64_t settlingTime;
+		int64_t _settlingTime;
 
 		/// The interval time in milliseconds of the timer used for scheduling LED update operations. A value of 0 indicates sub-millisecond timing.
-		int updateInterval;
+		int _updateInterval;
 
-		// The rate at which color frames should be written to LED device.
-		double outputRate;
+		/// The type of smoothing to perform
+		SmoothingType _type;
+
+		/// The rate at which color frames should be written to LED device.
+		double _outputRate;
 
 		/// The rate at which interpolation of LED frames should be performed.
-		double interpolationRate;
+		double _interpolationRate;
 
 		/// The number of frames the output is delayed
-		unsigned outputDelay;
+		unsigned _outputDelay;
 
 		/// Whether to apply temporal dithering to diffuse rounding errors when downsampling to 8-bit RGB colors. Improves color accuracy.
-		bool dithering;
+		bool _dithering;
 
 		/// The decay power > 0. A value of exactly 1 is linear decay, higher numbers indicate a faster decay rate.
-		double decay;
-	};
-	/// smooth configuration list
-	QVector<SMOOTHING_CFG> _cfgList;
+		double _decay;
 
-	unsigned _currentConfigId;
+		SmoothingCfg();
+		SmoothingCfg(bool pause, int64_t settlingTime, int updateInterval, SmoothingType type = SmoothingType::Linear, double outputRate = 0, double interpolationRate = 0, unsigned outputDelay = 0, bool dithering = false, double decay = 1);
+
+		static QString EnumToString(SmoothingType type);
+	};
+
+	/// smoothing configurations
+	QVector<SmoothingCfg> _cfgList;
+
+	int _currentConfigId;
 	bool _enabled;
+
+	/// The type of smoothing to perform
+	SmoothingType _smoothingType;
 
 	/// Pushes the colors into the frame queue and cleans outdated frames from memory.
 	///
@@ -292,7 +309,7 @@ private:
 	/// (Re-)Initializes the color-component vectors with given number of values.
 	///
 	/// @param ledCount The number of colors.
-	void intitializeComponentVectors(const size_t ledCount);
+	void intitializeComponentVectors(size_t ledCount);
 
 	/// The number of led component-values that must be held per color; i.e. size of the color vectors reds / greens / blues
 	size_t _ledCount = 0;
@@ -330,10 +347,10 @@ private:
 	///
 	/// When downsampling the average color values to the 8-bit RGB resolution of the LED device, rounding errors are minimized
 	/// by temporal dithering algorithm (error diffusion of residual errors).
-	void performDecay(const int64_t now);
+	void performDecay(int64_t now);
 
 	/// Performs a linear smoothing effect
-	void performLinear(const int64_t now);
+	void performLinear(int64_t now);
 
 	/// Aggregates the RGB components of the LED colors using the given weight and updates weighted accordingly
 	///
@@ -343,7 +360,7 @@ private:
 	static inline void aggregateComponents(const std::vector<ColorRgb>& colors, std::vector<uint64_t>& weighted, const floatT weight);
 
 	/// Gets the current time in microseconds from high precision system clock.
-	inline int64_t micros() const;
+	static inline int64_t micros() ;
 
 	/// The time, when the rendering statistics were logged previously
 	int64_t _renderedStatTime;
@@ -368,3 +385,5 @@ private:
 	/// @returns The frame weight.
 	std::function<floatT(int64_t, int64_t, int64_t)> _weightFrame;
 };
+
+#endif // LINEARCOLORSMOOTHING_H

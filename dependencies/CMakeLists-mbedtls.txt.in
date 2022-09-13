@@ -14,7 +14,7 @@ include(ExternalProject)
 ExternalProject_Add(
         mbedtls
         GIT_REPOSITORY        "https://github.com/ARMmbed/mbedtls.git"
-        GIT_TAG               origin/master
+        GIT_TAG               "v3.1.0" # Bump versions manually if necessary, do not rely on origin/master to be stable
         BUILD_ALWAYS          OFF
         DOWNLOAD_DIR          "${DOWNLOAD_DIR}"
         SOURCE_DIR            "${SOURCE_DIR}"

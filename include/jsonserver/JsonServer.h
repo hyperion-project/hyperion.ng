@@ -11,7 +11,6 @@
 class QTcpServer;
 class QTcpSocket;
 class JsonClientConnection;
-class BonjourServiceRegister;
 class NetOrigin;
 
 ///
@@ -31,11 +30,18 @@ public:
 	JsonServer(const QJsonDocument& config);
 	~JsonServer() override;
 
+	void initServer();
+
 	///
 	/// @return the port number on which this TCP listens for incoming connections
 	///
 	uint16_t getPort() const;
 
+signals:
+	///
+	/// @emits whenever the server would like to announce its service details
+	///
+	void publishService(const QString& serviceType, quint16 servicePort, const QByteArray& serviceName = "");
 
 private slots:
 	///
@@ -71,7 +77,7 @@ private:
 	/// port
 	uint16_t _port = 0;
 
-	BonjourServiceRegister * _serviceRegister = nullptr;
+	const QJsonDocument _config;
 
 	void start();
 	void stop();

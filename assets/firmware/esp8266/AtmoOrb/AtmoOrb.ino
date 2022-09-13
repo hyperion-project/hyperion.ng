@@ -15,7 +15,7 @@
 #include <FastLED.h>
 
 #define NUM_LEDS 24 // Number of leds
-#define DATA_PIN 7 // Data pin for leds (the default pin 7 might correspond to pin 13 on some boards)
+#define DATA_PIN D7 // Data pin for leds (the default pin 7 might correspond to pin 13 on some boards)
 #define SERIAL_DEBUG 0 // Serial debugging (0=Off, 1=On)
 
 #define ID 1 // Id of this lamp
@@ -348,7 +348,7 @@ void identify()
   {
     FastLED.showColor(CRGB::LemonChiffon);
     delay(500);
-    FastLED.showColor(CRGB::Black);   
+    FastLED.showColor(CRGB::Black);
     delay(500);
   }
 }

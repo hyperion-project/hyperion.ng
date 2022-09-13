@@ -1,4 +1,5 @@
-#pragma once
+#ifndef COLORSYS_H
+#define COLORSYS_H
 
 // STL includes
 #include <cstdint>
@@ -76,4 +77,34 @@ public:
 	/// @param[out] green The green RGB-component
 	/// @param[out] blue The blue RGB-component
 	static void yuv2rgb(uint8_t y, uint8_t u, uint8_t v, uint8_t & r, uint8_t & g, uint8_t & b);
+
+	///
+	/// Translates an RGB (red, green, blue) color to an Okhsv (hue, saturation, value) color
+	///
+	/// @param[in] red The red RGB-component
+	/// @param[in] green The green RGB-component
+	/// @param[in] blue The blue RGB-component
+	/// @param[out] hue The hue Okhsv-component
+	/// @param[out] saturation The saturation Okhsv-component
+	/// @param[out] value The value Okhsv-component
+	///
+	/// @note See https://bottosson.github.io/posts/colorpicker/#okhsv
+	///
+	static void rgb2okhsv(uint8_t red, uint8_t green, uint8_t blue, double & hue, double & saturation, double & value);
+
+	///
+	/// Translates an Okhsv (hue, saturation, value) color to an RGB (red, green, blue) color
+	///
+	/// @param[in] hue The hue Okhsv-component
+	/// @param[in] saturation The saturation Okhsv-component
+	/// @param[in] value The value Okhsv-component
+	/// @param[out] red The red RGB-component
+	/// @param[out] green The green RGB-component
+	/// @param[out] blue The blue RGB-component
+	///
+	/// @note See https://bottosson.github.io/posts/colorpicker/#okhsv
+	///
+	static void okhsv2rgb(double hue, double saturation, double value, uint8_t & red, uint8_t & green, uint8_t & blue);
 };
+
+#endif // COLORSYS_H

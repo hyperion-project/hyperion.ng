@@ -48,7 +48,7 @@ GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber * ggrabber, i
 
 GrabberWrapper::~GrabberWrapper()
 {
-	Debug(_log,"Close grabber: %s", QSTRING_CSTR(_grabberName));
+	GrabberWrapper::instance = nullptr;
 }
 
 bool GrabberWrapper::start()
@@ -194,7 +194,7 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 	{
 		// extract settings
 		const QJsonObject& obj = config.object();
-		
+
 		// save current state
 		bool isEnabled = getSysGrabberState();
 
@@ -222,7 +222,7 @@ void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocume
 			_ggrabber->setFramerate(obj["fps"].toInt(DEFAULT_RATE_HZ));
 			// eval new update time
 			updateTimer(_ggrabber->getUpdateInterval());
-			
+
 			// start if current state is not true
 			if (!isEnabled)
 			{

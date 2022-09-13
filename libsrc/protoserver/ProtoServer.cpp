@@ -10,6 +10,13 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 
+// Constants
+namespace {
+
+const char SERVICE_TYPE[] = "protobuffer";
+
+} //End of constants
+
 ProtoServer::ProtoServer(const QJsonDocument& config, QObject* parent)
 	: QObject(parent)
 	, _server(new QTcpServer(this))
@@ -73,6 +80,7 @@ void ProtoServer::newConnection()
 				connect(client, &ProtoClientConnection::clearGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::clearGlobalInput);
 				connect(client, &ProtoClientConnection::setGlobalInputImage, GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage);
 				connect(client, &ProtoClientConnection::setGlobalInputColor, GlobalSignals::getInstance(), &GlobalSignals::setGlobalColor);
+				connect(client, &ProtoClientConnection::setBufferImage, GlobalSignals::getInstance(), &GlobalSignals::setBufferImage);
 				connect(GlobalSignals::getInstance(), &GlobalSignals::globalRegRequired, client, &ProtoClientConnection::registationRequired);
 				_openConnections.append(client);
 			}
@@ -95,11 +103,12 @@ void ProtoServer::startServer()
 	{
 		if(!_server->listen(QHostAddress::Any, _port))
 		{
-		Error(_log,"Failed to bind port %d", _port);
+			Error(_log,"Failed to bind port %d", _port);
 		}
 		else
 		{
-		Info(_log,"Started on port %d", _port);
+			Info(_log,"Started on port %d", _port);
+			emit publishService(SERVICE_TYPE, _port);
 		}
 	}
 }

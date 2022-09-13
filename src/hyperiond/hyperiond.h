@@ -4,6 +4,8 @@
 #include <QObject>
 #include <QJsonObject>
 
+#include <hyperion/HyperionIManager.h>
+
 #ifdef ENABLE_DISPMANX
 	#include <grabber/DispmanxWrapper.h>
 #else
@@ -76,10 +78,14 @@
 class HyperionIManager;
 class SysTray;
 class JsonServer;
-class BonjourBrowserWrapper;
+#ifdef ENABLE_MDNS
+class MdnsProvider;
+#endif
 class WebServer;
 class SettingsManager;
+#if defined(ENABLE_EFFECTENGINE)
 class PythonInit;
+#endif
 class SSDPHandler;
 class FlatBufferServer;
 class ProtoServer;
@@ -158,6 +164,12 @@ private slots:
 	///
 	void setVideoMode(VideoMode mode);
 
+	/// @brief Handle whenever the state of a instance (HyperionIManager) changes according to enum instanceState
+	/// @param instaneState  A state from enum
+	/// @param instance      The index of instance
+	///
+	void handleInstanceStateChange(InstanceState state, quint8 instance);
+
 private:
 	void createGrabberDispmanx(const QJsonObject & grabberConfig);
 	void createGrabberAmlogic(const QJsonObject & grabberConfig);
@@ -173,9 +185,13 @@ private:
 	Logger*                    _log;
 	HyperionIManager*          _instanceManager;
 	AuthManager*               _authManager;
-	BonjourBrowserWrapper*     _bonjourBrowserWrapper;
+#ifdef ENABLE_MDNS
+	MdnsProvider*                _mDNSProvider;
+#endif
 	NetOrigin*                 _netOrigin;
+#if defined(ENABLE_EFFECTENGINE)
 	PythonInit*                _pyInit;
+#endif
 	WebServer*                 _webserver;
 	WebServer*                 _sslWebserver;
 	JsonServer*                _jsonServer;

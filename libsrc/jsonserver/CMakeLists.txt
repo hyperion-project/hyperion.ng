@@ -13,3 +13,8 @@ target_link_libraries(jsonserver
 	Qt${QT_VERSION_MAJOR}::Network
 	Qt${QT_VERSION_MAJOR}::Gui
 )
+
+if(ENABLE_MDNS)
+	target_link_libraries(jsonserver mdns)
+endif()
+

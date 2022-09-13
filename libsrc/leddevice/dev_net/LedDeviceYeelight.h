@@ -449,8 +449,8 @@ public:
 	/// Following parameters are required
 	/// @code
 	/// {
-	///     "hostname"  : "hostname or IP",
-	///     "port"      : port, default port 55443 is used when not provided
+	///     "host"  : "hostname or IP",
+	///     "port"  : port, default port 55443 is used when not provided
 	/// }
 	///@endcode
 	///
@@ -465,8 +465,8 @@ public:
 	/// Following parameters are required
 	/// @code
 	/// {
-	///     "hostname"  : "hostname or IP",
-	///     "port"      : port, default port 55443 is used when not provided
+	///     "host"  : "hostname or IP",
+	///     "port"  : port, default port 55443 is used when not provided
 	/// }
 	///@endcode
 	///

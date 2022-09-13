@@ -94,7 +94,7 @@
       "minimum": 0,
       "maximum": 2048,
       "default": 0,
-      "append": "edt_append_ms",
+      "append": "edt_append_frames",
       "propertyOrder": 9
     }
   },

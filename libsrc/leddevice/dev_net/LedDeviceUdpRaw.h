@@ -7,7 +7,7 @@
 ///
 /// Implementation of the LedDevice interface for sending LED colors via UDP
 ///
-class LedDeviceUdpRaw : public ProviderUdp
+class LedDeviceUdpRaw : public virtual ProviderUdp
 {
 public:
 
@@ -43,6 +43,13 @@ protected:
 	/// @return True, if success
 	///
 	bool init(const QJsonObject &deviceConfig) override;
+
+	///
+	/// @brief Opens the output device.
+	///
+	/// @return Zero on success (i.e. device is ready), else negative
+	///
+	int open() override;
 
 	///
 	/// @brief Writes the RGB-Color values to the LEDs.

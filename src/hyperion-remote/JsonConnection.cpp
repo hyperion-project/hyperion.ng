@@ -12,6 +12,8 @@
 #include <QHostInfo>
 #include <QUrl>
 
+#include "HyperionConfig.h"
+
 // hyperion-remote includes
 #include "JsonConnection.h"
 
@@ -66,7 +68,7 @@ void JsonConnection::setColor(std::vector<QColor> colors, int priority, int dura
 	parseReply(reply);
 }
 
-void JsonConnection::setImage(QImage &image, int priority, int duration)
+void JsonConnection::setImage(QImage &image, int priority, int duration, const QString& name)
 {
 	Debug(_log, "Set image has size: %dx%d", image.width(), image.height());
 
@@ -91,6 +93,8 @@ void JsonConnection::setImage(QImage &image, int priority, int duration)
 	command["command"] = QString("image");
 	command["priority"] = priority;
 	command["origin"] = QString("hyperion-remote");
+	if (!name.isEmpty())
+		command["name"] = name;
 	command["imagewidth"] = image.width();
 	command["imageheight"] = image.height();
 	command["imagedata"] = QString(base64Image.data());
@@ -106,6 +110,7 @@ void JsonConnection::setImage(QImage &image, int priority, int duration)
 	parseReply(reply);
 }
 
+#if defined(ENABLE_EFFECTENGINE)
 void JsonConnection::setEffect(const QString &effectName, const QString & effectArgs, int priority, int duration)
 {
 	Debug(_log, "Start effect: %s", QSTRING_CSTR(effectName));
@@ -185,6 +190,7 @@ void JsonConnection::deleteEffect(const QString &effectName)
 	// parse reply message
 	parseReply(reply);
 }
+#endif
 
 QString JsonConnection::getServerInfoString()
 {

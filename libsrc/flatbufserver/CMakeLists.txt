@@ -60,5 +60,10 @@ flatbuffers
 Qt${QT_VERSION_MAJOR}::Network
 Qt${QT_VERSION_MAJOR}::Core
 )
+
+if(ENABLE_MDNS)
+	target_link_libraries(flatbufserver mdns)
+endif()
+
 endif()
 

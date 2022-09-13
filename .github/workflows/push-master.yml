@@ -33,7 +33,7 @@ jobs:
             platform: amlogic
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
         with:
           submodules: true
 
@@ -50,7 +50,7 @@ jobs:
       # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
         if: startsWith(github.event.ref, 'refs/tags')
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: deploy/Hyperion-*
 
@@ -62,7 +62,7 @@ jobs:
     name: macOS
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
         with:
           submodules: true
 
@@ -81,7 +81,7 @@ jobs:
       # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
         if: startsWith(github.event.ref, 'refs/tags')
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: build/Hyperion-*
 
@@ -91,18 +91,18 @@ jobs:
 
   windows:
     name: Windows
-    runs-on: windows-latest
+    runs-on: windows-2022
     env:
-      VCINSTALLDIR: 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC'
-      QT_VERSION: 5.15.0
+      VCINSTALLDIR: 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC'
+      QT_VERSION: 5.15.2
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v3
         with:
           submodules: true
 
       - name: Cache Qt
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         id: cache-qt-windows
         with:
           path: ${{ runner.workspace }}/Qt
@@ -117,21 +117,15 @@ jobs:
           cached: ${{ steps.cache-qt-windows.outputs.cache-hit }}
 
       - name: Cache Chocolatey downloads
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: C:\Users\runneradmin\AppData\Local\Temp\chocolatey
           key: ${{ runner.os }}-chocolatey
 
-      - name: "Remove Redistributable"
-        shell: cmd
-        run: |
-          MsiExec.exe /passive /X{F0C3E5D1-1ADE-321E-8167-68EF0DE699A5}
-          MsiExec.exe /passive /X{1D8E6291-B0D5-35EC-8441-6616F567A0F7}
-
-      - name: Install Python, NSIS, OpenSSL, DirectX SDK
+      - name: Install Python, OpenSSL, DirectX SDK
         shell: powershell
         run: |
-          choco install --no-progress python nsis openssl directx-sdk -y
+          choco install --no-progress python openssl directx-sdk -y
 
       - name: Install libjpeg-turbo
         run: |
@@ -152,7 +146,7 @@ jobs:
       # Upload artifacts (only on tagged commit)
       - name: Upload artifacts
         if: startsWith(github.event.ref, 'refs/tags')
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           path: build/Hyperion-*
           retention-days: 1
@@ -168,7 +162,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       # Generate environment variables
       - name: Generate environment variables from .version and tag
@@ -178,7 +172,7 @@ jobs:
 
       # Download artifacts from previous build process
       - name: Download artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3.0.0
         with:
           path: artifacts
 
@@ -198,7 +192,8 @@ jobs:
 ##########################
 
   apt_build:
-    name: APT Build
+    name: APT Build GitHub Releases
+    if: startsWith(github.event.ref, 'refs/tags')
     needs: [Linux, macOS, windows]
     uses: ./.github/workflows/apt.yml
     secrets:

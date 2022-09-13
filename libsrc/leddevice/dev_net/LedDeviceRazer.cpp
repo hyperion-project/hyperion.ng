@@ -65,13 +65,6 @@ bool LedDeviceRazer::init(const QJsonObject& deviceConfig)
 	// Initialise sub-class
 	if (LedDevice::init(deviceConfig))
 	{
-		// Initialise LedDevice configuration and execution environment
-		uint configuredLedCount = this->getLedCount();
-		Debug(_log, "DeviceType   : %s", QSTRING_CSTR(this->getActiveDeviceType()));
-		Debug(_log, "LedCount     : %u", configuredLedCount);
-		Debug(_log, "ColorOrder   : %s", QSTRING_CSTR(this->getColorOrder()));
-		Debug(_log, "LatchTime    : %d", this->getLatchTime());
-		Debug(_log, "RefreshTime  : %d", _refreshTimerInterval_ms);
 
 		//Razer Chroma SDK allows localhost connection only
 		_hostname = API_DEFAULT_HOST;
@@ -86,6 +79,7 @@ bool LedDeviceRazer::init(const QJsonObject& deviceConfig)
 		Debug(_log, "Razer Device : %s", QSTRING_CSTR(_razerDeviceType));
 		Debug(_log, "Single Color : %d", _isSingleColor);
 
+		int configuredLedCount = this->getLedCount();
 		if (resolveDeviceProperties(_razerDeviceType))
 		{
 			if (_isSingleColor && configuredLedCount > 1)
@@ -125,6 +119,8 @@ bool LedDeviceRazer::initRestAPI(const QString& hostname, int port)
 	if (_restApi == nullptr)
 	{
 		_restApi = new ProviderRestApi(hostname, port);
+		_restApi->setLogger(_log);
+
 		_restApi->setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
 		isInitOK = true;
@@ -283,7 +279,7 @@ int LedDeviceRazer::write(const std::vector<ColorRgb>& ledValues)
 			for (int col = 0; col < _maxColumn; col++) {
 				int pos = row * _maxColumn + col;
 				int bgrColor;
-				if (pos < ledValues.size())
+				if (pos < static_cast<int>(ledValues.size()))
 				{
 					bgrColor = (ledValues[pos].red * 65536) + (ledValues[pos].green * 256) + ledValues[pos].blue;
 				}

@@ -98,10 +98,14 @@ void QtHttpClientWrapper::onClientDataReceived (void)
 
 						if (pos > 0)
 						{
-							QByteArray header = raw.left (pos).trimmed ();
-							QByteArray value  = raw.mid  (pos +1).trimmed ();
+							QByteArray header = raw.left (pos).trimmed();
+							QByteArray value  = raw.mid  (pos +1).trimmed();
 							m_currentRequest->addHeader (header, value);
-							if (header == QtHttpHeader::ContentLength)
+							#if (QT_VERSION >= QT_VERSION_CHECK(5, 12, 0))
+							if (header.compare(QtHttpHeader::ContentLength, Qt::CaseInsensitive) == 0)
+							#else
+							if (header.toLower() == QtHttpHeader::ContentLength.toLower())
+							#endif
 							{
 								bool ok  = false;
 								const int len = value.toInt (&ok, 10);
@@ -153,7 +157,7 @@ void QtHttpClientWrapper::onClientDataReceived (void)
 				case RequestParsed: // a valid request has ben fully parsed
 				{
 					// Catch websocket header "Upgrade"
-					if(m_currentRequest->getHeader(QtHttpHeader::Upgrade).toLower() == "websocket")
+					if(m_currentRequest->getHeader(QtHttpHeader::Upgrade) == "websocket")
 					{
 						if(m_websocketClient == Q_NULLPTR)
 						{
@@ -327,7 +331,7 @@ QtHttpClientWrapper::ParsingStatus QtHttpClientWrapper::sendReplyToClient (QtHtt
 		{
 			static const QByteArray & CLOSE = QByteArrayLiteral ("close");
 
-			if (m_currentRequest->getHeader (QtHttpHeader::Connection).toLower () == CLOSE)
+			if (m_currentRequest->getHeader(QtHttpHeader::Connection) == CLOSE)
 			{
 				// must close connection after this request
 				m_sockClient->close ();
