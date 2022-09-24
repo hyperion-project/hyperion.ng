@@ -24,8 +24,11 @@ void ImageResampler::setCropping(int cropLeft, int cropRight, int cropTop, int c
 
 void ImageResampler::processImage(const uint8_t * data, int width, int height, int lineLength, PixelFormat pixelFormat, Image<ColorRgb> &outputImage) const
 {
+	int cropLeft = _cropLeft;
 	int cropRight  = _cropRight;
+	int cropTop = _cropTop;
 	int cropBottom = _cropBottom;
+
 	int xDestFlip = 0, yDestFlip = 0;
 	int uOffset = 0, vOffset = 0;
 
@@ -33,22 +36,24 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 	switch (_videoMode)
 	{
 	case VideoMode::VIDEO_3DSBS:
-		cropRight = width >> 1;
+		cropRight =  (width >> 1) + (cropRight >> 1);
+		cropLeft = cropLeft >> 1;
 		break;
 	case VideoMode::VIDEO_3DTAB:
-		cropBottom = height >> 1;
+		cropBottom = (height >> 1) + (cropBottom >> 1);
+		cropTop = cropTop >> 1;
 		break;
 	default:
 		break;
 	}
 
 	// calculate the output size
-	int outputWidth = (width - _cropLeft - cropRight - (_horizontalDecimation >> 1) + _horizontalDecimation - 1) / _horizontalDecimation;
-	int outputHeight = (height - _cropTop - cropBottom - (_verticalDecimation >> 1) + _verticalDecimation - 1) / _verticalDecimation;
+	int outputWidth = (width - cropLeft - cropRight - (_horizontalDecimation >> 1) + _horizontalDecimation - 1) / _horizontalDecimation;
+	int outputHeight = (height - cropTop - cropBottom - (_verticalDecimation >> 1) + _verticalDecimation - 1) / _verticalDecimation;
 
 	outputImage.resize(outputWidth, outputHeight);
 
-	for (int yDest = 0, ySource = _cropTop + (_verticalDecimation >> 1); yDest < outputHeight; ySource += _verticalDecimation, ++yDest)
+	for (int yDest = 0, ySource = cropTop + (_verticalDecimation >> 1); yDest < outputHeight; ySource += _verticalDecimation, ++yDest)
 	{
 		int yOffset = lineLength * ySource;
 		if (pixelFormat == PixelFormat::NV12)
@@ -61,7 +66,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 			vOffset = width * height * 1.25 + (ySource/2) * width/2;
 		}
 
-		for (int xDest = 0, xSource = _cropLeft + (_horizontalDecimation >> 1); xDest < outputWidth; xSource += _horizontalDecimation, ++xDest)
+		for (int xDest = 0, xSource = cropLeft + (_horizontalDecimation >> 1); xDest < outputWidth; xSource += _horizontalDecimation, ++xDest)
 		{
 			switch (_flipMode)
 			{
