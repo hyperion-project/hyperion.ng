@@ -14,6 +14,7 @@
 // Turbo JPEG decoder
 #ifdef HAVE_TURBO_JPEG
 	#include <turbojpeg.h>
+	#include "jconfig.h"
 #endif
 
 constexpr int DEFAULT_THREAD_COUNT {1};
@@ -67,6 +68,7 @@ private:
 	tjtransform*		_xform;
 
 	void processImageMjpeg();
+	bool onError(const QString context) const;
 #endif
 };
 

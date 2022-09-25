@@ -168,10 +168,12 @@ void EncoderThread::processImageMjpeg()
 			_xform = new tjtransform();
 		}
 
-		if (tjDecompressHeader3(_tjInstance, _localData, _size, &_width, &_height, &inSubsamp, &inColorspace) != 0 && tjGetErrorCode(_tjInstance) == TJERR_FATAL)
+		if (tjDecompressHeader3(_tjInstance, _localData, _size, &_width, &_height, &inSubsamp, &inColorspace) < 0)
 		{
-			//qDebug() << "processImageMjpeg() | _doTransform - tjDecompressHeader3 Error: " << QString(tjGetErrorStr2(_tjInstance));
-			return;
+			if (onError("_doTransform - tjDecompressHeader3"))
+			{
+				return;
+			}
 		}
 
 		int transformedWidth {_width};
@@ -251,8 +253,10 @@ void EncoderThread::processImageMjpeg()
 
 		if(tjTransform(_tjInstance, _localData, _size, 1, &dstBuf, &dstSize, _xform, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) < 0 )
 		{
-			//qDebug() << "processImageMjpeg() | _doTransform - tjTransform Error: " << tjGetErrorCode(_tjInstance) << QString(tjGetErrorStr2(_tjInstance));
-			return;
+			if (onError("_doTransform - tjTransform"))
+			{
+				return;
+			}
 		}
 
 		tjFree(_localData);
@@ -264,24 +268,27 @@ void EncoderThread::processImageMjpeg()
 		if (!_tjInstance)
 		{
 			_tjInstance = tjInitDecompress();
-
 		}
 	}
 
 	if (_doTransform)
 	{
-		if (tjDecompressHeader3(_tjInstance, _localData, _size, &_width, &_height,	&inSubsamp, &inColorspace) != 0 && tjGetErrorCode(_tjInstance) == TJERR_FATAL)
+		if (tjDecompressHeader3(_tjInstance, _localData, _size, &_width, &_height,	&inSubsamp, &inColorspace) < 0)
 		{
-			//qDebug() << "processImageMjpeg() | get image details - tjDecompressHeader3 Error: " << QString(tjGetErrorStr2(_tjInstance));
-			return;
+			if (onError("get image details - tjDecompressHeader3"))
+			{
+				return;
+			}
 		}
 	}
 	else
 	{
-		if (tjDecompressHeader2(_tjInstance, _localData, _size, &_width, &_height, &inSubsamp) != 0 && tjGetErrorCode(_tjInstance) == TJERR_FATAL)
+		if (tjDecompressHeader2(_tjInstance, _localData, _size, &_width, &_height, &inSubsamp) < 0)
 		{
-			//qDebug() << "processImageMjpeg() | get image details - tjDecompressHeader2 Error: " << QString(tjGetErrorStr2(_tjInstance));
-			return;
+			if (onError("get image details - tjDecompressHeader2"))
+			{
+				return;
+			}
 		}
 	}
 
@@ -317,14 +324,34 @@ void EncoderThread::processImageMjpeg()
 
 	if (tjDecompress2(_tjInstance, _localData , _size,
 					  reinterpret_cast<unsigned char*>(srcImage.memptr()), _width, 0, _height,
-					  TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE
-					  ) != 0 &&
-		tjGetErrorCode(_tjInstance) == TJERR_FATAL)
+					  TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE)
+		< 0)
 	{
-		//qDebug() << "processImageMjpeg() - get final image - tjDecompress2 Error: " << QString(tjGetErrorStr2(_tjInstance));
-		return;
+		if (onError("get final image - tjDecompress2"))
+		{
+			return;
+		}
 	}
-
 	emit newFrame(srcImage);
+}
+#endif
+
+#ifdef HAVE_TURBO_JPEG
+bool EncoderThread::onError(const QString context) const
+{
+	bool treatAsError {false};
+
+#if LIBJPEG_TURBO_VERSION_NUMBER > 2000000
+	if (tjGetErrorCode(_tjInstance) == TJERR_FATAL)
+	{
+		//qDebug() << context << "Error: " << QString(tjGetErrorStr2(_tjInstance));
+		treatAsError = true;
+	}
+#else
+	//qDebug() << context << "Error: " << QString(tjGetErrorStr());
+	treatAsError = true;
+#endif
+
+return treatAsError;
 }
 #endif
