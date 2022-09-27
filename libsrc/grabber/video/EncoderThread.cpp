@@ -1,25 +1,28 @@
 #include "grabber/EncoderThread.h"
 
+#include <QDebug>
+
 EncoderThread::EncoderThread()
 	: _localData(nullptr)
 	, _scalingFactorsCount(0)
-	, _imageResampler()
-#ifdef HAVE_TURBO_JPEG
-	, _transform(nullptr)
-	, _decompress(nullptr)
+	, _doTransform(false)
+	,_imageResampler()
+	#ifdef HAVE_TURBO_JPEG
+	, _tjInstance(nullptr)
 	, _scalingFactors(nullptr)
 	, _xform(nullptr)
+	#endif
+{
+#ifdef HAVE_TURBO_JPEG
+	_scalingFactors = tjGetScalingFactors(&_scalingFactorsCount);
 #endif
-{}
+}
 
 EncoderThread::~EncoderThread()
 {
 #ifdef HAVE_TURBO_JPEG
-	if (_transform)
-		tjDestroy(_transform);
-
-	if (_decompress)
-		tjDestroy(_decompress);
+	if (_tjInstance)
+		tjDestroy(_tjInstance);
 #endif
 
 	if (_localData != nullptr)
@@ -34,14 +37,14 @@ EncoderThread::~EncoderThread()
 }
 
 void EncoderThread::setup(
-	PixelFormat pixelFormat, uint8_t* sharedData,
-	int size, int width, int height, int lineLength,
-	unsigned cropLeft, unsigned cropTop, unsigned cropBottom, unsigned cropRight,
-	VideoMode videoMode, FlipMode flipMode, int pixelDecimation)
+		PixelFormat pixelFormat, uint8_t* sharedData,
+		int size, int width, int height, int lineLength,
+		int cropLeft, int cropTop, int cropBottom, int cropRight,
+		VideoMode videoMode, FlipMode flipMode, int pixelDecimation)
 {
 	_lineLength = lineLength;
 	_pixelFormat = pixelFormat;
-	_size = (unsigned long) size;
+	_size = static_cast<unsigned long>(size);
 	_width = width;
 	_height = height;
 	_cropLeft = cropLeft;
@@ -49,19 +52,47 @@ void EncoderThread::setup(
 	_cropBottom = cropBottom;
 	_cropRight = cropRight;
 	_flipMode = flipMode;
+	_videoMode = videoMode;
 	_pixelDecimation = pixelDecimation;
 
-	_imageResampler.setVideoMode(videoMode);
+	bool needTransform {false};
+
+	if (_cropLeft > 0 || _cropTop > 0 || _cropBottom > 0 || _cropRight > 0 ||
+		_flipMode != FlipMode::NO_CHANGE ||
+		_videoMode !=  VideoMode::VIDEO_2D)
+	{
+		needTransform = true;
+	}
+	else
+	{
+		needTransform = false;
+	}
+
+#ifdef HAVE_TURBO_JPEG
+	if (_doTransform != needTransform )
+	{
+		if (_tjInstance != nullptr)
+		{
+			tjDestroy(_tjInstance);
+			_tjInstance = nullptr;
+		}
+		_doTransform = needTransform;
+	}
+#endif
+
+	_imageResampler.setVideoMode(_videoMode);
 	_imageResampler.setFlipMode(_flipMode);
-	_imageResampler.setCropping(cropLeft, cropRight, cropTop, cropBottom);
+	_imageResampler.setCropping(_cropLeft, _cropRight, _cropTop, _cropBottom);
 	_imageResampler.setHorizontalPixelDecimation(_pixelDecimation);
 	_imageResampler.setVerticalPixelDecimation(_pixelDecimation);
 
 #ifdef HAVE_TURBO_JPEG
 	if (_localData != nullptr)
+	{
 		tjFree(_localData);
-
-	_localData = (uint8_t*)tjAlloc(size + 1);
+		_localData = nullptr;
+	}
+	_localData = static_cast<uint8_t*>(tjAlloc(size + 1));
 #else
 	if (_localData != nullptr)
 	{
@@ -72,7 +103,10 @@ void EncoderThread::setup(
 	_localData = new uint8_t[size];
 #endif
 
-	memcpy(_localData, sharedData, size);
+	if (_localData != nullptr)
+	{
+		memcpy(_localData, sharedData, static_cast<size_t>(size));
+	}
 }
 
 void EncoderThread::process()
@@ -123,85 +157,201 @@ void EncoderThread::process()
 #ifdef HAVE_TURBO_JPEG
 void EncoderThread::processImageMjpeg()
 {
-	if (!_transform && _flipMode != FlipMode::NO_CHANGE)
+	int inSubsamp {0};
+	int inColorspace {0};
+
+	if (_doTransform)
 	{
-		_transform = tjInitTransform();
-		_xform = new tjtransform();
+		if (!_tjInstance)
+		{
+			_tjInstance = tjInitTransform();
+			_xform = new tjtransform();
+		}
+
+		if (tjDecompressHeader3(_tjInstance, _localData, _size, &_width, &_height, &inSubsamp, &inColorspace) < 0)
+		{
+			if (onError("_doTransform - tjDecompressHeader3"))
+			{
+				return;
+			}
+		}
+
+		int transformedWidth {_width};
+		int transformedHeight {_height};
+
+		// handle 3D mode
+		switch (_videoMode)
+		{
+		case VideoMode::VIDEO_3DSBS:
+			transformedWidth = transformedWidth >> 1;
+			_cropLeft = _cropLeft >> 1;
+			_cropRight = _cropRight >> 1;
+			break;
+		case VideoMode::VIDEO_3DTAB:
+			transformedHeight = transformedHeight >> 1;
+			_cropTop = _cropTop >> 1;
+			_cropBottom = _cropBottom >> 1;
+			break;
+		default:
+			break;
+		}
+
+		if (_cropLeft > 0 || _cropTop > 0 || _cropBottom > 0 || _cropRight > 0)
+		{
+			int mcuWidth = tjMCUWidth[inSubsamp];
+			int mcuHeight = tjMCUHeight[inSubsamp];
+
+			_cropLeft = _cropLeft - _cropLeft % mcuWidth;
+			_cropTop = _cropTop - _cropTop % mcuHeight;
+
+			int croppedWidth = transformedWidth - _cropLeft - _cropRight;
+			int croppeddHeight = transformedHeight - _cropTop - _cropBottom;
+
+			if (croppedWidth >= 0)
+			{
+				transformedWidth = croppedWidth;
+			}
+
+			if (croppeddHeight >= 0)
+			{
+				transformedHeight = croppeddHeight;
+			}
+
+		}
+
+		if ( transformedWidth != _width ||  transformedHeight != _height  )
+		{
+			_xform->options = TJXOPT_CROP;
+			_xform->r = tjregion {_cropLeft,_cropTop,transformedWidth,transformedHeight};
+			//qDebug() << "processImageMjpeg() | _doTransform - Image cropped: transformedWidth: " << transformedWidth << " transformedHeight: " << transformedHeight;
+		}
+		else
+		{
+			_xform->options = 0;
+			_xform->r = tjregion {0,0,_width,_height};
+			//qDebug() << "processImageMjpeg() | _doTransform - Image not cropped: _width: " << _width << " _height: " << _height;
+		}
+		_xform->options |= TJXOPT_TRIM;
+
+		switch (_flipMode) {
+		case FlipMode::HORIZONTAL:
+			_xform->op = TJXOP_HFLIP;
+			break;
+		case FlipMode::VERTICAL:
+			_xform->op = TJXOP_VFLIP;
+			break;
+		case FlipMode::BOTH:
+			_xform->op = TJXOP_ROT180;
+			break;
+		default:
+			_xform->op = TJXOP_NONE;
+			break;
+		}
+
+		unsigned char *dstBuf = nullptr;  /* Dynamically allocate the JPEG buffer */
+		unsigned long dstSize = 0;
+
+		if(tjTransform(_tjInstance, _localData, _size, 1, &dstBuf, &dstSize, _xform, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) < 0 )
+		{
+			if (onError("_doTransform - tjTransform"))
+			{
+				return;
+			}
+		}
+
+		tjFree(_localData);
+		_localData = dstBuf;
+		_size = dstSize;
+	}
+	else
+	{
+		if (!_tjInstance)
+		{
+			_tjInstance = tjInitDecompress();
+		}
 	}
 
-	if (_flipMode == FlipMode::BOTH || _flipMode == FlipMode::HORIZONTAL)
+	if (_doTransform)
 	{
-		_xform->op = TJXOP_HFLIP;
-		tjTransform(_transform, _localData, _size, 1, &_localData, &_size, _xform, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE);
+		if (tjDecompressHeader3(_tjInstance, _localData, _size, &_width, &_height,	&inSubsamp, &inColorspace) < 0)
+		{
+			if (onError("get image details - tjDecompressHeader3"))
+			{
+				return;
+			}
+		}
+	}
+	else
+	{
+		if (tjDecompressHeader2(_tjInstance, _localData, _size, &_width, &_height, &inSubsamp) < 0)
+		{
+			if (onError("get image details - tjDecompressHeader2"))
+			{
+				return;
+			}
+		}
 	}
 
-	if (_flipMode == FlipMode::BOTH || _flipMode == FlipMode::VERTICAL)
-	{
-		_xform->op = TJXOP_VFLIP;
-		tjTransform(_transform, _localData, _size, 1, &_localData, &_size, _xform, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE);
-	}
-
-	if (!_decompress)
-	{
-		_decompress = tjInitDecompress();
-		_scalingFactors = tjGetScalingFactors(&_scalingFactorsCount);
-	}
-
-	int subsamp = 0;
-	if (tjDecompressHeader2(_decompress, _localData, _size, &_width, &_height, &subsamp) != 0)
-		return;
-
-	int scaledWidth = _width, scaledHeight = _height;
 	if(_scalingFactors != nullptr && _pixelDecimation > 1)
 	{
+		//Scaling factors will not do map 1:1 to pixel decimation, but do a best match
+		//In case perfect pixel decimation is required, code needs to make use of a interim image.
+
+		bool scaleingFactorFound {false};
 		for (int i = 0; i < _scalingFactorsCount ; i++)
 		{
 			const int tempWidth = TJSCALED(_width, _scalingFactors[i]);
 			const int tempHeight = TJSCALED(_height, _scalingFactors[i]);
+
 			if (tempWidth <= _width/_pixelDecimation && tempHeight <= _height/_pixelDecimation)
 			{
-				scaledWidth = tempWidth;
-				scaledHeight = tempHeight;
+				_width = tempWidth;
+				_height = tempHeight;
+				scaleingFactorFound = true;
 				break;
 			}
 		}
 
-		if (scaledWidth == _width && scaledHeight == _height)
+		if (!scaleingFactorFound)
 		{
-			scaledWidth = TJSCALED(_width, _scalingFactors[_scalingFactorsCount-1]);
-			scaledHeight = TJSCALED(_height, _scalingFactors[_scalingFactorsCount-1]);
+			//Set to smallest scaling factor
+			_width = TJSCALED(_width, _scalingFactors[_scalingFactorsCount-1]);
+			_height = TJSCALED(_height, _scalingFactors[_scalingFactorsCount-1]);
 		}
 	}
 
-	Image<ColorRgb> srcImage(scaledWidth, scaledHeight);
+	Image<ColorRgb> srcImage(static_cast<unsigned>(_width), static_cast<unsigned>(_height));
 
-	if (tjDecompress2(_decompress, _localData , _size, (unsigned char*)srcImage.memptr(), scaledWidth, 0, scaledHeight, TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE) != 0)
-			return;
-
-	// got image, process it
-	if (!(_cropLeft > 0 || _cropTop > 0 || _cropBottom > 0 || _cropRight > 0))
-		emit newFrame(srcImage);
-	else
-    {
-		// calculate the output size
-		int outputWidth = (scaledWidth - _cropLeft - _cropRight);
-		int outputHeight = (scaledHeight - _cropTop - _cropBottom);
-
-		if (outputWidth <= 0 || outputHeight <= 0)
+	if (tjDecompress2(_tjInstance, _localData , _size,
+					  reinterpret_cast<unsigned char*>(srcImage.memptr()), _width, 0, _height,
+					  TJPF_RGB, TJFLAG_FASTDCT | TJFLAG_FASTUPSAMPLE)
+		< 0)
+	{
+		if (onError("get final image - tjDecompress2"))
 		{
-			emit newFrame(srcImage);
 			return;
 		}
-
-		Image<ColorRgb> destImage(outputWidth, outputHeight);
-
-		for (unsigned int y = 0; y < destImage.height(); y++)
-		{
-			memcpy((unsigned char*)destImage.memptr() + y * destImage.width() * 3, (unsigned char*)srcImage.memptr() + (y + _cropTop) * srcImage.width() * 3 + _cropLeft * 3, destImage.width() * 3);
-		}
-
-    	// emit
-		emit newFrame(destImage);
 	}
+	emit newFrame(srcImage);
+}
+#endif
+
+#ifdef HAVE_TURBO_JPEG
+bool EncoderThread::onError(const QString context) const
+{
+	bool treatAsError {false};
+
+#if LIBJPEG_TURBO_VERSION_NUMBER > 2000000
+	if (tjGetErrorCode(_tjInstance) == TJERR_FATAL)
+	{
+		//qDebug() << context << "Error: " << QString(tjGetErrorStr2(_tjInstance));
+		treatAsError = true;
+	}
+#else
+	//qDebug() << context << "Error: " << QString(tjGetErrorStr());
+	treatAsError = true;
+#endif
+
+return treatAsError;
 }
 #endif

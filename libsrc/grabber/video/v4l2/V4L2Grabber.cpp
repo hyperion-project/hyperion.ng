@@ -209,7 +209,7 @@ bool V4L2Grabber::start()
 		{
 			connect(_threadManager, &EncoderThreadManager::newFrame, this, &V4L2Grabber::newThreadFrame);
 			_threadManager->start();
-			DebugIf(verbose, _log, "Decoding threads: %d", _threadManager->_threadCount);
+			DebugIf(verbose, _log, "Decoding threads: %u", _threadManager->_threadCount);
 
 			_streamNotifier->setEnabled(true);
 			start_capturing();
@@ -1294,7 +1294,7 @@ QJsonArray V4L2Grabber::discover(const QJsonObject& params)
 					{
 						std::pair<int, int> width_height{enc.width, enc.height};
 						auto &com = combined[width_height];
-						for (auto framerate : enc.framerates)
+						for (auto framerate : qAsConst(enc.framerates))
 						{
 							com.insert(framerate);
 						}
@@ -1326,7 +1326,7 @@ QJsonArray V4L2Grabber::discover(const QJsonObject& params)
 			device["video_inputs"] = video_inputs;
 
 			QJsonObject controls, controls_default;
-			for (auto control : _deviceControls[device_property.key()])
+			for (const auto &control : qAsConst(_deviceControls[device_property.key()]))
 			{
 				QJsonObject property;
 				property["minValue"] = control.minValue;
