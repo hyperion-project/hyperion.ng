@@ -706,6 +706,7 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 			{
 				Info(_log, "Instance [%u]: Migrate from version [%s] to version [%s] or later", _instance, _previousVersion.getVersion().c_str(), targetVersion.getVersion().c_str());
 
+
 				// Have Hostname/IP-address separate from port for LED-Devices
 				if (config.contains("device"))
 				{
@@ -714,6 +715,17 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 					if (newDeviceConfig.contains("type"))
 					{
 						QString type = newDeviceConfig["type"].toString();
+
+						const QStringList serialDevices {"adalight", "dmx", "atmo", "sedu", "tpm2", "karate"};
+						if ( serialDevices.contains(type ))
+						{
+							if (!newDeviceConfig.contains("rateList"))
+							{
+								newDeviceConfig["rateList"] =  "CUSTOM";
+								migrated = true;
+							}
+						}
+
 						if (type == "adalight")
 						{
 							if (newDeviceConfig.contains("lightberry_apa102_mode"))
@@ -729,17 +741,6 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 								}
 								newDeviceConfig.remove("lightberry_apa102_mode");
 								migrated = true;
-							}
-
-							if (newDeviceConfig.contains("rate"))
-							{
-								if (!newDeviceConfig["rate"].isString())
-								{
-									int _baudRate_Hz = newDeviceConfig["rate"].toInt();
-
-									newDeviceConfig.remove("rate");
-									newDeviceConfig["rate"] =  QString::number(_baudRate_Hz);
-								}
 							}
 						}
 					}

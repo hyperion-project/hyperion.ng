@@ -16,16 +16,25 @@
 		  "options": {
 		    "enum_titles": [ "edt_dev_spec_ada_mode_title", "edt_dev_spec_LBap102Mode_title","edt_dev_spec_awa_mode_title" ]
 		  },
-		  "access": "advanced",
 		  "propertyOrder": 2
 		},
-		"rate": {
+		"rateList": {
 			"type": "string",
 			"title":"edt_dev_spec_baudrate_title",
-			"enum": [  "9600","14400","19200","28800","33600","38400","56000","57600","76800","115200","128000","153600","230400","256000","307200","460800","921600","1000000","1500000","2000000","3000000","4000000" ],
-			"default": 115200,
-			"access" : "advanced",
+			"enum": [ "CUSTOM","9600","14400","19200","28800","33600","38400","56000","57600","76800","115200","128000","153600","230400","256000","307200","460800","921600","1000000","1500000","2000000","3000000","4000000" ],
+			"options": {
+			  "enum_titles": [ "edt_conf_enum_custom" ]
+			},
+			"default": "115200",
+			"access": "advanced",
 			"propertyOrder" : 3
+		},
+		"rate": {
+			"type": "integer",
+			"title":"",
+			"default": 115200,
+		  	"access": "advanced",
+			"propertyOrder" : 4
 		},
 		"white_channel_calibration": {
 			"type": "boolean",
@@ -39,7 +48,7 @@
 				}
 			},
 		  	"access": "advanced",
-			"propertyOrder" : 4
+			"propertyOrder" : 5
 		},
 		"white_channel_limit": {
 			"type": "number",
@@ -56,7 +65,7 @@
 				}
 			},
 		  	"access": "advanced",
-			"propertyOrder" : 5
+			"propertyOrder" : 6
 		},
 		"white_channel_red": {
 			"type": "integer",
@@ -72,7 +81,7 @@
 				}
 			},
 		  	"access": "advanced",
-			"propertyOrder" : 6
+			"propertyOrder" : 7
 		},
 		"white_channel_green": {
 			"type": "integer",
@@ -88,7 +97,7 @@
 				}
 			},
 		  	"access": "advanced",
-			"propertyOrder" : 7
+			"propertyOrder" : 8
 		},
 		"white_channel_blue": {
 			"type": "integer",
@@ -104,7 +113,7 @@
 				}
 			},
 		  	"access": "advanced",
-			"propertyOrder" : 8
+			"propertyOrder" : 9
 		},
 		"delayAfterConnect": {
 			"type": "integer",
@@ -112,7 +121,7 @@
 			"default": 0,
 			"append" : "ms",
 			"access" : "expert",
-			"propertyOrder" : 9
+			"propertyOrder" : 10
 		},
 		"latchTime": {
 			"type": "integer",
@@ -125,7 +134,7 @@
 			"options": {
 				"infoText": "edt_dev_spec_latchtime_title_info"
 			},
-			"propertyOrder": 10
+			"propertyOrder": 11
 		},
 		"rewriteTime": {
 			"type": "integer",
@@ -134,7 +143,7 @@
 			"append" : "edt_append_ms",
 			"minimum": 0,
 			"access" : "expert",
-			"propertyOrder" : 11
+			"propertyOrder" : 12
 		}		
 	},
 	"additionalProperties": true

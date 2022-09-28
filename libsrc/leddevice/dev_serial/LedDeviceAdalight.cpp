@@ -2,8 +2,6 @@
 
 #include <QtEndian>
 
-#include <cassert>
-
 // Constants
 namespace {
 
