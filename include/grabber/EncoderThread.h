@@ -14,7 +14,7 @@
 // Turbo JPEG decoder
 #ifdef HAVE_TURBO_JPEG
 	#include <turbojpeg.h>
-	#include "jconfig.h"
+	#include <jconfig.h>
 #endif
 
 constexpr int DEFAULT_THREAD_COUNT {1};

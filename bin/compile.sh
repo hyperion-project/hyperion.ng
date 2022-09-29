@@ -16,6 +16,7 @@ sudo apt-get install                 \
 	libqt5serialport5-dev        \
 	libusb-1.0-0-dev             \
 	libturbojpeg0-dev            \
+	libjpeg-dev                  \
 	python3-dev                  \
 	libcec-dev                   \
 	libxcb-util0-dev             \

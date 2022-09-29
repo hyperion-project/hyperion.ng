@@ -76,14 +76,14 @@ cd $HYPERION_HOME
 
 ```console
 sudo apt-get update
-sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libqt5sql5-sqlite libqt5svg5-dev libqt5x11extras5-dev libusb-1.0-0-dev python3-dev libturbojpeg0-dev libssl-dev
+sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libqt5sql5-sqlite libqt5svg5-dev libqt5x11extras5-dev libusb-1.0-0-dev python3-dev libturbojpeg0-dev libjpeg-dev libssl-dev
 ```
 
 **Ubuntu (22.04+) - Qt6 based**
 
 ```console
 sudo apt-get update
-sudo apt-get install git cmake build-essential qt6-base-dev libqt6serialport6-dev libvulkan-dev libgl1-mesa-dev libusb-1.0-0-dev python3-dev libturbojpeg0-dev libssl-dev pkg-config
+sudo apt-get install git cmake build-essential qt6-base-dev libqt6serialport6-dev libvulkan-dev libgl1-mesa-dev libusb-1.0-0-dev python3-dev libturbojpeg0-dev libjpeg-dev libssl-dev pkg-config
 ```
 
 **For Linux X11/XCB grabber support**
