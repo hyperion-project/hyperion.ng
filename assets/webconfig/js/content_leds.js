@@ -62,7 +62,7 @@ function createLedPreview(leds) {
   $('#image_preview').css({ "width": canvas_width, "height": canvas_height });
 
   var leds_html = "";
-  for (var idx = leds.length-1; idx >= 0; idx--) {
+  for (var idx = leds.length - 1; idx >= 0; idx--) {
     var led = leds[idx];
     var led_id = 'ledc_' + [idx];
     var bgcolor = "background-color:hsla(" + (idx * 360 / leds.length) + ",100%,50%,0.75);";
@@ -112,7 +112,7 @@ function createLedPreview(leds) {
         width: parseInt(maxWidth + $('#top_left_point').outerWidth()),
         height: parseInt(maxHeight + $('#top_left_point').outerHeight()),
       },
-      onMove: function(newPosition) {
+      onMove: function (newPosition) {
         var keystone_correction_area_offsets = $('#keystone_correction_area').offset();
         var left = newPosition.left - keystone_correction_area_offsets.left + size / 2;
         var top = newPosition.top - keystone_correction_area_offsets.top + size / 2;
@@ -137,7 +137,7 @@ function createLedPreview(leds) {
         width: parseInt(maxWidth + $('#top_right_point').outerWidth()),
         height: parseInt(maxHeight + $('#top_right_point').outerHeight())
       },
-      onMove: function(newPosition) {
+      onMove: function (newPosition) {
         var keystone_correction_area_offsets = $('#keystone_correction_area').offset();
         var left = newPosition.left - keystone_correction_area_offsets.left + $('#top_right_point').outerWidth() - size / 2;
         var top = newPosition.top - keystone_correction_area_offsets.top + size / 2;
@@ -162,7 +162,7 @@ function createLedPreview(leds) {
         width: parseInt(maxWidth + $('#bottom_right_point').outerWidth()),
         height: parseInt(maxHeight + $('#bottom_right_point').outerHeight())
       },
-      onMove: function(newPosition) {
+      onMove: function (newPosition) {
         var keystone_correction_area_offsets = $('#keystone_correction_area').offset();
         var left = newPosition.left - keystone_correction_area_offsets.left + $('#bottom_right_point').outerWidth() - size / 2;
         var top = newPosition.top - keystone_correction_area_offsets.top + $('#bottom_right_point').outerHeight() - size / 2;
@@ -187,7 +187,7 @@ function createLedPreview(leds) {
         width: parseInt(maxWidth + $('#bottom_left_point').outerWidth()),
         height: parseInt(maxHeight + $('#bottom_left_point').outerHeight())
       },
-      onMove: function(newPosition) {
+      onMove: function (newPosition) {
         var keystone_correction_area_offsets = $('#keystone_correction_area').offset();
         var left = newPosition.left - keystone_correction_area_offsets.left + size / 2;
         var top = newPosition.top - keystone_correction_area_offsets.top + $('#bottom_left_point').outerHeight() - size / 2;
@@ -225,12 +225,12 @@ function createLedPreview(leds) {
     var lineColor = $(".keystone_correction_corners").css("border-color");
 
     // Add lines
-    topLeft2topRight = new LeaderLine(LeaderLine.pointAnchor(top_left_point, {x: '50%', y: '50%'}), LeaderLine.pointAnchor(top_right_point, {x: '50%', y: '50%'}), {path: 'straight', size: 1, color: lineColor, endPlug: 'behind'});
-    topRight2bottomRight = new LeaderLine(LeaderLine.pointAnchor(top_right_point, {x: '50%', y: '50%'}), LeaderLine.pointAnchor(bottom_right_point, {x: '50%', y: '50%'}), {path: 'straight', size: 1, color: lineColor, endPlug: 'behind'});
-    bottomRight2bottomLeft = new LeaderLine(LeaderLine.pointAnchor(bottom_right_point, {x: '50%', y: '50%'}), LeaderLine.pointAnchor(bottom_left_point, {x: '50%', y: '50%'}), {path: 'straight', size: 1, color: lineColor, endPlug: 'behind'});
-    bottomLeft2topLeft = new LeaderLine(LeaderLine.pointAnchor(bottom_left_point, {x: '50%', y: '50%'}), LeaderLine.pointAnchor(top_left_point, {x: '50%', y: '50%'}), {path: 'straight', size: 1, color: lineColor, endPlug: 'behind'});
+    topLeft2topRight = new LeaderLine(LeaderLine.pointAnchor(top_left_point, { x: '50%', y: '50%' }), LeaderLine.pointAnchor(top_right_point, { x: '50%', y: '50%' }), { path: 'straight', size: 1, color: lineColor, endPlug: 'behind' });
+    topRight2bottomRight = new LeaderLine(LeaderLine.pointAnchor(top_right_point, { x: '50%', y: '50%' }), LeaderLine.pointAnchor(bottom_right_point, { x: '50%', y: '50%' }), { path: 'straight', size: 1, color: lineColor, endPlug: 'behind' });
+    bottomRight2bottomLeft = new LeaderLine(LeaderLine.pointAnchor(bottom_right_point, { x: '50%', y: '50%' }), LeaderLine.pointAnchor(bottom_left_point, { x: '50%', y: '50%' }), { path: 'straight', size: 1, color: lineColor, endPlug: 'behind' });
+    bottomLeft2topLeft = new LeaderLine(LeaderLine.pointAnchor(bottom_left_point, { x: '50%', y: '50%' }), LeaderLine.pointAnchor(top_left_point, { x: '50%', y: '50%' }), { path: 'straight', size: 1, color: lineColor, endPlug: 'behind' });
   } else {
-    $('#keystone_correction_area').html("").css({ "width" : 0, "height" : 0 });
+    $('#keystone_correction_area').html("").css({ "width": 0, "height": 0 });
 
     // Remove existing lines
     if (topLeft2topRight != null) {
@@ -256,7 +256,7 @@ function createLedPreview(leds) {
 
   // Change on window resize. Is this correct?
   $(window).off("resize.createLedPreview");
-  $(window).on("resize.createLedPreview",(function() {
+  $(window).on("resize.createLedPreview", (function () {
     createLedPreview(leds);
   }));
 }
@@ -776,16 +776,16 @@ $(document).ready(function () {
         var maxLEDs = ledstop + ledsbottom + ledsleft + ledsright;
 
         var gpos = parseInt($("#ip_cl_gpos").val());
-        $("#ip_cl_gpos").attr({'max':maxLEDs-1});
+        $("#ip_cl_gpos").attr({ 'max': maxLEDs - 1 });
 
-        var max = maxLEDs-gpos;
+        var max = maxLEDs - gpos;
         if (gpos == 0) {
           --max;
         }
-        $("#ip_cl_glength").attr({'max':max});
+        $("#ip_cl_glength").attr({ 'max': max });
 
-       var glength = parseInt($("#ip_cl_glength").val());
-        if (glength+gpos >= maxLEDs) {
+        var glength = parseInt($("#ip_cl_glength").val());
+        if (glength + gpos >= maxLEDs) {
           $("#ip_cl_glength").val($("#ip_cl_glength").attr('max'));
         }
         break;
@@ -804,20 +804,20 @@ $(document).ready(function () {
     configPanel = "classic";
     $("#leds_prev_toggle_keystone_correction_area").show();
     createClassicLeds();
-});
+  });
 
   $('#collapse2').on('shown.bs.collapse', function () {
     configPanel = "matrix";
     $("#leds_prev_toggle_keystone_correction_area").hide();
     createMatrixLeds();
-});
+  });
 
   $('#collapse5').on('shown.bs.collapse', function () {
     configPanel = "text";
     $("#leds_prev_toggle_keystone_correction_area").hide();
     createLedPreview(finalLedArray);
     aceEdt.set(finalLedArray);
-});
+  });
 
   // Initialise from config and apply blacklist rules
   nonBlacklistLedArray = window.serverConfig.leds;
@@ -891,20 +891,20 @@ $(document).ready(function () {
   });
 
   // toggle right icon on "Advanced Settings" click
-  $('#advanced_settings').on('click', function(e) {
+  $('#advanced_settings').on('click', function (e) {
     $('#advanced_settings_right_icon').toggleClass('fa-angle-down fa-angle-up');
   });
 
   // toggle fullscreen button in led preview
-  $(".fullscreen-btn").mousedown(function(e) {
+  $(".fullscreen-btn").mousedown(function (e) {
     e.preventDefault();
   });
 
-  $(".fullscreen-btn").click(function(e) {
+  $(".fullscreen-btn").click(function (e) {
     e.preventDefault();
-		$(this).children('i')
-    	.toggleClass('fa-expand')
-    	.toggleClass('fa-compress');
+    $(this).children('i')
+      .toggleClass('fa-expand')
+      .toggleClass('fa-compress');
     $('#layout_type').toggle();
     $('#layout_preview').toggleClass('col-lg-6 col-lg-12');
     window.dispatchEvent(new Event('resize'));
@@ -1084,7 +1084,7 @@ $(document).ready(function () {
         case "wled":
         case "nanoleaf":
           showAllDeviceInputOptions("hostList", false);
-         case "apa102":
+        case "apa102":
         case "apa104":
         case "ws2801":
         case "lpd6803":
@@ -1187,6 +1187,18 @@ $(document).ready(function () {
           }
           break;
 
+        case "adalight":
+        case "atmo":
+        case "karate":
+        case "dmx":
+        case "sedu":
+        case "tpm2":
+          var rate = conf_editor.getEditor("root.specificOptions.rate").getValue();
+          if (rate > 0) {
+            canSave = true;
+          }
+          break;
+
         case "philipshue":
           var host = conf_editor.getEditor("root.specificOptions.host").getValue();
           var username = conf_editor.getEditor("root.specificOptions.username").getValue();
@@ -1264,7 +1276,7 @@ $(document).ready(function () {
         var val = hostList.getValue();
         var host = conf_editor.getEditor("root.specificOptions.host");
         var showOptions = true;
- 
+
         switch (val) {
           case 'CUSTOM':
           case '':
@@ -1381,6 +1393,15 @@ $(document).ready(function () {
           default:
         }
 
+        if ($.inArray(ledType, devSerial) != -1) {
+          var rateList = conf_editor.getEditor("root.specificOptions.rateList").getValue();
+          var showRate = false;
+          if (rateList == "CUSTOM") {
+            showRate = true;
+          }
+          showInputOptionForItem(conf_editor, 'specificOptions', 'rate', showRate);
+        }
+
         if (!conf_editor.validate().length) {
           if (canIdentify) {
             $("#btn_test_controller").show();
@@ -1407,6 +1428,61 @@ $(document).ready(function () {
           break;
         default:
       }
+    });
+
+    conf_editor.watch('root.specificOptions.streamProtocol', () => {
+      var streamProtocol = conf_editor.getEditor("root.specificOptions.streamProtocol").getValue();
+
+      switch (ledType) {
+        case "adalight":
+          var rate;
+          if (streamProtocol === window.serverConfig.device.streamProtocol) {
+            rate = window.serverConfig.device.rate.toString();
+          } else {
+            // Set default rates per protocol type
+            switch (streamProtocol) {
+              case "2":
+                rate = "2000000";
+                break;
+              case "0":
+              case "1":
+              default:
+                rate = "115200";
+            }
+          }
+          conf_editor.getEditor("root.specificOptions.rateList").setValue(rate);
+          break;
+        default:
+      }
+    });
+
+    conf_editor.watch('root.specificOptions.rateList', () => {
+      var specOptPath = 'root.specificOptions.';
+      var rateList = conf_editor.getEditor("root.specificOptions.rateList");
+      if (rateList) {
+        var val = rateList.getValue();
+        var rate = conf_editor.getEditor("root.specificOptions.rate");
+
+        switch (val) {
+          case 'CUSTOM':
+          case '':
+            rate.enable();
+            //Populate existing rate for current custom config
+            if (ledType === window.serverConfig.device.type) {
+              rate.setValue(window.serverConfig.device.rate);
+            } else {
+              rate.setValue("");
+            }
+            break;
+          default:
+            rate.disable();
+            rate.setValue(val);
+            //Trigger getProperties via rate value
+            conf_editor.notifyWatchers(specOptPath + "rate");
+            break;
+        }
+      }
+      showInputOptionForItem(conf_editor, 'specificOptions', 'rate', rate.isEnabled());
     });
 
     conf_editor.watch('root.specificOptions.token', () => {
@@ -1852,8 +1928,13 @@ var updateSelectList = function (ledType, discoveryInfo) {
             // Select configured device
             var configuredDeviceType = window.serverConfig.device.type;
             var configuredOutput = window.serverConfig.device.output;
-            if (ledType === configuredDeviceType && $.inArray(configuredOutput, enumVals) != -1) {
-              enumDefaultVal = configuredOutput;
+            if (ledType === configuredDeviceType) {
+              if ($.inArray(configuredOutput, enumVals) != -1) {
+                enumDefaultVal = configuredOutput;
+              } else {
+                enumVals.push(window.serverConfig.device.output);
+                enumDefaultVal = configuredOutput;
+              }
             }
             else {
               addSelect = true;
@@ -2108,3 +2189,4 @@ function disableAutoResolvedGeneralOptions() {
   conf_editor.getEditor("root.generalOptions.hardwareLedCount").disable();
   conf_editor.getEditor("root.generalOptions.colorOrder").disable();
 }
+

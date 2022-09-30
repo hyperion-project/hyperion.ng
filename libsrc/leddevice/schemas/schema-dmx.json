@@ -20,17 +20,30 @@
 			"default":"ttyUSB0",
 			"propertyOrder" : 2
 		},
-		"rate": {
-			"type": "integer",
+		"rateList": {
+			"type": "string",
 			"title":"edt_dev_spec_baudrate_title",
-			"default": 250000,
+			"enum": [ "CUSTOM","9600","14400","19200","28800","33600","38400","56000","57600","76800","115200","128000","153600","230400","250000","256000","307200","460800","921600","1000000","1500000","2000000","3000000","4000000" ],
+			"options": {
+			  "enum_titles": [ "edt_conf_enum_custom" ]
+			},
+			"default": "250000",
+			"access": "advanced",
 			"propertyOrder" : 3
 		},
+		"rate": {
+			"type": "integer",
+			"title":"",
+			"default": 250000,
+			"access": "advanced",
+			"propertyOrder" : 4
+		},		
 		"delayAfterConnect": {
 			"type": "integer",
 			"title":"edt_dev_spec_delayAfterConnect_title",
 			"default": 250,
-			"propertyOrder" : 4
+			"access" : "expert",
+			"propertyOrder" : 5
 		},
 		"latchTime": {
 			"type": "integer",
@@ -40,7 +53,7 @@
 			"minimum": 0,
 			"maximum": 1000,
 			"access" : "expert",
-			"propertyOrder" : 5
+			"propertyOrder" : 6
 		},
 		"rewriteTime": {
 			"type": "integer",
@@ -49,7 +62,7 @@
 			"append" : "edt_append_ms",
 			"minimum": 0,
 			"access" : "expert",
-			"propertyOrder" : 6
+			"propertyOrder" : 7
 		}		
 	},
 	"additionalProperties": true

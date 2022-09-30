@@ -8,12 +8,112 @@
 			"default":"auto",
 			"propertyOrder" : 1
 		},
+		"streamProtocol": {
+		  "type": "string",
+		  "title": "edt_dev_spec_stream_protocol_title",
+		  "enum": [ "0", "1", "2" ],
+		  "default": "0",
+		  "options": {
+		    "enum_titles": [ "edt_dev_spec_ada_mode_title", "edt_dev_spec_LBap102Mode_title","edt_dev_spec_awa_mode_title" ]
+		  },
+		  "propertyOrder": 2
+		},
+		"rateList": {
+			"type": "string",
+			"title":"edt_dev_spec_baudrate_title",
+			"enum": [ "CUSTOM","9600","14400","19200","28800","33600","38400","56000","57600","76800","115200","128000","153600","230400","256000","307200","460800","921600","1000000","1500000","2000000","3000000","4000000" ],
+			"options": {
+			  "enum_titles": [ "edt_conf_enum_custom" ]
+			},
+			"default": "115200",
+			"access": "advanced",
+			"propertyOrder" : 3
+		},
 		"rate": {
 			"type": "integer",
-			"title":"edt_dev_spec_baudrate_title",
+			"title":"",
 			"default": 115200,
-			"access" : "advanced",
-			"propertyOrder" : 2
+		  	"access": "advanced",
+			"propertyOrder" : 4
+		},
+		"white_channel_calibration": {
+			"type": "boolean",
+			"format": "checkbox",
+			"title":"edt_dev_spec_rgbw_calibration_enable",
+			"required" : true,
+			"default": false,
+			"options": {
+				"dependencies": {
+					"streamProtocol": "2"
+				}
+			},
+		  	"access": "advanced",
+			"propertyOrder" : 5
+		},
+		"white_channel_limit": {
+			"type": "number",
+			"title":"edt_dev_spec_rgbw_calibration_limit",
+			"required" : true,
+			"default" : 100,
+			"step": 0.25,
+			"minimum" : 0,
+			"maximum" : 100,
+			"append" : "edt_append_percent",
+			"options": {
+				"dependencies": {
+					"white_channel_calibration": true
+				}
+			},
+		  	"access": "advanced",
+			"propertyOrder" : 6
+		},
+		"white_channel_red": {
+			"type": "integer",
+			"title":"edt_dev_spec_rgbw_calibration_red",
+			"required" : true,
+			"default" : 255,
+			"step": 1,
+			"minimum" : 0,
+			"maximum" : 255,
+			"options": {
+				"dependencies": {
+					"white_channel_calibration": true
+				}
+			},
+		  	"access": "advanced",
+			"propertyOrder" : 7
+		},
+		"white_channel_green": {
+			"type": "integer",
+			"title":"edt_dev_spec_rgbw_calibration_green",
+			"required" : true,
+			"default" : 255,
+			"step": 1,
+			"minimum" : 0,
+			"maximum" : 255,
+			"options": {
+				"dependencies": {
+					"white_channel_calibration": true
+				}
+			},
+		  	"access": "advanced",
+			"propertyOrder" : 8
+		},
+		"white_channel_blue": {
+			"type": "integer",
+			"title":"edt_dev_spec_rgbw_calibration_blue",
+			"required" : true,
+			"default" : 255,
+			"step": 1,
+			"minimum" : 0,
+			"maximum" : 255,
+			"options": {
+				"dependencies": {
+					"white_channel_calibration": true
+				}
+			},
+		  	"access": "advanced",
+			"propertyOrder" : 9
 		},
 		"delayAfterConnect": {
 			"type": "integer",
@@ -21,15 +121,7 @@
 			"default": 0,
 			"append" : "ms",
 			"access" : "expert",
-			"propertyOrder" : 3
-		},
-		"lightberry_apa102_mode": {
-			"type": "boolean",
-			"title": "edt_dev_spec_LBap102Mode_title",
-			"default": false,
-			"required": true,
-			"access": "advanced",
-			"propertyOrder": 4
+			"propertyOrder" : 10
 		},
 		"latchTime": {
 			"type": "integer",
@@ -42,7 +134,7 @@
 			"options": {
 				"infoText": "edt_dev_spec_latchtime_title_info"
 			},
-			"propertyOrder": 5
+			"propertyOrder": 11
 		},
 		"rewriteTime": {
 			"type": "integer",
@@ -51,7 +143,7 @@
 			"append" : "edt_append_ms",
 			"minimum": 0,
 			"access" : "expert",
-			"propertyOrder" : 5
+			"propertyOrder" : 12
 		}		
 	},
 	"additionalProperties": true

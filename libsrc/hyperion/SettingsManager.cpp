@@ -699,6 +699,59 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 					}
 				}
 			}
+
+			//Migration steps for versions <= 2.0.13
+			targetVersion.setVersion("2.0.13");
+			if (_previousVersion <= targetVersion)
+			{
+				Info(_log, "Instance [%u]: Migrate from version [%s] to version [%s] or later", _instance, _previousVersion.getVersion().c_str(), targetVersion.getVersion().c_str());
+
+
+				// Have Hostname/IP-address separate from port for LED-Devices
+				if (config.contains("device"))
+				{
+					QJsonObject newDeviceConfig = config["device"].toObject();
+
+					if (newDeviceConfig.contains("type"))
+					{
+						QString type = newDeviceConfig["type"].toString();
+
+						const QStringList serialDevices {"adalight", "dmx", "atmo", "sedu", "tpm2", "karate"};
+						if ( serialDevices.contains(type ))
+						{
+							if (!newDeviceConfig.contains("rateList"))
+							{
+								newDeviceConfig["rateList"] =  "CUSTOM";
+								migrated = true;
+							}
+						}
+
+						if (type == "adalight")
+						{
+							if (newDeviceConfig.contains("lightberry_apa102_mode"))
+							{
+								bool lightberry_apa102_mode = newDeviceConfig["lightberry_apa102_mode"].toBool();
+								if (lightberry_apa102_mode)
+								{
+									newDeviceConfig["streamProtocol"] = "1";
+								}
+								else
+								{
+									newDeviceConfig["streamProtocol"] = "0";
+								}
+								newDeviceConfig.remove("lightberry_apa102_mode");
+								migrated = true;
+							}
+						}
+					}
+
+					if (migrated)
+					{
+						config["device"] = newDeviceConfig;
+						Debug(_log, "LED-Device records migrated");
+					}
+				}
+			}
 		}
 	}
 	return migrated;

@@ -4,6 +4,16 @@
 // hyperion includes
 #include "ProviderRs232.h"
 
+namespace Adalight
+{
+typedef enum ProtocolType
+{
+	ADA = 0,
+	LBAPA,
+	AWA
+} PROTOCOLTYPE;
+}
+
 ///
 /// Implementation of the LedDevice interface for writing to an Adalight LED-device.
 ///
@@ -38,6 +48,11 @@ private:
 	bool init(const QJsonObject &deviceConfig) override;
 
 	///
+	/// @brief Prepare the protocol's header
+	///
+	void prepareHeader();
+
+	///
 	/// @brief Writes the RGB-Color values to the LEDs.
 	///
 	/// @param[in] ledValues The RGB-color per LED
@@ -45,8 +60,17 @@ private:
 	///
 	int write(const std::vector<ColorRgb> & ledValues) override;
 
-	const short _headerSize;
-	bool        _ligthBerryAPA102Mode;
+	void whiteChannelExtension(uint8_t*& writer);
+
+	qint64 _bufferLength;
+
+	Adalight::PROTOCOLTYPE _streamProtocol;
+
+	bool _white_channel_calibration;
+	uint8_t _white_channel_limit;
+	uint8_t _white_channel_red;
+	uint8_t _white_channel_green;
+	uint8_t _white_channel_blue;
 };
 
 #endif // LEDEVICETADALIGHT_H
