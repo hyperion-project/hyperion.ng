@@ -230,9 +230,6 @@ private:
 	/// Flag for pausing
 	bool _pause;
 
-	/// The rate at which color frames should be written to LED device.
-	double _outputRate;
-
 	/// The interval time in microseconds for writing of LED Frames.
 	int64_t _outputIntervalMicros;
 
@@ -268,9 +265,6 @@ private:
 		/// The type of smoothing to perform
 		SmoothingType _type;
 
-		/// The rate at which color frames should be written to LED device.
-		double _outputRate;
-
 		/// The rate at which interpolation of LED frames should be performed.
 		double _interpolationRate;
 
@@ -284,7 +278,7 @@ private:
 		double _decay;
 
 		SmoothingCfg();
-		SmoothingCfg(bool pause, int64_t settlingTime, int updateInterval, SmoothingType type = SmoothingType::Linear, double outputRate = 0, double interpolationRate = 0, unsigned outputDelay = 0, bool dithering = false, double decay = 1);
+		SmoothingCfg(bool pause, int64_t settlingTime, int updateInterval, SmoothingType type = SmoothingType::Linear, double interpolationRate = 0, unsigned outputDelay = 0, bool dithering = false, double decay = 1);
 
 		static QString EnumToString(SmoothingType type);
 	};
