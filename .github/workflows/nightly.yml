@@ -179,7 +179,7 @@ jobs:
           dangerous-clean-slate: true
 
       - name: Remove intermediate artifacts
-        uses: geekyeggo/delete-artifact@v1
+        uses: geekyeggo/delete-artifact@v2
         with:
           name: artifact
           failOnError: false
