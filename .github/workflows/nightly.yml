@@ -156,7 +156,7 @@ jobs:
           reprepro -Vb nightly export
 
       - name: Download artifacts
-        uses: actions/download-artifact@v3.0.0
+        uses: actions/download-artifact@v3.0.1
 
       - name: Include artifacts into the package source
         run: |
