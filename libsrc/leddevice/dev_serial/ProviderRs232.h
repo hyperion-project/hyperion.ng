@@ -123,6 +123,11 @@ protected slots:
 	///
 	void setInError( const QString& errorMsg) override;
 
+	///
+	/// @brief Handle any feedback provided by the device
+	///
+	virtual void readFeedback();
+
 private:
 
 	///

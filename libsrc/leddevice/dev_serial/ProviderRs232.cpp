@@ -86,6 +86,8 @@ int ProviderRs232::open()
 	// open device physically
 	if ( tryOpen(_delayAfterConnect_ms) )
 	{
+		connect(&_rs232Port, &QSerialPort::readyRead, this, &ProviderRs232::readFeedback);
+
 		// Everything is OK, device is ready
 		_isDeviceReady = true;
 		retval = 0;
@@ -106,6 +108,9 @@ int ProviderRs232::close()
 		{
 			Debug(_log,"Flush was successful");
 		}
+
+		disconnect(&_rs232Port, &QSerialPort::readyRead, this, &ProviderRs232::readFeedback);
+
 		Debug(_log,"Close UART: %s", QSTRING_CSTR(_deviceName) );
 		_rs232Port.close();
 		// Everything is OK -> device is closed
@@ -259,6 +264,23 @@ int ProviderRs232::writeBytes(const qint64 size, const uint8_t *data)
 		}
 	}
 	return rc;
+}
+
+void ProviderRs232::readFeedback()
+{
+	QByteArray readData = _rs232Port.readAll();
+	if (!readData.isEmpty())
+	{
+		//Output as received
+		std::cout << readData.toStdString();
+
+		//Output as Hex
+//#if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
+//		std::cout << readData.toHex(':').toStdString();
+//#else
+//		std::cout << readData.toHex().toStdString();
+//#endif
+	}
 }
 
 QString ProviderRs232::discoverFirst()
