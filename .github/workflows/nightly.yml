@@ -5,7 +5,7 @@ on:
  schedule:
    - cron: '0 0 * * *'
  repository_dispatch:
-   types: [hyperion_nightly_push]   
+   types: [hyperion_nightly_push]
 
 jobs:
   update:
@@ -25,7 +25,7 @@ jobs:
 
       - name: Check git status
         id: status
-        run: echo "::set-output name=status::$(git status -s)"
+        run: echo "status=$(git status -s)" >> $GITHUB_OUTPUT
 
       - name: Add and commit changes
         if: ${{ steps.status.outputs.status }}
@@ -53,9 +53,9 @@ jobs:
         id: build-necessary
         run: |
           if wget --spider "https://nightly.apt.hyperion-project.org/$(git rev-parse --short HEAD)" 2>/dev/null; then
-              echo "::set-output name=commit-has-changed::false"
+              echo "commit-has-changed=false" >> $GITHUB_OUTPUT
           else
-              echo "::set-output name=commit-has-changed::true"
+              echo "commit-has-changed=true" >> $GITHUB_OUTPUT
           fi
     outputs:
       build-nightly: ${{ steps.build-necessary.outputs.commit-has-changed }}
@@ -70,8 +70,9 @@ jobs:
       - name: Set nightly matrix
         id: nightly-ppa
         run: |
-          NIGHTLY=$(jq -n '.include |= [inputs[]]' .github/workflows/apt/*.json --compact-output)
-          echo "::set-output name=nightly::$NIGHTLY"
+          NIGHTLY=$(jq -n '.include |= [ inputs[] | select(.["exclude"] != true)]' .github/workflows/apt/*.json --compact-output)
+          echo "nightly=$NIGHTLY" >> $GITHUB_OUTPUT
+
     outputs:
       nightly-matrix: ${{ steps.nightly-ppa.outputs.nightly }}
 
@@ -130,6 +131,7 @@ jobs:
   publish:
     name: Publish nightly packages
     needs: [setup, build]
+    if: github.repository_owner == 'hyperion-project'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

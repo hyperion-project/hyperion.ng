@@ -109,7 +109,7 @@ jobs:
           key: ${{ runner.os }}-Qt.${{ env.QT_VERSION }}
 
       - name: Install Qt
-        uses: jurplel/install-qt-action@v2
+        uses: jurplel/install-qt-action@v3
         with:
           version: ${{ env.QT_VERSION }}
           target: 'desktop'

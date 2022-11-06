@@ -20,8 +20,9 @@ jobs:
       - name: Set APT matrix
         id: apt-ppa
         run: |
-          APT=$(jq -n '.include |= [inputs[]]' .github/workflows/apt/*.json --compact-output)
-          echo "::set-output name=apt::$APT"
+          APT=$(jq -n '.include |= [ inputs[] | select(.["exclude"] != true)]' .github/workflows/apt/*.json --compact-output)
+          echo "apt=$APT" >> $GITHUB_OUTPUT
+
     outputs:
       apt-matrix: ${{ steps.apt-ppa.outputs.apt }}
 

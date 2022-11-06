@@ -16,7 +16,7 @@ SignWith: yes
 
 Origin: Hyperion-Project
 Label: apt.hyperion-project.org
-Codename: impish
+Codename: jammy
 Architectures: amd64 armhf arm64
 Components: main
 Description: Official APT Repository by Hyperion Project
@@ -24,16 +24,8 @@ SignWith: yes
 
 Origin: Hyperion-Project
 Label: apt.hyperion-project.org
-Codename: jammy
-Architectures: amd64
-Components: main
-Description: Official APT Repository by Hyperion Project
-SignWith: yes
-
-Origin: Hyperion-Project
-Label: apt.hyperion-project.org
 Codename: kinetic
-Architectures: amd64
+Architectures: amd64 armhf arm64
 Components: main
 Description: Official APT Repository by Hyperion Project
 SignWith: yes
@@ -69,7 +61,7 @@ Origin: Hyperion-Project
 Label: apt.hyperion-project.org
 Suite: unstable
 Codename: bookworm
-Architectures: armhf amd64
+Architectures: amd64
 Components: main
 Description: Official APT Repository by Hyperion Project
 SignWith: yes
