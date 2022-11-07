@@ -101,20 +101,14 @@ jobs:
         with:
           submodules: true
 
-      - name: Cache Qt
-        uses: actions/cache@v3
-        id: cache-qt-windows
-        with:
-          path: ${{ runner.workspace }}/Qt
-          key: ${{ runner.os }}-Qt.${{ env.QT_VERSION }}
-
       - name: Install Qt
         uses: jurplel/install-qt-action@v3
         with:
-          version: ${{ env.QT_VERSION }}
+          version: ${{env.QT_VERSION}}
           target: 'desktop'
           arch: 'win64_msvc2019_64'
-          cached: ${{ steps.cache-qt-windows.outputs.cache-hit }}
+          cache: 'true'
+          cache-key-prefix: 'cache-qt-windows'
 
       - name: Cache Chocolatey downloads
         uses: actions/cache@v3
