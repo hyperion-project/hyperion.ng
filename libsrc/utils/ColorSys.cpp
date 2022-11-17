@@ -8,6 +8,11 @@ inline uint8_t clamp(int x)
 	return (x<0) ? 0 : ((x>255) ? 255 : uint8_t(x));
 }
 
+inline double clamp(double x)
+{
+	return std::max(0.0, std::min(x, 1.0));
+}
+
 void ColorSys::rgb2hsl(uint8_t red, uint8_t green, uint8_t blue, uint16_t & hue, float & saturation, float & luminance)
 {
 	QColor color(red,green,blue);
@@ -72,7 +77,8 @@ void ColorSys::rgb2okhsv(uint8_t red, uint8_t green, uint8_t blue, double & hue,
 void ColorSys::okhsv2rgb(double hue, double saturation, double value, uint8_t & red, uint8_t & green, uint8_t & blue)
 {
 	ok_color::RGB color = ok_color::okhsv_to_srgb({ hue, saturation, value });
-	red = static_cast<uint8_t>(std::lround(color.r * 255.0));
-	green = static_cast<uint8_t>(std::lround(color.g * 255.0));
-	blue = static_cast<uint8_t>(std::lround(color.b * 255.0));
+	// okhsv_to_srgb can output rgb colors with slightly negative components. Clamping them before casting prevents rollover errors
+	red = static_cast<uint8_t>(std::lround(clamp(color.r) * 255.0));
+	green = static_cast<uint8_t>(std::lround(clamp(color.g) * 255.0));
+	blue = static_cast<uint8_t>(std::lround(clamp(color.b) * 255.0));
 }
