@@ -60,9 +60,9 @@ void ColorSys::yuv2rgb(uint8_t y, uint8_t u, uint8_t v, uint8_t &r, uint8_t &g, 
 
 void ColorSys::rgb2okhsv(uint8_t red, uint8_t green, uint8_t blue, double & hue, double & saturation, double & value)
 {
-	ok_color::HSV color = ok_color::srgb_to_okhsv({ static_cast<float>(red)   / 255.F,
-													static_cast<float>(green) / 255.F,
-													static_cast<float>(blue)  / 255.F
+	ok_color::HSV color = ok_color::srgb_to_okhsv({ static_cast<double>(red)   / 255.0,
+													static_cast<double>(green) / 255.0,
+													static_cast<double>(blue)  / 255.0
 	});
 	hue = color.h;
 	saturation = color.s;
@@ -71,8 +71,8 @@ void ColorSys::rgb2okhsv(uint8_t red, uint8_t green, uint8_t blue, double & hue,
 
 void ColorSys::okhsv2rgb(double hue, double saturation, double value, uint8_t & red, uint8_t & green, uint8_t & blue)
 {
-	ok_color::RGB color = ok_color::okhsv_to_srgb({ static_cast<float>(hue), static_cast<float>(saturation), static_cast<float>(value) });
-	red = static_cast<uint8_t>(std::lround(color.r * 255));
-	green = static_cast<uint8_t>(std::lround(color.g * 255));
-	blue = static_cast<uint8_t>(std::lround(color.b * 255));
+	ok_color::RGB color = ok_color::okhsv_to_srgb({ hue, saturation, value });
+	red = static_cast<uint8_t>(std::lround(color.r * 255.0));
+	green = static_cast<uint8_t>(std::lround(color.g * 255.0));
+	blue = static_cast<uint8_t>(std::lround(color.b * 255.0));
 }
