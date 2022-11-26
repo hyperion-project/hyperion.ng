@@ -187,10 +187,6 @@ void LedDeviceAdalight::readFeedback()
 		while ( _rs232Port.canReadLine() )
 		{
 			QByteArray record = _rs232Port.readLine();
-
-			//qDebug() << "\n[" << record << "]";
-
-
 			if (record.startsWith("FPS:"))
 			{
 				if (continuousLines)
@@ -198,15 +194,6 @@ void LedDeviceAdalight::readFeedback()
 					continuousLines = false;
 				}
 				Debug(_log, "Statistics %s", record.trimmed().constData());
-			}
-			else if (record.startsWith("ERR:") )
-			{
-				if (continuousLines)
-				{
-					std::cout << std::endl;
-					continuousLines = false;
-				}
-				std::cout << record.trimmed().toStdString() << std::endl;
 			}
 			else
 			{
