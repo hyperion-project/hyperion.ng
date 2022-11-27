@@ -4,21 +4,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.0.13...HEAD)
+## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.0.14...HEAD)
 
 ### Breaking
 
 ### Added
 
-- Added saturation gain and brightness/value gain as new color processing settings
-
 ### Changed
 
 ### Fixed
 
-- V4L2-Grabber: Fixed a SEGFAULT in init() when compiled on Ubuntu Server 22.04
-
 ## Removed
+
+## [2.0.14](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.14) - 2022-11
+
+Hyperion's November release is not too big, but provides you with the latest updates and fixes. Many thanks to all contributors providing code (xkns, drzony) or translations.
+
+### Added
+
+- New color processing settings: Saturation gain and brightness/value gain. They allow compensating washed out HDR colors on LEDs (#822, #1092, #1142 partially).
+- New languages: Catalan & Greek
+- USB Capture: Support 3D processing for MJPEG
+- Forwarding: Support flat-/proto buffer input
+- Adalight: HyperSerial support (High speed protocol by awawa-dev) and support device feedback, show statistics provided by HyperSerial (modified by LordGrey) sketch
+- AtmoOrb: Firmware image for Particle/Photon
+
+### Changed
+
+- Serial LED-devices: Ability to select standard Baud rates, as well as defining a custom one
+- LED-devices: Do not switch-off device, if background effect is configured and will kick-in soon
+
+### Fixed
+
+- USB-Grabber: Fixed a SEGFAULT when compiled on Ubuntu Server 22.04
+- USB Grabber: Fixed memory leak when transforming MJPEG
+- ImageResampler: Apply only half crop for 3D to maintain crop ratio
+- Remote Control: Update Color calibration values when calibration settings were saved
+- Fixed Smoothing got out of sync when saving configuration
+- Smoothing: Removed "outputrate" as duplicate to update frequency
+- Queue LED-device on/off signals
+- UI: Correctly lookup current Instance Name
+- Fixed AtmoOrb firmware image
 
 ## [2.0.13](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.13) - 2022-05-22
 ### Added
