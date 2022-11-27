@@ -47,7 +47,6 @@ const char* SETTINGS_KEY_OUTPUT_DELAY = "updateDelay";
 
 const char* SETTINGS_KEY_DECAY = "decay";
 const char* SETTINGS_KEY_INTERPOLATION_RATE = "interpolationRate";
-const char* SETTINGS_KEY_OUTPUT_RATE = "outputRate";
 const char* SETTINGS_KEY_DITHERING = "dithering";
 
 const int64_t DEFAULT_SETTLINGTIME = 200;	// in ms
@@ -133,7 +132,6 @@ void LinearColorSmoothing::handleSettingsUpdate(settings::type type, const QJson
 		cfg._pause = false;
 		cfg._outputDelay = static_cast<unsigned>(obj[SETTINGS_KEY_OUTPUT_DELAY].toInt(DEFAULT_OUTPUTDEPLAY));
 
-		cfg._outputRate = obj[SETTINGS_KEY_OUTPUT_RATE].toDouble(DEFAULT_UPDATEFREQUENCY);
 		cfg._interpolationRate = obj[SETTINGS_KEY_INTERPOLATION_RATE].toDouble(DEFAULT_UPDATEFREQUENCY);
 		cfg._dithering = obj[SETTINGS_KEY_DITHERING].toBool(false);
 		cfg._decay = obj[SETTINGS_KEY_DECAY].toDouble(1.0);
@@ -584,7 +582,6 @@ unsigned LinearColorSmoothing::addConfig(int settlingTime_ms, double ledUpdateFr
 		static_cast<int>(MS_PER_MICRO / ledUpdateFrequency_hz),
 		SmoothingType::Linear,
 		ledUpdateFrequency_hz,
-		ledUpdateFrequency_hz,
 		updateDelay
 	};
 	_cfgList.append(cfg);
@@ -604,7 +601,6 @@ unsigned LinearColorSmoothing::updateConfig(int cfgID, int settlingTime_ms, doub
 			settlingTime_ms,
 			static_cast<int>(MS_PER_MICRO / ledUpdateFrequency_hz),
 			SmoothingType::Linear,
-			ledUpdateFrequency_hz,
 			ledUpdateFrequency_hz,
 			updateDelay
 		};
@@ -631,8 +627,7 @@ bool LinearColorSmoothing::selectConfig(int cfgID, bool force)
 		_settlingTime = _cfgList[cfgID]._settlingTime;
 		_outputDelay = _cfgList[cfgID]._outputDelay;
 		_pause = _cfgList[cfgID]._pause;
-		_outputRate = _cfgList[cfgID]._outputRate;
-		_outputIntervalMicros = int64_t(1000000.0 / _outputRate); // 1s = 1e6 µs
+		_outputIntervalMicros = int64_t(1000000.0 / _updateInterval); // 1s = 1e6 µs
 		_interpolationRate = _cfgList[cfgID]._interpolationRate;
 		_interpolationIntervalMicros = int64_t(1000000.0 / _interpolationRate);
 		_dithering = _cfgList[cfgID]._dithering;
@@ -711,8 +706,7 @@ QString LinearColorSmoothing::getConfig(int cfgID)
 		case SmoothingType::Decay:
 		{
 			const double thalf = (1.0-std::pow(1.0/2, 1.0/_decay))*_settlingTime;
-			configText += QString (", outputRate %1Hz, interpolationRate: %2Hz, dithering: %3, decay: %4 -> halftime: %5ms")
-							  .arg(cfg._outputRate,0,'f',2)
+			configText += QString (", interpolationRate: %1Hz, dithering: %2, decay: %3 -> halftime: %4ms")
 							  .arg(cfg._interpolationRate,0,'f',2)
 							  .arg((cfg._dithering) ? "true" : "false")
 							  .arg(cfg._decay,0,'f',2)
@@ -732,12 +726,11 @@ LinearColorSmoothing::SmoothingCfg::SmoothingCfg() :
 {
 }
 
-LinearColorSmoothing::SmoothingCfg::SmoothingCfg(bool pause, int64_t settlingTime, int updateInterval, SmoothingType type, double outputRate, double interpolationRate, unsigned outputDelay, bool dithering, double decay) :
+LinearColorSmoothing::SmoothingCfg::SmoothingCfg(bool pause, int64_t settlingTime, int updateInterval, SmoothingType type, double interpolationRate, unsigned outputDelay, bool dithering, double decay) :
 	  _pause(pause),
 	  _settlingTime(settlingTime),
 	  _updateInterval(updateInterval),
 	  _type(type),
-	  _outputRate(outputRate),
 	  _interpolationRate(interpolationRate),
 	  _outputDelay(outputDelay),
 	  _dithering(dithering),

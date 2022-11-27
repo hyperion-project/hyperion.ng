@@ -443,8 +443,6 @@
     "edt_conf_smooth_heading_title": "Smoothing",
     "edt_conf_smooth_interpolationRate_expl": "Speed of the calculation of smooth intermediate frames.",
     "edt_conf_smooth_interpolationRate_title": "Interpolation Rate",
-    "edt_conf_smooth_outputRate_expl": "The output speed to your LED controller.",
-    "edt_conf_smooth_outputRate_title": "Output Rate",
     "edt_conf_smooth_time_ms_expl": "How long should the smoothing gather pictures?",
     "edt_conf_smooth_time_ms_title": "Time",
     "edt_conf_smooth_type_expl": "Type of smoothing.",

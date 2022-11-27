@@ -60,7 +60,6 @@
 		"time_ms"           : 200,
 		"updateFrequency"   : 25.0000,
 		"interpolationRate" : 25.0000,
-		"outputRate"        : 25.0000,
 		"decay"             : 1,
 		"dithering"         : false,
 		"updateDelay"       : 0

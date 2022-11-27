@@ -37,6 +37,14 @@ public:
 	/// @return LedDevice constructed
 	static LedDevice* construct(const QJsonObject &deviceConfig);
 
+private slots:
+
+	///
+	/// @brief Handle feedback provided by the device
+	/// Allows to show statistics and error for the "Awa" protocol, if configured in the ESP-sketch
+	///
+	void readFeedback() override;
+
 private:
 
 	///

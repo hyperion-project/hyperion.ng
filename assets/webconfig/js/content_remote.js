@@ -19,7 +19,6 @@ $(document).ready(function () {
   $('.ssthead').html(createTableRow([$.i18n('remote_input_origin'), $.i18n('remote_input_owner'), $.i18n('remote_input_priority'), $.i18n('remote_input_status')], true, true));
   createTable('crthead', 'crtbody', 'adjust_content', true);
 
-
   //create introduction
   if (window.showOptHelp) {
     createHint("intro", $.i18n('remote_color_intro', $.i18n('remote_losthint')), "color_intro");
@@ -28,56 +27,6 @@ $(document).ready(function () {
     createHint("intro", $.i18n('remote_components_intro', $.i18n('remote_losthint')), "comp_intro");
     createHint("intro", $.i18n('remote_maptype_intro', $.i18n('remote_losthint')), "maptype_intro");
     createHint("intro", $.i18n('remote_videoMode_intro', $.i18n('remote_losthint')), "videomode_intro");
-  }
-
-  //color adjustment
-  var sColor = sortProperties(window.serverSchema.properties.color.properties.channelAdjustment.items.properties);
-  var values = window.serverInfo.adjustment[0];
-
-  for (var key in sColor) {
-    if (sColor[key].key != "id" && sColor[key].key != "leds") {
-      var title = '<label for="cr_' + sColor[key].key + '">' + $.i18n(sColor[key].title) + '</label>';
-      var property;
-      var value = values[sColor[key].key];
-
-      if (sColor[key].type == "array") {
-        property = '<div id="cr_' + sColor[key].key + '" class="input-group colorpicker-component" ><input type="text" class="form-control" /><span class="input-group-addon"><i></i></span></div>';
-        $('.crtbody').append(createTableRow([title, property], false, true));
-        createCP('cr_' + sColor[key].key, value, function (rgb, hex, e) {
-          requestAdjustment(e.target.id.substr(e.target.id.indexOf("_") + 1), '[' + rgb.r + ',' + rgb.g + ',' + rgb.b + ']');
-        });
-      }
-      else if (sColor[key].type == "boolean") {
-        property = '<div class="checkbox"><input id="cr_' + sColor[key].key + '" type="checkbox" value="' + value + '"/><label></label></div>';
-        $('.crtbody').append(createTableRow([title, property], false, true));
-
-        $('#cr_' + sColor[key].key).off().on('change', function (e) {
-          requestAdjustment(e.target.id.substr(e.target.id.indexOf("_") + 1), e.currentTarget.checked);
-        });
-      }
-      else {
-        if (sColor[key].key == "brightness" ||
-          sColor[key].key == "brightnessCompensation" ||
-          sColor[key].key == "backlightThreshold" ||
-          sColor[key].key == "saturationGain" ||
-          sColor[key].key == "brightnessGain") {
-
-          property = '<input id="cr_' + sColor[key].key + '" type="number" class="form-control" min="' + sColor[key].minimum + '" max="' + sColor[key].maximum + '" step="' + sColor[key].step + '" value="' + value + '"/>';
-          if (sColor[key].append === "edt_append_percent") {
-            property = '<div class="input-group">' + property + '<span class="input-group-addon">' + $.i18n("edt_append_percent") + '</span></div>';
-          }
-        }
-        else {
-          property = '<input id="cr_' + sColor[key].key + '" type="number" class="form-control" min="0.1" max="4.0" step="0.1" value="' + value + '"/>';
-        }
-
-        $('.crtbody').append(createTableRow([title, property], false, true));
-        $('#cr_' + sColor[key].key).off().on('change', function (e) {
-          valValue(this.id, this.value, this.min, this.max);
-          requestAdjustment(e.target.id.substr(e.target.id.indexOf("_") + 1), e.currentTarget.value);
-        });
-      }
-    }
   }
 
   function sendEffect() {
@@ -92,6 +41,59 @@ $(document).ready(function () {
 
   function sendColor() {
     requestSetColor(rgb.r, rgb.g, rgb.b, duration);
+  }
+
+  function updateChannelAdjustments() {
+
+    $('.crtbody').html("");
+    var sColor = sortProperties(window.serverSchema.properties.color.properties.channelAdjustment.items.properties);
+    var values = window.serverInfo.adjustment[0];
+
+    for (var key in sColor) {
+      if (sColor[key].key != "id" && sColor[key].key != "leds") {
+        var title = '<label for="cr_' + sColor[key].key + '">' + $.i18n(sColor[key].title) + '</label>';
+        var property;
+        var value = values[sColor[key].key];
+
+        if (sColor[key].type == "array") {
+          property = '<div id="cr_' + sColor[key].key + '" class="input-group colorpicker-component" ><input type="text" class="form-control" /><span class="input-group-addon"><i></i></span></div>';
+          $('.crtbody').append(createTableRow([title, property], false, true));
+          createCP('cr_' + sColor[key].key, value, function (rgb, hex, e) {
+            requestAdjustment(e.target.id.substr(e.target.id.indexOf("_") + 1), '[' + rgb.r + ',' + rgb.g + ',' + rgb.b + ']');
+          });
+        }
+        else if (sColor[key].type == "boolean") {
+          property = '<div class="checkbox"><input id="cr_' + sColor[key].key + '" type="checkbox" ' + (value ? "checked" : "") + '/><label></label></div>';
+          $('.crtbody').append(createTableRow([title, property], false, true));
+
+          $('#cr_' + sColor[key].key).off().on('change', function (e) {
+            requestAdjustment(e.target.id.substr(e.target.id.indexOf("_") + 1), e.currentTarget.checked);
+          });
+        }
+        else {
+          if (sColor[key].key == "brightness" ||
+            sColor[key].key == "brightnessCompensation" ||
+            sColor[key].key == "backlightThreshold" ||
+            sColor[key].key == "saturationGain" ||
+            sColor[key].key == "brightnessGain") {
+
+            property = '<input id="cr_' + sColor[key].key + '" type="number" class="form-control" min="' + sColor[key].minimum + '" max="' + sColor[key].maximum + '" step="' + sColor[key].step + '" value="' + value + '"/>';
+            if (sColor[key].append === "edt_append_percent") {
+              property = '<div class="input-group">' + property + '<span class="input-group-addon">' + $.i18n("edt_append_percent") + '</span></div>';
+            }
+          }
+          else {
+            property = '<input id="cr_' + sColor[key].key + '" type="number" class="form-control" min="0.1" max="4.0" step="0.1" value="' + value + '"/>';
+          }
+
+          $('.crtbody').append(createTableRow([title, property], false, true));
+          $('#cr_' + sColor[key].key).off().on('change', function (e) {
+            valValue(this.id, this.value, this.min, this.max);
+            requestAdjustment(e.target.id.substr(e.target.id.indexOf("_") + 1), e.currentTarget.value);
+          });
+        }
+      }
+    }
   }
 
   function updateInputSelect() {
@@ -389,6 +391,7 @@ $(document).ready(function () {
   updateInputSelect();
   updateLedMapping();
   updateVideoMode();
+  updateChannelAdjustments();
   if (EFFECTENGINE_ENABLED) {
     updateEffectlist();
   } else {
@@ -419,6 +422,16 @@ $(document).ready(function () {
   $(window.hyperion).on("cmd-effects-update", function (event) {
     window.serverInfo.effects = event.response.data.effects;
     updateEffectlist();
+  });
+
+  $(window.hyperion).on("cmd-settings-update", function (event) {
+    if (event.response.data.color) {
+      window.serverInfo.imageToLedMappingType = event.response.data.color.imageToLedMappingType;
+      updateLedMapping();
+
+      window.serverInfo.adjustment = event.response.data.color.channelAdjustment;
+      updateChannelAdjustments();
+    }
   });
 
   removeOverlay();
