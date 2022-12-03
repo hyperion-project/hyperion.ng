@@ -63,13 +63,13 @@ void HyperionIManager::stopAll()
 	}
 }
 
-void HyperionIManager::toggleStateAllInstances(bool pause)
+void HyperionIManager::toggleStateAllInstances(bool enable)
 {
 	// copy the instances due to loop corruption, even with .erase() return next iter
 	QMap<quint8, Hyperion*> instCopy = _runningInstances;
 	for(const auto instance : instCopy)
 	{
-		emit instance->compStateChangeRequest(hyperion::COMP_ALL, pause);
+		emit instance->compStateChangeRequest(hyperion::COMP_ALL, enable);
 	}
 }
 

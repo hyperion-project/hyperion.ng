@@ -69,6 +69,8 @@
 #include <utils/settings.h>
 #include <utils/Components.h>
 
+#include "SuspendHandler.h"
+
 class HyperionIManager;
 class SysTray;
 class JsonServer;
@@ -198,10 +200,11 @@ private:
 	QtWrapper*                 _qtGrabber;
 	DirectXWrapper*            _dxGrabber;
 	SSDPHandler*               _ssdp;
-
 	#ifdef ENABLE_CEC
 	CECHandler*                _cecHandler;
 	#endif
+	SuspendHandler*            _suspendHandler;
+
 	#if defined(ENABLE_FLATBUF_SERVER)
 	FlatBufferServer*          _flatBufferServer;
 	#endif

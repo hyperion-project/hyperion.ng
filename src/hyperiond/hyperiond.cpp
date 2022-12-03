@@ -96,6 +96,7 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 #ifdef ENABLE_CEC
 	, _cecHandler(nullptr)
 #endif
+	, _suspendHandler(nullptr)
 	, _currVideoMode(VideoMode::VIDEO_2D)
 {
 	HyperionDaemon::daemon = this;
@@ -171,6 +172,8 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 
 	// ---- network services -----
 	startNetworkServices();
+
+	_suspendHandler = new SuspendHandler();
 }
 
 HyperionDaemon::~HyperionDaemon()
@@ -336,6 +339,8 @@ void HyperionDaemon::freeObjects()
 		_cecHandler = nullptr;
 	}
 #endif
+
+	delete _suspendHandler;
 
 	// stop Hyperions (non blocking)
 	_instanceManager->stopAll();

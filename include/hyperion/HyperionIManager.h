@@ -75,9 +75,9 @@ public slots:
 
 	///
 	/// @brief Toggle the state of all Hyperion instances
-	/// @param pause If true all instances toggle to pause, else to resume
+	/// @param enable, If false all instances toggle to pause, else to resume
 	///
-	void toggleStateAllInstances(bool pause = false);
+	void toggleStateAllInstances(bool enable = false);
 
 	///
 	/// @brief Create a new Hyperion instance entry in db

@@ -30,16 +30,28 @@ if (APPLE)
 	set_source_files_properties(${BUNDLE_RESOURCE_FILES} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 endif(APPLE)
 
+if (UNIX)
+	find_package(Qt${QT_VERSION_MAJOR} COMPONENTS DBus REQUIRED )
+	if (Qt${QT_VERSION_MAJOR}DBus_FOUND)
+		set(hyperiond_POWER_MNG_DBUS "Qt${QT_VERSION_MAJOR}::DBus")
+	endif()
+endif(UNIX)
+
 add_executable(${PROJECT_NAME}
 	console.h
 	hyperiond.h
 	systray.h
 	hyperiond.cpp
 	systray.cpp
+	SuspendHandler.cpp
 	main.cpp
 	${hyperiond_WIN_RC_PATH}
 	${BUNDLE_RESOURCE_FILES}
 )
+
+if (UNIX AND NOT APPLE AND Qt${QT_VERSION_MAJOR}DBus_FOUND)
+	target_compile_definitions(${PROJECT_NAME} PUBLIC HYPERION_HAS_DBUS)
+endif()
 
 # promote hyperiond as GUI app
 if (WIN32)
@@ -58,6 +70,7 @@ target_link_libraries(${PROJECT_NAME}
 	Qt${QT_VERSION_MAJOR}::Gui
 	Qt${QT_VERSION_MAJOR}::Network
 	Qt${QT_VERSION_MAJOR}::Widgets
+	${hyperiond_POWER_MNG_DBUS}
 )
 
 if(ENABLE_EFFECTENGINE)
