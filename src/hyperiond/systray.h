@@ -61,6 +61,8 @@ private:
 
 	QAction          *quitAction;
 	QAction          *restartAction;
+	QAction          *suspendAction;
+	QAction          *resumeAction;
 	QAction          *startAction;
 	QAction          *stopAction;
 	QAction          *colorAction;
@@ -75,6 +77,7 @@ private:
 #if defined(ENABLE_EFFECTENGINE)
 	QMenu            *_trayIconEfxMenu;
 #endif
+	QMenu            *_trayIconSystemMenu;
 	QColorDialog      _colorDlg;
 	HyperionDaemon   *_hyperiond;
 	Hyperion         *_hyperion;

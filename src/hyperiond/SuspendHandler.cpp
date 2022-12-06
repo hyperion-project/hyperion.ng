@@ -5,7 +5,8 @@
 
 SuspendHandlerBase::SuspendHandlerBase()
 {
-	connect(this, &SuspendHandlerBase::wakeUp, HyperionIManager::getInstance(), &HyperionIManager::toggleStateAllInstances);
+	connect(this, &SuspendHandlerBase::suspendEvent, HyperionIManager::getInstance(), &HyperionIManager::suspend);
+	connect(this, &SuspendHandlerBase::resumeEvent, HyperionIManager::getInstance(), &HyperionIManager::resume);
 }
 
 SuspendHandlerBase::~SuspendHandlerBase()
@@ -17,12 +18,13 @@ void SuspendHandlerBase::suspend(bool sleep)
 	if (sleep)
 	{
 		Info(Logger::getInstance("DAEMON"), "Suspend event - Hyperion is going to sleep");
+		emit suspendEvent();
 	}
 	else
 	{
 		Info(Logger::getInstance("DAEMON"), "Resume event - Hyperion is going to wake up");
+		emit resumeEvent();
 	}
-	emit wakeUp(!sleep);
 }
 
 #if defined(_WIN32)

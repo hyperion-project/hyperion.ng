@@ -298,6 +298,12 @@ private:
 	///
 	void handleServiceCommand(const QJsonObject &message, const QString &command, int tan);
 
+	/// Handle an incoming JSON message for actions related to the overall Hyperion system
+	///
+	/// @param message the incoming message
+	///
+	void handleSystemCommand(const QJsonObject &message, const QString &command, int tan);
+
 	///
 	/// Handle an incoming JSON message of unknown type
 	///

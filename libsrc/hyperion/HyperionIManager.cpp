@@ -63,6 +63,18 @@ void HyperionIManager::stopAll()
 	}
 }
 
+void HyperionIManager::suspend()
+{
+	Info(_log,"Suspend all instances and enabled components");
+	emit toggleStateAllInstances(false);
+}
+
+void HyperionIManager::resume()
+{
+	Info(_log,"Resume all instances and enabled components");
+	emit toggleStateAllInstances(true);
+}
+
 void HyperionIManager::toggleStateAllInstances(bool enable)
 {
 	// copy the instances due to loop corruption, even with .erase() return next iter

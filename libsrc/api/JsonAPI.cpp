@@ -236,6 +236,8 @@ proceed:
 		handleInputSourceCommand(message, command, tan);
 	else if (command == "service")
 		handleServiceCommand(message, command, tan);
+	else if (command == "system")
+		handleSystemCommand(message, command, tan);
 
 	// BEGIN | The following commands are deprecated but used to ensure backward compatibility with hyperion Classic remote control
 	else if (command == "clearall")
@@ -1795,6 +1797,34 @@ void JsonAPI::handleServiceCommand(const QJsonObject &message, const QString &co
 	}
 	else
 	{
+		sendErrorReply("Unknown or missing subcommand", full_command, tan);
+	}
+}
+
+void JsonAPI::handleSystemCommand(const QJsonObject &message, const QString &command, int tan)
+{
+	DebugIf(verbose, _log, "message: [%s]", QString(QJsonDocument(message).toJson(QJsonDocument::Compact)).toUtf8().constData());
+
+	const QString &subc = message["subcommand"].toString().trimmed();
+
+	if (subc == "suspend")
+	{
+		emit _instanceManager->suspend();
+		sendSuccessReply(command + "-" + subc, tan);
+	}
+	else if (subc == "resume")
+	{
+		emit _instanceManager->resume();
+		sendSuccessReply(command + "-" + subc, tan);
+	}
+	else if (subc == "restart")
+	{
+		Process::restartHyperion();
+		sendSuccessReply(command + "-" + subc, tan);
+	}
+	else
+	{
+		QString full_command = command + "-" + subc;
 		sendErrorReply("Unknown or missing subcommand", full_command, tan);
 	}
 }

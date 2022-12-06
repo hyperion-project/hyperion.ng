@@ -251,6 +251,42 @@ QString JsonConnection::getSysInfo()
 	return QString();
 }
 
+void JsonConnection::suspend()
+{
+	Info(_log, "Suspend Hyperion. Stop all instances and components");
+	QJsonObject command;
+	command["command"] = QString("system");
+	command["subcommand"] = QString("suspend");
+
+	QJsonObject reply = sendMessage(command);
+
+	parseReply(reply);
+}
+
+void JsonConnection::resume()
+{
+	Info(_log, "Resume Hyperion. Start all instances and components");
+	QJsonObject command;
+	command["command"] = QString("system");
+	command["subcommand"] = QString("resume");
+
+	QJsonObject reply = sendMessage(command);
+
+	parseReply(reply);
+}
+
+void JsonConnection::restart()
+{
+	Info(_log, "Restart Hyperion...");
+	QJsonObject command;
+	command["command"] = QString("system");
+	command["subcommand"] = QString("restart");
+
+	QJsonObject reply = sendMessage(command);
+
+	parseReply(reply);
+}
+
 void JsonConnection::clear(int priority)
 {
 	Debug(_log, "Clear priority channel [%d]", priority);

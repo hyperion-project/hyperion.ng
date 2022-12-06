@@ -74,6 +74,16 @@ public slots:
 	bool stopInstance(quint8 inst);
 
 	///
+	/// @brief Suspend (disable) all Hyperion instances
+	///
+	void suspend();
+
+	///
+	/// @brief Resume (resume) all Hyperion instances
+	///
+	void resume();
+
+	///
 	/// @brief Toggle the state of all Hyperion instances
 	/// @param enable, If false all instances toggle to pause, else to resume
 	///

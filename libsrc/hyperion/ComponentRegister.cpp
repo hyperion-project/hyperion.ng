@@ -94,7 +94,7 @@ void ComponentRegister::handleCompStateChangeRequest(hyperion::Components comps,
 		_inProgress = true;
 		if(!activated && _prevComponentStates.empty())
 		{
-			Debug(_log,"Disable Hyperion, store current component states");
+			Debug(_log,"Disable Hyperion instance, store current component states");
 			for(const auto &comp : _componentStates)
 			{
 				// save state
@@ -111,7 +111,7 @@ void ComponentRegister::handleCompStateChangeRequest(hyperion::Components comps,
 		{
 			if(activated && !_prevComponentStates.empty())
 			{
-				Debug(_log,"Enable Hyperion, recover previous component states");
+				Debug(_log,"Enable Hyperion instance, recover previous component states");
 				for(const auto &comp : _prevComponentStates)
 				{
 					// if comp was enabled, enable again

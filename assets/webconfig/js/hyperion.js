@@ -318,6 +318,21 @@ function requestSysInfo()
   sendToHyperion("sysinfo");
 }
 
+function requestSystemSuspend()
+{
+  sendToHyperion("system","suspend");
+}
+
+function requestSystemResume()
+{
+  sendToHyperion("system","resume");
+}
+
+function requestSystemRestart()
+{
+  sendToHyperion("system","restart");
+}
+
 function requestServerConfigSchema()
 {
   sendToHyperion("config","getschema");

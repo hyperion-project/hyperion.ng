@@ -100,6 +100,21 @@ public:
 	QString getSysInfo();
 
 	///
+	/// Suspend Hyperion. Stop all instances and components
+	///
+	void suspend();
+
+	///
+	/// Resume Hyperion. Start all instances and components
+	///
+	void resume();
+
+	///
+	/// Restart Hyperion
+	///
+	void restart();
+
+	///
 	/// Clear the given priority channel
 	///
 	/// @param priority The priority

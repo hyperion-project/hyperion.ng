@@ -13,7 +13,8 @@ public slots:
 	void suspend(bool sleep);
 
 signals:
-	void wakeUp(bool);
+	void suspendEvent();
+	void resumeEvent();
 };
 
 #if defined(_WIN32)
