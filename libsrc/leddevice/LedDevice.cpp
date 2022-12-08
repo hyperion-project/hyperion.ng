@@ -67,8 +67,6 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 
 LedDevice::~LedDevice()
 {
-	this->stopEnableAttemptsTimer();
-	this->stopRefreshTimer();
 }
 
 void LedDevice::start()
@@ -97,6 +95,7 @@ void LedDevice::start()
 void LedDevice::stop()
 {
 	Debug(_log, "Stop device");
+	this->stopEnableAttemptsTimer();
 	this->disable();
 	this->stopRefreshTimer();
 	Info(_log, " Stopped LedDevice '%s'", QSTRING_CSTR(_activeDeviceType));
