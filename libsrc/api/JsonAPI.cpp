@@ -990,7 +990,7 @@ void JsonAPI::handleConfigCommand(const QJsonObject &message, const QString &com
 		{
 			Debug(_log, "Restarting due to RPC command");
 
-			Process::restartHyperion();
+			Process::restartHyperion(10);
 
 			sendSuccessReply(command + "-" + subcommand, tan);
 		}
