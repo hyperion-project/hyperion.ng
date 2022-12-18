@@ -66,13 +66,18 @@ void HyperionIManager::stopAll()
 void HyperionIManager::suspend()
 {
 	Info(_log,"Suspend all instances and enabled components");
-	emit toggleStateAllInstances(false);
+	toggleStateAllInstances(false);
 }
 
 void HyperionIManager::resume()
 {
 	Info(_log,"Resume all instances and enabled components");
-	emit toggleStateAllInstances(true);
+	toggleStateAllInstances(true);
+}
+
+void HyperionIManager::toggleIdle(bool isIdle)
+{
+	// TODO: Implement Idle scenario
 }
 
 void HyperionIManager::toggleStateAllInstances(bool enable)

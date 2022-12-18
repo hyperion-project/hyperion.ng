@@ -11,10 +11,12 @@ public:
 
 public slots:
 	void suspend(bool sleep);
+	void lock(bool isLocked);
 
 signals:
 	void suspendEvent();
 	void resumeEvent();
+	void locked(bool);
 };
 
 #if defined(_WIN32)
