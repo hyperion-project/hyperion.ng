@@ -5,7 +5,7 @@
 
 namespace Process {
 
-void restartHyperion(bool asNewProcess=false);
+void restartHyperion(int exitCode = 0);
 QByteArray command_exec(const QString& cmd, const QByteArray& data = {});
 
 }

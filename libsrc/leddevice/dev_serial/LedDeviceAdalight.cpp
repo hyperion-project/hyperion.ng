@@ -95,9 +95,9 @@ void LedDeviceAdalight::prepareHeader()
 
 	case Adalight::AWA:
 		_bufferLength += 7;
-		[[clang::fallthrough]];
+		[[fallthrough]];
 	case Adalight::ADA:
-		[[clang::fallthrough]];
+		[[fallthrough]];
 	default:
 		totalLedCount -= 1;
 		_ledBuffer.resize(static_cast<size_t>(_bufferLength), 0x00);
