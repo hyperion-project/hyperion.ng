@@ -171,6 +171,7 @@ void JsonCB::setSubscriptionsTo(Hyperion* hyperion)
 void JsonCB::doCallback(const QString& cmd, const QVariant& data)
 {
 	QJsonObject obj;
+	obj["instance"] = _hyperion->getInstanceIndex();
 	obj["command"] = cmd;
 
 	if (data.userType() == QMetaType::QJsonArray)

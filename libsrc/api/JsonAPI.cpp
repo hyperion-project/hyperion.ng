@@ -992,7 +992,7 @@ void JsonAPI::handleConfigCommand(const QJsonObject &message, const QString &com
 		{
 			Debug(_log, "Restarting due to RPC command");
 
-			Process::restartHyperion();
+			Process::restartHyperion(10);
 
 			sendSuccessReply(command + "-" + subcommand, tan);
 		}
@@ -1427,7 +1427,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 		if (!token.isEmpty())
 		{
 			// userToken is longer
-			if (token.count() > 36)
+			if (token.size() > 36)
 			{
 				if (API::isUserTokenAuthorized(token))
 					sendSuccessReply(command + "-" + subc, tan);
@@ -1437,7 +1437,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 				return;
 			}
 			// usual app token is 36
-			if (token.count() == 36)
+			if (token.size() == 36)
 			{
 				if (API::isTokenAuthorized(token))
 				{
@@ -1451,7 +1451,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 
 		// password
 		// use password
-		if (password.count() >= 8)
+		if (password.size() >= 8)
 		{
 			QString userTokenRep;
 			if (API::isUserAuthorized(password) && API::getUserToken(userTokenRep))

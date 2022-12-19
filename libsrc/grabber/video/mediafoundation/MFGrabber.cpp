@@ -537,7 +537,7 @@ void MFGrabber::process_image(const void *frameImageBuffer, int size)
 		Error(_log, "Frame too small: %d != %d", size, _frameByteSize);
 	else if (_threadManager != nullptr)
 	{
-		for (int i = 0; i < _threadManager->_threadCount; i++)
+		for (unsigned long i = 0; i < _threadManager->_threadCount; i++)
 		{
 			if (!_threadManager->_threads[i]->isBusy())
 			{

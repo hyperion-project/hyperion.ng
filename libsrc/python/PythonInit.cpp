@@ -29,47 +29,122 @@ PythonInit::PythonInit()
 	// register modules
 	EffectModule::registerHyperionExtensionModule();
 
+#if (PY_VERSION_HEX >= 0x03080000)
+	PyStatus status;
+	PyConfig config;
+	PyConfig_InitPythonConfig(&config);
+#endif
+
 #if defined(ENABLE_DEPLOY_DEPENDENCIES)
+
+	Debug(Logger::getInstance("DAEMON"), "Initializing Python config");
 	// Set Program name
 	wchar_t programName[] = L"Hyperion";
+
+#if (PY_VERSION_HEX >= 0x03080000)
+	status = PyConfig_SetString(&config, &config.program_name, programName);
+	if (PyStatus_Exception(status)) {
+		goto exception;
+	}
+	else
+#else
 	Py_SetProgramName(programName);
-
-	// set Python module path when exists
-	QString py_path = QDir::cleanPath(qApp->applicationDirPath() + "/../lib/python" + STRINGIFY(PYTHON_VERSION_MAJOR) + "." + STRINGIFY(PYTHON_VERSION_MINOR));
-	QString py_file = QDir::cleanPath(qApp->applicationDirPath() + "/python" + STRINGIFY(PYTHON_VERSION_MAJOR) + STRINGIFY(PYTHON_VERSION_MINOR) + ".zip");
-	QString py_framework = QDir::cleanPath(qApp->applicationDirPath() + "/../Frameworks/Python.framework/Versions/Current/lib/python" + STRINGIFY(PYTHON_VERSION_MAJOR) + "." + STRINGIFY(PYTHON_VERSION_MINOR));
-
-	if (QFile(py_file).exists() || QDir(py_path).exists() || QDir(py_framework).exists() )
+#endif
 	{
-		Py_NoSiteFlag++;
-		if (QFile(py_file).exists()) // Windows
+		// set Python module path when exists
+		QString py_path = QDir::cleanPath(qApp->applicationDirPath() + "/../lib/python" + STRINGIFY(PYTHON_VERSION_MAJOR) + "." + STRINGIFY(PYTHON_VERSION_MINOR));
+		QString py_file = QDir::cleanPath(qApp->applicationDirPath() + "/python" + STRINGIFY(PYTHON_VERSION_MAJOR) + STRINGIFY(PYTHON_VERSION_MINOR) + ".zip");
+		QString py_framework = QDir::cleanPath(qApp->applicationDirPath() + "/../Frameworks/Python.framework/Versions/Current/lib/python" + STRINGIFY(PYTHON_VERSION_MAJOR) + "." + STRINGIFY(PYTHON_VERSION_MINOR));
+
+		if (QFile(py_file).exists() || QDir(py_path).exists() || QDir(py_framework).exists())
 		{
-			Py_SetPythonHome(Py_DecodeLocale(py_file.toLatin1().data(), nullptr));
-			Py_SetPath(Py_DecodeLocale(py_file.toLatin1().data(), nullptr));
-		}
-		else if (QDir(py_path).exists()) // Linux
-		{
-			QStringList python_paths;
-			python_paths.append(QDir(py_path).absolutePath());
-			python_paths.append(QDir(py_path + "/lib-dynload").absolutePath());
-			QVector<wchar_t> joined_paths(python_paths.join(":").size() + 1, 0);
-			python_paths.join(":").toWCharArray(joined_paths.data());
-			Py_SetPath(joined_paths.data());
-			py_path = QDir::cleanPath(qApp->applicationDirPath() + "/../");
-			Py_SetPythonHome(Py_DecodeLocale(py_path.toLatin1().data(), nullptr));
-		}
-		else if (QDir(py_framework).exists()) // macOS
-		{
-			QStringList python_paths;
-			python_paths.append(QDir(py_framework).absolutePath());
-			python_paths.append(QDir(py_framework + "/lib-dynload").absolutePath());
-			QVector<wchar_t> joined_paths(python_paths.join(":").size() + 1, 0);
-			python_paths.join(":").toWCharArray(joined_paths.data());
-			Py_SetPath(joined_paths.data());
-			py_framework = QDir::cleanPath(qApp->applicationDirPath() + "/../Frameworks/Python.framework/Versions/Current");
-			Py_SetPythonHome(Py_DecodeLocale(py_framework.toLatin1().data(), nullptr));
+			Py_NoSiteFlag++;
+			if (QFile(py_file).exists()) // Windows
+			{
+#if (PY_VERSION_HEX >= 0x03080000)
+				status = PyConfig_SetBytesString(&config, &config.home, QSTRING_CSTR(py_file));
+				if (PyStatus_Exception(status)) {
+					goto exception;
+				}
+				config.module_search_paths_set = 1;
+				status = PyWideStringList_Append(&config.module_search_paths, const_cast<wchar_t*>(py_file.toStdWString().c_str()));
+				if (PyStatus_Exception(status)) {
+					goto exception;
+				}
+#else
+				Py_SetPythonHome(Py_DecodeLocale(py_file.toLatin1().data(), nullptr));
+				Py_SetPath(Py_DecodeLocale(py_file.toLatin1().data(), nullptr));
+#endif
+			}
+			else if (QDir(py_path).exists()) // Linux
+			{
+#if (PY_VERSION_HEX >= 0x03080000)
+				status = PyConfig_SetBytesString(&config, &config.home, QSTRING_CSTR(QDir::cleanPath(qApp->applicationDirPath() + "/../")));
+				if (PyStatus_Exception(status)) {
+					goto exception;
+				}
+
+				config.module_search_paths_set = 1;
+				status = PyWideStringList_Append(&config.module_search_paths, const_cast<wchar_t*>(QDir(py_path).absolutePath().toStdWString().c_str()));
+				if (PyStatus_Exception(status)) {
+					goto exception;
+				}
+
+				status = PyWideStringList_Append(&config.module_search_paths, const_cast<wchar_t*>(QDir(py_path + "/lib-dynload").absolutePath().toStdWString().c_str()));
+				if (PyStatus_Exception(status)) {
+					goto exception;
+				}
+#else
+				QStringList python_paths;
+				python_paths.append(QDir(py_path).absolutePath());
+				python_paths.append(QDir(py_path + "/lib-dynload").absolutePath());
+				QVector<wchar_t> joined_paths(python_paths.join(":").size() + 1, 0);
+				python_paths.join(":").toWCharArray(joined_paths.data());
+				Py_SetPath(joined_paths.data());
+				py_path = QDir::cleanPath(qApp->applicationDirPath() + "/../");
+				Py_SetPythonHome(Py_DecodeLocale(py_path.toLatin1().data(), nullptr));
+#endif
+			}
+			else if (QDir(py_framework).exists()) // macOS
+			{
+#if (PY_VERSION_HEX >= 0x03080000)
+				status = PyConfig_SetBytesString(&config, &config.home, QSTRING_CSTR(QDir::cleanPath(qApp->applicationDirPath() + "/../Frameworks/Python.framework/Versions/Current")));
+				if (PyStatus_Exception(status)) {
+					goto exception;
+				}
+
+				config.module_search_paths_set = 1;
+				status = PyWideStringList_Append(&config.module_search_paths, const_cast<wchar_t*>(QDir(py_framework).absolutePath().toStdWString().c_str()));
+				if (PyStatus_Exception(status)) {
+					goto exception;
+				}
+
+				status = PyWideStringList_Append(&config.module_search_paths, const_cast<wchar_t*>(QDir(py_framework + "/lib-dynload").absolutePath().toStdWString().c_str()));
+				if (PyStatus_Exception(status)) {
+					goto exception;
+				}
+#else
+				QStringList python_paths;
+				python_paths.append(QDir(py_framework).absolutePath());
+				python_paths.append(QDir(py_framework + "/lib-dynload").absolutePath());
+				QVector<wchar_t> joined_paths(python_paths.join(":").size() + 1, 0);
+				python_paths.join(":").toWCharArray(joined_paths.data());
+				Py_SetPath(joined_paths.data());
+				py_framework = QDir::cleanPath(qApp->applicationDirPath() + "/../Frameworks/Python.framework/Versions/Current");
+				Py_SetPythonHome(Py_DecodeLocale(py_framework.toLatin1().data(), nullptr));
+#endif
+			}
 		}
 	}
+
+#endif
+
+#if (PY_VERSION_HEX >= 0x03080000)
+	status = Py_InitializeFromConfig(&config);
+	if (PyStatus_Exception(status)) {
+		goto exception;
+	}
+	PyConfig_Clear(&config);
 #endif
 
 	// init Python
@@ -86,6 +161,15 @@ PythonInit::PythonInit()
 #endif
 
 	mainThreadState = PyEval_SaveThread();
+	return;
+
+#if (PY_VERSION_HEX >= 0x03080000)
+exception:
+	Error(Logger::getInstance("DAEMON"), "Initializing Python config failed with error [%s]", status.err_msg);
+	PyConfig_Clear(&config);
+
+	throw std::runtime_error("Initializing Python failed!");
+#endif
 }
 
 PythonInit::~PythonInit()

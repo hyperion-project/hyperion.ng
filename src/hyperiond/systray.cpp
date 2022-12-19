@@ -79,7 +79,7 @@ void SysTray::createTrayIcon()
 
 	restartAction = new QAction(tr("&Restart"), this);
 	restartAction->setIcon(QPixmap(":/restart.svg"));
-	connect(restartAction, &QAction::triggered, this , [=](){ Process::restartHyperion(); });
+	connect(restartAction, &QAction::triggered, this , [=](){ Process::restartHyperion(11); });
 
 	suspendAction = new QAction(tr("&Suspend"), this);
 	suspendAction->setIcon(QPixmap(":/suspend.svg"));

@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <iostream>
 
+#include <QString>
 #include <QTextStream>
 
 ///
