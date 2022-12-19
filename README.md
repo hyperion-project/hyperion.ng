@@ -6,7 +6,7 @@
 
 [![Latest-Release](https://img.shields.io/github/v/release/hyperion-project/hyperion.ng?include_prereleases&label=Latest%20Release&logo=github&logoColor=white&color=0f83e7)](https://github.com/hyperion-project/hyperion.ng/releases)
 [![GitHub Actions](https://github.com/hyperion-project/hyperion.ng/workflows/Hyperion%20CI%20Build/badge.svg?branch=master)](https://github.com/hyperion-project/hyperion.ng/actions)
-[![LGTM](https://img.shields.io/lgtm/grade/cpp/github/hyperion-project/hyperion.ng?label=Code%20Quality&logo=lgtm&logoColor=white&color=4bc51d)](https://lgtm.com/projects/g/hyperion-project/hyperion.ng/context:cpp)
+[![CodeQL Analysis](https://github.com/hyperion-project/hyperion.ng/actions/workflows/codeql.yml/badge.svg)](https://github.com/hyperion-project/hyperion.ng/actions/workflows/codeql.yml)
 [![Forum](https://img.shields.io/website/https/hyperion-project.org.svg?label=Forum&down_color=red&down_message=offline&up_color=4bc51d&up_message=online&logo=homeadvisor&logoColor=white)](https://www.hyperion-project.org)
 [![Documentation](https://img.shields.io/website/https/docs.hyperion-project.org.svg?label=Documentation&down_color=red&down_message=offline&up_color=4bc51d&up_message=online&logo=read-the-docs)](https://docs.hyperion-project.org)
 [![Discord](https://img.shields.io/discord/785578322167463937?label=Discord&logo=discord&logoColor=white&color=4bc51d)](https://discord.gg/khkR8Vx3ff)
