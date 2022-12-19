@@ -1819,7 +1819,7 @@ void JsonAPI::handleSystemCommand(const QJsonObject &message, const QString &com
 	}
 	else if (subc == "restart")
 	{
-		Process::restartHyperion();
+		Process::restartHyperion(11);
 		sendSuccessReply(command + "-" + subc, tan);
 	}
 	else if (subc == "idle")
