@@ -1809,17 +1809,22 @@ void JsonAPI::handleSystemCommand(const QJsonObject &message, const QString &com
 
 	if (subc == "suspend")
 	{
-		emit _instanceManager->suspend();
+		_instanceManager->suspend();
 		sendSuccessReply(command + "-" + subc, tan);
 	}
 	else if (subc == "resume")
 	{
-		emit _instanceManager->resume();
+		_instanceManager->resume();
 		sendSuccessReply(command + "-" + subc, tan);
 	}
 	else if (subc == "restart")
 	{
 		Process::restartHyperion();
+		sendSuccessReply(command + "-" + subc, tan);
+	}
+	else if (subc == "idle")
+	{
+		_instanceManager->toggleIdle(true);
 		sendSuccessReply(command + "-" + subc, tan);
 	}
 	else

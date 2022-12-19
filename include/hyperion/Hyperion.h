@@ -389,6 +389,20 @@ public slots:
 
 	int getLatchTime() const;
 
+	///
+	/// @brief Set hyperion in suspend mode or resume from suspend/idle.
+	/// All instances and components will be disabled/enabled.
+	/// @param isSupend True, components will be deactivated, else put into their previous state before suspend
+	///
+	void setSuspend(bool isSupend);
+
+	///
+	/// @brief Set hyperion in idle /working mode.
+	/// In idle, all instances and components will be disabled besides the output processing (LED-Devices, smoothing).
+	/// @param isIdle True, selected components will be deactivated, else put into their previous state before idle
+	///
+	void setIdle(bool isIdle);
+
 signals:
 	/// Signal which is emitted when a priority channel is actively cleared
 	/// This signal will not be emitted when a priority channel time out
@@ -405,6 +419,18 @@ signals:
 	/// @param enabled    The new state of the component
 	///
 	void compStateChangeRequest(hyperion::Components component, bool enabled);
+
+	///
+	/// @brief Emits when all (besides excluded) components are subject to state changes
+	///	@param isActive The new state for all components
+	/// @param execlude List of excluded components
+	void compStateChangeRequestAll(bool isActive, const ComponentList& excludeList = {});
+
+	/// Signal which is emitted, when system is to be suspended/resumed
+	void suspendRequest(bool isSuspend);
+
+	/// Signal which is emitted, when system should go into idle/working mode
+	void idleRequest(bool isIdle);
 
 	///
 	/// @brief Emits whenever the imageToLedsMapping has changed

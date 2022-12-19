@@ -66,14 +66,14 @@ void signal_handler(int signum)
 	{
 		if (_hyperion != nullptr)
 		{
-			_hyperion->toggleStateAllInstances(false);
+			_hyperion->suspend();
 		}
 	}
 	else if (signum == SIGUSR2)
 	{
 		if (_hyperion != nullptr)
 		{
-			_hyperion->toggleStateAllInstances(true);
+			_hyperion->resume();
 		}
 	}
 }

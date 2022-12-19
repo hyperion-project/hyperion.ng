@@ -66,18 +66,31 @@ void HyperionIManager::stopAll()
 void HyperionIManager::suspend()
 {
 	Info(_log,"Suspend all instances and enabled components");
-	toggleStateAllInstances(false);
+	QMap<quint8, Hyperion*> instCopy = _runningInstances;
+	for(const auto instance : instCopy)
+	{
+		emit instance->suspendRequest(true);
+	}
 }
 
 void HyperionIManager::resume()
 {
 	Info(_log,"Resume all instances and enabled components");
-	toggleStateAllInstances(true);
+	QMap<quint8, Hyperion*> instCopy = _runningInstances;
+	for(const auto instance : instCopy)
+	{
+		emit instance->suspendRequest(false);
+	}
 }
 
 void HyperionIManager::toggleIdle(bool isIdle)
 {
-	// TODO: Implement Idle scenario
+	Info(_log,"Put all instances in %s state", isIdle ? "idle" : "working");
+	QMap<quint8, Hyperion*> instCopy = _runningInstances;
+	for(const auto instance : instCopy)
+	{
+		emit instance->idleRequest(isIdle);
+	}
 }
 
 void HyperionIManager::toggleStateAllInstances(bool enable)
