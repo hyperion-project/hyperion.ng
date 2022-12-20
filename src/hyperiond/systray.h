@@ -12,6 +12,7 @@
 
 #include <hyperion/Hyperion.h>
 #include <hyperion/HyperionIManager.h>
+#include "SuspendHandler.h"
 
 class HyperionDaemon;
 
@@ -83,4 +84,6 @@ private:
 	Hyperion         *_hyperion;
 	HyperionIManager *_instanceManager;
 	quint16           _webPort;
+
+	SuspendHandler   *_suspendHandler;
 };

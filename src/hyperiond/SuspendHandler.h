@@ -10,13 +10,30 @@ public:
 	virtual ~SuspendHandlerBase() override;
 
 public slots:
+
 	void suspend(bool sleep);
+
+	void suspend();
+	void resume();
+	void toggleSuspend();
+
+	void idle(bool isIdle);
+	void toggleIdle();
+
 	void lock(bool isLocked);
 
 signals:
+
 	void suspendEvent();
 	void resumeEvent();
-	void locked(bool);
+	void lockedEvent(bool);
+	void idleEvent(bool);
+
+private:
+
+	bool _isSuspended;
+	bool _isIdle;
+	bool _isLocked;
 };
 
 #if defined(_WIN32)

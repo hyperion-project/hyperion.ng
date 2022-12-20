@@ -105,6 +105,11 @@ public:
 	WebServer *getWebServerInstance() { return _webserver; }
 
 	///
+	/// @brief Get suspense handler pointer
+	///
+	SuspendHandler* getSuspendHandlerInstance() { return _suspendHandler; }
+
+	///
 	/// @brief Get the current videoMode
 	///
 	VideoMode getVideoMode() const { return _currVideoMode; }

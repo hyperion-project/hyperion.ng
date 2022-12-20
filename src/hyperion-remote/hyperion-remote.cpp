@@ -150,6 +150,9 @@ int main(int argc, char * argv[])
 		BooleanOption   & argSysInfo            = parser.add<BooleanOption>('s', "sysinfo"                , "Show system info");
 		BooleanOption   & argSystemSuspend      = parser.add<BooleanOption>(0x0, "suspend"                , "Suspend Hyperion. Stop all instances and components");
 		BooleanOption   & argSystemResume       = parser.add<BooleanOption>(0x0, "resume"                 , "Resume Hyperion. Start all instances and components");
+		BooleanOption   & argSystemToggleSuspend= parser.add<BooleanOption>(0x0, "toggleSuspend"          , "Toggle between Suspend and Resume. First request will trigger suspend");
+		BooleanOption   & argSystemIdle         = parser.add<BooleanOption>(0x0, "idle"                   , "Put Hyperion in Idle mode, i.e. all instances, components will be disabled besides the output processing (LED-devices, smoothing).");
+		BooleanOption   & argSystemToggleIdle   = parser.add<BooleanOption>(0x0, "toggleIdle"             , "Toggle between Idle and Working mode. First request will trigger Idle mode");
 		BooleanOption   & argSystemRestart      = parser.add<BooleanOption>(0x0, "restart"                , "Restart Hyperion");
 
 		BooleanOption   & argPrint              = parser.add<BooleanOption>(0x0, "print", "Print the JSON input and output messages on stdout");
@@ -181,10 +184,13 @@ int main(int argc, char * argv[])
 #if defined(ENABLE_EFFECTENGINE)
 			parser.isSet(argEffect), parser.isSet(argCreateEffect), parser.isSet(argDeleteEffect),
 #endif
-			parser.isSet(argServerInfo), parser.isSet(argSysInfo), parser.isSet(argSystemSuspend), parser.isSet(argSystemResume), parser.isSet(argSystemRestart),
+			parser.isSet(argServerInfo), parser.isSet(argSysInfo),
+			parser.isSet(argSystemSuspend), parser.isSet(argSystemResume), parser.isSet(argSystemToggleSuspend),
+			parser.isSet(argSystemIdle), parser.isSet(argSystemToggleIdle),
+			parser.isSet(argSystemRestart),
 			parser.isSet(argClear), parser.isSet(argClearAll), parser.isSet(argEnableComponent), parser.isSet(argDisableComponent), colorAdjust,
-		    parser.isSet(argSource), parser.isSet(argSourceAuto), parser.isSet(argOff), parser.isSet(argOn), parser.isSet(argConfigGet), parser.isSet(argSchemaGet), parser.isSet(argConfigSet),
-		    parser.isSet(argMapping),parser.isSet(argVideoMode) });
+			parser.isSet(argSource), parser.isSet(argSourceAuto), parser.isSet(argOff), parser.isSet(argOn), parser.isSet(argConfigGet), parser.isSet(argSchemaGet), parser.isSet(argConfigSet),
+			parser.isSet(argMapping),parser.isSet(argVideoMode) });
 		if (commandCount != 1)
 		{
 			qWarning() << (commandCount == 0 ? "No command found." : "Multiple commands found.") << " Provide exactly one of the following options:";
@@ -199,6 +205,9 @@ int main(int argc, char * argv[])
 			showHelp(argSysInfo);
 			showHelp(argSystemSuspend);
 			showHelp(argSystemResume);
+			showHelp(argSystemToggleSuspend);
+			showHelp(argSystemIdle);
+			showHelp(argSystemToggleIdle);
 			showHelp(argSystemRestart);
 			showHelp(argClear);
 			showHelp(argClearAll);
@@ -309,6 +318,18 @@ int main(int argc, char * argv[])
 		else if (parser.isSet(argSystemResume))
 		{
 			connection.resume();
+		}
+		else if (parser.isSet(argSystemToggleSuspend))
+		{
+			connection.toggleSuspend();
+		}
+		else if (parser.isSet(argSystemIdle))
+		{
+			connection.idle();
+		}
+		else if (parser.isSet(argSystemToggleIdle))
+		{
+			connection.toggleIdle();
 		}
 		else if (parser.isSet(argSystemRestart))
 		{

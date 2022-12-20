@@ -141,6 +141,11 @@ signals:
 	///
 	void startInstanceResponse(QObject *caller, const int &tan);
 
+	void triggerSuspend(bool isSuspend);
+	void triggerToggleSuspend();
+	void triggerIdle(bool isIdle);
+	void triggerToggleIdle();
+
 signals:
 	///////////////////////////////////////
 	/// FROM HYPERIONDAEMON TO HYPERION ///

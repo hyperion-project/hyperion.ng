@@ -110,6 +110,21 @@ public:
 	void resume();
 
 	///
+	/// Toggle between Suspend and Resume
+	///
+	void toggleSuspend();
+
+	///
+	///  Put Hyperion in Idle mode, i.e. all instances, components will be disabled besides the output processing (LED-devices, smoothing).
+	///
+	void idle();
+
+	///
+	/// Toggle between Idle and Working mode
+	///
+	void toggleIdle();
+
+	///
 	/// Restart Hyperion
 	///
 	void restart();

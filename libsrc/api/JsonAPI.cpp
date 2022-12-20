@@ -120,6 +120,12 @@ void JsonAPI::initialize()
 		_jsonCB->setSubscriptionsTo(_hyperion);
 		connect(this, &JsonAPI::forwardJsonMessage, _hyperion, &Hyperion::forwardJsonMessage);
 	}
+
+	//notify instance manager on suspend/resume/idle requests
+	connect(this, &JsonAPI::suspendAll, _instanceManager, &HyperionIManager::triggerSuspend);
+	connect(this, &JsonAPI::toggleSuspendAll, _instanceManager, &HyperionIManager::triggerToggleSuspend);
+	connect(this, &JsonAPI::idleAll, _instanceManager, &HyperionIManager::triggerIdle);
+	connect(this, &JsonAPI::toggleIdleAll, _instanceManager, &HyperionIManager::triggerToggleIdle);
 }
 
 bool JsonAPI::handleInstanceSwitch(quint8 inst, bool forced)
@@ -922,15 +928,15 @@ void JsonAPI::handleAdjustmentCommand(const QJsonObject &message, const QString 
 		colorAdjustment->_rgbTransform.setBrightnessCompensation(adjustment["brightnessCompensation"].toInt());
 	}
 
-    if (adjustment.contains("saturationGain"))
-    {
-        colorAdjustment->_okhsvTransform.setSaturationGain(adjustment["saturationGain"].toDouble());
-    }
+	if (adjustment.contains("saturationGain"))
+	{
+		colorAdjustment->_okhsvTransform.setSaturationGain(adjustment["saturationGain"].toDouble());
+	}
 
 	if (adjustment.contains("brightnessGain"))
-    {
+	{
 		colorAdjustment->_okhsvTransform.setBrightnessGain(adjustment["brightnessGain"].toDouble());
-    }
+	}
 
 	// commit the changes
 	_hyperion->adjustmentsUpdated();
@@ -1809,12 +1815,12 @@ void JsonAPI::handleSystemCommand(const QJsonObject &message, const QString &com
 
 	if (subc == "suspend")
 	{
-		_instanceManager->suspend();
+		emit suspendAll(true);
 		sendSuccessReply(command + "-" + subc, tan);
 	}
 	else if (subc == "resume")
 	{
-		_instanceManager->resume();
+		emit suspendAll(false);
 		sendSuccessReply(command + "-" + subc, tan);
 	}
 	else if (subc == "restart")
@@ -1822,9 +1828,19 @@ void JsonAPI::handleSystemCommand(const QJsonObject &message, const QString &com
 		Process::restartHyperion(11);
 		sendSuccessReply(command + "-" + subc, tan);
 	}
+	else if (subc == "toggleSuspend")
+	{
+		emit toggleSuspendAll();
+		sendSuccessReply(command + "-" + subc, tan);
+	}
 	else if (subc == "idle")
 	{
-		_instanceManager->toggleIdle(true);
+		emit idleAll(true);
+		sendSuccessReply(command + "-" + subc, tan);
+	}
+	else if (subc == "toggleIdle")
+	{
+		emit toggleIdleAll();
 		sendSuccessReply(command + "-" + subc, tan);
 	}
 	else

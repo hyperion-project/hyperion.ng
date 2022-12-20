@@ -1,44 +1,156 @@
 #include "SuspendHandler.h"
 
+#include <QtGlobal>
+
 #include <hyperion/HyperionIManager.h>
 #include <iostream>
 
 SuspendHandlerBase::SuspendHandlerBase()
+	: _isSuspended(false)
+	, _isIdle(false)
+	, _isLocked (false)
 {
+	// Trigger suspend/resume/idle scenarios to be executed by Instance mMnager
 	connect(this, &SuspendHandlerBase::suspendEvent, HyperionIManager::getInstance(), &HyperionIManager::suspend);
 	connect(this, &SuspendHandlerBase::resumeEvent, HyperionIManager::getInstance(), &HyperionIManager::resume);
-	connect(this, &SuspendHandlerBase::locked, HyperionIManager::getInstance(), &HyperionIManager::toggleIdle);
+	connect(this, &SuspendHandlerBase::lockedEvent, HyperionIManager::getInstance(), &HyperionIManager::toggleIdle);
+	connect(this, &SuspendHandlerBase::idleEvent, HyperionIManager::getInstance(), &HyperionIManager::toggleIdle);
+
+
+	// Listen to suspend/resume/idle events received by the Instance Manager via API
+	connect(HyperionIManager::getInstance(), &HyperionIManager::triggerSuspend, this, QOverload<bool>::of(&SuspendHandler::suspend));
+	connect(HyperionIManager::getInstance(), &HyperionIManager::triggerToggleSuspend, this, &SuspendHandler::toggleSuspend);
+	connect(HyperionIManager::getInstance(), &HyperionIManager::triggerIdle, this, &SuspendHandler::idle);
+	connect(HyperionIManager::getInstance(), &HyperionIManager::triggerToggleIdle, this, &SuspendHandler::toggleIdle);
 }
 
 SuspendHandlerBase::~SuspendHandlerBase()
 {
 }
 
+void SuspendHandlerBase::suspend()
+{
+	Debug(Logger::getInstance("DAEMON"), "");
+	suspend(true);
+}
+
 void SuspendHandlerBase::suspend(bool sleep)
 {
 	if (sleep)
 	{
-		Info(Logger::getInstance("DAEMON"), "Suspend event - Hyperion is going to sleep");
-		emit suspendEvent();
+		if (!_isSuspended)
+		{
+			_isSuspended = true;
+			Info(Logger::getInstance("DAEMON"), "Suspend event received - Hyperion is going to sleep");
+			emit suspendEvent();
+		}
+		else
+		{
+			Debug(Logger::getInstance("DAEMON"), "Suspend event ignored - already suspended");
+		}
 	}
 	else
 	{
-		Info(Logger::getInstance("DAEMON"), "Resume event - Hyperion is going to wake up");
-		emit resumeEvent();
+		if (_isSuspended)
+		{
+			Info(Logger::getInstance("DAEMON"), "Resume event received - Hyperion is going to wake up");
+			emit resumeEvent();
+			_isSuspended = false;
+		}
+		else
+		{
+			Debug(Logger::getInstance("DAEMON"), "Resume event ignored - not in suspend mode");
+		}
+	}
+}
+
+void SuspendHandlerBase::resume()
+{
+	Debug(Logger::getInstance("DAEMON"), "");
+	suspend(false);
+}
+
+void SuspendHandlerBase::toggleSuspend()
+{
+	Debug(Logger::getInstance("DAEMON"), "Toggle suspend event received");
+	if (!_isSuspended)
+	{
+		suspend(true);
+	}
+	else
+	{
+		suspend(false);
+	}
+}
+
+void SuspendHandlerBase::idle(bool isIdle)
+{
+	if (!_isSuspended)
+	{
+		if (isIdle)
+		{
+			if (!_isIdle)
+			{
+				_isIdle = true;
+				Info(Logger::getInstance("DAEMON"), "Idle event received");
+				emit idleEvent(isIdle);
+			}
+		}
+		else
+		{
+			if (_isIdle)
+			{
+				Info(Logger::getInstance("DAEMON"), "Resume from idle event recevied");
+				emit idleEvent(isIdle);
+				_isIdle = false;
+			}
+		}
+	}
+	else
+	{
+		Debug(Logger::getInstance("DAEMON"), "Idle event ignored - Hyperion is suspended");
+	}
+}
+
+void SuspendHandlerBase::toggleIdle()
+{
+	Debug(Logger::getInstance("DAEMON"), "Toggle idle event received");
+	if (!_isIdle)
+	{
+		idle(true);
+	}
+	else
+	{
+		idle(false);
 	}
 }
 
 void SuspendHandlerBase::lock(bool isLocked)
 {
-	if (isLocked)
+	if (!_isSuspended)
 	{
-		Info(Logger::getInstance("DAEMON"), "Screen locked");
-		emit locked(isLocked);
+		if (isLocked)
+		{
+			if (!_isLocked)
+			{
+				_isLocked = true;
+				Info(Logger::getInstance("DAEMON"), "Screen lock event received");
+				emit lockedEvent(isLocked);
+			}
+		}
+		else
+		{
+			if (_isLocked)
+			{
+				Info(Logger::getInstance("DAEMON"), "Screen unlock event received");
+				emit lockedEvent(isLocked);
+				_isLocked = false;
+			}
+		}
 	}
 	else
 	{
-		Info(Logger::getInstance("DAEMON"), "Screen unlocked");
-		emit locked(isLocked);
+		Debug(Logger::getInstance("DAEMON"), "Screen lock event ignored - Hyperion is suspended");
 	}
 }
 

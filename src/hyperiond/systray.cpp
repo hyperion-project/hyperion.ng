@@ -12,6 +12,7 @@
 #include <QColor>
 #include <QDesktopServices>
 #include <QSettings>
+#include <QtGlobal>
 
 #include <utils/ColorRgb.h>
 #include <utils/Process.h>
@@ -24,6 +25,7 @@
 
 #include "hyperiond.h"
 #include "systray.h"
+#include "SuspendHandler.h"
 
 SysTray::SysTray(HyperionDaemon *hyperiond)
 	: QWidget()
@@ -31,6 +33,7 @@ SysTray::SysTray(HyperionDaemon *hyperiond)
 	, _hyperiond(hyperiond)
 	, _hyperion(nullptr)
 	, _instanceManager(HyperionIManager::getInstance())
+	, _suspendHandler (hyperiond->getSuspendHandlerInstance())
 	, _webPort(8090)
 {
 	Q_INIT_RESOURCE(resources);
@@ -83,11 +86,11 @@ void SysTray::createTrayIcon()
 
 	suspendAction = new QAction(tr("&Suspend"), this);
 	suspendAction->setIcon(QPixmap(":/suspend.svg"));
-	connect(suspendAction, &QAction::triggered, _instanceManager, &HyperionIManager::suspend);
+	connect(suspendAction, &QAction::triggered, _suspendHandler, QOverload<>::of(&SuspendHandler::suspend));
 
 	resumeAction = new QAction(tr("&Resume"), this);
 	resumeAction->setIcon(QPixmap(":/resume.svg"));
-	connect(resumeAction, &QAction::triggered, _instanceManager, &HyperionIManager::resume);
+	connect(resumeAction, &QAction::triggered, _suspendHandler, &SuspendHandler::resume);
 
 	colorAction = new QAction(tr("&Color"), this);
 	colorAction->setIcon(QPixmap(":/color.svg"));

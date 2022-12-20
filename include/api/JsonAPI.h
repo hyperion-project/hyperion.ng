@@ -99,6 +99,26 @@ signals:
 	///
 	void forwardJsonMessage(QJsonObject);
 
+	///
+	/// Signal emits whenever a suspend/resume request for all instances should be forwarded
+	///
+	void suspendAll(bool isSuspend);
+
+	///
+	/// Signal emits whenever a toggle suspend/resume request for all instances should be forwarded
+	///
+	void toggleSuspendAll();
+
+	///
+	/// Signal emits whenever a idle mode request for all instances should be forwarded
+	///
+	void idleAll(bool isIdle);
+
+	///
+	/// Signal emits whenever a toggle idle/working mode request for all instances should be forwarded
+	///
+	void toggleIdleAll();
+
 private:
 	// true if further callbacks are forbidden (http)
 	bool _noListener;
