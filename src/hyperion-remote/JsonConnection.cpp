@@ -292,7 +292,7 @@ void JsonConnection::idle()
 	Info(_log, "Put Hyperion in Idle mode.");
 	QJsonObject command;
 	command["command"] = QString("system");
-	command["subcommand"] = QString("suspend");
+	command["subcommand"] = QString("idle");
 
 	QJsonObject reply = sendMessage(command);
 
