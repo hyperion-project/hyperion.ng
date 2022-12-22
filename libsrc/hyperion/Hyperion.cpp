@@ -26,6 +26,7 @@
 #include <leddevice/LedDeviceWrapper.h>
 
 #include <hyperion/MultiColorAdjustment.h>
+#include <hyperion/MultiColorCorrection.h>
 #include <hyperion/LinearColorSmoothing.h>
 
 #if defined(ENABLE_EFFECTENGINE)
@@ -56,6 +57,7 @@ Hyperion::Hyperion(quint8 instance, bool readonlyMode)
 	, _imageProcessor(nullptr)
 	, _muxer(nullptr)
 	, _raw2ledAdjustment(hyperion::createLedColorsAdjustment(static_cast<int>(_ledString.leds().size()), getSetting(settings::COLOR).object()))
+	, _raw2ledTemperature(hyperion::createLedColorsTemperature(static_cast<int>(_ledString.leds().size()), getSetting(settings::COLOR).object()))
 	, _ledDeviceWrapper(nullptr)
 	, _deviceSmooth(nullptr)
 #if defined(ENABLE_EFFECTENGINE)
@@ -99,6 +101,11 @@ void Hyperion::start()
 
 	// get newVideoMode from HyperionIManager
 	connect(this, &Hyperion::newVideoMode, this, &Hyperion::handleNewVideoMode);
+
+	if (!_raw2ledTemperature->verifyCorrections())
+	{
+		Warning(_log, "Color temperature incorrectly set");
+	}
 
 	if (!_raw2ledAdjustment->verifyAdjustments())
 	{
@@ -219,6 +226,9 @@ void Hyperion::freeObjects()
 
 	delete _raw2ledAdjustment;
 
+	// delete the color temperature correction
+	delete _raw2ledTemperature;
+
 #if defined(ENABLE_FORWARDER)
 	delete _messageForwarder;
 #endif
@@ -244,6 +254,15 @@ void Hyperion::handleSettingsUpdate(settings::type type, const QJsonDocument& co
 		_raw2ledAdjustment = hyperion::createLedColorsAdjustment(static_cast<int>(_ledString.leds().size()), obj);
 
 		if (!_raw2ledAdjustment->verifyAdjustments())
+		{
+			Warning(_log, "At least one led has no color calibration, please add all leds from your led layout to an 'LED index' field!");
+		}
+
+		// change in color recreate ledTemperature
+		delete _raw2ledTemperature;
+		_raw2ledTemperature = hyperion::createLedColorsTemperature(static_cast<int>(_ledString.leds().size()), obj);
+
+		if (!_raw2ledTemperature->verifyCorrections())
 		{
 			Warning(_log, "At least one led has no color calibration, please add all leds from your led layout to an 'LED index' field!");
 		}
@@ -278,6 +297,10 @@ void Hyperion::handleSettingsUpdate(settings::type type, const QJsonDocument& co
 		// change in leds are also reflected in adjustment
 		delete _raw2ledAdjustment;
 		_raw2ledAdjustment = hyperion::createLedColorsAdjustment(static_cast<int>(_ledString.leds().size()), getSetting(settings::COLOR).object());
+
+		// change in leds recreate ledTemperature
+		delete _raw2ledTemperature;
+		_raw2ledTemperature = hyperion::createLedColorsTemperature(static_cast<int>(_ledString.leds().size()), getSetting(settings::COLOR).object());
 
 		#if defined(ENABLE_EFFECTENGINE)
 		// start cached effects
@@ -494,12 +517,28 @@ QStringList Hyperion::getAdjustmentIds() const
 	return _raw2ledAdjustment->getAdjustmentIds();
 }
 
+QStringList Hyperion::getTemperatureIds() const
+{
+	return _raw2ledTemperature->getCorrectionIds();
+}
+
 ColorAdjustment * Hyperion::getAdjustment(const QString& id) const
 {
 	return _raw2ledAdjustment->getAdjustment(id);
 }
 
+ColorCorrection * Hyperion::getTemperature(const QString& id) const
+{
+	return _raw2ledTemperature->getCorrection(id);
+}
+
 void Hyperion::adjustmentsUpdated()
+{
+	emit adjustmentChanged();
+	update();
+}
+
+void Hyperion::temperaturesUpdated()
 {
 	emit adjustmentChanged();
 	update();
@@ -680,6 +719,7 @@ void Hyperion::update()
 	emit rawLedColors(_ledBuffer);
 
 	_raw2ledAdjustment->applyAdjustment(_ledBuffer);
+	_raw2ledTemperature->applyCorrection(_ledBuffer);
 
 	int i = 0;
 	for (ColorRgb& color : _ledBuffer)

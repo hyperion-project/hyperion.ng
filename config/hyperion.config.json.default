@@ -48,7 +48,8 @@
 				"brightness" : 100,
 				"brightnessCompensation" : 100,
 				"saturationGain" : 1.0,
-				"brightnessGain" : 1.0
+				"brightnessGain" : 1.0,
+				"temperature" : 6600
 			}
 		]
 	},

@@ -146,6 +146,13 @@
 					"required" : false,
 					"minimum" : 0.1,
 					"maximum": 10.0
+				},
+				"temperature" :
+				{
+					"type" : "integer",
+					"required" : false,
+					"minimum" : 1000,
+					"maximum": 40000
 				}
 			},
 			"additionalProperties": false

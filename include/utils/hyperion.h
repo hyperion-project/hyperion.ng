@@ -4,8 +4,10 @@
 
 #include <hyperion/ColorAdjustment.h>
 #include <hyperion/MultiColorAdjustment.h>
+#include "hyperion/MultiColorCorrection.h"
 #include <hyperion/LedString.h>
 #include <QRegularExpression>
+#include <utils/KelvinToRgb.h>
 
 // fg effect
 #include <hyperion/Hyperion.h>
@@ -13,6 +15,8 @@
 #if defined(ENABLE_EFFECTENGINE)
 #include <effectengine/Effect.h>
 #endif
+
+#include <QDebug>
 
 ///
 /// @brief Provide utility methods for Hyperion class
@@ -100,6 +104,32 @@ namespace hyperion {
 		);
 	}
 
+	RgbChannelCorrection* createRgbChannelCorrection(const QJsonObject& colorConfig)
+	{
+		int varR = colorConfig["red"].toInt(255);
+		int varG = colorConfig["green"].toInt(255);
+		int varB = colorConfig["blue"].toInt(255);
+
+		RgbChannelCorrection* correction = new RgbChannelCorrection(varR, varG, varB);
+		return correction;
+	}
+
+	ColorCorrection * createColorCorrection(const QJsonObject& correctionConfig)
+	{
+		const QString id = correctionConfig["id"].toString("default");
+
+		RgbChannelCorrection * rgbCorrection   = createRgbChannelCorrection(correctionConfig);
+
+		ColorCorrection * correction = new ColorCorrection();
+		correction->_id = id;
+		correction->_rgbCorrection   = *rgbCorrection;
+
+		// Cleanup the allocated individual transforms
+		delete rgbCorrection;
+
+		return correction;
+	}
+
 	ColorAdjustment* createColorAdjustment(const QJsonObject & adjustmentConfig)
 	{
 		const QString id = adjustmentConfig["id"].toString("default");
@@ -177,6 +207,77 @@ namespace hyperion {
 		}
 
 		return adjustment;
+	}
+
+	MultiColorCorrection * createLedColorsTemperature(int ledCnt, const QJsonObject & colorConfig)
+	{
+		// Create the result, the corrections are added to this
+		MultiColorCorrection * correction = new MultiColorCorrection(ledCnt);
+
+		const QJsonValue adjustmentConfig = colorConfig["channelAdjustment"];
+		const QRegularExpression overallExp("([0-9]+(\\-[0-9]+)?)(,[ ]*([0-9]+(\\-[0-9]+)?))*");
+
+		const QJsonArray & adjustmentConfigArray = adjustmentConfig.toArray();
+		for (signed i = 0; i < adjustmentConfigArray.size(); ++i)
+		{
+			const QJsonObject & config = adjustmentConfigArray.at(i).toObject();
+			ColorAdjustment * colorAdjustment = createColorAdjustment(config);
+
+			int temperature = config["temperature"].toInt();
+
+			ColorRgb rgb = getRgbFromTemperature(temperature);
+
+			qDebug() << "createLedColorsTemperature: adjustment[temperture]: " << temperature << "-> " << rgb.toQString();
+
+			QJsonObject correctionConfig {
+				{"red", rgb.red},
+				{"green", rgb.green},
+				{"blue", rgb.blue}
+			};
+
+			ColorCorrection * colorCorrection = createColorCorrection(correctionConfig);
+			correction->addCorrection(colorCorrection);
+
+			const QString ledIndicesStr = config["leds"].toString("").trimmed();
+			if (ledIndicesStr.compare("*") == 0)
+			{
+				// Special case for indices '*' => all leds
+				correction->setCorrectionForLed(colorCorrection->_id, 0, ledCnt-1);
+				Info(Logger::getInstance("HYPERION"), "ColorCorrection '%s' => [0-%d]", QSTRING_CSTR(colorCorrection->_id), ledCnt-1);
+				continue;
+			}
+
+			if (!overallExp.match(ledIndicesStr).hasMatch())
+			{
+				Error(Logger::getInstance("HYPERION"), "Given led indices %d not correct format: %s", i, QSTRING_CSTR(ledIndicesStr));
+				continue;
+			}
+
+			std::stringstream ss;
+			const QStringList ledIndexList = ledIndicesStr.split(",");
+			for (int i=0; i<ledIndexList.size(); ++i) {
+				if (i > 0)
+				{
+					ss << ", ";
+				}
+				if (ledIndexList[i].contains("-"))
+				{
+					QStringList ledIndices = ledIndexList[i].split("-");
+					int startInd = ledIndices[0].toInt();
+					int endInd   = ledIndices[1].toInt();
+					correction->setCorrectionForLed(colorCorrection->_id, startInd, endInd);
+					ss << startInd << "-" << endInd;
+				}
+				else
+				{
+					int index = ledIndexList[i].toInt();
+					correction->setCorrectionForLed(colorCorrection->_id, index, index);
+					ss << index;
+				}
+			}
+			Info(Logger::getInstance("HYPERION"), "ColorCorrection '%s' => [%s]", QSTRING_CSTR(colorAdjustment->_id), ss.str().c_str());
+		}
+		return correction;
 	}
 
 	/**

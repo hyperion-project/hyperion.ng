@@ -72,7 +72,7 @@ endif()
 # .deb files for apt
 # https://cmake.org/cmake/help/latest/cpack_gen/deb.html
 SET ( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/cmake/package-scripts/preinst;${CMAKE_SOURCE_DIR}/cmake/package-scripts/postinst;${CMAKE_SOURCE_DIR}/cmake/package-scripts/prerm" )
-SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "libcec6 | libcec4" )
+SET ( CPACK_DEBIAN_PACKAGE_DEPENDS "libcec6 | libcec4 | libcec (>= 4.0)" )
 SET ( CPACK_DEBIAN_PACKAGE_SECTION "Miscellaneous" )
 
 # .rpm for rpm

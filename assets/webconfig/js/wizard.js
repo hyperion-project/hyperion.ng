@@ -854,7 +854,12 @@ function checkUserResult(reply, usr) {
 
 function useGroupId(id) {
   $('#groupId').val(id);
-  groupLights = hueGroups[id].lights;
+
+  //Ensure ligthIDs are strings
+  groupLights = hueGroups[id].lights.map(num => {
+    return String(num);
+  });
+
   groupLightsLocations = hueGroups[id].locations;
   get_hue_lights();
 }
