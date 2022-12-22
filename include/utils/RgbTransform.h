@@ -44,7 +44,7 @@ public:
 	int getBacklightThreshold() const;
 
 	/// @param backlightThreshold New lower brightness
-	void setBacklightThreshold(int backlightThreshold);
+	void setBacklightThreshold(double backlightThreshold);
 
 	/// @return The current state
 	bool getBacklightColored() const;

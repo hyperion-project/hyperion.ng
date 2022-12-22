@@ -29,14 +29,6 @@
 
 #include <utils/DefaultSignalHandler.h>
 
-// Constants
-namespace {
-
-	const char SERVICE_TYPE[] = "jsonapi";
-
-} //End of constants
-
-
 using namespace commandline;
 
 /// Count the number of true values in a list of booleans

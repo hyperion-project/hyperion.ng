@@ -45,7 +45,7 @@ class trail:
 
 tr = []
 
-for i in range(trails):
+for unused in range(trails):
 	r = {'exec': trail()}
 
 	if randomise:

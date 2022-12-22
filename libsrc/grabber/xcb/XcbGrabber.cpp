@@ -242,12 +242,12 @@ bool XcbGrabber::setupDisplay()
 		setupRender();
 		setupShm();
 
-		Info(_log, QString("XcbRandR=[%1] XcbRender=[%2] XcbShm=[%3] XcbPixmap=[%4]")
-			 .arg(_XcbRandRAvailable     ? "available" : "unavailable")
-			 .arg(_XcbRenderAvailable    ? "available" : "unavailable")
-			 .arg(_XcbShmAvailable       ? "available" : "unavailable")
-			 .arg(_XcbShmPixmapAvailable ? "available" : "unavailable")
-			 .toStdString().c_str());
+		Info(_log, "%s", QSTRING_CSTR(QString("XcbRandR=[%1] XcbRender=[%2] XcbShm=[%3] XcbPixmap=[%4]")
+			 .arg(_XcbRandRAvailable ? "available" : "unavailable",
+			 _XcbRenderAvailable     ? "available" : "unavailable",
+			 _XcbShmAvailable        ? "available" : "unavailable",
+			 _XcbShmPixmapAvailable  ? "available" : "unavailable"))
+			 );
 
 		result = (updateScreenDimensions(true) >= 0);
 		ErrorIf(!result, _log, "XCB Grabber start failed");

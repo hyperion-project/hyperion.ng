@@ -126,12 +126,10 @@ void EffectEngine::handleUpdatedEffectList()
 				def.args["smoothing-time_ms"].toInt(),
 				def.args["smoothing-updateFrequency"].toDouble(),
 				0 );
-			//Debug( _log, "Customs Settings: Update effect %s, script %s, file %s, smoothCfg [%u]", QSTRING_CSTR(def.name), QSTRING_CSTR(def.script), QSTRING_CSTR(def.file), def.smoothCfg);
 		}
 		else
 		{
 			def.smoothCfg = SmoothingConfigID::SYSTEM;
-			//Debug( _log, "Default Settings: Update effect %s, script %s, file %s, smoothCfg [%u]", QSTRING_CSTR(def.name), QSTRING_CSTR(def.script), QSTRING_CSTR(def.file), def.smoothCfg);
 		}
 		_availableEffects.push_back(def);
 	}

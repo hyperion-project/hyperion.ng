@@ -50,7 +50,7 @@ QSqlDatabase DBManager::getDB() const
 		db.setDatabaseName(_rootPath+"/db/"+_dbn+".db");
 		if(!db.open())
 		{
-			Error(_log, QSTRING_CSTR(db.lastError().text()));
+			Error(_log, "%s", QSTRING_CSTR(db.lastError().text()));
 			throw std::runtime_error("Failed to open database connection!");
 		}
 		return db;

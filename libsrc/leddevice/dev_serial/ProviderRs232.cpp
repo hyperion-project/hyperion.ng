@@ -273,13 +273,6 @@ void ProviderRs232::readFeedback()
 	{
 		//Output as received
 		std::cout << readData.toStdString();
-
-		//Output as Hex
-//#if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
-//		std::cout << readData.toHex(':').toStdString();
-//#else
-//		std::cout << readData.toHex().toStdString();
-//#endif
 	}
 }
 

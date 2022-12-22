@@ -170,12 +170,12 @@ bool X11Grabber::setupDisplay()
 		XShmQueryVersion(_x11Display, &dummy, &dummy, &pixmaps_supported);
 		_XShmPixmapAvailable = pixmaps_supported && XShmPixmapFormat(_x11Display) == ZPixmap;
 
-		Info(_log, QString("XRandR=[%1] XRender=[%2] XShm=[%3] XPixmap=[%4]")
-			 .arg(_XRandRAvailable     ? "available" : "unavailable")
-			 .arg(_XRenderAvailable    ? "available" : "unavailable")
-			 .arg(_XShmAvailable       ? "available" : "unavailable")
-			 .arg(_XShmPixmapAvailable ? "available" : "unavailable")
-			 .toStdString().c_str());
+		Info(_log, "%s", QSTRING_CSTR(QString("XRandR=[%1] XRender=[%2] XShm=[%3] XPixmap=[%4]")
+			 .arg(_XRandRAvailable     ? "available" : "unavailable",
+			 _XRenderAvailable    ? "available" : "unavailable",
+			 _XShmAvailable       ? "available" : "unavailable",
+			 _XShmPixmapAvailable ? "available" : "unavailable"))
+			 );
 
 		result = (updateScreenDimensions(true) >=0);
 		ErrorIf(!result, _log, "X11 Grabber start failed");

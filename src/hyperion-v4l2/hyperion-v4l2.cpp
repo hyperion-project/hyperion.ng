@@ -33,13 +33,6 @@
 
 #include <utils/DefaultSignalHandler.h>
 
-// Constants
-namespace {
-
-	const char SERVICE_TYPE[] = "flatbuffer";
-
-} //End of constants
-
 using namespace commandline;
 
 int main(int argc, char** argv)

@@ -316,7 +316,7 @@ function showInfoDialog(type, header, message) {
 
   $(document).on('click', '[data-dismiss-modal]', function () {
     var target = $(this).attr('data-dismiss-modal');
-    $(target).modal('hide'); // lgtm [js/xss-through-dom]
+    $.find(target).modal('hide');
   });
 }
 
@@ -1314,7 +1314,7 @@ function isValidIPv6(value) {
 
 function isValidHostname(value) {
   if (value.match(
-    '^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9])(.([a-zA-Z0-9]|[_a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]))*$'	//lgtm [js/redos]
+    '^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9])(.([a-zA-Z0-9]|[_a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]))*$'
   ))
     return true;
   else
@@ -1323,7 +1323,7 @@ function isValidHostname(value) {
 
 function isValidServicename(value) {
   if (value.match(
-    '^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9 -]{0,61}[a-zA-Z0-9])(.([a-zA-Z0-9]|[_a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]))*$'	//lgtm [js/redos]
+    '^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9 -]{0,61}[a-zA-Z0-9])(.([a-zA-Z0-9]|[_a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]))*$'
   ))
     return true;
   else

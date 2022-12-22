@@ -165,7 +165,6 @@ void SSDPServer::readPendingDatagrams()
 
 		if (headers.value("man") == "\"ssdp:discover\"")
 		{
-			//Debug(_log, "Received msearch from '%s:%d'. Search target: %s",QSTRING_CSTR(sender.toString()), senderPort, QSTRING_CSTR(headers.value("st")));
 			emit msearchRequestReceived(headers.value("st"), headers.value("mx"), sender.toString(), senderPort);
 		}
     }

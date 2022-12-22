@@ -140,13 +140,12 @@ namespace hyperion {
 			{
 				// Special case for indices '*' => all leds
 				adjustment->setAdjustmentForLed(colorAdjustment->_id, 0, ledCnt-1);
-				//Info(Logger::getInstance("HYPERION"), "ColorAdjustment '%s' => [0-%d]", QSTRING_CSTR(colorAdjustment->_id), ledCnt-1);
 				continue;
 			}
 
 			if (!overallExp.match(ledIndicesStr).hasMatch())
 			{
-				//Error(Logger::getInstance("HYPERION"), "Given led indices %d not correct format: %s", i, QSTRING_CSTR(ledIndicesStr));
+				// Given LED indices are not correctly formatted
 				continue;
 			}
 
@@ -173,7 +172,6 @@ namespace hyperion {
 					ss << index;
 				}
 			}
-			//Info(Logger::getInstance("HYPERION"), "ColorAdjustment '%s' => [%s]", QSTRING_CSTR(colorAdjustment->_id), ss.str().c_str());
 		}
 
 		return adjustment;

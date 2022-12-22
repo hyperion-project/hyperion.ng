@@ -40,7 +40,6 @@ const char WLED_VERSION_DDP[] = "0.11.0";
 const int API_DEFAULT_PORT = -1; //Use default port per communication scheme
 
 const char API_BASE_PATH[] = "/json/";
-//const char API_PATH_INFO[] = "info";
 const char API_PATH_STATE[] = "state";
 
 // List of State Information
@@ -415,7 +414,7 @@ QJsonObject LedDeviceWled::getProperties(const QJsonObject& params)
 				}
 				else
 				{
-					Info(_log, "DDP streaming is supported by your WLED device version [%s]. No limitation in number of LEDs.", currentVersion.getVersion().c_str(), ddpVersion.getVersion().c_str());
+					Info(_log, "DDP streaming is supported by your WLED device version [%s]. No limitation in number of LEDs.", currentVersion.getVersion().c_str());
 				}
 			}
 			properties.insert("properties", propertiesDetails);

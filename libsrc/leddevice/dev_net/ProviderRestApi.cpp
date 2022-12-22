@@ -16,10 +16,12 @@ namespace {
 
 const QChar ONE_SLASH = '/';
 
-const int HTTP_STATUS_NO_CONTENT = 204;
-const int HTTP_STATUS_BAD_REQUEST = 400;
-const int HTTP_STATUS_UNAUTHORIZED = 401;
-const int HTTP_STATUS_NOT_FOUND = 404;
+enum HttpStatusCode {
+	NoContent    = 204,
+	BadRequest   = 400,
+	UnAuthorized = 401,
+	NotFound     = 404
+};
 
 constexpr std::chrono::milliseconds DEFAULT_REST_TIMEOUT{ 400 };
 
@@ -303,13 +305,13 @@ httpResponse ProviderRestApi::getResponse(QNetworkReply* const& reply)
 {
 	httpResponse response;
 
-	int httpStatusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+	HttpStatusCode httpStatusCode = static_cast<HttpStatusCode>(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt());
 	response.setHttpStatusCode(httpStatusCode);
 	response.setNetworkReplyError(reply->error());
 
 	if (reply->error() == QNetworkReply::NoError)
 	{
-		if ( httpStatusCode != HTTP_STATUS_NO_CONTENT ){
+		if ( httpStatusCode != HttpStatusCode::NoContent ){
 			QByteArray replyData = reply->readAll();
 
 			if (!replyData.isEmpty())
@@ -320,13 +322,11 @@ httpResponse ProviderRestApi::getResponse(QNetworkReply* const& reply)
 				if (error.error != QJsonParseError::NoError)
 				{
 					//Received not valid JSON response
-					//std::cout << "Response: [" << replyData.toStdString() << "]" << std::endl;
 					response.setError(true);
 					response.setErrorReason(error.errorString());
 				}
 				else
 				{
-					//std::cout << "Response: [" << QString(jsonDoc.toJson(QJsonDocument::Compact)).toStdString() << "]" << std::endl;
 					response.setBody(jsonDoc);
 				}
 			}
@@ -344,13 +344,13 @@ httpResponse ProviderRestApi::getResponse(QNetworkReply* const& reply)
 			QString httpReason = reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString();
 			QString advise;
 			switch ( httpStatusCode ) {
-			case HTTP_STATUS_BAD_REQUEST:
+			case HttpStatusCode::BadRequest:
 				advise = "Check Request Body";
 				break;
-			case HTTP_STATUS_UNAUTHORIZED:
+			case HttpStatusCode::UnAuthorized:
 				advise = "Check Authentication Token (API Key)";
 				break;
-			case HTTP_STATUS_NOT_FOUND:
+			case HttpStatusCode::NotFound:
 				advise = "Check Resource given";
 				break;
 			default:

@@ -12,7 +12,7 @@ hueIncrement = sleepTime / rotationTime
 
 # Switch direction if needed
 if reverse:
-	increment = -increment
+	hueIncrement = -hueIncrement
 
 # Start the write data loop
 hue = 0.0

@@ -429,7 +429,7 @@ QJsonArray MdnsBrowser::getServicesDiscoveredJson(const QByteArray& serviceType,
 
 void MdnsBrowser::printCache(const QByteArray& name, quint16 type) const
 {
-	DebugIf(verboseBrowser,_log, "for type: ", QSTRING_CSTR(QMdnsEngine::typeName(type)));
+	DebugIf(verboseBrowser,_log, "for type: %s", QSTRING_CSTR(QMdnsEngine::typeName(type)));
 	QList<QMdnsEngine::Record> records;
 	if (_cache.lookupRecords(name, type, records))
 	{
@@ -466,6 +466,6 @@ void MdnsBrowser::printCache(const QByteArray& name, quint16 type) const
 	}
 	else
 	{
-		DebugIf(verboseBrowser,_log, "Cash is empty for type: ", QSTRING_CSTR(QMdnsEngine::typeName(type)));
+		DebugIf(verboseBrowser,_log, "Cash is empty for type: %s", QSTRING_CSTR(QMdnsEngine::typeName(type)));
 	}
 }

@@ -406,7 +406,6 @@ void LinearColorSmoothing::performDecay(const int64_t now) {
 
 		if(microsTillNextAction > SLEEP_RES_MICROS) {
 			const int64_t wait = std::min(microsTillNextAction - SLEEP_RES_MICROS, SLEEP_MAX_MICROS);
-			//usleep(wait);
 			std::this_thread::sleep_for(std::chrono::microseconds(wait));
 		}
 	}
@@ -542,7 +541,6 @@ void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> &ledColors)
 void LinearColorSmoothing::clearQueuedColors()
 {
 	_timer->stop();
-	//QMetaObject::invokeMethod(_timer, "stop", Qt::QueuedConnection);
 	_previousValues.clear();
 
 	_targetValues.clear();

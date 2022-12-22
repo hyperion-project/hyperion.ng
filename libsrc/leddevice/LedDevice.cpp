@@ -234,8 +234,6 @@ void LedDevice::startRefreshTimer()
 				connect(_refreshTimer, &QTimer::timeout, this, &LedDevice::rewriteLEDs);
 			}
 			_refreshTimer->setInterval(_refreshTimerInterval_ms);
-
-			//Debug(_log, "Start refresh timer with interval = %ims", _refreshTimer->interval());
 			_refreshTimer->start();
 		}
 		else
@@ -249,11 +247,9 @@ void LedDevice::stopRefreshTimer()
 {
 	if (_refreshTimer != nullptr)
 	{
-		//Debug(_log, "Stopping refresh timer");
 		_refreshTimer->stop();
 		delete _refreshTimer;
 		_refreshTimer = nullptr;
-
 	}
 }
 
@@ -302,7 +298,7 @@ int LedDevice::updateLeds(std::vector<ColorRgb> ledValues)
 	int retval = 0;
 	if (!_isEnabled || !_isOn || !_isDeviceReady || _isDeviceInError)
 	{
-		//std::cout << "LedDevice::updateLeds(), LedDevice NOT ready! ";
+		// LedDevice NOT ready!
 		retval = -1;
 	}
 	else
@@ -310,7 +306,6 @@ int LedDevice::updateLeds(std::vector<ColorRgb> ledValues)
 		qint64 elapsedTimeMs = _lastWriteTime.msecsTo(QDateTime::currentDateTime());
 		if (_latchTime_ms == 0 || elapsedTimeMs >= _latchTime_ms)
 		{
-			//std::cout << "LedDevice::updateLeds(), Elapsed time since last write (" << elapsedTimeMs << ") ms > _latchTime_ms (" << _latchTime_ms << ") ms" << std::endl;
 			retval = write(ledValues);
 			_lastWriteTime = QDateTime::currentDateTime();
 
@@ -323,7 +318,7 @@ int LedDevice::updateLeds(std::vector<ColorRgb> ledValues)
 		}
 		else
 		{
-			//std::cout << "LedDevice::updateLeds(), Skip write. elapsedTime (" << elapsedTimeMs << ") ms < _latchTime_ms (" << _latchTime_ms << ") ms" << std::endl;
+			// Skip write as elapsedTime < latchTime
 			if (_isRefreshEnabled)
 			{
 				//Stop timer to allow for next non-refresh update
@@ -340,14 +335,6 @@ int LedDevice::rewriteLEDs()
 
 	if (_isEnabled && _isOn && _isDeviceReady && !_isDeviceInError)
 	{
-		//		qint64 elapsedTimeMs = _lastWriteTime.msecsTo(QDateTime::currentDateTime());
-		//		std::cout << "LedDevice::rewriteLEDs(): Rewrite LEDs now, elapsedTime [" << elapsedTimeMs << "] ms" << std::endl;
-		//		//:TESTING: Inject "white" output records to differentiate from normal writes
-		//		_lastLedValues.clear();
-		//		_lastLedValues.resize(static_cast<unsigned long>(_ledCount), ColorRgb::WHITE);
-		//		printLedValues(_lastLedValues);
-		//		//:TESTING:
-
 		if (!_lastLedValues.empty())
 		{
 			retval = write(_lastLedValues);
@@ -490,12 +477,15 @@ bool LedDevice::storeState()
 {
 	bool rc{ true };
 
+#if 0
 	if (_isRestoreOrigState)
 	{
 		// Save device's original state
 		// _originalStateValues = get device's state;
 		// store original power on/off state, if available
 	}
+#endif
+
 	return rc;
 }
 
@@ -503,12 +493,14 @@ bool LedDevice::restoreState()
 {
 	bool rc{ true };
 
+#if 0
 	if (_isRestoreOrigState)
 	{
 		// Restore device's original state
 		// update device using _originalStateValues
 		// update original power on/off state, if supported
 	}
+#endif
 	return rc;
 }
 
@@ -699,4 +691,3 @@ QString LedDevice::getColorOrder() const
 bool LedDevice::componentState() const {
 	return _isEnabled;
 }
-

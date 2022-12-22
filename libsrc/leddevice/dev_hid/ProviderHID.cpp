@@ -73,8 +73,8 @@ int ProviderHID::open()
 		// Failed to open the device
 		this->setInError( "Failed to open HID device. Maybe your PID/VID setting is wrong? Make sure to add a udev rule/use sudo." );
 
+#if 0
 		// http://www.signal11.us/oss/hidapi/
-		/*
 				std::cout << "Showing a list of all available HID devices:" << std::endl;
 				auto devs = hid_enumerate(0x00, 0x00);
 				auto cur_dev = devs;
@@ -88,7 +88,8 @@ int ProviderHID::open()
 					cur_dev = cur_dev->next;
 				}
 				hid_free_enumeration(devs);
-				*/
+#endif
+
 	}
 	else
 	{

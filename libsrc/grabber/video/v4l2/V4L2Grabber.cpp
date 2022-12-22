@@ -1209,7 +1209,7 @@ void V4L2Grabber::setCecDetectionEnable(bool enable)
 	{
 		_cecDetectionEnabled = enable;
 		if(_initialized)
-			Info(_log, QString("CEC detection is now %1").arg(enable ? "enabled" : "disabled").toLocal8Bit());
+			Info(_log, "%s", QSTRING_CSTR(QString("CEC detection is now %1").arg(enable ? "enabled" : "disabled")));
 	}
 }
 
@@ -1501,19 +1501,19 @@ void V4L2Grabber::enumVideoCaptureDevices()
 
 			// Enumerate video control IDs
 			QList<DeviceControls> deviceControlList;
-			for (auto it = _controlIDPropertyMap->constBegin(); it != _controlIDPropertyMap->constEnd(); it++)
+			for (auto itDeviceControls = _controlIDPropertyMap->constBegin(); itDeviceControls != _controlIDPropertyMap->constEnd(); itDeviceControls++)
 			{
 				struct v4l2_queryctrl queryctrl;
 				CLEAR(queryctrl);
 
-				queryctrl.id = it.key();
+				queryctrl.id = itDeviceControls.key();
 				if (xioctl(fd, VIDIOC_QUERYCTRL, &queryctrl) < 0)
 					break;
 				if (queryctrl.flags & V4L2_CTRL_FLAG_DISABLED)
 					break;
 
 				DeviceControls control;
-				control.property = it.value();
+				control.property = itDeviceControls.value();
 				control.minValue = queryctrl.minimum;
 				control.maxValue = queryctrl.maximum;
 				control.step = queryctrl.step;
@@ -1524,13 +1524,13 @@ void V4L2Grabber::enumVideoCaptureDevices()
 				CLEAR(ctrl);
 				CLEAR(ctrls);
 
-				ctrl.id = it.key();
+				ctrl.id = itDeviceControls.key();
 				ctrls.count = 1;
 				ctrls.controls = &ctrl;
 				if (xioctl(fd, VIDIOC_G_EXT_CTRLS, &ctrls) == 0)
 				{
 					control.currentValue = ctrl.value;
-					DebugIf(verbose, _log, "%s: min=%i, max=%i, step=%i, default=%i, current=%i", QSTRING_CSTR(it.value()), control.minValue, control.maxValue, control.step, control.defaultValue, control.currentValue);
+					DebugIf(verbose, _log, "%s: min=%i, max=%i, step=%i, default=%i, current=%i", QSTRING_CSTR(itDeviceControls.value()), control.minValue, control.maxValue, control.step, control.defaultValue, control.currentValue);
 				}
 				else
 					break;
