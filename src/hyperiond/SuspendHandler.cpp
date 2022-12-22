@@ -51,15 +51,16 @@ void SuspendHandlerBase::suspend(bool sleep)
 	}
 	else
 	{
-		if (_isSuspended)
+		if (_isSuspended || _isIdle)
 		{
-			Info(Logger::getInstance("DAEMON"), "Resume event received - Hyperion is going to wake up");
+			Info(Logger::getInstance("DAEMON"), "Resume event received - Hyperion is going into working mode");
 			emit resumeEvent();
 			_isSuspended = false;
+			_isIdle = false;
 		}
 		else
 		{
-			Debug(Logger::getInstance("DAEMON"), "Resume event ignored - not in suspend mode");
+			Debug(Logger::getInstance("DAEMON"), "Resume event ignored - not in suspend nor idle mode");
 		}
 	}
 }
