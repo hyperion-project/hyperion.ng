@@ -10,9 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Allow to Disable / Enable all instances (#970) by 
+	- Suspend/Resume support for Linux and Windows (#1493,#1282, #978).
+	Suspend/Resume/Restart is supported via API, UI, Systray and hyperion-remote
+	- Idle scenario via Screen Locking (Linux/Windows), Screensaver invokation (Linux), hyperion-remote or API
+	In Idle, all instances, components will be disabled besides the output processing (LED-Devices, smoothing).
+	The current priorities will be cleared and the background effect per instance will be executed, if enabled.
+	- Commands toogleSuspend and toggleIdle allow to flip between modes, e.g. might be used to trigger modes by a remote
+- Add instance# in API response (#1504)
+
 ### Changed
 
 ### Fixed
+
+- Restart correctly, if running as service (#1368)
 
 ## Removed
 

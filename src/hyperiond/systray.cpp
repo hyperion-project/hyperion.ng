@@ -12,6 +12,7 @@
 #include <QColor>
 #include <QDesktopServices>
 #include <QSettings>
+#include <QtGlobal>
 
 #include <utils/ColorRgb.h>
 #include <utils/Process.h>
@@ -24,6 +25,7 @@
 
 #include "hyperiond.h"
 #include "systray.h"
+#include "SuspendHandler.h"
 
 SysTray::SysTray(HyperionDaemon *hyperiond)
 	: QWidget()
@@ -31,6 +33,7 @@ SysTray::SysTray(HyperionDaemon *hyperiond)
 	, _hyperiond(hyperiond)
 	, _hyperion(nullptr)
 	, _instanceManager(HyperionIManager::getInstance())
+	, _suspendHandler (hyperiond->getSuspendHandlerInstance())
 	, _webPort(8090)
 {
 	Q_INIT_RESOURCE(resources);
@@ -79,7 +82,15 @@ void SysTray::createTrayIcon()
 
 	restartAction = new QAction(tr("&Restart"), this);
 	restartAction->setIcon(QPixmap(":/restart.svg"));
-	connect(restartAction, &QAction::triggered, this , [=](){ Process::restartHyperion(11); });
+	connect(restartAction, &QAction::triggered, this , [=](){ Process::restartHyperion(12); });
+
+	suspendAction = new QAction(tr("&Suspend"), this);
+	suspendAction->setIcon(QPixmap(":/suspend.svg"));
+	connect(suspendAction, &QAction::triggered, _suspendHandler, QOverload<>::of(&SuspendHandler::suspend));
+
+	resumeAction = new QAction(tr("&Resume"), this);
+	resumeAction->setIcon(QPixmap(":/resume.svg"));
+	connect(resumeAction, &QAction::triggered, _suspendHandler, &SuspendHandler::resume);
 
 	colorAction = new QAction(tr("&Color"), this);
 	colorAction->setIcon(QPixmap(":/color.svg"));
@@ -102,7 +113,7 @@ void SysTray::createTrayIcon()
 	_trayIconEfxMenu->setIcon(QPixmap(":/effects.svg"));
 
 	// custom effects
-	for (auto efx : efxs)
+	for (const auto &efx : efxs)
 	{
 		if (efx.file.mid(0, 1)  != ":")
 		{
@@ -117,7 +128,7 @@ void SysTray::createTrayIcon()
 		_trayIconEfxMenu->addSeparator();
 
 	// build in effects
-	for (auto efx : efxs)
+	for (const auto &efx : efxs)
 	{
 		if (efx.file.mid(0, 1)  == ":")
 		{
@@ -145,7 +156,16 @@ void SysTray::createTrayIcon()
 #endif
 	_trayIconMenu->addAction(clearAction);
 	_trayIconMenu->addSeparator();
-	_trayIconMenu->addAction(restartAction);
+
+	_trayIconSystemMenu = new QMenu(_trayIconMenu);
+	_trayIconSystemMenu->setTitle(tr("Instances"));
+
+	_trayIconSystemMenu->addAction(suspendAction);
+	_trayIconSystemMenu->addAction(resumeAction);
+	_trayIconSystemMenu->addAction(restartAction);
+	_trayIconMenu->addMenu(_trayIconSystemMenu);
+
+	_trayIconMenu->addSeparator();
 	_trayIconMenu->addAction(quitAction);
 
 	_trayIcon = new QSystemTrayIcon(this);
@@ -180,7 +200,7 @@ void SysTray::setAutorunState()
 
 void SysTray::setColor(const QColor & color)
 {
-	std::vector<ColorRgb> rgbColor{ ColorRgb{ (uint8_t)color.red(), (uint8_t)color.green(), (uint8_t)color.blue() } };
+	std::vector<ColorRgb> rgbColor{ ColorRgb{ static_cast<uint8_t>(color.red()), static_cast<uint8_t>(color.green()), static_cast<uint8_t>(color.blue()) } };
 
 	_hyperion->setColor(PriorityMuxer::FG_PRIORITY,rgbColor, PriorityMuxer::ENDLESS);
 }

@@ -63,13 +63,43 @@ void HyperionIManager::stopAll()
 	}
 }
 
-void HyperionIManager::toggleStateAllInstances(bool pause)
+void HyperionIManager::suspend()
+{
+	Info(_log,"Suspend all instances and enabled components");
+	QMap<quint8, Hyperion*> instCopy = _runningInstances;
+	for(const auto instance : instCopy)
+	{
+		emit instance->suspendRequest(true);
+	}
+}
+
+void HyperionIManager::resume()
+{
+	Info(_log,"Resume all instances and enabled components");
+	QMap<quint8, Hyperion*> instCopy = _runningInstances;
+	for(const auto instance : instCopy)
+	{
+		emit instance->suspendRequest(false);
+	}
+}
+
+void HyperionIManager::toggleIdle(bool isIdle)
+{
+	Info(_log,"Put all instances in %s state", isIdle ? "idle" : "working");
+	QMap<quint8, Hyperion*> instCopy = _runningInstances;
+	for(const auto instance : instCopy)
+	{
+		emit instance->idleRequest(isIdle);
+	}
+}
+
+void HyperionIManager::toggleStateAllInstances(bool enable)
 {
 	// copy the instances due to loop corruption, even with .erase() return next iter
 	QMap<quint8, Hyperion*> instCopy = _runningInstances;
 	for(const auto instance : instCopy)
 	{
-		emit instance->compStateChangeRequest(hyperion::COMP_ALL, pause);
+		emit instance->compStateChangeRequest(hyperion::COMP_ALL, enable);
 	}
 }
 

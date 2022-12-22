@@ -251,6 +251,78 @@ QString JsonConnection::getSysInfo()
 	return QString();
 }
 
+void JsonConnection::suspend()
+{
+	Info(_log, "Suspend Hyperion. Stop all instances and components");
+	QJsonObject command;
+	command["command"] = QString("system");
+	command["subcommand"] = QString("suspend");
+
+	QJsonObject reply = sendMessage(command);
+
+	parseReply(reply);
+}
+
+void JsonConnection::resume()
+{
+	Info(_log, "Resume Hyperion. Start all instances and components");
+	QJsonObject command;
+	command["command"] = QString("system");
+	command["subcommand"] = QString("resume");
+
+	QJsonObject reply = sendMessage(command);
+
+	parseReply(reply);
+}
+
+void JsonConnection::toggleSuspend()
+{
+	Info(_log, "Toggle between Suspend and Resume");
+	QJsonObject command;
+	command["command"] = QString("system");
+	command["subcommand"] = QString("toggleSuspend");
+
+	QJsonObject reply = sendMessage(command);
+
+	parseReply(reply);
+}
+
+void JsonConnection::idle()
+{
+	Info(_log, "Put Hyperion in Idle mode.");
+	QJsonObject command;
+	command["command"] = QString("system");
+	command["subcommand"] = QString("idle");
+
+	QJsonObject reply = sendMessage(command);
+
+	parseReply(reply);
+}
+
+void JsonConnection::toggleIdle()
+{
+	Info(_log, "Toggle between Idle and Working mode");
+	QJsonObject command;
+	command["command"] = QString("system");
+	command["subcommand"] = QString("toggleIdle");
+
+	QJsonObject reply = sendMessage(command);
+
+	parseReply(reply);
+}
+
+void JsonConnection::restart()
+{
+	Info(_log, "Restart Hyperion...");
+	QJsonObject command;
+	command["command"] = QString("system");
+	command["subcommand"] = QString("restart");
+
+	QJsonObject reply = sendMessage(command);
+
+	parseReply(reply);
+}
+
 void JsonConnection::clear(int priority)
 {
 	Debug(_log, "Clear priority channel [%d]", priority);

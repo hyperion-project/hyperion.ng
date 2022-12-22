@@ -75,6 +75,8 @@ Hyperion::Hyperion(quint8 instance, bool readonlyMode)
 #endif
 	, _readOnlyMode(readonlyMode)
 {
+	qRegisterMetaType<ComponentList>("ComponentList");
+
 	QString subComponent = "I"+QString::number(instance);
 	this->setProperty("instance", (QString) subComponent);
 
@@ -117,8 +119,9 @@ void Hyperion::start()
 	connect(_muxer, &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::handleSourceAvailability);
 	connect(_muxer, &PriorityMuxer::visibleComponentChanged, this, &Hyperion::handleVisibleComponentChanged);
 
-	// listens for ComponentRegister changes of COMP_ALL to perform core enable/disable actions
-	// connect(&_componentRegister, &ComponentRegister::updatedComponentState, this, &Hyperion::updatedComponentState);
+	// listen for suspend/resume, idle requests to perform core activation/deactivation actions
+	connect(this, &Hyperion::suspendRequest, this, &Hyperion::setSuspend);
+	connect(this, &Hyperion::idleRequest, this, &Hyperion::setIdle);
 
 	// listen for settings updates of this instance (LEDS & COLOR)
 	connect(_settingsManager, &SettingsManager::settingsChanged, this, &Hyperion::handleSettingsUpdate);
@@ -375,6 +378,20 @@ std::map<hyperion::Components, bool> Hyperion::getAllComponents() const
 int Hyperion::isComponentEnabled(hyperion::Components comp) const
 {
 	return _componentRegister->isComponentEnabled(comp);
+}
+
+void Hyperion::setSuspend(bool isSuspend)
+{
+	bool enable = !isSuspend;
+	emit compStateChangeRequestAll(enable);
+}
+
+void Hyperion::setIdle(bool isIdle)
+{
+	clear(-1);
+
+	bool enable = !isIdle;
+	emit compStateChangeRequestAll(enable, {hyperion::COMP_LEDDEVICE, hyperion::COMP_SMOOTHING} );
 }
 
 void Hyperion::registerInput(int priority, hyperion::Components component, const QString& origin, const QString& owner, unsigned smooth_cfg)

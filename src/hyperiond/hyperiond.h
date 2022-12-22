@@ -69,6 +69,8 @@
 #include <utils/settings.h>
 #include <utils/Components.h>
 
+#include "SuspendHandler.h"
+
 class HyperionIManager;
 class SysTray;
 class JsonServer;
@@ -101,6 +103,11 @@ public:
 	/// @brief Get webserver pointer (systray)
 	///
 	WebServer *getWebServerInstance() { return _webserver; }
+
+	///
+	/// @brief Get suspense handler pointer
+	///
+	SuspendHandler* getSuspendHandlerInstance() { return _suspendHandler; }
 
 	///
 	/// @brief Get the current videoMode
@@ -198,10 +205,11 @@ private:
 	QtWrapper*                 _qtGrabber;
 	DirectXWrapper*            _dxGrabber;
 	SSDPHandler*               _ssdp;
-
 	#ifdef ENABLE_CEC
 	CECHandler*                _cecHandler;
 	#endif
+	SuspendHandler*            _suspendHandler;
+
 	#if defined(ENABLE_FLATBUF_SERVER)
 	FlatBufferServer*          _flatBufferServer;
 	#endif

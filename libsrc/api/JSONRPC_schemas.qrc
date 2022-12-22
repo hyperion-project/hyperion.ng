@@ -22,7 +22,8 @@
         <file alias="schema-instance">JSONRPC_schema/schema-instance.json</file>
         <file alias="schema-leddevice">JSONRPC_schema/schema-leddevice.json</file>
         <file alias="schema-inputsource">JSONRPC_schema/schema-inputsource.json</file>
-        <file alias="schema-service">JSONRPC_schema/schema-service.json</file>        
+        <file alias="schema-service">JSONRPC_schema/schema-service.json</file>
+        <file alias="schema-system">JSONRPC_schema/schema-system.json</file>
         <!-- The following schemas are derecated but used to ensure backward compatibility with hyperion Classic remote control-->
         <file alias="schema-transform">JSONRPC_schema/schema-hyperion-classic.json</file>
         <file alias="schema-correction">JSONRPC_schema/schema-hyperion-classic.json</file>

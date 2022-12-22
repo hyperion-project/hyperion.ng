@@ -20,6 +20,7 @@ public:
 	, _hyperion(hyperion)
 	, _prioMuxer(_hyperion->getMuxerInstance())
 	, _isBgEffectEnabled(false)
+	, _isSuspended(false)
 	{
 		QString subComponent = parent()->property("instance").toString();
 		_log = Logger::getInstance("HYPERION", subComponent);
@@ -31,6 +32,11 @@ public:
 
 		connect(_prioMuxer, &PriorityMuxer::prioritiesChanged, this, [=] {
 			this->handlePriorityUpdate();
+		});
+
+		// listen for suspend/resume requests, to not start a background effect when system goes into suspend mode
+		connect(_hyperion, &Hyperion::suspendRequest, this, [=] (bool isSuspended) {
+			_isSuspended = isSuspended;
 		});
 
 		// initialization
@@ -109,7 +115,7 @@ private slots:
 			Debug(_log,"Stop background (color-) effect as it moved out of scope");
 			_hyperion->clear(PriorityMuxer::BG_PRIORITY);
 		}
-		else if (_prioMuxer->getCurrentPriority() == PriorityMuxer::LOWEST_PRIORITY && _isBgEffectEnabled)
+		else if (!_isSuspended && _prioMuxer->getCurrentPriority() == PriorityMuxer::LOWEST_PRIORITY && _isBgEffectEnabled)
 		{
 			Debug(_log,"Start background (color-) effect as it moved in scope");
 			emit handleSettingsUpdate (settings::BGEFFECT, _bgEffectConfig);
@@ -126,6 +132,8 @@ private:
 
 	QJsonDocument _bgEffectConfig;
 	bool _isBgEffectEnabled;
+
+	bool _isSuspended;
 };
 
 #endif // BGEFFECTHANDLER_H

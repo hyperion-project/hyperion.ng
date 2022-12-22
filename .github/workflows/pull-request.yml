@@ -150,11 +150,16 @@ jobs:
         with:
           path: C:\Users\runneradmin\AppData\Local\Temp\chocolatey
           key: ${{ runner.os }}-chocolatey
+        
+#      - name: Install Python
+#        shell: powershell
+#        run: |
+#          choco install --no-progress python -y
 
-      - name: Install Python, OpenSSL, DirectX SDK
+      - name: Install OpenSSL, DirectX SDK
         shell: powershell
         run: |
-          choco install --no-progress python openssl directx-sdk -y
+          choco install --no-progress openssl directx-sdk -y          
 
       - name: Install libjpeg-turbo
         run: |

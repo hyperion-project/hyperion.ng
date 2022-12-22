@@ -46,6 +46,7 @@
 
 #include "hyperiond.h"
 #include "systray.h"
+#include "SuspendHandler.h"
 
 using namespace commandline;
 
@@ -54,8 +55,8 @@ using namespace commandline;
 #ifndef _WIN32
 void signal_handler(int signum)
 {
-	// Hyperion Managment instance
-	HyperionIManager *_hyperion = HyperionIManager::getInstance();
+	HyperionDaemon* hyperiond = HyperionDaemon::getInstance();
+	SuspendHandler* suspendHandler = hyperiond->getSuspendHandlerInstance();
 
 	if (signum == SIGCHLD)
 	{
@@ -64,16 +65,16 @@ void signal_handler(int signum)
 	}
 	else if (signum == SIGUSR1)
 	{
-		if (_hyperion != nullptr)
+		if (suspendHandler != nullptr)
 		{
-			_hyperion->toggleStateAllInstances(false);
+			suspendHandler->suspend();
 		}
 	}
 	else if (signum == SIGUSR2)
 	{
-		if (_hyperion != nullptr)
+		if (suspendHandler != nullptr)
 		{
-			_hyperion->toggleStateAllInstances(true);
+			suspendHandler->resume();
 		}
 	}
 }
@@ -171,8 +172,8 @@ int main(int argc, char** argv)
 #ifdef WIN32
 	BooleanOption & consoleOption       = parser.add<BooleanOption> ('c', "console", "Open a console window to view log output");
 #endif
-	                                      parser.add<BooleanOption> (0x0, "desktop", "Show systray on desktop");
-	                                      parser.add<BooleanOption> (0x0, "service", "Force hyperion to start as console service");
+										  parser.add<BooleanOption> (0x0, "desktop", "Show systray on desktop");
+										  parser.add<BooleanOption> (0x0, "service", "Force hyperion to start as console service");
 #if defined(ENABLE_EFFECTENGINE)
 	Option        & exportEfxOption     = parser.add<Option>        (0x0, "export-effects", "Export effects to given path");
 #endif

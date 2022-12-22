@@ -74,10 +74,26 @@ public slots:
 	bool stopInstance(quint8 inst);
 
 	///
-	/// @brief Toggle the state of all Hyperion instances
-	/// @param pause If true all instances toggle to pause, else to resume
+	/// @brief Suspend (disable) all Hyperion instances
 	///
-	void toggleStateAllInstances(bool pause = false);
+	void suspend();
+
+	///
+	/// @brief Resume (resume) all Hyperion instances
+	///
+	void resume();
+
+	///
+	/// @brief Toggle the state of all Hyperion instances for an idle sceanrio (user is not interacting with the system
+	/// @param isIdle, If true all instances toggle to idle, else to resume
+	///
+	void toggleIdle(bool isIdle);
+
+	///
+	/// @brief Toggle the state of all Hyperion instances
+	/// @param enable, If false all instances toggle to pause, else to resume
+	///
+	void toggleStateAllInstances(bool enable = false);
 
 	///
 	/// @brief Create a new Hyperion instance entry in db
@@ -124,6 +140,11 @@ signals:
 	/// @param  tan     The tan that was part of the request
 	///
 	void startInstanceResponse(QObject *caller, const int &tan);
+
+	void triggerSuspend(bool isSuspend);
+	void triggerToggleSuspend();
+	void triggerIdle(bool isIdle);
+	void triggerToggleIdle();
 
 signals:
 	///////////////////////////////////////

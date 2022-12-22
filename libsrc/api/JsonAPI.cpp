@@ -120,6 +120,12 @@ void JsonAPI::initialize()
 		_jsonCB->setSubscriptionsTo(_hyperion);
 		connect(this, &JsonAPI::forwardJsonMessage, _hyperion, &Hyperion::forwardJsonMessage);
 	}
+
+	//notify instance manager on suspend/resume/idle requests
+	connect(this, &JsonAPI::suspendAll, _instanceManager, &HyperionIManager::triggerSuspend);
+	connect(this, &JsonAPI::toggleSuspendAll, _instanceManager, &HyperionIManager::triggerToggleSuspend);
+	connect(this, &JsonAPI::idleAll, _instanceManager, &HyperionIManager::triggerIdle);
+	connect(this, &JsonAPI::toggleIdleAll, _instanceManager, &HyperionIManager::triggerToggleIdle);
 }
 
 bool JsonAPI::handleInstanceSwitch(quint8 inst, bool forced)
@@ -236,6 +242,8 @@ proceed:
 		handleInputSourceCommand(message, command, tan);
 	else if (command == "service")
 		handleServiceCommand(message, command, tan);
+	else if (command == "system")
+		handleSystemCommand(message, command, tan);
 
 	// BEGIN | The following commands are deprecated but used to ensure backward compatibility with hyperion Classic remote control
 	else if (command == "clearall")
@@ -920,15 +928,15 @@ void JsonAPI::handleAdjustmentCommand(const QJsonObject &message, const QString 
 		colorAdjustment->_rgbTransform.setBrightnessCompensation(adjustment["brightnessCompensation"].toInt());
 	}
 
-    if (adjustment.contains("saturationGain"))
-    {
-        colorAdjustment->_okhsvTransform.setSaturationGain(adjustment["saturationGain"].toDouble());
-    }
+	if (adjustment.contains("saturationGain"))
+	{
+		colorAdjustment->_okhsvTransform.setSaturationGain(adjustment["saturationGain"].toDouble());
+	}
 
 	if (adjustment.contains("brightnessGain"))
-    {
+	{
 		colorAdjustment->_okhsvTransform.setBrightnessGain(adjustment["brightnessGain"].toDouble());
-    }
+	}
 
 	// commit the changes
 	_hyperion->adjustmentsUpdated();
@@ -1795,6 +1803,49 @@ void JsonAPI::handleServiceCommand(const QJsonObject &message, const QString &co
 	}
 	else
 	{
+		sendErrorReply("Unknown or missing subcommand", full_command, tan);
+	}
+}
+
+void JsonAPI::handleSystemCommand(const QJsonObject &message, const QString &command, int tan)
+{
+	DebugIf(verbose, _log, "message: [%s]", QString(QJsonDocument(message).toJson(QJsonDocument::Compact)).toUtf8().constData());
+
+	const QString &subc = message["subcommand"].toString().trimmed();
+
+	if (subc == "suspend")
+	{
+		emit suspendAll(true);
+		sendSuccessReply(command + "-" + subc, tan);
+	}
+	else if (subc == "resume")
+	{
+		emit suspendAll(false);
+		sendSuccessReply(command + "-" + subc, tan);
+	}
+	else if (subc == "restart")
+	{
+		Process::restartHyperion(11);
+		sendSuccessReply(command + "-" + subc, tan);
+	}
+	else if (subc == "toggleSuspend")
+	{
+		emit toggleSuspendAll();
+		sendSuccessReply(command + "-" + subc, tan);
+	}
+	else if (subc == "idle")
+	{
+		emit idleAll(true);
+		sendSuccessReply(command + "-" + subc, tan);
+	}
+	else if (subc == "toggleIdle")
+	{
+		emit toggleIdleAll();
+		sendSuccessReply(command + "-" + subc, tan);
+	}
+	else
+	{
+		QString full_command = command + "-" + subc;
 		sendErrorReply("Unknown or missing subcommand", full_command, tan);
 	}
 }
