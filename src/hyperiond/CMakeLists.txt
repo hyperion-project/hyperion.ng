@@ -31,7 +31,7 @@ if (APPLE)
 endif(APPLE)
 
 if (UNIX)
-	find_package(Qt${QT_VERSION_MAJOR} COMPONENTS DBus REQUIRED )
+	find_package(Qt${QT_VERSION_MAJOR} COMPONENTS DBus QUIET )
 	if (Qt${QT_VERSION_MAJOR}DBus_FOUND)
 		set(hyperiond_POWER_MNG_DBUS "Qt${QT_VERSION_MAJOR}::DBus")
 	endif()
