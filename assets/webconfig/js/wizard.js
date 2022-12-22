@@ -854,10 +854,16 @@ function checkUserResult(reply, usr) {
 
 function useGroupId(id) {
   $('#groupId').val(id);
-  groupLights = hueGroups[id].lights;
+
+  //Ensure ligthIDs are strings
+  groupLights = hueGroups[id].lights.map(num => {
+    return String(num);
+  });
+
   groupLightsLocations = hueGroups[id].locations;
   get_hue_lights();
 }
+
 
 async function discover_hue_bridges() {
   $('#wiz_hue_ipstate').html($.i18n('edt_dev_spec_devices_discovery_inprogress'));
