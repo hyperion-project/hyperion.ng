@@ -12,7 +12,7 @@
 #include <QFile>
 
 /* Enable to turn on detailed CEC logs */
-// #define VERBOSE_CEC
+#define NO_VERBOSE_CEC
 
 CECHandler::CECHandler()
 {
@@ -138,9 +138,9 @@ bool CECHandler::openAdapter(const CECAdapterDescriptor & descriptor)
 
 	if(!_cecAdapter->Open(descriptor.strComName))
 	{
-		Error(_logger, QString("Failed to open the CEC adaper on port %1")
-			.arg(descriptor.strComName)
-				.toLocal8Bit());
+		Error(_logger, "%s", QSTRING_CSTR(QString("Failed to open the CEC adaper on port %1")
+										  .arg(descriptor.strComName))
+			  );
 
 		return false;
 	}
@@ -149,9 +149,9 @@ bool CECHandler::openAdapter(const CECAdapterDescriptor & descriptor)
 
 void CECHandler::printAdapter(const CECAdapterDescriptor & descriptor) const
 {
-	Info(_logger, QString("CEC Adapter:").toLocal8Bit());
-	Info(_logger, QString("\tName   : %1").arg(descriptor.strComName).toLocal8Bit());
-	Info(_logger, QString("\tPath   : %1").arg(descriptor.strComPath).toLocal8Bit());
+	Info(_logger, "%s", QSTRING_CSTR(QString("CEC Adapter:")));
+	Info(_logger, "%s", QSTRING_CSTR(QString("\tName   : %1").arg(descriptor.strComName)));
+	Info(_logger, "%s", QSTRING_CSTR(QString("\tPath   : %1").arg(descriptor.strComPath)));
 }
 
 QString CECHandler::scan() const
@@ -180,12 +180,12 @@ QString CECHandler::scan() const
 
 			devices << device;
 
-			Info(_logger, QString("\tCECDevice: %1 / %2 / %3 / %4")
-				.arg(device["name"].toString())
-				.arg(device["vendor"].toString())
-				.arg(device["address"].toString())
-				.arg(device["power"].toString())
-				.toLocal8Bit());
+			Info(_logger, "%s", QSTRING_CSTR(QString("\tCECDevice: %1 / %2 / %3 / %4")
+				.arg(device["name"].toString(),
+				device["vendor"].toString(),
+				device["address"].toString(),
+				device["power"].toString()))
+			);
 		}
 	}
 
@@ -305,16 +305,16 @@ void CECHandler::onCecCommandReceived(void * context, const CECCommand * command
 	{
 		if (command->opcode == CEC::CEC_OPCODE_SET_STREAM_PATH)
 		{
-			Info(handler->_logger, QString("CEC source activated: %1")
-				.arg(adapter->ToString(command->initiator))
-					.toLocal8Bit());
+			Info(handler->_logger, "%s", QSTRING_CSTR(QString("CEC source activated: %1")
+				.arg(adapter->ToString(command->initiator)))
+			);
 			emit handler->cecEvent(CECEvent::On);
 		}
 		if (command->opcode == CEC::CEC_OPCODE_STANDBY)
 		{
-			Info(handler->_logger, QString("CEC source deactivated: %1")
-				.arg(adapter->ToString(command->initiator))
-					.toLocal8Bit());
+			Info(handler->_logger, "%s", QSTRING_CSTR(QString("CEC source deactivated: %1")
+				.arg(adapter->ToString(command->initiator)))
+			);
 			emit handler->cecEvent(CECEvent::Off);
 		}
 	}

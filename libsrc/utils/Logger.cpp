@@ -125,9 +125,6 @@ Logger::Logger (const QString & name, const QString & subName, LogLevel minLevel
 
 Logger::~Logger()
 {
-	//Debug(this, "logger '%s' destroyed", QSTRING_CSTR(_name) );
-
-
 	if (LoggerCount.fetchAndSubOrdered(1) == 0)
 	{
 #ifndef _WIN32

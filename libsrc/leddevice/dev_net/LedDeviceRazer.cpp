@@ -141,10 +141,6 @@ bool LedDeviceRazer::checkApiError(const httpResponse& response)
 	else
 	{
 		QString errorReason;
-
-		QString strJson(response.getBody().toJson(QJsonDocument::Compact));
-		//DebugIf(verbose, _log, "Reply: [%s]", strJson.toUtf8().constData());
-
 		QJsonObject jsonObj = response.getBody().object();
 
 		if (!jsonObj[API_RESULT].isNull())

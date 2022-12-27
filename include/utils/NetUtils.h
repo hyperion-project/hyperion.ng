@@ -122,7 +122,7 @@ namespace NetUtils {
 			{
 				if (hostAddress.setAddress(hostname))
 				{
-					//Debug(log, "IP-address (%s) not required to be resolved.", QSTRING_CSTR(hostAddress.toString()));
+					// An IP-address is not required to be resolved
 					isHostAddressOK = true;
 				}
 				else

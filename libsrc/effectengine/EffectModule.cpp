@@ -53,9 +53,12 @@ PyObject *EffectModule::json2python(const QJsonValue &jsonData)
 			Py_RETURN_NOTIMPLEMENTED;
 		case QJsonValue::Double:
 		{
-			if (std::round(jsonData.toDouble()) != jsonData.toDouble())
+			double doubleIntegratlPart;
+			double doubleFractionalPart = std::modf(jsonData.toDouble(), &doubleIntegratlPart);
+			if (doubleFractionalPart > std::numeric_limits<double>::epsilon())
+			{
 				return Py_BuildValue("d", jsonData.toDouble());
-
+			}
 			return Py_BuildValue("i", jsonData.toInt());
 		}
 		case QJsonValue::Bool:
@@ -184,7 +187,8 @@ PyObject* EffectModule::wrapSetColor(PyObject *self, PyObject *args)
 PyObject* EffectModule::wrapSetImage(PyObject *self, PyObject *args)
 {
 	// bytearray of values
-	int width, height;
+	int width = 0;
+	int height = 0;
 	PyObject * bytearray = nullptr;
 	if (PyArg_ParseTuple(args, "iiO", &width, &height, &bytearray))
 	{
@@ -391,8 +395,10 @@ PyObject* EffectModule::wrapImageLinearGradient(PyObject *self, PyObject *args)
 	int startRY = 0;
 	int startX = 0;
 	int startY = 0;
-	int endX, width = getEffect()->_imageSize.width();
-	int endY, height = getEffect()->_imageSize.height();
+	int width = getEffect()->_imageSize.width();
+	int endX {width};
+	int height = getEffect()->_imageSize.height();
+	int endY {height};
 	int spread = 0;
 
 	bool argsOK = false;
@@ -454,7 +460,9 @@ PyObject* EffectModule::wrapImageConicalGradient(PyObject *self, PyObject *args)
 {
 	int argCount = PyTuple_Size(args);
 	PyObject * bytearray = nullptr;
-	int centerX, centerY, angle;
+	int centerX = 0;
+	int centerY = 0;
+	int angle = 0;
 	int startX = 0;
 	int startY = 0;
 	int width  = getEffect()->_imageSize.width();
@@ -520,7 +528,13 @@ PyObject* EffectModule::wrapImageRadialGradient(PyObject *self, PyObject *args)
 {
 	int argCount = PyTuple_Size(args);
 	PyObject * bytearray = nullptr;
-	int centerX, centerY, radius, focalX, focalY, focalRadius, spread;
+	int centerX = 0;
+	int centerY = 0;
+	int radius = 0;
+	int focalX = 0;
+	int focalY = 0;
+	int focalRadius =0;
+	int spread = 0;
 	int startX = 0;
 	int startY = 0;
 	int width  = getEffect()->_imageSize.width();
@@ -599,7 +613,9 @@ PyObject* EffectModule::wrapImageDrawPolygon(PyObject *self, PyObject *args)
 	PyObject * bytearray = nullptr;
 
 	int argCount = PyTuple_Size(args);
-	int r, g, b;
+	int r = 0;
+	int g = 0;
+	int b = 0;
 	int a = 255;
 
 	bool argsOK = false;
@@ -658,7 +674,9 @@ PyObject* EffectModule::wrapImageDrawPie(PyObject *self, PyObject *args)
 
 	QString brush;
 	int argCount = PyTuple_Size(args);
-	int radius, centerX, centerY;
+	int radius = 0;
+	int centerX = 0;
+	int centerY = 0;
 	int startAngle = 0;
 	int spanAngle = 360;
 	int r = 0;
@@ -749,7 +767,9 @@ PyObject* EffectModule::wrapImageDrawPie(PyObject *self, PyObject *args)
 PyObject* EffectModule::wrapImageSolidFill(PyObject *self, PyObject *args)
 {
 	int argCount = PyTuple_Size(args);
-	int r, g, b;
+	int r = 0;
+	int g = 0;
+	int b = 0;
 	int a = 255;
 	int startX = 0;
 	int startY = 0;
@@ -788,8 +808,10 @@ PyObject* EffectModule::wrapImageSolidFill(PyObject *self, PyObject *args)
 PyObject* EffectModule::wrapImageDrawLine(PyObject *self, PyObject *args)
 {
 	int argCount = PyTuple_Size(args);
-	int r, g, b;
-	int a      = 255;
+	int r = 0;
+	int g = 0;
+	int b = 0;
+	int a = 255;
 	int startX = 0;
 	int startY = 0;
 	int thick  = 1;
@@ -826,8 +848,12 @@ PyObject* EffectModule::wrapImageDrawLine(PyObject *self, PyObject *args)
 PyObject* EffectModule::wrapImageDrawPoint(PyObject *self, PyObject *args)
 {
 	int argCount = PyTuple_Size(args);
-	int r, g, b, x, y;
-	int a      = 255;
+	int r = 0;
+	int g = 0;
+	int b = 0;
+	int x = 0;
+	int y = 0;
+	int a = 255;
 	int thick  = 1;
 
 	bool argsOK = false;
@@ -859,8 +885,10 @@ PyObject* EffectModule::wrapImageDrawPoint(PyObject *self, PyObject *args)
 PyObject* EffectModule::wrapImageDrawRect(PyObject *self, PyObject *args)
 {
 	int argCount = PyTuple_Size(args);
-	int r, g, b;
-	int a      = 255;
+	int r = 0;
+	int g = 0;
+	int b = 0;
+	int a = 255;
 	int startX = 0;
 	int startY = 0;
 	int thick  = 1;
@@ -898,7 +926,11 @@ PyObject* EffectModule::wrapImageDrawRect(PyObject *self, PyObject *args)
 PyObject* EffectModule::wrapImageSetPixel(PyObject *self, PyObject *args)
 {
 	int argCount = PyTuple_Size(args);
-	int r, g, b, x, y;
+	int r = 0;
+	int g = 0;
+	int b = 0;
+	int x = 0;
+	int y = 0;
 
 	if ( argCount == 5 && PyArg_ParseTuple(args, "iiiii", &x, &y, &r, &g, &b ) )
 	{
@@ -913,7 +945,8 @@ PyObject* EffectModule::wrapImageSetPixel(PyObject *self, PyObject *args)
 PyObject* EffectModule::wrapImageGetPixel(PyObject *self, PyObject *args)
 {
 	int argCount = PyTuple_Size(args);
-	int x, y;
+	int x = 0;
+	int y = 0;
 
 	if ( argCount == 2 && PyArg_ParseTuple(args, "ii", &x, &y) )
 	{
@@ -934,7 +967,8 @@ PyObject* EffectModule::wrapImageSave(PyObject *self, PyObject *args)
 PyObject* EffectModule::wrapImageMinSize(PyObject *self, PyObject *args)
 {
 	int argCount = PyTuple_Size(args);
-	int w, h;
+	int w = 0;
+	int h = 0;
 	int width   = getEffect()->_imageSize.width();
 	int height  = getEffect()->_imageSize.height();
 
@@ -994,7 +1028,8 @@ PyObject* EffectModule::wrapImageCOffset(PyObject *self, PyObject *args)
 
 PyObject* EffectModule::wrapImageCShear(PyObject *self, PyObject *args)
 {
-	int sh,sv;
+	int sh = 0;
+	int sv = 0;
 	int argCount = PyTuple_Size(args);
 
 	if ( argCount == 2 && PyArg_ParseTuple(args, "ii", &sh, &sv ))

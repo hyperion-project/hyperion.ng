@@ -294,13 +294,6 @@ bool API::setHyperionInstance(quint8 inst)
     return true;
 }
 
-std::map<hyperion::Components, bool> API::getAllComponents()
-{
-    std::map<hyperion::Components, bool> comps;
-    //QMetaObject::invokeMethod(_hyperion, "getAllComponents", Qt::BlockingQueuedConnection, Q_RETURN_ARG(std::map<hyperion::Components, bool>, comps));
-    return comps;
-}
-
 bool API::isHyperionEnabled()
 {
     int res;

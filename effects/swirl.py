@@ -42,7 +42,7 @@ def buildGradient(cc, closeCircle = True):
 		pos = 0
 		if len(cc[0]) == 4:
 			withAlpha = True
-			
+
 		for c in cc:
 			if withAlpha:
 				alpha = int(c[3]*255)
@@ -50,7 +50,7 @@ def buildGradient(cc, closeCircle = True):
 				alpha = 255
 			pos += posfac
 			ba += bytearray([pos,c[0],c[1],c[2],alpha])
-		
+
 		if closeCircle:
 			# last color as first color
 			lC = cc[-1]
@@ -61,6 +61,7 @@ def buildGradient(cc, closeCircle = True):
 			ba += bytearray([0,lC[0],lC[1],lC[2],alpha])
 
 		return ba
+	return bytearray()
 
 def rotateAngle( increment = 1):
 	global angle

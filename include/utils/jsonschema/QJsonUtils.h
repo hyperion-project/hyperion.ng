@@ -174,9 +174,9 @@ private:
 
 							if (!path.isEmpty())
 							{
-								QJsonObject obj;
-								modifyValue(subValue, obj, path, newValue, property);
-								subValue = obj;
+								QJsonObject tempObj;
+								modifyValue(subValue, tempObj, path, newValue, property);
+								subValue = tempObj;
 							}
 							else if (newValue != QJsonValue::Null)
 								subValue = newValue;

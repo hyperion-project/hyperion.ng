@@ -92,9 +92,6 @@ int LedDeviceFile::close()
 int LedDeviceFile::write(const std::vector<ColorRgb> & ledValues)
 {
 	QTextStream out(_file);
-
-	//printLedValues (ledValues);
-
 	if ( _printTimeStamp )
 	{
 		QDateTime now = QDateTime::currentDateTime();

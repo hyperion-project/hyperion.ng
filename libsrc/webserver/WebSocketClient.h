@@ -31,7 +31,7 @@ private:
 	JsonAPI* _jsonAPI;
 
 	void getWsFrameHeader(WebSocketHeader* header);
-	void sendClose(int status, QString reason = "");
+	void sendClose(int status, const QString& reason = "");
 	void handleBinaryMessage(QByteArray &data);
 	qint64 sendMessage_Raw(const char* data, quint64 size);
 	qint64 sendMessage_Raw(QByteArray &data);

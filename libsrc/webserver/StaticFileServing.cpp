@@ -1,5 +1,7 @@
 
 #include "StaticFileServing.h"
+
+#include "QtHttpHeader.h"
 #include <utils/QStringUtils.h>
 
 #include <QStringBuilder>
@@ -9,6 +11,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QResource>
+
 #include <exception>
 
 StaticFileServing::StaticFileServing (QObject * parent)

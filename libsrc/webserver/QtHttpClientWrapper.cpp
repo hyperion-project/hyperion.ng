@@ -77,13 +77,13 @@ void QtHttpClientWrapper::onClientDataReceived (void)
 						else
 						{
 						m_parsingStatus = ParsingError;
-						//qWarning () << "Error : unhandled HTTP version :" << version;
+						// Error : unhandled HTTP version
 						}
 					}
 					else
 					{
 						m_parsingStatus = ParsingError;
-						//qWarning () << "Error : incorrect HTTP command line :" << line;
+						// Error : incorrect HTTP command line
 					}
 
 					break;

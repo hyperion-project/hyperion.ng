@@ -45,7 +45,6 @@ const char PANEL_NUM[] = "numPanels";
 const char PANEL_ID[] = "panelId";
 const char PANEL_POSITIONDATA[] = "positionData";
 const char PANEL_SHAPE_TYPE[] = "shapeType";
-//const char PANEL_ORIENTATION[] = "0";
 const char PANEL_POS_X[] = "x";
 const char PANEL_POS_Y[] = "y";
 
@@ -72,7 +71,6 @@ const quint16 STREAM_CONTROL_DEFAULT_PORT = 60222;
 const int API_DEFAULT_PORT = 16021;
 const char API_BASE_PATH[] = "/api/v1/%1/";
 const char API_ROOT[] = "";
-//const char API_EXT_MODE_STRING_V1[] = "{\"write\" : {\"command\" : \"display\", \"animType\" : \"extControl\"}}";
 const char API_EXT_MODE_STRING_V2[] = "{\"write\" : {\"command\" : \"display\", \"animType\" : \"extControl\", \"extControlVersion\" : \"v2\"}}";
 const char API_STATE[] = "state";
 const char API_PANELLAYOUT[] = "panelLayout";
@@ -243,7 +241,6 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 			int panelX = panelObj[PANEL_POS_X].toInt();
 			int panelY = panelObj[PANEL_POS_Y].toInt();
 			int panelshapeType = panelObj[PANEL_SHAPE_TYPE].toInt();
-			//int panelOrientation = panelObj[PANEL_ORIENTATION].toInt();
 
 			DebugIf(verbose,_log, "Panel [%d] (%d,%d) - Type: [%d]", panelId, panelX, panelY, panelshapeType);
 
@@ -613,16 +610,16 @@ bool LedDeviceNanoleaf::storeState()
 				// effect
 				_restApi->setPath(API_EFFECT);
 
-				httpResponse response = _restApi->get();
-				if ( response.error() )
+				httpResponse responseEffects = _restApi->get();
+				if ( responseEffects.error() )
 				{
-					QString errorReason = QString("Storing device state failed with error: '%1'").arg(response.getErrorReason());
+					QString errorReason = QString("Storing device state failed with error: '%1'").arg(responseEffects.getErrorReason());
 					setInError(errorReason);
 					rc = false;
 				}
 				else
 				{
-					QJsonObject effects = response.getBody().object();
+					QJsonObject effects = responseEffects.getBody().object();
 					DebugIf(verbose, _log, "effects: [%s]", QString(QJsonDocument(_originalStateProperties).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 					_originalEffect = effects[API_EFFECT_SELECT].toString();
 					_originalIsDynEffect = _originalEffect == "*Dynamic*" || _originalEffect == "*Solid*";
@@ -774,7 +771,7 @@ int LedDeviceNanoleaf::write(const std::vector<ColorRgb>& ledValues)
 		}
 		else
 		{
-			// Set panels not configured to black;
+			// Set panels not configured to black
 			color = ColorRgb::BLACK;
 			DebugIf(verbose3, _log, "[%d] >= panelLedCount [%d] => Set to BLACK", panelCounter, _panelLedCount);
 		}

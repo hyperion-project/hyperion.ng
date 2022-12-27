@@ -138,7 +138,7 @@ void MessageForwarder::enableTargets(bool enable, const QJsonObject& config)
 		else
 		{
 			_forwarder_enabled = false;
-			Warning(_log,"No JSON- nor Flatbuffer-Forwarder configured -> Forwarding disabled", _forwarder_enabled);
+			Warning(_log,"No JSON- nor Flatbuffer-Forwarder configured -> Forwarding disabled");
 		}
 	}
 	_hyperion->setNewComponentState(hyperion::COMP_FORWARDER, _forwarder_enabled);

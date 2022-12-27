@@ -1,7 +1,7 @@
 // stdlib includes
 #include <iterator>
 #include <algorithm>
-#include <math.h>
+#include <cmath>
 
 // Utils-Jsonschema includes
 #include <utils/jsonschema/QJsonSchemaChecker.h>
@@ -186,7 +186,14 @@ void QJsonSchemaChecker::checkType(const QJsonValue& value, const QJsonValue& sc
 	else if (type == "integer")
 	{
 		if (value.isDouble()) //check if value type not boolean (true = 1 && false = 0)
-			wrongType = (rint(value.toDouble()) != value.toDouble());
+		{
+			double valueIntegratlPart;
+			double valueFractionalPart = std::modf(value.toDouble(), &valueIntegratlPart);
+			if (valueFractionalPart > std::numeric_limits<double>::epsilon())
+			{
+				wrongType = true;
+			}
+		}
 		else
 			wrongType = true;
 	}

@@ -106,8 +106,6 @@ QString BoblightClientConnection::readMessage(const char* data, const size_t siz
 	const int len = end - data + 1;
 	const QString message = QString::fromLatin1(data, len);
 
-	//std::cout << bytes << ": \"" << message.toUtf8().constData() << "\"" << std::endl;
-
 	return message;
 }
 
@@ -124,7 +122,6 @@ void BoblightClientConnection::socketClosed()
 
 void BoblightClientConnection::handleMessage(const QString& message)
 {
-	//std::cout << "boblight message: " << message.toStdString() << std::endl;
 	QStringList messageParts = QStringUtils::split(message, ' ', QStringUtils::SplitBehavior::SkipEmptyParts);
 	if (!messageParts.isEmpty())
 	{
@@ -340,7 +337,6 @@ float BoblightClientConnection::parseFloat(const QString& s, bool *ok) const
 	{
 		if (ok)
 		{
-			//std::cout << "FAIL L " << q << ": " << s.toUtf8().constData() << std::endl;
 			*ok = false;
 		}
 		return 0;
@@ -348,7 +344,6 @@ float BoblightClientConnection::parseFloat(const QString& s, bool *ok) const
 
 	if (ok)
 	{
-		//std::cout << "OK " << d << ": " << s.toUtf8().constData() << std::endl;
 		*ok = true;
 	}
 

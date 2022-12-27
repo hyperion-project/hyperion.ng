@@ -22,13 +22,6 @@
 //flatbuf sending
 #include <flatbufserver/FlatBufferConnection.h>
 
-// Constants
-namespace {
-
-const char SERVICE_TYPE[] = "flatbuffer";
-
-} //End of constants
-
 using namespace commandline;
 
 // save the image as screenshot
@@ -49,7 +42,6 @@ int main(int argc, char ** argv)
 		<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
 		<< "\tbuild time: " << __DATE__ << " " << __TIME__ << std::endl;
 
-	//QCoreApplication app(argc, argv);
 	QGuiApplication app(argc, argv);
 
 	try

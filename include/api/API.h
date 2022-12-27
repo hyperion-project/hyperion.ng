@@ -157,12 +157,7 @@ protected:
     ///
     bool setHyperionInstance(quint8 inst);
 
-    ///
-    /// @brief Get all contrable components and their state
-    ///
-    std::map<hyperion::Components, bool> getAllComponents();
-
-    ///
+	///
     /// @brief Check if Hyperion ist enabled
     /// @return True when enabled else false
     ///

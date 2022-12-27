@@ -17,7 +17,6 @@ RgbChannelAdjustment::RgbChannelAdjustment(uint8_t adjustR, uint8_t adjustG, uin
 
 void RgbChannelAdjustment::resetInitialized()
 {
-	//Debug(_log, "initialize mapping with %d,%d,%d", _adjust[RED], _adjust[GREEN], _adjust[BLUE]);
 	memset(_initialized, false, sizeof(_initialized));
 }
 

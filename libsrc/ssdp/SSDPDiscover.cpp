@@ -73,8 +73,6 @@ QString SSDPDiscover::getFirstService(const searchType& type, const QString& st,
 
 				QString data(datagram);
 
-				//Debug(_log, "_data: [%s]", QSTRING_CSTR(data));
-
 				QMap<QString,QString> headers;
 				QString address;
 				// parse request
@@ -107,7 +105,7 @@ QString SSDPDiscover::getFirstService(const searchType& type, const QString& st,
 				{
 					_usnList << headers.value("usn");
 					QUrl url(headers.value("location"));
-					//Debug(_log, "Received msearch response from '%s:%d'. Search target: %s",QSTRING_CSTR(sender.toString()), senderPort, QSTRING_CSTR(headers.value("st")));
+
 					if(type == searchType::STY_WEBSERVER)
 					{
 						Debug(_log, "Found service [%s] at: %s:%d", QSTRING_CSTR(st), QSTRING_CSTR(url.host()), url.port());
@@ -191,7 +189,6 @@ void SSDPDiscover::readPendingDatagrams()
 		if (headers.value("st") == _searchTarget)
 		{
 			_usnList << headers.value("usn");
-			//Debug(_log, "Received msearch response from '%s:%d'. Search target: %s",QSTRING_CSTR(sender.toString()), senderPort, QSTRING_CSTR(headers.value("st")));
 			QUrl url(headers.value("location"));
 			emit newService(url.host() + ":" + QString::number(url.port()));
 		}
@@ -226,8 +223,6 @@ int SSDPDiscover::discoverServices(const QString& searchTarget, const QString& k
 
 				QString data(datagram);
 
-				//Debug(_log, "_data: [%s]", QSTRING_CSTR(data));
-
 				QMap<QString,QString> headers;
 				// parse request
 				QStringList entries = QStringUtils::split(data,"\n", QStringUtils::SplitBehavior::SkipEmptyParts);
@@ -250,7 +245,6 @@ int SSDPDiscover::discoverServices(const QString& searchTarget, const QString& k
 				if ( match.hasMatch() )
 				{
 					Debug(_log,"Found target [%s], plus record [%s] matches [%s:%s]", QSTRING_CSTR(_searchTarget), QSTRING_CSTR(headers[_filterHeader]), QSTRING_CSTR(_filterHeader), QSTRING_CSTR(_filter) );
-					//Debug(_log, "_data: [%s]", QSTRING_CSTR(data));
 
 					QString mapKey = headers[key];
 
@@ -303,8 +297,6 @@ QJsonArray SSDPDiscover::getServicesDiscoveredJson() const
 	QMultiMap<QString, SSDPService>::const_iterator i;
 	for (i = _services.begin(); i != _services.end(); ++i)
 	{
-		//Debug(_log, "Device discovered at [%s]", QSTRING_CSTR( i.key() ));
-
 		QJsonObject obj;
 
 		obj.insert("id", i.key());
@@ -363,8 +355,6 @@ QJsonArray SSDPDiscover::getServicesDiscoveredJson() const
 
 		result  << obj;
 	}
-
-	//Debug(_log, "result: [%s]", QString(QJsonDocument(result).toJson(QJsonDocument::Compact)).toUtf8().constData() );
 	return result;
 }
 
@@ -372,7 +362,6 @@ void SSDPDiscover::sendSearch(const QString& st)
 {
 	const QString msg = QString(UPNP_DISCOVER_MESSAGE).arg(_ssdpAddr.toString()).arg(_ssdpPort).arg(_ssdpMaxWaitResponseTime).arg(st);
 
-	//Debug(_log,"Search request: [%s]", QSTRING_CSTR(msg));
 	_udpSocket->writeDatagram(msg.toUtf8(), _ssdpAddr, _ssdpPort);
 }
 

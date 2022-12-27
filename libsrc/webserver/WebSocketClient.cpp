@@ -58,14 +58,12 @@ void WebSocketClient::handleWebSocketFrame()
 
 		if(_socket->bytesAvailable() < (qint64)_wsh.payloadLength)
 		{
-			//printf("not enough data %llu %llu\n", _socket->bytesAvailable(),  _wsh.payloadLength);
 			_notEnoughData=true;
 			return;
 		}
 		_notEnoughData = false;
 
 		QByteArray buf = _socket->read(_wsh.payloadLength);
-		//printf("opcode %x payload bytes %llu avail: %llu\n", _wsh.opCode, _wsh.payloadLength, _socket->bytesAvailable());
 
 		if (OPCODE::invalid((OPCODE::value)_wsh.opCode))
 		{
@@ -210,10 +208,10 @@ void WebSocketClient::getWsFrameHeader(WebSocketHeader* header)
 }
 
 /// See http://tools.ietf.org/html/rfc6455#section-5.2 for more information
-void WebSocketClient::sendClose(int status, QString reason)
+void WebSocketClient::sendClose(int status, const QString& reason)
 {
 	Debug(_log, "Send close to %s: %d %s", QSTRING_CSTR(_socket->peerAddress().toString()), status, QSTRING_CSTR(reason));
-	ErrorIf(!reason.isEmpty(), _log, QSTRING_CSTR(reason));
+	ErrorIf(!reason.isEmpty(), _log, "%s", QSTRING_CSTR(reason));
 	_receiveBuffer.clear();
 	QByteArray sendBuffer;
 
@@ -244,8 +242,6 @@ void WebSocketClient::sendClose(int status, QString reason)
 
 void WebSocketClient::handleBinaryMessage(QByteArray &data)
 {
-	//uint8_t  priority   = data.at(0);
-	//unsigned duration_s = data.at(1);
 	unsigned imgSize    = data.size() - 4;
 	unsigned width      = ((data.at(2) << 8) & 0xFF00) | (data.at(3) & 0xFF);
 	unsigned height     =  imgSize / width;
@@ -260,8 +256,6 @@ void WebSocketClient::handleBinaryMessage(QByteArray &data)
 	image.resize(width, height);
 
 	memcpy(image.memptr(), data.data()+4, imgSize);
-	//_hyperion->registerInput();
-	//_hyperion->setInputImage(priority, image, duration_s*1000);
 }
 
 

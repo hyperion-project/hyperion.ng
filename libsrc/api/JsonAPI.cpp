@@ -144,7 +144,6 @@ void JsonAPI::handleMessage(const QString &messageString, const QString &httpAut
 {
 	const QString ident = "JsonRpc@" + _peerAddress;
 	QJsonObject message;
-	//std::cout << "JsonAPI::handleMessage | [" << static_cast<int>(_hyperion->getInstanceIndex()) << "] Received: ["<< messageString.toStdString() << "]" << std::endl;
 
 	// parse the message
 	if (!JsonUtils::parse(ident, messageString, message, _log))
@@ -553,27 +552,6 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	info["ledDevices"] = ledDevices;
 
 	QJsonObject grabbers;
-
-	// *** Deprecated ***
-	//QJsonArray availableGrabbers;
-	//if ( GrabberWrapper::getInstance() != nullptr )
-	//{
-	//	QStringList activeGrabbers = GrabberWrapper::getInstance()->getActive(_hyperion->getInstanceIndex());
-	//	QJsonArray activeGrabberNames;
-	//	for (auto grabberName : activeGrabbers)
-	//	{
-	//		activeGrabberNames.append(grabberName);
-	//	}
-
-	//	grabbers["active"] = activeGrabberNames;
-	//}
-	//for (auto grabber : GrabberWrapper::availableGrabbers(GrabberTypeFilter::ALL))
-	//{
-	//	availableGrabbers.append(grabber);
-	//}
-
-	//grabbers["available"] = availableGrabbers;
-
 	QJsonObject screenGrabbers;
 	if (GrabberWrapper::getInstance() != nullptr)
 	{
@@ -687,7 +665,6 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 		QJsonObject obj;
 		obj.insert("friendly_name", entry["friendly_name"].toString());
 		obj.insert("instance", entry["instance"].toInt());
-		//obj.insert("last_use", entry["last_use"].toString());
 		obj.insert("running", entry["running"].toBool());
 		instanceInfo.append(obj);
 	}
@@ -696,7 +673,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	// add leds configs
 	info["leds"] = _hyperion->getSetting(settings::LEDS).array();
 
-	// BEGIN | The following entries are derecated but used to ensure backward compatibility with hyperion Classic remote control
+	// BEGIN | The following entries are deprecated but used to ensure backward compatibility with hyperion Classic remote control
 	// TODO Output the real transformation information instead of default
 
 	// HOST NAME
@@ -757,7 +734,6 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	const Hyperion::InputInfo &priorityInfo = _hyperion->getPriorityInfo(_hyperion->getCurrentPriority());
 	if (priorityInfo.componentId == hyperion::COMP_COLOR && !priorityInfo.ledColors.empty())
 	{
-		QJsonObject LEDcolor;
 		// check if LED Color not Black (0,0,0)
 		if ((priorityInfo.ledColors.begin()->red +
 				 priorityInfo.ledColors.begin()->green +
@@ -1309,8 +1285,8 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 		// use comment
 		// for user authorized sessions
 		AuthManager::AuthDefinition def;
-		const QString res = API::createToken(comment, def);
-		if (res.isEmpty())
+		const QString createTokenResult = API::createToken(comment, def);
+		if (createTokenResult.isEmpty())
 		{
 			QJsonObject newTok;
 			newTok["comment"] = def.comment;
@@ -1320,7 +1296,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 			sendSuccessDataReply(QJsonDocument(newTok), command + "-" + subc, tan);
 			return;
 		}
-		sendErrorReply(res, command + "-" + subc, tan);
+		sendErrorReply(createTokenResult, command + "-" + subc, tan);
 		return;
 	}
 
@@ -1328,13 +1304,13 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 	if (subc == "renameToken")
 	{
 		// use id/comment
-		const QString res = API::renameToken(id, comment);
-		if (res.isEmpty())
+		const QString renameTokenResult = API::renameToken(id, comment);
+		if (renameTokenResult.isEmpty())
 		{
 			sendSuccessReply(command + "-" + subc, tan);
 			return;
 		}
-		sendErrorReply(res, command + "-" + subc, tan);
+		sendErrorReply(renameTokenResult, command + "-" + subc, tan);
 		return;
 	}
 
@@ -1342,13 +1318,13 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 	if (subc == "deleteToken")
 	{
 		// use id
-		const QString res = API::deleteToken(id);
-		if (res.isEmpty())
+		const QString deleteTokenResult = API::deleteToken(id);
+		if (deleteTokenResult.isEmpty())
 		{
 			sendSuccessReply(command + "-" + subc, tan);
 			return;
 		}
-		sendErrorReply(res, command + "-" + subc, tan);
+		sendErrorReply(deleteTokenResult, command + "-" + subc, tan);
 		return;
 	}
 
@@ -1356,7 +1332,6 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 	if (subc == "requestToken")
 	{
 		// use id/comment
-		const QString &comment = message["comment"].toString().trimmed();
 		const bool &acc = message["accept"].toBool(true);
 		if (acc)
 			API::setNewTokenRequest(comment, id, tan);
@@ -1373,7 +1348,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 		if (API::getPendingTokenRequests(vec))
 		{
 			QJsonArray arr;
-			for (const auto &entry : vec)
+			for (const auto &entry : qAsConst(vec))
 			{
 				QJsonObject obj;
 				obj["comment"] = entry.comment;
@@ -1556,12 +1531,8 @@ void JsonAPI::handleLedDeviceCommand(const QJsonObject &message, const QString &
 	QString full_command = command + "-" + subc;
 
 	// TODO: Validate that device type is a valid one
-/*	if ( ! valid type )
+
 	{
-		sendErrorReply("Unknown device", full_command, tan);
-	}
-	else
-*/	{
 		QJsonObject config;
 		config.insert("type", devType);
 		LedDevice* ledDevice = nullptr;
@@ -1623,12 +1594,7 @@ void JsonAPI::handleInputSourceCommand(const QJsonObject& message, const QString
 	QString full_command = command + "-" + subc;
 
 	// TODO: Validate that source type is a valid one
-/*	if ( ! valid type )
 	{
-		sendErrorReply("Unknown device", full_command, tan);
-	}
-	else
-*/ {
 		if (subc == "discover")
 		{
 			QJsonObject inputSourcesDiscovered;
@@ -2007,6 +1973,11 @@ void JsonAPI::handleInstanceStateChange(InstanceState state, quint8 instance, co
 			handleInstanceSwitch();
 		}
 		break;
+
+	case InstanceState::H_STARTED:
+	case InstanceState::H_STOPPED:
+	case InstanceState::H_CREATED:
+	case InstanceState::H_DELETED:
 	default:
 		break;
 	}
