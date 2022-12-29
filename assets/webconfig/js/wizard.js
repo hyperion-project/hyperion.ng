@@ -1022,11 +1022,11 @@ function beginWizardHue() {
     $('#host').val(host);
 
     var port = eV("port");
-    if (port > 0) {
-      $('#port').val(port);
+    if (port == 0) {
+      $('#port').val(80);
     }
     else {
-      $('#port').val('');
+      $('#port').val(port);
     }
     hueIPs.unshift({ host: host, port: port });
 
@@ -1043,7 +1043,13 @@ function beginWizardHue() {
 
       hueIPs = [];
       hueIPsinc = 0;
-      hueIPs.push({ host: $('#host').val(), port: $('#port').val() });
+
+      var port = $('#port').val();
+      if (isNaN(port) || port < 1 || port > 65535) {
+        port = 80;
+        $('#port').val(80);
+      }
+      hueIPs.push({ host: $('#host').val(), port: port });
     }
     else {
       discover_hue_bridges();
