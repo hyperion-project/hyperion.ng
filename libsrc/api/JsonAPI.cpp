@@ -1832,6 +1832,7 @@ void JsonAPI::sendSuccessReply(const QString &command, int tan)
 {
 	// create reply
 	QJsonObject reply;
+	reply["instance"] = _hyperion->getInstanceIndex();
 	reply["success"] = true;
 	reply["command"] = command;
 	reply["tan"] = tan;
@@ -1843,6 +1844,7 @@ void JsonAPI::sendSuccessReply(const QString &command, int tan)
 void JsonAPI::sendSuccessDataReply(const QJsonDocument &doc, const QString &command, int tan)
 {
 	QJsonObject reply;
+	reply["instance"] = _hyperion->getInstanceIndex();
 	reply["success"] = true;
 	reply["command"] = command;
 	reply["tan"] = tan;
@@ -1858,6 +1860,7 @@ void JsonAPI::sendErrorReply(const QString &error, const QString &command, int t
 {
 	// create reply
 	QJsonObject reply;
+	reply["instance"] = _hyperion->getInstanceIndex();
 	reply["success"] = false;
 	reply["error"] = error;
 	reply["command"] = command;
