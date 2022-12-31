@@ -21,6 +21,8 @@
 #include <hyperion/GrabberWrapper.h>
 #include <grabber/QtGrabber.h>
 
+#include <utils/WeakConnect.h>
+
 #if defined(ENABLE_MF)
 	#include <grabber/MFGrabber.h>
 #elif defined(ENABLE_V4L2)
@@ -1453,7 +1455,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 void JsonAPI::handleInstanceCommand(const QJsonObject &message, const QString &command, int tan)
 {
 	const QString &subc = message["subcommand"].toString();
-	const quint8 &inst = message["instance"].toInt();
+	const quint8 &inst = static_cast<quint8>(message["instance"].toInt());
 	const QString &name = message["name"].toString();
 
 	if (subc == "switchTo")
@@ -1471,7 +1473,12 @@ void JsonAPI::handleInstanceCommand(const QJsonObject &message, const QString &c
 
 	if (subc == "startInstance")
 	{
-		connect(this, &API::onStartInstanceResponse, [=] (const int &tan) { sendSuccessReply(command + "-" + subc, tan); });
+		//Only send update once
+		weakConnect(this, &API::onStartInstanceResponse, [this, command, subc] (int tan)
+		{
+			sendSuccessReply(command + "-" + subc, tan);
+		});
+
 		if (!API::startInstance(inst, tan))
 			sendErrorReply("Can't start Hyperion instance index " + QString::number(inst), command + "-" + subc, tan);
 
