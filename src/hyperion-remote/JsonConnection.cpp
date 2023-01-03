@@ -215,7 +215,7 @@ QJsonObject JsonConnection::getServerInfo()
 	{
 		if (!reply.contains("info") || !reply["info"].isObject())
 		{
-			throw std::runtime_error("No info available in result");
+			throw std::runtime_error("No info available in reply");
 		}
 
 		return reply["info"].toObject();
@@ -240,7 +240,7 @@ QString JsonConnection::getSysInfo()
 	{
 		if (!reply.contains("info") || !reply["info"].isObject())
 		{
-			throw std::runtime_error("No info available in result");
+			throw std::runtime_error("No info available in reply");
 		}
 
 		QJsonDocument doc(reply["info"].toObject());
@@ -417,12 +417,12 @@ QString JsonConnection::getConfig(std::string type)
 	// parse reply message
 	if (parseReply(reply))
 	{
-		if (!reply.contains("result") || !reply["result"].isObject())
+		if (!reply.contains("info") || !reply["info"].isObject())
 		{
-			throw std::runtime_error("No configuration file available in result");
+			throw std::runtime_error("No configuration file available in reply");
 		}
 
-		QJsonDocument doc(reply["result"].toObject());
+		QJsonDocument doc(reply["info"].toObject());
 		QString result(doc.toJson(QJsonDocument::Indented));
 		return result;
 	}
@@ -442,7 +442,7 @@ void JsonConnection::setConfig(const QString &jsonString)
 		QJsonObject configObj;
 		if(!JsonUtils::parse("hyperion-remote-args", jsonString, configObj, _log))
 		{
-			throw std::runtime_error("Error in configset arguments, abort");
+			throw std::runtime_error("Error in configSet arguments, abort");
 		}
 
 		command["config"] = configObj;
