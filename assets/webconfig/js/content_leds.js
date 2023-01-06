@@ -2304,11 +2304,8 @@ function validateWledLedCount(hardwareLedCount) {
           if (hardwareLedCount > maxLedCount) {
             showInfoDialog('warning', $.i18n("conf_leds_config_warning"), $.i18n('conf_leds_error_hwled_gt_maxled', hardwareLedCount, maxLedCount, maxLedCount));
             hardwareLedCount = maxLedCount;
-
+            conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(hardwareLedCount);
             conf_editor.getEditor("root.specificOptions.streamProtocol").setValue("RAW");
-            //Workaround, as value seems to getting updated property when a 'getEditor("root.specificOptions").getValue()' is done during save
-            var editor = conf_editor.getEditor("root.specificOptions");
-            editor.value["streamProtocol"] = "RAW";
           }
         } else {
           //WLED is DDP ready
@@ -2336,14 +2333,14 @@ function updateElementsWled(ledType, key) {
   var enumSegSelectDefaultVal = "";
 
   if (devicesProperties[ledType] && devicesProperties[ledType][key]) {
-    ledDeviceProperties = devicesProperties[ledType][key];
+    var ledDeviceProperties = devicesProperties[ledType][key];
 
     if (!jQuery.isEmptyObject(ledDeviceProperties)) {
 
       if (ledDeviceProperties.info) {
         if (ledDeviceProperties.info.liveseg && ledDeviceProperties.info.liveseg < 0) {
           // "Use main segment only" is disabled
-          defaultSegmentId = "-1";
+          var defaultSegmentId = "-1";
           enumSegSelectVals.push(defaultSegmentId);
           enumSegSelectTitleVals.push($.i18n('edt_dev_spec_segments_disabled_title'));
           enumSegSelectDefaultVal = defaultSegmentId;
@@ -2381,7 +2378,7 @@ function updateElementsWled(ledType, key) {
     }
   } else {
     //If failed to get properties
-    var hardwareLedCount = 1;
+    var hardwareLedCount;
 
     if (configuredDeviceType == ledType && configuredHost == host) {
       // Populate elements from existing configuration

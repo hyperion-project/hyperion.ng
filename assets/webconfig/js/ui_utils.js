@@ -414,6 +414,7 @@ const setObjectProperty = (object, path, value) => {
   const limit = parts.length - 1;
   for (let i = 0; i < limit; ++i) {
     const key = parts[i];
+    if (key === "__proto__" || key === "constructor") continue;
     object = object[key] ?? (object[key] = {});
   }
   const key = parts[limit];
@@ -1308,7 +1309,7 @@ function showInputOptionsForKey(editor, item, showForKeys, state) {
     if (typeof showForKeys === 'string') {
       keysToshow.push(showForKeys);
     } else {
-      return
+      return;
     }
   }
 
