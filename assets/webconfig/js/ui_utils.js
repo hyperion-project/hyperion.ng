@@ -407,6 +407,31 @@ function isJsonString(str) {
   return "";
 }
 
+const getObjectProperty = (obj, path) => path.split(".").reduce((o, key) => o && typeof o[key] !== 'undefined' ? o[key] : undefined, obj);
+
+const setObjectProperty = (object, path, value) => {
+  const parts = path.split('.');
+  const limit = parts.length - 1;
+  for (let i = 0; i < limit; ++i) {
+    const key = parts[i];
+    object = object[key] ?? (object[key] = {});
+  }
+  const key = parts[limit];
+  object[key] = value;
+};
+
+function getLongPropertiesPath(path) {
+  if (path) {
+    var path = path.replace('root.', '');
+    const parts = path.split('.');
+    parts.forEach(function (part, index) {
+      this[index] += ".properties";
+    }, parts);
+    path = parts.join('.') + '.';
+  }
+  return path;
+}
+
 function createJsonEditor(container, schema, setconfig, usePanel, arrayre) {
   $('#' + container).off();
   $('#' + container).html("");
@@ -527,7 +552,8 @@ function updateJsonEditorSelection(rootEditor, path, key, addElements, newEnumVa
 
   editor.original_schema.properties[key] = orginalProperties;
   editor.schema.properties[key] = newSchema[key];
-  rootEditor.validator.schema.properties[editor.key].properties[key] = newSchema[key];
+  //Update schema properties for validator
+  setObjectProperty(rootEditor.validator.schema.properties, getLongPropertiesPath(path) + key, newSchema[key]);
 
   editor.removeObjectProperty(key);
   delete editor.cached_editors[key];
@@ -596,7 +622,8 @@ function updateJsonEditorMultiSelection(rootEditor, path, key, addElements, newE
 
   editor.original_schema.properties[key] = orginalProperties;
   editor.schema.properties[key] = newSchema[key];
-  rootEditor.validator.schema.properties[editor.key].properties[key] = newSchema[key];
+  //Update schema properties for validator
+  setObjectProperty(rootEditor.validator.schema.properties, getLongPropertiesPath(path) + key, newSchema[key]);
 
   editor.removeObjectProperty(key);
   delete editor.cached_editors[key];
@@ -644,7 +671,8 @@ function updateJsonEditorRange(rootEditor, path, key, minimum, maximum, defaultV
 
   editor.original_schema.properties[key] = orginalProperties;
   editor.schema.properties[key] = newSchema[key];
-  rootEditor.validator.schema.properties[editor.key].properties[key] = newSchema[key];
+  //Update schema properties for validator
+  setObjectProperty(rootEditor.validator.schema.properties, getLongPropertiesPath(path) + key, newSchema[key]);
 
   editor.removeObjectProperty(key);
   delete editor.cached_editors[key];
@@ -1246,15 +1274,26 @@ function isAccessLevelCompliant(accessLevel) {
 }
 
 function showInputOptions(path, elements, state) {
+
+  if (!path.startsWith("root.")) {
+    path = ["root", path].join('.');
+  }
+
   for (var i = 0; i < elements.length; i++) {
-    $('[data-schemapath="root.' + path + '.' + elements[i] + '"]').toggle(state);
+    $('[data-schemapath="' + path + '.' + elements[i] + '"]').toggle(state);
   }
 }
 
 function showInputOptionForItem(editor, path, item, state) {
-  var accessLevel = editor.schema.properties[path].properties[item].access;
+  //Get access level for full path and item
+  var accessLevel = getObjectProperty(editor.schema.properties, getLongPropertiesPath(path) + item + ".access");
   // Enable element only, if access level compliant
   if (!state || isAccessLevelCompliant(accessLevel)) {
+
+    if (!path) {
+      debugger;
+      path = editor.path;
+    }
     showInputOptions(path, [item], state);
   }
 }
@@ -1277,9 +1316,18 @@ function showInputOptionsForKey(editor, item, showForKeys, state) {
     if ($.inArray(key, keysToshow) === -1) {
       var accessLevel = editor.schema.properties[item].properties[key].access;
 
+      var hidden = false;
+      if (editor.schema.properties[item].properties[key].options) {
+        hidden = editor.schema.properties[item].properties[key].options.hidden;
+        if (typeof hidden === 'undefined') {
+          hidden = false;
+        }
+      }
       //Always disable all elements, but only enable elements, if access level compliant
       if (!state || isAccessLevelCompliant(accessLevel)) {
-        elements.push(key);
+        if (!hidden) {
+          elements.push(key);
+        }
       }
     }
   }

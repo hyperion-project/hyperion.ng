@@ -460,6 +460,9 @@ protected:
 	/// Is the device in error state and stopped?
 	bool _isDeviceInError;
 
+	/// Is the device in error state, but is retries might resolve the situation?
+	bool _isDeviceRecoverable;
+
 	/// Timestamp of last write
 	QDateTime _lastWriteTime;
 
@@ -476,8 +479,9 @@ protected slots:
 	/// @brief Set device in error state
 	///
 	/// @param[in] errorMsg The error message to be logged
+	/// @param[in] isRecoverable If False, no further retries will be done
 	///
-	virtual void setInError( const QString& errorMsg);
+	virtual void setInError( const QString& errorMsg, bool isRecoverable=true);
 
 private:
 

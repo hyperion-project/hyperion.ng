@@ -54,6 +54,7 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 	, _isDeviceReady(false)
 	, _isOn(false)
 	, _isDeviceInError(false)
+	, _isDeviceRecoverable(false)
 	, _lastWriteTime(QDateTime::currentDateTime())
 	, _enableAttemptsTimer(nullptr)
 	, _enableAttemptTimerInterval(DEFAULT_ENABLE_ATTEMPTS_INTERVAL)
@@ -117,7 +118,7 @@ int LedDevice::close()
 	return retval;
 }
 
-void LedDevice::setInError(const QString& errorMsg)
+void LedDevice::setInError(const QString& errorMsg, bool isRecoverable)
 {
 	_isOn = false;
 	_isDeviceInError = true;
@@ -125,6 +126,10 @@ void LedDevice::setInError(const QString& errorMsg)
 	_isEnabled = false;
 	this->stopRefreshTimer();
 
+	if (isRecoverable)
+	{
+		_isDeviceRecoverable = isRecoverable;
+	}
 	Error(_log, "Device disabled, device '%s' signals error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(errorMsg));
 	emit enableStateChanged(_isEnabled);
 }
@@ -170,7 +175,7 @@ void LedDevice::enable()
 		{
 			emit enableStateChanged(false);
 
-			if (_maxEnableAttempts > 0)
+			if (_maxEnableAttempts > 0 && _isDeviceRecoverable)
 			{
 				Debug(_log, "Device's enablement failed - Start retry timer. Retried already done [%d], isEnabled: [%d]", _enableAttempts, _isEnabled);
 				startEnableAttemptsTimer();
@@ -257,27 +262,30 @@ void LedDevice::startEnableAttemptsTimer()
 {
 	++_enableAttempts;
 
-	if (_enableAttempts <= _maxEnableAttempts)
+	if (_isDeviceRecoverable)
 	{
-		if (_enableAttemptTimerInterval.count() > 0)
+		if (_enableAttempts <= _maxEnableAttempts)
 		{
-			// setup enable retry timer
-			if (_enableAttemptsTimer == nullptr)
+			if (_enableAttemptTimerInterval.count() > 0)
 			{
-				_enableAttemptsTimer = new QTimer(this);
-				_enableAttemptsTimer->setTimerType(Qt::PreciseTimer);
-				connect(_enableAttemptsTimer, &QTimer::timeout, this, &LedDevice::enable);
-			}
-			_enableAttemptsTimer->setInterval(static_cast<int>(_enableAttemptTimerInterval.count() * 1000)); //NOLINT
+				// setup enable retry timer
+				if (_enableAttemptsTimer == nullptr)
+				{
+					_enableAttemptsTimer = new QTimer(this);
+					_enableAttemptsTimer->setTimerType(Qt::PreciseTimer);
+					connect(_enableAttemptsTimer, &QTimer::timeout, this, &LedDevice::enable);
+				}
+				_enableAttemptsTimer->setInterval(static_cast<int>(_enableAttemptTimerInterval.count() * 1000)); //NOLINT
 
-			Info(_log, "Start %d. attempt of %d to enable the device in %d seconds", _enableAttempts, _maxEnableAttempts, _enableAttemptTimerInterval.count());
-			_enableAttemptsTimer->start();
+				Info(_log, "Start %d. attempt of %d to enable the device in %d seconds", _enableAttempts, _maxEnableAttempts, _enableAttemptTimerInterval.count());
+				_enableAttemptsTimer->start();
+			}
 		}
-	}
-	else
-	{
-		Error(_log, "Device disabled. Maximum number of %d attempts enabling the device reached. Tried for %d seconds.", _maxEnableAttempts, _enableAttempts * _enableAttemptTimerInterval.count());
-		_enableAttempts = 0;
+		else
+		{
+			Error(_log, "Device disabled. Maximum number of %d attempts enabling the device reached. Tried for %d seconds.", _maxEnableAttempts, _enableAttempts * _enableAttemptTimerInterval.count());
+			_enableAttempts = 0;
+		}
 	}
 }
 

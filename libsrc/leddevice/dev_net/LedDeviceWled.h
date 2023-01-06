@@ -7,6 +7,7 @@
 #include "LedDeviceUdpDdp.h"
 #include "LedDeviceUdpRaw.h"
 
+#include <utils/version.hpp>
 ///
 /// Implementation of a WLED-device
 ///
@@ -146,20 +147,13 @@ private:
 	///
 	bool openRestAPI();
 
-	///
-	/// @brief Get command to power WLED-device on or off
-	///
-	/// @param isOn True, if to switch on device
-	/// @return Command to switch device on/off
-	///
-	QString getOnOffRequest (bool isOn ) const;
+	QJsonObject getUdpnObject(bool send, bool recv) const;
+	QJsonObject getSegmentObject(int segmentId, bool isOn, int brightness=-1) const;
 
-	QString getBrightnessRequest (int bri ) const;
-	QString getEffectRequest(int effect, int speed=128) const;
-	QString getLorRequest(int lor) const;
-	QString getUdpnRequest(bool send, bool recv) const;
+	bool sendStateUpdateRequest(const QJsonObject &request, const QString requestType = "");
 
-	bool sendStateUpdateRequest(const QString &request);
+	bool isReadyForSegmentStreaming(semver::version& version) const;
+	bool isReadyForDDPStreaming(semver::version& version) const;
 
 	QString resolveAddress (const QString& hostName);
 
@@ -169,7 +163,10 @@ private:
 	QString _hostAddress;
 	int		_apiPort;
 
+	QJsonObject _wledInfo;
 	QJsonObject _originalStateProperties;
+
+	semver::version _currentVersion;
 
 	bool _isBrightnessOverwrite;
 	int _brightness;
@@ -179,6 +176,10 @@ private:
 	bool _originalStateUdpnRecv;
 
 	bool _isStreamDDP;
+
+	int _streamSegmentId;
+	bool _isSwitchOffOtherSegments;
+	bool _isStreamToSegment;
 };
 
 #endif // LEDDEVICEWLED_H
