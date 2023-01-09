@@ -171,6 +171,10 @@ function initLanguageSelection() {
 }
 
 function updateUiOnInstance(inst) {
+
+  window.currentHyperionInstance = inst;
+  window.currentHyperionInstanceName = getInstanceNameByIndex(inst);
+
   $("#active_instance_friendly_name").text(getInstanceNameByIndex(inst));
   if (window.serverInfo.instance.filter(entry => entry.running).length > 1) {
     $('#btn_hypinstanceswitch').toggle(true);
