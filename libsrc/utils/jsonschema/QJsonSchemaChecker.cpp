@@ -234,15 +234,18 @@ void QJsonSchemaChecker::checkProperties(const QJsonObject& value, const QJsonOb
 		const QJsonValue& propertyValue = *i;
 
 		_currentPath.append("." + property);
-		QJsonObject::const_iterator required = propertyValue.toObject().find("required");
 
 		if (value.contains(property))
 		{
 			validate(value[property], propertyValue.toObject());
 		}
-		else if (!verifyDeps(property, value, schema))
+		else if (verifyDeps(property, value, schema))
 		{
-			if (required != propertyValue.toObject().end() && propertyValue.toObject().find("required").value().toBool() && !_ignoreRequired)
+		}
+		else
+		{
+			bool isRequired = propertyValue.toObject().value("required").toBool(false);
+			if (isRequired && !_ignoreRequired)
 			{
 				_error = true;
 

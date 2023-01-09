@@ -57,7 +57,9 @@ public:
 				break;
 			}
 			case QJsonValue::Object:
-				ret = getDefaultValue(value.toObject().find("default").value());
+			{
+				ret = getDefaultValue(value.toObject().value("default"));
+			}
 				break;
 			case QJsonValue::Bool:
 				return value.toBool() ? "True" : "False";
