@@ -150,7 +150,7 @@ if(ENABLE_PROTOBUF_SERVER)
 			set(protobuf_MSVC_STATIC_RUNTIME OFF CACHE BOOL "Build protobuf static")
 		endif()
 
-		add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/external/protobuf/cmake")
+		add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/external/protobuf")
 
 		# define the include for the protobuf library
 		set(PROTOBUF_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/external/protobuf/src")
