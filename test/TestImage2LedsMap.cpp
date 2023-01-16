@@ -9,10 +9,9 @@
 
 int main()
 {
-	QString homeDir = getenv("RASPILIGHT_HOME");
+	const QString schemaFile = ":/hyperion-schema";
+	const QString configFile = ":/hyperion_default.config";
 
-	const QString schemaFile = homeDir + "/hyperion.schema.json";
-	const QString configFile = homeDir + "/hyperion.config.json";
 
 	QJsonObject config;
 	if (QJsonFactory::load(schemaFile, configFile, config) < 0)

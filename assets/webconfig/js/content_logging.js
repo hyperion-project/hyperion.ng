@@ -35,7 +35,8 @@ $(document).ready(function () {
   function infoSummary() {
     var info = "";
 
-    info += 'Hyperion System Summary Report (' + window.serverConfig.general.name + '), Reported instance: ' + window.currentHyperionInstanceName + '\n';
+    info += 'Hyperion System Summary Report (' + window.serverConfig.general.name + ')\n';
+    info += 'Reported instance: [' + window.currentHyperionInstance + '] - ' + window.currentHyperionInstanceName + '\n';
 
     info += "\n< ----- System information -------------------- >\n";
     info += getSystemInfo() + '\n';
@@ -43,22 +44,36 @@ $(document).ready(function () {
     info += "\n< ----- Configured Instances ------------------ >\n";
     var instances = window.serverInfo.instance;
     for (var i = 0; i < instances.length; i++) {
-      info += instances[i].instance + ': ' + instances[i].friendly_name + ' Running: ' + instances[i].running + '\n';
+      info += instances[i].instance + ': ' + instances[i].friendly_name + ', Running: ' + instances[i].running + '\n';
     }
 
     info += "\n< ----- This instance's priorities ------------ >\n";
     var prios = window.serverInfo.priorities;
-    for (var i = 0; i < prios.length; i++) {
-      info += prios[i].priority + ': ';
-      if (prios[i].visible) {
-        info += ' VISIBLE!';
+
+    if (prios.length > 0) {
+
+      for (var i = 0; i < prios.length; i++) {
+
+        var prio = prios[i].priority.toString().padStart(3, '0');
+
+        info += prio + ': ';
+        if (prios[i].visible) {
+          info += ' VISIBLE   -';
+        }
+        else {
+          info += ' INVISIBLE -';
+        }
+        info += ' (' + prios[i].componentId + ')';
+        if (prios[i].owner) {
+          info += ' (Owner: ' + prios[i].owner + ')';
+        }
+        info += '\n';
+
       }
-      else {
-        info += '         ';
-      }
-      info += ' (' + prios[i].componentId + ') Owner: ' + prios[i].owner + '\n';
+    } else {
+      info += 'The current priority list is empty!\n';
     }
-    info += 'priorities_autoselect: ' + window.serverInfo.priorities_autoselect + '\n';
+    info += 'Autoselect: ' + window.serverInfo.priorities_autoselect + '\n';
 
     info += "\n< ----- This instance components' status ------->\n";
     var comps = window.serverInfo.components;
@@ -67,7 +82,7 @@ $(document).ready(function () {
     }
 
     info += "\n< ----- This instance's configuration --------- >\n";
-    info += JSON.stringify(window.serverConfig) + '\n';
+    info += JSON.stringify(window.serverConfig, null, 2) + '\n';
 
     info += "\n< ----- Current Log --------------------------- >\n";
     var logMsgs = document.getElementById("logmessages").textContent;
@@ -193,18 +208,19 @@ $(document).ready(function () {
   });
 
   // toggle fullscreen button in log output
-  $(".fullscreen-btn").mousedown(function(e) {
+  $(".fullscreen-btn").mousedown(function (e) {
     e.preventDefault();
   });
 
-  $(".fullscreen-btn").click(function(e) {
+  $(".fullscreen-btn").click(function (e) {
     e.preventDefault();
     $(this).children('i')
       .toggleClass('fa-expand')
       .toggleClass('fa-compress');
     $('#conf_cont').toggle();
-    $('#logmessages').css('max-height', $('#logmessages').css('max-height') !== 'none' ? 'none' : '400px' );
+    $('#logmessages').css('max-height', $('#logmessages').css('max-height') !== 'none' ? 'none' : '400px');
   });
 
   removeOverlay();
 });
+
