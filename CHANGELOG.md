@@ -24,6 +24,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Restart correctly, if running as service (#1368)
+- Hue-Wizard: In case auto discovery failed, port 80 was not used as default (#1544)
+- Send only one reply per Start Instance request (#1551)
+- Add instance# in JSON-API replies (aligning to Add instance in websocket response to a subscription #1504 behaviour)
+- hyperion-remote: Extracting reply for a configGet request correctly (#1555) 
+
+### Technical
+- Add CodeQL for GitHub code scanning
+- Update to Protocol Buffers 3.21.12
+- cmake support of libcec without version in lib-name
+- Qt6 alignments
+- Refactor for Python 3.11 deprecated functions
 
 ## Removed
 
