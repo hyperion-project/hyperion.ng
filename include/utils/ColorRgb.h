@@ -6,6 +6,7 @@
 
 #include <QString>
 #include <QTextStream>
+#include <QRgb>
 
 ///
 /// Plain-Old-Data structure containing the red-green-blue color specification. Size of the
@@ -50,6 +51,18 @@ struct ColorRgb
 		a.green -= b.green;
 		a.blue -= b.blue;
 		return a;
+	}
+
+	QRgb rgb() const
+	{
+		return qRgb(red,green,blue);
+	}
+
+	void setRgb(QRgb rgb)
+	{
+		red = static_cast<uint8_t>(qRed(rgb));
+		green = static_cast<uint8_t>(qGreen(rgb));
+		blue = static_cast<uint8_t>(qBlue(rgb));
 	}
 
 	QString toQString() const

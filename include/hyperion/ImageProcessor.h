@@ -98,12 +98,12 @@ public:
 	}
 
 	///
-	/// Processes the image to a list of led colors. This will update the size of the buffer-image
-	/// if required and call the image-to-leds mapping to determine the mean color per led.
+	/// Processes the image to a list of LED colors. This will update the size of the buffer-image
+	/// if required and call the image-to-LEDs mapping to determine the color per LED.
 	///
-	/// @param[in] image  The image to translate to led values
+	/// @param[in] image  The image to translate to LED values
 	///
-	/// @return The color value per led
+	/// @return The color value per LED
 	///
 	template <typename Pixel_T>
 	std::vector<ColorRgb> process(const Image<Pixel_T>& image)
@@ -120,8 +120,17 @@ public:
 			// Create a result vector and call the 'in place' function
 			switch (_mappingType)
 			{
-				case 1: colors = _imageToLeds->getUniLedColor(image); break;
-				default: colors = _imageToLeds->getMeanLedColor(image);
+			case 1:
+				colors = _imageToLeds->getUniLedColor(image);
+				break;
+			case 2:
+				colors = _imageToLeds->getMeanLedColorSqrt(image);
+				break;
+			case 3:
+				colors = _imageToLeds->getDominantLedColor(image);
+				break;
+			default:
+				colors = _imageToLeds->getMeanLedColor(image);
 			}
 		}
 		else
@@ -136,8 +145,8 @@ public:
 	///
 	/// Determines the led colors of the image in the buffer.
 	///
-	/// @param[in] image  The image to translate to led values
-	/// @param[out] ledColors  The color value per led
+	/// @param[in] image  The image to translate to LED values
+	/// @param[out] ledColors  The color value per LED
 	///
 	template <typename Pixel_T>
 	void process(const Image<Pixel_T>& image, std::vector<ColorRgb>& ledColors)
@@ -153,8 +162,17 @@ public:
 			// Determine the mean or uni colors of each led (using the existing mapping)
 			switch (_mappingType)
 			{
-				case 1: _imageToLeds->getUniLedColor(image, ledColors); break;
-				default: _imageToLeds->getMeanLedColor(image, ledColors);
+			case 1:
+				_imageToLeds->getUniLedColor(image, ledColors);
+				break;
+			case 2:
+				_imageToLeds->getMeanLedColorSqrt(image, ledColors);
+				break;
+			case 3:
+				_imageToLeds->getDominantLedColor(image, ledColors);
+				break;
+			default:
+				_imageToLeds->getMeanLedColor(image, ledColors);
 			}
 		}
 		else
@@ -164,9 +182,9 @@ public:
 	}
 
 	///
-	/// Get the hscan and vscan parameters for a single led
+	/// Get the hscan and vscan parameters for a single LED
 	///
-	/// @param[in] led Index of the led
+	/// @param[in] led Index of the LED
 	/// @param[out] hscanBegin begin of the hscan
 	/// @param[out] hscanEnd end of the hscan
 	/// @param[out] vscanBegin begin of the hscan
@@ -208,9 +226,6 @@ private:
 				// Construct a new buffer and mapping
 				_imageToLeds = new hyperion::ImageToLedsMap(image.width(), image.height(), border.horizontalSize, border.verticalSize, _ledString.leds());
 			}
-
-			//Debug(Logger::getInstance("BLACKBORDER"),  "CURRENT BORDER TYPE: unknown=%d hor.size=%d vert.size=%d",
-			//	border.unknown, border.horizontalSize, border.verticalSize );
 		}
 	}
 
@@ -228,7 +243,7 @@ private:
 	/// The mapping of image-pixels to LEDs
 	hyperion::ImageToLedsMap* _imageToLeds;
 
-	/// Type of image 2 led mapping
+	/// Type of image to LED mapping
 	int _mappingType;
 	/// Type of last requested user type
 	int _userMappingType;

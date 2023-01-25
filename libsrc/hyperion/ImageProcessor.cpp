@@ -7,23 +7,47 @@
 // Blacborder includes
 #include <blackborder/BlackBorderProcessor.h>
 
+#include <QRgb>
+
 using namespace hyperion;
 
 // global transform method
 int ImageProcessor::mappingTypeToInt(const QString& mappingType)
 {
 	if (mappingType == "unicolor_mean" )
+	{
 		return 1;
-
+	}
+	else if (mappingType == "multicolor_mean_squared" )
+	{
+		return 2;
+	}
+	else if (mappingType == "dominant_color" )
+	{
+		return 3;
+	}
 	return 0;
 }
 // global transform method
 QString ImageProcessor::mappingTypeToStr(int mappingType)
 {
-	if (mappingType == 1 )
-		return "unicolor_mean";
+	QString typeText;
+	switch (mappingType) {
+	case 1:
+		typeText = "unicolor_mean";
+		break;
+	case 2:
+		typeText = "multicolor_mean_squared";
+		break;
+	case 3:
+		typeText = "dominant_color";
+		break;
+	default:
+		typeText = "multicolor_mean";
+		break;
+	}
 
-	return "multicolor_mean";
+	return typeText;
 }
 
 ImageProcessor::ImageProcessor(const LedString& ledString, Hyperion* hyperion)

@@ -9,10 +9,10 @@
 			"type" : "string",
 			"required" : true,
 			"title" : "edt_conf_color_imageToLedMappingType_title",
-			"enum" : ["multicolor_mean", "unicolor_mean"],
+			"enum" : ["multicolor_mean", "unicolor_mean", "multicolor_mean_squared", "dominant_color"],
 			"default" : "multicolor_mean",
 			"options" : {
-				"enum_titles" : ["edt_conf_enum_multicolor_mean", "edt_conf_enum_unicolor_mean"]
+				"enum_titles" : ["edt_conf_enum_multicolor_mean", "edt_conf_enum_unicolor_mean", "edt_conf_enum_multicolor_mean_squared", "edt_conf_enum_dominant_color"]
 			},
 			"propertyOrder" : 1
 		},

@@ -3,10 +3,10 @@
 using namespace hyperion;
 
 ImageToLedsMap::ImageToLedsMap(
-		unsigned width,
-		unsigned height,
-		unsigned horizontalBorder,
-		unsigned verticalBorder,
+		int width,
+		int height,
+		int horizontalBorder,
+		int verticalBorder,
 		const std::vector<Led>& leds)
 	: _width(width)
 	, _height(height)
@@ -23,10 +23,13 @@ ImageToLedsMap::ImageToLedsMap(
 	// Reserve enough space in the map for the leds
 	_colorsMap.reserve(leds.size());
 
-	const unsigned xOffset      = _verticalBorder;
-	const unsigned actualWidth  = _width  - 2 * _verticalBorder;
-	const unsigned yOffset      = _horizontalBorder;
-	const unsigned actualHeight = _height - 2 * _horizontalBorder;
+	const int xOffset      = _verticalBorder;
+	const int actualWidth  = _width  - 2 * _verticalBorder;
+	const int yOffset      = _horizontalBorder;
+	const int actualHeight = _height - 2 * _horizontalBorder;
+
+	size_t	totalCount = 0;
+	size_t	totalCapacity = 0;
 
 	for (const Led& led : leds)
 	{
@@ -38,10 +41,10 @@ ImageToLedsMap::ImageToLedsMap(
 		}
 
 		// Compute the index boundaries for this led
-		unsigned minX_idx = xOffset + unsigned(qRound(actualWidth  * led.minX_frac));
-		unsigned maxX_idx = xOffset + unsigned(qRound(actualWidth  * led.maxX_frac));
-		unsigned minY_idx = yOffset + unsigned(qRound(actualHeight * led.minY_frac));
-		unsigned maxY_idx = yOffset + unsigned(qRound(actualHeight * led.maxY_frac));
+		int minX_idx = xOffset + int32_t(qRound(actualWidth  * led.minX_frac));
+		int maxX_idx = xOffset + int32_t(qRound(actualWidth  * led.maxX_frac));
+		int minY_idx = yOffset + int32_t(qRound(actualHeight * led.minY_frac));
+		int maxY_idx = yOffset + int32_t(qRound(actualHeight * led.maxY_frac));
 
 		// make sure that the area is at least a single led large
 		minX_idx = qMin(minX_idx, xOffset + actualWidth - 1);
@@ -56,31 +59,43 @@ ImageToLedsMap::ImageToLedsMap(
 		}
 
 		// Add all the indices in the above defined rectangle to the indices for this led
-		const auto maxYLedCount = qMin(maxY_idx, yOffset+actualHeight);
-		const auto maxXLedCount = qMin(maxX_idx, xOffset+actualWidth);
+		const int maxYLedCount = qMin(maxY_idx, yOffset+actualHeight);
+		const int maxXLedCount = qMin(maxX_idx, xOffset+actualWidth);
 
-		std::vector<int32_t> ledColors;
-		ledColors.reserve((size_t) maxXLedCount*maxYLedCount);
+		const int realYLedCount = qAbs(maxYLedCount - minY_idx);
+		const int realXLedCount = qAbs(maxXLedCount - minX_idx);
 
-		for (unsigned y = minY_idx; y < maxYLedCount; ++y)
+		size_t totalSize = realYLedCount* realXLedCount;
+
+		std::vector<int> ledColors;
+		ledColors.reserve(totalSize);
+
+		for (int y = minY_idx; y < maxYLedCount; ++y)
 		{
-			for (unsigned x = minX_idx; x < maxXLedCount; ++x)
+			for (int x = minX_idx; x < maxXLedCount; ++x)
 			{
-				ledColors.push_back(y*width + x);
+				ledColors.push_back( y * width + x);
 			}
 		}
 
 		// Add the constructed vector to the map
 		_colorsMap.push_back(ledColors);
+
+		totalCount += ledColors.size();
+		totalCapacity += ledColors.capacity();
+
 	}
+	Debug(Logger::getInstance("HYPERION"), "Total index number is: %d (memory: %d). image size: %d x %d, LED areas: %d",
+		totalCount, totalCapacity, width, height, leds.size());
+
 }
 
-unsigned ImageToLedsMap::width() const
+int ImageToLedsMap::width() const
 {
 	return _width;
 }
 
-unsigned ImageToLedsMap::height() const
+int ImageToLedsMap::height() const
 {
 	return _height;
 }
