@@ -510,29 +510,32 @@ void LinearColorSmoothing::clearRememberedFrames()
 
 void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> &ledColors)
 {
-	if (_outputDelay == 0)
+	if (ledColors.size() > 0)
 	{
-		// No output delay => immediate write
-		if (!_pause)
+		if (_outputDelay == 0)
 		{
-			emit _hyperion->ledDeviceData(ledColors);
-		}
-	}
-	else
-	{
-		// Push new colors in the delay-buffer
-		_outputQueue.push_back(ledColors);
-
-		// If the delay-buffer is filled pop the front and write to device
-		if (!_outputQueue.empty())
-		{
-			if (_outputQueue.size() > _outputDelay)
+			// No output delay => immediate write
+			if (!_pause)
 			{
-				if (!_pause)
+				emit _hyperion->ledDeviceData(ledColors);
+			}
+		}
+		else
+		{
+			// Push new colors in the delay-buffer
+			_outputQueue.push_back(ledColors);
+
+			// If the delay-buffer is filled pop the front and write to device
+			if (!_outputQueue.empty())
+			{
+				if (_outputQueue.size() > _outputDelay)
 				{
-					emit _hyperion->ledDeviceData(_outputQueue.front());
+					if (!_pause)
+					{
+						emit _hyperion->ledDeviceData(_outputQueue.front());
+					}
+					_outputQueue.pop_front();
 				}
-				_outputQueue.pop_front();
 			}
 		}
 	}
