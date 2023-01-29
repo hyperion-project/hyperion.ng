@@ -524,13 +524,28 @@ namespace hyperion
 				ColorCluster<ColorRgbScalar> clusters[CLUSTER_COUNT];
 
 				// initial cluster colors
-				for(int k = 0; k < CLUSTER_COUNT; ++k)
-				{
-					int randomRed = rand() % static_cast<int>(256);
-					int randomGreen = rand() % static_cast<int>(256);
-					int randomBlue = rand() % static_cast<int>(256);
+				switch (CLUSTER_COUNT) {
+				case 4:
+					clusters[4].newColor = ColorRgbScalar(ColorRgb::YELLOW);
+				case 3:
+					clusters[3].newColor = ColorRgbScalar(ColorRgb::RED);
+				case 2:
+					clusters[2].newColor = ColorRgbScalar(ColorRgb::WHITE);
+				case 1:
+					clusters[1].newColor = ColorRgbScalar(ColorRgb::GREEN);
+				case 0:
+					clusters[0].newColor = ColorRgbScalar(ColorRgb::BLACK);
+					break;
+				default:
+					for(int k = 0; k < CLUSTER_COUNT; ++k)
+					{
+						int randomRed = rand() % static_cast<int>(256);
+						int randomGreen = rand() % static_cast<int>(256);
+						int randomBlue = rand() % static_cast<int>(256);
 
-					clusters[k].newColor = ColorRgbScalar(randomRed, randomGreen, randomBlue);
+						clusters[k].newColor = ColorRgbScalar(randomRed, randomGreen, randomBlue);
+					}
+					break;
 				}
 
 				// k-means
