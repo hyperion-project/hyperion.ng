@@ -41,11 +41,10 @@ namespace hyperion
 		/// @param[in] verticalBorder   The size of the vertical border (0=no border)
 		/// @param[in] leds             The list with led specifications
 		///
-		ImageToLedsMap(
-				const int width,
-				const int height,
-				const int horizontalBorder,
-				const int verticalBorder,
+		ImageToLedsMap(int width,
+				int height,
+				int horizontalBorder,
+				int verticalBorder,
 				const std::vector<Led> & leds);
 
 		///
@@ -274,7 +273,6 @@ namespace hyperion
 		const int _height;
 
 		const int _horizontalBorder;
-
 		const int _verticalBorder;
 
 		/// The absolute indices into the image for each led
@@ -525,15 +523,15 @@ namespace hyperion
 
 				// initial cluster colors
 				switch (CLUSTER_COUNT) {
-				case 4:
+				case 5:
 					clusters[4].newColor = ColorRgbScalar(ColorRgb::YELLOW);
-				case 3:
+				case 4:
 					clusters[3].newColor = ColorRgbScalar(ColorRgb::RED);
-				case 2:
+				case 3:
 					clusters[2].newColor = ColorRgbScalar(ColorRgb::WHITE);
-				case 1:
+				case 2:
 					clusters[1].newColor = ColorRgbScalar(ColorRgb::GREEN);
-				case 0:
+				case 1:
 					clusters[0].newColor = ColorRgbScalar(ColorRgb::BLACK);
 					break;
 				default:
