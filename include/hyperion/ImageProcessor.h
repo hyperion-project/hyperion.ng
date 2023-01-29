@@ -129,6 +129,9 @@ public:
 			case 3:
 				colors = _imageToLeds->getDominantLedColor(image);
 				break;
+			case 4:
+				colors = _imageToLeds->getDominantLedColorAdv(image);
+				break;
 			default:
 				colors = _imageToLeds->getMeanLedColor(image);
 			}
@@ -170,6 +173,9 @@ public:
 				break;
 			case 3:
 				_imageToLeds->getDominantLedColor(image, ledColors);
+				break;
+			case 4:
+				_imageToLeds->getDominantLedColorAdv(image, ledColors);
 				break;
 			default:
 				_imageToLeds->getMeanLedColor(image, ledColors);

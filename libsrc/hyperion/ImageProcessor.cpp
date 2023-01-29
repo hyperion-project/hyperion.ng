@@ -26,6 +26,10 @@ int ImageProcessor::mappingTypeToInt(const QString& mappingType)
 	{
 		return 3;
 	}
+	else if (mappingType == "dominant_color_advanced" )
+	{
+		return 4;
+	}
 	return 0;
 }
 // global transform method
@@ -41,6 +45,9 @@ QString ImageProcessor::mappingTypeToStr(int mappingType)
 		break;
 	case 3:
 		typeText = "dominant_color";
+		break;
+	case 4:
+		typeText = "dominant_color_advanced";
 		break;
 	default:
 		typeText = "multicolor_mean";

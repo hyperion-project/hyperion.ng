@@ -105,6 +105,19 @@ public:
 	/// @note See https://bottosson.github.io/posts/colorpicker/#okhsv
 	///
 	static void okhsv2rgb(double hue, double saturation, double value, uint8_t & red, uint8_t & green, uint8_t & blue);
+
+	template <typename Pixel_T>
+	static double rgb_euclidean(Pixel_T p1, Pixel_T p2)
+	{
+		double val = sqrt(
+						 (p1.red - p2.red)     * (p1.red - p2.red)     +
+						 (p1.green - p2.green) * (p1.green - p2.green) +
+						 (p1.blue - p2.blue)   * (p1.blue - p2.blue)
+						 );
+
+		return val;
+	}
+
 };
 
 #endif // COLORSYS_H
