@@ -62,6 +62,7 @@ const char STATE_MAINSEG[] = "mainseg";
 const char STATE_UDPN[] = "udpn";
 const char STATE_UDPN_SEND[] = "send";
 const char STATE_UDPN_RECV[] = "recv";
+const char STATE_TRANSITIONTIME_CURRENTCALL[] = "tt";
 
 // List of Info keys
 const char INFO_VER[] = "ver";
@@ -440,6 +441,7 @@ bool LedDeviceWled::powerOff()
 
 		cmd.insert(STATE_LIVE, false);
 		cmd.insert(STATE_ON, false);
+		cmd.insert(STATE_TRANSITIONTIME_CURRENTCALL, 0);
 
 		if (_isSyncOverwrite)
 		{
@@ -498,6 +500,7 @@ bool LedDeviceWled::restoreState()
 		_restApi->setPath(API_PATH_STATE);
 
 		_originalStateProperties[STATE_LIVE] = false;
+		_originalStateProperties[STATE_TRANSITIONTIME_CURRENTCALL] = 0;
 
 		httpResponse response = _restApi->put(_originalStateProperties);
 		if ( response.error() )
