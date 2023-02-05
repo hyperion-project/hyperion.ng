@@ -86,6 +86,17 @@
       },
       "propertyOrder": 7
     },
+    "stayOnAfterStreaming": {
+      "type": "boolean",
+      "format": "checkbox",
+      "title": "edt_dev_spec_stayOnAfterStreaming_title",
+      "default": false,
+      "required": true,
+      "options": {
+        "infoText": "edt_dev_spec_stayOnAfterStreaming_title_info"
+      },
+      "propertyOrder": 8
+    },
     "overwriteSync": {
       "type": "boolean",
       "format": "checkbox",
@@ -93,7 +104,7 @@
       "default": true,
       "required": true,
       "access": "advanced",
-      "propertyOrder": 8
+      "propertyOrder": 9
     },
     "overwriteBrightness": {
       "type": "boolean",
@@ -102,7 +113,7 @@
       "default": true,
       "required": true,
       "access": "advanced",
-      "propertyOrder": 9
+      "propertyOrder": 10
     },
     "brightness": {
       "type": "integer",
@@ -116,7 +127,7 @@
         }
       },
       "access": "advanced",
-      "propertyOrder": 10
+      "propertyOrder": 11
     },
     "latchTime": {
       "type": "integer",
@@ -129,7 +140,7 @@
       "options": {
         "infoText": "edt_dev_spec_latchtime_title_info"
       },
-      "propertyOrder": 11
+      "propertyOrder": 12
     }
   },
       "additionalProperties": true

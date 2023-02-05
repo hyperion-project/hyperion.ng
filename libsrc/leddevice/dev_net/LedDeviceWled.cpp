@@ -23,6 +23,8 @@ const bool verbose = false;
 const char CONFIG_HOST[] = "host";
 const char CONFIG_STREAM_PROTOCOL[] = "streamProtocol";
 const char CONFIG_RESTORE_STATE[] = "restoreOriginalState";
+const char CONFIG_STAY_ON_AFTER_STREAMING[] = "stayOnAfterStreaming";
+
 const char CONFIG_BRIGHTNESS[] = "brightness";
 const char CONFIG_BRIGHTNESS_OVERWRITE[] = "overwriteBrightness";
 const char CONFIG_SYNC_OVERWRITE[] = "overwriteSync";
@@ -70,6 +72,7 @@ const char INFO_LIVESEG[] = "liveseg";
 
 //Default state values
 const bool DEFAULT_IS_RESTORE_STATE = false;
+const bool DEFAULT_IS_STAY_ON_AFTER_STREAMING = false;
 const bool DEFAULT_IS_BRIGHTNESS_OVERWRITE = true;
 const int BRI_MAX = 255;
 const bool DEFAULT_IS_SYNC_OVERWRITE = true;
@@ -139,6 +142,7 @@ bool LedDeviceWled::init(const QJsonObject &deviceConfig)
 	{
 		_apiPort = API_DEFAULT_PORT;
 		_isRestoreOrigState = _devConfig[CONFIG_RESTORE_STATE].toBool(DEFAULT_IS_RESTORE_STATE);
+		_isStayOnAfterStreaming = _devConfig[CONFIG_STAY_ON_AFTER_STREAMING].toBool(DEFAULT_IS_STAY_ON_AFTER_STREAMING);
 		_isSyncOverwrite = _devConfig[CONFIG_SYNC_OVERWRITE].toBool(DEFAULT_IS_SYNC_OVERWRITE);
 		_isBrightnessOverwrite = _devConfig[CONFIG_BRIGHTNESS_OVERWRITE].toBool(DEFAULT_IS_BRIGHTNESS_OVERWRITE);
 		_brightness = _devConfig[CONFIG_BRIGHTNESS].toInt(BRI_MAX);
@@ -440,8 +444,12 @@ bool LedDeviceWled::powerOff()
 		}
 
 		cmd.insert(STATE_LIVE, false);
-		cmd.insert(STATE_ON, false);
 		cmd.insert(STATE_TRANSITIONTIME_CURRENTCALL, 0);
+
+		if (!_isStayOnAfterStreaming)
+		{
+			cmd.insert(STATE_ON, false);
+		}
 
 		if (_isSyncOverwrite)
 		{
@@ -501,6 +509,11 @@ bool LedDeviceWled::restoreState()
 
 		_originalStateProperties[STATE_LIVE] = false;
 		_originalStateProperties[STATE_TRANSITIONTIME_CURRENTCALL] = 0;
+
+		if (_isStayOnAfterStreaming)
+		{
+			_originalStateProperties[STATE_ON] = true;
+		}
 
 		httpResponse response = _restApi->put(_originalStateProperties);
 		if ( response.error() )

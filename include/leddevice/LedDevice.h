@@ -438,7 +438,10 @@ protected:
 	uint _ledRGBWCount;
 
 	/// Does the device allow restoring the original state?
-	bool	_isRestoreOrigState;
+	bool _isRestoreOrigState;
+
+	/// Does the device should be kept on after streaming
+	bool _isStayOnAfterStreaming;
 
 	/// Device, lights state before streaming via hyperion
 	QJsonObject _orignalStateValues;

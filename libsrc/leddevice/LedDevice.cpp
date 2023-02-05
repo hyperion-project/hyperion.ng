@@ -49,6 +49,7 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 	, _latchTime_ms(0)
 	, _ledCount(0)
 	, _isRestoreOrigState(false)
+	, _isStayOnAfterStreaming(false)
 	, _isEnabled(false)
 	, _isDeviceInitialised(false)
 	, _isDeviceReady(false)
@@ -460,14 +461,16 @@ bool LedDevice::switchOff()
 
 bool LedDevice::powerOff()
 {
-	bool rc{ false };
+	bool rc{ true };
 
-	Debug(_log, "Power Off: %s", QSTRING_CSTR(_activeDeviceType));
-
-	// Simulate power-off by writing a final "Black" to have a defined outcome
-	if (writeBlack() >= 0)
+	if (!_isStayOnAfterStreaming)
 	{
-		rc = true;
+		Debug(_log, "Power Off: %s", QSTRING_CSTR(_activeDeviceType));
+		// Simulate power-off by writing a final "Black" to have a defined outcome
+		if (writeBlack() < 0)
+		{
+			rc = false;
+		}
 	}
 	return rc;
 }

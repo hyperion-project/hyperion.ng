@@ -631,6 +631,8 @@
     "edt_dev_spec_spipath_title": "SPI Device",
     "edt_dev_spec_sslHSTimeoutMax_title": "Streamer handshake timeout maximum",
     "edt_dev_spec_sslHSTimeoutMin_title": "Streamer handshake timeout minimum",
+    "edt_dev_spec_stayOnAfterStreaming_title": "Stay on after streaming",
+    "edt_dev_spec_stayOnAfterStreaming_title_info": "The device will stay on after streaming or restoring state.",
     "edt_dev_spec_switchOffOnBlack_title": "Switch off on black",
     "edt_dev_spec_switchOffOnbelowMinBrightness_title": "Switch-off, below minimum",
     "edt_dev_spec_syncOverwrite_title": "Disable synchronisation",
