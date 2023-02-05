@@ -278,8 +278,9 @@ $(document).ready(function () {
       if (getStorage('lastSelectedInstance'))
         removeStorage('lastSelectedInstance')
 
-      currentHyperionInstance = 0;
-      currentHyperionInstanceName = getInstanceNameByIndex(0);
+      window.currentHyperionInstance = 0;
+      window.currentHyperionInstanceName = getInstanceNameByIndex(0);
+
       requestServerConfig();
       setTimeout(requestServerInfo, 100)
       setTimeout(requestTokenInfo, 200)
@@ -293,7 +294,7 @@ $(document).ready(function () {
       $('#btn_hypinstanceswitch').toggle(false)
 
     // update listing for button
-    updateUiOnInstance(currentHyperionInstance);
+    updateUiOnInstance(window.currentHyperionInstance);
     updateHyperionInstanceListing();
   });
 

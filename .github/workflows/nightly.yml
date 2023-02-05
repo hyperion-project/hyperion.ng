@@ -158,7 +158,7 @@ jobs:
           reprepro -Vb nightly export
 
       - name: Download artifacts
-        uses: actions/download-artifact@v3.0.1
+        uses: actions/download-artifact@v3.0.2
 
       - name: Include artifacts into the package source
         run: |
@@ -171,7 +171,7 @@ jobs:
           done
 
       - name: Upload packages to nightly server
-        uses: SamKirkland/FTP-Deploy-Action@4.3.2
+        uses: SamKirkland/FTP-Deploy-Action@4.3.3
         with:
           server: nightly.apt.hyperion-project.org
           username: ${{ secrets.NIGHTLY_USER }}
