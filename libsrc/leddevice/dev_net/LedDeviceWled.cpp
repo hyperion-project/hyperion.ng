@@ -439,17 +439,13 @@ bool LedDeviceWled::powerOff()
 		if (_isStreamToSegment)
 		{
 			QJsonArray segments;
-			segments.append(getSegmentObject(_streamSegmentId, false));
+			segments.append(getSegmentObject(_streamSegmentId, _isStayOnAfterStreaming));
 			cmd.insert(STATE_SEG, segments);
 		}
 
 		cmd.insert(STATE_LIVE, false);
 		cmd.insert(STATE_TRANSITIONTIME_CURRENTCALL, 0);
-
-		if (!_isStayOnAfterStreaming)
-		{
-			cmd.insert(STATE_ON, false);
-		}
+		cmd.insert(STATE_ON, _isStayOnAfterStreaming);
 
 		if (_isSyncOverwrite)
 		{
@@ -507,13 +503,27 @@ bool LedDeviceWled::restoreState()
 	{
 		_restApi->setPath(API_PATH_STATE);
 
+		if (_isStreamToSegment)
+		{
+			QJsonArray propertiesSegments = _originalStateProperties[STATE_SEG].toArray();
+			QJsonArray segments;
+			for (const auto& segmentItem : qAsConst(propertiesSegments))
+			{
+				QJsonObject segmentObj = segmentItem.toObject();
+
+				int segmentID = segmentObj.value(STATE_SEG_ID).toInt();
+				if (segmentID == _streamSegmentId)
+				{
+					segmentObj[STATE_ON] = _isStayOnAfterStreaming;
+				}
+				segments.append(segmentObj);
+			}
+			_originalStateProperties[STATE_SEG] = segments;
+		}
+
 		_originalStateProperties[STATE_LIVE] = false;
 		_originalStateProperties[STATE_TRANSITIONTIME_CURRENTCALL] = 0;
-
-		if (_isStayOnAfterStreaming)
-		{
-			_originalStateProperties[STATE_ON] = true;
-		}
+		_originalStateProperties[STATE_ON] = _isStayOnAfterStreaming;
 
 		httpResponse response = _restApi->put(_originalStateProperties);
 		if ( response.error() )
@@ -535,10 +545,10 @@ QJsonObject LedDeviceWled::discover(const QJsonObject& /*params*/)
 #ifdef ENABLE_MDNS
 	QString discoveryMethod("mDNS");
 	deviceList = MdnsBrowser::getInstance().getServicesDiscoveredJson(
-		MdnsServiceRegister::getServiceType(_activeDeviceType),
-		MdnsServiceRegister::getServiceNameFilter(_activeDeviceType),
-		DEFAULT_DISCOVER_TIMEOUT
-		);
+					 MdnsServiceRegister::getServiceType(_activeDeviceType),
+					 MdnsServiceRegister::getServiceNameFilter(_activeDeviceType),
+					 DEFAULT_DISCOVER_TIMEOUT
+					 );
 	devicesDiscovered.insert("discoveryMethod", discoveryMethod);
 #endif
 	devicesDiscovered.insert("devices", deviceList);
