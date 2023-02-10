@@ -2379,23 +2379,29 @@ function updateElementsWled(ledType, key) {
   } else {
     //If failed to get properties
     var hardwareLedCount;
+    var segmentConfig = false;
 
     if (configuredDeviceType == ledType && configuredHost == host) {
       // Populate elements from existing configuration
+      if (window.serverConfig.device.segments) {
+        segmentConfig = true;
+      }
+      hardwareLedCount = window.serverConfig.device.hardwareLedCount;
+    } else {
+      // Populate elements with default values
+      hardwareLedCount = 1;
+    }
+
+    if (segmentConfig) {
       var configuredstreamSegmentId = window.serverConfig.device.segments.streamSegmentId.toString();
       enumSegSelectVals = [configuredstreamSegmentId];
       enumSegSelectTitleVals = ["Segment " + configuredstreamSegmentId];
       enumSegSelectDefaultVal = configuredstreamSegmentId;
-
-      hardwareLedCount = window.serverConfig.device.hardwareLedCount;
     } else {
-      // Populate elements with default values
       defaultSegmentId = "-1";
       enumSegSelectVals.push(defaultSegmentId);
       enumSegSelectTitleVals.push($.i18n('edt_dev_spec_segments_disabled_title'));
       enumSegSelectDefaultVal = defaultSegmentId;
-
-      hardwareLedCount = 1;
     }
     conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(hardwareLedCount);
   }
