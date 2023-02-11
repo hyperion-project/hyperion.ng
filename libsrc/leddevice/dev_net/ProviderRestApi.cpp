@@ -32,7 +32,9 @@ ProviderRestApi::ProviderRestApi(const QString& scheme, const QString& host, int
 	, _requestTimeout(DEFAULT_REST_TIMEOUT)
 {
 	_networkManager = new QNetworkAccessManager();
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
 	_networkManager->setRedirectPolicy(QNetworkRequest::NoLessSafeRedirectPolicy);
+#endif
 
 	_apiUrl.setScheme(scheme);
 	_apiUrl.setHost(host);
