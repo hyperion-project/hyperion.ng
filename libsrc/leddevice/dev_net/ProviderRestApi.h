@@ -13,6 +13,8 @@
 #include <QBasicTimer>
 #include <QTimerEvent>
 
+#include <chrono>
+
 constexpr std::chrono::milliseconds DEFAULT_REST_TIMEOUT{ 1000 };
 
 //Set QNetworkReply timeout without external timer

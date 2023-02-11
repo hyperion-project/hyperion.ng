@@ -256,29 +256,27 @@ httpResponse ProviderRestApi::getResponse(QNetworkReply* const& reply)
 
 	if (reply->error() == QNetworkReply::NoError)
 	{
-		if ( httpStatusCode != HttpStatusCode::NoContent ){
-			QByteArray replyData = reply->readAll();
+		QByteArray replyData = reply->readAll();
 
-			if (!replyData.isEmpty())
+		if (!replyData.isEmpty())
+		{
+			QJsonParseError error;
+			QJsonDocument jsonDoc = QJsonDocument::fromJson(replyData, &error);
+
+			if (error.error != QJsonParseError::NoError)
 			{
-				QJsonParseError error;
-				QJsonDocument jsonDoc = QJsonDocument::fromJson(replyData, &error);
-
-				if (error.error != QJsonParseError::NoError)
-				{
-					//Received not valid JSON response
-					response.setError(true);
-					response.setErrorReason(error.errorString());
-				}
-				else
-				{
-					response.setBody(jsonDoc);
-				}
+				//Received not valid JSON response
+				response.setError(true);
+				response.setErrorReason(error.errorString());
 			}
 			else
-			{	// Create valid body which is empty
-				response.setBody(QJsonDocument());
+			{
+				response.setBody(jsonDoc);
 			}
+		}
+		else
+		{	// Create valid body which is empty
+			response.setBody(QJsonDocument());
 		}
 	}
 	else
@@ -316,12 +314,10 @@ httpResponse ProviderRestApi::getResponse(QNetworkReply* const& reply)
 			{
 				errorReason = reply->errorString();
 			}
-			response.setError(true);
-			response.setErrorReason(errorReason);
-		}
 
-		// Create valid body which is empty
-		response.setBody(QJsonDocument());
+		}
+		response.setError(true);
+		response.setErrorReason(errorReason);
 	}
 	return response;
 }
