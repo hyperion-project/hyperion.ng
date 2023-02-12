@@ -94,7 +94,7 @@ void LedDeviceAdalight::prepareHeader()
 		break;
 
 	case Adalight::AWA:
-		_bufferLength += 7;
+		_bufferLength += 8;
 		[[fallthrough]];
 	case Adalight::ADA:
 		[[fallthrough]];
@@ -162,14 +162,20 @@ int LedDeviceAdalight::write(const std::vector<ColorRgb> & ledValues)
 		{
 			whiteChannelExtension(writer);
 
-			uint16_t fletcher1 = 0, fletcher2 = 0;
+			uint16_t fletcher1 = 0;
+			uint16_t fletcher2 = 0;
+			uint16_t fletcherExt = 0;
+			uint8_t position = 0;
+
 			while (hasher < writer)
 			{
+				fletcherExt = (fletcherExt + (*(hasher) ^ (position++))) % 255;
 				fletcher1 = (fletcher1 + *(hasher++)) % 255;
 				fletcher2 = (fletcher2 + fletcher1) % 255;
 			}
 			*(writer++) = static_cast<uint8_t>(fletcher1);
 			*(writer++) = static_cast<uint8_t>(fletcher2);
+			*(writer++) = static_cast<uint8_t>((fletcherExt != 0x41) ? fletcherExt : 0xaa);
 		}
 		_bufferLength = writer - _ledBuffer.data();
 	}

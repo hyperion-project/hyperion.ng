@@ -523,7 +523,10 @@ bool LedDeviceWled::restoreState()
 
 		_originalStateProperties[STATE_LIVE] = false;
 		_originalStateProperties[STATE_TRANSITIONTIME_CURRENTCALL] = 0;
-		_originalStateProperties[STATE_ON] = _isStayOnAfterStreaming;
+		if (_isStayOnAfterStreaming)
+		{
+			_originalStateProperties[STATE_ON] = true;
+		}
 
 		httpResponse response = _restApi->put(_originalStateProperties);
 		if ( response.error() )
