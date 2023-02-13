@@ -3,17 +3,28 @@
 using namespace hyperion;
 
 ImageToLedsMap::ImageToLedsMap(
+		Logger* log,
+		int mappingType,
 		int width,
 		int height,
 		int horizontalBorder,
 		int verticalBorder,
-		const std::vector<Led>& leds)
-	: _width(width)
+		const std::vector<Led>& leds,
+		int reducedPixelSetFactor,
+		int accuracyLevel)
+	: _log(log)
+	, _mappingType(mappingType)
+	, _width(width)
 	, _height(height)
 	, _horizontalBorder(horizontalBorder)
 	, _verticalBorder(verticalBorder)
+	, _nextPixelCount(reducedPixelSetFactor)
+	, _clusterCount()
 	, _colorsMap()
 {
+	_nextPixelCount = reducedPixelSetFactor + 1;
+	setAccuracyLevel(accuracyLevel);
+
 	// Sanity check of the size of the borders (and width and height)
 	Q_ASSERT(_width  > 2*_verticalBorder);
 	Q_ASSERT(_height > 2*_horizontalBorder);
@@ -30,6 +41,7 @@ ImageToLedsMap::ImageToLedsMap(
 
 	size_t	totalCount = 0;
 	size_t	totalCapacity = 0;
+	int     ledCounter = 0;
 
 	for (const Led& led : leds)
 	{
@@ -65,14 +77,27 @@ ImageToLedsMap::ImageToLedsMap(
 		const int realYLedCount = qAbs(maxYLedCount - minY_idx);
 		const int realXLedCount = qAbs(maxXLedCount - minX_idx);
 
-		size_t totalSize = realYLedCount* realXLedCount;
+		bool skipPixelProcessing {false};
+		if (_nextPixelCount > 1)
+		{
+			skipPixelProcessing = true;
+		}
+
+		size_t totalSize = static_cast<size_t>(realYLedCount * realXLedCount);
+
+		if (!skipPixelProcessing && totalSize > 1600)
+		{
+			skipPixelProcessing = true;
+			_nextPixelCount = 2;
+			Warning(_log, "Mapping LED/light [%d]. The current mapping area contains %d pixels which is huge. Therefore every %d pixels will be skipped. You can enable reduced processing to hide that warning.", ledCounter, totalSize, _nextPixelCount);
+		}
 
 		std::vector<int> ledColors;
 		ledColors.reserve(totalSize);
 
-		for (int y = minY_idx; y < maxYLedCount; ++y)
+		for (int y = minY_idx; y < maxYLedCount; y += _nextPixelCount)
 		{
-			for (int x = minX_idx; x < maxXLedCount; ++x)
+			for (int x = minX_idx; x < maxXLedCount; x += _nextPixelCount)
 			{
 				ledColors.push_back( y * width + x);
 			}
@@ -84,9 +109,10 @@ ImageToLedsMap::ImageToLedsMap(
 		totalCount += ledColors.size();
 		totalCapacity += ledColors.capacity();
 
+		ledCounter++;
 	}
-	Debug(Logger::getInstance("HYPERION"), "Total index number is: %d (memory: %d). image size: %d x %d, LED areas: %d",
-		totalCount, totalCapacity, width, height, leds.size());
+	Debug(_log, "Total index number is: %d (memory: %d). Reduced pixel set factor: %d, Accuracy level: %d, Image size: %d x %d, LED areas: %d",
+		totalCount, totalCapacity, reducedPixelSetFactor, accuracyLevel, width, height, leds.size());
 
 }
 
@@ -99,3 +125,16 @@ int ImageToLedsMap::height() const
 {
 	return _height;
 }
+
+void ImageToLedsMap::setAccuracyLevel (int accuracyLevel)
+{
+	if (accuracyLevel > 4 )
+	{
+		Warning(_log, "Accuracy level %d is too high, it will be set to 4", accuracyLevel);
+		accuracyLevel = 4;
+	}
+	//Set cluster number for dominant color advanced
+	_clusterCount  = accuracyLevel + 1;
+
+}
+

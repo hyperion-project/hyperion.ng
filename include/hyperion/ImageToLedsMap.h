@@ -17,15 +17,14 @@
 
 namespace hyperion
 {
-	/// Number of clusters for k-means calculation
-	const int CLUSTER_COUNT {5};
-
 	///
 	/// The ImageToLedsMap holds a mapping of indices into an image to LEDs. It can be used to
 	/// calculate the average (aka mean) or dominant color per LED for a given region.
 	///
-	class ImageToLedsMap
+	class ImageToLedsMap : public QObject
 	{
+		Q_OBJECT
+
 	public:
 
 		///
@@ -35,17 +34,26 @@ namespace hyperion
 		/// The mapping is created purely on size (width and height). The given borders are excluded
 		/// from indexing.
 		///
+		/// @param[in] log              Logger
+		/// @param[in] mappingType      Type of the mapping algorithm
 		/// @param[in] width            The width of the indexed image
 		/// @param[in] height           The width of the indexed image
 		/// @param[in] horizontalBorder The size of the horizontal border (0=no border)
 		/// @param[in] verticalBorder   The size of the vertical border (0=no border)
 		/// @param[in] leds             The list with led specifications
+		/// @param[in] reducedProcessingFactor Factor to reduce the number of pixels evaluated during processing
+		/// @param[in] accuraryLevel    The accuracy used during processing (only for selected types)
 		///
-		ImageToLedsMap(int width,
+		ImageToLedsMap(
+				Logger* log,
+				int mappingType,
+				int width,
 				int height,
 				int horizontalBorder,
 				int verticalBorder,
-				const std::vector<Led> & leds);
+				const std::vector<Led> & leds,
+				int reducedProcessingFactor = 0,
+				int accuraryLevel = 0);
 
 		///
 		/// Returns the width of the indexed image
@@ -63,6 +71,13 @@ namespace hyperion
 
 		int horizontalBorder() const { return _horizontalBorder; }
 		int verticalBorder() const { return _verticalBorder; }
+
+		///
+		/// Set the accuracy used during processing
+		/// (only for selected types)
+		///
+		/// @param[in] level  The accuracy level (0-4)
+		void setAccuracyLevel (int level);
 
 		///
 		/// Determines the mean color for each LED using the LED area mapping given
@@ -92,7 +107,7 @@ namespace hyperion
 		{
 			if(_colorsMap.size() != ledColors.size())
 			{
-				Debug(Logger::getInstance("HYPERION"), "ImageToLedsMap: colorsMap.size != ledColors.size -> %d != %d", _colorsMap.size(), ledColors.size());
+				Debug(_log, "ImageToLedsMap: colorsMap.size != ledColors.size -> %d != %d", _colorsMap.size(), ledColors.size());
 				return;
 			}
 
@@ -133,7 +148,7 @@ namespace hyperion
 		{
 			if(_colorsMap.size() != ledColors.size())
 			{
-				Debug(Logger::getInstance("HYPERION"), "ImageToLedsMap: colorsMap.size != ledColors.size -> %d != %d", _colorsMap.size(), ledColors.size());
+				Debug(_log, "ImageToLedsMap: colorsMap.size != ledColors.size -> %d != %d", _colorsMap.size(), ledColors.size());
 				return;
 			}
 
@@ -172,7 +187,7 @@ namespace hyperion
 		{
 			if(_colorsMap.size() != ledColors.size())
 			{
-				Debug(Logger::getInstance("HYPERION"), "ImageToLedsMap: colorsMap.size != ledColors.size -> %d != %d", _colorsMap.size(), ledColors.size());
+				Debug(_log, "ImageToLedsMap: colorsMap.size != ledColors.size -> %d != %d", _colorsMap.size(), ledColors.size());
 				return;
 			}
 
@@ -211,7 +226,7 @@ namespace hyperion
 			// Sanity check for the number of LEDs
 			if(_colorsMap.size() != ledColors.size())
 			{
-				Debug(Logger::getInstance("HYPERION"), "ImageToLedsMap: colorsMap.size != ledColors.size -> %d != %d", _colorsMap.size(), ledColors.size());
+				Debug(_log, "ImageToLedsMap: colorsMap.size != ledColors.size -> %d != %d", _colorsMap.size(), ledColors.size());
 				return;
 			}
 
@@ -253,7 +268,7 @@ namespace hyperion
 			// Sanity check for the number of LEDs
 			if(_colorsMap.size() != ledColors.size())
 			{
-				Debug(Logger::getInstance("HYPERION"), "ImageToLedsMap: colorsMap.size != ledColors.size -> %d != %d", _colorsMap.size(), ledColors.size());
+				Debug(_log, "ImageToLedsMap: colorsMap.size != ledColors.size -> %d != %d", _colorsMap.size(), ledColors.size());
 				return;
 			}
 
@@ -267,6 +282,11 @@ namespace hyperion
 		}
 
 	private:
+
+		Logger* _log;
+
+		int _mappingType;
+
 		/// The width of the indexed image
 		const int _width;
 		/// The height of the indexed image
@@ -274,6 +294,12 @@ namespace hyperion
 
 		const int _horizontalBorder;
 		const int _verticalBorder;
+
+		/// Evaluate every "count" pixel
+		int _nextPixelCount;
+
+		/// Number of clusters used during dominant color advanced processing (k-means)
+		int _clusterCount;
 
 		/// The absolute indices into the image for each led
 		std::vector<std::vector<int>> _colorsMap;
@@ -496,10 +522,19 @@ namespace hyperion
 		struct ColorCluster {
 
 			ColorCluster():count(0) {}
+			ColorCluster(Pixel_T color):count(0),color(color) {}
 
 			Pixel_T color;
 			Pixel_T newColor;
 			int count;
+		};
+
+		const ColorRgb DEFAULT_CLUSTER_COLORS[5] {
+			{ColorRgb::BLACK},
+			{ColorRgb::GREEN},
+			{ColorRgb::WHITE},
+			{ColorRgb::RED},
+			{ColorRgb::YELLOW}
 		};
 
 		///
@@ -519,31 +554,11 @@ namespace hyperion
 			const auto pixelNum = pixels.size();
 			if (pixelNum > 0)
 			{
-				ColorCluster<ColorRgbScalar> clusters[CLUSTER_COUNT];
-
-				// initial cluster colors
-				switch (CLUSTER_COUNT) {
-				case 5:
-					clusters[4].newColor = ColorRgbScalar(ColorRgb::YELLOW);
-				case 4:
-					clusters[3].newColor = ColorRgbScalar(ColorRgb::RED);
-				case 3:
-					clusters[2].newColor = ColorRgbScalar(ColorRgb::WHITE);
-				case 2:
-					clusters[1].newColor = ColorRgbScalar(ColorRgb::GREEN);
-				case 1:
-					clusters[0].newColor = ColorRgbScalar(ColorRgb::BLACK);
-					break;
-				default:
-					for(int k = 0; k < CLUSTER_COUNT; ++k)
-					{
-						int randomRed = rand() % static_cast<int>(256);
-						int randomGreen = rand() % static_cast<int>(256);
-						int randomBlue = rand() % static_cast<int>(256);
-
-						clusters[k].newColor = ColorRgbScalar(randomRed, randomGreen, randomBlue);
-					}
-					break;
+				// initial cluster with different colors
+				ColorCluster<ColorRgbScalar> clusters[_clusterCount];
+				for(int k = 0; k < _clusterCount; ++k)
+				{
+					clusters[k].newColor = DEFAULT_CLUSTER_COLORS[k];
 				}
 
 				// k-means
@@ -552,7 +567,7 @@ namespace hyperion
 
 				while(1)
 				{
-					for(int k = 0; k < CLUSTER_COUNT; ++k)
+					for(int k = 0; k < _clusterCount; ++k)
 					{
 						clusters[k].count = 0;
 						clusters[k].color = clusters[k].newColor;
@@ -566,7 +581,7 @@ namespace hyperion
 
 						min_rgb_euclidean = 255 * 255 * 255;
 						int clusterIndex = -1;
-						for(int k = 0; k < CLUSTER_COUNT; ++k)
+						for(int k = 0; k < _clusterCount; ++k)
 						{
 							double euclid = ColorSys::rgb_euclidean(ColorRgbScalar(pixel), clusters[k].color);
 
@@ -581,7 +596,7 @@ namespace hyperion
 					}
 
 					min_rgb_euclidean = 0;
-					for(int k = 0; k < CLUSTER_COUNT; ++k)
+					for(int k = 0; k < _clusterCount; ++k)
 					{
 						if (clusters[k].count > 0)
 						{
@@ -606,7 +621,7 @@ namespace hyperion
 				int colorsFoundMax = 0;
 				int dominantClusterIdx {0};
 
-				for(int clusterIdx=0; clusterIdx < CLUSTER_COUNT; ++clusterIdx){
+				for(int clusterIdx=0; clusterIdx < _clusterCount; ++clusterIdx){
 					int colorsFoundinCluster = clusters[clusterIdx].count;
 					if (colorsFoundinCluster > colorsFoundMax)  {
 						colorsFoundMax = colorsFoundinCluster;
