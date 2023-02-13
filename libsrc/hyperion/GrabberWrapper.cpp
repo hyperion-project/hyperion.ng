@@ -186,7 +186,8 @@ void GrabberWrapper::updateTimer(int interval)
 }
 
 void GrabberWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
-{	if(type == settings::SYSTEMCAPTURE && !_grabberName.startsWith("V4L"))
+{
+	if(type == settings::SYSTEMCAPTURE && !_grabberName.startsWith("V4L"))
 	{
 		// extract settings
 		const QJsonObject& obj = config.object();

@@ -147,10 +147,7 @@ private slots:
 	void handleSourceRequest(hyperion::Components component, int hyperionInd, bool listen);
 
 	///
-	/// @brief Update Update capture rate
-	/// @param type   interval between frames in milliseconds
-	///
-	void updateTimer(int interval);
+
 
 protected:
 
@@ -167,6 +164,11 @@ protected:
 	/// @return True on success (i.e. device is closed)
 	///
 	virtual bool close() { return true; }
+
+	/// @brief Update Update capture rate
+	/// @param type   interval between frames in milliseconds
+	///
+	void updateTimer(int interval);
 
 
 	QString _grabberName;
