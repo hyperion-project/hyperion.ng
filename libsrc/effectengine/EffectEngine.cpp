@@ -121,11 +121,17 @@ void EffectEngine::handleUpdatedEffectList()
 		// add smoothing configurations to Hyperion
 		if (def.args["smoothing-custom-settings"].toBool())
 		{
+			int settlingTime_ms = def.args["smoothing-time_ms"].toInt();
+			double ledUpdateFrequency_hz = def.args["smoothing-updateFrequency"].toDouble();
+			unsigned updateDelay {0};
+
+			Debug(_log, "Effect \"%s\": Add custom smoothing settings [%d]. Type: Linear, Settling time: %dms, Interval: %.fHz ", QSTRING_CSTR(def.name), specificId, settlingTime_ms, ledUpdateFrequency_hz);
+
 			def.smoothCfg = _hyperion->updateSmoothingConfig(
-				++specificId,
-				def.args["smoothing-time_ms"].toInt(),
-				def.args["smoothing-updateFrequency"].toDouble(),
-				0 );
+								++specificId,
+								settlingTime_ms,
+								ledUpdateFrequency_hz,
+								updateDelay );
 		}
 		else
 		{
@@ -155,11 +161,18 @@ int EffectEngine::runEffect(const QString &effectName, const QJsonObject &args, 
 	//In case smoothing information is provided dynamically use temp smoothing config item (2)
 	if (smoothCfg == SmoothingConfigID::SYSTEM && args["smoothing-custom-settings"].toBool())
 	{
+		int settlingTime_ms = args["smoothing-time_ms"].toInt();
+		double ledUpdateFrequency_hz = args["smoothing-updateFrequency"].toDouble();
+		unsigned updateDelay {0};
+
+		Debug(_log, "Effect \"%s\": Apply dynamic smoothing settings, if smoothing. Type: Linear, Settling time: %dms, Interval: %.fHz ", QSTRING_CSTR(effectName), settlingTime_ms, ledUpdateFrequency_hz);
+
 		smoothCfg = _hyperion->updateSmoothingConfig(
-			SmoothingConfigID::EFFECT_DYNAMIC,
-			args["smoothing-time_ms"].toInt(),
-			args["smoothing-updateFrequency"].toDouble(),
-			0 );
+						SmoothingConfigID::EFFECT_DYNAMIC,
+						settlingTime_ms,
+						ledUpdateFrequency_hz,
+						updateDelay
+						);
 	}
 
 	if (pythonScript.isEmpty())

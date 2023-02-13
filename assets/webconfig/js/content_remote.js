@@ -97,7 +97,7 @@ $(document).ready(function () {
   }
 
   function updateInputSelect() {
-    $('.sstbody').html("");
+    $('.sstbody').empty();
     var prios = window.serverInfo.priorities;
     var clearAll = false;
 

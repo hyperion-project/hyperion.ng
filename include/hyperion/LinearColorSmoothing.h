@@ -289,6 +289,9 @@ private:
 	int _currentConfigId;
 	bool _enabled;
 
+	//The system enable state, to restore smoothing state after effect with smoothing ran
+	bool _enabledSystemCfg;
+
 	/// The type of smoothing to perform
 	SmoothingType _smoothingType;
 
