@@ -4,7 +4,6 @@ using namespace hyperion;
 
 ImageToLedsMap::ImageToLedsMap(
 		Logger* log,
-		int mappingType,
 		int width,
 		int height,
 		int horizontalBorder,
@@ -13,7 +12,6 @@ ImageToLedsMap::ImageToLedsMap(
 		int reducedPixelSetFactor,
 		int accuracyLevel)
 	: _log(log)
-	, _mappingType(mappingType)
 	, _width(width)
 	, _height(height)
 	, _horizontalBorder(horizontalBorder)

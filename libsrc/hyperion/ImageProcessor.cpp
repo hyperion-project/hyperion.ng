@@ -22,7 +22,6 @@ void ImageProcessor::registerProcessingUnit(
 	{
 		_imageToLedColors = QSharedPointer<ImageToLedsMap>(new ImageToLedsMap(
 								_log,
-								_mappingType,
 								width,
 								height,
 								horizontalBorder,

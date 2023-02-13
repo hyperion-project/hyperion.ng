@@ -35,7 +35,6 @@ namespace hyperion
 		/// from indexing.
 		///
 		/// @param[in] log              Logger
-		/// @param[in] mappingType      Type of the mapping algorithm
 		/// @param[in] width            The width of the indexed image
 		/// @param[in] height           The width of the indexed image
 		/// @param[in] horizontalBorder The size of the horizontal border (0=no border)
@@ -46,7 +45,6 @@ namespace hyperion
 		///
 		ImageToLedsMap(
 				Logger* log,
-				int mappingType,
 				int width,
 				int height,
 				int horizontalBorder,
@@ -284,8 +282,6 @@ namespace hyperion
 	private:
 
 		Logger* _log;
-
-		int _mappingType;
 
 		/// The width of the indexed image
 		const int _width;
