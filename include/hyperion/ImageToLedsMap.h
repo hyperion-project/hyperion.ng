@@ -3,6 +3,7 @@
 
 // STL includes
 #include <cassert>
+#include <memory>
 #include <sstream>
 #include <cmath>
 
@@ -546,15 +547,14 @@ namespace hyperion
 		ColorRgb calculateDominantColorAdv(const Image<Pixel_T> & image, const std::vector<int> & pixels) const
 		{
 			ColorRgb dominantColor {ColorRgb::BLACK};
-
 			const auto pixelNum = pixels.size();
 			if (pixelNum > 0)
 			{
 				// initial cluster with different colors
-				ColorCluster<ColorRgbScalar> clusters[_clusterCount];
+				auto clusters = std::unique_ptr< ColorCluster<ColorRgbScalar> >(new ColorCluster<ColorRgbScalar>[_clusterCount]);
 				for(int k = 0; k < _clusterCount; ++k)
 				{
-					clusters[k].newColor = DEFAULT_CLUSTER_COLORS[k];
+					clusters.get()[k].newColor = DEFAULT_CLUSTER_COLORS[k];
 				}
 
 				// k-means
@@ -565,9 +565,9 @@ namespace hyperion
 				{
 					for(int k = 0; k < _clusterCount; ++k)
 					{
-						clusters[k].count = 0;
-						clusters[k].color = clusters[k].newColor;
-						clusters[k].newColor.setRgb(ColorRgb::BLACK);
+						clusters.get()[k].count = 0;
+						clusters.get()[k].color = clusters.get()[k].newColor;
+						clusters.get()[k].newColor.setRgb(ColorRgb::BLACK);
 					}
 
 					const auto& imgData = image.memptr();
@@ -579,7 +579,7 @@ namespace hyperion
 						int clusterIndex = -1;
 						for(int k = 0; k < _clusterCount; ++k)
 						{
-							double euclid = ColorSys::rgb_euclidean(ColorRgbScalar(pixel), clusters[k].color);
+							double euclid = ColorSys::rgb_euclidean(ColorRgbScalar(pixel), clusters.get()[k].color);
 
 							if(  euclid < min_rgb_euclidean ) {
 								min_rgb_euclidean = euclid;
@@ -587,18 +587,18 @@ namespace hyperion
 							}
 						}
 
-						clusters[clusterIndex].count++;
-						clusters[clusterIndex].newColor += ColorRgbScalar(pixel);
+						clusters.get()[clusterIndex].count++;
+						clusters.get()[clusterIndex].newColor += ColorRgbScalar(pixel);
 					}
 
 					min_rgb_euclidean = 0;
 					for(int k = 0; k < _clusterCount; ++k)
 					{
-						if (clusters[k].count > 0)
+						if (clusters.get()[k].count > 0)
 						{
 							// new color
-							clusters[k].newColor /= clusters[k].count;
-							double ecli = ColorSys::rgb_euclidean(clusters[k].newColor, clusters[k].color);
+							clusters.get()[k].newColor /= clusters.get()[k].count;
+							double ecli = ColorSys::rgb_euclidean(clusters.get()[k].newColor, clusters.get()[k].color);
 							if(ecli > min_rgb_euclidean)
 							{
 								min_rgb_euclidean = ecli;
@@ -618,16 +618,16 @@ namespace hyperion
 				int dominantClusterIdx {0};
 
 				for(int clusterIdx=0; clusterIdx < _clusterCount; ++clusterIdx){
-					int colorsFoundinCluster = clusters[clusterIdx].count;
+					int colorsFoundinCluster = clusters.get()[clusterIdx].count;
 					if (colorsFoundinCluster > colorsFoundMax)  {
 						colorsFoundMax = colorsFoundinCluster;
 						dominantClusterIdx = clusterIdx;
 					}
 				}
 
-				dominantColor.red = static_cast<uint8_t>(clusters[dominantClusterIdx].newColor.red);
-				dominantColor.green = static_cast<uint8_t>(clusters[dominantClusterIdx].newColor.green);
-				dominantColor.blue = static_cast<uint8_t>(clusters[dominantClusterIdx].newColor.blue);
+				dominantColor.red = static_cast<uint8_t>(clusters.get()[dominantClusterIdx].newColor.red);
+				dominantColor.green = static_cast<uint8_t>(clusters.get()[dominantClusterIdx].newColor.green);
+				dominantColor.blue = static_cast<uint8_t>(clusters.get()[dominantClusterIdx].newColor.blue);
 			}
 
 			return dominantColor;
