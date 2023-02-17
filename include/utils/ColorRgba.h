@@ -30,11 +30,11 @@ struct ColorRgba
 	static const ColorRgba WHITE;
 };
 
-/// Assert to ensure that the size of the structure is 'only' 3 bytes
+/// Assert to ensure that the size of the structure is 'only' 4 bytes
 static_assert(sizeof(ColorRgba) == 4, "Incorrect size of ColorARGB");
 
 ///
-/// Stream operator to write ColorRgb to an outputstream (format "'{'[alpha]', '[red]','[green]','[blue]'}'")
+/// Stream operator to write ColorRgba to an outputstream (format "'{'[alpha]', '[red]','[green]','[blue]'}'")
 ///
 /// @param os The output stream
 /// @param color The color to write
