@@ -15,6 +15,11 @@ AudioGrabberLinux::AudioGrabberLinux()
 {
 }
 
+AudioGrabberLinux::~AudioGrabberLinux()
+{
+	this->stop();
+}
+
 void AudioGrabberLinux::refreshDevices()
 {
 	Debug(_log, "Enumerating Audio Input Devices");

@@ -46,7 +46,6 @@ AudioGrabber::~AudioGrabber()
 
 void AudioGrabber::freeResources()
 {
-	this->stop();
 }
 
 void AudioGrabber::setDevice(const QString& device)

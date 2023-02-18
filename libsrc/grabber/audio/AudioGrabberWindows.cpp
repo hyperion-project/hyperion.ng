@@ -15,6 +15,11 @@ AudioGrabberWindows::AudioGrabberWindows() : AudioGrabber()
 {
 }
 
+AudioGrabberWindows::~AudioGrabberWindows()
+{
+	this->stop();
+}
+
 void AudioGrabberWindows::refreshDevices()
 {
 	Debug(_log, "Refreshing Audio Devices");

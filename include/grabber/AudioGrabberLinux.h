@@ -16,6 +16,7 @@ class AudioGrabberLinux : public AudioGrabber
 	public:
 
 		AudioGrabberLinux();
+		~AudioGrabberLinux() override;
 
 		/// 
 		/// Process audio buffer

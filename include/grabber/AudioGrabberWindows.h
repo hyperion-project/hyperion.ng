@@ -13,6 +13,7 @@ class AudioGrabberWindows : public AudioGrabber
 	public:
 
 		AudioGrabberWindows();
+		~AudioGrabberWindows() override;
 		
 	public slots:
 		bool start() override;
