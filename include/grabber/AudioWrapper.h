@@ -10,11 +10,13 @@
 	#include <grabber/AudioGrabberLinux.h>
 #endif
 
+/// 
+/// Audio Grabber wrapper
+///
 class AudioWrapper : public GrabberWrapper
 {
 	public:
 
-	// FIXME: Update and add descriptions for functions and class
 	// The AudioWrapper has no params...
 
 		///
@@ -30,6 +32,9 @@ class AudioWrapper : public GrabberWrapper
 		///
 		~AudioWrapper() override;
 
+		/// 
+		/// Settings update handler
+		///
 		void handleSettingsUpdate(settings::type type, const QJsonDocument& config) override;
 
 	public slots:
@@ -37,7 +42,16 @@ class AudioWrapper : public GrabberWrapper
 		/// Performs a single frame grab and computes the led-colors
 		///
 		void action() override;
+
+		/// 
+		/// Start audio capturing session
+		///
+		/// @returns true if successful
 		bool start() override;
+
+		/// 
+		/// Stop audio capturing session
+		///
 		void stop() override;
 
 	private:

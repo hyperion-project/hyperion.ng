@@ -734,13 +734,10 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 			_audioGrabber = new AudioWrapper();
 			_audioGrabber->handleSettingsUpdate(settings::AUDIO, getSetting(settings::AUDIO));
 
-			//connect(this, &HyperionDaemon::setVideoMode, _audioGrabber, &AudioWrapper::setVideoMode); // Do we need this?
 			connect(this, &HyperionDaemon::settingsChanged, _audioGrabber, &AudioWrapper::handleSettingsUpdate);
 
 			Debug(_log, "Audio grabber created");
 		}
-
-		//_audioGrabber->tryStart();
 #else
 		Debug(_log, "Audio capture not supported on this platform");
 #endif

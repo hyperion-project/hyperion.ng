@@ -93,8 +93,8 @@
 	"grabberAudio": {
 		"enable": false,
 		"device": "auto",
-		"audioEffect": "uvMeter",
-		"uvMeter": {
+		"audioEffect": "vuMeter",
+		"vuMeter": {
 			"flip": "NO_CHANGE",
 			"hotColor": [ 255, 0, 0 ],
 			"multiplier": 1,

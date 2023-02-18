@@ -205,14 +205,7 @@ bool AudioGrabberLinux::start()
 		stop();
 		return false;
 	}
-	/*
-	if (pthread_attr_setschedparam(&threadAttributes, &schedulerParameter) != 0)
-	{
-		Debug(_log, "Failed to set scheduler parameters");
-		stopAudio();
-		return false;
-	}
-	*/
+
 	if (pthread_create(&_audioThread, &threadAttributes, static_cast<THREADFUNCPTR>(&AudioThreadRunner), static_cast<void*>(this)) != 0)
 	{
 		Debug(_log, "Failed to create audio capture thread");
@@ -250,7 +243,7 @@ void AudioGrabberLinux::processAudioBuffer(snd_pcm_sframes_t frames)
 
 	ssize_t bytes = snd_pcm_frames_to_bytes(_captureDevice, frames);
 
-	int16_t * buffer = static_cast<int16_t*>(calloc(static_cast<size_t>(bytes / 2), sizeof(int16_t))); // * snd_pcm_format_width(SND_PCM_FORMAT_S16_LE) / 8 * 2);
+	int16_t * buffer = static_cast<int16_t*>(calloc(static_cast<size_t>(bytes / 2), sizeof(int16_t)));
 	
 	if (frames == 0)
 	{

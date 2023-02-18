@@ -89,9 +89,7 @@ void AudioGrabber::processAudioFrame(int16_t* buffer, int length)
 
 	// TODO: Support Stereo capture with different meters per side
 
-	// Default UVMeter - Later Make this pluggable for different audio effects
-	// FIXME: We might already reflect different ways of audio image representation in the grabber JSON. I will provide a sample how it might look like...
-
+	// Default VUMeter - Later Make this pluggable for different audio effects
 
 	double averageAmplitude = 0;
 	// Calculate the the average amplitude value in the buffer

@@ -534,7 +534,7 @@
     "edt_conf_audio_device_title": "Audio Device",
     "edt_conf_audio_effects_expl":  "Select an effect on how the audio signal is transformed to",
     "edt_conf_audio_effects_title":  "Audio Effects",
-    "edt_conf_audio_effect_enum_uvmeter": "UV-Meter",
+    "edt_conf_audio_effect_enum_vumeter": "VU-Meter",
     "edt_conf_audio_effect_hotcolor_expl": "Hot Color",
     "edt_conf_audio_effect_hotcolor_title": "Hot Color",
     "edt_conf_audio_effect_multiplier_expl": "Audio Signal Value multiplier",
