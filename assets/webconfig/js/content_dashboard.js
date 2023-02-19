@@ -58,7 +58,8 @@ $(document).ready(function () {
       if (components[idx].name != "ALL") {
         if ((components[idx].name === "FORWARDER" && window.currentHyperionInstance != 0) ||
           (components[idx].name === "GRABBER" && !window.serverConfig.framegrabber.enable) ||
-          (components[idx].name === "V4L" && !window.serverConfig.grabberV4L2.enable))
+          (components[idx].name === "V4L" && !window.serverConfig.grabberV4L2.enable) ||
+          (components[idx].name === "AUDIO" && !window.serverConfig.grabberAudio.enable))
           continue;
 
         var comp_enabled = components[idx].enabled ? "checked" : "";
@@ -104,8 +105,9 @@ $(document).ready(function () {
 
   var screenGrabberAvailable = (window.serverInfo.grabbers.screen.available.length !== 0);
   var videoGrabberAvailable = (window.serverInfo.grabbers.video.available.length !== 0);
+  const audioGrabberAvailable = (window.serverInfo.grabbers.audio.available.length !== 0);
 
-  if (screenGrabberAvailable || videoGrabberAvailable) {
+  if (screenGrabberAvailable || videoGrabberAvailable || audioGrabberAvailable) {
 
     if (screenGrabberAvailable) {
       var screenGrabber = window.serverConfig.framegrabber.enable ? $.i18n('general_enabled') : $.i18n('general_disabled');
@@ -119,6 +121,13 @@ $(document).ready(function () {
       $('#dash_video_grabber').html(videoGrabber);
     } else {
       $("#dash_video_grabber_row").hide();
+    }
+
+    if (audioGrabberAvailable) {
+      const audioGrabber = window.serverConfig.grabberAudio.enable ? $.i18n('general_enabled') : $.i18n('general_disabled');
+      $('#dash_audio_grabber').html(audioGrabber);
+    } else {
+      $("#dash_audio_grabber_row").hide();
     }
   } else {
     $("#dash_capture_hw").hide();

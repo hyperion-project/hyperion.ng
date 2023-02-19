@@ -118,6 +118,10 @@ if (ENABLE_MF)
 	target_link_libraries(${PROJECT_NAME} mf-grabber)
 endif (ENABLE_MF)
 
+if (ENABLE_AUDIO)
+	target_link_libraries(hyperiond audio-grabber)
+endif()
+
 if (ENABLE_AMLOGIC)
 	target_link_libraries(${PROJECT_NAME} amlogic-grabber)
 endif (ENABLE_AMLOGIC)

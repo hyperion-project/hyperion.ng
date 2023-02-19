@@ -19,6 +19,7 @@ namespace settings {
 		SYSTEMCAPTURE,
 		GENERAL,
 		V4L2,
+		AUDIO,
 		JSONSERVER,
 		LEDCONFIG,
 		LEDS,
@@ -52,6 +53,7 @@ namespace settings {
 			case SYSTEMCAPTURE: return "framegrabber";
 			case GENERAL:       return "general";
 			case V4L2:          return "grabberV4L2";
+			case AUDIO:			return "grabberAudio";
 			case JSONSERVER:    return "jsonServer";
 			case LEDCONFIG:     return "ledConfig";
 			case LEDS:          return "leds";
@@ -84,6 +86,7 @@ namespace settings {
 		else if (type == "framegrabber")         return SYSTEMCAPTURE;
 		else if (type == "general")              return GENERAL;
 		else if (type == "grabberV4L2")          return V4L2;
+		else if (type == "grabberAudio")		 return AUDIO;
 		else if (type == "jsonServer")           return JSONSERVER;
 		else if (type == "ledConfig")            return LEDCONFIG;
 		else if (type == "leds")                 return LEDS;

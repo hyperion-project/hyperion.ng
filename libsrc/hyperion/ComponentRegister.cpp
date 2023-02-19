@@ -20,6 +20,7 @@ ComponentRegister::ComponentRegister(Hyperion* hyperion)
 
 	bool areScreenGrabberAvailable = !GrabberWrapper::availableGrabbers(GrabberTypeFilter::VIDEO).isEmpty();
 	bool areVideoGrabberAvailable = !GrabberWrapper::availableGrabbers(GrabberTypeFilter::VIDEO).isEmpty();
+	bool areAudioGrabberAvailable = !GrabberWrapper::availableGrabbers(GrabberTypeFilter::AUDIO).isEmpty();
 	bool flatBufServerAvailable { false };
 	bool protoBufServerAvailable{ false };
 
@@ -34,6 +35,11 @@ ComponentRegister::ComponentRegister(Hyperion* hyperion)
 	if (areScreenGrabberAvailable)
 	{
 		vect << COMP_GRABBER;
+	}
+
+	if (areAudioGrabberAvailable)
+	{
+		vect << COMP_AUDIO;
 	}
 
 	if (areVideoGrabberAvailable)

@@ -48,6 +48,29 @@
 			"maximum": 253,
 			"default": 240,
 			"propertyOrder": 6
+		},
+		"audioEnable": {
+			"type": "boolean",
+			"required": true,
+			"title": "edt_conf_instC_audioEnable_title",
+			"default": false,
+			"propertyOrder": 7
+		},
+		"audioGrabberDevice": {
+			"type": "string",
+			"required": true,
+			"title": "edt_conf_instC_video_grabber_device_title",
+			"default": "NONE",
+			"propertyOrder": 7
+		},
+		"audioPriority": {
+			"type": "integer",
+			"required": true,
+			"title": "edt_conf_general_priority_title",
+			"minimum": 100,
+			"maximum": 253,
+			"default": 230,
+			"propertyOrder": 9
 		}
 	},
 	"additionalProperties" : false

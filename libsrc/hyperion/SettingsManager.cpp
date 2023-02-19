@@ -501,6 +501,20 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 					Debug(_log, "GrabberV4L2 records migrated");
 				}
 
+				if (config.contains("grabberAudio"))
+				{
+					QJsonObject newGrabberAudioConfig = config["grabberAudio"].toObject();
+
+					//Add new element enable
+					if (!newGrabberAudioConfig.contains("enable"))
+					{
+						newGrabberAudioConfig["enable"] = false;
+						migrated = true;
+					}
+					config["grabberAudio"] = newGrabberAudioConfig;
+					Debug(_log, "GrabberAudio records migrated");
+				}
+
 				if (config.contains("framegrabber"))
 				{
 					QJsonObject newFramegrabberConfig = config["framegrabber"].toObject();

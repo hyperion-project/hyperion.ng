@@ -1220,6 +1220,7 @@ function getSystemInfo() {
   //info += '- Log lvl:           ' + window.serverConfig.logger.level + '\n';
   info += '- Avail Screen Cap.: ' + window.serverInfo.grabbers.screen.available + '\n';
   info += '- Avail Video  Cap.: ' + window.serverInfo.grabbers.video.available + '\n';
+  info += '- Avail Audio  Cap.: ' + window.serverInfo.grabbers.audio.available + '\n';
   info += '- Avail Services:    ' + window.serverInfo.services + '\n';
   info += '- Config path:       ' + shy.rootPath + '\n';
   info += '- Database:          ' + (shy.readOnlyMode ? "ready-only" : "read/write") + '\n';
@@ -1317,9 +1318,9 @@ function showInputOptionsForKey(editor, item, showForKeys, state) {
     }
   }
 
-  for (var key in editor.schema.properties[item].properties) {
+  for (let key in editor.schema.properties[item].properties) {
     if ($.inArray(key, keysToshow) === -1) {
-      var accessLevel = editor.schema.properties[item].properties[key].access;
+      const accessLevel = editor.schema.properties[item].properties[key].access;
 
       var hidden = false;
       if (editor.schema.properties[item].properties[key].options) {

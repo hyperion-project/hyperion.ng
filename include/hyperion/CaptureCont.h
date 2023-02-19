@@ -20,6 +20,7 @@ public:
 
 	void setSystemCaptureEnable(bool enable);
 	void setV4LCaptureEnable(bool enable);
+	void setAudioCaptureEnable(bool enable);
 
 private slots:
 	///
@@ -49,9 +50,20 @@ private slots:
 	void handleV4lImage(const QString& name, const Image<ColorRgb> & image);
 
 	///
+	/// @brief forward audio image
+	/// @param image  The image
+	///
+	void handleAudioImage(const QString& name, const Image<ColorRgb>& image);
+
+	///
 	/// @brief Is called from _v4lInactiveTimer to set source after specific time to inactive
 	///
 	void setV4lInactive();
+
+	///
+	/// @brief Is called from _audioInactiveTimer to set source after specific time to inactive
+	///
+	void setAudioInactive();
 
 	///
 	/// @brief Is called from _systemInactiveTimer to set source after specific time to inactive
@@ -73,4 +85,10 @@ private:
 	quint8 _v4lCaptPrio;
 	QString _v4lCaptName;
 	QTimer* _v4lInactiveTimer;
+
+	/// Reflect state of audio capture and prio
+	bool _audioCaptEnabled;
+	quint8 _audioCaptPrio;
+	QString _audioCaptName;
+	QTimer* _audioInactiveTimer;
 };

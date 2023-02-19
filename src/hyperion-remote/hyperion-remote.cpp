@@ -113,8 +113,8 @@ int main(int argc, char * argv[])
 #endif
 		BooleanOption   & argClear              = parser.add<BooleanOption>('x', "clear"                  , "Clear data for the priority channel provided by the -p option");
 		BooleanOption   & argClearAll           = parser.add<BooleanOption>(0x0, "clearall"               , "Clear data for all active priority channels");
-		Option          & argEnableComponent    = parser.add<Option>       ('E', "enable"                 , "Enable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, FORWARDER, BOBLIGHTSERVER, GRABBER, V4L, LEDDEVICE]");
-		Option          & argDisableComponent   = parser.add<Option>       ('D', "disable"                , "Disable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, FORWARDER, BOBLIGHTSERVER, GRABBER, V4L, LEDDEVICE]");
+		Option          & argEnableComponent    = parser.add<Option>       ('E', "enable"                 , "Enable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, FORWARDER, BOBLIGHTSERVER, GRABBER, V4L, AUDIO, LEDDEVICE]");
+		Option          & argDisableComponent   = parser.add<Option>       ('D', "disable"                , "Disable the Component with the given name. Available Components are [SMOOTHING, BLACKBORDER, FORWARDER, BOBLIGHTSERVER, GRABBER, V4L, AUDIO, LEDDEVICE]");
 		Option          & argId                 = parser.add<Option>       ('q', "qualifier"              , "Identifier(qualifier) of the adjustment to set");
 		IntOption       & argBrightness         = parser.add<IntOption>    ('L', "brightness"             , "Set the brightness gain of the LEDs");
 		IntOption       & argBrightnessC        = parser.add<IntOption>    (0x0, "brightnessCompensation" , "Set the brightness compensation");

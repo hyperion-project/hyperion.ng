@@ -4,9 +4,11 @@ $(document).ready(function () {
 
   var screenGrabberAvailable = (window.serverInfo.grabbers.screen.available.length !== 0);
   var videoGrabberAvailable = (window.serverInfo.grabbers.video.available.length !== 0);
+  const audioGrabberAvailable = (window.serverInfo.grabbers.audio.available.length !== 0);
   var CEC_ENABLED = (jQuery.inArray("cec", window.serverInfo.services) !== -1);
 
   var conf_editor_video = null;
+  var conf_editor_audio = null;
   var conf_editor_screen = null;
 
   var configuredDevice = "";
@@ -35,6 +37,22 @@ $(document).ready(function () {
 
     if (window.showOptHelp) {
       $('#conf_cont_video').append(createHelpTable(window.schema.grabberV4L2.properties, $.i18n("edt_conf_v4l2_heading_title"), "videograbberHelpPanelId"));
+    }
+  }
+
+  // Audio-Grabber
+  if (audioGrabberAvailable) {
+    $('#conf_cont').append(createRow('conf_cont_audio'));
+    $('#conf_cont_audio').append(createOptPanel('fa-volume', $.i18n("edt_conf_audio_heading_title"), 'editor_container_audiograbber', 'btn_submit_audiograbber', 'panel-system', 'audiograbberPanelId'));
+
+    if (storedAccess === 'expert') {
+      const conf_cont_audio_footer = document.getElementById("editor_container_audiograbber").nextElementSibling;
+      $(conf_cont_audio_footer).prepend('<button class="btn btn-primary mdi-24px" id="btn_audiograbber_set_effect_defaults" disabled data-toggle="tooltip" data-placement="top" title="' + $.i18n("edt_conf_audio_hardware_set_defaults_tip") + '">'
+        + '<i class= "fa fa-fw fa-undo" ></i >' + $.i18n("edt_conf_audio_effect_set_defaults") + '</button > ');
+    }
+
+    if (window.showOptHelp) {
+      $('#conf_cont_audio').append(createHelpTable(window.schema.grabberAudio.properties, $.i18n("edt_conf_audio_heading_title"), "audiograbberHelpPanelId"));
     }
   }
 
@@ -694,6 +712,121 @@ $(document).ready(function () {
     });
   }
 
+  // External Input Sources (Audio-Grabbers)
+  if (audioGrabberAvailable) {
+
+    conf_editor_audio = createJsonEditor('editor_container_audiograbber', {
+      grabberAudio: window.schema.grabberAudio
+    }, true, true);
+
+    conf_editor_audio.on('ready', () => {
+      // Trigger conf_editor_audio.watch - 'root.grabberAudio.enable'
+      const audioEnable = window.serverConfig.grabberAudio.enable;
+      conf_editor_audio.getEditor("root.grabberAudio.enable").setValue(audioEnable);
+    });
+
+    conf_editor_audio.on('change', () => {
+
+      // Validate the current editor's content
+      if (!conf_editor_audio.validate().length) {
+        const deviceSelected = conf_editor_audio.getEditor("root.grabberAudio.available_devices").getValue();
+        switch (deviceSelected) {
+          case "SELECT":
+            showInputOptionsForKey(conf_editor_audio, "grabberAudio", ["enable", "available_devices"], false);
+            break;
+          case "NONE":
+            showInputOptionsForKey(conf_editor_audio, "grabberAudio", ["enable", "available_devices"], false);
+            break;
+          default:
+            window.readOnlyMode ? $('#btn_submit_audiograbber').prop('disabled', true) : $('#btn_submit_audiograbber').prop('disabled', false);
+            break;
+        }
+      }
+      else {
+        $('#btn_submit_audiograbber').prop('disabled', true);
+      }
+    });
+
+    // Enable
+    conf_editor_audio.watch('root.grabberAudio.enable', () => {
+
+      const audioEnable = conf_editor_audio.getEditor("root.grabberAudio.enable").getValue();
+      if (audioEnable)
+      {
+        showInputOptionsForKey(conf_editor_audio, "grabberAudio", "enable", true);
+
+        $('#btn_audiograbber_set_effect_defaults').show();
+
+        if (window.showOptHelp) {
+          $('#audiograbberHelpPanelId').show();
+        }
+
+        discoverInputSources("audio");
+      }
+      else
+      {
+        $('#btn_submit_audiograbber').prop('disabled', false);
+        $('#btn_audiograbber_set_effect_defaults').hide();
+        showInputOptionsForKey(conf_editor_audio, "grabberAudio", "enable", false);
+        $('#audiograbberHelpPanelId').hide();
+      }
+    });
+
+    // Available Devices
+    conf_editor_audio.watch('root.grabberAudio.available_devices', () => {
+      const deviceSelected = conf_editor_audio.getEditor("root.grabberAudio.available_devices").getValue();
+
+      if (deviceSelected === "SELECT" || deviceSelected === "NONE" || deviceSelected === "") {
+        $('#btn_submit_audiograbber').prop('disabled', true);
+        showInputOptionsForKey(conf_editor_audio, "grabberAudio", ["enable", "available_devices"], false);
+      }
+      else
+      {
+        showInputOptionsForKey(conf_editor_audio, "grabberAudio", ["enable", "available_devices"], true);
+
+        const deviceProperties = getPropertiesOfDevice("audio", deviceSelected);
+
+        //Update hidden input element
+        conf_editor_audio.getEditor("root.grabberAudio.device").setValue(deviceProperties.device);
+
+        //Enfore configured JSON-editor dependencies
+        conf_editor_audio.notifyWatchers("root.grabberAudio.audioEffect");
+
+        //Enable set defaults button
+        $('#btn_audiograbber_set_effect_defaults').prop('disabled', false);
+
+        if (conf_editor_audio.validate().length && !window.readOnlyMode) {
+          $('#btn_submit_audiograbber').prop('disabled', false);
+        }
+      }
+    });
+
+    $('#btn_submit_audiograbber').off().on('click', function () {
+      const saveOptions = conf_editor_audio.getValue();
+
+      const instCaptOptions = window.serverConfig.instCapture;
+      instCaptOptions.audioEnable = true;
+      saveOptions.instCapture = instCaptOptions;
+
+      requestWriteConfig(saveOptions);
+    });
+
+    // ------------------------------------------------------------------
+
+    $('#btn_audiograbber_set_effect_defaults').off().on('click', function () {
+      const currentEffect = conf_editor_audio.getEditor("root.grabberAudio.audioEffect").getValue();
+      var effectEditor = conf_editor_audio.getEditor("root.grabberAudio." + currentEffect);
+      var defaultProperties = effectEditor.schema.defaultProperties;
+
+      var default_values = {};
+      for (const item of defaultProperties) {
+
+        default_values[item] = effectEditor.schema.properties[item].default;
+      }
+      effectEditor.setValue(default_values);
+    });
+  }
+
   // ------------------------------------------------------------------
 
   //////////////////////////////////////////////////
@@ -705,6 +838,9 @@ $(document).ready(function () {
     }
     if (videoGrabberAvailable) {
       createHint("intro", $.i18n('conf_grabber_v4l_intro'), "editor_container_videograbber");
+    }
+    if (audioGrabberAvailable) {
+      createHint("intro", $.i18n('conf_grabber_audio_intro'), "editor_container_audiograbber");
     }
   }
 
@@ -773,6 +909,38 @@ $(document).ready(function () {
     }
   };
 
+  // build dynamic audio input enum
+  const updateAudioSourcesList = function (type, discoveryInfo) {
+    const enumVals = [];
+    const enumTitelVals = [];
+    let enumDefaultVal = "";
+    let addSelect = false;
+
+    if (jQuery.isEmptyObject(discoveryInfo)) {
+      enumVals.push("NONE");
+      enumTitelVals.push($.i18n('edt_conf_grabber_discovered_none'));
+    }
+    else {
+      for (const device of discoveryInfo) {
+        enumVals.push(device.device_name);
+      }
+      conf_editor_audio.getEditor('root.grabberAudio').enable();
+      configuredDevice = window.serverConfig.grabberAudio.available_devices;
+
+      if ($.inArray(configuredDevice, enumVals) != -1) {
+        enumDefaultVal = configuredDevice;
+      }
+      else {
+        addSelect = true;
+      }
+    }
+
+    if (enumVals.length > 0) {
+      updateJsonEditorSelection(conf_editor_audio, 'root.grabberAudio',
+        'available_devices', {}, enumVals, enumTitelVals, enumDefaultVal, addSelect, false);
+    }
+  };
+
   async function discoverInputSources(type, params) {
     const result = await requestInputSourcesDiscovery(type, params);
 
@@ -782,7 +950,8 @@ $(document).ready(function () {
     }
     else {
       discoveryResult = {
-        "video_sources": []
+        "video_sources": [],
+        "audio_soruces": []
       };
     }
 
@@ -797,6 +966,12 @@ $(document).ready(function () {
         discoveredInputSources.video = discoveryResult.video_sources;
         if (videoGrabberAvailable) {
           updateVideoSourcesList(type, discoveredInputSources.video);
+        }
+        break;
+      case "audio":
+        discoveredInputSources.audio = discoveryResult.audio_sources;
+        if (audioGrabberAvailable) {
+          updateAudioSourcesList(type, discoveredInputSources.audio);
         }
         break;
     }

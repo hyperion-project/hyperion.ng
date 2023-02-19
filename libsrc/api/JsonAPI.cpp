@@ -29,6 +29,18 @@
 	#include <grabber/V4L2Grabber.h>
 #endif
 
+#if defined(ENABLE_AUDIO)
+	#include <grabber/AudioGrabber.h>
+
+	#ifdef WIN32
+		#include <grabber/AudioGrabberWindows.h>
+	#endif
+
+	#ifdef __linux__
+		#include <grabber/AudioGrabberLinux.h>
+	#endif
+#endif
+
 #if defined(ENABLE_X11)
 	#include <grabber/X11Grabber.h>
 #endif
@@ -554,6 +566,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	info["ledDevices"] = ledDevices;
 
 	QJsonObject grabbers;
+	// SCREEN
 	QJsonObject screenGrabbers;
 	if (GrabberWrapper::getInstance() != nullptr)
 	{
@@ -573,6 +586,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	}
 	screenGrabbers["available"] = availableScreenGrabbers;
 
+	// VIDEO
 	QJsonObject videoGrabbers;
 	if (GrabberWrapper::getInstance() != nullptr)
 	{
@@ -592,8 +606,31 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	}
 	videoGrabbers["available"] = availableVideoGrabbers;
 
+	// AUDIO
+	QJsonObject audioGrabbers;
+	if (GrabberWrapper::getInstance() != nullptr)
+	{
+		QStringList activeGrabbers = GrabberWrapper::getInstance()->getActive(_hyperion->getInstanceIndex(), GrabberTypeFilter::AUDIO);
+
+		QJsonArray activeGrabberNames;
+		for (auto grabberName : activeGrabbers)
+		{
+			activeGrabberNames.append(grabberName);
+		}
+
+		audioGrabbers["active"] = activeGrabberNames;
+	}
+	QJsonArray availableAudioGrabbers;
+	for (auto grabber : GrabberWrapper::availableGrabbers(GrabberTypeFilter::AUDIO))
+	{
+		availableAudioGrabbers.append(grabber);
+	}
+	audioGrabbers["available"] = availableAudioGrabbers;
+
 	grabbers.insert("screen", screenGrabbers);
 	grabbers.insert("video", videoGrabbers);
+	grabbers.insert("audio", audioGrabbers);
+
 	info["grabbers"] = grabbers;
 
 	info["videomode"] = QString(videoMode2String(_hyperion->getCurrentVideoMode()));
@@ -1607,6 +1644,7 @@ void JsonAPI::handleInputSourceCommand(const QJsonObject& message, const QString
 			QJsonObject inputSourcesDiscovered;
 			inputSourcesDiscovered.insert("sourceType", sourceType);
 			QJsonArray videoInputs;
+			QJsonArray audioInputs;
 
 #if defined(ENABLE_V4L2) || defined(ENABLE_MF)
 
@@ -1619,6 +1657,24 @@ void JsonAPI::handleInputSourceCommand(const QJsonObject& message, const QString
 #endif
 				QJsonObject params;
 				videoInputs = grabber->discover(params);
+				delete grabber;
+			}
+			else
+#endif
+
+#if defined(ENABLE_AUDIO)
+			if (sourceType == "audio")
+			{
+				AudioGrabber* grabber;
+#ifdef WIN32
+				grabber = new AudioGrabberWindows();
+#endif
+
+#ifdef __linux__
+				grabber = new AudioGrabberLinux();
+#endif
+				QJsonObject params;
+				audioInputs = grabber->discover(params);
 				delete grabber;
 			}
 			else
@@ -1719,6 +1775,7 @@ void JsonAPI::handleInputSourceCommand(const QJsonObject& message, const QString
 
 			}
 			inputSourcesDiscovered["video_sources"] = videoInputs;
+			inputSourcesDiscovered["audio_sources"] = audioInputs;
 
 			DebugIf(verbose, _log, "response: [%s]", QString(QJsonDocument(inputSourcesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
