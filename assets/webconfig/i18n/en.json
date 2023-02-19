@@ -428,7 +428,7 @@
     "edt_conf_instC_systemEnable_title": "Enable screen capture",
     "edt_conf_instC_v4lEnable_expl": "Enables the USB capture for this LED hardware instance",
     "edt_conf_instC_v4lEnable_title": "Enable USB capture",
-    "edt_conf_instC_audioEnable_expl": "Enables the Audio capture for this led hardware instance",
+    "edt_conf_instC_audioEnable_expl": "Enables the Audio capture for this LED hardware instance",
     "edt_conf_instC_audioEnable_title": "Enable Audio capture",
     "edt_conf_instC_video_grabber_device_expl": "The video capture device used",
     "edt_conf_instC_video_grabber_device_title": "Video capture device",

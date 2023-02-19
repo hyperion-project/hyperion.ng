@@ -51,7 +51,7 @@
 	"smoothing": {
 		"enable": true,
 		"type": "linear",
-		"time_ms": 200,
+		"time_ms": 150,
 		"updateFrequency": 25.0000,
 		"interpolationRate": 25.0000,
 		"decay": 1,

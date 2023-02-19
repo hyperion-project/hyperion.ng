@@ -4,12 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.0.14...HEAD)
-
-### Breaking
+## [2.0.15](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.15) - 2023-02
 
 ### Added
 
+- Audio Grabber to add audio visualization support for both Windows and Linux.
+- Support streaming to individual WLED segments (requires WLED 0.13.3+).
+To allow segment streaming, enable "Realtime - Use main segment only" in WLED's Sync Interfaces setup screen
+- Allow to keep WLED powered on after streaming and restoring state
 - Allow to Disable / Enable all instances (#970) by 
 	- Suspend/Resume support for Linux and Windows (#1493,#1282, #978).
 	Suspend/Resume/Restart is supported via API, UI, Systray and hyperion-remote
@@ -17,23 +19,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 	In Idle, all instances, components will be disabled besides the output processing (LED-Devices, smoothing).
 	The current priorities will be cleared and the background effect per instance will be executed, if enabled.
 	- Commands toogleSuspend and toggleIdle allow to flip between modes, e.g. might be used to trigger modes by a remote
+- Reduced pixel processing to reduce resources on big assignment areas
+- Support for squared mean color processing
+- Support for dominant color processing on assigned LED areas (#1382). A simple and advanced way is provided. Advanced and high accuracy might be combined with reduced pixel processing to lower CPU usage.
 - Add instance# in API response (#1504)
 
 ### Changed
 
+- REST API - Increased default timeout to address "Operation cancelled" errors
+- LED Devices: Allow to differentiate between recoverable/unrecoverable errors
+- Renamed LED area assignment naming to provide clarity on the processing algorithms
+
 ### Fixed
 
+- Effects/Smoothing:  Effects with dedicated smoothing settings will now run with those settings (even if general smoothing is off)
+- No interim color update after streaming and turning off WLED
+- LED-Matrix Layout: Add Cabling direction selection element again (#1566)
 - Restart correctly, if running as service (#1368)
 - Hue-Wizard: In case auto discovery failed, port 80 was not used as default (#1544)
 - Send only one reply per Start Instance request (#1551)
 - Add instance# in JSON-API replies (aligning to Add instance in websocket response to a subscription #1504 behaviour)
-- hyperion-remote: Extracting reply for a configGet request correctly (#1555) 
+- hyperion-remote: Extracting reply for a configGet request correctly (#1555)
+- Grabber fps setting was not applied correctly
+- Smoothing:  No empty updates
 
 ### Technical
 - Add CodeQL for GitHub code scanning
 - Update to Protocol Buffers 3.21.12
-- cmake support of libcec without version in lib-name
+- Update to Mbed TLS 3.3.0
 - Qt6 alignments
+- cmake support of libcec without version in lib-name
 - Refactor for Python 3.11 deprecated functions
 
 ## Removed

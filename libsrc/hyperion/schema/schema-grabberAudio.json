@@ -143,18 +143,6 @@
                     "required": true,
                     "propertyOrder": 7,
                     "comment": "Safe percentage is the percentage used to determine the maximum percentage of the audio safe level"
-                },
-                "flip": {
-                    "type": "string",
-                    "title": "edt_conf_v4l2_flip_title",
-                    "enum": [ "NO_CHANGE", "HORIZONTAL", "VERTICAL", "BOTH" ],
-                    "default": "NO_CHANGE",
-                    "options": {
-                        "enum_titles": [ "edt_conf_enum_NO_CHANGE", "edt_conf_enum_HORIZONTAL", "edt_conf_enum_VERTICAL", "edt_conf_enum_BOTH" ]
-                    },
-                    "required": true,
-                    "access": "advanced",
-                    "propertyOrder": 8
                 }
             }
         }

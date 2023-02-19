@@ -14,6 +14,7 @@ from __future__ import division, unicode_literals
 import contextlib
 import datetime
 import itertools
+import collections
 import json
 import numbers
 import operator
