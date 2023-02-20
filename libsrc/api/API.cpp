@@ -70,6 +70,7 @@ void API::init()
 	_hyperion = _instanceManager->getHyperionInstance(0);
 
     bool apiAuthRequired = _authManager->isAuthRequired();
+	qDebug() << "API::init - apiAuthRequired: " << apiAuthRequired;
 
     // For security we block external connections if default PW is set
     if (!_localConnection && API::hasHyperionDefaultPw())
@@ -77,21 +78,22 @@ void API::init()
         emit forceClose();
     }
     // if this is localConnection and network allows unauth locals, set authorized flag
-    if (apiAuthRequired && _localConnection)
+	if (!_authManager->isLocalAuthRequired() && _localConnection)
 	{
-        _authorized = !_authManager->isLocalAuthRequired();
-	}
+		_authorized = true;
+		_adminAuthorized = !_authManager->isLocalAdminAuthRequired();
 
-    // admin access is allowed, when the connection is local and the option for local admin isn't set. Con: All local connections get full access
-    if (_localConnection)
-    {
-        _adminAuthorized = !_authManager->isLocalAdminAuthRequired();
-        // just in positive direction
-		if (_adminAuthorized)
+	}
+	else
+	{
+		 if (_localConnection)
 		{
-			_authorized = true;
-		}
-    }
+			_authorized = !_authManager->isLocalAuthRequired();
+			 _adminAuthorized = !_authManager->isLocalAdminAuthRequired();
+		 }
+	}
+	qDebug() << "API::init - _authorized: " << _authorized;
+	qDebug() << "API::init - _adminAuthorized: " << _adminAuthorized;
 }
 
 void API::setColor(int priority, const std::vector<uint8_t> &ledColors, int timeout_ms, const QString &origin, hyperion::Components callerComp)

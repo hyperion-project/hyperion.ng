@@ -114,8 +114,11 @@ JsonAPI::JsonAPI(QString peerAddress, Logger *log, bool localConnection, QObject
 
 void JsonAPI::initialize()
 {
+	Debug(_log,"");
 	// init API, REQUIRED!
 	API::init();
+	// Initialise jsonCB with current instance
+	_jsonCB->setSubscriptionsTo(_hyperion);
 
 	// setup auth interface
 	connect(this, &API::onPendingTokenRequest, this, &JsonAPI::newPendingTokenRequest);
@@ -156,8 +159,12 @@ bool JsonAPI::handleInstanceSwitch(quint8 inst, bool forced)
 
 void JsonAPI::handleMessage(const QString &messageString, const QString &httpAuthHeader)
 {
+	Debug(_log,"");
 	const QString ident = "JsonRpc@" + _peerAddress;
 	QJsonObject message;
+	//std::cout << "JsonAPI::handleMessage | [" << static_cast<int>(_hyperion->getInstanceIndex()) << "] Received: ["<< messageString.toStdString() << "]" << std::endl;
+	//std::cout << "JsonAPI::handleMessage - _noListener [" << _noListener << "]" << std::endl;
+	//std::cout << "JsonAPI::handleMessage - _authorized [" << _authorized << "] _adminAuthorized [" << _adminAuthorized << "]" << std::endl;
 
 	// parse the message
 	if (!JsonUtils::parse(ident, messageString, message, _log))
@@ -185,25 +192,26 @@ void JsonAPI::handleMessage(const QString &messageString, const QString &httpAut
 		return;
 	}
 
-	// client auth before everything else but not for http
-	if (!_noListener && command == "authorize")
-	{
-		handleAuthorizeCommand(message, command, tan);
-		return;
-	}
-
 	// check auth state
 	if (!API::isAuthorized())
 	{
+		Debug(_log,"!API::isAuthorized(), _noListener [%d]", _noListener);
 		// on the fly auth available for http from http Auth header
 		if (_noListener)
 		{
 			QString cToken = httpAuthHeader.mid(5).trimmed();
 			if (API::isTokenAuthorized(cToken))
+			{
+				_authorized = true;
+				if (!_authManager->isLocalAdminAuthRequired())
+				{
+					_adminAuthorized = true;
+				}
 				goto proceed;
+			}
+			sendErrorReply("No Authorization", command, tan);
+			return;
 		}
-		sendErrorReply("No Authorization", command, tan);
-		return;
 	}
 proceed:
 	if (_hyperion == nullptr)
@@ -211,9 +219,12 @@ proceed:
 		sendErrorReply("Service Unavailable", command, tan);
 		return;
 	}
+	//Debug(_log,"proceed - cmd: [%s], _authorized[%d], _adminAuthorized[%d]", QSTRING_CSTR(command), _authorized, _adminAuthorized);
 
 	// switch over all possible commands and handle them
-	if (command == "color")
+	if (command == "authorize")
+		handleAuthorizeCommand(message, command, tan);
+	else if (command == "color")
 		handleColorCommand(message, command, tan);
 	else if (command == "image")
 		handleImageCommand(message, command, tan);
@@ -1256,6 +1267,7 @@ void JsonAPI::handleVideoModeCommand(const QJsonObject &message, const QString &
 
 void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &command, int tan)
 {
+	Debug(_log,"");
 	const QString &subc = message["subcommand"].toString().trimmed();
 	const QString &id = message["id"].toString().trimmed();
 	const QString &password = message["password"].toString().trimmed();
@@ -1275,6 +1287,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 	// catch test if admin auth is required
 	if (subc == "adminRequired")
 	{
+		Debug(_log,"adminRequired: [%d]", !API::isAdminAuthorized());
 		QJsonObject req;
 		req["adminRequired"] = !API::isAdminAuthorized();
 		sendSuccessDataReply(QJsonDocument(req), command + "-" + subc, tan);
@@ -1291,7 +1304,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 	}
 
 	// catch logout
-	if (subc == "logout")
+	if (!_noListener && subc == "logout")
 	{
 		// disconnect all kind of data callbacks
 		JsonAPI::stopDataConnections(); // TODO move to API
@@ -1319,7 +1332,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 	}
 
 	// token created from ui
-	if (subc == "createToken")
+	if (!_noListener && subc == "createToken")
 	{
 		// use comment
 		// for user authorized sessions
@@ -1368,7 +1381,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 	}
 
 	// catch token request
-	if (subc == "requestToken")
+	if (!_noListener && subc == "requestToken")
 	{
 		// use id/comment
 		const bool &acc = message["accept"].toBool(true);
@@ -1381,7 +1394,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 	}
 
 	// get pending token requests
-	if (subc == "getPendingTokenRequests")
+	if (!_noListener && subc == "getPendingTokenRequests")
 	{
 		QVector<AuthManager::AuthDefinition> vec;
 		if (API::getPendingTokenRequests(vec))
@@ -1406,7 +1419,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 	}
 
 	// accept/deny token request
-	if (subc == "answerRequest")
+	if (!_noListener && subc == "answerRequest")
 	{
 		// use id
 		const bool &accept = message["accept"].toBool(false);
@@ -1422,7 +1435,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 		if (API::getTokenList(defVect))
 		{
 			QJsonArray tArr;
-			for (const auto &entry : defVect)
+			for (const auto &entry : qAsConst(defVect))
 			{
 				QJsonObject subO;
 				subO["comment"] = entry.comment;
@@ -1439,9 +1452,12 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 	}
 
 	// login
-	if (subc == "login")
+	if (!_noListener && subc == "login")
 	{
 		const QString &token = message["token"].toString().trimmed();
+
+		qDebug() << "token: len: " << token.count() << " [" << token;
+		qDebug() << "password: len: " << password.count() << " [" << password;
 
 		// catch token
 		if (!token.isEmpty())
@@ -1449,6 +1465,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 			// userToken is longer
 			if (token.size() > 36)
 			{
+				Debug(_log,"isUserTokenAuthorized [%d]", API::isUserTokenAuthorized(token));
 				if (API::isUserTokenAuthorized(token))
 					sendSuccessReply(command + "-" + subc, tan);
 				else
@@ -1459,6 +1476,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 			// usual app token is 36
 			if (token.size() == 36)
 			{
+				Debug(_log,"isTokenAuthorized [%d]", API::isTokenAuthorized(token));
 				if (API::isTokenAuthorized(token))
 				{
 					sendSuccessReply(command + "-" + subc, tan);
@@ -1466,6 +1484,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 				else
 					sendErrorReply("No Authorization", command + "-" + subc, tan);
 			}
+			std::cout << "handleAuthorizeCommand [login] - _authorized [" << _authorized << "] _adminAuthorized [" << _adminAuthorized << "]" << std::endl;
 			return;
 		}
 
@@ -1473,6 +1492,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 		// use password
 		if (password.size() >= 8)
 		{
+			Debug(_log,"password: isUserAuthorized [%d] ", API::isUserAuthorized(token));
 			QString userTokenRep;
 			if (API::isUserAuthorized(password) && API::getUserToken(userTokenRep))
 			{
@@ -1482,10 +1502,24 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 				sendSuccessDataReply(QJsonDocument(obj), command + "-" + subc, tan);
 			}
 			else
+			{
 				sendErrorReply("No Authorization", command + "-" + subc, tan);
+			}
 		}
 		else
+		{
 			sendErrorReply("Password too short", command + "-" + subc, tan);
+		}
+		return;
+	}
+
+	if(_noListener)
+	{
+		sendErrorReply("Command not supported via single API calls using HTTP/S", command + "-" + subc, tan);
+	}
+	else
+	{
+		handleNotImplemented(command, tan);
 	}
 }
 
