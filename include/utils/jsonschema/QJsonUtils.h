@@ -57,7 +57,9 @@ public:
 				break;
 			}
 			case QJsonValue::Object:
-				ret = getDefaultValue(value.toObject().find("default").value());
+			{
+				ret = getDefaultValue(value.toObject().value("default"));
+			}
 				break;
 			case QJsonValue::Bool:
 				return value.toBool() ? "True" : "False";
@@ -174,9 +176,9 @@ private:
 
 							if (!path.isEmpty())
 							{
-								QJsonObject obj;
-								modifyValue(subValue, obj, path, newValue, property);
-								subValue = obj;
+								QJsonObject tempObj;
+								modifyValue(subValue, tempObj, path, newValue, property);
+								subValue = tempObj;
 							}
 							else if (newValue != QJsonValue::Null)
 								subValue = newValue;

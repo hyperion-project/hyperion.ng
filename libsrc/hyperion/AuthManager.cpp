@@ -261,26 +261,24 @@ void AuthManager::checkTimeout()
 void AuthManager::checkAuthBlockTimeout()
 {
 	// handle user auth block
-	for (auto it = _userAuthAttempts.begin(); it != _userAuthAttempts.end(); it++)
-	{
+	QMutableVectorIterator<uint64_t> itUserAuth(_userAuthAttempts);
+	while (itUserAuth.hasNext()) {
 		// after 10 minutes, we remove the entry
-		if (*it < (uint64_t)QDateTime::currentMSecsSinceEpoch())
-		{
-			_userAuthAttempts.erase(it--);
-		}
+		if (itUserAuth.next() < static_cast<uint64_t>(QDateTime::currentMSecsSinceEpoch()))
+			itUserAuth.remove();
 	}
 
 	// handle token auth block
-	for (auto it = _tokenAuthAttempts.begin(); it != _tokenAuthAttempts.end(); it++)
-	{
+	QMutableVectorIterator<uint64_t> itTokenAuth(_tokenAuthAttempts);
+	while (itTokenAuth.hasNext()) {
 		// after 10 minutes, we remove the entry
-		if (*it < (uint64_t)QDateTime::currentMSecsSinceEpoch())
-		{
-			_tokenAuthAttempts.erase(it--);
-		}
+		if (itTokenAuth.next() < static_cast<uint64_t>(QDateTime::currentMSecsSinceEpoch()))
+			itTokenAuth.remove();
 	}
 
 	// if the lists are empty we stop
 	if (_userAuthAttempts.empty() && _tokenAuthAttempts.empty())
+	{
 		_authBlockTimer->stop();
+	}
 }

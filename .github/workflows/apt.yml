@@ -108,7 +108,7 @@ jobs:
           reprepro -Vb apt export
 
       - name: Download artifacts
-        uses: actions/download-artifact@v3.0.1
+        uses: actions/download-artifact@v3.0.2
 
       - name: Include artifacts into the package source
         run: |
@@ -121,7 +121,7 @@ jobs:
           done
 
       - name: Upload packages to APT server (DRAFT)
-        uses: SamKirkland/FTP-Deploy-Action@4.3.2
+        uses: SamKirkland/FTP-Deploy-Action@4.3.3
         with:
           server: apt.hyperion-project.org
           username: ${{ secrets.APT_USER }}

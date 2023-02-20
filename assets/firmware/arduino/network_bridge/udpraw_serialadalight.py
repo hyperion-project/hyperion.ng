@@ -153,10 +153,9 @@ to this service over the network.
 
     srv = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    srv.bind(('0.0.0.0', args.localport)) # lgtm [py/bind-socket-all-network-interfaces]
+    srv.bind(('0.0.0.0', args.localport))
 
     try:
-        intentional_exit = False
         while True:
             try:
                 while True:
@@ -180,7 +179,7 @@ to this service over the network.
                         # probably got disconnected
                         break
             except KeyboardInterrupt:
-                intentional_exit = True
+                # intentional_exit
                 raise
             except socket.error as msg:
                 if args.develop:
@@ -190,6 +189,7 @@ to this service over the network.
                 ser_to_net.socket = None
                 sys.stderr.write('Disconnected\n')
     except KeyboardInterrupt:
+        # do not handle exceptions
         pass
 
     sys.stderr.write('\n--- exit ---\n')

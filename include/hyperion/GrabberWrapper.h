@@ -43,8 +43,10 @@ public:
 
 	static QMap<int, QString> GRABBER_SYS_CLIENTS;
 	static QMap<int, QString> GRABBER_V4L_CLIENTS;
+	static QMap<int, QString> GRABBER_AUDIO_CLIENTS;
 	static bool GLOBAL_GRABBER_SYS_ENABLE;
 	static bool GLOBAL_GRABBER_V4L_ENABLE;
+	static bool GLOBAL_GRABBER_AUDIO_ENABLE;
 
 	///
 	/// Starts the grabber which produces led values with the specified update rate
@@ -78,6 +80,8 @@ public:
 	void setSysGrabberState(bool sysGrabberState){ GLOBAL_GRABBER_SYS_ENABLE = sysGrabberState; }
 	bool getV4lGrabberState() const { return GLOBAL_GRABBER_V4L_ENABLE; }
 	void setV4lGrabberState(bool v4lGrabberState){ GLOBAL_GRABBER_V4L_ENABLE = v4lGrabberState; }
+	bool getAudioGrabberState() const { return GLOBAL_GRABBER_AUDIO_ENABLE; }
+	void setAudioGrabberState(bool audioGrabberState) { GLOBAL_GRABBER_AUDIO_ENABLE = audioGrabberState; }
 
 	static QStringList availableGrabbers(GrabberTypeFilter type = GrabberTypeFilter::ALL);
 
@@ -147,10 +151,7 @@ private slots:
 	void handleSourceRequest(hyperion::Components component, int hyperionInd, bool listen);
 
 	///
-	/// @brief Update Update capture rate
-	/// @param type   interval between frames in milliseconds
-	///
-	void updateTimer(int interval);
+
 
 protected:
 
@@ -167,6 +168,11 @@ protected:
 	/// @return True on success (i.e. device is closed)
 	///
 	virtual bool close() { return true; }
+
+	/// @brief Update Update capture rate
+	/// @param type   interval between frames in milliseconds
+	///
+	void updateTimer(int interval);
 
 
 	QString _grabberName;

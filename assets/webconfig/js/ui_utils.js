@@ -171,6 +171,10 @@ function initLanguageSelection() {
 }
 
 function updateUiOnInstance(inst) {
+
+  window.currentHyperionInstance = inst;
+  window.currentHyperionInstanceName = getInstanceNameByIndex(inst);
+
   $("#active_instance_friendly_name").text(getInstanceNameByIndex(inst));
   if (window.serverInfo.instance.filter(entry => entry.running).length > 1) {
     $('#btn_hypinstanceswitch').toggle(true);
@@ -316,7 +320,7 @@ function showInfoDialog(type, header, message) {
 
   $(document).on('click', '[data-dismiss-modal]', function () {
     var target = $(this).attr('data-dismiss-modal');
-    $(target).modal('hide'); // lgtm [js/xss-through-dom]
+    $.find(target).modal('hide');
   });
 }
 
@@ -405,6 +409,32 @@ function isJsonString(str) {
     return e;
   }
   return "";
+}
+
+const getObjectProperty = (obj, path) => path.split(".").reduce((o, key) => o && typeof o[key] !== 'undefined' ? o[key] : undefined, obj);
+
+const setObjectProperty = (object, path, value) => {
+  const parts = path.split('.');
+  const limit = parts.length - 1;
+  for (let i = 0; i < limit; ++i) {
+    const key = parts[i];
+    if (key === "__proto__" || key === "constructor") continue;
+    object = object[key] ?? (object[key] = {});
+  }
+  const key = parts[limit];
+  object[key] = value;
+};
+
+function getLongPropertiesPath(path) {
+  if (path) {
+    var path = path.replace('root.', '');
+    const parts = path.split('.');
+    parts.forEach(function (part, index) {
+      this[index] += ".properties";
+    }, parts);
+    path = parts.join('.') + '.';
+  }
+  return path;
 }
 
 function createJsonEditor(container, schema, setconfig, usePanel, arrayre) {
@@ -527,7 +557,8 @@ function updateJsonEditorSelection(rootEditor, path, key, addElements, newEnumVa
 
   editor.original_schema.properties[key] = orginalProperties;
   editor.schema.properties[key] = newSchema[key];
-  rootEditor.validator.schema.properties[editor.key].properties[key] = newSchema[key];
+  //Update schema properties for validator
+  setObjectProperty(rootEditor.validator.schema.properties, getLongPropertiesPath(path) + key, newSchema[key]);
 
   editor.removeObjectProperty(key);
   delete editor.cached_editors[key];
@@ -596,7 +627,8 @@ function updateJsonEditorMultiSelection(rootEditor, path, key, addElements, newE
 
   editor.original_schema.properties[key] = orginalProperties;
   editor.schema.properties[key] = newSchema[key];
-  rootEditor.validator.schema.properties[editor.key].properties[key] = newSchema[key];
+  //Update schema properties for validator
+  setObjectProperty(rootEditor.validator.schema.properties, getLongPropertiesPath(path) + key, newSchema[key]);
 
   editor.removeObjectProperty(key);
   delete editor.cached_editors[key];
@@ -644,7 +676,8 @@ function updateJsonEditorRange(rootEditor, path, key, minimum, maximum, defaultV
 
   editor.original_schema.properties[key] = orginalProperties;
   editor.schema.properties[key] = newSchema[key];
-  rootEditor.validator.schema.properties[editor.key].properties[key] = newSchema[key];
+  //Update schema properties for validator
+  setObjectProperty(rootEditor.validator.schema.properties, getLongPropertiesPath(path) + key, newSchema[key]);
 
   editor.removeObjectProperty(key);
   delete editor.cached_editors[key];
@@ -1187,6 +1220,7 @@ function getSystemInfo() {
   //info += '- Log lvl:           ' + window.serverConfig.logger.level + '\n';
   info += '- Avail Screen Cap.: ' + window.serverInfo.grabbers.screen.available + '\n';
   info += '- Avail Video  Cap.: ' + window.serverInfo.grabbers.video.available + '\n';
+  info += '- Avail Audio  Cap.: ' + window.serverInfo.grabbers.audio.available + '\n';
   info += '- Avail Services:    ' + window.serverInfo.services + '\n';
   info += '- Config path:       ' + shy.rootPath + '\n';
   info += '- Database:          ' + (shy.readOnlyMode ? "ready-only" : "read/write") + '\n';
@@ -1246,15 +1280,26 @@ function isAccessLevelCompliant(accessLevel) {
 }
 
 function showInputOptions(path, elements, state) {
+
+  if (!path.startsWith("root.")) {
+    path = ["root", path].join('.');
+  }
+
   for (var i = 0; i < elements.length; i++) {
-    $('[data-schemapath="root.' + path + '.' + elements[i] + '"]').toggle(state);
+    $('[data-schemapath="' + path + '.' + elements[i] + '"]').toggle(state);
   }
 }
 
 function showInputOptionForItem(editor, path, item, state) {
-  var accessLevel = editor.schema.properties[path].properties[item].access;
+  //Get access level for full path and item
+  var accessLevel = getObjectProperty(editor.schema.properties, getLongPropertiesPath(path) + item + ".access");
   // Enable element only, if access level compliant
   if (!state || isAccessLevelCompliant(accessLevel)) {
+
+    if (!path) {
+      debugger;
+      path = editor.path;
+    }
     showInputOptions(path, [item], state);
   }
 }
@@ -1269,17 +1314,26 @@ function showInputOptionsForKey(editor, item, showForKeys, state) {
     if (typeof showForKeys === 'string') {
       keysToshow.push(showForKeys);
     } else {
-      return
+      return;
     }
   }
 
-  for (var key in editor.schema.properties[item].properties) {
+  for (let key in editor.schema.properties[item].properties) {
     if ($.inArray(key, keysToshow) === -1) {
-      var accessLevel = editor.schema.properties[item].properties[key].access;
+      const accessLevel = editor.schema.properties[item].properties[key].access;
 
+      var hidden = false;
+      if (editor.schema.properties[item].properties[key].options) {
+        hidden = editor.schema.properties[item].properties[key].options.hidden;
+        if (typeof hidden === 'undefined') {
+          hidden = false;
+        }
+      }
       //Always disable all elements, but only enable elements, if access level compliant
       if (!state || isAccessLevelCompliant(accessLevel)) {
-        elements.push(key);
+        if (!hidden) {
+          elements.push(key);
+        }
       }
     }
   }
@@ -1314,7 +1368,7 @@ function isValidIPv6(value) {
 
 function isValidHostname(value) {
   if (value.match(
-    '^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9])(.([a-zA-Z0-9]|[_a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]))*$'	//lgtm [js/redos]
+    '^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9])(.([a-zA-Z0-9]|[_a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]))*$'
   ))
     return true;
   else
@@ -1323,7 +1377,7 @@ function isValidHostname(value) {
 
 function isValidServicename(value) {
   if (value.match(
-    '^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9 -]{0,61}[a-zA-Z0-9])(.([a-zA-Z0-9]|[_a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]))*$'	//lgtm [js/redos]
+    '^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9 -]{0,61}[a-zA-Z0-9])(.([a-zA-Z0-9]|[_a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]))*$'
   ))
     return true;
   else

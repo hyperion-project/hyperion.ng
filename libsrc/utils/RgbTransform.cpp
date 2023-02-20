@@ -61,7 +61,7 @@ int RgbTransform::getBacklightThreshold() const
 	return _backlightThreshold;
 }
 
-void RgbTransform::setBacklightThreshold(int backlightThreshold)
+void RgbTransform::setBacklightThreshold(double backlightThreshold)
 {
 	_backlightThreshold = backlightThreshold;
 	_sumBrightnessLow   = 765.0 * ((qPow(2.0,(_backlightThreshold/100)*2)-1) / 3.0);

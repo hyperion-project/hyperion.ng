@@ -51,7 +51,7 @@ namespace NetUtils {
 	{
 		if ((port <= 0 || port > MAX_PORT) && port != -1)
 		{
-			Error(log, "Invalid port [%d] for host: (%s)! - Port must be in range [0 - %d]", port, QSTRING_CSTR(host), MAX_PORT);
+			Error(log, "Invalid port [%d] for host: (%s)! - Port must be in range [1 - %d]", port, QSTRING_CSTR(host), MAX_PORT);
 			return false;
 		}
 		return true;
@@ -122,7 +122,7 @@ namespace NetUtils {
 			{
 				if (hostAddress.setAddress(hostname))
 				{
-					//Debug(log, "IP-address (%s) not required to be resolved.", QSTRING_CSTR(hostAddress.toString()));
+					// An IP-address is not required to be resolved
 					isHostAddressOK = true;
 				}
 				else

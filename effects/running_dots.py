@@ -14,7 +14,7 @@ if whiteLevel >= lvl:
 
 # Initialize the led data
 ledData = bytearray()
-for i in range(hyperion.ledCount):
+for unused in range(hyperion.ledCount):
 	ledData += bytearray((0,0,0))
 
 runners = [

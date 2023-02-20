@@ -69,12 +69,14 @@ int LedDeviceTemplate::close()
 	int retval = 0;
 	_isDeviceReady = false;
 
+#if 0
 	// Test, if device requires closing
 	if ( true /*If device is still open*/ )
 	{
 		// Close device
 		// Everything is OK -> device is closed
 	}
+#endif
 	return retval;
 }
 

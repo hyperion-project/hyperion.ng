@@ -331,8 +331,6 @@ const QString &LedDeviceLightpack::getSerialNumber() const
 int LedDeviceLightpack::writeBytes(uint8_t *data, int size)
 {
 	int rc = 0;
-	//Debug( _log, "[%s]", QSTRING_CSTR(uint8_t_to_hex_string(data, size, 32)) );
-
 	int error = libusb_control_transfer(_deviceHandle,
 								 static_cast<uint8_t>( LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE ),
 	0x09,

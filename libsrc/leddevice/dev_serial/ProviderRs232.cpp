@@ -207,12 +207,12 @@ bool ProviderRs232::tryOpen(int delayAfterConnect_ms)
 	return _rs232Port.isOpen();
 }
 
-void ProviderRs232::setInError(const QString& errorMsg)
+void ProviderRs232::setInError(const QString& errorMsg, bool isRecoverable)
 {
 	_rs232Port.clearError();
 	this->close();
 
-	LedDevice::setInError( errorMsg );
+	LedDevice::setInError( errorMsg, isRecoverable );
 }
 
 int ProviderRs232::writeBytes(const qint64 size, const uint8_t *data)
@@ -273,13 +273,6 @@ void ProviderRs232::readFeedback()
 	{
 		//Output as received
 		std::cout << readData.toStdString();
-
-		//Output as Hex
-//#if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
-//		std::cout << readData.toHex(':').toStdString();
-//#else
-//		std::cout << readData.toHex().toStdString();
-//#endif
 	}
 }
 

@@ -12,3 +12,6 @@
 [submodule "dependencies/external/qmdnsengine"]
 	path = dependencies/external/qmdnsengine
 	url = https://github.com/nitroshare/qmdnsengine.git
+[submodule "dependencies/external/mbedtls"]
+	path = dependencies/external/mbedtls
+	url = ../../Mbed-TLS/mbedtls.git

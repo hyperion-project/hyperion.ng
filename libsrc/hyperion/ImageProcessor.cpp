@@ -4,26 +4,83 @@
 #include <hyperion/ImageProcessor.h>
 #include <hyperion/ImageToLedsMap.h>
 
-// Blacborder includes
+// Blackborder includes
 #include <blackborder/BlackBorderProcessor.h>
 
+#include <QSharedPointer>
+#include <QRgb>
+
 using namespace hyperion;
+
+void ImageProcessor::registerProcessingUnit(
+		int width,
+		int height,
+		int horizontalBorder,
+		int verticalBorder)
+{
+	if (width > 0 && height > 0)
+	{
+		_imageToLedColors = QSharedPointer<ImageToLedsMap>(new ImageToLedsMap(
+								_log,
+								width,
+								height,
+								horizontalBorder,
+								verticalBorder,
+								_ledString.leds(),
+								_reducedPixelSetFactorFactor,
+								_accuraryLevel
+								));
+	}
+	else
+	{
+		_imageToLedColors = QSharedPointer<ImageToLedsMap>(nullptr);
+	}
+}
 
 // global transform method
 int ImageProcessor::mappingTypeToInt(const QString& mappingType)
 {
 	if (mappingType == "unicolor_mean" )
+	{
 		return 1;
-
+	}
+	else if (mappingType == "multicolor_mean_squared" )
+	{
+		return 2;
+	}
+	else if (mappingType == "dominant_color" )
+	{
+		return 3;
+	}
+	else if (mappingType == "dominant_color_advanced" )
+	{
+		return 4;
+	}
 	return 0;
 }
 // global transform method
 QString ImageProcessor::mappingTypeToStr(int mappingType)
 {
-	if (mappingType == 1 )
-		return "unicolor_mean";
+	QString typeText;
+	switch (mappingType) {
+	case 1:
+		typeText = "unicolor_mean";
+		break;
+	case 2:
+		typeText = "multicolor_mean_squared";
+		break;
+	case 3:
+		typeText = "dominant_color";
+		break;
+	case 4:
+		typeText = "dominant_color_advanced";
+		break;
+	default:
+		typeText = "multicolor_mean";
+		break;
+	}
 
-	return "multicolor_mean";
+	return typeText;
 }
 
 ImageProcessor::ImageProcessor(const LedString& ledString, Hyperion* hyperion)
@@ -31,10 +88,12 @@ ImageProcessor::ImageProcessor(const LedString& ledString, Hyperion* hyperion)
 	, _log(nullptr)
 	, _ledString(ledString)
 	, _borderProcessor(new BlackBorderProcessor(hyperion, this))
-	, _imageToLeds(nullptr)
+	, _imageToLedColors(nullptr)
 	, _mappingType(0)
 	, _userMappingType(0)
-	, _hardMappingType(0)
+	, _hardMappingType(-1)
+	, _accuraryLevel(0)
+	, _reducedPixelSetFactorFactor(1)
 	, _hyperion(hyperion)
 {
 	QString subComponent = hyperion->property("instance").toString();
@@ -48,7 +107,6 @@ ImageProcessor::ImageProcessor(const LedString& ledString, Hyperion* hyperion)
 
 ImageProcessor::~ImageProcessor()
 {
-	delete _imageToLeds;
 }
 
 void ImageProcessor::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
@@ -61,39 +119,40 @@ void ImageProcessor::handleSettingsUpdate(settings::type type, const QJsonDocume
 		{
 			setLedMappingType(newType);
 		}
+
+		int reducedPixelSetFactorFactor = obj["reducedPixelSetFactorFactor"].toString().toInt();
+		setReducedPixelSetFactorFactor(reducedPixelSetFactorFactor);
+
+		int accuracyLevel = obj["accuracyLevel"].toInt();
+		setAccuracyLevel(accuracyLevel);
 	}
 }
 
-void ImageProcessor::setSize(unsigned width, unsigned height)
+void ImageProcessor::setSize(int width, int height)
 {
 	// Check if the existing buffer-image is already the correct dimensions
-	if (_imageToLeds && _imageToLeds->width() == width && _imageToLeds->height() == height)
+	if (!_imageToLedColors.isNull() && _imageToLedColors->width() == width && _imageToLedColors->height() == height)
 	{
 		return;
 	}
 
-	// Clean up the old buffer and mapping
-	delete _imageToLeds;
-
 	// Construct a new buffer and mapping
-	_imageToLeds = (width>0 && height>0) ? (new ImageToLedsMap(width, height, 0, 0, _ledString.leds())) : nullptr;
+	registerProcessingUnit(width, height, 0, 0);
 }
 
 void ImageProcessor::setLedString(const LedString& ledString)
 {
-	if ( _imageToLeds != nullptr)
+	Debug(_log,"");
+	if ( !_imageToLedColors.isNull() )
 	{
 		_ledString = ledString;
 
 		// get current width/height
-		unsigned width = _imageToLeds->width();
-		unsigned height = _imageToLeds->height();
-
-		// Clean up the old buffer and mapping
-		delete _imageToLeds;
+		int width = _imageToLedColors->width();
+		int height = _imageToLedColors->height();
 
 		// Construct a new buffer and mapping
-		_imageToLeds = new ImageToLedsMap(width, height, 0, 0, _ledString.leds());
+		registerProcessingUnit(width, height, 0, 0);
 	}
 }
 
@@ -107,14 +166,54 @@ bool ImageProcessor::blackBorderDetectorEnabled() const
 	return _borderProcessor->enabled();
 }
 
+void ImageProcessor::setReducedPixelSetFactorFactor(int count)
+{
+	int currentReducedPixelSetFactor= _reducedPixelSetFactorFactor;
+
+	_reducedPixelSetFactorFactor = count;
+	Debug(_log, "Set reduced pixel set factor to %d", _reducedPixelSetFactorFactor);
+
+	if (currentReducedPixelSetFactor != _reducedPixelSetFactorFactor && !_imageToLedColors.isNull())
+	{
+		int width = _imageToLedColors->width();
+		int height = _imageToLedColors->height();
+
+		// Construct a new buffer and mapping
+		registerProcessingUnit(width, height, 0, 0);
+	}
+}
+
+void ImageProcessor::setAccuracyLevel(int level)
+{
+	_accuraryLevel = level;
+	Debug(_log, "Set processing accuracy level to %d", _accuraryLevel);
+
+	if (!_imageToLedColors.isNull())
+	{
+		_imageToLedColors->setAccuracyLevel(_accuraryLevel);
+	}
+}
+
 void ImageProcessor::setLedMappingType(int mapType)
 {
+	int currentMappingType = _mappingType;
+
 	// if the _hardMappingType is >-1 we aren't allowed to overwrite it
 	_userMappingType = mapType;
-	Debug(_log, "set user led mapping to %s", QSTRING_CSTR(mappingTypeToStr(mapType)));
+
+	Debug(_log, "Set user LED mapping to %s", QSTRING_CSTR(mappingTypeToStr(mapType)));
+
 	if(_hardMappingType == -1)
 	{
 		_mappingType = mapType;
+	}
+
+	if (currentMappingType != _mappingType && !_imageToLedColors.isNull())
+	{
+		int width = _imageToLedColors->width();
+		int height = _imageToLedColors->height();
+
+		registerProcessingUnit(width, height, 0, 0);
 	}
 }
 

@@ -223,13 +223,11 @@ void EncoderThread::processImageMjpeg()
 		{
 			_xform->options = TJXOPT_CROP;
 			_xform->r = tjregion {_cropLeft,_cropTop,transformedWidth,transformedHeight};
-			//qDebug() << "processImageMjpeg() | _doTransform - Image cropped: transformedWidth: " << transformedWidth << " transformedHeight: " << transformedHeight;
 		}
 		else
 		{
 			_xform->options = 0;
 			_xform->r = tjregion {0,0,_width,_height};
-			//qDebug() << "processImageMjpeg() | _doTransform - Image not cropped: _width: " << _width << " _height: " << _height;
 		}
 		_xform->options |= TJXOPT_TRIM;
 
@@ -344,11 +342,9 @@ bool EncoderThread::onError(const QString context) const
 #if LIBJPEG_TURBO_VERSION_NUMBER > 2000000
 	if (tjGetErrorCode(_tjInstance) == TJERR_FATAL)
 	{
-		//qDebug() << context << "Error: " << QString(tjGetErrorStr2(_tjInstance));
 		treatAsError = true;
 	}
 #else
-	//qDebug() << context << "Error: " << QString(tjGetErrorStr());
 	treatAsError = true;
 #endif
 

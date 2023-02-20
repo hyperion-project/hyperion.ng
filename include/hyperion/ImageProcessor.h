@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QString>
+#include <QSharedPointer>
 
 // Utils includes
 #include <utils/Image.h>
@@ -46,7 +47,7 @@ public:
 	/// @param[in] width   The new width of the buffer-image
 	/// @param[in] height  The new height of the buffer-image
 	///
-	void setSize(unsigned width, unsigned height);
+	void setSize(int width, int height);
 
 	///
 	/// @brief Update the led string (eg on settings change)
@@ -55,6 +56,19 @@ public:
 
 	/// Returns state of black border detector
 	bool blackBorderDetectorEnabled() const;
+
+	///
+	///  Factor to reduce the number of pixels evaluated during processing
+	///
+	/// @param[in] count  Use every "count" pixel
+	void setReducedPixelSetFactorFactor(int count);
+
+	///
+	/// Set the accuracy used during processing
+	/// (only for selected types)
+	///
+	/// @param[in] level  The accuracy level (0-4)
+	void setAccuracyLevel(int level);
 
 	/// Returns the current _userMappingType, this may not be the current applied type!
 	int getUserLedMappingType() const { return _userMappingType; }
@@ -98,21 +112,24 @@ public:
 	}
 
 	///
-	/// Processes the image to a list of led colors. This will update the size of the buffer-image
-	/// if required and call the image-to-leds mapping to determine the mean color per led.
+	/// Processes the image to a list of LED colors. This will update the size of the buffer-image
+	/// if required and call the image-to-LEDs mapping to determine the color per LED.
 	///
-	/// @param[in] image  The image to translate to led values
+	/// @param[in] image  The image to translate to LED values
 	///
-	/// @return The color value per led
+	/// @return The color value per LED
 	///
 	template <typename Pixel_T>
 	std::vector<ColorRgb> process(const Image<Pixel_T>& image)
 	{
 		std::vector<ColorRgb> colors;
+
 		if (image.width()>0 && image.height()>0)
 		{
 			// Ensure that the buffer-image is the proper size
 			setSize(image);
+
+			assert(!_imageToLedColors.isNull());
 
 			// Check black border detection
 			verifyBorder(image);
@@ -120,8 +137,20 @@ public:
 			// Create a result vector and call the 'in place' function
 			switch (_mappingType)
 			{
-				case 1: colors = _imageToLeds->getUniLedColor(image); break;
-				default: colors = _imageToLeds->getMeanLedColor(image);
+			case 1:
+				colors = _imageToLedColors->getUniLedColor(image);
+				break;
+			case 2:
+				colors = _imageToLedColors->getMeanLedColorSqrt(image);
+				break;
+			case 3:
+				colors = _imageToLedColors->getDominantLedColor(image);
+				break;
+			case 4:
+				colors = _imageToLedColors->getDominantLedColorAdv(image);
+				break;
+			default:
+				colors = _imageToLedColors->getMeanLedColor(image);
 			}
 		}
 		else
@@ -136,8 +165,8 @@ public:
 	///
 	/// Determines the led colors of the image in the buffer.
 	///
-	/// @param[in] image  The image to translate to led values
-	/// @param[out] ledColors  The color value per led
+	/// @param[in] image  The image to translate to LED values
+	/// @param[out] ledColors  The color value per LED
 	///
 	template <typename Pixel_T>
 	void process(const Image<Pixel_T>& image, std::vector<ColorRgb>& ledColors)
@@ -153,8 +182,20 @@ public:
 			// Determine the mean or uni colors of each led (using the existing mapping)
 			switch (_mappingType)
 			{
-				case 1: _imageToLeds->getUniLedColor(image, ledColors); break;
-				default: _imageToLeds->getMeanLedColor(image, ledColors);
+			case 1:
+				_imageToLedColors->getUniLedColor(image, ledColors);
+				break;
+			case 2:
+				_imageToLedColors->getMeanLedColorSqrt(image, ledColors);
+				break;
+			case 3:
+				_imageToLedColors->getDominantLedColor(image, ledColors);
+				break;
+			case 4:
+				_imageToLedColors->getDominantLedColorAdv(image, ledColors);
+				break;
+			default:
+				_imageToLedColors->getMeanLedColor(image, ledColors);
 			}
 		}
 		else
@@ -164,9 +205,9 @@ public:
 	}
 
 	///
-	/// Get the hscan and vscan parameters for a single led
+	/// Get the hscan and vscan parameters for a single LED
 	///
-	/// @param[in] led Index of the led
+	/// @param[in] led Index of the LED
 	/// @param[out] hscanBegin begin of the hscan
 	/// @param[out] hscanEnd end of the hscan
 	/// @param[out] vscanBegin begin of the hscan
@@ -175,6 +216,13 @@ public:
 	bool getScanParameters(size_t led, double & hscanBegin, double & hscanEnd, double & vscanBegin, double & vscanEnd) const;
 
 private:
+
+	void registerProcessingUnit(
+		int width,
+		int height,
+		int horizontalBorder,
+		int verticalBorder);
+
 	///
 	/// Performs black-border detection (if enabled) on the given image
 	///
@@ -183,34 +231,25 @@ private:
 	template <typename Pixel_T>
 	void verifyBorder(const Image<Pixel_T> & image)
 	{
-		if (!_borderProcessor->enabled() && ( _imageToLeds->horizontalBorder()!=0 || _imageToLeds->verticalBorder()!=0 ))
+		if (!_borderProcessor->enabled() && ( _imageToLedColors->horizontalBorder()!=0 || _imageToLedColors->verticalBorder()!=0 ))
 		{
 			Debug(_log, "Reset border");
 			_borderProcessor->process(image);
-			delete _imageToLeds;
-			_imageToLeds = new hyperion::ImageToLedsMap(image.width(), image.height(), 0, 0, _ledString.leds());
+			registerProcessingUnit(image.width(), image.height(), 0, 0);
 		}
 
 		if(_borderProcessor->enabled() && _borderProcessor->process(image))
 		{
 			const hyperion::BlackBorder border = _borderProcessor->getCurrentBorder();
 
-			// Clean up the old mapping
-			delete _imageToLeds;
-
 			if (border.unknown)
 			{
-				// Construct a new buffer and mapping
-				_imageToLeds = new hyperion::ImageToLedsMap(image.width(), image.height(), 0, 0, _ledString.leds());
+				registerProcessingUnit(image.width(), image.height(), 0, 0);
 			}
 			else
 			{
-				// Construct a new buffer and mapping
-				_imageToLeds = new hyperion::ImageToLedsMap(image.width(), image.height(), border.horizontalSize, border.verticalSize, _ledString.leds());
+				registerProcessingUnit(image.width(), image.height(), border.horizontalSize, border.verticalSize);
 			}
-
-			//Debug(Logger::getInstance("BLACKBORDER"),  "CURRENT BORDER TYPE: unknown=%d hor.size=%d vert.size=%d",
-			//	border.unknown, border.horizontalSize, border.verticalSize );
 		}
 	}
 
@@ -218,6 +257,7 @@ private slots:
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 private:
+
 	Logger * _log;
 	/// The Led-string specification
 	LedString _ledString;
@@ -226,14 +266,17 @@ private:
 	hyperion::BlackBorderProcessor * _borderProcessor;
 
 	/// The mapping of image-pixels to LEDs
-	hyperion::ImageToLedsMap* _imageToLeds;
+	QSharedPointer<hyperion::ImageToLedsMap> _imageToLedColors;
 
-	/// Type of image 2 led mapping
+	/// Type of image to LED mapping
 	int _mappingType;
 	/// Type of last requested user type
 	int _userMappingType;
 	/// Type of last requested hard type
 	int _hardMappingType;
+
+	int _accuraryLevel;
+	int _reducedPixelSetFactorFactor;
 
 	/// Hyperion instance pointer
 	Hyperion* _hyperion;

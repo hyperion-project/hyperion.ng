@@ -1,0 +1,151 @@
+{
+  "type": "object",
+  "required": true,
+  "title": "edt_conf_audio_heading_title",
+    "properties": {
+        "enable": {
+            "type": "boolean",
+            "title": "edt_conf_general_enable_title",
+            "required": true,
+            "default": false,
+            "propertyOrder": 1
+        },
+        "available_devices": {
+            "type": "string",
+            "title": "edt_conf_grabber_discovered_title",
+            "default": "edt_conf_grabber_discovery_inprogress",
+            "options": {
+                "infoText": "edt_conf_grabber_discovered_title_info"
+            },
+            "propertyOrder": 2,
+            "required": false
+        },
+        "device": {
+            "type": "string",
+            "title": "edt_conf_enum_custom",
+            "default": "auto",
+            "options": {
+                "hidden": true
+            },
+            "required": true,
+            "propertyOrder": 3,
+            "comment": "The 'available_audio_devices' settings are dynamically inserted into the WebUI under PropertyOrder '1'."
+        },
+        "audioEffect": {
+            "type": "string",
+            "title": "edt_conf_audio_effects_title",
+            "required": true,
+            "enum": [ "vuMeter" ],
+            "default": "vuMeter",
+            "options": {
+                "enum_titles": [ "edt_conf_audio_effect_enum_vumeter" ]
+            },
+            "propertyOrder": 4
+        },
+        "vuMeter": {
+            "type": "object",
+            "title": "",
+            "required": true,
+            "propertyOrder": 5,
+            "options": {
+                "dependencies": {
+                    "audioEffect": "vuMeter"
+                }
+            },
+            "properties": {
+                "multiplier": {
+                    "type": "number",
+                    "title": "edt_conf_audio_effect_multiplier_title",
+                    "default": 1,
+                    "minimum": 0,
+                    "step": 0.01,
+                    "required": true,
+                    "propertyOrder": 1,
+                    "comment": "The multiplier is used to scale the audio input signal. Increase or decrease to achieve the desired effect. Set to 0 for auto"
+                },
+                "tolerance": {
+                    "type": "number",
+                    "title": "edt_conf_audio_effect_tolerance_title",
+                    "default": 5,
+                    "minimum": 0,
+                    "step": 1,
+                    "append": "edt_append_percent",
+                    "required": true,
+                    "propertyOrder": 2,
+                    "comment": "The tolerance is a percentage value from 0 - 100 used during auto multiplier calculation."
+                },
+                "hotColor": {
+                    "type": "array",
+                    "title": "edt_conf_audio_effect_hotcolor_title",
+                    "default": [ 255, 0, 0 ],
+                    "format": "colorpicker",
+                    "items": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 255
+                    },
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "required": true,
+                    "propertyOrder": 3,
+                    "comment": "Hot Color is the color the led's will reach when audio level exceeds the warn percentage"
+                },
+                "warnColor": {
+                    "type": "array",
+                    "title": "edt_conf_audio_effect_warncolor_title",
+                    "default": [ 255, 255, 0 ],
+                    "format": "colorpicker",
+                    "items": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 255
+                    },
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "required": true,
+                    "propertyOrder": 4,
+                    "comment": "Warn Color is the color the led's will reach when audio level exceeds the safe percentage"
+                },
+                "warnValue": {
+                    "type": "number",
+                    "title": "edt_conf_audio_effect_warnvalue_title",
+                    "default": 80,
+                    "minimum": 0,
+                    "step": 1,
+                    "append": "edt_append_percent",
+                    "required": true,
+                    "propertyOrder": 5,
+                    "comment": "Warn percentage is the percentage used to determine the maximum percentage of the audio warning level"
+                },
+                "safeColor": {
+                    "type": "array",
+                    "title": "edt_conf_audio_effect_safecolor_title",
+                    "default": [ 0, 255, 0 ],
+                    "format": "colorpicker",
+                    "items": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 255
+                    },
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "required": true,
+                    "propertyOrder": 6,
+                    "comment": "Safe Color is the color the led's will reach when audio level is below the warning percentage"
+                },
+                "safeValue": {
+                    "type": "number",
+                    "title": "edt_conf_audio_effect_safevalue_title",
+                    "default": 45,
+                    "minimum": 0,
+                    "step": 1,
+                    "append": "edt_append_percent",
+                    "required": true,
+                    "propertyOrder": 7,
+                    "comment": "Safe percentage is the percentage used to determine the maximum percentage of the audio safe level"
+                }
+            }
+        }
+    },
+  "additionalProperties": true
+}

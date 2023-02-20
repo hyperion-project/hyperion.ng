@@ -35,6 +35,46 @@
       "access": "expert",
       "propertyOrder": 3
     },
+    "segments": {
+      "type": "object",
+      "title": "Segment streaming",
+      "required": false,
+      "properties": {
+        "segmentList": {
+          "type": "string",
+          "title": "edt_dev_spec_segments_title",
+          "enum": [ "-1" ],
+          "default": "-1",
+          "options": {
+            "enum_titles": [ "edt_dev_spec_segments_disabled_title" ]
+          },
+          "propertyOrder": 1
+        },
+        "streamSegmentId": {
+          "type": "integer",
+          "title": "edt_dev_spec_segmentId_title",
+          "default": -1,
+          "minimum": -1,
+          "maximum": 16,
+          "options": {
+            "hidden": true
+          },
+          "access": "expert",
+          "propertyOrder": 2
+        },
+        "switchOffOtherSegments": {
+          "type": "boolean",
+          "format": "checkbox",
+          "title": "edt_dev_spec_segmentsSwitchOffOthers_title",
+          "default": true,
+          "required": true,
+          "access": "advanced",
+          "propertyOrder": 3
+        }
+      },
+      "propertyOrder": 4,
+      "additionalProperties": false
+    },
     "restoreOriginalState": {
       "type": "boolean",
       "format": "checkbox",
@@ -44,7 +84,18 @@
       "options": {
         "infoText": "edt_dev_spec_restoreOriginalState_title_info"
       },
-      "propertyOrder": 4
+      "propertyOrder": 7
+    },
+    "stayOnAfterStreaming": {
+      "type": "boolean",
+      "format": "checkbox",
+      "title": "edt_dev_spec_stayOnAfterStreaming_title",
+      "default": false,
+      "required": true,
+      "options": {
+        "infoText": "edt_dev_spec_stayOnAfterStreaming_title_info"
+      },
+      "propertyOrder": 8
     },
     "overwriteSync": {
       "type": "boolean",
@@ -53,7 +104,7 @@
       "default": true,
       "required": true,
       "access": "advanced",
-      "propertyOrder": 5
+      "propertyOrder": 9
     },
     "overwriteBrightness": {
       "type": "boolean",
@@ -62,7 +113,7 @@
       "default": true,
       "required": true,
       "access": "advanced",
-      "propertyOrder": 6
+      "propertyOrder": 10
     },
     "brightness": {
       "type": "integer",
@@ -76,7 +127,7 @@
         }
       },
       "access": "advanced",
-      "propertyOrder": 7
+      "propertyOrder": 11
     },
     "latchTime": {
       "type": "integer",
@@ -89,8 +140,8 @@
       "options": {
         "infoText": "edt_dev_spec_latchtime_title_info"
       },
-      "propertyOrder": 8
+      "propertyOrder": 12
     }
   },
-  "additionalProperties": true
-}
+      "additionalProperties": true
+    }

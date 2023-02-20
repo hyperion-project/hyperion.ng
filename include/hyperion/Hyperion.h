@@ -471,6 +471,9 @@ signals:
 	/// Signal which is emitted, when a new V4l proto image should be forwarded
 	void forwardV4lProtoMessage(const QString&, const Image<ColorRgb>&);
 
+	/// Signal which is emitted, when a new Audio proto image should be forwarded
+	void forwardAudioProtoMessage(const QString&, const Image<ColorRgb>&);
+
 #if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
 	/// Signal which is emitted, when a new Flat-/Proto- Buffer image should be forwarded
 	void forwardBufferMessage(const QString&, const Image<ColorRgb>&);

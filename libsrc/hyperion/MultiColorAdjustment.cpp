@@ -42,11 +42,8 @@ void MultiColorAdjustment::setAdjustmentForLed(const QString& id, int startLed, 
 
 	// Get the identified adjustment (don't care if is nullptr)
 	ColorAdjustment * adjustment = getAdjustment(id);
-
-	//Debug(_log,"ColorAdjustment Profile [%s], startLed[%d], endLed[%d]", QSTRING_CSTR(id), startLed, endLed);
 	for (int iLed=startLed; iLed<=endLed; ++iLed)
 	{
-		//Debug(_log,"_ledAdjustments [%d] -> [%p]", iLed, adjustment);
 		_ledAdjustments[iLed] = adjustment;
 	}
 }

@@ -16,14 +16,12 @@
 #include <effectengine/Effect.h>
 #endif
 
-#include <QDebug>
-
 ///
 /// @brief Provide utility methods for Hyperion class
 ///
 namespace hyperion {
 
-	void handleInitialEffect(Hyperion* hyperion, const QJsonObject& FGEffectConfig)
+	static void handleInitialEffect(Hyperion* hyperion, const QJsonObject& FGEffectConfig)
 	{
 		#define FGCONFIG_ARRAY fgColorConfig.toArray()
 
@@ -67,12 +65,12 @@ namespace hyperion {
 		#undef FGCONFIG_ARRAY
 	}
 
-	ColorOrder createColorOrder(const QJsonObject &deviceConfig)
+	static ColorOrder createColorOrder(const QJsonObject &deviceConfig)
 	{
 		return stringToColorOrder(deviceConfig["colorOrder"].toString("rgb"));
 	}
 
-	RgbTransform createRgbTransform(const QJsonObject& colorConfig)
+	static RgbTransform createRgbTransform(const QJsonObject& colorConfig)
 	{
 		const double backlightThreshold = colorConfig["backlightThreshold"].toDouble(0.0);
 		const bool   backlightColored   = colorConfig["backlightColored"].toBool(false);
@@ -85,7 +83,7 @@ namespace hyperion {
 		return RgbTransform(gammaR, gammaG, gammaB, backlightThreshold, backlightColored, static_cast<uint8_t>(brightness), static_cast<uint8_t>(brightnessComp));
 	}
 
-	OkhsvTransform createOkhsvTransform(const QJsonObject& colorConfig)
+	static OkhsvTransform createOkhsvTransform(const QJsonObject& colorConfig)
 	{
 		const double saturationGain = colorConfig["saturationGain"].toDouble(1.0);
 		const double brightnessGain = colorConfig["brightnessGain"].toDouble(1.0);
@@ -93,7 +91,7 @@ namespace hyperion {
 		return OkhsvTransform(saturationGain, brightnessGain);
 	}
 
-	RgbChannelAdjustment createRgbChannelAdjustment(const QJsonObject& colorConfig, const QString& channelName, int defaultR, int defaultG, int defaultB)
+	static RgbChannelAdjustment createRgbChannelAdjustment(const QJsonObject& colorConfig, const QString& channelName, int defaultR, int defaultG, int defaultB)
 	{
 		const QJsonArray& channelConfig  = colorConfig[channelName].toArray();
 		return RgbChannelAdjustment(
@@ -104,7 +102,7 @@ namespace hyperion {
 		);
 	}
 
-	RgbChannelCorrection* createRgbChannelCorrection(const QJsonObject& colorConfig)
+	static RgbChannelCorrection* createRgbChannelCorrection(const QJsonObject& colorConfig)
 	{
 		int varR = colorConfig["red"].toInt(255);
 		int varG = colorConfig["green"].toInt(255);
@@ -114,7 +112,7 @@ namespace hyperion {
 		return correction;
 	}
 
-	ColorCorrection * createColorCorrection(const QJsonObject& correctionConfig)
+	static ColorCorrection * createColorCorrection(const QJsonObject& correctionConfig)
 	{
 		const QString id = correctionConfig["id"].toString("default");
 
@@ -130,7 +128,7 @@ namespace hyperion {
 		return correction;
 	}
 
-	ColorAdjustment* createColorAdjustment(const QJsonObject & adjustmentConfig)
+	static ColorAdjustment* createColorAdjustment(const QJsonObject & adjustmentConfig)
 	{
 		const QString id = adjustmentConfig["id"].toString("default");
 
@@ -150,7 +148,7 @@ namespace hyperion {
 		return adjustment;
 	}
 
-	MultiColorAdjustment * createLedColorsAdjustment(int ledCnt, const QJsonObject & colorConfig)
+	static MultiColorAdjustment * createLedColorsAdjustment(int ledCnt, const QJsonObject & colorConfig)
 	{
 		// Create the result, the transforms are added to this
 		MultiColorAdjustment * adjustment = new MultiColorAdjustment(ledCnt);
@@ -170,13 +168,12 @@ namespace hyperion {
 			{
 				// Special case for indices '*' => all leds
 				adjustment->setAdjustmentForLed(colorAdjustment->_id, 0, ledCnt-1);
-				//Info(Logger::getInstance("HYPERION"), "ColorAdjustment '%s' => [0-%d]", QSTRING_CSTR(colorAdjustment->_id), ledCnt-1);
 				continue;
 			}
 
 			if (!overallExp.match(ledIndicesStr).hasMatch())
 			{
-				//Error(Logger::getInstance("HYPERION"), "Given led indices %d not correct format: %s", i, QSTRING_CSTR(ledIndicesStr));
+				// Given LED indices are not correctly formatted
 				continue;
 			}
 
@@ -203,13 +200,12 @@ namespace hyperion {
 					ss << index;
 				}
 			}
-			//Info(Logger::getInstance("HYPERION"), "ColorAdjustment '%s' => [%s]", QSTRING_CSTR(colorAdjustment->_id), ss.str().c_str());
 		}
 
 		return adjustment;
 	}
 
-	MultiColorCorrection * createLedColorsTemperature(int ledCnt, const QJsonObject & colorConfig)
+	static MultiColorCorrection * createLedColorsTemperature(int ledCnt, const QJsonObject & colorConfig)
 	{
 		// Create the result, the corrections are added to this
 		MultiColorCorrection * correction = new MultiColorCorrection(ledCnt);
@@ -226,9 +222,6 @@ namespace hyperion {
 			int temperature = config["temperature"].toInt();
 
 			ColorRgb rgb = getRgbFromTemperature(temperature);
-
-			qDebug() << "createLedColorsTemperature: adjustment[temperture]: " << temperature << "-> " << rgb.toQString();
-
 			QJsonObject correctionConfig {
 				{"red", rgb.red},
 				{"green", rgb.green},
@@ -287,7 +280,7 @@ namespace hyperion {
 	 * @param deviceOrder  The default RGB channel ordering
 	 * @return The constructed ledstring
 	 */
-	LedString createLedString(const QJsonArray& ledConfigArray, const ColorOrder deviceOrder)
+	static LedString createLedString(const QJsonArray& ledConfigArray, const ColorOrder deviceOrder)
 	{
 		LedString ledString;
 		const QString deviceOrderStr = colorOrderToString(deviceOrder);
@@ -318,7 +311,7 @@ namespace hyperion {
 		return ledString;
 	}
 
-	QSize getLedLayoutGridSize(const QJsonArray& ledConfigArray)
+	static QSize getLedLayoutGridSize(const QJsonArray& ledConfigArray)
 	{
 		std::vector<int> midPointsX;
 		std::vector<int> midPointsY;

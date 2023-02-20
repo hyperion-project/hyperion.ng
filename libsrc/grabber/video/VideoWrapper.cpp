@@ -74,9 +74,6 @@ void VideoWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument
 			// Device resolution
 			_grabber.setWidthHeight(obj["width"].toInt(0), obj["height"].toInt(0));
 
-			// Device framerate
-			_grabber.setFramerate(obj["fps"].toInt(15));
-
 			// Device encoding format
 			_grabber.setEncoding(obj["encoding"].toString("NO_CHANGE"));
 
@@ -123,6 +120,11 @@ void VideoWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument
 				obj["greenSignalThreshold"].toDouble(0.0)/100.0,
 				obj["blueSignalThreshold"].toDouble(0.0)/100.0,
 				obj["noSignalCounterThreshold"].toInt(50));
+
+			// Device framerate
+			_grabber.setFramerate(obj["fps"].toInt(15));
+
+			updateTimer(_ggrabber->getUpdateInterval());
 
 			// Reload the Grabber if any settings have been changed that require it
 			_grabber.reload(getV4lGrabberState());

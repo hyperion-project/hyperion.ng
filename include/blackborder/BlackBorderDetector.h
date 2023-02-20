@@ -1,4 +1,3 @@
-//#include <iostream>
 #pragma once
 
 // Utils includes
@@ -219,7 +218,6 @@ namespace hyperion
 					|| !isBlack(image((width - x), y))
 					|| !isBlack(image((width - x), (height - y))))
 				{
-//					std::cout << "y " << y << " lt " << int(isBlack(color1)) << " lb " << int(isBlack(color2)) << " rt " << int(isBlack(color3)) << " rb " << int(isBlack(color4)) << std::endl;
 					firstNonBlackYPixelIndex = y;
 					break;
 				}

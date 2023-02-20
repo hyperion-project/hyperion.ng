@@ -21,9 +21,9 @@
     "time_ms": {
       "type": "integer",
       "title": "edt_conf_smooth_time_ms_title",
-      "minimum": 25,
+      "minimum": 1,
       "maximum": 5000,
-      "default": 200,
+      "default": 150,
       "append": "edt_append_ms",
       "propertyOrder": 3
     },

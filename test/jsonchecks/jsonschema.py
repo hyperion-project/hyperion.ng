@@ -11,10 +11,10 @@ instance under a schema, and will create a validator for you.
 
 from __future__ import division, unicode_literals
 
-import collections
 import contextlib
 import datetime
 import itertools
+import collections
 import json
 import numbers
 import operator
@@ -474,10 +474,10 @@ class _Draft34CommonMixin(object):
                     yield error
             else:
                 dependencies = _list(dependency)
-                for dependency in dependencies:
-                    if dependency not in instance:
+                for depend in dependencies:
+                    if depend not in instance:
                         yield ValidationError(
-                            "%r is a dependency of %r" % (dependency, property)
+                            "%r is a dependency of %r" % (depend, property)
                         )
 
     def validate_enum(self, enums, instance, schema):
@@ -512,10 +512,10 @@ class Draft3Validator(ValidatorMixin, _Draft34CommonMixin, object):
             elif self.is_type(type, "string"):
                 if self.is_type(instance, type):
                     return
-        else:
-            yield ValidationError(
-                _types_msg(instance, types), context=all_errors,
-            )
+            else:
+                yield ValidationError(
+                    _types_msg(instance, types), context=all_errors,
+                )
 
     def validate_properties(self, properties, instance, schema):
         if not self.is_type(instance, "object"):
@@ -694,6 +694,7 @@ class Draft4Validator(ValidatorMixin, _Draft34CommonMixin, object):
                 yield error
 
     def validate_oneOf(self, oneOf, instance, schema):
+        first_valid = ""
         subschemas = enumerate(oneOf)
         all_errors = []
         for index, subschema in subschemas:

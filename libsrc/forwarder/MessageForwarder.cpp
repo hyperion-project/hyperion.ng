@@ -115,6 +115,9 @@ void MessageForwarder::enableTargets(bool enable, const QJsonObject& config)
 			case hyperion::COMP_V4L:
 				connect(_hyperion, &Hyperion::forwardV4lProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage, Qt::UniqueConnection);
 				break;
+			case hyperion::COMP_AUDIO:
+				connect(_hyperion, &Hyperion::forwardAudioProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage, Qt::UniqueConnection);
+				break;
 #if defined(ENABLE_FLATBUF_SERVER)
 			case hyperion::COMP_FLATBUFSERVER:
 #endif
@@ -138,7 +141,7 @@ void MessageForwarder::enableTargets(bool enable, const QJsonObject& config)
 		else
 		{
 			_forwarder_enabled = false;
-			Warning(_log,"No JSON- nor Flatbuffer-Forwarder configured -> Forwarding disabled", _forwarder_enabled);
+			Warning(_log,"No JSON- nor Flatbuffer-Forwarder configured -> Forwarding disabled");
 		}
 	}
 	_hyperion->setNewComponentState(hyperion::COMP_FORWARDER, _forwarder_enabled);
@@ -153,6 +156,7 @@ void MessageForwarder::handlePriorityChanges(int priority)
 		switch (activeCompId) {
 		case hyperion::COMP_GRABBER:
 			disconnect(_hyperion, &Hyperion::forwardV4lProtoMessage, nullptr, nullptr);
+			disconnect(_hyperion, &Hyperion::forwardAudioProtoMessage, nullptr, nullptr);
 #if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
 			disconnect(_hyperion, &Hyperion::forwardBufferMessage, nullptr, nullptr);
 #endif
@@ -160,10 +164,19 @@ void MessageForwarder::handlePriorityChanges(int priority)
 			break;
 		case hyperion::COMP_V4L:
 			disconnect(_hyperion, &Hyperion::forwardSystemProtoMessage, nullptr, nullptr);
+			disconnect(_hyperion, &Hyperion::forwardAudioProtoMessage, nullptr, nullptr);
 #if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
 			disconnect(_hyperion, &Hyperion::forwardBufferMessage, nullptr, nullptr);
 #endif
 			connect(_hyperion, &Hyperion::forwardV4lProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage, Qt::UniqueConnection);
+			break;
+		case hyperion::COMP_AUDIO:
+			disconnect(_hyperion, &Hyperion::forwardSystemProtoMessage, nullptr, nullptr);
+			disconnect(_hyperion, &Hyperion::forwardV4lProtoMessage, nullptr, nullptr);
+#if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
+			disconnect(_hyperion, &Hyperion::forwardBufferMessage, nullptr, nullptr);
+#endif
+			connect(_hyperion, &Hyperion::forwardAudioProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage, Qt::UniqueConnection);
 			break;
 #if defined(ENABLE_FLATBUF_SERVER)
 		case hyperion::COMP_FLATBUFSERVER:
@@ -172,6 +185,7 @@ void MessageForwarder::handlePriorityChanges(int priority)
 		case hyperion::COMP_PROTOSERVER:
 #endif
 #if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
+			disconnect(_hyperion, &Hyperion::forwardAudioProtoMessage, nullptr, nullptr);
 			disconnect(_hyperion, &Hyperion::forwardSystemProtoMessage, nullptr, nullptr);
 			disconnect(_hyperion, &Hyperion::forwardV4lProtoMessage, nullptr, nullptr);
 			connect(_hyperion, &Hyperion::forwardBufferMessage, this, &MessageForwarder::forwardFlatbufferMessage, Qt::UniqueConnection);
@@ -180,6 +194,7 @@ void MessageForwarder::handlePriorityChanges(int priority)
 		default:
 			disconnect(_hyperion, &Hyperion::forwardSystemProtoMessage, nullptr, nullptr);
 			disconnect(_hyperion, &Hyperion::forwardV4lProtoMessage, nullptr, nullptr);
+			disconnect(_hyperion, &Hyperion::forwardAudioProtoMessage, nullptr, nullptr);
 #if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
 			disconnect(_hyperion, &Hyperion::forwardBufferMessage, nullptr, nullptr);
 #endif
@@ -373,6 +388,7 @@ void MessageForwarder::stopFlatbufferTargets()
 	{
 		disconnect(_hyperion, &Hyperion::forwardSystemProtoMessage, nullptr, nullptr);
 		disconnect(_hyperion, &Hyperion::forwardV4lProtoMessage, nullptr, nullptr);
+		disconnect(_hyperion, &Hyperion::forwardAudioProtoMessage, nullptr, nullptr);
 #if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
 		disconnect(_hyperion, &Hyperion::forwardBufferMessage, nullptr, nullptr);
 #endif

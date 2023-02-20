@@ -243,9 +243,6 @@ void Hyperion::freeObjects()
 
 void Hyperion::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
-//	std::cout << "Hyperion::handleSettingsUpdate" << std::endl;
-//	std::cout << config.toJson().toStdString() << std::endl;
-
 	if(type == settings::COLOR)
 	{
 		const QJsonObject obj = config.object();

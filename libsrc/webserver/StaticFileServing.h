@@ -3,10 +3,8 @@
 
 #include <QMimeDatabase>
 
-//#include "QtHttpServer.h"
 #include "QtHttpRequest.h"
 #include "QtHttpReply.h"
-#include "QtHttpHeader.h"
 #include "CgiHandler.h"
 
 #include <utils/Logger.h>

@@ -42,16 +42,16 @@ endif(ENABLE_X11)
 add_executable(test_versions TestVersions.cpp)
 target_link_libraries(test_versions Qt${QT_VERSION_MAJOR}::Core)
 
+add_executable(test_image2ledsmap TestImage2LedsMap.cpp "${CMAKE_BINARY_DIR}/resources.qrc" )
+link_to_hyperion(test_image2ledsmap)
+
 ######### These tests are broken. May they fix someone ##########
 
-# add_executable(test_image2ledsmap TestImage2LedsMap.cpp)
-# link_to_hyperion(test_image2ledsmap)
-
-# if (ENABLE_DISPMANX)
+#if (ENABLE_DISPMANX)
 #	add_subdirectory(dispmanx2png)
-# endif (ENABLE_DISPMANX)
+#endif (ENABLE_DISPMANX)
 
-# add_executable(test_blackborderprocessor TestBlackBorderProcessor.cpp)
-# link_to_hyperion(test_blackborderprocessor)
+#add_executable(test_blackborderprocessor TestBlackBorderProcessor.cpp)
+#link_to_hyperion(test_blackborderprocessor)
 
 ###################################################

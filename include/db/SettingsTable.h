@@ -111,7 +111,7 @@ public:
 		// server port services
 		list << "jsonServer" << "protoServer" << "flatbufServer" << "forwarder" << "webConfig" << "network"
 		// capture
-		<< "framegrabber" << "grabberV4L2"
+		<< "framegrabber" << "grabberV4L2" << "grabberAudio"
 		// other
 		<< "logger" << "general";
 

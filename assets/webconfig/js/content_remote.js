@@ -98,7 +98,7 @@ $(document).ready(function () {
   }
 
   function updateInputSelect() {
-    $('.sstbody').html("");
+    $('.sstbody').empty();
     var prios = window.serverInfo.priorities;
     var clearAll = false;
 
@@ -154,6 +154,9 @@ $(document).ready(function () {
           break;
         case "V4L":
           owner = $.i18n('general_comp_V4L') + ': (' + owner + ')';
+          break;
+        case "AUDIO":
+          owner = $.i18n('general_comp_AUDIO') + ': (' + owner + ')';
           break;
         case "BOBLIGHTSERVER":
           owner = $.i18n('general_comp_BOBLIGHTSERVER');
@@ -220,7 +223,8 @@ $(document).ready(function () {
     for (const comp of components) {
       if (comp.name === "ALL" || (comp.name === "FORWARDER" && window.currentHyperionInstance != 0) ||
         (comp.name === "GRABBER" && !window.serverConfig.framegrabber.enable) ||
-        (comp.name === "V4L" && !window.serverConfig.grabberV4L2.enable))
+        (comp.name === "V4L" && !window.serverConfig.grabberV4L2.enable) ||
+        (comp.name === "AUDIO" && !window.serverConfig.grabberAudio.enable))
         continue;
 
       const enable_style = (comp.enabled ? "checked" : "");

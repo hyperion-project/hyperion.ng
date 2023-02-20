@@ -149,6 +149,8 @@ bool Grabber::setWidthHeight(int width, int height)
 
 bool Grabber::setFramerate(int fps)
 {
+	Debug(_log,"Set new frames per second to: %i fps, current fps: %i", fps, _fps);
+
 	if((fps > 0) && (_fps != fps))
 	{
 		Info(_log,"Set new frames per second to: %i fps", fps);

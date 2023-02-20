@@ -19,13 +19,6 @@
 #endif
 #include <utils/NetUtils.h>
 
-// Constants
-namespace {
-
-	const char SERVICE_TYPE[] = "flatbuffer";
-
-} //End of constants
-
 using namespace commandline;
 
 // save the image as screenshot

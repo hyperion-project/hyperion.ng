@@ -38,7 +38,6 @@ const char CONFIG_VERBOSE[] = "verbose";
 const char DEV_DATA_BRIDGEID[] = "bridgeid";
 const char DEV_DATA_MODEL[] = "modelid";
 const char DEV_DATA_NAME[] = "name";
-//const char DEV_DATA_MANUFACTURER[] = "manufacturer";
 const char DEV_DATA_FIRMWAREVERSION[] = "swversion";
 const char DEV_DATA_APIVERSION[] = "apiversion";
 
@@ -65,7 +64,6 @@ const char API_STREAM_RESPONSE_FORMAT[] = "/%1/%2/%3/%4";
 // List of resources
 const char API_XY_COORDINATES[] = "xy";
 const char API_BRIGHTNESS[] = "bri";
-//const char API_SATURATION[] = "sat";
 const char API_TRANSITIONTIME[] = "transitiontime";
 const char API_MODEID[] = "modelid";
 
@@ -188,7 +186,6 @@ CiColor CiColor::rgbToCiColor(double red, double green, double blue, const CiCol
 			}
 			if (dBC < lowest)
 			{
-				//lowest = dBC;
 				closestPoint = pBC;
 			}
 			// Change the xy value to a value which is within the reach of the lamp.
@@ -1089,7 +1086,7 @@ bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
 
 			if( _groupId == 0 )
 			{
-				Error(_log, "Disabling usage of HueEntertainmentAPI: Group-ID is invalid", "%d", _groupId);
+				Error(_log, "Disabling usage of HueEntertainmentAPI: Group-ID [%d] is invalid", _groupId);
 				_useHueEntertainmentAPI = false;
 			}
 		}

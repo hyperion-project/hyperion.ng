@@ -94,8 +94,8 @@ void print_trace()
 	 * handler and print_trace functions. */
 	for (int i = 2; i < size; ++i)
 	{
-		std::string line = "\t" + decipher_trace(symbols[i]);
-		Error(log, line.c_str());
+		const std::string line = "\t" + decipher_trace(symbols[i]);
+		Error(log, "%s", line.c_str());
 	}
 
 	free(symbols);
@@ -149,8 +149,6 @@ void signal_handler(int signum, siginfo_t * /*info*/, void * /*context*/)
 	default:
 		/* If the signal_handler is hit before the event loop is started,
 		 * following call will do nothing. So we queue the call. */
-
-		// QCoreApplication::quit();
 		QMetaObject::invokeMethod(qApp, "quit", Qt::QueuedConnection);
 
 		// Reset signal handler to default (in case this handler is not capable of stopping)
