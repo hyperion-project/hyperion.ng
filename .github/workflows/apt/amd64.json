@@ -59,7 +59,7 @@
 		"distribution": "Bookworm",
 		"architecture": "amd64",
 		"build-depends": "git, cmake, build-essential, qtbase5-dev, libqt5serialport5-dev, libqt5sql5-sqlite, libqt5svg5-dev, libqt5x11extras5-dev, libusb-1.0-0-dev, python3-dev, libcec-dev, libxcb-image0-dev, libxcb-util0-dev, libxcb-shm0-dev, libxcb-render0-dev, libxcb-randr0-dev, libxrandr-dev, libxrender-dev, libasound2-dev, libturbojpeg0-dev, libjpeg-dev, libssl-dev, libmbedtls-dev",
-		"package-depends": "libpython3.9, libusb-1.0-0, libqt5widgets5, libqt5x11extras5, libqt5sql5, libqt5sql5-sqlite, libqt5serialport5, libmbedtls12, libasound2, libturbojpeg0, libcec6",
+		"package-depends": "libpython3.10, libusb-1.0-0, libqt5widgets5, libqt5x11extras5, libqt5sql5, libqt5sql5-sqlite, libqt5serialport5, libmbedtls12, libasound2, libturbojpeg0, libcec6",
 		"cmake-environment": "-DUSE_SYSTEM_MBEDTLS_LIBS=ON -DENABLE_DEPLOY_DEPENDENCIES=OFF -DCMAKE_BUILD_TYPE=Release",
 		"description": "Debian 12.x (Bookworm) (amd64)"
 	}
