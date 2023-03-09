@@ -1,4 +1,5 @@
 // stdlib includes
+#include <limits>
 #include <iterator>
 #include <algorithm>
 #include <cmath>
