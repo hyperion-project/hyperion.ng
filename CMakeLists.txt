@@ -88,6 +88,7 @@ SET ( DEFAULT_DEV_SPI                     OFF )
 SET ( DEFAULT_DEV_TINKERFORGE             OFF )
 SET ( DEFAULT_DEV_USB_HID                 OFF )
 SET ( DEFAULT_DEV_WS281XPWM               OFF )
+SET ( DEFAULT_ENABLE_FTDIDEV           	  OFF )
 
 # Services
 SET ( DEFAULT_EFFECTENGINE                ON  )

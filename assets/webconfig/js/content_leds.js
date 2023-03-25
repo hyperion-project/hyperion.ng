@@ -1645,8 +1645,10 @@ $(document).ready(function () {
   optArr[3] = [];
   optArr[4] = [];
   optArr[5] = [];
+  optArr[6] = [];
 
   for (var idx = 0; idx < ledDevices.length; idx++) {
+    var isFtdi = ledDevices[idx].endsWith("_ftdi");
     if ($.inArray(ledDevices[idx], devRPiSPI) != -1)
       optArr[0].push(ledDevices[idx]);
     else if ($.inArray(ledDevices[idx], devRPiPWM) != -1)
@@ -1659,8 +1661,10 @@ $(document).ready(function () {
       optArr[4].push(ledDevices[idx]);
     else if ($.inArray(ledDevices[idx], devHID) != -1)
       optArr[4].push(ledDevices[idx]);
-    else
+    else if (isFtdi)
       optArr[5].push(ledDevices[idx]);
+    else
+      optArr[6].push(ledDevices[idx]);
   }
 
   $("#leddevices").append(createSel(optArr[0], $.i18n('conf_leds_optgroup_RPiSPI')));
@@ -1668,9 +1672,10 @@ $(document).ready(function () {
   $("#leddevices").append(createSel(optArr[2], $.i18n('conf_leds_optgroup_RPiGPIO')));
   $("#leddevices").append(createSel(optArr[3], $.i18n('conf_leds_optgroup_network')));
   $("#leddevices").append(createSel(optArr[4], $.i18n('conf_leds_optgroup_usb')));
+  $("#leddevices").append(createSel(optArr[5], $.i18n('conf_leds_optgroup_ftdi')));
 
   if (storedAccess === 'expert' || window.serverConfig.device.type === "file") {
-    $("#leddevices").append(createSel(optArr[5], $.i18n('conf_leds_optgroup_other')));
+    $("#leddevices").append(createSel(optArr[6], $.i18n('conf_leds_optgroup_other')));
   }
 
   $("#leddevices").val(window.serverConfig.device.type);
