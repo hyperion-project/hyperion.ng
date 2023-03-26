@@ -40,14 +40,6 @@ void LedDeviceAPA102_ftdi::CreateHeader()
 
 int LedDeviceAPA102_ftdi::write(const std::vector<ColorRgb> &ledValues)
 {
-	if (_ledCount != ledValues.size())
-	{
-		Warning(_log, "APA102 led's number has changed (old: %d, new: %d). Rebuilding buffer.", _ledCount, ledValues.size());
-		_ledCount = ledValues.size();
-
-		CreateHeader();
-	}
-
 	for (signed iLed = 0; iLed < static_cast<int>(_ledCount); ++iLed)
 	{
 		const ColorRgb &rgb = ledValues[iLed];

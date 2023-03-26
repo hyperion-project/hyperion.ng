@@ -52,15 +52,6 @@ int LedDeviceSk6812_ftdi::write(const std::vector<ColorRgb> &ledValues)
 	unsigned spi_ptr = 0;
 	const int SPI_BYTES_PER_LED = sizeof(ColorRgbw) * SPI_BYTES_PER_COLOUR;
 
-	if (_ledCount != ledValues.size())
-	{
-		Warning(_log, "Sk6812SPI led's number has changed (old: %d, new: %d). Rebuilding buffer.", _ledCount, ledValues.size());
-		_ledCount = ledValues.size();
-
-		const int SPI_FRAME_END_LATCH_BYTES = 3;
-		_ledBuffer.resize(0, 0x00);
-		_ledBuffer.resize(_ledRGBWCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
-	}
 	ColorRgbw temp_rgbw;
 	ColorRgb scaled_color;
 	for (const ColorRgb &color : ledValues)
