@@ -1648,7 +1648,6 @@ $(document).ready(function () {
   optArr[6] = [];
 
   for (var idx = 0; idx < ledDevices.length; idx++) {
-    var isFtdi = ledDevices[idx].endsWith("_ftdi");
     if ($.inArray(ledDevices[idx], devRPiSPI) != -1)
       optArr[0].push(ledDevices[idx]);
     else if ($.inArray(ledDevices[idx], devRPiPWM) != -1)
@@ -1661,7 +1660,7 @@ $(document).ready(function () {
       optArr[4].push(ledDevices[idx]);
     else if ($.inArray(ledDevices[idx], devHID) != -1)
       optArr[4].push(ledDevices[idx]);
-    else if (isFtdi)
+    else if (ledDevices[idx].endsWith("_ftdi"))
       optArr[5].push(ledDevices[idx]);
     else
       optArr[6].push(ledDevices[idx]);
