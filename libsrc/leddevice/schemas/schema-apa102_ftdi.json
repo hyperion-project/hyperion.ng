@@ -5,19 +5,21 @@
 		"output": {
 			"type": "string",
 			"title":"edt_dev_spec_outputPath_title",
-			"default":"auto"
+			"propertyOrder": 1
 		},
 		"rate": {
 			"type": "integer",
 			"title": "edt_dev_spec_baudrate_title",
-			"default": 5000000
+			"default": 5000000,
+			"propertyOrder": 2
 		},
 		"brightnessControlMaxLevel": {
 			"type": "integer",
 			"title": "edt_conf_color_brightness_title",
 			"default": 31,
 			"minimum": 1,
-			"maximum": 31
+			"maximum": 31,
+			"propertyOrder": 3
 
 		}
 	},

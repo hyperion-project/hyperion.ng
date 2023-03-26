@@ -5,14 +5,15 @@
 		"output": {
 			"type": "string",
 			"title": "edt_dev_spec_outputPath_title",
-			"default": "auto"
+			"propertyOrder": 1
 		},
 		"rate": {
 			"type": "integer",
 			"title": "edt_dev_spec_baudrate_title",
 			"default": 3075000,
 			"minimum": 2106000,
-			"maximum": 3075000
+			"maximum": 3075000,
+			"propertyOrder": 2
 		}
 	},
 	"additionalProperties": true

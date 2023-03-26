@@ -5,7 +5,6 @@
 		"output": {
 			"type": "string",
 			"title": "edt_dev_spec_outputPath_title",
-			"default": "auto",
 			"required": true,
 			"propertyOrder": 1
 		},
@@ -32,11 +31,11 @@
 				"subtract_minimum",
 				"sub_min_cool_adjust",
 				"sub_min_warm_adjust",
-				"hyperserial_cold_white",
-				"hyperserial_neutral_white",
-				"wled_auto",
-				"wled_auto_max",
-				"wled_auto_accurate",
+				"cold_white",
+				"neutral_white",
+				"auto",
+				"auto_max",
+				"auto_accurate",
 				"white_off"				
 			],
 			"default": "white_off",
@@ -53,7 +52,7 @@
 					"edt_dev_enum_white_off"
 				]
 			},
-			"propertyOrder": 5
+			"propertyOrder": 4
 		}
 	},
 	"additionalProperties": true
