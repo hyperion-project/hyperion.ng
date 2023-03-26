@@ -1,7 +1,6 @@
 #ifndef LEDEVICESK6812ftdi_H
 #define LEDEVICESK6812ftdi_H
 
-// HyperHDR includes
 #include "ProviderFtdi.h"
 
 ///
