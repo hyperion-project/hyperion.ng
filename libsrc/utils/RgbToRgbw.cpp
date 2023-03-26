@@ -21,29 +21,26 @@ WhiteAlgorithm stringToWhiteAlgorithm(const QString& str)
 	{
 		return WhiteAlgorithm::SUB_MIN_COOL_ADJUST;
 	}
-    if (str == "hyperserial_cold_white")
+    if (str == "cold_white")
     {
-        return WhiteAlgorithm::HYPERSERIAL_COLD_WHITE;
+        return WhiteAlgorithm::COLD_WHITE;
     }
-    if (str == "hyperserial_neutral_white")
+    if (str == "neutral_white")
     {
-        return WhiteAlgorithm::HYPERSERIAL_NEUTRAL_WHITE;
+        return WhiteAlgorithm::NEUTRAL_WHITE;
     }
-    if (str == "wled_auto")
+    if (str == "auto")
     {
-        return WhiteAlgorithm::WLED_AUTO;
+        return WhiteAlgorithm::AUTO;
     }
-
-    if (str == "wled_auto_max")
+    if (str == "auto_max")
     {
-        return WhiteAlgorithm::WLED_AUTO_MAX;
+        return WhiteAlgorithm::AUTO_MAX;
     }
-
-    if (str == "wled_auto_accurate")
+    if (str == "auto_accurate")
     {
-        return WhiteAlgorithm::WLED_AUTO_ACCURATE;
+        return WhiteAlgorithm::AUTO_ACCURATE;
     }
-
     if (str.isEmpty() || str == "white_off")
 	{
 		return WhiteAlgorithm::WHITE_OFF;
@@ -103,7 +100,7 @@ void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm)
 			break;
 		}
 
-        case WhiteAlgorithm::WLED_AUTO_MAX:
+        case WhiteAlgorithm::AUTO_MAX:
         {
             output->red = input.red;
             output->green = input.green;
@@ -112,7 +109,7 @@ void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm)
             break;
         }
 
-        case WhiteAlgorithm::WLED_AUTO_ACCURATE:
+        case WhiteAlgorithm::AUTO_ACCURATE:
         {
             output->white = input.red < input.green ? (input.red < input.blue ? input.red : input.blue) : (input.green < input.blue ? input.green : input.blue);
             output->red = input.red - output->white;
@@ -121,7 +118,7 @@ void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm)
             break;
         }
 
-        case WhiteAlgorithm::WLED_AUTO:
+        case WhiteAlgorithm::AUTO:
         {
 
             output->red = input.red;
@@ -130,8 +127,8 @@ void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm)
             output->white = input.red < input.green ? (input.red < input.blue ? input.red : input.blue) : (input.green < input.blue ? input.green : input.blue);
             break;
         }
-        case WhiteAlgorithm::HYPERSERIAL_NEUTRAL_WHITE:
-        case WhiteAlgorithm::HYPERSERIAL_COLD_WHITE:
+        case WhiteAlgorithm::NEUTRAL_WHITE:
+        case WhiteAlgorithm::COLD_WHITE:
         {
             //cold white config
             uint8_t gain = 0xFF;
@@ -139,7 +136,7 @@ void Rgb_to_Rgbw(ColorRgb input, ColorRgbw * output, WhiteAlgorithm algorithm)
             uint8_t green = 0xA0;
             uint8_t blue = 0xA0;
 
-            if (algorithm == WhiteAlgorithm::HYPERSERIAL_NEUTRAL_WHITE) {
+            if (algorithm == WhiteAlgorithm::NEUTRAL_WHITE) {
                 gain = 0xFF;
                 red = 0xB0;
                 green = 0xB0;

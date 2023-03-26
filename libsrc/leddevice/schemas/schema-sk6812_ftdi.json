@@ -45,11 +45,11 @@
 					"edt_dev_enum_subtract_minimum",
 					"edt_dev_enum_sub_min_cool_adjust",
 					"edt_dev_enum_sub_min_warm_adjust",
-					"edt_dev_enum_hyperserial_cold_white",
-					"edt_dev_enum_hyperserial_neutral_white",
-					"edt_dev_enum_wled_auto",
-					"edt_dev_enum_wled_auto_max",
-					"edt_dev_enum_wled_auto_accurate",
+					"edt_dev_enum_cold_white",
+					"edt_dev_enum_neutral_white",
+					"edt_dev_enum_auto",
+					"edt_dev_enum_auto_max",
+					"edt_dev_enum_auto_accurate",
 					"edt_dev_enum_white_off"
 				]
 			},
