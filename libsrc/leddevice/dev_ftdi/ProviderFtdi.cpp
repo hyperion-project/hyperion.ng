@@ -181,14 +181,24 @@ QJsonObject ProviderFtdi::discover(const QJsonObject & /*params*/)
 
 			libusb_device_descriptor desc;
 			libusb_get_device_descriptor(curdev->dev, &desc);
-			QString value = QString("i:0x%1:0x%2")
-								.arg(desc.idVendor, 4, 16, QChar{'0'})
-								.arg(desc.idProduct, 4, 16, QChar{'0'});
+            uint8_t bus_number = libusb_get_bus_number(curdev->dev);
+            uint8_t device_address = libusb_get_device_address(curdev->dev);
 
-			QString name = QString("%1 (%2)").arg(manufacturer, description);
+            QString portName = QString("d:%1/%2")
+                    .arg(bus_number, 3, 10, QChar{'0'})
+                    .arg(device_address, 3, 10, QChar{'0'});
+
+            QString vendorIdentifier =  QString("0x%1").arg(desc.idVendor, 4, 16, QChar{'0'});
+            QString productIdentifier = QString("0x%1").arg(desc.idProduct, 4, 16, QChar{'0'});
+
+
 			deviceList.push_back(QJsonObject{
-				{"value", value},
-				{"name", name}});
+				{"portName", portName},
+				{"vendorIdentifier", vendorIdentifier},
+				{"productIdentifier", productIdentifier},
+				{"manufacturer", manufacturer},
+				{"description", description},
+            });
 
 			curdev = curdev->next;
 		}

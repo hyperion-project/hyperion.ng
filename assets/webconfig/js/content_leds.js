@@ -1119,6 +1119,9 @@ $(document).ready(function () {
         case "karate":
         case "sedu":
         case "tpm2":
+        case "ws2812_ftdi":
+        case "sk6812_ftdi":
+        case "apa102_ftdi":
           if (storedAccess === 'expert') {
             filter.discoverAll = true;
           }
@@ -1901,7 +1904,7 @@ var updateOutputSelectList = function (ledType, discoveryInfo) {
 
   if ($.inArray(ledType, devNET) != -1) {
     ledTypeGroup = "devNET";
-  } else if ($.inArray(ledType, devSerial) != -1) {
+  } else if ($.inArray(ledType, devSerial) != -1 || ledType.endsWith("_ftdi")) {
     ledTypeGroup = "devSerial";
   } else if ($.inArray(ledType, devRPiSPI) != -1) {
     ledTypeGroup = "devRPiSPI";
@@ -1998,6 +2001,9 @@ var updateOutputSelectList = function (ledType, discoveryInfo) {
           case "karate":
           case "sedu":
           case "tpm2":
+          case "ws2812_ftdi":
+          case "sk6812_ftdi":
+          case "apa102_ftdi":
             for (const device of discoveryInfo.devices) {
               if (device.udev) {
                 enumVals.push(device.systemLocation);
@@ -2093,7 +2099,6 @@ var updateOutputSelectList = function (ledType, discoveryInfo) {
 async function discover_device(ledType, params) {
 
   const result = await requestLedDeviceDiscovery(ledType, params);
-
   var discoveryResult = {};
   if (result) {
     if (result.error) {
