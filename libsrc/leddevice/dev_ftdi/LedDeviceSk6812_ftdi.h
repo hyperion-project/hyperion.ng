@@ -3,9 +3,6 @@
 
 #include "ProviderFtdi.h"
 
-///
-/// Implementation of the LedDevice interface for writing to Sk6801 LED-device via SPI.
-///
 class LedDeviceSk6812_ftdi : public ProviderFtdi
 {
 public:
