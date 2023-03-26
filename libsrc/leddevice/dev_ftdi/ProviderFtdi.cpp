@@ -4,7 +4,6 @@
 
 #include <ftdi.h>
 #include <libusb.h>
-#include <thread>
 
 #define ANY_FTDI_VENDOR 0x0
 #define ANY_FTDI_PRODUCT 0x0
@@ -110,10 +109,8 @@ int ProviderFtdi::open()
 
 int ProviderFtdi::close()
 {
-	// allow to clock out remaining data from powerOff()->writeBlack()
 	if (_ftdic != NULL)
 	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(15));
 		Debug(_log, "Closing FTDI device");
 		ftdi_set_bitmode(_ftdic, 0x00, BITMODE_RESET);
 		ftdi_usb_close(_ftdic);
