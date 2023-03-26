@@ -54,42 +54,14 @@ int ProviderFtdi::openDevice()
 {
 	_ftdic = ftdi_new();
 
-	bool autoDiscovery = (QString::compare(_deviceName, ProviderFtdi::AUTO_SETTING, Qt::CaseInsensitive) == 0);
-	Debug(_log, "Opening FTDI device=%s autoDiscovery=%s", QSTRING_CSTR(_deviceName), autoDiscovery ? "true" : "false");
-	if (autoDiscovery)
-	{
-		struct ftdi_device_list *devlist;
-		int devicesDetected = 0;
-		if ((devicesDetected = ftdi_usb_find_all(_ftdic, &devlist, ANY_FTDI_VENDOR, ANY_FTDI_PRODUCT)) < 0)
-		{
-			setInError(ftdi_get_error_string(_ftdic));
-			return -1;
-		}
-		if (devicesDetected == 0)
-		{
-			setInError("No ftdi devices detected");
-			return 0;
-		}
+	Debug(_log, "Opening FTDI device=%s", QSTRING_CSTR(_deviceName));
 
-		if (ftdi_usb_open_dev(_ftdic, devlist[0].dev) < 0)
-		{
-			setInError(ftdi_get_error_string(_ftdic));
-			ftdi_list_free(&devlist);
-			return -1;
-		}
-
-		ftdi_list_free(&devlist);
-		return 1;
-	}
-	else
-	{
-		if (ftdi_usb_open_string(_ftdic, QSTRING_CSTR(_deviceName)) < 0)
-		{
-			setInError(ftdi_get_error_string(_ftdic));
-			return -1;
-		}
-		return 1;
-	}
+    if (ftdi_usb_open_string(_ftdic, QSTRING_CSTR(_deviceName)) < 0)
+    {
+        setInError(ftdi_get_error_string(_ftdic));
+        return -1;
+    }
+    return 1;
 }
 int ProviderFtdi::open()
 {
@@ -207,9 +179,6 @@ QJsonObject ProviderFtdi::discover(const QJsonObject & /*params*/)
 	QJsonArray deviceList;
 	struct ftdi_device_list *devlist;
 	struct ftdi_context *ftdic;
-
-	QJsonObject autoDevice = QJsonObject{{"value", AUTO_SETTING}, {"name", "Auto"}};
-	deviceList.push_back(autoDevice);
 
 	ftdic = ftdi_new();
 
