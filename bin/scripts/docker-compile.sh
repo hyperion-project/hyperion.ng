@@ -72,7 +72,7 @@ echo "########################################################
 # These are possible arguments to modify the script behaviour with their default values
 #
 # docker-compile.sh -h, --help          # Show this help message
-# docker-compile.sh -i, --image         # The docker image, e.g., x86_64, armv6l, armv7l, aarch64, rpi-raspbian 
+# docker-compile.sh -i, --image         # The docker image, e.g., x86_64, armv6l, armv7l, aarch64
 # docker-compile.sh -t, --tag           # The docker tag, e.g., stretch, buster, bullseye, bookworm
 # docker-compile.sh -b, --type          # Release or Debug build
 # docker-compile.sh -p, --packages      # If true, build packages with CPack

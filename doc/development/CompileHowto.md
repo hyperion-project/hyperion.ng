@@ -5,24 +5,6 @@ If you are using [Docker](https://www.docker.com/), you can compile Hyperion ins
 The compiled binaries and packages will be available at the deploy folder next to the script.<br/>
 Note: call the script with `./docker-compile.sh -h` for more options.
 
-## Native compilation on Raspberry Pi for:
-
-**Raspbian Stretch**
-```console
-wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i rpi-raspbian -t stretch
-```
-**Raspbian Buster/Raspberry Pi OS**
-```console
-wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i rpi-raspbian -t buster
-```
-**Raspberry Pi OS Bullseye**
-```console
-wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i rpi-raspbian -t bullseye
-```
-**Raspberry Pi OS Bookworm**
-```console
-wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i rpi-raspbian -t bookworm
-```
 ## Cross compilation on x86_64 for:
 
 **x86_64 (Debian Stretch):**
@@ -69,6 +51,7 @@ wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/
 ```console
 wget -qN https://raw.github.com/hyperion-project/hyperion.ng/master/bin/scripts/docker-compile.sh && chmod +x *.sh && ./docker-compile.sh -i armv7l -t bullseye
 ```
+
 ## Cross compilation on x86_64 for developers
 Using additional options you can cross compile locally
 -l: use a local hyperion source code directory rather than cloning from GitHub
@@ -79,6 +62,7 @@ Using additional options you can cross compile locally
 cd $HYPERION_HOME
 ./bin/scripts/docker-compile.sh -l -c -i armv7l -t bullseye
 ```
+
 # The usual way
 
 ## Debian/Ubuntu/Win10LinuxSubsystem
