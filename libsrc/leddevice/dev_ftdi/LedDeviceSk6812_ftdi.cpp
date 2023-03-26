@@ -25,8 +25,10 @@ bool LedDeviceSk6812_ftdi::init(const QJsonObject &deviceConfig)
 	if (ProviderFtdi::init(deviceConfig))
 	{
 		_brightnessControlMaxLevel = deviceConfig["brightnessControlMaxLevel"].toInt(255);
+        Info(_log, "[%s] Setting maximum brightness to [%d]", QSTRING_CSTR(_activeDeviceType), _brightnessControlMaxLevel);
 
-		QString whiteAlgorithm = deviceConfig["whiteAlgorithm"].toString("white_off");
+
+        QString whiteAlgorithm = deviceConfig["whiteAlgorithm"].toString("white_off");
 
 		_whiteAlgorithm = RGBW::stringToWhiteAlgorithm(whiteAlgorithm);
 
