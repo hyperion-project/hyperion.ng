@@ -342,6 +342,9 @@ message(STATUS "ENABLE_DEV_USB_HID = ${ENABLE_DEV_USB_HID}")
 option(ENABLE_DEV_WS281XPWM "Enable the WS281x-PWM device" ${DEFAULT_DEV_WS281XPWM} )
 message(STATUS "ENABLE_DEV_WS281XPWM = ${ENABLE_DEV_WS281XPWM}")
 
+option(ENABLE_FTDIDEV "Enable the FTDI led device" ${DEFAULT_ENABLE_FTDIDEV} )
+message(STATUS "ENABLE_FTDIDEV = ${ENABLE_FTDIDEV}")
+
 removeIndent()
 
 message(STATUS "Services options:")
