@@ -15,14 +15,13 @@ LedDevice *LedDeviceAPA102_ftdi::construct(const QJsonObject &deviceConfig)
 bool LedDeviceAPA102_ftdi::init(const QJsonObject &deviceConfig)
 {
 	bool isInitOK = false;
-
-	_brightnessControlMaxLevel = deviceConfig["brightnessControlMaxLevel"].toInt(LED_BRIGHTNESS_FULL);
-	Info(_log, "[%s] Setting maximum brightness to [%d] = %d%%", QSTRING_CSTR(_activeDeviceType), _brightnessControlMaxLevel, _brightnessControlMaxLevel * 100 / LED_BRIGHTNESS_FULL);
-
 	// Initialise sub-class
 	if (ProviderFtdi::init(deviceConfig))
 	{
-		CreateHeader();
+        _brightnessControlMaxLevel = deviceConfig["brightnessControlMaxLevel"].toInt(LED_BRIGHTNESS_FULL);
+        Info(_log, "[%s] Setting maximum brightness to [%d] = %d%%", QSTRING_CSTR(_activeDeviceType), _brightnessControlMaxLevel, _brightnessControlMaxLevel * 100 / LED_BRIGHTNESS_FULL);
+
+        CreateHeader();
 		isInitOK = true;
 	}
 	return isInitOK;
