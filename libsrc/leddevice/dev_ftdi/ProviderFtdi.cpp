@@ -104,7 +104,7 @@ int ProviderFtdi::open()
 	buf[icmd++] = divisor;
 	buf[icmd++] = divisor >> 8;
 	buf[icmd++] = SET_BITS_LOW;		  // opcode: set low bits (ADBUS[0-7])
-	buf[icmd++] = Pin::CS & ~Pin::L0; // argument: inital pin states
+	buf[icmd++] = Pin::CS & ~Pin::L0; // argument: initial pin states
 	buf[icmd++] = pinDirection;
 	if ((rc = ftdi_write_data(_ftdic, buf, icmd)) != icmd)
 	{
