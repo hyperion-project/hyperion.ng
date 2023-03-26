@@ -71,9 +71,6 @@ protected slots:
 	/// @param errorMsg The error message to be logged
 	///
 	void setInError(const QString& errorMsg, bool isRecoverable=true) override;
-
-private:
-	int openDevice();
 };
 
 #endif // PROVIDERFtdi_H

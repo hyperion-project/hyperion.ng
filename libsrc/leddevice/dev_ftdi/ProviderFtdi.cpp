@@ -50,27 +50,19 @@ bool ProviderFtdi::init(const QJsonObject &deviceConfig)
 	return isInitOK;
 }
 
-int ProviderFtdi::openDevice()
+int ProviderFtdi::open()
 {
-	_ftdic = ftdi_new();
+	int rc = 0;
 
-	Debug(_log, "Opening FTDI device=%s", QSTRING_CSTR(_deviceName));
+    _ftdic = ftdi_new();
+
+    Debug(_log, "Opening FTDI device=%s", QSTRING_CSTR(_deviceName));
 
     if (ftdi_usb_open_string(_ftdic, QSTRING_CSTR(_deviceName)) < 0)
     {
         setInError(ftdi_get_error_string(_ftdic));
         return -1;
     }
-    return 1;
-}
-int ProviderFtdi::open()
-{
-	int rc = 0;
-
-	if ((rc = openDevice()) != 1)
-	{
-		return -1;
-	}
 
 	/* doing this disable resets things if they were in a bad state */
 	if ((rc = ftdi_disable_bitbang(_ftdic)) < 0)
