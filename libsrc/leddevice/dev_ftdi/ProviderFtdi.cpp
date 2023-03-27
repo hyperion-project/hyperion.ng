@@ -174,6 +174,7 @@ QJsonObject ProviderFtdi::discover(const QJsonObject & /*params*/)
 	if (ftdi_usb_find_all(ftdic, &devlist, ANY_FTDI_VENDOR, ANY_FTDI_PRODUCT) > 0)
 	{
 		struct ftdi_device_list *curdev = devlist;
+        QMap<QString, uint8_t> deviceIndexes;
 		while (curdev)
 		{
 			char manufacturer[128], description[128];
@@ -181,16 +182,15 @@ QJsonObject ProviderFtdi::discover(const QJsonObject & /*params*/)
 
 			libusb_device_descriptor desc;
 			libusb_get_device_descriptor(curdev->dev, &desc);
-            uint8_t bus_number = libusb_get_bus_number(curdev->dev);
-            uint8_t device_address = libusb_get_device_address(curdev->dev);
-
-            QString portName = QString("d:%1/%2")
-                    .arg(bus_number, 3, 10, QChar{'0'})
-                    .arg(device_address, 3, 10, QChar{'0'});
 
             QString vendorIdentifier =  QString("0x%1").arg(desc.idVendor, 4, 16, QChar{'0'});
             QString productIdentifier = QString("0x%1").arg(desc.idProduct, 4, 16, QChar{'0'});
+            QString vendorAndProduct = QString("i:%1:%2")
+                    .arg(vendorIdentifier)
+                    .arg(productIdentifier);
+            uint8_t deviceIndex = deviceIndexes.value(vendorAndProduct, 0);
 
+            QString portName = QString("%1:%2").arg(vendorAndProduct).arg(deviceIndex);
 
 			deviceList.push_back(QJsonObject{
 				{"portName", portName},
@@ -201,6 +201,8 @@ QJsonObject ProviderFtdi::discover(const QJsonObject & /*params*/)
             });
 
 			curdev = curdev->next;
+
+            deviceIndexes.insert(vendorAndProduct, deviceIndex + 1);
 		}
 	}
 
