@@ -59,7 +59,7 @@ bool LedDeviceWs2812_ftdi::init(const QJsonObject &deviceConfig)
 	// Initialise sub-class
 	if (ProviderFtdi::init(deviceConfig))
 	{
-		WarningIf((_baudRate_Hz < 2106000 || _baudRate_Hz > 3075000), _log, "SPI rate %d outside recommended range (2106000 -> 3075000)", _baudRate_Hz);
+		WarningIf((_baudRate_Hz < 2106000 || _baudRate_Hz > 3075000), _log, "Baud rate %d outside recommended range (2106000 -> 3075000)", _baudRate_Hz);
 		_ledBuffer.resize(_ledRGBCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
 		isInitOK = true;
 	}
