@@ -65,7 +65,7 @@ if ( ENABLE_DEV_WS281XPWM )
 	FILE ( GLOB Leddevice_PWM_SOURCES "${CURRENT_SOURCE_DIR}/dev_rpi_pwm/*.h" "${CURRENT_SOURCE_DIR}/dev_rpi_pwm/*.cpp")
 endif()
 
-if (DEFAULT_DEV_FTDI)
+if (ENABLE_DEV_FTDI)
 	FILE ( GLOB Leddevice_FTDI_SOURCES "${CURRENT_SOURCE_DIR}/dev_ftdi/*.h" "${CURRENT_SOURCE_DIR}/dev_ftdi/*.cpp")
 endif()
 
@@ -170,7 +170,7 @@ if(ENABLE_MDNS)
         target_link_libraries(leddevice mdns)
 endif()
 
-if( DEFAULT_DEV_FTDI )
+if( ENABLE_DEV_FTDI )
 	FIND_PACKAGE(PkgConfig REQUIRED)
 	pkg_check_modules(LIB_FTDI REQUIRED libftdi1)
 	add_library(libftdi1 STATIC IMPORTED)
