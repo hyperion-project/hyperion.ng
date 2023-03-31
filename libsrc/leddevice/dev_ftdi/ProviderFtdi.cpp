@@ -1,6 +1,7 @@
 // LedDevice includes
 #include <leddevice/LedDevice.h>
 #include "ProviderFtdi.h"
+#include <utils/WaitTime.h>
 
 #include <ftdi.h>
 #include <libusb.h>
@@ -112,6 +113,7 @@ int ProviderFtdi::close()
 	if (_ftdic != NULL)
 	{
 		Debug(_log, "Closing FTDI device");
+        wait(15); // Delay to give time to push color black from writeBlack() into the led
 		ftdi_set_bitmode(_ftdic, 0x00, BITMODE_RESET);
 		ftdi_usb_close(_ftdic);
 		_ftdic = NULL;
