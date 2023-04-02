@@ -19,6 +19,7 @@ var bottomLeft2topLeft = null;
 var toggleKeystoneCorrectionArea = false;
 
 var devRPiSPI = ['apa102', 'apa104', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'sk6822spi', 'sk9822', 'ws2812spi'];
+var devFTDI = ['apa102_ftdi', 'sk6812_ftdi', 'ws2812_ftdi'];
 var devRPiPWM = ['ws281x'];
 var devRPiGPIO = ['piblaster'];
 var devNET = ['atmoorb', 'cololight', 'fadecandy', 'philipshue', 'nanoleaf', 'razer', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udpddp', 'udph801', 'udpraw', 'wled', 'yeelight'];
@@ -1119,9 +1120,12 @@ $(document).ready(function () {
         case "karate":
         case "sedu":
         case "tpm2":
-        case "ws2812_ftdi":
-        case "sk6812_ftdi":
+
+        //FTDI devices
         case "apa102_ftdi":
+        case "sk6812_ftdi":
+        case "ws2812_ftdi":
+
           if (storedAccess === 'expert') {
             filter.discoverAll = true;
           }
@@ -1142,7 +1146,16 @@ $(document).ready(function () {
             });
 
           hwLedCountDefault = 1;
-          colorOrderDefault = "rgb";
+          
+          switch (ledType) {
+            case "sk6812spi":
+            case "sk6812_ftdi":
+              colorOrderDefault = "grb";
+              break;
+            default:
+              colorOrderDefault = "rgb";
+          }
+
           break;
 
         case "philipshue":
@@ -1425,6 +1438,9 @@ $(document).ready(function () {
           case "sk9822":
           case "ws2812spi":
           case "piblaster":
+          case "apa102_ftdi":
+          case "sk6812_ftdi":
+          case "ws2812_ftdi":
           default:
         }
 
@@ -1856,6 +1872,9 @@ function saveLedConfig(genDefLayout = false) {
     case "sk9822":
     case "ws2812spi":
     case "piblaster":
+    case "apa102_ftdi":
+    case "sk6812_ftdi":
+    case "ws2812_ftdi":
     default:
       if (genDefLayout === true) {
         ledConfig = {
@@ -1906,10 +1925,12 @@ var updateOutputSelectList = function (ledType, discoveryInfo) {
 
   if ($.inArray(ledType, devNET) != -1) {
     ledTypeGroup = "devNET";
-  } else if ($.inArray(ledType, devSerial) != -1 || ledType.endsWith("_ftdi")) {
+  } else if ($.inArray(ledType, devSerial) != -1) {
     ledTypeGroup = "devSerial";
   } else if ($.inArray(ledType, devRPiSPI) != -1) {
     ledTypeGroup = "devRPiSPI";
+  } else if ($.inArray(ledType, devFTDI) != -1) {
+    ledTypeGroup = "devFTDI";
   } else if ($.inArray(ledType, devRPiGPIO) != -1) {
     ledTypeGroup = "devRPiGPIO";
   } else if ($.inArray(ledType, devRPiPWM) != -1) {
@@ -2003,9 +2024,6 @@ var updateOutputSelectList = function (ledType, discoveryInfo) {
           case "karate":
           case "sedu":
           case "tpm2":
-          case "ws2812_ftdi":
-          case "sk6812_ftdi":
-          case "apa102_ftdi":
             for (const device of discoveryInfo.devices) {
               if (device.udev) {
                 enumVals.push(device.systemLocation);
@@ -2035,6 +2053,62 @@ var updateOutputSelectList = function (ledType, discoveryInfo) {
         }
       }
       break;
+
+    case "devFTDI":
+      key = "output";
+
+      if (discoveryInfo.devices.length == 0) {
+        enumVals.push("NONE");
+        enumTitleVals.push($.i18n('edt_dev_spec_devices_discovered_none'));
+        $('#btn_submit_controller').prop('disabled', true);
+        showAllDeviceInputOptions(key, false);
+      }
+      else {
+        switch (ledType) {
+          case "ws2812_ftdi":
+          case "sk6812_ftdi":
+          case "apa102_ftdi":
+            for (const device of discoveryInfo.devices) {
+              enumVals.push(device.ftdiOpenString);
+
+              var title = "FTDI";
+              if (device.manufacturer) {
+                title = device.manufacturer
+              }
+
+              if (device.serialNumber) {
+                title += " - " + device.serialNumber;
+              }
+              title += " (" + device.vendorIdentifier + "|" + device.productIdentifier + ")";
+
+              if (device.description) {
+                title += " " + device.description;
+              }
+
+              enumTitleVals.push(title);
+            }
+
+            // Select configured device
+            var configuredDeviceType = window.serverConfig.device.type;
+            var configuredOutput = window.serverConfig.device.output;
+            if (ledType === configuredDeviceType) {
+              if ($.inArray(configuredOutput, enumVals) != -1) {
+                enumDefaultVal = configuredOutput;
+              } else {
+                enumVals.push(window.serverConfig.device.output);
+                enumDefaultVal = configuredOutput;
+              }
+            }
+            else {
+              addSelect = true;
+            }
+
+            break;
+          default:
+        }
+      }
+      break;
+
     case "devRPiSPI":
     case "devRPiGPIO":
       key = "output";

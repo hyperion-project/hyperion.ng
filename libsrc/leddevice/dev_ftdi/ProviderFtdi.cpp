@@ -11,7 +11,7 @@
 
 namespace Pin
 {
-	// enumerate the AD bus for conveniance.
+	// enumerate the AD bus for convenience.
 	enum bus_t
 	{
 		SK = 0x01, // ADBUS0, SPI data clock
@@ -28,7 +28,7 @@ const QString ProviderFtdi::AUTO_SETTING = QString("auto");
 
 ProviderFtdi::ProviderFtdi(const QJsonObject &deviceConfig)
 	: LedDevice(deviceConfig),
-	  _ftdic(NULL),
+	  _ftdic(nullptr),
 	  _baudRate_Hz(1000000)
 {
 }
@@ -90,7 +90,7 @@ int ProviderFtdi::open()
 	double reference_clock = 60e6;
 	int divisor = (reference_clock / 2 / _baudRate_Hz) - 1;
 	uint8_t buf[10] = {0};
-	unsigned int icmd = 0;
+	int icmd = 0;
 	buf[icmd++] = DIS_DIV_5;
 	buf[icmd++] = TCK_DIVISOR;
 	buf[icmd++] = divisor;
@@ -110,13 +110,13 @@ int ProviderFtdi::open()
 
 int ProviderFtdi::close()
 {
-	if (_ftdic != NULL)
+	if (_ftdic != nullptr)
 	{
 		Debug(_log, "Closing FTDI device");
         wait(15); // Delay to give time to push color black from writeBlack() into the led
 		ftdi_set_bitmode(_ftdic, 0x00, BITMODE_RESET);
 		ftdi_usb_close(_ftdic);
-		_ftdic = NULL;
+		_ftdic = nullptr;
 	}
 	return LedDevice::close();
 }
@@ -125,13 +125,13 @@ void ProviderFtdi::setInError(const QString &errorMsg, bool isRecoverable)
 {
 	close();
 
-	LedDevice::setInError(errorMsg);
+	LedDevice::setInError(errorMsg, isRecoverable);
 }
 
 int ProviderFtdi::writeBytes(const qint64 size, const uint8_t *data)
 {
 	uint8_t buf[10] = {0};
-	unsigned int icmd = 0;
+	int icmd = 0;
 	int rc = 0;
 
 	int count_arg = size - 1;
@@ -176,35 +176,67 @@ QJsonObject ProviderFtdi::discover(const QJsonObject & /*params*/)
 	if (ftdi_usb_find_all(ftdic, &devlist, ANY_FTDI_VENDOR, ANY_FTDI_PRODUCT) > 0)
 	{
 		struct ftdi_device_list *curdev = devlist;
-        QMap<QString, uint8_t> deviceIndexes;
+		QMap<QString, uint8_t> deviceIndexes;
+
 		while (curdev)
 		{
-			char manufacturer[128], description[128];
-			ftdi_usb_get_strings(ftdic, curdev->dev, manufacturer, 128, description, 128, NULL, 0);
-
 			libusb_device_descriptor desc;
-			libusb_get_device_descriptor(curdev->dev, &desc);
+			int rc = libusb_get_device_descriptor(curdev->dev, &desc);
+			if (rc == 0)
+			{
+				QString vendorIdentifier =  QString("0x%1").arg(desc.idVendor, 4, 16, QChar{'0'});
+				QString productIdentifier = QString("0x%1").arg(desc.idProduct, 4, 16, QChar{'0'});
+				QString vendorAndProduct = QString("%1:%2")
+										   .arg(vendorIdentifier)
+										   .arg(productIdentifier);
+				uint8_t deviceIndex = deviceIndexes.value(vendorAndProduct, 0);
 
-            QString vendorIdentifier =  QString("0x%1").arg(desc.idVendor, 4, 16, QChar{'0'});
-            QString productIdentifier = QString("0x%1").arg(desc.idProduct, 4, 16, QChar{'0'});
-            QString vendorAndProduct = QString("i:%1:%2")
-                    .arg(vendorIdentifier)
-                    .arg(productIdentifier);
-            uint8_t deviceIndex = deviceIndexes.value(vendorAndProduct, 0);
+				QString serialNumber;
+				char serial_string[128];
+				rc = ftdi_usb_get_strings2(ftdic, curdev->dev, nullptr, 0, nullptr, 0, serial_string, 128);
+				if (rc == 0)
+				{
+					serialNumber = serial_string;
+				}
 
-            QString portName = QString("%1:%2").arg(vendorAndProduct).arg(deviceIndex);
+				QString ftdiOpenString;
+				if(!serialNumber.isEmpty())
+				{
+					ftdiOpenString = QString("s:%1:%2").arg(vendorAndProduct).arg(serialNumber);
+				}
+				else
+				{
+					ftdiOpenString = QString("i:%1:%2").arg(vendorAndProduct).arg(deviceIndex);
+				}
 
-			deviceList.push_back(QJsonObject{
-				{"portName", portName},
-				{"vendorIdentifier", vendorIdentifier},
-				{"productIdentifier", productIdentifier},
-				{"manufacturer", manufacturer},
-				{"description", description},
-            });
+				QString manufacturer;
+				char manufacturer_string[128];
+				rc = ftdi_usb_get_strings2(ftdic, curdev->dev, manufacturer_string, 128, nullptr, 0, nullptr, 0);
+				if (rc == 0)
+				{
+					manufacturer = manufacturer_string;
+				}
 
+				QString description;
+				char description_string[128];
+				rc = ftdi_usb_get_strings2(ftdic, curdev->dev, nullptr, 0, description_string, 128, nullptr, 0);
+				if (rc == 0)
+				{
+					description = description_string;
+				}
+
+				deviceList.push_back(QJsonObject{
+										 {"ftdiOpenString", ftdiOpenString},
+										 {"vendorIdentifier", vendorIdentifier},
+										 {"productIdentifier", productIdentifier},
+										 {"deviceIndex", deviceIndex},
+										 {"serialNumber", serialNumber},
+										 {"manufacturer", manufacturer},
+										 {"description", description}
+									 });
+				deviceIndexes.insert(vendorAndProduct, deviceIndex + 1);
+			}
 			curdev = curdev->next;
-
-            deviceIndexes.insert(vendorAndProduct, deviceIndex + 1);
 		}
 	}
 
