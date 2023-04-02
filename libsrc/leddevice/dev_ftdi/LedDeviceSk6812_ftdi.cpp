@@ -34,7 +34,7 @@ bool LedDeviceSk6812_ftdi::init(const QJsonObject &deviceConfig)
 
 		Debug(_log, "whiteAlgorithm : %s", QSTRING_CSTR(whiteAlgorithm));
 
-		WarningIf((_baudRate_Hz < 2050000 || _baudRate_Hz > 4000000), _log, "Baud rate %d outside recommended range (2050000 -> 4000000)", _baudRate_Hz);
+		WarningIf((_baudRate_Hz < 2050000 || _baudRate_Hz > 3750000), _log, "Baud rate %d outside recommended range (2050000 -> 3750000)", _baudRate_Hz);
 
 		const int SPI_FRAME_END_LATCH_BYTES = 3;
 		_ledBuffer.resize(_ledRGBWCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);

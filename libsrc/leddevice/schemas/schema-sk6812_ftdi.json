@@ -13,6 +13,8 @@
 			"step": 100000,
 			"title": "edt_dev_spec_baudrate_title",
 			"default": 3200000,
+			"minimum": 2050000,
+			"maximum": 3750000,
 			"propertyOrder": 2
 		},
 		"brightnessControlMaxLevel": {
