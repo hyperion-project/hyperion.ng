@@ -34,7 +34,7 @@ void LedDeviceAPA102_ftdi::CreateHeader()
 	const unsigned int endFrameSize = (_ledCount / 32) * 4 + 4;
 	const unsigned int APAbufferSize = (_ledCount * 4) + startFrameSize + endFrameSize;
 	_ledBuffer.resize(APAbufferSize, 0);
-	Debug(_log, "APA102 buffer created. Led's number: %d", _ledCount);
+	Debug(_log, "APA102 buffer created for %d LEDs", _ledCount);
 }
 
 int LedDeviceAPA102_ftdi::write(const std::vector<ColorRgb> &ledValues)
