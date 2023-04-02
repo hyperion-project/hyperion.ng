@@ -191,14 +191,12 @@ QJsonObject ProviderFtdi::discover(const QJsonObject & /*params*/)
 										   .arg(productIdentifier);
 				uint8_t deviceIndex = deviceIndexes.value(vendorAndProduct, 0);
 
-				QString serialNumber;
-				char serial_string[128];
-				rc = ftdi_usb_get_strings2(ftdic, curdev->dev, nullptr, 0, nullptr, 0, serial_string, 128);
-				if (rc == 0)
-				{
-					serialNumber = serial_string;
-				}
+				char serial_string[128] = {0};
+				char manufacturer_string[128] = {0};
+				char description_string[128] = {0};
+				ftdi_usb_get_strings2(ftdic, curdev->dev, manufacturer_string, 128, description_string, 128, serial_string, 128);
 
+				QString serialNumber {serial_string};
 				QString ftdiOpenString;
 				if(!serialNumber.isEmpty())
 				{
@@ -209,30 +207,14 @@ QJsonObject ProviderFtdi::discover(const QJsonObject & /*params*/)
 					ftdiOpenString = QString("i:%1:%2").arg(vendorAndProduct).arg(deviceIndex);
 				}
 
-				QString manufacturer;
-				char manufacturer_string[128];
-				rc = ftdi_usb_get_strings2(ftdic, curdev->dev, manufacturer_string, 128, nullptr, 0, nullptr, 0);
-				if (rc == 0)
-				{
-					manufacturer = manufacturer_string;
-				}
-
-				QString description;
-				char description_string[128];
-				rc = ftdi_usb_get_strings2(ftdic, curdev->dev, nullptr, 0, description_string, 128, nullptr, 0);
-				if (rc == 0)
-				{
-					description = description_string;
-				}
-
 				deviceList.push_back(QJsonObject{
 										 {"ftdiOpenString", ftdiOpenString},
 										 {"vendorIdentifier", vendorIdentifier},
 										 {"productIdentifier", productIdentifier},
 										 {"deviceIndex", deviceIndex},
 										 {"serialNumber", serialNumber},
-										 {"manufacturer", manufacturer},
-										 {"description", description}
+										 {"manufacturer", manufacturer_string},
+										 {"description", description_string}
 									 });
 				deviceIndexes.insert(vendorAndProduct, deviceIndex + 1);
 			}
