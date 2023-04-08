@@ -17,12 +17,12 @@ namespace Pin
 		SK = 0x01, // ADBUS0, SPI data clock
 		DO = 0x02, // ADBUS1, SPI data out
 		CS = 0x08, // ADBUS3, SPI chip select, active low
-		L0 = 0x10, // ADBUS4, SPI chip select, active high
 	};
 }
 
+const unsigned char pinInitialState = Pin::CS;
 // Use these pins as outputs
-const unsigned char pinDirection = Pin::SK | Pin::DO | Pin::CS | Pin::L0;
+const unsigned char pinDirection = Pin::SK | Pin::DO | Pin::CS;
 
 const QString ProviderFtdi::AUTO_SETTING = QString("auto");
 
@@ -96,7 +96,7 @@ int ProviderFtdi::open()
 	buf[icmd++] = divisor;
 	buf[icmd++] = divisor >> 8;
 	buf[icmd++] = SET_BITS_LOW;		  // opcode: set low bits (ADBUS[0-7])
-	buf[icmd++] = Pin::CS & ~Pin::L0; // argument: initial pin states
+	buf[icmd++] = pinInitialState; // argument: initial pin states
 	buf[icmd++] = pinDirection;
 	if ((rc = ftdi_write_data(_ftdic, buf, icmd)) != icmd)
 	{
@@ -138,7 +138,7 @@ int ProviderFtdi::writeBytes(const qint64 size, const uint8_t *data)
 
 	int count_arg = size - 1;
 	buf[icmd++] = SET_BITS_LOW;
-	buf[icmd++] = Pin::L0 & ~Pin::CS;
+	buf[icmd++] = pinInitialState & ~Pin::CS;
 	buf[icmd++] = pinDirection;
 	buf[icmd++] = MPSSE_DO_WRITE | MPSSE_WRITE_NEG;
 	buf[icmd++] = count_arg;
@@ -156,7 +156,7 @@ int ProviderFtdi::writeBytes(const qint64 size, const uint8_t *data)
 	}
 	icmd = 0;
 	buf[icmd++] = SET_BITS_LOW;
-	buf[icmd++] = Pin::CS & ~Pin::L0;
+	buf[icmd++] = pinInitialState | Pin::CS;
 	buf[icmd++] = pinDirection;
 	if ((rc = ftdi_write_data(_ftdic, buf, icmd)) != icmd)
 	{
