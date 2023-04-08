@@ -132,33 +132,25 @@ void ProviderFtdi::setInError(const QString &errorMsg, bool isRecoverable)
 
 int ProviderFtdi::writeBytes(const qint64 size, const uint8_t *data)
 {
-	uint8_t buf[10] = {0};
-	int icmd = 0;
-	int rc = 0;
+    int rc;
+    int count_arg = size - 1;
+	std::vector<uint8_t> buf = {
+            SET_BITS_LOW,
+            pinInitialState & ~Pin::CS,
+            pinDirection,
+            MPSSE_DO_WRITE | MPSSE_WRITE_NEG,
+            static_cast<unsigned char>(count_arg),
+            static_cast<unsigned char>(count_arg >> 8),
+//            LED's data will be inserted here
+            SET_BITS_LOW,
+            pinInitialState | Pin::CS,
+            pinDirection
+    };
+    // insert before last SET_BITS_LOW command
+    // SET_BITS_LOW takes 2 arguments, so we're inserting data in -3 position from the end
+    buf.insert(buf.end() - 3, &data[0], &data[size]);
 
-	int count_arg = size - 1;
-	buf[icmd++] = SET_BITS_LOW;
-	buf[icmd++] = pinInitialState & ~Pin::CS;
-	buf[icmd++] = pinDirection;
-	buf[icmd++] = MPSSE_DO_WRITE | MPSSE_WRITE_NEG;
-	buf[icmd++] = count_arg;
-	buf[icmd++] = count_arg >> 8;
-
-	if ((rc = ftdi_write_data(_ftdic, buf, icmd)) != icmd)
-	{
-		setInError(ftdi_get_error_string(_ftdic));
-		return rc;
-	}
-	if ((rc = ftdi_write_data(_ftdic, data, size)) != size)
-	{
-		setInError(ftdi_get_error_string(_ftdic));
-		return rc;
-	}
-	icmd = 0;
-	buf[icmd++] = SET_BITS_LOW;
-	buf[icmd++] = pinInitialState | Pin::CS;
-	buf[icmd++] = pinDirection;
-	if ((rc = ftdi_write_data(_ftdic, buf, icmd)) != icmd)
+	if ((rc = ftdi_write_data(_ftdic, buf.data(), buf.size())) != buf.size())
 	{
 		setInError(ftdi_get_error_string(_ftdic));
 		return rc;
