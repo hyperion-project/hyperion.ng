@@ -9,6 +9,8 @@
 #define ANY_FTDI_VENDOR 0x0
 #define ANY_FTDI_PRODUCT 0x0
 
+#define FTDI_CHECK_RESULT(statement) if (statement) {setInError(ftdi_get_error_string(_ftdic)); return rc;}
+
 namespace Pin
 {
 	// enumerate the AD bus for convenience.
@@ -58,54 +60,30 @@ int ProviderFtdi::open()
 
     Debug(_log, "Opening FTDI device=%s", QSTRING_CSTR(_deviceName));
 
-    if (ftdi_usb_open_string(_ftdic, QSTRING_CSTR(_deviceName)) < 0)
-    {
-        setInError(ftdi_get_error_string(_ftdic));
-        return -1;
-    }
+    FTDI_CHECK_RESULT((rc = ftdi_usb_open_string(_ftdic, QSTRING_CSTR(_deviceName))) < 0);
+    /* doing this disable resets things if they were in a bad state */
+    FTDI_CHECK_RESULT((rc = ftdi_disable_bitbang(_ftdic)) < 0);
+    FTDI_CHECK_RESULT((rc = ftdi_setflowctrl(_ftdic, SIO_DISABLE_FLOW_CTRL)) < 0);
+    FTDI_CHECK_RESULT((rc = ftdi_set_bitmode(_ftdic, 0x00, BITMODE_RESET)) < 0);
+    FTDI_CHECK_RESULT((rc = ftdi_set_bitmode(_ftdic, 0xff, BITMODE_MPSSE)) < 0);
 
-	/* doing this disable resets things if they were in a bad state */
-	if ((rc = ftdi_disable_bitbang(_ftdic)) < 0)
-	{
-		setInError(ftdi_get_error_string(_ftdic));
-		return rc;
-	}
-	if ((rc = ftdi_setflowctrl(_ftdic, SIO_DISABLE_FLOW_CTRL)) < 0)
-	{
-		setInError(ftdi_get_error_string(_ftdic));
-		return rc;
-	}
-	if ((rc = ftdi_set_bitmode(_ftdic, 0x00, BITMODE_RESET)) < 0)
-	{
-		setInError(ftdi_get_error_string(_ftdic));
-		return rc;
-	}
 
-	if ((rc = ftdi_set_bitmode(_ftdic, 0xff, BITMODE_MPSSE)) < 0)
-	{
-		setInError(ftdi_get_error_string(_ftdic));
-		return rc;
-	}
+    double reference_clock = 60e6;
+    int divisor = (reference_clock / 2 / _baudRate_Hz) - 1;
+    std::vector<uint8_t> buf = {
+            DIS_DIV_5,
+            TCK_DIVISOR,
+            static_cast<unsigned char>(divisor),
+            static_cast<unsigned char>(divisor >> 8),
+            SET_BITS_LOW,		  // opcode: set low bits (ADBUS[0-7]
+            pinInitialState,    // argument: inital pin state
+            pinDirection
+    };
 
-	double reference_clock = 60e6;
-	int divisor = (reference_clock / 2 / _baudRate_Hz) - 1;
-	uint8_t buf[10] = {0};
-	int icmd = 0;
-	buf[icmd++] = DIS_DIV_5;
-	buf[icmd++] = TCK_DIVISOR;
-	buf[icmd++] = divisor;
-	buf[icmd++] = divisor >> 8;
-	buf[icmd++] = SET_BITS_LOW;		  // opcode: set low bits (ADBUS[0-7])
-	buf[icmd++] = pinInitialState; // argument: initial pin states
-	buf[icmd++] = pinDirection;
-	if ((rc = ftdi_write_data(_ftdic, buf, icmd)) != icmd)
-	{
-		setInError(ftdi_get_error_string(_ftdic));
-		return rc;
-	}
+    FTDI_CHECK_RESULT((rc = ftdi_write_data(_ftdic, buf.data(), buf.size())) != buf.size());
 
-	_isDeviceReady = true;
-	return rc;
+    _isDeviceReady = true;
+    return rc;
 }
 
 int ProviderFtdi::close()
@@ -150,11 +128,7 @@ int ProviderFtdi::writeBytes(const qint64 size, const uint8_t *data)
     // SET_BITS_LOW takes 2 arguments, so we're inserting data in -3 position from the end
     buf.insert(buf.end() - 3, &data[0], &data[size]);
 
-	if ((rc = ftdi_write_data(_ftdic, buf.data(), buf.size())) != buf.size())
-	{
-		setInError(ftdi_get_error_string(_ftdic));
-		return rc;
-	}
+    FTDI_CHECK_RESULT((rc = ftdi_write_data(_ftdic, buf.data(), buf.size())) != buf.size());
 	return rc;
 }
 
