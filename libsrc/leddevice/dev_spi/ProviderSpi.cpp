@@ -330,13 +330,6 @@ QJsonObject ProviderSpi::discover(const QJsonObject & /*params*/) {
                 }
 
                 deviceList.push_back(QJsonObject{
-                        {"ftdiOpenString",    ftdiOpenString},
-                        {"vendorIdentifier",  vendorIdentifier},
-                        {"productIdentifier", productIdentifier},
-                        {"deviceIndex",       deviceIndex},
-                        {"serialNumber",      serialNumber},
-                        {"manufacturer",      manufacturer_string},
-                        {"description",       description_string},
                         {"deviceName",        description_string},
                         {"systemLocation",    ftdiOpenString}
                 });
