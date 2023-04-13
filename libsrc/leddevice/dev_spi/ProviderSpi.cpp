@@ -1,12 +1,12 @@
-﻿// STL includes
+﻿// Local Hyperion includes
+#include "ProviderSpi.h"
+
+#ifdef ENABLE_DEV_SPI
+// STL includes
 #include <cstring>
 #include <cstdio>
 #include <iostream>
 #include <cerrno>
-// Local Hyperion includes
-#include "ProviderSpi.h"
-
-#ifdef ENABLE_DEV_SPI
 // Linux includes
 #include <fcntl.h>
 #include <unistd.h>
