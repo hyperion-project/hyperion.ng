@@ -1,4 +1,5 @@
 #pragma once
+#include "HyperionConfig.h"
 
 #ifdef ENABLE_DEV_SPI
     // Linux-SPI includes
