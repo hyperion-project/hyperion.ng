@@ -53,10 +53,6 @@ namespace {
     const char DISCOVERY_DIRECTORY[] = "/dev/";
     const char DISCOVERY_FILEPATTERN[] = "spidev*";
 #endif
-
-    const QString ImplementationSPIDEV = QString("spidev");
-    const QString ImplementationFTDI = QString("ftdi");
-
 } //End of constants
 
 ProviderSpi::ProviderSpi(const QJsonObject &deviceConfig)
