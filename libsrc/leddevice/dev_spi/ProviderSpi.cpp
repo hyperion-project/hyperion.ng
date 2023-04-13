@@ -22,7 +22,7 @@
 #include <utils/WaitTime.h>
 
 #define FTDI_CHECK_RESULT(statement) if (statement) {setInError(ftdi_get_error_string(_ftdic)); return retVal;}
-
+#define IS_FTDI_DEVICE_NAME(deviceName)  (deviceName.startsWith("d:") || deviceName.startsWith("i:") || deviceName.startsWith("s:"))
 #define ANY_FTDI_VENDOR 0x0
 #define ANY_FTDI_PRODUCT 0x0
 
@@ -88,9 +88,7 @@ bool ProviderSpi::init(const QJsonObject &deviceConfig) {
         _spiDataInvert = deviceConfig["invert"].toBool(_spiDataInvert);
         Debug(_log, "_spiDataInvert [%d], _spiMode [%d]", _spiDataInvert, _spiMode);
 #endif
-        bool isFtdiImplementation = _deviceName.startsWith("d:")
-                or _deviceName.startsWith("i:")
-                or _deviceName.startsWith("s:");
+        bool isFtdiImplementation = IS_FTDI_DEVICE_NAME(_deviceName);
         _spiImplementation = isFtdiImplementation ? FTDI : SPIDEV;
 
         Debug(_log, "_baudRate_Hz [%d], _latchTime_ms [%d]", _baudRate_Hz, _latchTime_ms);
