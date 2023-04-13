@@ -2,8 +2,13 @@
 	"type":"object",
 	"required":true,
 	"properties":{
+		"output": {
+			"type": "string",
+			"title":"edt_dev_spec_spipath_title",
+			"propertyOrder" : 1
+		},
 		"implementation": {
-			"propertyOrder" : 6,
+			"propertyOrder" : 2,
 			"type": "string",
 			"title": "edt_dev_spec_implementation_title",
 			"enum": ["spidev", "ftdi"],
@@ -11,22 +16,22 @@
 				"enum_titles": [ "spidev", "ftdi" ]
 			}
 		},
-		"output": {
-			"type": "string",
-			"title":"edt_dev_spec_spipath_title",
-			"propertyOrder" : 1
-		},
 		"rate": {
 			"type": "integer",
 			"title":"edt_dev_spec_baudrate_title",
 			"default": 1000000,
-			"propertyOrder" : 2
+			"propertyOrder" : 3
 		},
 		"invert": {
 			"type": "boolean",
 			"title":"edt_dev_spec_invert_title",
 			"default": false,
-			"propertyOrder" : 3
+			"propertyOrder" : 4,
+			"options": {
+				"dependencies": {
+					"implementation": "spidev"
+				}
+			}
 		},
 		"brightnessControlMaxLevel": {
 			"type": "integer",
@@ -34,7 +39,7 @@
 			"default": 31,
 			"minimum": 1,
 			"maximum": 31,
-			"propertyOrder" : 4
+			"propertyOrder" : 5
 		},
 		"rewriteTime": {
 			"type": "integer",
@@ -43,7 +48,12 @@
 			"append" : "edt_append_ms",
 			"minimum": 0,
 			"access" : "expert",
-			"propertyOrder" : 5
+			"propertyOrder" : 6,
+			"options": {
+				"dependencies": {
+					"implementation": "spidev"
+				}
+			}
 		}		
 	},
 	"additionalProperties": true

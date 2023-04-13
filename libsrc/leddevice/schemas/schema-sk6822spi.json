@@ -7,17 +7,31 @@
 			"title":"edt_dev_spec_spipath_title",
 			"propertyOrder" : 1
 		},
+		"implementation": {
+			"propertyOrder" : 2,
+			"type": "string",
+			"title": "edt_dev_spec_implementation_title",
+			"enum": ["spidev", "ftdi"],
+			"options": {
+				"enum_titles": [ "spidev", "ftdi" ]
+			}
+		},
 		"rate": {
 			"type": "integer",
 			"title":"edt_dev_spec_baudrate_title",
 			"default": 2230000,
-			"propertyOrder" : 2
+			"propertyOrder" : 3
 		},
 		"invert": {
 			"type": "boolean",
 			"title":"edt_dev_spec_invert_title",
 			"default": false,
-			"propertyOrder" : 3
+			"propertyOrder" : 4,
+			"options": {
+				"dependencies": {
+					"implementation": "spidev"
+				}
+			}
 		},
 		"latchTime": {
 			"type": "integer",
@@ -27,8 +41,13 @@
 			"minimum": 0,
 			"maximum": 1000,
 			"access" : "expert",
-			"propertyOrder" : 5
-		},		
+			"propertyOrder" : 6,
+			"options": {
+				"dependencies": {
+					"implementation": "spidev"
+				}
+			}
+		},
 		"rewriteTime": {
 			"type": "integer",
 			"title":"edt_dev_general_rewriteTime_title",
@@ -36,8 +55,13 @@
 			"append" : "edt_append_ms",
 			"minimum": 0,
 			"access" : "expert",
-			"propertyOrder" : 5
-		}		
+			"propertyOrder" : 7,
+			"options": {
+				"dependencies": {
+					"implementation": "spidev"
+				}
+			}
+		}
 	},
 	"additionalProperties": true
 }
