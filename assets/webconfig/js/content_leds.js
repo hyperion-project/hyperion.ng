@@ -18,7 +18,7 @@ var bottomRight2bottomLeft = null;
 var bottomLeft2topLeft = null;
 var toggleKeystoneCorrectionArea = false;
 
-var devRPiSPI = ['apa102', 'apa104', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'sk6822spi', 'sk9822', 'ws2812spi'];
+var devSPI = ['apa102', 'apa104', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'sk6822spi', 'sk9822', 'ws2812spi'];
 var devRPiPWM = ['ws281x'];
 var devRPiGPIO = ['piblaster'];
 var devNET = ['atmoorb', 'cololight', 'fadecandy', 'philipshue', 'nanoleaf', 'razer', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udpddp', 'udph801', 'udpraw', 'wled', 'yeelight'];
@@ -1655,7 +1655,7 @@ $(document).ready(function () {
   optArr[5] = [];
 
   for (var idx = 0; idx < ledDevices.length; idx++) {
-    if ($.inArray(ledDevices[idx], devRPiSPI) != -1)
+    if ($.inArray(ledDevices[idx], devSPI) != -1)
       optArr[0].push(ledDevices[idx]);
     else if ($.inArray(ledDevices[idx], devRPiPWM) != -1)
       optArr[1].push(ledDevices[idx]);
@@ -1907,7 +1907,7 @@ var updateOutputSelectList = function (ledType, discoveryInfo) {
     ledTypeGroup = "devNET";
   } else if ($.inArray(ledType, devSerial) != -1) {
     ledTypeGroup = "devSerial";
-  } else if ($.inArray(ledType, devRPiSPI) != -1) {
+  } else if ($.inArray(ledType, devSPI) != -1) {
     ledTypeGroup = "devRPiSPI";
   } else if ($.inArray(ledType, devRPiGPIO) != -1) {
     ledTypeGroup = "devRPiGPIO";
