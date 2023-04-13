@@ -66,7 +66,7 @@ ProviderSpi::ProviderSpi(const QJsonObject &deviceConfig)
         , _spiMode(SPI_MODE_0)
         , _spiDataInvert(false)
 #endif
-        , _spiImplementation(SPI_SPIDEV) {
+        , _spiImplementation(SPIDEV) {
 #ifdef ENABLE_DEV_SPI
     memset(&_spi, 0, sizeof(_spi));
     _latchTime_ms = 1;
@@ -91,7 +91,7 @@ bool ProviderSpi::init(const QJsonObject &deviceConfig) {
         bool isFtdiImplementation = (
                 QString::compare(deviceConfig["implementation"].toString(ImplementationSPIDEV), ImplementationFTDI,
                                  Qt::CaseInsensitive) == 0);
-        _spiImplementation = isFtdiImplementation ? SPI_FTDI : SPI_SPIDEV;
+        _spiImplementation = isFtdiImplementation ? FTDI : SPIDEV;
 
         Debug(_log, "_baudRate_Hz [%d], _latchTime_ms [%d]", _baudRate_Hz, _latchTime_ms);
 
@@ -105,7 +105,7 @@ int ProviderSpi::open() {
     int retVal = -1;
     QString errortext;
     _isDeviceReady = false;
-    if (_spiImplementation == SPI_SPIDEV) {
+    if (_spiImplementation == SPIDEV) {
 #ifdef ENABLE_DEV_SPI
         const int bitsPerWord = 8;
 
@@ -153,7 +153,7 @@ int ProviderSpi::open() {
             this->setInError( errortext );
         }
 #endif
-    } else if (_spiImplementation == SPI_FTDI) {
+    } else if (_spiImplementation == FTDI) {
 #ifdef ENABLE_DEV_FTDI
 
         _ftdic = ftdi_new();
@@ -192,7 +192,7 @@ int ProviderSpi::close() {
     // LedDevice specific closing activities
     int retVal = 0;
     _isDeviceReady = false;
-    if (_spiImplementation == SPI_SPIDEV) {
+    if (_spiImplementation == SPIDEV) {
 #ifdef ENABLE_DEV_SPI
         // Test, if device requires closing
         if ( _fid > -1 )
@@ -205,7 +205,7 @@ int ProviderSpi::close() {
             }
         }
 #endif
-    } else if (_spiImplementation == SPI_FTDI) {
+    } else if (_spiImplementation == FTDI) {
 #ifdef ENABLE_DEV_FTDI
         if (_ftdic != nullptr) {
             Debug(_log, "Closing FTDI device");
@@ -224,7 +224,7 @@ int ProviderSpi::close() {
 
 int ProviderSpi::writeBytes(unsigned size, const uint8_t *data) {
     int retVal = 0;
-    if (_spiImplementation == SPI_SPIDEV) {
+    if (_spiImplementation == SPIDEV) {
 #ifdef ENABLE_DEV_SPI
         if (_fid < 0)
         {
@@ -250,7 +250,7 @@ int ProviderSpi::writeBytes(unsigned size, const uint8_t *data) {
 
         free (newdata);
 #endif
-    } else if (_spiImplementation == SPI_FTDI) {
+    } else if (_spiImplementation == FTDI) {
 #ifdef ENABLE_DEV_FTDI
         int count_arg = size - 1;
         std::vector<uint8_t> buf = {

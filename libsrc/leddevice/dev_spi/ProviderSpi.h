@@ -13,8 +13,10 @@
 // Hyperion includes
 #include <leddevice/LedDevice.h>
 
-#define SPI_SPIDEV 0
-#define SPI_FTDI 1
+
+
+enum SpiImplementation { SPIDEV, FTDI };
+
 ///
 /// The ProviderSpi implements an abstract base-class for LedDevices using the SPI-device.
 ///
@@ -94,5 +96,5 @@ protected:
 	struct ftdi_context *_ftdic;
 #endif
 
-    uint8_t _spiImplementation;
+    SpiImplementation _spiImplementation;
 };
