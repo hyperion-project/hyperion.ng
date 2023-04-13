@@ -1,10 +1,21 @@
 #pragma once
+#include "HyperionConfig.h"
 
-// Linux-SPI includes
-#include <linux/spi/spidev.h>
+#ifdef ENABLE_DEV_SPI
+    // Linux-SPI includes
+    #include <linux/spi/spidev.h>
+#endif
+
+#ifdef ENABLE_DEV_FTDI
+    #include <ftdi.h>
+#endif
 
 // Hyperion includes
 #include <leddevice/LedDevice.h>
+
+
+
+enum SpiImplementation { SPIDEV, FTDI };
 
 ///
 /// The ProviderSpi implements an abstract base-class for LedDevices using the SPI-device.
@@ -66,7 +77,7 @@ protected:
 
 	/// The used baudrate of the output device
 	int _baudRate_Hz;
-
+#ifdef ENABLE_DEV_SPI
 	/// The File Identifier of the opened output device (or -1 if not opened)
 	int _fid;
 
@@ -78,4 +89,12 @@ protected:
 
 	/// The transfer structure for writing to the spi-device
 	spi_ioc_transfer _spi;
+#endif
+
+#ifdef ENABLE_DEV_FTDI
+    /// The Ftdi serial-device
+	struct ftdi_context *_ftdic;
+#endif
+
+    SpiImplementation _spiImplementation;
 };

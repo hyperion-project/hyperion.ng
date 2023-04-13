@@ -61,8 +61,11 @@
 // Define to enable the Serial devices
 #cmakedefine ENABLE_DEV_SERIAL
 
-// Define to enable the SPI devices
+// Define to enable the SPI spidev devices
 #cmakedefine ENABLE_DEV_SPI
+
+// Define to enable the SPI ftdi devices
+#cmakedefine ENABLE_DEV_FTDI
 
 // Define to enable the Tinkerforge devices
 #cmakedefine ENABLE_DEV_TINKERFORGE
