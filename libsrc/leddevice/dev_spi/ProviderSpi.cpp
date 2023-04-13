@@ -60,11 +60,16 @@ namespace {
 } //End of constants
 
 ProviderSpi::ProviderSpi(const QJsonObject &deviceConfig)
-        : LedDevice(deviceConfig), _deviceName("/dev/spidev0.0"), _baudRate_Hz(1000000)
+        : LedDevice(deviceConfig),
+        _deviceName("/dev/spidev0.0"),
+        _baudRate_Hz(1000000)
 #ifdef ENABLE_DEV_SPI
         , _fid(-1)
         , _spiMode(SPI_MODE_0)
         , _spiDataInvert(false)
+#endif
+#ifdef ENABLE_DEV_FTDI
+        , _ftdic(nullptr)
 #endif
         , _spiImplementation(SPIDEV) {
 #ifdef ENABLE_DEV_SPI
