@@ -1139,7 +1139,15 @@ $(document).ready(function () {
             });
 
           hwLedCountDefault = 1;
-          colorOrderDefault = "rgb";
+          
+          switch (ledType) {
+            case "sk6812spi":
+              colorOrderDefault = "grb";
+              break;
+            default:
+              colorOrderDefault = "rgb";
+          }
+
           break;
 
         case "philipshue":

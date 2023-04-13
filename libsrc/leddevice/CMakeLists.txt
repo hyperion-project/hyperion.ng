@@ -42,7 +42,7 @@ if ( ENABLE_DEV_SERIAL )
 	FILE ( GLOB Leddevice_SERIAL_SOURCES "${CURRENT_SOURCE_DIR}/dev_serial/*.h" "${CURRENT_SOURCE_DIR}/dev_serial/*.cpp")
 endif()
 
-if ( ENABLE_DEV_SPI )
+if ( ENABLE_DEV_SPI OR ENABLE_DEV_FTDI )
 	FILE ( GLOB Leddevice_SPI_SOURCES "${CURRENT_SOURCE_DIR}/dev_spi/*.h" "${CURRENT_SOURCE_DIR}/dev_spi/*.cpp")
 endif()
 
@@ -162,5 +162,12 @@ endif()
 
 if(ENABLE_MDNS)
         target_link_libraries(leddevice mdns)
+endif()
+
+if( ENABLE_DEV_FTDI )
+	find_package(PkgConfig REQUIRED)
+	pkg_check_modules(LIB_FTDI REQUIRED IMPORTED_TARGET libftdi1 )
+	target_include_directories(leddevice PRIVATE PkgConfig::LIB_FTDI)
+	target_link_libraries(leddevice PkgConfig::LIB_FTDI)
 endif()
 
