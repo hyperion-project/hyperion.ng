@@ -1,19 +1,8 @@
 #pragma once
-#include "HyperionConfig.h"
 
-#ifdef ENABLE_DEV_SPI
-    // Linux-SPI includes
-    #include <linux/spi/spidev.h>
-#endif
-
-#ifdef ENABLE_DEV_FTDI
-    #include <ftdi.h>
-#endif
-
-// Hyperion includes
+// HyperHDR includes
 #include <leddevice/LedDevice.h>
-
-
+#include <providers/BaseProvider.h>
 
 enum SpiImplementation { SPIDEV, FTDI };
 
@@ -26,14 +15,14 @@ public:
 	///
 	/// Constructs specific LedDevice
 	///
-	ProviderSpi(const QJsonObject &deviceConfig);
+	ProviderSpi(const QJsonObject& deviceConfig);
 
 	///
 	/// Sets configuration
 	///
 	/// @param deviceConfig the json device config
 	/// @return true if success
-	bool init(const QJsonObject &deviceConfig) override;
+	bool init(const QJsonObject& deviceConfig) override;
 
 	///
 	/// Destructor of the LedDevice; closes the output device if it is open
@@ -43,14 +32,10 @@ public:
 	///
 	/// Opens and configures the output device
 	///
-	/// @return Zero on succes else negative
+	/// @return Zero on success else negative
 	///
 	int open() override;
 
-	/// @param[in] params Parameters used to overwrite discovery default behaviour
-	///
-	/// @return A JSON structure holding a list of devices found
-	///
 	QJsonObject discover(const QJsonObject& params) override;
 
 public slots:
@@ -70,31 +55,10 @@ protected:
 	///
 	/// @return Zero on success, else negative
 	///
-	int writeBytes(unsigned size, const uint8_t *data);
+	int writeBytes(unsigned size, const uint8_t* data);
 
 	/// The name of the output device
 	QString _deviceName;
 
-	/// The used baudrate of the output device
-	int _baudRate_Hz;
-#ifdef ENABLE_DEV_SPI
-	/// The File Identifier of the opened output device (or -1 if not opened)
-	int _fid;
-
-	/// which spi clock mode do we use? (0..3)
-	int _spiMode;
-
-	/// 1=>invert the data pattern
-	bool _spiDataInvert;
-
-	/// The transfer structure for writing to the spi-device
-	spi_ioc_transfer _spi;
-#endif
-
-#ifdef ENABLE_DEV_FTDI
-    /// The Ftdi serial-device
-	struct ftdi_context *_ftdic;
-#endif
-
-    SpiImplementation _spiImplementation;
+    BaseProvider * _spiProvider;
 };
