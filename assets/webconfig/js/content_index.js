@@ -218,7 +218,9 @@ $(document).ready(function () {
     loadContent(undefined,true);
 
     //Hide capture menu entries, if no grabbers are available
-    if ((window.serverInfo.grabbers.screen.available.length === 0) && (window.serverInfo.grabbers.video.available.length === 0)) {
+    if ((window.serverInfo.grabbers.screen.available.length === 0) &&
+        (window.serverInfo.grabbers.video.available.length === 0) &&
+        (window.serverInfo.grabbers.audio.available.length === 0)) {
       $("#MenuItemGrabber").attr('style', 'display:none')
       if ((jQuery.inArray("boblight", window.serverInfo.services) === -1)) {
         $("#MenuItemInstCapture").attr('style', 'display:none')

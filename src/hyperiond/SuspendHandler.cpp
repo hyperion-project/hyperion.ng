@@ -268,7 +268,7 @@ SuspendHandlerLinux::SuspendHandlerLinux()
 	QDBusConnection systemBus = QDBusConnection::systemBus();
 	if (!systemBus.isConnected())
 	{
-		Error(Logger::getInstance("DAEMON"), "Suspend/resume handler - System bus is not connected");
+		Info(Logger::getInstance("DAEMON"), "The suspend/resume feature is not supported by your system configuration");
 	}
 	else
 	{
@@ -288,7 +288,7 @@ SuspendHandlerLinux::SuspendHandlerLinux()
 	QDBusConnection sessionBus = QDBusConnection::sessionBus();
 	if (!sessionBus.isConnected())
 	{
-		Error(Logger::getInstance("DAEMON"), "Lock/unlock handler- Session bus is not connected");
+		Info(Logger::getInstance("DAEMON"), "The lock/unlock feature is not supported by your system configuration");
 	}
 	else
 	{

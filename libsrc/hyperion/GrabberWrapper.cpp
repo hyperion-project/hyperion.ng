@@ -290,7 +290,7 @@ void GrabberWrapper::handleSourceRequest(hyperion::Components component, int hyp
 		else
 			GRABBER_AUDIO_CLIENTS.remove(hyperionInd);
 
-		if (GRABBER_AUDIO_CLIENTS.empty())
+		if (GRABBER_AUDIO_CLIENTS.empty() || !getAudioGrabberState())
 			stop();
 		else
 			start();
