@@ -1,6 +1,26 @@
 name: Hyperion APT Build
 on:
   workflow_call:
+    inputs:
+      head_sha:
+        type: string
+        description: The branch, tag or SHA to checkout
+        required: true
+    secrets:
+      APT_GPG:
+        required: true
+      APT_USER:
+        required: true
+      APT_PASSWORD:
+        required: true
+      APT_DRAFT:
+        required: true
+  workflow_dispatch:
+    inputs:
+      head_sha:
+        type: string
+        description: The branch, tag or SHA to checkout
+        required: true
     secrets:
       APT_GPG:
         required: true
@@ -36,6 +56,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
+          ref: ${{ github.event.inputs.head_sha || github.event.client_payload.head_sha }}
           submodules: true
 
       - name: Generate environment variables
@@ -73,7 +94,7 @@ jobs:
             cp ../hyperion_*.deb /deploy"
 
       - name: Upload package artifact
-        if: startsWith(github.event.ref, 'refs/tags')
+        if: ${{ startsWith(github.event.ref, 'refs/tags') || github.event_name == 'workflow_dispatch' }}
         uses: actions/upload-artifact@v3
         with:
           path: deploy
@@ -81,12 +102,14 @@ jobs:
 
   publish:
     name: Publish APT packages
-    if: startsWith(github.event.ref, 'refs/tags')
+    if: ${{ startsWith(github.event.ref, 'refs/tags') || github.event_name == 'workflow_dispatch' }}
     needs: [setup, build]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.head_sha || github.event.client_payload.head_sha }}
 
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@v5.2.0

@@ -195,8 +195,6 @@ jobs:
     if: startsWith(github.event.ref, 'refs/tags')
     needs: [Linux, macOS, windows]
     uses: ./.github/workflows/apt.yml
-    secrets:
-      APT_GPG: ${{ secrets.APT_GPG }}
-      APT_USER: ${{ secrets.APT_USER }}
-      APT_PASSWORD: ${{ secrets.APT_PASSWORD }}
-      APT_DRAFT: ${{ secrets.APT_DRAFT }}
+    secrets: inherit
+    with:
+      head_sha: master
