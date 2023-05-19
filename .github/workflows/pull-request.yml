@@ -18,16 +18,16 @@ jobs:
         dockerImage: [ x86_64, armv6l, armv7l, aarch64 ]
         include:
           - dockerImage: x86_64
-            dockerName: Debian Stretch (x86_64)
+            dockerName: Debian Buster (x86_64)
             platform: x11
           - dockerImage: armv6l
-            dockerName: Debian Stretch (Raspberry Pi v1 & ZERO)
+            dockerName: Debian Buster (Raspberry Pi v1 & ZERO)
             platform: rpi
           - dockerImage: armv7l
-            dockerName: Debian Stretch (Raspberry Pi 2 & 3)
+            dockerName: Debian Buster (Raspberry Pi 2 & 3)
             platform: rpi
           - dockerImage: aarch64
-            dockerName: Debian Stretch (Generic AARCH64)
+            dockerName: Debian Buster (Generic AARCH64)
             platform: amlogic
 
     steps:
@@ -47,7 +47,7 @@ jobs:
       - name: Build packages
         env:
           DOCKER_IMAGE: ${{ matrix.dockerImage }}
-          DOCKER_TAG: stretch
+          DOCKER_TAG: buster
           DOCKER_NAME: ${{ matrix.dockerName }}
           PLATFORM: ${{ matrix.platform }}
         shell: bash
