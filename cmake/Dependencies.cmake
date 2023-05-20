@@ -153,6 +153,35 @@ macro(DeployLinux TARGET)
 			"libutil"
 			"libX11"
 			"libz"
+			"libcrypt"
+			"libdbus"
+			"liblzma"
+			"libpcre"
+			"libsystemd"
+			"libusb"
+			"libuuid"
+			"libICE"
+			"libSM"
+			"libXau"
+			"libXdmcp"
+			"libXext"
+			"libXrandr"
+			"libXrender"
+			"libasound"
+			"libbsd"
+			"libglib"
+			"libgraphite2"
+			"libharfbuzz"
+			"liblz4"
+			"libpcre2"
+			"libpng16"
+			"libturbojpeg"
+			"libxcb-image"
+			"libxcb-randr"
+			"libxcb-render"
+			"libxcb-shm"
+			"libxcb-util"
+			"libxcb"
 		)
 
 		if (ENABLE_DISPMANX)
@@ -161,7 +190,9 @@ macro(DeployLinux TARGET)
 
 		# Extract dependencies ignoring the system ones
 		get_prerequisites(${TARGET_FILE} DEPENDENCIES 0 1 "" "")
-
+		
+		message(STATUS "Dependencies for target file: ${DEPENDENCIES}")
+		
 		# Append symlink and non-symlink dependencies to the list
 		set(PREREQUISITE_LIBS "")
 		foreach(DEPENDENCY ${DEPENDENCIES})
