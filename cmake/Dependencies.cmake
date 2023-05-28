@@ -132,16 +132,12 @@ macro(DeployLinux TARGET)
 		include(GetPrerequisites)
 
 		set(SYSTEM_LIBS_SKIP
-			"libasound"
 			"libatomic"
-			"libbsd"
 			"libc"
-			"libcrypt"
 			"libdbus"
 			"libdl"
 			"libexpat"
 			"libfontconfig"
-			"libfreetype"
 			"libgcc_s"
 			"libgcrypt"
 			"libglib"
@@ -161,11 +157,6 @@ macro(DeployLinux TARGET)
 			"libusb-1"
 			"libutil"
 			"libuuid"
-			"libX11"
-			"libXau"
-			"libxcb"
-			"libXdmcp"
-			"libXext"
 			"libz"
         )
 
