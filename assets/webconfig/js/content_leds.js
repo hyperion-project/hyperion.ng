@@ -2331,6 +2331,7 @@ function updateElementsWled(ledType, key) {
   var enumSegSelectVals = [];
   var enumSegSelectTitleVals = [];
   var enumSegSelectDefaultVal = "";
+  var defaultSegmentId = "-1";
 
   if (devicesProperties[ledType] && devicesProperties[ledType][key]) {
     var ledDeviceProperties = devicesProperties[ledType][key];
@@ -2338,9 +2339,8 @@ function updateElementsWled(ledType, key) {
     if (!jQuery.isEmptyObject(ledDeviceProperties)) {
 
       if (ledDeviceProperties.info) {
-        if (ledDeviceProperties.info.liveseg && ledDeviceProperties.info.liveseg < 0) {
+        if (!ledDeviceProperties.info.hasOwnProperty("liveseg") || ledDeviceProperties.info.liveseg < 0) {
           // "Use main segment only" is disabled
-          var defaultSegmentId = "-1";
           enumSegSelectVals.push(defaultSegmentId);
           enumSegSelectTitleVals.push($.i18n('edt_dev_spec_segments_disabled_title'));
           enumSegSelectDefaultVal = defaultSegmentId;
@@ -2392,13 +2392,12 @@ function updateElementsWled(ledType, key) {
       hardwareLedCount = 1;
     }
 
-    if (segmentConfig) {
+    if (segmentConfig && segmentConfig.streamSegmentId > defaultSegmentId) {
       var configuredstreamSegmentId = window.serverConfig.device.segments.streamSegmentId.toString();
       enumSegSelectVals = [configuredstreamSegmentId];
       enumSegSelectTitleVals = ["Segment " + configuredstreamSegmentId];
       enumSegSelectDefaultVal = configuredstreamSegmentId;
     } else {
-      defaultSegmentId = "-1";
       enumSegSelectVals.push(defaultSegmentId);
       enumSegSelectTitleVals.push($.i18n('edt_dev_spec_segments_disabled_title'));
       enumSegSelectDefaultVal = defaultSegmentId;
