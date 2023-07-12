@@ -35,6 +35,6 @@ function installAndUpgrade()
 if [[ $CI_NAME == 'osx' || $CI_NAME == 'darwin' ]]; then
 	echo "Install dependencies"
 	brew update
-	dependencies=("qt5" "python" "libusb" "cmake" "doxygen")
+	dependencies=("qt5" "python" "libusb" "cmake" "doxygen", "libftdi")
 	installAndUpgrade "${dependencies[@]}"
 fi

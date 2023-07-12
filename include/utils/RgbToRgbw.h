@@ -11,7 +11,12 @@ namespace RGBW {
 		SUBTRACT_MINIMUM,
 		SUB_MIN_WARM_ADJUST,
 		SUB_MIN_COOL_ADJUST,
-		WHITE_OFF
+		WHITE_OFF,
+        COLD_WHITE,
+        NEUTRAL_WHITE,
+        AUTO,
+        AUTO_MAX,
+        AUTO_ACCURATE
 	};
 
 	WhiteAlgorithm stringToWhiteAlgorithm(const QString& str);

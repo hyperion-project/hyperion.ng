@@ -42,8 +42,20 @@ if ( ENABLE_DEV_SERIAL )
 	FILE ( GLOB Leddevice_SERIAL_SOURCES "${CURRENT_SOURCE_DIR}/dev_serial/*.h" "${CURRENT_SOURCE_DIR}/dev_serial/*.cpp")
 endif()
 
-if ( ENABLE_DEV_SPI )
+if ( ENABLE_DEV_SPI OR ENABLE_DEV_FTDI )
 	FILE ( GLOB Leddevice_SPI_SOURCES "${CURRENT_SOURCE_DIR}/dev_spi/*.h" "${CURRENT_SOURCE_DIR}/dev_spi/*.cpp")
+
+	FILE ( GLOB Leddevice_SPI_PROVIDERS_SOURCES "${CURRENT_SOURCE_DIR}/dev_spi/providers/BaseProvider.*")
+
+	if ( ENABLE_DEV_FTDI )
+		file (GLOB FTDI_PROVIDER_SOURCES "${CURRENT_SOURCE_DIR}/dev_spi/providers/ProviderFtdi.*")
+		list (APPEND Leddevice_SPI_PROVIDERS_SOURCES ${FTDI_PROVIDER_SOURCES})
+	endif()
+
+	if ( ENABLE_DEV_SPI )
+		file (GLOB SPIDEV_PROVIDER_SOURCES "${CURRENT_SOURCE_DIR}/dev_spi/providers/ProviderSpidev.*")
+		list (APPEND Leddevice_SPI_PROVIDERS_SOURCES ${SPIDEV_PROVIDER_SOURCES})
+	endif()
 endif()
 
 if ( ENABLE_DEV_TINKERFORGE )
@@ -73,6 +85,7 @@ SET( Leddevice_SOURCES
 	${Leddevice_PWM_SOURCES}
 	${Leddevice_SERIAL_SOURCES}		
 	${Leddevice_SPI_SOURCES}
+	${Leddevice_SPI_PROVIDERS_SOURCES}
 	${Leddevice_TINKER_SOURCES}
 	${Leddevice_USB_HID_SOURCES}
 )
@@ -162,5 +175,12 @@ endif()
 
 if(ENABLE_MDNS)
         target_link_libraries(leddevice mdns)
+endif()
+
+if( ENABLE_DEV_FTDI )
+	find_package(PkgConfig REQUIRED)
+	pkg_check_modules(LIB_FTDI REQUIRED IMPORTED_TARGET libftdi1 )
+	target_include_directories(leddevice PRIVATE PkgConfig::LIB_FTDI)
+	target_link_libraries(leddevice PkgConfig::LIB_FTDI)
 endif()
 
