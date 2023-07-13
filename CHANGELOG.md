@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fixed missing Include limits in QJsonSchemaChecker
+- Fixed dependencies for deb packages in Debian Bookworm
 
 ## Removed
 

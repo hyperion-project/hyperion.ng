@@ -9,7 +9,7 @@
 [![CodeQL Analysis](https://github.com/hyperion-project/hyperion.ng/actions/workflows/codeql.yml/badge.svg)](https://github.com/hyperion-project/hyperion.ng/actions/workflows/codeql.yml)
 [![Forum](https://img.shields.io/website/https/hyperion-project.org.svg?label=Forum&down_color=red&down_message=offline&up_color=4bc51d&up_message=online&logo=homeadvisor&logoColor=white)](https://www.hyperion-project.org)
 [![Documentation](https://img.shields.io/website/https/docs.hyperion-project.org.svg?label=Documentation&down_color=red&down_message=offline&up_color=4bc51d&up_message=online&logo=read-the-docs)](https://docs.hyperion-project.org)
-[![Discord](https://img.shields.io/discord/785578322167463937?label=Discord&logo=discord&logoColor=white&color=4bc51d)](https://discord.gg/khkR8Vx3ff)
+[![Discord](https://img.shields.io/discord/785578322167463937?label=Discord&logo=discord&logoColor=white&color=4bc51d)](https://discord.gg/XtVTb3HEKS)
 ![made-with-love](https://img.shields.io/badge/Made%20With-&#9829;-ff0000.svg)
 
 ## About Hyperion
