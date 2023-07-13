@@ -210,6 +210,8 @@ macro(DeployLinux TARGET)
 				get_filename_component(file_canonical ${openssl_lib} REALPATH)
 				gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
 			endforeach()
+		else()
+			message( WARNING "OpenSSL NOT found (https webserver will not work)")
 		endif(OPENSSL_FOUND)
 
 		# Detect the Qt plugin directory, source: https://github.com/lxde/lxqt-qtplugin/blob/master/src/CMakeLists.txt
