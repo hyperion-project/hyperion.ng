@@ -9,14 +9,22 @@ type curl > /dev/null 2> /dev/null
 hasCurl=$?
 type python3 > /dev/null 2> /dev/null
 hasPython3=$?
+type python > /dev/null 2> /dev/null
+hasPython2=$?
 
 if [[ "${hasWget}" -ne 0 ]] && [[ "${hasCurl}" -ne 0 ]]; then
 	echo '---> Critical Error: wget or curl required to download pull request artifacts'
 	exit 1
 fi
 
-if [[ "${hasPython3}" -ne 0 ]]; then
-	echo '---> Critical Error: python3 required to download pull request artifacts'
+if [[ "${hasPython3}" -eq 0 ]]; then
+    pythonCmd="python3"
+else
+    if [[ "${hasPython2}" -eq 0 ]]; then
+        pythonCmd="python"
+    else
+	    echo '---> Critical Error: python3 or python2 required to download pull request artifacts'
+	fi
 	exit 1
 fi
 
@@ -86,7 +94,7 @@ fi
 # Determine if PR number exists
 pulls=$(request_call "$api_url/pulls")
 
-pr_exists=$(echo "$pulls" | tr '\r\n' ' ' | python3 -c """
+pr_exists=$(echo "$pulls" | tr '\r\n' ' ' | ${pythonCmd} -c """
 import json,sys
 data = json.load(sys.stdin)
 
@@ -102,7 +110,7 @@ if [ "$pr_exists" != "exists" ]; then
 fi
 
 # Get head_sha value from 'pr_number'
-head_sha=$(echo "$pulls" | tr '\r\n' ' ' | python3 -c """
+head_sha=$(echo "$pulls" | tr '\r\n' ' ' | ${pythonCmd} -c """
 import json,sys
 data = json.load(sys.stdin)
 
@@ -122,7 +130,7 @@ fi
 if [ -z "$run_id" ]; then
 # Determine run_id from head_sha
 runs=$(request_call "$api_url/actions/runs")
-run_id=$(echo "$runs" | tr '\r\n' ' ' | python3 -c """
+run_id=$(echo "$runs" | tr '\r\n' ' ' | ${pythonCmd} -c """
 import json,sys
 data = json.load(sys.stdin)
 
@@ -142,7 +150,7 @@ fi
 
 # Get archive_download_url from workflow
 artifacts=$(request_call "$api_url/actions/runs/$run_id/artifacts")
-archive_download_url=$(echo "$artifacts" | tr '\r\n' ' ' | python3 -c """
+archive_download_url=$(echo "$artifacts" | tr '\r\n' ' ' | ${pythonCmd} -c """
 import json,sys
 data = json.load(sys.stdin)
 
