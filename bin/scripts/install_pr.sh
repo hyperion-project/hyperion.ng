@@ -36,18 +36,19 @@ function request_call() {
 	fi
 }
 
-while getopts ":t:m:r:" opt; do
+while getopts ":c:t:m:r:" opt; do
   case "$opt" in
     t) PR_TOKEN=$OPTARG ;;
     r) run_id=$OPTARG ;;
     m) ARCHITECTURE=$OPTARG ;;
+    c) CONFIGDIR=$OPTARG ;;
   esac
 done
 shift $(( OPTIND - 1 ))
 
 # Check for a command line argument (PR number)
 if [ "$1" == "" ] || [ $# -gt 1 ] || [ -z ${PR_TOKEN} ]; then
-	echo "Usage: $0 -t <git_token> -m <architecture> -r <run_id> <PR_NUMBER>" >&2
+	echo "Usage: $0 -t <git_token> -m <architecture> -r <run_id> -c <hyperion config directory> <PR_NUMBER>" >&2
 	exit 1
 else
 	pr_number="$1"
@@ -206,11 +207,22 @@ if [[ ! -z ${CURRENT_SERVICE} ]]; then
     else
        echo "---> Service ${CURRENT_SERVICE} successfully stopped, Hyperion will be started"
     fi
-fi'"
+fi'""
 
+TARGET_CONFIGDIR="$HOME/hyperion_pr$pr_number/config"
+
+if [[ ! -z ${CONFIGDIR} ]]; then
+STARTUP_SCRIPT+="
+# Copy existing configuration file
+"'echo "Copy existing configuration from "'${CONFIGDIR}"
+mkdir -p "$TARGET_CONFIGDIR"
+cp -ri "${CONFIGDIR}/*" "$TARGET_CONFIGDIR""
+fi
+
+STARTUP_SCRIPT+="
 # Start PR artifact
 cd $HOME/hyperion_pr$pr_number
-./bin/hyperiond -d -u $HOME/hyperion_pr$pr_number"
+./bin/hyperiond -d -u $TARGET_CONFIGDIR"
 
 # Place startup script
 echo "$STARTUP_SCRIPT" > $HOME/hyperion_pr$pr_number/$pr_number.sh
