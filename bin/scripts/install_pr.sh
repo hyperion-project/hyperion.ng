@@ -119,18 +119,18 @@ if [ -z "$head_sha" ]; then
 	exit 1
 fi
 
-if [[ -z ${run_id} ]]; then
-	# Determine run_id from head_sha
-	runs=$(request_call "$api_url/actions/runs")
-	run_id=$(echo "$runs" | tr '\r\n' ' ' | python3 -c """
-	import json,sys
-	data = json.load(sys.stdin)
+if [ -z "$run_id" ]; then
+# Determine run_id from head_sha
+runs=$(request_call "$api_url/actions/runs")
+run_id=$(echo "$runs" | tr '\r\n' ' ' | python3 -c """
+import json,sys
+data = json.load(sys.stdin)
 
-	for i in data['workflow_runs']:
-		if i['head_sha'] == '"$head_sha"':
-			print(i['id'])
-			break
-	""" 2>/dev/null)
+for i in data['workflow_runs']:
+	if i['head_sha'] == '"$head_sha"':
+		print(i['id'])
+		break
+""" 2>/dev/null)
 fi
 
 if [ -z "$run_id" ]; then
