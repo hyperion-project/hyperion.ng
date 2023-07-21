@@ -62,8 +62,7 @@ function printHelp {
 echo "########################################################
 ## A script to compile Hyperion inside a docker container
 ## Requires installed Docker: https://www.docker.com/
-## Without arguments it will compile Hyperion for Debian Buster (x86_64) and uses Hyperion code from GitHub repository.
-## Supports Raspberry Pi (armv6l, armv7l) cross compilation (Debian Stretch/Buster) and native compilation (Raspbian Stretch/Buster)
+## Without arguments it will compile Hyperion for Debian Bullseye (x86_64) and uses Hyperion code from GitHub repository.
 ## For all images and tags currently available, see https://github.com/orgs/hyperion-project/packages
 ##
 ## Homepage: https://www.hyperion-project.org
@@ -73,7 +72,7 @@ echo "########################################################
 #
 # docker-compile.sh -h, --help          # Show this help message
 # docker-compile.sh -i, --image         # The docker image, e.g., x86_64, armv6l, armv7l, aarch64
-# docker-compile.sh -t, --tag           # The docker tag, e.g., stretch, buster, bullseye, bookworm
+# docker-compile.sh -t, --tag           # The docker tag, e.g., buster, bullseye, bookworm
 # docker-compile.sh -b, --type          # Release or Debug build
 # docker-compile.sh -p, --packages      # If true, build packages with CPack
 # docker-compile.sh -l, --local         # Run build using local code files

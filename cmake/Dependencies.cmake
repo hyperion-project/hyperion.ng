@@ -132,28 +132,33 @@ macro(DeployLinux TARGET)
 		include(GetPrerequisites)
 
 		set(SYSTEM_LIBS_SKIP
+			"libatomic"
 			"libc"
+			"libdbus"
 			"libdl"
 			"libexpat"
 			"libfontconfig"
-			"libfreetype"
 			"libgcc_s"
 			"libgcrypt"
-			"libGL"
-			"libGLdispatch"
+			"libglib"
 			"libglib-2"
-			"libGLX"
 			"libgpg-error"
+			"liblz4"
+			"liblzma"
 			"libm"
+			"libpcre"
+			"libpcre2"
 			"libpthread"
 			"librt"
 			"libstdc++"
+			"libsystemd"
 			"libudev"
+			"libusb"
 			"libusb-1"
 			"libutil"
-			"libX11"
+			"libuuid"
 			"libz"
-		)
+        )
 
 		if (ENABLE_DISPMANX)
 			list(APPEND SYSTEM_LIBS_SKIP "libcec")
@@ -161,7 +166,9 @@ macro(DeployLinux TARGET)
 
 		# Extract dependencies ignoring the system ones
 		get_prerequisites(${TARGET_FILE} DEPENDENCIES 0 1 "" "")
-
+		
+		message(STATUS "Dependencies for target file: ${DEPENDENCIES}")
+		
 		# Append symlink and non-symlink dependencies to the list
 		set(PREREQUISITE_LIBS "")
 		foreach(DEPENDENCY ${DEPENDENCIES})
@@ -203,6 +210,8 @@ macro(DeployLinux TARGET)
 				get_filename_component(file_canonical ${openssl_lib} REALPATH)
 				gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
 			endforeach()
+		else()
+			message( WARNING "OpenSSL NOT found (https webserver will not work)")
 		endif(OPENSSL_FOUND)
 
 		# Detect the Qt plugin directory, source: https://github.com/lxde/lxqt-qtplugin/blob/master/src/CMakeLists.txt
