@@ -124,7 +124,8 @@ jobs:
       - name: Install OpenSSL, DirectX SDK
         shell: powershell
         run: |
-          choco install --no-progress openssl directx-sdk -y
+          choco install --no-progress openssl --version=1.1.1.2100 -y
+          choco install --no-progress directx-sdk -y
 
       - name: Install libjpeg-turbo
         run: |
