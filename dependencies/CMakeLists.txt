@@ -160,6 +160,10 @@ if(ENABLE_PROTOBUF_SERVER)
 
 		# define the protobuf library
 		set(PROTOBUF_LIBRARIES protobuf::libprotobuf)
+		
+		# defines for 3rd party sub-modules
+		set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "Build abseil-cpp with C++ version requirements propagated")
+		
 	endif()
 
 	# redefine at parent scope
