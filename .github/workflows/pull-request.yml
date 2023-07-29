@@ -34,7 +34,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          submodules: true
+          submodules: recursive
 
       # Append PR number to .version
       - name: Append PR number to version
@@ -78,7 +78,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          submodules: true
+          submodules: recursive
 
       # Append PR number to .version
       - name: Append PR number to version
@@ -127,7 +127,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          submodules: true
+          submodules: recursive
 
       # Append PR number to .version
       - name: Append PR number to version
