@@ -2069,7 +2069,7 @@ var updateOutputSelectList = function (ledType, discoveryInfo) {
     case "devRPiPWM":
       key = ledType;
 
-      if (discoveryInfo.devices.length == 0) {
+      if (!discoveryInfo.isUserAdmin) {
         enumVals.push("NONE");
         enumTitleVals.push($.i18n('edt_dev_spec_devices_discovered_none'));
         $('#btn_submit_controller').prop('disabled', true);
