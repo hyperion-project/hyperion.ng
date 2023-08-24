@@ -10,6 +10,7 @@
 
 // QT includes
 #include <QString>
+#include <QJsonArray>
 
 // Forward class declarations
 namespace Json { class Value; }
@@ -97,6 +98,8 @@ struct Led
 	double minY_frac;
 	///  The maximum horizontal scan line included for this leds color
 	double maxY_frac;
+	/// A Led at {0,0,0,0} is not visible and therefore treated as blacklisted
+	bool isBlacklisted {false};
 	/// the color order
 	ColorOrder colorOrder;
 };
@@ -121,7 +124,12 @@ public:
 	///
 	const std::vector<Led>& leds() const;
 
+	bool hasBlackListedLeds {false};
+
+	static LedString createLedString(const QJsonArray& ledConfigArray, const ColorOrder deviceOrder);
+
 private:
 	/// The list with led specifications
-	std::vector<Led> mLeds;
+	std::vector<Led> _leds;
+
 };

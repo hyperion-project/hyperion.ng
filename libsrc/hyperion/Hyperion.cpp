@@ -52,7 +52,7 @@ Hyperion::Hyperion(quint8 instance, bool readonlyMode)
 	, _instIndex(instance)
 	, _settingsManager(new SettingsManager(instance, this, readonlyMode))
 	, _componentRegister(nullptr)
-	, _ledString(hyperion::createLedString(getSetting(settings::LEDS).array(), hyperion::createColorOrder(getSetting(settings::DEVICE).object())))
+	, _ledString(LedString::createLedString(getSetting(settings::LEDS).array(), hyperion::createColorOrder(getSetting(settings::DEVICE).object())))
 	, _imageProcessor(nullptr)
 	, _muxer(nullptr)
 	, _raw2ledAdjustment(hyperion::createLedColorsAdjustment(static_cast<int>(_ledString.leds().size()), getSetting(settings::COLOR).object()))
@@ -255,7 +255,7 @@ void Hyperion::handleSettingsUpdate(settings::type type, const QJsonDocument& co
 		#endif
 
 		// ledstring, img processor, muxer, ledGridSize (effect-engine image based effects), _ledBuffer and ByteOrder of ledstring
-		_ledString = hyperion::createLedString(leds, hyperion::createColorOrder(getSetting(settings::DEVICE).object()));
+		_ledString = LedString::createLedString(leds, hyperion::createColorOrder(getSetting(settings::DEVICE).object()));
 		_imageProcessor->setLedString(_ledString);
 		_muxer->updateLedColorsLength(static_cast<int>(_ledString.leds().size()));
 		_ledGridSize = hyperion::getLedLayoutGridSize(leds);
@@ -291,7 +291,7 @@ void Hyperion::handleSettingsUpdate(settings::type type, const QJsonDocument& co
 		// force ledString update, if device ByteOrder changed
 		if(_ledDeviceWrapper->getColorOrder() != dev["colorOrder"].toString("rgb"))
 		{
-			_ledString = hyperion::createLedString(getSetting(settings::LEDS).array(), hyperion::createColorOrder(dev));
+			_ledString = LedString::createLedString(getSetting(settings::LEDS).array(), hyperion::createColorOrder(dev));
 			_imageProcessor->setLedString(_ledString);
 
 			_ledStringColorOrder.clear();
@@ -671,6 +671,20 @@ void Hyperion::update()
 	else
 	{
 		_ledBuffer = priorityInfo.ledColors;
+	}
+
+	if (_ledString.hasBlackListedLeds)
+	{
+		auto ledIter = _ledString.leds().begin();
+		for (ColorRgb& color : _ledBuffer)
+			if (ledIter != _ledString.leds().end())
+			{
+				if ((*ledIter).isBlacklisted)
+				{
+					color = ColorRgb::BLACK;
+				}
+				++ledIter;
+			}
 	}
 
 	// emit rawLedColors before transform
