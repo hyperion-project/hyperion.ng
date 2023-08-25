@@ -19,6 +19,29 @@ const std::vector<Led>& LedString::leds() const
 	return _leds;
 }
 
+std::vector<int>& LedString::blacklistedLedIds()
+{
+	return _blacklistedLedIds;
+}
+
+const std::vector<int>& LedString::blacklistedLedIds() const
+{
+	return _blacklistedLedIds;
+}
+
+bool LedString::hasBlackListedLeds()
+{
+
+	if (_blacklistedLedIds.size() > 0)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 /**
  * Construct the 'led-string' with the integration area definition per led and the color
  * ordering of the RGB channels
@@ -30,8 +53,6 @@ LedString LedString::createLedString(const QJsonArray& ledConfigArray, const Col
 {
 	LedString ledString;
 	const QString deviceOrderStr = colorOrderToString(deviceOrder);
-
-	ledString.hasBlackListedLeds = false;
 
 	for (signed i = 0; i < ledConfigArray.size(); ++i)
 	{
@@ -63,7 +84,7 @@ LedString LedString::createLedString(const QJsonArray& ledConfigArray, const Col
 			)
 		{
 			led.isBlacklisted = true;
-			ledString.hasBlackListedLeds |= led.isBlacklisted;
+			ledString.blacklistedLedIds().push_back(i);
 		}
 		ledString.leds().push_back(led);
 	}

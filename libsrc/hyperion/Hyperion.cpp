@@ -671,20 +671,18 @@ void Hyperion::update()
 	else
 	{
 		_ledBuffer = priorityInfo.ledColors;
-	}
 
-	if (_ledString.hasBlackListedLeds)
-	{
-		auto ledIter = _ledString.leds().begin();
-		for (ColorRgb& color : _ledBuffer)
-			if (ledIter != _ledString.leds().end())
+		if (_ledString.hasBlackListedLeds())
+		{
+			for (int id : _ledString.blacklistedLedIds())
 			{
-				if ((*ledIter).isBlacklisted)
+				if (id > _ledBuffer.size()-1)
 				{
-					color = ColorRgb::BLACK;
+					break;
 				}
-				++ledIter;
+				_ledBuffer.at(id) = ColorRgb::BLACK;
 			}
+		}
 	}
 
 	// emit rawLedColors before transform
