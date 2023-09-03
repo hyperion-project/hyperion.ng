@@ -715,6 +715,7 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 			}
 
 			//Migration steps for versions <= 2.0.13
+			_previousVersion = targetVersion;
 			targetVersion.setVersion("2.0.13");
 			if (_previousVersion <= targetVersion)
 			{
@@ -755,6 +756,60 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 								}
 								newDeviceConfig.remove("lightberry_apa102_mode");
 								migrated = true;
+							}
+						}
+					}
+
+					if (migrated)
+					{
+						config["device"] = newDeviceConfig;
+						Debug(_log, "LED-Device records migrated");
+					}
+				}
+			}
+
+			//Migration steps for versions <= 2.0.16
+			_previousVersion = targetVersion;
+			targetVersion.setVersion("2.0.16");
+			if (_previousVersion <= targetVersion)
+			{
+				Info(_log, "Instance [%u]: Migrate from version [%s] to version [%s] or later", _instance, _previousVersion.getVersion().c_str(), targetVersion.getVersion().c_str());
+
+				// Have Hostname/IP-address separate from port for LED-Devices
+				if (config.contains("device"))
+				{
+					QJsonObject newDeviceConfig = config["device"].toObject();
+
+					if (newDeviceConfig.contains("type"))
+					{
+						QString type = newDeviceConfig["type"].toString();
+						if ( type == "philipshue")
+						{
+							if (newDeviceConfig.contains("groupId"))
+							{
+								if (newDeviceConfig["groupId"].isDouble())
+								{
+									int groupID = newDeviceConfig["groupId"].toInt();
+									newDeviceConfig["groupId"] = QString::number(groupID);
+									migrated = true;
+								}
+							}
+
+							if (newDeviceConfig.contains("lightIds"))
+							{
+								QJsonArray lightIds = newDeviceConfig.value( "lightIds").toArray();
+								// Iterate through the JSON array and update integer values to strings
+								for (int i = 0; i < lightIds.size(); ++i) {
+									QJsonValue value = lightIds.at(i);
+									if (value.isDouble())
+									{
+										int lightId = value.toInt();
+										lightIds.replace(i, QString::number(lightId));
+										migrated = true;
+									}
+								}
+								newDeviceConfig["lightIds"] = lightIds;
+
 							}
 						}
 					}
