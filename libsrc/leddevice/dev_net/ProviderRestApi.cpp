@@ -296,13 +296,11 @@ httpResponse ProviderRestApi::getResponse(QNetworkReply* const& reply)
 			if (error.error != QJsonParseError::NoError)
 			{
 				//Received not valid JSON response
-				//std::cout << "Response: [" << replyData.toStdString() << "]" << std::endl;
 				response.setError(true);
 				response.setErrorReason(error.errorString());
 			}
 			else
 			{
-				//std::cout << "Response: [" << QString(jsonDoc.toJson(QJsonDocument::Compact)).toStdString() << "]" << std::endl;
 				response.setBody(jsonDoc);
 			}
 		}
@@ -314,40 +312,41 @@ httpResponse ProviderRestApi::getResponse(QNetworkReply* const& reply)
 	else
 	{
 		QString errorReason;
-		if (httpStatusCode > 0) {
-			QString httpReason = reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString();
-			QString advise;
-			switch ( httpStatusCode ) {
-			case HttpStatusCode::BadRequest:
-				advise = "Check Request Body";
-				break;
-			case HttpStatusCode::UnAuthorized:
-				advise = "Check Authentication Token (API Key)";
-				break;
-			case HttpStatusCode::Forbidden:
-				advise = "No permission to access the given resource";
-				break;
-			case HttpStatusCode::NotFound:
-				advise = "Check Resource given";
-				break;
-			default:
-				advise = httpReason;
-				break;
-			}
-			errorReason = QString ("[%3 %4] - %5").arg(httpStatusCode).arg(httpReason, advise);
+		if (reply->error() == QNetworkReply::OperationCanceledError)
+		{
+			errorReason = "Network request timeout error";
 		}
 		else
 		{
-			if (reply->error() == QNetworkReply::OperationCanceledError)
-			{
-				errorReason = "Network request timeout error";
+			qDebug() << "httpStatusCode: "<< httpStatusCode;
+			if (httpStatusCode > 0) {
+				QString httpReason = reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString();
+				QString advise;
+				switch ( httpStatusCode ) {
+				case HttpStatusCode::BadRequest:
+					advise = "Check Request Body";
+					break;
+				case HttpStatusCode::UnAuthorized:
+					advise = "Check Authentication Token (API Key)";
+					break;
+				case HttpStatusCode::Forbidden:
+					advise = "No permission to access the given resource";
+					break;
+				case HttpStatusCode::NotFound:
+					advise = "Check Resource given";
+					break;
+				default:
+					advise = httpReason;
+					break;
+				}
+				errorReason = QString ("[%3 %4] - %5").arg(httpStatusCode).arg(httpReason, advise);
 			}
 			else
 			{
 				errorReason = reply->errorString();
 			}
-
 		}
+
 		response.setError(true);
 		response.setErrorReason(errorReason);
 	}
