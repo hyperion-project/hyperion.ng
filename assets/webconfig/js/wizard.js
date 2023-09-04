@@ -795,7 +795,9 @@ function checkHueBridge(cb, hueUser) {
     var host = hueIPs[hueIPsinc].host;
     var port = hueIPs[hueIPsinc].port;
 
-    getProperties_hue_bridge(cb, decodeURIComponent(host), port, usr);
+    if (usr != '') {
+      getProperties_hue_bridge(cb, decodeURIComponent(host), port, usr);
+    }
 
     if (isAPIv2Ready) {
       $('#port').val(443);
