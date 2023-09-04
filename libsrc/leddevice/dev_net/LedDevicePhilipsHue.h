@@ -638,7 +638,5 @@ private:
 	int	_onBlackTimeToPowerOn;
 	bool _candyGamma;
 
-	qint64 _lastConfirm;
-	QString	_lastId;
 	bool _groupStreamState;
 };

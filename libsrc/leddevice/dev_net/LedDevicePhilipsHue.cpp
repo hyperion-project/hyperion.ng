@@ -193,10 +193,7 @@ const uint8_t PAYLOAD_PER_CHANNEL_V2[] =
 
 bool operator ==(const CiColor& p1, const CiColor& p2)
 {
-	return ((fabs(p1.x - p2.x) > std::numeric_limits<double>::epsilon()) &&
-			(fabs(p1.y - p2.y) > std::numeric_limits<double>::epsilon()) &&
-			(fabs(p1.bri - p2.bri) > std::numeric_limits<double>::epsilon())
-			);
+	return ((p1.x == p2.x) && (p1.y == p2.y) && (p1.bri == p2.bri));
 }
 
 bool operator != (const CiColor& p1, const CiColor& p2)
@@ -281,7 +278,6 @@ CiColor CiColor::rgbToCiColor(double red, double green, double blue, const CiCol
 			}
 			if (dBC < lowest)
 			{
-				//lowest = dBC;
 				closestPoint = pBC;
 			}
 			// Change the xy value to a value which is within the reach of the lamp.
@@ -1759,8 +1755,6 @@ LedDevicePhilipsHue::LedDevicePhilipsHue(const QJsonObject& deviceConfig)
 	, _onBlackTimeToPowerOff(100)
 	, _onBlackTimeToPowerOn(100)
 	, _candyGamma(true)
-	, _lastConfirm(0)
-	, _lastId(-1)
 	, _groupStreamState(false)
 {
 }
@@ -1825,7 +1819,7 @@ bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
 
 			if( _groupId.isEmpty() )
 			{
-				Error(_log, "Disabling usage of HueEntertainmentAPI: Group-ID is invalid", "%s", QSTRING_CSTR(_groupId) );
+				Error(_log, "Disabling usage of Entertainment API - Group-ID is invalid [%s]", QSTRING_CSTR(_groupId) );
 				_useEntertainmentAPI = false;
 			}
 		}
@@ -2528,7 +2522,20 @@ void LedDevicePhilipsHue::setState(PhilipsHueLight& light, bool on, const CiColo
 	QJsonObject cmd;
 	bool forceCmd {false};
 
-	if (light.getOnOffState())
+	if (light.getOnOffState() != on)
+	{
+		forceCmd = true;
+		if (_useApiV2)
+		{
+			cmd.insert(API_STATE_ON, QJsonObject {{API_STATE_ON, on }});
+		}
+		else
+		{
+			cmd.insert(API_STATE_ON, on);
+		}
+	}
+
+	if (!_useEntertainmentAPI && light.getOnOffState())
 	{
 		if (light.getTransitionTime() != _transitionTime)
 		{
@@ -2544,43 +2551,33 @@ void LedDevicePhilipsHue::setState(PhilipsHueLight& light, bool on, const CiColo
 
 		if (!light.hasColor() || light.getColor() != color)
 		{
-			if (_useApiV2)
+			if (!light.isBusy() || forceCmd)
 			{
-				// Brightness is 0-100 %, Brightness percentage. value cannot be 0, writing 0 changes it to lowest possible brightness
-				const double bri = qMin(_brightnessFactor *  color.bri * 100, 100.0);
+				if (_useApiV2)
+				{
+					// Brightness is 0-100 %, Brightness percentage. value cannot be 0, writing 0 changes it to lowest possible brightness
+					const double bri = qMin(_brightnessFactor *  color.bri * 100, 100.0);
 
-				QJsonObject colorXY;
-				colorXY[API_X_COORDINATE] = color.x;
-				colorXY[API_Y_COORDINATE] = color.y;
-				cmd.insert(API_COLOR, QJsonObject {{API_DURATION, colorXY }});
-				cmd.insert(API_DIMMING, QJsonObject {{API_BRIGHTNESS, bri }});
-			}
-			else
-			{
-				const int bri = qRound(qMin(254.0, _brightnessFactor * qMax(1.0, color.bri * 254.0)));
-				QJsonArray colorXY;
-				colorXY.append(color.x);
-				colorXY.append(color.y);
-				cmd.insert(API_XY_COORDINATES, colorXY);
-				cmd.insert(API_BRIGHTNESS, bri);
+					QJsonObject colorXY;
+					colorXY[API_X_COORDINATE] = color.x;
+					colorXY[API_Y_COORDINATE] = color.y;
+					cmd.insert(API_COLOR, QJsonObject {{API_DURATION, colorXY }});
+					cmd.insert(API_DIMMING, QJsonObject {{API_BRIGHTNESS, bri }});
+				}
+				else
+				{
+					const int bri = qRound(qMin(254.0, _brightnessFactor * qMax(1.0, color.bri * 254.0)));
+					QJsonArray colorXY;
+					colorXY.append(color.x);
+					colorXY.append(color.y);
+					cmd.insert(API_XY_COORDINATES, colorXY);
+					cmd.insert(API_BRIGHTNESS, bri);
+				}
 			}
 		}
 	}
 
-	if (light.getOnOffState() != on)
-	{
-		forceCmd = true;
-		if (_useApiV2)
-		{
-			cmd.insert(API_STATE_ON, QJsonObject {{API_STATE_ON, on }});
-		}
-		else
-		{
-			cmd.insert(API_STATE_ON, on);
-		}
-	}
-
-	if (!light.isBusy() || forceCmd)
+	if (!cmd.isEmpty())
 	{
 		if (_useApiV2)
 		{
@@ -2591,15 +2588,6 @@ void LedDevicePhilipsHue::setState(PhilipsHueLight& light, bool on, const CiColo
 			resourcePath << API_RESOURCE_LIGHTS << light.getId() << API_STATE;
 		}
 		put(resourcePath, cmd);
-
-		qint64 _currentTime = QDateTime::currentMSecsSinceEpoch();
-
-		if ((_currentTime - _lastConfirm > 1500 && light.getId() != _lastId) ||
-			(_currentTime - _lastConfirm > 3000))
-		{
-			_lastId = light.getId();
-			_lastConfirm = _currentTime;
-		}
 
 		if (!isInError())
 		{
@@ -2704,8 +2692,6 @@ bool LedDevicePhilipsHue::switchOff()
 					}
 					else
 					{
-						writeBlack();
-
 						_isOn = false;
 						rc = stopStream();
 
