@@ -1157,10 +1157,10 @@ function beginWizardHue() {
     var h = (x + 1) / 2;
     var v = (-z + 1) / 2;
 
-    hmin = h - 0.05;
-    hmax = h + 0.05;
-    vmin = v - 0.05;
-    vmax = v + 0.05;
+    var hmin = h - 0.05;
+    var hmax = h + 0.05;
+    var vmin = v - 0.05;
+    var vmax = v + 0.05;
 
     let layoutObject = {
       hmin: hmin < 0 ? 0 : hmin,
@@ -1185,8 +1185,8 @@ function beginWizardHue() {
       segTotalLength += segment[key].length;
     }
 
-    var min = 0;
-    var max = 1;
+    var min;
+    var max;
     var horizontal = true;
 
     var layoutObject = assignLightPos(position, name);
@@ -1239,17 +1239,17 @@ function beginWizardHue() {
 
         var lightName;
         if (isAPIv2Ready) {
-          light = hueLights.find(light => light.id === lightId);
+          var light = hueLights.find(light => light.id === lightId);
           lightName = light.metadata.name;
         } else {
           lightName = hueLights[lightId].name;
         }
 
         var position = $('#hue_' + lightId).val();
-        var lightIdx = groupLights.indexOf(lightId)
+        var lightIdx = groupLights.indexOf(lightId);
         var lightLocation = groupLightsLocations[lightIdx];
-        var serviceID
 
+        var serviceID;
         if (isAPIv2Ready) {
           serviceID = lightLocation.service.rid;
         }
@@ -1540,8 +1540,9 @@ function get_hue_lights(username) {
         var lightId = groupLights[id];
         var lightId_v1 = "/lights/" + lightId;
 
+        var lightName;
         if (isAPIv2Ready) {
-          light = hueLights.find(light => light.id === lightId);
+          var light = hueLights.find(light => light.id === lightId);
           lightName = light.metadata.name;
           lightId_v1 = light.id_v1;
         } else {
@@ -1549,9 +1550,7 @@ function get_hue_lights(username) {
         }
 
         if (isEntertainmentReady) {
-          var light;
           var lightLocation = {};
-
           lightLocation = groupLightsLocations[id];
           if (lightLocation) {
             if (isAPIv2Ready) {
