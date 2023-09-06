@@ -136,7 +136,7 @@ import json,sys
 data = json.load(sys.stdin)
 
 for i in data['workflow_runs']:
-	if i['head_sha'] == '"$head_sha"':
+	if i['head_sha'] == '"$head_sha"' and i['name'] == 'Hyperion PR Build':
 		print(i['id'])
 		break
 """ 2>/dev/null)
