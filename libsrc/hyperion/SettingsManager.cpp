@@ -58,9 +58,9 @@ SettingsManager::SettingsManager(quint8 instance, QObject* parent, bool readonly
 	}
 
 	// transform json to string lists
-	QStringList keyList = defaultConfig.keys();
+	const QStringList keyList = defaultConfig.keys();
 	QStringList defValueList;
-	for (const auto& key : qAsConst(keyList))
+	for (const auto& key : keyList)
 	{
 		if (defaultConfig[key].isObject())
 		{
@@ -73,7 +73,7 @@ SettingsManager::SettingsManager(quint8 instance, QObject* parent, bool readonly
 	}
 
 	// fill database with default data if required
-	for (const auto& key : qAsConst(keyList))
+	for (const auto& key : keyList)
 	{
 		QString val = defValueList.takeFirst();
 		// prevent overwrite
@@ -86,7 +86,7 @@ SettingsManager::SettingsManager(quint8 instance, QObject* parent, bool readonly
 	// need to validate all data in database construct the entire data object
 	// TODO refactor schemaChecker to accept QJsonArray in validate(); QJsonDocument container? To validate them per entry...
 	QJsonObject dbConfig;
-	for (const auto& key : qAsConst(keyList))
+	for (const auto& key : keyList)
 	{
 		QJsonDocument doc = _sTable->getSettingsRecord(key);
 		if (doc.isArray())
@@ -242,9 +242,9 @@ bool SettingsManager::saveSettings(QJsonObject config, bool correct)
 	_qconfig = config;
 
 	// extract keys and data
-	QStringList keyList = config.keys();
+	const QStringList keyList = config.keys();
 	QStringList newValueList;
-	for (const auto& key : qAsConst(keyList))
+	for (const auto& key : keyList)
 	{
 		if (config[key].isObject())
 		{
@@ -258,7 +258,7 @@ bool SettingsManager::saveSettings(QJsonObject config, bool correct)
 
 	bool rc = true;
 	// compare database data with new data to emit/save changes accordingly
-	for (const auto& key : qAsConst(keyList))
+	for (const auto& key : keyList)
 	{
 		QString data = newValueList.takeFirst();
 		if (_sTable->getSettingsRecordString(key) != data)
@@ -618,10 +618,10 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 					QJsonArray json;
 					if (newForwarderConfig.contains("json"))
 					{
-						QJsonArray oldJson = newForwarderConfig["json"].toArray();
+						const QJsonArray oldJson = newForwarderConfig["json"].toArray();
 						QJsonObject newJsonConfig;
 
-						for (const QJsonValue& value : qAsConst(oldJson))
+						for (const QJsonValue& value : oldJson)
 						{
 							if (value.isString())
 							{
@@ -661,10 +661,10 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 					QJsonArray flatbuffer;
 					if (newForwarderConfig.contains("flat"))
 					{
-						QJsonArray oldFlatbuffer = newForwarderConfig["flat"].toArray();
+						const QJsonArray oldFlatbuffer = newForwarderConfig["flat"].toArray();
 						QJsonObject newFlattbufferConfig;
 
-						for (const QJsonValue& value : qAsConst(oldFlatbuffer))
+						for (const QJsonValue& value : oldFlatbuffer)
 						{
 							if (value.isString())
 							{

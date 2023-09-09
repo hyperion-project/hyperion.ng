@@ -404,7 +404,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	activePriorities.removeAll(PriorityMuxer::LOWEST_PRIORITY);
 	int currentPriority = _hyperion->getCurrentPriority();
 
-	for(int priority : qAsConst(activePriorities))
+	for(int priority : std::as_const(activePriorities))
 	{
 		const Hyperion::InputInfo &priorityInfo = _hyperion->getPriorityInfo(priority);
 
@@ -1387,7 +1387,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 		if (API::getPendingTokenRequests(vec))
 		{
 			QJsonArray arr;
-			for (const auto &entry : qAsConst(vec))
+			for (const auto &entry : std::as_const(vec))
 			{
 				QJsonObject obj;
 				obj["comment"] = entry.comment;

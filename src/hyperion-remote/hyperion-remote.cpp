@@ -57,9 +57,9 @@ void showHelp(Option & option){
 
 int getInstaneIdbyName(const QJsonObject & reply, const QString & name){
 	if(reply.contains("instance")){
-		QJsonArray list = reply.value("instance").toArray();
+		const QJsonArray list = reply.value("instance").toArray();
 
-		for ( const auto &entry : qAsConst(list) ) {
+		for ( const auto &entry : list ) {
 			const QJsonObject obj = entry.toObject();
 			if(obj["friendly_name"] == name && obj["running"].toBool())
 			{

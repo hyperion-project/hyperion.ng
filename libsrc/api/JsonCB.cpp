@@ -199,7 +199,7 @@ void JsonCB::handlePriorityUpdate(int currentPriority, const PriorityMuxer::Inpu
 
 	activePriorities.removeAll(PriorityMuxer::LOWEST_PRIORITY);
 
-	for (int priority : qAsConst(activePriorities)) {
+	for (int priority : std::as_const(activePriorities)) {
 
 		const Hyperion::InputInfo& priorityInfo = activeInputs[priority];
 

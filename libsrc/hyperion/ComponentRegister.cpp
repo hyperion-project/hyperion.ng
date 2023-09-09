@@ -61,7 +61,7 @@ ComponentRegister::ComponentRegister(Hyperion* hyperion)
 	vect << COMP_FORWARDER;
 #endif
 
-	for(auto e : qAsConst(vect))
+	for(auto e : std::as_const(vect))
 	{
 		_componentStates.emplace(e, (e == COMP_ALL));
 	}

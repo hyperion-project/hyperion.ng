@@ -64,7 +64,7 @@ static BOOL CALLBACK DirectSoundEnumProcessor(LPGUID deviceIdGuid, LPCTSTR devic
 	CoTaskMemFree(deviceIdStr);
 
 	// Process Device Information
-	QString deviceName = QString::fromLocal8Bit(deviceDescStr);
+	QString deviceName = QString::fromWCharArray(deviceDescStr);
 
 	Debug(Logger::getInstance("AUDIOGRABBER"), "Found Audio Device: %s", deviceDescStr);
 
