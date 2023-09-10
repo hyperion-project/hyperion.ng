@@ -87,6 +87,7 @@
     "conf_leds_layout_cl_cornergap": "Corner Gap",
     "conf_leds_layout_cl_edgegap": "Edge Gap",
     "conf_leds_layout_cl_entertainment": "Entertainment Area",
+    "conf_leds_layout_cl_entertainment_center": "Entertainment Area Center",
     "conf_leds_layout_cl_gaglength": "Gap length",
     "conf_leds_layout_cl_gappos": "gap position",
     "conf_leds_layout_cl_hleddepth": "Horizontal LED depth",

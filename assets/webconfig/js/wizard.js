@@ -1152,12 +1152,31 @@ function beginWizardHue() {
     createHueUser();
   });
 
-  function assignLightEntertainmentPos(position, name, id) {
+  function assignLightEntertainmentPos(isFocusCenter, position, name, id) {
 
     var x = position.x;
     var z = position.z;
-    var h = (x + 1) / 2;
-    var v = (-z + 1) / 2;
+
+    if (isFocusCenter) {
+      // Map lights as in centered range -0.5 to 0.5
+      if (x < -0.5) {
+        x = -0.5;
+      } else if (x > 0.5) {
+        x = 0.5;
+      }
+      if (z < -0.5) {
+        z = -0.5;
+      } else if (z > 0.5) {
+        z = 0.5;
+      }
+    } else {
+      // Map lights as in full range -1 to 1
+      x /= 2;
+      z /= 2;
+    }
+
+    var h = x + 0.5;
+    var v = -z + 0.5;
 
     var hmin = h - 0.05;
     var hmax = h + 0.05;
@@ -1256,19 +1275,25 @@ function beginWizardHue() {
           serviceID = lightLocation.service.rid;
         }
 
-        if (position === "entertainment") {
+        if (position.startsWith("entertainment")) {
+
           // Layout per entertainment area definition at bridge
+          var isFocusCenter = false;
+          if (position === "entertainment_center") {
+            isFocusCenter = true;
+          }
+
           if (isAPIv2Ready) {
 
             groupChannels.forEach((channel) => {
               if (channel.members[0].service.rid === serviceID) {
-                var layoutObject = assignLightEntertainmentPos(channel.position, lightName, channel.channel_id);
+                var layoutObject = assignLightEntertainmentPos(isFocusCenter, channel.position, lightName, channel.channel_id);
                 hueLedConfig.push(JSON.parse(JSON.stringify(layoutObject)));
                 ++channelNumber;
               }
             });
           } else {
-            var layoutObject = assignLightEntertainmentPos(lightLocation.position, lightName);
+            var layoutObject = assignLightEntertainmentPos(isFocusCenter, lightLocation.position, lightName);
             hueLedConfig.push(JSON.parse(JSON.stringify(layoutObject)));
           }
         }
@@ -1529,6 +1554,7 @@ function get_hue_lights(username) {
       ];
 
       if (isEntertainmentReady) {
+        lightOptions.unshift("entertainment_center");
         lightOptions.unshift("entertainment");
       } else {
         lightOptions.unshift("disabled");
