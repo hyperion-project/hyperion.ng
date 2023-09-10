@@ -64,6 +64,9 @@ bool AudioGrabberWindows::configureCaptureInterface()
 	// wFormatTag, nChannels, nSamplesPerSec, mAvgBytesPerSec,
 	// nBlockAlign, wBitsPerSample, cbSize
 
+	#ifdef WIN32
+		#undef max
+	#endif
 	notificationSize = std::max(static_cast<DWORD>(1024), static_cast<DWORD>(audioFormat.nAvgBytesPerSec / 8));
 	notificationSize -= notificationSize % audioFormat.nBlockAlign;
 
