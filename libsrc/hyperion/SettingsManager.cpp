@@ -269,7 +269,15 @@ bool SettingsManager::saveSettings(QJsonObject config, bool correct)
 			}
 			else
 			{
-				emit settingsChanged(settings::stringToType(key), QJsonDocument::fromJson(data.toLocal8Bit()));
+				QJsonParseError error;
+				QJsonDocument jsonDocument = QJsonDocument::fromJson(data.toUtf8(), &error);
+				if (error.error != QJsonParseError::NoError) {
+					Error(_log, "Error parsing JSON: %s", QSTRING_CSTR(error.errorString()));
+					rc = false;
+				}
+				else {
+					emit settingsChanged(settings::stringToType(key), jsonDocument);
+				}
 			}
 		}
 	}
