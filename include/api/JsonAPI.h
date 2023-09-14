@@ -88,6 +88,11 @@ private slots:
 	///
 	void handleInstanceStateChange(InstanceState state, quint8 instance, const QString &name = QString());
 
+	///
+	/// @brief Stream a new LED Colors update
+	///
+	void streamLedColorsUpdate();
+
 signals:
 	///
 	/// Signal emits with the reply message provided with handleMessage()
