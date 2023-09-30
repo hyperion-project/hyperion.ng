@@ -718,12 +718,7 @@ function startWizardPhilipsHue(e) {
   $('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><i class="fa fa-fw fa-check"></i>' + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
   $('#wizp2_body').html('<div id="wh_topcontainer"></div>');
 
-  var hidePort = "hidden-lg";
-  if (storedAccess === 'expert') {
-    hidePort = "";
-  }
-
-  $('#wh_topcontainer').append('<p class="text-left" style="font-weight:bold">' + $.i18n(hue_desc1) + '</p>' +
+  var topContainer_html = '<p class="text-left" style="font-weight:bold">' + $.i18n(hue_desc1) + '</p>' +
     '<div class="row">' +
     '<div class="col-md-2">' +
     '  <p class="text-left">' + $.i18n('wiz_hue_ip') + '</p></div>' +
@@ -732,14 +727,18 @@ function startWizardPhilipsHue(e) {
     '    <select id="hue_bridge_select" class="hue_bridge_sel_watch form-control">' + '</select>' + '</div></div>' +
     '  <div class="col-md-7"><div class="input-group">' +
     '    <span class="input-group-addon"><i class="fa fa-arrow-right"></i></span>' +
-    '    <input type="text" class="input-group form-control" id="host" placeholder="' + $.i18n('wiz_hue_ip') + '"></div></div>' +
-    '  <div class="col-md-3 ' + hidePort + '"><div class="input-group">' +
-    '    <span class="input-group-addon">:</span>' +
-    '    <input type="text" class="input-group form-control" id="port" placeholder="' + $.i18n('edt_conf_general_port_title') + '"></div></div>' +
-    '</div><p><span style="font-weight:bold;color:red" id="wiz_hue_ipstate"></span><span style="font-weight:bold;" id="wiz_hue_discovered"></span></p>'
-  );
-  $('#wh_topcontainer').append();
-  $('#wh_topcontainer').append('<div class="form-group" id="usrcont" style="display:none"></div>');
+    '    <input type="text" class="input-group form-control" id="host" placeholder="' + $.i18n('wiz_hue_ip') + '"></div></div>';
+
+  if (storedAccess === 'expert') {
+    topContainer_html += '<div class="col-md-3"><div class="input-group">' +
+      '<span class="input-group-addon">:</span>' +
+      '<input type="text" class="input-group form-control" id="port" placeholder="' + $.i18n('edt_conf_general_port_title') + '"></div></div>';
+  }
+
+  topContainer_html += '</div><p><span style="font-weight:bold;color:red" id="wiz_hue_ipstate"></span><span style="font-weight:bold;" id="wiz_hue_discovered"></span></p>';
+  topContainer_html += '<div class="form-group" id="usrcont" style="display:none"></div>';
+
+  $('#wh_topcontainer').append(topContainer_html);
 
   $('#usrcont').append('<div class="row"><div class="col-md-2"><p class="text-left">' + $.i18n('wiz_hue_username') + '</p ></div>' +
     '<div class="col-md-7">' +
@@ -795,8 +794,13 @@ function checkHueBridge(cb, hueUser) {
     var host = hueIPs[hueIPsinc].host;
     var port = hueIPs[hueIPsinc].port;
 
-    if (usr != '') {
+    if (usr != '')
+    {
       getProperties_hue_bridge(cb, decodeURIComponent(host), port, usr);
+    }
+    else
+    {
+      cb(false, usr);
     }
 
     if (isAPIv2Ready) {
