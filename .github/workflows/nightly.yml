@@ -13,7 +13,7 @@ jobs:
     if: github.repository_owner == 'hyperion-project'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           persist-credentials: false
           fetch-depth: 0
@@ -48,7 +48,7 @@ jobs:
     if: github.repository_owner == 'hyperion-project'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Check if commit has changed
         id: build-necessary
         run: |
@@ -66,7 +66,7 @@ jobs:
     if: ${{ needs.check.outputs.build-nightly == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set nightly matrix
         id: nightly-ppa
         run: |
@@ -84,7 +84,7 @@ jobs:
       matrix: ${{ fromJson(needs.setup.outputs.nightly-matrix) }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
 
@@ -135,7 +135,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@v5.3.0
