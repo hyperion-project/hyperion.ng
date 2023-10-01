@@ -1,4 +1,7 @@
 #include <grabber/AudioGrabberWindows.h>
+
+#include <climits>
+
 #include <QImage>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -61,7 +64,10 @@ bool AudioGrabberWindows::configureCaptureInterface()
 	// wFormatTag, nChannels, nSamplesPerSec, mAvgBytesPerSec,
 	// nBlockAlign, wBitsPerSample, cbSize
 
-	notificationSize = max(1024, audioFormat.nAvgBytesPerSec / 8);
+	#ifdef WIN32
+		#undef max
+	#endif
+	notificationSize = std::max(static_cast<DWORD>(1024), static_cast<DWORD>(audioFormat.nAvgBytesPerSec / 8));
 	notificationSize -= notificationSize % audioFormat.nBlockAlign;
 
 	bufferCaptureSize = notificationSize * AUDIO_NOTIFICATION_COUNT;

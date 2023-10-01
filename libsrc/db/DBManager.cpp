@@ -7,6 +7,7 @@
 #include <QThreadStorage>
 #include <QUuid>
 #include <QDir>
+#include <QMetaType>
 
 #ifdef _WIN32
 	#include <stdexcept>
@@ -425,15 +426,15 @@ void DBManager::doAddBindValue(QSqlQuery& query, const QVariantList& variants) c
 		auto t = variant.userType();
 		switch(t)
 		{
-			case QVariant::UInt:
-			case QVariant::Int:
-			case QVariant::Bool:
+			case QMetaType::UInt:
+			case QMetaType::Int:
+			case QMetaType::Bool:
 				query.addBindValue(variant.toInt());
 				break;
-			case QVariant::Double:
+			case QMetaType::Double:
 				query.addBindValue(variant.toFloat());
 				break;
-			case QVariant::ByteArray:
+			case QMetaType::QByteArray:
 				query.addBindValue(variant.toByteArray());
 				break;
 			default:

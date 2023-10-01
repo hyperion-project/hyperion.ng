@@ -327,7 +327,7 @@ $(document).ready(function () {
       var saveOptions = conf_editor_screen.getValue();
 
       var instCaptOptions = window.serverConfig.instCapture;
-      instCaptOptions.systemEnable = true;
+      instCaptOptions.systemEnable = saveOptions.framegrabber.enable;
       saveOptions.instCapture = instCaptOptions;
 
       requestWriteConfig(saveOptions);
@@ -679,7 +679,7 @@ $(document).ready(function () {
       var saveOptions = conf_editor_video.getValue();
 
       var instCaptOptions = window.serverConfig.instCapture;
-      instCaptOptions.v4lEnable = true;
+      instCaptOptions.v4lEnable = saveOptions.grabberV4L2.enable;
       saveOptions.instCapture = instCaptOptions;
 
       requestWriteConfig(saveOptions);
@@ -805,7 +805,7 @@ $(document).ready(function () {
       const saveOptions = conf_editor_audio.getValue();
 
       const instCaptOptions = window.serverConfig.instCapture;
-      instCaptOptions.audioEnable = true;
+      instCaptOptions.audioEnable = saveOptions.grabberAudio.enable;
       saveOptions.instCapture = instCaptOptions;
 
       requestWriteConfig(saveOptions);

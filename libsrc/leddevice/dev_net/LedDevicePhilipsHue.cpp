@@ -1126,7 +1126,7 @@ bool LedDevicePhilipsHue::setLights()
 
 	if( !lArray.empty() )
 	{
-		for (const QJsonValue &id : qAsConst(lArray))
+		for (const QJsonValue &id : std::as_const(lArray))
 		{
 			int lightId = id.toString().toInt();
 			if( lightId > 0 )

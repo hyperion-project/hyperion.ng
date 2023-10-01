@@ -133,6 +133,9 @@ endif()
 
 if(ENABLE_PROTOBUF_SERVER)
 	set(USE_SYSTEM_PROTO_LIBS ${DEFAULT_USE_SYSTEM_PROTO_LIBS} CACHE BOOL "use protobuf library from system")
+	
+	# defines for 3rd party sub-modules
+	set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "Build abseil-cpp with C++ version requirements propagated")	
 
 	if (USE_SYSTEM_PROTO_LIBS)
 		find_package(Protobuf REQUIRED)
@@ -160,9 +163,6 @@ if(ENABLE_PROTOBUF_SERVER)
 
 		# define the protobuf library
 		set(PROTOBUF_LIBRARIES protobuf::libprotobuf)
-		
-		# defines for 3rd party sub-modules
-		set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "Build abseil-cpp with C++ version requirements propagated")
 		
 	endif()
 
@@ -270,7 +270,7 @@ if(ENABLE_DEV_NETWORK)
 			set(USE_SYSTEM_MBEDTLS_LIBS OFF)
 		endif (NOT MBEDTLS_FOUND)
 else()
-		cmake_minimum_required(VERSION 3.2)
+		cmake_minimum_required(VERSION 3.5.1)
 
 		set(CMAKE_POLICY_DEFAULT_CMP0071 NEW)
 
