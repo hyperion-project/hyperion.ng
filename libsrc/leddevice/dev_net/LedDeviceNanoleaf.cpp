@@ -75,7 +75,8 @@ const char API_EXT_MODE_STRING_V2[] = "{\"write\" : {\"command\" : \"display\", 
 const char API_STATE[] = "state";
 const char API_PANELLAYOUT[] = "panelLayout";
 const char API_EFFECT[] = "effects";
-
+const char API_IDENTIFY[] = "identify";
+const char API_ADD_USER[] = "new";
 const char API_EFFECT_SELECT[] = "select";
 
 //Nanoleaf Control data stream
@@ -99,8 +100,15 @@ enum SHAPETYPES {
 	POWER_SUPPLY= 5,
 	HEXAGON_SHAPES = 7,
 	TRIANGE_SHAPES = 8,
-	MINI_TRIANGE_SHAPES = 8,
-	SHAPES_CONTROLLER = 12
+	MINI_TRIANGE_SHAPES = 9,
+	SHAPES_CONTROLLER = 12,
+	ELEMENTS_HEXAGONS = 14,
+	ELEMENTS_HEXAGONS_CORNER = 15,
+	LINES_CONECTOR = 16,
+	LIGHT_LINES = 17,
+	LIGHT_LINES_SINGLZONE = 18,
+	CONTROLLER_CAP = 19,
+	POWER_CONNECTOR = 20
 };
 
 // Nanoleaf external control versions
@@ -194,6 +202,32 @@ bool LedDeviceNanoleaf::init(const QJsonObject& deviceConfig)
 	return isInitOK;
 }
 
+int LedDeviceNanoleaf::getHwLedCount(const QJsonObject& jsonLayout) const
+{
+	int hwLedCount {0};
+
+	const QJsonArray positionData = jsonLayout[PANEL_POSITIONDATA].toArray();
+	for(const QJsonValue & value : positionData)
+	{
+		QJsonObject panelObj = value.toObject();
+		int panelId = panelObj[PANEL_ID].toInt();
+		int panelshapeType = panelObj[PANEL_SHAPE_TYPE].toInt();
+
+		DebugIf(verbose,_log, "Panel [%d] - Type: [%d]", panelId, panelshapeType);
+
+		// Skip Rhythm and Shapes controller panels
+		if (panelshapeType != RHYTM && panelshapeType != SHAPES_CONTROLLER)
+		{
+			++hwLedCount;
+		}
+		else
+		{	// Reset non support/required features
+			DebugIf(verbose, _log, "Rhythm/Shape Controller panel skipped.");
+		}
+	}
+	return hwLedCount;
+}
+
 bool LedDeviceNanoleaf::initLedsConfiguration()
 {
 	bool isInitOK = true;
@@ -227,6 +261,8 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 		QJsonObject jsonPanelLayout = jsonAllPanelInfo[API_PANELLAYOUT].toObject();
 		QJsonObject jsonLayout = jsonPanelLayout[PANEL_LAYOUT].toObject();
 
+		_panelLedCount = getHwLedCount(jsonLayout);
+
 		int panelNum = jsonLayout[PANEL_NUM].toInt();
 		const QJsonArray positionData = jsonLayout[PANEL_POSITIONDATA].toArray();
 
@@ -256,6 +292,7 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 		}
 
 		// Travers panels top down
+		_panelIds.clear();
 		for (auto posY = panelMap.crbegin(); posY != panelMap.crend(); ++posY)
 		{
 			// Sort panels left to right
@@ -294,7 +331,6 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 			}
 		}
 
-		this->_panelLedCount = _panelIds.size();
 		_devConfig["hardwareLedCount"] = _panelLedCount;
 
 		Debug(_log, "PanelsNum      : %d", panelNum);
@@ -314,7 +350,7 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 			QString errorReason = QString("Not enough panels [%1] for configured LEDs [%2] found!")
 									  .arg(_panelLedCount)
 									  .arg(configuredLedCount);
-			this->setInError(errorReason);
+			this->setInError(errorReason, false);
 			isInitOK = false;
 		}
 		else
@@ -330,7 +366,7 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 				QString errorReason = QString("Start panel [%1] out of range. Start panel position can be max [%2] given [%3] panel available!")
 										  .arg(_startPos).arg(_panelLedCount - configuredLedCount).arg(_panelLedCount);
 
-				this->setInError(errorReason);
+				this->setInError(errorReason, false);
 				isInitOK = false;
 			}
 		}
@@ -436,7 +472,7 @@ QJsonObject LedDeviceNanoleaf::getProperties(const QJsonObject& params)
 
 	_hostName = params[CONFIG_HOST].toString("");
 	_apiPort = API_DEFAULT_PORT;
-	_authToken = params["token"].toString("");
+	_authToken = params[CONFIG_AUTH_TOKEN].toString("");
 
 	Info(_log, "Get properties for %s, hostname (%s)", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(_hostName) );
 
@@ -453,7 +489,14 @@ QJsonObject LedDeviceNanoleaf::getProperties(const QJsonObject& params)
 			{
 				Warning(_log, "%s get properties failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
 			}
-			properties.insert("properties", response.getBody().object());
+			QJsonObject propertiesDetails = response.getBody().object();
+			if (!propertiesDetails.isEmpty())
+			{
+				QJsonObject jsonLayout = propertiesDetails.value(API_PANELLAYOUT).toObject().value(PANEL_LAYOUT).toObject();
+				_panelLedCount = getHwLedCount(jsonLayout);
+				propertiesDetails.insert("ledCount", getHwLedCount(jsonLayout));
+			}
+			properties.insert("properties", propertiesDetails);
 		}
 
 		DebugIf(verbose, _log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData());
@@ -466,8 +509,8 @@ void LedDeviceNanoleaf::identify(const QJsonObject& params)
 	DebugIf(verbose,_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	_hostName = params[CONFIG_HOST].toString("");
-	_apiPort = API_DEFAULT_PORT;if (NetUtils::resolveHostToAddress(_log, _hostName, _address))
-	_authToken = params["token"].toString("");
+	_apiPort = API_DEFAULT_PORT;
+	_authToken = params[CONFIG_AUTH_TOKEN].toString("");
 
 	Info(_log, "Identify %s, hostname (%s)", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(_hostName) );
 
@@ -475,9 +518,7 @@ void LedDeviceNanoleaf::identify(const QJsonObject& params)
 	{
 		if ( openRestAPI() )
 		{
-			_restApi->setPath("identify");
-
-			// Perform request
+			_restApi->setPath(API_IDENTIFY);
 			httpResponse response = _restApi->put();
 			if (response.error())
 			{
@@ -485,6 +526,36 @@ void LedDeviceNanoleaf::identify(const QJsonObject& params)
 			}
 		}
 	}
+}
+
+QJsonObject LedDeviceNanoleaf::addAuthorization(const QJsonObject& params)
+{
+	Debug(_log, "params: [%s]", QJsonDocument(params).toJson(QJsonDocument::Compact).constData());
+	QJsonObject responseBody;
+
+	_hostName = params[CONFIG_HOST].toString("");
+	_apiPort =  API_DEFAULT_PORT;
+
+	Info(_log, "Generate user authorization token for %s, hostname (%s)", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(_hostName) );
+
+	if (NetUtils::resolveHostToAddress(_log, _hostName, _address, _apiPort))
+	{
+		if ( openRestAPI() )
+		{
+			_restApi->setBasePath(QString(API_BASE_PATH).arg(API_ADD_USER));
+			httpResponse response = _restApi->post();
+			if (response.error())
+			{
+					Warning(_log, "%s generating user authorization token failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+			}
+			else
+			{
+				Debug(_log, "Generated user authorization token: \"%s\"", QSTRING_CSTR(response.getBody().object().value("auth_token").toString()) );
+				responseBody = response.getBody().object();
+			}
+		}
+	}
+	return responseBody;
 }
 
 bool LedDeviceNanoleaf::powerOn()

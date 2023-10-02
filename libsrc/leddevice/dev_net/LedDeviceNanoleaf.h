@@ -87,6 +87,20 @@ public:
 	///
 	void identify(const QJsonObject& params) override;
 
+	/// @brief Add an API-token to the Nanoleaf device
+	///
+	/// Following parameters are required
+	/// @code
+	/// {
+	///     "host"  : "hostname or IP",
+	/// }
+	///@endcode
+	///
+	/// @param[in] params Parameters to query device
+	/// @return A JSON structure holding the authorization keys
+	///
+	QJsonObject addAuthorization(const QJsonObject& params) override;
+
 protected:
 
 	///
@@ -181,6 +195,13 @@ private:
 	/// @return A JSON structure holding a list of devices found
 	///
 	QJsonArray discover();
+
+	///
+	/// @brief Get number of panels that can be used as LEds.
+	///
+	/// @return Number of usable LED panels
+	///
+	int getHwLedCount(const QJsonObject& jsonLayout) const;
 
 	///REST-API wrapper
 	ProviderRestApi* _restApi;

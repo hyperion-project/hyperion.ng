@@ -1060,6 +1060,13 @@ $(document).ready(function () {
       var hue_title = 'wiz_hue_title';
       changeWizard(data, hue_title, startWizardPhilipsHue);
     }
+    else if (ledType == "nanoleaf") {
+      var ledWizardType = ledType;
+      var data = { type: ledWizardType };
+      var nanoleaf_user_auth_title = 'wiz_nanoleaf_user_auth_title';
+      changeWizard(data, nanoleaf_user_auth_title, startWizardNanoleafUserAuth);
+      $('#btn_wiz_holder').hide();
+    }
     else if (ledType == "atmoorb") {
       var ledWizardType = (this.checked) ? "atmoorb" : ledType;
       var data = { type: ledWizardType };
@@ -1341,6 +1348,13 @@ $(document).ready(function () {
 
       if (host === "") {
         conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(1);
+        switch (ledType) {
+
+          case "nanoleaf":
+              $('#btn_wiz_holder').hide();
+            break;
+          default:
+        }
       }
       else {
         let params = {};
@@ -1352,6 +1366,8 @@ $(document).ready(function () {
             break;
 
           case "nanoleaf":
+            $('#btn_wiz_holder').show();
+
             var token = conf_editor.getEditor("root.specificOptions.token").getValue();
             if (token === "") {
               return;
@@ -2165,15 +2181,8 @@ function updateElements(ledType, key) {
       case "nanoleaf":
         var ledProperties = devicesProperties[ledType][key];
 
-        if (ledProperties && ledProperties.panelLayout.layout) {
-          //Identify non-LED type panels, e.g. Rhythm (1) and Shapes Controller (12)
-          var nonLedNum = 0;
-          for (const panel of ledProperties.panelLayout.layout.positionData) {
-            if (panel.shapeType === 1 || panel.shapeType === 12) {
-              nonLedNum++;
-            }
-          }
-          hardwareLedCount = ledProperties.panelLayout.layout.numPanels - nonLedNum;
+        if (ledProperties) {
+          hardwareLedCount = ledProperties.ledCount;
         }
         conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(hardwareLedCount);
 

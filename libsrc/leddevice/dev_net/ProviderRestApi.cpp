@@ -318,7 +318,6 @@ httpResponse ProviderRestApi::getResponse(QNetworkReply* const& reply)
 		}
 		else
 		{
-			qDebug() << "httpStatusCode: "<< httpStatusCode;
 			if (httpStatusCode > 0) {
 				QString httpReason = reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString();
 				QString advise;
@@ -327,7 +326,7 @@ httpResponse ProviderRestApi::getResponse(QNetworkReply* const& reply)
 					advise = "Check Request Body";
 					break;
 				case HttpStatusCode::UnAuthorized:
-					advise = "Check Authentication Token (API Key)";
+					advise = "Check Authorization Token (API Key)";
 					break;
 				case HttpStatusCode::Forbidden:
 					advise = "No permission to access the given resource";

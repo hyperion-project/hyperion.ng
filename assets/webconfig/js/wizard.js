@@ -2187,3 +2187,90 @@ async function identify_atmoorb_device(orbId) {
   }
 }
 
+//****************************
+// Nanoleaf Token Wizard
+//****************************
+var lights = null;
+function startWizardNanoleafUserAuth(e) {
+  //create html
+  var nanoleaf_user_auth_title = 'wiz_nanoleaf_user_auth_title';
+  var nanoleaf_user_auth_intro = 'wiz_nanoleaf_user_auth_intro';
+
+  $('#wiz_header').html('<i class="fa fa-magic fa-fw"></i>' + $.i18n(nanoleaf_user_auth_title));
+  $('#wizp1_body').html('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n(nanoleaf_user_auth_title) + '</h4><p>' + $.i18n(nanoleaf_user_auth_intro) + '</p>');
+
+  $('#wizp1_footer').html('<button type="button" class="btn btn-primary" id="btn_wiz_cont"><i class="fa fa-fw fa-check"></i>'
+    + $.i18n('general_btn_continue') + '</button><button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>'
+    + $.i18n('general_btn_cancel') + '</button>');
+
+  $('#wizp3_body').html('<span>' + $.i18n('wiz_nanoleaf_press_onoff_button') + '</span> <br /><br /><center><span id="connectionTime"></span><br /><i class="fa fa-cog fa-spin" style="font-size:100px"></i></center>');
+
+  if (getStorage("darkMode") == "on")
+    $('#wizard_logo').attr("src", 'img/hyperion/logo_negativ.png');
+
+  //open modal
+  $("#wizard_modal").modal({ backdrop: "static", keyboard: false, show: true });
+
+  //listen for continue
+  $('#btn_wiz_cont').off().on('click', function () {
+    createNanoleafUserAuthorization();
+    $('#wizp1').toggle(false);
+    $('#wizp3').toggle(true);
+  });
+}
+
+function createNanoleafUserAuthorization() {
+  var host = conf_editor.getEditor("root.specificOptions.host").getValue();
+
+  let params = { host: host };
+
+  var retryTime = 30;
+  var retryInterval = 2;
+
+  var UserInterval = setInterval(function () {
+
+    $('#wizp1').toggle(false);
+    $('#wizp3').toggle(true);
+
+    (async () => {
+
+      retryTime -= retryInterval;
+      $("#connectionTime").html(retryTime);
+      if (retryTime <= 0) {
+        abortConnection(UserInterval);
+        clearInterval(UserInterval);
+
+        showNotification('warning', $.i18n('wiz_nanoleaf_failure_auth_token'), $.i18n('wiz_nanoleaf_failure_auth_token_t'))
+
+        resetWizard(true);
+      }
+      else {
+        const res = await requestLedDeviceAddAuthorization('nanoleaf', params);
+        if (res && !res.error) {
+          var response = res.info;
+
+          if (jQuery.isEmptyObject(response)) {
+            debugMessage(retryTime + ": Power On/Off button not pressed or device not reachable");
+          } else {
+            $('#wizp1').toggle(false);
+            $('#wizp3').toggle(false);
+
+            var token = response.auth_token;
+            if (token != 'undefined') {
+              conf_editor.getEditor("root.specificOptions.token").setValue(token);
+            }
+            clearInterval(UserInterval);
+            resetWizard(true);
+          }
+        } else {
+          $('#wizp1').toggle(false);
+          $('#wizp3').toggle(false);
+          clearInterval(UserInterval);
+          resetWizard(true);
+        }
+      }
+    })();
+
+  }, retryInterval * 1000);
+}
+
