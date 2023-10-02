@@ -65,7 +65,7 @@ void Logger::deleteInstance(const QString & name, const QString & subName)
 
 	if (name.isEmpty())
 	{
-		for (auto *logger : qAsConst(LoggerMap)) {
+		for (auto *logger : std::as_const(LoggerMap)) {
 			delete logger;
 		}
 

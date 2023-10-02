@@ -268,9 +268,9 @@ int main(int argc, char** argv)
 		if (directory.exists() && destDir.exists())
 		{
 			std::cout << "Extract to folder: " << destDir.absolutePath().toStdString() << std::endl;
-			QStringList filenames = directory.entryList(QStringList() << "*", QDir::Files, QDir::Name | QDir::IgnoreCase);
+			const QStringList filenames = directory.entryList(QStringList() << "*", QDir::Files, QDir::Name | QDir::IgnoreCase);
 			QString destFileName;
-			for (const QString & filename : qAsConst(filenames))
+			for (const QString & filename : filenames)
 			{
 				destFileName = destDir.dirName()+"/"+filename;
 				if (QFile::exists(destFileName))

@@ -140,6 +140,8 @@ void JsonAPI::initialize()
 	connect(this, &JsonAPI::toggleSuspendAll, _instanceManager, &HyperionIManager::triggerToggleSuspend);
 	connect(this, &JsonAPI::idleAll, _instanceManager, &HyperionIManager::triggerIdle);
 	connect(this, &JsonAPI::toggleIdleAll, _instanceManager, &HyperionIManager::triggerToggleIdle);
+
+	connect(_ledStreamTimer, &QTimer::timeout, this, &JsonAPI::streamLedColorsUpdate, Qt::UniqueConnection);
 }
 
 bool JsonAPI::handleInstanceSwitch(quint8 inst, bool forced)
@@ -404,7 +406,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	activePriorities.removeAll(PriorityMuxer::LOWEST_PRIORITY);
 	int currentPriority = _hyperion->getCurrentPriority();
 
-	for(int priority : qAsConst(activePriorities))
+	for(int priority : std::as_const(activePriorities))
 	{
 		const Hyperion::InputInfo &priorityInfo = _hyperion->getPriorityInfo(priority);
 
@@ -1139,6 +1141,11 @@ void JsonAPI::handleComponentStateCommand(const QJsonObject &message, const QStr
 	sendSuccessReply(command, tan);
 }
 
+void JsonAPI::streamLedColorsUpdate()
+{
+	emit streamLedcolorsUpdate(_currentLedValues);
+}
+
 void JsonAPI::handleLedColorsCommand(const QJsonObject &message, const QString &command, int tan)
 {
 	// create result
@@ -1154,21 +1161,21 @@ void JsonAPI::handleLedColorsCommand(const QJsonObject &message, const QString &
 		_streaming_leds_reply["tan"] = tan;
 
 		connect(_hyperion, &Hyperion::rawLedColors, this, [=](const std::vector<ColorRgb> &ledValues) {
-			_currentLedValues = ledValues;
 
-			// necessary because Qt::UniqueConnection for lambdas does not work until 5.9
-			// see: https://bugreports.qt.io/browse/QTBUG-52438
-			if (!_ledStreamConnection)
-				_ledStreamConnection = connect(_ledStreamTimer, &QTimer::timeout, this, [=]() {
-					emit streamLedcolorsUpdate(_currentLedValues);
-				},
-				Qt::UniqueConnection);
+			if (ledValues != _currentLedValues)
+			{
+				_currentLedValues = ledValues;
+				if (!_ledStreamTimer->isActive() || _ledStreamTimer->interval() != streaming_interval)
+				{
+					_ledStreamTimer->start(streaming_interval);
+				}
+			}
+			else
+			{
+				_ledStreamTimer->stop();
+			}
+		});
 
-			// start the timer
-			if (!_ledStreamTimer->isActive() || _ledStreamTimer->interval() != streaming_interval)
-				_ledStreamTimer->start(streaming_interval);
-		},
-		Qt::UniqueConnection);
 		// push once
 		_hyperion->update();
 	}
@@ -1387,7 +1394,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 		if (API::getPendingTokenRequests(vec))
 		{
 			QJsonArray arr;
-			for (const auto &entry : qAsConst(vec))
+			for (const auto &entry : std::as_const(vec))
 			{
 				QJsonObject obj;
 				obj["comment"] = entry.comment;

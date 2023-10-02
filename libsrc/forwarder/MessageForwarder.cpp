@@ -269,7 +269,7 @@ int MessageForwarder::startJsonTargets(const QJsonObject& config)
 
 		if (!_jsonTargets.isEmpty())
 		{
-			for (const auto& targetHost : qAsConst(_jsonTargets))
+			for (const auto& targetHost : std::as_const(_jsonTargets))
 			{
 				Info(_log, "Forwarding now to JSON-target host: %s port: %u", QSTRING_CSTR(targetHost.host.toString()), targetHost.port);
 			}
@@ -286,7 +286,7 @@ void MessageForwarder::stopJsonTargets()
 	if (!_jsonTargets.isEmpty())
 	{
 		disconnect(_hyperion, &Hyperion::forwardJsonMessage, nullptr, nullptr);
-		for (const auto& targetHost : qAsConst(_jsonTargets))
+		for (const auto& targetHost : std::as_const(_jsonTargets))
 		{
 			Info(_log, "Stopped forwarding to JSON-target host: %s port: %u", QSTRING_CSTR(targetHost.host.toString()), targetHost.port);
 		}
@@ -373,7 +373,7 @@ int MessageForwarder::startFlatbufferTargets(const QJsonObject& config)
 
 		if (!_flatbufferTargets.isEmpty())
 		{
-			for (const auto& targetHost : qAsConst(_flatbufferTargets))
+			for (const auto& targetHost : std::as_const(_flatbufferTargets))
 			{
 				Info(_log, "Forwarding now to Flatbuffer-target host: %s port: %u", QSTRING_CSTR(targetHost.host.toString()), targetHost.port);
 			}
@@ -399,7 +399,7 @@ void MessageForwarder::stopFlatbufferTargets()
 			_messageForwarderFlatBufHelper = nullptr;
 		}
 
-		for (const auto& targetHost : qAsConst(_flatbufferTargets))
+		for (const auto& targetHost : std::as_const(_flatbufferTargets))
 		{
 			Info(_log, "Stopped forwarding to Flatbuffer-target host: %s port: %u", QSTRING_CSTR(targetHost.host.toString()), targetHost.port);
 		}
@@ -412,7 +412,7 @@ void MessageForwarder::forwardJsonMessage(const QJsonObject& message)
 	if (_forwarder_enabled)
 	{
 		QTcpSocket client;
-		for (const auto& targetHost : qAsConst(_jsonTargets))
+		for (const auto& targetHost : std::as_const(_jsonTargets))
 		{
 			client.connectToHost(targetHost.host, targetHost.port);
 			if (client.waitForConnected(CONNECT_TIMEOUT.count()))

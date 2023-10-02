@@ -103,7 +103,7 @@ bool QtGrabber::setupDisplay()
 
 			Info(_log, "Available Displays:");
 			int index = 0;
-			for (auto* screen : qAsConst(screens))
+			for (auto* screen : std::as_const(screens))
 			{
 				const QRect geo = screen->geometry();
 				Info(_log, "Display %d: Name: %s Resolution: [%dx%d], Geometry: (L,T,R,B) %d,%d,%d,%d Depth:%dbit", index, QSTRING_CSTR(screen->name()), geo.width(), geo.height(), geo.x(), geo.y(), geo.x() + geo.width(), geo.y() + geo.height(), screen->depth());
