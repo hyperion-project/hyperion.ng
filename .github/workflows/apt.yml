@@ -36,7 +36,7 @@ jobs:
     name: Setup APT build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set APT matrix
         id: apt-ppa
         run: |
@@ -54,7 +54,7 @@ jobs:
       matrix: ${{ fromJson(needs.setup.outputs.apt-matrix) }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.head_sha || github.event.client_payload.head_sha }}
           submodules: true
@@ -107,7 +107,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.head_sha || github.event.client_payload.head_sha }}
 
