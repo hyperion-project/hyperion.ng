@@ -39,8 +39,8 @@ class AudioGrabberWindows : public AudioGrabber
 		HANDLE notificationEvent;
 		std::atomic<bool> isRunning{ false };
 
-static BOOL CALLBACK DirectSoundEnumProcessor(LPGUID deviceIdGuid, LPCTSTR deviceDescStr,
-	LPCTSTR deviceModelStr, LPVOID context)
+static BOOL CALLBACK DirectSoundEnumProcessor(LPGUID deviceIdGuid, LPCWSTR deviceDescStr,
+	LPCWSTR deviceModelStr, LPVOID context)
 {
 	// Skip undefined audio devices
 	if (deviceIdGuid == NULL)
@@ -50,12 +50,15 @@ static BOOL CALLBACK DirectSoundEnumProcessor(LPGUID deviceIdGuid, LPCTSTR devic
 
 	AudioGrabber::DeviceProperties device;
 
+	// Process Device Information
+	QString deviceName = QString::fromWCharArray(deviceDescStr);
+
 	// Process Device ID
 	LPOLESTR deviceIdStr;
 	HRESULT res = StringFromCLSID(*deviceIdGuid, &deviceIdStr);
 	if (FAILED(res))
 	{
-		Error(Logger::getInstance("AUDIOGRABBER"), "Failed to get CLSID-string for %s with error: 0x%08x: %s", deviceDescStr, res, std::system_category().message(res).c_str());
+		Error(Logger::getInstance("AUDIOGRABBER"), "Failed to get CLSID-string for %s with error: 0x%08x: %s", QSTRING_CSTR(deviceName), res, std::system_category().message(res).c_str());
 		return FALSE;
 	}
 
@@ -63,10 +66,7 @@ static BOOL CALLBACK DirectSoundEnumProcessor(LPGUID deviceIdGuid, LPCTSTR devic
 
 	CoTaskMemFree(deviceIdStr);
 
-	// Process Device Information
-	QString deviceName = QString::fromLocal8Bit(deviceDescStr);
-
-	Debug(Logger::getInstance("AUDIOGRABBER"), "Found Audio Device: %s", deviceDescStr);
+	Debug(Logger::getInstance("AUDIOGRABBER"), "Found Audio Device: %s", QSTRING_CSTR(deviceName));
 
 	device.id = deviceId;
 	device.name = deviceName;

@@ -1852,7 +1852,6 @@ bool LedDevicePhilipsHue::setLights()
 			_useEntertainmentAPI = false;
 			Error(_log, "Group-ID [%s] is not usable - Entertainment API usage was disabled!", QSTRING_CSTR(_groupId)  );
 		}
-
 		lights = _devConfig[ CONFIG_lightIdS ].toVariant().toStringList();
 	}
 

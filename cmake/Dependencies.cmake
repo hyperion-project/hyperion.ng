@@ -48,7 +48,7 @@ macro(DeployMacOS TARGET)
 				foreach(PLUGIN "platforms" "sqldrivers" "imageformats")
 					if(EXISTS ${PLUGIN_DIR}/${PLUGIN})
 						file(GLOB files "${PLUGIN_DIR}/${PLUGIN}/*")
-      						list(FILTER files EXCLUDE REGEX ".*libqwebp\\.dylib$")
+						list(FILTER files EXCLUDE REGEX ".*libqwebp\\.dylib$")
 						foreach(file ${files})
 								file(GET_RUNTIME_DEPENDENCIES
 								EXECUTABLES ${file}
