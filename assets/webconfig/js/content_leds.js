@@ -1021,11 +1021,6 @@ $(document).ready(function () {
     var generalOptions = window.serverSchema.properties.device;
 
     var ledType = $(this).val();
-
-    // philipshueentertainment backward fix
-    if (ledType == "philipshueentertainment")
-      ledType = "philipshue";
-
     var specificOptions = window.serverSchema.properties.alldevices[ledType];
 
     conf_editor = createJsonEditor('editor_container_leddevice', {
@@ -1060,13 +1055,10 @@ $(document).ready(function () {
     $('#btn_led_device_wiz').off();
 
     if (ledType == "philipshue") {
-      $('#root_specificOptions_useEntertainmentAPI').on("change", function () {
-        var ledWizardType = (this.checked) ? "philipshueentertainment" : ledType;
-        var data = { type: ledWizardType };
-        var hue_title = (this.checked) ? 'wiz_hue_e_title' : 'wiz_hue_title';
-        changeWizard(data, hue_title, startWizardPhilipsHue);
-      });
-      $("#root_specificOptions_useEntertainmentAPI").trigger("change");
+      var ledWizardType = ledType;
+      var data = { type: ledWizardType };
+      var hue_title = 'wiz_hue_title';
+      changeWizard(data, hue_title, startWizardPhilipsHue);
     }
     else if (ledType == "atmoorb") {
       var ledWizardType = (this.checked) ? "atmoorb" : ledType;

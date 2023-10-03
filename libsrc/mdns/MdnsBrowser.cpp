@@ -182,6 +182,7 @@ bool MdnsBrowser::resolveAddress(Logger* log, const QString& hostname, QHostAddr
 		}
 		else
 		{
+			QObject::disconnect(&MdnsBrowser::getInstance(), &MdnsBrowser::addressResolved, nullptr, nullptr);
 			Error(log, "Resolved mDNS hostname [%s] timed out", QSTRING_CSTR(hostname));
 		}
 	}

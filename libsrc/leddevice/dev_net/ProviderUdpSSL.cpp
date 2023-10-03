@@ -150,6 +150,11 @@ const int *ProviderUdpSSL::getCiphersuites() const
 	return mbedtls_ssl_list_ciphersuites();
 }
 
+void ProviderUdpSSL::setPSKidentity(const QString& pskIdentity)
+{
+	_psk_identity = pskIdentity;
+}
+
 bool ProviderUdpSSL::initNetwork()
 {
 	if ((!_isDeviceReady || _streamPaused) && _streamReady)
@@ -332,6 +337,11 @@ void ProviderUdpSSL::freeSSLConnection()
 	{
 		Error(_log, "SSL Connection clean-up Error: <unknown>");
 	}
+}
+
+void ProviderUdpSSL::writeBytes(QByteArray data, bool flush)
+{
+	writeBytes(static_cast<uint>(data.size()), reinterpret_cast<unsigned char*>(data.data()), flush);
 }
 
 void ProviderUdpSSL::writeBytes(unsigned int size, const uint8_t* data, bool flush)
