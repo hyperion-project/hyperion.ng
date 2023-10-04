@@ -791,7 +791,8 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 					if (newDeviceConfig.contains("type"))
 					{
 						QString type = newDeviceConfig["type"].toString();
-						if (type == "philipshue")
+
+            if (type == "philipshue")
 						{
 							if (newDeviceConfig.contains("groupId"))
 							{
@@ -821,7 +822,7 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 							}
 						}
 
-						if (type == "nanoleaf")
+            if (type == "nanoleaf")
 						{
 							if (newDeviceConfig.contains("panelStartPos"))
 							{
