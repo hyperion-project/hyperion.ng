@@ -21,19 +21,19 @@ using namespace semver;
 
 // Constants
 namespace {
-const char DEFAULT_VERSION[] = "2.0.0-alpha.8";
+	const char DEFAULT_VERSION[] = "2.0.0-alpha.8";
 } //End of constants
 
 QJsonObject SettingsManager::schemaJson;
 
 SettingsManager::SettingsManager(quint8 instance, QObject* parent, bool readonlyMode)
 	: QObject(parent)
-	  , _log(Logger::getInstance("SETTINGSMGR", "I"+QString::number(instance)))
-	  , _instance(instance)
-	  , _sTable(new SettingsTable(instance, this))
-	  , _configVersion(DEFAULT_VERSION)
-	  , _previousVersion(DEFAULT_VERSION)
-	  , _readonlyMode(readonlyMode)
+	, _log(Logger::getInstance("SETTINGSMGR", "I" + QString::number(instance)))
+	, _instance(instance)
+	, _sTable(new SettingsTable(instance, this))
+	, _configVersion(DEFAULT_VERSION)
+	, _previousVersion(DEFAULT_VERSION)
+	, _readonlyMode(readonlyMode)
 {
 	_sTable->setReadonlyMode(_readonlyMode);
 	// get schema
@@ -739,12 +739,12 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 					{
 						QString type = newDeviceConfig["type"].toString();
 
-						const QStringList serialDevices {"adalight", "dmx", "atmo", "sedu", "tpm2", "karate"};
-						if ( serialDevices.contains(type ))
+						const QStringList serialDevices{ "adalight", "dmx", "atmo", "sedu", "tpm2", "karate" };
+						if (serialDevices.contains(type))
 						{
 							if (!newDeviceConfig.contains("rateList"))
 							{
-								newDeviceConfig["rateList"] =  "CUSTOM";
+								newDeviceConfig["rateList"] = "CUSTOM";
 								migrated = true;
 							}
 						}
@@ -791,7 +791,7 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 					if (newDeviceConfig.contains("type"))
 					{
 						QString type = newDeviceConfig["type"].toString();
-						if ( type == "philipshue")
+						if (type == "philipshue")
 						{
 							if (newDeviceConfig.contains("groupId"))
 							{
@@ -805,7 +805,7 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 
 							if (newDeviceConfig.contains("lightIds"))
 							{
-								QJsonArray lightIds = newDeviceConfig.value( "lightIds").toArray();
+								QJsonArray lightIds = newDeviceConfig.value("lightIds").toArray();
 								// Iterate through the JSON array and update integer values to strings
 								for (int i = 0; i < lightIds.size(); ++i) {
 									QJsonValue value = lightIds.at(i);
@@ -818,6 +818,69 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 								}
 								newDeviceConfig["lightIds"] = lightIds;
 
+							}
+						}
+
+						if (type == "nanoleaf")
+						{
+							if (newDeviceConfig.contains("panelStartPos"))
+							{
+								newDeviceConfig.remove("panelStartPos");
+								migrated = true;
+							}
+
+							if (newDeviceConfig.contains("panelOrderTopDown"))
+							{
+								QString panelOrderTopDown;
+								if (newDeviceConfig["panelOrderTopDown"].isDouble())
+								{
+									panelOrderTopDown = QString(newDeviceConfig["panelOrderTopDown"].toInt());
+								}
+								else
+								{
+									panelOrderTopDown = newDeviceConfig["panelOrderTopDown"].toString();
+								}
+
+								if (newDeviceConfig["panelOrderTopDown"] == "0")
+								{
+									newDeviceConfig["panelOrderTopDown"] = "top2down";
+									migrated = true;
+								}
+								else
+								{
+									if (newDeviceConfig["panelOrderTopDown"] == "1")
+									{
+										newDeviceConfig["panelOrderTopDown"] = "bottom2up";
+										migrated = true;
+									}
+								}
+							}
+
+							if (newDeviceConfig.contains("panelOrderLeftRight"))
+							{
+								QString panelOrderLeftRight;
+								if (newDeviceConfig["panelOrderLeftRight"].isDouble())
+								{
+									panelOrderLeftRight = QString(newDeviceConfig["panelOrderLeftRight"].toInt());
+								}
+								else
+								{
+									panelOrderLeftRight = newDeviceConfig["panelOrderLeftRight"].toString();
+								}
+
+								if (newDeviceConfig["panelOrderLeftRight"] == "0")
+								{
+									newDeviceConfig["panelOrderLeftRight"] = "left2right";
+									migrated = true;
+								}
+								else
+								{
+									if (newDeviceConfig["panelOrderLeftRight"] == "1")
+									{
+										newDeviceConfig["panelOrderTopDown"] = "right2left";
+										migrated = true;
+									}
+								}
 							}
 						}
 					}

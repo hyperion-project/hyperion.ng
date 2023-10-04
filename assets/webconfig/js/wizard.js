@@ -2240,7 +2240,7 @@ function createNanoleafUserAuthorization() {
         abortConnection(UserInterval);
         clearInterval(UserInterval);
 
-        showNotification('warning', $.i18n('wiz_nanoleaf_failure_auth_token'), $.i18n('wiz_nanoleaf_failure_auth_token_t'))
+        showNotification('warning', $.i18n('wiz_nanoleaf_failure_auth_token'), $.i18n('wiz_nanoleaf_failure_auth_token_t'));
 
         resetWizard(true);
       }

@@ -210,8 +210,6 @@ private:
 
 	bool _topDown;
 	bool _leftRight;
-	int _startPos;
-	int _endPos;
 
 	//Nanoleaf device details
 	QString _deviceModel;
