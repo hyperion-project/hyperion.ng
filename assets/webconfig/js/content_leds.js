@@ -1697,7 +1697,7 @@ $(document).ready(function () {
         if (ledDeviceProperties) {
           var panelOrderTopDown = conf_editor.getEditor("root.specificOptions.panelOrderTopDown").getValue() === "top2down";
           var panelOrderLeftRight = conf_editor.getEditor("root.specificOptions.panelOrderLeftRight").getValue() === "left2right";
-          var ledArray = nanoleafGeneratelayout(ledDeviceProperties.panelLayout.layout, panelOrderTopDown, panelOrderLeftRight);
+          var ledArray = nanoleafGeneratelayout(ledDeviceProperties.panelLayout, panelOrderTopDown, panelOrderLeftRight);
           aceEdt.set(ledArray);
           isGenerated = true;
         }
@@ -2480,8 +2480,14 @@ function sortByPanelCoordinates(arr, topToBottom, leftToRight) {
     }
   });
 }
+function rotateCoordinates(x, y, radians) {
+  var rotatedX = x * Math.cos(radians) - y * Math.sin(radians);
+  var rotatedY = x * Math.sin(radians) + y * Math.cos(radians);
 
-function nanoleafGeneratelayout(layout, panelOrderTopDown, panelOrderLeftRight) {
+  return { x: rotatedX, y: rotatedY };
+}
+
+function nanoleafGeneratelayout(panelLayout, panelOrderTopDown, panelOrderLeftRight) {
 
   // Dictionary for Nanoleaf shape types
   let shapeTypes = {
@@ -2496,7 +2502,7 @@ function nanoleafGeneratelayout(layout, panelOrderTopDown, panelOrderLeftRight) 
     9: { name: "ShapesMiniTriangle", sideLengthX: 67, sideLengthY: 67 },
     12: { name: "ShapesController", sideLengthX: 0, sideLengthY: 0 },
     14: { name: "ElementsHexagon", sideLengthX: 134, sideLengthY: 134 },
-    15: { name: "ElementsHexagonCorner", sideLengthX: 33.5, sideLengthX: 58 },
+    15: { name: "ElementsHexagonCorner", sideLengthX: 33.5, sideLengthY: 58 },
     16: { name: "LinesConnector", sideLengthX: 11, sideLengthY: 11 },
     17: { name: "LightLines", sideLengthX: 154, sideLengthY: 154 },
     18: { name: "LightLinesSingleZone", sideLengthX: 77, sideLengthY: 77 },
@@ -2505,18 +2511,34 @@ function nanoleafGeneratelayout(layout, panelOrderTopDown, panelOrderLeftRight) 
     999: { name: "Unknown", sideLengthX: 100, sideLengthY: 100 }
   };
 
-  let { positionData, numPanels, sideLength } = layout;
-  var minX = positionData[0].x;
-  var maxX = positionData[0].x;
-  var minY = positionData[0].y;
-  var maxY = positionData[0].y;
+  let { globalOrientation, layout } = panelLayout;
+  var positionData = layout.positionData;
+  var degreesToRotate = 0;
+  if (globalOrientation) {
+    degreesToRotate = globalOrientation.value;
+  }
+  // Convert degrees to radians
+  var radians = (degreesToRotate * Math.PI) / 180;
+
+  var rotatedCoordinates = rotateCoordinates(positionData[0].x, positionData[0].y, radians);
+  var minX = rotatedCoordinates.x;
+  var maxX = rotatedCoordinates.x;
+  var minY = rotatedCoordinates.y;
+  var maxY = rotatedCoordinates.y;
 
   //Define capture rectangle per panel
   var factorPartial = 0.25;
+
   positionData.forEach(panel => {
 
     if (shapeTypes[panel.shapeType] == undefined) {
       panel.shapeType = 999;
+    }
+
+    if (radians !== 0) {
+      rotatedCoordinates = rotateCoordinates(panel.x, panel.y, radians);
+      panel.x = rotatedCoordinates.x;
+      panel.y = rotatedCoordinates.y;
     }
 
     panel.maxX = panel.x + shapeTypes[panel.shapeType].sideLengthX * factorPartial;
@@ -2548,17 +2570,19 @@ function nanoleafGeneratelayout(layout, panelOrderTopDown, panelOrderLeftRight) 
   sortByPanelCoordinates(positionData, panelOrderTopDown, panelOrderLeftRight);
   positionData.forEach(panel => {
 
-    let layoutObject = {
-      name: i + "-" + panel.panelId,
-      hmin: (panel.x - minX) * scaleX,
-      hmax: (panel.maxX - minX) * scaleX,
-      //Nanoleaf corodinates start at bottom left, therefore reverse vertical positioning
-      vmin: 1 - ((panel.maxY - minY) * scaleY),
-      vmax: 1 - ((panel.y - minY) * scaleY)
-    };
-    ++i;
-
-    layoutObjects.push(JSON.parse(JSON.stringify(layoutObject)));
+    // Skip non-LED elements
+    if (panel.sideLengthX !== 0) {
+      let layoutObject = {
+        name: i + "-" + panel.panelId,
+        hmin: (panel.x - minX) * scaleX,
+        hmax: (panel.maxX - minX) * scaleX,
+        //Nanoleaf corodinates start at bottom left, therefore reverse vertical positioning
+        vmin: 1 - ((panel.maxY - minY) * scaleY),
+        vmax: 1 - ((panel.y - minY) * scaleY)
+      };
+      layoutObjects.push(JSON.parse(JSON.stringify(layoutObject)));
+      ++i;
+    }
   });
   return layoutObjects;
 }

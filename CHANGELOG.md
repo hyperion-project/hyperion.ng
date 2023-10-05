@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Nanoleaf: Wizard to generate user authorization token allowing users to configure the device via a single window
-- Nanoleaf: Generation of a default layout per device's configuration
+- Nanoleaf: Generation of a default layout per device's configuration, including oriantation
 
 ### Changed
 
@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Nanoleaf: "Panel numbering sequence" was not configurable any longer
 - Nanoleaf: Number of panels increased during retries (#1643)
 
-## Removed
+### Removed
 - Nanoleaf: Removed "Start Position" in favour of the general Blacklist feature provided
 
 ## [2.0.15](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.15) - 2023-02

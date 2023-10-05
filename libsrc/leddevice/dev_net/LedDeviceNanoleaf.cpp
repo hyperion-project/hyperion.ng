@@ -4,6 +4,7 @@
 //std includes
 #include <sstream>
 #include <iomanip>
+#include <cmath>
 
 // Qt includes
 #include <QNetworkReply>
@@ -39,6 +40,8 @@ namespace {
 	const int BRI_MAX = 100;
 
 	// Panel configuration settings
+	const char PANEL_GLOBALORIENTATION[] = "globalOrientation";
+	const char PANEL_GLOBALORIENTATION_VALUE[] = "value";
 	const char PANEL_LAYOUT[] = "layout";
 	const char PANEL_NUM[] = "numPanels";
 	const char PANEL_ID[] = "panelId";
@@ -240,6 +243,10 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 
 		// Get panel details from /panelLayout/layout
 		QJsonObject jsonPanelLayout = jsonAllPanelInfo[API_PANELLAYOUT].toObject();
+
+		const QJsonObject globalOrientation = jsonPanelLayout[PANEL_GLOBALORIENTATION].toObject();
+		double radians = (globalOrientation[PANEL_GLOBALORIENTATION_VALUE].toInt() * std::acos(-1)) / 180;
+
 		QJsonObject jsonLayout = jsonPanelLayout[PANEL_LAYOUT].toObject();
 
 		_panelLedCount = getHwLedCount(jsonLayout);
@@ -256,9 +263,22 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 			QJsonObject panelObj = value.toObject();
 
 			int panelId = panelObj[PANEL_ID].toInt();
-			int panelX = panelObj[PANEL_POS_X].toInt();
-			int panelY = panelObj[PANEL_POS_Y].toInt();
 			int panelshapeType = panelObj[PANEL_SHAPE_TYPE].toInt();
+			int posX = panelObj[PANEL_POS_X].toInt();
+			int posY = panelObj[PANEL_POS_Y].toInt();
+
+			int panelX;
+			int panelY;
+			if (radians != 0)
+			{
+				panelX = static_cast<int>(posX * cos(radians) - posY * sin(radians));
+				panelY = static_cast<int>(posX * sin(radians) + posY * cos(radians));
+			}
+			else
+			{
+				panelX = posX;
+				panelY = posY;
+			}
 
 			DebugIf(verbose, _log, "Panel [%d] (%d,%d) - Type: [%d]", panelId, panelX, panelY, panelshapeType);
 
