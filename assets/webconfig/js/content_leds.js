@@ -2555,7 +2555,7 @@ function nanoleafGeneratelayout(panelLayout, panelOrderTopDown, panelOrderLeftRi
       maxY = panel.maxY;
     }
     if (panel.y < minY) {
-      minY = panel.y
+      minY = panel.y;
     }
   });
 

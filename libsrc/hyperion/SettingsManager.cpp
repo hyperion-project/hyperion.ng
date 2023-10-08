@@ -792,7 +792,7 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 					{
 						QString type = newDeviceConfig["type"].toString();
 
-            if (type == "philipshue")
+						if (type == "philipshue")
 						{
 							if (newDeviceConfig.contains("groupId"))
 							{
@@ -822,7 +822,7 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 							}
 						}
 
-            if (type == "nanoleaf")
+						if (type == "nanoleaf")
 						{
 							if (newDeviceConfig.contains("panelStartPos"))
 							{
@@ -832,24 +832,25 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 
 							if (newDeviceConfig.contains("panelOrderTopDown"))
 							{
-								QString panelOrderTopDown;
+								int panelOrderTopDown;
 								if (newDeviceConfig["panelOrderTopDown"].isDouble())
 								{
-									panelOrderTopDown = QString(newDeviceConfig["panelOrderTopDown"].toInt());
+									panelOrderTopDown = newDeviceConfig["panelOrderTopDown"].toInt();
 								}
 								else
 								{
-									panelOrderTopDown = newDeviceConfig["panelOrderTopDown"].toString();
+									panelOrderTopDown = newDeviceConfig["panelOrderTopDown"].toString().toInt();
 								}
 
-								if (newDeviceConfig["panelOrderTopDown"] == "0")
+								newDeviceConfig.remove("panelOrderTopDown");
+								if (panelOrderTopDown == 0)
 								{
 									newDeviceConfig["panelOrderTopDown"] = "top2down";
 									migrated = true;
 								}
 								else
 								{
-									if (newDeviceConfig["panelOrderTopDown"] == "1")
+									if (panelOrderTopDown == 1)
 									{
 										newDeviceConfig["panelOrderTopDown"] = "bottom2up";
 										migrated = true;
@@ -859,26 +860,27 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 
 							if (newDeviceConfig.contains("panelOrderLeftRight"))
 							{
-								QString panelOrderLeftRight;
+								int panelOrderLeftRight;
 								if (newDeviceConfig["panelOrderLeftRight"].isDouble())
 								{
-									panelOrderLeftRight = QString(newDeviceConfig["panelOrderLeftRight"].toInt());
+									panelOrderLeftRight = newDeviceConfig["panelOrderLeftRight"].toInt();
 								}
 								else
 								{
-									panelOrderLeftRight = newDeviceConfig["panelOrderLeftRight"].toString();
+									panelOrderLeftRight = newDeviceConfig["panelOrderLeftRight"].toString().toInt();
 								}
 
-								if (newDeviceConfig["panelOrderLeftRight"] == "0")
+								newDeviceConfig.remove("panelOrderLeftRight");
+								if (panelOrderLeftRight == 0)
 								{
 									newDeviceConfig["panelOrderLeftRight"] = "left2right";
 									migrated = true;
 								}
 								else
 								{
-									if (newDeviceConfig["panelOrderLeftRight"] == "1")
+									if (panelOrderLeftRight == 1)
 									{
-										newDeviceConfig["panelOrderTopDown"] = "right2left";
+										newDeviceConfig["panelOrderLeftRight"] = "right2left";
 										migrated = true;
 									}
 								}

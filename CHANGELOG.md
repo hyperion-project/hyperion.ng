@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Nanoleaf: Wizard to generate user authorization token allowing users to configure the device via a single window
-- Nanoleaf: Generation of a default layout per device's configuration, including oriantation
+- Nanoleaf: Generation of a default layout per device's configuration, including orientation
 
 ### Changed
 
