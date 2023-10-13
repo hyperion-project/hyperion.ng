@@ -2491,59 +2491,65 @@ function nanoleafGeneratelayout(panelLayout, panelOrderTopDown, panelOrderLeftRi
 
   // Dictionary for Nanoleaf shape types
   let shapeTypes = {
-    0: { name: "LightsTriangle", sideLengthX: 150, sideLengthY: 150 },
-    1: { name: "LightsRythm", sideLengthX: 0, sideLengthY: 0 },
-    2: { name: "Square", sideLengthX: 100, sideLengthY: 100 },
-    3: { name: "SquareControllerMaster", sideLengthX: 100, sideLengthY: 100 },
-    4: { name: "SquareControllerPassive", sideLengthX: 100, sideLengthY: 100 },
-    5: { name: "PowerSupply", sideLengthX: 100, sideLengthY: 100 },
-    7: { name: "ShapesHexagon", sideLengthX: 67, sideLengthY: 67 },
-    8: { name: "ShapesTriangle", sideLengthX: 134, sideLengthY: 134 },
-    9: { name: "ShapesMiniTriangle", sideLengthX: 67, sideLengthY: 67 },
-    12: { name: "ShapesController", sideLengthX: 0, sideLengthY: 0 },
-    14: { name: "ElementsHexagon", sideLengthX: 134, sideLengthY: 134 },
-    15: { name: "ElementsHexagonCorner", sideLengthX: 33.5, sideLengthY: 58 },
-    16: { name: "LinesConnector", sideLengthX: 11, sideLengthY: 11 },
-    17: { name: "LightLines", sideLengthX: 154, sideLengthY: 154 },
-    18: { name: "LightLinesSingleZone", sideLengthX: 77, sideLengthY: 77 },
-    19: { name: "ControllerCap", sideLengthX: 11, sideLengthY: 11 },
-    20: { name: "PowerConnector", sideLengthX: 11, sideLengthY: 11 },
-    999: { name: "Unknown", sideLengthX: 100, sideLengthY: 100 }
+    0: { name: "LightsTriangle", led: true, sideLengthX: 150, sideLengthY: 150 },
+    1: { name: "LightsRythm", led: false, sideLengthX: 0, sideLengthY: 0 },
+    2: { name: "Square", led: true, sideLengthX: 100, sideLengthY: 100 },
+    3: { name: "SquareControllerMaster", led: true, sideLengthX: 100, sideLengthY: 100 },
+    4: { name: "SquareControllerPassive", led: true, sideLengthX: 100, sideLengthY: 100 },
+    5: { name: "PowerSupply", led: true, sideLengthX: 100, sideLengthY: 100 },
+    7: { name: "ShapesHexagon", led: true, sideLengthX: 67, sideLengthY: 67 },
+    8: { name: "ShapesTriangle", led: true, sideLengthX: 134, sideLengthY: 134 },
+    9: { name: "ShapesMiniTriangle", led: true, sideLengthX: 67, sideLengthY: 67 },
+    12: { name: "ShapesController", led: false, sideLengthX: 0, sideLengthY: 0 },
+    14: { name: "ElementsHexagon", led: true, sideLengthX: 134, sideLengthY: 134 },
+    15: { name: "ElementsHexagonCorner", led: true, sideLengthX: 33.5, sideLengthY: 58 },
+    16: { name: "LinesConnector", led: false, sideLengthX: 11, sideLengthY: 11 },
+    17: { name: "LightLines", led: true, sideLengthX: 154, sideLengthY: 154 },
+    18: { name: "LightLinesSingleZone", led: true, sideLengthX: 77, sideLengthY: 77 },
+    19: { name: "ControllerCap", led: false, sideLengthX: 11, sideLengthY: 11 },
+    20: { name: "PowerConnector", led: false, sideLengthX: 11, sideLengthY: 11 },
+    999: { name: "Unknown", led: true, sideLengthX: 100, sideLengthY: 100 }
   };
 
   let { globalOrientation, layout } = panelLayout;
-  var positionData = layout.positionData;
+
   var degreesToRotate = 0;
   if (globalOrientation) {
-    degreesToRotate = globalOrientation.value;
+    degreesToRotate = -globalOrientation.value;
   }
   // Convert degrees to radians
   var radians = (degreesToRotate * Math.PI) / 180;
 
-  var rotatedCoordinates = rotateCoordinates(positionData[0].x, positionData[0].y, radians);
-  var minX = rotatedCoordinates.x;
-  var maxX = rotatedCoordinates.x;
-  var minY = rotatedCoordinates.y;
-  var maxY = rotatedCoordinates.y;
+  //Reduce the capture area
+  const areaSizeFactor = 0.5;
 
-  //Define capture rectangle per panel
-  var factorPartial = 0.25;
-
-  positionData.forEach(panel => {
+  var panelDataXY = [...layout.positionData];
+  panelDataXY.forEach(panel => {
 
     if (shapeTypes[panel.shapeType] == undefined) {
       panel.shapeType = 999;
     }
 
+    panel.shapeName = shapeTypes[panel.shapeType].name;
+    panel.led = shapeTypes[panel.shapeType].led;
+    panel.areaWidth = shapeTypes[panel.shapeType].sideLengthX * areaSizeFactor;
+    panel.areaHeight = shapeTypes[panel.shapeType].sideLengthY * areaSizeFactor;
+
     if (radians !== 0) {
-      rotatedCoordinates = rotateCoordinates(panel.x, panel.y, radians);
-      panel.x = rotatedCoordinates.x;
-      panel.y = rotatedCoordinates.y;
+      var rotatedXY = rotateCoordinates(panel.x, panel.y, radians)
+      panel.x = rotatedXY.x;
+      panel.y = rotatedXY.y;
     }
 
-    panel.maxX = panel.x + shapeTypes[panel.shapeType].sideLengthX * factorPartial;
-    panel.maxY = panel.y + shapeTypes[panel.shapeType].sideLengthY * factorPartial;
-    panel.shapeName = shapeTypes[panel.shapeType].name;
+    panel.maxX = panel.x + panel.areaWidth;
+    panel.maxY = panel.y + panel.areaHeight;
+  });
+
+  var minX = panelDataXY[0].x;
+  var maxX = panelDataXY[0].x;
+  var minY = panelDataXY[0].y;
+  var maxY = panelDataXY[0].y;
+  panelDataXY.forEach(panel => {
 
     if (panel.maxX > maxX) {
       maxX = panel.maxX;
@@ -2559,26 +2565,25 @@ function nanoleafGeneratelayout(panelLayout, panelOrderTopDown, panelOrderLeftRi
     }
   });
 
-  const width = (maxX - minX);
-  const height = (maxY - minY);
+  const width = Math.abs(maxX - minX);
+  const height = Math.abs(maxY - minY);
   const scaleX = 1 / width;
   const scaleY = 1 / height;
 
   var layoutObjects = [];
   var i = 0;
 
-  sortByPanelCoordinates(positionData, panelOrderTopDown, panelOrderLeftRight);
-  positionData.forEach(panel => {
+  sortByPanelCoordinates(panelDataXY, panelOrderTopDown, panelOrderLeftRight);
+  panelDataXY.forEach(panel => {
 
-    // Skip non-LED elements
-    if (panel.sideLengthX !== 0) {
+    if (panel.led) {
       let layoutObject = {
         name: i + "-" + panel.panelId,
-        hmin: (panel.x - minX) * scaleX,
-        hmax: (panel.maxX - minX) * scaleX,
+        hmin: Math.min(1, Math.max(0, (panel.x - minX) * scaleX)),
+        hmax: Math.min(1, Math.max(0, (panel.x - minX + panel.areaWidth) * scaleX)),
         //Nanoleaf corodinates start at bottom left, therefore reverse vertical positioning
-        vmin: 1 - ((panel.maxY - minY) * scaleY),
-        vmax: 1 - ((panel.y - minY) * scaleY)
+        vmax: (1 - Math.min(1, Math.max(0, (panel.y - minY) * scaleY))),
+        vmin: (1 - Math.min(1, Math.max(0, (panel.y - minY + panel.areaHeight) * scaleY)))
       };
       layoutObjects.push(JSON.parse(JSON.stringify(layoutObject)));
       ++i;

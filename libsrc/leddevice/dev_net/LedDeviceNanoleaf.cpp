@@ -199,14 +199,19 @@ int LedDeviceNanoleaf::getHwLedCount(const QJsonObject& jsonLayout) const
 
 		DebugIf(verbose, _log, "Panel [%d] - Type: [%d]", panelId, panelshapeType);
 
-		// Skip Rhythm and Shapes controller panels
-		if (panelshapeType != RHYTM && panelshapeType != SHAPES_CONTROLLER)
+		// Skip non LED panel types
+		switch (panelshapeType)
 		{
+		case SHAPES_CONTROLLER:
+		case LINES_CONECTOR:
+		case CONTROLLER_CAP:
+		case POWER_CONNECTOR:
+		case RHYTM:
+			DebugIf(verbose, _log, "Rhythm/Shape/lines Controller panel skipped.");
+			break;
+		default:
 			++hwLedCount;
-		}
-		else
-		{	// Reset non support/required features
-			DebugIf(verbose, _log, "Rhythm/Shape Controller panel skipped.");
+			break;
 		}
 	}
 	return hwLedCount;
@@ -245,7 +250,7 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 		QJsonObject jsonPanelLayout = jsonAllPanelInfo[API_PANELLAYOUT].toObject();
 
 		const QJsonObject globalOrientation = jsonPanelLayout[PANEL_GLOBALORIENTATION].toObject();
-		double radians = (globalOrientation[PANEL_GLOBALORIENTATION_VALUE].toInt() * std::acos(-1)) / 180;
+		double radians = (-1 * globalOrientation[PANEL_GLOBALORIENTATION_VALUE].toInt() * std::acos(-1)) / 180;
 
 		QJsonObject jsonLayout = jsonPanelLayout[PANEL_LAYOUT].toObject();
 
@@ -302,7 +307,7 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 			{
 				for (auto posX = posY->second.cbegin(); posX != posY->second.cend(); ++posX)
 				{
-					DebugIf(verbose3, _log, "panelMap[%d][%d]=%d", posY->first, posX->first, posX->second);
+					DebugIf(verbose, _log, "panelMap[%d][%d]=%d", posY->first, posX->first, posX->second);
 
 					if (_topDown)
 					{
@@ -319,7 +324,7 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 				// Sort panels right to left
 				for (auto posX = posY->second.crbegin(); posX != posY->second.crend(); ++posX)
 				{
-					DebugIf(verbose3, _log, "panelMap[%d][%d]=%d", posY->first, posX->first, posX->second);
+					DebugIf(verbose, _log, "panelMap[%d][%d]=%d", posY->first, posX->first, posX->second);
 
 					if (_topDown)
 					{
@@ -338,6 +343,9 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 		Debug(_log, "Sort Top>Down  : %d", _topDown);
 		Debug(_log, "Sort Left>Right: %d", _leftRight);
 
+		DebugIf(verbose, _log, "PanelMap size  : %d", panelMap.size());
+		DebugIf(verbose, _log, "PanelIds count : %d", _panelIds.size());
+
 		// Check. if enough panels were found.
 		int configuredLedCount = this->getLedCount();
 		if (_panelLedCount < configuredLedCount)
@@ -354,6 +362,17 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 			{
 				Info(_log, "%s: More panels [%d] than configured LEDs [%d].", QSTRING_CSTR(this->getActiveDeviceType()), _panelLedCount, configuredLedCount);
 			}
+
+			//Check that panel count matches working list created for processing
+			if (_panelLedCount != _panelIds.size())
+			{
+				QString errorReason = QString("Number of available panels [%1] do not match panel-ID look-up list [%2]!")
+					.arg(_panelLedCount)
+					.arg(_panelIds.size());
+				this->setInError(errorReason, false);
+				isInitOK = false;
+			}
+
 		}
 	}
 	return isInitOK;
@@ -816,9 +835,7 @@ int LedDeviceNanoleaf::write(const std::vector<ColorRgb>& ledValues)
 
 	ColorRgb color;
 
-	//Maintain LED counter independent from PanelCounter
-	int ledCounter = 0;
-	for (int panelCounter = 0; panelCounter < _panelLedCount; panelCounter++)
+	for (int panelCounter = 0; panelCounter < _panelLedCount; ++panelCounter)
 	{
 		// Set panelID
 		int panelID = _panelIds[panelCounter];
@@ -826,8 +843,16 @@ int LedDeviceNanoleaf::write(const std::vector<ColorRgb>& ledValues)
 		i += 2;
 
 		// Set panel's color LEDs
-		color = static_cast<ColorRgb>(ledValues.at(ledCounter));
-		++ledCounter;
+		if (panelCounter < this->getLedCount()) {
+			color = static_cast<ColorRgb>(ledValues.at(panelCounter));
+		}
+		else
+		{
+			// Set panels not configed to black;
+			color = ColorRgb::BLACK;
+			DebugIf(verbose3, _log, "[%u] >= panelLedCount [%u] => Set to BLACK", panelCounter, _panelLedCount);
+		}
+
 		udpbuffer[i++] = static_cast<char>(color.red);
 		udpbuffer[i++] = static_cast<char>(color.green);
 		udpbuffer[i++] = static_cast<char>(color.blue);
