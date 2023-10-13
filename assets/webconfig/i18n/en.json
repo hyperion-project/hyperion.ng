@@ -760,6 +760,8 @@
     "edt_eff_ledlist": "LED List",
     "edt_eff_ledtest_header": "LED Test",
     "edt_eff_ledtest_header_desc": "Rotating output: Red, Green, Blue, White, Black",
+    "edt_eff_ledtest_seq_header": "LED Test - Sequence",
+    "edt_eff_ledtest_seq_header_desc": "Light up the LEDs in sequence",    
     "edt_eff_length": "Length",
     "edt_eff_lightclock_header": "Light Clock",
     "edt_eff_lightclock_header_desc": "A real clock as light! Adjust the colors of hours, minute, seconds. A optional 3/6/9/12 o'clock marker is also available. In case the clock is wrong, you need to check your system clock.",
