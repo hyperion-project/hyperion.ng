@@ -91,30 +91,9 @@ namespace {
 	const char SSDP_NANOLEAF[] = "nanoleaf:nl*";
 	const char SSDP_LIGHTPANELS[] = "nanoleaf_aurora:light";
 
-	const int ROTATION_STEPS_DEGREE = 15;
+	const double ROTATION_STEPS_DEGREE = 15.0;
 
 } //End of constants
-
-// Nanoleaf Panel Shapetypes
-enum SHAPETYPES {
-	TRIANGLE = 0,
-	RHYTM = 1,
-	SQUARE = 2,
-	CONTROL_SQUARE_PRIMARY = 3,
-	CONTROL_SQUARE_PASSIVE = 4,
-	POWER_SUPPLY = 5,
-	HEXAGON_SHAPES = 7,
-	TRIANGE_SHAPES = 8,
-	MINI_TRIANGE_SHAPES = 9,
-	SHAPES_CONTROLLER = 12,
-	ELEMENTS_HEXAGONS = 14,
-	ELEMENTS_HEXAGONS_CORNER = 15,
-	LINES_CONECTOR = 16,
-	LIGHT_LINES = 17,
-	LIGHT_LINES_SINGLZONE = 18,
-	CONTROLLER_CAP = 19,
-	POWER_CONNECTOR = 20
-};
 
 // Nanoleaf external control versions
 enum EXTCONTROLVERSIONS {
@@ -202,22 +181,37 @@ int LedDeviceNanoleaf::getHwLedCount(const QJsonObject& jsonLayout) const
 
 		DebugIf(verbose, _log, "Panel [%d] - Type: [%d]", panelId, panelshapeType);
 
-		// Skip non LED panel types
-		switch (panelshapeType)
+		if (hasLEDs(static_cast<SHAPETYPES>(panelshapeType)))
 		{
-		case SHAPES_CONTROLLER:
-		case LINES_CONECTOR:
-		case CONTROLLER_CAP:
-		case POWER_CONNECTOR:
-		case RHYTM:
-			DebugIf(verbose, _log, "Rhythm/Shape/Lines Controller panel skipped.");
-			break;
-		default:
 			++hwLedCount;
-			break;
+		}
+		else
+		{
+			DebugIf(verbose, _log, "Rhythm/Shape/Lines Controller panel skipped.");
 		}
 	}
 	return hwLedCount;
+}
+
+bool LedDeviceNanoleaf::hasLEDs(const SHAPETYPES& panelshapeType) const
+{
+	bool hasLED {true};
+	// Skip non LED panel types
+	switch (panelshapeType)
+	{
+	case SHAPES_CONTROLLER:
+	case LINES_CONECTOR:
+	case CONTROLLER_CAP:
+	case POWER_CONNECTOR:
+	case RHYTM:
+		DebugIf(verbose, _log, "Rhythm/Shape/Lines Controller panel skipped.");
+		hasLED = false;
+		break;
+	default:
+		break;
+	}
+
+	return hasLED;
 }
 
 bool LedDeviceNanoleaf::initLedsConfiguration()
@@ -253,15 +247,22 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 		QJsonObject jsonPanelLayout = jsonAllPanelInfo[API_PANELLAYOUT].toObject();
 
 		const QJsonObject globalOrientation = jsonPanelLayout[PANEL_GLOBALORIENTATION].toObject();
-		int degreesToRotate = globalOrientation[PANEL_GLOBALORIENTATION_VALUE].toInt();
+		int orientation = globalOrientation[PANEL_GLOBALORIENTATION_VALUE].toInt();
 
-		//Align rotation degree to 15 degree steps
-		int degreeRounded = static_cast<int>(((round(degreesToRotate / ROTATION_STEPS_DEGREE) * ROTATION_STEPS_DEGREE) + 360)) % 360;
+		int degreesToRotate {orientation};
+		bool isRotated {false};
+		if (degreesToRotate > 0)
+		{
+			isRotated = true;
+			int degreeRounded = static_cast<int>(round(degreesToRotate / ROTATION_STEPS_DEGREE) * ROTATION_STEPS_DEGREE);
+			degreesToRotate = (degreeRounded +360) % 360;
+		}
 
 		//Nanoleaf orientation is counter-clockwise
-		degreeRounded *= -1;
+		degreesToRotate *= -1;
 
-		double radians = (degreeRounded * std::acos(-1)) / 180;
+		double radians = (degreesToRotate * std::acos(-1)) / 180;
+		DebugIf(verbose, _log, "globalOrientation: %d, degreesToRotate: %d, radians: %0.2f", orientation, degreesToRotate, radians);
 
 		QJsonObject jsonLayout = jsonPanelLayout[PANEL_LAYOUT].toObject();
 
@@ -285,10 +286,10 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 
 			int panelX;
 			int panelY;
-			if (radians != 0)
+			if (isRotated)
 			{
-				panelX = round(posX * cos(radians) - posY * sin(radians));
-				panelY = round(posX * sin(radians) + posY * cos(radians));
+				panelX = static_cast<int>(round(posX * cos(radians) - posY * sin(radians)));
+				panelY = static_cast<int>(round(posX * sin(radians) + posY * cos(radians)));
 			}
 			else
 			{
@@ -296,20 +297,14 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 				panelY = posY;
 			}
 
-			switch (panelshapeType)
+			if (hasLEDs(static_cast<SHAPETYPES>(panelshapeType)))
 			{
-			case SHAPES_CONTROLLER:
-			case LINES_CONECTOR:
-			case CONTROLLER_CAP:
-			case POWER_CONNECTOR:
-			case RHYTM:
-				// Skip non LED panel types
-				DebugIf(verbose, _log, "Skip Panel [%d] (%d,%d) - Type: [%d]", panelId, panelX, panelY, panelshapeType);
-				break;
-			default:
 				panelMap[panelY][panelX] = panelId;
-				DebugIf(verbose, _log, "Use  Panel [%d] (%d,%d) - Type: [%d] used", panelId, panelX, panelY, panelshapeType);
-				break;
+				DebugIf(verbose, _log, "Use  Panel [%d] (%d,%d) - Type: [%d]", panelId, panelX, panelY, panelshapeType);
+			}
+			else
+			{
+				DebugIf(verbose, _log, "Skip Panel [%d] (%d,%d) - Type: [%d]", panelId, panelX, panelY, panelshapeType);
 			}
 		}
 

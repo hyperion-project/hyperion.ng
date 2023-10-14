@@ -161,6 +161,27 @@ protected:
 
 private:
 
+	// Nanoleaf Panel Shapetypes
+	enum SHAPETYPES {
+		TRIANGLE = 0,
+		RHYTM = 1,
+		SQUARE = 2,
+		CONTROL_SQUARE_PRIMARY = 3,
+		CONTROL_SQUARE_PASSIVE = 4,
+		POWER_SUPPLY = 5,
+		HEXAGON_SHAPES = 7,
+		TRIANGE_SHAPES = 8,
+		MINI_TRIANGE_SHAPES = 9,
+		SHAPES_CONTROLLER = 12,
+		ELEMENTS_HEXAGONS = 14,
+		ELEMENTS_HEXAGONS_CORNER = 15,
+		LINES_CONECTOR = 16,
+		LIGHT_LINES = 17,
+		LIGHT_LINES_SINGLZONE = 18,
+		CONTROLLER_CAP = 19,
+		POWER_CONNECTOR = 20
+	};
+
 	///
 	/// @brief Initialise the access to the REST-API wrapper
 	///
@@ -202,6 +223,13 @@ private:
 	/// @return Number of usable LED panels
 	///
 	int getHwLedCount(const QJsonObject& jsonLayout) const;
+
+	///
+	/// @brief Check, if panelshape type has LEDs
+	///
+	/// @return True, if panel shape type has LEDs
+	///
+	bool hasLEDs(const SHAPETYPES& panelshapeType) const;
 
 	///REST-API wrapper
 	ProviderRestApi* _restApi;
