@@ -859,7 +859,7 @@ int LedDeviceNanoleaf::write(const std::vector<ColorRgb>& ledValues)
 		}
 		else
 		{
-			// Set panels not configed to black;
+			// Set panels not configured to black
 			color = ColorRgb::BLACK;
 			DebugIf(verbose3, _log, "[%u] >= panelLedCount [%u] => Set to BLACK", panelCounter, _panelLedCount);
 		}
