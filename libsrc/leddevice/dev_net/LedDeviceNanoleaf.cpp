@@ -210,7 +210,7 @@ int LedDeviceNanoleaf::getHwLedCount(const QJsonObject& jsonLayout) const
 		case CONTROLLER_CAP:
 		case POWER_CONNECTOR:
 		case RHYTM:
-			DebugIf(verbose, _log, "Rhythm/Shape/lines Controller panel skipped.");
+			DebugIf(verbose, _log, "Rhythm/Shape/Lines Controller panel skipped.");
 			break;
 		default:
 			++hwLedCount;
@@ -296,16 +296,20 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 				panelY = posY;
 			}
 
-			DebugIf(verbose, _log, "Panel [%d] (%d,%d) - Type: [%d]", panelId, panelX, panelY, panelshapeType);
-
-			// Skip Rhythm and Shapes controller panels
-			if (panelshapeType != RHYTM && panelshapeType != SHAPES_CONTROLLER)
+			switch (panelshapeType)
 			{
+			case SHAPES_CONTROLLER:
+			case LINES_CONECTOR:
+			case CONTROLLER_CAP:
+			case POWER_CONNECTOR:
+			case RHYTM:
+				// Skip non LED panel types
+				DebugIf(verbose, _log, "Skip Panel [%d] (%d,%d) - Type: [%d]", panelId, panelX, panelY, panelshapeType);
+				break;
+			default:
 				panelMap[panelY][panelX] = panelId;
-			}
-			else
-			{	// Reset non support/required features
-				Info(_log, "Rhythm/Shape Controller panel skipped.");
+				DebugIf(verbose, _log, "Use  Panel [%d] (%d,%d) - Type: [%d] used", panelId, panelX, panelY, panelshapeType);
+				break;
 			}
 		}
 
