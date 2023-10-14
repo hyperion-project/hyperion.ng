@@ -1290,11 +1290,11 @@ QJsonArray V4L2Grabber::discover(const QJsonObject& params)
 					format["format"] = pixelFormatToString(encodingFormat);
 
 					QMap<std::pair<int, int>, QSet<int>> combined = QMap<std::pair<int, int>, QSet<int>>();
-					for (auto enc : input.value().encodingFormats.values(encodingFormat))
+					for (const auto &enc : input.value().encodingFormats.values(encodingFormat))
 					{
 						std::pair<int, int> width_height{enc.width, enc.height};
 						auto &com = combined[width_height];
-						for (auto framerate : qAsConst(enc.framerates))
+						for (auto framerate : enc.framerates)
 						{
 							com.insert(framerate);
 						}
@@ -1326,7 +1326,7 @@ QJsonArray V4L2Grabber::discover(const QJsonObject& params)
 			device["video_inputs"] = video_inputs;
 
 			QJsonObject controls, controls_default;
-			for (const auto &control : qAsConst(_deviceControls[device_property.key()]))
+			for (const auto &control :  std::as_const(_deviceControls[device_property.key()]))
 			{
 				QJsonObject property;
 				property["minValue"] = control.minValue;
