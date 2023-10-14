@@ -2515,10 +2515,18 @@ function nanoleafGeneratelayout(panelLayout, panelOrderTopDown, panelOrderLeftRi
 
   var degreesToRotate = 0;
   if (globalOrientation) {
-    degreesToRotate = -globalOrientation.value;
+    degreesToRotate = globalOrientation.value;
   }
+
+  //Align rotation degree to 15 degree steps
+  const degreeSteps = 15;
+  var degreeRounded = ((Math.round(degreesToRotate / degreeSteps) * degreeSteps) + 360) % 360;
+
+  //Nanoleaf orientation is counter-clockwise
+  degreeRounded *= -1;
+
   // Convert degrees to radians
-  var radians = (degreesToRotate * Math.PI) / 180;
+  const radians = (degreeRounded * Math.PI) / 180;
 
   //Reduce the capture area
   const areaSizeFactor = 0.5;
@@ -2536,9 +2544,9 @@ function nanoleafGeneratelayout(panelLayout, panelOrderTopDown, panelOrderLeftRi
     panel.areaHeight = shapeTypes[panel.shapeType].sideLengthY * areaSizeFactor;
 
     if (radians !== 0) {
-      var rotatedXY = rotateCoordinates(panel.x, panel.y, radians)
-      panel.x = rotatedXY.x;
-      panel.y = rotatedXY.y;
+      var rotatedXY = rotateCoordinates(panel.x, panel.y, radians);
+      panel.x = Math.round(rotatedXY.x);
+      panel.y = Math.round(rotatedXY.y);
     }
 
     panel.maxX = panel.x + panel.areaWidth;

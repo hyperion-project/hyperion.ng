@@ -90,6 +90,9 @@ namespace {
 	const char SSDP_FILTER_HEADER[] = "ST";
 	const char SSDP_NANOLEAF[] = "nanoleaf:nl*";
 	const char SSDP_LIGHTPANELS[] = "nanoleaf_aurora:light";
+
+	const int ROTATION_STEPS_DEGREE = 15;
+
 } //End of constants
 
 // Nanoleaf Panel Shapetypes
@@ -250,7 +253,15 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 		QJsonObject jsonPanelLayout = jsonAllPanelInfo[API_PANELLAYOUT].toObject();
 
 		const QJsonObject globalOrientation = jsonPanelLayout[PANEL_GLOBALORIENTATION].toObject();
-		double radians = (-1 * globalOrientation[PANEL_GLOBALORIENTATION_VALUE].toInt() * std::acos(-1)) / 180;
+		int degreesToRotate = globalOrientation[PANEL_GLOBALORIENTATION_VALUE].toInt();
+
+		//Align rotation degree to 15 degree steps
+		int degreeRounded = static_cast<int>(((round(degreesToRotate / ROTATION_STEPS_DEGREE) * ROTATION_STEPS_DEGREE) + 360)) % 360;
+
+		//Nanoleaf orientation is counter-clockwise
+		degreeRounded *= -1;
+
+		double radians = (degreeRounded * std::acos(-1)) / 180;
 
 		QJsonObject jsonLayout = jsonPanelLayout[PANEL_LAYOUT].toObject();
 
@@ -276,8 +287,8 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 			int panelY;
 			if (radians != 0)
 			{
-				panelX = static_cast<int>(posX * cos(radians) - posY * sin(radians));
-				panelY = static_cast<int>(posX * sin(radians) + posY * cos(radians));
+				panelX = round(posX * cos(radians) - posY * sin(radians));
+				panelY = round(posX * sin(radians) + posY * cos(radians));
 			}
 			else
 			{
