@@ -211,8 +211,8 @@ private:
 	OsxWrapper*                _osxGrabber;
 	QtWrapper*                 _qtGrabber;
 	DirectXWrapper*            _dxGrabber;
-	AudioWrapper*			   _audioGrabber;
 	SSDPHandler*               _ssdp;
+	AudioWrapper*			   _audioGrabber;
 	#ifdef ENABLE_CEC
 	CECHandler*                _cecHandler;
 	#endif

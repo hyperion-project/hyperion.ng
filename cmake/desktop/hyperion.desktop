@@ -1,8 +1,8 @@
 [Desktop Entry]
 Name=Hyperion
 GenericName=Hyperion Ambient Lighting
-Comment=Hyperion mimics the well known Ambilight from Philips
-Icon=/usr/share/pixmaps/hyperion/hyperiond_128.png
+Comment=Hyperion is an opensource Bias or Ambient Lighting implementation
+Icon=hyperion
 Terminal=false
 TryExec=hyperiond
 Exec=hyperiond

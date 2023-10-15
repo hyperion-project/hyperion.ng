@@ -1,0 +1,58 @@
+#!/usr/bin/make -f
+
+SHELL := /bin/bash
+
+BUILDDIR := build
+TARGET := debian/tmp
+
+# libcec currently not linked in hyperion therefore not recognizable but hardcoded in FIND_DEPENDS
+REQUIRED_DEPS := libusb libasound libmbedtls libturbojpeg libcec
+QT5_DEPS := libqt5widgets5,libqt5x11extras5,libqt5sql5,libqt5serialport5,libqt5sql5-sqlite,
+
+FIND_DEPENDS = $(shell \
+	PACKAGES=(); \
+	PACKAGES+=("$$(dpkg -S "libcec.so" 2>/dev/null | cut -d : -f 1 | sed '/-dev/d' | head -1)"); \
+	for SHARED_LIB in $$(objdump -p $(BUILDDIR)/bin/hyperiond | awk '/NEEDED/{ print $$2 }'); do \
+		PACKAGES+=("$$(dpkg -S $$(basename "$$SHARED_LIB") 2>/dev/null | cut -d : -f 1 | sed '/-dev/d' | head -1)"); \
+	done; \
+	RESULT=(); \
+	for LIB in $(REQUIRED_DEPS); do \
+		for i in "$${PACKAGES[@]}"; do \
+			if [[ $$i = *"$$LIB"* ]]; then \
+				RESULT+=("$$i"); \
+				break; \
+			fi; \
+		done; \
+	done; \
+	printf '%s,' "$${RESULT[@]}" \
+)
+
+CMAKE_ENVIRONMENT := -DUSE_SYSTEM_MBEDTLS_LIBS=ON -DENABLE_DEPLOY_DEPENDENCIES=OFF -DCMAKE_BUILD_TYPE=Release
+
+ifeq ($(shell dpkg-vendor --query Vendor),Ubuntu)
+	ifeq ($(shell dpkg-architecture -qDEB_HOST_ARCH),arm64)
+		CMAKE_ENVIRONMENT+= -DENABLE_DISPMANX=OFF -DENABLE_X11=ON -DENABLE_XCB=ON
+	else ifeq ($(shell dpkg-architecture -qDEB_HOST_ARCH),armhf)
+		CMAKE_ENVIRONMENT+= -DENABLE_DISPMANX=OFF -DENABLE_X11=ON -DENABLE_XCB=ON
+	endif
+endif
+
+build:
+	[ -d $(BUILDDIR) ] || mkdir -p $(BUILDDIR)
+	cd $(BUILDDIR); cmake $(CMAKE_ENVIRONMENT) -DCMAKE_INSTALL_PREFIX=../$(TARGET)/usr ..
+	make -j$(shell nproc) -C $(BUILDDIR)
+
+binary: 
+	$(eval DETERMINED_DEPS=$(FIND_DEPENDS))
+	cd $(BUILDDIR); cmake -P cmake_install.cmake
+	rm -rf $(TARGET)/usr/include $(TARGET)/usr/lib $(TARGET)/usr/bin/flatc
+	[ -d $(TARGET)/DEBIAN ] || mkdir -p $(TARGET)/DEBIAN
+	cp -rf cmake/package-scripts/* $(TARGET)/DEBIAN/
+	chmod 0775 $(TARGET)/DEBIAN/*
+	dpkg-gencontrol -phyperion "-Vdist:Depends=$(QT5_DEPS)$(DETERMINED_DEPS)"
+	dpkg-deb --build $(TARGET) ..
+
+clean:
+	rm -rf $(TARGET) $(BUILDDIR)
+
+.PHONY: build binary clean

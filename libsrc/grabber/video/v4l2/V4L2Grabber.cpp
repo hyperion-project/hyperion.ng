@@ -1018,7 +1018,7 @@ bool V4L2Grabber::process_image(const void *p, int size)
 	}
 	else if (_threadManager != nullptr)
 	{
-		for (int i = 0; i < _threadManager->_threadCount; i++)
+		for (unsigned long i = 0; i < _threadManager->_threadCount; i++)
 		{
 			if (!_threadManager->_threads[i]->isBusy())
 			{

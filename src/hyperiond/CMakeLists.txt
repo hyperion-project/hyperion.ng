@@ -170,21 +170,25 @@ if (APPLE)
 
 	install ( TARGETS ${PROJECT_NAME} DESTINATION . COMPONENT "Hyperion")
 elseif(NOT WIN32)
+	# install Hyperion/service files/effect folder
 	install ( TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin" COMPONENT "Hyperion" )
-	install ( DIRECTORY ${CMAKE_SOURCE_DIR}/bin/service DESTINATION "share/hyperion/" COMPONENT "Hyperion" )
+	install ( DIRECTORY ${CMAKE_SOURCE_DIR}/bin/service DESTINATION "share/hyperion" COMPONENT "Hyperion" )
 	install ( FILES ${CMAKE_SOURCE_DIR}/effects/readme.txt DESTINATION "share/hyperion/effects" COMPONENT "Hyperion" )
-	install ( FILES ${CMAKE_SOURCE_DIR}/resources/icons/hyperion-icon-32px.png DESTINATION "share/hyperion/icons" COMPONENT "Hyperion" )
 
-	# Desktop file for Hyperion
-	install ( FILES ${CMAKE_SOURCE_DIR}/cmake/desktop/hyperiond_128.png DESTINATION "share/hyperion/desktop" COMPONENT "Hyperion" )
-	install ( FILES ${CMAKE_SOURCE_DIR}/cmake/desktop/hyperiond.desktop DESTINATION "share/hyperion/desktop" COMPONENT "Hyperion" )
+	# install Hyperion icons
+	set( ICON_SIZES 16 22 24 32 36 48 64 72 96 128 192 256 512 )
+	foreach(size ${ICON_SIZES})
+	  set( ICONS_FROM "${CMAKE_SOURCE_DIR}/resources/icons/hyperion-${size}px.png" )
+	  set( ICONS_TO "share/hyperion/icons/${size}x${size}/apps/" )
+	  install( FILES ${ICONS_FROM} DESTINATION ${ICONS_TO} RENAME "hyperion.png" COMPONENT "Hyperion" )
+	endforeach(size)
+
+	# install desktop/appstream file
+	install ( FILES ${CMAKE_SOURCE_DIR}/cmake/desktop/hyperion.metainfo.xml DESTINATION "share/hyperion/desktop" COMPONENT "Hyperion" )
+	install ( FILES ${CMAKE_SOURCE_DIR}/cmake/desktop/hyperion.desktop DESTINATION "share/hyperion/desktop" COMPONENT "Hyperion" )
 else()
 	install ( TARGETS ${PROJECT_NAME} DESTINATION "bin" COMPONENT "Hyperion" )
 	install ( FILES ${CMAKE_SOURCE_DIR}/effects/readme.txt DESTINATION "effects" COMPONENT "Hyperion" )
-
-	#set( CMAKE_INSTALL_UCRT_LIBRARIES TRUE )
-	#set( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE )
-	#include( InstallRequiredSystemLibraries )
 endif()
 
 if (CMAKE_HOST_UNIX AND NOT APPLE)

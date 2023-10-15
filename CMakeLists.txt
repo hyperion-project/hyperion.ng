@@ -164,11 +164,14 @@ MACRO(FIRSTSUBDIR result curdir)
 ENDMACRO()
 
 if ( "${PLATFORM}" MATCHES "osx" )
-	# specify the min version of the target platform
-	SET ( CMAKE_OSX_DEPLOYMENT_TARGET "10.15" )
+	# specify the min version of the target platform (only GitHub Actions)
+	if( DEFINED ENV{GITHUB_ACTIONS} AND DEFINED ENV{GITHUB_WORKSPACE} )
+		SET ( CMAKE_OSX_DEPLOYMENT_TARGET "10.15" )
+	endif()
+
 	# add specific prefix paths
 	FIRSTSUBDIR(SUBDIRPY "/usr/local/opt/python3/Frameworks/Python.framework/Versions")
-	set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${SUBDIRPY})
+	SET ( CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${SUBDIRPY} )
 
 	include_directories("/opt/X11/include/")
 	SET ( DEFAULT_OSX         ON  )
@@ -477,13 +480,8 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	# Search for DirectX9
 	if (ENABLE_DX)
 		find_package(DirectX9 REQUIRED)
-	endif(ENABLE_DX)
+	endif()
 
-endif()
-
-# Use GNU gold linker if available
-if (NOT WIN32 AND NOT APPLE)
-	include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/LDGold.cmake)
 endif()
 
 # Don't create new dynamic tags (RUNPATH) and setup -rpath to search for shared libs in BINARY/../lib folder (only for Unix)

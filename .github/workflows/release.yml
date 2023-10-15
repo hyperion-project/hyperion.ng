@@ -1,18 +1,48 @@
 name: Release Actions
+
 on:
   release:
     types: [published]
 
 jobs:
+
   hyperbian:
-    name: Let HyperBian create
+    name: 🚀 Let HyperBian create
     runs-on: ubuntu-latest
     steps:
       # Dispatch event to build new HyperBian image
-      - name: Dispatch HyperBian build
+      - name: 📲 Dispatch HyperBian build
         uses: peter-evans/repository-dispatch@v2.1.2
         if: ${{ github.repository_owner == 'hyperion-project'}}
         with:
           repository: hyperion-project/HyperBian
           token: ${{ secrets.HYPERION_BOT_TOKEN }}
           event-type: hyperion_push
+
+
+  # TODO FOR APT/DNF:
+
+  # dnf_release:
+  #   name: Release DNF repository
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Create Backup and Release draft files on DNF repository
+  #       run: |
+  #         sudo apt-get install -y ncftp
+  #         mkdir backup draft_folder
+  #         ncftpget -R -T -V -u ${{ secrets.YUM_USER }} -p ${{ secrets.YUM_PASSWORD }} yum.hyperion-project.org ./backup/ ./
+  #         cd backup/ && mv ${{ secrets.DRAFT_FOLDER }}* ../draft_folder/ && rm -f backup.tar.gz
+  #         tar -zcf ../backup.tar.gz .
+  #         find -maxdepth 1 $(printf "! -name %s " ${{ secrets.EXCLUDED_FTP_FILES }})
+  #         find -maxdepth 1 $(printf "! -name %s " ${{ secrets.EXCLUDED_FTP_FILES }}) -exec rm -rf {} \;
+  #         mv ../draft_folder/* . && mv ../backup.tar.gz .
+
+  #     - name: Update DNF Package Repository (Release)
+  #       uses: SamKirkland/FTP-Deploy-Action@4.3.3
+  #       with:
+  #         server: yum.hyperion-project.org
+  #         username: ${{ secrets.YUM_USER }}
+  #         password: ${{ secrets.YUM_PASSWORD }}
+  #         local-dir: "./backup/"
+  #         server-dir: ./
+  #         dangerous-clean-slate: true

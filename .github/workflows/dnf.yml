@@ -1,4 +1,4 @@
-name: Hyperion APT Build
+name: Hyperion DNF Build
 
 on:
   # Reusable from nightly and push
@@ -43,25 +43,20 @@ env:
 
 jobs:
   build:
-    name: 🐧 ${{ matrix.os.description }} (${{ matrix.architecture[0] }})
+    name: 🐧 ${{ matrix.os.distribution }} ${{ matrix.os.version }} (${{ matrix.architecture[0] }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         os: [
-          { distribution: ubuntu, codename: focal,    description: Ubuntu 20.04 (Focal Fossa),     },
-          { distribution: ubuntu, codename: jammy,    description: Ubuntu 22.04 (Jammy Jellyfish), },
-          { distribution: ubuntu, codename: lunar,    description: Ubuntu 23.04 (Lunar Lobster),   },
-          { distribution: ubuntu, codename: mantic,   description: Ubuntu 23.10 (Mantic Minotaur), },
-          { distribution: debian, codename: buster,   description: Debian 10.x (Buster),           },
-          { distribution: debian, codename: bullseye, description: Debian 11.x (Bullseye),         },
-          { distribution: debian, codename: bookworm, description: Debian 12.x (Bookworm),         },
-          { distribution: debian, codename: trixie,   description: Debian 13.x (Trixie),           }
+          { distribution: Fedora, version: 37 },
+          { distribution: Fedora, version: 38 },
+          { distribution: Fedora, version: 39 },
+          { distribution: Fedora, version: 40 }
         ]
         architecture: [
-          [ amd64, linux/amd64 ],
-          [ arm64, linux/arm64 ],
-          [ armhf, linux/arm/v7 ]
+          [ amd64, linux/amd64 ]
+          # [ arm64, linux/arm64 ] temporary disabled
         ]
 
     steps:
@@ -75,21 +70,9 @@ jobs:
         run: |
           echo '::group::Checking the version number'
             if [[ "${{ inputs.nightly }}" = true ]]; then
-              echo "$(tr -d '\n' < .version)+nightly$(date '+%Y%m%d')$(git rev-parse --short HEAD)" > .version
+              echo VERSION=$(tr -d '\n' < .version)+nightly$(date '+%Y%m%d')$(git rev-parse --short HEAD | sed s/-/_/g) >> $GITHUB_ENV
             else
-              tr -d '\n' < .version > temp && mv temp .version
-            fi
-          echo '::endgroup::'
-
-          echo '::group::Generate environment variables'
-            VERSION=$(cat .version)
-            echo VERSION=${VERSION} >> $GITHUB_ENV
-            if [[ $VERSION == *"-"* ]]; then
-              echo STANDARDS_VERSION=$(echo ${VERSION%-*}) >> $GITHUB_ENV
-              echo DEBIAN_FORMAT='3.0 (quilt)' >> $GITHUB_ENV
-            else
-              echo STANDARDS_VERSION=$(echo ${VERSION%+*}) >> $GITHUB_ENV
-              echo DEBIAN_FORMAT='3.0 (native)' >> $GITHUB_ENV
+              echo VERSION=$(tr -d '\n' < .version | sed s/-/_/g) >> $GITHUB_ENV
             fi
           echo '::endgroup::'
 
@@ -99,18 +82,20 @@ jobs:
       - name: 👷 Build
         shell: bash
         run: |
+          DISTRIBUTION=$(echo '${{ matrix.os.distribution }}' | tr '[:upper:]' '[:lower:]')
           mkdir -p "${GITHUB_WORKSPACE}/deploy"
           docker run --rm --platform=${{ matrix.architecture[1] }} \
+            -w "/root" \
             -v "${GITHUB_WORKSPACE}/deploy:/deploy" \
-            -v "${GITHUB_WORKSPACE}:/source:rw" \
-            ghcr.io/${{ env.ghcr }}/${{ matrix.os.distribution }}:${{ matrix.os.codename }} \
-            /bin/bash -c "cd /source && \
-            mkdir -p debian/source && echo '${{ env.DEBIAN_FORMAT }}' > debian/source/format && \
-            dch --create --distribution ${{ matrix.os.codename }} --package 'hyperion' -v '${{ env.VERSION }}~${{ matrix.os.codename }}' '${{ github.event.commits[0].message }}' && \
-            cp -fr LICENSE debian/copyright && \
-            sed 's/@ARCHITECTURE@/${{ matrix.architecture[0] }}/g; s/@STANDARDS_VERSION@/${{ env.STANDARDS_VERSION }}/g' debian/control.in > debian/control && \
-            debuild -b -uc -us && \
-            cp ../hyperion_*.deb /deploy"
+            -v "${GITHUB_WORKSPACE}:/root/hyperion.ng:rw" \
+            ghcr.io/${{ env.ghcr }}/${DISTRIBUTION}:${{ matrix.os.version }} \
+            /bin/bash -c "tar -czf rpmbuild/SOURCES/hyperion.ng.tar.gz hyperion.ng/ && \
+            cp -f hyperion.ng/rpmbuild/hyperion.spec.in rpmbuild/SPECS/hyperion.spec && \
+            rpmbuild -ba --define '_version ${{ env.VERSION }}' rpmbuild/SPECS/hyperion.spec --clean && \
+            cp -fv rpmbuild/RPMS/$(uname -m)/hyperion* /deploy"
+        env:
+          ACTOR: "Hyperion Project <admin@hyperion-project.org>"
+          COMMIT_MESSAGE: ${{ github.event.commits[0].message }}
 
       - name: 📦 Upload
         if: ${{ inputs.publish }}
@@ -120,10 +105,12 @@ jobs:
           retention-days: 1
 
   publish:
-    name: 🚀 Publish DEB packages
+    name: 🚀 Publish RPM packages
     # if: ${{ github.repository == 'hyperion-project' && inputs.publish }}
     needs: [build]
     runs-on: ubuntu-latest
+    container:
+      image: fedora
     steps:
       - name: ⬇ Checkout
         uses: actions/checkout@v4
@@ -131,6 +118,7 @@ jobs:
           ref: ${{ github.event.inputs.head_sha || github.event.client_payload.head_sha }}
 
       - name: 🔑 GPG Import
+        id: import_gpg
         if: ${{ env.SECRET_GPG_KEY != null }}
         uses: crazy-max/ghaction-import-gpg@v5
         with:
@@ -142,42 +130,45 @@ jobs:
         uses: actions/download-artifact@v3
 
       - name: 🔧 Prepare
-        if: ${{ env.SECRET_APT_REPO_NIGHTLY != null && env.SECRET_APT_REPO != null }}
+        if: ${{ env.SECRET_DNF_REPO_NIGHTLY != null && env.SECRET_DNF_REPO != null }}
         run: |
-          echo '::group::Install reprepro'
-            sudo apt -y install reprepro
+          echo '::group::Install createrepo & rpm-sign'
+            dnf install createrepo rpm-sign -y
           echo '::endgroup::'
 
-          echo '::group::Create initial structure'
-            mkdir -p deb/{conf,dists,db}
-            cp debian/distributions deb/conf/distributions
-            if [[ "${{ inputs.nightly }}" = true ]]; then
-              touch "deb/$(git rev-parse --short HEAD)"
-            fi
-            reprepro -Vb deb createsymlinks
-            reprepro -Vb deb export
-          echo '::endgroup::'
-
-          echo '::group::Include artifacts into the package source'
-            for file in artifact/hyperion_*.deb; do
+          echo '::group::Make folders, sign/copy packages and create metadata/manifest files'
+            mkdir rpm/
+            gpg --armor --output hyperion.pub.key --export 'admin@hyperion-project.org'
+            rpm --import hyperion.pub.key
+            channel=$([ "${{ inputs.nightly }}" = true ] && echo "Nightly" || echo "Stable")
+            declare -A distArray=([fc]=fedora [el]=rhel)
+            for file in artifact/hyperion-*.rpm; do
               if [ -f "$file" ]; then
-                dist=${file#*~}
-                dist=${dist%_*}
-                reprepro -Vb deb/ includedeb "$dist" "$file"
+                dist_ver_arch=${file##*0.}
+                dist_ver_arch=${dist_ver_arch%.*}
+                dist_ver=${dist_ver_arch%.*}
+                [ -z "${dist_ver:0:2}" ] && continue
+                rpm=rpm/${distArray[${dist_ver:0:2}]}/${dist_ver:2}/${dist_ver_arch#*.}
+                mkdir -p $rpm/ && cp $file $rpm/
+                rpm --define "_gpg_name ${{ steps.import_gpg.outputs.keyid }}" --addsign $rpm/*.rpm
+                rpm --checksig $rpm/*.rpm
+                createrepo $rpm/
+                gpg --yes --detach-sign --armor $rpm/repodata/repomd.xml
+                sed -r "s/@CHANNEL@/${channel}/g; s/@DIST@/${distArray[${dist_ver:0:2}]}/g; s/@ARCH@/${dist_ver_arch#*.}/g" ${GITHUB_WORKSPACE}/rpmbuild/hyperion.repo.in > rpm/${distArray[${dist_ver:0:2}]}/hyperion.repo
               fi
             done
           echo '::endgroup::'
 
           echo '::group::Set server directory'
             if [[ "${{ inputs.nightly }}" = true ]]; then
-              echo "SERVER_DIR=${{ secrets.APT_REPO_NIGHTLY }}" >> $GITHUB_ENV
+              echo "SERVER_DIR=${{ secrets.DNF_REPO_NIGHTLY }}" >> $GITHUB_ENV
             else
-              echo "SERVER_DIR=${{ secrets.APT_REPO }}" >> $GITHUB_ENV
+              echo "SERVER_DIR=${{ secrets.DNF_REPO }}" >> $GITHUB_ENV
             fi
           echo '::endgroup::'
         env:
-          SECRET_APT_REPO_NIGHTLY: ${{ secrets.APT_REPO_NIGHTLY }}
-          SECRET_APT_REPO: ${{ secrets.APT_REPO }}
+          SECRET_DNF_REPO_NIGHTLY: ${{ secrets.DNF_REPO_NIGHTLY }}
+          SECRET_DNF_REPO: ${{ secrets.DNF_REPO }}
 
       - name: 📦 Upload
         if: ${{ env.SECRET_REPO_USER != null && env.SECRET_REPO_PASSWORD != null && env.SERVER_DIR != null }}
@@ -187,7 +178,7 @@ jobs:
           username: ${{ secrets.REPO_USER }}
           password: ${{ secrets.REPO_PASSWORD }}
           server-dir: ${{ env.SERVER_DIR }}
-          local-dir: "./deb/"
+          local-dir: "./rpm/"
           dangerous-clean-slate: true
         env:
           SECRET_REPO_USER: ${{ secrets.REPO_USER }}
