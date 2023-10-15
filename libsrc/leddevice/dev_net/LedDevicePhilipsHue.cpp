@@ -446,11 +446,11 @@ bool LedDevicePhilipsHueBridge::checkApiError(const QJsonDocument &response, boo
 		QJsonObject obj = response.object();
 		if (obj.contains(API_ERRORS))
 		{
-			QJsonArray errorList = obj.value(API_ERRORS).toArray();
+			const QJsonArray errorList = obj.value(API_ERRORS).toArray();
 			if (!errorList.isEmpty())
 			{
 				QStringList errors;
-				for (const QJsonValue &error : qAsConst(errorList))
+				for (const QJsonValue &error : errorList)
 				{
 					QString errorString = error.toObject()[API_ERROR_DESCRIPTION].toString();
 					if (!errorString.contains("may not have effect"))
@@ -909,9 +909,9 @@ void LedDevicePhilipsHueBridge::setDevicesMap(const QJsonDocument &doc)
 
 	if (_useApiV2)
 	{
-		QJsonArray devices = doc.array();
+		const QJsonArray devices = doc.array();
 
-		for (const QJsonValue &device : qAsConst(devices))
+		for (const QJsonValue &device : devices)
 		{
 			QString deviceId = device.toObject().value("id").toString();
 			_devicesMap.insert(deviceId, device.toObject());
@@ -925,9 +925,9 @@ void LedDevicePhilipsHueBridge::setLightsMap(const QJsonDocument &doc)
 
 	if (_useApiV2)
 	{
-		QJsonArray lights = doc.array();
+		const QJsonArray lights = doc.array();
 
-		for (const QJsonValue &light : qAsConst(lights))
+		for (const QJsonValue &light : lights)
 		{
 			QString lightId = light.toObject().value("id").toString();
 			_lightsMap.insert(lightId, light.toObject());
@@ -965,9 +965,9 @@ void LedDevicePhilipsHueBridge::setGroupMap(const QJsonDocument &doc)
 	_groupsMap.clear();
 	if (_useApiV2)
 	{
-		QJsonArray groups = doc.array();
+		const QJsonArray groups = doc.array();
 
-		for (const QJsonValue &group : qAsConst(groups))
+		for (const QJsonValue &group : groups)
 		{
 			QString groupId = group.toObject().value("id").toString();
 			_groupsMap.insert(groupId, group.toObject());
@@ -995,9 +995,9 @@ void LedDevicePhilipsHueBridge::setEntertainmentSrvMap(const QJsonDocument &doc)
 
 	if (_useApiV2)
 	{
-		QJsonArray entertainmentSrvs = doc.array();
+		const QJsonArray entertainmentSrvs = doc.array();
 
-		for (const QJsonValue &entertainmentSrv : qAsConst(entertainmentSrvs))
+		for (const QJsonValue &entertainmentSrv : entertainmentSrvs)
 		{
 			QString entertainmentSrvId = entertainmentSrv.toObject().value("id").toString();
 			_entertainmentMap.insert(entertainmentSrvId, entertainmentSrv.toObject());
@@ -1093,8 +1093,8 @@ QStringList LedDevicePhilipsHueBridge::getGroupLights(const QString& groupId) co
 		{
 			if (_useApiV2)
 			{
-				QJsonArray lightServices = group.value( API_LIGHT_SERVICES ).toArray();
-				for (const QJsonValue &light : qAsConst(lightServices))
+				const QJsonArray lightServices = group.value( API_LIGHT_SERVICES ).toArray();
+				for (const QJsonValue &light : lightServices)
 				{
 					groupLights.append( light.toObject().value(API_RID).toString());
 				}
@@ -1140,7 +1140,7 @@ QJsonObject LedDevicePhilipsHueBridge::getEntertainmentSrvDetails(const QString&
 	DebugIf( verbose, _log, "getEntertainmentSrvDetails [%s]", QSTRING_CSTR(deviceId) );
 
 	QJsonObject details;
-	for (const QJsonObject& entertainmentSrv : qAsConst(_entertainmentMap))
+	for (const QJsonObject& entertainmentSrv : std::as_const(_entertainmentMap))
 	{
 		QJsonObject owner = entertainmentSrv[API_OWNER].toObject();
 
@@ -1933,7 +1933,7 @@ bool LedDevicePhilipsHue::updateLights(const QMap<QString, QJsonObject> &map)
 	if(!_lightIds.empty())
 	{
 		_lights.reserve(static_cast<size_t>(_lightIds.size()));
-		for(const auto &id : qAsConst(_lightIds))
+		for(const auto &id : std::as_const(_lightIds))
 		{
 			if (map.contains(id))
 			{
