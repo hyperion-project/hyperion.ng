@@ -104,6 +104,14 @@ protected:
 	/// Writes the given bytes/bits to the UDP-device and sleeps the latch time to ensure that the
 	/// values are latched.
 	///
+	/// @param[in] data The data
+	///
+	void writeBytes(QByteArray data, bool flush = false);
+
+	///
+	/// Writes the given bytes/bits to the UDP-device and sleeps the latch time to ensure that the
+	/// values are latched.
+	///
 	/// @param[in] size The length of the data
 	/// @param[in] data The data
 	///
@@ -115,6 +123,8 @@ protected:
 	/// @return const int * array
 	///
 	virtual const int * getCiphersuites() const;
+
+	void setPSKidentity(const QString& pskIdentity);
 
 private:
 

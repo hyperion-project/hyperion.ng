@@ -21,19 +21,19 @@ using namespace semver;
 
 // Constants
 namespace {
-const char DEFAULT_VERSION[] = "2.0.0-alpha.8";
+	const char DEFAULT_VERSION[] = "2.0.0-alpha.8";
 } //End of constants
 
 QJsonObject SettingsManager::schemaJson;
 
 SettingsManager::SettingsManager(quint8 instance, QObject* parent, bool readonlyMode)
 	: QObject(parent)
-	  , _log(Logger::getInstance("SETTINGSMGR", "I"+QString::number(instance)))
-	  , _instance(instance)
-	  , _sTable(new SettingsTable(instance, this))
-	  , _configVersion(DEFAULT_VERSION)
-	  , _previousVersion(DEFAULT_VERSION)
-	  , _readonlyMode(readonlyMode)
+	, _log(Logger::getInstance("SETTINGSMGR", "I" + QString::number(instance)))
+	, _instance(instance)
+	, _sTable(new SettingsTable(instance, this))
+	, _configVersion(DEFAULT_VERSION)
+	, _previousVersion(DEFAULT_VERSION)
+	, _readonlyMode(readonlyMode)
 {
 	_sTable->setReadonlyMode(_readonlyMode);
 	// get schema
@@ -723,6 +723,7 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 			}
 
 			//Migration steps for versions <= 2.0.13
+			_previousVersion = targetVersion;
 			targetVersion.setVersion("2.0.13");
 			if (_previousVersion <= targetVersion)
 			{
@@ -738,12 +739,12 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 					{
 						QString type = newDeviceConfig["type"].toString();
 
-						const QStringList serialDevices {"adalight", "dmx", "atmo", "sedu", "tpm2", "karate"};
-						if ( serialDevices.contains(type ))
+						const QStringList serialDevices{ "adalight", "dmx", "atmo", "sedu", "tpm2", "karate" };
+						if (serialDevices.contains(type))
 						{
 							if (!newDeviceConfig.contains("rateList"))
 							{
-								newDeviceConfig["rateList"] =  "CUSTOM";
+								newDeviceConfig["rateList"] = "CUSTOM";
 								migrated = true;
 							}
 						}
@@ -763,6 +764,126 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 								}
 								newDeviceConfig.remove("lightberry_apa102_mode");
 								migrated = true;
+							}
+						}
+					}
+
+					if (migrated)
+					{
+						config["device"] = newDeviceConfig;
+						Debug(_log, "LED-Device records migrated");
+					}
+				}
+			}
+
+			//Migration steps for versions <= 2.0.16
+			_previousVersion = targetVersion;
+			targetVersion.setVersion("2.0.16");
+			if (_previousVersion <= targetVersion)
+			{
+				Info(_log, "Instance [%u]: Migrate from version [%s] to version [%s] or later", _instance, _previousVersion.getVersion().c_str(), targetVersion.getVersion().c_str());
+
+				// Have Hostname/IP-address separate from port for LED-Devices
+				if (config.contains("device"))
+				{
+					QJsonObject newDeviceConfig = config["device"].toObject();
+
+					if (newDeviceConfig.contains("type"))
+					{
+						QString type = newDeviceConfig["type"].toString();
+
+						if (type == "philipshue")
+						{
+							if (newDeviceConfig.contains("groupId"))
+							{
+								if (newDeviceConfig["groupId"].isDouble())
+								{
+									int groupID = newDeviceConfig["groupId"].toInt();
+									newDeviceConfig["groupId"] = QString::number(groupID);
+									migrated = true;
+								}
+							}
+
+							if (newDeviceConfig.contains("lightIds"))
+							{
+								QJsonArray lightIds = newDeviceConfig.value("lightIds").toArray();
+								// Iterate through the JSON array and update integer values to strings
+								for (int i = 0; i < lightIds.size(); ++i) {
+									QJsonValue value = lightIds.at(i);
+									if (value.isDouble())
+									{
+										int lightId = value.toInt();
+										lightIds.replace(i, QString::number(lightId));
+										migrated = true;
+									}
+								}
+								newDeviceConfig["lightIds"] = lightIds;
+
+							}
+						}
+
+						if (type == "nanoleaf")
+						{
+							if (newDeviceConfig.contains("panelStartPos"))
+							{
+								newDeviceConfig.remove("panelStartPos");
+								migrated = true;
+							}
+
+							if (newDeviceConfig.contains("panelOrderTopDown"))
+							{
+								int panelOrderTopDown;
+								if (newDeviceConfig["panelOrderTopDown"].isDouble())
+								{
+									panelOrderTopDown = newDeviceConfig["panelOrderTopDown"].toInt();
+								}
+								else
+								{
+									panelOrderTopDown = newDeviceConfig["panelOrderTopDown"].toString().toInt();
+								}
+
+								newDeviceConfig.remove("panelOrderTopDown");
+								if (panelOrderTopDown == 0)
+								{
+									newDeviceConfig["panelOrderTopDown"] = "top2down";
+									migrated = true;
+								}
+								else
+								{
+									if (panelOrderTopDown == 1)
+									{
+										newDeviceConfig["panelOrderTopDown"] = "bottom2up";
+										migrated = true;
+									}
+								}
+							}
+
+							if (newDeviceConfig.contains("panelOrderLeftRight"))
+							{
+								int panelOrderLeftRight;
+								if (newDeviceConfig["panelOrderLeftRight"].isDouble())
+								{
+									panelOrderLeftRight = newDeviceConfig["panelOrderLeftRight"].toInt();
+								}
+								else
+								{
+									panelOrderLeftRight = newDeviceConfig["panelOrderLeftRight"].toString().toInt();
+								}
+
+								newDeviceConfig.remove("panelOrderLeftRight");
+								if (panelOrderLeftRight == 0)
+								{
+									newDeviceConfig["panelOrderLeftRight"] = "left2right";
+									migrated = true;
+								}
+								else
+								{
+									if (panelOrderLeftRight == 1)
+									{
+										newDeviceConfig["panelOrderLeftRight"] = "right2left";
+										migrated = true;
+									}
+								}
 							}
 						}
 					}

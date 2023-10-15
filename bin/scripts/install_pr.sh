@@ -95,7 +95,7 @@ else
 fi
 
 # Determine if PR number exists
-pulls=$(request_call "$api_url/pulls")
+pulls=$(request_call "$api_url/pulls?state=open")
 
 pr_exists=$(echo "$pulls" | tr '\r\n' ' ' | ${pythonCmd} -c """
 import json,sys
@@ -108,7 +108,7 @@ for i in data:
 """ 2>/dev/null)
 
 if [ "$pr_exists" != "exists" ]; then
-	echo "---> Pull Request $pr_number not found -> abort"
+	echo "---> Pull Request $pr_number not found as open PR -> abort"
 	exit 1
 fi
 
@@ -124,7 +124,7 @@ for i in data:
 """ 2>/dev/null)
 
 if [ -z "$head_sha" ]; then
-	echo "---> The specified PR #$pr_number has no longer any artifacts."
+	echo "---> The specified PR #$pr_number has no longer any artifacts or has been closed."
 	echo "---> It may be older than 14 days. Ask the PR creator to recreate the artifacts at the following URL:"
 	echo "---> https://github.com/hyperion-project/hyperion.ng/pull/$pr_number"
 	exit 1
@@ -132,13 +132,13 @@ fi
 
 if [ -z "$run_id" ]; then
 # Determine run_id from head_sha
-runs=$(request_call "$api_url/actions/runs")
+runs=$(request_call "$api_url/actions/runs?head_sha=$head_sha")
 run_id=$(echo "$runs" | tr '\r\n' ' ' | ${pythonCmd} -c """
 import json,sys
 data = json.load(sys.stdin)
 
 for i in data['workflow_runs']:
-	if i['head_sha'] == '"$head_sha"':
+	if i['name'] == 'Hyperion PR Build':
 		print(i['id'])
 		break
 """ 2>/dev/null)

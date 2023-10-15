@@ -1021,11 +1021,6 @@ $(document).ready(function () {
     var generalOptions = window.serverSchema.properties.device;
 
     var ledType = $(this).val();
-
-    // philipshueentertainment backward fix
-    if (ledType == "philipshueentertainment")
-      ledType = "philipshue";
-
     var specificOptions = window.serverSchema.properties.alldevices[ledType];
 
     conf_editor = createJsonEditor('editor_container_leddevice', {
@@ -1055,18 +1050,22 @@ $(document).ready(function () {
     // change save button state based on validation result
     conf_editor.validate().length || window.readOnlyMode ? $('#btn_submit_controller').prop('disabled', true) : $('#btn_submit_controller').prop('disabled', false);
 
-    // led controller sepecific wizards
+    // LED controller specific wizards
     $('#btn_wiz_holder').html("");
     $('#btn_led_device_wiz').off();
 
     if (ledType == "philipshue") {
-      $('#root_specificOptions_useEntertainmentAPI').on("change", function () {
-        var ledWizardType = (this.checked) ? "philipshueentertainment" : ledType;
-        var data = { type: ledWizardType };
-        var hue_title = (this.checked) ? 'wiz_hue_e_title' : 'wiz_hue_title';
-        changeWizard(data, hue_title, startWizardPhilipsHue);
-      });
-      $("#root_specificOptions_useEntertainmentAPI").trigger("change");
+      var ledWizardType = ledType;
+      var data = { type: ledWizardType };
+      var hue_title = 'wiz_hue_title';
+      changeWizard(data, hue_title, startWizardPhilipsHue);
+    }
+    else if (ledType == "nanoleaf") {
+      var ledWizardType = ledType;
+      var data = { type: ledWizardType };
+      var nanoleaf_user_auth_title = 'wiz_nanoleaf_user_auth_title';
+      changeWizard(data, nanoleaf_user_auth_title, startWizardNanoleafUserAuth);
+      $('#btn_wiz_holder').hide();
     }
     else if (ledType == "atmoorb") {
       var ledWizardType = (this.checked) ? "atmoorb" : ledType;
@@ -1092,6 +1091,7 @@ $(document).ready(function () {
       var colorOrderDefault = "rgb";
       var filter = {};
 
+      $('#btn_layout_controller').hide();
       $('#btn_test_controller').hide();
 
       switch (ledType) {
@@ -1349,6 +1349,13 @@ $(document).ready(function () {
 
       if (host === "") {
         conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(1);
+        switch (ledType) {
+
+          case "nanoleaf":
+            $('#btn_wiz_holder').hide();
+            break;
+          default:
+        }
       }
       else {
         let params = {};
@@ -1360,6 +1367,8 @@ $(document).ready(function () {
             break;
 
           case "nanoleaf":
+            $('#btn_wiz_holder').show();
+
             var token = conf_editor.getEditor("root.specificOptions.token").getValue();
             if (token === "") {
               return;
@@ -1675,6 +1684,33 @@ $(document).ready(function () {
 
   $("#leddevices").val(window.serverConfig.device.type);
   $("#leddevices").trigger("change");
+
+  // Generate layout for LED-Device
+  $("#btn_layout_controller").off().on("click", function () {
+    var ledType = $("#leddevices").val();
+    var isGenerated = false;
+
+    switch (ledType) {
+      case "nanoleaf":
+        var host = conf_editor.getEditor("root.specificOptions.host").getValue();
+        var ledDeviceProperties = devicesProperties[ledType][host];
+        if (ledDeviceProperties) {
+          var panelOrderTopDown = conf_editor.getEditor("root.specificOptions.panelOrderTopDown").getValue() === "top2down";
+          var panelOrderLeftRight = conf_editor.getEditor("root.specificOptions.panelOrderLeftRight").getValue() === "left2right";
+          var ledArray = nanoleafGeneratelayout(ledDeviceProperties.panelLayout, panelOrderTopDown, panelOrderLeftRight);
+          aceEdt.set(ledArray);
+          isGenerated = true;
+        }
+        break;
+      default:
+    }
+
+    if (isGenerated) {
+      showInfoDialog('success', "", $.i18n('conf_leds_layout_generation_success'));
+    } else {
+      showInfoDialog('error', "", $.i18n('conf_leds_layout_generation_error'));
+    }
+  });
 
   // Identify/ Test LED-Device
   $("#btn_test_controller").off().on("click", function () {
@@ -2155,6 +2191,7 @@ async function identify_device(type, params) {
 }
 
 function updateElements(ledType, key) {
+  var canLayout = false;
   if (devicesProperties[ledType][key]) {
     var hardwareLedCount = 1;
     switch (ledType) {
@@ -2173,18 +2210,11 @@ function updateElements(ledType, key) {
       case "nanoleaf":
         var ledProperties = devicesProperties[ledType][key];
 
-        if (ledProperties && ledProperties.panelLayout.layout) {
-          //Identify non-LED type panels, e.g. Rhythm (1) and Shapes Controller (12)
-          var nonLedNum = 0;
-          for (const panel of ledProperties.panelLayout.layout.positionData) {
-            if (panel.shapeType === 1 || panel.shapeType === 12) {
-              nonLedNum++;
-            }
-          }
-          hardwareLedCount = ledProperties.panelLayout.layout.numPanels - nonLedNum;
+        if (ledProperties) {
+          hardwareLedCount = ledProperties.ledCount;
+          canLayout = true;
         }
         conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(hardwareLedCount);
-
         break;
 
       case "udpraw":
@@ -2233,11 +2263,19 @@ function updateElements(ledType, key) {
   }
 
   if (!conf_editor.validate().length) {
+    if (canLayout) {
+      $("#btn_layout_controller").show();
+      $('#btn_layout_controller').prop('disabled', false);
+    } else {
+      $('#btn_layout_controller').hide();
+    }
+
     if (!window.readOnlyMode) {
       $('#btn_submit_controller').attr('disabled', false);
     }
   }
   else {
+    $('#btn_layout_controller').prop('disabled', true);
     $('#btn_submit_controller').attr('disabled', true);
   }
 }
@@ -2415,4 +2453,149 @@ function updateElementsWled(ledType, key) {
   }
   showInputOptionForItem(conf_editor, "root.specificOptions.segments", "switchOffOtherSegments", showAdditionalOptions);
 }
+function sortByPanelCoordinates(arr, topToBottom, leftToRight) {
+  arr.sort((a, b) => {
+    //Nanoleaf corodinates start at bottom left, therefore reverse topToBottom
+    if (!topToBottom) {
+      if (a.y === b.y) {
+        if (leftToRight) {
+          return a.x - b.x;
+        } else {
+          return b.x - a.x;
+        }
+      } else {
+        return a.y - b.y;
+      }
+    }
+    else {
+      if (a.y === b.y) {
+        if (leftToRight) {
+          return a.x - b.x;
+        } else {
+          return b.x - a.x;
+        }
+      } else {
+        return b.y - a.y;
+      }
+    }
+  });
+}
+function rotateCoordinates(x, y, radians) {
+  var rotatedX = x * Math.cos(radians) - y * Math.sin(radians);
+  var rotatedY = x * Math.sin(radians) + y * Math.cos(radians);
 
+  return { x: rotatedX, y: rotatedY };
+}
+
+function nanoleafGeneratelayout(panelLayout, panelOrderTopDown, panelOrderLeftRight) {
+
+  // Dictionary for Nanoleaf shape types
+  let shapeTypes = {
+    0: { name: "LightsTriangle", led: true, sideLengthX: 150, sideLengthY: 150 },
+    1: { name: "LightsRythm", led: false, sideLengthX: 0, sideLengthY: 0 },
+    2: { name: "Square", led: true, sideLengthX: 100, sideLengthY: 100 },
+    3: { name: "SquareControllerMaster", led: true, sideLengthX: 100, sideLengthY: 100 },
+    4: { name: "SquareControllerPassive", led: true, sideLengthX: 100, sideLengthY: 100 },
+    5: { name: "PowerSupply", led: true, sideLengthX: 100, sideLengthY: 100 },
+    7: { name: "ShapesHexagon", led: true, sideLengthX: 67, sideLengthY: 67 },
+    8: { name: "ShapesTriangle", led: true, sideLengthX: 134, sideLengthY: 134 },
+    9: { name: "ShapesMiniTriangle", led: true, sideLengthX: 67, sideLengthY: 67 },
+    12: { name: "ShapesController", led: false, sideLengthX: 0, sideLengthY: 0 },
+    14: { name: "ElementsHexagon", led: true, sideLengthX: 134, sideLengthY: 134 },
+    15: { name: "ElementsHexagonCorner", led: true, sideLengthX: 33.5, sideLengthY: 58 },
+    16: { name: "LinesConnector", led: false, sideLengthX: 11, sideLengthY: 11 },
+    17: { name: "LightLines", led: true, sideLengthX: 154, sideLengthY: 154 },
+    18: { name: "LightLinesSingleZone", led: true, sideLengthX: 77, sideLengthY: 77 },
+    19: { name: "ControllerCap", led: false, sideLengthX: 11, sideLengthY: 11 },
+    20: { name: "PowerConnector", led: false, sideLengthX: 11, sideLengthY: 11 },
+    999: { name: "Unknown", led: true, sideLengthX: 100, sideLengthY: 100 }
+  };
+
+  let { globalOrientation, layout } = panelLayout;
+
+  var degreesToRotate = 0;
+  if (globalOrientation) {
+    degreesToRotate = globalOrientation.value;
+  }
+
+  //Align rotation degree to 15 degree steps
+  const degreeSteps = 15;
+  var degreeRounded = ((Math.round(degreesToRotate / degreeSteps) * degreeSteps) + 360) % 360;
+
+  //Nanoleaf orientation is counter-clockwise
+  degreeRounded *= -1;
+
+  // Convert degrees to radians
+  const radians = (degreeRounded * Math.PI) / 180;
+
+  //Reduce the capture area
+  const areaSizeFactor = 0.5;
+
+  var panelDataXY = [...layout.positionData];
+  panelDataXY.forEach(panel => {
+
+    if (shapeTypes[panel.shapeType] == undefined) {
+      panel.shapeType = 999;
+    }
+
+    panel.shapeName = shapeTypes[panel.shapeType].name;
+    panel.led = shapeTypes[panel.shapeType].led;
+    panel.areaWidth = shapeTypes[panel.shapeType].sideLengthX * areaSizeFactor;
+    panel.areaHeight = shapeTypes[panel.shapeType].sideLengthY * areaSizeFactor;
+
+    if (radians !== 0) {
+      var rotatedXY = rotateCoordinates(panel.x, panel.y, radians);
+      panel.x = Math.round(rotatedXY.x);
+      panel.y = Math.round(rotatedXY.y);
+    }
+
+    panel.maxX = panel.x + panel.areaWidth;
+    panel.maxY = panel.y + panel.areaHeight;
+  });
+
+  var minX = panelDataXY[0].x;
+  var maxX = panelDataXY[0].x;
+  var minY = panelDataXY[0].y;
+  var maxY = panelDataXY[0].y;
+  panelDataXY.forEach(panel => {
+
+    if (panel.maxX > maxX) {
+      maxX = panel.maxX;
+    }
+    if (panel.x < minX) {
+      minX = panel.x;
+    }
+    if (panel.maxY > maxY) {
+      maxY = panel.maxY;
+    }
+    if (panel.y < minY) {
+      minY = panel.y;
+    }
+  });
+
+  const width = Math.abs(maxX - minX);
+  const height = Math.abs(maxY - minY);
+  const scaleX = 1 / width;
+  const scaleY = 1 / height;
+
+  var layoutObjects = [];
+  var i = 0;
+
+  sortByPanelCoordinates(panelDataXY, panelOrderTopDown, panelOrderLeftRight);
+  panelDataXY.forEach(panel => {
+
+    if (panel.led) {
+      let layoutObject = {
+        name: i + "-" + panel.panelId,
+        hmin: Math.min(1, Math.max(0, (panel.x - minX) * scaleX)),
+        hmax: Math.min(1, Math.max(0, (panel.x - minX + panel.areaWidth) * scaleX)),
+        //Nanoleaf corodinates start at bottom left, therefore reverse vertical positioning
+        vmax: (1 - Math.min(1, Math.max(0, (panel.y - minY) * scaleY))),
+        vmin: (1 - Math.min(1, Math.max(0, (panel.y - minY + panel.areaHeight) * scaleY)))
+      };
+      layoutObjects.push(JSON.parse(JSON.stringify(layoutObject)));
+      ++i;
+    }
+  });
+  return layoutObjects;
+}
