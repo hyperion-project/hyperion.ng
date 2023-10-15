@@ -39,7 +39,7 @@ on:
         required: false
 
 env:
-  ghcr: paulchen-panther # hyperion-project
+  ghcr: hyperion-project
 
 jobs:
   build:
@@ -105,7 +105,7 @@ jobs:
             -v "${GITHUB_WORKSPACE}:/source:rw" \
             ghcr.io/${{ env.ghcr }}/${{ matrix.os.distribution }}:${{ matrix.os.codename }} \
             /bin/bash -c "cd /source && \
-            mkdir -p debian/source && echo '${{ env.DEBIAN_FORMAT }}' > debian/source/format && \
+            mkdir -p debian/source && echo '${{ env.DEBIAN_FORMAT }}' > debian/source/format && echo 10 > debian/compat && \
             dch --create --distribution ${{ matrix.os.codename }} --package 'hyperion' -v '${{ env.VERSION }}~${{ matrix.os.codename }}' '${{ github.event.commits[0].message }}' && \
             cp -fr LICENSE debian/copyright && \
             sed 's/@ARCHITECTURE@/${{ matrix.architecture[0] }}/g; s/@STANDARDS_VERSION@/${{ env.STANDARDS_VERSION }}/g' debian/control.in > debian/control && \
@@ -121,7 +121,7 @@ jobs:
 
   publish:
     name: 🚀 Publish DEB packages
-    # if: ${{ github.repository == 'hyperion-project' && inputs.publish }}
+    if: ${{ github.repository == 'hyperion-project' && inputs.publish }}
     needs: [build]
     runs-on: ubuntu-latest
     steps:

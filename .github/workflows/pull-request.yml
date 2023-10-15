@@ -24,18 +24,14 @@ jobs:
         include:
           - dockerImage: x86_64
             dockerName: Debian Buster (x86_64)
-            dockerName: Debian Buster (x86_64)
             platform: x11
           - dockerImage: armv6l
-            dockerName: Debian Buster (Raspberry Pi v1 & ZERO)
             dockerName: Debian Buster (Raspberry Pi v1 & ZERO)
             platform: rpi
           - dockerImage: armv7l
             dockerName: Debian Buster (Raspberry Pi 2 & 3)
-            dockerName: Debian Buster (Raspberry Pi 2 & 3)
             platform: rpi
           - dockerImage: aarch64
-            dockerName: Debian Buster (Generic AARCH64)
             dockerName: Debian Buster (Generic AARCH64)
             platform: amlogic
 
@@ -43,7 +39,6 @@ jobs:
       - name: ⬇ Checkout
         uses: actions/checkout@v4
         with:
-          submodules: recursive
           submodules: recursive
 
       - name: 🔧 Prepare
@@ -57,7 +52,6 @@ jobs:
       - name: 👷 Build
         env:
           DOCKER_IMAGE: ${{ matrix.dockerImage }}
-          DOCKER_TAG: buster
           DOCKER_TAG: buster
           DOCKER_NAME: ${{ matrix.dockerName }}
           PLATFORM: ${{ matrix.platform }}
@@ -89,7 +83,6 @@ jobs:
       - name: ⬇ Checkout
         uses: actions/checkout@v4
         with:
-          submodules: recursive
           submodules: recursive
 
       - name: 🔧 Prepare
@@ -138,7 +131,6 @@ jobs:
       - name: ⬇ Checkout
         uses: actions/checkout@v4
         with:
-          submodules: recursive
           submodules: recursive
 
       - name: 🔧 Prepare

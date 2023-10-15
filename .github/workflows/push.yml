@@ -8,176 +8,176 @@ on:
 
 jobs:
 
+##################
+##### Linux ######
+##################
+
+  Linux:
+    name: 🐧 ${{ matrix.dockerName }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dockerImage: [ x86_64, armv6l, armv7l, aarch64 ]
+        include:
+          - dockerImage: x86_64
+            dockerName: Debian Buster (x86_64)
+            platform: x11
+          - dockerImage: armv6l
+            dockerName: Debian Buster (Raspberry Pi v1 & ZERO)
+            platform: rpi
+          - dockerImage: armv7l
+            dockerName: Debian Buster (Raspberry Pi 2 & 3)
+            platform: rpi
+          - dockerImage: aarch64
+            dockerName: Debian Buster (Generic AARCH64)
+            platform: amlogic
+
+    steps:
+      - name: ⬇ Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: 👷 Build
+        env:
+          DOCKER_IMAGE: ${{ matrix.dockerImage }}
+          DOCKER_TAG: buster
+          DOCKER_NAME: ${{ matrix.dockerName }}
+          PLATFORM: ${{ matrix.platform }}
+        shell: bash
+        run: ./.ci/ci_build.sh
+
+      - name: 📦 Upload
+        if: startsWith(github.event.ref, 'refs/tags')
+        uses: actions/upload-artifact@v3
+        with:
+          path: deploy/Hyperion-*
+
 ###################
-###### Linux ######
+###### macOS ######
 ###################
 
-#   Linux:
-#     name: 🐧 ${{ matrix.dockerName }}
-#     runs-on: ubuntu-latest
-#     strategy:
-#       matrix:
-#         dockerImage: [ x86_64, armv6l, armv7l, aarch64 ]
-#         include:
-#           - dockerImage: x86_64
-#             dockerName: Debian Buster (x86_64)
-#             platform: x11
-#           - dockerImage: armv6l
-#             dockerName: Debian Buster (Raspberry Pi v1 & ZERO)
-#             platform: rpi
-#           - dockerImage: armv7l
-#             dockerName: Debian Buster (Raspberry Pi 2 & 3)
-#             platform: rpi
-#           - dockerImage: aarch64
-#             dockerName: Debian Buster (Generic AARCH64)
-#             platform: amlogic
+  macOS:
+    name: 🍏 macOS
+    runs-on: macos-latest
+    steps:
+      - name: ⬇ Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-#     steps:
-#       - name: ⬇ Checkout
-#         uses: actions/checkout@v4
-#         with:
-#           submodules: recursive
+      - name: 🔧 Prepare
+        shell: bash
+        run: |
+          echo '::group::Install dependencies'
+            ./.ci/ci_install.sh
+          echo '::endgroup::'
 
-#       - name: 👷 Build
-#         env:
-#           DOCKER_IMAGE: ${{ matrix.dockerImage }}
-#           DOCKER_TAG: buster
-#           DOCKER_NAME: ${{ matrix.dockerName }}
-#           PLATFORM: ${{ matrix.platform }}
-#         shell: bash
-#         run: ./.ci/ci_build.sh
+      - name: 👷 Build
+        env:
+          PLATFORM: osx
+        shell: bash
+        run: ./.ci/ci_build.sh
 
-#       - name: 📦 Upload
-#         if: startsWith(github.event.ref, 'refs/tags')
-#         uses: actions/upload-artifact@v3
-#         with:
-#           path: deploy/Hyperion-*
+      - name: 📦 Upload
+        if: startsWith(github.event.ref, 'refs/tags')
+        uses: actions/upload-artifact@v3
+        with:
+          path: build/Hyperion-*
 
-# ###################
-# ###### macOS ######
-# ###################
+#####################
+###### Windows ######
+#####################
 
-#   macOS:
-#     name: 🍏 macOS
-#     runs-on: macos-latest
-#     steps:
-#       - name: ⬇ Checkout
-#         uses: actions/checkout@v4
-#         with:
-#           submodules: recursive
+  windows:
+    name: 🪟 Windows
+    runs-on: windows-2022
+    env:
+      VCINSTALLDIR: 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC'
+      QT_VERSION: 5.15.2
+    steps:
+      - name: ⬇ Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-#       - name: 🔧 Prepare
-#         shell: bash
-#         run: |
-#           echo '::group::Install dependencies'
-#             ./.ci/ci_install.sh
-#           echo '::endgroup::'
+      - name: 💾 Cache/Restore
+        uses: actions/cache@v3
+        with:
+          path: C:\Users\runneradmin\AppData\Local\Temp\chocolatey
+          key: ${{ runner.os }}-chocolatey
 
-#       - name: 👷 Build
-#         env:
-#           PLATFORM: osx
-#         shell: bash
-#         run: ./.ci/ci_build.sh
+      - name: 📥 Install OpenSSL, DirectX SDK, libjpeg-turbo
+        shell: powershell
+        run: |
+          choco install --no-progress openssl --version=1.1.1.2100 -y
+          choco install --no-progress directx-sdk -y
+          Invoke-WebRequest https://netcologne.dl.sourceforge.net/project/libjpeg-turbo/2.0.6/libjpeg-turbo-2.0.6-vc64.exe -OutFile libjpeg-turbo.exe -UserAgent NativeHost
+          .\libjpeg-turbo /S
 
-#       - name: 📦 Upload
-#         if: startsWith(github.event.ref, 'refs/tags')
-#         uses: actions/upload-artifact@v3
-#         with:
-#           path: build/Hyperion-*
+      - name: 📥 Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: ${{env.QT_VERSION}}
+          target: 'desktop'
+          arch: 'win64_msvc2019_64'
+          cache: 'true'
+          cache-key-prefix: 'cache-qt-windows'
 
-# #####################
-# ###### Windows ######
-# #####################
+      - name: 🛠️ Setup
+        shell: cmd
+        run: call "${{env.VCINSTALLDIR}}\Auxiliary\Build\vcvars64.bat"
 
-#   windows:
-#     name: 🪟 Windows
-#     runs-on: windows-2022
-#     env:
-#       VCINSTALLDIR: 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC'
-#       QT_VERSION: 5.15.2
-#     steps:
-#       - name: ⬇ Checkout
-#         uses: actions/checkout@v4
-#         with:
-#           submodules: recursive
+      - name: 👷 Build
+        env:
+          PLATFORM: windows
+        shell: bash
+        run: |
+          echo '::group::Build packages'
+            ./.ci/ci_build.sh
+          echo '::endgroup::'
 
-#       - name: 💾 Cache/Restore
-#         uses: actions/cache@v3
-#         with:
-#           path: C:\Users\runneradmin\AppData\Local\Temp\chocolatey
-#           key: ${{ runner.os }}-chocolatey
+      - name: 📦 Upload
+        if: startsWith(github.event.ref, 'refs/tags')
+        uses: actions/upload-artifact@v3
+        with:
+          path: build/Hyperion-*
+          retention-days: 1
 
-#       - name: 📥 Install OpenSSL, DirectX SDK, libjpeg-turbo
-#         shell: powershell
-#         run: |
-#           choco install --no-progress openssl --version=1.1.1.2100 -y
-#           choco install --no-progress directx-sdk -y
-#           Invoke-WebRequest https://netcologne.dl.sourceforge.net/project/libjpeg-turbo/2.0.6/libjpeg-turbo-2.0.6-vc64.exe -OutFile libjpeg-turbo.exe -UserAgent NativeHost
-#           .\libjpeg-turbo /S
+#####################################
+###### Publish GitHub Releases ######
+#####################################
 
-#       - name: 📥 Install Qt
-#         uses: jurplel/install-qt-action@v3
-#         with:
-#           version: ${{env.QT_VERSION}}
-#           target: 'desktop'
-#           arch: 'win64_msvc2019_64'
-#           cache: 'true'
-#           cache-key-prefix: 'cache-qt-windows'
+  github_publish:
+    name: 🚀 Publish GitHub Releases
+    if: startsWith(github.event.ref, 'refs/tags')
+    needs: [Linux, macOS, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇ Checkout
+        uses: actions/checkout@v4
 
-#       - name: 🛠️ Setup
-#         shell: cmd
-#         run: call "${{env.VCINSTALLDIR}}\Auxiliary\Build\vcvars64.bat"
+      - name: 🔧 Prepare
+        run: |
+          echo '::group::Generate environment variables from .version and tag'
+            echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
+            echo "VERSION=$(tr -d '\n' < .version)" >> $GITHUB_ENV
+          echo '::endgroup::'
 
-#       - name: 👷 Build
-#         env:
-#           PLATFORM: windows
-#         shell: bash
-#         run: |
-#           echo '::group::Build packages'
-#             ./.ci/ci_build.sh
-#           echo '::endgroup::'
+      - name: 💾 Artifact download
+        uses: actions/download-artifact@v3.0.2
+        with:
+          path: artifacts
 
-#       - name: 📦 Upload
-#         if: startsWith(github.event.ref, 'refs/tags')
-#         uses: actions/upload-artifact@v3
-#         with:
-#           path: build/Hyperion-*
-#           retention-days: 1
-
-# #####################################
-# ###### Publish GitHub Releases ######
-# #####################################
-
-#   github_publish:
-#     name: 🚀 Publish GitHub Releases
-#     if: startsWith(github.event.ref, 'refs/tags')
-#     needs: [Linux, macOS, windows]
-#     runs-on: ubuntu-latest
-#     steps:
-#      - name: ⬇ Checkout
-#         uses: actions/checkout@v4
-
-#       - name: 🔧 Prepare
-#         run: |
-#           echo '::group::Generate environment variables from .version and tag'
-#             echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
-#             echo "VERSION=$(tr -d '\n' < .version)" >> $GITHUB_ENV
-#           echo '::endgroup::'
-
-#       - name: 💾 Artifact download
-#         uses: actions/download-artifact@v3.0.2
-#         with:
-#           path: artifacts
-
-#       - name: 📦 Upload
-#         uses: softprops/action-gh-release@v1
-#         with:
-#           name: Hyperion ${{ env.VERSION }}
-#           tag_name: ${{ env.TAG }}
-#           files: "artifacts/**"
-#           draft: true
-#         env:
-#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: 📦 Upload
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Hyperion ${{ env.VERSION }}
+          tag_name: ${{ env.TAG }}
+          files: "artifacts/**"
+          draft: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 ###################################
 ###### APT reusable workflow ######
@@ -185,8 +185,8 @@ jobs:
 
   apt_build:
     name: APT Build
-    # if: startsWith(github.event.ref, 'refs/tags')
-    # needs: [Linux, macOS, windows]
+    if: startsWith(github.event.ref, 'refs/tags')
+    needs: [Linux, macOS, windows]
     uses: ./.github/workflows/apt.yml
     secrets: inherit
     with:
@@ -199,8 +199,8 @@ jobs:
 
   dnf_build:
     name: DNF Build
-    # if: startsWith(github.event.ref, 'refs/tags')
-    # needs: [Linux, macOS, windows]
+    if: startsWith(github.event.ref, 'refs/tags')
+    needs: [Linux, macOS, windows]
     uses: ./.github/workflows/dnf.yml
     secrets: inherit
     with:

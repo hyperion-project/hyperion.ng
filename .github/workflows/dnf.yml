@@ -39,7 +39,7 @@ on:
         required: false
 
 env:
-  ghcr: paulchen-panther # hyperion-project
+  ghcr: hyperion-project
 
 jobs:
   build:
@@ -56,7 +56,6 @@ jobs:
         ]
         architecture: [
           [ amd64, linux/amd64 ]
-          # [ arm64, linux/arm64 ] temporary disabled
         ]
 
     steps:
@@ -106,7 +105,7 @@ jobs:
 
   publish:
     name: 🚀 Publish RPM packages
-    # if: ${{ github.repository == 'hyperion-project' && inputs.publish }}
+    if: ${{ github.repository == 'hyperion-project' && inputs.publish }}
     needs: [build]
     runs-on: ubuntu-latest
     container:
