@@ -136,11 +136,11 @@ class EncoderThreadManager : public QObject
 public:
 	explicit EncoderThreadManager(QObject *parent = nullptr)
 		: QObject(parent)
-		, _threadCount(static_cast<unsigned long>(qMax(QThread::idealThreadCount(), DEFAULT_THREAD_COUNT)))
+		, _threadCount(qMax(QThread::idealThreadCount(), DEFAULT_THREAD_COUNT))
 		, _threads(nullptr)
 	{
 		_threads = new Thread<EncoderThread>*[_threadCount];
-		for (unsigned long i = 0; i < _threadCount; i++)
+		for (int i = 0; i < _threadCount; i++)
 		{
 			_threads[i] = new Thread<EncoderThread>(new EncoderThread, this);
 			_threads[i]->setObjectName("Encoder " + QString::number(i));
@@ -151,7 +151,7 @@ public:
 	{
 		if (_threads != nullptr)
 		{
-			for(unsigned long  i = 0; i < _threadCount; i++)
+			for(int i = 0; i < _threadCount; i++)
 			{
 				_threads[i]->deleteLater();
 				_threads[i] = nullptr;
@@ -165,18 +165,18 @@ public:
 	void start()
 	{
 		if (_threads != nullptr)
-			for (unsigned long  i = 0; i < _threadCount; i++)
+			for (int i = 0; i < _threadCount; i++)
 				connect(_threads[i]->thread(), &EncoderThread::newFrame, this, &EncoderThreadManager::newFrame);
 	}
 
 	void stop()
 	{
 		if (_threads != nullptr)
-			for(unsigned long  i = 0; i < _threadCount; i++)
+			for(int  i = 0; i < _threadCount; i++)
 				disconnect(_threads[i]->thread(), nullptr, nullptr, nullptr);
 	}
 
-	unsigned long _threadCount;
+	int _threadCount;
 	Thread<EncoderThread>**	_threads;
 
 signals:

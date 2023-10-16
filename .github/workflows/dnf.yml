@@ -81,17 +81,22 @@ jobs:
       - name: 👷 Build
         shell: bash
         run: |
-          DISTRIBUTION=$(echo '${{ matrix.os.distribution }}' | tr '[:upper:]' '[:lower:]')
-          mkdir -p "${GITHUB_WORKSPACE}/deploy"
-          docker run --rm --platform=${{ matrix.architecture[1] }} \
-            -w "/root" \
-            -v "${GITHUB_WORKSPACE}/deploy:/deploy" \
-            -v "${GITHUB_WORKSPACE}:/root/hyperion.ng:rw" \
-            ghcr.io/${{ env.ghcr }}/${DISTRIBUTION}:${{ matrix.os.version }} \
-            /bin/bash -c "tar -czf rpmbuild/SOURCES/hyperion.ng.tar.gz hyperion.ng/ && \
-            cp -f hyperion.ng/rpmbuild/hyperion.spec.in rpmbuild/SPECS/hyperion.spec && \
-            rpmbuild -ba --define '_version ${{ env.VERSION }}' rpmbuild/SPECS/hyperion.spec --clean && \
-            cp -fv rpmbuild/RPMS/$(uname -m)/hyperion* /deploy"
+          echo '::group::Set distribution name to lower case'
+            DISTRIBUTION=$(echo '${{ matrix.os.distribution }}' | tr '[:upper:]' '[:lower:]')
+          echo '::endgroup::'
+
+          echo '::group::Building Hyperion'
+            mkdir -p "${GITHUB_WORKSPACE}/deploy"
+            docker run --rm --platform=${{ matrix.architecture[1] }} \
+              -w "/root" \
+              -v "${GITHUB_WORKSPACE}/deploy:/deploy" \
+              -v "${GITHUB_WORKSPACE}:/root/hyperion.ng:rw" \
+              ghcr.io/${{ env.ghcr }}/${DISTRIBUTION}:${{ matrix.os.version }} \
+              /bin/bash -c "tar -czf rpmbuild/SOURCES/hyperion.ng.tar.gz hyperion.ng/ && \
+              cp -f hyperion.ng/rpmbuild/hyperion.spec.in rpmbuild/SPECS/hyperion.spec && \
+              rpmbuild -ba --define '_version ${{ env.VERSION }}' rpmbuild/SPECS/hyperion.spec --clean && \
+              cp -fv rpmbuild/RPMS/$(uname -m)/hyperion* /deploy"
+          echo '::endgroup::'
         env:
           ACTOR: "Hyperion Project <admin@hyperion-project.org>"
           COMMIT_MESSAGE: ${{ github.event.commits[0].message }}
@@ -143,17 +148,18 @@ jobs:
             declare -A distArray=([fc]=fedora [el]=rhel)
             for file in artifact/hyperion-*.rpm; do
               if [ -f "$file" ]; then
-                dist_ver_arch=${file##*0.}
+                dist_ver_arch=$(basename -- "$file")
                 dist_ver_arch=${dist_ver_arch%.*}
                 dist_ver=${dist_ver_arch%.*}
+                dist_ver=${dist_ver##*.}
                 [ -z "${dist_ver:0:2}" ] && continue
-                rpm=rpm/${distArray[${dist_ver:0:2}]}/${dist_ver:2}/${dist_ver_arch#*.}
+                rpm=rpm/${distArray[${dist_ver:0:2}]}/${dist_ver:2}/${dist_ver_arch##*.}
                 mkdir -p $rpm/ && cp $file $rpm/
                 rpm --define "_gpg_name ${{ steps.import_gpg.outputs.keyid }}" --addsign $rpm/*.rpm
                 rpm --checksig $rpm/*.rpm
                 createrepo $rpm/
                 gpg --yes --detach-sign --armor $rpm/repodata/repomd.xml
-                sed -r "s/@CHANNEL@/${channel}/g; s/@DIST@/${distArray[${dist_ver:0:2}]}/g; s/@ARCH@/${dist_ver_arch#*.}/g" ${GITHUB_WORKSPACE}/rpmbuild/hyperion.repo.in > rpm/${distArray[${dist_ver:0:2}]}/hyperion.repo
+                sed -r "s/@CHANNEL@/${channel}/g; s/@DIST@/${distArray[${dist_ver:0:2}]}/g; s/@ARCH@/${dist_ver_arch##*.}/g" ${GITHUB_WORKSPACE}/rpmbuild/hyperion.repo.in > rpm/${distArray[${dist_ver:0:2}]}/hyperion.repo
               fi
             done
           echo '::endgroup::'

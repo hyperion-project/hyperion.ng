@@ -209,11 +209,6 @@ bool AudioGrabberLinux::start()
 	_isRunning.store(true, std::memory_order_release);
 
 	pthread_attr_t threadAttributes;
-	// int threadPriority = 1;
-
-	// sched_param schedulerParameter;
-	// schedulerParameter.sched_priority = threadPriority;
-
 	if (pthread_attr_init(&threadAttributes) != 0)
 	{
 		Debug(_log, "Failed to create thread attributes");
