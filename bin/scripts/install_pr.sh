@@ -12,6 +12,8 @@ hasPython3=$?
 type python > /dev/null 2> /dev/null
 hasPython2=$?
 
+BASE_PATH='.';
+
 if [[ "${hasWget}" -ne 0 ]] && [[ "${hasCurl}" -ne 0 ]]; then
 	echo '---> Critical Error: wget or curl required to download pull request artifacts'
 	exit 1
@@ -171,20 +173,20 @@ fi
 # Download packed PR artifact
 echo "---> Downloading the Pull Request #$pr_number"
 if [ $hasCurl -eq 0 ]; then
-	curl -skH "Authorization: token ${PR_TOKEN}" -o $HOME/temp.zip -L --get $archive_download_url
+	curl -skH "Authorization: token ${PR_TOKEN}" -o $BASE_PATH/temp.zip -L --get $archive_download_url
 elif [ $hasWget -eq 0 ]; then
     echo "wget"
-	wget --quiet --header="Authorization: token ${PR_TOKEN}" -O $HOME/temp.zip $archive_download_url
+	wget --quiet --header="Authorization: token ${PR_TOKEN}" -O $BASE_PATH/temp.zip $archive_download_url
 fi
 
 # Create new folder & extract PR artifact
 echo "---> Extracting packed Artifact"
-mkdir -p $HOME/hyperion_pr$pr_number
-unzip -p $HOME/temp.zip | tar --strip-components=2 -C $HOME/hyperion_pr$pr_number share/hyperion/ -xz
+mkdir -p $BASE_PATH/hyperion_pr$pr_number
+unzip -p $BASE_PATH/temp.zip | tar --strip-components=2 -C $BASE_PATH/hyperion_pr$pr_number share/hyperion/ -xz
 
 # Delete PR artifact
 echo '---> Remove temporary files'
-rm $HOME/temp.zip 2>/dev/null
+rm $BASE_PATH/temp.zip 2>/dev/null
 
 # Create the startup script
 echo '---> Create startup script'
@@ -209,7 +211,7 @@ if [[ ! -z ${CURRENT_SERVICE} ]]; then
     fi
 fi'""
 
-TARGET_CONFIGDIR="$HOME/hyperion_pr$pr_number/config"
+TARGET_CONFIGDIR="$BASE_PATH/config"
 
 if [[ ! -z ${CONFIGDIR} ]]; then
 STARTUP_SCRIPT+="
@@ -221,19 +223,19 @@ fi
 
 STARTUP_SCRIPT+="
 # Start PR artifact
-cd $HOME/hyperion_pr$pr_number
+cd $BASE_PATH/hyperion_pr$pr_number
 ./bin/hyperiond -d -u $TARGET_CONFIGDIR"
 
 # Place startup script
-echo "$STARTUP_SCRIPT" > $HOME/hyperion_pr$pr_number/$pr_number.sh
+echo "$STARTUP_SCRIPT" > $BASE_PATH/hyperion_pr$pr_number/$pr_number.sh
 
 # Set the executen bit
-chmod +x -R $HOME/hyperion_pr$pr_number/$pr_number.sh
+chmod +x -R $BASE_PATH/hyperion_pr$pr_number/$pr_number.sh
 
 echo "*******************************************************************************"
 echo "Download finished!"
 $REBOOTMESSAGE
-echo "You can test the pull request with this command: ~/hyperion_pr$pr_number/$pr_number.sh"
-echo "Remove the test installation with: rm -R ~/hyperion_pr$pr_number"
+echo "You can test the pull request with this command: $BASE_PATH/hyperion_pr$pr_number/$pr_number.sh"
+echo "Remove the test installation with: rm -R $BASE_PATH/hyperion_pr$pr_number"
 echo "Feedback is welcome at https://github.com/hyperion-project/hyperion.ng/pull/$pr_number"
 echo "*******************************************************************************"
