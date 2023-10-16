@@ -16,24 +16,20 @@ jobs:
 ######################
 
   Linux:
-    name: 🐧 ${{ matrix.dockerName }}
+    name: 🐧 ${{ matrix.os.description }}
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        dockerImage: [ x86_64, armv6l, armv7l, aarch64 ]
+        os: [
+          { description: Debian Buster (x86_64),                 platform: x11,     architecture: linux/amd64  },
+          { description: Debian Buster (Raspberry Pi v1 & ZERO), platform: rpi,     architecture: linux/arm/v7 },
+          { description: Debian Buster (Raspberry Pi 2 & 3),     platform: rpi,     architecture: linux/arm/v7 },
+          { description: Debian Buster (Generic AARCH64),        platform: amlogic, architecture: linux/arm64  }
+        ]
         include:
-          - dockerImage: x86_64
-            dockerName: Debian Buster (x86_64)
-            platform: x11
-          - dockerImage: armv6l
-            dockerName: Debian Buster (Raspberry Pi v1 & ZERO)
-            platform: rpi
-          - dockerImage: armv7l
-            dockerName: Debian Buster (Raspberry Pi 2 & 3)
-            platform: rpi
-          - dockerImage: aarch64
-            dockerName: Debian Buster (Generic AARCH64)
-            platform: amlogic
+          - distribution: debian
+          - codename: buster
 
     steps:
       - name: ⬇ Checkout
@@ -49,12 +45,16 @@ jobs:
             echo -n "+PR${{ github.event.pull_request.number }}" >> .version
           echo '::endgroup::'
 
+      - name: 🛠️ Setup QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: 👷 Build
         env:
-          DOCKER_IMAGE: ${{ matrix.dockerImage }}
-          DOCKER_TAG: buster
-          DOCKER_NAME: ${{ matrix.dockerName }}
-          PLATFORM: ${{ matrix.platform }}
+          DOCKER_IMAGE: ${{ matrix.distribution }}
+          DOCKER_TAG: ${{ matrix.codename }}
+          DOCKER_NAME: ${{ matrix.os.description }}
+          PLATFORM: ${{ matrix.os.platform }}
+          ARCHITECTURE: ${{ matrix.os.architecture }}
         shell: bash
         run: |
           echo '::group::Build packages'
