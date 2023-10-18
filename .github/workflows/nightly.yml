@@ -13,7 +13,7 @@ jobs:
 
   update_submodule:
     name: 🔁 Update Submodule rpi_ws281x (Nightly build only)
-    if: ${{ github.repository == 'hyperion-project' && inputs.nightly }}
+    if: ${{ !startsWith(github.repository, 'hyperion-project') }}
     runs-on: ubuntu-latest
     steps:
       - name: ⬇ Checkout
@@ -55,7 +55,7 @@ jobs:
   check:
     name: 🔀 Compare local <-> nightly (Nightly build only)
     needs: [update_submodule]
-    if: ${{ github.repository == 'hyperion-project' && inputs.nightly }}
+    if: ${{ !startsWith(github.repository, 'hyperion-project') }}
     runs-on: ubuntu-latest
     steps:
       - name: ⬇ Checkout

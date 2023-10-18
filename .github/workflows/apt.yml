@@ -49,20 +49,27 @@ jobs:
       fail-fast: false
       matrix:
         os: [
-          { distribution: ubuntu, codename: focal,    description: Ubuntu 20.04 (Focal Fossa),     },
-          { distribution: ubuntu, codename: jammy,    description: Ubuntu 22.04 (Jammy Jellyfish), },
-          { distribution: ubuntu, codename: lunar,    description: Ubuntu 23.04 (Lunar Lobster),   },
-          { distribution: ubuntu, codename: mantic,   description: Ubuntu 23.10 (Mantic Minotaur), },
-          { distribution: debian, codename: buster,   description: Debian 10.x (Buster),           },
-          { distribution: debian, codename: bullseye, description: Debian 11.x (Bullseye),         },
-          { distribution: debian, codename: bookworm, description: Debian 12.x (Bookworm),         },
-          { distribution: debian, codename: trixie,   description: Debian 13.x (Trixie),           }
+          { distribution: ubuntu, codename: focal,    description: Ubuntu 20.04 (Focal Fossa)     },
+          { distribution: ubuntu, codename: jammy,    description: Ubuntu 22.04 (Jammy Jellyfish) },
+          { distribution: ubuntu, codename: lunar,    description: Ubuntu 23.04 (Lunar Lobster)   },
+          { distribution: ubuntu, codename: mantic,   description: Ubuntu 23.10 (Mantic Minotaur) },
+          { distribution: debian, codename: buster,   description: Debian 10.x (Buster)           },
+          { distribution: debian, codename: bullseye, description: Debian 11.x (Bullseye)         },
+          { distribution: debian, codename: bookworm, description: Debian 12.x (Bookworm)         },
+          { distribution: debian, codename: trixie,   description: Debian 13.x (Trixie)           }
         ]
         architecture: [
-          [ amd64, linux/amd64 ],
-          [ arm64, linux/arm64 ],
+          [ amd64, linux/amd64  ],
+          [ arm64, linux/arm64  ],
           [ armhf, linux/arm/v7 ]
         ]
+        include:
+          - os: { distribution: debian, codename: bullseye, description: Debian 11.x (Bullseye) }
+            architecture: [ armel, linux/arm/v6 ]
+          - os: { distribution: debian, codename: bookworm, description: Debian 12.x (Bookworm) }
+            architecture: [ armel, linux/arm/v6 ]
+          - os: { distribution: debian, codename: trixie, description: Debian 13.x (Trixie) }
+            architecture: [ armel, linux/arm/v6 ]
 
     steps:
       - name: ⬇ Checkout

@@ -1,0 +1,257 @@
+name: Hyperion CI/PR Builds
+run-name: |
+  ${{ github.event_name == 'pull_request' && '📦 Generate artifacts for PR' || '' }}
+  ${{ github.event_name == 'pull_request' && github.event.pull_request.number || '' }}
+  ${{ github.event_name == 'pull_request' && '-' || '' }}
+  ${{ github.event_name == 'push' && '🌱 Push Build -' || '' }}
+  ${{ github.event_name == 'pull_request' && github.event.pull_request.title || github.event.head_commit.message }}
+
+on:
+  push:
+    branches:
+      - '**'
+    tags:
+      - '*'
+  pull_request:
+    branches:
+      - 'master'
+
+# Cancel running actions when a new action on the same PR is started
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+
+######################
+###### Linux #########
+######################
+
+  Linux:
+    name: 🐧 ${{ matrix.os.description }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [
+          { description: Debian Buster (x86_64),                 platform: x11,     architecture: [ amd64,   linux/amd64  ] },
+          { description: Debian Buster (Raspberry Pi v1 & ZERO), platform: rpi,     architecture: [ armv6,   linux/arm/v5 ] },
+          { description: Debian Buster (Raspberry Pi 2/3/4),     platform: rpi,     architecture: [ armv7,   linux/arm/v7 ] },
+          { description: Debian Buster (Generic AARCH64),        platform: amlogic, architecture: [ aarch64, linux/arm64  ] }
+        ]
+        include:
+          - distribution: debian
+          - codename: buster
+
+    steps:
+      - name: ⬇ Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: 🔧 Prepare PR
+        if: ${{ github.event_name == 'pull_request' }}
+        shell: bash
+        run: |
+          echo '::group::Append PR number to version'
+            tr -d '\n' < .version > temp && mv temp .version
+            echo -n "+PR${{ github.event.pull_request.number }}" >> .version
+          echo '::endgroup::'
+
+      - name: 🛠️ Setup QEMU
+        if: ${{ matrix.os.architecture[0] != 'amd64' }}
+        uses: docker/setup-qemu-action@v3
+
+      - name: 👷 Build
+        shell: bash
+        run: |
+          echo '::group::Build Hyperion'
+            ./.github/scripts/build.sh
+          echo '::endgroup::'
+        env:
+          DOCKER_IMAGE: ${{ matrix.distribution }}
+          DOCKER_TAG: ${{ matrix.codename }}
+          PLATFORM: ${{ matrix.os.platform }}
+          TARGET_ARCH: ${{ matrix.os.architecture[1] }}
+
+      - name: 📦 Upload
+        if: ${{ startsWith(github.event.ref, 'refs/tags') || github.event_name == 'pull_request' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ github.event_name == 'pull_request' && matrix.os.architecture[0] || 'artifact' }}
+          path: ${{ github.event_name == 'pull_request' && 'deploy/*.tar.gz' || 'deploy/Hyperion-*' }}
+
+######################
+###### macOS #########
+######################
+
+  macOS:
+    name: 🍏 macOS
+    runs-on: macos-latest
+    steps:
+      - name: ⬇ Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: 🔧 Prepare PR
+        if: ${{ github.event_name == 'pull_request' }}
+        shell: bash
+        run: |
+          echo '::group::Append PR number to version'
+            tr -d '\n' < .version > temp && mv temp .version
+            echo -n "+PR${{ github.event.pull_request.number }}" >> .version
+          echo '::endgroup::'
+
+      - name: 👷 Build
+        shell: bash
+        run: |
+          echo '::group::Update/Install dependencies'
+            brew update || true
+            brew install --overwrite qt5 libusb
+            brew link --overwrite --force qt5
+          echo '::endgroup::'
+
+          echo '::group::Build packages'
+            ./.github/scripts/build.sh
+          echo '::endgroup::'
+        env:
+          PLATFORM: osx
+
+      - name: 📦 Upload
+        if: ${{ startsWith(github.event.ref, 'refs/tags') || github.event_name == 'pull_request' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ github.event_name == 'pull_request' && 'macOS' || 'artifact' }}
+          path: 'build/Hyperion-*'
+
+######################
+###### Windows #######
+######################
+
+  windows:
+    name: 🪟 Windows
+    runs-on: windows-2022
+    env:
+      VCINSTALLDIR: 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC'
+      QT_VERSION: 5.15.2
+    steps:
+      - name: ⬇ Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: 🔧 Prepare PR
+        if: ${{ github.event_name == 'pull_request' }}
+        shell: bash
+        run: |
+          echo '::group::Append PR number to version'
+            tr -d '\n' < .version > temp && mv temp .version
+            echo -n "+PR${{ github.event.pull_request.number }}" >> .version
+          echo '::endgroup::'
+
+      - name: 💾 Cache/Restore
+        uses: actions/cache@v3
+        with:
+          path: C:\Users\runneradmin\AppData\Local\Temp\chocolatey
+          key: ${{ runner.os }}-chocolatey
+
+      - name: 📥 Install OpenSSL, DirectX SDK, libjpeg-turbo
+        shell: powershell
+        run: |
+          choco install --no-progress openssl --version=1.1.1.2100 -y
+          choco install --no-progress directx-sdk -y
+          Invoke-WebRequest https://netcologne.dl.sourceforge.net/project/libjpeg-turbo/2.0.6/libjpeg-turbo-2.0.6-vc64.exe -OutFile libjpeg-turbo.exe -UserAgent NativeHost
+          .\libjpeg-turbo /S
+
+      - name: 📥 Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: ${{env.QT_VERSION}}
+          target: 'desktop'
+          arch: 'win64_msvc2019_64'
+          cache: 'true'
+          cache-key-prefix: 'cache-qt-windows'
+
+      - name: 🛠️ Setup MSVC
+        shell: cmd
+        run: call "${{env.VCINSTALLDIR}}\Auxiliary\Build\vcvars64.bat"
+
+      - name: 👷 Build
+        shell: bash
+        run: |
+          echo '::group::Build packages'
+            ./.github/scripts/build.sh
+          echo '::endgroup::'
+        env:
+          PLATFORM: windows
+
+      - name: 📦 Upload
+        if: ${{ startsWith(github.event.ref, 'refs/tags') || github.event_name == 'pull_request' }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ github.event_name == 'pull_request' && 'windows' || 'artifact' }}
+          path: ${{ github.event_name == 'pull_request' && 'build/*.exe' || 'build/Hyperion-*' }}
+
+#####################################
+###### Publish GitHub Releases ######
+#####################################
+
+  github_publish:
+    name: 🚀 Publish GitHub Releases
+    if: startsWith(github.event.ref, 'refs/tags')
+    needs: [Linux, macOS, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇ Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔧 Prepare
+        run: |
+          echo '::group::Generate environment variables from .version and tag'
+            echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
+            echo "VERSION=$(tr -d '\n' < .version)" >> $GITHUB_ENV
+          echo '::endgroup::'
+
+      - name: 💾 Artifact download
+        uses: actions/download-artifact@v3.0.2
+        with:
+          path: artifacts
+
+      - name: 📦 Upload
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Hyperion ${{ env.VERSION }}
+          tag_name: ${{ env.TAG }}
+          files: "artifacts/**"
+          draft: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+###################################
+###### APT reusable workflow ######
+###################################
+
+  apt_build:
+    name: APT Build
+    if: startsWith(github.event.ref, 'refs/tags')
+    needs: [Linux, macOS, windows]
+    uses: ./.github/workflows/apt.yml
+    secrets: inherit
+    with:
+      nightly: false
+      publish: true
+
+###################################
+###### DNF reusable workflow ######
+###################################
+
+  dnf_build:
+    name: DNF Build
+    if: startsWith(github.event.ref, 'refs/tags')
+    needs: [Linux, macOS, windows]
+    uses: ./.github/workflows/dnf.yml
+    secrets: inherit
+    with:
+      nightly: false
+      publish: true

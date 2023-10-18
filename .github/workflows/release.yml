@@ -1,4 +1,5 @@
-name: Release Actions
+name: 🚀 Release Actions
+run-name: 🚀 Let HyperBian create
 
 on:
   release:
