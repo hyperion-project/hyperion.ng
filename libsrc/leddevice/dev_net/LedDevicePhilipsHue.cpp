@@ -584,11 +584,7 @@ int LedDevicePhilipsHueBridge::close()
 bool LedDevicePhilipsHueBridge::configureSsl()
 {
 	_restApi->setAlternateServerIdentity(_deviceBridgeId);
-
-	if (_isDiyHue)
-	{
-		_restApi->acceptSelfSignedCertificates(true);
-	}
+	_restApi->acceptSelfSignedCertificates(true);
 
 	bool success = _restApi->setCaCertificate(API_SSL_CA_CERTIFICATE_RESSOURCE);
 	if (!success)
