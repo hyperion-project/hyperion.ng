@@ -444,6 +444,8 @@ private:
 
 	bool checkServerIdentity(const QSslConfiguration& sslConfig) const;
 
+	bool matchesPinnedCertificate(const QSslCertificate& certificate);
+
 	Logger* _log;
 
 	/// QNetworkAccessManager object for sending REST-requests.
