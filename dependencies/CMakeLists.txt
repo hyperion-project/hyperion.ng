@@ -12,23 +12,6 @@ if(ENABLE_DEV_WS281XPWM)
 		external/rpi_ws281x/pwm.c external/rpi_ws281x/dma.c
 		external/rpi_ws281x/pcm.c
 		external/rpi_ws281x/rpihw.c)
-
-	#Workaround: Copy ws281x headers to avoid that the "version" file is treated as a header file.
-	set(WS281X_SOURCE_DIR "${CMAKE_SOURCE_DIR}/dependencies/external/rpi_ws281x")
-	set(WS281X_DEST_DIR "${CMAKE_SOURCE_DIR}/dependencies/include/ws2811")
-	file(GLOB WS281X_HEADER_FILES "${WS281X_SOURCE_DIR}/*.h")
-
-	message(STATUS "WS281X_SOURCE_DIR = ${WS281X_SOURCE_DIR}")
-	message(STATUS "WS281X_DEST_DIR = ${WS281X_DEST_DIR}")
-	message(STATUS "WS281X_HEADER_FILES = ${WS281X_HEADER_FILES}")
-
-	add_custom_command(
-		TARGET ws281x
-		PRE_BUILD
-		COMMAND ${CMAKE_COMMAND} -E make_directory "${WS281X_DEST_DIR}"
-		COMMAND ${CMAKE_COMMAND} -E copy_if_different ${WS281X_HEADER_FILES} "${WS281X_DEST_DIR}"
-	)
-
 endif()
 
 #=============================================================================
@@ -150,9 +133,9 @@ endif()
 
 if(ENABLE_PROTOBUF_SERVER)
 	set(USE_SYSTEM_PROTO_LIBS ${DEFAULT_USE_SYSTEM_PROTO_LIBS} CACHE BOOL "use protobuf library from system")
-
+	
 	# defines for 3rd party sub-modules
-	set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "Build abseil-cpp with C++ version requirements propagated")
+	set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "Build abseil-cpp with C++ version requirements propagated")	
 
 	if (USE_SYSTEM_PROTO_LIBS)
 		find_package(Protobuf REQUIRED)
@@ -180,7 +163,7 @@ if(ENABLE_PROTOBUF_SERVER)
 
 		# define the protobuf library
 		set(PROTOBUF_LIBRARIES protobuf::libprotobuf)
-
+		
 	endif()
 
 	# redefine at parent scope

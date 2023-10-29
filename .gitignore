@@ -23,9 +23,6 @@ compile_commands.json
 libsrc/flatbufserver/hyperion_reply_generated.h
 libsrc/flatbufserver/hyperion_request_generated.h
 
-# Copied ws281x header files
-/dependencies/include/ws2811
-
 # Kdevelop project files
 *.kdev*
 
