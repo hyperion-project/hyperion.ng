@@ -60,7 +60,7 @@ if ( ENABLE_DEV_USB_HID )
 endif()
 
 if ( ENABLE_DEV_WS281XPWM )
-	include_directories(../../dependencies/external/rpi_ws281x)
+	target_include_directories(ws281x PRIVATE "${CMAKE_SOURCE_DIR}/include/ws2811")
 	FILE ( GLOB Leddevice_PWM_SOURCES "${CURRENT_SOURCE_DIR}/dev_rpi_pwm/*.h" "${CURRENT_SOURCE_DIR}/dev_rpi_pwm/*.cpp")
 endif()
 
