@@ -222,9 +222,10 @@ if (HYPERION_LIGHT)
 	SET ( DEFAULT_OSX                         OFF )
 	SET ( DEFAULT_QT                          OFF )
 	SET ( DEFAULT_V4L2                        OFF )
-	SET ( DEFAULT_AUDIO                       OFF )
 	SET ( DEFAULT_X11                         OFF )
 	SET ( DEFAULT_XCB                         OFF )
+
+	SET ( DEFAULT_AUDIO                       OFF )
 
 	# Disable Input Servers
 	SET ( DEFAULT_BOBLIGHT_SERVER             OFF )
@@ -274,14 +275,12 @@ message(STATUS "ENABLE_V4L2 = ${ENABLE_V4L2}")
 
 option(ENABLE_X11 "Enable the X11 grabber" ${DEFAULT_X11})
 message(STATUS "ENABLE_X11 = ${ENABLE_X11}")
-option(ENABLE_AUDIO "Enable the AUDIO grabber" ${DEFAULT_AUDIO})
-message(STATUS "ENABLE_AUDIO = ${ENABLE_AUDIO}")
-
-option(ENABLE_WS281XPWM "Enable the WS281x-PWM device" ${DEFAULT_WS281XPWM} )
-message(STATUS "ENABLE_WS281XPWM = ${ENABLE_WS281XPWM}")
 
 option(ENABLE_XCB "Enable the XCB grabber" ${DEFAULT_XCB})
 message(STATUS "ENABLE_XCB = ${ENABLE_XCB}")
+
+option(ENABLE_AUDIO "Enable the AUDIO grabber" ${DEFAULT_AUDIO})
+message(STATUS "ENABLE_AUDIO = ${ENABLE_AUDIO}")
 
 removeIndent()
 
