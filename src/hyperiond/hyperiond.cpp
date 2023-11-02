@@ -92,8 +92,8 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	, _osxGrabber(nullptr)
 	, _qtGrabber(nullptr)
 	, _dxGrabber(nullptr)
-	, _ssdp(nullptr)
 	, _audioGrabber(nullptr)
+	, _ssdp(nullptr)
 #ifdef ENABLE_CEC
 	, _cecHandler(nullptr)
 #endif
@@ -177,7 +177,8 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	// ---- network services -----
 	startNetworkServices();
 
-	_suspendHandler = new SuspendHandler();
+	// init events services
+	handleSettingsUpdate(settings::SYSTEMEVENTS, getSetting(settings::SYSTEMEVENTS));
 }
 
 HyperionDaemon::~HyperionDaemon()
@@ -741,6 +742,19 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 #else
 		Debug(_log, "Audio capture not supported on this platform");
 #endif
+	}
+	else if (settingsType == settings::SYSTEMEVENTS)
+	{
+		// Create suspend handler
+		if (_suspendHandler == nullptr)
+		{
+			_suspendHandler = new SuspendHandler();
+			_suspendHandler->handleSettingsUpdate(settings::SYSTEMEVENTS, getSetting(settings::SYSTEMEVENTS));
+
+			connect(this, &HyperionDaemon::settingsChanged, _suspendHandler, &SuspendHandler::handleSettingsUpdate);
+
+			Debug(_log, "SuspendHandler created");
+		}
 	}
 }
 

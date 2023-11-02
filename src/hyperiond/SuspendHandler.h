@@ -1,6 +1,11 @@
 #ifndef SUSPENDHANDLER_H
 #define SUSPENDHANDLER_H
 #include <QObject>
+#include <QJsonDocument>
+
+#include <utils/settings.h>
+
+class Logger;
 
 class SuspendHandlerBase : public QObject {
 	Q_OBJECT
@@ -22,12 +27,39 @@ public slots:
 
 	void lock(bool isLocked);
 
+	virtual void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
+
 signals:
 
 	void suspendEvent();
 	void resumeEvent();
 	void lockedEvent(bool);
 	void idleEvent(bool);
+
+protected:
+
+	virtual bool registerSuspendHandler();
+	virtual void unregisterSuspendHandler();
+	virtual bool registerLockHandler();
+	virtual void unregisterLockHandler();
+
+	virtual bool registerSuspendApiHandler();
+	virtual void unregisterSuspendApiHandler();
+	virtual bool registerIdleApiHandler();
+	virtual void unregisterIdleApiHandler();
+
+	bool _isSuspendEnabled;
+	bool _isLockEnabled;
+	bool _isSuspendApiEnabled;
+	bool _isIdleApiEnabled;
+	bool _isSuspendOnLock;
+
+	bool _isSuspendRegistered;
+	bool _isLockRegistered;
+	bool _isSuspendApiRegistered;
+	bool _isIdleApiRegistered;
+
+	Logger * _log {};
 
 private:
 
@@ -56,6 +88,12 @@ protected:
 #endif
 
 private:
+
+	bool registerSuspendHandler() override;
+	bool unregisterSuspendHandler() override;
+	void registerLockHandler() override;
+	void unregisterLockHandler() override;
+
 	QWidget			_widget;
 	HPOWERNOTIFY	_notifyHandle;
 };
@@ -65,9 +103,16 @@ using SuspendHandler = SuspendHandlerWindows;
 #elif defined(__linux__) && defined(HYPERION_HAS_DBUS)
 
 class SuspendHandlerLinux : public SuspendHandlerBase {
+	Q_OBJECT
 
 public:
 	SuspendHandlerLinux();
+
+private:
+	bool registerSuspendHandler() override;
+	void unregisterSuspendHandler() override;
+	bool registerLockHandler() override;
+	void unregisterLockHandler() override;
 };
 
 using SuspendHandler = SuspendHandlerLinux;

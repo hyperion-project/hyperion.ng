@@ -84,7 +84,13 @@ public slots:
 	void resume();
 
 	///
-	/// @brief Toggle the state of all Hyperion instances for an idle sceanrio (user is not interacting with the system
+	/// @brief Toggle the state of all Hyperion instances for a suspend sceanrio (user is not interacting with the system)
+	/// @param isSuspend, If true all instances toggle to suspend, else to resume
+	///
+	void toggleSuspend(bool isSuspend);
+
+	///
+	/// @brief Toggle the state of all Hyperion instances for an idle sceanrio
 	/// @param isIdle, If true all instances toggle to idle, else to resume
 	///
 	void toggleIdle(bool isIdle);

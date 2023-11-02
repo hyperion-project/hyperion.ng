@@ -248,5 +248,10 @@
 			"vmax": 0.08,
 			"vmin": 0
 		}
-	]
+	],
+	
+	"systemEvents": {
+		"suspendEnable": true,
+		"lockEnable": true
+	}
 }

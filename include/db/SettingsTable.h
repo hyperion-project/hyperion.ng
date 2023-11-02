@@ -112,6 +112,8 @@ public:
 		list << "jsonServer" << "protoServer" << "flatbufServer" << "forwarder" << "webConfig" << "network"
 		// capture
 		<< "framegrabber" << "grabberV4L2" << "grabberAudio"
+		//Events
+		<< "systemEvents"
 		// other
 		<< "logger" << "general";
 

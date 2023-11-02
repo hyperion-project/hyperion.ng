@@ -90,6 +90,10 @@
 		"leds":
 		{
 			"$ref": "schema-leds.json"
+		},
+		"systemEvents":
+		{
+			"$ref": "schema-systemEvents.json"
 		}
 	},
 	"additionalProperties" : false

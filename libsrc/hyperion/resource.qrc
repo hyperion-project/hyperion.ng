@@ -23,5 +23,6 @@
 		<file alias="schema-leds.json">schema/schema-leds.json</file>
 		<file alias="schema-instCapture.json">schema/schema-instCapture.json</file>
 		<file alias="schema-network.json">schema/schema-network.json</file>
+		<file alias="schema-systemEvents.json">schema/schema-systemEvents.json</file>
 	</qresource>
 </RCC>

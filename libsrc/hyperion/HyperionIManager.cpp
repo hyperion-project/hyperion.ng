@@ -83,6 +83,16 @@ void HyperionIManager::resume()
 	}
 }
 
+void HyperionIManager::toggleSuspend(bool isSuspend)
+{
+	Info(_log,"Put all instances in %s state", isSuspend ? "suspend" : "working");
+	QMap<quint8, Hyperion*> instCopy = _runningInstances;
+	for(const auto instance : instCopy)
+	{
+		emit instance->suspendRequest(isSuspend);
+	}
+}
+
 void HyperionIManager::toggleIdle(bool isIdle)
 {
 	Info(_log,"Put all instances in %s state", isIdle ? "idle" : "working");
