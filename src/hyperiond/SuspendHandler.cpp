@@ -5,14 +5,28 @@
 #include <QJsonObject>
 
 #include <hyperion/HyperionIManager.h>
+#include <utils/Logger.h>
 #include <iostream>
+
+#if defined(_WIN32)
+#include <QCoreApplication>
+#include <QWidget>
+#include <windows.h>
+#include <wtsapi32.h>
+
+#pragma comment( lib, "wtsapi32.lib" )
+#endif
 
 SuspendHandlerBase::SuspendHandlerBase()
 	: _isSuspendEnabled(false)
 	, _isLockEnabled(false)
+	, _isSuspendApiEnabled(false)
+	, _isIdleApiEnabled(false)
 	, _isSuspendOnLock(false)
 	, _isSuspendRegistered(false)
 	, _isLockRegistered(false)
+	, _isSuspendApiRegistered(false)
+	, _isIdleApiRegistered(false)
 	, _isSuspended(false)
 	, _isIdle(false)
 	, _isLocked (false)
@@ -90,11 +104,10 @@ void SuspendHandlerBase::handleSettingsUpdate(settings::type type, const QJsonDo
 
 bool SuspendHandlerBase::registerSuspendHandler()
 {
-	Debug(_log, "_isSuspendRegistered: %d", _isSuspendRegistered);
 	if (!_isSuspendRegistered)
 	{
-		connect(this, &SuspendHandlerBase::suspendEvent, HyperionIManager::getInstance(), &HyperionIManager::suspend);
-		connect(this, &SuspendHandlerBase::resumeEvent, HyperionIManager::getInstance(), &HyperionIManager::resume);
+		QObject::connect(this, &SuspendHandlerBase::suspendEvent, HyperionIManager::getInstance(), &HyperionIManager::suspend);
+		QObject::connect(this, &SuspendHandlerBase::resumeEvent, HyperionIManager::getInstance(), &HyperionIManager::resume);
 		Info(_log, "Registered for suspend/resume events.");
 		_isSuspendRegistered = true;
 	}
@@ -105,8 +118,8 @@ void SuspendHandlerBase::unregisterSuspendHandler()
 {
 	if (_isSuspendRegistered)
 	{
-		disconnect(this, &SuspendHandlerBase::suspendEvent, HyperionIManager::getInstance(), &HyperionIManager::suspend);
-		disconnect(this, &SuspendHandlerBase::resumeEvent, HyperionIManager::getInstance(), &HyperionIManager::resume);
+		QObject::disconnect(this, &SuspendHandlerBase::suspendEvent, HyperionIManager::getInstance(), &HyperionIManager::suspend);
+		QObject::disconnect(this, &SuspendHandlerBase::resumeEvent, HyperionIManager::getInstance(), &HyperionIManager::resume);
 		Info(_log, "Unregistered for suspend/resume events.");
 		_isSuspendRegistered = false;
 	}
@@ -114,16 +127,16 @@ void SuspendHandlerBase::unregisterSuspendHandler()
 
 bool SuspendHandlerBase::registerLockHandler()
 {
-	disconnect(this, &SuspendHandlerBase::lockedEvent,nullptr, nullptr);
+	QObject::disconnect(this, &SuspendHandlerBase::lockedEvent,nullptr, nullptr);
 	if (_isSuspendOnLock)
 	{
-		connect(this, &SuspendHandlerBase::lockedEvent, HyperionIManager::getInstance(), &HyperionIManager::toggleSuspend);
+		QObject::connect(this, &SuspendHandlerBase::lockedEvent, HyperionIManager::getInstance(), &HyperionIManager::toggleSuspend);
 	}
 	else
 	{
-		connect(this, &SuspendHandlerBase::lockedEvent, HyperionIManager::getInstance(), &HyperionIManager::toggleIdle);
+		QObject::connect(this, &SuspendHandlerBase::lockedEvent, HyperionIManager::getInstance(), &HyperionIManager::toggleIdle);
 	}
-	connect(this, &SuspendHandlerBase::idleEvent, HyperionIManager::getInstance(), &HyperionIManager::toggleIdle);
+	QObject::connect(this, &SuspendHandlerBase::idleEvent, HyperionIManager::getInstance(), &HyperionIManager::toggleIdle);
 	Info(_log, "Registered for lock/unlock events. %s on lock event.", _isSuspendOnLock ? "Suspend" : "Idle");
 	_isLockRegistered = true;
 	return true;
@@ -133,9 +146,9 @@ void SuspendHandlerBase::unregisterLockHandler()
 {
 	if (_isLockRegistered)
 	{
-		disconnect(this, &SuspendHandlerBase::lockedEvent, HyperionIManager::getInstance(), &HyperionIManager::toggleSuspend);
-		disconnect(this, &SuspendHandlerBase::lockedEvent, HyperionIManager::getInstance(), &HyperionIManager::toggleIdle);
-		disconnect(this, &SuspendHandlerBase::idleEvent, HyperionIManager::getInstance(), &HyperionIManager::toggleIdle);
+		QObject::disconnect(this, &SuspendHandlerBase::lockedEvent, HyperionIManager::getInstance(), &HyperionIManager::toggleSuspend);
+		QObject::disconnect(this, &SuspendHandlerBase::lockedEvent, HyperionIManager::getInstance(), &HyperionIManager::toggleIdle);
+		QObject::disconnect(this, &SuspendHandlerBase::idleEvent, HyperionIManager::getInstance(), &HyperionIManager::toggleIdle);
 		Info(_log, "Unregistered for lock/unlock events.");
 		_isLockRegistered = false;
 	}
@@ -146,8 +159,8 @@ bool SuspendHandlerBase::registerSuspendApiHandler()
 {
 	if (!_isSuspendApiRegistered)
 	{
-		connect(HyperionIManager::getInstance(), &HyperionIManager::triggerSuspend, this, QOverload<bool>::of(&SuspendHandler::suspend));
-		connect(HyperionIManager::getInstance(), &HyperionIManager::triggerToggleSuspend, this, &SuspendHandler::toggleSuspend);
+		QObject::connect(HyperionIManager::getInstance(), &HyperionIManager::triggerSuspend, this, QOverload<bool>::of(&SuspendHandler::suspend));
+		QObject::connect(HyperionIManager::getInstance(), &HyperionIManager::triggerToggleSuspend, this, &SuspendHandler::toggleSuspend);
 		Info(_log, "Registered for suspend/resume API events.");
 		_isSuspendApiRegistered = true;
 	}
@@ -158,8 +171,8 @@ void SuspendHandlerBase::unregisterSuspendApiHandler()
 {
 	if (_isSuspendApiRegistered)
 	{
-		disconnect(HyperionIManager::getInstance(), &HyperionIManager::triggerSuspend, this, QOverload<bool>::of(&SuspendHandler::suspend));
-		disconnect(HyperionIManager::getInstance(), &HyperionIManager::triggerToggleSuspend, this, &SuspendHandler::toggleSuspend);
+		QObject::disconnect(HyperionIManager::getInstance(), &HyperionIManager::triggerSuspend, this, QOverload<bool>::of(&SuspendHandler::suspend));
+		QObject::disconnect(HyperionIManager::getInstance(), &HyperionIManager::triggerToggleSuspend, this, &SuspendHandler::toggleSuspend);
 		Info(_log, "Unregistered for suspend/resume API events.");
 		_isSuspendApiRegistered = false;
 	}
@@ -169,8 +182,8 @@ bool SuspendHandlerBase::registerIdleApiHandler()
 {
 	if (!_isIdleApiRegistered)
 	{
-		connect(HyperionIManager::getInstance(), &HyperionIManager::triggerIdle, this, &SuspendHandler::idle);
-		connect(HyperionIManager::getInstance(), &HyperionIManager::triggerToggleIdle, this, &SuspendHandler::toggleIdle);
+		QObject::connect(HyperionIManager::getInstance(), &HyperionIManager::triggerIdle, this, &SuspendHandler::idle);
+		QObject::connect(HyperionIManager::getInstance(), &HyperionIManager::triggerToggleIdle, this, &SuspendHandler::toggleIdle);
 		Info(_log, "Registered for idle API events.");
 		_isIdleApiRegistered = true;
 	}
@@ -181,8 +194,8 @@ void SuspendHandlerBase::unregisterIdleApiHandler()
 {
 	if (_isIdleApiRegistered)
 	{
-		disconnect(HyperionIManager::getInstance(), &HyperionIManager::triggerIdle, this, &SuspendHandler::idle);
-		disconnect(HyperionIManager::getInstance(), &HyperionIManager::triggerToggleIdle, this, &SuspendHandler::toggleIdle);
+		QObject::disconnect(HyperionIManager::getInstance(), &HyperionIManager::triggerIdle, this, &SuspendHandler::idle);
+		QObject::disconnect(HyperionIManager::getInstance(), &HyperionIManager::triggerToggleIdle, this, &SuspendHandler::toggleIdle);
 		Info(_log, "Unregistered for idle API events.");
 		_isIdleApiRegistered = false;
 	}
@@ -314,14 +327,9 @@ void SuspendHandlerBase::lock(bool isLocked)
 }
 
 #if defined(_WIN32)
-#include <QCoreApplication>
-#include <QWidget>
-#include <windows.h>
-#include <wtsapi32.h>
-
-#pragma comment( lib, "wtsapi32.lib" )
 
 SuspendHandlerWindows::SuspendHandlerWindows()
+	: _notifyHandle(NULL)
 {
 }
 
@@ -374,7 +382,7 @@ bool SuspendHandlerWindows::nativeEventFilter(const QByteArray& eventType, void*
 
 bool SuspendHandlerWindows::registerSuspendHandler()
 {
-	bool isRegistered {false};
+	bool isRegistered{ _isSuspendRegistered };
 	if (!_isSuspendRegistered)
 	{
 		auto handle = reinterpret_cast<HWND> (_widget.winId());
@@ -382,11 +390,15 @@ bool SuspendHandlerWindows::registerSuspendHandler()
 		if (_notifyHandle != NULL)
 		{
 			QCoreApplication::instance()->installNativeEventFilter(this);
-			isRegistered = SuspendHandlerBase::registerSuspendHandler();
 		}
 		else
 		{
 			Error(_log, "Could not register for suspend/resume events!");
+		}
+
+		if (isRegistered)
+		{
+			isRegistered = SuspendHandlerBase::registerSuspendHandler();
 		}
 	}
 	return isRegistered;
@@ -408,18 +420,25 @@ void SuspendHandlerWindows::unregisterSuspendHandler()
 
 bool SuspendHandlerWindows::registerLockHandler()
 {
-	bool isRegistered {false};
+	bool isRegistered{ _isLockRegistered };
 	if (!_isLockRegistered)
 	{
 		auto handle = reinterpret_cast<HWND> (_widget.winId());
 		if (WTSRegisterSessionNotification(handle, NOTIFY_FOR_THIS_SESSION))
 		{
-			isRegistered = SuspendHandlerBase::registerLockHandler();
+			isRegistered = true;
 		}
 		else
 		{
 			Error(_log, "Could not register for lock/unlock events!");
 		}
+
+
+	}
+
+	if (isRegistered)
+	{
+		isRegistered = SuspendHandlerBase::registerLockHandler();
 	}
 	return isRegistered;
 }

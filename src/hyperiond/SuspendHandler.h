@@ -3,6 +3,13 @@
 #include <QObject>
 #include <QJsonDocument>
 
+#if defined(_WIN32)
+#include <QAbstractNativeEventFilter>
+#include <QAbstractEventDispatcher>
+#include <QWidget>
+#include <windows.h>
+#endif
+
 #include <utils/settings.h>
 
 class Logger;
@@ -12,7 +19,7 @@ class SuspendHandlerBase : public QObject {
 
 public:
 	SuspendHandlerBase();
-	virtual ~SuspendHandlerBase() override;
+	~SuspendHandlerBase() override;
 
 public slots:
 
@@ -69,10 +76,6 @@ private:
 };
 
 #if defined(_WIN32)
-#include <QAbstractNativeEventFilter>
-#include <QAbstractEventDispatcher>
-#include <QWidget>
-#include <windows.h>
 
 class SuspendHandlerWindows : public SuspendHandlerBase, public QAbstractNativeEventFilter {
 
@@ -90,8 +93,8 @@ protected:
 private:
 
 	bool registerSuspendHandler() override;
-	bool unregisterSuspendHandler() override;
-	void registerLockHandler() override;
+	void unregisterSuspendHandler() override;
+	bool registerLockHandler() override;
 	void unregisterLockHandler() override;
 
 	QWidget			_widget;
