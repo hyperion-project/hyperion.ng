@@ -36,8 +36,6 @@ void JsonClientConnection::readRequest()
 		// remove message data from buffer
 		_receiveBuffer = _receiveBuffer.mid(bytes);
 
-		std::cout << "JsonClientConnection::readRequest | [" << _socket->peerAddress().toString().toStdString() << "] Received: [" << message.toStdString() << "]" << std::endl;
-
 		// handle message
 		_jsonAPI->handleMessage(message);
 
@@ -50,8 +48,6 @@ qint64 JsonClientConnection::sendMessage(QJsonObject message)
 {
 	QJsonDocument writer(message);
 	QByteArray data = writer.toJson(QJsonDocument::Compact) + "\n";
-
-	std::cout << "JsonClientConnection::sendMessage | [" << _socket->peerAddress().toString().toStdString() << "] Send: [" << data.constData() << "]" << std::endl;
 
 	if (!_socket || (_socket->state() != QAbstractSocket::ConnectedState)) return 0;
 	return _socket->write(data.data(), data.size());
