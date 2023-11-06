@@ -30,28 +30,16 @@ if (APPLE)
 	set_source_files_properties(${BUNDLE_RESOURCE_FILES} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 endif(APPLE)
 
-if (UNIX)
-	find_package(Qt${QT_VERSION_MAJOR} COMPONENTS DBus QUIET )
-	if (Qt${QT_VERSION_MAJOR}DBus_FOUND)
-		set(hyperiond_POWER_MNG_DBUS "Qt${QT_VERSION_MAJOR}::DBus")
-	endif()
-endif(UNIX)
-
 add_executable(${PROJECT_NAME}
 	console.h
 	hyperiond.h
 	systray.h
 	hyperiond.cpp
 	systray.cpp
-	SuspendHandler.cpp
 	main.cpp
 	${hyperiond_WIN_RC_PATH}
 	${BUNDLE_RESOURCE_FILES}
 )
-
-if (UNIX AND NOT APPLE AND Qt${QT_VERSION_MAJOR}DBus_FOUND)
-	target_compile_definitions(${PROJECT_NAME} PUBLIC HYPERION_HAS_DBUS)
-endif()
 
 # promote hyperiond as GUI app
 if (WIN32)
@@ -66,11 +54,11 @@ target_link_libraries(${PROJECT_NAME}
 	ssdp
 	database
 	resources
+	events
 	Qt${QT_VERSION_MAJOR}::Core
 	Qt${QT_VERSION_MAJOR}::Gui
 	Qt${QT_VERSION_MAJOR}::Network
 	Qt${QT_VERSION_MAJOR}::Widgets
-	${hyperiond_POWER_MNG_DBUS}
 )
 
 if(ENABLE_EFFECTENGINE)
@@ -119,7 +107,7 @@ if (ENABLE_MF)
 endif (ENABLE_MF)
 
 if (ENABLE_AUDIO)
-	target_link_libraries(hyperiond audio-grabber)
+	target_link_libraries(${PROJECT_NAME} audio-grabber)
 endif()
 
 if (ENABLE_AMLOGIC)

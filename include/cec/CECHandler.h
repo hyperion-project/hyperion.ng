@@ -7,7 +7,10 @@
 
 #include <libcec/cec.h>
 
-#include <cec/CECEvent.h>
+#include <utils/settings.h>
+
+//#include <cec/CECEvent.h>
+#include <events/Event.h>
 
 using CECCallbacks         = CEC::ICECCallbacks;
 using CECAdapter           = CEC::ICECAdapter;
@@ -39,8 +42,12 @@ public slots:
 	bool start();
 	void stop();
 
+	virtual void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
+
 signals:
-	void cecEvent(CECEvent event);
+	//void cecEvent(CECEvent event);
+
+	void signalEvent(Event event);
 
 private:
 	/* CEC Callbacks */
@@ -64,6 +71,8 @@ private:
 	CECAdapter * _cecAdapter   {};
 	CECCallbacks _cecCallbacks {};
 	CECConfig    _cecConfig    {};
+
+	bool _isEnabled;
 
 	Logger * _logger {};
 };

@@ -5,6 +5,7 @@
 #include <utils/VideoMode.h>
 #include <utils/settings.h>
 #include <utils/Components.h>
+#include <events/Event.h>
 
 // qt
 #include <QMap>
@@ -74,26 +75,10 @@ public slots:
 	bool stopInstance(quint8 inst);
 
 	///
-	/// @brief Suspend (disable) all Hyperion instances
+	/// @brief Handle an Hyperion Event
+	/// @param event Event to be processed
 	///
-	void suspend();
-
-	///
-	/// @brief Resume (resume) all Hyperion instances
-	///
-	void resume();
-
-	///
-	/// @brief Toggle the state of all Hyperion instances for a suspend sceanrio (user is not interacting with the system)
-	/// @param isSuspend, If true all instances toggle to suspend, else to resume
-	///
-	void toggleSuspend(bool isSuspend);
-
-	///
-	/// @brief Toggle the state of all Hyperion instances for an idle sceanrio
-	/// @param isIdle, If true all instances toggle to idle, else to resume
-	///
-	void toggleIdle(bool isIdle);
+	void handleEvent(Event event);
 
 	///
 	/// @brief Toggle the state of all Hyperion instances
@@ -147,10 +132,6 @@ signals:
 	///
 	void startInstanceResponse(QObject *caller, const int &tan);
 
-	void triggerSuspend(bool isSuspend);
-	void triggerToggleSuspend();
-	void triggerIdle(bool isIdle);
-	void triggerToggleIdle();
 
 signals:
 	///////////////////////////////////////
@@ -191,6 +172,18 @@ private slots:
 	/// @brief handle finished signal of Hyperion instances
 	///
 	void handleFinished();
+
+	///
+	/// @brief Toggle the state of all Hyperion instances for a suspend sceanrio (user is not interacting with the system)
+	/// @param isSuspend, If true all instances toggle to suspend, else to resume
+	///
+	void toggleSuspend(bool isSuspend);
+
+	///
+	/// @brief Toggle the state of all Hyperion instances for an idle sceanrio
+	/// @param isIdle, If true all instances toggle to idle, else to resume
+	///
+	void toggleIdle(bool isIdle);
 
 private:
 	friend class HyperionDaemon;

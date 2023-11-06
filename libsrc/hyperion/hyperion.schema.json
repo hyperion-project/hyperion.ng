@@ -91,10 +91,14 @@
 		{
 			"$ref": "schema-leds.json"
 		},
-		"systemEvents":
+		"osEvents":
 		{
-			"$ref": "schema-systemEvents.json"
-		}
+			"$ref": "schema-osEvents.json"
+		},
+		"cecEvents":
+		{
+			"$ref": "schema-cecEvents.json"
+		}				
 	},
 	"additionalProperties" : false
 }

@@ -30,7 +30,8 @@ namespace settings {
 		NETWORK,
 		FLATBUFSERVER,
 		PROTOSERVER,
-		SYSTEMEVENTS,
+		OSEVENTS,
+		CECEVENTS,
 		INVALID
 	};
 
@@ -65,7 +66,8 @@ namespace settings {
 		case NETWORK:       return "network";
 		case FLATBUFSERVER: return "flatbufServer";
 		case PROTOSERVER:   return "protoServer";
-		case SYSTEMEVENTS:  return "systemEvents";
+		case OSEVENTS:      return "osEvents";
+		case CECEVENTS:     return "cecEvents";
 		default:            return "invalid";
 		}
 	}
@@ -99,7 +101,8 @@ namespace settings {
 		else if (type == "network")              return NETWORK;
 		else if (type == "flatbufServer")        return FLATBUFSERVER;
 		else if (type == "protoServer")          return PROTOSERVER;
-		else if (type == "systemEvents")         return SYSTEMEVENTS;
+		else if (type == "osEvents")             return OSEVENTS;
+		else if (type == "cecEvents")            return CECEVENTS;
 		else                                     return INVALID;
 	}
 }

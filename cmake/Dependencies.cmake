@@ -231,26 +231,34 @@ macro(DeployLinux TARGET)
 				if (EXISTS ${QT_PLUGINS_DIR}/${PLUGIN})
 					file(GLOB files "${QT_PLUGINS_DIR}/${PLUGIN}/*.so")
 					foreach(file ${files})
-						get_prerequisites(${file} PLUGINS 0 1 "" "")
-						foreach(DEPENDENCY ${PLUGINS})
-							get_filename_component(resolved ${DEPENDENCY} NAME_WE)
-							list(FIND SYSTEM_LIBS_SKIP ${resolved} _index)
-							if (${_index} GREATER -1)
-								continue() # Skip system libraries
-							else()
-								gp_resolve_item("${file}" "${DEPENDENCY}" "" "" resolved_file)
-								get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
-								gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
-								get_filename_component(file_canonical ${resolved_file} REALPATH)
-								gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-							endif()
-						endforeach()
-
-						install(
-							FILES ${file}
-							DESTINATION "share/hyperion/lib/${PLUGIN}"
-							COMPONENT "Hyperion"
-						)
+						if ("${file}" STREQUAL "libqsqlmimer.so")
+							continue()
+						else()
+							get_prerequisites(${file} PLUGINS 0 1 "" "")
+							foreach(DEPENDENCY ${PLUGINS})
+								get_filename_component(resolved ${DEPENDENCY} NAME_WE)
+								list(FIND SYSTEM_LIBS_SKIP ${resolved} _index)
+								if (${_index} GREATER -1)
+									continue() # Skip system libraries
+								else()
+									gp_resolve_item("${file}" "${DEPENDENCY}" "" "" resolved_file)
+									get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
+									gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
+									get_filename_component(file_canonical ${resolved_file} REALPATH)
+									gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
+								endif()
+							endforeach()
+						endif()	
+						if ("${file}" STREQUAL "libqsqlmimer.so")
+							continue()
+						else()
+							install(
+								FILES ${file}
+								DESTINATION "share/hyperion/lib/${PLUGIN}"
+								COMPONENT "Hyperion"
+							)
+						endif()
+						
 					endforeach()
 				endif()
 			endforeach()

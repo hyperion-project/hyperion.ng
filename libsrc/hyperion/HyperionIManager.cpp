@@ -63,23 +63,28 @@ void HyperionIManager::stopAll()
 	}
 }
 
-void HyperionIManager::suspend()
+void HyperionIManager::handleEvent(Event event)
 {
-	Info(_log,"Suspend all instances and enabled components");
-	QMap<quint8, Hyperion*> instCopy = _runningInstances;
-	for(const auto instance : instCopy)
-	{
-		emit instance->suspendRequest(true);
-	}
-}
+	Debug(_log,"%s Event [%d] received", eventToString(event), event);
+	switch (event) {
+	case Event::Suspend:
+		toggleSuspend(true);
+		break;
 
-void HyperionIManager::resume()
-{
-	Info(_log,"Resume all instances and enabled components");
-	QMap<quint8, Hyperion*> instCopy = _runningInstances;
-	for(const auto instance : instCopy)
-	{
-		emit instance->suspendRequest(false);
+	case Event::Resume:
+		toggleSuspend(false);
+		break;
+
+	case Event::Idle:
+		toggleIdle(true);
+		break;
+
+	case Event::ResumeIdle:
+		toggleIdle(false);
+		break;
+
+	default:
+		break;
 	}
 }
 

@@ -12,7 +12,7 @@
 
 #include <hyperion/Hyperion.h>
 #include <hyperion/HyperionIManager.h>
-#include "SuspendHandler.h"
+#include <events/EventHandler.h>
 
 class HyperionDaemon;
 
@@ -22,13 +22,13 @@ class SysTray : public QWidget
 
 public:
 	SysTray(HyperionDaemon *hyperiond);
-	~SysTray();
+	~SysTray() override;
 
 
 public slots:
 	void showColorDialog();
 	void setColor(const QColor & color);
-	void closeEvent(QCloseEvent *event);
+	void closeEvent(QCloseEvent *event) override;
 	void settings() const;
 #if defined(ENABLE_EFFECTENGINE)
 	void setEffect();
@@ -42,7 +42,7 @@ private slots:
 	///
 	/// @brief is called whenever the webserver changes the port
 	///
-	void webserverPortChanged(quint16 port) { _webPort = port; };
+	void webserverPortChanged(quint16 port) { _webPort = port; }
 
 	///
 	/// @brief is called whenever a hyperion instance state changes
@@ -84,6 +84,4 @@ private:
 	Hyperion         *_hyperion;
 	HyperionIManager *_instanceManager;
 	quint16           _webPort;
-
-	SuspendHandler   *_suspendHandler;
 };

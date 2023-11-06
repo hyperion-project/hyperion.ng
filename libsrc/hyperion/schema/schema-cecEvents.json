@@ -1,0 +1,17 @@
+{
+	"type" : "object",
+	"required" : true,
+	"title" : "edt_conf_cec_events_heading_title",
+	"properties" :
+	{
+		"enable" :
+		{
+			"type" : "boolean",
+			"required" : true,
+			"title" : "edt_conf_general_enable_title",
+			"default" : false,
+			"propertyOrder" : 1
+		}
+	},
+	"additionalProperties" : false
+}

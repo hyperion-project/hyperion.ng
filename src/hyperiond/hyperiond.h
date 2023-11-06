@@ -75,7 +75,8 @@
 #include <utils/settings.h>
 #include <utils/Components.h>
 
-#include "SuspendHandler.h"
+#include <events/EventHandler.h>
+#include <events/OsEventHandler.h>
 
 class HyperionIManager;
 class SysTray;
@@ -103,17 +104,12 @@ class HyperionDaemon : public QObject
 
 public:
 	HyperionDaemon(const QString& rootPath, QObject *parent, bool logLvlOverwrite, bool readonlyMode = false);
-	~HyperionDaemon();
+	~HyperionDaemon() override;
 
 	///
 	/// @brief Get webserver pointer (systray)
 	///
 	WebServer *getWebServerInstance() { return _webserver; }
-
-	///
-	/// @brief Get suspense handler pointer
-	///
-	SuspendHandler* getSuspendHandlerInstance() { return _suspendHandler; }
 
 	///
 	/// @brief Get the current videoMode
@@ -185,9 +181,11 @@ private:
 	void createGrabberX11(const QJsonObject & grabberConfig);
 	void createGrabberXcb(const QJsonObject & grabberConfig);
 	void createGrabberQt(const QJsonObject & grabberConfig);
-	void createCecHandler();
 	void createGrabberDx(const QJsonObject & grabberConfig);
 	void createGrabberAudio(const QJsonObject & grabberConfig);
+
+	void startCecHandler();
+	void stopCecHandler();
 
 	Logger*                    _log;
 	HyperionIManager*          _instanceManager;
@@ -216,7 +214,8 @@ private:
 	#ifdef ENABLE_CEC
 	CECHandler*                _cecHandler;
 	#endif
-	SuspendHandler*            _suspendHandler;
+	EventHandler*              _eventHandler;
+	OsEventHandler*            _osEventHandler;
 
 	#if defined(ENABLE_FLATBUF_SERVER)
 	FlatBufferServer*          _flatBufferServer;

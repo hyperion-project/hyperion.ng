@@ -9,9 +9,7 @@
 	#include <grabber/V4L2Grabber.h>
 #endif
 
-#if defined(ENABLE_CEC)
-	#include <cec/CECEvent.h>
-#endif
+#include <events/Event.h>
 
 class VideoWrapper : public GrabberWrapper
 {
@@ -25,9 +23,7 @@ public slots:
 	bool start() override;
 	void stop() override;
 
-#if defined(ENABLE_CEC)
-	void handleCecEvent(CECEvent event);
-#endif
+	void handleEvent(Event event);
 
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config) override;
 

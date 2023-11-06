@@ -250,8 +250,12 @@
 		}
 	],
 	
-	"systemEvents": {
+	"osEvents": {
 		"suspendEnable": true,
 		"lockEnable": true
-	}
+	},
+	
+	"cecEvents": {
+		"enable": false
+	}	
 }

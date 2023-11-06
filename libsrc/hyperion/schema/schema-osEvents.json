@@ -1,26 +1,26 @@
 {
 	"type" : "object",
 	"required" : true,
-	"title" : "edt_conf_system_events_heading_title",
+	"title" : "edt_conf_os_events_heading_title",
 	"properties": {
 		"suspendEnable": {
 			"type": "boolean",
 			"required": true,
-			"title": "edt_conf_system_events_suspendEnable_title",
+			"title": "edt_conf_os_events_suspendEnable_title",
 			"default": true,
 			"propertyOrder": 1
 		},
 		"lockEnable": {
 			"type": "boolean",
 			"required": true,
-			"title": "edt_conf_system_events_lockEnable_title",
+			"title": "edt_conf_os_events_lockEnable_title",
 			"default": true,
 			"propertyOrder": 2
 		},
 		"suspendOnLockEnable": {
 			"type": "boolean",
 			"required": false,
-			"title": "edt_conf_system_events_suspendOnLockEnable_title",
+			"title": "edt_conf_os_events_suspendOnLockEnable_title",
 			"default": false,
 			  "options": {
 				"dependencies": {
