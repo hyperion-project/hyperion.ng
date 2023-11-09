@@ -68,7 +68,7 @@ protected:
 #else
 	bool nativeEventFilter(const QByteArray& eventType, void* message, long int* result) override;
 #endif
-^
+
 private:
 
 	bool registerOsEventHandler() override;

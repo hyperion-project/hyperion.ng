@@ -9,8 +9,6 @@
 	#include <grabber/V4L2Grabber.h>
 #endif
 
-#include <events/Event.h>
-
 class VideoWrapper : public GrabberWrapper
 {
 	Q_OBJECT
@@ -22,8 +20,6 @@ public:
 public slots:
 	bool start() override;
 	void stop() override;
-
-	void handleEvent(Event event);
 
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config) override;
 

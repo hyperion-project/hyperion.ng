@@ -11,6 +11,8 @@
 #include <utils/Logger.h>
 #include <utils/Components.h>
 
+#include <events/Event.h>
+
 ///
 /// @brief The Grabber class is responsible to apply image resizes (with or without ImageResampler)
 
@@ -110,6 +112,10 @@ public:
 	int getPixelDecimation() const { return _pixelDecimation; }
 
 	QString getGrabberName() const { return _grabberName; }
+
+public slots:
+
+	virtual void handleEvent(Event event) {}
 
 protected slots:
 	///

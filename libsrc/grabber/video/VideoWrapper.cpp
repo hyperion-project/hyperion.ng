@@ -2,8 +2,6 @@
 
 #include <grabber/VideoWrapper.h>
 
-#include <events/EventHandler.h>
-
 // qt includes
 #include <QTimer>
 
@@ -24,8 +22,6 @@ VideoWrapper::VideoWrapper()
 	connect(&_grabber, SIGNAL(readError(const char*)), this, SLOT(readError(const char*)), Qt::DirectConnection);
 
 	connect(&_grabber, SIGNAL(readError(const char*)), this, SLOT(readError(const char*)), Qt::DirectConnection);
-
-	QObject::connect(EventHandler::getInstance(), &EventHandler::signalEvent, this, &VideoWrapper::handleEvent);
 }
 
 VideoWrapper::~VideoWrapper()
@@ -42,11 +38,6 @@ void VideoWrapper::stop()
 {
 	_grabber.stop();
 	GrabberWrapper::stop();
-}
-
-void VideoWrapper::handleEvent(Event event)
-{
-	_grabber.handleEvent(event);
 }
 
 void VideoWrapper::handleSettingsUpdate(settings::type type, const QJsonDocument& config)

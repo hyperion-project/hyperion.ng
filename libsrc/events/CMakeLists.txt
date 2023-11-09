@@ -23,3 +23,8 @@ endif(UNIX)
 target_include_directories(events PUBLIC
 	${CURRENT_HEADER_DIR}
 )
+
+target_link_libraries(events
+	Qt${QT_VERSION_MAJOR}::Core
+	Qt${QT_VERSION_MAJOR}::Widgets
+)
