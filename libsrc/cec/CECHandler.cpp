@@ -142,7 +142,7 @@ bool CECHandler::enable()
 		const auto adapters = getAdapters();
 		if (adapters.isEmpty())
 		{
-			Error(_logger, "Failed to find any CEC adapter.");
+			Error(_logger, "Failed to find any CEC adapter. CEC event handling will be disabled.");
 			_cecAdapter->Close();
 			return false;
 		}

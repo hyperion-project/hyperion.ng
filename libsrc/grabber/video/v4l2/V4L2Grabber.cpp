@@ -1220,24 +1220,6 @@ bool V4L2Grabber::reload(bool force)
 	return false;
 }
 
-void V4L2Grabber::handleEvent(Event event)
-{
-	switch (event)
-	{
-	case Event::Suspend:
-	case Event::Idle:
-		Debug(_log,"Suspend/Idle event received");
-		_standbyActivated = true;
-		return;
-	case Event::Resume:
-	case Event::ResumeIdle:
-		Debug(_log,"Resume event received");
-		_standbyActivated = false;
-		return;
-	default: break;
-	}
-}
-
 QJsonArray V4L2Grabber::discover(const QJsonObject& params)
 {
 	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());

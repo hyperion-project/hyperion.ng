@@ -92,8 +92,6 @@ public slots:
 	void stop();
 	void newThreadFrame(Image<ColorRgb> image);
 
-	void handleEvent(Event event) override;
-
 signals:
 	void newFrame(const Image<ColorRgb> & image);
 	void readError(const char* err);
