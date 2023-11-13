@@ -27,6 +27,42 @@ $(document).ready(function () {
     }
   }
 
+  function findDuplicateCecEventsIndices(data) {
+    const cecEventIndices = {};
+    data.forEach((item, index) => {
+      const cecEvent = item.cec_event;
+      if (!cecEventIndices[cecEvent]) {
+        cecEventIndices[cecEvent] = [index];
+      } else {
+        cecEventIndices[cecEvent].push(index);
+      }
+    });
+
+    return Object.values(cecEventIndices).filter(indices => indices.length > 1);
+  }
+
+  JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
+    let errors = [];
+    if (schema.type === 'array' && Array.isArray(value)) {
+      const duplicateCecEventIndices = findDuplicateCecEventsIndices(value);
+
+      if (duplicateCecEventIndices.length > 0) {
+
+        let recs;
+        duplicateCecEventIndices.forEach(indices => {
+          const displayIndices = indices.map(index => index + 1);
+          recs = displayIndices.join(', ');
+        });
+
+        errors.push({
+          path: path,
+          message: $.i18n('edt_conf_cec_action_record_validation_error', recs)
+        });
+      }
+    }
+    return errors;
+  });
+
   //Operating System Events
   conf_editor_osEvents = createJsonEditor('editor_container_os_events', {
     osEvents: window.schema.osEvents

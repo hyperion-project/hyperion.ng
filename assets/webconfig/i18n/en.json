@@ -267,6 +267,7 @@
     "edt_conf_cec_actions_header_title": "Actions",
     "edt_conf_cec_actions_header_expl": "Define which action should take place on a recognised CEC event",
     "edt_conf_cec_actions_header_item_title": "Action",
+    "edt_conf_cec_action_record_validation_error": "One CEC Event can trigger only one action. Clean up Actions $1",
     "edt_conf_cec_button_release_delay_ms_title": "Button release time",
     "edt_conf_cec_button_release_delay_ms_expl": "Remote button press release time",
     "edt_conf_cec_button_repeat_rate_ms_title": "Button repeat rate",
