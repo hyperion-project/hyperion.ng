@@ -36,7 +36,7 @@ elif [[ "$RUNNER_OS" == 'Linux' ]]; then
 	# verification bypass of external dependencies
 	git config --global --add safe.directory "${GITHUB_WORKSPACE}/dependencies/external/*"
 	# set GitHub Container Registry url
-	REGISTRY_URL="ghcr.io/paulchen-panther/${DOCKER_IMAGE}"
+	REGISTRY_URL="ghcr.io/hyperion-project/${DOCKER_IMAGE}"
 	# take ownership of deploy dir
 	mkdir ${GITHUB_WORKSPACE}/deploy
 

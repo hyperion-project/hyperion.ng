@@ -15,6 +15,3 @@
 [submodule "dependencies/external/mbedtls"]
 	path = dependencies/external/mbedtls
 	url = ../../Mbed-TLS/mbedtls.git
-[submodule "dependencies/external/rpi_ws281x"]
-	path = dependencies/external/rpi_ws281x
-	url = https://github.com/Paulchen-Panther/rpi_ws281x

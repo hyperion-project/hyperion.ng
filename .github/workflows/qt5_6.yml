@@ -98,7 +98,7 @@ jobs:
           name: ${{ inputs.event_name == 'pull_request' && env.NAME || 'artifact' }}
           path: ${{ inputs.event_name == 'pull_request' && 'deploy/*.tar.gz' || 'deploy/Hyperion-*' }}
         env:
-          NAME: format('{0}_{1}_{2}{3}', matrix.os.distribution, matrix.os.codename, matrix.os.architecture[0], inputs.qt_version == '6' && '_qt6' || '')
+          NAME: ${{ format('{0}_{1}_{2}{3}', matrix.os.distribution, matrix.os.codename, matrix.os.architecture[0], inputs.qt_version == '6' && '_qt6' || '') }}
 
 ######################
 ###### macOS #########
