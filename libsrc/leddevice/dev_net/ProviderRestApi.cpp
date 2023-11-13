@@ -11,6 +11,8 @@
 #include <QList>
 #include <QHash>
 #include <QFile>
+#include <QDir>
+#include <QStandardPaths>
 
 #include <QSslSocket>
 
@@ -451,6 +453,63 @@ bool ProviderRestApi::checkServerIdentity(const QSslConfiguration& sslConfig) co
 	return isServerIdentified;
 }
 
+bool ProviderRestApi::matchesPinnedCertificate(const QSslCertificate& certificate)
+{
+	bool isMatching {false};
+
+	QList certificateInfos = certificate.subjectInfo(QSslCertificate::CommonName);
+
+	if (certificateInfos.isEmpty())
+	{
+		return false;
+	}
+	QString identifier = certificateInfos.constFirst();
+
+	QString appDataDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+	QString certDir = appDataDir + "/certificates";
+	QDir().mkpath(certDir);
+
+	QString filePath(certDir + "/" + identifier + ".pem");
+	QFile file(filePath);
+	if (file.open(QIODevice::ReadOnly))
+	{
+		QList certificates = QSslCertificate::fromDevice(&file, QSsl::Pem);
+		if (!certificates.isEmpty())
+		{
+			Debug (_log,"First used certificate loaded successfully");
+			QSslCertificate pinnedeCertificate = certificates.constFirst();
+			if (pinnedeCertificate == certificate)
+			{
+				isMatching = true;
+			}
+		}
+		else
+		{
+			Debug (_log,"Error reading first used certificate file: %s", QSTRING_CSTR(filePath));
+		}
+		file.close();
+	}
+	else
+	{
+		if (file.open(QIODevice::WriteOnly))
+		{
+			QByteArray pemData = certificate.toPem();
+			qint64 bytesWritten = file.write(pemData);
+			if (bytesWritten == pemData.size())
+			{
+				Debug (_log,"First used certificate saved to file: %s", QSTRING_CSTR(filePath));
+				isMatching = true;
+			}
+			else
+			{
+				Debug (_log,"Error writing first used certificate file: %s", QSTRING_CSTR(filePath));
+			}
+			file.close();
+		}
+	}
+	return isMatching;
+}
+
 void ProviderRestApi::onSslErrors(QNetworkReply* reply, const QList<QSslError>& errors)
 {
 	int ignoredErrorCount {0};
@@ -466,11 +525,21 @@ void ProviderRestApi::onSslErrors(QNetworkReply* reply, const QList<QSslError>& 
 			}
 			break;
 		case QSslError::SelfSignedCertificate :
-			if (_isSeflSignedCertificateAccpeted)
+		if (_isSeflSignedCertificateAccpeted)
+		{
+			// Get the peer certificate associated with the error
+			QSslCertificate certificate = error.certificate();
+			if (matchesPinnedCertificate(certificate))
 			{
+				Debug (_log,"'Trust on first use' - Certificate received matches pinned certificate");
 				ignoreSslError = true;
 			}
-			break;
+			else
+			{
+				Error (_log,"'Trust on first use' - Certificate received does not match pinned certificate");
+			}
+		}
+		break;
 		default:
 			break;
 		}

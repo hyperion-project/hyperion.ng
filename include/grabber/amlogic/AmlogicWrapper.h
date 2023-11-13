@@ -1,7 +1,7 @@
 #pragma once
 
 #include <hyperion/GrabberWrapper.h>
-#include <grabber/AmlogicGrabber.h>
+#include <grabber/amlogic/AmlogicGrabber.h>
 
 ///
 /// The Amlogic uses an instance of the AmlogicGrabber to obtain ImageRgb's from the

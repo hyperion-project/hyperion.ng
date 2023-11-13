@@ -1,6 +1,0 @@
-[hyperion]
-name=Hyperion - @ARCH@ - @CHANNEL@ Release
-baseurl=https://dnf.releases.hyperion-project.org/@DIST@/$releasever/$basearch/
-enabled=1
-gpgcheck=1
-gpgkey=https://releases.hyperion-project.org/hyperion.pub.key

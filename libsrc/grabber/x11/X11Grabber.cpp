@@ -1,5 +1,5 @@
 #include <utils/Logger.h>
-#include <grabber/X11Grabber.h>
+#include <grabber/x11/X11Grabber.h>
 
 #include <xcb/randr.h>
 #include <xcb/xcb_event.h>

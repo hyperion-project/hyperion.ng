@@ -19,7 +19,7 @@
 #include <utils/Components.h>
 
 // decoder thread includes
-#include <grabber/EncoderThread.h>
+#include <grabber/video/EncoderThread.h>
 
 // Determine the cmake options
 #include <HyperionConfig.h>

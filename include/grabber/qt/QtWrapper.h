@@ -1,7 +1,7 @@
 #pragma once
 
 #include <hyperion/GrabberWrapper.h>
-#include <grabber/QtGrabber.h>
+#include <grabber/qt/QtGrabber.h>
 
 ///
 /// The QtWrapper uses QtFramework API's to get a picture from system

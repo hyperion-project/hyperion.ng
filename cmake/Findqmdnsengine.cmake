@@ -19,4 +19,10 @@ find_package_handle_standard_args(qmdnsengine
 	REQUIRED_VARS QMDNS_INCLUDE_DIR QMDNS_LIBRARIES
 )
 
-mark_as_advanced(QMDNS_INCLUDE_DIR QMDNS_LIBRARIES)
+if(QMDNSENGINE_FOUND)
+    add_library(qmdnsengine STATIC IMPORTED GLOBAL)
+    set_target_properties(qmdnsengine PROPERTIES
+        IMPORTED_LOCATION ${QMDNS_LIBRARIES}
+        INTERFACE_INCLUDE_DIRECTORIES ${QMDNS_INCLUDE_DIR}
+    )
+endif()

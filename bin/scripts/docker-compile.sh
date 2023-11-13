@@ -16,6 +16,8 @@ BUILD_PACKAGES=true
 PACKAGES=""
 # platform string inserted to cmake cmd
 BUILD_PLATFORM=""
+#Run build with Qt6 or Qt5
+BUILD_WITH_QT5=false
 #Run build using GitHub code files
 BUILD_LOCAL=false
 #Build from scratch
@@ -70,9 +72,10 @@ echo "########################################################
 # docker-compile.sh -a, --architecture  # The output architecture, e.g., amd64, arm64, arm/v7
 # docker-compile.sh -b, --type          # Release or Debug build
 # docker-compile.sh -p, --packages      # If true, build packages with CPack
+# docker-compile.sh     --qt5           # Build with Qt5, otherwise build with Qt6
+# docker-compile.sh -f, --platform      # cmake PLATFORM parameter, e.g. x11, amlogic-dev
 # docker-compile.sh -l, --local         # Run build using local code files
 # docker-compile.sh -c, --incremental   # Run incremental build, i.e. do not delete files created during previous build
-# docker-compile.sh -f, --platform      # cmake PLATFORM parameter, e.g. x11, amlogic-dev
 # docker-compile.sh -v, --verbose       # Run the script in verbose mode
 # docker-compile.sh     -- args         # Additonal cmake arguments, e.g., -DHYPERION_LIGHT=ON
 # More informations to docker containers available at: https://github.com/Hyperion-Project/hyperion.docker-ci"
@@ -85,10 +88,10 @@ function log () {
 }
 
 function check_distribution () {
-	url=${REGISTRY_URL}/$1:${CODENAME} 
+	url=${REGISTRY_URL}/$1:${CODENAME}
 
 	log "Check for distribution at: $url"
-	if $($DOCKER buildx imagetools inspect "$url" 2>&1 | grep -q $2) ; then 
+	if $($DOCKER buildx imagetools inspect "$url" 2>&1 | grep -q $2) ; then
 		rc=0
 	else
 		rc=1
@@ -97,47 +100,50 @@ function check_distribution () {
 }
 
 echo "Compile Hyperion using a Docker container"
-options=$(getopt -l "architecture:,name:,type:,packages:,platform:,local,incremental,verbose,help" -o "a:n:b:p:f:lcvh" -a -- "$@")
+options=$(getopt -l "architecture:,name:,type:,packages:,platform:,qt5,local,incremental,verbose,help" -o "a:n:b:p:f:lcvh" -a -- "$@")
 
 eval set -- "$options"
 while true
 do
     case $1 in
-        -a|--architecture) 
+        -a|--architecture)
             shift
-            ARCHITECTURE=`echo $1 | tr '[:upper:]' '[:lower:]'` 
+            ARCHITECTURE=`echo $1 | tr '[:upper:]' '[:lower:]'`
             ;;
-        -n|--name) 
+        -n|--name)
             shift
-            CODENAME=`echo $1 | tr '[:upper:]' '[:lower:]'` 
+            CODENAME=`echo $1 | tr '[:upper:]' '[:lower:]'`
             ;;
-        -b|--type) 
+        -b|--type)
             shift
             BUILD_TYPE=$1
             ;;
-        -p|--packages) 
+        -p|--packages)
             shift
             BUILD_PACKAGES=$1
             ;;
-        -f|--platform) 
+        -f|--platform)
             shift
             BUILD_PLATFORM=$1
             ;;
-        -l|--local) 
+        --qt5)
+            BUILD_WITH_QT5=true
+            ;;
+        -l|--local)
             BUILD_LOCAL=true
             ;;
-        -i|--incremental) 
+        -i|--incremental)
             BUILD_INCREMENTAL=true
             ;;
-        -v|--verbose) 
+        -v|--verbose)
             _VERBOSE=1
             ;;
-        -h|--help) 
+        -h|--help)
             printHelp
             exit 0
             ;;
         --)
-            shift        
+            shift
             break;;
     esac
     shift
@@ -157,20 +163,26 @@ fi
 
 PLATFORM_ARCHITECTURE="linux/"${ARCHITECTURE}
 
+QTVERSION="5"
+if [ ${BUILD_WITH_QT5} == false ]; then
+	QTVERSION="6"
+	CODENAME="${CODENAME}-qt6"
+fi
+
 echo "---> Evaluate distribution for codename:${CODENAME} on platform architecture ${PLATFORM_ARCHITECTURE}"
 DISTRIBUTION="debian"
-if ! check_distribution ${DISTRIBUTION} ${PLATFORM_ARCHITECTURE} ; then 
+if ! check_distribution ${DISTRIBUTION} ${PLATFORM_ARCHITECTURE} ; then
 	DISTRIBUTION="ubuntu"
 	if ! check_distribution ${DISTRIBUTION} ${PLATFORM_ARCHITECTURE} ; then
 		DISTRIBUTION="fedora"
-		if ! check_distribution ${DISTRIBUTION} ${PLATFORM_ARCHITECTURE} ; then	
-			echo "No docker image found for a distribution with codename: ${CODENAME} on platform architecture ${PLATFORM_ARCHITECTURE}"
+		if ! check_distribution ${DISTRIBUTION} ${PLATFORM_ARCHITECTURE} ; then
+			echo "No docker image found for a distribution with codename: ${CODENAME} to be build on platform architecture ${PLATFORM_ARCHITECTURE}"
 			exit 1
 		fi
 	fi
 fi
 
-echo "---> Build with -> Distribution: ${DISTRIBUTION}, Codename: ${CODENAME}, Architecture: ${ARCHITECTURE}, Type: ${BUILD_TYPE}, Platform: ${BUILD_PLATFORM}, Build Packages: ${BUILD_PACKAGES}, Build local: ${BUILD_LOCAL}, Build incremental: ${BUILD_INCREMENTAL}"
+echo "---> Build with -> Distribution: ${DISTRIBUTION}, Codename: ${CODENAME}, Architecture: ${ARCHITECTURE}, Type: ${BUILD_TYPE}, Platform: ${BUILD_PLATFORM}, QT Version: ${QTVERSION}, Build Packages: ${BUILD_PACKAGES}, Build local: ${BUILD_LOCAL}, Build incremental: ${BUILD_INCREMENTAL}"
 
 # Determine the current architecture
 CURRENT_ARCHITECTURE=`uname -m`
@@ -182,33 +194,32 @@ if [ ${CURRENT_ARCHITECTURE} == "aarch64" ]; then
 	IS_V7L=`cat /proc/$$/maps |grep -m1 -c v7l`
 	if [ $IS_V7L -ne 0 ]; then
 		USER_ARCHITECTURE="arm/v7"
-	else 
+	else
 	   IS_V6L=`cat /proc/$$/maps |grep -m1 -c v6l`
 	   if [ $IS_V6L -ne 0 ]; then
 		   USER_ARCHITECTURE="arm/v6"
 	   fi
 	fi
-    if [ $ARCHITECTURE != $USER_ARCHITECTURE ]; then	
+    if [ $ARCHITECTURE != $USER_ARCHITECTURE ]; then
         log "Identified user space current architecture: $USER_ARCHITECTURE"
         CURRENT_ARCHITECTURE=$USER_ARCHITECTURE
     fi
 else
-	CURRENT_ARCHITECTURE=${CURRENT_ARCHITECTURE//x86_/amd}	
+	CURRENT_ARCHITECTURE=${CURRENT_ARCHITECTURE//x86_/amd}
 fi
 
 log "Identified kernel current architecture: $CURRENT_ARCHITECTURE"
 if [ $ARCHITECTURE != $CURRENT_ARCHITECTURE ]; then
-	echo "---> Build is not for the same architecturem, install emulation environment for ${PLATFORM_ARCHITECTURE}"
-	$DOCKER run --privileged --rm tonistiigi/binfmt --install "${PLATFORM_ARCHITECTURE}"
-	DOCKERRC=${?}
-	
-	if [ ${DOCKERRC} == 0 ]; then
-		echo "---> Emulation environment installed sucessfully"
-		echo "---> You can uninstall it via following command: "docker run --privileged --rm tonistiigi/binfmt --uninstall ${PLATFORM_ARCHITECTURE}""
-	else
-		echo "---> Failed to install emulation environment"
+	echo "---> Build is not for the same architecturem, enable emulation for ${PLATFORM_ARCHITECTURE}"
+	ENTRYPOINT_OPTION=
+
+	if [ $CURRENT_ARCHITECTURE != "amd64" ]; then
+		echo "---> Emulation builds can only be executed on linux/amd64, linux/x86_64 platforms, current architecture is ${CURRENT_ARCHITECTURE}"
 		exit 1
 	fi
+else
+	log "Build natively for platform architecture: ${PLATFORM_ARCHITECTURE}"
+	ENTRYPOINT_OPTION="--entrypoint="""
 fi
 
 log "---> BASE_PATH  = ${BASE_PATH}"
@@ -257,7 +268,8 @@ echo "---> Compiling Hyperion from source code at ${CODE_PATH}"
 # execute inside container all commands on bash
 
 echo "---> Startup docker..."
-$DOCKER run --rm --platform=${PLATFORM_ARCHITECTURE}\
+$DOCKER run --rm --platform=${PLATFORM_ARCHITECTURE} \
+	${ENTRYPOINT_OPTION} \
 	-v "${DEPLOY_PATH}:/deploy" \
 	-v "${CODE_PATH}/:/source:rw" \
 	${REGISTRY_URL}/${DISTRIBUTION}:${CODENAME} \

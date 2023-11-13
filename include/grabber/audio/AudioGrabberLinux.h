@@ -6,7 +6,7 @@
 #include <alsa/asoundlib.h>
 
 // Hyperion-utils includes
-#include <grabber/AudioGrabber.h>
+#include <grabber/audio/AudioGrabber.h>
 
 ///
 /// @brief The Linux Audio capture implementation

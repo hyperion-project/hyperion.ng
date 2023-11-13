@@ -1,4 +1,4 @@
-#include <grabber/FramebufferWrapper.h>
+#include <grabber/framebuffer/FramebufferWrapper.h>
 
 FramebufferWrapper::FramebufferWrapper( int updateRate_Hz,
 										const QString & device,

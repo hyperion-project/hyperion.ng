@@ -1,11 +1,7 @@
 #pragma once
 
 // OSX includes
-#ifdef __APPLE__
 #include <CoreGraphics/CoreGraphics.h>
-#else
-#include <grabber/OsxFrameGrabberMock.h>
-#endif
 
 // Utils includes
 #include <utils/ColorRgb.h>

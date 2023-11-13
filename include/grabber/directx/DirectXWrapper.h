@@ -1,7 +1,7 @@
 #pragma once
 
 #include <hyperion/GrabberWrapper.h>
-#include <grabber/DirectXGrabber.h>
+#include <grabber/directx/DirectXGrabber.h>
 
 class DirectXWrapper: public GrabberWrapper
 {

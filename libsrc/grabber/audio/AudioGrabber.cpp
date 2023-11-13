@@ -1,4 +1,4 @@
-#include <grabber/AudioGrabber.h>
+#include <grabber/audio/AudioGrabber.h>
 #include <math.h>
 #include <QImage>
 #include <QObject>

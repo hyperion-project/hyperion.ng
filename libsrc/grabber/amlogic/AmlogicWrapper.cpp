@@ -1,4 +1,4 @@
-#include <grabber/AmlogicWrapper.h>
+#include <grabber/amlogic/AmlogicWrapper.h>
 
 AmlogicWrapper::AmlogicWrapper(int pixelDecimation,	int updateRate_Hz)
 	: GrabberWrapper("Amlogic", &_grabber, updateRate_Hz)

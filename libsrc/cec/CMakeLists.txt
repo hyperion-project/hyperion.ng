@@ -1,19 +1,18 @@
-# Define the current source locations
 find_package(CEC REQUIRED)
+if(CEC_FOUND)
+	list(GET CEC_LIBRARIES 0 CEC_LIBRARIES)
+	add_definitions(-DCEC_LIBRARY="${CEC_LIBRARIES}")
+else()
+	message(FATAL_ERROR "libCEC not found")
+endif()
 
-SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/cec)
-SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/cec)
-
-FILE (GLOB CEC_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp")
-
-add_library(cechandler ${CEC_SOURCES})
-list(GET CEC_LIBRARIES 0 CEC_LIBRARIES)
-add_definitions(-DCEC_LIBRARY="${CEC_LIBRARIES}")
-
-include_directories(${CEC_INCLUDE_DIRS})
+add_library(cechandler
+	${CMAKE_SOURCE_DIR}/include/cec/CECEvent.h
+	${CMAKE_SOURCE_DIR}/include/cec/CECHandler.h
+	${CMAKE_SOURCE_DIR}/libsrc/cec/CECHandler.cpp
+)
 
 target_link_libraries(cechandler
 	Qt${QT_VERSION_MAJOR}::Core
 	${CMAKE_DL_LIBS}
 )
-

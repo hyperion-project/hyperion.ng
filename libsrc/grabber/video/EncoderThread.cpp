@@ -1,4 +1,4 @@
-#include "grabber/EncoderThread.h"
+#include "grabber/video/EncoderThread.h"
 
 #include <QDebug>
 

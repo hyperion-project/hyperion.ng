@@ -1,4 +1,4 @@
-name: 🧹 Clean artifacts
+name: 🧹 Cleanup old artifacts
 
 # Run cleanup workflow at the end of every day
 on:

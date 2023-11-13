@@ -33,23 +33,24 @@ elif [[ $RUNNER_OS == "Windows" ]]; then
 	exit 1 || { echo "---> Hyperion compilation failed! Abort"; exit 5; }
 elif [[ "$RUNNER_OS" == 'Linux' ]]; then
 	echo "Docker arguments used: DOCKER_IMAGE=${DOCKER_IMAGE}, DOCKER_TAG=${DOCKER_TAG}, TARGET_ARCH=${TARGET_ARCH}"
+	# verification bypass of external dependencies
+	git config --global --add safe.directory "${GITHUB_WORKSPACE}/dependencies/external/*"
 	# set GitHub Container Registry url
-	REGISTRY_URL="ghcr.io/hyperion-project/${DOCKER_IMAGE}"
+	REGISTRY_URL="ghcr.io/paulchen-panther/${DOCKER_IMAGE}"
 	# take ownership of deploy dir
 	mkdir ${GITHUB_WORKSPACE}/deploy
 
 	# run docker
 	docker run --rm --platform=${TARGET_ARCH} \
 		-v "${GITHUB_WORKSPACE}/deploy:/deploy" \
-		-v "${GITHUB_WORKSPACE}:/source:ro" \
+		-v "${GITHUB_WORKSPACE}:/source:rw" \
 		$REGISTRY_URL:$DOCKER_TAG \
-		/bin/bash -c "mkdir hyperion && cp -r source/. /hyperion &&
-		cd /hyperion && mkdir build && cd build &&
+		/bin/bash -c "mkdir -p /source/build && cd /source/build &&
 		cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ../ || exit 2 &&
-		make -j $(nproc) package || exit 3 &&
-		cp /hyperion/build/bin/h* /deploy/ 2>/dev/null || : &&
-		cp /hyperion/build/Hyperion-* /deploy/ 2>/dev/null || : &&
-		cd /hyperion && source /hyperion/test/testrunner.sh || exit 4 &&
+		cmake --build /source/build --target package -- -j $(nproc) || exit 3 &&
+		cp /source/build/bin/h* /deploy/ 2>/dev/null || : &&
+		cp /source/build/Hyperion-* /deploy/ 2>/dev/null || : &&
+		cd /source && source /source/test/testrunner.sh || exit 5 &&
 		exit 0;
 		exit 1 " || { echo "---> Hyperion compilation failed! Abort"; exit 5; }
 

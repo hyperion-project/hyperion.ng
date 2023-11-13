@@ -14,19 +14,22 @@ bool Parser::parse(const QStringList &arguments)
 		return false;
 	}
 
-	for(Option * option : _options)
+	for(Option * option : std::as_const(_options))
 	{
-		QString value = this->value(*option);
-		if (!option->validate(*this, value)) {
-			const QString error = option->getError();
-			if (!error.isEmpty()) {
-				_errorText = tr("\"%1\" is not a valid option for %2, %3").arg(value, option->name(), error);
+		if (!option->valueName().isEmpty())
+		{
+			QString value = this->value(*option);
+			if (!option->validate(*this, value)) {
+				const QString error = option->getError();
+				if (!error.isEmpty()) {
+					_errorText = tr("\"%1\" is not a valid option for %2, %3").arg(value, option->name(), error);
+				}
+				else
+				{
+					_errorText = tr("\"%1\" is not a valid option for %2").arg(value, option->name());
+				}
+				return false;
 			}
-			else
-			{
-				_errorText = tr("\"%1\" is not a valid option for %2").arg(value, option->name());
-			}
-			return false;
 		}
 	}
 	return true;

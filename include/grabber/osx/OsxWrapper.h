@@ -1,7 +1,7 @@
 #pragma once
 
 #include <hyperion/GrabberWrapper.h>
-#include <grabber/OsxFrameGrabber.h>
+#include <grabber/osx/OsxFrameGrabber.h>
 
 ///
 /// The OsxWrapper uses an instance of the OsxFrameGrabber to obtain ImageRgb's from the displayed content.

@@ -3,7 +3,7 @@
 // Utils includes
 #include <utils/ColorRgba.h>
 #include <hyperion/GrabberWrapper.h>
-#include <grabber/DispmanxFrameGrabber.h>
+#include <grabber/dispmanx/DispmanxFrameGrabber.h>
 
 ///
 /// The DispmanxWrapper uses an instance of the DispmanxFrameGrabber to obtain ImageRgb's from the

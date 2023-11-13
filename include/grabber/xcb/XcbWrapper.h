@@ -1,7 +1,7 @@
 #pragma once
 
 #include <hyperion/GrabberWrapper.h>
-#include <grabber/XcbGrabber.h>
+#include <grabber/xcb/XcbGrabber.h>
 
 // some include of xorg defines "None" this is also used by QT and has to be undefined to avoid collisions
 #ifdef None

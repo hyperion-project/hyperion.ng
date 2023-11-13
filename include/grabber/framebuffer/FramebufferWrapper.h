@@ -1,7 +1,7 @@
 #pragma once
 
 #include <hyperion/GrabberWrapper.h>
-#include <grabber/FramebufferFrameGrabber.h>
+#include <grabber/framebuffer/FramebufferFrameGrabber.h>
 
 ///
 /// The FramebufferWrapper uses an instance of the FramebufferFrameGrabber to obtain ImageRgb's from the

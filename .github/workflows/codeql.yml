@@ -1,4 +1,8 @@
 name: 📊 CodeQL
+run-name: |
+  ${{ github.event_name == 'schedule' && '⏰ Scheduled CodeQL run' || '' }}
+  ${{ github.event_name == 'push' && format('📊 Pushed CodeQL run - {0}', github.event.head_commit.message) || '' }}
+  ${{ github.event_name == 'pull_request' && format('📊 CodeQL run for PR {0} - {1}', github.event.pull_request.number, github.event.pull_request.title) || github.event.head_commit.message }}
 
 on:
   push:

@@ -2,7 +2,7 @@
 #define AUDIOGRABBERWINDOWS_H
 
 // Hyperion-utils includes
-#include <grabber/AudioGrabber.h>
+#include <grabber/audio/AudioGrabber.h>
 #include <DSound.h>
 
 ///
@@ -14,7 +14,7 @@ class AudioGrabberWindows : public AudioGrabber
 
 		AudioGrabberWindows();
 		~AudioGrabberWindows() override;
-		
+
 	public slots:
 		bool start() override;
 		void stop() override;

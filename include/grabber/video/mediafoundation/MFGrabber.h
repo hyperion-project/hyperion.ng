@@ -21,7 +21,7 @@
 #include <hyperion/Grabber.h>
 
 // decoder thread includes
-#include <grabber/EncoderThread.h>
+#include <grabber/video/EncoderThread.h>
 
 /// Forward class declaration
 class SourceReaderCB;

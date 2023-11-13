@@ -23,7 +23,7 @@
 #include <QFileInfo>
 #include <QSet>
 
-#include "grabber/V4L2Grabber.h"
+#include "grabber/video/v4l2/V4L2Grabber.h"
 
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 

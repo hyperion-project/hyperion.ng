@@ -4,9 +4,9 @@
 #include <hyperion/GrabberWrapper.h>
 
 #if defined(ENABLE_MF)
-	#include <grabber/MFGrabber.h>
+	#include <grabber/video/mediafoundation/MFGrabber.h>
 #elif defined(ENABLE_V4L2)
-	#include <grabber/V4L2Grabber.h>
+	#include <grabber/video/v4l2/V4L2Grabber.h>
 #endif
 
 #if defined(ENABLE_CEC)

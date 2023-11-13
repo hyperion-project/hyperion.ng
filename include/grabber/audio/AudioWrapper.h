@@ -3,14 +3,14 @@
 #include <hyperion/GrabberWrapper.h>
 
 #ifdef WIN32
-	#include <grabber/AudioGrabberWindows.h>
+	#include <grabber/audio/AudioGrabberWindows.h>
 #endif
 
 #ifdef __linux__
-	#include <grabber/AudioGrabberLinux.h>
+	#include <grabber/audio/AudioGrabberLinux.h>
 #endif
 
-/// 
+///
 /// Audio Grabber wrapper
 ///
 class AudioWrapper : public GrabberWrapper
@@ -32,7 +32,7 @@ class AudioWrapper : public GrabberWrapper
 		///
 		~AudioWrapper() override;
 
-		/// 
+		///
 		/// Settings update handler
 		///
 		void handleSettingsUpdate(settings::type type, const QJsonDocument& config) override;
@@ -43,13 +43,13 @@ class AudioWrapper : public GrabberWrapper
 		///
 		void action() override;
 
-		/// 
+		///
 		/// Start audio capturing session
 		///
 		/// @returns true if successful
 		bool start() override;
 
-		/// 
+		///
 		/// Stop audio capturing session
 		///
 		void stop() override;

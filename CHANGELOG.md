@@ -70,6 +70,7 @@ Note: The wizard will configure an APIv2 capable bridge always with Entertainmen
 - Changed default build from Stretch to Buster
 - Support Qt 6.7, Update to Protobuf 23.4.0, Update mbedTLS to v3.4.0, Update flatbuffers to v23.5.26
 - Use C++17 standard as default
+- Added Pull Request (PR) installation script, allowing users to test development builds savely on Linux
 - Fixed missing include limits in QJsonSchemaChecker - Thanks @Portisch
 - Fixed dependencies for deb packages in Debian Bookworm (#1579) - Thanks @hg42, @Psirus
 - Fixed git version identification when run in docker and local code

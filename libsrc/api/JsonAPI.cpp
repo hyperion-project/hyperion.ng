@@ -19,54 +19,54 @@
 #include <HyperionConfig.h> // Required to determine the cmake options
 
 #include <hyperion/GrabberWrapper.h>
-#include <grabber/QtGrabber.h>
+#include <grabber/qt/QtGrabber.h>
 
 #include <utils/WeakConnect.h>
 
 #if defined(ENABLE_MF)
-	#include <grabber/MFGrabber.h>
+	#include <grabber/video/mediafoundation/MFGrabber.h>
 #elif defined(ENABLE_V4L2)
-	#include <grabber/V4L2Grabber.h>
+	#include <grabber/video/v4l2/V4L2Grabber.h>
 #endif
 
 #if defined(ENABLE_AUDIO)
-	#include <grabber/AudioGrabber.h>
+	#include <grabber/audio/AudioGrabber.h>
 
 	#ifdef WIN32
-		#include <grabber/AudioGrabberWindows.h>
+		#include <grabber/audio/AudioGrabberWindows.h>
 	#endif
 
 	#ifdef __linux__
-		#include <grabber/AudioGrabberLinux.h>
+		#include <grabber/audio/AudioGrabberLinux.h>
 	#endif
 #endif
 
 #if defined(ENABLE_X11)
-	#include <grabber/X11Grabber.h>
+	#include <grabber/x11/X11Grabber.h>
 #endif
 
 #if defined(ENABLE_XCB)
-	#include <grabber/XcbGrabber.h>
+	#include <grabber/xcb/XcbGrabber.h>
 #endif
 
 #if defined(ENABLE_DX)
-	#include <grabber/DirectXGrabber.h>
+	#include <grabber/directx/DirectXGrabber.h>
 #endif
 
 #if defined(ENABLE_FB)
-	#include <grabber/FramebufferFrameGrabber.h>
+	#include <grabber/framebuffer/FramebufferFrameGrabber.h>
 #endif
 
 #if defined(ENABLE_DISPMANX)
-	#include <grabber/DispmanxFrameGrabber.h>
+	#include <grabber/dispmanx/DispmanxFrameGrabber.h>
 #endif
 
 #if defined(ENABLE_AMLOGIC)
-	#include <grabber/AmlogicGrabber.h>
+	#include <grabber/amlogic/AmlogicGrabber.h>
 #endif
 
 #if defined(ENABLE_OSX)
-	#include <grabber/OsxFrameGrabber.h>
+	#include <grabber/osx/OsxFrameGrabber.h>
 #endif
 
 #include <utils/jsonschema/QJsonFactory.h>

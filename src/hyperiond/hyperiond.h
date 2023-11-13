@@ -7,62 +7,62 @@
 #include <hyperion/HyperionIManager.h>
 
 #ifdef ENABLE_DISPMANX
-	#include <grabber/DispmanxWrapper.h>
+	#include <grabber/dispmanx/DispmanxWrapper.h>
 #else
 	typedef QObject DispmanxWrapper;
 #endif
 
 #if defined(ENABLE_V4L2) || defined(ENABLE_MF)
-	#include <grabber/VideoWrapper.h>
+	#include <grabber/video/VideoWrapper.h>
 #else
 	typedef QObject VideoWrapper;
 #endif
 
 #ifdef ENABLE_FB
-	#include <grabber/FramebufferWrapper.h>
+	#include <grabber/framebuffer/FramebufferWrapper.h>
 #else
 	typedef QObject FramebufferWrapper;
 #endif
 
 #ifdef ENABLE_AMLOGIC
-	#include <grabber/AmlogicWrapper.h>
+	#include <grabber/amlogic/AmlogicWrapper.h>
 #else
 	typedef QObject AmlogicWrapper;
 #endif
 
 #ifdef ENABLE_OSX
-	#include <grabber/OsxWrapper.h>
+	#include <grabber/osx/OsxWrapper.h>
 #else
 	typedef QObject OsxWrapper;
 #endif
 
 #ifdef ENABLE_X11
-	#include <grabber/X11Wrapper.h>
+	#include <grabber/x11/X11Wrapper.h>
 #else
 	typedef QObject X11Wrapper;
 #endif
 
 #ifdef ENABLE_XCB
-	#include <grabber/XcbWrapper.h>
+	#include <grabber/xcb/XcbWrapper.h>
 #else
 	typedef QObject XcbWrapper;
 #endif
 
 #ifdef ENABLE_QT
-	#include <grabber/QtWrapper.h>
+	#include <grabber/qt/QtWrapper.h>
 #else
 	typedef QObject QtWrapper;
 #endif
 
 #ifdef ENABLE_DX
-	#include <grabber/DirectXWrapper.h>
+	#include <grabber/directx/DirectXWrapper.h>
 #else
 	typedef QObject DirectXWrapper;
 #endif
 
 #include <hyperion/GrabberWrapper.h>
 #ifdef ENABLE_AUDIO
-	#include <grabber/AudioWrapper.h>
+	#include <grabber/audio/AudioWrapper.h>
 #else
 	typedef QObject AudioWrapper;
 #endif

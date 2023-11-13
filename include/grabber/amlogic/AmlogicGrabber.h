@@ -4,7 +4,7 @@
 #include <utils/ColorBgr.h>
 #include <utils/ColorRgba.h>
 #include <hyperion/Grabber.h>
-#include <grabber/FramebufferFrameGrabber.h>
+#include <grabber/framebuffer/FramebufferFrameGrabber.h>
 
 ///
 ///

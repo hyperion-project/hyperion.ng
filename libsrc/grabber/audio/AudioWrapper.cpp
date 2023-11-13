@@ -1,4 +1,4 @@
-#include <grabber/AudioWrapper.h>
+#include <grabber/audio/AudioWrapper.h>
 #include <hyperion/GrabberWrapper.h>
 #include <QObject>
 #include <QMetaType>
