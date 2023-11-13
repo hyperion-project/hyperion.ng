@@ -178,6 +178,7 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 
 	// init events services
 	handleSettingsUpdate(settings::OSEVENTS, getSetting(settings::OSEVENTS));
+	handleSettingsUpdate(settings::CECEVENTS, getSetting(settings::CECEVENTS));
 }
 
 HyperionDaemon::~HyperionDaemon()
@@ -233,8 +234,6 @@ void HyperionDaemon::handleInstanceStateChange(InstanceState state, quint8 insta
 			connect(_sslWebserver, &WebServer::publishService, _mDNSProvider, &MdnsProvider::publishService);
 #endif
 			sslWsThread->start();
-
-			//startCecHandler();
 		}
 
 		break;
@@ -743,6 +742,7 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 	}
 	else if (settingsType == settings::CECEVENTS)
 	{
+		Debug(_log, "startCecHandler");
 		startCecHandler();
 	}
 }
@@ -923,7 +923,7 @@ void HyperionDaemon::startCecHandler()
 #if defined(ENABLE_CEC)
 	if (_cecHandler == nullptr)
 	{
-		_cecHandler = new CECHandler;
+		_cecHandler = new CECHandler(getSetting(settings::CECEVENTS));
 
 		QThread* cecHandlerThread = new QThread(this);
 		cecHandlerThread->setObjectName("CECThread");
@@ -931,13 +931,10 @@ void HyperionDaemon::startCecHandler()
 
 		connect(cecHandlerThread, &QThread::started, _cecHandler, &CECHandler::start);
 		connect(cecHandlerThread, &QThread::finished, _cecHandler, &CECHandler::stop);
+		connect(this, &HyperionDaemon::settingsChanged, _cecHandler, &CECHandler::handleSettingsUpdate);
+		Info(_log, "CEC event handler created");
 
 		cecHandlerThread->start();
-
-		_cecHandler->handleSettingsUpdate(settings::CECEVENTS, getSetting(settings::CECEVENTS));
-		connect(this, &HyperionDaemon::settingsChanged, _cecHandler, &CECHandler::handleSettingsUpdate);
-
-		Info(_log, "CEC event handler created");
 	}
 #else
 	Debug(_log, "The CEC handler is not supported on this platform");
@@ -949,13 +946,10 @@ void HyperionDaemon::stopCecHandler()
 #if defined(ENABLE_CEC)
 	if (_cecHandler != nullptr)
 	{
-		disconnect(_cecHandler, &CECHandler::signalEvent, _eventHandler, &EventHandler::handleEvent);
-
 		auto cecHandlerThread = _cecHandler->thread();
 		cecHandlerThread->quit();
 		cecHandlerThread->wait();
 		delete cecHandlerThread;
-		delete _cecHandler;
 		_cecHandler = nullptr;
 	}
 	Info(_log, "CEC handler stopped");

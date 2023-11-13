@@ -1,17 +1,119 @@
 {
-	"type" : "object",
-	"required" : true,
-	"title" : "edt_conf_cec_events_heading_title",
-	"properties" :
-	{
-		"enable" :
-		{
-			"type" : "boolean",
-			"required" : true,
-			"title" : "edt_conf_general_enable_title",
-			"default" : false,
-			"propertyOrder" : 1
-		}
-	},
-	"additionalProperties" : false
+  "type": "object",
+  "required": true,
+  "title": "edt_conf_cec_events_heading_title",
+  "properties": {
+    "enable": {
+      "type": "boolean",
+      "required": true,
+      "title": "edt_conf_general_enable_title",
+      "default": false,
+      "propertyOrder": 1
+    },
+    "buttonReleaseDelayMs": {
+      "type": "integer",
+      "format": "stepper",
+      "title": "edt_conf_cec_button_release_delay_ms_title",
+      "append": "edt_append_ms",
+      "minimum": 0,
+      "maximum": 500,
+      "step": 50,
+      "default": 0,
+      "required": false,
+      "access": "advanced",
+      "propertyOrder": 2
+    },
+    "buttonRepeatRateMs": {
+      "type": "integer",
+      "format": "stepper",
+      "title": "edt_conf_cec_button_repeat_rate_ms_title",
+      "append": "edt_append_ms",
+      "minimum": 0,
+      "maximum": 250,
+      "step": 10,
+      "default": 0,
+      "required": false,
+      "access": "advanced",
+      "propertyOrder": 3
+    },
+    "doubleTapTimeoutMs": {
+      "type": "integer",
+      "format": "stepper",
+      "title": "edt_conf_cec_double_tap_timeout_ms_title",
+      "append": "edt_append_ms",
+      "minimum": 50,
+      "maximum": 1000,
+      "step": 50,
+      "default": 200,
+      "required": false,
+      "access": "advanced",
+      "propertyOrder": 4
+    },
+    "actions": {
+      "type": "array",
+      "title": "edt_conf_cec_actions_header_title",
+      "minItems": 0,
+      "uniqueItems": true,
+      "required": false,
+      "propertyOrder": 5,
+      "items": {
+        "type": "object",
+        "required": true,
+        "title": "edt_conf_cec_actions_header_item_title",
+        "properties": {
+          "cec_event": {
+            "type": "string",
+            "title": "edt_conf_cec_event_title",
+            "enum": [
+              "standby",
+              "set stream path",
+              "F1(blue)",
+              "F2 (red)",
+              "F3 (green)",
+              "F4 (yellow)"
+            ],
+            "options": {
+              "enum_titles": [
+                "edt_conf_enum_cec_opcode_standby",
+                "edt_conf_enum_cec_opcode_set stream path",
+                "edt_conf_enum_cec_key_f1_blue",
+                "edt_conf_enum_cec_key_f2_red",
+                "edt_conf_enum_cec_key_f3_green",
+                "edt_conf_enum_cec_key_f4_yellow"
+              ]
+            },
+            "propertyOrder": 1
+          },
+          "action": {
+            "type": "string",
+            "title": "edt_conf_action_title",
+            "enum": [
+              "Suspend",
+              "Resume",
+              "ToggleSuspend",
+              "Idle",
+              "ResumeIdle",
+              "ToggleIdle",
+              "Restart"
+            ],
+            "options": {
+              "enum_titles": [
+                "edt_conf_enum_action_suspend",
+                "edt_conf_enum_action_resume",
+                "edt_conf_enum_action_toggleSuspend",
+                "edt_conf_enum_action_idle",
+                "edt_conf_enum_action_resumeIdle",
+                "edt_conf_enum_action_toggleIdle",
+                "edt_conf_enum_action_restart"
+              ]
+            },
+            "propertyOrder": 2
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
 }
+

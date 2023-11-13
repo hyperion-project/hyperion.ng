@@ -20,6 +20,7 @@ add_library(hyperion
 
 target_link_libraries(hyperion
 	blackborder
+	events
 	hyperion-utils
 	leddevice
 	database

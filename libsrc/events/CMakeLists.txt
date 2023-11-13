@@ -25,6 +25,7 @@ target_include_directories(events PUBLIC
 )
 
 target_link_libraries(events
+	hyperion-utils
 	Qt${QT_VERSION_MAJOR}::Core
 	Qt${QT_VERSION_MAJOR}::Widgets
 )

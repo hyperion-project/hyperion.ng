@@ -44,6 +44,8 @@ SysTray::SysTray(HyperionDaemon *hyperiond)
 
 	// instance changes
 	connect(_instanceManager, &HyperionIManager::instanceStateChanged, this, &SysTray::handleInstanceStateChange);
+
+	connect(this, &SysTray::signalEvent, EventHandler::getInstance(), &EventHandler::handleEvent);
 }
 
 SysTray::~SysTray()
@@ -88,12 +90,11 @@ void SysTray::createTrayIcon()
 	// TODO: Check if can be done with SystemEvents
 	suspendAction = new QAction(tr("&Suspend"), this);
 	suspendAction->setIcon(QPixmap(":/suspend.svg"));
-	connect(suspendAction, &QAction::triggered, EventHandler::getInstance(), QOverload<>::of(&EventHandler::suspend));
+	connect(suspendAction, &QAction::triggered, this, [this]() { emit signalEvent(Event::Suspend); });
 
 	resumeAction = new QAction(tr("&Resume"), this);
 	resumeAction->setIcon(QPixmap(":/resume.svg"));
-
-	connect(resumeAction, &QAction::triggered, EventHandler::getInstance(), &EventHandler::resume);
+	connect(resumeAction, &QAction::triggered, this, [this]() { emit signalEvent(Event::Resume); });
 
 	colorAction = new QAction(tr("&Color"), this);
 	colorAction->setIcon(QPixmap(":/color.svg"));

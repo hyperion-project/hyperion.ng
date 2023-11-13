@@ -113,7 +113,7 @@ JsonAPI::JsonAPI(QString peerAddress, Logger *log, bool localConnection, QObject
 
 	Q_INIT_RESOURCE(JSONRPC_schemas);
 
-		qRegisterMetaType<Event>("Event");
+	qRegisterMetaType<Event>("Event");
 }
 
 void JsonAPI::initialize()

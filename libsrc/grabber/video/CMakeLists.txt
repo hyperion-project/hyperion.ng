@@ -26,7 +26,12 @@ elseif(ENABLE_V4L2)
 endif()
 
 add_library(${PROJECT_NAME} ${SOURCES})
-target_link_libraries(${PROJECT_NAME} hyperion ${QT_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}
+	hyperion
+	events
+	hyperion-utils
+	${QT_LIBRARIES}
+)
 
 if(TURBOJPEG_FOUND)
 	target_link_libraries(${PROJECT_NAME} ${TurboJPEG_LIBRARY})

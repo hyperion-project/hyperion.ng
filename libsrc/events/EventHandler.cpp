@@ -145,7 +145,17 @@ void EventHandler::toggleIdle()
 
 void EventHandler::handleEvent(Event event)
 {
-	Debug(_log,"%s Event [%d] received", eventToString(event), event);
+	QObject *senderObj = QObject::sender();
+	QString senderObjectClass;
+	if (senderObj)
+	{
+		senderObjectClass = senderObj->metaObject()->className();
+	} else
+	{
+		senderObjectClass = "unknown sender";
+	}
+	Debug(_log,"%s Event [%d] received from %s", eventToString(event), event, QSTRING_CSTR(senderObjectClass));
+
 	switch (event) {
 	case Event::Suspend:
 		suspend();
@@ -156,7 +166,7 @@ void EventHandler::handleEvent(Event event)
 		break;
 
 	case Event::ToggleSuspend:
-		suspend();
+		toggleSuspend();
 		break;
 
 	case Event::Idle:

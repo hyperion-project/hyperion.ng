@@ -49,6 +49,9 @@ private slots:
 	///
 	void handleInstanceStateChange(InstanceState state, quint8 instance, const QString& name);
 
+signals:
+	void signalEvent(Event event);
+
 private:
 	void createTrayIcon();
 

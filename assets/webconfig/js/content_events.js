@@ -1,11 +1,10 @@
 $(document).ready(function () {
   performTranslation();
 
-  var CEC_ENABLED = (jQuery.inArray("cec", window.serverInfo.services) !== -1);
+  const CEC_ENABLED = (jQuery.inArray("cec", window.serverInfo.services) !== -1);
 
-  var conf_editor_osEvents = null;
-  var conf_editor_cecEvents = null;
-
+  let conf_editor_osEvents = null;
+  let conf_editor_cecEvents = null;
 
   if (window.showOptHelp) {
     //Operating System Events
@@ -48,7 +47,9 @@ $(document).ready(function () {
     }, true, true);
 
     conf_editor_cecEvents.on('change', function () {
-      var cecEventsEnable = conf_editor_cecEvents.getEditor("root.cecEvents.enable").getValue();
+
+      const cecEventsEnable = conf_editor_cecEvents.getEditor("root.cecEvents.enable").getValue();
+
       if (cecEventsEnable) {
         showInputOptionsForKey(conf_editor_cecEvents, "cecEvents", "enable", true);
         $('#cecEventsHelpPanelId').show();
@@ -56,11 +57,16 @@ $(document).ready(function () {
         showInputOptionsForKey(conf_editor_cecEvents, "cecEvents", "enable", false);
         $('#cecEventsHelpPanelId').hide();
       }
+
       conf_editor_cecEvents.validate().length || window.readOnlyMode ? $('#btn_submit_cec_events').prop('disabled', true) : $('#btn_submit_cec_events').prop('disabled', false);
     });
 
     $('#btn_submit_cec_events').off().on('click', function () {
-      requestWriteConfig(conf_editor_cecEvents.getValue());
+
+      const saveOptions = conf_editor_cecEvents.getValue();
+      // Workaround, as otherwise actions array is empty	 
+      saveOptions.cecEvents.actions = conf_editor_cecEvents.getEditor("root.cecEvents.actions").getValue();
+      requestWriteConfig(saveOptions);
     });
   }
 
@@ -71,7 +77,7 @@ $(document).ready(function () {
       createHint("intro", $.i18n('conf_cec_events_intro'), "editor_container_cec_events");
     }
   }
-  
+
   removeOverlay();
 });
 
