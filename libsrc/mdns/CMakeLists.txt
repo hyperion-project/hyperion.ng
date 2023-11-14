@@ -11,6 +11,7 @@ include_directories(${QMDNS_INCLUDE_DIR})
 target_link_libraries(mdns
 hyperion-utils
 ${QMDNS_LIBRARIES}
+$<$<BOOL:${WIN32}>:bcrypt.lib>
 )
 
 target_include_directories(mdns PUBLIC ${QMDNS_INCLUDE_DIR})
