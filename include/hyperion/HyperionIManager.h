@@ -5,7 +5,7 @@
 #include <utils/VideoMode.h>
 #include <utils/settings.h>
 #include <utils/Components.h>
-#include <events/Event.h>
+#include <events/EventEnum.h>
 
 // qt
 #include <QMap>

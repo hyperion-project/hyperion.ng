@@ -445,4 +445,61 @@ void OsEventHandlerLinux::unregisterLockHandler()
 }
 #endif // HYPERION_HAS_DBUS
 
-#endif // __linux__
+#elif defined(__APPLE__)
+
+OsEventHandlerMacOS* OsEventHandlerMacOS::getInstance()
+{
+	static OsEventHandlerMacOS instance;
+	return &instance;
+}
+
+void OsEventHandlerMacOS::handleSignal (CFStringRef lock_unlock)
+{
+	if (CFEqual(lock_unlock, CFSTR("com.apple.screenIsLocked")))
+	{
+		lock(true);
+	}
+	else if (CFEqual(lock_unlock, CFSTR("com.apple.screenIsUnlocked")))
+	{
+		lock(false);
+	}
+}
+
+bool OsEventHandlerMacOS::registerLockHandler()
+{
+	bool isRegistered{ _isLockRegistered };
+	if (!_isLockRegistered)
+	{
+		CFNotificationCenterRef distCenter;
+
+		distCenter = CFNotificationCenterGetDistributedCenter();
+		if (distCenter != nullptr)
+		{
+			CFNotificationCenterAddObserver(distCenter, this, &OsEventHandlerMacOS::notificationCenterCallBack, lockSignal, nullptr, CFNotificationSuspensionBehaviorDeliverImmediately);
+			CFNotificationCenterAddObserver(distCenter, this, &OsEventHandlerMacOS::notificationCenterCallBack, unlockSignal, nullptr, CFNotificationSuspensionBehaviorDeliverImmediately);
+			isRegistered = true;
+		}
+		else
+		{
+			Error(_log, "Could not register for lock/unlock events!");
+		}
+
+	}
+
+	if (isRegistered)
+	{
+		_isLockRegistered = true;
+	}
+	return isRegistered;
+}
+
+void OsEventHandlerMacOS::unregisterLockHandler()
+{
+	if (_isLockRegistered)
+	{
+		CFNotificationCenterRemoveEveryObserver(CFNotificationCenterGetDistributedCenter(), this);
+		_isLockRegistered = false;
+	}
+}
+
+#endif

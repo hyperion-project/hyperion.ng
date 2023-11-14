@@ -2,7 +2,7 @@
 
 // parent class
 #include <api/API.h>
-#include <events/Event.h>
+#include <events/EventEnum.h>
 
 // hyperion includes
 #include <utils/Components.h>

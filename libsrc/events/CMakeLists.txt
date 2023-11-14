@@ -3,7 +3,7 @@ SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/events)
 SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/events)
 
 add_library(events
-	${CURRENT_HEADER_DIR}/Event.h
+	${CURRENT_HEADER_DIR}/EventEnum.h
 	${CURRENT_HEADER_DIR}/EventHandler.h
 	${CURRENT_SOURCE_DIR}/EventHandler.cpp
 	${CURRENT_HEADER_DIR}/OsEventHandler.h

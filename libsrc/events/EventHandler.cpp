@@ -3,8 +3,6 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
-#include <events/Event.h>
-
 #include <utils/Logger.h>
 #include <utils/Process.h>
 #include <hyperion/HyperionIManager.h>

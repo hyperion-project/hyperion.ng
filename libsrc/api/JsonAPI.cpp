@@ -22,7 +22,7 @@
 #include <grabber/QtGrabber.h>
 
 #include <utils/WeakConnect.h>
-#include <events/Event.h>
+#include <events/EventEnum.h>
 
 #if defined(ENABLE_MF)
 	#include <grabber/MFGrabber.h>

@@ -9,7 +9,7 @@
 #include <libcec/cec.h>
 
 #include <utils/settings.h>
-#include <events/Event.h>
+#include <events/EventEnum.h>
 
 using CECCallbacks         = CEC::ICECCallbacks;
 using CECAdapter           = CEC::ICECAdapter;

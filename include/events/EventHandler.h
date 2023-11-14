@@ -2,24 +2,23 @@
 #define EVENTHANDLER_H
 
 #include <utils/settings.h>
-#include <events/Event.h>
+#include <events/EventEnum.h>
 
 #include <QObject>
 
 class Logger;
 
-class EventHandler : public QObject {
+class EventHandler : public QObject
+{
 	Q_OBJECT
 
 public:
-
 	EventHandler();
 	~EventHandler() override;
 
 	static EventHandler* getInstance();
 
 public slots:
-
 	virtual void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 	void suspend(bool sleep);
@@ -36,15 +35,12 @@ public slots:
 	void handleEvent(Event event);
 
 signals:
-
 	void signalEvent(Event event);
 
 protected:
-
 	Logger * _log {};
 
 private:
-
 	bool _isSuspended;
 	bool _isIdle;
 };

@@ -1,5 +1,5 @@
-#ifndef EVENT_H
-#define EVENT_H
+#ifndef EVENTENUM_H
+#define EVENTENUM_H
 
 #include <QString>
 
@@ -47,4 +47,4 @@ inline Event stringToEvent(const QString& event)
 }
 
 
-#endif // EVENT_H
+#endif // EVENTENUM_H

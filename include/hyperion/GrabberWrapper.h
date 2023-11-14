@@ -18,7 +18,7 @@
 
 #include <grabber/GrabberType.h>
 
-#include <events/Event.h>
+#include <events/EventEnum.h>
 
 class Grabber;
 class GlobalSignals;

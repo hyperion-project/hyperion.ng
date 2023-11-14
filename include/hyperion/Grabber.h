@@ -11,7 +11,7 @@
 #include <utils/Logger.h>
 #include <utils/Components.h>
 
-#include <events/Event.h>
+#include <events/EventEnum.h>
 
 ///
 /// @brief The Grabber class is responsible to apply image resizes (with or without ImageResampler)

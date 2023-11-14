@@ -24,7 +24,7 @@
 // Determine the cmake options
 #include <HyperionConfig.h>
 
-#include <events/Event.h>
+#include <events/EventEnum.h>
 
 ///
 /// Capture class for V4L2 devices

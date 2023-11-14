@@ -3,7 +3,7 @@
 #include <QObject>
 #include <QJsonDocument>
 
-#include <events/Event.h>
+#include <events/EventEnum.h>
 
 #if defined(_WIN32)
 #include <QAbstractNativeEventFilter>
@@ -16,7 +16,8 @@
 
 class Logger;
 
-class OsEventHandlerBase : public QObject {
+class OsEventHandlerBase : public QObject
+{
 	Q_OBJECT
 
 public:
@@ -24,18 +25,15 @@ public:
 	~OsEventHandlerBase() override;
 
 public slots:
-
 	void suspend(bool sleep);
 	void lock(bool isLocked);
 
 	virtual void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 signals:
-
 	void signalEvent(Event event);
 
 protected:
-
 	virtual bool registerOsEventHandler() { return true; }
 	virtual void unregisterOsEventHandler() {}
 	virtual bool registerLockHandler() { return true; }
@@ -49,14 +47,12 @@ protected:
 	bool _isLockRegistered;
 
 	Logger * _log {};
-
-private:
-
 };
 
 #if defined(_WIN32)
 
-class OsEventHandlerWindows : public OsEventHandlerBase, public QAbstractNativeEventFilter {
+class OsEventHandlerWindows : public OsEventHandlerBase, public QAbstractNativeEventFilter
+{
 
 public:
 	OsEventHandlerWindows();
@@ -70,7 +66,6 @@ protected:
 #endif
 
 private:
-
 	bool registerOsEventHandler() override;
 	void unregisterOsEventHandler() override;
 	bool registerLockHandler() override;
@@ -83,7 +78,8 @@ private:
 using OsEventHandler = OsEventHandlerWindows;
 
 #elif defined(__linux__)
-class OsEventHandlerLinux : public OsEventHandlerBase {
+class OsEventHandlerLinux : public OsEventHandlerBase
+{
 	Q_OBJECT
 
 	static void static_signaleHandler(int signum)
@@ -108,6 +104,33 @@ private:
 };
 
 using OsEventHandler = OsEventHandlerLinux;
+
+#elif defined(__APPLE__)
+#include <CoreFoundation/CoreFoundation.h>
+
+class OsEventHandlerMacOS : public OsEventHandlerBase
+{
+	Q_OBJECT
+
+    static void notificationCenterCallBack(CFNotificationCenterRef center, void* observer, CFStringRef name, const void* object, CFDictionaryRef userInfo)
+	{
+		OsEventHandlerMacOS::getInstance()->handleSignal(name);
+	}
+
+public:
+	void handleSignal (CFStringRef lock_unlock);
+
+private:
+	static OsEventHandlerMacOS* getInstance();
+
+	CFStringRef lockSignal = CFSTR("com.apple.screenIsLocked");
+	CFStringRef unlockSignal = CFSTR("com.apple.screenIsUnlocked");
+	bool registerLockHandler() override;
+	void unregisterLockHandler() override;
+
+};
+
+using OsEventHandler = OsEventHandlerMacOS;
 
 #else
 using OsEventHandler = OsEventHandlerBase;
