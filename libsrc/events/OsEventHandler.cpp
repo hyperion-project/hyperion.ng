@@ -1,4 +1,4 @@
-#include "OsEventHandler.h"
+#include "events/OsEventHandler.h"
 
 #include <QtGlobal>
 #include <QJsonDocument>
@@ -16,6 +16,8 @@
 #include <wtsapi32.h>
 
 #pragma comment( lib, "wtsapi32.lib" )
+#elif defined(__APPLE__)
+#import <Cocoa/Cocoa.h>
 #endif
 
 OsEventHandlerBase::OsEventHandlerBase()
@@ -447,43 +449,152 @@ void OsEventHandlerLinux::unregisterLockHandler()
 
 #elif defined(__APPLE__)
 
-OsEventHandlerMacOS* OsEventHandlerMacOS::getInstance()
+OsEventHandlerMacOS::OsEventHandlerMacOS()
+	: _sleepEventHandler(nullptr)
+	, _lockEventHandler(nullptr)
 {
-	static OsEventHandlerMacOS instance;
-	return &instance;
 }
 
-void OsEventHandlerMacOS::handleSignal (CFStringRef lock_unlock)
+@interface SleepEvents : NSObject
 {
-	if (CFEqual(lock_unlock, CFSTR("com.apple.screenIsLocked")))
+	OsEventHandlerMacOS *_eventHandler;
+}
+- (id)initSleepEvents:(OsEventHandlerMacOS *)osEventHandler;
+@end
+
+@implementation SleepEvents
+- (id)initSleepEvents:(OsEventHandlerMacOS *)osEventHandler
+{
+    if ((self = [super init]))
 	{
-		lock(true);
+       _eventHandler = osEventHandler;
+	   	id notifCenter = [[NSWorkspace sharedWorkspace] notificationCenter];
+		[notifCenter addObserver:self selector:@selector(receiveSleepWake:) name:NSWorkspaceWillSleepNotification object:nil];
+		[notifCenter addObserver:self selector:@selector(receiveSleepWake:) name:NSWorkspaceDidWakeNotification object:nil];
+    }
+
+    return self;
+}
+
+- (void)dealloc
+{
+    [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:self];
+	_eventHandler = nullptr;
+    [super dealloc];
+}
+
+- (void) receiveSleepWake:(NSNotification*)notification
+{
+	if (!_eventHandler) return;
+    if (notification.name == NSWorkspaceWillSleepNotification)
+	{
+		_eventHandler->suspend(true);
 	}
-	else if (CFEqual(lock_unlock, CFSTR("com.apple.screenIsUnlocked")))
+    else if (notification.name == NSWorkspaceDidWakeNotification)
+    {
+		_eventHandler->suspend(false);
+    }
+}
+@end
+
+bool OsEventHandlerMacOS::registerOsEventHandler()
+{
+	bool isRegistered {_isSuspendRegistered};
+	if (!_isSuspendRegistered)
 	{
-		lock(false);
+		_sleepEventHandler = [[SleepEvents alloc] initSleepEvents:this];
+		if (_sleepEventHandler)
+		{
+			Debug(_log, "Registered for suspend/resume events");
+			isRegistered = true;
+		}
+		else
+		{
+			Error(_log, "Could not register for suspend/resume events");
+		}
+
+		if (isRegistered)
+		{
+			_isSuspendRegistered = true;
+		}
+	}
+	return isRegistered;
+}
+
+void OsEventHandlerMacOS::unregisterOsEventHandler()
+{
+	if (_isSuspendRegistered && _sleepEventHandler)
+	{
+		[(SleepEvents *)_sleepEventHandler release], _sleepEventHandler = nil;
+		if (!_sleepEventHandler)
+		{
+			Debug(_log, "Unregistered for suspend/resume events");
+			_isSuspendRegistered = false;
+		}
+		else
+		{
+			Error(_log, "Could not unregister for suspend/resume events");
+		}
 	}
 }
+
+@interface LockEvents : NSObject
+{
+	OsEventHandlerMacOS *_eventHandler;
+}
+- (id)initLockEvents:(OsEventHandlerMacOS *)osEventHandler;
+@end
+
+@implementation LockEvents
+- (id)initLockEvents:(OsEventHandlerMacOS *)osEventHandler
+{
+    if ((self = [super init]))
+	{
+       _eventHandler = osEventHandler;
+		id defCenter = [NSDistributedNotificationCenter defaultCenter];
+		[defCenter addObserver:self selector:@selector(receiveLockUnlock:) name:@"com.apple.screenIsLocked" object:nil];
+		[defCenter addObserver:self selector:@selector(receiveLockUnlock:) name:@"com.apple.screenIsUnlocked" object:nil];
+    }
+
+    return self;
+}
+
+- (void)dealloc
+{
+    [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:self];
+	_eventHandler = nullptr;
+    [super dealloc];
+}
+
+- (void) receiveLockUnlock:(NSNotification*)notification
+{
+	if (!_eventHandler) return;
+	if (CFEqual(notification.name, CFSTR("com.apple.screenIsLocked")))
+	{
+		_eventHandler->lock(true);
+	}
+    else if (CFEqual(notification.name, CFSTR("com.apple.screenIsUnlocked")))
+    {
+		_eventHandler->lock(false);
+    }
+}
+@end
 
 bool OsEventHandlerMacOS::registerLockHandler()
 {
 	bool isRegistered{ _isLockRegistered };
 	if (!_isLockRegistered)
 	{
-		CFNotificationCenterRef distCenter;
-
-		distCenter = CFNotificationCenterGetDistributedCenter();
-		if (distCenter != nullptr)
+		_lockEventHandler = [[LockEvents alloc] initLockEvents:this];
+		if (_lockEventHandler)
 		{
-			CFNotificationCenterAddObserver(distCenter, this, &OsEventHandlerMacOS::notificationCenterCallBack, lockSignal, nullptr, CFNotificationSuspensionBehaviorDeliverImmediately);
-			CFNotificationCenterAddObserver(distCenter, this, &OsEventHandlerMacOS::notificationCenterCallBack, unlockSignal, nullptr, CFNotificationSuspensionBehaviorDeliverImmediately);
+			Debug(_log, "Registered for lock/unlock events");
 			isRegistered = true;
 		}
 		else
 		{
 			Error(_log, "Could not register for lock/unlock events!");
 		}
-
 	}
 
 	if (isRegistered)
@@ -495,10 +606,18 @@ bool OsEventHandlerMacOS::registerLockHandler()
 
 void OsEventHandlerMacOS::unregisterLockHandler()
 {
-	if (_isLockRegistered)
+	if (_isLockRegistered && _lockEventHandler)
 	{
-		CFNotificationCenterRemoveEveryObserver(CFNotificationCenterGetDistributedCenter(), this);
-		_isLockRegistered = false;
+		[(LockEvents *)_lockEventHandler release], _lockEventHandler = nil;
+		if (!_lockEventHandler)
+		{
+			Debug(_log, "Unregistered for lock/unlock events");
+			_isLockRegistered = false;
+		}
+		else
+		{
+			Error(_log, "Could not unregister for lock/unlock events");
+		}
 	}
 }
 

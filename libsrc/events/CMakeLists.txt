@@ -1,31 +1,28 @@
-# Define the current source/header locations
-SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/events)
-SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/events)
-
 add_library(events
-	${CURRENT_HEADER_DIR}/EventEnum.h
-	${CURRENT_HEADER_DIR}/EventHandler.h
-	${CURRENT_SOURCE_DIR}/EventHandler.cpp
-	${CURRENT_HEADER_DIR}/OsEventHandler.h
-	${CURRENT_SOURCE_DIR}/OsEventHandler.cpp
+	${CMAKE_SOURCE_DIR}/include/events/EventEnum.h
+	${CMAKE_SOURCE_DIR}/include/events/EventHandler.h
+	${CMAKE_SOURCE_DIR}/include/events/OsEventHandler.h
+	${CMAKE_SOURCE_DIR}/libsrc/events/EventHandler.cpp
+	${CMAKE_SOURCE_DIR}/libsrc/events/OsEventHandler.cpp
 )
 
-if (UNIX)
-	find_package(Qt${QT_VERSION_MAJOR} COMPONENTS DBus QUIET )
-	if (Qt${QT_VERSION_MAJOR}DBus_FOUND)
+if(UNIX AND NOT APPLE)
+	find_package(Qt${QT_VERSION_MAJOR} COMPONENTS DBus QUIET)
+	if(Qt${QT_VERSION_MAJOR}DBus_FOUND)
 		target_link_libraries(events Qt${QT_VERSION_MAJOR}::DBus)
-		if (NOT APPLE)
-			target_compile_definitions(events PUBLIC HYPERION_HAS_DBUS)
-		endif()
+		target_compile_definitions(events PRIVATE HYPERION_HAS_DBUS)
 	endif()
-endif(UNIX)
+endif()
 
-target_include_directories(events PUBLIC
-	${CURRENT_HEADER_DIR}
-)
+target_link_libraries(events hyperion-utils)
 
-target_link_libraries(events
-	hyperion-utils
-	Qt${QT_VERSION_MAJOR}::Core
-	Qt${QT_VERSION_MAJOR}::Widgets
-)
+if(APPLE)
+	# find_library(FOUNDATION_LIBRARY Foundation REQUIRED)
+	set_source_files_properties(OsEventHandler.cpp PROPERTIES COMPILE_FLAGS "-x objective-c++")
+	# target_link_libraries(events ${FOUNDATION_LIBRARY})
+	# target_include_directories(events PRIVATE ${FOUNDATION_LIBRARY})
+endif()
+
+
+
+
