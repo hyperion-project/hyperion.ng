@@ -106,28 +106,21 @@ private:
 using OsEventHandler = OsEventHandlerLinux;
 
 #elif defined(__APPLE__)
-#include <CoreFoundation/CoreFoundation.h>
-
 class OsEventHandlerMacOS : public OsEventHandlerBase
 {
 	Q_OBJECT
 
-    static void notificationCenterCallBack(CFNotificationCenterRef center, void* observer, CFStringRef name, const void* object, CFDictionaryRef userInfo)
-	{
-		OsEventHandlerMacOS::getInstance()->handleSignal(name);
-	}
-
 public:
-	void handleSignal (CFStringRef lock_unlock);
+	OsEventHandlerMacOS();
 
 private:
-	static OsEventHandlerMacOS* getInstance();
-
-	CFStringRef lockSignal = CFSTR("com.apple.screenIsLocked");
-	CFStringRef unlockSignal = CFSTR("com.apple.screenIsUnlocked");
+	bool registerOsEventHandler() override;
+	void unregisterOsEventHandler() override;
 	bool registerLockHandler() override;
 	void unregisterLockHandler() override;
 
+	void *_sleepEventHandler;
+	void *_lockEventHandler;
 };
 
 using OsEventHandler = OsEventHandlerMacOS;
