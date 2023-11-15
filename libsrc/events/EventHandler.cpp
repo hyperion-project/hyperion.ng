@@ -28,14 +28,6 @@ EventHandler* EventHandler::getInstance()
 	return &instance;
 }
 
-void EventHandler::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
-{
-    if(type == settings::OSEVENTS)
-	{
-		const QJsonObject& obj = config.object();
-	}
-}
-
 void EventHandler::suspend()
 {
 	suspend(true);

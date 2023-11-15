@@ -35,8 +35,8 @@ OsEventHandlerBase::~OsEventHandlerBase()
 {
 	QObject::disconnect(this, &OsEventHandlerBase::signalEvent, EventHandler::getInstance(), &EventHandler::handleEvent);
 
-	unregisterLockHandler();
-	unregisterOsEventHandler();
+	OsEventHandlerBase::unregisterLockHandler();
+	OsEventHandlerBase::unregisterOsEventHandler();
 }
 
 void OsEventHandlerBase::handleSettingsUpdate(settings::type type, const QJsonDocument& config)

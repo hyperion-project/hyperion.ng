@@ -19,7 +19,6 @@ public:
 	static EventHandler* getInstance();
 
 public slots:
-	virtual void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 	void suspend(bool sleep);
 
