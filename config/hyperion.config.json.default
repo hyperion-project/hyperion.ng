@@ -21,7 +21,21 @@
 		"enableAttempts": 6,
 		"enableAttemptsInterval": 15
 	},
-
+	
+	"cecEvents": {
+		"actions": [
+			{
+				"action": "Suspend",
+				"cec_event": "standby"
+			},
+			{
+				"action": "Resume",
+				"cec_event": "set stream path"
+			}
+		],
+ 		"enable": false
+ 	},
+  
 	"color": {
 		"imageToLedMappingType": "multicolor_mean",
 		"channelAdjustment": [
