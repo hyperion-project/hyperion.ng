@@ -14,7 +14,11 @@ if(UNIX AND NOT APPLE)
 	endif()
 endif()
 
-target_link_libraries(events hyperion-utils)
+target_link_libraries(events
+	hyperion-utils
+	Qt${QT_VERSION_MAJOR}::Core
+	Qt${QT_VERSION_MAJOR}::Widgets
+)
 
 if(APPLE)
 	# find_library(FOUNDATION_LIBRARY Foundation REQUIRED)
