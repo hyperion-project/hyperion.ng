@@ -45,45 +45,40 @@ void CECHandler::handleSettingsUpdate(settings::type type, const QJsonDocument& 
 	{
 		Debug( _logger, "config: [%s]", QString(QJsonDocument(config).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
-		const QJsonObject& obj = config.object();
-
-		_isEnabled = obj["enable"].toBool(false);
-		Debug(_logger, "CEC Event handling is %s", _isEnabled? "enabled" : "disabled");
-
-		_buttonReleaseDelayMs = obj["buttonReleaseDelayMs"].toInt(CEC_BUTTON_TIMEOUT);
-		_buttonRepeatRateMs = obj["buttonRepeatRateMs"].toInt(0);
-		_doubleTapTimeoutMs = obj["doubleTapTimeoutMs"].toInt(CEC_DOUBLE_TAP_TIMEOUT_MS);
-		_cecConfig.iButtonReleaseDelayMs = static_cast<uint32_t>(_buttonReleaseDelayMs);
-		_cecConfig.iButtonRepeatRateMs = static_cast<uint32_t>(_buttonRepeatRateMs);
-		_cecConfig.iDoubleTapTimeoutMs = static_cast<uint32_t>(_doubleTapTimeoutMs);
-		if (_cecAdapter->SetConfiguration(&_cecConfig))
-		{
-			Debug(_logger, "Remote button press release time           : %dms",_buttonReleaseDelayMs);
-			Debug(_logger, "Remote button press repeat rate            : %dms",_buttonRepeatRateMs);
-			Debug(_logger, "Remote button press delay before repeating : %dms",_doubleTapTimeoutMs);
-		}
-		else
-		{
-			Error(_logger, "Failed setting remote button press timing parameters");
-		}
-
-		_cecEventActionMap.clear();
-		const QJsonArray actionItems = obj["actions"].toArray();
-		if (!actionItems.isEmpty())
-		{
-			for (const QJsonValue &item : actionItems)
-			{
-				QString cecEvent = item.toObject().value("cec_event").toString();
-				QString action = item.toObject().value("action").toString();
-				_cecEventActionMap.insert(cecEvent, stringToEvent(action));
-				Debug(_logger, "CEC-Event : \"%s\" linked to action \"%s\"", QSTRING_CSTR(cecEvent), QSTRING_CSTR(action));
-			}
-		}
-
 		if (_isInitialised)
 		{
+			const QJsonObject& obj = config.object();
+
+			_isEnabled = obj["enable"].toBool(false);
+			Debug(_logger, "CEC Event handling is %s", _isEnabled? "enabled" : "disabled");
+
 			if (_isEnabled)
 			{
+				_buttonReleaseDelayMs = obj["buttonReleaseDelayMs"].toInt(CEC_BUTTON_TIMEOUT);
+				_buttonRepeatRateMs = obj["buttonRepeatRateMs"].toInt(0);
+				_doubleTapTimeoutMs = obj["doubleTapTimeoutMs"].toInt(CEC_DOUBLE_TAP_TIMEOUT_MS);
+
+				Debug(_logger, "Remote button press release time           : %dms",_buttonReleaseDelayMs);
+				Debug(_logger, "Remote button press repeat rate            : %dms",_buttonRepeatRateMs);
+				Debug(_logger, "Remote button press delay before repeating : %dms",_doubleTapTimeoutMs);
+
+				_cecConfig.iButtonReleaseDelayMs = static_cast<uint32_t>(_buttonReleaseDelayMs);
+				_cecConfig.iButtonRepeatRateMs = static_cast<uint32_t>(_buttonRepeatRateMs);
+				_cecConfig.iDoubleTapTimeoutMs = static_cast<uint32_t>(_doubleTapTimeoutMs);
+
+				_cecEventActionMap.clear();
+				const QJsonArray actionItems = obj["actions"].toArray();
+				if (!actionItems.isEmpty())
+				{
+					for (const QJsonValue &item : actionItems)
+					{
+						QString cecEvent = item.toObject().value("cec_event").toString();
+						QString action = item.toObject().value("action").toString();
+						_cecEventActionMap.insert(cecEvent, stringToEvent(action));
+						Debug(_logger, "CEC-Event : \"%s\" linked to action \"%s\"", QSTRING_CSTR(cecEvent), QSTRING_CSTR(action));
+					}
+				}
+
 				if (!_cecEventActionMap.isEmpty())
 				{
 					enable();
@@ -106,9 +101,6 @@ bool CECHandler::start()
 	_isInitialised = false;
 	if (_cecAdapter == nullptr)
 	{
-		//	std::string library = std::string("" CEC_LIBRARY);
-		//	_cecAdapter = LibCecInitialise(&_cecConfig, QFile::exists(QString::fromStdString(library)) ? library.c_str() : nullptr);
-
 		_cecAdapter = LibCecInitialise(&_cecConfig);
 		if(_cecAdapter == nullptr)
 		{
@@ -172,6 +164,10 @@ bool CECHandler::enable()
 	}
 	else
 	{
+		if (!_cecAdapter->SetConfiguration(&_cecConfig))
+		{
+			Error(_logger, "Failed setting remote button press timing parameters");
+		}
 		QObject::connect(this, &CECHandler::signalEvent, EventHandler::getInstance(), &EventHandler::handleEvent);
 		Info(_logger, "CEC handler started");
 	}
@@ -181,7 +177,7 @@ bool CECHandler::enable()
 
 void CECHandler::disable()
 {
-	if (_cecAdapter != nullptr)
+	if (_isInitialised)
 	{
 		Info(_logger, "Stopping CEC handler");
 
@@ -199,7 +195,6 @@ CECConfig CECHandler::getConfig() const
 	name.copy(configuration.strDeviceName, std::min(name.size(), sizeof(configuration.strDeviceName)));
 	configuration.deviceTypes.Add(CEC::CEC_DEVICE_TYPE_RECORDING_DEVICE);
 	configuration.clientVersion = CEC::LIBCEC_VERSION_CURRENT;
-	configuration.bActivateSource = 0;
 
 	return configuration;
 }
@@ -246,15 +241,24 @@ bool CECHandler::openAdapter(const CECAdapterDescriptor & descriptor)
 
 void CECHandler::printAdapter(const CECAdapterDescriptor & descriptor) const
 {
-	Info(_logger, "CEC Adapter:");
-	Info(_logger, "\tName       : %s", descriptor.strComName);
-	Info(_logger, "\tPath       : %s", descriptor.strComPath);
-	Info(_logger, "\tVendor   id: %04x", descriptor.iVendorId);
-	Info(_logger, "\tProduct  id: %04x", descriptor.iProductId);
-	Info(_logger, "\tFirmware id: %d", descriptor.iFirmwareVersion);
+	Debug(_logger, "CEC Adapter:");
+	Debug(_logger, "\tName       : %s", descriptor.strComName);
+	Debug(_logger, "\tPath       : %s", descriptor.strComPath);
+	if (descriptor.iVendorId != 0)
+	{
+		Debug(_logger, "\tVendor   id: %04x", descriptor.iVendorId);
+	}
+	if (descriptor.iProductId != 0)
+	{
+		Debug(_logger, "\tProduct  id: %04x", descriptor.iProductId);
+	}
+	if (descriptor.iFirmwareVersion != 0)
+	{
+		Debug(_logger, "\tFirmware id: %d", descriptor.iFirmwareVersion);
+	}
 	if (descriptor.adapterType != CEC::ADAPTERTYPE_UNKNOWN)
 	{
-		Info(_logger, "\tType   : %s", _cecAdapter->ToString(descriptor.adapterType));
+		Debug(_logger, "\tType   : %s", _cecAdapter->ToString(descriptor.adapterType));
 	}
 }
 
@@ -287,10 +291,10 @@ QString CECHandler::scan() const
 			Info(_logger, "%s", QSTRING_CSTR(QString("\tCECDevice: %1 / %2 / %3 / %4")
 											 .arg(device["name"].toString(),
 											 device["vendor"].toString(),
-											 device["address"].toString(),
-											 device["power"].toString())
+				 device["address"].toString(),
+					device["power"].toString())
 					)
-			);
+					);
 		}
 	}
 	return QJsonDocument(devices).toJson(QJsonDocument::Compact);

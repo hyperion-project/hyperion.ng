@@ -20,7 +20,7 @@
       "step": 50,
       "default": 0,
       "required": false,
-      "access": "advanced",
+      "access": "expert",
       "propertyOrder": 2
     },
     "buttonRepeatRateMs": {
@@ -33,7 +33,7 @@
       "step": 10,
       "default": 0,
       "required": false,
-      "access": "advanced",
+      "access": "expert",
       "propertyOrder": 3
     },
     "doubleTapTimeoutMs": {
@@ -46,7 +46,7 @@
       "step": 50,
       "default": 200,
       "required": false,
-      "access": "advanced",
+      "access": "expert",
       "propertyOrder": 4
     },
     "actions": {

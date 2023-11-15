@@ -100,7 +100,8 @@ $(document).ready(function () {
     $('#btn_submit_cec_events').off().on('click', function () {
 
       const saveOptions = conf_editor_cecEvents.getValue();
-      // Workaround, as otherwise actions array is empty	 
+      // Workaround, as otherwise values are not reflected correctly	 
+      saveOptions.cecEvents.enable = conf_editor_cecEvents.getEditor("root.cecEvents.enable").getValue();
       saveOptions.cecEvents.actions = conf_editor_cecEvents.getEditor("root.cecEvents.actions").getValue();
       requestWriteConfig(saveOptions);
     });
