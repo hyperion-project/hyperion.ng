@@ -16,17 +16,10 @@ endif()
 
 target_link_libraries(events
 	hyperion-utils
-	Qt${QT_VERSION_MAJOR}::Core
 	Qt${QT_VERSION_MAJOR}::Widgets
 )
 
 if(APPLE)
-	find_library(FOUNDATION_LIBRARY Foundation REQUIRED)
 	set_source_files_properties(OsEventHandler.cpp PROPERTIES COMPILE_FLAGS "-x objective-c++")
-	target_link_libraries(events ${FOUNDATION_LIBRARY})
-	target_include_directories(events PRIVATE ${FOUNDATION_LIBRARY})
+	target_link_libraries(events "-framework AppKit")
 endif()
-
-
-
-

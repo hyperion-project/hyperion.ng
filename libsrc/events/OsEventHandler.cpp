@@ -17,7 +17,7 @@
 
 #pragma comment( lib, "wtsapi32.lib" )
 #elif defined(__APPLE__)
-#import <Cocoa/Cocoa.h>
+#include <AppKit/AppKit.h>
 #endif
 
 OsEventHandlerBase::OsEventHandlerBase()
