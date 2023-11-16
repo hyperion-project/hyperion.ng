@@ -4,7 +4,7 @@
 #include <QTimer>
 
 // Hyperion-Qt includes
-#include <grabber/QtGrabber.h>
+#include <grabber/qt/QtGrabber.h>
 #include <hyperion/GrabberWrapper.h>
 
 class QtWrapper : public QObject

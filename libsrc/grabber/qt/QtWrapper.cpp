@@ -1,4 +1,4 @@
-#include <grabber/QtWrapper.h>
+#include <grabber/qt/QtWrapper.h>
 
 QtWrapper::QtWrapper( int updateRate_Hz,
 					  int display,

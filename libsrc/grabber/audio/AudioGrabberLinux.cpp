@@ -1,11 +1,31 @@
-#include <grabber/AudioGrabberLinux.h>
+#include <grabber/audio/AudioGrabberLinux.h>
 
 #include <alsa/asoundlib.h>
 
 #include <QJsonObject>
 #include <QJsonArray>
 
-typedef void* (*THREADFUNCPTR)(void*);
+static void * AudioThreadRunner(void* params)
+{
+	AudioGrabberLinux* This = static_cast<AudioGrabberLinux*>(params);
+
+	Debug(This->getLog(), "Audio Thread Started");
+
+	snd_pcm_sframes_t framesAvailable = 0;
+
+	while (This->_isRunning.load(std::memory_order_acquire))
+	{
+		snd_pcm_wait(This->_captureDevice, 1000);
+
+		if ((framesAvailable = snd_pcm_avail(This->_captureDevice)) > 0)
+			This->processAudioBuffer(framesAvailable);
+
+		sched_yield();
+	}
+
+	Debug(This->getLog(), "Audio Thread Shutting Down");
+	return nullptr;
+}
 
 AudioGrabberLinux::AudioGrabberLinux()
 	: AudioGrabber()
@@ -121,7 +141,7 @@ bool AudioGrabberLinux::configureCaptureInterface()
 		snd_pcm_close(_captureDevice);
 		return false;
 	}
-	
+
 	if ((error = snd_pcm_hw_params_set_access(_captureDevice, _captureDeviceConfig, SND_PCM_ACCESS_RW_INTERLEAVED)) < 0)
 	{
 		Error(_log, "Failed to configure interleaved mode: %s", snd_strerror(error));
@@ -129,7 +149,7 @@ bool AudioGrabberLinux::configureCaptureInterface()
 		snd_pcm_close(_captureDevice);
 		return false;
 	}
-	
+
 	if ((error = snd_pcm_hw_params_set_format(_captureDevice, _captureDeviceConfig, SND_PCM_FORMAT_S16_LE)) < 0)
 	{
 		Error(_log, "Failed to configure capture format: %s", snd_strerror(error));
@@ -169,7 +189,7 @@ bool AudioGrabberLinux::configureCaptureInterface()
 		snd_pcm_close(_captureDevice);
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -189,11 +209,6 @@ bool AudioGrabberLinux::start()
 	_isRunning.store(true, std::memory_order_release);
 
 	pthread_attr_t threadAttributes;
-	int threadPriority = 1;
-
-	sched_param schedulerParameter;
-	schedulerParameter.sched_priority = threadPriority;
-
 	if (pthread_attr_init(&threadAttributes) != 0)
 	{
 		Debug(_log, "Failed to create thread attributes");
@@ -201,7 +216,7 @@ bool AudioGrabberLinux::start()
 		return false;
 	}
 
-	if (pthread_create(&_audioThread, &threadAttributes, static_cast<THREADFUNCPTR>(&AudioThreadRunner), static_cast<void*>(this)) != 0)
+	if (pthread_create(&_audioThread, &threadAttributes, &AudioThreadRunner, static_cast<void*>(this)) != 0)
 	{
 		Debug(_log, "Failed to create audio capture thread");
 		stop();
@@ -239,7 +254,7 @@ void AudioGrabberLinux::processAudioBuffer(snd_pcm_sframes_t frames)
 	ssize_t bytes = snd_pcm_frames_to_bytes(_captureDevice, frames);
 
 	int16_t * buffer = static_cast<int16_t*>(calloc(static_cast<size_t>(bytes / 2), sizeof(int16_t)));
-	
+
 	if (frames == 0)
 	{
 		buffer[0] = 0;
@@ -292,26 +307,4 @@ QString AudioGrabberLinux::getDeviceName(const QString& devicePath) const
 	}
 
 	return _deviceProperties.value(devicePath).name;
-}
-
-static void * AudioThreadRunner(void* params)
-{
-	AudioGrabberLinux* This = static_cast<AudioGrabberLinux*>(params);
-
-	Debug(This->getLog(), "Audio Thread Started");
-
-	snd_pcm_sframes_t framesAvailable = 0;
-			
-	while (This->_isRunning.load(std::memory_order_acquire))
-	{
-		snd_pcm_wait(This->_captureDevice, 1000);
-
-		if ((framesAvailable = snd_pcm_avail(This->_captureDevice)) > 0)
-			This->processAudioBuffer(framesAvailable);
-
-		sched_yield();
-	}
-
-	Debug(This->getLog(), "Audio Thread Shutting Down");
-	return nullptr;
 }

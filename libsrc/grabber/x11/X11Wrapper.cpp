@@ -1,4 +1,4 @@
-#include <grabber/X11Wrapper.h>
+#include <grabber/x11/X11Wrapper.h>
 
 X11Wrapper::X11Wrapper( int updateRate_Hz,
 						int pixelDecimation,

@@ -24,46 +24,46 @@ if (ENABLE_MDNS)
 	if (USE_SYSTEM_QMDNS_LIBS)
 		find_package(qmdnsengine REQUIRED)
 	else ()
-		if (NOT DEFINED BUILD_QMDNS_ONCE)
-			set(BUILD_QMDNS_ONCE CACHE INTERNAL "Done")
-			set(QMDNS_WORK_DIR "${CMAKE_BINARY_DIR}/dependencies/external/qmdnsengine")
-			set(QMDNS_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/qmdnsengine")
-			set(QMDNS_INSTALL_DIR ${CMAKE_BINARY_DIR})
-			set(QMDNS_CMAKE_ARGS
-				-DBUILD_SHARED_LIBS:BOOL=OFF
-				-DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_BINARY_DIR}
-				-DBIN_INSTALL_DIR:STRING=lib
-				-DLIB_INSTALL_DIR:STRING=lib
-				-DINCLUDE_INSTALL_DIR:STRING=include
-				-DCMAKE_PREFIX_PATH:PATH=${CMAKE_PREFIX_PATH}
-				-Wno-dev
-			)
-
-			if(${CMAKE_BUILD_TYPE} AND ${CMAKE_BUILD_TYPE} EQUAL "Debug")
-				set(QMDNS_LOGGING 1)
-			else ()
-				set(QMDNS_LOGGING 0)
-			endif ()
-
-			configure_file(${CMAKE_SOURCE_DIR}/dependencies/CMakeLists-qmdnsengine.txt.in ${QMDNS_WORK_DIR}/CMakeLists.txt @ONLY)
-			execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" . WORKING_DIRECTORY ${QMDNS_WORK_DIR})
-			execute_process(COMMAND ${CMAKE_COMMAND} --build . --config "${CMAKE_BUILD_TYPE}" WORKING_DIRECTORY ${QMDNS_WORK_DIR})
-		endif()
-
-		set(QMDNS_INCLUDE_DIR "${CMAKE_BINARY_DIR}/include")
-
 		if(WIN32)
 			set(QMDNS_LIBRARIES ${CMAKE_BINARY_DIR}/lib/qmdnsengine${CMAKE_STATIC_LIBRARY_SUFFIX})
 		else()
 			set(QMDNS_LIBRARIES ${CMAKE_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}qmdnsengine${CMAKE_STATIC_LIBRARY_SUFFIX})
 		endif()
 
-		mark_as_advanced (QMDNS_INCLUDE_DIR QMDNS_LIBRARIES)
-	endif ()
+		get_property(isMultiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+		set(QMDNS_CMAKE_ARGS
+			-DBUILD_SHARED_LIBS:BOOL=OFF
+			-DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_BINARY_DIR}
+			-DBIN_INSTALL_DIR:STRING=lib
+			-DLIB_INSTALL_DIR:STRING=lib
+			-DINCLUDE_INSTALL_DIR:STRING=include
+			-DCMAKE_PREFIX_PATH:PATH=${CMAKE_PREFIX_PATH}
+			$<$<NOT:$<BOOL:${isMultiConfig}>>:-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}>
+			-Wno-dev
+		)
 
-	set(QMDNS_INCLUDE_DIR ${QMDNS_INCLUDE_DIR} PARENT_SCOPE)
-	set(QMDNS_LIBRARIES ${QMDNS_LIBRARIES} PARENT_SCOPE)
-	include_directories(${QMDNS_INCLUDE_DIR})
+		include(ExternalProject)
+		ExternalProject_Add(qmdns
+			PREFIX				${CMAKE_BINARY_DIR}/dependencies/external/qmdnsengine
+			BUILD_ALWAYS		OFF
+			DOWNLOAD_COMMAND	""
+			SOURCE_DIR			${CMAKE_CURRENT_SOURCE_DIR}/external/qmdnsengine
+			BINARY_DIR			${CMAKE_BINARY_DIR}/dependencies/external/qmdnsengine/build
+			CMAKE_ARGS			${QMDNS_CMAKE_ARGS}
+			CONFIGURE_COMMAND	${CMAKE_COMMAND} -S <SOURCE_DIR> -B <BINARY_DIR> ${QMDNS_CMAKE_ARGS} -G ${CMAKE_GENERATOR}
+			BUILD_COMMAND		${CMAKE_COMMAND} --build <BINARY_DIR> --config $<CONFIG>
+			INSTALL_DIR			${CMAKE_BINARY_DIR}
+			BUILD_BYPRODUCTS	${QMDNS_LIBRARIES}
+		)
+
+		add_library(qmdnsengine STATIC IMPORTED GLOBAL)
+		set_target_properties(qmdnsengine PROPERTIES
+			IMPORTED_LOCATION ${QMDNS_LIBRARIES}
+			INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/include
+		)
+
+		add_dependencies(qmdnsengine qmdns)
+	endif ()
 endif()
 
 #=============================================================================
@@ -75,8 +75,18 @@ if(ENABLE_FLATBUF_SERVER OR ENABLE_FLATBUF_CONNECT)
 
 	if (USE_SYSTEM_FLATBUFFERS_LIBS)
 		find_program(FLATBUFFERS_FLATC_EXECUTABLE NAMES flatc REQUIRED)
-		find_package(Flatbuffers REQUIRED)
-	else ()
+		find_package(Flatbuffers QUIET)
+		if (NOT Flatbuffers_FOUND)
+			find_package(FlatBuffers QUIET)
+			if (NOT FlatBuffers_FOUND)
+				message(STATUS "Could not find Flatbuffers system library, build static Flatbuffers library")
+				set(DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF PARENT_SCOPE)
+				set(USE_SYSTEM_FLATBUFFERS_LIBS OFF)
+			endif()
+		endif()
+	endif()
+
+	if (NOT USE_SYSTEM_FLATBUFFERS_LIBS)
 		set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared flatbuffers library")
 		set(FLATBUFFERS_BUILD_TESTS OFF CACHE BOOL "Build Flatbuffers with tests")
 		add_subdirectory(external/flatbuffers)
@@ -133,9 +143,9 @@ endif()
 
 if(ENABLE_PROTOBUF_SERVER)
 	set(USE_SYSTEM_PROTO_LIBS ${DEFAULT_USE_SYSTEM_PROTO_LIBS} CACHE BOOL "use protobuf library from system")
-	
+
 	# defines for 3rd party sub-modules
-	set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "Build abseil-cpp with C++ version requirements propagated")	
+	set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "Build abseil-cpp with C++ version requirements propagated")
 
 	if (USE_SYSTEM_PROTO_LIBS)
 		find_package(Protobuf REQUIRED)
@@ -163,7 +173,7 @@ if(ENABLE_PROTOBUF_SERVER)
 
 		# define the protobuf library
 		set(PROTOBUF_LIBRARIES protobuf::libprotobuf)
-		
+
 	endif()
 
 	# redefine at parent scope

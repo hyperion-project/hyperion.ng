@@ -3,17 +3,17 @@ include_directories(../libsrc)
 
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
 
-MACRO (link_to_hyperion TARGET)
-	target_link_libraries( ${TARGET} blackborder leddevice jsonserver hyperion-utils hyperion )
+macro (link_to_hyperion TARGET)
+	target_link_libraries(${TARGET} blackborder leddevice jsonserver hyperion-utils hyperion)
 	if(ENABLE_EFFECTENGINE)
-		target_link_libraries( ${TARGET} effectengine )
+		target_link_libraries(${TARGET} effectengine)
 	endif()
-ENDMACRO()
+endmacro()
 
 if(ENABLE_DEV_SPI)
 	# Add the simple test executable 'TestSpi'
 	add_executable(test_spi TestSpi.cpp)
-	target_link_libraries( test_spi leddevice hyperion-utils hyperion )
+	target_link_libraries(test_spi leddevice hyperion-utils hyperion)
 	add_executable(spidev_test spidev_test.c)
 	add_executable(gpio2spi switchPinCtrl.c)
 endif(ENABLE_DEV_SPI)
@@ -42,12 +42,12 @@ endif(ENABLE_X11)
 add_executable(test_versions TestVersions.cpp)
 target_link_libraries(test_versions Qt${QT_VERSION_MAJOR}::Core)
 
-add_executable(test_image2ledsmap TestImage2LedsMap.cpp "${CMAKE_BINARY_DIR}/resources.qrc" )
+add_executable(test_image2ledsmap TestImage2LedsMap.cpp "${CMAKE_BINARY_DIR}/resources.qrc")
 link_to_hyperion(test_image2ledsmap)
 
 ######### These tests are broken. May they fix someone ##########
 
-#if (ENABLE_DISPMANX)
+#if(ENABLE_DISPMANX)
 #	add_subdirectory(dispmanx2png)
 #endif (ENABLE_DISPMANX)
 

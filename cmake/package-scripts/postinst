@@ -105,9 +105,9 @@ ln -fs $BINSP/scripts/updateHyperionUser.sh $BINTP/updateHyperionUser 2>/dev/nul
 if [ "$IS_UPGRADE" = false ]; then
 	if hash desktop-file-install 2>/dev/null; then
 		echo "---> Install Hyperion desktop icons"
-		mkdir /usr/share/pixmaps/hyperion 2>/dev/null
-		cp /usr/share/hyperion/desktop/*.png /usr/share/pixmaps/hyperion 2>/dev/null
-		desktop-file-install /usr/share/hyperion/desktop/hyperiond.desktop 2>/dev/null
+		cp -R /usr/share/hyperion/icons /usr/share/icons/hicolor 2>/dev/null
+		cp /usr/share/hyperion/desktop/hyperion.metainfo.xml /usr/share/metainfo/hyperion.metainfo.xml 2>/dev/null
+		desktop-file-install /usr/share/hyperion/desktop/hyperion.desktop 2>/dev/null
 	fi
 fi
 
@@ -149,7 +149,7 @@ $REBOOTMESSAGE
 echo "-----------------------------------------------------------------------------"
 echo "Webpage: www.hyperion-project.org"
 echo "Forum: www.hyperion-project.org"
-echo "Documenation: docs.hyperion-project.org"
+echo "Documentation: docs.hyperion-project.org"
 echo "-----------------------------------------------------------------------------"
 
 

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Hyperion
+GenericName=Hyperion Ambient Lighting
+Comment=Hyperion is an opensource Bias or Ambient Lighting implementation
+Icon=hyperion
+Terminal=false
+TryExec=hyperiond
+Exec=hyperiond
+Type=Application
+StartupNotify=false
+Categories=Application;

@@ -1,5 +1,5 @@
 // proj
-#include <grabber/QtGrabber.h>
+#include <grabber/qt/QtGrabber.h>
 
 // qt
 #include <QPixmap>
@@ -226,7 +226,7 @@ int QtGrabber::grabFrame(Image<ColorRgb>& image)
 			QPixmap originalPixmap = grabWindow(0, _src_x, _src_y, _src_x_max, _src_y_max);
 #else
 			QPixmap originalPixmap = _screen->grabWindow(0, _src_x, _src_y, _src_x_max, _src_y_max);
-#endif			
+#endif
 			if (originalPixmap.isNull())
 			{
 				rc = -1;

@@ -1,5 +1,5 @@
 #include "MFSourceReaderCB.h"
-#include "grabber/MFGrabber.h"
+#include "grabber/video/mediafoundation/MFGrabber.h"
 
 // Constants
 namespace { const bool verbose = false; }
@@ -537,7 +537,7 @@ void MFGrabber::process_image(const void *frameImageBuffer, int size)
 		Error(_log, "Frame too small: %d != %d", size, _frameByteSize);
 	else if (_threadManager != nullptr)
 	{
-		for (unsigned long i = 0; i < _threadManager->_threadCount; i++)
+		for (int i = 0; i < _threadManager->_threadCount; i++)
 		{
 			if (!_threadManager->_threads[i]->isBusy())
 			{

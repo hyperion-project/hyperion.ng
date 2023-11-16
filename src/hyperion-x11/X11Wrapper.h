@@ -4,7 +4,7 @@
 #include <QTimer>
 
 // Hyperion-X11 includes
-#include <grabber/X11Grabber.h>
+#include <grabber/x11/X11Grabber.h>
 #include <hyperion/GrabberWrapper.h>
 
 class X11Wrapper : public QObject

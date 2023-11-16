@@ -3,7 +3,7 @@
 // QT includes
 #include <QTimer>
 
-#include <grabber/FramebufferFrameGrabber.h>
+#include <grabber/framebuffer/FramebufferFrameGrabber.h>
 #include <hyperion/GrabberWrapper.h>
 
 class FramebufferWrapper : public QObject

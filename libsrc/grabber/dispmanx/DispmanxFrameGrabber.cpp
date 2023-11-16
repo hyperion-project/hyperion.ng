@@ -16,7 +16,7 @@ namespace {
 } //End of constants
 
 // Local includes
-#include "grabber/DispmanxFrameGrabber.h"
+#include "grabber/dispmanx/DispmanxFrameGrabber.h"
 
 DispmanxFrameGrabber::DispmanxFrameGrabber()
 	: Grabber("DISPMANXGRABBER")

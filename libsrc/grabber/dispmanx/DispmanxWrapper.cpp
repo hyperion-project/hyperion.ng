@@ -1,4 +1,4 @@
-#include <grabber/DispmanxWrapper.h>
+#include <grabber/dispmanx/DispmanxWrapper.h>
 
 DispmanxWrapper::DispmanxWrapper( int updateRate_Hz,
 								  int pixelDecimation

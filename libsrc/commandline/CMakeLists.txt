@@ -1,10 +1,27 @@
-# Define the current source locations
-set(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/commandline)
-set(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/commandline)
-
-FILE ( GLOB Parser_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
-
-add_library(commandline ${Parser_SOURCES} )
+add_library(commandline
+	${CMAKE_SOURCE_DIR}/include/commandline/BooleanOption.h
+	${CMAKE_SOURCE_DIR}/include/commandline/ColorOption.h
+	${CMAKE_SOURCE_DIR}/include/commandline/ColorsOption.h
+	${CMAKE_SOURCE_DIR}/include/commandline/DoubleOption.h
+	${CMAKE_SOURCE_DIR}/include/commandline/ImageOption.h
+	${CMAKE_SOURCE_DIR}/include/commandline/IntOption.h
+	${CMAKE_SOURCE_DIR}/include/commandline/Option.h
+	${CMAKE_SOURCE_DIR}/include/commandline/Parser.h
+	${CMAKE_SOURCE_DIR}/include/commandline/RegularExpressionOption.h
+	${CMAKE_SOURCE_DIR}/include/commandline/SwitchOption.h
+	${CMAKE_SOURCE_DIR}/include/commandline/ValidatorOption.h
+	${CMAKE_SOURCE_DIR}/libsrc/commandline/BooleanOption.cpp
+	${CMAKE_SOURCE_DIR}/libsrc/commandline/ColorOption.cpp
+	${CMAKE_SOURCE_DIR}/libsrc/commandline/ColorsOption.cpp
+	${CMAKE_SOURCE_DIR}/libsrc/commandline/DoubleOption.cpp
+	${CMAKE_SOURCE_DIR}/libsrc/commandline/ImageOption.cpp
+	${CMAKE_SOURCE_DIR}/libsrc/commandline/IntOption.cpp
+	${CMAKE_SOURCE_DIR}/libsrc/commandline/Option.cpp
+	${CMAKE_SOURCE_DIR}/libsrc/commandline/Parser.cpp
+	${CMAKE_SOURCE_DIR}/libsrc/commandline/RegularExpressionOption.cpp
+	${CMAKE_SOURCE_DIR}/libsrc/commandline/SwitchOption.cpp
+	${CMAKE_SOURCE_DIR}/libsrc/commandline/ValidatorOption.cpp
+)
 
 target_link_libraries(commandline
 	hyperion

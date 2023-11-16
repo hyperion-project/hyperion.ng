@@ -3,7 +3,7 @@
 #include <iostream>
 
 // Local includes
-#include <grabber/OsxFrameGrabber.h>
+#include <grabber/osx/OsxFrameGrabber.h>
 
 //Qt
 #include <QJsonObject>

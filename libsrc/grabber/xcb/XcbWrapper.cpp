@@ -1,4 +1,4 @@
-#include <grabber/XcbWrapper.h>
+#include <grabber/xcb/XcbWrapper.h>
 
 XcbWrapper::XcbWrapper( int updateRate_Hz,
 						int pixelDecimation,

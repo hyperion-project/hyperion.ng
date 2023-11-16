@@ -33,8 +33,8 @@ SysTray::SysTray(HyperionDaemon *hyperiond)
 	, _hyperiond(hyperiond)
 	, _hyperion(nullptr)
 	, _instanceManager(HyperionIManager::getInstance())
-	, _suspendHandler (hyperiond->getSuspendHandlerInstance())
 	, _webPort(8090)
+	, _suspendHandler (hyperiond->getSuspendHandlerInstance())
 {
 	Q_INIT_RESOURCE(resources);
 
@@ -281,7 +281,7 @@ void SysTray::handleInstanceStateChange(InstanceState state, quint8 instance, co
 				connect(quitAction, &QAction::triggered, _trayIcon, &QSystemTrayIcon::hide, Qt::DirectConnection);
 				connect(&_colorDlg, &QColorDialog::currentColorChanged, this, &SysTray::setColor);
 
-				QIcon icon(":/hyperion-icon-32px.png");
+				QIcon icon(":/hyperion-32px.png");
 				_trayIcon->setIcon(icon);
 				_trayIcon->show();
 				setWindowIcon(icon);
