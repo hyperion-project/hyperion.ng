@@ -1,38 +1,38 @@
 # Common cmake definition for external video grabber
 
-# Add Turbo JPEG library
-if (ENABLE_V4L2 OR ENABLE_MF)
-	find_package(TurboJPEG)
-	if (TURBOJPEG_FOUND)
-		add_definitions(-DHAVE_TURBO_JPEG)
-		message( STATUS "Using Turbo JPEG library: ${TurboJPEG_LIBRARY}")
-		include_directories(${TurboJPEG_INCLUDE_DIRS})
-	else ()
-		message( STATUS "Turbo JPEG library not found, MJPEG camera format won't work.")
-	endif ()
-endif()
+set(MF-grabber mediafoundation)
+set(V4L2-grabber v4l2)
 
-# Define the wrapper/header/source locations and collect them
-SET(WRAPPER_DIR ${CMAKE_SOURCE_DIR}/libsrc/grabber/video)
-SET(HEADER_DIR ${CMAKE_SOURCE_DIR}/include/grabber)
-if (ENABLE_MF)
+if(ENABLE_MF)
 	project(mf-grabber)
-	SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/grabber/video/mediafoundation)
-	FILE (GLOB SOURCES "${WRAPPER_DIR}/*.cpp" "${HEADER_DIR}/Video*.h" "${HEADER_DIR}/MF*.h" "${HEADER_DIR}/Encoder*.h" "${CURRENT_SOURCE_DIR}/*.h" "${CURRENT_SOURCE_DIR}/*.cpp")
+	set(grabber_project MF)
+	set(MediaFoundationSourceReaderCallBack ${CMAKE_SOURCE_DIR}/libsrc/grabber/video/mediafoundation/MFSourceReaderCB.h)
 elseif(ENABLE_V4L2)
 	project(v4l2-grabber)
-	SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/grabber/video/v4l2)
-	FILE (GLOB SOURCES "${WRAPPER_DIR}/*.cpp" "${HEADER_DIR}/Video*.h" "${HEADER_DIR}/V4L2*.h" "${HEADER_DIR}/Encoder*.h" "${CURRENT_SOURCE_DIR}/*.cpp")
+	set(grabber_project V4L2)
 endif()
 
-add_library(${PROJECT_NAME} ${SOURCES})
-target_link_libraries(${PROJECT_NAME}
-	hyperion
-	events
-	hyperion-utils
-	${QT_LIBRARIES}
+add_library(${PROJECT_NAME}
+	${CMAKE_SOURCE_DIR}/include/grabber/video/EncoderThread.h
+	${CMAKE_SOURCE_DIR}/include/grabber/video/VideoWrapper.h
+	${CMAKE_SOURCE_DIR}/libsrc/grabber/video/EncoderThread.cpp
+	${CMAKE_SOURCE_DIR}/libsrc/grabber/video/VideoWrapper.cpp
+	${CMAKE_SOURCE_DIR}/include/grabber/video/${${grabber_project}-grabber}/${grabber_project}Grabber.h
+	${CMAKE_SOURCE_DIR}/libsrc/grabber/video/${${grabber_project}-grabber}/${grabber_project}Grabber.cpp
+	${MediaFoundationSourceReaderCallBack}
 )
 
-if(TURBOJPEG_FOUND)
-	target_link_libraries(${PROJECT_NAME} ${TurboJPEG_LIBRARY})
+target_link_libraries(${PROJECT_NAME} hyperion)
+
+# Add Turbo JPEG library
+if(ENABLE_V4L2 OR ENABLE_MF)
+	find_package(TurboJPEG)
+	if(TURBOJPEG_FOUND)
+		add_definitions(-DHAVE_TURBO_JPEG)
+		message(STATUS "Using Turbo JPEG library: ${TurboJPEG_LIBRARY}")
+		target_link_libraries(${PROJECT_NAME} ${TurboJPEG_LIBRARY})
+		target_include_directories(${PROJECT_NAME} PUBLIC ${TurboJPEG_INCLUDE_DIRS})
+	else ()
+		message(STATUS "Turbo JPEG library not found, MJPEG camera format won't work.")
+	endif()
 endif()

@@ -1,6 +1,6 @@
 #include <QMetaType>
 
-#include <grabber/VideoWrapper.h>
+#include <grabber/video/VideoWrapper.h>
 
 // qt includes
 #include <QTimer>

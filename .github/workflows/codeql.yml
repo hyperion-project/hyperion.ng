@@ -1,4 +1,8 @@
-name: "CodeQL"
+name: 📊 CodeQL
+run-name: |
+  ${{ github.event_name == 'schedule' && '⏰ Scheduled CodeQL run' || '' }}
+  ${{ github.event_name == 'push' && format('📊 Pushed CodeQL run - {0}', github.event.head_commit.message) || '' }}
+  ${{ github.event_name == 'pull_request' && format('📊 CodeQL run for PR {0} - {1}', github.event.pull_request.number, github.event.pull_request.title) || github.event.head_commit.message }}
 
 on:
   push:
@@ -10,7 +14,7 @@ on:
 
 jobs:
   analyze:
-    name: Analyze
+    name: 📊 Analyze
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -23,35 +27,35 @@ jobs:
         language: [ python, javascript, cpp ]
 
     steps:
-      - name: Checkout
+      - name: ⬇ Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Install Packages (cpp)
+      - name: 📥 Install Packages (cpp)
         if: ${{ matrix.language == 'cpp' }}
         run: |
           sudo apt-get update
           sudo apt-get install --yes git cmake build-essential qtbase5-dev libqt5serialport5-dev libqt5sql5-sqlite libqt5svg5-dev libqt5x11extras5-dev libusb-1.0-0-dev python3-dev libcec-dev libxcb-image0-dev libxcb-util0-dev libxcb-shm0-dev libxcb-render0-dev libxcb-randr0-dev libxrandr-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev libasound2-dev libturbojpeg0-dev libjpeg-dev libssl-dev
 
-      - name: Initialize CodeQL
+      - name: 🔁 Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
           languages: ${{ matrix.language }}
           queries: +security-and-quality
           config-file: ./.github/config/codeql.yml
 
-      - name: Autobuild
+      - name: 👷 Autobuild
         uses: github/codeql-action/autobuild@v2
 
-      - name: Perform CodeQL Analysis
+      - name: 🏃 Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
         with:
           category: "/language:${{ matrix.language }}"
           upload: False
           output: sarif-results
 
-      - name: Filter SARIF
+      - name: 🆔 Filter SARIF
         uses: advanced-security/filter-sarif@v1
         with:
           patterns: |
@@ -63,11 +67,12 @@ jobs:
           input: sarif-results/${{ matrix.language }}.sarif
           output: sarif-results/${{ matrix.language }}.sarif
 
-      - name: Upload SARIF
+      - name: 📦 Upload SARIF
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: sarif-results/${{ matrix.language }}.sarif
-      - name: Upload loc as a Build Artifact
+
+      - name: 📦 Upload loc as a Build Artifact
         uses: actions/upload-artifact@v3
         with:
           name: sarif-results

@@ -555,7 +555,7 @@ namespace hyperion
 			if (pixelNum > 0)
 			{
 				// initial cluster with different colors
-				auto clusters = std::unique_ptr< ColorCluster<ColorRgbScalar> >(new ColorCluster<ColorRgbScalar>[_clusterCount]);
+				std::unique_ptr<ColorCluster<ColorRgbScalar>[]> clusters(new ColorCluster<ColorRgbScalar>[_clusterCount]);
 				for(int k = 0; k < _clusterCount; ++k)
 				{
 					clusters.get()[k].newColor = DEFAULT_CLUSTER_COLORS[k];

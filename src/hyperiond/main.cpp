@@ -86,7 +86,7 @@ QCoreApplication* createApplication(int &argc, char *argv[])
 		app->addLibraryPath(QApplication::applicationDirPath() + "/../lib");
 		app->setApplicationDisplayName("Hyperion");
 #ifndef __APPLE__
-		app->setWindowIcon(QIcon(":/hyperion-icon-32px.png"));
+		app->setWindowIcon(QIcon(":/hyperion-32px.png"));
 #endif
 		return app;
 	}

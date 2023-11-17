@@ -73,13 +73,13 @@ if [ ${ARCHITECTURE} == "aarch64" ]; then
 	IS_V7L=`cat /proc/$$/maps |grep -m1 -c v7l`
 	if [ $IS_V7L -ne 0 ]; then
 		USER_ARCHITECTURE="armv7l"
-	else 
+	else
 	   IS_V6L=`cat /proc/$$/maps |grep -m1 -c v6l`
 	   if [ $IS_V6L -ne 0 ]; then
 		   USER_ARCHITECTURE="armv6l"
 	   fi
 	fi
-    if [ $ARCHITECTURE != $USER_ARCHITECTURE ]; then	
+    if [ $ARCHITECTURE != $USER_ARCHITECTURE ]; then
 		echo "---> Identified kernel target architecture: $ARCHITECTURE"
         echo "---> Identified user space target architecture: $USER_ARCHITECTURE"
         ARCHITECTURE=$USER_ARCHITECTURE
@@ -134,11 +134,11 @@ if [ -z "$run_id" ]; then
 # Determine run_id from head_sha
 runs=$(request_call "$api_url/actions/runs?head_sha=$head_sha")
 run_id=$(echo "$runs" | tr '\r\n' ' ' | ${pythonCmd} -c """
-import json,sys
+import json,sys,os
 data = json.load(sys.stdin)
 
 for i in data['workflow_runs']:
-	if i['name'] == 'Hyperion PR Build':
+	if os.path.basename(i['path']) == 'push_pull.yml':
 		print(i['id'])
 		break
 """ 2>/dev/null)
@@ -198,11 +198,11 @@ if [[ ! -z ${CURRENT_SERVICE} ]]; then
     echo "---> Stop current service: ${CURRENT_SERVICE}"
 
     STOPCMD="systemctl stop --quiet ${CURRENT_SERVICE} --now"
-    USERNAME=${SUDO_USER:-$(whoami)}    
+    USERNAME=${SUDO_USER:-$(whoami)}
     if [ ${USERNAME} != "root" ]; then
         STOPCMD="sudo ${STOPCMD}"
     fi
-  
+
     ${STOPCMD} >/dev/null 2>&1
     if [ $? -ne 0 ]; then
        echo "---> Critical Error: Failed to stop service: ${CURRENT_SERVICE}, Hyperion may not be started. Stop Hyperion manually."

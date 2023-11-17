@@ -59,11 +59,29 @@ fi
 # In case we don't use a service kill all instances
 killall hyperiond 2> /dev/null
 
-# delete desktop icons; desktop-file-edit is a workaround to hide the entry and delete it afterwards manual.
-# TODO Better way for deletion and keep the desktop in sync without logout/login or desktop dependend cmds?
-echo "---> Delete Hyperion desktop icons"
-desktop-file-edit --set-key=NoDisplay --set-value=true /usr/share/applications/hyperiond.desktop 2> /dev/null
+# remove desktop/appstream file
 rm -v /usr/share/applications/hyperion* 2> /dev/null
-rm -rv /usr/share/pixmaps/hyperion 2> /dev/null
+rm -v /usr/share/metainfo/hyperion* 2> /dev/null
+
+# update desktop-database (if exists)
+if [ -x /usr/bin/update-desktop-database ]; then
+	update-desktop-database -q /usr/share/applications
+fi
+
+# remove Hyperion icons
+for i in 16x16 22x22 24x24 32x32 36x36 48x48 64x64 72x72 96x96 128x128 192x192 256x256 512x512
+	rm -v usr/share/icons/hicolor/$i/apps/hyperion.png 2> /dev/null
+done
+
+# update icon-cache
+if [ -e /usr/share/icons/hicolor/icon-theme.cache ] ; then
+	# touch it, just in case we cannot find the binary...
+	touch --no-create /usr/share/icons/hicolor
+	if hash gtk-update-icon-cache 2>/dev/null; then
+		gtk-update-icon-cache /usr/share/icons/hicolor
+	fi
+	# ignore errors
+	true
+fi
 
 exit 0

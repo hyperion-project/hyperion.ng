@@ -1,4 +1,4 @@
-name: Clean artifacts
+name: 🧹 Cleanup old artifacts
 
 # Run cleanup workflow at the end of every day
 on:
@@ -9,7 +9,7 @@ jobs:
   clean:
     runs-on: ubuntu-latest
     steps:
-      - name: cleanup
+      - name: 🧹 Cleanup old workflow artifacts
         uses: kolpav/purge-artifacts-action@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}

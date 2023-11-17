@@ -2,7 +2,7 @@
 // QT includes
 #include <QTimer>
 
-#include <grabber/AmlogicGrabber.h>
+#include <grabber/amlogic/AmlogicGrabber.h>
 #include <hyperion/GrabberWrapper.h>
 
 class AmlogicWrapper : public QObject

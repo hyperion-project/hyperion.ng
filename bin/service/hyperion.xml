@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<service>
+  <short>Hyperion</short>
+  <description>Hyperion.NG firewall rules</description>
+
+  <!-- HTTP -->
+  <port protocol="tcp" port="8090"/>
+  <!-- HTTPS -->
+  <port protocol="tcp" port="8892"/>
+  <!-- JSON Server -->
+  <port protocol="tcp" port="19444"/>
+  <!-- Flatbuffers Server -->
+  <port protocol="tcp" port="19400"/>
+  <!-- Protocol Buffers Server -->
+  <port protocol="tcp" port="19445"/>
+  <!-- Boblight Server -->
+  <port protocol="tcp" port="19333"/>
+
+  <include service="ssdp"/>
+  <include service="mdns"/>
+
+</service>
