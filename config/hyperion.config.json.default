@@ -21,16 +21,20 @@
 		"enableAttempts": 6,
 		"enableAttemptsInterval": 15
 	},
+
+	"schedEvents": {
+ 		"enable": false
+ 	},
 	
 	"cecEvents": {
 		"actions": [
 			{
 				"action": "Suspend",
-				"cec_event": "standby"
+				"event": "standby"
 			},
 			{
 				"action": "Resume",
-				"cec_event": "set stream path"
+				"event": "set stream path"
 			}
 		],
  		"enable": false

@@ -32,6 +32,7 @@ namespace settings {
 		PROTOSERVER,
 		OSEVENTS,
 		CECEVENTS,
+		SCHEDEVENTS,
 		INVALID
 	};
 
@@ -68,6 +69,7 @@ namespace settings {
 		case PROTOSERVER:   return "protoServer";
 		case OSEVENTS:      return "osEvents";
 		case CECEVENTS:     return "cecEvents";
+		case SCHEDEVENTS:   return "schedEvents";
 		default:            return "invalid";
 		}
 	}
@@ -103,6 +105,7 @@ namespace settings {
 		else if (type == "protoServer")          return PROTOSERVER;
 		else if (type == "osEvents")             return OSEVENTS;
 		else if (type == "cecEvents")            return CECEVENTS;
+		else if (type == "schedEvents")          return SCHEDEVENTS;
 		else                                     return INVALID;
 	}
 }

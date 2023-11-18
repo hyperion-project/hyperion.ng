@@ -27,7 +27,7 @@ CECHandler::CECHandler(const QJsonDocument& config, QObject * parent)
 {
 	qRegisterMetaType<Event>("Event");
 
-	_logger = Logger::getInstance("CEC");
+	_logger = Logger::getInstance("EVENTS-CEC");
 
 	_cecCallbacks            = getCallbacks();
 	_cecConfig               = getConfig();
@@ -43,8 +43,6 @@ void CECHandler::handleSettingsUpdate(settings::type type, const QJsonDocument& 
 {
 	if(type == settings::CECEVENTS)
 	{
-		Debug( _logger, "config: [%s]", QString(QJsonDocument(config).toJson(QJsonDocument::Compact)).toUtf8().constData());
-
 		if (_isInitialised)
 		{
 			const QJsonObject& obj = config.object();
@@ -72,7 +70,7 @@ void CECHandler::handleSettingsUpdate(settings::type type, const QJsonDocument& 
 				{
 					for (const QJsonValue &item : actionItems)
 					{
-						QString cecEvent = item.toObject().value("cec_event").toString();
+						QString cecEvent = item.toObject().value("event").toString();
 						QString action = item.toObject().value("action").toString();
 						_cecEventActionMap.insert(cecEvent, stringToEvent(action));
 						Debug(_logger, "CEC-Event : \"%s\" linked to action \"%s\"", QSTRING_CSTR(cecEvent), QSTRING_CSTR(action));

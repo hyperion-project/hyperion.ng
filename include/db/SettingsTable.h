@@ -113,7 +113,7 @@ public:
 		// capture
 		<< "framegrabber" << "grabberV4L2" << "grabberAudio"
 		//Events
-		 << "osEvents" << "cecEvents"
+		 << "osEvents" << "cecEvents" << "schedEvents"
 		// other
 		<< "logger" << "general";
 

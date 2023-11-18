@@ -28,7 +28,7 @@ OsEventHandlerBase::OsEventHandlerBase()
 	, _isLockRegistered(false)
 {
 	qRegisterMetaType<Event>("Event");
-	_log = Logger::getInstance("EVENTS");
+	_log = Logger::getInstance("EVENTS-OS");
 
 	QObject::connect(this, &OsEventHandlerBase::signalEvent, EventHandler::getInstance(), &EventHandler::handleEvent);
 }

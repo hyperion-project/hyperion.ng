@@ -914,12 +914,12 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 								QJsonObject action1
 								{
 									{"action", "Suspend"},
-									{"cec_event", "standby"}
+									{"event", "standby"}
 								};
 								QJsonObject action2
 								{
 									{"action", "Resume"},
-									{"cec_event", "set stream path"}
+									{"event", "set stream path"}
 								};
 
 								QJsonArray actions { action1, action2 };

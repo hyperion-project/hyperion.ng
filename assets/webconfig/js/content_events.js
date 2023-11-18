@@ -5,12 +5,19 @@ $(document).ready(function () {
 
   let conf_editor_osEvents = null;
   let conf_editor_cecEvents = null;
+  let conf_editor_schedEvents = null;
 
   if (window.showOptHelp) {
     //Operating System Events
     $('#conf_cont').append(createRow('conf_cont_os_events'));
     $('#conf_cont_os_events').append(createOptPanel('fa-laptop', $.i18n("conf_os_events_heading_title"), 'editor_container_os_events', 'btn_submit_os_events', 'panel-system'));
     $('#conf_cont_os_events').append(createHelpTable(window.schema.osEvents.properties, $.i18n("conf_os_events_heading_title")));
+
+    //Scheduled Events
+    $('#conf_cont').append(createRow('conf_cont_sched_events'));
+    $('#conf_cont_sched_events').append(createOptPanel('fa-laptop', $.i18n("conf_sched_events_heading_title"), 'editor_container_sched_events', 'btn_submit_sched_events', 'panel-system'));
+    $('#conf_cont_sched_events').append(createHelpTable(window.schema.schedEvents.properties, $.i18n("conf_sched_events_heading_title")));
+
 
     //CEC Events
     if (CEC_ENABLED) {
@@ -22,41 +29,42 @@ $(document).ready(function () {
   else {
     $('#conf_cont').addClass('row');
     $('#conf_cont').append(createOptPanel('fa-laptop', $.i18n("conf_os_events_heading_title"), 'editor_container_os_events', 'btn_submit_os_events'));
+    $('#conf_cont').append(createOptPanel('fa-laptop', $.i18n("conf_sched_events_heading_title"), 'editor_container_sched_events', 'btn_submit_sched_events'));
     if (CEC_ENABLED) {
       $('#conf_cont').append(createOptPanel('fa-tv', $.i18n("conf_cec_events_heading_title"), 'editor_container_cec_events', 'btn_submit_cec_events'));
     }
   }
 
-  function findDuplicateCecEventsIndices(data) {
-    const cecEventIndices = {};
+  function findDuplicateEventsIndices(data) {
+    const eventIndices = {};
     data.forEach((item, index) => {
-      const cecEvent = item.cec_event;
-      if (!cecEventIndices[cecEvent]) {
-        cecEventIndices[cecEvent] = [index];
+      const event = item.event;
+      if (!eventIndices[event]) {
+        eventIndices[event] = [index];
       } else {
-        cecEventIndices[cecEvent].push(index);
+        eventIndices[event].push(index);
       }
     });
 
-    return Object.values(cecEventIndices).filter(indices => indices.length > 1);
+    return Object.values(eventIndices).filter(indices => indices.length > 1);
   }
 
   JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
     let errors = [];
     if (schema.type === 'array' && Array.isArray(value)) {
-      const duplicateCecEventIndices = findDuplicateCecEventsIndices(value);
+      const duplicateEventIndices = findDuplicateEventsIndices(value);
 
-      if (duplicateCecEventIndices.length > 0) {
+      if (duplicateEventIndices.length > 0) {
 
         let recs;
-        duplicateCecEventIndices.forEach(indices => {
+        duplicateEventIndices.forEach(indices => {
           const displayIndices = indices.map(index => index + 1);
           recs = displayIndices.join(', ');
         });
 
         errors.push({
           path: path,
-          message: $.i18n('edt_conf_cec_action_record_validation_error', recs)
+          message: $.i18n('edt_conf_action_record_validation_error', recs)
         });
       }
     }
@@ -74,6 +82,35 @@ $(document).ready(function () {
 
   $('#btn_submit_os_events').off().on('click', function () {
     requestWriteConfig(conf_editor_osEvents.getValue());
+  });
+
+  //Scheduled Events
+  conf_editor_schedEvents = createJsonEditor('editor_container_sched_events', {
+    schedEvents: window.schema.schedEvents
+  }, true, true);
+
+  conf_editor_schedEvents.on('change', function () {
+
+    const schedEventsEnable = conf_editor_schedEvents.getEditor("root.schedEvents.enable").getValue();
+
+    if (schedEventsEnable) {
+      showInputOptionsForKey(conf_editor_schedEvents, "schedEvents", "enable", true);
+      $('#schedEventsHelpPanelId').show();
+    } else {
+      showInputOptionsForKey(conf_editor_schedEvents, "schedEvents", "enable", false);
+      $('#schedEventsHelpPanelId').hide();
+    }
+
+    conf_editor_schedEvents.validate().length || window.readOnlyMode ? $('#btn_submit_sched_events').prop('disabled', true) : $('#btn_submit_sched_events').prop('disabled', false);
+  });
+
+  $('#btn_submit_sched_events').off().on('click', function () {
+
+    const saveOptions = conf_editor_schedEvents.getValue();
+    // Workaround, as otherwise values are not reflected correctly
+    saveOptions.schedEvents.enable = conf_editor_schedEvents.getEditor("root.schedEvents.enable").getValue();
+    saveOptions.schedEvents.actions = conf_editor_schedEvents.getEditor("root.schedEvents.actions").getValue();
+    requestWriteConfig(saveOptions);
   });
 
   //CEC Events

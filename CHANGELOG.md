@@ -12,6 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - New language: Hebrew
 
+**Event Services
+Newly introduced Event Service configuration and consistent handling across all components
+- Suspend/Resume & Screen Locking support for MaxOS
+- Allow to enable/disable suspend & lock on operating system events (#1633, #1632)
+- Scheduled events allowing to suspend,resume, etc. (#1088)
+- Configurable CEC event handling
+
 ##### LED-Devices
 
 **Philips Hue**

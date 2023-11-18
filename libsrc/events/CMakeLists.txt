@@ -2,8 +2,10 @@ add_library(events
 	${CMAKE_SOURCE_DIR}/include/events/EventEnum.h
 	${CMAKE_SOURCE_DIR}/include/events/EventHandler.h
 	${CMAKE_SOURCE_DIR}/include/events/OsEventHandler.h
+	${CMAKE_SOURCE_DIR}/include/events/EventScheduler.h
 	${CMAKE_SOURCE_DIR}/libsrc/events/EventHandler.cpp
 	${CMAKE_SOURCE_DIR}/libsrc/events/OsEventHandler.cpp
+	${CMAKE_SOURCE_DIR}/libsrc/events/EventScheduler.cpp
 )
 
 if(UNIX AND NOT APPLE)

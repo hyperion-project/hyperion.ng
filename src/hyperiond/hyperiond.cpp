@@ -177,8 +177,7 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	startNetworkServices();
 
 	// init events services
-	handleSettingsUpdate(settings::OSEVENTS, getSetting(settings::OSEVENTS));
-	handleSettingsUpdate(settings::CECEVENTS, getSetting(settings::CECEVENTS));
+	startEventServices();
 }
 
 HyperionDaemon::~HyperionDaemon()
@@ -336,6 +335,7 @@ void HyperionDaemon::freeObjects()
 		_sslWebserver = nullptr;
 	}
 
+	delete _eventScheduler;
 	delete _osEventHandler;
 
 	// stop Hyperions (non blocking)
@@ -422,6 +422,33 @@ void HyperionDaemon::startNetworkServices()
 	connect(_webserver, &WebServer::stateChange, _ssdp, &SSDPHandler::handleWebServerStateChange);
 	connect(this, &HyperionDaemon::settingsChanged, _ssdp, &SSDPHandler::handleSettingsUpdate);
 	ssdpThread->start();
+}
+
+void HyperionDaemon::startEventServices()
+{
+	if (_eventHandler == nullptr)
+	{
+		_eventHandler = EventHandler::getInstance();
+		Debug(_log, "Hyperion event handler created");
+	}
+
+	if (_eventScheduler == nullptr)
+	{
+		_eventScheduler = new EventScheduler();
+		_eventScheduler->handleSettingsUpdate(settings::SCHEDEVENTS, getSetting(settings::SCHEDEVENTS));
+		connect(this, &HyperionDaemon::settingsChanged, _eventScheduler, &EventScheduler::handleSettingsUpdate);
+		Debug(_log, "Hyperion event scheduler created");
+	}
+
+	if (_osEventHandler == nullptr)
+	{
+		_osEventHandler = new OsEventHandler();
+		_osEventHandler->handleSettingsUpdate(settings::OSEVENTS, getSetting(settings::OSEVENTS));
+		connect(this, &HyperionDaemon::settingsChanged, _osEventHandler, &OsEventHandler::handleSettingsUpdate);
+		Debug(_log, "Operating System event handler created");
+	}
+
+	startCecHandler();
 }
 
 void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJsonDocument& config)
@@ -720,30 +747,6 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 #else
 		Debug(_log, "Audio capture not supported on this platform");
 #endif
-	}
-	else if (settingsType == settings::OSEVENTS)
-	{
-		if (_eventHandler == nullptr)
-		{
-			_eventHandler = EventHandler::getInstance();
-			Debug(_log, "Hyperion event handler created");
-		}
-
-		// Create suspend handler
-		if (_osEventHandler == nullptr)
-		{
-			_osEventHandler = new OsEventHandler();
-			_osEventHandler->handleSettingsUpdate(settings::OSEVENTS, getSetting(settings::OSEVENTS));
-
-			connect(this, &HyperionDaemon::settingsChanged, _osEventHandler, &OsEventHandler::handleSettingsUpdate);
-
-			Debug(_log, "Operating System event handler created");
-		}
-	}
-	else if (settingsType == settings::CECEVENTS)
-	{
-		Debug(_log, "startCecHandler");
-		startCecHandler();
 	}
 }
 

@@ -77,6 +77,7 @@
 
 #include <events/EventHandler.h>
 #include <events/OsEventHandler.h>
+#include <events/EventScheduler.h>
 
 class HyperionIManager;
 class SysTray;
@@ -122,6 +123,7 @@ public:
 	QJsonDocument getSetting(settings::type type) const;
 
 	void startNetworkServices();
+	void startEventServices();
 
 	static HyperionDaemon* getInstance() { return daemon; }
 	static HyperionDaemon* daemon;
@@ -216,6 +218,7 @@ private:
 	#endif
 	EventHandler*              _eventHandler;
 	OsEventHandler*            _osEventHandler;
+	EventScheduler*            _eventScheduler;
 
 	#if defined(ENABLE_FLATBUF_SERVER)
 	FlatBufferServer*          _flatBufferServer;

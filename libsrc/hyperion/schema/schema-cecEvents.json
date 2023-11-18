@@ -1,7 +1,6 @@
 {
   "type": "object",
   "required": true,
-  "title": "edt_conf_cec_events_heading_title",
   "properties": {
     "enable": {
       "type": "boolean",
@@ -53,7 +52,6 @@
       "type": "array",
       "title": "edt_conf_cec_actions_header_title",
       "minItems": 0,
-      "uniqueItems": true,
       "required": false,
       "propertyOrder": 5,
       "items": {
@@ -61,7 +59,7 @@
         "required": true,
         "title": "edt_conf_cec_actions_header_item_title",
         "properties": {
-          "cec_event": {
+          "event": {
             "type": "string",
             "title": "edt_conf_cec_event_title",
             "enum": [
@@ -85,29 +83,7 @@
             "propertyOrder": 1
           },
           "action": {
-            "type": "string",
-            "title": "edt_conf_action_title",
-            "enum": [
-              "Suspend",
-              "Resume",
-              "ToggleSuspend",
-              "Idle",
-              "ResumeIdle",
-              "ToggleIdle",
-              "Restart"
-            ],
-            "options": {
-              "enum_titles": [
-                "edt_conf_enum_action_suspend",
-                "edt_conf_enum_action_resume",
-                "edt_conf_enum_action_toggleSuspend",
-                "edt_conf_enum_action_idle",
-                "edt_conf_enum_action_resumeIdle",
-                "edt_conf_enum_action_toggleIdle",
-                "edt_conf_enum_action_restart"
-              ]
-            },
-            "propertyOrder": 2
+            "$ref": "schema-eventActions.json"
           }
         },
         "additionalProperties": false

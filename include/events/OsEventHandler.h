@@ -1,5 +1,5 @@
-#ifndef OsEventHandler_H
-#define OsEventHandler_H
+#ifndef OSEVENTHANDLER_H
+#define OSEVENTHANDLER_H
 #include <QObject>
 #include <QJsonDocument>
 
@@ -129,4 +129,4 @@ using OsEventHandler = OsEventHandlerMacOS;
 using OsEventHandler = OsEventHandlerBase;
 #endif
 
-#endif // OsEventHandler_H
+#endif // OSEVENTHANDLER_H

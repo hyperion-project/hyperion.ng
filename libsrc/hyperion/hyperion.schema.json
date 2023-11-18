@@ -98,7 +98,11 @@
 		"cecEvents":
 		{
 			"$ref": "schema-cecEvents.json"
-		}				
+		},
+		"schedEvents":
+		{
+			"$ref": "schema-schedEvents.json"
+		}
 	},
 	"additionalProperties" : false
 }
