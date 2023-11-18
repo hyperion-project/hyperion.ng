@@ -360,7 +360,7 @@ int LedDevice::rewriteLEDs()
 
 int LedDevice::writeBlack(int numberOfWrites)
 {
-	Debug(_log, "Set LED strip to black to switch of LEDs");
+	Debug(_log, "Set LED strip to black to switch LEDs off");
 	return writeColor(ColorRgb::BLACK, numberOfWrites);
 }
 
