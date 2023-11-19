@@ -47,7 +47,7 @@ if [ "$IS_UPGRADE" = false ]; then
 		then
 			# systemd
 			echo "---> init deamon: systemd"
-			FOUND_USR=$(who | grep -o -m1 '^\w*\b' || echo "root")
+			FOUND_USR=${SUDO_USER:-root}
 			install_file /usr/share/hyperion/service/hyperion.systemd /etc/systemd/system/hyperion@.service
 			systemctl enable hyperion"@${FOUND_USR}".service
 			START_MSG="--> systemctl start hyperion for user ${FOUND_USR}"
