@@ -21,6 +21,9 @@ EventScheduler::EventScheduler()
 EventScheduler::~EventScheduler()
 {
 	QObject::disconnect(this, &EventScheduler::signalEvent, EventHandler::getInstance(), &EventHandler::handleEvent);
+	clearTimers();
+
+	Info(_log, "Event scheduler stopped");
 }
 
 void EventScheduler::handleSettingsUpdate(settings::type type, const QJsonDocument& config)

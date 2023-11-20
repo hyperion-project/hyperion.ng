@@ -39,6 +39,8 @@ OsEventHandlerBase::~OsEventHandlerBase()
 
 	OsEventHandlerBase::unregisterLockHandler();
 	OsEventHandlerBase::unregisterOsEventHandler();
+
+	Info(_log, "Operating System event handler stopped");
 }
 
 void OsEventHandlerBase::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
