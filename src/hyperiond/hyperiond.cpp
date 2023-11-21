@@ -94,11 +94,12 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	, _dxGrabber(nullptr)
 	, _audioGrabber(nullptr)
 	, _ssdp(nullptr)
-#ifdef ENABLE_CEC
-	, _cecHandler(nullptr)
-#endif
 	, _eventHandler(nullptr)
 	, _osEventHandler(nullptr)
+	, _eventScheduler(nullptr)
+	#ifdef ENABLE_CEC
+		, _cecHandler(nullptr)
+	#endif
 	, _currVideoMode(VideoMode::VIDEO_2D)
 {
 	HyperionDaemon::daemon = this;
@@ -264,6 +265,8 @@ void HyperionDaemon::freeObjects()
 	Debug(_log, "Cleaning up Hyperion before quit.");
 
 	stopCecHandler();
+	delete _eventScheduler;
+	delete _osEventHandler;
 
 #ifdef ENABLE_MDNS
 	if (_mDNSProvider != nullptr)
@@ -334,9 +337,6 @@ void HyperionDaemon::freeObjects()
 		delete sslWebserverThread;
 		_sslWebserver = nullptr;
 	}
-
-	delete _eventScheduler;
-	delete _osEventHandler;
 
 	// stop Hyperions (non blocking)
 	_instanceManager->stopAll();

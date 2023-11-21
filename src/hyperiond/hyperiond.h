@@ -213,12 +213,12 @@ private:
 	DirectXWrapper*            _dxGrabber;
 	SSDPHandler*               _ssdp;
 	AudioWrapper*			   _audioGrabber;
-	#ifdef ENABLE_CEC
-	CECHandler*                _cecHandler;
-	#endif
 	EventHandler*              _eventHandler;
 	OsEventHandler*            _osEventHandler;
 	EventScheduler*            _eventScheduler;
+#ifdef ENABLE_CEC
+CECHandler*                _cecHandler;
+#endif
 
 	#if defined(ENABLE_FLATBUF_SERVER)
 	FlatBufferServer*          _flatBufferServer;

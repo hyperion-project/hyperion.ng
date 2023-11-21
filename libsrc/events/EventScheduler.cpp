@@ -22,7 +22,6 @@ EventScheduler::~EventScheduler()
 {
 	QObject::disconnect(this, &EventScheduler::signalEvent, EventHandler::getInstance(), &EventHandler::handleEvent);
 	clearTimers();
-
 	Info(_log, "Event scheduler stopped");
 }
 
@@ -112,8 +111,8 @@ void EventScheduler::disable()
 void EventScheduler::clearTimers()
 {
 	for (QTimer *timer :  std::as_const(_timers)) {
-		QObject::disconnect(timer, &QTimer::timeout, nullptr, nullptr);
-		timer->stop();  // Stop the timer before deleting
+		timer->disconnect();
+		timer->stop();
 		delete timer;
 	}
 	_timers.clear();
