@@ -14,7 +14,7 @@ hasPython2=$?
 
 DISTRIBUTION="debian"
 CODENAME="bullseye"
-ARCHITECTURE="amd64"
+ARCHITECTURE=""
 WITH_QT5=false
 
 BASE_PATH='.';
