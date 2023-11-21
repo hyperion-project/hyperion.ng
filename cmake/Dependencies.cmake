@@ -46,7 +46,7 @@ macro(DeployMacOS TARGET)
 					MESSAGE("The following unresolved dependencies were discovered: ${unresolved_deps}")
 				endif()
 
-				foreach(PLUGIN "platforms" "sqldrivers" "imageformats")
+				foreach(PLUGIN "platforms" "sqldrivers" "imageformats" "tls")
 					if(EXISTS ${PLUGIN_DIR}/${PLUGIN})
 						file(GLOB files "${PLUGIN_DIR}/${PLUGIN}/*")
 						foreach(file ${files})
@@ -230,7 +230,7 @@ macro(DeployLinux TARGET)
 
 		# Copy Qt plugins to 'share/hyperion/lib'
 		if (QT_PLUGINS_DIR)
-			foreach(PLUGIN "platforms" "sqldrivers" "imageformats")
+			foreach(PLUGIN "platforms" "sqldrivers" "imageformats" "tls")
 				if (EXISTS ${QT_PLUGINS_DIR}/${PLUGIN})
 					file(GLOB files "${QT_PLUGINS_DIR}/${PLUGIN}/*.so")
 					foreach(file ${files})
