@@ -12,6 +12,11 @@ hasPython3=$?
 type python > /dev/null 2> /dev/null
 hasPython2=$?
 
+DISTRIBUTION="debian"
+CODENAME="bullseye"
+ARCHITECTURE=""
+WITH_QT5=false
+
 BASE_PATH='.';
 
 if [[ "${hasWget}" -ne 0 ]] && [[ "${hasCurl}" -ne 0 ]]; then
@@ -38,19 +43,20 @@ function request_call() {
 	fi
 }
 
-while getopts ":c:t:m:r:" opt; do
+while getopts ":a:c:r:t:5" opt; do
   case "$opt" in
-    t) PR_TOKEN=$OPTARG ;;
-    r) run_id=$OPTARG ;;
-    m) ARCHITECTURE=$OPTARG ;;
+    a) ARCHITECTURE=$OPTARG ;;
     c) CONFIGDIR=$OPTARG ;;
+    r) run_id=$OPTARG ;;
+    t) PR_TOKEN=$OPTARG ;;
+    5) WITH_QT5=true ;;    
   esac
 done
 shift $(( OPTIND - 1 ))
 
 # Check for a command line argument (PR number)
 if [ "$1" == "" ] || [ $# -gt 1 ] || [ -z ${PR_TOKEN} ]; then
-	echo "Usage: $0 -t <git_token> -m <architecture> -r <run_id> -c <hyperion config directory> <PR_NUMBER>" >&2
+	echo "Usage: $0 -t <git_token> -a <architecture> -r <run_id> -c <hyperion config directory> <PR_NUMBER>" >&2
 	exit 1
 else
 	pr_number="$1"
@@ -68,30 +74,39 @@ if [[ -z ${ARCHITECTURE} ]]; then
 fi
 
 #Test if multiarchitecture setup, i.e. user-space is 32bit
-if [ ${ARCHITECTURE} == "aarch64" ]; then
+if [[ "${ARCHITECTURE}" == "aarch64" || "${ARCHITECTURE}" == "arm64" ]]; then
+	ARCHITECTURE="arm64"
 	USER_ARCHITECTURE=$ARCHITECTURE
 	IS_V7L=`cat /proc/$$/maps |grep -m1 -c v7l`
 	if [ $IS_V7L -ne 0 ]; then
-		USER_ARCHITECTURE="armv7l"
+		USER_ARCHITECTURE="armv7"
 	else
 	   IS_V6L=`cat /proc/$$/maps |grep -m1 -c v6l`
 	   if [ $IS_V6L -ne 0 ]; then
-		   USER_ARCHITECTURE="armv6l"
+		   USER_ARCHITECTURE="armv6"
 	   fi
 	fi
     if [ $ARCHITECTURE != $USER_ARCHITECTURE ]; then
-		echo "---> Identified kernel target architecture: $ARCHITECTURE"
         echo "---> Identified user space target architecture: $USER_ARCHITECTURE"
         ARCHITECTURE=$USER_ARCHITECTURE
     fi
+else
+	ARCHITECTURE=${ARCHITECTURE//x86_/amd}
 fi
 
-echo 'armv6l armv7l aarch64 x86_64' | grep -qw ${ARCHITECTURE}
+echo 'armv6l armv7l arm64 amd64' | grep -qw ${ARCHITECTURE}
 if [ $? -ne 0 ]; then
     echo "---> Critical Error: Target architecture $ARCHITECTURE is unknown -> abort"
     exit 1
 else
-    echo "---> Download Pull Request for identified runtime architecture: $ARCHITECTURE"
+	PACKAGE="${ARCHITECTURE}"
+	QTVERSION="5"
+	if [ ${WITH_QT5} == false ]; then
+		QTVERSION="6"
+		PACKAGE="${PACKAGE}_qt6"
+	fi
+
+    echo "---> Download package for identified runtime architecture: $ARCHITECTURE and Qt$QTVERSION"
 fi
 
 # Determine if PR number exists
@@ -153,14 +168,25 @@ fi
 
 # Get archive_download_url from workflow
 artifacts=$(request_call "$api_url/actions/runs/$run_id/artifacts")
-archive_download_url=$(echo "$artifacts" | tr '\r\n' ' ' | ${pythonCmd} -c """
-import json,sys
+
+PACKAGE_NAME=$(echo "$artifacts" | tr '\r\n' ' ' | ${pythonCmd} -c """
+import json,sys, re
 data = json.load(sys.stdin)
 
 for i in data['artifacts']:
-	if i['name'] == '"$ARCHITECTURE"':
-		print(i['archive_download_url'])
-		break
+     if re.match('.*{}$'.format(re.escape('$PACKAGE')), i['name']):
+        print(i['name'])
+        break
+""" 2>/dev/null)
+
+archive_download_url=$(echo "$artifacts" | tr '\r\n' ' ' | ${pythonCmd} -c """
+import json,sys, re
+data = json.load(sys.stdin)
+
+for i in data['artifacts']:
+    if re.match('.*{}$'.format(re.escape('$PACKAGE')), i['name']):
+        print(i['archive_download_url'])
+        break
 """ 2>/dev/null)
 
 if [ -z "$archive_download_url" ]; then
@@ -171,7 +197,7 @@ if [ -z "$archive_download_url" ]; then
 fi
 
 # Download packed PR artifact
-echo "---> Downloading the Pull Request #$pr_number"
+echo "---> Downloading Pull Request #$pr_number, package: $PACKAGE_NAME"
 if [ $hasCurl -eq 0 ]; then
 	curl -skH "Authorization: token ${PR_TOKEN}" -o $BASE_PATH/temp.zip -L --get $archive_download_url
 elif [ $hasWget -eq 0 ]; then

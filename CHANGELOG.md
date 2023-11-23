@@ -40,6 +40,7 @@ Note: The wizard will configure an APIv2 capable bridge always with Entertainmen
 ### Changed
 
 - Updated misleading error messages in case Hyperion is not able to support the suspend/lock feature (#1622)
+- Restart Serial Device, if write error occurred
 - ws281x - Update logic to identify is user is admin and disable device configuration if not (#1621)
 - Hide Hyperion from the Dock on macOS, as all features can be accessed from the menubar - Thanks @Rastafabisch
 

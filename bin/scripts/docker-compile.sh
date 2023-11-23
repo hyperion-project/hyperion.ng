@@ -126,7 +126,7 @@ do
             shift
             BUILD_PLATFORM=$1
             ;;
-        --qt5)
+        --qt5) 
             BUILD_WITH_QT5=true
             ;;
         -l|--local)
@@ -214,7 +214,7 @@ if [ $ARCHITECTURE != $CURRENT_ARCHITECTURE ]; then
 	ENTRYPOINT_OPTION=
 
 	if [ $CURRENT_ARCHITECTURE != "amd64" ]; then
-		echo "---> Emulation builds can only be executed on linux/amd64, linux/x86_64 platforms, current architecture is ${CURRENT_ARCHITECTURE}"
+		echo "---> Emulation builds can only be executed on linux/amd64, linux/x86_64 platforms, current architecture is ${CURRENT_ARCHITECTURE}"	
 		exit 1
 	fi
 else

@@ -5,7 +5,7 @@
 </picture>
 
 [![Latest-Release](https://img.shields.io/github/v/release/hyperion-project/hyperion.ng?include_prereleases&label=Latest%20Release&logo=github&logoColor=white&color=0f83e7)](https://github.com/hyperion-project/hyperion.ng/releases)
-[![GitHub Actions](https://github.com/hyperion-project/hyperion.ng/workflows/Hyperion%20CI%20Build/badge.svg?branch=master)](https://github.com/hyperion-project/hyperion.ng/actions)
+[![GitHub Actions](https://github.com/hyperion-project/hyperion.ng/actions/workflows/push_pull.yml/badge.svg)](https://github.com/hyperion-project/hyperion.ng/actions)
 [![CodeQL Analysis](https://github.com/hyperion-project/hyperion.ng/actions/workflows/codeql.yml/badge.svg)](https://github.com/hyperion-project/hyperion.ng/actions/workflows/codeql.yml)
 [![Forum](https://img.shields.io/website/https/hyperion-project.org.svg?label=Forum&down_color=red&down_message=offline&up_color=4bc51d&up_message=online&logo=homeadvisor&logoColor=white)](https://www.hyperion-project.org)
 [![Documentation](https://img.shields.io/website/https/docs.hyperion-project.org.svg?label=Documentation&down_color=red&down_message=offline&up_color=4bc51d&up_message=online&logo=read-the-docs)](https://docs.hyperion-project.org)
@@ -45,7 +45,7 @@ For an example, you can participate in the translation.<br>
 
 ## Supported Platforms
 
-Find here more details on [supported platforms and configuration sets](doc/development/SupportedPlatforms.md)
+Find here more details on [supported platforms and configuration sets](doc/development/SupportedPlatforms.md).
 
 ## Documentation
 Covers these topics:
@@ -57,16 +57,16 @@ Covers these topics:
 [![Visit Documentation](https://img.shields.io/website/https/docs.hyperion-project.org.svg?label=Documentation&down_color=red&down_message=offline&up_color=4bc51d&up_message=online&logo=read-the-docs)](https://docs.hyperion-project.org)
 
 ## Changelog
-Released and unreleased changes at [CHANGELOG.md](CHANGELOG.md)
+Released and unreleased changes at [CHANGELOG.md](CHANGELOG.md).
 
 ## Building
 See [CompileHowto.md](doc/development/CompileHowto.md).
 
 ## Installation
-See [Documentation](https://docs.hyperion-project.org/en/user/Installation.html) or at [Installation.md](Installation.md).
+See [Documentation](https://docs.hyperion-project.org/en/user/Installation.html) or on the [Release Repository](https://releases.hyperion-project.org).
 
 ## Download
-Releases available from the [Hyperion release page](https://github.com/hyperion-project/hyperion.ng/releases)
+Releases available from the [Hyperion release page](https://github.com/hyperion-project/hyperion.ng/releases).
 
 ## Privacy Policy
 See [PRIVACY.md](PRIVACY.md).
