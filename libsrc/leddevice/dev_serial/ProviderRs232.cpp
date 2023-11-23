@@ -185,7 +185,7 @@ bool ProviderRs232::tryOpen(int delayAfterConnect_ms)
 		}
 		else
 		{
-			QString errortext = QString("Invalid serial device name: %1 %2!").arg(_deviceName, _location);
+			QString errortext = QString("Invalid serial device: %1 %2!").arg(_deviceName, _location);
 			this->setInError( errortext );
 			return false;
 		}
@@ -237,9 +237,9 @@ int ProviderRs232::writeBytes(const qint64 size, const uint8_t *data)
 	{
 		if (!_rs232Port.waitForBytesWritten(WRITE_TIMEOUT.count()))
 		{
-			if ( _rs232Port.error() == QSerialPort::TimeoutError )
+			if (_rs232Port.error() == QSerialPort::TimeoutError)
 			{
-				Debug(_log, "Timeout after %dms: %d frames already dropped", WRITE_TIMEOUT.count(), _frameDropCounter);
+				Debug(_log, "Timeout after %dms: %d frames already dropped, Rs232 SerialPortError [%d]: %s", WRITE_TIMEOUT.count(), _frameDropCounter, _rs232Port.error(), QSTRING_CSTR(_rs232Port.errorString()));
 
 				++_frameDropCounter;
 
@@ -258,9 +258,15 @@ int ProviderRs232::writeBytes(const qint64 size, const uint8_t *data)
 			}
 			else
 			{
-				this->setInError( QString ("Rs232 SerialPortError: %1").arg(_rs232Port.errorString()) );
+				this->setInError( QString ("Error writing data to %1, Error: %2").arg(_deviceName).arg(_rs232Port.error()));
 				rc = -1;
 			}
+		}
+
+		if (rc == -1)
+		{
+			Info(_log, "Try restarting the device %s after error occured...", QSTRING_CSTR(_activeDeviceType));
+			emit enable();
 		}
 	}
 	return rc;

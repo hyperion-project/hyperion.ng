@@ -1301,7 +1301,7 @@ QJsonObject LedDevicePhilipsHueBridge::discover(const QJsonObject& /*params*/)
 					 );
 #else
 	QString discoveryMethod("ssdp");
-	deviceList = discover();
+	deviceList = discoverSsdp();
 #endif
 
 	devicesDiscovered.insert("discoveryMethod", discoveryMethod);
