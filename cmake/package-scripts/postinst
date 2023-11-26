@@ -103,11 +103,23 @@ ln -fs $BINSP/scripts/updateHyperionUser.sh $BINTP/updateHyperionUser 2>/dev/nul
 
 # install desktop icons (only on initial installation and not upgrade)
 if [ "$IS_UPGRADE" = false ]; then
-	if hash desktop-file-install 2>/dev/null; then
+	if [ -z "${DISPLAY}" ] && [ -z "${WAYLAND_DISPLAY}" ] && [ -z "${XDG_CURRENT_DESKTOP}" ]; then
 		echo "---> Install Hyperion desktop icons"
 		cp -R /usr/share/hyperion/icons /usr/share/icons/hicolor 2>/dev/null
-		cp /usr/share/hyperion/desktop/hyperion.metainfo.xml /usr/share/metainfo/hyperion.metainfo.xml 2>/dev/null
-		desktop-file-install /usr/share/hyperion/desktop/hyperion.desktop 2>/dev/null
+		cp /usr/share/hyperion/desktop/hyperion.metainfo.xml /usr/share/metainfo 2>/dev/null
+
+		if hash desktop-file-install 2>/dev/null; then
+			desktop-file-install /usr/share/hyperion/desktop/hyperion.desktop 2>/dev/null
+		else
+			# On some systems this directory doesn't exist by default
+			mkdir -p /usr/share/applications
+			cp /usr/share/hyperion/desktop/hyperion.desktop /usr/share/applications
+			# Update application icons
+			if hash update-desktop-database 2>/dev/null; then
+				update-desktop-database -q /usr/share/applications
+				update-desktop-database -q /usr/share/icons/
+			fi
+		fi
 	fi
 fi
 
