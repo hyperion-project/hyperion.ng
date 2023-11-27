@@ -5,7 +5,6 @@ $(document).ready(function () {
   var screenGrabberAvailable = (window.serverInfo.grabbers.screen.available.length !== 0);
   var videoGrabberAvailable = (window.serverInfo.grabbers.video.available.length !== 0);
   const audioGrabberAvailable = (window.serverInfo.grabbers.audio.available.length !== 0);
-  var CEC_ENABLED = (jQuery.inArray("cec", window.serverInfo.services) !== -1);
 
   var conf_editor_video = null;
   var conf_editor_audio = null;
@@ -368,11 +367,6 @@ $(document).ready(function () {
     });
 
     conf_editor_video.on('change', function () {
-
-      // Hide elements not supported by the backend
-      if (window.serverInfo.cec.enabled === false || !CEC_ENABLED) {
-        showInputOptionForItem(conf_editor_video, "grabberV4L2", "cecDetection", false);
-      }
 
       // Validate the current editor's content
       if (!conf_editor_video.validate().length) {

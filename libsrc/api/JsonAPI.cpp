@@ -22,6 +22,7 @@
 #include <grabber/qt/QtGrabber.h>
 
 #include <utils/WeakConnect.h>
+#include <events/EventEnum.h>
 
 #if defined(ENABLE_MF)
 	#include <grabber/video/mediafoundation/MFGrabber.h>
@@ -82,6 +83,7 @@
 
 // api includes
 #include <api/JsonCB.h>
+#include <events/EventHandler.h>
 
 // auth manager
 #include <hyperion/AuthManager.h>
@@ -110,6 +112,8 @@ JsonAPI::JsonAPI(QString peerAddress, Logger *log, bool localConnection, QObject
 	_ledStreamTimer = new QTimer(this);
 
 	Q_INIT_RESOURCE(JSONRPC_schemas);
+
+	qRegisterMetaType<Event>("Event");
 }
 
 void JsonAPI::initialize()
@@ -135,16 +139,13 @@ void JsonAPI::initialize()
 		connect(this, &JsonAPI::forwardJsonMessage, _hyperion, &Hyperion::forwardJsonMessage);
 	}
 
-	//notify instance manager on suspend/resume/idle requests
-	connect(this, &JsonAPI::suspendAll, _instanceManager, &HyperionIManager::triggerSuspend);
-	connect(this, &JsonAPI::toggleSuspendAll, _instanceManager, &HyperionIManager::triggerToggleSuspend);
-	connect(this, &JsonAPI::idleAll, _instanceManager, &HyperionIManager::triggerIdle);
-	connect(this, &JsonAPI::toggleIdleAll, _instanceManager, &HyperionIManager::triggerToggleIdle);
+	//notify eventhadler on suspend/resume/idle requests
+	connect(this, &JsonAPI::signalEvent, EventHandler::getInstance(), &EventHandler::handleEvent);
 
 	connect(_ledStreamTimer, &QTimer::timeout, this, &JsonAPI::streamLedColorsUpdate, Qt::UniqueConnection);
 }
 
-bool JsonAPI::handleInstanceSwitch(quint8 inst, bool forced)
+bool JsonAPI::handleInstanceSwitch(quint8 inst, bool /*forced*/)
 {
 	if (API::setHyperionInstance(inst))
 	{
@@ -1014,8 +1015,7 @@ void JsonAPI::handleConfigCommand(const QJsonObject &message, const QString &com
 		if (_adminAuthorized)
 		{
 			Debug(_log, "Restarting due to RPC command");
-
-			Process::restartHyperion(10);
+			emit signalEvent(Event::Reload);
 
 			sendSuccessReply(command + "-" + subcommand, tan);
 		}
@@ -1852,32 +1852,37 @@ void JsonAPI::handleSystemCommand(const QJsonObject &message, const QString &com
 
 	if (subc == "suspend")
 	{
-		emit suspendAll(true);
+		emit signalEvent(Event::Suspend);
 		sendSuccessReply(command + "-" + subc, tan);
 	}
 	else if (subc == "resume")
 	{
-		emit suspendAll(false);
+		emit signalEvent(Event::Resume);
 		sendSuccessReply(command + "-" + subc, tan);
 	}
 	else if (subc == "restart")
 	{
-		Process::restartHyperion(11);
+		emit signalEvent(Event::Restart);
 		sendSuccessReply(command + "-" + subc, tan);
 	}
 	else if (subc == "toggleSuspend")
 	{
-		emit toggleSuspendAll();
+		emit signalEvent(Event::ToggleSuspend);
 		sendSuccessReply(command + "-" + subc, tan);
 	}
 	else if (subc == "idle")
 	{
-		emit idleAll(true);
+		emit signalEvent(Event::Idle);
+		sendSuccessReply(command + "-" + subc, tan);
+	}
+	else if (subc == "resumeIdle")
+	{
+		emit signalEvent(Event::ResumeIdle);
 		sendSuccessReply(command + "-" + subc, tan);
 	}
 	else if (subc == "toggleIdle")
 	{
-		emit toggleIdleAll();
+		emit signalEvent(Event::ToggleIdle);
 		sendSuccessReply(command + "-" + subc, tan);
 	}
 	else

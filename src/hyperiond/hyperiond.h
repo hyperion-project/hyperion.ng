@@ -75,7 +75,9 @@
 #include <utils/settings.h>
 #include <utils/Components.h>
 
-#include "SuspendHandler.h"
+#include <events/EventHandler.h>
+#include <events/OsEventHandler.h>
+#include <events/EventScheduler.h>
 
 class HyperionIManager;
 class SysTray;
@@ -103,17 +105,12 @@ class HyperionDaemon : public QObject
 
 public:
 	HyperionDaemon(const QString& rootPath, QObject *parent, bool logLvlOverwrite, bool readonlyMode = false);
-	~HyperionDaemon();
+	~HyperionDaemon() override;
 
 	///
 	/// @brief Get webserver pointer (systray)
 	///
 	WebServer *getWebServerInstance() { return _webserver; }
-
-	///
-	/// @brief Get suspense handler pointer
-	///
-	SuspendHandler* getSuspendHandlerInstance() { return _suspendHandler; }
 
 	///
 	/// @brief Get the current videoMode
@@ -126,6 +123,7 @@ public:
 	QJsonDocument getSetting(settings::type type) const;
 
 	void startNetworkServices();
+	void startEventServices();
 
 	static HyperionDaemon* getInstance() { return daemon; }
 	static HyperionDaemon* daemon;
@@ -185,9 +183,11 @@ private:
 	void createGrabberX11(const QJsonObject & grabberConfig);
 	void createGrabberXcb(const QJsonObject & grabberConfig);
 	void createGrabberQt(const QJsonObject & grabberConfig);
-	void createCecHandler();
 	void createGrabberDx(const QJsonObject & grabberConfig);
 	void createGrabberAudio(const QJsonObject & grabberConfig);
+
+	void startCecHandler();
+	void stopCecHandler();
 
 	Logger*                    _log;
 	HyperionIManager*          _instanceManager;
@@ -213,10 +213,12 @@ private:
 	DirectXWrapper*            _dxGrabber;
 	SSDPHandler*               _ssdp;
 	AudioWrapper*			   _audioGrabber;
-	#ifdef ENABLE_CEC
-	CECHandler*                _cecHandler;
-	#endif
-	SuspendHandler*            _suspendHandler;
+	EventHandler*              _eventHandler;
+	OsEventHandler*            _osEventHandler;
+	EventScheduler*            _eventScheduler;
+#ifdef ENABLE_CEC
+CECHandler*                _cecHandler;
+#endif
 
 	#if defined(ENABLE_FLATBUF_SERVER)
 	FlatBufferServer*          _flatBufferServer;

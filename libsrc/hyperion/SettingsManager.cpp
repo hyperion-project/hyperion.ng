@@ -894,6 +894,44 @@ bool SettingsManager::handleConfigUpgrade(QJsonObject& config)
 						Debug(_log, "LED-Device records migrated");
 					}
 				}
+
+				if (config.contains("cecEvents"))
+				{
+					bool isCECEnabled {false};
+					if (config.contains("grabberV4L2"))
+					{
+						QJsonObject newGrabberV4L2Config = config["grabberV4L2"].toObject();
+						if (newGrabberV4L2Config.contains("cecDetection"))
+						{
+							isCECEnabled = newGrabberV4L2Config.value("cecDetection").toBool(false);
+							newGrabberV4L2Config.remove("cecDetection");
+							config["grabberV4L2"] = newGrabberV4L2Config;
+
+							QJsonObject newGCecEventsConfig = config["cecEvents"].toObject();
+							newGCecEventsConfig["enable"] = isCECEnabled;
+							if (!newGCecEventsConfig.contains("actions"))
+							{
+								QJsonObject action1
+								{
+									{"action", "Suspend"},
+									{"event", "standby"}
+								};
+								QJsonObject action2
+								{
+									{"action", "Resume"},
+									{"event", "set stream path"}
+								};
+
+								QJsonArray actions { action1, action2 };
+								newGCecEventsConfig.insert("actions",actions);
+							}
+							config["cecEvents"] = newGCecEventsConfig;
+
+							migrated = true;
+							Debug(_log, "CEC configuration records migrated");
+						}
+					}
+				}
 			}
 		}
 	}

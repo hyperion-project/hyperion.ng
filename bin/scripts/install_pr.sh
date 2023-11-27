@@ -140,7 +140,7 @@ for i in data:
 
 if [ -z "$head_sha" ]; then
 	echo "---> The specified PR #$pr_number has no longer any artifacts or has been closed."
-	echo "---> It may be older than 14 days. Ask the PR creator to recreate the artifacts at the following URL:"
+	echo "---> It may be older than 14 days or a new build currently in progress. Ask the PR creator to recreate the artifacts at the following URL:"
 	echo "---> https://github.com/hyperion-project/hyperion.ng/pull/$pr_number"
 	exit 1
 fi

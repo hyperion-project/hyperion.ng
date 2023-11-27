@@ -7,7 +7,6 @@ else()
 endif()
 
 add_library(cechandler
-	${CMAKE_SOURCE_DIR}/include/cec/CECEvent.h
 	${CMAKE_SOURCE_DIR}/include/cec/CECHandler.h
 	${CMAKE_SOURCE_DIR}/libsrc/cec/CECHandler.cpp
 )

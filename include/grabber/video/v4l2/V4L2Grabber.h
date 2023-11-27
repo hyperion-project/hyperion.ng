@@ -24,9 +24,7 @@
 // Determine the cmake options
 #include <HyperionConfig.h>
 
-#if defined(ENABLE_CEC)
-	#include <cec/CECEvent.h>
-#endif
+#include <events/EventEnum.h>
 
 ///
 /// Capture class for V4L2 devices
@@ -77,12 +75,9 @@ public:
 	void setSignalThreshold(double redSignalThreshold, double greenSignalThreshold, double blueSignalThreshold, int noSignalCounterThreshold = 50);
 	void setSignalDetectionOffset( double verticalMin, double horizontalMin, double verticalMax, double horizontalMax);
 	void setSignalDetectionEnable(bool enable);
-	void setCecDetectionEnable(bool enable);
 	bool reload(bool force = false);
 
 	QRectF getSignalDetectionOffset() const { return QRectF(_x_frac_min, _y_frac_min, _x_frac_max, _y_frac_max); } //used from hyperion-v4l2
-
-
 
 	///
 	/// @brief Discover available V4L2 USB devices (for configuration).
@@ -96,10 +91,6 @@ public slots:
 	bool start();
 	void stop();
 	void newThreadFrame(Image<ColorRgb> image);
-
-#if defined(ENABLE_CEC)
-	void handleCecEvent(CECEvent event);
-#endif
 
 signals:
 	void newFrame(const Image<ColorRgb> & image);
@@ -167,7 +158,7 @@ private:
 	// signal detection
 	int      _noSignalCounterThreshold;
 	ColorRgb _noSignalThresholdColor;
-	bool     _cecDetectionEnabled, _cecStandbyActivated, _signalDetectionEnabled, _noSignalDetected;
+	bool     _standbyActivated, _signalDetectionEnabled, _noSignalDetected;
 	int      _noSignalCounter;
 	int		_brightness, _contrast, _saturation, _hue;
 	double   _x_frac_min;

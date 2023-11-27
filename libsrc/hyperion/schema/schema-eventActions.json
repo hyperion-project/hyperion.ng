@@ -1,0 +1,25 @@
+{
+  "type": "string",
+  "title": "edt_conf_action_title",
+  "enum": [
+    "Suspend",
+    "Resume",
+    "ToggleSuspend",
+    "Idle",
+    "ResumeIdle",
+    "ToggleIdle",
+    "Restart"
+  ],
+  "options": {
+    "enum_titles": [
+      "edt_conf_enum_action_suspend",
+      "edt_conf_enum_action_resume",
+      "edt_conf_enum_action_toggleSuspend",
+      "edt_conf_enum_action_idle",
+      "edt_conf_enum_action_resumeIdle",
+      "edt_conf_enum_action_toggleIdle",
+      "edt_conf_enum_action_restart"
+    ]
+  }
+}
+

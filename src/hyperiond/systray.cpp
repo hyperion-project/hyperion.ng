@@ -22,10 +22,11 @@
 #endif
 #include <webserver/WebServer.h>
 #include <hyperion/PriorityMuxer.h>
+#include <events/EventHandler.h>
 
 #include "hyperiond.h"
 #include "systray.h"
-#include "SuspendHandler.h"
+
 
 SysTray::SysTray(HyperionDaemon *hyperiond)
 	: QWidget()
@@ -34,7 +35,6 @@ SysTray::SysTray(HyperionDaemon *hyperiond)
 	, _hyperion(nullptr)
 	, _instanceManager(HyperionIManager::getInstance())
 	, _webPort(8090)
-	, _suspendHandler (hyperiond->getSuspendHandlerInstance())
 {
 	Q_INIT_RESOURCE(resources);
 
@@ -44,6 +44,8 @@ SysTray::SysTray(HyperionDaemon *hyperiond)
 
 	// instance changes
 	connect(_instanceManager, &HyperionIManager::instanceStateChanged, this, &SysTray::handleInstanceStateChange);
+
+	connect(this, &SysTray::signalEvent, EventHandler::getInstance(), &EventHandler::handleEvent);
 }
 
 SysTray::~SysTray()
@@ -84,13 +86,15 @@ void SysTray::createTrayIcon()
 	restartAction->setIcon(QPixmap(":/restart.svg"));
 	connect(restartAction, &QAction::triggered, this , [=](){ Process::restartHyperion(12); });
 
+
+	// TODO: Check if can be done with SystemEvents
 	suspendAction = new QAction(tr("&Suspend"), this);
 	suspendAction->setIcon(QPixmap(":/suspend.svg"));
-	connect(suspendAction, &QAction::triggered, _suspendHandler, QOverload<>::of(&SuspendHandler::suspend));
+	connect(suspendAction, &QAction::triggered, this, [this]() { emit signalEvent(Event::Suspend); });
 
 	resumeAction = new QAction(tr("&Resume"), this);
 	resumeAction->setIcon(QPixmap(":/resume.svg"));
-	connect(resumeAction, &QAction::triggered, _suspendHandler, &SuspendHandler::resume);
+	connect(resumeAction, &QAction::triggered, this, [this]() { emit signalEvent(Event::Resume); });
 
 	colorAction = new QAction(tr("&Color"), this);
 	colorAction->setIcon(QPixmap(":/color.svg"));

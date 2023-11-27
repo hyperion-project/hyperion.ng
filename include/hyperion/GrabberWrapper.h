@@ -18,6 +18,8 @@
 
 #include <grabber/GrabberType.h>
 
+#include <events/EventEnum.h>
+
 class Grabber;
 class GlobalSignals;
 class QTimer;
@@ -138,6 +140,8 @@ public slots:
 	/// @param config configuration object
 	///
 	virtual void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
+
+	void handleEvent(Event event);
 
 signals:
 	///

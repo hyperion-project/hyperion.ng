@@ -79,8 +79,7 @@ V4L2Grabber::V4L2Grabber()
 	, _currentFrame(0)
 	, _noSignalCounterThreshold(40)
 	, _noSignalThresholdColor(ColorRgb{0,0,0})
-	, _cecDetectionEnabled(true)
-	, _cecStandbyActivated(false)
+	, _standbyActivated(false)
 	, _signalDetectionEnabled(true)
 	, _noSignalDetected(false)
 	, _noSignalCounter(0)
@@ -1035,7 +1034,7 @@ bool V4L2Grabber::process_image(const void *p, int size)
 
 void V4L2Grabber::newThreadFrame(Image<ColorRgb> image)
 {
-	if (_cecDetectionEnabled && _cecStandbyActivated)
+	if (_standbyActivated)
 		return;
 
 	if (_signalDetectionEnabled)
@@ -1203,16 +1202,6 @@ void V4L2Grabber::setSignalDetectionEnable(bool enable)
 	}
 }
 
-void V4L2Grabber::setCecDetectionEnable(bool enable)
-{
-	if (_cecDetectionEnabled != enable)
-	{
-		_cecDetectionEnabled = enable;
-		if(_initialized)
-			Info(_log, "%s", QSTRING_CSTR(QString("CEC detection is now %1").arg(enable ? "enabled" : "disabled")));
-	}
-}
-
 bool V4L2Grabber::reload(bool force)
 {
 	if (_reload || force)
@@ -1230,26 +1219,6 @@ bool V4L2Grabber::reload(bool force)
 
 	return false;
 }
-
-#if defined(ENABLE_CEC)
-
-void V4L2Grabber::handleCecEvent(CECEvent event)
-{
-	switch (event)
-	{
-		case CECEvent::On  :
-			Debug(_log,"CEC on event received");
-			_cecStandbyActivated = false;
-			return;
-		case CECEvent::Off :
-			Debug(_log,"CEC off event received");
-			_cecStandbyActivated = true;
-			return;
-		default: break;
-	}
-}
-
-#endif
 
 QJsonArray V4L2Grabber::discover(const QJsonObject& params)
 {

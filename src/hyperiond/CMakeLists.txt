@@ -34,7 +34,6 @@ add_executable(${PROJECT_NAME}
 	systray.h
 	hyperiond.cpp
 	systray.cpp
-	SuspendHandler.cpp
 	main.cpp
 	${WIN_RC_FILE}
 	${MACOS_BUNDLE_RESOURCE_FILES}
@@ -48,6 +47,7 @@ target_link_libraries(${PROJECT_NAME}
 	ssdp
 	database
 	resources
+	events
 	Qt${QT_VERSION_MAJOR}::Core
 	Qt${QT_VERSION_MAJOR}::Gui
 	Qt${QT_VERSION_MAJOR}::Network

@@ -2,12 +2,14 @@
 
 #include <QObject>
 #include <QVector>
+#include <QMap>
 
 #include <iostream>
 
 #include <libcec/cec.h>
 
-#include <cec/CECEvent.h>
+#include <utils/settings.h>
+#include <events/EventEnum.h>
 
 using CECCallbacks         = CEC::ICECCallbacks;
 using CECAdapter           = CEC::ICECAdapter;
@@ -30,19 +32,28 @@ class CECHandler : public QObject
 {
 	Q_OBJECT
 public:
-	CECHandler();
+	CECHandler(const QJsonDocument& config, QObject * parent = nullptr);
 	~CECHandler() override;
 
 	QString scan() const;
 
 public slots:
+
 	bool start();
 	void stop();
 
-signals:
-	void cecEvent(CECEvent event);
+	virtual void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 private:
+
+signals:
+	void signalEvent(Event event);
+
+private:
+
+	bool enable();
+	void disable();
+
 	/* CEC Callbacks */
 	static void onCecLogMessage           (void * context, const CECLogMessage * message);
 	static void onCecKeyPress             (void * context, const CECKeyPress * key);
@@ -57,6 +68,11 @@ private:
 	bool openAdapter(const CECAdapterDescriptor & descriptor);
 	void printAdapter(const CECAdapterDescriptor & descriptor) const;
 
+	// CEC Event Strings per https://github.com/Pulse-Eight/libcec/blob/master/src/libcec/CECTypeUtils.h
+	void triggerAction(const QString& cecEvent);
+
+	QJsonDocument _config;
+
 	/* CEC Helpers */
 	CECCallbacks getCallbacks() const;
 	CECConfig getConfig() const;
@@ -64,6 +80,15 @@ private:
 	CECAdapter * _cecAdapter   {};
 	CECCallbacks _cecCallbacks {};
 	CECConfig    _cecConfig    {};
+
+	bool _isInitialised;
+	bool _isEnabled;
+
+	int _buttonReleaseDelayMs;
+	int _buttonRepeatRateMs;
+	int _doubleTapTimeoutMs;
+
+	QMap<QString,Event> _cecEventActionMap;
 
 	Logger * _logger {};
 };

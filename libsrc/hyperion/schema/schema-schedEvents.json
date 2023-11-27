@@ -1,0 +1,40 @@
+{
+  "type": "object",
+  "required": true,
+  "properties": {
+    "enable": {
+      "type": "boolean",
+      "required": true,
+      "title": "edt_conf_general_enable_title",
+      "default": false,
+      "propertyOrder": 1
+    },  
+    "actions": {
+      "type": "array",
+      "title": "edt_conf_sched_actions_header_title",
+      "minItems": 0,
+      "required": false,
+      "propertyOrder": 2,
+      "items": {
+        "type": "object",
+        "required": true,
+        "title": "edt_conf_sched_actions_header_item_title",
+        "properties": {
+          "event": {
+            "type": "string",
+            "format": "time",
+            "default": "23:00",
+            "title": "edt_conf_time_event_title",
+            "propertyOrder": 1
+          },
+          "action": {
+            "$ref": "schema-eventActions.json"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
+

@@ -5,6 +5,7 @@
 
 // utils includes
 #include <utils/GlobalSignals.h>
+#include <events/EventHandler.h>
 
 // qt
 #include <QTimer>
@@ -49,6 +50,8 @@ GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber * ggrabber, i
 
 	// listen for source requests
 	connect(GlobalSignals::getInstance(), &GlobalSignals::requestSource, this, &GrabberWrapper::handleSourceRequest);
+
+	QObject::connect(EventHandler::getInstance(), &EventHandler::signalEvent, this, &GrabberWrapper::handleEvent);
 }
 
 GrabberWrapper::~GrabberWrapper()
@@ -81,6 +84,11 @@ void GrabberWrapper::stop()
 		Debug(_log,"Grabber stop()");
 		_timer->stop();
 	}
+}
+
+void GrabberWrapper::handleEvent(Event event)
+{
+	_ggrabber->handleEvent(event);
 }
 
 bool GrabberWrapper::isActive() const

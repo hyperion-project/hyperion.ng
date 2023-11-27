@@ -30,6 +30,9 @@ namespace settings {
 		NETWORK,
 		FLATBUFSERVER,
 		PROTOSERVER,
+		OSEVENTS,
+		CECEVENTS,
+		SCHEDEVENTS,
 		INVALID
 	};
 
@@ -42,29 +45,32 @@ namespace settings {
 	{
 		switch (type)
 		{
-			case BGEFFECT:      return "backgroundEffect";
-			case FGEFFECT:      return "foregroundEffect";
-			case BLACKBORDER:   return "blackborderdetector";
-			case BOBLSERVER:    return "boblightServer";
-			case COLOR:         return "color";
-			case DEVICE:        return "device";
-			case EFFECTS:       return "effects";
-			case NETFORWARD:    return "forwarder";
-			case SYSTEMCAPTURE: return "framegrabber";
-			case GENERAL:       return "general";
-			case V4L2:          return "grabberV4L2";
-			case AUDIO:			return "grabberAudio";
-			case JSONSERVER:    return "jsonServer";
-			case LEDCONFIG:     return "ledConfig";
-			case LEDS:          return "leds";
-			case LOGGER:        return "logger";
-			case SMOOTHING:     return "smoothing";
-			case WEBSERVER:     return "webConfig";
-			case INSTCAPTURE:   return "instCapture";
-			case NETWORK:       return "network";
-			case FLATBUFSERVER: return "flatbufServer";
-			case PROTOSERVER:   return "protoServer";
-			default:            return "invalid";
+		case BGEFFECT:      return "backgroundEffect";
+		case FGEFFECT:      return "foregroundEffect";
+		case BLACKBORDER:   return "blackborderdetector";
+		case BOBLSERVER:    return "boblightServer";
+		case COLOR:         return "color";
+		case DEVICE:        return "device";
+		case EFFECTS:       return "effects";
+		case NETFORWARD:    return "forwarder";
+		case SYSTEMCAPTURE: return "framegrabber";
+		case GENERAL:       return "general";
+		case V4L2:          return "grabberV4L2";
+		case AUDIO:			return "grabberAudio";
+		case JSONSERVER:    return "jsonServer";
+		case LEDCONFIG:     return "ledConfig";
+		case LEDS:          return "leds";
+		case LOGGER:        return "logger";
+		case SMOOTHING:     return "smoothing";
+		case WEBSERVER:     return "webConfig";
+		case INSTCAPTURE:   return "instCapture";
+		case NETWORK:       return "network";
+		case FLATBUFSERVER: return "flatbufServer";
+		case PROTOSERVER:   return "protoServer";
+		case OSEVENTS:      return "osEvents";
+		case CECEVENTS:     return "cecEvents";
+		case SCHEDEVENTS:   return "schedEvents";
+		default:            return "invalid";
 		}
 	}
 
@@ -97,6 +103,9 @@ namespace settings {
 		else if (type == "network")              return NETWORK;
 		else if (type == "flatbufServer")        return FLATBUFSERVER;
 		else if (type == "protoServer")          return PROTOSERVER;
+		else if (type == "osEvents")             return OSEVENTS;
+		else if (type == "cecEvents")            return CECEVENTS;
+		else if (type == "schedEvents")          return SCHEDEVENTS;
 		else                                     return INVALID;
 	}
 }
