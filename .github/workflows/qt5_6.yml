@@ -124,9 +124,9 @@ jobs:
           echo '::endgroup::'
 
           echo '::group::Update/Install dependencies'
+            brew untap --force homebrew/core homebrew/cask
             brew update || true
-            brew install --overwrite qt${{ inputs.qt_version }} libusb
-            brew link --overwrite --force qt${{ inputs.qt_version }}
+            brew install qt${{ inputs.qt_version }} vulkan-headers || true
           echo '::endgroup::'
 
       - name: 👷 Build
