@@ -108,23 +108,25 @@ if [ "$IS_UPGRADE" = false ]; then
 		cp -R /usr/share/hyperion/icons/* /usr/share/icons/hicolor/ 2>/dev/null
 		cp /usr/share/hyperion/desktop/hyperion.metainfo.xml /usr/share/metainfo 2>/dev/null
 
-		if hash desktop-file-install 2>/dev/null; then
+		if [ -x "$(command -v desktop-file-install )" ]; then
 			desktop-file-install /usr/share/hyperion/desktop/hyperion.desktop 2>/dev/null
 		else
 			# On some systems this directory doesn't exist by default
 			mkdir -p /usr/share/applications
 			cp /usr/share/hyperion/desktop/hyperion.desktop /usr/share/applications
-			# Update application icons
-			if hash update-desktop-database 2>/dev/null; then
-				update-desktop-database -q /usr/share/applications
-				update-desktop-database -q /usr/share/icons/
-			fi
+		fi
+			
+		# update desktop-database (if exists)
+		if [ -x "$(command -v update-desktop-database)" ]; then
+			update-desktop-database -q /usr/share/applications
+			update-desktop-database -q /usr/share/icons/hicolor
 		fi
 	fi
 fi
 
-# cleanup desktop icons
+# cleanup desktop and icons
 rm -r /usr/share/hyperion/desktop 2>/dev/null
+rm -r /usr/share/hyperion/icons 2>/dev/null
 
 #Check, if dtparam=spi=on is in place
 if [ $CPU_RPI -eq 1 ]; then

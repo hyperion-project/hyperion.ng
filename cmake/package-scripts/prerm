@@ -59,27 +59,18 @@ fi
 # In case we don't use a service kill all instances
 killall hyperiond 2> /dev/null
 
+echo "---> Remove Hyperion desktop icons"
 # remove desktop/appstream file
 rm -v /usr/share/applications/hyperion* 2> /dev/null
 rm -v /usr/share/metainfo/hyperion* 2> /dev/null
 
-# update desktop-database (if exists)
-if [ -x /usr/bin/update-desktop-database ]; then
-	update-desktop-database -q /usr/share/applications
-fi
-
 # remove Hyperion icons
 rm -v /usr/share/icons/hicolor/*/apps/hyperion.png 2> /dev/null
 
-# update icon-cache
-if [ -e /usr/share/icons/hicolor/icon-theme.cache ] ; then
-	# touch it, just in case we cannot find the binary...
-	touch --no-create /usr/share/icons/hicolor
-	if hash gtk-update-icon-cache 2>/dev/null; then
-		gtk-update-icon-cache /usr/share/icons/hicolor
-	fi
-	# ignore errors
-	true
+# update desktop-database (if exists)
+if [ -x "$(command -v update-desktop-database)" ]; then
+	update-desktop-database -q /usr/share/applications
+	update-desktop-database -q /usr/share/icons/hicolor/	
 fi
 
 exit 0
