@@ -674,7 +674,7 @@ void Hyperion::update()
 
 		if (_ledString.hasBlackListedLeds())
 		{
-			for (int id : _ledString.blacklistedLedIds())
+			for (unsigned long id : _ledString.blacklistedLedIds())
 			{
 				if (id > _ledBuffer.size()-1)
 				{
