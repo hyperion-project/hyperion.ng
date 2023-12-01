@@ -41,25 +41,16 @@ jobs:
       fail-fast: false
       matrix:
         os: [
-          { distribution: debian, codename: buster,   description: Debian Buster (x86_64),                architecture: [ amd64, linux/amd64  ] },
-          { distribution: debian, codename: bullseye, description: Debian Bullseye (x86_64),              architecture: [ amd64, linux/amd64  ] },
-          { distribution: debian, codename: buster,   description: Debian Buster (Raspberry Pi 1/ZERO),   architecture: [ armv6, linux/arm/v5 ] },
-          { distribution: debian, codename: buster,   description: Debian Buster (Raspberry Pi 2/3/4),    architecture: [ armv7, linux/arm/v7 ] },
-          { distribution: debian, codename: bullseye, description: Debian Bullseye (Raspberry Pi 2/3/4),  architecture: [ armv7, linux/arm/v7 ] },
-          { distribution: debian, codename: buster,   description: Debian Buster (Generic AARCH64),       architecture: [ arm64, linux/arm64  ] },
-          { distribution: debian, codename: bullseye, description: Debian Bullseye (Generic AARCH64),     architecture: [ arm64, linux/arm64  ] }
+          { distribution: debian, codename: buster,   description: Debian Buster (x86_64),                        architecture: [ amd64, linux/amd64  ], platform: x11 },
+          { distribution: debian, codename: bullseye, description: Debian Bullseye (x86_64),                      architecture: [ amd64, linux/amd64  ], platform: x11 },
+          { distribution: debian, codename: buster,   description: Debian Buster (Raspberry Pi 1 & Zero),         architecture: [ armv6, linux/arm/v5 ], platform: rpi },
+          { distribution: debian, codename: buster,   description: Debian Buster (Raspberry Pi 2),                architecture: [ armv7, linux/arm/v7 ], platform: rpi },
+          { distribution: debian, codename: bullseye, description: Debian Bullseye (Raspberry Pi 2),              architecture: [ armv7, linux/arm/v7 ], platform: rpi },
+          { distribution: debian, codename: buster,   description: Debian Buster (Raspberry Pi Zero 2 & 3/4),   architecture: [ arm64, linux/arm64  ], platform: rpi },
+          { distribution: debian, codename: bullseye, description: Debian Bullseye (Raspberry Pi Zero 2 & 3/4), architecture: [ arm64, linux/arm64  ], platform: rpi }
         ]
         isQt5:
           - ${{ inputs.qt_version == '5' }}
-        include:
-          - os.architecture[0]: amd64
-            platform: x11
-          - os.architecture[0]: armv6
-            platform: rpi
-          - os.architecture[0]: armv7
-            platform: rpi
-          - os.architecture[0]: arm64
-            platform: amlogic
         exclude:
           - isQt5: true
             os: { distribution: debian, codename: bullseye }
@@ -88,7 +79,7 @@ jobs:
         env:
           DOCKER_IMAGE: ${{ matrix.os.distribution }}
           DOCKER_TAG: ${{ matrix.os.codename }}${{ inputs.qt_version == '6' && '-qt6' || '' }}
-          PLATFORM: ${{ matrix.platform }}
+          PLATFORM: ${{ matrix.os.platform }}
           TARGET_ARCH: ${{ matrix.os.architecture[1] }}
 
       - name: 📦 Upload
