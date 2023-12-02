@@ -1,3 +1,9 @@
+#execute_process( COMMAND git config --global --add safe.directory "*" ERROR_QUIET )
+
+execute_process( COMMAND git config --global --add safe.directory ${CMAKE_SOURCE_DIR}/dependencies/external/flatbuffers ERROR_QUIET )
+execute_process( COMMAND git config --global --add safe.directory ${CMAKE_SOURCE_DIR}/dependencies/external/protobuf ERROR_QUIET )
+execute_process( COMMAND git config --global --add safe.directory ${CMAKE_SOURCE_DIR}/dependencies/external/qmdnsengine ERROR_QUIET )
+
 execute_process( COMMAND git log -1 --format=%cn-%t/%h-%ct WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE BUILD_ID ERROR_QUIET )
 execute_process( COMMAND sh -c "git branch | grep '^*' | sed 's;^*;;g' " WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE VERSION_ID ERROR_QUIET )
 execute_process( COMMAND sh -c "git remote --verbose | grep origin | grep fetch | cut -f2 | cut -d' ' -f1" WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE GIT_REMOTE_PATH ERROR_QUIET )
@@ -9,3 +15,16 @@ SET ( HYPERION_BUILD_ID "${VERSION_ID} (${BUILD_ID})" )
 SET ( HYPERION_GIT_REMOTE "${GIT_REMOTE_PATH}" )
 message ( STATUS "Current Version: ${HYPERION_VERSION}" )
 message ( STATUS " - Build: ${HYPERION_BUILD_ID}" )
+
+message ( STATUS "Run: git --version" )
+execute_process( COMMAND git --version)
+message ( STATUS "Run: git config --global --list" )
+execute_process( COMMAND git config --global --list)
+message ( STATUS "Run: git config --list" )
+execute_process( COMMAND git config --list)
+
+message ( STATUS "Run: ls -la .." )
+execute_process( COMMAND ls -la ..)
+message ( STATUS "Run: ls -la ../dependencies/external/" )
+execute_process( COMMAND ls -la ../dependencies/external/)
+message ( STATUS "git Test DONE" )

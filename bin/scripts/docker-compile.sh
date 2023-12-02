@@ -274,7 +274,6 @@ $DOCKER run --rm --platform=${PLATFORM_ARCHITECTURE} \
 	-v "${CODE_PATH}/:/source:rw" \
 	${REGISTRY_URL}/${DISTRIBUTION}:${CODENAME} \
 	/bin/bash -c "mkdir -p /source/${BUILD_DIR} && cd /source/${BUILD_DIR} &&
-	git config --global --add safe.directory '*' &&
 	cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${PLATFORM} ${BUILD_ARGS} .. || exit 2 &&
 	make -j $(nproc) ${PACKAGES} || exit 3 || : &&
 	exit 0;

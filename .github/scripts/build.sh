@@ -45,7 +45,6 @@ elif [[ "$RUNNER_OS" == 'Linux' ]]; then
 		-v "${GITHUB_WORKSPACE}:/source:rw" \
 		$REGISTRY_URL:$DOCKER_TAG \
 		/bin/bash -c "mkdir -p /source/build && cd /source/build &&
-		git config --global --add safe.directory '*' &&
 		cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ../ || exit 2 &&
 		cmake --build /source/build --target package -- -j $(nproc) || exit 3 &&
 		cp /source/build/bin/h* /deploy/ 2>/dev/null || : &&
