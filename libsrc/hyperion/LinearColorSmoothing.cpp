@@ -72,7 +72,7 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument &config, Hyperion
 	  , _enabled(false)
 	  , _enabledSystemCfg(false)
 	  , _smoothingType(SmoothingType::Linear)
-	  , tempValues(std::vector<uint64_t>(0, 0L))
+	  , tempValues(std::vector<uint64_t>())
 {
 	QString subComponent = hyperion->property("instance").toString();
 	_log= Logger::getInstance("SMOOTHING", subComponent);
@@ -87,7 +87,7 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument &config, Hyperion
 
 	// add pause on cfg 1
 	SmoothingCfg cfg {true, 0, 0};
-	_cfgList.append(cfg);
+	_cfgList.append(std::move(cfg));
 
 	// listen for comp changes
 	connect(_hyperion, &Hyperion::compStateChangeRequest, this, &LinearColorSmoothing::componentStateChange);
@@ -592,7 +592,7 @@ unsigned LinearColorSmoothing::addConfig(int settlingTime_ms, double ledUpdateFr
 		ledUpdateFrequency_hz,
 		updateDelay
 	};
-	_cfgList.append(cfg);
+	_cfgList.append(std::move(cfg));
 
 	DebugIf(verbose && _enabled, _log,"%s", QSTRING_CSTR(getConfig(_cfgList.count()-1)));
 

@@ -34,7 +34,6 @@ elif [[ $RUNNER_OS == "Windows" ]]; then
 elif [[ "$RUNNER_OS" == 'Linux' ]]; then
 	echo "Docker arguments used: DOCKER_IMAGE=${DOCKER_IMAGE}, DOCKER_TAG=${DOCKER_TAG}, TARGET_ARCH=${TARGET_ARCH}"
 	# verification bypass of external dependencies
-	git config --global --add safe.directory "${GITHUB_WORKSPACE}/dependencies/external/*"
 	# set GitHub Container Registry url
 	REGISTRY_URL="ghcr.io/hyperion-project/${DOCKER_IMAGE}"
 	# take ownership of deploy dir

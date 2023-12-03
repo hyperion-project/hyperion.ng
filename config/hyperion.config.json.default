@@ -97,7 +97,6 @@
 		"blueSignalThreshold": 0,
 		"signalDetection": false,
 		"noSignalCounterThreshold": 200,
-		"cecDetection": false,
 		"sDVOffsetMin": 0.1,
 		"sDVOffsetMax": 0.9,
 		"sDHOffsetMin": 0.4,

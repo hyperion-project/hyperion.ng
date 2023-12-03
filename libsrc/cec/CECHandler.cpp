@@ -8,8 +8,8 @@
 
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QJsonDocument>
 #include <QJsonObject>
-#include <QDebug>
 #include <QFile>
 
 /* Enable to turn on detailed CEC logs */
@@ -19,6 +19,7 @@ CECHandler::CECHandler(const QJsonDocument& config, QObject * parent)
 	: QObject(parent)
 	, _config(config)
 	, _isInitialised(false)
+	, _isOpen(false)
 	, _isEnabled(false)
 	, _buttonReleaseDelayMs(CEC_BUTTON_TIMEOUT)
 	, _buttonRepeatRateMs(0)
@@ -126,62 +127,71 @@ void CECHandler::stop()
 
 bool CECHandler::enable()
 {
-	bool opened {false};
 	if (_isInitialised)
 	{
-		const auto adapters = getAdapters();
-		if (adapters.isEmpty())
+		if (!_isOpen)
 		{
-			Error(_logger, "Failed to find any CEC adapter. CEC event handling will be disabled.");
-			_cecAdapter->Close();
-			return false;
-		}
-
-		Info(_logger, "Auto detecting CEC adapter");
-		for (const auto & adapter : adapters)
-		{
-			printAdapter(adapter);
-
-			if (!opened && openAdapter(adapter))
+			const auto adapters = getAdapters();
+			if (adapters.isEmpty())
 			{
-				Info(_logger, "CEC adapter '%s', type: %s initialized." , adapter.strComName, _cecAdapter->ToString(adapter.adapterType));
-				opened = true;
-				break;
+				Error(_logger, "Failed to find any CEC adapter. CEC event handling will be disabled.");
+				_cecAdapter->Close();
+				return false;
+			}
+
+			Info(_logger, "Auto detecting CEC adapter");
+			bool opened {false};
+			for (const auto & adapter : adapters)
+			{
+				printAdapter(adapter);
+				if (!opened)
+				{
+					if (openAdapter(adapter))
+					{
+
+						Info(_logger, "CEC adapter '%s', type: %s initialized." , adapter.strComName, _cecAdapter->ToString(adapter.adapterType));
+						opened = true;
+
+						break;
+					}
+				}
+			}
+
+			if (!opened)
+			{
+				Error(_logger, "Could not initialize any CEC adapter.");
+				_cecAdapter->Close();
+			}
+			else
+			{
+				_isOpen=true;
+				QObject::connect(this, &CECHandler::signalEvent, EventHandler::getInstance(), &EventHandler::handleEvent);
+#ifdef VERBOSE_CEC
+				std::cout << "Found Devices: " << scan().toStdString() << std::endl;
+#endif
 			}
 		}
 
-#ifdef VERBOSE_CEC
-		std::cout << "Found Devices: " << scan().toStdString() << std::endl;
-#endif
-	}
-
-	if (!opened)
-	{
-		Error(_logger, "Could not initialize any CEC adapter.");
-		_cecAdapter->Close();
-	}
-	else
-	{
-		if (!_cecAdapter->SetConfiguration(&_cecConfig))
+		if (_isOpen && !_cecAdapter->SetConfiguration(&_cecConfig))
 		{
 			Error(_logger, "Failed setting remote button press timing parameters");
 		}
-		QObject::connect(this, &CECHandler::signalEvent, EventHandler::getInstance(), &EventHandler::handleEvent);
-		Info(_logger, "CEC handler started");
+
+		Info(_logger, "CEC handler enabled");
+
 	}
 
-	return opened;
+	return _isOpen;
 }
 
 void CECHandler::disable()
 {
 	if (_isInitialised)
 	{
-		Info(_logger, "Stopping CEC handler");
-
 		QObject::disconnect(this, &CECHandler::signalEvent, EventHandler::getInstance(), &EventHandler::handleEvent);
-
 		_cecAdapter->Close();
+		_isOpen=false;
+		Info(_logger, "CEC handler disabled");
 	}
 }
 
@@ -227,7 +237,9 @@ QVector<CECAdapterDescriptor> CECHandler::getAdapters() const
 bool CECHandler::openAdapter(const CECAdapterDescriptor & descriptor)
 {
 	if (_cecAdapter == nullptr)
+	{
 		return false;
+	}
 
 	if(!_cecAdapter->Open(descriptor.strComName))
 	{
@@ -301,9 +313,9 @@ QString CECHandler::scan() const
 void CECHandler::triggerAction(const QString& cecEvent)
 {
 	Event action = _cecEventActionMap.value(cecEvent, Event::Unknown);
-	Debug(_logger, "CEC-Event : \"%s\" triggers action \"%s\"", QSTRING_CSTR(cecEvent), eventToString(action) );
 	if ( action != Event::Unknown )
 	{
+		Debug(_logger, "CEC-Event : \"%s\" triggers action \"%s\"", QSTRING_CSTR(cecEvent), eventToString(action) );
 		emit signalEvent(action);
 	}
 }

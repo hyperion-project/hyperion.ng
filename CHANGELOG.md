@@ -76,7 +76,7 @@ Note: The wizard will configure an APIv2 capable bridge always with Entertainmen
 ### Technical
 
 - Changed default build from Stretch to Buster
-- Support Qt 6.7, Update to Protobuf 23.4.0, Update mbedTLS to v3.4.0, Update flatbuffers to v23.5.26
+- Support Qt 6.7, Update to Protobuf 25.1, Update mbedTLS to v3.4.0, Update flatbuffers to v23.5.26
 - Use C++17 standard as default
 - Added Pull Request (PR) installation script, allowing users to test development builds savely on Linux
 - Fixed missing include limits in QJsonSchemaChecker - Thanks @Portisch
@@ -111,6 +111,7 @@ To allow segment streaming, enable "Realtime - Use main segment only" in WLED's 
 - REST API - Increased default timeout to address "Operation cancelled" errors
 - LED Devices: Allow to differentiate between recoverable/unrecoverable errors
 - Renamed LED area assignment naming to provide clarity on the processing algorithms
+- Updated SEDU default baud rates
 
 ### Fixed
 

@@ -211,8 +211,8 @@ private:
 	OsxWrapper*                _osxGrabber;
 	QtWrapper*                 _qtGrabber;
 	DirectXWrapper*            _dxGrabber;
-	SSDPHandler*               _ssdp;
 	AudioWrapper*			   _audioGrabber;
+	SSDPHandler*               _ssdp;
 	EventHandler*              _eventHandler;
 	OsEventHandler*            _osEventHandler;
 	EventScheduler*            _eventScheduler;

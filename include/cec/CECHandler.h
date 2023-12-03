@@ -82,6 +82,7 @@ private:
 	CECConfig    _cecConfig    {};
 
 	bool _isInitialised;
+	bool _isOpen;
 	bool _isEnabled;
 
 	int _buttonReleaseDelayMs;
