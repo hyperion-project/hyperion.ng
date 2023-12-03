@@ -249,13 +249,13 @@ log "---> DEPLOY_PATH = ${DEPLOY_PATH}"
 
 # cleanup deploy folder, create folder for ownership
 sudo rm -fr "${DEPLOY_PATH}" >/dev/null 2>&1
-mkdir -p "${DEPLOY_PATH}" >/dev/null 2>&1
+sudo mkdir -p "${DEPLOY_PATH}" >/dev/null 2>&1
 
 #Remove previous build area, if no incremental build
 if [ ${BUILD_INCREMENTAL} != true ]; then
 sudo rm -fr "${BUILD_PATH}" >/dev/null 2>&1
 fi
-mkdir -p "${BUILD_PATH}" >/dev/null 2>&1
+sudo mkdir -p "${BUILD_PATH}" >/dev/null 2>&1
 
 echo "---> Compiling Hyperion from source code at ${CODE_PATH}"
 
@@ -291,7 +291,7 @@ if [ ${DOCKERRC} == 0 ]; then
 
 	if [ ${BUILD_PACKAGES} == "true" ]; then
 	 echo "---> Copying packages to host folder: ${DEPLOY_PATH}" &&
-	 cp -v ${BUILD_PATH}/Hyperion-* ${DEPLOY_PATH} 2>/dev/null
+	 sudo cp -v ${BUILD_PATH}/Hyperion-* ${DEPLOY_PATH} 2>/dev/null
 	 echo "---> Find deployment packages in: ${DEPLOY_PATH}"
 	 sudo chown -fR $(stat -c "%U:%G" ${BASE_PATH}) ${DEPLOY_PATH}
 	fi
