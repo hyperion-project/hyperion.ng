@@ -111,6 +111,7 @@ To allow segment streaming, enable "Realtime - Use main segment only" in WLED's 
 - REST API - Increased default timeout to address "Operation cancelled" errors
 - LED Devices: Allow to differentiate between recoverable/unrecoverable errors
 - Renamed LED area assignment naming to provide clarity on the processing algorithms
+- Updated SEDU default baud rates
 
 ### Fixed
 
