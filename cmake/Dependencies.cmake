@@ -230,7 +230,7 @@ macro(DeployLinux TARGET)
 
 		# Copy Qt plugins to 'share/hyperion/lib'
 		if (QT_PLUGINS_DIR)
-			foreach(PLUGIN "platforms" "sqldrivers" "imageformats" "tls")
+			foreach(PLUGIN "platforms" "sqldrivers" "imageformats" "tls" "wayland-shell-integration")
 				if (EXISTS ${QT_PLUGINS_DIR}/${PLUGIN})
 					file(GLOB files "${QT_PLUGINS_DIR}/${PLUGIN}/*.so")
 					foreach(file ${files})
