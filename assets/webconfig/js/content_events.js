@@ -1,6 +1,7 @@
 $(document).ready(function () {
   performTranslation();
 
+  let isGuiMode = window.sysInfo.hyperion.isGuiMode;
   const CEC_ENABLED = (jQuery.inArray("cec", window.serverInfo.services) !== -1);
 
   let conf_editor_osEvents = null;
@@ -75,6 +76,12 @@ $(document).ready(function () {
   conf_editor_osEvents = createJsonEditor('editor_container_os_events', {
     osEvents: window.schema.osEvents
   }, true, true);
+
+  conf_editor_osEvents.on('ready', function () {
+    if (!isGuiMode) {
+      showInputOptionsForKey(conf_editor_osEvents, "osEvents", "suspendEnable", false);
+    }
+  });
 
   conf_editor_osEvents.on('change', function () {
     conf_editor_osEvents.validate().length || window.readOnlyMode ? $('#btn_submit_os_events').prop('disabled', true) : $('#btn_submit_os_events').prop('disabled', false);
