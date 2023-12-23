@@ -3,15 +3,14 @@
 #include <QtGlobal>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QCoreApplication>
+#include <QApplication>
 
 #include <events/EventHandler.h>
 #include <utils/Logger.h>
 
-#include <iostream>
-
 #if defined(_WIN32)
-#include <QCoreApplication>
-#include <QApplication>
+
 #include <QWidget>
 #include <windows.h>
 #include <wtsapi32.h>
