@@ -11,11 +11,15 @@
 
 #if defined(_WIN32)
 #include <QCoreApplication>
+#include <QApplication>
 #include <QWidget>
 #include <windows.h>
 #include <wtsapi32.h>
+#include <powerbase.h>
 
 #pragma comment( lib, "wtsapi32.lib" )
+#pragma comment(lib, "PowrProf.lib")
+
 #elif defined(__APPLE__)
 #include <AppKit/AppKit.h>
 #endif
@@ -26,10 +30,16 @@ OsEventHandlerBase::OsEventHandlerBase()
 	, _isSuspendOnLock(false)
 	, _isSuspendRegistered(false)
 	, _isLockRegistered(false)
+	, _isService(false)
 {
 	qRegisterMetaType<Event>("Event");
 	_log = Logger::getInstance("EVENTS-OS");
 
+	QCoreApplication* app = QCoreApplication::instance();
+	if (!qobject_cast<QApplication*>(app))
+	{
+		_isService = true;
+	}
 	QObject::connect(this, &OsEventHandlerBase::signalEvent, EventHandler::getInstance(), &EventHandler::handleEvent);
 }
 
@@ -45,7 +55,7 @@ OsEventHandlerBase::~OsEventHandlerBase()
 
 void OsEventHandlerBase::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
-	if(type == settings::OSEVENTS)
+	if (type == settings::OSEVENTS)
 	{
 		const QJsonObject& obj = config.object();
 
@@ -65,15 +75,18 @@ void OsEventHandlerBase::handleSettingsUpdate(settings::type type, const QJsonDo
 			unregisterOsEventHandler();
 		}
 
-		_isLockEnabled = obj["lockEnable"].toBool(true);
-		if (_isLockEnabled || _isSuspendOnLock != prevIsSuspendOnLock)
+		if (!_isService)
 		{
-			// Listen to lock/screensaver events received by the OS
-			registerLockHandler();
-		}
-		else
-		{
-			unregisterLockHandler();
+			_isLockEnabled = obj["lockEnable"].toBool(true);
+			if (_isLockEnabled || _isSuspendOnLock != prevIsSuspendOnLock)
+			{
+				// Listen to lock/screensaver events received by the OS
+				registerLockHandler();
+			}
+			else
+			{
+				unregisterLockHandler();
+			}
 		}
 	}
 }
@@ -118,8 +131,15 @@ void OsEventHandlerBase::lock(bool isLocked)
 
 #if defined(_WIN32)
 
+OsEventHandlerWindows* OsEventHandlerWindows::getInstance()
+{
+	static OsEventHandlerWindows instance;
+	return &instance;
+}
+
 OsEventHandlerWindows::OsEventHandlerWindows()
-	: _notifyHandle(NULL)
+	: _notifyHandle(NULL),
+	_widget(nullptr)
 {
 }
 
@@ -127,6 +147,8 @@ OsEventHandlerWindows::~OsEventHandlerWindows()
 {
 	unregisterLockHandler();
 	unregisterOsEventHandler();
+
+	delete _widget;
 }
 
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
@@ -135,8 +157,8 @@ bool OsEventHandlerWindows::nativeEventFilter(const QByteArray& eventType, void*
 bool OsEventHandlerWindows::nativeEventFilter(const QByteArray& eventType, void* message, long int* /*result*/)
 #endif
 {
-	MSG* msg = static_cast<MSG*>(message);
 
+	MSG* msg = static_cast<MSG*>(message);
 	switch (msg->message)
 	{
 	case WM_WTSSESSION_CHANGE:
@@ -152,22 +174,34 @@ bool OsEventHandlerWindows::nativeEventFilter(const QByteArray& eventType, void*
 			break;
 		}
 		break;
-
-	case WM_POWERBROADCAST:
-		switch (msg->wParam)
-		{
-		case PBT_APMRESUMESUSPEND:
-			emit suspend(false);
-			return true;
-			break;
-		case PBT_APMSUSPEND:
-			emit suspend(true);
-			return true;
-			break;
-		}
-		break;
 	}
 	return false;
+}
+
+void OsEventHandlerWindows::handleSuspendResumeEvent(bool sleep)
+{
+	if (sleep)
+	{
+		suspend(true);
+	}
+	else
+	{
+		suspend(false);
+	}
+}
+
+ULONG OsEventHandlerWindows::handlePowerNotifications(PVOID Context, ULONG Type, PVOID Setting)
+{
+	switch (Type)
+	{
+	case PBT_APMRESUMESUSPEND:
+		getInstance()->handleSuspendResumeEvent(false);
+		break;
+	case PBT_APMSUSPEND:
+		getInstance()->handleSuspendResumeEvent(true);
+		break;
+	}
+	return S_OK;
 }
 
 bool OsEventHandlerWindows::registerOsEventHandler()
@@ -175,11 +209,10 @@ bool OsEventHandlerWindows::registerOsEventHandler()
 	bool isRegistered{ _isSuspendRegistered };
 	if (!_isSuspendRegistered)
 	{
-		auto handle = reinterpret_cast<HWND> (_widget.winId());
-		_notifyHandle = RegisterSuspendResumeNotification(handle, DEVICE_NOTIFY_WINDOW_HANDLE);
-		if (_notifyHandle != NULL)
+		DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS notificationsParameters = { handlePowerNotifications, NULL };
+		if (PowerRegisterSuspendResumeNotification(DEVICE_NOTIFY_CALLBACK, (HANDLE)&notificationsParameters, &_notifyHandle) == ERROR_SUCCESS)
 		{
-			QCoreApplication::instance()->installNativeEventFilter(this);
+			isRegistered = true;
 		}
 		else
 		{
@@ -200,8 +233,7 @@ void OsEventHandlerWindows::unregisterOsEventHandler()
 	{
 		if (_notifyHandle != NULL)
 		{
-			QCoreApplication::instance()->removeNativeEventFilter(this);
-			UnregisterSuspendResumeNotification(_notifyHandle);
+			PowerUnregisterSuspendResumeNotification(_notifyHandle);
 		}
 		_notifyHandle = NULL;
 		_isSuspendRegistered = false;
@@ -213,17 +245,23 @@ bool OsEventHandlerWindows::registerLockHandler()
 	bool isRegistered{ _isLockRegistered };
 	if (!_isLockRegistered)
 	{
-		auto handle = reinterpret_cast<HWND> (_widget.winId());
-		if (WTSRegisterSessionNotification(handle, NOTIFY_FOR_THIS_SESSION))
+		if (!_isService)
 		{
-			isRegistered = true;
+			_widget = new QWidget();
+			if (_widget)
+			{
+				auto handle = reinterpret_cast<HWND> (_widget->winId());
+				if (WTSRegisterSessionNotification(handle, NOTIFY_FOR_THIS_SESSION))
+				{
+					QCoreApplication::instance()->installNativeEventFilter(this);
+					isRegistered = true;
+				}
+				else
+				{
+					Error(_log, "Could not register for lock/unlock events!");
+				}
+			}
 		}
-		else
-		{
-			Error(_log, "Could not register for lock/unlock events!");
-		}
-
-
 	}
 
 	if (isRegistered)
@@ -237,9 +275,13 @@ void OsEventHandlerWindows::unregisterLockHandler()
 {
 	if (_isLockRegistered)
 	{
-		auto handle = reinterpret_cast<HWND> (_widget.winId());
-		WTSUnRegisterSessionNotification(handle);
-		_isLockRegistered = false;
+		if (!_isService)
+		{
+			auto handle = reinterpret_cast<HWND> (_widget->winId());
+			QCoreApplication::instance()->removeNativeEventFilter(this);
+			WTSUnRegisterSessionNotification(handle);
+			_isLockRegistered = false;
+		}
 	}
 }
 
@@ -259,7 +301,7 @@ OsEventHandlerLinux::OsEventHandlerLinux()
 	signal(SIGUSR2, static_signaleHandler);
 }
 
-void OsEventHandlerLinux::handleSignal (int signum)
+void OsEventHandlerLinux::handleSignal(int signum)
 {
 	if (signum == SIGUSR1)
 	{
@@ -286,20 +328,20 @@ typedef QMultiMap<QString, dBusSignals> DbusSignalsMap;
 
 // Constants
 namespace {
-const DbusSignalsMap dbusSignals = {
-	//system signals
-	{"Suspend", {"org.freedesktop.login1","/org/freedesktop/login1","org.freedesktop.login1.Manager","PrepareForSleep"}},
+	const DbusSignalsMap dbusSignals = {
+		//system signals
+		{"Suspend", {"org.freedesktop.login1","/org/freedesktop/login1","org.freedesktop.login1.Manager","PrepareForSleep"}},
 
-	//Session signals
-	{"ScreenSaver", {"org.freedesktop.ScreenSaver","/org/freedesktop/ScreenSaver","org.freedesktop.ScreenSaver","ActiveChanged"}},
-	{"ScreenSaver", {"org.gnome.ScreenSaver","/org/gnome/ScreenSaver","org.gnome.ScreenSaver","ActiveChanged"}},
-};
+		//Session signals
+		{"ScreenSaver", {"org.freedesktop.ScreenSaver","/org/freedesktop/ScreenSaver","org.freedesktop.ScreenSaver","ActiveChanged"}},
+		{"ScreenSaver", {"org.gnome.ScreenSaver","/org/gnome/ScreenSaver","org.gnome.ScreenSaver","ActiveChanged"}},
+	};
 } //End of constants
 
 bool OsEventHandlerLinux::registerOsEventHandler()
 {
 
-	bool isRegistered {_isSuspendRegistered};
+	bool isRegistered{ _isSuspendRegistered };
 	if (!_isSuspendRegistered)
 	{
 		QDBusConnection systemBus = QDBusConnection::systemBus();
@@ -311,10 +353,10 @@ bool OsEventHandlerLinux::registerOsEventHandler()
 		{
 			QString service = dbusSignals.find("Suspend").value().service;
 			if (systemBus.connect(service,
-								  dbusSignals.find("Suspend").value().path,
-								  dbusSignals.find("Suspend").value().interface,
-								  dbusSignals.find("Suspend").value().name,
-								  this, SLOT(suspend(bool))))
+				dbusSignals.find("Suspend").value().path,
+				dbusSignals.find("Suspend").value().interface,
+				dbusSignals.find("Suspend").value().name,
+				this, SLOT(suspend(bool))))
 			{
 				Debug(_log, "Registered for suspend/resume events via service: %s", QSTRING_CSTR(service));
 				isRegistered = true;
@@ -347,10 +389,10 @@ void OsEventHandlerLinux::unregisterOsEventHandler()
 		{
 			QString service = dbusSignals.find("Suspend").value().service;
 			if (systemBus.disconnect(service,
-								  dbusSignals.find("Suspend").value().path,
-								  dbusSignals.find("Suspend").value().interface,
-								  dbusSignals.find("Suspend").value().name,
-								  this, SLOT(suspend(bool))))
+				dbusSignals.find("Suspend").value().path,
+				dbusSignals.find("Suspend").value().interface,
+				dbusSignals.find("Suspend").value().name,
+				this, SLOT(suspend(bool))))
 			{
 				Debug(_log, "Unregistered for suspend/resume events via service: %s", QSTRING_CSTR(service));
 				_isSuspendRegistered = false;
@@ -365,7 +407,7 @@ void OsEventHandlerLinux::unregisterOsEventHandler()
 
 bool OsEventHandlerLinux::registerLockHandler()
 {
-	bool isRegistered {_isLockRegistered};
+	bool isRegistered{ _isLockRegistered };
 
 	if (!_isLockRegistered)
 	{
@@ -380,10 +422,10 @@ bool OsEventHandlerLinux::registerLockHandler()
 			while (iter != dbusSignals.end() && iter.key() == "ScreenSaver") {
 				QString service = iter.value().service;
 				if (sessionBus.connect(service,
-									   iter.value().path,
-									   iter.value().interface,
-									   iter.value().name,
-									   this, SLOT(lock(bool))))
+					iter.value().path,
+					iter.value().interface,
+					iter.value().name,
+					this, SLOT(lock(bool))))
 				{
 					Debug(_log, "Registered for lock/unlock events via service: %s", QSTRING_CSTR(service));
 					isRegistered = true;
@@ -409,7 +451,7 @@ bool OsEventHandlerLinux::registerLockHandler()
 
 void OsEventHandlerLinux::unregisterLockHandler()
 {
-	bool isUnregistered {false};
+	bool isUnregistered{ false };
 
 	if (_isLockRegistered)
 	{
@@ -424,10 +466,10 @@ void OsEventHandlerLinux::unregisterLockHandler()
 			while (iter != dbusSignals.end() && iter.key() == "ScreenSaver") {
 				QString service = iter.value().service;
 				if (sessionBus.disconnect(service,
-									   iter.value().path,
-									   iter.value().interface,
-									   iter.value().name,
-									   this, SLOT(lock(bool))))
+					iter.value().path,
+					iter.value().interface,
+					iter.value().name,
+					this, SLOT(lock(bool))))
 				{
 					Debug(_log, "Unregistered for lock/unlock events via service: %s", QSTRING_CSTR(service));
 					isUnregistered = true;
@@ -459,52 +501,52 @@ OsEventHandlerMacOS::OsEventHandlerMacOS()
 
 @interface SleepEvents : NSObject
 {
-	OsEventHandlerMacOS *_eventHandler;
+	OsEventHandlerMacOS* _eventHandler;
 }
-- (id)initSleepEvents:(OsEventHandlerMacOS *)osEventHandler;
+- (id)initSleepEvents : (OsEventHandlerMacOS*)osEventHandler;
 @end
 
 @implementation SleepEvents
-- (id)initSleepEvents:(OsEventHandlerMacOS *)osEventHandler
+- (id)initSleepEvents:(OsEventHandlerMacOS*)osEventHandler
 {
-    if ((self = [super init]))
+	if ((self = [super init]))
 	{
-       _eventHandler = osEventHandler;
-	   	id notifCenter = [[NSWorkspace sharedWorkspace] notificationCenter];
-		[notifCenter addObserver:self selector:@selector(receiveSleepWake:) name:NSWorkspaceWillSleepNotification object:nil];
-		[notifCenter addObserver:self selector:@selector(receiveSleepWake:) name:NSWorkspaceDidWakeNotification object:nil];
-    }
+		_eventHandler = osEventHandler;
+		id notifCenter = [[NSWorkspace sharedWorkspace]notificationCenter];
+		[notifCenter addObserver : self selector : @selector(receiveSleepWake:) name:NSWorkspaceWillSleepNotification object : nil] ;
+		[notifCenter addObserver : self selector : @selector(receiveSleepWake:) name:NSWorkspaceDidWakeNotification object : nil] ;
+	}
 
-    return self;
+	return self;
 }
 
 - (void)dealloc
 {
-    [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:self];
+	[[[NSWorkspace sharedWorkspace]notificationCenter] removeObserver:self];
 	_eventHandler = nullptr;
-    [super dealloc];
+	[super dealloc] ;
 }
 
-- (void) receiveSleepWake:(NSNotification*)notification
+- (void)receiveSleepWake:(NSNotification*)notification
 {
 	if (!_eventHandler) return;
-    if (notification.name == NSWorkspaceWillSleepNotification)
+	if (notification.name == NSWorkspaceWillSleepNotification)
 	{
 		_eventHandler->suspend(true);
 	}
-    else if (notification.name == NSWorkspaceDidWakeNotification)
-    {
+	else if (notification.name == NSWorkspaceDidWakeNotification)
+	{
 		_eventHandler->suspend(false);
-    }
+	}
 }
 @end
 
 bool OsEventHandlerMacOS::registerOsEventHandler()
 {
-	bool isRegistered {_isSuspendRegistered};
+	bool isRegistered{ _isSuspendRegistered };
 	if (!_isSuspendRegistered)
 	{
-		_sleepEventHandler = [[SleepEvents alloc] initSleepEvents:this];
+		_sleepEventHandler = [[SleepEvents alloc]initSleepEvents:this];
 		if (_sleepEventHandler)
 		{
 			Debug(_log, "Registered for suspend/resume events");
@@ -527,7 +569,7 @@ void OsEventHandlerMacOS::unregisterOsEventHandler()
 {
 	if (_isSuspendRegistered && _sleepEventHandler)
 	{
-		[(SleepEvents *)_sleepEventHandler release], _sleepEventHandler = nil;
+		[(SleepEvents*)_sleepEventHandler release] , _sleepEventHandler = nil;
 		if (!_sleepEventHandler)
 		{
 			Debug(_log, "Unregistered for suspend/resume events");
@@ -542,43 +584,43 @@ void OsEventHandlerMacOS::unregisterOsEventHandler()
 
 @interface LockEvents : NSObject
 {
-	OsEventHandlerMacOS *_eventHandler;
+	OsEventHandlerMacOS* _eventHandler;
 }
-- (id)initLockEvents:(OsEventHandlerMacOS *)osEventHandler;
+- (id)initLockEvents : (OsEventHandlerMacOS*)osEventHandler;
 @end
 
 @implementation LockEvents
-- (id)initLockEvents:(OsEventHandlerMacOS *)osEventHandler
+- (id)initLockEvents:(OsEventHandlerMacOS*)osEventHandler
 {
-    if ((self = [super init]))
+	if ((self = [super init]))
 	{
-       _eventHandler = osEventHandler;
+		_eventHandler = osEventHandler;
 		id defCenter = [NSDistributedNotificationCenter defaultCenter];
-		[defCenter addObserver:self selector:@selector(receiveLockUnlock:) name:@"com.apple.screenIsLocked" object:nil];
-		[defCenter addObserver:self selector:@selector(receiveLockUnlock:) name:@"com.apple.screenIsUnlocked" object:nil];
-    }
+		[defCenter addObserver : self selector : @selector(receiveLockUnlock:) name:@"com.apple.screenIsLocked" object:nil] ;
+		[defCenter addObserver : self selector : @selector(receiveLockUnlock:) name:@"com.apple.screenIsUnlocked" object:nil] ;
+	}
 
-    return self;
+	return self;
 }
 
 - (void)dealloc
 {
-    [[[NSWorkspace sharedWorkspace] notificationCenter] removeObserver:self];
+	[[[NSWorkspace sharedWorkspace]notificationCenter] removeObserver:self];
 	_eventHandler = nullptr;
-    [super dealloc];
+	[super dealloc] ;
 }
 
-- (void) receiveLockUnlock:(NSNotification*)notification
+- (void)receiveLockUnlock:(NSNotification*)notification
 {
 	if (!_eventHandler) return;
 	if (CFEqual(notification.name, CFSTR("com.apple.screenIsLocked")))
 	{
 		_eventHandler->lock(true);
 	}
-    else if (CFEqual(notification.name, CFSTR("com.apple.screenIsUnlocked")))
-    {
+	else if (CFEqual(notification.name, CFSTR("com.apple.screenIsUnlocked")))
+	{
 		_eventHandler->lock(false);
-    }
+	}
 }
 @end
 
@@ -587,7 +629,7 @@ bool OsEventHandlerMacOS::registerLockHandler()
 	bool isRegistered{ _isLockRegistered };
 	if (!_isLockRegistered)
 	{
-		_lockEventHandler = [[LockEvents alloc] initLockEvents:this];
+		_lockEventHandler = [[LockEvents alloc]initLockEvents:this];
 		if (_lockEventHandler)
 		{
 			Debug(_log, "Registered for lock/unlock events");
@@ -610,7 +652,7 @@ void OsEventHandlerMacOS::unregisterLockHandler()
 {
 	if (_isLockRegistered && _lockEventHandler)
 	{
-		[(LockEvents *)_lockEventHandler release], _lockEventHandler = nil;
+		[(LockEvents*)_lockEventHandler release] , _lockEventHandler = nil;
 		if (!_lockEventHandler)
 		{
 			Debug(_log, "Unregistered for lock/unlock events");
