@@ -10,6 +10,8 @@
 #include <QTimer>
 #include <QHostInfo>
 #include <QMultiMap>
+#include <QCoreApplication>
+#include <QApplication>
 
 // hyperion includes
 #include <leddevice/LedDeviceWrapper.h>
@@ -388,6 +390,10 @@ void JsonAPI::handleSysInfoCommand(const QJsonObject &, const QString &command, 
 	hyperion["id"] = _authManager->getID();
 	hyperion["rootPath"] = _instanceManager->getRootPath();
 	hyperion["readOnlyMode"] = _hyperion->getReadOnlyMode();
+
+	bool isGuiMode{ true };
+	QCoreApplication* app = QCoreApplication::instance();
+	hyperion["isGuiMode"] = qobject_cast<QApplication*>(app) ? true : false;
 
 	info["hyperion"] = hyperion;
 
