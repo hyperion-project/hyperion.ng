@@ -391,7 +391,6 @@ void JsonAPI::handleSysInfoCommand(const QJsonObject &, const QString &command, 
 	hyperion["rootPath"] = _instanceManager->getRootPath();
 	hyperion["readOnlyMode"] = _hyperion->getReadOnlyMode();
 
-	bool isGuiMode{ true };
 	QCoreApplication* app = QCoreApplication::instance();
 	hyperion["isGuiMode"] = qobject_cast<QApplication*>(app) ? true : false;
 
