@@ -1,4 +1,7 @@
-#pragma once
+#ifndef BLACK_BORDER_PROCESSOR_H
+#define BLACK_BORDER_PROCESSOR_H
+
+#include <memory>
 
 // QT includes
 #include <QJsonObject>
@@ -162,3 +165,5 @@ namespace hyperion
 
 	};
 } // end namespace hyperion
+
+#endif // BLACK_BORDER_PROCESSOR_H
