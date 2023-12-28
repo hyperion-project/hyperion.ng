@@ -17,9 +17,8 @@ echo "Compile Hyperion on '${RUNNER_OS}' with build type '${BUILD_TYPE}' and pla
 # Build the package on MacOS, Windows or Linux
 if [[ "$RUNNER_OS" == 'macOS' ]]; then
 	mkdir build || exit 1
-	cd build
-	cmake -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX:PATH=/usr/local ../ || exit 2
-	make -j $(sysctl -n hw.ncpu) package || exit 3
+	cmake -B build -G Ninja -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DCMAKE_INSTALL_PREFIX:PATH=/usr/local || exit 2
+	cmake --build build --target package --parallel $(sysctl -n hw.ncpu) || exit 3
 	cd ${GITHUB_WORKSPACE} && source /${GITHUB_WORKSPACE}/test/testrunner.sh || exit 4
 	exit 0;
 	exit 1 || { echo "---> Hyperion compilation failed! Abort"; exit 5; }

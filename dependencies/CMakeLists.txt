@@ -21,46 +21,40 @@ endif()
 if (ENABLE_MDNS)
 	set(USE_SYSTEM_QMDNS_LIBS ${DEFAULT_USE_SYSTEM_QMDNS_LIBS} CACHE BOOL "use qmdnsengine library from system")
 
-	if (USE_SYSTEM_QMDNS_LIBS)
+	if(USE_SYSTEM_QMDNS_LIBS)
 		find_package(qmdnsengine REQUIRED)
-	else ()
-		if(WIN32)
-			set(QMDNS_LIBRARIES ${CMAKE_BINARY_DIR}/lib/qmdnsengine${CMAKE_STATIC_LIBRARY_SUFFIX})
-		else()
-			set(QMDNS_LIBRARIES ${CMAKE_BINARY_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}qmdnsengine${CMAKE_STATIC_LIBRARY_SUFFIX})
-		endif()
-
-		get_property(isMultiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
-		set(QMDNS_CMAKE_ARGS
-			-DBUILD_SHARED_LIBS:BOOL=OFF
-			-DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_BINARY_DIR}
-			-DBIN_INSTALL_DIR:STRING=lib
-			-DLIB_INSTALL_DIR:STRING=lib
-			-DINCLUDE_INSTALL_DIR:STRING=include
-			-DCMAKE_PREFIX_PATH:PATH=${CMAKE_PREFIX_PATH}
-			$<$<NOT:$<BOOL:${isMultiConfig}>>:-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}>
-			-Wno-dev
-		)
-
+	else()
 		include(ExternalProject)
 		ExternalProject_Add(qmdns
-			PREFIX				${CMAKE_BINARY_DIR}/dependencies/external/qmdnsengine
+			PREFIX				${CMAKE_CURRENT_BINARY_DIR}/external/qmdnsengine
 			BUILD_ALWAYS		OFF
 			DOWNLOAD_COMMAND	""
 			SOURCE_DIR			${CMAKE_CURRENT_SOURCE_DIR}/external/qmdnsengine
-			CMAKE_ARGS			${QMDNS_CMAKE_ARGS}
+			BINARY_DIR			${CMAKE_CURRENT_BINARY_DIR}/external/qmdnsengine/bin
+			CMAKE_ARGS			-DBUILD_SHARED_LIBS:BOOL=OFF
+								-DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_BINARY_DIR}
+								-DBIN_INSTALL_DIR:STRING=lib
+								-DLIB_INSTALL_DIR:STRING=lib
+								-DINCLUDE_INSTALL_DIR:STRING=include
+								-DCMAKE_PREFIX_PATH:PATH=${CMAKE_PREFIX_PATH}
+								-DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
+								-DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
+								-DCMAKE_C_FLAGS:STRING=${CMAKE_C_FLAGS}
+								-DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
+								-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+								-Wno-dev # We don't want to be warned over unused variables
 			INSTALL_DIR			${CMAKE_BINARY_DIR}
-			BUILD_BYPRODUCTS	${QMDNS_LIBRARIES}
+			BUILD_BYPRODUCTS    <INSTALL_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}qmdnsengine${CMAKE_STATIC_LIBRARY_SUFFIX}
 		)
 
 		add_library(qmdnsengine STATIC IMPORTED GLOBAL)
-		set_target_properties(qmdnsengine PROPERTIES
-			IMPORTED_LOCATION ${QMDNS_LIBRARIES}
-			INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_BINARY_DIR}/include
-		)
-
 		add_dependencies(qmdnsengine qmdns)
-	endif ()
+		ExternalProject_Get_Property(qmdns INSTALL_DIR)
+		set_target_properties(qmdnsengine PROPERTIES
+			IMPORTED_LOCATION "${INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}qmdnsengine${CMAKE_STATIC_LIBRARY_SUFFIX}"
+			INTERFACE_INCLUDE_DIRECTORIES "${INSTALL_DIR}/include"
+		)
+	endif()
 endif()
 
 #=============================================================================
