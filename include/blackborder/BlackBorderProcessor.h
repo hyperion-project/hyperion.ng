@@ -24,7 +24,7 @@ namespace hyperion
 		Q_OBJECT
 	public:
 		BlackBorderProcessor(Hyperion* hyperion, QObject* parent);
-		~BlackBorderProcessor() override;
+
 		///
 		/// Return the current (detected) border
 		/// @return The current border
@@ -141,7 +141,7 @@ namespace hyperion
 		QString _detectionMode;
 
 		/// The black-border detector
-		BlackBorderDetector* _detector;
+		std::unique_ptr<BlackBorderDetector> _detector;
 
 		/// The current detected border
 		BlackBorder _currentBorder;
