@@ -109,6 +109,7 @@ private:
 
 	QMdnsEngine::Server _server;
 	QMdnsEngine::Cache  _cache;
+	QMdnsEngine::Resolver* _resolver;
 
 	QMap<QByteArray, QMdnsEngine::Browser*> _browsedServiceTypes;
 };

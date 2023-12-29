@@ -31,6 +31,10 @@ MdnsBrowser::MdnsBrowser(QObject* parent)
 MdnsBrowser::~MdnsBrowser()
 {
 	qDeleteAll(_browsedServiceTypes);
+	_browsedServiceTypes.clear();
+
+	disconnect(_resolver, &QMdnsEngine::Resolver::resolved, this, &MdnsBrowser::onHostNameResolved);
+	delete _resolver;
 }
 
 void MdnsBrowser::browseForServiceType(const QByteArray& serviceType)
@@ -124,8 +128,8 @@ QHostAddress MdnsBrowser::getHostFirstAddress(const QByteArray& hostname)
 			{
 				DebugIf(verboseBrowser, _log, "IP-address for hostname [%s] not yet in cache, start resolver.", toBeResolvedHostName.constData());
 				qRegisterMetaType<QMdnsEngine::Message>("Message");
-				auto* resolver = new QMdnsEngine::Resolver(&_server, toBeResolvedHostName, &_cache);
-				connect(resolver, &QMdnsEngine::Resolver::resolved, this, &MdnsBrowser::onHostNameResolved);
+				_resolver = new QMdnsEngine::Resolver(&_server, toBeResolvedHostName, &_cache);
+				connect(_resolver, &QMdnsEngine::Resolver::resolved, this, &MdnsBrowser::onHostNameResolved);
 			}
 		}
 	}

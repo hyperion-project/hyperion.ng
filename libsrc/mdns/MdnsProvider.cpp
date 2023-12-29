@@ -33,10 +33,13 @@ void MdnsProvider::init()
 
 MdnsProvider::~MdnsProvider()
 {
-	qDeleteAll(_providedServiceTypes);
+	disconnect(_hostname, &QMdnsEngine::Hostname::hostnameChanged, this, &MdnsProvider::onHostnameChanged);
 
-	_hostname->deleteLater();
-	_server->deleteLater();
+	qDeleteAll(_providedServiceTypes);
+	_providedServiceTypes.clear();
+
+	delete _hostname;
+	delete _server;
 }
 
 void MdnsProvider::publishService(const QString& serviceType, quint16 servicePort, const QByteArray& serviceName)
