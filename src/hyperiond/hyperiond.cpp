@@ -1,5 +1,3 @@
-#include <cassert>
-#include <stdlib.h>
 
 #include <QCoreApplication>
 #include <QResource>
@@ -10,8 +8,6 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QPair>
-#include <cstdint>
-#include <limits>
 #include <QThread>
 
 #include <utils/Components.h>
@@ -239,9 +235,13 @@ void HyperionDaemon::handleInstanceStateChange(InstanceState state, quint8 insta
 		break;
 
 	case InstanceState::H_STOPPED:
+	case InstanceState::H_ON_STOP:
+	case InstanceState::H_CREATED:
+	case InstanceState::H_DELETED:
 		break;
 
 	default:
+		qWarning() << "HyperionDaemon::handleInstanceStateChange - Unhandled state:" << static_cast<int>(state);
 		break;
 	}
 }
@@ -271,30 +271,27 @@ void HyperionDaemon::freeObjects()
 #ifdef ENABLE_MDNS
 	if (_mDNSProvider != nullptr)
 	{
-		auto mDnsThread = _mDNSProvider->thread();
+		auto *mDnsThread = _mDNSProvider->thread();
 		mDnsThread->quit();
 		mDnsThread->wait();
-		delete mDnsThread;
 		_mDNSProvider = nullptr;
 	}
 #endif
 
 	if (_jsonServer != nullptr)
 	{
-		auto jsonThread = _jsonServer->thread();
+		auto *jsonThread = _jsonServer->thread();
 		jsonThread->quit();
 		jsonThread->wait();
-		delete jsonThread;
 		_jsonServer = nullptr;
 	}
 
 #if defined(ENABLE_FLATBUF_SERVER)
 	if (_flatBufferServer != nullptr)
 	{
-		auto flatBufferServerThread = _flatBufferServer->thread();
+		auto *flatBufferServerThread = _flatBufferServer->thread();
 		flatBufferServerThread->quit();
 		flatBufferServerThread->wait();
-		delete flatBufferServerThread;
 		_flatBufferServer = nullptr;
 	}
 #endif
@@ -302,10 +299,9 @@ void HyperionDaemon::freeObjects()
 #if defined(ENABLE_PROTOBUF_SERVER)
 	if (_protoServer != nullptr)
 	{
-		auto protoServerThread = _protoServer->thread();
+		auto *protoServerThread = _protoServer->thread();
 		protoServerThread->quit();
 		protoServerThread->wait();
-		delete protoServerThread;
 		_protoServer = nullptr;
 	}
 #endif
@@ -313,28 +309,25 @@ void HyperionDaemon::freeObjects()
 	//ssdp before webserver
 	if (_ssdp != nullptr)
 	{
-		auto ssdpThread = _ssdp->thread();
+		auto *ssdpThread = _ssdp->thread();
 		ssdpThread->quit();
 		ssdpThread->wait();
-		delete ssdpThread;
 		_ssdp = nullptr;
 	}
 
 	if (_webserver != nullptr)
 	{
-		auto webserverThread = _webserver->thread();
+		auto *webserverThread = _webserver->thread();
 		webserverThread->quit();
-		webserverThread->wait();
-		delete webserverThread;
+		webserverThread->wait();;
 		_webserver = nullptr;
 	}
 
 	if (_sslWebserver != nullptr)
 	{
-		auto sslWebserverThread = _sslWebserver->thread();
+		auto *sslWebserverThread = _sslWebserver->thread();
 		sslWebserverThread->quit();
 		sslWebserverThread->wait();
-		delete sslWebserverThread;
 		_sslWebserver = nullptr;
 	}
 
@@ -342,15 +335,12 @@ void HyperionDaemon::freeObjects()
 	_instanceManager->stopAll();
 
 	delete _amlGrabber;
-	if (_dispmanx != nullptr)
-		delete _dispmanx;
+	delete _dispmanx;
 	delete _fbGrabber;
 	delete _osxGrabber;
 	delete _qtGrabber;
 	delete _dxGrabber;
 	delete _videoGrabber;
-	delete _audioGrabber;
-
 	_videoGrabber = nullptr;
 	_amlGrabber = nullptr;
 	_dispmanx = nullptr;
@@ -934,6 +924,8 @@ void HyperionDaemon::startCecHandler()
 
 		connect(cecHandlerThread, &QThread::started, _cecHandler, &CECHandler::start);
 		connect(cecHandlerThread, &QThread::finished, _cecHandler, &CECHandler::stop);
+		connect(cecHandlerThread, &QThread::finished, _cecHandler, &CECHandler::deleteLater);
+
 		connect(this, &HyperionDaemon::settingsChanged, _cecHandler, &CECHandler::handleSettingsUpdate);
 		Info(_log, "CEC event handler created");
 
@@ -949,13 +941,11 @@ void HyperionDaemon::stopCecHandler()
 #if defined(ENABLE_CEC)
 	if (_cecHandler != nullptr)
 	{
-		auto cecHandlerThread = _cecHandler->thread();
+		auto *cecHandlerThread = _cecHandler->thread();
 		cecHandlerThread->quit();
 		cecHandlerThread->wait();
-		delete cecHandlerThread;
 		_cecHandler = nullptr;
 	}
 	Info(_log, "CEC handler stopped");
 #endif
 }
-
