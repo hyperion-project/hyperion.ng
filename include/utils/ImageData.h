@@ -1,12 +1,9 @@
 #pragma once
 
 // STL includes
-#include <vector>
 #include <cstdint>
 #include <cstring>
 #include <algorithm>
-#include <cassert>
-#include <type_traits>
 #include <utils/ColorRgb.h>
 
 // QT includes
@@ -112,13 +109,18 @@ public:
 	void resize(unsigned width, unsigned height)
 	{
 		if (width == _width && height == _height)
-			return;
-
-		if ((width * height) > unsigned((_width * _height)))
 		{
-			delete[] _pixels;
-			_pixels = new Pixel_T[width*height + 1];
+			return;
 		}
+
+		// Allocate a new buffer without initializing the content
+		Pixel_T* newPixels = new Pixel_T[static_cast<size_t>(width) * static_cast<size_t>(height)];
+
+		// Release the old buffer without copying data
+		delete[] _pixels;
+
+		// Update the pointer to the new buffer
+		_pixels = newPixels;
 
 		_width = width;
 		_height = height;
@@ -137,7 +139,9 @@ public:
 	void toRgb(ImageData<ColorRgb>& image) const
 	{
 		if (image.width() != _width || image.height() != _height)
+		{
 			image.resize(_width, _height);
+		}
 
 		const unsigned imageSize = _width * _height;
 
@@ -159,11 +163,19 @@ public:
 		{
 			_width = 1;
 			_height = 1;
+
+			// Allocate a new buffer without initializing the content
+			Pixel_T* newPixels = new Pixel_T[static_cast<size_t>(_width) * static_cast<size_t>(_height)];
+
+			// Release the old buffer without copying data
 			delete[] _pixels;
-			_pixels = new Pixel_T[2];
+
+			// Update the pointer to the new buffer
+			_pixels = newPixels;
 		}
 
-		memset(_pixels, 0, static_cast<unsigned long>(_width) * static_cast<unsigned long>(_height) * sizeof(Pixel_T));
+		// Set the single pixel to the default background
+		_pixels[0] = Pixel_T();
 	}
 
 private:
@@ -172,7 +184,6 @@ private:
 		return y * _width + x;
 	}
 
-private:
 	/// The width of the image
 	unsigned _width;
 	/// The height of the image
