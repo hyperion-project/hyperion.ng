@@ -5,6 +5,7 @@ using namespace commandline;
 Parser::~Parser()
 {
 	qDeleteAll(_options);
+	_options.clear();
 }
 
 bool Parser::parse(const QStringList &arguments)
