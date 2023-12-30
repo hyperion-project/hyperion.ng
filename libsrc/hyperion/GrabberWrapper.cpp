@@ -30,7 +30,6 @@ GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber * ggrabber, i
 	  , _timer(new QTimer(this))
 	  , _updateInterval_ms(1000/updateRate_Hz)
 	  , _ggrabber(ggrabber)
-	  , _image(0,0)
 {
 	GrabberWrapper::instance = this;
 

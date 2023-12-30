@@ -27,7 +27,6 @@ X11Grabber::X11Grabber(int cropLeft, int cropRight, int cropTop, int cropBottom)
 	, _XRandRAvailable(false)
 	, _isWayland (false)
 	, _logger{}
-	, _image(0,0)
 {
 	_logger = Logger::getInstance("X11");
 
