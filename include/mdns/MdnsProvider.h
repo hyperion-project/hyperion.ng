@@ -9,6 +9,7 @@
 // Qt includes
 #include <QObject>
 #include <QByteArray>
+#include <QScopedPointer>
 
 // Utility includes
 #include <utils/Logger.h>
@@ -41,11 +42,11 @@ private:
 	/// The logger instance for mDNS-Service
 	Logger* _log;
 
-	QMdnsEngine::Server* _server;
-	QMdnsEngine::Hostname* _hostname;
+	QScopedPointer<QMdnsEngine::Server> _server;
+	QScopedPointer<QMdnsEngine::Hostname> _hostname;
 
 	/// map of services provided
-	QMap<QByteArray, QMdnsEngine::Provider*> _providedServiceTypes;
+	QMap<QByteArray, QSharedPointer<QMdnsEngine::Provider>> _providedServiceTypes;
 };
 
 #endif // MDNSPROVIDER_H

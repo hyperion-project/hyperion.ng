@@ -2,9 +2,8 @@
 #include <qmdnsengine/message.h>
 #include <qmdnsengine/service.h>
 
-//Qt includes
+// Qt includes
 #include <QThread>
-
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -19,7 +18,8 @@
 
 namespace {
 	const bool verboseBrowser = false;
-} //End of constants
+	const int SERVICE_LOOKUP_RETRIES = 5;
+} // End of constants
 
 MdnsBrowser::MdnsBrowser(QObject* parent)
 	: QObject(parent)
@@ -30,11 +30,7 @@ MdnsBrowser::MdnsBrowser(QObject* parent)
 
 MdnsBrowser::~MdnsBrowser()
 {
-	qDeleteAll(_browsedServiceTypes);
 	_browsedServiceTypes.clear();
-
-	disconnect(_resolver, &QMdnsEngine::Resolver::resolved, this, &MdnsBrowser::onHostNameResolved);
-	delete _resolver;
 }
 
 void MdnsBrowser::browseForServiceType(const QByteArray& serviceType)
@@ -42,11 +38,11 @@ void MdnsBrowser::browseForServiceType(const QByteArray& serviceType)
 	if (!_browsedServiceTypes.contains(serviceType))
 	{
 		DebugIf(verboseBrowser, _log, "Start new mDNS browser for serviceType [%s], Thread: %s", serviceType.constData(), QSTRING_CSTR(QThread::currentThread()->objectName()));
-		QMdnsEngine::Browser* newBrowser = new QMdnsEngine::Browser(&_server, serviceType, &_cache);
+		QSharedPointer<QMdnsEngine::Browser> newBrowser = QSharedPointer<QMdnsEngine::Browser>::create(&_server, serviceType, &_cache);
 
-		QObject::connect(newBrowser, &QMdnsEngine::Browser::serviceAdded, this, &MdnsBrowser::onServiceAdded);
-		QObject::connect(newBrowser, &QMdnsEngine::Browser::serviceUpdated, this, &MdnsBrowser::onServiceUpdated);
-		QObject::connect(newBrowser, &QMdnsEngine::Browser::serviceRemoved, this, &MdnsBrowser::onServiceRemoved);
+		QObject::connect(newBrowser.get(), &QMdnsEngine::Browser::serviceAdded, this, &MdnsBrowser::onServiceAdded);
+		QObject::connect(newBrowser.get(), &QMdnsEngine::Browser::serviceUpdated, this, &MdnsBrowser::onServiceUpdated);
+		QObject::connect(newBrowser.get(), &QMdnsEngine::Browser::serviceRemoved, this, &MdnsBrowser::onServiceRemoved);
 
 		_browsedServiceTypes.insert(serviceType, newBrowser);
 	}
@@ -128,8 +124,8 @@ QHostAddress MdnsBrowser::getHostFirstAddress(const QByteArray& hostname)
 			{
 				DebugIf(verboseBrowser, _log, "IP-address for hostname [%s] not yet in cache, start resolver.", toBeResolvedHostName.constData());
 				qRegisterMetaType<QMdnsEngine::Message>("Message");
-				_resolver = new QMdnsEngine::Resolver(&_server, toBeResolvedHostName, &_cache);
-				connect(_resolver, &QMdnsEngine::Resolver::resolved, this, &MdnsBrowser::onHostNameResolved);
+				_resolver.reset(new QMdnsEngine::Resolver(&_server, toBeResolvedHostName, &_cache));
+				connect(_resolver.get(), &QMdnsEngine::Resolver::resolved, this, &MdnsBrowser::onHostNameResolved);
 			}
 		}
 	}
@@ -153,7 +149,7 @@ void MdnsBrowser::onHostNameResolved(const QHostAddress& address)
 
 bool MdnsBrowser::resolveAddress(Logger* log, const QString& hostname, QHostAddress& hostAddress, std::chrono::milliseconds timeout)
 {
-	DebugIf(verboseBrowser, _log, "Get address for hostname [%s], Thread: %s", QSTRING_CSTR(hostname), QSTRING_CSTR(QThread::currentThread()->objectName()));
+	DebugIf(verboseBrowser, log, "Get address for hostname [%s], Thread: %s", QSTRING_CSTR(hostname), QSTRING_CSTR(QThread::currentThread()->objectName()));
 
 	bool isHostAddressOK{ false };
 	if (hostname.endsWith(".local") || hostname.endsWith(".local."))
@@ -162,20 +158,20 @@ bool MdnsBrowser::resolveAddress(Logger* log, const QString& hostname, QHostAddr
 
 		if (hostAddress.isNull())
 		{
-			DebugIf(verboseBrowser, _log, "Wait for resolver on hostname [%s]", QSTRING_CSTR(hostname));
+			DebugIf(verboseBrowser, log, "Wait for resolver on hostname [%s]", QSTRING_CSTR(hostname));
 
 			QEventLoop loop;
-			QTimer t;
-			QObject::connect(&MdnsBrowser::getInstance(), &MdnsBrowser::addressResolved, &loop, &QEventLoop::quit);
+			QTimer timer;
 
+			QObject::connect(&MdnsBrowser::getInstance(), &MdnsBrowser::addressResolved, &loop, &QEventLoop::quit);
 			weakConnect(&MdnsBrowser::getInstance(), &MdnsBrowser::addressResolved,
-				[&hostAddress, hostname](const QHostAddress& resolvedAddress) {
-					DebugIf(verboseBrowser, Logger::getInstance("MDNS"), "Resolver resolved hostname [%s] to address [%s], Thread: %s", QSTRING_CSTR(hostname), QSTRING_CSTR(resolvedAddress.toString()), QSTRING_CSTR(QThread::currentThread()->objectName()));
+				[&hostAddress, hostname, log](const QHostAddress& resolvedAddress) {
+					DebugIf(verboseBrowser, log, "Resolver resolved hostname [%s] to address [%s], Thread: %s", QSTRING_CSTR(hostname), QSTRING_CSTR(resolvedAddress.toString()), QSTRING_CSTR(QThread::currentThread()->objectName()));
 					hostAddress = resolvedAddress;
 				});
 
-			QTimer::connect(&t, &QTimer::timeout, &loop, &QEventLoop::quit);
-			t.start(static_cast<int>(timeout.count()));
+			QTimer::connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit);
+			timer.start(static_cast<int>(timeout.count()));
 			loop.exec();
 		}
 
@@ -210,8 +206,8 @@ QMdnsEngine::Record MdnsBrowser::getServiceInstanceRecord(const QByteArray& serv
 	}
 
 	QMdnsEngine::Record srvRecord;
-	bool found{ false };
-	int retries = 5;
+	bool found { false };
+	int retries { SERVICE_LOOKUP_RETRIES };
 	do
 	{
 		if (_cache.lookupRecord(service, QMdnsEngine::SRV, srvRecord))
@@ -323,7 +319,7 @@ QJsonArray MdnsBrowser::getServicesDiscoveredJson(const QByteArray& serviceType,
 
 	QJsonArray result;
 
-	QRegularExpression regEx(filter);
+	static QRegularExpression regEx(filter);
 	if (!regEx.isValid()) {
 		QString errorString = regEx.errorString();
 		int errorOffset = regEx.patternErrorOffset();
@@ -397,10 +393,10 @@ QJsonArray MdnsBrowser::getServicesDiscoveredJson(const QByteArray& serviceType,
 								QMap<QByteArray, QByteArray> txtAttributes = txtRecord.attributes();
 
 								QVariantMap txtMap;
-								QMapIterator<QByteArray, QByteArray> i(txtAttributes);
-								while (i.hasNext()) {
-									i.next();
-									txtMap.insert(i.key(), i.value());
+								QMapIterator<QByteArray, QByteArray> iterator(txtAttributes);
+								while (iterator.hasNext()) {
+									iterator.next();
+									txtMap.insert(iterator.key(), iterator.value());
 								}
 								obj.insert("txt", QJsonObject::fromVariantMap(txtMap));
 							}
