@@ -341,6 +341,8 @@ void HyperionDaemon::freeObjects()
 	delete _qtGrabber;
 	delete _dxGrabber;
 	delete _videoGrabber;
+	delete _audioGrabber;
+
 	_videoGrabber = nullptr;
 	_amlGrabber = nullptr;
 	_dispmanx = nullptr;
