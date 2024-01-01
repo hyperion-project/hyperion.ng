@@ -15,12 +15,12 @@ EventScheduler::EventScheduler()
 	qRegisterMetaType<Event>("Event");
 	_log = Logger::getInstance("EVENTS-SCHED");
 
-	QObject::connect(this, &EventScheduler::signalEvent, EventHandler::getInstance(), &EventHandler::handleEvent);
+	QObject::connect(this, &EventScheduler::signalEvent, EventHandler::getInstance().data(), &EventHandler::handleEvent);
 }
 
 EventScheduler::~EventScheduler()
 {
-	QObject::disconnect(this, &EventScheduler::signalEvent, EventHandler::getInstance(), &EventHandler::handleEvent);
+	QObject::disconnect(this, &EventScheduler::signalEvent, EventHandler::getInstance().data(), &EventHandler::handleEvent);
 	clearTimers();
 	Info(_log, "Event scheduler stopped");
 }

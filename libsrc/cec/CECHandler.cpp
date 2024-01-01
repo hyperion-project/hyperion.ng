@@ -165,7 +165,7 @@ bool CECHandler::enable()
 			else
 			{
 				_isOpen=true;
-				QObject::connect(this, &CECHandler::signalEvent, EventHandler::getInstance(), &EventHandler::handleEvent);
+				QObject::connect(this, &CECHandler::signalEvent, EventHandler::getInstance().data(), &EventHandler::handleEvent);
 #ifdef VERBOSE_CEC
 				std::cout << "Found Devices: " << scan().toStdString() << std::endl;
 #endif
@@ -188,7 +188,7 @@ void CECHandler::disable()
 {
 	if (_isInitialised)
 	{
-		QObject::disconnect(this, &CECHandler::signalEvent, EventHandler::getInstance(), &EventHandler::handleEvent);
+		 QObject::disconnect(this, &CECHandler::signalEvent, EventHandler::getInstance().data(), &EventHandler::handleEvent);
 		_cecAdapter->Close();
 		_isOpen=false;
 		Info(_logger, "CEC handler disabled");

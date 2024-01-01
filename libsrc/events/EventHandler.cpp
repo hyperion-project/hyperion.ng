@@ -7,6 +7,8 @@
 #include <utils/Process.h>
 #include <hyperion/HyperionIManager.h>
 
+QScopedPointer<EventHandler> EventHandler::instance;
+
 EventHandler::EventHandler()
 	: _isSuspended(false)
 	, _isIdle(false)
@@ -22,10 +24,14 @@ EventHandler::~EventHandler()
 	QObject::disconnect(this, &EventHandler::signalEvent, HyperionIManager::getInstance(), &HyperionIManager::handleEvent);
 }
 
-EventHandler* EventHandler::getInstance()
+QScopedPointer<EventHandler>& EventHandler::getInstance()
 {
-	static EventHandler instance;
-	return &instance;
+	if (!instance)
+	{
+		instance.reset(new EventHandler());
+	}
+
+	return instance;
 }
 
 void EventHandler::suspend()

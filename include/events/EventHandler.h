@@ -13,10 +13,9 @@ class EventHandler : public QObject
 	Q_OBJECT
 
 public:
-	EventHandler();
 	~EventHandler() override;
 
-	static EventHandler* getInstance();
+	static QScopedPointer<EventHandler>& getInstance();
 
 public slots:
 
@@ -40,6 +39,12 @@ protected:
 	Logger * _log {};
 
 private:
+	EventHandler();
+	EventHandler(const EventHandler&) = delete;
+	EventHandler& operator=(const EventHandler&) = delete;
+
+	static QScopedPointer<EventHandler> instance;
+
 	bool _isSuspended;
 	bool _isIdle;
 };
