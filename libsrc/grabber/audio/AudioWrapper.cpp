@@ -5,7 +5,6 @@
 
 AudioWrapper::AudioWrapper()
 	: GrabberWrapper("AudioGrabber", &_grabber)
-	, _grabber()
 {
 	// register the image type
 	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");

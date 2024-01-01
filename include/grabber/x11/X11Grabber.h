@@ -57,7 +57,7 @@ public:
 	///
 	/// @brief Apply new width/height values, overwrite Grabber.h implementation as X11 doesn't use width/height, just pixelDecimation to calc dimensions
 	///
-	bool setWidthHeight(int width, int height) override { return true; }
+	bool setWidthHeight(int /*width*/, int /*height*/) override { return true; }
 
 	///
 	/// @brief Apply new pixelDecimation
@@ -109,19 +109,19 @@ private:
 	Picture _srcPicture;
 	Picture _dstPicture;
 
-	int _XRandREventBase;
+	int _xRandREventBase;
 
 	XTransform _transform;
 
-	unsigned _calculatedWidth;
-	unsigned _calculatedHeight;
-	unsigned _src_x;
-	unsigned _src_y;
+	int _screenWidth;
+	int _screenHeight;
+	int _src_x;
+	int _src_y;
 
-	bool _XShmAvailable;
-	bool _XShmPixmapAvailable;
-	bool _XRenderAvailable;
-	bool _XRandRAvailable;
+	bool _xShmAvailable;
+	bool _xShmPixmapAvailable;
+	bool _xRenderAvailable;
+	bool _xRandRAvailable;
 	bool _isWayland;
 
 	Logger * _logger;

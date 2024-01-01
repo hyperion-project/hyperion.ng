@@ -113,8 +113,8 @@ private:
 	int _display;
 	int _numberOfSDisplays;
 
-	int _calculatedWidth;
-	int _calculatedHeight;
+	int _screenWidth;
+	int _screenHeight;
 	int _src_x;
 	int _src_y;
 	int _src_x_max;
