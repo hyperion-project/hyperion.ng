@@ -342,6 +342,8 @@ void HyperionDaemon::freeObjects()
 	delete _dxGrabber;
 	delete _videoGrabber;
 	delete _audioGrabber;
+	delete _x11Grabber;
+	delete _xcbGrabber;
 
 	_videoGrabber = nullptr;
 	_amlGrabber = nullptr;
@@ -351,6 +353,8 @@ void HyperionDaemon::freeObjects()
 	_qtGrabber = nullptr;
 	_dxGrabber = nullptr;
 	_audioGrabber = nullptr;
+	_x11Grabber = nullptr;
+	_xcbGrabber = nullptr;
 }
 
 void HyperionDaemon::startNetworkServices()

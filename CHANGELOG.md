@@ -53,6 +53,7 @@ Note: The wizard will configure an APIv2 capable bridge always with Entertainmen
 - MDNSBrower - Fixed, if timeout while resolving host occurs
 - Non image updates ignored blacklisted LEDs (#1634)
 - Fixed that Windows OsEvents failed in non-GUI mode (#1671)
+- Addressed serious (#1425) and some smaller memory leaks
 
 ##### LED-Devices
 

@@ -6,6 +6,7 @@
 #include <QString>
 #include <QStringList>
 #include <QMultiMap>
+#include <QScopedPointer>
 
 #include <utils/Logger.h>
 #include <utils/Components.h>
@@ -91,8 +92,8 @@ public:
 	template <typename Grabber_T>
 	bool transferFrame(Grabber_T &grabber)
 	{
-		unsigned w = grabber.getImageWidth();
-		unsigned h = grabber.getImageHeight();
+		int w = grabber.getImageWidth();
+		int h = grabber.getImageHeight();
 		if ( _image.width() != w || _image.height() != h)
 		{
 			_image.resize(w, h);
@@ -185,7 +186,7 @@ protected:
 	Logger * _log;
 
 	/// The timer for generating events with the specified update rate
-	QTimer* _timer;
+	QScopedPointer<QTimer> _timer;
 
 	/// The calculated update rate [ms]
 	int _updateInterval_ms;

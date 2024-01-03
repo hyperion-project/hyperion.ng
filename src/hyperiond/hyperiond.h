@@ -193,7 +193,7 @@ private:
 	HyperionIManager*          _instanceManager;
 	AuthManager*               _authManager;
 #ifdef ENABLE_MDNS
-	MdnsProvider*                _mDNSProvider;
+	MdnsProvider*              _mDNSProvider;
 #endif
 	NetOrigin*                 _netOrigin;
 #if defined(ENABLE_EFFECTENGINE)
@@ -217,7 +217,7 @@ private:
 	OsEventHandler*            _osEventHandler;
 	EventScheduler*            _eventScheduler;
 #ifdef ENABLE_CEC
-CECHandler*                _cecHandler;
+	CECHandler*                _cecHandler;
 #endif
 
 	#if defined(ENABLE_FLATBUF_SERVER)
