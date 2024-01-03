@@ -10,6 +10,7 @@
 #include <QAbstractEventDispatcher>
 #include <QWidget>
 #include <windows.h>
+#include <powrprof.h>
 #endif
 
 #include <utils/settings.h>
@@ -21,8 +22,9 @@ class OsEventHandlerBase : public QObject
 	Q_OBJECT
 
 public:
+
 	OsEventHandlerBase();
-	~OsEventHandlerBase() override;
+	virtual ~OsEventHandlerBase();
 
 public slots:
 	void suspend(bool sleep);
@@ -46,17 +48,20 @@ protected:
 	bool _isSuspendRegistered;
 	bool _isLockRegistered;
 
-	Logger * _log {};
+	bool _isService;
+
+	Logger* _log{};
 };
 
 #if defined(_WIN32)
 
 class OsEventHandlerWindows : public OsEventHandlerBase, public QAbstractNativeEventFilter
 {
-
 public:
 	OsEventHandlerWindows();
-	~OsEventHandlerWindows() override;
+	~OsEventHandlerWindows();
+
+	void handleSuspendResumeEvent(bool sleep);
 
 protected:
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
@@ -65,13 +70,17 @@ protected:
 	bool nativeEventFilter(const QByteArray& eventType, void* message, long int* result) override;
 #endif
 
-private:
 	bool registerOsEventHandler() override;
 	void unregisterOsEventHandler() override;
 	bool registerLockHandler() override;
 	void unregisterLockHandler() override;
 
-	QWidget			_widget;
+private:
+	static OsEventHandlerWindows* getInstance();
+
+	static DEVICE_NOTIFY_CALLBACK_ROUTINE handlePowerNotifications;
+
+	QWidget* _widget;
 	HPOWERNOTIFY	_notifyHandle;
 };
 
@@ -82,7 +91,7 @@ class OsEventHandlerLinux : public OsEventHandlerBase
 {
 	Q_OBJECT
 
-	static void static_signaleHandler(int signum)
+		static void static_signaleHandler(int signum)
 	{
 		OsEventHandlerLinux::getInstance()->handleSignal(signum);
 	}
@@ -90,7 +99,7 @@ class OsEventHandlerLinux : public OsEventHandlerBase
 public:
 	OsEventHandlerLinux();
 
-	void handleSignal (int signum);
+	void handleSignal(int signum);
 
 private:
 	static OsEventHandlerLinux* getInstance();
@@ -119,8 +128,8 @@ private:
 	bool registerLockHandler() override;
 	void unregisterLockHandler() override;
 
-	void *_sleepEventHandler;
-	void *_lockEventHandler;
+	void* _sleepEventHandler;
+	void* _lockEventHandler;
 };
 
 using OsEventHandler = OsEventHandlerMacOS;
