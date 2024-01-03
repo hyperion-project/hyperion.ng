@@ -72,7 +72,7 @@ void JsonServer::stop()
 	}
 
 	_server->close();
-	Info(_log, "JSON-Server Stopped");
+	Info(_log, "JSON-Server stopped");
 }
 
 void JsonServer::handleSettingsUpdate(settings::type type, const QJsonDocument& config)

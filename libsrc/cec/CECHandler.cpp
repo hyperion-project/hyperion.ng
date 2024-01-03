@@ -38,6 +38,7 @@ CECHandler::CECHandler(const QJsonDocument& config, QObject * parent)
 
 CECHandler::~CECHandler()
 {
+	Info(_logger, "CEC handler stopped");
 }
 
 void CECHandler::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
