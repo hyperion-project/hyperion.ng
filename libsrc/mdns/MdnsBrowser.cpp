@@ -52,6 +52,7 @@ void MdnsBrowser::browseForServiceType(const QByteArray& serviceType)
 	}
 }
 
+void MdnsBrowser::onServiceAdded(const QMdnsEngine::Service& service)
 {
 	DebugIf(verboseBrowser, _log, "Discovered service [%s] at host: %s, port: %u, Thread: %s", service.name().constData(), service.hostname().constData(), service.port(), QSTRING_CSTR(QThread::currentThread()->objectName()));
 	emit serviceFound(service);
