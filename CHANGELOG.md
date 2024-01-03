@@ -126,7 +126,6 @@ To allow segment streaming, enable "Realtime - Use main segment only" in WLED's 
 - hyperion-remote: Extracting reply for a configGet request correctly (#1555)
 - Grabber fps setting was not applied correctly
 - Smoothing:  No empty updates
-- Addressed serious (#1425) and some smaller memory leaks
 
 ### Technical
 - Add CodeQL for GitHub code scanning

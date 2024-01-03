@@ -45,7 +45,7 @@ SysTray::SysTray(HyperionDaemon *hyperiond)
 	// instance changes
 	connect(_instanceManager, &HyperionIManager::instanceStateChanged, this, &SysTray::handleInstanceStateChange);
 
-        connect(this, &SysTray::signalEvent, EventHandler::getInstance().data(), &EventHandler::handleEvent);
+	connect(this, &SysTray::signalEvent, EventHandler::getInstance(), &EventHandler::handleEvent);
 }
 
 SysTray::~SysTray()

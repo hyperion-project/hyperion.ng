@@ -39,12 +39,12 @@ OsEventHandlerBase::OsEventHandlerBase()
 	{
 		_isService = true;
 	}
-	QObject::connect(this, &OsEventHandlerBase::signalEvent, EventHandler::getInstance().data(), &EventHandler::handleEvent);
+	QObject::connect(this, &OsEventHandlerBase::signalEvent, EventHandler::getInstance(), &EventHandler::handleEvent);
 }
 
 OsEventHandlerBase::~OsEventHandlerBase()
 {
-	QObject::disconnect(this, &OsEventHandlerBase::signalEvent, EventHandler::getInstance().data(), &EventHandler::handleEvent);
+	QObject::disconnect(this, &OsEventHandlerBase::signalEvent, EventHandler::getInstance(), &EventHandler::handleEvent);
 
 	OsEventHandlerBase::unregisterLockHandler();
 	OsEventHandlerBase::unregisterOsEventHandler();

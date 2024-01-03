@@ -76,13 +76,9 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 #if defined(ENABLE_EFFECTENGINE)
 	, _pyInit(new PythonInit())
 #endif
-	, _ssdp(nullptr)
 	, _webserver(nullptr)
 	, _sslWebserver(nullptr)
 	, _jsonServer(nullptr)
-	, _eventHandler(nullptr)
-	, _osEventHandler(nullptr)
-	, _eventScheduler(nullptr)
 	, _videoGrabber(nullptr)
 	, _dispmanx(nullptr)
 	, _x11Grabber(nullptr)
@@ -93,10 +89,13 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	, _qtGrabber(nullptr)
 	, _dxGrabber(nullptr)
 	, _audioGrabber(nullptr)
-#ifdef ENABLE_CEC
-	, _cecHandler(nullptr)
-#endif
-	, _settingsManager(new SettingsManager(GLOABL_INSTANCE_ID, this, readonlyMode)) // init settings, this settingsManager accesses global settings which are independent from instances
+	, _ssdp(nullptr)
+	, _eventHandler(nullptr)
+	, _osEventHandler(nullptr)
+	, _eventScheduler(nullptr)
+	#ifdef ENABLE_CEC
+		, _cecHandler(nullptr)
+	#endif
 	, _currVideoMode(VideoMode::VIDEO_2D)
 {
 	HyperionDaemon::daemon = this;
@@ -108,6 +107,9 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	qRegisterMetaType<VideoMode>("VideoMode");
 	qRegisterMetaType<QMap<quint8, QJsonObject>>("QMap<quint8,QJsonObject>");
 	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
+
+	// init settings, this settingsManager accesses global settings which are independent from instances
+	_settingsManager = new SettingsManager(GLOABL_INSTANCE_ID, this, readonlyMode);
 
 	// set inital log lvl if the loglvl wasn't overwritten by arg
 	if (!logLvlOverwrite)
@@ -128,11 +130,11 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 
 	// connect and apply settings for AuthManager
 	connect(this, &HyperionDaemon::settingsChanged, _authManager, &AuthManager::handleSettingsUpdate);
-	_authManager->handleSettingsUpdate(settings::NETWORK, _settingsManager.get()->getSetting(settings::NETWORK));
+	_authManager->handleSettingsUpdate(settings::NETWORK, _settingsManager->getSetting(settings::NETWORK));
 
 	// connect and apply settings for NetOrigin
 	connect(this, &HyperionDaemon::settingsChanged, _netOrigin, &NetOrigin::handleSettingsUpdate);
-	_netOrigin->handleSettingsUpdate(settings::NETWORK, _settingsManager.get()->getSetting(settings::NETWORK));
+	_netOrigin->handleSettingsUpdate(settings::NETWORK, _settingsManager->getSetting(settings::NETWORK));
 
 	// spawn all Hyperion instances (non blocking)
 	_instanceManager->startAll();
@@ -177,6 +179,7 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 
 HyperionDaemon::~HyperionDaemon()
 {
+	delete _settingsManager;
 #if defined(ENABLE_EFFECTENGINE)
 	delete _pyInit;
 #endif
@@ -262,6 +265,8 @@ void HyperionDaemon::freeObjects()
 	Debug(_log, "Cleaning up Hyperion before quit.");
 
 	stopCecHandler();
+	delete _eventScheduler;
+	delete _osEventHandler;
 
 #ifdef ENABLE_MDNS
 	if (_mDNSProvider != nullptr)
@@ -328,6 +333,24 @@ void HyperionDaemon::freeObjects()
 
 	// stop Hyperions (non blocking)
 	_instanceManager->stopAll();
+
+	delete _amlGrabber;
+	delete _dispmanx;
+	delete _fbGrabber;
+	delete _osxGrabber;
+	delete _qtGrabber;
+	delete _dxGrabber;
+	delete _videoGrabber;
+	delete _audioGrabber;
+
+	_videoGrabber = nullptr;
+	_amlGrabber = nullptr;
+	_dispmanx = nullptr;
+	_fbGrabber = nullptr;
+	_osxGrabber = nullptr;
+	_qtGrabber = nullptr;
+	_dxGrabber = nullptr;
+	_audioGrabber = nullptr;
 }
 
 void HyperionDaemon::startNetworkServices()
@@ -395,18 +418,27 @@ void HyperionDaemon::startNetworkServices()
 
 void HyperionDaemon::startEventServices()
 {
-	_eventHandler->getInstance();
-	Debug(_log, "Hyperion event handler created");
+	if (_eventHandler == nullptr)
+	{
+		_eventHandler = EventHandler::getInstance();
+		Debug(_log, "Hyperion event handler created");
+	}
 
-	_eventScheduler.reset(new EventScheduler());
-	_eventScheduler->handleSettingsUpdate(settings::SCHEDEVENTS, getSetting(settings::SCHEDEVENTS));
-	connect(this, &HyperionDaemon::settingsChanged, _eventScheduler.get(), &EventScheduler::handleSettingsUpdate);
-	Debug(_log, "Hyperion event scheduler created");
+	if (_eventScheduler == nullptr)
+	{
+		_eventScheduler = new EventScheduler();
+		_eventScheduler->handleSettingsUpdate(settings::SCHEDEVENTS, getSetting(settings::SCHEDEVENTS));
+		connect(this, &HyperionDaemon::settingsChanged, _eventScheduler, &EventScheduler::handleSettingsUpdate);
+		Debug(_log, "Hyperion event scheduler created");
+	}
 
-	_osEventHandler.reset(new OsEventHandler());
-	_osEventHandler->handleSettingsUpdate(settings::OSEVENTS, getSetting(settings::OSEVENTS));
-	connect(this, &HyperionDaemon::settingsChanged, _osEventHandler.get(), &OsEventHandler::handleSettingsUpdate);
-	Debug(_log, "Operating System event handler created");
+	if (_osEventHandler == nullptr)
+	{
+		_osEventHandler = new OsEventHandler();
+		_osEventHandler->handleSettingsUpdate(settings::OSEVENTS, getSetting(settings::OSEVENTS));
+		connect(this, &HyperionDaemon::settingsChanged, _osEventHandler, &OsEventHandler::handleSettingsUpdate);
+		Debug(_log, "Operating System event handler created");
+	}
 
 	startCecHandler();
 }
@@ -502,10 +534,79 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 
 		if (_prevType != type)
 		{
+			// stop all capture interfaces
+#ifdef ENABLE_FB
+			if (_fbGrabber != nullptr)
+			{
+				_fbGrabber->stop();
+				delete _fbGrabber;
+				_fbGrabber = nullptr;
+			}
+#endif
+#ifdef ENABLE_DISPMANX
+			if (_dispmanx != nullptr)
+			{
+				_dispmanx->stop();
+				delete _dispmanx;
+				_dispmanx = nullptr;
+			}
+#endif
+#ifdef ENABLE_AMLOGIC
+			if (_amlGrabber != nullptr)
+			{
+				_amlGrabber->stop();
+				delete _amlGrabber;
+				_amlGrabber = nullptr;
+			}
+#endif
+#ifdef ENABLE_OSX
+			if (_osxGrabber != nullptr)
+			{
+				_osxGrabber->stop();
+				delete _osxGrabber;
+				_osxGrabber = nullptr;
+			}
+#endif
+#ifdef ENABLE_X11
+			if (_x11Grabber != nullptr)
+			{
+				_x11Grabber->stop();
+				delete _x11Grabber;
+				_x11Grabber = nullptr;
+			}
+#endif
+#ifdef ENABLE_XCB
+			if (_xcbGrabber != nullptr)
+			{
+				_xcbGrabber->stop();
+				delete _xcbGrabber;
+				_xcbGrabber = nullptr;
+			}
+#endif
+#ifdef ENABLE_QT
+			if (_qtGrabber != nullptr)
+			{
+				_qtGrabber->stop();
+				delete _qtGrabber;
+				_qtGrabber = nullptr;
+			}
+#endif
+#ifdef ENABLE_DX
+			if (_dxGrabber != nullptr)
+			{
+				_dxGrabber->stop();
+				delete _dxGrabber;
+				_dxGrabber = nullptr;
+			}
+#endif
+
 			// create/start capture interface
 			if (type == "framebuffer")
 			{
-				createGrabberFramebuffer(grabberConfig);
+				if (_fbGrabber == nullptr)
+				{
+					createGrabberFramebuffer(grabberConfig);
+				}
 #ifdef ENABLE_FB
 				_fbGrabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
 				_fbGrabber->tryStart();
@@ -513,7 +614,11 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 			}
 			else if (type == "dispmanx")
 			{
-				createGrabberDispmanx(grabberConfig);
+				if (_dispmanx == nullptr)
+				{
+					createGrabberDispmanx(grabberConfig);
+				}
+
 #ifdef ENABLE_DISPMANX
 				if (_dispmanx != nullptr)
 				{
@@ -524,7 +629,10 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 			}
 			else if (type == "amlogic")
 			{
-				createGrabberAmlogic(grabberConfig);
+				if (_amlGrabber == nullptr)
+				{
+					createGrabberAmlogic(grabberConfig);
+				}
 #ifdef ENABLE_AMLOGIC
 				_amlGrabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
 				_amlGrabber->tryStart();
@@ -532,7 +640,10 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 			}
 			else if (type == "osx")
 			{
-				createGrabberOsx(grabberConfig);
+				if (_osxGrabber == nullptr)
+				{
+					createGrabberOsx(grabberConfig);
+				}
 #ifdef ENABLE_OSX
 				_osxGrabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
 				_osxGrabber->tryStart();
@@ -540,7 +651,10 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 			}
 			else if (type == "x11")
 			{
-				createGrabberX11(grabberConfig);
+				if (_x11Grabber == nullptr)
+				{
+					createGrabberX11(grabberConfig);
+				}
 #ifdef ENABLE_X11
 				_x11Grabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
 				_x11Grabber->tryStart();
@@ -548,7 +662,10 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 			}
 			else if (type == "xcb")
 			{
-				createGrabberXcb(grabberConfig);
+				if (_xcbGrabber == nullptr)
+				{
+					createGrabberXcb(grabberConfig);
+				}
 #ifdef ENABLE_XCB
 				_xcbGrabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
 				_xcbGrabber->tryStart();
@@ -556,7 +673,10 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 			}
 			else if (type == "qt")
 			{
-				createGrabberQt(grabberConfig);
+				if (_qtGrabber == nullptr)
+				{
+					createGrabberQt(grabberConfig);
+				}
 #ifdef ENABLE_QT
 				_qtGrabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
 				_qtGrabber->tryStart();
@@ -564,7 +684,10 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 			}
 			else if (type == "dx")
 			{
-				createGrabberDx(grabberConfig);
+				if (_dxGrabber == nullptr)
+				{
+					createGrabberDx(grabberConfig);
+				}
 #ifdef ENABLE_DX
 				_dxGrabber->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
 				_dxGrabber->tryStart();
@@ -581,17 +704,21 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 	else if (settingsType == settings::V4L2)
 	{
 #if defined(ENABLE_V4L2) || defined(ENABLE_MF)
-		_videoGrabber.reset(new VideoWrapper());
-		_videoGrabber->handleSettingsUpdate(settings::V4L2, getSetting(settings::V4L2));
+		if (_videoGrabber == nullptr)
+		{
+			_videoGrabber = new VideoWrapper();
+			_videoGrabber->handleSettingsUpdate(settings::V4L2, getSetting(settings::V4L2));
 
 #if defined(ENABLE_MF)
-		Debug(_log, "Media Foundation grabber created");
+			Debug(_log, "Media Foundation grabber created");
 #elif defined(ENABLE_V4L2)
-		Debug(_log, "V4L2 grabber created");
+			Debug(_log, "V4L2 grabber created");
 #endif
-		// connect to HyperionDaemon signal
-		connect(this, &HyperionDaemon::videoMode, _videoGrabber.get(), &VideoWrapper::setVideoMode);
-		connect(this, &HyperionDaemon::settingsChanged, _videoGrabber.get(), &VideoWrapper::handleSettingsUpdate);
+
+			// connect to HyperionDaemon signal
+			connect(this, &HyperionDaemon::videoMode, _videoGrabber, &VideoWrapper::setVideoMode);
+			connect(this, &HyperionDaemon::settingsChanged, _videoGrabber, &VideoWrapper::handleSettingsUpdate);
+		}
 #else
 		Debug(_log, "The v4l2 grabber is not supported on this platform");
 #endif
@@ -600,12 +727,15 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 	{
 #ifdef ENABLE_AUDIO
 		// Create Audio Grabber
-		_audioGrabber.reset(new AudioWrapper());
-		_audioGrabber->handleSettingsUpdate(settings::AUDIO, getSetting(settings::AUDIO));
+		if (_audioGrabber == nullptr)
+		{
+			_audioGrabber = new AudioWrapper();
+			_audioGrabber->handleSettingsUpdate(settings::AUDIO, getSetting(settings::AUDIO));
 
-		connect(this, &HyperionDaemon::settingsChanged, _audioGrabber.get(), &AudioWrapper::handleSettingsUpdate);
+			connect(this, &HyperionDaemon::settingsChanged, _audioGrabber, &AudioWrapper::handleSettingsUpdate);
 
-		Debug(_log, "Audio grabber created");
+			Debug(_log, "Audio grabber created");
+		}
 #else
 		Debug(_log, "Audio capture not supported on this platform");
 #endif
@@ -615,13 +745,15 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 void HyperionDaemon::createGrabberDispmanx(const QJsonObject& /*grabberConfig*/)
 {
 #ifdef ENABLE_DISPMANX
-	_dispmanx.reset(new DispmanxWrapper(
+	_dispmanx = new DispmanxWrapper(
 		_grabber_frequency,
 		_grabber_pixelDecimation
-	));
+	);
 
 	if (!_dispmanx->available)
 	{
+		delete _dispmanx;
+		_dispmanx = nullptr;
 		Debug(_log, "The dispmanx framegrabber is not supported on this platform");
 		return;
 	}
@@ -629,8 +761,8 @@ void HyperionDaemon::createGrabberDispmanx(const QJsonObject& /*grabberConfig*/)
 	_dispmanx->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
 
 	// connect to HyperionDaemon signal
-	connect(this, &HyperionDaemon::videoMode, _dispmanx.get(), &DispmanxWrapper::setVideoMode);
-	connect(this, &HyperionDaemon::settingsChanged, _dispmanx.get(), &DispmanxWrapper::handleSettingsUpdate);
+	connect(this, &HyperionDaemon::videoMode, _dispmanx, &DispmanxWrapper::setVideoMode);
+	connect(this, &HyperionDaemon::settingsChanged, _dispmanx, &DispmanxWrapper::handleSettingsUpdate);
 
 	Info(_log, "DISPMANX frame grabber created");
 #else
@@ -641,15 +773,15 @@ void HyperionDaemon::createGrabberDispmanx(const QJsonObject& /*grabberConfig*/)
 void HyperionDaemon::createGrabberAmlogic(const QJsonObject& /*grabberConfig*/)
 {
 #ifdef ENABLE_AMLOGIC
-	_amlGrabber.reset(new AmlogicWrapper(
+	_amlGrabber = new AmlogicWrapper(
 		_grabber_frequency,
 		_grabber_pixelDecimation
-	));
+	);
 	_amlGrabber->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
 
 	// connect to HyperionDaemon signal
-	connect(this, &HyperionDaemon::videoMode, _amlGrabber.get(), &AmlogicWrapper::setVideoMode);
-	connect(this, &HyperionDaemon::settingsChanged, _amlGrabber.get(), &AmlogicWrapper::handleSettingsUpdate);
+	connect(this, &HyperionDaemon::videoMode, _amlGrabber, &AmlogicWrapper::setVideoMode);
+	connect(this, &HyperionDaemon::settingsChanged, _amlGrabber, &AmlogicWrapper::handleSettingsUpdate);
 
 	Info(_log, "AMLOGIC grabber created");
 #else
@@ -660,17 +792,16 @@ void HyperionDaemon::createGrabberAmlogic(const QJsonObject& /*grabberConfig*/)
 void HyperionDaemon::createGrabberX11(const QJsonObject& /*grabberConfig*/)
 {
 #ifdef ENABLE_X11
-	qDebug() << "createGrabberX11";
-	_x11Grabber.reset(new X11Wrapper(
+	_x11Grabber = new X11Wrapper(
 		_grabber_frequency,
 		_grabber_pixelDecimation,
 		_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom
-	));
+	);
 	_x11Grabber->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
 
 	// connect to HyperionDaemon signal
-	connect(this, &HyperionDaemon::videoMode, _x11Grabber.get(), &X11Wrapper::setVideoMode);
-	connect(this, &HyperionDaemon::settingsChanged, _x11Grabber.get(), &X11Wrapper::handleSettingsUpdate);
+	connect(this, &HyperionDaemon::videoMode, _x11Grabber, &X11Wrapper::setVideoMode);
+	connect(this, &HyperionDaemon::settingsChanged, _x11Grabber, &X11Wrapper::handleSettingsUpdate);
 
 	Info(_log, "X11 grabber created");
 #else
@@ -681,16 +812,16 @@ void HyperionDaemon::createGrabberX11(const QJsonObject& /*grabberConfig*/)
 void HyperionDaemon::createGrabberXcb(const QJsonObject& /*grabberConfig*/)
 {
 #ifdef ENABLE_XCB
-	_xcbGrabber.reset(new XcbWrapper(
+	_xcbGrabber = new XcbWrapper(
 		_grabber_frequency,
 		_grabber_pixelDecimation,
 		_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom
-	));
+	);
 	_xcbGrabber->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
 
 	// connect to HyperionDaemon signal
-	connect(this, &HyperionDaemon::videoMode, _xcbGrabber.get(), &XcbWrapper::setVideoMode);
-	connect(this, &HyperionDaemon::settingsChanged, _xcbGrabber.get(), &XcbWrapper::handleSettingsUpdate);
+	connect(this, &HyperionDaemon::videoMode, _xcbGrabber, &XcbWrapper::setVideoMode);
+	connect(this, &HyperionDaemon::settingsChanged, _xcbGrabber, &XcbWrapper::handleSettingsUpdate);
 
 	Info(_log, "XCB grabber created");
 #else
@@ -701,16 +832,16 @@ void HyperionDaemon::createGrabberXcb(const QJsonObject& /*grabberConfig*/)
 void HyperionDaemon::createGrabberQt(const QJsonObject& grabberConfig)
 {
 #ifdef ENABLE_QT
-	_qtGrabber.reset(new QtWrapper(
+	_qtGrabber = new QtWrapper(
 		_grabber_frequency,
 		grabberConfig["input"].toInt(0),
 		_grabber_pixelDecimation,
 		_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom
-	));
+	);
 
 	// connect to HyperionDaemon signal
-	connect(this, &HyperionDaemon::videoMode, _qtGrabber.get(), &QtWrapper::setVideoMode);
-	connect(this, &HyperionDaemon::settingsChanged, _qtGrabber.get(), &QtWrapper::handleSettingsUpdate);
+	connect(this, &HyperionDaemon::videoMode, _qtGrabber, &QtWrapper::setVideoMode);
+	connect(this, &HyperionDaemon::settingsChanged, _qtGrabber, &QtWrapper::handleSettingsUpdate);
 
 	Info(_log, "Qt grabber created");
 #else
@@ -721,16 +852,16 @@ void HyperionDaemon::createGrabberQt(const QJsonObject& grabberConfig)
 void HyperionDaemon::createGrabberDx(const QJsonObject& grabberConfig)
 {
 #ifdef ENABLE_DX
-	_dxGrabber.reset(new DirectXWrapper(
+	_dxGrabber = new DirectXWrapper(
 		_grabber_frequency,
 		grabberConfig["display"].toInt(0),
 		_grabber_pixelDecimation,
 		_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom
-	));
+	);
 
 	// connect to HyperionDaemon signal
-	connect(this, &HyperionDaemon::videoMode, _dxGrabber.get(), &DirectXWrapper::setVideoMode);
-	connect(this, &HyperionDaemon::settingsChanged, _dxGrabber.get(), &DirectXWrapper::handleSettingsUpdate);
+	connect(this, &HyperionDaemon::videoMode, _dxGrabber, &DirectXWrapper::setVideoMode);
+	connect(this, &HyperionDaemon::settingsChanged, _dxGrabber, &DirectXWrapper::handleSettingsUpdate);
 
 	Info(_log, "DirectX grabber created");
 #else
@@ -745,15 +876,15 @@ void HyperionDaemon::createGrabberFramebuffer(const QJsonObject& grabberConfig)
 
 	int fbIdx = grabberConfig["input"].toInt(0);
 	QString devicePath = QString("/dev/fb%1").arg(fbIdx);
-	_fbGrabber.reset(new FramebufferWrapper(
+	_fbGrabber = new FramebufferWrapper(
 		_grabber_frequency,
 		devicePath,
 		_grabber_pixelDecimation
-	));
+	);
 	_fbGrabber->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
 	// connect to HyperionDaemon signal
-	connect(this, &HyperionDaemon::videoMode, _fbGrabber.get(), &FramebufferWrapper::setVideoMode);
-	connect(this, &HyperionDaemon::settingsChanged, _fbGrabber.get(), &FramebufferWrapper::handleSettingsUpdate);
+	connect(this, &HyperionDaemon::videoMode, _fbGrabber, &FramebufferWrapper::setVideoMode);
+	connect(this, &HyperionDaemon::settingsChanged, _fbGrabber, &FramebufferWrapper::handleSettingsUpdate);
 
 	Info(_log, "Framebuffer grabber created");
 #else
@@ -765,16 +896,16 @@ void HyperionDaemon::createGrabberOsx(const QJsonObject& grabberConfig)
 {
 #ifdef ENABLE_OSX
 	// Construct and start the osx grabber if the configuration is present
-	_osxGrabber.reset(new OsxWrapper(
+	_osxGrabber = new OsxWrapper(
 		_grabber_frequency,
 		grabberConfig["input"].toInt(0),
 		_grabber_pixelDecimation
-	));
+	);
 	_osxGrabber->setCropping(_grabber_cropLeft, _grabber_cropRight, _grabber_cropTop, _grabber_cropBottom);
 
 	// connect to HyperionDaemon signal
-	connect(this, &HyperionDaemon::videoMode, _osxGrabber.get(), &OsxWrapper::setVideoMode);
-	connect(this, &HyperionDaemon::settingsChanged, _osxGrabber.get(), &OsxWrapper::handleSettingsUpdate);
+	connect(this, &HyperionDaemon::videoMode, _osxGrabber, &OsxWrapper::setVideoMode);
+	connect(this, &HyperionDaemon::settingsChanged, _osxGrabber, &OsxWrapper::handleSettingsUpdate);
 
 	Info(_log, "OSX grabber created");
 #else

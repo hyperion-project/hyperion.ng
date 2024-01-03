@@ -199,36 +199,33 @@ private:
 #if defined(ENABLE_EFFECTENGINE)
 	PythonInit*                _pyInit;
 #endif
-	SSDPHandler*               _ssdp;
 	WebServer*                 _webserver;
 	WebServer*                 _sslWebserver;
 	JsonServer*                _jsonServer;
+	VideoWrapper*              _videoGrabber;
+	DispmanxWrapper*           _dispmanx;
+	X11Wrapper*                _x11Grabber;
+	XcbWrapper*                _xcbGrabber;
+	AmlogicWrapper*            _amlGrabber;
+	FramebufferWrapper*        _fbGrabber;
+	OsxWrapper*                _osxGrabber;
+	QtWrapper*                 _qtGrabber;
+	DirectXWrapper*            _dxGrabber;
+	AudioWrapper*			   _audioGrabber;
+	SSDPHandler*               _ssdp;
+	EventHandler*              _eventHandler;
+	OsEventHandler*            _osEventHandler;
+	EventScheduler*            _eventScheduler;
+#ifdef ENABLE_CEC
+CECHandler*                _cecHandler;
+#endif
 
-	QScopedPointer<EventHandler> _eventHandler;
-	QScopedPointer<OsEventHandler> _osEventHandler;
-	QScopedPointer<EventScheduler> _eventScheduler;
-
-	QScopedPointer<VideoWrapper> _videoGrabber;
-	QScopedPointer<DispmanxWrapper> _dispmanx;
-	QScopedPointer<X11Wrapper> _x11Grabber;
-	QScopedPointer<XcbWrapper> _xcbGrabber;
-	QScopedPointer<AmlogicWrapper> _amlGrabber;
-	QScopedPointer<FramebufferWrapper> _fbGrabber;
-	QScopedPointer<OsxWrapper> _osxGrabber;
-	QScopedPointer<QtWrapper> _qtGrabber;
-	QScopedPointer<DirectXWrapper> _dxGrabber;
-	QScopedPointer<AudioWrapper> _audioGrabber;
-
-	#ifdef ENABLE_CEC
-	CECHandler*                _cecHandler;
-	#endif
 	#if defined(ENABLE_FLATBUF_SERVER)
 	FlatBufferServer*          _flatBufferServer;
 	#endif
 	#if defined(ENABLE_PROTOBUF_SERVER)
 	ProtoServer*               _protoServer;
 	#endif
-
 	int                        _grabber_width;
 	int                        _grabber_height;
 	int                        _grabber_pixelDecimation;
@@ -237,8 +234,9 @@ private:
 	int                        _grabber_cropRight;
 	int                        _grabber_cropTop;
 	int                        _grabber_cropBottom;
-	QString                    _prevType;
-	VideoMode                  _currVideoMode;
 
-	QScopedPointer<SettingsManager> _settingsManager;
+	QString                    _prevType;
+
+	VideoMode                  _currVideoMode;
+	SettingsManager*           _settingsManager;
 };

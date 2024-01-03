@@ -142,7 +142,7 @@ void JsonAPI::initialize()
 	}
 
 	//notify eventhadler on suspend/resume/idle requests
-        connect(this, &JsonAPI::signalEvent, EventHandler::getInstance().data(), &EventHandler::handleEvent);
+	connect(this, &JsonAPI::signalEvent, EventHandler::getInstance(), &EventHandler::handleEvent);
 
 	connect(_ledStreamTimer, &QTimer::timeout, this, &JsonAPI::streamLedColorsUpdate, Qt::UniqueConnection);
 }
