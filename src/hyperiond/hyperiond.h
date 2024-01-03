@@ -201,7 +201,7 @@ private:
 	Logger* _log;
 
 	QScopedPointer<HyperionIManager> _instanceManager;
-	QSharedPointer<SettingsManager> _settingsManager;
+	QScopedPointer<SettingsManager> _settingsManager;
 	QScopedPointer<AuthManager> _authManager;
 
 	QScopedPointer<NetOrigin> _netOrigin;
