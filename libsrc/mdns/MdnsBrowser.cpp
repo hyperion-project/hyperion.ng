@@ -52,7 +52,6 @@ void MdnsBrowser::browseForServiceType(const QByteArray& serviceType)
 	}
 }
 
-void MdnsBrowser::onServiceAdded(const QMdnsEngine::Service& service)
 {
 	DebugIf(verboseBrowser, _log, "Discovered service [%s] at host: %s, port: %u, Thread: %s", service.name().constData(), service.hostname().constData(), service.port(), QSTRING_CSTR(QThread::currentThread()->objectName()));
 	emit serviceFound(service);
@@ -319,7 +318,7 @@ QJsonArray MdnsBrowser::getServicesDiscoveredJson(const QByteArray& serviceType,
 
 	QJsonArray result;
 
-	static QRegularExpression regEx(filter);
+	QRegularExpression regEx(filter);
 	if (!regEx.isValid()) {
 		QString errorString = regEx.errorString();
 		int errorOffset = regEx.patternErrorOffset();
