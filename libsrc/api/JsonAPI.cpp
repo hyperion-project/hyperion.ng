@@ -142,7 +142,7 @@ void JsonAPI::initialize()
 	}
 
 	//notify eventhadler on suspend/resume/idle requests
-        connect(this, &JsonAPI::signalEvent, EventHandler::getInstance().data(), &EventHandler::handleEvent);
+	connect(this, &JsonAPI::signalEvent, EventHandler::getInstance().data(), &EventHandler::handleEvent);
 
 	connect(_ledStreamTimer, &QTimer::timeout, this, &JsonAPI::streamLedColorsUpdate, Qt::UniqueConnection);
 }
@@ -391,7 +391,6 @@ void JsonAPI::handleSysInfoCommand(const QJsonObject &, const QString &command, 
 	hyperion["rootPath"] = _instanceManager->getRootPath();
 	hyperion["readOnlyMode"] = _hyperion->getReadOnlyMode();
 
-	bool isGuiMode{ true };
 	QCoreApplication* app = QCoreApplication::instance();
 	hyperion["isGuiMode"] = qobject_cast<QApplication*>(app) ? true : false;
 
@@ -1078,7 +1077,7 @@ void JsonAPI::handleConfigRestoreCommand(const QJsonObject &message, const QStri
 	}
 }
 
-void JsonAPI::handleSchemaGetCommand(const QJsonObject &message, const QString &command, int tan)
+void JsonAPI::handleSchemaGetCommand(const QJsonObject& /*message*/, const QString &command, int tan)
 {
 	// create result
 	QJsonObject schemaJson, alldevices, properties;
@@ -1227,7 +1226,7 @@ void JsonAPI::handleLoggingCommand(const QJsonObject &message, const QString &co
 			if (!_streaming_logging_activated)
 			{
 				_streaming_logging_reply["command"] = command + "-update";
-				connect(LoggerManager::getInstance(), &LoggerManager::newLogMessage, this, &JsonAPI::incommingLogMessage);
+				connect(LoggerManager::getInstance().data(), &LoggerManager::newLogMessage, this, &JsonAPI::incommingLogMessage);
 
 				emit incommingLogMessage (Logger::T_LOG_MESSAGE{}); // needed to trigger log sending
 				Debug(_log, "log streaming activated for client %s", _peerAddress.toStdString().c_str());
@@ -1237,7 +1236,7 @@ void JsonAPI::handleLoggingCommand(const QJsonObject &message, const QString &co
 		{
 			if (_streaming_logging_activated)
 			{
-				disconnect(LoggerManager::getInstance(), &LoggerManager::newLogMessage, this, &JsonAPI::incommingLogMessage);
+				disconnect(LoggerManager::getInstance().data(), &LoggerManager::newLogMessage, this, &JsonAPI::incommingLogMessage);
 				_streaming_logging_activated = false;
 				Debug(_log, "log streaming deactivated for client  %s", _peerAddress.toStdString().c_str());
 			}
@@ -1827,10 +1826,10 @@ void JsonAPI::handleServiceCommand(const QJsonObject &message, const QString &co
 		if (!serviceType.isEmpty())
 		{
 #ifdef ENABLE_MDNS
-			QMetaObject::invokeMethod(&MdnsBrowser::getInstance(), "browseForServiceType",
+			QMetaObject::invokeMethod(MdnsBrowser::getInstance().data(), "browseForServiceType",
 									   Qt::QueuedConnection, Q_ARG(QByteArray, serviceType));
 
-			serviceList = MdnsBrowser::getInstance().getServicesDiscoveredJson(serviceType, MdnsServiceRegister::getServiceNameFilter(type), DEFAULT_DISCOVER_TIMEOUT);
+			serviceList = MdnsBrowser::getInstance().data()->getServicesDiscoveredJson(serviceType, MdnsServiceRegister::getServiceNameFilter(type), DEFAULT_DISCOVER_TIMEOUT);
 #endif
 			servicesOfType.insert(type, serviceList);
 
@@ -1984,7 +1983,7 @@ void JsonAPI::incommingLogMessage(const Logger::T_LOG_MESSAGE &msg)
 	if (!_streaming_logging_activated)
 	{
 		_streaming_logging_activated = true;
-		QMetaObject::invokeMethod(LoggerManager::getInstance(), "getLogMessageBuffer",
+		QMetaObject::invokeMethod(LoggerManager::getInstance().data(), "getLogMessageBuffer",
 								  Qt::DirectConnection,
 								  Q_RETURN_ARG(QJsonArray, messageArray),
 								  Q_ARG(Logger::LogLevel, _log->getLogLevel()));
@@ -2034,7 +2033,7 @@ void JsonAPI::handleTokenResponse(bool success, const QString &token, const QStr
 		sendErrorReply("Token request timeout or denied", cmd, tan);
 }
 
-void JsonAPI::handleInstanceStateChange(InstanceState state, quint8 instance, const QString &name)
+void JsonAPI::handleInstanceStateChange(InstanceState state, quint8 instance, const QString& /*name */)
 {
 	switch (state)
 	{

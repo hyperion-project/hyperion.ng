@@ -40,6 +40,8 @@ OsEventHandlerBase::OsEventHandlerBase()
 		_isService = true;
 	}
 	QObject::connect(this, &OsEventHandlerBase::signalEvent, EventHandler::getInstance().data(), &EventHandler::handleEvent);
+
+	Debug(_log, "Operating System event handler created");
 }
 
 OsEventHandlerBase::~OsEventHandlerBase()

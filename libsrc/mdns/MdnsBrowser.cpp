@@ -21,6 +21,8 @@ namespace {
 	const int SERVICE_LOOKUP_RETRIES = 5;
 } // End of constants
 
+QScopedPointer<MdnsBrowser> MdnsBrowser::instance;
+
 MdnsBrowser::MdnsBrowser(QObject* parent)
 	: QObject(parent)
 	, _log(Logger::getInstance("MDNS"))
@@ -31,6 +33,16 @@ MdnsBrowser::MdnsBrowser(QObject* parent)
 MdnsBrowser::~MdnsBrowser()
 {
 	_browsedServiceTypes.clear();
+}
+
+QScopedPointer<MdnsBrowser>& MdnsBrowser::getInstance()
+{
+	if (!instance)
+	{
+		instance.reset(new MdnsBrowser());
+	}
+
+	return instance;
 }
 
 void MdnsBrowser::browseForServiceType(const QByteArray& serviceType)
@@ -163,8 +175,8 @@ bool MdnsBrowser::resolveAddress(Logger* log, const QString& hostname, QHostAddr
 			QEventLoop loop;
 			QTimer timer;
 
-			QObject::connect(&MdnsBrowser::getInstance(), &MdnsBrowser::addressResolved, &loop, &QEventLoop::quit);
-			weakConnect(&MdnsBrowser::getInstance(), &MdnsBrowser::addressResolved,
+			QObject::connect(MdnsBrowser::getInstance().data(), &MdnsBrowser::addressResolved, &loop, &QEventLoop::quit);
+			weakConnect(MdnsBrowser::getInstance().data(), &MdnsBrowser::addressResolved,
 				[&hostAddress, hostname, log](const QHostAddress& resolvedAddress) {
 					DebugIf(verboseBrowser, log, "Resolver resolved hostname [%s] to address [%s], Thread: %s", QSTRING_CSTR(hostname), QSTRING_CSTR(resolvedAddress.toString()), QSTRING_CSTR(QThread::currentThread()->objectName()));
 					hostAddress = resolvedAddress;
@@ -182,7 +194,7 @@ bool MdnsBrowser::resolveAddress(Logger* log, const QString& hostname, QHostAddr
 		}
 		else
 		{
-			QObject::disconnect(&MdnsBrowser::getInstance(), &MdnsBrowser::addressResolved, nullptr, nullptr);
+			QObject::disconnect(MdnsBrowser::getInstance().data(), &MdnsBrowser::addressResolved, nullptr, nullptr);
 			Error(log, "Resolved mDNS hostname [%s] timed out", QSTRING_CSTR(hostname));
 		}
 	}
@@ -319,7 +331,7 @@ QJsonArray MdnsBrowser::getServicesDiscoveredJson(const QByteArray& serviceType,
 
 	QJsonArray result;
 
-	static QRegularExpression regEx(filter);
+	QRegularExpression regEx(filter);
 	if (!regEx.isValid()) {
 		QString errorString = regEx.errorString();
 		int errorOffset = regEx.patternErrorOffset();

@@ -111,7 +111,7 @@ namespace NetUtils {
 			if (hostname.endsWith(".local") || hostname.endsWith(".local."))
 			{
 				QHostAddress resolvedAddress;
-				QMetaObject::invokeMethod(&MdnsBrowser::getInstance(), "resolveAddress",
+				QMetaObject::invokeMethod(MdnsBrowser::getInstance().data(), "resolveAddress",
 										   Qt::BlockingQueuedConnection,
 										   Q_RETURN_ARG(bool, isHostAddressOK),
 										   Q_ARG(Logger*, log), Q_ARG(QString, hostname), Q_ARG(QHostAddress&, resolvedAddress));
@@ -163,7 +163,7 @@ namespace NetUtils {
 		if (hostname.endsWith("._tcp.local"))
 		{
 			//Treat hostname as service instance name that requires to be resolved into an mDNS-Hostname first
-			QMdnsEngine::Record service = MdnsBrowser::getInstance().getServiceInstanceRecord(hostname.toUtf8());
+			QMdnsEngine::Record service = MdnsBrowser::getInstance().data()->getServiceInstanceRecord(hostname.toUtf8());
 			if (!service.target().isEmpty())
 			{
 				Info(log, "Resolved service [%s] to mDNS hostname [%s], service port [%d]", QSTRING_CSTR(hostname), service.target().constData(), service.port());

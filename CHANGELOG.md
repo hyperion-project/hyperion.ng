@@ -53,6 +53,7 @@ Note: The wizard will configure an APIv2 capable bridge always with Entertainmen
 - MDNSBrower - Fixed, if timeout while resolving host occurs
 - Non image updates ignored blacklisted LEDs (#1634)
 - Fixed that Windows OsEvents failed in non-GUI mode (#1671)
+- Addressed serious (#1425) and some smaller memory leaks
 
 ##### LED-Devices
 
@@ -79,6 +80,7 @@ Note: The wizard will configure an APIv2 capable bridge always with Entertainmen
 - Changed default build from Stretch to Buster
 - Support Qt 6.7, Update to Protobuf 25.1, Update mbedTLS to v3.4.0, Update flatbuffers to v23.5.26
 - Use C++17 standard as default
+- Started using SmartPointers (#981)
 - Added Pull Request (PR) installation script, allowing users to test development builds savely on Linux
 - Fixed missing include limits in QJsonSchemaChecker - Thanks @Portisch
 - Fixed dependencies for deb packages in Debian Bookworm (#1579) - Thanks @hg42, @Psirus
@@ -126,7 +128,6 @@ To allow segment streaming, enable "Realtime - Use main segment only" in WLED's 
 - hyperion-remote: Extracting reply for a configGet request correctly (#1555)
 - Grabber fps setting was not applied correctly
 - Smoothing:  No empty updates
-- Addressed serious (#1425) and some smaller memory leaks
 
 ### Technical
 - Add CodeQL for GitHub code scanning

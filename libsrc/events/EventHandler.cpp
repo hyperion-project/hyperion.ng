@@ -17,6 +17,7 @@ EventHandler::EventHandler()
 	_log = Logger::getInstance("EVENTS");
 
 	QObject::connect(this, &EventHandler::signalEvent, HyperionIManager::getInstance(), &HyperionIManager::handleEvent);
+	Debug(_log, "Hyperion event handler created");
 }
 
 EventHandler::~EventHandler()

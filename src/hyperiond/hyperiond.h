@@ -3,6 +3,7 @@
 #include <QApplication>
 #include <QObject>
 #include <QJsonObject>
+#include <QScopedPointer>
 
 #include <hyperion/HyperionIManager.h>
 
@@ -110,7 +111,7 @@ public:
 	///
 	/// @brief Get webserver pointer (systray)
 	///
-	WebServer *getWebServerInstance() { return _webserver; }
+	WebServer *getWebServerInstance() { return _webserver.data(); }
 
 	///
 	/// @brief Get the current videoMode
@@ -122,14 +123,11 @@ public:
 	///
 	QJsonDocument getSetting(settings::type type) const;
 
-	void startNetworkServices();
-	void startEventServices();
-
 	static HyperionDaemon* getInstance() { return daemon; }
 	static HyperionDaemon* daemon;
 
 public slots:
-	void freeObjects();
+	void stoppServices();
 
 signals:
 	///////////////////////////////////////
@@ -176,37 +174,58 @@ private slots:
 	void handleInstanceStateChange(InstanceState state, quint8 instance);
 
 private:
-	void createGrabberDispmanx(const QJsonObject & grabberConfig);
-	void createGrabberAmlogic(const QJsonObject & grabberConfig);
-	void createGrabberFramebuffer(const QJsonObject & grabberConfig);
-	void createGrabberOsx(const QJsonObject & grabberConfig);
-	void createGrabberX11(const QJsonObject & grabberConfig);
-	void createGrabberXcb(const QJsonObject & grabberConfig);
-	void createGrabberQt(const QJsonObject & grabberConfig);
-	void createGrabberDx(const QJsonObject & grabberConfig);
-	void createGrabberAudio(const QJsonObject & grabberConfig);
 
-	void startCecHandler();
-	void stopCecHandler();
+	void createNetworkServices();
+	void startNetworkServices();
+	void stopNetworkServices();
 
-	Logger*                    _log;
-	HyperionIManager*          _instanceManager;
-	AuthManager*               _authManager;
+	void startEventServices();
+	void stopEventServices();
+
+	void startGrabberServices();
+	void stopGrabberServices();
+
+	void updateScreenGrabbers(const QJsonObject& grabberConfig);
+	void updateVideoGrabbers(const QJsonObject& grabberConfig);
+	void updateAudioGrabbers(const QJsonObject& grabberConfig);
+
+	void startGrabberDispmanx(const QJsonObject & grabberConfig);
+	void startGrabberAmlogic(const QJsonObject & grabberConfig);
+	void startGrabberFramebuffer(const QJsonObject & grabberConfig);
+	void startGrabberOsx(const QJsonObject & grabberConfig);
+	void startGrabberX11(const QJsonObject & grabberConfig);
+	void startGrabberXcb(const QJsonObject & grabberConfig);
+	void startGrabberQt(const QJsonObject & grabberConfig);
+	void startGrabberDx(const QJsonObject & grabberConfig);
+
+	Logger* _log;
+
+	QScopedPointer<HyperionIManager> _instanceManager;
+	QSharedPointer<SettingsManager> _settingsManager;
+	QScopedPointer<AuthManager> _authManager;
+
+	QScopedPointer<NetOrigin> _netOrigin;
+	QScopedPointer<JsonServer, QScopedPointerDeleteLater> _jsonServer;
+	QScopedPointer<WebServer, QScopedPointerDeleteLater> _webserver;
+	QScopedPointer<WebServer, QScopedPointerDeleteLater> _sslWebserver;
+	QScopedPointer<SSDPHandler, QScopedPointerDeleteLater> _ssdp;
 #ifdef ENABLE_MDNS
-	MdnsProvider*                _mDNSProvider;
+	QScopedPointer<MdnsProvider, QScopedPointerDeleteLater> _mDNSProvider;
 #endif
-	NetOrigin*                 _netOrigin;
-#if defined(ENABLE_EFFECTENGINE)
-	PythonInit*                _pyInit;
+
+#if defined(ENABLE_FLATBUF_SERVER)
+	QScopedPointer<FlatBufferServer, QScopedPointerDeleteLater> _flatBufferServer;
 #endif
-	SSDPHandler*               _ssdp;
-	WebServer*                 _webserver;
-	WebServer*                 _sslWebserver;
-	JsonServer*                _jsonServer;
+#if defined(ENABLE_PROTOBUF_SERVER)
+	QScopedPointer<ProtoServer, QScopedPointerDeleteLater> _protoServer;
+#endif
 
 	QScopedPointer<EventHandler> _eventHandler;
 	QScopedPointer<OsEventHandler> _osEventHandler;
 	QScopedPointer<EventScheduler> _eventScheduler;
+#ifdef ENABLE_CEC
+	QScopedPointer<CECHandler> _cecHandler;
+#endif
 
 	QScopedPointer<VideoWrapper> _videoGrabber;
 	QScopedPointer<DispmanxWrapper> _dispmanx;
@@ -219,26 +238,10 @@ private:
 	QScopedPointer<DirectXWrapper> _dxGrabber;
 	QScopedPointer<AudioWrapper> _audioGrabber;
 
-	#ifdef ENABLE_CEC
-	CECHandler*                _cecHandler;
-	#endif
-	#if defined(ENABLE_FLATBUF_SERVER)
-	FlatBufferServer*          _flatBufferServer;
-	#endif
-	#if defined(ENABLE_PROTOBUF_SERVER)
-	ProtoServer*               _protoServer;
-	#endif
-
-	int                        _grabber_width;
-	int                        _grabber_height;
-	int                        _grabber_pixelDecimation;
-	int                        _grabber_frequency;
-	int                        _grabber_cropLeft;
-	int                        _grabber_cropRight;
-	int                        _grabber_cropTop;
-	int                        _grabber_cropBottom;
 	QString                    _prevType;
 	VideoMode                  _currVideoMode;
 
-	QScopedPointer<SettingsManager> _settingsManager;
+#if defined(ENABLE_EFFECTENGINE)
+	PythonInit*                _pyInit;
+#endif
 };
