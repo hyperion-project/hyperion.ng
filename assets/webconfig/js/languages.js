@@ -1,6 +1,6 @@
 var storedLang;
-var availLang = ['ca', 'cs', 'da', 'de', 'el', 'en',  'es', 'fr', 'he', 'hu', 'it', 'ja', 'nl', 'nb', 'pl', 'pt', 'ro', 'sv', 'vi', 'ru', 'tr', 'zh-CN'];
-var availLangText = ['Català', 'Čeština', 'Dansk', 'Deutsch', 'Ελληνική', 'English', 'Español', 'Français', 'עִברִית' ,'Magyar', 'Italiano', '日本語', 'Nederlands', 'Norsk Bokmål', 'Polski', 'Português', 'Română', 'Svenska', 'Tiếng Việt', 'русский', 'Türkçe', '汉语'];
+var availLang = ['ca', 'cs', 'da', 'de', 'el', 'en',  'es', 'fr', 'he', 'hu', 'id', 'it', 'ja', 'nl', 'nb', 'pl', 'pt', 'ro', 'ru', 'sv', 'tr', 'uk', 'vi', 'zh-CN'];
+var availLangText = ['Català', 'Čeština', 'Dansk', 'Deutsch', 'Ελληνική', 'English', 'Español', 'Français', 'עִברִית' ,'Magyar', 'Indonesia', 'Italiano', '日本語', 'Nederlands', 'Norsk Bokmål', 'Polski', 'Português', 'Română', 'русский', 'Svenska', 'Türkçe', 'Українська', 'Tiếng Việt', '汉语'];
 
 //$.i18n.debug = true;
 
