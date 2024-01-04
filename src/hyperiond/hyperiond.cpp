@@ -552,6 +552,11 @@ void HyperionDaemon::startGrabberDispmanx(const QJsonObject& grabberConfig)
 	int grabber_pixelDecimation = grabberConfig["pixelDecimation"].toInt(GrabberWrapper::DEFAULT_PIXELDECIMATION);
 	int grabber_frequency = grabberConfig["fps"].toInt(GrabberWrapper::DEFAULT_RATE_HZ);
 
+	int grabber_cropLeft = grabberConfig["cropLeft"].toInt(0);
+	int grabber_cropRight = grabberConfig["cropRight"].toInt(0);
+	int grabber_cropTop = grabberConfig["cropTop"].toInt(0);
+	int grabber_cropBottom = grabberConfig["cropBottom"].toInt(0);
+
 	_dispmanx.reset(new DispmanxWrapper(
 		grabber_frequency,
 		grabber_pixelDecimation
