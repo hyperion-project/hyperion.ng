@@ -578,7 +578,6 @@ void HyperionDaemon::startGrabberDispmanx(const QJsonObject& grabberConfig)
 
 	_dispmanx->handleSettingsUpdate(settings::SYSTEMCAPTURE, getSetting(settings::SYSTEMCAPTURE));
 	_dispmanx->tryStart();
-	}
 #else
 	Debug(_log, "The dispmanx framegrabber is not supported on this platform");
 #endif
