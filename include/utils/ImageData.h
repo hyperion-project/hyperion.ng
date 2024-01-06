@@ -24,7 +24,7 @@ public:
 	ImageData(int width, int height, const Pixel_T background) :
 		_width(width),
 		_height(height),
-		_pixels(new Pixel_T[static_cast<ssize_t>(width * height)])
+		_pixels(new Pixel_T[static_cast<size_t>(width) * static_cast<size_t>(height)])
 	{
 		std::fill(_pixels, _pixels + width * height, background);
 	}
@@ -33,9 +33,9 @@ public:
 		QSharedData(other),
 		_width(other._width),
 		_height(other._height),
-		_pixels(new Pixel_T[other._width * other._height])
+		_pixels(new Pixel_T[static_cast<size_t>(other._width) * static_cast<size_t>(other._height)])
 	{
-		memcpy(_pixels, other._pixels, other._width * other._height * sizeof(Pixel_T));
+		memcpy(_pixels, other._pixels, static_cast<size_t>(other._width) * static_cast<size_t>(other._height) * sizeof(Pixel_T));
 	}
 
 	ImageData& operator=(ImageData rhs)
@@ -114,7 +114,7 @@ public:
 		}
 
 		// Allocate a new buffer without initializing the content
-		Pixel_T* newPixels = new Pixel_T[static_cast<ssize_t>(width * height)];
+		Pixel_T* newPixels = new Pixel_T[static_cast<size_t>(width) * static_cast<size_t>(height)];
 
 		// Release the old buffer without copying data
 		delete[] _pixels;
@@ -154,7 +154,7 @@ public:
 
 	ssize_t size() const
 	{
-		return  static_cast<ssize_t>(_width * _height) * sizeof(Pixel_T);
+		return  static_cast<ssize_t>(_width) * static_cast<ssize_t>(_height) * sizeof(Pixel_T);
 	}
 
 	void clear()
