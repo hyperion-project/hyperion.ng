@@ -1,6 +1,8 @@
 #ifndef HYPERIOND_H
 #define HYPERIOND_H
 
+#include <memory>
+
 #include <QApplication>
 #include <QObject>
 #include <QJsonObject>
@@ -203,7 +205,7 @@ private:
 			return;
 		}
 
-		QScopedPointer<GrabberType> grabber = QScopedPointer(new GrabberType(grabberConfig));
+		std::unique_ptr<GrabberType> grabber = std::make_unique<GrabberType>(grabberConfig);
 
 		if (!grabber)
 		{
@@ -222,7 +224,8 @@ private:
 			Info(_log, "%s grabber created", QSTRING_CSTR(typeName));
 			grabber->tryStart();
 
-			sharedGrabber.reset(grabber.take());
+			 // Transfer ownership to sharedGrabber
+			sharedGrabber.reset(grabber.release());
 		}
 	}
 
