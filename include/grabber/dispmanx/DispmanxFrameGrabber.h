@@ -36,9 +36,9 @@ public:
 	///
 	/// @brief Determine if the bcm library is available.
 	///
-	/// @return Zero, on success (i.e. library is present), else negative
+	/// @return true, on success (i.e. library is present), else false
 	///
-	bool isAvailable();
+	bool isAvailable() override;
 
 	///
 	/// @brief Opens the input device.

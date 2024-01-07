@@ -10,7 +10,7 @@ namespace {
 } //End of constants
 
 X11Grabber::X11Grabber(int cropLeft, int cropRight, int cropTop, int cropBottom)
-	: Grabber("X11GRABBER", cropLeft, cropRight, cropTop, cropBottom)
+	: Grabber("GRABBER-X11", cropLeft, cropRight, cropTop, cropBottom)
 	, _x11Display(nullptr)
 	, _xImage(nullptr)
 	, _pixmap(None)
@@ -28,8 +28,6 @@ X11Grabber::X11Grabber(int cropLeft, int cropRight, int cropTop, int cropBottom)
 	, _isWayland (false)
 	, _logger{}
 {
-	_logger = Logger::getInstance("X11");
-
 	_useImageResampler = false;
 	_imageResampler.setCropping(0, 0, 0, 0); // cropping is performed by XRender, XShmGetImage or XGetImage
 	memset(&_pictAttr, 0, sizeof(_pictAttr));

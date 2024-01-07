@@ -5,10 +5,16 @@ QtWrapper::QtWrapper( int updateRate_Hz,
 					  int pixelDecimation,
 					  int cropLeft, int cropRight, int cropTop, int cropBottom
 					  )
-	: GrabberWrapper("Qt", &_grabber, updateRate_Hz)
+	: GrabberWrapper(GRABBERTYPE, &_grabber, updateRate_Hz)
 	  , _grabber(display, cropLeft, cropRight, cropTop, cropBottom)
 {
 	_grabber.setPixelDecimation(pixelDecimation);
+}
+
+QtWrapper::QtWrapper(const QJsonDocument& grabberConfig)
+	: GrabberWrapper(GRABBERTYPE, &_grabber)
+{
+	this->handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
 }
 
 bool QtWrapper::open()

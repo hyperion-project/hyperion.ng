@@ -1700,59 +1700,54 @@ void JsonAPI::handleInputSourceCommand(const QJsonObject& message, const QString
 
 					QJsonObject device;
 					#ifdef ENABLE_QT
-					QtGrabber* qtgrabber = new QtGrabber();
+					QScopedPointer<QtGrabber> qtgrabber(new QtGrabber());
 					device = qtgrabber->discover(params);
 					if (!device.isEmpty() )
 					{
 						videoInputs.append(device);
 					}
-					delete qtgrabber;
 					#endif
 
 					#ifdef ENABLE_DX
-					DirectXGrabber* dxgrabber = new DirectXGrabber();
+					QScopedPointer<DirectXGrabber> dxgrabber (new DirectXGrabber());
 					device = dxgrabber->discover(params);
 					if (!device.isEmpty() )
 					{
 						videoInputs.append(device);
 					}
-					delete dxgrabber;
 					#endif
 
 					#ifdef ENABLE_X11
-					X11Grabber* x11Grabber = new X11Grabber();
+					QScopedPointer<X11Grabber> x11Grabber(new X11Grabber());
 					device = x11Grabber->discover(params);
 					if (!device.isEmpty() )
 					{
 						videoInputs.append(device);
 					}
-					delete x11Grabber;
 					#endif
 
 					#ifdef ENABLE_XCB
-					XcbGrabber* xcbGrabber = new XcbGrabber();
+					QScopedPointer<XcbGrabber> xcbGrabber (new XcbGrabber());
 					device = xcbGrabber->discover(params);
 					if (!device.isEmpty() )
 					{
 						videoInputs.append(device);
 					}
-					delete xcbGrabber;
 					#endif
 
 					//Ignore FB for Amlogic, as it is embedded in the Amlogic grabber itself
 					#if defined(ENABLE_FB) && !defined(ENABLE_AMLOGIC)
 
-					FramebufferFrameGrabber* fbGrabber = new FramebufferFrameGrabber();
+					QScopedPointer<FramebufferFrameGrabber> fbGrabber(new FramebufferFrameGrabber());
 					device = fbGrabber->discover(params);
 					if (!device.isEmpty() )
 					{
 						videoInputs.append(device);
 					}
-					delete fbGrabber;
 					#endif
 
 					#if defined(ENABLE_DISPMANX)
-					DispmanxFrameGrabber* dispmanx = new DispmanxFrameGrabber();
+					QScopedPointer<DispmanxFrameGrabber> dispmanx(new DispmanxFrameGrabber());
 					if (dispmanx->isAvailable())
 					{
 						device = dispmanx->discover(params);
@@ -1761,27 +1756,24 @@ void JsonAPI::handleInputSourceCommand(const QJsonObject& message, const QString
 							videoInputs.append(device);
 						}
 					}
-					delete dispmanx;
 					#endif
 
 					#if defined(ENABLE_AMLOGIC)
-					AmlogicGrabber* amlGrabber = new AmlogicGrabber();
+					QScopedPointer<AmlogicGrabber> amlGrabber(new AmlogicGrabber());
 					device = amlGrabber->discover(params);
 					if (!device.isEmpty() )
 					{
 						videoInputs.append(device);
 					}
-					delete amlGrabber;
 					#endif
 
 					#if defined(ENABLE_OSX)
-					OsxFrameGrabber* osxGrabber = new OsxFrameGrabber();
+					QScopedPointer<OsxFrameGrabber> osxGrabber(new OsxFrameGrabber());
 					device = osxGrabber->discover(params);
 					if (!device.isEmpty() )
 					{
 						videoInputs.append(device);
 					}
-					delete osxGrabber;
 					#endif
 				}
 

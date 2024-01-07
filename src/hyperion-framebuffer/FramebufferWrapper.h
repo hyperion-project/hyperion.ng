@@ -12,7 +12,7 @@ class FramebufferWrapper : public QObject
 public:
 
 	FramebufferWrapper( int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ,
-						const QString & device = "/dev/fb0",
+						int deviceIdx = 0,
 						int pixelDecimation=GrabberWrapper::DEFAULT_PIXELDECIMATION,
 						int cropLeft=0, int cropRight=0,
 						int cropTop=0, int cropBottom=0

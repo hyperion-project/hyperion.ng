@@ -11,11 +11,29 @@
 class XcbWrapper: public GrabberWrapper
 {
 public:
+
+	static constexpr const char* GRABBERTYPE = "XCB";
+
+	///
+	/// Constructs the XCB frame grabber with a specified grab size and update rate.
+	///
+	/// @param[in] updateRate_Hz     The image grab rate [Hz]
+	/// @param[in] pixelDecimation   Decimation factor for image [pixels]
+	/// @param[in] cropLeft          Remove from left [pixels]
+	/// @param[in] cropRight 	     Remove from right [pixels]
+	/// @param[in] cropTop           Remove from top [pixels]
+	/// @param[in] cropBottom        Remove from bottom [pixels]
+	///
 	XcbWrapper(	int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ,
 				int pixelDecimation=GrabberWrapper::DEFAULT_PIXELDECIMATION,
 				int cropLeft=0, int cropRight=0,
 				int cropTop=0, int cropBottom=0
 				);
+
+	///
+	/// Constructs the XCB frame grabber from configuration settings
+	///
+	XcbWrapper(const QJsonDocument& grabberConfig = QJsonDocument());
 
 	~XcbWrapper() override;
 

@@ -1,5 +1,8 @@
 #pragma once
 
+#include <QJsonObject>
+#include <QStringLiteral>
+
 #include <hyperion/GrabberWrapper.h>
 #include <grabber/qt/QtGrabber.h>
 
@@ -8,7 +11,10 @@
 ///
 class QtWrapper: public GrabberWrapper
 {
+
 public:
+	static constexpr const char* GRABBERTYPE = "Qt";
+
 	///
 	/// Constructs the QT frame grabber with a specified grab size and update rate.
 	///
@@ -19,7 +25,6 @@ public:
 	/// @param[in] cropRight 	     Remove from right [pixels]
 	/// @param[in] cropTop           Remove from top [pixels]
 	/// @param[in] cropBottom        Remove from bottom [pixels]
-
 	///
 	QtWrapper( int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ,
 			   int display=0,
@@ -27,6 +32,11 @@ public:
 			   int cropLeft=0, int cropRight=0,
 			   int cropTop=0, int cropBottom=0
 			   );
+
+	///
+	/// Constructs the QT frame grabber from configuration settings
+	///
+	QtWrapper(const QJsonDocument& grabberConfig = QJsonDocument());
 
 	///
 	/// Starts the grabber which produces led values with the specified update rate

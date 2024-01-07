@@ -1,4 +1,5 @@
-#pragma once
+#ifndef HYPERIOND_H
+#define HYPERIOND_H
 
 #include <QApplication>
 #include <QObject>
@@ -185,25 +186,58 @@ private:
 	void startGrabberServices();
 	void stopGrabberServices();
 
-	void updateScreenGrabbers(const QJsonObject& grabberConfig);
+	void updateScreenGrabbers(const QJsonDocument& grabberConfig);
 	void updateVideoGrabbers(const QJsonObject& grabberConfig);
 	void updateAudioGrabbers(const QJsonObject& grabberConfig);
 
-	void startGrabberDispmanx(const QJsonObject & grabberConfig);
-	void startGrabberAmlogic(const QJsonObject & grabberConfig);
-	void startGrabberFramebuffer(const QJsonObject & grabberConfig);
-	void startGrabberOsx(const QJsonObject & grabberConfig);
-	void startGrabberX11(const QJsonObject & grabberConfig);
-	void startGrabberXcb(const QJsonObject & grabberConfig);
-	void startGrabberQt(const QJsonObject & grabberConfig);
-	void startGrabberDx(const QJsonObject & grabberConfig);
+	QString evalScreenGrabberType();
+
+	template<typename GrabberType>
+	void startGrabber(QScopedPointer<GrabberWrapper>& sharedGrabber, const QJsonDocument& grabberConfig, bool enableGrabber = true) {
+
+		QString typeName = GrabberType::GRABBERTYPE;
+		if (!enableGrabber)
+		{
+			Debug(_log, "The %s grabber is not enabled on this platform", QSTRING_CSTR(typeName));
+			sharedGrabber.reset();
+			return;
+		}
+
+		QScopedPointer<GrabberType> grabber = QScopedPointer(new GrabberType(grabberConfig));
+
+		if (!grabber)
+		{
+			qWarning() << "Failed to cast grabber type " << typeName << " to GrabberWrapper";
+		}
+		else
+		{
+			if (!grabber->isAvailable())
+			{
+				Debug(_log, "The %s grabber is not available on this platform", QSTRING_CSTR(typeName));
+				return;
+			}
+			connect(this, &HyperionDaemon::videoMode, grabber.get(), &GrabberType::setVideoMode);
+			connect(this, &HyperionDaemon::settingsChanged, grabber.get(), &GrabberType::handleSettingsUpdate);
+
+			Info(_log, "%s grabber created", QSTRING_CSTR(typeName));
+			grabber->tryStart();
+
+			sharedGrabber.reset(grabber.take());
+		}
+	}
 
 	Logger* _log;
 
+	/// Core services
 	QScopedPointer<HyperionIManager> _instanceManager;
 	QScopedPointer<SettingsManager> _settingsManager;
-	QScopedPointer<AuthManager> _authManager;
 
+#if defined(ENABLE_EFFECTENGINE)
+	PythonInit*                _pyInit;
+#endif
+
+	/// Network services
+	QScopedPointer<AuthManager> _authManager;
 	QScopedPointer<NetOrigin> _netOrigin;
 	QScopedPointer<JsonServer, QScopedPointerDeleteLater> _jsonServer;
 	QScopedPointer<WebServer, QScopedPointerDeleteLater> _webserver;
@@ -212,7 +246,6 @@ private:
 #ifdef ENABLE_MDNS
 	QScopedPointer<MdnsProvider, QScopedPointerDeleteLater> _mDNSProvider;
 #endif
-
 #if defined(ENABLE_FLATBUF_SERVER)
 	QScopedPointer<FlatBufferServer, QScopedPointerDeleteLater> _flatBufferServer;
 #endif
@@ -220,6 +253,7 @@ private:
 	QScopedPointer<ProtoServer, QScopedPointerDeleteLater> _protoServer;
 #endif
 
+	/// Event services
 	QScopedPointer<EventHandler> _eventHandler;
 	QScopedPointer<OsEventHandler> _osEventHandler;
 	QScopedPointer<EventScheduler> _eventScheduler;
@@ -227,21 +261,13 @@ private:
 	QScopedPointer<CECHandler> _cecHandler;
 #endif
 
+	/// Grabber services
+	QScopedPointer<GrabberWrapper> _screenGrabber;
 	QScopedPointer<VideoWrapper> _videoGrabber;
-	QScopedPointer<DispmanxWrapper> _dispmanx;
-	QScopedPointer<X11Wrapper> _x11Grabber;
-	QScopedPointer<XcbWrapper> _xcbGrabber;
-	QScopedPointer<AmlogicWrapper> _amlGrabber;
-	QScopedPointer<FramebufferWrapper> _fbGrabber;
-	QScopedPointer<OsxWrapper> _osxGrabber;
-	QScopedPointer<QtWrapper> _qtGrabber;
-	QScopedPointer<DirectXWrapper> _dxGrabber;
 	QScopedPointer<AudioWrapper> _audioGrabber;
 
 	QString                    _prevType;
 	VideoMode                  _currVideoMode;
-
-#if defined(ENABLE_EFFECTENGINE)
-	PythonInit*                _pyInit;
-#endif
 };
+
+#endif // HYPERIOND_H

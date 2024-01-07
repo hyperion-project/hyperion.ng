@@ -20,8 +20,9 @@ const bool verbose = false;
 } //End of constants
 
 QtGrabber::QtGrabber(int display, int cropLeft, int cropRight, int cropTop, int cropBottom)
-	: Grabber("QTGRABBER", cropLeft, cropRight, cropTop, cropBottom)
+	: Grabber("GRABBER-QT", cropLeft, cropRight, cropTop, cropBottom)
 	  , _display(display)
+	  , _numberOfSDisplays(0)
 	  , _screenWidth(0)
 	  , _screenHeight(0)
 	  , _src_x(0)
@@ -32,7 +33,6 @@ QtGrabber::QtGrabber(int display, int cropLeft, int cropRight, int cropTop, int 
 	  , _screen(nullptr)
 	  , _isVirtual(false)
 {
-	_logger = Logger::getInstance("Qt");
 	_useImageResampler = false;
 }
 
