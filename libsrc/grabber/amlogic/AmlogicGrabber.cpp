@@ -27,7 +27,7 @@
 namespace {
 const bool verbose = false;
 
-const int  DEFAULT_FB_DEVICE_IDX[] = 0;
+const int  DEFAULT_FB_DEVICE_IDX = 0;
 const char DEFAULT_VIDEO_DEVICE[] = "/dev/amvideo";
 const char DEFAULT_CAPTURE_DEVICE[] = "/dev/amvideocap0";
 const int  AMVIDEOCAP_WAIT_MAX_MS = 40;
