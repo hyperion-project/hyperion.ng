@@ -207,7 +207,7 @@ private:
 
 		if (!grabber)
 		{
-			qWarning() << "Failed to cast grabber type " << typeName << " to GrabberWrapper";
+			Error(_log, "Failed to cast grabber type %s to GrabberWrapper", QSTRING_CSTR(typeName));
 		}
 		else
 		{
