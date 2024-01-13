@@ -200,13 +200,16 @@ void Hyperion::stop()
 
 void Hyperion::freeObjects()
 {
-	//delete Background effect first that it does not kick in when other priorities are stopped
-	delete _BGEffectHandler;
+	//Disconnect Background effect first that it does not kick in when other priorities are stopped
+	_BGEffectHandler->disconnect();
 
 	//Remove all priorities to switch off all leds
 	clear(-1,true);
 
 	// delete components on exit of hyperion core
+
+	delete _BGEffectHandler;
+
 #if defined(ENABLE_BOBLIGHT_SERVER)
 	delete _boblightServer;
 #endif

@@ -2,7 +2,6 @@
 #define MDNS_BROWSER_H
 
 #include <chrono>
-#include <type_traits>
 
 #include <qmdnsengine/server.h>
 #include <qmdnsengine/service.h>
@@ -16,6 +15,9 @@
 // Qt includes
 #include <QObject>
 #include <QByteArray>
+#include <QMap>
+#include <QJsonArray>
+#include <QSharedPointer>
 
 // Utility includes
 #include <utils/Logger.h>
@@ -24,14 +26,11 @@
 namespace {
 	constexpr std::chrono::milliseconds DEFAULT_DISCOVER_TIMEOUT{ 500 };
 	constexpr std::chrono::milliseconds DEFAULT_ADDRESS_RESOLVE_TIMEOUT{ 1000 };
-
-} //End of constants
+} // End of constants
 
 class MdnsBrowser : public QObject
 {
 	Q_OBJECT
-
-		// Run MdnsBrowser as singleton
 
 private:
 	///
@@ -57,7 +56,6 @@ public:
 
 	QMdnsEngine::Service getFirstService(const QByteArray& serviceType, const QString& filter = ".*", const std::chrono::milliseconds waitTime = DEFAULT_DISCOVER_TIMEOUT) const;
 	QJsonArray getServicesDiscoveredJson(const QByteArray& serviceType, const QString& filter = ".*", const std::chrono::milliseconds waitTime = std::chrono::milliseconds{ 0 }) const;
-
 
 	void printCache(const QByteArray& name = QByteArray(), quint16 type = QMdnsEngine::ANY) const;
 
@@ -109,8 +107,9 @@ private:
 
 	QMdnsEngine::Server _server;
 	QMdnsEngine::Cache  _cache;
+	QSharedPointer<QMdnsEngine::Resolver> _resolver;
 
-	QMap<QByteArray, QMdnsEngine::Browser*> _browsedServiceTypes;
+	QMap<QByteArray, QSharedPointer<QMdnsEngine::Browser>> _browsedServiceTypes;
 };
 
 #endif // MDNSBROWSER_H

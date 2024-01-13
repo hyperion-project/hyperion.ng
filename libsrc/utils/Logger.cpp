@@ -2,7 +2,6 @@
 #include <utils/FileUtils.h>
 
 #include <iostream>
-#include <algorithm>
 
 #ifndef _WIN32
 #include <syslog.h>
@@ -15,7 +14,8 @@
 #include <QFileInfo>
 #include <QMutexLocker>
 #include <QThreadStorage>
-#include <time.h>
+#include <QJsonObject>
+
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
 	QRecursiveMutex        Logger::MapLock;
@@ -38,6 +38,7 @@ const size_t MAX_IDENTIFICATION_LENGTH = 22;
 QAtomicInteger<unsigned int> LoggerCount = 0;
 QAtomicInteger<unsigned int> LoggerId    = 0;
 
+const int MAX_LOG_MSG_BUFFERED = 500;
 const int MaxRepeatCountSize = 200;
 QThreadStorage<int> RepeatCount;
 QThreadStorage<Logger::T_LOG_MESSAGE> RepeatMessage;
@@ -51,8 +52,7 @@ Logger* Logger::getInstance(const QString & name, const QString & subName, Logge
 	if (log == nullptr)
 	{
 		log = new Logger(name, subName, minLevel);
-		LoggerMap.insert(name, log); // compat version, replace it with following line if we have 100% c++11
-		//LoggerMap.emplace(name, log);  // not compat with older linux distro's e.g. wheezy
+		LoggerMap.insert(name + subName, log);
 		connect(log, &Logger::newLogMessage, LoggerManager::getInstance(), &LoggerManager::handleNewLogMessage);
 	}
 
@@ -105,7 +105,7 @@ Logger::LogLevel Logger::getLogLevel(const QString & name, const QString & subNa
 Logger::Logger (const QString & name, const QString & subName, LogLevel minLevel)
 	: QObject()
 	, _name(name)
-	, _subname(subName)
+	, _subName(subName)
 	, _syslogEnabled(true)
 	, _loggerId(LoggerId++)
 	, _minLevel(static_cast<int>(minLevel))
@@ -161,7 +161,7 @@ void Logger::write(const Logger::T_LOG_MESSAGE & message)
 		.toStdString()
 	<< std::endl;
 
-	newLogMessage(message);
+	emit newLogMessage(message);
 }
 
 void Logger::Message(LogLevel level, const char* sourceFile, const char* func, unsigned int line, const char* fmt, ...)
@@ -195,7 +195,7 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 	};
 
 	if (RepeatMessage.localData().loggerName == _name  &&
-		RepeatMessage.localData().loggerSubName == _subname  &&
+		RepeatMessage.localData().loggerSubName == _subName  &&
 		RepeatMessage.localData().function == func &&
 		RepeatMessage.localData().message == msg   &&
 		RepeatMessage.localData().line == line)
@@ -213,7 +213,7 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 		Logger::T_LOG_MESSAGE logMsg;
 
 		logMsg.loggerName  = _name;
-		logMsg.loggerSubName  = _subname;
+		logMsg.loggerSubName  = _subName;
 		logMsg.function    = QString(func);
 		logMsg.line        = line;
 		logMsg.fileName    = FileUtils::getBaseName(sourceFile);
@@ -233,9 +233,34 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 
 LoggerManager::LoggerManager()
 	: QObject()
-	, _loggerMaxMsgBufferSize(200)
+	, _loggerMaxMsgBufferSize(MAX_LOG_MSG_BUFFERED)
 {
 	_logMessageBuffer.reserve(_loggerMaxMsgBufferSize);
+}
+
+QJsonArray LoggerManager::getLogMessageBuffer(Logger::LogLevel filter) const
+{
+	QJsonArray messageArray;
+	{
+		for (const auto &logLine : std::as_const(_logMessageBuffer))
+		{
+			if (logLine.level >= filter)
+			{
+				QJsonObject message;
+				message["loggerName"] = logLine.loggerName;
+				message["loggerSubName"] = logLine.loggerSubName;
+				message["function"] = logLine.function;
+				message["line"] = QString::number(logLine.line);
+				message["fileName"] = logLine.fileName;
+				message["message"] = logLine.message;
+				message["levelString"] = logLine.levelString;
+				message["utime"] = QString::number(logLine.utime);
+
+				messageArray.append(message);
+			}
+		}
+	}
+	return messageArray;
 }
 
 void LoggerManager::handleNewLogMessage(const Logger::T_LOG_MESSAGE & msg)

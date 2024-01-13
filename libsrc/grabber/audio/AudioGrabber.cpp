@@ -178,7 +178,7 @@ void AudioGrabber::processAudioFrame(int16_t* buffer, int length)
 	}
 
 	// Convert to Image<ColorRGB>
-	Image<ColorRgb> finalImage (static_cast<unsigned>(image.width()), static_cast<unsigned>(image.height()));
+	Image<ColorRgb> finalImage (image.width(),image.height());
 	for (int y = 0; y < image.height(); y++)
 	{
 		memcpy((unsigned char*)finalImage.memptr() + y * image.width() * 3, static_cast<unsigned char*>(image.scanLine(y)), image.width() * 3);

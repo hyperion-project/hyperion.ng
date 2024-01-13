@@ -22,8 +22,8 @@ const bool verbose = false;
 QtGrabber::QtGrabber(int display, int cropLeft, int cropRight, int cropTop, int cropBottom)
 	: Grabber("QTGRABBER", cropLeft, cropRight, cropTop, cropBottom)
 	  , _display(display)
-	  , _calculatedWidth(0)
-	  , _calculatedHeight(0)
+	  , _screenWidth(0)
+	  , _screenHeight(0)
 	  , _src_x(0)
 	  , _src_y(0)
 	  , _src_x_max(0)
@@ -233,8 +233,8 @@ int QtGrabber::grabFrame(Image<ColorRgb>& image)
 			}
 			else
 			{
-				QImage imageFrame = originalPixmap.toImage().scaled(_calculatedWidth, _calculatedHeight).convertToFormat(QImage::Format_RGB888);
-				image.resize(static_cast<uint>(_calculatedWidth), static_cast<uint>(_calculatedHeight));
+				QImage imageFrame = originalPixmap.toImage().scaled(_width, _height).convertToFormat(QImage::Format_RGB888);
+				image.resize(_width, _height);
 
 				for (int y = 0; y < imageFrame.height(); y++)
 				{
@@ -263,27 +263,27 @@ int QtGrabber::updateScreenDimensions(bool force)
 	{
 		geo = _screen->geometry();
 	}
-	if (!force && _width == geo.width() && _height == geo.height())
+	if (!force && _screenWidth == geo.width() && _height == geo.height())
 	{
 		// No update required
 		return 0;
 	}
 
-	Info(_log, "Update of screen resolution: [%dx%d] to [%dx%d]", _width, _height, geo.width(), geo.height());
-	_width = geo.width();
-	_height = geo.height();
+	Info(_log, "Update of screen resolution: [%dx%d] to [%dx%d]", _screenWidth, _screenHeight, geo.width(), geo.height());
+	_screenWidth = geo.width();
+	_screenHeight = geo.height();
 
 	int width = 0;
 	int height = 0;
 
 	// Image scaling is performed by Qt
-	width = (_width > (_cropLeft + _cropRight))
-				? ((_width - _cropLeft - _cropRight) / _pixelDecimation)
-				: (_width / _pixelDecimation);
+	width = (_screenWidth > (_cropLeft + _cropRight))
+				? ((_screenWidth - _cropLeft - _cropRight) / _pixelDecimation)
+				: (_screenWidth / _pixelDecimation);
 
-	height = (_height > (_cropTop + _cropBottom))
-				 ? ((_height - _cropTop - _cropBottom) / _pixelDecimation)
-				 : (_height / _pixelDecimation);
+	height = (_screenHeight > (_cropTop + _cropBottom))
+				 ? ((_screenHeight - _cropTop - _cropBottom) / _pixelDecimation)
+				 : (_screenHeight / _pixelDecimation);
 
 	// calculate final image dimensions and adjust top/left cropping in 3D modes
 	if (_isVirtual)
@@ -300,33 +300,33 @@ int QtGrabber::updateScreenDimensions(bool force)
 	switch (_videoMode)
 	{
 	case VideoMode::VIDEO_3DSBS:
-		_calculatedWidth = width / 2;
-		_calculatedHeight = height;
+		_width = width / 2;
+		_height = height;
 		_src_x = _src_x + (_cropLeft / 2);
 		_src_y = _src_y + _cropTop;
-		_src_x_max = (_width / 2) - _cropRight - _cropLeft;
-		_src_y_max = _height - _cropBottom - _cropTop;
+		_src_x_max = (_screenWidth / 2) - _cropRight - _cropLeft;
+		_src_y_max = _screenHeight - _cropBottom - _cropTop;
 		break;
 	case VideoMode::VIDEO_3DTAB:
-		_calculatedWidth = width;
-		_calculatedHeight = height / 2;
+		_width = width;
+		_height = height / 2;
 		_src_x = _src_x + _cropLeft;
 		_src_y = _src_y + (_cropTop / 2);
-		_src_x_max = _width - _cropRight - _cropLeft;
-		_src_y_max = (_height / 2) - _cropBottom - _cropTop;
+		_src_x_max = _screenWidth - _cropRight - _cropLeft;
+		_src_y_max = (_screenHeight / 2) - _cropBottom - _cropTop;
 		break;
 	case VideoMode::VIDEO_2D:
 	default:
-		_calculatedWidth = width;
-		_calculatedHeight = height;
+		_width = width;
+		_height = height;
 		_src_x = _src_x + _cropLeft;
 		_src_y = _src_y + _cropTop;
-		_src_x_max = _width - _cropRight - _cropLeft;
-		_src_y_max = _height - _cropBottom - _cropTop;
+		_src_x_max = _screenWidth - _cropRight - _cropLeft;
+		_src_y_max = _screenHeight - _cropBottom - _cropTop;
 		break;
 	}
 
-	Info(_log, "Update output image resolution to [%dx%d]", _calculatedWidth, _calculatedHeight);
+	Info(_log, "Update output image resolution to [%dx%d]", _width, _height);
 	Debug(_log, "Grab screen area: %d,%d,%d,%d", _src_x, _src_y, _src_x_max, _src_y_max);
 
 	return 1;
@@ -433,10 +433,10 @@ QJsonObject QtGrabber::discover(const QJsonObject& params)
 
 			if (screens.at(0)->size() != screens.at(0)->virtualSize())
 			{
-				QJsonObject in;
-				in["name"] = "All Displays";
-				in["inputIdx"] = screens.size();
-				in["virtual"] = true;
+				QJsonObject input;
+				input["name"] = "All Displays";
+				input["inputIdx"] = screens.size();
+				input["virtual"] = true;
 
 				QJsonArray formats;
 				QJsonObject format;
@@ -454,15 +454,19 @@ QJsonObject QtGrabber::discover(const QJsonObject& params)
 				format["resolutions"] = resolutionArray;
 				formats.append(format);
 
-				in["formats"] = formats;
-				video_inputs.append(in);
+				input["formats"] = formats;
+				video_inputs.append(input);
 			}
 			inputsDiscovered["video_inputs"] = video_inputs;
 
-			QJsonObject defaults, video_inputs_default, resolution_default;
+			QJsonObject resolution_default;
 			resolution_default["fps"] = _fps;
+
+			QJsonObject video_inputs_default;
 			video_inputs_default["resolution"] = resolution_default;
 			video_inputs_default["inputIdx"] = 0;
+
+			QJsonObject defaults;
 			defaults["video_input"] = video_inputs_default;
 			inputsDiscovered["default"] = defaults;
 		}

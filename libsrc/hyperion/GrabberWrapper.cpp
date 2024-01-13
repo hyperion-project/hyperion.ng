@@ -27,26 +27,33 @@ bool GrabberWrapper::GLOBAL_GRABBER_AUDIO_ENABLE = false;
 GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber * ggrabber, int updateRate_Hz)
 	: _grabberName(grabberName)
 	  , _log(Logger::getInstance(grabberName.toUpper()))
-	  , _timer(new QTimer(this))
+	  , _timer(nullptr)
 	  , _updateInterval_ms(1000/updateRate_Hz)
 	  , _ggrabber(ggrabber)
-	  , _image(0,0)
 {
 	GrabberWrapper::instance = this;
+
+	_timer.reset(new QTimer(this));
 
 	// Configure the timer to generate events every n milliseconds
 	_timer->setTimerType(Qt::PreciseTimer);
 	_timer->setInterval(_updateInterval_ms);
 
-	connect(_timer, &QTimer::timeout, this, &GrabberWrapper::action);
+	connect(_timer.get(), &QTimer::timeout, this, &GrabberWrapper::action);
 
 	// connect the image forwarding
 	if (_grabberName.startsWith("V4L"))
+	{
 		connect(this, &GrabberWrapper::systemImage, GlobalSignals::getInstance(), &GlobalSignals::setV4lImage);
+	}
 	else if (_grabberName.startsWith("Audio"))
+	{
 		connect(this, &GrabberWrapper::systemImage, GlobalSignals::getInstance(), &GlobalSignals::setAudioImage);
+	}
 	else
+	{
 		connect(this, &GrabberWrapper::systemImage, GlobalSignals::getInstance(), &GlobalSignals::setSystemImage);
+	}
 
 	// listen for source requests
 	connect(GlobalSignals::getInstance(), &GlobalSignals::requestSource, this, &GrabberWrapper::handleSourceRequest);
@@ -56,6 +63,7 @@ GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber * ggrabber, i
 
 GrabberWrapper::~GrabberWrapper()
 {
+	_timer->stop();
 	GrabberWrapper::instance = nullptr;
 }
 
@@ -103,19 +111,25 @@ QStringList GrabberWrapper::getActive(int inst, GrabberTypeFilter type) const
 	if (type == GrabberTypeFilter::SCREEN || type == GrabberTypeFilter::ALL)
 	{
 		if (GRABBER_SYS_CLIENTS.contains(inst))
+		{
 			result << GRABBER_SYS_CLIENTS.value(inst);
+		}
 	}
 
 	if (type == GrabberTypeFilter::VIDEO || type == GrabberTypeFilter::ALL)
 	{
 		if (GRABBER_V4L_CLIENTS.contains(inst))
+		{
 			result << GRABBER_V4L_CLIENTS.value(inst);
+		}
 	}
 
 	if (type == GrabberTypeFilter::AUDIO || type == GrabberTypeFilter::ALL)
 	{
 		if (GRABBER_AUDIO_CLIENTS.contains(inst))
+		{
 			result << GRABBER_AUDIO_CLIENTS.value(inst);
+		}
 	}
 
 	return result;
@@ -207,7 +221,9 @@ void GrabberWrapper::updateTimer(int interval)
 		_timer->setInterval(_updateInterval_ms);
 
 		if(timerWasActive)
+		{
 			_timer->start();
+		}
 	}
 }
 
@@ -268,40 +284,64 @@ void GrabberWrapper::handleSourceRequest(hyperion::Components component, int hyp
 		!_grabberName.startsWith("Audio"))
 	{
 		if (listen)
+		{
 			GRABBER_SYS_CLIENTS.insert(hyperionInd, _grabberName);
+		}
 		else
+		{
 			GRABBER_SYS_CLIENTS.remove(hyperionInd);
+		}
 
 		if (GRABBER_SYS_CLIENTS.empty() || !getSysGrabberState())
+		{
 			stop();
+		}
 		else
+		{
 			start();
+		}
 	}
 	else if (component == hyperion::Components::COMP_V4L &&
 		_grabberName.startsWith("V4L"))
 	{
 		if (listen)
+		{
 			GRABBER_V4L_CLIENTS.insert(hyperionInd, _grabberName);
+		}
 		else
+		{
 			GRABBER_V4L_CLIENTS.remove(hyperionInd);
+		}
 
 		if (GRABBER_V4L_CLIENTS.empty() || !getV4lGrabberState())
+		{
 			stop();
+		}
 		else
+		{
 			start();
+		}
 	}
 	else if (component == hyperion::Components::COMP_AUDIO &&
 		_grabberName.startsWith("Audio"))
 	{
 		if (listen)
+		{
 			GRABBER_AUDIO_CLIENTS.insert(hyperionInd, _grabberName);
+		}
 		else
+		{
 			GRABBER_AUDIO_CLIENTS.remove(hyperionInd);
+		}
 
 		if (GRABBER_AUDIO_CLIENTS.empty() || !getAudioGrabberState())
+		{
 			stop();
+		}
 		else
+		{
 			start();
+		}
 	}
 }
 

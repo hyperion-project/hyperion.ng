@@ -1983,24 +1983,10 @@ void JsonAPI::incommingLogMessage(const Logger::T_LOG_MESSAGE &msg)
 	if (!_streaming_logging_activated)
 	{
 		_streaming_logging_activated = true;
-		const QList<Logger::T_LOG_MESSAGE> *logBuffer = LoggerManager::getInstance()->getLogMessageBuffer();
-		for (int i = 0; i < logBuffer->length(); i++)
-		{
-			//Only present records of the current log-level
-			if ( logBuffer->at(i).level >= _log->getLogLevel())
-			{
-				message["loggerName"] = logBuffer->at(i).loggerName;
-				message["loggerSubName"] = logBuffer->at(i).loggerSubName;
-				message["function"] = logBuffer->at(i).function;
-				message["line"] = QString::number(logBuffer->at(i).line);
-				message["fileName"] = logBuffer->at(i).fileName;
-				message["message"] = logBuffer->at(i).message;
-				message["levelString"] = logBuffer->at(i).levelString;
-				message["utime"] = QString::number(logBuffer->at(i).utime);
-
-				messageArray.append(message);
-			}
-		}
+		QMetaObject::invokeMethod(LoggerManager::getInstance(), "getLogMessageBuffer",
+								  Qt::DirectConnection,
+								  Q_RETURN_ARG(QJsonArray, messageArray),
+								  Q_ARG(Logger::LogLevel, _log->getLogLevel()));
 	}
 	else
 	{
