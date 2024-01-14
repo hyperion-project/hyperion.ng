@@ -165,5 +165,7 @@ int main(int argc, char ** argv)
 		return -1;
 	}
 
+	Logger::deleteInstance();
+
 	return 0;
 }

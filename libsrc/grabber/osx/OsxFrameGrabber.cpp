@@ -124,6 +124,7 @@ bool OsxFrameGrabber::setDisplayIndex(int index)
 					CGImageRelease(image);
 				}
 			}
+		delete[] activeDspys;
 		}
 		else
 		{
@@ -201,7 +202,7 @@ QJsonObject OsxFrameGrabber::discover(const QJsonObject& params)
 			defaults["video_input"] = video_inputs_default;
 			inputsDiscovered["default"] = defaults;
 		}
-		delete [] activeDspys;
+		delete[] activeDspys;
 	}
 
 	if (inputsDiscovered.isEmpty())
