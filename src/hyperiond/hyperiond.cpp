@@ -436,7 +436,7 @@ void HyperionDaemon::updateScreenGrabbers(const QJsonDocument& grabberConfig)
 
 	if (type == "auto")
 	{
-		evalScreenGrabberType();
+		type = evalScreenGrabberType();
 	}
 
 	if (_prevType != type)
@@ -444,8 +444,11 @@ void HyperionDaemon::updateScreenGrabbers(const QJsonDocument& grabberConfig)
 		//Stop previous grabber
 		_screenGrabber.reset();
 
-		if (false)
-		{}
+		if (type == "auto")
+		{
+			Error(_log, "The automatic screen grabber type evaluation did not work.");
+			return;
+		}
 #ifdef ENABLE_AMLOGIC
 		else if (type == "amlogic")
 		{
