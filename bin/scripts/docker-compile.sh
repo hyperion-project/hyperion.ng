@@ -226,7 +226,7 @@ log "---> BASE_PATH  = ${BASE_PATH}"
 CODE_PATH=${BASE_PATH};
 
 # get Hyperion source, cleanup previous folder
-if [ ${BUILD_LOCAL} == 0 ]; then
+if [ ${BUILD_LOCAL} == false ]; then
 CODE_PATH="${CODE_PATH}/hyperion/"
 
 echo "---> Downloading Hyperion source code from ${GIT_REPO_URL}"
