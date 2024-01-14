@@ -203,7 +203,7 @@
     "dashboard_infobox_label_port_boblight": "Boblight сервер:",
     "dashboard_infobox_label_port_flat": "Плоский буфер:",
     "dashboard_infobox_label_port_json": "JSON-сервер",
-    "dashboard_infobox_label_port_proto": "Протобуфер:",
+    "dashboard_infobox_label_port_proto": "Протобуфер:\n",
     "dashboard_infobox_label_ports": "Порты",
     "dashboard_infobox_label_ports_websocket": "WebSocket (ws|wss):",
     "dashboard_infobox_label_smartacc": "Умный доступ",
