@@ -1,7 +1,8 @@
 # Hyperion - Supported platforms
-Hyperion is currently suported on the following sets of configuration:
-> **_NOTE:_** Configurations tagged as unofficial are running in general, but are provided/maintained on a best effort basis.\
-In case of problems, it is recommended checking with the wider Hyperion community (https://hyperion-project.org/forum/).
+The GitHub releases of Hyperion are currently supported on the following sets of configuration:
+> [!NOTE]
+> Configurations tagged as unofficial are running in general, but are provided/maintained on a best effort basis.\
+> In case of problems, it is recommended checking with the wider Hyperion community (https://hyperion-project.org/forum/).
 
 ## Official
 | Hardware  | OS              | Version            | Screen-Grabber                          | Package                                                                       | Comments                           |
@@ -21,7 +22,7 @@ In case you have an additional working setups you would like to share with the c
 
 | Hardware      | OS              | Version        | Screen-Grabber                          | Package                                                                         | Comments                                                                                                                                                |
 |---------------|-----------------|----------------|-----------------------------------------|---------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
-| X64           | macOS           | 11, 12         | QT<br>OSX                               | [macOS-x64.tar.gz](https://github.com/hyperion-project/hyperion.ng/releases) | M1 not tested                                                                                                                                           |
+| X64           | macOS           | 11, 12         | QT<br>OSX                               | [macOS-x86_x64.dmg](https://github.com/hyperion-project/hyperion.ng/releases)   |                                                                                                                                                         |
 | X64           | Fedora          | 39             | QT&#xB9;<br/>XCB/X11&#xB9;              | [Linux-x86_64.rpm](https://github.com/hyperion-project/hyperion.ng/releases)    |                                                                                                                                                         |
 | X64           | Arch            |                | QT&#xB9;<br/>XCB/X11&#xB9;              | [Linux-x86_64.rpm](https://github.com/hyperion-project/hyperion.ng/releases)    |                                                                                                                                                         |
 | RPi 0/ 1 / 2  | Raspberry Pi OS | 10, 11, 12&#xB3;| QT&#xB9;<br/>XCB/X11&#xB9;<br/>DispmanX | [Linux-armv6l.tar.gz](https://github.com/hyperion-project/hyperion.ng/releases) | No recommended                                                                                                                                          |

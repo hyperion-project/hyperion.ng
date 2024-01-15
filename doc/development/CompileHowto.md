@@ -3,7 +3,9 @@
 If you are using [Docker](https://www.docker.com/), you can compile Hyperion inside a docker container. This keeps your system clean and with a simple script it's easy to use. Supported is also cross compiling for Raspberry Pi (Debian Buster or higher). To compile Hyperion just execute one of the following commands.
 
 The compiled binaries and packages will be available at the deploy folder next to the script.<br/>
-Note: call the script with `./docker-compile.sh --help` for more options.
+
+> [!NOTE]
+> Call the script with `./docker-compile.sh --help` for more options.
 
 ## Cross compilation on amd64 (aka x86_64), sample commands
 
@@ -113,11 +115,11 @@ sudo dnf install python3-devel qt-devel qt5-qtbase-devel qt5-qtserialport-devel 
 After installing the dependencies, you can continue with the compile instructions later on this page (the more detailed way..).
 
 ## OSX
-To install on OS X you either need Homebrew or Macport but Homebrew is the recommended way to install the packages. To use Homebrew XCode is required as well, use `brew doctor` to check your install.
+To install on OS X you either need [Homebrew](https://brew.sh/) or [Macport](https://www.macports.org/) but Homebrew is the recommended way to install the packages. To use Homebrew, XCode is required as well, use `brew doctor` to check your install.
 
 First you need to install the dependencies:
 ```console
-brew install qt5 python3 cmake libusb doxygen
+brew install git qt@5 python3 cmake libusb openssl@1.1
 ```
 
 ## Windows
@@ -127,13 +129,13 @@ We assume a 64bit Windows 10. Install the following;
 - [Visual Studio 2022 Community Edition](https://visualstudio.microsoft.com/downloads/#visual-studio-community-2022)
   - Select 'Desktop development with C++'
   - On the right, just select `MSVC v143 VS 2022 C++ x64/x86-Buildtools` and latest `Windows 10 SDK`. Everything else is not needed.
-- [Win64 OpenSSL v1.1.1k](https://slproweb.com/products/Win32OpenSSL.html) ([direct link](https://slproweb.com/download/Win64OpenSSL-1_1_1k.exe))
+- [Win64 OpenSSL v1.1.1w](https://slproweb.com/products/Win32OpenSSL.html) ([direct link](https://slproweb.com/download/Win64OpenSSL-1_1_1w.exe))
 - [Python 3 (Windows x86-64 executable installer)](https://www.python.org/downloads/windows/) (Check: Add to PATH and Debug Symbols)
   - Open a console window and execute `pip install aqtinstall`.
   - Now we can download Qt to _C:\Qt_ `mkdir c:\Qt && aqt install -O c:\Qt 5.15.2 windows desktop win64_msvc2019_64`
   - QT6.2 requires the [Vulkan SDK](https://vulkan.lunarg.com/sdk/home) to be installed
 - [libjpeg-turbo SDK for Visual C++](https://sourceforge.net/projects/libjpeg-turbo/files/)
-  - Download the latest 64bit installer (currently `libjpeg-turbo-2.1.3-vc64.exe`) and install to its default location `C:\libjpeg-turbo64`.
+  - Download the latest 64bit installer (currently `libjpeg-turbo-3.0.1-vc64.exe`) and install to its default location `C:\libjpeg-turbo64`.
 
 ###  Optional:
 - For DirectX9 grabber:
@@ -171,7 +173,7 @@ bin/hyperiond
 # webui is located on localhost:8090 or 8091
 ```
 
-In case you would like to build with a dedicated Qt version, Either supply ``QTDIR`` as ``-DQTDIR=<path>`` to cmake or set and environment variable ``QTDIR`` pointing to the Qt installation.
+In case you would like to build with a dedicated Qt version, Either supply ``QTDIR`` as ``-DQTDIR=<path>`` to CMake or set an environment variable ``QTDIR`` pointing to the Qt installation.
 
 On Windows MSVC2022 set it via the CMakeSettings.json:
 ```posh
