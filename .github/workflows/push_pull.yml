@@ -28,7 +28,7 @@ jobs:
       qt_version: ${{ matrix.qt_version }}
       event_name: ${{ github.event_name }}
       pull_request_number: ${{ github.event.pull_request.number }}
-      publish: ${{ startsWith(github.event.ref, 'refs/tags') }}
+      publish: ${{ startsWith(github.event.ref, 'refs/tags') && matrix.qt_version == '5' }}
 
   # Build DEB/RPM Packages for APT/DNF Repository (runs only on tagged commits)
   repo_build:
