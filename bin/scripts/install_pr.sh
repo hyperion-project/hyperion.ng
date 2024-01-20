@@ -77,12 +77,12 @@ fi
 if [[ "${ARCHITECTURE}" == "aarch64" || "${ARCHITECTURE}" == "arm64" ]]; then
 	ARCHITECTURE="arm64"
 	USER_ARCHITECTURE=$ARCHITECTURE
-	IS_V7L=`cat /proc/$$/maps |grep -m1 -c v7l`
-	if [ $IS_V7L -ne 0 ]; then
+    IS_ARMHF=$(grep -m1 -c armhf /proc/$$/maps)
+    if [ $IS_ARMHF -ne 0 ]; then
 		USER_ARCHITECTURE="armv7"
 	else
-	   IS_V6L=`cat /proc/$$/maps |grep -m1 -c v6l`
-	   if [ $IS_V6L -ne 0 ]; then
+       IS_ARMEL=$(grep -m1 -c armel /proc/$$/maps)
+       if [ $IS_ARMEL -ne 0 ]; then
 		   USER_ARCHITECTURE="armv6"
 	   fi
 	fi
@@ -94,7 +94,7 @@ else
 	ARCHITECTURE=${ARCHITECTURE//x86_/amd}
 fi
 
-echo 'armv6l armv7l arm64 amd64' | grep -qw ${ARCHITECTURE}
+echo 'armv6 armv7 arm64 amd64' | grep -qw ${ARCHITECTURE}
 if [ $? -ne 0 ]; then
     echo "---> Critical Error: Target architecture $ARCHITECTURE is unknown -> abort"
     exit 1
@@ -216,44 +216,56 @@ rm $BASE_PATH/temp.zip 2>/dev/null
 
 # Create the startup script
 echo '---> Create startup script'
-STARTUP_SCRIPT="#!/bin/bash -e
+STARTUP_SCRIPT_STOPSRVS=$(cat << 'EOF'
+#!/bin/bash -e
 
 # Stop hyperion service, if it is running
-"'CURRENT_SERVICE=$(systemctl --type service | { grep -o "hyperion.*\.service" || true; })
+CURRENT_SERVICE=$(systemctl --type service | grep -o 'hyperion.*\.service' || true)
+
 if [[ ! -z ${CURRENT_SERVICE} ]]; then
     echo "---> Stop current service: ${CURRENT_SERVICE}"
 
     STOPCMD="systemctl stop --quiet ${CURRENT_SERVICE} --now"
     USERNAME=${SUDO_USER:-$(whoami)}
+
     if [ ${USERNAME} != "root" ]; then
         STOPCMD="sudo ${STOPCMD}"
     fi
 
     ${STOPCMD} >/dev/null 2>&1
+
     if [ $? -ne 0 ]; then
-       echo "---> Critical Error: Failed to stop service: ${CURRENT_SERVICE}, Hyperion may not be started. Stop Hyperion manually."
+        echo "---> Critical Error: Failed to stop service: ${CURRENT_SERVICE}, Hyperion may not be started. Stop Hyperion manually."
     else
-       echo "---> Service ${CURRENT_SERVICE} successfully stopped, Hyperion will be started"
+        echo "---> Service ${CURRENT_SERVICE} successfully stopped, Hyperion will be started"
     fi
-fi'""
+fi
+EOF
+)
 
 TARGET_CONFIGDIR="$BASE_PATH/config"
 
 if [[ ! -z ${CONFIGDIR} ]]; then
-STARTUP_SCRIPT+="
+  STARTUP_SCRIPT_COPYCONFIG="$(cat <<EOF
+  
 # Copy existing configuration file
-"'echo "Copy existing configuration from "'${CONFIGDIR}"
+echo "Copy existing configuration from ${CONFIGDIR}"
 mkdir -p "$TARGET_CONFIGDIR"
-cp -ri "${CONFIGDIR}/*" "$TARGET_CONFIGDIR""
+cp -ri "${CONFIGDIR}"/* "$TARGET_CONFIGDIR"
+EOF
+)"
 fi
 
-STARTUP_SCRIPT+="
-# Start PR artifact
-cd $BASE_PATH/hyperion_pr$pr_number
-./bin/hyperiond -d -u $TARGET_CONFIGDIR"
+STARTUP_SCRIPT_STARTPR="$(cat <<EOF
+
+# Start PR artifact 
+cd "$BASE_PATH/hyperion_pr$pr_number"
+./bin/hyperiond -d -u "$TARGET_CONFIGDIR"
+EOF
+)"
 
 # Place startup script
-echo "$STARTUP_SCRIPT" > $BASE_PATH/hyperion_pr$pr_number/$pr_number.sh
+echo "${STARTUP_SCRIPT_STOPSRVS} ${STARTUP_SCRIPT_COPYCONFIG} ${STARTUP_SCRIPT_STARTPR}" > "$BASE_PATH/hyperion_pr$pr_number/$pr_number.sh"
 
 # Set the executen bit
 chmod +x -R $BASE_PATH/hyperion_pr$pr_number/$pr_number.sh
