@@ -74,25 +74,26 @@ if [[ -z ${ARCHITECTURE} ]]; then
 fi
 
 #Test if multiarchitecture setup, i.e. user-space is 32bit
-if [[ "${ARCHITECTURE}" == "aarch64" || "${ARCHITECTURE}" == "arm64" ]]; then
+if [[ "${ARCHITECTURE}" == "aarch64" ]]; then
 	ARCHITECTURE="arm64"
-	USER_ARCHITECTURE=$ARCHITECTURE
-    IS_ARMHF=$(grep -m1 -c armhf /proc/$$/maps)
-    if [ $IS_ARMHF -ne 0 ]; then
-		USER_ARCHITECTURE="armv7"
-	else
-       IS_ARMEL=$(grep -m1 -c armel /proc/$$/maps)
-       if [ $IS_ARMEL -ne 0 ]; then
-		   USER_ARCHITECTURE="armv6"
-	   fi
-	fi
-    if [ $ARCHITECTURE != $USER_ARCHITECTURE ]; then
-        echo "---> Identified user space target architecture: $USER_ARCHITECTURE"
-        ARCHITECTURE=$USER_ARCHITECTURE
-    fi
-else
-	ARCHITECTURE=${ARCHITECTURE//x86_/amd}
 fi
+
+USER_ARCHITECTURE=$ARCHITECTURE
+IS_ARMHF=$(grep -m1 -c armhf /proc/$$/maps)
+if [ $IS_ARMHF -ne 0 ]; then
+    USER_ARCHITECTURE="armv7"
+else
+    IS_ARMEL=$(grep -m1 -c armel /proc/$$/maps)
+    if [ $IS_ARMEL -ne 0 ]; then
+        USER_ARCHITECTURE="armv6"
+	fi
+fi
+if [ $ARCHITECTURE != $USER_ARCHITECTURE ]; then
+    echo "---> Identified user space target architecture: $USER_ARCHITECTURE"
+    ARCHITECTURE=$USER_ARCHITECTURE
+fi
+
+ARCHITECTURE=${ARCHITECTURE//x86_/amd}
 
 echo 'armv6 armv7 arm64 amd64' | grep -qw ${ARCHITECTURE}
 if [ $? -ne 0 ]; then
