@@ -200,7 +200,7 @@ fi
 # Download packed PR artifact
 echo "---> Downloading Pull Request #$pr_number, package: $PACKAGE_NAME"
 if [ $hasCurl -eq 0 ]; then
-	curl -skH "Authorization: token ${PR_TOKEN}" -o $BASE_PATH/temp.zip -L --get $archive_download_url
+	curl -# -kH "Authorization: token ${PR_TOKEN}" -o $BASE_PATH/temp.zip -L --get $archive_download_url
 elif [ $hasWget -eq 0 ]; then
     echo "wget"
 	wget --quiet --header="Authorization: token ${PR_TOKEN}" -O $BASE_PATH/temp.zip $archive_download_url
