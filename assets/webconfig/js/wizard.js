@@ -202,6 +202,7 @@ function switchPicture(pictures) {
 
 function sendToKodi(type, content, cb) {
   var command;
+  var cbCalled = false;
 
   switch (type) {
     case "msg":
@@ -224,6 +225,7 @@ function sendToKodi(type, content, cb) {
     default:
       if (cb != undefined) {
         cb("error");
+        cbCalled = true;
       }
   }
 
@@ -247,9 +249,11 @@ function sendToKodi(type, content, cb) {
           if (response.result != undefined) {
             if (response.result === "OK") {
               cb("success");
+              cbCalled = true;
               ws.close();
             } else {
               cb("error");
+              cbCalled = true;
               ws.close();
             }
           }
@@ -259,7 +263,10 @@ function sendToKodi(type, content, cb) {
 
     ws.onerror = function (evt) {
       if (cb != undefined) {
-        cb("error");
+        if (!cbCalled) {
+          cb("error");
+        }
+        cbCalled = true;
         ws.close();
       }
     };
@@ -270,7 +277,9 @@ function sendToKodi(type, content, cb) {
   }
   else {
     console.log("Kodi Access: WebSocket NOT supported by this browser");
-    cb("error");
+    if (!cbCalled) {
+      cb("error");
+    }
   }
 }
 
