@@ -35,6 +35,9 @@ then
 	# disable user specific symlink
 	echo "---> Disable service and remove entry"
 	rm -v /etc/systemd/system/hyperion.service /etc/systemd/system/hyperiond@.service /etc/systemd/system/hyperion@.service 2> /dev/null
+	
+	# reload daemon after updates
+	systemctl -q daemon-reload 2> /dev/null
 	# reset all units with failed status
 	systemctl -q reset-failed 2> /dev/null
 
