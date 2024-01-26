@@ -3,13 +3,13 @@
 
 # Fixed variables
 api_url="https://api.github.com/repos/hyperion-project/hyperion.ng"
-type wget > /dev/null 2> /dev/null
+type wget >/dev/null 2>/dev/null
 hasWget=$?
-type curl > /dev/null 2> /dev/null
+type curl >/dev/null 2>/dev/null
 hasCurl=$?
-type python3 > /dev/null 2> /dev/null
+type python3 >/dev/null 2>/dev/null
 hasPython3=$?
-type python > /dev/null 2> /dev/null
+type python >/dev/null 2>/dev/null
 hasPython2=$?
 
 DISTRIBUTION="debian"
@@ -17,7 +17,7 @@ CODENAME="bullseye"
 ARCHITECTURE=""
 WITH_QT5=false
 
-BASE_PATH='.';
+BASE_PATH='.'
 
 if [[ "${hasWget}" -ne 0 ]] && [[ "${hasCurl}" -ne 0 ]]; then
 	echo '---> Critical Error: wget or curl required to download pull request artifacts'
@@ -25,12 +25,12 @@ if [[ "${hasWget}" -ne 0 ]] && [[ "${hasCurl}" -ne 0 ]]; then
 fi
 
 if [[ "${hasPython3}" -eq 0 ]]; then
-    pythonCmd="python3"
+	pythonCmd="python3"
 else
-    if [[ "${hasPython2}" -eq 0 ]]; then
-        pythonCmd="python"
-    else
-	    echo '---> Critical Error: python3 or python2 required to download pull request artifacts'
+	if [[ "${hasPython2}" -eq 0 ]]; then
+		pythonCmd="python"
+	else
+		echo '---> Critical Error: python3 or python2 required to download pull request artifacts'
 	fi
 	exit 1
 fi
@@ -44,15 +44,15 @@ function request_call() {
 }
 
 while getopts ":a:c:r:t:5" opt; do
-  case "$opt" in
-    a) ARCHITECTURE=$OPTARG ;;
-    c) CONFIGDIR=$OPTARG ;;
-    r) run_id=$OPTARG ;;
-    t) PR_TOKEN=$OPTARG ;;
-    5) WITH_QT5=true ;;    
-  esac
+	case "$opt" in
+	a) ARCHITECTURE=$OPTARG ;;
+	c) CONFIGDIR=$OPTARG ;;
+	r) run_id=$OPTARG ;;
+	t) PR_TOKEN=$OPTARG ;;
+	5) WITH_QT5=true ;;
+	esac
 done
-shift $(( OPTIND - 1 ))
+shift $((OPTIND - 1))
 
 # Check for a command line argument (PR number)
 if [ "$1" == "" ] || [ $# -gt 1 ] || [ -z ${PR_TOKEN} ]; then
@@ -70,44 +70,52 @@ echo '**************************************************************************
 
 # Determine the architecture, if not given
 if [[ -z ${ARCHITECTURE} ]]; then
-	ARCHITECTURE=`uname -m`
+	ARCHITECTURE=$(uname -m)
 fi
 
 #Test if multiarchitecture setup, i.e. user-space is 32bit
 if [[ "${ARCHITECTURE}" == "aarch64" ]]; then
 	ARCHITECTURE="arm64"
-fi
-
-USER_ARCHITECTURE=$ARCHITECTURE
-IS_ARMHF=$(grep -m1 -c armhf /proc/$$/maps)
-if [ $IS_ARMHF -ne 0 ]; then
-    USER_ARCHITECTURE="armv7"
-else
-    IS_ARMEL=$(grep -m1 -c armel /proc/$$/maps)
-    if [ $IS_ARMEL -ne 0 ]; then
-        USER_ARCHITECTURE="armv6"
+	USER_ARCHITECTURE=$ARCHITECTURE
+	IS_ARMHF=$(grep -m1 -c armhf /proc/$$/maps)
+	if [ $IS_ARMHF -ne 0 ]; then
+		USER_ARCHITECTURE="armv7"
+	else
+		IS_ARMEL=$(grep -m1 -c armel /proc/$$/maps)
+		if [ $IS_ARMEL -ne 0 ]; then
+			USER_ARCHITECTURE="armv6"
+		fi
 	fi
+	if [ $ARCHITECTURE != $USER_ARCHITECTURE ]; then
+		echo "---> Identified user space target architecture: $USER_ARCHITECTURE"
+		ARCHITECTURE=$USER_ARCHITECTURE
+	fi
+else
+	# Change x86_xx to amdxx
+	ARCHITECTURE=${ARCHITECTURE//x86_/amd}
+	# Remove 'l' from armv6l, armv7l
+	ARCHITECTURE=${ARCHITECTURE//l/}
 fi
-if [ $ARCHITECTURE != $USER_ARCHITECTURE ]; then
-    echo "---> Identified user space target architecture: $USER_ARCHITECTURE"
-    ARCHITECTURE=$USER_ARCHITECTURE
-fi
-
-ARCHITECTURE=${ARCHITECTURE//x86_/amd}
 
 echo 'armv6 armv7 arm64 amd64' | grep -qw ${ARCHITECTURE}
 if [ $? -ne 0 ]; then
-    echo "---> Critical Error: Target architecture $ARCHITECTURE is unknown -> abort"
-    exit 1
+	echo "---> Critical Error: Target architecture $ARCHITECTURE is unknown -> abort"
+	exit 1
 else
 	PACKAGE="${ARCHITECTURE}"
+
+	# armv6 has no Qt6 support yet
+	if [[ "${PACKAGE}" == "armv6" ]]; then
+		WITH_QT5=true
+	fi
+
 	QTVERSION="5"
 	if [ ${WITH_QT5} == false ]; then
 		QTVERSION="6"
 		PACKAGE="${PACKAGE}_qt6"
 	fi
 
-    echo "---> Download package for identified runtime architecture: $ARCHITECTURE and Qt$QTVERSION"
+	echo "---> Download package for identified runtime architecture: $ARCHITECTURE and Qt$QTVERSION"
 fi
 
 # Determine if PR number exists
@@ -147,9 +155,9 @@ if [ -z "$head_sha" ]; then
 fi
 
 if [ -z "$run_id" ]; then
-# Determine run_id from head_sha
-runs=$(request_call "$api_url/actions/runs?head_sha=$head_sha")
-run_id=$(echo "$runs" | tr '\r\n' ' ' | ${pythonCmd} -c """
+	# Determine run_id from head_sha
+	runs=$(request_call "$api_url/actions/runs?head_sha=$head_sha")
+	run_id=$(echo "$runs" | tr '\r\n' ' ' | ${pythonCmd} -c """
 import json,sys,os
 data = json.load(sys.stdin)
 
@@ -202,7 +210,7 @@ echo "---> Downloading Pull Request #$pr_number, package: $PACKAGE_NAME"
 if [ $hasCurl -eq 0 ]; then
 	curl -# -kH "Authorization: token ${PR_TOKEN}" -o $BASE_PATH/temp.zip -L --get $archive_download_url
 elif [ $hasWget -eq 0 ]; then
-    echo "wget"
+	echo "wget"
 	wget --quiet --header="Authorization: token ${PR_TOKEN}" -O $BASE_PATH/temp.zip $archive_download_url
 fi
 
@@ -217,7 +225,8 @@ rm $BASE_PATH/temp.zip 2>/dev/null
 
 # Create the startup script
 echo '---> Create startup script'
-STARTUP_SCRIPT_STOPSRVS=$(cat << 'EOF'
+STARTUP_SCRIPT_STOPSRVS=$(
+	cat <<'EOF'
 #!/bin/bash -e
 
 # Stop hyperion service, if it is running
@@ -247,17 +256,19 @@ EOF
 TARGET_CONFIGDIR="$BASE_PATH/config"
 
 if [[ ! -z ${CONFIGDIR} ]]; then
-  STARTUP_SCRIPT_COPYCONFIG="$(cat <<EOF
+	STARTUP_SCRIPT_COPYCONFIG="$(
+		cat <<EOF
   
 # Copy existing configuration file
 echo "Copy existing configuration from ${CONFIGDIR}"
 mkdir -p "$TARGET_CONFIGDIR"
 cp -ri "${CONFIGDIR}"/* "$TARGET_CONFIGDIR"
 EOF
-)"
+	)"
 fi
 
-STARTUP_SCRIPT_STARTPR="$(cat <<EOF
+STARTUP_SCRIPT_STARTPR="$(
+	cat <<EOF
 
 # Start PR artifact 
 cd "$BASE_PATH/hyperion_pr$pr_number"
@@ -266,7 +277,7 @@ EOF
 )"
 
 # Place startup script
-echo "${STARTUP_SCRIPT_STOPSRVS} ${STARTUP_SCRIPT_COPYCONFIG} ${STARTUP_SCRIPT_STARTPR}" > "$BASE_PATH/hyperion_pr$pr_number/$pr_number.sh"
+echo "${STARTUP_SCRIPT_STOPSRVS} ${STARTUP_SCRIPT_COPYCONFIG} ${STARTUP_SCRIPT_STARTPR}" >"$BASE_PATH/hyperion_pr$pr_number/$pr_number.sh"
 
 # Set the executen bit
 chmod +x -R $BASE_PATH/hyperion_pr$pr_number/$pr_number.sh
