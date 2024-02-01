@@ -160,7 +160,7 @@ jobs:
           echo '::endgroup::'
 
       - name: 💾 Cache/Restore
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: C:\Users\runneradmin\AppData\Local\Temp\chocolatey
           key: ${{ runner.os }}${{ inputs.qt_version == '6' && '-chocolatey-qt6' || '-chocolatey' }}
