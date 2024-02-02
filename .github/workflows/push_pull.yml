@@ -39,7 +39,7 @@ jobs:
     steps:
       - name: 📲 Dispatch APT/DNF build
         if: ${{ env.SECRET_HYPERION_BOT_TOKEN != null }}
-        uses: peter-evans/repository-dispatch@v2.1.2
+        uses: peter-evans/repository-dispatch@v3.0.0
         with:
           repository: hyperion-project/hyperion.releases-ci
           token: ${{ secrets.HYPERION_BOT_TOKEN }}
