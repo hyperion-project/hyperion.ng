@@ -42,12 +42,12 @@ jobs:
       matrix:
         os: [
           { distribution: debian, codename: buster,   description: Debian Buster (x86_64),                        architecture: [ amd64, linux/amd64  ], platform: x11 },
-          { distribution: debian, codename: bullseye, description: Debian Bullseye (x86_64),                      architecture: [ amd64, linux/amd64  ], platform: x11 },
-          { distribution: debian, codename: buster,   description: Debian Buster (Raspberry Pi 1 & Zero),         architecture: [ armv6, linux/arm/v5 ], platform: rpi },
+          { distribution: debian, codename: buster,   description: Debian Buster (Raspberry Pi 1 & Zero 1),       architecture: [ armv6, linux/arm/v6 ], platform: rpi },
           { distribution: debian, codename: buster,   description: Debian Buster (Raspberry Pi 2),                architecture: [ armv7, linux/arm/v7 ], platform: rpi },
+          { distribution: debian, codename: buster,   description: Debian Buster (Raspberry Pi 3/4/5 & Zero 2),   architecture: [ arm64, linux/arm64  ], platform: rpi },
+          { distribution: debian, codename: bullseye, description: Debian Bullseye (x86_64),                      architecture: [ amd64, linux/amd64  ], platform: x11 },
           { distribution: debian, codename: bullseye, description: Debian Bullseye (Raspberry Pi 2),              architecture: [ armv7, linux/arm/v7 ], platform: rpi },
-          { distribution: debian, codename: buster,   description: Debian Buster (Raspberry Pi Zero 2 & 3/4),   architecture: [ arm64, linux/arm64  ], platform: rpi },
-          { distribution: debian, codename: bullseye, description: Debian Bullseye (Raspberry Pi Zero 2 & 3/4), architecture: [ arm64, linux/arm64  ], platform: rpi }
+          { distribution: debian, codename: bullseye, description: Debian Bullseye (Raspberry Pi 3/4/5 & Zero 2), architecture: [ arm64, linux/arm64  ], platform: rpi }
         ]
         isQt5:
           - ${{ inputs.qt_version == '5' }}
