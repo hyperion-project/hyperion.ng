@@ -506,7 +506,7 @@ function createMatrixLayout(ledshoriz, ledsvert, cabling, start, direction, gap)
     });
   }
 
-  const startYX = start.split('-')
+  const startYX = start.split('-');
   let startX = startYX[1] === 'right' ? ledshoriz - 1 : 0;
   let startY = startYX[0] === 'bottom' ? ledsvert - 1 : 0;
   let endX = startX === 0 ? ledshoriz - 1 : 0;
