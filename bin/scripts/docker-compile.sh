@@ -126,7 +126,7 @@ do
             shift
             BUILD_PLATFORM=$1
             ;;
-        --qt5) 
+        --qt5)
             BUILD_WITH_QT5=true
             ;;
         -l|--local)
@@ -153,7 +153,7 @@ BUILD_ARGS=$@
 
 # determine package creation
 if [ ${BUILD_PACKAGES} == "true" ]; then
-	PACKAGES="package"
+	PACKAGES="--target package"
 fi
 
 # determine platform cmake parameter
@@ -214,7 +214,7 @@ if [ $ARCHITECTURE != $CURRENT_ARCHITECTURE ]; then
 	ENTRYPOINT_OPTION=
 
 	if [ $CURRENT_ARCHITECTURE != "amd64" ]; then
-		echo "---> Emulation builds can only be executed on linux/amd64, linux/x86_64 platforms, current architecture is ${CURRENT_ARCHITECTURE}"	
+		echo "---> Emulation builds can only be executed on linux/amd64, linux/x86_64 platforms, current architecture is ${CURRENT_ARCHITECTURE}"
 		exit 1
 	fi
 else
@@ -274,8 +274,8 @@ $DOCKER run --rm --platform=${PLATFORM_ARCHITECTURE} \
 	-v "${CODE_PATH}/:/source:rw" \
 	${REGISTRY_URL}/${DISTRIBUTION}:${CODENAME} \
 	/bin/bash -c "mkdir -p /source/${BUILD_DIR} && cd /source/${BUILD_DIR} &&
-	cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${PLATFORM} ${BUILD_ARGS} .. || exit 2 &&
-	make -j $(nproc) ${PACKAGES} || exit 3 || : &&
+	cmake -G Ninja -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${PLATFORM} ${BUILD_ARGS} .. || exit 2 &&
+	cmake --build . ${PACKAGES} -- -j $(nproc) || exit 3 || : &&
 	exit 0;
 	exit 1 " || { echo "---> Hyperion compilation failed! Abort"; exit 4; }
 
