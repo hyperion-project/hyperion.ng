@@ -42,12 +42,12 @@ jobs:
       matrix:
         os: [
           { distribution: debian, codename: buster,   description: Debian Buster (x86_64),                        architecture: [ amd64, linux/amd64  ], platform: x11 },
-          { distribution: debian, codename: bullseye, description: Debian Bullseye (x86_64),                      architecture: [ amd64, linux/amd64  ], platform: x11 },
-          { distribution: debian, codename: buster,   description: Debian Buster (Raspberry Pi 1 & Zero),         architecture: [ armv6, linux/arm/v5 ], platform: rpi },
+          { distribution: debian, codename: buster,   description: Debian Buster (Raspberry Pi 1 & Zero 1),       architecture: [ armv6, linux/arm/v6 ], platform: rpi },
           { distribution: debian, codename: buster,   description: Debian Buster (Raspberry Pi 2),                architecture: [ armv7, linux/arm/v7 ], platform: rpi },
+          { distribution: debian, codename: buster,   description: Debian Buster (Raspberry Pi 3/4/5 & Zero 2),   architecture: [ arm64, linux/arm64  ], platform: rpi },
+          { distribution: debian, codename: bullseye, description: Debian Bullseye (x86_64),                      architecture: [ amd64, linux/amd64  ], platform: x11 },
           { distribution: debian, codename: bullseye, description: Debian Bullseye (Raspberry Pi 2),              architecture: [ armv7, linux/arm/v7 ], platform: rpi },
-          { distribution: debian, codename: buster,   description: Debian Buster (Raspberry Pi Zero 2 & 3/4),   architecture: [ arm64, linux/arm64  ], platform: rpi },
-          { distribution: debian, codename: bullseye, description: Debian Bullseye (Raspberry Pi Zero 2 & 3/4), architecture: [ arm64, linux/arm64  ], platform: rpi }
+          { distribution: debian, codename: bullseye, description: Debian Bullseye (Raspberry Pi 3/4/5 & Zero 2), architecture: [ arm64, linux/arm64  ], platform: rpi }
         ]
         isQt5:
           - ${{ inputs.qt_version == '5' }}
@@ -86,7 +86,7 @@ jobs:
         if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.event_name == 'pull_request' && env.NAME || 'artifact' }}
+          name: ${{ inputs.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
           path: ${{ inputs.event_name == 'pull_request' && 'deploy/*.tar.gz' || 'deploy/Hyperion-*' }}
         env:
           NAME: ${{ format('{0}_{1}_{2}{3}', matrix.os.distribution, matrix.os.codename, matrix.os.architecture[0], inputs.qt_version == '6' && '_qt6' || '') }}
@@ -130,7 +130,7 @@ jobs:
         if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.event_name == 'pull_request' && env.NAME || 'artifact' }}
+          name: ${{ inputs.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
           path: 'build/Hyperion-*'
         env:
           NAME: ${{ inputs.qt_version == '6' && 'macOS_x64_qt6' || 'macOS_x64' }}
@@ -160,7 +160,7 @@ jobs:
           echo '::endgroup::'
 
       - name: 💾 Cache/Restore
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: C:\Users\runneradmin\AppData\Local\Temp\chocolatey
           key: ${{ runner.os }}${{ inputs.qt_version == '6' && '-chocolatey-qt6' || '-chocolatey' }}
@@ -200,7 +200,7 @@ jobs:
         if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.event_name == 'pull_request' && env.NAME || 'artifact' }}
+          name: ${{ inputs.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
           path: ${{ inputs.event_name == 'pull_request' && 'build/*.exe' || 'build/Hyperion-*' }}
         env:
           NAME: ${{ inputs.qt_version == '6' && 'windows_x64_qt6' || 'windows_x64' }}
@@ -226,16 +226,17 @@ jobs:
           echo '::endgroup::'
 
       - name: 💾 Artifact download
-        uses: actions/download-artifact@v4.1.0
+        uses: actions/download-artifact@v4.1.1
         with:
-          path: artifacts
+          pattern: artifact-*
+          path: all-artifacts
 
       - name: 📦 Upload
         uses: softprops/action-gh-release@v1
         with:
           name: Hyperion ${{ env.VERSION }}
           tag_name: ${{ env.TAG }}
-          files: "artifacts/**"
+          files: "all-artifacts/**"
           draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
