@@ -472,14 +472,14 @@ function createMatrixLayout(ledshoriz, ledsvert, cabling, start, direction, gap)
   // Big thank you to RanzQ (Juha Rantanen) from Github for this script
   // https://raw.githubusercontent.com/RanzQ/hyperion-audio-effects/master/matrix-config.js
 
-  let parallel = false
-  const leds = []
+  let parallel = false;
+  const leds = [];
 
-  const hblock = (1.0 - gap.left - gap.right) / ledshoriz
-  const vblock = (1.0 - gap.top - gap.bottom) / ledsvert
+  const hblock = (1.0 - gap.left - gap.right) / ledshoriz;
+  const vblock = (1.0 - gap.top - gap.bottom) / ledsvert;
 
   if (cabling == "parallel") {
-    parallel = true
+    parallel = true;
   }
 
   /**
@@ -488,10 +488,10 @@ function createMatrixLayout(ledshoriz, ledsvert, cabling, start, direction, gap)
    * @param {Number} y     Vertical position in matrix
    */
   function addLed(x, y) {
-    let hscanMin = gap.left + (x * hblock)
-    let hscanMax = gap.left + (x + 1) * hblock
-    let vscanMin = gap.top + y * vblock
-    let vscanMax = gap.top + (y + 1) * vblock
+    let hscanMin = gap.left + (x * hblock);
+    let hscanMax = gap.left + (x + 1) * hblock;
+    let vscanMin = gap.top + y * vblock;
+    let vscanMax = gap.top + (y + 1) * vblock;
 
     hscanMin = round(hscanMin);
     hscanMax = round(hscanMax);
@@ -503,42 +503,41 @@ function createMatrixLayout(ledshoriz, ledsvert, cabling, start, direction, gap)
       hmax: hscanMax,
       vmin: vscanMin,
       vmax: vscanMax
-    })
+    });
   }
 
   const startYX = start.split('-')
-  let startX = startYX[1] === 'right' ? ledshoriz - 1 : 0
-  let startY = startYX[0] === 'bottom' ? ledsvert - 1 : 0
-  let endX = startX === 0 ? ledshoriz - 1 : 0
-  let endY = startY === 0 ? ledsvert - 1 : 0
-  let forward = startX < endX
-  let downward = startY < endY
+  let startX = startYX[1] === 'right' ? ledshoriz - 1 : 0;
+  let startY = startYX[0] === 'bottom' ? ledsvert - 1 : 0;
+  let endX = startX === 0 ? ledshoriz - 1 : 0;
+  let endY = startY === 0 ? ledsvert - 1 : 0;
+  let forward = startX < endX;
+  let downward = startY < endY;
 
-  let x, y
+  let x, y;
 
   if (direction === 'vertical') {
     for (x = startX; forward && x <= endX || !forward && x >= endX; x += forward ? 1 : -1) {
       for (y = startY; downward && y <= endY || !downward && y >= endY; y += downward ? 1 : -1) {
-
-        addLed(x, y)
+        addLed(x, y);
       }
       if (!parallel) {
-        downward = !downward
-        const tmp = startY
-        startY = endY
-        endY = tmp
+        downward = !downward;
+        const tmp = startY;
+        startY = endY;
+        endY = tmp;
       }
     }
   } else {
     for (y = startY; downward && y <= endY || !downward && y >= endY; y += downward ? 1 : -1) {
       for (x = startX; forward && x <= endX || !forward && x >= endX; x += forward ? 1 : -1) {
-        addLed(x, y)
+        addLed(x, y);
       }
       if (!parallel) {
-        forward = !forward
-        const tmp = startX
-        startX = endX
-        endX = tmp
+        forward = !forward;
+        const tmp = startX;
+        startX = endX;
+        endX = tmp;
       }
     }
   }
@@ -562,7 +561,7 @@ function createMatrixLeds() {
     right: parseInt($("#ip_ma_gapright").val()) / 100,
     top: parseInt($("#ip_ma_gaptop").val()) / 100,
     bottom: parseInt($("#ip_ma_gapbottom").val()) / 100,
-  }
+  };
 
   nonBlacklistLedArray = createMatrixLayout(ledshoriz, ledsvert, cabling, start, direction, gap);
   finalLedArray = blackListLeds(nonBlacklistLedArray, ledBlacklist);
