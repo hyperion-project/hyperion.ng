@@ -15,9 +15,8 @@ public:
 	{
 	}
 
-	Image(unsigned width, unsigned height) :
+	Image(int width, int height) :
 		Image(width, height, Pixel_T())
-
 	{
 	}
 
@@ -28,7 +27,7 @@ public:
 	/// @param height The height of the image
 	/// @param background The color of the image
 	///
-	Image(unsigned width, unsigned height, const Pixel_T background) :
+	Image(int width, int height, const Pixel_T background) :
 		_d_ptr(new ImageData<Pixel_T>(width, height, background))
 	{
 	}
@@ -78,7 +77,7 @@ public:
 	///
 	/// @return The width of the image
 	///
-	inline unsigned width() const
+	inline int width() const
 	{
 		return _d_ptr->width();
 	}
@@ -88,7 +87,7 @@ public:
 	///
 	/// @return The height of the image
 	///
-	inline unsigned height() const
+	inline int height() const
 	{
 		return _d_ptr->height();
 	}
@@ -111,7 +110,7 @@ public:
 	///
 	/// @return const reference to specified pixel
 	///
-	uint8_t blue(unsigned pixel) const
+	uint8_t blue(int pixel) const
 	{
 		return _d_ptr->blue(pixel);
 	}
@@ -121,7 +120,7 @@ public:
 	///
 	/// @param x The x index
 	/// @param y The y index
-	const Pixel_T& operator()(unsigned x, unsigned y) const
+	const Pixel_T& operator()(int x, int y) const
 	{
 		return _d_ptr->operator()(x, y);
 	}
@@ -129,7 +128,7 @@ public:
 	///
 	/// @return reference to specified pixel
 	///
-	Pixel_T& operator()(unsigned x, unsigned y)
+	Pixel_T& operator()(int x, int y)
 	{
 		return _d_ptr->operator()(x, y);
 	}
@@ -137,7 +136,7 @@ public:
 	/// Resize the image
 	/// @param width The width of the image
 	/// @param height The height of the image
-	void resize(unsigned width, unsigned height)
+	void resize(int width, int height)
 	{
 		_d_ptr->resize(width, height);
 	}
@@ -198,12 +197,11 @@ private:
 	///
 	/// @return The index into the underlying data-vector
 	///
-	inline unsigned toIndex(unsigned x, unsigned y) const
+	inline int toIndex(int x, int y) const
 	{
 		return _d_ptr->toIndex(x, y);
 	}
 
-private:
 	QSharedDataPointer<ImageData<Pixel_T>>  _d_ptr;
 };
 

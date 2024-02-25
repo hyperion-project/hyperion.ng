@@ -6,6 +6,7 @@
 #include <QString>
 #include <QStringList>
 #include <QMultiMap>
+#include <QScopedPointer>
 
 #include <utils/Logger.h>
 #include <utils/Components.h>
@@ -17,6 +18,8 @@
 #include <utils/VideoStandard.h>
 
 #include <grabber/GrabberType.h>
+
+#include <events/EventEnum.h>
 
 class Grabber;
 class GlobalSignals;
@@ -89,8 +92,8 @@ public:
 	template <typename Grabber_T>
 	bool transferFrame(Grabber_T &grabber)
 	{
-		unsigned w = grabber.getImageWidth();
-		unsigned h = grabber.getImageHeight();
+		int w = grabber.getImageWidth();
+		int h = grabber.getImageHeight();
 		if ( _image.width() != w || _image.height() != h)
 		{
 			_image.resize(w, h);
@@ -139,6 +142,8 @@ public slots:
 	///
 	virtual void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
+	void handleEvent(Event event);
+
 signals:
 	///
 	/// @brief Emit the final processed image
@@ -181,7 +186,7 @@ protected:
 	Logger * _log;
 
 	/// The timer for generating events with the specified update rate
-	QTimer* _timer;
+	QScopedPointer<QTimer> _timer;
 
 	/// The calculated update rate [ms]
 	int _updateInterval_ms;

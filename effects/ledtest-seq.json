@@ -1,0 +1,11 @@
+{
+	"name" : "Led Test - Sequence",
+	"script" : "ledtest-seq.py",
+	"args" :
+	{
+		"sleepTime" : 0.5,
+		"smoothing-custom-settings" : false,
+		"smoothing-time_ms" : 500,
+		"smoothing-updateFrequency" : 20.0
+	}
+}

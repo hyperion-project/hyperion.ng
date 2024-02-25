@@ -16,21 +16,21 @@ public:
 	QString _id;
 
 	/// The BLACK (RGB-Channel) adjustment
-	RgbChannelAdjustment _rgbBlackAdjustment;
+	RgbChannelAdjustment _rgbBlackAdjustment {0, 0, 0, "black"};
 	/// The WHITE (RGB-Channel) adjustment
-	RgbChannelAdjustment _rgbWhiteAdjustment;
+	RgbChannelAdjustment _rgbWhiteAdjustment{255, 255, 255, "white"};
 	/// The RED (RGB-Channel) adjustment
-	RgbChannelAdjustment _rgbRedAdjustment;
+	RgbChannelAdjustment _rgbRedAdjustment {255, 0, 0 , "red"};
 	/// The GREEN (RGB-Channel) adjustment
-	RgbChannelAdjustment _rgbGreenAdjustment;
+	RgbChannelAdjustment _rgbGreenAdjustment {0, 255, 0, "green"};
 	/// The BLUE (RGB-Channel) adjustment
-	RgbChannelAdjustment _rgbBlueAdjustment;
+	RgbChannelAdjustment _rgbBlueAdjustment {0, 0, 255, "blue"};
 	/// The CYAN (RGB-Channel) adjustment
-	RgbChannelAdjustment _rgbCyanAdjustment;
+	RgbChannelAdjustment _rgbCyanAdjustment {0, 255, 255, "cyan"};
 	/// The MAGENTA (RGB-Channel) adjustment
-	RgbChannelAdjustment _rgbMagentaAdjustment;
+	RgbChannelAdjustment _rgbMagentaAdjustment {255, 0, 255, "magenta"};
 	/// The YELLOW (RGB-Channel) adjustment
-	RgbChannelAdjustment _rgbYellowAdjustment;
+	RgbChannelAdjustment _rgbYellowAdjustment {255, 255, 0, "yellow"};
 
 	RgbTransform _rgbTransform;
 	OkhsvTransform _okhsvTransform;

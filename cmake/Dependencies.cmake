@@ -14,7 +14,7 @@ macro(DeployMacOS TARGET)
 		install(CODE "set(PLUGIN_DIR \"${QT_PLUGIN_DIR}\")" 	 			COMPONENT "Hyperion")
 		install(CODE "set(BUILD_DIR \"${CMAKE_BINARY_DIR}\")"	 			COMPONENT "Hyperion")
 		install(CODE "set(ENABLE_EFFECTENGINE \"${ENABLE_EFFECTENGINE}\")"	COMPONENT "Hyperion")
-	
+
 		install(CODE [[
 
 				file(GET_RUNTIME_DEPENDENCIES
@@ -36,6 +36,7 @@ macro(DeployMacOS TARGET)
 							FILES "${dependency}"
 							DESTINATION "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/lib"
 							TYPE SHARED_LIBRARY
+							FOLLOW_SYMLINK_CHAIN
 						)
 					endif()
 				endforeach()
@@ -45,7 +46,7 @@ macro(DeployMacOS TARGET)
 					MESSAGE("The following unresolved dependencies were discovered: ${unresolved_deps}")
 				endif()
 
-				foreach(PLUGIN "platforms" "sqldrivers" "imageformats")
+				foreach(PLUGIN "platforms" "sqldrivers" "imageformats" "tls")
 					if(EXISTS ${PLUGIN_DIR}/${PLUGIN})
 						file(GLOB files "${PLUGIN_DIR}/${PLUGIN}/*")
 						foreach(file ${files})
@@ -60,6 +61,7 @@ macro(DeployMacOS TARGET)
 											DESTINATION "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/lib"
 											TYPE SHARED_LIBRARY
 											FILES ${DEPENDENCY}
+											FOLLOW_SYMLINK_CHAIN
 										)
 								endforeach()
 
@@ -75,25 +77,27 @@ macro(DeployMacOS TARGET)
 					endif()
 				endforeach()
 
-				include(BundleUtilities)							
+				include(BundleUtilities)
 				fixup_bundle("${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}" "${QT_PLUGINS}" "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/lib" IGNORE_ITEM "python;python3;Python;Python3;.Python;.Python3")
 
 				if(ENABLE_EFFECTENGINE)
 
 					# Detect the Python version and modules directory
-					find_package(Python3 3.5 REQUIRED)
-					execute_process(
-						COMMAND ${Python3_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(standard_lib=True))"
-						OUTPUT_VARIABLE PYTHON_MODULES_DIR
-						OUTPUT_STRIP_TRAILING_WHITESPACE
-					)
+					if(NOT CMAKE_VERSION VERSION_LESS "3.12")
+						find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+						set(PYTHON_VERSION_MAJOR_MINOR "${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}")
+						set(PYTHON_MODULES_DIR ${Python3_STDLIB})
+					else()
+						find_package (PythonLibs ${PYTHON_VERSION_STRING} EXACT)
+						set(PYTHON_VERSION_MAJOR_MINOR "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
+						set(PYTHON_MODULES_DIR ${Python_STDLIB})
+					endif()
 
 					MESSAGE("Add Python ${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR} to bundle")
 					MESSAGE("PYTHON_MODULES_DIR: ${PYTHON_MODULES_DIR}")
 
 					# Copy Python modules to '/../Frameworks/Python.framework/Versions/Current/lib/PythonMAJOR.MINOR' and ignore the unnecessary stuff listed below
 					if (PYTHON_MODULES_DIR)
-						set(PYTHON_VERSION_MAJOR_MINOR "${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}")
 						file(
 							COPY ${PYTHON_MODULES_DIR}/
 							DESTINATION "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/Frameworks/Python.framework/Versions/Current/lib/python${PYTHON_VERSION_MAJOR_MINOR}"
@@ -132,28 +136,33 @@ macro(DeployLinux TARGET)
 		include(GetPrerequisites)
 
 		set(SYSTEM_LIBS_SKIP
+			"libatomic"
 			"libc"
+			"libdbus"
 			"libdl"
 			"libexpat"
 			"libfontconfig"
-			"libfreetype"
 			"libgcc_s"
 			"libgcrypt"
-			"libGL"
-			"libGLdispatch"
+			"libglib"
 			"libglib-2"
-			"libGLX"
 			"libgpg-error"
+			"liblz4"
+			"liblzma"
 			"libm"
+			"libpcre"
+			"libpcre2"
 			"libpthread"
 			"librt"
 			"libstdc++"
+			"libsystemd"
 			"libudev"
+			"libusb"
 			"libusb-1"
 			"libutil"
-			"libX11"
+			"libuuid"
 			"libz"
-		)
+        )
 
 		if (ENABLE_DISPMANX)
 			list(APPEND SYSTEM_LIBS_SKIP "libcec")
@@ -161,6 +170,8 @@ macro(DeployLinux TARGET)
 
 		# Extract dependencies ignoring the system ones
 		get_prerequisites(${TARGET_FILE} DEPENDENCIES 0 1 "" "")
+
+		message(STATUS "Dependencies for target file: ${DEPENDENCIES}")
 
 		# Append symlink and non-symlink dependencies to the list
 		set(PREREQUISITE_LIBS "")
@@ -203,6 +214,8 @@ macro(DeployLinux TARGET)
 				get_filename_component(file_canonical ${openssl_lib} REALPATH)
 				gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
 			endforeach()
+		else()
+			message( WARNING "OpenSSL NOT found (https webserver will not work)")
 		endif(OPENSSL_FOUND)
 
 		# Detect the Qt plugin directory, source: https://github.com/lxde/lxqt-qtplugin/blob/master/src/CMakeLists.txt
@@ -217,7 +230,7 @@ macro(DeployLinux TARGET)
 
 		# Copy Qt plugins to 'share/hyperion/lib'
 		if (QT_PLUGINS_DIR)
-			foreach(PLUGIN "platforms" "sqldrivers" "imageformats")
+			foreach(PLUGIN "platforms" "sqldrivers" "imageformats" "tls" "wayland-shell-integration")
 				if (EXISTS ${QT_PLUGINS_DIR}/${PLUGIN})
 					file(GLOB files "${QT_PLUGINS_DIR}/${PLUGIN}/*.so")
 					foreach(file ${files})
@@ -266,15 +279,13 @@ macro(DeployLinux TARGET)
 		if(ENABLE_EFFECTENGINE)
 			# Detect the Python version and modules directory
 			if (NOT CMAKE_VERSION VERSION_LESS "3.12")
+				find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 				set(PYTHON_VERSION_MAJOR_MINOR "${Python3_VERSION_MAJOR}.${Python3_VERSION_MINOR}")
-				set(PYTHON_MODULES_DIR "${Python3_STDLIB}")
+				set(PYTHON_MODULES_DIR ${Python3_STDLIB})
 			else()
+				find_package (PythonLibs ${PYTHON_VERSION_STRING} EXACT)
 				set(PYTHON_VERSION_MAJOR_MINOR "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
-				execute_process(
-					COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(standard_lib=True))"
-					OUTPUT_VARIABLE PYTHON_MODULES_DIR
-					OUTPUT_STRIP_TRAILING_WHITESPACE
-				)
+				set(PYTHON_MODULES_DIR ${Python_STDLIB})
 			endif()
 
 			# Copy Python modules to 'share/hyperion/lib/pythonMAJOR.MINOR' and ignore the unnecessary stuff listed below
@@ -371,19 +382,25 @@ macro(DeployWindows TARGET)
 			list(GET openssl_versions 0 openssl_version_major)
 			list(GET openssl_versions 1 openssl_version_minor)
 
-			set(library_suffix "-${openssl_version_major}_${openssl_version_minor}")
+			set(open_ssl_version_suffix)
+			if (openssl_version_major VERSION_EQUAL 1 AND openssl_version_minor VERSION_EQUAL 1)
+				set(open_ssl_version_suffix "-1_1")
+			else()
+				set(open_ssl_version_suffix "-3")
+			endif()
+
 			if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-			  string(APPEND library_suffix "-x64")
+				string(APPEND open_ssl_version_suffix "-x64")
 			endif()
 
 			find_file(OPENSSL_SSL
-				NAMES "libssl${library_suffix}.dll"
+				NAMES "libssl${open_ssl_version_suffix}.dll"
 				PATHS ${OPENSSL_INCLUDE_DIR}/.. ${OPENSSL_INCLUDE_DIR}/../bin
 				NO_DEFAULT_PATH
 			)
 
 			find_file(OPENSSL_CRYPTO
-				NAMES "libcrypto${library_suffix}.dll"
+				NAMES "libcrypto${open_ssl_version_suffix}.dll"
 				PATHS ${OPENSSL_INCLUDE_DIR}/.. ${OPENSSL_INCLUDE_DIR}/../bin
 				NO_DEFAULT_PATH
 			)

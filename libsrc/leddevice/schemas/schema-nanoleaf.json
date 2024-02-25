@@ -72,41 +72,28 @@
       "propertyOrder": 7
     },
     "panelOrderTopDown": {
-      "type": "integer",
+      "type": "string",
       "title": "edt_dev_spec_order_top_down_title",
-      "enum": [ 0, 1 ],
-      "default": 0,
+      "enum": [ "top2down", "bottom2up" ],
+      "default": "top2down",
       "required": true,
       "options": {
         "enum_titles": [ "edt_conf_enum_top_down", "edt_conf_enum_bottom_up" ]
       },
-      "minimum": 0,
-      "maximum": 1,
       "access": "advanced",
       "propertyOrder": 8
     },
     "panelOrderLeftRight": {
-      "type": "integer",
+      "type": "string",
       "title": "edt_dev_spec_order_left_right_title",
-      "enum": [ 0, 1 ],
-      "default": 0,
+      "enum": [ "left2right", "right2left" ],
+      "default": "left2right",
       "required": true,
       "options": {
         "enum_titles": [ "edt_conf_enum_left_right", "edt_conf_enum_right_left" ]
       },
-      "minimum": 0,
-      "maximum": 1,
       "access": "advanced",
       "propertyOrder": 9
-    },
-    "panelStartPos": {
-      "type": "integer",
-      "title": "edt_dev_spec_panel_start_position",
-      "step": 1,
-      "minimum": 0,
-      "default": 0,
-      "access": "advanced",
-      "propertyOrder": 10
     }
   },
   "additionalProperties": true

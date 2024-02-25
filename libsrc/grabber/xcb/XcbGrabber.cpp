@@ -1,5 +1,5 @@
 #include <utils/Logger.h>
-#include <grabber/XcbGrabber.h>
+#include <grabber/xcb/XcbGrabber.h>
 
 #include "XcbCommands.h"
 #include "XcbCommandExecutor.h"

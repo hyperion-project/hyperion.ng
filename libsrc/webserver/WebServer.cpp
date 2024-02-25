@@ -16,6 +16,13 @@ namespace {
 	const char HTTPS_SERVICE_TYPE[] = "https";
 	const char HYPERION_SERVICENAME[] = "Hyperion";
 
+	const char WEBSERVER_DEFAULT_PATH[] = ":/webconfig";
+	const char WEBSERVER_DEFAULT_CRT_PATH[] = ":/hyperion.crt";
+	const char WEBSERVER_DEFAULT_KEY_PATH[] = ":/hyperion.key";
+
+	quint16 WEBSERVER_DEFAULT_PORT     = 8090;
+	quint16 WBSERVERR_DEFAULT_SSL_PORT = 8092;
+
 } //End of constants
 
 WebServer::WebServer(const QJsonDocument& config, bool useSsl, QObject* parent)
@@ -23,6 +30,7 @@ WebServer::WebServer(const QJsonDocument& config, bool useSsl, QObject* parent)
 	, _config(config)
 	, _useSsl(useSsl)
 	, _log(Logger::getInstance("WEBSERVER"))
+	, _port(WEBSERVER_DEFAULT_PORT)
 	, _server()
 {
 }
@@ -41,7 +49,6 @@ void WebServer::initServer()
 	if (_useSsl)
 	{
 		_server->setUseSecure();
-		WEBSERVER_DEFAULT_PORT = 8092;
 	}
 
 	connect(_server, &QtHttpServer::started, this, &WebServer::onServerStarted);
@@ -111,7 +118,7 @@ void WebServer::handleSettingsUpdate(settings::type type, const QJsonDocument& c
 		_staticFileServing->setBaseUrl(_baseUrl);
 
 		// ssl different port
-		quint16 newPort = _useSsl ? obj["sslPort"].toInt(WEBSERVER_DEFAULT_PORT) : obj["port"].toInt(WEBSERVER_DEFAULT_PORT);
+		quint16 newPort = _useSsl ? obj["sslPort"].toInt(WBSERVERR_DEFAULT_SSL_PORT) : obj["port"].toInt(WEBSERVER_DEFAULT_PORT);
 		if (_port != newPort)
 		{
 			_port = newPort;

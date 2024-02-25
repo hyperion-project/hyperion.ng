@@ -20,7 +20,7 @@
 
 // Local includes
 #include <utils/Logger.h>
-#include <grabber/AmlogicGrabber.h>
+#include <grabber/amlogic/AmlogicGrabber.h>
 #include "Amvideocap.h"
 
 // Constants

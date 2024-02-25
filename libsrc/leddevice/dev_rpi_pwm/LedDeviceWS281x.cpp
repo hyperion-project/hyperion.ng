@@ -159,12 +159,10 @@ QJsonObject LedDeviceWS281x::discover(const QJsonObject& /*params*/)
 
 	QJsonArray deviceList;
 
-	if (SysInfo::isUserAdmin())
-	{
-		//Indicate the general availability of the device, if hyperion is run under root
-		deviceList << QJsonObject ({{"found",true}});
-		devicesDiscovered.insert("devices", deviceList);
-	}
+	//Indicate the general availability of the device, if hyperion is run under root
+	devicesDiscovered.insert("isUserAdmin", SysInfo::isUserAdmin());
+
+	devicesDiscovered.insert("devices", deviceList);
 
 	DebugIf(verbose,_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
 

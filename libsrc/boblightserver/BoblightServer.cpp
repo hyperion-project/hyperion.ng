@@ -63,6 +63,7 @@ void BoblightServer::stop()
 		return;
 
 	qDeleteAll(_openConnections);
+	_openConnections.clear();
 
 	_server->close();
 

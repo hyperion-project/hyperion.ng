@@ -1,4 +1,4 @@
-#include <grabber/DirectXWrapper.h>
+#include <grabber/directx/DirectXWrapper.h>
 
 DirectXWrapper::DirectXWrapper( int updateRate_Hz,
 								int display,

@@ -1,5 +1,3 @@
-#include <cassert>
-#include <stdlib.h>
 
 #include <QCoreApplication>
 #include <QResource>
@@ -10,8 +8,6 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QPair>
-#include <cstdint>
-#include <limits>
 #include <QThread>
 
 #include <utils/Components.h>
@@ -92,12 +88,14 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	, _osxGrabber(nullptr)
 	, _qtGrabber(nullptr)
 	, _dxGrabber(nullptr)
-	, _ssdp(nullptr)
 	, _audioGrabber(nullptr)
-#ifdef ENABLE_CEC
-	, _cecHandler(nullptr)
-#endif
-	, _suspendHandler(nullptr)
+	, _ssdp(nullptr)
+	, _eventHandler(nullptr)
+	, _osEventHandler(nullptr)
+	, _eventScheduler(nullptr)
+	#ifdef ENABLE_CEC
+		, _cecHandler(nullptr)
+	#endif
 	, _currVideoMode(VideoMode::VIDEO_2D)
 {
 	HyperionDaemon::daemon = this;
@@ -118,8 +116,6 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	{
 		handleSettingsUpdate(settings::LOGGER, getSetting(settings::LOGGER));
 	}
-
-	createCecHandler();
 
 	//Create MdnsBrowser singleton in main tread to ensure thread affinity during destruction
 #ifdef ENABLE_MDNS
@@ -177,7 +173,8 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	// ---- network services -----
 	startNetworkServices();
 
-	_suspendHandler = new SuspendHandler();
+	// init events services
+	startEventServices();
 }
 
 HyperionDaemon::~HyperionDaemon()
@@ -234,12 +231,17 @@ void HyperionDaemon::handleInstanceStateChange(InstanceState state, quint8 insta
 #endif
 			sslWsThread->start();
 		}
+
 		break;
 
 	case InstanceState::H_STOPPED:
+	case InstanceState::H_ON_STOP:
+	case InstanceState::H_CREATED:
+	case InstanceState::H_DELETED:
 		break;
 
 	default:
+		qWarning() << "HyperionDaemon::handleInstanceStateChange - Unhandled state:" << static_cast<int>(state);
 		break;
 	}
 }
@@ -262,33 +264,34 @@ void HyperionDaemon::freeObjects()
 {
 	Debug(_log, "Cleaning up Hyperion before quit.");
 
+	stopCecHandler();
+	delete _eventScheduler;
+	delete _osEventHandler;
+
 #ifdef ENABLE_MDNS
 	if (_mDNSProvider != nullptr)
 	{
-		auto mDnsThread = _mDNSProvider->thread();
+		auto *mDnsThread = _mDNSProvider->thread();
 		mDnsThread->quit();
 		mDnsThread->wait();
-		delete mDnsThread;
 		_mDNSProvider = nullptr;
 	}
 #endif
 
 	if (_jsonServer != nullptr)
 	{
-		auto jsonThread = _jsonServer->thread();
+		auto *jsonThread = _jsonServer->thread();
 		jsonThread->quit();
 		jsonThread->wait();
-		delete jsonThread;
 		_jsonServer = nullptr;
 	}
 
 #if defined(ENABLE_FLATBUF_SERVER)
 	if (_flatBufferServer != nullptr)
 	{
-		auto flatBufferServerThread = _flatBufferServer->thread();
+		auto *flatBufferServerThread = _flatBufferServer->thread();
 		flatBufferServerThread->quit();
 		flatBufferServerThread->wait();
-		delete flatBufferServerThread;
 		_flatBufferServer = nullptr;
 	}
 #endif
@@ -296,10 +299,9 @@ void HyperionDaemon::freeObjects()
 #if defined(ENABLE_PROTOBUF_SERVER)
 	if (_protoServer != nullptr)
 	{
-		auto protoServerThread = _protoServer->thread();
+		auto *protoServerThread = _protoServer->thread();
 		protoServerThread->quit();
 		protoServerThread->wait();
-		delete protoServerThread;
 		_protoServer = nullptr;
 	}
 #endif
@@ -307,57 +309,41 @@ void HyperionDaemon::freeObjects()
 	//ssdp before webserver
 	if (_ssdp != nullptr)
 	{
-		auto ssdpThread = _ssdp->thread();
+		auto *ssdpThread = _ssdp->thread();
 		ssdpThread->quit();
 		ssdpThread->wait();
-		delete ssdpThread;
 		_ssdp = nullptr;
 	}
 
 	if (_webserver != nullptr)
 	{
-		auto webserverThread = _webserver->thread();
+		auto *webserverThread = _webserver->thread();
 		webserverThread->quit();
-		webserverThread->wait();
-		delete webserverThread;
+		webserverThread->wait();;
 		_webserver = nullptr;
 	}
 
 	if (_sslWebserver != nullptr)
 	{
-		auto sslWebserverThread = _sslWebserver->thread();
+		auto *sslWebserverThread = _sslWebserver->thread();
 		sslWebserverThread->quit();
 		sslWebserverThread->wait();
-		delete sslWebserverThread;
 		_sslWebserver = nullptr;
 	}
-
-#ifdef ENABLE_CEC
-	if (_cecHandler != nullptr)
-	{
-		auto cecHandlerThread = _cecHandler->thread();
-		cecHandlerThread->quit();
-		cecHandlerThread->wait();
-		delete cecHandlerThread;
-		delete _cecHandler;
-		_cecHandler = nullptr;
-	}
-#endif
-
-	delete _suspendHandler;
 
 	// stop Hyperions (non blocking)
 	_instanceManager->stopAll();
 
 	delete _amlGrabber;
-	if (_dispmanx != nullptr)
-		delete _dispmanx;
+	delete _dispmanx;
 	delete _fbGrabber;
 	delete _osxGrabber;
 	delete _qtGrabber;
 	delete _dxGrabber;
 	delete _videoGrabber;
 	delete _audioGrabber;
+	delete _x11Grabber;
+	delete _xcbGrabber;
 
 	_videoGrabber = nullptr;
 	_amlGrabber = nullptr;
@@ -367,6 +353,8 @@ void HyperionDaemon::freeObjects()
 	_qtGrabber = nullptr;
 	_dxGrabber = nullptr;
 	_audioGrabber = nullptr;
+	_x11Grabber = nullptr;
+	_xcbGrabber = nullptr;
 }
 
 void HyperionDaemon::startNetworkServices()
@@ -430,6 +418,33 @@ void HyperionDaemon::startNetworkServices()
 	connect(_webserver, &WebServer::stateChange, _ssdp, &SSDPHandler::handleWebServerStateChange);
 	connect(this, &HyperionDaemon::settingsChanged, _ssdp, &SSDPHandler::handleSettingsUpdate);
 	ssdpThread->start();
+}
+
+void HyperionDaemon::startEventServices()
+{
+	if (_eventHandler == nullptr)
+	{
+		_eventHandler = EventHandler::getInstance();
+		Debug(_log, "Hyperion event handler created");
+	}
+
+	if (_eventScheduler == nullptr)
+	{
+		_eventScheduler = new EventScheduler();
+		_eventScheduler->handleSettingsUpdate(settings::SCHEDEVENTS, getSetting(settings::SCHEDEVENTS));
+		connect(this, &HyperionDaemon::settingsChanged, _eventScheduler, &EventScheduler::handleSettingsUpdate);
+		Debug(_log, "Hyperion event scheduler created");
+	}
+
+	if (_osEventHandler == nullptr)
+	{
+		_osEventHandler = new OsEventHandler();
+		_osEventHandler->handleSettingsUpdate(settings::OSEVENTS, getSetting(settings::OSEVENTS));
+		connect(this, &HyperionDaemon::settingsChanged, _osEventHandler, &OsEventHandler::handleSettingsUpdate);
+		Debug(_log, "Operating System event handler created");
+	}
+
+	startCecHandler();
 }
 
 void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJsonDocument& config)
@@ -692,19 +707,6 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 	}
 	else if (settingsType == settings::V4L2)
 	{
-
-#ifdef ENABLE_CEC
-		const QJsonObject& grabberConfig = config.object();
-		if (_cecHandler != nullptr && grabberConfig["cecDetection"].toBool(false))
-		{
-			QMetaObject::invokeMethod(_cecHandler, "start", Qt::QueuedConnection);
-		}
-		else
-		{
-			QMetaObject::invokeMethod(_cecHandler, "stop", Qt::QueuedConnection);
-		}
-#endif
-
 #if defined(ENABLE_V4L2) || defined(ENABLE_MF)
 		if (_videoGrabber == nullptr)
 		{
@@ -915,26 +917,41 @@ void HyperionDaemon::createGrabberOsx(const QJsonObject& grabberConfig)
 #endif
 }
 
-void HyperionDaemon::createCecHandler()
+void HyperionDaemon::startCecHandler()
 {
-#if defined(ENABLE_V4L2) && defined(ENABLE_CEC)
-	_cecHandler = new CECHandler;
+#if defined(ENABLE_CEC)
+	if (_cecHandler == nullptr)
+	{
+		_cecHandler = new CECHandler(getSetting(settings::CECEVENTS));
 
-	QThread* thread = new QThread(this);
-	thread->setObjectName("CECThread");
-	_cecHandler->moveToThread(thread);
-	thread->start();
+		QThread* cecHandlerThread = new QThread(this);
+		cecHandlerThread->setObjectName("CECThread");
+		_cecHandler->moveToThread(cecHandlerThread);
 
-	connect(_cecHandler, &CECHandler::cecEvent, [&](CECEvent event) {
-		if (_videoGrabber != nullptr)
-		{
-			_videoGrabber->handleCecEvent(event);
-		}
-		});
+		connect(cecHandlerThread, &QThread::started, _cecHandler, &CECHandler::start);
+		connect(cecHandlerThread, &QThread::finished, _cecHandler, &CECHandler::stop);
+		connect(cecHandlerThread, &QThread::finished, _cecHandler, &CECHandler::deleteLater);
 
-	Info(_log, "CEC handler created");
+		connect(this, &HyperionDaemon::settingsChanged, _cecHandler, &CECHandler::handleSettingsUpdate);
+		Info(_log, "CEC event handler created");
+
+		cecHandlerThread->start();
+	}
 #else
 	Debug(_log, "The CEC handler is not supported on this platform");
 #endif
 }
 
+void HyperionDaemon::stopCecHandler()
+{
+#if defined(ENABLE_CEC)
+	if (_cecHandler != nullptr)
+	{
+		auto *cecHandlerThread = _cecHandler->thread();
+		cecHandlerThread->quit();
+		cecHandlerThread->wait();
+		_cecHandler = nullptr;
+	}
+	Info(_log, "CEC handler stopped");
+#endif
+}

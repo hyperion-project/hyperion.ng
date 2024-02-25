@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.0.15...HEAD)
+## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.0.16...HEAD)
 
 ### Breaking
 
@@ -12,9 +12,89 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-### Fixed
+### Removed
 
-## Removed
+## [2.0.16](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.16) - 2024-01
+
+### Added
+
+- New languages: Hebrew, Indonesian, Ukrainian
+
+**Event Services**
+Newly introduced Event Service configuration and consistent handling across all components
+- Suspend/Resume & Screen Locking support for MaxOS
+- Allow to enable/disable suspend & lock on operating system events (#1633, #1632)
+- Scheduled events allowing to suspend,resume, etc. (#1088)
+- Configurable CEC event handling
+
+##### LED-Devices
+
+**Philips Hue**
+
+- APIv2 support, incl. full https security and certificate validation
+- Multi-Segment device support, e.g. Gradient light
+- Use Entertainment area device location for Hyperion layout in addition to manual locations
+- Option to layout by focussing on full- or only center of entertainment area
+- Wizard supports multiple Hue-Bridge discovery
+- Support of DIYHue specifics. DIYHue bridge's name must start with "DIY"
+- Backward compatibility for bridges not supporting APIv2 and/or Entertainment API
+Note: The wizard will configure an APIv2 capable bridge always with Entertainment to ensure the best experience.
+
+**Nanoleaf**
+- Wizard to generate user authorization token allowing users to configure the device via a single window
+- Generation of a default layout per device's configuration, including orientation
+- Lines support
+
+### Changed
+
+- Updated misleading error messages in case Hyperion is not able to support the suspend/lock feature (#1622)
+- Restart Serial Device, if write error occurred
+- ws281x - Update logic to identify is user is admin and disable device configuration if not (#1621)
+- Hide Hyperion from the Dock on macOS, as all features can be accessed from the menubar - Thanks @Rastafabisch
+
+### Fixed
+- Correctly display local language characters in log, e.g. Umlauts
+- Fixed that Audio Capture is enabled after reboot automatically (#1581)
+- Fixed that Audio Capture is not shown when there is no screen nor video grabber
+- Audio Capture settings are no longer ignored (#1630)
+- Fixed that the Matrix effect finds its image - Thanks @lsellens
+- MDNSBrower - Fixed, if timeout while resolving host occurs
+- Non image updates ignored blacklisted LEDs (#1634)
+- Fixed that Windows OsEvents failed in non-GUI mode (#1671)
+- Addressed serious (#1425) and some smaller memory leaks
+
+##### LED-Devices
+
+**WLED**
+- Fixed UI handling, if segment streaming is not supported
+
+**Nanoleaf**
+- "Panel numbering sequence" was not configurable any longer
+- Number of panels increased during retries (#1643)
+
+### Removed
+
+##### LED-Devices
+
+**Philips Hue**
+- "Switch Off On Black" for APIv2, as the original bridge will switch off LEDs itself.
+- "Candy Gamma" for APIv2, as the bridge maps the RGB values best per device.
+
+**Nanoleaf**
+- Removed "Start Position" in favour of the general Blacklist feature provided
+
+### Technical
+
+- Changed default build from Stretch to Buster
+- Support Qt 6.7, Update to Protobuf 25.1, Update mbedTLS to v3.4.0, Update flatbuffers to v23.5.26
+- Use C++17 standard as default
+- Added Pull Request (PR) installation script, allowing users to test development builds savely on Linux
+- Fixed missing include limits in QJsonSchemaChecker - Thanks @Portisch
+- Fixed dependencies for deb packages in Debian Bookworm (#1579) - Thanks @hg42, @Psirus
+- Fixed git version identification when run in docker and local code
+- Address cmake deprecation warnings, cmake 3.5 is required at minimum now
+- Address some build warnings
+- Removed UniqueConnections from Lambdas, as not supported
 
 ## [2.0.15](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.15) - 2023-02
 
@@ -41,6 +121,7 @@ To allow segment streaming, enable "Realtime - Use main segment only" in WLED's 
 - REST API - Increased default timeout to address "Operation cancelled" errors
 - LED Devices: Allow to differentiate between recoverable/unrecoverable errors
 - Renamed LED area assignment naming to provide clarity on the processing algorithms
+- Updated SEDU default baud rates
 
 ### Fixed
 

@@ -1,5 +1,4 @@
 #include <cassert>
-#include <csignal>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -46,39 +45,11 @@
 
 #include "hyperiond.h"
 #include "systray.h"
-#include "SuspendHandler.h"
+#include <events/EventHandler.h>
 
 using namespace commandline;
 
 #define PERM0664 (QFileDevice::ReadOwner | QFileDevice::ReadGroup | QFileDevice::ReadOther | QFileDevice::WriteOwner | QFileDevice::WriteGroup)
-
-#ifndef _WIN32
-void signal_handler(int signum)
-{
-	HyperionDaemon* hyperiond = HyperionDaemon::getInstance();
-	SuspendHandler* suspendHandler = hyperiond->getSuspendHandlerInstance();
-
-	if (signum == SIGCHLD)
-	{
-		// only quit when a registered child process is gone
-		// currently this feature is not active ...
-	}
-	else if (signum == SIGUSR1)
-	{
-		if (suspendHandler != nullptr)
-		{
-			suspendHandler->suspend();
-		}
-	}
-	else if (signum == SIGUSR2)
-	{
-		if (suspendHandler != nullptr)
-		{
-			suspendHandler->resume();
-		}
-	}
-}
-#endif
 
 QCoreApplication* createApplication(int &argc, char *argv[])
 {
@@ -115,7 +86,7 @@ QCoreApplication* createApplication(int &argc, char *argv[])
 		app->addLibraryPath(QApplication::applicationDirPath() + "/../lib");
 		app->setApplicationDisplayName("Hyperion");
 #ifndef __APPLE__
-		app->setWindowIcon(QIcon(":/hyperion-icon-32px.png"));
+		app->setWindowIcon(QIcon(":/hyperion-32px.png"));
 #endif
 		return app;
 	}
@@ -150,11 +121,6 @@ int main(int argc, char** argv)
 
 	DefaultSignalHandler::install();
 
-#ifndef _WIN32
-	signal(SIGCHLD, signal_handler);
-	signal(SIGUSR1, signal_handler);
-	signal(SIGUSR2, signal_handler);
-#endif
 	// force the locale
 	setlocale(LC_ALL, "C");
 	QLocale::setDefault(QLocale::c());
@@ -268,9 +234,9 @@ int main(int argc, char** argv)
 		if (directory.exists() && destDir.exists())
 		{
 			std::cout << "Extract to folder: " << destDir.absolutePath().toStdString() << std::endl;
-			QStringList filenames = directory.entryList(QStringList() << "*", QDir::Files, QDir::Name | QDir::IgnoreCase);
+			const QStringList filenames = directory.entryList(QStringList() << "*", QDir::Files, QDir::Name | QDir::IgnoreCase);
 			QString destFileName;
-			for (const QString & filename : qAsConst(filenames))
+			for (const QString & filename : filenames)
 			{
 				destFileName = destDir.dirName()+"/"+filename;
 				if (QFile::exists(destFileName))

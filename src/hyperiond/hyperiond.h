@@ -7,62 +7,62 @@
 #include <hyperion/HyperionIManager.h>
 
 #ifdef ENABLE_DISPMANX
-	#include <grabber/DispmanxWrapper.h>
+	#include <grabber/dispmanx/DispmanxWrapper.h>
 #else
 	typedef QObject DispmanxWrapper;
 #endif
 
 #if defined(ENABLE_V4L2) || defined(ENABLE_MF)
-	#include <grabber/VideoWrapper.h>
+	#include <grabber/video/VideoWrapper.h>
 #else
 	typedef QObject VideoWrapper;
 #endif
 
 #ifdef ENABLE_FB
-	#include <grabber/FramebufferWrapper.h>
+	#include <grabber/framebuffer/FramebufferWrapper.h>
 #else
 	typedef QObject FramebufferWrapper;
 #endif
 
 #ifdef ENABLE_AMLOGIC
-	#include <grabber/AmlogicWrapper.h>
+	#include <grabber/amlogic/AmlogicWrapper.h>
 #else
 	typedef QObject AmlogicWrapper;
 #endif
 
 #ifdef ENABLE_OSX
-	#include <grabber/OsxWrapper.h>
+	#include <grabber/osx/OsxWrapper.h>
 #else
 	typedef QObject OsxWrapper;
 #endif
 
 #ifdef ENABLE_X11
-	#include <grabber/X11Wrapper.h>
+	#include <grabber/x11/X11Wrapper.h>
 #else
 	typedef QObject X11Wrapper;
 #endif
 
 #ifdef ENABLE_XCB
-	#include <grabber/XcbWrapper.h>
+	#include <grabber/xcb/XcbWrapper.h>
 #else
 	typedef QObject XcbWrapper;
 #endif
 
 #ifdef ENABLE_QT
-	#include <grabber/QtWrapper.h>
+	#include <grabber/qt/QtWrapper.h>
 #else
 	typedef QObject QtWrapper;
 #endif
 
 #ifdef ENABLE_DX
-	#include <grabber/DirectXWrapper.h>
+	#include <grabber/directx/DirectXWrapper.h>
 #else
 	typedef QObject DirectXWrapper;
 #endif
 
 #include <hyperion/GrabberWrapper.h>
 #ifdef ENABLE_AUDIO
-	#include <grabber/AudioWrapper.h>
+	#include <grabber/audio/AudioWrapper.h>
 #else
 	typedef QObject AudioWrapper;
 #endif
@@ -75,7 +75,9 @@
 #include <utils/settings.h>
 #include <utils/Components.h>
 
-#include "SuspendHandler.h"
+#include <events/EventHandler.h>
+#include <events/OsEventHandler.h>
+#include <events/EventScheduler.h>
 
 class HyperionIManager;
 class SysTray;
@@ -103,17 +105,12 @@ class HyperionDaemon : public QObject
 
 public:
 	HyperionDaemon(const QString& rootPath, QObject *parent, bool logLvlOverwrite, bool readonlyMode = false);
-	~HyperionDaemon();
+	~HyperionDaemon() override;
 
 	///
 	/// @brief Get webserver pointer (systray)
 	///
 	WebServer *getWebServerInstance() { return _webserver; }
-
-	///
-	/// @brief Get suspense handler pointer
-	///
-	SuspendHandler* getSuspendHandlerInstance() { return _suspendHandler; }
 
 	///
 	/// @brief Get the current videoMode
@@ -126,6 +123,7 @@ public:
 	QJsonDocument getSetting(settings::type type) const;
 
 	void startNetworkServices();
+	void startEventServices();
 
 	static HyperionDaemon* getInstance() { return daemon; }
 	static HyperionDaemon* daemon;
@@ -185,15 +183,17 @@ private:
 	void createGrabberX11(const QJsonObject & grabberConfig);
 	void createGrabberXcb(const QJsonObject & grabberConfig);
 	void createGrabberQt(const QJsonObject & grabberConfig);
-	void createCecHandler();
 	void createGrabberDx(const QJsonObject & grabberConfig);
 	void createGrabberAudio(const QJsonObject & grabberConfig);
+
+	void startCecHandler();
+	void stopCecHandler();
 
 	Logger*                    _log;
 	HyperionIManager*          _instanceManager;
 	AuthManager*               _authManager;
 #ifdef ENABLE_MDNS
-	MdnsProvider*                _mDNSProvider;
+	MdnsProvider*              _mDNSProvider;
 #endif
 	NetOrigin*                 _netOrigin;
 #if defined(ENABLE_EFFECTENGINE)
@@ -213,10 +213,12 @@ private:
 	DirectXWrapper*            _dxGrabber;
 	AudioWrapper*			   _audioGrabber;
 	SSDPHandler*               _ssdp;
-	#ifdef ENABLE_CEC
+	EventHandler*              _eventHandler;
+	OsEventHandler*            _osEventHandler;
+	EventScheduler*            _eventScheduler;
+#ifdef ENABLE_CEC
 	CECHandler*                _cecHandler;
-	#endif
-	SuspendHandler*            _suspendHandler;
+#endif
 
 	#if defined(ENABLE_FLATBUF_SERVER)
 	FlatBufferServer*          _flatBufferServer;

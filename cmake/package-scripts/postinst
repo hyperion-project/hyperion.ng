@@ -47,7 +47,7 @@ if [ "$IS_UPGRADE" = false ]; then
 		then
 			# systemd
 			echo "---> init deamon: systemd"
-			FOUND_USR=`who | grep -o -m1 '^\w*\b'` || "root"
+			FOUND_USR=${SUDO_USER:-root}
 			install_file /usr/share/hyperion/service/hyperion.systemd /etc/systemd/system/hyperion@.service
 			systemctl enable hyperion"@${FOUND_USR}".service
 			START_MSG="--> systemctl start hyperion for user ${FOUND_USR}"
@@ -103,16 +103,30 @@ ln -fs $BINSP/scripts/updateHyperionUser.sh $BINTP/updateHyperionUser 2>/dev/nul
 
 # install desktop icons (only on initial installation and not upgrade)
 if [ "$IS_UPGRADE" = false ]; then
-	if hash desktop-file-install 2>/dev/null; then
+	if [ ! -z "${DISPLAY}" ] || [ ! -z "${WAYLAND_DISPLAY}" ] || [ ! -z "${XDG_CURRENT_DESKTOP}" ]; then
 		echo "---> Install Hyperion desktop icons"
-		mkdir /usr/share/pixmaps/hyperion 2>/dev/null
-		cp /usr/share/hyperion/desktop/*.png /usr/share/pixmaps/hyperion 2>/dev/null
-		desktop-file-install /usr/share/hyperion/desktop/hyperiond.desktop 2>/dev/null
+		cp -R /usr/share/hyperion/icons/* /usr/share/icons/hicolor/ 2>/dev/null
+		cp /usr/share/hyperion/desktop/hyperion.metainfo.xml /usr/share/metainfo 2>/dev/null
+
+		if [ -x "$(command -v desktop-file-install )" ]; then
+			desktop-file-install /usr/share/hyperion/desktop/hyperion.desktop 2>/dev/null
+		else
+			# On some systems this directory doesn't exist by default
+			mkdir -p /usr/share/applications
+			cp /usr/share/hyperion/desktop/hyperion.desktop /usr/share/applications
+		fi
+			
+		# update desktop-database (if exists)
+		if [ -x "$(command -v update-desktop-database)" ]; then
+			update-desktop-database -q /usr/share/applications
+			update-desktop-database -q /usr/share/icons/hicolor
+		fi
 	fi
 fi
 
-# cleanup desktop icons
+# cleanup desktop and icons
 rm -r /usr/share/hyperion/desktop 2>/dev/null
+rm -r /usr/share/hyperion/icons 2>/dev/null
 
 #Check, if dtparam=spi=on is in place
 if [ $CPU_RPI -eq 1 ]; then
@@ -149,7 +163,7 @@ $REBOOTMESSAGE
 echo "-----------------------------------------------------------------------------"
 echo "Webpage: www.hyperion-project.org"
 echo "Forum: www.hyperion-project.org"
-echo "Documenation: docs.hyperion-project.org"
+echo "Documentation: docs.hyperion-project.org"
 echo "-----------------------------------------------------------------------------"
 
 

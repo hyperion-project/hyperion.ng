@@ -2,7 +2,7 @@
 // QT includes
 #include <QTimer>
 
-#include <grabber/OsxFrameGrabber.h>
+#include <grabber/osx/OsxFrameGrabber.h>
 #include <hyperion/GrabberWrapper.h>
 
 class OsxWrapper : public QObject

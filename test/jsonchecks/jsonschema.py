@@ -224,7 +224,7 @@ class ValidatorMixin(object):
     properties is dispatched to ``validate_property`` methods. E.g., to
     implement a validator for a ``maximum`` property, create a
     ``validate_maximum`` method. Validator methods should yield zero or more
-    :exc:`ValidationError``\s to signal failed validation.
+    :exc:`ValidationError``\\s to signal failed validation.
 
     """
 
@@ -1028,7 +1028,7 @@ if hasattr(socket, "inet_pton"):
 
 @_checks_drafts(draft3="host-name", draft4="hostname")
 def is_host_name(instance):
-    pattern = "^[A-Za-z0-9][A-Za-z0-9\.\-]{1,255}$"
+    pattern = r"^[A-Za-z0-9][A-Za-z0-9.-]{1,255}$"
     if not re.match(pattern, instance):
         return False
     components = instance.split(".")

@@ -10,6 +10,8 @@
 #include <QTimer>
 #include <QHostInfo>
 #include <QMultiMap>
+#include <QCoreApplication>
+#include <QApplication>
 
 // hyperion includes
 #include <leddevice/LedDeviceWrapper.h>
@@ -19,54 +21,55 @@
 #include <HyperionConfig.h> // Required to determine the cmake options
 
 #include <hyperion/GrabberWrapper.h>
-#include <grabber/QtGrabber.h>
+#include <grabber/qt/QtGrabber.h>
 
 #include <utils/WeakConnect.h>
+#include <events/EventEnum.h>
 
 #if defined(ENABLE_MF)
-	#include <grabber/MFGrabber.h>
+	#include <grabber/video/mediafoundation/MFGrabber.h>
 #elif defined(ENABLE_V4L2)
-	#include <grabber/V4L2Grabber.h>
+	#include <grabber/video/v4l2/V4L2Grabber.h>
 #endif
 
 #if defined(ENABLE_AUDIO)
-	#include <grabber/AudioGrabber.h>
+	#include <grabber/audio/AudioGrabber.h>
 
 	#ifdef WIN32
-		#include <grabber/AudioGrabberWindows.h>
+		#include <grabber/audio/AudioGrabberWindows.h>
 	#endif
 
 	#ifdef __linux__
-		#include <grabber/AudioGrabberLinux.h>
+		#include <grabber/audio/AudioGrabberLinux.h>
 	#endif
 #endif
 
 #if defined(ENABLE_X11)
-	#include <grabber/X11Grabber.h>
+	#include <grabber/x11/X11Grabber.h>
 #endif
 
 #if defined(ENABLE_XCB)
-	#include <grabber/XcbGrabber.h>
+	#include <grabber/xcb/XcbGrabber.h>
 #endif
 
 #if defined(ENABLE_DX)
-	#include <grabber/DirectXGrabber.h>
+	#include <grabber/directx/DirectXGrabber.h>
 #endif
 
 #if defined(ENABLE_FB)
-	#include <grabber/FramebufferFrameGrabber.h>
+	#include <grabber/framebuffer/FramebufferFrameGrabber.h>
 #endif
 
 #if defined(ENABLE_DISPMANX)
-	#include <grabber/DispmanxFrameGrabber.h>
+	#include <grabber/dispmanx/DispmanxFrameGrabber.h>
 #endif
 
 #if defined(ENABLE_AMLOGIC)
-	#include <grabber/AmlogicGrabber.h>
+	#include <grabber/amlogic/AmlogicGrabber.h>
 #endif
 
 #if defined(ENABLE_OSX)
-	#include <grabber/OsxFrameGrabber.h>
+	#include <grabber/osx/OsxFrameGrabber.h>
 #endif
 
 #include <utils/jsonschema/QJsonFactory.h>
@@ -83,6 +86,7 @@
 
 // api includes
 #include <api/JsonCB.h>
+#include <events/EventHandler.h>
 
 // auth manager
 #include <hyperion/AuthManager.h>
@@ -111,6 +115,8 @@ JsonAPI::JsonAPI(QString peerAddress, Logger *log, bool localConnection, QObject
 	_ledStreamTimer = new QTimer(this);
 
 	Q_INIT_RESOURCE(JSONRPC_schemas);
+
+	qRegisterMetaType<Event>("Event");
 }
 
 void JsonAPI::initialize()
@@ -136,14 +142,13 @@ void JsonAPI::initialize()
 		connect(this, &JsonAPI::forwardJsonMessage, _hyperion, &Hyperion::forwardJsonMessage);
 	}
 
-	//notify instance manager on suspend/resume/idle requests
-	connect(this, &JsonAPI::suspendAll, _instanceManager, &HyperionIManager::triggerSuspend);
-	connect(this, &JsonAPI::toggleSuspendAll, _instanceManager, &HyperionIManager::triggerToggleSuspend);
-	connect(this, &JsonAPI::idleAll, _instanceManager, &HyperionIManager::triggerIdle);
-	connect(this, &JsonAPI::toggleIdleAll, _instanceManager, &HyperionIManager::triggerToggleIdle);
+	//notify eventhadler on suspend/resume/idle requests
+	connect(this, &JsonAPI::signalEvent, EventHandler::getInstance(), &EventHandler::handleEvent);
+
+	connect(_ledStreamTimer, &QTimer::timeout, this, &JsonAPI::streamLedColorsUpdate, Qt::UniqueConnection);
 }
 
-bool JsonAPI::handleInstanceSwitch(quint8 inst, bool forced)
+bool JsonAPI::handleInstanceSwitch(quint8 inst, bool /*forced*/)
 {
 	if (API::setHyperionInstance(inst))
 	{
@@ -387,6 +392,9 @@ void JsonAPI::handleSysInfoCommand(const QJsonObject &, const QString &command, 
 	hyperion["rootPath"] = _instanceManager->getRootPath();
 	hyperion["readOnlyMode"] = _hyperion->getReadOnlyMode();
 
+	QCoreApplication* app = QCoreApplication::instance();
+	hyperion["isGuiMode"] = qobject_cast<QApplication*>(app) ? true : false;
+
 	info["hyperion"] = hyperion;
 
 	// send the result
@@ -405,7 +413,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	activePriorities.removeAll(PriorityMuxer::LOWEST_PRIORITY);
 	int currentPriority = _hyperion->getCurrentPriority();
 
-	for(int priority : qAsConst(activePriorities))
+	for(int priority : std::as_const(activePriorities))
 	{
 		const Hyperion::InputInfo &priorityInfo = _hyperion->getPriorityInfo(priority);
 
@@ -1026,8 +1034,7 @@ void JsonAPI::handleConfigCommand(const QJsonObject &message, const QString &com
 		if (_adminAuthorized)
 		{
 			Debug(_log, "Restarting due to RPC command");
-
-			Process::restartHyperion(10);
+			emit signalEvent(Event::Reload);
 
 			sendSuccessReply(command + "-" + subcommand, tan);
 		}
@@ -1153,6 +1160,11 @@ void JsonAPI::handleComponentStateCommand(const QJsonObject &message, const QStr
 	sendSuccessReply(command, tan);
 }
 
+void JsonAPI::streamLedColorsUpdate()
+{
+	emit streamLedcolorsUpdate(_currentLedValues);
+}
+
 void JsonAPI::handleLedColorsCommand(const QJsonObject &message, const QString &command, int tan)
 {
 	// create result
@@ -1168,21 +1180,21 @@ void JsonAPI::handleLedColorsCommand(const QJsonObject &message, const QString &
 		_streaming_leds_reply["tan"] = tan;
 
 		connect(_hyperion, &Hyperion::rawLedColors, this, [=](const std::vector<ColorRgb> &ledValues) {
-			_currentLedValues = ledValues;
 
-			// necessary because Qt::UniqueConnection for lambdas does not work until 5.9
-			// see: https://bugreports.qt.io/browse/QTBUG-52438
-			if (!_ledStreamConnection)
-				_ledStreamConnection = connect(_ledStreamTimer, &QTimer::timeout, this, [=]() {
-					emit streamLedcolorsUpdate(_currentLedValues);
-				},
-				Qt::UniqueConnection);
+			if (ledValues != _currentLedValues)
+			{
+				_currentLedValues = ledValues;
+				if (!_ledStreamTimer->isActive() || _ledStreamTimer->interval() != streaming_interval)
+				{
+					_ledStreamTimer->start(streaming_interval);
+				}
+			}
+			else
+			{
+				_ledStreamTimer->stop();
+			}
+		});
 
-			// start the timer
-			if (!_ledStreamTimer->isActive() || _ledStreamTimer->interval() != streaming_interval)
-				_ledStreamTimer->start(streaming_interval);
-		},
-		Qt::UniqueConnection);
 		// push once
 		_hyperion->update();
 	}
@@ -1401,7 +1413,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 		if (API::getPendingTokenRequests(vec))
 		{
 			QJsonArray arr;
-			for (const auto &entry : qAsConst(vec))
+			for (const auto &entry : std::as_const(vec))
 			{
 				QJsonObject obj;
 				obj["comment"] = entry.comment;
@@ -1859,32 +1871,37 @@ void JsonAPI::handleSystemCommand(const QJsonObject &message, const QString &com
 
 	if (subc == "suspend")
 	{
-		emit suspendAll(true);
+		emit signalEvent(Event::Suspend);
 		sendSuccessReply(command + "-" + subc, tan);
 	}
 	else if (subc == "resume")
 	{
-		emit suspendAll(false);
+		emit signalEvent(Event::Resume);
 		sendSuccessReply(command + "-" + subc, tan);
 	}
 	else if (subc == "restart")
 	{
-		Process::restartHyperion(11);
+		emit signalEvent(Event::Restart);
 		sendSuccessReply(command + "-" + subc, tan);
 	}
 	else if (subc == "toggleSuspend")
 	{
-		emit toggleSuspendAll();
+		emit signalEvent(Event::ToggleSuspend);
 		sendSuccessReply(command + "-" + subc, tan);
 	}
 	else if (subc == "idle")
 	{
-		emit idleAll(true);
+		emit signalEvent(Event::Idle);
+		sendSuccessReply(command + "-" + subc, tan);
+	}
+	else if (subc == "resumeIdle")
+	{
+		emit signalEvent(Event::ResumeIdle);
 		sendSuccessReply(command + "-" + subc, tan);
 	}
 	else if (subc == "toggleIdle")
 	{
-		emit toggleIdleAll();
+		emit signalEvent(Event::ToggleIdle);
 		sendSuccessReply(command + "-" + subc, tan);
 	}
 	else
@@ -1980,24 +1997,10 @@ void JsonAPI::incommingLogMessage(const Logger::T_LOG_MESSAGE &msg)
 	if (!_streaming_logging_activated)
 	{
 		_streaming_logging_activated = true;
-		const QList<Logger::T_LOG_MESSAGE> *logBuffer = LoggerManager::getInstance()->getLogMessageBuffer();
-		for (int i = 0; i < logBuffer->length(); i++)
-		{
-			//Only present records of the current log-level
-			if ( logBuffer->at(i).level >= _log->getLogLevel())
-			{
-				message["loggerName"] = logBuffer->at(i).loggerName;
-				message["loggerSubName"] = logBuffer->at(i).loggerSubName;
-				message["function"] = logBuffer->at(i).function;
-				message["line"] = QString::number(logBuffer->at(i).line);
-				message["fileName"] = logBuffer->at(i).fileName;
-				message["message"] = logBuffer->at(i).message;
-				message["levelString"] = logBuffer->at(i).levelString;
-				message["utime"] = QString::number(logBuffer->at(i).utime);
-
-				messageArray.append(message);
-			}
-		}
+		QMetaObject::invokeMethod(LoggerManager::getInstance(), "getLogMessageBuffer",
+								  Qt::DirectConnection,
+								  Q_RETURN_ARG(QJsonArray, messageArray),
+								  Q_ARG(Logger::LogLevel, _log->getLogLevel()));
 	}
 	else
 	{

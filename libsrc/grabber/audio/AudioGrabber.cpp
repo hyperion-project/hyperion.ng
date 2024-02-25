@@ -1,4 +1,4 @@
-#include <grabber/AudioGrabber.h>
+#include <grabber/audio/AudioGrabber.h>
 #include <math.h>
 #include <QImage>
 #include <QObject>
@@ -9,6 +9,15 @@
 // Constants
 namespace {
 	const uint16_t RESOLUTION = 255;
+
+	//Constants vuMeter
+	const QJsonArray DEFAULT_HOTCOLOR { 255,0,0 };
+	const QJsonArray DEFAULT_WARNCOLOR { 255,255,0 };
+	const QJsonArray DEFAULT_SAFECOLOR { 0,255,0 };
+	const int DEFAULT_WARNVALUE { 80 };
+	const int DEFAULT_SAFEVALUE { 45 };
+	const int DEFAULT_MULTIPLIER { 0 };
+	const int DEFAULT_TOLERANCE { 20 };
 }
 
 #if (QT_VERSION < QT_VERSION_CHECK(5, 14, 0))
@@ -28,12 +37,12 @@ AudioGrabber::AudioGrabber()
 	, _deviceProperties()
 	, _device("none")
 	, _hotColor(QColorConstants::Red)
-	, _warnValue(80)
+	, _warnValue(DEFAULT_WARNVALUE)
 	, _warnColor(QColorConstants::Yellow)
-	, _safeValue(45)
+	, _safeValue(DEFAULT_SAFEVALUE)
 	, _safeColor(QColorConstants::Green)
-	, _multiplier(0)
-	, _tolerance(20)
+	, _multiplier(DEFAULT_MULTIPLIER)
+	, _tolerance(DEFAULT_TOLERANCE)
 	, _dynamicMultiplier(INT16_MAX)
 	, _started(false)
 {
@@ -61,18 +70,27 @@ void AudioGrabber::setDevice(const QString& device)
 
 void AudioGrabber::setConfiguration(const QJsonObject& config)
 {
-	QJsonArray hotColorArray = config["hotColor"].toArray(QJsonArray::fromVariantList(QList<QVariant>({ QVariant(255), QVariant(0), QVariant(0) })));
-	QJsonArray warnColorArray = config["warnColor"].toArray(QJsonArray::fromVariantList(QList<QVariant>({ QVariant(255), QVariant(255), QVariant(0) })));
-	QJsonArray safeColorArray = config["safeColor"].toArray(QJsonArray::fromVariantList(QList<QVariant>({ QVariant(0), QVariant(255), QVariant(0) })));
+	QString audioEffect = config["audioEffect"].toString();
+	QJsonObject audioEffectConfig = config[audioEffect].toObject();
 
-	_hotColor = QColor(hotColorArray.at(0).toInt(), hotColorArray.at(1).toInt(), hotColorArray.at(2).toInt());
-	_warnColor = QColor(warnColorArray.at(0).toInt(), warnColorArray.at(1).toInt(), warnColorArray.at(2).toInt());
-	_safeColor = QColor(safeColorArray.at(0).toInt(), safeColorArray.at(1).toInt(), safeColorArray.at(2).toInt());
+	if (audioEffect == "vuMeter")
+	{
+		QJsonArray hotColorArray = audioEffectConfig.value("hotColor").toArray(DEFAULT_HOTCOLOR);
+		QJsonArray warnColorArray = audioEffectConfig.value("warnColor").toArray(DEFAULT_WARNCOLOR);
+		QJsonArray safeColorArray = audioEffectConfig.value("safeColor").toArray(DEFAULT_SAFECOLOR);
 
-	_warnValue = config["warnValue"].toInt(80);
-	_safeValue = config["safeValue"].toInt(45);
-	_multiplier = config["multiplier"].toDouble(0);
-	_tolerance = config["tolerance"].toInt(20);
+		_hotColor = QColor(hotColorArray.at(0).toInt(), hotColorArray.at(1).toInt(), hotColorArray.at(2).toInt());
+		_warnColor = QColor(warnColorArray.at(0).toInt(), warnColorArray.at(1).toInt(), warnColorArray.at(2).toInt());
+		_safeColor = QColor(safeColorArray.at(0).toInt(), safeColorArray.at(1).toInt(), safeColorArray.at(2).toInt());
+		_warnValue = audioEffectConfig["warnValue"].toInt(DEFAULT_WARNVALUE);
+		_safeValue = audioEffectConfig["safeValue"].toInt(DEFAULT_SAFEVALUE);
+		_multiplier = audioEffectConfig["multiplier"].toDouble(DEFAULT_MULTIPLIER);
+		_tolerance = audioEffectConfig["tolerance"].toInt(DEFAULT_MULTIPLIER);
+	}
+	else
+	{
+		Error(_log, "Unknow Audio-Effect: \"%s\" configured", QSTRING_CSTR(audioEffect));
+	}
 }
 
 void AudioGrabber::resetMultiplier()
@@ -160,7 +178,7 @@ void AudioGrabber::processAudioFrame(int16_t* buffer, int length)
 	}
 
 	// Convert to Image<ColorRGB>
-	Image<ColorRgb> finalImage (static_cast<unsigned>(image.width()), static_cast<unsigned>(image.height()));
+	Image<ColorRgb> finalImage (image.width(),image.height());
 	for (int y = 0; y < image.height(); y++)
 	{
 		memcpy((unsigned char*)finalImage.memptr() + y * image.width() * 3, static_cast<unsigned char*>(image.scanLine(y)), image.width() * 3);

@@ -98,7 +98,7 @@ namespace hyperion {
 			static_cast<uint8_t>(channelConfig[0].toInt(defaultR)),
 			static_cast<uint8_t>(channelConfig[1].toInt(defaultG)),
 			static_cast<uint8_t>(channelConfig[2].toInt(defaultB)),
-			"ChannelAdjust_" + channelName.toUpper()
+			channelName
 		);
 	}
 

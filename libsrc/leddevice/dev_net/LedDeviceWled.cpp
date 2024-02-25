@@ -301,7 +301,7 @@ bool LedDeviceWled::isReadyForSegmentStreaming(semver::version& version) const
 	}
 	else
 	{
-		Error(_log, "Version provided to test for streaming readiness is not valid ");
+		Error(_log, "Version provided to test for segment streaming readiness is not valid ");
 	}
 	return isReady;
 }
@@ -325,7 +325,7 @@ bool LedDeviceWled::isReadyForDDPStreaming(semver::version& version) const
 	}
 	else
 	{
-		Error(_log, "Version provided to test for streaming readiness is not valid ");
+		Error(_log, "Version provided to test for DDP streaming readiness is not valid ");
 	}
 	return isReady;
 }
@@ -352,12 +352,12 @@ bool LedDeviceWled::powerOn()
 			}
 			else
 			{
-				QJsonArray propertiesSegments = _originalStateProperties[STATE_SEG].toArray();
+				const QJsonArray propertiesSegments = _originalStateProperties[STATE_SEG].toArray();
 
 				bool isStreamSegmentIdFound { false };
 
 				QJsonArray segments;
-				for (const auto& segmentItem : qAsConst(propertiesSegments))
+				for (const auto& segmentItem : propertiesSegments)
 				{
 					QJsonObject segmentObj = segmentItem.toObject();
 
@@ -505,9 +505,9 @@ bool LedDeviceWled::restoreState()
 
 		if (_isStreamToSegment)
 		{
-			QJsonArray propertiesSegments = _originalStateProperties[STATE_SEG].toArray();
+			const QJsonArray propertiesSegments = _originalStateProperties[STATE_SEG].toArray();
 			QJsonArray segments;
-			for (const auto& segmentItem : qAsConst(propertiesSegments))
+			for (const auto& segmentItem : propertiesSegments)
 			{
 				QJsonObject segmentObj = segmentItem.toObject();
 

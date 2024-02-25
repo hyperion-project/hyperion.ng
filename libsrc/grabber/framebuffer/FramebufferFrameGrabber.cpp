@@ -28,7 +28,7 @@ const char DISCOVERY_FILEPATTERN[] = "fb?";
 } //End of constants
 
 // Local includes
-#include <grabber/FramebufferFrameGrabber.h>
+#include <grabber/framebuffer/FramebufferFrameGrabber.h>
 
 FramebufferFrameGrabber::FramebufferFrameGrabber(const QString & device)
 	: Grabber("FRAMEBUFFERGRABBER")

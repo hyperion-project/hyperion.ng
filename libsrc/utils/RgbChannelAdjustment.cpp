@@ -1,16 +1,14 @@
 #include <utils/RgbChannelAdjustment.h>
 
 RgbChannelAdjustment::RgbChannelAdjustment(QString channelName)
-	: _channelName(channelName)
-	, _log(Logger::getInstance(channelName))
-	, _brightness(0)
+	: RgbChannelAdjustment(0, 0, 0, channelName)
 {
-	resetInitialized();
 }
 
-RgbChannelAdjustment::RgbChannelAdjustment(uint8_t adjustR, uint8_t adjustG, uint8_t adjustB, QString channelName)
+RgbChannelAdjustment::RgbChannelAdjustment(uint8_t adjustR, uint8_t adjustG, uint8_t adjustB, QString channelName )
 	: _channelName(channelName)
-	, _log(Logger::getInstance(channelName))
+	, _log(Logger::getInstance("CHANNEL_" + channelName.toUpper()))
+	, _brightness(0)
 {
 	setAdjustment(adjustR, adjustG, adjustB);
 }

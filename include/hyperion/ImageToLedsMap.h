@@ -413,9 +413,13 @@ namespace hyperion
 			}
 
 			// Compute the average of each color channel
-			const uint8_t avgRed   = uint8_t(std::min(std::lround(sqrt(static_cast<double>(cummRed/pixelNum))), 255L));
-			const uint8_t avgGreen = uint8_t(std::min(std::lround(sqrt(static_cast<double>(cummGreen/pixelNum))), 255L));
-			const uint8_t avgBlue  = uint8_t(std::min(std::lround(sqrt(static_cast<double>(cummBlue/pixelNum))), 255L));
+
+			#ifdef WIN32
+				#undef min
+			#endif
+			const uint8_t avgRed = static_cast<uint8_t>(std::min(std::lround(std::sqrt(static_cast<double>(cummRed / pixelNum))), 255L));
+			const uint8_t avgGreen = static_cast<uint8_t>(std::min(std::lround(sqrt(static_cast<double>(cummGreen / pixelNum))), 255L));
+			const uint8_t avgBlue = static_cast<uint8_t>(std::min(std::lround(sqrt(static_cast<double>(cummBlue / pixelNum))), 255L));
 
 			// Return the computed color
 			return {avgRed, avgGreen, avgBlue};
@@ -551,7 +555,7 @@ namespace hyperion
 			if (pixelNum > 0)
 			{
 				// initial cluster with different colors
-				auto clusters = std::unique_ptr< ColorCluster<ColorRgbScalar> >(new ColorCluster<ColorRgbScalar>[_clusterCount]);
+				std::unique_ptr<ColorCluster<ColorRgbScalar>[]> clusters(new ColorCluster<ColorRgbScalar>[_clusterCount]);
 				for(int k = 0; k < _clusterCount; ++k)
 				{
 					clusters.get()[k].newColor = DEFAULT_CLUSTER_COLORS[k];

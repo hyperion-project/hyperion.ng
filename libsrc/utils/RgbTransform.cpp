@@ -2,13 +2,15 @@
 #include <utils/RgbTransform.h>
 
 RgbTransform::RgbTransform()
+	: RgbTransform::RgbTransform(1.0, 1.0, 1.0, 0.0, false, 100, 100)
 {
-	init(1.0, 1.0, 1.0, 0.0, false, 100, 100);
 }
 
 RgbTransform::RgbTransform(double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation)
+	: _brightness(brightness)
+	, _brightnessCompensation(brightnessCompensation)
 {
-	init(gammaR, gammaG, gammaB, backlightThreshold, backlightColored, brightness, brightnessCompensation);
+	init(gammaR, gammaG, gammaB, backlightThreshold, backlightColored, _brightness, _brightnessCompensation);
 }
 
 void RgbTransform::init(double gammaR, double gammaG, double gammaB, double backlightThreshold, bool backlightColored, uint8_t brightness, uint8_t brightnessCompensation)

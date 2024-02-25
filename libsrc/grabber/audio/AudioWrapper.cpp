@@ -1,11 +1,10 @@
-#include <grabber/AudioWrapper.h>
+#include <grabber/audio/AudioWrapper.h>
 #include <hyperion/GrabberWrapper.h>
 #include <QObject>
 #include <QMetaType>
 
 AudioWrapper::AudioWrapper()
 	: GrabberWrapper("AudioGrabber", &_grabber)
-	, _grabber()
 {
 	// register the image type
 	qRegisterMetaType<Image<ColorRgb>>("Image<ColorRgb>");

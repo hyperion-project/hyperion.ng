@@ -1,4 +1,4 @@
-#include <grabber/OsxWrapper.h>
+#include <grabber/osx/OsxWrapper.h>
 
 OsxWrapper::OsxWrapper( int updateRate_Hz,
 						int display,

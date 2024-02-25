@@ -36,6 +36,11 @@ public:
         : Option(other), validator(validator)
     {}
 
+	~ValidatorOption()
+	{
+		delete validator;
+	}
+
     virtual const QValidator *getValidator() const;
     virtual bool validate(Parser & parser, QString &value) override;
 };

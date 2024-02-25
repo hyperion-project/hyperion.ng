@@ -164,5 +164,8 @@ int main(int argc, char ** argv)
 		Error(log, "%s", e.what());
 		return -1;
 	}
+	
+	Logger::deleteInstance();
+		
 	return 0;
 }

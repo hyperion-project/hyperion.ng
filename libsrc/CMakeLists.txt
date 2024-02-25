@@ -1,7 +1,7 @@
 
 # Define the current source locations
-SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include)
-SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc)
+set(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include)
+set(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc)
 
 add_subdirectory(hyperion)
 add_subdirectory(commandline)
@@ -32,17 +32,19 @@ add_subdirectory(db)
 add_subdirectory(api)
 add_subdirectory(ssdp)
 
+if(ENABLE_CEC)
+	add_subdirectory(cec)
+endif()
+
+add_subdirectory(events)
+
 if(ENABLE_MDNS)
 	add_subdirectory(mdns)
-endif()	
+endif()
 
 if(ENABLE_EFFECTENGINE)
 	add_subdirectory(effectengine)
 	add_subdirectory(python)
-endif()
-
-if(ENABLE_CEC)
-	add_subdirectory(cec)
 endif()
 
 if(ENABLE_EXPERIMENTAL)
