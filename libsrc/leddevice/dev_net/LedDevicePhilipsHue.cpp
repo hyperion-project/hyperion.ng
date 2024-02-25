@@ -349,7 +349,7 @@ LedDevicePhilipsHueBridge::LedDevicePhilipsHueBridge(const QJsonObject &deviceCo
 	, _isHueEntertainmentReady(false)
 {
 #ifdef ENABLE_MDNS
-	QMetaObject::invokeMethod(&MdnsBrowser::getInstance(), "browseForServiceType",
+	QMetaObject::invokeMethod(MdnsBrowser::getInstance().data(), "browseForServiceType",
 							  Qt::QueuedConnection, Q_ARG(QByteArray, MdnsServiceRegister::getServiceType(_activeDeviceType)));
 #endif
 }
@@ -1294,7 +1294,7 @@ QJsonObject LedDevicePhilipsHueBridge::discover(const QJsonObject& /*params*/)
 
 #ifdef ENABLE_MDNS
 	QString discoveryMethod("mDNS");
-	deviceList = MdnsBrowser::getInstance().getServicesDiscoveredJson(
+	deviceList = MdnsBrowser::getInstance().data()->getServicesDiscoveredJson(
 					 MdnsServiceRegister::getServiceType(_activeDeviceType),
 					 MdnsServiceRegister::getServiceNameFilter(_activeDeviceType),
 					 DEFAULT_DISCOVER_TIMEOUT

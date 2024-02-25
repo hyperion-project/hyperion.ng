@@ -12,6 +12,9 @@ class AmlogicWrapper : public GrabberWrapper
 {
 	Q_OBJECT
 public:
+
+	static constexpr const char* GRABBERTYPE = "Amlogic";
+
 	///
 	/// Constructs the Amlogic frame grabber
 	///
@@ -21,6 +24,12 @@ public:
 	///
 	AmlogicWrapper(int pixelDecimation=GrabberWrapper::DEFAULT_PIXELDECIMATION,
 					int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ);
+
+	///
+	/// Constructs the Amlogic frame grabber from configuration settings
+	///
+	AmlogicWrapper(const QJsonDocument& grabberConfig = QJsonDocument());
+
 
 public slots:
 	///

@@ -7,6 +7,7 @@
 #include <QAtomicInteger>
 #include <QList>
 #include <QJsonArray>
+#include <QScopedPointer>
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
 	#include <QRecursiveMutex>
@@ -106,8 +107,19 @@ class LoggerManager : public QObject
 {
 	Q_OBJECT
 
+private:
+	// Run LoggerManager as singleton
+	LoggerManager();
+	LoggerManager(const LoggerManager&) = delete;
+	LoggerManager(LoggerManager&&) = delete;
+	LoggerManager& operator=(const LoggerManager&) = delete;
+	LoggerManager& operator=(LoggerManager&&) = delete;
+
+	static QScopedPointer<LoggerManager> instance;
+
 public:
-	static LoggerManager* getInstance();
+	~LoggerManager() override;
+	 static QScopedPointer<LoggerManager>& getInstance();
 
 public slots:
 	void handleNewLogMessage(const Logger::T_LOG_MESSAGE&);
@@ -117,7 +129,6 @@ signals:
 	void newLogMessage(const Logger::T_LOG_MESSAGE&);
 
 private:
-	LoggerManager();
 
 	QList<Logger::T_LOG_MESSAGE>   _logMessageBuffer;
 	const int                      _loggerMaxMsgBufferSize;

@@ -15,14 +15,16 @@ EventScheduler::EventScheduler()
 	qRegisterMetaType<Event>("Event");
 	_log = Logger::getInstance("EVENTS-SCHED");
 
-	QObject::connect(this, &EventScheduler::signalEvent, EventHandler::getInstance(), &EventHandler::handleEvent);
+	QObject::connect(this, &EventScheduler::signalEvent, EventHandler::getInstance().data(), &EventHandler::handleEvent);
+
+	Debug(_log, "Hyperion event scheduler created");
 }
 
 EventScheduler::~EventScheduler()
 {
-	QObject::disconnect(this, &EventScheduler::signalEvent, EventHandler::getInstance(), &EventHandler::handleEvent);
+	QObject::disconnect(this, &EventScheduler::signalEvent, EventHandler::getInstance().data(), &EventHandler::handleEvent);
 	clearTimers();
-	Info(_log, "Event scheduler stopped");
+	Info(_log, "Hyperion event scheduler stopped");
 }
 
 void EventScheduler::handleSettingsUpdate(settings::type type, const QJsonDocument& config)

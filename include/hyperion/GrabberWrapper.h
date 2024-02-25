@@ -32,6 +32,14 @@ class GrabberWrapper : public QObject
 {
 	Q_OBJECT
 public:
+
+	static constexpr const char* GRABBERTYPE = "Base";
+
+	template<typename GrabberType>
+	static QSharedPointer<GrabberType> create(const QJsonDocument& config) {
+		return QSharedPointer<GrabberType>::create(config);
+	}
+
 	GrabberWrapper(const QString& grabberName, Grabber * ggrabber,int updateRate_Hz = DEFAULT_RATE_HZ);
 
 	~GrabberWrapper() override;
@@ -70,6 +78,11 @@ public:
 	/// Check if grabber is active
 	///
 	virtual bool isActive() const;
+
+	virtual bool isAvailable() { return _isAvailable; }
+
+
+	QString getName() { return _grabberName; }
 
 	///
 	/// @brief Get active grabber name
@@ -195,4 +208,6 @@ protected:
 
 	/// The image used for grabbing frames
 	Image<ColorRgb> _image;
+
+	bool _isAvailable;
 };

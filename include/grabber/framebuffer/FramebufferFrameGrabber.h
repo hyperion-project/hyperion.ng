@@ -17,7 +17,7 @@ public:
 	///
 	/// @param[in] device The framebuffer device name/path
 	///
-	FramebufferFrameGrabber(const QString & device="/dev/fb0");
+	FramebufferFrameGrabber(int deviceIdx = 0);
 
 	~FramebufferFrameGrabber() override;
 
@@ -45,7 +45,7 @@ public:
 	///@brief Set new width and height for framegrabber, overwrite Grabber.h implementation
 	bool setWidthHeight(int width, int height) override;
 
-	QString getPath() const {return _fbDevice;}
+	QString getPath() const {return QString("/dev/fb%1").arg(_input);}
 
 	///
 	/// @brief Discover Framebuffer screens available (for configuration).
@@ -62,7 +62,7 @@ private:
 	bool closeDevice();
 	bool getScreenInfo();
 
-	/// Framebuffer device e.g. /dev/fb0
+	// /// Framebuffer device e.g. /dev/fb0
 	QString _fbDevice;
 
 	int _fbfd;

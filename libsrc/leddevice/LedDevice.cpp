@@ -100,7 +100,7 @@ void LedDevice::stop()
 	this->stopEnableAttemptsTimer();
 	this->disable();
 	this->stopRefreshTimer();
-	Info(_log, " Stopped LedDevice '%s'", QSTRING_CSTR(_activeDeviceType));
+	Info(_log, "Stopped LedDevice '%s'", QSTRING_CSTR(_activeDeviceType));
 }
 
 int LedDevice::open()

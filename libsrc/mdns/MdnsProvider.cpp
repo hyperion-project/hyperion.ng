@@ -34,6 +34,7 @@ void MdnsProvider::init()
 MdnsProvider::~MdnsProvider()
 {
 	_providedServiceTypes.clear();
+	Info(_log, "mDNS info service stopped");
 }
 
 void MdnsProvider::publishService(const QString& serviceType, quint16 servicePort, const QByteArray& serviceName)

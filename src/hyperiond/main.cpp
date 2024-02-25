@@ -389,9 +389,6 @@ int main(int argc, char** argv)
 		Error(log, "Hyperion aborted: %s", e.what());
 	}
 
-	// delete components
-	Logger::deleteInstance();
-
 #ifdef _WIN32
 	if (parser.isSet(consoleOption))
 	{
