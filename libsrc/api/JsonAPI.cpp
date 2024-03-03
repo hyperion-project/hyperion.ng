@@ -77,6 +77,7 @@
 #include <HyperionConfig.h>
 #include <utils/SysInfo.h>
 #include <utils/ColorSys.h>
+#include <utils/KelvinToRgb.h>
 #include <utils/Process.h>
 #include <utils/JsonUtils.h>
 
@@ -540,6 +541,8 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 		adjustment["saturationGain"] = colorAdjustment->_okhsvTransform.getSaturationGain();
 		adjustment["brightnessGain"] = colorAdjustment->_okhsvTransform.getBrightnessGain();
 
+		adjustment["temperature"] = 6600;
+
 		adjustmentArray.append(adjustment);
 	}
 
@@ -959,6 +962,17 @@ void JsonAPI::handleAdjustmentCommand(const QJsonObject &message, const QString 
 	if (adjustment.contains("brightnessGain"))
 	{
 		colorAdjustment->_okhsvTransform.setBrightnessGain(adjustment["brightnessGain"].toDouble());
+    }
+
+	if (adjustment.contains("temperature"))
+	{
+		int temperature = adjustment["temperature"].toInt(6500);
+		ColorRgb rgb = getRgbFromTemperature(temperature);
+
+		ColorCorrection *colorCorrection = _hyperion->getTemperature(adjustmentId);
+		colorCorrection->_rgbCorrection.setcorrectionR(rgb.red);
+		colorCorrection->_rgbCorrection.setcorrectionG(rgb.green);
+		colorCorrection->_rgbCorrection.setcorrectionB(rgb.blue);
 	}
 
 	// commit the changes

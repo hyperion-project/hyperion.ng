@@ -295,7 +295,9 @@ void HyperionDaemon::startNetworkServices()
 	_webserver->thread()->start();
 	_sslWebserver->thread()->start();
 
+#ifdef ENABLE_MDNS
 	_mDNSProvider->thread()->start();
+#endif
 	_ssdp->thread()->start();
 
 #if defined(ENABLE_FLATBUF_SERVER)
@@ -315,7 +317,9 @@ void HyperionDaemon::stopNetworkServices()
 	_flatBufferServer.reset(nullptr);
 #endif
 
+#ifdef ENABLE_MDNS
 	_mDNSProvider.reset(nullptr);
+#endif
 	_ssdp.reset(nullptr);
 
 	_sslWebserver.reset(nullptr);

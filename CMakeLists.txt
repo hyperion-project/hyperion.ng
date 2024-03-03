@@ -110,7 +110,7 @@ set(DEFAULT_USE_SYSTEM_QMDNS_LIBS       OFF)
 set(DEFAULT_TESTS                       OFF)
 
 # Build Hyperion with a reduced set of functionality, overwrites other default values
-set(DEFAULT_HYPERION_LIGHT              OFF)
+set(DEFAULT_HYPERION_LIGHT              ON )
 
 if(${CMAKE_SYSTEM} MATCHES "Linux")
 	set(DEFAULT_FB              ON)
@@ -232,23 +232,34 @@ if(HYPERION_LIGHT)
 	SET ( DEFAULT_OSX                         OFF )
 	SET ( DEFAULT_QT                          OFF )
 	SET ( DEFAULT_V4L2                        OFF )
+	SET ( DEFAULT_AUDIO                       OFF )
 	SET ( DEFAULT_X11                         OFF )
 	SET ( DEFAULT_XCB                         OFF )
 
-	SET ( DEFAULT_AUDIO                       OFF )
+	# LED-Devices
+	SET ( DEFAULT_DEV_NETWORK                 OFF )
+	SET ( DEFAULT_DEV_SERIAL                  OFF )
+	SET ( DEFAULT_DEV_SPI                     OFF )
+	SET ( DEFAULT_DEV_TINKERFORGE             OFF )
+	SET ( DEFAULT_DEV_USB_HID                 OFF )
+	SET ( DEFAULT_DEV_WS281XPWM               OFF )
 
 	# Disable Input Servers
-	set(DEFAULT_BOBLIGHT_SERVER             OFF)
-	set(DEFAULT_CEC                         OFF)
-	set(DEFAULT_FLATBUF_SERVER              OFF)
-	set(DEFAULT_PROTOBUF_SERVER             OFF)
+	SET ( DEFAULT_BOBLIGHT_SERVER             OFF )
+	SET ( DEFAULT_CEC                         OFF )
+	SET ( DEFAULT_FLATBUF_SERVER              OFF )
+	SET ( DEFAULT_PROTOBUF_SERVER             OFF )
 
 	# Disable Output Connectors
-	set(DEFAULT_FORWARDER                   OFF)
-	set(DEFAULT_FLATBUF_CONNECT             OFF)
+	SET ( DEFAULT_FORWARDER                   OFF )
+	SET ( DEFAULT_FLATBUF_CONNECT             OFF )
 
 	# Disable Services
-	set(DEFAULT_EFFECTENGINE                OFF)
+	SET ( DEFAULT_EXPERIMENTAL                OFF )
+	SET ( DEFAULT_MDNS                        ON  )
+	SET ( DEFAULT_REMOTE_CTL                  OFF )	
+	SET ( DEFAULT_EFFECTENGINE                OFF )
+
 endif()
 
 message(STATUS "Grabber options:")
