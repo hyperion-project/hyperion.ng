@@ -57,11 +57,14 @@ add_library(hyperion-utils
 	# Rgb single color adjustment/correction
 	${CMAKE_SOURCE_DIR}/include/utils/RgbChannelAdjustment.h
 	${CMAKE_SOURCE_DIR}/libsrc/utils/RgbChannelAdjustment.cpp
+	${CMAKE_SOURCE_DIR}/include/utils/RgbChannelCorrection.h
+	${CMAKE_SOURCE_DIR}/libsrc/utils/RgbChannelCorrection.cpp
 	# Color conversion/transformation
 	${CMAKE_SOURCE_DIR}/include/utils/RgbToRgbw.h
 	${CMAKE_SOURCE_DIR}/libsrc/utils/RgbToRgbw.cpp
 	${CMAKE_SOURCE_DIR}/include/utils/RgbTransform.h
 	${CMAKE_SOURCE_DIR}/libsrc/utils/RgbTransform.cpp
+	${CMAKE_SOURCE_DIR}/include/utils/KelvinToRgb.h	
 	# System info class
 	${CMAKE_SOURCE_DIR}/include/utils/SysInfo.h
 	${CMAKE_SOURCE_DIR}/libsrc/utils/SysInfo.cpp
