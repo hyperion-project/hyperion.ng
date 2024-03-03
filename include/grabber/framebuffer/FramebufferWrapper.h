@@ -12,17 +12,25 @@ class FramebufferWrapper: public GrabberWrapper
 {
 	Q_OBJECT
 public:
+
+	static constexpr const char* GRABBERTYPE = "FB";
+
 	///
 	/// Constructs the framebuffer frame grabber with a specified grab size and update rate.
 	///
 	/// @param[in] updateRate_Hz  The image grab rate [Hz]
-	/// @param[in] device Framebuffer device name/path
+	/// @param[in] deviceIdx Framebuffer device index
 	/// @param[in] pixelDecimation   Decimation factor for image [pixels]
 	///
 	FramebufferWrapper( int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ,
-						const QString & device = "/dev/fb0",
+						int deviceIdx = 0,
 						int pixelDecimation=GrabberWrapper::DEFAULT_PIXELDECIMATION
 						);
+
+	///
+	/// Constructs the QT frame grabber from configuration settings
+	///
+	FramebufferWrapper(const QJsonDocument& grabberConfig = QJsonDocument());
 
 public slots:
 	///

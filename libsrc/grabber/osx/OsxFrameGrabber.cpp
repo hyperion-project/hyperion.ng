@@ -16,7 +16,7 @@ const bool verbose = false;
 } //End of constants
 
 OsxFrameGrabber::OsxFrameGrabber(int display)
-	: Grabber("OSXGRABBER")
+	: Grabber("GRABBER-OSX")
 	  , _screenIndex(display)
 {
 	_isEnabled = false;

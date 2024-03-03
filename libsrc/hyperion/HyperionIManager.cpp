@@ -247,7 +247,7 @@ void HyperionIManager::handleFinished()
 	Hyperion* hyperion = qobject_cast<Hyperion*>(sender());
 	quint8 instance = hyperion->getInstanceIndex();
 
-	Info(_log,"Hyperion instance '%s' has been stopped", QSTRING_CSTR(_instanceTable->getNamebyIndex(instance)));
+	Info(_log,"Hyperion instance '%s' stopped", QSTRING_CSTR(_instanceTable->getNamebyIndex(instance)));
 
 	_runningInstances.remove(instance);
 	hyperion->thread()->deleteLater();

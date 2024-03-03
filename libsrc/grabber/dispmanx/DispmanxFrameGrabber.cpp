@@ -19,7 +19,7 @@ namespace {
 #include "grabber/dispmanx/DispmanxFrameGrabber.h"
 
 DispmanxFrameGrabber::DispmanxFrameGrabber()
-	: Grabber("DISPMANXGRABBER")
+	: Grabber("GRABBER-DISPMANX")
 	, _lib(nullptr)
 	, _vc_display(0)
 	, _vc_resource(0)

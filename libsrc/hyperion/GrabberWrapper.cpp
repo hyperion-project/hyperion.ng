@@ -26,10 +26,11 @@ bool GrabberWrapper::GLOBAL_GRABBER_AUDIO_ENABLE = false;
 
 GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber * ggrabber, int updateRate_Hz)
 	: _grabberName(grabberName)
-	  , _log(Logger::getInstance(grabberName.toUpper()))
+	  , _log(Logger::getInstance(("Grabber-" + grabberName).toUpper()))
 	  , _timer(nullptr)
 	  , _updateInterval_ms(1000/updateRate_Hz)
 	  , _ggrabber(ggrabber)
+	  , _isAvailable(true)
 {
 	GrabberWrapper::instance = this;
 
@@ -58,7 +59,7 @@ GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber * ggrabber, i
 	// listen for source requests
 	connect(GlobalSignals::getInstance(), &GlobalSignals::requestSource, this, &GrabberWrapper::handleSourceRequest);
 
-	QObject::connect(EventHandler::getInstance(), &EventHandler::signalEvent, this, &GrabberWrapper::handleEvent);
+	QObject::connect(EventHandler::getInstance().data(), &EventHandler::signalEvent, this, &GrabberWrapper::handleEvent);
 }
 
 GrabberWrapper::~GrabberWrapper()
@@ -75,7 +76,7 @@ bool GrabberWrapper::start()
 		if (!_timer->isActive())
 		{
 			// Start the timer with the pre configured interval
-			Debug(_log,"Grabber start()");
+			Info(_log,"%s grabber started", QSTRING_CSTR(getName()));
 			_timer->start();
 		}
 
@@ -89,7 +90,7 @@ void GrabberWrapper::stop()
 	if (_timer->isActive())
 	{
 		// Stop the timer, effectively stopping the process
-		Debug(_log,"Grabber stop()");
+		Info(_log,"%s grabber stopped", QSTRING_CSTR(getName()));
 		_timer->stop();
 	}
 }

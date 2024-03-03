@@ -13,6 +13,9 @@ class DispmanxWrapper: public GrabberWrapper
 {
 	Q_OBJECT
 public:
+
+	static constexpr const char* GRABBERTYPE = "DispmanX";
+
 	///
 	/// Constructs the dispmanx frame grabber with a specified grab size and update rate.
 	///
@@ -23,9 +26,12 @@ public:
 					 int pixelDecimation=GrabberWrapper::DEFAULT_PIXELDECIMATION
 					 );
 
-	bool screenInit();
+	///
+	/// Constructs the QT frame grabber from configuration settings
+	///
+	DispmanxWrapper(const QJsonDocument& grabberConfig = QJsonDocument());
 
-	bool available = false;
+	bool screenInit();
 
 	///
 	/// Starts the grabber which produces led values with the specified update rate

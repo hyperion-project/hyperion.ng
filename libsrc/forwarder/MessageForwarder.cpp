@@ -48,7 +48,7 @@ MessageForwarder::MessageForwarder(Hyperion* hyperion)
 	qRegisterMetaType<TargetHost>("TargetHost");
 
 #ifdef ENABLE_MDNS
-	QMetaObject::invokeMethod(&MdnsBrowser::getInstance(), "browseForServiceType",
+	QMetaObject::invokeMethod(MdnsBrowser::getInstance().data(), "browseForServiceType",
 							   Qt::QueuedConnection, Q_ARG(QByteArray, MdnsServiceRegister::getServiceType("jsonapi")));
 #endif
 
@@ -257,7 +257,7 @@ int MessageForwarder::startJsonTargets(const QJsonObject& config)
 #ifdef ENABLE_MDNS
 		if (!addr.isEmpty())
 		{
-			QMetaObject::invokeMethod(&MdnsBrowser::getInstance(), "browseForServiceType",
+			QMetaObject::invokeMethod(MdnsBrowser::getInstance().data(), "browseForServiceType",
 									   Qt::QueuedConnection, Q_ARG(QByteArray, MdnsServiceRegister::getServiceType("jsonapi")));
 		}
 #endif
@@ -362,7 +362,7 @@ int MessageForwarder::startFlatbufferTargets(const QJsonObject& config)
 #ifdef ENABLE_MDNS
 		if (!addr.isEmpty())
 		{
-			QMetaObject::invokeMethod(&MdnsBrowser::getInstance(), "browseForServiceType",
+			QMetaObject::invokeMethod(MdnsBrowser::getInstance().data(), "browseForServiceType",
 									   Qt::QueuedConnection, Q_ARG(QByteArray, MdnsServiceRegister::getServiceType("flatbuffer")));
 		}
 #endif

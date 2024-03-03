@@ -27,7 +27,7 @@
 namespace {
 const bool verbose = false;
 
-const char DEFAULT_FB_DEVICE[] = "/dev/fb0";
+const int  DEFAULT_FB_DEVICE_IDX = 0;
 const char DEFAULT_VIDEO_DEVICE[] = "/dev/amvideo";
 const char DEFAULT_CAPTURE_DEVICE[] = "/dev/amvideocap0";
 const int  AMVIDEOCAP_WAIT_MAX_MS = 40;
@@ -36,11 +36,11 @@ const int  AMVIDEOCAP_DEFAULT_RATE_HZ = 25;
 } //End of constants
 
 AmlogicGrabber::AmlogicGrabber()
-	: Grabber("AMLOGICGRABBER") // Minimum required width or height is 160
+	: Grabber("GRABBER-AMLOGIC") // Minimum required width or height is 160
 	  , _captureDev(-1)
 	  , _videoDev(-1)
 	  , _lastError(0)
-	  , _fbGrabber(DEFAULT_FB_DEVICE)
+	  , _fbGrabber(DEFAULT_FB_DEVICE_IDX)
 	  , _grabbingModeNotification(0)
 {
 	_image_ptr = _image_bgr.memptr();
@@ -57,7 +57,7 @@ bool AmlogicGrabber::setupScreen()
 {
 	bool rc (false);
 
-	QSize screenSize = _fbGrabber.getScreenSize(DEFAULT_FB_DEVICE);
+	QSize screenSize = _fbGrabber.getScreenSize();
 	if ( !screenSize.isEmpty() )
 	{
 		if (setWidthHeight(screenSize.width(), screenSize.height()))

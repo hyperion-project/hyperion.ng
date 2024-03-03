@@ -17,6 +17,7 @@
 #include <QByteArray>
 #include <QMap>
 #include <QJsonArray>
+#include <QScopedPointer>
 #include <QSharedPointer>
 
 // Utility includes
@@ -39,20 +40,16 @@ private:
 	///
 	// Run MdnsBrowser as singleton
 	MdnsBrowser(QObject* parent = nullptr);
-	~MdnsBrowser() override;
-
-public:
-
-	static MdnsBrowser& getInstance()
-	{
-		static MdnsBrowser* instance = new MdnsBrowser();
-		return *instance;
-	}
-
 	MdnsBrowser(const MdnsBrowser&) = delete;
 	MdnsBrowser(MdnsBrowser&&) = delete;
 	MdnsBrowser& operator=(const MdnsBrowser&) = delete;
 	MdnsBrowser& operator=(MdnsBrowser&&) = delete;
+
+	static QScopedPointer<MdnsBrowser> instance;
+
+public:
+	~MdnsBrowser() override;
+	 static QScopedPointer<MdnsBrowser>& getInstance();
 
 	QMdnsEngine::Service getFirstService(const QByteArray& serviceType, const QString& filter = ".*", const std::chrono::milliseconds waitTime = DEFAULT_DISCOVER_TIMEOUT) const;
 	QJsonArray getServicesDiscoveredJson(const QByteArray& serviceType, const QString& filter = ".*", const std::chrono::milliseconds waitTime = std::chrono::milliseconds{ 0 }) const;

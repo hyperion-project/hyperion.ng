@@ -7,7 +7,6 @@
 	#undef None
 #endif
 
-
 ///
 /// The X11Wrapper uses an instance of the X11Grabber to obtain ImageRgb's from the displayed content.
 /// This ImageRgb is processed to a ColorRgb for each led and committed to the attached Hyperion.
@@ -15,6 +14,8 @@
 class X11Wrapper: public GrabberWrapper
 {
 public:
+	static constexpr const char* GRABBERTYPE = "X11";
+
 	///
 	/// Constructs the X11 frame grabber with a specified grab size and update rate.
 	///
@@ -26,6 +27,11 @@ public:
 				int cropLeft=0, int cropRight=0,
 				int cropTop=0, int cropBottom=0
 				);
+
+	///
+	/// Constructs the X11 frame grabber from configuration settings
+	///
+	X11Wrapper(const QJsonDocument& grabberConfig = QJsonDocument());
 
 	///
 	/// Destructor of this frame grabber. Releases any claimed resources.

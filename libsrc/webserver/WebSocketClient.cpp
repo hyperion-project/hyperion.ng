@@ -23,9 +23,11 @@ WebSocketClient::WebSocketClient(QtHttpRequest* request, QTcpSocket* sock, bool 
 	const QString client = request->getClientInfo().clientAddress.toString();
 
 	// Json processor
-	_jsonAPI = new JsonAPI(client, _log, localConnection, this);
-	connect(_jsonAPI, &JsonAPI::callbackMessage, this, &WebSocketClient::sendMessage);
-	connect(_jsonAPI, &JsonAPI::forceClose, this,[this]() { this->sendClose(CLOSECODE::NORMAL); });
+	_jsonAPI.reset(new JsonAPI(client, _log, localConnection, this));
+	connect(_jsonAPI.get(), &JsonAPI::callbackMessage, this, &WebSocketClient::sendMessage);
+	connect(_jsonAPI.get(), &JsonAPI::forceClose, this,[this]() { this->sendClose(CLOSECODE::NORMAL); });
+
+	connect(this, &WebSocketClient::handleMessage, _jsonAPI.get(), &JsonAPI::handleMessage);
 
 	Debug(_log, "New connection from %s", QSTRING_CSTR(client));
 
@@ -129,7 +131,7 @@ void WebSocketClient::handleWebSocketFrame()
 
 					if (_frameOpCode == OPCODE::TEXT)
 					{
-						_jsonAPI->handleMessage(QString(_wsReceiveBuffer));
+						emit handleMessage(QString(_wsReceiveBuffer),"");
 					}
 					else
 					{

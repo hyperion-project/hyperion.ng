@@ -10,7 +10,7 @@ namespace {
 } //End of constants
 
 DirectXGrabber::DirectXGrabber(int display, int cropLeft, int cropRight, int cropTop, int cropBottom)
-	: Grabber("DXGRABBER", cropLeft, cropRight, cropTop, cropBottom)
+	: Grabber("GRABBER-DIRECTX", cropLeft, cropRight, cropTop, cropBottom)
 	, _display(unsigned(display))
 	, _displayWidth(0)
 	, _displayHeight(0)

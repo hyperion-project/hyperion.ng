@@ -11,6 +11,8 @@ class OsxWrapper: public GrabberWrapper
 {
 	Q_OBJECT
 public:
+
+	static constexpr const char* GRABBERTYPE = "OSX";
 	///
 	/// Constructs the osx frame grabber with a specified grab size and update rate.
 	///
@@ -22,6 +24,12 @@ public:
 				int display = kCGDirectMainDisplay,
 				int pixelDecimation=GrabberWrapper::DEFAULT_PIXELDECIMATION
 				);
+
+	///
+	/// Constructs the QT frame grabber from configuration settings
+	///
+	OsxWrapper(const QJsonDocument& grabberConfig = QJsonDocument());
+
 
 public slots:
 	///

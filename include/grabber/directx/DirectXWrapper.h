@@ -6,6 +6,8 @@
 class DirectXWrapper: public GrabberWrapper
 {
 public:
+	static constexpr const char* GRABBERTYPE = "DirectX";
+
 	///
 	/// Constructs the DirectX grabber with a specified grab size and update rate.
 	///
@@ -24,6 +26,11 @@ public:
 					int cropLeft=0, int cropRight=0,
 					int cropTop=0, int cropBottom=0
 					);
+
+	///
+	/// Constructs the QT frame grabber from configuration settings
+	///
+	DirectXWrapper(const QJsonDocument& grabberConfig = QJsonDocument());
 
 	///
 	/// Destructor of this DirectX grabber. Releases any claimed resources.
