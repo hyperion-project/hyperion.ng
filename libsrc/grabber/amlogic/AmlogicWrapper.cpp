@@ -1,14 +1,15 @@
 #include <grabber/amlogic/AmlogicWrapper.h>
 
-AmlogicWrapper::AmlogicWrapper(int pixelDecimation,	int updateRate_Hz)
+AmlogicWrapper::AmlogicWrapper(int updateRate_Hz, int pixelDecimation)
 	: GrabberWrapper(GRABBERTYPE, &_grabber, updateRate_Hz)
-	  , _grabber()
+	, _grabber()
 {
 	_grabber.setPixelDecimation(pixelDecimation);
 }
 
 AmlogicWrapper::AmlogicWrapper(const QJsonDocument& grabberConfig)
-	: GrabberWrapper(GRABBERTYPE, &_grabber)
+	: AmlogicWrapper(GrabberWrapper::DEFAULT_RATE_HZ,
+					 GrabberWrapper::DEFAULT_PIXELDECIMATION)
 {
 	this->handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
 }

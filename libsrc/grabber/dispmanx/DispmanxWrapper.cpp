@@ -12,7 +12,8 @@ DispmanxWrapper::DispmanxWrapper( int updateRate_Hz,
 }
 
 DispmanxWrapper::DispmanxWrapper(const QJsonDocument& grabberConfig)
-	: GrabberWrapper(GRABBERTYPE, &_grabber)
+	: DispmanxWrapper(GrabberWrapper::DEFAULT_RATE_HZ,
+					  GrabberWrapper::DEFAULT_PIXELDECIMATION)
 {
 	this->handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
 }
