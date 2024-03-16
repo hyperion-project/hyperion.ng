@@ -55,31 +55,31 @@ function stopWizardRGB(reload) {
 function beginWizardRGB() {
   $("#wiz_switchtime_select").off().on('change', function () {
     clearInterval(wIntveralId);
-    var time = $("#wiz_switchtime_select").val();
+    const time = $("#wiz_switchtime_select").val();
     wIntveralId = setInterval(function () { changeColor(); }, time * 1000);
   });
 
   $('.wselect').on("change", function () {
-    var rgb_order = window.serverConfig.device.colorOrder.split("");
-    var redS = $("#wiz_r_select").val();
-    var greenS = $("#wiz_g_select").val();
-    var blueS = rgb_order.toString().replace(/,/g, "").replace(redS, "").replace(greenS, "");
+    let rgb_order = window.serverConfig.device.colorOrder.split("");
+    const redS = $("#wiz_r_select").val();
+    const greenS = $("#wiz_g_select").val();
+    const blueS = rgb_order.toString().replace(/,/g, "").replace(redS, "").replace(greenS, "");
 
-    for (var i = 0; i < rgb_order.length; i++) {
-      if (redS == rgb_order[i])
-        $('#wiz_g_select option[value=' + rgb_order[i] + ']').prop('disabled', true);
+    for (const color of rgb_order) {
+      if (redS == color)
+        $('#wiz_g_select option[value=' + color + ']').prop('disabled', true);
       else
-        $('#wiz_g_select option[value=' + rgb_order[i] + ']').prop('disabled', false);
-      if (greenS == rgb_order[i])
-        $('#wiz_r_select option[value=' + rgb_order[i] + ']').prop('disabled', true);
+        $('#wiz_g_select option[value=' + color + ']').prop('disabled', false);
+      if (greenS == color)
+        $('#wiz_r_select option[value=' + color + ']').prop('disabled', true);
       else
-        $('#wiz_r_select option[value=' + rgb_order[i] + ']').prop('disabled', false);
+        $('#wiz_r_select option[value=' + color + ']').prop('disabled', false);
     }
 
     if (redS != 'null' && greenS != 'null') {
       $('#btn_wiz_save').prop('disabled', false);
 
-      for (var i = 0; i < rgb_order.length; i++) {
+      for (let i = 0; i < rgb_order.length; i++) {
         if (rgb_order[i] == "r")
           rgb_order[i] = redS;
         else if (rgb_order[i] == "g")

@@ -2,11 +2,8 @@
 // Wizard Yeelight
 //****************************
 
-(function() {
-
-let lights = null;
-
-})();
+let lights = [];
+let configuredLights = conf_editor.getEditor("root.specificOptions.lights").getValue();
 
 function getHostInLights(hostname) {
   return lights.filter(
@@ -58,9 +55,6 @@ function startWizardYeelight(e) {
 
 
 function beginWizardYeelight() {
-  lights = [];
-  configuredLights = conf_editor.getEditor("root.specificOptions.lights").getValue();
-
   discover_yeelight_lights();
 
   $('#btn_wiz_save').off().on("click", function () {
@@ -129,9 +123,6 @@ function beginWizardYeelight() {
 async function discover_yeelight_lights() {
   // Get discovered lights
   const res = await requestLedDeviceDiscovery('yeelight');
-
-  // TODO: error case unhandled
-  // res can be: false (timeout) or res.error (not found)
   if (res && !res.error) {
     const r = res.info;
 
@@ -143,54 +134,62 @@ async function discover_yeelight_lights() {
     // Process devices returned by discovery
     for (const device of r.devices) {
       if (device.hostname !== "") {
-        if (getHostInLights(device.hostname).length === 0) {
-          let light = {};
-
-          if (discoveryMethod === "ssdp") {
-            //Create a valid hostname
-            if (device.domain) {
-              light.host += '.' + device.domain;
-            }
-          } else {
-            light.host = device.service;
-            light.name = device.name;
-          }
-          light.port = device.port;
-
-          if (device.txt) {
-            light.model = device.txt.md;
-            //Yeelight does not provide correct API port with mDNS response, use default one
-            light.port = 55443;
-          }
-          else {
-            light.name = device.other.name;
-            light.model = device.other.model;
-          }
-          lights.push(light);
-        }
+        processDiscoverdDevice(device, discoveryMethod);
       }
     }
 
     // Add additional items from configuration
-    for (const keyConfig in configuredLights) {
-      const host = configuredLights[keyConfig].host;
-
-      //In case port has been explicitly provided, overwrite port given as part of hostname
-      if (configuredLights[keyConfig].port !== 0)
-        port = configuredLights[keyConfig].port;
-
-      if (host !== "")
-        if (getHostInLights(host).length === 0) {
-          let light = {};
-          light.host = host;
-          light.port = port;
-          light.name = configuredLights[keyConfig].name;
-          light.model = "color4";
-          lights.push(light);
-        }
+    for (const configuredLight of configuredLights) {
+      processConfiguredLight(configuredLight);
     }
 
     assign_yeelight_lights();
+  }
+}
+
+function processDiscoverdDevice(device, discoveryMethod) {
+  if (getHostInLights(device.hostname).length > 0) {
+    return;
+  }
+
+  const light = {
+    host: device.hostname
+  };
+
+  if (discoveryMethod === "ssdp") {
+    if (device.domain) {
+      light.host += '.' + device.domain;
+    }
+  } else {
+    light.host = device.service;
+    light.name = device.name;
+  }
+
+  light.port = device.port;
+
+  if (device.txt) {
+    light.model = device.txt.md;
+    light.port = 55443; // Yeelight default port
+  } else {
+    light.name = device.other.name;
+    light.model = device.other.model;
+  }
+
+  lights.push(light);
+}
+function processConfiguredLight(configuredLight) {
+  const host = configuredLight.host;
+  let port = configuredLight.port || 0;
+
+  if (host !== "" && getHostInLights(host).length === 0) {
+    const light = {
+      host: host,
+      port: port,
+      name: configuredLight.name,
+      model: "color4"
+    };
+
+    lights.push(light);
   }
 }
 
@@ -273,9 +272,6 @@ async function getProperties_yeelight(host, port) {
   const params = { host: host, port: port };
 
   const res = await requestLedDeviceProperties('yeelight', params);
-
-  // TODO: error case unhandled
-  // res can be: false (timeout) or res.error (not found)
   if (res && !res.error) {
     const r = res.info
     console.log("Yeelight properties: ", r);

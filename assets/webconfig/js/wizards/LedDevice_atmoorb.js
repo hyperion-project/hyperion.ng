@@ -2,9 +2,8 @@
 // Wizard AtmoOrb
 //****************************
 
-(function() {
-
-let lights = null;
+let lights = [];
+let configuredLights = [];
 
 function getIdInLights(id) {
   return lights.filter(
@@ -13,9 +12,6 @@ function getIdInLights(id) {
     }
   );
 }
-
-})();
-
 function startWizardAtmoOrb(e) {
   //create html
   const atmoorb_title = 'wiz_atmoorb_title';
@@ -55,9 +51,6 @@ function startWizardAtmoOrb(e) {
 }
 
 function beginWizardAtmoOrb() {
-  lights = [];
-  configuredLights = [];
-
   const configruedOrbIds = conf_editor.getEditor("root.specificOptions.orbIds").getValue().trim();
   if (configruedOrbIds.length !== 0) {
     configuredLights = configruedOrbIds.split(",").map(Number);
@@ -103,7 +96,7 @@ function beginWizardAtmoOrb() {
     d.colorOrder = conf_editor.getEditor("root.generalOptions.colorOrder").getValue();
 
     d.orbIds = finalLights.toString();
-    d.useOrbSmoothing = (eV("useOrbSmoothing") == true);
+    d.useOrbSmoothing = eV("useOrbSmoothing");
 
     d.host = conf_editor.getEditor("root.specificOptions.host").getValue();
     d.port = parseInt(conf_editor.getEditor("root.specificOptions.port").getValue());
@@ -119,8 +112,6 @@ function beginWizardAtmoOrb() {
 }
 
 async function discover_atmoorb_lights(multiCastGroup, multiCastPort) {
-  let light = {};
-
   let params = {};
   if (multiCastGroup !== "") {
     params.multiCastGroup = multiCastGroup;
@@ -132,42 +123,50 @@ async function discover_atmoorb_lights(multiCastGroup, multiCastPort) {
 
   // Get discovered lights
   const res = await requestLedDeviceDiscovery('atmoorb', params);
-
-  // TODO: error case unhandled
-  // res can be: false (timeout) or res.error (not found)
   if (res && !res.error) {
     const r = res.info;
 
     // Process devices returned by discovery
-    for (const device of r.devices) {
-      if (device.id !== "") {
-        if (getIdInLights(device.id).length === 0) {
-          let light = {};
-          light.id = device.id;
-          light.ip = device.ip;
-          light.host = device.hostname;
-          lights.push(light);
-        }
-      }
-    }
+    processDiscoveredDevices(r.devices);
 
     // Add additional items from configuration
-    for (const keyConfig in configuredLights) {
-      if (configuredLights[keyConfig] !== "" && !isNaN(configuredLights[keyConfig])) {
-        if (getIdInLights(configuredLights[keyConfig]).length === 0) {
-          let light = {};
-          light.id = configuredLights[keyConfig];
-          light.ip = "";
-          light.host = "";
-          lights.push(light);
-        }
-      }
+    for (const configuredLight of configuredLights) {
+      processConfiguredLight(configuredLight);
     }
 
-    lights.sort((a, b) => (a.id > b.id) ? 1 : -1);
-
+    sortLightsById();
     assign_atmoorb_lights();
   }
+}
+
+function processDiscoveredDevices(devices) {
+  for (const device of devices) {
+    if (device.id !== "" && getIdInLights(device.id).length === 0) {
+      const light = {
+        id: device.id,
+        ip: device.ip,
+        host: device.hostname
+      };
+      lights.push(light);
+    }
+  }
+}
+
+function processConfiguredLight(configuredLight) {
+  if (configuredLight !== "" && !isNaN(configuredLight)) {
+    if (getIdInLights(configuredLight).length === 0) {
+      const light = {
+        id: configuredLight,
+        ip: "",
+        host: ""
+      };
+      lights.push(light);
+    }
+  }
+}
+
+function sortLightsById() {
+  lights.sort((a, b) => (a.id > b.id) ? 1 : -1);
 }
 
 function assign_atmoorb_lights() {

@@ -28,11 +28,11 @@ async function createNanoleafUserAuthorization() {
       const res = await requestLedDeviceAddAuthorization('nanoleaf', params);
       if (res && !res.error) {
         const response = res.info;
-        if (jQuery.isEmptyObject(response) {
+        if (jQuery.isEmptyObject(response)) {
           debugMessage(`${retryTime}: Power On/Off button not pressed or device not reachable`);
         } else {
           $('#wizp1, #wizp3').toggle(false);
-          var token = response.auth_token;
+          const token = response.auth_token;
           if (token != 'undefined') {
             conf_editor.getEditor("root.specificOptions.token").setValue(token);
           }

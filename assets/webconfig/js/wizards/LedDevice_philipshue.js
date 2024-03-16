@@ -1,12 +1,9 @@
-
-(function() {
-// External properties, 2-dimensional arry of [ledType][key]
-let devicesProperties = {};
-})();
-
 //****************************
 // Wizard Philips Hue
 //****************************
+
+// External properties, 2-dimensional arry of [ledType][key]
+let devicesProperties = {};
 
 let hueIPs = [];
 let hueIPsinc = 0;
@@ -66,7 +63,7 @@ function startWizardPhilipsHue(e) {
   $('#usrcont').append('<div id="hue_client_key_r" class="row"><div class="col-md-2"><p class="text-left">' + $.i18n('wiz_hue_clientkey') +
     '</p></div><div class="col-md-7"><input class="form-control" id="clientkey" type="text"></div></div><br>');
 
-  $('#usrcont').append('<p><span style="font-weight:bold;color:red" id="wiz_hue_usrstate"></span><\p>' +
+  $('#usrcont').append('<p><span style="font-weight:bold;color:red" id="wiz_hue_usrstate"></span></p>' +
     '<button type="button" class="btn btn-primary" style="display:none" id="wiz_hue_create_user"> <i class="fa fa-fw fa-plus"></i>' + $.i18n(hue_create_user) + '</button>');
 
   $('#wizp2_body').append('<div id="hue_grp_ids_t" style="display:none"><p class="text-left" style="font-weight:bold">' + $.i18n('wiz_hue_e_desc2') + '</p></div>');
@@ -143,7 +140,7 @@ function checkBridgeResult(reply, usr) {
 function checkUserResult(reply, username) {
   $('#usrcont').toggle(true);
 
-  const hue_create_user = 'wiz_hue_e_create_user';
+  let hue_create_user = 'wiz_hue_e_create_user';
   if (!isEntertainmentReady) {
     hue_create_user = 'wiz_hue_create_user';
     $('#hue_client_key_r').toggle(false);
@@ -390,12 +387,6 @@ async function identify_hue_device(hostAddress, port, username, name, id, id_v1)
   if (!window.readOnlyMode) {
     $('#btn_wiz_save').prop('disabled', disabled);
   }
-}
-
-//return editor Value
-function eV(vn, defaultVal = "") {
-  const editor = (vn) ? conf_editor.getEditor("root.specificOptions." + vn) : null;
-  return (editor == null) ? defaultVal : ((defaultVal != "" && !isNaN(defaultVal) && isNaN(editor.getValue())) ? defaultVal : editor.getValue());
 }
 
 function beginWizardHue() {
@@ -659,8 +650,8 @@ function beginWizardHue() {
     d.colorOrder = 'rgb';
     d.lightIds = finalLightIds;
     d.transitiontime = parseInt(eV("transitiontime", 1));
-    d.restoreOriginalState = (eV("restoreOriginalState", false) == true);
-    d.switchOffOnBlack = (eV("switchOffOnBlack", false) == true);
+    d.restoreOriginalState = eV("restoreOriginalState", false);
+    d.switchOffOnBlack = eV("switchOffOnBlack", false);
 
     d.blackLevel = parseFloat(eV("blackLevel", 0.009));
     d.onBlackTimeToPowerOff = parseInt(eV("onBlackTimeToPowerOff", 600));
@@ -675,7 +666,7 @@ function beginWizardHue() {
     d.brightnessThreshold = parseFloat(eV("brightnessThreshold", 0.0001));
     d.handshakeTimeoutMin = parseInt(eV("handshakeTimeoutMin", 300));
     d.handshakeTimeoutMax = parseInt(eV("handshakeTimeoutMax", 1000));
-    d.verbose = (eV("verbose") == true);
+    d.verbose = eV("verbose");
 
     d.autoStart = conf_editor.getEditor("root.generalOptions.autoStart").getValue();
     d.enableAttempts = parseInt(conf_editor.getEditor("root.generalOptions.enableAttempts").getValue());
@@ -793,15 +784,13 @@ function get_hue_groups(username) {
           });
         }
       }
-    } else {
-      if (!jQuery.isEmptyObject(ledProperties.groups)) {
-        hueEntertainmentConfigs = [];
-        let hueGroups = ledProperties.groups;
-        for (const groupid in hueGroups) {
-          if (hueGroups[groupid].type == 'Entertainment') {
-            hueGroups[groupid].id = groupid;
-            hueEntertainmentConfigs.push(hueGroups[groupid]);
-          }
+    } else if (!jQuery.isEmptyObject(ledProperties.groups)) {
+      hueEntertainmentConfigs = [];
+      let hueGroups = ledProperties.groups;
+      for (const groupid in hueGroups) {
+        if (hueGroups[groupid].type == 'Entertainment') {
+          hueGroups[groupid].id = groupid;
+          hueEntertainmentConfigs.push(hueGroups[groupid]);
         }
       }
     }
@@ -848,12 +837,10 @@ function get_hue_lights(username) {
           });
         }
       }
-    } else {
-      if (!jQuery.isEmptyObject(ledProperties.lights)) {
-        hueLights = ledProperties.lights;
-      }
+    } else if (!jQuery.isEmptyObject(ledProperties.lights)) {
+      hueLights = ledProperties.lights;
     }
-
+    
     if (Object.keys(hueLights).length > 0) {
       if (!isEntertainmentReady) {
         $('#wh_topcontainer').toggle(false);
