@@ -1399,11 +1399,11 @@ function isScriptLoaded(src) {
   return loadedScripts.indexOf(src) > -1;
 }
 
-function loadScript(src, callback) {
+function loadScript(src, callback, ...params) {
   if (isScriptLoaded(src)) {
     debugMessage('Script ' + src + ' already loaded');
     if (callback && typeof callback === 'function') {
-      callback();
+      callback( ...params);
     }
     return;
   }
@@ -1416,7 +1416,7 @@ function loadScript(src, callback) {
     loadedScripts.push(src);
 
     if (callback && typeof callback === 'function') {
-      callback();
+      callback(...params);
     }
   };
 

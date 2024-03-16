@@ -1055,35 +1055,45 @@ $(document).ready(function () {
     $('#btn_led_device_wiz').off();
 
     if (ledType == "philipshue") {
-      var ledWizardType = ledType;
-      var data = { type: ledWizardType };
-      var hue_title = 'wiz_hue_title';
-      changeWizard(data, hue_title, startWizardPhilipsHue);
+      const data = { ledType: ledType };
+      const hue_title = 'wiz_hue_title';
+      changeWizard(data, hue_title, "startWizardPhilipsHue");
     }
     else if (ledType == "nanoleaf") {
-      var ledWizardType = ledType;
-      var data = { type: ledWizardType };
-      var nanoleaf_user_auth_title = 'wiz_nanoleaf_user_auth_title';
-      changeWizard(data, nanoleaf_user_auth_title, startWizardNanoleafUserAuth);
+      const data = { ledType: ledType };
+      const nanoleaf_user_auth_title = 'wiz_nanoleaf_user_auth_title';
+      changeWizard(data, nanoleaf_user_auth_title, "startWizardNanoleafUserAuth");
       $('#btn_wiz_holder').hide();
     }
     else if (ledType == "atmoorb") {
-      var ledWizardType = (this.checked) ? "atmoorb" : ledType;
-      var data = { type: ledWizardType };
-      var atmoorb_title = 'wiz_atmoorb_title';
-      changeWizard(data, atmoorb_title, startWizardAtmoOrb);
+      const data = { ledType: ledType };
+      const atmoorb_title = 'wiz_atmoorb_title';
+      changeWizard(data, atmoorb_title, "startWizardAtmoOrb");
     }
     else if (ledType == "yeelight") {
-      var ledWizardType = (this.checked) ? "yeelight" : ledType;
-      var data = { type: ledWizardType };
-      var yeelight_title = 'wiz_yeelight_title';
-      changeWizard(data, yeelight_title, startWizardYeelight);
+      const data = { ledType: ledType };
+      const yeelight_title = 'wiz_yeelight_title';
+      changeWizard(data, yeelight_title, "startWizardYeelight");
     }
 
-    function changeWizard(data, hint, fn) {
+    function changeWizard(data, hint, fnName) {
       $('#btn_wiz_holder').html("")
       createHint("wizard", $.i18n(hint), "btn_wiz_holder", "btn_led_device_wiz");
-      $('#btn_led_device_wiz').off().on('click', data, fn);
+      $('#btn_led_device_wiz').off();
+      $('#btn_led_device_wiz').on('click', data, function(event) {
+        // Load LED Device wizard utils
+    	loadScript('js/wizards/LedDevice_utils.js');
+        // Load the respective LED Device wizard code
+    	const script = 'js/wizards/LedDevice_' + data.ledType+ '.js';
+        loadScript(script, function() {
+            if (typeof window[fnName] === 'function') {
+                // Pass the event parameter to the function specified by fnName
+                window[fnName](event); 
+            } else {
+                console.error("Function", fnName, "is not available.");
+            }
+        });   
+      });
     }
 
     conf_editor.on('ready', function () {
