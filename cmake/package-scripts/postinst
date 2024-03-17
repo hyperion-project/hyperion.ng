@@ -26,13 +26,6 @@ install_file()
 
 echo "--- Hyperion ambient light postinstall ---"
 
-#check system
-CPU_RPI=`grep -m1 -c 'BCM2708\|BCM2709\|BCM2710\|BCM2835\|BCM2836\|BCM2837\|BCM2711' /proc/cpuinfo`
-CPU_X32X64=`uname -m | grep 'x86_32\|i686\|x86_64' | wc -l`
-
-#Check for a bootloader as Berryboot
-BOOT_BERRYBOOT=$(grep -m1 -c '\(/var/media\|/media/pi\)/berryboot' /etc/mtab)
-
 #get current system ip
 NET_IP=`hostname -I | cut -d " " -f1`
 
@@ -47,7 +40,7 @@ if [ "$IS_UPGRADE" = false ]; then
 		then
 			# systemd
 			echo "---> init deamon: systemd"
-			FOUND_USR=`who | grep -o -m1 '^\w*\b'` || "root"
+			FOUND_USR=${SUDO_USER:-root}
 			install_file /usr/share/hyperion/service/hyperion.systemd /etc/systemd/system/hyperion@.service
 			systemctl enable hyperion"@${FOUND_USR}".service
 			START_MSG="--> systemctl start hyperion for user ${FOUND_USR}"
@@ -103,35 +96,30 @@ ln -fs $BINSP/scripts/updateHyperionUser.sh $BINTP/updateHyperionUser 2>/dev/nul
 
 # install desktop icons (only on initial installation and not upgrade)
 if [ "$IS_UPGRADE" = false ]; then
-	if hash desktop-file-install 2>/dev/null; then
+	if [ ! -z "${DISPLAY}" ] || [ ! -z "${WAYLAND_DISPLAY}" ] || [ ! -z "${XDG_CURRENT_DESKTOP}" ]; then
 		echo "---> Install Hyperion desktop icons"
-		mkdir /usr/share/pixmaps/hyperion 2>/dev/null
-		cp /usr/share/hyperion/desktop/*.png /usr/share/pixmaps/hyperion 2>/dev/null
-		desktop-file-install /usr/share/hyperion/desktop/hyperiond.desktop 2>/dev/null
-	fi
-fi
+		cp -R /usr/share/hyperion/icons/* /usr/share/icons/hicolor/ 2>/dev/null
+		cp /usr/share/hyperion/desktop/hyperion.metainfo.xml /usr/share/metainfo 2>/dev/null
 
-# cleanup desktop icons
-rm -r /usr/share/hyperion/desktop 2>/dev/null
-
-#Check, if dtparam=spi=on is in place
-if [ $CPU_RPI -eq 1 ]; then
-	BOOT_DIR="/boot"
-	if [ $BOOT_BERRYBOOT -eq 1 ]; then
-		BOOT_DIR=$(sed -ne "s#/dev/mmcblk0p1 \([^ ]*\) vfat rw,.*#\1#p" /etc/mtab)
-	fi
-	if [ -z "$BOOT_DIR" -o ! -f "$BOOT_DIR/config.txt" ]; then
-		echo '---> Warning: RPi using BERRYBOOT found but can not locate where config.txt is to enable SPI. (BOOT_DIR='"$BOOT_DIR)"
-		SPIOK=1 # Not sure if OK, but don't ask to reboot
-	else
-		SPIOK=`grep '^\dtparam=spi=on' "$BOOT_DIR/config.txt" | wc -l`
-		if [ $SPIOK -ne 1 ]; then
-			echo '---> Raspberry Pi found, but SPI is not set, we write "dtparam=spi=on" to '"$BOOT_DIR/config.txt"
-			sed -i '$a dtparam=spi=on' "$BOOT_DIR/config.txt"
-			REBOOTMESSAGE="echo Please reboot your Raspberry Pi, we inserted dtparam=spi=on to $BOOT_DIR/config.txt"
+		if [ -x "$(command -v desktop-file-install )" ]; then
+			desktop-file-install /usr/share/hyperion/desktop/hyperion.desktop 2>/dev/null
+		else
+			# On some systems this directory doesn't exist by default
+			mkdir -p /usr/share/applications
+			cp /usr/share/hyperion/desktop/hyperion.desktop /usr/share/applications
+		fi
+			
+		# update desktop-database (if exists)
+		if [ -x "$(command -v update-desktop-database)" ]; then
+			update-desktop-database -q /usr/share/applications
+			update-desktop-database -q /usr/share/icons/hicolor
 		fi
 	fi
 fi
+
+# cleanup desktop and icons
+rm -r /usr/share/hyperion/desktop 2>/dev/null
+rm -r /usr/share/hyperion/icons 2>/dev/null
 
 echo ${START_MSG}
 
@@ -149,7 +137,7 @@ $REBOOTMESSAGE
 echo "-----------------------------------------------------------------------------"
 echo "Webpage: www.hyperion-project.org"
 echo "Forum: www.hyperion-project.org"
-echo "Documenation: docs.hyperion-project.org"
+echo "Documentation: docs.hyperion-project.org"
 echo "-----------------------------------------------------------------------------"
 
 
@@ -157,7 +145,7 @@ if [ -e /opt/hyperion/ ]
 then
 	echo
 	echo "---------------------------------------------------------------------------------"
-	echo "- It seemd that you have an older version of hyperion installed in /opt/hyperion -"
+	echo "- It seems that you have an older version of hyperion installed in /opt/hyperion -"
 	echo "- please remove it to avoid problems                                            -"
 	echo "---------------------------------------------------------------------------------"
 fi

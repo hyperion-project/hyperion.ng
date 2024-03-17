@@ -1,5 +1,5 @@
 #include <windows.h>
-#include <grabber/DirectXGrabber.h>
+#include <grabber/directx/DirectXGrabber.h>
 
 #pragma comment(lib, "d3d9.lib")
 #pragma comment(lib,"d3dx9.lib")
@@ -10,7 +10,7 @@ namespace {
 } //End of constants
 
 DirectXGrabber::DirectXGrabber(int display, int cropLeft, int cropRight, int cropTop, int cropBottom)
-	: Grabber("DXGRABBER", cropLeft, cropRight, cropTop, cropBottom)
+	: Grabber("GRABBER-DIRECTX", cropLeft, cropRight, cropTop, cropBottom)
 	, _display(unsigned(display))
 	, _displayWidth(0)
 	, _displayHeight(0)

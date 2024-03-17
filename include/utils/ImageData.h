@@ -1,12 +1,9 @@
 #pragma once
 
 // STL includes
-#include <vector>
 #include <cstdint>
 #include <cstring>
 #include <algorithm>
-#include <cassert>
-#include <type_traits>
 #include <utils/ColorRgb.h>
 
 // QT includes
@@ -24,10 +21,10 @@ class ImageData : public QSharedData
 public:
 	typedef Pixel_T pixel_type;
 
-	ImageData(unsigned width, unsigned height, const Pixel_T background) :
+	ImageData(int width, int height, const Pixel_T background) :
 		_width(width),
 		_height(height),
-		_pixels(new Pixel_T[width * height + 1])
+		_pixels(new Pixel_T[static_cast<size_t>(width) * static_cast<size_t>(height)])
 	{
 		std::fill(_pixels, _pixels + width * height, background);
 	}
@@ -36,9 +33,9 @@ public:
 		QSharedData(other),
 		_width(other._width),
 		_height(other._height),
-		_pixels(new Pixel_T[other._width * other._height + 1])
+		_pixels(new Pixel_T[static_cast<size_t>(other._width) * static_cast<size_t>(other._height)])
 	{
-		memcpy(_pixels, other._pixels, static_cast<ulong>(other._width) * static_cast<ulong>(other._height) * sizeof(Pixel_T));
+		memcpy(_pixels, other._pixels, static_cast<size_t>(other._width) * static_cast<size_t>(other._height) * sizeof(Pixel_T));
 	}
 
 	ImageData& operator=(ImageData rhs)
@@ -74,51 +71,56 @@ public:
 		delete[] _pixels;
 	}
 
-	inline unsigned width() const
+	inline int width() const
 	{
 		return _width;
 	}
 
-	inline unsigned height() const
+	inline int height() const
 	{
 		return _height;
 	}
 
-	uint8_t red(unsigned pixel) const
+	uint8_t red(int pixel) const
 	{
 		return (_pixels + pixel)->red;
 	}
 
-	uint8_t green(unsigned pixel) const
+	uint8_t green(int pixel) const
 	{
 		return (_pixels + pixel)->green;
 	}
 
-	uint8_t blue(unsigned pixel) const
+	uint8_t blue(int pixel) const
 	{
 		return (_pixels + pixel)->blue;
 	}
 
-	const Pixel_T& operator()(unsigned x, unsigned y) const
+	const Pixel_T& operator()(int x, int y) const
 	{
 		return _pixels[toIndex(x,y)];
 	}
 
-	Pixel_T& operator()(unsigned x, unsigned y)
+	Pixel_T& operator()(int x, int y)
 	{
 		return _pixels[toIndex(x,y)];
 	}
 
-	void resize(unsigned width, unsigned height)
+	void resize(int width, int height)
 	{
 		if (width == _width && height == _height)
-			return;
-
-		if ((width * height) > unsigned((_width * _height)))
 		{
-			delete[] _pixels;
-			_pixels = new Pixel_T[width*height + 1];
+			return;
 		}
+
+		// Allocate a new buffer without initializing the content
+		Pixel_T* newPixels = new Pixel_T[static_cast<size_t>(width) * static_cast<size_t>(height)];
+
+		// Release the old buffer without copying data
+		delete[] _pixels;
+
+		// Update the pointer to the new buffer
+		_pixels = newPixels;
 
 		_width = width;
 		_height = height;
@@ -137,11 +139,13 @@ public:
 	void toRgb(ImageData<ColorRgb>& image) const
 	{
 		if (image.width() != _width || image.height() != _height)
+		{
 			image.resize(_width, _height);
+		}
 
-		const unsigned imageSize = _width * _height;
+		const int imageSize = _width * _height;
 
-		for (unsigned idx = 0; idx < imageSize; idx++)
+		for (int idx = 0; idx < imageSize; idx++)
 		{
 			const Pixel_T & color = _pixels[idx];
 			image.memptr()[idx] = ColorRgb{color.red, color.green, color.blue};
@@ -157,26 +161,22 @@ public:
 	{
 		if (_width != 1 || _height != 1)
 		{
-			_width = 1;
-			_height = 1;
-			delete[] _pixels;
-			_pixels = new Pixel_T[2];
+			resize(1,1);
 		}
-
-		memset(_pixels, 0, static_cast<unsigned long>(_width) * static_cast<unsigned long>(_height) * sizeof(Pixel_T));
+		// Set the single pixel to the default background
+		_pixels[0] = Pixel_T();
 	}
 
 private:
-	inline unsigned toIndex(unsigned x, unsigned y) const
+	inline int toIndex(int x, int y) const
 	{
 		return y * _width + x;
 	}
 
-private:
 	/// The width of the image
-	unsigned _width;
+	int _width;
 	/// The height of the image
-	unsigned _height;
+	int _height;
 	/// The pixels of the image
 	Pixel_T* _pixels;
 };

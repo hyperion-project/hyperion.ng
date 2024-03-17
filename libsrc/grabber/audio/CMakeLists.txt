@@ -1,35 +1,38 @@
-# Define the current source locations
-SET( CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/grabber )
-SET( CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/grabber/audio )
-
-
-if (WIN32)
-    FILE ( GLOB AUDIO_GRABBER_SOURCES "${CURRENT_HEADER_DIR}/Audio*Windows.h"  "${CURRENT_HEADER_DIR}/AudioGrabber.h"  "${CURRENT_HEADER_DIR}/AudioWrapper.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*Windows.cpp"  "${CURRENT_SOURCE_DIR}/AudioGrabber.cpp"  "${CURRENT_SOURCE_DIR}/AudioWrapper.cpp")
-elseif(${CMAKE_SYSTEM} MATCHES "Linux")
-    FILE ( GLOB AUDIO_GRABBER_SOURCES "${CURRENT_HEADER_DIR}/Audio*Linux.h"  "${CURRENT_HEADER_DIR}/AudioGrabber.h"  "${CURRENT_HEADER_DIR}/AudioWrapper.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*Linux.cpp"  "${CURRENT_SOURCE_DIR}/AudioGrabber.cpp"  "${CURRENT_SOURCE_DIR}/AudioWrapper.cpp")
-elseif (APPLE)
-    #TODO
-    #FILE ( GLOB AUDIO_GRABBER_SOURCES "${CURRENT_HEADER_DIR}/Audio*Apple.h"  "${CURRENT_HEADER_DIR}/AudioGrabber.h"  "${CURRENT_HEADER_DIR}/AudioWrapper.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*Apple.cpp"  "${CURRENT_SOURCE_DIR}/AudioGrabber.cpp"  "${CURRENT_SOURCE_DIR}/AudioWrapper.cpp")
+if(WIN32)
+	add_definitions(-DUNICODE -D_UNICODE)
+	set(AUDIO_GRABBER_SOURCES
+		${CMAKE_SOURCE_DIR}/include/grabber/audio/AudioGrabberWindows.h
+		${CMAKE_SOURCE_DIR}/libsrc/grabber/audio/AudioGrabberWindows.cpp
+	)
+elseif(CMAKE_HOST_UNIX AND NOT APPLE)
+	set(AUDIO_GRABBER_SOURCES
+		${CMAKE_SOURCE_DIR}/include/grabber/audio/AudioGrabberLinux.h
+		${CMAKE_SOURCE_DIR}/libsrc/grabber/audio/AudioGrabberLinux.cpp
+	)
 endif()
 
-add_library( audio-grabber ${AUDIO_GRABBER_SOURCES} )
+add_library(audio-grabber
+	${CMAKE_SOURCE_DIR}/include/grabber/audio/AudioGrabber.h
+	${CMAKE_SOURCE_DIR}/include/grabber/audio/AudioWrapper.h
+	${CMAKE_SOURCE_DIR}/libsrc/grabber/audio/AudioGrabber.cpp
+	${CMAKE_SOURCE_DIR}/libsrc/grabber/audio/AudioWrapper.cpp
+	${AUDIO_GRABBER_SOURCES}
+)
 
-set(AUDIO_LIBS hyperion)
-
-
-if (WIN32)
-    set(AUDIO_LIBS ${AUDIO_LIBS} DSound)
-elseif(${CMAKE_SYSTEM} MATCHES "Linux")
-    find_package(ALSA REQUIRED)                                    
-    if (ALSA_FOUND)                                                
-        include_directories(${ALSA_INCLUDE_DIRS})
-        set(AUDIO_LIBS ${AUDIO_LIBS} ${ALSA_LIBRARIES})
-    endif(ALSA_FOUND)
-
-    set(THREADS_PREFER_PTHREAD_FLAG ON)
-    find_package(Threads REQUIRED)
-    set(AUDIO_LIBS ${AUDIO_LIBS} Threads::Threads) # PRIVATE
+if(WIN32)
+	set(AUDIO_LIBS DSound)
+elseif(CMAKE_HOST_UNIX AND NOT APPLE)
+	set(THREADS_PREFER_PTHREAD_FLAG ON)
+	find_package(ALSA REQUIRED)
+	find_package(Threads REQUIRED)
+	set(AUDIO_LIBS ${ALSA_LIBRARIES} Threads::Threads)
 endif()
 
+target_link_libraries(audio-grabber
+	hyperion
+	${AUDIO_LIBS}
+)
 
-target_link_libraries(audio-grabber ${AUDIO_LIBS} ${QT_LIBRARIES})
+if(CMAKE_HOST_UNIX AND NOT APPLE)
+	target_include_directories(audio-grabber PUBLIC ${ALSA_INCLUDE_DIRS})
+endif()

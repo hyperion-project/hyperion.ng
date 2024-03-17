@@ -11,6 +11,8 @@
 #include <utils/Logger.h>
 #include <utils/Components.h>
 
+#include <events/EventEnum.h>
+
 ///
 /// @brief The Grabber class is responsible to apply image resizes (with or without ImageResampler)
 
@@ -111,6 +113,17 @@ public:
 
 	QString getGrabberName() const { return _grabberName; }
 
+	///
+	/// @brief Determine if the grabber is available.
+	///
+	/// @return true, on success (i.e. library is present), else false
+	///
+	virtual bool isAvailable() { return _isAvailable; }
+
+public slots:
+
+	virtual void handleEvent(Event event) {}
+
 protected slots:
 	///
 	/// @brief Set device in error state
@@ -162,10 +175,15 @@ protected:
 
 	// Device states
 
+	/// Is the device available?
+	bool _isAvailable;
+
 	/// Is the device enabled?
 	bool _isEnabled;
 
 	/// Is the device in error state and stopped?
 	bool _isDeviceInError;
+
+
 
 };

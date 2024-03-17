@@ -29,12 +29,14 @@ JsonServer::JsonServer(const QJsonDocument& config)
 	, _netOrigin(NetOrigin::getInstance())
 	, _config(config)
 {
-	Debug(_log, "Created instance");
+	Debug(_log, "JSON API  server created");
 }
 
 JsonServer::~JsonServer()
 {
+	stop();
 	qDeleteAll(_openConnections);
+	_openConnections.clear();
 }
 
 void JsonServer::initServer()
@@ -65,10 +67,12 @@ void JsonServer::start()
 void JsonServer::stop()
 {
 	if(!_server->isListening())
+	{
 		return;
+	}
 
 	_server->close();
-	Info(_log, "Stopped");
+	Info(_log, "JSON-Server stopped");
 }
 
 void JsonServer::handleSettingsUpdate(settings::type type, const QJsonDocument& config)

@@ -58,7 +58,11 @@ PythonInit::PythonInit()
 
 		if (QFile(py_file).exists() || QDir(py_path).exists() || QDir(py_framework).exists())
 		{
-			Py_NoSiteFlag++;
+#if (PY_VERSION_HEX >= 0x030C0000)
+            config.site_import = 0;
+#else
+            Py_NoSiteFlag++;
+#endif
 			if (QFile(py_file).exists()) // Windows
 			{
 #if (PY_VERSION_HEX >= 0x03080000)

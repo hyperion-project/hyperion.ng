@@ -35,12 +35,7 @@ BlackBorderProcessor::BlackBorderProcessor(Hyperion* hyperion, QObject* parent)
 	// listen for component state changes
 	connect(_hyperion, &Hyperion::compStateChangeRequest, this, &BlackBorderProcessor::handleCompStateChangeRequest);
 
-	_detector = new BlackBorderDetector(_oldThreshold);
-}
-
-BlackBorderProcessor::~BlackBorderProcessor()
-{
-	delete _detector;
+	_detector = std::make_unique<BlackBorderDetector>(_oldThreshold);
 }
 
 void BlackBorderProcessor::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
@@ -66,10 +61,7 @@ void BlackBorderProcessor::handleSettingsUpdate(settings::type type, const QJson
 			if (fabs(_oldThreshold - newThreshold) > std::numeric_limits<double>::epsilon())
 			{
 				_oldThreshold = newThreshold;
-
-				delete _detector;
-
-				_detector = new BlackBorderDetector(newThreshold);
+				_detector = std::make_unique<BlackBorderDetector>(_oldThreshold);
 			}
 
 			Debug(Logger::getInstance("BLACKBORDER", "I"+QString::number(_hyperion->getInstanceIndex())), "Set mode to: %s", QSTRING_CSTR(_detectionMode));

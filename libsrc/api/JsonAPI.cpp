@@ -10,6 +10,8 @@
 #include <QTimer>
 #include <QHostInfo>
 #include <QMultiMap>
+#include <QCoreApplication>
+#include <QApplication>
 
 // hyperion includes
 #include <leddevice/LedDeviceWrapper.h>
@@ -19,54 +21,55 @@
 #include <HyperionConfig.h> // Required to determine the cmake options
 
 #include <hyperion/GrabberWrapper.h>
-#include <grabber/QtGrabber.h>
+#include <grabber/qt/QtGrabber.h>
 
 #include <utils/WeakConnect.h>
+#include <events/EventEnum.h>
 
 #if defined(ENABLE_MF)
-	#include <grabber/MFGrabber.h>
+	#include <grabber/video/mediafoundation/MFGrabber.h>
 #elif defined(ENABLE_V4L2)
-	#include <grabber/V4L2Grabber.h>
+	#include <grabber/video/v4l2/V4L2Grabber.h>
 #endif
 
 #if defined(ENABLE_AUDIO)
-	#include <grabber/AudioGrabber.h>
+	#include <grabber/audio/AudioGrabber.h>
 
 	#ifdef WIN32
-		#include <grabber/AudioGrabberWindows.h>
+		#include <grabber/audio/AudioGrabberWindows.h>
 	#endif
 
 	#ifdef __linux__
-		#include <grabber/AudioGrabberLinux.h>
+		#include <grabber/audio/AudioGrabberLinux.h>
 	#endif
 #endif
 
 #if defined(ENABLE_X11)
-	#include <grabber/X11Grabber.h>
+	#include <grabber/x11/X11Grabber.h>
 #endif
 
 #if defined(ENABLE_XCB)
-	#include <grabber/XcbGrabber.h>
+	#include <grabber/xcb/XcbGrabber.h>
 #endif
 
 #if defined(ENABLE_DX)
-	#include <grabber/DirectXGrabber.h>
+	#include <grabber/directx/DirectXGrabber.h>
 #endif
 
 #if defined(ENABLE_FB)
-	#include <grabber/FramebufferFrameGrabber.h>
+	#include <grabber/framebuffer/FramebufferFrameGrabber.h>
 #endif
 
 #if defined(ENABLE_DISPMANX)
-	#include <grabber/DispmanxFrameGrabber.h>
+	#include <grabber/dispmanx/DispmanxFrameGrabber.h>
 #endif
 
 #if defined(ENABLE_AMLOGIC)
-	#include <grabber/AmlogicGrabber.h>
+	#include <grabber/amlogic/AmlogicGrabber.h>
 #endif
 
 #if defined(ENABLE_OSX)
-	#include <grabber/OsxFrameGrabber.h>
+	#include <grabber/osx/OsxFrameGrabber.h>
 #endif
 
 #include <utils/jsonschema/QJsonFactory.h>
@@ -82,6 +85,7 @@
 
 // api includes
 #include <api/JsonCB.h>
+#include <events/EventHandler.h>
 
 // auth manager
 #include <hyperion/AuthManager.h>
@@ -110,6 +114,8 @@ JsonAPI::JsonAPI(QString peerAddress, Logger *log, bool localConnection, QObject
 	_ledStreamTimer = new QTimer(this);
 
 	Q_INIT_RESOURCE(JSONRPC_schemas);
+
+	qRegisterMetaType<Event>("Event");
 }
 
 void JsonAPI::initialize()
@@ -138,14 +144,13 @@ void JsonAPI::initialize()
 		connect(this, &JsonAPI::forwardJsonMessage, _hyperion, &Hyperion::forwardJsonMessage);
 	}
 
-	//notify instance manager on suspend/resume/idle requests
-	connect(this, &JsonAPI::suspendAll, _instanceManager, &HyperionIManager::triggerSuspend);
-	connect(this, &JsonAPI::toggleSuspendAll, _instanceManager, &HyperionIManager::triggerToggleSuspend);
-	connect(this, &JsonAPI::idleAll, _instanceManager, &HyperionIManager::triggerIdle);
-	connect(this, &JsonAPI::toggleIdleAll, _instanceManager, &HyperionIManager::triggerToggleIdle);
+	//notify eventhadler on suspend/resume/idle requests
+	connect(this, &JsonAPI::signalEvent, EventHandler::getInstance().data(), &EventHandler::handleEvent);
+
+	connect(_ledStreamTimer, &QTimer::timeout, this, &JsonAPI::streamLedColorsUpdate, Qt::UniqueConnection);
 }
 
-bool JsonAPI::handleInstanceSwitch(quint8 inst, bool forced)
+bool JsonAPI::handleInstanceSwitch(quint8 inst, bool /*forced*/)
 {
 	if (API::setHyperionInstance(inst))
 	{
@@ -397,6 +402,9 @@ void JsonAPI::handleSysInfoCommand(const QJsonObject &, const QString &command, 
 	hyperion["rootPath"] = _instanceManager->getRootPath();
 	hyperion["readOnlyMode"] = _hyperion->getReadOnlyMode();
 
+	QCoreApplication* app = QCoreApplication::instance();
+	hyperion["isGuiMode"] = qobject_cast<QApplication*>(app) ? true : false;
+
 	info["hyperion"] = hyperion;
 
 	// send the result
@@ -415,7 +423,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const QString 
 	activePriorities.removeAll(PriorityMuxer::LOWEST_PRIORITY);
 	int currentPriority = _hyperion->getCurrentPriority();
 
-	for(int priority : qAsConst(activePriorities))
+	for(int priority : std::as_const(activePriorities))
 	{
 		const Hyperion::InputInfo &priorityInfo = _hyperion->getPriorityInfo(priority);
 
@@ -1023,8 +1031,7 @@ void JsonAPI::handleConfigCommand(const QJsonObject &message, const QString &com
 		if (_adminAuthorized)
 		{
 			Debug(_log, "Restarting due to RPC command");
-
-			Process::restartHyperion(10);
+			emit signalEvent(Event::Reload);
 
 			sendSuccessReply(command + "-" + subcommand, tan);
 		}
@@ -1081,7 +1088,7 @@ void JsonAPI::handleConfigRestoreCommand(const QJsonObject &message, const QStri
 	}
 }
 
-void JsonAPI::handleSchemaGetCommand(const QJsonObject &message, const QString &command, int tan)
+void JsonAPI::handleSchemaGetCommand(const QJsonObject& /*message*/, const QString &command, int tan)
 {
 	// create result
 	QJsonObject schemaJson, alldevices, properties;
@@ -1150,6 +1157,11 @@ void JsonAPI::handleComponentStateCommand(const QJsonObject &message, const QStr
 	sendSuccessReply(command, tan);
 }
 
+void JsonAPI::streamLedColorsUpdate()
+{
+	emit streamLedcolorsUpdate(_currentLedValues);
+}
+
 void JsonAPI::handleLedColorsCommand(const QJsonObject &message, const QString &command, int tan)
 {
 	// create result
@@ -1165,21 +1177,21 @@ void JsonAPI::handleLedColorsCommand(const QJsonObject &message, const QString &
 		_streaming_leds_reply["tan"] = tan;
 
 		connect(_hyperion, &Hyperion::rawLedColors, this, [=](const std::vector<ColorRgb> &ledValues) {
-			_currentLedValues = ledValues;
 
-			// necessary because Qt::UniqueConnection for lambdas does not work until 5.9
-			// see: https://bugreports.qt.io/browse/QTBUG-52438
-			if (!_ledStreamConnection)
-				_ledStreamConnection = connect(_ledStreamTimer, &QTimer::timeout, this, [=]() {
-					emit streamLedcolorsUpdate(_currentLedValues);
-				},
-				Qt::UniqueConnection);
+			if (ledValues != _currentLedValues)
+			{
+				_currentLedValues = ledValues;
+				if (!_ledStreamTimer->isActive() || _ledStreamTimer->interval() != streaming_interval)
+				{
+					_ledStreamTimer->start(streaming_interval);
+				}
+			}
+			else
+			{
+				_ledStreamTimer->stop();
+			}
+		});
 
-			// start the timer
-			if (!_ledStreamTimer->isActive() || _ledStreamTimer->interval() != streaming_interval)
-				_ledStreamTimer->start(streaming_interval);
-		},
-		Qt::UniqueConnection);
 		// push once
 		_hyperion->update();
 	}
@@ -1225,7 +1237,7 @@ void JsonAPI::handleLoggingCommand(const QJsonObject &message, const QString &co
 			if (!_streaming_logging_activated)
 			{
 				_streaming_logging_reply["command"] = command + "-update";
-				connect(LoggerManager::getInstance(), &LoggerManager::newLogMessage, this, &JsonAPI::incommingLogMessage);
+				connect(LoggerManager::getInstance().data(), &LoggerManager::newLogMessage, this, &JsonAPI::incommingLogMessage);
 
 				emit incommingLogMessage (Logger::T_LOG_MESSAGE{}); // needed to trigger log sending
 				Debug(_log, "log streaming activated for client %s", _peerAddress.toStdString().c_str());
@@ -1235,7 +1247,7 @@ void JsonAPI::handleLoggingCommand(const QJsonObject &message, const QString &co
 		{
 			if (_streaming_logging_activated)
 			{
-				disconnect(LoggerManager::getInstance(), &LoggerManager::newLogMessage, this, &JsonAPI::incommingLogMessage);
+				disconnect(LoggerManager::getInstance().data(), &LoggerManager::newLogMessage, this, &JsonAPI::incommingLogMessage);
 				_streaming_logging_activated = false;
 				Debug(_log, "log streaming deactivated for client  %s", _peerAddress.toStdString().c_str());
 			}
@@ -1400,7 +1412,7 @@ void JsonAPI::handleAuthorizeCommand(const QJsonObject &message, const QString &
 		if (API::getPendingTokenRequests(vec))
 		{
 			QJsonArray arr;
-			for (const auto &entry : qAsConst(vec))
+			for (const auto &entry : std::as_const(vec))
 			{
 				QJsonObject obj;
 				obj["comment"] = entry.comment;
@@ -1722,59 +1734,54 @@ void JsonAPI::handleInputSourceCommand(const QJsonObject& message, const QString
 
 					QJsonObject device;
 					#ifdef ENABLE_QT
-					QtGrabber* qtgrabber = new QtGrabber();
+					QScopedPointer<QtGrabber> qtgrabber(new QtGrabber());
 					device = qtgrabber->discover(params);
 					if (!device.isEmpty() )
 					{
 						videoInputs.append(device);
 					}
-					delete qtgrabber;
 					#endif
 
 					#ifdef ENABLE_DX
-					DirectXGrabber* dxgrabber = new DirectXGrabber();
+					QScopedPointer<DirectXGrabber> dxgrabber (new DirectXGrabber());
 					device = dxgrabber->discover(params);
 					if (!device.isEmpty() )
 					{
 						videoInputs.append(device);
 					}
-					delete dxgrabber;
 					#endif
 
 					#ifdef ENABLE_X11
-					X11Grabber* x11Grabber = new X11Grabber();
+					QScopedPointer<X11Grabber> x11Grabber(new X11Grabber());
 					device = x11Grabber->discover(params);
 					if (!device.isEmpty() )
 					{
 						videoInputs.append(device);
 					}
-					delete x11Grabber;
 					#endif
 
 					#ifdef ENABLE_XCB
-					XcbGrabber* xcbGrabber = new XcbGrabber();
+					QScopedPointer<XcbGrabber> xcbGrabber (new XcbGrabber());
 					device = xcbGrabber->discover(params);
 					if (!device.isEmpty() )
 					{
 						videoInputs.append(device);
 					}
-					delete xcbGrabber;
 					#endif
 
 					//Ignore FB for Amlogic, as it is embedded in the Amlogic grabber itself
 					#if defined(ENABLE_FB) && !defined(ENABLE_AMLOGIC)
 
-					FramebufferFrameGrabber* fbGrabber = new FramebufferFrameGrabber();
+					QScopedPointer<FramebufferFrameGrabber> fbGrabber(new FramebufferFrameGrabber());
 					device = fbGrabber->discover(params);
 					if (!device.isEmpty() )
 					{
 						videoInputs.append(device);
 					}
-					delete fbGrabber;
 					#endif
 
 					#if defined(ENABLE_DISPMANX)
-					DispmanxFrameGrabber* dispmanx = new DispmanxFrameGrabber();
+					QScopedPointer<DispmanxFrameGrabber> dispmanx(new DispmanxFrameGrabber());
 					if (dispmanx->isAvailable())
 					{
 						device = dispmanx->discover(params);
@@ -1783,27 +1790,24 @@ void JsonAPI::handleInputSourceCommand(const QJsonObject& message, const QString
 							videoInputs.append(device);
 						}
 					}
-					delete dispmanx;
 					#endif
 
 					#if defined(ENABLE_AMLOGIC)
-					AmlogicGrabber* amlGrabber = new AmlogicGrabber();
+					QScopedPointer<AmlogicGrabber> amlGrabber(new AmlogicGrabber());
 					device = amlGrabber->discover(params);
 					if (!device.isEmpty() )
 					{
 						videoInputs.append(device);
 					}
-					delete amlGrabber;
 					#endif
 
 					#if defined(ENABLE_OSX)
-					OsxFrameGrabber* osxGrabber = new OsxFrameGrabber();
+					QScopedPointer<OsxFrameGrabber> osxGrabber(new OsxFrameGrabber());
 					device = osxGrabber->discover(params);
 					if (!device.isEmpty() )
 					{
 						videoInputs.append(device);
 					}
-					delete osxGrabber;
 					#endif
 				}
 
@@ -1848,10 +1852,10 @@ void JsonAPI::handleServiceCommand(const QJsonObject &message, const QString &co
 		if (!serviceType.isEmpty())
 		{
 #ifdef ENABLE_MDNS
-			QMetaObject::invokeMethod(&MdnsBrowser::getInstance(), "browseForServiceType",
+			QMetaObject::invokeMethod(MdnsBrowser::getInstance().data(), "browseForServiceType",
 									   Qt::QueuedConnection, Q_ARG(QByteArray, serviceType));
 
-			serviceList = MdnsBrowser::getInstance().getServicesDiscoveredJson(serviceType, MdnsServiceRegister::getServiceNameFilter(type), DEFAULT_DISCOVER_TIMEOUT);
+			serviceList = MdnsBrowser::getInstance().data()->getServicesDiscoveredJson(serviceType, MdnsServiceRegister::getServiceNameFilter(type), DEFAULT_DISCOVER_TIMEOUT);
 #endif
 			servicesOfType.insert(type, serviceList);
 
@@ -1879,32 +1883,37 @@ void JsonAPI::handleSystemCommand(const QJsonObject &message, const QString &com
 
 	if (subc == "suspend")
 	{
-		emit suspendAll(true);
+		emit signalEvent(Event::Suspend);
 		sendSuccessReply(command + "-" + subc, tan);
 	}
 	else if (subc == "resume")
 	{
-		emit suspendAll(false);
+		emit signalEvent(Event::Resume);
 		sendSuccessReply(command + "-" + subc, tan);
 	}
 	else if (subc == "restart")
 	{
-		Process::restartHyperion(11);
+		emit signalEvent(Event::Restart);
 		sendSuccessReply(command + "-" + subc, tan);
 	}
 	else if (subc == "toggleSuspend")
 	{
-		emit toggleSuspendAll();
+		emit signalEvent(Event::ToggleSuspend);
 		sendSuccessReply(command + "-" + subc, tan);
 	}
 	else if (subc == "idle")
 	{
-		emit idleAll(true);
+		emit signalEvent(Event::Idle);
+		sendSuccessReply(command + "-" + subc, tan);
+	}
+	else if (subc == "resumeIdle")
+	{
+		emit signalEvent(Event::ResumeIdle);
 		sendSuccessReply(command + "-" + subc, tan);
 	}
 	else if (subc == "toggleIdle")
 	{
-		emit toggleIdleAll();
+		emit signalEvent(Event::ToggleIdle);
 		sendSuccessReply(command + "-" + subc, tan);
 	}
 	else
@@ -2000,24 +2009,10 @@ void JsonAPI::incommingLogMessage(const Logger::T_LOG_MESSAGE &msg)
 	if (!_streaming_logging_activated)
 	{
 		_streaming_logging_activated = true;
-		const QList<Logger::T_LOG_MESSAGE> *logBuffer = LoggerManager::getInstance()->getLogMessageBuffer();
-		for (int i = 0; i < logBuffer->length(); i++)
-		{
-			//Only present records of the current log-level
-			if ( logBuffer->at(i).level >= _log->getLogLevel())
-			{
-				message["loggerName"] = logBuffer->at(i).loggerName;
-				message["loggerSubName"] = logBuffer->at(i).loggerSubName;
-				message["function"] = logBuffer->at(i).function;
-				message["line"] = QString::number(logBuffer->at(i).line);
-				message["fileName"] = logBuffer->at(i).fileName;
-				message["message"] = logBuffer->at(i).message;
-				message["levelString"] = logBuffer->at(i).levelString;
-				message["utime"] = QString::number(logBuffer->at(i).utime);
-
-				messageArray.append(message);
-			}
-		}
+		QMetaObject::invokeMethod(LoggerManager::getInstance().data(), "getLogMessageBuffer",
+								  Qt::DirectConnection,
+								  Q_RETURN_ARG(QJsonArray, messageArray),
+								  Q_ARG(Logger::LogLevel, _log->getLogLevel()));
 	}
 	else
 	{
@@ -2064,7 +2059,7 @@ void JsonAPI::handleTokenResponse(bool success, const QString &token, const QStr
 		sendErrorReply("Token request timeout or denied", cmd, tan);
 }
 
-void JsonAPI::handleInstanceStateChange(InstanceState state, quint8 instance, const QString &name)
+void JsonAPI::handleInstanceStateChange(InstanceState state, quint8 instance, const QString& /*name */)
 {
 	switch (state)
 	{

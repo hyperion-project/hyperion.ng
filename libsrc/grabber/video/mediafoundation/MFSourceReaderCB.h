@@ -19,7 +19,7 @@
 #pragma comment (lib, "strmiids.lib")
 #pragma comment (lib, "wmcodecdspuuid.lib")
 
-#include <grabber/MFGrabber.h>
+#include <grabber/video/mediafoundation/MFGrabber.h>
 
 #define SAFE_RELEASE(x) if(x) { x->Release(); x = nullptr; }
 

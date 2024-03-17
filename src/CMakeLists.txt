@@ -1,11 +1,11 @@
 add_subdirectory(hyperiond)
 
-# The following binaries are just compiled if requested
-if (ENABLE_REMOTE_CTL)
+# The following binaries are just compiled ifrequested
+if(ENABLE_REMOTE_CTL)
 	add_subdirectory(hyperion-remote)
 endif()
 
-if (ENABLE_AMLOGIC AND ENABLE_FLATBUF_CONNECT)
+if(ENABLE_AMLOGIC AND ENABLE_FLATBUF_CONNECT)
 	add_subdirectory(hyperion-aml)
 endif()
 

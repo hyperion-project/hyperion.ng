@@ -22,6 +22,24 @@
 		"enableAttemptsInterval": 15
 	},
 
+	"schedEvents": {
+ 		"enable": false
+ 	},
+	
+	"cecEvents": {
+		"actions": [
+			{
+				"action": "Suspend",
+				"event": "standby"
+			},
+			{
+				"action": "Resume",
+				"event": "set stream path"
+			}
+		],
+ 		"enable": false
+ 	},
+  
 	"color": {
 		"imageToLedMappingType": "multicolor_mean",
 		"channelAdjustment": [
@@ -79,7 +97,6 @@
 		"blueSignalThreshold": 0,
 		"signalDetection": false,
 		"noSignalCounterThreshold": 200,
-		"cecDetection": false,
 		"sDVOffsetMin": 0.1,
 		"sDVOffsetMax": 0.9,
 		"sDHOffsetMin": 0.4,
@@ -248,5 +265,14 @@
 			"vmax": 0.08,
 			"vmin": 0
 		}
-	]
+	],
+	
+	"osEvents": {
+		"suspendEnable": true,
+		"lockEnable": true
+	},
+	
+	"cecEvents": {
+		"enable": false
+	}	
 }

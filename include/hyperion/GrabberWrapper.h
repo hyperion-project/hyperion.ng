@@ -6,6 +6,7 @@
 #include <QString>
 #include <QStringList>
 #include <QMultiMap>
+#include <QScopedPointer>
 
 #include <utils/Logger.h>
 #include <utils/Components.h>
@@ -18,6 +19,8 @@
 
 #include <grabber/GrabberType.h>
 
+#include <events/EventEnum.h>
+
 class Grabber;
 class GlobalSignals;
 class QTimer;
@@ -29,6 +32,14 @@ class GrabberWrapper : public QObject
 {
 	Q_OBJECT
 public:
+
+	static constexpr const char* GRABBERTYPE = "Base";
+
+	template<typename GrabberType>
+	static QSharedPointer<GrabberType> create(const QJsonDocument& config) {
+		return QSharedPointer<GrabberType>::create(config);
+	}
+
 	GrabberWrapper(const QString& grabberName, Grabber * ggrabber,int updateRate_Hz = DEFAULT_RATE_HZ);
 
 	~GrabberWrapper() override;
@@ -68,6 +79,11 @@ public:
 	///
 	virtual bool isActive() const;
 
+	virtual bool isAvailable() { return _isAvailable; }
+
+
+	QString getName() { return _grabberName; }
+
 	///
 	/// @brief Get active grabber name
 	/// @param hyperionInd The instance index
@@ -89,8 +105,8 @@ public:
 	template <typename Grabber_T>
 	bool transferFrame(Grabber_T &grabber)
 	{
-		unsigned w = grabber.getImageWidth();
-		unsigned h = grabber.getImageHeight();
+		int w = grabber.getImageWidth();
+		int h = grabber.getImageHeight();
 		if ( _image.width() != w || _image.height() != h)
 		{
 			_image.resize(w, h);
@@ -139,6 +155,8 @@ public slots:
 	///
 	virtual void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
+	void handleEvent(Event event);
+
 signals:
 	///
 	/// @brief Emit the final processed image
@@ -181,7 +199,7 @@ protected:
 	Logger * _log;
 
 	/// The timer for generating events with the specified update rate
-	QTimer* _timer;
+	QScopedPointer<QTimer> _timer;
 
 	/// The calculated update rate [ms]
 	int _updateInterval_ms;
@@ -190,4 +208,6 @@ protected:
 
 	/// The image used for grabbing frames
 	Image<ColorRgb> _image;
+
+	bool _isAvailable;
 };

@@ -46,6 +46,9 @@
               </div>
             </div>
             <div class="panel-footer" style="text-align:right">
+              <button id='btn_layout_controller' class="btn btn-primary" disabled data-toggle="tooltip" data-placement="top" title="Generate a layout for the configured device">
+                <i class="fa fa-fw fa-save"></i><span data-i18n="wiz_layout">Generate Layout</span>
+              </button>
               <button id='btn_test_controller' class="btn btn-primary" disabled data-toggle="tooltip" data-placement="top" title="Identify configured device by lighting it up">
                 <i class="fa fa-fw fa-save"></i><span data-i18n="wiz_identify">Identify/Test</span>
               </button>
@@ -324,7 +327,7 @@
                       </tr>
                       <tr>
                         <td class="ltd">
-                          <label class="ltdlabel" for="ip_ma_direction" data-i18n="conf_leds_layout_ma_direction">Cabling</label>
+                          <label class="ltdlabel" for="ip_ma_direction" data-i18n="conf_leds_layout_ma_direction">Direction</label>
                         </td>
                         <td class="itd">
                           <select class="form-control ledMAconstr" id="ip_ma_direction">
@@ -349,6 +352,61 @@
                     </tbody>
                   </table>
                 </div>
+                  <div class="panel panel-default">
+                    <div class="panel-heading headcollapse" data-toggle="collapse" data-target="#collapse-maadv" id="ma_advanced_settings">
+                      <h4 class="panel-title">
+                        <a>
+                          <i class="fa fa-fw fa-cogs"></i>
+                          <span data-i18n="conf_leds_layout_advanced">Advanced settings</span>
+                          <i class="fa fa-angle-down pull-right" id="ma_advanced_settings_right_icon"></i>
+                        </a>
+                      </h4>
+                    </div>
+                    <div id="collapse-maadv" class="panel-collapse collapse">
+                      <div class="panel-body ">
+                        <table class="tableform borderless">
+                          <tbody>
+                            <tr>
+                              <td class="ltd">
+                                <label class="ltdlabel" for="ip_ma_gapleft" data-i18n="conf_leds_layout_gapleft">Gap Left</label>
+                              </td>
+                              <td class="itd input-group">
+                                <input class="form-control ledMAconstr" id="ip_ma_gapleft" type="number" value="0" min="0" max="100" step="1"></input>
+                                <div class="input-group-addon" data-i18n="edt_append_percent">%h</div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td class="ltd">
+                                <label class="ltdlabel" for="ip_ma_gapright" data-i18n="conf_leds_layout_gapright">Gap Right</label>
+                              </td>
+                              <td class="itd input-group">
+                                <input class="form-control ledMAconstr" id="ip_ma_gapright" type="number" value="0" min="0" max="100" step="1"></input>
+                                <div class="input-group-addon" data-i18n="edt_append_percent">%v</div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td class="ltd">
+                                <label class="ltdlabel" for="ip_ma_gaptop" data-i18n="conf_leds_layout_gaptop">Gap Left</label>
+                              </td>
+                              <td class="itd input-group">
+                                <input class="form-control ledMAconstr" id="ip_ma_gaptop" type="number" value="0" min="0" max="100" step="1"></input>
+                                <div class="input-group-addon" data-i18n="edt_append_percent">%h</div>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td class="ltd">
+                                <label class="ltdlabel" for="ip_ma_gapbottom" data-i18n="conf_leds_layout_gapbottom">Gap Right</label>
+                              </td>
+                              <td class="itd input-group">
+                                <input class="form-control ledMAconstr" id="ip_ma_gapbottom" type="number" value="0" min="0" max="100" step="1"></input>
+                                <div class="input-group-addon" data-i18n="edt_append_percent">%v</div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
                 <div class="panel-footer" style="text-align:right;">
                   <button id="btn_ma_save" class="btn btn-primary"><i class="fa fa-fw fa-save"></i><span data-i18n="conf_leds_layout_button_savelay">Save layout</span></button>
                 </div>

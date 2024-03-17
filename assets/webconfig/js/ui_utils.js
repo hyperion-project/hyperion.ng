@@ -1224,6 +1224,7 @@ function getSystemInfo() {
   info += '- Avail Services:    ' + window.serverInfo.services + '\n';
   info += '- Config path:       ' + shy.rootPath + '\n';
   info += '- Database:          ' + (shy.readOnlyMode ? "ready-only" : "read/write") + '\n';
+  info += '- Mode:              ' + (shy.isGuiMode ? "GUI" : "Non-GUI") + '\n';
 
   info += '\n';
 

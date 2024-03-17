@@ -1,16 +1,14 @@
-# Define the current source locations
-SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/db)
-SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/db)
-
-FILE ( GLOB DB_SOURCES "${CURRENT_HEADER_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
-
 add_library(database
-	${DB_SOURCES}
+	${CMAKE_SOURCE_DIR}/include/db/AuthTable.h
+	${CMAKE_SOURCE_DIR}/include/db/DBManager.h
+	${CMAKE_SOURCE_DIR}/include/db/InstanceTable.h
+	${CMAKE_SOURCE_DIR}/include/db/MetaTable.h
+	${CMAKE_SOURCE_DIR}/include/db/SettingsTable.h
+	${CMAKE_SOURCE_DIR}/libsrc/db/DBManager.cpp
 )
 
 target_link_libraries(database
 	hyperion
 	hyperion-utils
-	Qt${QT_VERSION_MAJOR}::Core
 	Qt${QT_VERSION_MAJOR}::Sql
 )

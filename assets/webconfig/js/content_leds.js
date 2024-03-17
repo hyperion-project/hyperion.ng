@@ -468,17 +468,18 @@ function createClassicLeds() {
   aceEdt.set(finalLedArray);
 }
 
-function createMatrixLayout(ledshoriz, ledsvert, cabling, start, direction) {
+function createMatrixLayout(ledshoriz, ledsvert, cabling, start, direction, gap) {
   // Big thank you to RanzQ (Juha Rantanen) from Github for this script
   // https://raw.githubusercontent.com/RanzQ/hyperion-audio-effects/master/matrix-config.js
 
-  var parallel = false
-  var leds = []
-  var hblock = 1.0 / ledshoriz
-  var vblock = 1.0 / ledsvert
+  let parallel = false;
+  const leds = [];
+
+  const hblock = (1.0 - gap.left - gap.right) / ledshoriz;
+  const vblock = (1.0 - gap.top - gap.bottom) / ledsvert;
 
   if (cabling == "parallel") {
-    parallel = true
+    parallel = true;
   }
 
   /**
@@ -487,10 +488,10 @@ function createMatrixLayout(ledshoriz, ledsvert, cabling, start, direction) {
    * @param {Number} y     Vertical position in matrix
    */
   function addLed(x, y) {
-    var hscanMin = x * hblock
-    var hscanMax = (x + 1) * hblock
-    var vscanMin = y * vblock
-    var vscanMax = (y + 1) * vblock
+    let hscanMin = gap.left + (x * hblock);
+    let hscanMax = gap.left + (x + 1) * hblock;
+    let vscanMin = gap.top + y * vblock;
+    let vscanMax = gap.top + (y + 1) * vblock;
 
     hscanMin = round(hscanMin);
     hscanMax = round(hscanMax);
@@ -502,43 +503,41 @@ function createMatrixLayout(ledshoriz, ledsvert, cabling, start, direction) {
       hmax: hscanMax,
       vmin: vscanMin,
       vmax: vscanMax
-    })
+    });
   }
 
-  var startYX = start.split('-')
-  var startX = startYX[1] === 'right' ? ledshoriz - 1 : 0
-  var startY = startYX[0] === 'bottom' ? ledsvert - 1 : 0
-  var endX = startX === 0 ? ledshoriz - 1 : 0
-  var endY = startY === 0 ? ledsvert - 1 : 0
-  var forward = startX < endX
+  const startYX = start.split('-');
+  let startX = startYX[1] === 'right' ? ledshoriz - 1 : 0;
+  let startY = startYX[0] === 'bottom' ? ledsvert - 1 : 0;
+  let endX = startX === 0 ? ledshoriz - 1 : 0;
+  let endY = startY === 0 ? ledsvert - 1 : 0;
+  let forward = startX < endX;
+  let downward = startY < endY;
 
-  var downward = startY < endY
-
-  var x, y
+  let x, y;
 
   if (direction === 'vertical') {
     for (x = startX; forward && x <= endX || !forward && x >= endX; x += forward ? 1 : -1) {
       for (y = startY; downward && y <= endY || !downward && y >= endY; y += downward ? 1 : -1) {
-
-        addLed(x, y)
+        addLed(x, y);
       }
       if (!parallel) {
-        downward = !downward
-        var tmp = startY
-        startY = endY
-        endY = tmp
+        downward = !downward;
+        const tmp = startY;
+        startY = endY;
+        endY = tmp;
       }
     }
   } else {
     for (y = startY; downward && y <= endY || !downward && y >= endY; y += downward ? 1 : -1) {
       for (x = startX; forward && x <= endX || !forward && x >= endX; x += forward ? 1 : -1) {
-        addLed(x, y)
+        addLed(x, y);
       }
       if (!parallel) {
-        forward = !forward
-        var tmp = startX
-        startX = endX
-        endX = tmp
+        forward = !forward;
+        const tmp = startX;
+        startX = endX;
+        endX = tmp;
       }
     }
   }
@@ -551,13 +550,20 @@ function createMatrixLeds() {
   // https://raw.githubusercontent.com/RanzQ/hyperion-audio-effects/master/matrix-config.js
 
   //get values
-  var ledshoriz = parseInt($("#ip_ma_ledshoriz").val());
-  var ledsvert = parseInt($("#ip_ma_ledsvert").val());
-  var cabling = $("#ip_ma_cabling").val();
-  var direction = $("#ip_ma_direction").val();
-  var start = $("#ip_ma_start").val();
+  const ledshoriz = parseInt($("#ip_ma_ledshoriz").val());
+  const ledsvert = parseInt($("#ip_ma_ledsvert").val());
+  const cabling = $("#ip_ma_cabling").val();
+  const direction = $("#ip_ma_direction").val();
+  const start = $("#ip_ma_start").val();
+  const gap = {
+    //gap values % -> float
+    left: parseInt($("#ip_ma_gapleft").val()) / 100,
+    right: parseInt($("#ip_ma_gapright").val()) / 100,
+    top: parseInt($("#ip_ma_gaptop").val()) / 100,
+    bottom: parseInt($("#ip_ma_gapbottom").val()) / 100,
+  };
 
-  nonBlacklistLedArray = createMatrixLayout(ledshoriz, ledsvert, cabling, start, direction);
+  nonBlacklistLedArray = createMatrixLayout(ledshoriz, ledsvert, cabling, start, direction, gap);
   finalLedArray = blackListLeds(nonBlacklistLedArray, ledBlacklist);
 
   createLedPreview(finalLedArray);
@@ -797,6 +803,35 @@ $(document).ready(function () {
 
   $('.ledMAconstr').on("change", function () {
     valValue(this.id, this.value, this.min, this.max);
+
+    // top/bottom and left/right must not overlap
+    switch (this.id) {
+      case "ip_ma_gapleft":
+        let left = 100 - parseInt($("#ip_ma_gapright").val());
+        if (this.value > left) {
+          $(this).val(left);
+        }
+        break;
+      case "ip_ma_gapright":
+        let right = 100 - parseInt($("#ip_ma_gapleft").val());
+        if (this.value > right) {
+          $(this).val(right);
+        }
+        break;
+      case "ip_ma_gaptop":
+        let top = 100 - parseInt($("#ip_ma_gapbottom").val());
+        if (this.value > top) {
+          $(this).val(top);
+        }
+        break;
+      case "ip_ma_gapbottom":
+        let bottom = 100 - parseInt($("#ip_ma_gaptop").val());
+        if (this.value > bottom) {
+          $(this).val(bottom);
+        }
+        break;
+      default:
+    }
     createMatrixLeds();
   });
 
@@ -1021,11 +1056,6 @@ $(document).ready(function () {
     var generalOptions = window.serverSchema.properties.device;
 
     var ledType = $(this).val();
-
-    // philipshueentertainment backward fix
-    if (ledType == "philipshueentertainment")
-      ledType = "philipshue";
-
     var specificOptions = window.serverSchema.properties.alldevices[ledType];
 
     conf_editor = createJsonEditor('editor_container_leddevice', {
@@ -1055,18 +1085,22 @@ $(document).ready(function () {
     // change save button state based on validation result
     conf_editor.validate().length || window.readOnlyMode ? $('#btn_submit_controller').prop('disabled', true) : $('#btn_submit_controller').prop('disabled', false);
 
-    // led controller sepecific wizards
+    // LED controller specific wizards
     $('#btn_wiz_holder').html("");
     $('#btn_led_device_wiz').off();
 
     if (ledType == "philipshue") {
-      $('#root_specificOptions_useEntertainmentAPI').on("change", function () {
-        var ledWizardType = (this.checked) ? "philipshueentertainment" : ledType;
-        var data = { type: ledWizardType };
-        var hue_title = (this.checked) ? 'wiz_hue_e_title' : 'wiz_hue_title';
-        changeWizard(data, hue_title, startWizardPhilipsHue);
-      });
-      $("#root_specificOptions_useEntertainmentAPI").trigger("change");
+      var ledWizardType = ledType;
+      var data = { type: ledWizardType };
+      var hue_title = 'wiz_hue_title';
+      changeWizard(data, hue_title, startWizardPhilipsHue);
+    }
+    else if (ledType == "nanoleaf") {
+      var ledWizardType = ledType;
+      var data = { type: ledWizardType };
+      var nanoleaf_user_auth_title = 'wiz_nanoleaf_user_auth_title';
+      changeWizard(data, nanoleaf_user_auth_title, startWizardNanoleafUserAuth);
+      $('#btn_wiz_holder').hide();
     }
     else if (ledType == "atmoorb") {
       var ledWizardType = (this.checked) ? "atmoorb" : ledType;
@@ -1092,6 +1126,7 @@ $(document).ready(function () {
       var colorOrderDefault = "rgb";
       var filter = {};
 
+      $('#btn_layout_controller').hide();
       $('#btn_test_controller').hide();
 
       switch (ledType) {
@@ -1349,6 +1384,13 @@ $(document).ready(function () {
 
       if (host === "") {
         conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(1);
+        switch (ledType) {
+
+          case "nanoleaf":
+            $('#btn_wiz_holder').hide();
+            break;
+          default:
+        }
       }
       else {
         let params = {};
@@ -1360,6 +1402,8 @@ $(document).ready(function () {
             break;
 
           case "nanoleaf":
+            $('#btn_wiz_holder').show();
+
             var token = conf_editor.getEditor("root.specificOptions.token").getValue();
             if (token === "") {
               return;
@@ -1675,6 +1719,33 @@ $(document).ready(function () {
 
   $("#leddevices").val(window.serverConfig.device.type);
   $("#leddevices").trigger("change");
+
+  // Generate layout for LED-Device
+  $("#btn_layout_controller").off().on("click", function () {
+    var ledType = $("#leddevices").val();
+    var isGenerated = false;
+
+    switch (ledType) {
+      case "nanoleaf":
+        var host = conf_editor.getEditor("root.specificOptions.host").getValue();
+        var ledDeviceProperties = devicesProperties[ledType][host];
+        if (ledDeviceProperties) {
+          var panelOrderTopDown = conf_editor.getEditor("root.specificOptions.panelOrderTopDown").getValue() === "top2down";
+          var panelOrderLeftRight = conf_editor.getEditor("root.specificOptions.panelOrderLeftRight").getValue() === "left2right";
+          var ledArray = nanoleafGeneratelayout(ledDeviceProperties.panelLayout, panelOrderTopDown, panelOrderLeftRight);
+          aceEdt.set(ledArray);
+          isGenerated = true;
+        }
+        break;
+      default:
+    }
+
+    if (isGenerated) {
+      showInfoDialog('success', "", $.i18n('conf_leds_layout_generation_success'));
+    } else {
+      showInfoDialog('error', "", $.i18n('conf_leds_layout_generation_error'));
+    }
+  });
 
   // Identify/ Test LED-Device
   $("#btn_test_controller").off().on("click", function () {
@@ -2069,7 +2140,7 @@ var updateOutputSelectList = function (ledType, discoveryInfo) {
     case "devRPiPWM":
       key = ledType;
 
-      if (discoveryInfo.devices.length == 0) {
+      if (!discoveryInfo.isUserAdmin) {
         enumVals.push("NONE");
         enumTitleVals.push($.i18n('edt_dev_spec_devices_discovered_none'));
         $('#btn_submit_controller').prop('disabled', true);
@@ -2155,6 +2226,7 @@ async function identify_device(type, params) {
 }
 
 function updateElements(ledType, key) {
+  var canLayout = false;
   if (devicesProperties[ledType][key]) {
     var hardwareLedCount = 1;
     switch (ledType) {
@@ -2173,18 +2245,11 @@ function updateElements(ledType, key) {
       case "nanoleaf":
         var ledProperties = devicesProperties[ledType][key];
 
-        if (ledProperties && ledProperties.panelLayout.layout) {
-          //Identify non-LED type panels, e.g. Rhythm (1) and Shapes Controller (12)
-          var nonLedNum = 0;
-          for (const panel of ledProperties.panelLayout.layout.positionData) {
-            if (panel.shapeType === 1 || panel.shapeType === 12) {
-              nonLedNum++;
-            }
-          }
-          hardwareLedCount = ledProperties.panelLayout.layout.numPanels - nonLedNum;
+        if (ledProperties) {
+          hardwareLedCount = ledProperties.ledCount;
+          canLayout = true;
         }
         conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(hardwareLedCount);
-
         break;
 
       case "udpraw":
@@ -2233,11 +2298,19 @@ function updateElements(ledType, key) {
   }
 
   if (!conf_editor.validate().length) {
+    if (canLayout) {
+      $("#btn_layout_controller").show();
+      $('#btn_layout_controller').prop('disabled', false);
+    } else {
+      $('#btn_layout_controller').hide();
+    }
+
     if (!window.readOnlyMode) {
       $('#btn_submit_controller').attr('disabled', false);
     }
   }
   else {
+    $('#btn_layout_controller').prop('disabled', true);
     $('#btn_submit_controller').attr('disabled', true);
   }
 }
@@ -2331,6 +2404,7 @@ function updateElementsWled(ledType, key) {
   var enumSegSelectVals = [];
   var enumSegSelectTitleVals = [];
   var enumSegSelectDefaultVal = "";
+  var defaultSegmentId = "-1";
 
   if (devicesProperties[ledType] && devicesProperties[ledType][key]) {
     var ledDeviceProperties = devicesProperties[ledType][key];
@@ -2338,9 +2412,8 @@ function updateElementsWled(ledType, key) {
     if (!jQuery.isEmptyObject(ledDeviceProperties)) {
 
       if (ledDeviceProperties.info) {
-        if (ledDeviceProperties.info.liveseg && ledDeviceProperties.info.liveseg < 0) {
+        if (!ledDeviceProperties.info.hasOwnProperty("liveseg") || ledDeviceProperties.info.liveseg < 0) {
           // "Use main segment only" is disabled
-          var defaultSegmentId = "-1";
           enumSegSelectVals.push(defaultSegmentId);
           enumSegSelectTitleVals.push($.i18n('edt_dev_spec_segments_disabled_title'));
           enumSegSelectDefaultVal = defaultSegmentId;
@@ -2392,13 +2465,12 @@ function updateElementsWled(ledType, key) {
       hardwareLedCount = 1;
     }
 
-    if (segmentConfig) {
+    if (segmentConfig && segmentConfig.streamSegmentId > defaultSegmentId) {
       var configuredstreamSegmentId = window.serverConfig.device.segments.streamSegmentId.toString();
       enumSegSelectVals = [configuredstreamSegmentId];
       enumSegSelectTitleVals = ["Segment " + configuredstreamSegmentId];
       enumSegSelectDefaultVal = configuredstreamSegmentId;
     } else {
-      defaultSegmentId = "-1";
       enumSegSelectVals.push(defaultSegmentId);
       enumSegSelectTitleVals.push($.i18n('edt_dev_spec_segments_disabled_title'));
       enumSegSelectDefaultVal = defaultSegmentId;
@@ -2416,4 +2488,149 @@ function updateElementsWled(ledType, key) {
   }
   showInputOptionForItem(conf_editor, "root.specificOptions.segments", "switchOffOtherSegments", showAdditionalOptions);
 }
+function sortByPanelCoordinates(arr, topToBottom, leftToRight) {
+  arr.sort((a, b) => {
+    //Nanoleaf corodinates start at bottom left, therefore reverse topToBottom
+    if (!topToBottom) {
+      if (a.y === b.y) {
+        if (leftToRight) {
+          return a.x - b.x;
+        } else {
+          return b.x - a.x;
+        }
+      } else {
+        return a.y - b.y;
+      }
+    }
+    else {
+      if (a.y === b.y) {
+        if (leftToRight) {
+          return a.x - b.x;
+        } else {
+          return b.x - a.x;
+        }
+      } else {
+        return b.y - a.y;
+      }
+    }
+  });
+}
+function rotateCoordinates(x, y, radians) {
+  var rotatedX = x * Math.cos(radians) - y * Math.sin(radians);
+  var rotatedY = x * Math.sin(radians) + y * Math.cos(radians);
 
+  return { x: rotatedX, y: rotatedY };
+}
+
+function nanoleafGeneratelayout(panelLayout, panelOrderTopDown, panelOrderLeftRight) {
+
+  // Dictionary for Nanoleaf shape types
+  let shapeTypes = {
+    0: { name: "LightsTriangle", led: true, sideLengthX: 150, sideLengthY: 150 },
+    1: { name: "LightsRythm", led: false, sideLengthX: 0, sideLengthY: 0 },
+    2: { name: "Square", led: true, sideLengthX: 100, sideLengthY: 100 },
+    3: { name: "SquareControllerMaster", led: true, sideLengthX: 100, sideLengthY: 100 },
+    4: { name: "SquareControllerPassive", led: true, sideLengthX: 100, sideLengthY: 100 },
+    5: { name: "PowerSupply", led: true, sideLengthX: 100, sideLengthY: 100 },
+    7: { name: "ShapesHexagon", led: true, sideLengthX: 67, sideLengthY: 67 },
+    8: { name: "ShapesTriangle", led: true, sideLengthX: 134, sideLengthY: 134 },
+    9: { name: "ShapesMiniTriangle", led: true, sideLengthX: 67, sideLengthY: 67 },
+    12: { name: "ShapesController", led: false, sideLengthX: 0, sideLengthY: 0 },
+    14: { name: "ElementsHexagon", led: true, sideLengthX: 134, sideLengthY: 134 },
+    15: { name: "ElementsHexagonCorner", led: true, sideLengthX: 33.5, sideLengthY: 58 },
+    16: { name: "LinesConnector", led: false, sideLengthX: 11, sideLengthY: 11 },
+    17: { name: "LightLines", led: true, sideLengthX: 154, sideLengthY: 154 },
+    18: { name: "LightLinesSingleZone", led: true, sideLengthX: 77, sideLengthY: 77 },
+    19: { name: "ControllerCap", led: false, sideLengthX: 11, sideLengthY: 11 },
+    20: { name: "PowerConnector", led: false, sideLengthX: 11, sideLengthY: 11 },
+    999: { name: "Unknown", led: true, sideLengthX: 100, sideLengthY: 100 }
+  };
+
+  let { globalOrientation, layout } = panelLayout;
+
+  var degreesToRotate = 0;
+  if (globalOrientation) {
+    degreesToRotate = globalOrientation.value;
+  }
+
+  //Align rotation degree to 15 degree steps
+  const degreeSteps = 15;
+  var degreeRounded = ((Math.round(degreesToRotate / degreeSteps) * degreeSteps) + 360) % 360;
+
+  //Nanoleaf orientation is counter-clockwise
+  degreeRounded *= -1;
+
+  // Convert degrees to radians
+  const radians = (degreeRounded * Math.PI) / 180;
+
+  //Reduce the capture area
+  const areaSizeFactor = 0.5;
+
+  var panelDataXY = [...layout.positionData];
+  panelDataXY.forEach(panel => {
+
+    if (shapeTypes[panel.shapeType] == undefined) {
+      panel.shapeType = 999;
+    }
+
+    panel.shapeName = shapeTypes[panel.shapeType].name;
+    panel.led = shapeTypes[panel.shapeType].led;
+    panel.areaWidth = shapeTypes[panel.shapeType].sideLengthX * areaSizeFactor;
+    panel.areaHeight = shapeTypes[panel.shapeType].sideLengthY * areaSizeFactor;
+
+    if (radians !== 0) {
+      var rotatedXY = rotateCoordinates(panel.x, panel.y, radians);
+      panel.x = Math.round(rotatedXY.x);
+      panel.y = Math.round(rotatedXY.y);
+    }
+
+    panel.maxX = panel.x + panel.areaWidth;
+    panel.maxY = panel.y + panel.areaHeight;
+  });
+
+  var minX = panelDataXY[0].x;
+  var maxX = panelDataXY[0].x;
+  var minY = panelDataXY[0].y;
+  var maxY = panelDataXY[0].y;
+  panelDataXY.forEach(panel => {
+
+    if (panel.maxX > maxX) {
+      maxX = panel.maxX;
+    }
+    if (panel.x < minX) {
+      minX = panel.x;
+    }
+    if (panel.maxY > maxY) {
+      maxY = panel.maxY;
+    }
+    if (panel.y < minY) {
+      minY = panel.y;
+    }
+  });
+
+  const width = Math.abs(maxX - minX);
+  const height = Math.abs(maxY - minY);
+  const scaleX = 1 / width;
+  const scaleY = 1 / height;
+
+  var layoutObjects = [];
+  var i = 0;
+
+  sortByPanelCoordinates(panelDataXY, panelOrderTopDown, panelOrderLeftRight);
+  panelDataXY.forEach(panel => {
+
+    if (panel.led) {
+      let layoutObject = {
+        name: i + "-" + panel.panelId,
+        hmin: Math.min(1, Math.max(0, (panel.x - minX) * scaleX)),
+        hmax: Math.min(1, Math.max(0, (panel.x - minX + panel.areaWidth) * scaleX)),
+        //Nanoleaf corodinates start at bottom left, therefore reverse vertical positioning
+        vmax: (1 - Math.min(1, Math.max(0, (panel.y - minY) * scaleY))),
+        vmin: (1 - Math.min(1, Math.max(0, (panel.y - minY + panel.areaHeight) * scaleY)))
+      };
+      layoutObjects.push(JSON.parse(JSON.stringify(layoutObject)));
+      ++i;
+    }
+  });
+  return layoutObjects;
+}

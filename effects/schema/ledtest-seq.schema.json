@@ -1,0 +1,56 @@
+{
+	"type":"object",
+	"script" : "ledtest-seq.py",
+	"title":"edt_eff_ledtest_seq_header",
+	"required":true,
+	"properties":{
+		"sleepTime": {
+			"type": "number",
+			"title":"edt_eff_sleeptime",
+			"default": 0.5,
+			"minimum" : 0.01,
+			"maximum": 1,
+			"step": 0.01,
+			"append" : "edt_append_s",
+			"propertyOrder" : 1
+		},
+		"smoothing-custom-settings" :
+		{
+			"type" : "boolean",
+			"title" : "edt_eff_smooth_custom",
+			"default" : false,
+			"propertyOrder" : 2
+		},
+		"smoothing-time_ms" :
+		{
+			"type" : "integer",
+			"title" : "edt_eff_smooth_time_ms",
+			"minimum" : 25,
+			"maximum": 600,
+			"default" : 200,
+			"append" : "edt_append_ms",
+			"options": {
+				"dependencies": {
+					"smoothing-custom-settings": true
+				}
+			},
+			"propertyOrder" : 3
+		},
+		"smoothing-updateFrequency" :
+		{
+			"type" : "number",
+			"title" : "edt_eff_smooth_updateFrequency",
+			"minimum" : 1.0,
+			"maximum" : 100.0,
+			"default" : 25.0,
+			"append" : "edt_append_hz",
+			"options": {
+				"dependencies": {
+					"smoothing-custom-settings": true
+				}
+			},
+			"propertyOrder" : 4
+		}
+	},
+	"additionalProperties": false
+}

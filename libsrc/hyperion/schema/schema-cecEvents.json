@@ -1,0 +1,95 @@
+{
+  "type": "object",
+  "required": true,
+  "properties": {
+    "enable": {
+      "type": "boolean",
+      "required": true,
+      "title": "edt_conf_general_enable_title",
+      "default": false,
+      "propertyOrder": 1
+    },
+    "buttonReleaseDelayMs": {
+      "type": "integer",
+      "format": "stepper",
+      "title": "edt_conf_cec_button_release_delay_ms_title",
+      "append": "edt_append_ms",
+      "minimum": 0,
+      "maximum": 500,
+      "step": 50,
+      "default": 0,
+      "required": false,
+      "access": "expert",
+      "propertyOrder": 2
+    },
+    "buttonRepeatRateMs": {
+      "type": "integer",
+      "format": "stepper",
+      "title": "edt_conf_cec_button_repeat_rate_ms_title",
+      "append": "edt_append_ms",
+      "minimum": 0,
+      "maximum": 250,
+      "step": 10,
+      "default": 0,
+      "required": false,
+      "access": "expert",
+      "propertyOrder": 3
+    },
+    "doubleTapTimeoutMs": {
+      "type": "integer",
+      "format": "stepper",
+      "title": "edt_conf_cec_double_tap_timeout_ms_title",
+      "append": "edt_append_ms",
+      "minimum": 50,
+      "maximum": 1000,
+      "step": 50,
+      "default": 200,
+      "required": false,
+      "access": "expert",
+      "propertyOrder": 4
+    },
+    "actions": {
+      "type": "array",
+      "title": "edt_conf_cec_actions_header_title",
+      "minItems": 0,
+      "required": false,
+      "propertyOrder": 5,
+      "items": {
+        "type": "object",
+        "required": true,
+        "title": "edt_conf_cec_actions_header_item_title",
+        "properties": {
+          "event": {
+            "type": "string",
+            "title": "edt_conf_cec_event_title",
+            "enum": [
+              "standby",
+              "set stream path",
+			  "F1 (blue)",
+              "F2 (red)",
+              "F3 (green)",
+              "F4 (yellow)"
+            ],
+            "options": {
+              "enum_titles": [
+                "edt_conf_enum_cec_opcode_standby",
+                "edt_conf_enum_cec_opcode_set stream path",
+                "edt_conf_enum_cec_key_f1_blue",
+                "edt_conf_enum_cec_key_f2_red",
+                "edt_conf_enum_cec_key_f3_green",
+                "edt_conf_enum_cec_key_f4_yellow"
+              ]
+            },
+            "propertyOrder": 1
+          },
+          "action": {
+            "$ref": "schema-eventActions.json"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
+

@@ -44,6 +44,16 @@ public:
 	}
 
 	///
+	/// @brief Disconnect from connected signals
+	/// Disconnect should be done before other priorities invoke methods during shutdown
+	///
+	void disconnect()
+	{
+		QObject::disconnect(_prioMuxer, &PriorityMuxer::prioritiesChanged, nullptr, nullptr);
+		QObject::disconnect(_hyperion, nullptr, nullptr, nullptr);
+	}
+
+	///
 	/// @brief Check, if background effect processing is enabled.
 	/// @return True, background effect processing is enabled.
 	///

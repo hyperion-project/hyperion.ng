@@ -1,4 +1,4 @@
-#include "grabber/EncoderThread.h"
+#include "grabber/video/EncoderThread.h"
 
 #include <QDebug>
 
@@ -318,7 +318,7 @@ void EncoderThread::processImageMjpeg()
 		}
 	}
 
-	Image<ColorRgb> srcImage(static_cast<unsigned>(_width), static_cast<unsigned>(_height));
+	Image<ColorRgb> srcImage(_width, _height);
 
 	if (tjDecompress2(_tjInstance, _localData , _size,
 					  reinterpret_cast<unsigned char*>(srcImage.memptr()), _width, 0, _height,

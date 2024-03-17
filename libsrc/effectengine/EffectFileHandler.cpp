@@ -224,7 +224,7 @@ void EffectFileHandler::updateEffects()
 	}
 
 	QMap<QString, EffectDefinition> availableEffects;
-	for (const QString& path : qAsConst(efxPathList))
+	for (const QString& path : std::as_const(efxPathList))
 	{
 		QDir directory(path);
 		if (!directory.exists())
@@ -241,8 +241,8 @@ void EffectFileHandler::updateEffects()
 		else
 		{
 			int efxCount = 0;
-			QStringList filenames = directory.entryList(QStringList() << "*.json", QDir::Files, QDir::Name | QDir::IgnoreCase);
-			for (const QString& filename : qAsConst(filenames))
+			const QStringList filenames = directory.entryList(QStringList() << "*.json", QDir::Files, QDir::Name | QDir::IgnoreCase);
+			for (const QString& filename : filenames)
 			{
 				EffectDefinition def;
 				if (loadEffectDefinition(path, filename, def))
@@ -268,8 +268,8 @@ void EffectFileHandler::updateEffects()
 
 			QString schemaPath = path + "schema" + '/';
 			directory.setPath(schemaPath);
-			QStringList schemaFileNames = directory.entryList(QStringList() << "*.json", QDir::Files, QDir::Name | QDir::IgnoreCase);
-			for (const QString& schemaFileName : qAsConst(schemaFileNames))
+			const QStringList schemaFileNames = directory.entryList(QStringList() << "*.json", QDir::Files, QDir::Name | QDir::IgnoreCase);
+			for (const QString& schemaFileName : schemaFileNames)
 			{
 				EffectSchema pyEffect;
 				if (loadEffectSchema(path, directory.filePath(schemaFileName), pyEffect))
@@ -282,7 +282,7 @@ void EffectFileHandler::updateEffects()
 		}
 	}
 
-	for (const auto& item : qAsConst(availableEffects))
+	for (const auto& item : std::as_const(availableEffects))
 	{
 		_availableEffects.push_back(item);
 	}
