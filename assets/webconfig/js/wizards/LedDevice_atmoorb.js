@@ -2,13 +2,13 @@
 // Wizard AtmoOrb
 //****************************
 
-let lights = [];
-let configuredLights = [];
+let atmoLights = [];
+let atmoConfiguredLights = [];
 
 function getIdInLights(id) {
-  return lights.filter(
-    function (lights) {
-      return lights.id === id
+  return atmoLights.filter(
+    function (atmoLights) {
+      return atmoLights.id === id
     }
   );
 }
@@ -53,7 +53,7 @@ function startWizardAtmoOrb(e) {
 function beginWizardAtmoOrb() {
   const configruedOrbIds = conf_editor.getEditor("root.specificOptions.orbIds").getValue().trim();
   if (configruedOrbIds.length !== 0) {
-    configuredLights = configruedOrbIds.split(",").map(Number);
+    atmoConfiguredLights = configruedOrbIds.split(",").map(Number);
   }
 
   const multiCastGroup = conf_editor.getEditor("root.specificOptions.host").getValue();
@@ -66,18 +66,18 @@ function beginWizardAtmoOrb() {
     let finalLights = [];
 
     //create atmoorb led config
-    for (let key in lights) {
+    for (let key in atmoLights) {
       if ($('#orb_' + key).val() !== "disabled") {
         // Set Name to layout-position, if empty
-        if (lights[key].name === "") {
-          lights[key].name = $.i18n('conf_leds_layout_cl_' + $('#orb_' + key).val());
+        if (atmoLights[key].name === "") {
+          atmoLights[key].name = $.i18n('conf_leds_layout_cl_' + $('#orb_' + key).val());
         }
 
-        finalLights.push(lights[key].id);
+        finalLights.push(atmoLights[key].id);
 
-        let name = lights[key].id;
-        if (lights[key].host !== "")
-          name += ':' + lights[key].host;
+        let name = atmoLights[key].id;
+        if (atmoLights[key].host !== "")
+          name += ':' + atmoLights[key].host;
 
         const idx_content = assignLightPos($('#orb_' + key).val(), name);
         atmoorbLedConfig.push(JSON.parse(JSON.stringify(idx_content)));
@@ -130,7 +130,7 @@ async function discover_atmoorb_lights(multiCastGroup, multiCastPort) {
     processDiscoveredDevices(r.devices);
 
     // Add additional items from configuration
-    for (const configuredLight of configuredLights) {
+    for (const configuredLight of atmoConfiguredLights) {
       processConfiguredLight(configuredLight);
     }
 
@@ -147,7 +147,7 @@ function processDiscoveredDevices(devices) {
         ip: device.ip,
         host: device.hostname
       };
-      lights.push(light);
+      atmoLights.push(light);
     }
   }
 }
@@ -160,18 +160,18 @@ function processConfiguredLight(configuredLight) {
         ip: "",
         host: ""
       };
-      lights.push(light);
+      atmoLights.push(light);
     }
   }
 }
 
 function sortLightsById() {
-  lights.sort((a, b) => (a.id > b.id) ? 1 : -1);
+  atmoLights.sort((a, b) => (a.id > b.id) ? 1 : -1);
 }
 
 function assign_atmoorb_lights() {
   // If records are left for configuration
-  if (Object.keys(lights).length > 0) {
+  if (Object.keys(atmoLights).length > 0) {
     $('#wh_topcontainer').toggle(false);
     $('#orb_ids_t, #btn_wiz_save').toggle(true);
 
@@ -191,10 +191,10 @@ function assign_atmoorb_lights() {
     $('.lidsb').html("");
     let pos = "";
 
-    for (const lightid in lights) {
-      const orbId = lights[lightid].id;
-      const orbIp = lights[lightid].ip;
-      let orbHostname = lights[lightid].host;
+    for (const lightid in atmoLights) {
+      const orbId = atmoLights[lightid].id;
+      const orbIp = atmoLights[lightid].ip;
+      let orbHostname = atmoLights[lightid].host;
 
       if (orbHostname === "")
         orbHostname = $.i18n('edt_dev_spec_lights_itemtitle');
@@ -227,7 +227,7 @@ function assign_atmoorb_lights() {
 
     $('.orb_sel_watch').on("change", function () {
       let cC = 0;
-      for (const key in lights) {
+      for (const key in atmoLights) {
         if ($('#orb_' + key).val() !== "disabled") {
           cC++;
         }

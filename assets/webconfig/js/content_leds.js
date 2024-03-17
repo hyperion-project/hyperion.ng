@@ -1051,50 +1051,7 @@ $(document).ready(function () {
     conf_editor.validate().length || window.readOnlyMode ? $('#btn_submit_controller').prop('disabled', true) : $('#btn_submit_controller').prop('disabled', false);
 
     // LED controller specific wizards
-    $('#btn_wiz_holder').html("");
-    $('#btn_led_device_wiz').off();
-
-    if (ledType == "philipshue") {
-      const data = { ledType: ledType };
-      const hue_title = 'wiz_hue_title';
-      changeWizard(data, hue_title, "startWizardPhilipsHue");
-    }
-    else if (ledType == "nanoleaf") {
-      const data = { ledType: ledType };
-      const nanoleaf_user_auth_title = 'wiz_nanoleaf_user_auth_title';
-      changeWizard(data, nanoleaf_user_auth_title, "startWizardNanoleafUserAuth");
-      $('#btn_wiz_holder').hide();
-    }
-    else if (ledType == "atmoorb") {
-      const data = { ledType: ledType };
-      const atmoorb_title = 'wiz_atmoorb_title';
-      changeWizard(data, atmoorb_title, "startWizardAtmoOrb");
-    }
-    else if (ledType == "yeelight") {
-      const data = { ledType: ledType };
-      const yeelight_title = 'wiz_yeelight_title';
-      changeWizard(data, yeelight_title, "startWizardYeelight");
-    }
-
-    function changeWizard(data, hint, fnName) {
-      $('#btn_wiz_holder').html("")
-      createHint("wizard", $.i18n(hint), "btn_wiz_holder", "btn_led_device_wiz");
-      $('#btn_led_device_wiz').off();
-      $('#btn_led_device_wiz').on('click', data, function(event) {
-        // Load LED Device wizard utils
-    	loadScript('js/wizards/LedDevice_utils.js');
-        // Load the respective LED Device wizard code
-    	const script = 'js/wizards/LedDevice_' + data.ledType+ '.js';
-        loadScript(script, function() {
-            if (typeof window[fnName] === 'function') {
-                // Pass the event parameter to the function specified by fnName
-                window[fnName](event); 
-            } else {
-                console.error("Function", fnName, "is not available.");
-            }
-        });   
-      });
-    }
+    createLedDeviceWizards(ledType);
 
     conf_editor.on('ready', function () {
       var hwLedCountDefault = 1;

@@ -2,13 +2,13 @@
 // Wizard Yeelight
 //****************************
 
-let lights = [];
-let configuredLights = conf_editor.getEditor("root.specificOptions.lights").getValue();
+let yeeLights = [];
+let yeeConfiguredLights = conf_editor.getEditor("root.specificOptions.lights").getValue();
 
 function getHostInLights(hostname) {
-  return lights.filter(
-    function (lights) {
-      return lights.host === hostname
+  return yeeLights.filter(
+    function (yeeLights) {
+      return yeeLights.host === hostname
     }
   );
 }
@@ -62,16 +62,16 @@ function beginWizardYeelight() {
     let finalLights = [];
 
     //create yeelight led config
-    for (const key in lights) {
+    for (const key in yeeLights) {
       if ($('#yee_' + key).val() !== "disabled") {
 
-        let name = lights[key].name;
+        let name = yeeLights[key].name;
         // Set Name to layout-position, if empty
         if (name === "") {
-          name = lights[key].host;
+          name = yeeLights[key].host;
         }
 
-        finalLights.push(lights[key]);
+        finalLights.push(yeeLights[key]);
 
         const idx_content = assignLightPos($('#yee_' + key).val(), name);
         yeelightLedConfig.push(JSON.parse(JSON.stringify(idx_content)));
@@ -139,7 +139,7 @@ async function discover_yeelight_lights() {
     }
 
     // Add additional items from configuration
-    for (const configuredLight of configuredLights) {
+    for (const configuredLight of yeeConfiguredLights) {
       processConfiguredLight(configuredLight);
     }
 
@@ -175,7 +175,7 @@ function processDiscoverdDevice(device, discoveryMethod) {
     light.model = device.other.model;
   }
 
-  lights.push(light);
+  yeeLights.push(light);
 }
 function processConfiguredLight(configuredLight) {
   const host = configuredLight.host;
@@ -189,7 +189,7 @@ function processConfiguredLight(configuredLight) {
       model: "color4"
     };
 
-    lights.push(light);
+    yeeLights.push(light);
   }
 }
 
@@ -198,7 +198,7 @@ function assign_yeelight_lights() {
   const models = ['color', 'color1', 'YLDP02YL', 'YLDP02YL', 'color2', 'YLDP06YL', 'color4', 'YLDP13YL', 'color6', 'YLDP13AYL', 'colorb', "YLDP005", 'colorc', "YLDP004-A", 'stripe', 'YLDD04YL', 'strip1', 'YLDD01YL', 'YLDD02YL', 'strip4', 'YLDD05YL', 'strip6', 'YLDD05YL'];
 
   // If records are left for configuration
-  if (Object.keys(lights).length > 0) {
+  if (Object.keys(yeeLights).length > 0) {
     $('#wh_topcontainer').toggle(false);
     $('#yee_ids_t, #btn_wiz_save').toggle(true);
 
@@ -218,10 +218,10 @@ function assign_yeelight_lights() {
     $('.lidsb').html("");
     let pos = "";
 
-    for (const lightid in lights) {
-      const lightHostname = lights[lightid].host;
-      const lightPort = lights[lightid].port;
-      let lightName = lights[lightid].name;
+    for (const lightid in yeeLights) {
+      const lightHostname = yeeLights[lightid].host;
+      const lightPort = yeeLights[lightid].port;
+      let lightName = yeeLights[lightid].name;
 
       if (lightName === "")
         lightName = $.i18n('edt_dev_spec_lights_itemtitle') + '(' + lightHostname + ')';
@@ -236,7 +236,7 @@ function assign_yeelight_lights() {
       }
 
       let enabled = 'enabled';
-      if (!models.includes(lights[lightid].model)) {
+      if (!models.includes(yeeLights[lightid].model)) {
         enabled = 'disabled';
         options = '<option value=disabled>' + $.i18n('wiz_yeelight_unsupported') + '</option>';
       }
@@ -249,7 +249,7 @@ function assign_yeelight_lights() {
 
     $('.yee_sel_watch').on("change", function () {
       let cC = 0;
-      for (const key in lights) {
+      for (const key in yeeLights) {
         if ($('#yee_' + key).val() !== "disabled") {
           cC++;
         }

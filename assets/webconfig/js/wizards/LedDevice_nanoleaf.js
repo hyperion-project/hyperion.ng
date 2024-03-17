@@ -11,7 +11,7 @@ async function createNanoleafUserAuthorization() {
   const params = { host };
 
   let retryTime = 30;
-  const UserInterval = setInterval(async function() {
+  const UserInterval = setInterval(async function () {
     retryTime -= retryInterval;
     $("#connectionTime").html(retryTime);
 
@@ -75,7 +75,7 @@ function startWizardNanoleafUserAuth() {
     show: true
   });
 
-  $('#btn_wiz_cont').off().on('click', function() {
+  $('#btn_wiz_cont').off().on('click', function () {
     createNanoleafUserAuthorization();
     $('#wizp1').toggle(false);
     $('#wizp3').toggle(true);

@@ -105,12 +105,10 @@ function checkHueBridge(cb, hueUser) {
     const host = hueIPs[hueIPsinc].host;
     const port = hueIPs[hueIPsinc].port;
 
-    if (usr != '')
-    {
+    if (usr != '') {
       getProperties_hue_bridge(cb, decodeURIComponent(host), port, usr);
     }
-    else
-    {
+    else {
       cb(false, usr);
     }
 
@@ -227,7 +225,6 @@ function useGroupId(id, username) {
 }
 
 function updateBridgeDetails(properties) {
-console.log("properties", properties);
   const ledDeviceProperties = properties.config;
 
   if (!jQuery.isEmptyObject(ledDeviceProperties)) {
@@ -840,7 +837,7 @@ function get_hue_lights(username) {
     } else if (!jQuery.isEmptyObject(ledProperties.lights)) {
       hueLights = ledProperties.lights;
     }
-    
+
     if (Object.keys(hueLights).length > 0) {
       if (!isEntertainmentReady) {
         $('#wh_topcontainer').toggle(false);
