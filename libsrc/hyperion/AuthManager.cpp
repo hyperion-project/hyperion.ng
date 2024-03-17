@@ -36,13 +36,13 @@ AuthManager::AuthManager(QObject *parent, bool readonlyMode)
 	connect(_authBlockTimer, &QTimer::timeout, this, &AuthManager::checkAuthBlockTimeout);
 
 	// init with default user and password
-	if (!_authTable->userExist("Hyperion"))
+	if (!_authTable->userExist(hyperion::DEFAULT_USER))
 	{
-		_authTable->createUser("Hyperion", "hyperion");
+		_authTable->createUser(hyperion::DEFAULT_USER, hyperion::DEFAULT_PASSWORD);
 	}
 
 	// update Hyperion user token on startup
-	_authTable->setUserToken("Hyperion");
+	_authTable->setUserToken(hyperion::DEFAULT_USER);
 }
 
 AuthManager::AuthDefinition AuthManager::createToken(const QString &comment)

@@ -3,6 +3,8 @@
 #include <utils/Logger.h>
 #include <utils/settings.h>
 
+#include <db/AuthTable.h>
+
 //qt
 #include <QMap>
 #include <QVector>
@@ -172,7 +174,7 @@ public slots:
 	/// @param usr the defined user
 	/// @return       The token
 	///
-	QString getUserToken(const QString &usr = "Hyperion") const;
+	QString getUserToken(const QString &usr = hyperion::DEFAULT_USER) const;
 
 	///
 	/// @brief Get all available token entries

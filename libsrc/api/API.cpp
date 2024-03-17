@@ -417,7 +417,7 @@ bool API::updateHyperionPassword(const QString &password, const QString &newPass
     if (!_adminAuthorized)
         return false;
     bool res;
-    QMetaObject::invokeMethod(_authManager, "updateUserPassword", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, res), Q_ARG(QString, "Hyperion"), Q_ARG(QString, password), Q_ARG(QString, newPassword));
+	QMetaObject::invokeMethod(_authManager, "updateUserPassword", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, res), Q_ARG(QString, DEFAULT_USER), Q_ARG(QString, password), Q_ARG(QString, newPassword));
     return res;
 }
 
@@ -490,7 +490,7 @@ bool API::getPendingTokenRequests(QVector<AuthManager::AuthDefinition> &map)
 bool API::isUserTokenAuthorized(const QString &userToken)
 {
     bool res;
-    QMetaObject::invokeMethod(_authManager, "isUserTokenAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, res), Q_ARG(QString, "Hyperion"), Q_ARG(QString, userToken));
+	QMetaObject::invokeMethod(_authManager, "isUserTokenAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, res), Q_ARG(QString, DEFAULT_USER), Q_ARG(QString, userToken));
     if (res)
     {
         _authorized = true;
@@ -521,7 +521,7 @@ bool API::isTokenAuthorized(const QString &token)
 bool API::isUserAuthorized(const QString &password)
 {
     bool res;
-    QMetaObject::invokeMethod(_authManager, "isUserAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, res), Q_ARG(QString, "Hyperion"), Q_ARG(QString, password));
+	QMetaObject::invokeMethod(_authManager, "isUserAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, res), Q_ARG(QString, DEFAULT_USER), Q_ARG(QString, password));
     if (res)
     {
         _authorized = true;
@@ -535,7 +535,7 @@ bool API::isUserAuthorized(const QString &password)
 bool API::hasHyperionDefaultPw()
 {
     bool res;
-    QMetaObject::invokeMethod(_authManager, "isUserAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, res), Q_ARG(QString, "Hyperion"), Q_ARG(QString, "hyperion"));
+	QMetaObject::invokeMethod(_authManager, "isUserAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, res), Q_ARG(QString, DEFAULT_USER), Q_ARG(QString, DEFAULT_PASSWORD));
     return res;
 }
 
