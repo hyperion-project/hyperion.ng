@@ -132,7 +132,16 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 			QMimeType mime = _mimeDb->mimeTypeForFile (file.fileName ());
 			if (file.open (QFile::ReadOnly)) {
 				QByteArray data = file.readAll ();
-				reply->addHeader ("Content-Type", mime.name ().toLocal8Bit ());
+
+				// Workaround https://bugreports.qt.io/browse/QTBUG-97392
+				if (mime.name() == QStringLiteral("application/x-extension-html"))
+				{
+					reply->addHeader ("Content-Type", "text/html");
+				}
+				else
+				{
+					reply->addHeader ("Content-Type", mime.name().toLocal8Bit());
+				}
 				reply->addHeader(QtHttpHeader::AccessControlAllow, "*" );
 				reply->appendRawData (data);
 				file.close ();
