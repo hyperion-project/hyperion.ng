@@ -258,9 +258,7 @@ const colorCalibrationKodiWizard = (() => {
         // WebSocket onopen event
         ws.onopen = function (event) {
           withKodi = true;
-          if (typeof cb === 'function') {
-            cb("opened");
-          }
+          cb("opened");
         };
 
         // WebSocket onmessage event (handle incoming messages)
@@ -268,20 +266,16 @@ const colorCalibrationKodiWizard = (() => {
           const response = JSON.parse(event.data);
           if (response.method === "System.OnQuit") {
             closeWebSocket();
-          } else if (typeof cb === 'function') {
-            if (response.result != undefined) {
-              if (response.result !== "OK") {
-                cb("error");
-              }
+          } else if (response.result != undefined) {
+            if (response.result !== "OK") {
+              cb("error");
             }
           }
         };
 
         // WebSocket onerror event
         ws.onerror = function (error) {
-          if (typeof cb === 'function') {
-            cb("error");
-          }
+          cb("error");
         };
 
         // WebSocket onclose event
