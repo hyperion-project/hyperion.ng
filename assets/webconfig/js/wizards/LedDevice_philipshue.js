@@ -761,8 +761,8 @@ const philipshueWizard = (() => {
     $("#root_specificOptions_useEntertainmentAPI").trigger("change");
     $('#btn_wiz_holder').append('<div class="bs-callout bs-callout-danger" style="margin-top:0px">' + $.i18n('wiz_hue_e_noapisupport_hint') + '</div>');
     $('#hue_grp_ids_t').toggle(false);
-    txt = (txt) ? $.i18n(txt) : $.i18n('wiz_hue_e_nogrpids');
-    $('<p style="font-weight:bold;color:red;">' + txt + '<br />' + $.i18n('wiz_hue_e_noapisupport') + '</p>').insertBefore('#wizp2_body #hue_ids_t');
+    const errorMessage = txt ? $.i18n(txt) : $.i18n('wiz_hue_e_nogrpids');
+    $('<p style="font-weight:bold;color:red;">' + errorMessage + '<br />' + $.i18n('wiz_hue_e_noapisupport') + '</p>').insertBefore('#wizp2_body #hue_ids_t');
     $('#hue_id_headline').html($.i18n('wiz_hue_desc2'));
 
     get_hue_lights(username);

@@ -240,16 +240,6 @@ const yeelightWizard = (() => {
     }
   }
 
-  async function getProperties(host, port) {
-    const params = { host: host, port: port };
-
-    const res = await requestLedDeviceProperties('yeelight', params);
-    if (res && !res.error) {
-      const r = res.info
-      console.log("Yeelight properties: ", r);
-    }
-  }
-
   async function identify(host, port) {
 
     const disabled = $('#btn_wiz_save').is(':disabled');

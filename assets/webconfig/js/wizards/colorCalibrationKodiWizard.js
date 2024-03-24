@@ -257,10 +257,10 @@ const colorCalibrationKodiWizard = (() => {
 
         // WebSocket onopen event
         ws.onopen = function (event) {
-          $('#kodi_status').html('<p style="color:green;font-weight:bold;margin-top:5px">' + $.i18n('wiz_cc_kodicon') + '</p>');
-          $('#btn_wiz_cont').prop('disabled', false);
           withKodi = true;
-          cb("success");
+          if (typeof cb === 'function') {
+            cb("opened");
+          }
         };
 
         // WebSocket onmessage event (handle incoming messages)
@@ -268,7 +268,7 @@ const colorCalibrationKodiWizard = (() => {
           const response = JSON.parse(event.data);
           if (response.method === "System.OnQuit") {
             closeWebSocket();
-          } else if (cb != undefined) {
+          } else if (typeof cb === 'function') {
             if (response.result != undefined) {
               if (response.result !== "OK") {
                 cb("error");
@@ -279,7 +279,7 @@ const colorCalibrationKodiWizard = (() => {
 
         // WebSocket onerror event
         ws.onerror = function (error) {
-          if (cb != undefined) {
+          if (typeof cb === 'function') {
             cb("error");
           }
         };
@@ -334,11 +334,8 @@ const colorCalibrationKodiWizard = (() => {
 
           closeWebSocket();
           initializeWebSocket(function (cb) {
-            if (cb == "error") {
-              $('#kodi_status').html('<p style="color:red;font-weight:bold;margin-top:5px">' + $.i18n('wiz_cc_kodidiscon') + '</p><p>' + $.i18n('wiz_cc_kodidisconlink') + ' <a href="https://sourceforge.net/projects/hyperion-project/files/resources/Hyperion_calibration_pictures.zip/download" target="_blank">' + $.i18n('wiz_cc_link') + '</p>');
-              withKodi = false;
-            }
-            else {
+
+            if (cb == "opened") {
               setStorage("kodiAddress", kodiAddress);
               setStorage("kodiPort", defaultKodiPort);
 
@@ -349,9 +346,13 @@ const colorCalibrationKodiWizard = (() => {
                 sendToKodi("msg", $.i18n('wiz_cc_kodimsg_start'));
               }
             }
+            else {
+              $('#kodi_status').html('<p style="color:red;font-weight:bold;margin-top:5px">' + $.i18n('wiz_cc_kodidiscon') + '</p><p>' + $.i18n('wiz_cc_kodidisconlink') + ' <a href="https://sourceforge.net/projects/hyperion-project/files/resources/Hyperion_calibration_pictures.zip/download" target="_blank">' + $.i18n('wiz_cc_link') + '</p>');
+              withKodi = false;
+            }
+
+            $('#btn_wiz_cont').prop('disabled', false);
           });
-
-
         }
       }
     });
