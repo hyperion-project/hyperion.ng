@@ -6,18 +6,14 @@ $(window.hyperion).one("ready", function (event) {
   }
 });
 
-$("#btn_wizard_colorcalibration").click(function () {
-  const script = 'js/wizards/wizard_kodi_cc.js';
-  loadScript(script, function () {
-    startWizardCC();
-  });
+$("#btn_wizard_colorcalibration").click(async function () {
+  const { colorCalibrationKodiWizard } = await import('./wizards/colorCalibrationKodiWizard.js');
+  colorCalibrationKodiWizard.start();
 });
 
-$("#btn_wizard_byteorder").click(function () {
-  const script = 'js/wizards/wizard_byteorder.js';
-  loadScript(script, function () {
-    startWizardRGB();
-  });
+$('#btn_wizard_byteorder').on('click', async () => {
+  const { rgbByteOrderWizard } = await import('./wizards/rgbByteOrderWizard.js');
+  rgbByteOrderWizard.start();
 });
 
 function resetWizard(reload) {
@@ -33,51 +29,45 @@ function resetWizard(reload) {
 }
 
 function createLedDeviceWizards(ledType) {
+
+  let data = {};
+  let title;
+
   $('#btn_wiz_holder').html("");
   $('#btn_led_device_wiz').off();
   if (ledType == "philipshue") {
-    const data = { ledType: ledType };
-    const hue_title = 'wiz_hue_title';
     $('#btn_wiz_holder').show();
-    changeLedDeviceWizard(data, hue_title, "startWizardPhilipsHue");
+    data = { ledType };
+    title = 'wiz_hue_title';
   }
   else if (ledType == "nanoleaf") {
     $('#btn_wiz_holder').hide();
-    const data = { ledType: ledType };
-    const nanoleaf_user_auth_title = 'wiz_nanoleaf_user_auth_title';
-    changeLedDeviceWizard(data, nanoleaf_user_auth_title, "startWizardNanoleafUserAuth");
+    data = { ledType };
+    title = 'wiz_nanoleaf_user_auth_title';
   }
   else if (ledType == "atmoorb") {
     $('#btn_wiz_holder').show();
-    const data = { ledType: ledType };
-    const atmoorb_title = 'wiz_atmoorb_title';
-    changeLedDeviceWizard(data, atmoorb_title, "startWizardAtmoOrb");
+    data = { ledType };
+    title = 'wiz_atmoorb_title';
   }
   else if (ledType == "yeelight") {
     $('#btn_wiz_holder').show();
-    const data = { ledType: ledType };
-    const yeelight_title = 'wiz_yeelight_title';
-    changeLedDeviceWizard(data, yeelight_title, "startWizardYeelight");
+    data = { ledType };
+    title = 'wiz_yeelight_title';
+  }
+
+  if (Object.keys(data).length !== 0) {
+    startLedDeviceWizard(data, title, ledType + "Wizard");
   }
 }
 
-function changeLedDeviceWizard(data, hint, fnName) {
+function startLedDeviceWizard(data, hint, wizardName) {
   $('#btn_wiz_holder').html("")
   createHint("wizard", $.i18n(hint), "btn_wiz_holder", "btn_led_device_wiz");
   $('#btn_led_device_wiz').off();
-  $('#btn_led_device_wiz').on('click', data, function (event) {
-    // Load LED Device wizard utils
-    loadScript('js/wizards/LedDevice_utils.js');
-    // Load the respective LED Device wizard code
-    const script = 'js/wizards/LedDevice_' + data.ledType + '.js';
-    loadScript(script, function () {
-      if (typeof window[fnName] === 'function') {
-        // Pass the event parameter to the function specified by fnName
-        window[fnName](event);
-      } else {
-        console.error("Function", fnName, "is not available.");
-      }
-    });
+  $('#btn_led_device_wiz').on('click', async (e) => {
+    const { [wizardName]: winzardObject } = await import('./wizards/LedDevice_' + data.ledType + '.js');
+    winzardObject.start(e);
   });
 }
 
