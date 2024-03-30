@@ -18,12 +18,11 @@ public:
 	///
 	/// Constructs the Amlogic frame grabber
 	///
-	/// @param[in] grabWidth  The width of the grabbed image [pixels]
-	/// @param[in] grabHeight  The height of the grabbed images [pixels]
-	/// @param[in] pixelDecimation   Decimation factor for image [pixels]
+	/// @param[in] updateRate_Hz     The image grab rate [Hz]
+	/// @param[in] pixelDecimation   Decimation factor for image [pixels]///
 	///
-	AmlogicWrapper(int pixelDecimation=GrabberWrapper::DEFAULT_PIXELDECIMATION,
-					int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ);
+	AmlogicWrapper(int updateRate_Hz=GrabberWrapper::DEFAULT_RATE_HZ,
+				   int pixelDecimation=GrabberWrapper::DEFAULT_PIXELDECIMATION);
 
 	///
 	/// Constructs the Amlogic frame grabber from configuration settings
