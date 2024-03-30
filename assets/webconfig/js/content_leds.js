@@ -1086,40 +1086,7 @@ $(document).ready(function () {
     conf_editor.validate().length || window.readOnlyMode ? $('#btn_submit_controller').prop('disabled', true) : $('#btn_submit_controller').prop('disabled', false);
 
     // LED controller specific wizards
-    $('#btn_wiz_holder').html("");
-    $('#btn_led_device_wiz').off();
-
-    if (ledType == "philipshue") {
-      var ledWizardType = ledType;
-      var data = { type: ledWizardType };
-      var hue_title = 'wiz_hue_title';
-      changeWizard(data, hue_title, startWizardPhilipsHue);
-    }
-    else if (ledType == "nanoleaf") {
-      var ledWizardType = ledType;
-      var data = { type: ledWizardType };
-      var nanoleaf_user_auth_title = 'wiz_nanoleaf_user_auth_title';
-      changeWizard(data, nanoleaf_user_auth_title, startWizardNanoleafUserAuth);
-      $('#btn_wiz_holder').hide();
-    }
-    else if (ledType == "atmoorb") {
-      var ledWizardType = (this.checked) ? "atmoorb" : ledType;
-      var data = { type: ledWizardType };
-      var atmoorb_title = 'wiz_atmoorb_title';
-      changeWizard(data, atmoorb_title, startWizardAtmoOrb);
-    }
-    else if (ledType == "yeelight") {
-      var ledWizardType = (this.checked) ? "yeelight" : ledType;
-      var data = { type: ledWizardType };
-      var yeelight_title = 'wiz_yeelight_title';
-      changeWizard(data, yeelight_title, startWizardYeelight);
-    }
-
-    function changeWizard(data, hint, fn) {
-      $('#btn_wiz_holder').html("")
-      createHint("wizard", $.i18n(hint), "btn_wiz_holder", "btn_led_device_wiz");
-      $('#btn_led_device_wiz').off().on('click', data, fn);
-    }
+    createLedDeviceWizards(ledType);
 
     conf_editor.on('ready', function () {
       var hwLedCountDefault = 1;
