@@ -468,17 +468,18 @@ function createClassicLeds() {
   aceEdt.set(finalLedArray);
 }
 
-function createMatrixLayout(ledshoriz, ledsvert, cabling, start, direction) {
+function createMatrixLayout(ledshoriz, ledsvert, cabling, start, direction, gap) {
   // Big thank you to RanzQ (Juha Rantanen) from Github for this script
   // https://raw.githubusercontent.com/RanzQ/hyperion-audio-effects/master/matrix-config.js
 
-  var parallel = false
-  var leds = []
-  var hblock = 1.0 / ledshoriz
-  var vblock = 1.0 / ledsvert
+  let parallel = false;
+  const leds = [];
+
+  const hblock = (1.0 - gap.left - gap.right) / ledshoriz;
+  const vblock = (1.0 - gap.top - gap.bottom) / ledsvert;
 
   if (cabling == "parallel") {
-    parallel = true
+    parallel = true;
   }
 
   /**
@@ -487,10 +488,10 @@ function createMatrixLayout(ledshoriz, ledsvert, cabling, start, direction) {
    * @param {Number} y     Vertical position in matrix
    */
   function addLed(x, y) {
-    var hscanMin = x * hblock
-    var hscanMax = (x + 1) * hblock
-    var vscanMin = y * vblock
-    var vscanMax = (y + 1) * vblock
+    let hscanMin = gap.left + (x * hblock);
+    let hscanMax = gap.left + (x + 1) * hblock;
+    let vscanMin = gap.top + y * vblock;
+    let vscanMax = gap.top + (y + 1) * vblock;
 
     hscanMin = round(hscanMin);
     hscanMax = round(hscanMax);
@@ -502,43 +503,41 @@ function createMatrixLayout(ledshoriz, ledsvert, cabling, start, direction) {
       hmax: hscanMax,
       vmin: vscanMin,
       vmax: vscanMax
-    })
+    });
   }
 
-  var startYX = start.split('-')
-  var startX = startYX[1] === 'right' ? ledshoriz - 1 : 0
-  var startY = startYX[0] === 'bottom' ? ledsvert - 1 : 0
-  var endX = startX === 0 ? ledshoriz - 1 : 0
-  var endY = startY === 0 ? ledsvert - 1 : 0
-  var forward = startX < endX
+  const startYX = start.split('-');
+  let startX = startYX[1] === 'right' ? ledshoriz - 1 : 0;
+  let startY = startYX[0] === 'bottom' ? ledsvert - 1 : 0;
+  let endX = startX === 0 ? ledshoriz - 1 : 0;
+  let endY = startY === 0 ? ledsvert - 1 : 0;
+  let forward = startX < endX;
+  let downward = startY < endY;
 
-  var downward = startY < endY
-
-  var x, y
+  let x, y;
 
   if (direction === 'vertical') {
     for (x = startX; forward && x <= endX || !forward && x >= endX; x += forward ? 1 : -1) {
       for (y = startY; downward && y <= endY || !downward && y >= endY; y += downward ? 1 : -1) {
-
-        addLed(x, y)
+        addLed(x, y);
       }
       if (!parallel) {
-        downward = !downward
-        var tmp = startY
-        startY = endY
-        endY = tmp
+        downward = !downward;
+        const tmp = startY;
+        startY = endY;
+        endY = tmp;
       }
     }
   } else {
     for (y = startY; downward && y <= endY || !downward && y >= endY; y += downward ? 1 : -1) {
       for (x = startX; forward && x <= endX || !forward && x >= endX; x += forward ? 1 : -1) {
-        addLed(x, y)
+        addLed(x, y);
       }
       if (!parallel) {
-        forward = !forward
-        var tmp = startX
-        startX = endX
-        endX = tmp
+        forward = !forward;
+        const tmp = startX;
+        startX = endX;
+        endX = tmp;
       }
     }
   }
@@ -551,13 +550,20 @@ function createMatrixLeds() {
   // https://raw.githubusercontent.com/RanzQ/hyperion-audio-effects/master/matrix-config.js
 
   //get values
-  var ledshoriz = parseInt($("#ip_ma_ledshoriz").val());
-  var ledsvert = parseInt($("#ip_ma_ledsvert").val());
-  var cabling = $("#ip_ma_cabling").val();
-  var direction = $("#ip_ma_direction").val();
-  var start = $("#ip_ma_start").val();
+  const ledshoriz = parseInt($("#ip_ma_ledshoriz").val());
+  const ledsvert = parseInt($("#ip_ma_ledsvert").val());
+  const cabling = $("#ip_ma_cabling").val();
+  const direction = $("#ip_ma_direction").val();
+  const start = $("#ip_ma_start").val();
+  const gap = {
+    //gap values % -> float
+    left: parseInt($("#ip_ma_gapleft").val()) / 100,
+    right: parseInt($("#ip_ma_gapright").val()) / 100,
+    top: parseInt($("#ip_ma_gaptop").val()) / 100,
+    bottom: parseInt($("#ip_ma_gapbottom").val()) / 100,
+  };
 
-  nonBlacklistLedArray = createMatrixLayout(ledshoriz, ledsvert, cabling, start, direction);
+  nonBlacklistLedArray = createMatrixLayout(ledshoriz, ledsvert, cabling, start, direction, gap);
   finalLedArray = blackListLeds(nonBlacklistLedArray, ledBlacklist);
 
   createLedPreview(finalLedArray);
@@ -797,6 +803,35 @@ $(document).ready(function () {
 
   $('.ledMAconstr').on("change", function () {
     valValue(this.id, this.value, this.min, this.max);
+
+    // top/bottom and left/right must not overlap
+    switch (this.id) {
+      case "ip_ma_gapleft":
+        let left = 100 - parseInt($("#ip_ma_gapright").val());
+        if (this.value > left) {
+          $(this).val(left);
+        }
+        break;
+      case "ip_ma_gapright":
+        let right = 100 - parseInt($("#ip_ma_gapleft").val());
+        if (this.value > right) {
+          $(this).val(right);
+        }
+        break;
+      case "ip_ma_gaptop":
+        let top = 100 - parseInt($("#ip_ma_gapbottom").val());
+        if (this.value > top) {
+          $(this).val(top);
+        }
+        break;
+      case "ip_ma_gapbottom":
+        let bottom = 100 - parseInt($("#ip_ma_gaptop").val());
+        if (this.value > bottom) {
+          $(this).val(bottom);
+        }
+        break;
+      default:
+    }
     createMatrixLeds();
   });
 
@@ -1051,40 +1086,7 @@ $(document).ready(function () {
     conf_editor.validate().length || window.readOnlyMode ? $('#btn_submit_controller').prop('disabled', true) : $('#btn_submit_controller').prop('disabled', false);
 
     // LED controller specific wizards
-    $('#btn_wiz_holder').html("");
-    $('#btn_led_device_wiz').off();
-
-    if (ledType == "philipshue") {
-      var ledWizardType = ledType;
-      var data = { type: ledWizardType };
-      var hue_title = 'wiz_hue_title';
-      changeWizard(data, hue_title, startWizardPhilipsHue);
-    }
-    else if (ledType == "nanoleaf") {
-      var ledWizardType = ledType;
-      var data = { type: ledWizardType };
-      var nanoleaf_user_auth_title = 'wiz_nanoleaf_user_auth_title';
-      changeWizard(data, nanoleaf_user_auth_title, startWizardNanoleafUserAuth);
-      $('#btn_wiz_holder').hide();
-    }
-    else if (ledType == "atmoorb") {
-      var ledWizardType = (this.checked) ? "atmoorb" : ledType;
-      var data = { type: ledWizardType };
-      var atmoorb_title = 'wiz_atmoorb_title';
-      changeWizard(data, atmoorb_title, startWizardAtmoOrb);
-    }
-    else if (ledType == "yeelight") {
-      var ledWizardType = (this.checked) ? "yeelight" : ledType;
-      var data = { type: ledWizardType };
-      var yeelight_title = 'wiz_yeelight_title';
-      changeWizard(data, yeelight_title, startWizardYeelight);
-    }
-
-    function changeWizard(data, hint, fn) {
-      $('#btn_wiz_holder').html("")
-      createHint("wizard", $.i18n(hint), "btn_wiz_holder", "btn_led_device_wiz");
-      $('#btn_led_device_wiz').off().on('click', data, fn);
-    }
+    createLedDeviceWizards(ledType);
 
     conf_editor.on('ready', function () {
       var hwLedCountDefault = 1;

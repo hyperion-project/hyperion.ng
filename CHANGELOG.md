@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Support gaps on Matrix Layout (#1696)
+
 ### Changed
 
 ### Removed

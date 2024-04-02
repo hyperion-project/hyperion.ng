@@ -110,7 +110,7 @@ namespace hyperion
 			}
 
 			// Construct result
-			BlackBorder detectedBorder;
+			BlackBorder detectedBorder{};
 			detectedBorder.unknown = firstNonBlackXPixelIndex == -1 || firstNonBlackYPixelIndex == -1;
 			detectedBorder.horizontalSize = firstNonBlackYPixelIndex;
 			detectedBorder.verticalSize = firstNonBlackXPixelIndex;
@@ -167,7 +167,7 @@ namespace hyperion
 			}
 
 			// Construct result
-			BlackBorder detectedBorder;
+			BlackBorder detectedBorder{};
 			detectedBorder.unknown = firstNonBlackXPixelIndex == -1 || firstNonBlackYPixelIndex == -1;
 			detectedBorder.horizontalSize = firstNonBlackYPixelIndex;
 			detectedBorder.verticalSize = firstNonBlackXPixelIndex;
@@ -224,7 +224,7 @@ namespace hyperion
 			}
 
 			// Construct result
-			BlackBorder detectedBorder;
+			BlackBorder detectedBorder{};
 			detectedBorder.unknown = firstNonBlackXPixelIndex == -1 || firstNonBlackYPixelIndex == -1;
 			detectedBorder.horizontalSize = firstNonBlackYPixelIndex;
 			detectedBorder.verticalSize = firstNonBlackXPixelIndex;
@@ -267,7 +267,7 @@ namespace hyperion
 			}
 
 			// Construct result
-			BlackBorder detectedBorder;
+			BlackBorder detectedBorder{};
 			detectedBorder.unknown = firstNonBlackYPixelIndex == -1;
 			detectedBorder.horizontalSize = firstNonBlackYPixelIndex;
 			detectedBorder.verticalSize = 0;

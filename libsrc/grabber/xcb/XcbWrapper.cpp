@@ -11,7 +11,9 @@ XcbWrapper::XcbWrapper( int updateRate_Hz,
 }
 
 XcbWrapper::XcbWrapper(const QJsonDocument& grabberConfig)
-	: GrabberWrapper(GRABBERTYPE, &_grabber)
+	: XcbWrapper(GrabberWrapper::DEFAULT_RATE_HZ,
+				 GrabberWrapper::DEFAULT_PIXELDECIMATION,
+				 0,0,0,0)
 {
 	this->handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
 }

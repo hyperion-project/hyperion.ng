@@ -26,13 +26,6 @@ install_file()
 
 echo "--- Hyperion ambient light postinstall ---"
 
-#check system
-CPU_RPI=`grep -m1 -c 'BCM2708\|BCM2709\|BCM2710\|BCM2835\|BCM2836\|BCM2837\|BCM2711' /proc/cpuinfo`
-CPU_X32X64=`uname -m | grep 'x86_32\|i686\|x86_64' | wc -l`
-
-#Check for a bootloader as Berryboot
-BOOT_BERRYBOOT=$(grep -m1 -c '\(/var/media\|/media/pi\)/berryboot' /etc/mtab)
-
 #get current system ip
 NET_IP=`hostname -I | cut -d " " -f1`
 
@@ -128,25 +121,6 @@ fi
 rm -r /usr/share/hyperion/desktop 2>/dev/null
 rm -r /usr/share/hyperion/icons 2>/dev/null
 
-#Check, if dtparam=spi=on is in place
-if [ $CPU_RPI -eq 1 ]; then
-	BOOT_DIR="/boot"
-	if [ $BOOT_BERRYBOOT -eq 1 ]; then
-		BOOT_DIR=$(sed -ne "s#/dev/mmcblk0p1 \([^ ]*\) vfat rw,.*#\1#p" /etc/mtab)
-	fi
-	if [ -z "$BOOT_DIR" -o ! -f "$BOOT_DIR/config.txt" ]; then
-		echo '---> Warning: RPi using BERRYBOOT found but can not locate where config.txt is to enable SPI. (BOOT_DIR='"$BOOT_DIR)"
-		SPIOK=1 # Not sure if OK, but don't ask to reboot
-	else
-		SPIOK=`grep '^\dtparam=spi=on' "$BOOT_DIR/config.txt" | wc -l`
-		if [ $SPIOK -ne 1 ]; then
-			echo '---> Raspberry Pi found, but SPI is not set, we write "dtparam=spi=on" to '"$BOOT_DIR/config.txt"
-			sed -i '$a dtparam=spi=on' "$BOOT_DIR/config.txt"
-			REBOOTMESSAGE="echo Please reboot your Raspberry Pi, we inserted dtparam=spi=on to $BOOT_DIR/config.txt"
-		fi
-	fi
-fi
-
 echo ${START_MSG}
 
 echo "-----------------------------------------------------------------------------"
@@ -171,7 +145,7 @@ if [ -e /opt/hyperion/ ]
 then
 	echo
 	echo "---------------------------------------------------------------------------------"
-	echo "- It seemd that you have an older version of hyperion installed in /opt/hyperion -"
+	echo "- It seems that you have an older version of hyperion installed in /opt/hyperion -"
 	echo "- please remove it to avoid problems                                            -"
 	echo "---------------------------------------------------------------------------------"
 fi
