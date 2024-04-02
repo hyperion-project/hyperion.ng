@@ -37,7 +37,7 @@ private:
 	Logger        * _log;
 	QByteArray      _ssdpDescription;
 
-	void printErrorToReply (QtHttpReply * reply, QtHttpReply::StatusCode code, QString errorMessage);
+	void printErrorToReply (QtHttpReply * reply, QtHttpReply::StatusCode code, const QString& errorMessage);
 
 };
 

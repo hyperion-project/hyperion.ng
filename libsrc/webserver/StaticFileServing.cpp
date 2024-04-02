@@ -39,12 +39,15 @@ void StaticFileServing::setBaseUrl(const QString& url)
 void StaticFileServing::setSSDPDescription(const QString& desc)
 {
 	if(desc.isEmpty())
+	{
 		_ssdpDescription.clear();
-	else
+	} else
+	{
 		_ssdpDescription = desc.toLocal8Bit();
+	}
 }
 
-void StaticFileServing::printErrorToReply (QtHttpReply * reply, QtHttpReply::StatusCode code, QString errorMessage)
+void StaticFileServing::printErrorToReply (QtHttpReply * reply, QtHttpReply::StatusCode code, const QString& errorMessage)
 {
 	reply->setStatusCode(code);
 	reply->addHeader ("Content-Type", QByteArrayLiteral ("text/html"));
@@ -62,13 +65,13 @@ void StaticFileServing::printErrorToReply (QtHttpReply * reply, QtHttpReply::Sta
 	if (errorPage.open (QFile::ReadOnly))
 	{
 		QByteArray data = errorPage.readAll();
-		data = data.replace("{MESSAGE}", errorMessage.toLocal8Bit() );
+		data = data.replace("{MESSAGE}", QString(errorMessage.toLocal8Bit()).toHtmlEscaped().toLocal8Bit() );
 		reply->appendRawData (data);
 		errorPage.close ();
 	}
 	else
 	{
-		reply->appendRawData (QString(QString::number(code) + " - " +errorMessage).toLocal8Bit());
+		reply->appendRawData (QString(QString::number(code) + " - " +errorMessage.toLocal8Bit()).toHtmlEscaped().toLocal8Bit());
 	}
 
 	if (errorPageFooter.open (QFile::ReadOnly))
@@ -103,7 +106,8 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 				}
 				return;
 			}
-			else if(uri_parts.at(0) == "description.xml" && !_ssdpDescription.isNull())
+
+			if(uri_parts.at(0) == "description.xml" && !_ssdpDescription.isNull())
 			{
 				reply->addHeader ("Content-Type", "text/xml");
 				reply->appendRawData (_ssdpDescription);
