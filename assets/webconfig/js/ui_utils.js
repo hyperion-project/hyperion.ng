@@ -320,7 +320,7 @@ function showInfoDialog(type, header, message) {
 
   $(document).on('click', '[data-dismiss-modal]', function () {
     var target = $(this).attr('data-dismiss-modal');
-    $.find(target).modal('hide');
+    $(target).modal('hide');
   });
 }
 
