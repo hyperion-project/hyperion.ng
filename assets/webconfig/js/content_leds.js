@@ -2510,6 +2510,10 @@ function nanoleafGeneratelayout(panelLayout, panelOrderTopDown, panelOrderLeftRi
     18: { name: "LightLinesSingleZone", led: true, sideLengthX: 77, sideLengthY: 77 },
     19: { name: "ControllerCap", led: false, sideLengthX: 11, sideLengthY: 11 },
     20: { name: "PowerConnector", led: false, sideLengthX: 11, sideLengthY: 11 },
+    29: { name: "4DLightstrip", led: true, sideLengthX: 50, sideLengthY: 50 },
+    30: { name: "Skylight Panel", led: true, sideLengthX: 180, sideLengthY: 180 },
+    31: { name: "SkylightControllerPrimary", led: true, sideLengthX: 180, sideLengthY: 180 },
+    32: { name: "SkylightControllerPassive", led: true, sideLengthX: 180, sideLengthY: 180 },            
     999: { name: "Unknown", led: true, sideLengthX: 100, sideLengthY: 100 }
   };
 
