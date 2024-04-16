@@ -708,7 +708,7 @@ bool LedDeviceNanoleaf::storeState()
 					QJsonObject effects = responseEffects.getBody().object();
 					DebugIf(verbose, _log, "effects: [%s]", QString(QJsonDocument(_originalStateProperties).toJson(QJsonDocument::Compact)).toUtf8().constData());
 					_originalEffect = effects[API_EFFECT_SELECT].toString();
-					_originalIsDynEffect = _originalEffect == "*Dynamic*" || _originalEffect == "*Solid*";
+                    _originalIsDynEffect = _originalEffect != "*Dynamic*" || _originalEffect == "*Solid*" || _originalEffect == "*ExtControl*";
 				}
 				break;
 			}
@@ -759,7 +759,7 @@ bool LedDeviceNanoleaf::restoreState()
 				}
 			}
 			else {
-				Warning(_log, "%s restoring effect failed with error: Cannot restore dynamic or solid effect. Device is switched off", QSTRING_CSTR(_activeDeviceType));
+                Info(_log, "%s cannot restore dynamic or solid effects. Device is switched off instead", QSTRING_CSTR(_activeDeviceType));
 				_originalIsOn = false;
 			}
 			break;
