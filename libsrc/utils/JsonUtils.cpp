@@ -62,8 +62,6 @@ namespace JsonUtils {
 
 		if (error.error != QJsonParseError::NoError)
 		{
-			qDebug() << "error.offset: " << error.offset;
-
 			int errorLine = 1;
 			int errorColumn = 1;
 
