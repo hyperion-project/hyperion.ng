@@ -128,6 +128,11 @@ bool PriorityMuxer::hasPriority(int priority) const
 	return (priority == PriorityMuxer::LOWEST_PRIORITY) ? true : _activeInputs.contains(priority);
 }
 
+PriorityMuxer::InputsMap PriorityMuxer::getInputInfo() const
+{
+    return _activeInputs;
+}
+
 PriorityMuxer::InputInfo PriorityMuxer::getInputInfo(int priority) const
 {
 	auto elemIt = _activeInputs.constFind(priority);

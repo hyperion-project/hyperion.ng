@@ -52,7 +52,7 @@ SettingsManager::SettingsManager(quint8 instance, QObject* parent, bool readonly
 
 	// get default config
 	QJsonObject defaultConfig;
-	if (!JsonUtils::readFile(":/hyperion_default.config", defaultConfig, _log))
+	if (!JsonUtils::readFile(":/hyperion_default.config", defaultConfig, _log).first)
 	{
 		throw std::runtime_error("Failed to read default config");
 	}

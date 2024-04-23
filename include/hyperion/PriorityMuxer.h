@@ -141,6 +141,13 @@ public:
 	///
 	QList<int> getPriorities() const;
 
+    ///
+    /// Returns the information of all priority channels.
+    ///
+    /// @return The information fo all priority channels
+    ///
+    InputsMap getInputInfo() const;
+
 	///
 	/// Returns the information of a specified priority channel.
 	/// If a priority is no longer available the _lowestPriorityInfo (255) is returned

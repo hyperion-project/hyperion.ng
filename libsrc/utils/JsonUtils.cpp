@@ -8,25 +8,26 @@
 #include <QRegularExpression>
 #include <QJsonObject>
 #include <QJsonParseError>
+#include <QStringList>
 
 namespace JsonUtils {
 
-	bool readFile(const QString& path, QJsonObject& obj, Logger* log, bool ignError)
+	QPair<bool, QStringList> readFile(const QString& path, QJsonObject& obj, Logger* log, bool ignError)
 	{
 		QString data;
 		if(!FileUtils::readFile(path, data, log, ignError))
-			return false;
+		{
+			return qMakePair(false, QStringList(QString("Error reading file: %1").arg(path)));
+		}
 
-		if(!parse(path, data, obj, log))
-			return false;
-
-		return true;
+		QPair<bool, QStringList> parsingResult = JsonUtils::parse(path, data, obj, log);
+		return parsingResult;
 	}
 
 	bool readSchema(const QString& path, QJsonObject& obj, Logger* log)
 	{
 		QJsonObject schema;
-		if(!readFile(path, schema, log))
+		if(!readFile(path, schema, log).first)
 			return false;
 
 		if(!resolveRefs(schema, obj, log))
@@ -35,80 +36,91 @@ namespace JsonUtils {
 		return true;
 	}
 
-	bool parse(const QString& path, const QString& data, QJsonObject& obj, Logger* log)
+	QPair<bool, QStringList> parse(const QString& path, const QString& data, QJsonObject& obj, Logger* log)
 	{
 		QJsonDocument doc;
-		if(!parse(path, data, doc, log))
-			return false;
-
+		QPair<bool, QStringList> parsingResult = JsonUtils::parse(path, data, doc, log);
 		obj = doc.object();
-		return true;
+		return parsingResult;
 	}
 
-	bool parse(const QString& path, const QString& data, QJsonArray& arr, Logger* log)
+	QPair<bool, QStringList> parse(const QString& path, const QString& data, QJsonArray& arr, Logger* log)
 	{
 		QJsonDocument doc;
-		if(!parse(path, data, doc, log))
-			return false;
 
+		QPair<bool, QStringList> parsingResult = JsonUtils::parse(path, data, doc, log);
 		arr = doc.array();
-		return true;
+		return parsingResult;
 	}
 
-	bool parse(const QString& path, const QString& data, QJsonDocument& doc, Logger* log)
+	QPair<bool, QStringList> parse(const QString& path, const QString& data, QJsonDocument& doc, Logger* log)
 	{
-		//remove Comments in data
-		QString cleanData = data;
+		QStringList errorList;
+
 		QJsonParseError error;
-		doc = QJsonDocument::fromJson(cleanData.toUtf8(), &error);
+		doc = QJsonDocument::fromJson(data.toUtf8(), &error);
 
 		if (error.error != QJsonParseError::NoError)
 		{
-			// report to the user the failure and their locations in the document.
-			int errorLine(0), errorColumn(0);
+			qDebug() << "error.offset: " << error.offset;
 
-			for( int i=0, count=qMin( error.offset,cleanData.size()); i<count; ++i )
+			int errorLine = 1;
+			int errorColumn = 1;
+
+			int lastNewlineIndex = data.lastIndexOf("\n", error.offset - 1);
+			if (lastNewlineIndex != -1)
 			{
-				++errorColumn;
-				if(data.at(i) == '\n' )
-				{
-					errorColumn = 0;
-					++errorLine;
-				}
+				errorColumn = error.offset - lastNewlineIndex ;
 			}
-			Error(log, "Failed to parse json data from %s: Error: %s at Line: %i, Column: %i, Data: '%s'", QSTRING_CSTR(path), QSTRING_CSTR(error.errorString()), errorLine, errorColumn, QSTRING_CSTR(data));
-			return false;
+			errorLine += data.left(error.offset).count('\n');
+
+			const QString errorMessage = QString("JSON parse error: %1, line: %2, column: %3, Data: '%4'")
+											 .arg(error.errorString())
+											 .arg(errorLine)
+											 .arg(errorColumn)
+											 .arg(data);
+			errorList.push_back(errorMessage);
+			Error(log, "%s", QSTRING_CSTR(errorMessage));
+
+			return qMakePair(false, errorList);
 		}
-		return true;
+		return qMakePair(true, errorList);
 	}
 
-	bool validate(const QString& file, const QJsonObject& json, const QString& schemaPath, Logger* log)
+	QPair<bool, QStringList> validate(const QString& file, const QJsonObject& json, const QString& schemaPath, Logger* log)
 	{
 		// get the schema data
 		QJsonObject schema;
-		if(!readFile(schemaPath, schema, log))
-			return false;
 
-		if(!validate(file, json, schema, log))
-			return false;
-		return true;
+		QPair<bool, QStringList> readResult = readFile(schemaPath, schema, log);
+		if(!readResult.first)
+		{
+			return readResult;
+		}
 
+		QPair<bool, QStringList> validationResult = validate(file, json, schema, log);
+		return validationResult;
 	}
 
-	bool validate(const QString& file, const QJsonObject& json, const QJsonObject& schema, Logger* log)
+	QPair<bool, QStringList> validate(const QString& file, const QJsonObject& json, const QJsonObject& schema, Logger* log)
 	{
+		QStringList errorList;
+
 		QJsonSchemaChecker schemaChecker;
 		schemaChecker.setSchema(schema);
 		if (!schemaChecker.validate(json).first)
 		{
-			const QStringList & errors = schemaChecker.getMessages();
-			for (auto & error : errors)
+			const QStringList &errors = schemaChecker.getMessages();
+			for (const auto& error : errors)
 			{
-				Error(log, "While validating schema against json data of '%s':%s", QSTRING_CSTR(file), QSTRING_CSTR(error));
+				QString errorMessage = QString("JSON parse error: %1")
+									   .arg(error);
+				errorList.push_back(errorMessage);
+				Error(log, "%s", QSTRING_CSTR(errorMessage));
 			}
-			return false;
+			return qMakePair(false, errorList);
 		}
-		return true;
+		return qMakePair(true, errorList);
 	}
 
 	bool write(const QString& filename, const QJsonObject& json, Logger* log)
