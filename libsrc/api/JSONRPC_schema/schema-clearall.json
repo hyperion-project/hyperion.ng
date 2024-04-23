@@ -7,6 +7,9 @@
 			"required" : true,
 			"enum" : ["clearall"]
 		},
+		"instance" : {
+			"type" : "integer"
+		},
 		"tan" : {
 			"type" : "integer"
 		}

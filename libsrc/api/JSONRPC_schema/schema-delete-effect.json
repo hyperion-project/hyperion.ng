@@ -8,6 +8,9 @@
 			"required" : true,
 			"enum" : ["delete-effect"]
 		},
+		"instance" : {
+			"type" : "integer"
+		},
 		"tan" : {
 			"type" : "integer"
 		},

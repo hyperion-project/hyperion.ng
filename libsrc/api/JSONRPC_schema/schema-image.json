@@ -7,6 +7,9 @@
 			"required" : true,
 			"enum" : ["image"]
 		},
+		"instance" : {
+			"type" : "integer"
+		},
 		"tan" : {
 			"type" : "integer"
 		},

@@ -9,6 +9,9 @@
 			"required" : true,
 			"enum" : ["componentstate"]
 		},
+		"instance" : {
+			"type" : "integer"
+		},
 		"tan" : {
 			"type" : "integer"
 		},

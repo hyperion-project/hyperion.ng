@@ -7,6 +7,9 @@
 			"required" : true,
 			"enum" : ["effect"]
 		},
+		"instance" : {
+			"type" : "integer"
+		},
 		"tan" : {
 			"type" : "integer"
 		},

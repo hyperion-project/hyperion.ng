@@ -12,6 +12,9 @@
 			"required" : true,
 			"enum" : ["getconfig","getschema","setconfig","restoreconfig","reload"]
 		},
+		"instance" : {
+			"type" : "integer"
+		},
 		"tan" : {
 			"type" : "integer"
 		},

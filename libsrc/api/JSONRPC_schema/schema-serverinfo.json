@@ -11,6 +11,9 @@
 		  "type": "string",
 		  "enum": ["getInfo", "subscribe", "unsubscribe", "getSubscriptions", "getSubscriptionCommands"]
 		},
+		"instance" : {
+			"type" : "integer"
+		},
 		"data": {
 		  "type": ["null", "array"],
 		  "properties": {

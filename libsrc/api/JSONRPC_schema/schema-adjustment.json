@@ -7,6 +7,9 @@
 			"required" : true,
 			"enum" : ["adjustment"]
 		},
+		"instance" : {
+			"type" : "integer"
+		},
 		"tan" : {
 			"type" : "integer"
 		},
