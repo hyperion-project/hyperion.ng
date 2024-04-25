@@ -194,6 +194,14 @@ public:
 	};
 };
 
+class InstanceCmd {
+public:
+	enum Type {
+		No,
+		Yes
+	};
+};
+
 class JsonApiCommand {
 public:
 
@@ -202,21 +210,26 @@ public:
 		  subCommand(SubCommand::Unknown),
 		  tan(0),
 		  authorization(Authorization::Admin),
+		  isInstanceCmd(InstanceCmd::No),
 		  isNolistenerCmd(NoListenerCmd::Yes)
 	{}
 
 	JsonApiCommand(Command::Type command, SubCommand::Type subCommand,
 				   Authorization::Type authorization,
-				   NoListenerCmd::Type isNolistenerCmd, int tan = 0)
+				   InstanceCmd::Type isInstanceCmd,
+				   NoListenerCmd::Type isNolistenerCmd,
+				   int tan = 0)
 		: command(command),
 		  subCommand(subCommand),
 		  tan(tan),
 		  authorization(authorization),
+		  isInstanceCmd(isInstanceCmd),
 		  isNolistenerCmd(isNolistenerCmd)
 	{}
 
 	Command::Type getCommand() const { return command; }
 	SubCommand::Type getSubCommand() const { return subCommand; }
+	InstanceCmd::Type instanceCmd() const { return isInstanceCmd; };
 	int getTan() const { return tan; }
 
 	QString toString() const {
@@ -232,6 +245,7 @@ public:
 	int tan;
 
 	Authorization::Type authorization;
+	InstanceCmd::Type isInstanceCmd;
 	NoListenerCmd::Type isNolistenerCmd;
 };
 
@@ -242,72 +256,72 @@ public:
 
 	static const CommandLookupMap& getCommandLookup() {
 		static const CommandLookupMap commandLookup {
-			{ {"adjustment", ""}, { Command::Adjustment, SubCommand::Empty, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"authorize", "adminRequired"}, { Command::Authorize, SubCommand::AdminRequired, Authorization::No, NoListenerCmd::Yes} },
-			{ {"authorize", "answerRequest"}, { Command::Authorize, SubCommand::AnswerRequest, Authorization::Admin, NoListenerCmd::No} },
-			{ {"authorize", "createToken"}, { Command::Authorize, SubCommand::CreateToken, Authorization::Admin, NoListenerCmd::No} },
-			{ {"authorize", "deleteToken"}, { Command::Authorize, SubCommand::DeleteToken, Authorization::Admin, NoListenerCmd::Yes} },
-			{ {"authorize", "getPendingTokenRequests"}, { Command::Authorize, SubCommand::GetPendingTokenRequests, Authorization::Admin, NoListenerCmd::No} },
-			{ {"authorize", "getTokenList"}, { Command::Authorize, SubCommand::GetTokenList, Authorization::Admin, NoListenerCmd::Yes} },
-			{ {"authorize", "login"}, { Command::Authorize, SubCommand::Login, Authorization::No, NoListenerCmd::No} },
-			{ {"authorize", "logout"}, { Command::Authorize, SubCommand::Logout, Authorization::No, NoListenerCmd::No} },
-			{ {"authorize", "newPassword"}, { Command::Authorize, SubCommand::NewPassword, Authorization::Admin, NoListenerCmd::Yes} },
-			{ {"authorize", "newPasswordRequired"}, { Command::Authorize, SubCommand::NewPasswordRequired, Authorization::No, NoListenerCmd::Yes} },
-			{ {"authorize", "renameToken"}, { Command::Authorize, SubCommand::RenameToken, Authorization::Admin, NoListenerCmd::Yes} },
-			{ {"authorize", "requestToken"}, { Command::Authorize, SubCommand::RequestToken, Authorization::No, NoListenerCmd::Yes} },
-			{ {"authorize", "tokenRequired"}, { Command::Authorize, SubCommand::TokenRequired, Authorization::No, NoListenerCmd::Yes} },
-			{ {"clear", ""}, { Command::Clear, SubCommand::Empty, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"clearall", ""}, { Command::ClearAll, SubCommand::Empty, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"color", ""}, { Command::Color, SubCommand::Empty, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"componentstate", ""}, { Command::ComponentState, SubCommand::Empty, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"config", "getconfig"}, { Command::Config, SubCommand::GetConfig, Authorization::Admin, NoListenerCmd::Yes} },
-			{ {"config", "getschema"}, { Command::Config, SubCommand::GetSchema, Authorization::Admin, NoListenerCmd::Yes} },
-			{ {"config", "reload"}, { Command::Config, SubCommand::Reload, Authorization::Admin, NoListenerCmd::Yes} },
-			{ {"config", "restoreconfig"}, { Command::Config, SubCommand::RestoreConfig, Authorization::Admin, NoListenerCmd::Yes} },
-			{ {"config", "setconfig"}, { Command::Config, SubCommand::SetConfig, Authorization::Admin, NoListenerCmd::Yes} },
-			{ {"correction", ""}, { Command::Correction, SubCommand::Empty, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"create-effect", ""}, { Command::CreateEffect, SubCommand::Empty, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"delete-effect", ""}, { Command::DeleteEffect, SubCommand::Empty, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"effect", ""}, { Command::Effect, SubCommand::Empty, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"image", ""}, { Command::Image, SubCommand::Empty, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"inputsource", "discover"}, { Command::InputSource, SubCommand::Discover, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"inputsource", "getProperties"}, { Command::InputSource, SubCommand::GetProperties, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"instance", "createInstance"}, { Command::Instance, SubCommand::CreateInstance, Authorization::Admin, NoListenerCmd::Yes} },
-			{ {"instance", "deleteInstance"}, { Command::Instance, SubCommand::DeleteInstance, Authorization::Admin, NoListenerCmd::Yes} },
-			{ {"instance", "saveName"}, { Command::Instance, SubCommand::SaveName, Authorization::Admin, NoListenerCmd::Yes} },
-			{ {"instance", "startInstance"}, { Command::Instance, SubCommand::StartInstance, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"instance", "stopInstance"}, { Command::Instance, SubCommand::StopInstance, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"instance", "switchTo"}, { Command::Instance, SubCommand::SwitchTo, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"ledcolors", "imagestream-start"}, { Command::LedColors, SubCommand::ImageStreamStart, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"ledcolors", "imagestream-stop"}, { Command::LedColors, SubCommand::ImageStreamStop, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"ledcolors", "ledstream-start"}, { Command::LedColors, SubCommand::LedStreamStart, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"ledcolors", "ledstream-stop"}, { Command::LedColors, SubCommand::LedStreamStop, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"leddevice", "addAuthorization"}, { Command::LedDevice, SubCommand::AddAuthorization, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"leddevice", "discover"}, { Command::LedDevice, SubCommand::Discover, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"leddevice", "getProperties"}, { Command::LedDevice, SubCommand::GetProperties, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"leddevice", "identify"}, { Command::LedDevice, SubCommand::Identify, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"logging", "start"}, { Command::Logging, SubCommand::Start, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"logging", "stop"}, { Command::Logging, SubCommand::Stop, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"logging", "update"}, { Command::Logging, SubCommand::Update, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"processing", ""}, { Command::Processing, SubCommand::Empty, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"sourceselect", ""}, { Command::SourceSelect, SubCommand::Empty, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"serverinfo", ""}, { Command::ServerInfo, SubCommand::Empty, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"serverinfo", "getInfo"}, { Command::ServerInfo, SubCommand::GetInfo, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"serverinfo", "subscribe"}, { Command::ServerInfo, SubCommand::Subscribe, Authorization::Yes, NoListenerCmd::No} },
-			{ {"serverinfo", "unsubscribe"}, { Command::ServerInfo, SubCommand::Unsubscribe, Authorization::Yes, NoListenerCmd::No} },
-			{ {"serverinfo", "getSubscriptions"}, { Command::ServerInfo, SubCommand::GetSubscriptions, Authorization::Yes, NoListenerCmd::No} },
-			{ {"serverinfo", "getSubscriptionCommands"}, { Command::ServerInfo, SubCommand::GetSubscriptionCommands, Authorization::No, NoListenerCmd::No} },
-			{ {"sysinfo", ""}, { Command::SysInfo, SubCommand::Empty, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"system", "restart"}, { Command::System, SubCommand::Restart, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"system", "resume"}, { Command::System, SubCommand::Resume, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"system", "suspend"}, { Command::System, SubCommand::Suspend, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"system", "toggleSuspend"}, { Command::System, SubCommand::ToggleSuspend, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"system", "idle"}, { Command::System, SubCommand::Idle, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"system", "toggleIdle"}, { Command::System, SubCommand::ToggleIdle, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"temperature", ""}, { Command::Temperature, SubCommand::Empty, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"transform", ""}, { Command::Transform, SubCommand::Empty, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"videomode", ""}, { Command::VideoMode, SubCommand::Empty, Authorization::Yes, NoListenerCmd::Yes} },
-			{ {"service", "discover"}, { Command::Service, SubCommand::Discover, Authorization::Yes, NoListenerCmd::Yes} }
+			{ {"adjustment", ""}, { Command::Adjustment, SubCommand::Empty, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"authorize", "adminRequired"}, { Command::Authorize, SubCommand::AdminRequired, Authorization::No, InstanceCmd::No, NoListenerCmd::Yes} },
+			{ {"authorize", "answerRequest"}, { Command::Authorize, SubCommand::AnswerRequest, Authorization::Admin, InstanceCmd::No, NoListenerCmd::No} },
+			{ {"authorize", "createToken"}, { Command::Authorize, SubCommand::CreateToken, Authorization::Admin, InstanceCmd::No, NoListenerCmd::No} },
+			{ {"authorize", "deleteToken"}, { Command::Authorize, SubCommand::DeleteToken, Authorization::Admin, InstanceCmd::No, NoListenerCmd::Yes} },
+			{ {"authorize", "getPendingTokenRequests"}, { Command::Authorize, SubCommand::GetPendingTokenRequests, Authorization::Admin, InstanceCmd::No, NoListenerCmd::No} },
+			{ {"authorize", "getTokenList"}, { Command::Authorize, SubCommand::GetTokenList, Authorization::Admin, InstanceCmd::No, NoListenerCmd::Yes} },
+			{ {"authorize", "login"}, { Command::Authorize, SubCommand::Login, Authorization::No, InstanceCmd::No, NoListenerCmd::No} },
+			{ {"authorize", "logout"}, { Command::Authorize, SubCommand::Logout, Authorization::No, InstanceCmd::No, NoListenerCmd::No} },
+			{ {"authorize", "newPassword"}, { Command::Authorize, SubCommand::NewPassword, Authorization::Admin, InstanceCmd::No, NoListenerCmd::Yes} },
+			{ {"authorize", "newPasswordRequired"}, { Command::Authorize, SubCommand::NewPasswordRequired, Authorization::No, InstanceCmd::No, NoListenerCmd::Yes} },
+			{ {"authorize", "renameToken"}, { Command::Authorize, SubCommand::RenameToken, Authorization::Admin, InstanceCmd::No, NoListenerCmd::Yes} },
+			{ {"authorize", "requestToken"}, { Command::Authorize, SubCommand::RequestToken, Authorization::No, InstanceCmd::No, NoListenerCmd::Yes} },
+			{ {"authorize", "tokenRequired"}, { Command::Authorize, SubCommand::TokenRequired, Authorization::No, InstanceCmd::No, NoListenerCmd::Yes} },
+			{ {"clear", ""}, { Command::Clear, SubCommand::Empty, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"clearall", ""}, { Command::ClearAll, SubCommand::Empty, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"color", ""}, { Command::Color, SubCommand::Empty, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"componentstate", ""}, { Command::ComponentState, SubCommand::Empty, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"config", "getconfig"}, { Command::Config, SubCommand::GetConfig, Authorization::Admin, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"config", "getschema"}, { Command::Config, SubCommand::GetSchema, Authorization::Admin, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"config", "reload"}, { Command::Config, SubCommand::Reload, Authorization::Admin, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"config", "restoreconfig"}, { Command::Config, SubCommand::RestoreConfig, Authorization::Admin, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"config", "setconfig"}, { Command::Config, SubCommand::SetConfig, Authorization::Admin, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"correction", ""}, { Command::Correction, SubCommand::Empty, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"create-effect", ""}, { Command::CreateEffect, SubCommand::Empty, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"delete-effect", ""}, { Command::DeleteEffect, SubCommand::Empty, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"effect", ""}, { Command::Effect, SubCommand::Empty, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"image", ""}, { Command::Image, SubCommand::Empty, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"inputsource", "discover"}, { Command::InputSource, SubCommand::Discover, Authorization::Yes, InstanceCmd::No, NoListenerCmd::Yes} },
+			{ {"inputsource", "getProperties"}, { Command::InputSource, SubCommand::GetProperties, Authorization::Yes, InstanceCmd::No, NoListenerCmd::Yes} },
+			{ {"instance", "createInstance"}, { Command::Instance, SubCommand::CreateInstance, Authorization::Admin, InstanceCmd::No, NoListenerCmd::Yes} },
+			{ {"instance", "deleteInstance"}, { Command::Instance, SubCommand::DeleteInstance, Authorization::Admin, InstanceCmd::No, NoListenerCmd::Yes} },
+			{ {"instance", "saveName"}, { Command::Instance, SubCommand::SaveName, Authorization::Admin, InstanceCmd::No, NoListenerCmd::Yes} },
+			{ {"instance", "startInstance"}, { Command::Instance, SubCommand::StartInstance, Authorization::Yes, InstanceCmd::No, NoListenerCmd::Yes} },
+			{ {"instance", "stopInstance"}, { Command::Instance, SubCommand::StopInstance, Authorization::Yes, InstanceCmd::No, NoListenerCmd::Yes} },
+			{ {"instance", "switchTo"}, { Command::Instance, SubCommand::SwitchTo, Authorization::Yes, InstanceCmd::No, NoListenerCmd::Yes} },
+			{ {"ledcolors", "imagestream-start"}, { Command::LedColors, SubCommand::ImageStreamStart, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"ledcolors", "imagestream-stop"}, { Command::LedColors, SubCommand::ImageStreamStop, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"ledcolors", "ledstream-start"}, { Command::LedColors, SubCommand::LedStreamStart, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"ledcolors", "ledstream-stop"}, { Command::LedColors, SubCommand::LedStreamStop, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"leddevice", "addAuthorization"}, { Command::LedDevice, SubCommand::AddAuthorization, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"leddevice", "discover"}, { Command::LedDevice, SubCommand::Discover, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"leddevice", "getProperties"}, { Command::LedDevice, SubCommand::GetProperties, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"leddevice", "identify"}, { Command::LedDevice, SubCommand::Identify, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"logging", "start"}, { Command::Logging, SubCommand::Start, Authorization::Yes, InstanceCmd::No, NoListenerCmd::Yes} },
+			{ {"logging", "stop"}, { Command::Logging, SubCommand::Stop, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"logging", "update"}, { Command::Logging, SubCommand::Update, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"processing", ""}, { Command::Processing, SubCommand::Empty, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"serverinfo", ""}, { Command::ServerInfo, SubCommand::Empty, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"serverinfo", "getInfo"}, { Command::ServerInfo, SubCommand::GetInfo, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"serverinfo", "subscribe"}, { Command::ServerInfo, SubCommand::Subscribe, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::No} },
+			{ {"serverinfo", "unsubscribe"}, { Command::ServerInfo, SubCommand::Unsubscribe, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::No} },
+			{ {"serverinfo", "getSubscriptions"}, { Command::ServerInfo, SubCommand::GetSubscriptions, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::No} },
+			{ {"serverinfo", "getSubscriptionCommands"}, { Command::ServerInfo, SubCommand::GetSubscriptionCommands, Authorization::No, InstanceCmd::No, NoListenerCmd::No} },
+			{ {"service", "discover"}, { Command::Service, SubCommand::Discover, Authorization::Yes, InstanceCmd::No, NoListenerCmd::Yes} },
+			{ {"sourceselect", ""}, { Command::SourceSelect, SubCommand::Empty, Authorization::Yes, InstanceCmd::No, NoListenerCmd::Yes} },
+			{ {"sysinfo", ""}, { Command::SysInfo, SubCommand::Empty, Authorization::Yes, InstanceCmd::No, NoListenerCmd::Yes} },
+			{ {"system", "restart"}, { Command::System, SubCommand::Restart, Authorization::Yes, InstanceCmd::No, NoListenerCmd::Yes} },
+			{ {"system", "resume"}, { Command::System, SubCommand::Resume, Authorization::Yes, InstanceCmd::No, NoListenerCmd::Yes} },
+			{ {"system", "suspend"}, { Command::System, SubCommand::Suspend, Authorization::Yes, InstanceCmd::No, NoListenerCmd::Yes} },
+			{ {"system", "toggleSuspend"}, { Command::System, SubCommand::ToggleSuspend, Authorization::Yes, InstanceCmd::No, NoListenerCmd::Yes} },
+			{ {"system", "idle"}, { Command::System, SubCommand::Idle, Authorization::Yes, InstanceCmd::No, NoListenerCmd::Yes} },
+			{ {"system", "toggleIdle"}, { Command::System, SubCommand::ToggleIdle, Authorization::Yes, InstanceCmd::No, NoListenerCmd::Yes} },
+			{ {"temperature", ""}, { Command::Temperature, SubCommand::Empty, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"transform", ""}, { Command::Transform, SubCommand::Empty, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"videomode", ""}, { Command::VideoMode, SubCommand::Empty, Authorization::Yes, InstanceCmd::No, NoListenerCmd::Yes} }
 		};
 		return commandLookup;
 	}

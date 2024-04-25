@@ -1,32 +1,19 @@
-// proj incl
 #include <api/JsonCallbacks.h>
 #include <api/JsonInfo.h>
 #include <api/JsonApiSubscription.h>
 
-// hyperion
 #include <hyperion/Hyperion.h>
-
-// HyperionIManager
 #include <hyperion/HyperionIManager.h>
-// components
-
+#include <events/EventHandler.h>
 #include <hyperion/ComponentRegister.h>
-// priorityMuxer
-
 #include <hyperion/PriorityMuxer.h>
-
-// utils
 #include <utils/ColorSys.h>
+#include <hyperion/ImageProcessor.h>
 
-// qt
 #include <QDateTime>
 #include <QVariant>
 #include <QImage>
 #include <QBuffer>
-
-// Image to led map helper
-
-#include <hyperion/ImageProcessor.h>
 
 using namespace hyperion;
 
@@ -56,6 +43,9 @@ bool JsonCallbacks::subscribe(const Subscription::Type cmd)
 		connect(_hyperion, &Hyperion::effectListUpdated, this, &JsonCallbacks::handleEffectListChange);
 	break;
 #endif
+	case Subscription::EventUpdate:
+		connect(EventHandler::getInstance().data(), &EventHandler::signalEvent, this, &JsonCallbacks::handleEventUpdate);
+	break;
 	case Subscription::ImageToLedMappingUpdate:
 		connect(_hyperion, &Hyperion::imageToLedsMappingChanged, this, &JsonCallbacks::handleImageToLedsMappingChange);
 	break;
@@ -155,6 +145,9 @@ bool JsonCallbacks::unsubscribe(const Subscription::Type cmd)
 		disconnect(_hyperion, &Hyperion::effectListUpdated, this, &JsonCallbacks::handleEffectListChange);
 	break;
 #endif
+	case Subscription::EventUpdate:
+		disconnect(EventHandler::getInstance().data(), &EventHandler::signalEvent, this, &JsonCallbacks::handleEventUpdate);
+	break;
 	case Subscription::ImageToLedMappingUpdate:
 		disconnect(_hyperion, &Hyperion::imageToLedsMappingChanged, this, &JsonCallbacks::handleImageToLedsMappingChange);
 	break;
@@ -290,8 +283,12 @@ QStringList JsonCallbacks::getSubscribedCommands() const
 void JsonCallbacks::doCallback(Subscription::Type cmd, const QVariant& data)
 {
 	QJsonObject obj;
-	obj["instance"] = _hyperion->getInstanceIndex();
 	obj["command"] = Subscription::toString(cmd);
+
+	if (Subscription::isInstacneSpecific(cmd))
+	{
+		obj["instance"] = _hyperion->getInstanceIndex();
+	}
 
 	if (data.userType() == QMetaType::QJsonArray) {
 		obj["data"] = data.toJsonArray();
@@ -449,3 +446,13 @@ void JsonCallbacks::handleLogMessageUpdate(const Logger::T_LOG_MESSAGE &msg)
 
 	doCallback(Subscription::LogMsgUpdate, QVariant(result));
 }
+
+void JsonCallbacks::handleEventUpdate(const Event &event)
+{
+	QJsonObject result;
+
+	result["event"] = eventToString(event);
+
+	doCallback(Subscription::EventUpdate, QVariant(result));
+}
+

@@ -316,7 +316,7 @@ private:
 	///
 	/// Send a standard reply indicating success
 	///
-	void sendSuccessReply(const QString &command = "", int tan = 0);
+	void sendSuccessReply(const QString &command = "", int tan = 0, InstanceCmd::Type isInstanceCmd = InstanceCmd::No);
 
 	///
 	/// Send a standard reply indicating success with data
@@ -326,7 +326,7 @@ private:
 	///
 	/// Send a standard reply indicating success with data
 	///
-	void sendSuccessDataReply(const QJsonValue &infoData, const QString &command = "", int tan = 0);
+	void sendSuccessDataReply(const QJsonValue &infoData, const QString &command = "", int tan = 0, InstanceCmd::Type isInstanceCmd = InstanceCmd::No);
 
 	///
 	/// Send a standard reply indicating success with data and error details
@@ -336,8 +336,7 @@ private:
 	///
 	/// Send a standard reply indicating success with data and error details
 	///
-	void sendSuccessDataReplyWithError(const QJsonValue &infoData, const QString &command = "", int tan = 0, const QStringList& errorDetails = {});
-
+	void sendSuccessDataReplyWithError(const QJsonValue &infoData, const QString &command = "", int tan = 0, const QStringList& errorDetails = {}, InstanceCmd::Type isInstanceCmd = InstanceCmd::No);
 
 	///
 	/// Send a message with data.
@@ -349,7 +348,7 @@ private:
 	/// Send a message with data
 	/// Note: To be used as a new message and not as a response to a previous request.	
 	///	
-	void sendNewRequest(const QJsonValue &infoData, const QString &command);
+	void sendNewRequest(const QJsonValue &infoData, const QString &command, InstanceCmd::Type isInstanceCmd = InstanceCmd::No);
 
 	///
 	/// Send an error message back to the client
@@ -372,7 +371,7 @@ private:
 	/// @param error String describing the error
 	/// @param errorDetails additional information detailing the error scenario	
 	///
-	void sendErrorReply(const QString &error, const QStringList& errorDetails = {}, const QString &command = "", int tan = 0);
+	void sendErrorReply(const QString &error, const QStringList& errorDetails = {}, const QString &command = "", int tan = 0, InstanceCmd::Type isInstanceCmd = InstanceCmd::No);
 
 	void sendNoAuthorization(const JsonApiCommand& cmd);
 

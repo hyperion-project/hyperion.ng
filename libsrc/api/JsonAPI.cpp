@@ -1312,45 +1312,51 @@ void JsonAPI::handleSystemCommand(const QJsonObject& /*message*/, const JsonApiC
 
 void JsonAPI::sendSuccessReply(const JsonApiCommand& cmd)
 {
-	sendSuccessReply(cmd.toString(), cmd.tan);
+	sendSuccessReply(cmd.toString(), cmd.tan, cmd.isInstanceCmd);
 }
 
-void JsonAPI::sendSuccessReply(const QString &command, int tan)
+void JsonAPI::sendSuccessReply(const QString &command, int tan, InstanceCmd::Type isInstanceCmd)
 {
-	// create reply
 	QJsonObject reply;
-	reply["instance"] = _hyperion->getInstanceIndex();
 	reply["success"] = true;
 	reply["command"] = command;
 	reply["tan"] = tan;
 
-	// send reply
+	if (isInstanceCmd == InstanceCmd::Yes)
+	{
+		reply["instance"] = _hyperion->getInstanceIndex();
+	}
+
 	emit callbackMessage(reply);
 }
 
 void JsonAPI::sendSuccessDataReply(const QJsonValue &infoData, const JsonApiCommand& cmd)
 {
-	sendSuccessDataReplyWithError(infoData, cmd.toString(), cmd.tan, {});
+	sendSuccessDataReplyWithError(infoData, cmd.toString(), cmd.tan, {}, cmd.isInstanceCmd);
 }
 
-void JsonAPI::sendSuccessDataReply(const QJsonValue &infoData, const QString &command, int tan)
+void JsonAPI::sendSuccessDataReply(const QJsonValue &infoData, const QString &command, int tan, InstanceCmd::Type isInstanceCmd)
 {
-	sendSuccessDataReplyWithError(infoData, command, tan, {});
+	sendSuccessDataReplyWithError(infoData, command, tan, {}, isInstanceCmd);
 }
 
 void JsonAPI::sendSuccessDataReplyWithError(const QJsonValue &infoData, const JsonApiCommand& cmd, const QStringList& errorDetails)
 {
-	sendSuccessDataReplyWithError(infoData, cmd.toString(), cmd.tan, errorDetails);
+	sendSuccessDataReplyWithError(infoData, cmd.toString(), cmd.tan, errorDetails, cmd.isInstanceCmd);
 }
 
-void JsonAPI::sendSuccessDataReplyWithError(const QJsonValue &infoData, const QString &command, int tan, const QStringList& errorDetails)
+void JsonAPI::sendSuccessDataReplyWithError(const QJsonValue &infoData, const QString &command, int tan, const QStringList& errorDetails,  InstanceCmd::Type isInstanceCmd)
 {
 	QJsonObject reply;
-	reply["instance"] = _hyperion->getInstanceIndex();
 	reply["success"] = true;
-
 	reply["command"] = command;
 	reply["tan"] = tan;
+
+	if (isInstanceCmd == InstanceCmd::Yes)
+	{
+		reply["instance"] = _hyperion->getInstanceIndex();
+	}
+
 	reply["info"] = infoData;
 
 	if (!errorDetails.isEmpty())
@@ -1369,13 +1375,19 @@ void JsonAPI::sendSuccessDataReplyWithError(const QJsonValue &infoData, const QS
 
 void JsonAPI::sendNewRequest(const QJsonValue &infoData, const JsonApiCommand& cmd)
 {
-	sendSuccessDataReplyWithError(infoData, cmd.toString());
+	sendSuccessDataReplyWithError(infoData, cmd.toString(), cmd.isInstanceCmd);
 }
 
-void JsonAPI::sendNewRequest(const QJsonValue &infoData, const QString &command)
+void JsonAPI::sendNewRequest(const QJsonValue &infoData, const QString &command, InstanceCmd::Type isInstanceCmd)
 {
 	QJsonObject request;
 	request["command"] = command;
+
+	if (isInstanceCmd == InstanceCmd::Yes)
+	{
+		request["instance"] = _hyperion->getInstanceIndex();
+	}
+
 	request["info"] = infoData;
 
 	emit callbackMessage(request);
@@ -1383,23 +1395,25 @@ void JsonAPI::sendNewRequest(const QJsonValue &infoData, const QString &command)
 
 void JsonAPI::sendErrorReply(const QString &error, const JsonApiCommand& cmd)
 {
-	sendErrorReply(error, {}, cmd.toString(), cmd.tan);
+	sendErrorReply(error, {}, cmd.toString(), cmd.tan, cmd.isInstanceCmd);
 }
 
 void JsonAPI::sendErrorReply(const QString &error, const QStringList& errorDetails, const JsonApiCommand& cmd)
 {
-	sendErrorReply(error, errorDetails, cmd.toString(), cmd.tan);
+	sendErrorReply(error, errorDetails, cmd.toString(), cmd.tan, cmd.isInstanceCmd);
 }
 
-void JsonAPI::sendErrorReply(const QString &error, const QStringList& errorDetails, const QString &command, int tan)
+void JsonAPI::sendErrorReply(const QString &error, const QStringList& errorDetails, const QString &command, int tan, InstanceCmd::Type isInstanceCmd)
 {
-	// create reply
 	QJsonObject reply;
-	reply["instance"] = _hyperion->getInstanceIndex();
 	reply["success"] = false;
-
 	reply["command"] = command;
 	reply["tan"] = tan;
+
+	if (isInstanceCmd == InstanceCmd::Yes)
+	{
+		reply["instance"] = _hyperion->getInstanceIndex();
+	}
 
 	reply["error"] = error;
 	if (!errorDetails.isEmpty())

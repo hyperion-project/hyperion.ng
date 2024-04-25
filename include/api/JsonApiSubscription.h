@@ -16,6 +16,7 @@ public:
 #if defined(ENABLE_EFFECTENGINE)
 		EffectsUpdate,
 #endif
+		EventUpdate,
 		ImageToLedMappingUpdate,
 		ImageUpdate,
 		InstanceUpdate,
@@ -35,6 +36,7 @@ public:
 #if defined(ENABLE_EFFECTENGINE)
 		case EffectsUpdate: return "effects-update";
 #endif
+		case EventUpdate: return "event-update";
 		case ImageToLedMappingUpdate: return "imageToLedMapping-update";
 		case ImageUpdate: return "image-update";
 		case InstanceUpdate: return "instance-update";
@@ -46,6 +48,30 @@ public:
 		case TokenUpdate: return "token-update";
 		case VideomodeUpdate: return "videomode-update";
 		default: return "unknown";
+		}
+	}
+
+	static bool isInstacneSpecific(Type type) {
+		switch (type) {
+		case AdjustmentUpdate:
+		case ComponentsUpdate:
+#if defined(ENABLE_EFFECTENGINE)
+		case EffectsUpdate:
+#endif
+		case ImageToLedMappingUpdate:
+		case ImageUpdate:
+		case LedColorsUpdate:
+		case LedsUpdate:
+		case PrioritiesUpdate:
+		case SettingsUpdate:
+		return true;
+		case EventUpdate:
+		case InstanceUpdate:
+		case LogMsgUpdate:
+		case TokenUpdate:
+		case VideomodeUpdate:
+		default:
+		return false;
 		}
 	}
 };
@@ -86,6 +112,7 @@ public:
 #if defined(ENABLE_EFFECTENGINE)
 			{ {"effects-update"}, { Subscription::EffectsUpdate, true} },
 #endif
+			{ {"event-update"}, { Subscription::EventUpdate, true} },
 			{ {"imageToLedMapping-update"}, { Subscription::ImageToLedMappingUpdate, true} },
 			{ {"image-update"}, { Subscription::ImageUpdate, false} },
 			{ {"instance-update"}, { Subscription::InstanceUpdate, true} },

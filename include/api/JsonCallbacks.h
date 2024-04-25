@@ -2,22 +2,17 @@
 
 #include "api/JsonApiSubscription.h"
 #include <api/API.h>
+#include <events/EventEnum.h>
 
 // qt incl
 #include <QObject>
 #include <QJsonObject>
 #include <QSet>
 
-// components def
 #include <utils/Components.h>
-
-// videModes
 #include <utils/VideoMode.h>
-// settings
 #include <utils/settings.h>
-// AuthManager
 #include <hyperion/AuthManager.h>
-
 #include <hyperion/PriorityMuxer.h>
 
 class Hyperion;
@@ -176,6 +171,12 @@ private slots:
 	/// @brief Process and push new log messages from logger (if enabled)
 	///
 	void handleLogMessageUpdate(const Logger::T_LOG_MESSAGE &);
+
+	///
+	/// @brief Is called whenever an event is triggert
+	/// @param image  The current event
+	///
+	void handleEventUpdate(const Event &event);
 
 private:
 
