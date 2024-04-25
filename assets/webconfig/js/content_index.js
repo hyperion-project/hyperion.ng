@@ -190,21 +190,12 @@ $(document).ready(function () {
     }
   });
 
-  $(window.hyperion).on("cmd-authorize-adminRequired", function (event) {
-    //Check if a admin login is required.
-    //If yes: check if default pw is set. If no: go ahead to get server config and render page
-    if (event.response.info.adminRequired === true)
-      requestRequiresDefaultPasswortChange();
-    else
-      requestServerConfigSchema();
-  });
-
   $(window.hyperion).on("error", function (event) {
     //If we are getting an error "No Authorization" back with a set loginToken we will forward to new Login (Token is expired.
     //e.g.: hyperiond was started new in the meantime)
     if (event.reason == "No Authorization" && getStorage("loginToken")) {
       removeStorage("loginToken");
-      requestRequiresAdminAuth();
+      requestRequiresDefaultPasswortChange();
     }
     else if (event.reason == "Selected Hyperion instance isn't running") {
       //Switch to default instance
@@ -215,7 +206,7 @@ $(document).ready(function () {
   });
 
   $(window.hyperion).on("open", function (event) {
-    requestRequiresAdminAuth();
+    requestRequiresDefaultPasswortChange();
   });
 
   $(window.hyperion).on("ready", function (event) {
