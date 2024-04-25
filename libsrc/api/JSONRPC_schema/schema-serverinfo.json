@@ -12,7 +12,9 @@
 		  "enum": ["getInfo", "subscribe", "unsubscribe", "getSubscriptions", "getSubscriptionCommands"]
 		},
 		"instance" : {
-			"type" : "integer"
+			"type" : "integer",
+			"minimum": 0,
+			"maximum": 255
 		},
 		"data": {
 		  "type": ["null", "array"],

@@ -7,9 +7,6 @@
 			"required" : true,
 			"enum" : ["logging"]
 		},
-		"instance" : {
-			"type" : "integer"
-		},
 		"tan" : {
 			"type" : "integer"
 		},

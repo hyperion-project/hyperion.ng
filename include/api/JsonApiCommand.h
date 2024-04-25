@@ -119,8 +119,7 @@ public:
 		ToggleIdle,
 		ToggleSuspend,
 		TokenRequired,
-		Unsubscribe,
-		Update
+		Unsubscribe
 	};
 
 	static QString toString(Type type) {
@@ -171,7 +170,6 @@ public:
 		case ToggleSuspend: return "toggleSuspend";
 		case TokenRequired: return "tokenRequired";
 		case Unsubscribe: return "unsubscribe";
-		case Update: return "update";
 		default: return "unknown";
 		}
 	}
@@ -301,8 +299,7 @@ public:
 			{ {"leddevice", "getProperties"}, { Command::LedDevice, SubCommand::GetProperties, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
 			{ {"leddevice", "identify"}, { Command::LedDevice, SubCommand::Identify, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
 			{ {"logging", "start"}, { Command::Logging, SubCommand::Start, Authorization::Yes, InstanceCmd::No, NoListenerCmd::Yes} },
-			{ {"logging", "stop"}, { Command::Logging, SubCommand::Stop, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
-			{ {"logging", "update"}, { Command::Logging, SubCommand::Update, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"logging", "stop"}, { Command::Logging, SubCommand::Stop, Authorization::Yes, InstanceCmd::No, NoListenerCmd::Yes} },
 			{ {"processing", ""}, { Command::Processing, SubCommand::Empty, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
 			{ {"serverinfo", ""}, { Command::ServerInfo, SubCommand::Empty, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
 			{ {"serverinfo", "getInfo"}, { Command::ServerInfo, SubCommand::GetInfo, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },

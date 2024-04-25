@@ -67,8 +67,7 @@ _http/s Support_
 | leddevice      | getProperties           | Yes           | Yes              | Yes            |
 | leddevice      | identify                | Yes           | Yes              | Yes            |
 | logging        | start                   | Yes           | No               | Yes            |
-| logging        | stop                    | Yes           | Yes              | Yes            |
-| logging        | update                  | Yes           | Yes              | Yes            |
+| logging        | stop                    | Yes           | No               | Yes            |
 | processing     | -                       | Yes           | Yes              | Yes            |
 | serverinfo     | -                       | Yes           | Yes              | Yes            |
 | serverinfo     | getInfo                 | Yes           | Yes              | Yes            |

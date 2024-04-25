@@ -13,7 +13,9 @@
 			"enum" : ["getconfig","getschema","setconfig","restoreconfig","reload"]
 		},
 		"instance" : {
-			"type" : "integer"
+			"type" : "integer",
+			"minimum": 0,
+			"maximum": 255
 		},
 		"tan" : {
 			"type" : "integer"

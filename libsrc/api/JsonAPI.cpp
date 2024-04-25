@@ -233,7 +233,9 @@ void JsonAPI::handleMessage(const QString &messageString, const QString &httpAut
 		const quint8 instance = static_cast<quint8>(message.value("instance").toInt());
 		if (!setHyperionInstance(instance))
 		{
+			cmd.isInstanceCmd = InstanceCmd::No;
 			sendErrorReply(QString("Invalid or stopped instance: %1").arg(instance), cmd);
+			return;
 		}
 	}
 
