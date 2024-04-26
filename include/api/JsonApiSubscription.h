@@ -38,9 +38,9 @@ public:
 #endif
 		case EventUpdate: return "event-update";
 		case ImageToLedMappingUpdate: return "imageToLedMapping-update";
-		case ImageUpdate: return "image-update";
+		case ImageUpdate: return "ledcolors-imagestream-update";
 		case InstanceUpdate: return "instance-update";
-		case LedColorsUpdate: return "led-colors-update";
+		case LedColorsUpdate: return "ledcolors-ledstream-update";
 		case LedsUpdate: return "leds-update";
 		case LogMsgUpdate: return "logmsg-update";
 		case PrioritiesUpdate: return "priorities-update";
@@ -51,7 +51,7 @@ public:
 		}
 	}
 
-	static bool isInstacneSpecific(Type type) {
+	static bool isInstanceSpecific(Type type) {
 		switch (type) {
 		case AdjustmentUpdate:
 		case ComponentsUpdate:
@@ -114,9 +114,9 @@ public:
 #endif
 			{ {"event-update"}, { Subscription::EventUpdate, true} },
 			{ {"imageToLedMapping-update"}, { Subscription::ImageToLedMappingUpdate, true} },
-			{ {"image-update"}, { Subscription::ImageUpdate, false} },
+			{ {"ledcolors-imagestream-update"}, { Subscription::ImageUpdate, false} },
 			{ {"instance-update"}, { Subscription::InstanceUpdate, true} },
-			{ {"led-colors-update"}, { Subscription::LedColorsUpdate, true} },
+			{ {"ledcolors-ledstream-update"}, { Subscription::LedColorsUpdate, true} },
 			{ {"leds-update"}, { Subscription::LedsUpdate, false} },
 			{ {"logmsg-update"}, { Subscription::LogMsgUpdate, false} },
 			{ {"priorities-update"}, { Subscription::PrioritiesUpdate, true} },

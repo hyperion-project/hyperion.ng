@@ -285,7 +285,7 @@ void JsonCallbacks::doCallback(Subscription::Type cmd, const QVariant& data)
 	QJsonObject obj;
 	obj["command"] = Subscription::toString(cmd);
 
-	if (Subscription::isInstacneSpecific(cmd))
+	if (Subscription::isInstanceSpecific(cmd))
 	{
 		obj["instance"] = _hyperion->getInstanceIndex();
 	}
