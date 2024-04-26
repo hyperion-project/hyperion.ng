@@ -181,7 +181,7 @@ $(document).ready(function () {
   if (!window.loggingHandlerInstalled) {
     window.loggingHandlerInstalled = true;
 
-    $(window.hyperion).on("cmd-logging-update", function (event) {
+    $(window.hyperion).on("cmd-logmsg-update", function (event) {
 
       var messages = (event.response.data.messages);
 
