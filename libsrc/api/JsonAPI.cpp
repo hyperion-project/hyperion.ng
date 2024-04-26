@@ -89,6 +89,7 @@ void JsonAPI::initialize()
 
 	// setup auth interface
 	connect(this, &API::onPendingTokenRequest, this, &JsonAPI::issueNewPendingTokenRequest);
+	connect(this, &API::onTokenResponse, this, &JsonAPI::handleTokenResponse);
 
 	// listen for killed instances
 	connect(_instanceManager, &HyperionIManager::instanceStateChanged, this, &JsonAPI::handleInstanceStateChange);
