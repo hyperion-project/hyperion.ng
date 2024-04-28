@@ -144,7 +144,7 @@ void EventHandler::handleEvent(Event event)
 {
 	QObject *senderObj = QObject::sender();
 	QString senderObjectClass;
-	if (senderObj)
+	if (senderObj != nullptr)
 	{
 		senderObjectClass = senderObj->metaObject()->className();
 	} else
@@ -186,6 +186,10 @@ void EventHandler::handleEvent(Event event)
 	case Event::Restart:
 		emit signalEvent(Event::Restart);
 		Process::restartHyperion(11);
+		break;
+
+	case Event::Quit:
+		emit signalEvent(Event::Quit);
 		break;
 
 	default:
