@@ -8,13 +8,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking
 
+**JSON-API**
+- Align JSON subscription update elements. `ledcolors-imagestream-update, ledcolors-ledstream-update, logmsg-update` now return data via `data` and not `result
+
 ### Added
 
 - Support gaps on Matrix Layout (#1696)
 
+**JSON-API**
+- New subscription support for event updates, i.e. `Suspend, Resume, Idle, idleResume, Restart, Quit`.
+- Support direct instance addressing via individual requests (#809)
+- Support of `serverinfo` subcommands: `getInfo, subscribe, unsubscribe, getSubscriptions, getSubscriptionCommands`
+- [Overview](https://github.com/hyperion-project/hyperion.ng/blob/API_Auth/doc/development/JSON-API%20_Commands_Overview.md) of API commands and subscription updates 
+
 ### Changed
 
+- Fixed: Cross Site Scripting Vulnerability (CVE-2024-4174, CVE-2024-4175)
+- Fixed: hyperion-v4l2 taking screenshot failed (#1722)
+- Nanoleaf: Support new devices and do not restore ExtControl state
+- Workaround to address Web UI keeps forcing browser to download the html instead (#1692)
+- Fixed: Kodi Color Calibration, Refactor Wizards (#1674)
+- Fixed: Token Dialog not closing
+
+**JSON-API**
+- Refactored JSON-API to ensure consistent authorization behaviour across sessions and single requests with token authorization.
+- Provide additional error details with API responses, esp. on JSON parsing, validation or token errors.
+- Generate random TANs for every API request from the Hyperion UI
+- Fixed: Handling of IP4 addresses wrapped in IPv6 for external network connections- 
+
 ### Removed
+
+**JSON-API**
+- Removed ability to enable/disable local admin authorization. All admin commands require authorization, authorize-adminRequired` is always true.
+- Removed `session-updates` subscription
+- `serverinfo/subscribe` element will be deprecated and replaced by corresponding subcommand
 
 ## [2.0.16](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.16) - 2024-01
 

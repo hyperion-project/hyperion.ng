@@ -239,10 +239,10 @@ public slots:
 				  , const QJsonObject &args
 				  , int priority
 				  , int timeout = PriorityMuxer::ENDLESS
-								  , const QString &pythonScript = ""
-																  , const QString &origin="System"
-																						  , const QString &imageData = ""
-																													   );
+				  , const QString &pythonScript = ""
+				  , const QString &origin="System"
+				  , const QString &imageData = ""
+				);
 
 	/// Get the list of available effects
 	/// @return The list of available effects
