@@ -171,6 +171,7 @@ void JsonAPI::handleMessage(const QString &messageString, const QString &httpAut
 
 	if (_noListener)
 	{
+		setAuthorization(false);
 		if(cmd.isNolistenerCmd == NoListenerCmd::No)
 		{
 			sendErrorReply("Command not supported via single API calls using HTTP/S", cmd);
