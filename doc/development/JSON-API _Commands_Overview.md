@@ -102,21 +102,20 @@ _in "all"_
 **Yes** - Updates are subscribed using "all" as the command<br>
 **No** - Subscription is only triggered via JSON-API request
 
-| Subscription Command     | Instance specific  | in "all" |
-|:-------------------------|:-------------------|:---------|
-| adjustment-update        | Yes                | Yes      |
-| components-update        | Yes                | Yes      |
-| effects-update           | Yes                | Yes      |
-| event-update             | No                 | Yes      |
-| imageToLedMapping-update | Yes                | Yes      |
-| image-update             | Yes                | No       |
-| instance-update          | Yes                | Yes      |
-| led-colors-update        | Yes                | Yes      |
-| leds-update              | Yes                | No       |
-| logmsg-update            | No                 | No       |
-| priorities-update        | Yes                | Yes      |
-| settings-update          | Yes                | Yes      |
-| token-update             | No                 | Yes      |
-| videomode-update         | No                 | Yes      |
-
+| Subscription Command         | Instance specific | in "all" |
+|:-----------------------------|:------------------|:---------|
+| adjustment-update            | Yes               | Yes      |
+| components-update            | Yes               | Yes      |
+| effects-update               | Yes               | Yes      |
+| event-update                 | No                | Yes      |
+| imageToLedMapping-update     | Yes               | Yes      |
+| instance-update              | Yes               | Yes      |
+| ledcolors-imagestream-update | Yes               | No       |
+| ledcolors-ledstream-update   | Yes               | No       |
+| leds-update                  | Yes               | Yes      |
+| logmsg-update                | No                | No       |
+| priorities-update            | Yes               | Yes      |
+| settings-update              | Yes               | Yes      |
+| token-update                 | No                | Yes      |
+| videomode-update             | No                | Yes      |
 
