@@ -39,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 **JSON-API**
-- Removed ability to enable/disable local admin authorization. All admin commands require authorization, authorize-adminRequired` is always true.
+- Removed ability to enable/disable local admin authorization. All admin commands require authorization, i.e. `authorize-adminRequired` will always be `true`.
 - Removed `session-updates` subscription
 - `serverinfo/subscribe` element will be deprecated and replaced by corresponding subcommand
 
