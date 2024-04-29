@@ -1447,7 +1447,7 @@ void JsonAPI::sendErrorReply(const QString &error, const QStringList& errorDetai
 
 void JsonAPI::sendErrorReply(const QString &error, const QStringList& errorDetails, const QString &command, int tan, InstanceCmd::Type isInstanceCmd)
 {
-	QJsonObject reply {getBasicCommandReply(true, command, tan , isInstanceCmd)};
+	QJsonObject reply {getBasicCommandReply(false, command, tan , isInstanceCmd)};
 	reply["error"] = error;
 	if (!errorDetails.isEmpty())
 	{
