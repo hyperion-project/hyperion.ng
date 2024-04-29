@@ -1383,7 +1383,7 @@ QJsonObject JsonAPI::getBasicCommandReply(bool success, const QString &command, 
 	reply["command"] = command;
 	reply["tan"] = tan;
 
-	if (isInstanceCmd != InstanceCmd::No && !_noListener)
+	if (isInstanceCmd == InstanceCmd::Yes || ( isInstanceCmd == InstanceCmd::Multi && !_noListener))
 	{
 		reply["instance"] = _hyperion->getInstanceIndex();
 	}
