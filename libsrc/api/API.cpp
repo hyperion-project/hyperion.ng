@@ -181,7 +181,7 @@ bool API::setImage(ImageCmdData &data, hyperion::Components comp, QString &reply
 	else
 	{
 		// check consistency of the size of the received data
-		if (static_cast<qsizetype>(data.data.size()) != data.width * data.height * 3)
+		if (static_cast<size_t>(data.data.size()) != static_cast<size_t>(data.width) * static_cast<size_t>(data.height) * 3)
 		{
 			replyMsg = "Size of image data does not match with the width and height";
 			return false;
