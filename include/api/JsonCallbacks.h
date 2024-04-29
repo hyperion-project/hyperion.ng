@@ -194,6 +194,7 @@ private:
 
 	/// priority muxer instance
 	PriorityMuxer* _prioMuxer;
+
 	/// contains active subscriptions
 	QSet<Subscription::Type> _subscribedCommands;
 

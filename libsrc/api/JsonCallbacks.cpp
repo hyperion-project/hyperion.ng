@@ -229,7 +229,8 @@ QStringList JsonCallbacks::unsubscribe(const QJsonArray& subscriptions)
 
 void JsonCallbacks::resetSubscriptions()
 {
-	for (QSet<Subscription::Type>::const_iterator it = _subscribedCommands.constBegin(); it != _subscribedCommands.constEnd(); ++it)
+	const QSet<Subscription::Type> currentSubscriptions = _subscribedCommands;
+	for (QSet<Subscription::Type>::const_iterator it = currentSubscriptions.constBegin(); it != currentSubscriptions.constEnd(); ++it)
 	{
 		unsubscribe(*it);
 	}
