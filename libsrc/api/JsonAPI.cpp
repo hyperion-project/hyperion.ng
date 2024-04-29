@@ -230,18 +230,80 @@ void JsonAPI::handleMessage(const QString &messageString, const QString &httpAut
 		return;
 	}
 
-	if ( message.contains("instance"))
+	if (!message.contains("instance") || cmd.isInstanceCmd == InstanceCmd::No)
 	{
-		const quint8 instance = static_cast<quint8>(message.value("instance").toInt());
-		if (!setHyperionInstance(instance))
+		handleCommand(cmd, message);
+	}
+	else
+	{
+		const QJsonValue instanceElement = message.value("instance");
+
+		QList<quint8> runningInstanceIdxs = _instanceManager->getRunningInstanceIdx();
+
+		QList<quint8> intanceIdxList;
+		QStringList errorDetails;
+
+		QJsonArray instances;
+
+		if (instanceElement.isDouble())
+		{
+			instances.append(instanceElement);
+		} else if (instanceElement.isArray())
+		{
+			instances = instanceElement.toArray();
+		}
+
+		if (instances.contains("all"))
+		{
+			for (const auto& instanceIdx : runningInstanceIdxs)
+			{
+				intanceIdxList.append(instanceIdx);
+			}
+		}
+		else
+		{
+			for (const auto &instance : std::as_const(instances)) {
+
+				quint8 instanceIdx = static_cast<quint8>(instance.toInt());
+				if (instance.isDouble() && runningInstanceIdxs.contains(instanceIdx))
+				{
+					intanceIdxList.append(instanceIdx);
+				}
+				else
+				{
+					errorDetails.append("Not a running or valid instance: " + instance.toVariant().toString());
+				}
+			}
+		}
+
+		if (intanceIdxList.isEmpty() || !errorDetails.isEmpty() )
 		{
 			cmd.isInstanceCmd = InstanceCmd::No;
-			sendErrorReply(QString("Invalid or stopped instance: %1").arg(instance), cmd);
+			sendErrorReply("Invalid instance(s) given", errorDetails, cmd);
 			return;
 		}
+
+		quint8 currentInstanceIdx = getCurrentInstanceIndex();
+		if (intanceIdxList.size() > 1)
+		{
+			if (cmd.isInstanceCmd != InstanceCmd::Multi)
+			{
+				sendErrorReply("Command does not support multiple instances", cmd);
+				return;
+			}
+		}
+
+		for (const auto &instanceIdx : intanceIdxList)
+		{
+			if (setHyperionInstance(instanceIdx))
+			{
+				handleCommand(cmd, message);
+			}
+		}
+
+		setHyperionInstance(currentInstanceIdx);
 	}
 
-	handleCommand(cmd, message);
 }
 
 void JsonAPI::handleCommand(const JsonApiCommand& cmd, const QJsonObject &message)
@@ -1314,6 +1376,20 @@ void JsonAPI::handleSystemCommand(const QJsonObject& /*message*/, const JsonApiC
 	sendSuccessReply(cmd);
 }
 
+QJsonObject JsonAPI::getBasicCommandReply(bool success, const QString &command, int tan, InstanceCmd::Type isInstanceCmd) const
+{
+	QJsonObject reply;
+	reply["success"] = success;
+	reply["command"] = command;
+	reply["tan"] = tan;
+
+	if (isInstanceCmd != InstanceCmd::No && !_noListener)
+	{
+		reply["instance"] = _hyperion->getInstanceIndex();
+	}
+	return reply;
+}
+
 void JsonAPI::sendSuccessReply(const JsonApiCommand& cmd)
 {
 	sendSuccessReply(cmd.toString(), cmd.tan, cmd.isInstanceCmd);
@@ -1321,17 +1397,7 @@ void JsonAPI::sendSuccessReply(const JsonApiCommand& cmd)
 
 void JsonAPI::sendSuccessReply(const QString &command, int tan, InstanceCmd::Type isInstanceCmd)
 {
-	QJsonObject reply;
-	reply["success"] = true;
-	reply["command"] = command;
-	reply["tan"] = tan;
-
-	if (isInstanceCmd == InstanceCmd::Yes)
-	{
-		reply["instance"] = _hyperion->getInstanceIndex();
-	}
-
-	emit callbackMessage(reply);
+	emit callbackMessage(getBasicCommandReply(true, command, tan , isInstanceCmd));
 }
 
 void JsonAPI::sendSuccessDataReply(const QJsonValue &infoData, const JsonApiCommand& cmd)
@@ -1349,24 +1415,45 @@ void JsonAPI::sendSuccessDataReplyWithError(const QJsonValue &infoData, const Js
 	sendSuccessDataReplyWithError(infoData, cmd.toString(), cmd.tan, errorDetails, cmd.isInstanceCmd);
 }
 
-void JsonAPI::sendSuccessDataReplyWithError(const QJsonValue &infoData, const QString &command, int tan, const QStringList& errorDetails,  InstanceCmd::Type isInstanceCmd)
+void JsonAPI::sendSuccessDataReplyWithError(const QJsonValue &infoData, const QString &command, int tan, const QStringList& errorDetails, InstanceCmd::Type isInstanceCmd)
 {
-	QJsonObject reply;
-	reply["success"] = true;
-	reply["command"] = command;
-	reply["tan"] = tan;
-
-	if (isInstanceCmd == InstanceCmd::Yes)
-	{
-		reply["instance"] = _hyperion->getInstanceIndex();
-	}
-
+	QJsonObject reply {getBasicCommandReply(true, command, tan , isInstanceCmd)};
 	reply["info"] = infoData;
 
 	if (!errorDetails.isEmpty())
 	{
 		QJsonArray errorsArray;
-		for (const QString& errorString : errorDetails) {
+		for (const QString& errorString : errorDetails)
+		{
+			QJsonObject errorObject;
+			errorObject["description"] = errorString;
+			errorsArray.append(errorObject);
+		}
+		reply["errorData"] = errorsArray;
+	}
+
+	emit callbackMessage(reply);
+}
+
+void JsonAPI::sendErrorReply(const QString &error, const JsonApiCommand& cmd)
+{
+	sendErrorReply(error, {}, cmd.toString(), cmd.tan, cmd.isInstanceCmd);
+}
+
+void JsonAPI::sendErrorReply(const QString &error, const QStringList& errorDetails, const JsonApiCommand& cmd)
+{
+	sendErrorReply(error, errorDetails, cmd.toString(), cmd.tan, cmd.isInstanceCmd);
+}
+
+void JsonAPI::sendErrorReply(const QString &error, const QStringList& errorDetails, const QString &command, int tan, InstanceCmd::Type isInstanceCmd)
+{
+	QJsonObject reply {getBasicCommandReply(true, command, tan , isInstanceCmd)};
+	reply["error"] = error;
+	if (!errorDetails.isEmpty())
+	{
+		QJsonArray errorsArray;
+		for (const QString& errorString : errorDetails)
+		{
 			QJsonObject errorObject;
 			errorObject["description"] = errorString;
 			errorsArray.append(errorObject);
@@ -1387,7 +1474,7 @@ void JsonAPI::sendNewRequest(const QJsonValue &infoData, const QString &command,
 	QJsonObject request;
 	request["command"] = command;
 
-	if (isInstanceCmd == InstanceCmd::Yes)
+	if (isInstanceCmd != InstanceCmd::No)
 	{
 		request["instance"] = _hyperion->getInstanceIndex();
 	}
@@ -1397,48 +1484,10 @@ void JsonAPI::sendNewRequest(const QJsonValue &infoData, const QString &command,
 	emit callbackMessage(request);
 }
 
-void JsonAPI::sendErrorReply(const QString &error, const JsonApiCommand& cmd)
-{
-	sendErrorReply(error, {}, cmd.toString(), cmd.tan, cmd.isInstanceCmd);
-}
-
-void JsonAPI::sendErrorReply(const QString &error, const QStringList& errorDetails, const JsonApiCommand& cmd)
-{
-	sendErrorReply(error, errorDetails, cmd.toString(), cmd.tan, cmd.isInstanceCmd);
-}
-
-void JsonAPI::sendErrorReply(const QString &error, const QStringList& errorDetails, const QString &command, int tan, InstanceCmd::Type isInstanceCmd)
-{
-	QJsonObject reply;
-	reply["success"] = false;
-	reply["command"] = command;
-	reply["tan"] = tan;
-
-	if (isInstanceCmd == InstanceCmd::Yes)
-	{
-		reply["instance"] = _hyperion->getInstanceIndex();
-	}
-
-	reply["error"] = error;
-	if (!errorDetails.isEmpty())
-	{
-		QJsonArray errorsArray;
-		for (const QString& errorString : errorDetails) {
-			QJsonObject errorObject;
-			errorObject["description"] = errorString;
-			errorsArray.append(errorObject);
-		}
-		reply["errorData"] = errorsArray;
-	}
-
-	emit callbackMessage(reply);
-}
-
 void JsonAPI::sendNoAuthorization(const JsonApiCommand& cmd)
 {
 	sendErrorReply(NO_AUTHORIZATION, cmd);
 }
-
 
 void JsonAPI::handleInstanceStateChange(InstanceState state, quint8 instance, const QString& /*name */)
 {

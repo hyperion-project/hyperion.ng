@@ -55,9 +55,15 @@ public slots:
 	Hyperion* getHyperionInstance(quint8 instance = 0);
 
 	///
-	/// @brief Get instance data of all instaces in db + running state
+	/// @brief Get instance data of all instances in db + running state
 	///
 	QVector<QVariantMap> getInstanceData() const;
+
+
+	///
+	/// @brief Get all instance indicies of running instances
+	///
+	QList<quint8> getRunningInstanceIdx() const;
 
 	///
 	/// @brief Start a Hyperion instance

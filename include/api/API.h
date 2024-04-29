@@ -177,6 +177,12 @@ protected:
 	QVector<QVariantMap> getAllInstanceData() const;
 
 	///
+	/// @brief Get the current  instances index
+	/// @return The instance index set
+	///
+	quint8 getCurrentInstanceIndex() const { return _currInstanceIndex; }
+
+	///
 	/// @brief Start instance
 	/// @param index  The instance index
 	/// @param tan    The tan

@@ -308,6 +308,8 @@ private:
 	void handleLedDeviceIdentify(LedDevice& ledDevice, const QJsonObject& message, const JsonApiCommand& cmd);
 	void handleLedDeviceAddAuthorization(LedDevice& ledDevice, const QJsonObject& message, const JsonApiCommand& cmd);
 
+	QJsonObject getBasicCommandReply(bool success, const QString &command, int tan, InstanceCmd::Type isInstanceCmd) const;
+
 	///
 	/// Send a standard reply indicating success
 	///

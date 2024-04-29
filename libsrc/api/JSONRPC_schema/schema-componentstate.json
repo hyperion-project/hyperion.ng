@@ -10,9 +10,10 @@
 			"enum" : ["componentstate"]
 		},
 		"instance" : {
-			"type" : "integer",
-			"minimum": 0,
-			"maximum": 255
+			"type": "array",
+			"required": false,
+			"items" : {},
+			"minItems": 1
 		},
 		"tan" : {
 			"type" : "integer"
