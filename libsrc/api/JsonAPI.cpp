@@ -236,74 +236,74 @@ void JsonAPI::handleMessage(const QString &messageString, const QString &httpAut
 	}
 	else
 	{
-		const QJsonValue instanceElement = message.value("instance");
+		handleInstanceCommand(cmd, message);
+	}
+}
 
-		QList<quint8> runningInstanceIdxs = _instanceManager->getRunningInstanceIdx();
-
-		QList<quint8> intanceIdxList;
-		QStringList errorDetails;
-
-		QJsonArray instances;
-
-		if (instanceElement.isDouble())
-		{
-			instances.append(instanceElement);
-		} else if (instanceElement.isArray())
-		{
-			instances = instanceElement.toArray();
-		}
-
-		if (instances.contains("all"))
-		{
-			for (const auto& instanceIdx : runningInstanceIdxs)
-			{
-				intanceIdxList.append(instanceIdx);
-			}
-		}
-		else
-		{
-			for (const auto &instance : std::as_const(instances)) {
-
-				quint8 instanceIdx = static_cast<quint8>(instance.toInt());
-				if (instance.isDouble() && runningInstanceIdxs.contains(instanceIdx))
-				{
-					intanceIdxList.append(instanceIdx);
-				}
-				else
-				{
-					errorDetails.append("Not a running or valid instance: " + instance.toVariant().toString());
-				}
-			}
-		}
-
-		if (intanceIdxList.isEmpty() || !errorDetails.isEmpty() )
-		{
-			cmd.isInstanceCmd = InstanceCmd::No;
-			sendErrorReply("Invalid instance(s) given", errorDetails, cmd);
-			return;
-		}
-
-		quint8 currentInstanceIdx = getCurrentInstanceIndex();
-		if (intanceIdxList.size() > 1)
-		{
-			if (cmd.isInstanceCmd != InstanceCmd::Multi)
-			{
-				sendErrorReply("Command does not support multiple instances", cmd);
-				return;
-			}
-		}
-
-		for (const auto &instanceIdx : intanceIdxList)
-		{
-			if (setHyperionInstance(instanceIdx))
-			{
-				handleCommand(cmd, message);
-			}
-		}
-
-		setHyperionInstance(currentInstanceIdx);
+void JsonAPI::handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject &message)
+{
+	const QJsonValue instanceElement = message.value("instance");
+	QJsonArray instances;
+	if (instanceElement.isDouble())
+	{
+		instances.append(instanceElement);
+	} else if (instanceElement.isArray())
+	{
+		instances = instanceElement.toArray();
 	}
 
+	QList<quint8> runningInstanceIdxs = _instanceManager->getRunningInstanceIdx();
+
+	QList<quint8> instanceIdxList;
+	QStringList errorDetails;
+	if (instances.contains("all"))
+	{
+		for (const auto& instanceIdx : runningInstanceIdxs)
+		{
+			instanceIdxList.append(instanceIdx);
+		}
+	}
+	else
+	{
+		for (const auto &instance : std::as_const(instances)) {
+
+			quint8 instanceIdx = static_cast<quint8>(instance.toInt());
+			if (instance.isDouble() && runningInstanceIdxs.contains(instanceIdx))
+			{
+				instanceIdxList.append(instanceIdx);
+			}
+			else
+			{
+				errorDetails.append("Not a running or valid instance: " + instance.toVariant().toString());
+			}
+		}
+	}
+
+	if (instanceIdxList.isEmpty() || !errorDetails.isEmpty() )
+	{
+		sendErrorReply("Invalid instance(s) given", errorDetails, cmd);
+		return;
+	}
+
+	quint8 currentInstanceIdx = getCurrentInstanceIndex();
+	if (instanceIdxList.size() > 1)
+	{
+		if (cmd.isInstanceCmd != InstanceCmd::Multi)
+		{
+			sendErrorReply("Command does not support multiple instances", cmd);
+			return;
+		}
+	}
+
+	for (const auto &instanceIdx : instanceIdxList)
+	{
+		if (setHyperionInstance(instanceIdx))
+		{
+			handleCommand(cmd, message);
+		}
+	}
+
+	setHyperionInstance(currentInstanceIdx);
 }
 
 void JsonAPI::handleCommand(const JsonApiCommand& cmd, const QJsonObject &message)

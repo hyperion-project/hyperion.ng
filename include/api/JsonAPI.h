@@ -97,6 +97,7 @@ signals:
 private:
 
 	void handleCommand(const JsonApiCommand& cmd, const QJsonObject &message);
+	void handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject &message);
 
 	///
 	/// @brief Handle the switches of Hyperion instances
