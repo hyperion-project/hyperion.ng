@@ -21,10 +21,6 @@ target_link_libraries(${PROJECT_NAME}
 	Qt${QT_VERSION_MAJOR}::Widgets
 )
 
-if(ENABLE_AMLOGIC)
-	target_link_libraries(${PROJECT_NAME} pcre16 dl z)
-endif()
-
 if(ENABLE_MDNS)
 	target_link_libraries(${PROJECT_NAME} mdns)
 else()
