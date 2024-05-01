@@ -226,7 +226,7 @@ jobs:
           echo '::endgroup::'
 
       - name: 💾 Artifact download
-        uses: actions/download-artifact@v4.1.4
+        uses: actions/download-artifact@v4.1.7
         with:
           pattern: artifact-*
           path: all-artifacts
