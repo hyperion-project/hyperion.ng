@@ -231,7 +231,7 @@ int main(int argc, char** argv)
 
 			ScreenshotHandler handler("screenshot.png", signalDetectionOffset);
 			QObject::connect(&grabber, SIGNAL(newFrame(Image<ColorRgb>)), &handler, SLOT(receiveImage(Image<ColorRgb>)));
-            grabber.prepare();
+			grabber.prepare();
 			grabber.start();
 			QCoreApplication::exec();
 			grabber.stop();
