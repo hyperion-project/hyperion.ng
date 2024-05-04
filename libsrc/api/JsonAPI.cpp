@@ -838,7 +838,6 @@ void JsonAPI::handleLedColorsCommand(const QJsonObject& /*message*/, const JsonA
 	switch (cmd.subCommand) {
 	case SubCommand::LedStreamStart:
 		_jsonCB->subscribe( Subscription::LedColorsUpdate);
-		// TODO: Check if to be moved to CB
 		// push once
 		_hyperion->update();
 		sendSuccessReply(cmd);
