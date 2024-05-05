@@ -81,7 +81,7 @@ V4L2Grabber::V4L2Grabber()
 	, _noSignalThresholdColor(ColorRgb{0,0,0})
 	, _standbyActivated(false)
 	, _signalDetectionEnabled(true)
-	, _noSignalDetected(true)
+	, _signalDetected(false)
 	, _noSignalCounter(0)
 	, _brightness(0)
 	, _contrast(0)
@@ -1060,7 +1060,7 @@ void V4L2Grabber::newThreadFrame(Image<ColorRgb> image)
 		{
 			if (_noSignalCounter >= _noSignalCounterThreshold)
 			{
-				_noSignalDetected = false;
+				_signalDetected = true;
 				Info(_log, "Signal detected");
 			}
 
@@ -1073,7 +1073,7 @@ void V4L2Grabber::newThreadFrame(Image<ColorRgb> image)
 		}
 		else if (_noSignalCounter == _noSignalCounterThreshold)
 		{
-			_noSignalDetected = true;
+			_signalDetected = false;
 			Info(_log, "Signal lost");
 		}
 	}

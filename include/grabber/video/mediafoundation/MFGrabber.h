@@ -98,17 +98,17 @@ private:
 	void start_capturing();
 	void process_image(const void *frameImageBuffer, int size);
 
-	QString										_currentDeviceName,
+	QString								_currentDeviceName,
 												_newDeviceName;
-	QMap<QString, QList<DeviceProperties>>		_deviceProperties;
+	QMap<QString, QList<DeviceProperties>>	_deviceProperties;
 	QMap<QString, QList<DeviceControls>>		_deviceControls;
-	HRESULT										_hr;
-	IMFSourceReader*							_sourceReader;
-	SourceReaderCB*								_sourceReaderCB;
-	EncoderThreadManager*						_threadManager;
-	PixelFormat									_pixelFormat,
+	HRESULT								_hr;
+	IMFSourceReader*			_sourceReader;
+	SourceReaderCB*				_sourceReaderCB;
+	EncoderThreadManager*	_threadManager;
+	PixelFormat						_pixelFormat,
 												_pixelFormatConfig;
-	int											_lineLength,
+	int										_lineLength,
 												_frameByteSize,
 												_noSignalCounterThreshold,
 												_noSignalCounter,
@@ -116,13 +116,13 @@ private:
 												_contrast,
 												_saturation,
 												_hue;
-	QAtomicInt									_currentFrame;
-	ColorRgb									_noSignalThresholdColor;
-	bool										_signalDetectionEnabled,
-												_noSignalDetected,
+	QAtomicInt						_currentFrame;
+	ColorRgb							_noSignalThresholdColor;
+	bool									_signalDetectionEnabled,
+												_signalDetected,
 												_initialized,
 												_reload;
-	double										_x_frac_min,
+	double								_x_frac_min,
 												_y_frac_min,
 												_x_frac_max,
 												_y_frac_max;
