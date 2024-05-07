@@ -360,7 +360,7 @@
     "edt_conf_enum_NTSC": "NTSC",
     "edt_conf_enum_PAL": "PAL",
     "edt_conf_enum_SECAM": "SECAM",
-    "edt_conf_enum_VERTICAL": "Horizontal",
+    "edt_conf_enum_VERTICAL": "Vertikal",
     "edt_conf_enum_action_idle": "Leerlauf",
     "edt_conf_enum_action_restart": "Neustart",
     "edt_conf_enum_action_resume": "Aktivieren",
