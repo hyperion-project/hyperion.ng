@@ -177,6 +177,7 @@ function sendToHyperion(command, subcommand, msg)
   else
     msg = "";
 
+  window.wsTan = Math.floor(Math.random() * 1000) 
   window.websocket.send('{"command":"'+command+'", "tan":'+window.wsTan+subcommand+msg+'}');
 }
 
@@ -187,7 +188,7 @@ function sendToHyperion(command, subcommand, msg)
 // data:       The json data as Object
 // tan:        The optional tan, default 1. If the tan is -1, we skip global response error handling
 // Returns data of response or false if timeout
-async function sendAsyncToHyperion (command, subcommand, data, tan = 1) {
+async function sendAsyncToHyperion (command, subcommand, data, tan = Math.floor(Math.random() * 1000) ) {
   let obj = { command, tan }
   if (subcommand) {Object.assign(obj, {subcommand})}
   if (data) { Object.assign(obj, data) }
@@ -486,38 +487,38 @@ async function requestLedDeviceDiscovery(type, params)
 {
   let data = { ledDeviceType: type, params: params };
 
-  return sendAsyncToHyperion("leddevice", "discover", data, Math.floor(Math.random() * 1000) );
+  return sendAsyncToHyperion("leddevice", "discover", data);
 }
 
 async function requestLedDeviceProperties(type, params)
 {
   let data = { ledDeviceType: type, params: params };
 
-  return sendAsyncToHyperion("leddevice", "getProperties", data, Math.floor(Math.random() * 1000));
+  return sendAsyncToHyperion("leddevice", "getProperties", data);
 }
 
 function requestLedDeviceIdentification(type, params)
 {
     let data = { ledDeviceType: type, params: params };
 
-  return sendAsyncToHyperion("leddevice", "identify", data, Math.floor(Math.random() * 1000));
+  return sendAsyncToHyperion("leddevice", "identify", data);
 }
 
 async function requestLedDeviceAddAuthorization(type, params) {
   let data = { ledDeviceType: type, params: params };
 
-  return sendAsyncToHyperion("leddevice", "addAuthorization", data, Math.floor(Math.random() * 1000));
+  return sendAsyncToHyperion("leddevice", "addAuthorization", data);
 }
 
 async function requestInputSourcesDiscovery(type, params) {
   let data = { sourceType: type, params: params };
 
-  return sendAsyncToHyperion("inputsource", "discover", data, Math.floor(Math.random() * 1000));
+  return sendAsyncToHyperion("inputsource", "discover", data);
 }
 
 async function requestServiceDiscovery(type, params) {
   let data = { serviceType: type, params: params };
 
-  return sendAsyncToHyperion("service", "discover", data, Math.floor(Math.random() * 1000));
+  return sendAsyncToHyperion("service", "discover", data);
 }
 

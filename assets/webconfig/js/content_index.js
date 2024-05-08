@@ -73,26 +73,30 @@ $(document).ready(function () {
   //End language selection
 
   $(window.hyperion).on("cmd-authorize-tokenRequest cmd-authorize-getPendingTokenRequests", function (event) {
-    var val = event.response.info;
-    if (Array.isArray(event.response.info)) {
-      if (event.response.info.length == 0) {
-        return
-      }
-      val = event.response.info[0]
-      if (val.comment == '')
-        $('#modal_dialog').modal('hide');
-    }
 
-    showInfoDialog("grantToken", $.i18n('conf_network_tok_grantT'), $.i18n('conf_network_tok_grantMsg') + '<br><span style="font-weight:bold">App: ' + val.comment + '</span><br><span style="font-weight:bold">Code: ' + val.id + '</span>')
-    $("#tok_grant_acc").off().on('click', function () {
-      tokenList.push(val)
-      // forward event, in case we need to rebuild the list now
-      $(window.hyperion).trigger({ type: "build-token-list" });
-      requestHandleTokenRequest(val.id, true)
-    });
-    $("#tok_deny_acc").off().on('click', function () {
-      requestHandleTokenRequest(val.id, false)
-    });
+    if (event.response && event.response.info !== undefined) {
+      var val = event.response.info;
+
+      if (Array.isArray(event.response.info)) {
+        if (event.response.info.length == 0) {
+          return
+        }
+        val = event.response.info[0]
+        if (val.comment == '')
+          $('#modal_dialog').modal('hide');
+      }
+
+      showInfoDialog("grantToken", $.i18n('conf_network_tok_grantT'), $.i18n('conf_network_tok_grantMsg') + '<br><span style="font-weight:bold">App: ' + val.comment + '</span><br><span style="font-weight:bold">Code: ' + val.id + '</span>')
+      $("#tok_grant_acc").off().on('click', function () {
+        tokenList.push(val)
+        // forward event, in case we need to rebuild the list now
+        $(window.hyperion).trigger({ type: "build-token-list" });
+        requestHandleTokenRequest(val.id, true)
+      });
+      $("#tok_deny_acc").off().on('click', function () {
+        requestHandleTokenRequest(val.id, false)
+      });
+    }
   });
 
   $(window.hyperion).one("cmd-authorize-getTokenList", function (event) {
@@ -186,21 +190,12 @@ $(document).ready(function () {
     }
   });
 
-  $(window.hyperion).on("cmd-authorize-adminRequired", function (event) {
-    //Check if a admin login is required.
-    //If yes: check if default pw is set. If no: go ahead to get server config and render page
-    if (event.response.info.adminRequired === true)
-      requestRequiresDefaultPasswortChange();
-    else
-      requestServerConfigSchema();
-  });
-
   $(window.hyperion).on("error", function (event) {
     //If we are getting an error "No Authorization" back with a set loginToken we will forward to new Login (Token is expired.
     //e.g.: hyperiond was started new in the meantime)
     if (event.reason == "No Authorization" && getStorage("loginToken")) {
       removeStorage("loginToken");
-      requestRequiresAdminAuth();
+      requestRequiresDefaultPasswortChange();
     }
     else if (event.reason == "Selected Hyperion instance isn't running") {
       //Switch to default instance
@@ -211,7 +206,7 @@ $(document).ready(function () {
   });
 
   $(window.hyperion).on("open", function (event) {
-    requestRequiresAdminAuth();
+    requestRequiresDefaultPasswortChange();
   });
 
   $(window.hyperion).on("ready", function (event) {

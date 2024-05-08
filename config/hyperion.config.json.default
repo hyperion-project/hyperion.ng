@@ -220,9 +220,7 @@
 		"internetAccessAPI": false,
 		"restirctedInternetAccessAPI": false,
 		"ipWhitelist": [],
-		"apiAuth": true,
-		"localApiAuth": false,
-		"localAdminAuth": true
+		"localApiAuth": false
 	},
 
 	"ledConfig": {

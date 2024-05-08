@@ -7,6 +7,25 @@
 			"required" : true,
 			"enum" : ["serverinfo"]
 		},
+		"subcommand": {
+		  "type": "string",
+		  "enum": ["getInfo", "subscribe", "unsubscribe", "getSubscriptions", "getSubscriptionCommands"]
+		},
+		"instance" : {
+			"type" : "integer",
+			"minimum": 0,
+			"maximum": 255
+		},
+		"data": {
+		  "type": ["null", "array"],
+		  "properties": {
+			"subscriptions": {
+			  "type": "array",
+			  "items": {}
+			}
+		  },
+		  "additionalProperties": false
+		},
 		"subscribe" : {
 			"type" : "array"
 		},

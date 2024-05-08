@@ -3,6 +3,8 @@
 #include <utils/FileUtils.h>
 
 #include <QJsonObject>
+#include <QPair>
+#include <QStringList>
 #include <utils/Logger.h>
 
 namespace JsonUtils {
@@ -14,7 +16,7 @@ namespace JsonUtils {
 	/// @param[in]  ignError Ignore errors during file read (no log output)
 	/// @return              true on success else false
 	///
-	bool readFile(const QString& path, QJsonObject& obj, Logger* log, bool ignError=false);
+	QPair<bool, QStringList> readFile(const QString& path, QJsonObject& obj, Logger* log, bool ignError=false);
 
 	///
 	/// @brief read a schema file and resolve $refs
@@ -33,7 +35,7 @@ namespace JsonUtils {
 	/// @param[in]  log      The logger of the caller to print errors
 	/// @return              true on success else false
 	///
-	bool parse(const QString& path, const QString& data, QJsonObject& obj, Logger* log);
+	QPair<bool, QStringList> parse(const QString& path, const QString& data, QJsonObject& obj, Logger* log);
 
 	///
 	/// @brief parse a json QString and get a QJsonArray. Overloaded function
@@ -42,8 +44,8 @@ namespace JsonUtils {
 	/// @param[out] arr      Retuns the parsed QJsonArray
 	/// @param[in]  log      The logger of the caller to print errors
 	/// @return              true on success else false
-	///
-	bool parse(const QString& path, const QString& data, QJsonArray& arr, Logger* log);
+	//
+	QPair<bool, QStringList> parse(const QString& path, const QString& data, QJsonArray& arr, Logger* log);
 
 	///
 	/// @brief parse a json QString and get a QJsonDocument
@@ -53,7 +55,7 @@ namespace JsonUtils {
 	/// @param[in]  log      The logger of the caller to print errors
 	/// @return              true on success else false
 	///
-	bool parse(const QString& path, const QString& data, QJsonDocument& doc, Logger* log);
+	QPair<bool, QStringList> parse(const QString& path, const QString& data, QJsonDocument& doc, Logger* log);
 
 	///
 	/// @brief Validate json data against a schema
@@ -63,7 +65,7 @@ namespace JsonUtils {
 	/// @param[in]   log      The logger of the caller to print errors
 	/// @return               true on success else false
 	///
-	bool validate(const QString& file, const QJsonObject& json, const QString& schemaPath, Logger* log);
+	QPair<bool, QStringList> validate(const QString& file, const QJsonObject& json, const QString& schemaPath, Logger* log);
 
 	///
 	/// @brief Validate json data against a schema
@@ -73,7 +75,7 @@ namespace JsonUtils {
 	/// @param[in]   log      The logger of the caller to print errors
 	/// @return               true on success else false
 	///
-	bool validate(const QString& file, const QJsonObject& json, const QJsonObject& schema, Logger* log);
+	QPair<bool, QStringList> validate(const QString& file, const QJsonObject& json, const QJsonObject& schema, Logger* log);
 
 	///
 	/// @brief Write json data to file

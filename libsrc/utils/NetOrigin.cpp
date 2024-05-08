@@ -1,13 +1,15 @@
 #include <utils/NetOrigin.h>
 
 #include <QJsonObject>
+#include <QNetworkInterface>
 
 NetOrigin* NetOrigin::instance = nullptr;
 
 NetOrigin::NetOrigin(QObject* parent, Logger* log)
 	: QObject(parent)
 	, _log(log)
-	, _internetAccessAllowed(false)
+	, _isInternetAccessAllowed(false)
+	, _isInternetAccessRestricted(false)
 	, _ipWhitelist()
 {
 	NetOrigin::instance = this;
@@ -15,37 +17,73 @@ NetOrigin::NetOrigin(QObject* parent, Logger* log)
 
 bool NetOrigin::accessAllowed(const QHostAddress& address, const QHostAddress& local) const
 {
-	if(_internetAccessAllowed)
-		return true;
+	bool isAllowed {false};
 
-	if(_ipWhitelist.contains(address)) // v4 and v6
-		return true;
-
-	if(!isLocalAddress(address, local))
+	if(isLocalAddress(address, local))
 	{
-		Warning(_log,"Client connection with IP address '%s' has been rejected! It's not whitelisted, access denied.",QSTRING_CSTR(address.toString()));
-		return false;
+		isAllowed = true;
 	}
-	return true;
+	else
+	{
+		if(_isInternetAccessAllowed)
+		{
+			if (!_isInternetAccessRestricted)
+			{
+				isAllowed = true;
+			}
+			else
+			{
+				for (const QHostAddress &listAddress : _ipWhitelist)
+				{
+					if (address.isEqual(listAddress))
+					{
+						isAllowed = true;
+						break;
+					}
+				}
+				WarningIf(!isAllowed, _log,"Client connection from IP address '%s' has been rejected! It's not whitelisted.",QSTRING_CSTR(address.toString()));
+			}
+		}
+	}
+	return isAllowed;
 }
 
-bool NetOrigin::isLocalAddress(const QHostAddress& address, const QHostAddress& local) const
+
+bool NetOrigin::isLocalAddress(const QHostAddress& ipAddress, const QHostAddress& /*local*/) const
 {
-	if(address.protocol() == QAbstractSocket::IPv4Protocol)
+	QHostAddress address = ipAddress;
+
+	if (address.isLoopback() || address.isLinkLocal())
 	{
-		if(!address.isInSubnet(local, 24)) // 255.255.255.xxx; IPv4 0-32
-		{
-			return false;
+		return true;
+	}
+
+	//Convert to IPv4 to check, if an IPv6 address is an IPv4 mapped address
+	QHostAddress ipv4Address(address.toIPv4Address());
+	if (ipv4Address != QHostAddress::AnyIPv4) // ipv4Address is not "0.0.0.0"
+	{
+		address = ipv4Address;
+	}
+
+	QList<QNetworkInterface> allInterfaces = QNetworkInterface::allInterfaces();
+	for (const QNetworkInterface &networkInterface : allInterfaces) {
+		QList<QNetworkAddressEntry> addressEntries = networkInterface.addressEntries();
+		for (const QNetworkAddressEntry &localNetworkAddressEntry : addressEntries) {
+			QHostAddress localIP = localNetworkAddressEntry.ip();
+
+			if(localIP.protocol() != QAbstractSocket::NetworkLayerProtocol::IPv4Protocol)
+			{
+				continue;
+			}
+
+			bool isInSubnet = address.isInSubnet(localIP, localNetworkAddressEntry.prefixLength());
+			if (isInSubnet)
+			{
+				return true;
+			}
 		}
 	}
-	else if(address.protocol() == QAbstractSocket::IPv6Protocol)
-	{
-		if(!address.isInSubnet(local, 64)) // 2001:db8:abcd:0012:XXXX:XXXX:XXXX:XXXX; IPv6 0-128
-		{
-			return false;
-		}
-	}
-	return true;
+	return false;
 }
 
 void NetOrigin::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
@@ -53,16 +91,19 @@ void NetOrigin::handleSettingsUpdate(settings::type type, const QJsonDocument& c
 	if(type == settings::NETWORK)
 	{
 		const QJsonObject& obj = config.object();
-		_internetAccessAllowed = obj["internetAccessAPI"].toBool(false);
+		_isInternetAccessAllowed = obj["internetAccessAPI"].toBool(false);
+		_isInternetAccessRestricted = obj["restirctedInternetAccessAPI"].toBool(false);
+		const QJsonArray arr = obj["ipWhitelist"].toArray();
 
-		const QJsonArray& arr = obj["ipWhitelist"].toArray();
-		_ipWhitelist.clear();
+        _ipWhitelist.clear();
 
-		for(const auto& e : arr)
+        for(const auto& item : std::as_const(arr))
 		{
-			const QString& entry = e.toString("");
+			const QString& entry = item.toString("");
 			if(entry.isEmpty())
+			{
 				continue;
+			}
 
 			QHostAddress host(entry);
 			if(host.isNull())

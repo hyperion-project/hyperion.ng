@@ -84,10 +84,8 @@ void SysTray::createTrayIcon()
 
 	restartAction = new QAction(tr("&Restart"), this);
 	restartAction->setIcon(QPixmap(":/restart.svg"));
-	connect(restartAction, &QAction::triggered, this , [=](){ Process::restartHyperion(12); });
+	connect(restartAction, &QAction::triggered, this , [=](){ emit signalEvent(Event::Restart); });
 
-
-	// TODO: Check if can be done with SystemEvents
 	suspendAction = new QAction(tr("&Suspend"), this);
 	suspendAction->setIcon(QPixmap(":/suspend.svg"));
 	connect(suspendAction, &QAction::triggered, this, [this]() { emit signalEvent(Event::Suspend); });
@@ -129,7 +127,9 @@ void SysTray::createTrayIcon()
 
 	// add seperator if custom effects exists
 	if (!_trayIconEfxMenu->isEmpty())
+	{
 		_trayIconEfxMenu->addSeparator();
+	}
 
 	// build in effects
 	for (const auto &efx : efxs)

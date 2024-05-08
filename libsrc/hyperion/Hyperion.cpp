@@ -550,6 +550,11 @@ QList<int> Hyperion::getActivePriorities() const
 	return _muxer->getPriorities();
 }
 
+Hyperion::InputsMap Hyperion::getPriorityInfo() const
+{
+    return _muxer->getInputInfo();
+}
+
 Hyperion::InputInfo Hyperion::getPriorityInfo(int priority) const
 {
 	return _muxer->getInputInfo(priority);

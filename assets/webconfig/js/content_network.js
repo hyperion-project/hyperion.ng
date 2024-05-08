@@ -213,13 +213,13 @@ $(document).ready(function () {
     for (var key in tokenList) {
       var lastUse = (tokenList[key].last_use) ? tokenList[key].last_use : "-";
       var btn = '<button id="tok' + tokenList[key].id + '" type="button" class="btn btn-danger">' + $.i18n('general_btn_delete') + '</button>';
-      $('.tktbody').append(createTableRow([tokenList[key].comment, lastUse, btn], false, true));
+      $('.tktbody').append(createTableRow([tokenList[key].id, tokenList[key].comment, lastUse, btn], false, true));
       $('#tok' + tokenList[key].id).off().on('click', handleDeleteToken);
     }
   }
 
   createTable('tkthead', 'tktbody', 'tktable');
-  $('.tkthead').html(createTableRow([$.i18n('conf_network_tok_cidhead'), $.i18n('conf_network_tok_lastuse'), $.i18n('general_btn_delete')], true, true));
+  $('.tkthead').html(createTableRow([$.i18n('conf_network_tok_idhead'), $.i18n('conf_network_tok_cidhead'), $.i18n('conf_network_tok_lastuse'), $.i18n('general_btn_delete')], true, true));
   buildTokenList();
 
   function handleDeleteToken(e) {

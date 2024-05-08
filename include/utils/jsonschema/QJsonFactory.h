@@ -31,7 +31,9 @@ public:
 		if (!schemaChecker.validate(configTree).first)
 		{
 			for (int i = 0; i < messages.size(); ++i)
+			{
 				std::cout << messages[i].toStdString() << std::endl;
+			}
 
 			std::cerr << "Validation failed for configuration file: " << config.toStdString() << std::endl;
 			return -3;
@@ -61,9 +63,10 @@ public:
 		if (error.error != QJsonParseError::NoError)
 		{
 			// report to the user the failure and their locations in the document.
-			int errorLine(0), errorColumn(0);
+			int errorLine(0);
+			int errorColumn(0);
 
-			for( int i=0, count=qMin( error.offset,config.size()); i<count; ++i )
+			for(long i=0, count=qMin( error.offset,config.size()); i<count; ++i )
 			{
 				++errorColumn;
 				if(config.at(i) == '\n' )

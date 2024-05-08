@@ -9,6 +9,12 @@
 			"required" : true,
 			"enum" : ["componentstate"]
 		},
+		"instance" : {
+			"type": "array",
+			"required": false,
+			"items" : {},
+			"minItems": 1
+		},
 		"tan" : {
 			"type" : "integer"
 		},
