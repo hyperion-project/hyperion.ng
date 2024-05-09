@@ -1053,28 +1053,28 @@ $(document).ready(function () {
   });
 
   $("#leddevices").off().on("change", function () {
-    var generalOptions = window.serverSchema.properties.device;
+    const generalOptions = window.serverSchema.properties.device;
 
-    var ledType = $(this).val();
-    var specificOptions = window.serverSchema.properties.alldevices[ledType];
+    const ledType = $(this).val();
+    const specificOptions = window.serverSchema.properties.alldevices[ledType];
 
     conf_editor = createJsonEditor('editor_container_leddevice', {
       specificOptions: specificOptions,
       generalOptions: generalOptions,
     });
 
-    var values_general = {};
-    var values_specific = {};
-    var isCurrentDevice = (window.serverConfig.device.type == ledType);
+    let values_general = {};
+    let values_specific = {};
+    const isCurrentDevice = (window.serverConfig.device.type == ledType);
 
-    for (var key in window.serverConfig.device) {
+    for (const key in window.serverConfig.device) {
       if (key != "type" && key in generalOptions.properties) values_general[key] = window.serverConfig.device[key];
     };
     conf_editor.getEditor("root.generalOptions").setValue(values_general);
 
     if (isCurrentDevice) {
-      var specificOptions_val = conf_editor.getEditor("root.specificOptions").getValue();
-      for (var key in specificOptions_val) {
+      const specificOptions_val = conf_editor.getEditor("root.specificOptions").getValue();
+      for (const key in specificOptions_val) {
         values_specific[key] = (key in window.serverConfig.device) ? window.serverConfig.device[key] : specificOptions_val[key];
       };
       conf_editor.getEditor("root.specificOptions").setValue(values_specific);
@@ -1089,9 +1089,9 @@ $(document).ready(function () {
     createLedDeviceWizards(ledType);
 
     conf_editor.on('ready', function () {
-      var hwLedCountDefault = 1;
-      var colorOrderDefault = "rgb";
-      var filter = {};
+      let hwLedCountDefault = 1;
+      let colorOrderDefault = "rgb";
+      let filter = {};
 
       $('#btn_layout_controller').hide();
       $('#btn_test_controller').hide();
@@ -1139,58 +1139,55 @@ $(document).ready(function () {
             .catch(error => {
               showNotification('danger', "Device discovery for " + ledType + " failed with error:" + error);
             });
-
-          hwLedCountDefault = 1;
-          colorOrderDefault = "rgb";
           break;
 
-        case "philipshue":
+        case "philipshue": {
           disableAutoResolvedGeneralOptions();
 
-          var lights = conf_editor.getEditor("root.specificOptions.lightIds").getValue();
+          const lights = conf_editor.getEditor("root.specificOptions.lightIds").getValue();
           hwLedCountDefault = lights.length;
-          colorOrderDefault = "rgb";
+        }
           break;
 
-        case "yeelight":
+        case "yeelight": {
           disableAutoResolvedGeneralOptions();
 
-          var lights = conf_editor.getEditor("root.specificOptions.lights").getValue();
+          const lights = conf_editor.getEditor("root.specificOptions.lights").getValue();
           hwLedCountDefault = lights.length;
-          colorOrderDefault = "rgb";
+        }
           break;
 
-        case "atmoorb":
+        case "atmoorb": {
           disableAutoResolvedGeneralOptions();
 
-          var configruedOrbIds = conf_editor.getEditor("root.specificOptions.orbIds").getValue().trim();
+          const configruedOrbIds = conf_editor.getEditor("root.specificOptions.orbIds").getValue().trim();
           if (configruedOrbIds.length !== 0) {
             hwLedCountDefault = configruedOrbIds.split(",").map(Number).length;
           } else {
             hwLedCountDefault = 0;
           }
-          colorOrderDefault = "rgb";
+        }
           break;
 
-        case "razer":
+        case "razer": {
           disableAutoResolvedGeneralOptions();
-          hwLedCountDefault = 1;
           colorOrderDefault = "bgr";
 
-          var subType = conf_editor.getEditor("root.specificOptions.subType").getValue();
-          let params = { subType: subType };
+          const subType = conf_editor.getEditor("root.specificOptions.subType").getValue();
+          const params = { subType };
           getProperties_device(ledType, subType, params);
+        }
           break;
 
         default:
       }
 
       if (ledType !== window.serverConfig.device.type) {
-        var hwLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount");
+        let hwLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount");
         if (hwLedCount) {
           hwLedCount.setValue(hwLedCountDefault);
         }
-        var colorOrder = conf_editor.getEditor("root.generalOptions.colorOrder");
+        let colorOrder = conf_editor.getEditor("root.generalOptions.colorOrder");
         if (colorOrder) {
           colorOrder.setValue(colorOrderDefault);
         }
@@ -1199,8 +1196,8 @@ $(document).ready(function () {
 
     conf_editor.on('change', function () {
       // //Check, if device can be identified/tested and/or saved
-      var canIdentify = false;
-      var canSave = false;
+      let canIdentify = false;
+      let canSave = false;
 
       switch (ledType) {
 
@@ -1212,11 +1209,12 @@ $(document).ready(function () {
         case "udpartnet":
         case "udpddp":
         case "udph801":
-        case "udpraw":
-          var host = conf_editor.getEditor("root.specificOptions.host").getValue();
+        case "udpraw": {
+          const host = conf_editor.getEditor("root.specificOptions.host").getValue();
           if (host !== "") {
             canSave = true;
           }
+        }
           break;
 
         case "adalight":
@@ -1224,50 +1222,63 @@ $(document).ready(function () {
         case "karate":
         case "dmx":
         case "sedu":
-        case "tpm2":
-          var rate = conf_editor.getEditor("root.specificOptions.rate").getValue();
+        case "tpm2": {
+          let currentDeviceType = window.serverConfig.device.type;
+          if ($.inArray(currentDeviceType, devSerial) === -1) {
+            canIdentify = true;
+          } else {
+            let output = conf_editor.getEditor("root.specificOptions.output").getValue();
+            if (window.serverConfig.device.output !== output) {
+              canIdentify = true;
+            }
+          }
+
+          const rate = conf_editor.getEditor("root.specificOptions.rate").getValue();
           if (rate > 0) {
             canSave = true;
           }
+        }
           break;
 
-        case "philipshue":
-          var host = conf_editor.getEditor("root.specificOptions.host").getValue();
-          var username = conf_editor.getEditor("root.specificOptions.username").getValue();
+        case "philipshue": {
+          const host = conf_editor.getEditor("root.specificOptions.host").getValue();
+          const username = conf_editor.getEditor("root.specificOptions.username").getValue();
           if (host !== "" && username != "") {
-            var useEntertainmentAPI = conf_editor.getEditor("root.specificOptions.useEntertainmentAPI").getValue();
-            var clientkey = conf_editor.getEditor("root.specificOptions.clientkey").getValue();
+            const useEntertainmentAPI = conf_editor.getEditor("root.specificOptions.useEntertainmentAPI").getValue();
+            const clientkey = conf_editor.getEditor("root.specificOptions.clientkey").getValue();
             if (!useEntertainmentAPI || clientkey !== "") {
               canSave = true;
             }
           }
+        }
           break;
 
         case "wled":
-        case "cololight":
-          var hostList = conf_editor.getEditor("root.specificOptions.hostList").getValue();
+        case "cololight": {
+          const hostList = conf_editor.getEditor("root.specificOptions.hostList").getValue();
           if (hostList !== "SELECT") {
-            var host = conf_editor.getEditor("root.specificOptions.host").getValue();
+            const host = conf_editor.getEditor("root.specificOptions.host").getValue();
             if (host !== "") {
               canIdentify = true;
               canSave = true;
             }
           }
+        }
           break;
 
-        case "nanoleaf":
-          var hostList = conf_editor.getEditor("root.specificOptions.hostList").getValue();
+        case "nanoleaf": {
+          const hostList = conf_editor.getEditor("root.specificOptions.hostList").getValue();
           if (hostList !== "SELECT") {
-            var host = conf_editor.getEditor("root.specificOptions.host").getValue();
-            var token = conf_editor.getEditor("root.specificOptions.token").getValue();
+            const host = conf_editor.getEditor("root.specificOptions.host").getValue();
+            const token = conf_editor.getEditor("root.specificOptions.token").getValue();
             if (host !== "" && token !== "") {
               canIdentify = true;
               canSave = true;
             }
           }
+        }
           break;
         default:
-          canIdentify = false;
           canSave = true;
       }
 
@@ -1395,30 +1406,27 @@ $(document).ready(function () {
       }
     });
 
+
     conf_editor.watch('root.specificOptions.output', () => {
-      var output = conf_editor.getEditor("root.specificOptions.output").getValue();
+      const output = conf_editor.getEditor("root.specificOptions.output").getValue();
       if (output === "NONE" || output === "SELECT" || output === "") {
 
         $('#btn_submit_controller').prop('disabled', true);
         $('#btn_test_controller').prop('disabled', true);
         $('#btn_test_controller').hide();
-
         conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(1);
         showAllDeviceInputOptions("output", false);
       }
       else {
         showAllDeviceInputOptions("output", true);
         let params = {};
-        var canIdentify = false;
         switch (ledType) {
-          case "adalight":
-            canIdentify = true;
-            break;
           case "atmo":
           case "karate":
             params = { serialPort: output };
             getProperties_device(ledType, output, params);
             break;
+          case "adalight":
           case "dmx":
           case "sedu":
           case "tpm2":
@@ -1437,8 +1445,8 @@ $(document).ready(function () {
         }
 
         if ($.inArray(ledType, devSerial) != -1) {
-          var rateList = conf_editor.getEditor("root.specificOptions.rateList").getValue();
-          var showRate = false;
+          const rateList = conf_editor.getEditor("root.specificOptions.rateList").getValue();
+          let showRate = false;
           if (rateList == "CUSTOM") {
             showRate = true;
           }
@@ -1446,13 +1454,6 @@ $(document).ready(function () {
         }
 
         if (!conf_editor.validate().length) {
-          if (canIdentify) {
-            $("#btn_test_controller").show();
-            $('#btn_test_controller').prop('disabled', false);
-          } else {
-            $('#btn_test_controller').hide();
-            $('#btn_test_controller').prop('disabled', true);
-          }
           if (!window.readOnlyMode) {
             $('#btn_submit_controller').prop('disabled', false);
           }
@@ -1504,12 +1505,12 @@ $(document).ready(function () {
     });
 
     conf_editor.watch('root.specificOptions.rateList', () => {
-      var specOptPath = 'root.specificOptions.';
-      var rateList = conf_editor.getEditor("root.specificOptions.rateList");
-      if (rateList) {
-        var val = rateList.getValue();
-        var rate = conf_editor.getEditor("root.specificOptions.rate");
+      const specOptPath = 'root.specificOptions.';
+      const rateList = conf_editor.getEditor("root.specificOptions.rateList");
+      let rate = conf_editor.getEditor("root.specificOptions.rate");
 
+      if (rateList) {
+        const val = rateList.getValue();
         switch (val) {
           case 'CUSTOM':
           case '':
