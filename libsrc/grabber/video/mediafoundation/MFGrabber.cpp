@@ -42,7 +42,7 @@ MFGrabber::MFGrabber()
 	, _currentFrame(0)
 	, _noSignalThresholdColor(ColorRgb{0,0,0})
 	, _signalDetectionEnabled(true)
-	, _noSignalDetected(false)
+	, _signalDetected(false)
 	, _initialized(false)
 	, _reload(false)
 	, _x_frac_min(0.25)
@@ -580,7 +580,7 @@ void MFGrabber::newThreadFrame(Image<ColorRgb> image)
 		{
 			if (_noSignalCounter >= _noSignalCounterThreshold)
 			{
-				_noSignalDetected = true;
+				_signalDetected = true;
 				Info(_log, "Signal detected");
 			}
 
@@ -593,7 +593,7 @@ void MFGrabber::newThreadFrame(Image<ColorRgb> image)
 		}
 		else if (_noSignalCounter == _noSignalCounterThreshold)
 		{
-			_noSignalDetected = false;
+			_signalDetected = false;
 			Info(_log, "Signal lost");
 		}
 	}
