@@ -125,13 +125,13 @@ void EncoderThread::process()
 			if (_pixelFormat == PixelFormat::BGR24)
 			{
 				if (_flipMode == FlipMode::NO_CHANGE)
-					_imageResampler.setFlipMode(FlipMode::HORIZONTAL);
-				else if (_flipMode == FlipMode::HORIZONTAL)
 					_imageResampler.setFlipMode(FlipMode::NO_CHANGE);
+				else if (_flipMode == FlipMode::HORIZONTAL)
+					_imageResampler.setFlipMode(FlipMode::HORIZONTAL);
 				else if (_flipMode == FlipMode::VERTICAL)
-					_imageResampler.setFlipMode(FlipMode::BOTH);
-				else if (_flipMode == FlipMode::BOTH)
 					_imageResampler.setFlipMode(FlipMode::VERTICAL);
+				else if (_flipMode == FlipMode::BOTH)
+					_imageResampler.setFlipMode(FlipMode::BOTH);
 			}
 
 			Image<ColorRgb> image = Image<ColorRgb>();
