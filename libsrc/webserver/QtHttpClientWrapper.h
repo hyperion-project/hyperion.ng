@@ -58,6 +58,7 @@ private:
 	const bool        m_localConnection;
 	WebSocketClient * m_websocketClient;
 	WebJsonRpc *      m_webJsonRpc;
+	QByteArray        m_fragment;
 };
 
 #endif // QTHTTPCLIENTWRAPPER_H
