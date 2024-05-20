@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Workaround to address Web UI keeps forcing browser to download the html instead (#1692)
 - Fixed: Kodi Color Calibration, Refactor Wizards (#1674)
 - Fixed: Token Dialog not closing
+- Fixed: Philip Hue APIv2 support without Entertainment group defined (#1742)
 
 **JSON-API**
 - Refactored JSON-API to ensure consistent authorization behaviour across sessions and single requests with token authorization.
