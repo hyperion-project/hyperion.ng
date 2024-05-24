@@ -1079,6 +1079,22 @@ void V4L2Grabber::newThreadFrame(Image<ColorRgb> image)
 	}
 	else
 		emit newFrame(image);
+
+#ifdef FRAME_BENCH
+	// calculate average frametime
+	if (_currentFrame > 1)
+	{
+		if (_currentFrame % 100 == 0)
+		{
+			Debug(_log, "%d: avg. frametime=%.02fms / %.02fms", int(_currentFrame), _frameTimer.restart()/100.0, 1000.0/_fps);
+		}
+	}
+	else
+	{
+		Debug(_log, "%d: frametimer started", int(_currentFrame));
+		_frameTimer.start();
+	}
+#endif
 }
 
 int V4L2Grabber::xioctl(int request, void *arg)
