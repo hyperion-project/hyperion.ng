@@ -1,6 +1,6 @@
 #pragma once
 
-#define FRAME_BENCH
+#define NOFRAME_BENCH
 
 #ifdef FRAME_BENCH
 	#include <QElapsedTimer>
