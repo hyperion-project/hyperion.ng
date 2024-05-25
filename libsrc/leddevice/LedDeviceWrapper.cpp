@@ -65,7 +65,7 @@ void LedDeviceWrapper::createLedDevice(const QJsonObject& config)
 	connect(thread, &QThread::started, _ledDevice, &LedDevice::start);
 
 	// further signals
-	connect(this, &LedDeviceWrapper::updateLeds, _ledDevice, &LedDevice::updateLeds, Qt::QueuedConnection);
+	connect(this, &LedDeviceWrapper::updateLeds, _ledDevice, &LedDevice::updateLeds, Qt::BlockingQueuedConnection);
 
 	connect(this, &LedDeviceWrapper::switchOn, _ledDevice, &LedDevice::switchOn, Qt::BlockingQueuedConnection);
 	connect(this, &LedDeviceWrapper::switchOff, _ledDevice, &LedDevice::switchOff, Qt::BlockingQueuedConnection);
@@ -193,10 +193,16 @@ QJsonObject LedDeviceWrapper::getLedDeviceSchemas()
 		}
 
 		QJsonObject schema;
-		if(!JsonUtils::parse(schemaPath, data, schema, Logger::getInstance("LEDDEVICE")))
+		QPair<bool, QStringList> parsingResult = JsonUtils::parse(schemaPath, data, schema, Logger::getInstance("LEDDEVICE"));
+		if (!parsingResult.first)
 		{
-			throw std::runtime_error("ERROR: JSON schema wrong of file: " + item.toStdString());
+			QStringList errorList = parsingResult.second;
+			for (const auto& errorMessage : errorList) {
+				Debug(Logger::getInstance("LEDDEVICE"), "JSON parse error: %s ", QSTRING_CSTR(errorMessage));
+			}
+			throw std::runtime_error("ERROR: JSON schema is wrong for file: " + item.toStdString());
 		}
+
 
 		schemaJson = schema;
 		schemaJson["title"] = QString("edt_dev_spec_header_title");

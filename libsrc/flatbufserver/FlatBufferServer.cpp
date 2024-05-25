@@ -125,6 +125,6 @@ void FlatBufferServer::stopServer()
 			client->forceClose();
 		}
 		_server->close();
-		Info(_log, "Stopped");
+		Info(_log, "FlatBuffer-Server stopped");
 	}
 }

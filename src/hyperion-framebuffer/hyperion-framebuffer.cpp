@@ -50,7 +50,7 @@ int main(int argc, char ** argv)
 		// create the option parser and initialize all parameters
 		Parser parser("FrameBuffer capture application for Hyperion. Will automatically search a Hyperion server if -a option isn't used. Please note that if you have more than one server running it's more or less random which one will be used.");
 
-		Option         & argDevice			= parser.add<Option>       ('d', "device",         "Set the framebuffer device [default: %1]", "/dev/fb0");
+		IntOption      & argDeviceIdx		= parser.add<IntOption>    ('d', "deviceIdx",      "Set the framebuffer device index [default: %1]", 0);
 
 		IntOption      & argFps             = parser.add<IntOption>    ('f', "framerate",      QString("Capture frame rate. Range %1-%2fps").arg(GrabberWrapper::DEFAULT_MIN_GRAB_RATE_HZ).arg(GrabberWrapper::DEFAULT_MAX_GRAB_RATE_HZ), QString::number(GrabberWrapper::DEFAULT_RATE_HZ), GrabberWrapper::DEFAULT_MIN_GRAB_RATE_HZ, GrabberWrapper::DEFAULT_MAX_GRAB_RATE_HZ);
 		IntOption      & argSizeDecimation	= parser.add<IntOption>    ('s', "size-decimator", "Decimation factor for the output image size [default=%1]", QString::number(GrabberWrapper::DEFAULT_PIXELDECIMATION), 1);
@@ -88,7 +88,7 @@ int main(int argc, char ** argv)
 
 		FramebufferWrapper fbWrapper(
 			argFps.getInt(parser),
-			argDevice.value(parser),
+			argDeviceIdx.getInt(parser),
 			argSizeDecimation.getInt(parser),
 			argCropLeft.getInt(parser),
 			argCropRight.getInt(parser),
@@ -167,5 +167,8 @@ int main(int argc, char ** argv)
 		Error(log, "%s", e.what());
 		return -1;
 	}
+
+	Logger::deleteInstance();
+
 	return 0;
 }

@@ -2,13 +2,13 @@
 #include "FramebufferWrapper.h"
 
 FramebufferWrapper::FramebufferWrapper( int updateRate_Hz,
-										const QString & device,
+										int deviceIdx,
 										int pixelDecimation,
 										int cropLeft, int cropRight,
 										int cropTop, int cropBottom
 										) :
 	  _timer(this),
-	  _grabber(device)
+	  _grabber(deviceIdx)
 {
 	_grabber.setFramerate(updateRate_Hz);
 	_grabber.setCropping(cropLeft, cropRight, cropTop, cropBottom);

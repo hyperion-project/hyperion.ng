@@ -261,7 +261,7 @@ $(document).ready(function () {
       $("body").get(0).style.setProperty("--background-var", "none");
     }
     else {
-      printLedsToCanvas(event.response.result.leds)
+      printLedsToCanvas(event.response.data.leds)
       $("body").get(0).style.setProperty("--background-var", "url(" + ($('#leds_preview_canv')[0]).toDataURL("image/jpg") + ") no-repeat top left");
     }
   });
@@ -275,7 +275,7 @@ $(document).ready(function () {
       }
     }
     else {
-      var imageData = (event.response.result.image);
+      var imageData = (event.response.data.image);
 
       var image = new Image();
       image.onload = function () {

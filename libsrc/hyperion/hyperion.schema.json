@@ -90,6 +90,18 @@
 		"leds":
 		{
 			"$ref": "schema-leds.json"
+		},
+		"osEvents":
+		{
+			"$ref": "schema-osEvents.json"
+		},
+		"cecEvents":
+		{
+			"$ref": "schema-cecEvents.json"
+		},
+		"schedEvents":
+		{
+			"$ref": "schema-schedEvents.json"
 		}
 	},
 	"additionalProperties" : false

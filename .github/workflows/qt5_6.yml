@@ -1,0 +1,242 @@
+name: GitHub Qt5/6 Builds
+
+on:
+  # Reusable from push_pull.yml
+  workflow_call:
+    inputs:
+      qt_version:
+        type: string
+        description: Build with this Qt version
+        default: '5'
+        required: false
+      event_name:
+        type: string
+        description: The event name
+        default: ''
+        required: false
+      pull_request_number:
+        type: string
+        description: The corresponding PR number
+        default: ''
+        required: false
+      publish:
+        type: boolean
+        description: Package publishing
+        default: false
+        required: false
+
+env:
+  ghcr: hyperion-project
+
+jobs:
+
+######################
+###### Linux #########
+######################
+
+  Linux:
+    name: 🐧 ${{ matrix.os.description }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [
+          { distribution: debian, codename: buster,   description: Debian Buster (x86_64),                        architecture: [ amd64, linux/amd64  ], platform: x11 },
+          { distribution: debian, codename: buster,   description: Debian Buster (Raspberry Pi 1 & Zero 1),       architecture: [ armv6, linux/arm/v6 ], platform: rpi },
+          { distribution: debian, codename: buster,   description: Debian Buster (Raspberry Pi 2),                architecture: [ armv7, linux/arm/v7 ], platform: rpi },
+          { distribution: debian, codename: buster,   description: Debian Buster (Raspberry Pi 3/4/5 & Zero 2),   architecture: [ arm64, linux/arm64  ], platform: rpi },
+          { distribution: debian, codename: bullseye, description: Debian Bullseye (x86_64),                      architecture: [ amd64, linux/amd64  ], platform: x11 },
+          { distribution: debian, codename: bullseye, description: Debian Bullseye (Raspberry Pi 2),              architecture: [ armv7, linux/arm/v7 ], platform: rpi },
+          { distribution: debian, codename: bullseye, description: Debian Bullseye (Raspberry Pi 3/4/5 & Zero 2), architecture: [ arm64, linux/arm64  ], platform: rpi }
+        ]
+        isQt5:
+          - ${{ inputs.qt_version == '5' }}
+        exclude:
+          - isQt5: true
+            os: { distribution: debian, codename: bullseye }
+          - isQt5: false
+            os: { distribution: debian, codename: buster }
+
+    steps:
+      - name: ⬇ Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: 🔧 Prepare
+        shell: bash
+        run: |
+          echo '::group::Append PR number to version (PR  only)'
+            if [[ "${{ inputs.event_name }}" = "pull_request" ]]; then
+              tr -d '\n' < .version > temp && mv temp .version
+              echo -n "+PR${{ inputs.pull_request_number }}" >> .version
+            fi
+          echo '::endgroup::'
+
+      - name: 👷 Build
+        shell: bash
+        run: ./.github/scripts/build.sh
+        env:
+          DOCKER_IMAGE: ${{ matrix.os.distribution }}
+          DOCKER_TAG: ${{ matrix.os.codename }}${{ inputs.qt_version == '6' && '-qt6' || '' }}
+          PLATFORM: ${{ matrix.os.platform }}
+          TARGET_ARCH: ${{ matrix.os.architecture[1] }}
+
+      - name: 📦 Upload
+        if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
+          path: ${{ inputs.event_name == 'pull_request' && 'deploy/*.tar.gz' || 'deploy/Hyperion-*' }}
+        env:
+          NAME: ${{ format('{0}_{1}_{2}{3}', matrix.os.distribution, matrix.os.codename, matrix.os.architecture[0], inputs.qt_version == '6' && '_qt6' || '') }}
+
+######################
+###### macOS #########
+######################
+
+  macOS:
+    name: 🍏 macOS x64
+    runs-on: macos-latest
+    steps:
+      - name: ⬇ Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: 🔧 Prepare
+        shell: bash
+        run: |
+          echo '::group::Append PR number to version (PR  only)'
+            if [[ "${{ inputs.event_name }}" = "pull_request" ]]; then
+              tr -d '\n' < .version > temp && mv temp .version
+              echo -n "+PR${{ inputs.pull_request_number }}" >> .version
+            fi
+          echo '::endgroup::'
+
+          echo '::group::Update/Install dependencies'
+            brew untap --force homebrew/core homebrew/cask
+            brew update || true
+            brew install qt${{ inputs.qt_version }} vulkan-headers ninja || true
+          echo '::endgroup::'
+
+      - name: 👷 Build
+        shell: bash
+        run: ./.github/scripts/build.sh
+        env:
+          PLATFORM: osx
+
+      - name: 📦 Upload
+        if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
+          path: 'build/Hyperion-*'
+        env:
+          NAME: ${{ inputs.qt_version == '6' && 'macOS_x64_qt6' || 'macOS_x64' }}
+
+######################
+###### Windows #######
+######################
+
+  windows:
+    name: 🪟 Windows x64
+    runs-on: windows-2022
+    env:
+      VCINSTALLDIR: 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC'
+    steps:
+      - name: ⬇ Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: 🔧 Prepare PR
+        if: ${{ inputs.event_name == 'pull_request' }}
+        shell: bash
+        run: |
+          echo '::group::Append PR number to version'
+            tr -d '\n' < .version > temp && mv temp .version
+            echo -n "+PR${{ inputs.pull_request_number }}" >> .version
+          echo '::endgroup::'
+
+      - name: 💾 Cache/Restore
+        uses: actions/cache@v4
+        with:
+          path: C:\Users\runneradmin\AppData\Local\Temp\chocolatey
+          key: ${{ runner.os }}${{ inputs.qt_version == '6' && '-chocolatey-qt6' || '-chocolatey' }}
+
+      - name: 📥 Install DirectX SDK, OpenSSL, libjpeg-turbo ${{ inputs.qt_version == '6' && 'and Vulkan-SDK' || '' }}
+        shell: powershell
+        run: |
+          choco install --no-progress directx-sdk ${{env.VULKAN_SDK}} -y
+          choco install --no-progress ${{env.OPENSSL}} -y
+          Invoke-WebRequest https://netcologne.dl.sourceforge.net/project/libjpeg-turbo/3.0.1/libjpeg-turbo-3.0.1-vc64.exe -OutFile libjpeg-turbo.exe -UserAgent NativeHost
+          .\libjpeg-turbo /S
+        env:
+          VULKAN_SDK: ${{ inputs.qt_version == '6' && 'vulkan-sdk' || '' }}
+          OPENSSL: ${{ inputs.qt_version == '6' && 'openssl' || 'openssl --version=1.1.1.2100' }}
+
+      - name: 📥 Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          version: ${{ inputs.qt_version == '6' && '6.5.2' || '5.15.2' }}
+          target: 'desktop'
+          modules: ${{ inputs.qt_version == '6' && 'qtserialport' || '' }}
+          arch: 'win64_msvc2019_64'
+          cache: 'true'
+          cache-key-prefix: 'cache-qt-windows'
+
+      - name: 🛠️ Setup MSVC
+        shell: cmd
+        run: call "${{env.VCINSTALLDIR}}\Auxiliary\Build\vcvars64.bat"
+
+      - name: 👷 Build
+        shell: bash
+        run: ./.github/scripts/build.sh
+        env:
+          PLATFORM: windows
+
+      - name: 📦 Upload
+        if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
+          path: ${{ inputs.event_name == 'pull_request' && 'build/*.exe' || 'build/Hyperion-*' }}
+        env:
+          NAME: ${{ inputs.qt_version == '6' && 'windows_x64_qt6' || 'windows_x64' }}
+
+#####################################
+###### Publish GitHub Releases ######
+#####################################
+
+  github_publish:
+    name: 🚀 Publish GitHub Releases
+    if: ${{ inputs.qt_version == '5' && inputs.publish }}
+    needs: [Linux, macOS, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇ Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔧 Prepare
+        run: |
+          echo '::group::Generate environment variables from .version and tag'
+            echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
+            echo "VERSION=$(tr -d '\n' < .version)" >> $GITHUB_ENV
+          echo '::endgroup::'
+
+      - name: 💾 Artifact download
+        uses: actions/download-artifact@v4.1.7
+        with:
+          pattern: artifact-*
+          path: all-artifacts
+
+      - name: 📦 Upload
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Hyperion ${{ env.VERSION }}
+          tag_name: ${{ env.TAG }}
+          files: "all-artifacts/**"
+          draft: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

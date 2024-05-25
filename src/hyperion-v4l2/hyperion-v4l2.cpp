@@ -10,7 +10,7 @@
 #include <blackborder/BlackBorderProcessor.h>
 
 // grabber includes
-#include "grabber/V4L2Grabber.h"
+#include "grabber/video/v4l2/V4L2Grabber.h"
 
 // flatbuf includes
 #include <flatbufserver/FlatBufferConnection.h>
@@ -231,6 +231,7 @@ int main(int argc, char** argv)
 
 			ScreenshotHandler handler("screenshot.png", signalDetectionOffset);
 			QObject::connect(&grabber, SIGNAL(newFrame(Image<ColorRgb>)), &handler, SLOT(receiveImage(Image<ColorRgb>)));
+			grabber.prepare();
 			grabber.start();
 			QCoreApplication::exec();
 			grabber.stop();
@@ -255,7 +256,7 @@ int main(int argc, char** argv)
 				SSDPDiscover discover;
 				host = discover.getFirstService(searchType::STY_FLATBUFSERVER);
 #endif
-				
+
 				QHostAddress address;
 				if (!NetUtils::resolveHostToAddress(log, host, address, port))
 				{
@@ -286,6 +287,8 @@ int main(int argc, char** argv)
 		Error(log, "%s", e.what());
 		return 1;
 	}
+
+	Logger::deleteInstance();
 
 	return 0;
 }

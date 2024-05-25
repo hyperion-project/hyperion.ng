@@ -52,7 +52,7 @@ Hyperion::Hyperion(quint8 instance, bool readonlyMode)
 	, _instIndex(instance)
 	, _settingsManager(new SettingsManager(instance, this, readonlyMode))
 	, _componentRegister(nullptr)
-	, _ledString(hyperion::createLedString(getSetting(settings::LEDS).array(), hyperion::createColorOrder(getSetting(settings::DEVICE).object())))
+	, _ledString(LedString::createLedString(getSetting(settings::LEDS).array(), hyperion::createColorOrder(getSetting(settings::DEVICE).object())))
 	, _imageProcessor(nullptr)
 	, _muxer(nullptr)
 	, _raw2ledAdjustment(hyperion::createLedColorsAdjustment(static_cast<int>(_ledString.leds().size()), getSetting(settings::COLOR).object()))
@@ -200,13 +200,16 @@ void Hyperion::stop()
 
 void Hyperion::freeObjects()
 {
-	//delete Background effect first that it does not kick in when other priorities are stopped
-	delete _BGEffectHandler;
+	//Disconnect Background effect first that it does not kick in when other priorities are stopped
+	_BGEffectHandler->disconnect();
 
 	//Remove all priorities to switch off all leds
 	clear(-1,true);
 
 	// delete components on exit of hyperion core
+
+	delete _BGEffectHandler;
+
 #if defined(ENABLE_BOBLIGHT_SERVER)
 	delete _boblightServer;
 #endif
@@ -255,7 +258,7 @@ void Hyperion::handleSettingsUpdate(settings::type type, const QJsonDocument& co
 		#endif
 
 		// ledstring, img processor, muxer, ledGridSize (effect-engine image based effects), _ledBuffer and ByteOrder of ledstring
-		_ledString = hyperion::createLedString(leds, hyperion::createColorOrder(getSetting(settings::DEVICE).object()));
+		_ledString = LedString::createLedString(leds, hyperion::createColorOrder(getSetting(settings::DEVICE).object()));
 		_imageProcessor->setLedString(_ledString);
 		_muxer->updateLedColorsLength(static_cast<int>(_ledString.leds().size()));
 		_ledGridSize = hyperion::getLedLayoutGridSize(leds);
@@ -291,7 +294,7 @@ void Hyperion::handleSettingsUpdate(settings::type type, const QJsonDocument& co
 		// force ledString update, if device ByteOrder changed
 		if(_ledDeviceWrapper->getColorOrder() != dev["colorOrder"].toString("rgb"))
 		{
-			_ledString = hyperion::createLedString(getSetting(settings::LEDS).array(), hyperion::createColorOrder(dev));
+			_ledString = LedString::createLedString(getSetting(settings::LEDS).array(), hyperion::createColorOrder(dev));
 			_imageProcessor->setLedString(_ledString);
 
 			_ledStringColorOrder.clear();
@@ -547,6 +550,11 @@ QList<int> Hyperion::getActivePriorities() const
 	return _muxer->getPriorities();
 }
 
+Hyperion::InputsMap Hyperion::getPriorityInfo() const
+{
+    return _muxer->getInputInfo();
+}
+
 Hyperion::InputInfo Hyperion::getPriorityInfo(int priority) const
 {
 	return _muxer->getInputInfo(priority);
@@ -671,6 +679,18 @@ void Hyperion::update()
 	else
 	{
 		_ledBuffer = priorityInfo.ledColors;
+
+		if (_ledString.hasBlackListedLeds())
+		{
+			for (unsigned long id : _ledString.blacklistedLedIds())
+			{
+				if (id > _ledBuffer.size()-1)
+				{
+					break;
+				}
+				_ledBuffer.at(id) = ColorRgb::BLACK;
+			}
+		}
 	}
 
 	// emit rawLedColors before transform

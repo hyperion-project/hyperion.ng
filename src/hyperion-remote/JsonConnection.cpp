@@ -125,7 +125,7 @@ void JsonConnection::setEffect(const QString &effectName, const QString & effect
 	if (effectArgs.size() > 0)
 	{
 		QJsonObject effObj;
-		if(!JsonUtils::parse("hyperion-remote-args", effectArgs, effObj, _log))
+		if(!JsonUtils::parse("hyperion-remote-args", effectArgs, effObj, _log).first)
 		{
 			throw std::runtime_error("Error in effect arguments, abort");
 		}
@@ -160,7 +160,7 @@ void JsonConnection::createEffect(const QString &effectName, const QString &effe
 	if (effectArgs.size() > 0)
 	{
 		QJsonObject effObj;
-		if(!JsonUtils::parse("hyperion-remote-args", effectScript, effObj, _log))
+		if(!JsonUtils::parse("hyperion-remote-args", effectScript, effObj, _log).first)
 		{
 			throw std::runtime_error("Error in effect arguments, abort");
 		}
@@ -440,7 +440,7 @@ void JsonConnection::setConfig(const QString &jsonString)
 	if (jsonString.size() > 0)
 	{
 		QJsonObject configObj;
-		if(!JsonUtils::parse("hyperion-remote-args", jsonString, configObj, _log))
+		if(!JsonUtils::parse("hyperion-remote-args", jsonString, configObj, _log).first)
 		{
 			throw std::runtime_error("Error in configSet arguments, abort");
 		}

@@ -1,5 +1,5 @@
 #include <utils/Logger.h>
-#include <grabber/XcbGrabber.h>
+#include <grabber/xcb/XcbGrabber.h>
 
 #include "XcbCommands.h"
 #include "XcbCommandExecutor.h"
@@ -18,7 +18,7 @@ namespace {
 #define DOUBLE_TO_FIXED(d) ((xcb_render_fixed_t) ((d) * 65536))
 
 XcbGrabber::XcbGrabber(int cropLeft, int cropRight, int cropTop, int cropBottom)
-	: Grabber("XCBGRABBER", cropLeft, cropRight, cropTop, cropBottom)
+	: Grabber("GRABBER-XCB", cropLeft, cropRight, cropTop, cropBottom)
 	, _connection{}
 	, _screen{}
 	, _pixmap{}
@@ -41,8 +41,6 @@ XcbGrabber::XcbGrabber(int cropLeft, int cropRight, int cropTop, int cropBottom)
 	, _shmData{}
 	, _XcbRandREventBase{-1}
 {
-	_logger = Logger::getInstance("XCB");
-
 	// cropping is performed by XcbRender, XcbShmGetImage or XcbGetImage
 	_useImageResampler = false;
 	_imageResampler.setCropping(0, 0, 0, 0);

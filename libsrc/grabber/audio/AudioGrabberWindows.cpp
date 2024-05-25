@@ -1,4 +1,7 @@
-#include <grabber/AudioGrabberWindows.h>
+#include <grabber/audio/AudioGrabberWindows.h>
+
+#include <climits>
+
 #include <QImage>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -61,11 +64,14 @@ bool AudioGrabberWindows::configureCaptureInterface()
 	// wFormatTag, nChannels, nSamplesPerSec, mAvgBytesPerSec,
 	// nBlockAlign, wBitsPerSample, cbSize
 
-	notificationSize = max(1024, audioFormat.nAvgBytesPerSec / 8);
+	#ifdef WIN32
+		#undef max
+	#endif
+	notificationSize = std::max(static_cast<DWORD>(1024), static_cast<DWORD>(audioFormat.nAvgBytesPerSec / 8));
 	notificationSize -= notificationSize % audioFormat.nBlockAlign;
 
 	bufferCaptureSize = notificationSize * AUDIO_NOTIFICATION_COUNT;
-			
+
 	DSCBUFFERDESC bufferDesc;
 	bufferDesc.dwSize = sizeof(DSCBUFFERDESC);
 	bufferDesc.dwFlags = 0;
@@ -74,7 +80,7 @@ bool AudioGrabberWindows::configureCaptureInterface()
 	bufferDesc.lpwfxFormat = &audioFormat;
 	bufferDesc.dwFXCount = 0;
 	bufferDesc.lpDSCFXDesc = NULL;
-				
+
 	// Create Capture Device's Buffer
 	LPDIRECTSOUNDCAPTUREBUFFER preBuffer;
 	if (FAILED(recordingDevice->CreateCaptureBuffer(&bufferDesc, &preBuffer, NULL)))
@@ -95,7 +101,7 @@ bool AudioGrabberWindows::configureCaptureInterface()
 	}
 
 	preBuffer->Release();
-		
+
 	// Create Notifications
 	LPDIRECTSOUNDNOTIFY8 notify;
 
@@ -106,7 +112,7 @@ bool AudioGrabberWindows::configureCaptureInterface()
 		recordingBuffer->Release();
 		return false;
 	}
-				
+
 	// Create Events
 	notificationEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 
@@ -127,11 +133,11 @@ bool AudioGrabberWindows::configureCaptureInterface()
 		positionNotify[i].dwOffset = (notificationSize * i) + notificationSize - 1;
 		positionNotify[i].hEventNotify = notificationEvent;
 	}
-	
+
 	// Set Notifications
 	notify->SetNotificationPositions(AUDIO_NOTIFICATION_COUNT, positionNotify);
 	notify->Release();
-		
+
 	return true;
 }
 
@@ -156,12 +162,12 @@ bool AudioGrabberWindows::start()
 	}
 
 	Info(_log, "Capture audio from %s", QSTRING_CSTR(getDeviceName(_device)));
-	
+
 	if (!this->configureCaptureInterface())
 	{
 		return false;
 	}
-		
+
 	if (FAILED(recordingBuffer->Start(DSCBSTART_LOOPING)))
 	{
 		Error(_log, "Failed starting audio capture from '%s'", QSTRING_CSTR(getDeviceName(_device)));
@@ -208,7 +214,7 @@ void AudioGrabberWindows::stop()
 	{
 		Error(_log, "Audio capture failed to stop: '%s'", QSTRING_CSTR(getDeviceName(_device)));
 	}
-		
+
 	if (FAILED(recordingBuffer->Release()))
 	{
 		Error(_log, "Failed to release recording buffer: '%s'", QSTRING_CSTR(getDeviceName(_device)));
@@ -300,7 +306,7 @@ void AudioGrabberWindows::processAudioBuffer()
 
 	// Buffer wrapped around, read second position
 	if (capturedAudio2 != NULL)
-	{		
+	{
 		bufferCapturePosition += capturedAudio2Length;
 		bufferCapturePosition %= bufferCaptureSize; // Circular Buffer
 	}
@@ -312,13 +318,13 @@ void AudioGrabberWindows::processAudioBuffer()
 	{
 		CopyMemory(readBuffer + capturedAudioLength, capturedAudio2, capturedAudio2Length);
 	}
-			
+
 	// Release Buffer Lock
 	recordingBuffer->Unlock(capturedAudio, capturedAudioLength, capturedAudio2, capturedAudio2Length);
-	
+
 	// Process Audio Frame
 	this->processAudioFrame(readBuffer, frameSize);
-		
+
 	delete[] readBuffer;
 }
 

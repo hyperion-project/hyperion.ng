@@ -1,5 +1,5 @@
 #include "MFSourceReaderCB.h"
-#include "grabber/MFGrabber.h"
+#include "grabber/video/mediafoundation/MFGrabber.h"
 
 // Constants
 namespace { const bool verbose = false; }
@@ -42,7 +42,7 @@ MFGrabber::MFGrabber()
 	, _currentFrame(0)
 	, _noSignalThresholdColor(ColorRgb{0,0,0})
 	, _signalDetectionEnabled(true)
-	, _noSignalDetected(false)
+	, _signalDetected(false)
 	, _initialized(false)
 	, _reload(false)
 	, _x_frac_min(0.25)
@@ -537,7 +537,7 @@ void MFGrabber::process_image(const void *frameImageBuffer, int size)
 		Error(_log, "Frame too small: %d != %d", size, _frameByteSize);
 	else if (_threadManager != nullptr)
 	{
-		for (unsigned long i = 0; i < _threadManager->_threadCount; i++)
+		for (int i = 0; i < _threadManager->_threadCount; i++)
 		{
 			if (!_threadManager->_threads[i]->isBusy())
 			{
@@ -580,7 +580,7 @@ void MFGrabber::newThreadFrame(Image<ColorRgb> image)
 		{
 			if (_noSignalCounter >= _noSignalCounterThreshold)
 			{
-				_noSignalDetected = true;
+				_signalDetected = true;
 				Info(_log, "Signal detected");
 			}
 
@@ -593,7 +593,7 @@ void MFGrabber::newThreadFrame(Image<ColorRgb> image)
 		}
 		else if (_noSignalCounter == _noSignalCounterThreshold)
 		{
-			_noSignalDetected = false;
+			_signalDetected = false;
 			Info(_log, "Signal lost");
 		}
 	}

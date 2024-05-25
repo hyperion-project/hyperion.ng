@@ -3,7 +3,7 @@
 #include <iostream>
 
 // Local includes
-#include <grabber/OsxFrameGrabber.h>
+#include <grabber/osx/OsxFrameGrabber.h>
 
 //Qt
 #include <QJsonObject>
@@ -16,7 +16,7 @@ const bool verbose = false;
 } //End of constants
 
 OsxFrameGrabber::OsxFrameGrabber(int display)
-	: Grabber("OSXGRABBER")
+	: Grabber("GRABBER-OSX")
 	  , _screenIndex(display)
 {
 	_isEnabled = false;
@@ -124,6 +124,7 @@ bool OsxFrameGrabber::setDisplayIndex(int index)
 					CGImageRelease(image);
 				}
 			}
+		delete[] activeDspys;
 		}
 		else
 		{
@@ -201,7 +202,7 @@ QJsonObject OsxFrameGrabber::discover(const QJsonObject& params)
 			defaults["video_input"] = video_inputs_default;
 			inputsDiscovered["default"] = defaults;
 		}
-		delete [] activeDspys;
+		delete[] activeDspys;
 	}
 
 	if (inputsDiscovered.isEmpty())

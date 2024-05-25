@@ -9,8 +9,8 @@
 		"cropTop": 0,
 		"fps": 30,
 		"grayscale": false,
-		"imageSource": "url",
+		"imageSource": "file",
 		"reverse": false,
-		"url": "https://i.gifer.com/embedded/download/1j6F.gif"
+		"file": ":matrix.gif"
 	}
 }

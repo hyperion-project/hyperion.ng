@@ -99,7 +99,7 @@ LedDeviceWled::LedDeviceWled(const QJsonObject &deviceConfig)
 	  ,_isStreamToSegment(false)
 {
 #ifdef ENABLE_MDNS
-	QMetaObject::invokeMethod(&MdnsBrowser::getInstance(), "browseForServiceType",
+	QMetaObject::invokeMethod(MdnsBrowser::getInstance().data(), "browseForServiceType",
 							   Qt::QueuedConnection, Q_ARG(QByteArray, MdnsServiceRegister::getServiceType(_activeDeviceType)));
 #endif
 }
@@ -301,7 +301,7 @@ bool LedDeviceWled::isReadyForSegmentStreaming(semver::version& version) const
 	}
 	else
 	{
-		Error(_log, "Version provided to test for streaming readiness is not valid ");
+		Error(_log, "Version provided to test for segment streaming readiness is not valid ");
 	}
 	return isReady;
 }
@@ -325,7 +325,7 @@ bool LedDeviceWled::isReadyForDDPStreaming(semver::version& version) const
 	}
 	else
 	{
-		Error(_log, "Version provided to test for streaming readiness is not valid ");
+		Error(_log, "Version provided to test for DDP streaming readiness is not valid ");
 	}
 	return isReady;
 }
@@ -352,12 +352,12 @@ bool LedDeviceWled::powerOn()
 			}
 			else
 			{
-				QJsonArray propertiesSegments = _originalStateProperties[STATE_SEG].toArray();
+				const QJsonArray propertiesSegments = _originalStateProperties[STATE_SEG].toArray();
 
 				bool isStreamSegmentIdFound { false };
 
 				QJsonArray segments;
-				for (const auto& segmentItem : qAsConst(propertiesSegments))
+				for (const auto& segmentItem : propertiesSegments)
 				{
 					QJsonObject segmentObj = segmentItem.toObject();
 
@@ -505,9 +505,9 @@ bool LedDeviceWled::restoreState()
 
 		if (_isStreamToSegment)
 		{
-			QJsonArray propertiesSegments = _originalStateProperties[STATE_SEG].toArray();
+			const QJsonArray propertiesSegments = _originalStateProperties[STATE_SEG].toArray();
 			QJsonArray segments;
-			for (const auto& segmentItem : qAsConst(propertiesSegments))
+			for (const auto& segmentItem : propertiesSegments)
 			{
 				QJsonObject segmentObj = segmentItem.toObject();
 
@@ -547,7 +547,7 @@ QJsonObject LedDeviceWled::discover(const QJsonObject& /*params*/)
 
 #ifdef ENABLE_MDNS
 	QString discoveryMethod("mDNS");
-	deviceList = MdnsBrowser::getInstance().getServicesDiscoveredJson(
+	deviceList = MdnsBrowser::getInstance().data()->getServicesDiscoveredJson(
 					 MdnsServiceRegister::getServiceType(_activeDeviceType),
 					 MdnsServiceRegister::getServiceNameFilter(_activeDeviceType),
 					 DEFAULT_DISCOVER_TIMEOUT

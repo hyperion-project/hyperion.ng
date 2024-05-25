@@ -1,4 +1,4 @@
-#include "grabber/EncoderThread.h"
+#include "grabber/video/EncoderThread.h"
 
 #include <QDebug>
 
@@ -122,18 +122,6 @@ void EncoderThread::process()
 		else
 #endif
 		{
-			if (_pixelFormat == PixelFormat::BGR24)
-			{
-				if (_flipMode == FlipMode::NO_CHANGE)
-					_imageResampler.setFlipMode(FlipMode::HORIZONTAL);
-				else if (_flipMode == FlipMode::HORIZONTAL)
-					_imageResampler.setFlipMode(FlipMode::NO_CHANGE);
-				else if (_flipMode == FlipMode::VERTICAL)
-					_imageResampler.setFlipMode(FlipMode::BOTH);
-				else if (_flipMode == FlipMode::BOTH)
-					_imageResampler.setFlipMode(FlipMode::VERTICAL);
-			}
-
 			Image<ColorRgb> image = Image<ColorRgb>();
 			_imageResampler.processImage(
 				_localData,
@@ -318,7 +306,7 @@ void EncoderThread::processImageMjpeg()
 		}
 	}
 
-	Image<ColorRgb> srcImage(static_cast<unsigned>(_width), static_cast<unsigned>(_height));
+	Image<ColorRgb> srcImage(_width, _height);
 
 	if (tjDecompress2(_tjInstance, _localData , _size,
 					  reinterpret_cast<unsigned char*>(srcImage.memptr()), _width, 0, _height,

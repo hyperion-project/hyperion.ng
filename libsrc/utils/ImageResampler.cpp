@@ -29,9 +29,6 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 	int cropTop = _cropTop;
 	int cropBottom = _cropBottom;
 
-	int xDestFlip = 0, yDestFlip = 0;
-	int uOffset = 0, vOffset = 0;
-
 	// handle 3D mode
 	switch (_videoMode)
 	{
@@ -53,120 +50,175 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 
 	outputImage.resize(outputWidth, outputHeight);
 
-	for (int yDest = 0, ySource = cropTop + (_verticalDecimation >> 1); yDest < outputHeight; ySource += _verticalDecimation, ++yDest)
+	int xDestStart, xDestEnd;
+	int yDestStart, yDestEnd;
+
+	switch (_flipMode)
 	{
-		int yOffset = lineLength * ySource;
-		if (pixelFormat == PixelFormat::NV12)
-		{
-			uOffset = (height + ySource / 2) * lineLength;
-		}
-		else if (pixelFormat == PixelFormat::I420)
-		{
-			uOffset = width * height + (ySource/2) * width/2;
-			vOffset = width * height * 1.25 + (ySource/2) * width/2;
-		}
+		case FlipMode::NO_CHANGE:
+			xDestStart = 0;
+			xDestEnd = outputWidth-1;
+			yDestStart = 0;
+			yDestEnd = outputHeight-1;
+			break;
+		case FlipMode::HORIZONTAL:
+			xDestStart = 0;
+			xDestEnd = outputWidth-1;
+			yDestStart = -(outputHeight-1);
+			yDestEnd = 0;
+			break;
+		case FlipMode::VERTICAL:
+			xDestStart = -(outputWidth-1);
+			xDestEnd = 0;
+			yDestStart = 0;
+			yDestEnd = outputHeight-1;
+			break;
+		case FlipMode::BOTH:
+			xDestStart = -(outputWidth-1);
+			xDestEnd = 0;
+			yDestStart = -(outputHeight-1);
+			yDestEnd = 0;
+			break;
+	}
 
-		for (int xDest = 0, xSource = cropLeft + (_horizontalDecimation >> 1); xDest < outputWidth; xSource += _horizontalDecimation, ++xDest)
+	switch (pixelFormat)
+	{
+		case PixelFormat::UYVY:
 		{
-			switch (_flipMode)
+			for (int yDest = yDestStart, ySource = cropTop + (_verticalDecimation >> 1); yDest <= yDestEnd; ySource += _verticalDecimation, ++yDest)
 			{
-				case FlipMode::HORIZONTAL:
-
-					xDestFlip = xDest;
-					yDestFlip = outputHeight-yDest-1;
-					break;
-				case FlipMode::VERTICAL:
-					xDestFlip = outputWidth-xDest-1;
-					yDestFlip = yDest;
-					break;
-				case FlipMode::BOTH:
-					xDestFlip = outputWidth-xDest-1;
-					yDestFlip = outputHeight-yDest-1;
-					break;
-				case FlipMode::NO_CHANGE:
-					xDestFlip = xDest;
-					yDestFlip = yDest;
-					break;
-			}
-
-			ColorRgb &rgb = outputImage(xDestFlip, yDestFlip);
-			switch (pixelFormat)
-			{
-				case PixelFormat::UYVY:
+				for (int xDest = xDestStart, xSource = cropLeft + (_horizontalDecimation >> 1); xDest <= xDestEnd; xSource += _horizontalDecimation, ++xDest)
 				{
-					int index = yOffset + (xSource << 1);
+					ColorRgb & rgb = outputImage(abs(xDest), abs(yDest));
+					int index = lineLength * ySource + (xSource << 1);
 					uint8_t y = data[index+1];
 					uint8_t u = ((xSource&1) == 0) ? data[index  ] : data[index-2];
 					uint8_t v = ((xSource&1) == 0) ? data[index+2] : data[index  ];
 					ColorSys::yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
 				}
-				break;
-				case PixelFormat::YUYV:
+			}
+			break;
+		}
+
+		case PixelFormat::YUYV:
+		{
+			for (int yDest = yDestStart, ySource = cropTop + (_verticalDecimation >> 1); yDest <= yDestEnd; ySource += _verticalDecimation, ++yDest)
+			{
+				for (int xDest = xDestStart, xSource = cropLeft + (_horizontalDecimation >> 1); xDest <= xDestEnd; xSource += _horizontalDecimation, ++xDest)
 				{
-					int index = yOffset + (xSource << 1);
+					ColorRgb & rgb = outputImage(abs(xDest), abs(yDest));
+					int index = lineLength * ySource + (xSource << 1);
 					uint8_t y = data[index];
 					uint8_t u = ((xSource&1) == 0) ? data[index+1] : data[index-1];
 					uint8_t v = ((xSource&1) == 0) ? data[index+3] : data[index+1];
 					ColorSys::yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
 				}
-				break;
-				case PixelFormat::BGR16:
+			}
+			break;
+		}
+
+		case PixelFormat::BGR16:
+		{
+			for (int yDest = yDestStart, ySource = cropTop + (_verticalDecimation >> 1); yDest <= yDestEnd; ySource += _verticalDecimation, ++yDest)
+			{
+				for (int xDest = xDestStart, xSource = cropLeft + (_horizontalDecimation >> 1); xDest <= xDestEnd; xSource += _horizontalDecimation, ++xDest)
 				{
-					int index = yOffset + (xSource << 1);
+					ColorRgb & rgb = outputImage(abs(xDest), abs(yDest));
+					int index = lineLength * ySource + (xSource << 1);
 					rgb.blue  = (data[index] & 0x1f) << 3;
 					rgb.green = (((data[index+1] & 0x7) << 3) | (data[index] & 0xE0) >> 5) << 2;
 					rgb.red   = (data[index+1] & 0xF8);
 				}
-				break;
-				case PixelFormat::BGR24:
+			}
+			break;
+		}
+
+		case PixelFormat::BGR24:
+		{
+			for (int yDest = yDestStart, ySource = cropTop + (_verticalDecimation >> 1); yDest <= yDestEnd; ySource += _verticalDecimation, ++yDest)
+			{
+				for (int xDest = xDestStart, xSource = cropLeft + (_horizontalDecimation >> 1); xDest <= xDestEnd; xSource += _horizontalDecimation, ++xDest)
 				{
-					int index = yOffset + (xSource << 1) + xSource;
+					ColorRgb & rgb = outputImage(abs(xDest), abs(yDest));
+					int index = lineLength * ySource + (xSource << 1) + xSource;
 					rgb.blue  = data[index  ];
 					rgb.green = data[index+1];
 					rgb.red   = data[index+2];
 				}
-				break;
-				case PixelFormat::RGB32:
+			}
+			break;
+		}
+
+		case PixelFormat::RGB32:
+		{
+			for (int yDest = yDestStart, ySource = cropTop + (_verticalDecimation >> 1); yDest <= yDestEnd; ySource += _verticalDecimation, ++yDest)
+			{
+				for (int xDest = xDestStart, xSource = cropLeft + (_horizontalDecimation >> 1); xDest <= xDestEnd; xSource += _horizontalDecimation, ++xDest)
 				{
-					int index = yOffset + (xSource << 2);
+					ColorRgb & rgb = outputImage(abs(xDest), abs(yDest));
+					int index = lineLength * ySource + (xSource << 2);
 					rgb.red   = data[index  ];
 					rgb.green = data[index+1];
 					rgb.blue  = data[index+2];
 				}
-				break;
-				case PixelFormat::BGR32:
+			}
+			break;
+		}
+
+		case PixelFormat::BGR32:
+		{
+			for (int yDest = yDestStart, ySource = cropTop + (_verticalDecimation >> 1); yDest <= yDestEnd; ySource += _verticalDecimation, ++yDest)
+			{
+				for (int xDest = xDestStart, xSource = cropLeft + (_horizontalDecimation >> 1); xDest <= xDestEnd; xSource += _horizontalDecimation, ++xDest)
 				{
-					int index = yOffset + (xSource << 2);
+					ColorRgb & rgb = outputImage(abs(xDest), abs(yDest));
+					int index = lineLength * ySource + (xSource << 2);
 					rgb.blue  = data[index  ];
 					rgb.green = data[index+1];
 					rgb.red   = data[index+2];
 				}
-				break;
-				case PixelFormat::NV12:
+			}
+			break;
+		}
+
+		case PixelFormat::NV12:
+		{
+			for (int yDest = yDestStart, ySource = cropTop + (_verticalDecimation >> 1); yDest <= yDestEnd; ySource += _verticalDecimation, ++yDest)
+			{
+				int uOffset = (height + ySource / 2) * lineLength;
+				for (int xDest = xDestStart, xSource = cropLeft + (_horizontalDecimation >> 1); xDest <= xDestEnd; xSource += _horizontalDecimation, ++xDest)
 				{
-					uint8_t y = data[yOffset + xSource];
+					ColorRgb & rgb = outputImage(abs(xDest), abs(yDest));
+					uint8_t y = data[lineLength * ySource + xSource];
 					uint8_t u = data[uOffset + ((xSource >> 1) << 1)];
 					uint8_t v = data[uOffset + ((xSource >> 1) << 1) + 1];
 					ColorSys::yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
 				}
-				break;
-				case PixelFormat::I420:
+			}
+			break;
+		}
+
+		case PixelFormat::I420:
+		{
+			for (int yDest = yDestStart, ySource = cropTop + (_verticalDecimation >> 1); yDest <= yDestEnd; ySource += _verticalDecimation, ++yDest)
+			{
+				int uOffset = width * height + (ySource/2) * width/2;
+				int vOffset = width * height * 1.25 + (ySource/2) * width/2;
+				for (int xDest = xDestStart, xSource = cropLeft + (_horizontalDecimation >> 1); xDest <= xDestEnd; xSource += _horizontalDecimation, ++xDest)
 				{
-					int y = data[yOffset + xSource];
+					ColorRgb & rgb = outputImage(abs(xDest), abs(yDest));
+					int y = data[lineLength * ySource + xSource];
 					int u = data[uOffset + (xSource >> 1)];
 					int v = data[vOffset + (xSource >> 1)];
 					ColorSys::yuv2rgb(y, u, v, rgb.red, rgb.green, rgb.blue);
-					break;
 				}
-				break;
-#ifdef HAVE_TURBO_JPEG
-				case PixelFormat::MJPEG:
-				break;
-#endif
-				case PixelFormat::NO_CHANGE:
-					Error(Logger::getInstance("ImageResampler"), "Invalid pixel format given");
-				break;
 			}
+			break;
 		}
+		case PixelFormat::MJPEG:
+		break;
+		case PixelFormat::NO_CHANGE:
+			Error(Logger::getInstance("ImageResampler"), "Invalid pixel format given");
+		break;
 	}
 }

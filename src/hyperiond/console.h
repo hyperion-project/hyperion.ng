@@ -15,4 +15,5 @@ void CreateConsole()
     freopen_s(&fDummy, "CONOUT$", "w", stderr);
     freopen_s(&fDummy, "CONIN$", "r", stdin);
 	SetConsoleTitle(TEXT("Hyperion"));
+	SetConsoleOutputCP(CP_UTF8);
 }

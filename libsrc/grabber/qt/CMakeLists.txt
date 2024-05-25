@@ -1,13 +1,10 @@
-# Define the current source locations
-SET(CURRENT_HEADER_DIR ${CMAKE_SOURCE_DIR}/include/grabber)
-SET(CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/libsrc/grabber/qt)
-
-
-FILE ( GLOB QT_GRAB_SOURCES "${CURRENT_HEADER_DIR}/Qt*.h"  "${CURRENT_SOURCE_DIR}/*.h"  "${CURRENT_SOURCE_DIR}/*.cpp" )
-
-add_library(qt-grabber ${QT_GRAB_SOURCES} )
+add_library(qt-grabber
+	${CMAKE_SOURCE_DIR}/include/grabber/qt/QtGrabber.h
+	${CMAKE_SOURCE_DIR}/include/grabber/qt/QtWrapper.h
+	${CMAKE_SOURCE_DIR}/libsrc/grabber/qt/QtGrabber.cpp
+	${CMAKE_SOURCE_DIR}/libsrc/grabber/qt/QtWrapper.cpp
+)
 
 target_link_libraries(qt-grabber
 	hyperion
-	${QT_LIBRARIES}
 )

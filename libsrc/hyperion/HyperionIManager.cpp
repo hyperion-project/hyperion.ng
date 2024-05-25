@@ -45,6 +45,11 @@ QVector<QVariantMap> HyperionIManager::getInstanceData() const
 	return instances;
 }
 
+QList<quint8> HyperionIManager::getRunningInstanceIdx() const
+{
+	return _runningInstances.keys();
+}
+
 void HyperionIManager::startAll()
 {
 	for(const auto & entry : _instanceTable->getAllInstances(true))
@@ -63,23 +68,38 @@ void HyperionIManager::stopAll()
 	}
 }
 
-void HyperionIManager::suspend()
+void HyperionIManager::handleEvent(Event event)
 {
-	Info(_log,"Suspend all instances and enabled components");
-	QMap<quint8, Hyperion*> instCopy = _runningInstances;
-	for(const auto instance : instCopy)
-	{
-		emit instance->suspendRequest(true);
+	Debug(_log,"%s Event [%d] received", eventToString(event), event);
+	switch (event) {
+	case Event::Suspend:
+		toggleSuspend(true);
+		break;
+
+	case Event::Resume:
+		toggleSuspend(false);
+		break;
+
+	case Event::Idle:
+		toggleIdle(true);
+		break;
+
+	case Event::ResumeIdle:
+		toggleIdle(false);
+		break;
+
+	default:
+		break;
 	}
 }
 
-void HyperionIManager::resume()
+void HyperionIManager::toggleSuspend(bool isSuspend)
 {
-	Info(_log,"Resume all instances and enabled components");
+	Info(_log,"Put all instances in %s state", isSuspend ? "suspend" : "working");
 	QMap<quint8, Hyperion*> instCopy = _runningInstances;
 	for(const auto instance : instCopy)
 	{
-		emit instance->suspendRequest(false);
+		emit instance->suspendRequest(isSuspend);
 	}
 }
 
@@ -232,7 +252,7 @@ void HyperionIManager::handleFinished()
 	Hyperion* hyperion = qobject_cast<Hyperion*>(sender());
 	quint8 instance = hyperion->getInstanceIndex();
 
-	Info(_log,"Hyperion instance '%s' has been stopped", QSTRING_CSTR(_instanceTable->getNamebyIndex(instance)));
+	Info(_log,"Hyperion instance '%s' stopped", QSTRING_CSTR(_instanceTable->getNamebyIndex(instance)));
 
 	_runningInstances.remove(instance);
 	hyperion->thread()->deleteLater();

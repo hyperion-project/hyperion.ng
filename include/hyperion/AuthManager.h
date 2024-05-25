@@ -3,6 +3,8 @@
 #include <utils/Logger.h>
 #include <utils/settings.h>
 
+#include <db/AuthTable.h>
+
 //qt
 #include <QMap>
 #include <QVector>
@@ -42,22 +44,10 @@ public:
 	QString getID() const { return _uuid; }
 
 	///
-	/// @brief Check authorization is required according to the user setting
-	/// @return       True if authorization required else false
-	///
-	bool isAuthRequired() const { return _authRequired; }
-
-	///
 	/// @brief Check if authorization is required for local network connections
 	/// @return       True if authorization required else false
 	///
 	bool isLocalAuthRequired() const { return _localAuthRequired; }
-
-	///
-	/// @brief Check if authorization is required for local network connections for admin access
-	/// @return       True if authorization required else false
-	///
-	bool isLocalAdminAuthRequired() const { return _localAdminAuthRequired; }
 
 	///
 	/// @brief Reset Hyperion user
@@ -172,7 +162,7 @@ public slots:
 	/// @param usr the defined user
 	/// @return       The token
 	///
-	QString getUserToken(const QString &usr = "Hyperion") const;
+	QString getUserToken(const QString &usr = hyperion::DEFAULT_USER) const;
 
 	///
 	/// @brief Get all available token entries
@@ -230,14 +220,8 @@ private:
 	/// All pending requests
 	QMap<QString, AuthDefinition> _pendingRequests;
 
-	/// Reflect state of global auth
-	bool _authRequired;
-
 	/// Reflect state of local auth
 	bool _localAuthRequired;
-
-	/// Reflect state of local admin auth
-	bool _localAdminAuthRequired;
 
 	/// Timer for counting against pendingRequest timeouts
 	QTimer *_timer;

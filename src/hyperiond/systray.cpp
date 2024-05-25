@@ -22,10 +22,11 @@
 #endif
 #include <webserver/WebServer.h>
 #include <hyperion/PriorityMuxer.h>
+#include <events/EventHandler.h>
 
 #include "hyperiond.h"
 #include "systray.h"
-#include "SuspendHandler.h"
+
 
 SysTray::SysTray(HyperionDaemon *hyperiond)
 	: QWidget()
@@ -33,7 +34,6 @@ SysTray::SysTray(HyperionDaemon *hyperiond)
 	, _hyperiond(hyperiond)
 	, _hyperion(nullptr)
 	, _instanceManager(HyperionIManager::getInstance())
-	, _suspendHandler (hyperiond->getSuspendHandlerInstance())
 	, _webPort(8090)
 {
 	Q_INIT_RESOURCE(resources);
@@ -44,6 +44,8 @@ SysTray::SysTray(HyperionDaemon *hyperiond)
 
 	// instance changes
 	connect(_instanceManager, &HyperionIManager::instanceStateChanged, this, &SysTray::handleInstanceStateChange);
+
+	connect(this, &SysTray::signalEvent, EventHandler::getInstance().data(), &EventHandler::handleEvent);
 }
 
 SysTray::~SysTray()
@@ -82,15 +84,15 @@ void SysTray::createTrayIcon()
 
 	restartAction = new QAction(tr("&Restart"), this);
 	restartAction->setIcon(QPixmap(":/restart.svg"));
-	connect(restartAction, &QAction::triggered, this , [=](){ Process::restartHyperion(12); });
+	connect(restartAction, &QAction::triggered, this , [=](){ emit signalEvent(Event::Restart); });
 
 	suspendAction = new QAction(tr("&Suspend"), this);
 	suspendAction->setIcon(QPixmap(":/suspend.svg"));
-	connect(suspendAction, &QAction::triggered, _suspendHandler, QOverload<>::of(&SuspendHandler::suspend));
+	connect(suspendAction, &QAction::triggered, this, [this]() { emit signalEvent(Event::Suspend); });
 
 	resumeAction = new QAction(tr("&Resume"), this);
 	resumeAction->setIcon(QPixmap(":/resume.svg"));
-	connect(resumeAction, &QAction::triggered, _suspendHandler, &SuspendHandler::resume);
+	connect(resumeAction, &QAction::triggered, this, [this]() { emit signalEvent(Event::Resume); });
 
 	colorAction = new QAction(tr("&Color"), this);
 	colorAction->setIcon(QPixmap(":/color.svg"));
@@ -125,7 +127,9 @@ void SysTray::createTrayIcon()
 
 	// add seperator if custom effects exists
 	if (!_trayIconEfxMenu->isEmpty())
+	{
 		_trayIconEfxMenu->addSeparator();
+	}
 
 	// build in effects
 	for (const auto &efx : efxs)
@@ -281,7 +285,7 @@ void SysTray::handleInstanceStateChange(InstanceState state, quint8 instance, co
 				connect(quitAction, &QAction::triggered, _trayIcon, &QSystemTrayIcon::hide, Qt::DirectConnection);
 				connect(&_colorDlg, &QColorDialog::currentColorChanged, this, &SysTray::setColor);
 
-				QIcon icon(":/hyperion-icon-32px.png");
+				QIcon icon(":/hyperion-32px.png");
 				_trayIcon->setIcon(icon);
 				_trayIcon->show();
 				setWindowIcon(icon);

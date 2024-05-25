@@ -1,5 +1,5 @@
 # this is only available on real pi
-IF ( "${PLATFORM}" MATCHES rpi)
+if("${PLATFORM}" MATCHES rpi)
 
 	find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Gui REQUIRED)
 
@@ -16,4 +16,4 @@ IF ( "${PLATFORM}" MATCHES rpi)
 	target_link_libraries(dispmanx2png
 		dispmanx-grabber
 		Qt${QT_VERSION_MAJOR::Gui)
-ENDIF()
+endif()

@@ -2,6 +2,9 @@
 
 #include <utils/Logger.h>
 #include "WebSocketUtils.h"
+#include <api/JsonAPI.h>
+
+#include <QScopedPointer>
 
 class QTcpSocket;
 
@@ -28,7 +31,7 @@ private:
 	QTcpSocket* _socket;
 	Logger* _log;
 	Hyperion* _hyperion;
-	JsonAPI* _jsonAPI;
+	QScopedPointer<JsonAPI> _jsonAPI;
 
 	void getWsFrameHeader(WebSocketHeader* header);
 	void sendClose(int status, const QString& reason = "");
@@ -73,4 +76,7 @@ private:
 private slots:
 	void handleWebSocketFrame();
 	qint64 sendMessage(QJsonObject obj);
+
+signals:
+	void handleMessage(const QString &message, const QString &httpAuthHeader);
 };

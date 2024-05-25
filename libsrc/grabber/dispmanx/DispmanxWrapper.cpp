@@ -1,15 +1,21 @@
-#include <grabber/DispmanxWrapper.h>
+#include <grabber/dispmanx/DispmanxWrapper.h>
 
 DispmanxWrapper::DispmanxWrapper( int updateRate_Hz,
 								  int pixelDecimation
 								  )
-	: GrabberWrapper("Dispmanx", &_grabber, updateRate_Hz)
-	  , _grabber()
+	: GrabberWrapper(GRABBERTYPE, &_grabber, updateRate_Hz)
 {
-	if (available = _grabber.isAvailable())
+	if (_isAvailable)
 	{
 		_grabber.setPixelDecimation(pixelDecimation);
 	}
+}
+
+DispmanxWrapper::DispmanxWrapper(const QJsonDocument& grabberConfig)
+	: DispmanxWrapper(GrabberWrapper::DEFAULT_RATE_HZ,
+					  GrabberWrapper::DEFAULT_PIXELDECIMATION)
+{
+	this->handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
 }
 
 bool DispmanxWrapper::open()

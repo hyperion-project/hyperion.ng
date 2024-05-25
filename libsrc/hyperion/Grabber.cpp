@@ -18,6 +18,7 @@ Grabber::Grabber(const QString& grabberName, int cropLeft, int cropRight, int cr
 	, _cropRight(0)
 	, _cropTop(0)
 	, _cropBottom(0)
+	, _isAvailable(true)
 	, _isEnabled(true)
 	, _isDeviceInError(false)
 {

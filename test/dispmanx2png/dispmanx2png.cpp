@@ -7,7 +7,7 @@
 #include <QtGui/QImage>
 
 // Dispmanx grabber includes
-#include <grabber/DispmanxFrameGrabber.h>
+#include <grabber/dispamnx/DispmanxFrameGrabber.h>
 
 static bool running = true;
 
