@@ -71,10 +71,6 @@ if(ENABLE_PROTOBUF_SERVER)
 	target_link_libraries(${PROJECT_NAME} protoserver)
 endif()
 
-if(ENABLE_AMLOGIC)
-	target_link_libraries(${PROJECT_NAME} pcre16 dl z)
-endif(ENABLE_AMLOGIC)
-
 if(ENABLE_DISPMANX)
 	target_link_libraries(${PROJECT_NAME} dispmanx-grabber)
 endif (ENABLE_DISPMANX)

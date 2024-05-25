@@ -8,6 +8,11 @@
 #include <QDateTime>
 #include <QUuid>
 
+namespace hyperion {
+const char DEFAULT_USER[] = "Hyperion";
+const char DEFAULT_PASSWORD[] = "hyperion";
+}
+
 ///
 /// @brief Authentication table interface
 ///
@@ -149,10 +154,10 @@ public:
 	inline bool resetHyperionUser()
 	{
 		QVariantMap map;
-		map["password"] = calcPasswordHashOfUser("Hyperion", "hyperion");
+		map["password"] = calcPasswordHashOfUser(hyperion::DEFAULT_USER, hyperion::DEFAULT_PASSWORD);
 
 		VectorPair cond;
-		cond.append(CPair("user", "Hyperion"));
+		cond.append(CPair("user", hyperion::DEFAULT_USER));
 		return updateRecord(cond, map);
 	}
 

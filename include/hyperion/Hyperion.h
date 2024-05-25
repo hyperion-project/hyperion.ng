@@ -69,6 +69,7 @@ class Hyperion : public QObject
 	Q_OBJECT
 public:
 	///  Type definition of the info structure used by the priority muxer
+	using InputsMap = PriorityMuxer::InputsMap;
 	using InputInfo = PriorityMuxer::InputInfo;
 
 	///
@@ -109,7 +110,7 @@ public:
 	///
 	QString getActiveDeviceType() const;
 
-	bool getReadOnlyMode() {return _readOnlyMode; }
+	bool getReadOnlyMode() const {return _readOnlyMode; }
 
 public slots:
 
@@ -252,13 +253,13 @@ public slots:
 	///	@param priority The priority channel of the effect
 	/// @param timeout The timeout of the effect (after the timout, the effect will be cleared)
 	int setEffect(const QString &effectName
-				, const QJsonObject &args
-				, int priority
-				, int timeout = PriorityMuxer::ENDLESS
-				, const QString &pythonScript = ""
-				, const QString &origin="System"
-				, const QString &imageData = ""
-	);
+				  , const QJsonObject &args
+				  , int priority
+				  , int timeout = PriorityMuxer::ENDLESS
+				  , const QString &pythonScript = ""
+				  , const QString &origin="System"
+				  , const QString &imageData = ""
+				);
 
 	/// Get the list of available effects
 	/// @return The list of available effects
@@ -320,7 +321,14 @@ public slots:
 	QList<int> getActivePriorities() const;
 
 	///
-	/// Returns the information of a specific priorrity channel
+	/// Returns the information of all priority channels.
+	///
+	/// @return The information fo all priority channels
+	///
+	PriorityMuxer::InputsMap getPriorityInfo() const;
+
+	///
+	/// Returns the information of a specific priority channel
 	///
 	/// @param[in] priority  The priority channel
 	///
@@ -363,7 +371,7 @@ public slots:
 	/// @brief Get the component Register
 	/// return Component register pointer
 	///
-	ComponentRegister* getComponentRegister() { return _componentRegister; }
+	ComponentRegister* getComponentRegister() const { return _componentRegister; }
 
 	///
 	/// @brief Called from components to update their current state. DO NOT CALL FROM USERS

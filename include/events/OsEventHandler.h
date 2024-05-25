@@ -29,6 +29,7 @@ public:
 public slots:
 	void suspend(bool sleep);
 	void lock(bool isLocked);
+	void quit();
 
 	virtual void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
@@ -100,6 +101,7 @@ public:
 	OsEventHandlerLinux();
 
 	void handleSignal(int signum);
+
 
 private:
 	static OsEventHandlerLinux* getInstance();

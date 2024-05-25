@@ -23,10 +23,6 @@ else()
 	target_link_libraries(${PROJECT_NAME} ssdp)
 endif()
 
-if(ENABLE_AMLOGIC)
-	target_link_libraries(${PROJECT_NAME} pcre16 dl z)
-endif()
-
 install (TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin" COMPONENT "hyperion_aml")
 
 if(CMAKE_HOST_UNIX)

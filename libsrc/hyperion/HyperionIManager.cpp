@@ -45,6 +45,11 @@ QVector<QVariantMap> HyperionIManager::getInstanceData() const
 	return instances;
 }
 
+QList<quint8> HyperionIManager::getRunningInstanceIdx() const
+{
+	return _runningInstances.keys();
+}
+
 void HyperionIManager::startAll()
 {
 	for(const auto & entry : _instanceTable->getAllInstances(true))

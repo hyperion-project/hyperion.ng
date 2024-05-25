@@ -3,9 +3,12 @@ var createdCont = false;
 var isScroll = true;
 
 performTranslation();
-requestLoggingStop();
 
 $(document).ready(function () {
+
+  window.addEventListener('hashchange', function(event) {
+    requestLoggingStop();
+  });
 
   requestLoggingStart();
 
@@ -178,9 +181,9 @@ $(document).ready(function () {
   if (!window.loggingHandlerInstalled) {
     window.loggingHandlerInstalled = true;
 
-    $(window.hyperion).on("cmd-logging-update", function (event) {
+    $(window.hyperion).on("cmd-logmsg-update", function (event) {
 
-      var messages = (event.response.result.messages);
+      var messages = (event.response.data.messages);
 
       if (messages.length != 0) {
         if (!createdCont) {

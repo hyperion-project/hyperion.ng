@@ -158,7 +158,7 @@ private:
 	// signal detection
 	int      _noSignalCounterThreshold;
 	ColorRgb _noSignalThresholdColor;
-	bool     _standbyActivated, _signalDetectionEnabled, _noSignalDetected;
+	bool     _standbyActivated, _signalDetectionEnabled, _signalDetected;
 	int      _noSignalCounter;
 	int		_brightness, _contrast, _saturation, _hue;
 	double   _x_frac_min;

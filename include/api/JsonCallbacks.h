@@ -1,51 +1,82 @@
 #pragma once
 
+#include "api/JsonApiSubscription.h"
+#include <api/API.h>
+#include <events/EventEnum.h>
+
 // qt incl
 #include <QObject>
 #include <QJsonObject>
+#include <QSet>
 
-// components def
 #include <utils/Components.h>
-
-// videModes
 #include <utils/VideoMode.h>
-// settings
 #include <utils/settings.h>
-// AuthManager
 #include <hyperion/AuthManager.h>
-
 #include <hyperion/PriorityMuxer.h>
 
 class Hyperion;
 class ComponentRegister;
 class PriorityMuxer;
 
-class JsonCB : public QObject
+class JsonCallbacks : public QObject
 {
 	Q_OBJECT
 
 public:
-	JsonCB(QObject* parent);
+	JsonCallbacks(Logger* log, const QString& peerAddress, QObject* parent);
 
 	///
 	/// @brief Subscribe to future data updates given by cmd
-	/// @param cmd          The cmd which will be subscribed for
-	/// @param unsubscribe  Revert subscription
+	/// @param cmd   The cmd which will be subscribed for
 	/// @return      True on success, false if not found
 	///
-	bool subscribeFor(const QString& cmd, bool unsubscribe = false);
+	bool subscribe(const QString& cmd);
+
+	///
+	/// @brief Subscribe to future data updates given by subscription list
+	/// @param type   Array of subscriptionsm
+	///
+	QStringList subscribe(const QJsonArray& subscriptions);
+
+	///
+	/// @brief Subscribe to future data updates given by cmd
+	/// @param cmd   The cmd which will be subscribed to
+	/// @return      True on success, false if not found
+	///
+	bool subscribe(Subscription::Type subscription);
+
+	///
+	/// @brief Unsubscribe to future data updates given by cmd
+	/// @param cmd   The cmd which will be unsubscribed
+	/// @return      True on success, false if not found
+	///
+	bool unsubscribe(const QString& cmd);
+
+	///
+	/// @brief Unsubscribe to future data updates given by subscription list
+	/// @param type   Array of subscriptions
+	///
+	QStringList unsubscribe(const QJsonArray& subscriptions);
+
+	///
+	/// @brief Unsubscribe to future data updates given by cmd
+	/// @param cmd   The cmd which will be subscribed to
+	/// @return      True on success, false if not found
+	///
+	bool unsubscribe(Subscription::Type cmd);
 
 	///
 	/// @brief Get all possible commands to subscribe for
+	/// @param fullList Return all possible commands or those not triggered by API requests (subscriptions="ALL")
 	/// @return  The list of commands
 	///
-	QStringList getCommands() { return _availableCommands; };
-
+	QStringList getCommands(bool fullList = true) const;
 	///
 	/// @brief Get all subscribed commands
 	/// @return  The list of commands
 	///
-	QStringList getSubscribedCommands() { return _subscribedCommands; };
+	QStringList getSubscribedCommands() const;
 
 	///
 	/// @brief Reset subscriptions, disconnect all signals
@@ -124,18 +155,49 @@ private slots:
 	///
 	void handleTokenChange(const QVector<AuthManager::AuthDefinition> &def);
 
+	///
+	/// @brief Is called whenever the current Hyperion instance pushes new led raw values (if enabled)
+	/// @param ledColors  The current led colors
+	///
+	void handleLedColorUpdate(const std::vector<ColorRgb> &ledColors);
+
+	///
+	/// @brief Is called whenever the current Hyperion instance pushes new image update (if enabled)
+	/// @param image  The current image
+	///
+	void handleImageUpdate(const Image<ColorRgb> &image);
+
+	///
+	/// @brief Process and push new log messages from logger (if enabled)
+	///
+	void handleLogMessageUpdate(const Logger::T_LOG_MESSAGE &);
+
+	///
+	/// @brief Is called whenever an event is triggert
+	/// @param image  The current event
+	///
+	void handleEventUpdate(const Event &event);
+
 private:
-	/// pointer of Hyperion instance
+
+	/// construct callback msg
+	void doCallback(Subscription::Type cmd, const QVariant& data);
+
+	Logger *_log;
 	Hyperion* _hyperion;
+
+	/// The peer address of the client
+	QString _peerAddress;
+
 	/// pointer of comp register
 	ComponentRegister* _componentRegister;
 
 	/// priority muxer instance
 	PriorityMuxer* _prioMuxer;
-	/// contains all available commands
-	QStringList _availableCommands;
+
 	/// contains active subscriptions
-	QStringList _subscribedCommands;
-	/// construct callback msg
-	void doCallback(const QString& cmd, const QVariant& data);
+	QSet<Subscription::Type> _subscribedCommands;
+
+	/// flag to determine state of log streaming
+	bool _islogMsgStreamingActive;
 };

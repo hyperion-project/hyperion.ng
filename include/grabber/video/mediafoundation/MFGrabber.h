@@ -119,7 +119,7 @@ private:
 	QAtomicInt									_currentFrame;
 	ColorRgb									_noSignalThresholdColor;
 	bool										_signalDetectionEnabled,
-												_noSignalDetected,
+												_signalDetected,
 												_initialized,
 												_reload;
 	double										_x_frac_min,

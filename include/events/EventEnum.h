@@ -13,7 +13,8 @@ enum class Event
 	ResumeIdle,
 	ToggleIdle,
 	Reload,
-	Restart
+	Restart,
+	Quit
 };
 
 inline const char* eventToString(Event event)
@@ -24,6 +25,7 @@ inline const char* eventToString(Event event)
 	case Event::Resume:        return "Resume";
 	case Event::ToggleSuspend: return "ToggleSuspend";
 	case Event::Idle:          return "Idle";
+	case Event::Quit:          return "Quit";
 	case Event::ResumeIdle:    return "ResumeIdle";
 	case Event::ToggleIdle:    return "ToggleIdle";
 	case Event::Reload:        return "Reload";
@@ -39,6 +41,7 @@ inline Event stringToEvent(const QString& event)
 	if (event.compare("Resume")==0)        return Event::Resume;
 	if (event.compare("ToggleSuspend")==0) return Event::ToggleSuspend;
 	if (event.compare("Idle")==0)          return Event::Idle;
+	if (event.compare("Quit")==0)          return Event::Quit;
 	if (event.compare("ResumeIdle")==0)    return Event::ResumeIdle;
 	if (event.compare("ToggleIdle")==0)    return Event::ToggleIdle;
 	if (event.compare("Reload")==0)        return Event::Reload;

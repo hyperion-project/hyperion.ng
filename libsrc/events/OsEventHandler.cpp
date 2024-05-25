@@ -35,7 +35,7 @@ OsEventHandlerBase::OsEventHandlerBase()
 	_log = Logger::getInstance("EVENTS-OS");
 
 	QCoreApplication* app = QCoreApplication::instance();
-	if (!qobject_cast<QApplication*>(app))
+	if (qobject_cast<QApplication*>(app) == nullptr)
 	{
 		_isService = true;
 	}
@@ -46,6 +46,7 @@ OsEventHandlerBase::OsEventHandlerBase()
 
 OsEventHandlerBase::~OsEventHandlerBase()
 {
+	quit();
 	QObject::disconnect(this, &OsEventHandlerBase::signalEvent, EventHandler::getInstance().data(), &EventHandler::handleEvent);
 
 	OsEventHandlerBase::unregisterLockHandler();
@@ -128,6 +129,11 @@ void OsEventHandlerBase::lock(bool isLocked)
 			emit signalEvent(Event::ResumeIdle);
 		}
 	}
+}
+
+void OsEventHandlerBase::quit()
+{
+	emit signalEvent(Event::Quit);
 }
 
 #if defined(_WIN32)

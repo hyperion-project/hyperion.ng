@@ -103,7 +103,7 @@ QString EffectFileHandler::saveEffect(const QJsonObject& message)
 
 		if (it != effectsSchemas.end())
 		{
-			if (!JsonUtils::validate("EffectFileHandler", message["args"].toObject(), it->schemaFile, _log))
+			if (!JsonUtils::validate("EffectFileHandler", message["args"].toObject(), it->schemaFile, _log).first)
 			{
 				return "Error during arg validation against schema, please consult the Hyperion Log";
 			}
@@ -298,12 +298,12 @@ bool EffectFileHandler::loadEffectDefinition(const QString& path, const QString&
 
 	// Read and parse the effect json config file
 	QJsonObject configEffect;
-	if (!JsonUtils::readFile(fileName, configEffect, _log)) {
+	if (!JsonUtils::readFile(fileName, configEffect, _log).first) {
 		return false;
 	}
 
 	// validate effect config with effect schema(path)
-	if (!JsonUtils::validate(fileName, configEffect, ":effect-schema", _log)) {
+	if (!JsonUtils::validate(fileName, configEffect, ":effect-schema", _log).first) {
 		return false;
 	}
 
@@ -335,7 +335,7 @@ bool EffectFileHandler::loadEffectSchema(const QString& path, const QString& sch
 {
 	// Read and parse the effect schema file
 	QJsonObject schemaEffect;
-	if (!JsonUtils::readFile(schemaFilePath, schemaEffect, _log))
+	if (!JsonUtils::readFile(schemaFilePath, schemaEffect, _log).first)
 	{
 		return false;
 	}

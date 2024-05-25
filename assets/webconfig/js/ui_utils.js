@@ -319,9 +319,9 @@ function showInfoDialog(type, header, message) {
   });
 
   $(document).on('click', '[data-dismiss-modal]', function () {
-    var target = $(this).attr('data-dismiss-modal');
-    $.find(target).modal('hide');
-  });
+    var target = $(this).data('dismiss-modal');
+    $($.find(target)).modal('hide');
+});
 }
 
 function createHintH(type, text, container) {
@@ -1393,3 +1393,32 @@ function isValidHostnameOrIP(value) {
   return (isValidHostnameOrIP4(value) || isValidIPv6(value) || isValidServicename(value));
 }
 
+const loadedScripts = [];
+
+function isScriptLoaded(src) {
+  return loadedScripts.indexOf(src) > -1;
+}
+
+function loadScript(src, callback, ...params) {
+  if (isScriptLoaded(src)) {
+    debugMessage('Script ' + src + ' already loaded');
+    if (callback && typeof callback === 'function') {
+      callback( ...params);
+    }
+    return;
+  }
+
+  const script = document.createElement('script');
+  script.src = src;
+
+  script.onload = function () {
+    debugMessage('Script ' + src + ' loaded successfully');
+    loadedScripts.push(src);
+
+    if (callback && typeof callback === 'function') {
+      callback(...params);
+    }
+  };
+
+  document.head.appendChild(script);
+}
