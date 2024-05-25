@@ -598,8 +598,16 @@ void JsonAPI::handleAdjustmentCommand(const QJsonObject &message, const JsonApiC
 		return;
 	}
 
+	ColorCorrection *temperatureColorCorrection = _hyperion->getTemperature(adjustmentId);
+	if (temperatureColorCorrection == nullptr) {
+		Warning(_log, "Incorrect temperature adjustment identifier: %s", adjustmentId.toStdString().c_str());
+		return;
+	}
+
+
 	applyColorAdjustments(adjustment, colorAdjustment);
 	applyTransforms(adjustment, colorAdjustment);
+	applyTemperatureAdjustment(adjustment, temperatureColorCorrection);
 	_hyperion->adjustmentsUpdated();
 	sendSuccessReply(cmd);
 }
@@ -670,6 +678,19 @@ void JsonAPI::applyTransform(const QString &transformName, const QJsonObject &ad
 {
 	if (adjustment.contains(transformName)) {
 		(transform.*setFunction)(static_cast<uint8_t>(adjustment[transformName].toInt()));
+	}
+}
+
+void JsonAPI::applyTemperatureAdjustment(const QJsonObject &adjustment, ColorCorrection *colorCorrection)
+{
+	if (adjustment.contains("temperature"))
+	{
+		int temperature = adjustment["temperature"].toInt(6500);
+		ColorRgb rgb = getRgbFromTemperature(temperature);
+
+		colorCorrection->_rgbCorrection.setcorrectionR(rgb.red);
+		colorCorrection->_rgbCorrection.setcorrectionG(rgb.green);
+		colorCorrection->_rgbCorrection.setcorrectionB(rgb.blue);
 	}
 }
 

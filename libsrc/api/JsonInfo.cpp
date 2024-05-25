@@ -83,6 +83,16 @@ QJsonArray JsonInfo::getAdjustmentInfo(const Hyperion* hyperion, Logger* log)
 		adjustment["saturationGain"] = colorAdjustment->_okhsvTransform.getSaturationGain();
 		adjustment["brightnessGain"] = colorAdjustment->_okhsvTransform.getBrightnessGain();
 
+
+		ColorCorrection *temperatureColorCorrection = hyperion->getTemperature(adjustmentId);
+		if (temperatureColorCorrection == nullptr) {
+			Error(log, "Incorrect temperature adjustment id: %s", QSTRING_CSTR(adjustmentId));
+			continue;
+		}
+
+		// TODO: Return current Temperature in Kelvin
+		adjustment["temperature"] = 6600;
+
 		adjustmentArray.append(adjustment);
 	}
 	return adjustmentArray;
