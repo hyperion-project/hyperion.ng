@@ -59,6 +59,8 @@ class DDAGrabberImpl
 {
 public:
 	int display = 0;
+	int desktopWidth = 0;
+	int desktopHeight = 0;
 
 	// Created in the constructor.
 	CComPtr<ID3D11Device> device;
@@ -127,9 +129,12 @@ bool DDAGrabber::restartCapture()
 	hr = output->GetDesc(&desc);
 	RETURN_IF_ERROR(hr, "Failed to get output description", false);
 
-	// TODO: Handle cropping.
-	_width = desc.DesktopCoordinates.right - desc.DesktopCoordinates.left;
-	_height = desc.DesktopCoordinates.bottom - desc.DesktopCoordinates.top;
+	d->desktopWidth = desc.DesktopCoordinates.right - desc.DesktopCoordinates.left;
+	d->desktopHeight = desc.DesktopCoordinates.bottom - desc.DesktopCoordinates.top;
+	_width = (d->desktopWidth - _cropLeft - _cropRight) / _pixelDecimation;
+	_height = (d->desktopHeight - _cropTop - _cropBottom) / _pixelDecimation;
+	Info(_log, "Desktop size: %dx%d, cropping=%d,%d,%d,%d, decimation=%d, final image size=%dx%d", d->desktopWidth,
+	     d->desktopHeight, _cropLeft, _cropTop, _cropRight, _cropBottom, _pixelDecimation, _width, _height);
 
 	// Get the DXGIOutput1 interface.
 	CComPtr<IDXGIOutput1> output1;
@@ -229,15 +234,14 @@ int DDAGrabber::grabFrame(Image<ColorRgb> &image)
 
 	// Copy the texture to the output image.
 	RET_CHECK(textureDesc.Format == DXGI_FORMAT_B8G8R8A8_UNORM, 0);
-	RET_CHECK(textureDesc.Width == image.width(), 0);
-	RET_CHECK(textureDesc.Height == image.height(), 0);
 
-	uint32_t *src = reinterpret_cast<uint32_t *>(resource.pData);
 	ColorRgb *dest = image.memptr();
-
-	for (size_t y = 0; y < _height; ++y)
+	for (size_t destY = 0, srcY = _cropTop; destY < image.height(); destY++, srcY += _pixelDecimation)
 	{
-		for (size_t x = 0; x < _width; ++x, ++src, ++dest)
+		uint32_t *src =
+		    reinterpret_cast<uint32_t *>(reinterpret_cast<unsigned char *>(resource.pData) + srcY * resource.RowPitch) +
+		    _cropLeft;
+		for (size_t destX = 0; destX < image.width(); destX++, src += _pixelDecimation, dest++)
 		{
 			*dest = ColorRgb{static_cast<uint8_t>(((*src) >> 16) & 0xff), static_cast<uint8_t>(((*src) >> 8) & 0xff),
 			                 static_cast<uint8_t>(((*src) >> 0) & 0xff)};
@@ -263,6 +267,12 @@ bool DDAGrabber::setPixelDecimation(int pixelDecimation)
 
 void DDAGrabber::setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom)
 {
+	// Grabber::setCropping rejects the cropped size if it is larger than _width
+	// and _height, so temporarily set those back to the original pre-cropped full
+	// desktop sizes first. They'll be set back to the cropped sizes by
+	// restartCapture.
+	_width = d->desktopWidth;
+	_height = d->desktopHeight;
 	Grabber::setCropping(cropLeft, cropRight, cropTop, cropBottom);
 	restartCapture();
 }
