@@ -157,13 +157,9 @@ int DDAGrabber::grabFrame(Image<ColorRgb> &image)
 	}
 
 	// Start the capture if it's not already running.
-	if (!d->desktopDuplication)
+	if (!d->desktopDuplication && !restartCapture())
 	{
-		if (!restartCapture())
-		{
-			setEnabled(false);
-			return -1;
-		}
+		return -1;
 	}
 
 	HRESULT hr = S_OK;
@@ -179,11 +175,10 @@ int DDAGrabber::grabFrame(Image<ColorRgb> &image)
 	CComPtr<IDXGIResource> desktopResource;
 	DXGI_OUTDUPL_FRAME_INFO frameInfo;
 	hr = d->desktopDuplication->AcquireNextFrame(INFINITE, &frameInfo, &desktopResource);
-	if (hr == DXGI_ERROR_ACCESS_LOST)
+	if (hr == DXGI_ERROR_ACCESS_LOST || hr == DXGI_ERROR_INVALID_CALL)
 	{
 		if (!restartCapture())
 		{
-			setEnabled(false);
 			return -1;
 		}
 		return 0;
