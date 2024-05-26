@@ -2,6 +2,7 @@
 
 LedDeviceSk6812_ftdi::LedDeviceSk6812_ftdi(const QJsonObject &deviceConfig)
 	: ProviderFtdi(deviceConfig),
+	  _whiteAlgorithm(RGBW::WhiteAlgorithm::INVALID),
 	  SPI_BYTES_PER_COLOUR(4),
 	  bitpair_to_byte{
 		  0b10001000,
@@ -25,21 +26,30 @@ bool LedDeviceSk6812_ftdi::init(const QJsonObject &deviceConfig)
 	if (ProviderFtdi::init(deviceConfig))
 	{
 		_brightnessControlMaxLevel = deviceConfig["brightnessControlMaxLevel"].toInt(255);
-        Info(_log, "[%s] Setting maximum brightness to [%d]", QSTRING_CSTR(_activeDeviceType), _brightnessControlMaxLevel);
+		Info(_log, "[%s] Setting maximum brightness to [%d]", QSTRING_CSTR(_activeDeviceType), _brightnessControlMaxLevel);
 
 
-        QString whiteAlgorithm = deviceConfig["whiteAlgorithm"].toString("white_off");
+		QString whiteAlgorithm = deviceConfig["whiteAlgorithm"].toString("white_off");
 
 		_whiteAlgorithm = RGBW::stringToWhiteAlgorithm(whiteAlgorithm);
+		if (_whiteAlgorithm == RGBW::WhiteAlgorithm::INVALID)
+		{
+			QString errortext = QString ("unknown whiteAlgorithm: %1").arg(whiteAlgorithm);
+			this->setInError(errortext);
+			isInitOK = false;
+		}
+		else
+		{
 
-		Debug(_log, "whiteAlgorithm : %s", QSTRING_CSTR(whiteAlgorithm));
+			Debug(_log, "whiteAlgorithm : %s", QSTRING_CSTR(whiteAlgorithm));
 
-		WarningIf((_baudRate_Hz < 2050000 || _baudRate_Hz > 3750000), _log, "Baud rate %d outside recommended range (2050000 -> 3750000)", _baudRate_Hz);
+			WarningIf((_baudRate_Hz < 2050000 || _baudRate_Hz > 3750000), _log, "Baud rate %d outside recommended range (2050000 -> 3750000)", _baudRate_Hz);
 
-		const int SPI_FRAME_END_LATCH_BYTES = 3;
-		_ledBuffer.resize(_ledRGBWCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
+			const int SPI_FRAME_END_LATCH_BYTES = 3;
+			_ledBuffer.resize(_ledRGBWCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
 
-		isInitOK = true;
+			isInitOK = true;
+		}
 	}
 	return isInitOK;
 }

@@ -161,7 +161,7 @@
     "conf_leds_note_layout_overwrite": "Note: Overwrite creates a default layout for {{plural:$1| one LED| all $1 LEDs}} given by the hardware LED count",
     "conf_leds_optgroup_RPiGPIO": "RPi GPIO",
     "conf_leds_optgroup_RPiPWM": "RPi PWM",
-    "conf_leds_optgroup_RPiSPI": "RPi SPI",
+    "conf_leds_optgroup_SPI": "SPI",
     "conf_leds_optgroup_debug": "Debug",
     "conf_leds_optgroup_network": "Network",
     "conf_leds_optgroup_other": "Other",

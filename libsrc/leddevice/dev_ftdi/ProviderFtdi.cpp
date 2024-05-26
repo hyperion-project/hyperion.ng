@@ -13,18 +13,18 @@
 
 namespace Pin
 {
-	// enumerate the AD bus for convenience.
-	enum bus_t
-	{
-		SK = 0x01, // ADBUS0, SPI data clock
-		DO = 0x02, // ADBUS1, SPI data out
-		CS = 0x08, // ADBUS3, SPI chip select, active low
-	};
+// enumerate the AD bus for convenience.
+enum bus_t
+{
+	SK = 0x01, // ADBUS0, SPI data clock
+	DO = 0x02, // ADBUS1, SPI data out
+	CS = 0x08, // ADBUS3, SPI chip select, active low
+};
 }
 
-const unsigned char pinInitialState = Pin::CS;
+const uint8_t pinInitialState = Pin::CS;
 // Use these pins as outputs
-const unsigned char pinDirection = Pin::SK | Pin::DO | Pin::CS;
+const uint8_t pinDirection = Pin::SK | Pin::DO | Pin::CS;
 
 const QString ProviderFtdi::AUTO_SETTING = QString("auto");
 
@@ -56,43 +56,49 @@ int ProviderFtdi::open()
 {
 	int rc = 0;
 
-    _ftdic = ftdi_new();
+	_ftdic = ftdi_new();
 
-    Debug(_log, "Opening FTDI device=%s", QSTRING_CSTR(_deviceName));
+	if (ftdi_init(_ftdic) < 0)
+	{
+		_ftdic = nullptr;
+		setInError("Could not initialize the ftdi library");
+		return -1;
+	}
 
-    FTDI_CHECK_RESULT((rc = ftdi_usb_open_string(_ftdic, QSTRING_CSTR(_deviceName))) < 0);
-    /* doing this disable resets things if they were in a bad state */
-    FTDI_CHECK_RESULT((rc = ftdi_disable_bitbang(_ftdic)) < 0);
-    FTDI_CHECK_RESULT((rc = ftdi_setflowctrl(_ftdic, SIO_DISABLE_FLOW_CTRL)) < 0);
-    FTDI_CHECK_RESULT((rc = ftdi_set_bitmode(_ftdic, 0x00, BITMODE_RESET)) < 0);
-    FTDI_CHECK_RESULT((rc = ftdi_set_bitmode(_ftdic, 0xff, BITMODE_MPSSE)) < 0);
+	Debug(_log, "Opening FTDI device=%s", QSTRING_CSTR(_deviceName));
 
+	FTDI_CHECK_RESULT((rc = ftdi_usb_open_string(_ftdic, QSTRING_CSTR(_deviceName))) < 0);
+	/* doing this disable resets things if they were in a bad state */
+	FTDI_CHECK_RESULT((rc = ftdi_disable_bitbang(_ftdic)) < 0);
+	FTDI_CHECK_RESULT((rc = ftdi_setflowctrl(_ftdic, SIO_DISABLE_FLOW_CTRL)) < 0);
+	FTDI_CHECK_RESULT((rc = ftdi_set_bitmode(_ftdic, 0x00, BITMODE_RESET)) < 0);
+	FTDI_CHECK_RESULT((rc = ftdi_set_bitmode(_ftdic, 0xff, BITMODE_MPSSE)) < 0);
 
-    double reference_clock = 60e6;
-    int divisor = (reference_clock / 2 / _baudRate_Hz) - 1;
-    std::vector<uint8_t> buf = {
-            DIS_DIV_5,
-            TCK_DIVISOR,
-            static_cast<unsigned char>(divisor),
-            static_cast<unsigned char>(divisor >> 8),
-            SET_BITS_LOW,		  // opcode: set low bits (ADBUS[0-7]
-            pinInitialState,    // argument: inital pin state
-            pinDirection
-    };
+	double reference_clock = 60e6;
+	int divisor = (reference_clock / 2 / _baudRate_Hz) - 1;
+	std::vector<uint8_t> buf = {
+		DIS_DIV_5,
+		TCK_DIVISOR,
+		static_cast<unsigned char>(divisor),
+		static_cast<unsigned char>(divisor >> 8),
+		SET_BITS_LOW,    // opcode: set low bits (ADBUS[0-7]
+		pinInitialState, // argument: inital pin state
+		pinDirection
+	};
 
-    FTDI_CHECK_RESULT((rc = ftdi_write_data(_ftdic, buf.data(), buf.size())) != buf.size());
+	FTDI_CHECK_RESULT((rc = ftdi_write_data(_ftdic, buf.data(), buf.size())) != buf.size());
 
-    _isDeviceReady = true;
-    return rc;
+	_isDeviceReady = true;
+	return rc;
 }
 
 int ProviderFtdi::close()
 {
 	if (_ftdic != nullptr) {
 		Debug(_log, "Closing FTDI device");
-//      Delay to give time to push color black from writeBlack() into the led,
-//      otherwise frame transmission will be terminated half way through
-        wait(30);
+		// Delay to give time to push color black from writeBlack() into the led,
+		// otherwise frame transmission will be terminated half way through
+		wait(30);
 		ftdi_set_bitmode(_ftdic, 0x00, BITMODE_RESET);
 		ftdi_usb_close(_ftdic);
 		ftdi_free(_ftdic);
@@ -110,25 +116,24 @@ void ProviderFtdi::setInError(const QString &errorMsg, bool isRecoverable)
 
 int ProviderFtdi::writeBytes(const qint64 size, const uint8_t *data)
 {
-    int rc;
-    int count_arg = size - 1;
+	int rc;
+	int count_arg = size - 1;
 	std::vector<uint8_t> buf = {
-            SET_BITS_LOW,
-            pinInitialState & ~Pin::CS,
-            pinDirection,
-            MPSSE_DO_WRITE | MPSSE_WRITE_NEG,
-            static_cast<unsigned char>(count_arg),
-            static_cast<unsigned char>(count_arg >> 8),
-//            LED's data will be inserted here
-            SET_BITS_LOW,
-            pinInitialState | Pin::CS,
-            pinDirection
-    };
-    // insert before last SET_BITS_LOW command
-    // SET_BITS_LOW takes 2 arguments, so we're inserting data in -3 position from the end
-    buf.insert(buf.end() - 3, &data[0], &data[size]);
+		SET_BITS_LOW,
+		pinInitialState & ~Pin::CS,
+		pinDirection,
+		MPSSE_DO_WRITE | MPSSE_WRITE_NEG,
+		static_cast<unsigned char>(count_arg),
+		static_cast<unsigned char>(count_arg >> 8),
+		SET_BITS_LOW,
+		pinInitialState | Pin::CS,
+		pinDirection
+	};
+	// insert before last SET_BITS_LOW command
+	// SET_BITS_LOW takes 2 arguments, so we're inserting data in -3 position from the end
+	buf.insert(buf.end() - 3, &data[0], &data[size]);
 
-    FTDI_CHECK_RESULT((rc = ftdi_write_data(_ftdic, buf.data(), buf.size())) != buf.size());
+	FTDI_CHECK_RESULT((rc = ftdi_write_data(_ftdic, buf.data(), buf.size())) != buf.size());
 	return rc;
 }
 
