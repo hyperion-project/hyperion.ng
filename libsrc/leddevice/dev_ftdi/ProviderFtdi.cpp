@@ -94,6 +94,7 @@ int ProviderFtdi::open()
 
 int ProviderFtdi::close()
 {
+	LedDevice::close();
 	if (_ftdic != nullptr) {
 		Debug(_log, "Closing FTDI device");
 		// Delay to give time to push color black from writeBlack() into the led,
@@ -104,7 +105,7 @@ int ProviderFtdi::close()
 		ftdi_free(_ftdic);
 		_ftdic = nullptr;
 	}
-	return LedDevice::close();
+	return 0;
 }
 
 void ProviderFtdi::setInError(const QString &errorMsg, bool isRecoverable)
