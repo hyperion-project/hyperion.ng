@@ -117,7 +117,7 @@ jobs:
           echo '::group::Update/Install dependencies'
             brew untap --force homebrew/core homebrew/cask
             brew update || true
-            brew install qt${{ inputs.qt_version }} vulkan-headers ninja libftdi || true
+            brew install qt@${{ inputs.qt_version }} vulkan-headers ninja || true
           echo '::endgroup::'
 
       - name: 👷 Build
