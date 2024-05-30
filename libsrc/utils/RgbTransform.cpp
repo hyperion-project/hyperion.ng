@@ -183,14 +183,14 @@ void RgbTransform::applyBacklight(uint8_t & red, uint8_t & green, uint8_t & blue
 				rgbSum = red+green+blue;
 			}
 
-			uint8_t cLow = static_cast<uint8_t>(qMin(static_cast<int>(_sumBrightnessLow / rgbSum), UINT8_MAX));
+			uint8_t cLow = static_cast<uint8_t>(qMin(static_cast<double>(_sumBrightnessLow/rgbSum), static_cast<double>(UINT8_MAX)));
 			red   *= cLow;
 			green *= cLow;
 			blue  *= cLow;
 		}
 		else
 		{
-			red   = static_cast<uint8_t>(qMin(static_cast<int>(_sumBrightnessLow/3.0), UINT8_MAX));
+			red   = static_cast<uint8_t>(qMin(static_cast<double>(_sumBrightnessLow/3.0), static_cast<double>(UINT8_MAX)));
 			green = red;
 			blue  = red;
 		}
