@@ -54,7 +54,7 @@ Q_GLOBAL_STATIC_WITH_ARGS(ControlIDPropertyMap, _controlIDPropertyMap, (initCont
 static PixelFormat GetPixelFormat(const unsigned int format)
 {
 	if (format == V4L2_PIX_FMT_RGB32) return PixelFormat::RGB32;
-	if (format == V4L2_PIX_FMT_RGB24) return PixelFormat::BGR24;
+	if (format == V4L2_PIX_FMT_BGR24) return PixelFormat::BGR24;
 	if (format == V4L2_PIX_FMT_YUYV) return PixelFormat::YUYV;
 	if (format == V4L2_PIX_FMT_UYVY) return PixelFormat::UYVY;
 	if (format == V4L2_PIX_FMT_NV12) return  PixelFormat::NV12;
@@ -558,7 +558,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 		break;
 
 		case PixelFormat::BGR24:
-			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB24;
+			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_BGR24;
 		break;
 
 		case PixelFormat::YUYV:
@@ -691,7 +691,7 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 		}
 		break;
 
-		case V4L2_PIX_FMT_RGB24:
+		case V4L2_PIX_FMT_BGR24:
 		{
 			_pixelFormat = PixelFormat::BGR24;
 			_frameByteSize = _width * _height * 3;
