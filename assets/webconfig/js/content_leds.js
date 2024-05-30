@@ -2104,7 +2104,7 @@ var updateOutputSelectList = function (ledType, discoveryInfo) {
 
               var title = "FTDI";
               if (device.manufacturer) {
-                title = device.manufacturer
+                title = device.manufacturer;
               }
 
               if (device.serialNumber) {
