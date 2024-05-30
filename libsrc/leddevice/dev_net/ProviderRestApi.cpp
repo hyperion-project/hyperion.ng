@@ -30,7 +30,8 @@ enum HttpStatusCode {
 	BadRequest   = 400,
 	UnAuthorized = 401,
 	Forbidden    = 403,
-	NotFound     = 404
+	NotFound     = 404,
+	TooManyRequests = 429
 };
 
 } //End of constants
@@ -336,6 +337,15 @@ httpResponse ProviderRestApi::getResponse(QNetworkReply* const& reply)
 				case HttpStatusCode::NotFound:
 					advise = "Check Resource given";
 					break;
+				case HttpStatusCode::TooManyRequests:
+				{
+					QString retryAfterTime = response.getHeader("Retry-After");
+					if (!retryAfterTime.isEmpty())
+					{
+						advise = "Retry-After: " + response.getHeader("Retry-After");
+					}
+				}
+				break;
 				default:
 					advise = httpReason;
 					break;

@@ -27,16 +27,16 @@
 #include <grabber/directx/directXGrabber.h>
 #endif
 
+#ifdef ENABLE_DDA
+#include <grabber/dda/DDAGrabber.h>
+#endif
+
 #if defined(ENABLE_X11)
 #include <grabber/x11/X11Grabber.h>
 #endif
 
 #if defined(ENABLE_XCB)
 #include <grabber/xcb/XcbGrabber.h>
-#endif
-
-#if defined(ENABLE_DX)
-#include <grabber/directx/DirectXGrabber.h>
 #endif
 
 #if defined(ENABLE_FB)

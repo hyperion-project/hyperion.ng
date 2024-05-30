@@ -502,7 +502,9 @@ const philipshueWizard = (() => {
 
           let serviceID;
           if (isAPIv2Ready) {
-            serviceID = lightLocation.service.rid;
+            if (lightLocation) {
+              serviceID = lightLocation.service.rid;
+            }
           }
 
           if (position.startsWith("entertainment")) {
@@ -531,7 +533,7 @@ const philipshueWizard = (() => {
             // Layout per manual settings
             let maxSegments = 1;
 
-            if (isAPIv2Ready) {
+            if (isAPIv2Ready && serviceID) {
               const service = hueEntertainmentServices.find(service => service.id === serviceID);
               maxSegments = service.segments.max_segments;
             }
@@ -593,10 +595,10 @@ const philipshueWizard = (() => {
       d.enableAttempts = parseInt(conf_editor.getEditor("root.generalOptions.enableAttempts").getValue());
       d.enableAttemptsInterval = parseInt(conf_editor.getEditor("root.generalOptions.enableAttemptsInterval").getValue());
 
-      d.useEntertainmentAPI = isEntertainmentReady;
+      d.useEntertainmentAPI = isEntertainmentReady && (d.groupId !== "");
       d.useAPIv2 = isAPIv2Ready;
 
-      if (isEntertainmentReady) {
+      if (d.useEntertainmentAPI) {
         d.hardwareLedCount = channelNumber;
         if (window.serverConfig.device.type !== d.type) {
           //smoothing on, if new device
@@ -803,12 +805,18 @@ const philipshueWizard = (() => {
           "lightPosBottomLeft112", "lightPosBottomLeftNewMid", "lightPosBottomLeft121"
         ];
 
-        if (isEntertainmentReady) {
+        if (isEntertainmentReady && hueEntertainmentConfigs.length > 0) {
           lightOptions.unshift("entertainment_center");
           lightOptions.unshift("entertainment");
         } else {
           lightOptions.unshift("disabled");
-          groupLights = Object.keys(hueLights);
+          if (isAPIv2Ready) {
+            for (const light in hueLights) {
+              groupLights.push(hueLights[light].id);
+            }
+          } else {
+            groupLights = Object.keys(hueLights);
+          }
         }
 
         $('.lidsb').html("");

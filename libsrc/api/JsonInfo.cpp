@@ -594,6 +594,10 @@ QJsonArray JsonInfo::discoverScreenInputs(const QJsonObject& params) const
 	discoverGrabber<DirectXGrabber>(screenInputs, params);
 #endif
 
+#ifdef ENABLE_DDA
+	discoverGrabber<DDAGrabber>(screenInputs, params);
+#endif
+
 #ifdef ENABLE_X11
 	discoverGrabber<X11Grabber>(screenInputs, params);
 #endif

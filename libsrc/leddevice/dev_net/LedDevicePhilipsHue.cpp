@@ -895,6 +895,7 @@ void LedDevicePhilipsHueBridge::setBridgeDetails(const QJsonDocument &doc, bool 
 		log( "API-Version", "%u.%u.%u", _api_major, _api_minor, _api_patch );
 		log( "API v2 ready", "%s", _isAPIv2Ready ? "Yes" : "No" );
 		log( "Entertainment ready", "%s", _isHueEntertainmentReady ? "Yes" : "No" );
+		log( "Use Entertainment API", "%s", _useEntertainmentAPI ? "Yes" : "No" );
 		log( "DIYHue", "%s", _isDiyHue ? "Yes" : "No" );
 	}
 }
@@ -1799,11 +1800,11 @@ bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
 
 	if (LedDevicePhilipsHueBridge::init(_devConfig))
 	{
-		log( "Off on Black", "%s", _switchOffOnBlack ? "Yes" : "No" );
-		log( "Brightness Factor", "%f", _brightnessFactor );
-		log( "Transition Time", "%d", _transitionTime );
-		log( "Restore Original State", "%s", _isRestoreOrigState ? "Yes" : "No" );
-		log( "Use Hue Entertainment API", "%s", _useEntertainmentAPI ? "Yes" : "No" );
+		log("Off on Black", "%s", _switchOffOnBlack ? "Yes" : "No" );
+		log("Brightness Factor", "%f", _brightnessFactor );
+		log("Transition Time", "%d", _transitionTime );
+		log("Restore Original State", "%s", _isRestoreOrigState ? "Yes" : "No" );
+		log("Use Hue Entertainment API", "%s", _useEntertainmentAPI ? "Yes" : "No" );
 		log("Brightness Threshold", "%f", _blackLevel);
 		log("CandyGamma", "%s", _candyGamma ? "Yes" : "No" );
 		log("Time powering off when black", "%s", _onBlackTimeToPowerOff ? "Yes" : "No" );
@@ -1864,7 +1865,7 @@ bool LedDevicePhilipsHue::setLights()
 		Debug(_log, "Lights configured: %d", configuredLightsCount );
 		if (updateLights( getLightMap()))
 		{
-			if (_useApiV2)
+			if (_useApiV2 && _useEntertainmentAPI)
 			{
 				_channelsCount = getGroupChannelsCount (_groupId);
 
@@ -2208,14 +2209,13 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> & ledValues)
 	int rc {0};
 	if (_isOn)
 	{
-		if (!_useApiV2)
-		{
-			rc = writeSingleLights( ledValues );
-		}
-
 		if (_useEntertainmentAPI && _isInitLeds)
 		{
 			rc= writeStreamData(ledValues);
+		}
+		else
+		{
+			rc = writeSingleLights( ledValues );
 		}
 	}
 	return rc;
@@ -2482,7 +2482,7 @@ void LedDevicePhilipsHue::setColor(PhilipsHueLight& light, CiColor& color)
 					QJsonObject colorXY;
 					colorXY[API_X_COORDINATE] = color.x;
 					colorXY[API_Y_COORDINATE] = color.y;
-					cmd.insert(API_COLOR, QJsonObject {{API_DURATION, colorXY }});
+					cmd.insert(API_COLOR, QJsonObject {{API_XY_COORDINATES, colorXY }});
 					cmd.insert(API_DIMMING, QJsonObject {{API_BRIGHTNESS, bri }});
 				}
 				else
@@ -2556,7 +2556,7 @@ void LedDevicePhilipsHue::setState(PhilipsHueLight& light, bool on, const CiColo
 					QJsonObject colorXY;
 					colorXY[API_X_COORDINATE] = color.x;
 					colorXY[API_Y_COORDINATE] = color.y;
-					cmd.insert(API_COLOR, QJsonObject {{API_DURATION, colorXY }});
+					cmd.insert(API_COLOR, QJsonObject {{API_XY_COORDINATES, colorXY }});
 					cmd.insert(API_DIMMING, QJsonObject {{API_BRIGHTNESS, bri }});
 				}
 				else
