@@ -39,9 +39,6 @@ add_library(hyperion
 	# Led Color Transform
 	${CMAKE_SOURCE_DIR}/include/hyperion/MultiColorAdjustment.h
 	${CMAKE_SOURCE_DIR}/libsrc/hyperion/MultiColorAdjustment.cpp
-	${CMAKE_SOURCE_DIR}/include/hyperion/ColorCorrection.h
-	${CMAKE_SOURCE_DIR}/include/hyperion/MultiColorCorrection.h
-	${CMAKE_SOURCE_DIR}/libsrc/hyperion/MultiColorCorrection.cpp
 	# Priority Muxer
 	${CMAKE_SOURCE_DIR}/include/hyperion/PriorityMuxer.h
 	${CMAKE_SOURCE_DIR}/libsrc/hyperion/PriorityMuxer.cpp

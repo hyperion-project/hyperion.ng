@@ -22,7 +22,6 @@
 #include <hyperion/LedString.h>
 #include <hyperion/PriorityMuxer.h>
 #include <hyperion/ColorAdjustment.h>
-#include <hyperion/ColorCorrection.h>
 #include <hyperion/ComponentRegister.h>
 
 #if defined(ENABLE_EFFECTENGINE)
@@ -185,28 +184,13 @@ public slots:
 	QStringList getAdjustmentIds() const;
 
 	///
-	/// Returns the list with unique correction identifiers
-	/// @return The list with correction identifiers
-	///
-	QStringList getTemperatureIds() const;
-
-	///
 	/// Returns the ColorAdjustment with the given identifier
 	/// @return The adjustment with the given identifier (or nullptr if the identifier does not exist)
 	///
 	ColorAdjustment * getAdjustment(const QString& id) const;
 
-	///
-	/// Returns the ColorCorrection with the given identifier
-	/// @return The correction with the given identifier (or nullptr if the identifier does not exist)
-	///
-	ColorCorrection * getTemperature(const QString& id) const;
-
 	/// Tell Hyperion that the corrections have changed and the leds need to be updated
 	void adjustmentsUpdated();
-
-	/// Tell Hyperion that the corrections have changed and the leds need to be updated
-	void temperaturesUpdated();
 
 	///
 	/// Clears the given priority channel. This will switch the led-colors to the colors of the next

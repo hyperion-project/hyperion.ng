@@ -598,16 +598,8 @@ void JsonAPI::handleAdjustmentCommand(const QJsonObject &message, const JsonApiC
 		return;
 	}
 
-	ColorCorrection *temperatureColorCorrection = _hyperion->getTemperature(adjustmentId);
-	if (temperatureColorCorrection == nullptr) {
-		Warning(_log, "Incorrect temperature adjustment identifier: %s", adjustmentId.toStdString().c_str());
-		return;
-	}
-
-
 	applyColorAdjustments(adjustment, colorAdjustment);
 	applyTransforms(adjustment, colorAdjustment);
-	applyTemperatureAdjustment(adjustment, temperatureColorCorrection);
 	_hyperion->adjustmentsUpdated();
 	sendSuccessReply(cmd);
 }
@@ -644,6 +636,7 @@ void JsonAPI::applyTransforms(const QJsonObject &adjustment, ColorAdjustment *co
 	applyTransform("backlightColored", adjustment, colorAdjustment->_rgbTransform, &RgbTransform::setBacklightColored);
 	applyTransform("brightness", adjustment, colorAdjustment->_rgbTransform, &RgbTransform::setBrightness);
 	applyTransform("brightnessCompensation", adjustment, colorAdjustment->_rgbTransform, &RgbTransform::setBrightnessCompensation);
+	applyTransform("temperature", adjustment, colorAdjustment->_rgbTransform, &RgbTransform::setTemperature);
 	applyTransform("saturationGain", adjustment, colorAdjustment->_okhsvTransform, &OkhsvTransform::setSaturationGain);
 	applyTransform("brightnessGain", adjustment, colorAdjustment->_okhsvTransform, &OkhsvTransform::setBrightnessGain);
 }
@@ -674,23 +667,18 @@ void JsonAPI::applyTransform(const QString &transformName, const QJsonObject &ad
 }
 
 template<typename T>
+void JsonAPI::applyTransform(const QString &transformName, const QJsonObject &adjustment, T &transform, void (T::*setFunction)(int))
+{
+	if (adjustment.contains(transformName)) {
+		(transform.*setFunction)(adjustment[transformName].toInt());
+	}
+}
+
+template<typename T>
 void JsonAPI::applyTransform(const QString &transformName, const QJsonObject &adjustment, T &transform, void (T::*setFunction)(uint8_t))
 {
 	if (adjustment.contains(transformName)) {
 		(transform.*setFunction)(static_cast<uint8_t>(adjustment[transformName].toInt()));
-	}
-}
-
-void JsonAPI::applyTemperatureAdjustment(const QJsonObject &adjustment, ColorCorrection *colorCorrection)
-{
-	if (adjustment.contains("temperature"))
-	{
-		int temperature = adjustment["temperature"].toInt(6500);
-		ColorRgb rgb = getRgbFromTemperature(temperature);
-
-		colorCorrection->_rgbCorrection.setcorrectionR(rgb.red);
-		colorCorrection->_rgbCorrection.setcorrectionG(rgb.green);
-		colorCorrection->_rgbCorrection.setcorrectionB(rgb.blue);
 	}
 }
 
