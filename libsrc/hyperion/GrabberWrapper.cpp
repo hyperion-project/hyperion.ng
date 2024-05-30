@@ -173,6 +173,10 @@ QStringList GrabberWrapper::availableGrabbers(GrabberTypeFilter type)
 		#ifdef ENABLE_DX
 				grabbers << "dx";
 		#endif
+
+		#ifdef ENABLE_DDA
+				grabbers << "dda";
+		#endif
 	}
 
 	if (type == GrabberTypeFilter::VIDEO || type == GrabberTypeFilter::ALL)

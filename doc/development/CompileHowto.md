@@ -128,7 +128,7 @@ We assume a 64bit Windows 10. Install the following;
 - [CMake (Windows win64-x64 installer)](https://cmake.org/download/) (Check: Add to PATH)
 - [Visual Studio 2022 Community Edition](https://visualstudio.microsoft.com/downloads/#visual-studio-community-2022)
   - Select 'Desktop development with C++'
-  - On the right, just select `MSVC v143 VS 2022 C++ x64/x86-Buildtools` and latest `Windows 10 SDK`. Everything else is not needed.
+  - On the right, just select `MSVC v143 VS 2022 C++ x64/x86-Buildtools`, `C++ ATL for latest v143 build tools (x86 & x64)` and latest `Windows 10 SDK`. Everything else is not needed.
 - [Win64 OpenSSL v1.1.1w](https://slproweb.com/products/Win32OpenSSL.html) ([direct link](https://slproweb.com/download/Win64OpenSSL-1_1_1w.exe))
 - [Python 3 (Windows x86-64 executable installer)](https://www.python.org/downloads/windows/) (Check: Add to PATH and Debug Symbols)
   - Open a console window and execute `pip install aqtinstall`.

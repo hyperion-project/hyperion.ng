@@ -34,6 +34,10 @@ if(ENABLE_DX)
 	add_subdirectory(directx)
 endif(ENABLE_DX)
 
+if(ENABLE_DDA)
+	add_subdirectory(dda)
+endif(ENABLE_DDA)
+
 if(ENABLE_AUDIO)
 	add_subdirectory(audio)
 endif()

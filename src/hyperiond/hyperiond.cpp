@@ -425,7 +425,7 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 
 void HyperionDaemon::updateScreenGrabbers(const QJsonDocument& grabberConfig)
 {
-#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB) && !defined(ENABLE_X11) && !defined(ENABLE_XCB) && !defined(ENABLE_AMLOGIC) && !defined(ENABLE_QT) && !defined(ENABLE_DX)
+#if !defined(ENABLE_DISPMANX) && !defined(ENABLE_OSX) && !defined(ENABLE_FB) && !defined(ENABLE_X11) && !defined(ENABLE_XCB) && !defined(ENABLE_AMLOGIC) && !defined(ENABLE_QT) && !defined(ENABLE_DX) && !defined(ENABLE_DDA)
 	Info(_log, "No screen capture supported on this platform");
 	return;
 #endif
@@ -467,6 +467,12 @@ void HyperionDaemon::updateScreenGrabbers(const QJsonDocument& grabberConfig)
 		else if (type == "dx")
 		{
 			startGrabber<DirectXWrapper>(_screenGrabber, grabberConfig);
+		}
+#endif
+#ifdef ENABLE_DDA
+		else if (type == "dda")
+		{
+			startGrabber<DDAWrapper>(_screenGrabber, grabberConfig);
 		}
 #endif
 #ifdef ENABLE_FB

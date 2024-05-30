@@ -15,12 +15,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Support for ftdi chip based LED-devices with ws2812, sk6812 apa102 LED types (Many thanks to @nurikk) (#1746)
 - Support gaps on Matrix Layout (#1696)
+- Windows: Added a new grabber that uses the DXGI DDA (Desktop Duplication API). This has much better performance than the DX grabber as it does more of its work on the GPU.
 
 **JSON-API**
 - New subscription support for event updates, i.e. `Suspend, Resume, Idle, idleResume, Restart, Quit`.
 - Support direct or multiple instance addressing via single requests (#809)
 - Support of `serverinfo` subcommands: `getInfo, subscribe, unsubscribe, getSubscriptions, getSubscriptionCommands`
-- [Overview](https://github.com/hyperion-project/hyperion.ng/blob/API_Auth/doc/development/JSON-API%20_Commands_Overview.md) of API commands and subscription updates 
+- [Overview](https://github.com/hyperion-project/hyperion.ng/blob/API_Auth/doc/development/JSON-API%20_Commands_Overview.md) of API commands and subscription updates
 
 ### Changed
 
@@ -36,7 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored JSON-API to ensure consistent authorization behaviour across sessions and single requests with token authorization.
 - Provide additional error details with API responses, esp. on JSON parsing, validation or token errors.
 - Generate random TANs for every API request from the Hyperion UI
-- Fixed: Handling of IP4 addresses wrapped in IPv6 for external network connections- 
+- Fixed: Handling of IP4 addresses wrapped in IPv6 for external network connections-
 
 ### Removed
 
@@ -136,7 +137,7 @@ Note: The wizard will configure an APIv2 capable bridge always with Entertainmen
 - Support streaming to individual WLED segments (requires WLED 0.13.3+).
 To allow segment streaming, enable "Realtime - Use main segment only" in WLED's Sync Interfaces setup screen
 - Allow to keep WLED powered on after streaming and restoring state
-- Allow to Disable / Enable all instances (#970) by 
+- Allow to Disable / Enable all instances (#970) by
 	- Suspend/Resume support for Linux and Windows (#1493,#1282, #978).
 	Suspend/Resume/Restart is supported via API, UI, Systray and hyperion-remote
 	- Idle scenario via Screen Locking (Linux/Windows), Screensaver invokation (Linux), hyperion-remote or API

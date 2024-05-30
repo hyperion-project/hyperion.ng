@@ -118,6 +118,10 @@ if(ENABLE_DX)
 	target_link_libraries(${PROJECT_NAME} directx-grabber)
 endif (ENABLE_DX)
 
+if(ENABLE_DDA)
+	target_link_libraries(${PROJECT_NAME} dda-grabber)
+endif (ENABLE_DDA)
+
 if(ENABLE_CEC)
 	target_link_libraries(${PROJECT_NAME} cechandler)
 endif (ENABLE_CEC)
