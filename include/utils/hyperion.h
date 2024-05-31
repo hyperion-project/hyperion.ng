@@ -153,7 +153,7 @@ namespace hyperion {
 
 			std::stringstream sStream;
 			const QStringList ledIndexList = ledIndicesStr.split(",");
-			for (int j=0; j<ledIndexList.size(); ++i) {
+			for (int j=0; j<ledIndexList.size(); ++j) {
 				if (j > 0)
 				{
 					sStream << ", ";
