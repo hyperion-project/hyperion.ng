@@ -66,9 +66,9 @@ static ColorRgb getRgbFromTemperature(int temperature)
 	}
 
 	return {
-		static_cast<uint8_t>(qBound(0, red, UINT8_MAX)),
-		static_cast<uint8_t>(qBound(0, green, UINT8_MAX)),
-		static_cast<uint8_t>(qBound(0, blue, UINT8_MAX)),
+		static_cast<uint8_t>(qBound(0,   red, static_cast<int>(UINT8_MAX))),
+		static_cast<uint8_t>(qBound(0, green, static_cast<int>(UINT8_MAX))),
+		static_cast<uint8_t>(qBound(0,  blue, static_cast<int>(UINT8_MAX))),
 	};
 }
 

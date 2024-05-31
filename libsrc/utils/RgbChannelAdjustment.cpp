@@ -62,9 +62,9 @@ void RgbChannelAdjustment::apply(uint8_t input, uint8_t brightness, uint8_t & re
 	if (!_initialized[input])
 	{
 		const int adjustedInput = static_cast<int>(_brightness * input / UINT8_MAX_SQUARED);
-		_mapping.red[input] = static_cast<quint8>(qBound(0, _adjust.red * adjustedInput, UINT8_MAX));
-		_mapping.green[input] = static_cast<quint8>(qBound(0 ,_adjust.green * adjustedInput, UINT8_MAX));
-		_mapping.blue[input] = static_cast<quint8>(qBound(0, _adjust.blue * adjustedInput, UINT8_MAX));
+		_mapping.red[input] = static_cast<quint8>(qBound(0, _adjust.red * adjustedInput, static_cast<int>(UINT8_MAX)));
+		_mapping.green[input] = static_cast<quint8>(qBound(0 ,_adjust.green * adjustedInput, static_cast<int>(UINT8_MAX)));
+		_mapping.blue[input] = static_cast<quint8>(qBound(0, _adjust.blue * adjustedInput, static_cast<int>(UINT8_MAX)));
 		_initialized[input] = true;
 	}
 	red   = _mapping.red[input];
