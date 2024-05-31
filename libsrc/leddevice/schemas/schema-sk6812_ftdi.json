@@ -1,0 +1,60 @@
+{
+	"type": "object",
+	"required": true,
+	"properties": {
+		"output": {
+			"type": "string",
+			"title": "edt_dev_spec_outputPath_title",
+			"required": true,
+			"propertyOrder": 1
+		},
+		"rate": {
+			"type": "integer",
+			"step": 100000,
+			"title": "edt_dev_spec_baudrate_title",
+			"default": 3200000,
+			"minimum": 2050000,
+			"maximum": 3750000,
+			"propertyOrder": 2
+		},
+		"brightnessControlMaxLevel": {
+			"type": "integer",
+			"title": "edt_conf_color_brightness_title",
+			"default": 255,
+			"minimum": 1,
+			"maximum": 255,
+			"propertyOrder": 3
+		},
+		"whiteAlgorithm": {
+			"type": "string",
+			"title": "edt_dev_spec_whiteLedAlgor_title",
+			"enum": [
+				"subtract_minimum",
+				"sub_min_cool_adjust",
+				"sub_min_warm_adjust",
+				"cold_white",
+				"neutral_white",
+				"auto",
+				"auto_max",
+				"auto_accurate",
+				"white_off"				
+			],
+			"default": "white_off",
+			"options": {
+				"enum_titles": [
+					"edt_dev_enum_subtract_minimum",
+					"edt_dev_enum_sub_min_cool_adjust",
+					"edt_dev_enum_sub_min_warm_adjust",
+					"edt_dev_enum_cold_white",
+					"edt_dev_enum_neutral_white",
+					"edt_dev_enum_auto",
+					"edt_dev_enum_auto_max",
+					"edt_dev_enum_auto_accurate",
+					"edt_dev_enum_white_off"
+				]
+			},
+			"propertyOrder": 4
+		}
+	},
+	"additionalProperties": true
+}
