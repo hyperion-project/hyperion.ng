@@ -5,28 +5,31 @@
 
 #include <utils/ColorRgb.h>
 
-
 // Constants
-namespace {
-const int TEMPERATURE_MINIMUM = 1000;
-const int TEMPERATUR_MAXIMUM = 40000;
-} //End of constants
+namespace ColorTemperature {
+	constexpr int MINIMUM {1000};
+	constexpr int MAXIMUM {40000};
+	constexpr int DEFAULT {6600};
+}
+//End of constants
 
 static ColorRgb getRgbFromTemperature(int temperature)
 {
 	//Temperature input in Kelvin valid in the range 1000 K to 40000 K. White light = 6600K
-	temperature = qBound(TEMPERATURE_MINIMUM, temperature, TEMPERATUR_MAXIMUM);
+	temperature = qBound(ColorTemperature::MINIMUM, temperature, ColorTemperature::MAXIMUM);
 
 	// All calculations require temperature / 100, so only do the conversion once.
 	temperature /= 100;
 
 	// Compute each color in turn.
-	int red, green, blue;
+	int red;
+	int green;
+	int blue;
 
 	// red
 	if (temperature <= 66)
 	{
-		red = 255;
+		red = UINT8_MAX;
 	}
 	else
 	{
@@ -50,7 +53,7 @@ static ColorRgb getRgbFromTemperature(int temperature)
 	// blue
 	if (temperature >= 66)
 	{
-		blue = 255;
+		blue = UINT8_MAX;
 	}
 	else if (temperature <= 19)
 	{
@@ -63,9 +66,9 @@ static ColorRgb getRgbFromTemperature(int temperature)
 	}
 
 	return {
-		static_cast<uint8_t>(qBound(0, red, 255)),
-		static_cast<uint8_t>(qBound(0, green, 255)),
-		static_cast<uint8_t>(qBound(0, blue, 255)),
+		static_cast<uint8_t>(qBound(0, red, UINT8_MAX)),
+		static_cast<uint8_t>(qBound(0, green, UINT8_MAX)),
+		static_cast<uint8_t>(qBound(0, blue, UINT8_MAX)),
 	};
 }
 

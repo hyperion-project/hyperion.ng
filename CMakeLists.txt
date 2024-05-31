@@ -111,7 +111,7 @@ set(DEFAULT_USE_SYSTEM_QMDNS_LIBS       OFF)
 set(DEFAULT_TESTS                       OFF)
 
 # Build Hyperion with a reduced set of functionality, overwrites other default values
-set(DEFAULT_HYPERION_LIGHT              ON )
+set(DEFAULT_HYPERION_LIGHT              OFF)
 
 if(${CMAKE_SYSTEM} MATCHES "Linux")
 	set(DEFAULT_FB              ON)

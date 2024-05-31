@@ -1,12 +1,9 @@
 #include <algorithm>
-#include <limits>
 
 // Hyperion includes
 
 #include <utils/Logger.h>
 #include <hyperion/MultiColorAdjustment.h>
-
-constexpr uint32_t UINT8_MAX_SQUARED = static_cast<uint32_t>(std::numeric_limits<unsigned char>::max()) * static_cast<uint32_t>(std::numeric_limits<unsigned char>::max());
 
 MultiColorAdjustment::MultiColorAdjustment(int ledCnt)
 	: _ledAdjustments(static_cast<size_t>(ledCnt), nullptr)

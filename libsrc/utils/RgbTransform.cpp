@@ -2,10 +2,8 @@
 #include <utils/RgbTransform.h>
 #include <utils/KelvinToRgb.h>
 
-#include<QDebug>
-
 RgbTransform::RgbTransform()
-	: RgbTransform::RgbTransform(1.0, 1.0, 1.0, 0.0, false, 100, 100, 6600)
+	: RgbTransform::RgbTransform(1.0, 1.0, 1.0, 0.0, false, 100, 100, ColorTemperature::DEFAULT)
 {
 }
 
@@ -66,9 +64,9 @@ void RgbTransform::initializeMapping()
 		double gammaCorrectedValueB = qPow(normalizedValueB, _gammaB) * UINT8_MAX;
 
 		// Clamp values to valid range [0, UINT8_MAX]
-		quint8 clampedValueR = static_cast<quint8>(qMin(qMax(gammaCorrectedValueR, 0.0), static_cast<double>(UINT8_MAX)));
-		quint8 clampedValueG = static_cast<quint8>(qMin(qMax(gammaCorrectedValueG, 0.0), static_cast<double>(UINT8_MAX)));
-		quint8 clampedValueB = static_cast<quint8>(qMin(qMax(gammaCorrectedValueB, 0.0), static_cast<double>(UINT8_MAX)));
+		quint8 clampedValueR = static_cast<quint8>(qBound(0.0, gammaCorrectedValueR, static_cast<double>(UINT8_MAX)));
+		quint8 clampedValueG = static_cast<quint8>(qBound(0.0, gammaCorrectedValueG, static_cast<double>(UINT8_MAX)));
+		quint8 clampedValueB = static_cast<quint8>(qBound(0.0, gammaCorrectedValueB, static_cast<double>(UINT8_MAX)));
 
 		// Assign clamped values to _mapping arrays
 		_mappingR[i] = clampedValueR;

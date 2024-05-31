@@ -48,7 +48,6 @@ class LinearColorSmoothing;
 class EffectEngine;
 #endif
 class MultiColorAdjustment;
-class MultiColorCorrection;
 class ColorAdjustment;
 class SettingsManager;
 class BGEffectHandler;
@@ -577,9 +576,6 @@ private:
 
 	/// The adjustment from raw colors to led colors
 	MultiColorAdjustment * _raw2ledAdjustment;
-
-	/// The temperature from raw colors to led colors
-	MultiColorCorrection * _raw2ledTemperature;
 
 	/// The actual LedDeviceWrapper
 	LedDeviceWrapper* _ledDeviceWrapper;

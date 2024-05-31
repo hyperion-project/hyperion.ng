@@ -5,6 +5,7 @@
 #include <hyperion/ColorAdjustment.h>
 #include <hyperion/MultiColorAdjustment.h>
 #include <hyperion/LedString.h>
+#include <utils/KelvinToRgb.h>
 #include <QRegularExpression>
 
 // fg effect
@@ -77,7 +78,7 @@ namespace hyperion {
 		const double gammaR             = colorConfig["gammaRed"].toDouble(1.0);
 		const double gammaG             = colorConfig["gammaGreen"].toDouble(1.0);
 		const double gammaB             = colorConfig["gammaBlue"].toDouble(1.0);
-		const int temperature           = colorConfig["temperature"].toInt(6600);
+		const int temperature           = colorConfig["temperature"].toInt(ColorTemperature::DEFAULT);
 
 		return RgbTransform(gammaR, gammaG, gammaB, backlightThreshold, backlightColored, static_cast<uint8_t>(brightness), static_cast<uint8_t>(brightnessComp), temperature);
 	}
@@ -90,13 +91,13 @@ namespace hyperion {
 		return OkhsvTransform(saturationGain, brightnessGain);
 	}
 
-	static RgbChannelAdjustment createRgbChannelAdjustment(const QJsonObject& colorConfig, const QString& channelName, int defaultR, int defaultG, int defaultB)
+	static RgbChannelAdjustment createRgbChannelAdjustment(const QJsonObject& colorConfig, const QString& channelName, const ColorRgb& color)
 	{
 		const QJsonArray& channelConfig  = colorConfig[channelName].toArray();
 		return RgbChannelAdjustment(
-			static_cast<uint8_t>(channelConfig[0].toInt(defaultR)),
-			static_cast<uint8_t>(channelConfig[1].toInt(defaultG)),
-			static_cast<uint8_t>(channelConfig[2].toInt(defaultB)),
+			static_cast<uint8_t>(channelConfig[0].toInt(color.red)),
+			static_cast<uint8_t>(channelConfig[1].toInt(color.green)),
+			static_cast<uint8_t>(channelConfig[2].toInt(color.blue)),
 			channelName
 		);
 	}
@@ -107,14 +108,14 @@ namespace hyperion {
 
 		ColorAdjustment * adjustment = new ColorAdjustment();
 		adjustment->_id = id;
-		adjustment->_rgbBlackAdjustment   = createRgbChannelAdjustment(adjustmentConfig, "black"  ,   0,  0,  0);
-		adjustment->_rgbWhiteAdjustment   = createRgbChannelAdjustment(adjustmentConfig, "white"  , 255,255,255);
-		adjustment->_rgbRedAdjustment     = createRgbChannelAdjustment(adjustmentConfig, "red"    , 255,  0,  0);
-		adjustment->_rgbGreenAdjustment   = createRgbChannelAdjustment(adjustmentConfig, "green"  ,   0,255,  0);
-		adjustment->_rgbBlueAdjustment    = createRgbChannelAdjustment(adjustmentConfig, "blue"   ,   0,  0,255);
-		adjustment->_rgbCyanAdjustment    = createRgbChannelAdjustment(adjustmentConfig, "cyan"   ,   0,255,255);
-		adjustment->_rgbMagentaAdjustment = createRgbChannelAdjustment(adjustmentConfig, "magenta", 255,  0,255);
-		adjustment->_rgbYellowAdjustment  = createRgbChannelAdjustment(adjustmentConfig, "yellow" , 255,255,  0);
+		adjustment->_rgbBlackAdjustment   = createRgbChannelAdjustment(adjustmentConfig, "black"  , ColorRgb::BLACK);
+		adjustment->_rgbWhiteAdjustment   = createRgbChannelAdjustment(adjustmentConfig, "white"  , ColorRgb::WHITE);
+		adjustment->_rgbRedAdjustment     = createRgbChannelAdjustment(adjustmentConfig, "red"    , ColorRgb::RED);
+		adjustment->_rgbGreenAdjustment   = createRgbChannelAdjustment(adjustmentConfig, "green"  , ColorRgb::GREEN);
+		adjustment->_rgbBlueAdjustment    = createRgbChannelAdjustment(adjustmentConfig, "blue"   , ColorRgb::BLUE);
+		adjustment->_rgbCyanAdjustment    = createRgbChannelAdjustment(adjustmentConfig, "cyan"   , ColorRgb::CYAN);
+		adjustment->_rgbMagentaAdjustment = createRgbChannelAdjustment(adjustmentConfig, "magenta", ColorRgb::MAGENTA);
+		adjustment->_rgbYellowAdjustment  = createRgbChannelAdjustment(adjustmentConfig, "yellow" , ColorRgb::YELLOW);
 		adjustment->_rgbTransform         = createRgbTransform(adjustmentConfig);
 		adjustment->_okhsvTransform       = createOkhsvTransform(adjustmentConfig);
 
@@ -150,70 +151,32 @@ namespace hyperion {
 				continue;
 			}
 
-			std::stringstream ss;
+			std::stringstream sStream;
 			const QStringList ledIndexList = ledIndicesStr.split(",");
-			for (int i=0; i<ledIndexList.size(); ++i) {
-				if (i > 0)
+			for (int j=0; j<ledIndexList.size(); ++i) {
+				if (j > 0)
 				{
-					ss << ", ";
+					sStream << ", ";
 				}
-				if (ledIndexList[i].contains("-"))
+				if (ledIndexList[j].contains("-"))
 				{
-					QStringList ledIndices = ledIndexList[i].split("-");
+					QStringList ledIndices = ledIndexList[j].split("-");
 					int startInd = ledIndices[0].toInt();
 					int endInd   = ledIndices[1].toInt();
 
 					adjustment->setAdjustmentForLed(colorAdjustment->_id, startInd, endInd);
-					ss << startInd << "-" << endInd;
+					sStream << startInd << "-" << endInd;
 				}
 				else
 				{
 					int index = ledIndexList[i].toInt();
 					adjustment->setAdjustmentForLed(colorAdjustment->_id, index, index);
-					ss << index;
+					sStream << index;
 				}
 			}
 		}
 
 		return adjustment;
-	}
-
-	/**
-	 * Construct the 'led-string' with the integration area definition per led and the color
-	 * ordering of the RGB channels
-	 * @param ledsConfig   The configuration of the led areas
-	 * @param deviceOrder  The default RGB channel ordering
-	 * @return The constructed ledstring
-	 */
-	static LedString createLedString(const QJsonArray& ledConfigArray, const ColorOrder deviceOrder)
-	{
-		LedString ledString;
-		const QString deviceOrderStr = colorOrderToString(deviceOrder);
-
-		for (signed i = 0; i < ledConfigArray.size(); ++i)
-		{
-			const QJsonObject& ledConfig = ledConfigArray[i].toObject();
-			Led led;
-
-			led.minX_frac = qMax(0.0, qMin(1.0, ledConfig["hmin"].toDouble()));
-			led.maxX_frac = qMax(0.0, qMin(1.0, ledConfig["hmax"].toDouble()));
-			led.minY_frac = qMax(0.0, qMin(1.0, ledConfig["vmin"].toDouble()));
-			led.maxY_frac = qMax(0.0, qMin(1.0, ledConfig["vmax"].toDouble()));
-			// Fix if the user swapped min and max
-			if (led.minX_frac > led.maxX_frac)
-			{
-				std::swap(led.minX_frac, led.maxX_frac);
-			}
-			if (led.minY_frac > led.maxY_frac)
-			{
-				std::swap(led.minY_frac, led.maxY_frac);
-			}
-
-			// Get the order of the rgb channels for this led (default is device order)
-			led.colorOrder = stringToColorOrder(ledConfig["colorOrder"].toString(deviceOrderStr));
-			ledString.leds().push_back(led);
-		}
-		return ledString;
 	}
 
 	static QSize getLedLayoutGridSize(const QJsonArray& ledConfigArray)
