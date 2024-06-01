@@ -559,6 +559,10 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB32;
 		break;
 
+		case PixelFormat::BGR32:
+			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_BGR32;
+			break;
+
 		case PixelFormat::RGB24:
 			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB24;
 		break;
@@ -697,6 +701,14 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 		}
 		break;
 
+		case V4L2_PIX_FMT_BGR32:
+		{
+			_pixelFormat = PixelFormat::BGR32;
+			_frameByteSize = _width * _height * 4;
+			Debug(_log, "Pixel format=BGR32");
+		}
+		break;
+
 		case V4L2_PIX_FMT_RGB24:
 		{
 			_pixelFormat = PixelFormat::RGB24;
@@ -756,9 +768,9 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 
 		default:
 #ifdef HAVE_TURBO_JPEG
-			throw_exception("Only pixel formats RGB32, RGB24, BGR24, YUYV, UYVY, NV12, I420 and MJPEG are supported");
+			throw_exception("Only pixel formats RGB32, BGR32, RGB24, BGR24, YUYV, UYVY, NV12, I420 and MJPEG are supported");
 #else
-			throw_exception("Only pixel formats RGB32, RGB24, BGR24, YUYV, UYVY, NV12 and I420 are supported");
+			throw_exception("Only pixel formats RGB32, BGR32, RGB24, BGR24, YUYV, UYVY, NV12 and I420 are supported");
 #endif
 		return;
 	}
