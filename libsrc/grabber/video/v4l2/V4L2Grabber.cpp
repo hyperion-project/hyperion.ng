@@ -54,6 +54,7 @@ Q_GLOBAL_STATIC_WITH_ARGS(ControlIDPropertyMap, _controlIDPropertyMap, (initCont
 static PixelFormat GetPixelFormat(const unsigned int format)
 {
 	if (format == V4L2_PIX_FMT_RGB32) return PixelFormat::RGB32;
+	if (format == V4L2_PIX_FMT_BGR32) return PixelFormat::BGR32;
 	if (format == V4L2_PIX_FMT_RGB24) return PixelFormat::RGB24;
 	if (format == V4L2_PIX_FMT_BGR24) return PixelFormat::BGR24;
 	if (format == V4L2_PIX_FMT_YUYV) return PixelFormat::YUYV;
