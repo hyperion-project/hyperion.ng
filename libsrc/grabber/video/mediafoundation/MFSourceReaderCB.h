@@ -28,7 +28,6 @@ static PixelFormat GetPixelFormatForGuid(const GUID guid)
 {
 	if (IsEqualGUID(guid, MFVideoFormat_RGB32)) return PixelFormat::RGB32;
 	if (IsEqualGUID(guid, MFVideoFormat_RGB24)) return PixelFormat::RGB24;
-	if (IsEqualGUID(guid, MFVideoFormat_BGR24)) return PixelFormat::BGR24;	
 	if (IsEqualGUID(guid, MFVideoFormat_YUY2)) return PixelFormat::YUYV;
 	if (IsEqualGUID(guid, MFVideoFormat_UYVY)) return PixelFormat::UYVY;
 #ifdef HAVE_TURBO_JPEG
@@ -146,9 +145,9 @@ public:
 		}
 
 #ifdef HAVE_TURBO_JPEG
-		if (_pixelformat != PixelFormat::MJPEG && _pixelformat != PixelFormat::RGB24 && _pixelformat != PixelFormat::BGR24 && _pixelformat != PixelFormat::NO_CHANGE)
+		if (_pixelformat != PixelFormat::MJPEG && _pixelformat != PixelFormat::RGB24 && _pixelformat != PixelFormat::NO_CHANGE)
 #else
-		if (_pixelformat != PixelFormat::RGB24 && _pixelformat != PixelFormat::BGR24 && _pixelformat != PixelFormat::NO_CHANGE)
+		if (_pixelformat != PixelFormat::RGB24 && _pixelformat != PixelFormat::NO_CHANGE)
 #endif
 			pSample = TransformSample(_transform, pSample);
 
@@ -182,9 +181,9 @@ public:
 			_bEOS = TRUE; // Reached the end of the stream.
 
 #ifdef HAVE_TURBO_JPEG
-		if (_pixelformat != PixelFormat::MJPEG && _pixelformat != PixelFormat::RGB24 && _pixelformat != PixelFormat::BGR24 && _pixelformat != PixelFormat::NO_CHANGE)
+		if (_pixelformat != PixelFormat::MJPEG && _pixelformat != PixelFormat::RGB24 && _pixelformat != PixelFormat::NO_CHANGE)
 #else
-		if (_pixelformat != PixelFormat::RGB24 && _pixelformat != PixelFormat::BGR24 && _pixelformat != PixelFormat::NO_CHANGE)
+		if (_pixelformat != PixelFormat::RGB24 && _pixelformat != PixelFormat::NO_CHANGE)
 #endif
 			SAFE_RELEASE(pSample);
 
@@ -197,9 +196,9 @@ public:
 	{
 		_pixelformat = format;
 #ifdef HAVE_TURBO_JPEG
-		if (format == PixelFormat::MJPEG || format == PixelFormat::RGB24 || format == PixelFormat::BGR24 || format == PixelFormat::NO_CHANGE)
+		if (format == PixelFormat::MJPEG || format == PixelFormat::RGB24 || format == PixelFormat::NO_CHANGE)
 #else
-		if (format == PixelFormat::RGB24 || format == PixelFormat::BGR24 || format == PixelFormat::NO_CHANGE)
+		if (format == PixelFormat::RGB24 || format == PixelFormat::NO_CHANGE)
 #endif
 			return S_OK;
 
@@ -393,10 +392,10 @@ private:
 private:
 	long				_nRefCount;
 	CRITICAL_SECTION	_critsec;
-	MFGrabber*			_grabber;
+	MFGrabber* _grabber;
 	BOOL				_bEOS;
 	HRESULT				_hrStatus;
-	IMFTransform*		_transform;
+	IMFTransform* _transform;
 	PixelFormat			_pixelformat;
 	std::atomic<bool>	_isBusy;
 };
