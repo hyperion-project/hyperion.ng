@@ -57,7 +57,6 @@ static PixelFormat GetPixelFormat(const unsigned int format)
 	if (format == V4L2_PIX_FMT_BGR32) return PixelFormat::BGR32;
 	if (format == V4L2_PIX_FMT_RGB24) return PixelFormat::RGB24;
 	if (format == V4L2_PIX_FMT_BGR24) return PixelFormat::BGR24;
-	if (format == V4L2_PIX_FMT_BGR16) return PixelFormat::BGR16;
 	if (format == V4L2_PIX_FMT_YUYV) return PixelFormat::YUYV;
 	if (format == V4L2_PIX_FMT_UYVY) return PixelFormat::UYVY;
 	if (format == V4L2_PIX_FMT_NV12) return  PixelFormat::NV12;
@@ -572,10 +571,6 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_BGR24;
 		break;
 
-		case PixelFormat::BGR16:
-			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_BGR16;
-			break;
-
 		case PixelFormat::YUYV:
 			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
 		break;
@@ -730,14 +725,6 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 		}
 		break;
 
-		case V4L2_PIX_FMT_BGR16:
-		{
-			_pixelFormat = PixelFormat::BGR16;
-			_frameByteSize = _width * _height * 2;
-			Debug(_log, "Pixel format=BGR16");
-		}
-		break;
-
 		case V4L2_PIX_FMT_YUYV:
 		{
 			_pixelFormat = PixelFormat::YUYV;
@@ -781,9 +768,9 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 
 		default:
 #ifdef HAVE_TURBO_JPEG
-			throw_exception("Only pixel formats RGB32, BGR32, RGB24, BGR24, BGR16, YUYV, UYVY, NV12, I420 and MJPEG are supported");
+			throw_exception("Only pixel formats RGB32, BGR32, RGB24, BGR24, YUYV, UYVY, NV12, I420 and MJPEG are supported");
 #else
-			throw_exception("Only pixel formats RGB32, BGR32, RGB24, BGR24, BGR16, YUYV, UYVY, NV12 and I420 are supported");
+			throw_exception("Only pixel formats RGB32, BGR32, RGB24, BGR24, YUYV, UYVY, NV12 and I420 are supported");
 #endif
 		return;
 	}
