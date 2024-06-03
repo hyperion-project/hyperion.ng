@@ -541,7 +541,7 @@ void MFGrabber::process_image(const void *frameImageBuffer, int size)
 		{
 			if (!_threadManager->_threads[i]->isBusy())
 			{
-				_threadManager->_threads[i]->setup(_pixelFormat, (uint8_t*)frameImageBuffer, size, _width, _height, _lineLength, _cropLeft, _cropTop, _cropBottom, _cropRight, _videoMode, _flipMode, _pixelDecimation);
+				_threadManager->_threads[i]->setup(_pixelFormat, (uint8_t*)frameImageBuffer, size, _width, _height, _lineLength, _cropLeft, _cropTop, _cropBottom, _cropRight, _videoMode, (_pixelFormat == PixelFormat::BGR24), _flipMode, _pixelDecimation);
 				_threadManager->_threads[i]->process();
 				break;
 			}

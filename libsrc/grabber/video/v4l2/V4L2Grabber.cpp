@@ -1046,7 +1046,7 @@ bool V4L2Grabber::process_image(const void *p, int size)
 		{
 			if (!_threadManager->_threads[i]->isBusy())
 			{
-				_threadManager->_threads[i]->setup(_pixelFormat, (uint8_t*)p, size, _width, _height, _lineLength, _cropLeft, _cropTop, _cropBottom, _cropRight, _videoMode, _flipMode, _pixelDecimation);
+				_threadManager->_threads[i]->setup(_pixelFormat, (uint8_t*)p, size, _width, _height, _lineLength, _cropLeft, _cropTop, _cropBottom, _cropRight, _videoMode, false, _flipMode, _pixelDecimation);
 				_threadManager->_threads[i]->process();
 				result = true;
 				break;

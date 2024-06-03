@@ -10,6 +10,7 @@ ImageResampler::ImageResampler()
 	, _cropTop(0)
 	, _cropBottom(0)
 	, _videoMode(VideoMode::VIDEO_2D)
+	, _bottomUp(false)
 	, _flipMode(FlipMode::NO_CHANGE)
 {
 }
@@ -53,7 +54,24 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 	int xDestStart, xDestEnd;
 	int yDestStart, yDestEnd;
 
-	switch (_flipMode)
+	FlipMode flipMode;
+	if (!_bottomUp)
+	{
+		flipMode = _flipMode;
+	}
+	else
+	{
+		if (_flipMode == FlipMode::NO_CHANGE)
+			flipMode = FlipMode::HORIZONTAL;
+		else if (_flipMode == FlipMode::HORIZONTAL)
+			flipMode = FlipMode::NO_CHANGE;
+		else if (_flipMode == FlipMode::VERTICAL)
+			flipMode = FlipMode::BOTH;
+		else if (_flipMode == FlipMode::BOTH)
+			flipMode = FlipMode::VERTICAL;
+	}
+
+	switch (flipMode)
 	{
 		case FlipMode::NO_CHANGE:
 			xDestStart = 0;

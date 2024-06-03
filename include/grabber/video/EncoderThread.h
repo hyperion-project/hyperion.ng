@@ -31,7 +31,7 @@ public:
 		PixelFormat pixelFormat, uint8_t* sharedData,
 		int size, int width, int height, int lineLength,
 		int cropLeft, int cropTop, int cropBottom, int cropRight,
-		VideoMode videoMode, FlipMode flipMode, int pixelDecimation);
+		VideoMode videoMode, bool bottomUp, FlipMode flipMode, int pixelDecimation);
 
 	void process();
 
@@ -55,7 +55,7 @@ private:
 	int _cropTop;
 	int _cropBottom;
 	int _cropRight;
-
+	bool _bottomUp;
 	FlipMode _flipMode;
 	VideoMode _videoMode;
 	bool _doTransform;
@@ -96,14 +96,14 @@ public:
 		PixelFormat pixelFormat, uint8_t* sharedData,
 		int size, int width, int height, int lineLength,
 		int cropLeft, int cropTop, int cropBottom, int cropRight,
-		VideoMode videoMode, FlipMode flipMode, int pixelDecimation)
+		VideoMode videoMode, bool bottomUp, FlipMode flipMode, int pixelDecimation)
 	{
 		auto encThread = qobject_cast<EncoderThread*>(_thread);
 		if (encThread != nullptr)
 			encThread->setup(pixelFormat, sharedData,
 				size, width, height, lineLength,
 				cropLeft, cropTop, cropBottom, cropRight,
-				videoMode, flipMode, pixelDecimation);
+				videoMode, bottomUp, flipMode, pixelDecimation);
 	}
 
 	bool isBusy()
