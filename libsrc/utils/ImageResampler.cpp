@@ -54,24 +54,19 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 	int xDestStart, xDestEnd;
 	int yDestStart, yDestEnd;
 
-	FlipMode flipMode;
-	if (!_bottomUp)
-	{
-		flipMode = _flipMode;
-	}
-	else
+	if (bottomUp)
 	{
 		if (_flipMode == FlipMode::NO_CHANGE)
-			flipMode = FlipMode::HORIZONTAL;
+			_flipMode = FlipMode::HORIZONTAL;
 		else if (_flipMode == FlipMode::HORIZONTAL)
-			flipMode = FlipMode::NO_CHANGE;
+			_flipMode = FlipMode::NO_CHANGE;
 		else if (_flipMode == FlipMode::VERTICAL)
-			flipMode = FlipMode::BOTH;
+			_flipMode = FlipMode::BOTH;
 		else if (_flipMode == FlipMode::BOTH)
-			flipMode = FlipMode::VERTICAL;
+			_flipMode = FlipMode::VERTICAL;
 	}
 
-	switch (flipMode)
+	switch (_flipMode)
 	{
 		case FlipMode::NO_CHANGE:
 			xDestStart = 0;

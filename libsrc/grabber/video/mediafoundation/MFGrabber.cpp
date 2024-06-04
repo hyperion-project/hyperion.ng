@@ -359,6 +359,7 @@ done:
 	else
 	{
 		_pixelFormat = props.pf;
+		_bottomUp = (props.defstride < 0);
 		_width = props.width;
 		_height = props.height;
 		_frameByteSize = _width * _height * 3;
@@ -436,6 +437,14 @@ void MFGrabber::enumVideoCaptureDevices()
 												properties.denominator = denominator;
 												properties.pf = pixelformat;
 												properties.guid = format;
+
+												HRESULT hr = pType->GetUINT32(MF_MT_DEFAULT_STRIDE, (UINT32*)&properties.defstride);
+												if (FAILED(hr))
+												{
+													hr = MFGetStrideForBitmapInfoHeader(format.Data1, width, &properties.defstride);
+													if (FAILED(hr))
+														DebugIf (verbose, _log, "failed to get default stride");
+												}
 												devicePropertyList.append(properties);
 
 												DebugIf (verbose, _log, "%s %d x %d @ %d fps (%s)", QSTRING_CSTR(dev), properties.width, properties.height, properties.fps, QSTRING_CSTR(pixelFormatToString(properties.pf)));
@@ -541,7 +550,7 @@ void MFGrabber::process_image(const void *frameImageBuffer, int size)
 		{
 			if (!_threadManager->_threads[i]->isBusy())
 			{
-				_threadManager->_threads[i]->setup(_pixelFormat, (uint8_t*)frameImageBuffer, size, _width, _height, _lineLength, _cropLeft, _cropTop, _cropBottom, _cropRight, _videoMode, (_pixelFormat == PixelFormat::BGR24), _flipMode, _pixelDecimation);
+				_threadManager->_threads[i]->setup(_pixelFormat, (uint8_t*)frameImageBuffer, size, _width, _height, _lineLength, _cropLeft, _cropTop, _cropBottom, _cropRight, _videoMode, _bottomUp, _flipMode, _pixelDecimation);
 				_threadManager->_threads[i]->process();
 				break;
 			}
@@ -797,7 +806,7 @@ QJsonArray MFGrabber::discover(const QJsonObject& params)
 		resolution_default["width"] = 640;
 		resolution_default["height"] = 480;
 		resolution_default["fps"] = 25;
-		format_default["format"] = "bgr24";
+		format_default["format"] = "rgb24";
 		format_default["resolution"] = resolution_default;
 		video_inputs_default["inputIdx"] = 0;
 		video_inputs_default["standards"] = "PAL";

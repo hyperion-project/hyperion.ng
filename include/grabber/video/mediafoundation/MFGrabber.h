@@ -46,6 +46,7 @@ public:
 		int numerator	= 0;
 		int denominator = 0;
 		PixelFormat pf	= PixelFormat::NO_CHANGE;
+		long defstride  = 0;
 		GUID guid		= GUID_NULL;
 	};
 
@@ -108,6 +109,7 @@ private:
 	EncoderThreadManager*						_threadManager;
 	PixelFormat									_pixelFormat,
 												_pixelFormatConfig;
+	bool										_bottomUp;
 	int											_lineLength,
 												_frameByteSize,
 												_noSignalCounterThreshold,
