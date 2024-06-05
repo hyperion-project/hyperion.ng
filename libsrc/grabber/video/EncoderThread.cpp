@@ -40,7 +40,7 @@ void EncoderThread::setup(
 		PixelFormat pixelFormat, uint8_t* sharedData,
 		int size, int width, int height, int lineLength,
 		int cropLeft, int cropTop, int cropBottom, int cropRight,
-		VideoMode videoMode, bool bottomUp, FlipMode flipMode, int pixelDecimation)
+		VideoMode videoMode, FlipMode flipMode, int pixelDecimation)
 {
 	_lineLength = lineLength;
 	_pixelFormat = pixelFormat;
@@ -51,7 +51,6 @@ void EncoderThread::setup(
 	_cropTop = cropTop;
 	_cropBottom = cropBottom;
 	_cropRight = cropRight;
-	_bottomUp = bottomUp;
 	_flipMode = flipMode;
 	_videoMode = videoMode;
 	_pixelDecimation = pixelDecimation;
@@ -82,7 +81,6 @@ void EncoderThread::setup(
 #endif
 
 	_imageResampler.setVideoMode(_videoMode);
-	_imageResampler.setBottomUp(_bottomUp);
 	_imageResampler.setFlipMode(_flipMode);
 	_imageResampler.setCropping(_cropLeft, _cropRight, _cropTop, _cropBottom);
 	_imageResampler.setHorizontalPixelDecimation(_pixelDecimation);

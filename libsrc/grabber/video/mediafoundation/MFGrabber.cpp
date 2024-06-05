@@ -359,11 +359,22 @@ done:
 	else
 	{
 		_pixelFormat = props.pf;
-		_bottomUp = (props.defstride < 0);
 		_width = props.width;
 		_height = props.height;
 		_frameByteSize = _width * _height * 3;
 		_lineLength = _width * 3;
+		// adjust flipMode for bottom-up images
+		if (props.defstride < 0)
+		{
+			if (_flipMode == FlipMode::NO_CHANGE)
+				_flipMode = FlipMode::HORIZONTAL;
+			else if (_flipMode == FlipMode::HORIZONTAL)
+				_flipMode = FlipMode::NO_CHANGE;
+			else if (_flipMode == FlipMode::VERTICAL)
+				_flipMode = FlipMode::BOTH;
+			else if (_flipMode == FlipMode::BOTH)
+				_flipMode = FlipMode::VERTICAL;
+		}
 	}
 
 	// Cleanup
@@ -550,7 +561,7 @@ void MFGrabber::process_image(const void *frameImageBuffer, int size)
 		{
 			if (!_threadManager->_threads[i]->isBusy())
 			{
-				_threadManager->_threads[i]->setup(_pixelFormat, (uint8_t*)frameImageBuffer, size, _width, _height, _lineLength, _cropLeft, _cropTop, _cropBottom, _cropRight, _videoMode, _bottomUp, _flipMode, _pixelDecimation);
+				_threadManager->_threads[i]->setup(_pixelFormat, (uint8_t*)frameImageBuffer, size, _width, _height, _lineLength, _cropLeft, _cropTop, _cropBottom, _cropRight, _videoMode, _flipMode, _pixelDecimation);
 				_threadManager->_threads[i]->process();
 				break;
 			}

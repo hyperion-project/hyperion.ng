@@ -109,7 +109,6 @@ private:
 	EncoderThreadManager*						_threadManager;
 	PixelFormat									_pixelFormat,
 												_pixelFormatConfig;
-	bool										_bottomUp;
 	int											_lineLength,
 												_frameByteSize,
 												_noSignalCounterThreshold,
