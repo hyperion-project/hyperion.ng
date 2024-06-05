@@ -55,6 +55,7 @@ private:
 	int _cropTop;
 	int _cropBottom;
 	int _cropRight;
+
 	FlipMode _flipMode;
 	VideoMode _videoMode;
 	bool _doTransform;
