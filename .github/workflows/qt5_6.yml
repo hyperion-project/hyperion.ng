@@ -168,13 +168,14 @@ jobs:
       - name: 📥 Install DirectX SDK, OpenSSL, libjpeg-turbo
         shell: powershell
         run: |
+          choco install --no-progress directx-sdk -y
           choco install --no-progress ${{env.OPENSSL}} -y
           Invoke-WebRequest https://netcologne.dl.sourceforge.net/project/libjpeg-turbo/3.0.1/libjpeg-turbo-3.0.1-vc64.exe -OutFile libjpeg-turbo.exe -UserAgent NativeHost
           .\libjpeg-turbo /S
         env:
           OPENSSL: ${{ inputs.qt_version == '6' && 'openssl' || 'openssl --version=1.1.1.2100' }}
-          
-      - name: Install Vulkan SDK for Qt6
+
+      - name: Install Vulkan SDK
         if: ${{ inputs.qt_version == '6' }}
         uses: jakoch/install-vulkan-sdk-action@v1.0.3
         with:
