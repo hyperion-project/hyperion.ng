@@ -117,7 +117,7 @@ jobs:
           echo '::group::Update/Install dependencies'
             brew untap --force homebrew/core homebrew/cask
             brew update || true
-            brew install qt${{ inputs.qt_version }} vulkan-headers ninja || true
+            brew install qt@${{ inputs.qt_version }} vulkan-headers ninja libftdi || true
           echo '::endgroup::'
 
       - name: 👷 Build
@@ -177,9 +177,9 @@ jobs:
           OPENSSL: ${{ inputs.qt_version == '6' && 'openssl' || 'openssl --version=1.1.1.2100' }}
 
       - name: 📥 Install Qt
-        uses: jurplel/install-qt-action@v3
+        uses: jurplel/install-qt-action@v4
         with:
-          version: ${{ inputs.qt_version == '6' && '6.5.2' || '5.15.2' }}
+          version: ${{ inputs.qt_version == '6' && '6.*' || '5.15.*' }}
           target: 'desktop'
           modules: ${{ inputs.qt_version == '6' && 'qtserialport' || '' }}
           arch: 'win64_msvc2019_64'

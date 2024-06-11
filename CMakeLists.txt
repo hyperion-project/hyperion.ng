@@ -94,6 +94,7 @@ set(DEFAULT_DEV_SPI                     OFF)
 set(DEFAULT_DEV_TINKERFORGE             OFF)
 set(DEFAULT_DEV_USB_HID                 OFF)
 set(DEFAULT_DEV_WS281XPWM               OFF)
+set(DEFAULT_DEV_FTDI                    ON )
 
 # Services
 set(DEFAULT_EFFECTENGINE                ON )
@@ -121,9 +122,10 @@ if(${CMAKE_SYSTEM} MATCHES "Linux")
 	set(DEFAULT_DEV_USB_HID     ON)
 	set(DEFAULT_CEC             ON)
 elseif (WIN32)
-	set(DEFAULT_DX ON)
-	set(DEFAULT_DDA ON)
-	set(DEFAULT_MF ON)
+	set(DEFAULT_DX              ON )
+  set(DEFAULT_DDA             ON )
+	set(DEFAULT_MF              ON )
+	set(DEFAULT_DEV_FTDI        OFF)
 else()
 	set(DEFAULT_FB              OFF)
 	set(DEFAULT_V4L2            OFF)
@@ -352,6 +354,9 @@ message(STATUS "ENABLE_DEV_USB_HID = ${ENABLE_DEV_USB_HID}")
 
 option(ENABLE_DEV_WS281XPWM "Enable the WS281x-PWM device" ${DEFAULT_DEV_WS281XPWM})
 message(STATUS "ENABLE_DEV_WS281XPWM = ${ENABLE_DEV_WS281XPWM}")
+
+option(ENABLE_DEV_FTDI "Enable the FTDI devices" ${DEFAULT_DEV_FTDI} )
+message(STATUS "ENABLE_DEV_FTDI = ${ENABLE_DEV_FTDI}")
 
 removeIndent()
 

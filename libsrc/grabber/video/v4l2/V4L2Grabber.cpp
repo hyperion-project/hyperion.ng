@@ -54,7 +54,9 @@ Q_GLOBAL_STATIC_WITH_ARGS(ControlIDPropertyMap, _controlIDPropertyMap, (initCont
 static PixelFormat GetPixelFormat(const unsigned int format)
 {
 	if (format == V4L2_PIX_FMT_RGB32) return PixelFormat::RGB32;
-	if (format == V4L2_PIX_FMT_RGB24) return PixelFormat::BGR24;
+	if (format == V4L2_PIX_FMT_BGR32) return PixelFormat::BGR32;
+	if (format == V4L2_PIX_FMT_RGB24) return PixelFormat::RGB24;
+	if (format == V4L2_PIX_FMT_BGR24) return PixelFormat::BGR24;
 	if (format == V4L2_PIX_FMT_YUYV) return PixelFormat::YUYV;
 	if (format == V4L2_PIX_FMT_UYVY) return PixelFormat::UYVY;
 	if (format == V4L2_PIX_FMT_NV12) return  PixelFormat::NV12;
@@ -557,8 +559,16 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB32;
 		break;
 
-		case PixelFormat::BGR24:
+		case PixelFormat::BGR32:
+			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_BGR32;
+			break;
+
+		case PixelFormat::RGB24:
 			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB24;
+		break;
+
+		case PixelFormat::BGR24:
+			fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_BGR24;
 		break;
 
 		case PixelFormat::YUYV:
@@ -691,14 +701,29 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 		}
 		break;
 
+		case V4L2_PIX_FMT_BGR32:
+		{
+			_pixelFormat = PixelFormat::BGR32;
+			_frameByteSize = _width * _height * 4;
+			Debug(_log, "Pixel format=BGR32");
+		}
+		break;
+
 		case V4L2_PIX_FMT_RGB24:
+		{
+			_pixelFormat = PixelFormat::RGB24;
+			_frameByteSize = _width * _height * 3;
+			Debug(_log, "Pixel format=RGB24");
+		}
+		break;
+
+		case V4L2_PIX_FMT_BGR24:
 		{
 			_pixelFormat = PixelFormat::BGR24;
 			_frameByteSize = _width * _height * 3;
 			Debug(_log, "Pixel format=BGR24");
 		}
 		break;
-
 
 		case V4L2_PIX_FMT_YUYV:
 		{
@@ -743,9 +768,9 @@ void V4L2Grabber::init_device(VideoStandard videoStandard)
 
 		default:
 #ifdef HAVE_TURBO_JPEG
-			throw_exception("Only pixel formats RGB32, BGR24, YUYV, UYVY, NV12, I420 and MJPEG are supported");
+			throw_exception("Only pixel formats RGB32, BGR32, RGB24, BGR24, YUYV, UYVY, NV12, I420 and MJPEG are supported");
 #else
-			throw_exception("Only pixel formats RGB32, BGR24, YUYV, UYVY, NV12 and I420 are supported");
+			throw_exception("Only pixel formats RGB32, BGR32, RGB24, BGR24, YUYV, UYVY, NV12 and I420 are supported");
 #endif
 		return;
 	}
@@ -1079,6 +1104,22 @@ void V4L2Grabber::newThreadFrame(Image<ColorRgb> image)
 	}
 	else
 		emit newFrame(image);
+
+#ifdef FRAME_BENCH
+	// calculate average frametime
+	if (_currentFrame > 1)
+	{
+		if (_currentFrame % 100 == 0)
+		{
+			Debug(_log, "%d: avg. frametime=%.02fms / %.02fms", int(_currentFrame), _frameTimer.restart()/100.0, 1000.0/_fps);
+		}
+	}
+	else
+	{
+		Debug(_log, "%d: frametimer started", int(_currentFrame));
+		_frameTimer.start();
+	}
+#endif
 }
 
 int V4L2Grabber::xioctl(int request, void *arg)
