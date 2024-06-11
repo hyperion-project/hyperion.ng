@@ -163,18 +163,24 @@ jobs:
         uses: actions/cache@v4
         with:
           path: C:\Users\runneradmin\AppData\Local\Temp\chocolatey
-          key: ${{ runner.os }}${{ inputs.qt_version == '6' && '-chocolatey-qt6' || '-chocolatey' }}
+          key: ${{ runner.os }}${{ '-chocolatey' }}
 
-      - name: 📥 Install DirectX SDK, OpenSSL, libjpeg-turbo ${{ inputs.qt_version == '6' && 'and Vulkan-SDK' || '' }}
+      - name: 📥 Install DirectX SDK, OpenSSL, libjpeg-turbo
         shell: powershell
         run: |
-          choco install --no-progress directx-sdk ${{env.VULKAN_SDK}} -y
           choco install --no-progress ${{env.OPENSSL}} -y
           Invoke-WebRequest https://netcologne.dl.sourceforge.net/project/libjpeg-turbo/3.0.1/libjpeg-turbo-3.0.1-vc64.exe -OutFile libjpeg-turbo.exe -UserAgent NativeHost
           .\libjpeg-turbo /S
         env:
-          VULKAN_SDK: ${{ inputs.qt_version == '6' && 'vulkan-sdk' || '' }}
           OPENSSL: ${{ inputs.qt_version == '6' && 'openssl' || 'openssl --version=1.1.1.2100' }}
+          
+      - name: Install Vulkan SDK for Qt6
+        if: ${{ inputs.qt_version == '6' }}
+        uses: jakoch/install-vulkan-sdk-action@v1.0.3
+        with:
+          install_runtime: false
+          cache: true
+          stripdown: true
 
       - name: 📥 Install Qt
         uses: jurplel/install-qt-action@v4
