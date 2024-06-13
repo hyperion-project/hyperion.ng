@@ -176,11 +176,11 @@ jobs:
           OPENSSL: ${{ inputs.qt_version == '6' && 'openssl' || 'openssl --version=1.1.1.2100' }}
 
       - name: Install Vulkan SDK
-        if: ${{ inputs.qt_version == '6' }}
-        uses: jakoch/install-vulkan-sdk-action@v1.0.3
-        with:
-          install_runtime: false
-          cache: true
+   uses: humbletim/setup-vulkan-sdk@v1.2.0
+   with:
+     vulkan-query-version: 1.3.204.0
+     vulkan-components: Vulkan-Headers
+     vulkan-use-cache: true
           stripdown: true
 
       - name: 📥 Install Qt
