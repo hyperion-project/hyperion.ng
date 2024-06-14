@@ -174,7 +174,7 @@ int DDAGrabber::grabFrame(Image<ColorRgb> &image)
 	// Acquire the next frame.
 	CComPtr<IDXGIResource> desktopResource;
 	DXGI_OUTDUPL_FRAME_INFO frameInfo;
-	hr = d->desktopDuplication->AcquireNextFrame(INFINITE, &frameInfo, &desktopResource);
+	hr = d->desktopDuplication->AcquireNextFrame(500, &frameInfo, &desktopResource);
 	if (hr == DXGI_ERROR_ACCESS_LOST || hr == DXGI_ERROR_INVALID_CALL)
 	{
 		if (!restartCapture())
@@ -185,7 +185,7 @@ int DDAGrabber::grabFrame(Image<ColorRgb> &image)
 	}
 	if (hr == DXGI_ERROR_WAIT_TIMEOUT)
 	{
-		// This shouldn't happen since we specified an INFINITE timeout.
+		// Nothing changed on the screen in the 500ms we waited.
 		return 0;
 	}
 	RETURN_IF_ERROR(hr, "Failed to acquire next frame", 0);
