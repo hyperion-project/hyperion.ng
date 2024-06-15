@@ -1,5 +1,3 @@
-add_compile_definitions("_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR")
-
 # set and compile proto schema
 set(ProtoServer_PROTOS ${CMAKE_SOURCE_DIR}/libsrc/protoserver/message.proto)
 protobuf_generate_cpp(ProtoServer_PROTO_SRCS ProtoServer_PROTO_HDRS ${ProtoServer_PROTOS})
