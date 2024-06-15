@@ -124,10 +124,10 @@ inline QString pixelFormatToString(const PixelFormat& pixelFormat)
 
 enum class FlipMode
 {
+	NO_CHANGE,
 	HORIZONTAL,
 	VERTICAL,
-	BOTH,
-	NO_CHANGE
+	BOTH
 };
 
 inline FlipMode parseFlipMode(const QString& flipMode)

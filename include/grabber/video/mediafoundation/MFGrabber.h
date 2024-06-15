@@ -46,6 +46,7 @@ public:
 		int numerator	= 0;
 		int denominator = 0;
 		PixelFormat pf	= PixelFormat::NO_CHANGE;
+		long defstride  = 0;
 		GUID guid		= GUID_NULL;
 	};
 

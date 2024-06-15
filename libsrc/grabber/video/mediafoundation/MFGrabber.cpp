@@ -363,6 +363,18 @@ done:
 		_height = props.height;
 		_frameByteSize = _width * _height * 3;
 		_lineLength = _width * 3;
+		// adjust flipMode for bottom-up images
+		if (props.defstride < 0)
+		{
+			if (_flipMode == FlipMode::NO_CHANGE)
+				_flipMode = FlipMode::HORIZONTAL;
+			else if (_flipMode == FlipMode::HORIZONTAL)
+				_flipMode = FlipMode::NO_CHANGE;
+			else if (_flipMode == FlipMode::VERTICAL)
+				_flipMode = FlipMode::BOTH;
+			else if (_flipMode == FlipMode::BOTH)
+				_flipMode = FlipMode::VERTICAL;
+		}
 	}
 
 	// Cleanup
@@ -436,6 +448,14 @@ void MFGrabber::enumVideoCaptureDevices()
 												properties.denominator = denominator;
 												properties.pf = pixelformat;
 												properties.guid = format;
+
+												HRESULT hr = pType->GetUINT32(MF_MT_DEFAULT_STRIDE, (UINT32*)&properties.defstride);
+												if (FAILED(hr))
+												{
+													hr = MFGetStrideForBitmapInfoHeader(format.Data1, width, &properties.defstride);
+													if (FAILED(hr))
+														DebugIf (verbose, _log, "failed to get default stride");
+												}
 												devicePropertyList.append(properties);
 
 												DebugIf (verbose, _log, "%s %d x %d @ %d fps (%s)", QSTRING_CSTR(dev), properties.width, properties.height, properties.fps, QSTRING_CSTR(pixelFormatToString(properties.pf)));
@@ -797,7 +817,7 @@ QJsonArray MFGrabber::discover(const QJsonObject& params)
 		resolution_default["width"] = 640;
 		resolution_default["height"] = 480;
 		resolution_default["fps"] = 25;
-		format_default["format"] = "bgr24";
+		format_default["format"] = "rgb24";
 		format_default["resolution"] = resolution_default;
 		video_inputs_default["inputIdx"] = 0;
 		video_inputs_default["standards"] = "PAL";
