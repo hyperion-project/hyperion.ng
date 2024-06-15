@@ -149,6 +149,7 @@ if(ENABLE_PROTOBUF_SERVER)
 		set(protobuf_BUILD_TESTS OFF CACHE BOOL "Build protobuf with tests")
 		set(protobuf_BUILD_SHARED_LIBS OFF CACHE BOOL "Build protobuf shared")
 		set(protobuf_WITH_ZLIB OFF CACHE BOOL "Build protobuf with zlib support")
+		set(protobuf_BUILD_LIBUPB OFF CACHE BOOL "Build libupb")
 
 		if (WIN32)
 			set(protobuf_MSVC_STATIC_RUNTIME OFF CACHE BOOL "Build protobuf static")
