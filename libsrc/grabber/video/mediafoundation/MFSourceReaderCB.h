@@ -149,7 +149,7 @@ public:
 #else
 		if (_pixelformat != PixelFormat::RGB24 && _pixelformat != PixelFormat::NO_CHANGE)
 #endif
-			pSample = TransformSample(_transform, pSample);
+			pSample = TransformSample(_transform, pSample); // forced conversion to RGB24, but memory layout is RGBTRIPLE (b,g,r) -> process as BGR24
 
 		_hrStatus = pSample->ConvertToContiguousBuffer(&buffer);
 		if (FAILED(_hrStatus))
