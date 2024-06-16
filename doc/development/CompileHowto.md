@@ -114,12 +114,17 @@ sudo dnf install python3-devel qt-devel qt5-qtbase-devel qt5-qtserialport-devel 
 ```
 After installing the dependencies, you can continue with the compile instructions later on this page (the more detailed way..).
 
-## OSX
+## macOS
 To install on OS X you either need [Homebrew](https://brew.sh/) or [Macport](https://www.macports.org/) but Homebrew is the recommended way to install the packages. To use Homebrew, XCode is required as well, use `brew doctor` to check your install.
 
-First you need to install the dependencies:
+First you need to install the dependencies for either the QT5 or QT6 build:
+####QT5
 ```console
-brew install git qt@5 python3 cmake libusb openssl@1.1 libftdi
+brew install git qt@5 python3 cmake libusb openssl@1.1 libftdi pkg-config
+```
+####QT6
+```console
+brew install git qt python3 cmake libusb openssl@1.1 libftdi pkg-config
 ```
 
 ## Windows
@@ -147,7 +152,7 @@ We assume a 64bit Windows 10. Install the following;
 
 ## The general quick way (without big comments)
 
-**complete automated process for Mac/Linux:**
+**complete automated process (Linux only):**
 ```console
 wget -qO- https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/bin/compile.sh | sh
 ```
