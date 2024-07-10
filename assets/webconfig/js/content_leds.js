@@ -22,7 +22,7 @@ var devSPI = ['apa102', 'apa104', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk68
 var devFTDI = ['apa102_ftdi', 'sk6812_ftdi', 'ws2812_ftdi'];
 var devRPiPWM = ['ws281x'];
 var devRPiGPIO = ['piblaster'];
-var devNET = ['atmoorb', 'cololight', 'fadecandy', 'philipshue', 'nanoleaf', 'razer', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udpddp', 'udph801', 'udpraw', 'wled', 'yeelight'];
+var devNET = ['atmoorb', 'cololight', 'fadecandy', 'homeassistant', 'philipshue', 'nanoleaf', 'razer', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udpddp', 'udph801', 'udpraw', 'wled', 'yeelight'];
 var devSerial = ['adalight', 'dmx', 'atmo', 'sedu', 'tpm2', 'karate'];
 var devHID = ['hyperionusbasp', 'lightpack', 'paintpack', 'rawhid'];
 
@@ -1100,6 +1100,7 @@ $(document).ready(function () {
       switch (ledType) {
         case "wled":
         case "cololight":
+        case "homeassistant":
         case "nanoleaf":
           showAllDeviceInputOptions("hostList", false);
         case "apa102":
@@ -1274,6 +1275,7 @@ $(document).ready(function () {
         }
           break;
 
+        case "homeassistant":
         case "nanoleaf": {
           const hostList = conf_editor.getEditor("root.specificOptions.hostList").getValue();
           if (hostList !== "SELECT") {
@@ -1384,6 +1386,18 @@ $(document).ready(function () {
 
           case "cololight":
             params = { host: host };
+            getProperties_device(ledType, host, params);
+            break;
+
+          case "homeassistant":
+            var token = conf_editor.getEditor("root.specificOptions.token").getValue();
+            if (token === "") {
+              return;
+            }
+
+            const lightIds = conf_editor.getEditor("root.specificOptions.lightIds").getValue();
+
+            params = { host: host, token: token, filter: "states/" + lightIds[0] };
             getProperties_device(ledType, host, params);
             break;
 
@@ -1552,6 +1566,15 @@ $(document).ready(function () {
 
         var host = "";
         switch (ledType) {
+          case "homeassistant":
+            host = conf_editor.getEditor("root.specificOptions.host").getValue();
+            if (host === "") {
+              return
+            }
+            const lightIds = conf_editor.getEditor("root.specificOptions.lightIds").getValue();
+            params = { host: host, token: token, filter: "states/" + lightIds[0] };
+            break;
+
           case "nanoleaf":
             host = conf_editor.getEditor("root.specificOptions.host").getValue();
             if (host === "") {
@@ -1744,6 +1767,13 @@ $(document).ready(function () {
         params = { host: host };
         break;
 
+      case "homeassistant":
+        var host = conf_editor.getEditor("root.specificOptions.host").getValue();
+        var token = conf_editor.getEditor("root.specificOptions.token").getValue();
+        const lightIds = conf_editor.getEditor("root.specificOptions.lightIds").getValue();
+        params = { host: host, token: token, entity_id: lightIds };
+        break;
+
       case "nanoleaf":
         var host = conf_editor.getEditor("root.specificOptions.host").getValue();
         var token = conf_editor.getEditor("root.specificOptions.token").getValue();
@@ -1878,6 +1908,7 @@ function saveLedConfig(genDefLayout = false) {
       }
       break;
 
+    case "homeassistant":
     case "nanoleaf":
     case "wled":
     case "yeelight":

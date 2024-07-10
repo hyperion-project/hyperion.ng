@@ -7,6 +7,7 @@
 		<file alias="schema-dmx">schemas/schema-dmx.json</file>
 		<file alias="schema-fadecandy">schemas/schema-fadecandy.json</file>
 		<file alias="schema-file">schemas/schema-file.json</file>
+		<file alias="schema-homeassistant">schemas/schema-homeassistant.json</file>
 		<file alias="schema-hyperionusbasp">schemas/schema-hyperionusbasp.json</file>
 		<file alias="schema-lightpack">schemas/schema-lightpack.json</file>
 		<file alias="schema-lpd6803">schemas/schema-lpd6803.json</file>
