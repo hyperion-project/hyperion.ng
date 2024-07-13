@@ -706,6 +706,7 @@
     "edt_dev_spec_port_expl": "Service Port [1-65535]",
     "edt_dev_spec_port_title": "Port",
     "edt_dev_spec_printTimeStamp_title": "Add timestamp",
+    "edt_dev_spec_skydimo_mode_title": "Skydimo Mode",
     "edt_dev_spec_stream_protocol_title": "Streaming protocol",
     "edt_dev_spec_pwmChannel_title": "PWM channel",
     "edt_dev_spec_razer_device_title": "Razer Chroma Device",
