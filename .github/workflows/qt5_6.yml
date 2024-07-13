@@ -182,7 +182,7 @@ jobs:
 
       - name: Install Vulkan SDK
         if: ${{ inputs.qt_version == '6' }}
-        uses: jakoch/install-vulkan-sdk-action@v1.0.3
+        uses: jakoch/install-vulkan-sdk-action@v1.0.4
         with:
           install_runtime: false
           cache: true
@@ -191,7 +191,7 @@ jobs:
       - name: 📥 Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: ${{ inputs.qt_version == '6' && '6.*' || '5.15.*' }}
+          version: ${{ inputs.qt_version == '6' && '6.7' || '5.15.*' }}
           target: 'desktop'
           modules: ${{ inputs.qt_version == '6' && 'qtserialport' || '' }}
           arch: 'win64_msvc2019_64'
