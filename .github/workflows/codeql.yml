@@ -41,7 +41,7 @@ jobs:
       - name: Temporarily downgrade CMake to 3.28.3 # Please remove if GitHub has updated Cmake (greater than 3.30.0)
         uses: jwlawson/actions-setup-cmake@v2
         with:
-          cmake-version: '3.28.3'
+          cmake-version: '3.28.3'          
 
       - name: 🔁 Initialize CodeQL
         uses: github/codeql-action/init@v3
@@ -49,7 +49,7 @@ jobs:
           languages: ${{ matrix.language }}
           queries: +security-and-quality
           config-file: ./.github/config/codeql.yml
-
+          
       - name: 👷 Autobuild
         uses: github/codeql-action/autobuild@v3
 

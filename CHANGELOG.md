@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Support for ftdi chip based LED-devices with ws2812, sk6812 apa102 LED types (Many thanks to @nurikk) (#1746)
+- Support for Skydimo devices (being an Adalight variant)
 - Support gaps on Matrix Layout (#1696)
 - Windows: Added a new grabber that uses the DXGI DDA (Desktop Duplication API). This has much better performance than the DX grabber as it does more of its work on the GPU.
 
