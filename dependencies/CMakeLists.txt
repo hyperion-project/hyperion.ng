@@ -24,36 +24,19 @@ if (ENABLE_MDNS)
 	if(USE_SYSTEM_QMDNS_LIBS)
 		find_package(qmdnsengine REQUIRED)
 	else()
-		include(ExternalProject)
-		ExternalProject_Add(qmdns
-			PREFIX				${CMAKE_CURRENT_BINARY_DIR}/external/qmdnsengine
-			BUILD_ALWAYS		OFF
-			DOWNLOAD_COMMAND	""
-			SOURCE_DIR			${CMAKE_CURRENT_SOURCE_DIR}/external/qmdnsengine
-			BINARY_DIR			${CMAKE_CURRENT_BINARY_DIR}/external/qmdnsengine/bin
-			CMAKE_ARGS			-DBUILD_SHARED_LIBS:BOOL=OFF
-								-DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_BINARY_DIR}
-								-DBIN_INSTALL_DIR:STRING=lib
-								-DLIB_INSTALL_DIR:STRING=lib
-								-DINCLUDE_INSTALL_DIR:STRING=include
-								-DCMAKE_PREFIX_PATH:PATH=${CMAKE_PREFIX_PATH}
-								-DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
-								-DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
-								-DCMAKE_C_FLAGS:STRING=${CMAKE_C_FLAGS}
-								-DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
-								-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-								-Wno-dev # We don't want to be warned over unused variables
-			INSTALL_DIR			${CMAKE_BINARY_DIR}
-			BUILD_BYPRODUCTS    <INSTALL_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}qmdnsengine${CMAKE_STATIC_LIBRARY_SUFFIX}
-		)
+ 		# Build QMdnsEngine as static library
+		set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build statically version of QMdnsEngine")
 
-		add_library(qmdnsengine STATIC IMPORTED GLOBAL)
-		add_dependencies(qmdnsengine qmdns)
-		ExternalProject_Get_Property(qmdns INSTALL_DIR)
-		set_target_properties(qmdnsengine PROPERTIES
-			IMPORTED_LOCATION "${INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}qmdnsengine${CMAKE_STATIC_LIBRARY_SUFFIX}"
-			INTERFACE_INCLUDE_DIRECTORIES "${INSTALL_DIR}/include"
-		)
+		# Suppress warnings about "Compatibility with CMake < 3.5 will be removed from a future version of CMake"
+		set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "" FORCE)
+
+		# Add QMdnsEngine directory to the build
+		add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/external/qmdnsengine")
+	endif()
+
+	if(TARGET qmdnsengine AND NOT TARGET qmdns)
+		add_library(qmdns INTERFACE IMPORTED GLOBAL)
+		target_link_libraries(qmdns INTERFACE qmdnsengine)
 	endif()
 endif()
 
