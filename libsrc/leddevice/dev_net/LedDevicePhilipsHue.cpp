@@ -31,7 +31,7 @@ const char CONFIG_TRANSITIONTIME[] = "transitiontime";
 const char CONFIG_BLACK_LIGHTS_TIMEOUT[] = "blackLightsTimeout";
 const char CONFIG_ON_OFF_BLACK[] = "switchOffOnBlack";
 const char CONFIG_RESTORE_STATE[] = "restoreOriginalState";
-const char CONFIG_lightIdS[] = "lightIds";
+const char CONFIG_LIGHTIDS[] = "lightIds";
 const char CONFIG_USE_HUE_API_V2[] = "useAPIv2";
 const char CONFIG_USE_HUE_ENTERTAINMENT_API[] = "useEntertainmentAPI";
 const char CONFIG_groupId[] = "groupId";
@@ -1849,7 +1849,7 @@ bool LedDevicePhilipsHue::setLights()
 			_useEntertainmentAPI = false;
 			Error(_log, "Group-ID [%s] is not usable - Entertainment API usage was disabled!", QSTRING_CSTR(_groupId)  );
 		}
-		lights = _devConfig[ CONFIG_lightIdS ].toVariant().toStringList();
+		lights = _devConfig[ CONFIG_LIGHTIDS ].toVariant().toStringList();
 	}
 
 	_lightIds = lights;
