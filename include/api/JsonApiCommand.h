@@ -84,6 +84,7 @@ public:
 		DeleteToken,
 		Discover,
 		GetConfig,
+		GetConfigOld,
 		GetInfo,
 		GetPendingTokenRequests,
 		GetProperties,
@@ -134,6 +135,7 @@ public:
 		case DeleteToken: return "deleteToken";
 		case Discover: return "discover";
 		case GetConfig: return "getconfig";
+		case GetConfigOld: return "getconfig-old";
 		case GetInfo: return "getInfo";
 		case GetPendingTokenRequests: return "getPendingTokenRequests";
 		case GetProperties: return "getProperties";
@@ -274,6 +276,7 @@ public:
 			{ {"color", ""}, { Command::Color, SubCommand::Empty, Authorization::Yes, InstanceCmd::Multi, NoListenerCmd::Yes} },
 			{ {"componentstate", ""}, { Command::ComponentState, SubCommand::Empty, Authorization::Yes, InstanceCmd::Multi, NoListenerCmd::Yes} },
 			{ {"config", "getconfig"}, { Command::Config, SubCommand::GetConfig, Authorization::Admin, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"config", "getconfig-old"}, { Command::Config, SubCommand::GetConfigOld, Authorization::Admin, InstanceCmd::Yes, NoListenerCmd::Yes} },
 			{ {"config", "getschema"}, { Command::Config, SubCommand::GetSchema, Authorization::Admin, InstanceCmd::Yes, NoListenerCmd::Yes} },
 			{ {"config", "reload"}, { Command::Config, SubCommand::Reload, Authorization::Admin, InstanceCmd::Yes, NoListenerCmd::Yes} },
 			{ {"config", "restoreconfig"}, { Command::Config, SubCommand::RestoreConfig, Authorization::Admin, InstanceCmd::Yes, NoListenerCmd::Yes} },

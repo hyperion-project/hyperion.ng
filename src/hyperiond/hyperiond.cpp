@@ -65,14 +65,14 @@
 
 HyperionDaemon* HyperionDaemon::daemon = nullptr;
 
-HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool logLvlOverwrite, bool readonlyMode)
+HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool logLvlOverwrite)
 	: QObject(parent), _log(Logger::getInstance("DAEMON"))
-	, _instanceManager(new HyperionIManager(rootPath, this, readonlyMode))
-	, _settingsManager(new SettingsManager(GLOABL_INSTANCE_ID, this, readonlyMode)) // init settings, this settingsManager accesses global settings which are independent from instances
+	, _instanceManager(new HyperionIManager(this))
+	, _settingsManager(new SettingsManager(GLOABL_INSTANCE_ID, this)) // init settings, this settingsManager accesses global settings which are independent from instances
 	#if defined(ENABLE_EFFECTENGINE)
 	, _pyInit(new PythonInit())
 	#endif
-	, _authManager(new AuthManager(this, readonlyMode))
+	, _authManager(new AuthManager(this))
 	, _netOrigin(new NetOrigin(this))
 	, _currVideoMode(VideoMode::VIDEO_2D)
 {

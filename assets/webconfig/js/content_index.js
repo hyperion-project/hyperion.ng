@@ -128,7 +128,7 @@ $(document).ready(function () {
     requestSysInfo();
   });
 
-  $(window.hyperion).on("cmd-config-getconfig", function (event) {
+  $(window.hyperion).on("cmd-config-getconfig-old", function (event) {
     window.serverConfig = event.response.info;
 
     window.showOptHelp = window.serverConfig.general.showOptHelp;
@@ -278,7 +278,7 @@ $(document).ready(function () {
       window.currentHyperionInstance = 0;
       window.currentHyperionInstanceName = getInstanceNameByIndex(0);
 
-      requestServerConfig();
+      requestServerConfigOld();
       setTimeout(requestServerInfo, 100)
       setTimeout(requestTokenInfo, 200)
     }
@@ -296,7 +296,7 @@ $(document).ready(function () {
   });
 
   $(window.hyperion).on("cmd-instance-switchTo", function (event) {
-    requestServerConfig();
+    requestServerConfigOld();
     setTimeout(requestServerInfo, 200)
     setTimeout(requestTokenInfo, 400)
   });
@@ -336,11 +336,6 @@ $(function () {
     sidebar.find('.active').toggleClass('active inactive');
     $(this).toggleClass('active inactive');
   });
-});
-
-// hotfix body padding when bs modals overlap
-$(document.body).on('hide.bs.modal,hidden.bs.modal', function () {
-  $('body').css('padding-right', '0');
 });
 
 //Dark Mode

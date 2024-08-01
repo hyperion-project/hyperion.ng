@@ -12,30 +12,20 @@
 #include <utils/jsonschema/QJsonFactory.h>
 #include <utils/jsonschema/QJsonSchemaChecker.h>
 
-// write config to filesystem
-#include <utils/JsonUtils.h>
-
 #include <utils/version.hpp>
 
 using namespace semver;
 
-// Constants
-namespace {
-	const char DEFAULT_VERSION[] = "2.0.0-alpha.8";
-} //End of constants
-
 QJsonObject SettingsManager::schemaJson;
 
-SettingsManager::SettingsManager(quint8 instance, QObject* parent, bool readonlyMode)
+SettingsManager::SettingsManager(quint8 instance, QObject* parent)
 	: QObject(parent)
 	, _log(Logger::getInstance("SETTINGSMGR", "I" + QString::number(instance)))
 	, _instance(instance)
 	, _sTable(new SettingsTable(instance, this))
 	, _configVersion(DEFAULT_VERSION)
 	, _previousVersion(DEFAULT_VERSION)
-	, _readonlyMode(readonlyMode)
 {
-	_sTable->setReadonlyMode(_readonlyMode);
 	// get schema
 	if (schemaJson.isEmpty())
 	{
@@ -188,26 +178,75 @@ SettingsManager::SettingsManager(quint8 instance, QObject* parent, bool readonly
 
 QJsonDocument SettingsManager::getSetting(settings::type type) const
 {
-	return _sTable->getSettingsRecord(settings::typeToString(type));
+	return getSetting(settings::typeToString(type));
 }
 
-QJsonObject SettingsManager::getSettings() const
+QJsonDocument SettingsManager::getSetting(const QString& type) const
 {
-	QJsonObject config;
-	for (const auto& key : _qconfig.keys())
+	return _sTable->getSettingsRecord(type);
+}
+
+QJsonObject SettingsManager::getSettings(const QStringList& filteredTypes ) const
+{
+	return getSettings(_instance, filteredTypes);
+}
+
+QJsonObject SettingsManager::getSettings(const QVariant& instance, const QStringList& filteredTypes ) const
+{
+	QJsonObject settingsObject;
+	QStringList settingsKeys({ "type", "config" });
+	QString settingsCondition;
+	QVariantList conditionValues;
+
+	if (instance.isNull() )
 	{
-		//Read all records from database to ensure that global settings are read across instances
-		QJsonDocument doc = _sTable->getSettingsRecord(key);
-		if (doc.isArray())
-		{
-			config.insert(key, doc.array());
+		settingsCondition = "hyperion_inst IS NULL";
+	}
+	else
+	{
+		settingsCondition = "hyperion_inst = ?";
+		conditionValues.append(instance);
+	}
+
+	if (!filteredTypes.isEmpty())
+	{
+		QStringList seletedSettingTypes;
+		for (const auto &type : filteredTypes) {
+			seletedSettingTypes << QString("%1=?").arg("type");
+			conditionValues.append(type);
 		}
-		else
+		settingsCondition += QString (" AND (%1)").arg(seletedSettingTypes.join(" OR "));
+	}
+
+	QVector<QVariantMap> settingsList;
+	if (_sTable->getRecords(settingsCondition, conditionValues, settingsList, settingsKeys))
+	{
+		for (const QVariantMap &setting : std::as_const(settingsList))
 		{
-			config.insert(key, doc.object());
+			QString type = setting.value("type").toString();
+			QByteArray configObject = setting.value("config").toByteArray();
+			QJsonDocument jsonDoc = QJsonDocument::fromJson(configObject);
+
+			if (!jsonDoc.isNull())
+			{
+				QJsonValue config;
+
+				if (jsonDoc.isArray())
+				{
+					config = jsonDoc.array();
+				}
+				else if (jsonDoc.isObject())
+				{
+					config = jsonDoc.object();
+				}
+				settingsObject.insert(type, config);
+			} else
+			{
+				qWarning() << "Failed to parse JSON string:" << configObject;
+			}
 		}
 	}
-	return config;
+	return settingsObject;
 }
 
 bool SettingsManager::restoreSettings(QJsonObject config, bool correct)
@@ -299,7 +338,7 @@ inline QString fixVersion(const QString& version)
 	return newVersion;
 }
 
-bool SettingsManager::resolveConfigVersion(QJsonObject& config)
+bool SettingsManager::resolveConfigVersion(const QJsonObject& config)
 {
 	bool isValid = false;
 	if (config.contains("general"))

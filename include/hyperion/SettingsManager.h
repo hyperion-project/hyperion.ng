@@ -4,12 +4,14 @@
 #include <utils/settings.h>
 
 #include <utils/version.hpp>
+
+#include <db/SettingsTable.h>
 using namespace semver;
 
 // qt includes
 #include <QJsonObject>
 
-const int GLOABL_INSTANCE_ID = 255;
+const char DEFAULT_VERSION[] = "2.0.0-alpha.8";
 
 class Hyperion;
 class SettingsTable;
@@ -26,7 +28,7 @@ public:
 	/// @params  instance   Instance index of HyperionInstanceManager
 	/// @params  parent    The parent hyperion instance
 	///
-	SettingsManager(quint8 instance, QObject* parent = nullptr, bool readonlyMode = false);
+	SettingsManager(quint8 instance, QObject* parent = nullptr);
 
 	///
 	/// @brief Save a complete json configuration
@@ -52,10 +54,19 @@ public:
 	QJsonDocument getSetting(settings::type type) const;
 
 	///
-	/// @brief get the full settings object of this instance (with global settings)
+	/// @brief get a single setting json from configuration
+	/// @param type   The type as string
+	/// @return The requested json data as QJsonDocument
+	///
+	QJsonDocument getSetting(const QString& type) const;
+	///
+	/// @brief get the selected settings objects of this instance (including global settings)
 	/// @return The requested json
 	///
-	QJsonObject getSettings() const;
+	//QJsonObject getSettings(const QStringList& type = {} ) const;
+
+	QJsonObject getSettings(const QStringList& filteredTypes = {}) const;
+	QJsonObject getSettings(const QVariant& instance, const QStringList& filteredTypes = {} ) const;
 
 signals:
 	///
@@ -73,8 +84,7 @@ private:
 	///
 	bool handleConfigUpgrade(QJsonObject& config);
 
-
-	bool resolveConfigVersion(QJsonObject& config);
+	bool resolveConfigVersion(const QJsonObject& config);
 
 	/// Logger instance
 	Logger* _log;
@@ -97,5 +107,4 @@ private:
 	semver::version _configVersion;
 	semver::version _previousVersion;
 
-	bool	_readonlyMode;
 };

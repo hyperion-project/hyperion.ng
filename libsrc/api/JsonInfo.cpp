@@ -1,3 +1,4 @@
+#include <db/ConfigImportExport.h>
 #include <api/JsonInfo.h>
 #include <api/API.h>
 
@@ -498,8 +499,8 @@ QJsonObject JsonInfo::getSystemInfo(const Hyperion* hyperion)
 	hyperionInfo["gitremote"] = QString(HYPERION_GIT_REMOTE);
 	hyperionInfo["time"] = QString(__DATE__ " " __TIME__);
 	hyperionInfo["id"] = AuthManager::getInstance()->getID();
-	hyperionInfo["rootPath"] = HyperionIManager::getInstance()->getRootPath();
-	hyperionInfo["readOnlyMode"] = hyperion->getReadOnlyMode();
+	hyperionInfo["configDatabaseFile"] = DBManager::getFileInfo().absoluteFilePath();
+	hyperionInfo["readOnlyMode"] = DBManager::isReadOnly();
 
 	QCoreApplication* app = QCoreApplication::instance();
 	hyperionInfo["isGuiMode"] = qobject_cast<QApplication*>(app) != nullptr;
@@ -617,4 +618,10 @@ QJsonArray JsonInfo::discoverScreenInputs(const QJsonObject& params) const
 #endif
 
 	return screenInputs;
+}
+
+QJsonObject JsonInfo::getConfiguration(const QList<quint8>& instancesfilter, bool addGlobalConfig, const QStringList& instanceFilteredTypes, const QStringList& globalFilterTypes )
+{
+	ConfigImportExport configExport;
+	return configExport.getConfiguration(instancesfilter, addGlobalConfig, instanceFilteredTypes, globalFilterTypes );
 }

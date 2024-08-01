@@ -31,6 +31,8 @@ public:
 	static QJsonObject getSystemInfo(const Hyperion* hyperion);
 	QJsonObject discoverSources (const QString& sourceType, const QJsonObject& params);
 
+	static QJsonObject getConfiguration(const QList<quint8>& instances = {}, bool addGlobalConfig = true, const QStringList& instanceFilteredTypes = {}, const QStringList& globalFilterTypes = {} );
+
 private:
 
 	template<typename GrabberType>

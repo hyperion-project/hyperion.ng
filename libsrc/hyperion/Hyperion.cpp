@@ -47,10 +47,10 @@
 #include <boblightserver/BoblightServer.h>
 #endif
 
-Hyperion::Hyperion(quint8 instance, bool readonlyMode)
+Hyperion::Hyperion(quint8 instance)
 	: QObject()
 	, _instIndex(instance)
-	, _settingsManager(new SettingsManager(instance, this, readonlyMode))
+	, _settingsManager(new SettingsManager(instance, this))
 	, _componentRegister(nullptr)
 	, _ledString(LedString::createLedString(getSetting(settings::LEDS).array(), hyperion::createColorOrder(getSetting(settings::DEVICE).object())))
 	, _imageProcessor(nullptr)
@@ -73,7 +73,6 @@ Hyperion::Hyperion(quint8 instance, bool readonlyMode)
 #if defined(ENABLE_BOBLIGHT_SERVER)
 	, _boblightServer(nullptr)
 #endif
-	, _readOnlyMode(readonlyMode)
 {
 	qRegisterMetaType<ComponentList>("ComponentList");
 
@@ -320,14 +319,20 @@ QJsonDocument Hyperion::getSetting(settings::type type) const
 	return _settingsManager->getSetting(type);
 }
 
+// TODO: Remove function, if UI is able to handle full configuration
+QJsonObject Hyperion::getQJsonConfig() const
+{
+	const QJsonObject instanceConfig = _settingsManager->getSettings();
+	const QJsonObject globalConfig = _settingsManager->getSettings({},QStringList());
+
+	QVariantMap map = instanceConfig.toVariantMap();
+	map.insert(globalConfig.toVariantMap());
+	return QJsonObject::fromVariantMap(map);
+}
+
 bool Hyperion::saveSettings(const QJsonObject& config, bool correct)
 {
 	return _settingsManager->saveSettings(config, correct);
-}
-
-bool Hyperion::restoreSettings(const QJsonObject& config, bool correct)
-{
-	return _settingsManager->restoreSettings(config, correct);
 }
 
 int Hyperion::getLatchTime() const
@@ -596,11 +601,6 @@ int Hyperion::setEffect(const QString &effectName, const QJsonObject &args, int 
 	return _effectEngine->runEffect(effectName, args, priority, timeout, pythonScript, origin, 0, imageData);
 }
 #endif
-
-QJsonObject Hyperion::getQJsonConfig() const
-{
-	return _settingsManager->getSettings();
-}
 
 void Hyperion::setLedMappingType(int mappingType)
 {

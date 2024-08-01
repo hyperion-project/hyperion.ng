@@ -7,6 +7,8 @@
 //qt includes
 #include <QRegularExpression>
 #include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonDocument>
 #include <QJsonParseError>
 #include <QStringList>
 
@@ -157,5 +159,32 @@ namespace JsonUtils {
 			}
 		}
 		return true;
+	}
+
+	QString jsonValueToQString(const QJsonValue &value, QJsonDocument::JsonFormat format)
+	{
+		switch (value.type()) {
+		case QJsonValue::Object:
+		{
+			return QJsonDocument(value.toObject()).toJson(format);
+		}
+		case QJsonValue::Array:
+		{
+			return QJsonDocument(value.toArray()).toJson(format);
+		}
+		case QJsonValue::String:
+		case QJsonValue::Double:
+		case QJsonValue::Bool:
+		{
+			return value.toString();
+		}
+		case QJsonValue::Null:
+		{
+			return "Null";
+		}
+		default:
+		break;
+		}
+		return QString();
 	}
 };

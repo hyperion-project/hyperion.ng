@@ -3,6 +3,7 @@
 #include <utils/FileUtils.h>
 
 #include <QJsonObject>
+#include <QJsonDocument>
 #include <QPair>
 #include <QStringList>
 #include <utils/Logger.h>
@@ -94,4 +95,10 @@ namespace JsonUtils {
 	/// @return              true on success else false
 	///
 	bool resolveRefs(const QJsonObject& schema, QJsonObject& obj, Logger* log);
+
+
+	///
+	/// @brief Function to convert QJsonValue to QString using QJsonDocument
+	///
+	QString jsonValueToQString(const QJsonValue &value, QJsonDocument::JsonFormat format = QJsonDocument::Compact);
 }

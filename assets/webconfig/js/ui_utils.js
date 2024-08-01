@@ -239,7 +239,7 @@ function showInfoDialog(type, header, message) {
     $('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-error">');
     if (header == "")
       $('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n('infoDialog_general_error_title') + '</h4>');
-    $('#id_footer').html('<button type="button" class="btn btn-danger" data-dismiss="modal">' + $.i18n('general_btn_ok') + '</button>');
+    $('#id_footer').html('<button type="button" class="btn btn-danger" data-dismiss-modal="#modal_dialog">' + $.i18n('general_btn_ok') + '</button>');
   }
   else if (type == "select") {
     $('#id_body').html('<img style="margin-bottom:20px" id="id_logo" src="img/hyperion/logo_positiv.png" alt="Redefine ambient light!">');
@@ -256,9 +256,9 @@ function showInfoDialog(type, header, message) {
     $('#id_footer').html('<b>' + $.i18n('InfoDialog_nowrite_foottext') + '</b>');
   }
   else if (type == "import") {
-    $('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-warning">');
-    $('#id_footer').html('<button type="button" id="id_btn_import" class="btn btn-warning" data-dismiss="modal"><i class="fa fa-fw fa-save"></i>' + $.i18n('general_btn_saverestart') + '</button>');
-    $('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
+    $('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-warning"></i>');
+    $('#id_footer').html('<button type="button" id="id_btn_import" class="btn btn-warning"><i class="fa fa-fw fa-save"></i>' + $.i18n('general_btn_saverestart') + '</button>');
+    $('#id_footer').append('<button type="button" class="btn btn-danger" data-dismiss-modal="#modal_dialog"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
   }
   else if (type == "delInst") {
     $('#id_body').html('<i style="margin-bottom:20px" class="fa fa-remove modal-icon-warning">');
@@ -321,7 +321,7 @@ function showInfoDialog(type, header, message) {
   $(document).on('click', '[data-dismiss-modal]', function () {
     var target = $(this).data('dismiss-modal');
     $($.find(target)).modal('hide');
-});
+  });
 }
 
 function createHintH(type, text, container) {
@@ -1222,7 +1222,7 @@ function getSystemInfo() {
   info += '- Avail Video  Cap.: ' + window.serverInfo.grabbers.video.available + '\n';
   info += '- Avail Audio  Cap.: ' + window.serverInfo.grabbers.audio.available + '\n';
   info += '- Avail Services:    ' + window.serverInfo.services + '\n';
-  info += '- Config path:       ' + shy.rootPath + '\n';
+  info += '- Config database:   ' + shy.configDatabaseFile + '\n';
   info += '- Database:          ' + (shy.readOnlyMode ? "ready-only" : "read/write") + '\n';
   info += '- Mode:              ' + (shy.isGuiMode ? "GUI" : "Non-GUI") + '\n';
 

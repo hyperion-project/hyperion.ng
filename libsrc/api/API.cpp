@@ -405,20 +405,6 @@ bool API::saveSettings(const QJsonObject &data)
 	return isSaved;
 }
 
-bool API::restoreSettings(const QJsonObject &data)
-{
-	bool isRestored {true};
-	if (!_adminAuthorized)
-	{
-		isRestored = false;
-	}
-	else
-	{
-		QMetaObject::invokeMethod(_hyperion, "restoreSettings", Qt::DirectConnection, Q_RETURN_ARG(bool, isRestored), Q_ARG(QJsonObject, data), Q_ARG(bool, true));
-	}
-	return isRestored;
-}
-
 bool API::updateHyperionPassword(const QString &password, const QString &newPassword)
 {
 	bool isPwUpdated {true};

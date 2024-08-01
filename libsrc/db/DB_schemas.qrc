@@ -1,0 +1,5 @@
+<RCC>
+	<qresource prefix="/">
+		<file alias="schema-config-exchange">DB_schema/schema-config-exchange.json</file>
+	</qresource>
+</RCC>

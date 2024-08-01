@@ -10,10 +10,10 @@
 
 AuthManager *AuthManager::manager = nullptr;
 
-AuthManager::AuthManager(QObject *parent, bool readonlyMode)
+AuthManager::AuthManager(QObject *parent)
 	: QObject(parent)
-	, _authTable(new AuthTable("", this, readonlyMode))
-	, _metaTable(new MetaTable(this, readonlyMode))
+	, _authTable(new AuthTable(this))
+	, _metaTable(new MetaTable(this))
 	, _pendingRequests()
 	, _timer(new QTimer(this))
 	, _authBlockTimer(new QTimer(this))
@@ -209,7 +209,7 @@ QVector<AuthManager::AuthDefinition> AuthManager::getPendingRequests() const
 
 bool AuthManager::renameToken(const QString &id, const QString &comment)
 {
-	if (_authTable->idExist(id))
+	if (_authTable->identifierExist(id))
 	{
 		if (_authTable->renameToken(id, comment))
 		{
@@ -222,7 +222,7 @@ bool AuthManager::renameToken(const QString &id, const QString &comment)
 
 bool AuthManager::deleteToken(const QString &id)
 {
-	if (_authTable->idExist(id))
+	if (_authTable->identifierExist(id))
 	{
 		if (_authTable->deleteToken(id))
 		{

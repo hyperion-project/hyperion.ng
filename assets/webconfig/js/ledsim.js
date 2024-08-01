@@ -129,7 +129,7 @@ $(document).ready(function () {
       }
     });
     // apply new serverinfos
-    $(window.hyperion).on("cmd-config-getconfig", function (event) {
+    $(window.hyperion).on("cmd-config-getconfig-old", function (event) {
       leds = event.response.info.leds;
       grabberConfig = event.response.info.grabberV4L2;
       updateLedLayout();
