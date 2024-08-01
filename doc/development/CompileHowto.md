@@ -61,14 +61,14 @@ cd $HYPERION_HOME
 
 ```console
 sudo apt-get update
-sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libqt5sql5-sqlite libqt5svg5-dev libqt5x11extras5-dev libusb-1.0-0-dev python3-dev libasound2-dev libturbojpeg0-dev libjpeg-dev libssl-dev
+sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libqt5sql5-sqlite libqt5svg5-dev libqt5x11extras5-dev libusb-1.0-0-dev python3-dev libasound2-dev libturbojpeg0-dev libjpeg-dev libssl-dev libftdi1-dev
 ```
 
 **Ubuntu (22.04+) - Qt6 based**
 
 ```console
 sudo apt-get update
-sudo apt-get install git cmake build-essential qt6-base-dev libqt6serialport6-dev libxkbcommon-dev libvulkan-dev libgl1-mesa-dev libusb-1.0-0-dev python3-dev libasound2-dev libturbojpeg0-dev libjpeg-dev libssl-dev pkg-config
+sudo apt-get install git cmake build-essential qt6-base-dev libqt6serialport6-dev libxkbcommon-dev libvulkan-dev libgl1-mesa-dev libusb-1.0-0-dev python3-dev libasound2-dev libturbojpeg0-dev libjpeg-dev libssl-dev pkg-config libftdi1-dev
 ```
 
 **For Linux X11/XCB grabber support**
@@ -110,16 +110,21 @@ See [AUR](https://aur.archlinux.org/packages/?O=0&SeB=nd&K=hyperion&outdated=&SB
 The following dependencies are needed to build hyperion.ng on fedora.
 ```console
 sudo dnf -y groupinstall "Development Tools"
-sudo dnf install python3-devel qt-devel qt5-qtbase-devel qt5-qtserialport-devel xrandr xcb-util-image-devel qt5-qtx11extras-devel alsa-lib-devel turbojpeg-devel libusb-devel xcb-util-devel dbus-devel openssl-devel fedora-packager rpmdevtools gcc libcec-devel
+sudo dnf install python3-devel qt-devel qt5-qtbase-devel qt5-qtserialport-devel xrandr xcb-util-image-devel qt5-qtx11extras-devel alsa-lib-devel turbojpeg-devel libusb-devel xcb-util-devel dbus-devel openssl-devel fedora-packager rpmdevtools gcc libcec-devel libftdi1-dev
 ```
 After installing the dependencies, you can continue with the compile instructions later on this page (the more detailed way..).
 
-## OSX
+## macOS
 To install on OS X you either need [Homebrew](https://brew.sh/) or [Macport](https://www.macports.org/) but Homebrew is the recommended way to install the packages. To use Homebrew, XCode is required as well, use `brew doctor` to check your install.
 
-First you need to install the dependencies:
+First you need to install the dependencies for either the QT5 or QT6 build:
+####QT5
 ```console
-brew install git qt@5 python3 cmake libusb openssl@1.1
+brew install git qt@5 python3 cmake libusb openssl@1.1 libftdi pkg-config
+```
+####QT6
+```console
+brew install git qt python3 cmake libusb openssl@1.1 libftdi pkg-config
 ```
 
 ## Windows
@@ -128,7 +133,7 @@ We assume a 64bit Windows 10. Install the following;
 - [CMake (Windows win64-x64 installer)](https://cmake.org/download/) (Check: Add to PATH)
 - [Visual Studio 2022 Community Edition](https://visualstudio.microsoft.com/downloads/#visual-studio-community-2022)
   - Select 'Desktop development with C++'
-  - On the right, just select `MSVC v143 VS 2022 C++ x64/x86-Buildtools` and latest `Windows 10 SDK`. Everything else is not needed.
+  - On the right, just select `MSVC v143 VS 2022 C++ x64/x86-Buildtools`, `C++ ATL for latest v143 build tools (x86 & x64)` and latest `Windows 10 SDK`. Everything else is not needed.
 - [Win64 OpenSSL v1.1.1w](https://slproweb.com/products/Win32OpenSSL.html) ([direct link](https://slproweb.com/download/Win64OpenSSL-1_1_1w.exe))
 - [Python 3 (Windows x86-64 executable installer)](https://www.python.org/downloads/windows/) (Check: Add to PATH and Debug Symbols)
   - Open a console window and execute `pip install aqtinstall`.
@@ -147,7 +152,7 @@ We assume a 64bit Windows 10. Install the following;
 
 ## The general quick way (without big comments)
 
-**complete automated process for Mac/Linux:**
+**complete automated process (Linux only):**
 ```console
 wget -qO- https://raw.githubusercontent.com/hyperion-project/hyperion.ng/master/bin/compile.sh | sh
 ```

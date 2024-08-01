@@ -1,5 +1,11 @@
 #pragma once
 
+#define NOFRAME_BENCH
+
+#ifdef FRAME_BENCH
+	#include <QElapsedTimer>
+#endif
+
 // stl includes
 #include <vector>
 #include <map>
@@ -166,6 +172,9 @@ private:
 	double   _x_frac_max;
 	double   _y_frac_max;
 
+#ifdef FRAME_BENCH
+	QElapsedTimer _frameTimer;
+#endif
 	QSocketNotifier *_streamNotifier;
 
 	bool _initialized, _reload;

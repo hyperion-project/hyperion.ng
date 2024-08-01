@@ -64,6 +64,12 @@
 	typedef QObject DirectXWrapper;
 #endif
 
+#ifdef ENABLE_DDA
+	#include <grabber/dda/DDAWrapper.h>
+#else
+	typedef QObject DDAWrapper;
+#endif
+
 #include <hyperion/GrabberWrapper.h>
 #ifdef ENABLE_AUDIO
 	#include <grabber/audio/AudioWrapper.h>

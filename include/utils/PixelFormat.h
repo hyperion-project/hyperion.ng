@@ -10,6 +10,7 @@ enum class PixelFormat {
 	YUYV,
 	UYVY,
 	BGR16,
+	RGB24,
 	BGR24,
 	RGB32,
 	BGR32,
@@ -35,6 +36,10 @@ inline PixelFormat parsePixelFormat(const QString& pixelFormat)
 	else if (format.compare("bgr16")  == 0)
 	{
 		return PixelFormat::BGR16;
+	}
+	else if (format.compare("rgb24")  == 0)
+	{
+		return PixelFormat::RGB24;
 	}
 	else if (format.compare("bgr24")  == 0)
 	{
@@ -80,6 +85,10 @@ inline QString pixelFormatToString(const PixelFormat& pixelFormat)
 	{
 		return "BGR16";
 	}
+	else if (pixelFormat == PixelFormat::RGB24)
+	{
+		return "RGB24";
+	}
 	else if (pixelFormat == PixelFormat::BGR24)
 	{
 		return "BGR24";
@@ -115,10 +124,10 @@ inline QString pixelFormatToString(const PixelFormat& pixelFormat)
 
 enum class FlipMode
 {
+	NO_CHANGE,
 	HORIZONTAL,
 	VERTICAL,
-	BOTH,
-	NO_CHANGE
+	BOTH
 };
 
 inline FlipMode parseFlipMode(const QString& flipMode)
