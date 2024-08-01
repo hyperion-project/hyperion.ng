@@ -6,6 +6,7 @@
 #include <QString>
 #include <QStringList>
 #include <QThread>
+#include <QVariantMap>
 
 // hyperion include
 #include <hyperion/Hyperion.h>
@@ -325,8 +326,9 @@ QJsonObject Hyperion::getQJsonConfig() const
 	const QJsonObject instanceConfig = _settingsManager->getSettings();
 	const QJsonObject globalConfig = _settingsManager->getSettings({},QStringList());
 
-	QVariantMap map = instanceConfig.toVariantMap();
-	map.insert(globalConfig.toVariantMap());
+	QMultiMap map = instanceConfig.toVariantMap();
+	map.unite(globalConfig.toVariantMap());
+
 	return QJsonObject::fromVariantMap(map);
 }
 

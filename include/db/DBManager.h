@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef Unsorted
+#undef Unsorted
+#endif
+
 #include <utils/Logger.h>
 #include <QMap>
 #include <QVariant>

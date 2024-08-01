@@ -24,6 +24,7 @@
 		"device": {
 			"type": "string",
 			"title": "edt_conf_enum_custom",
+			"default": "none",
 			"options": {
 				"hidden": true
 			},

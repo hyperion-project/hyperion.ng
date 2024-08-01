@@ -7,6 +7,8 @@
 // qt
 #include <QJsonObject>
 #include <QTimer>
+#include <QDateTime>
+#include <QUuid>
 
 AuthManager *AuthManager::manager = nullptr;
 
@@ -14,7 +16,6 @@ AuthManager::AuthManager(QObject *parent)
 	: QObject(parent)
 	, _authTable(new AuthTable(this))
 	, _metaTable(new MetaTable(this))
-	, _pendingRequests()
 	, _timer(new QTimer(this))
 	, _authBlockTimer(new QTimer(this))
 {

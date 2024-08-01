@@ -14,6 +14,7 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QDir>
+#include <QDateTime>
 
 ConfigImportExport::ConfigImportExport(QObject* parent)
 	: DBManager(parent)

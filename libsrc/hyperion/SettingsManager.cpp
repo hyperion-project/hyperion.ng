@@ -240,9 +240,6 @@ QJsonObject SettingsManager::getSettings(const QVariant& instance, const QString
 					config = jsonDoc.object();
 				}
 				settingsObject.insert(type, config);
-			} else
-			{
-				qWarning() << "Failed to parse JSON string:" << configObject;
 			}
 		}
 	}

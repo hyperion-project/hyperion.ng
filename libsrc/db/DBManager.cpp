@@ -400,7 +400,11 @@ QString DBManager::constructExecutedQuery(const QSqlQuery& query) const
 
 	// Check if the query uses positional placeholders
 	if (executedQuery.contains('?')) {
-		QVariantList boundValues = query.boundValues(); // Get bound values as a list
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+		//QVariantList boundValues = query.boundValues(); // Get bound values as a list
+#else
+		QVariantMap boundValues = query.boundValues(); // Get bound values as a list
+#endif
 		// Iterate through the bound values and replace placeholders
 		for (const QVariant &value : boundValues) {
 			// Replace the first occurrence of '?' with the actual value
