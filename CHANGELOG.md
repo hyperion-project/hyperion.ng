@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **JSON-API**
 - Align JSON subscription update elements. `ledcolors-imagestream-update, ledcolors-ledstream-update, logmsg-update` now return data via `data` and not `result
+- Gloabl global configuration elements are now separated form instance specific ones
 
 ### Added
 
@@ -17,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for Skydimo devices (being an Adalight variant)
 - Support gaps on Matrix Layout (#1696)
 - Windows: Added a new grabber that uses the DXGI DDA (Desktop Duplication API). This has much better performance than the DX grabber as it does more of its work on the GPU.
+
+- Support to import, export and backup Hyperion's full configuration via the UI, JSON-API and commandline (`--importConfig, --exportConfig`) (#804)
+- Allow to force starting Hyperion in read-only mode (`--readonlyMode`)
+- JSON-API: Support to query for a dedicated set of configuration items for a set of instances
 
 **JSON-API**
 - New subscription support for event updates, i.e. `Suspend, Resume, Idle, idleResume, Restart, Quit`.
@@ -33,12 +38,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed: Kodi Color Calibration, Refactor Wizards (#1674)
 - Fixed: Token Dialog not closing
 - Fixed: Philip Hue APIv2 support without Entertainment group defined (#1742)
+- Refoctored Database access layer
 
 **JSON-API**
 - Refactored JSON-API to ensure consistent authorization behaviour across sessions and single requests with token authorization.
 - Provide additional error details with API responses, esp. on JSON parsing, validation or token errors.
 - Generate random TANs for every API request from the Hyperion UI
 - Fixed: Handling of IP4 addresses wrapped in IPv6 for external network connections-
+- fixed: Local Admin API Authentication rejects valid tokens (#1251)
 
 ### Removed
 
