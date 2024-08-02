@@ -326,10 +326,18 @@ QJsonObject Hyperion::getQJsonConfig() const
 	const QJsonObject instanceConfig = _settingsManager->getSettings();
 	const QJsonObject globalConfig = _settingsManager->getSettings({},QStringList());
 
-	QMultiMap map = instanceConfig.toVariantMap();
-	map.unite(globalConfig.toVariantMap());
-
-	return QJsonObject::fromVariantMap(map);
+	QJsonObject mergedConfig {instanceConfig};
+	for (auto it = globalConfig.begin(); it != globalConfig.end(); ++it) {
+		if (mergedConfig.contains(it.key()))
+		{
+			mergedConfig[it.key()] = it.value();
+		}
+		else
+		{
+			mergedConfig[it.key()] = it.value();
+		}
+	}
+	return mergedConfig;
 }
 
 bool Hyperion::saveSettings(const QJsonObject& config, bool correct)

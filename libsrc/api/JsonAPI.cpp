@@ -745,10 +745,8 @@ void JsonAPI::handleConfigSetCommand(const QJsonObject &message, const JsonApiCo
 	// TODO: Implement new setconfig schema
 	if (config.contains("global") || config.contains("instances"))
 	{
-		Warning(_log, "New set config schema is not yet supported!");
-		config.remove("global");
-		config.remove("instanceIds");
-		config.remove("instances");
+		sendErrorReply("New set config schema is not yet supported!", validationResult.second, cmd);
+		return;
 	}
 
 	if (config.isEmpty())
