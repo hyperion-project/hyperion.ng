@@ -62,7 +62,10 @@ QSqlDatabase DBManager::getDB() const
 		{
 			database.setConnectOptions("QSQLITE_OPEN_READONLY");
 		}
+
+#ifdef SQLQUERY_LOGGING
 		Debug(Logger::getInstance("DB"), "Database is opened in %s mode", _isReadOnly ? "read-only" : "read/write");
+#endif
 
 		_databasePool.setLocalData(database);
 		database.setDatabaseName(_databaseFile.absoluteFilePath());
@@ -159,6 +162,11 @@ bool DBManager::recordExists(const VectorPair& conditions) const
 
 bool DBManager::updateRecord(const VectorPair& conditions, const QVariantMap& columns) const
 {
+	if (isReadOnly())
+	{
+		return true;
+	}
+
 	QSqlDatabase idb = getDB();
 	QSqlQuery query(idb);
 	query.setForwardOnly(true);
@@ -286,6 +294,11 @@ bool DBManager::getRecords(const QString& condition, const QVariantList& bindVal
 
 bool DBManager::deleteRecord(const VectorPair& conditions) const
 {
+	if (_isReadOnly)
+	{
+		return true;
+	}
+
 	if(conditions.isEmpty())
 	{
 		Error(_log, "Oops, a deleteRecord() call wants to delete the entire table (%s)! Denied it", QSTRING_CSTR(_table));
@@ -425,7 +438,7 @@ QString DBManager::constructExecutedQuery(const QSqlQuery& query) const
 
 bool DBManager::executeQuery(QSqlQuery& query) const
 {
-	if(!query.exec())
+	if( !query.exec())
 	{
 		QString finalQuery = constructExecutedQuery(query);
 		QString errorText = query.lastError().text();
