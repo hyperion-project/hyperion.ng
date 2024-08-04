@@ -203,7 +203,7 @@ QPair<bool, QStringList> ConfigImportExport::setConfiguration(const QJsonObject&
 	return qMakePair (errorList.isEmpty(), errorList );
 }
 
-QJsonObject ConfigImportExport::getConfiguration(const QList<quint8>& instancesFilter, bool addGlobalConfig, const QStringList& instanceFilteredTypes, const QStringList& globalFilterTypes ) const
+QJsonObject ConfigImportExport::getConfiguration(const QList<quint8>& instancesFilter, const QStringList& instanceFilteredTypes, const QStringList& globalFilterTypes ) const
 {
 	QSqlDatabase idb = getDB();
 	if (!idb.transaction())
@@ -217,15 +217,11 @@ QJsonObject ConfigImportExport::getConfiguration(const QList<quint8>& instancesF
 
 	QJsonObject config;
 
-	if (addGlobalConfig)
-	{
-		QJsonObject globalConfig;
-
-		MetaTable metaTable;
-		globalConfig.insert("uuid", metaTable.getUUID());
-		globalConfig.insert("settings", settingsManager.getSettings({}, globalFilterTypes));
-		config.insert("global", globalConfig);
-	}
+	QJsonObject globalConfig;
+	MetaTable metaTable;
+	globalConfig.insert("uuid", metaTable.getUUID());
+	globalConfig.insert("settings", settingsManager.getSettings({}, globalFilterTypes));
+	config.insert("global", globalConfig);
 
 	QList<quint8> instances {instancesFilter};
 	if (instances.isEmpty())

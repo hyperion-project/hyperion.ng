@@ -624,8 +624,8 @@ QJsonArray JsonInfo::discoverScreenInputs(const QJsonObject& params) const
 	return screenInputs;
 }
 
-QJsonObject JsonInfo::getConfiguration(const QList<quint8>& instancesfilter, bool addGlobalConfig, const QStringList& instanceFilteredTypes, const QStringList& globalFilterTypes )
+QJsonObject JsonInfo::getConfiguration(const QList<quint8>& instancesfilter, const QStringList& instanceFilteredTypes, const QStringList& globalFilterTypes )
 {
 	ConfigImportExport configExport;
-	return configExport.getConfiguration(instancesfilter, addGlobalConfig, instanceFilteredTypes, globalFilterTypes );
+	return configExport.getConfiguration(instancesfilter, instanceFilteredTypes, globalFilterTypes );
 }

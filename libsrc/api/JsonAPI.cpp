@@ -771,54 +771,66 @@ void JsonAPI::handleConfigSetCommand(const QJsonObject &message, const JsonApiCo
 
 void JsonAPI::handleConfigGetCommand(const QJsonObject &message, const JsonApiCommand& cmd)
 {
-	bool addGlobalConfig {false};
-	QStringList globalFilterTypes;
+	QJsonObject settings;
+	QStringList errorDetails;
 
-	if (message.contains("global"))
+	QJsonObject filter = message["configFilter"].toObject();
+	if (!filter.isEmpty())
 	{
-		addGlobalConfig = true;
-		const QJsonObject globalConfig = message["global"].toObject();
+		QStringList globalFilterTypes;
 
-		const QJsonArray globalTypes = globalConfig["types"].toArray();
-		for (const QJsonValue &type : globalTypes) {
-			if (type.isString()) {
-				globalFilterTypes.append(type.toString());
-			}
-		}
-	}
-
-	QList<quint8> instanceListFilter;
-	QStringList instanceFilterTypes;
-
-	bool addInstanceConfig {false};
-	if (message.contains("instances"))
-	{
-		addInstanceConfig = true;
-		const QJsonObject instances = message["instances"].toObject();
-		const QJsonArray instanceIds = instances["ids"].toArray();
-		for (const QJsonValue &idx : instanceIds) {
-			if (idx.isDouble()) {
-				instanceListFilter.append(static_cast<quint8>(idx.toInt()));
+		const QJsonObject globalConfig = filter["global"].toObject();
+		if (!globalConfig.isEmpty())
+		{
+			const QJsonArray globalTypes = globalConfig["types"].toArray();
+			for (const auto type : globalTypes) {
+				if (type.isString()) {
+					globalFilterTypes.append(type.toString());
+				}
 			}
 		}
 
-		const QJsonArray instanceTypes = instances["types"].toArray();
-		for (const QJsonValue &type : instanceTypes) {
-			if (type.isString()) {
-				instanceFilterTypes.append(type.toString());
+		QList<quint8> instanceListFilter;
+		QStringList instanceFilterTypes;
+
+		const QJsonObject instances = filter["instances"].toObject();
+		if (!instances.isEmpty())
+		{
+			QList<quint8> configuredInstanceIds = _instanceManager->getInstanceIds();
+			const QJsonArray instanceIds = instances["ids"].toArray();
+			for (const auto idx : instanceIds) {
+				if (idx.isDouble()) {
+					quint8 instanceId = static_cast<quint8>(idx.toInt());
+					if (configuredInstanceIds.contains(instanceId))
+					{
+						instanceListFilter.append(instanceId);
+					}
+					else
+					{
+						errorDetails.append(QString("Given instance number '%1' does not exist.").arg(instanceId));
+					}
+				}
+			}
+
+			const QJsonArray instanceTypes = instances["types"].toArray();
+			for (const auto type : instanceTypes) {
+				if (type.isString()) {
+					instanceFilterTypes.append(type.toString());
+				}
 			}
 		}
-	}
 
-	if (!addGlobalConfig && ! addInstanceConfig)
+		settings = JsonInfo::getConfiguration(instanceListFilter, instanceFilterTypes, globalFilterTypes);
+	}
+	else
 	{
-		addGlobalConfig = true;
+		//Get complete configuration
+		settings = JsonInfo::getConfiguration();
 	}
 
-	const QJsonObject settings = JsonInfo::getConfiguration(instanceListFilter, addGlobalConfig, instanceFilterTypes, globalFilterTypes);
 	if (!settings.empty())
 	{
-		sendSuccessDataReply(settings, cmd);
+		sendSuccessDataReplyWithError(settings, cmd, errorDetails);
 	}
 	else
 	{

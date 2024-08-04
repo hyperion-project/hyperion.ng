@@ -16,7 +16,7 @@ public:
 	bool exportJson(const QString& path = "") const;
 
 	QPair<bool, QStringList> setConfiguration(const QJsonObject& config);
-	QJsonObject getConfiguration(const QList<quint8>& instances = {}, bool addGlobalConfig = true, const QStringList& instanceFilteredTypes = {}, const QStringList& globalFilterTypes = {} ) const;
+	QJsonObject getConfiguration(const QList<quint8>& instances = {}, const QStringList& instanceFilteredTypes = {}, const QStringList& globalFilterTypes = {} ) const;
 };
 
 #endif // CONFIGIMPORTEXPORT_H

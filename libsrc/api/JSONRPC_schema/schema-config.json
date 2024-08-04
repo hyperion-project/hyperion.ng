@@ -15,27 +15,29 @@
 		"tan" : {
 			"type" : "integer"
 		},
-		"global" : {
-			"types": {
-				"type": "array",
-				"required": false,
-				"items" : {
-					"type" : "string"
+		"configFilter": {
+			"global" : {
+				"types": {
+					"type": "array",
+					"required": false,
+					"items" : {
+						"type" : "string"
+					}
 				}
-			}
-		},
-		"instances" : {
-			"ids" : {
-				"type": "array",
-				"required": true,
-				"items" : {},
-				"minItems": 1
 			},
-			"types": {
-				"type": "array",
-				"required": false,
-				"items" :{
-					"type" : "string"
+			"instances" : {
+				"ids" : {
+					"type": "array",
+					"required": true,
+					"items" : {},
+					"minItems": 1
+				},
+				"types": {
+					"type": "array",
+					"required": false,
+					"items" :{
+						"type" : "string"
+					}
 				}
 			}
 		},
