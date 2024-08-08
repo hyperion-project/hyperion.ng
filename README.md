@@ -53,7 +53,7 @@ Covers these topics:
 - [Installation](https://docs.hyperion-project.org/en/user/Installation.html)
 - [Configuration](https://docs.hyperion-project.org/en/user/Configuration.html)
 - [Effect development](https://docs.hyperion-project.org/en/effects/#effect-files)
-- [JSON API](https://docs.hyperion-project.org/en/json/)
+- [JSON API](https://docs.hyperion-project.org/json/JSON.html)
 
 [![Visit Documentation](https://img.shields.io/website/https/docs.hyperion-project.org.svg?label=Documentation&down_color=red&down_message=offline&up_color=4bc51d&up_message=online&logo=read-the-docs)](https://docs.hyperion-project.org)
 
