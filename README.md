@@ -24,7 +24,7 @@
 * Low CPU load makes it perfect for SoCs like Raspberry Pi
 * Json interface which allows easy integration into scripts
 * A command line utility for testing and integration in automated environment
-* Priority channels are not coupled to a specific led data provider which means that a provider can post led data and leave without the need to maintain a connection to Hyperion. This is ideal for a remote application (like our [Android app](https://play.google.com/store/apps/details?id=nl.hyperion.hyperionpro)).
+* Priority channels are not coupled to a specific led data provider which means that a provider can post led data and leave without the need to maintain a connection to Hyperion. This is ideal for a remote application (like our former [Android app](https://play.google.com/store/apps/details?id=nl.hyperion.hyperionpro), which is no longer available).
 * Black border detector and processor
 * A scriptable (Python) effect engine with 39 build-in effects for your inspiration
 * A multi language web interface to configure and remote control hyperion
