@@ -154,6 +154,11 @@ bool LedDeviceHomeAssistant::openRestAPI()
 
 	if (_restApi == nullptr)
 	{
+		if (_apiPort == 0)
+		{
+			_apiPort = API_DEFAULT_PORT;
+		}
+
 		_restApi = new ProviderRestApi(_address.toString(), _apiPort);
 		_restApi->setLogger(_log);
 
