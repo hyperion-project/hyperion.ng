@@ -51,7 +51,7 @@ Find here more details on [supported platforms and configuration sets](doc/devel
 ## Documentation
 Covers these topics:
 - [Installation](https://docs.hyperion-project.org/en/user/Installation.html)
-- [Configuration](https://docs.hyperion-project.org/en/user/Configuration.html)
+- [Configuration](https://docs.hyperion-project.org/user/Configuration.html)
 - [Effect development](https://docs.hyperion-project.org/en/effects/#effect-files)
 - [JSON API](https://docs.hyperion-project.org/en/json/)
 
