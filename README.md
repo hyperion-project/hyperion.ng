@@ -24,14 +24,14 @@
 * Low CPU load makes it perfect for SoCs like Raspberry Pi
 * Json interface which allows easy integration into scripts
 * A command line utility for testing and integration in automated environment
-* Priority channels are not coupled to a specific led data provider which means that a provider can post led data and leave without the need to maintain a connection to Hyperion. This is ideal for a remote application (like our [Android app](https://play.google.com/store/apps/details?id=nl.hyperion.hyperionpro)).
+* Priority channels are not coupled to a specific led data provider which means that a provider can post led data and leave without the need to maintain a connection to Hyperion. This is ideal for a remote application (like our former [Android app](https://play.google.com/store/apps/details?id=nl.hyperion.hyperionpro), which is no longer available).
 * Black border detector and processor
 * A scriptable (Python) effect engine with 39 build-in effects for your inspiration
 * A multi language web interface to configure and remote control hyperion
 
 ### Supported Hardware
 
-You can find a list of supported hardware [here](https://docs.hyperion-project.org/en/user/leddevices/).
+You can find a list of supported hardware [here](https://docs.hyperion-project.org/user/leddevices/Overview.html).
 
 If you need further support please open a topic at the forum!<br>
 [![Forum](https://img.shields.io/website/https/hyperion-project.org.svg?label=Forum&down_color=red&down_message=offline&up_color=4bc51d&up_message=online&logo=homeadvisor&logoColor=white)](https://www.hyperion-project.org)
@@ -51,9 +51,9 @@ Find here more details on [supported platforms and configuration sets](doc/devel
 ## Documentation
 Covers these topics:
 - [Installation](https://docs.hyperion-project.org/en/user/Installation.html)
-- [Configuration](https://docs.hyperion-project.org/en/user/Configuration.html)
-- [Effect development](https://docs.hyperion-project.org/en/effects/#effect-files)
-- [JSON API](https://docs.hyperion-project.org/en/json/)
+- [Configuration](https://docs.hyperion-project.org/user/Configuration.html)
+- [Effect development](https://docs.hyperion-project.org/effects/#effect-files)
+- [JSON API](https://docs.hyperion-project.org/json/JSON.html)
 
 [![Visit Documentation](https://img.shields.io/website/https/docs.hyperion-project.org.svg?label=Documentation&down_color=red&down_message=offline&up_color=4bc51d&up_message=online&logo=read-the-docs)](https://docs.hyperion-project.org)
 
