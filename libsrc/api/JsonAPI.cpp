@@ -735,7 +735,7 @@ void JsonAPI::handleConfigSetCommand(const QJsonObject &message, const JsonApiCo
 		}
 		else
 		{
-			sendErrorReply("Saving configuration while Hyperion is disabled isn't possible", cmd);
+			sendErrorReply("It is not possible saving a configuration while Hyperion is disabled", cmd);
 		}
 	}
 }

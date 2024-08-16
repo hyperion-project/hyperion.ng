@@ -197,7 +197,7 @@ $(document).ready(function () {
       removeStorage("loginToken");
       requestRequiresDefaultPasswortChange();
     }
-    else if (event.reason == "Selected Hyperion instance isn't running") {
+    else if (event.reason == "Selected Hyperion instance is not running") {
       //Switch to default instance
       instanceSwitch(0);
     } else {
