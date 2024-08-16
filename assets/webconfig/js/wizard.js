@@ -37,27 +37,37 @@ function createLedDeviceWizards(ledType) {
   $('#btn_led_device_wiz').off();
   if (ledType == "philipshue") {
     $('#btn_wiz_holder').show();
-    data = { ledType };
+    wizardName = ledType;
+    data = { wizardName };
     title = 'wiz_hue_title';
   }
   else if (ledType == "nanoleaf") {
     $('#btn_wiz_holder').hide();
-    data = { ledType };
+    wizardName = ledType;
+    data = { wizardName };
     title = 'wiz_nanoleaf_user_auth_title';
+  }
+  else if (ledType == "homeassistant") {
+    $('#btn_wiz_holder').hide();
+    wizardName = "layoutLedPositions"
+    data = { wizardName, ledType };
+    title = 'wiz_layout_led_positions_title';
   }
   else if (ledType == "atmoorb") {
     $('#btn_wiz_holder').show();
-    data = { ledType };
+    wizardName = ledType;
+    data = { wizardName };
     title = 'wiz_atmoorb_title';
   }
   else if (ledType == "yeelight") {
     $('#btn_wiz_holder').show();
-    data = { ledType };
+    wizardName = ledType;
+    data = { wizardName };
     title = 'wiz_yeelight_title';
   }
 
   if (Object.keys(data).length !== 0) {
-    startLedDeviceWizard(data, title, ledType + "Wizard");
+    startLedDeviceWizard(data, title, wizardName + "Wizard");
   }
 }
 
@@ -66,8 +76,7 @@ function startLedDeviceWizard(data, hint, wizardName) {
   createHint("wizard", $.i18n(hint), "btn_wiz_holder", "btn_led_device_wiz");
   $('#btn_led_device_wiz').off();
   $('#btn_led_device_wiz').on('click', async (e) => {
-    const { [wizardName]: winzardObject } = await import('./wizards/LedDevice_' + data.ledType + '.js');
-    winzardObject.start(e);
+    const { [wizardName]: winzardObject } = await import('./wizards/LedDevice_' + data.wizardName + '.js');
+    winzardObject.start(e, data);
   });
 }
-

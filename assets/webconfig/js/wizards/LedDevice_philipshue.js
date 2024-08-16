@@ -794,17 +794,7 @@ const philipshueWizard = (() => {
         }
         $('#hue_ids_t, #btn_wiz_save').toggle(true);
 
-        const lightOptions = [
-          "top", "topleft", "topright",
-          "bottom", "bottomleft", "bottomright",
-          "left", "lefttop", "leftmiddle", "leftbottom",
-          "right", "righttop", "rightmiddle", "rightbottom",
-          "entire",
-          "lightPosTopLeft112", "lightPosTopLeftNewMid", "lightPosTopLeft121",
-          "lightPosBottomLeft14", "lightPosBottomLeft12", "lightPosBottomLeft34", "lightPosBottomLeft11",
-          "lightPosBottomLeft112", "lightPosBottomLeftNewMid", "lightPosBottomLeft121"
-        ];
-
+        const lightOptions = utils.getLayoutPositions();
         if (isEntertainmentReady && hueEntertainmentConfigs.length > 0) {
           lightOptions.unshift("entertainment_center");
           lightOptions.unshift("entertainment");
@@ -866,7 +856,7 @@ const philipshueWizard = (() => {
           let options = "";
           for (const opt in lightOptions) {
             const val = lightOptions[opt];
-            const txt = (val != 'entire' && val != 'disabled') ? 'conf_leds_layout_cl_' : 'wiz_ids_';
+            const txt = (val != 'lightPosEntire' && val != 'disabled') ? 'conf_leds_layout_cl_' : 'wiz_ids_';
             options += '<option value="' + val + '"';
             if (pos == val) options += ' selected="selected"';
             options += '>' + $.i18n(txt + val) + '</option>';

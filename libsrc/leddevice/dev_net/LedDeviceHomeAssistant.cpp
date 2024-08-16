@@ -9,6 +9,8 @@
 #endif
 #include <utils/NetUtils.h>
 
+#include <algorithm>
+
 // Constants
 namespace {
 const bool verbose = false;
@@ -17,7 +19,7 @@ const bool verbose = false;
 const char CONFIG_HOST[] = "host";
 const char CONFIG_PORT[] = "port";
 const char CONFIG_AUTH_TOKEN[] = "token";
-const char CONFIG_LIGHTIDS[] = "lightIds";
+const char CONFIG_ENITYIDS[] = "entityIds";
 const char CONFIG_BRIGHTNESS[] = "brightness";
 const char CONFIG_BRIGHTNESS_OVERWRITE[] = "overwriteBrightness";
 
@@ -95,7 +97,7 @@ bool LedDeviceHomeAssistant::init(const QJsonObject& deviceConfig)
 		Debug(_log, "Overwrite Brightn.: %d", _isBrightnessOverwrite);
 		Debug(_log, "Set Brightness to : %d", _brightness);
 
-		_lightEntityIds = _devConfig[ CONFIG_LIGHTIDS ].toVariant().toStringList();
+		_lightEntityIds = _devConfig[ CONFIG_ENITYIDS ].toVariant().toStringList();
 		int configuredLightsCount = _lightEntityIds.size();
 
 		if ( configuredLightsCount == 0 )
@@ -263,7 +265,41 @@ QJsonObject LedDeviceHomeAssistant::getProperties(const QJsonObject& params)
 			{
 				Warning(_log, "%s get properties failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
 			}
-			QJsonObject propertiesDetails = response.getBody().object();
+
+			QJsonObject propertiesDetails;
+			const QJsonDocument jsonDoc = response.getBody();
+			if (jsonDoc.isArray()) {
+				const QJsonArray jsonArray = jsonDoc.array();
+				QVector<QJsonValue> filteredVector;
+
+				// Iterate over the array and filter objects with entity_id starting with "light."
+				for (const QJsonValue &value : jsonArray)
+				{
+					QJsonObject obj = value.toObject();
+					QString entityId = obj[ENTITY_ID].toString();
+
+					if (entityId.startsWith("light."))
+					{
+						filteredVector.append(obj);
+					}
+				}
+
+				// Sort the filtered vector by "friendly_name" in ascending order
+				std::sort(filteredVector.begin(), filteredVector.end(), [](const QJsonValue &a, const QJsonValue &b) {
+					QString nameA = a.toObject()["attributes"].toObject()["friendly_name"].toString();
+					QString nameB = b.toObject()["attributes"].toObject()["friendly_name"].toString();
+					return nameA < nameB;  // Ascending order
+				});
+				// Convert the sorted vector back to a QJsonArray
+				QJsonArray sortedArray;
+				for (const QJsonValue &value : filteredVector) {
+					sortedArray.append(value);
+				}
+
+				propertiesDetails.insert("lightEntities", sortedArray);
+
+			}
+
 			if (!propertiesDetails.isEmpty())
 			{
 				propertiesDetails.insert("ledCount", 1);

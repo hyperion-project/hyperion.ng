@@ -31,7 +31,7 @@
       "maximum": 65535,
       "access": "expert",
       "propertyOrder": 3
-    },    
+    },
     "token": {
       "type": "string",
       "title": "edt_dev_auth_key_title",
@@ -47,7 +47,7 @@
       "default": true,
       "required": true,
       "options": {
-       "hidden": true,      
+        "hidden": true,
         "infoText": "edt_dev_spec_restoreOriginalState_title_info"
       },
       "propertyOrder": 5
@@ -75,15 +75,17 @@
       "access": "advanced",
       "propertyOrder": 6
     },
-    "lightIds": {
-      "type": "array",
+    "entityIds": {
       "title": "edt_dev_spec_lightid_title",
-      "minItems": 1,
-      "uniqueItems": true,
+      "type": "array",
+      "required": true,
+      "format": "select",
+      "options": {
+        "hidden": true
+      },
       "items": {
         "type": "string",
-        "minimum": 0,
-        "title": "edt_dev_spec_lightid_itemtitle"
+        "title": "edt_dev_spec_lights_itemtitle"
       },
       "propertyOrder": 7
     },

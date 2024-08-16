@@ -1275,13 +1275,26 @@ $(document).ready(function () {
         }
           break;
 
-        case "homeassistant":
         case "nanoleaf": {
           const hostList = conf_editor.getEditor("root.specificOptions.hostList").getValue();
           if (hostList !== "SELECT") {
             const host = conf_editor.getEditor("root.specificOptions.host").getValue();
             const token = conf_editor.getEditor("root.specificOptions.token").getValue();
-            if (host !== "" && token !== "") {
+            if (host !== "" && token !== "" && entityIds) {
+              canIdentify = true;
+              canSave = true;
+            }
+          }
+        }
+          break;
+
+        case "homeassistant": {
+          const hostList = conf_editor.getEditor("root.specificOptions.hostList").getValue();
+          if (hostList !== "SELECT") {
+            const host = conf_editor.getEditor("root.specificOptions.host").getValue();
+            const token = conf_editor.getEditor("root.specificOptions.token").getValue();
+            const entityIds = conf_editor.getEditor("root.specificOptions.entityIds").getValue();
+            if (host !== "" && token !== "" && entityIds) {
               canIdentify = true;
               canSave = true;
             }
@@ -1395,9 +1408,7 @@ $(document).ready(function () {
               return;
             }
 
-            const lightIds = conf_editor.getEditor("root.specificOptions.lightIds").getValue();
-
-            params = { host: host, token: token, filter: "states/" + lightIds[0] };
+            params = { host: host, token: token, filter: "states" };
             getProperties_device(ledType, host, params);
             break;
 
@@ -1571,8 +1582,7 @@ $(document).ready(function () {
             if (host === "") {
               return
             }
-            const lightIds = conf_editor.getEditor("root.specificOptions.lightIds").getValue();
-            params = { host: host, token: token, filter: "states/" + lightIds[0] };
+            params = { host: host, token: token, filter: "states" };
             break;
 
           case "nanoleaf":
@@ -1677,6 +1687,16 @@ $(document).ready(function () {
         default:
       }
     });
+
+    conf_editor.watch('root.specificOptions.entityIds', () => {
+      var entityIds = conf_editor.getEditor("root.specificOptions.entityIds").getValue();
+      if (entityIds.length > 0) {
+        $('#btn_test_controller').prop('disabled', false);
+      } else {
+        $('#btn_test_controller').prop('disabled', true);
+      }
+    });
+
   });
 
   //philipshueentertainment backward fix
@@ -1707,7 +1727,7 @@ $(document).ready(function () {
     else if ($.inArray(ledDevices[idx], devHID) != -1)
       optArr[4].push(ledDevices[idx]);
     else if (ledDevices[idx].endsWith("_ftdi")) {
-      var title = ledDevices[idx].replace('_ftdi','');
+      var title = ledDevices[idx].replace('_ftdi', '');
       optArr[5].push(ledDevices[idx] + ":" + title);
     }
     else
@@ -1770,8 +1790,8 @@ $(document).ready(function () {
       case "homeassistant":
         var host = conf_editor.getEditor("root.specificOptions.host").getValue();
         var token = conf_editor.getEditor("root.specificOptions.token").getValue();
-        const lightIds = conf_editor.getEditor("root.specificOptions.lightIds").getValue();
-        params = { host: host, token: token, entity_id: lightIds };
+        const entityIds = conf_editor.getEditor("root.specificOptions.entityIds").getValue();
+        params = { host: host, token: token, entity_id: entityIds };
         break;
 
       case "nanoleaf":
@@ -2342,6 +2362,11 @@ function updateElements(ledType, key) {
         }
         break;
 
+      case "homeassistant":
+        updateElementsHomeAssistant(ledType, key);
+        hardwareLedCount = 1;
+        break;
+
       case "atmo":
       case "karate":
         var ledProperties = devicesProperties[ledType][key];
@@ -2469,6 +2494,63 @@ function validateWledLedCount(hardwareLedCount) {
   }
 }
 
+function updateElementsHomeAssistant(ledType, key) {
+
+  // Get configured device's details
+  var configuredDeviceType = window.serverConfig.device.type;
+  var configuredHost = window.serverConfig.device.host;
+  var host = conf_editor.getEditor("root.specificOptions.host").getValue();
+
+  // New light selection list values
+  var enumVals = [];
+  var enumTitleVals = [];
+  var enumDefaultVal = [];
+
+  if (devicesProperties[ledType] && devicesProperties[ledType][key]) {
+    var ledDeviceProperties = devicesProperties[ledType][key];
+
+    if (!jQuery.isEmptyObject(ledDeviceProperties)) {
+      if (ledDeviceProperties && ledDeviceProperties.lightEntities) {
+
+
+        for (const light of ledDeviceProperties.lightEntities) {
+          enumVals.push(light.entity_id);
+          enumTitleVals.push(light.attributes.friendly_name);
+        }
+
+      }
+    }
+  }
+
+  // Select configured device
+  if (configuredDeviceType == ledType && configuredHost == host) {
+    let configuredEntityIds = window.serverConfig.device.entityIds;
+    for (const light of configuredEntityIds) {
+      if ($.inArray(enumVals, light) != -1) {
+        enumVals.push(light);
+      }
+      enumDefaultVal.push(light);
+    }
+  }
+
+  if (enumVals.length < 1) {
+    enumVals.push("NONE");
+    enumTitleVals.push($.i18n('edt_dev_spec_lights_discovered_none'));
+    enumDefaultVal("NONE");
+  }
+  else {
+    $('#btn_wiz_holder').show();
+  }
+
+
+  let addSchemaElements = {
+    "uniqueItems": true,
+    "minItems": 1,
+    "required": true
+  }
+  updateJsonEditorMultiSelection(conf_editor, 'root.specificOptions', 'entityIds', addSchemaElements, enumVals, enumTitleVals, enumDefaultVal);
+}
+
 function updateElementsWled(ledType, key) {
 
   // Get configured device's details
@@ -2564,6 +2646,7 @@ function updateElementsWled(ledType, key) {
   }
   showInputOptionForItem(conf_editor, "root.specificOptions.segments", "switchOffOtherSegments", showAdditionalOptions);
 }
+
 function sortByPanelCoordinates(arr, topToBottom, leftToRight) {
   arr.sort((a, b) => {
     //Nanoleaf corodinates start at bottom left, therefore reverse topToBottom
@@ -2622,7 +2705,7 @@ function nanoleafGeneratelayout(panelLayout, panelOrderTopDown, panelOrderLeftRi
     29: { name: "4DLightstrip", led: true, sideLengthX: 50, sideLengthY: 50 },
     30: { name: "Skylight Panel", led: true, sideLengthX: 180, sideLengthY: 180 },
     31: { name: "SkylightControllerPrimary", led: true, sideLengthX: 180, sideLengthY: 180 },
-    32: { name: "SkylightControllerPassive", led: true, sideLengthX: 180, sideLengthY: 180 },            
+    32: { name: "SkylightControllerPassive", led: true, sideLengthX: 180, sideLengthY: 180 },
     999: { name: "Unknown", led: true, sideLengthX: 100, sideLengthY: 100 }
   };
 
