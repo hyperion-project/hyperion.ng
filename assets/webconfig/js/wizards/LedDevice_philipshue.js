@@ -856,10 +856,9 @@ const philipshueWizard = (() => {
           let options = "";
           for (const opt in lightOptions) {
             const val = lightOptions[opt];
-            const txt = (val != 'lightPosEntire' && val != 'disabled') ? 'conf_leds_layout_cl_' : 'wiz_ids_';
             options += '<option value="' + val + '"';
             if (pos == val) options += ' selected="selected"';
-            options += '>' + $.i18n(txt + val) + '</option>';
+            options += '>' + $.i18n('conf_leds_layout_cl_' + val) + '</option>';
           }
 
           $('.lidsb').append(createTableRow([id + ' (' + lightName + ')',
