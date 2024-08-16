@@ -50,7 +50,7 @@ Find here more details on [supported platforms and configuration sets](doc/devel
 
 ## Documentation
 Covers these topics:
-- [Installation](https://docs.hyperion-project.org/en/user/Installation.html)
+- [Getting Started and Installation](https://docs.hyperion-project.org/user/GettingStarted.html)
 - [Configuration](https://docs.hyperion-project.org/user/Configuration.html)
 - [Effect development](https://docs.hyperion-project.org/effects/#effect-files)
 - [JSON API](https://docs.hyperion-project.org/json/JSON.html)
@@ -64,7 +64,7 @@ Released and unreleased changes at [CHANGELOG.md](CHANGELOG.md).
 See [CompileHowto.md](doc/development/CompileHowto.md).
 
 ## Installation
-See [Documentation](https://docs.hyperion-project.org/en/user/Installation.html) or on the [Release Repository](https://releases.hyperion-project.org).
+See [Getting Started](https://docs.hyperion-project.org/user/GettingStarted.html) or on the [Release Repository](https://releases.hyperion-project.org).
 
 ## Download
 GitHub Releases are available on the [Hyperion release page](https://github.com/hyperion-project/hyperion.ng/releases).
