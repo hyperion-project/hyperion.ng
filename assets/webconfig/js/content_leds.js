@@ -2365,6 +2365,7 @@ function updateElements(ledType, key) {
       case "homeassistant":
         updateElementsHomeAssistant(ledType, key);
         hardwareLedCount = 1;
+        conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(hardwareLedCount);
         break;
 
       case "atmo":
@@ -2536,7 +2537,6 @@ function updateElementsHomeAssistant(ledType, key) {
   if (enumVals.length < 1) {
     enumVals.push("NONE");
     enumTitleVals.push($.i18n('edt_dev_spec_lights_discovered_none'));
-    enumDefaultVal("NONE");
   }
   else {
     $('#btn_wiz_holder').show();
@@ -2547,7 +2547,8 @@ function updateElementsHomeAssistant(ledType, key) {
     "uniqueItems": true,
     "minItems": 1,
     "required": true
-  }
+  };
+
   updateJsonEditorMultiSelection(conf_editor, 'root.specificOptions', 'entityIds', addSchemaElements, enumVals, enumTitleVals, enumDefaultVal);
 }
 

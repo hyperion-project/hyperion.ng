@@ -49,7 +49,7 @@ function createLedDeviceWizards(ledType) {
   }
   else if (ledType == "homeassistant") {
     $('#btn_wiz_holder').hide();
-    wizardName = "layoutLedPositions"
+    wizardName = "layoutLedPositions";
     data = { wizardName, ledType };
     title = 'wiz_layout_led_positions_title';
   }
