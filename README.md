@@ -52,7 +52,7 @@ Find here more details on [supported platforms and configuration sets](doc/devel
 Covers these topics:
 - [Getting Started and Installation](https://docs.hyperion-project.org/user/GettingStarted.html)
 - [Configuration](https://docs.hyperion-project.org/user/Configuration.html)
-- [Effect development](https://docs.hyperion-project.org/effects/#effect-files)
+- [Effect development](https://docs.hyperion-project.org/effects/Effects.html)
 - [JSON API](https://docs.hyperion-project.org/json/JSON.html)
 
 [![Visit Documentation](https://img.shields.io/website/https/docs.hyperion-project.org.svg?label=Documentation&down_color=red&down_message=offline&up_color=4bc51d&up_message=online&logo=read-the-docs)](https://docs.hyperion-project.org)
