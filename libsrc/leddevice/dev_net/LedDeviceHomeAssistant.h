@@ -170,6 +170,7 @@ private:
 	QStringList _lightEntityIds;
 
 	bool _isBrightnessOverwrite;
+	bool _isFullBrightnessAtStart;
 	int _brightness;
 };
 

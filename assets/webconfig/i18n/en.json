@@ -670,6 +670,7 @@
     "edt_dev_spec_devices_discovery_inprogress": "Discovery in progress",
     "edt_dev_spec_dithering_title": "Dithering",
     "edt_dev_spec_dmaNumber_title": "DMA channel",
+    "edt_dev_spec_fullBrightnessAtStart_title": "Full brightness at start",    
     "edt_dev_spec_gamma_title": "Gamma",
     "edt_dev_spec_globalBrightnessControlMaxLevel_title": "Max Current Level",
     "edt_dev_spec_globalBrightnessControlThreshold_title": "Adaptive Current Threshold",

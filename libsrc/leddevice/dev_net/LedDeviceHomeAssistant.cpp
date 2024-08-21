@@ -22,8 +22,10 @@ const char CONFIG_AUTH_TOKEN[] = "token";
 const char CONFIG_ENITYIDS[] = "entityIds";
 const char CONFIG_BRIGHTNESS[] = "brightness";
 const char CONFIG_BRIGHTNESS_OVERWRITE[] = "overwriteBrightness";
+const char CONFIG_FULL_BRIGHTNESS_AT_START[] = "fullBrightnessAtStart";
 
 const bool DEFAULT_IS_BRIGHTNESS_OVERWRITE = true;
+const bool DEFAULT_IS_FULL_BRIGHTNESS_AT_START = true;
 const int  BRI_MAX = 255;
 
 // Home Assistant API
@@ -50,6 +52,7 @@ LedDeviceHomeAssistant::LedDeviceHomeAssistant(const QJsonObject& deviceConfig)
 	, _restApi(nullptr)
 	, _apiPort(API_DEFAULT_PORT)
 	, _isBrightnessOverwrite(DEFAULT_IS_BRIGHTNESS_OVERWRITE)
+	, _isFullBrightnessAtStart(DEFAULT_IS_FULL_BRIGHTNESS_AT_START)
 	, _brightness (BRI_MAX)
 {
 #ifdef ENABLE_MDNS
@@ -89,6 +92,7 @@ bool LedDeviceHomeAssistant::init(const QJsonObject& deviceConfig)
 		_bearerToken = deviceConfig[CONFIG_AUTH_TOKEN].toString();
 
 		_isBrightnessOverwrite = _devConfig[CONFIG_BRIGHTNESS_OVERWRITE].toBool(DEFAULT_IS_BRIGHTNESS_OVERWRITE);
+		_isFullBrightnessAtStart = _devConfig[CONFIG_FULL_BRIGHTNESS_AT_START].toBool(DEFAULT_IS_FULL_BRIGHTNESS_AT_START);
 		_brightness = _devConfig[CONFIG_BRIGHTNESS].toInt(BRI_MAX);
 
 		Debug(_log, "Hostname/IP       : %s", QSTRING_CSTR(_hostName));
@@ -96,6 +100,7 @@ bool LedDeviceHomeAssistant::init(const QJsonObject& deviceConfig)
 
 		Debug(_log, "Overwrite Brightn.: %d", _isBrightnessOverwrite);
 		Debug(_log, "Set Brightness to : %d", _brightness);
+		Debug(_log, "Full Bri. at start: %d", _isFullBrightnessAtStart);
 
 		_lightEntityIds = _devConfig[ CONFIG_ENITYIDS ].toVariant().toStringList();
 		int configuredLightsCount = _lightEntityIds.size();
@@ -349,9 +354,9 @@ bool LedDeviceHomeAssistant::powerOn()
 		_restApi->setPath(API_LIGHT_TURN_ON);
 		QJsonObject serviceAttributes {{ENTITY_ID, QJsonArray::fromStringList(_lightEntityIds)}};
 
-		if (_isBrightnessOverwrite)
+		if (_isFullBrightnessAtStart)
 		{
-			serviceAttributes.insert(BRIGHTNESS, _brightness);
+			serviceAttributes.insert(BRIGHTNESS, BRI_MAX);
 		}
 
 		httpResponse response = _restApi->post(serviceAttributes);
@@ -402,6 +407,12 @@ int LedDeviceHomeAssistant::write(const std::vector<ColorRgb>& ledValues)
 	ColorRgb ledValue = ledValues.at(0);
 	QJsonArray rgbColor {ledValue.red, ledValue.green, ledValue.blue};
 	serviceAttributes.insert(RGB_COLOR, rgbColor);
+
+	if (_isBrightnessOverwrite)
+	{
+		serviceAttributes.insert(BRIGHTNESS, _brightness);
+	}
+
 	httpResponse response = _restApi->post(serviceAttributes);
 	if (response.error())
 	{
