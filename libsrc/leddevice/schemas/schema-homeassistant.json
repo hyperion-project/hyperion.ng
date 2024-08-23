@@ -84,6 +84,14 @@
       "access": "advanced",
       "propertyOrder": 7
     },
+    "switchOffOnBlack": {
+      "type": "boolean",
+      "format": "checkbox",
+      "title": "edt_dev_spec_switchOffOnBlack_title",
+      "default": false,
+      "access": "advanced",
+      "propertyOrder": 8
+    },
     "entityIds": {
       "title": "edt_dev_spec_lightid_title",
       "type": "array",
@@ -96,7 +104,7 @@
         "type": "string",
         "title": "edt_dev_spec_lights_itemtitle"
       },
-      "propertyOrder": 8
+      "propertyOrder": 9
     },
     "latchTime": {
       "type": "integer",
@@ -109,7 +117,7 @@
       "options": {
         "infoText": "edt_dev_spec_latchtime_title_info"
       },
-      "propertyOrder": 9
+      "propertyOrder": 10
     }
   },
   "additionalProperties": true

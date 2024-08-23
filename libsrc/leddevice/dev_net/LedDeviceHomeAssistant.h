@@ -172,6 +172,8 @@ private:
 	bool _isBrightnessOverwrite;
 	bool _isFullBrightnessAtStart;
 	int _brightness;
+	bool _switchOffOnBlack;
+
 };
 
 #endif // LEDEVICEHOMEASSISTANT_H

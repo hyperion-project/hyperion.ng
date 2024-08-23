@@ -8,6 +8,7 @@
 #include <mdns/MdnsServiceRegister.h>
 #endif
 #include <utils/NetUtils.h>
+#include <utils/ColorRgb.h>
 
 #include <algorithm>
 
@@ -23,10 +24,12 @@ const char CONFIG_ENITYIDS[] = "entityIds";
 const char CONFIG_BRIGHTNESS[] = "brightness";
 const char CONFIG_BRIGHTNESS_OVERWRITE[] = "overwriteBrightness";
 const char CONFIG_FULL_BRIGHTNESS_AT_START[] = "fullBrightnessAtStart";
+const char CONFIG_ON_OFF_BLACK[] = "switchOffOnBlack";
 
 const bool DEFAULT_IS_BRIGHTNESS_OVERWRITE = true;
 const bool DEFAULT_IS_FULL_BRIGHTNESS_AT_START = true;
 const int  BRI_MAX = 255;
+const bool DEFAULT_IS_SWITCH_OFF_ON_BLACK = false;
 
 // Home Assistant API
 const int  API_DEFAULT_PORT = 8123;
@@ -94,13 +97,15 @@ bool LedDeviceHomeAssistant::init(const QJsonObject& deviceConfig)
 		_isBrightnessOverwrite = _devConfig[CONFIG_BRIGHTNESS_OVERWRITE].toBool(DEFAULT_IS_BRIGHTNESS_OVERWRITE);
 		_isFullBrightnessAtStart = _devConfig[CONFIG_FULL_BRIGHTNESS_AT_START].toBool(DEFAULT_IS_FULL_BRIGHTNESS_AT_START);
 		_brightness = _devConfig[CONFIG_BRIGHTNESS].toInt(BRI_MAX);
+		_switchOffOnBlack       = _devConfig[CONFIG_ON_OFF_BLACK].toBool(DEFAULT_IS_SWITCH_OFF_ON_BLACK);
 
 		Debug(_log, "Hostname/IP       : %s", QSTRING_CSTR(_hostName));
 		Debug(_log, "Port              : %d", _apiPort );
 
-		Debug(_log, "Overwrite Brightn.: %d", _isBrightnessOverwrite);
+		Debug(_log, "Overwrite Brightn.: %s", _isBrightnessOverwrite ? "Yes" : "No" );
 		Debug(_log, "Set Brightness to : %d", _brightness);
-		Debug(_log, "Full Bri. at start: %d", _isFullBrightnessAtStart);
+		Debug(_log, "Full Bri. at start: %s", _isFullBrightnessAtStart  ? "Yes" : "No" );
+		Debug(_log, "Off on Black      : %s", _switchOffOnBlack ? "Yes" : "No" );
 
 		_lightEntityIds = _devConfig[ CONFIG_ENITYIDS ].toVariant().toStringList();
 		int configuredLightsCount = _lightEntityIds.size();
@@ -395,22 +400,29 @@ int LedDeviceHomeAssistant::write(const std::vector<ColorRgb>& ledValues)
 {
 	int retVal = 0;
 
-	//    http://hostname:port/api/services/light/turn_on
-	//    {
-	//      "entity_id": [ entity-IDs ],
-	//      "rgb_color": [R,G,B]
-	//    }
-
-	_restApi->setPath(API_LIGHT_TURN_ON);
 	QJsonObject serviceAttributes {{ENTITY_ID, QJsonArray::fromStringList(_lightEntityIds)}};
-
 	ColorRgb ledValue = ledValues.at(0);
-	QJsonArray rgbColor {ledValue.red, ledValue.green, ledValue.blue};
-	serviceAttributes.insert(RGB_COLOR, rgbColor);
 
-	if (_isBrightnessOverwrite)
+	if (_switchOffOnBlack && ledValue == ColorRgb::BLACK)
 	{
-		serviceAttributes.insert(BRIGHTNESS, _brightness);
+		_restApi->setPath(API_LIGHT_TURN_OFF);
+	}
+	else
+	{
+		//    http://hostname:port/api/services/light/turn_on
+		//    {
+		//      "entity_id": [ entity-IDs ],
+		//      "rgb_color": [R,G,B]
+		//    }
+
+		_restApi->setPath(API_LIGHT_TURN_ON);
+		QJsonArray rgbColor {ledValue.red, ledValue.green, ledValue.blue};
+		serviceAttributes.insert(RGB_COLOR, rgbColor);
+
+		if (_isBrightnessOverwrite)
+		{
+			serviceAttributes.insert(BRIGHTNESS, _brightness);
+		}
 	}
 
 	httpResponse response = _restApi->post(serviceAttributes);
