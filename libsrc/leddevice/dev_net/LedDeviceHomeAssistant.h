@@ -173,6 +173,8 @@ private:
 	bool _isFullBrightnessAtStart;
 	int _brightness;
 	bool _switchOffOnBlack;
+	/// Transition time in seconds
+	double _transitionTime;
 
 };
 

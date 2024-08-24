@@ -25,6 +25,7 @@ const char CONFIG_BRIGHTNESS[] = "brightness";
 const char CONFIG_BRIGHTNESS_OVERWRITE[] = "overwriteBrightness";
 const char CONFIG_FULL_BRIGHTNESS_AT_START[] = "fullBrightnessAtStart";
 const char CONFIG_ON_OFF_BLACK[] = "switchOffOnBlack";
+const char CONFIG_TRANSITIONTIME[] = "transitionTime";
 
 const bool DEFAULT_IS_BRIGHTNESS_OVERWRITE = true;
 const bool DEFAULT_IS_FULL_BRIGHTNESS_AT_START = true;
@@ -41,6 +42,7 @@ const char API_LIGHT_TURN_OFF[] = "services/light/turn_off";
 const char ENTITY_ID[] = "entity_id";
 const char RGB_COLOR[] = "rgb_color";
 const char BRIGHTNESS[] = "brightness";
+const char TRANSITION[] = "transition";
 const char FLASH[] = "flash";
 
 // // Home Assistant ssdp services
@@ -98,6 +100,8 @@ bool LedDeviceHomeAssistant::init(const QJsonObject& deviceConfig)
 		_isFullBrightnessAtStart = _devConfig[CONFIG_FULL_BRIGHTNESS_AT_START].toBool(DEFAULT_IS_FULL_BRIGHTNESS_AT_START);
 		_brightness = _devConfig[CONFIG_BRIGHTNESS].toInt(BRI_MAX);
 		_switchOffOnBlack       = _devConfig[CONFIG_ON_OFF_BLACK].toBool(DEFAULT_IS_SWITCH_OFF_ON_BLACK);
+		int transitionTimeMs = _devConfig[CONFIG_TRANSITIONTIME].toInt(0);
+		_transitionTime = transitionTimeMs / 1000.0;
 
 		Debug(_log, "Hostname/IP       : %s", QSTRING_CSTR(_hostName));
 		Debug(_log, "Port              : %d", _apiPort );
@@ -106,6 +110,7 @@ bool LedDeviceHomeAssistant::init(const QJsonObject& deviceConfig)
 		Debug(_log, "Set Brightness to : %d", _brightness);
 		Debug(_log, "Full Bri. at start: %s", _isFullBrightnessAtStart  ? "Yes" : "No" );
 		Debug(_log, "Off on Black      : %s", _switchOffOnBlack ? "Yes" : "No" );
+		Debug(_log, "Transition Time   : %d ms", transitionTimeMs );
 
 		_lightEntityIds = _devConfig[ CONFIG_ENITYIDS ].toVariant().toStringList();
 		int configuredLightsCount = _lightEntityIds.size();
@@ -422,6 +427,11 @@ int LedDeviceHomeAssistant::write(const std::vector<ColorRgb>& ledValues)
 		if (_isBrightnessOverwrite)
 		{
 			serviceAttributes.insert(BRIGHTNESS, _brightness);
+		}
+		if (_transitionTime > 0)
+		{
+			// Transition time in seconds
+			serviceAttributes.insert(TRANSITION, _transitionTime);
 		}
 	}
 
