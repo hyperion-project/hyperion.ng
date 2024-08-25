@@ -23,7 +23,7 @@ namespace {
 	const char CONFIG_RAZER_DEVICE_TYPE[] = "subType";
 	const char CONFIG_SINGLE_COLOR[] = "singleColor";
 
-	// WLED JSON-API elements
+	// API elements
 	const char API_DEFAULT_HOST[] = "localhost";
 	const int API_DEFAULT_PORT = 54235;
 

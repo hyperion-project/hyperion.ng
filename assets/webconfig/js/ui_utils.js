@@ -321,7 +321,7 @@ function showInfoDialog(type, header, message) {
   $(document).on('click', '[data-dismiss-modal]', function () {
     var target = $(this).data('dismiss-modal');
     $($.find(target)).modal('hide');
-});
+  });
 }
 
 function createHintH(type, text, container) {
@@ -478,7 +478,7 @@ function createJsonEditor(container, schema, setconfig, usePanel, arrayre) {
   return editor;
 }
 
-function updateJsonEditorSelection(rootEditor, path, key, addElements, newEnumVals, newTitelVals, newDefaultVal, addSelect, addCustom, addCustomAsFirst, customText) {
+function updateJsonEditorSelection(rootEditor, path, key, addElements, newEnumVals, newTitleVals, newDefaultVal, addSelect, addCustom, addCustomAsFirst, customText) {
   var editor = rootEditor.getEditor(path);
   var orginalProperties = editor.schema.properties[key];
 
@@ -516,8 +516,8 @@ function updateJsonEditorSelection(rootEditor, path, key, addElements, newEnumVa
 
   if (addCustom) {
 
-    if (newTitelVals.length === 0) {
-      newTitelVals = [...newEnumVals];
+    if (newTitleVals.length === 0) {
+      newTitleVals = [...newEnumVals];
     }
 
     if (!!!customText) {
@@ -526,10 +526,10 @@ function updateJsonEditorSelection(rootEditor, path, key, addElements, newEnumVa
 
     if (addCustomAsFirst) {
       newEnumVals.unshift("CUSTOM");
-      newTitelVals.unshift(customText);
+      newTitleVals.unshift(customText);
     } else {
       newEnumVals.push("CUSTOM");
-      newTitelVals.push(customText);
+      newTitleVals.push(customText);
     }
 
     if (newSchema[key].options.infoText) {
@@ -540,7 +540,7 @@ function updateJsonEditorSelection(rootEditor, path, key, addElements, newEnumVa
 
   if (addSelect) {
     newEnumVals.unshift("SELECT");
-    newTitelVals.unshift("edt_conf_enum_please_select");
+    newTitleVals.unshift("edt_conf_enum_please_select");
     newDefaultVal = "SELECT";
   }
 
@@ -548,8 +548,8 @@ function updateJsonEditorSelection(rootEditor, path, key, addElements, newEnumVa
     newSchema[key]["enum"] = newEnumVals;
   }
 
-  if (newTitelVals) {
-    newSchema[key]["options"]["enum_titles"] = newTitelVals;
+  if (newTitleVals) {
+    newSchema[key]["options"]["enum_titles"] = newTitleVals;
   }
   if (newDefaultVal) {
     newSchema[key]["default"] = newDefaultVal;
@@ -572,7 +572,7 @@ function updateJsonEditorSelection(rootEditor, path, key, addElements, newEnumVa
   rootEditor.notifyWatchers(path + "." + key);
 }
 
-function updateJsonEditorMultiSelection(rootEditor, path, key, addElements, newEnumVals, newTitelVals, newDefaultVal) {
+function updateJsonEditorMultiSelection(rootEditor, path, key, addElements, newEnumVals, newTitleVals, newDefaultVal) {
   var editor = rootEditor.getEditor(path);
   var orginalProperties = editor.schema.properties[key];
 
@@ -617,8 +617,8 @@ function updateJsonEditorMultiSelection(rootEditor, path, key, addElements, newE
     newSchema[key]["items"]["enum"] = newEnumVals;
   }
 
-  if (newTitelVals) {
-    newSchema[key]["items"]["options"]["enum_titles"] = newTitelVals;
+  if (newTitleVals) {
+    newSchema[key]["items"]["options"]["enum_titles"] = newTitleVals;
   }
 
   if (newDefaultVal) {
@@ -923,8 +923,8 @@ function createTableRow(list, head, align) {
       el.style.verticalAlign = "middle";
 
     var purifyConfig = {
-            ADD_TAGS: ['button'],
-            ADD_ATTR: ['onclick']
+      ADD_TAGS: ['button'],
+      ADD_ATTR: ['onclick']
     };
     el.innerHTML = DOMPurify.sanitize(list[i], purifyConfig);
     row.appendChild(el);
@@ -1403,7 +1403,7 @@ function loadScript(src, callback, ...params) {
   if (isScriptLoaded(src)) {
     debugMessage('Script ' + src + ' already loaded');
     if (callback && typeof callback === 'function') {
-      callback( ...params);
+      callback(...params);
     }
     return;
   }
