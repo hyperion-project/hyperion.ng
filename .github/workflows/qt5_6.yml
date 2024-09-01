@@ -117,8 +117,13 @@ jobs:
           echo '::group::Update/Install dependencies'
             brew untap --force homebrew/core homebrew/cask
             brew update || true
-            brew install qt@${{ inputs.qt_version }} vulkan-headers ninja || true
+            brew install qt@${{ inputs.qt_version }} vulkan-headers ninja libftdi || true
           echo '::endgroup::'
+
+      - name: Temporarily downgrade CMake to 3.28.3 # Please remove if GitHub has updated Cmake (greater than 3.30.0)
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '3.28.3'
 
       - name: 👷 Build
         shell: bash
@@ -163,32 +168,43 @@ jobs:
         uses: actions/cache@v4
         with:
           path: C:\Users\runneradmin\AppData\Local\Temp\chocolatey
-          key: ${{ runner.os }}${{ inputs.qt_version == '6' && '-chocolatey-qt6' || '-chocolatey' }}
+          key: ${{ runner.os }}${{ '-chocolatey' }}
 
-      - name: 📥 Install DirectX SDK, OpenSSL, libjpeg-turbo ${{ inputs.qt_version == '6' && 'and Vulkan-SDK' || '' }}
+      - name: 📥 Install DirectX SDK, OpenSSL, libjpeg-turbo
         shell: powershell
         run: |
-          choco install --no-progress directx-sdk ${{env.VULKAN_SDK}} -y
+          choco install --no-progress directx-sdk -y
           choco install --no-progress ${{env.OPENSSL}} -y
           Invoke-WebRequest https://netcologne.dl.sourceforge.net/project/libjpeg-turbo/3.0.1/libjpeg-turbo-3.0.1-vc64.exe -OutFile libjpeg-turbo.exe -UserAgent NativeHost
           .\libjpeg-turbo /S
         env:
-          VULKAN_SDK: ${{ inputs.qt_version == '6' && 'vulkan-sdk' || '' }}
           OPENSSL: ${{ inputs.qt_version == '6' && 'openssl' || 'openssl --version=1.1.1.2100' }}
 
-      - name: 📥 Install Qt
-        uses: jurplel/install-qt-action@v3
+      - name: Install Vulkan SDK
+        if: ${{ inputs.qt_version == '6' }}
+        uses: jakoch/install-vulkan-sdk-action@v1.0.4
         with:
-          version: ${{ inputs.qt_version == '6' && '6.5.2' || '5.15.2' }}
+          install_runtime: false
+          cache: true
+          stripdown: true
+
+      - name: 📥 Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: ${{ inputs.qt_version == '6' && '6.7' || '5.15.*' }}
           target: 'desktop'
           modules: ${{ inputs.qt_version == '6' && 'qtserialport' || '' }}
-          arch: 'win64_msvc2019_64'
           cache: 'true'
           cache-key-prefix: 'cache-qt-windows'
 
       - name: 🛠️ Setup MSVC
         shell: cmd
         run: call "${{env.VCINSTALLDIR}}\Auxiliary\Build\vcvars64.bat"
+
+      - name: Temporarily downgrade CMake to 3.28.3 # Please remove if GitHub has updated Cmake (greater than 3.30.0)
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '3.28.3'
 
       - name: 👷 Build
         shell: bash
@@ -226,7 +242,7 @@ jobs:
           echo '::endgroup::'
 
       - name: 💾 Artifact download
-        uses: actions/download-artifact@v4.1.7
+        uses: actions/download-artifact@v4.1.8
         with:
           pattern: artifact-*
           path: all-artifacts

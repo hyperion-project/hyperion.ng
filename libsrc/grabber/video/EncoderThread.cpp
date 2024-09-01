@@ -131,7 +131,7 @@ void EncoderThread::process()
 #if defined(ENABLE_V4L2)
 				_pixelFormat,
 #else
-				PixelFormat::BGR24,
+				PixelFormat::BGR24,  // MF-Grabber always sends RGB24, but memory layout is RGBTRIPLE (b,g,r) -> process as BGR24
 #endif
 				image
 			);

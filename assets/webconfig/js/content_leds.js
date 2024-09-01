@@ -18,10 +18,11 @@ var bottomRight2bottomLeft = null;
 var bottomLeft2topLeft = null;
 var toggleKeystoneCorrectionArea = false;
 
-var devRPiSPI = ['apa102', 'apa104', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'sk6822spi', 'sk9822', 'ws2812spi'];
+var devSPI = ['apa102', 'apa104', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'sk6822spi', 'sk9822', 'ws2812spi'];
+var devFTDI = ['apa102_ftdi', 'sk6812_ftdi', 'ws2812_ftdi'];
 var devRPiPWM = ['ws281x'];
 var devRPiGPIO = ['piblaster'];
-var devNET = ['atmoorb', 'cololight', 'fadecandy', 'philipshue', 'nanoleaf', 'razer', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udpddp', 'udph801', 'udpraw', 'wled', 'yeelight'];
+var devNET = ['atmoorb', 'cololight', 'fadecandy', 'homeassistant', 'philipshue', 'nanoleaf', 'razer', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udpddp', 'udph801', 'udpraw', 'wled', 'yeelight'];
 var devSerial = ['adalight', 'dmx', 'atmo', 'sedu', 'tpm2', 'karate'];
 var devHID = ['hyperionusbasp', 'lightpack', 'paintpack', 'rawhid'];
 
@@ -1099,6 +1100,7 @@ $(document).ready(function () {
       switch (ledType) {
         case "wled":
         case "cololight":
+        case "homeassistant":
         case "nanoleaf":
           showAllDeviceInputOptions("hostList", false);
         case "apa102":
@@ -1121,6 +1123,12 @@ $(document).ready(function () {
         case "karate":
         case "sedu":
         case "tpm2":
+
+        //FTDI devices
+        case "apa102_ftdi":
+        case "sk6812_ftdi":
+        case "ws2812_ftdi":
+
           if (storedAccess === 'expert') {
             filter.discoverAll = true;
           }
@@ -1139,6 +1147,7 @@ $(document).ready(function () {
             .catch(error => {
               showNotification('danger', "Device discovery for " + ledType + " failed with error:" + error);
             });
+
           break;
 
         case "philipshue": {
@@ -1271,7 +1280,21 @@ $(document).ready(function () {
           if (hostList !== "SELECT") {
             const host = conf_editor.getEditor("root.specificOptions.host").getValue();
             const token = conf_editor.getEditor("root.specificOptions.token").getValue();
-            if (host !== "" && token !== "") {
+            if (host !== "" && token !== "" && entityIds) {
+              canIdentify = true;
+              canSave = true;
+            }
+          }
+        }
+          break;
+
+        case "homeassistant": {
+          const hostList = conf_editor.getEditor("root.specificOptions.hostList").getValue();
+          if (hostList !== "SELECT") {
+            const host = conf_editor.getEditor("root.specificOptions.host").getValue();
+            const token = conf_editor.getEditor("root.specificOptions.token").getValue();
+            const entityIds = conf_editor.getEditor("root.specificOptions.entityIds").getValue();
+            if (host !== "" && token !== "" && entityIds) {
               canIdentify = true;
               canSave = true;
             }
@@ -1379,6 +1402,16 @@ $(document).ready(function () {
             getProperties_device(ledType, host, params);
             break;
 
+          case "homeassistant":
+            var token = conf_editor.getEditor("root.specificOptions.token").getValue();
+            if (token === "") {
+              return;
+            }
+
+            params = { host: host, token: token, filter: "states" };
+            getProperties_device(ledType, host, params);
+            break;
+
           case "nanoleaf":
             $('#btn_wiz_holder').show();
 
@@ -1441,6 +1474,9 @@ $(document).ready(function () {
           case "sk9822":
           case "ws2812spi":
           case "piblaster":
+          case "apa102_ftdi":
+          case "sk6812_ftdi":
+          case "ws2812_ftdi":
           default:
         }
 
@@ -1541,6 +1577,14 @@ $(document).ready(function () {
 
         var host = "";
         switch (ledType) {
+          case "homeassistant":
+            host = conf_editor.getEditor("root.specificOptions.host").getValue();
+            if (host === "") {
+              return
+            }
+            params = { host: host, token: token, filter: "states" };
+            break;
+
           case "nanoleaf":
             host = conf_editor.getEditor("root.specificOptions.host").getValue();
             if (host === "") {
@@ -1643,6 +1687,16 @@ $(document).ready(function () {
         default:
       }
     });
+
+    conf_editor.watch('root.specificOptions.entityIds', () => {
+      var entityIds = conf_editor.getEditor("root.specificOptions.entityIds").getValue();
+      if (entityIds.length > 0) {
+        $('#btn_test_controller').prop('disabled', false);
+      } else {
+        $('#btn_test_controller').prop('disabled', true);
+      }
+    });
+
   });
 
   //philipshueentertainment backward fix
@@ -1657,9 +1711,10 @@ $(document).ready(function () {
   optArr[3] = [];
   optArr[4] = [];
   optArr[5] = [];
+  optArr[6] = [];
 
   for (var idx = 0; idx < ledDevices.length; idx++) {
-    if ($.inArray(ledDevices[idx], devRPiSPI) != -1)
+    if ($.inArray(ledDevices[idx], devSPI) != -1)
       optArr[0].push(ledDevices[idx]);
     else if ($.inArray(ledDevices[idx], devRPiPWM) != -1)
       optArr[1].push(ledDevices[idx]);
@@ -1671,8 +1726,12 @@ $(document).ready(function () {
       optArr[4].push(ledDevices[idx]);
     else if ($.inArray(ledDevices[idx], devHID) != -1)
       optArr[4].push(ledDevices[idx]);
+    else if (ledDevices[idx].endsWith("_ftdi")) {
+      var title = ledDevices[idx].replace('_ftdi', '');
+      optArr[5].push(ledDevices[idx] + ":" + title);
+    }
     else
-      optArr[5].push(ledDevices[idx]);
+      optArr[6].push(ledDevices[idx]);
   }
 
   $("#leddevices").append(createSel(optArr[0], $.i18n('conf_leds_optgroup_RPiSPI')));
@@ -1680,9 +1739,10 @@ $(document).ready(function () {
   $("#leddevices").append(createSel(optArr[2], $.i18n('conf_leds_optgroup_RPiGPIO')));
   $("#leddevices").append(createSel(optArr[3], $.i18n('conf_leds_optgroup_network')));
   $("#leddevices").append(createSel(optArr[4], $.i18n('conf_leds_optgroup_usb')));
+  $("#leddevices").append(createSel(optArr[5], $.i18n('conf_leds_optgroup_ftdi'), true));
 
   if (storedAccess === 'expert' || window.serverConfig.device.type === "file") {
-    $("#leddevices").append(createSel(optArr[5], $.i18n('conf_leds_optgroup_other')));
+    $("#leddevices").append(createSel(optArr[6], $.i18n('conf_leds_optgroup_other')));
   }
 
   $("#leddevices").val(window.serverConfig.device.type);
@@ -1725,6 +1785,13 @@ $(document).ready(function () {
       case "wled":
         var host = conf_editor.getEditor("root.specificOptions.host").getValue();
         params = { host: host };
+        break;
+
+      case "homeassistant":
+        var host = conf_editor.getEditor("root.specificOptions.host").getValue();
+        var token = conf_editor.getEditor("root.specificOptions.token").getValue();
+        const entityIds = conf_editor.getEditor("root.specificOptions.entityIds").getValue();
+        params = { host: host, token: token, entity_id: entityIds };
         break;
 
       case "nanoleaf":
@@ -1861,6 +1928,7 @@ function saveLedConfig(genDefLayout = false) {
       }
       break;
 
+    case "homeassistant":
     case "nanoleaf":
     case "wled":
     case "yeelight":
@@ -1886,6 +1954,9 @@ function saveLedConfig(genDefLayout = false) {
     case "sk9822":
     case "ws2812spi":
     case "piblaster":
+    case "apa102_ftdi":
+    case "sk6812_ftdi":
+    case "ws2812_ftdi":
     default:
       if (genDefLayout === true) {
         ledConfig = {
@@ -1938,8 +2009,10 @@ var updateOutputSelectList = function (ledType, discoveryInfo) {
     ledTypeGroup = "devNET";
   } else if ($.inArray(ledType, devSerial) != -1) {
     ledTypeGroup = "devSerial";
-  } else if ($.inArray(ledType, devRPiSPI) != -1) {
-    ledTypeGroup = "devRPiSPI";
+  } else if ($.inArray(ledType, devSPI) != -1) {
+    ledTypeGroup = "devSPI";
+  } else if ($.inArray(ledType, devFTDI) != -1) {
+    ledTypeGroup = "devFTDI";
   } else if ($.inArray(ledType, devRPiGPIO) != -1) {
     ledTypeGroup = "devRPiGPIO";
   } else if ($.inArray(ledType, devRPiPWM) != -1) {
@@ -2062,7 +2135,63 @@ var updateOutputSelectList = function (ledType, discoveryInfo) {
         }
       }
       break;
-    case "devRPiSPI":
+
+    case "devFTDI":
+      key = "output";
+
+      if (discoveryInfo.devices.length == 0) {
+        enumVals.push("NONE");
+        enumTitleVals.push($.i18n('edt_dev_spec_devices_discovered_none'));
+        $('#btn_submit_controller').prop('disabled', true);
+        showAllDeviceInputOptions(key, false);
+      }
+      else {
+        switch (ledType) {
+          case "ws2812_ftdi":
+          case "sk6812_ftdi":
+          case "apa102_ftdi":
+            for (const device of discoveryInfo.devices) {
+              enumVals.push(device.ftdiOpenString);
+
+              var title = "FTDI";
+              if (device.manufacturer) {
+                title = device.manufacturer;
+              }
+
+              if (device.serialNumber) {
+                title += " - " + device.serialNumber;
+              }
+              title += " (" + device.vendorIdentifier + "|" + device.productIdentifier + ")";
+
+              if (device.description) {
+                title += " " + device.description;
+              }
+
+              enumTitleVals.push(title);
+            }
+
+            // Select configured device
+            var configuredDeviceType = window.serverConfig.device.type;
+            var configuredOutput = window.serverConfig.device.output;
+            if (ledType === configuredDeviceType) {
+              if ($.inArray(configuredOutput, enumVals) != -1) {
+                enumDefaultVal = configuredOutput;
+              } else {
+                enumVals.push(window.serverConfig.device.output);
+                enumDefaultVal = configuredOutput;
+              }
+            }
+            else {
+              addSelect = true;
+            }
+
+            break;
+          default:
+        }
+      }
+      break;
+
+    case "devSPI":
     case "devRPiGPIO":
       key = "output";
 
@@ -2128,7 +2257,6 @@ var updateOutputSelectList = function (ledType, discoveryInfo) {
 async function discover_device(ledType, params) {
 
   const result = await requestLedDeviceDiscovery(ledType, params);
-
   var discoveryResult = {};
   if (result) {
     if (result.error) {
@@ -2232,6 +2360,12 @@ function updateElements(ledType, key) {
           }
           updateJsonEditorRange(conf_editor, "root.generalOptions", "hardwareLedCount", 1, maxLedCount, hardwareLedCount);
         }
+        break;
+
+      case "homeassistant":
+        updateElementsHomeAssistant(ledType, key);
+        hardwareLedCount = 1;
+        conf_editor.getEditor("root.generalOptions.hardwareLedCount").setValue(hardwareLedCount);
         break;
 
       case "atmo":
@@ -2361,6 +2495,63 @@ function validateWledLedCount(hardwareLedCount) {
   }
 }
 
+function updateElementsHomeAssistant(ledType, key) {
+
+  // Get configured device's details
+  var configuredDeviceType = window.serverConfig.device.type;
+  var configuredHost = window.serverConfig.device.host;
+  var host = conf_editor.getEditor("root.specificOptions.host").getValue();
+
+  // New light selection list values
+  var enumVals = [];
+  var enumTitleVals = [];
+  var enumDefaultVal = [];
+
+  if (devicesProperties[ledType] && devicesProperties[ledType][key]) {
+    var ledDeviceProperties = devicesProperties[ledType][key];
+
+    if (!jQuery.isEmptyObject(ledDeviceProperties)) {
+      if (ledDeviceProperties && ledDeviceProperties.lightEntities) {
+
+
+        for (const light of ledDeviceProperties.lightEntities) {
+          enumVals.push(light.entity_id);
+          enumTitleVals.push(light.attributes.friendly_name);
+        }
+
+      }
+    }
+  }
+
+  // Select configured device
+  if (configuredDeviceType == ledType && configuredHost == host) {
+    let configuredEntityIds = window.serverConfig.device.entityIds;
+    for (const light of configuredEntityIds) {
+      if ($.inArray(enumVals, light) != -1) {
+        enumVals.push(light);
+      }
+      enumDefaultVal.push(light);
+    }
+  }
+
+  if (enumVals.length < 1) {
+    enumVals.push("NONE");
+    enumTitleVals.push($.i18n('edt_dev_spec_lights_discovered_none'));
+  }
+  else {
+    $('#btn_wiz_holder').show();
+  }
+
+
+  let addSchemaElements = {
+    "uniqueItems": true,
+    "minItems": 1,
+    "required": true
+  };
+
+  updateJsonEditorMultiSelection(conf_editor, 'root.specificOptions', 'entityIds', addSchemaElements, enumVals, enumTitleVals, enumDefaultVal);
+}
+
 function updateElementsWled(ledType, key) {
 
   // Get configured device's details
@@ -2456,6 +2647,7 @@ function updateElementsWled(ledType, key) {
   }
   showInputOptionForItem(conf_editor, "root.specificOptions.segments", "switchOffOtherSegments", showAdditionalOptions);
 }
+
 function sortByPanelCoordinates(arr, topToBottom, leftToRight) {
   arr.sort((a, b) => {
     //Nanoleaf corodinates start at bottom left, therefore reverse topToBottom
@@ -2514,7 +2706,7 @@ function nanoleafGeneratelayout(panelLayout, panelOrderTopDown, panelOrderLeftRi
     29: { name: "4DLightstrip", led: true, sideLengthX: 50, sideLengthY: 50 },
     30: { name: "Skylight Panel", led: true, sideLengthX: 180, sideLengthY: 180 },
     31: { name: "SkylightControllerPrimary", led: true, sideLengthX: 180, sideLengthY: 180 },
-    32: { name: "SkylightControllerPassive", led: true, sideLengthX: 180, sideLengthY: 180 },            
+    32: { name: "SkylightControllerPassive", led: true, sideLengthX: 180, sideLengthY: 180 },
     999: { name: "Unknown", led: true, sideLengthX: 100, sideLengthY: 100 }
   };
 

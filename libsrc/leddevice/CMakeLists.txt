@@ -19,6 +19,7 @@ include_directories(
 	dev_spi
 	dev_rpi_pwm
 	dev_tinker
+	dev_ftdi
 )
 
 file (GLOB Leddevice_SOURCES
@@ -63,7 +64,11 @@ if(ENABLE_DEV_WS281XPWM)
 	file (GLOB Leddevice_PWM_SOURCES "${CURRENT_SOURCE_DIR}/dev_rpi_pwm/*.h" "${CURRENT_SOURCE_DIR}/dev_rpi_pwm/*.cpp")
 endif()
 
-set(LedDevice_RESOURCES ${CURRENT_SOURCE_DIR}/LedDeviceSchemas.qrc)
+if (ENABLE_DEV_FTDI)
+	FILE ( GLOB Leddevice_FTDI_SOURCES "${CURRENT_SOURCE_DIR}/dev_ftdi/*.h" "${CURRENT_SOURCE_DIR}/dev_ftdi/*.cpp")
+endif()
+
+set(LedDevice_RESOURCES ${CURRENT_SOURCE_DIR}/LedDeviceSchemas.qrc )
 
 set(Leddevice_SOURCES
 	${Leddevice_SOURCES}
@@ -74,6 +79,7 @@ set(Leddevice_SOURCES
 	${Leddevice_SPI_SOURCES}
 	${Leddevice_TINKER_SOURCES}
 	${Leddevice_USB_HID_SOURCES}
+	${Leddevice_FTDI_SOURCES}
 )
 
 # auto generate header file that include all available leddevice headers
@@ -163,5 +169,12 @@ endif()
 if(ENABLE_MDNS)
 
  	target_link_libraries(leddevice mdns)
+endif()
+
+if( ENABLE_DEV_FTDI )
+	find_package(PkgConfig REQUIRED)
+	pkg_check_modules(LIB_FTDI REQUIRED IMPORTED_TARGET libftdi1 )
+	target_include_directories(leddevice PRIVATE PkgConfig::LIB_FTDI)
+	target_link_libraries(leddevice PkgConfig::LIB_FTDI)
 endif()
 

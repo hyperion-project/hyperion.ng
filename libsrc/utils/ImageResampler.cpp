@@ -133,6 +133,22 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 			break;
 		}
 
+		case PixelFormat::RGB24:
+		{
+			for (int yDest = yDestStart, ySource = cropTop + (_verticalDecimation >> 1); yDest <= yDestEnd; ySource += _verticalDecimation, ++yDest)
+			{
+				for (int xDest = xDestStart, xSource = cropLeft + (_horizontalDecimation >> 1); xDest <= xDestEnd; xSource += _horizontalDecimation, ++xDest)
+				{
+					ColorRgb & rgb = outputImage(abs(xDest), abs(yDest));
+					int index = lineLength * ySource + (xSource << 1) + xSource;
+					rgb.red   = data[index  ];
+					rgb.green = data[index+1];
+					rgb.blue  = data[index+2];
+				}
+			}
+			break;
+		}
+
 		case PixelFormat::BGR24:
 		{
 			for (int yDest = yDestStart, ySource = cropTop + (_verticalDecimation >> 1); yDest <= yDestEnd; ySource += _verticalDecimation, ++yDest)
