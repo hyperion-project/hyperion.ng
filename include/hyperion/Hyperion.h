@@ -333,10 +333,9 @@ public slots:
 	///
 	/// @brief Save a complete json config
 	/// @param config  The entire config object
-	/// @param correct If true will correct json against schema before save
 	/// @return        True on success else false
 	///
-	bool saveSettings(const QJsonObject& config, bool correct = false);
+	QPair<bool, QStringList> saveSettings(const QJsonObject& config);
 
 	/// ############
 	/// COMPONENTREGISTER

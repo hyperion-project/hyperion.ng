@@ -77,6 +77,8 @@ public:
 	///
 	bool recordExists(const VectorPair& conditions) const;
 
+	bool recordsNotExisting(const QVariantList& testValues,const QString& column, QStringList& nonExistingRecs, const QString& condition ) const;
+
 	///
 	/// @brief Create a new record in table when the conditions find no existing entry. Add additional key:value pairs in columns
 	///        DO NOT repeat column keys between 'conditions' and 'columns' as they will be merged on creation

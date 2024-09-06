@@ -22,6 +22,7 @@
 #include <utils/hyperion.h>
 #include <utils/GlobalSignals.h>
 #include <utils/Logger.h>
+#include <utils/JsonUtils.h>
 
 // LedDevice includes
 #include <leddevice/LedDeviceWrapper.h>
@@ -325,24 +326,12 @@ QJsonObject Hyperion::getQJsonConfig() const
 {
 	const QJsonObject instanceConfig = _settingsManager->getSettings();
 	const QJsonObject globalConfig = _settingsManager->getSettings({},QStringList());
-
-	QJsonObject mergedConfig {instanceConfig};
-	for (auto it = globalConfig.begin(); it != globalConfig.end(); ++it) {
-		if (mergedConfig.contains(it.key()))
-		{
-			mergedConfig[it.key()] = it.value();
-		}
-		else
-		{
-			mergedConfig[it.key()] = it.value();
-		}
-	}
-	return mergedConfig;
+	return JsonUtils::mergeJsonObjects(instanceConfig, globalConfig);
 }
 
-bool Hyperion::saveSettings(const QJsonObject& config, bool correct)
+QPair<bool, QStringList> Hyperion::saveSettings(const QJsonObject& config)
 {
-	return _settingsManager->saveSettings(config, correct);
+	return _settingsManager->saveSettings(config);
 }
 
 int Hyperion::getLatchTime() const

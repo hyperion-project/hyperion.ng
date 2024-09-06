@@ -39,7 +39,7 @@
 
 // auth manager
 #include <hyperion/AuthManager.h>
-#include <db/ConfigImportExport.h>
+#include <db/DBConfigManager.h>
 
 #ifdef ENABLE_MDNS
 // mDNS discover
@@ -67,6 +67,9 @@ constexpr int BEARER_TOKEN_TAG_LENGTH = sizeof(BEARER_TOKEN_TAG) - 1;
 
 const int MIN_PASSWORD_LENGTH = 8;
 const int APP_TOKEN_LENGTH = 36;
+
+const char SETTINGS_UI_SCHEMA_FILE[] = ":/schema-settings-ui.json";
+
 
 const bool verbose = false;
 }
@@ -732,20 +735,63 @@ void JsonAPI::handleConfigSetCommand(const QJsonObject &message, const JsonApiCo
 		sendErrorReply("Database Error", {"Hyperion is running in read-only mode","Configuration updates are not possible"}, cmd);
 		return;
 	}
+
 	QJsonObject config = message["config"].toObject();
-
-	QJsonObject schema = QJsonFactory::readSchema(":schema-config-exchange");
-	QPair<bool, QStringList> validationResult = JsonUtils::validate("setConfig", config, schema, _log);
-	if (!validationResult.first)
-	{
-		sendErrorReply("Invalid JSON configuration data provided!", validationResult.second, cmd);
-		return;
-	}
-
-	// TODO: Implement new setconfig schema
 	if (config.contains("global") || config.contains("instances"))
 	{
-		sendErrorReply("New set config schema is not yet supported!", validationResult.second, cmd);
+		QStringList errorDetails;
+
+		QMap<quint8, QJsonObject> instancesNewConfigs;
+
+		const QJsonArray instances = config["instances"].toArray();
+		if (!instances.isEmpty())
+		{
+			QList<quint8> configuredInstanceIds = _instanceManager->getInstanceIds();
+			for (const auto &instance : instances)
+			{
+				QJsonObject instanceObject = instance.toObject();
+				const QJsonValue idx = instanceObject["id"];
+				if (idx.isDouble())
+				{
+					quint8 instanceId = static_cast<quint8>(idx.toInt());
+					if (configuredInstanceIds.contains(instanceId))
+					{
+						instancesNewConfigs.insert(instanceId,instanceObject.value("settings").toObject());
+					}
+					else
+					{
+						errorDetails.append(QString("Given instance id '%1' does not exist. Configuration item will be ignored").arg(instanceId));
+					}
+				}
+			}
+		}
+
+		const QJsonObject globalSettings = config["global"].toObject().value("settings").toObject();
+		if (!globalSettings.isEmpty())
+		{
+			const QJsonObject instanceZeroConfig = instancesNewConfigs.value(0);
+			instancesNewConfigs.insert(0, JsonUtils::mergeJsonObjects(instanceZeroConfig, globalSettings));
+		}
+
+		QMapIterator<quint8, QJsonObject> i (instancesNewConfigs);
+		while (i.hasNext()) {
+			i.next();
+
+			quint8 idx = i.key();
+			Hyperion* instance = HyperionIManager::getInstance()->getHyperionInstance(idx);
+
+			QPair<bool, QStringList> isSaved = instance->saveSettings(i.value());
+			errorDetails.append(isSaved.second);
+		}
+
+		if (!errorDetails.isEmpty())
+		{
+			sendErrorReply("Update configuration failed", errorDetails, cmd);
+			return;
+		}
+
+		sendSuccessReply(cmd);
+
 		return;
 	}
 
@@ -783,7 +829,7 @@ void JsonAPI::handleConfigGetCommand(const QJsonObject &message, const JsonApiCo
 		if (!globalConfig.isEmpty())
 		{
 			const QJsonArray globalTypes = globalConfig["types"].toArray();
-			for (const auto type : globalTypes) {
+			for (const auto &type : globalTypes) {
 				if (type.isString()) {
 					globalFilterTypes.append(type.toString());
 				}
@@ -798,7 +844,7 @@ void JsonAPI::handleConfigGetCommand(const QJsonObject &message, const JsonApiCo
 		{
 			QList<quint8> configuredInstanceIds = _instanceManager->getInstanceIds();
 			const QJsonArray instanceIds = instances["ids"].toArray();
-			for (const auto idx : instanceIds) {
+			for (const auto &idx : instanceIds) {
 				if (idx.isDouble()) {
 					quint8 instanceId = static_cast<quint8>(idx.toInt());
 					if (configuredInstanceIds.contains(instanceId))
@@ -813,7 +859,7 @@ void JsonAPI::handleConfigGetCommand(const QJsonObject &message, const JsonApiCo
 			}
 
 			const QJsonArray instanceTypes = instances["types"].toArray();
-			for (const auto type : instanceTypes) {
+			for (const auto &type : instanceTypes) {
 				if (type.isString()) {
 					instanceFilterTypes.append(type.toString());
 				}
@@ -843,8 +889,8 @@ void JsonAPI::handleConfigRestoreCommand(const QJsonObject &message, const JsonA
 	QJsonObject config = message["config"].toObject();
 	if (API::isHyperionEnabled())
 	{
-		ConfigImportExport configImport;
-		QPair<bool, QStringList> result = configImport.setConfiguration(config);
+		DBConfigManager configManager;
+		QPair<bool, QStringList> result = configManager.updateConfiguration(config, false);
 		if (result.first)
 		{
 			QString infoMsg {"Restarting after importing configuration successfully."};
@@ -874,7 +920,7 @@ void JsonAPI::handleSchemaGetCommand(const QJsonObject& /*message*/, const JsonA
 	Q_INIT_RESOURCE(resource);
 
 	// read the hyperion json schema from the resource
-	QString schemaFile = ":/hyperion-schema";
+	QString schemaFile = SETTINGS_UI_SCHEMA_FILE;
 
 	try
 	{

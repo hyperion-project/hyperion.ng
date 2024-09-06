@@ -160,6 +160,41 @@ bool DBManager::recordExists(const VectorPair& conditions) const
 	return entry > 0;
 }
 
+bool DBManager::recordsNotExisting(const QVariantList& testValues,const QString& column, QStringList& nonExistingRecs, const QString& condition ) const
+{
+	QSqlDatabase idb = getDB();
+
+	QSqlQuery query(idb);
+	query.setForwardOnly(true);
+
+	// prep conditions
+	QString prepCond;
+	if(!condition.isEmpty())
+	{
+		prepCond = QString("WHERE %1").arg(condition);
+	}
+
+	QVector<QString> valueItem(testValues.size(), "(?)");
+	QString values = QStringList::fromVector(valueItem).join(",");
+	query.prepare(
+				QString("SELECT v.[column1] [%1] FROM ( VALUES %2 ) [v] WHERE %1 NOT IN ( SELECT %1 from settings %3 )")
+				.arg(column,values,  prepCond)
+				);
+
+	addBindValues(query, testValues);
+
+	if (!executeQuery(query))
+	{
+		return false;
+	}
+
+	while (query.next()) {
+		nonExistingRecs << query.value(0).toString();
+	}
+
+	return true;
+}
+
 bool DBManager::updateRecord(const VectorPair& conditions, const QVariantMap& columns) const
 {
 	if (isReadOnly())
@@ -290,7 +325,6 @@ bool DBManager::getRecords(const QString& condition, const QVariantList& bindVal
 
 	return true;
 }
-
 
 bool DBManager::deleteRecord(const VectorPair& conditions) const
 {

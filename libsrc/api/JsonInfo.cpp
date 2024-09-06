@@ -1,4 +1,4 @@
-#include <db/ConfigImportExport.h>
+#include <db/DBConfigManager.h>
 #include <api/JsonInfo.h>
 #include <api/API.h>
 
@@ -626,6 +626,6 @@ QJsonArray JsonInfo::discoverScreenInputs(const QJsonObject& params) const
 
 QJsonObject JsonInfo::getConfiguration(const QList<quint8>& instancesfilter, const QStringList& instanceFilteredTypes, const QStringList& globalFilterTypes )
 {
-	ConfigImportExport configExport;
-	return configExport.getConfiguration(instancesfilter, instanceFilteredTypes, globalFilterTypes );
+	DBConfigManager configManager;
+	return configManager.getConfiguration(instancesfilter, instanceFilteredTypes, globalFilterTypes );
 }

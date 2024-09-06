@@ -1,7 +1,6 @@
 {
 	"type":"object",
 	"title" : "edt_conf_color_heading_title",
-	"required" : true,
 	"properties":
 	{
 		"imageToLedMappingType" :

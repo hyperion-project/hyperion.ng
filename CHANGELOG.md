@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support to import, export and backup Hyperion's full configuration via the UI, JSON-API and commandline (`--importConfig, --exportConfig`) (#804)
 - Allow to force starting Hyperion in read-only mode (`--readonlyMode`)
 - JSON-API: Support to query for a dedicated set of configuration items for a set of instances
+- JSON-API: Support to save a dedicated set of configuration items for a set of instances
 
 **JSON-API**
 - New subscription support for event updates, i.e. `Suspend, Resume, Idle, idleResume, Restart, Quit`.
@@ -38,7 +39,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed: Kodi Color Calibration, Refactor Wizards (#1674)
 - Fixed: Token Dialog not closing
 - Fixed: Philip Hue APIv2 support without Entertainment group defined (#1742)
-- Refoctored Database access layer
+- Refactored: Database access layer
+- Refactored: Hyperion's configuration database is validated before start-up (and migrated, if required)
 
 **JSON-API**
 - Refactored JSON-API to ensure consistent authorization behaviour across sessions and single requests with token authorization.

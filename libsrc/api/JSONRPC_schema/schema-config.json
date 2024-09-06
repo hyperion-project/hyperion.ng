@@ -43,7 +43,7 @@
 		},
 		"config": {
 			"required": false,
-			"$ref": "schema-config-exchange"
+			"$ref": "schema-settings-full-relaxed.json"
 		}
 	},
 	"additionalProperties": false

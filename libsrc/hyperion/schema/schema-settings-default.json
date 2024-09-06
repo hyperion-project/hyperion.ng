@@ -1,0 +1,17 @@
+{
+   "type":"object",
+   "required":true,
+   "properties":{
+      "global":{
+         "type":"object",
+         "required":true,
+         "$ref":"schema-settings-global.json"
+      },
+      "instance":{
+         "type":"object",
+         "required":true,
+         "$ref":"schema-settings-instance.json"
+      }
+   },
+   "additionalProperties":false
+}

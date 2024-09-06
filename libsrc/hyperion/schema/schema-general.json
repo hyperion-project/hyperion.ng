@@ -1,7 +1,6 @@
 {
 	"type" : "object",
 	"title" : "edt_conf_gen_heading_title",
-	"required" : true,
 	"properties" :
 	{
 		"name" :
@@ -44,15 +43,6 @@
 			},
 			"access" : "expert",
 			"propertyOrder" : 4
-		},
-		"previousVersion" :
-		{
-			"type" : "string",
-			"options" : {
-				"hidden":true
-			},
-			"access" : "expert",
-			"propertyOrder" : 5
 		}
 	},
 	"additionalProperties" : false

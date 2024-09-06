@@ -103,7 +103,7 @@ QString EffectFileHandler::saveEffect(const QJsonObject& message)
 
 		if (it != effectsSchemas.end())
 		{
-			if (!JsonUtils::validate("EffectFileHandler", message["args"].toObject(), it->schemaFile, _log).first)
+			if (!JsonUtils::validate("EffectFileHandler", message["args"], it->schemaFile, _log).first)
 			{
 				return "Error during arg validation against schema, please consult the Hyperion Log";
 			}

@@ -1,10 +1,13 @@
+#include <db/DBConfigManager.h>
+
+#include <db/DBMigrationManager.h>
 #include "db/SettingsTable.h"
 #include <db/MetaTable.h>
-#include <db/ConfigImportExport.h>
 
 #include <db/InstanceTable.h>
 #include <hyperion/SettingsManager.h>
 
+#include <qsqlrecord.h>
 #include <utils/JsonUtils.h>
 #include <utils/jsonschema/QJsonFactory.h>
 
@@ -16,13 +19,16 @@
 #include <QDir>
 #include <QDateTime>
 
-ConfigImportExport::ConfigImportExport(QObject* parent)
-	: DBManager(parent)
-{
-	Q_INIT_RESOURCE(DB_schemas);
+namespace {
+const char SETTINGS_FULL_SCHEMA_FILE[] = ":/schema-settings-full.json";
 }
 
-QPair<bool, QStringList> ConfigImportExport::importJson(const QString& configFile)
+DBConfigManager::DBConfigManager(QObject* parent)
+	: DBManager(parent)
+{
+}
+
+QPair<bool, QStringList> DBConfigManager::importJson(const QString& configFile)
 {
 	Info(_log,"Import configuration file '%s'", QSTRING_CSTR(configFile));
 
@@ -31,15 +37,19 @@ QPair<bool, QStringList> ConfigImportExport::importJson(const QString& configFil
 
 	if (!result.first)
 	{
-		QString errorText = QString("Import configuration file '%s' failed!").arg(configFile);
+		QString errorText = QString("Import configuration file '%1' failed!").arg(configFile);
 		result.second.prepend(errorText);
-		Error(_log, "'%s'", QSTRING_CSTR(errorText));
+		Error(_log, "%s", QSTRING_CSTR(errorText));
 		return result;
 	}
-	return setConfiguration(config);
+
+	DBMigrationManager migtrationManger;
+	migtrationManger.migrateSettings(config);
+
+	return updateConfiguration(config, true);
 }
 
-bool ConfigImportExport::exportJson(const QString& path) const
+bool DBConfigManager::exportJson(const QString& path) const
 {
 	bool isExported {false};
 
@@ -78,9 +88,15 @@ bool ConfigImportExport::exportJson(const QString& path) const
 	return isExported;
 }
 
-QPair<bool, QStringList> ConfigImportExport::setConfiguration(const QJsonObject& config)
+QPair<bool, QStringList> DBConfigManager::validateConfiguration()
 {
-	Debug(_log, "Start import JSON configuration");
+		QJsonObject config = getConfiguration();
+		return validateConfiguration(config, false);
+}
+
+QPair<bool, QStringList> DBConfigManager::validateConfiguration(QJsonObject& config, bool doCorrections)
+{
+	Info(_log, "Validate configuration%s", doCorrections ? " and apply corrections, if required" : "");
 
 	QStringList errorList;
 	if (config.isEmpty())
@@ -91,13 +107,76 @@ QPair<bool, QStringList> ConfigImportExport::setConfiguration(const QJsonObject&
 		return qMakePair (false, errorList );
 	}
 
-	// check basic message
-	QJsonObject schema = QJsonFactory::readSchema(":schema-config-exchange");
-	QPair<bool, QStringList> validationResult = JsonUtils::validate("importConfig", config, schema, _log);
+	QJsonObject schema = QJsonFactory::readSchema(SETTINGS_FULL_SCHEMA_FILE);
+
+	bool wasCorrected {false};
+	if (doCorrections)
+	{
+		QJsonValue configValue(config);
+		QPair<bool, QStringList> correctionResult = JsonUtils::correct(__FUNCTION__, configValue, schema, _log);
+
+		wasCorrected = correctionResult.first;
+		if (wasCorrected)
+		{
+			config = configValue.toObject();
+		}
+	}
+	else
+	{
+		QPair<bool, QStringList> validationResult = JsonUtils::validate(__FUNCTION__, config, schema, _log);
+		if (!validationResult.first)
+		{
+			Error(_log, "Configuration has errors!");
+			return qMakePair (false, validationResult.second );
+		}
+	}
+
+	Info(_log, "Configuration is valid%s", wasCorrected ? ", but had to be corrected" : "");
+	return qMakePair (true, errorList );
+}
+
+QPair<bool, QStringList> DBConfigManager::updateConfiguration()
+{
+		QJsonObject config = getConfiguration();
+		return updateConfiguration(config, true);
+}
+
+
+QPair<bool, QStringList> DBConfigManager::addMissingDefaults()
+{
+	Debug(_log, "Add default settings for missing configuration items");
+
+	QStringList errorList;
+
+	SettingsTable globalSettingsTable;
+	QPair<bool, QStringList> result = globalSettingsTable.addMissingDefaults();
+	errorList.append(result.second);
+
+	InstanceTable instanceTable;
+	const QList<quint8> instances = instanceTable.getAllInstanceIDs();
+	for (const auto &instanceIdx : instances)
+	{
+		SettingsTable instanceSettingsTable(instanceIdx);
+		result = instanceSettingsTable.addMissingDefaults();
+		errorList.append(result.second);
+	}
+
+	if(errorList.isEmpty())
+	{
+		Debug(_log, "Successfully defaulted settings for missing configuration items");
+	}
+
+	return qMakePair (errorList.isEmpty(), errorList );
+}
+
+QPair<bool, QStringList> DBConfigManager::updateConfiguration(QJsonObject& config, bool doCorrections)
+{
+	Info(_log, "Update configuration database");
+
+	QPair<bool, QStringList> validationResult = validateConfiguration(config, doCorrections);
 	if (!validationResult.first)
 	{
-		Error(_log, "Invalid JSON configuration data provided!");
-		return qMakePair (false, validationResult.second );
+		return validationResult;
 	}
 
 	Info(_log, "Create backup of current configuration");
@@ -106,6 +185,7 @@ QPair<bool, QStringList> ConfigImportExport::setConfiguration(const QJsonObject&
 		Warning(_log, "Backup of current configuration failed");
 	}
 
+	QStringList errorList;
 	QSqlDatabase idb = getDB();
 	if (!idb.transaction())
 	{
@@ -125,7 +205,7 @@ QPair<bool, QStringList> ConfigImportExport::setConfiguration(const QJsonObject&
 	}
 	else
 	{
-		SettingsTable settingsTableGlobal(GLOABL_INSTANCE_ID);
+		SettingsTable settingsTableGlobal;
 		const QJsonObject globalConfig = config.value("global").toObject();
 		const QJsonObject globalSettings = globalConfig.value("settings").toObject();
 
@@ -141,7 +221,7 @@ QPair<bool, QStringList> ConfigImportExport::setConfiguration(const QJsonObject&
 		const QJsonArray instancesConfig = config.value("instances").toArray();
 		quint8 instanceIdx {0};
 
-		for (auto instanceItem : instancesConfig)
+		for (const auto &instanceItem : instancesConfig)
 		{
 			QJsonObject instanceConfig = instanceItem.toObject();
 			QString instanceName = instanceConfig.value("name").toString(QString("Instance %1").arg(instanceIdx));
@@ -203,7 +283,7 @@ QPair<bool, QStringList> ConfigImportExport::setConfiguration(const QJsonObject&
 	return qMakePair (errorList.isEmpty(), errorList );
 }
 
-QJsonObject ConfigImportExport::getConfiguration(const QList<quint8>& instancesFilter, const QStringList& instanceFilteredTypes, const QStringList& globalFilterTypes ) const
+QJsonObject DBConfigManager::getConfiguration(const QList<quint8>& instancesFilter, const QStringList& instanceFilteredTypes, const QStringList& globalFilterTypes ) const
 {
 	QSqlDatabase idb = getDB();
 	if (!idb.transaction())
@@ -213,14 +293,14 @@ QJsonObject ConfigImportExport::getConfiguration(const QList<quint8>& instancesF
 	}
 
 	InstanceTable instanceTable;
-	SettingsManager settingsManager(0, nullptr);
+	SettingsTable settingsTable;
 
 	QJsonObject config;
 
 	QJsonObject globalConfig;
 	MetaTable metaTable;
 	globalConfig.insert("uuid", metaTable.getUUID());
-	globalConfig.insert("settings", settingsManager.getSettings({}, globalFilterTypes));
+	globalConfig.insert("settings", settingsTable.getSettings(globalFilterTypes));
 	config.insert("global", globalConfig);
 
 	QList<quint8> instances {instancesFilter};
@@ -240,7 +320,7 @@ QJsonObject ConfigImportExport::getConfiguration(const QList<quint8>& instancesF
 		instanceConfig.insert("id",instanceIdx);
 		instanceConfig.insert("name", instanceTable.getNamebyIndex(instanceIdx));
 		instanceConfig.insert("enabled", instanceTable.isEnabled(instanceIdx));
-		instanceConfig.insert("settings", settingsManager.getSettings(static_cast<quint8>(instanceIdx), instanceFilteredTypes));
+		instanceConfig.insert("settings", settingsTable.getSettings(static_cast<quint8>(instanceIdx), instanceFilteredTypes));
 		configInstanceList.append(instanceConfig);
 
 		instanceIdList.append(instanceIdx);
@@ -256,3 +336,23 @@ QJsonObject ConfigImportExport::getConfiguration(const QList<quint8>& instancesF
 
 	return config;
 }
+
+QPair<bool, QStringList> DBConfigManager::migrateConfiguration()
+{
+	Info(_log, "Check, if configuration database is required to be migrated");
+
+	DBMigrationManager migtrationManger;
+	if (migtrationManger.isMigrationRequired())
+	{
+		QJsonObject config = getConfiguration();
+
+		if (migtrationManger.migrateSettings(config))
+		{
+			return updateConfiguration(config, true);
+		}
+	}
+
+	Info(_log, "Database migration is not required");
+	return qMakePair (true, QStringList{} );
+}
+
