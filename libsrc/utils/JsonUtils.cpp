@@ -95,7 +95,7 @@ QPair<bool, QStringList> parse(const QString& path, const QString& data, QJsonDo
 		{
 			errorColumn = error.offset - lastNewlineIndex ;
 		}
-		errorLine += data.leftRef(error.offset).count('\n');
+		errorLine += data.left(error.offset).count('\n');
 
 		const QString errorMessage = QString("JSON parse error @(%1): %2, line: %3, column: %4, Data: '%5'")
 									 .arg(path)

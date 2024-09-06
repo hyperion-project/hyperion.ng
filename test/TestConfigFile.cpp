@@ -36,7 +36,7 @@ bool loadConfig(const QString & configFile, bool correct, bool ignore)
 	// read and validate the configuration file from the command line
 	////////////////////////////////////////////////////////////
 
-	QJsonObject jsonConfig = QJsonFactory::readConfig(configFile);
+	QJsonValue jsonConfig = QJsonFactory::readConfig(configFile);
 
 	if (!correct)
 	{
@@ -56,7 +56,8 @@ bool loadConfig(const QString & configFile, bool correct, bool ignore)
 	else
 	{
 		jsonConfig = schemaChecker.getAutoCorrectedConfig(jsonConfig, ignore); // The second parameter is to ignore the "required" keyword in hyperion schema
-		QJsonFactory::writeJson(configFile, jsonConfig);
+		QJsonObject jsonObject = jsonConfig.toObject();
+		QJsonFactory::writeJson(configFile, jsonObject);
 	}
 
 	return true;
