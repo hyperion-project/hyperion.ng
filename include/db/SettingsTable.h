@@ -1,6 +1,12 @@
 #ifndef SETTINGSTABLE_H
 #define SETTINGSTABLE_H
 
+#include <limits>
+
+#ifdef WIN32
+	#undef max
+#endif
+
 #include <db/DBManager.h>
 #include <utils/version.hpp>
 
