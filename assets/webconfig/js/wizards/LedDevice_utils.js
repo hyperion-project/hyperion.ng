@@ -52,6 +52,17 @@ const ledDeviceWizardUtils = (() => {
       const i = positionMap[pos] || positionMap["lightPosEntire"];
       i.name = name;
       return i;
+    },
+    getLayoutPositions: function () {
+      return Object.keys(positionMap);
+    },
+    getLayoutPositionsTitles: function () {
+
+      let layoutPositionTitles = [];
+      for (const layoutPosition of Object.keys(positionMap)) {
+        layoutPositionTitles.push($.i18n('conf_leds_layout_cl_' + layoutPosition));
+      }
+      return layoutPositionTitles;
     }
   };
 

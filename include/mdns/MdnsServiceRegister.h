@@ -22,6 +22,7 @@ const MdnsServiceMap mDnsServiceMap = {
 
 	//LED Devices
 	{"cololight"    , {"_hap._tcp.local.", "ColoLight.*"}},
+	{"homeassistant", {"_home-assistant._tcp.local.", ".*"}},
 	{"nanoleaf"	    , {"_nanoleafapi._tcp.local.", ".*"}},
 	{"philipshue"   , {"_hue._tcp.local.", ".*"}},
 	{"wled"		    , {"_wled._tcp.local.", ".*"}},
