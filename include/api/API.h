@@ -240,12 +240,6 @@ protected:
 #endif
 
 	///
-	/// @brief Save settings object. Requires ADMIN ACCESS
-	/// @param data  The data object
-	///
-	bool saveSettings(const QJsonObject &data);
-
-	///
 	/// @brief Set the authorizationn state
 	/// @param authorized  True, if authorized
 	///

@@ -43,7 +43,9 @@
 		},
 		"config": {
 			"required": false,
-			"$ref": "schema-settings-full-relaxed.json"
+			"$ref": "schema-settings-full-relaxed.json",
+			"required": false,
+			"$ref": "schema-settings-ui.json"
 		}
 	},
 	"additionalProperties": false

@@ -22,7 +22,7 @@ bool loadConfig(const QString & configFile, bool correct, bool ignore)
 
 	try
 	{
-		schemaJson = QJsonFactory::readSchema(":/hyperion-schema");
+		schemaJson = QJsonFactory::readSchema(":/schema-settings-default.json");
 	}
 	catch(const std::runtime_error& error)
 	{

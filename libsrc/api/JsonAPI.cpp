@@ -70,7 +70,6 @@ const int APP_TOKEN_LENGTH = 36;
 
 const char SETTINGS_UI_SCHEMA_FILE[] = ":/schema-settings-ui.json";
 
-
 const bool verbose = false;
 }
 
@@ -801,13 +800,21 @@ void JsonAPI::handleConfigSetCommand(const QJsonObject &message, const JsonApiCo
 		return;
 	}
 
+	//Backward compatability until UI mesages are updated
 	if (API::isHyperionEnabled())
 	{
-		if ( API::saveSettings(config) ) {
-			sendSuccessReply(cmd);
-		} else {
-			sendErrorReply("Save settings failed", cmd);
+		QStringList errorDetails;
+
+		QPair<bool, QStringList> isSaved = _hyperion->saveSettings(config);
+		errorDetails.append(isSaved.second);
+
+		if (!errorDetails.isEmpty())
+		{
+			sendErrorReply("Save settings failed", errorDetails, cmd);
+			return;
 		}
+
+		sendSuccessReply(cmd);
 	}
 	else
 	{
