@@ -4,7 +4,7 @@
 #include "SSDPDescription.h"
 #include <hyperion/Hyperion.h>
 #include <HyperionConfig.h>
-#include <hyperion/AuthManager.h>
+#include <db/MetaTable.h>
 
 #include <QNetworkInterface>
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
@@ -40,7 +40,8 @@ SSDPHandler::~SSDPHandler()
 
 void SSDPHandler::initServer()
 {
-	_uuid = AuthManager::getInstance()->getID();
+	MetaTable metaTable;
+	_uuid = metaTable.getUUID();
 	SSDPServer::setUuid(_uuid);
 
 	// announce targets
