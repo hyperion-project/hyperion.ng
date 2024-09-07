@@ -153,6 +153,10 @@ QPair<bool, QStringList> DBConfigManager::addMissingDefaults()
 	errorList.append(result.second);
 
 	InstanceTable instanceTable;
+
+	//Ensure that first instance as default one exists
+	instanceTable.createDefaultInstance();
+
 	const QList<quint8> instances = instanceTable.getAllInstanceIDs();
 	for (const auto &instanceIdx : instances)
 	{
