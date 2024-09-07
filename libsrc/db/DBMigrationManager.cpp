@@ -412,6 +412,18 @@ bool DBMigrationManager::upgradeGlobalSettings_2_1_0(semver::version& currentVer
 			Debug(_log, "General settings migrated");
 			migrated = true;
 		}
+
+		if (config.contains("network"))
+		{
+			QJsonObject newNetworkConfig = config["network"].toObject();
+			newNetworkConfig.remove("apiAuth");
+			newNetworkConfig.remove("localAdminAuth");
+			config.insert("network", newNetworkConfig);
+
+			Debug(_log, "Network settings migrated");
+			migrated = true;
+		}
+
 	}
 
 	//Remove wrong instance 255 configuration records, created by the global instance #255
