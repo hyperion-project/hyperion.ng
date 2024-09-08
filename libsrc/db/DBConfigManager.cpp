@@ -191,108 +191,128 @@ QPair<bool, QStringList> DBConfigManager::updateConfiguration(QJsonObject& confi
 
 	QStringList errorList;
 	QSqlDatabase idb = getDB();
-	if (!idb.transaction())
+
+	if (!startTransaction(idb, errorList))
 	{
-		QString errorText = QString("Could not create a database transaction. Error: %1").arg(idb.lastError().text());
-		Error(_log, "'%s'", QSTRING_CSTR(errorText));
-		errorList.append(errorText);
-		return qMakePair (false, errorList );
+		return qMakePair(false, errorList);
 	}
 
-	bool errorOccured {false};
-	if (!deleteTable("instances") || !deleteTable("settings"))
+	// Clear existing tables and import the new configuration.
+	bool errorOccurred = false;
+	if (!deleteTable("instances") && deleteTable("settings"))
 	{
-		QString errorText = "Failed to clear tables before import";
-		Error(_log, "'%s'", QSTRING_CSTR(errorText));
-		errorList.append(errorText);
-		errorOccured = true;
+		errorOccurred = true;
+		logErrorAndAppend("Failed to clear tables before import", errorList);
 	}
 	else
 	{
-		SettingsTable settingsTableGlobal;
-		const QJsonObject globalConfig = config.value("global").toObject();
-		const QJsonObject globalSettings = globalConfig.value("settings").toObject();
-
-		for (QJsonObject::const_iterator it = globalSettings.constBegin(); it != globalSettings.constEnd(); ++it)
-		{
-			if (!settingsTableGlobal.createSettingsRecord(it.key(), JsonUtils::jsonValueToQString(it.value())))
-			{
-				errorOccured = true;
-			}
-		}
-
-		InstanceTable instanceTable;
-		const QJsonArray instancesConfig = config.value("instances").toArray();
-		quint8 instanceIdx {0};
-
-		for (const auto &instanceItem : instancesConfig)
-		{
-			QJsonObject instanceConfig = instanceItem.toObject();
-			QString instanceName = instanceConfig.value("name").toString(QString("Instance %1").arg(instanceIdx));
-			bool isInstanceEnabled = instanceConfig.value("enabled").toBool(true);
-
-			if (instanceIdx == 0)
-			{
-				isInstanceEnabled = true;
-			}
-
-			if (!instanceTable.createInstance(instanceName, instanceIdx) ||
-				!instanceTable.setEnable(instanceIdx, isInstanceEnabled))
-			{
-				errorOccured = true;
-			}
-
-			SettingsTable settingsTableInstance(instanceIdx);
-			const QJsonObject instanceSettings = instanceConfig.value("settings").toObject();
-			for (QJsonObject::const_iterator it = instanceSettings.constBegin(); it != instanceSettings.constEnd(); ++it)
-			{
-				if (!settingsTableInstance.createSettingsRecord(it.key(), JsonUtils::jsonValueToQString(it.value())))
-				{
-					errorOccured = true;
-				}
-			}
-			++instanceIdx;
-		}
-
-		if (errorOccured)
-		{
-			QString errorText = "Errors occured during instances' and/or settings' configuration";
-			Error(_log, "'%s'", QSTRING_CSTR(errorText));
-			errorList.append(errorText);
-		}
+		errorOccurred = !importGlobalSettings(config, errorList) || !importInstances(config, errorList);
 	}
 
-	if (errorOccured)
+	// Rollback if any error occurred during the import process.
+	if (errorOccurred)
 	{
-		if (!idb.rollback())
+		if (!rollbackTransaction(idb, errorList))
 		{
-			QString errorText = QString("Could not create a database transaction. Error: %1").arg(idb.lastError().text());
-			Error(_log, "'%s'", QSTRING_CSTR(errorText));
-			errorList.append(errorText);
+			return qMakePair(false, errorList);
 		}
 	}
 
-	if (!idb.commit())
-	{
-		QString errorText = QString("Could not finalise the database changes. Error: %1").arg(idb.lastError().text());
-		Error(_log, "'%s'", QSTRING_CSTR(errorText));
-		errorList.append(errorText);
-	}
+	commiTransaction(idb, errorList);
 
-	if(errorList.isEmpty())
+	if (errorList.isEmpty())
 	{
 		Info(_log, "Successfully imported new configuration");
 	}
 
-	return qMakePair (errorList.isEmpty(), errorList );
+	return qMakePair(errorList.isEmpty(), errorList);
+}
+
+// Function to import global settings
+bool DBConfigManager::importGlobalSettings(const QJsonObject& config, QStringList& errorList)
+{
+	SettingsTable settingsTableGlobal;
+	const QJsonObject globalConfig = config.value("global").toObject();
+	const QJsonObject globalSettings = globalConfig.value("settings").toObject();
+
+	bool errorOccurred = false;
+	for (QJsonObject::const_iterator it = globalSettings.constBegin(); it != globalSettings.constEnd(); ++it)
+	{
+		if (!settingsTableGlobal.createSettingsRecord(it.key(), JsonUtils::jsonValueToQString(it.value())))
+		{
+			errorOccurred = true;
+			logErrorAndAppend("Failed to import global setting", errorList);
+		}
+	}
+
+	return !errorOccurred;
+}
+
+// Function to import instances
+bool DBConfigManager::importInstances(const QJsonObject& config, QStringList& errorList)
+{
+	InstanceTable instanceTable;
+	const QJsonArray instancesConfig = config.value("instances").toArray();
+
+	bool errorOccurred = false;
+	quint8 instanceIdx = 0;
+	for (const auto& instanceItem : instancesConfig)
+	{
+		if (!importInstance(instanceTable, instanceItem.toObject(), instanceIdx, errorList))
+		{
+			errorOccurred = true;
+		}
+		++instanceIdx;
+	}
+
+	return !errorOccurred;
+}
+
+// Function to import a single instance
+bool DBConfigManager::importInstance(InstanceTable& instanceTable, const QJsonObject& instanceConfig, quint8 instanceIdx, QStringList& errorList)
+{
+	QString instanceName = instanceConfig.value("name").toString(QString("Instance %1").arg(instanceIdx));
+	bool isInstanceEnabled = instanceConfig.value("enabled").toBool(true);
+
+	if (instanceIdx == 0)
+	{
+		isInstanceEnabled = true; // The first instance must be enabled.
+	}
+
+	if (!instanceTable.createInstance(instanceName, instanceIdx) ||
+		!instanceTable.setEnable(instanceIdx, isInstanceEnabled))
+	{
+		logErrorAndAppend("Failed to import instance", errorList);
+		return false;
+	}
+
+	SettingsTable settingsTableInstance(instanceIdx);
+	const QJsonObject instanceSettings = instanceConfig.value("settings").toObject();
+	return importInstanceSettings(settingsTableInstance, instanceSettings, errorList);
+}
+
+// Function to import instance settings
+bool DBConfigManager::importInstanceSettings(SettingsTable& settingsTable, const QJsonObject& instanceSettings, QStringList& errorList)
+{
+	bool errorOccurred = false;
+	for (QJsonObject::const_iterator it = instanceSettings.constBegin(); it != instanceSettings.constEnd(); ++it)
+	{
+		if (!settingsTable.createSettingsRecord(it.key(), JsonUtils::jsonValueToQString(it.value())))
+		{
+			errorOccurred = true;
+			logErrorAndAppend("Failed to import instance setting", errorList);
+		}
+	}
+
+	return !errorOccurred;
 }
 
 QJsonObject DBConfigManager::getConfiguration(const QList<quint8>& instancesFilter, const QStringList& instanceFilteredTypes, const QStringList& globalFilterTypes ) const
 {
 	QSqlDatabase idb = getDB();
-	if (!idb.transaction())
+
+	if (!startTransaction(idb))
 	{
-		Error(_log, "Could not create a database transaction. Error: %s", QSTRING_CSTR(idb.lastError().text()));
 		return {};
 	}
 
@@ -333,9 +353,9 @@ QJsonObject DBConfigManager::getConfiguration(const QList<quint8>& instancesFilt
 	config.insert("instanceIds", instanceIdList);
 	config.insert("instances", configInstanceList);
 
-	if (!idb.commit())
+	if (!commiTransaction(idb))
 	{
-		Error(_log, "Could not finalise a database transaction. Error: %s", QSTRING_CSTR(idb.lastError().text()));
+		return {};
 	}
 
 	return config;

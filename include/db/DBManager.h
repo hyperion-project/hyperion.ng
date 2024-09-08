@@ -151,6 +151,16 @@ public:
 
 	bool executeQuery(QSqlQuery& query) const;
 
+	bool startTransaction(QSqlDatabase& idb) const;
+	bool startTransaction(QSqlDatabase& idb, QStringList& errorList);
+	bool commiTransaction(QSqlDatabase& idb) const;
+	bool commiTransaction(QSqlDatabase& idb, QStringList& errorList);
+	bool rollbackTransaction(QSqlDatabase& idb) const;
+	bool rollbackTransaction(QSqlDatabase& idb, QStringList& errorList);
+
+	// Utility function to log errors and append to error list
+	void logErrorAndAppend(const QString& errorText, QStringList& errorList);
+
 protected:
 		Logger* _log;
 

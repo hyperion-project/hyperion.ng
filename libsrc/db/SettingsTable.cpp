@@ -280,13 +280,11 @@ QPair<bool, QStringList> SettingsTable::addMissingDefaults()
 	}
 
 	QSqlDatabase idb = getDB();
-	if (!idb.transaction())
+	if (!startTransaction(idb, errorList))
 	{
-		QString errorText = QString("Could not create a database transaction. Error: %1").arg(idb.lastError().text());
-		Error(_log, "'%s'", QSTRING_CSTR(errorText));
-		errorList.append(errorText);
-		return qMakePair (false, errorList );
+		return qMakePair(false, errorList);
 	}
+
 
 	bool errorOccured {false};
 
@@ -313,12 +311,7 @@ QPair<bool, QStringList> SettingsTable::addMissingDefaults()
 		}
 	}
 
-	if (!idb.commit())
-	{
-		QString errorText = QString("Could not finalise the database changes. Error: %1").arg(idb.lastError().text());
-		Error(_log, "'%s'", QSTRING_CSTR(errorText));
-		errorList.append(errorText);
-	}
+	commiTransaction(idb, errorList);
 
 	if(errorList.isEmpty())
 	{

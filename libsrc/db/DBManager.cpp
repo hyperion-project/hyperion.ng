@@ -490,3 +490,76 @@ bool DBManager::executeQuery(QSqlQuery& query) const
 
 	return true;
 }
+
+bool DBManager::startTransaction(QSqlDatabase& idb) const
+{
+	if (!idb.transaction())
+	{
+		QString errorText = QString("Could not create a database transaction. Error: %1").arg(idb.lastError().text());
+		Error(_log, "'%s'", QSTRING_CSTR(errorText));
+		return false;
+	}
+	return true;
+}
+
+bool  DBManager::startTransaction(QSqlDatabase& idb, QStringList& errorList)
+{
+	if (!idb.transaction())
+	{
+		QString errorText = QString("Could not create a database transaction. Error: %1").arg(idb.lastError().text());
+		logErrorAndAppend(errorText, errorList);
+		return false;
+	}
+	return true;
+}
+
+bool DBManager::commiTransaction(QSqlDatabase& idb) const
+{
+	if (!idb.commit())
+	{
+		QString errorText = QString("Could not finalize the database changes. Error: %1").arg(idb.lastError().text());
+		Error(_log, "'%s'", QSTRING_CSTR(errorText));
+		return false;
+	}
+	return true;
+}
+
+bool DBManager::commiTransaction(QSqlDatabase& idb, QStringList& errorList)
+{
+	if (!idb.commit())
+	{
+		QString errorText = QString("Could not finalize the database changes. Error: %1").arg(idb.lastError().text());
+		logErrorAndAppend(errorText, errorList);
+		return false;
+	}
+	return true;
+}
+
+bool DBManager::rollbackTransaction(QSqlDatabase& idb) const
+{
+	if (!idb.rollback())
+	{
+		QString errorText = QString("Could not rollback the database transaction. Error: %1").arg(idb.lastError().text());
+		Error(_log, "'%s'", QSTRING_CSTR(errorText));
+		return false;
+	}
+	return true;
+}
+
+bool DBManager::rollbackTransaction(QSqlDatabase& idb, QStringList& errorList)
+{
+	if (!idb.rollback())
+	{
+		QString errorText = QString("Could not rollback the database transaction. Error: %1").arg(idb.lastError().text());
+		logErrorAndAppend(errorText, errorList);
+		return false;
+	}
+	return true;
+}
+
+// Function to log error and append it to the error list
+void DBManager::logErrorAndAppend(const QString& errorText, QStringList& errorList)
+{
+	Error(_log, "'%s'", QSTRING_CSTR(errorText));
+	errorList.append(errorText);
+}

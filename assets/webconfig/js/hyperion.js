@@ -530,9 +530,7 @@ async function requestServiceDiscovery(type, params) {
 async function requestConfig(globalTypes, instances, instanceTypes) {
   let globalFilter   = { "global": { "types": globalTypes } };
   let instanceFilter = { "instances": { "ids": instances, "types": instanceTypes } };
-
-  //todo create filter
-  let filter;
+  let filter = { "configFilter" : globalFilter, instanceFilter };
 
   return sendAsyncToHyperion("config", "getconfig", filter);
 }
