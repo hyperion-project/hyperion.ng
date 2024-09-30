@@ -1,3 +1,4 @@
+
 #include <cassert>
 #include <stdlib.h>
 #include <stdio.h>
@@ -35,6 +36,7 @@
 #include <commandline/Parser.h>
 #include <commandline/IntOption.h>
 #include <utils/DefaultSignalHandler.h>
+#include <db/DBConfigManager.h>
 #include <../../include/db/AuthTable.h>
 
 #include "detectProcess.h"
@@ -108,11 +110,11 @@ int main(int argc, char** argv)
 
 	// check if we are running already an instance
 	// TODO Allow one session per user
-	#ifdef _WIN32
-		const char* processName = "hyperiond.exe";
-	#else
-		const char* processName = "hyperiond";
-	#endif
+#ifdef _WIN32
+	const char* processName = "hyperiond.exe";
+#else
+	const char* processName = "hyperiond";
+#endif
 
 	// Initialising QCoreApplication
 	QScopedPointer<QCoreApplication> app(createApplication(argc, argv));
@@ -131,15 +133,18 @@ int main(int argc, char** argv)
 	BooleanOption & versionOption       = parser.add<BooleanOption> (0x0, "version", "Show version information");
 	Option        & userDataOption      = parser.add<Option>        ('u', "userdata", "Overwrite user data path, defaults to home directory of current user (%1)", QDir::homePath() + "/.hyperion");
 	BooleanOption & resetPassword       = parser.add<BooleanOption> (0x0, "resetPassword", "Lost your password? Reset it with this option back to 'hyperion'");
+	BooleanOption & readOnlyModeOption  = parser.add<BooleanOption> (0x0, "readonlyMode", "Start in read-only mode. No updates will be written to the database");
 	BooleanOption & deleteDB            = parser.add<BooleanOption> (0x0, "deleteDatabase", "Start all over? This Option will delete the database");
+	Option        & importConfig        = parser.add<Option>        (0x0, "importConfig", "Replace the current configuration database by a new configuration");
+	Option        & exportConfigPath    = parser.add<Option>        (0x0, "exportConfig", "Export the current configuration database, defaults to home directory of current user (%1)", QDir::homePath() + "/.hyperion//archive");
 	BooleanOption & silentOption        = parser.add<BooleanOption> ('s', "silent", "Do not print any outputs");
 	BooleanOption & verboseOption       = parser.add<BooleanOption> ('v', "verbose", "Increase verbosity");
 	BooleanOption & debugOption         = parser.add<BooleanOption> ('d', "debug", "Show debug messages");
 #ifdef WIN32
 	BooleanOption & consoleOption       = parser.add<BooleanOption> ('c', "console", "Open a console window to view log output");
 #endif
-										  parser.add<BooleanOption> (0x0, "desktop", "Show systray on desktop");
-										  parser.add<BooleanOption> (0x0, "service", "Force hyperion to start as console service");
+	parser.add<BooleanOption> (0x0, "desktop", "Show systray on desktop");
+	parser.add<BooleanOption> (0x0, "service", "Force hyperion to start as console service");
 #if defined(ENABLE_EFFECTENGINE)
 	Option        & exportEfxOption     = parser.add<Option>        (0x0, "export-effects", "Export effects to given path");
 #endif
@@ -159,9 +164,9 @@ int main(int argc, char** argv)
 	if (parser.isSet(versionOption))
 	{
 		std::cout
-			<< "Hyperion Ambilight Deamon" << std::endl
-			<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
-			<< "\tBuild Time: " << __DATE__ << " " << __TIME__ << std::endl;
+				<< "Hyperion Ambilight Deamon" << std::endl
+				<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
+				<< "\tBuild Time: " << __DATE__ << " " << __TIME__ << std::endl;
 
 		return 0;
 	}
@@ -264,16 +269,30 @@ int main(int argc, char** argv)
 	}
 #endif
 
+	Info(log,"Hyperion %s, %s, built: %s:%s", HYPERION_VERSION, HYPERION_BUILD_ID, __DATE__, __TIME__);
+	Debug(log,"QtVersion [%s]", QT_VERSION_STR);
+
 	int rc = 1;
 	bool readonlyMode = false;
 
 	QString userDataPath(userDataOption.value(parser));
-
 	QDir userDataDirectory(userDataPath);
-	QFileInfo dbFile(userDataDirectory.absolutePath() +"/db/hyperion.db");
+
+
+	if (parser.isSet(readOnlyModeOption))
+	{
+		readonlyMode = true;
+		Debug(log,"Force readonlyMode");
+	}
+	DBManager::initializeDatabase(userDataDirectory, readonlyMode);
+
+	Info(log, "Hyperion configuration and user data location: '%s'", QSTRING_CSTR(userDataDirectory.absolutePath()));
+
+	QFileInfo dbFile(DBManager::getFileInfo());
 
 	try
 	{
+		DBConfigManager configManager;
 		if (dbFile.exists())
 		{
 			if (!dbFile.isReadable())
@@ -285,9 +304,30 @@ int main(int argc, char** argv)
 			{
 				readonlyMode = true;
 			}
+
+			if(parser.isSet(exportConfigPath))
+			{
+				QString path = exportConfigPath.value(parser);
+				if (path.isEmpty())
+				{
+					path = userDataDirectory.absolutePath() + "/archive";
+				}
+
+				if (!configManager.exportJson(path))
+				{
+					throw std::runtime_error("Configuration export failed'");
+				}
+
+				exit(0);
+			}
 		}
 		else
 		{
+			if(parser.isSet(exportConfigPath))
+			{
+				throw std::runtime_error("The configuration cannot be exported. The database file '" + dbFile.absoluteFilePath().toStdString() + "' does not exist.'");
+			}
+
 			if (!userDataDirectory.mkpath(dbFile.absolutePath()))
 			{
 				if (!userDataDirectory.isReadable() || !dbFile.isWritable())
@@ -302,11 +342,11 @@ int main(int argc, char** argv)
 		{
 			if ( readonlyMode )
 			{
-				Error(log,"Password reset is not possible. The user data path '%s' is not writeable.", QSTRING_CSTR(userDataDirectory.absolutePath()));
+				Error(log,"Password reset is not possible. Hyperion's database '%s' is not writeable.", QSTRING_CSTR(dbFile.absolutePath()));
 				throw std::runtime_error("Password reset failed");
 			}
 
-			AuthTable* table = new AuthTable(userDataDirectory.absolutePath());
+			AuthTable* table = new AuthTable();
 			if(table->resetHyperionUser()){
 				Info(log,"Password reset successful");
 				delete table;
@@ -323,7 +363,7 @@ int main(int argc, char** argv)
 		{
 			if ( readonlyMode )
 			{
-				Error(log,"Deleting the configuration database is not possible. The user data path '%s' is not writeable.", QSTRING_CSTR(dbFile.absolutePath()));
+				Error(log,"Deleting the configuration database is not possible. Hyperion's database '%s' is not writeable.", QSTRING_CSTR(dbFile.absolutePath()));
 				throw std::runtime_error("Deleting the configuration database failed");
 			}
 
@@ -331,7 +371,7 @@ int main(int argc, char** argv)
 			{
 				if (!QFile::remove(dbFile.absoluteFilePath()))
 				{
-					Info(log,"Failed to delete Database!");
+					Error(log,"Failed to delete Database!");
 					exit(1);
 				}
 				else
@@ -341,26 +381,60 @@ int main(int argc, char** argv)
 			}
 			else
 			{
-				Warning(log,"Configuration database [%s] does not exist!", QSTRING_CSTR(dbFile.absoluteFilePath()));
+				Warning(log,"Configuration database '%s' does not exist!", QSTRING_CSTR(dbFile.absoluteFilePath()));
 			}
 		}
 
-		Info(log,"Starting Hyperion [%sGUI mode] - %s, %s, built: %s:%s", isGuiApp ? "": "non-", HYPERION_VERSION, HYPERION_BUILD_ID, __DATE__, __TIME__);
-		Debug(log,"QtVersion [%s]", QT_VERSION_STR);
+		QString configFile(importConfig.value(parser));
+		if (!configFile.isEmpty())
+		{
+			if ( readonlyMode )
+			{
+				Error(log,"Configuration import is not possible. Hyperion's database '%s' is not writeable.", QSTRING_CSTR(dbFile.absolutePath()));
+				throw std::runtime_error("Configuration import failed");
+			}
 
-		if ( !readonlyMode )
-		{
-			Info(log, "Set user data path to '%s'", QSTRING_CSTR(userDataDirectory.absolutePath()));
+			if (!configManager.importJson(configFile).first)
+			{
+				throw std::runtime_error("Configuration import failed");
+			}
 		}
-		else
+
+		if (!configManager.addMissingDefaults().first)
 		{
-			Warning(log,"The user data path '%s' is not writeable. Hyperion starts in read-only mode. Configuration updates will not be persisted!", QSTRING_CSTR(userDataDirectory.absolutePath()));
+			throw std::runtime_error("Updating configuration database with missing defaults failed");
+		}
+
+		if (!configManager.migrateConfiguration().first)
+		{
+			throw std::runtime_error("Migrating the configuration database failed");
+		}
+
+		if (!configManager.validateConfiguration().first)
+		{
+			if (!configManager.updateConfiguration().first)
+			{
+				throw std::runtime_error("Invalid configuration database. Correcting the configuration database failed");
+			}
+		}
+
+		if (!configFile.isEmpty())
+		{
+			Info(log,"Configuration imported sucessfully. You can start Hyperion now.");
+			exit(0);
+		}
+
+		Info(log,"Starting Hyperion in %sGUI mode, DB is %s", isGuiApp ? "": "non-", readonlyMode ? "read-only" : "read/write");
+
+		if ( readonlyMode )
+		{
+			Warning(log,"The database file '%s' is set not writeable. Hyperion starts in read-only mode. Configuration updates will not be persisted!", QSTRING_CSTR(dbFile.absoluteFilePath()));
 		}
 
 		HyperionDaemon* hyperiond = nullptr;
 		try
 		{
-			hyperiond = new HyperionDaemon(userDataDirectory.absolutePath(), qApp, bool(logLevelCheck), readonlyMode);
+			hyperiond = new HyperionDaemon(userDataDirectory.absolutePath(), qApp, bool(logLevelCheck));
 		}
 		catch (std::exception& e)
 		{

@@ -1,10 +1,17 @@
 #pragma once
 
+#ifdef Unsorted
+#undef Unsorted
+#endif
+
 #include <utils/Logger.h>
 #include <QMap>
 #include <QVariant>
 #include <QPair>
 #include <QVector>
+#include <QFileInfo>
+#include <QDir>
+#include <QThreadStorage>
 
 class QSqlDatabase;
 class QSqlQuery;
@@ -26,13 +33,22 @@ class DBManager : public QObject
 	Q_OBJECT
 
 public:
-	DBManager(QObject* parent = nullptr);
-	~DBManager() override;
+	explicit DBManager(QObject* parent = nullptr);
 
-	/// set root path
-	void setRootPath(const QString& rootPath);
-	/// define the database to work with
-	void setDatabaseName(const QString& dbn) { _dbn = dbn; };
+	static void initializeDatabase(const QDir& dataDirectory, bool isReadOnly);
+
+	static QDir getDataDirectory() { return _dataDirectory;}
+	static QDir getDirectory() { return _databaseDirectory;}
+	static QFileInfo getFileInfo() { return _databaseFile;}
+	static bool isReadOnly() { return _isReadOnly; }
+
+	///
+	/// @brief Sets the database in read-only mode.
+	/// Updates will not written to the tables
+	/// @param[in] readOnly True read-only, false - read/write
+	///
+	static void setReadonly(bool isReadOnly) { _isReadOnly = isReadOnly; }
+
 	/// set a table to work with
 	void setTable(const QString& table);
 
@@ -60,6 +76,8 @@ public:
 	/// @return                True on success else false
 	///
 	bool recordExists(const VectorPair& conditions) const;
+
+	bool recordsNotExisting(const QVariantList& testValues,const QString& column, QStringList& nonExistingRecs, const QString& condition ) const;
 
 	///
 	/// @brief Create a new record in table when the conditions find no existing entry. Add additional key:value pairs in columns
@@ -99,6 +117,18 @@ public:
 	bool getRecords(QVector<QVariantMap>& results, const QStringList& tColumns = QStringList(), const QStringList& tOrder = QStringList()) const;
 
 	///
+	/// @brief Get data of multiple records, you need to specify the columns. This search is without conditions. Good to grab all data from db
+	/// @param[in]  conditions  condition to search for (WHERE)
+	/// @param[out] results     results of query
+	/// @param[in]  tColumns    target columns to search in (optional) if not provided returns all columns
+	/// @param[in]  tOrder      target order columns with order by ASC/DESC (optional)
+	/// @return                 True on success else false
+	///
+	bool getRecords(const VectorPair& conditions, QVector<QVariantMap>& results, const QStringList& tColumns = {}, const QStringList& tOrder = {}) const;
+
+	bool getRecords(const QString& condition, const QVariantList& bindValues, QVector<QVariantMap>& results, const QStringList& tColumns = {}, const QStringList& tOrder = {}) const;
+
+	///
 	/// @brief Delete a record determined by conditions
 	/// @param[in]  conditions conditions of the row to delete it (WHERE)
 	/// @return                True on success; on error or not found false
@@ -119,23 +149,36 @@ public:
 	///
 	bool deleteTable(const QString& table) const;
 
-	///
-	/// @brief Sets a table in read-only mode.
-	/// Updates will not written to the table
-	/// @param[in]  readOnly True read-only, false - read/write
-	///
-	void setReadonlyMode(bool readOnly) { _readonlyMode = readOnly; };
+	bool executeQuery(QSqlQuery& query) const;
+
+	bool startTransaction(QSqlDatabase& idb) const;
+	bool startTransaction(QSqlDatabase& idb, QStringList& errorList);
+	bool commiTransaction(QSqlDatabase& idb) const;
+	bool commiTransaction(QSqlDatabase& idb, QStringList& errorList);
+	bool rollbackTransaction(QSqlDatabase& idb) const;
+	bool rollbackTransaction(QSqlDatabase& idb, QStringList& errorList);
+
+	// Utility function to log errors and append to error list
+	void logErrorAndAppend(const QString& errorText, QStringList& errorList);
+
+protected:
+		Logger* _log;
 
 private:
+		static QDir _dataDirectory;
+		static QDir _databaseDirectory;
+		static QFileInfo _databaseFile;
+		static QThreadStorage<QSqlDatabase> _databasePool;
+		static bool _isReadOnly;
 
-	Logger* _log;
-	/// databse connection & file name, defaults to hyperion
-	QString _dbn = "hyperion";
-	/// table in database
-	QString _table;
+		/// databse connection & file name, defaults to hyperion
+		QString _dbn = "hyperion";
 
-	bool _readonlyMode;
+		/// table in database
+		QString _table;
 
-	/// addBindValue to query given by QVariantList
-	void doAddBindValue(QSqlQuery& query, const QVariantList& variants) const;
+		/// addBindValues to query given by QVariantList
+		void addBindValues(QSqlQuery& query, const QVariantList& variants) const;
+
+		QString constructExecutedQuery(const QSqlQuery& query) const;
 };

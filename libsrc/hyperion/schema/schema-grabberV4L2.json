@@ -1,6 +1,5 @@
 {
 	"type" : "object",
-	"required" : true,
 	"title" : "edt_conf_v4l2_heading_title",
 	"properties":
 	{
@@ -24,6 +23,7 @@
 		"device": {
 			"type": "string",
 			"title": "edt_conf_enum_custom",
+			"default": "none",
 			"options": {
 				"hidden": true
 			},

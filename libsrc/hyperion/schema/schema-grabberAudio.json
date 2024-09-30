@@ -1,6 +1,5 @@
 {
   "type": "object",
-  "required": true,
   "title": "edt_conf_audio_heading_title",
     "properties": {
         "enable": {

@@ -6,6 +6,7 @@
 		"level" :
 		{
 			"type" : "string",
+			"required" : true,
 			"enum" : ["silent", "warn", "verbose", "debug"],
 			"title" : "edt_conf_log_level_title",
 			"options" : {

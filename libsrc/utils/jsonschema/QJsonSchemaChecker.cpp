@@ -40,7 +40,7 @@ QStringList QJsonSchemaChecker::getMessages() const
 	return _messages;
 }
 
-QPair<bool, bool> QJsonSchemaChecker::validate(const QJsonObject& value, bool ignoreRequired)
+QPair<bool, bool> QJsonSchemaChecker::validate(const QJsonValue& value, bool ignoreRequired)
 {
 	// initialize state
 	_ignoreRequired = ignoreRequired;
@@ -56,7 +56,7 @@ QPair<bool, bool> QJsonSchemaChecker::validate(const QJsonObject& value, bool ig
 	return QPair<bool, bool>(!_error, !_schemaError);
 }
 
-QJsonObject QJsonSchemaChecker::getAutoCorrectedConfig(const QJsonObject& value, bool ignoreRequired)
+QJsonValue QJsonSchemaChecker::getAutoCorrectedConfig(const QJsonValue& value, bool ignoreRequired)
 {
 	_ignoreRequired = ignoreRequired;
 	const QStringList sequence = QStringList() << "remove" << "modify" << "create";

@@ -6,6 +6,7 @@
 #include <QString>
 #include <QStringList>
 #include <QThread>
+#include <QVariantMap>
 
 // hyperion include
 #include <hyperion/Hyperion.h>
@@ -21,6 +22,7 @@
 #include <utils/hyperion.h>
 #include <utils/GlobalSignals.h>
 #include <utils/Logger.h>
+#include <utils/JsonUtils.h>
 
 // LedDevice includes
 #include <leddevice/LedDeviceWrapper.h>
@@ -47,10 +49,10 @@
 #include <boblightserver/BoblightServer.h>
 #endif
 
-Hyperion::Hyperion(quint8 instance, bool readonlyMode)
+Hyperion::Hyperion(quint8 instance)
 	: QObject()
 	, _instIndex(instance)
-	, _settingsManager(new SettingsManager(instance, this, readonlyMode))
+	, _settingsManager(new SettingsManager(instance, this))
 	, _componentRegister(nullptr)
 	, _ledString(LedString::createLedString(getSetting(settings::LEDS).array(), hyperion::createColorOrder(getSetting(settings::DEVICE).object())))
 	, _imageProcessor(nullptr)
@@ -73,7 +75,6 @@ Hyperion::Hyperion(quint8 instance, bool readonlyMode)
 #if defined(ENABLE_BOBLIGHT_SERVER)
 	, _boblightServer(nullptr)
 #endif
-	, _readOnlyMode(readonlyMode)
 {
 	qRegisterMetaType<ComponentList>("ComponentList");
 
@@ -320,14 +321,17 @@ QJsonDocument Hyperion::getSetting(settings::type type) const
 	return _settingsManager->getSetting(type);
 }
 
-bool Hyperion::saveSettings(const QJsonObject& config, bool correct)
+// TODO: Remove function, if UI is able to handle full configuration
+QJsonObject Hyperion::getQJsonConfig() const
 {
-	return _settingsManager->saveSettings(config, correct);
+	const QJsonObject instanceConfig = _settingsManager->getSettings();
+	const QJsonObject globalConfig = _settingsManager->getSettings({},QStringList());
+	return JsonUtils::mergeJsonObjects(instanceConfig, globalConfig);
 }
 
-bool Hyperion::restoreSettings(const QJsonObject& config, bool correct)
+QPair<bool, QStringList> Hyperion::saveSettings(const QJsonObject& config)
 {
-	return _settingsManager->restoreSettings(config, correct);
+	return _settingsManager->saveSettings(config);
 }
 
 int Hyperion::getLatchTime() const
@@ -596,11 +600,6 @@ int Hyperion::setEffect(const QString &effectName, const QJsonObject &args, int 
 	return _effectEngine->runEffect(effectName, args, priority, timeout, pythonScript, origin, 0, imageData);
 }
 #endif
-
-QJsonObject Hyperion::getQJsonConfig() const
-{
-	return _settingsManager->getSettings();
-}
 
 void Hyperion::setLedMappingType(int mappingType)
 {

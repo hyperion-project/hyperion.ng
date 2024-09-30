@@ -28,11 +28,6 @@ $(document).ready(function () {
   // Instance handling
   function handleInstanceRename(e) {
 
-    conf_editor.on('change', function () {
-      window.readOnlyMode ? $('#btn_cl_save').prop('disabled', true) : $('#btn_submit').prop('disabled', false);
-      window.readOnlyMode ? $('#btn_ma_save').prop('disabled', true) : $('#btn_submit').prop('disabled', false);
-    });
-
     var inst = e.currentTarget.id.split("_")[1];
     showInfoDialog('renInst', $.i18n('conf_general_inst_renreq_t'), getInstanceNameByIndex(inst));
 
@@ -119,14 +114,14 @@ $(document).ready(function () {
         //check file is json
         var check = isJsonString(content);
         if (check.length != 0) {
-          showInfoDialog('error', "", $.i18n('infoDialog_import_jsonerror_text', f.name, JSON.stringify(check)));
+          showInfoDialog('error', "", $.i18n('infoDialog_import_jsonerror_text', f.name, JSON.stringify(check.message)));
           dis_imp_btn(true);
         }
         else {
           content = JSON.parse(content);
           //check for hyperion json
-          if (typeof content.leds === 'undefined' || typeof content.general === 'undefined') {
-            showInfoDialog('error', "", $.i18n('infoDialog_import_hyperror_text', f.name));
+          if (typeof content.global === 'undefined' || typeof content.instances === 'undefined') {
+            showInfoDialog('error', "", $.i18n('infoDialog_import_version_error_text', f.name));
             dis_imp_btn(true);
           }
           else {
@@ -143,10 +138,10 @@ $(document).ready(function () {
   $('#btn_import_conf').off().on('click', function () {
     showInfoDialog('import', $.i18n('infoDialog_import_confirm_title'), $.i18n('infoDialog_import_confirm_text', confName));
 
-    $('#id_btn_import').off().on('click', function () {
+      $('#id_btn_import').off().on('click', function () {
       requestRestoreConfig(importedConf);
-      setTimeout(initRestart, 100);
     });
+
   });
 
   $('#select_import_conf').off().on('change', function (e) {
@@ -157,18 +152,17 @@ $(document).ready(function () {
   });
 
   //export
-  $('#btn_export_conf').off().on('click', function () {
-    var name = window.serverConfig.general.name;
+  $('#btn_export_conf').off().on('click', async () => 
+  {
+    const d = new Date();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const timestamp = `${d.getFullYear()}-${month}-${day}`;
 
-    var d = new Date();
-    var month = d.getMonth() + 1;
-    var day = d.getDate();
-
-    var timestamp = d.getFullYear() + '.' +
-      (month < 10 ? '0' : '') + month + '.' +
-      (day < 10 ? '0' : '') + day;
-
-    download(JSON.stringify(window.serverConfig, null, "\t"), 'Hyperion-' + window.currentVersion + '-Backup (' + name + ') ' + timestamp + '.json', "application/json");
+	const configBackup = await requestConfig();
+	if (configBackup.success === true) {
+      download(JSON.stringify(configBackup.info, null, "\t"), 'HyperionBackup-' + timestamp + '_v' + window.currentVersion + '.json', "application/json");
+    }
   });
 
   //create introduction
@@ -180,3 +174,8 @@ $(document).ready(function () {
 
   removeOverlay();
 });
+
+$(window.hyperion).on("cmd-config-restoreconfig", function (event) {
+  setTimeout(initRestart, 100);
+});
+

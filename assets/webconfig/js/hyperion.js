@@ -37,9 +37,8 @@ const ENDLESS = -1;
 function initRestart()
 {
   $(window.hyperion).off();
-  requestServerConfigReload();
   window.watchdog = 10;
-  connectionLostDetection('restart');
+  connectionLostDetection('restart'); 
 }
 
 function connectionLostDetection(type)
@@ -138,9 +137,10 @@ function initWebSocket()
                 if (error == "Service Unavailable") {
                   window.location.reload();
                 } else {
-                  $(window.hyperion).trigger({type:"error",reason:error});
+                  $(window.hyperion).trigger({type:"error", reason:error});
                 }
-                console.log("[window.websocket::onmessage] ",error)
+                let errorData = response.hasOwnProperty("errorData")? response.errorData : "";
+                console.log("[window.websocket::onmessage] ",error, ", Description:", errorData);
               }
           }
         }
@@ -344,6 +344,11 @@ function requestServerConfig()
   sendToHyperion("config", "getconfig");
 }
 
+function requestServerConfigOld()
+{
+  sendToHyperion("config", "getconfig-old");
+}
+
 function requestServerConfigReload()
 {
   sendToHyperion("config", "reload");
@@ -521,4 +526,13 @@ async function requestServiceDiscovery(type, params) {
 
   return sendAsyncToHyperion("service", "discover", data);
 }
+
+async function requestConfig(globalTypes, instances, instanceTypes) {
+  let globalFilter   = { "global": { "types": globalTypes } };
+  let instanceFilter = { "instances": { "ids": instances, "types": instanceTypes } };
+  let filter = { "configFilter" : globalFilter, instanceFilter };
+
+  return sendAsyncToHyperion("config", "getconfig", filter);
+}
+
 

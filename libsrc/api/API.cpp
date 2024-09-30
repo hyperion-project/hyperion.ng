@@ -391,34 +391,6 @@ QString API::saveEffect(const QJsonObject &data)
 }
 #endif
 
-bool API::saveSettings(const QJsonObject &data)
-{
-	bool isSaved {true};
-	if (!_adminAuthorized)
-	{
-		isSaved = false;
-	}
-	else
-	{
-		QMetaObject::invokeMethod(_hyperion, "saveSettings", Qt::DirectConnection, Q_RETURN_ARG(bool, isSaved), Q_ARG(QJsonObject, data), Q_ARG(bool, true));
-	}
-	return isSaved;
-}
-
-bool API::restoreSettings(const QJsonObject &data)
-{
-	bool isRestored {true};
-	if (!_adminAuthorized)
-	{
-		isRestored = false;
-	}
-	else
-	{
-		QMetaObject::invokeMethod(_hyperion, "restoreSettings", Qt::DirectConnection, Q_RETURN_ARG(bool, isRestored), Q_ARG(QJsonObject, data), Q_ARG(bool, true));
-	}
-	return isRestored;
-}
-
 bool API::updateHyperionPassword(const QString &password, const QString &newPassword)
 {
 	bool isPwUpdated {true};

@@ -108,8 +108,6 @@ public:
 	///
 	QString getActiveDeviceType() const;
 
-	bool getReadOnlyMode() const {return _readOnlyMode; }
-
 public slots:
 
 	///
@@ -335,18 +333,9 @@ public slots:
 	///
 	/// @brief Save a complete json config
 	/// @param config  The entire config object
-	/// @param correct If true will correct json against schema before save
 	/// @return        True on success else false
 	///
-	bool saveSettings(const QJsonObject& config, bool correct = false);
-
-	///
-	/// @brief Restore a complete json config
-	/// @param config  The entire config object
-	/// @param correct If true will correct json against schema before save
-	/// @return        True on success else false
-	///
-	bool restoreSettings(const QJsonObject& config, bool correct = false);
+	QPair<bool, QStringList> saveSettings(const QJsonObject& config);
 
 	/// ############
 	/// COMPONENTREGISTER
@@ -552,7 +541,7 @@ private:
 	/// @brief Constructs the Hyperion instance, just accessible for HyperionIManager
 	/// @param  instance  The instance index
 	///
-	Hyperion(quint8 instance, bool readonlyMode = false);
+	Hyperion(quint8 instance);
 
 	/// instance index
 	const quint8 _instIndex;
@@ -615,6 +604,4 @@ private:
 	/// Boblight instance
 	BoblightServer* _boblightServer;
 #endif
-
-	bool _readOnlyMode;
 };
