@@ -1,0 +1,273 @@
+{
+  "version": 8,
+  "configurePresets": [
+    {
+      "name": "base",
+      "description": "Base settings that apply to all configurations",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/build"
+    },
+    {
+      "name": "ccache",
+      "description": "Set ccache variables",
+      "hidden": true,
+      "cacheVariables": {
+        "USE_COMPILER_CACHE": "ON"
+      },
+      "environment": {
+        "CCACHE_NODEBUG": "true",
+        "CCACHE_DIRECT": "true",
+        "CCACHE_MAXSIZE": "500M",
+        "CCACHE_COMPRESS": "true",
+        "CCACHE_COMPRESSLEVEL": "1",
+        "CCACHE_NOSTATS": "true",
+        "CCACHE_DIR": "${sourceDir}/.ccache"
+      }
+    },
+    {
+      "name": "buildcache",
+      "description": "Set buildcache variables",
+      "hidden": true,
+      "cacheVariables": {
+        "USE_COMPILER_CACHE": "ON"
+      },
+      "environment": {
+        "BUILDCACHE_DEBUG": "-1",
+        "BUILDCACHE_DIRECT_MODE": "true",
+        "BUILDCACHE_MAX_CACHE_SIZE": "524288000",
+        "BUILDCACHE_COMPRESS": "true",
+        "BUILDCACHE_COMPRESS_FORMAT": "LZ4",
+        "BUILDCACHE_DIR": "${sourceDir}/.buildcache"
+      }
+    },
+    {
+      "name": "debug",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "release",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "clang",
+      "hidden": true,
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "/usr/bin/clang",
+        "CMAKE_CXX_COMPILER": "/usr/bin/clang++"
+      }
+    },
+    {
+      "name": "msvc",
+      "hidden": true,
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "toolset": "host=x64"
+    },
+    {
+      "name": "gcc",
+      "hidden": true,
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "/usr/bin/gcc",
+        "CMAKE_CXX_COMPILER": "/usr/bin/g++"
+      }
+    },
+    {
+      "name": "macos-release",
+      "displayName": "MacOS (release) (clang)",
+      "description": "Build with Clang as Release without Debug Symbols",
+      "inherits": [ "base", "release", "clang" ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+    },
+    {
+      "name": "macos-release-deps",
+      "displayName": "MacOS Dependencies (release) (clang)",
+      "description": "Build Dependencies with Clang as Release without Debug Symbols",
+      "inherits": [ "macos-release" ],
+      "cacheVariables": {
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/${presetName}"
+      }
+    },
+    {
+      "name": "macos-debug",
+      "displayName": "MacOS Debug (clang)",
+      "description": "Build with Clang with Debug Symbols",
+      "inherits": [ "base", "debug", "clang" ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+    },
+    {
+      "name": "macos-debug-deps",
+      "displayName": "MacOS Dependencies (debug) (clang)",
+      "description": "Build Dependencies with Clang with Debug Symbols",
+      "inherits": [ "macos-debug" ],
+      "cacheVariables": {
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/${presetName}"
+      }
+    },
+    {
+      "name": "windows-release",
+      "displayName": "Windows Release (msvc)",
+      "description": "Build with MSVC's CL as Release without Debug Symbols",
+      "inherits": [ "base", "msvc" ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "windows-debug",
+      "displayName": "Windows Debug (msvc)",
+      "description": "Build with MSVC's CL with Debug Symbols",
+      "inherits": [ "base", "msvc" ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "linux-release",
+      "displayName": "Linux Release (gcc)",
+      "description": "Build with GCC as Release without Debug Symbols",
+      "inherits": [ "base", "release", "gcc" ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "linux-debug",
+      "displayName": "Linux Debug (gcc)",
+      "description": "Build with GCC with Debug Symbols",
+      "inherits": [ "base", "debug", "gcc" ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "macos-release",
+      "displayName": "MacOS (release) (clang)",
+      "description": "Build with Clang as Release without Debug Symbols",
+      "targets": "all",
+      "configurePreset": "macos-release",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+
+    },
+    {
+      "name": "macos-release-deps",
+      "displayName": "MacOS Dependencies (release) (clang)",
+      "description": "Build Dependencies with Clang as Release without Debug Symbols",
+      "targets": "dependencies/all",
+      "configurePreset": "macos-release-deps",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+
+    },
+    {
+      "name": "macos-debug",
+      "displayName": "MacOS (debug) (clang)",
+      "description": "Build with Clang as Debug",
+      "targets": "all",
+      "configurePreset": "macos-debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+
+    },
+    {
+      "name": "macos-debug-deps",
+      "displayName": "MacOS Dependencies (debug) (clang)",
+      "description": "Build Dependencies with Clang as Debug",
+      "targets": "dependencies/all",
+      "configurePreset": "macos-debug-deps",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
+      }
+    },
+    {
+      "name": "windows-release",
+      "displayName": "Windows (release) (msvc)",
+      "description": "Build with MSVC's CL as Release without Debug Symbols",
+      "configuration": "Release",
+      "targets": "ALL_BUILD",
+      "configurePreset": "windows-release",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+
+    },
+    {
+      "name": "windows-debug",
+      "displayName": "Windows (debug) (msvc)",
+      "description": "Build with MSVC's CL with Debug Symbols",
+      "configuration": "Debug",
+      "targets": "ALL_BUILD",
+      "configurePreset": "windows-debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+
+    },
+    {
+      "name": "linux-release",
+      "displayName": "Linux (release) (gcc)",
+      "description": "Build with GCC as Release without Debug Symbols",
+      "targets": "all",
+      "configurePreset": "linux-release",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+
+    },
+    {
+      "name": "linux-debug",
+      "displayName": "Linux (debug) (gcc)",
+      "description": "Build with GCC with Debug Symbols",
+      "targets": "all",
+      "configurePreset": "linux-debug",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    }
+  ]
+}
