@@ -34,35 +34,29 @@ tokenList = {};
 
 const ENDLESS = -1;
 
-function initRestart()
-{
+function initRestart() {
   $(window.hyperion).off();
   window.watchdog = 10;
-  connectionLostDetection('restart'); 
+  connectionLostDetection('restart');
 }
 
-function connectionLostDetection(type)
-{
-  if ( window.watchdog > 2 )
-  {
-    var interval_id = window.setInterval(function(){clearInterval(interval_id);}, 9999); // Get a reference to the last
+function connectionLostDetection(type) {
+  if (window.watchdog > 2) {
+    var interval_id = window.setInterval(function () { clearInterval(interval_id); }, 9999); // Get a reference to the last
     for (var i = 1; i < interval_id; i++)
       window.clearInterval(i);
-    if(type == 'restart')
-    {
+    if (type == 'restart') {
       $("body").html($("#container_restart").html());
       // setTimeout delay for probably slower systems, some browser don't execute THIS action
-      setTimeout(restartAction,250);
+      setTimeout(restartAction, 250);
     }
-    else
-    {
+    else {
       $("body").html($("#container_connection_lost").html());
       connectionLostAction();
     }
   }
-  else
-  {
-    $.get( "/cgi/cfg_jsonserver", function() {window.watchdog=0}).fail(function() {window.watchdog++;});
+  else {
+    $.get("/cgi/cfg_jsonserver", function () { window.watchdog = 0 }).fail(function () { window.watchdog++; });
   }
 }
 
@@ -70,25 +64,22 @@ setInterval(connectionLostDetection, 3000);
 
 // init websocket to hyperion and bind socket events to jquery events of $(hyperion) object
 
-function initWebSocket()
-{
-  if ("WebSocket" in window)
-  {
-    if (window.websocket == null)
-    {
+function initWebSocket() {
+  if ("WebSocket" in window) {
+    if (window.websocket == null) {
       window.jsonPort = '';
-      if(document.location.port == '' && document.location.protocol == "http:")
+      if (document.location.port == '' && document.location.protocol == "http:")
         window.jsonPort = '80';
       else if (document.location.port == '' && document.location.protocol == "https:")
         window.jsonPort = '443';
       else
         window.jsonPort = document.location.port;
-      window.websocket = (document.location.protocol == "https:") ? new WebSocket('wss://'+document.location.hostname+":"+window.jsonPort) : new WebSocket('ws://'+document.location.hostname+":"+window.jsonPort);
+      window.websocket = (document.location.protocol == "https:") ? new WebSocket('wss://' + document.location.hostname + ":" + window.jsonPort) : new WebSocket('ws://' + document.location.hostname + ":" + window.jsonPort);
 
       window.websocket.onopen = function (event) {
-        $(window.hyperion).trigger({type:"open"});
+        $(window.hyperion).trigger({ type: "open" });
 
-        $(window.hyperion).on("cmd-serverinfo", function(event) {
+        $(window.hyperion).on("cmd-serverinfo", function (event) {
           window.watchdog = 0;
         });
       };
@@ -96,8 +87,7 @@ function initWebSocket()
       window.websocket.onclose = function (event) {
         // See http://tools.ietf.org/html/rfc6455#section-7.4.1
         var reason;
-        switch(event.code)
-        {
+        switch (event.code) {
           case 1000: reason = "Normal closure, meaning that the purpose for which the connection was established has been fulfilled."; break;
           case 1001: reason = "An endpoint is \"going away\", such as a server going down or a browser having navigated away from a page."; break;
           case 1002: reason = "An endpoint is terminating the connection due to a protocol error"; break;
@@ -113,72 +103,66 @@ function initWebSocket()
           case 1015: reason = "The connection was closed due to a failure to perform a TLS handshake (e.g., the server certificate can't be verified)."; break;
           default: reason = "Unknown reason";
         }
-        $(window.hyperion).trigger({type:"close", reason:reason});
+        $(window.hyperion).trigger({ type: "close", reason: reason });
         window.watchdog = 10;
         connectionLostDetection();
       };
 
       window.websocket.onmessage = function (event) {
-        try
-        {
+        try {
           var response = JSON.parse(event.data);
           var success = response.success;
           var cmd = response.command;
           var tan = response.tan
-          if (success || typeof(success) == "undefined")
-          {
-            $(window.hyperion).trigger({type:"cmd-"+cmd, response:response});
+          if (success || typeof (success) == "undefined") {
+            $(window.hyperion).trigger({ type: "cmd-" + cmd, response: response });
           }
-          else
-          {
-              // skip tan -1 error handling
-              if(tan != -1){
-                var error = response.hasOwnProperty("error")? response.error : "unknown";
-                if (error == "Service Unavailable") {
-                  window.location.reload();
-                } else {
-                  $(window.hyperion).trigger({type:"error", reason:error});
-                }
-                let errorData = response.hasOwnProperty("errorData")? response.errorData : "";
-                console.log("[window.websocket::onmessage] ",error, ", Description:", errorData);
+          else {
+            // skip tan -1 error handling
+            if (tan != -1) {
+              var error = response.hasOwnProperty("error") ? response.error : "unknown";
+              if (error == "Service Unavailable") {
+                window.location.reload();
+              } else {
+                $(window.hyperion).trigger({ type: "error", reason: error });
               }
+              let errorData = response.hasOwnProperty("errorData") ? response.errorData : "";
+              console.log("[window.websocket::onmessage] ", error, ", Description:", errorData);
+            }
           }
         }
-        catch(exception_error)
-        {
-          $(window.hyperion).trigger({type:"error",reason:exception_error});
-          console.log("[window.websocket::onmessage] ",exception_error)
+        catch (exception_error) {
+          $(window.hyperion).trigger({ type: "error", reason: exception_error });
+          console.log("[window.websocket::onmessage] ", exception_error)
         }
       };
 
       window.websocket.onerror = function (error) {
-        $(window.hyperion).trigger({type:"error",reason:error});
-        console.log("[window.websocket::onerror] ",error)
+        $(window.hyperion).trigger({ type: "error", reason: error });
+        console.log("[window.websocket::onerror] ", error)
       };
     }
   }
-  else
-  {
+  else {
     $(window.hyperion).trigger("error");
     alert("Websocket is not supported by your browser");
     return;
   }
 }
 
-function sendToHyperion(command, subcommand, msg)
-{
+function sendToHyperion(command, subcommand, msg) {
   if (typeof subcommand != 'undefined' && subcommand.length > 0)
-    subcommand = ',"subcommand":"'+subcommand+'"';
+    subcommand = ',"subcommand":"' + subcommand + '"';
   else
     subcommand = "";
 
   if (typeof msg != 'undefined' && msg.length > 0)
-    msg = ","+msg;
+    msg = "," + msg;
   else
     msg = "";
 
-  window.wsTan = Math.floor(Math.random() * 1000) 
-  window.websocket.send('{"command":"'+command+'", "tan":'+window.wsTan+subcommand+msg+'}');
+  window.wsTan = Math.floor(Math.random() * 1000)
+  window.websocket.send('{"command":"' + command + '", "tan":' + window.wsTan + subcommand + msg + '}');
 }
 
 // Send a json message to Hyperion and wait for a matching response
@@ -188,9 +172,9 @@ function sendToHyperion(command, subcommand, msg)
 // data:       The json data as Object
 // tan:        The optional tan, default 1. If the tan is -1, we skip global response error handling
 // Returns data of response or false if timeout
-async function sendAsyncToHyperion (command, subcommand, data, tan = Math.floor(Math.random() * 1000) ) {
+async function sendAsyncToHyperion(command, subcommand, data, tan = Math.floor(Math.random() * 1000)) {
   let obj = { command, tan }
-  if (subcommand) {Object.assign(obj, {subcommand})}
+  if (subcommand) { Object.assign(obj, { subcommand }) }
   if (data) { Object.assign(obj, data) }
 
   //if (process.env.DEV || sstore.getters['common/getDebugState']) console.log('SENDAS', obj)
@@ -200,7 +184,7 @@ async function sendAsyncToHyperion (command, subcommand, data, tan = Math.floor(
 // Send a json message to Hyperion and wait for a matching response
 // A response matches, when command(+subcommand) of request and response is the same
 // Returns data of response or false if timeout
-async function __sendAsync (data) {
+async function __sendAsync(data) {
   return new Promise((resolve, reject) => {
     let cmd = data.command
     let subc = data.subcommand
@@ -213,7 +197,7 @@ async function __sendAsync (data) {
       try {
         rdata = JSON.parse(e.data)
       } catch (error) {
-        console.error("[window.websocket::onmessage] ",error)
+        console.error("[window.websocket::onmessage] ", error)
         resolve(false)
       }
       if (rdata.command == cmd && rdata.tan == tan) {
@@ -232,279 +216,273 @@ async function __sendAsync (data) {
 // wrapped server commands
 
 // Test if admin requires authentication
-function requestRequiresAdminAuth()
-{
-  sendToHyperion("authorize","adminRequired");
+function requestRequiresAdminAuth() {
+  sendToHyperion("authorize", "adminRequired");
 }
 // Test if the default password needs to be changed
-function requestRequiresDefaultPasswortChange()
-{
-  sendToHyperion("authorize","newPasswordRequired");
+function requestRequiresDefaultPasswortChange() {
+  sendToHyperion("authorize", "newPasswordRequired");
 }
 // Change password
-function requestChangePassword(oldPw, newPw)
-{
-  sendToHyperion("authorize","newPassword",'"password": "'+oldPw+'", "newPassword":"'+newPw+'"');
+function requestChangePassword(oldPw, newPw) {
+  sendToHyperion("authorize", "newPassword", '"password": "' + oldPw + '", "newPassword":"' + newPw + '"');
 }
 
-function requestAuthorization(password)
-{
-  sendToHyperion("authorize","login",'"password": "' + password + '"');
+function requestAuthorization(password) {
+  sendToHyperion("authorize", "login", '"password": "' + password + '"');
 }
 
-function requestTokenAuthorization(token)
-{
-  sendToHyperion("authorize","login",'"token": "' + token + '"');
+function requestTokenAuthorization(token) {
+  sendToHyperion("authorize", "login", '"token": "' + token + '"');
 }
 
-function requestToken(comment)
-{
-  sendToHyperion("authorize","createToken",'"comment": "'+comment+'"');
+function requestToken(comment) {
+  sendToHyperion("authorize", "createToken", '"comment": "' + comment + '"');
 }
 
-function requestTokenInfo()
-{
-  sendToHyperion("authorize","getTokenList","");
+function requestTokenInfo() {
+  sendToHyperion("authorize", "getTokenList", "");
 }
 
-function requestGetPendingTokenRequests (id, state) {
+function requestGetPendingTokenRequests(id, state) {
   sendToHyperion("authorize", "getPendingTokenRequests", "");
 }
 
-function requestHandleTokenRequest(id, state)
-{
-  sendToHyperion("authorize","answerRequest",'"id":"'+id+'", "accept":'+state);
+function requestHandleTokenRequest(id, state) {
+  sendToHyperion("authorize", "answerRequest", '"id":"' + id + '", "accept":' + state);
 }
 
-function requestTokenDelete(id)
-{
-  sendToHyperion("authorize","deleteToken",'"id":"'+id+'"');
+function requestTokenDelete(id) {
+  sendToHyperion("authorize", "deleteToken", '"id":"' + id + '"');
 }
 
-function requestInstanceRename(inst, name)
-{
-  sendToHyperion("instance", "saveName",'"instance": '+inst+', "name": "'+name+'"');
+function requestInstanceRename(inst, name) {
+  sendToHyperion("instance", "saveName", '"instance": ' + inst + ', "name": "' + name + '"');
 }
 
-function requestInstanceStartStop(inst, start)
-{
-  if(start)
-    sendToHyperion("instance","startInstance",'"instance": '+inst);
+function requestInstanceStartStop(inst, start) {
+  if (start)
+    sendToHyperion("instance", "startInstance", '"instance": ' + inst);
   else
-    sendToHyperion("instance","stopInstance",'"instance": '+inst);
+    sendToHyperion("instance", "stopInstance", '"instance": ' + inst);
 }
 
-function requestInstanceDelete(inst)
-{
-  sendToHyperion("instance","deleteInstance",'"instance": '+inst);
+function requestInstanceDelete(inst) {
+  sendToHyperion("instance", "deleteInstance", '"instance": ' + inst);
 }
 
-function requestInstanceCreate(name)
-{
-  sendToHyperion("instance","createInstance",'"name": "'+name+'"');
+function requestInstanceCreate(name) {
+  sendToHyperion("instance", "createInstance", '"name": "' + name + '"');
 }
 
-function requestInstanceSwitch(inst)
-{
-  sendToHyperion("instance","switchTo",'"instance": '+inst);
+function requestInstanceSwitch(inst) {
+  sendToHyperion("instance", "switchTo", '"instance": ' + inst);
 }
 
-function requestServerInfo()
-{
-  sendToHyperion("serverinfo","",'"subscribe":["components-update", "priorities-update", "imageToLedMapping-update", "adjustment-update", "videomode-update", "effects-update", "settings-update", "instance-update"]');
+function requestServerInfo() {
+  sendToHyperion("serverinfo", "", '"subscribe":["components-update", "priorities-update", "imageToLedMapping-update", "adjustment-update", "videomode-update", "effects-update", "settings-update", "instance-update"]');
 }
 
-function requestSysInfo()
-{
+function requestSysInfo() {
   sendToHyperion("sysinfo");
 }
 
-function requestSystemSuspend()
-{
-  sendToHyperion("system","suspend");
+function requestSystemSuspend() {
+  sendToHyperion("system", "suspend");
 }
 
-function requestSystemResume()
-{
-  sendToHyperion("system","resume");
+function requestSystemResume() {
+  sendToHyperion("system", "resume");
 }
 
-function requestSystemRestart()
-{
-  sendToHyperion("system","restart");
+function requestSystemRestart() {
+  sendToHyperion("system", "restart");
 }
 
-function requestServerConfigSchema()
-{
-  sendToHyperion("config","getschema");
+function requestServerConfigSchema() {
+  sendToHyperion("config", "getschema");
 }
 
-function requestServerConfig()
-{
+function requestServerConfig() {
   sendToHyperion("config", "getconfig");
 }
 
-function requestServerConfigOld()
-{
+function requestServerConfigOld() {
   sendToHyperion("config", "getconfig-old");
 }
 
-function requestServerConfigReload()
-{
+function requestServerConfigReload() {
   sendToHyperion("config", "reload");
 }
 
-function requestLedColorsStart()
-{
-  window.ledStreamActive=true;
+function requestLedColorsStart() {
+  window.ledStreamActive = true;
   sendToHyperion("ledcolors", "ledstream-start");
 }
 
-function requestLedColorsStop()
-{
-  window.ledStreamActive=false;
+function requestLedColorsStop() {
+  window.ledStreamActive = false;
   sendToHyperion("ledcolors", "ledstream-stop");
 }
 
-function requestLedImageStart()
-{
-  window.imageStreamActive=true;
+function requestLedImageStart() {
+  window.imageStreamActive = true;
   sendToHyperion("ledcolors", "imagestream-start");
 }
 
-function requestLedImageStop()
-{
-  window.imageStreamActive=false;
+function requestLedImageStop() {
+  window.imageStreamActive = false;
   sendToHyperion("ledcolors", "imagestream-stop");
 }
 
-function requestPriorityClear(prio)
-{
-  if(typeof prio !== 'number')
+function requestPriorityClear(prio) {
+  if (typeof prio !== 'number')
     prio = window.webPrio;
 
-  $(window.hyperion).trigger({type:"stopBrowerScreenCapture"});   
-  sendToHyperion("clear", "", '"priority":'+prio+'');
+  $(window.hyperion).trigger({ type: "stopBrowerScreenCapture" });
+  sendToHyperion("clear", "", '"priority":' + prio + '');
 }
 
-function requestClearAll()
-{
-  $(window.hyperion).trigger({type:"stopBrowerScreenCapture"});   
+function requestClearAll() {
+  $(window.hyperion).trigger({ type: "stopBrowerScreenCapture" });
   requestPriorityClear(-1)
 }
 
-function requestPlayEffect(effectName, duration)
-{
-  $(window.hyperion).trigger({type:"stopBrowerScreenCapture"});   
-  sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'"},"priority":'+window.webPrio+',"duration":'+validateDuration(duration)+',"origin":"'+window.webOrigin+'"');
+function requestPlayEffect(effectName, duration) {
+  $(window.hyperion).trigger({ type: "stopBrowerScreenCapture" });
+  sendToHyperion("effect", "", '"effect":{"name":"' + effectName + '"},"priority":' + window.webPrio + ',"duration":' + validateDuration(duration) + ',"origin":"' + window.webOrigin + '"');
 }
 
-function requestSetColor(r,g,b,duration)
-{
-  $(window.hyperion).trigger({type:"stopBrowerScreenCapture"});   
-  sendToHyperion("color", "",  '"color":['+r+','+g+','+b+'], "priority":'+window.webPrio+',"duration":'+validateDuration(duration)+',"origin":"'+window.webOrigin+'"');
+function requestSetColor(r, g, b, duration) {
+  $(window.hyperion).trigger({ type: "stopBrowerScreenCapture" });
+  sendToHyperion("color", "", '"color":[' + r + ',' + g + ',' + b + '], "priority":' + window.webPrio + ',"duration":' + validateDuration(duration) + ',"origin":"' + window.webOrigin + '"');
 }
 
-function requestSetImage(data,duration,name)
-{
-  sendToHyperion("image", "",  '"imagedata":"'+data+'", "priority":'+window.webPrio+',"duration":'+validateDuration(duration)+', "format":"auto", "origin":"'+window.webOrigin+'", "name":"'+name+'"');
+function requestSetImage(data, duration, name) {
+  sendToHyperion("image", "", '"imagedata":"' + data + '", "priority":' + window.webPrio + ',"duration":' + validateDuration(duration) + ', "format":"auto", "origin":"' + window.webOrigin + '", "name":"' + name + '"');
 }
 
-function requestSetComponentState(comp, state)
-{
+function requestSetComponentState(comp, state) {
   var state_str = state ? "true" : "false";
-  sendToHyperion("componentstate", "", '"componentstate":{"component":"'+comp+'","state":'+state_str+'}');
+  sendToHyperion("componentstate", "", '"componentstate":{"component":"' + comp + '","state":' + state_str + '}');
 }
 
-function requestSetSource(prio)
-{
-  if ( prio == "auto" )
+function requestSetSource(prio) {
+  if (prio == "auto")
     sendToHyperion("sourceselect", "", '"auto":true');
   else
-    sendToHyperion("sourceselect", "", '"priority":'+prio);
+    sendToHyperion("sourceselect", "", '"priority":' + prio);
 }
 
-function requestWriteConfig(config, full)
-{
-  if(full === true)
-    window.serverConfig = config;
-  else
-  {
-    jQuery.each(config, function(i, val) {
-      window.serverConfig[i] = val;
-    });
+// Function to transform the legacy config into thee new API format
+function transformConfig(configInput, instanceId = 0) {
+  const globalConfig = {};
+  const instanceSettings = {};
+
+  // Populate globalConfig and instanceSettings based on the specified properties
+  for (const [key, value] of Object.entries(configInput)) {
+    if (window.schema.propertiesTypes.globalProperties.includes(key)) {
+      globalConfig[key] = value;
+    } else if (window.schema.propertiesTypes.instanceProperties.includes(key)) {
+      instanceSettings[key] = value;
+    }
   }
 
-  sendToHyperion("config","setconfig", '"config":'+JSON.stringify(window.serverConfig));
+  // Initialize the final transformed configuration
+  const transformedConfig = {};
+
+  // Add `global` only if it has properties
+  if (Object.keys(globalConfig).length > 0) {
+    transformedConfig.global = { settings: globalConfig };
+  }
+
+  // Add `instance` only if there are instance settings
+  if (Object.keys(instanceSettings).length > 0) {
+    transformedConfig.instances = [
+      {
+        id: instanceId,
+        settings: instanceSettings
+      }
+    ];
+  }
+
+  return transformedConfig;
+}
+
+function requestWriteConfig(singleInstanceConfig, full) {
+  let newConfig = "";
+  const instance = Number(window.currentHyperionInstance);
+
+  if (full === true) {
+    window.serverConfig = singleInstanceConfig;
+    newConfig = transformConfig(window.serverConfig, instance);
+  }
+  else {
+    jQuery.each(singleInstanceConfig, function (i, val) {
+      window.serverConfig[i] = val;
+    });
+    newConfig = transformConfig(singleInstanceConfig, instance);
+  }
+
+  sendToHyperion("config", "setconfig", '"config":' + JSON.stringify(newConfig));
 }
 
 function requestRestoreConfig(config) {
   sendToHyperion("config", "restoreconfig", '"config":' + JSON.stringify(config));
 }
 
-function requestWriteEffect(effectName,effectPy,effectArgs,data)
-{
+function requestWriteEffect(effectName, effectPy, effectArgs, data) {
   var cutArgs = effectArgs.slice(1, -1);
-  sendToHyperion("create-effect", "", '"name":"'+effectName+'", "script":"'+effectPy+'", '+cutArgs+',"imageData":"'+data+'"');
+  sendToHyperion("create-effect", "", '"name":"' + effectName + '", "script":"' + effectPy + '", ' + cutArgs + ',"imageData":"' + data + '"');
 }
 
-function requestTestEffect(effectName,effectPy,effectArgs,data)
-{
-  sendToHyperion("effect", "", '"effect":{"name":"'+effectName+'", "args":'+effectArgs+'}, "priority":'+window.webPrio+', "origin":"'+window.webOrigin+'", "pythonScript":"'+effectPy+'", "imageData":"'+data+'"');
+function requestTestEffect(effectName, effectPy, effectArgs, data) {
+  sendToHyperion("effect", "", '"effect":{"name":"' + effectName + '", "args":' + effectArgs + '}, "priority":' + window.webPrio + ', "origin":"' + window.webOrigin + '", "pythonScript":"' + effectPy + '", "imageData":"' + data + '"');
 }
 
-function requestDeleteEffect(effectName)
-{
-  sendToHyperion("delete-effect", "", '"name":"'+effectName+'"');
+function requestDeleteEffect(effectName) {
+  sendToHyperion("delete-effect", "", '"name":"' + effectName + '"');
 }
 
-function requestLoggingStart()
-{
-  window.loggingStreamActive=true;
+function requestLoggingStart() {
+  window.loggingStreamActive = true;
   sendToHyperion("logging", "start");
 }
 
-function requestLoggingStop()
-{
-  window.loggingStreamActive=false;
+function requestLoggingStop() {
+  window.loggingStreamActive = false;
   sendToHyperion("logging", "stop");
 }
 
-function requestMappingType(type)
-{
-  sendToHyperion("processing", "", '"mappingType": "'+type+'"');
+function requestMappingType(type) {
+  sendToHyperion("processing", "", '"mappingType": "' + type + '"');
 }
 
-function requestVideoMode(newMode)
-{
-  sendToHyperion("videomode", "", '"videoMode": "'+newMode+'"');
+function requestVideoMode(newMode) {
+  sendToHyperion("videomode", "", '"videoMode": "' + newMode + '"');
 }
 
-function requestAdjustment(type, value, complete)
-{
-  if(complete === true)
-    sendToHyperion("adjustment", "", '"adjustment": '+type+'');
+function requestAdjustment(type, value, complete) {
+  if (complete === true)
+    sendToHyperion("adjustment", "", '"adjustment": ' + type + '');
   else
-    sendToHyperion("adjustment", "", '"adjustment": {"'+type+'": '+value+'}');
+    sendToHyperion("adjustment", "", '"adjustment": {"' + type + '": ' + value + '}');
 }
 
-async function requestLedDeviceDiscovery(type, params)
-{
+async function requestLedDeviceDiscovery(type, params) {
   let data = { ledDeviceType: type, params: params };
 
   return sendAsyncToHyperion("leddevice", "discover", data);
 }
 
-async function requestLedDeviceProperties(type, params)
-{
+async function requestLedDeviceProperties(type, params) {
   let data = { ledDeviceType: type, params: params };
 
   return sendAsyncToHyperion("leddevice", "getProperties", data);
 }
 
-function requestLedDeviceIdentification(type, params)
-{
-    let data = { ledDeviceType: type, params: params };
+function requestLedDeviceIdentification(type, params) {
+  let data = { ledDeviceType: type, params: params };
 
   return sendAsyncToHyperion("leddevice", "identify", data);
 }
@@ -528,9 +506,9 @@ async function requestServiceDiscovery(type, params) {
 }
 
 async function requestConfig(globalTypes, instances, instanceTypes) {
-  let globalFilter   = { "global": { "types": globalTypes } };
+  let globalFilter = { "global": { "types": globalTypes } };
   let instanceFilter = { "instances": { "ids": instances, "types": instanceTypes } };
-  let filter = { "configFilter" : { globalFilter, instanceFilter} };
+  let filter = { "configFilter": { globalFilter, instanceFilter } };
 
   return sendAsyncToHyperion("config", "getconfig", filter);
 }

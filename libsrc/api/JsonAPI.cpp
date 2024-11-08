@@ -736,90 +736,64 @@ void JsonAPI::handleConfigSetCommand(const QJsonObject &message, const JsonApiCo
 	}
 
 	QJsonObject config = message["config"].toObject();
-	if (config.contains("global") || config.contains("instances"))
-	{
-		QStringList errorDetails;
-
-		QMap<quint8, QJsonObject> instancesNewConfigs;
-
-		const QJsonArray instances = config["instances"].toArray();
-		if (!instances.isEmpty())
-		{
-			QList<quint8> configuredInstanceIds = _instanceManager->getInstanceIds();
-			for (const auto &instance : instances)
-			{
-				QJsonObject instanceObject = instance.toObject();
-				const QJsonValue idx = instanceObject["id"];
-				if (idx.isDouble())
-				{
-					quint8 instanceId = static_cast<quint8>(idx.toInt());
-					if (configuredInstanceIds.contains(instanceId))
-					{
-						instancesNewConfigs.insert(instanceId,instanceObject.value("settings").toObject());
-					}
-					else
-					{
-						errorDetails.append(QString("Given instance id '%1' does not exist. Configuration item will be ignored").arg(instanceId));
-					}
-				}
-			}
-		}
-
-		const QJsonObject globalSettings = config["global"].toObject().value("settings").toObject();
-		if (!globalSettings.isEmpty())
-		{
-			const QJsonObject instanceZeroConfig = instancesNewConfigs.value(0);
-			instancesNewConfigs.insert(0, JsonUtils::mergeJsonObjects(instanceZeroConfig, globalSettings));
-		}
-
-		QMapIterator<quint8, QJsonObject> i (instancesNewConfigs);
-		while (i.hasNext()) {
-			i.next();
-
-			quint8 idx = i.key();
-			Hyperion* instance = HyperionIManager::getInstance()->getHyperionInstance(idx);
-
-			QPair<bool, QStringList> isSaved = instance->saveSettings(i.value());
-			errorDetails.append(isSaved.second);
-		}
-
-		if (!errorDetails.isEmpty())
-		{
-			sendErrorReply("Update configuration failed", errorDetails, cmd);
-			return;
-		}
-
-		sendSuccessReply(cmd);
-
-		return;
-	}
-
 	if (config.isEmpty())
 	{
 		sendErrorReply("Update configuration failed", {"No configuration data provided!"}, cmd);
 		return;
 	}
 
-	//Backward compatability until UI mesages are updated
-	if (API::isHyperionEnabled())
+	QStringList errorDetails;
+
+	QMap<quint8, QJsonObject> instancesNewConfigs;
+
+	const QJsonArray instances = config["instances"].toArray();
+	if (!instances.isEmpty())
 	{
-		QStringList errorDetails;
-
-		QPair<bool, QStringList> isSaved = _hyperion->saveSettings(config);
-		errorDetails.append(isSaved.second);
-
-		if (!errorDetails.isEmpty())
+		QList<quint8> configuredInstanceIds = _instanceManager->getInstanceIds();
+		for (const auto &instance : instances)
 		{
-			sendErrorReply("Save settings failed", errorDetails, cmd);
-			return;
+			QJsonObject instanceObject = instance.toObject();
+			const QJsonValue idx = instanceObject["id"];
+			if (idx.isDouble())
+			{
+				quint8 instanceId = static_cast<quint8>(idx.toInt());
+				if (configuredInstanceIds.contains(instanceId))
+				{
+					instancesNewConfigs.insert(instanceId,instanceObject.value("settings").toObject());
+				}
+				else
+				{
+					errorDetails.append(QString("Given instance id '%1' does not exist. Configuration item will be ignored").arg(instanceId));
+				}
+			}
 		}
+	}
 
-		sendSuccessReply(cmd);
-	}
-	else
+	const QJsonObject globalSettings = config["global"].toObject().value("settings").toObject();
+	if (!globalSettings.isEmpty())
 	{
-		sendErrorReply("Updating the configuration while Hyperion is disabled is not possible", cmd);
+		const QJsonObject instanceZeroConfig = instancesNewConfigs.value(0);
+		instancesNewConfigs.insert(0, JsonUtils::mergeJsonObjects(instanceZeroConfig, globalSettings));
 	}
+
+	QMapIterator<quint8, QJsonObject> i (instancesNewConfigs);
+	while (i.hasNext()) {
+		i.next();
+
+		quint8 idx = i.key();
+		Hyperion* instance = HyperionIManager::getInstance()->getHyperionInstance(idx);
+
+		QPair<bool, QStringList> isSaved = instance->saveSettings(i.value());
+		errorDetails.append(isSaved.second);
+	}
+
+	if (!errorDetails.isEmpty())
+	{
+		sendErrorReply("Update configuration failed", errorDetails, cmd);
+		return;
+	}
+
+	sendSuccessReply(cmd);
 }
 
 void JsonAPI::handleConfigGetCommand(const QJsonObject &message, const JsonApiCommand& cmd)
@@ -942,6 +916,21 @@ void JsonAPI::handleSchemaGetCommand(const QJsonObject& /*message*/, const JsonA
 	properties = schemaJson["properties"].toObject();
 	alldevices = LedDeviceWrapper::getLedDeviceSchemas();
 	properties.insert("alldevices", alldevices);
+
+	// Add infor about the type of setting elements
+	QJsonObject settingTypes;
+	QJsonArray globalSettingTypes;
+	for (const QString &type : SettingsTable().getGlobalSettingTypes()) {
+		globalSettingTypes.append(type);
+	}
+	settingTypes.insert("globalProperties", globalSettingTypes);
+
+	QJsonArray instanceSettingTypes;
+	for (const QString &type : SettingsTable().getInstanceSettingTypes()) {
+		instanceSettingTypes.append(type);
+	}
+	settingTypes.insert("instanceProperties", instanceSettingTypes);
+	properties.insert("propertiesTypes", settingTypes);
 
 #if defined(ENABLE_EFFECTENGINE)
 	// collect all available effect schemas
