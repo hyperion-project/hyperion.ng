@@ -18,7 +18,7 @@
 #include <HyperionConfig.h>
 
 #ifdef _WIN32
-	#include <stdexcept>
+#include <stdexcept>
 #endif
 
 #define STRINGIFY2(x) #x
@@ -44,14 +44,14 @@ PythonInit::PythonInit()
 #if (PY_VERSION_HEX >= 0x03080000)
 	status = PyConfig_SetString(&config, &config.program_name, programName);
 	if (PyStatus_Exception(status)) {
-		goto exception;
+		handlePythonError(status, config);
+		return;
 	}
-	else
 #else
 	Py_SetProgramName(programName);
 #endif
 	{
-		// set Python module path when exists
+		// set Python module path when it exists
 		QString py_path = QDir::cleanPath(qApp->applicationDirPath() + "/../lib/python" + STRINGIFY(PYTHON_VERSION_MAJOR) + "." + STRINGIFY(PYTHON_VERSION_MINOR));
 		QString py_file = QDir::cleanPath(qApp->applicationDirPath() + "/python" + STRINGIFY(PYTHON_VERSION_MAJOR) + STRINGIFY(PYTHON_VERSION_MINOR) + ".zip");
 		QString py_framework = QDir::cleanPath(qApp->applicationDirPath() + "/../Frameworks/Python.framework/Versions/Current/lib/python" + STRINGIFY(PYTHON_VERSION_MAJOR) + "." + STRINGIFY(PYTHON_VERSION_MINOR));
@@ -59,21 +59,23 @@ PythonInit::PythonInit()
 		if (QFile(py_file).exists() || QDir(py_path).exists() || QDir(py_framework).exists())
 		{
 #if (PY_VERSION_HEX >= 0x030C0000)
-            config.site_import = 0;
+			config.site_import = 0;
 #else
-            Py_NoSiteFlag++;
+			Py_NoSiteFlag++;
 #endif
 			if (QFile(py_file).exists()) // Windows
 			{
 #if (PY_VERSION_HEX >= 0x03080000)
 				status = PyConfig_SetBytesString(&config, &config.home, QSTRING_CSTR(py_file));
 				if (PyStatus_Exception(status)) {
-					goto exception;
+					handlePythonError(status, config);
+					return;
 				}
 				config.module_search_paths_set = 1;
 				status = PyWideStringList_Append(&config.module_search_paths, const_cast<wchar_t*>(py_file.toStdWString().c_str()));
 				if (PyStatus_Exception(status)) {
-					goto exception;
+					handlePythonError(status, config);
+					return;
 				}
 #else
 				Py_SetPythonHome(Py_DecodeLocale(py_file.toLatin1().data(), nullptr));
@@ -85,18 +87,21 @@ PythonInit::PythonInit()
 #if (PY_VERSION_HEX >= 0x03080000)
 				status = PyConfig_SetBytesString(&config, &config.home, QSTRING_CSTR(QDir::cleanPath(qApp->applicationDirPath() + "/../")));
 				if (PyStatus_Exception(status)) {
-					goto exception;
+					handlePythonError(status, config);
+					return;
 				}
 
 				config.module_search_paths_set = 1;
 				status = PyWideStringList_Append(&config.module_search_paths, const_cast<wchar_t*>(QDir(py_path).absolutePath().toStdWString().c_str()));
 				if (PyStatus_Exception(status)) {
-					goto exception;
+					handlePythonError(status, config);
+					return;
 				}
 
 				status = PyWideStringList_Append(&config.module_search_paths, const_cast<wchar_t*>(QDir(py_path + "/lib-dynload").absolutePath().toStdWString().c_str()));
 				if (PyStatus_Exception(status)) {
-					goto exception;
+					handlePythonError(status, config);
+					return;
 				}
 #else
 				QStringList python_paths;
@@ -114,18 +119,21 @@ PythonInit::PythonInit()
 #if (PY_VERSION_HEX >= 0x03080000)
 				status = PyConfig_SetBytesString(&config, &config.home, QSTRING_CSTR(QDir::cleanPath(qApp->applicationDirPath() + "/../Frameworks/Python.framework/Versions/Current")));
 				if (PyStatus_Exception(status)) {
-					goto exception;
+					handlePythonError(status, config);
+					return;
 				}
 
 				config.module_search_paths_set = 1;
 				status = PyWideStringList_Append(&config.module_search_paths, const_cast<wchar_t*>(QDir(py_framework).absolutePath().toStdWString().c_str()));
 				if (PyStatus_Exception(status)) {
-					goto exception;
+					handlePythonError(status, config);
+					return;
 				}
 
 				status = PyWideStringList_Append(&config.module_search_paths, const_cast<wchar_t*>(QDir(py_framework + "/lib-dynload").absolutePath().toStdWString().c_str()));
 				if (PyStatus_Exception(status)) {
-					goto exception;
+					handlePythonError(status, config);
+					return;
 				}
 #else
 				QStringList python_paths;
@@ -146,7 +154,8 @@ PythonInit::PythonInit()
 #if (PY_VERSION_HEX >= 0x03080000)
 	status = Py_InitializeFromConfig(&config);
 	if (PyStatus_Exception(status)) {
-		goto exception;
+		handlePythonError(status, config);
+		return;
 	}
 	PyConfig_Clear(&config);
 #endif
@@ -154,7 +163,8 @@ PythonInit::PythonInit()
 	// init Python
 	Debug(Logger::getInstance("DAEMON"), "Initializing Python interpreter");
 	Py_InitializeEx(0);
-	if ( !Py_IsInitialized() )
+
+	if (!Py_IsInitialized())
 	{
 		throw std::runtime_error("Initializing Python failed!");
 	}
@@ -165,20 +175,25 @@ PythonInit::PythonInit()
 #endif
 
 	mainThreadState = PyEval_SaveThread();
-	return;
+}
 
-#if (PY_VERSION_HEX >= 0x03080000)
-exception:
+// Error handling function to replace goto exception
+void PythonInit::handlePythonError(PyStatus status, PyConfig& config)
+{
 	Error(Logger::getInstance("DAEMON"), "Initializing Python config failed with error [%s]", status.err_msg);
 	PyConfig_Clear(&config);
-
 	throw std::runtime_error("Initializing Python failed!");
-#endif
 }
 
 PythonInit::~PythonInit()
 {
 	Debug(Logger::getInstance("DAEMON"), "Cleaning up Python interpreter");
+
+#if (PY_VERSION_HEX < 0x030C0000)
 	PyEval_RestoreThread(mainThreadState);
-	Py_Finalize();
+#else
+	PyThreadState_Swap(mainThreadState);
+#endif
+
+	int rc = Py_FinalizeEx();
 }
