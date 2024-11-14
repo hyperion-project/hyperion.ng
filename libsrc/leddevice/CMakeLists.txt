@@ -115,7 +115,11 @@ if(ENABLE_DEV_NETWORK)
 	if(NOT DEFAULT_USE_SYSTEM_MBEDTLS_LIBS)
 		if(MBEDTLS_LIBRARIES)
 			include_directories(${MBEDTLS_INCLUDE_DIR})
-			target_link_libraries(leddevice ${MBEDTLS_LIBRARIES})
+			target_link_libraries(
+				leddevice
+				${MBEDTLS_LIBRARIES}
+				$<$<BOOL:${WIN32}>:bcrypt.lib>
+			)
 			target_include_directories(leddevice PRIVATE ${MBEDTLS_INCLUDE_DIR})
 		endif (MBEDTLS_LIBRARIES)
 	endif()
