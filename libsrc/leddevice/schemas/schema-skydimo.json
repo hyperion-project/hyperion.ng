@@ -1,0 +1,61 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"output": {
+			"type": "string",
+			"title":"edt_dev_spec_outputPath_title",
+			"default":"auto",
+			"propertyOrder" : 1
+		},
+		"rateList": {
+			"type": "string",
+			"title":"edt_dev_spec_baudrate_title",
+			"enum": [ "CUSTOM","9600","14400","19200","28800","33600","38400","56000","57600","76800","115200","128000","153600","230400","256000","307200","460800","921600","1000000","1500000","2000000","3000000","4000000" ],
+			"options": {
+			  "enum_titles": [ "edt_conf_enum_custom" ]
+			},
+			"default": "115200",
+			"access": "advanced",
+			"propertyOrder" : 3
+		},
+		"rate": {
+			"type": "integer",
+			"title":"",
+			"default": 115200,
+		  	"access": "advanced",
+			"propertyOrder" : 4
+		},
+		"delayAfterConnect": {
+			"type": "integer",
+			"title":"edt_dev_spec_delayAfterConnect_title",
+			"default": 0,
+			"append" : "ms",
+			"access" : "expert",
+			"propertyOrder" : 10
+		},
+		"latchTime": {
+			"type": "integer",
+			"title": "edt_dev_spec_latchtime_title",
+			"default": 30,
+			"append": "edt_append_ms",
+			"minimum": 0,
+			"maximum": 1000,
+			"access": "expert",
+			"options": {
+				"infoText": "edt_dev_spec_latchtime_title_info"
+			},
+			"propertyOrder": 11
+		},
+		"rewriteTime": {
+			"type": "integer",
+			"title":"edt_dev_general_rewriteTime_title",
+			"default": 1000,
+			"append" : "edt_append_ms",
+			"minimum": 0,
+			"access" : "expert",
+			"propertyOrder" : 12
+		}		
+	},
+	"additionalProperties": true
+}

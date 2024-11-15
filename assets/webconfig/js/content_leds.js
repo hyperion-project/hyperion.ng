@@ -23,7 +23,7 @@ var devFTDI = ['apa102_ftdi', 'sk6812_ftdi', 'ws2812_ftdi'];
 var devRPiPWM = ['ws281x'];
 var devRPiGPIO = ['piblaster'];
 var devNET = ['atmoorb', 'cololight', 'fadecandy', 'homeassistant', 'philipshue', 'nanoleaf', 'razer', 'tinkerforge', 'tpm2net', 'udpe131', 'udpartnet', 'udpddp', 'udph801', 'udpraw', 'wled', 'yeelight'];
-var devSerial = ['adalight', 'dmx', 'atmo', 'sedu', 'tpm2', 'karate'];
+var devSerial = ['adalight', 'dmx', 'atmo', 'sedu', 'skydimo', 'tpm2', 'karate'];
 var devHID = ['hyperionusbasp', 'lightpack', 'paintpack', 'rawhid'];
 
 var infoTextDefault = '<span>' + $.i18n("conf_leds_device_info_log") + ' </span><a href="" onclick="SwitchToMenuItem(\'MenuItemLogging\')" style="cursor:pointer">' + $.i18n("main_menu_logging_token") + '</a>';
@@ -1122,6 +1122,7 @@ $(document).ready(function () {
         case "dmx":
         case "karate":
         case "sedu":
+        case "skydimo":
         case "tpm2":
 
         //FTDI devices
@@ -1231,6 +1232,7 @@ $(document).ready(function () {
         case "karate":
         case "dmx":
         case "sedu":
+        case "skydimo":
         case "tpm2": {
           let currentDeviceType = window.serverConfig.device.type;
           if ($.inArray(currentDeviceType, devSerial) === -1) {
@@ -1462,6 +1464,7 @@ $(document).ready(function () {
           case "adalight":
           case "dmx":
           case "sedu":
+          case "skydimo":
           case "tpm2":
           case "apa102":
           case "apa104":
@@ -1801,6 +1804,7 @@ $(document).ready(function () {
         break;
 
       case "adalight":
+      case "skydimo":
         var currentLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue();
         params = Object.assign(conf_editor.getEditor("root.generalOptions").getValue(),
           conf_editor.getEditor("root.specificOptions").getValue(),
@@ -1942,6 +1946,7 @@ function saveLedConfig(genDefLayout = false) {
     case "dmx":
     case "karate":
     case "sedu":
+    case "skydimo":
     case "tpm2":
     case "apa102":
     case "apa104":
@@ -2105,6 +2110,7 @@ var updateOutputSelectList = function (ledType, discoveryInfo) {
           case "dmx":
           case "karate":
           case "sedu":
+          case "skydimo":
           case "tpm2":
             for (const device of discoveryInfo.devices) {
               if (device.udev) {

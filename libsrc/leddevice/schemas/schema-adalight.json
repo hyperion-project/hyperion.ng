@@ -11,10 +11,10 @@
 		"streamProtocol": {
 		  "type": "string",
 		  "title": "edt_dev_spec_stream_protocol_title",
-		  "enum": [ "0", "1", "2", "3" ],
+		  "enum": [ "0", "1", "2" ],
 		  "default": "0",
 		  "options": {
-		    "enum_titles": [ "edt_dev_spec_ada_mode_title", "edt_dev_spec_LBap102Mode_title","edt_dev_spec_awa_mode_title", "edt_dev_spec_skydimo_mode_title" ]
+		    "enum_titles": [ "edt_dev_spec_ada_mode_title", "edt_dev_spec_LBap102Mode_title","edt_dev_spec_awa_mode_title"]
 		  },
 		  "propertyOrder": 2
 		},

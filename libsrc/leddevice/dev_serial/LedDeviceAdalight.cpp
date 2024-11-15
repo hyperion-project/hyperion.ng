@@ -59,10 +59,6 @@ bool LedDeviceAdalight::init(const QJsonObject &deviceConfig)
 			Debug( _log, "Adalight driver uses standard Adalight protocol");
 			break;
 
-		case Adalight::SKYDIMO:
-			Debug( _log, "Adalight driver uses Skydimo protocol");
-			break;
-
 		default:
 			Error( _log, "Adalight driver - unsupported protocol");
 			return false;
@@ -90,18 +86,6 @@ void LedDeviceAdalight::prepareHeader()
 		{
 			_ledBuffer[iLed*4+HEADER_SIZE] = 0xFF;
 		}
-	}
-	break;
-	case Adalight::SKYDIMO:
-	{
-		_bufferLength = static_cast<qint64>(HEADER_SIZE + _ledRGBCount);
-		_ledBuffer.resize(static_cast<size_t>(_bufferLength), 0x00);
-		_ledBuffer[0] = 'A';
-		_ledBuffer[1] = 'd';
-		_ledBuffer[2] = 'a';
-		_ledBuffer[3] = 0;
-		_ledBuffer[4] = 0;
-		_ledBuffer[5] = static_cast<quint8>(_ledCount);
 	}
 	break;
 	case Adalight::AWA:
