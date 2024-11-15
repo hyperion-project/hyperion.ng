@@ -1,34 +1,24 @@
-#ifndef LEDEVICETADALIGHT_H
-#define LEDEVICETADALIGHT_H
+#ifndef LEDEVICESKYDIMO_H
+#define LEDEVICESKYDIMO_H
 
 // hyperion includes
 #include "ProviderRs232.h"
 
-namespace Adalight
-{
-typedef enum ProtocolType
-{
-	ADA = 0,
-	LBAPA,
-	AWA
-} PROTOCOLTYPE;
-}
-
 ///
-/// Implementation of the LedDevice interface for writing to an Adalight LED-device.
+/// Implementation of the LedDevice interface for writing to a Skydimo LED-device.
 ///
-class LedDeviceAdalight : public ProviderRs232
+class LedDeviceSkydimo : public ProviderRs232
 {
 	Q_OBJECT
 
 public:
 
 	///
-	/// @brief Constructs an Adalight LED-device
+	/// @brief Constructs a Skydimo LED-device
 	///
 	/// @param deviceConfig Device's configuration as JSON-Object
 	///
-	explicit LedDeviceAdalight(const QJsonObject &deviceConfig);
+	explicit LedDeviceSkydimo(const QJsonObject &deviceConfig);
 
 	///
 	/// @brief Constructs the LED-device
@@ -36,14 +26,6 @@ public:
 	/// @param[in] deviceConfig Device's configuration as JSON-Object
 	/// @return LedDevice constructed
 	static LedDevice* construct(const QJsonObject &deviceConfig);
-
-private slots:
-
-	///
-	/// @brief Handle feedback provided by the device
-	/// Allows to show statistics and error for the "Awa" protocol, if configured in the ESP-sketch
-	///
-	void readFeedback() override;
 
 private:
 
@@ -68,17 +50,7 @@ private:
 	///
 	int write(const std::vector<ColorRgb> & ledValues) override;
 
-	void whiteChannelExtension(uint8_t*& writer);
-
 	qint64 _bufferLength;
-
-	Adalight::PROTOCOLTYPE _streamProtocol;
-
-	bool _white_channel_calibration;
-	uint8_t _white_channel_limit;
-	uint8_t _white_channel_red;
-	uint8_t _white_channel_green;
-	uint8_t _white_channel_blue;
 };
 
-#endif // LEDEVICETADALIGHT_H
+#endif // LEDEVICESKYDIMO_H
