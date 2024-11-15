@@ -178,12 +178,14 @@ PythonInit::PythonInit()
 }
 
 // Error handling function to replace goto exception
+#if (PY_VERSION_HEX >= 0x03080000)
 void PythonInit::handlePythonError(PyStatus status, PyConfig& config)
 {
 	Error(Logger::getInstance("DAEMON"), "Initializing Python config failed with error [%s]", status.err_msg);
 	PyConfig_Clear(&config);
 	throw std::runtime_error("Initializing Python failed!");
 }
+#endif
 
 PythonInit::~PythonInit()
 {
@@ -196,4 +198,5 @@ PythonInit::~PythonInit()
 #endif
 
 	int rc = Py_FinalizeEx();
+	Debug(Logger::getInstance("DAEMON"), "Cleaning up Python interpreter %s", rc == 0 ? "succeeded" : "failed");
 }

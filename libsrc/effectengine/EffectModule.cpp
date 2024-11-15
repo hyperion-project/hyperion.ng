@@ -57,13 +57,13 @@ static PyObject* hyperion_create(PyModuleDef* def, PyObject* args) {
 }
 
 // Module deallocation function to clean up per-interpreter state
-static void hyperion_free(void* module)
+static void hyperion_free(void* /* module */)
 {
 	// No specific cleanup required in this example
 }
 
 static PyModuleDef_Slot hyperion_slots[] = {
-	{Py_mod_exec, hyperion_exec},
+	{Py_mod_exec, reinterpret_cast<void*>(hyperion_exec)},
 #if (PY_VERSION_HEX >= 0x030C0000)
 	{Py_mod_multiple_interpreters, Py_MOD_PER_INTERPRETER_GIL_SUPPORTED},
 #endif

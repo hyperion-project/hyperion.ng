@@ -15,5 +15,7 @@ private:
 	PythonInit();
 	~PythonInit();
 
+#if (PY_VERSION_HEX >= 0x03080000)
 	void handlePythonError(PyStatus status, PyConfig& config);
+#endif
 };
