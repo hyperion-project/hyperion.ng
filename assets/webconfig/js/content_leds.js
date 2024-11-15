@@ -1981,7 +1981,7 @@ function saveLedConfig(genDefLayout = false) {
       break;
   }
 
-  //Rewrite whole LED & Layout configuration, in case changes were done accross tabs and no default layout
+  //Rewrite whole LED & Layout configuration, in case changes were done across tabs and no default layout
   if (genDefLayout !== true) {
     result.ledConfig = getLedConfig();
     result.leds = JSON.parse(aceEdt.getText());

@@ -32,7 +32,7 @@
 			"default": 0,
 			"append" : "ms",
 			"access" : "expert",
-			"propertyOrder" : 10
+			"propertyOrder" : 5
 		},
 		"latchTime": {
 			"type": "integer",
@@ -45,7 +45,7 @@
 			"options": {
 				"infoText": "edt_dev_spec_latchtime_title_info"
 			},
-			"propertyOrder": 11
+			"propertyOrder": 6
 		},
 		"rewriteTime": {
 			"type": "integer",
@@ -54,7 +54,7 @@
 			"append" : "edt_append_ms",
 			"minimum": 0,
 			"access" : "expert",
-			"propertyOrder" : 12
+			"propertyOrder" : 7
 		}		
 	},
 	"additionalProperties": true
