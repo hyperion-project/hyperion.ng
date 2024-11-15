@@ -41,6 +41,60 @@
       }
     },
     {
+      "name": "hyperion-light",
+      "hidden": true,
+      "cacheVariables": {
+        "HYPERION_LIGHT": "ON"
+      }
+    },
+    {
+      "name": "hyperion-bare-minimum",
+      "hidden": true,
+      "cacheVariables": {
+        // Disable Grabbers
+        "ENABLE_AMLOGIC": "OFF",
+        "ENABLE_DDA": "OFF",
+        "ENABLE_DISPMANX": "OFF",
+        "ENABLE_DX": "OFF",
+        "ENABLE_FB": "OFF",
+        "ENABLE_MF": "OFF",
+        "ENABLE_OSX": "OFF",
+        "ENABLE_QT": "OFF",
+        "ENABLE_V4L2": "OFF",
+        "ENABLE_X11": "OFF",
+        "ENABLE_XCB": "OFF",
+        "ENABLE_AUDIO": "OFF",
+
+        // LED-Devices
+        "ENABLE_DEV_FTDI": "OFF",
+        "ENABLE_DEV_NETWORK": "OFF",
+        "ENABLE_DEV_SERIAL": "ON",
+        "ENABLE_DEV_SPI": "OFF",
+        "ENABLE_DEV_TINKERFORGE": "OFF",
+        "ENABLE_DEV_USB_HID": "OFF",
+        "ENABLE_DEV_WS281XPWM": "OFF",
+
+        // Disable Input Servers
+        "ENABLE_BOBLIGHT_SERVER": "OFF",
+        "ENABLE_CEC": "OFF",
+        "ENABLE_FLATBUF_SERVER": "OFF",
+        "ENABLE_PROTOBUF_SERVER": "OFF",
+
+        // Disable Output Connectors
+        "ENABLE_FORWARDER": "OFF",
+        "ENABLE_FLATBUF_CONNECT": "OFF",
+
+        // Disable Services
+        "ENABLE_EXPERIMENTAL": "OFF",
+        "ENABLE_MDNS": "OFF",
+        "ENABLE_REMOTE_CTL": "OFF",
+        "ENABLE_EFFECTENGINE": "OFF",
+
+        "ENABLE_JSONCHECKS": "ON",
+        "ENABLE_DEPLOY_DEPENDENCIES": "ON"
+      }
+    },
+    {
       "name": "debug",
       "hidden": true,
       "cacheVariables": {
