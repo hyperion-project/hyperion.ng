@@ -1,6 +1,6 @@
 #pragma once
 
-// OSX includes
+// CoreGraphics
 #include <CoreGraphics/CoreGraphics.h>
 
 // Utils includes
