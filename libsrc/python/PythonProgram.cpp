@@ -88,11 +88,12 @@ void PythonProgram::execute(const QByteArray& python_code)
 	if (!main_module)
 	{
 		// Restore the previous thread state
-#if (PY_VERSION_HEX < 0x030C0000)
-		PyThreadState_Swap(mainThreadState);
-#else
+// #if (PY_VERSION_HEX < 0x030C0000)
+// 		PyThreadState_Swap(mainThreadState);
+// #else
 		PyThreadState_Swap(prev_thread_state);
-#endif
+		qDebug() << "PyThreadState_Swap(prev_thread_state);";
+// #endif
 		return;
 	}
 
@@ -175,10 +176,11 @@ void PythonProgram::execute(const QByteArray& python_code)
 	Py_DECREF(main_module);
 
 	// Restore the previous thread state
-#if (PY_VERSION_HEX < 0x030C0000)
-	PyThreadState_Swap(mainThreadState);
-#else
+// #if (PY_VERSION_HEX < 0x030C0000)
+// 	PyThreadState_Swap(mainThreadState);
+// #else
 	PyThreadState_Swap(prev_thread_state);
-#endif
+	qDebug() << "PyThreadState_Swap(prev_thread_state);";
+// #endif
 }
 
