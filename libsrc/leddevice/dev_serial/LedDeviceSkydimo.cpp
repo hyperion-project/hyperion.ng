@@ -64,5 +64,9 @@ int LedDeviceSkydimo::write(const std::vector<ColorRgb> & ledValues)
 		return 0;
 	}
 
+	assert(HEADER_SIZE + ledValues.size() * sizeof(ColorRgb) <= _ledBuffer.size());
+
+	memcpy(HEADER_SIZE + _ledBuffer.data(), ledValues.data(), ledValues.size() * sizeof(ColorRgb));
+
 	return writeBytes(_bufferLength, _ledBuffer.data());
 }
