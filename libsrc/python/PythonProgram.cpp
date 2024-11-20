@@ -102,16 +102,66 @@ void PythonProgram::execute(const QByteArray& python_code)
 	{
 		if (PyErr_Occurred())
 		{
-			Error(_log, "###### PYTHON EXCEPTION ######");
-			Error(_log, "## In effect '%s'", QSTRING_CSTR(_name));
-
 			PyObject* errorType = NULL, * errorValue = NULL, * errorTraceback = NULL;
 
 			PyErr_Fetch(&errorType, &errorValue, &errorTraceback);
 			PyErr_NormalizeException(&errorType, &errorValue, &errorTraceback);
 
+			// Check if the exception is a SystemExit
+			PyObject* systemExitType = PyExc_SystemExit;
+			bool isSystemExit = PyObject_IsInstance(errorValue, systemExitType);
+
+			if (isSystemExit)
+			{
+				// Extract the exit argument
+				PyObject* exitArg = PyObject_GetAttrString(errorValue, "code");
+
+				if (exitArg)
+				{
+					QString logErrorText;
+					if (PyTuple_Check(exitArg)) {
+						PyObject* errorMessage = PyTuple_GetItem(exitArg, 0); // Borrowed reference
+						PyObject* exitCode = PyTuple_GetItem(exitArg, 1);     // Borrowed reference
+
+						if (exitCode && PyLong_Check(exitCode))
+						{
+							logErrorText = QString("[%1]: ").arg(PyLong_AsLong(exitCode));
+						}
+
+						if (errorMessage && PyUnicode_Check(errorMessage)) {
+							logErrorText.append(PyUnicode_AsUTF8(errorMessage));
+						}
+					}
+					else if (PyUnicode_Check(exitArg)) {
+						// If the code is just a string, treat it as an error message
+						logErrorText.append(PyUnicode_AsUTF8(exitArg));
+					}
+					else if (PyLong_Check(exitArg)) {
+						// If the code is just an integer, treat it as an exit code
+						logErrorText = QString("[%1]").arg(PyLong_AsLong(exitArg));
+					}
+
+					Error(_log, "Effect '%s' failed with error %s", QSTRING_CSTR(_name), QSTRING_CSTR(logErrorText));
+
+					Py_DECREF(exitArg); // Release the reference
+				}
+				else
+				{
+					Debug(_log, "No 'code' attribute found on SystemExit exception.");
+				}
+				// Clear the error so it won't propagate
+				PyErr_Clear();
+
+				Py_DECREF(systemExitType);
+				return;
+			}
+			Py_DECREF(systemExitType);
+
 			if (errorValue)
 			{
+				Error(_log, "###### PYTHON EXCEPTION ######");
+				Error(_log, "## In effect '%s'", QSTRING_CSTR(_name));
+
 				QString message;
 				if (PyObject_HasAttrString(errorValue, "__class__"))
 				{
@@ -166,6 +216,8 @@ void PythonProgram::execute(const QByteArray& python_code)
 			}
 			Error(_log, "###### EXCEPTION END ######");
 		}
+		// Clear the error so it won't propagate
+		PyErr_Clear();
 	}
 	else
 	{
