@@ -50,6 +50,8 @@ public:
 	///
 	void initialize();
 
+	QSharedPointer<JsonCallbacks> JsonAPI::getCallBack() const;
+
 public slots:
 
 private slots:
@@ -82,7 +84,7 @@ signals:
 	///
 	/// Signal emits with the reply message provided with handleMessage()
 	///
-	void callbackMessage(QJsonObject);
+	void callbackReady(QJsonObject);
 
 	///
 	/// Signal emits whenever a JSON-message should be forwarded
