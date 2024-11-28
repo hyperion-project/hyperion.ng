@@ -123,8 +123,8 @@ jobs:
           echo '::group::Install official Python'
             # We need the official Python, because the GA ones only support newer macOS versions
             export PYTHON_VERSION=$(python3 --version | cut -d' ' -f2 | cut -d'.' -f1,2)
-            curl https://www.python.org/ftp/python/${PYTHON_VERSION}/python-${PYTHON_VERSION}-macos11.pkg -o /tmp/python.pkg
-            sudo installer -pkg /tmp/python.pkg -target /
+            wget https://www.python.org/ftp/python/${PYTHON_VERSION}/python-${PYTHON_VERSION}-macos11.pkg
+            sudo installer -pkg ./${PYTHON_VERSION}/python-${PYTHON_VERSION}-macos11.pkg -target /
             python3 --version
           echo '::endgroup::'
 
