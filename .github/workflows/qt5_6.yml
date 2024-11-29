@@ -97,7 +97,7 @@ jobs:
 
   macOS:
     name: 🍏 macOS x64
-    runs-on: macos-13
+    runs-on: macos-12
     steps:
       - name: ⬇ Checkout
         uses: actions/checkout@v4
@@ -126,6 +126,13 @@ jobs:
             wget -O ${{ github.workspace }}/python.pkg https://www.python.org/ftp/python/${PYTHON_VERSION}/python-${PYTHON_VERSION}-macos11.pkg
             sudo installer -pkg ${{ github.workspace }}/python.pkg -target /
             python3 --version
+          echo '::endgroup::'
+
+          echo '::group::Set up Xcode'
+            # Oldest version of Xcode supported on GitHub Action to test source code backwards compatibility
+            sudo xcode-select -s /Applications/Xcode_13.2.1.app/Contents/Developer
+            xcode-select -p
+            xcodebuild -version
           echo '::endgroup::'
 
       - name: 👷 Build
