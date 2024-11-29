@@ -2,6 +2,7 @@
 
 // stl includes
 #include <list>
+#include <chrono>
 
 // QT includes
 #include <QString>
@@ -604,4 +605,14 @@ private:
 	/// Boblight instance
 	BoblightServer* _boblightServer;
 #endif
+
+	QElapsedTimer _imageTimer;  // Timer for controlling image emission frequency
+	QElapsedTimer _rawLedDataTimer;  // Timer for controlling rawLedColors emission frequency
+	QElapsedTimer _ledDeviceDataTimer; // Timer for controlling LedDevice data emission frequency
+	qint64 _lastImageEmission;  // Last timestamp of image signal emission
+	qint64 _lastRawLedDataEmission;  // Last timestamp of rawLedColors signal emission
+	qint64 _lastLedDeviceDataEmission; // Last timestamp of ledDeviceData signal emission
+	std::chrono::milliseconds _imageEmissionInterval;
+	std::chrono::milliseconds _rawLedDataEmissionInterval;
+	std::chrono::milliseconds _ledDeviceDataEmissionInterval;
 };
