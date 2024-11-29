@@ -12,6 +12,7 @@
 #include <QJsonValue>
 #include <QJsonArray>
 #include <QMap>
+#include <QElapsedTimer>
 
 // hyperion-utils includes
 #include <utils/Image.h>
