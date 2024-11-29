@@ -50,7 +50,7 @@ public:
 	///
 	void initialize();
 
-	QSharedPointer<JsonCallbacks> JsonAPI::getCallBack() const;
+	QSharedPointer<JsonCallbacks> getCallBack() const;
 
 public slots:
 
