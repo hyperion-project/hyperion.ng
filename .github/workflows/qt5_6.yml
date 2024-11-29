@@ -97,7 +97,7 @@ jobs:
 
   macOS:
     name: 🍏 macOS x64
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
       - name: ⬇ Checkout
         uses: actions/checkout@v4
@@ -120,10 +120,13 @@ jobs:
             brew install qt@${{ inputs.qt_version }} vulkan-headers ninja libftdi || true
           echo '::endgroup::'
 
-      - name: Temporarily downgrade CMake to 3.28.3 # Please remove if GitHub has updated Cmake (greater than 3.30.0)
-        uses: jwlawson/actions-setup-cmake@v2
-        with:
-          cmake-version: '3.28.3'
+          echo '::group::Install official Python'
+            # We need the official Python, because the GA ones only support newer macOS versions
+            export PYTHON_VERSION=$(python3 --version | cut -d' ' -f2)
+            wget -O ${{ github.workspace }}/python.pkg https://www.python.org/ftp/python/${PYTHON_VERSION}/python-${PYTHON_VERSION}-macos11.pkg
+            sudo installer -pkg ${{ github.workspace }}/python.pkg -target /
+            python3 --version
+          echo '::endgroup::'
 
       - name: 👷 Build
         shell: bash
