@@ -13,6 +13,11 @@
 // python utils
 #include <python/PythonProgram.h>
 
+// Constants
+namespace {
+	int DEFAULT_MAX_UPDATE_RATE_HZ { 200 };
+} //End of constants
+
 Effect::Effect(Hyperion *hyperion, int priority, int timeout, const QString &script, const QString &name, const QJsonObject &args, const QString &imageData)
 	: QThread()
 	, _hyperion(hyperion)
@@ -27,6 +32,7 @@ Effect::Effect(Hyperion *hyperion, int priority, int timeout, const QString &scr
 	, _interupt(false)
 	, _imageSize(hyperion->getLedGridSize())
 	, _image(_imageSize,QImage::Format_ARGB32_Premultiplied)
+	, _lowestUpdateIntervalInSeconds(1/static_cast<double>(DEFAULT_MAX_UPDATE_RATE_HZ))
 {
 	_colors.resize(_hyperion->getLedCount());
 	_colors.fill(ColorRgb::BLACK);
