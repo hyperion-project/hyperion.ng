@@ -122,7 +122,7 @@ jobs:
 
           echo '::group::Install official Python'
             # We need the official Python, because the GA ones only support newer macOS versions
-            sudo rm -rf /Library/Frameworks/Python.framework/Versions/3* /usr/local/Frameworks/Python.framework/Versions/3* /usr/local/bin/python3* || true
+            sudo rm -rf /Library/Frameworks/Python.framework/Versions/3* /usr/local/Frameworks/Python.framework/Versions/3* /usr/local/bin/python3* /usr/local/opt/python3 || true
             # export PYTHON_VERSION=$(python3 --version | cut -d' ' -f2)
             export PYTHON_VERSION=3.12.7
             wget -qO ${{ github.workspace }}/python.pkg https://www.python.org/ftp/python/${PYTHON_VERSION}/python-${PYTHON_VERSION}-macos11.pkg
