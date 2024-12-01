@@ -13,6 +13,7 @@ public:
 
 	void setHorizontalPixelDecimation(int decimator) { _horizontalDecimation = decimator; }
 	void setVerticalPixelDecimation(int decimator) { _verticalDecimation = decimator; }
+	void setPixelDecimation(int decimator) { _horizontalDecimation = decimator; _verticalDecimation = decimator;}
 	void setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom);
 	void setVideoMode(VideoMode mode) { _videoMode = mode; }
 	void setFlipMode(FlipMode mode) { _flipMode = mode; }

@@ -71,5 +71,7 @@ private:
 	quint16 _port;
 	const QJsonDocument _config;
 
+	int _pixelDecimation;
+
 	QVector<FlatBufferClient*> _openConnections;
 };

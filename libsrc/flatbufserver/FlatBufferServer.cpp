@@ -62,6 +62,12 @@ void FlatBufferServer::handleSettingsUpdate(settings::type type, const QJsonDocu
 		_timeout = obj["timeout"].toInt(5000);
 		// enable check
 		obj["enable"].toBool(true) ? startServer() : stopServer();
+
+		_pixelDecimation = obj["pixelDecimation"].toInt(1);
+		for (const auto& client : _openConnections)
+		{
+			client->setPixelDecimation(_pixelDecimation);
+		}
 	}
 }
 
@@ -75,6 +81,9 @@ void FlatBufferServer::newConnection()
 			{
 				Debug(_log, "New connection from %s", QSTRING_CSTR(socket->peerAddress().toString()));
 				FlatBufferClient *client = new FlatBufferClient(socket, _timeout, this);
+
+				client->setPixelDecimation(_pixelDecimation);
+
 				// internal
 				connect(client, &FlatBufferClient::clientDisconnected, this, &FlatBufferServer::clientDisconnected);
 				connect(client, &FlatBufferClient::registerGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::registerGlobalInput);
