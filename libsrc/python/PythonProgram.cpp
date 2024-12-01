@@ -81,9 +81,11 @@ void PythonProgram::execute(const QByteArray& python_code)
 	{
 		return;
 	}
-
+#if (PY_VERSION_HEX < 0x030C0000)
+	PyThreadState_Swap(_tstate);
+#else
 	PyThreadState* prev_thread_state = PyThreadState_Swap(_tstate);
-
+#endif
 	PyObject* main_module = PyImport_ImportModule("__main__");
 	if (!main_module)
 	{

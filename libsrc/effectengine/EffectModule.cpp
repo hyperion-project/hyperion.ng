@@ -38,24 +38,6 @@ static int hyperion_exec(PyObject* module) {
 	return 0;
 }
 
-// Module creation function for multi-phase init, used in Py_mod_create slot
-static PyObject* hyperion_create(PyModuleDef* def, PyObject* args) {
-	PyObject* module = PyModule_Create(def);
-	if (!module)
-	{
-		return NULL;
-	}
-
-	// Execute any additional module initialization logic
-	if (hyperion_exec(module) < 0)
-	{
-		Py_DECREF(module);
-		return NULL;
-	}
-
-	return module;
-}
-
 // Module deallocation function to clean up per-interpreter state
 static void hyperion_free(void* /* module */)
 {
