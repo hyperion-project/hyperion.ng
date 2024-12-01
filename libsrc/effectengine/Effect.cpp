@@ -13,7 +13,7 @@
 // python utils
 #include <python/PythonProgram.h>
 
-Effect::Effect(Hyperion *hyperion, int priority, int timeout, const QString &script, const QString &name, const QJsonObject &args, const QString &imageData)
+Effect::Effect(Hyperion* hyperion, int priority, int timeout, const QString& script, const QString& name, const QJsonObject& args, const QString& imageData)
 	: QThread()
 	, _hyperion(hyperion)
 	, _priority(priority)
@@ -26,7 +26,7 @@ Effect::Effect(Hyperion *hyperion, int priority, int timeout, const QString &scr
 	, _endTime(-1)
 	, _interupt(false)
 	, _imageSize(hyperion->getLedGridSize())
-	, _image(_imageSize,QImage::Format_ARGB32_Premultiplied)
+	, _image(_imageSize, QImage::Format_ARGB32_Premultiplied)
 {
 	_colors.resize(_hyperion->getLedCount());
 	_colors.fill(ColorRgb::BLACK);
@@ -61,41 +61,81 @@ int Effect::getRemaining() const
 
 	if (timeout >= 0)
 	{
-		timeout = static_cast<int>( _endTime - QDateTime::currentMSecsSinceEpoch());
+		timeout = static_cast<int>(_endTime - QDateTime::currentMSecsSinceEpoch());
 	}
 	return timeout;
 }
 
-void Effect::setModuleParameters()
+bool Effect::setModuleParameters()
 {
 	// import the buildtin Hyperion module
-	PyObject * module = PyImport_ImportModule("hyperion");
+	PyObject* module = PyImport_ImportModule("hyperion");
 
-	// add a capsule containing 'this' to the module to be able to retrieve the effect from the callback function
-	PyModule_AddObject(module, "__effectObj", PyCapsule_New((void*)this, "hyperion.__effectObj", nullptr));
+	if (module == nullptr) {
+		PyErr_Print();  // Print error if module import fails
+		return false;
+	}
 
-	// add ledCount variable to the interpreter
+	// Add a capsule containing 'this' to the module for callback access
+	PyObject* capsule = PyCapsule_New((void*)this, "hyperion.__effectObj", nullptr);
+	if (capsule == nullptr || PyModule_AddObject(module, "__effectObj", capsule) < 0) {
+		PyErr_Print();  // Print error if adding capsule fails
+		Py_XDECREF(module);  // Clean up if capsule addition fails
+		Py_XDECREF(capsule);
+		return false;
+	}
+
+	// Add ledCount variable to the interpreter
 	int ledCount = 0;
 	QMetaObject::invokeMethod(_hyperion, "getLedCount", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, ledCount));
-	PyObject_SetAttrString(module, "ledCount", Py_BuildValue("i", ledCount));
+	PyObject* ledCountObj = Py_BuildValue("i", ledCount);
+	if (PyObject_SetAttrString(module, "ledCount", ledCountObj) < 0) {
+		PyErr_Print();  // Print error if setting attribute fails
+	}
+	Py_XDECREF(ledCountObj);
 
-	// add minimumWriteTime variable to the interpreter
+	// Add minimumWriteTime variable to the interpreter
 	int latchTime = 0;
 	QMetaObject::invokeMethod(_hyperion, "getLatchTime", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, latchTime));
-	PyObject_SetAttrString(module, "latchTime", Py_BuildValue("i", latchTime));
+	PyObject* latchTimeObj = Py_BuildValue("i", latchTime);
+	if (PyObject_SetAttrString(module, "latchTime", latchTimeObj) < 0) {
+		PyErr_Print();  // Print error if setting attribute fails
+	}
+	Py_XDECREF(latchTimeObj);
 
-	// add a args variable to the interpreter
-	PyObject_SetAttrString(module, "args", EffectModule::json2python(_args));
+	// Add args variable to the interpreter
+	PyObject* argsObj = EffectModule::json2python(_args);
+	if (PyObject_SetAttrString(module, "args", argsObj) < 0) {
+		PyErr_Print();  // Print error if setting attribute fails
+	}
+	Py_XDECREF(argsObj);
 
-	// decref the module
+	// Decrement module reference
 	Py_XDECREF(module);
+
+	return true;
 }
 
 void Effect::run()
 {
 	PythonProgram program(_name, _log);
 
-	setModuleParameters();
+#if (PY_VERSION_HEX < 0x030C0000)
+	PyThreadState* prev_thread_state = PyThreadState_Swap(program);
+#endif
+
+	if (!setModuleParameters())
+	{
+		Error(_log, "Failed to set Module parameters. Effect will not be executed.");
+#if (PY_VERSION_HEX < 0x030C0000)
+		PyThreadState_Swap(prev_thread_state);
+#endif
+		return;
+	}
+
+#if (PY_VERSION_HEX < 0x030C0000)
+	PyThreadState_Swap(prev_thread_state);
+#endif
 
 	// Set the end time if applicable
 	if (_timeout > 0)
@@ -104,7 +144,7 @@ void Effect::run()
 	}
 
 	// Run the effect script
-	QFile file (_script);
+	QFile file(_script);
 	if (file.open(QIODevice::ReadOnly))
 	{
 		program.execute(file.readAll());

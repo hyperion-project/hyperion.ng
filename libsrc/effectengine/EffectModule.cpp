@@ -17,25 +17,63 @@
 #include <QNetworkAccessManager>
 #include <QEventLoop>
 
+// Define a struct for per-interpreter state
+typedef struct {
+} hyperion_module_state;
+
+// Macro to access the module state
+#define GET_HYPERION_STATE(module) ((hyperion_module_state*)PyModule_GetState(module))
+
 // Get the effect from the capsule
 #define getEffect() static_cast<Effect*>((Effect*)PyCapsule_Import("hyperion.__effectObj", 0))
 
-// create the hyperion module
-struct PyModuleDef EffectModule::moduleDef = {
-	PyModuleDef_HEAD_INIT,
-	"hyperion",            /* m_name */
-	"Hyperion module",     /* m_doc */
-	-1,                    /* m_size */
-	EffectModule::effectMethods, /* m_methods */
-	NULL,                  /* m_reload */
-	NULL,                  /* m_traverse */
-	NULL,                  /* m_clear */
-	NULL,                  /* m_free */
+// Module execution function for multi-phase init
+static int hyperion_exec(PyObject* module) {
+	// Initialize per-interpreter state
+	hyperion_module_state* state = GET_HYPERION_STATE(module);
+	if (state == NULL)
+	{
+		return -1;
+	}
+	return 0;
+}
+
+// Module deallocation function to clean up per-interpreter state
+static void hyperion_free(void* /* module */)
+{
+	// No specific cleanup required in this example
+}
+
+static PyModuleDef_Slot hyperion_slots[] = {
+	{Py_mod_exec, reinterpret_cast<void*>(hyperion_exec)},
+#if (PY_VERSION_HEX >= 0x030C0000)
+	{Py_mod_multiple_interpreters, Py_MOD_PER_INTERPRETER_GIL_SUPPORTED},
+#endif
+	{0, NULL}
 };
 
-PyObject* EffectModule::PyInit_hyperion()
+// Module definition with multi-phase and per-interpreter state
+static struct PyModuleDef hyperion_module = {
+	PyModuleDef_HEAD_INIT,
+	"hyperion",                    // Module name
+	"Hyperion module",             // Module docstring
+	sizeof(hyperion_module_state), // Size of per-interpreter state
+	EffectModule::effectMethods,   // Methods array
+	NULL,                          // Slots array (will be added in PyInit_hyperion)
+	NULL,                          // Traverse function (optional)
+	NULL,                          // Clear function (optional)
+	hyperion_free                  // Free function
+};
+
+// initialize function for the hyperion module
+PyMODINIT_FUNC PyInit_hyperion(void)
 {
-	return PyModule_Create(&moduleDef);
+
+	// assign slots to the module definition
+	hyperion_module.m_slots = hyperion_slots;
+
+	// return a new module definition instance
+	return PyModuleDef_Init(&hyperion_module);
 }
 
 void EffectModule::registerHyperionExtensionModule()
@@ -43,54 +81,77 @@ void EffectModule::registerHyperionExtensionModule()
 	PyImport_AppendInittab("hyperion", &PyInit_hyperion);
 }
 
-PyObject *EffectModule::json2python(const QJsonValue &jsonData)
+PyObject* EffectModule::json2python(const QJsonValue& jsonData)
 {
 	switch (jsonData.type())
 	{
-		case QJsonValue::Null:
-			Py_RETURN_NONE;
-		case QJsonValue::Undefined:
-			Py_RETURN_NOTIMPLEMENTED;
-		case QJsonValue::Double:
+	case QJsonValue::Null:
+		Py_RETURN_NONE;
+
+	case QJsonValue::Undefined:
+		Py_RETURN_NOTIMPLEMENTED;
+
+	case QJsonValue::Double:
+	{
+		double value = jsonData.toDouble();
+		if (value == static_cast<int>(value))  // If no fractional part, value is equal to its integer representation
 		{
-			double doubleIntegratlPart;
-			double doubleFractionalPart = std::modf(jsonData.toDouble(), &doubleIntegratlPart);
-			if (doubleFractionalPart > std::numeric_limits<double>::epsilon())
-			{
-				return Py_BuildValue("d", jsonData.toDouble());
-			}
-			return Py_BuildValue("i", jsonData.toInt());
+			return Py_BuildValue("i", static_cast<int>(value));
 		}
-		case QJsonValue::Bool:
-			return Py_BuildValue("i", jsonData.toBool() ? 1 : 0);
-		case QJsonValue::String:
-			return Py_BuildValue("s", jsonData.toString().toUtf8().constData());
-		case QJsonValue::Object:
+		return Py_BuildValue("d", value);
+	}
+
+	case QJsonValue::Bool:
+		return PyBool_FromLong(jsonData.toBool() ? 1 : 0);
+
+	case QJsonValue::String:
+		return PyUnicode_FromString(jsonData.toString().toUtf8().constData());
+
+	case QJsonValue::Array:
+	{
+		QJsonArray arrayData = jsonData.toArray();
+		PyObject* list = PyList_New(arrayData.size());
+		int index = 0;
+		for (QJsonArray::iterator i = arrayData.begin(); i != arrayData.end(); ++i, ++index)
 		{
-			PyObject * dict= PyDict_New();
-			QJsonObject objectData = jsonData.toObject();
-			for (QJsonObject::iterator i = objectData.begin(); i != objectData.end(); ++i)
-			{
-				PyObject * obj = json2python(*i);
-				PyDict_SetItemString(dict, i.key().toStdString().c_str(), obj);
-				Py_XDECREF(obj);
-			}
-			return dict;
+			PyObject* obj = json2python(*i);
+			Py_INCREF(obj);
+			PyList_SetItem(list, index, obj);
+			Py_XDECREF(obj);
 		}
-		case QJsonValue::Array:
-		{
-			QJsonArray arrayData = jsonData.toArray();
-			PyObject * list = PyList_New(arrayData.size());
-			int index = 0;
-			for (QJsonArray::iterator i = arrayData.begin(); i != arrayData.end(); ++i, ++index)
-			{
-				PyObject * obj = json2python(*i);
-				Py_INCREF(obj);
-				PyList_SetItem(list, index, obj);
-				Py_XDECREF(obj);
+		return list;
+	}
+
+	case QJsonValue::Object: {
+		// Python's dict
+		QJsonObject jsonObject = jsonData.toObject();
+		PyObject* pyDict = PyDict_New();
+		for (auto it = jsonObject.begin(); it != jsonObject.end(); ++it) {
+			// Convert key
+			PyObject* pyKey = PyUnicode_FromString(it.key().toUtf8().constData());
+			if (!pyKey) {
+				Py_XDECREF(pyDict);
+				return nullptr;  // Error occurred, return null
 			}
-			return list;
+			// Convert value
+			PyObject* pyValue = json2python(it.value());
+			if (!pyValue) {
+				Py_XDECREF(pyKey);
+				Py_XDECREF(pyDict);
+				return nullptr;  // Error occurred, return null
+			}
+			// Add to dictionary
+			PyDict_SetItem(pyDict, pyKey, pyValue);
+			Py_XDECREF(pyKey);
+			Py_XDECREF(pyValue);
 		}
+		return pyDict;
+	}
+
+	default:
+		// Unsupported type
+		PyErr_SetString(PyExc_TypeError, "Unsupported QJsonValue type.");
+		return nullptr;
 	}
 
 	assert(false);
@@ -126,7 +187,7 @@ PyMethodDef EffectModule::effectMethods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
-PyObject* EffectModule::wrapSetColor(PyObject *self, PyObject *args)
+PyObject* EffectModule::wrapSetColor(PyObject* self, PyObject* args)
 {
 	// check the number of arguments
 	int argCount = PyTuple_Size(args);
@@ -138,7 +199,7 @@ PyObject* EffectModule::wrapSetColor(PyObject *self, PyObject *args)
 		{
 			getEffect()->_colors.fill(color);
 			QVector<ColorRgb> _cQV = getEffect()->_colors;
-			emit getEffect()->setInput(getEffect()->_priority, std::vector<ColorRgb>( _cQV.begin(), _cQV.end() ), getEffect()->getRemaining(), false);
+			emit getEffect()->setInput(getEffect()->_priority, std::vector<ColorRgb>(_cQV.begin(), _cQV.end()), getEffect()->getRemaining(), false);
 			Py_RETURN_NONE;
 		}
 		return nullptr;
@@ -146,7 +207,7 @@ PyObject* EffectModule::wrapSetColor(PyObject *self, PyObject *args)
 	else if (argCount == 1)
 	{
 		// bytearray of values
-		PyObject * bytearray = nullptr;
+		PyObject* bytearray = nullptr;
 		if (PyArg_ParseTuple(args, "O", &bytearray))
 		{
 			if (PyByteArray_Check(bytearray))
@@ -154,10 +215,10 @@ PyObject* EffectModule::wrapSetColor(PyObject *self, PyObject *args)
 				size_t length = PyByteArray_Size(bytearray);
 				if (length == 3 * static_cast<size_t>(getEffect()->_hyperion->getLedCount()))
 				{
-					char * data = PyByteArray_AS_STRING(bytearray);
+					char* data = PyByteArray_AS_STRING(bytearray);
 					memcpy(getEffect()->_colors.data(), data, length);
 					QVector<ColorRgb> _cQV = getEffect()->_colors;
-					emit getEffect()->setInput(getEffect()->_priority, std::vector<ColorRgb>( _cQV.begin(), _cQV.end() ), getEffect()->getRemaining(), false);
+					emit getEffect()->setInput(getEffect()->_priority, std::vector<ColorRgb>(_cQV.begin(), _cQV.end()), getEffect()->getRemaining(), false);
 					Py_RETURN_NONE;
 				}
 				else
@@ -184,12 +245,12 @@ PyObject* EffectModule::wrapSetColor(PyObject *self, PyObject *args)
 	}
 }
 
-PyObject* EffectModule::wrapSetImage(PyObject *self, PyObject *args)
+PyObject* EffectModule::wrapSetImage(PyObject* self, PyObject* args)
 {
 	// bytearray of values
 	int width = 0;
 	int height = 0;
-	PyObject * bytearray = nullptr;
+	PyObject* bytearray = nullptr;
 	if (PyArg_ParseTuple(args, "iiO", &width, &height, &bytearray))
 	{
 		if (PyByteArray_Check(bytearray))
@@ -198,7 +259,7 @@ PyObject* EffectModule::wrapSetImage(PyObject *self, PyObject *args)
 			if (length == 3 * width * height)
 			{
 				Image<ColorRgb> image(width, height);
-				char * data = PyByteArray_AS_STRING(bytearray);
+				char* data = PyByteArray_AS_STRING(bytearray);
 				memcpy(image.memptr(), data, length);
 				emit getEffect()->setInputImage(getEffect()->_priority, image, getEffect()->getRemaining(), false);
 				Py_RETURN_NONE;
@@ -225,11 +286,11 @@ PyObject* EffectModule::wrapSetImage(PyObject *self, PyObject *args)
 	return nullptr;
 }
 
-PyObject* EffectModule::wrapGetImage(PyObject *self, PyObject *args)
+PyObject* EffectModule::wrapGetImage(PyObject* self, PyObject* args)
 {
 	QBuffer buffer;
 	QImageReader reader;
-	char *source;
+	char* source;
 	int cropLeft = 0, cropTop = 0, cropRight = 0, cropBottom = 0;
 	int grayscale = false;
 
@@ -237,7 +298,7 @@ PyObject* EffectModule::wrapGetImage(PyObject *self, PyObject *args)
 	{
 		Q_INIT_RESOURCE(EffectEngine);
 
-		if(!PyArg_ParseTuple(args, "s|iiiip", &source, &cropLeft, &cropTop, &cropRight, &cropBottom, &grayscale))
+		if (!PyArg_ParseTuple(args, "s|iiiip", &source, &cropLeft, &cropTop, &cropRight, &cropBottom, &grayscale))
 		{
 			PyErr_SetString(PyExc_TypeError, "String required");
 			return nullptr;
@@ -246,8 +307,8 @@ PyObject* EffectModule::wrapGetImage(PyObject *self, PyObject *args)
 		const QUrl url = QUrl(source);
 		if (url.isValid())
 		{
-			QNetworkAccessManager *networkManager = new QNetworkAccessManager();
-			QNetworkReply * networkReply = networkManager->get(QNetworkRequest(url));
+			QNetworkAccessManager* networkManager = new QNetworkAccessManager();
+			QNetworkReply* networkReply = networkManager->get(QNetworkRequest(url));
 
 			QEventLoop eventLoop;
 			connect(networkReply, &QNetworkReply::finished, &eventLoop, &QEventLoop::quit);
@@ -262,14 +323,14 @@ PyObject* EffectModule::wrapGetImage(PyObject *self, PyObject *args)
 			}
 
 			delete networkReply;
-    		delete networkManager;
+			delete networkManager;
 		}
 		else
 		{
 			QString file = QString::fromUtf8(source);
 
-			if (file.mid(0, 1)  == ":")
-				file = ":/effects/"+file.mid(1);
+			if (file.mid(0, 1) == ":")
+				file = ":/effects/" + file.mid(1);
 
 			reader.setDecideFormatFromContent(true);
 			reader.setFileName(file);
@@ -286,7 +347,7 @@ PyObject* EffectModule::wrapGetImage(PyObject *self, PyObject *args)
 
 	if (reader.canRead())
 	{
-		PyObject *result = PyList_New(reader.imageCount());
+		PyObject* result = PyList_New(reader.imageCount());
 
 		for (int i = 0; i < reader.imageCount(); ++i)
 		{
@@ -312,18 +373,18 @@ PyObject* EffectModule::wrapGetImage(PyObject *self, PyObject *args)
 				}
 
 				QByteArray binaryImage;
-				for (int i = 0; i<height; i++)
+				for (int i = 0; i < height; i++)
 				{
-					const QRgb *scanline = reinterpret_cast<const QRgb *>(qimage.scanLine(i));
-					const QRgb *end = scanline + qimage.width();
+					const QRgb* scanline = reinterpret_cast<const QRgb*>(qimage.scanLine(i));
+					const QRgb* end = scanline + qimage.width();
 					for (; scanline != end; scanline++)
 					{
-						binaryImage.append(!grayscale ? (char) qRed(scanline[0]) : (char) qGray(scanline[0]));
-						binaryImage.append(!grayscale ? (char) qGreen(scanline[1]) : (char) qGray(scanline[1]));
-						binaryImage.append(!grayscale ? (char) qBlue(scanline[2]) : (char) qGray(scanline[2]));
+						binaryImage.append(!grayscale ? (char)qRed(scanline[0]) : (char)qGray(scanline[0]));
+						binaryImage.append(!grayscale ? (char)qGreen(scanline[1]) : (char)qGray(scanline[1]));
+						binaryImage.append(!grayscale ? (char)qBlue(scanline[2]) : (char)qGray(scanline[2]));
 					}
 				}
-				PyList_SET_ITEM(result, i, Py_BuildValue("{s:i,s:i,s:O}", "imageWidth", width, "imageHeight", height, "imageData", PyByteArray_FromStringAndSize(binaryImage.constData(),binaryImage.size())));
+				PyList_SET_ITEM(result, i, Py_BuildValue("{s:i,s:i,s:O}", "imageWidth", width, "imageHeight", height, "imageData", PyByteArray_FromStringAndSize(binaryImage.constData(), binaryImage.size())));
 			}
 			else
 			{
@@ -341,13 +402,13 @@ PyObject* EffectModule::wrapGetImage(PyObject *self, PyObject *args)
 	}
 }
 
-PyObject* EffectModule::wrapAbort(PyObject *self, PyObject *)
+PyObject* EffectModule::wrapAbort(PyObject* self, PyObject*)
 {
 	return Py_BuildValue("i", getEffect()->isInterruptionRequested() ? 1 : 0);
 }
 
 
-PyObject* EffectModule::wrapImageShow(PyObject *self, PyObject *args)
+PyObject* EffectModule::wrapImageShow(PyObject* self, PyObject* args)
 {
 	int argCount = PyTuple_Size(args);
 	int imgId = -1;
@@ -357,27 +418,27 @@ PyObject* EffectModule::wrapImageShow(PyObject *self, PyObject *args)
 		argsOk = true;
 	}
 
-	if ( ! argsOk || (imgId>-1 && imgId >= getEffect()->_imageStack.size()))
+	if (!argsOk || (imgId > -1 && imgId >= getEffect()->_imageStack.size()))
 	{
 		return nullptr;
 	}
 
 
-	QImage * qimage = (imgId<0) ? &(getEffect()->_image) : &(getEffect()->_imageStack[imgId]);
+	QImage* qimage = (imgId < 0) ? &(getEffect()->_image) : &(getEffect()->_imageStack[imgId]);
 	int width = qimage->width();
 	int height = qimage->height();
 
 	Image<ColorRgb> image(width, height);
 	QByteArray binaryImage;
 
-	for (int i = 0; i<height; ++i)
+	for (int i = 0; i < height; ++i)
 	{
-		const QRgb * scanline = reinterpret_cast<const QRgb *>(qimage->scanLine(i));
-		for (int j = 0; j< width; ++j)
+		const QRgb* scanline = reinterpret_cast<const QRgb*>(qimage->scanLine(i));
+		for (int j = 0; j < width; ++j)
 		{
-			binaryImage.append((char) qRed(scanline[j]));
-			binaryImage.append((char) qGreen(scanline[j]));
-			binaryImage.append((char) qBlue(scanline[j]));
+			binaryImage.append((char)qRed(scanline[j]));
+			binaryImage.append((char)qGreen(scanline[j]));
+			binaryImage.append((char)qBlue(scanline[j]));
 		}
 	}
 
@@ -387,27 +448,27 @@ PyObject* EffectModule::wrapImageShow(PyObject *self, PyObject *args)
 	return Py_BuildValue("");
 }
 
-PyObject* EffectModule::wrapImageLinearGradient(PyObject *self, PyObject *args)
+PyObject* EffectModule::wrapImageLinearGradient(PyObject* self, PyObject* args)
 {
 	int argCount = PyTuple_Size(args);
-	PyObject * bytearray = nullptr;
+	PyObject* bytearray = nullptr;
 	int startRX = 0;
 	int startRY = 0;
 	int startX = 0;
 	int startY = 0;
 	int width = getEffect()->_imageSize.width();
-	int endX {width};
+	int endX{ width };
 	int height = getEffect()->_imageSize.height();
-	int endY {height};
+	int endY{ height };
 	int spread = 0;
 
 	bool argsOK = false;
 
-	if ( argCount == 10 && PyArg_ParseTuple(args, "iiiiiiiiOi", &startRX, &startRY, &width, &height, &startX, &startY, &endX, &endY, &bytearray, &spread) )
+	if (argCount == 10 && PyArg_ParseTuple(args, "iiiiiiiiOi", &startRX, &startRY, &width, &height, &startX, &startY, &endX, &endY, &bytearray, &spread))
 	{
 		argsOK = true;
 	}
-	if ( argCount == 6 && PyArg_ParseTuple(args, "iiiiOi", &startX, &startY, &endX, &endY, &bytearray, &spread) )
+	if (argCount == 6 && PyArg_ParseTuple(args, "iiiiOi", &startX, &startY, &endX, &endY, &bytearray, &spread))
 	{
 		argsOK = true;
 	}
@@ -420,20 +481,20 @@ PyObject* EffectModule::wrapImageLinearGradient(PyObject *self, PyObject *args)
 			const unsigned arrayItemLength = 5;
 			if (length % arrayItemLength == 0)
 			{
-				QRect myQRect(startRX,startRY,width,height);
-				QLinearGradient gradient(QPoint(startX,startY), QPoint(endX,endY));
-				char * data = PyByteArray_AS_STRING(bytearray);
+				QRect myQRect(startRX, startRY, width, height);
+				QLinearGradient gradient(QPoint(startX, startY), QPoint(endX, endY));
+				char* data = PyByteArray_AS_STRING(bytearray);
 
-				for (int idx=0; idx<length; idx+=arrayItemLength)
+				for (int idx = 0; idx < length; idx += arrayItemLength)
 				{
 					gradient.setColorAt(
-						((uint8_t)data[idx])/255.0,
+						((uint8_t)data[idx]) / 255.0,
 						QColor(
-							(uint8_t)(data[idx+1]),
-							(uint8_t)(data[idx+2]),
-							(uint8_t)(data[idx+3]),
-							(uint8_t)(data[idx+4])
-					));
+							(uint8_t)(data[idx + 1]),
+							(uint8_t)(data[idx + 2]),
+							(uint8_t)(data[idx + 3]),
+							(uint8_t)(data[idx + 4])
+						));
 				}
 
 				gradient.setSpread(static_cast<QGradient::Spread>(spread));
@@ -456,29 +517,29 @@ PyObject* EffectModule::wrapImageLinearGradient(PyObject *self, PyObject *args)
 	return nullptr;
 }
 
-PyObject* EffectModule::wrapImageConicalGradient(PyObject *self, PyObject *args)
+PyObject* EffectModule::wrapImageConicalGradient(PyObject* self, PyObject* args)
 {
 	int argCount = PyTuple_Size(args);
-	PyObject * bytearray = nullptr;
+	PyObject* bytearray = nullptr;
 	int centerX = 0;
 	int centerY = 0;
 	int angle = 0;
 	int startX = 0;
 	int startY = 0;
-	int width  = getEffect()->_imageSize.width();
+	int width = getEffect()->_imageSize.width();
 	int height = getEffect()->_imageSize.height();
 
 	bool argsOK = false;
 
-	if ( argCount == 8 && PyArg_ParseTuple(args, "iiiiiiiO", &startX, &startY, &width, &height, &centerX, &centerY, &angle, &bytearray) )
+	if (argCount == 8 && PyArg_ParseTuple(args, "iiiiiiiO", &startX, &startY, &width, &height, &centerX, &centerY, &angle, &bytearray))
 	{
 		argsOK = true;
 	}
-	if ( argCount == 4 && PyArg_ParseTuple(args, "iiiO", &centerX, &centerY, &angle, &bytearray) )
+	if (argCount == 4 && PyArg_ParseTuple(args, "iiiO", &centerX, &centerY, &angle, &bytearray))
 	{
 		argsOK = true;
 	}
-	angle = qMax(qMin(angle,360),0);
+	angle = qMax(qMin(angle, 360), 0);
 
 	if (argsOK)
 	{
@@ -488,20 +549,20 @@ PyObject* EffectModule::wrapImageConicalGradient(PyObject *self, PyObject *args)
 			const unsigned arrayItemLength = 5;
 			if (length % arrayItemLength == 0)
 			{
-				QRect myQRect(startX,startY,width,height);
-				QConicalGradient gradient(QPoint(centerX,centerY), angle );
-				char * data = PyByteArray_AS_STRING(bytearray);
+				QRect myQRect(startX, startY, width, height);
+				QConicalGradient gradient(QPoint(centerX, centerY), angle);
+				char* data = PyByteArray_AS_STRING(bytearray);
 
-				for (int idx=0; idx<length; idx+=arrayItemLength)
+				for (int idx = 0; idx < length; idx += arrayItemLength)
 				{
 					gradient.setColorAt(
-						((uint8_t)data[idx])/255.0,
+						((uint8_t)data[idx]) / 255.0,
 						QColor(
-							(uint8_t)(data[idx+1]),
-							(uint8_t)(data[idx+2]),
-							(uint8_t)(data[idx+3]),
-							(uint8_t)(data[idx+4])
-					));
+							(uint8_t)(data[idx + 1]),
+							(uint8_t)(data[idx + 2]),
+							(uint8_t)(data[idx + 3]),
+							(uint8_t)(data[idx + 4])
+						));
 				}
 
 				getEffect()->_painter->fillRect(myQRect, gradient);
@@ -524,44 +585,44 @@ PyObject* EffectModule::wrapImageConicalGradient(PyObject *self, PyObject *args)
 }
 
 
-PyObject* EffectModule::wrapImageRadialGradient(PyObject *self, PyObject *args)
+PyObject* EffectModule::wrapImageRadialGradient(PyObject* self, PyObject* args)
 {
 	int argCount = PyTuple_Size(args);
-	PyObject * bytearray = nullptr;
+	PyObject* bytearray = nullptr;
 	int centerX = 0;
 	int centerY = 0;
 	int radius = 0;
 	int focalX = 0;
 	int focalY = 0;
-	int focalRadius =0;
+	int focalRadius = 0;
 	int spread = 0;
 	int startX = 0;
 	int startY = 0;
-	int width  = getEffect()->_imageSize.width();
+	int width = getEffect()->_imageSize.width();
 	int height = getEffect()->_imageSize.height();
 
 	bool argsOK = false;
 
-	if ( argCount == 12 && PyArg_ParseTuple(args, "iiiiiiiiiiOi", &startX, &startY, &width, &height, &centerX, &centerY, &radius, &focalX, &focalY, &focalRadius, &bytearray, &spread) )
-	{
-		argsOK      = true;
-	}
-	if ( argCount == 9 && PyArg_ParseTuple(args, "iiiiiiiOi", &startX, &startY, &width, &height, &centerX, &centerY, &radius, &bytearray, &spread) )
-	{
-		argsOK      = true;
-		focalX      = centerX;
-		focalY      = centerY;
-		focalRadius = radius;
-	}
-	if ( argCount == 8 && PyArg_ParseTuple(args, "iiiiiiOi", &centerX, &centerY, &radius, &focalX, &focalY, &focalRadius, &bytearray, &spread) )
+	if (argCount == 12 && PyArg_ParseTuple(args, "iiiiiiiiiiOi", &startX, &startY, &width, &height, &centerX, &centerY, &radius, &focalX, &focalY, &focalRadius, &bytearray, &spread))
 	{
 		argsOK = true;
 	}
-	if ( argCount == 5 && PyArg_ParseTuple(args, "iiiOi", &centerX, &centerY, &radius, &bytearray, &spread) )
+	if (argCount == 9 && PyArg_ParseTuple(args, "iiiiiiiOi", &startX, &startY, &width, &height, &centerX, &centerY, &radius, &bytearray, &spread))
 	{
-		argsOK      = true;
-		focalX      = centerX;
-		focalY      = centerY;
+		argsOK = true;
+		focalX = centerX;
+		focalY = centerY;
+		focalRadius = radius;
+	}
+	if (argCount == 8 && PyArg_ParseTuple(args, "iiiiiiOi", &centerX, &centerY, &radius, &focalX, &focalY, &focalRadius, &bytearray, &spread))
+	{
+		argsOK = true;
+	}
+	if (argCount == 5 && PyArg_ParseTuple(args, "iiiOi", &centerX, &centerY, &radius, &bytearray, &spread))
+	{
+		argsOK = true;
+		focalX = centerX;
+		focalY = centerY;
 		focalRadius = radius;
 	}
 
@@ -573,19 +634,19 @@ PyObject* EffectModule::wrapImageRadialGradient(PyObject *self, PyObject *args)
 			if (length % 4 == 0)
 			{
 
-				QRect myQRect(startX,startY,width,height);
-				QRadialGradient gradient(QPoint(centerX,centerY), qMax(radius,0) );
-				char * data = PyByteArray_AS_STRING(bytearray);
+				QRect myQRect(startX, startY, width, height);
+				QRadialGradient gradient(QPoint(centerX, centerY), qMax(radius, 0));
+				char* data = PyByteArray_AS_STRING(bytearray);
 
-				for (int idx=0; idx<length; idx+=4)
+				for (int idx = 0; idx < length; idx += 4)
 				{
 					gradient.setColorAt(
-						((uint8_t)data[idx])/255.0,
+						((uint8_t)data[idx]) / 255.0,
 						QColor(
-							(uint8_t)(data[idx+1]),
-							(uint8_t)(data[idx+2]),
-							(uint8_t)(data[idx+3])
-					));
+							(uint8_t)(data[idx + 1]),
+							(uint8_t)(data[idx + 2]),
+							(uint8_t)(data[idx + 3])
+						));
 				}
 
 				gradient.setSpread(static_cast<QGradient::Spread>(spread));
@@ -608,9 +669,9 @@ PyObject* EffectModule::wrapImageRadialGradient(PyObject *self, PyObject *args)
 	return nullptr;
 }
 
-PyObject* EffectModule::wrapImageDrawPolygon(PyObject *self, PyObject *args)
+PyObject* EffectModule::wrapImageDrawPolygon(PyObject* self, PyObject* args)
 {
-	PyObject * bytearray = nullptr;
+	PyObject* bytearray = nullptr;
 
 	int argCount = PyTuple_Size(args);
 	int r = 0;
@@ -620,11 +681,11 @@ PyObject* EffectModule::wrapImageDrawPolygon(PyObject *self, PyObject *args)
 
 	bool argsOK = false;
 
-	if ( argCount == 5 && PyArg_ParseTuple(args, "Oiiii", &bytearray, &r, &g, &b, &a) )
+	if (argCount == 5 && PyArg_ParseTuple(args, "Oiiii", &bytearray, &r, &g, &b, &a))
 	{
 		argsOK = true;
 	}
-	if ( argCount == 4 && PyArg_ParseTuple(args, "Oiii", &bytearray, &r, &g, &b) )
+	if (argCount == 4 && PyArg_ParseTuple(args, "Oiii", &bytearray, &r, &g, &b))
 	{
 		argsOK = true;
 	}
@@ -637,18 +698,18 @@ PyObject* EffectModule::wrapImageDrawPolygon(PyObject *self, PyObject *args)
 			if (length % 2 == 0)
 			{
 				QVector <QPoint> points;
-				char * data = PyByteArray_AS_STRING(bytearray);
+				char* data = PyByteArray_AS_STRING(bytearray);
 
-				for (int idx=0; idx<length; idx+=2)
+				for (int idx = 0; idx < length; idx += 2)
 				{
-					points.append(QPoint((int)(data[idx]),(int)(data[idx+1])));
+					points.append(QPoint((int)(data[idx]), (int)(data[idx + 1])));
 				}
 
-				QPainter * painter = getEffect()->_painter;
+				QPainter* painter = getEffect()->_painter;
 				QPen oldPen = painter->pen();
-				QPen newPen(QColor(r,g,b,a));
+				QPen newPen(QColor(r, g, b, a));
 				painter->setPen(newPen);
-				painter->setBrush(QBrush(QColor(r,g,b,a), Qt::SolidPattern));
+				painter->setBrush(QBrush(QColor(r, g, b, a), Qt::SolidPattern));
 				painter->drawPolygon(points);
 				painter->setPen(oldPen);
 				Py_RETURN_NONE;
@@ -668,9 +729,9 @@ PyObject* EffectModule::wrapImageDrawPolygon(PyObject *self, PyObject *args)
 	return nullptr;
 }
 
-PyObject* EffectModule::wrapImageDrawPie(PyObject *self, PyObject *args)
+PyObject* EffectModule::wrapImageDrawPie(PyObject* self, PyObject* args)
 {
-	PyObject * bytearray = nullptr;
+	PyObject* bytearray = nullptr;
 
 	QString brush;
 	int argCount = PyTuple_Size(args);
@@ -686,30 +747,30 @@ PyObject* EffectModule::wrapImageDrawPie(PyObject *self, PyObject *args)
 
 	bool argsOK = false;
 
-	if ( argCount == 9 && PyArg_ParseTuple(args, "iiiiiiiii", &centerX, &centerY, &radius, &startAngle, &spanAngle, &r, &g, &b, &a) )
+	if (argCount == 9 && PyArg_ParseTuple(args, "iiiiiiiii", &centerX, &centerY, &radius, &startAngle, &spanAngle, &r, &g, &b, &a))
 	{
 		argsOK = true;
 	}
-	if ( argCount == 8 && PyArg_ParseTuple(args, "iiiiiiii", &centerX, &centerY, &radius, &startAngle, &spanAngle, &r, &g, &b) )
+	if (argCount == 8 && PyArg_ParseTuple(args, "iiiiiiii", &centerX, &centerY, &radius, &startAngle, &spanAngle, &r, &g, &b))
 	{
 		argsOK = true;
 	}
-	if ( argCount == 7 && PyArg_ParseTuple(args, "iiiiisO", &centerX, &centerY, &radius, &startAngle, &spanAngle, &brush, &bytearray) )
+	if (argCount == 7 && PyArg_ParseTuple(args, "iiiiisO", &centerX, &centerY, &radius, &startAngle, &spanAngle, &brush, &bytearray))
 	{
 		argsOK = true;
 	}
-	if ( argCount == 5 && PyArg_ParseTuple(args, "iiisO", &centerX, &centerY, &radius, &brush, &bytearray) )
+	if (argCount == 5 && PyArg_ParseTuple(args, "iiisO", &centerX, &centerY, &radius, &brush, &bytearray))
 	{
 		argsOK = true;
 	}
 
 	if (argsOK)
 	{
-		QPainter * painter = getEffect()->_painter;
-		startAngle = qMax(qMin(startAngle,360),0);
-		spanAngle = qMax(qMin(spanAngle,360),-360);
+		QPainter* painter = getEffect()->_painter;
+		startAngle = qMax(qMin(startAngle, 360), 0);
+		spanAngle = qMax(qMin(spanAngle, 360), -360);
 
-		if( argCount == 7 || argCount == 5 )
+		if (argCount == 7 || argCount == 5)
 		{
 			a = 0;
 			if (PyByteArray_Check(bytearray))
@@ -718,21 +779,21 @@ PyObject* EffectModule::wrapImageDrawPie(PyObject *self, PyObject *args)
 				if (length % 5 == 0)
 				{
 
-						QConicalGradient gradient(QPoint(centerX,centerY), startAngle);
+					QConicalGradient gradient(QPoint(centerX, centerY), startAngle);
 
 
-					char * data = PyByteArray_AS_STRING(bytearray);
+					char* data = PyByteArray_AS_STRING(bytearray);
 
-					for (int idx=0; idx<length; idx+=5)
+					for (int idx = 0; idx < length; idx += 5)
 					{
 						gradient.setColorAt(
-							((uint8_t)data[idx])/255.0,
+							((uint8_t)data[idx]) / 255.0,
 							QColor(
-								(uint8_t)(data[idx+1]),
-								(uint8_t)(data[idx+2]),
-								(uint8_t)(data[idx+3]),
-								(uint8_t)(data[idx+4])
-						));
+								(uint8_t)(data[idx + 1]),
+								(uint8_t)(data[idx + 2]),
+								(uint8_t)(data[idx + 3]),
+								(uint8_t)(data[idx + 4])
+							));
 					}
 					painter->setBrush(gradient);
 
@@ -752,10 +813,10 @@ PyObject* EffectModule::wrapImageDrawPie(PyObject *self, PyObject *args)
 		}
 		else
 		{
-			painter->setBrush(QBrush(QColor(r,g,b,a), Qt::SolidPattern));
+			painter->setBrush(QBrush(QColor(r, g, b, a), Qt::SolidPattern));
 		}
 		QPen oldPen = painter->pen();
-		QPen newPen(QColor(r,g,b,a));
+		QPen newPen(QColor(r, g, b, a));
 		painter->setPen(newPen);
 		painter->drawPie(centerX - radius, centerY - radius, centerX + radius, centerY + radius, startAngle * 16, spanAngle * 16);
 		painter->setPen(oldPen);
@@ -764,7 +825,7 @@ PyObject* EffectModule::wrapImageDrawPie(PyObject *self, PyObject *args)
 	return nullptr;
 }
 
-PyObject* EffectModule::wrapImageSolidFill(PyObject *self, PyObject *args)
+PyObject* EffectModule::wrapImageSolidFill(PyObject* self, PyObject* args)
 {
 	int argCount = PyTuple_Size(args);
 	int r = 0;
@@ -773,39 +834,39 @@ PyObject* EffectModule::wrapImageSolidFill(PyObject *self, PyObject *args)
 	int a = 255;
 	int startX = 0;
 	int startY = 0;
-	int width  = getEffect()->_imageSize.width();
+	int width = getEffect()->_imageSize.width();
 	int height = getEffect()->_imageSize.height();
 
 	bool argsOK = false;
 
-	if ( argCount == 8 && PyArg_ParseTuple(args, "iiiiiiii", &startX, &startY, &width, &height, &r, &g, &b, &a) )
+	if (argCount == 8 && PyArg_ParseTuple(args, "iiiiiiii", &startX, &startY, &width, &height, &r, &g, &b, &a))
 	{
 		argsOK = true;
 	}
-	if ( argCount == 7 && PyArg_ParseTuple(args, "iiiiiii", &startX, &startY, &width, &height, &r, &g, &b) )
+	if (argCount == 7 && PyArg_ParseTuple(args, "iiiiiii", &startX, &startY, &width, &height, &r, &g, &b))
 	{
 		argsOK = true;
 	}
-	if ( argCount == 4 && PyArg_ParseTuple(args, "iiii",&r, &g, &b, &a) )
+	if (argCount == 4 && PyArg_ParseTuple(args, "iiii", &r, &g, &b, &a))
 	{
 		argsOK = true;
 	}
-	if ( argCount == 3 && PyArg_ParseTuple(args, "iii",&r, &g, &b) )
+	if (argCount == 3 && PyArg_ParseTuple(args, "iii", &r, &g, &b))
 	{
 		argsOK = true;
 	}
 
 	if (argsOK)
 	{
-		QRect myQRect(startX,startY,width,height);
-		getEffect()->_painter->fillRect(myQRect, QColor(r,g,b,a));
+		QRect myQRect(startX, startY, width, height);
+		getEffect()->_painter->fillRect(myQRect, QColor(r, g, b, a));
 		Py_RETURN_NONE;
 	}
 	return nullptr;
 }
 
 
-PyObject* EffectModule::wrapImageDrawLine(PyObject *self, PyObject *args)
+PyObject* EffectModule::wrapImageDrawLine(PyObject* self, PyObject* args)
 {
 	int argCount = PyTuple_Size(args);
 	int r = 0;
@@ -814,27 +875,27 @@ PyObject* EffectModule::wrapImageDrawLine(PyObject *self, PyObject *args)
 	int a = 255;
 	int startX = 0;
 	int startY = 0;
-	int thick  = 1;
-	int endX   = getEffect()->_imageSize.width();
-	int endY   = getEffect()->_imageSize.height();
+	int thick = 1;
+	int endX = getEffect()->_imageSize.width();
+	int endY = getEffect()->_imageSize.height();
 
 	bool argsOK = false;
 
-	if ( argCount == 9 && PyArg_ParseTuple(args, "iiiiiiiii", &startX, &startY, &endX, &endY, &thick, &r, &g, &b, &a) )
+	if (argCount == 9 && PyArg_ParseTuple(args, "iiiiiiiii", &startX, &startY, &endX, &endY, &thick, &r, &g, &b, &a))
 	{
 		argsOK = true;
 	}
-	if ( argCount == 8 && PyArg_ParseTuple(args, "iiiiiiii", &startX, &startY, &endX, &endY, &thick, &r, &g, &b) )
+	if (argCount == 8 && PyArg_ParseTuple(args, "iiiiiiii", &startX, &startY, &endX, &endY, &thick, &r, &g, &b))
 	{
 		argsOK = true;
 	}
 
 	if (argsOK)
 	{
-		QPainter * painter = getEffect()->_painter;
+		QPainter* painter = getEffect()->_painter;
 		QRect myQRect(startX, startY, endX, endY);
 		QPen oldPen = painter->pen();
-		QPen newPen(QColor(r,g,b,a));
+		QPen newPen(QColor(r, g, b, a));
 		newPen.setWidth(thick);
 		painter->setPen(newPen);
 		painter->drawLine(startX, startY, endX, endY);
@@ -845,7 +906,7 @@ PyObject* EffectModule::wrapImageDrawLine(PyObject *self, PyObject *args)
 	return nullptr;
 }
 
-PyObject* EffectModule::wrapImageDrawPoint(PyObject *self, PyObject *args)
+PyObject* EffectModule::wrapImageDrawPoint(PyObject* self, PyObject* args)
 {
 	int argCount = PyTuple_Size(args);
 	int r = 0;
@@ -854,24 +915,24 @@ PyObject* EffectModule::wrapImageDrawPoint(PyObject *self, PyObject *args)
 	int x = 0;
 	int y = 0;
 	int a = 255;
-	int thick  = 1;
+	int thick = 1;
 
 	bool argsOK = false;
 
-	if ( argCount == 7 && PyArg_ParseTuple(args, "iiiiiii", &x, &y, &thick, &r, &g, &b, &a) )
+	if (argCount == 7 && PyArg_ParseTuple(args, "iiiiiii", &x, &y, &thick, &r, &g, &b, &a))
 	{
 		argsOK = true;
 	}
-	if ( argCount == 6 && PyArg_ParseTuple(args, "iiiiii", &x, &y, &thick, &r, &g, &b) )
+	if (argCount == 6 && PyArg_ParseTuple(args, "iiiiii", &x, &y, &thick, &r, &g, &b))
 	{
 		argsOK = true;
 	}
 
 	if (argsOK)
 	{
-		QPainter * painter = getEffect()->_painter;
+		QPainter* painter = getEffect()->_painter;
 		QPen oldPen = painter->pen();
-		QPen newPen(QColor(r,g,b,a));
+		QPen newPen(QColor(r, g, b, a));
 		newPen.setWidth(thick);
 		painter->setPen(newPen);
 		painter->drawPoint(x, y);
@@ -882,7 +943,7 @@ PyObject* EffectModule::wrapImageDrawPoint(PyObject *self, PyObject *args)
 	return nullptr;
 }
 
-PyObject* EffectModule::wrapImageDrawRect(PyObject *self, PyObject *args)
+PyObject* EffectModule::wrapImageDrawRect(PyObject* self, PyObject* args)
 {
 	int argCount = PyTuple_Size(args);
 	int r = 0;
@@ -891,27 +952,27 @@ PyObject* EffectModule::wrapImageDrawRect(PyObject *self, PyObject *args)
 	int a = 255;
 	int startX = 0;
 	int startY = 0;
-	int thick  = 1;
-	int width   = getEffect()->_imageSize.width();
-	int height  = getEffect()->_imageSize.height();
+	int thick = 1;
+	int width = getEffect()->_imageSize.width();
+	int height = getEffect()->_imageSize.height();
 
 	bool argsOK = false;
 
-	if ( argCount == 9 && PyArg_ParseTuple(args, "iiiiiiiii", &startX, &startY, &width, &height, &thick, &r, &g, &b, &a) )
+	if (argCount == 9 && PyArg_ParseTuple(args, "iiiiiiiii", &startX, &startY, &width, &height, &thick, &r, &g, &b, &a))
 	{
 		argsOK = true;
 	}
-	if ( argCount == 8 && PyArg_ParseTuple(args, "iiiiiiii", &startX, &startY, &width, &height, &thick, &r, &g, &b) )
+	if (argCount == 8 && PyArg_ParseTuple(args, "iiiiiiii", &startX, &startY, &width, &height, &thick, &r, &g, &b))
 	{
 		argsOK = true;
 	}
 
 	if (argsOK)
 	{
-		QPainter * painter = getEffect()->_painter;
-		QRect myQRect(startX,startY,width,height);
+		QPainter* painter = getEffect()->_painter;
+		QRect myQRect(startX, startY, width, height);
 		QPen oldPen = painter->pen();
-		QPen newPen(QColor(r,g,b,a));
+		QPen newPen(QColor(r, g, b, a));
 		newPen.setWidth(thick);
 		painter->setPen(newPen);
 		painter->drawRect(startX, startY, width, height);
@@ -923,7 +984,7 @@ PyObject* EffectModule::wrapImageDrawRect(PyObject *self, PyObject *args)
 }
 
 
-PyObject* EffectModule::wrapImageSetPixel(PyObject *self, PyObject *args)
+PyObject* EffectModule::wrapImageSetPixel(PyObject* self, PyObject* args)
 {
 	int argCount = PyTuple_Size(args);
 	int r = 0;
@@ -932,9 +993,9 @@ PyObject* EffectModule::wrapImageSetPixel(PyObject *self, PyObject *args)
 	int x = 0;
 	int y = 0;
 
-	if ( argCount == 5 && PyArg_ParseTuple(args, "iiiii", &x, &y, &r, &g, &b ) )
+	if (argCount == 5 && PyArg_ParseTuple(args, "iiiii", &x, &y, &r, &g, &b))
 	{
-		getEffect()->_image.setPixel(x,y,qRgb(r,g,b));
+		getEffect()->_image.setPixel(x, y, qRgb(r, g, b));
 		Py_RETURN_NONE;
 	}
 
@@ -942,43 +1003,43 @@ PyObject* EffectModule::wrapImageSetPixel(PyObject *self, PyObject *args)
 }
 
 
-PyObject* EffectModule::wrapImageGetPixel(PyObject *self, PyObject *args)
+PyObject* EffectModule::wrapImageGetPixel(PyObject* self, PyObject* args)
 {
 	int argCount = PyTuple_Size(args);
 	int x = 0;
 	int y = 0;
 
-	if ( argCount == 2 && PyArg_ParseTuple(args, "ii", &x, &y) )
+	if (argCount == 2 && PyArg_ParseTuple(args, "ii", &x, &y))
 	{
-		QRgb rgb = getEffect()->_image.pixel(x,y);
-		return Py_BuildValue("iii",qRed(rgb),qGreen(rgb),qBlue(rgb));
+		QRgb rgb = getEffect()->_image.pixel(x, y);
+		return Py_BuildValue("iii", qRed(rgb), qGreen(rgb), qBlue(rgb));
 	}
 	return nullptr;
 }
 
-PyObject* EffectModule::wrapImageSave(PyObject *self, PyObject *args)
+PyObject* EffectModule::wrapImageSave(PyObject* self, PyObject* args)
 {
 	QImage img(getEffect()->_image.copy());
 	getEffect()->_imageStack.append(img);
 
-	return Py_BuildValue("i", getEffect()->_imageStack.size()-1);
+	return Py_BuildValue("i", getEffect()->_imageStack.size() - 1);
 }
 
-PyObject* EffectModule::wrapImageMinSize(PyObject *self, PyObject *args)
+PyObject* EffectModule::wrapImageMinSize(PyObject* self, PyObject* args)
 {
 	int argCount = PyTuple_Size(args);
 	int w = 0;
 	int h = 0;
-	int width   = getEffect()->_imageSize.width();
-	int height  = getEffect()->_imageSize.height();
+	int width = getEffect()->_imageSize.width();
+	int height = getEffect()->_imageSize.height();
 
-	if ( argCount == 2 && PyArg_ParseTuple(args, "ii", &w, &h) )
+	if (argCount == 2 && PyArg_ParseTuple(args, "ii", &w, &h))
 	{
-		if (width<w || height<h)
+		if (width < w || height < h)
 		{
 			delete getEffect()->_painter;
 
-			getEffect()->_image = getEffect()->_image.scaled(qMax(width,w),qMax(height,h), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+			getEffect()->_image = getEffect()->_image.scaled(qMax(width, w), qMax(height, h), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
 			getEffect()->_imageSize = getEffect()->_image.size();
 			getEffect()->_painter = new QPainter(&(getEffect()->_image));
 		}
@@ -987,60 +1048,60 @@ PyObject* EffectModule::wrapImageMinSize(PyObject *self, PyObject *args)
 	return nullptr;
 }
 
-PyObject* EffectModule::wrapImageWidth(PyObject *self, PyObject *args)
+PyObject* EffectModule::wrapImageWidth(PyObject* self, PyObject* args)
 {
 	return Py_BuildValue("i", getEffect()->_imageSize.width());
 }
 
-PyObject* EffectModule::wrapImageHeight(PyObject *self, PyObject *args)
+PyObject* EffectModule::wrapImageHeight(PyObject* self, PyObject* args)
 {
 	return Py_BuildValue("i", getEffect()->_imageSize.height());
 }
 
-PyObject* EffectModule::wrapImageCRotate(PyObject *self, PyObject *args)
+PyObject* EffectModule::wrapImageCRotate(PyObject* self, PyObject* args)
 {
 	int argCount = PyTuple_Size(args);
 	int angle;
 
-	if ( argCount == 1 && PyArg_ParseTuple(args, "i", &angle ) )
+	if (argCount == 1 && PyArg_ParseTuple(args, "i", &angle))
 	{
-		angle = qMax(qMin(angle,360),0);
+		angle = qMax(qMin(angle, 360), 0);
 		getEffect()->_painter->rotate(angle);
 		Py_RETURN_NONE;
 	}
 	return nullptr;
 }
 
-PyObject* EffectModule::wrapImageCOffset(PyObject *self, PyObject *args)
+PyObject* EffectModule::wrapImageCOffset(PyObject* self, PyObject* args)
 {
 	int offsetX = 0;
 	int offsetY = 0;
 	int argCount = PyTuple_Size(args);
 
-	if ( argCount == 2 )
+	if (argCount == 2)
 	{
-		PyArg_ParseTuple(args, "ii", &offsetX, &offsetY );
+		PyArg_ParseTuple(args, "ii", &offsetX, &offsetY);
 	}
 
-	getEffect()->_painter->translate(QPoint(offsetX,offsetY));
+	getEffect()->_painter->translate(QPoint(offsetX, offsetY));
 	Py_RETURN_NONE;
 }
 
-PyObject* EffectModule::wrapImageCShear(PyObject *self, PyObject *args)
+PyObject* EffectModule::wrapImageCShear(PyObject* self, PyObject* args)
 {
 	int sh = 0;
 	int sv = 0;
 	int argCount = PyTuple_Size(args);
 
-	if ( argCount == 2 && PyArg_ParseTuple(args, "ii", &sh, &sv ))
+	if (argCount == 2 && PyArg_ParseTuple(args, "ii", &sh, &sv))
 	{
-		getEffect()->_painter->shear(sh,sv);
+		getEffect()->_painter->shear(sh, sv);
 		Py_RETURN_NONE;
 	}
 	return nullptr;
 }
 
-PyObject* EffectModule::wrapImageResetT(PyObject *self, PyObject *args)
+PyObject* EffectModule::wrapImageResetT(PyObject* self, PyObject* args)
 {
 	getEffect()->_painter->resetTransform();
 	Py_RETURN_NONE;
