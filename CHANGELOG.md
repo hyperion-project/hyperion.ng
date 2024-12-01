@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Support for ftdi chip based LED-devices with ws2812, sk6812 apa102 LED types (Many thanks to @nurikk) (#1746)
-- Support for Skydimo devices (being an Adalight variant)
+- Support for Skydimo devices
 - Support gaps on Matrix Layout (#1696)
 - Windows: Added a new grabber that uses the DXGI DDA (Desktop Duplication API). This has much better performance than the DX grabber as it does more of its work on the GPU.
 
@@ -41,6 +41,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed: Philip Hue APIv2 support without Entertainment group defined (#1742)
 - Refactored: Database access layer
 - Refactored: Hyperion's configuration database is validated before start-up (and migrated, if required)
+- Refactored: Python to enable parallel effect processing under Python 3.12
+- Fixed: Python 3.12 crashes (#1747)
+- osX Grabber: Use ScreenCaptureKit under macOS 15 and above
 
 **JSON-API**
 - Refactored JSON-API to ensure consistent authorization behaviour across sessions and single requests with token authorization.
