@@ -69,6 +69,13 @@ public:
 
 	QJsonObject getArgs() const { return _args; }
 
+public slots:
+
+	///
+	/// @brief Stop the effect (triggers its interruption)
+	///
+	void stop();
+
 signals:
 	void setInput(int priority, const std::vector<ColorRgb>& ledColors, int timeout_ms, bool clearEffect);
 	void setInputImage(int priority, const Image<ColorRgb>& image, int timeout_ms, bool clearEffect);

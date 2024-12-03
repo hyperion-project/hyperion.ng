@@ -123,6 +123,6 @@ void ProtoServer::stopServer()
 			client->forceClose();
 		}
 		_server->close();
-		Info(_log, "Stopped");
+		Info(_log, "ProtocolBuffer-Server stopped");
 	}
 }

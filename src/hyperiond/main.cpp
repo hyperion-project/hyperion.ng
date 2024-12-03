@@ -28,6 +28,7 @@
 #include <QSystemTrayIcon>
 #include <QNetworkInterface>
 #include <QHostInfo>
+#include <QScopedPointer>
 
 #include "HyperionConfig.h"
 
@@ -431,10 +432,10 @@ int main(int argc, char** argv)
 			Warning(log,"The database file '%s' is set not writeable. Hyperion starts in read-only mode. Configuration updates will not be persisted!", QSTRING_CSTR(dbFile.absoluteFilePath()));
 		}
 
-		HyperionDaemon* hyperiond = nullptr;
+		QScopedPointer<HyperionDaemon> hyperiond;
 		try
 		{
-			hyperiond = new HyperionDaemon(userDataDirectory.absolutePath(), qApp, bool(logLevelCheck));
+			hyperiond.reset(new HyperionDaemon(userDataDirectory.absolutePath(), qApp, bool(logLevelCheck)));
 		}
 		catch (std::exception& e)
 		{
@@ -447,7 +448,7 @@ int main(int argc, char** argv)
 		{
 			Info(log, "Start Systray menu");
 			QApplication::setQuitOnLastWindowClosed(false);
-			SysTray tray(hyperiond);
+			SysTray tray(hyperiond.get());
 			tray.hide();
 			rc = (qobject_cast<QApplication *>(app.data()))->exec();
 		}
@@ -455,8 +456,6 @@ int main(int argc, char** argv)
 		{
 			rc = app->exec();
 		}
-		Info(log, "Application closed with code %d", rc);
-		delete hyperiond;
 	}
 	catch (std::exception& e)
 	{
@@ -469,6 +468,8 @@ int main(int argc, char** argv)
 		system("pause");
 	}
 #endif
+
+	Info(log, "Application ended with code %d", rc);
 
 	return rc;
 }

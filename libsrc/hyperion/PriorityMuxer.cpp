@@ -64,6 +64,14 @@ PriorityMuxer::~PriorityMuxer()
 {
 }
 
+void PriorityMuxer::stop()
+{
+	_timer->stop();
+	_updateTimer->stop();
+	_blockTimer->stop();
+	Debug(_log, "Priority-Muxer stopped");
+}
+
 void PriorityMuxer::setEnable(bool enable)
 {
 	enable ? _updateTimer->start() : _updateTimer->stop();

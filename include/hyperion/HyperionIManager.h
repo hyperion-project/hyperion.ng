@@ -6,9 +6,12 @@
 #include <utils/settings.h>
 #include <utils/Components.h>
 #include <events/EventEnum.h>
+#include <db/InstanceTable.h>
 
 // qt
 #include <QMap>
+#include <QSharedPointer>
+#include <QScopedPointer>
 
 class Hyperion;
 class InstanceTable;
@@ -39,6 +42,8 @@ public:
 	static HyperionIManager* getInstance() { return HIMinstance; }
 	static HyperionIManager* HIMinstance;
 
+	~HyperionIManager() override;
+
 public slots:
 	///
 	/// @brief Is given instance running?
@@ -52,7 +57,7 @@ public slots:
 	/// @param intance  the index
 	/// @return Hyperion instance, if index is not found returns instance 0
 	///
-	Hyperion* getHyperionInstance(quint8 instance = 0);
+	QSharedPointer<Hyperion> getHyperionInstance(quint8 instance = 0);
 
 	///
 	/// @brief Get instance data of all instances in db + running state
@@ -142,6 +147,10 @@ signals:
 	///
 	void startInstanceResponse(QObject *caller, const int &tan);
 
+	///
+	/// @brief Emits when all instances were stopped
+	///
+	void areAllInstancesStopped();
 
 signals:
 	///////////////////////////////////////
@@ -220,10 +229,10 @@ private:
 
 private:
 	Logger* _log;
-	InstanceTable* _instanceTable;
-	QMap<quint8, Hyperion*> _runningInstances;
+	QScopedPointer<InstanceTable> _instanceTable;
+	QMap<quint8, QSharedPointer<Hyperion>> _runningInstances;
+	QMap<quint8, QSharedPointer<Hyperion>> _startingInstances;
 
-	QList<quint8> _startQueue;
 	/// All pending requests
 	QMap<quint8, PendingRequests> _pendingRequests;
 };

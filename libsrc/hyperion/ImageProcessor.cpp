@@ -142,7 +142,6 @@ void ImageProcessor::setSize(int width, int height)
 
 void ImageProcessor::setLedString(const LedString& ledString)
 {
-	Debug(_log,"");
 	if ( !_imageToLedColors.isNull() )
 	{
 		_ledString = ledString;

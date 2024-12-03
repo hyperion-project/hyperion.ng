@@ -9,6 +9,8 @@
 #include <QJsonDocument>
 #include <QTimer>
 #include <QDateTime>
+#include <QScopedPointer>
+
 
 // STL includes
 #include <vector>
@@ -284,11 +286,23 @@ public slots:
 
 signals:
 	///
-	/// @brief Emits whenever the LED-Device switches between on/off.
+	/// @brief Emits whenever the LED-Device is enabled/disabled.
 	///
-	/// @param[in] newState The new state of the device
+	/// @param[in] isEnabled The new state of the device
 	///
-	void enableStateChanged(bool newState);
+	void isEnabledChanged(bool isEnabled);
+
+	///
+	/// @brief Emits whenever the LED-Device switches on/off.
+	///
+	/// @param[in] isOn The new state of the device
+	///
+	void isOnChanged(bool isOn);
+
+	///
+	/// @brief Emits whenever the LED-Device is stopped.
+	///
+	void isStopped();
 
 protected:
 
@@ -422,7 +436,7 @@ protected:
 
 	/// Timer object which makes sure that LED data is written at a minimum rate
 	/// e.g. some devices will switch off when they do not receive data at least every 15 seconds
-	QTimer*	_refreshTimer;
+	QScopedPointer<QTimer, QScopedPointerDeleteLater> _refreshTimer;
 
 	// Device configuration parameters
 
@@ -486,6 +500,13 @@ protected slots:
 	///
 	virtual void setInError( const QString& errorMsg, bool isRecoverable=true);
 
+private slots:
+
+	///
+	/// @brief Retry to enable the LED-device
+	///
+	void retryEnable();
+
 private:
 
 	/// @brief Start a new refresh cycle
@@ -495,7 +516,7 @@ private:
 	void stopRefreshTimer();
 
 	/// Timer that enables a device (used to retry enablement, if enabled failed before)
-	QTimer*	_enableAttemptsTimer;
+	QScopedPointer<QTimer, QScopedPointerDeleteLater>	_enableAttemptsTimer;
 
 	// Device configuration parameters
 

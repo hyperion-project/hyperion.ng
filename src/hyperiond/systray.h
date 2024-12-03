@@ -9,6 +9,7 @@
 #include <QWidget>
 #include <QColorDialog>
 #include <QCloseEvent>
+#include <QSharedPointer>
 
 #include <hyperion/Hyperion.h>
 #include <hyperion/HyperionIManager.h>
@@ -84,7 +85,7 @@ private:
 	QMenu            *_trayIconSystemMenu;
 	QColorDialog      _colorDlg;
 	HyperionDaemon   *_hyperiond;
-	Hyperion         *_hyperion;
+	QSharedPointer<Hyperion> _hyperion;
 	HyperionIManager *_instanceManager;
 	quint16           _webPort;
 };

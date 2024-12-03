@@ -13,6 +13,7 @@
 
 // qt includes
 #include <QString>
+#include <QSharedPointer>
 
 class JsonCallbacks;
 class HyperionIManager;
@@ -379,7 +380,7 @@ protected:
 	HyperionIManager *_instanceManager;
 
 	Logger *_log;
-	Hyperion *_hyperion;
+	QSharedPointer<Hyperion> _hyperion;
 
 signals:
 	///

@@ -81,6 +81,12 @@ public:
 	///
 	~PriorityMuxer() override;
 
+
+	///
+	/// @brief Stop the PriorityMuxer and its timers
+	///
+	void stop();
+
 	///
 	/// @brief Start/Stop the PriorityMuxer update timer; On disabled no priority and timeout updates will be performend
 	/// @param  enable  The new state

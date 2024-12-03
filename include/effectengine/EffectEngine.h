@@ -7,6 +7,7 @@
 #include <QJsonValue>
 #include <QJsonDocument>
 #include <QJsonArray>
+#include <QEventLoop>
 
 // Hyperion includes
 #include <hyperion/Hyperion.h>
@@ -66,9 +67,17 @@ public:
 	///
 	void startCachedEffects();
 
+	///
+	/// @brief Stop all effects
+	///
+	void stopAllEffects();
+
 signals:
-	/// Emit when the effect list has been updated
+	/// Emits when the effect list has been updated
 	void effectListUpdated();
+
+	/// Emits when all effevts were stopped
+	void isStopCompleted();
 
 public slots:
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
@@ -93,6 +102,7 @@ public slots:
 
 private slots:
 	void effectFinished();
+	void onEffectFinished();
 
 	///
 	/// @brief is called whenever the EffectFileHandler emits updated effect list
@@ -111,6 +121,8 @@ private:
 				, const QString &imageData = ""
 	);
 
+	void waitForEffectsToStop();
+
 private:
 	Hyperion * _hyperion;
 
@@ -124,4 +136,7 @@ private:
 
 	// The global effect file handler
 	EffectFileHandler* _effectFileHandler;
+
+	QEventLoop _eventLoop;
+	int _remainingEffects;
 };

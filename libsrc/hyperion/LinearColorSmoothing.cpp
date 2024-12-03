@@ -78,7 +78,7 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument &config, Hyperion
 	_log= Logger::getInstance("SMOOTHING", subComponent);
 
 	// timer
-	_timer = new QTimer(this);
+	_timer.reset(new QTimer(this));
 	_timer->setTimerType(Qt::PreciseTimer);
 
 	// init cfg (default)
@@ -91,7 +91,7 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument &config, Hyperion
 
 	// listen for comp changes
 	connect(_hyperion, &Hyperion::compStateChangeRequest, this, &LinearColorSmoothing::componentStateChange);
-	connect(_timer, &QTimer::timeout, this, &LinearColorSmoothing::updateLeds);
+	connect(_timer.get(), &QTimer::timeout, this, &LinearColorSmoothing::updateLeds);
 
 	connect(_prioMuxer, &PriorityMuxer::prioritiesChanged, this, [=] (int priority){
 		const PriorityMuxer::InputInfo priorityInfo = _prioMuxer->getInputInfo(priority);
@@ -105,7 +105,6 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument &config, Hyperion
 
 LinearColorSmoothing::~LinearColorSmoothing()
 {
-	delete _timer;
 }
 
 void LinearColorSmoothing::handleSettingsUpdate(settings::type type, const QJsonDocument &config)

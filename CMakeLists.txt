@@ -263,12 +263,12 @@ if(HYPERION_LIGHT)
 
 	# Disable Services
 	SET ( DEFAULT_EFFECTENGINE                OFF )
-	#SET ( DEFAULT_EXPERIMENTAL                OFF )
+	SET ( DEFAULT_EXPERIMENTAL                OFF )
 	#SET ( DEFAULT_MDNS                        OFF )
-	#SET ( DEFAULT_REMOTE_CTL                  OFF )
-	
-	#SET ( ENABLE_JSONCHECKS                    OFF )
-	#SET ( ENABLE_DEPLOY_DEPENDENCIES          OFF )
+	SET ( DEFAULT_REMOTE_CTL                  OFF )
+
+	SET ( ENABLE_JSONCHECKS                    ON )
+	SET ( ENABLE_DEPLOY_DEPENDENCIES           ON )
 endif()
 message(STATUS "Grabber options:")
 

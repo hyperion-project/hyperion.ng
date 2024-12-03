@@ -13,6 +13,7 @@
 #include <QByteArray>
 #include <QTimer>
 #include <QThread>
+#include <QSharedPointer>
 
 // hyperion includes
 #include <utils/jsonschema/QJsonFactory.h>
@@ -102,7 +103,8 @@ void API::setColor(int priority, const std::vector<uint8_t> &ledColors, int time
 		{
 			fledColors.emplace_back(ColorRgb{ledColors[i], ledColors[i + 1], ledColors[i + 2]});
 		}
-		QMetaObject::invokeMethod(_hyperion, "setColor", Qt::QueuedConnection, Q_ARG(int, priority), Q_ARG(std::vector<ColorRgb>, fledColors), Q_ARG(int, timeout_ms), Q_ARG(QString, origin));
+
+		QMetaObject::invokeMethod(_hyperion.get(), "setColor", Qt::QueuedConnection, Q_ARG(int, priority), Q_ARG(std::vector<ColorRgb>, fledColors), Q_ARG(int, timeout_ms), Q_ARG(QString, origin));
 	}
 }
 
@@ -192,8 +194,8 @@ bool API::setImage(ImageCmdData &data, hyperion::Components comp, QString &reply
 	Image<ColorRgb> image(data.width, data.height);
 	memcpy(image.memptr(), data.data.data(), static_cast<size_t>(data.data.size()));
 
-	QMetaObject::invokeMethod(_hyperion, "registerInput", Qt::QueuedConnection, Q_ARG(int, data.priority), Q_ARG(hyperion::Components, comp), Q_ARG(QString, data.origin), Q_ARG(QString, data.imgName));
-	QMetaObject::invokeMethod(_hyperion, "setInputImage", Qt::QueuedConnection, Q_ARG(int, data.priority), Q_ARG(Image<ColorRgb>, image), Q_ARG(int64_t, data.duration));
+	QMetaObject::invokeMethod(_hyperion.get(), "registerInput", Qt::QueuedConnection, Q_ARG(int, data.priority), Q_ARG(hyperion::Components, comp), Q_ARG(QString, data.origin), Q_ARG(QString, data.imgName));
+	QMetaObject::invokeMethod(_hyperion.get(), "setInputImage", Qt::QueuedConnection, Q_ARG(int, data.priority), Q_ARG(Image<ColorRgb>, image), Q_ARG(int64_t, data.duration));
 
 	return true;
 }
@@ -202,7 +204,7 @@ bool API::clearPriority(int priority, QString &replyMsg, hyperion::Components /*
 {
 	if (priority < 0 || (priority > 0 && priority < PriorityMuxer::BG_PRIORITY))
 	{
-		QMetaObject::invokeMethod(_hyperion, "clear", Qt::QueuedConnection, Q_ARG(int, priority));
+		QMetaObject::invokeMethod(_hyperion.get(), "clear", Qt::QueuedConnection, Q_ARG(int, priority));
 	}
 	else
 	{
@@ -218,7 +220,7 @@ bool API::setComponentState(const QString &comp, bool &compState, QString &reply
 
 	if (component != COMP_INVALID)
 	{
-		QMetaObject::invokeMethod(_hyperion, "compStateChangeRequest", Qt::QueuedConnection, Q_ARG(hyperion::Components, component), Q_ARG(bool, compState));
+		QMetaObject::invokeMethod(_hyperion.get(), "compStateChangeRequest", Qt::QueuedConnection, Q_ARG(hyperion::Components, component), Q_ARG(bool, compState));
 		return true;
 	}
 	replyMsg = QString("Unknown component name: %1").arg(comp);
@@ -227,12 +229,12 @@ bool API::setComponentState(const QString &comp, bool &compState, QString &reply
 
 void API::setLedMappingType(int type, hyperion::Components /*callerComp*/)
 {
-	QMetaObject::invokeMethod(_hyperion, "setLedMappingType", Qt::QueuedConnection, Q_ARG(int, type));
+	QMetaObject::invokeMethod(_hyperion.get(), "setLedMappingType", Qt::QueuedConnection, Q_ARG(int, type));
 }
 
 void API::setVideoMode(VideoMode mode, hyperion::Components /*callerComp*/)
 {
-	QMetaObject::invokeMethod(_hyperion, "setVideoMode", Qt::QueuedConnection, Q_ARG(VideoMode, mode));
+	QMetaObject::invokeMethod(_hyperion.get(), "setVideoMode", Qt::QueuedConnection, Q_ARG(VideoMode, mode));
 }
 
 #if defined(ENABLE_EFFECTENGINE)
@@ -241,11 +243,11 @@ bool API::setEffect(const EffectCmdData &dat, hyperion::Components /*callerComp*
 	int isStarted;
 	if (!dat.args.isEmpty())
 	{
-		QMetaObject::invokeMethod(_hyperion, "setEffect", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, isStarted), Q_ARG(QString, dat.effectName), Q_ARG(QJsonObject, dat.args), Q_ARG(int, dat.priority), Q_ARG(int, dat.duration), Q_ARG(QString, dat.pythonScript), Q_ARG(QString, dat.origin), Q_ARG(QString, dat.data));
+		QMetaObject::invokeMethod(_hyperion.get(), "setEffect", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, isStarted), Q_ARG(QString, dat.effectName), Q_ARG(QJsonObject, dat.args), Q_ARG(int, dat.priority), Q_ARG(int, dat.duration), Q_ARG(QString, dat.pythonScript), Q_ARG(QString, dat.origin), Q_ARG(QString, dat.data));
 	}
 	else
 	{
-		QMetaObject::invokeMethod(_hyperion, "setEffect", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, isStarted), Q_ARG(QString, dat.effectName), Q_ARG(int, dat.priority), Q_ARG(int, dat.duration), Q_ARG(QString, dat.origin));
+		QMetaObject::invokeMethod(_hyperion.get(), "setEffect", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, isStarted), Q_ARG(QString, dat.effectName), Q_ARG(int, dat.priority), Q_ARG(int, dat.duration), Q_ARG(QString, dat.origin));
 	}
 
 	return isStarted >= 0;
@@ -254,12 +256,12 @@ bool API::setEffect(const EffectCmdData &dat, hyperion::Components /*callerComp*
 
 void API::setSourceAutoSelect(bool state, hyperion::Components /*callerComp*/)
 {
-	QMetaObject::invokeMethod(_hyperion, "setSourceAutoSelect", Qt::QueuedConnection, Q_ARG(bool, state));
+	QMetaObject::invokeMethod(_hyperion.get(), "setSourceAutoSelect", Qt::QueuedConnection, Q_ARG(bool, state));
 }
 
 void API::setVisiblePriority(int priority, hyperion::Components /*callerComp*/)
 {
-	QMetaObject::invokeMethod(_hyperion, "setVisiblePriority", Qt::QueuedConnection, Q_ARG(int, priority));
+	QMetaObject::invokeMethod(_hyperion.get(), "setVisiblePriority", Qt::QueuedConnection, Q_ARG(int, priority));
 }
 
 void API::registerInput(int priority, hyperion::Components component, const QString &origin, const QString &owner, hyperion::Components callerComp)
@@ -271,7 +273,7 @@ void API::registerInput(int priority, hyperion::Components component, const QStr
 
 	_activeRegisters.insert({priority, registerData{component, origin, owner, callerComp}});
 
-	QMetaObject::invokeMethod(_hyperion, "registerInput", Qt::QueuedConnection, Q_ARG(int, priority), Q_ARG(hyperion::Components, component), Q_ARG(QString, origin), Q_ARG(QString, owner));
+	QMetaObject::invokeMethod(_hyperion.get(), "registerInput", Qt::QueuedConnection, Q_ARG(int, priority), Q_ARG(hyperion::Components, component), Q_ARG(QString, origin), Q_ARG(QString, owner));
 }
 
 void API::unregisterInput(int priority)
@@ -296,16 +298,17 @@ bool API::setHyperionInstance(quint8 inst)
 		return false;
 	}
 
-	disconnect(_hyperion, nullptr, this, nullptr);
-	QMetaObject::invokeMethod(_instanceManager, "getHyperionInstance", Qt::DirectConnection, Q_RETURN_ARG(Hyperion *, _hyperion), Q_ARG(quint8, inst));
+	disconnect(_hyperion.get(), nullptr, this, nullptr);
+	QMetaObject::invokeMethod(_instanceManager, "getHyperionInstance", Qt::DirectConnection, Q_RETURN_ARG(QSharedPointer<Hyperion>, _hyperion), Q_ARG(quint8, inst));
 	_currInstanceIndex = inst;
+
 	return true;
 }
 
 bool API::isHyperionEnabled()
 {
 	int isEnabled;
-	QMetaObject::invokeMethod(_hyperion, "isComponentEnabled", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, isEnabled), Q_ARG(hyperion::Components, hyperion::COMP_ALL));
+	QMetaObject::invokeMethod(_hyperion.get(), "isComponentEnabled", Qt::BlockingQueuedConnection, Q_RETURN_ARG(int, isEnabled), Q_ARG(hyperion::Components, hyperion::COMP_ALL));
 	return isEnabled > 0;
 }
 
@@ -373,7 +376,7 @@ QString API::deleteEffect(const QString &name)
 	if (_adminAuthorized)
 	{
 		QString res;
-		QMetaObject::invokeMethod(_hyperion, "deleteEffect", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QString, res), Q_ARG(QString, name));
+		QMetaObject::invokeMethod(_hyperion.get(), "deleteEffect", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QString, res), Q_ARG(QString, name));
 		return res;
 	}
 	return NO_AUTHORIZATION;
@@ -384,7 +387,7 @@ QString API::saveEffect(const QJsonObject &data)
 	if (_adminAuthorized)
 	{
 		QString res;
-		QMetaObject::invokeMethod(_hyperion, "saveEffect", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QString, res), Q_ARG(QJsonObject, data));
+		QMetaObject::invokeMethod(_hyperion.get(), "saveEffect", Qt::BlockingQueuedConnection, Q_RETURN_ARG(QString, res), Q_ARG(QJsonObject, data));
 		return res;
 	}
 	return NO_AUTHORIZATION;

@@ -7,6 +7,7 @@
 
 // Qt includes
 #include <QVector>
+#include <QScopedPointer>
 
 // hyperion includes
 #include <leddevice/LedDevice.h>
@@ -180,7 +181,7 @@ private:
 	int64_t _settlingTime;
 
 	/// The Qt timer object
-	QTimer *_timer;
+	QScopedPointer<QTimer> _timer;
 
 	/// The timestamp at which the target data should be fully applied
 	int64_t _targetTime;

@@ -120,7 +120,7 @@ public:
 	///
 	/// @brief Get webserver pointer (systray)
 	///
-	WebServer *getWebServerInstance() { return _webserver.data(); }
+	WebServer *getWebServerInstance() { return _webServer.data(); }
 
 	///
 	/// @brief Get the current videoMode
@@ -136,7 +136,7 @@ public:
 	static HyperionDaemon* daemon;
 
 public slots:
-	void stoppServices();
+	void stopServices();
 
 signals:
 	///////////////////////////////////////
@@ -238,28 +238,35 @@ private:
 	Logger* _log;
 
 	/// Core services
-	QScopedPointer<HyperionIManager> _instanceManager;
+	QScopedPointer<HyperionIManager, QScopedPointerDeleteLater> _instanceManager;
 	QScopedPointer<SettingsManager> _settingsManager;
 
 #if defined(ENABLE_EFFECTENGINE)
-	PythonInit*                _pyInit;
+	PythonInit* _pyInit;
 #endif
 
 	/// Network services
 	QScopedPointer<AuthManager> _authManager;
 	QScopedPointer<NetOrigin> _netOrigin;
-	QScopedPointer<JsonServer, QScopedPointerDeleteLater> _jsonServer;
-	QScopedPointer<WebServer, QScopedPointerDeleteLater> _webserver;
-	QScopedPointer<WebServer, QScopedPointerDeleteLater> _sslWebserver;
-	QScopedPointer<SSDPHandler, QScopedPointerDeleteLater> _ssdp;
+	QScopedPointer<JsonServer> _jsonServer;
+	QScopedPointer<QThread> _jsonServerThread;
+	QScopedPointer<WebServer> _webServer;
+	QScopedPointer<QThread> _webServerThread;
+	QScopedPointer<WebServer> _sslWebServer;
+	QScopedPointer<QThread> _sslWebServerThread;
+	QScopedPointer<SSDPHandler> _ssdHandler;
+	QScopedPointer<QThread> _ssdpHandlerThread;
 #ifdef ENABLE_MDNS
-	QScopedPointer<MdnsProvider, QScopedPointerDeleteLater> _mDNSProvider;
+	QScopedPointer<MdnsProvider> _mDNSProvider;
+	QScopedPointer<QThread> _mDnsThread;
 #endif
 #if defined(ENABLE_FLATBUF_SERVER)
-	QScopedPointer<FlatBufferServer, QScopedPointerDeleteLater> _flatBufferServer;
+	QScopedPointer<FlatBufferServer> _flatBufferServer;
+	QScopedPointer<QThread> _flatBufferServerThread;
 #endif
 #if defined(ENABLE_PROTOBUF_SERVER)
-	QScopedPointer<ProtoServer, QScopedPointerDeleteLater> _protoServer;
+	QScopedPointer<ProtoServer> _protoServer;
+	QScopedPointer<QThread> _protoServerThread;
 #endif
 
 	/// Event services
@@ -268,6 +275,7 @@ private:
 	QScopedPointer<EventScheduler> _eventScheduler;
 #ifdef ENABLE_CEC
 	QScopedPointer<CECHandler> _cecHandler;
+	QScopedPointer<QThread> _cecHandlerThread;
 #endif
 
 	/// Grabber services

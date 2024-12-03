@@ -11,6 +11,7 @@
 #include <QJsonValue>
 #include <QJsonArray>
 #include <QMap>
+#include <QScopedPointer>
 
 // hyperion-utils includes
 #include <utils/Image.h>
@@ -75,12 +76,7 @@ public:
 	///
 	~Hyperion() override;
 
-	///
-	/// free all alocated objects, should be called only from constructor or before restarting hyperion
-	///
-	void freeObjects();
-
-	ImageProcessor* getImageProcessor() const { return _imageProcessor; }
+	ImageProcessor* getImageProcessor() const { return _imageProcessor.get(); }
 
 	///
 	/// @brief Get instance index of this instance
@@ -206,7 +202,7 @@ public slots:
 	/// @brief Get a pointer to the effect engine
 	/// @return     EffectEngine instance pointer
 	///
-	EffectEngine* getEffectEngineInstance() const { return _effectEngine; }
+	EffectEngine* getEffectEngineInstance() const { return _effectEngine.get(); }
 
 	///
 	/// @brief Save an effect
@@ -261,7 +257,7 @@ public slots:
 	/// @brief Get a pointer to the priorityMuxer instance
 	/// @return      PriorityMuxer instance pointer
 	///
-	PriorityMuxer* getMuxerInstance() { return _muxer; }
+	PriorityMuxer* getMuxerInstance() { return _muxer.get(); }
 
 	///
 	/// @brief enable/disable automatic/priorized source selection
@@ -328,7 +324,7 @@ public slots:
 
 	/// gets the current json config object from SettingsManager
 	/// @return json config
-	QJsonObject getQJsonConfig() const;
+	QJsonObject getQJsonConfig(quint8 inst) const;
 
 	///
 	/// @brief Save a complete json config
@@ -343,7 +339,7 @@ public slots:
 	/// @brief Get the component Register
 	/// return Component register pointer
 	///
-	ComponentRegister* getComponentRegister() const { return _componentRegister; }
+	ComponentRegister* getComponentRegister() const { return _componentRegister.get(); }
 
 	///
 	/// @brief Called from components to update their current state. DO NOT CALL FROM USERS
@@ -508,6 +504,8 @@ signals:
 	///
 	void started();
 
+	void stopEffects();
+
 private slots:
 	///
 	///	@brief Handle whenever the visible component changed
@@ -547,39 +545,39 @@ private:
 	const quint8 _instIndex;
 
 	/// Settings manager of this instance
-	SettingsManager* _settingsManager;
+	QScopedPointer<SettingsManager,QScopedPointerDeleteLater> _settingsManager;
 
 	/// Register that holds component states
-	ComponentRegister* _componentRegister;
+	QSharedPointer<ComponentRegister> _componentRegister;
 
 	/// The specifiation of the led frame construction and picture integration
 	LedString _ledString;
 
 	/// Image Processor
-	ImageProcessor* _imageProcessor;
+	QSharedPointer<ImageProcessor> _imageProcessor;
 
 	std::vector<ColorOrder> _ledStringColorOrder;
 
 	/// The priority muxer
-	PriorityMuxer* _muxer;
+	QScopedPointer<PriorityMuxer> _muxer;
 
 	/// The adjustment from raw colors to led colors
-	MultiColorAdjustment * _raw2ledAdjustment;
+	QScopedPointer<MultiColorAdjustment> _raw2ledAdjustment;
 
 	/// The actual LedDeviceWrapper
-	LedDeviceWrapper* _ledDeviceWrapper;
+	QScopedPointer<LedDeviceWrapper> _ledDeviceWrapper;
 
 	/// The smoothing LedDevice
-	LinearColorSmoothing * _deviceSmooth;
+	QScopedPointer<LinearColorSmoothing> _deviceSmooth;
 
 #if defined(ENABLE_EFFECTENGINE)
 	/// Effect engine
-	EffectEngine * _effectEngine;
+	QScopedPointer<EffectEngine, QScopedPointerDeleteLater> _effectEngine;
 #endif
 
 #if defined(ENABLE_FORWARDER)
 	// Message forwarder
-	MessageForwarder * _messageForwarder;
+	QScopedPointer<MessageForwarder, QScopedPointerDeleteLater> _messageForwarder;
 #endif
 
 	/// Logger instance
@@ -591,9 +589,9 @@ private:
 	QSize _ledGridSize;
 
 	/// Background effect instance, kept active to react on setting changes
-	BGEffectHandler* _BGEffectHandler;
+	QScopedPointer<BGEffectHandler, QScopedPointerDeleteLater> _BGEffectHandler;
 	/// Capture control for Daemon native capture
-	CaptureCont* _captureCont;
+	QScopedPointer<CaptureCont,QScopedPointerDeleteLater> _captureCont;
 
 	/// buffer for leds (with adjustment)
 	std::vector<ColorRgb> _ledBuffer;
@@ -602,6 +600,6 @@ private:
 
 #if defined(ENABLE_BOBLIGHT_SERVER)
 	/// Boblight instance
-	BoblightServer* _boblightServer;
+	QScopedPointer<BoblightServer, QScopedPointerDeleteLater> _boblightServer;
 #endif
 };

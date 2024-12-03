@@ -104,8 +104,8 @@ void JsonAPI::initialize()
 	if (_hyperion != nullptr)
 	{
 		// Initialise jsonCB with current instance
-		_jsonCB->setSubscriptionsTo(_hyperion);
-		connect(this, &JsonAPI::forwardJsonMessage, _hyperion, &Hyperion::forwardJsonMessage);
+		_jsonCB->setSubscriptionsTo(_hyperion.get());
+		connect(this, &JsonAPI::forwardJsonMessage, _hyperion.get(), &Hyperion::forwardJsonMessage);
 	}
 
 	//notify eventhadler on suspend/resume/idle requests
@@ -118,7 +118,7 @@ bool JsonAPI::handleInstanceSwitch(quint8 inst, bool /*forced*/)
 	{
 		Debug(_log, "Client '%s' switch to Hyperion instance %d", QSTRING_CSTR(_peerAddress), inst);
 		// the JsonCB creates json messages you can subscribe to e.g. data change events
-		_jsonCB->setSubscriptionsTo(_hyperion);
+		_jsonCB->setSubscriptionsTo(_hyperion.get());
 		return true;
 	}
 	return false;
@@ -245,14 +245,21 @@ void JsonAPI::handleMessage(const QString &messageString, const QString &httpAut
 
 void JsonAPI::handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject &message)
 {
-	const QJsonValue instanceElement = message.value("instance");
 	QJsonArray instances;
-	if (instanceElement.isDouble())
+	const QJsonValue instanceElement = message.value("instance");
+	if (instanceElement.isUndefined() || instanceElement.isNull())
 	{
-		instances.append(instanceElement);
-	} else if (instanceElement.isArray())
+		instances.append(getCurrentInstanceIndex());
+	}
+	else
 	{
-		instances = instanceElement.toArray();
+		if (instanceElement.isDouble())
+		{
+			instances.append(instanceElement);
+		} else if (instanceElement.isArray())
+		{
+			instances = instanceElement.toArray();
+		}
 	}
 
 	QList<quint8> runningInstanceIdxs = _instanceManager->getRunningInstanceIdx();
@@ -288,7 +295,6 @@ void JsonAPI::handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject
 		return;
 	}
 
-	quint8 currentInstanceIdx = getCurrentInstanceIndex();
 	if (instanceIdxList.size() > 1)
 	{
 		if (cmd.isInstanceCmd != InstanceCmd::Multi)
@@ -305,8 +311,6 @@ void JsonAPI::handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject
 			handleCommand(cmd, message);
 		}
 	}
-
-	setHyperionInstance(currentInstanceIdx);
 }
 
 void JsonAPI::handleCommand(const JsonApiCommand& cmd, const QJsonObject &message)
@@ -472,7 +476,7 @@ void JsonAPI::handleDeleteEffectCommand(const QJsonObject &message, const JsonAp
 
 void JsonAPI::handleSysInfoCommand(const QJsonObject & /*unused*/, const JsonApiCommand& cmd)
 {
-	sendSuccessDataReply(JsonInfo::getSystemInfo(_hyperion), cmd);
+	sendSuccessDataReply(JsonInfo::getSystemInfo(_hyperion.get()), cmd);
 }
 
 void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const JsonApiCommand& cmd)
@@ -483,28 +487,28 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const JsonApiC
 	switch (cmd.getSubCommand()) {
 	case SubCommand::Empty:
 	case SubCommand::GetInfo:
-		info["priorities"] = JsonInfo::getPrioritiestInfo(_hyperion);
+		info["priorities"] = JsonInfo::getPrioritiestInfo(_hyperion.get());
 		info["priorities_autoselect"] = _hyperion->sourceAutoSelectEnabled();
-		info["adjustment"] = JsonInfo::getAdjustmentInfo(_hyperion, _log);
+		info["adjustment"] = JsonInfo::getAdjustmentInfo(_hyperion.get(), _log);
 		info["ledDevices"] = JsonInfo::getAvailableLedDevices();
-		info["grabbers"] = JsonInfo::getGrabbers(_hyperion);
+		info["grabbers"] = JsonInfo::getGrabbers(_hyperion.get());
 		info["videomode"] = QString(videoMode2String(_hyperion->getCurrentVideoMode()));
 		info["cec"] = JsonInfo::getCecInfo();
 		info["services"] = JsonInfo::getServices();
-		info["components"] = JsonInfo::getComponents(_hyperion);
+		info["components"] = JsonInfo::getComponents(_hyperion.get());
 		info["imageToLedMappingType"] = ImageProcessor::mappingTypeToStr(_hyperion->getLedMappingType());
 		info["instance"] = JsonInfo::getInstanceInfo();
 		info["leds"] = _hyperion->getSetting(settings::LEDS).array();
-		info["activeLedColor"] =  JsonInfo::getActiveColors(_hyperion);
+		info["activeLedColor"] =  JsonInfo::getActiveColors(_hyperion.get());
 
 #if defined(ENABLE_EFFECTENGINE)
-		info["effects"] = JsonInfo::getEffects(_hyperion);
-		info["activeEffects"] = JsonInfo::getActiveEffects(_hyperion);
+		info["effects"] = JsonInfo::getEffects(_hyperion.get());
+		info["activeEffects"] = JsonInfo::getActiveEffects(_hyperion.get());
 #endif
 
 		// BEGIN | The following entries are deprecated but used to ensure backward compatibility with hyperion Classic or up to Hyperion 2.0.16
 		info["hostname"] = QHostInfo::localHostName();
-		info["transform"] = JsonInfo::getTransformationInfo(_hyperion);
+		info["transform"] = JsonInfo::getTransformationInfo(_hyperion.get());
 
 		if (!_noListener && message.contains("subscribe"))
 		{
@@ -705,7 +709,7 @@ void JsonAPI::handleConfigCommand(const QJsonObject& message, const JsonApiComma
 	break;
 
 	case SubCommand::GetConfigOld:
-		sendSuccessDataReply(_hyperion->getQJsonConfig(), cmd);
+		sendSuccessDataReply(_hyperion->getQJsonConfig(this->getCurrentInstanceIndex()), cmd);
 	break;
 
 	case SubCommand::SetConfig:
@@ -781,7 +785,7 @@ void JsonAPI::handleConfigSetCommand(const QJsonObject &message, const JsonApiCo
 		i.next();
 
 		quint8 idx = i.key();
-		Hyperion* instance = HyperionIManager::getInstance()->getHyperionInstance(idx);
+		QSharedPointer<Hyperion> instance = HyperionIManager::getInstance()->getHyperionInstance(idx);
 
 		QPair<bool, QStringList> isSaved = instance->saveSettings(i.value());
 		errorDetails.append(isSaved.second);
@@ -1379,7 +1383,7 @@ void JsonAPI::handleLedDeviceCommand(const QJsonObject &message, const JsonApiCo
 	}
 
 	QJsonObject config { { "type", devType } };
-	LedDevice* ledDevice = LedDeviceFactory::construct(config);
+	QScopedPointer<LedDevice> ledDevice(LedDeviceFactory::construct(config));
 
 	switch (cmd.subCommand) {
 	case SubCommand::Discover:
@@ -1397,8 +1401,6 @@ void JsonAPI::handleLedDeviceCommand(const QJsonObject &message, const JsonApiCo
 	default:
 	break;
 	}
-
-	delete ledDevice;
 }
 
 void JsonAPI::handleLedDeviceDiscover(LedDevice& ledDevice, const QJsonObject& message, const JsonApiCommand& cmd)
