@@ -101,7 +101,7 @@ void LedDeviceWrapper::onIsOnChanged(bool isOn)
 	_isOn = isOn;
 	if (_isOn)
 	{
-		_hyperion->update();
+		_hyperion->refreshUpdate();
 	}
 }
 

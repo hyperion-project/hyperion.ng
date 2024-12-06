@@ -22,7 +22,7 @@
 namespace {
 
 	// Configuration settings
-	const char CONFIG_CURRENT_LED_COUNT[] = "currentLedCount";
+	const char CONFIG_HARDWARE_LED_COUNT[] = "hardwareLedCount";
 	const char CONFIG_COLOR_ORDER[] = "colorOrder";
 	const char CONFIG_AUTOSTART[] = "autoStart";
 	const char CONFIG_LATCH_TIME[] = "latchTime";
@@ -220,7 +220,7 @@ bool LedDevice::init(const QJsonObject& deviceConfig)
 {
 	Debug(_log, "deviceConfig: [%s]", QString(QJsonDocument(_devConfig).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
-	setLedCount(deviceConfig[CONFIG_CURRENT_LED_COUNT].toInt(DEFAULT_LED_COUNT)); // property injected to reflect real led count
+	setLedCount(deviceConfig[CONFIG_HARDWARE_LED_COUNT].toInt(DEFAULT_LED_COUNT)); // property injected to reflect real led count
 	setColorOrder(deviceConfig[CONFIG_COLOR_ORDER].toString(DEFAULT_COLOR_ORDER));
 	setLatchTime(deviceConfig[CONFIG_LATCH_TIME].toInt(_latchTime_ms));
 	setRewriteTime(deviceConfig[CONFIG_REWRITE_TIME].toInt(_refreshTimerInterval_ms));

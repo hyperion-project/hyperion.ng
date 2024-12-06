@@ -545,6 +545,9 @@ private:
 
 	friend class HyperionIManager; // Grant HyperionIManager access to private members
 
+	void updateLedColorAdjustment(int ledCount, const QJsonObject& colors);
+	void updateLedLayout(const QJsonArray& ledLayout);
+
 	/// instance index
 	const quint8 _instIndex;
 
@@ -589,6 +592,7 @@ private:
 
 	/// count of hardware leds
 	int _hwLedCount;
+	int _layoutLedCount;
 	QString _colorOrder;
 	QSize _layoutGridSize;
 

@@ -137,6 +137,12 @@ void PriorityMuxer::updateLedColorsLength(int ledCount)
 		}
 		++infoIt;
 	}
+
+	if (_lowestPriorityInfo.ledColors.size() != static_cast<size_t>(ledCount))
+	{
+		_lowestPriorityInfo.ledColors.resize(static_cast<std::vector<ColorRgb>::size_type>(ledCount), ColorRgb::BLACK);
+		_activeInputs[PriorityMuxer::LOWEST_PRIORITY].ledColors = _lowestPriorityInfo.ledColors;
+	}
 }
 
 QList<int> PriorityMuxer::getPriorities() const

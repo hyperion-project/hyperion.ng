@@ -20,17 +20,18 @@ int main()
 	QJsonObject config;
 	if (QJsonFactory::load(schemaFile, configFile, config) < 0)
 	{
-		std::cerr << "UNABLE TO LOAD CONFIGURATION" << std::endl;
+		std::cerr << "UNABLE TO LOAD CONFIGURATION" << '\n';
 		return -1;
 	}
 
-	ColorOrder colorOrder = hyperion::createColorOrder(config["device"].toObject()["colorOrder"].toString("rgb"));
-	const LedString ledString = LedString::createLedString(config["leds"].toArray(), colorOrder );
+	QJsonArray const ledLayout = config["leds"].toArray();
+	ColorOrder const colorOrder = hyperion::createColorOrder(config["device"].toObject()["colorOrder"].toString("rgb"));
+	const LedString ledString = LedString::createLedString(ledLayout, colorOrder, static_cast<int>(ledLayout.size()) );
 
 	const ColorRgb testColor = {64, 123, 12};
 
-	Image<ColorRgb> image(64, 64, testColor);
-	hyperion::ImageToLedsMap map(log, 64, 64, 0, 0, ledString.leds());
+	Image<ColorRgb> const image(64, 64, testColor);
+	hyperion::ImageToLedsMap const map(log, 64, 64, 0, 0, ledString.leds());
 
 	std::vector<ColorRgb> ledColors(ledString.leds().size());
 	map.getMeanLedColor(image, ledColors);
@@ -40,7 +41,7 @@ int main()
 	{
 		std::cout << color;
 	}
-	std::cout << "]" << std::endl;
+	std::cout << "]" << '\n';
 
 	return 0;
 }

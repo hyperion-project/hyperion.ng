@@ -5,6 +5,7 @@
 
 // hyperion includes
 #include <hyperion/LedString.h>
+#include <utils/Logger.h>
 
 // QT includes
 #include <QJsonObject>
@@ -47,14 +48,24 @@ bool LedString::hasBlackListedLeds()
  * ordering of the RGB channels
  * @param ledsConfig   The configuration of the led areas
  * @param deviceOrder  The default RGB channel ordering
+ * @param ledsUsed     The maximum number of LEDs used from the configuration
  * @return The constructed ledstring
  */
-LedString LedString::createLedString(const QJsonArray& ledConfigArray, const ColorOrder deviceOrder)
+LedString LedString::createLedString(const QJsonArray& ledConfigArray, const ColorOrder deviceOrder, int maxLeds)
 {
 	LedString ledString;
 	const QString deviceOrderStr = colorOrderToString(deviceOrder);
 
-	for (signed i = 0; i < ledConfigArray.size(); ++i)
+	int configuredLeds = static_cast<int>(ledConfigArray.size());
+	int ledsUsed = configuredLeds;
+
+	if (ledsUsed > maxLeds)
+	{
+		ledsUsed = maxLeds;
+		Warning(Logger::getInstance("HYPERION"),"More LEDs configured [%d] via the layout than supported by the device [%d]. Using first [%d] layout entries", configuredLeds, maxLeds, ledsUsed);
+	}
+
+	for (signed i = 0; i < ledsUsed; ++i)
 	{
 		const QJsonObject& ledConfig = ledConfigArray[i].toObject();
 		Led led;
