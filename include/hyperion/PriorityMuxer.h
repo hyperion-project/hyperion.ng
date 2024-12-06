@@ -81,6 +81,10 @@ public:
 	///
 	~PriorityMuxer() override;
 
+	///
+	/// @brief Start the PriorityMuxer and its timers
+	///
+	void start();
 
 	///
 	/// @brief Stop the PriorityMuxer and its timers
@@ -286,8 +290,8 @@ private:
 	bool _sourceAutoSelectEnabled;
 
 	// Timer to update Muxer times independent
-	QTimer* _updateTimer;
+	QScopedPointer<QTimer, QScopedPointerDeleteLater> _updateTimer;
 
-	QTimer* _timer;
-	QTimer* _blockTimer;
+	QScopedPointer<QTimer, QScopedPointerDeleteLater> _timer;
+	QScopedPointer<QTimer, QScopedPointerDeleteLater> _blockTimer;
 };

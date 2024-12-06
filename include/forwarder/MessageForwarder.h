@@ -58,6 +58,8 @@ public slots:
 	///
 	void handleSettingsUpdate(settings::type type, const QJsonDocument &config);
 
+	void stop();
+
 private slots:
 	///
 	/// @brief Handle component state change MessageForwarder

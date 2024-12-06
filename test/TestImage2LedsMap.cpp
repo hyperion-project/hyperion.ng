@@ -24,7 +24,8 @@ int main()
 		return -1;
 	}
 
-	const LedString ledString = LedString::createLedString(config["leds"].toArray(), hyperion::createColorOrder(config["device"].toObject()));
+	ColorOrder colorOrder = hyperion::createColorOrder(config["device"].toObject()["colorOrder"].toString("rgb"));
+	const LedString ledString = LedString::createLedString(config["leds"].toArray(), colorOrder );
 
 	const ColorRgb testColor = {64, 123, 12};
 

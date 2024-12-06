@@ -38,6 +38,7 @@ QtHttpServer::QtHttpServer (QObject * parent)
 	, m_useSsl     (false)
 	, m_serverName (QStringLiteral ("The Qt6 HTTP Server"))
 	, m_netOrigin  (NetOrigin::getInstance())
+	, m_sockServer (nullptr)
 {
 	m_sockServer = new QtHttpServerWrapper (this);
 	connect (m_sockServer, &QtHttpServerWrapper::newConnection, this, &QtHttpServer::onClientConnected);
@@ -55,17 +56,20 @@ void QtHttpServer::start (quint16 port)
 
 void QtHttpServer::stop (void)
 {
-	if (m_sockServer->isListening ())
+	if (m_sockServer != nullptr)
 	{
-		m_sockServer->close ();
-		// disconnect clients
-		const QList<QTcpSocket*> socks = m_socksClientsHash.keys();
-		for(auto sock : socks)
+		if (m_sockServer->isListening ())
 		{
-			sock->close();
-		}
+			m_sockServer->close ();
+			// disconnect clients
+			const QList<QTcpSocket*> socks = m_socksClientsHash.keys();
+			for(auto *sock : socks)
+			{
+				sock->close();
+			}
 
-		emit stopped ();
+			emit stopped ();
+		}
 	}
 }
 

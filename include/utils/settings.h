@@ -92,7 +92,7 @@ namespace settings {
 		if (type == "framegrabber")         return SYSTEMCAPTURE;
 		if (type == "general")              return GENERAL;
 		if (type == "grabberV4L2")          return V4L2;
-		if (type == "grabberAudio")		    return AUDIO;
+		if (type == "grabberAudio")         return AUDIO;
 		if (type == "jsonServer")           return JSONSERVER;
 		if (type == "ledConfig")            return LEDCONFIG;
 		if (type == "leds")                 return LEDS;

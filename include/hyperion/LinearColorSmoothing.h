@@ -136,6 +136,9 @@ public slots:
 	///
 	void handleSettingsUpdate(settings::type type, const QJsonDocument &config);
 
+	void start();
+	void stop();
+
 private slots:
 	/// Timer callback which writes updated led values to the led device
 	void updateLeds();
@@ -146,6 +149,11 @@ private slots:
 	/// @param state       The requested state
 	///
 	void componentStateChange(hyperion::Components component, bool state);
+
+	///
+	/// @brief Handle priority updates.
+	///
+	void handlePriorityUpdate(int priority);
 
 private:
 	/**

@@ -63,9 +63,9 @@ namespace hyperion {
 		#undef FGCONFIG_ARRAY
 	}
 
-	static ColorOrder createColorOrder(const QJsonObject &deviceConfig)
+	static ColorOrder createColorOrder(const QString& colorOrder = "rgb")
 	{
-		return stringToColorOrder(deviceConfig["colorOrder"].toString("rgb"));
+		return stringToColorOrder(colorOrder);
 	}
 
 	static RgbTransform createRgbTransform(const QJsonObject& colorConfig)

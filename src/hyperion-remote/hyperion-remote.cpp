@@ -102,7 +102,7 @@ int main(int argc, char * argv[])
 		Option          & argInstance           = parser.add<Option>       ('I', "instance"               , "Select a specific target instance by name for your command. By default it uses always the first instance");
 		IntOption       & argPriority           = parser.add<IntOption>    ('p', "priority"               , "Used to the provided priority channel (suggested 2-99) [default: %1]", "50");
 		IntOption       & argDuration           = parser.add<IntOption>    ('d', "duration"               , "Specify how long the LEDs should be switched on in milliseconds [default: infinity]");
-		ColorsOption    & argColor              = parser.add<ColorsOption> ('c', "color"                  , "Set all LEDs to a constant color (either RRGGBB hex getColors or a color name. The color may be repeated multiple time like: RRGGBBRRGGBB)");
+		ColorsOption    & argColor              = parser.add<ColorsOption> ('c', "color"                  , "Set all LEDs to a constant color (either via an RRGGBB hex value string or a color name. The color may be repeated multiple time like: RRGGBBRRGGBB)");
 		ImageOption     & argImage              = parser.add<ImageOption>  ('i', "image"                  , "Set the LEDs to the colors according to the given image file");
 #if defined(ENABLE_EFFECTENGINE)
 		Option          & argEffect             = parser.add<Option>       ('e', "effect"                 , "Enable the effect with the given name");
@@ -274,6 +274,8 @@ int main(int argc, char * argv[])
 		{
 			// TODO: make sure setColor accepts a QList<QColor>
 			QVector<QColor> _cQV = argColor.getColors(parser).toVector();
+
+			qDebug() << "QVector" <<_cQV;
 			connection.setColor(std::vector<QColor>( _cQV.begin(), _cQV.end() ), argPriority.getInt(parser), argDuration.getInt(parser));
 		}
 		else if (parser.isSet(argImage))

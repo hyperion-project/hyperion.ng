@@ -56,9 +56,7 @@ void LedDeviceWrapper::createLedDevice(const QJsonObject& config)
 	_ledDeviceThread.reset(new QThread());
 	_ledDeviceThread->setObjectName("LedDeviceThread");
 	_ledDevice.reset(LedDeviceFactory::construct(config));
-
-	QString const subComponent = parent()->property("instance").toString();
-	_ledDevice->setLogger(Logger::getInstance("LEDDEVICE", subComponent));
+	_ledDevice->setLogger(_log);
 
 	_ledDevice->moveToThread(_ledDeviceThread.get());
 

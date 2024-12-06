@@ -1,5 +1,4 @@
 // STL includes
-#include <algorithm>
 #include <limits>
 
 // qt incl
@@ -47,29 +46,43 @@ PriorityMuxer::PriorityMuxer(int ledCount, QObject * parent)
 	_lowestPriorityInfo.smooth_cfg	   = 0;
 
 	_activeInputs[PriorityMuxer::LOWEST_PRIORITY] = _lowestPriorityInfo;
-
-	// adapt to 1s interval for COLOR and EFFECT timeouts > -1 (endless)
-	connect(_timer, &QTimer::timeout, this, &PriorityMuxer::timeTrigger);
-	_timer->setSingleShot(true);
-	_blockTimer->setSingleShot(true);
-	connect(this, &PriorityMuxer::signalTimeTrigger, this, &PriorityMuxer::timeTrigger);
-
-	// start muxer timer
-	connect(_updateTimer, &QTimer::timeout, this, &PriorityMuxer::updatePriorities);
-	_updateTimer->setInterval(250);
-	_updateTimer->start();
 }
 
 PriorityMuxer::~PriorityMuxer()
 {
 }
 
+void PriorityMuxer::start()
+{
+	Info(_log, "Priority-Muxer starting...");
+
+	// adapt to 1s interval for COLOR and EFFECT timeouts > -1 (endless)
+	_timer.reset(new QTimer(this));
+	connect(_timer.get(), &QTimer::timeout, this, &PriorityMuxer::timeTrigger);
+	_timer->setSingleShot(true);
+
+	_blockTimer.reset(new QTimer(this));
+	_blockTimer->setSingleShot(true);
+
+	connect(this, &PriorityMuxer::signalTimeTrigger, this, &PriorityMuxer::timeTrigger);
+
+	// start muxer timer
+	_updateTimer.reset(new QTimer(this));
+	connect(_updateTimer.get(), &QTimer::timeout, this, &PriorityMuxer::updatePriorities);
+	_updateTimer->setInterval(250);
+	_updateTimer->start();
+}
+
 void PriorityMuxer::stop()
 {
+	Debug(_log, "Priority-Muxer is stopping...");
+
+	setEnable(false);
 	_timer->stop();
-	_updateTimer->stop();
 	_blockTimer->stop();
-	Debug(_log, "Priority-Muxer stopped");
+	_updateTimer->stop();
+
+	Info(_log, "Priority-Muxer stopped");
 }
 
 void PriorityMuxer::setEnable(bool enable)
@@ -359,7 +372,7 @@ void PriorityMuxer::updatePriorities()
 
 	_activeInputs.contains(0) ? newPriority = 0 : newPriority = PriorityMuxer::LOWEST_PRIORITY;
 
-	bool timeTrigger {false};
+	bool timeElapsed {false};
 	QMutableMapIterator<int, PriorityMuxer::InputInfo> i(_activeInputs);
 	while (i.hasNext()) {
 		i.next();
@@ -401,13 +414,13 @@ void PriorityMuxer::updatePriorities()
 					   )
 					 )
 				{
-					timeTrigger = true;
+					timeElapsed = true;
 				}
 			}
 		}
 	}
 
-	if (timeTrigger)
+	if (timeElapsed)
 	{
 		emit signalTimeTrigger(); // signal to prevent Threading issues
 	}

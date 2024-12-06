@@ -284,8 +284,6 @@ void HyperionIManager::handleFinished()
 	if (hyperion != nullptr)
 	{
 		quint8 const instance = hyperion->getInstanceIndex();
-		_startingInstances.remove(instance);
-		_runningInstances.remove(instance);
 
 		// Manually stop the thread and cleanup
 		QThread* thread = hyperion->thread();
@@ -295,10 +293,13 @@ void HyperionIManager::handleFinished()
 			thread->wait();
 		}
 
+		Info(_log,"Hyperion instance '%s' stopped", QSTRING_CSTR(_instanceTable->getNamebyIndex(instance)));
+
+		_startingInstances.remove(instance);
+		_runningInstances.remove(instance);
+
 		emit instanceStateChanged(InstanceState::H_STOPPED, instance);
 		emit change();
-
-		Info(_log,"Hyperion instance '%s' stopped", QSTRING_CSTR(_instanceTable->getNamebyIndex(instance)));
 
 		if ( _runningInstances.size() == 0 )
 		{

@@ -64,10 +64,16 @@ MessageForwarder::MessageForwarder(Hyperion* hyperion)
 
 MessageForwarder::~MessageForwarder()
 {
-	stopJsonTargets();
-	stopFlatbufferTargets();
+	stop();
 }
 
+void MessageForwarder::stop()
+{
+	stopJsonTargets();
+	stopFlatbufferTargets();
+
+	Info(_log, "Forwarding service stopped");
+}
 
 void MessageForwarder::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {

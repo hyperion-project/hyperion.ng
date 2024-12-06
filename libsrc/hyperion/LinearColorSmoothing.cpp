@@ -60,26 +60,22 @@ using namespace hyperion;
 
 LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument &config, Hyperion *hyperion)
 	: QObject(hyperion)
-	  , _log(nullptr)
-	  , _hyperion(hyperion)
-	  , _prioMuxer(_hyperion->getMuxerInstance())
-	  , _updateInterval(DEFAULT_UPDATEINTERVALL.count())
-	  , _settlingTime(DEFAULT_SETTLINGTIME)
-	  , _timer(nullptr)
-	  , _outputDelay(DEFAULT_OUTPUTDEPLAY)
-	  , _pause(false)
-	  , _currentConfigId(SmoothingConfigID::SYSTEM)
-	  , _enabled(false)
-	  , _enabledSystemCfg(false)
-	  , _smoothingType(SmoothingType::Linear)
-	  , tempValues(std::vector<uint64_t>())
+	, _log(nullptr)
+	, _hyperion(hyperion)
+	, _prioMuxer(_hyperion->getMuxerInstance())
+	, _updateInterval(DEFAULT_UPDATEINTERVALL.count())
+	, _settlingTime(DEFAULT_SETTLINGTIME)
+	, _timer(nullptr)
+	, _outputDelay(DEFAULT_OUTPUTDEPLAY)
+	, _pause(false)
+	, _currentConfigId(SmoothingConfigID::SYSTEM)
+	, _enabled(false)
+	, _enabledSystemCfg(false)
+	, _smoothingType(SmoothingType::Linear)
+	, tempValues(std::vector<uint64_t>())
 {
 	QString subComponent = hyperion->property("instance").toString();
 	_log= Logger::getInstance("SMOOTHING", subComponent);
-
-	// timer
-	_timer.reset(new QTimer(this));
-	_timer->setTimerType(Qt::PreciseTimer);
 
 	// init cfg (default)
 	updateConfig(SmoothingConfigID::SYSTEM, DEFAULT_SETTLINGTIME, DEFAULT_UPDATEFREQUENCY, DEFAULT_OUTPUTDEPLAY);
@@ -88,23 +84,36 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument &config, Hyperion
 	// add pause on cfg 1
 	SmoothingCfg cfg {true, 0, 0};
 	_cfgList.append(std::move(cfg));
-
-	// listen for comp changes
-	connect(_hyperion, &Hyperion::compStateChangeRequest, this, &LinearColorSmoothing::componentStateChange);
-	connect(_timer.get(), &QTimer::timeout, this, &LinearColorSmoothing::updateLeds);
-
-	connect(_prioMuxer, &PriorityMuxer::prioritiesChanged, this, [=] (int priority){
-		const PriorityMuxer::InputInfo priorityInfo = _prioMuxer->getInputInfo(priority);
-		int smooth_cfg = priorityInfo.smooth_cfg;
-		if (smooth_cfg != _currentConfigId || smooth_cfg == SmoothingConfigID::EFFECT_DYNAMIC)
-		{
-			this->selectConfig(smooth_cfg, false);
-		}
-	});
 }
-
 LinearColorSmoothing::~LinearColorSmoothing()
 {
+}
+
+void LinearColorSmoothing::start()
+{
+	Info(_log, "LinearColorSmoothing starting...");
+
+	_timer.reset(new QTimer(this));
+	_timer->setTimerType(Qt::PreciseTimer);
+
+	//Start in pause mode, a new priority will activate smoothing (either start-effect or grabber)
+	setPause(true);
+
+	// listen for comp changes
+	QObject::connect(_hyperion, &Hyperion::compStateChangeRequest, this, &LinearColorSmoothing::componentStateChange);
+	QObject::connect(_prioMuxer, &PriorityMuxer::prioritiesChanged, this, &LinearColorSmoothing::handlePriorityUpdate);
+	connect(_timer.get(), &QTimer::timeout, this, &LinearColorSmoothing::updateLeds);
+}
+
+void LinearColorSmoothing::stop()
+{
+	Debug(_log, "LinearColorSmoothing stopping...");
+
+	QObject::disconnect(_prioMuxer, &PriorityMuxer::prioritiesChanged, this, &LinearColorSmoothing::handlePriorityUpdate);
+	setEnable(false);
+	_timer->stop();
+
+	Info(_log, "LinearColorSmoothing stopped");
 }
 
 void LinearColorSmoothing::handleSettingsUpdate(settings::type type, const QJsonDocument &config)
@@ -145,6 +154,16 @@ void LinearColorSmoothing::handleSettingsUpdate(settings::type type, const QJson
 		{
 			selectConfig(SmoothingConfigID::SYSTEM, true);
 		}
+	}
+}
+
+void LinearColorSmoothing::handlePriorityUpdate(int priority)
+{
+	const PriorityMuxer::InputInfo priorityInfo = _prioMuxer->getInputInfo(priority);
+	int smooth_cfg = priorityInfo.smooth_cfg;
+	if (smooth_cfg != _currentConfigId || smooth_cfg == SmoothingConfigID::EFFECT_DYNAMIC)
+	{
+		this->selectConfig(smooth_cfg, false);
 	}
 }
 
@@ -418,12 +437,12 @@ void LinearColorSmoothing::performDecay(const int64_t now) {
 	if ((now > (_renderedStatTime + 30 * 1000000)) && (_renderedCounter > _renderedStatCounter))
 	{
 		Debug(_log, "decay - rendered frames [%d] (%f/s), interpolated frames [%d] (%f/s) in [%f ms]"
-			   , _renderedCounter - _renderedStatCounter
-			   , (1.0F * (_renderedCounter - _renderedStatCounter) / ((now - _renderedStatTime) / 1000000.0F))
-			   , _interpolationCounter - _interpolationStatCounter
-			   , (1.0F * (_interpolationCounter - _interpolationStatCounter) / ((now - _renderedStatTime) / 1000000.0F))
-			   , (now - _renderedStatTime) / 1000.0F
-			   );
+			  , _renderedCounter - _renderedStatCounter
+			  , (1.0F * (_renderedCounter - _renderedStatCounter) / ((now - _renderedStatTime) / 1000000.0F))
+			  , _interpolationCounter - _interpolationStatCounter
+			  , (1.0F * (_interpolationCounter - _interpolationStatCounter) / ((now - _renderedStatTime) / 1000000.0F))
+			  , (now - _renderedStatTime) / 1000.0F
+			  );
 		_renderedStatTime = now;
 		_renderedStatCounter = _renderedCounter;
 		_interpolationStatCounter = _interpolationCounter;
@@ -467,12 +486,12 @@ void LinearColorSmoothing::updateLeds()
 	{
 	case SmoothingType::Decay:
 		performDecay(now);
-		break;
+	break;
 
 	case SmoothingType::Linear:
 	default:
 		performLinear(now);
-		break;
+	break;
 	}
 }
 
@@ -748,22 +767,22 @@ QString LinearColorSmoothing::getConfig(int cfgID)
 }
 
 LinearColorSmoothing::SmoothingCfg::SmoothingCfg() :
-	  _pause(false),
-	  _settlingTime(DEFAULT_SETTLINGTIME),
-	  _updateInterval(DEFAULT_UPDATEFREQUENCY),
-	  _type(SmoothingType::Linear)
+	_pause(false),
+	_settlingTime(DEFAULT_SETTLINGTIME),
+	_updateInterval(DEFAULT_UPDATEFREQUENCY),
+	_type(SmoothingType::Linear)
 {
 }
 
 LinearColorSmoothing::SmoothingCfg::SmoothingCfg(bool pause, int64_t settlingTime, int updateInterval, SmoothingType type, double interpolationRate, unsigned outputDelay, bool dithering, double decay) :
-	  _pause(pause),
-	  _settlingTime(settlingTime),
-	  _updateInterval(updateInterval),
-	  _type(type),
-	  _interpolationRate(interpolationRate),
-	  _outputDelay(outputDelay),
-	  _dithering(dithering),
-	  _decay(decay)
+	_pause(pause),
+	_settlingTime(settlingTime),
+	_updateInterval(updateInterval),
+	_type(type),
+	_interpolationRate(interpolationRate),
+	_outputDelay(outputDelay),
+	_dithering(dithering),
+	_decay(decay)
 {
 }
 

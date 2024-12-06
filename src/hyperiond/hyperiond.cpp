@@ -399,9 +399,13 @@ void HyperionDaemon::startEventServices()
 void HyperionDaemon::stopEventServices()
 {
 #if defined(ENABLE_CEC)
-	if (_cecHandlerThread->isRunning()) {
-		_cecHandlerThread->quit();
-		_cecHandlerThread->wait();
+	if (_cecHandlerThread != nullptr)
+	{
+		if (_cecHandlerThread->isRunning())
+		{
+			_cecHandlerThread->quit();
+			_cecHandlerThread->wait();
+		}
 	}
 #endif
 	_osEventHandler.reset(nullptr);

@@ -40,6 +40,7 @@
 
 // Forward class declaration
 class HyperionDaemon;
+class HyperionIManager;
 class ImageProcessor;
 #if defined(ENABLE_FORWARDER)
 class MessageForwarder;
@@ -87,7 +88,7 @@ public:
 	///
 	/// @brief Return the size of led grid
 	///
-	QSize getLedGridSize() const { return _ledGridSize; }
+	QSize getLedGridSize() const { return _layoutGridSize; }
 
 	/// gets the methode how image is maped to leds
 	int getLedMappingType() const;
@@ -111,6 +112,8 @@ public slots:
 	/// transforms.
 	///
 	void update();
+
+	void refreshUpdate();
 
 	///
 	/// Returns the number of attached leds
@@ -180,7 +183,7 @@ public slots:
 	/// Returns the ColorAdjustment with the given identifier
 	/// @return The adjustment with the given identifier (or nullptr if the identifier does not exist)
 	///
-	ColorAdjustment * getAdjustment(const QString& id) const;
+	ColorAdjustment * getAdjustment(const QString& identifier) const;
 
 	/// Tell Hyperion that the corrections have changed and the leds need to be updated
 	void adjustmentsUpdated();
@@ -533,13 +536,14 @@ private slots:
 
 private:
 	friend class HyperionDaemon;
-	friend class HyperionIManager;
 
 	///
 	/// @brief Constructs the Hyperion instance, just accessible for HyperionIManager
 	/// @param  instance  The instance index
 	///
-	Hyperion(quint8 instance);
+	explicit Hyperion(quint8 instance, QObject* parent = nullptr);
+
+	friend class HyperionIManager; // Grant HyperionIManager access to private members
 
 	/// instance index
 	const quint8 _instIndex;
@@ -585,8 +589,8 @@ private:
 
 	/// count of hardware leds
 	int _hwLedCount;
-
-	QSize _ledGridSize;
+	QString _colorOrder;
+	QSize _layoutGridSize;
 
 	/// Background effect instance, kept active to react on setting changes
 	QScopedPointer<BGEffectHandler, QScopedPointerDeleteLater> _BGEffectHandler;
