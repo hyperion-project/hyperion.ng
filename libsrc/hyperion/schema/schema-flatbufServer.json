@@ -1,36 +1,41 @@
 {
 	"type" : "object",
-	"required" : true,
 	"title" : "edt_conf_fbs_heading_title",
-	"properties" :
-	{
-		"enable" :
-		{
-			"type" : "boolean",
-			"required" : true,
-			"title" : "edt_conf_general_enable_title",
-			"default" : true,
-			"propertyOrder" : 1
+	"properties": {
+		"enable": {
+			"type": "boolean",
+			"required": true,
+			"title": "edt_conf_general_enable_title",
+			"default": true,
+			"propertyOrder": 1
 		},
-		"port" :
-		{
-			"type" : "integer",
-			"required" : true,
-			"title" : "edt_conf_general_port_title",
-			"minimum" : 1024,
-			"maximum" : 65535,
-			"default" : 19400,
-			"propertyOrder" : 2
+		"port": {
+			"type": "integer",
+			"required": true,
+			"title": "edt_conf_general_port_title",
+			"minimum": 1024,
+			"maximum": 65535,
+			"default": 19400,
+			"propertyOrder": 2
 		},
-		"timeout" :
-		{
-			"type" : "integer",
-			"required" : true,
-			"title" : "edt_conf_fbs_timeout_title",
-			"append" : "edt_append_s",
-			"minimum" : 1,
-			"default" : 5,
-			"propertyOrder" : 3
+		"timeout": {
+			"type": "integer",
+			"required": true,
+			"title": "edt_conf_fbs_timeout_title",
+			"append": "edt_append_s",
+			"minimum": 1,
+			"default": 5,
+			"propertyOrder": 3
+		},
+		"pixelDecimation": {
+			"type": "integer",
+			"title": "edt_conf_fg_pixelDecimation_title",
+			"minimum": 1,
+			"maximum": 30,
+			"default": 1,
+			"required": false,
+			"access": "advanced",
+			"propertyOrder": 4
 		}
 	},
 	"additionalProperties" : false

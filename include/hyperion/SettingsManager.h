@@ -3,13 +3,10 @@
 #include <utils/Logger.h>
 #include <utils/settings.h>
 
-#include <utils/version.hpp>
-using namespace semver;
+#include <db/SettingsTable.h>
 
 // qt includes
 #include <QJsonObject>
-
-const int GLOABL_INSTANCE_ID = 255;
 
 class Hyperion;
 class SettingsTable;
@@ -26,23 +23,21 @@ public:
 	/// @params  instance   Instance index of HyperionInstanceManager
 	/// @params  parent    The parent hyperion instance
 	///
-	SettingsManager(quint8 instance, QObject* parent = nullptr, bool readonlyMode = false);
+	SettingsManager(quint8 instance = GLOABL_INSTANCE_ID, QObject* parent = nullptr);
 
 	///
-	/// @brief Save a complete json configuration
+	/// @brief Save a complete JSON configuration
 	/// @param config  The entire config object
-	/// @param correct If true will correct json against schema before save
-	/// @return True on success else false
+	/// @return True on success else false, plus validation errors
 	///
-	bool saveSettings(QJsonObject config, bool correct = false);
+	QPair<bool, QStringList> saveSettings(const QJsonObject& config);
 
 	///
-	/// @brief Restore a complete json configuration
+	/// @brief Correct a complete JSON configuration
 	/// @param config  The entire config object
-	/// @param correct If true will correct json against schema before save
-	/// @return True on success else false
+	/// @return True on success else false, plus correction details
 	///
-	bool restoreSettings(QJsonObject config, bool correct = false);
+	QPair<bool, QStringList> correctSettings(QJsonObject& config);
 
 	///
 	/// @brief get a single setting json from configuration
@@ -52,10 +47,18 @@ public:
 	QJsonDocument getSetting(settings::type type) const;
 
 	///
-	/// @brief get the full settings object of this instance (with global settings)
+	/// @brief get a single setting json from configuration
+	/// @param type   The type as string
+	/// @return The requested json data as QJsonDocument
+	///
+	QJsonDocument getSetting(const QString& type) const;
+	
+	///
+	/// @brief get the selected settings objects of this instance (including global settings)
 	/// @return The requested json
 	///
-	QJsonObject getSettings() const;
+	QJsonObject getSettings(const QStringList& filteredTypes = {}) const;
+	QJsonObject getSettings(const QVariant& instance, const QStringList& filteredTypes = {} ) const;
 
 signals:
 	///
@@ -71,16 +74,11 @@ private:
 	/// @param config The configuration object
 	/// @return True when a migration has been triggered
 	///
-	bool handleConfigUpgrade(QJsonObject& config);
+	bool upgradeConfig(QJsonObject& config);
 
-
-	bool resolveConfigVersion(QJsonObject& config);
 
 	/// Logger instance
 	Logger* _log;
-
-	/// Hyperion instance
-	Hyperion* _hyperion;
 
 	/// Instance number
 	quint8 _instance;
@@ -88,14 +86,7 @@ private:
 	/// instance of database table interface
 	SettingsTable* _sTable;
 
-	/// the schema
-	static QJsonObject schemaJson;
-
 	/// the current configuration of this instance
 	QJsonObject _qconfig;
 
-	semver::version _configVersion;
-	semver::version _previousVersion;
-
-	bool	_readonlyMode;
 };

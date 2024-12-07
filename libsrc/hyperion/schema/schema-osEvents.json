@@ -1,6 +1,5 @@
 {
 	"type" : "object",
-	"required" : true,
 	"title" : "edt_conf_os_events_heading_title",
 	"properties": {
 		"suspendEnable": {

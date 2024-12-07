@@ -10,13 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **JSON-API**
 - Align JSON subscription update elements. `ledcolors-imagestream-update, ledcolors-ledstream-update, logmsg-update` now return data via `data` and not `result
+- Global global configuration elements are now separated form instance specific ones
 
 ### Added
 
 - Support for ftdi chip based LED-devices with ws2812, sk6812 apa102 LED types (Many thanks to @nurikk) (#1746)
-- Support for Skydimo devices (being an Adalight variant)
+- Support for Skydimo devices
 - Support gaps on Matrix Layout (#1696)
 - Windows: Added a new grabber that uses the DXGI DDA (Desktop Duplication API). This has much better performance than the DX grabber as it does more of its work on the GPU.
+
+- Support to import, export and backup Hyperion's full configuration via the UI, JSON-API and commandline (`--importConfig, --exportConfig`) (#804)
+- Allow to force starting Hyperion in read-only mode (`--readonlyMode`)
+- JSON-API: Support to query for a dedicated set of configuration items for a set of instances
+- JSON-API: Support to save a dedicated set of configuration items for a set of instances
 
 **JSON-API**
 - New subscription support for event updates, i.e. `Suspend, Resume, Idle, idleResume, Restart, Quit`.
@@ -33,12 +39,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed: Kodi Color Calibration, Refactor Wizards (#1674)
 - Fixed: Token Dialog not closing
 - Fixed: Philip Hue APIv2 support without Entertainment group defined (#1742)
+- Refactored: Database access layer
+- Refactored: Hyperion's configuration database is validated before start-up (and migrated, if required)
+- Refactored: Python to enable parallel effect processing under Python 3.12
+- Fixed: Python 3.12 crashes (#1747)
+- osX Grabber: Use ScreenCaptureKit under macOS 15 and above
 
 **JSON-API**
 - Refactored JSON-API to ensure consistent authorization behaviour across sessions and single requests with token authorization.
 - Provide additional error details with API responses, esp. on JSON parsing, validation or token errors.
 - Generate random TANs for every API request from the Hyperion UI
 - Fixed: Handling of IP4 addresses wrapped in IPv6 for external network connections-
+- Fixed: Local Admin API Authentication rejects valid tokens (#1251)
 
 ### Removed
 

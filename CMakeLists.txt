@@ -20,11 +20,10 @@ PROJECT(hyperion)
 include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.cmake)
 file (STRINGS ".version" HYPERION_VERSION)
 SetVersionNumber(HYPERION ${HYPERION_VERSION})
-set(DEFAULT_JSON_CONFIG_FILE ${CMAKE_CURRENT_SOURCE_DIR}/config/hyperion.config.json.default)
+set(DEFAULT_JSON_CONFIG_FILE ${CMAKE_CURRENT_SOURCE_DIR}/settings/hyperion.settings.json.default)
 file(READ ${DEFAULT_JSON_CONFIG_FILE} DEFAULT_JSON_CONFIG_VAR)
 string(REPLACE "configVersionValue" ${HYPERION_VERSION} DEFAULT_JSON_CONFIG_VAR "${DEFAULT_JSON_CONFIG_VAR}")
-string(REPLACE "previousVersionValue" ${HYPERION_VERSION} DEFAULT_JSON_CONFIG_VAR "${DEFAULT_JSON_CONFIG_VAR}")
-file(WRITE ${CMAKE_BINARY_DIR}/config/hyperion.config.json.default "${DEFAULT_JSON_CONFIG_VAR}")
+file(WRITE ${CMAKE_BINARY_DIR}/settings/hyperion.settings.json.default "${DEFAULT_JSON_CONFIG_VAR}")
 
 # Instruct CMake to run moc automatically when needed.
 set(CMAKE_AUTOMOC ON)
@@ -227,7 +226,7 @@ message(STATUS "HYPERION_LIGHT = ${HYPERION_LIGHT}")
 
 if(HYPERION_LIGHT)
 	message(STATUS "HYPERION_LIGHT: Hyperion is build with a reduced set of functionality.")
-	# Disable Grabbers
+	# Disable Screen/Video Grabbers
 	SET ( DEFAULT_AMLOGIC                     OFF )
 	SET ( DEFAULT_DISPMANX                    OFF )
 	SET ( DEFAULT_DX                          OFF )
@@ -237,17 +236,20 @@ if(HYPERION_LIGHT)
 	SET ( DEFAULT_OSX                         OFF )
 	SET ( DEFAULT_QT                          OFF )
 	SET ( DEFAULT_V4L2                        OFF )
-	SET ( DEFAULT_AUDIO                       OFF )
 	SET ( DEFAULT_X11                         OFF )
 	SET ( DEFAULT_XCB                         OFF )
 
+	# Disable Audio Grabbers
+	SET ( DEFAULT_AUDIO                       OFF )
+
 	# LED-Devices
-	SET ( DEFAULT_DEV_NETWORK                 OFF )
-	SET ( DEFAULT_DEV_SERIAL                  OFF )
-	SET ( DEFAULT_DEV_SPI                     OFF )
-	SET ( DEFAULT_DEV_TINKERFORGE             OFF )
-	SET ( DEFAULT_DEV_USB_HID                 OFF )
-	SET ( DEFAULT_DEV_WS281XPWM               OFF )
+	#SET ( DEFAULT_DEV_NETWORK                 OFF )
+	#SET ( DEFAULT_DEV_FTDI                    OFF )
+	#SET ( DEFAULT_DEV_SERIAL                  OFF )
+	#SET ( DEFAULT_DEV_SPI                     OFF )
+	#SET ( DEFAULT_DEV_TINKERFORGE             OFF )
+	#SET ( DEFAULT_DEV_USB_HID                 OFF )
+	#SET ( DEFAULT_DEV_WS281XPWM               OFF )
 
 	# Disable Input Servers
 	SET ( DEFAULT_BOBLIGHT_SERVER             OFF )
@@ -260,13 +262,14 @@ if(HYPERION_LIGHT)
 	SET ( DEFAULT_FLATBUF_CONNECT             OFF )
 
 	# Disable Services
-	SET ( DEFAULT_EXPERIMENTAL                OFF )
-	SET ( DEFAULT_MDNS                        ON  )
-	SET ( DEFAULT_REMOTE_CTL                  OFF )	
 	SET ( DEFAULT_EFFECTENGINE                OFF )
+	SET ( DEFAULT_EXPERIMENTAL                OFF )
+	#SET ( DEFAULT_MDNS                       OFF )
+	SET ( DEFAULT_REMOTE_CTL                  OFF )
 
+	SET ( ENABLE_JSONCHECKS                    ON )
+	SET ( ENABLE_DEPLOY_DEPENDENCIES           ON )
 endif()
-
 message(STATUS "Grabber options:")
 
 addIndent(" - ")
@@ -441,7 +444,7 @@ endif()
 if(ENABLE_JSONCHECKS)
 	# check all json files
 	file (GLOB_RECURSE HYPERION_SCHEMAS RELATIVE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/libsrc/*schema*.json)
-	set(JSON_FILES ${CMAKE_BINARY_DIR}/config/hyperion.config.json.default	${HYPERION_SCHEMAS})
+	set(JSON_FILES ${CMAKE_BINARY_DIR}/settings/hyperion.settings.json.default	${HYPERION_SCHEMAS})
 
 	execute_process (
 		COMMAND ${PYTHON_EXECUTABLE} test/jsonchecks/checkjson.py ${JSON_FILES}
@@ -464,7 +467,7 @@ if(ENABLE_JSONCHECKS)
 	endif()
 
 	execute_process (
-		COMMAND ${PYTHON_EXECUTABLE} test/jsonchecks/checkschema.py ${CMAKE_BINARY_DIR}/config/hyperion.config.json.default libsrc/hyperion/hyperion.schema.json
+		COMMAND ${PYTHON_EXECUTABLE} test/jsonchecks/checkschema.py ${CMAKE_BINARY_DIR}/settings/hyperion.settings.json.default libsrc/hyperion/schema/schema-settings-default.json
 		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 		RESULT_VARIABLE CHECK_CONFIG_FAILED
 	)

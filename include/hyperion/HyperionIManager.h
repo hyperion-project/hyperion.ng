@@ -59,11 +59,17 @@ public slots:
 	///
 	QVector<QVariantMap> getInstanceData() const;
 
+	QString getInstanceName(quint8 inst = 0);
 
 	///
 	/// @brief Get all instance indicies of running instances
 	///
 	QList<quint8> getRunningInstanceIdx() const;
+
+	///
+	/// @brief Get all instance indicies configured
+	///
+	QList<quint8> getInstanceIds() const;
 
 	///
 	/// @brief Start a Hyperion instance
@@ -114,8 +120,6 @@ public slots:
 	/// @return Return true on success, false if not found
 	///
 	bool saveName(quint8 inst, const QString& name);
-
-	QString getRootPath() const { return _rootPath; }
 
 signals:
 	///
@@ -195,9 +199,8 @@ private:
 	friend class HyperionDaemon;
 	///
 	/// @brief Construct the Manager
-	/// @param The root path of all userdata
 	///
-	HyperionIManager(const QString& rootPath, QObject* parent = nullptr, bool readonlyMode = false);
+	HyperionIManager(QObject* parent = nullptr);
 
 	///
 	/// @brief Start all instances that are marked as enabled in db. Non blocking
@@ -218,12 +221,9 @@ private:
 private:
 	Logger* _log;
 	InstanceTable* _instanceTable;
-	const QString _rootPath;
 	QMap<quint8, Hyperion*> _runningInstances;
+
 	QList<quint8> _startQueue;
-
-	bool _readonlyMode;
-
 	/// All pending requests
 	QMap<quint8, PendingRequests> _pendingRequests;
 };

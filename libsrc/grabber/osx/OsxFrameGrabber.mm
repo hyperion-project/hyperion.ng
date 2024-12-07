@@ -1,9 +1,15 @@
 // STL includes
 #include <cassert>
 #include <iostream>
+#include <mutex>
 
-// Local includes
+// Header
 #include <grabber/osx/OsxFrameGrabber.h>
+
+// ScreenCaptureKit
+#if defined(SDK_15_AVAILABLE)
+#include <ScreenCaptureKit/ScreenCaptureKit.h>
+#endif
 
 //Qt
 #include <QJsonObject>
@@ -15,9 +21,70 @@ namespace {
 const bool verbose = false;
 } //End of constants
 
+#if defined(SDK_15_AVAILABLE)
+	static CGImageRef capture15(CGDirectDisplayID id, CGRect diIntersectDisplayLocal)
+	{
+		dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+		__block CGImageRef image1 = nil;
+		[SCShareableContent getShareableContentWithCompletionHandler:^(SCShareableContent* content, NSError* error)
+		{
+			@autoreleasepool
+			{
+				if (error || !content)
+				{
+					dispatch_semaphore_signal(semaphore);
+					return;
+				}
+
+				SCDisplay* target = nil;
+				for (SCDisplay *display in content.displays)
+				{
+					if (display.displayID == id)
+					{
+						target = display;
+						break;
+					}
+				}
+				if (!target)
+				{
+					dispatch_semaphore_signal(semaphore);
+					return;
+				}
+
+				SCContentFilter* filter = [[SCContentFilter alloc] initWithDisplay:target excludingWindows:@[]];
+				SCStreamConfiguration* config = [[SCStreamConfiguration alloc] init];
+				config.queueDepth = 5;
+				config.sourceRect = diIntersectDisplayLocal;
+				config.scalesToFit = false;
+				config.captureResolution = SCCaptureResolutionBest;
+
+				CGDisplayModeRef modeRef = CGDisplayCopyDisplayMode(id);
+				double sysScale = CGDisplayModeGetPixelWidth(modeRef) / CGDisplayModeGetWidth(modeRef);
+				config.width = diIntersectDisplayLocal.size.width * sysScale;
+				config.height = diIntersectDisplayLocal.size.height * sysScale;
+
+				[SCScreenshotManager captureImageWithFilter:filter
+					configuration:config
+					completionHandler:^(CGImageRef img, NSError* error)
+					{
+						if (!error)
+						{
+							image1 = CGImageCreateCopyWithColorSpace(img, CGColorSpaceCreateDeviceRGB());
+						}
+						dispatch_semaphore_signal(semaphore);
+				}];
+			}
+		}];
+
+		dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+		dispatch_release(semaphore);
+		return image1;
+	}
+#endif
+
 OsxFrameGrabber::OsxFrameGrabber(int display)
 	: Grabber("GRABBER-OSX")
-	  , _screenIndex(display)
+	, _screenIndex(display)
 {
 	_isEnabled = false;
 	_useImageResampler = true;
@@ -31,6 +98,15 @@ bool OsxFrameGrabber::setupDisplay()
 {
 	bool rc (false);
 
+#if defined(SDK_15_AVAILABLE)
+	if (!CGPreflightScreenCaptureAccess())
+	{
+		if(!CGRequestScreenCaptureAccess())
+			Error(_log, "Screen capture permission required to start the grabber");
+			return false;
+	}
+#endif
+
 	rc = setDisplayIndex(_screenIndex);
 
 	return rc;
@@ -41,39 +117,38 @@ int OsxFrameGrabber::grabFrame(Image<ColorRgb> & image)
 	int rc = 0;
 	if (_isEnabled && !_isDeviceInError)
 	{
-
 		CGImageRef dispImage;
-		CFDataRef imgData;
-		unsigned char * pImgData;
-		unsigned dspWidth;
-		unsigned dspHeight;
 
-		dispImage = CGDisplayCreateImage(_display);
+		#if defined(SDK_15_AVAILABLE)
+			dispImage = capture15(_display, CGDisplayBounds(_display));
+		#else
+			dispImage = CGDisplayCreateImageForRect(_display, CGDisplayBounds(_display));
+		#endif
 
 		// display lost, use main
 		if (dispImage == nullptr && _display != 0)
 		{
-			dispImage = CGDisplayCreateImage(kCGDirectMainDisplay);
-			// no displays connected, return
-			if (dispImage == nullptr)
-			{
-				Error(_log, "No display connected...");
-				return -1;
-			}
+			#if defined(SDK_15_AVAILABLE)
+				dispImage = capture15(kCGDirectMainDisplay, CGDisplayBounds(kCGDirectMainDisplay));
+			#else
+				dispImage = CGDisplayCreateImageForRect(kCGDirectMainDisplay, CGDisplayBounds(kCGDirectMainDisplay));
+			#endif
 		}
-		imgData   = CGDataProviderCopyData(CGImageGetDataProvider(dispImage));
-		pImgData  = (unsigned char*) CFDataGetBytePtr(imgData);
-		dspWidth  = CGImageGetWidth(dispImage);
-		dspHeight = CGImageGetHeight(dispImage);
 
-		_imageResampler.processImage( pImgData,
-									  static_cast<int>(dspWidth),
-									  static_cast<int>(dspHeight),
-									  static_cast<int>(CGImageGetBytesPerRow(dispImage)),
-									  PixelFormat::BGR32,
-									  image);
+		// no displays connected, return
+		if (dispImage == nullptr)
+		{
+			Error(_log, "No display connected...");
+			return -1;
+		}
 
-		CFRelease(imgData);
+		CFDataRef imgData = CGDataProviderCopyData(CGImageGetDataProvider(dispImage));
+		if (imgData != nullptr)
+		{
+			_imageResampler.processImage((uint8_t *)CFDataGetBytePtr(imgData), static_cast<int>(CGImageGetWidth(dispImage)), static_cast<int>(CGImageGetHeight(dispImage)), static_cast<int>(CGImageGetBytesPerRow(dispImage)), PixelFormat::BGR32, image);
+			CFRelease(imgData);
+		}
+
 		CGImageRelease(dispImage);
 
 	}
@@ -108,7 +183,12 @@ bool OsxFrameGrabber::setDisplayIndex(int index)
 				{
 					_display = activeDspys[_screenIndex];
 
-					image = CGDisplayCreateImage(_display);
+					#if defined(SDK_15_AVAILABLE)
+						image = capture15(_display, CGDisplayBounds(_display));
+					#else
+						image = CGDisplayCreateImageForRect(_display, CGDisplayBounds(_display));
+					#endif
+
 					if(image == nullptr)
 					{
 						setEnabled(false);

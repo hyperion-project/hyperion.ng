@@ -186,7 +186,7 @@ private:
 	///
 	void handleSourceSelectCommand(const QJsonObject &message, const JsonApiCommand& cmd);
 
-	/// Handle an incoming JSON GetConfig message and check subcommand
+	/// Handle an incoming JSON Config message and check subcommand
 	///
 	/// @param message the incoming message
 	///
@@ -203,6 +203,12 @@ private:
 	/// @param message the incoming message
 	///
 	void handleConfigSetCommand(const QJsonObject &message, const JsonApiCommand& cmd);
+
+	/// Handle an incoming JSON GetConfig message from handleConfigCommand()
+	///
+	/// @param message the incoming message
+	///
+	void handleConfigGetCommand(const QJsonObject &message, const JsonApiCommand& cmd);
 
 	/// Handle an incoming JSON RestoreConfig message from handleConfigCommand()
 	///

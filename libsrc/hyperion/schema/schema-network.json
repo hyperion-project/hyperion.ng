@@ -1,7 +1,6 @@
 {
 	"type" : "object",
 	"title" : "edt_conf_net_heading_title",
-	"required" : true,
 	"properties" :
 	{
 		"internetAccessAPI" :

@@ -10,18 +10,40 @@
 		"subcommand": {
 			"type" : "string",
 			"required" : true,
-			"enum" : ["getconfig","getschema","setconfig","restoreconfig","reload"]
-		},
-		"instance" : {
-			"type" : "integer",
-			"minimum": 0,
-			"maximum": 255
+			"enum" : ["getconfig","getconfig-old","getschema","setconfig","restoreconfig","reload"]
 		},
 		"tan" : {
 			"type" : "integer"
 		},
+		"configFilter": {
+			"global" : {
+				"types": {
+					"type": "array",
+					"required": false,
+					"items" : {
+						"type" : "string"
+					}
+				}
+			},
+			"instances" : {
+				"ids" : {
+					"type": "array",
+					"required": true,
+					"items" : {},
+					"minItems": 1
+				},
+				"types": {
+					"type": "array",
+					"required": false,
+					"items" :{
+						"type" : "string"
+					}
+				}
+			}
+		},
 		"config": {
-			"type" : "object"
+			"required": false,
+			"$ref": "schema-settings-full-relaxed.json"
 		}
 	},
 	"additionalProperties": false
