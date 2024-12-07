@@ -62,6 +62,7 @@ add_library(hyperion-utils
 	${CMAKE_SOURCE_DIR}/libsrc/utils/RgbToRgbw.cpp
 	${CMAKE_SOURCE_DIR}/include/utils/RgbTransform.h
 	${CMAKE_SOURCE_DIR}/libsrc/utils/RgbTransform.cpp
+	${CMAKE_SOURCE_DIR}/include/utils/KelvinToRgb.h	
 	# System info class
 	${CMAKE_SOURCE_DIR}/include/utils/SysInfo.h
 	${CMAKE_SOURCE_DIR}/libsrc/utils/SysInfo.cpp
