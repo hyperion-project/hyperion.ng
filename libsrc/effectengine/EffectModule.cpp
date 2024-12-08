@@ -184,6 +184,7 @@ PyMethodDef EffectModule::effectMethods[] = {
 	{"imageCOffset"          , EffectModule::wrapImageCOffset          , METH_VARARGS, "Add offset to the coordinate system"},
 	{"imageCShear"           , EffectModule::wrapImageCShear           , METH_VARARGS, "Shear of coordinate system by the given horizontal/vertical axis"},
 	{"imageResetT"           , EffectModule::wrapImageResetT           , METH_NOARGS,  "Resets all coords modifications (rotate,offset,shear)"},
+	{"lowestUpdateInterval"  , EffectModule::wrapLowestUpdateInterval  , METH_NOARGS,  "Gets the lowest permissible interval time in seconds"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -1105,4 +1106,11 @@ PyObject* EffectModule::wrapImageResetT(PyObject* self, PyObject* args)
 {
 	getEffect()->_painter->resetTransform();
 	Py_RETURN_NONE;
+}
+
+PyObject* EffectModule::wrapLowestUpdateInterval(PyObject* self, PyObject* args)
+{
+	qDebug() << "_lowestUpdateIntervalInSeconds: " << getEffect()->_lowestUpdateIntervalInSeconds;
+
+	return Py_BuildValue("d", getEffect()->_lowestUpdateIntervalInSeconds);
 }

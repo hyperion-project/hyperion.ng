@@ -20,6 +20,9 @@ brightness = float(hyperion.args.get('brightness', 100))/100.0
 
 sleepTime = float(hyperion.args.get('sleepTime', 0.14))
 
+# Limit update rate
+sleepTime = max(hyperion.lowestUpdateInterval(), sleepTime)
+
 candles = hyperion.args.get('candles', "all")
 ledlist = hyperion.args.get('ledlist', "1")
 

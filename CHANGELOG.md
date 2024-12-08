@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow to force starting Hyperion in read-only mode (`--readonlyMode`)
 - JSON-API: Support to query for a dedicated set of configuration items for a set of instances
 - JSON-API: Support to save a dedicated set of configuration items for a set of instances
+- JSON-API: Limit update emission frequency: Images (25Hz), raw LED-Colors (40Hz) & LED-Device data (200Hz) 
+- Effects: Limit the maximum update rate to 200Hz
 
 **JSON-API**
 - New subscription support for event updates, i.e. `Suspend, Resume, Idle, idleResume, Restart, Quit`.
@@ -44,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored: Python to enable parallel effect processing under Python 3.12
 - Fixed: Python 3.12 crashes (#1747)
 - osX Grabber: Use ScreenCaptureKit under macOS 15 and above
+- Removed maximum LED number constraint from Matrix layout schema which was not synced with the UI behaviour (#1804)
 
 **JSON-API**
 - Refactored JSON-API to ensure consistent authorization behaviour across sessions and single requests with token authorization.

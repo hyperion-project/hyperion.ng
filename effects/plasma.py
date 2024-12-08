@@ -6,6 +6,9 @@ width = hyperion.imageWidth()
 height = hyperion.imageHeight()
 sleepTime = float(hyperion.args.get('sleepTime', 0.2))
 
+# Limit update rate
+sleepTime = max(hyperion.lowestUpdateInterval(), sleepTime)
+
 def mapto(x, in_min, in_max, out_min, out_max):
 	return float((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
 

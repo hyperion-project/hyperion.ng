@@ -283,21 +283,42 @@ QStringList JsonCallbacks::getSubscribedCommands() const
 
 void JsonCallbacks::doCallback(Subscription::Type cmd, const QVariant& data)
 {
+	if (data.userType() == QMetaType::QJsonArray)
+	{
+		doCallback(cmd, data.toJsonArray());
+	}
+	else
+	{
+		doCallback(cmd, data.toJsonObject());
+	}
+}
+
+void JsonCallbacks::doCallback(Subscription::Type cmd, const QJsonArray& data)
+{
 	QJsonObject obj;
 	obj["command"] = Subscription::toString(cmd);
 
 	if (Subscription::isInstanceSpecific(cmd))
 	{
-		obj["instance"] = _hyperion->getInstanceIndex();
+		obj.insert("instance", _hyperion->getInstanceIndex());
 	}
+	obj.insert("data", data);
 
-	if (data.userType() == QMetaType::QJsonArray) {
-		obj["data"] = data.toJsonArray();
-	} else {
-		obj["data"] = data.toJsonObject();
+	emit callbackReady(obj);
+}
+
+void JsonCallbacks::doCallback(Subscription::Type cmd, const QJsonObject& data)
+{
+	QJsonObject obj;
+	obj["command"] = Subscription::toString(cmd);
+
+	if (Subscription::isInstanceSpecific(cmd))
+	{
+		obj.insert("instance", _hyperion->getInstanceIndex());
 	}
+	obj.insert("data", data);
 
-	emit newCallback(obj);
+	emit callbackReady(obj);
 }
 
 void JsonCallbacks::handleComponentState(hyperion::Components comp, bool state)
@@ -306,7 +327,7 @@ void JsonCallbacks::handleComponentState(hyperion::Components comp, bool state)
 	data["name"] = componentToIdString(comp);
 	data["enabled"] = state;
 
-	doCallback(Subscription::ComponentsUpdate, QVariant(data));
+	doCallback(Subscription::ComponentsUpdate, data);
 }
 
 void JsonCallbacks::handlePriorityUpdate(int currentPriority, const PriorityMuxer::InputsMap& activeInputs)
@@ -315,7 +336,7 @@ void JsonCallbacks::handlePriorityUpdate(int currentPriority, const PriorityMuxe
 	data["priorities"] = JsonInfo::getPrioritiestInfo(currentPriority, activeInputs);
 	data["priorities_autoselect"] = _hyperion->sourceAutoSelectEnabled();
 
-	doCallback(Subscription::PrioritiesUpdate, QVariant(data));
+	doCallback(Subscription::PrioritiesUpdate, data);
 }
 
 void JsonCallbacks::handleImageToLedsMappingChange(int mappingType)
@@ -323,7 +344,7 @@ void JsonCallbacks::handleImageToLedsMappingChange(int mappingType)
 	QJsonObject data;
 	data["imageToLedMappingType"] = ImageProcessor::mappingTypeToStr(mappingType);
 
-	doCallback(Subscription::ImageToLedMappingUpdate, QVariant(data));
+	doCallback(Subscription::ImageToLedMappingUpdate, data);
 }
 
 void JsonCallbacks::handleAdjustmentChange()
@@ -335,7 +356,7 @@ void JsonCallbacks::handleVideoModeChange(VideoMode mode)
 {
 	QJsonObject data;
 	data["videomode"] = QString(videoMode2String(mode));
-	doCallback(Subscription::VideomodeUpdate, QVariant(data));
+	doCallback(Subscription::VideomodeUpdate, data);
 }
 
 #if defined(ENABLE_EFFECTENGINE)
@@ -343,29 +364,29 @@ void JsonCallbacks::handleEffectListChange()
 {
 	QJsonObject effects;
 	effects["effects"] = JsonInfo::getEffects(_hyperion);
-	doCallback(Subscription::EffectsUpdate, QVariant(effects));
+	doCallback(Subscription::EffectsUpdate, effects);
 }
 #endif
 
 void JsonCallbacks::handleSettingsChange(settings::type type, const QJsonDocument& data)
 {
-	QJsonObject dat;
+	QJsonObject obj;
 	if(data.isObject()) {
-		dat[typeToString(type)] = data.object();
+		obj[typeToString(type)] = data.object();
 	} else {
-		dat[typeToString(type)] = data.array();
+		obj[typeToString(type)] = data.array();
 	}
 
-	doCallback(Subscription::SettingsUpdate, QVariant(dat));
+	doCallback(Subscription::SettingsUpdate, obj);
 }
 
 void JsonCallbacks::handleLedsConfigChange(settings::type type, const QJsonDocument& data)
 {
 	if(type == settings::LEDS)
 	{
-		QJsonObject dat;
-		dat[typeToString(type)] = data.array();
-		doCallback(Subscription::LedsUpdate, QVariant(dat));
+		QJsonObject obj;
+		obj[typeToString(type)] = data.array();
+		doCallback(Subscription::LedsUpdate, obj);
 	}
 }
 
@@ -385,7 +406,7 @@ void JsonCallbacks::handleTokenChange(const QVector<AuthManager::AuthDefinition>
 		sub["last_use"] = entry.lastUse;
 		arr.push_back(sub);
 	}
-	doCallback(Subscription::TokenUpdate, QVariant(arr));
+	doCallback(Subscription::TokenUpdate, arr);
 }
 
 void JsonCallbacks::handleLedColorUpdate(const std::vector<ColorRgb> &ledColors)
@@ -393,13 +414,16 @@ void JsonCallbacks::handleLedColorUpdate(const std::vector<ColorRgb> &ledColors)
 	QJsonObject result;
 	QJsonArray leds;
 
-	for (const auto &color : ledColors)
+	// Avoid copying by appending RGB values directly
+	for (const auto& color : ledColors)
 	{
-		leds << QJsonValue(color.red) << QJsonValue(color.green) << QJsonValue(color.blue);
+		leds.append(QJsonValue(color.red));
+		leds.append(QJsonValue(color.green));
+		leds.append(QJsonValue(color.blue));
 	}
 	result["leds"] = leds;
 
-	doCallback(Subscription::LedColorsUpdate, QVariant(result));
+	doCallback(Subscription::LedColorsUpdate, result);
 }
 
 void JsonCallbacks::handleImageUpdate(const Image<ColorRgb> &image)
@@ -413,7 +437,7 @@ void JsonCallbacks::handleImageUpdate(const Image<ColorRgb> &image)
 	QJsonObject result;
 	result["image"] = "data:image/jpg;base64," + QString(byteArray.toBase64());
 
-	doCallback(Subscription::ImageUpdate, QVariant(result));
+	doCallback(Subscription::ImageUpdate, result);
 }
 
 void JsonCallbacks::handleLogMessageUpdate(const Logger::T_LOG_MESSAGE &msg)
@@ -445,7 +469,7 @@ void JsonCallbacks::handleLogMessageUpdate(const Logger::T_LOG_MESSAGE &msg)
 	}
 	result.insert("messages", messageArray);
 
-	doCallback(Subscription::LogMsgUpdate, QVariant(result));
+	doCallback(Subscription::LogMsgUpdate, result);
 }
 
 void JsonCallbacks::handleEventUpdate(const Event &event)
@@ -454,6 +478,6 @@ void JsonCallbacks::handleEventUpdate(const Event &event)
 
 	result["event"] = eventToString(event);
 
-	doCallback(Subscription::EventUpdate, QVariant(result));
+	doCallback(Subscription::EventUpdate, result);
 }
 

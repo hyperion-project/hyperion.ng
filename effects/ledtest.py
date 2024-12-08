@@ -11,6 +11,9 @@ sleepTime = float(hyperion.args.get('sleepTime', 0.5))
 testleds = hyperion.args.get('testleds', "all")
 ledlist = hyperion.args.get('ledlist', "1")
 
+# Limit update rate
+sleepTime = max(hyperion.lowestUpdateInterval(), sleepTime)
+
 testlist = ()
 if (testleds == "list") and (type(ledlist) is str):
 	for s in ledlist.split(','):

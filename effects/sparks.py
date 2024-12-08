@@ -8,6 +8,9 @@ saturation   = float(hyperion.args.get('saturation', 100))/100.0
 color        = list(hyperion.args.get('color', (255,255,255)))
 randomColor  = bool(hyperion.args.get('random-color', False))
 
+# Limit update rate
+sleepTime = max(hyperion.lowestUpdateInterval(), sleepTime)
+
 # Check parameters
 rotationTime = max(0.1, rotationTime)
 
