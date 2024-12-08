@@ -17,7 +17,6 @@
 #include <QSslSocket>
 
 //std includes
-#include <iostream>
 #include <chrono>
 
 // Constants
@@ -231,7 +230,7 @@ httpResponse ProviderRestApi::executeOperation(QNetworkAccessManager::Operation 
 	_networkManager->setTransferTimeout(_requestTimeout.count());
 #endif
 
-	QDateTime start = QDateTime::currentDateTime();
+	QDateTime const start = QDateTime::currentDateTime();
 	QString opCode;
 	QNetworkReply* reply;
 
@@ -267,7 +266,7 @@ httpResponse ProviderRestApi::executeOperation(QNetworkAccessManager::Operation 
 
 	// Go into the loop until the request is finished.
 	loop.exec();
-	QDateTime end = QDateTime::currentDateTime();
+	QDateTime const end = QDateTime::currentDateTime();
 
 	httpResponse response = (reply->operation() == operation) ? getResponse(reply) : httpResponse();
 
@@ -283,18 +282,18 @@ httpResponse ProviderRestApi::getResponse(QNetworkReply* const& reply)
 {
 	httpResponse response;
 
-	HttpStatusCode httpStatusCode = static_cast<HttpStatusCode>(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt());
+	HttpStatusCode const httpStatusCode = static_cast<HttpStatusCode>(reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt());
 	response.setHttpStatusCode(httpStatusCode);
 	response.setNetworkReplyError(reply->error());
 	response.setHeaders(reply->rawHeaderPairs());
 
 	if (reply->error() == QNetworkReply::NoError)
 	{
-		QByteArray replyData = reply->readAll();
+		QByteArray const replyData = reply->readAll();
 		if (!replyData.isEmpty())
 		{
 			QJsonParseError error;
-			QJsonDocument jsonDoc = QJsonDocument::fromJson(replyData, &error);
+			QJsonDocument const jsonDoc = QJsonDocument::fromJson(replyData, &error);
 
 			if (error.error != QJsonParseError::NoError)
 			{
@@ -322,7 +321,7 @@ httpResponse ProviderRestApi::getResponse(QNetworkReply* const& reply)
 		else
 		{
 			if (httpStatusCode > 0) {
-				QString httpReason = reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString();
+				QString const httpReason = reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString();
 				QString advise;
 				switch ( httpStatusCode ) {
 				case HttpStatusCode::BadRequest:
@@ -339,7 +338,7 @@ httpResponse ProviderRestApi::getResponse(QNetworkReply* const& reply)
 					break;
 				case HttpStatusCode::TooManyRequests:
 				{
-					QString retryAfterTime = response.getHeader("Retry-After");
+					QString const retryAfterTime = response.getHeader("Retry-After");
 					if (!retryAfterTime.isEmpty())
 					{
 						advise = "Retry-After: " + response.getHeader("Retry-After");
@@ -366,7 +365,7 @@ httpResponse ProviderRestApi::getResponse(QNetworkReply* const& reply)
 
 void ProviderRestApi::setHeader(QNetworkRequest::KnownHeaders header, const QVariant& value)
 {
-	QVariant headerValue = _networkRequestHeaders.header(header);
+	QVariant const headerValue = _networkRequestHeaders.header(header);
 	if (headerValue.isNull())
 	{
 		_networkRequestHeaders.setHeader(header, value);
@@ -394,7 +393,7 @@ void httpResponse::setHeaders(const QList<QNetworkReply::RawHeaderPair>& pairs)
 	}
 }
 
-QByteArray httpResponse::getHeader(const QByteArray header) const
+QByteArray httpResponse::getHeader(const QByteArray& header) const
 {
 	return _responseHeaders.value(header);
 }
@@ -412,7 +411,7 @@ bool ProviderRestApi::setCaCertificate(const QString& caFileName)
 		return false;
 	}
 
-	QSslCertificate cert (&caFile);
+	QSslCertificate const cert (&caFile);
 	caFile.close();
 
 	QList<QSslCertificate> allowedCAs;
@@ -424,8 +423,8 @@ bool ProviderRestApi::setCaCertificate(const QString& caFileName)
 #ifndef QT_NO_SSL
 	if (QSslSocket::supportsSsl())
 	{
-		QObject::connect( _networkManager, &QNetworkAccessManager::sslErrors, this, &ProviderRestApi::onSslErrors, Qt::UniqueConnection );
-		_networkManager->connectToHostEncrypted(_apiUrl.host(), _apiUrl.port(), configuration);
+		QObject::connect( _networkManager, &QNetworkAccessManager::sslErrors, this, &ProviderRestApi::onSslErrors );
+		_networkManager->connectToHostEncrypted(_apiUrl.host(), static_cast<quint16>(_apiUrl.port()), configuration);
 		rc = true;
 	}
 #endif
@@ -453,8 +452,8 @@ bool ProviderRestApi::checkServerIdentity(const QSslConfiguration& sslConfig) co
 	bool isServerIdentified {false};
 
 	// Perform common name validation
-	QSslCertificate serverCertificate = sslConfig.peerCertificate();
-	QStringList commonName = serverCertificate.subjectInfo(QSslCertificate::CommonName);
+	QSslCertificate const serverCertificate = sslConfig.peerCertificate();
+	QStringList const commonName = serverCertificate.subjectInfo(QSslCertificate::CommonName);
 	if ( commonName.contains(getAlternateServerIdentity(), Qt::CaseInsensitive) )
 	{
 		isServerIdentified = true;
@@ -467,27 +466,36 @@ bool ProviderRestApi::matchesPinnedCertificate(const QSslCertificate& certificat
 {
 	bool isMatching {false};
 
-	QList certificateInfos = certificate.subjectInfo(QSslCertificate::CommonName);
+	QList const certificateInfos = certificate.subjectInfo(QSslCertificate::CommonName);
 
 	if (certificateInfos.isEmpty())
 	{
 		return false;
 	}
-	QString identifier = certificateInfos.constFirst();
+	QString const& identifier = certificateInfos.constFirst();
+	QString const appDataDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+	QString const certDir = appDataDir + "/certificates";
 
-	QString appDataDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-	QString certDir = appDataDir + "/certificates";
-	QDir().mkpath(certDir);
+	Debug (_log,"Directory used for pinned certificates: %s", QSTRING_CSTR(certDir));
 
-	QString filePath(certDir + "/" + identifier + ".pem");
+	bool const isMkPath = QDir().mkpath(certDir);
+	if (!isMkPath)
+	{
+		Error (_log,"Failed to create directory \"%s\" to store pinned certificates. 'Trust on first use' is rejected.", QSTRING_CSTR(certDir));
+		return false;
+	}
+
+	QString const fileName(identifier + ".pem");
+	QString const filePath(certDir + "/" + fileName);
 	QFile file(filePath);
+
 	if (file.open(QIODevice::ReadOnly))
 	{
-		QList certificates = QSslCertificate::fromDevice(&file, QSsl::Pem);
+		QList const certificates = QSslCertificate::fromDevice(&file, QSsl::Pem);
 		if (!certificates.isEmpty())
 		{
-			Debug (_log,"First used certificate loaded successfully");
-			QSslCertificate pinnedeCertificate = certificates.constFirst();
+			Debug (_log,"First used certificate \"%s\" loaded successfully", QSTRING_CSTR(fileName));
+			QSslCertificate const& pinnedeCertificate = certificates.constFirst();
 			if (pinnedeCertificate == certificate)
 			{
 				isMatching = true;
@@ -503,8 +511,8 @@ bool ProviderRestApi::matchesPinnedCertificate(const QSslCertificate& certificat
 	{
 		if (file.open(QIODevice::WriteOnly))
 		{
-			QByteArray pemData = certificate.toPem();
-			qint64 bytesWritten = file.write(pemData);
+			QByteArray const pemData = certificate.toPem();
+			qint64 const bytesWritten = file.write(pemData);
 			if (bytesWritten == pemData.size())
 			{
 				Debug (_log,"First used certificate saved to file: %s", QSTRING_CSTR(filePath));
@@ -538,7 +546,7 @@ void ProviderRestApi::onSslErrors(QNetworkReply* reply, const QList<QSslError>& 
 		if (_isSeflSignedCertificateAccpeted)
 		{
 			// Get the peer certificate associated with the error
-			QSslCertificate certificate = error.certificate();
+			QSslCertificate const certificate = error.certificate();
 			if (matchesPinnedCertificate(certificate))
 			{
 				Debug (_log,"'Trust on first use' - Certificate received matches pinned certificate");
