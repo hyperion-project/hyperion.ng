@@ -97,7 +97,7 @@ jobs:
 
   macOS:
     name: 🍏 macOS x64
-    runs-on: macos-13
+    runs-on: macos-12
     steps:
       - name: ⬇ Checkout
         uses: actions/checkout@v4
@@ -129,8 +129,8 @@ jobs:
           echo '::endgroup::'
 
           echo '::group::Set up Xcode'
-            # Xcode 14.2 is the latest version that can run on macOS 12
-            sudo xcode-select -s /Applications/Xcode_14.2.app/Contents/Developer
+            # Oldest version of Xcode supported on GitHub Action to test source code backwards compatibility
+            sudo xcode-select -s /Applications/Xcode_13.2.1.app/Contents/Developer
             xcode-select -p
             xcodebuild -version
           echo '::endgroup::'
