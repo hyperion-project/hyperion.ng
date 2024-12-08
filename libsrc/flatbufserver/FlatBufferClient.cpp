@@ -1,4 +1,5 @@
 #include "FlatBufferClient.h"
+#include <utils/PixelFormat.h>
 
 // qt
 #include <QTcpSocket>
@@ -15,6 +16,8 @@ FlatBufferClient::FlatBufferClient(QTcpSocket* socket, int timeout, QObject *par
 	, _timeout(timeout * 1000)
 	, _priority()
 {
+	_imageResampler.setPixelDecimation(1);
+	
 	// timer setup
 	_timeoutTimer->setSingleShot(true);
 	_timeoutTimer->setInterval(_timeout);
@@ -23,6 +26,11 @@ FlatBufferClient::FlatBufferClient(QTcpSocket* socket, int timeout, QObject *par
 	// connect socket signals
 	connect(_socket, &QTcpSocket::readyRead, this, &FlatBufferClient::readyRead);
 	connect(_socket, &QTcpSocket::disconnected, this, &FlatBufferClient::disconnected);
+}
+
+void FlatBufferClient::setPixelDecimation(int decimator)
+{
+	_imageResampler.setPixelDecimation(decimator);
 }
 
 void FlatBufferClient::readyRead()
@@ -141,54 +149,70 @@ void FlatBufferClient::handleRegisterCommand(const hyperionnet::Register *regReq
 
 void FlatBufferClient::handleImageCommand(const hyperionnet::Image *image)
 {
+	Image<ColorRgb> imageRGB;
+
 	// extract parameters
 	int duration = image->duration();
-
 	const void* reqPtr;
 	if ((reqPtr = image->data_as_RawImage()) != nullptr)
 	{
-		const auto *img = static_cast<const hyperionnet::RawImage*>(reqPtr);
-		const auto & imageData = img->data();
-		const int width = img->width();
-		const int height = img->height();
+		const auto* img = static_cast<const hyperionnet::RawImage*>(reqPtr);
 
-		if (width <= 0 || height <= 0)
+		hyperionnet::RawImageT rawImageNative;
+		img->UnPackTo(&rawImageNative);
+
+		const int width = rawImageNative.width;
+		const int height = rawImageNative.height;
+
+		if (width <= 0 || height <= 0 || rawImageNative.data.empty())
 		{
-			sendErrorReply("Size of image data does not match with the width and height");
+			sendErrorReply("Invalid width and/or height or no raw image data provided");
 			return;
 		}
 
 		// check consistency of the size of the received data
-		int channelCount = (int)imageData->size()/(width*height);
-		if (channelCount != 3 && channelCount != 4)
+		int bytesPerPixel = rawImageNative.data.size() / (width * height);
+		if (bytesPerPixel != 3 && bytesPerPixel != 4)
 		{
 			sendErrorReply("Size of image data does not match with the width and height");
 			return;
 		}
 
-		// create ImageRgb
-		Image<ColorRgb> imageRGB(width, height);
-		if (channelCount == 3)
-		{
-			memmove(imageRGB.memptr(), imageData->data(), imageData->size());
-		}
-
-		if (channelCount == 4)
-		{
-			for (int source=0, destination=0; source < width * height * static_cast<int>(sizeof(ColorRgb)); source+=sizeof(ColorRgb), destination+=sizeof(ColorRgba))
-			{
-				memmove((uint8_t*)imageRGB.memptr() + source, imageData->data() + destination, sizeof(ColorRgb));
-			}
-		}
-
-		emit setGlobalInputImage(_priority, imageRGB, duration);
-		emit setBufferImage("FlatBuffer", imageRGB);
+		imageRGB.resize(width, height);
+		processRawImage(rawImageNative, bytesPerPixel, _imageResampler, imageRGB);
 	}
+	else if ((reqPtr = image->data_as_NV12Image()) != nullptr)
+	{
+		const auto* img = static_cast<const hyperionnet::NV12Image*>(reqPtr);
+
+		hyperionnet::NV12ImageT nv12ImageNative;
+		img->UnPackTo(&nv12ImageNative);
+
+		const int width = nv12ImageNative.width;
+		const int height = nv12ImageNative.height;
+
+		if (width <= 0 || height <= 0 || nv12ImageNative.data_y.empty() || nv12ImageNative.data_uv.empty())
+		{
+			sendErrorReply("Invalid width and/or height or no complete NV12 image data provided");
+			return;
+		}
+
+		imageRGB.resize(width, height);
+		processNV12Image(nv12ImageNative, _imageResampler, imageRGB);
+
+	}
+	else
+	{
+		sendErrorReply("No or unknown image data provided");
+		return;
+	}
+
+	emit setGlobalInputImage(_priority, imageRGB, duration);
+	emit setBufferImage("FlatBuffer", imageRGB);
 
 	// send reply
 	sendSuccessReply();
 }
-
 
 void FlatBufferClient::handleClearCommand(const hyperionnet::Clear *clear)
 {
@@ -241,4 +265,51 @@ void FlatBufferClient::sendErrorReply(const std::string &error)
 	sendMessage();
 
 	_builder.Clear();
+}
+
+inline void FlatBufferClient::processRawImage(const hyperionnet::RawImageT& raw_image, int bytesPerPixel, ImageResampler& resampler, Image<ColorRgb>& outputImage) {
+	
+	int width = raw_image.width;
+	int height = raw_image.height;
+
+	int lineLength = width * bytesPerPixel;
+	PixelFormat pixelFormat = (bytesPerPixel == 4) ? PixelFormat::RGB32 : PixelFormat::RGB24;
+
+	// Process the image
+	resampler.processImage(
+		raw_image.data.data(),	  // Raw RGB/RGBA buffer
+		width,                    // Image width
+		height,                   // Image height
+		lineLength,               // Line length
+		pixelFormat,              // Pixel format (RGB24/RGB32)
+		outputImage               // Output image
+	);
+}
+
+inline void FlatBufferClient::processNV12Image(const hyperionnet::NV12ImageT& nv12_image, ImageResampler& resampler, Image<ColorRgb>& outputImage) {
+	// Combine data_y and data_uv into a single buffer
+	int width = nv12_image.width;
+	int height = nv12_image.height;
+
+	size_t y_size = nv12_image.data_y.size();
+	size_t uv_size = nv12_image.data_uv.size();
+	std::vector<uint8_t> combined_buffer(y_size + uv_size);
+
+	std::memcpy(combined_buffer.data(), nv12_image.data_y.data(), y_size);
+	std::memcpy(combined_buffer.data() + y_size, nv12_image.data_uv.data(), uv_size);
+
+	// Determine line length (stride_y)
+	int lineLength = nv12_image.stride_y > 0 ? nv12_image.stride_y : width;
+
+	PixelFormat pixelFormat = PixelFormat::NV12;
+
+	// Process the image
+	resampler.processImage(
+		combined_buffer.data(),   // Combined NV12 buffer
+		width,                    // Image width
+		height,                   // Image height
+		lineLength,               // Line length for Y plane
+		pixelFormat,              // Pixel format (NV12)
+		outputImage               // Output image
+	);
 }

@@ -24,13 +24,13 @@ public:
 
 	friend class EffectModule;
 
-	Effect(Hyperion *hyperion
-				, int priority
-				, int timeout
-				, const QString &script
-				, const QString &name
-				, const QJsonObject &args = QJsonObject()
-				, const QString &imageData = ""
+	Effect(Hyperion* hyperion
+		, int priority
+		, int timeout
+		, const QString& script
+		, const QString& name
+		, const QJsonObject& args = QJsonObject()
+		, const QString& imageData = ""
 	);
 	~Effect() override;
 
@@ -64,20 +64,20 @@ public:
 	QString getScript() const { return _script; }
 	QString getName() const { return _name; }
 
-	int getTimeout() const {return _timeout; }
+	int getTimeout() const { return _timeout; }
 	bool isEndless() const { return _isEndless; }
 
 	QJsonObject getArgs() const { return _args; }
 
 signals:
-	void setInput(int priority, const std::vector<ColorRgb> &ledColors, int timeout_ms, bool clearEffect);
-	void setInputImage(int priority, const Image<ColorRgb> &image, int timeout_ms, bool clearEffect);
+	void setInput(int priority, const std::vector<ColorRgb>& ledColors, int timeout_ms, bool clearEffect);
+	void setInputImage(int priority, const Image<ColorRgb>& image, int timeout_ms, bool clearEffect);
 
 private:
-	void setModuleParameters();
+	bool setModuleParameters();
 	void addImage();
 
-	Hyperion *_hyperion;
+	Hyperion* _hyperion;
 
 	const int _priority;
 
@@ -95,13 +95,13 @@ private:
 	/// Buffer for colorData
 	QVector<ColorRgb> _colors;
 
-	Logger *_log;
+	Logger* _log;
 	// Reflects whenever this effects should interrupt (timeout or external request)
-	std::atomic<bool> _interupt {};
+	std::atomic<bool> _interupt{};
 
 	QSize           _imageSize;
 	QImage          _image;
-	QPainter       *_painter;
+	QPainter*       _painter;
 	QVector<QImage> _imageStack;
 
 	double	_lowestUpdateIntervalInSeconds;

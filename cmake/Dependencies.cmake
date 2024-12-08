@@ -9,13 +9,14 @@ macro(DeployMacOS TARGET)
 			OUTPUT_STRIP_TRAILING_WHITESPACE
 		)
 
-		install(CODE "set(TARGET_FILE \"${TARGET_FILE}\")" 		 			COMPONENT "Hyperion")
-		install(CODE "set(TARGET_BUNDLE_NAME \"${TARGET}.app\")" 			COMPONENT "Hyperion")
-		install(CODE "set(PLUGIN_DIR \"${QT_PLUGIN_DIR}\")" 	 			COMPONENT "Hyperion")
-		install(CODE "set(BUILD_DIR \"${CMAKE_BINARY_DIR}\")"	 			COMPONENT "Hyperion")
+		install(CODE "set(TARGET_FILE \"${TARGET_FILE}\")"					COMPONENT "Hyperion")
+		install(CODE "set(TARGET_BUNDLE_NAME \"${TARGET}.app\")"			COMPONENT "Hyperion")
+		install(CODE "set(PLUGIN_DIR \"${QT_PLUGIN_DIR}\")"					COMPONENT "Hyperion")
 		install(CODE "set(ENABLE_EFFECTENGINE \"${ENABLE_EFFECTENGINE}\")"	COMPONENT "Hyperion")
 
 		install(CODE [[
+
+				set(BUNDLE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}")
 
 				file(GET_RUNTIME_DEPENDENCIES
 					EXECUTABLES ${TARGET_FILE}
@@ -28,13 +29,13 @@ macro(DeployMacOS TARGET)
 					if (${_index} GREATER -1)
 						file(INSTALL
 							FILES "${dependency}"
-							DESTINATION "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/Frameworks"
+							DESTINATION "${BUNDLE_INSTALL_DIR}/Contents/Frameworks"
 							TYPE SHARED_LIBRARY
 						)
 					else()
 						file(INSTALL
 							FILES "${dependency}"
-							DESTINATION "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/lib"
+							DESTINATION "${BUNDLE_INSTALL_DIR}/Contents/lib"
 							TYPE SHARED_LIBRARY
 							FOLLOW_SYMLINK_CHAIN
 						)
@@ -58,7 +59,7 @@ macro(DeployMacOS TARGET)
 
 								foreach(DEPENDENCY ${PLUGINS})
 										file(INSTALL
-											DESTINATION "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/lib"
+											DESTINATION "${BUNDLE_INSTALL_DIR}/Contents/lib"
 											TYPE SHARED_LIBRARY
 											FILES ${DEPENDENCY}
 											FOLLOW_SYMLINK_CHAIN
@@ -66,10 +67,10 @@ macro(DeployMacOS TARGET)
 								endforeach()
 
 								get_filename_component(singleQtLib ${file} NAME)
-								list(APPEND QT_PLUGINS "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/plugins/${PLUGIN}/${singleQtLib}")
+								list(APPEND QT_PLUGINS "${BUNDLE_INSTALL_DIR}/Contents/plugins/${PLUGIN}/${singleQtLib}")
 								file(INSTALL
 									FILES ${file}
-									DESTINATION "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/plugins/${PLUGIN}"
+									DESTINATION "${BUNDLE_INSTALL_DIR}/Contents/plugins/${PLUGIN}"
 									TYPE SHARED_LIBRARY
 								)
 
@@ -78,10 +79,10 @@ macro(DeployMacOS TARGET)
 				endforeach()
 
 				include(BundleUtilities)
-				fixup_bundle("${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}" "${QT_PLUGINS}" "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/lib" IGNORE_ITEM "python;python3;Python;Python3;.Python;.Python3")
+				fixup_bundle("${BUNDLE_INSTALL_DIR}" "${QT_PLUGINS}" "${BUNDLE_INSTALL_DIR}/Contents/lib" IGNORE_ITEM "python;python3;Python;Python3;.Python;.Python3")
+				file(REMOVE_RECURSE "${BUNDLE_INSTALL_DIR}/Contents/lib")
 
 				if(ENABLE_EFFECTENGINE)
-
 					# Detect the Python version and modules directory
 					if(NOT CMAKE_VERSION VERSION_LESS "3.12")
 						find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
@@ -98,24 +99,37 @@ macro(DeployMacOS TARGET)
 
 					# Copy Python modules to '/../Frameworks/Python.framework/Versions/Current/lib/PythonMAJOR.MINOR' and ignore the unnecessary stuff listed below
 					if (PYTHON_MODULES_DIR)
+						set(PYTHON_FRAMEWORK "${BUNDLE_INSTALL_DIR}/Contents/Frameworks/Python.framework")
 						file(
 							COPY ${PYTHON_MODULES_DIR}/
-							DESTINATION "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/Frameworks/Python.framework/Versions/Current/lib/python${PYTHON_VERSION_MAJOR_MINOR}"
-							PATTERN "*.pyc"                                 EXCLUDE # compiled bytecodes
-							PATTERN "__pycache__"                           EXCLUDE # any cache
-							PATTERN "config-${PYTHON_VERSION_MAJOR_MINOR}*" EXCLUDE # static libs
-							PATTERN "lib2to3"                               EXCLUDE # automated Python 2 to 3 code translation
-							PATTERN "tkinter"                               EXCLUDE # Tk interface
-							PATTERN "turtledemo"                            EXCLUDE # Tk demo folder
-							PATTERN "turtle.py"                             EXCLUDE # Tk demo file
-							PATTERN "test"                                  EXCLUDE # unittest module
-							PATTERN "sitecustomize.py"                      EXCLUDE # site-specific configs
+							DESTINATION "${PYTHON_FRAMEWORK}/Versions/Current/lib/python${PYTHON_VERSION_MAJOR_MINOR}"
+							PATTERN "*.pyc"														EXCLUDE # compiled bytecodes
+							PATTERN "__pycache__"												EXCLUDE # any cache
+							PATTERN "config-${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}*"	EXCLUDE # static libs
+							PATTERN "lib2to3"													EXCLUDE # automated Python 2 to 3 code translation
+							PATTERN "tkinter"													EXCLUDE # Tk interface
+							PATTERN "lib-dynload/_tkinter.*"									EXCLUDE
+							PATTERN "idlelib"													EXCLUDE
+							PATTERN "turtle.py"													EXCLUDE # Tk demo
+							PATTERN "test"														EXCLUDE # unittest module
+							PATTERN "sitecustomize.py"											EXCLUDE # site-specific configs
 						)
 					endif(PYTHON_MODULES_DIR)
 				endif(ENABLE_EFFECTENGINE)
 
-				file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/${TARGET_BUNDLE_NAME}/Contents/lib")
-				file(REMOVE_RECURSE "${CMAKE_INSTALL_PREFIX}/share")
+				file(GLOB_RECURSE LIBS FOLLOW_SYMLINKS "${BUNDLE_INSTALL_DIR}/*.dylib")
+				file(GLOB FRAMEWORKS FOLLOW_SYMLINKS LIST_DIRECTORIES ON "${BUNDLE_INSTALL_DIR}/Contents/Frameworks/*")
+				foreach(item ${LIBS} ${FRAMEWORKS} ${PYTHON_FRAMEWORK} ${BUNDLE_INSTALL_DIR})
+					set(cmd codesign --deep --force --sign - "${item}")
+					execute_process(
+						COMMAND ${cmd}
+						RESULT_VARIABLE codesign_result
+					)
+
+					if(NOT codesign_result EQUAL 0)
+						message(WARNING "macOS signing failed; ${cmd} returned ${codesign_result}")
+					endif()
+				endforeach()
 
 		]] COMPONENT "Hyperion")
 
