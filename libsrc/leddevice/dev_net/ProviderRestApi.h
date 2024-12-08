@@ -89,7 +89,7 @@ public:
 	void setBody(const QJsonDocument& body) { _responseBody = body; }
 
 
-	QByteArray getHeader(const QByteArray header) const;
+	QByteArray getHeader(const QByteArray& header) const;
 	void setHeaders(const QList<QNetworkReply::RawHeaderPair>& pairs);
 
 	QString getErrorReason() const { return _errorReason; }
