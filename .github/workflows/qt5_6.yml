@@ -120,11 +120,6 @@ jobs:
             brew install qt@${{ inputs.qt_version }} vulkan-headers ninja libftdi || true
           echo '::endgroup::'
 
-      - name: Temporarily downgrade CMake to 3.28.3 # Please remove if GitHub has updated Cmake (greater than 3.30.0)
-        uses: jwlawson/actions-setup-cmake@v2
-        with:
-          cmake-version: '3.28.3'
-
       - name: 👷 Build
         shell: bash
         run: ./.github/scripts/build.sh
