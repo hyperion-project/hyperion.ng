@@ -85,6 +85,11 @@ JsonAPI::JsonAPI(QString peerAddress, Logger *log, bool localConnection, QObject
 	_jsonCB = QSharedPointer<JsonCallbacks>(new JsonCallbacks( _log, _peerAddress, parent));
 }
 
+QSharedPointer<JsonCallbacks> JsonAPI::getCallBack() const
+{
+	return _jsonCB;
+}
+
 void JsonAPI::initialize()
 {
 	// init API, REQUIRED!
@@ -96,9 +101,6 @@ void JsonAPI::initialize()
 
 	// listen for killed instances
 	connect(_instanceManager, &HyperionIManager::instanceStateChanged, this, &JsonAPI::handleInstanceStateChange);
-
-	// pipe callbacks from subscriptions to parent
-	connect(_jsonCB.data(), &JsonCallbacks::newCallback, this, &JsonAPI::callbackMessage);
 
 	// notify hyperion about a jsonMessageForward
 	if (_hyperion != nullptr)
@@ -1539,7 +1541,7 @@ void JsonAPI::sendSuccessReply(const JsonApiCommand& cmd)
 
 void JsonAPI::sendSuccessReply(const QString &command, int tan, InstanceCmd::Type isInstanceCmd)
 {
-	emit callbackMessage(getBasicCommandReply(true, command, tan , isInstanceCmd));
+	emit callbackReady(getBasicCommandReply(true, command, tan , isInstanceCmd));
 }
 
 void JsonAPI::sendSuccessDataReply(const QJsonValue &infoData, const JsonApiCommand& cmd)
@@ -1574,7 +1576,7 @@ void JsonAPI::sendSuccessDataReplyWithError(const QJsonValue &infoData, const QS
 		reply["errorData"] = errorsArray;
 	}
 
-	emit callbackMessage(reply);
+	emit callbackReady(reply);
 }
 
 void JsonAPI::sendErrorReply(const QString &error, const JsonApiCommand& cmd)
@@ -1603,7 +1605,7 @@ void JsonAPI::sendErrorReply(const QString &error, const QStringList& errorDetai
 		reply["errorData"] = errorsArray;
 	}
 
-	emit callbackMessage(reply);
+	emit callbackReady(reply);
 }
 
 void JsonAPI::sendNewRequest(const QJsonValue &infoData, const JsonApiCommand& cmd)
@@ -1623,7 +1625,7 @@ void JsonAPI::sendNewRequest(const QJsonValue &infoData, const QString &command,
 
 	request["info"] = infoData;
 
-	emit callbackMessage(request);
+	emit callbackReady(request);
 }
 
 void JsonAPI::sendNoAuthorization(const JsonApiCommand& cmd)

@@ -4,6 +4,7 @@
 
 #include <hyperion/Hyperion.h>
 #include <api/JsonAPI.h>
+#include <api/JsonCallbacks.h>
 
 #include <QTcpSocket>
 #include <QtEndian>
@@ -24,8 +25,10 @@ WebSocketClient::WebSocketClient(QtHttpRequest* request, QTcpSocket* sock, bool 
 
 	// Json processor
 	_jsonAPI.reset(new JsonAPI(client, _log, localConnection, this));
-	connect(_jsonAPI.get(), &JsonAPI::callbackMessage, this, &WebSocketClient::sendMessage);
+	connect(_jsonAPI.get(), &JsonAPI::callbackReady, this, &WebSocketClient::sendMessage);
 	connect(_jsonAPI.get(), &JsonAPI::forceClose, this,[this]() { this->sendClose(CLOSECODE::NORMAL); });
+
+	connect(_jsonAPI->getCallBack().get(), &JsonCallbacks::callbackReady, this, &WebSocketClient::sendMessage);
 
 	connect(this, &WebSocketClient::handleMessage, _jsonAPI.get(), &JsonAPI::handleMessage);
 

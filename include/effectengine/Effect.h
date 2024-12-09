@@ -110,4 +110,6 @@ private:
 	QImage          _image;
 	QPainter*       _painter;
 	QVector<QImage> _imageStack;
+
+	double	_lowestUpdateIntervalInSeconds;
 };

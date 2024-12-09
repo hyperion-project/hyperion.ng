@@ -11,6 +11,10 @@ cropBottom = int(hyperion.args.get('cropBottom', 0))
 grayscale = bool(hyperion.args.get('grayscale', False))
 
 sleepTime = 1./framesPerSecond
+
+# Limit update rate
+sleepTime = max(hyperion.lowestUpdateInterval(), sleepTime)
+
 imageFrameList = []
 
 if imageData:
