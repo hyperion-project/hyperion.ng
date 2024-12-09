@@ -21,6 +21,9 @@ height         = 10
 
 imageData      = bytearray(height * width * (0,0,0))
 
+# Limit update rate
+sleepTime = max(hyperion.lowestUpdateInterval(), sleepTime)
+
 # Start the write data loop
 if initialBlink:
 	for i in range(6):
