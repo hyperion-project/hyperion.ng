@@ -68,7 +68,7 @@ bool DBConfigManager::exportJson(const QString& path) const
 			const QJsonObject generalSettings = configurtion.value("global").toObject().value("settings").toObject().value("general").toObject();
 			const QString configVersion = generalSettings.value("configVersion").toString();
 
-			jsonFile = exportPath.absoluteFilePath(QString("HyperionBackup_%1_v%2.json").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd_hh:mm:ss:zzz"), configVersion ));
+			jsonFile = exportPath.absoluteFilePath(QString("HyperionBackup_%1_v%2.json").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd-hhmmss-zzz"), configVersion ));
 			if (FileUtils::writeFile(jsonFile, QJsonDocument(configurtion).toJson(QJsonDocument::Indented), _log))
 			{
 				isExported = true;
