@@ -10,6 +10,9 @@ minStepTime = float(hyperion.latchTime)/1000.0
 if minStepTime == 0: minStepTime = 0.001
 factor      = 1 if sleepTime > minStepTime else int(math.ceil(minStepTime/sleepTime))
 
+# Limit update rate
+sleepTime = max(hyperion.lowestUpdateInterval(), sleepTime)
+
 runners = [
 	{ "i":0, "pos":0, "c":0, "step":9, "lvl":255},
 	{ "i":1, "pos":0, "c":0, "step":8, "lvl":255},
