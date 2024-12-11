@@ -244,6 +244,18 @@
 						"step" : 0.1,
 						"propertyOrder" : 16
 					},
+					"temperature" :
+					{
+						"type" : "integer",
+						"title" : "edt_conf_color_temperature_title",
+						"required" : true,
+						"minimum" : 1000,
+						"maximum": 40000,
+						"default" : 6600,
+						"step" : 100,
+						"append" : "edt_append_kelvin",
+						"propertyOrder" : 17
+					},
 					"gammaRed" :
 					{
 						"type" : "number",
@@ -253,7 +265,7 @@
 						"maximum": 100.0,
 						"default" : 2.2,
 						"step" : 0.1,
-						"propertyOrder" : 17
+						"propertyOrder" : 18
 					},
 					"gammaGreen" :
 					{
@@ -264,7 +276,7 @@
 						"maximum": 100.0,
 						"default" : 2.2,
 						"step" : 0.1,
-						"propertyOrder" : 18
+						"propertyOrder" : 19
 					},
 					"gammaBlue" :
 					{
@@ -275,7 +287,7 @@
 						"maximum": 100.0,
 						"default" : 2.2,
 						"step" : 0.1,
-						"propertyOrder" : 19
+						"propertyOrder" : 20
 					}
 				},
 				"additionalProperties" : false

@@ -7,3 +7,5 @@ const ColorRgb ColorRgb::GREEN  = {   0, 255,   0 };
 const ColorRgb ColorRgb::BLUE   = {   0,   0, 255 };
 const ColorRgb ColorRgb::YELLOW = { 255, 255,   0 };
 const ColorRgb ColorRgb::WHITE  = { 255, 255, 255 };
+const ColorRgb ColorRgb::CYAN   = {   0, 255, 255 };
+const ColorRgb ColorRgb::MAGENTA= { 255,   0, 255 };

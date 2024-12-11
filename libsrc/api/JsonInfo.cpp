@@ -84,6 +84,8 @@ QJsonArray JsonInfo::getAdjustmentInfo(const Hyperion* hyperion, Logger* log)
 		adjustment["saturationGain"] = colorAdjustment->_okhsvTransform.getSaturationGain();
 		adjustment["brightnessGain"] = colorAdjustment->_okhsvTransform.getBrightnessGain();
 
+		adjustment["temperature"] = colorAdjustment->_rgbTransform.getTemperature();
+
 		adjustmentArray.append(adjustment);
 	}
 	return adjustmentArray;

@@ -75,11 +75,12 @@ $(document).ready(function () {
             sColor[key].key == "brightnessCompensation" ||
             sColor[key].key == "backlightThreshold" ||
             sColor[key].key == "saturationGain" ||
-            sColor[key].key == "brightnessGain") {
+            sColor[key].key == "brightnessGain" ||
+            sColor[key].key == "temperature" ) {
 
             property = '<input id="cr_' + sColor[key].key + '" type="number" class="form-control" min="' + sColor[key].minimum + '" max="' + sColor[key].maximum + '" step="' + sColor[key].step + '" value="' + value + '"/>';
-            if (sColor[key].append === "edt_append_percent") {
-              property = '<div class="input-group">' + property + '<span class="input-group-addon">' + $.i18n("edt_append_percent") + '</span></div>';
+            if (sColor[key].append && sColor[key].append !== "" ) {
+              property = '<div class="input-group">' + property + '<span class="input-group-addon">' + $.i18n(sColor[key].append) + '</span></div>';
             }
           }
           else {

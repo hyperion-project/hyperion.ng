@@ -26,7 +26,7 @@ public:
 	 */
 	void addAdjustment(ColorAdjustment * adjustment);
 
-	void setAdjustmentForLed(const QString& id, int startLed, int endLed);
+	void setAdjustmentForLed(const QString& adjutmentId, int startLed, int endLed);
 
 	bool verifyAdjustments() const;
 
@@ -41,11 +41,11 @@ public:
 	///
 	/// Returns the pointer to the ColorAdjustment with the given id
 	///
-	/// @param id The identifier of the ColorAdjustment
+	/// @param adjutmentId The identifier of the ColorAdjustment
 	///
 	/// @return The ColorAdjustment with the given id (or nullptr if it does not exist)
 	///
-	ColorAdjustment* getAdjustment(const QString& id);
+	ColorAdjustment* getAdjustment(const QString& adjutmentId);
 
 	///
 	/// Performs the color adjustment from raw-color to led-color
