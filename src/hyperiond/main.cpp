@@ -333,7 +333,7 @@ int main(int argc, char** argv)
 			{
 				if (!userDataDirectory.isReadable() || !dbFile.isWritable())
 				{
-					throw std::runtime_error("The user data path '" + userDataDirectory.absolutePath().toStdString() + "' can't be created or isn't read/writeable. Please setup permissions correctly!");
+					throw std::runtime_error("The user data path '" + userDataDirectory.absolutePath().toStdString() + "' can't be created or isn't read/writable. Please setup permissions correctly!");
 				}
 			}
 		}
@@ -343,7 +343,7 @@ int main(int argc, char** argv)
 		{
 			if ( readonlyMode )
 			{
-				Error(log,"Password reset is not possible. Hyperion's database '%s' is not writeable.", QSTRING_CSTR(dbFile.absolutePath()));
+				Error(log,"Password reset is not possible. Hyperion's database '%s' is not writable.", QSTRING_CSTR(dbFile.absolutePath()));
 				throw std::runtime_error("Password reset failed");
 			}
 
@@ -364,7 +364,7 @@ int main(int argc, char** argv)
 		{
 			if ( readonlyMode )
 			{
-				Error(log,"Deleting the configuration database is not possible. Hyperion's database '%s' is not writeable.", QSTRING_CSTR(dbFile.absolutePath()));
+				Error(log,"Deleting the configuration database is not possible. Hyperion's database '%s' is not writable.", QSTRING_CSTR(dbFile.absolutePath()));
 				throw std::runtime_error("Deleting the configuration database failed");
 			}
 
@@ -391,7 +391,7 @@ int main(int argc, char** argv)
 		{
 			if ( readonlyMode )
 			{
-				Error(log,"Configuration import is not possible. Hyperion's database '%s' is not writeable.", QSTRING_CSTR(dbFile.absolutePath()));
+				Error(log,"Configuration import is not possible. Hyperion's database '%s' is not writable.", QSTRING_CSTR(dbFile.absolutePath()));
 				throw std::runtime_error("Configuration import failed");
 			}
 
@@ -429,7 +429,7 @@ int main(int argc, char** argv)
 
 		if ( readonlyMode )
 		{
-			Warning(log,"The database file '%s' is set not writeable. Hyperion starts in read-only mode. Configuration updates will not be persisted!", QSTRING_CSTR(dbFile.absoluteFilePath()));
+			Warning(log,"The database file '%s' is set not writable. Hyperion starts in read-only mode. Configuration updates will not be persisted!", QSTRING_CSTR(dbFile.absoluteFilePath()));
 		}
 
 		QScopedPointer<HyperionDaemon> hyperiond;

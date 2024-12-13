@@ -213,7 +213,10 @@ void Hyperion::stop()
 	_BGEffectHandler->disconnect();
 
 #if defined(ENABLE_FORWARDER)
-	_messageForwarder->stop();
+	if( _messageForwarder != nullptr) // Message Forwarder is not created for all instances
+	{
+		_messageForwarder->stop();
+	}
 #endif
 
 #if defined(ENABLE_BOBLIGHT_SERVER)
