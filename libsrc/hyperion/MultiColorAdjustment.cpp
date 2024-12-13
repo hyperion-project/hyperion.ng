@@ -125,14 +125,14 @@ void MultiColorAdjustment::applyAdjustment(std::vector<ColorRgb>& ledColors)
 		uint32_t nr_g  = static_cast<uint32_t>((UINT8_MAX - ored) * ogreen);
 		uint32_t r_g   = static_cast<uint32_t>(ored * ogreen);
 
-		uint8_t black   = static_cast<uint8_t>(nr_ng * (UINT8_MAX - oblue) / DOUBLE_MAX_SQUARED);
-		uint8_t red     = static_cast<uint8_t>(r_ng * (UINT8_MAX - oblue) / DOUBLE_MAX_SQUARED);
-		uint8_t green   = static_cast<uint8_t>(nr_g * (UINT8_MAX - oblue) / DOUBLE_MAX_SQUARED);
-		uint8_t blue    = static_cast<uint8_t>(nr_ng * (oblue) / DOUBLE_MAX_SQUARED);
-		uint8_t cyan    = static_cast<uint8_t>(nr_g * (oblue) / DOUBLE_MAX_SQUARED);
-		uint8_t magenta = static_cast<uint8_t>(r_ng * (oblue) / DOUBLE_MAX_SQUARED);
-		uint8_t yellow  = static_cast<uint8_t>(r_g * (UINT8_MAX - oblue) / DOUBLE_MAX_SQUARED);
-		uint8_t white   = static_cast<uint8_t>(r_g * (oblue) / DOUBLE_MAX_SQUARED);
+		uint8_t black   = static_cast<uint8_t>(nr_ng * (UINT8_MAX - oblue) / DOUBLE_UINT8_MAX_SQUARED);
+		uint8_t red     = static_cast<uint8_t>(r_ng * (UINT8_MAX - oblue) / DOUBLE_UINT8_MAX_SQUARED);
+		uint8_t green   = static_cast<uint8_t>(nr_g * (UINT8_MAX - oblue) / DOUBLE_UINT8_MAX_SQUARED);
+		uint8_t blue    = static_cast<uint8_t>(nr_ng * (oblue) / DOUBLE_UINT8_MAX_SQUARED);
+		uint8_t cyan    = static_cast<uint8_t>(nr_g * (oblue) / DOUBLE_UINT8_MAX_SQUARED);
+		uint8_t magenta = static_cast<uint8_t>(r_ng * (oblue) / DOUBLE_UINT8_MAX_SQUARED);
+		uint8_t yellow  = static_cast<uint8_t>(r_g * (UINT8_MAX - oblue) / DOUBLE_UINT8_MAX_SQUARED);
+		uint8_t white   = static_cast<uint8_t>(r_g * (oblue) / DOUBLE_UINT8_MAX_SQUARED);
 
 		uint8_t OR, OG, OB;  // Original Colors
 		uint8_t RR, RG, RB;  // Red Adjustments
