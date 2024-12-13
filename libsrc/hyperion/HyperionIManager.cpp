@@ -213,7 +213,9 @@ bool HyperionIManager::stopInstance(quint8 inst)
 			// notify a ON_STOP rather sooner than later, queued signal listener should have some time to drop the pointer before it's deleted
 			emit instanceStateChanged(InstanceState::H_ON_STOP, inst);
 			QSharedPointer<Hyperion> const hyperion = _runningInstances.value(inst);
-			hyperion->stop();
+			//hyperion->stop();
+
+			QMetaObject::invokeMethod(hyperion.get(), "stop", Qt::QueuedConnection);
 
 			// update db
 			_instanceTable->setEnable(inst, false);
@@ -254,7 +256,6 @@ bool HyperionIManager::deleteInstance(quint8 inst)
 		return false;
 	}
 
-	// stop it if required as blocking and wait
 	stopInstance(inst);
 
 	if(_instanceTable->deleteInstance(inst))

@@ -572,7 +572,7 @@ private:
 	std::vector<ColorOrder> _ledStringColorOrder;
 
 	/// The priority muxer
-	QScopedPointer<PriorityMuxer> _muxer;
+	QScopedPointer<PriorityMuxer, QScopedPointerDeleteLater> _muxer;
 
 	/// The adjustment from raw colors to led colors
 	QScopedPointer<MultiColorAdjustment> _raw2ledAdjustment;
