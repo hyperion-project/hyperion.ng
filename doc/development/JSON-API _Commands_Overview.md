@@ -41,11 +41,11 @@ _http/s Support_
 | clearall       | -                       | Yes           | Multi             | Yes            |
 | color          | -                       | Yes           | Multi             | Yes            |
 | componentstate | -                       | Yes           | Multi             | Yes            |
-| config         | getconfig               | Admin         | Yes               | Yes            |
-| config         | getschema               | Admin         | Yes               | Yes            |
-| config         | reload                  | Admin         | Yes               | Yes            |
-| config         | restoreconfig           | Admin         | Yes               | Yes            |
-| config         | setconfig               | Admin         | Yes               | Yes            |
+| config         | getconfig               | Admin         | No                | Yes            |
+| config         | getschema               | Admin         | No                | Yes            |
+| config         | reload                  | Admin         | No                | Yes            |
+| config         | restoreconfig           | Admin         | No                | Yes            |
+| config         | setconfig               | Admin         | No                | Yes            |
 | correction     | -                       | Yes           | Yes               | Yes            |
 | create-effect  | -                       | Yes           | Yes               | Yes            |
 | delete-effect  | -                       | Yes           | Yes               | Yes            |

@@ -1,4 +1,5 @@
 // project includes
+#include "hyperion/SettingsManager.h"
 #include <api/JsonAPI.h>
 #include <api/JsonInfo.h>
 
@@ -237,6 +238,7 @@ void JsonAPI::handleMessage(const QString &messageString, const QString &httpAut
 
 	if (!message.contains("instance") || cmd.isInstanceCmd == InstanceCmd::No)
 	{
+		cmd.isInstanceCmd = InstanceCmd::No;
 		handleCommand(cmd, message);
 	}
 	else
@@ -306,8 +308,11 @@ void JsonAPI::handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject
 		}
 	}
 
+	qDebug() << "instanceIdxList: " << instanceIdxList;
+
 	for (const auto &instanceIdx : instanceIdxList)
 	{
+		qDebug() << "instanceIdx: " << instanceIdx;
 		if (setHyperionInstance(instanceIdx))
 		{
 			handleCommand(cmd, message);
@@ -787,9 +792,19 @@ void JsonAPI::handleConfigSetCommand(const QJsonObject &message, const JsonApiCo
 		i.next();
 
 		quint8 idx = i.key();
-		QSharedPointer<Hyperion> instance = HyperionIManager::getInstance()->getHyperionInstance(idx);
 
-		QPair<bool, QStringList> isSaved = instance->saveSettings(i.value());
+		QPair<bool, QStringList> isSaved;
+		if ( HyperionIManager::getInstance()->IsInstanceRunning(idx) )
+		{
+			QSharedPointer<Hyperion> instance = HyperionIManager::getInstance()->getHyperionInstance(idx);
+			isSaved = instance->saveSettings(i.value());
+		}
+		else
+		{
+			SettingsManager settingMgr (idx);
+			isSaved = settingMgr.saveSettings(i.value());
+		}
+
 		errorDetails.append(isSaved.second);
 	}
 
