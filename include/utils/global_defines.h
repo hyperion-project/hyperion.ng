@@ -8,4 +8,4 @@
 #define QSTRING_CSTR(str) str.toUtf8().constData()
 typedef QList< int > QIntList;
 
-constexpr uint32_t UINT8_MAX_SQUARED = static_cast<uint32_t>(UINT8_MAX) * UINT8_MAX;
+constexpr double DOUBLE_MAX_SQUARED = static_cast<double>(std::numeric_limits<unsigned char>::max()) * std::numeric_limits<unsigned char>::max();
