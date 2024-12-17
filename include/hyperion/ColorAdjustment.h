@@ -1,7 +1,7 @@
 #ifndef COLORADJUSTMENT_H
 #define COLORADJUSTMENT_H
 
-// STL includes
+// Qt includes
 #include <QString>
 
 // Utils includes

@@ -1,22 +1,23 @@
+#include <algorithm>
+
 // Hyperion includes
+
 #include <utils/Logger.h>
 #include <hyperion/MultiColorAdjustment.h>
 
 MultiColorAdjustment::MultiColorAdjustment(int ledCnt)
-	: _ledAdjustments(ledCnt, nullptr)
+	: _ledAdjustments(static_cast<size_t>(ledCnt), nullptr)
 	, _log(Logger::getInstance("ADJUSTMENT"))
 {
 }
 
 MultiColorAdjustment::~MultiColorAdjustment()
 {
-	// Clean up all the transforms
-	for (ColorAdjustment * adjustment : _adjustment)
+	for (ColorAdjustment* adjustment : _adjustment)
 	{
 		delete adjustment;
-		// BUG: Calling pop_back while iterating is invalid
-		_adjustment.pop_back();
 	}
+	_adjustment.clear();
 }
 
 void MultiColorAdjustment::addAdjustment(ColorAdjustment * adjustment)
@@ -25,7 +26,7 @@ void MultiColorAdjustment::addAdjustment(ColorAdjustment * adjustment)
 	_adjustment.push_back(adjustment);
 }
 
-void MultiColorAdjustment::setAdjustmentForLed(const QString& id, int startLed, int endLed)
+void MultiColorAdjustment::setAdjustmentForLed(const QString& adjutmentId, int startLed, int endLed)
 {
 	// abort
 	if(startLed > endLed)
@@ -41,8 +42,8 @@ void MultiColorAdjustment::setAdjustmentForLed(const QString& id, int startLed, 
 	}
 
 	// Get the identified adjustment (don't care if is nullptr)
-	ColorAdjustment * adjustment = getAdjustment(id);
-	for (int iLed=startLed; iLed<=endLed; ++iLed)
+	ColorAdjustment * adjustment = getAdjustment(adjutmentId);
+	for (size_t iLed=static_cast<size_t>(startLed); iLed<=static_cast<size_t>(endLed); ++iLed)
 	{
 		_ledAdjustments[iLed] = adjustment;
 	}
@@ -50,18 +51,18 @@ void MultiColorAdjustment::setAdjustmentForLed(const QString& id, int startLed, 
 
 bool MultiColorAdjustment::verifyAdjustments() const
 {
-	bool ok = true;
+	bool isAdjustmentDefined = true;
 	for (unsigned iLed=0; iLed<_ledAdjustments.size(); ++iLed)
 	{
-		ColorAdjustment * adjustment = _ledAdjustments[iLed];
+		const ColorAdjustment * adjustment = _ledAdjustments[iLed];
 
 		if (adjustment == nullptr)
 		{
-			Warning(_log, "No calibration set for led %d", iLed);
-			ok = false;
+			Warning(_log, "No calibration set for LED %d", iLed);
+			isAdjustmentDefined = false;
 		}
 	}
-	return ok;
+	return isAdjustmentDefined;
 }
 
 QStringList MultiColorAdjustment::getAdjustmentIds() const
@@ -69,15 +70,14 @@ QStringList MultiColorAdjustment::getAdjustmentIds() const
 	return _adjustmentIds;
 }
 
-ColorAdjustment* MultiColorAdjustment::getAdjustment(const QString& id)
+ColorAdjustment* MultiColorAdjustment::getAdjustment(const QString& adjustmentId)
 {
-	// Iterate through the unique adjustments until we find the one with the given id
-	for (ColorAdjustment* adjustment : _adjustment)
-	{
-		if (adjustment->_id == id)
-		{
-			return adjustment;
-		}
+	auto adjustmentIter = std::find_if(_adjustment.begin(), _adjustment.end(), [&adjustmentId](const ColorAdjustment* adjustment) {
+		return adjustment->_id == adjustmentId;
+	});
+
+	if (adjustmentIter != _adjustment.end()) {
+		return *adjustmentIter;
 	}
 
 	// The ColorAdjustment was not found
@@ -100,8 +100,7 @@ void MultiColorAdjustment::applyAdjustment(std::vector<ColorRgb>& ledColors)
 		ColorAdjustment* adjustment = _ledAdjustments[i];
 		if (adjustment == nullptr)
 		{
-			//std::cout << "MultiColorAdjustment::applyAdjustment() - No transform set for this led : " << i << std::endl;
-			// No transform set for this led (do nothing)
+			// No transform set for this LED (do nothing)
 			continue;
 		}
 		ColorRgb& color = ledColors[i];
@@ -117,27 +116,34 @@ void MultiColorAdjustment::applyAdjustment(std::vector<ColorRgb>& ledColors)
 		{
 			adjustment->_okhsvTransform.transform(ored, ogreen, oblue);
 		}
-		adjustment->_rgbTransform.transform(ored,ogreen,oblue);
+
+		adjustment->_rgbTransform.applyGamma(ored,ogreen,oblue);
 		adjustment->_rgbTransform.getBrightnessComponents(B_RGB, B_CMY, B_W);
 
-		uint32_t nrng = (uint32_t) (255-ored)*(255-ogreen);
-		uint32_t rng  = (uint32_t) (ored)    *(255-ogreen);
-		uint32_t nrg  = (uint32_t) (255-ored)*(ogreen);
-		uint32_t rg   = (uint32_t) (ored)    *(ogreen);
+		uint32_t nr_ng = static_cast<uint32_t>((UINT8_MAX - ored) * (UINT8_MAX - ogreen));
+		uint32_t r_ng  = static_cast<uint32_t>(ored * (UINT8_MAX - ogreen));
+		uint32_t nr_g  = static_cast<uint32_t>((UINT8_MAX - ored) * ogreen);
+		uint32_t r_g   = static_cast<uint32_t>(ored * ogreen);
 
-		uint8_t black   = nrng*(255-oblue)/65025;
-		uint8_t red     = rng *(255-oblue)/65025;
-		uint8_t green   = nrg *(255-oblue)/65025;
-		uint8_t blue    = nrng*(oblue)    /65025;
-		uint8_t cyan    = nrg *(oblue)    /65025;
-		uint8_t magenta = rng *(oblue)    /65025;
-		uint8_t yellow  = rg  *(255-oblue)/65025;
-		uint8_t white   = rg  *(oblue)    /65025;
+		uint8_t black   = static_cast<uint8_t>(nr_ng * (UINT8_MAX - oblue) / DOUBLE_UINT8_MAX_SQUARED);
+		uint8_t red     = static_cast<uint8_t>(r_ng * (UINT8_MAX - oblue) / DOUBLE_UINT8_MAX_SQUARED);
+		uint8_t green   = static_cast<uint8_t>(nr_g * (UINT8_MAX - oblue) / DOUBLE_UINT8_MAX_SQUARED);
+		uint8_t blue    = static_cast<uint8_t>(nr_ng * (oblue) / DOUBLE_UINT8_MAX_SQUARED);
+		uint8_t cyan    = static_cast<uint8_t>(nr_g * (oblue) / DOUBLE_UINT8_MAX_SQUARED);
+		uint8_t magenta = static_cast<uint8_t>(r_ng * (oblue) / DOUBLE_UINT8_MAX_SQUARED);
+		uint8_t yellow  = static_cast<uint8_t>(r_g * (UINT8_MAX - oblue) / DOUBLE_UINT8_MAX_SQUARED);
+		uint8_t white   = static_cast<uint8_t>(r_g * (oblue) / DOUBLE_UINT8_MAX_SQUARED);
 
-		uint8_t OR, OG, OB, RR, RG, RB, GR, GG, GB, BR, BG, BB;
-		uint8_t CR, CG, CB, MR, MG, MB, YR, YG, YB, WR, WG, WB;
+		uint8_t OR, OG, OB;  // Original Colors
+		uint8_t RR, RG, RB;  // Red Adjustments
+		uint8_t GR, GG, GB;  // Green Adjustments
+		uint8_t BR, BG, BB;  // Blue Adjustments
+		uint8_t CR, CG, CB;  // Cyan Adjustments
+		uint8_t MR, MG, MB;  // Magenta Adjustments
+		uint8_t YR, YG, YB;  // Yellow Adjustments
+		uint8_t WR, WG, WB;  // White Adjustments
 
-		adjustment->_rgbBlackAdjustment.apply  (black  , 255  , OR, OG, OB);
+		adjustment->_rgbBlackAdjustment.apply  (black  , UINT8_MAX, OR, OG, OB);
 		adjustment->_rgbRedAdjustment.apply    (red    , B_RGB, RR, RG, RB);
 		adjustment->_rgbGreenAdjustment.apply  (green  , B_RGB, GR, GG, GB);
 		adjustment->_rgbBlueAdjustment.apply   (blue   , B_RGB, BR, BG, BB);
@@ -149,5 +155,8 @@ void MultiColorAdjustment::applyAdjustment(std::vector<ColorRgb>& ledColors)
 		color.red   = OR + RR + GR + BR + CR + MR + YR + WR;
 		color.green = OG + RG + GG + BG + CG + MG + YG + WG;
 		color.blue  = OB + RB + GB + BB + CB + MB + YB + WB;
+
+		adjustment->_rgbTransform.applyTemperature(color);
+		adjustment->_rgbTransform.applyBacklight(color.red, color.green, color.green);
 	}
 }
