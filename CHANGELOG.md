@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed: Python 3.12 crashes (#1747)
 - osX Grabber: Use ScreenCaptureKit under macOS 15 and above
 - Removed maximum LED number constraint from Matrix layout schema which was not synced with the UI behaviour (#1804)
+- Fixed: translation error in French fixed
 
 **JSON-API**
 - Refactored JSON-API to ensure consistent authorization behaviour across sessions and single requests with token authorization.
