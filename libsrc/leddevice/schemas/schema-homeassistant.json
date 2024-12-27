@@ -40,18 +40,6 @@
       },
       "propertyOrder": 4
     },
-    "restoreOriginalState": {
-      "type": "boolean",
-      "format": "checkbox",
-      "title": "edt_dev_spec_restoreOriginalState_title",
-      "default": true,
-      "required": true,
-      "options": {
-        "hidden": true,
-        "infoText": "edt_dev_spec_restoreOriginalState_title_info"
-      },
-      "propertyOrder": 5
-    },
     "overwriteBrightness": {
       "type": "boolean",
       "format": "checkbox",
@@ -84,14 +72,6 @@
       "access": "advanced",
       "propertyOrder": 7
     },
-    "switchOffOnBlack": {
-      "type": "boolean",
-      "format": "checkbox",
-      "title": "edt_dev_spec_switchOffOnBlack_title",
-      "default": false,
-      "access": "advanced",
-      "propertyOrder": 8
-    },
     "transitionTime": {
       "type": "integer",
       "title": "edt_dev_spec_transistionTime_title",
@@ -101,7 +81,7 @@
       "maximum": 2000,
       "required": false,
       "access": "advanced",
-      "propertyOrder": 9
+      "propertyOrder": 8
     },
     "entityIds": {
       "title": "edt_dev_spec_lightid_title",
@@ -115,7 +95,7 @@
         "type": "string",
         "title": "edt_dev_spec_lights_itemtitle"
       },
-      "propertyOrder": 10
+      "propertyOrder": 9
     },
     "latchTime": {
       "type": "integer",
@@ -128,7 +108,7 @@
       "options": {
         "infoText": "edt_dev_spec_latchtime_title_info"
       },
-      "propertyOrder": 11
+      "propertyOrder": 10
     }
   },
   "additionalProperties": true
