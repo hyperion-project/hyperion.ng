@@ -3,6 +3,8 @@
 
 #include <QObject>
 #include <QString>
+#include <QWebSocketServer>
+#include <QCoreApplication>
 
 class QTcpSocket;
 
@@ -39,8 +41,17 @@ public:
 	///
 	void closeConnection();
 
+	QWebSocketServer m_websocketServer{
+	QCoreApplication::applicationName() + QLatin1Char('/') + QCoreApplication::applicationVersion(),
+	QWebSocketServer::NonSecureMode
+	};
+
+signals:
+	void newWebSocketConnection();
+
 private slots:
 	void onClientDataReceived (void);
+	void onNewWebSocketConnection();
 
 protected:
 	ParsingStatus sendReplyToClient (QtHttpReply * reply);
