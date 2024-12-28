@@ -17,6 +17,7 @@ public:
 
 private slots:
 	void onTextMessageReceived(const QString& message);
+	void onBinaryMessageReceived(const QByteArray& message);
 	void onDisconnected();
 	qint64 sendMessage(QJsonObject obj);
 
@@ -25,6 +26,8 @@ private:
 
 	Logger* _log;
 	QScopedPointer<JsonAPI> _jsonAPI;
+	QString _peerAddress;
+	QString _origin;
 };
 
 #endif // WEBSOCKETJSONHANDLER_H

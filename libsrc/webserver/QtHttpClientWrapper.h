@@ -5,6 +5,7 @@
 #include <QString>
 #include <QWebSocketServer>
 #include <QCoreApplication>
+#include <QScopedPointer>
 
 class QTcpSocket;
 
@@ -41,11 +42,6 @@ public:
 	///
 	void closeConnection();
 
-	QWebSocketServer m_websocketServer{
-	QCoreApplication::applicationName() + QLatin1Char('/') + QCoreApplication::applicationVersion(),
-	QWebSocketServer::NonSecureMode
-	};
-
 signals:
 	void newWebSocketConnection();
 
@@ -70,6 +66,7 @@ private:
 	WebSocketClient * m_websocketClient;
 	WebJsonRpc *      m_webJsonRpc;
 	QByteArray        m_fragment;
+	QScopedPointer<QWebSocketServer> m_websocketServer;
 };
 
 #endif // QTHTTPCLIENTWRAPPER_H

@@ -27,10 +27,9 @@ QtHttpClientWrapper::QtHttpClientWrapper (QTcpSocket * sock, const bool& localCo
 	, m_localConnection(localConnection)
 	, m_websocketClient(nullptr)
 	, m_webJsonRpc     (nullptr)
+	, m_websocketServer (nullptr)
 {
-	connect (m_sockClient, &QTcpSocket::readyRead, this, &QtHttpClientWrapper::onClientDataReceived);
-	connect(&m_websocketServer, &QWebSocketServer::newConnection,
-		this, &QtHttpClientWrapper::onNewWebSocketConnection);
+	connect(m_sockClient, &QTcpSocket::readyRead, this, &QtHttpClientWrapper::onClientDataReceived);
 }
 
 QString QtHttpClientWrapper::getGuid (void)
@@ -172,14 +171,19 @@ void QtHttpClientWrapper::onClientDataReceived (void)
 				const auto& upgradeValue = m_currentRequest->getHeader(QtHttpHeader::Upgrade).toLower();
 				if (upgradeValue.compare(QByteArrayLiteral("websocket"), Qt::CaseInsensitive) == 0) {
 
-					qDebug() << "WebSocket upgrade detected, passing to QWebSocketServer";
-
 					if(m_websocketClient == Q_NULLPTR)
 					{
 						// disconnect this slot from socket for further requests
 						disconnect(m_sockClient, &QTcpSocket::readyRead, this, &QtHttpClientWrapper::onClientDataReceived);
 						m_sockClient->rollbackTransaction();
-						m_websocketServer.handleConnection(m_sockClient);
+
+						QString servername = QCoreApplication::applicationName() + QLatin1Char('/') + HYPERION_VERSION;
+						QWebSocketServer::SslMode secureMode = m_serverHandle->isSecure() ? QWebSocketServer::SecureMode : QWebSocketServer::NonSecureMode;
+						m_websocketServer.reset(new QWebSocketServer(servername, secureMode));
+						connect(m_websocketServer.get(), &QWebSocketServer::newConnection,
+							this, &QtHttpClientWrapper::onNewWebSocketConnection);
+
+						m_websocketServer->handleConnection(m_sockClient);
 						emit m_sockClient->readyRead();
 						return;
 					}
@@ -381,10 +385,8 @@ void QtHttpClientWrapper::closeConnection()
 void QtHttpClientWrapper::onNewWebSocketConnection() {
 
 	// Handle the pending connection
-	QWebSocket* webSocket = m_websocketServer.nextPendingConnection();
+	QWebSocket* webSocket = m_websocketServer->nextPendingConnection();
 	if (webSocket) {
-		qDebug() << "New WebSocket connection established";
-
 		// Manage the WebSocketJsonHandler for this connection
 		WebSocketJsonHandler* handler = new WebSocketJsonHandler(webSocket);
 		connect(webSocket, &QWebSocket::disconnected, handler, &QObject::deleteLater);
