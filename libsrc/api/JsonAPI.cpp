@@ -922,13 +922,17 @@ void JsonAPI::handleSchemaGetCommand(const QJsonObject& /*message*/, const JsonA
 	// Add infor about the type of setting elements
 	QJsonObject settingTypes;
 	QJsonArray globalSettingTypes;
-	for (const QString &type : SettingsTable().getGlobalSettingTypes()) {
+
+	SettingsTable settingsTable;
+	for (const QString &type : settingsTable.getGlobalSettingTypes())
+	{
 		globalSettingTypes.append(type);
 	}
 	settingTypes.insert("globalProperties", globalSettingTypes);
 
 	QJsonArray instanceSettingTypes;
-	for (const QString &type : SettingsTable().getInstanceSettingTypes()) {
+	for (const QString &type : settingsTable.getInstanceSettingTypes())
+	{
 		instanceSettingTypes.append(type);
 	}
 	settingTypes.insert("instanceProperties", instanceSettingTypes);
