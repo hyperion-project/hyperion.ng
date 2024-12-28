@@ -14,41 +14,39 @@
 
 // Constants
 namespace {
-const bool verbose = false;
+	const bool verbose = false;
 
-// Configuration settings
-const char CONFIG_HOST[] = "host";
-const char CONFIG_PORT[] = "port";
-const char CONFIG_AUTH_TOKEN[] = "token";
-const char CONFIG_ENITYIDS[] = "entityIds";
-const char CONFIG_BRIGHTNESS[] = "brightness";
-const char CONFIG_BRIGHTNESS_OVERWRITE[] = "overwriteBrightness";
-const char CONFIG_FULL_BRIGHTNESS_AT_START[] = "fullBrightnessAtStart";
-const char CONFIG_ON_OFF_BLACK[] = "switchOffOnBlack";
-const char CONFIG_TRANSITIONTIME[] = "transitionTime";
+	// Configuration settings
+	const char CONFIG_HOST[] = "host";
+	const char CONFIG_PORT[] = "port";
+	const char CONFIG_AUTH_TOKEN[] = "token";
+	const char CONFIG_ENITYIDS[] = "entityIds";
+	const char CONFIG_BRIGHTNESS[] = "brightness";
+	const char CONFIG_BRIGHTNESS_OVERWRITE[] = "overwriteBrightness";
+	const char CONFIG_FULL_BRIGHTNESS_AT_START[] = "fullBrightnessAtStart";
+	const char CONFIG_TRANSITIONTIME[] = "transitionTime";
 
-const bool DEFAULT_IS_BRIGHTNESS_OVERWRITE = true;
-const bool DEFAULT_IS_FULL_BRIGHTNESS_AT_START = true;
-const int  BRI_MAX = 255;
-const bool DEFAULT_IS_SWITCH_OFF_ON_BLACK = false;
+	const bool DEFAULT_IS_BRIGHTNESS_OVERWRITE = true;
+	const bool DEFAULT_IS_FULL_BRIGHTNESS_AT_START = true;
+	const int  BRI_MAX = 255;
 
-// Home Assistant API
-const int  API_DEFAULT_PORT = 8123;
-const char API_BASE_PATH[] = "/api/";
-const char API_STATES[] = "states";
-const char API_LIGHT_TURN_ON[] = "services/light/turn_on";
-const char API_LIGHT_TURN_OFF[] = "services/light/turn_off";
+	// Home Assistant API
+	const int  API_DEFAULT_PORT = 8123;
+	const char API_BASE_PATH[] = "/api/";
+	const char API_STATES[] = "states";
+	const char API_LIGHT_TURN_ON[] = "services/light/turn_on";
+	const char API_LIGHT_TURN_OFF[] = "services/light/turn_off";
 
-const char ENTITY_ID[] = "entity_id";
-const char RGB_COLOR[] = "rgb_color";
-const char BRIGHTNESS[] = "brightness";
-const char TRANSITION[] = "transition";
-const char FLASH[] = "flash";
+	const char ENTITY_ID[] = "entity_id";
+	const char RGB_COLOR[] = "rgb_color";
+	const char BRIGHTNESS[] = "brightness";
+	const char TRANSITION[] = "transition";
+	const char FLASH[] = "flash";
 
-// // Home Assistant ssdp services
-const char SSDP_ID[] = "ssdp:all";
-const char SSDP_FILTER_HEADER[] = "ST";
-const char SSDP_FILTER[] = "(.*)home-assistant.io(.*)";
+	// // Home Assistant ssdp services
+	const char SSDP_ID[] = "ssdp:all";
+	const char SSDP_FILTER_HEADER[] = "ST";
+	const char SSDP_FILTER[] = "(.*)home-assistant.io(.*)";
 
 } //End of constants
 
@@ -58,11 +56,12 @@ LedDeviceHomeAssistant::LedDeviceHomeAssistant(const QJsonObject& deviceConfig)
 	, _apiPort(API_DEFAULT_PORT)
 	, _isBrightnessOverwrite(DEFAULT_IS_BRIGHTNESS_OVERWRITE)
 	, _isFullBrightnessAtStart(DEFAULT_IS_FULL_BRIGHTNESS_AT_START)
-	, _brightness (BRI_MAX)
+	, _brightness(BRI_MAX)
+	, _transitionTime(0)
 {
 #ifdef ENABLE_MDNS
 	QMetaObject::invokeMethod(MdnsBrowser::getInstance().data(), "browseForServiceType",
-							  Qt::QueuedConnection, Q_ARG(QByteArray, MdnsServiceRegister::getServiceType(_activeDeviceType)));
+		Qt::QueuedConnection, Q_ARG(QByteArray, MdnsServiceRegister::getServiceType(_activeDeviceType)));
 #endif
 }
 
@@ -81,7 +80,7 @@ bool LedDeviceHomeAssistant::init(const QJsonObject& deviceConfig)
 {
 	bool isInitOK{ false };
 
-	if ( LedDevice::init(deviceConfig) )
+	if (LedDevice::init(deviceConfig))
 	{
 		// Overwrite non supported/required features
 		if (deviceConfig["rewriteTime"].toInt(0) > 0)
@@ -99,30 +98,28 @@ bool LedDeviceHomeAssistant::init(const QJsonObject& deviceConfig)
 		_isBrightnessOverwrite = _devConfig[CONFIG_BRIGHTNESS_OVERWRITE].toBool(DEFAULT_IS_BRIGHTNESS_OVERWRITE);
 		_isFullBrightnessAtStart = _devConfig[CONFIG_FULL_BRIGHTNESS_AT_START].toBool(DEFAULT_IS_FULL_BRIGHTNESS_AT_START);
 		_brightness = _devConfig[CONFIG_BRIGHTNESS].toInt(BRI_MAX);
-		_switchOffOnBlack       = _devConfig[CONFIG_ON_OFF_BLACK].toBool(DEFAULT_IS_SWITCH_OFF_ON_BLACK);
 		int transitionTimeMs = _devConfig[CONFIG_TRANSITIONTIME].toInt(0);
 		_transitionTime = transitionTimeMs / 1000.0;
 
 		Debug(_log, "Hostname/IP       : %s", QSTRING_CSTR(_hostName));
-		Debug(_log, "Port              : %d", _apiPort );
+		Debug(_log, "Port              : %d", _apiPort);
 
-		Debug(_log, "Overwrite Brightn.: %s", _isBrightnessOverwrite ? "Yes" : "No" );
+		Debug(_log, "Overwrite Brightn.: %s", _isBrightnessOverwrite ? "Yes" : "No");
 		Debug(_log, "Set Brightness to : %d", _brightness);
-		Debug(_log, "Full Bri. at start: %s", _isFullBrightnessAtStart  ? "Yes" : "No" );
-		Debug(_log, "Off on Black      : %s", _switchOffOnBlack ? "Yes" : "No" );
-		Debug(_log, "Transition Time   : %d ms", transitionTimeMs );
+		Debug(_log, "Full Bri. at start: %s", _isFullBrightnessAtStart ? "Yes" : "No");
+		Debug(_log, "Transition Time   : %d ms", transitionTimeMs);
 
-		_lightEntityIds = _devConfig[ CONFIG_ENITYIDS ].toVariant().toStringList();
+		_lightEntityIds = _devConfig[CONFIG_ENITYIDS].toVariant().toStringList();
 		int configuredLightsCount = _lightEntityIds.size();
 
-		if ( configuredLightsCount == 0 )
+		if (configuredLightsCount == 0)
 		{
-			this->setInError( "No light entity-ids configured" );
+			this->setInError("No light entity-ids configured");
 			isInitOK = false;
 		}
 		else
 		{
-			Debug(_log, "Lights configured : %d", configuredLightsCount );
+			Debug(_log, "Lights configured : %d", configuredLightsCount);
 			isInitOK = true;
 		}
 	}
@@ -138,11 +135,11 @@ bool LedDeviceHomeAssistant::initLedsConfiguration()
 	QString lightEntityId = _lightEntityIds[0];
 
 	//Get properties for configured light entitiy to check availability
-	_restApi->setPath({ API_STATES, lightEntityId});
+	_restApi->setPath({ API_STATES, lightEntityId });
 	httpResponse response = _restApi->get();
 	if (response.error())
 	{
-		QString errorReason = QString("%1 get properties failed with error: '%2'").arg(_activeDeviceType,response.getErrorReason());
+		QString errorReason = QString("%1 get properties failed with error: '%2'").arg(_activeDeviceType, response.getErrorReason());
 		this->setInError(errorReason);
 	}
 	else
@@ -239,10 +236,10 @@ QJsonObject LedDeviceHomeAssistant::discover(const QJsonObject& /*params*/)
 #ifdef ENABLE_MDNS
 	QString discoveryMethod("mDNS");
 	deviceList = MdnsBrowser::getInstance().data()->getServicesDiscoveredJson(
-					 MdnsServiceRegister::getServiceType(_activeDeviceType),
-					 MdnsServiceRegister::getServiceNameFilter(_activeDeviceType),
-					 DEFAULT_DISCOVER_TIMEOUT
-					 );
+		MdnsServiceRegister::getServiceType(_activeDeviceType),
+		MdnsServiceRegister::getServiceNameFilter(_activeDeviceType),
+		DEFAULT_DISCOVER_TIMEOUT
+	);
 #else
 	QString discoveryMethod("ssdp");
 	deviceList = discoverSsdp();
@@ -288,7 +285,7 @@ QJsonObject LedDeviceHomeAssistant::getProperties(const QJsonObject& params)
 				QVector<QJsonValue> filteredVector;
 
 				// Iterate over the array and filter objects with entity_id starting with "light."
-				for (const QJsonValue &value : jsonArray)
+				for (const QJsonValue& value : jsonArray)
 				{
 					QJsonObject obj = value.toObject();
 					QString entityId = obj[ENTITY_ID].toString();
@@ -300,14 +297,14 @@ QJsonObject LedDeviceHomeAssistant::getProperties(const QJsonObject& params)
 				}
 
 				// Sort the filtered vector by "friendly_name" in ascending order
-				std::sort(filteredVector.begin(), filteredVector.end(), [](const QJsonValue &a, const QJsonValue &b) {
+				std::sort(filteredVector.begin(), filteredVector.end(), [](const QJsonValue& a, const QJsonValue& b) {
 					QString nameA = a.toObject()["attributes"].toObject()["friendly_name"].toString();
 					QString nameB = b.toObject()["attributes"].toObject()["friendly_name"].toString();
 					return nameA < nameB;  // Ascending order
-				});
+					});
 				// Convert the sorted vector back to a QJsonArray
 				QJsonArray sortedArray;
-				for (const QJsonValue &value : filteredVector) {
+				for (const QJsonValue& value : filteredVector) {
 					sortedArray.append(value);
 				}
 
@@ -341,10 +338,10 @@ void LedDeviceHomeAssistant::identify(const QJsonObject& params)
 	{
 		if (openRestAPI())
 		{
-			QJsonArray lightEntityIds = params[ ENTITY_ID ].toArray();
+			QJsonArray lightEntityIds = params[ENTITY_ID].toArray();
 
 			_restApi->setPath(API_LIGHT_TURN_ON);
-			QJsonObject serviceAttributes{{ENTITY_ID, lightEntityIds}};
+			QJsonObject serviceAttributes{ {ENTITY_ID, lightEntityIds} };
 			serviceAttributes.insert(FLASH, "short");
 
 			httpResponse response = _restApi->post(serviceAttributes);
@@ -362,7 +359,7 @@ bool LedDeviceHomeAssistant::powerOn()
 	if (_isDeviceReady)
 	{
 		_restApi->setPath(API_LIGHT_TURN_ON);
-		QJsonObject serviceAttributes {{ENTITY_ID, QJsonArray::fromStringList(_lightEntityIds)}};
+		QJsonObject serviceAttributes{ {ENTITY_ID, QJsonArray::fromStringList(_lightEntityIds)} };
 
 		if (_isFullBrightnessAtStart)
 		{
@@ -389,7 +386,7 @@ bool LedDeviceHomeAssistant::powerOff()
 	if (_isDeviceReady)
 	{
 		_restApi->setPath(API_LIGHT_TURN_OFF);
-		QJsonObject serviceAttributes {{ENTITY_ID, QJsonArray::fromStringList(_lightEntityIds)}};
+		QJsonObject serviceAttributes{ {ENTITY_ID, QJsonArray::fromStringList(_lightEntityIds)} };
 		httpResponse response = _restApi->post(serviceAttributes);
 		if (response.error())
 		{
@@ -405,40 +402,41 @@ int LedDeviceHomeAssistant::write(const std::vector<ColorRgb>& ledValues)
 {
 	int retVal = 0;
 
-	QJsonObject serviceAttributes {{ENTITY_ID, QJsonArray::fromStringList(_lightEntityIds)}};
+	QJsonObject serviceAttributes{ {ENTITY_ID, QJsonArray::fromStringList(_lightEntityIds)} };
 	ColorRgb ledValue = ledValues.at(0);
 
-	if (_switchOffOnBlack && ledValue == ColorRgb::BLACK)
+	//    http://hostname:port/api/services/light/turn_on
+	//    {
+	//      "entity_id": [ entity-IDs ],
+	//      "rgb_color": [R,G,B]
+	//    }
+
+	_restApi->setPath(API_LIGHT_TURN_ON);
+	serviceAttributes.insert(RGB_COLOR, QJsonArray{ ledValue.red, ledValue.green, ledValue.blue });
+
+	int brightness = _brightness;
+
+	// Some devices cannot deal with a black color and brightness > 0
+	if (ledValue == ColorRgb::BLACK)
 	{
-		_restApi->setPath(API_LIGHT_TURN_OFF);
+		brightness = 0;
 	}
-	else
+
+	// Add brightness attribute if applicable
+	if (brightness == 0 || _isBrightnessOverwrite)
 	{
-		//    http://hostname:port/api/services/light/turn_on
-		//    {
-		//      "entity_id": [ entity-IDs ],
-		//      "rgb_color": [R,G,B]
-		//    }
+		serviceAttributes.insert(BRIGHTNESS, brightness);
+	}
 
-		_restApi->setPath(API_LIGHT_TURN_ON);
-		QJsonArray rgbColor {ledValue.red, ledValue.green, ledValue.blue};
-		serviceAttributes.insert(RGB_COLOR, rgbColor);
-
-		if (_isBrightnessOverwrite)
-		{
-			serviceAttributes.insert(BRIGHTNESS, _brightness);
-		}
-		if (_transitionTime > 0)
-		{
-			// Transition time in seconds
-			serviceAttributes.insert(TRANSITION, _transitionTime);
-		}
+	if (_transitionTime > 0)
+	{
+		serviceAttributes.insert(TRANSITION, _transitionTime);
 	}
 
 	httpResponse response = _restApi->post(serviceAttributes);
 	if (response.error())
 	{
-		Warning(_log,"Updating lights failed with error: '%s'", QSTRING_CSTR(response.getErrorReason()) );
+		Warning(_log, "Updating lights failed with error: '%s'", QSTRING_CSTR(response.getErrorReason()));
 		retVal = -1;
 	}
 
