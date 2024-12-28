@@ -169,8 +169,8 @@ void QtHttpClientWrapper::onClientDataReceived (void)
 			case RequestParsed: // a valid request has ben fully parsed
 			{
 				const auto& upgradeValue = m_currentRequest->getHeader(QtHttpHeader::Upgrade).toLower();
-				if (upgradeValue.compare(QByteArrayLiteral("websocket"), Qt::CaseInsensitive) == 0) {
-
+				if (upgradeValue == "websocket")
+				{
 					if(m_websocketClient == Q_NULLPTR)
 					{
 						// disconnect this slot from socket for further requests
