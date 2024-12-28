@@ -27,6 +27,7 @@
 #include <utils/jsonschema/QJsonFactory.h>
 #include <utils/jsonschema/QJsonSchemaChecker.h>
 #include <utils/ColorSys.h>
+#include <utils/KelvinToRgb.h>
 #include <utils/Process.h>
 #include <utils/JsonUtils.h>
 
@@ -640,6 +641,7 @@ void JsonAPI::applyTransforms(const QJsonObject &adjustment, ColorAdjustment *co
 	applyTransform("backlightColored", adjustment, colorAdjustment->_rgbTransform, &RgbTransform::setBacklightColored);
 	applyTransform("brightness", adjustment, colorAdjustment->_rgbTransform, &RgbTransform::setBrightness);
 	applyTransform("brightnessCompensation", adjustment, colorAdjustment->_rgbTransform, &RgbTransform::setBrightnessCompensation);
+	applyTransform("temperature", adjustment, colorAdjustment->_rgbTransform, &RgbTransform::setTemperature);
 	applyTransform("saturationGain", adjustment, colorAdjustment->_okhsvTransform, &OkhsvTransform::setSaturationGain);
 	applyTransform("brightnessGain", adjustment, colorAdjustment->_okhsvTransform, &OkhsvTransform::setBrightnessGain);
 }
@@ -666,6 +668,14 @@ void JsonAPI::applyTransform(const QString &transformName, const QJsonObject &ad
 {
 	if (adjustment.contains(transformName)) {
 		(transform.*setFunction)(adjustment[transformName].toDouble());
+	}
+}
+
+template<typename T>
+void JsonAPI::applyTransform(const QString &transformName, const QJsonObject &adjustment, T &transform, void (T::*setFunction)(int))
+{
+	if (adjustment.contains(transformName)) {
+		(transform.*setFunction)(adjustment[transformName].toInt());
 	}
 }
 

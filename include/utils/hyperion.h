@@ -5,6 +5,7 @@
 #include <hyperion/ColorAdjustment.h>
 #include <hyperion/MultiColorAdjustment.h>
 #include <hyperion/LedString.h>
+#include <utils/KelvinToRgb.h>
 #include <QRegularExpression>
 
 // fg effect
@@ -77,8 +78,9 @@ namespace hyperion {
 		const double gammaR             = colorConfig["gammaRed"].toDouble(1.0);
 		const double gammaG             = colorConfig["gammaGreen"].toDouble(1.0);
 		const double gammaB             = colorConfig["gammaBlue"].toDouble(1.0);
+		const int temperature           = colorConfig["temperature"].toInt(ColorTemperature::DEFAULT);
 
-		return RgbTransform(gammaR, gammaG, gammaB, backlightThreshold, backlightColored, static_cast<uint8_t>(brightness), static_cast<uint8_t>(brightnessComp));
+		return RgbTransform(gammaR, gammaG, gammaB, backlightThreshold, backlightColored, static_cast<uint8_t>(brightness), static_cast<uint8_t>(brightnessComp), temperature);
 	}
 
 	static OkhsvTransform createOkhsvTransform(const QJsonObject& colorConfig)
@@ -89,13 +91,13 @@ namespace hyperion {
 		return OkhsvTransform(saturationGain, brightnessGain);
 	}
 
-	static RgbChannelAdjustment createRgbChannelAdjustment(const QJsonObject& colorConfig, const QString& channelName, int defaultR, int defaultG, int defaultB)
+	static RgbChannelAdjustment createRgbChannelAdjustment(const QJsonObject& colorConfig, const QString& channelName, const ColorRgb& color)
 	{
 		const QJsonArray& channelConfig  = colorConfig[channelName].toArray();
 		return RgbChannelAdjustment(
-			static_cast<uint8_t>(channelConfig[0].toInt(defaultR)),
-			static_cast<uint8_t>(channelConfig[1].toInt(defaultG)),
-			static_cast<uint8_t>(channelConfig[2].toInt(defaultB)),
+			static_cast<uint8_t>(channelConfig[0].toInt(color.red)),
+			static_cast<uint8_t>(channelConfig[1].toInt(color.green)),
+			static_cast<uint8_t>(channelConfig[2].toInt(color.blue)),
 			channelName
 		);
 	}
@@ -106,14 +108,14 @@ namespace hyperion {
 
 		ColorAdjustment * adjustment = new ColorAdjustment();
 		adjustment->_id = id;
-		adjustment->_rgbBlackAdjustment   = createRgbChannelAdjustment(adjustmentConfig, "black"  ,   0,  0,  0);
-		adjustment->_rgbWhiteAdjustment   = createRgbChannelAdjustment(adjustmentConfig, "white"  , 255,255,255);
-		adjustment->_rgbRedAdjustment     = createRgbChannelAdjustment(adjustmentConfig, "red"    , 255,  0,  0);
-		adjustment->_rgbGreenAdjustment   = createRgbChannelAdjustment(adjustmentConfig, "green"  ,   0,255,  0);
-		adjustment->_rgbBlueAdjustment    = createRgbChannelAdjustment(adjustmentConfig, "blue"   ,   0,  0,255);
-		adjustment->_rgbCyanAdjustment    = createRgbChannelAdjustment(adjustmentConfig, "cyan"   ,   0,255,255);
-		adjustment->_rgbMagentaAdjustment = createRgbChannelAdjustment(adjustmentConfig, "magenta", 255,  0,255);
-		adjustment->_rgbYellowAdjustment  = createRgbChannelAdjustment(adjustmentConfig, "yellow" , 255,255,  0);
+		adjustment->_rgbBlackAdjustment   = createRgbChannelAdjustment(adjustmentConfig, "black"  , ColorRgb::BLACK);
+		adjustment->_rgbWhiteAdjustment   = createRgbChannelAdjustment(adjustmentConfig, "white"  , ColorRgb::WHITE);
+		adjustment->_rgbRedAdjustment     = createRgbChannelAdjustment(adjustmentConfig, "red"    , ColorRgb::RED);
+		adjustment->_rgbGreenAdjustment   = createRgbChannelAdjustment(adjustmentConfig, "green"  , ColorRgb::GREEN);
+		adjustment->_rgbBlueAdjustment    = createRgbChannelAdjustment(adjustmentConfig, "blue"   , ColorRgb::BLUE);
+		adjustment->_rgbCyanAdjustment    = createRgbChannelAdjustment(adjustmentConfig, "cyan"   , ColorRgb::CYAN);
+		adjustment->_rgbMagentaAdjustment = createRgbChannelAdjustment(adjustmentConfig, "magenta", ColorRgb::MAGENTA);
+		adjustment->_rgbYellowAdjustment  = createRgbChannelAdjustment(adjustmentConfig, "yellow" , ColorRgb::YELLOW);
 		adjustment->_rgbTransform         = createRgbTransform(adjustmentConfig);
 		adjustment->_okhsvTransform       = createOkhsvTransform(adjustmentConfig);
 
@@ -149,27 +151,27 @@ namespace hyperion {
 				continue;
 			}
 
-			std::stringstream ss;
+			std::stringstream sStream;
 			const QStringList ledIndexList = ledIndicesStr.split(",");
-			for (int i=0; i<ledIndexList.size(); ++i) {
-				if (i > 0)
+			for (int j=0; j<ledIndexList.size(); ++j) {
+				if (j > 0)
 				{
-					ss << ", ";
+					sStream << ", ";
 				}
-				if (ledIndexList[i].contains("-"))
+				if (ledIndexList[j].contains("-"))
 				{
-					QStringList ledIndices = ledIndexList[i].split("-");
+					QStringList ledIndices = ledIndexList[j].split("-");
 					int startInd = ledIndices[0].toInt();
 					int endInd   = ledIndices[1].toInt();
 
 					adjustment->setAdjustmentForLed(colorAdjustment->_id, startInd, endInd);
-					ss << startInd << "-" << endInd;
+					sStream << startInd << "-" << endInd;
 				}
 				else
 				{
 					int index = ledIndexList[i].toInt();
 					adjustment->setAdjustmentForLed(colorAdjustment->_id, index, index);
-					ss << index;
+					sStream << index;
 				}
 			}
 		}

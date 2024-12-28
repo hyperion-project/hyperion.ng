@@ -1,23 +1,27 @@
 #pragma once
 
-// STL includes
 #include <cstdint>
+
 #include <QString>
 #include <utils/Logger.h>
+#include <utils/ColorRgb.h>
 
 /// Correction for a single color byte value
 /// All configuration values are unsigned int and assume the color value to be between 0 and 255
 class RgbChannelAdjustment
 {
 public:
+
 	/// Default constructor
-	RgbChannelAdjustment(QString channelName="");
+	explicit RgbChannelAdjustment(const QString& channelName="");
+
+	explicit RgbChannelAdjustment(const ColorRgb& adjust, const QString& channelName="");
 
 	/// Constructor
 	/// @param adjustR
 	/// @param adjustG
 	/// @param adjustB
-	RgbChannelAdjustment(uint8_t adjustR, uint8_t adjustG, uint8_t adjustB, QString channelName="");
+	explicit RgbChannelAdjustment(uint8_t adjustR, uint8_t adjustG, uint8_t adjustB, const QString& channelName="");
 
 	///
 	/// Transform the given array value
@@ -40,6 +44,7 @@ public:
 	/// @param adjustB
 	///
 	void setAdjustment(uint8_t adjustR, uint8_t adjustG, uint8_t adjustB);
+	void setAdjustment(const ColorRgb& adjust);
 
 	/// @return The current adjustR value
 	uint8_t getAdjustmentR() const;
@@ -51,23 +56,27 @@ public:
 	uint8_t getAdjustmentB() const;
 
 private:
-	/// color channels
-	enum ColorChannel { RED=0, GREEN=1, BLUE=2 };
+
+	struct ColorMapping {
+		uint8_t red[256];
+		uint8_t green[256];
+		uint8_t blue[256];
+	};
 
 	/// reset init of color mapping
 	void resetInitialized();
-
-	/// The adjustment of RGB channel
-	uint8_t _adjust[3];
-
-	/// The mapping from input color to output color
-	uint8_t _mapping[3][256];
 
 	/// Name of this channel, usefull for debug messages
 	QString _channelName;
 
 	/// Logger instance
 	Logger * _log;
+
+	/// The adjustment of RGB channel
+	ColorRgb _adjust;
+
+	/// The mapping from input color to output color
+	ColorMapping _mapping;
 
 	/// bitfield to determine white value is alreade initialized
 	bool _initialized[256];
