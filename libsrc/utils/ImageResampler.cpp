@@ -50,16 +50,15 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 
 	outputImage.resize(outputWidth, outputHeight);
 
-	int xDestStart, xDestEnd;
-	int yDestStart, yDestEnd;
+	int xDestStart {0};
+	int xDestEnd = {outputWidth-1};
+	int yDestStart = {0};
+	int yDestEnd = {outputWidth-1};
 
 	switch (_flipMode)
 	{
 		case FlipMode::NO_CHANGE:
-			xDestStart = 0;
-			xDestEnd = outputWidth-1;
-			yDestStart = 0;
-			yDestEnd = outputHeight-1;
+		//use the initalized values
 			break;
 		case FlipMode::HORIZONTAL:
 			xDestStart = 0;

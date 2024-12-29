@@ -570,7 +570,7 @@ message(STATUS "Found Qt Version: ${QT_VERSION}")
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
 	set(QT_MIN_VERSION "6.2.2")
 else()
-	set(QT_MIN_VERSION "5.5.0")
+	set(QT_MIN_VERSION "5.9.0")
 endif()
 
 if("${QT_VERSION}" VERSION_LESS "${QT_MIN_VERSION}")

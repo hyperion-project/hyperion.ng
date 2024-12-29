@@ -67,12 +67,12 @@ int ProviderFtdi::open()
 
 	Debug(_log, "Opening FTDI device=%s", QSTRING_CSTR(_deviceName));
 
-	FTDI_CHECK_RESULT((rc = ftdi_usb_open_string(_ftdic, QSTRING_CSTR(_deviceName))) < 0);
+	FTDI_CHECK_RESULT((rc = ftdi_usb_open_string(_ftdic, QSTRING_CSTR(_deviceName))) < 0)
 	/* doing this disable resets things if they were in a bad state */
-	FTDI_CHECK_RESULT((rc = ftdi_disable_bitbang(_ftdic)) < 0);
-	FTDI_CHECK_RESULT((rc = ftdi_setflowctrl(_ftdic, SIO_DISABLE_FLOW_CTRL)) < 0);
-	FTDI_CHECK_RESULT((rc = ftdi_set_bitmode(_ftdic, 0x00, BITMODE_RESET)) < 0);
-	FTDI_CHECK_RESULT((rc = ftdi_set_bitmode(_ftdic, 0xff, BITMODE_MPSSE)) < 0);
+	FTDI_CHECK_RESULT((rc = ftdi_disable_bitbang(_ftdic)) < 0)
+	FTDI_CHECK_RESULT((rc = ftdi_setflowctrl(_ftdic, SIO_DISABLE_FLOW_CTRL)) < 0)
+	FTDI_CHECK_RESULT((rc = ftdi_set_bitmode(_ftdic, 0x00, BITMODE_RESET)) < 0)
+	FTDI_CHECK_RESULT((rc = ftdi_set_bitmode(_ftdic, 0xff, BITMODE_MPSSE)) < 0)
 
 	double reference_clock = 60e6;
 	int divisor = (reference_clock / 2 / _baudRate_Hz) - 1;
@@ -86,7 +86,7 @@ int ProviderFtdi::open()
 		pinDirection
 	};
 
-	FTDI_CHECK_RESULT((rc = ftdi_write_data(_ftdic, buf.data(), buf.size())) != buf.size());
+	FTDI_CHECK_RESULT(static_cast<size_t>(rc = ftdi_write_data(_ftdic, buf.data(), static_cast<int>(buf.size()))) != buf.size())
 
 	_isDeviceReady = true;
 	return rc;
@@ -134,7 +134,7 @@ int ProviderFtdi::writeBytes(const qint64 size, const uint8_t *data)
 	// SET_BITS_LOW takes 2 arguments, so we're inserting data in -3 position from the end
 	buf.insert(buf.end() - 3, &data[0], &data[size]);
 
-	FTDI_CHECK_RESULT((rc = ftdi_write_data(_ftdic, buf.data(), buf.size())) != buf.size());
+	FTDI_CHECK_RESULT(static_cast<size_t>(rc = ftdi_write_data(_ftdic, buf.data(), static_cast<int>(buf.size()))) != buf.size())
 	return rc;
 }
 
@@ -152,7 +152,7 @@ QJsonObject ProviderFtdi::discover(const QJsonObject & /*params*/)
 		struct ftdi_device_list *curdev = devlist;
 		QMap<QString, uint8_t> deviceIndexes;
 
-		while (curdev)
+		while (curdev != nullptr)
 		{
 			libusb_device_descriptor desc;
 			int rc = libusb_get_device_descriptor(curdev->dev, &desc);
@@ -161,8 +161,7 @@ QJsonObject ProviderFtdi::discover(const QJsonObject & /*params*/)
 				QString vendorIdentifier =  QString("0x%1").arg(desc.idVendor, 4, 16, QChar{'0'});
 				QString productIdentifier = QString("0x%1").arg(desc.idProduct, 4, 16, QChar{'0'});
 				QString vendorAndProduct = QString("%1:%2")
-										   .arg(vendorIdentifier)
-										   .arg(productIdentifier);
+										   .arg(vendorIdentifier,productIdentifier);
 				uint8_t deviceIndex = deviceIndexes.value(vendorAndProduct, 0);
 
 				char serial_string[128] = {0};
@@ -174,7 +173,7 @@ QJsonObject ProviderFtdi::discover(const QJsonObject & /*params*/)
 				QString ftdiOpenString;
 				if(!serialNumber.isEmpty())
 				{
-					ftdiOpenString = QString("s:%1:%2").arg(vendorAndProduct).arg(serialNumber);
+					ftdiOpenString = QString("s:%1:%2").arg(vendorAndProduct, serialNumber);
 				}
 				else
 				{
