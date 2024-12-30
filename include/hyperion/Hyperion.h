@@ -28,11 +28,7 @@
 #include <hyperion/ComponentRegister.h>
 
 #if defined(ENABLE_EFFECTENGINE)
-// Effect engine includes
-#include <effectengine/EffectDefinition.h>
-#include <effectengine/Effect.h>
 #include <effectengine/ActiveEffectDefinition.h>
-#include <effectengine/EffectSchema.h>
 #endif
 
 #include <leddevice/LedDevice.h>
@@ -213,20 +209,6 @@ public slots:
 	///
 	EffectEngine* getEffectEngineInstance() const { return _effectEngine.get(); }
 
-	///
-	/// @brief Save an effect
-	/// @param  obj  The effect args
-	/// @return Empty on success else error message
-	///
-	QString saveEffect(const QJsonObject& obj);
-
-	///
-	/// @brief Delete an effect by name.
-	/// @param  effectName  The effect name to delete
-	/// @return Empty on success else error message
-	///
-	QString deleteEffect(const QString& effectName);
-
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	/// @param effectName Name of the effec to run
 	///	@param priority The priority channel of the effect
@@ -247,17 +229,10 @@ public slots:
 				  , const QString &imageData = ""
 				);
 
-	/// Get the list of available effects
-	/// @return The list of available effects
-	std::list<EffectDefinition> getEffects() const;
 
 	/// Get the list of active effects
 	/// @return The list of active effects
 	std::list<ActiveEffectDefinition> getActiveEffects() const;
-
-	/// Get the list of available effect schema files
-	/// @return The list of available effect schema files
-	std::list<EffectSchema> getEffectSchemas() const;
 #endif
 
 	/// #############

@@ -43,16 +43,6 @@ EffectEngine::~EffectEngine()
 {
 }
 
-QString EffectEngine::saveEffect(const QJsonObject& obj)
-{
-	return _effectFileHandler->saveEffect(obj);
-}
-
-QString EffectEngine::deleteEffect(const QString& effectName)
-{
-	return _effectFileHandler->deleteEffect(effectName);
-}
-
 std::list<ActiveEffectDefinition> EffectEngine::getActiveEffects() const
 {
 	std::list<ActiveEffectDefinition> availableActiveEffects;
@@ -69,11 +59,6 @@ std::list<ActiveEffectDefinition> EffectEngine::getActiveEffects() const
 	}
 
 	return availableActiveEffects;
-}
-
-std::list<EffectSchema> EffectEngine::getEffectSchemas() const
-{
-	return _effectFileHandler->getEffectSchemas();
 }
 
 void EffectEngine::cacheRunningEffects()

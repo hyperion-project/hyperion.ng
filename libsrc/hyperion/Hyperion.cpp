@@ -579,29 +579,9 @@ Hyperion::InputInfo Hyperion::getPriorityInfo(int priority) const
 }
 
 #if defined(ENABLE_EFFECTENGINE)
-QString Hyperion::saveEffect(const QJsonObject& obj)
-{
-	return _effectEngine->saveEffect(obj);
-}
-
-QString Hyperion::deleteEffect(const QString& effectName)
-{
-	return _effectEngine->deleteEffect(effectName);
-}
-
-std::list<EffectDefinition> Hyperion::getEffects() const
-{
-	return _effectEngine->getEffects();
-}
-
 std::list<ActiveEffectDefinition> Hyperion::getActiveEffects() const
 {
 	return _effectEngine->getActiveEffects();
-}
-
-std::list<EffectSchema> Hyperion::getEffectSchemas() const
-{
-	return _effectEngine->getEffectSchemas();
 }
 
 int Hyperion::setEffect(const QString &effectName, int priority, int timeout, const QString & origin)

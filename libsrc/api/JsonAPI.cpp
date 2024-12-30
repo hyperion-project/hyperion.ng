@@ -30,6 +30,7 @@
 #include <utils/ColorSys.h>
 #include <utils/Process.h>
 #include <utils/JsonUtils.h>
+#include <effectengine/EffectFileHandler.h>
 
 // ledmapping int <> string transform methods
 #include <hyperion/ImageProcessor.h>
@@ -104,10 +105,10 @@ void JsonAPI::initialize()
 	connect(_instanceManager, &HyperionIManager::instanceStateChanged, this, &JsonAPI::handleInstanceStateChange);
 
 	// notify hyperion about a jsonMessageForward
-	if (_hyperion != nullptr)
+	if (!_hyperion.isNull())
 	{
 		// Initialise jsonCB with current instance
-		_jsonCB->setSubscriptionsTo(_hyperion.get());
+		_jsonCB->setSubscriptionsTo(_hyperion);
 		connect(this, &JsonAPI::forwardJsonMessage, _hyperion.get(), &Hyperion::forwardJsonMessage);
 	}
 
@@ -121,7 +122,7 @@ bool JsonAPI::handleInstanceSwitch(quint8 inst, bool /*forced*/)
 	{
 		Debug(_log, "Client '%s' switch to Hyperion instance %d", QSTRING_CSTR(_peerAddress), inst);
 		// the JsonCB creates json messages you can subscribe to e.g. data change events
-		_jsonCB->setSubscriptionsTo(_hyperion.get());
+		_jsonCB->setSubscriptionsTo(_hyperion);
 		return true;
 	}
 	return false;
@@ -470,14 +471,14 @@ void JsonAPI::handleEffectCommand(const QJsonObject &message, const JsonApiComma
 
 void JsonAPI::handleCreateEffectCommand(const QJsonObject &message, const JsonApiCommand& cmd)
 {
-	const QString resultMsg = API::saveEffect(message);
+	const QString resultMsg = EffectFileHandler::getInstance()->saveEffect(message);
 	resultMsg.isEmpty() ? sendSuccessReply(cmd) : sendErrorReply(resultMsg, cmd);
 }
 
 void JsonAPI::handleDeleteEffectCommand(const QJsonObject &message, const JsonApiCommand& cmd)
 {
-	const QString res = API::deleteEffect(message["name"].toString());
-	res.isEmpty() ? sendSuccessReply(cmd) : sendErrorReply(res, cmd);
+	const QString resultMsg = EffectFileHandler::getInstance()->deleteEffect(message["name"].toString());
+	resultMsg.isEmpty() ? sendSuccessReply(cmd) : sendErrorReply(resultMsg, cmd);
 }
 #endif
 
@@ -494,28 +495,39 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const JsonApiC
 	switch (cmd.getSubCommand()) {
 	case SubCommand::Empty:
 	case SubCommand::GetInfo:
-		info["priorities"] = JsonInfo::getPrioritiestInfo(_hyperion.get());
-		info["priorities_autoselect"] = _hyperion->sourceAutoSelectEnabled();
-		info["adjustment"] = JsonInfo::getAdjustmentInfo(_hyperion.get(), _log);
+		// Global information
 		info["ledDevices"] = JsonInfo::getAvailableLedDevices();
-		info["grabbers"] = JsonInfo::getGrabbers(_hyperion.get());
-		info["videomode"] = QString(videoMode2String(_hyperion->getCurrentVideoMode()));
 		info["cec"] = JsonInfo::getCecInfo();
 		info["services"] = JsonInfo::getServices();
-		info["components"] = JsonInfo::getComponents(_hyperion.get());
-		info["imageToLedMappingType"] = ImageProcessor::mappingTypeToStr(_hyperion->getLedMappingType());
 		info["instance"] = JsonInfo::getInstanceInfo();
-		info["leds"] = _hyperion->getSetting(settings::LEDS).array();
-		info["activeLedColor"] =  JsonInfo::getActiveColors(_hyperion.get());
+		info["effects"] = JsonInfo::getEffects();
 
+		// Global/Instance specific information
+		info["grabbers"] = JsonInfo::getGrabbers(_hyperion.get());
+		info["components"] = JsonInfo::getComponents(_hyperion.get());
+
+		// Instance specific information
+		if (!_hyperion.isNull())
+		{
+			info["priorities"] = JsonInfo::getPrioritiestInfo(_hyperion.get());
+			info["priorities_autoselect"] = _hyperion->sourceAutoSelectEnabled();
+			info["adjustment"] = JsonInfo::getAdjustmentInfo(_hyperion.get(), _log);
+			info["videomode"] = QString(videoMode2String(_hyperion->getCurrentVideoMode()));
+
+			info["imageToLedMappingType"] = ImageProcessor::mappingTypeToStr(_hyperion->getLedMappingType());
+			info["leds"] = _hyperion->getSetting(settings::LEDS).array();
+			info["activeLedColor"] =  JsonInfo::getActiveColors(_hyperion.get());
 #if defined(ENABLE_EFFECTENGINE)
-		info["effects"] = JsonInfo::getEffects(_hyperion.get());
-		info["activeEffects"] = JsonInfo::getActiveEffects(_hyperion.get());
+			info["activeEffects"] = JsonInfo::getActiveEffects(_hyperion.get());
 #endif
+		}
 
 		// BEGIN | The following entries are deprecated but used to ensure backward compatibility with hyperion Classic or up to Hyperion 2.0.16
 		info["hostname"] = QHostInfo::localHostName();
-		info["transform"] = JsonInfo::getTransformationInfo(_hyperion.get());
+		if (!_hyperion.isNull())
+		{
+			info["transform"] = JsonInfo::getTransformationInfo(_hyperion.get());
+		}
 
 		if (!_noListener && message.contains("subscribe"))
 		{
@@ -953,28 +965,7 @@ void JsonAPI::handleSchemaGetCommand(const QJsonObject& /*message*/, const JsonA
 	settingTypes.insert("instanceProperties", instanceSettingTypes);
 	properties.insert("propertiesTypes", settingTypes);
 
-#if defined(ENABLE_EFFECTENGINE)
-	// collect all available effect schemas
-	QJsonArray schemaList;
-	const std::list<EffectSchema>& effectsSchemas = _hyperion->getEffectSchemas();
-	for (const EffectSchema& effectSchema : effectsSchemas)
-	{
-		QJsonObject schema;
-		schema.insert("script", effectSchema.pyFile);
-		schema.insert("schemaLocation", effectSchema.schemaFile);
-		schema.insert("schemaContent", effectSchema.pySchema);
-		if (effectSchema.pyFile.startsWith(':'))
-		{
-			schema.insert("type", "system");
-		}
-		else
-		{
-			schema.insert("type", "custom");
-		}
-		schemaList.append(schema);
-	}
-	properties.insert("effectSchemas", schemaList);
-#endif
+	properties.insert("effectSchemas", JsonInfo::getEffectSchemas());
 
 	schemaJson.insert("properties", properties);
 

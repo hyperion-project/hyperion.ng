@@ -86,7 +86,7 @@ public:
 	///
 	/// @brief Re-apply all current subs to a new Hyperion instance, the connections to the old instance will be dropped
 	///
-	void setSubscriptionsTo(Hyperion* hyperion);
+	void setSubscriptionsTo(QSharedPointer<Hyperion> hyperion);
 
 signals:
 	///
@@ -186,7 +186,7 @@ private:
 	void doCallback(Subscription::Type cmd, const QJsonObject& data);
 
 	Logger *_log;
-	Hyperion* _hyperion;
+	QSharedPointer<Hyperion> _hyperion;
 
 	/// The peer address of the client
 	QString _peerAddress;

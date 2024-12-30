@@ -1,4 +1,5 @@
 
+#include "effectengine/EffectDefinition.h"
 #include <list>
 #ifndef _WIN32
 #include <unistd.h>
@@ -14,11 +15,13 @@
 #include <QSettings>
 #include <QtGlobal>
 
+#include <HyperionConfig.h> // Required to determine the cmake options
+
 #include <utils/ColorRgb.h>
 #include <utils/Process.h>
 #if defined(ENABLE_EFFECTENGINE)
 #include <effectengine/EffectDefinition.h>
-#include <effectengine/Effect.h>
+#include <effectengine/EffectFileHandler.h>
 #endif
 #include <webserver/WebServer.h>
 #include <hyperion/PriorityMuxer.h>
@@ -109,13 +112,14 @@ void SysTray::createTrayIcon()
 	_trayIconMenu = new QMenu(this);
 
 #if defined(ENABLE_EFFECTENGINE)
-	const std::list<EffectDefinition> efxs = _hyperion->getEffects();
+
+	const std::list<EffectDefinition> effectsDefinitions = EffectFileHandler::getInstance()->getEffects();
 	_trayIconEfxMenu = new QMenu(_trayIconMenu);
 	_trayIconEfxMenu->setTitle(tr("Effects"));
 	_trayIconEfxMenu->setIcon(QPixmap(":/effects.svg"));
 
 	// custom effects
-	for (const auto &efx : efxs)
+	for (const auto &efx : effectsDefinitions)
 	{
 		if (efx.file.mid(0, 1)  != ":")
 		{
@@ -132,7 +136,7 @@ void SysTray::createTrayIcon()
 	}
 
 	// build in effects
-	for (const auto &efx : efxs)
+	for (const auto &efx : effectsDefinitions)
 	{
 		if (efx.file.mid(0, 1)  == ":")
 		{
