@@ -1,238 +1,287 @@
+#include "systray.h"
 
-#include "effectengine/EffectDefinition.h"
-#include <list>
-#ifndef _WIN32
 #include <unistd.h>
-#endif
 
-// QT includes
-#include <QPixmap>
-#include <QWindow>
-#include <QGuiApplication>
-#include <QWidget>
-#include <QColor>
-#include <QDesktopServices>
-#include <QSettings>
-#include <QtGlobal>
+#include "hyperiond.h"
+#include <webserver/WebServer.h>
+#include <events/EventHandler.h>
 
 #include <HyperionConfig.h> // Required to determine the cmake options
-
-#include <utils/ColorRgb.h>
-#include <utils/Process.h>
 #if defined(ENABLE_EFFECTENGINE)
 #include <effectengine/EffectDefinition.h>
 #include <effectengine/EffectFileHandler.h>
 #endif
-#include <webserver/WebServer.h>
-#include <hyperion/PriorityMuxer.h>
-#include <events/EventHandler.h>
 
-#include "hyperiond.h"
-#include "systray.h"
+#include <QDesktopServices>
+#include <QSettings>
 
-
-SysTray::SysTray(HyperionDaemon *hyperiond)
-	: QWidget()
-	, _colorDlg(this)
+SysTray::SysTray(HyperionDaemon* hyperiond)
+	: QSystemTrayIcon(QIcon(":/hyperion-32px.png"), hyperiond)
 	, _hyperiond(hyperiond)
-	, _hyperion(nullptr)
 	, _instanceManager(HyperionIManager::getInstance())
 	, _webPort(8090)
+	, _colorDlg(0)
 {
 	Q_INIT_RESOURCE(resources);
 
-	// webserver port
-	WebServer* webserver = hyperiond->getWebServerInstance();
-	connect(webserver, &WebServer::portChanged, this, &SysTray::webserverPortChanged);
-
-	// instance changes
-	connect(_instanceManager, &HyperionIManager::instanceStateChanged, this, &SysTray::handleInstanceStateChange);
-
-	connect(this, &SysTray::signalEvent, EventHandler::getInstance().data(), &EventHandler::handleEvent);
-}
-
-SysTray::~SysTray()
-{
-}
-
-void SysTray::iconActivated(QSystemTrayIcon::ActivationReason reason)
-{
-	switch (reason)
-	{
-#ifdef _WIN32
-		case QSystemTrayIcon::Context:
-			getCurrentAutorunState();
-			break;
-#endif
-		case QSystemTrayIcon::Trigger:
-			break;
-		case QSystemTrayIcon::DoubleClick:
-			settings();
-			break;
-		case QSystemTrayIcon::MiddleClick:
-			break;
-		default: ;
-	}
-}
-
-void SysTray::createTrayIcon()
-{
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 	QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 #endif
 
-	quitAction = new QAction(tr("&Quit"), this);
-	quitAction->setIcon(QPixmap(":/quit.svg"));
-	connect(quitAction, &QAction::triggered, qApp, QApplication::quit);
+	setupConnections();
+	createBaseTrayMenu();
 
-	restartAction = new QAction(tr("&Restart"), this);
-	restartAction->setIcon(QPixmap(":/restart.svg"));
-	connect(restartAction, &QAction::triggered, this , [=](){ emit signalEvent(Event::Restart); });
+	// Delay showing the tray icon
+	QTimer::singleShot(0, this, [this]() {
+		this->show();
+	});
+	connect(this, &QSystemTrayIcon::activated, this, &SysTray::onIconActivated);
+}
 
-	suspendAction = new QAction(tr("&Suspend"), this);
-	suspendAction->setIcon(QPixmap(":/suspend.svg"));
-	connect(suspendAction, &QAction::triggered, this, [this]() { emit signalEvent(Event::Suspend); });
+void SysTray::onIconActivated(QSystemTrayIcon::ActivationReason reason)
+{
+	switch (reason)
+	{
+#ifdef _WIN32
+	case QSystemTrayIcon::Context:
+		getCurrentAutorunState();
+	break;
+#endif
+	case QSystemTrayIcon::Trigger:
+	case QSystemTrayIcon::DoubleClick:
+		settings();
+	break;
+	case QSystemTrayIcon::MiddleClick:
+	break;
+	default: ;
+	}
+}
 
-	resumeAction = new QAction(tr("&Resume"), this);
-	resumeAction->setIcon(QPixmap(":/resume.svg"));
-	connect(resumeAction, &QAction::triggered, this, [this]() { emit signalEvent(Event::Resume); });
+void SysTray::createBaseTrayMenu()
+{
+	_trayMenu = new QMenu();
 
-	colorAction = new QAction(tr("&Color"), this);
-	colorAction->setIcon(QPixmap(":/color.svg"));
-	connect(colorAction, &QAction::triggered, this, &SysTray::showColorDialog);
+	// Create actions
+	_settingsAction = createAction(tr("&Settings"), ":/settings.svg", [this]() {
+		settings();
+	});
 
-	settingsAction = new QAction(tr("&Settings"), this);
-	settingsAction->setIcon(QPixmap(":/settings.svg"));
-	connect(settingsAction, &QAction::triggered, this, &SysTray::settings);
+	_suspendAction = createAction(tr("&Suspend"), ":/suspend.svg", [this]() {
+		emit signalEvent(Event::Suspend);
+	});
 
-	clearAction = new QAction(tr("&Clear"), this);
-	clearAction->setIcon(QPixmap(":/clear.svg"));
-	connect(clearAction, &QAction::triggered, this, &SysTray::clearEfxColor);
+	_resumeAction = createAction(tr("&Resume"), ":/resume.svg", [this]() {
+		emit signalEvent(Event::Resume);
+	});
 
-	_trayIconMenu = new QMenu(this);
+	_restartAction = createAction(tr("&Restart"), ":/restart.svg", [this]() {
+		emit signalEvent(Event::Restart);
+	});
+
+	_quitAction = createAction(tr("&Quit"), ":/quit.svg", []() {
+		qApp->quit();
+	});
+
+#ifdef _WIN32
+	_autorunAction = createAction(tr("&Disable autostart"), ":/autorun.svg", [this]() {
+		setAutorunState();
+	});
+#endif
+
+	// Add static actions to the tray menu
+	_trayMenu->addAction(_settingsAction);
+#ifdef _WIN32
+	_trayMenu->addAction(_autorunAction);
+#endif
+
+	// Add remaining static actions
+	_trayMenu->addSeparator();
+	_trayMenu->addAction(_suspendAction);
+	_trayMenu->addAction(_resumeAction);
+	_trayMenu->addAction(_restartAction);
+	_trayMenu->addAction(_quitAction);
+
+	setContextMenu(_trayMenu);
+}
+
+void SysTray::setupConnections()
+{
+	WebServer const * webserver = _hyperiond->getWebServerInstance();
+	connect(webserver, &WebServer::portChanged, this, &SysTray::onWebserverPortChanged);
+	connect(_instanceManager, &HyperionIManager::instanceStateChanged, this, &SysTray::handleInstanceStateChange);
+	connect(this, &SysTray::signalEvent, EventHandler::getInstance().data(), &EventHandler::handleEvent);
+}
+
+QAction *SysTray::createAction(const QString &text, const QString &iconPath, const std::function<void()> &method)
+{
+	QAction *action = new QAction(text, this);
+	action->setIcon(QIcon(iconPath));
+	connect(action, &QAction::triggered, this, method);
+	return action;
+}
+
+void SysTray::setColor(int instance, const QColor &color)
+{
+	QSharedPointer<Hyperion> hyperion = HyperionIManager::getInstance()->getHyperionInstance(instance);
+	if (!hyperion.isNull())
+	{
+		std::vector<ColorRgb> rgbColor {color.rgb()};
+		emit hyperion->setColor(PriorityMuxer::FG_PRIORITY,rgbColor, PriorityMuxer::ENDLESS);
+	}
+}
 
 #if defined(ENABLE_EFFECTENGINE)
-
-	const std::list<EffectDefinition> effectsDefinitions = EffectFileHandler::getInstance()->getEffects();
-	_trayIconEfxMenu = new QMenu(_trayIconMenu);
-	_trayIconEfxMenu->setTitle(tr("Effects"));
-	_trayIconEfxMenu->setIcon(QPixmap(":/effects.svg"));
-
-	// custom effects
-	for (const auto &efx : effectsDefinitions)
-	{
-		if (efx.file.mid(0, 1)  != ":")
-		{
-			QAction *efxAction = new QAction(efx.name, this);
-			connect(efxAction, &QAction::triggered, this, &SysTray::setEffect);
-			_trayIconEfxMenu->addAction(efxAction);
-		}
-	}
-
-	// add seperator if custom effects exists
-	if (!_trayIconEfxMenu->isEmpty())
-	{
-		_trayIconEfxMenu->addSeparator();
-	}
-
-	// build in effects
-	for (const auto &efx : effectsDefinitions)
-	{
-		if (efx.file.mid(0, 1)  == ":")
-		{
-			QAction *efxAction = new QAction(efx.name, this);
-			connect(efxAction, &QAction::triggered, this, &SysTray::setEffect);
-			_trayIconEfxMenu->addAction(efxAction);
-		}
-	}
-#endif
-
-#ifdef _WIN32
-	autorunAction = new QAction(tr("&Disable autostart"), this);
-	autorunAction->setIcon(QPixmap(":/autorun.svg"));
-	connect(autorunAction, &QAction::triggered, this, &SysTray::setAutorunState);
-
-	_trayIconMenu->addAction(autorunAction);
-	_trayIconMenu->addSeparator();
-#endif
-
-	_trayIconMenu->addAction(settingsAction);
-	_trayIconMenu->addSeparator();
-	_trayIconMenu->addAction(colorAction);
-#if defined(ENABLE_EFFECTENGINE)
-	_trayIconMenu->addMenu(_trayIconEfxMenu);
-#endif
-	_trayIconMenu->addAction(clearAction);
-	_trayIconMenu->addSeparator();
-
-	_trayIconSystemMenu = new QMenu(_trayIconMenu);
-	_trayIconSystemMenu->setTitle(tr("Instances"));
-
-	_trayIconSystemMenu->addAction(suspendAction);
-	_trayIconSystemMenu->addAction(resumeAction);
-	_trayIconSystemMenu->addAction(restartAction);
-	_trayIconMenu->addMenu(_trayIconSystemMenu);
-
-	_trayIconMenu->addSeparator();
-	_trayIconMenu->addAction(quitAction);
-
-	_trayIcon = new QSystemTrayIcon(this);
-	_trayIcon->setContextMenu(_trayIconMenu);
-}
-
-#ifdef _WIN32
-bool SysTray::getCurrentAutorunState()
+void SysTray::setEffect(int instance, const QString& effectName)
 {
-	QSettings reg("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::NativeFormat);
-	if (reg.value("Hyperion", 0).toString() == qApp->applicationFilePath().replace('/', '\\'))
+	QSharedPointer<Hyperion> hyperion = HyperionIManager::getInstance()->getHyperionInstance(instance);
+	if (!hyperion.isNull())
 	{
-		autorunAction->setText(tr("&Disable autostart"));
-		return true;
+		emit hyperion->setEffect(effectName, PriorityMuxer::FG_PRIORITY, PriorityMuxer::ENDLESS);
 	}
-
-	autorunAction->setText(tr("&Enable autostart"));
-	return false;
 }
 #endif
 
-void SysTray::setAutorunState()
+void SysTray::showColorDialog(int instance)
 {
-#ifdef _WIN32
-	bool currentState = getCurrentAutorunState();
-	QSettings reg("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::NativeFormat);
-	(currentState)
-	? reg.remove("Hyperion")
-	: reg.setValue("Hyperion", qApp->applicationFilePath().replace('/', '\\'));
-#endif
-}
-
-void SysTray::setColor(const QColor & color)
-{
-	std::vector<ColorRgb> rgbColor{ ColorRgb{ static_cast<uint8_t>(color.red()), static_cast<uint8_t>(color.green()), static_cast<uint8_t>(color.blue()) } };
-
-	_hyperion->setColor(PriorityMuxer::FG_PRIORITY,rgbColor, PriorityMuxer::ENDLESS);
-}
-
-void SysTray::showColorDialog()
-{
-	if(_colorDlg.isVisible())
+	if (_colorDlg.isVisible())
 	{
 		_colorDlg.hide();
 	}
 	else
 	{
-		_colorDlg.show();
+		QColor selectedColor = _colorDlg.getColor(Qt::white, nullptr, tr("Select Color"));
+		if (selectedColor.isValid())
+		{
+			setColor(instance, selectedColor);
+		}
 	}
 }
 
-void SysTray::closeEvent(QCloseEvent *event)
+void SysTray::clearSource(int instance)
 {
-	event->ignore();
+	QSharedPointer<Hyperion> hyperion = HyperionIManager::getInstance()->getHyperionInstance(instance);
+	if (!hyperion.isNull())
+	{
+		emit hyperion->clear(PriorityMuxer::FG_PRIORITY);
+	}
 }
+
+void SysTray::handleInstanceStarted(quint8 instance)
+{
+	// Check if the instance already exists
+	if (_instanceMenus.contains(instance))
+	{
+		return;
+	}
+
+	// Create a new menu for this instance
+	QString instanceName = HyperionIManager::getInstance()->getInstanceName(instance);
+	QMenu *instanceMenu = new QMenu(instanceName);
+
+	// Create actions for the instance menu
+	QAction *colorAction = createAction(tr("&Color"), ":/color.svg", [this, instance]() {
+		showColorDialog(instance);
+	});
+	instanceMenu->addAction(colorAction);
+
+#if defined(ENABLE_EFFECTENGINE)
+	// Get the list of effects
+	const std::list<EffectDefinition> effectsDefinitions = EffectFileHandler::getInstance()->getEffects();
+
+	if(!effectsDefinitions.empty())
+	{
+		// Effects submenu
+		QMenu* effectsMenu = new QMenu(tr("Effects"), instanceMenu);
+		effectsMenu->setObjectName("effectsMenu");
+		instanceMenu->addMenu(effectsMenu);
+
+		// Add effects when the menu is first created
+		for (const auto& effect : effectsDefinitions)
+		{
+			QAction const * effectAction = effectsMenu->addAction(effect.name);
+			connect(effectAction, &QAction::triggered, [this, instance, effectName = effect.name]() {
+				setEffect(instance, effectName);
+			});
+		}
+		connect(EffectFileHandler::getInstance(), &EffectFileHandler::effectListChanged, this, &SysTray::onEffectListChanged);
+	}
+#endif
+
+	QAction *clearAction = createAction(tr("&Clear"), ":/clear.svg", [instance, this]() {
+		clearSource(instance);
+	});
+	instanceMenu->addAction(clearAction);
+
+	_trayMenu->insertMenu(_suspendAction, instanceMenu);
+
+	// Store the menu for later reference
+	_instanceMenus[instance] = instanceMenu;
+}
+
+void SysTray::handleInstanceStopped(quint8 instance)
+{
+	// Check if the instance exists
+	if (!_instanceMenus.contains(instance))
+		return;
+
+	// Remove the menu for this instance
+	QMenu *instanceMenu = _instanceMenus.take(instance);
+	_trayMenu->removeAction(instanceMenu->menuAction());
+
+	// Delete the menu to free memory
+	delete instanceMenu;
+}
+
+void SysTray::handleInstanceStateChange(InstanceState state, quint8 instance, const QString& /*name*/)
+{
+	//show();
+	switch (state)
+	{
+	case InstanceState::H_STARTED:
+		handleInstanceStarted(instance);
+	break;
+	case InstanceState::H_STOPPED:
+		handleInstanceStopped(instance);
+	break;
+	default:
+	break;
+	}
+}
+
+#if defined(ENABLE_EFFECTENGINE)
+void SysTray::onEffectListChanged()
+{
+	// Get the updated list of effects
+	const std::list<EffectDefinition> effectsDefinitions = EffectFileHandler::getInstance()->getEffects();
+
+	for (auto it = _instanceMenus.begin(); it != _instanceMenus.end(); ++it)
+	{
+		QMenu* instanceMenu = it.value(); // Access the value (QMenu*) from the map
+		quint8 instanceNumber = it.key();
+
+		QMenu* effectsMenu = instanceMenu->findChild<QMenu*>("effectsMenu");
+
+		if (effectsMenu)
+		{
+			// Clear existing effects
+			effectsMenu->clear();
+
+			// Re-add the updated list of effects
+			for (const auto& effect : effectsDefinitions)
+			{
+				QAction const * effectAction = effectsMenu->addAction(effect.name);
+				connect(effectAction, &QAction::triggered, [this, instance = instanceNumber, effectName = effect.name]() {
+					setEffect(instance, effectName);
+				});
+			}
+		}
+	}
+}
+#endif
 
 void SysTray::settings() const
 {
-	#ifndef _WIN32
+#ifndef _WIN32
 	// Hide error messages when opening webbrowser
 
 	int out_pipe[2];
@@ -251,53 +300,38 @@ void SysTray::settings() const
 		// redirecting stderr to stdout
 		::dup2(STDOUT_FILENO, STDERR_FILENO);
 	}
-	#endif
+#endif
 
 	QDesktopServices::openUrl(QUrl("http://localhost:"+QString::number(_webPort)+"/", QUrl::TolerantMode));
 
-	#ifndef _WIN32
+#ifndef _WIN32
 	// restoring stdout
 	::dup2(saved_stdout, STDOUT_FILENO);
 	// restoring stderr
 	::dup2(saved_stderr, STDERR_FILENO);
-	#endif
+#endif
 }
 
-#if defined(ENABLE_EFFECTENGINE)
-void SysTray::setEffect()
+#ifdef _WIN32
+bool SysTray::getCurrentAutorunState()
 {
-	QString efxName = qobject_cast<QAction*>(sender())->text();
-	_hyperion->setEffect(efxName, PriorityMuxer::FG_PRIORITY, PriorityMuxer::ENDLESS);
+	const QSettings reg("HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::NativeFormat);
+	if (reg.value("Hyperion", 0).toString() == qApp->applicationFilePath().replace('/', '\\'))
+	{
+		_autorunAction->setText(tr("&Disable autostart"));
+		return true;
+	}
+
+	_autorunAction->setText(tr("&Enable autostart"));
+	return false;
+}
+
+void SysTray::setAutorunState()
+{
+	bool currentState = getCurrentAutorunState();
+	QSettings reg("HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run", QSettings::NativeFormat);
+	(currentState)
+			? reg.remove("Hyperion")
+			: reg.setValue("Hyperion", qApp->applicationFilePath().replace('/', '\\'));
 }
 #endif
-
-void SysTray::clearEfxColor()
-{
-	_hyperion->clear(1);
-}
-
-void SysTray::handleInstanceStateChange(InstanceState state, quint8 instance, const QString& /*name*/)
-{
-	switch(state){
-		case InstanceState::H_STARTED:
-			if(instance == 0)
-			{
-				_hyperion = _instanceManager->getHyperionInstance(0);
-
-				createTrayIcon();
-				connect(_trayIcon, &QSystemTrayIcon::activated, this, &SysTray::iconActivated);
-				connect(quitAction, &QAction::triggered, _trayIcon, &QSystemTrayIcon::hide, Qt::DirectConnection);
-				connect(&_colorDlg, &QColorDialog::currentColorChanged, this, &SysTray::setColor);
-
-				QIcon icon(":/hyperion-32px.png");
-				_trayIcon->setIcon(icon);
-				_trayIcon->show();
-				setWindowIcon(icon);
-				_colorDlg.setOptions(QColorDialog::NoButtons);
-			}
-
-			break;
-		default:
-			break;
-	}
-}

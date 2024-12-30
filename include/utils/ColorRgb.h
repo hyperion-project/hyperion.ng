@@ -44,6 +44,11 @@ struct ColorRgb
 
 	}
 
+	ColorRgb(const QRgb rgb): ColorRgb()
+	{
+		setRgb(rgb);
+	}
+
 	ColorRgb operator-(const ColorRgb& b) const
 	{
 		ColorRgb a(*this);

@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - JSON-API: Support to save a dedicated set of configuration items for a set of instances
 - JSON-API: Limit update emission frequency: Images (25Hz), raw LED-Colors (40Hz) & LED-Device data (200Hz) 
 - Effects: Limit the maximum update rate to 200Hz
+- Systray: Support multiple instances
 
 **JSON-API**
 - New subscription support for event updates, i.e. `Suspend, Resume, Idle, idleResume, Restart, Quit`.

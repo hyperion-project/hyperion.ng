@@ -13,6 +13,7 @@
 #include <QJsonArray>
 #include <QMap>
 #include <QScopedPointer>
+#include <QSharedPointer>
 #include <QElapsedTimer>
 
 // hyperion-utils includes
