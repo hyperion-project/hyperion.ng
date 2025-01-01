@@ -1,9 +1,9 @@
 #ifndef SYSTRAY_H
 #define SYSTRAY_H
 
-// #ifdef Status
-// 	#undef Status
-// #endif
+#ifdef Status
+	#undef Status
+#endif
 
 #include <QSystemTrayIcon>
 #include <QMenu>
