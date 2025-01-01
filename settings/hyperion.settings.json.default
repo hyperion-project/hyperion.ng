@@ -13,6 +13,12 @@
          ],
          "enable":false
       },
+      "effects":{
+         "paths":[
+            "$ROOT/custom-effects"
+         ],
+         "disable":[""]
+      },
       "flatbufServer":{
          "enable":true,
          "port":19400,
@@ -20,12 +26,8 @@
       },
       "forwarder":{
          "enable":false,
-         "jsonapi":[
-            
-         ],
-         "flatbuffer":[
-            
-         ]
+         "jsonapi":[],
+         "flatbuffer":[]
       },
       "framegrabber":{
          "enable":false,
@@ -111,9 +113,7 @@
       "network":{
          "internetAccessAPI":false,
          "restirctedInternetAccessAPI":false,
-         "ipWhitelist":[
-            
-         ],
+         "ipWhitelist":[],
          "localApiAuth":false
       },
       "osEvents":{
@@ -225,14 +225,6 @@
          "rewriteTime":0,
          "enableAttempts":6,
          "enableAttemptsInterval":15
-      },
-      "effects":{
-         "paths":[
-            "$ROOT/custom-effects"
-         ],
-         "disable":[
-            ""
-         ]
       },
       "foregroundEffect":{
          "enable":true,

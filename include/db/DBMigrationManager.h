@@ -28,6 +28,7 @@ private:
 	bool upgradeInstanceSettings_2_0_12(semver::version& currentVersion, quint8 instance, QJsonObject& config);
 	bool upgradeInstanceSettings_2_0_13(semver::version& currentVersion, quint8 instance, QJsonObject& config);
 	bool upgradeInstanceSettings_2_0_16(semver::version& currentVersion, quint8 instance, QJsonObject& config);
+	bool upgradeInstanceSettings_2_1_0(semver::version& currentVersion, quint8 instance, QJsonObject& config);
 };
 
 #endif // DBMIGRATIONMANAGER_H
