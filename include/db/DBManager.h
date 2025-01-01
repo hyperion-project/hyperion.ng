@@ -72,10 +72,12 @@ public:
 
 	///
 	/// @brief Check if at least one record exists in table with the conditions
-	/// @param[in]  conditions The search conditions (WHERE)
+	/// @param[in]  conditions condition to search for (WHERE)
+	/// @param[in]  tColumns   target columns to search in (optional)
 	/// @return                True on success else false
 	///
-	bool recordExists(const VectorPair& conditions) const;
+	bool recordExists(const VectorPair& conditions, const QStringList& tColumns = {}) const	;
+	bool recordExists(const QString& condition, const QVariantList& bindValues, const QStringList& tColumns = {}) const;
 
 	bool recordsNotExisting(const QVariantList& testValues,const QString& column, QStringList& nonExistingRecs, const QString& condition ) const;
 

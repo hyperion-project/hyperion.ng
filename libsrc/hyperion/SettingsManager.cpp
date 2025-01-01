@@ -25,7 +25,7 @@ QJsonDocument SettingsManager::getSetting(settings::type type) const
 
 QJsonDocument SettingsManager::getSetting(const QString& type) const
 {
-	return _sTable->getSettingsRecord(type);
+	return _sTable->getSettingsRecordJson(type);
 }
 
 QJsonObject SettingsManager::getSettings(const QStringList& filteredTypes ) const

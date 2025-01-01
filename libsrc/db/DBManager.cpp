@@ -123,29 +123,50 @@ bool DBManager::createRecord(const VectorPair& conditions, const QVariantMap& co
 	return executeQuery(query);
 }
 
-bool DBManager::recordExists(const VectorPair& conditions) const
+bool DBManager::recordExists(const VectorPair& conditions, const QStringList& tColumns) const
 {
-	if(conditions.isEmpty())
+	// prep conditions
+	QStringList conditionList;
+	QVariantList bindValues;
+
+	for(const auto& pair : conditions)
 	{
-		return false;
+		conditionList << pair.first;
+		if (pair.second.isNull())
+		{
+			conditionList << "IS NULL";
+		}
+		else
+		{
+			conditionList << "= ?";
+			bindValues << pair.second;
+		}
 	}
 
+	return recordExists(conditionList.join((" ")), bindValues, tColumns);
+}
+
+bool DBManager::recordExists(const QString& condition, const QVariantList& bindValues, const QStringList& tColumns) const
+{
 	QSqlDatabase idb = getDB();
 	QSqlQuery query(idb);
 	query.setForwardOnly(true);
 
-	QStringList prepCond;
-	QVariantList bindVal;
-	prepCond << "WHERE";
-
-	for(const auto& pair : conditions)
+	QString sColumns("*");
+	if(!tColumns.isEmpty())
 	{
-		prepCond << pair.first+"= ?";
-		bindVal << pair.second;
+		sColumns = tColumns.join(", ");
 	}
-	query.prepare(QString("SELECT * FROM %1 %2").arg(_table,prepCond.join(" ")));
-	addBindValues(query, bindVal);
 
+	// prep conditions
+	QString prepCond;
+	if(!condition.isEmpty())
+	{
+		prepCond = QString("WHERE %1").arg(condition);
+	}
+
+	query.prepare(QString("SELECT %1 FROM %2 %3").arg(sColumns,_table, prepCond));
+	addBindValues(query, bindValues);
 	if (!executeQuery(query))
 	{
 		return false;
@@ -458,11 +479,18 @@ QString DBManager::constructExecutedQuery(const QSqlQuery& query) const
 			QString valueStr;
 			if (value.canConvert<QString>())
 			{
-				valueStr = value.toString();
+				valueStr = QString("\"%1\"").arg(value.toString());
 			}
 			else
 			{
-				valueStr = "Unkown";
+				if (value.isNull())
+				{
+					valueStr = "NULL";
+				}
+				else
+				{
+					valueStr = "Unkown";
+				}
 			}
 			executedQuery.replace(executedQuery.indexOf('?'), 1, valueStr);
 		}
