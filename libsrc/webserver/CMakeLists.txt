@@ -1,3 +1,4 @@
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS WebSockets REQUIRED)
 
 file(GLOB_RECURSE webFiles RELATIVE ${CMAKE_BINARY_DIR}  ${CMAKE_SOURCE_DIR}/assets/webconfig/*)
 file(RELATIVE_PATH webConfigPath ${CMAKE_BINARY_DIR} ${CMAKE_SOURCE_DIR}/assets/webconfig)
@@ -28,13 +29,13 @@ add_library(webserver
 	${CMAKE_SOURCE_DIR}/libsrc/webserver/StaticFileServing.cpp
 	${CMAKE_SOURCE_DIR}/libsrc/webserver/WebJsonRpc.h
 	${CMAKE_SOURCE_DIR}/libsrc/webserver/WebJsonRpc.cpp
-	${CMAKE_SOURCE_DIR}/libsrc/webserver/WebSocketClient.h
-	${CMAKE_SOURCE_DIR}/libsrc/webserver/WebSocketClient.cpp
-	${CMAKE_SOURCE_DIR}/libsrc/webserver/WebSocketUtils.h
+	${CMAKE_SOURCE_DIR}/libsrc/webserver/WebSocketJsonHandler.h
+	${CMAKE_SOURCE_DIR}/libsrc/webserver/WebSocketJsonHandler.cpp
 	${CMAKE_BINARY_DIR}/WebConfig.qrc
-)
+ )
 
 target_link_libraries(webserver
+	Qt${QT_VERSION_MAJOR}::WebSockets
 	hyperion
 	hyperion-utils
 	hyperion-api

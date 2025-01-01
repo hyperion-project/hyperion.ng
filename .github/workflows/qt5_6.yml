@@ -186,9 +186,9 @@ jobs:
       - name: 📥 Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: ${{ inputs.qt_version == '6' && '6.7' || '5.15.*' }}
+          version: ${{ inputs.qt_version == '6' && '6.8' || '5.15.*' }}
           target: 'desktop'
-          modules: ${{ inputs.qt_version == '6' && 'qtserialport' || '' }}
+          modules: ${{ inputs.qt_version == '6' && 'qtserialport qtwebsockets' || '' }}
           cache: 'true'
           cache-key-prefix: 'cache-qt-windows'
 

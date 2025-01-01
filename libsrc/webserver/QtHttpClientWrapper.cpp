@@ -5,7 +5,7 @@
 #include "QtHttpReply.h"
 #include "QtHttpServer.h"
 #include "QtHttpHeader.h"
-#include "WebSocketClient.h"
+#include "WebSocketJsonHandler.h"
 #include "WebJsonRpc.h"
 
 #include <QCryptographicHash>
@@ -27,8 +27,9 @@ QtHttpClientWrapper::QtHttpClientWrapper (QTcpSocket * sock, const bool& localCo
 	, m_localConnection(localConnection)
 	, m_websocketClient(nullptr)
 	, m_webJsonRpc     (nullptr)
+	, m_websocketServer (nullptr)
 {
-	connect (m_sockClient, &QTcpSocket::readyRead, this, &QtHttpClientWrapper::onClientDataReceived);
+	connect(m_sockClient, &QTcpSocket::readyRead, this, &QtHttpClientWrapper::onClientDataReceived);
 }
 
 QString QtHttpClientWrapper::getGuid (void)
@@ -50,6 +51,11 @@ void QtHttpClientWrapper::onClientDataReceived (void)
 {
 	if (m_sockClient != Q_NULLPTR)
 	{
+		if (!m_sockClient->isTransactionStarted())
+		{
+			m_sockClient->startTransaction();
+		}
+
 		while (m_sockClient->bytesAvailable () != 0)
 		{
 			QByteArray line = m_sockClient->readLine ();
@@ -162,22 +168,30 @@ void QtHttpClientWrapper::onClientDataReceived (void)
 			{
 			case RequestParsed: // a valid request has ben fully parsed
 			{
-				// Catch websocket header "Upgrade"
-				if(m_currentRequest->getHeader(QtHttpHeader::Upgrade).toLower() == "websocket")
+				const auto& upgradeValue = m_currentRequest->getHeader(QtHttpHeader::Upgrade).toLower();
+				if (upgradeValue == "websocket")
 				{
 					if(m_websocketClient == Q_NULLPTR)
 					{
 						// disconnect this slot from socket for further requests
 						disconnect(m_sockClient, &QTcpSocket::readyRead, this, &QtHttpClientWrapper::onClientDataReceived);
-						// disabling packet bunching
-						m_sockClient->setSocketOption(QAbstractSocket::LowDelayOption, 1);
-						m_sockClient->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
-						m_websocketClient = new WebSocketClient(m_currentRequest, m_sockClient, m_localConnection, this);
+						m_sockClient->rollbackTransaction();
+
+						QString servername = QCoreApplication::applicationName() + QLatin1Char('/') + HYPERION_VERSION;
+						QWebSocketServer::SslMode secureMode = m_serverHandle->isSecure() ? QWebSocketServer::SecureMode : QWebSocketServer::NonSecureMode;
+						m_websocketServer.reset(new QWebSocketServer(servername, secureMode));
+						connect(m_websocketServer.get(), &QWebSocketServer::newConnection,
+							this, &QtHttpClientWrapper::onNewWebSocketConnection);
+
+						m_websocketServer->handleConnection(m_sockClient);
+						emit m_sockClient->readyRead();
+						return;
 					}
 
 					break;
 				}
 
+				m_sockClient->commitTransaction();
 				// add  post data to request and catch /jsonrpc subroute url
 				if ( m_currentRequest->getCommand() == "POST")
 				{
@@ -227,6 +241,8 @@ void QtHttpClientWrapper::onClientDataReceived (void)
 			case ParsingError: // there was an error durin one of parsing steps
 			{
 				m_sockClient->readAll (); // clear remaining buffer to ignore content
+				m_sockClient->commitTransaction();
+
 				QtHttpReply reply (m_serverHandle);
 				reply.setStatusCode (QtHttpReply::BadRequest);
 				reply.appendRawData (QByteArrayLiteral ("<h1>Bad Request (HTTP parsing error) !</h1>"));
@@ -364,4 +380,18 @@ void QtHttpClientWrapper::closeConnection()
 		m_parsingStatus = sendReplyToClient(&reply);
 	}
 	m_sockClient->close ();
+}
+
+void QtHttpClientWrapper::onNewWebSocketConnection() {
+
+	// Handle the pending connection
+	QWebSocket* webSocket = m_websocketServer->nextPendingConnection();
+	if (webSocket) {
+		// Manage the WebSocketJsonHandler for this connection
+		WebSocketJsonHandler* handler = new WebSocketJsonHandler(webSocket);
+		connect(webSocket, &QWebSocket::disconnected, handler, &QObject::deleteLater);
+	}
+	else {
+		qWarning() << "No pending WebSocket connection!";
+	}
 }

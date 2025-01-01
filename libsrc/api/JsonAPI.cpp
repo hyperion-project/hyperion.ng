@@ -28,6 +28,7 @@
 #include <utils/jsonschema/QJsonFactory.h>
 #include <utils/jsonschema/QJsonSchemaChecker.h>
 #include <utils/ColorSys.h>
+#include <utils/KelvinToRgb.h>
 #include <utils/Process.h>
 #include <utils/JsonUtils.h>
 #include <effectengine/EffectFileHandler.h>
@@ -661,6 +662,7 @@ void JsonAPI::applyTransforms(const QJsonObject &adjustment, ColorAdjustment *co
 	applyTransform("backlightColored", adjustment, colorAdjustment->_rgbTransform, &RgbTransform::setBacklightColored);
 	applyTransform("brightness", adjustment, colorAdjustment->_rgbTransform, &RgbTransform::setBrightness);
 	applyTransform("brightnessCompensation", adjustment, colorAdjustment->_rgbTransform, &RgbTransform::setBrightnessCompensation);
+	applyTransform("temperature", adjustment, colorAdjustment->_rgbTransform, &RgbTransform::setTemperature);
 	applyTransform("saturationGain", adjustment, colorAdjustment->_okhsvTransform, &OkhsvTransform::setSaturationGain);
 	applyTransform("brightnessGain", adjustment, colorAdjustment->_okhsvTransform, &OkhsvTransform::setBrightnessGain);
 }
@@ -687,6 +689,14 @@ void JsonAPI::applyTransform(const QString &transformName, const QJsonObject &ad
 {
 	if (adjustment.contains(transformName)) {
 		(transform.*setFunction)(adjustment[transformName].toDouble());
+	}
+}
+
+template<typename T>
+void JsonAPI::applyTransform(const QString &transformName, const QJsonObject &adjustment, T &transform, void (T::*setFunction)(int))
+{
+	if (adjustment.contains(transformName)) {
+		(transform.*setFunction)(adjustment[transformName].toInt());
 	}
 }
 
@@ -953,13 +963,17 @@ void JsonAPI::handleSchemaGetCommand(const QJsonObject& /*message*/, const JsonA
 	// Add infor about the type of setting elements
 	QJsonObject settingTypes;
 	QJsonArray globalSettingTypes;
-	for (const QString &type : SettingsTable().getGlobalSettingTypes()) {
+
+	SettingsTable settingsTable;
+	for (const QString &type : settingsTable.getGlobalSettingTypes())
+	{
 		globalSettingTypes.append(type);
 	}
 	settingTypes.insert("globalProperties", globalSettingTypes);
 
 	QJsonArray instanceSettingTypes;
-	for (const QString &type : SettingsTable().getInstanceSettingTypes()) {
+	for (const QString &type : settingsTable.getInstanceSettingTypes())
+	{
 		instanceSettingTypes.append(type);
 	}
 	settingTypes.insert("instanceProperties", instanceSettingTypes);

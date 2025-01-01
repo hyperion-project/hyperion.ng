@@ -25,7 +25,7 @@ PythonProgram::PythonProgram(const QString& name, Logger* log) :
 	PyEval_RestoreThread(mainThreadState);
 	_tstate = Py_NewInterpreter();
 #else
-	PyThreadState* prev = PyThreadState_Swap(NULL);
+	PyThreadState_Swap(NULL);
 
 	// Create a new interpreter configuration object
 	PyInterpreterConfig config{};
