@@ -199,7 +199,7 @@ QPair<bool, QStringList> DBConfigManager::updateConfiguration(QJsonObject& confi
 
 	// Clear existing tables and import the new configuration.
 	bool errorOccurred = false;
-	if (!deleteTable("instances") && deleteTable("settings"))
+	if (!(deleteTable("instances") && deleteTable("settings")))
 	{
 		errorOccurred = true;
 		logErrorAndAppend("Failed to clear tables before import", errorList);
