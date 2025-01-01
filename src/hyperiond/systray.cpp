@@ -1,6 +1,8 @@
 #include "systray.h"
 
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 
 #include "hyperiond.h"
 #include <webserver/WebServer.h>
