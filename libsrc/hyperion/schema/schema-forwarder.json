@@ -19,6 +19,7 @@
     "jsonapi": {
       "type": "array",
       "title": "edt_conf_fw_json_title",
+	  "allowEmptyArray" : true,
       "uniqueItems": true,
       "access": "expert",
       "items": {
@@ -69,6 +70,7 @@
       "items": {
         "type": "object",
         "title": "edt_conf_fw_flat_itemtitle",
+		"allowEmptyArray" : true,
         "properties": {
           "name": {
             "type": "string",
