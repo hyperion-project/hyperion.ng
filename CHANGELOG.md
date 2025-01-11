@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Removed hard dependency on the first instance. All instances can now be freely created/removed, started or stopped
 - Fixed: Cross Site Scripting Vulnerability (CVE-2024-4174, CVE-2024-4175)
 - Fixed: hyperion-v4l2 taking screenshot failed (#1722)
 - Nanoleaf: Support new devices and do not restore ExtControl state

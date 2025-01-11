@@ -291,14 +291,11 @@ bool API::setHyperionInstance(quint8 inst)
 		return true;
 	}
 
-	bool isRunning;
-	QMetaObject::invokeMethod(_instanceManager, "IsInstanceRunning", Qt::DirectConnection, Q_RETURN_ARG(bool, isRunning), Q_ARG(quint8, inst));
-	if (!isRunning)
+	if (_hyperion.get() != nullptr)
 	{
-		return false;
+		disconnect(_hyperion.get(), nullptr, this, nullptr);
 	}
 
-	disconnect(_hyperion.get(), nullptr, this, nullptr);
 	QMetaObject::invokeMethod(_instanceManager, "getHyperionInstance", Qt::DirectConnection, Q_RETURN_ARG(QSharedPointer<Hyperion>, _hyperion), Q_ARG(quint8, inst));
 	_currInstanceIndex = inst;
 

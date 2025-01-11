@@ -1,5 +1,5 @@
 $(document).ready(function () {
-  var darkModeOverwrite = getStorage("darkModeOverwrite");
+  const darkModeOverwrite = getStorage("darkModeOverwrite");
 
   if (darkModeOverwrite == "false" || darkModeOverwrite == null) {
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -19,7 +19,7 @@ $(document).ready(function () {
   loadContentTo("#container_restart", "restart");
   initWebSocket();
 
-  $(window.hyperion).on("cmd-serverinfo", function (event) {
+  $(window.hyperion).on("cmd-serverinfo-getInfo", function (event) {
     window.serverInfo = event.response.info;
 
     // comps
@@ -37,7 +37,7 @@ $(document).ready(function () {
     });
 
     // determine button visibility
-    var running = window.serverInfo.instance.filter(entry => entry.running);
+    const running = window.serverInfo.instance.filter(entry => entry.running);
     if (running.length > 1)
       $('#btn_hypinstanceswitch').toggle(true)
     else
@@ -46,7 +46,7 @@ $(document).ready(function () {
 
   // Update language selection
   $("#language-select").on('changed.bs.select', function (e, clickedIndex, isSelected, previousValue) {
-    var newLang = availLang[clickedIndex];
+    const newLang = availLang[clickedIndex];
     if (newLang !== storedLang) {
       setStorage("langcode", newLang);
       reload();
@@ -75,14 +75,14 @@ $(document).ready(function () {
   $(window.hyperion).on("cmd-authorize-tokenRequest cmd-authorize-getPendingTokenRequests", function (event) {
 
     if (event.response && event.response.info !== undefined) {
-      var val = event.response.info;
+      const val = event.response.info;
 
       if (Array.isArray(event.response.info)) {
         if (event.response.info.length == 0) {
           return
         }
-        val = event.response.info[0]
-        if (val.comment == '')
+        const info = event.response.info[0]
+        if (info.comment == '')
           $('#modal_dialog').modal('hide');
       }
 
@@ -118,18 +118,61 @@ $(document).ready(function () {
     requestTokenInfo();
     requestGetPendingTokenRequests();
 
-    //Switch to last selected instance and load related config
-    var lastSelectedInstance = getStorage('lastSelectedInstance');
-    if (lastSelectedInstance == null || window.serverInfo.instance && !window.serverInfo.instance[lastSelectedInstance]) {
-      lastSelectedInstance = 0;
-    }
-    instanceSwitch(lastSelectedInstance);
-
     requestSysInfo();
+    //Switch to last selected instance and load related config
+    const lastSelectedInstance = getStorage('lastSelectedInstance');
+    if (lastSelectedInstance !== null) {
+      window.currentHyperionInstance = Number(lastSelectedInstance);
+    }
+
+    getServerInformation(window.currentHyperionInstance);
   });
 
-  $(window.hyperion).on("cmd-config-getconfig-old", function (event) {
-    window.serverConfig = event.response.info;
+  $(window.hyperion).on("cmd-config-getconfig", function (event) {
+
+    // Function to reverse the transformed config into the legacy format
+    function reverseTransformConfig(serverConfig, instanceId) {
+      const { global, instances } = serverConfig;
+
+      // Initialize the resulting legacy config
+      const legacyConfig = {};
+
+      // Add global settings to the legacy config
+      if (global?.settings) {
+        Object.assign(legacyConfig, global.settings);
+      }
+
+      // Find the instance with the matching id and add its settings
+      const instance = instances.find(inst => inst.id === instanceId);
+      if (instance?.settings) {
+        Object.assign(legacyConfig, instance.settings);
+      }
+
+      return legacyConfig;
+    }
+
+    let instanceId = window.currentHyperionInstance;
+    const config = event.response.info;
+    const { instanceIds } = config;
+    if (instanceIds.length !== 0) {
+      if (!instanceIds.includes(window.currentHyperionInstance)) {
+        // If instanceID is not valid try to switch to the first enabled or or fall back to the first instance configured
+        const { instances } = config;
+
+        const firstEnabledInstanceId = instances.find((instance) => instance.enabled)?.id;
+        if (firstEnabledInstanceId) {
+          instanceId = firstEnabledInstanceId;
+          instanceSwitch(instanceId);
+        } else {
+          instanceId = window.currentHyperionInstance = instanceIds[0];
+        }
+
+      }
+    }
+
+    setStorage('lastSelectedInstance', instanceId);
+    const legacyConfig = reverseTransformConfig(config, instanceId);
+    window.serverConfig = legacyConfig;
 
     window.showOptHelp = window.serverConfig.general.showOptHelp;
   });
@@ -145,7 +188,7 @@ $(document).ready(function () {
     $("#top-navbar").removeAttr('style')
 
     if (window.defaultPasswordIsSet === true && getStorage("suppressDefaultPwWarning") !== "true") {
-      var supprPwWarnCheckbox = '<div class="text-right">' + $.i18n('dashboard_message_do_not_show_again')
+      const supprPwWarnCheckbox = '<div class="text-right">' + $.i18n('dashboard_message_do_not_show_again')
         + ' <input id="chk_suppressDefaultPw" type="checkbox" onChange="suppressDefaultPwWarning()"> </div>'
       showNotification('warning', $.i18n('dashboard_message_default_password'), $.i18n('dashboard_message_default_password_t'), '<a style="cursor:pointer" onClick="changePassword()">'
         + $.i18n('InfoDialog_changePassword_title') + '</a>' + supprPwWarnCheckbox)
@@ -169,9 +212,9 @@ $(document).ready(function () {
   });
 
   $(window.hyperion).on("cmd-authorize-newPasswordRequired", function (event) {
-    var loginToken = getStorage("loginToken")
+    const loginToken = getStorage("loginToken")
 
-    if (event.response.info.newPasswordRequired == true) {
+    if (event.response.info.newPasswordRequired === true) {
       window.defaultPasswordIsSet = true;
 
       if (loginToken)
@@ -196,10 +239,6 @@ $(document).ready(function () {
     if (event.reason == "No Authorization" && getStorage("loginToken")) {
       removeStorage("loginToken");
       requestRequiresDefaultPasswortChange();
-    }
-    else if (event.reason == "Selected Hyperion instance is not running") {
-      //Switch to default instance
-      instanceSwitch(0);
     } else {
       showInfoDialog("error", "Error", event.reason);
     }
@@ -210,21 +249,21 @@ $(document).ready(function () {
   });
 
   $(window.hyperion).on("ready", function (event) {
-    loadContent(undefined,true);
+    loadContent(undefined, true);
 
     //Hide capture menu entries, if no grabbers are available
     if ((window.serverInfo.grabbers.screen.available.length === 0) &&
-        (window.serverInfo.grabbers.video.available.length === 0) &&
-        (window.serverInfo.grabbers.audio.available.length === 0)) {
-      $("#MenuItemGrabber").attr('style', 'display:none')
+      (window.serverInfo.grabbers.video.available.length === 0) &&
+      (window.serverInfo.grabbers.audio.available.length === 0)) {
+      $("#MenuItemGrabber").hide()
       if ((jQuery.inArray("boblight", window.serverInfo.services) === -1)) {
-        $("#MenuItemInstCapture").attr('style', 'display:none')
+        $("#MenuItemInstCapture").hide();
       }
     }
 
     //Hide effectsconfigurator menu entry, if effectengine is not available
     if (jQuery.inArray("effectengine", window.serverInfo.services) === -1) {
-      $("#MenuItemEffectsConfig").attr('style', 'display:none')
+      $("#MenuItemEffectsConfig").hide();
     }
   });
 
@@ -257,48 +296,64 @@ $(document).ready(function () {
   });
 
   $(window.hyperion).on("cmd-instance-update", function (event) {
+    const isInstanceRunningBeforeUpdate = isCurrentInstanceRunning();
+
     window.serverInfo.instance = event.response.data
-    var avail = event.response.data;
+
     // notify the update
     $(window.hyperion).trigger("instance-updated");
 
-    // if our current instance is no longer available we are at instance 0 again.
-    var isInData = false;
-    for (var key in avail) {
-      if (avail[key].instance == currentHyperionInstance && avail[key].running) {
-        isInData = true;
+    if (!isCurrentInstanceRunning()) {
+      let newInstance = getFirstRunningInstance();
+      if (newInstance === null) {
+
+        const lastSelectedInstance = getStorage('lastSelectedInstance');
+
+        if (doesInstanceExist(lastSelectedInstance)) {
+
+          newInstance = lastSelectedInstance;
+        } else {
+          newInstance = getFirstConfiguredInstance();
+          //Delete Storage information about the last used but now stopped instance
+          removeStorage('lastSelectedInstance');
+        }
       }
-    }
 
-    if (!isInData) {
-      //Delete Storage information about the last used but now stopped instance
-      if (getStorage('lastSelectedInstance'))
-        removeStorage('lastSelectedInstance')
+      if (newInstance !== null) {
+        instanceSwitch(newInstance);
+      } else {
+        debugMessage("No instance is configured.");
+        window.currentHyperionInstance = null;
+        updateUiOnInstance(window.currentHyperionInstance);
+      }
+    } else if (!isInstanceRunningBeforeUpdate) {
+        if (window.currentHyperionInstance !== null) {
+          requestServerInfo(window.currentHyperionInstance);
+        }
+      }
 
-      window.currentHyperionInstance = 0;
-      window.currentHyperionInstanceName = getInstanceNameByIndex(0);
-
-      requestServerConfigOld();
-      setTimeout(requestServerInfo, 100)
-      setTimeout(requestTokenInfo, 200)
-    }
-
-    // determine button visibility
-    var running = serverInfo.instance.filter(entry => entry.running);
-    if (running.length > 1)
-      $('#btn_hypinstanceswitch').toggle(true)
-    else
-      $('#btn_hypinstanceswitch').toggle(false)
-
-    // update listing for button
-    updateUiOnInstance(window.currentHyperionInstance);
     updateHyperionInstanceListing();
   });
 
+  async function getServerInformation(instance) {
+    try {
+      // Step 1: Request server config
+      await requestServerConfig.sync([], [instance], []);
+
+      // Step 2: Request server info
+      await requestServerInfo(instance);
+
+      // Step 3: Request token info
+      await requestTokenInfo();
+
+    } catch (error) {
+      console.error("An error occurred during getting server information:", error);
+    }
+  }
+
   $(window.hyperion).on("cmd-instance-switchTo", function (event) {
-    requestServerConfigOld();
-    setTimeout(requestServerInfo, 200)
-    setTimeout(requestTokenInfo, 400)
+
+    getServerInformation(window.currentHyperionInstance);
   });
 
   $(window.hyperion).on("cmd-effects-update", function (event) {
@@ -331,7 +386,7 @@ function suppressDefaultPwWarning() {
 }
 
 $(function () {
-  var sidebar = $('#side-menu');  // cache sidebar to a variable for performance
+  const sidebar = $('#side-menu');  // cache sidebar to a variable for performance
   sidebar.on("click", 'a.inactive', function () {
     sidebar.find('.active').toggleClass('active inactive');
     $(this).toggleClass('active inactive');

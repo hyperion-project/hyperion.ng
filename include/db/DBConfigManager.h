@@ -13,7 +13,7 @@ public:
 	QPair<bool, QStringList> importJson(const QString& configFile);
 	bool exportJson(const QString& path = "") const;
 
-	QJsonObject getConfiguration(const QList<quint8>& instances = {}, const QStringList& instanceFilteredTypes = {}, const QStringList& globalFilterTypes = {} ) const;
+	QJsonObject getConfiguration(const QList<quint8>& instanceIdsFilter = {}, const QStringList& instanceFilteredTypes = {}, const QStringList& globalFilterTypes = {} ) const;
 
 	QPair<bool, QStringList> validateConfiguration();
 	QPair<bool, QStringList> validateConfiguration(QJsonObject& config, bool doCorrections = false);

@@ -32,7 +32,7 @@ public:
 	static QJsonObject getSystemInfo(const Hyperion* hyperion);
 	QJsonObject discoverSources (const QString& sourceType, const QJsonObject& params);
 
-	static QJsonObject getConfiguration(const QList<quint8>& instances = {}, const QStringList& instanceFilteredTypes = {}, const QStringList& globalFilterTypes = {} );
+	static QJsonObject getConfiguration(const QList<quint8>& instanceIds = {}, const QStringList& instanceFilteredTypes = {}, const QStringList& globalFilterTypes = {} );
 
 private:
 

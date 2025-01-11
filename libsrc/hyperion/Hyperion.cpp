@@ -205,9 +205,9 @@ void Hyperion::start()
 	emit started();
 }
 
-void Hyperion::stop()
+void Hyperion::stop(const QString name)
 {
-	Debug(_log, "Hyperion instance %d is stopping", _instIndex);
+	Debug(_log, "Hyperion instance [%u] - %s is stopping.", _instIndex, QSTRING_CSTR(name));
 
 	//Disconnect Background effect first that it does not kick in when other priorities are stopped
 	_BGEffectHandler->disconnect();
@@ -234,7 +234,7 @@ void Hyperion::stop()
 	 _deviceSmooth->stop();
 	 _muxer->stop();
 
-	emit finished();
+	emit finished(name);
 }
 
 void Hyperion::handleSettingsUpdate(settings::type type, const QJsonDocument& config)

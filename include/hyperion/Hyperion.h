@@ -362,8 +362,9 @@ public slots:
 
 	///
 	/// @brief Stop the execution of this thread, helper to properly track eventing
+	/// @param name  The instance's name for information
 	///
-	void stop();
+	void stop(const QString name = "");
 
 	int getLatchTime() const;
 
@@ -482,7 +483,7 @@ signals:
 	///
 	/// @brief Emits before thread quit is requested
 	///
-	void finished();
+	void finished(const QString& name);
 
 	///
 	/// @brief Emits after thread has been started

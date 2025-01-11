@@ -75,10 +75,10 @@ private slots:
 	///
 	/// @brief Handle whenever the state of a instance (HyperionIManager) changes according to enum instanceState
 	/// @param instaneState  A state from enum
-	/// @param instance      The index of instance
+	/// @param instanceId    The index of instance
 	/// @param name          The name of the instance, just available with H_CREATED
 	///
-	void handleInstanceStateChange(InstanceState state, quint8 instance, const QString &name = QString());
+	void handleInstanceStateChange(InstanceState state, quint8 instanceId, const QString &name = QString());
 
 signals:
 	///
@@ -103,11 +103,11 @@ private:
 
 	///
 	/// @brief Handle the switches of Hyperion instances
-	/// @param instance the instance to switch
-	/// @param forced  indicate if it was a forced switch by system
+	/// @param instanceId the instance to switch
+	/// @param forced     indicate if it was a forced switch by system
 	/// @return true on success. false if not found
 	///
-	bool handleInstanceSwitch(quint8 instance = 0, bool forced = false);
+	bool handleInstanceSwitch(quint8 instanceId = 0, bool forced = false);
 
 	///
 	/// Handle an incoming JSON Color message

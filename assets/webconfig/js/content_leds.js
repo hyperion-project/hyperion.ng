@@ -1737,7 +1737,7 @@ $(document).ready(function () {
       optArr[6].push(ledDevices[idx]);
   }
 
-  $("#leddevices").append(createSel(optArr[0], $.i18n('conf_leds_optgroup_RPiSPI')));
+  $("#leddevices").append(createSel(optArr[0], $.i18n('conf_leds_optgroup_SPI')));
   $("#leddevices").append(createSel(optArr[1], $.i18n('conf_leds_optgroup_RPiPWM')));
   $("#leddevices").append(createSel(optArr[2], $.i18n('conf_leds_optgroup_RPiGPIO')));
   $("#leddevices").append(createSel(optArr[3], $.i18n('conf_leds_optgroup_network')));

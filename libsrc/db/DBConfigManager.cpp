@@ -154,8 +154,8 @@ QPair<bool, QStringList> DBConfigManager::addMissingDefaults()
 
 	InstanceTable instanceTable;
 
-	//Ensure that first instance as default one exists
-	instanceTable.createDefaultInstance();
+	//Ensure that one initial instance exists
+	instanceTable.createInitialInstance();
 
 	const QList<quint8> instances = instanceTable.getAllInstanceIDs();
 	for (const auto &instanceIdx : instances)
@@ -274,11 +274,6 @@ bool DBConfigManager::importInstance(InstanceTable& instanceTable, const QJsonOb
 	QString instanceName = instanceConfig.value("name").toString(QString("Instance %1").arg(instanceIdx));
 	bool isInstanceEnabled = instanceConfig.value("enabled").toBool(true);
 
-	if (instanceIdx == 0)
-	{
-		isInstanceEnabled = true; // The first instance must be enabled.
-	}
-
 	if (!instanceTable.createInstance(instanceName, instanceIdx) ||
 		!instanceTable.setEnable(instanceIdx, isInstanceEnabled))
 	{
@@ -307,7 +302,7 @@ bool DBConfigManager::importInstanceSettings(SettingsTable& settingsTable, const
 	return !errorOccurred;
 }
 
-QJsonObject DBConfigManager::getConfiguration(const QList<quint8>& instancesFilter, const QStringList& instanceFilteredTypes, const QStringList& globalFilterTypes ) const
+QJsonObject DBConfigManager::getConfiguration(const QList<quint8>& instanceIdsFilter, const QStringList& instanceFilteredTypes, const QStringList& globalFilterTypes ) const
 {
 	QSqlDatabase idb = getDB();
 
@@ -327,27 +322,27 @@ QJsonObject DBConfigManager::getConfiguration(const QList<quint8>& instancesFilt
 	globalConfig.insert("settings", settingsTable.getSettings(globalFilterTypes));
 	config.insert("global", globalConfig);
 
-	QList<quint8> instances {instancesFilter};
-	if (instances.isEmpty())
+	QList<quint8> instanceIds {instanceIdsFilter};
+	if (instanceIds.isEmpty())
 	{
-		instances = instanceTable.getAllInstanceIDs();
+		instanceIds = instanceTable.getAllInstanceIDs();
 	}
 
-	QList<quint8> sortedInstances = instances;
-	std::sort(sortedInstances.begin(), sortedInstances.end());
+	QList<quint8> sortedInstanceIds = instanceIds;
+	std::sort(sortedInstanceIds.begin(), sortedInstanceIds.end());
 
 	QJsonArray instanceIdList;
 	QJsonArray configInstanceList;
-	for (const quint8 instanceIdx : sortedInstances)
+	for (const quint8 instanceId : sortedInstanceIds)
 	{
 		QJsonObject instanceConfig;
-		instanceConfig.insert("id",instanceIdx);
-		instanceConfig.insert("name", instanceTable.getNamebyIndex(instanceIdx));
-		instanceConfig.insert("enabled", instanceTable.isEnabled(instanceIdx));
-		instanceConfig.insert("settings", settingsTable.getSettings(static_cast<quint8>(instanceIdx), instanceFilteredTypes));
+		instanceConfig.insert("id",instanceId);
+		instanceConfig.insert("name", instanceTable.getNamebyIndex(instanceId));
+		instanceConfig.insert("enabled", instanceTable.isEnabled(instanceId));
+		instanceConfig.insert("settings", settingsTable.getSettings(static_cast<quint8>(instanceId), instanceFilteredTypes));
 		configInstanceList.append(instanceConfig);
 
-		instanceIdList.append(instanceIdx);
+		instanceIdList.append(instanceId);
 	}
 
 	config.insert("instanceIds", instanceIdList);

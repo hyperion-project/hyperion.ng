@@ -11,15 +11,15 @@
 #include <QJsonObject>
 
 #ifdef _WIN32
-	#include <stdexcept>
+#include <stdexcept>
 #endif
 
 #define NO_SQLQUERY_LOGGING
 
 // Constants
 namespace {
-	const char DATABASE_DIRECTORYNAME[] = "db";
-	const char DATABASE_FILENAME[] = "hyperion.db";
+const char DATABASE_DIRECTORYNAME[] = "db";
+const char DATABASE_FILENAME[] = "hyperion.db";
 
 } //End of constants
 
@@ -56,26 +56,26 @@ QSqlDatabase DBManager::getDB() const
 	{
 		return _databasePool.localData();
 	}
-		auto database = QSqlDatabase::addDatabase("QSQLITE", QUuid::createUuid().toString());
+	auto database = QSqlDatabase::addDatabase("QSQLITE", QUuid::createUuid().toString());
 
-		if (isReadOnly())
-		{
-			database.setConnectOptions("QSQLITE_OPEN_READONLY");
-		}
+	if (isReadOnly())
+	{
+		database.setConnectOptions("QSQLITE_OPEN_READONLY");
+	}
 
 #ifdef SQLQUERY_LOGGING
-		Debug(Logger::getInstance("DB"), "Database is opened in %s mode", _isReadOnly ? "read-only" : "read/write");
+	Debug(Logger::getInstance("DB"), "Database is opened in %s mode", _isReadOnly ? "read-only" : "read/write");
 #endif
 
-		_databasePool.setLocalData(database);
-		database.setDatabaseName(_databaseFile.absoluteFilePath());
-		if(!database.open())
-		{
-			Error(_log, "%s", QSTRING_CSTR(database.lastError().text()));
-			throw std::runtime_error("Failed to open database connection!");
-		}
+	_databasePool.setLocalData(database);
+	database.setDatabaseName(_databaseFile.absoluteFilePath());
+	if(!database.open())
+	{
+		Error(_log, "%s", QSTRING_CSTR(database.lastError().text()));
+		throw std::runtime_error("Failed to open database connection!");
+	}
 
-		return database;
+	return database;
 }
 
 bool DBManager::createRecord(const VectorPair& conditions, const QVariantMap& columns) const
@@ -216,7 +216,30 @@ bool DBManager::recordsNotExisting(const QVariantList& testValues,const QString&
 	return true;
 }
 
-bool DBManager::updateRecord(const VectorPair& conditions, const QVariantMap& columns) const
+bool DBManager::updateRecord(const VectorPair& conditions, const QVariantMap& tColumns) const
+{
+	// prep conditions
+	QStringList conditionList;
+	QVariantList bindValues;
+
+	for(const auto& pair : conditions)
+	{
+		conditionList << pair.first;
+		if (pair.second.isNull())
+		{
+			conditionList << "IS NULL";
+		}
+		else
+		{
+			conditionList << "= ?";
+			bindValues << pair.second;
+		}
+	}
+
+	return updateRecord(conditionList.join((" ")), bindValues, tColumns);
+}
+
+bool DBManager::updateRecord(const QString& condition, const QVariantList& condBindValues, const QVariantMap& columns) const
 {
 	if (isReadOnly())
 	{
@@ -239,24 +262,18 @@ bool DBManager::updateRecord(const VectorPair& conditions, const QVariantMap& co
 		++columnIter;
 	}
 
-	// prepare condition values
-	QStringList prepCond;
-	QVariantList prepBindVal;
-	if(!conditions.isEmpty()) {
-		prepCond << "WHERE";
-	}
-
-	for(const auto& pair : conditions)
+	// prep conditions
+	QString prepCond;
+	if(!condition.isEmpty())
 	{
-		prepCond << pair.first+"= ?";
-		prepBindVal << pair.second;
+		prepCond = QString("WHERE %1").arg(condition);
 	}
 
-	query.prepare(QString("UPDATE %1 SET %2 %3").arg(_table,prep.join(", "), prepCond.join(" ")));
+	query.prepare(QString("UPDATE %1 SET %2 %3").arg(_table,prep.join(", "), prepCond));
 	// add column values
 	addBindValues(query, values);
 	// add condition values
-	addBindValues(query, prepBindVal);
+	addBindValues(query, condBindValues);
 
 	return executeQuery(query);
 }
@@ -479,7 +496,7 @@ QString DBManager::constructExecutedQuery(const QSqlQuery& query) const
 			QString valueStr;
 			if (value.canConvert<QString>())
 			{
-				valueStr = QString("\"%1\"").arg(value.toString());
+				valueStr = QString("'%1'").arg(value.toString());
 			}
 			else
 			{

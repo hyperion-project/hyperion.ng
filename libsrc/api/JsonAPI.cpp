@@ -117,16 +117,27 @@ void JsonAPI::initialize()
 	connect(this, &JsonAPI::signalEvent, EventHandler::getInstance().data(), &EventHandler::handleEvent);
 }
 
-bool JsonAPI::handleInstanceSwitch(quint8 inst, bool /*forced*/)
+bool JsonAPI::handleInstanceSwitch(quint8 instanceID, bool /*forced*/)
 {
-	if (API::setHyperionInstance(inst))
+	if ( instanceID != getCurrentInstanceIndex() )
 	{
-		Debug(_log, "Client '%s' switch to Hyperion instance %d", QSTRING_CSTR(_peerAddress), inst);
-		// the JsonCB creates json messages you can subscribe to e.g. data change events
-		_jsonCB->setSubscriptionsTo(_hyperion);
-		return true;
+		if (API::setHyperionInstance(instanceID))
+		{
+			if (!_hyperion.isNull())
+			{
+				Debug(_log, "Client '%s' switch to Hyperion instance %d", QSTRING_CSTR(_peerAddress), instanceID);
+				// the JsonCB creates json messages you can subscribe to e.g. data change events
+				_jsonCB->setSubscriptionsTo(_hyperion);
+				return true;
+			}
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
-	return false;
+	return true;
 }
 
 void JsonAPI::handleMessage(const QString &messageString, const QString &httpAuthHeader)
@@ -232,19 +243,19 @@ void JsonAPI::handleMessage(const QString &messageString, const QString &httpAut
 		return;
 	}
 
-	if (_hyperion == nullptr)
-	{
-		sendErrorReply("Service Unavailable", cmd);
-		return;
-	}
-
-	if (!message.contains("instance") || cmd.isInstanceCmd == InstanceCmd::No)
+	if ((!message.contains("instance") && cmd.isInstanceCmd == InstanceCmd::No) || cmd.isInstanceCmd == InstanceCmd::No)
 	{
 		cmd.isInstanceCmd = InstanceCmd::No;
 		handleCommand(cmd, message);
 	}
 	else
 	{
+		if (_hyperion.isNull())
+		{
+			Debug(_log,"Service Unavailable");
+			//sendErrorReply("Service Unavailable", cmd);
+			//return;
+		}
 		handleInstanceCommand(cmd, message);
 	}
 }
@@ -268,25 +279,25 @@ void JsonAPI::handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject
 		}
 	}
 
-	QList<quint8> runningInstanceIdxs = _instanceManager->getRunningInstanceIdx();
+	QList<quint8> runningInstanceIds = _instanceManager->getRunningInstanceIdx();
 
-	QList<quint8> instanceIdxList;
+	QList<quint8> instanceIds;
 	QStringList errorDetails;
 	if (instances.contains("all"))
 	{
-		for (const auto& instanceIdx : runningInstanceIdxs)
+		for (const auto& instanceId : runningInstanceIds)
 		{
-			instanceIdxList.append(instanceIdx);
+			instanceIds.append(instanceId);
 		}
 	}
 	else
 	{
 		for (const auto &instance : std::as_const(instances)) {
 
-			quint8 instanceIdx = static_cast<quint8>(instance.toInt());
-			if (instance.isDouble() && runningInstanceIdxs.contains(instanceIdx))
+			quint8 instanceId = static_cast<quint8>(instance.toInt());
+			if (instance.isDouble())
 			{
-				instanceIdxList.append(instanceIdx);
+				instanceIds.append(instanceId);
 			}
 			else
 			{
@@ -295,13 +306,13 @@ void JsonAPI::handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject
 		}
 	}
 
-	if (instanceIdxList.isEmpty() || !errorDetails.isEmpty() )
+	if (instanceIds.isEmpty() || !errorDetails.isEmpty() )
 	{
 		sendErrorReply("Invalid instance(s) given", errorDetails, cmd);
 		return;
 	}
 
-	if (instanceIdxList.size() > 1)
+	if (instanceIds.size() > 1)
 	{
 		if (cmd.isInstanceCmd != InstanceCmd::Multi)
 		{
@@ -310,12 +321,9 @@ void JsonAPI::handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject
 		}
 	}
 
-	qDebug() << "instanceIdxList: " << instanceIdxList;
-
-	for (const auto &instanceIdx : instanceIdxList)
+	for (const auto &instanceId : instanceIds)
 	{
-		qDebug() << "instanceIdx: " << instanceIdx;
-		if (setHyperionInstance(instanceIdx))
+		if (handleInstanceSwitch(instanceId))
 		{
 			handleCommand(cmd, message);
 		}
@@ -457,7 +465,7 @@ void JsonAPI::handleEffectCommand(const QJsonObject &message, const JsonApiComma
 	EffectCmdData dat;
 	dat.priority = message["priority"].toInt();
 	dat.duration = message["duration"].toInt(-1);
-	dat.pythonScript = message["pythonScript"].toString();
+	dat.pythonScript = message["script"].toString();
 	dat.origin = message["origin"].toString("JsonRpc") + "@" + _peerAddress;
 	dat.effectName = message["effect"].toObject()["name"].toString();
 	dat.data = message["imageData"].toString("").toUtf8();
@@ -647,8 +655,8 @@ void JsonAPI::applyColorAdjustment(const QString &colorName, const QJsonObject &
 		const QJsonArray &values = adjustment[colorName].toArray();
 		if (values.size() >= 3) {
 			rgbAdjustment.setAdjustment(static_cast<uint8_t>(values[0U].toInt()),
-					static_cast<uint8_t>(values[1U].toInt()),
-					static_cast<uint8_t>(values[2U].toInt()));
+										static_cast<uint8_t>(values[1U].toInt()),
+										static_cast<uint8_t>(values[2U].toInt()));
 		}
 	}
 }
@@ -733,12 +741,8 @@ void JsonAPI::handleConfigCommand(const QJsonObject& message, const JsonApiComma
 		handleSchemaGetCommand(message, cmd);
 	break;
 
-	case SubCommand::GetConfig:	
+	case SubCommand::GetConfig:
 		handleConfigGetCommand(message, cmd);
-	break;
-
-	case SubCommand::GetConfigOld:
-		sendSuccessDataReply(_hyperion->getQJsonConfig(this->getCurrentInstanceIndex()), cmd);
 	break;
 
 	case SubCommand::SetConfig:
@@ -805,8 +809,8 @@ void JsonAPI::handleConfigSetCommand(const QJsonObject &message, const JsonApiCo
 	const QJsonObject globalSettings = config["global"].toObject().value("settings").toObject();
 	if (!globalSettings.isEmpty())
 	{
-		const QJsonObject instanceZeroConfig = instancesNewConfigs.value(0);
-		instancesNewConfigs.insert(0, JsonUtils::mergeJsonObjects(instanceZeroConfig, globalSettings));
+		const QJsonObject instanceZeroConfig = instancesNewConfigs.value(GLOABL_INSTANCE_ID);
+		instancesNewConfigs.insert(GLOABL_INSTANCE_ID, JsonUtils::mergeJsonObjects(instanceZeroConfig, globalSettings));
 	}
 
 	QMapIterator<quint8, QJsonObject> i (instancesNewConfigs);
@@ -816,7 +820,7 @@ void JsonAPI::handleConfigSetCommand(const QJsonObject &message, const JsonApiCo
 		quint8 idx = i.key();
 
 		QPair<bool, QStringList> isSaved;
-		if ( HyperionIManager::getInstance()->IsInstanceRunning(idx) )
+		if ( HyperionIManager::getInstance()->isInstanceRunning(idx) )
 		{
 			QSharedPointer<Hyperion> instance = HyperionIManager::getInstance()->getHyperionInstance(idx);
 			isSaved = instance->saveSettings(i.value());
@@ -1323,43 +1327,62 @@ void JsonAPI::handleTokenResponse(bool success, const QString &token, const QStr
 void JsonAPI::handleInstanceCommand(const QJsonObject &message, const JsonApiCommand& cmd)
 {
 	QString replyMsg;
+	QStringList errorDetails;
 
-	const quint8 inst = static_cast<quint8>(message["instance"].toInt());
+	const quint8 instanceID = static_cast<quint8>(message["instance"].toInt());
+	const QString instanceName = _instanceManager->getInstanceName(instanceID);
 	const QString &name = message["name"].toString();
 
+	if(cmd.subCommand != SubCommand::CreateInstance && !_instanceManager->doesInstanceExist(instanceID))
+	{
+		sendErrorReply( QString("Hyperion instance [%1] does not exist.").arg(instanceID), cmd);
+		return;
+	}
 	switch (cmd.subCommand) {
 	case SubCommand::SwitchTo:
-		if (handleInstanceSwitch(inst))
+		if (handleInstanceSwitch(instanceID))
 		{
-			QJsonObject response { { "instance", inst } };
+			QJsonObject response { { "instance", instanceID } };
 			sendSuccessDataReply(response, cmd);
 		}
 		else
 		{
-			sendErrorReply("Selected Hyperion instance is not running", cmd);
+			sendErrorReply(QString("Switching to Hyperion instance [%1] - %2 failed.").arg(instanceID).arg(instanceName), cmd);
 		}
 	break;
 
 	case SubCommand::StartInstance:
+		if (_instanceManager->isInstanceRunning(instanceID))
+		{
+			errorDetails.append(QString("Hyperion instance [%1] - '%2' is already running.").arg(instanceID).arg(instanceName));
+			sendSuccessDataReplyWithError({}, cmd, errorDetails);
+			return;
+		}
 		//Only send update once
 		weakConnect(this, &API::onStartInstanceResponse, [this, cmd] ()
 		{
 			sendSuccessReply(cmd);
 		});
 
-		if (!API::startInstance(inst, cmd.tan))
+		if (!API::startInstance(instanceID, cmd.tan))
 		{
-			sendErrorReply("Cannot start Hyperion instance index " + QString::number(inst), cmd);
+			sendErrorReply(QString("Starting Hyperion instance [%1] - '%2' failed.").arg(instanceID).arg(instanceName), cmd);
 		}
 	break;
 	case SubCommand::StopInstance:
+		if (!_instanceManager->isInstanceRunning(instanceID))
+		{
+			errorDetails.append(QString("Hyperion instance [%1] - '%2' is not running.").arg(instanceID).arg(instanceName));
+			sendSuccessDataReplyWithError({},cmd, errorDetails);
+			return;
+		}
 		// silent fail
-		API::stopInstance(inst);
+		API::stopInstance(instanceID);
 		sendSuccessReply(cmd);
 	break;
 
 	case SubCommand::DeleteInstance:
-		if (API::deleteInstance(inst, replyMsg))
+		if (API::deleteInstance(instanceID, replyMsg))
 		{
 			sendSuccessReply(cmd);
 		}
@@ -1380,7 +1403,7 @@ void JsonAPI::handleInstanceCommand(const QJsonObject &message, const JsonApiCom
 		if (cmd.subCommand == SubCommand::CreateInstance) {
 			replyMsg = API::createInstance(name);
 		} else {
-			replyMsg = API::setInstanceName(inst, name);
+			replyMsg = API::setInstanceName(instanceID, name);
 		}
 
 		if (replyMsg.isEmpty()) {
@@ -1549,7 +1572,7 @@ QJsonObject JsonAPI::getBasicCommandReply(bool success, const QString &command, 
 
 	if (isInstanceCmd == InstanceCmd::Yes || ( isInstanceCmd == InstanceCmd::Multi && !_noListener))
 	{
-		reply["instance"] = _hyperion->getInstanceIndex();
+		reply["instance"] = this->getCurrentInstanceIndex();
 	}
 	return reply;
 }
@@ -1653,18 +1676,30 @@ void JsonAPI::sendNoAuthorization(const JsonApiCommand& cmd)
 	sendErrorReply(NO_AUTHORIZATION, cmd);
 }
 
-void JsonAPI::handleInstanceStateChange(InstanceState state, quint8 instance, const QString& /*name */)
+void JsonAPI::handleInstanceStateChange(InstanceState state, quint8 instanceID, const QString& /*name */)
 {
 	switch (state)
 	{
 	case InstanceState::H_ON_STOP:
-		if (_hyperion->getInstanceIndex() == instance)
+	{
+		if (!_hyperion.isNull() && _hyperion->getInstanceIndex() == instanceID)
 		{
-			handleInstanceSwitch();
+			_hyperion.reset(nullptr);
+			_jsonCB->setSubscriptionsTo(nullptr);
 		}
+	}
 	break;
 
+	case InstanceState::H_STARTING:
 	case InstanceState::H_STARTED:
+	{
+		quint8 currentInstance = getCurrentInstanceIndex();
+		if (instanceID == currentInstance)
+		{
+			_hyperion = _instanceManager->getHyperionInstance(instanceID);
+			_jsonCB->setSubscriptionsTo(_hyperion);
+		}
+	}
 	case InstanceState::H_STOPPED:
 	case InstanceState::H_CREATED:
 	case InstanceState::H_DELETED:

@@ -96,7 +96,8 @@ public:
 	/// @param[in]  columns    columns to update
 	/// @return                True on success else false
 	///
-	bool updateRecord(const VectorPair& conditions, const QVariantMap& columns) const;
+	bool updateRecord(const VectorPair& conditions, const QVariantMap& tColumns) const;
+	bool updateRecord(const QString& condition, const QVariantList& condBindValues, const QVariantMap& columns) const;
 
 	///
 	/// @brief Get data of a single record, multiple records are not supported

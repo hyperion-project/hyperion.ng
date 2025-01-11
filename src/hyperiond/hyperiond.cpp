@@ -138,6 +138,9 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	connect(this, &HyperionDaemon::videoMode, _instanceManager.get(), &HyperionIManager::newVideoMode);
 
 	createNetworkServices();
+	startNetworkServices();
+	startEventServices();
+	startGrabberServices();
 }
 
 HyperionDaemon::~HyperionDaemon()
@@ -151,23 +154,22 @@ void HyperionDaemon::handleInstanceStateChange(InstanceState state, quint8 insta
 	{
 		switch (state)
 		{
+		case InstanceState::H_STARTING:
+		break;
 		case InstanceState::H_STARTED:
-
-			startNetworkServices();
-			startEventServices();
-			startGrabberServices();
-
-			break;
-
+		break;
 		case InstanceState::H_STOPPED:
+		break;
 		case InstanceState::H_CREATED:
+		break;
 		case InstanceState::H_ON_STOP:
+		break;
 		case InstanceState::H_DELETED:
-			break;
+		break;
 
 		default:
 			qWarning() << "HyperionDaemon::handleInstanceStateChange - Unhandled state:" << static_cast<int>(state);
-			break;
+		break;
 		}
 	}
 }
@@ -263,11 +265,11 @@ void HyperionDaemon::createNetworkServices()
 	_ssdpHandlerThread.reset(new QThread());
 	_ssdpHandlerThread->setObjectName("SSDPThread");
 	_ssdHandler.reset(new SSDPHandler(_webServer.get(),
-			getSetting(settings::FLATBUFSERVER).object()["port"].toInt(),
-			getSetting(settings::PROTOSERVER).object()["port"].toInt(),
-			getSetting(settings::JSONSERVER).object()["port"].toInt(),
-			getSetting(settings::WEBSERVER).object()["sslPort"].toInt(),
-			getSetting(settings::GENERAL).object()["name"].toString()));
+									  getSetting(settings::FLATBUFSERVER).object()["port"].toInt(),
+									  getSetting(settings::PROTOSERVER).object()["port"].toInt(),
+									  getSetting(settings::JSONSERVER).object()["port"].toInt(),
+									  getSetting(settings::WEBSERVER).object()["sslPort"].toInt(),
+									  getSetting(settings::GENERAL).object()["name"].toString()));
 	_ssdHandler->moveToThread(_ssdpHandlerThread.get());
 	connect(_ssdpHandlerThread.get(), &QThread::started, _ssdHandler.get(), &SSDPHandler::initServer);
 	connect(_webServer.get(), &WebServer::stateChange, _ssdHandler.get(), &SSDPHandler::handleWebServerStateChange);

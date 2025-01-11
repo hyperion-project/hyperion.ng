@@ -671,8 +671,8 @@ QJsonArray JsonInfo::discoverScreenInputs(const QJsonObject& params) const
 	return screenInputs;
 }
 
-QJsonObject JsonInfo::getConfiguration(const QList<quint8>& instancesfilter, const QStringList& instanceFilteredTypes, const QStringList& globalFilterTypes )
+QJsonObject JsonInfo::getConfiguration(const QList<quint8>& instanceIdsfilter, const QStringList& instanceFilteredTypes, const QStringList& globalFilterTypes )
 {
 	DBConfigManager configManager;
-	return configManager.getConfiguration(instancesfilter, instanceFilteredTypes, globalFilterTypes );
+	return configManager.getConfiguration(instanceIdsfilter, instanceFilteredTypes, globalFilterTypes );
 }
