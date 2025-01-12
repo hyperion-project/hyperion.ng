@@ -106,7 +106,8 @@ void HyperionIManager::stopAll()
 	QMap<quint8, QSharedPointer<Hyperion>> const instCopy = _runningInstances;
 	for(auto const &instance : instCopy)
 	{
-		QMetaObject::invokeMethod(instance.get(), "stop", Qt::QueuedConnection);
+		QString instanceName = _instanceTable->getNamebyIndex(instance->getInstanceIndex());
+		QMetaObject::invokeMethod(instance.get(), "stop", Q_ARG(QString, instanceName));
 	}
 }
 
