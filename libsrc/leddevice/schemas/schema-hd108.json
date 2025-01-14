@@ -1,0 +1,41 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"output": {
+			"type": "string",
+			"title":"edt_dev_spec_spipath_title",
+			"propertyOrder" : 1
+		},
+		"rate": {
+			"type": "integer",
+			"title":"edt_dev_spec_baudrate_title",
+			"default": 1000000,
+			"propertyOrder" : 2
+		},
+		"invert": {
+			"type": "boolean",
+			"title":"edt_dev_spec_invert_title",
+			"default": false,
+			"propertyOrder" : 3
+		},
+		"brightnessControlMaxLevel": {
+			"type": "integer",
+			"title":"edt_conf_color_brightness_title",
+			"default": 31,
+			"minimum": 1,
+			"maximum": 31,
+			"propertyOrder" : 4
+		},
+		"rewriteTime": {
+			"type": "integer",
+			"title":"edt_dev_general_rewriteTime_title",
+			"default": 0,
+			"append" : "edt_append_ms",
+			"minimum": 0,
+			"access" : "expert",
+			"propertyOrder" : 5
+		}		
+	},
+	"additionalProperties": true
+}

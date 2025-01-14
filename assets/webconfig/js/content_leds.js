@@ -18,7 +18,7 @@ var bottomRight2bottomLeft = null;
 var bottomLeft2topLeft = null;
 var toggleKeystoneCorrectionArea = false;
 
-var devSPI = ['apa102', 'apa104', 'ws2801', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'sk6822spi', 'sk9822', 'ws2812spi'];
+var devSPI = ['apa102', 'apa104', 'hd108', 'lpd6803', 'lpd8806', 'p9813', 'sk6812spi', 'sk6822spi', 'sk9822', 'ws2801', 'ws2812spi'];
 var devFTDI = ['apa102_ftdi', 'sk6812_ftdi', 'ws2812_ftdi'];
 var devRPiPWM = ['ws281x'];
 var devRPiGPIO = ['piblaster'];
@@ -1115,6 +1115,7 @@ $(document).ready(function () {
         case "ws2812spi":
         case "piblaster":
         case "ws281x":
+	case "hd108":
 
         //Serial devices
         case "adalight":
@@ -1480,6 +1481,7 @@ $(document).ready(function () {
           case "apa102_ftdi":
           case "sk6812_ftdi":
           case "ws2812_ftdi":
+	  case "hd108":
           default:
         }
 
@@ -1962,6 +1964,7 @@ function saveLedConfig(genDefLayout = false) {
     case "apa102_ftdi":
     case "sk6812_ftdi":
     case "ws2812_ftdi":
+    case "hd108":
     default:
       if (genDefLayout === true) {
         ledConfig = {
@@ -2219,6 +2222,7 @@ var updateOutputSelectList = function (ledType, discoveryInfo) {
           case "sk6822spi":
           case "sk9822":
           case "ws2812spi":
+	  case "hd108":
           case "piblaster":
             for (const device of discoveryInfo.devices) {
               enumVals.push(device.systemLocation);
