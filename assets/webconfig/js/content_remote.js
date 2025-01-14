@@ -15,7 +15,7 @@ $(document).ready(function () {
   // Initialize variables
   let oldEffects = [];
   const mappingList = window.serverSchema.properties.color.properties.imageToLedMappingType.enum;
-  let duration = 0; // Endless
+  let uiInputDuration_s = 0; // Endless
   let rgb = { r: 255, g: 0, b: 0 };
   let lastImgData = "";
   let lastFileName = "";
@@ -49,14 +49,14 @@ $(document).ready(function () {
     if (effect !== "__none__") {
       requestPriorityClear();
       $(window.hyperion).one("cmd-clear", function () {
-        setTimeout(function () { requestPlayEffect(effect, duration); }, 100);
+        setTimeout(function () { requestPlayEffect(effect, uiInputDuration_s); }, 100);
       });
     }
   }
 
   // Function to send the selected color
   function sendColor() {
-    requestSetColor(rgb.r, rgb.g, rgb.b, duration);
+    requestSetColor(rgb.r, rgb.g, rgb.b, uiInputDuration_s);
   }
 
   // Update the channel adjustments
@@ -137,11 +137,11 @@ $(document).ready(function () {
         active,
         visible,
         priority,
-        componentId: compId,
-        duration_ms: durationMs
+        componentId,
+        duration_ms 
       } = prios[i];
 
-      const duration = durationMs / 1000;
+      const remoteInputDuration_s = duration_ms / 1000;
       let value = "0,0,0";
       let btnType = "default";
       let btnText = $.i18n('remote_input_setsource_btn');
@@ -149,7 +149,7 @@ $(document).ready(function () {
 
       if (active) btnType = "primary";
       if (priority > BG_PRIORITY) continue;
-      if (priority < BG_PRIORITY && ["EFFECT", "COLOR", "IMAGE"].includes(compId)) clearAll = true;
+      if (priority < BG_PRIORITY && ["EFFECT", "COLOR", "IMAGE"].includes(componentId)) clearAll = true;
 
       if (visible) {
         btnState = "disabled";
@@ -166,7 +166,7 @@ $(document).ready(function () {
       // Determine owner description based on component ID
       let ownerText = owner;
 
-      switch (compId) {
+      switch (componentId) {
         case "EFFECT":
           ownerText = $.i18n('remote_effects_label_effects') + " " + owner;
           break;
@@ -180,46 +180,39 @@ $(document).ready(function () {
           ownerText = $.i18n('remote_effects_label_picture') + (owner ? `  ${owner}` : "");
           break;
         case "GRABBER":
-          ownerText = $.i18n('general_comp_GRABBER') + ": (" + owner + ")";
-          break;
         case "V4L":
-          ownerText = $.i18n('general_comp_V4L') + ": (" + owner + ")";
-          break;
-        case "AUDIO":
-          ownerText = $.i18n('general_comp_AUDIO') + ": (" + owner + ")";
+        case "AUDIO":        
+          ownerText = `${$.i18n("general_comp_" + componentId)}: (${owner})`;
           break;
         case "BOBLIGHTSERVER":
-          ownerText = $.i18n('general_comp_BOBLIGHTSERVER');
-          break;
         case "FLATBUFSERVER":
-          ownerText = $.i18n('general_comp_FLATBUFSERVER');
-          break;
-        case "PROTOSERVER":
-          ownerText = $.i18n('general_comp_PROTOSERVER');
+        case "PROTOSERVER":       
+          ownerText = `${$.i18n("general_comp_" + componentId)})`;
           break;
       }
-      owner = ownerText
 
-      if (!(duration && duration < 0)) {
-        if (duration && !["GRABBER", "FLATBUFSERVER", "PROTOSERVER"].includes(compId)) {
-          owner += `<br/><span style="font-size:80%; color:grey;">${$.i18n('remote_input_duration')} 
-                          ${duration.toFixed(0)}${$.i18n('edt_append_s')}</span>`;
-        }
+      if (remoteInputDuration_s > 0 && !["GRABBER", "FLATBUFSERVER", "PROTOSERVER"].includes(componentId)) {
+          ownerText += `<br/><span style="font-size:80%; color:grey;">${$.i18n('remote_input_duration')} 
+                          ${remoteInputDuration_s.toFixed(0)}${$.i18n('edt_append_s')}</span>`;
+      }
 
+      if (!remoteInputDuration_s || remoteInputDuration_s > 0 ) {
         // Create buttons
         let btn = `<button id="srcBtn${i}" type="button" ${btnState} class="btn btn-${btnType} btn_input_selection" 
                        onclick="requestSetSource(${priority});">${btnText}</button>`;
 
-        if (["EFFECT", "COLOR", "IMAGE"].includes(compId) && priority < BG_PRIORITY) {
+        if (["EFFECT", "COLOR", "IMAGE"].includes(componentId) && priority < BG_PRIORITY) {
           btn += `<button type="button" class="btn btn-sm btn-danger" style="margin-left:10px;" 
                         onclick="requestPriorityClear(${priority});"><i class="fa fa-close"></i></button>`;
         }
 
         if (btnType !== 'default') {
-          $('.sstbody').append(createTableRow([origin, owner, priority, btn], false, true));
+          $('.sstbody').append(createTableRow([origin, ownerText, priority, btn], false, true));
         }
       }
     }
+
+console.log("window.serverInfo.priorities_autoselect: ",window.serverInfo.priorities_autoselect);
 
     // Auto-select and Clear All buttons
     const autoColor = window.serverInfo.priorities_autoselect ? "btn-success" : "btn-danger";
@@ -281,8 +274,11 @@ $(document).ready(function () {
       <span style="display:block;margin:3px">
         <label class="checkbox-inline">
           <input id="${compBtnId}" ${checkedStatus} type="checkbox"
-                 data-toggle="toggle" data-onstyle="success"
-                 data-on="${$.i18n('general_btn_on')}" data-off="${$.i18n('general_btn_off')}">
+                 data-toggle="toggle"
+                 data-onstyle="success"
+                 data-name="${comp.name}"
+                 data-on="${$.i18n('general_btn_on')}"
+                 data-off="${$.i18n('general_btn_off')}">
           ${$.i18n('general_comp_' + comp.name)}
         </label>
       </span>
@@ -294,7 +290,8 @@ $(document).ready(function () {
         $(`#${compBtnId}`).bootstrapToggle();
         $(`#${compBtnId}`).bootstrapToggle(hyperionEnabled ? "enable" : "disable");
         $(`#${compBtnId}`).on("change", e => {
-          requestSetComponentState(e.currentTarget.id.split('_').pop(), e.currentTarget.checked);
+          const compName = $(e.currentTarget).data("name");
+          requestSetComponentState(compName, e.currentTarget.checked);
         });
       }
     });
@@ -329,12 +326,11 @@ $(document).ready(function () {
       const toggle = $(`#${compBtnId}`).bootstrapToggle();
 
       if (!enabled) {
-        toggle.off().bootstrapToggle("disable");
+        toggle.bootstrapToggle("off");
+        toggle.bootstrapToggle("disable");
       } else {
-        toggle.enable();
-        if (comp.enabled !== toggle.prop("checked")) {
-          toggle.prop('checked', comp.enabled).change();
-        }
+        toggle.bootstrapToggle("enable");
+        updateSingleComponent(comp);
       }
     });
   }
@@ -343,8 +339,8 @@ $(document).ready(function () {
     const compBtnId = `comp_btn_${component.name}`;
     const toggle = $(`#${compBtnId}`).bootstrapToggle();
 
-    if (component.enabled !== toggle.prop("checked")) {
-      toggle.prop(component.enabled ? "on" : "off");
+    if (component.enabled !== $(`#${compBtnId}`).prop("checked")) {
+      toggle.bootstrapToggle(component.enabled ? "on" : "off");
     }
   }
 
@@ -396,8 +392,8 @@ $(document).ready(function () {
 
     const storedDuration = getStorage('rmduration');
     if (storedDuration) {
-      duration = Number(storedDuration);
-      $("#remote_duration").val(duration);
+      uiInputDuration_s = Number(storedDuration);
+      $("#remote_duration").val(uiInputDuration_s);
       updateDurationPlaceholder(); // Update the placeholder for "Endless"
     }
 
@@ -431,8 +427,8 @@ $(document).ready(function () {
 
   // Update Duration
   function updateDuration() {
-    duration = valValue(this.id, this.value, this.min, this.max);
-    setStorage('rmduration', duration);
+    uiInputDuration_s = valValue(this.id, this.value, this.min, this.max);
+    setStorage('rmduration', uiInputDuration_s);
     updateDurationPlaceholder(); // Ensure placeholder is updated dynamically
   }
 
@@ -459,7 +455,7 @@ $(document).ready(function () {
   // Handle Image Request
   function handleImageRequest() {
     if (lastImgData) {
-      requestSetImage(lastImgData, duration, lastFileName);
+      requestSetImage(lastImgData, uiInputDuration_s, lastFileName);
     }
   }
 
@@ -468,7 +464,7 @@ $(document).ready(function () {
     readImg(this, function (src, fileName) {
       lastFileName = fileName;
       lastImgData = src.includes(",") ? src.split(",")[1] : src;
-      requestSetImage(lastImgData, duration, lastFileName);
+      requestSetImage(lastImgData, uiInputDuration_s, lastFileName);
     });
   }
 
@@ -490,6 +486,7 @@ $(document).ready(function () {
   // Interval Updates and Event Handlers
   function setupEventListenersForUpdates() {
     $(window.hyperion).on('components-updated', (e, comp) => updateComponent(comp));
+
     $(window.hyperion).on("cmd-priorities-update", (event) => {
       window.serverInfo.priorities = event.response.data.priorities;
       window.serverInfo.priorities_autoselect = event.response.data.priorities_autoselect;

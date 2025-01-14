@@ -465,7 +465,7 @@ void JsonAPI::handleEffectCommand(const QJsonObject &message, const JsonApiComma
 	EffectCmdData dat;
 	dat.priority = message["priority"].toInt();
 	dat.duration = message["duration"].toInt(-1);
-	dat.pythonScript = message["script"].toString();
+	dat.pythonScript = message["pythonScript"].toString();
 	dat.origin = message["origin"].toString("JsonRpc") + "@" + _peerAddress;
 	dat.effectName = message["effect"].toObject()["name"].toString();
 	dat.data = message["imageData"].toString("").toUtf8();

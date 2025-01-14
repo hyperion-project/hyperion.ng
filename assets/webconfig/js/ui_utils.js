@@ -1,3 +1,5 @@
+const DURATION_ENDLESS = -1;
+
 let prevTag;
 
 function removeOverlay() {
@@ -39,7 +41,7 @@ function debugMessage(msg) {
 
 function validateDuration(d) {
   if (typeof d === "undefined" || d <= 0) {
-    return ENDLESS;
+    return DURATION_ENDLESS;
   } else {
     return d * 1000;
   }

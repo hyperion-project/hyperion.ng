@@ -1,6 +1,10 @@
+//Constants
+const INPUT = Object.freeze({
+  ORIGIN: "Hyperion Web-UI",
+  FG_PRIORITY: 1
+});
+
 // global vars (read and write in window object)
-window.webPrio = 1;
-window.webOrigin = "Web Configuration";
 window.showOptHelp = true;
 window.gitHubReleaseApiUrl = "https://api.github.com/repos/hyperion-project/hyperion.ng/releases";
 window.currentChannel = null;
@@ -31,8 +35,6 @@ window.currentHyperionInstanceName = "?";
 window.comps = [];
 window.defaultPasswordIsSet = null;
 let tokenList = {};
-
-const ENDLESS = -1;
 
 function initRestart() {
   $(window.hyperion).off();
@@ -379,7 +381,7 @@ function requestLedImageStop() {
 
 function requestPriorityClear(priority) {
   if (typeof priority !== 'number')
-    priority = window.webPrio;
+    priority = INPUT.FG_PRIORITY;
 
   $(window.hyperion).trigger({ type: "stopBrowerScreenCapture" });
   sendToHyperion("clear", "", { priority });
@@ -390,13 +392,13 @@ function requestClearAll() {
   requestPriorityClear(-1)
 }
 
-function requestPlayEffect(effectName, duration) {
+function requestPlayEffect(name, duration) {
   $(window.hyperion).trigger({ type: "stopBrowerScreenCapture" });
   const data = {
-    effect: { name: effectName },
-    priority: window.webPrio,
+    effect: { name },
+    priority: INPUT.FG_PRIORITY,
     duration: validateDuration(duration),
-    origin: window.webOrigin,
+    origin: INPUT.ORIGIN,
   };
   sendToHyperion("effect", "", data);
 }
@@ -405,9 +407,9 @@ function requestSetColor(r, g, b, duration) {
   $(window.hyperion).trigger({ type: "stopBrowerScreenCapture" });
   const data = {
     color: [r, g, b],
-    priority: window.webPrio,
+    priority: INPUT.FG_PRIORITY,
     duration: validateDuration(duration),
-    origin: window.webOrigin
+    origin: INPUT.ORIGIN
   };
   sendToHyperion("color", "", data);
 }
@@ -415,10 +417,10 @@ function requestSetColor(r, g, b, duration) {
 function requestSetImage(imagedata, duration, name) {
   const data = {
     imagedata,
-    priority: window.webPrio,
+    priority: INPUT.FG_PRIORITY,
     duration: validateDuration(duration),
     format: "auto",
-    origin: window.webOrigin,
+    origin: INPUT.ORIGIN,
     name
   };
   sendToHyperion("image", "", data);
@@ -502,12 +504,12 @@ function requestWriteEffect(name, script, args, imageData) {
   sendToHyperion("create-effect", "", data);
 }
 
-function requestTestEffect(name, script, args, imageData) {
+function requestTestEffect(name, pythonScript, args, imageData) {
   const data = {
     effect: { name, args },
-    priority: window.webPrio,
-    origin: window.webOrigin,
-    pythonScript: script,
+    priority: INPUT.FG_PRIORITY,
+    origin: INPUT.ORIGIN,
+    pythonScript,
     imageData
   };
   sendToHyperion("effect", "", data);
