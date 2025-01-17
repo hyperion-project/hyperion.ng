@@ -323,6 +323,7 @@ void HyperionDaemon::startNetworkServices()
 void HyperionDaemon::stopNetworkServices()
 {
 #if defined(ENABLE_PROTOBUF_SERVER)
+	QMetaObject::invokeMethod(_protoServer.get(), &ProtoServer::stop, Qt::QueuedConnection);
 	if (_protoServerThread->isRunning()) {
 		_protoServerThread->quit();
 		_protoServerThread->wait();
@@ -330,6 +331,7 @@ void HyperionDaemon::stopNetworkServices()
 #endif
 
 #if defined(ENABLE_FLATBUF_SERVER)
+	QMetaObject::invokeMethod(_flatBufferServer.get(), &FlatBufferServer::stop, Qt::QueuedConnection);
 	if (_flatBufferServerThread->isRunning()) {
 		_flatBufferServerThread->quit();
 		_flatBufferServerThread->wait();
