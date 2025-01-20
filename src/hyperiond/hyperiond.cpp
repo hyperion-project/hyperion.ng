@@ -228,52 +228,59 @@ void HyperionDaemon::createNetworkServices()
 	connect(_mDnsThread.get(), &QThread::started, _mDNSProvider.get(), &MdnsProvider::init);
 #endif
 
+	// Create SSDP server
+	_ssdpHandlerThread.reset(new QThread());
+	_ssdpHandlerThread->setObjectName("SSDPThread");
+	_ssdpHandler.reset(new SSDPHandler());
+	_ssdpHandler->moveToThread(_ssdpHandlerThread.get());
+	connect(_ssdpHandlerThread.get(), &QThread::started, _ssdpHandler.get(), &SSDPHandler::initServer);
+	connect(this, &HyperionDaemon::settingsChanged, _ssdpHandler.get(), &SSDPHandler::handleSettingsUpdate);
+	_ssdpHandler->handleSettingsUpdate(settings::GENERAL, _settingsManager->getSetting(settings::GENERAL));
+
 	// Create JSON server in own thread
 	_jsonServerThread.reset(new QThread());
 	_jsonServerThread->setObjectName("JSONServerThread");
 	_jsonServer.reset(new JsonServer(getSetting(settings::JSONSERVER)));
 	_jsonServer->moveToThread(_jsonServerThread.get());
-	connect(_jsonServerThread.get(), &QThread::started, _jsonServer.get(), &JsonServer::initServer);
-	connect(this, &HyperionDaemon::settingsChanged, _jsonServer.get(), &JsonServer::handleSettingsUpdate);
+
+	connect(_jsonServer.get(), &JsonServer::publishService, _ssdpHandler.get(), &SSDPHandler::onPortChanged);
 #ifdef ENABLE_MDNS
 	connect(_jsonServer.get(), &JsonServer::publishService, _mDNSProvider.get(), &MdnsProvider::publishService);
 #endif
+
+	connect(_jsonServerThread.get(), &QThread::started, _jsonServer.get(), &JsonServer::initServer);
+	connect(this, &HyperionDaemon::settingsChanged, _jsonServer.get(), &JsonServer::handleSettingsUpdate);
 
 	// Create Webserver in own thread
 	_webServerThread.reset(new QThread());
 	_webServerThread->setObjectName("WebServerThread");
 	_webServer.reset(new WebServer(getSetting(settings::WEBSERVER), false));
 	_webServer->moveToThread(_webServerThread.get());
-	connect(_webServerThread.get(), &QThread::started, _webServer.get(), &WebServer::initServer);
-	connect(this, &HyperionDaemon::settingsChanged, _webServer.get(), &WebServer::handleSettingsUpdate);
+
+	connect(_webServer.get(), &WebServer::stateChange, _ssdpHandler.get(), &SSDPHandler::onStateChange);
+	connect(_webServer.get(), &WebServer::publishService, _ssdpHandler.get(), &SSDPHandler::onPortChanged);
+	connect(_ssdpHandler.get(), &SSDPHandler::descriptionUpdated, _webServer.get(), &WebServer::onSsdpDescriptionUpdated);
 #ifdef ENABLE_MDNS
 	connect(_webServer.get(), &WebServer::publishService, _mDNSProvider.get(), &MdnsProvider::publishService);
 #endif
+
+	connect(_webServerThread.get(), &QThread::started, _webServer.get(), &WebServer::initServer);
+	connect(this, &HyperionDaemon::settingsChanged, _webServer.get(), &WebServer::handleSettingsUpdate);
 
 	// Create SSL Webserver in own thread
 	_sslWebServerThread.reset(new QThread());
 	_sslWebServerThread->setObjectName("SSLWebServerThread");
 	_sslWebServer.reset(new WebServer(getSetting(settings::WEBSERVER), true));
 	_sslWebServer->moveToThread(_sslWebServerThread.get());
-	connect(_sslWebServerThread.get(), &QThread::started, _sslWebServer.get(), &WebServer::initServer);
-	connect(this, &HyperionDaemon::settingsChanged, _sslWebServer.get(), &WebServer::handleSettingsUpdate);
+
+	connect(_sslWebServer.get(), &WebServer::publishService, _ssdpHandler.get(), &SSDPHandler::onPortChanged);
+	connect(_ssdpHandler.get(), &SSDPHandler::descriptionUpdated, _sslWebServer.get(), &WebServer::onSsdpDescriptionUpdated);
 #ifdef ENABLE_MDNS
 	connect(_sslWebServer.get(), &WebServer::publishService, _mDNSProvider.get(), &MdnsProvider::publishService);
 #endif
 
-	// Create SSDP server
-	_ssdpHandlerThread.reset(new QThread());
-	_ssdpHandlerThread->setObjectName("SSDPThread");
-	_ssdHandler.reset(new SSDPHandler(_webServer.get(),
-									  getSetting(settings::FLATBUFSERVER).object()["port"].toInt(),
-									  getSetting(settings::PROTOSERVER).object()["port"].toInt(),
-									  getSetting(settings::JSONSERVER).object()["port"].toInt(),
-									  getSetting(settings::WEBSERVER).object()["sslPort"].toInt(),
-									  getSetting(settings::GENERAL).object()["name"].toString()));
-	_ssdHandler->moveToThread(_ssdpHandlerThread.get());
-	connect(_ssdpHandlerThread.get(), &QThread::started, _ssdHandler.get(), &SSDPHandler::initServer);
-	connect(_webServer.get(), &WebServer::stateChange, _ssdHandler.get(), &SSDPHandler::handleWebServerStateChange);
-	connect(this, &HyperionDaemon::settingsChanged, _ssdHandler.get(), &SSDPHandler::handleSettingsUpdate);
+	connect(_sslWebServerThread.get(), &QThread::started, _sslWebServer.get(), &WebServer::initServer);
+	connect(this, &HyperionDaemon::settingsChanged, _sslWebServer.get(), &WebServer::handleSettingsUpdate);
 
 #if defined(ENABLE_FLATBUF_SERVER)
 	// Create FlatBuffer server in thread
@@ -281,11 +288,14 @@ void HyperionDaemon::createNetworkServices()
 	_flatBufferServerThread->setObjectName("FlatBufferServerThread");
 	_flatBufferServer.reset(new FlatBufferServer(getSetting(settings::FLATBUFSERVER)));
 	_flatBufferServer->moveToThread(_flatBufferServerThread.get());
-	connect(_flatBufferServerThread.get(), &QThread::started, _flatBufferServer.get(), &FlatBufferServer::initServer);
-	connect(this, &HyperionDaemon::settingsChanged, _flatBufferServer.get(), &FlatBufferServer::handleSettingsUpdate);
+
+	connect(_flatBufferServer.get(), &FlatBufferServer::publishService, _ssdpHandler.get(), &SSDPHandler::onPortChanged);
 #ifdef ENABLE_MDNS
 	connect(_flatBufferServer.get(), &FlatBufferServer::publishService, _mDNSProvider.get(), &MdnsProvider::publishService);
 #endif
+
+	connect(_flatBufferServerThread.get(), &QThread::started, _flatBufferServer.get(), &FlatBufferServer::initServer);
+	connect(this, &HyperionDaemon::settingsChanged, _flatBufferServer.get(), &FlatBufferServer::handleSettingsUpdate);
 #endif
 
 #if defined(ENABLE_PROTOBUF_SERVER)
@@ -294,11 +304,14 @@ void HyperionDaemon::createNetworkServices()
 	_protoServerThread->setObjectName("ProtoServerThread");
 	_protoServer.reset(new ProtoServer(getSetting(settings::PROTOSERVER)));
 	_protoServer->moveToThread(_protoServerThread.get());
-	connect(_protoServerThread.get(), &QThread::started, _protoServer.get(), &ProtoServer::initServer);
-	connect(this, &HyperionDaemon::settingsChanged, _protoServer.get(), &ProtoServer::handleSettingsUpdate);
+
+	connect(_protoServer.get(), &ProtoServer::publishService, _ssdpHandler.get(), &SSDPHandler::onPortChanged);
 #ifdef ENABLE_MDNS
 	connect(_protoServer.get(), &ProtoServer::publishService, _mDNSProvider.get(), &MdnsProvider::publishService);
 #endif
+
+	connect(_protoServerThread.get(), &QThread::started, _protoServer.get(), &ProtoServer::initServer);
+	connect(this, &HyperionDaemon::settingsChanged, _protoServer.get(), &ProtoServer::handleSettingsUpdate);
 #endif
 }
 
@@ -322,6 +335,15 @@ void HyperionDaemon::startNetworkServices()
 
 void HyperionDaemon::stopNetworkServices()
 {
+
+#if defined(ENABLE_MDNS)
+	QMetaObject::invokeMethod(_mDNSProvider.get(), &MdnsProvider::stop, Qt::QueuedConnection);
+	if (_mDnsThread->isRunning()) {
+		_mDnsThread->quit();
+		_mDnsThread->wait();
+	}
+#endif
+
 #if defined(ENABLE_PROTOBUF_SERVER)
 	QMetaObject::invokeMethod(_protoServer.get(), &ProtoServer::stop, Qt::QueuedConnection);
 	if (_protoServerThread->isRunning()) {
@@ -338,32 +360,16 @@ void HyperionDaemon::stopNetworkServices()
 	}
 #endif
 
-#if defined(ENABLE_MDNS)
-	QMetaObject::invokeMethod(_mDNSProvider.get(), &MdnsProvider::stop, Qt::QueuedConnection);
-	if (_mDnsThread->isRunning()) {
-		_mDnsThread->quit();
-		_mDnsThread->wait();
-	}
-#endif
-
-	// Delete SSDP Server, as it is currently depended on the WebServer
-	if (_ssdpHandlerThread->isRunning()) {
-		_ssdpHandlerThread->quit();
-		_ssdpHandlerThread->wait();
-	}
-	_ssdHandler.reset(nullptr);
-
 	if (_webServerThread->isRunning()) {
 		_webServerThread->quit();
 		_webServerThread->wait();
 	}
-	_webServer.reset(nullptr);
 
+	QMetaObject::invokeMethod(_sslWebServer.get(), &WebServer::stop, Qt::QueuedConnection);
 	if (_sslWebServerThread->isRunning()) {
 		_sslWebServerThread->quit();
 		_sslWebServerThread->wait();
 	}
-	_sslWebServer.reset(nullptr);
 
 	if (_jsonServerThread->isRunning()) {
 		_jsonServerThread->quit();
@@ -371,6 +377,11 @@ void HyperionDaemon::stopNetworkServices()
 	}
 	_jsonServer.reset(nullptr);
 
+	QMetaObject::invokeMethod(_ssdpHandler.get(), &SSDPHandler::stop, Qt::QueuedConnection);
+	if (_ssdpHandlerThread->isRunning()) {
+		_ssdpHandlerThread->quit();
+		_ssdpHandlerThread->wait();
+	}
 }
 
 void HyperionDaemon::startEventServices()

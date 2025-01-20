@@ -38,7 +38,6 @@ WebServer::WebServer(const QJsonDocument& config, bool useSsl, QObject* parent)
 
 WebServer::~WebServer()
 {
-	stop();
 }
 
 void WebServer::initServer()
@@ -234,7 +233,7 @@ void WebServer::stop()
 	}
 }
 
-void WebServer::setSSDPDescription(const QString& desc)
+void WebServer::onSsdpDescriptionUpdated(const QString& desc)
 {
 	_staticFileServing->setSSDPDescription(desc);
 }

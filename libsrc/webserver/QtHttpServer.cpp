@@ -67,10 +67,9 @@ void QtHttpServer::stop (void)
 			{
 				sock->close();
 			}
-
-			emit stopped ();
 		}
 	}
+	emit stopped ();
 }
 
 void QtHttpServer::setUseSecure (const bool ssl)

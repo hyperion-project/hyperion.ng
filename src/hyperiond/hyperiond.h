@@ -246,26 +246,26 @@ private:
 #endif
 
 	/// Network services
-	QScopedPointer<AuthManager> _authManager;
-	QScopedPointer<NetOrigin> _netOrigin;
-	QScopedPointer<JsonServer> _jsonServer;
+	QScopedPointer<AuthManager, QScopedPointerDeleteLater> _authManager;
+	QScopedPointer<NetOrigin, QScopedPointerDeleteLater> _netOrigin;
+	QScopedPointer<JsonServer, QScopedPointerDeleteLater> _jsonServer;
 	QScopedPointer<QThread> _jsonServerThread;
-	QScopedPointer<WebServer> _webServer;
+	QScopedPointer<WebServer, QScopedPointerDeleteLater> _webServer;
 	QScopedPointer<QThread> _webServerThread;
-	QScopedPointer<WebServer> _sslWebServer;
+	QScopedPointer<WebServer, QScopedPointerDeleteLater> _sslWebServer;
 	QScopedPointer<QThread> _sslWebServerThread;
-	QScopedPointer<SSDPHandler> _ssdHandler;
+	QScopedPointer<SSDPHandler, QScopedPointerDeleteLater> _ssdpHandler;
 	QScopedPointer<QThread> _ssdpHandlerThread;
 #ifdef ENABLE_MDNS
-	QScopedPointer<MdnsProvider> _mDNSProvider;
+	QScopedPointer<MdnsProvider, QScopedPointerDeleteLater> _mDNSProvider;
 	QScopedPointer<QThread> _mDnsThread;
 #endif
 #if defined(ENABLE_FLATBUF_SERVER)
-	QScopedPointer<FlatBufferServer> _flatBufferServer;
+	QScopedPointer<FlatBufferServer, QScopedPointerDeleteLater> _flatBufferServer;
 	QScopedPointer<QThread> _flatBufferServerThread;
 #endif
 #if defined(ENABLE_PROTOBUF_SERVER)
-	QScopedPointer<ProtoServer> _protoServer;
+	QScopedPointer<ProtoServer, QScopedPointerDeleteLater> _protoServer;
 	QScopedPointer<QThread> _protoServerThread;
 #endif
 
