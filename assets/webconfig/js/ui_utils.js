@@ -234,14 +234,13 @@ function initLanguageSelection() {
   $("#language-select").selectpicker("refresh");
 }
 
-
 function updateUiOnInstance(inst) {
 
   window.currentHyperionInstance = inst;
   if (inst === null) {
     //No instance defined, hide all instance related menue items
     $("#MenuItemLedInstances").closest("li").hide();
-    $("#MenuItemRemoteControl, #MenuItemEffectsConfig").hide();
+    $("#MenuItemRemoteControl, #MenuItemEffectsConfig, #NavMenuWizards, #btn_open_ledsim, #btn_streamer_icon").hide();
   } else {
     window.currentHyperionInstanceName = getInstanceName(inst);
 
@@ -256,9 +255,15 @@ function updateUiOnInstance(inst) {
 
     // Show menue items according to instance's running state
     if (isInstanceRunning(window.currentHyperionInstance)) {
-      $("#MenuItemRemoteControl, #MenuItemEffectsConfig").show();
+      $("#MenuItemRemoteControl, #MenuItemEffectsConfig, #NavMenuWizards, #btn_open_ledsim").show();
+
+      const isMediaStreamingSupported = getStorage('mediaStreamingSupported');
+      if (isMediaStreamingSupported) {
+        $('#btn_streamer_icon').show();
+      }
+
     } else {
-      $("#MenuItemRemoteControl, #MenuItemEffectsConfig").hide();
+      $("#MenuItemRemoteControl, #MenuItemEffectsConfig, #NavMenuWizards, #btn_open_ledsim, #btn_streamer_icon").hide();
     }
   }
 }

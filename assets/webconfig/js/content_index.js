@@ -15,6 +15,9 @@ $(document).ready(function () {
     handleDarkMode();
   }
 
+  const isMediaStreamingSupported = typeof window.navigator.mediaDevices.getDisplayMedia === 'function';
+  setStorage('mediaStreamingSupported', isMediaStreamingSupported);
+
   loadContentTo("#container_connection_lost", "connection_lost");
   loadContentTo("#container_restart", "restart");
   initWebSocket();
@@ -38,10 +41,11 @@ $(document).ready(function () {
 
     // determine button visibility
     const running = window.serverInfo.instance.filter(entry => entry.running);
-    if (running.length > 1)
+    if (running.length > 1) {
       $('#btn_hypinstanceswitch').toggle(true)
-    else
+    } else {
       $('#btn_hypinstanceswitch').toggle(false)
+    }
   }); // end cmd-serverinfo
 
   // Update language selection
@@ -175,6 +179,8 @@ $(document).ready(function () {
     window.serverConfig = legacyConfig;
 
     window.showOptHelp = window.serverConfig.general.showOptHelp;
+
+    $(window.hyperion).trigger("serverConfig_updated");
   });
 
   $(window.hyperion).on("cmd-config-setconfig", function (event) {

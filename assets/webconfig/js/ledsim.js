@@ -128,10 +128,10 @@ $(document).ready(function () {
         setStorage("ledsim_height", $("#ledsim_dialog").outerHeight());
       }
     });
-    // apply new serverinfos
-    $(window.hyperion).on("cmd-config-getconfig-old", function (event) {
-      leds = event.response.info.leds;
-      grabberConfig = event.response.info.grabberV4L2;
+    // apply new configuration
+    $(window.hyperion).on("serverConfig_updated", function (event) {
+      leds = window.serverConfig.leds;
+      grabberConfig = window.serverConfig.grabberV4L2;
       updateLedLayout();
     });
   });

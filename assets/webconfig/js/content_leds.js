@@ -649,6 +649,12 @@ $(document).ready(function () {
     $('#led_vis_help').html('<div><div class="led_ex" style="background-color:black;margin-right:5px;margin-top:3px"></div><div style="display:inline-block;vertical-align:top">' + $.i18n('conf_leds_layout_preview_l1') + '</div></div><div class="led_ex" style="background-color:grey;margin-top:3px;margin-right:2px"></div><div class="led_ex" style="background-color: rgb(169, 169, 169);margin-right:5px;margin-top:3px;"></div><div style="display:inline-block;vertical-align:top">' + $.i18n('conf_leds_layout_preview_l2') + '</div>');
   }
 
+  if (isInstanceRunning(window.currentHyperionInstance)) {
+    $("#leds_prev_toggle_live_video").show();
+  } else {
+    $("#leds_prev_toggle_live_video").hide();  
+  }
+
   //**************************************************
   // Handle LED-Layout Configuration
   //**************************************************

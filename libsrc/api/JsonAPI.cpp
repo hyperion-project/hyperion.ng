@@ -1010,8 +1010,11 @@ void JsonAPI::handleLedColorsCommand(const QJsonObject& /*message*/, const JsonA
 	switch (cmd.subCommand) {
 	case SubCommand::LedStreamStart:
 		_jsonCB->subscribe( Subscription::LedColorsUpdate);
-		// push once
-		_hyperion->update();
+		if (!_hyperion.isNull())
+		{
+			// push once
+			_hyperion->update();
+		}
 		sendSuccessReply(cmd);
 	break;
 

@@ -1,7 +1,7 @@
 $(document).ready(function () {
-
   // check if browser supports streaming
-  if (window.navigator.mediaDevices && window.navigator.mediaDevices.getDisplayMedia) {
+  const isMediaStreamingSupported = getStorage('mediaStreamingSupported');
+  if (isMediaStreamingSupported) {
     $("#btn_streamer").toggle();
   }
 
