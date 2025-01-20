@@ -49,10 +49,10 @@ void SysTray::onIconActivated(QSystemTrayIcon::ActivationReason reason)
 		getCurrentAutorunState();
 	break;
 #endif
-	case QSystemTrayIcon::Trigger:
 	case QSystemTrayIcon::DoubleClick:
 		settings();
 	break;
+	case QSystemTrayIcon::Trigger:
 	case QSystemTrayIcon::MiddleClick:
 	break;
 	default: ;
