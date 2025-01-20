@@ -42,6 +42,11 @@ public:
 	static int addToDeviceMap(QString name, LedDeviceCreateFuncType funcPtr);
 
 	///
+	/// @brief Initialize the device map
+	///
+	static void initializeDeviceMap();
+
+	///
 	/// @brief Return all available device constructors
 	/// @return device constructors
 	///
@@ -149,7 +154,6 @@ private slots:
 protected:
 	/// contains all available led device constructors
 	static LedDeviceRegistry _ledDeviceMap;
-	static QMutex _ledDeviceMapLock;
 
 private:
 	/// The common Logger instance for all LED-devices
