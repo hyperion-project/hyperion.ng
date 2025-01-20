@@ -32,18 +32,25 @@ void CgiHandler::exec(const QStringList & args, QtHttpRequest * request, QtHttpR
 	_request = request;
 	_reply   = reply;
 
-	if ( _args.at(0) == "cfg_jsonserver" )
+	if (!_args.isEmpty())
 	{
-		cmd_cfg_jsonserver();
-	}
-	else if ( _args.at(0) == "run" )
+		if ( _args.at(0) == "cfg_jsonserver" )
+		{
+			cmd_cfg_jsonserver();
+		}
+		else if ( _args.at(0) == "run" )
+		{
+			cmd_runscript();
+		}
+		else
+		{
+			throw std::runtime_error("CGI command not found");
+		}
+	} else
 	{
-		cmd_runscript();
+		throw std::runtime_error("CGI command not provided");
 	}
-	else
-	{
-		throw std::runtime_error("CGI command not found");
-	}
+
 }
 
 void CgiHandler::cmd_cfg_jsonserver()
