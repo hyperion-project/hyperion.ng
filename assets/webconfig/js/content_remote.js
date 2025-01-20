@@ -212,8 +212,6 @@ $(document).ready(function () {
       }
     }
 
-console.log("window.serverInfo.priorities_autoselect: ",window.serverInfo.priorities_autoselect);
-
     // Auto-select and Clear All buttons
     const autoColor = window.serverInfo.priorities_autoselect ? "btn-success" : "btn-danger";
     const autoState = window.serverInfo.priorities_autoselect ? "disabled" : "enabled";
