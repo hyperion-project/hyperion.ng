@@ -240,7 +240,7 @@ function updateUiOnInstance(inst) {
   if (inst === null) {
     //No instance defined, hide all instance related menue items
     $("#MenuItemLedInstances").closest("li").hide();
-    $("#MenuItemRemoteControl, #MenuItemEffectsConfig, #NavMenuWizards, #btn_open_ledsim, #btn_streamer_icon").hide();
+    $("#MenuItemRemoteControl, #MenuItemEffectsConfig, #NavMenuWizards, #btn_open_ledsim, #btn_streamer").hide();
   } else {
     window.currentHyperionInstanceName = getInstanceName(inst);
 
@@ -259,11 +259,11 @@ function updateUiOnInstance(inst) {
 
       const isMediaStreamingSupported = getStorage('mediaStreamingSupported');
       if (isMediaStreamingSupported) {
-        $('#btn_streamer_icon').show();
+        $('#btn_streamer').show();
       }
 
     } else {
-      $("#MenuItemRemoteControl, #MenuItemEffectsConfig, #NavMenuWizards, #btn_open_ledsim, #btn_streamer_icon").hide();
+      $("#MenuItemRemoteControl, #MenuItemEffectsConfig, #NavMenuWizards, #btn_open_ledsim, #btn_streamer").hide();
     }
   }
 }
