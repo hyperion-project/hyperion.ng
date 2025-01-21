@@ -241,7 +241,7 @@ $(document).ready(function () {
       $("#dash_ports_proto_row").hide();
     }
 
-    if (jQuery.inArray("boblight", window.serverInfo.services) !== -1) {
+    if (jQuery.inArray("boblight", window.serverInfo.services) !== -1 && window.serverConfig.boblightServer) {
       const boblightPort = window.serverConfig.boblightServer.enable ? window.serverConfig.boblightServer.port : $.i18n('general_disabled');
       $('#dash_boblightPort').html(boblightPort);
     } else {
