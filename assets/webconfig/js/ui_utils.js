@@ -251,7 +251,7 @@ function updateUiOnInstance(inst) {
     $("#active_instance_dropdown").css("pointer-events", "auto");
 
     //Allow to configure an existing instance
-    $("#MenuItemLedInstances").closest("li").show();
+    $("#MenuItemLedInstances").show().closest("li").show();
 
     // Show menue items according to instance's running state
     if (isInstanceRunning(window.currentHyperionInstance)) {
