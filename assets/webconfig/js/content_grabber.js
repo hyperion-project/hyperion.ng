@@ -321,13 +321,14 @@ $(document).ready(function () {
       conf_editor_screen.getEditor("root.framegrabber.fps").setValue(fps);
     });
 
-
     $('#btn_submit_screengrabber').off().on('click', function () {
       var saveOptions = conf_editor_screen.getValue();
-
-      var instCaptOptions = window.serverConfig.instCapture;
-      instCaptOptions.systemEnable = saveOptions.framegrabber.enable;
-      saveOptions.instCapture = instCaptOptions;
+      //If an instance exists, enable/disable grabbing in line with the global state
+      if (window.serverConfig.instCapture) {
+        let instCaptOptions = window.serverConfig.instCapture;
+        instCaptOptions.systemEnable = saveOptions.framegrabber.enable;
+        saveOptions.instCapture = instCaptOptions;
+      }
 
       requestWriteConfig(saveOptions);
     });
@@ -672,9 +673,12 @@ $(document).ready(function () {
     $('#btn_submit_videograbber').off().on('click', function () {
       var saveOptions = conf_editor_video.getValue();
 
-      var instCaptOptions = window.serverConfig.instCapture;
-      instCaptOptions.v4lEnable = saveOptions.grabberV4L2.enable;
-      saveOptions.instCapture = instCaptOptions;
+      //If an instance exists, enable/disable grabbing in line with the global state
+      if (window.serverConfig.instCapture) {
+        let instCaptOptions = window.serverConfig.instCapture;
+        instCaptOptions.v4lEnable = saveOptions.grabberV4L2.enable;
+        saveOptions.instCapture = instCaptOptions;
+      }
 
       requestWriteConfig(saveOptions);
     });
@@ -798,9 +802,12 @@ $(document).ready(function () {
     $('#btn_submit_audiograbber').off().on('click', function () {
       const saveOptions = conf_editor_audio.getValue();
 
-      const instCaptOptions = window.serverConfig.instCapture;
-      instCaptOptions.audioEnable = saveOptions.grabberAudio.enable;
-      saveOptions.instCapture = instCaptOptions;
+      //If an instance exists, enable/disable grabbing in line with the global state
+      if (window.serverConfig.instCapture) {
+        let instCaptOptions = window.serverConfig.instCapture;
+        instCaptOptions.audioEnable = saveOptions.grabberAudio.enable;
+        saveOptions.instCapture = instCaptOptions;
+      }
 
       requestWriteConfig(saveOptions);
     });
