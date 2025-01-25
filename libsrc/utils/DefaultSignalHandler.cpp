@@ -124,7 +124,8 @@ void signal_handler(int signum, siginfo_t * /*info*/, void * /*context*/)
 	}
 
 	write_to_stderr("\n");
-	write_to_stderr("Hyperion caught signal :");
+	write_to_stderr(QCoreApplication::applicationName().toLocal8Bit());
+	write_to_stderr(" caught signal :");
 	write_to_stderr(name);
 	write_to_stderr("\n");
 
