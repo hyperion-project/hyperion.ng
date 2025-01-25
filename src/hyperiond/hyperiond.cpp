@@ -138,6 +138,8 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	connect(this, &HyperionDaemon::videoMode, _instanceManager.get(), &HyperionIManager::newVideoMode);
 
 	createNetworkServices();
+	createNetworkInputCaptureServices();
+
 	startNetworkServices();
 	startEventServices();
 	startGrabberServices();
@@ -150,28 +152,34 @@ HyperionDaemon::~HyperionDaemon()
 
 void HyperionDaemon::handleInstanceStateChange(InstanceState state, quint8 instance)
 {
-	if (instance == 0)
+	switch (state)
 	{
-		switch (state)
-		{
-		case InstanceState::H_STARTING:
-		break;
-		case InstanceState::H_STARTED:
-		break;
-		case InstanceState::H_STOPPED:
-		break;
-		case InstanceState::H_CREATED:
-		break;
-		case InstanceState::H_ON_STOP:
-		break;
-		case InstanceState::H_DELETED:
-		break;
-
-		default:
-			qWarning() << "HyperionDaemon::handleInstanceStateChange - Unhandled state:" << static_cast<int>(state);
-		break;
-		}
+	case InstanceState::H_STARTING:
+	break;
+	case InstanceState::H_STARTED:
+	{
+		startNetworkInputCaptureServices();
 	}
+	break;
+	case InstanceState::H_STOPPED:
+		if(_instanceManager.get()->getRunningInstanceIdx().size() == 0)
+		{
+			stopNetworkInputCaptureServices();
+		}
+
+	break;
+	case InstanceState::H_CREATED:
+	break;
+	case InstanceState::H_ON_STOP:
+	break;
+	case InstanceState::H_DELETED:
+	break;
+
+	default:
+		qWarning() << "HyperionDaemon::handleInstanceStateChange - Unhandled state:" << static_cast<int>(state);
+	break;
+	}
+
 }
 
 void HyperionDaemon::setVideoMode(VideoMode mode)
@@ -281,7 +289,55 @@ void HyperionDaemon::createNetworkServices()
 
 	connect(_sslWebServerThread.get(), &QThread::started, _sslWebServer.get(), &WebServer::initServer);
 	connect(this, &HyperionDaemon::settingsChanged, _sslWebServer.get(), &WebServer::handleSettingsUpdate);
+}
 
+void HyperionDaemon::startNetworkServices()
+{
+	_jsonServerThread->start();
+	_webServerThread->start();
+	_sslWebServerThread->start();
+#if defined(ENABLE_MDNS)
+	_mDnsThread->start();
+#endif
+	_ssdpHandlerThread->start();
+}
+
+void HyperionDaemon::stopNetworkServices()
+{
+#if defined(ENABLE_MDNS)
+	QMetaObject::invokeMethod(_mDNSProvider.get(), &MdnsProvider::stop, Qt::QueuedConnection);
+	if (_mDnsThread->isRunning()) {
+		_mDnsThread->quit();
+		_mDnsThread->wait();
+	}
+#endif
+
+	if (_webServerThread->isRunning()) {
+		_webServerThread->quit();
+		_webServerThread->wait();
+	}
+
+	QMetaObject::invokeMethod(_sslWebServer.get(), &WebServer::stop, Qt::QueuedConnection);
+	if (_sslWebServerThread->isRunning()) {
+		_sslWebServerThread->quit();
+		_sslWebServerThread->wait();
+	}
+
+	if (_jsonServerThread->isRunning()) {
+		_jsonServerThread->quit();
+		_jsonServerThread->wait();
+	}
+	_jsonServer.reset(nullptr);
+
+	QMetaObject::invokeMethod(_ssdpHandler.get(), &SSDPHandler::stop, Qt::QueuedConnection);
+	if (_ssdpHandlerThread->isRunning()) {
+		_ssdpHandlerThread->quit();
+		_ssdpHandlerThread->wait();
+	}
+}
+
+void HyperionDaemon::createNetworkInputCaptureServices()
+{
 #if defined(ENABLE_FLATBUF_SERVER)
 	// Create FlatBuffer server in thread
 	_flatBufferServerThread.reset(new QThread());
@@ -315,73 +371,39 @@ void HyperionDaemon::createNetworkServices()
 #endif
 }
 
-void HyperionDaemon::startNetworkServices()
+void HyperionDaemon::startNetworkInputCaptureServices()
 {
-	_jsonServerThread->start();
-	_webServerThread->start();
-	_sslWebServerThread->start();
-#if defined(ENABLE_MDNS)
-	_mDnsThread->start();
-#endif
-	_ssdpHandlerThread->start();
-
 #if defined(ENABLE_FLATBUF_SERVER)
-	_flatBufferServerThread->start();
+	if (!_flatBufferServerThread->isRunning())
+	{
+		_flatBufferServerThread->start();
+	}
 #endif
 #if defined(ENABLE_PROTOBUF_SERVER)
-	_protoServerThread->start();
+	if (!_protoServerThread->isRunning())
+	{
+		_protoServerThread->start();
+	}
 #endif
 }
 
-void HyperionDaemon::stopNetworkServices()
+void HyperionDaemon::stopNetworkInputCaptureServices()
 {
-
-#if defined(ENABLE_MDNS)
-	QMetaObject::invokeMethod(_mDNSProvider.get(), &MdnsProvider::stop, Qt::QueuedConnection);
-	if (_mDnsThread->isRunning()) {
-		_mDnsThread->quit();
-		_mDnsThread->wait();
-	}
-#endif
-
 #if defined(ENABLE_PROTOBUF_SERVER)
-	QMetaObject::invokeMethod(_protoServer.get(), &ProtoServer::stop, Qt::QueuedConnection);
 	if (_protoServerThread->isRunning()) {
+		QMetaObject::invokeMethod(_protoServer.get(), &ProtoServer::stop, Qt::QueuedConnection);
 		_protoServerThread->quit();
 		_protoServerThread->wait();
 	}
 #endif
 
 #if defined(ENABLE_FLATBUF_SERVER)
-	QMetaObject::invokeMethod(_flatBufferServer.get(), &FlatBufferServer::stop, Qt::QueuedConnection);
 	if (_flatBufferServerThread->isRunning()) {
+		QMetaObject::invokeMethod(_flatBufferServer.get(), &FlatBufferServer::stop, Qt::QueuedConnection);
 		_flatBufferServerThread->quit();
 		_flatBufferServerThread->wait();
 	}
 #endif
-
-	if (_webServerThread->isRunning()) {
-		_webServerThread->quit();
-		_webServerThread->wait();
-	}
-
-	QMetaObject::invokeMethod(_sslWebServer.get(), &WebServer::stop, Qt::QueuedConnection);
-	if (_sslWebServerThread->isRunning()) {
-		_sslWebServerThread->quit();
-		_sslWebServerThread->wait();
-	}
-
-	if (_jsonServerThread->isRunning()) {
-		_jsonServerThread->quit();
-		_jsonServerThread->wait();
-	}
-	_jsonServer.reset(nullptr);
-
-	QMetaObject::invokeMethod(_ssdpHandler.get(), &SSDPHandler::stop, Qt::QueuedConnection);
-	if (_ssdpHandlerThread->isRunning()) {
-		_ssdpHandlerThread->quit();
-		_ssdpHandlerThread->wait();
-	}
 }
 
 void HyperionDaemon::startEventServices()

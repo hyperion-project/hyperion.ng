@@ -191,6 +191,10 @@ private:
 	void startEventServices();
 	void stopEventServices();
 
+	void createNetworkInputCaptureServices();
+	void startNetworkInputCaptureServices();
+	void stopNetworkInputCaptureServices();
+
 	void startGrabberServices();
 	void stopGrabberServices();
 
