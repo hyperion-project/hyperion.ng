@@ -49,14 +49,14 @@ void FlatBufferConnection::connectToRemoteHost()
 	if (_socket.state() == QAbstractSocket::UnconnectedState)
 	{
 		Info(_log, "Connecting to target host: %s, port [%u]", QSTRING_CSTR(_host), _port);
-	   _socket.connectToHost(_host, _port);
+		_socket.connectToHost(_host, _port);
 	}
 }
 
 void FlatBufferConnection::onDisconnected()
 {
 	_isRegistered = false,
-	Info(_log, "Disconnected from target host: %s, port [%u]", QSTRING_CSTR(_host), _port);
+			Info(_log, "Disconnected from target host: %s, port [%u]", QSTRING_CSTR(_host), _port);
 	emit isDisconnected();	isClientRegistered();
 	_timer.start();
 }
@@ -166,10 +166,10 @@ void FlatBufferConnection::readData()
 	while(_receiveBuffer.size() >= 4)
 	{
 		uint32_t messageSize =
-			((_receiveBuffer[0]<<24) & 0xFF000000) |
-			((_receiveBuffer[1]<<16) & 0x00FF0000) |
-			((_receiveBuffer[2]<< 8) & 0x0000FF00) |
-			((_receiveBuffer[3]    ) & 0x000000FF);
+				((_receiveBuffer[0]<<24) & 0xFF000000) |
+				((_receiveBuffer[1]<<16) & 0x00FF0000) |
+				((_receiveBuffer[2]<< 8) & 0x0000FF00) |
+				((_receiveBuffer[3]    ) & 0x000000FF);
 
 		// check if we can read a complete message
 		if((uint32_t) _receiveBuffer.size() < messageSize + 4) return;
@@ -216,18 +216,19 @@ bool FlatBufferConnection::parseReply(const hyperionnet::Reply *reply)
 
 		const auto registered = reply->registered();
 
-		// We got a client is registered reply.
-		if (registered == -1 || registered != _priority)
+		if (!_isRegistered)
 		{
-			_isRegistered = false;
-		}
-		else
-		{
-			if (!_isRegistered)
+			// We got a client is registered reply.
+			if (registered == -1 || registered != _priority)
 			{
+				registerClient(_origin, _priority);
+			}
+			else
+			{
+
 				_timer.stop();
-				Debug(_log,"Client \"%s\" registered successfully with target host: %s, port [%u]", QSTRING_CSTR(_origin), QSTRING_CSTR(_host), _port);
 				_isRegistered = true;
+				Debug(_log,"Client \"%s\" registered successfully with target host: %s, port [%u]", QSTRING_CSTR(_origin), QSTRING_CSTR(_host), _port);
 				emit isReadyToSend();
 			}
 		}
