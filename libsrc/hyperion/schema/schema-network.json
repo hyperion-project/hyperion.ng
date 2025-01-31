@@ -47,11 +47,6 @@
 			"title" : "edt_conf_net_localApiAuth_title",
 			"required" : true,
 			"default" : false,
-			"options": {
-				"dependencies": {
-					"apiAuth": true
-				}
-			},
 			"propertyOrder" : 4
 		}
 	},
