@@ -182,7 +182,7 @@ jobs:
 
       - name: Install Vulkan SDK
         if: ${{ inputs.qt_version == '6' }}
-        uses: jakoch/install-vulkan-sdk-action@v1.0.5
+        uses: jakoch/install-vulkan-sdk-action@v1.0.6
         with:
           install_runtime: false
           cache: true
