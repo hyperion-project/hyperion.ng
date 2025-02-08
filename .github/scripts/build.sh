@@ -3,6 +3,7 @@
 # set environment variables if not exists
 [ -z "${BUILD_TYPE}" ] && BUILD_TYPE="Debug"
 [ -z "${TARGET_ARCH}" ] && TARGET_ARCH="linux/amd64"
+[ -z "${ENTRYPOINT}" ] && ENTRYPOINT=""
 [ -z "${PLATFORM}" ] && PLATFORM="x11"
 
 # Determine cmake build type; tag builds are Release, else Debug (-dev appends to platform)
@@ -39,7 +40,7 @@ elif [[ "$RUNNER_OS" == 'Linux' ]]; then
 	mkdir ${GITHUB_WORKSPACE}/deploy
 
 	# run docker
-	docker run --rm --platform=${TARGET_ARCH} \
+	docker run --rm --platform=${TARGET_ARCH} ${ENTRYPOINT} \
 		-v "${GITHUB_WORKSPACE}/deploy:/deploy" \
 		-v "${GITHUB_WORKSPACE}:/source:rw" \
 		$REGISTRY_URL:$DOCKER_TAG \
