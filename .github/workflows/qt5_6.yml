@@ -84,7 +84,7 @@ jobs:
           DOCKER_IMAGE: ${{ matrix.os.distribution }}
           DOCKER_TAG: ${{ matrix.os.codename }}${{ inputs.qt_version == '6' && '-qt6' || '' }}
           PLATFORM: ${{ matrix.os.platform }}
-          ENTRYPOINT: ${{ matrix.os.architecture[0] != 'amd64' && '--entrypoint /usr/bin/env' || '' }}
+          # ENTRYPOINT: ${{ matrix.os.architecture[0] != 'amd64' && '--entrypoint /usr/bin/env' || '' }}
           TARGET_ARCH: ${{ matrix.os.architecture[1] }}
 
       - name: 📦 Upload
