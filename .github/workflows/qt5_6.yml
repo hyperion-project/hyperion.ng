@@ -36,7 +36,7 @@ jobs:
 
   Linux:
     name: 🐧 ${{ matrix.os.description }}
-    runs-on: ubuntu-22.04
+    runs-on: ${{ matrix.os.architecture[0] == 'amd64' && 'ubuntu-22.04' || 'ubuntu-22.04-arm' }}
     strategy:
       fail-fast: false
       matrix:
@@ -49,6 +49,7 @@ jobs:
           { distribution: debian, codename: bullseye, description: Debian Bullseye (Raspberry Pi 2),              architecture: [ armv7, linux/arm/v7 ], platform: rpi },
           { distribution: debian, codename: bullseye, description: Debian Bullseye (Raspberry Pi 3/4/5 & Zero 2), architecture: [ arm64, linux/arm64  ], platform: rpi }
         ]
+        target_lookup: [{ 'arm64': 'arm64', 'armv6': 'armv6l', 'armv7': 'armv7l' }]
         isQt5:
           - ${{ inputs.qt_version == '5' }}
         exclude:
@@ -80,6 +81,8 @@ jobs:
           DOCKER_IMAGE: ${{ matrix.os.distribution }}
           DOCKER_TAG: ${{ matrix.os.codename }}${{ inputs.qt_version == '6' && '-qt6' || '' }}
           PLATFORM: ${{ matrix.os.platform }}
+          ENTRYPOINT: ${{ matrix.os.architecture[0] != 'amd64' && '--entrypoint /usr/bin/env' || '' }}
+          CPACK_SYSTEM_PROCESSOR: ${{ matrix.os.architecture[0] != 'amd64' && format('-DCPACK_SYSTEM_PROCESSOR={0}', matrix.target_lookup[format('{0}', matrix.os.architecture[0])]) || '' }}
           TARGET_ARCH: ${{ matrix.os.architecture[1] }}
 
       - name: 📦 Upload
@@ -96,8 +99,13 @@ jobs:
 ######################
 
   macOS:
-    name: 🍏 macOS x64
-    runs-on: macos-latest
+    name: 🍏 macOS ${{ matrix.architecture }}
+    runs-on: ${{ matrix.architecture == 'arm64' && 'macos-14' || 'macos-13' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [ arm64, x64 ]
+
     steps:
       - name: ⬇ Checkout
         uses: actions/checkout@v4
@@ -120,11 +128,6 @@ jobs:
             brew install qt@${{ inputs.qt_version }} vulkan-headers ninja libftdi || true
           echo '::endgroup::'
 
-      - name: Temporarily downgrade CMake to 3.28.3 # Please remove if GitHub has updated Cmake (greater than 3.30.0)
-        uses: jwlawson/actions-setup-cmake@v2
-        with:
-          cmake-version: '3.28.3'
-
       - name: 👷 Build
         shell: bash
         run: ./.github/scripts/build.sh
@@ -138,7 +141,7 @@ jobs:
           name: ${{ inputs.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
           path: 'build/Hyperion-*'
         env:
-          NAME: ${{ inputs.qt_version == '6' && 'macOS_x64_qt6' || 'macOS_x64' }}
+          NAME: ${{ inputs.qt_version == '6' && format('macOS_{0}_qt6', matrix.architecture) || format('macOS_{0}', matrix.architecture) }}
 
 ######################
 ###### Windows #######
