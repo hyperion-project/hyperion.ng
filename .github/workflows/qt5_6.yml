@@ -49,6 +49,7 @@ jobs:
           { distribution: debian, codename: bullseye, description: Debian Bullseye (Raspberry Pi 2),              architecture: [ armv7, linux/arm/v7 ], platform: rpi },
           { distribution: debian, codename: bullseye, description: Debian Bullseye (Raspberry Pi 3/4/5 & Zero 2), architecture: [ arm64, linux/arm64  ], platform: rpi }
         ]
+        target_lookup: [{ 'arm64': 'arm64', 'armv6': 'armv6l', 'armv7': 'armv7l' }]
         isQt5:
           - ${{ inputs.qt_version == '5' }}
         exclude:
@@ -73,10 +74,6 @@ jobs:
             fi
           echo '::endgroup::'
 
-      - name: 🛠️ Set up QEMU (Raspberry Pi only)
-        if: matrix.os.platform == 'rpi'
-        uses: docker/setup-qemu-action@v3
-
       - name: 👷 Build
         shell: bash
         run: ./.github/scripts/build.sh
@@ -84,7 +81,8 @@ jobs:
           DOCKER_IMAGE: ${{ matrix.os.distribution }}
           DOCKER_TAG: ${{ matrix.os.codename }}${{ inputs.qt_version == '6' && '-qt6' || '' }}
           PLATFORM: ${{ matrix.os.platform }}
-          # ENTRYPOINT: ${{ matrix.os.architecture[0] != 'amd64' && '--entrypoint /usr/bin/env' || '' }}
+          ENTRYPOINT: ${{ matrix.os.architecture[0] != 'amd64' && '--entrypoint /usr/bin/env' || '' }}
+          CMAKE_SYSTEM_PROCESSOR: ${{ matrix.os.architecture[0] != 'amd64' && format('-DCMAKE_SYSTEM_PROCESSOR={0}', matrix.target_lookup[format('{0}', matrix.os.architecture[0])]) || '' }}
           TARGET_ARCH: ${{ matrix.os.architecture[1] }}
 
       - name: 📦 Upload

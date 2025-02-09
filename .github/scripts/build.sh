@@ -5,6 +5,7 @@
 [ -z "${TARGET_ARCH}" ] && TARGET_ARCH="linux/amd64"
 [ -z "${ENTRYPOINT}" ] && ENTRYPOINT=""
 [ -z "${PLATFORM}" ] && PLATFORM="x11"
+[ -z "${CMAKE_SYSTEM_PROCESSOR}" ] && CMAKE_SYSTEM_PROCESSOR=""
 
 # Determine cmake build type; tag builds are Release, else Debug (-dev appends to platform)
 if [[ $GITHUB_REF == *"refs/tags"* ]]; then
@@ -45,7 +46,7 @@ elif [[ "$RUNNER_OS" == 'Linux' ]]; then
 		-v "${GITHUB_WORKSPACE}:/source:rw" \
 		$REGISTRY_URL:$DOCKER_TAG \
 		/bin/bash -c "mkdir -p /source/build && cd /source/build &&
-		cmake -G Ninja -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. || exit 2 &&
+		cmake -G Ninja -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${CMAKE_SYSTEM_PROCESSOR} .. || exit 2 &&
 		cmake --build . --target package -- -j $(nproc) || exit 3 || : &&
 		cp /source/build/bin/h* /deploy/ 2>/dev/null || : &&
 		cp /source/build/Hyperion-* /deploy/ 2>/dev/null || : &&
