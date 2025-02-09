@@ -99,8 +99,13 @@ jobs:
 ######################
 
   macOS:
-    name: 🍏 macOS x64
-    runs-on: macos-latest
+    name: 🍏 macOS ${{ matrix.architecture }}
+    runs-on: ${{ matrix.architecture == 'arm64' && 'macos-14' || 'macos-13' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [ arm64, x64 ]
+
     steps:
       - name: ⬇ Checkout
         uses: actions/checkout@v4
@@ -136,7 +141,7 @@ jobs:
           name: ${{ inputs.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
           path: 'build/Hyperion-*'
         env:
-          NAME: ${{ inputs.qt_version == '6' && 'macOS_x64_qt6' || 'macOS_x64' }}
+          NAME: ${{ inputs.qt_version == '6' && format('macOS_{0}_qt6', matrix.architecture) || format('macOS_{0}', matrix.architecture) }}
 
 ######################
 ###### Windows #######
