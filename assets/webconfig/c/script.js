@@ -1,7 +1,8 @@
 var VIDEO_WIDTH = 640,
 		VIDEO_HEIGHT = 480,
 		PORTRAIT,
-		FIX = 2;
+		FIX = 2,
+    CURRENT_ADJUSTMENT;
 
 var FAST_COLOR = new FastAverageColor();
 
