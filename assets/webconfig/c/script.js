@@ -2,7 +2,7 @@ var VIDEO_WIDTH = 640,
 		VIDEO_HEIGHT = 480,
 		PORTRAIT,
 		FIX = 2,
-    CURRENT_ADJUSTMENT;
+		CURRENT_ADJUSTMENT;
 
 var FAST_COLOR = new FastAverageColor();
 
@@ -543,8 +543,7 @@ function update_colors() {
 				$('#calibrate_'+CALIBRATION_MODE_AUTO).addClass('auto');
 
 
-			var rgb_multiplier = 1,
-				accuracy_multiplier = [];
+			var accuracy_multiplier = [];
 
 
 			if (CALIBRATION_MODE_AUTO == 'white') {
@@ -570,9 +569,6 @@ function update_colors() {
 			}
 
 			if (CALIBRATION_MODE_AUTO == 'blue') {
-
-				rgb_multiplier = tv_rgb[2] / wall_rgb[2];
-
 				NEW_RGB[0] = Math.round(CURRENT_RGB[0] * tv_rgb[0] / wall_rgb[0]);
 				NEW_RGB[1] = Math.round(CURRENT_RGB[1] * tv_rgb[1] / wall_rgb[1]);
 				NEW_RGB[2] = Math.round(255 * tv_rgb[2] / wall_rgb[2]);
@@ -590,7 +586,7 @@ function update_colors() {
 
 				NEW_RGB[0] = Math.round(255 * tv_rgb[0] / wall_rgb[0]);
 				NEW_RGB[1] = Math.round(Math.max(1, CURRENT_RGB[1]) * tv_rgb[1] / wall_rgb[1]);
-				NEW_RGB[2] = Math.round(255 * tv_rgb[2] / wall_rgb[2])
+				NEW_RGB[2] = Math.round(255 * tv_rgb[2] / wall_rgb[2]);
 
 			}
 
@@ -751,6 +747,6 @@ function rgb_to_lab(r,g,b){
 	x = (x > 0.008856) ? Math.pow(x, 1/3) : (7.787 * x) + 16/116;
 	y = (y > 0.008856) ? Math.pow(y, 1/3) : (7.787 * y) + 16/116;
 	z = (z > 0.008856) ? Math.pow(z, 1/3) : (7.787 * z) + 16/116;
-	return [(116 * y) - 16, 500 * (x - y), 200 * (y - z)]
+	return [(116 * y) - 16, 500 * (x - y), 200 * (y - z)];
 }
 
