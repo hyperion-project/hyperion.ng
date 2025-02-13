@@ -200,7 +200,7 @@ if [ ${CURRENT_ARCHITECTURE} == "aarch64" ]; then
 		   USER_ARCHITECTURE="arm/v6"
 	   fi
 	fi
-    if [ $ARCHITECTURE != $USER_ARCHITECTURE ]; then
+    if [ $CURRENT_ARCHITECTURE != $USER_ARCHITECTURE ]; then
         log "Identified user space current architecture: $USER_ARCHITECTURE"
         CURRENT_ARCHITECTURE=$USER_ARCHITECTURE
     fi
@@ -211,7 +211,7 @@ fi
 log "Identified kernel current architecture: $CURRENT_ARCHITECTURE"
 if [ $ARCHITECTURE != $CURRENT_ARCHITECTURE ]; then
 	echo "---> Build is not for the same architecturem, enable emulation for ${PLATFORM_ARCHITECTURE}"
-	ENTRYPOINT_OPTION=
+	ENTRYPOINT_OPTION="--entrypoint /usr/bin/qemu-static"
 
 	if [ $CURRENT_ARCHITECTURE != "amd64" ]; then
 		echo "---> Emulation builds can only be executed on linux/amd64, linux/x86_64 platforms, current architecture is ${CURRENT_ARCHITECTURE}"
