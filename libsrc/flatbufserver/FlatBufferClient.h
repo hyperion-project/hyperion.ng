@@ -1,19 +1,19 @@
-#pragma once
+#ifndef FLATBUFFERCLIENT_H
+#define FLATBUFFERCLIENT_H
 
 // util
 #include <utils/Logger.h>
 #include <utils/Image.h>
 #include <utils/ColorRgb.h>
-#include <utils/ColorRgba.h>
 #include <utils/Components.h>
 #include "utils/ImageResampler.h"
 
 // flatbuffer FBS
-#include "hyperion_reply_generated.h"
 #include "hyperion_request_generated.h"
 
-class QTcpSocket;
-class QTimer;
+#include <QScopedPointer>
+#include <QTcpSocket>
+#include <QTimer>
 
 namespace flatbuf {
 	class HyperionRequest;
@@ -68,21 +68,20 @@ signals:
 	void clientDisconnected();
 
 public slots:
-	///
-	/// @brief Requests a registration from the client
-	///
-	void registationRequired(int priority);
 
 	///
 	/// @brief close the socket and call disconnected()
 	///
 	void forceClose();
 
+	void noDataReceived();
+
 private slots:
 	///
 	/// @brief Is called whenever the socket got new data to read
 	///
 	void readyRead();
+	void processNextMessage();
 
 	///
 	/// @brief Is called when the socket closed the connection, also requests thread exit
@@ -126,8 +125,10 @@ private:
 
 	///
 	/// Send a message to the connected client
+	/// @param data to be send
+	/// @param size
 	///
-	void sendMessage();
+	void sendMessage(const uint8_t* data, size_t size);
 
 	///
 	/// Send a standard reply indicating success
@@ -139,16 +140,17 @@ private:
 	///
 	/// @param error String describing the error
 	///
-	void sendErrorReply(const std::string & error);
+	void sendErrorReply(const QString& error);
 
 	void processRawImage(const hyperionnet::RawImageT& raw_image, int bytesPerPixel, ImageResampler& resampler, Image<ColorRgb>& outputImage);
 	void processNV12Image(const hyperionnet::NV12ImageT& nv12_image, ImageResampler& resampler, Image<ColorRgb>& outputImage);
 
 private:
-	Logger *_log;
-	QTcpSocket *_socket;
+	Logger * _log;
+	QTcpSocket * _socket;
+	QString _origin;
 	const QString _clientAddress;
-	QTimer *_timeoutTimer;
+	QScopedPointer<QTimer, QScopedPointerDeleteLater> _timeoutTimer;
 	int _timeout;
 	int _priority;
 
@@ -158,4 +160,8 @@ private:
 
 	// Flatbuffers builder
 	flatbuffers::FlatBufferBuilder _builder;
+	bool _processingMessage;
+	QByteArray _lastMessage;
 };
+
+#endif // FLATBUFFERCLIENT_H
