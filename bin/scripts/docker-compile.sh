@@ -200,7 +200,7 @@ if [ ${CURRENT_ARCHITECTURE} == "aarch64" ]; then
 		   USER_ARCHITECTURE="arm/v6"
 	   fi
 	fi
-    if [ $ARCHITECTURE != $USER_ARCHITECTURE ]; then
+    if [ $CURRENT_ARCHITECTURE != $USER_ARCHITECTURE ]; then
         log "Identified user space current architecture: $USER_ARCHITECTURE"
         CURRENT_ARCHITECTURE=$USER_ARCHITECTURE
     fi
