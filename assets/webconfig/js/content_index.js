@@ -15,7 +15,7 @@ $(document).ready(function () {
     handleDarkMode();
   }
 
-  const isMediaStreamingSupported = typeof window.navigator.mediaDevices.getDisplayMedia === 'function';
+  const isMediaStreamingSupported = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
   setStorage('mediaStreamingSupported', isMediaStreamingSupported);
 
   loadContentTo("#container_connection_lost", "connection_lost");
