@@ -1,4 +1,5 @@
 // project includes
+#include "db/SettingsTable.h"
 #include <api/API.h>
 
 // stl includes
@@ -16,6 +17,7 @@
 #include <QSharedPointer>
 
 // hyperion includes
+#include <hyperion/HyperionIManager.h>
 #include <utils/jsonschema/QJsonFactory.h>
 #include <utils/jsonschema/QJsonSchemaChecker.h>
 #include <HyperionConfig.h>
@@ -37,7 +39,12 @@ const int IMAGE_SCALE = 2000;
 }
 
 API::API(Logger *log, bool localConnection, QObject *parent)
-	: QObject(parent)
+	: QObject(parent),
+	_currInstanceIndex (GLOABL_INSTANCE_ID)
+	, _hyperion (nullptr)
+	, _authorized (false)
+	, _adminAuthorized (false)
+	, _localConnection(localConnection)
 {
 	qRegisterMetaType<int64_t>("int64_t");
 	qRegisterMetaType<VideoMode>("VideoMode");
@@ -47,12 +54,6 @@ API::API(Logger *log, bool localConnection, QObject *parent)
 	_log = log;
 	_authManager = AuthManager::getInstance();
 	_instanceManager = HyperionIManager::getInstance();
-	_localConnection = localConnection;
-
-	_authorized = false;
-	_adminAuthorized = false;
-
-	_currInstanceIndex = 0;
 
 	// connect to possible token responses that has been requested
 	connect(_authManager, &AuthManager::tokenResponse, this, [=] (bool success, const QObject *caller, const QString &token, const QString &comment, const QString &tokenId, const int &tan)
@@ -74,7 +75,6 @@ API::API(Logger *log, bool localConnection, QObject *parent)
 
 void API::init()
 {
-	_hyperion = _instanceManager->getHyperionInstance(0);
 	_authorized = false;
 
 	// For security we block external connections, if default PW is set
