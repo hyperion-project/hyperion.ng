@@ -11,10 +11,10 @@ ComponentRegister::ComponentRegister(Hyperion* hyperion)
 	: _hyperion(hyperion)
 	, _log(nullptr)
 {
-	QString subComponent;
+	QString subComponent {"__"};
 	if (_hyperion != nullptr)
 	{
-		hyperion->property("instance").toString();
+		subComponent = hyperion->property("instance").toString();
 	}
 	_log= Logger::getInstance("COMPONENTREG", subComponent);
 
