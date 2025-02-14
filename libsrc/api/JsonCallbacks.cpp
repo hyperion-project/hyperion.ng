@@ -10,6 +10,7 @@
 #include <utils/ColorSys.h>
 #include <hyperion/ImageProcessor.h>
 #include <effectengine/EffectFileHandler.h>
+#include <db/SettingsTable.h>
 
 #include <QDateTime>
 #include <QVariant>
@@ -60,11 +61,14 @@ bool JsonCallbacks::subscribe(const Subscription::Type cmd)
 		}
 		connect(LoggerManager::getInstance().data(), &LoggerManager::newLogMessage, this, &JsonCallbacks::handleLogMessageUpdate);
 	break;
+	case Subscription::SettingsUpdate:
+		connect(HyperionIManager::getInstance(), &HyperionIManager::settingsChanged, this, &JsonCallbacks::handleSettingsChange);
+	break;
 	case Subscription::TokenUpdate:
 		connect(AuthManager::getInstance(), &AuthManager::tokenChange, this, &JsonCallbacks::handleTokenChange, Qt::AutoConnection);
 	break;
 
-	// Instance specific subscriptions
+		// Instance specific subscriptions
 	case Subscription::AdjustmentUpdate:
 		if (!_hyperion.isNull())
 			connect(_hyperion.get(), &Hyperion::adjustmentChanged, this, &JsonCallbacks::handleAdjustmentChange);
@@ -73,7 +77,6 @@ bool JsonCallbacks::subscribe(const Subscription::Type cmd)
 		if (_componentRegister != nullptr)
 			connect(_componentRegister, &ComponentRegister::updatedComponentState, this, &JsonCallbacks::handleComponentState);
 	break;
-
 	case Subscription::ImageToLedMappingUpdate:
 		if (!_hyperion.isNull())
 			connect(_hyperion.get(), &Hyperion::imageToLedsMappingChanged, this, &JsonCallbacks::handleImageToLedsMappingChange);
@@ -82,7 +85,6 @@ bool JsonCallbacks::subscribe(const Subscription::Type cmd)
 		if (!_hyperion.isNull())
 			connect(_hyperion.get(),  &Hyperion::currentImage, this, &JsonCallbacks::handleImageUpdate);
 	break;
-
 	case Subscription::LedColorsUpdate:
 		if (!_hyperion.isNull())
 			connect(_hyperion.get(), &Hyperion::rawLedColors, this, &JsonCallbacks::handleLedColorUpdate);
@@ -94,10 +96,6 @@ bool JsonCallbacks::subscribe(const Subscription::Type cmd)
 	case Subscription::PrioritiesUpdate:
 		if (_prioMuxer != nullptr)
 			connect(_prioMuxer, &PriorityMuxer::prioritiesChanged, this, &JsonCallbacks::handlePriorityUpdate);
-	break;
-	case Subscription::SettingsUpdate:
-		if (!_hyperion.isNull())
-			connect(_hyperion.get(), &Hyperion::settingsChanged, this, &JsonCallbacks::handleSettingsChange);
 	break;
 	case Subscription::VideomodeUpdate:
 		if (!_hyperion.isNull())
@@ -181,11 +179,14 @@ bool JsonCallbacks::unsubscribe(const Subscription::Type cmd)
 			Debug(_log, "log streaming deactivated for client  %s", _peerAddress.toStdString().c_str());
 		}
 	break;
+	case Subscription::SettingsUpdate:
+		disconnect(HyperionIManager::getInstance(), &HyperionIManager::settingsChanged, this, &JsonCallbacks::handleSettingsChange);
+	break;
 	case Subscription::TokenUpdate:
 		disconnect(AuthManager::getInstance(), &AuthManager::tokenChange, this, &JsonCallbacks::handleTokenChange);
 	break;
 
-	// Instance specific subscriptions
+		// Instance specific subscriptions
 	case Subscription::AdjustmentUpdate:
 		if (!_hyperion.isNull())
 			disconnect(_hyperion.get(), &Hyperion::adjustmentChanged, this, &JsonCallbacks::handleAdjustmentChange);
@@ -214,10 +215,6 @@ bool JsonCallbacks::unsubscribe(const Subscription::Type cmd)
 	case Subscription::PrioritiesUpdate:
 		if (_prioMuxer != nullptr)
 			disconnect(_prioMuxer, &PriorityMuxer::prioritiesChanged, this, &JsonCallbacks::handlePriorityUpdate);
-	break;
-	case Subscription::SettingsUpdate:
-		if (!_hyperion.isNull())
-			disconnect(_hyperion.get(), &Hyperion::settingsChanged, this, &JsonCallbacks::handleSettingsChange);
 	break;
 	case Subscription::VideomodeUpdate:
 		if (!_hyperion.isNull())
@@ -276,7 +273,7 @@ void JsonCallbacks::resetSubscriptions()
 	}
 }
 
-void JsonCallbacks::setSubscriptionsTo(QSharedPointer<Hyperion> hyperion)
+void JsonCallbacks::setSubscriptionsTo(quint8 instanceID)
 {
 	// get current subscriptions
 	const QSet<Subscription::Type> currSubs(_subscribedCommands);
@@ -284,7 +281,9 @@ void JsonCallbacks::setSubscriptionsTo(QSharedPointer<Hyperion> hyperion)
 	// stop subs
 	resetSubscriptions();
 
+	_instanceID = instanceID;
 	// update pointer
+	QSharedPointer<Hyperion> const hyperion =  HyperionIManager::getInstance()->getHyperionInstance(instanceID);
 	if (!hyperion.isNull() && hyperion != _hyperion)
 	{
 		_hyperion = hyperion;
@@ -341,7 +340,10 @@ void JsonCallbacks::doCallback(Subscription::Type cmd, const QJsonArray& data)
 
 	if (Subscription::isInstanceSpecific(cmd))
 	{
-		obj.insert("instance", _hyperion->getInstanceIndex());
+		if (_instanceID != GLOABL_INSTANCE_ID)
+		{
+			obj.insert("instance", _instanceID);
+		}
 	}
 	obj.insert("data", data);
 
@@ -355,7 +357,10 @@ void JsonCallbacks::doCallback(Subscription::Type cmd, const QJsonObject& data)
 
 	if (Subscription::isInstanceSpecific(cmd))
 	{
-		obj.insert("instance", _hyperion->getInstanceIndex());
+		if (_instanceID != GLOABL_INSTANCE_ID)
+		{
+			obj.insert("instance", _instanceID);
+		}
 	}
 	obj.insert("data", data);
 
