@@ -35,7 +35,10 @@ QSharedPointer<Hyperion> HyperionIManager::getHyperionInstance(quint8 instanceId
 
 	if (!_runningInstances.isEmpty())
 	{
-		Warning(_log,"The requested instance index '%d' with name '%s' isn't running", instanceId, QSTRING_CSTR(_instanceTable->getNamebyIndex(instanceId)));
+		if (instanceId != GLOABL_INSTANCE_ID )
+		{
+			Warning(_log,"The requested instance index '%d' with name '%s' isn't running", instanceId, QSTRING_CSTR(_instanceTable->getNamebyIndex(instanceId)));
+		}
 	}
 	return pInstance;
 }
@@ -307,7 +310,6 @@ void HyperionIManager::handleFinished(const QString& name)
 		_runningInstances.remove(instanceId);
 
 		emit instanceStateChanged(InstanceState::H_STOPPED, instanceId);
-		disconnect(hyperion, nullptr);
 		emit change();
 	}
 
