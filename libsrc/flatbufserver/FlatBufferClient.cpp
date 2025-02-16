@@ -6,6 +6,7 @@
 #include <QTimer>
 #include <QRgb>
 #include <QtEndian>
+#include <QHostAddress>
 
 #include "hyperion_reply_generated.h"
 
