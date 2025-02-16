@@ -123,7 +123,6 @@ private:
 	///
 	void handleImageCommand(const QJsonObject &message, const JsonApiCommand& cmd);
 
-#if defined(ENABLE_EFFECTENGINE)
 	///
 	/// Handle an incoming JSON Effect message
 	///
@@ -144,7 +143,6 @@ private:
 	/// @param message the incoming message
 	///
 	void handleDeleteEffectCommand(const QJsonObject &message, const JsonApiCommand& cmd);
-#endif
 
 	///
 	/// Handle an incoming JSON System info message

@@ -331,7 +331,6 @@ void JsonAPI::handleCommand(const JsonApiCommand& cmd, const QJsonObject &messag
 	case Command::Image:
 		handleImageCommand(message, cmd);
 	break;
-#if defined(ENABLE_EFFECTENGINE)
 	case Command::Effect:
 		handleEffectCommand(message, cmd);
 	break;
@@ -341,7 +340,6 @@ void JsonAPI::handleCommand(const JsonApiCommand& cmd, const QJsonObject &messag
 	case Command::DeleteEffect:
 		handleDeleteEffectCommand(message, cmd);
 	break;
-#endif
 	case Command::SysInfo:
 		handleSysInfoCommand(message, cmd);
 	break;
@@ -446,9 +444,11 @@ void JsonAPI::handleImageCommand(const QJsonObject &message, const JsonApiComman
 	}
 }
 
-#if defined(ENABLE_EFFECTENGINE)
 void JsonAPI::handleEffectCommand(const QJsonObject &message, const JsonApiCommand& cmd)
 {
+#if not defined(ENABLE_EFFECTENGINE)
+	sendErrorReply("Effects are not supported by this installation!", cmd);
+#else
 	emit forwardJsonMessage(message, _currInstanceIndex);
 
 	EffectCmdData dat;
@@ -465,20 +465,28 @@ void JsonAPI::handleEffectCommand(const QJsonObject &message, const JsonApiComma
 	} else {
 		sendErrorReply("Effect '" + dat.effectName + "' not found", cmd);
 	}
+#endif
 }
 
 void JsonAPI::handleCreateEffectCommand(const QJsonObject &message, const JsonApiCommand& cmd)
 {
+#if not defined(ENABLE_EFFECTENGINE)
+	sendErrorReply("Effects are not supported by this installation!", cmd);
+#else
 	const QString resultMsg = EffectFileHandler::getInstance()->saveEffect(message);
 	resultMsg.isEmpty() ? sendSuccessReply(cmd) : sendErrorReply(resultMsg, cmd);
+#endif
 }
 
 void JsonAPI::handleDeleteEffectCommand(const QJsonObject &message, const JsonApiCommand& cmd)
 {
+#if not defined(ENABLE_EFFECTENGINE)
+	sendErrorReply("Effects are not supported by this installation!", cmd);
+#else
 	const QString resultMsg = EffectFileHandler::getInstance()->deleteEffect(message["name"].toString());
 	resultMsg.isEmpty() ? sendSuccessReply(cmd) : sendErrorReply(resultMsg, cmd);
-}
 #endif
+}
 
 void JsonAPI::handleSysInfoCommand(const QJsonObject & /*unused*/, const JsonApiCommand& cmd)
 {

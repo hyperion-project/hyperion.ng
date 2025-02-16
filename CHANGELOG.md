@@ -61,6 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Generate random TANs for every API request from the Hyperion UI
 - Fixed: Handling of IP4 addresses wrapped in IPv6 for external network connections-
 - Fixed: Local Admin API Authentication rejects valid tokens (#1251)
+- Fixed: Create a proper API response, when Effects are not part of a build
 
 ### Removed
 
