@@ -26,6 +26,8 @@
       },
       "forwarder":{
          "enable":false,
+         "instance":255,
+         "instanceList": "NONE",
          "jsonapi":[],
          "flatbuffer":[]
       },

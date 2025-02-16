@@ -103,6 +103,9 @@ class PythonInit;
 class SSDPHandler;
 class FlatBufferServer;
 class ProtoServer;
+#if defined(ENABLE_FORWARDER)
+class MessageForwarder;
+#endif
 class AuthManager;
 class NetOrigin;
 class CECHandler;
@@ -195,6 +198,10 @@ private:
 	void startNetworkInputCaptureServices();
 	void stopNetworkInputCaptureServices();
 
+	void createNetworkOutputServices();
+	void startNetworkOutputServices();
+	void stopNetworkOutputServices();
+
 	void startGrabberServices();
 	void stopGrabberServices();
 
@@ -271,6 +278,10 @@ private:
 #if defined(ENABLE_PROTOBUF_SERVER)
 	QScopedPointer<ProtoServer, QScopedPointerDeleteLater> _protoServer;
 	QScopedPointer<QThread> _protoServerThread;
+#endif
+#if defined(ENABLE_FORWARDER)
+	QScopedPointer<MessageForwarder, QScopedPointerDeleteLater> _messageForwarder;
+	QScopedPointer<QThread> _messageForwarderThread;
 #endif
 
 	/// Event services

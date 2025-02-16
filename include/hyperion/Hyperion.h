@@ -41,9 +41,6 @@
 class HyperionDaemon;
 class HyperionIManager;
 class ImageProcessor;
-#if defined(ENABLE_FORWARDER)
-class MessageForwarder;
-#endif
 class LinearColorSmoothing;
 #if defined(ENABLE_EFFECTENGINE)
 class EffectEngine;
@@ -424,9 +421,6 @@ signals:
 	///
 	void currentImage(const Image<ColorRgb> & image);
 
-	/// Signal which is emitted, when a new json message should be forwarded
-	void forwardJsonMessage(QJsonObject);
-
 	/// Signal which is emitted, when a new system proto image should be forwarded
 	void forwardSystemProtoMessage(const QString&, const Image<ColorRgb>&);
 
@@ -563,11 +557,6 @@ private:
 #if defined(ENABLE_EFFECTENGINE)
 	/// Effect engine
 	QScopedPointer<EffectEngine, QScopedPointerDeleteLater> _effectEngine;
-#endif
-
-#if defined(ENABLE_FORWARDER)
-	// Message forwarder
-	QScopedPointer<MessageForwarder, QScopedPointerDeleteLater> _messageForwarder;
 #endif
 
 	/// Logger instance

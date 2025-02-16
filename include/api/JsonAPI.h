@@ -89,7 +89,7 @@ signals:
 	///
 	/// Signal emits whenever a JSON-message should be forwarded
 	///
-	void forwardJsonMessage(QJsonObject);
+	void forwardJsonMessage(const QJsonObject, quint8);
 
 	///
 	/// Signal emits whenever a hyperion event request for all instances should be forwarded

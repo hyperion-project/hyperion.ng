@@ -50,6 +50,11 @@
 #include <protoserver/ProtoServer.h>
 #endif
 
+// Message Forwarder
+#if defined(ENABLE_FORWARDER)
+#include <forwarder/MessageForwarder.h>
+#endif
+
 // ssdp
 #include <ssdp/SSDPHandler.h>
 
@@ -139,10 +144,13 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 
 	createNetworkServices();
 	createNetworkInputCaptureServices();
+	createNetworkOutputServices();
 
 	startNetworkServices();
 	startEventServices();
 	startGrabberServices();
+
+	startNetworkOutputServices();
 }
 
 HyperionDaemon::~HyperionDaemon()
@@ -159,14 +167,17 @@ void HyperionDaemon::handleInstanceStateChange(InstanceState state, quint8 insta
 	case InstanceState::H_STARTED:
 	{
 		startNetworkInputCaptureServices();
+		_messageForwarder->connect(instance);
 	}
 	break;
 	case InstanceState::H_STOPPED:
-		if(_instanceManager.get()->getRunningInstanceIdx().size() == 0)
+		_messageForwarder->disconnect(instance);
+
+		if(_instanceManager->getRunningInstanceIdx().empty())
 		{
+			stopNetworkOutputServices();
 			stopNetworkInputCaptureServices();
 		}
-
 	break;
 	case InstanceState::H_CREATED:
 	break;
@@ -402,6 +413,41 @@ void HyperionDaemon::stopNetworkInputCaptureServices()
 		QMetaObject::invokeMethod(_flatBufferServer.get(), &FlatBufferServer::stop, Qt::QueuedConnection);
 		_flatBufferServerThread->quit();
 		_flatBufferServerThread->wait();
+	}
+#endif
+}
+
+void HyperionDaemon::createNetworkOutputServices()
+{
+#if defined(ENABLE_FORWARDER)
+	// Create Message Forwarder in thread
+	_messageForwarderThread.reset(new QThread());
+	_messageForwarderThread->setObjectName("MessageForwarderThread");
+	_messageForwarder.reset(new MessageForwarder(getSetting(settings::NETFORWARD)));
+	_messageForwarder->moveToThread(_messageForwarderThread.get());
+
+	connect(_messageForwarderThread.get(), &QThread::started, _messageForwarder.get(), &MessageForwarder::init);
+	connect(this, &HyperionDaemon::settingsChanged, _messageForwarder.get(), &MessageForwarder::handleSettingsUpdate);
+#endif
+}
+
+void HyperionDaemon::startNetworkOutputServices()
+{
+#if defined(ENABLE_FORWARDER)
+	if (!_messageForwarderThread->isRunning())
+	{
+		_messageForwarderThread->start();
+	}
+#endif
+}
+
+void HyperionDaemon::stopNetworkOutputServices()
+{
+#if defined(ENABLE_FORWARDER)
+	if (_messageForwarderThread->isRunning()) {
+		QMetaObject::invokeMethod(_messageForwarder.get(), &MessageForwarder::stop, Qt::QueuedConnection);
+		_messageForwarderThread->quit();
+		_messageForwarderThread->wait();
 	}
 #endif
 }

@@ -299,7 +299,7 @@ $(document).ready(function () {
     // Define conditions to skip certain components
     const skipConditions = {
       "ALL": false,
-      "FORWARDER": window.currentHyperionInstance !== 0,
+      "FORWARDER": window.currentHyperionInstance !== window.serverConfig.forwarder.instance,
       "GRABBER": !window.serverConfig.framegrabber.enable,
       "V4L": !window.serverConfig.grabberV4L2.enable,
       "AUDIO": !window.serverConfig.grabberAudio.enable

@@ -116,7 +116,7 @@ $(document).ready(function () {
 
         // Skip unwanted components
         if (componentName === "ALL" ||
-          (componentName === "FORWARDER" && window.currentHyperionInstance != 0) ||
+          (componentName === "FORWARDER" && window.currentHyperionInstance !== window.serverConfig.forwarder.instance) ||
           (componentName === "GRABBER" && !window.serverConfig.framegrabber.enable) ||
           (componentName === "V4L" && !window.serverConfig.grabberV4L2.enable) ||
           (componentName === "AUDIO" && !window.serverConfig.grabberAudio.enable)) {

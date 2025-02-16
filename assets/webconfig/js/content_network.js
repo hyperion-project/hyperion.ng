@@ -42,7 +42,6 @@ $(document).ready(function () {
       $(`#${containerId}`)
         .append(createOptPanel('fa-sitemap', $.i18n(titleKey), `editor_container_${id}`, `btn_submit_${id}`, 'panel-system'))
         .append(createHelpTable(schemaProps, $.i18n(titleKey), helpPanelId));
-
     }
 
     function appendPanel(id, titleKey) {
@@ -84,33 +83,107 @@ $(document).ready(function () {
 
     function handleFlatbufChange(editor) {
       editor.on('change', () => toggleHelpPanel(editor, "flatbufServer", "flatbufServerHelpPanelId"));
+
+      editor.watch('root.flatbufServer.enable', () => {
+        const enable = editor.getEditor("root.flatbufServer.enable").getValue();
+        showInputOptionsForKey(editor, "flatbufServer", "enable", enable);
+      });
     }
 
     function handleProtoBufChange(editor) {
       editor.on('change', () => toggleHelpPanel(editor, "protoServer", "protoServerHelpPanelId"));
+
+      editor.watch('root.protoServer.enable', () => {
+        const enable = editor.getEditor("root.protoServer.enable").getValue();
+        showInputOptionsForKey(editor, "protoServer", "enable", enable);
+      });
+    }
+
+    function updateConfiguredInstancesList() {
+      const enumVals = [];
+      const enumTitelVals = [];
+      let enumDefaultVal = "";
+      let addSelect = false;
+
+      const configuredInstances = window.serverInfo.instance;
+
+      if (!configuredInstances || Object.keys(configuredInstances).length === 0) {
+        enumVals.push("NONE");
+        enumTitelVals.push(i18n.t('edt_conf_fw_no_instance_configured_title'));
+      } else {
+        Object.values(configuredInstances).forEach(({ friendly_name, instance }) => {
+          enumTitelVals.push(friendly_name);
+          enumVals.push(instance.toString());
+        });
+
+        const configuredInstance = window.serverConfig.forwarder.instance.toString();
+
+        if (enumVals.includes(configuredInstance)) {
+          enumDefaultVal = configuredInstance;
+        } else {
+          addSelect = true;
+        }
+      }
+
+      if (enumVals.length > 0) {
+        updateJsonEditorSelection(editors["forwarder"], 'root.forwarder',
+          'instanceList', {}, enumVals, enumTitelVals, enumDefaultVal, addSelect, false);
+      }
     }
 
     function handleForwarderChange(editor) {
       editor.on('ready', () => {
         updateServiceCacheForwarderConfiguredItems("jsonapi");
         updateServiceCacheForwarderConfiguredItems("flatbuffer");
+
         if (editor.getEditor("root.forwarder.enable").getValue()) {
+          updateConfiguredInstancesList();
           discoverRemoteHyperionServices("jsonapi");
           discoverRemoteHyperionServices("flatbuffer");
+        } else {
+          showInputOptionsForKey(editor, "forwarder", "enable", false);
         }
       });
 
-      editor.on('change', () => toggleHelpPanel(editor, "forwarder", "forwarderHelpPanelId"));
+      editor.on('change', () => {
+        toggleHelpPanel(editor, "forwarder", "forwarderHelpPanelId");
+      });
 
-      ["jsonapi", "flatbuffer"].forEach((type) => {
-        editor.watch(`root.forwarder.${type}select`, () => updateForwarderServiceSections(type));
-        editor.watch(`root.forwarder.${type}`, () => onChangeForwarderServiceSections(type));
+      ["jsonapi", "flatbuffer"].forEach(function (type) {
+        editor.watch(`root.forwarder.${type}select`, () => {
+          updateForwarderServiceSections(type);
+        });
+        editor.watch(`root.forwarder.${type}`, () => {
+          onChangeForwarderServiceSections(type);
+        });
       });
 
       editor.watch('root.forwarder.enable', () => {
-        if (editor.getEditor("root.forwarder.enable").getValue()) {
+        const isEnabled = editor.getEditor("root.forwarder.enable").getValue();
+        if (isEnabled) {
+
+          updateConfiguredInstancesList();
+
+          const instanceId = editor.getEditor("root.forwarder.instanceList").getValue();
+          if (["NONE", "SELECT", "", undefined].includes(instanceId)) {
+            editor.getEditor("root.forwarder.instance").setValue(-1);
+          }
+
           discoverRemoteHyperionServices("jsonapi");
           discoverRemoteHyperionServices("flatbuffer");
+        } else {
+          const instance = editor.getEditor("root.forwarder.instance").getValue();
+          if (instance === -1) {
+            editor.getEditor("root.forwarder.instance").setValue(255);
+          }
+        }
+        showInputOptionsForKey(editor, "forwarder", "enable", isEnabled);
+      });
+
+      editor.watch('root.forwarder.instanceList', () => {
+        const instanceId = editor.getEditor("root.forwarder.instanceList").getValue();
+        if (!["NONE", "SELECT", "", undefined].includes(instanceId)) {
+          editor.getEditor("root.forwarder.instance").setValue(parseInt(instanceId, 10));
         }
       });
     }
@@ -118,7 +191,6 @@ $(document).ready(function () {
     function toggleHelpPanel(editor, key, panelId) {
       const enable = editor.getEditor(`root.${key}.enable`).getValue();
       $(`#${panelId}`).toggle(enable);
-      showInputOptionsForKey(editor, key, "enable", enable);
     }
   }
 
@@ -182,7 +254,6 @@ $(document).ready(function () {
     }
   }
 
-
   function onChangeForwarderServiceSections(type) {
     const editor = editors["forwarder"].getEditor(`root.forwarder.${type}`);
     const configuredServices = JSON.parse(JSON.stringify(editor?.getValue('items')));
@@ -193,6 +264,10 @@ $(document).ready(function () {
 
       if (service?.wasDiscovered) {
         itemEditor?.disable();
+
+        const instanceIdsEditor = editors["forwarder"].getEditor(`root.forwarder.${type}.${i}.instanceIds`);
+        instanceIdsEditor?.enable();
+
         showInputOptions(`root.forwarder.${type}.${i}`, ["name"], true);
       } else {
         itemEditor?.enable();
@@ -213,7 +288,7 @@ $(document).ready(function () {
     const editorPath = `root.forwarder.${type}`;
     const selectedServices = editors["forwarder"].getEditor(`${editorPath}select`).getValue();
 
-    if (jQuery.isEmptyObject(selectedServices) || selectedServices[0] === "NONE") {
+    if (!selectedServices || selectedServices.length === 0 || ["NONE", "SELECT"].includes(selectedServices[0])) {
       return;
     }
 
@@ -223,36 +298,34 @@ $(document).ready(function () {
         name: service.name,
         host: service.host,
         port: service.port,
+        instanceIds: service.instanceIds,
         wasDiscovered: service.wasDiscovered
       };
     });
 
     editors["forwarder"].getEditor(editorPath).setValue(newServices);
-    showInputOptionForItem(editors["forwarder"], "forwarder", type, true);
   }
 
   function updateForwarderSelectList(type) {
-    const selectionElement = type + "select";
+    const selectionElement = `${type}select`;
 
-    let enumVals = [];
-    let enumTitleVals = [];
-    let enumDefaultVals = [];
+    const enumVals = [];
+    const enumTitleVals = [];
+    const enumDefaultVals = [];
 
-    for (let key in discoveredRemoteServices[type]) {
-      const service = discoveredRemoteServices[type][key];
+    Object.values(discoveredRemoteServices[type]).forEach(service => {
       enumVals.push(service.host);
       enumTitleVals.push(service.name);
-
-      if (service.inConfig === true) {
+      if (service.inConfig) {
         enumDefaultVals.push(service.host);
       }
-    }
+    });
 
-    let addSchemaElements = { "uniqueItems": true };
+    const addSchemaElements = { "uniqueItems": true };
 
-    if (jQuery.isEmptyObject(enumVals)) {
+    if (enumVals.length === 0) {
       enumVals.push("NONE");
-      enumTitleVals.push($.i18n('edt_conf_fw_remote_service_discovered_none'));
+      enumTitleVals.push(i18n.t('edt_conf_fw_remote_service_discovered_none'));
     }
 
     updateJsonEditorMultiSelection(
@@ -275,7 +348,6 @@ $(document).ready(function () {
       }
 
       const configuredServices = JSON.parse(JSON.stringify(editor.getValue('items')));
-
       configuredServices.forEach((service) => {
         service.inConfig = true;
         let existingService = discoveredRemoteServices[serviceType][service.host] || {};
@@ -283,7 +355,6 @@ $(document).ready(function () {
       });
     }
   }
-
 
   function updateRemoteServiceCache(discoveryInfo) {
     Object.entries(discoveryInfo).forEach(([serviceType, discoveredServices]) => {
@@ -295,8 +366,12 @@ $(document).ready(function () {
           service.host = service.service || service.host;
           service.wasDiscovered = Boolean(service.service);
 
+          // Might be updated when instance IDs are provided by the remote service info
+          service.instanceIds = [];
+
           if (discoveredRemoteServices[serviceType][service.host]) {
             service.inConfig = true;
+            service.instanceIds = discoveredRemoteServices[serviceType][service.host].instanceIds;
           }
 
           discoveredRemoteServices[serviceType][service.host] = service;

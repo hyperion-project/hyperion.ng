@@ -10,10 +10,6 @@
 // hyperion include
 #include <hyperion/Hyperion.h>
 
-#if defined(ENABLE_FORWARDER)
-#include <forwarder/MessageForwarder.h>
-#endif
-
 #include <hyperion/ImageProcessor.h>
 #include <hyperion/ColorAdjustment.h>
 
@@ -69,9 +65,6 @@ Hyperion::Hyperion(quint8 instance, QObject* parent)
 #if defined(ENABLE_EFFECTENGINE)
 	, _effectEngine(nullptr)
 #endif
-#if defined(ENABLE_FORWARDER)
-	, _messageForwarder(nullptr)
-#endif
 	, _log(nullptr)
 	, _hwLedCount(0)
 	, _layoutLedCount(0)
@@ -106,7 +99,7 @@ void Hyperion::start()
 
 	_settingsManager.reset(new SettingsManager(_instIndex, this));
 
-	// forward settings changed to Hyperion
+	// link settings changed with the current Hyperion instance
 	connect(_settingsManager.get(), &SettingsManager::settingsChanged, this, &Hyperion::settingsChanged);
 	// listen for settings updates of this instance (LEDS & COLOR)
 	connect(_settingsManager.get(), &SettingsManager::settingsChanged, this, &Hyperion::handleSettingsUpdate);
@@ -150,18 +143,6 @@ void Hyperion::start()
 	
 	_muxer->start();
 
-#if defined(ENABLE_FORWARDER)
-	// create the message forwarder only on main instance
-	if (_instIndex == 0)
-	{
-		_messageForwarder.reset(new MessageForwarder(this));
-		_messageForwarder->handleSettingsUpdate(settings::NETFORWARD, getSetting(settings::NETFORWARD));
-		#if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
-		connect(GlobalSignals::getInstance(), &GlobalSignals::setBufferImage, this, &Hyperion::forwardBufferMessage);
-		#endif
-	}
-#endif
-
 #if defined(ENABLE_EFFECTENGINE)
 	// create the effect engine; needs to be initialized after smoothing!
 	_effectEngine.reset(new EffectEngine(this));
@@ -177,7 +158,7 @@ void Hyperion::start()
 	// create the Daemon capture interface
 	_captureCont.reset(new CaptureCont(this));
 
-	// forwards global signals to the corresponding slots
+	// link global signals with the corresponding slots
 	connect(GlobalSignals::getInstance(), &GlobalSignals::registerGlobalInput, this, &Hyperion::registerInput);
 	connect(GlobalSignals::getInstance(), &GlobalSignals::clearGlobalInput, this, &Hyperion::clear);
 	connect(GlobalSignals::getInstance(), &GlobalSignals::setGlobalColor, this, &Hyperion::setColor);
@@ -211,13 +192,6 @@ void Hyperion::stop(const QString name)
 
 	//Disconnect Background effect first that it does not kick in when other priorities are stopped
 	_BGEffectHandler->disconnect();
-
-#if defined(ENABLE_FORWARDER)
-	if( _messageForwarder != nullptr) // Message Forwarder is not created for all instances
-	{
-		_messageForwarder->stop();
-	}
-#endif
 
 #if defined(ENABLE_BOBLIGHT_SERVER)
 	_boblightServer->stop();
