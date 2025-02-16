@@ -175,7 +175,7 @@ void HyperionDaemon::handleInstanceStateChange(InstanceState state, quint8 insta
 
 		if(_instanceManager->getRunningInstanceIdx().empty())
 		{
-			stopNetworkOutputServices();
+			_messageForwarder->stop();
 			stopNetworkInputCaptureServices();
 		}
 	break;
@@ -220,6 +220,7 @@ void HyperionDaemon::stopServices()
 	_instanceManager->stopAll();
 	loopLedDevice.exec();
 
+	stopNetworkOutputServices();
 	stopNetworkServices();
 
 #if defined(ENABLE_EFFECTENGINE)
@@ -443,6 +444,7 @@ void HyperionDaemon::startNetworkOutputServices()
 
 void HyperionDaemon::stopNetworkOutputServices()
 {
+	QMetaObject::invokeMethod(_messageForwarder.get(), &MessageForwarder::stop, Qt::QueuedConnection);
 #if defined(ENABLE_FORWARDER)
 	if (_messageForwarderThread->isRunning()) {
 		QMetaObject::invokeMethod(_messageForwarder.get(), &MessageForwarder::stop, Qt::QueuedConnection);
