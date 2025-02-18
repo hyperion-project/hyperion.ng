@@ -204,11 +204,16 @@ $(document).ready(function () {
     $("#conf_cont_tok").insertAfter("#conf_cont_network");
 
     // Initial state check based on server config
-    checkApiTokenState(window.serverConfig.network.localApiAuth);
+    checkApiTokenState(window.serverConfig.network.internetAccessAPI || window.serverConfig.network.localApiAuth);
 
+    // Listen for changes on the Internet access API Auth toggle
+    $('#root_network_internetAccessAPI').on("change", function () {
+      checkApiTokenState($(this).is(":checked") || $('#root_network_localApiAuth').is(":checked"));
+    });
+    
     // Listen for changes on the local API Auth toggle
     $('#root_network_localApiAuth').on("change", function () {
-      checkApiTokenState($(this).is(":checked"));
+      checkApiTokenState($(this).is(":checked") || $('#root_network_internetAccessAPI').is(":checked"));
     });
 
     $('#btn_create_tok').off().on('click', function () {
