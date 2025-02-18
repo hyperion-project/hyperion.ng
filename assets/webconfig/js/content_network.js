@@ -109,7 +109,7 @@ $(document).ready(function () {
 
       if (!configuredInstances || Object.keys(configuredInstances).length === 0) {
         enumVals.push("NONE");
-        enumTitelVals.push(i18n.t('edt_conf_fw_no_instance_configured_title'));
+        enumTitelVals.push($.i18n('edt_conf_fw_no_instance_configured_title'));
       } else {
         Object.values(configuredInstances).forEach(({ friendly_name, instance }) => {
           enumTitelVals.push(friendly_name);

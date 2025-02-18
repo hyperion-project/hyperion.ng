@@ -1515,10 +1515,10 @@ void JsonAPI::handleServiceCommand(const QJsonObject &message, const JsonApiComm
 		{
 			QJsonArray serviceList;
 #ifdef ENABLE_MDNS
-			QMetaObject::invokeMethod(MdnsBrowser::getInstance().data(), "browseForServiceType",
+			QMetaObject::invokeMethod(MdnsBrowser::getInstance(), "browseForServiceType",
 									  Qt::QueuedConnection, Q_ARG(QByteArray, serviceType));
 
-			serviceList = MdnsBrowser::getInstance().data()->getServicesDiscoveredJson(serviceType, MdnsServiceRegister::getServiceNameFilter(type), DEFAULT_DISCOVER_TIMEOUT);
+			serviceList = MdnsBrowser::getInstance()->getServicesDiscoveredJson(serviceType, MdnsServiceRegister::getServiceNameFilter(type), DEFAULT_DISCOVER_TIMEOUT);
 #endif
 			QJsonObject servicesDiscovered;
 			QJsonObject servicesOfType;
@@ -1571,7 +1571,7 @@ QJsonObject JsonAPI::getBasicCommandReply(bool success, const QString &command, 
 	reply["command"] = command;
 	reply["tan"] = tan;
 
-	if (isInstanceCmd == InstanceCmd::Yes || ( isInstanceCmd == InstanceCmd::Multi && !_noListener))
+	if ((_currInstanceIndex != GLOABL_INSTANCE_ID) && (isInstanceCmd == InstanceCmd::Yes || ( isInstanceCmd == InstanceCmd::Multi && !_noListener)))
 	{
 		reply["instance"] = _currInstanceIndex;
 	}
