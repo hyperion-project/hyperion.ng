@@ -4,6 +4,7 @@
         <file alias="schema-color">JSONRPC_schema/schema-color.json</file>
         <file alias="schema-image">JSONRPC_schema/schema-image.json</file>
         <file alias="schema-serverinfo">JSONRPC_schema/schema-serverinfo.json</file>
+        <file alias="schema-getcurrentimage">JSONRPC_schema/schema-getcurrentimage.json</file>
         <file alias="schema-sysinfo">JSONRPC_schema/schema-sysinfo.json</file>
         <file alias="schema-clear">JSONRPC_schema/schema-clear.json</file>
         <file alias="schema-clearall">JSONRPC_schema/schema-clearall.json</file>

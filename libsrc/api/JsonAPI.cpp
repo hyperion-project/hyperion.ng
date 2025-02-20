@@ -393,9 +393,51 @@ void JsonAPI::handleCommand(const JsonApiCommand& cmd, const QJsonObject &messag
 		sendErrorReply("The command is deprecated, please use the Hyperion Web Interface to configure", cmd);
 	break;
 		// END
+	case Command::GetCurrentImage:
+		handleGetCurrentImageCommand(message, cmd);
+	break;
 	default:
 	break;
 	}
+}
+
+void JsonAPI::handleGetCurrentImageCommand(const QJsonObject &message, const JsonApiCommand& cmd)
+{
+	QString replyMsg;
+	
+	Debug(_log, "Get image command received");
+	QString savePath = message["path"].toString();
+	
+	Debug(_log,"Save path: %s", QSTRING_CSTR(savePath));
+	
+	int priority = _hyperion->getCurrentPriority();
+	const PriorityMuxer::InputInfo priorityInfo = _hyperion->getPriorityInfo(priority);
+	Image<ColorRgb> image = priorityInfo.image;
+
+	QImage jpgImage(reinterpret_cast<const uchar*>(image.memptr()), image.width(), image.height(), qsizetype(3) * image.width(), QImage::Format_RGB888);
+	QByteArray byteArray;
+	QBuffer buffer(&byteArray);
+	buffer.open(QIODevice::WriteOnly);
+	jpgImage.save(&buffer, "JPG");
+	QString base64Image = QString::fromLatin1(byteArray.toBase64().data());
+	if (!savePath.isEmpty())
+	{
+		if (!jpgImage.save(savePath, "JPG"))
+		{
+			replyMsg = "Failed to save image to: " + savePath;
+			sendErrorReply(replyMsg, cmd);
+			return;
+		}
+	}
+	
+	QJsonObject info;
+	info["path"] = savePath;
+	info["format"] = "JPG";
+	info["width"] = image.width();
+	info["height"] = image.height();
+	info["size"] = image.width() * image.height() * 3;
+	info["data"] = base64Image;
+	sendSuccessDataReply(info, cmd);
 }
 
 void JsonAPI::handleColorCommand(const QJsonObject &message, const JsonApiCommand& cmd)

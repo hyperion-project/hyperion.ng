@@ -285,6 +285,11 @@ private:
 	///
 	void handleSystemCommand(const QJsonObject &message, const JsonApiCommand& cmd);
 
+	/// @brief  Handle an incoming JSON message for actions related to the current image
+	/// @param message the incoming message
+	///
+	void handleGetCurrentImageCommand(const QJsonObject &message, const JsonApiCommand& cmd);
+
 	void applyColorAdjustments(const QJsonObject &adjustment, ColorAdjustment *colorAdjustment);
 	void applyColorAdjustment(const QString &colorName, const QJsonObject &adjustment, RgbChannelAdjustment &rgbAdjustment);
 	void applyGammaTransform(const QString &transformName, const QJsonObject &adjustment, RgbTransform &rgbTransform, char channel);
@@ -403,5 +408,4 @@ private:
 
 	// The JsonCallbacks instance which handles data subscription/notifications
 	QSharedPointer<JsonCallbacks> _jsonCB;
-
 };

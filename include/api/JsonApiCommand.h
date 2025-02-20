@@ -34,7 +34,8 @@ public:
 		System,
 		Temperature,
 		Transform,
-		VideoMode
+		VideoMode,
+		GetCurrentImage
 	};
 
 	static QString toString(Type type) {
@@ -65,6 +66,7 @@ public:
 		case Transform: return "transform";
 		case VideoMode: return "videomode";
 		case Service: return "service";
+		case GetCurrentImage: return "getcurrentimage";
 		default: return "unknown";
 		}
 	}
@@ -322,7 +324,8 @@ public:
 			{ {"system", "toggleIdle"}, { Command::System, SubCommand::ToggleIdle, Authorization::Yes, InstanceCmd::No, NoListenerCmd::Yes} },
 			{ {"temperature", ""}, { Command::Temperature, SubCommand::Empty, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
 			{ {"transform", ""}, { Command::Transform, SubCommand::Empty, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
-			{ {"videomode", ""}, { Command::VideoMode, SubCommand::Empty, Authorization::Yes, InstanceCmd::No, NoListenerCmd::Yes} }
+			{ {"videomode", ""}, { Command::VideoMode, SubCommand::Empty, Authorization::Yes, InstanceCmd::No, NoListenerCmd::Yes} },
+			{ {"getcurrentimage", ""}, { Command::GetCurrentImage, SubCommand::Empty, Authorization::Yes, InstanceCmd::No, NoListenerCmd::Yes} }
 		};
 		return commandLookup;
 	}

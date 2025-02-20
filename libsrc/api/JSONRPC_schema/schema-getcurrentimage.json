@@ -1,0 +1,19 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["getcurrentimage"]
+		},
+		"tan" : {
+			"type" : "integer"
+		},
+		"path": {
+			"type": "string",
+			"required": false
+		}
+	},
+	"additionalProperties": false
+}
