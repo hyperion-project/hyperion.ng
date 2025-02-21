@@ -36,7 +36,7 @@ jobs:
 
   Linux:
     name: 🐧 ${{ matrix.os.description }}
-    runs-on: ${{ matrix.os.architecture[0] == 'amd64' && 'ubuntu-22.04' || 'ubuntu-22.04-arm' }}
+    runs-on: ${{ matrix.os.architecture[0] == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
     strategy:
       fail-fast: false
       matrix:
