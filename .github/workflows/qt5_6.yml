@@ -211,10 +211,8 @@ jobs:
       - name: 👷 Build
         shell: bash
         run: |
-           cmake --preset windows-${{ env.BUILD_TYPE }}
-           cmake --build --preset windows-${{ env.BUILD_TYPE }} --target package -- -nologo -v:m -maxcpucount
-        env:
-          BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
+           cmake --preset windows-release
+           cmake --build --preset windows-release --target package -- -nologo -v:m -maxcpucount
 
       - name: 📦 Upload
         if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
