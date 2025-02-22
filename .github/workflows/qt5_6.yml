@@ -25,9 +25,6 @@ on:
         default: false
         required: false
 
-env:
-  ghcr: hyperion-project
-
 jobs:
 
 ######################
@@ -76,14 +73,22 @@ jobs:
 
       - name: 👷 Build
         shell: bash
-        run: ./.github/scripts/build.sh
+        run: |
+          mkdir deploy
+          docker run --rm --platform=${{ matrix.os.architecture[1] }} ${{ env.ENTRYPOINT }} \
+            -v "${{ github.workspace }}/deploy:/deploy" \
+            -v "${{ github.workspace }}:/source:rw" \
+            -w "/source" \
+            ghcr.io/hyperion-project/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }} \
+            /bin/bash -c "cmake --preset linux-${{ env.BUILD_TYPE }} -DPLATFORM=${{ matrix.os.platform }} ${{ env.CPACK_SYSTEM_PROCESSOR }} &&
+            cmake --build --preset linux-${{ env.BUILD_TYPE }} --target package --parallel $(nproc) &&
+            cp /source/build/Hyperion-* /deploy/ 2>/dev/null"
         env:
           DOCKER_IMAGE: ${{ matrix.os.distribution }}
           DOCKER_TAG: ${{ matrix.os.codename }}${{ inputs.qt_version == '6' && '-qt6' || '' }}
-          PLATFORM: ${{ matrix.os.platform }}
+          BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
           ENTRYPOINT: ${{ matrix.os.architecture[0] != 'amd64' && '--entrypoint /usr/bin/env' || '' }}
           CPACK_SYSTEM_PROCESSOR: ${{ matrix.os.architecture[0] != 'amd64' && format('-DCPACK_SYSTEM_PROCESSOR={0}', matrix.target_lookup[format('{0}', matrix.os.architecture[0])]) || '' }}
-          TARGET_ARCH: ${{ matrix.os.architecture[1] }}
 
       - name: 📦 Upload
         if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
@@ -112,6 +117,22 @@ jobs:
         with:
           submodules: recursive
 
+      - name: 🔧 Append Pull Request number to version (PR  only)
+        if: ${{ inputs.event_name == 'pull_request' }}
+        shell: bash
+        run: tr -d '\n' < .version > temp && mv temp .version && echo -n "+PR${{ inputs.pull_request_number }}" >> .version
+
+      - name: 💾 Restore Homebrew Cache
+        id: cache-homebrew
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Caches/Homebrew/downloads
+          key: ${{ runner.os }}-homebrew-packages-${{ inputs.qt_version }}
+
+      - name: 📥 Install dependencies
+        shell: bash
+        run: brew update -q && brew install -q qt@${{ inputs.qt_version }} vulkan-headers ninja libftdi || true
+
       - name: 🔧 Prepare
         shell: bash
         run: |
@@ -123,15 +144,17 @@ jobs:
           echo '::endgroup::'
 
           echo '::group::Update/Install dependencies'
-            brew update && brew upgrade || true
-            brew install qt@${{ inputs.qt_version }} vulkan-headers ninja libftdi || true
+            brew update -q && brew install -q qt@${{ inputs.qt_version }} vulkan-headers ninja libftdi || true
           echo '::endgroup::'
 
       - name: 👷 Build
         shell: bash
-        run: ./.github/scripts/build.sh
+        run: |
+          cmake --preset macos-${{ env.BUILD_TYPE }}
+          cmake --build --preset macos-${{ env.BUILD_TYPE }} --parallel $(sysctl -n hw.ncpu)
+          cd build; cpack
         env:
-          PLATFORM: osx
+          BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
 
       - name: 📦 Upload
         if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
@@ -151,6 +174,7 @@ jobs:
     runs-on: windows-2022
     env:
       VCINSTALLDIR: 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC'
+      LIBJPEG_TURBO_VERSION: 3.0.1
     steps:
       - name: ⬇ Checkout
         uses: actions/checkout@v4
@@ -160,27 +184,27 @@ jobs:
       - name: 🔧 Prepare PR
         if: ${{ inputs.event_name == 'pull_request' }}
         shell: bash
-        run: |
-          echo '::group::Append PR number to version'
-            tr -d '\n' < .version > temp && mv temp .version
-            echo -n "+PR${{ inputs.pull_request_number }}" >> .version
-          echo '::endgroup::'
+        run: tr -d '\n' < .version > temp && mv temp .version && echo -n "+PR${{ inputs.pull_request_number }}" >> .version
 
-      - name: 💾 Cache/Restore
+      - name: 💾 Restore DirectX SDK & libjpeg-turbo
+        id: cache-windows
         uses: actions/cache@v4
         with:
-          path: C:\Users\runneradmin\AppData\Local\Temp\chocolatey
-          key: ${{ runner.os }}${{ '-chocolatey' }}
+          path: ./installer
+          key: ${{ runner.os }}-libjpeg-${{ env.LIBJPEG_TURBO_VERSION }}-dxsdk-jun10
 
-      - name: 📥 Install DirectX SDK, OpenSSL, libjpeg-turbo
+      - name: 📥 Download DirectX SDK & libjpeg-turbo
+        if: steps.cache-windows.outputs.cache-hit != 'true'
         shell: powershell
         run: |
-          choco install --no-progress directx-sdk -y
-          choco install --no-progress ${{env.OPENSSL}} -y
-          Invoke-WebRequest https://netcologne.dl.sourceforge.net/project/libjpeg-turbo/3.0.1/libjpeg-turbo-3.0.1-vc64.exe -OutFile libjpeg-turbo.exe -UserAgent NativeHost
-          .\libjpeg-turbo /S
-        env:
-          OPENSSL: ${{ inputs.qt_version == '6' && 'openssl' || 'openssl --version=1.1.1.2100' }}
+          mkdir .\installer
+          Invoke-WebRequest -Uri https://sourceforge.net/projects/libjpeg-turbo/files/${{ env.LIBJPEG_TURBO_VERSION }}/libjpeg-turbo-${{ env.LIBJPEG_TURBO_VERSION }}-vc64.exe -OutFile ".\installer\libjpeg-turbo.exe" -UserAgent "NativeHost"
+          Invoke-WebRequest -Uri https://download.microsoft.com/download/A/E/7/AE743F1F-632B-4809-87A9-AA1BB3458E31/DXSDK_Jun10.exe -OutFile ".\installer\dxsdk-jun10.exe" -UserAgent "NativeHost"
+
+      - name: 📥 Install DirectX SDK, libjpeg-turbo
+        run: |
+          cmd.exe /c start /wait .\installer\libjpeg-turbo.exe /S
+          cmd.exe /c start /wait .\installer\dxsdk-jun10.exe /U /F
 
       - name: Install Vulkan SDK
         if: ${{ inputs.qt_version == '6' }}
@@ -203,16 +227,13 @@ jobs:
         shell: cmd
         run: call "${{env.VCINSTALLDIR}}\Auxiliary\Build\vcvars64.bat"
 
-      - name: Temporarily downgrade CMake to 3.28.3 # Please remove if GitHub has updated Cmake (greater than 3.30.0)
-        uses: jwlawson/actions-setup-cmake@v2
-        with:
-          cmake-version: '3.28.3'
-
       - name: 👷 Build
         shell: bash
-        run: ./.github/scripts/build.sh
+        run: |
+           cmake --preset windows-${{ env.BUILD_TYPE }}
+           cmake --build --preset windows-${{ env.BUILD_TYPE }} --target package -- -nologo -v:m -maxcpucount
         env:
-          PLATFORM: windows
+          BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
 
       - name: 📦 Upload
         if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
