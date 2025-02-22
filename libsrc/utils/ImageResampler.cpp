@@ -53,7 +53,7 @@ void ImageResampler::processImage(const uint8_t * data, int width, int height, i
 	int xDestStart {0};
 	int xDestEnd = {outputWidth-1};
 	int yDestStart = {0};
-	int yDestEnd = {outputWidth-1};
+	int yDestEnd = {outputHeight-1};
 
 	switch (_flipMode)
 	{
