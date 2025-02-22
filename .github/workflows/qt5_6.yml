@@ -61,15 +61,10 @@ jobs:
         with:
           submodules: recursive
 
-      - name: 🔧 Prepare
+      - name: 🔧 Append PR number to version (PR  only)
+        if: ${{ inputs.event_name == 'pull_request' }}
         shell: bash
-        run: |
-          echo '::group::Append PR number to version (PR  only)'
-            if [[ "${{ inputs.event_name }}" = "pull_request" ]]; then
-              tr -d '\n' < .version > temp && mv temp .version
-              echo -n "+PR${{ inputs.pull_request_number }}" >> .version
-            fi
-          echo '::endgroup::'
+        run: tr -d '\n' < .version > temp && mv temp .version && echo -n "+PR${{ inputs.pull_request_number }}" >> .version
 
       - name: 👷 Build
         shell: bash
@@ -127,25 +122,11 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/Library/Caches/Homebrew/downloads
-          key: ${{ runner.os }}-homebrew-packages-${{ inputs.qt_version }}
+          key: ${{ runner.os }}-${{ matrix.architecture }}-homebrew-packages-${{ inputs.qt_version }}
 
       - name: 📥 Install dependencies
         shell: bash
         run: brew update -q && brew install -q qt@${{ inputs.qt_version }} vulkan-headers ninja libftdi || true
-
-      - name: 🔧 Prepare
-        shell: bash
-        run: |
-          echo '::group::Append PR number to version (PR  only)'
-            if [[ "${{ inputs.event_name }}" = "pull_request" ]]; then
-              tr -d '\n' < .version > temp && mv temp .version
-              echo -n "+PR${{ inputs.pull_request_number }}" >> .version
-            fi
-          echo '::endgroup::'
-
-          echo '::group::Update/Install dependencies'
-            brew update -q && brew install -q qt@${{ inputs.qt_version }} vulkan-headers ninja libftdi || true
-          echo '::endgroup::'
 
       - name: 👷 Build
         shell: bash
@@ -181,7 +162,7 @@ jobs:
         with:
           submodules: recursive
 
-      - name: 🔧 Prepare PR
+      - name: 🔧 Append Pull Request number to version (PR  only)
         if: ${{ inputs.event_name == 'pull_request' }}
         shell: bash
         run: tr -d '\n' < .version > temp && mv temp .version && echo -n "+PR${{ inputs.pull_request_number }}" >> .version
