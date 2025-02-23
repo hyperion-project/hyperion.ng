@@ -406,16 +406,6 @@ void JsonAPI::handleGetImageSnapshotCommand(const QJsonObject &message, const Js
 	QString replyMsg;
 	QString filetype = message["filetype"].toString();
 	const QStringList fileTypes{"BMP", "JPG", "PNG"};
-	if (filetype.isEmpty())
-	{
-		sendErrorReply("Missing filetype. Available filetypes: " + fileTypes.join(", "), cmd);
-		return;
-	}
-	else if (!fileTypes.contains(filetype, Qt::CaseInsensitive))
-	{
-		sendErrorReply("Invalid filetype. Available filetypes: " + fileTypes.join(", "), cmd);
-		return;
-	}
 	const PriorityMuxer::InputInfo priorityInfo = _hyperion->getPriorityInfo(_hyperion->getCurrentPriority());
 	Image<ColorRgb> image = priorityInfo.image;
 	QImage snapshot(reinterpret_cast<const uchar *>(image.memptr()), image.width(), image.height(), qsizetype(3) * image.width(), QImage::Format_RGB888);
