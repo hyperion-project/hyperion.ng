@@ -4,7 +4,6 @@
         <file alias="schema-color">JSONRPC_schema/schema-color.json</file>
         <file alias="schema-image">JSONRPC_schema/schema-image.json</file>
         <file alias="schema-serverinfo">JSONRPC_schema/schema-serverinfo.json</file>
-        <file alias="schema-getcurrentimage">JSONRPC_schema/schema-getcurrentimage.json</file>
         <file alias="schema-sysinfo">JSONRPC_schema/schema-sysinfo.json</file>
         <file alias="schema-clear">JSONRPC_schema/schema-clear.json</file>
         <file alias="schema-clearall">JSONRPC_schema/schema-clearall.json</file>
@@ -21,6 +20,7 @@
         <file alias="schema-videomode">JSONRPC_schema/schema-videomode.json</file>
         <file alias="schema-authorize">JSONRPC_schema/schema-authorize.json</file>
         <file alias="schema-instance">JSONRPC_schema/schema-instance.json</file>
+        <file alias="schema-instance-data">JSONRPC_schema/schema-instancedata.json</file>
         <file alias="schema-leddevice">JSONRPC_schema/schema-leddevice.json</file>
         <file alias="schema-inputsource">JSONRPC_schema/schema-inputsource.json</file>
         <file alias="schema-service">JSONRPC_schema/schema-service.json</file>
