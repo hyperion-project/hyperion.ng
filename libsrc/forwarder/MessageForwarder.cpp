@@ -671,7 +671,7 @@ MessageForwarderFlatbufferClientsHelper::~MessageForwarderFlatbufferClientsHelpe
 
 void MessageForwarderFlatbufferClientsHelper::addClientHandler(const QString& origin, const TargetHost& targetHost, int priority, bool skipReply)
 {
-	FlatBufferConnection* const flatbuf = new FlatBufferConnection(origin, targetHost.host.toString(), priority, skipReply, targetHost.port);
+	FlatBufferConnection* const flatbuf = new FlatBufferConnection(origin, targetHost.host, priority, skipReply, targetHost.port);
 	_forwardClients << flatbuf;
 	_isFree = true;
 }
