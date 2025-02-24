@@ -609,12 +609,17 @@ void MessageForwarder::sendJsonMessage(const QJsonObject& message, QTcpSocket* s
 	// parse reply data
 	QJsonObject response;
 	const QString ident = "JsonForwarderTarget@" + socket->peerAddress().toString();
+	bool isParsingError {false};
+	QList<QString> errorList;
+
 	for (const QByteArray &reply : replies)
 	{
 		QPair<bool, QStringList> const parsingResult = JsonUtils::parse(ident, reply, response, _log);
 		if (!parsingResult.first)
 		{
 			DebugIf(verbose, _log, "Response: [%s]", QJsonDocument(response).toJson(QJsonDocument::Compact).constData() );
+			isParsingError = true;
+			errorList.append(parsingResult.second);
 		}
 		else
 		{
@@ -627,6 +632,12 @@ void MessageForwarder::sendJsonMessage(const QJsonObject& message, QTcpSocket* s
 				Error(_log, "Request to %s failed with error: %s", QSTRING_CSTR(ident), QSTRING_CSTR(reason));
 			}
 		}
+	}
+
+	if (isParsingError)
+	{
+		QString const errorText = errorList.join(";");;
+		Error(_log, "Error parsing response(s. Errors: %s", QSTRING_CSTR(errorText));
 	}
 }
 
