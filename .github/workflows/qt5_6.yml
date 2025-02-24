@@ -117,16 +117,11 @@ jobs:
         shell: bash
         run: tr -d '\n' < .version > temp && mv temp .version && echo -n "+PR${{ inputs.pull_request_number }}" >> .version
 
-      - name: 💾 Restore Homebrew Cache
-        id: cache-homebrew
-        uses: actions/cache@v4
-        with:
-          path: ~/Library/Caches/Homebrew/downloads
-          key: ${{ runner.os }}-${{ matrix.architecture }}-homebrew-packages-${{ inputs.qt_version }}
-
       - name: 📥 Install dependencies
-        shell: bash
-        run: brew update -q && brew install -q qt@${{ inputs.qt_version }} vulkan-headers ninja libftdi || true
+        uses: tecolicom/actions-use-homebrew-tools@v1
+        with:
+          tools: qt@${{ inputs.qt_version }} vulkan-headers ninja libftdi
+          key: ${{ runner.os }}-${{ matrix.architecture }}-homebrew-packages-${{ inputs.qt_version }}
 
       - name: 👷 Build
         shell: bash
@@ -167,22 +162,21 @@ jobs:
         shell: bash
         run: tr -d '\n' < .version > temp && mv temp .version && echo -n "+PR${{ inputs.pull_request_number }}" >> .version
 
-      - name: 💾 Restore DirectX SDK & libjpeg-turbo
-        id: cache-windows
-        uses: actions/cache@v4
+      - name: 📥 Download and 💾 Cache DirectX SDK
+        uses: ethanjli/cached-download-action@v0.1.2
         with:
-          path: ./installer
-          key: ${{ runner.os }}-libjpeg-${{ env.LIBJPEG_TURBO_VERSION }}-dxsdk-jun10
+          url: https://download.microsoft.com/download/A/E/7/AE743F1F-632B-4809-87A9-AA1BB3458E31/DXSDK_Jun10.exe
+          destination: .\installer\dxsdk-jun10.exe
+          cache-key: dxsdk-jun10
 
-      - name: 📥 Download DirectX SDK & libjpeg-turbo
-        if: steps.cache-windows.outputs.cache-hit != 'true'
-        shell: powershell
-        run: |
-          mkdir .\installer
-          Invoke-WebRequest -Uri https://sourceforge.net/projects/libjpeg-turbo/files/${{ env.LIBJPEG_TURBO_VERSION }}/libjpeg-turbo-${{ env.LIBJPEG_TURBO_VERSION }}-vc64.exe -OutFile ".\installer\libjpeg-turbo.exe" -UserAgent "NativeHost"
-          Invoke-WebRequest -Uri https://download.microsoft.com/download/A/E/7/AE743F1F-632B-4809-87A9-AA1BB3458E31/DXSDK_Jun10.exe -OutFile ".\installer\dxsdk-jun10.exe" -UserAgent "NativeHost"
+      - name: 📥 Download and 💾 Cache libjpeg-turbo
+        uses: ethanjli/cached-download-action@v0.1.2
+        with:
+          url: https://sourceforge.net/projects/libjpeg-turbo/files/${{ env.LIBJPEG_TURBO_VERSION }}/libjpeg-turbo-${{ env.LIBJPEG_TURBO_VERSION }}-vc64.exe
+          destination: .\installer\libjpeg-turbo.exe
+          cache-key: libjpeg-turbo
 
-      - name: 📥 Install DirectX SDK, libjpeg-turbo
+      - name: 📥 Install DirectX SDK & libjpeg-turbo
         run: |
           cmd.exe /c start /wait .\installer\libjpeg-turbo.exe /S
           cmd.exe /c start /wait .\installer\dxsdk-jun10.exe /U /F
