@@ -1,7 +1,6 @@
 // stl includes
 #include <stdexcept>
 #include <cassert>
-#include <sstream>
 #include <iostream>
 
 // Qt includes
@@ -11,6 +10,9 @@
 #include <QJsonDocument>
 #include <QHostInfo>
 #include <QUrl>
+#include <QTcpSocket>
+#include <QEventLoop>
+#include <QTimer>
 
 #include "HyperionConfig.h"
 
@@ -20,25 +22,62 @@
 // util includes
 #include <utils/JsonUtils.h>
 
-JsonConnection::JsonConnection(const QString & host, bool printJson , quint16 port)
-	: _printJson(printJson)
-	, _log(Logger::getInstance("REMOTE"))
-{
-	_socket.connectToHost(host, port);
-	if (!_socket.waitForConnected())
-	{
-		throw std::runtime_error(QString("Unable to connect to host (%1), port (%2)").arg(host).arg(port).toStdString());
-	}
+// Constants
+namespace {
 
-	Debug(_log, "Connected to: %s, port: %u", QSTRING_CSTR(host), port);
+const bool verbose = true;
+} //End of constants
+
+JsonConnection::JsonConnection(const QHostAddress& host, bool printJson , quint16 port)
+	: _log(Logger::getInstance("JSONAPICONN"))
+	, _host(host)
+	, _port(port)
+	, _printJson(printJson)
+{
+	_socket.reset(new QTcpSocket(this));
+	QObject::connect(_socket.get(), &QTcpSocket::connected, this, &JsonConnection::onConnected);
+	QObject::connect(_socket.get(), &QTcpSocket::readyRead, this, &JsonConnection::onReadyRead);
+	QObject::connect(_socket.get(), &QTcpSocket::disconnected, this, &JsonConnection::onDisconnected);
+	QObject::connect(_socket.get(), &QTcpSocket::errorOccurred, this, &JsonConnection::onErrorOccured);
+
+	// init connect
+	connectToRemoteHost();
 }
 
 JsonConnection::~JsonConnection()
 {
-	_socket.close();
 }
 
-void JsonConnection::setColor(std::vector<QColor> colors, int priority, int duration)
+void JsonConnection::connectToRemoteHost()
+{
+	Debug(_log, "Connecting to target host: %s, port [%u]", QSTRING_CSTR(_host.toString()), _port);
+	_socket->connectToHost(_host, _port);
+}
+
+void JsonConnection::close()
+{
+	_socket->close();
+}
+
+void JsonConnection::onErrorOccured()
+{
+	QString errorText = QString("Unable to connect to host: %1, port: %2, error: %3").arg(_host.toString()).arg(_port).arg(_socket->errorString());
+	emit errorOccured(errorText);
+}
+
+void JsonConnection::onDisconnected()
+{
+	Debug(_log, "Disconnected from target host: %s, port [%u]", QSTRING_CSTR(_host.toString()), _port);
+	emit isDisconnected();
+}
+
+void JsonConnection::onConnected()
+{
+	Debug(_log, "Connected to target host: %s, port [%u]", QSTRING_CSTR(_host.toString()), _port);
+	emit isReadyToSend();
+}
+
+void JsonConnection::setColor(const QList<QColor>& colors, int priority, int duration)
 {
 	Debug(_log, "Set color to [%d,%d,%d] %s", colors[0].red(), colors[0].green(), colors[0].blue(), (colors.size() > 1 ? " + ..." : ""));
 
@@ -61,25 +100,21 @@ void JsonConnection::setColor(std::vector<QColor> colors, int priority, int dura
 		command["duration"] = duration;
 	}
 
-	// send command message
-	QJsonObject reply = sendMessage(command);
-
-	// parse reply message
-	parseReply(reply);
+	sendMessageSync(command);
 }
 
-void JsonConnection::setImage(QImage &image, int priority, int duration, const QString& name)
+void JsonConnection::setImage(const QImage& image, int priority, int duration, const QString& name)
 {
 	Debug(_log, "Set image has size: %dx%d", image.width(), image.height());
 
 	// ensure the image has RGB888 format
-	image = image.convertToFormat(QImage::Format_ARGB32_Premultiplied);
+	QImage imageARGB32 = image.convertToFormat(QImage::Format_ARGB32_Premultiplied);
 	QByteArray binaryImage;
-	binaryImage.reserve(image.width() * image.height() * 3);
-	for (int i = 0; i < image.height(); ++i)
+	binaryImage.reserve(imageARGB32.width() * imageARGB32.height() * 3);
+	for (int i = 0; i < imageARGB32.height(); ++i)
 	{
-		const QRgb * scanline = reinterpret_cast<const QRgb *>(image.scanLine(i));
-		for (int j = 0; j < image.width(); ++j)
+		const QRgb * scanline = reinterpret_cast<const QRgb *>(imageARGB32.scanLine(i));
+		for (int j = 0; j < imageARGB32.width(); ++j)
 		{
 			binaryImage.append((char) qRed(scanline[j]));
 			binaryImage.append((char) qGreen(scanline[j]));
@@ -95,19 +130,15 @@ void JsonConnection::setImage(QImage &image, int priority, int duration, const Q
 	command["origin"] = QString("hyperion-remote");
 	if (!name.isEmpty())
 		command["name"] = name;
-	command["imagewidth"] = image.width();
-	command["imageheight"] = image.height();
+	command["imagewidth"] = imageARGB32.width();
+	command["imageheight"] = imageARGB32.height();
 	command["imagedata"] = QString(base64Image.data());
 	if (duration > 0)
 	{
 		command["duration"] = duration;
 	}
 
-	// send command message
-	QJsonObject reply = sendMessage(command);
-
-	// parse reply message
-	parseReply(reply);
+	sendMessageSync(command);
 }
 
 #if defined(ENABLE_EFFECTENGINE)
@@ -116,7 +147,8 @@ void JsonConnection::setEffect(const QString &effectName, const QString & effect
 	Debug(_log, "Start effect: %s", QSTRING_CSTR(effectName));
 
 	// create command
-	QJsonObject command, effect;
+	QJsonObject command;
+	QJsonObject effect;
 	command["command"] = QString("effect");
 	command["origin"] = QString("hyperion-remote");
 	command["priority"] = priority;
@@ -127,7 +159,7 @@ void JsonConnection::setEffect(const QString &effectName, const QString & effect
 		QJsonObject effObj;
 		if(!JsonUtils::parse("hyperion-remote-args", effectArgs, effObj, _log).first)
 		{
-			throw std::runtime_error("Error in effect arguments, abort");
+			emit errorOccured("Error in effect arguments, abort");
 		}
 
 		effect["args"] = effObj;
@@ -140,11 +172,7 @@ void JsonConnection::setEffect(const QString &effectName, const QString & effect
 		command["duration"] = duration;
 	}
 
-	// send command message
-	QJsonObject reply = sendMessage(command);
-
-	// parse reply message
-	parseReply(reply);
+	sendMessageSync(command);
 }
 
 void JsonConnection::createEffect(const QString &effectName, const QString &effectScript, const QString & effectArgs)
@@ -152,27 +180,23 @@ void JsonConnection::createEffect(const QString &effectName, const QString &effe
 	Debug(_log, "Create effect: %s", QSTRING_CSTR(effectName));
 
 	// create command
-	QJsonObject effect;
-	effect["command"] = QString("create-effect");
-	effect["name"] = effectName;
-	effect["script"] = effectScript;
+	QJsonObject effectCmd;
+	effectCmd["command"] = QString("create-effect");
+	effectCmd["name"] = effectName;
+	effectCmd["script"] = effectScript;
 
 	if (effectArgs.size() > 0)
 	{
 		QJsonObject effObj;
 		if(!JsonUtils::parse("hyperion-remote-args", effectScript, effObj, _log).first)
 		{
-			throw std::runtime_error("Error in effect arguments, abort");
+			emit errorOccured("Error in effect arguments, abort");
 		}
 
-		effect["args"] = effObj;
+		effectCmd["args"] = effObj;
 	}
 
-	// send command message
-	QJsonObject reply = sendMessage(effect);
-
-	// parse reply message
-	parseReply(reply);
+	sendMessageSync(effectCmd);
 }
 
 void JsonConnection::deleteEffect(const QString &effectName)
@@ -180,23 +204,17 @@ void JsonConnection::deleteEffect(const QString &effectName)
 	Debug(_log, "Delete effect configuration: %s", QSTRING_CSTR(effectName));
 
 	// create command
-	QJsonObject effect;
-	effect["command"] = QString("delete-effect");
-	effect["name"] = effectName;
+	QJsonObject effectCmd;
+	effectCmd["command"] = QString("delete-effect");
+	effectCmd["name"] = effectName;
 
-	// send command message
-	QJsonObject reply = sendMessage(effect);
-
-	// parse reply message
-	parseReply(reply);
+	sendMessageSync(effectCmd);
 }
 #endif
 
 QString JsonConnection::getServerInfoString()
 {
-	QJsonDocument doc(getServerInfo());
-	QString info(doc.toJson(QJsonDocument::Indented));
-	return info;
+	return JsonUtils::jsonValueToQString(getServerInfo(), QJsonDocument::Indented);
 }
 
 QJsonObject JsonConnection::getServerInfo()
@@ -207,21 +225,14 @@ QJsonObject JsonConnection::getServerInfo()
 	QJsonObject command;
 	command["command"] = QString("serverinfo");
 
-	// send command message
-	QJsonObject reply = sendMessage(command);
 
-	// parse reply message
-	if (parseReply(reply))
+	QJsonObject reply = sendMessageSync(command);
+	if (!reply.contains("info") || !reply["info"].isObject())
 	{
-		if (!reply.contains("info") || !reply["info"].isObject())
-		{
-			throw std::runtime_error("No info available in reply");
-		}
-
-		return reply["info"].toObject();
+		emit errorOccured("No info available in response to request");
 	}
 
-	return QJsonObject();
+	return reply.value("info").toObject();
 }
 
 QString JsonConnection::getSysInfo()
@@ -232,23 +243,13 @@ QString JsonConnection::getSysInfo()
 	QJsonObject command;
 	command["command"] = QString("sysinfo");
 
-	// send command message
-	QJsonObject reply = sendMessage(command);
-
-	// parse reply message
-	if (parseReply(reply))
+	QJsonObject reply = sendMessageSync(command);
+	if (!reply.contains("info") || !reply["info"].isObject())
 	{
-		if (!reply.contains("info") || !reply["info"].isObject())
-		{
-			throw std::runtime_error("No info available in reply");
-		}
-
-		QJsonDocument doc(reply["info"].toObject());
-		QString info(doc.toJson(QJsonDocument::Indented));
-		return info;
+		emit errorOccured("No info available in response to request");
 	}
 
-	return QString();
+	return JsonUtils::jsonValueToQString(reply["info"], QJsonDocument::Indented);
 }
 
 void JsonConnection::suspend()
@@ -258,9 +259,7 @@ void JsonConnection::suspend()
 	command["command"] = QString("system");
 	command["subcommand"] = QString("suspend");
 
-	QJsonObject reply = sendMessage(command);
-
-	parseReply(reply);
+	sendMessageSync(command);
 }
 
 void JsonConnection::resume()
@@ -270,9 +269,7 @@ void JsonConnection::resume()
 	command["command"] = QString("system");
 	command["subcommand"] = QString("resume");
 
-	QJsonObject reply = sendMessage(command);
-
-	parseReply(reply);
+	sendMessageSync(command);
 }
 
 void JsonConnection::toggleSuspend()
@@ -282,9 +279,7 @@ void JsonConnection::toggleSuspend()
 	command["command"] = QString("system");
 	command["subcommand"] = QString("toggleSuspend");
 
-	QJsonObject reply = sendMessage(command);
-
-	parseReply(reply);
+	sendMessageSync(command);
 }
 
 void JsonConnection::idle()
@@ -294,9 +289,7 @@ void JsonConnection::idle()
 	command["command"] = QString("system");
 	command["subcommand"] = QString("idle");
 
-	QJsonObject reply = sendMessage(command);
-
-	parseReply(reply);
+	sendMessageSync(command);
 }
 
 void JsonConnection::toggleIdle()
@@ -306,9 +299,7 @@ void JsonConnection::toggleIdle()
 	command["command"] = QString("system");
 	command["subcommand"] = QString("toggleIdle");
 
-	QJsonObject reply = sendMessage(command);
-
-	parseReply(reply);
+	sendMessageSync(command);
 }
 
 void JsonConnection::restart()
@@ -318,9 +309,7 @@ void JsonConnection::restart()
 	command["command"] = QString("system");
 	command["subcommand"] = QString("restart");
 
-	QJsonObject reply = sendMessage(command);
-
-	parseReply(reply);
+	sendMessageSync(command);
 }
 
 void JsonConnection::clear(int priority)
@@ -332,11 +321,7 @@ void JsonConnection::clear(int priority)
 	command["command"] = QString("clear");
 	command["priority"] = priority;
 
-	// send command message
-	QJsonObject reply = sendMessage(command);
-
-	// parse reply message
-	parseReply(reply);
+	sendMessageSync(command);
 }
 
 void JsonConnection::clearAll()
@@ -348,11 +333,7 @@ void JsonConnection::clearAll()
 	command["command"] = QString("clear");
 	command["priority"] = -1;
 
-	// send command message
-	QJsonObject reply = sendMessage(command);
-
-	// parse reply message
-	parseReply(reply);
+	sendMessageSync(command);
 }
 
 void JsonConnection::setComponentState(const QString & component, bool state)
@@ -360,17 +341,14 @@ void JsonConnection::setComponentState(const QString & component, bool state)
 	Debug(_log, "%s Component: %s", (state ? "Enable" : "Disable"), QSTRING_CSTR(component));
 
 	// create command
-	QJsonObject command, parameter;
+	QJsonObject command;
+	QJsonObject parameter;
 	command["command"] = QString("componentstate");
 	parameter["component"] = component;
 	parameter["state"] = state;
 	command["componentstate"] = parameter;
 
-	// send command message
-	QJsonObject reply = sendMessage(command);
-
-	// parse reply message
-	parseReply(reply);
+	sendMessageSync(command);
 }
 
 void JsonConnection::setSource(int priority)
@@ -380,11 +358,7 @@ void JsonConnection::setSource(int priority)
 	command["command"] = QString("sourceselect");
 	command["priority"] = priority;
 
-	// send command message
-	QJsonObject reply = sendMessage(command);
-
-	// parse reply message
-	parseReply(reply);
+	sendMessageSync(command);
 }
 
 void JsonConnection::setSourceAutoSelect()
@@ -394,14 +368,10 @@ void JsonConnection::setSourceAutoSelect()
 	command["command"] = QString("sourceselect");
 	command["auto"] = true;
 
-	// send command message
-	QJsonObject reply = sendMessage(command);
-
-	// parse reply message
-	parseReply(reply);
+	sendMessageSync(command);
 }
 
-QString JsonConnection::getConfig(std::string type)
+QString JsonConnection::getConfig(const QString& type)
 {
 	assert( type == "schema" || type == "config" );
 	Debug(_log, "Get configuration file from Hyperion Server");
@@ -409,25 +379,15 @@ QString JsonConnection::getConfig(std::string type)
 	// create command
 	QJsonObject command;
 	command["command"] = QString("config");
-	command["subcommand"] = (type == "schema") ? QString("getschema") : QString("getconfig");
+	command["subcommand"] = (type == "schema") ? "getschema" : "getconfig";
 
-	// send command message
-	QJsonObject reply = sendMessage(command);
-
-	// parse reply message
-	if (parseReply(reply))
+	QJsonObject reply = sendMessageSync(command);
+	if (!reply.contains("info") || !reply["info"].isObject())
 	{
-		if (!reply.contains("info") || !reply["info"].isObject())
-		{
-			throw std::runtime_error("No configuration file available in reply");
-		}
-
-		QJsonDocument doc(reply["info"].toObject());
-		QString result(doc.toJson(QJsonDocument::Indented));
-		return result;
+		emit errorOccured("No configuration file available in reply");
 	}
 
-	return QString();
+	return JsonUtils::jsonValueToQString(reply["info"], QJsonDocument::Indented);
 }
 
 void JsonConnection::setConfig(const QString &jsonString)
@@ -442,17 +402,13 @@ void JsonConnection::setConfig(const QString &jsonString)
 		QJsonObject configObj;
 		if(!JsonUtils::parse("hyperion-remote-args", jsonString, configObj, _log).first)
 		{
-			throw std::runtime_error("Error in configSet arguments, abort");
+			emit errorOccured("Error in configSet arguments, abort");
 		}
 
 		command["config"] = configObj;
 	}
 
-	// send command message
-	QJsonObject reply = sendMessage(command);
-
-	// parse reply message
-	parseReply(reply);
+	sendMessageSync(command);
 }
 
 void JsonConnection::setAdjustment(
@@ -476,7 +432,8 @@ void JsonConnection::setAdjustment(
 	Debug(_log, "Set color adjustments");
 
 	// create command
-	QJsonObject command, adjust;
+	QJsonObject command;
+	QJsonObject adjust;
 	command["command"] = QString("adjustment");
 
 	if (!adjustmentId.isNull())
@@ -510,7 +467,7 @@ void JsonConnection::setAdjustment(
 	}
 	if (backlightColored != nullptr)
 	{
-		adjust["backlightColored"] = (*backlightColored == 0)? false : true;
+		adjust["backlightColored"] = *backlightColored != 0;
 	}
 	if (brightness != nullptr)
 	{
@@ -535,35 +492,28 @@ void JsonConnection::setAdjustment(
 
 	command["adjustment"] = adjust;
 
-	// send command message
-	QJsonObject reply = sendMessage(command);
-
-	// parse reply message
-	parseReply(reply);
+	sendMessageSync(command);
 }
 
-
-void JsonConnection::setLedMapping(QString mappingType)
+void JsonConnection::setLedMapping(const QString& mappingType)
 {
 	QJsonObject command;
 	command["command"] = QString("processing");
 	command["mappingType"] = mappingType;
 
-	QJsonObject reply = sendMessage(command);
-	parseReply(reply);
+	sendMessageSync(command);
 }
 
-void JsonConnection::setVideoMode(QString videoMode)
+void JsonConnection::setVideoMode(const QString& videoMode)
 {
 	QJsonObject command;
 	command["command"] = QString("videomode");
 	command["videoMode"] = videoMode.toUpper();
 
-	QJsonObject reply = sendMessage(command);
-	parseReply(reply);
+	sendMessageSync(command);
 }
 
-void JsonConnection::setToken(const QString &token)
+bool JsonConnection::setToken(const QString& token)
 {
 	// create command
 	QJsonObject command;
@@ -571,18 +521,18 @@ void JsonConnection::setToken(const QString &token)
 	command["subcommand"] = QString("login");
 
 	if (token.size() < 36)
-		throw std::runtime_error("The given token length is too short.");
+	{
+		emit errorOccured("The given token's length is too short.");
+		return false;
+	}
 
 	command["token"] = token;
 
-	// send command message
-	QJsonObject reply = sendMessage(command);
-
-	// parse reply message
-	parseReply(reply);
+	QJsonObject const reply = sendMessageSync(command);
+	return !reply.isEmpty();
 }
 
-void JsonConnection::setInstance(int instance)
+bool JsonConnection::setInstance(int instance)
 {
 	// create command
 	QJsonObject command;
@@ -590,18 +540,95 @@ void JsonConnection::setInstance(int instance)
 	command["subcommand"] = QString("switchTo");
 	command["instance"] = instance;
 
-	// send command message
-	QJsonObject reply = sendMessage(command);
-
-	// parse reply message
-	parseReply(reply);
+	QJsonObject const reply = sendMessageSync(command);
+	return !reply.isEmpty();
 }
 
-QJsonObject JsonConnection::sendMessage(const QJsonObject & message)
+void JsonConnection::onReadyRead()
 {
-	// serialize message
-	QJsonDocument writer(message);
-	QByteArray serializedMessage = writer.toJson(QJsonDocument::Compact) + "\n";
+	QByteArray const serializedReply = _socket->readAll();
+	QList<QByteArray> replies = serializedReply.trimmed().split('\n');
+
+	bool isParsingError {false};
+	QList<QString> errorList;
+
+	for (const QByteArray &reply : std::as_const(replies))
+	{
+		QJsonObject response;
+
+		const QString ident = "RemoteTarget@" + _socket->peerAddress().toString();
+		QPair<bool, QStringList> const parsingResult = JsonUtils::parse(ident, reply, response, _log);
+		if (!parsingResult.first)
+		{
+			isParsingError = true;
+			errorList.append(parsingResult.second);
+		}
+		else
+		{
+			if (!isParsingError)
+			{
+				emit isMessageReceived(response);
+				break;
+			}
+		}
+	}
+
+	if (isParsingError)
+	{
+		QString const errorText = errorList.join(";");;
+		emit errorOccured(errorText);
+	}
+}
+
+QJsonObject JsonConnection::sendMessageSync(const QJsonObject &message, const QJsonArray& instanceIds)
+{
+	QEventLoop loop;
+	QJsonObject response;
+	bool received = false;
+
+	// Ensure no duplicate connections by disconnecting previous ones
+	QObject::disconnect(this, &JsonConnection::isMessageReceived, nullptr, nullptr);
+	QObject::disconnect(_socket.get(), &QTcpSocket::bytesWritten, nullptr, nullptr);
+	QObject::disconnect(_socket.get(), &QTcpSocket::errorOccurred, nullptr, nullptr);
+
+	// Capture response when received
+	connect(this, &JsonConnection::isMessageReceived, this, [&](const QJsonObject &reply) {
+		response = reply;
+		received = true;
+		loop.quit(); // Exit event loop when response arrives
+	});
+
+	connect(_socket.get(), &QTcpSocket::errorOccurred, this, [&loop](QAbstractSocket::SocketError  /*error*/) {
+		loop.quit();
+	});
+
+	// Send the message asynchronously
+	sendMessage(message, instanceIds);
+
+	// Timeout mechanism (prevents infinite blocking)
+	QTimer timer;
+	timer.setSingleShot(true);
+	connect(&timer, &QTimer::timeout, this, [&]() {
+		loop.quit();
+	});
+
+	timer.start(5000);
+	loop.exec(); // Start event loop
+
+	return received ? response : QJsonObject(); // Return response if received
+}
+
+void JsonConnection::sendMessage(const QJsonObject & message, const QJsonArray& instanceIds)
+{
+	// for hyperion classic compatibility
+	QJsonObject jsonMessage = message;
+	if (!instanceIds.empty())
+	{
+		jsonMessage["instance"] = instanceIds;
+	}
+
+	QJsonDocument const writer(jsonMessage);
+	QByteArray const serializedMessage = writer.toJson(QJsonDocument::Compact) + "\n";
 
 	// print command if requested
 	if (_printJson)
@@ -610,65 +637,5 @@ QJsonObject JsonConnection::sendMessage(const QJsonObject & message)
 	}
 
 	// write message
-	_socket.write(serializedMessage);
-	if (!_socket.waitForBytesWritten())
-	{
-		throw std::runtime_error("Error while writing data to host");
-	}
-
-	// read reply data
-	QByteArray serializedReply;
-	while (!serializedReply.contains('\n'))
-	{
-		// receive reply
-		if (!_socket.waitForReadyRead())
-		{
-			throw std::runtime_error("Error while reading data from host");
-		}
-
-		serializedReply += _socket.readAll();
-	}
-	int bytes = serializedReply.indexOf('\n') + 1;     // Find the end of message
-
-	// print reply if requested
-	if (_printJson)
-	{
-		std::cout << "Reply: " << std::string(serializedReply.data(), bytes);
-	}
-
-	// parse reply data
-	QJsonParseError error;
-	QJsonDocument reply = QJsonDocument::fromJson(serializedReply ,&error);
-	if (error.error != QJsonParseError::NoError)
-	{
-		throw std::runtime_error(
-			std::string("Error while parsing json reply: ")
-			+ error.errorString().toStdString() );
-	}
-
-	return reply.object();
-}
-
-bool JsonConnection::parseReply(const QJsonObject &reply)
-{
-	bool success = false;
-	QString reason = "No error info";
-
-	try
-	{
-		success = reply["success"].toBool(false);
-		if (!success)
-			reason = reply["error"].toString(reason);
-	}
-	catch (const std::runtime_error &)
-	{
-		// Some json parsing error: ignore and set parsing error
-	}
-
-	if (!success)
-	{
-		throw std::runtime_error("Error: " + reason.toStdString());
-	}
-
-	return success;
+	_socket->write(serializedMessage);
 }
