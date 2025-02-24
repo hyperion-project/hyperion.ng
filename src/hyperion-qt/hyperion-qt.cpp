@@ -2,14 +2,15 @@
 #include <QCoreApplication>
 #include <QImage>
 
-#include "QtWrapper.h"
-#include <utils/ColorRgb.h>
-#include <utils/Image.h>
 #include <utils/DefaultSignalHandler.h>
 #include <utils/ErrorManager.h>
 
 #include "HyperionConfig.h"
 #include <commandline/Parser.h>
+
+#include "QtWrapper.h"
+#include <utils/ColorRgb.h>
+#include <utils/Image.h>
 
 #ifdef ENABLE_MDNS
 // mDNS discover
@@ -26,11 +27,14 @@
 
 using namespace commandline;
 
+namespace {
+inline const QString CAPTURE_TYPE = QStringLiteral("Qt-Grabber");
+}
 // save the image as screenshot
 void saveScreenshot(const QString& filename, const Image<ColorRgb> & image)
 {
 	// store as PNG
-	QImage pngImage(reinterpret_cast<const uint8_t *>(image.memptr()), static_cast<int>(image.width()), static_cast<int>(image.height()), static_cast<int>(3*image.width()), QImage::Format_RGB888);
+	QImage const pngImage(reinterpret_cast<const uint8_t *>(image.memptr()), image.width(), static_cast<int>(image.height()), static_cast<int>(3*image.width()), QImage::Format_RGB888);
 	pngImage.save(filename);
 }
 
@@ -39,24 +43,24 @@ int main(int argc, char ** argv)
 	DefaultSignalHandler::install();
 	ErrorManager errorManager;
 
-	Logger *log = Logger::getInstance("QTGRABBER");
+	Logger *log = Logger::getInstance(CAPTURE_TYPE.toUpper());
 	Logger::setLogLevel(Logger::INFO);
 
-	std::cout
-			<< "hyperion-qt:" << std::endl
-			<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
-			<< "\tbuild time: " << __DATE__ << " " << __TIME__ << std::endl;
+	QGuiApplication const app(argc, argv);
 
-	QGuiApplication app(argc, argv);
+	QString const baseName = QGuiApplication::applicationName();
+	std::cout << baseName.toStdString() << ":\n"
+			  << "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")\n"
+			  << "\tbuild time: " << __DATE__ << " " << __TIME__ << "\n";
 
-	QObject::connect(&errorManager, &ErrorManager::errorOccurred, [&](QString error) {
-		Error(log, "Error occured %s", QSTRING_CSTR(error));
+	QObject::connect(&errorManager, &ErrorManager::errorOccurred, [&](const QString& error) {
+		Error(log, "Error occured: %s", QSTRING_CSTR(error));
 		Logger::deleteInstance();
-		QCoreApplication::exit(-1);
+		QTimer::singleShot(0, &app, &QGuiApplication::quit);
 	});
 
 	// create the option parser and initialize all parameters
-	Parser parser("Qt interface capture application for Hyperion. Will automatically search a Hyperion server if -a option isn't used. Please note that if you have more than one server running it's more or less random which one will be used.");
+	Parser parser( CAPTURE_TYPE + " capture application for Hyperion. Will automatically search a Hyperion server if -a option is not used. Please note that if you have more than one server running it's more or less random which one will be used.");
 
 	IntOption      & argDisplay         = parser.add<IntOption>    ('d', "display",        "Set the display to capture [default: %1]", "0");
 
@@ -94,7 +98,7 @@ int main(int argc, char ** argv)
 		parser.showHelp(0);
 	}
 
-	QtWrapper qtWrapper(
+	QtWrapper grabber(
 				argFps.getInt(parser),
 				argDisplay.getInt(parser),
 				argSizeDecimation.getInt(parser),
@@ -104,87 +108,76 @@ int main(int argc, char ** argv)
 				argCropBottom.getInt(parser)
 				);
 
-	if (!qtWrapper.displayInit())
+	if (!grabber.displayInit())
 	{
-		errorManager.errorOccurred("Failed to initialise the screen/display for this grabber");
+		emit errorManager.errorOccurred("Failed to initialise the screen/display for this grabber");
 	}
 
 	// set 3D mode if applicable
 	if (parser.isSet(arg3DSBS))
 	{
-		qtWrapper.setVideoMode(VideoMode::VIDEO_3DSBS);
+		grabber.setVideoMode(VideoMode::VIDEO_3DSBS);
 	}
 	else if (parser.isSet(arg3DTAB))
 	{
-		qtWrapper.setVideoMode(VideoMode::VIDEO_3DTAB);
+		grabber.setVideoMode(VideoMode::VIDEO_3DTAB);
 	}
 
 	if (parser.isSet(argScreenshot))
 	{
 		// Capture a single screenshot and finish
-		const Image<ColorRgb> &screenshot = qtWrapper.getScreenshot();
-		QString fileName = "screenshot.png";
+		const Image<ColorRgb> &screenshot = grabber.getScreenshot();
+		QString const fileName = "screenshot.png";
 		saveScreenshot(fileName, screenshot);
 		Info(log, "Screenshot saved as: \"%s\"", QSTRING_CSTR(fileName));
 	}
 	else
 	{
-		QString host;
-		QString serviceName {QHostInfo::localHostName()};
+		QString hostname;
 		int port {FLATBUFFER_DEFAULT_PORT};
 
 		// Split hostname and port (or use default port)
-		QString givenAddress = argAddress.value(parser);
-		if (!NetUtils::resolveHostPort(givenAddress, host, port))
+		QString const givenAddress = argAddress.value(parser);
+
+		if (!NetUtils::resolveHostPort(givenAddress, hostname, port))
 		{
-			errorManager.errorOccurred(QString("Wrong address: unable to parse address (%1)").arg(givenAddress));
+			emit errorManager.errorOccurred(QString("Wrong address: unable to parse address (%1)").arg(givenAddress));
 		}
 
-		// Search available Hyperion services via mDNS, if default/localhost IP is given
-		if (host == "127.0.0.1" || host == "::1")
+		QHostAddress hostAddress;
+		if (!NetUtils::resolveHostToAddress(log, hostname, hostAddress, port))
 		{
-#ifndef ENABLE_MDNS
-			SSDPDiscover discover;
-			host = discover.getFirstService(searchType::STY_FLATBUFSERVER);
-#endif
-
-			QHostAddress address;
-			if (!NetUtils::resolveHostToAddress(log, host, address, port))
-			{
-				errorManager.errorOccurred(QString("Address could not be resolved for hostname: %2").arg(QSTRING_CSTR(host)));
-			}
-			host = address.toString();
+			emit errorManager.errorOccurred(QString("Address could not be resolved for hostname: %2").arg(QSTRING_CSTR(hostAddress.toString())));
 		}
-
-		Info(log, "Connecting to Hyperion host: %s, port: %u using service: %s", QSTRING_CSTR(host), port, QSTRING_CSTR(serviceName));
+		Info(log, "Connecting to Hyperion host: %s, port: %u", QSTRING_CSTR(hostAddress.toString()), port);
 
 		// Create the Flabuf-connection
-		FlatBufferConnection flatbuf("Qt Standalone", host, argPriority.getInt(parser), parser.isSet(argSkipReply), port);
+		FlatBufferConnection const flatbuf(CAPTURE_TYPE + " Standalone", hostAddress, argPriority.getInt(parser), parser.isSet(argSkipReply), port);
 
 		// Connect the screen capturing to flatbuf connection processing
-		QObject::connect(&qtWrapper, &QtWrapper::sig_screenshot,
+		QObject::connect(&grabber, &QtWrapper::sig_screenshot,
 						 &flatbuf,
 						 static_cast<void (FlatBufferConnection::*)(const Image<ColorRgb>&)>(&FlatBufferConnection::setImage));
 
 
 		QObject::connect(&flatbuf, &FlatBufferConnection::isReadyToSend, [&]() {
 			Debug(log,"Start grabber");
-			qtWrapper.start();
+			grabber.start();
 		});
 
 		QObject::connect(&flatbuf, &FlatBufferConnection::isDisconnected, [&]() {
 			Debug(log,"Stop grabber");
-			qtWrapper.stop();
+			grabber.stop();
 		});
 
-		QObject::connect(&flatbuf, &FlatBufferConnection::errorOccured, [&](QString error) {
+		QObject::connect(&flatbuf, &FlatBufferConnection::errorOccured, [&](const QString& error) {
 			Debug(log,"Stop grabber");
-			qtWrapper.stop();
-			errorManager.errorOccurred(error);
+			grabber.stop();
+			emit errorManager.errorOccurred(error);
 		});
 
 		// Start the application
-		QGuiApplication::exec();
+		app.exec();
 	}
 
 	Logger::deleteInstance();
