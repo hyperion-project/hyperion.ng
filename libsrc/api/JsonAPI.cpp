@@ -446,7 +446,7 @@ void JsonAPI::handleImageCommand(const QJsonObject &message, const JsonApiComman
 
 void JsonAPI::handleEffectCommand(const QJsonObject &message, const JsonApiCommand& cmd)
 {
-#if not defined(ENABLE_EFFECTENGINE)
+#if !defined(ENABLE_EFFECTENGINE)
 	sendErrorReply("Effects are not supported by this installation!", cmd);
 #else
 	emit forwardJsonMessage(message, _currInstanceIndex);
@@ -470,7 +470,7 @@ void JsonAPI::handleEffectCommand(const QJsonObject &message, const JsonApiComma
 
 void JsonAPI::handleCreateEffectCommand(const QJsonObject &message, const JsonApiCommand& cmd)
 {
-#if not defined(ENABLE_EFFECTENGINE)
+#if !defined(ENABLE_EFFECTENGINE)
 	sendErrorReply("Effects are not supported by this installation!", cmd);
 #else
 	const QString resultMsg = EffectFileHandler::getInstance()->saveEffect(message);
@@ -480,7 +480,7 @@ void JsonAPI::handleCreateEffectCommand(const QJsonObject &message, const JsonAp
 
 void JsonAPI::handleDeleteEffectCommand(const QJsonObject &message, const JsonApiCommand& cmd)
 {
-#if not defined(ENABLE_EFFECTENGINE)
+#if !defined(ENABLE_EFFECTENGINE)
 	sendErrorReply("Effects are not supported by this installation!", cmd);
 #else
 	const QString resultMsg = EffectFileHandler::getInstance()->deleteEffect(message["name"].toString());

@@ -93,7 +93,7 @@ int main(int argc, char * argv[])
 	QObject::connect(&errorManager, &ErrorManager::errorOccurred, [&](const QString& error) {
 		Error(log, "Error occured: %s", QSTRING_CSTR(error));
 		Logger::deleteInstance();
-		QTimer::singleShot(0, &app, &QCoreApplication::quit);
+		QTimer::singleShot(0, [&app]() { app.quit(); });
 	});
 
 	// force the locale
