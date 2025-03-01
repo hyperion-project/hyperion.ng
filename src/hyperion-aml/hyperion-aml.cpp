@@ -1,6 +1,7 @@
 
 // QT includes
 #include <QCoreApplication>
+#include <QTimer>
 #include <QImage>
 
 #include <utils/DefaultSignalHandler.h>
@@ -130,36 +131,26 @@ int main(int argc, char ** argv)
 	}
 	else
 	{
-		QString host;
-		QString const serviceName {QHostInfo::localHostName()};
+		QString hostname;
 		int port{ FLATBUFFER_DEFAULT_PORT };
 
 		// Split hostname and port (or use default port)
 		QString const givenAddress = argAddress.value(parser);
-		if (!NetUtils::resolveHostPort(givenAddress, host, port))
+		if (!NetUtils::resolveHostPort(givenAddress, hostname, port))
 		{
 			emit errorManager.errorOccurred(QString("Wrong address: unable to parse address (%1)").arg(givenAddress));
 		}
 
 		// Search available Hyperion services via mDNS, if default/localhost IP is given
-		if (host == "127.0.0.1" || host == "::1")
+		QHostAddress hostAddress;
+		if (!NetUtils::resolveHostToAddress(log, hostname, hostAddress, port))
 		{
-#ifndef ENABLE_MDNS
-			SSDPDiscover discover;
-			host = discover.getFirstService(searchType::STY_FLATBUFSERVER);
-#endif
-			QHostAddress address;
-			if (!NetUtils::resolveHostToAddress(log, host, address, port))
-			{
-				emit errorManager.errorOccurred(QString("Address could not be resolved for hostname: %2").arg(QSTRING_CSTR(host)));
+			emit errorManager.errorOccurred(QString("Address could not be resolved for hostname: %2").arg(QSTRING_CSTR(hostAddress.toString())));
 			}
-			host = address.toString();
-		}
-
-		Info(log, "Connecting to Hyperion host: %s, port: %u using service: %s", QSTRING_CSTR(host), port, QSTRING_CSTR(serviceName));
+		Info(log, "Connecting to Hyperion host: %s, port: %u", QSTRING_CSTR(hostAddress.toString()), port);
 
 		// Create the Flabuf-connection
-		FlatBufferConnection const flatbuf(CAPTURE_TYPE + " Standalone", host, argPriority.getInt(parser), parser.isSet(argSkipReply), port);
+		FlatBufferConnection const flatbuf(CAPTURE_TYPE + " Standalone", hostAddress, argPriority.getInt(parser), parser.isSet(argSkipReply), port);
 
 		// Connect the screen capturing to flatbuf connection processing
 		QObject::connect(&grabber, &AmlogicWrapper::sig_screenshot,

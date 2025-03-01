@@ -7,6 +7,7 @@
 // Qt includes
 #include <QCoreApplication>
 #include <QLocale>
+#include <QTimer>
 
 #include <utils/DefaultSignalHandler.h>
 #include <utils/ErrorManager.h>

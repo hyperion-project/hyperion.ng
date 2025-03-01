@@ -1,5 +1,6 @@
 // QT includes
 #include <QCoreApplication>
+#include <QTimer>
 #include <QImage>
 
 #include <utils/DefaultSignalHandler.h>
@@ -108,7 +109,7 @@ int main(int argc, char ** argv)
 				argCropBottom.getInt(parser)
 				);
 
-	if (!grabber.displayInit())
+	if (!grabber.screenInit())
 	{
 		emit errorManager.errorOccurred("Failed to initialise the screen/display for this grabber");
 	}

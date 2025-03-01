@@ -2,6 +2,7 @@
 
 // QT includes
 #include <QCoreApplication>
+#include <QTimer>
 #include <QImage>
 
 #include <utils/DefaultSignalHandler.h>

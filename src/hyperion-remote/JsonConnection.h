@@ -4,9 +4,10 @@
 #include <QColor>
 #include <QImage>
 #include <QTcpSocket>
+#include <QHostAddress>
 #include <QJsonObject>
 #include <QScopedPointer>
-#include <qjsonarray.h>
+#include <QJsonArray>
 
 //forward class decl
 class Logger;

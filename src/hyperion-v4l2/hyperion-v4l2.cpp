@@ -1,10 +1,10 @@
 // STL includes
 #include <csignal>
-#include <iomanip>
 #include <clocale>
 
 // QT includes
 #include <QCoreApplication>
+#include <QTimer>
 
 #include <utils/DefaultSignalHandler.h>
 #include <utils/ErrorManager.h>
@@ -148,6 +148,10 @@ int main(int argc, char** argv)
 
 	// initialize the grabber
 	V4L2Grabber grabber;
+	if (!grabber.prepare())
+	{
+		emit errorManager.errorOccurred("Failed to initialise this grabber");
+	}
 
 	// set device
 	grabber.setDevice(argDevice.value(parser), "");
@@ -244,8 +248,7 @@ int main(int argc, char** argv)
 
 		QString const fileName = "screenshot.png";
 		ScreenshotHandler handler(fileName, signalDetectionOffset);
-		QObject::connect(&grabber, SIGNAL(newFrame(Image<ColorRgb>)), &handler, SLOT(receiveImage(Image<ColorRgb>)));
-		grabber.prepare();
+		QObject::connect(&grabber, &V4L2Grabber::newFrame, &handler, &ScreenshotHandler::receiveImage);
 		grabber.start();
 		QCoreApplication::exec();
 		grabber.stop();
@@ -278,8 +281,6 @@ int main(int argc, char** argv)
 						 static_cast<void (FlatBufferConnection::*)(const Image<ColorRgb>&)>(&FlatBufferConnection::setImage));
 
 		// Start the capturing
-		if (grabber.prepare())
-		{
 			QObject::connect(&flatbuf, &FlatBufferConnection::isReadyToSend, [&]() {
 				Debug(log,"Start grabber");
 				grabber.start();
@@ -297,7 +298,6 @@ int main(int argc, char** argv)
 			});
 			// Start the application
 			app.exec();
-		}
 	}
 
 	Logger::deleteInstance();
