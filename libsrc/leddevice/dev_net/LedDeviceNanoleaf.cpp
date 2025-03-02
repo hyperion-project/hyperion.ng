@@ -272,7 +272,7 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 		int panelNum = jsonLayout[PANEL_NUM].toInt();
 		const QJsonArray positionData = jsonLayout[PANEL_POSITIONDATA].toArray();
 
-		std::map<int, std::map<int, int>> panelMap;
+		std::map<int, std::map<int, std::vector<int>>> panelMap;
 
 		// Loop over all children.
 		for (const QJsonValue& value : positionData)
@@ -299,8 +299,14 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 
 			if (hasLEDs(static_cast<SHAPETYPES>(panelshapeType)))
 			{
-				panelMap[panelY][panelX] = panelId;
-				DebugIf(verbose, _log, "Use  Panel [%d] (%d,%d) - Type: [%d]", panelId, panelX, panelY, panelshapeType);
+				panelMap[panelY][panelX];
+				panelMap[panelY][panelX].push_back(panelId);
+				if (panelMap[panelY][panelX].size() > 1) {
+					DebugIf(verbose, _log, "Use  Panel [%d] (%d,%d) - Type: [%d] (Ovarlapping %d other Panels)", panelId, panelX, panelY, panelshapeType, panelMap[panelY][panelX].size() - 1);
+				} else {
+					DebugIf(verbose, _log, "Use  Panel [%d] (%d,%d) - Type: [%d]", panelId, panelX, panelY, panelshapeType);
+				}
+
 			}
 			else
 			{
@@ -317,15 +323,18 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 			{
 				for (auto posX = posY->second.cbegin(); posX != posY->second.cend(); ++posX)
 				{
-					DebugIf(verbose, _log, "panelMap[%d][%d]=%d", posY->first, posX->first, posX->second);
+					for (auto ledId = posX->second.cbegin(); ledId != posX->second.cend(); ++ledId)
+					{
+						DebugIf(verbose, _log, "panelMap[%d][%d]=%d", posY->first, posX->first, ledId);
 
-					if (_topDown)
-					{
-						_panelIds.push_back(posX->second);
-					}
-					else
-					{
-						_panelIds.push_front(posX->second);
+						if (_topDown)
+						{
+							_panelIds.push_back(*ledId);
+						}
+						else
+						{
+							_panelIds.push_front(*ledId);
+						}
 					}
 				}
 			}
@@ -334,15 +343,18 @@ bool LedDeviceNanoleaf::initLedsConfiguration()
 				// Sort panels right to left
 				for (auto posX = posY->second.crbegin(); posX != posY->second.crend(); ++posX)
 				{
-					DebugIf(verbose, _log, "panelMap[%d][%d]=%d", posY->first, posX->first, posX->second);
+					for (auto ledId = posX->second.cbegin(); ledId != posX->second.cend(); ++ledId)
+					{
+						DebugIf(verbose, _log, "panelMap[%d][%d]=%d", posY->first, posX->first, ledId);
 
-					if (_topDown)
-					{
-						_panelIds.push_back(posX->second);
-					}
-					else
-					{
-						_panelIds.push_front(posX->second);
+						if (_topDown)
+						{
+							_panelIds.push_back(*ledId);
+						}
+						else
+						{
+							_panelIds.push_front(*ledId);
+						}
 					}
 				}
 			}
