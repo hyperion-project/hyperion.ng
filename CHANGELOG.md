@@ -388,6 +388,7 @@ To run Hyperion with root privileges (e.g. for WS281x) execute <br> `sudo update
   - Fixed: Nanoleaf does not turn on
   - Fixed LED layout - Additional parameters for classic layout were not saved (#1314)
   - Fixed Network LED-Device UI: Trigger getProperties for the configured host, when no hosts were discovered
+  - Fixed Nanoleaf error if LEDs in strip overlap
 
 ### Removed:
 
