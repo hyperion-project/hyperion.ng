@@ -38,6 +38,14 @@ elif [[ "$RUNNER_OS" == 'Linux' ]]; then
 	# take ownership of deploy dir
 	mkdir ${GITHUB_WORKSPACE}/deploy
 
+	NPROC=$(nproc)
+
+	# Raspberry PIs have limited RAM
+	# Running wide will cause the docker container to OOM kill GCC
+	if [[ "$PLATFORM" == 'rpi-dev' ]] && [ $NPROC -gt 2 ]; then
+		NPROC=2	
+	fi
+
 	# run docker
 	docker run --rm --platform=${TARGET_ARCH} \
 		-v "${GITHUB_WORKSPACE}/deploy:/deploy" \
@@ -45,7 +53,7 @@ elif [[ "$RUNNER_OS" == 'Linux' ]]; then
 		$REGISTRY_URL:$DOCKER_TAG \
 		/bin/bash -c "mkdir -p /source/build && cd /source/build &&
 		cmake -G Ninja -DPLATFORM=${PLATFORM} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. || exit 2 &&
-		cmake --build . --target package -- -j $(nproc) || exit 3 || : &&
+		cmake --build . --target package -- -j $NPROC || exit 3 || : &&
 		cp /source/build/bin/h* /deploy/ 2>/dev/null || : &&
 		cp /source/build/Hyperion-* /deploy/ 2>/dev/null || : &&
 		cd /source && source /source/test/testrunner.sh || exit 5 &&
