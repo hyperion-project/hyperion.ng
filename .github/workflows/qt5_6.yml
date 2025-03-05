@@ -126,9 +126,15 @@ jobs:
       - name: 👷 Build
         shell: bash
         run: |
+          # Remove once issue with hombrew cache action is fixed
           brew reinstall --formula cmake
+          # Build
           cmake --preset macos-${{ env.BUILD_TYPE }}
-          cmake --build --preset macos-${{ env.BUILD_TYPE }} --target package --parallel $(sysctl -n hw.ncpu)
+          cmake --build --preset macos-${{ env.BUILD_TYPE }} --parallel $(sysctl -n hw.ncpu)
+          # CPack workaround for macOS 13
+          echo killing...; sudo pkill -9 XProtect >/dev/null || true;
+          echo waiting...; while pgrep XProtect; do sleep 3; done;
+          cd build; cpack
         env:
           BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
 
