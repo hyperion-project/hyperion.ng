@@ -3,8 +3,8 @@ project(hyperion-remote)
 
 if(WIN32)
 	# generate windows .rc file for this binary
-	string(REPLACE "/" "\\\\" WIN_RC_ICON_PATH ${CMAKE_SOURCE_DIR}/cmake/nsis/installer.ico)
-	configure_file(${CMAKE_SOURCE_DIR}/cmake/win/win.rc.in ${CMAKE_BINARY_DIR}/win.rc)
+	string(REPLACE "/" "\\\\" WIN_RC_ICON_PATH ${CMAKE_SOURCE_DIR}/cmake/windows/nsis/installer.ico)
+	configure_file(${CMAKE_SOURCE_DIR}/cmake/windows/win.rc.in ${CMAKE_BINARY_DIR}/win.rc)
 	set(WIN_RC_FILE ${CMAKE_BINARY_DIR}/win.rc)
 endif()
 
@@ -32,11 +32,11 @@ if(ENABLE_EFFECTENGINE)
 endif()
 
 if(APPLE)
-	install (TARGETS ${PROJECT_NAME} DESTINATION "." COMPONENT "hyperion_remote")
+	install(TARGETS ${PROJECT_NAME} DESTINATION "." COMPONENT "hyperion_remote" OPTIONAL)
 elseif(NOT WIN32)
-	install (TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin" COMPONENT "hyperion_remote")
+	install(TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin" COMPONENT "hyperion_remote" OPTIONAL)
 else()
-	install (TARGETS ${PROJECT_NAME} DESTINATION "bin" COMPONENT "hyperion_remote")
+	install(TARGETS ${PROJECT_NAME} DESTINATION "bin" COMPONENT "hyperion_remote" OPTIONAL)
 endif()
 
 if(CMAKE_HOST_UNIX AND NOT APPLE)

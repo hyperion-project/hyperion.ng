@@ -1,0 +1,164 @@
+set(ENABLE_MF @ENABLE_MF@)
+set(ENABLE_DX @ENABLE_DX@)
+set(OPENSSL_FOUND @OPENSSL_FOUND@)
+set(TurboJPEG_INCLUDE_DIR "@TurboJPEG_INCLUDE_DIR@")
+set(PYTHON_VERSION "@PYTHON_VERSION@")
+set(CMAKE_SOURCE_DIR "@CMAKE_SOURCE_DIR@")
+set(CMAKE_CURRENT_BINARY_DIR "@CMAKE_CURRENT_BINARY_DIR@")
+
+# Set windeployqt args
+set(ARGS --dry-run --no-opengl-sw --list mapping)
+if(@QT_VERSION_MAJOR@ EQUAL 5)
+	set(EXTRA_ARGS --no-angle)
+endif()
+
+if(EXISTS @CMAKE_BINARY_DIR@/bin/@PROJECT_NAME@@CMAKE_EXECUTABLE_SUFFIX@)
+	# Collect the runtime libraries
+	get_filename_component(QT_BIN_DIR "${QMAKE_EXECUTABLE}" DIRECTORY)
+	execute_process(
+		COMMAND "${CMAKE_COMMAND}" -E env "PATH=${QT_BIN_DIR}" "@WINDEPLOYQT_EXECUTABLE@"
+		${ARGS}
+		${EXTRA_ARGS}
+		"@CMAKE_BINARY_DIR@/bin/@PROJECT_NAME@@CMAKE_EXECUTABLE_SUFFIX@"
+		WORKING_DIRECTORY "${QT_BIN_DIR}/.."
+		OUTPUT_VARIABLE DEPS
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+	)
+
+	# Parse DEPS into a semicolon-separated list.
+	separate_arguments(DEPENDENCIES WINDOWS_COMMAND ${DEPS})
+	string(REPLACE "\\" "/" DEPENDENCIES "${DEPENDENCIES}")
+
+	# Copy dependencies to 'hyperion/lib' or 'hyperion'
+	while(DEPENDENCIES)
+		list(GET DEPENDENCIES 0 src)
+		list(GET DEPENDENCIES 1 dst)
+		get_filename_component(dst ${dst} DIRECTORY)
+
+		if(NOT ${dst} STREQUAL "")
+			set(DESTINATION_DIR "lib/${dst}")
+		else()
+			set(DESTINATION_DIR "bin")
+		endif()
+
+		file(INSTALL
+			FILES
+				${src}
+			DESTINATION
+				${CMAKE_INSTALL_PREFIX}/${DESTINATION_DIR}
+		)
+
+		list(REMOVE_AT DEPENDENCIES 0 1)
+	endwhile()
+
+	# Create a qt.conf file in 'bin' to override hard-coded search paths in Qt plugins
+	file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/\n")
+	file(INSTALL FILES "${CMAKE_CURRENT_BINARY_DIR}/qt.conf" DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
+
+	# Copy libjpeg-turbo to 'hyperion'
+	if(ENABLE_MF AND NOT TurboJPEG_INCLUDE_DIR STREQUAL "")
+		get_filename_component(TURBOJPEG_DIR "${TurboJPEG_INCLUDE_DIR}" DIRECTORY)
+		foreach(comp "turbojpeg" "jpeg62")
+			find_file(${comp}
+				NAMES
+					"${comp}.dll"
+				PATHS
+					${TURBOJPEG_DIR}
+				PATH_SUFFIXES
+					bin
+			)
+
+			file(INSTALL FILES ${${comp}} DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
+		endforeach()
+	endif()
+
+	if(NOT PYTHON_VERSION STREQUAL "")
+		set(PYTHON_EMBED_URL "https://www.python.org/ftp/python/${PYTHON_VERSION}/python-${PYTHON_VERSION}-embed-amd64.zip")
+		get_filename_component(PYTHON_EMBED_ARCHIVE ${PYTHON_EMBED_URL} NAME)
+
+		# Download embed python package (release build only)
+		if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/${PYTHON_EMBED_ARCHIVE}")
+			message(STATUS "Downloading ${PYTHON_EMBED_ARCHIVE}...")
+			file(DOWNLOAD
+				${PYTHON_EMBED_URL}
+				${CMAKE_CURRENT_BINARY_DIR}/${PYTHON_EMBED_ARCHIVE}
+				SHOW_PROGRESS
+				STATUS result
+			)
+
+			# Check if the download is successful
+			list(GET result 0 result_code)
+			if(NOT result_code EQUAL 0)
+				list(GET result 1 reason)
+				message(FATAL_ERROR "Could not download file ${PYTHON_EMBED_ARCHIVE}: ${reason}")
+			endif()
+		endif()
+
+		# Unpack downloaded embed python
+		if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/python")
+			message(STATUS "Extracting ${PYTHON_EMBED_ARCHIVE}...")
+			file(ARCHIVE_EXTRACT
+				INPUT
+					${CMAKE_CURRENT_BINARY_DIR}/${PYTHON_EMBED_ARCHIVE}
+				DESTINATION
+					${CMAKE_CURRENT_BINARY_DIR}/python
+			)
+		endif()
+
+		# Copy python library and archive to 'hyperion'
+		string(REGEX MATCHALL "[0-9]+" VERSION ${PYTHON_VERSION})
+		list(GET VERSION 0 PYTHON_VERSION_MAJOR)
+		list(GET VERSION 1 PYTHON_VERSION_MINOR)
+		set(PYTHON_LIB "python${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}.dll")
+		set(PYTHON_ZIP "python${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR}.zip")
+		if(EXISTS "${CMAKE_CURRENT_BINARY_DIR}/python/${PYTHON_LIB}" AND EXISTS "${CMAKE_CURRENT_BINARY_DIR}/python/${PYTHON_ZIP}")
+			file(INSTALL
+				FILES
+					${CMAKE_CURRENT_BINARY_DIR}/python/${PYTHON_LIB}
+					${CMAKE_CURRENT_BINARY_DIR}/python/${PYTHON_ZIP}
+				DESTINATION
+					"${CMAKE_INSTALL_PREFIX}/bin"
+			)
+		endif()
+	endif()
+
+	if(ENABLE_DX)
+		set(DIRECTX_REDIST_URL "https://download.microsoft.com/download/8/4/A/84A35BF1-DAFE-4AE8-82AF-AD2AE20B6B14/directx_Jun2010_redist.exe")
+		get_filename_component(DIRECTX_REDIST_FILE ${DIRECTX_REDIST_URL} NAME)
+
+		# Download DirectX End-User Runtimes (June 2010)
+		if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/dx_redist.exe")
+			message(STATUS "Downloading ${DIRECTX_REDIST_FILE}...")
+			file(DOWNLOAD
+				${DIRECTX_REDIST_URL}
+				${CMAKE_CURRENT_BINARY_DIR}/dx_redist.exe
+				SHOW_PROGRESS
+				STATUS result
+			)
+
+			# Check if the download is successful
+			list(GET result 0 result_code)
+			if(NOT result_code EQUAL 0)
+				list(GET result 1 reason)
+				message(FATAL_ERROR "Could not download file ${DIRECTX_REDIST_FILE}: ${reason}")
+			endif()
+		endif()
+
+		# Copy DirectX End-User Runtimes to 'hyperion'
+		if(NOT EXISTS "${CMAKE_INSTALL_PREFIX}/bin/dx_redist.exe")
+			file(INSTALL
+				FILES
+					"${CMAKE_CURRENT_BINARY_DIR}/dx_redist.exe"
+				DESTINATION
+					"${CMAKE_INSTALL_PREFIX}/bin"
+			)
+		endif()
+	endif()
+
+	file(INSTALL
+		FILES
+			"${CMAKE_SOURCE_DIR}/effects/readme.txt"
+		DESTINATION
+			"${CMAKE_INSTALL_PREFIX}/effects"
+	)
+endif()

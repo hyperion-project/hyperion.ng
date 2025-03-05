@@ -110,9 +110,11 @@
     {
       "name": "msvc",
       "hidden": true,
-      "generator": "Visual Studio 17 2022",
-      "architecture": "x64",
-      "toolset": "host=x64"
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl.exe",
+        "CMAKE_CXX_COMPILER": "cl.exe"
+      }
     },
     {
       "name": "gcc",
@@ -167,7 +169,7 @@
       "name": "windows-release",
       "displayName": "Windows Release (msvc)",
       "description": "Build with MSVC's CL as Release without Debug Symbols",
-      "inherits": [ "base", "msvc" ],
+      "inherits": [ "base", "release", "msvc" ],
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
@@ -178,7 +180,7 @@
       "name": "windows-debug",
       "displayName": "Windows Debug (msvc)",
       "description": "Build with MSVC's CL with Debug Symbols",
-      "inherits": [ "base", "msvc" ],
+      "inherits": [ "base", "debug", "msvc" ],
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",

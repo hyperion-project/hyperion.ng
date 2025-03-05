@@ -126,9 +126,9 @@ jobs:
       - name: 👷 Build
         shell: bash
         run: |
+          brew reinstall --formula cmake
           cmake --preset macos-${{ env.BUILD_TYPE }}
-          cmake --build --preset macos-${{ env.BUILD_TYPE }} --parallel $(sysctl -n hw.ncpu)
-          cd build; cpack
+          cmake --build --preset macos-${{ env.BUILD_TYPE }} --target package --parallel $(sysctl -n hw.ncpu)
         env:
           BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
 
@@ -149,7 +149,6 @@ jobs:
     name: 🪟 Windows x64
     runs-on: windows-2022
     env:
-      VCINSTALLDIR: 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC'
       LIBJPEG_TURBO_VERSION: 3.0.1
     steps:
       - name: ⬇ Checkout
@@ -162,14 +161,14 @@ jobs:
         shell: bash
         run: tr -d '\n' < .version > temp && mv temp .version && echo -n "+PR${{ inputs.pull_request_number }}" >> .version
 
-      - name: 📥 Download and 💾 Cache DirectX SDK
+      - name: 💾 Restore DirectX SDK (if available)
         uses: ethanjli/cached-download-action@v0.1.2
         with:
           url: https://download.microsoft.com/download/A/E/7/AE743F1F-632B-4809-87A9-AA1BB3458E31/DXSDK_Jun10.exe
           destination: .\installer\dxsdk-jun10.exe
           cache-key: dxsdk-jun10
 
-      - name: 📥 Download and 💾 Cache libjpeg-turbo
+      - name: 💾 Restore libjpeg-turbo (if available)
         uses: ethanjli/cached-download-action@v0.1.2
         with:
           url: https://sourceforge.net/projects/libjpeg-turbo/files/${{ env.LIBJPEG_TURBO_VERSION }}/libjpeg-turbo-${{ env.LIBJPEG_TURBO_VERSION }}-vc64.exe
@@ -181,7 +180,7 @@ jobs:
           cmd.exe /c start /wait .\installer\libjpeg-turbo.exe /S
           cmd.exe /c start /wait .\installer\dxsdk-jun10.exe /U /F
 
-      - name: Install Vulkan SDK
+      - name: 📥 Install Vulkan SDK
         if: ${{ inputs.qt_version == '6' }}
         uses: jakoch/install-vulkan-sdk-action@v1.0.6
         with:
@@ -199,14 +198,15 @@ jobs:
           cache-key-prefix: 'cache-qt-windows'
 
       - name: 🛠️ Setup MSVC
-        shell: cmd
-        run: call "${{env.VCINSTALLDIR}}\Auxiliary\Build\vcvars64.bat"
+        uses: ilammy/msvc-dev-cmd@v1
 
       - name: 👷 Build
-        shell: bash
+        shell: cmd
         run: |
-           cmake --preset windows-release
-           cmake --build --preset windows-release --target package -- -nologo -v:m -maxcpucount
+           cmake --preset windows-${{ env.BUILD_TYPE }}
+           cmake --build --preset windows-${{ env.BUILD_TYPE }} --target package --parallel %NUMBER_OF_PROCESSORS%
+        env:
+          BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
 
       - name: 📦 Upload
         if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
@@ -216,39 +216,3 @@ jobs:
           path: ${{ inputs.event_name == 'pull_request' && 'build/*.exe' || 'build/Hyperion-*' }}
         env:
           NAME: ${{ inputs.qt_version == '6' && 'windows_x64_qt6' || 'windows_x64' }}
-
-#####################################
-###### Publish GitHub Releases ######
-#####################################
-
-  github_publish:
-    name: 🚀 Publish GitHub Releases
-    if: ${{ inputs.qt_version == '5' && inputs.publish }}
-    needs: [Linux, macOS, windows]
-    runs-on: ubuntu-latest
-    steps:
-      - name: ⬇ Checkout
-        uses: actions/checkout@v4
-
-      - name: 🔧 Prepare
-        run: |
-          echo '::group::Generate environment variables from .version and tag'
-            echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
-            echo "VERSION=$(tr -d '\n' < .version)" >> $GITHUB_ENV
-          echo '::endgroup::'
-
-      - name: 💾 Artifact download
-        uses: actions/download-artifact@v4.1.8
-        with:
-          pattern: artifact-*
-          path: all-artifacts
-
-      - name: 📦 Upload
-        uses: softprops/action-gh-release@v2
-        with:
-          name: Hyperion ${{ env.VERSION }}
-          tag_name: ${{ env.TAG }}
-          files: "all-artifacts/**"
-          draft: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
