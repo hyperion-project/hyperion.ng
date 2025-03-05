@@ -182,7 +182,7 @@ jobs:
 
       - name: 📥 Install Vulkan SDK
         if: ${{ inputs.qt_version == '6' }}
-        uses: jakoch/install-vulkan-sdk-action@v1.0.6
+        uses: jakoch/install-vulkan-sdk-action@v1
         with:
           install_runtime: false
           cache: true
@@ -216,3 +216,37 @@ jobs:
           path: ${{ inputs.event_name == 'pull_request' && 'build/*.exe' || 'build/Hyperion-*' }}
         env:
           NAME: ${{ inputs.qt_version == '6' && 'windows_x64_qt6' || 'windows_x64' }}
+
+#####################################
+###### Publish GitHub Releases ######
+#####################################
+
+  github_publish:
+    name: 🚀 Publish GitHub Releases
+    if: ${{ inputs.qt_version == '5' && inputs.publish }}
+    needs: [Linux, macOS, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇ Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔧 Prepare
+        run: |
+          echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
+          echo "VERSION=$(tr -d '\n' < .version)" >> $GITHUB_ENV
+
+      - name: 💾 Artifact download
+        uses: actions/download-artifact@v4
+        with:
+          pattern: artifact-*
+          path: all-artifacts
+
+      - name: 📦 Upload
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Hyperion ${{ env.VERSION }}
+          tag_name: ${{ env.TAG }}
+          files: "all-artifacts/**"
+          draft: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
