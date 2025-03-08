@@ -330,7 +330,7 @@ $(document).ready(function () {
 
     if (enumVals.length === 0) {
       enumVals.push("NONE");
-      enumTitleVals.push(i18n.t('edt_conf_fw_remote_service_discovered_none'));
+      enumTitleVals.push($.i18n('edt_conf_fw_remote_service_discovered_none'));
     }
 
     updateJsonEditorMultiSelection(
