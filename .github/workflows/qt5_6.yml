@@ -25,9 +25,6 @@ on:
         default: false
         required: false
 
-env:
-  ghcr: hyperion-project
-
 jobs:
 
 ######################
@@ -36,7 +33,7 @@ jobs:
 
   Linux:
     name: 🐧 ${{ matrix.os.description }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os.architecture[0] == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
     strategy:
       fail-fast: false
       matrix:
@@ -49,6 +46,7 @@ jobs:
           { distribution: debian, codename: bullseye, description: Debian Bullseye (Raspberry Pi 2),              architecture: [ armv7, linux/arm/v7 ], platform: rpi },
           { distribution: debian, codename: bullseye, description: Debian Bullseye (Raspberry Pi 3/4/5 & Zero 2), architecture: [ arm64, linux/arm64  ], platform: rpi }
         ]
+        target_lookup: [{ 'arm64': 'arm64', 'armv6': 'armv6l', 'armv7': 'armv7l' }]
         isQt5:
           - ${{ inputs.qt_version == '5' }}
         exclude:
@@ -63,24 +61,29 @@ jobs:
         with:
           submodules: recursive
 
-      - name: 🔧 Prepare
+      - name: 🔧 Append PR number to version (PR  only)
+        if: ${{ inputs.event_name == 'pull_request' }}
         shell: bash
-        run: |
-          echo '::group::Append PR number to version (PR  only)'
-            if [[ "${{ inputs.event_name }}" = "pull_request" ]]; then
-              tr -d '\n' < .version > temp && mv temp .version
-              echo -n "+PR${{ inputs.pull_request_number }}" >> .version
-            fi
-          echo '::endgroup::'
+        run: tr -d '\n' < .version > temp && mv temp .version && echo -n "+PR${{ inputs.pull_request_number }}" >> .version
 
       - name: 👷 Build
         shell: bash
-        run: ./.github/scripts/build.sh
+        run: |
+          mkdir deploy
+          docker run --rm --platform=${{ matrix.os.architecture[1] }} ${{ env.ENTRYPOINT }} \
+            -v "${{ github.workspace }}/deploy:/deploy" \
+            -v "${{ github.workspace }}:/source:rw" \
+            -w "/source" \
+            ghcr.io/hyperion-project/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }} \
+            /bin/bash -c "cmake --preset linux-${{ env.BUILD_TYPE }} -DPLATFORM=${{ matrix.os.platform }} ${{ env.CPACK_SYSTEM_PROCESSOR }} &&
+            cmake --build --preset linux-${{ env.BUILD_TYPE }} --target package --parallel $(nproc) &&
+            cp /source/build/Hyperion-* /deploy/ 2>/dev/null"
         env:
           DOCKER_IMAGE: ${{ matrix.os.distribution }}
           DOCKER_TAG: ${{ matrix.os.codename }}${{ inputs.qt_version == '6' && '-qt6' || '' }}
-          PLATFORM: ${{ matrix.os.platform }}
-          TARGET_ARCH: ${{ matrix.os.architecture[1] }}
+          BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
+          ENTRYPOINT: ${{ matrix.os.architecture[0] != 'amd64' && '--entrypoint /usr/bin/env' || '' }}
+          CPACK_SYSTEM_PROCESSOR: ${{ matrix.os.architecture[0] != 'amd64' && format('-DCPACK_SYSTEM_PROCESSOR={0}', matrix.target_lookup[format('{0}', matrix.os.architecture[0])]) || '' }}
 
       - name: 📦 Upload
         if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
@@ -96,40 +99,44 @@ jobs:
 ######################
 
   macOS:
-    name: 🍏 macOS x64
-    runs-on: macos-latest
+    name: 🍏 macOS ${{ matrix.architecture }}
+    runs-on: ${{ matrix.architecture == 'arm64' && 'macos-14' || 'macos-13' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [ arm64, x64 ]
+
     steps:
       - name: ⬇ Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: 🔧 Prepare
+      - name: 🔧 Append Pull Request number to version (PR  only)
+        if: ${{ inputs.event_name == 'pull_request' }}
         shell: bash
-        run: |
-          echo '::group::Append PR number to version (PR  only)'
-            if [[ "${{ inputs.event_name }}" = "pull_request" ]]; then
-              tr -d '\n' < .version > temp && mv temp .version
-              echo -n "+PR${{ inputs.pull_request_number }}" >> .version
-            fi
-          echo '::endgroup::'
+        run: tr -d '\n' < .version > temp && mv temp .version && echo -n "+PR${{ inputs.pull_request_number }}" >> .version
 
-          echo '::group::Update/Install dependencies'
-            brew untap --force homebrew/core homebrew/cask
-            brew update || true
-            brew install qt@${{ inputs.qt_version }} vulkan-headers ninja libftdi || true
-          echo '::endgroup::'
-
-      - name: Temporarily downgrade CMake to 3.28.3 # Please remove if GitHub has updated Cmake (greater than 3.30.0)
-        uses: jwlawson/actions-setup-cmake@v2
+      - name: 📥 Install dependencies
+        uses: tecolicom/actions-use-homebrew-tools@v1
         with:
-          cmake-version: '3.28.3'
+          tools: qt@${{ inputs.qt_version }} vulkan-headers ninja libftdi
+          key: ${{ runner.os }}-${{ matrix.architecture }}-homebrew-packages-${{ inputs.qt_version }}
 
       - name: 👷 Build
         shell: bash
-        run: ./.github/scripts/build.sh
+        run: |
+          # Remove once issue with hombrew cache action is fixed
+          brew reinstall --formula cmake
+          # Build
+          cmake --preset macos-${{ env.BUILD_TYPE }}
+          cmake --build --preset macos-${{ env.BUILD_TYPE }} --parallel $(sysctl -n hw.ncpu)
+          # CPack workaround for macOS 13
+          echo killing...; sudo pkill -9 XProtect >/dev/null || true;
+          echo waiting...; while pgrep XProtect; do sleep 3; done;
+          cd build; cpack
         env:
-          PLATFORM: osx
+          BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
 
       - name: 📦 Upload
         if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
@@ -138,7 +145,7 @@ jobs:
           name: ${{ inputs.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
           path: 'build/Hyperion-*'
         env:
-          NAME: ${{ inputs.qt_version == '6' && 'macOS_x64_qt6' || 'macOS_x64' }}
+          NAME: ${{ inputs.qt_version == '6' && format('macOS_{0}_qt6', matrix.architecture) || format('macOS_{0}', matrix.architecture) }}
 
 ######################
 ###### Windows #######
@@ -148,41 +155,40 @@ jobs:
     name: 🪟 Windows x64
     runs-on: windows-2022
     env:
-      VCINSTALLDIR: 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC'
+      LIBJPEG_TURBO_VERSION: 3.0.1
     steps:
       - name: ⬇ Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: 🔧 Prepare PR
+      - name: 🔧 Append Pull Request number to version (PR  only)
         if: ${{ inputs.event_name == 'pull_request' }}
         shell: bash
-        run: |
-          echo '::group::Append PR number to version'
-            tr -d '\n' < .version > temp && mv temp .version
-            echo -n "+PR${{ inputs.pull_request_number }}" >> .version
-          echo '::endgroup::'
+        run: tr -d '\n' < .version > temp && mv temp .version && echo -n "+PR${{ inputs.pull_request_number }}" >> .version
 
-      - name: 💾 Cache/Restore
-        uses: actions/cache@v4
+      - name: 💾 Restore DirectX SDK (if available)
+        uses: ethanjli/cached-download-action@v0.1.2
         with:
-          path: C:\Users\runneradmin\AppData\Local\Temp\chocolatey
-          key: ${{ runner.os }}${{ '-chocolatey' }}
+          url: https://download.microsoft.com/download/A/E/7/AE743F1F-632B-4809-87A9-AA1BB3458E31/DXSDK_Jun10.exe
+          destination: .\installer\dxsdk-jun10.exe
+          cache-key: dxsdk-jun10
 
-      - name: 📥 Install DirectX SDK, OpenSSL, libjpeg-turbo
-        shell: powershell
+      - name: 💾 Restore libjpeg-turbo (if available)
+        uses: ethanjli/cached-download-action@v0.1.2
+        with:
+          url: https://sourceforge.net/projects/libjpeg-turbo/files/${{ env.LIBJPEG_TURBO_VERSION }}/libjpeg-turbo-${{ env.LIBJPEG_TURBO_VERSION }}-vc64.exe
+          destination: .\installer\libjpeg-turbo.exe
+          cache-key: libjpeg-turbo
+
+      - name: 📥 Install DirectX SDK & libjpeg-turbo
         run: |
-          choco install --no-progress directx-sdk -y
-          choco install --no-progress ${{env.OPENSSL}} -y
-          Invoke-WebRequest https://netcologne.dl.sourceforge.net/project/libjpeg-turbo/3.0.1/libjpeg-turbo-3.0.1-vc64.exe -OutFile libjpeg-turbo.exe -UserAgent NativeHost
-          .\libjpeg-turbo /S
-        env:
-          OPENSSL: ${{ inputs.qt_version == '6' && 'openssl' || 'openssl --version=1.1.1.2100' }}
+          cmd.exe /c start /wait .\installer\libjpeg-turbo.exe /S
+          cmd.exe /c start /wait .\installer\dxsdk-jun10.exe /U /F
 
-      - name: Install Vulkan SDK
+      - name: 📥 Install Vulkan SDK
         if: ${{ inputs.qt_version == '6' }}
-        uses: jakoch/install-vulkan-sdk-action@v1.0.6
+        uses: jakoch/install-vulkan-sdk-action@v1
         with:
           install_runtime: false
           cache: true
@@ -198,19 +204,15 @@ jobs:
           cache-key-prefix: 'cache-qt-windows'
 
       - name: 🛠️ Setup MSVC
-        shell: cmd
-        run: call "${{env.VCINSTALLDIR}}\Auxiliary\Build\vcvars64.bat"
-
-      - name: Temporarily downgrade CMake to 3.28.3 # Please remove if GitHub has updated Cmake (greater than 3.30.0)
-        uses: jwlawson/actions-setup-cmake@v2
-        with:
-          cmake-version: '3.28.3'
+        uses: ilammy/msvc-dev-cmd@v1
 
       - name: 👷 Build
-        shell: bash
-        run: ./.github/scripts/build.sh
+        shell: cmd
+        run: |
+           cmake --preset windows-${{ env.BUILD_TYPE }}
+           cmake --build --preset windows-${{ env.BUILD_TYPE }} --target package --parallel %NUMBER_OF_PROCESSORS%
         env:
-          PLATFORM: windows
+          BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
 
       - name: 📦 Upload
         if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
@@ -236,13 +238,11 @@ jobs:
 
       - name: 🔧 Prepare
         run: |
-          echo '::group::Generate environment variables from .version and tag'
-            echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
-            echo "VERSION=$(tr -d '\n' < .version)" >> $GITHUB_ENV
-          echo '::endgroup::'
+          echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
+          echo "VERSION=$(tr -d '\n' < .version)" >> $GITHUB_ENV
 
       - name: 💾 Artifact download
-        uses: actions/download-artifact@v4.1.8
+        uses: actions/download-artifact@v4
         with:
           pattern: artifact-*
           path: all-artifacts

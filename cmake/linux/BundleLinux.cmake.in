@@ -1,0 +1,121 @@
+set(PROJECT_NAME "@PROJECT_NAME@")
+set(QMAKE_EXECUTABLE "@QMAKE_EXECUTABLE@")
+set(OPENSSL_FOUND @OPENSSL_FOUND@)
+set(PYTHON_MODULES_DIR "@PYTHON_MODULES_DIR@")
+set(PYTHON_VERSION "@PYTHON_VERSION@")
+set(CMAKE_BINARY_DIR "@CMAKE_BINARY_DIR@")
+
+set(SYSTEM_LIBS_SKIP
+	"libatomic"
+	"libc"
+	"libdbus"
+	"libdl"
+	"libexpat"
+	"libfontconfig"
+	"libgcc_s"
+	"libgcrypt"
+	"libglib"
+	"libglib-2"
+	"libgpg-error"
+	"liblz4"
+	"liblzma"
+	"libm"
+	"libpcre"
+	"libpcre2"
+	"libpthread"
+	"librt"
+	"libstdc++"
+	"libsystemd"
+	"libudev"
+	"libusb"
+	"libusb-1"
+	"libutil"
+	"libuuid"
+	"libz"
+)
+
+# Extract dependencies ignoring the system ones
+include(GetPrerequisites)
+get_prerequisites("${CMAKE_BINARY_DIR}/bin/${PROJECT_NAME}" DEPENDENCIES 0 1 "" "")
+
+# Append symlink and non-symlink dependencies to the list
+set(PREREQUISITE_LIBS "")
+foreach(DEPENDENCY ${DEPENDENCIES})
+	get_filename_component(resolved ${DEPENDENCY} NAME_WE)
+	list(FIND SYSTEM_LIBS_SKIP ${resolved} _index)
+	if(${_index} GREATER -1)
+		continue() # Skip system libraries
+	else()
+		gp_resolve_item("${CMAKE_BINARY_DIR}/bin/${PROJECT_NAME}" "${DEPENDENCY}" "" "" resolved_file)
+		get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
+		gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
+		get_filename_component(file_canonical ${resolved_file} REALPATH)
+		gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
+	endif()
+endforeach()
+
+execute_process(
+	COMMAND
+		"${QMAKE_EXECUTABLE}" -query QT_INSTALL_PLUGINS
+	OUTPUT_VARIABLE
+		QT_PLUGINS_DIR
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+# Copy Qt plugins to 'share/hyperion/lib'
+foreach(PLUGIN "platforms" "sqldrivers" "imageformats" "tls" "wayland-shell-integration")
+	if(EXISTS ${QT_PLUGINS_DIR}/${PLUGIN})
+		file(GLOB files "${QT_PLUGINS_DIR}/${PLUGIN}/*.so")
+		foreach(file ${files})
+			get_prerequisites(${file} PLUGINS 0 1 "" "")
+			foreach(DEPENDENCY ${PLUGINS})
+				get_filename_component(resolved ${DEPENDENCY} NAME_WE)
+				list(FIND SYSTEM_LIBS_SKIP ${resolved} _index)
+				if(${_index} GREATER -1)
+					continue() # Skip system libraries
+				else()
+					gp_resolve_item("${file}" "${DEPENDENCY}" "" "" resolved_file)
+					get_filename_component(resolved_file ${resolved_file} ABSOLUTE)
+					gp_append_unique(PREREQUISITE_LIBS ${resolved_file})
+					get_filename_component(file_canonical ${resolved_file} REALPATH)
+					gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
+				endif()
+			endforeach()
+
+			file(INSTALL
+				FILES
+					${file}
+				DESTINATION
+					"${CMAKE_INSTALL_PREFIX}/share/hyperion/lib/${PLUGIN}"
+			)
+		endforeach()
+	endif()
+endforeach()
+
+# Copy dependencies to 'share/hyperion/lib'
+file(INSTALL FILES ${PREREQUISITE_LIBS} DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperion/lib")
+
+# Create a qt.conf file in 'share/hyperion/bin' to override hard-coded search paths in Qt plugins
+file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/\n")
+file(INSTALL FILES "${CMAKE_BINARY_DIR}/qt.conf" DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperion/bin")
+
+if(NOT PYTHON_MODULES_DIR STREQUAL "" AND NOT PYTHON_VERSION STREQUAL "")
+	# Copy Python modules to 'share/hyperion/lib/pythonMAJOR.MINOR' and ignore the unnecessary stuff listed below
+	string(REGEX MATCHALL "[0-9]+" VERSION ${PYTHON_VERSION})
+	list(GET VERSION 0 PYTHON_VERSION_MAJOR)
+	list(GET VERSION 1 PYTHON_VERSION_MINOR)
+	file(INSTALL
+		FILES ${PYTHON_MODULES_DIR}/
+		DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperion/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}"
+		PATTERN "*.pyc"														EXCLUDE # compiled bytecodes
+		PATTERN "__pycache__"												EXCLUDE # any cache
+		PATTERN "config-${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}*"	EXCLUDE # static libs
+		PATTERN "lib2to3"													EXCLUDE # automated Python 2 to 3 code translation
+		PATTERN "tkinter"													EXCLUDE # Tk interface
+		PATTERN "lib-dynload/_tkinter.*"									EXCLUDE
+		PATTERN "idlelib"													EXCLUDE
+		PATTERN "turtle.py"													EXCLUDE # Tk demo
+		PATTERN "test"														EXCLUDE # unittest module
+		PATTERN "sitecustomize.py"											EXCLUDE # site-specific configs
+	)
+endif()

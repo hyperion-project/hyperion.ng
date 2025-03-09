@@ -1,23 +1,85 @@
-cmake_minimum_required(VERSION 3.5.0)
+#=============================================================================
+# Minimum required CMake version is 3.5.0
+#=============================================================================
 
+cmake_minimum_required(VERSION 3.5.0)
 message(STATUS "CMake Version: ${CMAKE_VERSION}")
 
-macro(addIndent text)
-	if(${CMAKE_VERSION} VERSION_GREATER "3.16.0")
-		list(APPEND CMAKE_MESSAGE_INDENT ${text})
-	endif()
-endmacro()
+#=============================================================================
+# CMake policies
+#=============================================================================
 
-macro(removeIndent)
-	if(${CMAKE_VERSION} VERSION_GREATER "3.16.0")
-		list(POP_BACK CMAKE_MESSAGE_INDENT)
-	endif()
-endmacro()
+# Disable passing /W3 by default on MSVC
+if(POLICY CMP0092)
+	cmake_policy(SET CMP0092 NEW)
+endif()
 
-PROJECT(hyperion)
+#=============================================================================
+# Our main project :)
+#=============================================================================
 
+project(hyperion)
+
+#=============================================================================
+# Set the required Cxx standard
+#=============================================================================
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+#=============================================================================
+# Instruct CMake to run moc automatically when needed and auto prepare .qrc files
+#=============================================================================
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+
+#=============================================================================
+# Append our cmake module path (for include, find, etc.)
+# Include the helper macros/functions
+#=============================================================================
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+include(HelperMacros)
+include(HelperFunctions)
+
+#=============================================================================
+# Use ccache as compiler launcher
+#=============================================================================
+
+# Configure CCache if available
+find_program(CACHE_PROG ccache)
+if(CACHE_PROG)
+message(STATUS "Building with ccache: ${CACHE_PROG}")
+	set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${CACHE_PROG})
+	set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ${CACHE_PROG})
+endif()
+
+#=============================================================================
+# Set output directories and add the project/dependencies include directory
+#=============================================================================
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+
+if(MSVC)
+	foreach(CONFIG_TYPE "RELEASE" "DEBUG" "RELWITHDEBINFO" "MINSIZEREL")
+		set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${CONFIG_TYPE} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+		set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${CONFIG_TYPE} ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+		set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${CONFIG_TYPE} ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
+	endforeach()
+endif()
+
+include_directories(${CMAKE_SOURCE_DIR}/dependencies/include)
+include_directories(${CMAKE_SOURCE_DIR}/include)
+
+#=============================================================================
 # Parse semantic version of version file and write version to config
-include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/version.cmake)
+# Determine branch name and build id
+#=============================================================================
+
 file (STRINGS ".version" HYPERION_VERSION)
 SetVersionNumber(HYPERION ${HYPERION_VERSION})
 set(DEFAULT_JSON_CONFIG_FILE ${CMAKE_CURRENT_SOURCE_DIR}/settings/hyperion.settings.json.default)
@@ -25,44 +87,14 @@ file(READ ${DEFAULT_JSON_CONFIG_FILE} DEFAULT_JSON_CONFIG_VAR)
 string(REPLACE "configVersionValue" ${HYPERION_VERSION} DEFAULT_JSON_CONFIG_VAR "${DEFAULT_JSON_CONFIG_VAR}")
 file(WRITE ${CMAKE_BINARY_DIR}/settings/hyperion.settings.json.default "${DEFAULT_JSON_CONFIG_VAR}")
 
-# Instruct CMake to run moc automatically when needed.
-set(CMAKE_AUTOMOC ON)
-# auto prepare .qrc files
-set(CMAKE_AUTORCC ON)
+include(GitVersion)
+message(STATUS "Current Version: ${HYPERION_VERSION}")
+message(STATUS " - Build: ${HYPERION_BUILD_ID}")
 
-# multicore compiling
-include(ProcessorCount)
-ProcessorCount(NCORES)
-if(NOT NCORES EQUAL 0)
-	set(CMAKE_BUILD_PARALLEL_LEVEL NCORES)
-endif()
-
-# Configure CCache ifavailable
-find_program(CCACHE_FOUND ccache)
-if(CCACHE_FOUND)
-	set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
-	set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
-endif(CCACHE_FOUND)
-
-# enable C++17
-if(APPLE)
-	include(CheckCXXCompilerFlag)
-	CHECK_CXX_COMPILER_FLAG("Werror=unguarded-availability" REQUIRED_UNGUARDED_AVAILABILITY)
-	if(REQUIRED_UNGUARDED_AVAILABILITY)
-		list(APPEND CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS} "Werror=unguarded-availability")
-	endif()
-endif()
-
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_C_COMPILER_ID MATCHES "GNU")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-psabi")
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-psabi")
-endif()
-
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
+#=============================================================================
 # Set build variables
+#=============================================================================
+
 # Grabber
 set(DEFAULT_AMLOGIC                     OFF)
 set(DEFAULT_DISPMANX                    OFF)
@@ -122,7 +154,7 @@ if(${CMAKE_SYSTEM} MATCHES "Linux")
 	set(DEFAULT_CEC             ON)
 elseif (WIN32)
 	set(DEFAULT_DX              ON )
-  set(DEFAULT_DDA             ON )
+	set(DEFAULT_DDA             ON )
 	set(DEFAULT_MF              ON )
 	set(DEFAULT_DEV_FTDI        OFF)
 else()
@@ -134,44 +166,19 @@ else()
 	set(DEFAULT_CEC             OFF)
 endif()
 
+#=============================================================================
+# Determine/Evaluate the current platform
+#=============================================================================
+
 if(NOT DEFINED PLATFORM)
-	if(APPLE)
-		set(PLATFORM "osx")
-	elseif (WIN32)
-		set(PLATFORM "windows")
-	elseif ("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "x86")
-		set(PLATFORM "x11")
-	elseif ("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "arm" OR "${CMAKE_SYSTEM_PROCESSOR}" MATCHES "aarch64")
-		set(PLATFORM "rpi")
-		file(READ /proc/cpuinfo SYSTEM_CPUINFO)
-		STRING (TOLOWER "${SYSTEM_CPUINFO}" SYSTEM_CPUINFO)
-		if("${SYSTEM_CPUINFO}" MATCHES "amlogic" AND ${CMAKE_SIZEOF_VOID_P} EQUAL 4)
-			set(PLATFORM "amlogic")
-		elseif (("${SYSTEM_CPUINFO}" MATCHES "amlogic" OR "${SYSTEM_CPUINFO}" MATCHES "odroid-c2" OR "${SYSTEM_CPUINFO}" MATCHES "vero4k") AND ${CMAKE_SIZEOF_VOID_P} EQUAL 8)
-			set(PLATFORM "amlogic64")
-		endif()
+	set(PLATFORM)
+	DeterminePlatform(PLATFORM)
+	if(NOT PLATFORM)
+		message(FATAL_ERROR "PLATFORM is not defined and could not be evaluated. Set -DPLATFORM=<rpi|amlogic|amlogic-dev|amlogic64|amlogic64-dev|x11|x11-dev|osx>")
 	endif()
-	if(PLATFORM)
-		message(STATUS "PLATFORM is not defined, evaluated platform: ${PLATFORM}")
-	else()
-		message(FATAL_ERROR "PLATFORM is not defined and could not be evaluated. Set -DPLATFORM=<rpi|amlogic|amlogic64|x11|x11-dev|osx|osx-dev>")
-	endif()
+else()
+	message(STATUS "PLATFORM: ${PLATFORM}")
 endif()
-
-message(STATUS "PLATFORM: ${PLATFORM}")
-
-# Macro to get path of first sub dir of a dir, used for MAC OSX lib/header searching
-macro(FIRSTSUBDIR result curdir)
-  file(GLOB children RELATIVE ${curdir} ${curdir}/*)
-  set(dirlist "")
-  foreach(child ${children})
-	if(IS_DIRECTORY ${curdir}/${child})
-	  list(APPEND dirlist "${curdir}/${child}")
-		break()
-	endif()
-  endforeach()
-  set(${result} ${dirlist})
-endmacro()
 
 if("${PLATFORM}" MATCHES "osx")
 	# specify the min version of the target platform (only GitHub Actions)
@@ -219,7 +226,9 @@ string(TOUPPER "-DPLATFORM_${PLATFORM}" PLATFORM_DEFINE)
 string(REPLACE "-DEV" "" PLATFORM_DEFINE "${PLATFORM_DEFINE}")
 ADD_DEFINITIONS(${PLATFORM_DEFINE})
 
-# set the build options
+#=============================================================================
+# Set the build options
+#=============================================================================
 
 option(HYPERION_LIGHT "Build Hyperion with a reduced set of functionality" ${DEFAULT_HYPERION_LIGHT})
 message(STATUS "HYPERION_LIGHT = ${HYPERION_LIGHT}")
@@ -423,21 +432,31 @@ message(STATUS "ENABLE_TESTS = ${ENABLE_TESTS}")
 
 removeIndent()
 
-set(FLATBUFFERS_INSTALL_BIN_DIR ${CMAKE_BINARY_DIR}/flatbuf)
-set(FLATBUFFERS_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/flatbuf)
+#=============================================================================
+# Configure the predefined header file to pass selected options to the code
+#=============================================================================
 
-set(PROTOBUF_INSTALL_BIN_DIR ${CMAKE_BINARY_DIR}/proto)
-set(PROTOBUF_INSTALL_LIB_DIR ${CMAKE_BINARY_DIR}/proto)
+configure_file("${PROJECT_SOURCE_DIR}/HyperionConfig.h.in" "${PROJECT_BINARY_DIR}/HyperionConfig.h")
+include_directories(${PROJECT_BINARY_DIR})
+
+# Setup header file cleanup job
+if(NOT CMAKE_VERSION VERSION_LESS "3.15")
+	set_directory_properties(PROPERTIES ADDITIONAL_CLEAN_FILES ${CMAKE_BINARY_DIR}/HyperionConfig.h)
+else()
+	set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ${CMAKE_BINARY_DIR}/HyperionConfig.h)
+endif()
+
+#=============================================================================
+# Check JSON files/schemas
+#=============================================================================
 
 if(ENABLE_JSONCHECKS OR ENABLE_EFFECTENGINE)
-	if("${CMAKE_VERSION}" VERSION_LESS "3.12.0")
-			set(Python_ADDITIONAL_VERSIONS 3.5)
-			find_package(PythonInterp 3.5 REQUIRED)
+	if(CMAKE_VERSION VERSION_LESS "3.12")
+		set(Python_ADDITIONAL_VERSIONS 3.5)
+		find_package(PythonInterp 3.5 REQUIRED)
 	else()
-		find_package(Python3 3.5 COMPONENTS Interpreter Development REQUIRED)
-		if(Python3_FOUND)
-			set(PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
-		endif()
+		find_package(Python3 3.5 REQUIRED)
+		set(PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
 	endif()
 endif()
 
@@ -451,6 +470,7 @@ if(ENABLE_JSONCHECKS)
 		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 		RESULT_VARIABLE CHECK_JSON_FAILED
 	)
+
 	if(${CHECK_JSON_FAILED})
 		message (FATAL_ERROR "check of json files failed")
 	endif()
@@ -475,47 +495,29 @@ if(ENABLE_JSONCHECKS)
 	if(${CHECK_CONFIG_FAILED})
 		message (FATAL_ERROR "check of json default config failed")
 	endif()
-endif(ENABLE_JSONCHECKS)
+endif()
 
-# Add project specific cmake modules (find, etc)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+#=============================================================================
+# Platform-specific tasks
+#=============================================================================
 
-find_package(GitVersion)
-
-# configure a header file to pass some of the CMake settings
-# to the source code
-configure_file("${PROJECT_SOURCE_DIR}/HyperionConfig.h.in" "${PROJECT_BINARY_DIR}/HyperionConfig.h")
-include_directories("${PROJECT_BINARY_DIR}")
-
-# Define the global output path of binaries
-set(LIBRARY_OUTPUT_PATH    ${PROJECT_BINARY_DIR}/lib)
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
-
-file(MAKE_DIRECTORY ${LIBRARY_OUTPUT_PATH})
-file(MAKE_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
-
-# Add the project include directory as additional include path
-include_directories(${CMAKE_SOURCE_DIR}/dependencies/include)
-include_directories(${CMAKE_SOURCE_DIR}/include)
-
-# Prefer static linking over dynamic
-#set(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.so")
-
-# MSVC options
-if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-	# Search for Windows SDK
+# Search for Windows SDK
+if(MSVC)
 	find_package(WindowsSDK REQUIRED)
 	message(STATUS "WINDOWS SDK: ${WINDOWSSDK_LATEST_DIR} ${WINDOWSSDK_LATEST_NAME}")
 	message(STATUS "MSVC VERSION: ${MSVC_VERSION}")
 endif()
 
-# Don't create new dynamic tags (RUNPATH) and setup -rpath to search for shared libs in BINARY/../lib folder (only for Unix)
-if(ENABLE_DEPLOY_DEPENDENCIES AND UNIX AND NOT APPLE)
+# If Hyperion is deployed with all dependencies under Linux
+# it is necessary to deactivate the linker option dtag
+if(ENABLE_DEPLOY_DEPENDENCIES AND SYSTEM_MATCHES_LINUX)
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--disable-new-dtags")
-	set(CMAKE_SKIP_BUILD_RPATH FALSE)
-	set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--disable-new-dtags")
+	set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--disable-new-dtags")
+	set(CMAKE_SKIP_BUILD_RPATH OFF)
+	set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
 	set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
-	set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+	set(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
 endif()
 
 if(APPLE)
@@ -523,15 +525,19 @@ if(APPLE)
 endif()
 
 find_package(Threads REQUIRED)
+find_package(libusb-1.0 REQUIRED)
 
+#=============================================================================
 # Allow to overwrite QT base directory
 # Either supply QTDIR as -DQTDIR=<path> to cmake or set and environment variable QTDIR pointing to the Qt installation
-# For Windows and OSX, the default Qt installation path are tried to resolved automatically
+# For Windows and macOS, the default Qt installation path are tried to resolved automatically
+#=============================================================================
+
 if(NOT DEFINED QTDIR)
 	if(DEFINED ENV{QTDIR})
 		set(QTDIR $ENV{QTDIR})
 	else()
-		if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+		if(MSVC)
 			FIRSTSUBDIR(SUBDIRQT "C:/Qt")
 			if(NOT ${SUBDIRQT} STREQUAL "")
 				set(QTDIR "${SUBDIRQT}/msvc2019_64")
@@ -556,7 +562,10 @@ endif()
 
 if(DEFINED QTDIR)
 	message(STATUS "Add QTDIR: ${QTDIR} to CMAKE_PREFIX_PATH")
-	list(PREPEND CMAKE_PREFIX_PATH ${QTDIR} "${QTDIR}/lib")
+	list(PREPEND CMAKE_PREFIX_PATH
+		${QTDIR}
+		${QTDIR}/lib
+	)
 endif()
 
 if(CMAKE_PREFIX_PATH)
@@ -585,38 +594,30 @@ if(APPLE AND (${QT_VERSION_MAJOR} GREATER_EQUAL 6))
 	set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
 endif()
 
-# Add libusb and pthreads
-find_package(libusb-1.0 REQUIRED)
-add_definitions(${QT_DEFINITIONS})
+#=============================================================================
+# Add our Code
+#=============================================================================
 
 # Add the source/lib directories
 add_subdirectory(dependencies)
+add_subdirectory(resources)
 add_subdirectory(libsrc)
 add_subdirectory(src)
 if(ENABLE_TESTS)
 	add_subdirectory(test)
 endif()
 
-# Add resources directory
-add_subdirectory(resources)
+#=============================================================================
+# Create uninstall target
+#=============================================================================
 
-# remove generated files on make cleaan too
-list(APPEND GENERATED_QRC
-	${CMAKE_BINARY_DIR}/WebConfig.qrc
-	${CMAKE_BINARY_DIR}/HyperionConfig.h
-)
-
-if(ENABLE_EFFECTENGINE)
-list(APPEND GENERATED_QRC
-	${CMAKE_BINARY_DIR}/EffectEngine.qrc
-)
-endif()
-
-set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${GENERATED_QRC}")
-
-# uninstall target
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in" "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake" IMMEDIATE @ONLY)
-add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+add_custom_target(uninstall
+	COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
+)
 
-# enable make package - no code after this line !
-include (${CMAKE_CURRENT_SOURCE_DIR}/cmake/packages.cmake)
+#=============================================================================
+# Add Packaging
+#=============================================================================
+
+include(Packaging)
