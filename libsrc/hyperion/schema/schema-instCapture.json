@@ -64,7 +64,7 @@
 			"append": "s",
 			"minimum": 1,
 			"maximum": 300,
-			"default": 5,
+			"default": 1,
 			"access": "advanced",
 			"propertyOrder": 8
 		},
@@ -97,7 +97,7 @@
 			"append": "s",
 			"minimum": 1,
 			"maximum": 300,
-			"default": 5,
+			"default": 1,
 			"access": "advanced",
 			"propertyOrder": 12
 		}
