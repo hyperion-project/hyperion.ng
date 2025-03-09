@@ -183,7 +183,7 @@ import json,sys, re
 data = json.load(sys.stdin)
 
 for i in data['artifacts']:
-     if re.match('.*{}$'.format(re.escape('$PACKAGE')), i['name']):
+     if re.match('^(?!macOS|windows).*{}$'.format(re.escape('$PACKAGE')), i['name'], re.IGNORECASE):
         print(i['name'])
         break
 """ 2>/dev/null)
@@ -193,7 +193,7 @@ import json,sys, re
 data = json.load(sys.stdin)
 
 for i in data['artifacts']:
-    if re.match('.*{}$'.format(re.escape('$PACKAGE')), i['name']):
+    if re.match('^(?!macOS|windows).*{}$'.format(re.escape('$PACKAGE')), i['name'], re.IGNORECASE):
         print(i['archive_download_url'])
         break
 """ 2>/dev/null)
