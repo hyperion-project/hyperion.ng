@@ -1,0 +1,29 @@
+{
+	"type":"object",
+	"required":true,
+	"properties":{
+		"command": {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["instance-data"]
+		},
+		"subcommand" : {
+			"type" : "string",
+			"required" : true,
+			"enum" : ["getImageSnapshot","getLedSnapshot"]
+		},
+		"instance" : {
+			"type": "integer",
+			"minimum": 0,
+			"maximum": 255
+		},
+		"filetype" : {
+			"type" : "string",
+			"enum" : ["BMP","JPG","PNG"]
+		},
+		"tan" : {
+			"type" : "integer"
+		}
+	},
+	"additionalProperties": false
+}
