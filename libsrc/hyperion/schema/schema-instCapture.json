@@ -25,19 +25,29 @@
 			"default": 250,
 			"propertyOrder": 3
 		},
+		"screenInactiveTimeout": {
+			"type": "integer",
+			"title": "edt_conf_instCapture_timeout_title",
+			"append": "s",
+			"minimum": 1,
+			"maximum": 300,
+			"default": 5,
+			"access": "advanced",
+			"propertyOrder": 4
+		},
 		"v4lEnable": {
 			"type": "boolean",
 			"required": true,
 			"title": "edt_conf_instC_v4lEnable_title",
 			"default": false,
-			"propertyOrder": 4
+			"propertyOrder": 5
 		},
 		"v4lGrabberDevice": {
 			"type": "string",
 			"required": true,
 			"title": "edt_conf_instC_video_grabber_device_title",
 			"default": "NONE",
-			"propertyOrder": 5
+			"propertyOrder": 6
 		},
 		"v4lPriority": {
 			"type": "integer",
@@ -46,21 +56,31 @@
 			"minimum": 100,
 			"maximum": 253,
 			"default": 240,
-			"propertyOrder": 6
+			"propertyOrder": 7
+		},
+		"videoInactiveTimeout": {
+			"type": "integer",
+			"title": "edt_conf_instCapture_timeout_title",
+			"append": "s",
+			"minimum": 1,
+			"maximum": 300,
+			"default": 1,
+			"access": "advanced",
+			"propertyOrder": 8
 		},
 		"audioEnable": {
 			"type": "boolean",
 			"required": true,
 			"title": "edt_conf_instC_audioEnable_title",
 			"default": false,
-			"propertyOrder": 7
+			"propertyOrder": 9
 		},
 		"audioGrabberDevice": {
 			"type": "string",
 			"required": true,
 			"title": "edt_conf_instC_video_grabber_device_title",
 			"default": "NONE",
-			"propertyOrder": 7
+			"propertyOrder": 10
 		},
 		"audioPriority": {
 			"type": "integer",
@@ -69,7 +89,17 @@
 			"minimum": 100,
 			"maximum": 253,
 			"default": 230,
-			"propertyOrder": 9
+			"propertyOrder": 11
+		},
+		"audioInactiveTimeout": {
+			"type": "integer",
+			"title": "edt_conf_instCapture_timeout_title",
+			"append": "s",
+			"minimum": 1,
+			"maximum": 300,
+			"default": 1,
+			"access": "advanced",
+			"propertyOrder": 12
 		}
 	},
 	"additionalProperties" : false

@@ -174,7 +174,7 @@ public slots:
 	/// @param priority  The priority
 	/// @return True on success false if not found
 	///
-	bool setInputInactive(quint8 priority);
+	bool setInputInactive(int priority);
 
 	///
 	/// Returns the list with unique adjustment identifiers

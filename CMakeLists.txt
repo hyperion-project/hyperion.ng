@@ -510,7 +510,7 @@ endif()
 
 # If Hyperion is deployed with all dependencies under Linux
 # it is necessary to deactivate the linker option dtag
-if(ENABLE_DEPLOY_DEPENDENCIES AND SYSTEM_MATCHES_LINUX)
+if(ENABLE_DEPLOY_DEPENDENCIES AND UNIX AND NOT APPLE)
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--disable-new-dtags")
 	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--disable-new-dtags")
 	set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--disable-new-dtags")
