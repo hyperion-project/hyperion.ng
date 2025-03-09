@@ -3,8 +3,8 @@ project(hyperion-qt)
 
 if(WIN32)
 	# generate windows .rc file for this binary
-	string(REPLACE "/" "\\\\" WIN_RC_ICON_PATH ${CMAKE_SOURCE_DIR}/cmake/nsis/installer.ico)
-	configure_file(${CMAKE_SOURCE_DIR}/cmake/win/win.rc.in ${CMAKE_BINARY_DIR}/win.rc)
+	string(REPLACE "/" "\\\\" WIN_RC_ICON_PATH ${CMAKE_SOURCE_DIR}/cmake/windows/nsis/installer.ico)
+	configure_file(${CMAKE_SOURCE_DIR}/cmake/windows/win.rc.in ${CMAKE_BINARY_DIR}/win.rc)
 	set(WIN_RC_FILE ${CMAKE_BINARY_DIR}/win.rc)
 endif()
 
@@ -30,11 +30,11 @@ else()
 endif()
 
 if(APPLE)
-	install (TARGETS ${PROJECT_NAME} DESTINATION "." COMPONENT "hyperion_qt")
+	install(TARGETS ${PROJECT_NAME} DESTINATION "." COMPONENT "hyperion_qt" OPTIONAL)
 elseif(NOT WIN32)
-	install (TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin" COMPONENT "hyperion_qt")
+	install(TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin" COMPONENT "hyperion_qt" OPTIONAL)
 else()
-	install (TARGETS ${PROJECT_NAME} DESTINATION "bin" COMPONENT "hyperion_qt")
+	install(TARGETS ${PROJECT_NAME} DESTINATION "bin" COMPONENT "hyperion_qt" OPTIONAL)
 endif()
 
 if(CMAKE_HOST_UNIX  AND NOT APPLE)

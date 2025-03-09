@@ -1,8 +1,18 @@
 #pragma once
 
 #undef slots
+// Don't use debug Python APIs on Windows
+#if defined(_MSC_VER) && defined(_DEBUG)
+#if _MSC_VER >= 1930
+#include <corecrt.h>
+#endif
+#undef _DEBUG
 #include <Python.h>
-#define slots
+#define _DEBUG
+#else
+#include <Python.h>
+#endif
+#define slots Q_SLOTS
 
 #include <QJsonValue>
 
