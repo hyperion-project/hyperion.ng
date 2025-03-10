@@ -502,6 +502,8 @@
     "edt_conf_instC_video_grabber_device_expl": "The video capture device used",
     "edt_conf_instC_video_grabber_device_title": "Video capture device",
     "edt_conf_instCapture_heading_title": "Capture Devices",
+    "edt_conf_instCapture_timeout_expl": "If no data are received for the given period, the component will be cleared as an input source.",
+    "edt_conf_instCapture_timeout_title": "Input timeout",
     "edt_conf_js_heading_title": "JSON Server",
     "edt_conf_log_heading_title": "Logging",
     "edt_conf_log_level_expl": "Depending on loglevel you see less or more messages in your log.",
