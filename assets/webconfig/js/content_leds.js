@@ -2478,7 +2478,7 @@ function validateWledLedCount(hardwareLedCount) {
 
   if (!jQuery.isEmptyObject(devicesProperties)) {
     var host = conf_editor.getEditor("root.specificOptions.host").getValue();
-    var ledDeviceProperties = devicesProperties["wled"][host];
+    var ledDeviceProperties = devicesProperties["wled"]?.[host] || {};
 
     if (ledDeviceProperties) {
 
