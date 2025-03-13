@@ -115,6 +115,7 @@ Note: The wizard will configure an APIv2 capable bridge always with Entertainmen
 - Audio Capture settings are no longer ignored (#1630)
 - Fixed that the Matrix effect finds its image - Thanks @lsellens
 - MDNSBrower - Fixed, if timeout while resolving host occurs
+- Fixed mDNS Browser deadlock, plus run in own thread now
 - Non image updates ignored blacklisted LEDs (#1634)
 - Fixed that Windows OsEvents failed in non-GUI mode (#1671)
 - Addressed serious (#1425) and some smaller memory leaks

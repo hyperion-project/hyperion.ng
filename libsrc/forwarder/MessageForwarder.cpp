@@ -59,7 +59,7 @@ MessageForwarder::~MessageForwarder()
 void MessageForwarder::init()
 {
 #ifdef ENABLE_MDNS
-	QMetaObject::invokeMethod(MdnsBrowser::getInstance().data(), "browseForServiceType",
+	QMetaObject::invokeMethod(MdnsBrowser::getInstance().get(), "browseForServiceType",
 							  Qt::QueuedConnection, Q_ARG(QByteArray, MdnsServiceRegister::getServiceType("jsonapi")));
 #endif
 
@@ -329,7 +329,7 @@ void MessageForwarder::addJsonTarget(const QJsonObject& targetConfig)
 			QString const address = targetHost.host.toString();
 			if (hostName != address)
 			{
-				Info(_log, "Resolved hostname [%s] to address [%s]",  QSTRING_CSTR(hostName), QSTRING_CSTR(address));
+				Debug(_log, "Resolved hostname [%s] to address [%s]",  QSTRING_CSTR(hostName), QSTRING_CSTR(address));
 			}
 
 			if (NetUtils::isValidPort(_log, port, targetHost.host.toString()))
@@ -380,8 +380,7 @@ int MessageForwarder::startJsonTargets(const QJsonObject& config)
 #ifdef ENABLE_MDNS
 		if (!addr.isEmpty())
 		{
-			QMetaObject::invokeMethod(MdnsBrowser::getInstance().data(), "browseForServiceType",
-									  Qt::QueuedConnection, Q_ARG(QByteArray, MdnsServiceRegister::getServiceType("jsonapi")));
+			QMetaObject::invokeMethod(MdnsBrowser::getInstance().get(), "browseForServiceType", Q_ARG(QByteArray, MdnsServiceRegister::getServiceType("jsonapi")));
 		}
 #endif
 
@@ -430,7 +429,7 @@ void MessageForwarder::addFlatbufferTarget(const QJsonObject& targetConfig)
 			QString const address = targetHost.host.toString();
 			if (hostName != address)
 			{
-				Info(_log, "Resolved hostname [%s] to address [%s]",  QSTRING_CSTR(hostName), QSTRING_CSTR(address));
+				Debug(_log, "Resolved hostname [%s] to address [%s]",  QSTRING_CSTR(hostName), QSTRING_CSTR(address));
 			}
 
 			if (NetUtils::isValidPort(_log, port, targetHost.host.toString()))
@@ -484,8 +483,7 @@ int MessageForwarder::startFlatbufferTargets(const QJsonObject& config)
 #ifdef ENABLE_MDNS
 		if (!addr.isEmpty())
 		{
-			QMetaObject::invokeMethod(MdnsBrowser::getInstance().data(), "browseForServiceType",
-									  Qt::QueuedConnection, Q_ARG(QByteArray, MdnsServiceRegister::getServiceType("flatbuffer")));
+			QMetaObject::invokeMethod(MdnsBrowser::getInstance().get(), "browseForServiceType", Q_ARG(QByteArray, MdnsServiceRegister::getServiceType("flatbuffer")));
 		}
 #endif
 		for (const auto& entry : addr)

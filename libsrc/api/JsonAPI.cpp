@@ -1515,7 +1515,7 @@ void JsonAPI::handleServiceCommand(const QJsonObject &message, const JsonApiComm
 		{
 			QJsonArray serviceList;
 #ifdef ENABLE_MDNS
-			QMetaObject::invokeMethod(MdnsBrowser::getInstance(), "browseForServiceType",
+			QMetaObject::invokeMethod(MdnsBrowser::getInstance().get(), "browseForServiceType",
 									  Qt::QueuedConnection, Q_ARG(QByteArray, serviceType));
 
 			serviceList = MdnsBrowser::getInstance()->getServicesDiscoveredJson(serviceType, MdnsServiceRegister::getServiceNameFilter(type), DEFAULT_DISCOVER_TIMEOUT);

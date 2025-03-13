@@ -111,11 +111,6 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 		handleSettingsUpdate(settings::LOGGER, getSetting(settings::LOGGER));
 	}
 
-#ifdef ENABLE_MDNS
-	//Create MdnsBrowser singleton in main tread to ensure thread affinity during destruction
-	MdnsBrowser::getInstance();
-#endif
-
 #if defined(ENABLE_EFFECTENGINE)
 	// init EffectFileHandler
 	EffectFileHandler* efh = new EffectFileHandler(rootPath, getSetting(settings::EFFECTS), this);
@@ -240,12 +235,14 @@ void HyperionDaemon::createNetworkServices()
 	_netOrigin->handleSettingsUpdate(settings::NETWORK, _settingsManager->getSetting(settings::NETWORK));
 
 #ifdef ENABLE_MDNS
-	// Create mDNS-Provider in own thread to allow publishing other services
+	// Create mDNS-Provider and mDNS-Browser in own thread
 	_mDnsThread.reset(new QThread());
-	_mDnsThread->setObjectName("mDNSProviderThread");
+	_mDnsThread->setObjectName("mDNSThread");
 	_mDNSProvider.reset(new MdnsProvider());
 	_mDNSProvider->moveToThread(_mDnsThread.get());
 	connect(_mDnsThread.get(), &QThread::started, _mDNSProvider.get(), &MdnsProvider::init);
+
+	MdnsBrowser::getInstance(_mDnsThread.get());
 #endif
 
 	// Create SSDP server
@@ -317,6 +314,7 @@ void HyperionDaemon::startNetworkServices()
 void HyperionDaemon::stopNetworkServices()
 {
 #if defined(ENABLE_MDNS)
+	QMetaObject::invokeMethod(MdnsBrowser::getInstance().get(), "stop", Qt::QueuedConnection);
 	QMetaObject::invokeMethod(_mDNSProvider.get(), &MdnsProvider::stop, Qt::QueuedConnection);
 	if (_mDnsThread->isRunning()) {
 		_mDnsThread->quit();
