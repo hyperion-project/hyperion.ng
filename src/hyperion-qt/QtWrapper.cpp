@@ -37,7 +37,7 @@ void QtWrapper::stop()
 	_timer.stop();
 }
 
-bool QtWrapper::displayInit()
+bool QtWrapper::screenInit()
 {
 	return _grabber.setupDisplay();
 }

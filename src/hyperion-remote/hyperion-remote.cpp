@@ -6,6 +6,8 @@
 
 // Qt includes
 #include <QCoreApplication>
+#include <QTimer>
+#include <QHostAddress>
 #include <QLocale>
 
 #include <utils/DefaultSignalHandler.h>
@@ -89,9 +91,12 @@ int main(int argc, char * argv[])
 			  << "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")\n"
 			  << "\tbuild time: " << __DATE__ << " " << __TIME__ << "\n";
 
+	QObject::connect(&app, &QCoreApplication::aboutToQuit, []() {
+		Logger::deleteInstance();
+	});
+
 	QObject::connect(&errorManager, &ErrorManager::errorOccurred, [&](const QString& error) {
 		Error(log, "Error occured: %s", QSTRING_CSTR(error));
-		Logger::deleteInstance();
 		QTimer::singleShot(0, &app, &QCoreApplication::quit);
 	});
 
@@ -241,13 +246,16 @@ int main(int argc, char * argv[])
 	if (!NetUtils::resolveHostPort(givenAddress, hostname, port))
 	{
 		emit errorManager.errorOccurred(QString("Wrong address: unable to parse address (%1)").arg(givenAddress));
+		return 1;
 	}
 
 	QHostAddress hostAddress;
 	if (!NetUtils::resolveHostToAddress(log, hostname, hostAddress, port))
 	{
-		emit errorManager.errorOccurred(QString("Address could not be resolved for hostname: %2").arg(QSTRING_CSTR(hostAddress.toString())));
+		emit errorManager.errorOccurred(QString("Address could not be resolved for hostname: \"%1\"").arg(QSTRING_CSTR(hostname)));
+		return 1;
 	}
+
 	Info(log, "Connecting to Hyperion host: %s, port: %u", QSTRING_CSTR(hostAddress.toString()), port);
 
 	// create the connection to the hyperion server
@@ -325,6 +333,7 @@ int main(int argc, char * argv[])
 			if (serverInfo.isEmpty())
 			{
 				emit errorManager.errorOccurred("Failed to get server info");
+				return;
 			}
 
 			int instanceID {-1};
@@ -442,12 +451,10 @@ int main(int argc, char * argv[])
 		connection->close();
 
 		Debug(log, "Command execution complete. Exiting...");
-		QCoreApplication::quit();
+		app.quit();
 	});
 
 	app.exec();
-
-	Logger::deleteInstance();
 
 	return 0;
 }

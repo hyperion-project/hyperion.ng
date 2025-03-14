@@ -1,5 +1,7 @@
 // QT includes
 #include <QCoreApplication>
+#include <QTimer>
+#include <QHostAddress>
 #include <QImage>
 
 #include <utils/DefaultSignalHandler.h>
@@ -43,7 +45,7 @@ int main(int argc, char ** argv)
 	DefaultSignalHandler::install();
 	ErrorManager errorManager;
 
-	Logger *log = Logger::getInstance(CAPTURE_TYPE.toUpper());
+	Logger* log = Logger::getInstance(CAPTURE_TYPE.toUpper());
 	Logger::setLogLevel(Logger::INFO);
 
 	QGuiApplication const app(argc, argv);
@@ -55,7 +57,6 @@ int main(int argc, char ** argv)
 
 	QObject::connect(&errorManager, &ErrorManager::errorOccurred, [&](const QString& error) {
 		Error(log, "Error occured: %s", QSTRING_CSTR(error));
-		Logger::deleteInstance();
 		QTimer::singleShot(0, &app, &QGuiApplication::quit);
 	});
 
@@ -108,9 +109,10 @@ int main(int argc, char ** argv)
 				argCropBottom.getInt(parser)
 				);
 
-	if (!grabber.displayInit())
+	if (!grabber.screenInit())
 	{
 		emit errorManager.errorOccurred("Failed to initialise the screen/display for this grabber");
+		return 1;
 	}
 
 	// set 3D mode if applicable
@@ -142,12 +144,14 @@ int main(int argc, char ** argv)
 		if (!NetUtils::resolveHostPort(givenAddress, hostname, port))
 		{
 			emit errorManager.errorOccurred(QString("Wrong address: unable to parse address (%1)").arg(givenAddress));
+			return 1;
 		}
 
 		QHostAddress hostAddress;
 		if (!NetUtils::resolveHostToAddress(log, hostname, hostAddress, port))
 		{
 			emit errorManager.errorOccurred(QString("Address could not be resolved for hostname: %2").arg(QSTRING_CSTR(hostAddress.toString())));
+			return 1;
 		}
 		Info(log, "Connecting to Hyperion host: %s, port: %u", QSTRING_CSTR(hostAddress.toString()), port);
 

@@ -5,8 +5,9 @@
 #include <QImage>
 #include <QTcpSocket>
 #include <QJsonObject>
+#include <QJsonArray>
 #include <QScopedPointer>
-#include <qjsonarray.h>
+#include <QHostAddress>
 
 //forward class decl
 class Logger;

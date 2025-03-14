@@ -5,6 +5,8 @@
 
 // QT includes
 #include <QCoreApplication>
+#include <QTimer>
+#include <QHostAddress>
 
 #include <utils/DefaultSignalHandler.h>
 #include <utils/ErrorManager.h>
@@ -60,7 +62,6 @@ int main(int argc, char** argv)
 
 	QObject::connect(&errorManager, &ErrorManager::errorOccurred, [&](const QString& error) {
 		Error(log, "Error occured: %s", QSTRING_CSTR(error));
-		Logger::deleteInstance();
 		QTimer::singleShot(0, &app, &QCoreApplication::quit);
 	});
 
@@ -210,6 +211,7 @@ int main(int argc, char** argv)
 	if (!signalAreaOptsOk)
 	{
 		emit errorManager.errorOccurred("Wrong parameters given: --signal-[vertical|horizontal]-[min|max] options must be used together");
+		return 1;
 	}
 
 	double x_frac_min = argSignalHorizontalMin.getDouble(parser);
@@ -220,6 +222,7 @@ int main(int argc, char** argv)
 	if (x_frac_min<0.0 || y_frac_min<0.0 || x_frac_max<0.0 || y_frac_max<0.0 || x_frac_min>1.0 || y_frac_min>1.0 ||  x_frac_max>1.0 ||  y_frac_max>1.0)
 	{
 		emit errorManager.errorOccurred("Wrong parameters given: --signal-[vertical|horizontal]-[min|max] values have to be between 0.0 and 1.0");
+		return 1;
 	}
 
 	if (parser.isSet(argSignalHorizontalMin))
@@ -260,12 +263,14 @@ int main(int argc, char** argv)
 		if (!NetUtils::resolveHostPort(givenAddress, hostname, port))
 		{
 			emit errorManager.errorOccurred(QString("Wrong address: unable to parse address (%1)").arg(givenAddress));
+			return 1;
 		}
 
 		QHostAddress hostAddress;
 		if (!NetUtils::resolveHostToAddress(log, hostname, hostAddress, port))
 		{
 			emit errorManager.errorOccurred(QString("Address could not be resolved for hostname: %2").arg(QSTRING_CSTR(hostAddress.toString())));
+			return 1;
 		}
 		Info(log, "Connecting to Hyperion host: %s, port: %u", QSTRING_CSTR(hostAddress.toString()), port);
 
