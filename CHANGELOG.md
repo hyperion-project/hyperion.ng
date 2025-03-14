@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for ftdi chip based LED-devices with ws2812, sk6812 apa102 LED types (Many thanks to @nurikk) (#1746)
 - Support for Skydimo devices
 - Support gaps on Matrix Layout (#1696)
+- Support a configurable grabber inactive detection time interval (#1740)
 - Windows: Added a new grabber that uses the DXGI DDA (Desktop Duplication API). This has much better performance than the DX grabber as it does more of its work on the GPU.
 - Support to freely select source and target instances to be used by forwarder
 
@@ -396,6 +397,7 @@ To run Hyperion with root privileges (e.g. for WS281x) execute <br> `sudo update
   - Fixed: Nanoleaf does not turn on
   - Fixed LED layout - Additional parameters for classic layout were not saved (#1314)
   - Fixed Network LED-Device UI: Trigger getProperties for the configured host, when no hosts were discovered
+  - Fixed Nanoleaf error if LEDs in strip overlap
 
 ### Removed:
 

@@ -429,7 +429,7 @@ bool Hyperion::setInputImage(int priority, const Image<ColorRgb>& image, int64_t
 	return false;
 }
 
-bool Hyperion::setInputInactive(quint8 priority)
+bool Hyperion::setInputInactive(int priority)
 {
 	return _muxer->setInputInactive(priority);
 }

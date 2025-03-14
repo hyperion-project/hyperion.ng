@@ -28,3 +28,9 @@ target_link_libraries(effectengine
 	Qt${QT_VERSION_MAJOR}::Core
 	Qt${QT_VERSION_MAJOR}::Gui
 )
+
+if(NOT CMAKE_VERSION VERSION_LESS "3.15")
+	set_target_properties(effectengine PROPERTIES
+		ADDITIONAL_CLEAN_FILES ${CMAKE_BINARY_DIR}/EffectEngine.qrc
+	)
+endif()
