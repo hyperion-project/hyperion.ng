@@ -1,5 +1,5 @@
 #ifndef DBCONFGMANAGER_H
-#define DBConfigManager_H
+#define DBCONFGMANAGER_H
 
 #include <db/DBManager.h>
 #include "db/SettingsTable.h"
