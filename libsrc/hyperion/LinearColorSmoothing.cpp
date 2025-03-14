@@ -101,7 +101,7 @@ void LinearColorSmoothing::start()
 
 	// listen for comp changes
 	QObject::connect(_hyperion, &Hyperion::compStateChangeRequest, this, &LinearColorSmoothing::componentStateChange);
-	QObject::connect(_prioMuxer, &PriorityMuxer::prioritiesChanged, this, &LinearColorSmoothing::handlePriorityUpdate);
+	QObject::connect(_prioMuxer.get(), &PriorityMuxer::prioritiesChanged, this, &LinearColorSmoothing::handlePriorityUpdate);
 	connect(_timer.get(), &QTimer::timeout, this, &LinearColorSmoothing::updateLeds);
 }
 
@@ -109,7 +109,7 @@ void LinearColorSmoothing::stop()
 {
 	Debug(_log, "LinearColorSmoothing stopping...");
 
-	QObject::disconnect(_prioMuxer, &PriorityMuxer::prioritiesChanged, this, &LinearColorSmoothing::handlePriorityUpdate);
+	QObject::disconnect(_prioMuxer.get(), &PriorityMuxer::prioritiesChanged, this, &LinearColorSmoothing::handlePriorityUpdate);
 	setEnable(false);
 	_timer->stop();
 

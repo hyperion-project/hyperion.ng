@@ -182,6 +182,11 @@ void MdnsBrowser::resolveServiceInstance(const QByteArray& serviceInstance, cons
 {
 	DebugIf(verboseBrowser, _log, "Get service instance [%s] details, Thread: %s",serviceInstance.constData(), QSTRING_CSTR(QThread::currentThread()->objectName()));
 
+	if (_cache.isNull())
+	{
+		return;
+	}
+
 	QByteArray service{ serviceInstance };
 
 	if (!service.endsWith('.'))
@@ -195,7 +200,7 @@ void MdnsBrowser::resolveServiceInstance(const QByteArray& serviceInstance, cons
 
 	while (!found && retries >= 0)
 	{
-		if (_cache->lookupRecord(service, QMdnsEngine::SRV, srvRecord))
+		if (!_cache.isNull() && _cache->lookupRecord(service, QMdnsEngine::SRV, srvRecord))
 		{
 			found = true;
 		}
@@ -206,14 +211,17 @@ void MdnsBrowser::resolveServiceInstance(const QByteArray& serviceInstance, cons
 		}
 	}
 
-	if (found)
+	if (!_server.isNull())
 	{
-		DebugIf(verboseBrowser, _log, "Service record found for service instance [%s]", service.constData());
+		if (found)
+		{
+			DebugIf(verboseBrowser, _log, "Service record found for service instance [%s]", service.constData());
 
-	}
-	else
-	{
-		Debug(_log, "No service record found for service instance [%s]", service.constData());
+		}
+		else
+		{
+			Debug(_log, "No service record found for service instance [%s]", service.constData());
+		}
 	}
 	emit isServiceRecordResolved(srvRecord);
 }
@@ -221,6 +229,11 @@ void MdnsBrowser::resolveServiceInstance(const QByteArray& serviceInstance, cons
 QMdnsEngine::Service MdnsBrowser::getFirstService(const QByteArray& serviceType, const QString& filter, const std::chrono::milliseconds waitTime) const
 {
 	DebugIf(verboseBrowser, _log, "Get first service of type [%s], matching name: [%s]", QSTRING_CSTR(QString(serviceType)), QSTRING_CSTR(filter));
+
+	if (_cache.isNull())
+	{
+		return {};
+	}
 
 	QMdnsEngine::Service service;
 	QRegularExpression const regEx(filter);
@@ -239,7 +252,7 @@ QMdnsEngine::Service MdnsBrowser::getFirstService(const QByteArray& serviceType,
 
 	while (!found && retries >= 0)
 	{
-		if (_cache->lookupRecords(serviceType, QMdnsEngine::PTR, ptrRecords))
+		if (!_cache.isNull() && _cache->lookupRecords(serviceType, QMdnsEngine::PTR, ptrRecords))
 		{
 			for (const auto& ptrRecord : std::as_const(ptrRecords))
 			{
@@ -289,6 +302,11 @@ QJsonArray MdnsBrowser::getServicesDiscoveredJson(const QByteArray& serviceType,
 {
 	DebugIf(verboseBrowser,_log, "Get services of type [%s], matching name: [%s], Thread: %s", QSTRING_CSTR(QString(serviceType)), QSTRING_CSTR(filter), QSTRING_CSTR(QThread::currentThread()->objectName()));
 
+	if (_cache.isNull())
+	{
+		return {};
+	}
+
 	QJsonArray result;
 
 	QRegularExpression const regEx(filter);
@@ -305,7 +323,7 @@ QJsonArray MdnsBrowser::getServicesDiscoveredJson(const QByteArray& serviceType,
 		int retries = 3;
 		do
 		{
-			if (_cache->lookupRecords(serviceType, QMdnsEngine::PTR, ptrRecords))
+			if (!_cache.isNull() && _cache->lookupRecords(serviceType, QMdnsEngine::PTR, ptrRecords))
 			{
 				for (const auto& ptrRecord : std::as_const(ptrRecords))
 				{
@@ -402,7 +420,7 @@ void MdnsBrowser::printCache(const QByteArray& name, quint16 type) const
 {
 	DebugIf(verboseBrowser,_log, "for type: %s", QSTRING_CSTR(QMdnsEngine::typeName(type)));
 	QList<QMdnsEngine::Record> records;
-	if (_cache->lookupRecords(name, type, records))
+	if (!_cache.isNull() && _cache->lookupRecords(name, type, records))
 	{
 		foreach(QMdnsEngine::Record const record, records)
 		{

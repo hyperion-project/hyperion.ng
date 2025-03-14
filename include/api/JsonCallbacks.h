@@ -8,6 +8,7 @@
 #include <QObject>
 #include <QJsonObject>
 #include <QSet>
+#include <QSharedPointer>
 
 #include <utils/Components.h>
 #include <utils/VideoMode.h>
@@ -198,7 +199,7 @@ private:
 	ComponentRegister* _componentRegister;
 
 	/// priority muxer instance
-	PriorityMuxer* _prioMuxer;
+	QSharedPointer<PriorityMuxer> _prioMuxer;
 
 	/// contains active subscriptions
 	QSet<Subscription::Type> _subscribedCommands;

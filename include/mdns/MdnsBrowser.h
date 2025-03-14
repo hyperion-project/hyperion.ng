@@ -58,8 +58,6 @@ public:
 
 public slots:
 
-	void initMdns();
-
 	void stop(); // Stop _server and _cache in the right thread
 
 	///
@@ -97,6 +95,8 @@ Q_SIGNALS:
 
 private slots:
 
+	void initMdns();
+
 	void onServiceAdded(const QMdnsEngine::Service& service);
 	void onServiceUpdated(const QMdnsEngine::Service& service);
 	void onServiceRemoved(const QMdnsEngine::Service& service);
@@ -107,8 +107,8 @@ private:
 	/// The logger instance for mDNS-Service
 	Logger* _log;
 
-	QScopedPointer<QMdnsEngine::Server> _server;
-	QScopedPointer<QMdnsEngine::Cache> _cache;
+	QScopedPointer<QMdnsEngine::Server, QScopedPointerDeleteLater> _server;
+	QScopedPointer<QMdnsEngine::Cache, QScopedPointerDeleteLater> _cache;
 
 	QMap<QByteArray, QSharedPointer<QMdnsEngine::Browser>> _browsedServiceTypes;
 };

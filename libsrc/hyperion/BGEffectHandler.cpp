@@ -12,7 +12,7 @@ BGEffectHandler::BGEffectHandler(Hyperion* hyperion)
 	_log = Logger::getInstance("HYPERION", subComponent);
 
 	QObject::connect(_hyperion, &Hyperion::settingsChanged, this, &BGEffectHandler::handleSettingsUpdate);
-	QObject::connect(_hyperion->getMuxerInstance(), &PriorityMuxer::prioritiesChanged, this, &BGEffectHandler::handlePriorityUpdate);
+	QObject::connect(_hyperion->getMuxerInstance().get(), &PriorityMuxer::prioritiesChanged, this, &BGEffectHandler::handlePriorityUpdate);
 
 	// listen for suspend/resume requests, to not start a background effect when system goes into suspend mode
 	connect(_hyperion, &Hyperion::suspendRequest, this, [=] (bool isSuspended) {
@@ -25,7 +25,7 @@ BGEffectHandler::BGEffectHandler(Hyperion* hyperion)
 
 void BGEffectHandler::disconnect()
 {
-	QObject::disconnect(_hyperion->getMuxerInstance(), &PriorityMuxer::prioritiesChanged, this, &BGEffectHandler::handlePriorityUpdate);
+	QObject::disconnect(_hyperion->getMuxerInstance().get(), &PriorityMuxer::prioritiesChanged, this, &BGEffectHandler::handlePriorityUpdate);
 	QObject::disconnect(_hyperion, &Hyperion::settingsChanged, this, &BGEffectHandler::handleSettingsUpdate);
 }
 

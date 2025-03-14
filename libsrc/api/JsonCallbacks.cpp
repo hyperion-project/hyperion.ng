@@ -94,8 +94,8 @@ bool JsonCallbacks::subscribe(const Subscription::Type cmd)
 			connect(_hyperion.get(), &Hyperion::settingsChanged, this, &JsonCallbacks::handleLedsConfigChange);
 	break;
 	case Subscription::PrioritiesUpdate:
-		if (_prioMuxer != nullptr)
-			connect(_prioMuxer, &PriorityMuxer::prioritiesChanged, this, &JsonCallbacks::handlePriorityUpdate);
+		if (!_prioMuxer.isNull())
+			connect(_prioMuxer.get(), &PriorityMuxer::prioritiesChanged, this, &JsonCallbacks::handlePriorityUpdate);
 	break;
 	case Subscription::VideomodeUpdate:
 		if (!_hyperion.isNull())
@@ -213,8 +213,8 @@ bool JsonCallbacks::unsubscribe(const Subscription::Type cmd)
 			disconnect(_hyperion.get(), &Hyperion::settingsChanged, this, &JsonCallbacks::handleLedsConfigChange);
 	break;
 	case Subscription::PrioritiesUpdate:
-		if (_prioMuxer != nullptr)
-			disconnect(_prioMuxer, &PriorityMuxer::prioritiesChanged, this, &JsonCallbacks::handlePriorityUpdate);
+		if (!_prioMuxer.isNull())
+			disconnect(_prioMuxer.get(), &PriorityMuxer::prioritiesChanged, this, &JsonCallbacks::handlePriorityUpdate);
 	break;
 	case Subscription::VideomodeUpdate:
 		if (!_hyperion.isNull())

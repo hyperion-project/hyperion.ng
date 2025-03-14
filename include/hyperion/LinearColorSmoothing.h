@@ -8,6 +8,7 @@
 // Qt includes
 #include <QVector>
 #include <QScopedPointer>
+#include <QSharedPointer>
 
 // hyperion includes
 #include <leddevice/LedDevice.h>
@@ -180,7 +181,7 @@ private:
 	Hyperion *_hyperion;
 
 	/// priority muxer instance
-	PriorityMuxer* _prioMuxer;
+	QSharedPointer<PriorityMuxer> _prioMuxer;
 
 	/// The interval at which to update the leds (msec)
 	int _updateInterval;

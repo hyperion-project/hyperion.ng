@@ -68,9 +68,12 @@ void MessageForwarder::init()
 
 void MessageForwarder::stop()
 {
-	disconnect(_toBeForwardedInstanceID);
+	if (!_hyperion.isNull())
+	{
+		disconnect(_toBeForwardedInstanceID);
 
-	Info(_log, "Forwarding service stopped");
+		Info(_log, "Forwarding service stopped");
+	}
 }
 
 void MessageForwarder::connect(quint8 instanceID)
@@ -88,7 +91,7 @@ void MessageForwarder::connect(quint8 instanceID)
 			QObject::connect(_hyperion.get(), &Hyperion::compStateChangeRequest, this, &MessageForwarder::handleCompStateChangeRequest);
 
 			// connect with Muxer visible priority changes
-			QObject::connect(_muxer, &PriorityMuxer::visiblePriorityChanged, this, &MessageForwarder::handlePriorityChanges);
+			QObject::connect(_muxer.get(), &PriorityMuxer::visiblePriorityChanged, this, &MessageForwarder::handlePriorityChanges);
 
 #if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
 			QObject::connect(GlobalSignals::getInstance(), &GlobalSignals::setBufferImage, _hyperion.get(), &Hyperion::forwardBufferMessage);
@@ -112,10 +115,10 @@ void MessageForwarder::disconnect(quint8 instanceID)
 		QObject::disconnect(GlobalSignals::getInstance(), &GlobalSignals::setBufferImage, _hyperion.get(), &Hyperion::forwardBufferMessage);
 #endif
 
-		handleTargets(false, _config.object());
-
 		_hyperion.clear();
-		_muxer = nullptr;
+		_muxer.clear();
+
+		handleTargets(false, _config.object());
 	}
 }
 
@@ -230,17 +233,20 @@ void MessageForwarder::handleTargets(bool start, const QJsonObject& config)
 	{
 		int const jsonTargetNum = startJsonTargets(config);
 
-		int const currentPriority = _hyperion->getCurrentPriority();
-		bool const isActiveFlatbufferTarget = activateFlatbufferTargets(currentPriority);
+		if (!_hyperion.isNull())
+		{
+			int const currentPriority = _hyperion->getCurrentPriority();
+			bool const isActiveFlatbufferTarget = activateFlatbufferTargets(currentPriority);
 
-		if (jsonTargetNum > 0 || isActiveFlatbufferTarget)
-		{
-			_isActive = true;
-		}
-		else
-		{
-			_isActive = false;
-			Warning(_log,"No JSON- nor Flatbuffer targets configured/active -> Forwarding deactivated");
+			if (jsonTargetNum > 0 || isActiveFlatbufferTarget)
+			{
+				_isActive = true;
+			}
+			else
+			{
+				_isActive = false;
+				Warning(_log,"No JSON- nor Flatbuffer targets configured/active -> Forwarding deactivated");
+			}
 		}
 	}
 
@@ -252,6 +258,11 @@ void MessageForwarder::handleTargets(bool start, const QJsonObject& config)
 
 void MessageForwarder::disconnectFlatBufferComponents(int priority)
 {
+	if (_hyperion.isNull())
+	{
+		return;
+
+	}
 	hyperion::Components const activeCompId = _hyperion->getPriorityInfo(priority).componentId;
 
 	switch (activeCompId) {
@@ -324,6 +335,11 @@ void MessageForwarder::addJsonTarget(const QJsonObject& targetConfig)
 
 	if (!hostName.isEmpty())
 	{
+		if (_hyperion.isNull())
+		{
+			return;
+		}
+
 		if (NetUtils::resolveHostToAddress(_log, hostName, targetHost.host, port))
 		{
 			QString const address = targetHost.host.toString();
@@ -424,6 +440,11 @@ void MessageForwarder::addFlatbufferTarget(const QJsonObject& targetConfig)
 
 	if (!hostName.isEmpty())
 	{
+		if (_hyperion.isNull())
+		{
+			return;
+		}
+
 		if (NetUtils::resolveHostToAddress(_log, hostName, targetHost.host, port))
 		{
 			QString const address = targetHost.host.toString();

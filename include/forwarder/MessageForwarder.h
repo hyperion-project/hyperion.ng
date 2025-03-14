@@ -131,7 +131,7 @@ private:
 	QSharedPointer<Hyperion> _hyperion;
 
 	/// Muxer instance
-	PriorityMuxer *_muxer;
+	QSharedPointer<PriorityMuxer> _muxer;
 
 	// JSON connections for forwarding
 	QList<TargetHost> _jsonTargets;

@@ -529,7 +529,7 @@ bool Hyperion::clear(int priority, bool forceClearAll)
 
 int Hyperion::getCurrentPriority() const
 {
-	return _muxer->getCurrentPriority();
+	return  _muxer.isNull() ? PriorityMuxer::LOWEST_PRIORITY : _muxer->getCurrentPriority();
 }
 
 bool Hyperion::isCurrentPriority(int priority) const

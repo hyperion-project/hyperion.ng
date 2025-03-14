@@ -162,15 +162,14 @@ void HyperionDaemon::handleInstanceStateChange(InstanceState state, quint8 insta
 	case InstanceState::H_STARTED:
 	{
 		startNetworkInputCaptureServices();
-		_messageForwarder->connect(instance);
+		QMetaObject::invokeMethod(_messageForwarder.get(), &MessageForwarder::connect, Qt::QueuedConnection, instance);
 	}
 	break;
 	case InstanceState::H_STOPPED:
-		_messageForwarder->disconnect(instance);
-
+		QMetaObject::invokeMethod(_messageForwarder.get(), &MessageForwarder::disconnect, Qt::QueuedConnection, instance);
 		if(_instanceManager->getRunningInstanceIdx().empty())
 		{
-			_messageForwarder->stop();
+			QMetaObject::invokeMethod(_messageForwarder.get(), &MessageForwarder::stop, Qt::QueuedConnection);
 			stopNetworkInputCaptureServices();
 		}
 	break;

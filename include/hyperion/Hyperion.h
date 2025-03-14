@@ -239,7 +239,7 @@ public slots:
 	/// @brief Get a pointer to the priorityMuxer instance
 	/// @return      PriorityMuxer instance pointer
 	///
-	PriorityMuxer* getMuxerInstance() { return _muxer.get(); }
+	QSharedPointer<PriorityMuxer> getMuxerInstance() { return _muxer; }
 
 	///
 	/// @brief enable/disable automatic/priorized source selection
