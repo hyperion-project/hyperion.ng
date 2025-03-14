@@ -57,7 +57,7 @@ int main(int argc, char ** argv)
 
 	QObject::connect(&errorManager, &ErrorManager::errorOccurred, [&](const QString& error) {
 		Error(log, "Error occured: %s", QSTRING_CSTR(error));
-		QTimer::singleShot(0, &app, &QCoreApplication::quit);
+		QTimer::singleShot(0, [&app]() { app.quit(); });
 	});
 
 	// create the option parser and initialize all parser
@@ -133,11 +133,10 @@ int main(int argc, char ** argv)
 	else
 	{
 		QString hostname;
-		int port {FLATBUFFER_DEFAULT_PORT};
+		int port{ FLATBUFFER_DEFAULT_PORT };
 
 		// Split hostname and port (or use default port)
 		QString const givenAddress = argAddress.value(parser);
-
 		if (!NetUtils::resolveHostPort(givenAddress, hostname, port))
 		{
 			emit errorManager.errorOccurred(QString("Wrong address: unable to parse address (%1)").arg(givenAddress));

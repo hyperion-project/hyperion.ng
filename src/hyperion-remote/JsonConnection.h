@@ -4,10 +4,10 @@
 #include <QColor>
 #include <QImage>
 #include <QTcpSocket>
+#include <QHostAddress>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QScopedPointer>
-#include <QHostAddress>
 
 //forward class decl
 class Logger;

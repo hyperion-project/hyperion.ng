@@ -38,7 +38,15 @@ JsonConnection::JsonConnection(const QHostAddress& host, bool printJson , quint1
 	QObject::connect(_socket.get(), &QTcpSocket::connected, this, &JsonConnection::onConnected);
 	QObject::connect(_socket.get(), &QTcpSocket::readyRead, this, &JsonConnection::onReadyRead);
 	QObject::connect(_socket.get(), &QTcpSocket::disconnected, this, &JsonConnection::onDisconnected);
+
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
 	QObject::connect(_socket.get(), &QTcpSocket::errorOccurred, this, &JsonConnection::onErrorOccured);
+#else
+	QObject::connect(_socket.get(),
+					 QOverload<QTcpSocket::SocketError>::of(&QTcpSocket::error),
+					 this,
+					 &JsonConnection::onErrorOccured);
+#endif
 
 	// init connect
 	connectToRemoteHost();
@@ -588,17 +596,28 @@ QJsonObject JsonConnection::sendMessageSync(const QJsonObject &message, const QJ
 
 	// Ensure no duplicate connections by disconnecting previous ones
 	QObject::disconnect(this, &JsonConnection::isMessageReceived, nullptr, nullptr);
-	QObject::disconnect(_socket.get(), &QTcpSocket::bytesWritten, nullptr, nullptr);
+
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
 	QObject::disconnect(_socket.get(), &QTcpSocket::errorOccurred, nullptr, nullptr);
+#else
+	QObject::disconnect(_socket.get(),
+					 QOverload<QTcpSocket::SocketError>::of(&QTcpSocket::error),
+					 nullptr, nullptr);
+#endif
 
 	// Capture response when received
-	connect(this, &JsonConnection::isMessageReceived, this, [&](const QJsonObject &reply) {
+	QObject::connect(this, &JsonConnection::isMessageReceived, this, [&](const QJsonObject &reply) {
 		response = reply;
 		received = true;
 		loop.quit(); // Exit event loop when response arrives
 	});
 
-	connect(_socket.get(), &QTcpSocket::errorOccurred, this, [&loop](QAbstractSocket::SocketError  /*error*/) {
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
+	QObject::connect(_socket.get(), &QTcpSocket::errorOccurred, this, [&loop](QTcpSocket::SocketError  /*error*/) {
+#else
+	QObject::connect(_socket.get(), QOverload<QTcpSocket::SocketError>::of(&QTcpSocket::error),
+					 [&loop](QTcpSocket::SocketError  /*error*/) {
+#endif
 		loop.quit();
 	});
 

@@ -9,6 +9,7 @@
 #include <QTimer>
 #include <QHostAddress>
 #include <QLocale>
+#include <QTimer>
 
 #include <utils/DefaultSignalHandler.h>
 #include <utils/ErrorManager.h>
@@ -91,13 +92,9 @@ int main(int argc, char * argv[])
 			  << "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")\n"
 			  << "\tbuild time: " << __DATE__ << " " << __TIME__ << "\n";
 
-	QObject::connect(&app, &QCoreApplication::aboutToQuit, []() {
-		Logger::deleteInstance();
-	});
-
 	QObject::connect(&errorManager, &ErrorManager::errorOccurred, [&](const QString& error) {
 		Error(log, "Error occured: %s", QSTRING_CSTR(error));
-		QTimer::singleShot(0, &app, &QCoreApplication::quit);
+		QTimer::singleShot(0, [&app]() { app.quit(); });
 	});
 
 	// force the locale

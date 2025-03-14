@@ -45,7 +45,7 @@ int main(int argc, char ** argv)
 	DefaultSignalHandler::install();
 	ErrorManager errorManager;
 
-	Logger* log = Logger::getInstance(CAPTURE_TYPE.toUpper());
+	Logger *log = Logger::getInstance(CAPTURE_TYPE.toUpper());
 	Logger::setLogLevel(Logger::INFO);
 
 	QGuiApplication const app(argc, argv);
@@ -57,7 +57,7 @@ int main(int argc, char ** argv)
 
 	QObject::connect(&errorManager, &ErrorManager::errorOccurred, [&](const QString& error) {
 		Error(log, "Error occured: %s", QSTRING_CSTR(error));
-		QTimer::singleShot(0, &app, &QGuiApplication::quit);
+		QTimer::singleShot(0, [&app]() { app.quit(); });
 	});
 
 	// create the option parser and initialize all parameters
