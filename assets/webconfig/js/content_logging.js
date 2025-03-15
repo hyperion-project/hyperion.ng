@@ -36,67 +36,80 @@ $(document).ready(function () {
   });
 
   function infoSummary() {
-    var info = "";
+    let info = '';
 
-    info += 'Hyperion System Summary Report (' + window.serverConfig.general.name + ')\n';
-    info += 'Reported instance: [' + window.currentHyperionInstance + '] - ' + window.currentHyperionInstanceName + '\n';
+    const serverConfig = window.serverConfig ?? {};
+    const serverInfo = window.serverInfo ?? {};
+    const currentInstance = window.currentHyperionInstance ?? 'Unknown';
+    const currentInstanceName = window.currentHyperionInstanceName ?? 'Unknown';
 
-    info += "\n< ----- System information -------------------- >\n";
-    info += getSystemInfo() + '\n';
+    info += `Hyperion System Summary Report (${serverConfig.general?.name ?? 'Unknown'})\n`;
+    info += `Reported instance: [${currentInstance}] - ${currentInstanceName}\n`;
 
-    info += "\n< ----- Configured Instances ------------------ >\n";
-    var instances = window.serverInfo.instance;
-    for (var i = 0; i < instances.length; i++) {
-      info += instances[i].instance + ': ' + instances[i].friendly_name + ', Running: ' + instances[i].running + '\n';
-    }
+    info += `\n< ----- System information -------------------- >\n`;
+    info += `${getSystemInfo()}\n`;
 
-    info += "\n< ----- This instance's priorities ------------ >\n";
-    var prios = window.serverInfo.priorities;
+    // Configured Instances
+    info += `\n< ----- Configured Instances ------------------ >\n`;
+    const instances = serverInfo.instance ?? [];
 
-    if (prios.length > 0) {
+    if (instances.length > 0) {
+      info += instances.map(inst =>
+        `${inst.instance ?? 'Unknown Instance'}: ${inst.friendly_name ?? 'Unnamed'}, Running: ${inst.running ?? 'Unknown'}`
+      ).join('\n') + '\n';
 
-      for (var i = 0; i < prios.length; i++) {
+      // Priorities (Only shown if instances exist)
+      info += `\n< ----- This instance's priorities ------------ >\n`;
+      const priorities = serverInfo.priorities ?? [];
 
-        var prio = prios[i].priority.toString().padStart(3, '0');
-
-        info += prio + ': ';
-        if (prios[i].visible) {
-          info += ' VISIBLE   -';
-        }
-        else {
-          info += ' INVISIBLE -';
-        }
-        info += ' (' + prios[i].componentId + ')';
-        if (prios[i].owner) {
-          info += ' (Owner: ' + prios[i].owner + ')';
-        }
-        info += '\n';
-
+      if (priorities.length > 0) {
+        info += priorities.map(prio => {
+          const priorityStr = prio.priority?.toString().padStart(3, '0') ?? 'N/A';
+          return `${priorityStr}: ${prio.visible ? 'VISIBLE   -' : 'INVISIBLE -'} (${prio.componentId ?? 'Unknown Component'})` +
+            (prio.owner ? ` (Owner: ${prio.owner})` : '');
+        }).join('\n') + '\n';
+      } else {
+        info += `The current priority list is empty or unavailable!\n`;
       }
+
+      info += `Autoselect: ${serverInfo.priorities_autoselect ?? 'N/A'}\n`;
+
+      // Components Status (Only shown if instances exist)
+      info += `\n< ----- This instance components' status ------->\n`;
+      const components = serverInfo.components ?? [];
+
+      if (components.length > 0) {
+        info += components.map(comp =>
+          `${comp.name} - ${comp.enabled ?? 'Unknown'}`
+        ).join('\n') + '\n';
+      } else {
+        info += `No components found or unavailable!\n`;
+      }
+
+
     } else {
-      info += 'The current priority list is empty!\n';
-    }
-    info += 'Autoselect: ' + window.serverInfo.priorities_autoselect + '\n';
+      info += `No instances are configured!\n`;
 
-    info += "\n< ----- This instance components' status ------->\n";
-    var comps = window.serverInfo.components;
-    for (var i = 0; i < comps.length; i++) {
-      info += comps[i].name + ' - ' + comps[i].enabled + '\n';
+
     }
 
-    info += "\n< ----- This instance's configuration --------- >\n";
-    info += JSON.stringify(window.serverConfig, null, 2) + '\n';
-
-    info += "\n< ----- Current Log --------------------------- >\n";
-    var logMsgs = document.getElementById("logmessages").textContent;
-    if (logMsgs.length !== 0) {
-      info += logMsgs;
+    // Configuration
+    if (instances.length > 0) {
+      info += `\n< ----- This instance's configuration --------- >\n`;
     } else {
-      info += "Log is empty!";
+      info += `\n< ----- Global configuration ------------------ >\n`;
     }
+    info += `${JSON.stringify(serverConfig, null, 2)}\n`;
+
+    // Log Messages
+    info += `\n< ----- Current Log --------------------------- >\n`;
+    const logMessages = document.getElementById("logmessages")?.textContent.trim() ?? '';
+
+    info += logMessages.length > 0 ? logMessages : "Log is empty!";
 
     return info;
   }
+
 
   function createLogContainer() {
 
