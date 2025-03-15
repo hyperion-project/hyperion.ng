@@ -59,7 +59,7 @@ MessageForwarder::~MessageForwarder()
 void MessageForwarder::init()
 {
 #ifdef ENABLE_MDNS
-	QMetaObject::invokeMethod(MdnsBrowser::getInstance().get(), "browseForServiceType",
+	QMetaObject::invokeMethod(_mdnsBrowser.get(), "browseForServiceType",
 							  Qt::QueuedConnection, Q_ARG(QByteArray, MdnsServiceRegister::getServiceType("jsonapi")));
 #endif
 

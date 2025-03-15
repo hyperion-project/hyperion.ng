@@ -44,11 +44,11 @@ private:
 	MdnsBrowser& operator=(const MdnsBrowser&) = delete;
 	MdnsBrowser& operator=(MdnsBrowser&&) = delete;
 
-	static QScopedPointer<MdnsBrowser> instance;
+	static QSharedPointer<MdnsBrowser> instance;
 
 public:
 	~MdnsBrowser() override;
-	 static QScopedPointer<MdnsBrowser>& getInstance(QThread* externalThread = nullptr);
+	 static QSharedPointer<MdnsBrowser>& getInstance(QThread* externalThread = nullptr);
 
 
 	QMdnsEngine::Service getFirstService(const QByteArray& serviceType, const QString& filter = ".*", std::chrono::milliseconds waitTime = DEFAULT_DISCOVER_TIMEOUT) const;

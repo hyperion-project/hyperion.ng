@@ -13,6 +13,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QSharedPointer>
 
 // Utils includes
 #include <utils/ColorRgb.h>
@@ -22,6 +23,7 @@
 #include <utils/Image.h>
 
 // Hyperion includes
+#include <mdns/MdnsBrowser.h>
 #include <db/SettingsTable.h>
 #include <hyperion/PriorityMuxer.h>
 
@@ -140,6 +142,8 @@ private:
 	QList<TargetHost> _flatbufferTargets;
 
 	MessageForwarderFlatbufferClientsHelper* _messageForwarderFlatBufHelper;
+
+	QSharedPointer<MdnsBrowser> _mdnsBrowser = MdnsBrowser::getInstance();
 };
 
 class MessageForwarderFlatbufferClientsHelper : public QObject
