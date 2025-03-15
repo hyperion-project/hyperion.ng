@@ -162,18 +162,25 @@ void HyperionDaemon::handleInstanceStateChange(InstanceState state, quint8 insta
 	case InstanceState::H_STARTED:
 	{
 		startNetworkInputCaptureServices();
+#if defined(ENABLE_FORWARDER)
 		QMetaObject::invokeMethod(_messageForwarder.get(),
 			[this, instance]() { _messageForwarder->connect(instance); },
 			Qt::QueuedConnection);
+#endif
 	}
 	break;
 	case InstanceState::H_STOPPED:
+#if defined(ENABLE_FORWARDER)
 		QMetaObject::invokeMethod(_messageForwarder.get(),
 			[this, instance]() { _messageForwarder->disconnect(instance); },
 			Qt::QueuedConnection);
+#endif
+
 		if(_instanceManager->getRunningInstanceIdx().empty())
 		{
+#if defined(ENABLE_FORWARDER)
 			QMetaObject::invokeMethod(_messageForwarder.get(), &MessageForwarder::stop, Qt::QueuedConnection);
+#endif
 			stopNetworkInputCaptureServices();
 		}
 	break;
@@ -445,8 +452,8 @@ void HyperionDaemon::startNetworkOutputServices()
 
 void HyperionDaemon::stopNetworkOutputServices()
 {
-	QMetaObject::invokeMethod(_messageForwarder.get(), &MessageForwarder::stop, Qt::QueuedConnection);
 #if defined(ENABLE_FORWARDER)
+	QMetaObject::invokeMethod(_messageForwarder.get(), &MessageForwarder::stop, Qt::QueuedConnection);
 	if (_messageForwarderThread->isRunning()) {
 		QMetaObject::invokeMethod(_messageForwarder.get(), &MessageForwarder::stop, Qt::QueuedConnection);
 		_messageForwarderThread->quit();

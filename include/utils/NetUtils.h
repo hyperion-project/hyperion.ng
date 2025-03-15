@@ -175,11 +175,12 @@ inline bool resolveMdDnsHostToAddress(Logger* log, const QString& hostname, QHos
 /// @param[in]     serviceInstance The service instance to be resolved
 /// @return        A service record
 ///
+#ifdef ENABLE_MDNS
 inline QMdnsEngine::Record resolveMdDnsServiceRecord(const QByteArray& serviceInstance)
 {
 	QMdnsEngine::Record serviceRecord;
 
-#ifdef ENABLE_MDNS
+
 	if (serviceInstance.endsWith("._tcp.local"))
 	{
 		MdnsBrowser* browser = MdnsBrowser::getInstance().get();
@@ -200,9 +201,9 @@ inline QMdnsEngine::Record resolveMdDnsServiceRecord(const QByteArray& serviceIn
 		// Wait for the result
 		loop.exec();
 	}
-#endif
 	return serviceRecord;
 }
+#endif
 
 ///
 /// @brief Resolve a hostname(DNS) or mDNS service name into an IP-address. A given IP address will be passed through
