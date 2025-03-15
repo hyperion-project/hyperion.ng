@@ -22,7 +22,7 @@ const bool verboseBrowser = false;
 const int SERVICE_LOOKUP_RETRIES = 5;
 } // End of constants
 
-QScopedPointer<MdnsBrowser> MdnsBrowser::instance;
+QSharedPointer<MdnsBrowser> MdnsBrowser::instance;
 
 MdnsBrowser::MdnsBrowser(QObject* parent)
 	: QObject(parent)
@@ -54,9 +54,9 @@ void MdnsBrowser::stop()
 	_server.reset();
 }
 
-QScopedPointer<MdnsBrowser>& MdnsBrowser::getInstance(QThread* externalThread)
+QSharedPointer<MdnsBrowser>& MdnsBrowser::getInstance(QThread* externalThread)
 {
-	static QScopedPointer<MdnsBrowser> instance;
+	static QSharedPointer<MdnsBrowser> instance;
 
 	if (instance.isNull())
 	{
@@ -64,7 +64,6 @@ QScopedPointer<MdnsBrowser>& MdnsBrowser::getInstance(QThread* externalThread)
 
 		if (externalThread != nullptr) // Move to existing thread if provided
 		{
-			qDebug() << "externalThread: " << externalThread;
 			instance->moveToThread(externalThread);
 
 			// Ensure _server and _cache are initialized inside externalThread
