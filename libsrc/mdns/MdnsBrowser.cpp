@@ -42,8 +42,8 @@ void MdnsBrowser::initMdns()
 {
 	if (!_server) // Ensure it only initializes once
 	{
-		_server.reset(new QMdnsEngine::Server(this));
-		_cache.reset(new QMdnsEngine::Cache(this));
+		_server.reset(new QMdnsEngine::Server());
+		_cache.reset(new QMdnsEngine::Cache());
 	}
 }
 
@@ -64,10 +64,11 @@ QScopedPointer<MdnsBrowser>& MdnsBrowser::getInstance(QThread* externalThread)
 
 		if (externalThread != nullptr) // Move to existing thread if provided
 		{
+			qDebug() << "externalThread: " << externalThread;
 			instance->moveToThread(externalThread);
 
 			// Ensure _server and _cache are initialized inside externalThread
-			QMetaObject::invokeMethod(instance.data(), "initMdns", Qt::QueuedConnection);
+			QMetaObject::invokeMethod(instance.get(), "initMdns", Qt::QueuedConnection);
 		}
 		else
 		{
