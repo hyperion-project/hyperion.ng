@@ -302,7 +302,8 @@ function requestServerInfo(instance) {
       "event-update"
     ]
   };
-  if (instance !== null && instance !== undefined) {
+  
+  if (instance !== null && instance !== undefined && !isNaN(Number(instance))) {
     data.instance = Number(instance);
   }
 

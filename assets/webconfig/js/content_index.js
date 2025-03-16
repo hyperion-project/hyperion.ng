@@ -123,12 +123,12 @@ $(document).ready(function () {
     requestGetPendingTokenRequests();
 
     requestSysInfo();
-    //Switch to last selected instance and load related config
-    const lastSelectedInstance = getStorage('lastSelectedInstance');
-    if (lastSelectedInstance !== null) {
-      window.currentHyperionInstance = Number(lastSelectedInstance);
-    }
 
+    const lastSelectedInstance = getStorage('lastSelectedInstance');
+    // Convert to a valid number only if it's not null/undefined and a valid number
+    window.currentHyperionInstance = (lastSelectedInstance !== null && !isNaN(Number(lastSelectedInstance)))
+      ? Number(lastSelectedInstance)
+      : null;
     getServerInformation(window.currentHyperionInstance);
   });
 

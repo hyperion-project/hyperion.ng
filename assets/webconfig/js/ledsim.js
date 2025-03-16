@@ -130,11 +130,15 @@ $(document).ready(function () {
     });
     // apply new configuration
     $(window.hyperion).on("serverConfig_updated", function (event) {
-      leds = window.serverConfig.leds;
-      grabberConfig = window.serverConfig.grabberV4L2;
-      updateLedLayout();
-    });
-  });
+      grabberConfig = window.serverConfig?.grabberV4L2 ?? {};
+      leds = window.serverConfig?.leds;
+
+      if (Array.isArray(leds) && leds.length > 0) {
+        updateLedLayout();
+      } else {
+        console.warn("LED configuration is missing or empty. Skipping updateLedLayout.");
+      }
+    });  });
 
   function printLedsToCanvas(colors) {
 
