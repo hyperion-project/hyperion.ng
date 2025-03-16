@@ -913,25 +913,19 @@ void JsonAPI::handleConfigGetCommand(const QJsonObject &message, const JsonApiCo
 void JsonAPI::handleConfigRestoreCommand(const QJsonObject &message, const JsonApiCommand& cmd)
 {
 	QJsonObject config = message["config"].toObject();
-	if (API::isHyperionEnabled())
+
+	DBConfigManager configManager;
+	QPair<bool, QStringList> const result = configManager.updateConfiguration(config, false);
+	if (result.first)
 	{
-		DBConfigManager configManager;
-		QPair<bool, QStringList> const result = configManager.updateConfiguration(config, false);
-		if (result.first)
-		{
-			QString const infoMsg {"Restarting after importing configuration successfully."};
-			sendSuccessDataReply(infoMsg, cmd);
-			Info(_log, "%s", QSTRING_CSTR(infoMsg));
-			emit signalEvent(Event::Restart);
-		}
-		else
-		{
-			sendErrorReply("Restore configuration failed", result.second, cmd);
-		}
+		QString const infoMsg {"Restarting after importing configuration successfully."};
+		sendSuccessDataReply(infoMsg, cmd);
+		Info(_log, "%s", QSTRING_CSTR(infoMsg));
+		emit signalEvent(Event::Restart);
 	}
 	else
 	{
-		sendErrorReply("Restoring configuration while Hyperion is disabled is not possible", cmd);
+		sendErrorReply("Restore configuration failed", result.second, cmd);
 	}
 }
 
