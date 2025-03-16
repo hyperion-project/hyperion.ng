@@ -312,9 +312,14 @@ void HyperionDaemon::createNetworkServices()
 
 void HyperionDaemon::startNetworkServices()
 {
-	_jsonServerThread->start();
+	//Start JSON-Server only after WebServery were started to avoid port mismatches
+	connect(_sslWebServerThread.get(), &QThread::started, [=]() {
+		_jsonServerThread->start();
+		});
+
 	_webServerThread->start();
 	_sslWebServerThread->start();
+
 #if defined(ENABLE_MDNS)
 	_mDnsThread->start();
 #endif
@@ -332,6 +337,12 @@ void HyperionDaemon::stopNetworkServices()
 	}
 #endif
 
+	if (_jsonServerThread->isRunning()) {
+		_jsonServerThread->quit();
+		_jsonServerThread->wait();
+	}
+	_jsonServer.reset(nullptr);
+
 	if (_webServerThread->isRunning()) {
 		_webServerThread->quit();
 		_webServerThread->wait();
@@ -342,12 +353,6 @@ void HyperionDaemon::stopNetworkServices()
 		_sslWebServerThread->quit();
 		_sslWebServerThread->wait();
 	}
-
-	if (_jsonServerThread->isRunning()) {
-		_jsonServerThread->quit();
-		_jsonServerThread->wait();
-	}
-	_jsonServer.reset(nullptr);
 
 	QMetaObject::invokeMethod(_ssdpHandler.get(), &SSDPHandler::stop, Qt::QueuedConnection);
 	if (_ssdpHandlerThread->isRunning()) {
