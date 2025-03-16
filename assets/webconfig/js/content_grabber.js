@@ -322,9 +322,11 @@ $(document).ready(function () {
     });
 
     $('#btn_submit_screengrabber').off().on('click', function () {
-      var saveOptions = conf_editor_screen.getValue();
+      let saveOptions = conf_editor_screen.getValue();
+
+      const currentInstance = window.currentHyperionInstance;
       //If an instance exists, enable/disable grabbing in line with the global state
-      if (window.serverConfig.instCapture) {
+      if (currentInstance !== null && window.serverConfig.instCapture) {
         let instCaptOptions = window.serverConfig.instCapture;
         instCaptOptions.systemEnable = saveOptions.framegrabber.enable;
         saveOptions.instCapture = instCaptOptions;
@@ -671,10 +673,11 @@ $(document).ready(function () {
     });
 
     $('#btn_submit_videograbber').off().on('click', function () {
-      var saveOptions = conf_editor_video.getValue();
+      let saveOptions = conf_editor_video.getValue();
 
+      const currentInstance = window.currentHyperionInstance;
       //If an instance exists, enable/disable grabbing in line with the global state
-      if (window.serverConfig.instCapture) {
+      if (currentInstance !== null && window.serverConfig.instCapture) {
         let instCaptOptions = window.serverConfig.instCapture;
         instCaptOptions.v4lEnable = saveOptions.grabberV4L2.enable;
         saveOptions.instCapture = instCaptOptions;
@@ -800,10 +803,11 @@ $(document).ready(function () {
     });
 
     $('#btn_submit_audiograbber').off().on('click', function () {
-      const saveOptions = conf_editor_audio.getValue();
+      let saveOptions = conf_editor_audio.getValue();
 
+      const currentInstance = window.currentHyperionInstance;
       //If an instance exists, enable/disable grabbing in line with the global state
-      if (window.serverConfig.instCapture) {
+      if (currentInstance !== null && window.serverConfig.instCapture) {
         let instCaptOptions = window.serverConfig.instCapture;
         instCaptOptions.audioEnable = saveOptions.grabberAudio.enable;
         saveOptions.instCapture = instCaptOptions;
