@@ -6,7 +6,7 @@ performTranslation();
 
 $(document).ready(function () {
 
-  window.addEventListener('hashchange', function(event) {
+  window.addEventListener('hashchange', function (event) {
     requestLoggingStop();
   });
 
@@ -39,12 +39,14 @@ $(document).ready(function () {
     let info = '';
 
     const serverConfig = window.serverConfig ?? {};
-    const serverInfo = window.serverInfo ?? {};
-    const currentInstance = window.currentHyperionInstance ?? 'Unknown';
+    const currentInstance = window.currentHyperionInstance;
     const currentInstanceName = window.currentHyperionInstanceName ?? 'Unknown';
 
     info += `Hyperion System Summary Report (${serverConfig.general?.name ?? 'Unknown'})\n`;
-    info += `Reported instance: [${currentInstance}] - ${currentInstanceName}\n`;
+
+    if (currentInstance !== null) {
+      info += `Reported instance: [${currentInstance}] - ${currentInstanceName}\n`;
+    }
 
     info += `\n< ----- System information -------------------- >\n`;
     info += `${getSystemInfo()}\n`;
@@ -85,21 +87,19 @@ $(document).ready(function () {
       } else {
         info += `No components found or unavailable!\n`;
       }
-
-
     } else {
       info += `No instances are configured!\n`;
-
-
     }
 
     // Configuration
+    const config = transformConfig(serverConfig, currentInstance);
+    info += `\n< ----- Global configuration items------------- >\n`;
+    info += `${JSON.stringify(config.global, null, 2)}\n`;
+
     if (instances.length > 0) {
-      info += `\n< ----- This instance's configuration --------- >\n`;
-    } else {
-      info += `\n< ----- Global configuration ------------------ >\n`;
+      info += `\n< ----- Selected Instance configuration items-- >\n`;
+      info += `${JSON.stringify(config.instances, null, 2)}\n`;
     }
-    info += `${JSON.stringify(serverConfig, null, 2)}\n`;
 
     // Log Messages
     info += `\n< ----- Current Log --------------------------- >\n`;
@@ -109,7 +109,6 @@ $(document).ready(function () {
 
     return info;
   }
-
 
   function createLogContainer() {
 
