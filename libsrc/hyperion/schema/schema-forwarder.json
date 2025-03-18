@@ -1,6 +1,6 @@
 {
   "type": "object",
-  "title": "edt_conf_fw_heading_title",
+  "title": "edt_conf_forwarder_heading_title",
   "properties": {
 	"enable": {
 	  "type": "boolean",
@@ -11,17 +11,17 @@
 	},
 	"instanceList": {
 	  "type": "string",
-	  "title": "edt_conf_fw_instance_title",
+	  "title": "edt_conf_forwarder_instance_title",
 	  "required": true,
 	  "default": "NONE",
 	  "options": {
-		"infoText": "edt_conf_fw_instance_title_info"
+		"infoText": "edt_conf_forwarder_instance_title_info"
 	  },
 	  "propertyOrder": 2
 	},
 	"instance": {
 	  "type": "integer",
-	  "title": "edt_conf_fw_instance_title",
+	  "title": "edt_conf_forwarder_instance_title",
 	  "required": true,
 	  "default": 255,
 	  "minimum": 0,
@@ -36,22 +36,22 @@
 	  "type": "array",
 	  "uniqueItems": true,
 	  "format": "select",
-	  "title": "edt_conf_fw_json_services_discovered_title",
+	  "title": "edt_conf_forwarder_json_services_discovered_title",
 	  "propertyOrder": 4
 	},
 	"jsonapi": {
 	  "type": "array",
-	  "title": "edt_conf_fw_json_title",
+	  "title": "edt_conf_forwarder_json_title",
 	  "allowEmptyArray": true,
 	  "uniqueItems": true,
 	  "access": "expert",
 	  "items": {
 		"type": "object",
-		"title": "edt_conf_fw_json_itemtitle",
+		"title": "edt_conf_forwarder_json_itemtitle",
 		"properties": {
 		  "name": {
 			"type": "string",
-			"title": "edt_conf_fw_service_name_title",
+			"title": "edt_conf_forwarder_service_name_title",
 			"required": true,
 			"access": "expert",
 			"propertyOrder": 1
@@ -76,12 +76,12 @@
 			"propertyOrder": 3
 		  },
 		  "instanceIds": {
-			"title": "edt_conf_fw_target_instances_title",
+			"title": "edt_conf_forwarder_target_instances_title",
 			"type": "array",
 			"required": false,
 			"uniqueItems": true,
 			"items": {
-			  "title": "edt_conf_fw_target_instanceID_title",
+			  "title": "edt_conf_forwarder_target_instanceID_title",
 			  "required": true,
 			  "type": "integer",
 			  "minimum": 0,
@@ -98,22 +98,22 @@
 	  "type": "array",
 	  "uniqueItems": true,
 	  "format": "select",
-	  "title": "edt_conf_fw_flat_services_discovered_title",
+	  "title": "edt_conf_forwarder_flat_services_discovered_title",
 	  "propertyOrder": 6
 	},
 	"flatbuffer": {
 	  "type": "array",
-	  "title": "edt_conf_fw_flat_title",
+	  "title": "edt_conf_forwarder_flat_title",
 	  "uniqueItems": true,
 	  "access": "expert",
 	  "items": {
 		"type": "object",
-		"title": "edt_conf_fw_flat_itemtitle",
+		"title": "edt_conf_forwarder_flat_itemtitle",
 		"allowEmptyArray": true,
 		"properties": {
 		  "name": {
 			"type": "string",
-			"title": "edt_conf_fw_service_name_title",
+			"title": "edt_conf_forwarder_service_name_title",
 			"access": "expert",
 			"propertyOrder": 1
 		  },

@@ -21,18 +21,18 @@ $(document).ready(function () {
 
   function initializeUI() {
     if (window.showOptHelp) {
-      createSection("network", "edt_conf_net_heading_title", window.schema.network.properties);
-      createSection("jsonserver", "edt_conf_js_heading_title", window.schema.jsonServer.properties);
-      if (isFlatbufEnabled) createSection("flatbufserver", "edt_conf_fbs_heading_title", window.schema.flatbufServer.properties, "flatbufServerHelpPanelId");
-      if (isProtoBufEnabled) createSection("protoserver", "edt_conf_pbs_heading_title", window.schema.protoServer.properties, "protoServerHelpPanelId");
-      if (isForwarderEnabled && storedAccess !== 'default') createSection("forwarder", "edt_conf_fw_heading_title", window.schema.forwarder.properties, "forwarderHelpPanelId");
+      createSection("network", "edt_conf_network_heading_title", window.schema.network.properties);
+      createSection("jsonServer", "edt_conf_jsonServer_heading_title", window.schema.jsonServer.properties);
+      if (isFlatbufEnabled) createSection("flatbufServer", "edt_conf_flatbufServer_heading_title", window.schema.flatbufServer.properties, "flatbufServerHelpPanelId");
+      if (isProtoBufEnabled) createSection("protoServer", "edt_conf_protoServer_heading_title", window.schema.protoServer.properties, "protoServerHelpPanelId");
+      if (isForwarderEnabled && storedAccess !== 'default') createSection("forwarder", "edt_conf_forwarder_heading_title", window.schema.forwarder.properties, "forwarderHelpPanelId");
     } else {
       $('#conf_cont').addClass('row')
-      appendPanel("network", "edt_conf_net_heading_title");
-      appendPanel("jsonserver", "edt_conf_js_heading_title");
-      if (isFlatbufEnabled) appendPanel("flatbufserver", "edt_conf_fbs_heading_title");
-      if (isProtoBufEnabled) appendPanel("protoserver", "edt_conf_pbs_heading_title");
-      if (isForwarderEnabled) appendPanel("forwarder", "edt_conf_fv_heading_title");
+      appendPanel("network", "edt_conf_network_heading_title");
+      appendPanel("jsonServer", "edt_conf_jsonServer_heading_title");
+      if (isFlatbufEnabled) appendPanel("flatbufServer", "edt_conf_flatbufSserver_heading_title");
+      if (isProtoBufEnabled) appendPanel("protoServer", "edt_conf_protoServer_heading_title");
+      if (isForwarderEnabled) appendPanel("forwarder", "edt_conf_forwarder_heading_title");
       $("#conf_cont_tok").removeClass('row');
     }
 
@@ -61,13 +61,30 @@ $(document).ready(function () {
 
   function setupEditors() {
     createEditor("network", "network");
-    createEditor("jsonserver", "jsonServer");
-    if (isFlatbufEnabled) createEditor("flatbufserver", "flatbufServer", handleFlatbufChange);
-    if (isProtoBufEnabled) createEditor("protoserver", "protoServer", handleProtoBufChange);
+    createEditor("jsonServer", "jsonServer");
+    if (isFlatbufEnabled) createEditor("flatbufServer", "flatbufServer", handleFlatbufChange);
+    if (isProtoBufEnabled) createEditor("protoServer", "protoServer", handleProtoBufChange);
     if (isForwarderEnabled && storedAccess !== 'default') createEditor("forwarder", "forwarder", handleForwarderChange);
 
+    const editorConfigs = [
+      { key: "network", schemaKey: "network" },
+      { key: "jsonServer", schemaKey: "jsonServer" },
+      { key: "flatbufServer", schemaKey: "flatbufServer", enabled: isFlatbufEnabled, handler: handleFlatbufChange },
+      { key: "protoServer", schemaKey: "protoServer", enabled: isProtoBufEnabled, handler: handleProtoBufChange },
+      { key: "forwarder", schemaKey: "forwarder", enabled: isForwarderEnabled && storedAccess !== 'default', handler: handleForwarderChange }
+    ];
+
+    editorConfigs.forEach(({ key, schemaKey, enabled = true, handler }) => {
+      if (enabled) createEditor(key, schemaKey, handler);
+    });
+
     function createEditor(container, schemaKey, changeHandler) {
-      editors[container] = createJsonEditor(`editor_container_${container}`, { [schemaKey]: window.schema[schemaKey] }, true, true);
+      editors[container] = createJsonEditor(
+        `editor_container_${container}`,
+        { [schemaKey]: window.schema[schemaKey] },
+        true,
+        true
+      );
 
       editors[container].on('change', function () {
         const isValid = editors[container].validate().length === 0 && !window.readOnlyMode;
@@ -109,7 +126,7 @@ $(document).ready(function () {
 
       if (!configuredInstances || Object.keys(configuredInstances).length === 0) {
         enumVals.push("NONE");
-        enumTitelVals.push($.i18n('edt_conf_fw_no_instance_configured_title'));
+        enumTitelVals.push($.i18n('edt_conf_forwarder_no_instance_configured_title'));
       } else {
         Object.values(configuredInstances).forEach(({ friendly_name, instance }) => {
           enumTitelVals.push(friendly_name);
@@ -194,6 +211,51 @@ $(document).ready(function () {
     }
   }
 
+  // Validate for conflicting ports
+  JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
+    let errors = [];
+
+    const conflictingPorts = {
+      "root.jsonServer.port": ["flatbufServer", "protoServer", "webConfig_port", "webConfig_sslPort"],
+      "root.flatbufServer.port": ["jsonServer", "protoServer", "webConfig_port", "webConfig_sslPort"],
+      "root.protoServer.port": ["jsonServer", "flatbufServer", "webConfig_port", "webConfig_sslPort"]
+    };
+
+    if (!(path in conflictingPorts)) {
+      return [];
+    }
+
+    conflictingPorts[path].forEach(conflictKey => {
+      let conflictPort;
+
+      const isWebConfigPort = conflictKey.startsWith("webConfig");
+      if (isWebConfigPort) {
+        conflictPort = window.serverConfig?.webConfig?.[conflictKey.replace("webConfig_", "")];
+      } else {
+        conflictPort = editors?.[conflictKey]?.getEditor(`root.${conflictKey}.port`)?.getValue();
+      }
+
+      if (conflictPort != null && value === conflictPort) {
+        let errorText;
+
+        if (isWebConfigPort) {
+          errorText = $.i18n("edt_conf_webConfig_heading_title") + " - " + $.i18n(`edt_conf_${conflictKey}_title`);
+        } else {
+          errorText = $.i18n(`edt_conf_${conflictKey}_heading_title`);
+        }
+
+        errors.push({
+          path: path,
+          property: "port",
+          message: $.i18n('edt_conf_network_port_validation_error', errorText)
+        });
+      }
+
+    });
+
+    return errors;
+  });
+
   function setupTokenManagement() {
     createTable('tkthead', 'tktbody', 'tktable');
     $('.tkthead').html(createTableRow([$.i18n('conf_network_tok_idhead'), $.i18n('conf_network_tok_cidhead'), $.i18n('conf_network_tok_lastuse'), $.i18n('general_btn_delete')], true, true));
@@ -210,7 +272,7 @@ $(document).ready(function () {
     $('#root_network_internetAccessAPI').on("change", function () {
       checkApiTokenState($(this).is(":checked") || $('#root_network_localApiAuth').is(":checked"));
     });
-    
+
     // Listen for changes on the local API Auth toggle
     $('#root_network_localApiAuth').on("change", function () {
       checkApiTokenState($(this).is(":checked") || $('#root_network_internetAccessAPI').is(":checked"));
@@ -330,7 +392,7 @@ $(document).ready(function () {
 
     if (enumVals.length === 0) {
       enumVals.push("NONE");
-      enumTitleVals.push($.i18n('edt_conf_fw_remote_service_discovered_none'));
+      enumTitleVals.push($.i18n('edt_conf_forwarder_remote_service_discovered_none'));
     }
 
     updateJsonEditorMultiSelection(
@@ -397,5 +459,3 @@ $(document).ready(function () {
   }
 
 });
-
-

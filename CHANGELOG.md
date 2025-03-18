@@ -23,17 +23,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Support to import, export and backup Hyperion's full configuration via the UI, JSON-API and commandline (`--importConfig, --exportConfig`) (#804)
 - Allow to force starting Hyperion in read-only mode (`--readonlyMode`)
-- JSON-API: Support to query for a dedicated set of configuration items for a set of instances
-- JSON-API: Support to save a dedicated set of configuration items for a set of instances
-- JSON-API: Limit update emission frequency: Images (25Hz), raw LED-Colors (40Hz) & LED-Device data (200Hz) 
 - Effects: Limit the maximum update rate to 200Hz
 - Systray: Support multiple instances
+- UI: Validate that key ports do not overlap across editors and pages
 
 **JSON-API**
 - New subscription support for event updates, i.e. `Suspend, Resume, Idle, idleResume, Restart, Quit`.
 - Support direct or multiple instance addressing via single requests (#809)
 - Support of `serverinfo` subcommands: `getInfo, subscribe, unsubscribe, getSubscriptions, getSubscriptionCommands`
 - [Overview](https://github.com/hyperion-project/hyperion.ng/blob/API_Auth/doc/development/JSON-API%20_Commands_Overview.md) of API commands and subscription updates
+- Support to query for a dedicated set of configuration items for a set of instances
+- Support to save a dedicated set of configuration items for a set of instances
+- Limit update emission frequency: Images (25Hz), raw LED-Colors (40Hz) & LED-Device data (200Hz) 
 
 ### Changed
 
@@ -55,6 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - osX Grabber: Use ScreenCaptureKit under macOS 15 and above
 - Removed maximum LED number constraint from Matrix layout schema which was not synced with the UI behaviour (#1804)
 - Fixed bespoke WebSocket implementation by using of QWebSockets (#1816, #1448, #1247, #1130)
+- Fixed mDNS Browser deadlock, plus run in own thread now
 
 **JSON-API**
 - Refactored JSON-API to ensure consistent authorization behaviour across sessions and single requests with token authorization.
@@ -116,7 +118,6 @@ Note: The wizard will configure an APIv2 capable bridge always with Entertainmen
 - Audio Capture settings are no longer ignored (#1630)
 - Fixed that the Matrix effect finds its image - Thanks @lsellens
 - MDNSBrower - Fixed, if timeout while resolving host occurs
-- Fixed mDNS Browser deadlock, plus run in own thread now
 - Non image updates ignored blacklisted LEDs (#1634)
 - Fixed that Windows OsEvents failed in non-GUI mode (#1671)
 - Addressed serious (#1425) and some smaller memory leaks
