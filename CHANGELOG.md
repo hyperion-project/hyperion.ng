@@ -51,17 +51,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored: Python to enable parallel effect processing under Python 3.12
 - Refactored: Forwarder
 - Refactored: Flatbuffer connection- and client handling
+- Refactored: Decouple Effect definitions from Instance
+- Refactored: Decouple WebServer and SSDPHandler
+- Refactored: Corrected thread affinity across various classes
+- Refactored: Improved code resilliancy and error handling
 - Standalone grabber do not capture screens when no connection to remote host
 - Fixed: Python 3.12 crashes (#1747)
 - osX Grabber: Use ScreenCaptureKit under macOS 15 and above
 - Removed maximum LED number constraint from Matrix layout schema which was not synced with the UI behaviour (#1804)
 - Fixed bespoke WebSocket implementation by using of QWebSockets (#1816, #1448, #1247, #1130)
 - Fixed mDNS Browser deadlock, plus run in own thread now
+- Fixed that LED Buffer and Layout might get out of sync.
+- Fixed Screen caprture error (#1824)
+- Fixed Fixed: Provide custom forwarding targets is not possible (#1713)
 
 **JSON-API**
 - Refactored JSON-API to ensure consistent authorization behaviour across sessions and single requests with token authorization.
 - Provide additional error details with API responses, esp. on JSON parsing, validation or token errors.
 - Generate random TANs for every API request from the Hyperion UI
+- Configuration requests do not any longer require a running insatnce
 - Fixed: Handling of IP4 addresses wrapped in IPv6 for external network connections-
 - Fixed: Local Admin API Authentication rejects valid tokens (#1251)
 - Fixed: Create a proper API response, when Effects are not part of a build
