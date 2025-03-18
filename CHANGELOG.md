@@ -20,7 +20,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support a configurable grabber inactive detection time interval (#1740)
 - Windows: Added a new grabber that uses the DXGI DDA (Desktop Duplication API). This has much better performance than the DX grabber as it does more of its work on the GPU.
 - Support to freely select source and target instances to be used by forwarder
-
 - Support to import, export and backup Hyperion's full configuration via the UI, JSON-API and commandline (`--importConfig, --exportConfig`) (#804)
 - Allow to force starting Hyperion in read-only mode (`--readonlyMode`)
 - Effects: Limit the maximum update rate to 200Hz
@@ -54,7 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored: Decouple Effect definitions from Instance
 - Refactored: Decouple WebServer and SSDPHandler
 - Refactored: Corrected thread affinity across various classes
-- Refactored: Improved code resilliancy and error handling
+- Refactored: Improved code resilience and error handling
 - Standalone grabber do not capture screens when no connection to remote host
 - Fixed: Python 3.12 crashes (#1747)
 - osX Grabber: Use ScreenCaptureKit under macOS 15 and above
@@ -62,15 +61,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed bespoke WebSocket implementation by using of QWebSockets (#1816, #1448, #1247, #1130)
 - Fixed mDNS Browser deadlock, plus run in own thread now
 - Fixed that LED Buffer and Layout might get out of sync.
-- Fixed Screen caprture error (#1824)
-- Fixed Fixed: Provide custom forwarding targets is not possible (#1713)
+- Fixed Screen capture error (#1824)
+- Fixed Provide custom forwarding targets is not possible (#1713)
 
 **JSON-API**
 - Refactored JSON-API to ensure consistent authorization behaviour across sessions and single requests with token authorization.
 - Provide additional error details with API responses, esp. on JSON parsing, validation or token errors.
 - Generate random TANs for every API request from the Hyperion UI
-- Configuration requests do not any longer require a running insatnce
-- Fixed: Handling of IP4 addresses wrapped in IPv6 for external network connections-
+- Configuration requests do not any longer require a running instance
+- Fixed: Handling of IP4 addresses wrapped in IPv6 for external network connections
 - Fixed: Local Admin API Authentication rejects valid tokens (#1251)
 - Fixed: Create a proper API response, when Effects are not part of a build
 
