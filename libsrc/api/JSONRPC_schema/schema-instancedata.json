@@ -17,7 +17,7 @@
 			"minimum": 0,
 			"maximum": 255
 		},
-		"filetype" : {
+		"format" : {
 			"type" : "string",
 			"enum" : ["BMP","JPG","PNG"]
 		},
