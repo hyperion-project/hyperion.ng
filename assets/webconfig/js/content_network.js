@@ -27,7 +27,7 @@ $(document).ready(function () {
       if (isProtoBufEnabled) createSection("protoServer", "edt_conf_protoServer_heading_title", window.schema.protoServer.properties, "protoServerHelpPanelId");
       if (isForwarderEnabled && storedAccess !== 'default') createSection("forwarder", "edt_conf_forwarder_heading_title", window.schema.forwarder.properties, "forwarderHelpPanelId");
     } else {
-      $('#conf_cont').addClass('row')
+      $('#conf_cont').addClass('row');
       appendPanel("network", "edt_conf_network_heading_title");
       appendPanel("jsonServer", "edt_conf_jsonServer_heading_title");
       if (isFlatbufEnabled) appendPanel("flatbufServer", "edt_conf_flatbufSserver_heading_title");

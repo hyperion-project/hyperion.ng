@@ -1251,7 +1251,7 @@ function createSelGroup(group) {
 function createSelOpt(opt, title = opt) {
   const el = document.createElement('option');
   el.setAttribute('value', opt);
-  el.innerHTML = title;
+  el.textContent = title;
   return el;
 }
 
