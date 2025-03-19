@@ -300,7 +300,6 @@ public:
 			{ {"instance", "startInstance"}, { Command::Instance, SubCommand::StartInstance, Authorization::Yes, InstanceCmd::No, NoListenerCmd::Yes} },
 			{ {"instance", "stopInstance"}, { Command::Instance, SubCommand::StopInstance, Authorization::Yes, InstanceCmd::No, NoListenerCmd::Yes} },
 			{ {"instance", "switchTo"}, { Command::Instance, SubCommand::SwitchTo, Authorization::Yes, InstanceCmd::No, NoListenerCmd::Yes} },
-			{ {"instance-data", ""}, { Command::InstanceData, SubCommand::Empty, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
 			{ {"instance-data", "getImageSnapshot"}, { Command::InstanceData, SubCommand::GetImageSnapshot, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
 			{ {"instance-data", "getLedSnapshot"}, { Command::InstanceData, SubCommand::GetLedSnapshot, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes } },
 			{ {"ledcolors", "imagestream-start"}, { Command::LedColors, SubCommand::ImageStreamStart, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
