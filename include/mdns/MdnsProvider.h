@@ -31,6 +31,11 @@ public slots:
 	///
 	void init();
 
+	///
+	/// @brief Stop MdnsProvider to cleanup objects with thread affinity
+	///
+	void stop();
+
 	void publishService (const QString& serviceType, quint16 servicePort, const QByteArray& serviceName = "");
 
 private slots:

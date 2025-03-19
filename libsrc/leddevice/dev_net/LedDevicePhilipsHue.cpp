@@ -1561,7 +1561,6 @@ bool PhilipsHueLight::isBusy()
 
 void PhilipsHueLight::setBlack()
 {
-	Debug(_log,"");
 	CiColor black;
 	black.bri = 0;
 	black.x = 0;
@@ -2647,7 +2646,7 @@ bool LedDevicePhilipsHue::switchOn()
 			if (_isOn)
 			{
 				Info(_log, "Device %s is ON", QSTRING_CSTR(_activeDeviceType));
-				emit enableStateChanged(_isEnabled);
+				emit isEnabledChanged(_isEnabled);
 				rc =true;
 			}
 			else

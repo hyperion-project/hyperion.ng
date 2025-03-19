@@ -183,7 +183,7 @@ endif()
 if("${PLATFORM}" MATCHES "osx")
 	# specify the min version of the target platform (only GitHub Actions)
 	if(DEFINED ENV{GITHUB_WORKSPACE})
-		set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15")
+ 		set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15 CACHE STRING "Minimum macOS version the build will be able to run on" FORCE)
 	endif()
 
 	# add specific prefix paths
@@ -273,7 +273,7 @@ if(HYPERION_LIGHT)
 	# Disable Services
 	SET ( DEFAULT_EFFECTENGINE                OFF )
 	SET ( DEFAULT_EXPERIMENTAL                OFF )
-	#SET ( DEFAULT_MDNS                       OFF )
+	#SET ( DEFAULT_MDNS                        OFF )
 	SET ( DEFAULT_REMOTE_CTL                  OFF )
 
 	SET ( ENABLE_JSONCHECKS                    ON )

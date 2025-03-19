@@ -37,9 +37,6 @@ public:
 
 	~WebServer () override;
 
-	void start();
-	void stop();
-
 signals:
 	///
 	/// @emits whenever server is started or stopped (to sync with SSDPHandler)
@@ -63,6 +60,9 @@ public slots:
 	///
 	void initServer();
 
+	void start();
+	void stop();
+
 	void onServerStopped      ();
 	void onServerStarted      (quint16 port);
 	void onServerError        (const QString& msg);
@@ -77,7 +77,7 @@ public slots:
 	///
 	/// @brief Set a new description, if empty the description is NotFound for clients
 	///
-	void setSSDPDescription(const QString & desc);
+	void onSsdpDescriptionUpdated(const QString & desc);
 
 	/// check if server has been inited
 	bool isInited() const { return _inited; }

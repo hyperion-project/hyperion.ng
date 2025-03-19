@@ -37,7 +37,7 @@ void XcbWrapper::stop()
 	_timer.stop();
 }
 
-bool XcbWrapper::displayInit()
+bool XcbWrapper::screenInit()
 {
 	return _grabber.setupDisplay();
 }

@@ -649,6 +649,12 @@ $(document).ready(function () {
     $('#led_vis_help').html('<div><div class="led_ex" style="background-color:black;margin-right:5px;margin-top:3px"></div><div style="display:inline-block;vertical-align:top">' + $.i18n('conf_leds_layout_preview_l1') + '</div></div><div class="led_ex" style="background-color:grey;margin-top:3px;margin-right:2px"></div><div class="led_ex" style="background-color: rgb(169, 169, 169);margin-right:5px;margin-top:3px;"></div><div style="display:inline-block;vertical-align:top">' + $.i18n('conf_leds_layout_preview_l2') + '</div>');
   }
 
+  if (isInstanceRunning(window.currentHyperionInstance)) {
+    $("#leds_prev_toggle_live_video").show();
+  } else {
+    $("#leds_prev_toggle_live_video").hide();  
+  }
+
   //**************************************************
   // Handle LED-Layout Configuration
   //**************************************************
@@ -1739,7 +1745,7 @@ $(document).ready(function () {
       optArr[6].push(ledDevices[idx]);
   }
 
-  $("#leddevices").append(createSel(optArr[0], $.i18n('conf_leds_optgroup_RPiSPI')));
+  $("#leddevices").append(createSel(optArr[0], $.i18n('conf_leds_optgroup_SPI')));
   $("#leddevices").append(createSel(optArr[1], $.i18n('conf_leds_optgroup_RPiPWM')));
   $("#leddevices").append(createSel(optArr[2], $.i18n('conf_leds_optgroup_RPiGPIO')));
   $("#leddevices").append(createSel(optArr[3], $.i18n('conf_leds_optgroup_network')));
@@ -2476,7 +2482,7 @@ function validateWledLedCount(hardwareLedCount) {
 
   if (!jQuery.isEmptyObject(devicesProperties)) {
     var host = conf_editor.getEditor("root.specificOptions.host").getValue();
-    var ledDeviceProperties = devicesProperties["wled"][host];
+    var ledDeviceProperties = devicesProperties["wled"]?.[host] || {};
 
     if (ledDeviceProperties) {
 

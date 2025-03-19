@@ -17,6 +17,10 @@ public:
 	static EffectFileHandler* efhInstance;
 	static EffectFileHandler* getInstance() { return efhInstance; }
 
+	QJsonObject getEffectConfig() const { return _effectConfig; };
+
+	QString getRootPath() const { return _rootPath; }
+
 	///
 	/// @brief Get all available effects
 	///

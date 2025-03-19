@@ -35,7 +35,7 @@ public:
     {}
 
     virtual bool validate(Parser & parser, QString & value) override;
-    QList<QColor> getColors(Parser &parser) const { return _colors; }
+	QList<QColor> getColors(Parser & /*parser*/) const { return _colors; }
 };
 
 }

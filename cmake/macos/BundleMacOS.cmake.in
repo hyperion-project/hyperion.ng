@@ -85,6 +85,9 @@ if(EXISTS ${MAC_BUNDLE_INSTALL_BIN_DIR}/@MAC_BUNDLE_NAME@)
 		endif()
 	endforeach()
 
+	# Create a qt.conf file to override hard-coded search paths in Qt plugins
+	file(WRITE "${MAC_BUNDLE_INSTALL_DIR}/Contents/Resources/qt.conf" "[Paths]\nPlugins=plugins\n")
+
 	include(BundleUtilities)
 	file(GLOB_RECURSE QT_PLUGINS LIST_DIRECTORIES OFF "${MAC_BUNDLE_INSTALL_PLUGIN_DIR}/*")
 	fixup_bundle("${MAC_BUNDLE_INSTALL_DIR}" "${QT_PLUGINS}" "${MAC_BUNDLE_INSTALL_TMP_DIR};${QT_HOST_LIBS}" IGNORE_ITEM "Python")

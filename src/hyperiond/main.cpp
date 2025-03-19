@@ -28,6 +28,7 @@
 #include <QSystemTrayIcon>
 #include <QNetworkInterface>
 #include <QHostInfo>
+#include <QScopedPointer>
 
 #include "HyperionConfig.h"
 
@@ -332,7 +333,7 @@ int main(int argc, char** argv)
 			{
 				if (!userDataDirectory.isReadable() || !dbFile.isWritable())
 				{
-					throw std::runtime_error("The user data path '" + userDataDirectory.absolutePath().toStdString() + "' can't be created or isn't read/writeable. Please setup permissions correctly!");
+					throw std::runtime_error("The user data path '" + userDataDirectory.absolutePath().toStdString() + "' can't be created or isn't read/writable. Please setup permissions correctly!");
 				}
 			}
 		}
@@ -342,7 +343,7 @@ int main(int argc, char** argv)
 		{
 			if ( readonlyMode )
 			{
-				Error(log,"Password reset is not possible. Hyperion's database '%s' is not writeable.", QSTRING_CSTR(dbFile.absolutePath()));
+				Error(log,"Password reset is not possible. Hyperion's database '%s' is not writable.", QSTRING_CSTR(dbFile.absolutePath()));
 				throw std::runtime_error("Password reset failed");
 			}
 
@@ -363,7 +364,7 @@ int main(int argc, char** argv)
 		{
 			if ( readonlyMode )
 			{
-				Error(log,"Deleting the configuration database is not possible. Hyperion's database '%s' is not writeable.", QSTRING_CSTR(dbFile.absolutePath()));
+				Error(log,"Deleting the configuration database is not possible. Hyperion's database '%s' is not writable.", QSTRING_CSTR(dbFile.absolutePath()));
 				throw std::runtime_error("Deleting the configuration database failed");
 			}
 
@@ -390,7 +391,7 @@ int main(int argc, char** argv)
 		{
 			if ( readonlyMode )
 			{
-				Error(log,"Configuration import is not possible. Hyperion's database '%s' is not writeable.", QSTRING_CSTR(dbFile.absolutePath()));
+				Error(log,"Configuration import is not possible. Hyperion's database '%s' is not writable.", QSTRING_CSTR(dbFile.absolutePath()));
 				throw std::runtime_error("Configuration import failed");
 			}
 
@@ -428,13 +429,13 @@ int main(int argc, char** argv)
 
 		if ( readonlyMode )
 		{
-			Warning(log,"The database file '%s' is set not writeable. Hyperion starts in read-only mode. Configuration updates will not be persisted!", QSTRING_CSTR(dbFile.absoluteFilePath()));
+			Warning(log,"The database file '%s' is set not writable. Hyperion starts in read-only mode. Configuration updates will not be persisted!", QSTRING_CSTR(dbFile.absoluteFilePath()));
 		}
 
-		HyperionDaemon* hyperiond = nullptr;
+		QScopedPointer<HyperionDaemon> hyperiond;
 		try
 		{
-			hyperiond = new HyperionDaemon(userDataDirectory.absolutePath(), qApp, bool(logLevelCheck));
+			hyperiond.reset(new HyperionDaemon(userDataDirectory.absolutePath(), qApp, bool(logLevelCheck)));
 		}
 		catch (std::exception& e)
 		{
@@ -447,7 +448,7 @@ int main(int argc, char** argv)
 		{
 			Info(log, "Start Systray menu");
 			QApplication::setQuitOnLastWindowClosed(false);
-			SysTray tray(hyperiond);
+			SysTray tray(hyperiond.get());
 			tray.hide();
 			rc = (qobject_cast<QApplication *>(app.data()))->exec();
 		}
@@ -455,8 +456,6 @@ int main(int argc, char** argv)
 		{
 			rc = app->exec();
 		}
-		Info(log, "Application closed with code %d", rc);
-		delete hyperiond;
 	}
 	catch (std::exception& e)
 	{
@@ -469,6 +468,8 @@ int main(int argc, char** argv)
 		system("pause");
 	}
 #endif
+
+	Info(log, "Application ended with code %d", rc);
 
 	return rc;
 }

@@ -1041,7 +1041,7 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 
 		if ( deviceConfig[ CONFIG_COLOR_MODEL ].isString() )
 		{
-			_outputColorModel = deviceConfig[ CONFIG_COLOR_MODEL ].toString(QString(QChar(MODEL_RGB))).toInt();
+			_outputColorModel = deviceConfig[ CONFIG_COLOR_MODEL ].toString(QString::number(MODEL_RGB)).toInt();
 		}
 		else
 		{
@@ -1050,7 +1050,7 @@ bool LedDeviceYeelight::init(const QJsonObject &deviceConfig)
 
 		if ( deviceConfig[ CONFIG_TRANS_EFFECT ].isString() )
 		{
-			_transitionEffect = static_cast<YeelightLight::API_EFFECT>( deviceConfig[ CONFIG_TRANS_EFFECT ].toString(QString(QChar(YeelightLight::API_EFFECT_SMOOTH))).toInt() );
+			_transitionEffect = static_cast<YeelightLight::API_EFFECT>( deviceConfig[ CONFIG_TRANS_EFFECT ].toString(QString::number(YeelightLight::API_EFFECT_SMOOTH)).toInt() );
 		}
 		else
 		{

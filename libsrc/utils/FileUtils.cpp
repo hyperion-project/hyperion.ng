@@ -95,7 +95,8 @@ namespace FileUtils {
 	void resolveFileError(const QFile& file, Logger* log)
 	{
 		QFile::FileError error = file.error();
-		const char* fn = QSTRING_CSTR(file.fileName());
+		QByteArray fileNameUtf8 = file.fileName().toUtf8();
+		const char* fn = fileNameUtf8.constData();
 		switch(error)
 		{
 			case QFileDevice::NoError:

@@ -21,9 +21,9 @@ public:
 	bool createInstance(const QString& name, quint8& inst);
 
 	///
-	/// @brief Create first Hyperion instance entry, if index 0 is not found.
+	/// @brief Create first Hyperion instance entry
 	///
-	void createDefaultInstance();
+	void createInitialInstance();
 
 	///
 	/// @brief Delete a Hyperion instance
@@ -59,7 +59,7 @@ public:
 	/// @param[in]  user   The user id
 	/// @return     true on success else false
 	///
-	bool instanceExist(quint8 inst);
+	bool doesInstanceExist(quint8 inst);
 
 	///
 	/// @brief Get instance name by instance index

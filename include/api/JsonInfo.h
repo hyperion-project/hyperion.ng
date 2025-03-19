@@ -15,7 +15,8 @@ public:
 	static QJsonArray getAdjustmentInfo(const Hyperion* hyperion, Logger* log);
 	static QJsonArray getPrioritiestInfo(const Hyperion* hyperion);
 	static QJsonArray getPrioritiestInfo(int currentPriority, const PriorityMuxer::InputsMap& activeInputs);
-	static QJsonArray getEffects(const Hyperion* hyperion);
+	static QJsonArray getEffects();
+	static QJsonArray getEffectSchemas();
 	static QJsonArray getAvailableScreenGrabbers();
 	static QJsonArray getAvailableVideoGrabbers();
 	static QJsonArray getAvailableAudioGrabbers();
@@ -31,7 +32,7 @@ public:
 	static QJsonObject getSystemInfo(const Hyperion* hyperion);
 	QJsonObject discoverSources (const QString& sourceType, const QJsonObject& params);
 
-	static QJsonObject getConfiguration(const QList<quint8>& instances = {}, const QStringList& instanceFilteredTypes = {}, const QStringList& globalFilterTypes = {} );
+	static QJsonObject getConfiguration(const QList<quint8>& instanceIds = {}, const QStringList& instanceFilteredTypes = {}, const QStringList& globalFilterTypes = {} );
 
 private:
 

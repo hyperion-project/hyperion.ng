@@ -38,7 +38,7 @@ bool ColorsOption::validate(Parser & parser, QString & value)
 		return true;
 	}
 
-	_error = QString("Invalid color. A color is specified by a six lettered RRGGBB hex getColors or one of the following names:\n\t- %1").arg(QColor::colorNames().join("\n\t- "));
+	_error = QString("Invalid color. A color is specified by a six lettered RRGGBB hex value string or one of the following names:\n\t- %1").arg(QColor::colorNames().join("\n\t- "));
 
 	return false;
 }

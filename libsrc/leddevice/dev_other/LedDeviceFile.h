@@ -6,7 +6,7 @@
 
 // Qt includes
 #include <QFile>
-#include <QDateTime>
+#include <QScopedPointer>
 
 ///
 /// Implementation of the LedDevice that write the LED-colors to an
@@ -60,6 +60,15 @@ protected:
 	int close() override;
 
 	///
+	/// @brief Power-/turn off a file-device
+	///
+	/// The off-state is simulated by writing "Black to LED"
+	///
+	/// @return True, if success
+	///
+	bool powerOff() override;
+
+	///
 	/// @brief Writes the RGB-Color values to the LEDs.
 	///
 	/// @param[in] ledValues The RGB-color per LED
@@ -68,7 +77,7 @@ protected:
 	int write(const std::vector<ColorRgb> & ledValues) override;
 
 	/// The outputstream
-	QFile* _file;
+	QScopedPointer<QFile,QScopedPointerDeleteLater> _file;
 
 private:
 

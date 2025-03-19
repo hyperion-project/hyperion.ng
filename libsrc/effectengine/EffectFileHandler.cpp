@@ -30,6 +30,16 @@ void EffectFileHandler::handleSettingsUpdate(settings::type type, const QJsonDoc
 	if (type == settings::EFFECTS)
 	{
 		_effectConfig = config.object();
+
+		QJsonArray effectPathArray = _effectConfig["paths"].toArray();
+
+		// TODO: Remove workaround and move effect config to global settings
+		if (effectPathArray.empty())
+		{
+			effectPathArray.append("$ROOT/custom-effects");
+		}
+		_effectConfig["paths"] = effectPathArray;
+
 		// update effects and schemas
 		updateEffects();
 	}

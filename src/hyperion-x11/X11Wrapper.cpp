@@ -36,7 +36,7 @@ void X11Wrapper::stop()
 	_timer.stop();
 }
 
-bool X11Wrapper::displayInit()
+bool X11Wrapper::screenInit()
 {
 	return _grabber.setupDisplay();
 }

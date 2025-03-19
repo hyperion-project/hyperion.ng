@@ -96,8 +96,7 @@ endforeach()
 file(INSTALL FILES ${PREREQUISITE_LIBS} DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperion/lib")
 
 # Create a qt.conf file in 'share/hyperion/bin' to override hard-coded search paths in Qt plugins
-file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/\n")
-file(INSTALL FILES "${CMAKE_BINARY_DIR}/qt.conf" DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperion/bin")
+file(WRITE "${CMAKE_INSTALL_PREFIX}/share/hyperion/bin/qt.conf" "[Paths]\nPlugins=../lib/\n")
 
 if(NOT PYTHON_MODULES_DIR STREQUAL "" AND NOT PYTHON_VERSION STREQUAL "")
 	# Copy Python modules to 'share/hyperion/lib/pythonMAJOR.MINOR' and ignore the unnecessary stuff listed below

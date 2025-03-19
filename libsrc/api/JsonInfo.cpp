@@ -15,6 +15,9 @@
 #include <hyperion/GrabberWrapper.h>
 #include <grabber/GrabberConfig.h>
 
+#if defined(ENABLE_EFFECTENGINE)
+#include <effectengine/EffectFileHandler.h>
+#endif
 
 QJsonArray JsonInfo::getAdjustmentInfo(const Hyperion* hyperion, Logger* log)
 {
@@ -164,13 +167,12 @@ QJsonArray JsonInfo::getPrioritiestInfo(int currentPriority, const PriorityMuxer
 	return priorities;
 }
 
-QJsonArray JsonInfo::getEffects(const Hyperion* hyperion)
+QJsonArray JsonInfo::getEffects()
 {
 	QJsonArray effects;
 #if defined(ENABLE_EFFECTENGINE)
-	// collect effect info
 
-	const std::list<EffectDefinition> &effectsDefinitions = hyperion->getEffects();
+	const std::list<EffectDefinition> effectsDefinitions = EffectFileHandler::getInstance()->getEffects();
 	for (const EffectDefinition &effectDefinition : effectsDefinitions)
 	{
 		QJsonObject effect;
@@ -184,11 +186,38 @@ QJsonArray JsonInfo::getEffects(const Hyperion* hyperion)
 	return effects;
 }
 
+QJsonArray JsonInfo::getEffectSchemas()
+{
+	QJsonArray schemaList;
+#if defined(ENABLE_EFFECTENGINE)
+	const std::list<EffectSchema>& effectsSchemas = EffectFileHandler::getInstance()->getEffectSchemas();
+	for (const EffectSchema& effectSchema : effectsSchemas)
+	{
+		QJsonObject schema;
+		schema.insert("script", effectSchema.pyFile);
+		schema.insert("schemaLocation", effectSchema.schemaFile);
+		schema.insert("schemaContent", effectSchema.pySchema);
+		if (effectSchema.pyFile.startsWith(':'))
+		{
+			schema.insert("type", "system");
+		}
+		else
+		{
+			schema.insert("type", "custom");
+		}
+		schemaList.append(schema);
+	}
+#endif
+	return schemaList;
+}
+
 QJsonObject JsonInfo::getAvailableLedDevices()
 {
 	// get available led devices
 	QJsonObject ledDevices;
 	QJsonArray availableLedDevices;
+
+	LedDeviceWrapper::initializeDeviceMap();
 	for (const auto& dev : LedDeviceWrapper::getDeviceMap())
 	{
 		availableLedDevices.append(dev.first);
@@ -231,11 +260,18 @@ QJsonArray JsonInfo::getAvailableAudioGrabbers()
 QJsonObject JsonInfo::getGrabbers(const Hyperion* hyperion)
 {
 	QJsonObject grabbers;
+
+	quint8 idx {0};
+	if (hyperion != nullptr)
+	{
+		idx = hyperion->getInstanceIndex();
+	}
+
 	// SCREEN
 	QJsonObject screenGrabbers;
 	if (GrabberWrapper::getInstance() != nullptr)
 	{
-		const QStringList activeGrabbers = GrabberWrapper::getInstance()->getActive(hyperion->getInstanceIndex(), GrabberTypeFilter::SCREEN);
+		const QStringList activeGrabbers = GrabberWrapper::getInstance()->getActive(idx, GrabberTypeFilter::SCREEN);
 		QJsonArray activeGrabberNames;
 		for (const auto& grabberName : activeGrabbers)
 		{
@@ -250,7 +286,7 @@ QJsonObject JsonInfo::getGrabbers(const Hyperion* hyperion)
 	QJsonObject videoGrabbers;
 	if (GrabberWrapper::getInstance() != nullptr)
 	{
-		const QStringList activeGrabbers = GrabberWrapper::getInstance()->getActive(hyperion->getInstanceIndex(), GrabberTypeFilter::VIDEO);
+		const QStringList activeGrabbers = GrabberWrapper::getInstance()->getActive(idx, GrabberTypeFilter::VIDEO);
 		QJsonArray activeGrabberNames;
 		for (const auto& grabberName : activeGrabbers)
 		{
@@ -265,7 +301,7 @@ QJsonObject JsonInfo::getGrabbers(const Hyperion* hyperion)
 	QJsonObject audioGrabbers;
 	if (GrabberWrapper::getInstance() != nullptr)
 	{
-		const QStringList activeGrabbers = GrabberWrapper::getInstance()->getActive(hyperion->getInstanceIndex(), GrabberTypeFilter::AUDIO);
+		const QStringList activeGrabbers = GrabberWrapper::getInstance()->getActive(idx, GrabberTypeFilter::AUDIO);
 
 		QJsonArray activeGrabberNames;
 		for (const auto& grabberName : activeGrabbers)
@@ -340,7 +376,18 @@ QJsonArray JsonInfo::getComponents(const Hyperion* hyperion)
 {
 	// get available components
 	QJsonArray component;
-	std::map<hyperion::Components, bool> components = hyperion->getComponentRegister()->getRegister();
+	std::map<hyperion::Components, bool> components;
+
+	if (hyperion!= nullptr)
+	{
+		components = hyperion->getComponentRegister()->getRegister();
+	}
+	else
+	{
+		ComponentRegister componentRegister(nullptr);
+		components = componentRegister.getRegister();
+	}
+
 	for (auto comp : components)
 	{
 		QJsonObject item;
@@ -626,8 +673,8 @@ QJsonArray JsonInfo::discoverScreenInputs(const QJsonObject& params) const
 	return screenInputs;
 }
 
-QJsonObject JsonInfo::getConfiguration(const QList<quint8>& instancesfilter, const QStringList& instanceFilteredTypes, const QStringList& globalFilterTypes )
+QJsonObject JsonInfo::getConfiguration(const QList<quint8>& instanceIdsfilter, const QStringList& instanceFilteredTypes, const QStringList& globalFilterTypes )
 {
 	DBConfigManager configManager;
-	return configManager.getConfiguration(instancesfilter, instanceFilteredTypes, globalFilterTypes );
+	return configManager.getConfiguration(instanceIdsfilter, instanceFilteredTypes, globalFilterTypes );
 }

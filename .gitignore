@@ -51,3 +51,7 @@ CMakeUserPresets.json
 
 #Configurations created under config for testing
 /configs
+
+#Config database & backups created for testing
+HyperionBackup_*
+hyperion.db

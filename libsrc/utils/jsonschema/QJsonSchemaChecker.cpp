@@ -250,8 +250,9 @@ void QJsonSchemaChecker::checkProperties(const QJsonObject& value, const QJsonOb
 
 				if (_correct == "create")
 				{
-					QJsonUtils::modify(_autoCorrected, _currentPath, QJsonUtils::create(propertyValue, _ignoreRequired), property);
-					setMessage("Create property: " + property + " with value: " + QJsonUtils::getDefaultValue(propertyValue));
+					QString workingProperty = property;
+					setMessage("Create property: " + workingProperty + " with value: " + QJsonUtils::getDefaultValue(propertyValue));
+					QJsonUtils::modify(_autoCorrected, _currentPath, QJsonUtils::create(propertyValue, _ignoreRequired), workingProperty);
 				}
 
 				if (_correct == "")
