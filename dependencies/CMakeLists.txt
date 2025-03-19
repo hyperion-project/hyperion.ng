@@ -19,7 +19,7 @@ endif()
 if(NOT USE_SYSTEM_LIBUSB_LIBS)
 	# If it is Linux and HIDAPI is used, it is necessary to create the target usb-1.0
 	# at the beginning of the build system as HIDAPI requires this.
-	if(SYSTEM_MATCHES_LINUX AND (ENABLE_DEV_USB_HID AND NOT USE_SYSTEM_HIDAPI_LIBS))
+	if(CMAKE_SYSTEM MATCHES "Linux" AND (ENABLE_DEV_USB_HID AND NOT USE_SYSTEM_HIDAPI_LIBS))
 		include(ExternalProject)
 		ExternalProject_Add(libusb
 			PREFIX				${CMAKE_CURRENT_BINARY_DIR}/external/libusb-cmake
@@ -76,7 +76,7 @@ if(TARGET usb-1.0)
 	endif()
 
 	if(LibUSB_VERSION)
-		message(STATUS "libusb version used: ${LibUSB_VERSION}")
+		message(STATUS "LibUSB version used: ${LibUSB_VERSION}")
 	endif()
 endif()
 

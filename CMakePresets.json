@@ -134,10 +134,6 @@
         "type": "equals",
         "lhs": "${hostSystemName}",
         "rhs": "Darwin"
-      },
-      "cacheVariables": {
-        "USE_PRE_BUILD_DEPS": true,
-        "PRE_BUILD_DEPS_DIR": "/Volumes/Extern/GitHub/--DEPS-macos-arm64-qt6-release"
       }
     },
     {
