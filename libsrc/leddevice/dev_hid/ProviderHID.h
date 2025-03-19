@@ -2,7 +2,7 @@
 #define PROVIDERHID_H
 
 // libusb include
-#include <hidapi/hidapi.h>
+#include <hidapi.h>
 
 // Leddevice includes
 #include <leddevice/LedDevice.h>

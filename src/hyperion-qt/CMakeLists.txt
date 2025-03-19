@@ -19,7 +19,6 @@ target_link_libraries(${PROJECT_NAME}
 	commandline
 	qt-grabber
 	flatbufconnect
-	flatbuffers
 	Qt${QT_VERSION_MAJOR}::Widgets
 )
 

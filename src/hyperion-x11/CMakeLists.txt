@@ -15,7 +15,6 @@ target_link_libraries(${PROJECT_NAME}
 	commandline
 	hyperion-utils
 	flatbufconnect
-	flatbuffers
 	x11-grabber
 	Qt${QT_VERSION_MAJOR}::Widgets
 )
