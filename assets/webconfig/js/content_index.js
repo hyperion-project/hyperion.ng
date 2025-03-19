@@ -304,7 +304,7 @@ $(document).ready(function () {
   $(window.hyperion).on("cmd-instance-update", function (event) {
     const isInstanceRunningBeforeUpdate = isCurrentInstanceRunning();
 
-    window.serverInfo.instance = event.response.data
+    window.serverInfo.instance = event.response.data;
 
     // notify the update
     $(window.hyperion).trigger("instance-updated");

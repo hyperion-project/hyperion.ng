@@ -236,7 +236,6 @@ void SysTray::handleInstanceStopped(quint8 instance)
 
 void SysTray::handleInstanceStateChange(InstanceState state, quint8 instance, const QString& /*name*/)
 {
-	//show();
 	switch (state)
 	{
 	case InstanceState::H_STARTED:

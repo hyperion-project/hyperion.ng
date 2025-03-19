@@ -22,12 +22,6 @@
 // util includes
 #include <utils/JsonUtils.h>
 
-// Constants
-namespace {
-
-const bool verbose = true;
-} //End of constants
-
 JsonConnection::JsonConnection(const QHostAddress& host, bool printJson , quint16 port)
 	: _log(Logger::getInstance("JSONAPICONN"))
 	, _host(host)

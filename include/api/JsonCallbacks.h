@@ -87,9 +87,7 @@ public:
 	///
 	/// @brief Re-apply all current subs to a new Hyperion instance, the connections to the old instance will be dropped
 	///
-	//void JsonCallbacks::setSubscriptionsTo(QSharedPointer<Hyperion> hyperion)
 	void setSubscriptionsTo(quint8 instanceID);
-	//void setSubscriptionsTo(QSharedPointer<Hyperion> hyperion);
 
 signals:
 	///
