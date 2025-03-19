@@ -38,9 +38,9 @@ $(document).ready(function () {
         let errorText;
 
         if (isWebConfigPort) {
-          errorText = $.i18n("edt_conf_webConfig_heading_title") + " - " + $.i18n(`edt_conf_${conflictKey}_title`);
+          errorText = $.i18n(`edt_conf_${conflictKey}_title`);
         } else {
-          errorText = $.i18n(`edt_conf_${conflictKey}_heading_title`);
+          errorText = $.i18n("main_menu_network_conf_token") + " - " + $.i18n(`edt_conf_${conflictKey}_heading_title`);
         }
 
         errors.push({
