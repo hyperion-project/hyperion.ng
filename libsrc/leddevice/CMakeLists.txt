@@ -129,7 +129,7 @@ endif()
 
 if(ENABLE_DEV_WS281XPWM)
 	target_include_directories(leddevice PUBLIC "${CMAKE_SOURCE_DIR}/dependencies/external/rpi_ws281x")
-	target_link_libraries(leddevice ws281x)
+	target_link_libraries(leddevice ws2811)
 endif()
 
 if(ENABLE_DEV_USB_HID)
