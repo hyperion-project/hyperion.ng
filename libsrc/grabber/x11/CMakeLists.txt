@@ -14,7 +14,7 @@ target_link_libraries(x11-grabber
 	${X11_Xrender_LIB}
 )
 
-if(APPLE)
+if(CMAKE_SYSTEM MATCHES "Darwin")
 	list(APPEND X11_INCLUDES "/opt/X11/include")
 endif()
 

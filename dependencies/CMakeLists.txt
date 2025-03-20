@@ -45,7 +45,7 @@ if(NOT USE_SYSTEM_LIBUSB_LIBS)
 			INTERFACE_INCLUDE_DIRECTORIES ${SOURCE_DIR}/libusb/libusb
 		)
 
-		if(SYSTEM_MATCHES_LINUX)
+		if(CMAKE_SYSTEM MATCHES "Linux")
 			find_package(Libudev REQUIRED)
 			set_target_properties(usb-1.0 PROPERTIES
 				INTERFACE_LINK_LIBRARIES Libudev

@@ -28,7 +28,7 @@ endfunction()
 # Determine the current Platform and put the result into the OUTPUT var
 function(DeterminePlatform OUTPUT)
 	set(_output "")
-	if(APPLE)
+	if(CMAKE_SYSTEM MATCHES "Darwin")
 		set(_output "osx")
 	elseif (WIN32)
 		set(_output "windows")

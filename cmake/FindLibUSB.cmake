@@ -112,7 +112,7 @@ if(LibUSB_FOUND)
 			INTERFACE_INCLUDE_DIRECTORIES "${LibUSB_INCLUDE_DIR}"
 		)
 
-		if(UNIX AND NOT APPLE)
+		if(CMAKE_SYSTEM MATCHES "Linux")
 			get_target_property(TARGET_TYPE usb-1.0 TYPE)
 			get_target_property(TARGET_LOCATION usb-1.0 LOCATION)
 			get_filename_component(TARGET_EXTENSION ${TARGET_LOCATION} EXT)

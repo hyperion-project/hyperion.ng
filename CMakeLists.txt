@@ -577,7 +577,7 @@ endif()
 
 # If Hyperion is deployed with all dependencies under Linux
 # it is necessary to deactivate the linker option dtag
-if(ENABLE_DEPLOY_DEPENDENCIES AND UNIX AND NOT APPLE)
+if(ENABLE_DEPLOY_DEPENDENCIES AND CMAKE_SYSTEM MATCHES "Linux")
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--disable-new-dtags")
 	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--disable-new-dtags")
 	set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--disable-new-dtags")
@@ -650,7 +650,7 @@ find_package(Qt${QT_VERSION_MAJOR} ${QT_VERSION} COMPONENTS Core Gui Network Sql
 
 message(STATUS "Qt version used: ${QT_VERSION}")
 
-if(APPLE AND (${QT_VERSION_MAJOR} GREATER_EQUAL 6))
+if(CMAKE_SYSTEM MATCHES "Darwin" AND (${QT_VERSION_MAJOR} GREATER_EQUAL 6))
 	set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
 endif()
 
