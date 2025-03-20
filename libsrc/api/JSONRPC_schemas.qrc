@@ -20,6 +20,7 @@
         <file alias="schema-videomode">JSONRPC_schema/schema-videomode.json</file>
         <file alias="schema-authorize">JSONRPC_schema/schema-authorize.json</file>
         <file alias="schema-instance">JSONRPC_schema/schema-instance.json</file>
+        <file alias="schema-instance-data">JSONRPC_schema/schema-instancedata.json</file>
         <file alias="schema-leddevice">JSONRPC_schema/schema-leddevice.json</file>
         <file alias="schema-inputsource">JSONRPC_schema/schema-inputsource.json</file>
         <file alias="schema-service">JSONRPC_schema/schema-service.json</file>
