@@ -1,8 +1,8 @@
 #=============================================================================
-# Minimum required CMake version is 3.5.0
+# Minimum required CMake version is 3.10.0
 #=============================================================================
 
-cmake_minimum_required(VERSION 3.5.0)
+cmake_minimum_required(VERSION 3.10.0)
 message(STATUS "CMake Version: ${CMAKE_VERSION}")
 
 #=============================================================================
@@ -136,6 +136,7 @@ set(DEFAULT_REMOTE_CTL                  ON)
 
 # 3rd party libs
 set(DEFAULT_USE_SYSTEM_LIBUSB_LIBS      OFF)
+set(DEFAULT_USE_SYSTEM_LIBFTDI_LIBS     OFF)
 set(DEFAULT_USE_SYSTEM_HIDAPI_LIBS      OFF)
 set(DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF)
 set(DEFAULT_USE_SYSTEM_PROTO_LIBS       OFF)
@@ -168,7 +169,6 @@ elseif (WIN32)
 	set(DEFAULT_DX              ON)
 	set(DEFAULT_DDA             ON)
 	set(DEFAULT_MF              ON)
-	set(DEFAULT_DEV_FTDI        OFF)
 else()
 	set(DEFAULT_FB              OFF)
 	set(DEFAULT_V4L2            OFF)
@@ -269,6 +269,7 @@ if(USE_PRE_BUILD_DEPS)
 
 		# Use pre-build dependencies
 		set(DEFAULT_USE_SYSTEM_LIBUSB_LIBS      ON)
+		set(DEFAULT_USE_SYSTEM_LIBFTDI_LIBS     ON)
 		set(DEFAULT_USE_SYSTEM_HIDAPI_LIBS      ON)
 		set(DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS ON)
 		set(DEFAULT_USE_SYSTEM_PROTO_LIBS       ON)
@@ -446,10 +447,17 @@ removeIndent()
 message(STATUS "3rd party libs:")
 addIndent(" - ")
 
-if(ENABLE_DEV_USB_HID)
+if(ENABLE_DEV_USB_HID OR ENABLE_DEV_FTDI)
 	option(USE_SYSTEM_LIBUSB_LIBS "Use LibUSB library from system" ${DEFAULT_USE_SYSTEM_LIBUSB_LIBS})
     message(STATUS "USE_SYSTEM_LIBUSB_LIBS = ${USE_SYSTEM_LIBUSB_LIBS}")
+endif()
 
+if(ENABLE_DEV_FTDI)
+	option(USE_SYSTEM_LIBFTDI_LIBS "Use LibFTDI library from system" ${DEFAULT_USE_SYSTEM_LIBFTDI_LIBS})
+	message(STATUS "USE_SYSTEM_LIBFTDI_LIBS = ${USE_SYSTEM_LIBFTDI_LIBS}")
+endif()
+
+if(ENABLE_DEV_USB_HID)
 	option(USE_SYSTEM_HIDAPI_LIBS "Use HIDAPI library from system" ${DEFAULT_USE_SYSTEM_HIDAPI_LIBS})
     message(STATUS "USE_SYSTEM_HIDAPI_LIBS = ${USE_SYSTEM_HIDAPI_LIBS}")
 endif()

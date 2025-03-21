@@ -53,8 +53,8 @@ if(NOT USE_SYSTEM_LIBUSB_LIBS)
 		endif()
 	else()
 		set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build statically version of libusb")
-		set(LIBUSB_BUILD_TESTING OFF CACHE BOOL "Disable build of libusb tests")
-		set(LIBUSB_BUILD_EXAMPLES OFF CACHE BOOL "Disable build of libusb examples")
+		set(LIBUSB_BUILD_TESTING OFF CACHE BOOL "Build libusb tests")
+		set(LIBUSB_BUILD_EXAMPLES OFF CACHE BOOL "Build libusb examples")
 		set(LIBUSB_INSTALL_TARGETS ON CACHE INTERNAL "Install libusb targets")
 		set(CMAKE_WARN_DEPRECATED OFF CACHE INTERNAL "Suppress warnings about 'Compatibility with CMake < 3.5 will be removed from a future version of CMake'")
 		add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/external/libusb-cmake")
@@ -77,6 +77,34 @@ if(TARGET usb-1.0)
 
 	if(LibUSB_VERSION)
 		message(STATUS "LibUSB version used: ${LibUSB_VERSION}")
+	endif()
+endif()
+
+# =============================================================================
+# LibFTDI
+# =============================================================================
+
+if(ENABLE_DEV_FTDI)
+	if(USE_SYSTEM_LIBFTDI_LIBS OR USE_PRE_BUILD_DEPS)
+		find_package(LibFTDI1 REQUIRED)
+	endif()
+
+	if(NOT USE_SYSTEM_LIBFTDI_LIBS)
+		# Build LibFTDI as static library
+		set(STATICLIBS ON CACHE BOOL "Build statically version of LibFTDI")
+
+		# Disable build of LibFTDI example programs
+		set(EXAMPLES OFF CACHE BOOL "Build LibFTDI example programs")
+
+		# Disable building ftdi_eeprom
+		set(FTDI_EEPROM OFF CACHE BOOL "Build ftdi_eeprom")
+
+		# Add LibFTDI directory to the build
+		add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/external/libftdi")
+
+		target_include_directories(ftdi1 PUBLIC
+			"${CMAKE_CURRENT_SOURCE_DIR}/external/libftdi/src"
+		)
 	endif()
 endif()
 

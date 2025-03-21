@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.0)
+cmake_minimum_required(VERSION 3.10.0)
 project(hyperion-framebuffer)
 
 add_executable(${PROJECT_NAME}

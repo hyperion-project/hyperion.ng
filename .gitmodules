@@ -21,3 +21,6 @@
 [submodule "dependencies/external/libusb-cmake"]
 	path = dependencies/external/libusb-cmake
 	url = https://github.com/libusb/libusb-cmake
+[submodule "dependencies/external/libftdi"]
+	path = dependencies/external/libftdi
+	url = git://developer.intra2net.com/libftdi
