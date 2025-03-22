@@ -133,9 +133,9 @@ if(ENABLE_DEV_WS281XPWM)
 endif()
 
 if(ENABLE_DEV_USB_HID)
-	if(CMAKE_SYSTEM MATCHES "Darwin")
+	if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 		find_library(SECURITY Security REQUIRED)
-	elseif(CMAKE_SYSTEM MATCHES "Linux")
+	elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
 		find_package(Threads REQUIRED)
 	endif()
 

@@ -193,11 +193,6 @@ else()
 endif()
 
 if("${PLATFORM}" MATCHES "osx")
-	# specify the min version of the target platform (only GitHub Actions)
-	if(DEFINED ENV{GITHUB_WORKSPACE})
-		set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15")
-	endif()
-
 	# add specific prefix paths
 	FIRSTSUBDIR(SUBDIRPY "/usr/local/opt/python3/Frameworks/Python.framework/Versions")
 	set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${SUBDIRPY})
@@ -658,7 +653,7 @@ find_package(Qt${QT_VERSION_MAJOR} ${QT_VERSION} COMPONENTS Core Gui Network Sql
 
 message(STATUS "Qt version used: ${QT_VERSION}")
 
-if(CMAKE_SYSTEM MATCHES "Darwin" AND (${QT_VERSION_MAJOR} GREATER_EQUAL 6))
+if(CMAKE_SYSTEM_NAME MATCHES "Darwin" AND (${QT_VERSION_MAJOR} GREATER_EQUAL 6))
 	set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
 endif()
 

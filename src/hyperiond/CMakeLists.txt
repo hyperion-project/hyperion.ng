@@ -28,7 +28,7 @@ if(WIN32)
 			message(WARNING "Cannot find the windeployqt tool.")
 		endif()
 	endif()
-elseif(CMAKE_SYSTEM MATCHES "Darwin")
+elseif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 	# include resource files for macos bundle (copy LICENSE file and correct line breaks)
 	configure_file(${CMAKE_SOURCE_DIR}/LICENSE ${CMAKE_BINARY_DIR}/LICENSE COPYONLY)
 	execute_process(COMMAND bash -c "perl -pi -e 's/\n/\r/g' ${CMAKE_BINARY_DIR}/LICENSE")
@@ -119,7 +119,7 @@ if(ENABLE_AMLOGIC)
 endif()
 
 if(ENABLE_X11)
-	if(CMAKE_SYSTEM MATCHES "Darwin")
+	if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 		include_directories("/opt/X11/include")
 	endif()
 	target_link_libraries(${PROJECT_NAME} x11-grabber)
@@ -153,7 +153,7 @@ endif()
 ########### Install steps ###########
 #####################################
 
-if(CMAKE_SYSTEM MATCHES "Darwin")
+if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 	# set bundle information
 	set(MAC_BUNDLE_NAME "Hyperion")
 	set_target_properties(${PROJECT_NAME} PROPERTIES
