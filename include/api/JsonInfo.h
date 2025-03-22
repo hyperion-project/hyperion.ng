@@ -12,6 +12,7 @@ class JsonInfo
 {
 
 public:
+	static QJsonObject getInfo(const Hyperion* hyperion, Logger* log);
 	static QJsonArray getAdjustmentInfo(const Hyperion* hyperion, Logger* log);
 	static QJsonArray getPrioritiestInfo(const Hyperion* hyperion);
 	static QJsonArray getPrioritiestInfo(int currentPriority, const PriorityMuxer::InputsMap& activeInputs);

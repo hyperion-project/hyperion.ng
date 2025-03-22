@@ -502,38 +502,7 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const JsonApiC
 	case SubCommand::Empty:
 	case SubCommand::GetInfo:
 		// Global information
-		info["ledDevices"] = JsonInfo::getAvailableLedDevices();
-		info["cec"] = JsonInfo::getCecInfo();
-		info["services"] = JsonInfo::getServices();
-		info["instance"] = JsonInfo::getInstanceInfo();
-		info["effects"] = JsonInfo::getEffects();
-
-		// Global/Instance specific information
-		info["grabbers"] = JsonInfo::getGrabbers(_hyperion.get());
-		info["components"] = JsonInfo::getComponents(_hyperion.get());
-
-		// Instance specific information
-		if (!_hyperion.isNull())
-		{
-			info["priorities"] = JsonInfo::getPrioritiestInfo(_hyperion.get());
-			info["priorities_autoselect"] = _hyperion->sourceAutoSelectEnabled();
-			info["adjustment"] = JsonInfo::getAdjustmentInfo(_hyperion.get(), _log);
-			info["videomode"] = QString(videoMode2String(_hyperion->getCurrentVideoMode()));
-
-			info["imageToLedMappingType"] = ImageProcessor::mappingTypeToStr(_hyperion->getLedMappingType());
-			info["leds"] = _hyperion->getSetting(settings::LEDS).array();
-			info["activeLedColor"] =  JsonInfo::getActiveColors(_hyperion.get());
-#if defined(ENABLE_EFFECTENGINE)
-			info["activeEffects"] = JsonInfo::getActiveEffects(_hyperion.get());
-#endif
-		}
-
-		// BEGIN | The following entries are deprecated but used to ensure backward compatibility with hyperion Classic or up to Hyperion 2.0.16
-		info["hostname"] = QHostInfo::localHostName();
-		if (!_hyperion.isNull())
-		{
-			info["transform"] = JsonInfo::getTransformationInfo(_hyperion.get());
-		}
+		info = JsonInfo::getInfo(_hyperion.get(),_log);
 
 		if (!_noListener && message.contains("subscribe"))
 		{

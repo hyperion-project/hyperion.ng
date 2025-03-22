@@ -1,3 +1,4 @@
+#include "hyperion/ImageProcessor.h"
 #include <db/DBConfigManager.h>
 #include <api/JsonInfo.h>
 #include <api/API.h>
@@ -9,6 +10,7 @@
 #include <hyperion/AuthManager.h>
 #include <QCoreApplication>
 #include <QApplication>
+#include <QHostInfo>
 
 #include <HyperionConfig.h> // Required to determine the cmake options
 
@@ -18,6 +20,46 @@
 #if defined(ENABLE_EFFECTENGINE)
 #include <effectengine/EffectFileHandler.h>
 #endif
+
+
+QJsonObject JsonInfo::getInfo(const Hyperion* hyperion, Logger* log)
+{
+	QJsonObject info {};
+	// Global information
+	info["ledDevices"] = JsonInfo::getAvailableLedDevices();
+	info["cec"] = JsonInfo::getCecInfo();
+	info["services"] = JsonInfo::getServices();
+	info["instance"] = JsonInfo::getInstanceInfo();
+	info["effects"] = JsonInfo::getEffects();
+
+	// Global/Instance specific information
+	info["grabbers"] = JsonInfo::getGrabbers(hyperion);
+	info["components"] = JsonInfo::getComponents(hyperion);
+
+	// Instance specific information
+	if (hyperion != nullptr)
+	{
+		info["priorities"] = JsonInfo::getPrioritiestInfo(hyperion);
+		info["priorities_autoselect"] = hyperion->sourceAutoSelectEnabled();
+		info["adjustment"] = JsonInfo::getAdjustmentInfo(hyperion, log);
+		info["videomode"] = QString(videoMode2String(hyperion->getCurrentVideoMode()));
+
+		info["imageToLedMappingType"] = ImageProcessor::mappingTypeToStr(hyperion->getLedMappingType());
+		info["leds"] = hyperion->getSetting(settings::LEDS).array();
+		info["activeLedColor"] =  JsonInfo::getActiveColors(hyperion);
+#if defined(ENABLE_EFFECTENGINE)
+		info["activeEffects"] = JsonInfo::getActiveEffects(hyperion);
+#endif
+	}
+
+	// BEGIN | The following entries are deprecated but used to ensure backward compatibility with hyperion Classic or up to Hyperion 2.0.16
+	info["hostname"] = QHostInfo::localHostName();
+	if (hyperion != nullptr)
+	{
+		info["transform"] = JsonInfo::getTransformationInfo(hyperion);
+	}
+	return info;
+}
 
 QJsonArray JsonInfo::getAdjustmentInfo(const Hyperion* hyperion, Logger* log)
 {
