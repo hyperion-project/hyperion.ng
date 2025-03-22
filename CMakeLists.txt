@@ -14,6 +14,11 @@ if(POLICY CMP0092)
 	cmake_policy(SET CMP0092 NEW)
 endif()
 
+# Avoid warning about DOWNLOAD_EXTRACT_TIMESTAMP
+if(POLICY CMP0135)
+	cmake_policy(SET CMP0135 NEW)
+endif()
+
 #=============================================================================
 # Our main project :)
 #=============================================================================

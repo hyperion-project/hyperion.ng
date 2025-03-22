@@ -222,7 +222,7 @@
       "displayName": "Windows (release) (msvc)",
       "description": "Build with MSVC's CL as Release without Debug Symbols",
       "configuration": "Release",
-      "targets": "ALL_BUILD",
+      "targets": "all",
       "configurePreset": "windows-release",
       "condition": {
         "type": "equals",
@@ -235,7 +235,7 @@
       "displayName": "Windows (debug) (msvc)",
       "description": "Build with MSVC's CL with Debug Symbols",
       "configuration": "Debug",
-      "targets": "ALL_BUILD",
+      "targets": "all",
       "configurePreset": "windows-debug",
       "condition": {
         "type": "equals",

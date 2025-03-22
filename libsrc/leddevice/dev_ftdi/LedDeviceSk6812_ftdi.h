@@ -1,6 +1,12 @@
 #ifndef LEDEVICESK6812ftdi_H
 #define LEDEVICESK6812ftdi_H
 
+#ifdef WIN32
+#define INLINE __forceinline
+#else
+#define INLINE inline __attribute__((always_inline))
+#endif
+
 #include "ProviderFtdi.h"
 
 class LedDeviceSk6812_ftdi : public ProviderFtdi
@@ -39,7 +45,7 @@ private:
 	///
 	int write(const std::vector<ColorRgb>& ledValues) override;
 
-	inline __attribute__((always_inline)) uint8_t scale(uint8_t i, uint8_t scale);
+	INLINE uint8_t scale(uint8_t i, uint8_t scale);
 
 	RGBW::WhiteAlgorithm _whiteAlgorithm;
 

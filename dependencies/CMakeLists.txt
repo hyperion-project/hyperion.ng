@@ -8,29 +8,27 @@ if(USE_PRE_BUILD_DEPS)
 	endforeach()
 endif()
 
-# =============================================================================
-# LibUSB
-# =============================================================================
-
-if(USE_SYSTEM_LIBUSB_LIBS OR USE_PRE_BUILD_DEPS)
-	find_package(LibUSB REQUIRED)
+# LibFTDI or HIDAPI macOS configuration
+if(CMAKE_SYSTEM_NAME MATCHES "Darwin" AND (ENABLE_DEV_USB_HID AND NOT USE_SYSTEM_HIDAPI_LIBS) OR (ENABLE_DEV_FTDI AND NOT USE_SYSTEM_LIBFTDI_LIBS))
+	include(ExternalProject)
+	set(APPLE_CONFIGURATION
+		-DCMAKE_OSX_ARCHITECTURES:STRING=${CMAKE_OSX_ARCHITECTURES}
+		-DCMAKE_OSX_SYSROOT:PATH=${CMAKE_OSX_SYSROOT}
+		-DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=${CMAKE_OSX_DEPLOYMENT_TARGET}
+		-DCMAKE_MACOSX_RPATH:BOOL=${CMAKE_MACOSX_RPATH}
+	)
 endif()
 
-if(NOT USE_SYSTEM_LIBUSB_LIBS)
-	# If LibFTDI or HIDAPI is used, it is necessary to create the target usb-1.0 at the beginning of the build system
-	if((ENABLE_DEV_USB_HID AND NOT USE_SYSTEM_HIDAPI_LIBS) OR (ENABLE_DEV_FTDI AND NOT USE_SYSTEM_LIBFTDI_LIBS))
-		if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-			set(APPLE_CONFIGURATION
-				-DCMAKE_OSX_ARCHITECTURES:STRING=${CMAKE_OSX_ARCHITECTURES}
-				-DCMAKE_OSX_SYSROOT:PATH=${CMAKE_OSX_SYSROOT}
-				-DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=${CMAKE_OSX_DEPLOYMENT_TARGET}
-				-DCMAKE_MACOSX_RPATH:BOOL=${CMAKE_MACOSX_RPATH}
-			)
-		else()
-			unset(APPLE_CONFIGURATION)
-		endif()
+# =============================================================================
+# LibUSB (HIDAPI/LibFTDI need it)
+# =============================================================================
 
-		include(ExternalProject)
+if(ENABLE_DEV_USB_HID OR ENABLE_DEV_FTDI)
+	if(USE_SYSTEM_LIBUSB_LIBS OR USE_PRE_BUILD_DEPS)
+		find_package(LibUSB REQUIRED)
+	endif()
+
+	if(NOT USE_SYSTEM_LIBUSB_LIBS)
 		ExternalProject_Add(libusb
 			PREFIX				${CMAKE_CURRENT_BINARY_DIR}/external/libusb-cmake
 			BUILD_ALWAYS		ON
@@ -62,32 +60,25 @@ if(NOT USE_SYSTEM_LIBUSB_LIBS)
 				INTERFACE_LINK_LIBRARIES Libudev
 			)
 		endif()
-	else()
-		set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build statically version of libusb")
-		set(LIBUSB_BUILD_TESTING OFF CACHE BOOL "Build libusb tests")
-		set(LIBUSB_BUILD_EXAMPLES OFF CACHE BOOL "Build libusb examples")
-		set(LIBUSB_INSTALL_TARGETS ON CACHE INTERNAL "Install libusb targets")
-		set(CMAKE_WARN_DEPRECATED OFF CACHE INTERNAL "Suppress warnings about 'Compatibility with CMake < 3.5 will be removed from a future version of CMake'")
-		add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/external/libusb-cmake")
-	endif()
-endif()
-
-if(TARGET usb-1.0)
-	# static libusb version detection
-	get_build_interface_include_directory(TARGET usb-1.0 OUTPUT LIBUSB_INCLUDE_DIR)
-	if(LIBUSB_INCLUDE_DIR AND EXISTS "${LIBUSB_INCLUDE_DIR}/version.h")
-		file(READ "${LIBUSB_INCLUDE_DIR}/version.h" VERSIONHEADERDATA)
-		string(REGEX MATCH "#define LIBUSB_MAJOR ([0-9]*)" _ ${VERSIONHEADERDATA})
-		set(LIBUSB_VERSION_MAJOR ${CMAKE_MATCH_1})
-		string(REGEX MATCH "#define LIBUSB_MINOR ([0-9]*)" _ ${VERSIONHEADERDATA})
-		set(LIBUSB_VERSION_MINOR ${CMAKE_MATCH_1})
-		string(REGEX MATCH "#define LIBUSB_MICRO ([0-9]*)" _ ${VERSIONHEADERDATA})
-		set(LIBUSB_VERSION_MICRO ${CMAKE_MATCH_1})
-		set(LibUSB_VERSION "${LIBUSB_VERSION_MAJOR}.${LIBUSB_VERSION_MINOR}.${LIBUSB_VERSION_MICRO}")
 	endif()
 
-	if(LibUSB_VERSION)
-		message(STATUS "LibUSB version used: ${LibUSB_VERSION}")
+	if(TARGET usb-1.0)
+		# static libusb version detection
+		get_build_interface_include_directory(TARGET usb-1.0 OUTPUT LIBUSB_INCLUDE_DIR)
+		if(LIBUSB_INCLUDE_DIR AND EXISTS "${LIBUSB_INCLUDE_DIR}/version.h")
+			file(READ "${LIBUSB_INCLUDE_DIR}/version.h" VERSIONHEADERDATA)
+			string(REGEX MATCH "#define LIBUSB_MAJOR ([0-9]*)" _ ${VERSIONHEADERDATA})
+			set(LIBUSB_VERSION_MAJOR ${CMAKE_MATCH_1})
+			string(REGEX MATCH "#define LIBUSB_MINOR ([0-9]*)" _ ${VERSIONHEADERDATA})
+			set(LIBUSB_VERSION_MINOR ${CMAKE_MATCH_1})
+			string(REGEX MATCH "#define LIBUSB_MICRO ([0-9]*)" _ ${VERSIONHEADERDATA})
+			set(LIBUSB_VERSION_MICRO ${CMAKE_MATCH_1})
+			set(LibUSB_VERSION "${LIBUSB_VERSION_MAJOR}.${LIBUSB_VERSION_MINOR}.${LIBUSB_VERSION_MICRO}")
+		endif()
+
+		if(LibUSB_VERSION)
+			message(STATUS "LibUSB version used: ${LibUSB_VERSION}")
+		endif()
 	endif()
 endif()
 
@@ -101,26 +92,72 @@ if(ENABLE_DEV_FTDI)
 	endif()
 
 	if(NOT USE_SYSTEM_LIBFTDI_LIBS)
-		# Build LibFTDI as static library
-		set(STATICLIBS ON CACHE BOOL "Build statically version of LibFTDI")
+		# Pass LibUSB include directory and library location to LibFTDI
+		get_build_interface_include_directory(TARGET usb-1.0 OUTPUT LIBUSB_INCLUDE_DIR)
+		set(LIBUSB_INCLUDE_DIR ${LIBUSB_INCLUDE_DIR} CACHE INTERNAL "")
+		get_target_property(LIBUSB_LIBRARIES usb-1.0 IMPORTED_LOCATION)
+		set(LIBUSB_LIBRARIES ${LIBUSB_LIBRARIES} CACHE INTERNAL "")
 
-		# Disable build of LibFTDI example programs
-		set(EXAMPLES OFF CACHE BOOL "Build LibFTDI example programs")
+		find_package(Git REQUIRED)
+		ExternalProject_Add(libftdi1
+			DEPENDS				usb-1.0
+			PREFIX				${CMAKE_CURRENT_BINARY_DIR}/external/libftdi1
+			GIT_REPOSITORY		git://developer.intra2net.com/libftdi
+			GIT_TAG				de9f01ece34d2fe6e842e0250a38f4b16eda2429
+			PATCH_COMMAND		git reset --hard HEAD && git apply ${CMAKE_CURRENT_SOURCE_DIR}/patch/libftdi/linkage.diff
+			INSTALL_COMMAND		""
+			CMAKE_ARGS			-DSTATICLIBS:BOOL=ON # Build LibFTDI as static library
+								-DEXAMPLES:BOOL=OFF #  Disable build of LibFTDI example programs
+								-DFTDI_EEPROM:BOOL=OFF # Disable building ftdi_eeprom
+								-DLIBUSB_INCLUDE_DIR:PATH=${LIBUSB_INCLUDE_DIR} # LibUSB include directory
+								-DLIBUSB_LIBRARIES:PATH=${LIBUSB_LIBRARIES} # LibUSB library location
+								-DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
+								-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
+								-DCMAKE_WARN_DEPRECATED:BOOL=OFF # Suppress warnings about "Compatibility with CMake < 3.5 will be removed from a future version of CMake"
+								${APPLE_CONFIGURATION}
+			BUILD_BYPRODUCTS    <BINARY_DIR>/src/ftdi1${CMAKE_STATIC_LIBRARY_SUFFIX}
+		)
 
-		# Disable building ftdi_eeprom
-		set(FTDI_EEPROM OFF CACHE BOOL "Build ftdi_eeprom")
+		add_library(libftdi STATIC IMPORTED GLOBAL)
+		add_dependencies(libftdi libftdi1)
+		ExternalProject_Get_Property(libftdi1 BINARY_DIR SOURCE_DIR)
+		set_target_properties(libftdi PROPERTIES
+			IMPORTED_LOCATION ${BINARY_DIR}/src/ftdi1${CMAKE_STATIC_LIBRARY_SUFFIX}
+			INTERFACE_INCLUDE_DIRECTORIES ${SOURCE_DIR}/src
+		)
 
-		# Add LibFTDI directory to the build
-		add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/external/libftdi")
+		# # Build LibFTDI as static library
+		# set(STATICLIBS ON CACHE BOOL "Build statically version of LibFTDI")
+
+		# # Disable build of LibFTDI example programs
+		# set(EXAMPLES OFF CACHE BOOL "Build LibFTDI example programs")
+
+		# # Disable building ftdi_eeprom
+		# set(FTDI_EEPROM OFF CACHE BOOL "Build ftdi_eeprom")
+
+		# if(WIN32)
+		# 	# Patch LibFTDI because there is a conflict between shared/static build on windows
+		# 	execute_process(COMMAND git apply "${CMAKE_CURRENT_SOURCE_DIR}/patch/libftdi/linkage.diff" WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/external/libftdi)
+
+		# 	# Set LibUSB include directory
+		# 	get_build_interface_include_directory(TARGET usb-1.0 OUTPUT LIBUSB_INCLUDE_DIR)
+		# 	set(LIBUSB_INCLUDE_DIR ${LIBUSB_INCLUDE_DIR} CACHE INTERNAL "")
+		# 	# Set LibUSB library location
+		# 	get_target_property(LIBUSB_LIBRARIES usb-1.0 IMPORTED_LOCATION)
+		# 	set(LIBUSB_LIBRARIES ${LIBUSB_LIBRARIES} CACHE INTERNAL "")
+		# endif()
+
+		# # Add LibFTDI directory to the build
+		# add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/external/libftdi")
 
 		# Create INTERFACE target for ftdi1-static
-		if(TARGET ftdi1-static)
-			add_library(LibFTDI1::ftdi1 INTERFACE IMPORTED GLOBAL)
-			set_target_properties(LibFTDI1::ftdi1 PROPERTIES
-				INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/external/libftdi/src"
-				INTERFACE_LINK_LIBRARIES ftdi1-static
-			)
-		endif()
+		# if(TARGET ftdi1-static)
+		# 	add_library(libftdi INTERFACE IMPORTED GLOBAL)
+		# 	set_target_properties(libftdi PROPERTIES
+		# 		INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/external/libftdi/src"
+		# 		INTERFACE_LINK_LIBRARIES ftdi1-static
+		# 	)
+		# endif()
 	endif()
 endif()
 

@@ -169,5 +169,5 @@ if(ENABLE_MDNS)
 endif()
 
 if(ENABLE_DEV_FTDI)
-	target_link_libraries(leddevice LibFTDI1::ftdi1)
+	target_link_libraries(leddevice libftdi usb-1.0)
 endif()
