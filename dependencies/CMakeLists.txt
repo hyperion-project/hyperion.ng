@@ -19,6 +19,17 @@ endif()
 if(NOT USE_SYSTEM_LIBUSB_LIBS)
 	# If LibFTDI or HIDAPI is used, it is necessary to create the target usb-1.0 at the beginning of the build system
 	if((ENABLE_DEV_USB_HID AND NOT USE_SYSTEM_HIDAPI_LIBS) OR (ENABLE_DEV_FTDI AND NOT USE_SYSTEM_LIBFTDI_LIBS))
+		if(CMAKE_SYSTEM MATCHES "DARWIN")
+			set(APPLE_CONFIGURATION
+				-DCMAKE_OSX_ARCHITECTURES:STRING=${CMAKE_OSX_ARCHITECTURES}
+				-DCMAKE_OSX_SYSROOT:PATH=${CMAKE_OSX_SYSROOT}
+				-DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=${CMAKE_OSX_DEPLOYMENT_TARGET}
+				-DCMAKE_MACOSX_RPATH:BOOL=${CMAKE_MACOSX_RPATH}
+			)
+		else()
+			unset(APPLE_CONFIGURATION)
+		endif()
+
 		include(ExternalProject)
 		ExternalProject_Add(libusb
 			PREFIX				${CMAKE_CURRENT_BINARY_DIR}/external/libusb-cmake
@@ -33,6 +44,7 @@ if(NOT USE_SYSTEM_LIBUSB_LIBS)
 								-DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
 								-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
 								-DCMAKE_WARN_DEPRECATED:BOOL=OFF # Suppress warnings about "Compatibility with CMake < 3.5 will be removed from a future version of CMake"
+								${APPLE_CONFIGURATION}
 			BUILD_BYPRODUCTS    <BINARY_DIR>/libusb-1.0${CMAKE_STATIC_LIBRARY_SUFFIX}
 		)
 
@@ -101,9 +113,14 @@ if(ENABLE_DEV_FTDI)
 		# Add LibFTDI directory to the build
 		add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/external/libftdi")
 
-		target_include_directories(ftdi1 PUBLIC
-			"${CMAKE_CURRENT_SOURCE_DIR}/external/libftdi/src"
-		)
+		# Create INTERFACE target for ftdi1-static
+		if(TARGET ftdi1-static)
+			add_library(LibFTDI1::ftdi1 INTERFACE IMPORTED GLOBAL)
+			set_target_properties(LibFTDI1::ftdi1 PROPERTIES
+				INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/external/libftdi/src"
+				INTERFACE_LINK_LIBRARIES ftdi1-static
+			)
+		endif()
 	endif()
 endif()
 
@@ -305,15 +322,11 @@ if(ENABLE_FLATBUF_SERVER OR ENABLE_FLATBUF_CONNECT)
 			add_library(FlatBuffers INTERFACE IMPORTED GLOBAL)
 			if(TARGET flatbuffers::flatbuffers)
 				target_link_libraries(FlatBuffers INTERFACE flatbuffers::flatbuffers)
+				get_build_interface_include_directory(TARGET flatbuffers::flatbuffers OUTPUT FLATBUFFERS_INCLUDE_DIR)
 			else()
 				target_link_libraries(FlatBuffers INTERFACE FlatBuffers::FlatBuffers)
+				get_build_interface_include_directory(TARGET FlatBuffers::FlatBuffers OUTPUT FLATBUFFERS_INCLUDE_DIR)
 			endif()
-		endif()
-
-		if(TARGET flatbuffers::flatbuffers)
-			get_build_interface_include_directory(TARGET flatbuffers::flatbuffers OUTPUT FLATBUFFERS_INCLUDE_DIR)
-		else()
-			get_build_interface_include_directory(TARGET FlatBuffers::FlatBuffers OUTPUT FLATBUFFERS_INCLUDE_DIR)
 		endif()
 
 		# static flatbuffers version detection from: https://github.com/hyperledger-archives/iroha-ametsuchi/blob/master/cmake/Modules/Findflatbuffers.cmake
