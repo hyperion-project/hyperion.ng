@@ -43,14 +43,14 @@ if(ENABLE_DEV_USB_HID OR ENABLE_DEV_FTDI)
 								-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
 								-DCMAKE_WARN_DEPRECATED:BOOL=OFF # Suppress warnings about "Compatibility with CMake < 3.5 will be removed from a future version of CMake"
 								${APPLE_CONFIGURATION}
-			BUILD_BYPRODUCTS    <BINARY_DIR>/libusb-1.0${CMAKE_STATIC_LIBRARY_SUFFIX}
+			BUILD_BYPRODUCTS    <BINARY_DIR>/${CMAKE_STATIC_LIBRARY_PREFIX}libusb-1.0${CMAKE_STATIC_LIBRARY_SUFFIX}
 		)
 
 		add_library(usb-1.0 STATIC IMPORTED GLOBAL)
 		add_dependencies(usb-1.0 libusb)
 		ExternalProject_Get_Property(libusb BINARY_DIR SOURCE_DIR)
 		set_target_properties(usb-1.0 PROPERTIES
-			IMPORTED_LOCATION ${BINARY_DIR}/libusb-1.0${CMAKE_STATIC_LIBRARY_SUFFIX}
+			IMPORTED_LOCATION ${BINARY_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}libusb-1.0${CMAKE_STATIC_LIBRARY_SUFFIX}
 			INTERFACE_INCLUDE_DIRECTORIES ${SOURCE_DIR}/libusb/libusb
 		)
 
@@ -115,14 +115,14 @@ if(ENABLE_DEV_FTDI)
 								-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
 								-DCMAKE_WARN_DEPRECATED:BOOL=OFF # Suppress warnings about "Compatibility with CMake < 3.5 will be removed from a future version of CMake"
 								${APPLE_CONFIGURATION}
-			BUILD_BYPRODUCTS    <BINARY_DIR>/src/ftdi1${CMAKE_STATIC_LIBRARY_SUFFIX}
+			BUILD_BYPRODUCTS    <BINARY_DIR>/src/${CMAKE_STATIC_LIBRARY_PREFIX}ftdi1${CMAKE_STATIC_LIBRARY_SUFFIX}
 		)
 
 		add_library(libftdi STATIC IMPORTED GLOBAL)
 		add_dependencies(libftdi libftdi1)
 		ExternalProject_Get_Property(libftdi1 BINARY_DIR SOURCE_DIR)
 		set_target_properties(libftdi PROPERTIES
-			IMPORTED_LOCATION ${BINARY_DIR}/src/ftdi1${CMAKE_STATIC_LIBRARY_SUFFIX}
+			IMPORTED_LOCATION ${BINARY_DIR}/src/${CMAKE_STATIC_LIBRARY_PREFIX}ftdi1${CMAKE_STATIC_LIBRARY_SUFFIX}
 			INTERFACE_INCLUDE_DIRECTORIES ${SOURCE_DIR}/src
 		)
 
