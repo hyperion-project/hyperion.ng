@@ -257,7 +257,10 @@ void JsonAPI::handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject
 	const QJsonValue instanceElement = message.value("instance");
 	if (instanceElement.isUndefined() || instanceElement.isNull())
 	{
-		instances.append(_currInstanceIndex);
+		if (_currInstanceIndex != GLOABL_INSTANCE_ID)
+		{
+			instances.append(_currInstanceIndex);
+		}
 	}
 	else
 	{
@@ -410,8 +413,14 @@ void JsonAPI::handleCommand(const JsonApiCommand& cmd, const QJsonObject &messag
 
 void JsonAPI::handleGetImageSnapshotCommand(const QJsonObject &message, const JsonApiCommand &cmd)
 {
+	if (_hyperion.isNull())
+	{
+		sendErrorReply("Failed to create snapshot. No instance provided.", cmd);
+		return;
+	}
+
 	QString replyMsg;
-	QString imageFormat = message["format"].toString("PNG");
+	QString const imageFormat = message["format"].toString("PNG");
 	const PriorityMuxer::InputInfo priorityInfo = _hyperion->getPriorityInfo(_hyperion->getCurrentPriority());
 	Image<ColorRgb> image = priorityInfo.image;
 	QImage snapshot(reinterpret_cast<const uchar *>(image.memptr()), image.width(), image.height(), qsizetype(3) * image.width(), QImage::Format_RGB888);
@@ -425,7 +434,7 @@ void JsonAPI::handleGetImageSnapshotCommand(const QJsonObject &message, const Js
 		sendErrorReply(replyMsg, cmd);
 		return;
 	}
-	QByteArray base64Image = byteArray.toBase64();
+	QByteArray const base64Image = byteArray.toBase64();
 
 	QJsonObject info;
 	info["format"] = imageFormat;
@@ -437,6 +446,12 @@ void JsonAPI::handleGetImageSnapshotCommand(const QJsonObject &message, const Js
 
 void JsonAPI::handleGetLedSnapshotCommand(const QJsonObject& /*message*/, const JsonApiCommand &cmd)
 {
+	if (_hyperion.isNull())
+	{
+		sendErrorReply("Failed to create snapshot. No instance not.", cmd);
+		return;
+	}
+
 	std::vector<ColorRgb> ledColors;
 	QEventLoop loop;
 	QTimer timer;
@@ -453,7 +468,7 @@ void JsonAPI::handleGetLedSnapshotCommand(const QJsonObject& /*message*/, const 
 	QObject::connect(_hyperion.get(), &Hyperion::ledDeviceData, pcontext,
 			[this, &loop, context = std::move(context), &ledColors, cmd](std::vector<ColorRgb> ledColorsUpdate) mutable {
 		ledColors = ledColorsUpdate;
-		loop.quit();  // ✅ Ensure the event loop quits immediately when data is received
+		loop.quit();  // Ensure the event loop quits immediately when data is received
 
 		QJsonArray ledRgbColorsArray;
 		for (const auto &color : ledColors)
@@ -479,7 +494,7 @@ void JsonAPI::handleGetLedSnapshotCommand(const QJsonObject& /*message*/, const 
 	// If no data was received, return an error
 	if (ledColors.empty())
 	{
-		QString replyMsg = QString("No LED color data available, i.e.no LED update was done within the last %1 ms").arg(LED_DATA_TIMEOUT.count());
+		QString const replyMsg = QString("No LED color data available, i.e.no LED update was done within the last %1 ms").arg(LED_DATA_TIMEOUT.count());
 		sendErrorReply(replyMsg, cmd);
 		return;
 	}
