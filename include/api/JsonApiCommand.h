@@ -23,6 +23,7 @@ public:
 		Image,
 		InputSource,
 		Instance,
+		InstanceData,
 		LedColors,
 		LedDevice,
 		Logging,
@@ -53,6 +54,7 @@ public:
 		case Image: return "image";
 		case InputSource: return "inputsource";
 		case Instance: return "instance";
+		case InstanceData: return "instance-data";
 		case LedColors: return "ledcolors";
 		case LedDevice: return "leddevice";
 		case Logging: return "logging";
@@ -84,7 +86,9 @@ public:
 		DeleteToken,
 		Discover,
 		GetConfig,
+		GetImageSnapshot,
 		GetInfo,
+		GetLedSnapshot,
 		GetPendingTokenRequests,
 		GetProperties,
 		GetSchema,
@@ -134,7 +138,9 @@ public:
 		case DeleteToken: return "deleteToken";
 		case Discover: return "discover";
 		case GetConfig: return "getconfig";
+		case GetImageSnapshot: return "getImageSnapshot";
 		case GetInfo: return "getInfo";
+		case GetLedSnapshot: return "getLedSnapshot";
 		case GetPendingTokenRequests: return "getPendingTokenRequests";
 		case GetProperties: return "getProperties";
 		case GetSchema: return "getschema";
@@ -291,6 +297,8 @@ public:
 			{ {"instance", "startInstance"}, { Command::Instance, SubCommand::StartInstance, Authorization::Yes, InstanceCmd::No, NoListenerCmd::Yes} },
 			{ {"instance", "stopInstance"}, { Command::Instance, SubCommand::StopInstance, Authorization::Yes, InstanceCmd::No, NoListenerCmd::Yes} },
 			{ {"instance", "switchTo"}, { Command::Instance, SubCommand::SwitchTo, Authorization::Yes, InstanceCmd::No, NoListenerCmd::Yes} },
+			{ {"instance-data", "getImageSnapshot"}, { Command::InstanceData, SubCommand::GetImageSnapshot, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
+			{ {"instance-data", "getLedSnapshot"}, { Command::InstanceData, SubCommand::GetLedSnapshot, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes } },
 			{ {"ledcolors", "imagestream-start"}, { Command::LedColors, SubCommand::ImageStreamStart, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
 			{ {"ledcolors", "imagestream-stop"}, { Command::LedColors, SubCommand::ImageStreamStop, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },
 			{ {"ledcolors", "ledstream-start"}, { Command::LedColors, SubCommand::LedStreamStart, Authorization::Yes, InstanceCmd::Yes, NoListenerCmd::Yes} },

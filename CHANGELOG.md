@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support to query for a dedicated set of configuration items for a set of instances
 - Support to save a dedicated set of configuration items for a set of instances
 - Limit update emission frequency: Images (25Hz), raw LED-Colors (40Hz) & LED-Device data (200Hz) 
+- Support for requesting instance-data via JSON-API. Implemented requesting the current image in different formats or led colors.
 
 ### Changed
 
