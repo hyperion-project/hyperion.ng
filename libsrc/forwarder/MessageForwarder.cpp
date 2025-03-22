@@ -674,12 +674,7 @@ MessageForwarderFlatbufferClientsHelper::MessageForwarderFlatbufferClientsHelper
 
 MessageForwarderFlatbufferClientsHelper::~MessageForwarderFlatbufferClientsHelper()
 {
-	_isFree=false;
-
-	while (!_forwardClients.isEmpty())
-	{
-		_forwardClients.takeFirst()->deleteLater();
-	}
+	_isFree = false;
 
 	QThread* oldThread = this->thread();
 	QObject::disconnect(oldThread, nullptr, nullptr, nullptr);
@@ -690,17 +685,14 @@ MessageForwarderFlatbufferClientsHelper::~MessageForwarderFlatbufferClientsHelpe
 
 void MessageForwarderFlatbufferClientsHelper::addClientHandler(const QString& origin, const TargetHost& targetHost, int priority, bool skipReply)
 {
-	FlatBufferConnection* const flatbuf = new FlatBufferConnection(origin, targetHost.host, priority, skipReply, targetHost.port);
-	_forwardClients << flatbuf;
+	QSharedPointer<FlatBufferConnection> flatbuf = QSharedPointer<FlatBufferConnection>::create(origin, targetHost.host, priority, skipReply, targetHost.port);
+	_forwardClients.append(flatbuf);
 	_isFree = true;
 }
 
 void MessageForwarderFlatbufferClientsHelper::clearClientsHandler()
 {
-	while (!_forwardClients.isEmpty())
-	{
-		delete _forwardClients.takeFirst();
-	}
+	_forwardClients.clear();
 	_isFree = false;
 }
 

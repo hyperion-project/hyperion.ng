@@ -168,6 +168,6 @@ public slots:
 
 private:
 
-	QList<FlatBufferConnection*> _forwardClients;
+	QList<QSharedPointer<FlatBufferConnection>> _forwardClients;
 	bool _isFree;
 };
