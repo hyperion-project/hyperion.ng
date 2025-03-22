@@ -180,6 +180,7 @@ void LedDeviceWrapper::initializeDeviceMap()
 
 const LedDeviceRegistry& LedDeviceWrapper::getDeviceMap()
 {
+	initializeDeviceMap(); // Ensure it is initialized before returning
 	return _ledDeviceMap;
 }
 
