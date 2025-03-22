@@ -41,16 +41,17 @@ if(ENABLE_DEV_USB_HID OR ENABLE_DEV_FTDI)
 								-DLIBUSB_INSTALL_TARGETS:BOOL=ON # Install libusb targets
 								-DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
 								-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
+								-DCMAKE_STATIC_LIBRARY_PREFIX:STRING=lib
 								-DCMAKE_WARN_DEPRECATED:BOOL=OFF # Suppress warnings about "Compatibility with CMake < 3.5 will be removed from a future version of CMake"
 								${APPLE_CONFIGURATION}
-			BUILD_BYPRODUCTS    <BINARY_DIR>/${CMAKE_STATIC_LIBRARY_PREFIX}libusb-1.0${CMAKE_STATIC_LIBRARY_SUFFIX}
+			BUILD_BYPRODUCTS    <BINARY_DIR>/libusb-1.0${CMAKE_STATIC_LIBRARY_SUFFIX}
 		)
 
 		add_library(usb-1.0 STATIC IMPORTED GLOBAL)
 		add_dependencies(usb-1.0 libusb)
 		ExternalProject_Get_Property(libusb BINARY_DIR SOURCE_DIR)
 		set_target_properties(usb-1.0 PROPERTIES
-			IMPORTED_LOCATION ${BINARY_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}libusb-1.0${CMAKE_STATIC_LIBRARY_SUFFIX}
+			IMPORTED_LOCATION ${BINARY_DIR}/libusb-1.0${CMAKE_STATIC_LIBRARY_SUFFIX}
 			INTERFACE_INCLUDE_DIRECTORIES ${SOURCE_DIR}/libusb/libusb
 		)
 
@@ -113,51 +114,19 @@ if(ENABLE_DEV_FTDI)
 								-DLIBUSB_LIBRARIES:PATH=${LIBUSB_LIBRARIES} # LibUSB library location
 								-DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
 								-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
+								-DCMAKE_STATIC_LIBRARY_PREFIX:STRING=lib
 								-DCMAKE_WARN_DEPRECATED:BOOL=OFF # Suppress warnings about "Compatibility with CMake < 3.5 will be removed from a future version of CMake"
 								${APPLE_CONFIGURATION}
-			BUILD_BYPRODUCTS    <BINARY_DIR>/src/${CMAKE_STATIC_LIBRARY_PREFIX}ftdi1${CMAKE_STATIC_LIBRARY_SUFFIX}
+			BUILD_BYPRODUCTS    <BINARY_DIR>/src/libftdi1${CMAKE_STATIC_LIBRARY_SUFFIX}
 		)
 
 		add_library(libftdi STATIC IMPORTED GLOBAL)
 		add_dependencies(libftdi libftdi1)
 		ExternalProject_Get_Property(libftdi1 BINARY_DIR SOURCE_DIR)
 		set_target_properties(libftdi PROPERTIES
-			IMPORTED_LOCATION ${BINARY_DIR}/src/${CMAKE_STATIC_LIBRARY_PREFIX}ftdi1${CMAKE_STATIC_LIBRARY_SUFFIX}
+			IMPORTED_LOCATION ${BINARY_DIR}/src/libftdi1${CMAKE_STATIC_LIBRARY_SUFFIX}
 			INTERFACE_INCLUDE_DIRECTORIES ${SOURCE_DIR}/src
 		)
-
-		# # Build LibFTDI as static library
-		# set(STATICLIBS ON CACHE BOOL "Build statically version of LibFTDI")
-
-		# # Disable build of LibFTDI example programs
-		# set(EXAMPLES OFF CACHE BOOL "Build LibFTDI example programs")
-
-		# # Disable building ftdi_eeprom
-		# set(FTDI_EEPROM OFF CACHE BOOL "Build ftdi_eeprom")
-
-		# if(WIN32)
-		# 	# Patch LibFTDI because there is a conflict between shared/static build on windows
-		# 	execute_process(COMMAND git apply "${CMAKE_CURRENT_SOURCE_DIR}/patch/libftdi/linkage.diff" WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/external/libftdi)
-
-		# 	# Set LibUSB include directory
-		# 	get_build_interface_include_directory(TARGET usb-1.0 OUTPUT LIBUSB_INCLUDE_DIR)
-		# 	set(LIBUSB_INCLUDE_DIR ${LIBUSB_INCLUDE_DIR} CACHE INTERNAL "")
-		# 	# Set LibUSB library location
-		# 	get_target_property(LIBUSB_LIBRARIES usb-1.0 IMPORTED_LOCATION)
-		# 	set(LIBUSB_LIBRARIES ${LIBUSB_LIBRARIES} CACHE INTERNAL "")
-		# endif()
-
-		# # Add LibFTDI directory to the build
-		# add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/external/libftdi")
-
-		# Create INTERFACE target for ftdi1-static
-		# if(TARGET ftdi1-static)
-		# 	add_library(libftdi INTERFACE IMPORTED GLOBAL)
-		# 	set_target_properties(libftdi PROPERTIES
-		# 		INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/external/libftdi/src"
-		# 		INTERFACE_LINK_LIBRARIES ftdi1-static
-		# 	)
-		# endif()
 	endif()
 endif()
 
