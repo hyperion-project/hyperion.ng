@@ -183,6 +183,8 @@ inline QMdnsEngine::Record resolveMdDnsServiceRecord(const QByteArray& serviceIn
 
 	if (serviceInstance.endsWith("._tcp.local"))
 	{
+		qRegisterMetaType<QMdnsEngine::Record>("QMdnsEngine::Record");
+
 		MdnsBrowser* browser = MdnsBrowser::getInstance().get();
 		QEventLoop loop;
 

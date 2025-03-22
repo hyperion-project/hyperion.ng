@@ -30,7 +30,7 @@ MdnsBrowser::MdnsBrowser(QObject* parent)
 	, _server(nullptr)
 	, _cache(nullptr)
 {
-	qRegisterMetaType<QMdnsEngine::Message>("Message");
+	qRegisterMetaType<QMdnsEngine::Message>("QMdnsEngine::Message");
 	qRegisterMetaType<QHostAddress>("QHostAddress");
 }
 
