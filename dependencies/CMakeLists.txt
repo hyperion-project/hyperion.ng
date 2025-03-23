@@ -1,13 +1,13 @@
-if(USE_PRE_BUILD_DEPS)
+if(USE_PRE_BUILT_DEPS)
 	# Set LIBUSB_ROOT_DIR
-	set(LIBUSB_ROOT_DIR ${PRE_BUILD_DEPS_DIR})
+	set(LIBUSB_ROOT_DIR ${PRE_BUILT_DEPS_DIR})
 
 	# Set LIBFTDI1_ROOT_DIR
-	set(LIBFTDI1_ROOT_DIR ${PRE_BUILD_DEPS_DIR})
+	set(LIBFTDI1_ROOT_DIR ${PRE_BUILT_DEPS_DIR})
 
 	# Set paths for other dependencies
-	foreach(BUILD_DEP "absl" "utf8_range" "hidapi" "qmdnsengine" "flatbuffers" "protobuf" "MbedTLS")
-		set(${BUILD_DEP}_DIR "${PRE_BUILD_DEPS_DIR}/lib/cmake/${BUILD_DEP}")
+	foreach(BUILT_DEP "absl" "utf8_range" "hidapi" "qmdnsengine" "flatbuffers" "protobuf" "MbedTLS")
+		set(${BUILT_DEP}_DIR "${PRE_BUILT_DEPS_DIR}/lib/cmake/${BUILT_DEP}")
 	endforeach()
 endif()
 
@@ -27,7 +27,7 @@ endif()
 # =============================================================================
 
 if(ENABLE_DEV_USB_HID OR ENABLE_DEV_FTDI)
-	if(USE_SYSTEM_LIBUSB_LIBS OR USE_PRE_BUILD_DEPS)
+	if(USE_SYSTEM_LIBUSB_LIBS OR USE_PRE_BUILT_DEP)
 		find_package(LibUSB REQUIRED)
 	endif()
 
@@ -93,7 +93,7 @@ endif()
 # =============================================================================
 
 if(ENABLE_DEV_FTDI)
-	if(USE_SYSTEM_LIBFTDI_LIBS OR USE_PRE_BUILD_DEPS)
+	if(USE_SYSTEM_LIBFTDI_LIBS OR USE_PRE_BUILT_DEPS)
 		find_package(LibFTDI1 REQUIRED)
 	endif()
 
@@ -144,7 +144,7 @@ endif()
 # =============================================================================
 
 if(ENABLE_DEV_USB_HID)
-	if(USE_SYSTEM_HIDAPI_LIBS OR USE_PRE_BUILD_DEPS)
+	if(USE_SYSTEM_HIDAPI_LIBS OR USE_PRE_BUILT_DEPS)
 		find_package(hidapi CONFIG QUIET)
 		if(NOT hidapi_FOUND)
 			find_package(hidapi REQUIRED)
@@ -223,7 +223,7 @@ endif()
 #=============================================================================
 
 if(ENABLE_MDNS)
-	if(USE_SYSTEM_QMDNS_LIBS OR USE_PRE_BUILD_DEPS)
+	if(USE_SYSTEM_QMDNS_LIBS OR USE_PRE_BUILT_DEPS)
 		find_package(qmdnsengine CONFIG QUIET)
 		if(NOT qmdnsengine_FOUND)
 			find_package(qmdnsengine REQUIRED)
@@ -259,17 +259,17 @@ endif()
 #=============================================================================
 
 if(ENABLE_FLATBUF_SERVER OR ENABLE_FLATBUF_CONNECT)
-	if(USE_SYSTEM_FLATBUFFERS_LIBS OR USE_PRE_BUILD_DEPS)
+	if(USE_SYSTEM_FLATBUFFERS_LIBS OR USE_PRE_BUILT_DEPS)
 		find_package(flatbuffers CONFIG QUIET NAMES flatbuffers Flatbuffers FlatBuffers)
 		if(NOT flatbuffers_FOUND)
 			find_package(Flatbuffers REQUIRED)
 		endif()
 
 		if(NOT TARGET flatc)
-			if(USE_PRE_BUILD_DEPS AND PRE_BUILD_DEPS_DIR)
+			if(USE_PRE_BUILD_DEPS)
 				add_executable(flatc IMPORTED GLOBAL)
 				set_target_properties(flatc PROPERTIES
-					IMPORTED_LOCATION ${PRE_BUILD_DEPS_DIR}/bin/flatc${CMAKE_EXECUTABLE_SUFFIX}
+					IMPORTED_LOCATION ${PRE_BUILT_DEPS_DIR}/bin/flatc${CMAKE_EXECUTABLE_SUFFIX}
 				)
 			elseif(TARGET flatbuffers::flatc)
 				add_executable(flatc IMPORTED GLOBAL)
@@ -391,17 +391,17 @@ endif()
 #=============================================================================
 
 if(ENABLE_PROTOBUF_SERVER)
-	if(USE_SYSTEM_PROTO_LIBS OR USE_PRE_BUILD_DEPS)
+	if(USE_SYSTEM_PROTO_LIBS OR USE_PRE_BUILT_DEPS)
 		find_package(protobuf CONFIG QUIET NAMES protobuf Protobuf ProtoBuf)
 		if(NOT protobuf_FOUND)
 			find_package(Protobuf REQUIRED)
 		endif()
 
 		if(NOT TARGET protoc)
-			if(USE_PRE_BUILD_DEPS AND PRE_BUILD_DEPS_DIR)
+			if(USE_PRE_BUILT_DEPS)
 				add_executable(protoc IMPORTED GLOBAL)
 				set_target_properties(protoc PROPERTIES
-					IMPORTED_LOCATION ${PRE_BUILD_DEPS_DIR}/bin/protoc${CMAKE_EXECUTABLE_SUFFIX}
+					IMPORTED_LOCATION ${PRE_BUILT_DEPS_DIR}/bin/protoc${CMAKE_EXECUTABLE_SUFFIX}
 				)
 			elseif(TARGET protobuf::protoc)
 				add_executable(protoc IMPORTED GLOBAL)
@@ -433,7 +433,7 @@ if(ENABLE_PROTOBUF_SERVER)
 		# Disable static linking of MSVC runtime libraries under Windows
 		if(WIN32)
 			set(protobuf_MSVC_STATIC_RUNTIME OFF CACHE BOOL "Build protobuf static")
-			if(USE_PRE_BUILD_DEPS)
+			if(USE_PRE_BUILT_DEPS)
 				set(CMAKE_INSTALL_CMAKEDIR "lib/cmake/protobuf")
 			endif()
 		endif()
@@ -579,7 +579,7 @@ endif()
 #=============================================================================
 
 if(ENABLE_DEV_NETWORK)
-	if(USE_SYSTEM_MBEDTLS_LIBS OR USE_PRE_BUILD_DEPS)
+	if(USE_SYSTEM_MBEDTLS_LIBS OR USE_PRE_BUILT_DEPS)
 		find_package(MbedTLS CONFIG QUIET NAMES mbedtls mbedTLS MbedTLS)
 		if(NOT MbedTLS_FOUND)
 			find_package(MbedTLS REQUIRED)

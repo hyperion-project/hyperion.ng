@@ -242,32 +242,32 @@ ADD_DEFINITIONS(${PLATFORM_DEFINE})
 # Set the build options
 #=============================================================================
 
-option(USE_PRE_BUILD_DEPS "Build Hyperion with previously created dependencies (see also PRE_BUILD_DEPS_DIR)" ${DEFAULT_PRE_BUILD_DEPS})
-set(PRE_BUILD_DEPS_DIR "" CACHE STRING "The folder in which the previously created dependencies are located")
-message(STATUS "USE_PRE_BUILD_DEPS = ${USE_PRE_BUILD_DEPS}")
+option(USE_PRE_BUILT_DEPS "Build Hyperion with previously created dependencies (see also PRE_BUILT_DEPS_DIR)" ${DEFAULT_PRE_BUILT_DEPS})
+set(PRE_BUILT_DEPS_DIR "" CACHE STRING "The folder in which the previously created dependencies are located")
+message(STATUS "USE_PRE_BUILT_DEPS = ${USE_PRE_BUILT_DEPS}")
 
-if(USE_PRE_BUILD_DEPS)
-	if(PRE_BUILD_DEPS_DIR)
+if(USE_PRE_BUILT_DEPS)
+	if(PRE_BUILT_DEPS_DIR)
 		# Handle expansion of the ~ to home directory
-		if(PRE_BUILD_DEPS_DIR MATCHES "^~")
-			string(REPLACE "~" "$ENV{HOME}" PRE_BUILD_DEPS_DIR "${PRE_BUILD_DEPS_DIR}")
+		if(PRE_BUILT_DEPS_DIR MATCHES "^~")
+			string(REPLACE "~" "$ENV{HOME}" PRE_BUILT_DEPS_DIR "${PRE_BUILT_DEPS_DIR}")
 		endif()
 
 		# Check if the path is relative
-		if(NOT IS_ABSOLUTE ${PRE_BUILD_DEPS_DIR})
+		if(NOT IS_ABSOLUTE ${PRE_BUILT_DEPS_DIR})
 			# Convert to absolute path based on the directory where CMake was executed
-			get_filename_component(PRE_BUILD_DEPS_DIR "${CMAKE_SOURCE_DIR}/${PRE_BUILD_DEPS_DIR}" ABSOLUTE)
+			get_filename_component(PRE_BUILT_DEPS_DIR "${CMAKE_SOURCE_DIR}/${PRE_BUILT_DEPS_DIR}" ABSOLUTE)
 		endif()
 
 		# Check if the directory exists
-		if(NOT IS_DIRECTORY ${PRE_BUILD_DEPS_DIR})
-			message(FATAL_ERROR "The specified PRE_BUILD_DEPS_DIR (${PRE_BUILD_DEPS_DIR}) does not exist.")
+		if(NOT IS_DIRECTORY ${PRE_BUILT_DEPS_DIR})
+			message(FATAL_ERROR "The specified PRE_BUILT_DEPS_DIR (${PRE_BUILT_DEPS_DIR}) does not exist.")
 		endif()
 
 		message(STATUS "Hyperion is build with previously created dependencies")
-		message(STATUS "Pre-build dependencies path: ${PRE_BUILD_DEPS_DIR}")
+		message(STATUS "Pre-build dependencies path: ${PRE_BUILT_DEPS_DIR}")
 
-		# Use pre-build dependencies
+		# Use pre-built dependencies
 		set(DEFAULT_USE_SYSTEM_LIBUSB_LIBS      ON)
 		set(DEFAULT_USE_SYSTEM_LIBFTDI_LIBS     ON)
 		set(DEFAULT_USE_SYSTEM_HIDAPI_LIBS      ON)
@@ -276,7 +276,7 @@ if(USE_PRE_BUILD_DEPS)
 		set(DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     ON)
 		set(DEFAULT_USE_SYSTEM_QMDNS_LIBS       ON)
 	else()
-		message(FATAL_ERROR "The folder in which the previously created dependencies are located has not been defined. Please set PRE_BUILD_DEPS_DIR to this directory.")
+		message(FATAL_ERROR "The folder in which the previously created dependencies are located has not been defined. Please set PRE_BUILT_DEPS_DIR to this directory.")
 	endif()
 endif()
 
