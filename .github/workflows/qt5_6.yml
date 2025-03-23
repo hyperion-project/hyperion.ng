@@ -61,198 +61,208 @@ jobs:
         with:
           submodules: recursive
 
-      - name: 🔧 Append PR number to version (PR  only)
-        if: ${{ inputs.event_name == 'pull_request' }}
-        shell: bash
-        run: tr -d '\n' < .version > temp && mv temp .version && echo -n "+PR${{ inputs.pull_request_number }}" >> .version
-
-      - name: 👷 Build
-        shell: bash
-        run: |
-          mkdir deploy
-          docker run --rm --platform=${{ matrix.os.architecture[1] }} ${{ env.ENTRYPOINT }} \
-            -v "${{ github.workspace }}/deploy:/deploy" \
-            -v "${{ github.workspace }}:/source:rw" \
-            -w "/source" \
-            ghcr.io/hyperion-project/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }} \
-            /bin/bash -c "cmake --preset linux-${{ env.BUILD_TYPE }} -DPLATFORM=${{ matrix.os.platform }} ${{ env.CPACK_SYSTEM_PROCESSOR }} &&
-            cmake --build --preset linux-${{ env.BUILD_TYPE }} --target package --parallel $(nproc) &&
-            cp /source/build/Hyperion-* /deploy/ 2>/dev/null"
-        env:
-          DOCKER_IMAGE: ${{ matrix.os.distribution }}
-          DOCKER_TAG: ${{ matrix.os.codename }}${{ inputs.qt_version == '6' && '-qt6' || '' }}
-          BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
-          ENTRYPOINT: ${{ matrix.os.architecture[0] != 'amd64' && '--entrypoint /usr/bin/env' || '' }}
-          CPACK_SYSTEM_PROCESSOR: ${{ matrix.os.architecture[0] != 'amd64' && format('-DCPACK_SYSTEM_PROCESSOR={0}', matrix.target_lookup[format('{0}', matrix.os.architecture[0])]) || '' }}
-
-      - name: 📦 Upload
-        if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
-        uses: actions/upload-artifact@v4
+      - name: Read pre-built specs from JSON
+        id: pre-built
+        uses: ActionsTools/read-json-action@main
         with:
-          name: ${{ inputs.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
-          path: ${{ inputs.event_name == 'pull_request' && 'deploy/*.tar.gz' || 'deploy/Hyperion-*' }}
-        env:
-          NAME: ${{ format('{0}_{1}_{2}{3}', matrix.os.distribution, matrix.os.codename, matrix.os.architecture[0], inputs.qt_version == '6' && '_qt6' || '') }}
+          file_path: "${{ github.workspace }}/.github/workflows/prebuiltdeps.json"
+
+      - name: Determine hash for pre-built deps
+        shell: bash
+        run: echo ${{ steps.pre-built.outputs.hashes.qt{{ inputs.qt_version }}.{{ matrix.os.distribution }}-{{ matrix.os.codename }}.${{ matrix.os.architecture[0] }} }}
+
+      # - name: 🔧 Append PR number to version (PR  only)
+      #   if: ${{ inputs.event_name == 'pull_request' }}
+      #   shell: bash
+      #   run: tr -d '\n' < .version > temp && mv temp .version && echo -n "+PR${{ inputs.pull_request_number }}" >> .version
+
+      # - name: 👷 Build
+      #   shell: bash
+      #   run: |
+      #     mkdir deploy
+      #     docker run --rm --platform=${{ matrix.os.architecture[1] }} ${{ env.ENTRYPOINT }} \
+      #       -v "${{ github.workspace }}/deploy:/deploy" \
+      #       -v "${{ github.workspace }}:/source:rw" \
+      #       -w "/source" \
+      #       ghcr.io/hyperion-project/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }} \
+      #       /bin/bash -c "cmake --preset linux-${{ env.BUILD_TYPE }} -DPLATFORM=${{ matrix.os.platform }} ${{ env.CPACK_SYSTEM_PROCESSOR }} &&
+      #       cmake --build --preset linux-${{ env.BUILD_TYPE }} --target package --parallel $(nproc) &&
+      #       cp /source/build/Hyperion-* /deploy/ 2>/dev/null"
+      #   env:
+      #     DOCKER_IMAGE: ${{ matrix.os.distribution }}
+      #     DOCKER_TAG: ${{ matrix.os.codename }}${{ inputs.qt_version == '6' && '-qt6' || '' }}
+      #     BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
+      #     ENTRYPOINT: ${{ matrix.os.architecture[0] != 'amd64' && '--entrypoint /usr/bin/env' || '' }}
+      #     CPACK_SYSTEM_PROCESSOR: ${{ matrix.os.architecture[0] != 'amd64' && format('-DCPACK_SYSTEM_PROCESSOR={0}', matrix.target_lookup[format('{0}', matrix.os.architecture[0])]) || '' }}
+
+      # - name: 📦 Upload
+      #   if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: ${{ inputs.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
+      #     path: ${{ inputs.event_name == 'pull_request' && 'deploy/*.tar.gz' || 'deploy/Hyperion-*' }}
+      #   env:
+      #     NAME: ${{ format('{0}_{1}_{2}{3}', matrix.os.distribution, matrix.os.codename, matrix.os.architecture[0], inputs.qt_version == '6' && '_qt6' || '') }}
 
 ######################
 ###### macOS #########
 ######################
 
-  macOS:
-    name: 🍏 macOS ${{ matrix.architecture }}
-    runs-on: ${{ matrix.architecture == 'arm64' && 'macos-14' || 'macos-13' }}
-    strategy:
-      fail-fast: false
-      matrix:
-        architecture: [ arm64, x64 ]
+  # macOS:
+  #   name: 🍏 macOS ${{ matrix.architecture }}
+  #   runs-on: ${{ matrix.architecture == 'arm64' && 'macos-14' || 'macos-13' }}
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       architecture: [ arm64, x64 ]
 
-    steps:
-      - name: ⬇ Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
+  #   steps:
+  #     - name: ⬇ Checkout
+  #       uses: actions/checkout@v4
+  #       with:
+  #         submodules: recursive
 
-      - name: 🔧 Append Pull Request number to version (PR  only)
-        if: ${{ inputs.event_name == 'pull_request' }}
-        shell: bash
-        run: tr -d '\n' < .version > temp && mv temp .version && echo -n "+PR${{ inputs.pull_request_number }}" >> .version
+  #     - name: 🔧 Append Pull Request number to version (PR  only)
+  #       if: ${{ inputs.event_name == 'pull_request' }}
+  #       shell: bash
+  #       run: tr -d '\n' < .version > temp && mv temp .version && echo -n "+PR${{ inputs.pull_request_number }}" >> .version
 
-      - name: 📥 Install dependencies
-        uses: tecolicom/actions-use-homebrew-tools@v1
-        with:
-          tools: qt@${{ inputs.qt_version }} vulkan-headers ninja libftdi
-          key: ${{ runner.os }}-${{ matrix.architecture }}-homebrew-packages-${{ inputs.qt_version }}
+  #     - name: 📥 Install dependencies
+  #       uses: tecolicom/actions-use-homebrew-tools@v1
+  #       with:
+  #         tools: qt@${{ inputs.qt_version }} vulkan-headers ninja libftdi
+  #         key: ${{ runner.os }}-${{ matrix.architecture }}-homebrew-packages-${{ inputs.qt_version }}
 
-      - name: 👷 Build
-        shell: bash
-        run: |
-          # Remove once issue with hombrew cache action is fixed
-          brew reinstall --formula cmake
-          # Build
-          cmake --preset macos-${{ env.BUILD_TYPE }}
-          cmake --build --preset macos-${{ env.BUILD_TYPE }} --parallel $(sysctl -n hw.ncpu)
-          # CPack workaround for macOS 13
-          echo killing...; sudo pkill -9 XProtect >/dev/null || true;
-          echo waiting...; while pgrep XProtect; do sleep 3; done;
-          cd build; cpack
-        env:
-          BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
+  #     - name: 👷 Build
+  #       shell: bash
+  #       run: |
+  #         # Remove once issue with hombrew cache action is fixed
+  #         brew reinstall --formula cmake
+  #         # Build
+  #         cmake --preset macos-${{ env.BUILD_TYPE }}
+  #         cmake --build --preset macos-${{ env.BUILD_TYPE }} --parallel $(sysctl -n hw.ncpu)
+  #         # CPack workaround for macOS 13
+  #         echo killing...; sudo pkill -9 XProtect >/dev/null || true;
+  #         echo waiting...; while pgrep XProtect; do sleep 3; done;
+  #         cd build; cpack
+  #       env:
+  #         BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
 
-      - name: 📦 Upload
-        if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ inputs.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
-          path: 'build/Hyperion-*'
-        env:
-          NAME: ${{ inputs.qt_version == '6' && format('macOS_{0}_qt6', matrix.architecture) || format('macOS_{0}', matrix.architecture) }}
+  #     - name: 📦 Upload
+  #       if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: ${{ inputs.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
+  #         path: 'build/Hyperion-*'
+  #       env:
+  #         NAME: ${{ inputs.qt_version == '6' && format('macOS_{0}_qt6', matrix.architecture) || format('macOS_{0}', matrix.architecture) }}
 
 ######################
 ###### Windows #######
 ######################
 
-  windows:
-    name: 🪟 Windows x64
-    runs-on: windows-2022
-    env:
-      LIBJPEG_TURBO_VERSION: 3.0.1
-    steps:
-      - name: ⬇ Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
+  # windows:
+  #   name: 🪟 Windows x64
+  #   runs-on: windows-2022
+  #   env:
+  #     LIBJPEG_TURBO_VERSION: 3.0.1
+  #   steps:
+  #     - name: ⬇ Checkout
+  #       uses: actions/checkout@v4
+  #       with:
+  #         submodules: recursive
 
-      - name: 🔧 Append Pull Request number to version (PR  only)
-        if: ${{ inputs.event_name == 'pull_request' }}
-        shell: bash
-        run: tr -d '\n' < .version > temp && mv temp .version && echo -n "+PR${{ inputs.pull_request_number }}" >> .version
+  #     - name: 🔧 Append Pull Request number to version (PR  only)
+  #       if: ${{ inputs.event_name == 'pull_request' }}
+  #       shell: bash
+  #       run: tr -d '\n' < .version > temp && mv temp .version && echo -n "+PR${{ inputs.pull_request_number }}" >> .version
 
-      - name: 💾 Restore DirectX SDK (if available)
-        uses: ethanjli/cached-download-action@v0.1.2
-        with:
-          url: https://download.microsoft.com/download/A/E/7/AE743F1F-632B-4809-87A9-AA1BB3458E31/DXSDK_Jun10.exe
-          destination: .\installer\dxsdk-jun10.exe
-          cache-key: dxsdk-jun10
+  #     - name: 💾 Restore DirectX SDK (if available)
+  #       uses: ethanjli/cached-download-action@v0.1.2
+  #       with:
+  #         url: https://download.microsoft.com/download/A/E/7/AE743F1F-632B-4809-87A9-AA1BB3458E31/DXSDK_Jun10.exe
+  #         destination: .\installer\dxsdk-jun10.exe
+  #         cache-key: dxsdk-jun10
 
-      - name: 💾 Restore libjpeg-turbo (if available)
-        uses: ethanjli/cached-download-action@v0.1.2
-        with:
-          url: https://sourceforge.net/projects/libjpeg-turbo/files/${{ env.LIBJPEG_TURBO_VERSION }}/libjpeg-turbo-${{ env.LIBJPEG_TURBO_VERSION }}-vc64.exe
-          destination: .\installer\libjpeg-turbo.exe
-          cache-key: libjpeg-turbo
+  #     - name: 💾 Restore libjpeg-turbo (if available)
+  #       uses: ethanjli/cached-download-action@v0.1.2
+  #       with:
+  #         url: https://sourceforge.net/projects/libjpeg-turbo/files/${{ env.LIBJPEG_TURBO_VERSION }}/libjpeg-turbo-${{ env.LIBJPEG_TURBO_VERSION }}-vc64.exe
+  #         destination: .\installer\libjpeg-turbo.exe
+  #         cache-key: libjpeg-turbo
 
-      - name: 📥 Install DirectX SDK & libjpeg-turbo
-        run: |
-          cmd.exe /c start /wait .\installer\libjpeg-turbo.exe /S
-          cmd.exe /c start /wait .\installer\dxsdk-jun10.exe /U /F
+  #     - name: 📥 Install DirectX SDK & libjpeg-turbo
+  #       run: |
+  #         cmd.exe /c start /wait .\installer\libjpeg-turbo.exe /S
+  #         cmd.exe /c start /wait .\installer\dxsdk-jun10.exe /U /F
 
-      - name: 📥 Install Vulkan SDK
-        if: ${{ inputs.qt_version == '6' }}
-        uses: jakoch/install-vulkan-sdk-action@v1
-        with:
-          install_runtime: false
-          cache: true
-          stripdown: true
+  #     - name: 📥 Install Vulkan SDK
+  #       if: ${{ inputs.qt_version == '6' }}
+  #       uses: jakoch/install-vulkan-sdk-action@v1
+  #       with:
+  #         install_runtime: false
+  #         cache: true
+  #         stripdown: true
 
-      - name: 📥 Install Qt
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: ${{ inputs.qt_version == '6' && '6.8' || '5.15.*' }}
-          target: 'desktop'
-          modules: ${{ inputs.qt_version == '6' && 'qtserialport qtwebsockets' || '' }}
-          cache: 'true'
-          cache-key-prefix: 'cache-qt-windows'
+  #     - name: 📥 Install Qt
+  #       uses: jurplel/install-qt-action@v4
+  #       with:
+  #         version: ${{ inputs.qt_version == '6' && '6.8' || '5.15.*' }}
+  #         target: 'desktop'
+  #         modules: ${{ inputs.qt_version == '6' && 'qtserialport qtwebsockets' || '' }}
+  #         cache: 'true'
+  #         cache-key-prefix: 'cache-qt-windows'
 
-      - name: 🛠️ Setup MSVC
-        uses: ilammy/msvc-dev-cmd@v1
+  #     - name: 🛠️ Setup MSVC
+  #       uses: ilammy/msvc-dev-cmd@v1
 
-      - name: 👷 Build
-        shell: cmd
-        run: |
-           cmake --preset windows-${{ env.BUILD_TYPE }}
-           cmake --build --preset windows-${{ env.BUILD_TYPE }} --target package --parallel %NUMBER_OF_PROCESSORS%
-        env:
-          BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
+  #     - name: 👷 Build
+  #       shell: cmd
+  #       run: |
+  #          cmake --preset windows-${{ env.BUILD_TYPE }}
+  #          cmake --build --preset windows-${{ env.BUILD_TYPE }} --target package --parallel %NUMBER_OF_PROCESSORS%
+  #       env:
+  #         BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
 
-      - name: 📦 Upload
-        if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ inputs.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
-          path: ${{ inputs.event_name == 'pull_request' && 'build/*.exe' || 'build/Hyperion-*' }}
-        env:
-          NAME: ${{ inputs.qt_version == '6' && 'windows_x64_qt6' || 'windows_x64' }}
+  #     - name: 📦 Upload
+  #       if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: ${{ inputs.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
+  #         path: ${{ inputs.event_name == 'pull_request' && 'build/*.exe' || 'build/Hyperion-*' }}
+  #       env:
+  #         NAME: ${{ inputs.qt_version == '6' && 'windows_x64_qt6' || 'windows_x64' }}
 
 #####################################
 ###### Publish GitHub Releases ######
 #####################################
 
-  github_publish:
-    name: 🚀 Publish GitHub Releases
-    if: ${{ inputs.qt_version == '5' && inputs.publish }}
-    needs: [Linux, macOS, windows]
-    runs-on: ubuntu-latest
-    steps:
-      - name: ⬇ Checkout
-        uses: actions/checkout@v4
+  # github_publish:
+  #   name: 🚀 Publish GitHub Releases
+  #   if: ${{ inputs.qt_version == '5' && inputs.publish }}
+  #   needs: [Linux, macOS, windows]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: ⬇ Checkout
+  #       uses: actions/checkout@v4
 
-      - name: 🔧 Prepare
-        run: |
-          echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
-          echo "VERSION=$(tr -d '\n' < .version)" >> $GITHUB_ENV
+  #     - name: 🔧 Prepare
+  #       run: |
+  #         echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
+  #         echo "VERSION=$(tr -d '\n' < .version)" >> $GITHUB_ENV
 
-      - name: 💾 Artifact download
-        uses: actions/download-artifact@v4
-        with:
-          pattern: artifact-*
-          path: all-artifacts
+  #     - name: 💾 Artifact download
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         pattern: artifact-*
+  #         path: all-artifacts
 
-      - name: 📦 Upload
-        uses: softprops/action-gh-release@v2
-        with:
-          name: Hyperion ${{ env.VERSION }}
-          tag_name: ${{ env.TAG }}
-          files: "all-artifacts/**"
-          draft: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: 📦 Upload
+  #       uses: softprops/action-gh-release@v2
+  #       with:
+  #         name: Hyperion ${{ env.VERSION }}
+  #         tag_name: ${{ env.TAG }}
+  #         files: "all-artifacts/**"
+  #         draft: true
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
