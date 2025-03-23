@@ -69,7 +69,8 @@ jobs:
 
       - name: Determine hash for pre-built deps
         shell: bash
-        run: echo ${{ steps.pre-built.outputs.hashes.qt{{ inputs.qt_version }}.{{ matrix.os.distribution }}-{{ matrix.os.codename }}.{{ matrix.os.architecture[0] }} }}
+        run: echo ${{ steps.pre-built.outputs.hashes[format('qt{0}', inputs.qt_version)] }}
+        # ${{ steps.pre-built.outputs.hashes.qt{{ inputs.qt_version }}.{{ matrix.os.distribution }}-{{ matrix.os.codename }}.{{ matrix.os.architecture[0] }} }}
 
       # - name: 🔧 Append PR number to version (PR  only)
       #   if: ${{ inputs.event_name == 'pull_request' }}
