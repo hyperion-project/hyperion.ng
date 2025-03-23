@@ -1,10 +1,9 @@
 # - Try to find libusb-1.0
 # Once done this will define
 #
-#  LIBUSB_1_FOUND - system has libusb
-#  LIBUSB_1_INCLUDE_DIRS - the libusb include directory
-#  LIBUSB_1_LIBRARIES - Link these to use libusb
-#  LIBUSB_1_DEFINITIONS - Compiler switches required for using libusb
+#  LibUSB_FOUND - system has libusb
+#  LibUSB_INCLUDE_DIR - the libusb include directory
+#  LibUSB_LIBRARY - Link these to use libusb
 #
 #  Adapted from cmake-modules Google Code project
 #
@@ -74,6 +73,7 @@ find_path(LibUSB_INCLUDE_DIR
 		include/libusb-1.0
 )
 
+set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_STATIC_LIBRARY_SUFFIX})
 find_library(LibUSB_LIBRARY
 	NAMES
 		libusb-1.0
@@ -126,7 +126,7 @@ if(LibUSB_FOUND)
 		endif()
 	endif()
 
-	if(NOT LibUSB_VERSION AND NOT CMAKE_CROSSCOMPILING)
+	if(NOT LibUSB_VERSION)
 		# C code from: https://github.com/Nuand/bladeRF/blob/master/host/cmake/helpers/libusb_version.c
 		file(WRITE ${CMAKE_BINARY_DIR}/tmp/src.c
 			"#include <stdlib.h>
