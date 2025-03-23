@@ -55,7 +55,7 @@ bool LedDeviceSk6812_ftdi::init(const QJsonObject &deviceConfig)
 }
 
 
-INLINE uint8_t LedDeviceSk6812_ftdi::scale(uint8_t i, uint8_t scale) {
+inline uint8_t LedDeviceSk6812_ftdi::scale(uint8_t i, uint8_t scale) {
 	return (((uint16_t)i) * (1+(uint16_t)(scale))) >> 8;
 }
 
