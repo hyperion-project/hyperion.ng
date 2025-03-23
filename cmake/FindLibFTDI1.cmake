@@ -65,10 +65,10 @@ find_package_handle_standard_args(
 
 mark_as_advanced(LIBFTDI1_INCLUDE_DIR LIBFTDI1_LIBRARY)
 
-if(LIBFTDI_FOUND)
+if(LibFTDI1_FOUND)
 	if(NOT TARGET libftdi)
 		add_library(libftdi STATIC IMPORTED GLOBAL)
-		set_target_properties(usb-1.0 PROPERTIES
+		set_target_properties(libftdi PROPERTIES
 			IMPORTED_LINK_INTERFACE_LANGUAGES "C"
 			IMPORTED_LOCATION "${LIBFTDI1_LIBRARY}"
 			INTERFACE_INCLUDE_DIRECTORIES "${LIBFTDI1_INCLUDE_DIR}"

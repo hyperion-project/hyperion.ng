@@ -2,6 +2,9 @@ if(USE_PRE_BUILD_DEPS)
 	# Set LIBUSB_ROOT_DIR
 	set(LIBUSB_ROOT_DIR ${PRE_BUILD_DEPS_DIR})
 
+	# Set LIBFTDI1_ROOT_DIR
+	set(LIBFTDI1_ROOT_DIR ${PRE_BUILD_DEPS_DIR})
+
 	# Set paths for other dependencies
 	foreach(BUILD_DEP "absl" "utf8_range" "hidapi" "qmdnsengine" "flatbuffers" "protobuf" "MbedTLS")
 		set(${BUILD_DEP}_DIR "${PRE_BUILD_DEPS_DIR}/lib/cmake/${BUILD_DEP}")
@@ -129,6 +132,10 @@ if(ENABLE_DEV_FTDI)
 			IMPORTED_LOCATION ${BINARY_DIR}/src/libftdi1${CMAKE_STATIC_LIBRARY_SUFFIX}
 			INTERFACE_INCLUDE_DIRECTORIES ${SOURCE_DIR}/src
 		)
+	endif()
+
+	if(TARGET libftdi AND LibFTDI1_VERSION)
+		message(STATUS "LibFTDI version used: ${LibFTDI1_VERSION}")
 	endif()
 endif()
 
