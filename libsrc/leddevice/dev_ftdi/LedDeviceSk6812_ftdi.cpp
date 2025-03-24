@@ -54,11 +54,6 @@ bool LedDeviceSk6812_ftdi::init(const QJsonObject &deviceConfig)
 	return isInitOK;
 }
 
-
-inline uint8_t LedDeviceSk6812_ftdi::scale(uint8_t i, uint8_t scale) {
-	return (((uint16_t)i) * (1+(uint16_t)(scale))) >> 8;
-}
-
 int LedDeviceSk6812_ftdi::write(const std::vector<ColorRgb> &ledValues)
 {
 	unsigned spi_ptr = 0;
