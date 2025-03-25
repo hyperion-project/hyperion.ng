@@ -66,6 +66,20 @@ jobs:
         shell: bash
         run: tr -d '\n' < .version > temp && mv temp .version && echo -n "+PR${{ inputs.pull_request_number }}" >> .version
 
+      - name: 🔧 Download Pre-Build Dependencies
+        shell: bash
+        run: |
+          preBuiltDeps='.github/workflows/prebuiltdeps.json'
+          baseURL=$(jq -r '.baseUrl' $preBuiltDeps)
+          version=$(jq -r '.version' $preBuiltDeps)
+          downloadHash=$(jq -r '.hashes .qt${{ inputs.qt_version }} ."${{ inputs.distribution }}-${{ inputs.codename }}" .${{ matrix.os.architecture[0] }}[${{ inputs.event_name == 'pull_request' && '0' || '1' }}]' $preBuiltDeps)
+          downloadFilename=${{ inputs.distribution }}-${{ inputs.codename }}-qt${{ inputs.qt_version }}-${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}-$version.zip
+          echo $preBuiltDeps
+          echo $baseURL
+          echo $version
+          echo $downloadHash
+          echo $downloadFilename
+
       - name: 👷 Build
         shell: bash
         run: |
