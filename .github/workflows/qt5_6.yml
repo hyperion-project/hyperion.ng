@@ -74,7 +74,7 @@ jobs:
           baseURL=$(jq -r '.baseUrl' $preBuiltDeps)
           version=$(jq -r '.version' $preBuiltDeps)
           downloadHash=$(jq -r '.hashes .${{ matrix.os.distribution }}_${{ matrix.os.codename }} .${{ matrix.os.architecture[0] }} .qt${{ inputs.qt_version }} .${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}' $preBuiltDeps)
-          downloadFilename=${{ matrix.os.distribution }}-${{ matrix.os.codename }}-${{ matrix.os.architecture[0] }}-qt${{ inputs.qt_version }}-${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}-$version.tar.gz
+          downloadFilename=${{ matrix.os.distribution }}_${{ matrix.os.codename }}-${{ matrix.os.architecture[0] }}-qt${{ inputs.qt_version }}-${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}-$version.tar.gz
           echo "$baseURL"/"$version"/"$downloadFilename"
           curl -c -O "$baseURL"/"$version"/"$downloadFilename"
           echo -n '"$downloadHash"  "$downloadFilename"' > "$downloadFilename".sha256
