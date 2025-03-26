@@ -67,18 +67,25 @@ jobs:
         run: tr -d '\n' < .version > temp && mv temp .version && echo -n "+PR${{ inputs.pull_request_number }}" >> .version
 
       - name: 🔧 Download Pre-Build Dependencies
+        id: dependencies
         shell: bash
         run: |
-          preBuiltDeps='.github/workflows/prebuiltdeps.json'
+          preBuiltDeps='.github/workflows/buildspec.json'
           baseURL=$(jq -r '.baseUrl' $preBuiltDeps)
           version=$(jq -r '.version' $preBuiltDeps)
-          downloadHash=$(jq -r '.hashes .qt${{ inputs.qt_version }} ."${{ matrix.os.distribution }}-${{ matrix.os.codename }}" .${{ matrix.os.architecture[0] }}[${{ inputs.event_name == 'pull_request' && '0' || '1' }}]' $preBuiltDeps)
-          downloadFilename=${{ matrix.os.distribution }}-${{ matrix.os.codename }}-qt${{ inputs.qt_version }}-${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}-$version.zip
-          echo $preBuiltDeps
-          echo $baseURL
-          echo $version
-          echo $downloadHash
-          echo $downloadFilename
+          downloadHash=$(jq -r '.hashes .${{ matrix.os.distribution }}_${{ matrix.os.codename }} .${{ matrix.os.architecture[0] }} .qt${{ inputs.qt_version }} ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}' $preBuiltDeps)
+          downloadFilename=${{ matrix.os.distribution }}-${{ matrix.os.codename }}-${{ matrix.os.architecture[0] }}-qt${{ inputs.qt_version }}-${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}-$version.tar.gz
+          curl -LO "$baseURL"/"$version"/"$downloadFilename"
+          echo -n '"$downloadHash"  "$downloadFilename"' > "$downloadFilename".sha256
+          if sha256sum -c "$downloadFilename".sha256; then
+            mkdir /tmp/deps
+            tar -xzf "$downloadFilename" -C /tmp/deps
+            echo "PREBUILT_CMAKE_ARGS=\"-DUSE_PRE_BUILT_DEPS=ON -DPRE_BUILT_DEPS_DIR=/tmp/deps\"" >> $GITHUB_OUTPUT
+            rm -f "$downloadFilename" "$downloadFilename".sha256
+          else
+            echo "PREBUILT_CMAKE_ARGS=" >> $GITHUB_OUTPUT
+            rm -f "$downloadFilename" "$downloadFilename".sha256
+          fi
 
       - name: 👷 Build
         shell: bash
@@ -89,7 +96,7 @@ jobs:
             -v "${{ github.workspace }}:/source:rw" \
             -w "/source" \
             ghcr.io/hyperion-project/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }} \
-            /bin/bash -c "cmake --preset linux-${{ env.BUILD_TYPE }} -DPLATFORM=${{ matrix.os.platform }} ${{ env.CPACK_SYSTEM_PROCESSOR }} &&
+            /bin/bash -c "cmake --preset linux-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.PREBUILT_CMAKE_ARGS }} -DPLATFORM=${{ matrix.os.platform }} ${{ env.CPACK_SYSTEM_PROCESSOR }} &&
             cmake --build --preset linux-${{ env.BUILD_TYPE }} --target package --parallel $(nproc) &&
             cp /source/build/Hyperion-* /deploy/ 2>/dev/null"
         env:
