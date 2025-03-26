@@ -95,6 +95,7 @@ jobs:
           docker run --rm --platform=${{ matrix.os.architecture[1] }} ${{ env.ENTRYPOINT }} \
             -v "${{ github.workspace }}/deploy:/deploy" \
             -v "${{ github.workspace }}:/source:rw" \
+            -v "/tmp/deps:/tmp/deps:rw" \
             -w "/source" \
             ghcr.io/hyperion-project/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }} \
             /bin/bash -c "cmake --preset linux-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.PREBUILT_CMAKE_ARGS }} -DPLATFORM=${{ matrix.os.platform }} ${{ env.CPACK_SYSTEM_PROCESSOR }} &&
