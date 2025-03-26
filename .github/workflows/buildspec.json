@@ -1,6 +1,6 @@
 {
   "version": "2025-03-26",
-  "baseUrl": "https://github.com/Paulchen-Panther/hyperion-deps/hyperion-deps/releases/download",
+  "baseUrl": "https://github.com/Paulchen-Panther/hyperion-deps/releases/download",
   "hashes": {
     "debian_bullseye": {
       "amd64": {
