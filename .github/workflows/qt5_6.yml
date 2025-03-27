@@ -68,7 +68,7 @@ jobs:
 
       - name: 💾 Download Pre-Build Dependencies
         id: dependencies
-        uses: .github/actions/download-pre-built-deps
+        uses: ./.github/actions/download-pre-built-deps
         with:
           os: ${{ matrix.os.distribution }}_${{ matrix.os.codename }}
           architecture: ${{ matrix.os.architecture[0] }}
@@ -135,10 +135,10 @@ jobs:
 
       - name: 💾 Download Pre-Build Dependencies
         id: dependencies
-        uses: .github/actions/download-pre-built-deps
+        uses: ./.github/actions/download-pre-built-deps
         with:
-          os: ${{ matrix.os.distribution }}_${{ matrix.os.codename }}
-          architecture: ${{ matrix.os.architecture[0] }}
+          os: 'macos'
+          architecture: ${{ matrix.architecture }}
           qt_version: ${{ inputs.qt_version }}
           build_type: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
 
@@ -227,10 +227,10 @@ jobs:
 
       - name: 💾 Download Pre-Build Dependencies
         id: dependencies
-        uses: .github/actions/download-pre-built-deps
+        uses: ./.github/actions/download-pre-built-deps
         with:
-          os: ${{ matrix.os.distribution }}_${{ matrix.os.codename }}
-          architecture: ${{ matrix.os.architecture[0] }}
+          os: 'windows'
+          architecture: 'x64'
           qt_version: ${{ inputs.qt_version }}
           build_type: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
 
