@@ -45,6 +45,7 @@ find_path(Libudev_INCLUDE_DIR
 		include
 )
 
+set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_STATIC_LIBRARY_SUFFIX})
 find_library(Libudev_LIBRARY
 	NAMES
 		udev

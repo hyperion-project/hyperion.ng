@@ -8,7 +8,7 @@
 
 set(LIBFTDI1_ROOT_DIR "${LIBFTDI1_ROOT_DIR}" CACHE PATH "Root directory to search for LibFTDI1")
 
-find_package(PkgConfig)
+find_package(PkgConfig QUIET)
 if (PkgConfig_FOUND)
 	pkg_check_modules(PC_LIBFTDI1 QUIET libftdi1)
 	if(DEFINED PC_LIBFTDI1_VERSION AND NOT PC_LIBFTDI1_VERSION STREQUAL "")

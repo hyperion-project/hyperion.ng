@@ -114,11 +114,13 @@ if(LibUSB_FOUND)
 	endif()
 
 	if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+		message(STATUS "LibUSB: System matches Linux")
 		get_target_property(TARGET_TYPE usb-1.0 TYPE)
 		get_target_property(TARGET_LOCATION usb-1.0 LOCATION)
 		get_filename_component(TARGET_EXTENSION ${TARGET_LOCATION} EXT)
 
 		if((${TARGET_TYPE} STREQUAL "STATIC_LIBRARY") OR (${TARGET_EXTENSION} STREQUAL ${CMAKE_STATIC_LIBRARY_SUFFIX}))
+			message(STATUS "LibUSB: Try to find Libudev")
 			find_package(Libudev REQUIRED)
 			set_target_properties(usb-1.0 PROPERTIES
 				INTERFACE_LINK_LIBRARIES Libudev
