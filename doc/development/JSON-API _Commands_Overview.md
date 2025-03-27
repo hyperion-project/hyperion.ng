@@ -59,6 +59,8 @@ _http/s Support_
 | instance       | startInstance           | Yes           | No                | Yes            |
 | instance       | stopInstance            | Yes           | No                | Yes            |
 | instance       | switchTo                | Yes           | No                | Yes            |
+| instance-data  | getImageSnapshot        | Yes           | Yes               | Yes            |
+| instance-data  | getLedSnapshot          | Yes           | Yes               | Yes            |
 | ledcolors      | imagestream-start       | Yes           | Yes               | Yes            |
 | ledcolors      | imagestream-stop        | Yes           | Yes               | Yes            |
 | ledcolors      | ledstream-start         | Yes           | Yes               | Yes            |
