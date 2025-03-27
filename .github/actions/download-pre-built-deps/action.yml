@@ -1,0 +1,48 @@
+name: Download Pre-Built Dependencies
+description: Download Pre-Built Dependencies for Hyperion to speed-up the CI build
+inputs:
+  os:
+    description: Operating System
+    required: true
+    default: 'debian_buster'
+  architecture:
+    description: Linux architecture
+    required: false
+    default: 'amd64'
+  qt_version:
+    description: Qt version
+    required: false
+    default: '6'
+  build_type:
+    type: string
+    description: Build type
+    default: ''
+outputs:
+  cmakeArgs:
+    description: "CMake arguments"
+    value: ${{ steps.download-pre-built-deps.outputs.cmake-args }}
+runs:
+  using: composite
+  steps:
+    - name: Download Deps
+      id: download-pre-built-deps
+      shell: bash
+      run: |
+        preBuiltDeps='${{ github.workspace }}/.github/workflows/buildspec.json'
+        baseURL=$(jq -r '.baseUrl' $preBuiltDeps)
+        version=$(jq -r '.version' $preBuiltDeps)
+        downloadHash=$(jq -r '.hashes .${{ inputs.os }} .${{ inputs.architecture }} .qt${{ inputs.qt_version }} .${{ inputs.build_type == 'pull_request' && 'debug' || 'release' }}' $preBuiltDeps)
+        downloadFilename=${{ inputs.os }}-${{ inputs.architecture }}-qt${{ inputs.qt_version }}-${{ inputs.build_type == 'pull_request' && 'debug' || 'release' }}-$version.tar.gz
+        echo "$baseURL"/"$version"/"$downloadFilename"
+        curl -OL "$baseURL"/"$version"/"$downloadFilename"
+        echo -n ""$downloadHash"  "$downloadFilename"" > "$downloadFilename".sha256
+        if sha256sum -c "$downloadFilename".sha256; then
+          mkdir /tmp/deps
+          tar -xzf "$downloadFilename" -C /tmp/deps
+          chmod +x /tmp/deps/bin/*
+          echo "cmake-args="-DUSE_PRE_BUILT_DEPS=ON -DPRE_BUILT_DEPS_DIR=/tmp/deps"" >> $GITHUB_OUTPUT
+          rm -f "$downloadFilename" "$downloadFilename".sha256
+        else
+          echo "cmake-args=" >> $GITHUB_OUTPUT
+          rm -f "$downloadFilename" "$downloadFilename".sha256
+        fi
