@@ -36,14 +36,18 @@ runs:
         curl -OL "$baseURL"/"$version"/"$downloadFilename"
         if [[ ${{ inputs.os }} == 'windows' ]]; then
           computedHash=$(powershell -Command "(Get-FileHash -Path \"$downloadFilename\" -Algorithm SHA256).Hash.ToLower()")
+          destDir=C:/tmp
         else
           computedHash=$(sha256sum "$downloadFilename" | awk '{print $1}')
+          destDir=/tmp/deps
         fi
         if [[ "$computedHash" == "$downloadHash" ]]; then
-          mkdir /tmp/deps
-          tar -xzf "$downloadFilename" -C /tmp/deps
-          chmod +x /tmp/deps/bin/*
-          echo "cmake-args="-DUSE_PRE_BUILT_DEPS=ON -DPRE_BUILT_DEPS_DIR=/tmp/deps"" >> $GITHUB_OUTPUT
+          mkdir "$destDir"
+          tar -xzf "$downloadFilename" -C "$destDir"
+          if [[ ${{ inputs.os }} != 'windows' ]]; then
+            chmod +x "$destDir"/bin/*
+          fi
+          echo "cmake-args="-DUSE_PRE_BUILT_DEPS=ON -DPRE_BUILT_DEPS_DIR=$destDir"" >> $GITHUB_OUTPUT
           rm -f "$downloadFilename" "$downloadFilename".sha256
         else
           echo "cmake-args=" >> $GITHUB_OUTPUT
