@@ -144,7 +144,7 @@ jobs:
       - name: 📥 Install dependencies
         uses: tecolicom/actions-use-homebrew-tools@v1
         with:
-          tools: qt@${{ inputs.qt_version }} vulkan-headers ninja libftdi
+          tools: qt@${{ inputs.qt_version }} vulkan-headers
           key: ${{ runner.os }}-${{ matrix.architecture }}-homebrew-packages-${{ inputs.qt_version }}
 
       - name: 👷 Build

@@ -111,19 +111,13 @@ if(LibUSB_FOUND)
 			IMPORTED_LOCATION "${LibUSB_LIBRARY}"
 			INTERFACE_INCLUDE_DIRECTORIES "${LibUSB_INCLUDE_DIR}"
 		)
+	endif()
 
-		if(CMAKE_SYSTEM_NAME MATCHES "Linux")
-			get_target_property(TARGET_TYPE usb-1.0 TYPE)
-			get_target_property(TARGET_LOCATION usb-1.0 LOCATION)
-			get_filename_component(TARGET_EXTENSION ${TARGET_LOCATION} EXT)
-
-			if((${TARGET_TYPE} STREQUAL "STATIC_LIBRARY") OR (${TARGET_EXTENSION} STREQUAL ${CMAKE_STATIC_LIBRARY_SUFFIX}))
-				find_package(Libudev REQUIRED)
-				set_target_properties(usb-1.0 PROPERTIES
-					INTERFACE_LINK_LIBRARIES Libudev
-				)
-			endif()
-		endif()
+	if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+		find_package(Libudev REQUIRED)
+		set_target_properties(usb-1.0 PROPERTIES
+			INTERFACE_LINK_LIBRARIES Libudev
+		)
 	endif()
 
 	if(NOT LibUSB_VERSION)
