@@ -113,13 +113,6 @@ if(LibUSB_FOUND)
 		)
 	endif()
 
-	if(CMAKE_SYSTEM_NAME MATCHES "Linux")
-		find_package(Libudev REQUIRED)
-		set_target_properties(usb-1.0 PROPERTIES
-			INTERFACE_LINK_LIBRARIES Libudev
-		)
-	endif()
-
 	if(NOT LibUSB_VERSION)
 		# C code from: https://github.com/Nuand/bladeRF/blob/master/host/cmake/helpers/libusb_version.c
 		file(WRITE ${CMAKE_BINARY_DIR}/tmp/src.c
