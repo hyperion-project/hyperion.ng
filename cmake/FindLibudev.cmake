@@ -30,9 +30,7 @@ This will define the following variables:
 
 find_package(PkgConfig QUIET)
 if(PkgConfig_FOUND)
-	message(STATUS "PkgConfig found!!!")
 	pkg_check_modules(PC_Libudev QUIET libudev)
-	pkg_check_modules(TEST_Libudev QUIET udev)
 endif()
 
 find_path(Libudev_INCLUDE_DIR
@@ -47,7 +45,6 @@ find_path(Libudev_INCLUDE_DIR
 		include
 )
 
-set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_STATIC_LIBRARY_SUFFIX})
 find_library(Libudev_LIBRARY
 	NAMES
 		udev
@@ -60,15 +57,6 @@ find_library(Libudev_LIBRARY
 	PATH_SUFFIXES
 		lib
 )
-
-message(STATUS "PkgConfig Libudev inc: ${PC_Libudev_INCLUDE_DIRS}")
-message(STATUS "PkgConfig Libudev lib: ${PC_Libudev_LIBRARY_DIRS}")
-
-message(STATUS "PkgConfig TEST Libudev inc: ${TEST_Libudev_INCLUDE_DIRS}")
-message(STATUS "PkgConfig TEST Libudev lib: ${TEST_Libudev_LIBRARY_DIRS}")
-
-message(STATUS "Libudev LIBRARY: ${Libudev_LIBRARY}")
-message(STATUS "Libudev INCLUDE_DIR: ${Libudev_INCLUDE_DIR}")
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(

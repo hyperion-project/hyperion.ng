@@ -73,7 +73,6 @@ find_path(LibUSB_INCLUDE_DIR
 		include/libusb-1.0
 )
 
-set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_STATIC_LIBRARY_SUFFIX})
 find_library(LibUSB_LIBRARY
 	NAMES
 		libusb-1.0
@@ -114,7 +113,6 @@ if(LibUSB_FOUND)
 	endif()
 
 	if(CMAKE_SYSTEM_NAME MATCHES "Linux")
-		message(STATUS "LibUSB: Try to find Libudev")
 		find_package(Libudev REQUIRED)
 		set_target_properties(usb-1.0 PROPERTIES
 			INTERFACE_LINK_LIBRARIES Libudev
