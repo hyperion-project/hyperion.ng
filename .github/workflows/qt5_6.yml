@@ -81,6 +81,7 @@ jobs:
           if sha256sum -c "$downloadFilename".sha256; then
             mkdir /tmp/deps
             tar -xzf "$downloadFilename" -C /tmp/deps
+            chmod +x /tmp/deps/bin/*
             echo "PREBUILT_CMAKE_ARGS="-DUSE_PRE_BUILT_DEPS=ON -DPRE_BUILT_DEPS_DIR=/tmp/deps"" >> $GITHUB_OUTPUT
             rm -f "$downloadFilename" "$downloadFilename".sha256
           else
