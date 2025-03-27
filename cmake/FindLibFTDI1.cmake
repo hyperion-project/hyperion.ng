@@ -25,10 +25,10 @@ find_path(LIBFTDI1_INCLUDE_DIR
 		/opt/local
 		/opt/homebrew
 		/sw
-		${PC_LIBFTDI1_INCLUDE_DIRS}
 		${CMAKE_BINARY_DIR}
 	HINTS
 		${LIBFTDI1_ROOT_DIR}
+		${PC_LIBFTDI1_INCLUDE_DIRS}
 	PATH_SUFFIXES
 		include
 		libftdi1
@@ -46,10 +46,10 @@ find_library(LIBFTDI1_LIBRARY
 		/opt/local
 		/opt/homebrew
 		/sw
-		${PC_LIBFTDI1_LIBRARIES}
 		${CMAKE_BINARY_DIR}
 	HINTS
 		${LIBFTDI1_ROOT_DIR}
+		${PC_LIBFTDI1_LIBRARIES}
 	PATH_SUFFIXES
 		lib
 		libftdi1

@@ -40,6 +40,7 @@ find_path(Libudev_INCLUDE_DIR
 	PATHS
 		/usr
 		/usr/local
+	HINTS
 		${PC_Libudev_INCLUDE_DIRS}
 	PATH_SUFFIXES
 		include
@@ -53,6 +54,7 @@ find_library(Libudev_LIBRARY
 	PATHS
 		/usr
 		/usr/local
+	HINTS
 		${PC_Libudev_LIBRARY_DIRS}
 	PATH_SUFFIXES
 		lib

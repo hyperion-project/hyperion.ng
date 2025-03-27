@@ -63,10 +63,10 @@ find_path(LibUSB_INCLUDE_DIR
 		/opt/local
 		/opt/homebrew
 		/sw
-		${PC_LIBUSB_INCLUDE_DIRS}
 		${CMAKE_BINARY_DIR}
 	HINTS
 		${LIBUSB_ROOT_DIR}
+		${PC_LIBUSB_INCLUDE_DIRS}
 	PATH_SUFFIXES
 		include
 		libusb-1.0
@@ -85,10 +85,10 @@ find_library(LibUSB_LIBRARY
 		/opt/local
 		/opt/homebrew
 		/sw
-		${PC_LIBUSB_LIBRARY_DIRS}
 		${CMAKE_BINARY_DIR}
 	HINTS
 		${LIBUSB_ROOT_DIR}
+		${PC_LIBUSB_LIBRARY_DIRS}
 	PATH_SUFFIXES
 		lib
 		VS2022/MS64/dll
