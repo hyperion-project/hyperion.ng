@@ -33,10 +33,13 @@ runs:
         version=$(jq -r '.version' $preBuiltDeps)
         downloadHash=$(jq -r '.hashes .${{ inputs.os }} .${{ inputs.architecture }} .qt${{ inputs.qt_version }} .${{ inputs.build_type == 'pull_request' && 'debug' || 'release' }}' $preBuiltDeps)
         downloadFilename=${{ inputs.os }}-${{ inputs.architecture }}-qt${{ inputs.qt_version }}-${{ inputs.build_type == 'pull_request' && 'debug' || 'release' }}-$version.tar.gz
-        echo "$baseURL"/"$version"/"$downloadFilename"
         curl -OL "$baseURL"/"$version"/"$downloadFilename"
-        echo -n ""$downloadHash"  "$downloadFilename"" > "$downloadFilename".sha256
-        if sha256sum -c "$downloadFilename".sha256; then
+        if [[ ${{ inputs.os }} == 'windows' ]]; then
+          computedHash=$(powershell -Command "(Get-FileHash -Path \"$downloadFilename\" -Algorithm SHA256).Hash.ToLower()")
+        else
+          computedHash=$(sha256sum "$downloadFilename" | awk '{print $1}')
+        fi
+        if [[ "$computedHash" == "$downloadHash" ]]; then
           mkdir /tmp/deps
           tar -xzf "$downloadFilename" -C /tmp/deps
           chmod +x /tmp/deps/bin/*

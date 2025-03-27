@@ -225,19 +225,19 @@ jobs:
       - name: 🛠️ Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
 
-      # - name: 💾 Download Pre-Build Dependencies
-      #   id: dependencies
-      #   uses: ./.github/actions/download-pre-built-deps
-      #   with:
-      #     os: 'windows'
-      #     architecture: 'x64'
-      #     qt_version: ${{ inputs.qt_version }}
-      #     build_type: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
+      - name: 💾 Download Pre-Build Dependencies
+        id: dependencies
+        uses: ./.github/actions/download-pre-built-deps
+        with:
+          os: 'windows'
+          architecture: 'x64'
+          qt_version: ${{ inputs.qt_version }}
+          build_type: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
 
       - name: 👷 Build
         shell: cmd
         run: |
-           cmake --preset windows-${{ env.BUILD_TYPE }}
+           cmake --preset windows-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }}
            cmake --build --preset windows-${{ env.BUILD_TYPE }} --target package --parallel %NUMBER_OF_PROCESSORS%
         env:
           BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
