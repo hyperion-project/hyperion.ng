@@ -164,7 +164,12 @@ void HyperionDaemon::handleInstanceStateChange(InstanceState state, quint8 insta
 		startNetworkInputCaptureServices();
 #if defined(ENABLE_FORWARDER)
 		QMetaObject::invokeMethod(_messageForwarder.get(),
-			[this, instance]() { _messageForwarder->connect(instance); },
+			[this, instance]() {
+				if (_messageForwarder->connect(instance))
+				{
+					_messageForwarder->start();
+				}
+			},
 			Qt::QueuedConnection);
 #endif
 	}
@@ -458,8 +463,8 @@ void HyperionDaemon::startNetworkOutputServices()
 void HyperionDaemon::stopNetworkOutputServices()
 {
 #if defined(ENABLE_FORWARDER)
-	QMetaObject::invokeMethod(_messageForwarder.get(), &MessageForwarder::stop, Qt::QueuedConnection);
-	if (_messageForwarderThread->isRunning()) {
+	if (_messageForwarderThread->isRunning())
+	{
 		QMetaObject::invokeMethod(_messageForwarder.get(), &MessageForwarder::stop, Qt::QueuedConnection);
 		_messageForwarderThread->quit();
 		_messageForwarderThread->wait();

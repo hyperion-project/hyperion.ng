@@ -63,8 +63,9 @@ public slots:
 	void handleSettingsUpdate(settings::type type, const QJsonDocument &config);
 
 	void init();
-	void connect(quint8 instanceID);
+	bool connect(quint8 instanceID);
 	void disconnect(quint8 instanceID);
+	void start();
 	void stop();
 
 private slots:
@@ -169,5 +170,6 @@ public slots:
 private:
 
 	QList<QSharedPointer<FlatBufferConnection>> _forwardClients;
+
 	bool _isFree;
 };
