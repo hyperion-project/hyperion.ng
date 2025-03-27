@@ -57,17 +57,16 @@ if(ENABLE_DEV_USB_HID OR ENABLE_DEV_FTDI)
 			IMPORTED_LOCATION ${BINARY_DIR}/libusb-1.0${CMAKE_STATIC_LIBRARY_SUFFIX}
 			INTERFACE_INCLUDE_DIRECTORIES ${SOURCE_DIR}/libusb/libusb
 		)
-	endif()
 
-	if(TARGET usb-1.0)
-		# link interface library libudev
 		if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 			find_package(Libudev REQUIRED)
 			set_target_properties(usb-1.0 PROPERTIES
 				INTERFACE_LINK_LIBRARIES Libudev
 			)
 		endif()
+	endif()
 
+	if(TARGET usb-1.0)
 		# static libusb version detection
 		if(NOT DEFINED LibUSB_VERSION)
 			get_build_interface_include_directory(TARGET usb-1.0 OUTPUT LIBUSB_INCLUDE_DIR)

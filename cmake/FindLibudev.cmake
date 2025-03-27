@@ -30,6 +30,7 @@ This will define the following variables:
 
 find_package(PkgConfig QUIET)
 if(PkgConfig_FOUND)
+	message(STATUS "PkgConfig found!!!")
 	pkg_check_modules(PC_Libudev QUIET libudev)
 endif()
 
@@ -55,6 +56,9 @@ find_library(Libudev_LIBRARY
 	PATH_SUFFIXES
 		lib
 )
+
+message(STATUS "Libudev LIBRARY: ${Libudev_LIBRARY}")
+message(STATUS "Libudev INCLUDE_DIR: ${Libudev_INCLUDE_DIR}")
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(
