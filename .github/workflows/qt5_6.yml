@@ -130,7 +130,7 @@ jobs:
       - name: 📥 Install dependencies
         uses: tecolicom/actions-use-homebrew-tools@v1
         with:
-          tools: qt@${{ inputs.qt_version }} vulkan-headers
+          tools: qt@${{ inputs.qt_version }} vulkan-headers coreutils
           key: ${{ runner.os }}-${{ matrix.architecture }}-homebrew-packages-${{ inputs.qt_version }}
 
       - name: 💾 Download Pre-Build Dependencies
@@ -225,14 +225,14 @@ jobs:
       - name: 🛠️ Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
 
-      - name: 💾 Download Pre-Build Dependencies
-        id: dependencies
-        uses: ./.github/actions/download-pre-built-deps
-        with:
-          os: 'windows'
-          architecture: 'x64'
-          qt_version: ${{ inputs.qt_version }}
-          build_type: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
+      # - name: 💾 Download Pre-Build Dependencies
+      #   id: dependencies
+      #   uses: ./.github/actions/download-pre-built-deps
+      #   with:
+      #     os: 'windows'
+      #     architecture: 'x64'
+      #     qt_version: ${{ inputs.qt_version }}
+      #     build_type: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
 
       - name: 👷 Build
         shell: cmd
