@@ -86,7 +86,7 @@ jobs:
             -w "/source" \
             ghcr.io/hyperion-project/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }} \
             /bin/bash -c "cmake --preset linux-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }} -DPLATFORM=${{ matrix.os.platform }} ${{ env.CPACK_SYSTEM_PROCESSOR }} &&
-            cmake --build --preset linux-${{ env.BUILD_TYPE }} --target package --parallel $(nproc) &&
+            cmake --build --preset linux-${{ env.BUILD_TYPE }} --target package &&
             cp /source/build/Hyperion-* /deploy/ 2>/dev/null"
         env:
           DOCKER_IMAGE: ${{ matrix.os.distribution }}
@@ -149,7 +149,7 @@ jobs:
           brew reinstall --formula cmake
           # Build
           cmake --preset macos-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }}
-          cmake --build --preset macos-${{ env.BUILD_TYPE }} --parallel $(sysctl -n hw.ncpu)
+          cmake --build --preset macos-${{ env.BUILD_TYPE }}
           # CPack workaround for macOS 13
           echo killing...; sudo pkill -9 XProtect >/dev/null || true;
           echo waiting...; while pgrep XProtect; do sleep 3; done;
@@ -240,7 +240,7 @@ jobs:
         shell: cmd
         run: |
            cmake --preset windows-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }}
-           cmake --build --preset windows-${{ env.BUILD_TYPE }} --target package --parallel %NUMBER_OF_PROCESSORS%
+           cmake --build --preset windows-${{ env.BUILD_TYPE }} --target package
         env:
           BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
 
