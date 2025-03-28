@@ -542,7 +542,7 @@ function requestAdjustment(type, value, complete) {
   if (complete === true)
     sendToHyperion("adjustment", "", { adjustment: type });
   else
-    sendToHyperion("adjustment", "", { adjustment: { type: value } });
+    sendToHyperion("adjustment", "", { adjustment: { [type]: value } });
 }
 
 async function requestLedDeviceDiscovery(ledDeviceType, params) {

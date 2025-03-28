@@ -81,7 +81,8 @@ $(document).ready(function () {
                       </div>`;
           $('.crtbody').append(createTableRow([title, property], false, true));
           createCP(`cr_${sColor[key].key}`, value, function (rgb, hex, e) {
-            requestAdjustment(e.target.id.substr(e.target.id.indexOf("_") + 1), `[${rgb.r},${rgb.g},${rgb.b}]`);
+            const elementName = e.target.id.substr(e.target.id.indexOf("_") + 1);
+            requestAdjustment(elementName, [rgb.r,rgb.g,rgb.b]);
           });
         }
         // Handle boolean type adjustments
@@ -93,7 +94,8 @@ $(document).ready(function () {
           $('.crtbody').append(createTableRow([title, property], false, true));
 
           $('#cr_' + sColor[key].key).off().on('change', function (e) {
-            requestAdjustment(e.target.id.substr(e.target.id.indexOf("_") + 1), e.currentTarget.checked);
+            const elementName = e.target.id.substr(e.target.id.indexOf("_") + 1);
+            requestAdjustment(elementName, e.currentTarget.checked);
           });
         }
         // Handle number type adjustments
@@ -110,8 +112,9 @@ $(document).ready(function () {
 
           $('.crtbody').append(createTableRow([title, property], false, true));
           $('#cr_' + sColor[key].key).off().on('change', function (e) {
-            valValue(this.id, this.value, this.min, this.max);
-            requestAdjustment(e.target.id.substr(e.target.id.indexOf("_") + 1), e.currentTarget.value);
+            const elementName = e.target.id.substr(e.target.id.indexOf("_") + 1);
+            const value = valValue(this.id, this.value, this.min, this.max);
+            requestAdjustment(elementName, value);
           });
         }
       }
