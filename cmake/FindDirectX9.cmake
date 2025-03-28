@@ -32,7 +32,11 @@ foreach(DXLIB "d3d9" "d3dx9" "DxErr")
 	)
 endforeach()
 
-set(DIRECTX9_LIBRARIES ${DIRECTX9_d3d9_LIBRARY} ${DIRECTX9_d3dx9_LIBRARY} ${DIRECTX9_DxErr_LIBRARY})
+set(DIRECTX9_LIBRARIES
+    ${DIRECTX9_d3d9_LIBRARY}
+    ${DIRECTX9_d3dx9_LIBRARY}
+    ${DIRECTX9_DxErr_LIBRARY}
+)
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(DirectX9
@@ -46,7 +50,7 @@ find_package_handle_standard_args(DirectX9
 if(DIRECTX9_FOUND AND NOT TARGET directx9)
 	add_library(directx9 UNKNOWN IMPORTED GLOBAL)
 	set_target_properties(directx9 PROPERTIES
-		INTERFACE_INCLUDE_DIRECTORIES "${DIRECTX9_INCLUDE_DIRS}"
-		IMPORTED_LOCATION "${DIRECTX9_LIBRARIES}"
+		INTERFACE_INCLUDE_DIRECTORIES ${DIRECTX9_INCLUDE_DIRS}
+		IMPORTED_LOCATION ${DIRECTX9_LIBRARIES}
 	)
 endif()
