@@ -3,11 +3,16 @@
 #  TurboJPEG_INCLUDE_DIR
 #  TurboJPEG_LIBRARY
 
+set(TurboJPEG_PATHS
+	"$ENV{TURBOJPEG_DIR}"
+	"C:/libjpeg-turbo64"
+)
+
 find_path(TurboJPEG_INCLUDE_DIR
 	NAMES
 		turbojpeg.h
 	PATHS
-		"C:/libjpeg-turbo64"
+		${TurboJPEG_PATHS}
 	PATH_SUFFIXES
 		include
 )
@@ -18,7 +23,7 @@ find_library(TurboJPEG_LIBRARY
 		turbojpeg
 		turbojpeg-static
 	PATHS
-		"C:/libjpeg-turbo64"
+		${TurboJPEG_PATHS}
 	PATH_SUFFIXES
 		bin
 		lib

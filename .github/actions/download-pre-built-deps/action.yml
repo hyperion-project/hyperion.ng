@@ -48,8 +48,6 @@ runs:
             chmod +x "$destDir"/bin/*
           fi
           echo "cmake-args="-DUSE_PRE_BUILT_DEPS=ON -DPRE_BUILT_DEPS_DIR=$destDir"" >> $GITHUB_OUTPUT
-          rm -f "$downloadFilename" "$downloadFilename".sha256
         else
           echo "cmake-args=" >> $GITHUB_OUTPUT
-          rm -f "$downloadFilename" "$downloadFilename".sha256
         fi
