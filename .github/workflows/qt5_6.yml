@@ -201,12 +201,11 @@ jobs:
           cache-key: libjpeg-turbo
 
       - name: 📥 Extract DirectX SDK & libjpeg-turbo
-        shell: cmd
         run: |
-          7z x -aoa .\installer\dxsdk-jun10.exe DXSDK/Include DXSDK/Lib -oC:\ > NUL:
-          echo "DXSDK_DIR=C:\DXSDK" >> $env:GITHUB_ENV
-          7z x -aoa .\installer\libjpeg-turbo.exe bin include lib -oC:\turbojpeg > NUL:
-          echo "TURBOJPEG_DIR=C:\turbojpeg" >> $env:GITHUB_ENV
+          7z x -aoa .\installer\dxsdk-jun10.exe DXSDK/Include DXSDK/Lib -oC:\
+          echo "DXSDK_DIR=C:\DXSDK" | Out-File -FilePath $env:GITHUB_ENV -Append
+          7z x -aoa .\installer\libjpeg-turbo.exe bin include lib -oC:\turbojpeg
+          echo "TURBOJPEG_DIR=C:\turbojpeg" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: 📥 Install Vulkan SDK
         if: ${{ inputs.qt_version == '6' }}
