@@ -203,9 +203,9 @@ jobs:
       - name: 📥 Extract DirectX SDK & libjpeg-turbo
         shell: cmd
         run: |
-          7z x -aoa DXSDK_Jun10.exe DXSDK/Include DXSDK/Lib -oC:\ > NUL:
+          7z x -aoa .\installer\dxsdk-jun10.exe DXSDK/Include DXSDK/Lib -oC:\ > NUL:
           echo "DXSDK_DIR=C:\DXSDK" >> $GITHUB_ENV
-          7z x -aoa libjpeg-turbo-3.0.90-vc64.exe bin include lib -oC:\turbojpeg > NUL:
+          7z x -aoa .\installer\libjpeg-turbo.exe bin include lib -oC:\turbojpeg > NUL:
           echo "TURBOJPEG_DIR=C:\turbojpeg" >> $GITHUB_ENV
 
       - name: 📥 Install Vulkan SDK
