@@ -201,6 +201,7 @@ jobs:
           cache-key: libjpeg-turbo
 
       - name: 📥 Extract DirectX SDK & libjpeg-turbo
+        shell: cmd
         run: |
           7z x -aoa DXSDK_Jun10.exe DXSDK/Include DXSDK/Lib -oC:\ > NUL:
           echo "DXSDK_DIR=C:\DXSDK" >> $GITHUB_ENV
