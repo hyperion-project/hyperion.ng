@@ -126,15 +126,26 @@ jobs:
       - name: 👷 Build
         shell: bash
         run: |
-          # Remove once issue with hombrew cache action is fixed
+          # Remove once issue with Homebrew cache action is fixed
           brew reinstall --formula cmake
+
           # Build
           cmake --preset macos-${{ env.BUILD_TYPE }}
           cmake --build --preset macos-${{ env.BUILD_TYPE }} --parallel $(sysctl -n hw.ncpu)
+
           # CPack workaround for macOS 13
-          echo killing...; sudo pkill -9 XProtect >/dev/null || true;
-          echo waiting...; while pgrep XProtect; do sleep 3; done;
-          cd build; cpack
+          attempt=0
+          max_attempts=5
+          while [ $attempt -lt $max_attempts ]; do
+            if cd build && cpack; then
+              echo "Package created successfully"
+              break
+            else
+              echo "Failed to create package, retrying..."
+              sleep 10
+            fi
+            attempt=$((attempt + 1))
+          done
         env:
           BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
 
