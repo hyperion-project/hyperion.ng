@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.0)
+cmake_minimum_required(VERSION 3.10.0)
 project(hyperion-v4l2)
 
 add_executable(${PROJECT_NAME}
@@ -12,7 +12,6 @@ target_link_libraries(${PROJECT_NAME}
 	commandline
 	hyperion-utils
 	flatbufconnect
-	flatbuffers
 	Qt${QT_VERSION_MAJOR}::Widgets
 )
 

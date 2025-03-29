@@ -8,6 +8,6 @@ add_library(mdns
 
 target_link_libraries(mdns
 	hyperion
-	qmdnsengine
+	qmdns
 	$<$<BOOL:${WIN32}>:bcrypt.lib>
 )

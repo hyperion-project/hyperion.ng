@@ -137,17 +137,8 @@
       }
     },
     {
-      "name": "macos-release-deps",
-      "displayName": "MacOS Dependencies (release) (clang)",
-      "description": "Build Dependencies with Clang as Release without Debug Symbols",
-      "inherits": [ "macos-release" ],
-      "cacheVariables": {
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/${presetName}"
-      }
-    },
-    {
       "name": "macos-debug",
-      "displayName": "MacOS Debug (clang)",
+      "displayName": "MacOS (debug) (clang)",
       "description": "Build with Clang with Debug Symbols",
       "inherits": [ "base", "debug", "clang" ],
       "condition": {
@@ -157,17 +148,8 @@
       }
     },
     {
-      "name": "macos-debug-deps",
-      "displayName": "MacOS Dependencies (debug) (clang)",
-      "description": "Build Dependencies with Clang with Debug Symbols",
-      "inherits": [ "macos-debug" ],
-      "cacheVariables": {
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/${presetName}"
-      }
-    },
-    {
       "name": "windows-release",
-      "displayName": "Windows Release (msvc)",
+      "displayName": "Windows (release) (msvc)",
       "description": "Build with MSVC's CL as Release without Debug Symbols",
       "inherits": [ "base", "release", "msvc" ],
       "condition": {
@@ -178,7 +160,7 @@
     },
     {
       "name": "windows-debug",
-      "displayName": "Windows Debug (msvc)",
+      "displayName": "Windows (debug) (msvc)",
       "description": "Build with MSVC's CL with Debug Symbols",
       "inherits": [ "base", "debug", "msvc" ],
       "condition": {
@@ -189,7 +171,7 @@
     },
     {
       "name": "linux-release",
-      "displayName": "Linux Release (gcc)",
+      "displayName": "Linux (release) (gcc)",
       "description": "Build with GCC as Release without Debug Symbols",
       "inherits": [ "base", "release", "gcc" ],
       "condition": {
@@ -200,7 +182,7 @@
     },
     {
       "name": "linux-debug",
-      "displayName": "Linux Debug (gcc)",
+      "displayName": "Linux (debug) (gcc)",
       "description": "Build with GCC with Debug Symbols",
       "inherits": [ "base", "debug", "gcc" ],
       "condition": {
@@ -222,20 +204,6 @@
         "lhs": "${hostSystemName}",
         "rhs": "Darwin"
       }
-
-    },
-    {
-      "name": "macos-release-deps",
-      "displayName": "MacOS Dependencies (release) (clang)",
-      "description": "Build Dependencies with Clang as Release without Debug Symbols",
-      "targets": "dependencies/all",
-      "configurePreset": "macos-release-deps",
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Darwin"
-      }
-
     },
     {
       "name": "macos-debug",
@@ -248,47 +216,32 @@
         "lhs": "${hostSystemName}",
         "rhs": "Darwin"
       }
-
-    },
-    {
-      "name": "macos-debug-deps",
-      "displayName": "MacOS Dependencies (debug) (clang)",
-      "description": "Build Dependencies with Clang as Debug",
-      "targets": "dependencies/all",
-      "configurePreset": "macos-debug-deps",
-      "condition": {
-        "type": "equals",
-        "lhs": "${hostSystemName}",
-        "rhs": "Darwin"
-      }
     },
     {
       "name": "windows-release",
       "displayName": "Windows (release) (msvc)",
       "description": "Build with MSVC's CL as Release without Debug Symbols",
       "configuration": "Release",
-      "targets": "ALL_BUILD",
+      "targets": "all",
       "configurePreset": "windows-release",
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
         "rhs": "Windows"
       }
-
     },
     {
       "name": "windows-debug",
       "displayName": "Windows (debug) (msvc)",
       "description": "Build with MSVC's CL with Debug Symbols",
       "configuration": "Debug",
-      "targets": "ALL_BUILD",
+      "targets": "all",
       "configurePreset": "windows-debug",
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
         "rhs": "Windows"
       }
-
     },
     {
       "name": "linux-release",
@@ -301,7 +254,6 @@
         "lhs": "${hostSystemName}",
         "rhs": "Linux"
       }
-
     },
     {
       "name": "linux-debug",

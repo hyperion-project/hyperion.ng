@@ -9,7 +9,7 @@
 #include <string>
 
 // libusb include
-#include <hidapi/hidapi.h>
+#include <hidapi.h>
 
 // Hyperion includes
 #include <hyperion/LedDevice.h>

@@ -53,11 +53,11 @@ protected:
 	///
 	int writeBytes(const qint64 size, const uint8_t* data);
 
-	
+
 	QJsonObject discover(const QJsonObject& params) override;
 
 	/// The Ftdi serial-device
-	struct ftdi_context *_ftdic;
+	struct ftdi_context* _ftdic;
 
 	/// The used baud-rate of the output device
 	qint32 _baudRate_Hz;
@@ -70,7 +70,10 @@ protected slots:
 	///
 	/// @param errorMsg The error message to be logged
 	///
-	void setInError(const QString& errorMsg, bool isRecoverable=true) override;
+	void setInError(const QString& errorMsg, bool isRecoverable = true) override;
+
+private:
+	int checkFtdiResult(int rc, ftdi_context* ftdic, const QString& operation);
 };
 
 #endif // PROVIDERFtdi_H

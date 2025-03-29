@@ -43,9 +43,6 @@ deploy/*
 # ccache/buildcache
 .*cache/
 
-# release-deps/debug-deps
-*-deps/
-
 # User defined CMake preset file.
 CMakeUserPresets.json
 
