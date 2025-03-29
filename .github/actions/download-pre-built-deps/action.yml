@@ -27,7 +27,7 @@ runs:
     - name: Download latest specs
       uses: robinraju/release-downloader@v1
       with:
-        repository: 'paulchen-panther/hyperion-deps'
+        repository: 'hyperion-project/hyperion-deps'
         latest: true
         fileName: 'buildspec.json'
 
