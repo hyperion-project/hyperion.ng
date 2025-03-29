@@ -77,7 +77,7 @@ public slots:
 	///
 	/// @brief Get all instance indicies of running instances
 	///
-	QList<quint8> getRunningInstanceIdx() const;
+	QSet<quint8> getRunningInstanceIdx() const;
 
 	///
 	/// @brief Get the first running Hyperion instance
@@ -88,7 +88,7 @@ public slots:
 	///
 	/// @brief Get all instance indicies configured
 	///
-	QList<quint8> getInstanceIds() const;
+	QSet<quint8> getInstanceIds() const;
 
 	///
 	/// @brief Start a Hyperion instance

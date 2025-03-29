@@ -333,13 +333,24 @@ function requestServerConfigSchema() {
 
 const requestServerConfig = {
   // Shared logic encapsulated in a helper function
-  createFilter(globalTypes, instances, instanceTypes) {
-    return {
-      "configFilter": {
-        "global": { "types": globalTypes },
-        "instances": { "ids": instances, "types": instanceTypes }
-      }
+  createFilter(globalTypes = [], instances = [], instanceTypes = []) {
+    const filter = {
+      configFilter: {
+        global: { types: globalTypes },
+      },
     };
+
+    // Handle instances: remove "null" if present and add to filter if not empty
+    if (instances.length && !(instances.length === 1 && instances[0] === null)) {
+      filter.configFilter.instances = { ids: instances };
+    }
+
+    if (instanceTypes.length > 0) {
+      filter.configFilter.instances = filter.configFilter.instances || {};
+      filter.configFilter.instances.types = instanceTypes;
+    }
+
+    return filter;
   },
 
   // Synchronous function

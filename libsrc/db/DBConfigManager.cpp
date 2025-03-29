@@ -18,6 +18,7 @@
 #include <QSqlError>
 #include <QDir>
 #include <QDateTime>
+#include <QSet>
 
 namespace {
 const char SETTINGS_FULL_SCHEMA_FILE[] = ":/schema-settings-full.json";
@@ -157,7 +158,7 @@ QPair<bool, QStringList> DBConfigManager::addMissingDefaults()
 	//Ensure that one initial instance exists
 	instanceTable.createInitialInstance();
 
-	const QList<quint8> instances = instanceTable.getAllInstanceIDs();
+	const QSet<quint8> instances = instanceTable.getAllInstanceIDs();
 	for (const auto &instanceIdx : instances)
 	{
 		SettingsTable instanceSettingsTable(instanceIdx);
@@ -312,28 +313,36 @@ QJsonObject DBConfigManager::getConfiguration(const QList<quint8>& instanceIdsFi
 	}
 
 	InstanceTable instanceTable;
-	SettingsTable settingsTable;
+	SettingsTable const settingsTable;
 
 	QJsonObject config;
 
 	QJsonObject globalConfig;
-	MetaTable metaTable;
+	MetaTable const metaTable;
 	globalConfig.insert("uuid", metaTable.getUUID());
 	globalConfig.insert("settings", settingsTable.getSettings(globalFilterTypes));
 	config.insert("global", globalConfig);
 
-	QList<quint8> instanceIds {instanceIdsFilter};
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+	QSet<quint8> instanceIds(instanceIdsFilter.begin(), instanceIdsFilter.end());
+#else
+	QSet<quint8> instanceIds;
+	for (const auto &id : instanceIdsFilter) {
+		instanceIds.insert(id);
+	}
+#endif
+
 	if (instanceIds.isEmpty())
 	{
 		instanceIds = instanceTable.getAllInstanceIDs();
 	}
 
-	QList<quint8> sortedInstanceIds = instanceIds;
+	QList<quint8> sortedInstanceIds = instanceIds.values();
 	std::sort(sortedInstanceIds.begin(), sortedInstanceIds.end());
 
 	QJsonArray instanceIdList;
 	QJsonArray configInstanceList;
-	for (const quint8 instanceId : sortedInstanceIds)
+	for (const quint8 instanceId : std::as_const(sortedInstanceIds))
 	{
 		QJsonObject instanceConfig;
 		instanceConfig.insert("id",instanceId);

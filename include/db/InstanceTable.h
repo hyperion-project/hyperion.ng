@@ -3,6 +3,8 @@
 
 #include <db/DBManager.h>
 
+#include <QSet>
+
 ///
 /// @brief Hyperion instance manager specific database interface. prepares also the Hyperion database for all follow up usage (Init QtSqlConnection) along with db name
 ///
@@ -52,7 +54,7 @@ public:
 	/// @param onlyEnabled  return only enabled instance IDs if true
 	/// @return The found instances
 	///
-	QList<quint8> getAllInstanceIDs (bool onlyEnabled = false);
+	QSet<quint8> getAllInstanceIDs (bool onlyEnabled = false);
 
 	///
 	/// @brief      Test if  instance record exists
