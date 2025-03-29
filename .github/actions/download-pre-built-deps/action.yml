@@ -24,11 +24,18 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Download latest specs
+      uses: robinraju/release-downloader@v1
+      with:
+        repository: 'paulchen-panther/hyperion-deps'
+        latest: true
+        fileName: 'buildspec.json'
+
     - name: Download Deps
       id: download-pre-built-deps
       shell: bash
       run: |
-        preBuiltDeps='${{ github.workspace }}/.github/workflows/buildspec.json'
+        preBuiltDeps='${{ github.workspace }}/buildspec.json'
         baseURL=$(jq -r '.baseUrl' $preBuiltDeps)
         version=$(jq -r '.version' $preBuiltDeps)
         downloadHash=$(jq -r '.hashes .${{ inputs.os }} .${{ inputs.architecture }} .qt${{ inputs.qt_version }} .${{ inputs.build_type == 'pull_request' && 'debug' || 'release' }}' $preBuiltDeps)
