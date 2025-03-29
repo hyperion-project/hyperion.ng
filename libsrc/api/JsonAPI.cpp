@@ -13,6 +13,7 @@
 #include <QMultiMap>
 #include <QRegularExpression>
 #include <QStringList>
+#include <QEventLoop>
 
 // hyperion includes
 #include <leddevice/LedDeviceWrapper.h>
@@ -60,6 +61,7 @@ using namespace hyperion;
 namespace {
 
 constexpr std::chrono::milliseconds NEW_TOKEN_REQUEST_TIMEOUT{ 180000 };
+constexpr std::chrono::milliseconds LED_DATA_TIMEOUT { 1000 };
 
 const char TOKEN_TAG[] = "token";
 constexpr int TOKEN_TAG_LENGTH = sizeof(TOKEN_TAG) - 1;
@@ -386,6 +388,9 @@ void JsonAPI::handleCommand(const JsonApiCommand& cmd, const QJsonObject &messag
 	case Command::ClearAll:
 		handleClearallCommand(message, cmd);
 	break;
+	case Command::InstanceData:
+		handleInstanceDataCommand(message, cmd);
+		break;
 		// BEGIN | The following commands are deprecated but used to ensure backward compatibility with Hyperion Classic remote control
 	case Command::Transform:
 	case Command::Correction:
@@ -393,6 +398,99 @@ void JsonAPI::handleCommand(const JsonApiCommand& cmd, const QJsonObject &messag
 		sendErrorReply("The command is deprecated, please use the Hyperion Web Interface to configure", cmd);
 	break;
 		// END
+	default:
+	break;
+	}
+}
+
+void JsonAPI::handleGetImageSnapshotCommand(const QJsonObject &message, const JsonApiCommand &cmd)
+{
+	QString replyMsg;
+	QString imageFormat = message["format"].toString("PNG");
+	const PriorityMuxer::InputInfo priorityInfo = _hyperion->getPriorityInfo(_hyperion->getCurrentPriority());
+	Image<ColorRgb> image = priorityInfo.image;
+	QImage snapshot(reinterpret_cast<const uchar *>(image.memptr()), image.width(), image.height(), qsizetype(3) * image.width(), QImage::Format_RGB888);
+	QByteArray byteArray;
+
+	QBuffer buffer{&byteArray};
+	buffer.open(QIODevice::WriteOnly);
+	if (!snapshot.save(&buffer, imageFormat.toUtf8().constData()))
+	{
+		replyMsg = QString("Failed to create snapshot of the current image in %1 format").arg(imageFormat);
+		sendErrorReply(replyMsg, cmd);
+		return;
+	}
+	QByteArray base64Image = byteArray.toBase64();
+
+	QJsonObject info;
+	info["format"] = imageFormat;
+	info["width"] = image.width();
+	info["height"] = image.height();
+	info["data"] = base64Image.constData();
+	sendSuccessDataReply(info, cmd);
+}
+
+void JsonAPI::handleGetLedSnapshotCommand(const QJsonObject& /*message*/, const JsonApiCommand &cmd)
+{
+	std::vector<ColorRgb> ledColors;
+	QEventLoop loop;
+	QTimer timer;
+
+	// Timeout handling (ensuring loop quits on timeout)
+	timer.setSingleShot(true);
+	connect(&timer, &QTimer::timeout, this, [&loop]() {
+		loop.quit();  // Stop waiting if timeout occurs
+	});
+
+	// Capture LED colors when the LED data signal is emitted (execute only once)
+	std::unique_ptr<QObject> context{new QObject};
+	QObject* pcontext = context.get();
+	connect(_hyperion, &Hyperion::ledDeviceData, pcontext,
+			[this, &loop, context = std::move(context), &ledColors, cmd](std::vector<ColorRgb> ledColorsUpdate) mutable {
+		ledColors = ledColorsUpdate;
+		loop.quit();  // ✅ Ensure the event loop quits immediately when data is received
+
+		QJsonArray ledRgbColorsArray;
+		for (const auto &color : ledColors)
+		{
+			QJsonArray rgbArray;
+			rgbArray.append(color.red);
+			rgbArray.append(color.green);
+			rgbArray.append(color.blue);
+			ledRgbColorsArray.append(rgbArray);
+		}
+		QJsonObject info;
+		info["leds"] = ledRgbColorsArray;
+
+		sendSuccessDataReply(info, cmd);
+		context.reset();
+	}
+	);
+
+	// Start the timer and wait for either the signal or timeout
+	timer.start(LED_DATA_TIMEOUT);
+	loop.exec();
+
+	// If no data was received, return an error
+	if (ledColors.empty())
+	{
+		QString replyMsg = QString("No LED color data available, i.e.no LED update was done within the last %1 ms").arg(LED_DATA_TIMEOUT.count());
+		sendErrorReply(replyMsg, cmd);
+		return;
+	}
+}
+
+void JsonAPI::handleInstanceDataCommand(const QJsonObject &message, const JsonApiCommand &cmd)
+{
+
+	switch (cmd.subCommand)
+	{
+	case SubCommand::GetImageSnapshot:
+		handleGetImageSnapshotCommand(message, cmd);
+		break;
+	case SubCommand::GetLedSnapshot:
+		handleGetLedSnapshotCommand(message, cmd);
+		break;
 	default:
 	break;
 	}
