@@ -75,7 +75,7 @@ jobs:
           qt_version: ${{ inputs.qt_version }}
           build_type: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
 
-      - name: 👷 Build
+      - name: 👷 Build ${{ env.HINT }}
         shell: bash
         run: |
           mkdir deploy
@@ -94,6 +94,7 @@ jobs:
           BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
           ENTRYPOINT: ${{ matrix.os.architecture[0] != 'amd64' && '--entrypoint /usr/bin/env' || '' }}
           CPACK_SYSTEM_PROCESSOR: ${{ matrix.os.architecture[0] != 'amd64' && format('-DCPACK_SYSTEM_PROCESSOR={0}', matrix.target_lookup[format('{0}', matrix.os.architecture[0])]) || '' }}
+          HINT: ${{ steps.dependencies.outputs.cmakeArgs != '' && '(with pre-built dependencies)' || '(full build)' }}
 
       - name: 📦 Upload
         if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
@@ -142,7 +143,7 @@ jobs:
           qt_version: ${{ inputs.qt_version }}
           build_type: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
 
-      - name: 👷 Build
+      - name: 👷 Build ${{ env.HINT }}
         shell: bash
         run: |
           # Remove once issue with hombrew cache action is fixed
@@ -156,6 +157,7 @@ jobs:
           cd build; cpack
         env:
           BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
+          HINT: ${{ steps.dependencies.outputs.cmakeArgs != '' && '(with pre-built dependencies)' || '(full build)' }}
 
       - name: 📦 Upload
         if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
@@ -236,13 +238,14 @@ jobs:
           qt_version: ${{ inputs.qt_version }}
           build_type: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
 
-      - name: 👷 Build
+      - name: 👷 Build ${{ env.HINT }}
         shell: cmd
         run: |
            cmake --preset windows-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }}
            cmake --build --preset windows-${{ env.BUILD_TYPE }} --target package
         env:
           BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
+          HINT: ${{ steps.dependencies.outputs.cmakeArgs != '' && '(with pre-built dependencies)' || '(full build)' }}
 
       - name: 📦 Upload
         if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}

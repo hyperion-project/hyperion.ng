@@ -1,84 +1,84 @@
 {
-  "version": "2025-03-26",
+  "version": "2025-03-29",
   "baseUrl": "https://github.com/Paulchen-Panther/hyperion-deps/releases/download",
   "hashes": {
     "debian_bullseye": {
       "amd64": {
         "qt6": {
-          "debug": "f3b172e2b259c70e204508ccf9d291f3b17bc2e7a34fff3994e624e7f335e422",
-          "release": "ac90f7fb92fcc38203d12f93e7fcf342971abb15b2b7cbe2284abd78d5338481"
+          "debug": "a37ba9e9bc24ee90105fed32a2d0cafcba0ec40abd315566d1323af56464b7e0",
+          "release": "338bbc2731e7fd8380a5eb826952aaa2d9a56e86597c8cea2f565b698e20fe8e"
         }
       },
       "arm64": {
         "qt6": {
-          "debug": "9d55e67e8e7b11a1150e4e3328f8a51ef4d689d5ff22c99e501ac762f43cb6d4",
-          "release": "6ea1ab2fe8e96ec70639c1bcff9abb67080208abe3308efdc2ef73b7bd2347ba"
+          "debug": "dd1f84d06e6455a4013f7aa88545f07d248ee0e7b0dfc4453350597ce93e6d55",
+          "release": "e5e72ad42d513078dc534b6580749f011d8b14910b4ce81e8f6c8c9e7760a4dd"
         }
       },
       "armv7": {
         "qt6": {
-          "debug": "d8fe24cdfe506e28da19972499d9783e7543626675086ead6bb47ccd19c132ed",
-          "release": "7adec507475e5e486bb798f35b8a3dc96a05ab09d02d6fbf20b45f8af1d9103d"
+          "debug": "06d2c4be41dc0dc03636cdb9417d366d878fa9aa6118fc7ef37922b4bd3b814d",
+          "release": "d864af8667dbef5a7e7c33a4ab578bbe58c09d94a41c69dec22d2672468d218e"
         }
       }
     },
     "debian_buster": {
       "amd64": {
         "qt5": {
-          "debug": "71e0c0a0a53897c325332401c23850cd93c61bae18fe1a34d0430ef7351743ad",
-          "release": "3f3e9853e11fa7b66b7ecdb58ad0101527b49439d88c0a85b983e21c9dbb10dd"
+          "debug": "96f21c326be08fee7470717c57f90ddb000bcad86119eb25d4814a162ff7fa23",
+          "release": "ada32c15863f881ff69833284c48cd543242e7a89252bcf6916ea06f0d662516"
         }
       },
       "arm64": {
         "qt5": {
-          "debug": "4739463a2906ff55bc4c266417c23342c0b8e356981883a5b9c627b9c1922f8f",
-          "release": "eb3e310312f22509fa926efcc4119f745c9134204c0d389d50336b402e4300c0"
+          "debug": "c42350bc72081a0672083b760aff762aa0357fd54045028b2583dbcca8b4f1bf",
+          "release": "2470652a00bce47820892e927a821f2068351d8d95d1b042a0c996eabc898621"
         }
       },
       "armv6": {
         "qt5": {
-          "debug": "18509f10273c6ae48d239cd774ba573063b99d2bffb3d38fc5b3f5bf0ebf41e4",
-          "release": "ed6844ead3b621a53969d394574da0c861f2dd16a28d296c4f9e2e4b8a6f9e7f"
+          "debug": "0bafcaf18e3263283ef779e718b00349b0fb79aff7ac43ac7e549a37877ca718",
+          "release": "30f27f814fc0f8f3ba22d418b935e42a6e1e9406a8a718b133367643b7bdf1fe"
         }
       },
       "armv7": {
         "qt5": {
-          "debug": "a7da1999c1c1483fc04aee5d7d1b9c611431ac96218397232508189103d81044",
-          "release": "b0b6e62da6ad745c9ac9681638598267aa8f06e184db902b2129a09d7d64a9a3"
+          "debug": "09edf549ad5ec51125ace4901dd345abba1e01fec930bac106fa1537c2ff3b76",
+          "release": "5a98f6a34f2fd8abe0043db32a47e31847a773a55fc6f0c57a509bcf0d1f50a4"
         }
       }
     },
     "macos": {
       "arm64": {
         "qt5": {
-          "debug": "653dab8514cb3f1293595541f600ad2012488a5028145d642edd170ed1994a49",
-          "release": "f97234ee6fc658b6c7c148d785b3695c332418ff73103b5641e6db54e3e60e52"
+          "debug": "2ed4db4545e21817272f485da2e0af811e4c8618ec0f666182b36c34d0146f9c",
+          "release": "09aa454bdbed04cd9d4131aee44dcc8e2128bd58d93622ce55984b405c6849cb"
         },
         "qt6": {
-          "debug": "a6fe1818b6c3328624e564a7aa24217d5c56e1485bfd08c7b6fb49ef135e4e95",
-          "release": "d797bef48131e5fa51c0e0aa8f350e5eab7f51226672bd84fcee2381920df189"
+          "debug": "72bd39e9d68e6e454d4e1b045a6f2c8b4bf2ea229f8401ce5a520a08c7934a73",
+          "release": "65468befb4112fe1c6282dec981f31e8bdadaa854f0365b56c3f75e2abd00be0"
         }
       },
       "x64": {
         "qt5": {
-          "debug": "605e66c36430a6d80054a1cb50377b7042d70e8a9dcfa5597e5f9b5ef792ebfc",
-          "release": "6fc8c9a9ceb68cfa693cb9bfdcdf78538f1df6420ca1e7065d9d04aec600df33"
+          "debug": "73199db84f2fd125d5d52cdae576d6a828755b363a116a0fa86a8c67225fea0a",
+          "release": "ce8a8da40cc69ab45cbf866190e4040fe4d8797d01b4a64f256d492c93531bfe"
         },
         "qt6": {
-          "debug": "2fadf4eaea8c715b5ceab05d43b19fe17115fd7239c6f7771eec24a4c2b31b60",
-          "release": "932a9f347b90a2b304168f912d96f03e3dbde64a53d2bd3def1888fd3aae655e"
+          "debug": "4591d9bac5d671640ac239410d9618c067b04706103b8d0c3593887942b87793",
+          "release": "ef21990cd7545afcacc7d7238e23d8596feff049b84b26748e4a61fd8e74150d"
         }
       }
     },
     "windows": {
       "x64": {
         "qt5": {
-          "debug": "6c8f2c5f47906fbf3927a8b4529780fd161024a87d7bd7ccea87673fed416ffe",
-          "release": "127ebe6a9e28fc9f351f1831c655486261312ecc5903c68d3986c4e8c174086a"
+          "debug": "6ee18feebc1fc110636effb21fe9514b0c204b729ecc1ddf09b9c329f570324f",
+          "release": "4747730963edfa22bd2e29a4e1f5d5ed14aa549277ad6b9501be6ffbca423487"
         },
         "qt6": {
-          "debug": "7704cb2774852ef03883e0c41546bf9ade85db136d2e31c0d0201c2a3baf5869",
-          "release": "9b2ecd70a992150d01b10d2c8ff06a676110508162031b4d10238b26b1d76410"
+          "debug": "53d7a5c28ade527ac6395d954fd3de3515c4d3a33db6ec551950ca0073045c6f",
+          "release": "7011fb028d8f93a90331c76cee5a762eeebf8a01e67fdec959b32b5006bef07c"
         }
       }
     }
