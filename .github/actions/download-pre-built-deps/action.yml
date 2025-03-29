@@ -35,7 +35,7 @@ runs:
       id: download-pre-built-deps
       shell: bash
       run: |
-        preBuiltDeps='${{ github.workspace }}/buildspec.json'
+        preBuiltDeps='buildspec.json'
         baseURL=$(jq -r '.baseUrl' $preBuiltDeps)
         version=$(jq -r '.version' $preBuiltDeps)
         downloadHash=$(jq -r '.hashes .${{ inputs.os }} .${{ inputs.architecture }} .qt${{ inputs.qt_version }} .${{ inputs.build_type }}' $preBuiltDeps)

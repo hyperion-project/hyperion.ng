@@ -2,7 +2,7 @@ name: 📊 CodeQL
 run-name: |
   ${{ github.event_name == 'schedule' && '⏰ Scheduled CodeQL run' || '' }}
   ${{ github.event_name == 'push' && format('📊 Pushed CodeQL run - {0}', github.event.head_commit.message) || '' }}
-  ${{ github.event_name == 'pull_request' && format('📊 CodeQL run for PR {0} - {1}', github.event.pull_request.number, github.event.pull_request.title) || github.event.head_commit.message }}
+  ${{ github.event_name == 'pull_request' && format('📊 CodeQL run for PR {0} - {1}', github.event.pull_request.number, github.event.pull_request.title) || '' }}
 
 on:
   push:
@@ -26,22 +26,14 @@ jobs:
       matrix:
         language: [ python, javascript, cpp ]
 
+    container:
+      image: ghcr.io/hyperion-project/debian:bullseye-qt6
+
     steps:
       - name: ⬇ Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
-
-      - name: 📥 Install Packages (cpp)
-        if: ${{ matrix.language == 'cpp' }}
-        run: |
-          sudo apt-get update
-          sudo apt-get install --yes git build-essential qtbase5-dev libqt5serialport5-dev libqt5websockets5-dev libqt5sql5-sqlite libqt5svg5-dev libqt5x11extras5-dev libusb-1.0-0-dev python3-dev libcec-dev libxcb-image0-dev libxcb-util0-dev libxcb-shm0-dev libxcb-render0-dev libxcb-randr0-dev libxrandr-dev libxrender-dev libavahi-core-dev libavahi-compat-libdnssd-dev libasound2-dev libturbojpeg0-dev libjpeg-dev libssl-dev libftdi1-dev 
-
-      - name: Temporarily downgrade CMake to 3.28.3 # Please remove if GitHub has updated Cmake (greater than 3.30.0)
-        uses: jwlawson/actions-setup-cmake@v2
-        with:
-          cmake-version: '3.28.3'          
 
       - name: 🔁 Initialize CodeQL
         uses: github/codeql-action/init@v3
@@ -49,9 +41,33 @@ jobs:
           languages: ${{ matrix.language }}
           queries: +security-and-quality
           config-file: ./.github/config/codeql.yml
-          
-      - name: 👷 Autobuild
+
+      - name: 👷 Build (Python & JavaScript)
+        if: ${{ matrix.language != 'cpp' }}
         uses: github/codeql-action/autobuild@v3
+
+      - name: 📥 Install jq (C++)
+        if: ${{ matrix.language == 'cpp' }}
+        shell: bash
+        run: apt-get update && apt-get install -y jq
+
+      - name: 💾 Download Pre-Build Dependencies (C++)
+        if: ${{ matrix.language == 'cpp' }}
+        id: dependencies
+        uses: ./.github/actions/download-pre-built-deps
+        with:
+          os: 'debian_bullseye'
+          architecture: 'amd64'
+          qt_version: '6'
+          build_type: ${{ github.event_name == 'pull_request' && 'debug' || 'release' }}
+
+      - name: 👷 Build (C++)
+        if: ${{ matrix.language == 'cpp' }}
+        run: |
+          cmake --preset linux-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }}
+          cmake --build --preset linux-${{ env.BUILD_TYPE }}
+        env:
+          BUILD_TYPE: ${{ github.event_name == 'pull_request' && 'debug' || 'release' }}
 
       - name: 🏃 Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
@@ -66,9 +82,6 @@ jobs:
           patterns: |
             -**/dependencies/**
             -**/moc_*.cpp
-            -**/libsrc/flatbufserver/hyperion_request_generated.h
-            -**/libsrc/protoserver/message.pb.cc
-            -**/libsrc/protoserver/message.pb.h
           input: sarif-results/${{ matrix.language }}.sarif
           output: sarif-results/${{ matrix.language }}.sarif
 
@@ -83,4 +96,3 @@ jobs:
           name: ${{ matrix.language }}.sarif
           path: sarif-results
           retention-days: 1
-
