@@ -38,8 +38,9 @@ runs:
         preBuiltDeps='${{ github.workspace }}/buildspec.json'
         baseURL=$(jq -r '.baseUrl' $preBuiltDeps)
         version=$(jq -r '.version' $preBuiltDeps)
-        downloadHash=$(jq -r '.hashes .${{ inputs.os }} .${{ inputs.architecture }} .qt${{ inputs.qt_version }} .${{ inputs.build_type == 'pull_request' && 'debug' || 'release' }}' $preBuiltDeps)
-        downloadFilename=${{ inputs.os }}-${{ inputs.architecture }}-qt${{ inputs.qt_version }}-${{ inputs.build_type == 'pull_request' && 'debug' || 'release' }}-$version.tar.gz
+        downloadHash=$(jq -r '.hashes .${{ inputs.os }} .${{ inputs.architecture }} .qt${{ inputs.qt_version }} .${{ inputs.build_type }}' $preBuiltDeps)
+        downloadFilename=${{ inputs.os }}-${{ inputs.architecture }}-qt${{ inputs.qt_version }}-${{ inputs.build_type }}-$version.tar.gz
+        echo 💾 Download "$downloadFilename"...
         curl -OL "$baseURL"/"$version"/"$downloadFilename"
         if [[ ${{ inputs.os }} == 'windows' ]]; then
           computedHash=$(powershell -Command "(Get-FileHash -Path \"$downloadFilename\" -Algorithm SHA256).Hash.ToLower()")
@@ -48,13 +49,16 @@ runs:
           computedHash=$(sha256sum "$downloadFilename" | awk '{print $1}')
           destDir=/tmp/deps
         fi
+        echo 👀 Check Hash"...
         if [[ "$computedHash" == "$downloadHash" ]]; then
           mkdir "$destDir"
           tar -xzf "$downloadFilename" -C "$destDir"
           if [[ ${{ inputs.os }} != 'windows' ]]; then
             chmod +x "$destDir"/bin/*
           fi
+          echo ✅ Hash check passed."
           echo "cmake-args="-DUSE_PRE_BUILT_DEPS=ON -DPRE_BUILT_DEPS_DIR=$destDir"" >> $GITHUB_OUTPUT
         else
+          echo ❌ Hash check failed."
           echo "cmake-args=" >> $GITHUB_OUTPUT
         fi

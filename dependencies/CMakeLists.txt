@@ -266,7 +266,7 @@ if(ENABLE_FLATBUF_SERVER OR ENABLE_FLATBUF_CONNECT)
 		endif()
 
 		if(NOT TARGET flatc)
-			if(USE_PRE_BUILD_DEPS)
+			if(USE_PRE_BUILT_DEPS)
 				add_executable(flatc IMPORTED GLOBAL)
 				set_target_properties(flatc PROPERTIES
 					IMPORTED_LOCATION ${PRE_BUILT_DEPS_DIR}/bin/flatc${CMAKE_EXECUTABLE_SUFFIX}
