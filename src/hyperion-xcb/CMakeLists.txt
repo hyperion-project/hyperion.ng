@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.0)
+cmake_minimum_required(VERSION 3.10.0)
 project(hyperion-xcb)
 
 add_executable(${PROJECT_NAME}
@@ -11,7 +11,6 @@ target_link_libraries(${PROJECT_NAME}
 	commandline
 	hyperion-utils
 	flatbufconnect
-	flatbuffers
 	xcb-grabber
 	Qt${QT_VERSION_MAJOR}::Widgets
 )

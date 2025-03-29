@@ -1,15 +1,8 @@
-# set (compiled) Flatbuffer schema names
-set(FBS_Request "hyperion_request")
-set(FBS_Reply "hyperion_reply")
-
-# define and compile flatbuffer schemas
-list(APPEND Compiled_FBS ${FBS_Request}_generated.h)
-list(APPEND Compiled_FBS ${FBS_Reply}_generated.h)
-compile_flattbuffer_schema(${CMAKE_CURRENT_SOURCE_DIR}/${FBS_Request}.fbs ${CMAKE_CURRENT_SOURCE_DIR})
-compile_flattbuffer_schema(${CMAKE_CURRENT_SOURCE_DIR}/${FBS_Reply}.fbs ${CMAKE_CURRENT_SOURCE_DIR})
-
-# let cmake know about new generated source files
-set_source_files_properties(${Compiled_FBS} PROPERTIES GENERATED TRUE)
+# Compile flatbuffer schemas
+compile_flatbuffer_schema(Compiled_FBS
+	${CMAKE_CURRENT_SOURCE_DIR}/hyperion_request.fbs
+	${CMAKE_CURRENT_SOURCE_DIR}/hyperion_reply.fbs
+)
 
 # split flatbufconnect from flatbufserver as flatbufserver relates to HyperionDaemon
 if(ENABLE_FLATBUF_CONNECT)
@@ -21,12 +14,10 @@ if(ENABLE_FLATBUF_CONNECT)
 
 	target_link_libraries(flatbufconnect
 		hyperion-utils
-		flatbuffers
+		FlatBuffers
 	)
 
-	target_include_directories(flatbufconnect PUBLIC
-		${FLATBUFFERS_INCLUDE_DIRS}
-	)
+	target_include_directories(flatbufconnect PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 endif()
 
 if(ENABLE_FLATBUF_SERVER)
@@ -40,15 +31,12 @@ if(ENABLE_FLATBUF_SERVER)
 
 	target_link_libraries(flatbufserver
 		hyperion-utils
-		flatbuffers
+		FlatBuffers
 	)
 
-	target_include_directories(flatbufserver PUBLIC
-		${FLATBUFFERS_INCLUDE_DIRS}
-	)
+	target_include_directories(flatbufserver PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 	if(ENABLE_MDNS)
 		target_link_libraries(flatbufserver mdns)
 	endif()
 endif()
-

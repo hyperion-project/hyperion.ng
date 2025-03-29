@@ -1,8 +1,8 @@
 #=============================================================================
-# Minimum required CMake version is 3.5.0
+# Minimum required CMake version is 3.10.0
 #=============================================================================
 
-cmake_minimum_required(VERSION 3.5.0)
+cmake_minimum_required(VERSION 3.10.0)
 message(STATUS "CMake Version: ${CMAKE_VERSION}")
 
 #=============================================================================
@@ -12,6 +12,11 @@ message(STATUS "CMake Version: ${CMAKE_VERSION}")
 # Disable passing /W3 by default on MSVC
 if(POLICY CMP0092)
 	cmake_policy(SET CMP0092 NEW)
+endif()
+
+# Avoid warning about DOWNLOAD_EXTRACT_TIMESTAMP
+if(POLICY CMP0135)
+	cmake_policy(SET CMP0135 NEW)
 endif()
 
 #=============================================================================
@@ -92,7 +97,7 @@ message(STATUS "Current Version: ${HYPERION_VERSION}")
 message(STATUS " - Build: ${HYPERION_BUILD_ID}")
 
 #=============================================================================
-# Set build variables
+# Set default build variables
 #=============================================================================
 
 # Grabber
@@ -102,67 +107,77 @@ set(DEFAULT_DX                          OFF)
 set(DEFAULT_DDA                         OFF)
 set(DEFAULT_MF                          OFF)
 set(DEFAULT_OSX                         OFF)
-set(DEFAULT_QT                          ON )
+set(DEFAULT_QT                          ON)
 set(DEFAULT_V4L2                        OFF)
-set(DEFAULT_AUDIO                       ON )
+set(DEFAULT_AUDIO                       ON)
 set(DEFAULT_X11                         OFF)
 set(DEFAULT_XCB                         OFF)
 
 # Input
-set(DEFAULT_BOBLIGHT_SERVER             ON )
+set(DEFAULT_BOBLIGHT_SERVER             ON)
 set(DEFAULT_CEC                         OFF)
-set(DEFAULT_FLATBUF_SERVER              ON )
-set(DEFAULT_PROTOBUF_SERVER             ON )
+set(DEFAULT_FLATBUF_SERVER              ON)
+set(DEFAULT_PROTOBUF_SERVER             ON)
 
 # Output
-set(DEFAULT_FORWARDER                   ON )
-set(DEFAULT_FLATBUF_CONNECT             ON )
+set(DEFAULT_FORWARDER                   ON)
+set(DEFAULT_FLATBUF_CONNECT             ON)
 
 # LED-Devices
-set(DEFAULT_DEV_NETWORK                 ON )
-set(DEFAULT_DEV_SERIAL                  ON )
+set(DEFAULT_DEV_NETWORK                 ON)
+set(DEFAULT_DEV_SERIAL                  ON)
 set(DEFAULT_DEV_SPI                     OFF)
 set(DEFAULT_DEV_TINKERFORGE             OFF)
-set(DEFAULT_DEV_USB_HID                 OFF)
+set(DEFAULT_DEV_USB_HID                 ON)
 set(DEFAULT_DEV_WS281XPWM               OFF)
-set(DEFAULT_DEV_FTDI                    ON )
+set(DEFAULT_DEV_FTDI                    ON)
 
 # Services
-set(DEFAULT_EFFECTENGINE                ON )
-set(DEFAULT_EXPERIMENTAL                OFF)
-set(DEFAULT_MDNS                        ON )
-set(DEFAULT_REMOTE_CTL                  ON )
+set(DEFAULT_EFFECTENGINE                ON)
+set(DEFAULT_MDNS                        ON)
 
-# Build
-set(DEFAULT_JSONCHECKS                  ON )
-set(DEFAULT_DEPLOY_DEPENDENCIES         ON )
+# Standalone binaries
+set(DEFAULT_REMOTE_CTL                  ON)
+
+# 3rd party libs
+set(DEFAULT_USE_SYSTEM_LIBUSB_LIBS      OFF)
+set(DEFAULT_USE_SYSTEM_LIBFTDI_LIBS     OFF)
+set(DEFAULT_USE_SYSTEM_HIDAPI_LIBS      OFF)
 set(DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS OFF)
 set(DEFAULT_USE_SYSTEM_PROTO_LIBS       OFF)
 set(DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     OFF)
 set(DEFAULT_USE_SYSTEM_QMDNS_LIBS       OFF)
+
+# Tests
 set(DEFAULT_TESTS                       OFF)
+
+# Advanced features
+set(DEFAULT_DEPLOY_DEPENDENCIES         ON)
+set(DEFAULT_JSONCHECKS                  ON)
+set(DEFAULT_EXPERIMENTAL                OFF)
+set(DEFAULT_PROFILER                    OFF)
 
 # Build Hyperion with a reduced set of functionality, overwrites other default values
 set(DEFAULT_HYPERION_LIGHT              OFF)
+
+# Build Hyperion with pre-build dependencies
+set(DEFAULT_PRE_BUILD_DEPS              OFF)
 
 if(${CMAKE_SYSTEM} MATCHES "Linux")
 	set(DEFAULT_FB              ON)
 	set(DEFAULT_V4L2            ON)
 	set(DEFAULT_DEV_SPI         ON)
 	set(DEFAULT_DEV_TINKERFORGE ON)
-	set(DEFAULT_DEV_USB_HID     ON)
 	set(DEFAULT_CEC             ON)
 elseif (WIN32)
-	set(DEFAULT_DX              ON )
-	set(DEFAULT_DDA             ON )
-	set(DEFAULT_MF              ON )
-	set(DEFAULT_DEV_FTDI        OFF)
+	set(DEFAULT_DX              ON)
+	set(DEFAULT_DDA             ON)
+	set(DEFAULT_MF              ON)
 else()
 	set(DEFAULT_FB              OFF)
 	set(DEFAULT_V4L2            OFF)
 	set(DEFAULT_DEV_SPI         OFF)
 	set(DEFAULT_DEV_TINKERFORGE OFF)
-	set(DEFAULT_DEV_USB_HID     OFF)
 	set(DEFAULT_CEC             OFF)
 endif()
 
@@ -181,19 +196,13 @@ else()
 endif()
 
 if("${PLATFORM}" MATCHES "osx")
-	# specify the min version of the target platform (only GitHub Actions)
-	if(DEFINED ENV{GITHUB_WORKSPACE})
-		set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15")
-	endif()
-
 	# add specific prefix paths
 	FIRSTSUBDIR(SUBDIRPY "/usr/local/opt/python3/Frameworks/Python.framework/Versions")
 	set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} ${SUBDIRPY})
 
 	include_directories("/opt/X11/include/")
-	set(DEFAULT_OSX         ON )
+	set(DEFAULT_OSX         ON)
 	set(DEFAULT_AUDIO       OFF)
-	set(DEFAULT_DEV_USB_HID ON )
 
 elseif ("${PLATFORM}" MATCHES "rpi")
 	set(DEFAULT_DISPMANX   ON)
@@ -230,55 +239,85 @@ ADD_DEFINITIONS(${PLATFORM_DEFINE})
 # Set the build options
 #=============================================================================
 
+option(USE_PRE_BUILT_DEPS "Build Hyperion with previously created dependencies (see also PRE_BUILT_DEPS_DIR)" ${DEFAULT_PRE_BUILT_DEPS})
+set(PRE_BUILT_DEPS_DIR "" CACHE STRING "The folder in which the previously created dependencies are located")
+message(STATUS "USE_PRE_BUILT_DEPS = ${USE_PRE_BUILT_DEPS}")
+
+if(USE_PRE_BUILT_DEPS)
+	if(PRE_BUILT_DEPS_DIR)
+		# Handle expansion of the ~ to home directory
+		if(PRE_BUILT_DEPS_DIR MATCHES "^~")
+			string(REPLACE "~" "$ENV{HOME}" PRE_BUILT_DEPS_DIR "${PRE_BUILT_DEPS_DIR}")
+		endif()
+
+		# Check if the path is relative
+		if(NOT IS_ABSOLUTE ${PRE_BUILT_DEPS_DIR})
+			# Convert to absolute path based on the directory where CMake was executed
+			get_filename_component(PRE_BUILT_DEPS_DIR "${CMAKE_SOURCE_DIR}/${PRE_BUILT_DEPS_DIR}" ABSOLUTE)
+		endif()
+
+		# Check if the directory exists
+		if(NOT IS_DIRECTORY ${PRE_BUILT_DEPS_DIR})
+			message(FATAL_ERROR "The specified PRE_BUILT_DEPS_DIR (${PRE_BUILT_DEPS_DIR}) does not exist.")
+		endif()
+
+		message(STATUS "Hyperion is build with previously created dependencies")
+		message(STATUS "Pre-build dependencies path: ${PRE_BUILT_DEPS_DIR}")
+
+		# Use pre-built dependencies
+		set(DEFAULT_USE_SYSTEM_LIBUSB_LIBS      ON)
+		set(DEFAULT_USE_SYSTEM_LIBFTDI_LIBS     ON)
+		set(DEFAULT_USE_SYSTEM_HIDAPI_LIBS      ON)
+		set(DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS ON)
+		set(DEFAULT_USE_SYSTEM_PROTO_LIBS       ON)
+		set(DEFAULT_USE_SYSTEM_MBEDTLS_LIBS     ON)
+		set(DEFAULT_USE_SYSTEM_QMDNS_LIBS       ON)
+	else()
+		message(FATAL_ERROR "The folder in which the previously created dependencies are located has not been defined. Please set PRE_BUILT_DEPS_DIR to this directory.")
+	endif()
+endif()
+
 option(HYPERION_LIGHT "Build Hyperion with a reduced set of functionality" ${DEFAULT_HYPERION_LIGHT})
 message(STATUS "HYPERION_LIGHT = ${HYPERION_LIGHT}")
 
 if(HYPERION_LIGHT)
 	message(STATUS "HYPERION_LIGHT: Hyperion is build with a reduced set of functionality.")
+
 	# Disable Screen/Video Grabbers
-	SET ( DEFAULT_AMLOGIC                     OFF )
-	SET ( DEFAULT_DISPMANX                    OFF )
-	SET ( DEFAULT_DX                          OFF )
-	SET ( DEFAULT_DDA                         OFF )
-	SET ( DEFAULT_FB                          OFF )
-	SET ( DEFAULT_MF                          OFF )
-	SET ( DEFAULT_OSX                         OFF )
-	SET ( DEFAULT_QT                          OFF )
-	SET ( DEFAULT_V4L2                        OFF )
-	SET ( DEFAULT_X11                         OFF )
-	SET ( DEFAULT_XCB                         OFF )
+	set(DEFAULT_AMLOGIC                     OFF)
+	set(DEFAULT_DISPMANX                    OFF)
+	set(DEFAULT_DX                          OFF)
+	set(DEFAULT_DDA                         OFF)
+	set(DEFAULT_FB                          OFF)
+	set(DEFAULT_MF                          OFF)
+	set(DEFAULT_OSX                         OFF)
+	set(DEFAULT_QT                          OFF)
+	set(DEFAULT_V4L2                        OFF)
+	set(DEFAULT_X11                         OFF)
+	set(DEFAULT_XCB                         OFF)
 
 	# Disable Audio Grabbers
-	SET ( DEFAULT_AUDIO                       OFF )
-
-	# LED-Devices
-	#SET ( DEFAULT_DEV_NETWORK                 OFF )
-	#SET ( DEFAULT_DEV_FTDI                    OFF )
-	#SET ( DEFAULT_DEV_SERIAL                  OFF )
-	#SET ( DEFAULT_DEV_SPI                     OFF )
-	#SET ( DEFAULT_DEV_TINKERFORGE             OFF )
-	#SET ( DEFAULT_DEV_USB_HID                 OFF )
-	#SET ( DEFAULT_DEV_WS281XPWM               OFF )
+	set(DEFAULT_AUDIO                       OFF)
 
 	# Disable Input Servers
-	SET ( DEFAULT_BOBLIGHT_SERVER             OFF )
-	SET ( DEFAULT_CEC                         OFF )
-	SET ( DEFAULT_FLATBUF_SERVER              OFF )
-	SET ( DEFAULT_PROTOBUF_SERVER             OFF )
+	SET(DEFAULT_BOBLIGHT_SERVER             OFF)
+	SET(DEFAULT_CEC                         OFF)
+	SET(DEFAULT_FLATBUF_SERVER              OFF)
+	SET(DEFAULT_PROTOBUF_SERVER             OFF)
 
 	# Disable Output Connectors
-	SET ( DEFAULT_FORWARDER                   OFF )
-	SET ( DEFAULT_FLATBUF_CONNECT             OFF )
+	set(DEFAULT_FORWARDER                   OFF)
+	set(DEFAULT_FLATBUF_CONNECT             OFF)
 
 	# Disable Services
-	SET ( DEFAULT_EFFECTENGINE                OFF )
-	SET ( DEFAULT_EXPERIMENTAL                OFF )
-	#SET ( DEFAULT_MDNS                       OFF )
-	SET ( DEFAULT_REMOTE_CTL                  OFF )
+	set(DEFAULT_EFFECTENGINE                OFF)
+	set(DEFAULT_EXPERIMENTAL                OFF)
+	set(DEFAULT_REMOTE_CTL                  OFF)
 
-	SET ( ENABLE_JSONCHECKS                    ON )
-	SET ( ENABLE_DEPLOY_DEPENDENCIES           ON )
+	set(ENABLE_JSONCHECKS                    ON)
+	set(ENABLE_DEPLOY_DEPENDENCIES           ON)
 endif()
+
 message(STATUS "Grabber options:")
 
 addIndent(" - ")
@@ -378,7 +417,7 @@ message(STATUS "ENABLE_DEV_USB_HID = ${ENABLE_DEV_USB_HID}")
 option(ENABLE_DEV_WS281XPWM "Enable the WS281x-PWM device" ${DEFAULT_DEV_WS281XPWM})
 message(STATUS "ENABLE_DEV_WS281XPWM = ${ENABLE_DEV_WS281XPWM}")
 
-option(ENABLE_DEV_FTDI "Enable the FTDI devices" ${DEFAULT_DEV_FTDI} )
+option(ENABLE_DEV_FTDI "Enable the FTDI devices" ${DEFAULT_DEV_FTDI})
 message(STATUS "ENABLE_DEV_FTDI = ${ENABLE_DEV_FTDI}")
 
 removeIndent()
@@ -389,46 +428,79 @@ addIndent(" - ")
 option(ENABLE_EFFECTENGINE "Enable Effect-Engine" ${DEFAULT_EFFECTENGINE})
 message(STATUS "ENABLE_EFFECTENGINE = ${ENABLE_EFFECTENGINE}")
 
-option(ENABLE_EXPERIMENTAL "Compile experimental features" ${DEFAULT_EXPERIMENTAL})
-message(STATUS "ENABLE_EXPERIMENTAL = ${ENABLE_EXPERIMENTAL}")
-
 option(ENABLE_MDNS "Enable mDNS (aka Zeroconf)" ${DEFAULT_MDNS})
 message(STATUS "ENABLE_MDNS = ${ENABLE_MDNS}")
+
+removeIndent()
+
+message(STATUS "Standalone binaries:")
+addIndent(" - ")
 
 option(ENABLE_REMOTE_CTL "Enable Hyperion remote control" ${DEFAULT_REMOTE_CTL})
 message(STATUS "ENABLE_REMOTE_CTL = ${ENABLE_REMOTE_CTL}")
 
 removeIndent()
 
-message(STATUS "Build options:")
+message(STATUS "3rd party libs:")
 addIndent(" - ")
 
-option(ENABLE_JSONCHECKS "Validate json schema files" ${DEFAULT_JSONCHECKS})
-message(STATUS "ENABLE_JSONCHECKS = ${ENABLE_JSONCHECKS}")
+if(ENABLE_DEV_USB_HID OR ENABLE_DEV_FTDI)
+	option(USE_SYSTEM_LIBUSB_LIBS "Use LibUSB library from system" ${DEFAULT_USE_SYSTEM_LIBUSB_LIBS})
+    message(STATUS "USE_SYSTEM_LIBUSB_LIBS = ${USE_SYSTEM_LIBUSB_LIBS}")
+endif()
+
+if(ENABLE_DEV_FTDI)
+	option(USE_SYSTEM_LIBFTDI_LIBS "Use LibFTDI library from system" ${DEFAULT_USE_SYSTEM_LIBFTDI_LIBS})
+	message(STATUS "USE_SYSTEM_LIBFTDI_LIBS = ${USE_SYSTEM_LIBFTDI_LIBS}")
+endif()
+
+if(ENABLE_DEV_USB_HID)
+	option(USE_SYSTEM_HIDAPI_LIBS "Use HIDAPI library from system" ${DEFAULT_USE_SYSTEM_HIDAPI_LIBS})
+    message(STATUS "USE_SYSTEM_HIDAPI_LIBS = ${USE_SYSTEM_HIDAPI_LIBS}")
+endif()
+
+if(ENABLE_FLATBUF_SERVER OR ENABLE_FLATBUF_CONNECT)
+	option(USE_SYSTEM_FLATBUFFERS_LIBS "Use FlatBuffers library from system" ${DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS})
+	message(STATUS "USE_SYSTEM_FLATBUFFERS_LIBS = ${USE_SYSTEM_FLATBUFFERS_LIBS}")
+endif()
+
+if(ENABLE_PROTOBUF_SERVER)
+	option(USE_SYSTEM_PROTO_LIBS "Use Protocol Buffers library from system" ${DEFAULT_USE_SYSTEM_PROTO_LIBS})
+	message(STATUS "USE_SYSTEM_PROTO_LIBS = ${USE_SYSTEM_PROTO_LIBS}")
+endif()
+
+option(USE_SYSTEM_MBEDTLS_LIBS "Use mbedTLS library from system" ${DEFAULT_USE_SYSTEM_MBEDTLS_LIBS})
+message(STATUS "USE_SYSTEM_MBEDTLS_LIBS = ${USE_SYSTEM_MBEDTLS_LIBS}")
+
+if(ENABLE_MDNS)
+	option(USE_SYSTEM_QMDNS_LIBS "Use QMdnsEngine library from system" ${DEFAULT_USE_SYSTEM_QMDNS_LIBS})
+	message(STATUS "USE_SYSTEM_QMDNS_LIBS = ${USE_SYSTEM_QMDNS_LIBS}")
+endif()
+
+removeIndent()
+
+message(STATUS "Tests:")
+addIndent(" - ")
+
+option(ENABLE_TESTS "Compile additional test applications" ${DEFAULT_TESTS})
+message(STATUS "ENABLE_TESTS = ${ENABLE_TESTS}")
+
+removeIndent()
+
+message(STATUS "Advanced features:")
+addIndent(" - ")
 
 option(ENABLE_DEPLOY_DEPENDENCIES "Deploy with dependencies" ${DEFAULT_DEPLOY_DEPENDENCIES})
 message(STATUS "ENABLE_DEPLOY_DEPENDENCIES = ${ENABLE_DEPLOY_DEPENDENCIES}")
 
-if(ENABLE_FLATBUF_SERVER OR ENABLE_FLATBUF_CONNECT)
-	message(STATUS "DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS = ${DEFAULT_USE_SYSTEM_FLATBUFFERS_LIBS}")
-endif()
+option(ENABLE_JSONCHECKS "Validate json schema files" ${DEFAULT_JSONCHECKS})
+message(STATUS "ENABLE_JSONCHECKS = ${ENABLE_JSONCHECKS}")
 
-if(ENABLE_PROTOBUF_SERVER)
-	message(STATUS "DEFAULT_USE_SYSTEM_PROTO_LIBS = ${DEFAULT_USE_SYSTEM_PROTO_LIBS}")
-endif()
+option(ENABLE_EXPERIMENTAL "Compile experimental features" ${DEFAULT_EXPERIMENTAL})
+message(STATUS "ENABLE_EXPERIMENTAL = ${ENABLE_EXPERIMENTAL}")
 
-message(STATUS "DEFAULT_USE_SYSTEM_MBEDTLS_LIBS = ${DEFAULT_USE_SYSTEM_MBEDTLS_LIBS}")
-
-if(ENABLE_MDNS)
-	message(STATUS "DEFAULT_USE_SYSTEM_QMDNS_LIBS = ${DEFAULT_USE_SYSTEM_QMDNS_LIBS}")
-endif()
-
-
-option(ENABLE_PROFILER "enable profiler capabilities - not for release code" OFF)
+option(ENABLE_PROFILER "Enable profiler capabilities - NOT FOR RELEASE CODE" ${DEFAULT_PROFILER})
 message(STATUS "ENABLE_PROFILER = ${ENABLE_PROFILER}")
-
-option(ENABLE_TESTS "Compile additional test applications" ${DEFAULT_TESTS})
-message(STATUS "ENABLE_TESTS = ${ENABLE_TESTS}")
 
 removeIndent()
 
@@ -510,7 +582,7 @@ endif()
 
 # If Hyperion is deployed with all dependencies under Linux
 # it is necessary to deactivate the linker option dtag
-if(ENABLE_DEPLOY_DEPENDENCIES AND UNIX AND NOT APPLE)
+if(ENABLE_DEPLOY_DEPENDENCIES AND CMAKE_SYSTEM MATCHES "Linux")
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--disable-new-dtags")
 	set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--disable-new-dtags")
 	set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--disable-new-dtags")
@@ -519,13 +591,6 @@ if(ENABLE_DEPLOY_DEPENDENCIES AND UNIX AND NOT APPLE)
 	set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
 	set(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
 endif()
-
-if(APPLE)
-	set(CMAKE_EXE_LINKER_FLAGS "-framework CoreGraphics")
-endif()
-
-find_package(Threads REQUIRED)
-find_package(libusb-1.0 REQUIRED)
 
 #=============================================================================
 # Allow to overwrite QT base directory
@@ -590,7 +655,7 @@ find_package(Qt${QT_VERSION_MAJOR} ${QT_VERSION} COMPONENTS Core Gui Network Sql
 
 message(STATUS "Qt version used: ${QT_VERSION}")
 
-if(APPLE AND (${QT_VERSION_MAJOR} GREATER_EQUAL 6))
+if(CMAKE_SYSTEM_NAME MATCHES "Darwin" AND (${QT_VERSION_MAJOR} GREATER_EQUAL 6))
 	set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
 endif()
 

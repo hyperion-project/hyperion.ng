@@ -66,17 +66,27 @@ jobs:
         shell: bash
         run: tr -d '\n' < .version > temp && mv temp .version && echo -n "+PR${{ inputs.pull_request_number }}" >> .version
 
-      - name: 👷 Build
+      - name: 💾 Download Pre-Build Dependencies
+        id: dependencies
+        uses: ./.github/actions/download-pre-built-deps
+        with:
+          os: ${{ matrix.os.distribution }}_${{ matrix.os.codename }}
+          architecture: ${{ matrix.os.architecture[0] }}
+          qt_version: ${{ inputs.qt_version }}
+          build_type: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
+
+      - name: 👷 Build ${{ env.HINT }}
         shell: bash
         run: |
           mkdir deploy
           docker run --rm --platform=${{ matrix.os.architecture[1] }} ${{ env.ENTRYPOINT }} \
             -v "${{ github.workspace }}/deploy:/deploy" \
             -v "${{ github.workspace }}:/source:rw" \
+            -v "/tmp/deps:/tmp/deps:rw" \
             -w "/source" \
             ghcr.io/hyperion-project/${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }} \
-            /bin/bash -c "cmake --preset linux-${{ env.BUILD_TYPE }} -DPLATFORM=${{ matrix.os.platform }} ${{ env.CPACK_SYSTEM_PROCESSOR }} &&
-            cmake --build --preset linux-${{ env.BUILD_TYPE }} --target package --parallel $(nproc) &&
+            /bin/bash -c "cmake --preset linux-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }} -DPLATFORM=${{ matrix.os.platform }} ${{ env.CPACK_SYSTEM_PROCESSOR }} &&
+            cmake --build --preset linux-${{ env.BUILD_TYPE }} --target package &&
             cp /source/build/Hyperion-* /deploy/ 2>/dev/null"
         env:
           DOCKER_IMAGE: ${{ matrix.os.distribution }}
@@ -84,6 +94,7 @@ jobs:
           BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
           ENTRYPOINT: ${{ matrix.os.architecture[0] != 'amd64' && '--entrypoint /usr/bin/env' || '' }}
           CPACK_SYSTEM_PROCESSOR: ${{ matrix.os.architecture[0] != 'amd64' && format('-DCPACK_SYSTEM_PROCESSOR={0}', matrix.target_lookup[format('{0}', matrix.os.architecture[0])]) || '' }}
+          HINT: ${{ steps.dependencies.outputs.cmakeArgs != '' && '(with pre-built dependencies)' || '(full build)' }}
 
       - name: 📦 Upload
         if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
@@ -120,23 +131,33 @@ jobs:
       - name: 📥 Install dependencies
         uses: tecolicom/actions-use-homebrew-tools@v1
         with:
-          tools: qt@${{ inputs.qt_version }} vulkan-headers ninja libftdi
+          tools: qt@${{ inputs.qt_version }} vulkan-headers coreutils
           key: ${{ runner.os }}-${{ matrix.architecture }}-homebrew-packages-${{ inputs.qt_version }}
 
-      - name: 👷 Build
+      - name: 💾 Download Pre-Build Dependencies
+        id: dependencies
+        uses: ./.github/actions/download-pre-built-deps
+        with:
+          os: 'macos'
+          architecture: ${{ matrix.architecture }}
+          qt_version: ${{ inputs.qt_version }}
+          build_type: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
+
+      - name: 👷 Build ${{ env.HINT }}
         shell: bash
         run: |
           # Remove once issue with hombrew cache action is fixed
           brew reinstall --formula cmake
           # Build
-          cmake --preset macos-${{ env.BUILD_TYPE }}
-          cmake --build --preset macos-${{ env.BUILD_TYPE }} --parallel $(sysctl -n hw.ncpu)
+          cmake --preset macos-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }}
+          cmake --build --preset macos-${{ env.BUILD_TYPE }}
           # CPack workaround for macOS 13
           echo killing...; sudo pkill -9 XProtect >/dev/null || true;
           echo waiting...; while pgrep XProtect; do sleep 3; done;
           cd build; cpack
         env:
           BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
+          HINT: ${{ steps.dependencies.outputs.cmakeArgs != '' && '(with pre-built dependencies)' || '(full build)' }}
 
       - name: 📦 Upload
         if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}
@@ -181,10 +202,12 @@ jobs:
           destination: .\installer\libjpeg-turbo.exe
           cache-key: libjpeg-turbo
 
-      - name: 📥 Install DirectX SDK & libjpeg-turbo
+      - name: 📥 Extract DirectX SDK & libjpeg-turbo
         run: |
-          cmd.exe /c start /wait .\installer\libjpeg-turbo.exe /S
-          cmd.exe /c start /wait .\installer\dxsdk-jun10.exe /U /F
+          7z x -aoa .\installer\dxsdk-jun10.exe DXSDK/Include DXSDK/Lib -oC:\
+          echo "DXSDK_DIR=C:\DXSDK" | Out-File -FilePath $env:GITHUB_ENV -Append
+          7z x -aoa .\installer\libjpeg-turbo.exe bin include lib -oC:\turbojpeg
+          echo "TURBOJPEG_DIR=C:\turbojpeg" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: 📥 Install Vulkan SDK
         if: ${{ inputs.qt_version == '6' }}
@@ -206,13 +229,23 @@ jobs:
       - name: 🛠️ Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
 
-      - name: 👷 Build
+      - name: 💾 Download Pre-Build Dependencies
+        id: dependencies
+        uses: ./.github/actions/download-pre-built-deps
+        with:
+          os: 'windows'
+          architecture: 'x64'
+          qt_version: ${{ inputs.qt_version }}
+          build_type: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
+
+      - name: 👷 Build ${{ env.HINT }}
         shell: cmd
         run: |
-           cmake --preset windows-${{ env.BUILD_TYPE }}
-           cmake --build --preset windows-${{ env.BUILD_TYPE }} --target package --parallel %NUMBER_OF_PROCESSORS%
+           cmake --preset windows-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }}
+           cmake --build --preset windows-${{ env.BUILD_TYPE }} --target package
         env:
           BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
+          HINT: ${{ steps.dependencies.outputs.cmakeArgs != '' && '(with pre-built dependencies)' || '(full build)' }}
 
       - name: 📦 Upload
         if: ${{ inputs.publish || inputs.event_name == 'pull_request' }}

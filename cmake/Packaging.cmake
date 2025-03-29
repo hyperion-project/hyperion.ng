@@ -1,14 +1,11 @@
 # cmake file for generating distribution packages
 
 # Default packages to build
-if(APPLE)
+if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 	set(CPACK_GENERATOR "DragNDrop")
 	set(CPACK_DMG_FORMAT "UDBZ" )
-	# Overwrite CMAKE_SYSTEM_NAME for mac (visual)
-	if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-		set(CMAKE_SYSTEM_NAME "macOS")
-	endif()
-elseif(UNIX)
+	set(CMAKE_SYSTEM_NAME "macOS")
+elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	set(CPACK_GENERATOR "TGZ")
 elseif(WIN32)
 	set(CPACK_GENERATOR "ZIP" "NSIS")
@@ -90,7 +87,7 @@ set(CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "${CMAKE_SOURCE_DIR}/cmake/linux/package
 
 # DragNDrop (macOS only)
 # https://cmake.org/cmake/help/latest/cpack_gen/dmg.html
-if(APPLE)
+if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 	set(CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/cmake/macos/PackageIcon.icns" )
 	set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_BINARY_DIR}/LICENSE" )
 	set(CPACK_DMG_BACKGROUND_IMAGE "${CMAKE_SOURCE_DIR}/cmake/macos/Background.png" )
