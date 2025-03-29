@@ -49,16 +49,16 @@ runs:
           computedHash=$(sha256sum "$downloadFilename" | awk '{print $1}')
           destDir=/tmp/deps
         fi
-        echo 👀 Check Hash"...
+        echo 👀 Check Hash...
         if [[ "$computedHash" == "$downloadHash" ]]; then
           mkdir "$destDir"
           tar -xzf "$downloadFilename" -C "$destDir"
           if [[ ${{ inputs.os }} != 'windows' ]]; then
             chmod +x "$destDir"/bin/*
           fi
-          echo ✅ Hash check passed."
+          echo ✅ Hash check passed.
           echo "cmake-args="-DUSE_PRE_BUILT_DEPS=ON -DPRE_BUILT_DEPS_DIR=$destDir"" >> $GITHUB_OUTPUT
         else
-          echo ❌ Hash check failed."
+          echo ❌ Hash check failed.
           echo "cmake-args=" >> $GITHUB_OUTPUT
         fi
