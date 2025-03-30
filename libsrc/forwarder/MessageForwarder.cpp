@@ -519,9 +519,9 @@ int MessageForwarder::startFlatbufferTargets(const QJsonObject& config)
 {
 	if (!config["flatbuffer"].isNull())
 	{
-		if (_messageForwarderFlatBufHelper == nullptr)
+		if (_messageForwarderFlatBufHelper.isNull())
 		{
-			_messageForwarderFlatBufHelper = new MessageForwarderFlatbufferClientsHelper();
+			_messageForwarderFlatBufHelper = QSharedPointer<MessageForwarderFlatbufferClientsHelper>::create();
 		}
 		else
 		{
@@ -598,13 +598,13 @@ void MessageForwarder::forwardJsonMessage(const QJsonObject& message, quint8 ins
 
 void MessageForwarder::forwardFlatbufferMessage(const QString& /*name*/, const Image<ColorRgb>& image)
 {
-	if (_messageForwarderFlatBufHelper != nullptr)
+	if (_messageForwarderFlatBufHelper)
 	{
 		bool const isfree = _messageForwarderFlatBufHelper->isFree();
 
 		if (isfree && _isActive)
 		{
-			QMetaObject::invokeMethod(_messageForwarderFlatBufHelper, "forwardImage", Qt::QueuedConnection, Q_ARG(Image<ColorRgb>, image));
+			QMetaObject::invokeMethod(_messageForwarderFlatBufHelper.get(), "forwardImage", Qt::QueuedConnection, Q_ARG(Image<ColorRgb>, image));
 		}
 	}
 }
