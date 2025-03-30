@@ -145,11 +145,11 @@ public:
 	///
 	bool hasBlackListedLeds ();
 
-	static LedString createLedString(const QJsonArray& ledConfigArray, const ColorOrder deviceOrder);
+	static LedString createLedString(const QJsonArray& ledConfigArray, const ColorOrder deviceOrder, int maxLedCount);
 
-private:
-	/// The list with LED specifications
-	std::vector<Led> _leds;
-	/// The list containing IDs of blacklisted LED
-	std::vector<int> _blacklistedLedIds;
-};
+	private:
+		/// The list with LED specifications
+		std::vector<Led> _leds;
+		/// The list containing IDs of blacklisted LED
+		std::vector<int> _blacklistedLedIds;
+	};

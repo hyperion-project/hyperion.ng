@@ -12,11 +12,11 @@ const rgbByteOrderWizard = (() => {
 
     if (color == 'rgb(255, 0, 0)') {
       $("#wiz_canv_color").css('background-color', 'rgb(0, 255, 0)');
-      requestSetColor('0', '255', '0');
+      requestSetColor(0, 255, 0);
     }
     else {
       $("#wiz_canv_color").css('background-color', 'rgb(255, 0, 0)');
-      requestSetColor('255', '0', '0');
+      requestSetColor(255, 0, 0);
     }
   }
 
@@ -90,7 +90,7 @@ const rgbByteOrderWizard = (() => {
     $("#wiz_g_select").html($("#wiz_r_select").html());
     $("#wiz_r_select").trigger('change');
 
-    requestSetColor('255', '0', '0');
+    requestSetColor(255, 0, 0);
     setTimeout(requestSetSource, 100, 'auto');
     setStorage("wizardactive", true);
 

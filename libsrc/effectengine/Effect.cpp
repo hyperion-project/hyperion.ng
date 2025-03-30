@@ -49,9 +49,6 @@ Effect::Effect(Hyperion *hyperion, int priority, int timeout, const QString &scr
 
 Effect::~Effect()
 {
-	requestInterruption();
-	wait();
-
 	delete _painter;
 	_imageStack.clear();
 }
@@ -161,4 +158,10 @@ void Effect::run()
 		Error(_log, "Unable to open script file %s.", QSTRING_CSTR(_script));
 	}
 	file.close();
+}
+
+void Effect::stop()
+{
+	requestInterruption();
+	Debug(_log,"Effect \"%s\" stopped", QSTRING_CSTR(_name));
 }

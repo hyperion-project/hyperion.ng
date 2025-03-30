@@ -21,10 +21,6 @@
          "required":false,
          "$ref":"schema-device.json"
       },
-      "effects":{
-         "required":false,
-         "$ref":"schema-effects.json"
-      },
       "foregroundEffect":{
          "required":false,
          "$ref":"schema-foregroundEffect.json"

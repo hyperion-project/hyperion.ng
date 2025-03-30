@@ -19,7 +19,7 @@ bool InstanceTable::createInstance(const QString& name, quint8& inst)
 	// check duplicate
 	if(!recordExists({{"friendly_name", name}}))
 	{
-		QList<quint8> instanceList = getAllInstanceIDs(false);
+		QSet<quint8> const instanceList = getAllInstanceIDs(false);
 
 		inst = 0;
 		while (instanceList.contains(inst))
@@ -31,7 +31,7 @@ bool InstanceTable::createInstance(const QString& name, quint8& inst)
 		QVariantMap data;
 		data["friendly_name"] = name;
 		data["instance"] = inst;
-		return createRecord({}, data);
+		return createRecord({{"instance", inst}}, data);
 	}
 
 	return false;
@@ -55,7 +55,7 @@ bool InstanceTable::saveName(quint8 inst, const QString& name)
 	// check duplicate
 	if(!recordExists({{"friendly_name", name}}))
 	{
-		if(instanceExist(inst))
+		if(doesInstanceExist(inst))
 		{
 			return updateRecord({{"instance",inst}}, {{"friendly_name", name}});
 		}
@@ -76,19 +76,19 @@ QVector<QVariantMap> InstanceTable::getAllInstances(bool onlyEnabled)
 	return results;
 }
 
-QList<quint8> InstanceTable::getAllInstanceIDs (bool onlyEnabled)
+QSet<quint8> InstanceTable::getAllInstanceIDs (bool onlyEnabled)
 {
 	QVector<QVariantMap> instanceList = getAllInstances(onlyEnabled);
-	QList<quint8> instanceIds;
+	QSet<quint8> instanceIds;
 	for (const QVariantMap &idx : std::as_const(instanceList))
 	{
-		instanceIds.append(static_cast<quint8>(idx.value("instance").toInt()));
+		instanceIds.insert(static_cast<quint8>(idx.value("instance").toInt()));
 	}
 
 	return instanceIds;
 }
 
-bool InstanceTable::instanceExist(quint8 inst)
+bool InstanceTable::doesInstanceExist(quint8 inst)
 {
 	return recordExists({{"instance",inst}});
 }
@@ -98,7 +98,7 @@ QString InstanceTable::getNamebyIndex(quint8 index)
 	QVariantMap results;
 	getRecord({{"instance", index}}, results, {"friendly_name"});
 
-	QString name = results["friendly_name"].toString();
+	QString const name = results["friendly_name"].toString();
 	return name.isEmpty() ? "NOT FOUND" : name;
 }
 
@@ -120,13 +120,10 @@ bool InstanceTable::isEnabled(quint8 inst)
 	return results["enabled"].toBool();
 }
 
-void InstanceTable::createDefaultInstance()
+void InstanceTable::createInitialInstance()
 {
-	if(instanceExist(0))
-	{
-		setEnable(0, true);
-	}
-	else
+	QSet<quint8> const instanceIDs = getAllInstanceIDs(false);
+	if(instanceIDs.isEmpty())
 	{
 		if(createRecord({{"instance", 0}}, {{"friendly_name", "First LED Hardware instance"}}))
 		{

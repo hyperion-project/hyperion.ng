@@ -11,7 +11,11 @@ ComponentRegister::ComponentRegister(Hyperion* hyperion)
 	: _hyperion(hyperion)
 	, _log(nullptr)
 {
-	QString subComponent = hyperion->property("instance").toString();
+	QString subComponent {"__"};
+	if (_hyperion != nullptr)
+	{
+		subComponent = hyperion->property("instance").toString();
+	}
 	_log= Logger::getInstance("COMPONENTREG", subComponent);
 
 	// init all comps to false
@@ -66,8 +70,11 @@ ComponentRegister::ComponentRegister(Hyperion* hyperion)
 		_componentStates.emplace(e, (e == COMP_ALL));
 	}
 
+	if (hyperion != nullptr)
+	{
 	connect(_hyperion, &Hyperion::compStateChangeRequest, this, &ComponentRegister::handleCompStateChangeRequest);
 	connect(_hyperion, &Hyperion::compStateChangeRequestAll, this, &ComponentRegister::handleCompStateChangeRequestAll);
+	}
 }
 
 ComponentRegister::~ComponentRegister()

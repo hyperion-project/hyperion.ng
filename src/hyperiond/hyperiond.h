@@ -103,6 +103,9 @@ class PythonInit;
 class SSDPHandler;
 class FlatBufferServer;
 class ProtoServer;
+#if defined(ENABLE_FORWARDER)
+class MessageForwarder;
+#endif
 class AuthManager;
 class NetOrigin;
 class CECHandler;
@@ -120,7 +123,7 @@ public:
 	///
 	/// @brief Get webserver pointer (systray)
 	///
-	WebServer *getWebServerInstance() { return _webserver.data(); }
+	WebServer *getWebServerInstance() { return _webServer.data(); }
 
 	///
 	/// @brief Get the current videoMode
@@ -136,7 +139,7 @@ public:
 	static HyperionDaemon* daemon;
 
 public slots:
-	void stoppServices();
+	void stopServices();
 
 signals:
 	///////////////////////////////////////
@@ -191,6 +194,14 @@ private:
 	void startEventServices();
 	void stopEventServices();
 
+	void createNetworkInputCaptureServices();
+	void startNetworkInputCaptureServices();
+	void stopNetworkInputCaptureServices();
+
+	void createNetworkOutputServices();
+	void startNetworkOutputServices();
+	void stopNetworkOutputServices();
+
 	void startGrabberServices();
 	void stopGrabberServices();
 
@@ -238,28 +249,39 @@ private:
 	Logger* _log;
 
 	/// Core services
-	QScopedPointer<HyperionIManager> _instanceManager;
+	QScopedPointer<HyperionIManager, QScopedPointerDeleteLater> _instanceManager;
 	QScopedPointer<SettingsManager> _settingsManager;
 
 #if defined(ENABLE_EFFECTENGINE)
-	PythonInit*                _pyInit;
+	PythonInit* _pyInit;
 #endif
 
 	/// Network services
-	QScopedPointer<AuthManager> _authManager;
-	QScopedPointer<NetOrigin> _netOrigin;
+	QScopedPointer<AuthManager, QScopedPointerDeleteLater> _authManager;
+	QScopedPointer<NetOrigin, QScopedPointerDeleteLater> _netOrigin;
 	QScopedPointer<JsonServer, QScopedPointerDeleteLater> _jsonServer;
-	QScopedPointer<WebServer, QScopedPointerDeleteLater> _webserver;
-	QScopedPointer<WebServer, QScopedPointerDeleteLater> _sslWebserver;
-	QScopedPointer<SSDPHandler, QScopedPointerDeleteLater> _ssdp;
+	QScopedPointer<QThread> _jsonServerThread;
+	QScopedPointer<WebServer, QScopedPointerDeleteLater> _webServer;
+	QScopedPointer<QThread> _webServerThread;
+	QScopedPointer<WebServer, QScopedPointerDeleteLater> _sslWebServer;
+	QScopedPointer<QThread> _sslWebServerThread;
+	QScopedPointer<SSDPHandler, QScopedPointerDeleteLater> _ssdpHandler;
+	QScopedPointer<QThread> _ssdpHandlerThread;
 #ifdef ENABLE_MDNS
 	QScopedPointer<MdnsProvider, QScopedPointerDeleteLater> _mDNSProvider;
+	QScopedPointer<QThread> _mDnsThread;
 #endif
 #if defined(ENABLE_FLATBUF_SERVER)
 	QScopedPointer<FlatBufferServer, QScopedPointerDeleteLater> _flatBufferServer;
+	QScopedPointer<QThread> _flatBufferServerThread;
 #endif
 #if defined(ENABLE_PROTOBUF_SERVER)
 	QScopedPointer<ProtoServer, QScopedPointerDeleteLater> _protoServer;
+	QScopedPointer<QThread> _protoServerThread;
+#endif
+#if defined(ENABLE_FORWARDER)
+	QScopedPointer<MessageForwarder, QScopedPointerDeleteLater> _messageForwarder;
+	QScopedPointer<QThread> _messageForwarderThread;
 #endif
 
 	/// Event services
@@ -268,6 +290,7 @@ private:
 	QScopedPointer<EventScheduler> _eventScheduler;
 #ifdef ENABLE_CEC
 	QScopedPointer<CECHandler> _cecHandler;
+	QScopedPointer<QThread> _cecHandlerThread;
 #endif
 
 	/// Grabber services

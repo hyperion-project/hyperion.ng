@@ -1,6 +1,6 @@
 {
-	"type" : "object",
-	"title" : "edt_conf_fbs_heading_title",
+	"type": "object",
+	"title": "edt_conf_flatbufServer_heading_title",
 	"properties": {
 		"enable": {
 			"type": "boolean",
@@ -21,7 +21,7 @@
 		"timeout": {
 			"type": "integer",
 			"required": true,
-			"title": "edt_conf_fbs_timeout_title",
+			"title": "edt_conf_flatbufServer_timeout_title",
 			"append": "edt_append_s",
 			"minimum": 1,
 			"default": 5,
@@ -38,5 +38,5 @@
 			"propertyOrder": 4
 		}
 	},
-	"additionalProperties" : false
+	"additionalProperties": false
 }

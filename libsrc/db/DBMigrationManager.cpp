@@ -63,7 +63,6 @@ bool DBMigrationManager::migrateSettings(QJsonObject& config)
 			// Extract, modify, and reinsert the global settings
 			QJsonObject globalSettings = config.value("global").toObject().value("settings").toObject();
 			upgradeGlobalSettings(currentVersion, globalSettings);
-
 			QJsonObject globalConfig = config.value("global").toObject();
 			globalConfig.insert("settings", globalSettings);
 			config.insert("global", globalConfig);
@@ -132,6 +131,8 @@ bool DBMigrationManager::upgradeInstanceSettings(const semver::version& currentV
 	upgradeInstanceSettings_2_0_13(migratedVersion, instance, config);
 	//Migration step for versions < 2.0.16
 	upgradeInstanceSettings_2_0_16(migratedVersion, instance, config);
+	//Migration step for versions < 2.0.17
+	upgradeInstanceSettings_2_1_0(migratedVersion, instance, config);
 
 	return migrated;
 }
@@ -403,6 +404,16 @@ bool DBMigrationManager::upgradeGlobalSettings_2_1_0(semver::version& currentVer
 		Info(_log, "Global settings: Migrate from version [%s] to version [%s] or later", currentVersion.getVersion().c_str(), targetVersion.getVersion().c_str());
 		currentVersion = targetVersion;
 
+		SettingsTable instanceSettingsTable(0);
+		QJsonObject effectsSettings = instanceSettingsTable.getSettings(QStringList("effects"));
+		if (!effectsSettings.isEmpty())
+		{
+			config.insert("effects", effectsSettings.value("effects"));
+
+			Debug(_log, "Effect settings migrated");
+			migrated = true;
+		}
+
 		if (config.contains("general"))
 		{
 			QJsonObject newGeneralConfig = config["general"].toObject();
@@ -423,7 +434,6 @@ bool DBMigrationManager::upgradeGlobalSettings_2_1_0(semver::version& currentVer
 			Debug(_log, "Network settings migrated");
 			migrated = true;
 		}
-
 	}
 
 	//Remove wrong instance 255 configuration records, created by the global instance #255
@@ -562,7 +572,7 @@ bool DBMigrationManager::upgradeInstanceSettings_alpha_9(semver::version& curren
 			if (migrated)
 			{
 				config["device"] = newDeviceConfig;
-				Debug(_log, "LED-Device records migrated");
+				Debug(_log, "Instance [%u] - LED-Device records migrated", instance);
 			}
 		}
 	}
@@ -624,7 +634,7 @@ bool DBMigrationManager::upgradeInstanceSettings_2_0_12(semver::version& current
 			if (migrated)
 			{
 				config["device"] = newDeviceConfig;
-				Debug(_log, "LED-Device records migrated");
+				Debug(_log, "Instance [%u] - LED-Device records migrated", instance);
 			}
 		}
 
@@ -684,7 +694,7 @@ bool DBMigrationManager::upgradeInstanceSettings_2_0_13(semver::version& current
 			if (migrated)
 			{
 				config["device"] = newDeviceConfig;
-				Debug(_log, "LED-Device records migrated");
+				Debug(_log, "Instance [%u] - LED-Device records migrated", instance);
 			}
 		}
 	}
@@ -758,10 +768,29 @@ bool DBMigrationManager::upgradeInstanceSettings_2_0_16(semver::version& current
 		if (migrated)
 		{
 			config["device"] = newDeviceConfig;
-			Debug(_log, "LED-Device records migrated");
+			Debug(_log, "Instance [%u] - LED-Device records migrated", instance);
 		}
 	}
 
 	return migrated;
 }
 
+bool DBMigrationManager::upgradeInstanceSettings_2_1_0(semver::version& currentVersion, quint8 instance, QJsonObject& config)
+{
+	bool migrated = false;
+	const semver::version targetVersion{ "2.0.17-beta.2" };
+
+	if (currentVersion < targetVersion)
+
+	Info(_log, "Settings instance [%u]: Migrate from version [%s] to version [%s] or later", instance, currentVersion.getVersion().c_str(), targetVersion.getVersion().c_str());
+	currentVersion = targetVersion;
+
+	if (config.contains("effects"))
+	{
+		config.remove("effects");
+
+		Debug(_log, "Instance [%u] - Effects settings migrated", instance);
+		migrated = true;
+	}
+	return migrated;
+}

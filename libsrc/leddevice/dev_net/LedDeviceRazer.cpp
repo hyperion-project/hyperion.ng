@@ -60,7 +60,7 @@ bool LedDeviceRazer::init(const QJsonObject& deviceConfig)
 {
 	bool isInitOK = false;
 	setRewriteTime(HEARTBEAT_INTERVALL.count());
-	connect(_refreshTimer, &QTimer::timeout, this, &LedDeviceRazer::rewriteLEDs);
+	connect(_refreshTimer.get(), &QTimer::timeout, this, &LedDeviceRazer::rewriteLEDs);
 
 	// Initialise sub-class
 	if (LedDevice::init(deviceConfig))

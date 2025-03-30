@@ -4,6 +4,7 @@ add_library(hyperion
 	${CMAKE_SOURCE_DIR}/libsrc/hyperion/AuthManager.cpp
 	# Background Effect Handler
 	${CMAKE_SOURCE_DIR}/include/hyperion/BGEffectHandler.h
+	${CMAKE_SOURCE_DIR}/libsrc/hyperion/BGEffectHandler.cpp
 	# Capture Control class
 	${CMAKE_SOURCE_DIR}/include/hyperion/CaptureCont.h
 	${CMAKE_SOURCE_DIR}/libsrc/hyperion/CaptureCont.cpp

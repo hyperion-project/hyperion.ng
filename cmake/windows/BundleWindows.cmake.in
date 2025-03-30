@@ -52,8 +52,7 @@ if(EXISTS @CMAKE_BINARY_DIR@/bin/@PROJECT_NAME@@CMAKE_EXECUTABLE_SUFFIX@)
 	endwhile()
 
 	# Create a qt.conf file in 'bin' to override hard-coded search paths in Qt plugins
-	file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/\n")
-	file(INSTALL FILES "${CMAKE_CURRENT_BINARY_DIR}/qt.conf" DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
+	file(WRITE "${CMAKE_INSTALL_PREFIX}/bin/qt.conf" "[Paths]\nPlugins=../lib/\n")
 
 	# Copy libjpeg-turbo to 'hyperion'
 	if(ENABLE_MF AND NOT TurboJPEG_INCLUDE_DIR STREQUAL "")

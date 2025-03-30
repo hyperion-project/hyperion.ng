@@ -39,7 +39,7 @@
       <div class="panel panel-default">
         <div class="panel-heading"><i class="fa fa-wifi fa-fw"></i><span data-i18n="remote_color_label">Colors/Effects</span></div>
         <div class="panel-body" id="color_intro">
-          <table class="table borderless">
+          <table class="table borderless" id="color_effect_table">
             <tbody>
               <tr>
                 <td style="vertical-align:middle"><label for="cpeff" data-i18n="remote_color_label_color"></label></td>
@@ -66,9 +66,18 @@
                 </td>
               </tr>
               <tr>
-                <td style="vertical-align:middle"><label for="remote_duration" data-i18n="remote_input_duration"></label></td>
+                <td style="vertical-align:middle">
+                  <label for="remote_duration" data-i18n="remote_input_duration"></label>
+                </td>
                 <td class="input-group">
                   <input id="remote_duration" type="number" class="form-control" value="0" min="0" />
+                  <style>
+                    #remote_duration::placeholder {
+                      color: #000000;
+                      opacity: 1;
+                      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2); /*Add subtle shadow */
+                    }
+                  </style>
                   <span class="input-group-addon" data-i18n="edt_append_s"></span>
                 </td>
               </tr>

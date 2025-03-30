@@ -7,6 +7,8 @@
 
 // Qt includes
 #include <QVector>
+#include <QScopedPointer>
+#include <QSharedPointer>
 
 // hyperion includes
 #include <leddevice/LedDevice.h>
@@ -135,6 +137,9 @@ public slots:
 	///
 	void handleSettingsUpdate(settings::type type, const QJsonDocument &config);
 
+	void start();
+	void stop();
+
 private slots:
 	/// Timer callback which writes updated led values to the led device
 	void updateLeds();
@@ -145,6 +150,11 @@ private slots:
 	/// @param state       The requested state
 	///
 	void componentStateChange(hyperion::Components component, bool state);
+
+	///
+	/// @brief Handle priority updates.
+	///
+	void handlePriorityUpdate(int priority);
 
 private:
 	/**
@@ -171,7 +181,7 @@ private:
 	Hyperion *_hyperion;
 
 	/// priority muxer instance
-	PriorityMuxer* _prioMuxer;
+	QSharedPointer<PriorityMuxer> _prioMuxer;
 
 	/// The interval at which to update the leds (msec)
 	int _updateInterval;
@@ -180,7 +190,7 @@ private:
 	int64_t _settlingTime;
 
 	/// The Qt timer object
-	QTimer *_timer;
+	QScopedPointer<QTimer> _timer;
 
 	/// The timestamp at which the target data should be fully applied
 	int64_t _targetTime;

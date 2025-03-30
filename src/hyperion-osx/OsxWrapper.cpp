@@ -28,7 +28,7 @@ const Image<ColorRgb> & OsxWrapper::getScreenshot()
 	return _screenshot;
 }
 
-bool OsxWrapper::displayInit()
+bool OsxWrapper::screenInit()
 {
 	return _grabber.setupDisplay();
 }

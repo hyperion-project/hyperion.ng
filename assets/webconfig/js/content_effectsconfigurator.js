@@ -14,6 +14,14 @@ $(document).ready(function () {
   if (window.showOptHelp)
     createHintH("intro", $.i18n('effectsconfigurator_label_intro'), "intro_effc");
 
+  if (!isCurrentInstanceRunning()) {
+
+    $("#effect_table :input").prop("disabled", true);
+    $("#effect_delload :input").prop("disabled", true);
+
+    removeOverlay();
+    return;
+  }
   function updateDelEffectlist() {
     var newDelList = window.serverInfo.effects;
     if (newDelList.length != oldDelList.length) {
@@ -56,9 +64,9 @@ $(document).ready(function () {
 
     var args = effects_editor.getEditor('root.args');
     if ($('input[type=radio][value=url]').is(':checked')) {
-      requestTestEffect(effectName, effectPyScript, JSON.stringify(args.getValue()), "");
+      requestTestEffect(effectName, effectPyScript, args.getValue(), "");
     } else {
-      requestTestEffect(effectName, effectPyScript, JSON.stringify(args.getValue()), imageData);
+      requestTestEffect(effectName, effectPyScript, args.getValue(), imageData);
     }
   };
 
@@ -137,10 +145,11 @@ $(document).ready(function () {
 
   // Save Effect
   $('#btn_write').off().on('click', function () {
+    const args = effects_editor.getEditor('root.args').getValue();
     if ($('input[type=radio][value=url]').is(':checked')) {
-      requestWriteEffect(effectName, effectPyScript, JSON.stringify(effects_editor.getValue()), "");
+      requestWriteEffect(effectName, effectPyScript, args, "");
     } else {
-      requestWriteEffect(effectName, effectPyScript, JSON.stringify(effects_editor.getValue()), imageData);
+      requestWriteEffect(effectName, effectPyScript, args, imageData);
     }
 
     $(window.hyperion).one("cmd-create-effect", function (event) {
@@ -183,12 +192,12 @@ $(document).ready(function () {
   // Disable or enable Delete Effect Button
   $('#effectsdellist').off().on('change', function () {
     var value = $(this).val();
-    value == null ? $('#btn_edit').prop('disabled', true) : $('#btn_edit').prop('disabled', false);
+    value == null ? $('#btn_load').prop('disabled', true) : $('#btn_load').prop('disabled', false);
     value.startsWith("int_") ? $('#btn_delete').prop('disabled', true) : $('#btn_delete').prop('disabled', false);
   });
 
   // Load Effect
-  $('#btn_edit').off().on('click', function () {
+  $('#btn_load').off().on('click', function () {
 
     var name = $("#effectsdellist").val().replace("ext_", "");
     if (name.startsWith("int_")) {
@@ -259,4 +268,3 @@ $(document).ready(function () {
 
   removeOverlay();
 });
-

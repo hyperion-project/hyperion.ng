@@ -1,5 +1,8 @@
+#include <string>
+#include <vector>
 
 #include <QCoreApplication>
+#include <QtGlobal>
 #include <QResource>
 #include <QLocale>
 #include <QFile>
@@ -9,10 +12,21 @@
 #include <QJsonValue>
 #include <QPair>
 #include <QThread>
+#include <QByteArray>
+#include <QMap>
+#include <QMetaType>
 
+#include "db/SettingsTable.h"
+#include "events/EventScheduler.h"
+#include "events/OsEventHandler.h"
+#include <events/EventHandler.h>
 #include <utils/Components.h>
-#include <utils/JsonUtils.h>
 #include <utils/Image.h>
+#include <utils/settings.h>
+#include "utils/ColorRgb.h"
+#include "utils/Logger.h"
+#include "utils/VideoMode.h"
+#include "utils/global_defines.h"
 
 #include <HyperionConfig.h> // Required to determine the cmake options
 
@@ -34,6 +48,11 @@
 // Protobuffer Server
 #ifdef ENABLE_PROTOBUF_SERVER
 #include <protoserver/ProtoServer.h>
+#endif
+
+// Message Forwarder
+#if defined(ENABLE_FORWARDER)
+#include <forwarder/MessageForwarder.h>
 #endif
 
 // ssdp
@@ -92,11 +111,6 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 		handleSettingsUpdate(settings::LOGGER, getSetting(settings::LOGGER));
 	}
 
-#ifdef ENABLE_MDNS
-	//Create MdnsBrowser singleton in main tread to ensure thread affinity during destruction
-	MdnsBrowser::getInstance();
-#endif
-
 #if defined(ENABLE_EFFECTENGINE)
 	// init EffectFileHandler
 	EffectFileHandler* efh = new EffectFileHandler(rootPath, getSetting(settings::EFFECTS), this);
@@ -107,7 +121,7 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	_instanceManager->startAll();
 
 	//Cleaning up Hyperion before quit
-	connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit, this, &HyperionDaemon::stoppServices);
+	connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit, this, &HyperionDaemon::stopServices);
 
 	//Handle services dependent on the on first instance's availability
 	connect(_instanceManager.get(), &HyperionIManager::instanceStateChanged, this, &HyperionDaemon::handleInstanceStateChange);
@@ -124,41 +138,69 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	connect(this, &HyperionDaemon::videoMode, _instanceManager.get(), &HyperionIManager::newVideoMode);
 
 	createNetworkServices();
+	createNetworkInputCaptureServices();
+	createNetworkOutputServices();
+
+	startNetworkServices();
+	startEventServices();
+	startGrabberServices();
+
+	startNetworkOutputServices();
 }
 
 HyperionDaemon::~HyperionDaemon()
 {
-#if defined(ENABLE_EFFECTENGINE)
-	delete _pyInit;
-#endif
 	Info(_log, "Hyperion daemon stopped");
 }
 
 void HyperionDaemon::handleInstanceStateChange(InstanceState state, quint8 instance)
 {
-	if (instance == 0)
+	switch (state)
 	{
-		switch (state)
-		{
-		case InstanceState::H_STARTED:
-
-			startNetworkServices();
-			startEventServices();
-			startGrabberServices();
-
-			break;
-
-		case InstanceState::H_STOPPED:
-		case InstanceState::H_CREATED:
-		case InstanceState::H_ON_STOP:
-		case InstanceState::H_DELETED:
-			break;
-
-		default:
-			qWarning() << "HyperionDaemon::handleInstanceStateChange - Unhandled state:" << static_cast<int>(state);
-			break;
-		}
+	case InstanceState::H_STARTING:
+	break;
+	case InstanceState::H_STARTED:
+	{
+		startNetworkInputCaptureServices();
+#if defined(ENABLE_FORWARDER)
+		QMetaObject::invokeMethod(_messageForwarder.get(),
+			[this, instance]() {
+				if (_messageForwarder->connect(instance))
+				{
+					_messageForwarder->start();
+				}
+			},
+			Qt::QueuedConnection);
+#endif
 	}
+	break;
+	case InstanceState::H_STOPPED:
+#if defined(ENABLE_FORWARDER)
+		QMetaObject::invokeMethod(_messageForwarder.get(),
+			[this, instance]() { _messageForwarder->disconnect(instance); },
+			Qt::QueuedConnection);
+#endif
+
+		if(_instanceManager->getRunningInstanceIdx().empty())
+		{
+#if defined(ENABLE_FORWARDER)
+			QMetaObject::invokeMethod(_messageForwarder.get(), &MessageForwarder::stop, Qt::QueuedConnection);
+#endif
+			stopNetworkInputCaptureServices();
+		}
+	break;
+	case InstanceState::H_CREATED:
+	break;
+	case InstanceState::H_ON_STOP:
+	break;
+	case InstanceState::H_DELETED:
+	break;
+
+	default:
+		qWarning() << "HyperionDaemon::handleInstanceStateChange - Unhandled state:" << static_cast<int>(state);
+	break;
+	}
+
 }
 
 void HyperionDaemon::setVideoMode(VideoMode mode)
@@ -175,18 +217,26 @@ QJsonDocument HyperionDaemon::getSetting(settings::type type) const
 	return _settingsManager->getSetting(type);
 }
 
-void HyperionDaemon::stoppServices()
+void HyperionDaemon::stopServices()
 {
-	Info(_log, "Stopping Hyperion services.");
+	Info(_log, "Stopping Hyperion services...");
 
-	QObject::disconnect(_instanceManager.get(), nullptr);
-	QObject::disconnect(this, nullptr);
-
-	stopGrabberServices();
 	stopEventServices();
+	stopGrabberServices();
+
+	// Ensure that all Instances and their threads are stopped
+	QEventLoop loopLedDevice;
+	QObject::connect(_instanceManager.get(), &HyperionIManager::areAllInstancesStopped, &loopLedDevice, &QEventLoop::quit);
+	_instanceManager->stopAll();
+	loopLedDevice.exec();
+
+	stopNetworkOutputServices();
 	stopNetworkServices();
 
-	_instanceManager->stopAll();
+#if defined(ENABLE_EFFECTENGINE)
+	// Finalize Python environment when all sub-interpreters were stopped, i.e. all must have been stopped before
+	delete _pyInit;
+#endif
 }
 
 void HyperionDaemon::createNetworkServices()
@@ -200,129 +250,226 @@ void HyperionDaemon::createNetworkServices()
 	_netOrigin->handleSettingsUpdate(settings::NETWORK, _settingsManager->getSetting(settings::NETWORK));
 
 #ifdef ENABLE_MDNS
-	// Create mDNS-Provider in own thread to allow publishing other services
+	// Create mDNS-Provider and mDNS-Browser in own thread
+	_mDnsThread.reset(new QThread());
+	_mDnsThread->setObjectName("mDNSThread");
 	_mDNSProvider.reset(new MdnsProvider());
-	QThread* mDnsThread = new QThread();
-	mDnsThread->setObjectName("mDNSProviderThread");
-	connect(mDnsThread, &QThread::started, _mDNSProvider.get(), &MdnsProvider::init);
-	connect(mDnsThread, &QThread::finished, _mDNSProvider.get(), &MdnsProvider::deleteLater);
-	_mDNSProvider->moveToThread(mDnsThread);
+	_mDNSProvider->moveToThread(_mDnsThread.get());
+	connect(_mDnsThread.get(), &QThread::started, _mDNSProvider.get(), &MdnsProvider::init);
+
+	MdnsBrowser::getInstance(_mDnsThread.get());
 #endif
 
+	// Create SSDP server
+	_ssdpHandlerThread.reset(new QThread());
+	_ssdpHandlerThread->setObjectName("SSDPThread");
+	_ssdpHandler.reset(new SSDPHandler());
+	_ssdpHandler->moveToThread(_ssdpHandlerThread.get());
+	connect(_ssdpHandlerThread.get(), &QThread::started, _ssdpHandler.get(), &SSDPHandler::initServer);
+	connect(this, &HyperionDaemon::settingsChanged, _ssdpHandler.get(), &SSDPHandler::handleSettingsUpdate);
+	_ssdpHandler->handleSettingsUpdate(settings::GENERAL, _settingsManager->getSetting(settings::GENERAL));
+
 	// Create JSON server in own thread
+	_jsonServerThread.reset(new QThread());
+	_jsonServerThread->setObjectName("JSONServerThread");
 	_jsonServer.reset(new JsonServer(getSetting(settings::JSONSERVER)));
-	QThread* jsonThread = new QThread();
-	jsonThread->setObjectName("JSONServerThread");
-	connect(jsonThread, &QThread::started, _jsonServer.get(), &JsonServer::initServer);
-	connect(jsonThread, &QThread::finished, _jsonServer.get(), &JsonServer::deleteLater);
-	connect(this, &HyperionDaemon::settingsChanged, _jsonServer.get(), &JsonServer::handleSettingsUpdate);
+	_jsonServer->moveToThread(_jsonServerThread.get());
+
+	connect(_jsonServer.get(), &JsonServer::publishService, _ssdpHandler.get(), &SSDPHandler::onPortChanged);
 #ifdef ENABLE_MDNS
 	connect(_jsonServer.get(), &JsonServer::publishService, _mDNSProvider.get(), &MdnsProvider::publishService);
 #endif
-	_jsonServer->moveToThread(jsonThread);
+
+	connect(_jsonServerThread.get(), &QThread::started, _jsonServer.get(), &JsonServer::initServer);
+	connect(this, &HyperionDaemon::settingsChanged, _jsonServer.get(), &JsonServer::handleSettingsUpdate);
 
 	// Create Webserver in own thread
-	_webserver.reset(new WebServer(getSetting(settings::WEBSERVER), false));
-	QThread* wsThread = new QThread();
-	wsThread->setObjectName("WebServerThread");
-	connect(wsThread, &QThread::started, _webserver.get(), &WebServer::initServer);
-	connect(wsThread, &QThread::finished, _webserver.get(), &WebServer::deleteLater);
-	connect(this, &HyperionDaemon::settingsChanged, _webserver.get(), &WebServer::handleSettingsUpdate);
+	_webServerThread.reset(new QThread());
+	_webServerThread->setObjectName("WebServerThread");
+	_webServer.reset(new WebServer(getSetting(settings::WEBSERVER), false));
+	_webServer->moveToThread(_webServerThread.get());
+
+	connect(_webServer.get(), &WebServer::stateChange, _ssdpHandler.get(), &SSDPHandler::onStateChange);
+	connect(_webServer.get(), &WebServer::publishService, _ssdpHandler.get(), &SSDPHandler::onPortChanged);
+	connect(_ssdpHandler.get(), &SSDPHandler::descriptionUpdated, _webServer.get(), &WebServer::onSsdpDescriptionUpdated);
 #ifdef ENABLE_MDNS
-	connect(_webserver.get(), &WebServer::publishService, _mDNSProvider.get(), &MdnsProvider::publishService);
+	connect(_webServer.get(), &WebServer::publishService, _mDNSProvider.get(), &MdnsProvider::publishService);
 #endif
-	_webserver->moveToThread(wsThread);
+
+	connect(_webServerThread.get(), &QThread::started, _webServer.get(), &WebServer::initServer);
+	connect(this, &HyperionDaemon::settingsChanged, _webServer.get(), &WebServer::handleSettingsUpdate);
 
 	// Create SSL Webserver in own thread
-	_sslWebserver.reset(new WebServer(getSetting(settings::WEBSERVER), true));
-	QThread* sslWsThread = new QThread();
-	sslWsThread->setObjectName("SSLWebServerThread");
-	connect(sslWsThread, &QThread::started, _sslWebserver.get(), &WebServer::initServer);
-	connect(sslWsThread, &QThread::finished, _sslWebserver.get(), &WebServer::deleteLater);
-	connect(this, &HyperionDaemon::settingsChanged, _sslWebserver.get(), &WebServer::handleSettingsUpdate);
-#ifdef ENABLE_MDNS
-	connect(_sslWebserver.get(), &WebServer::publishService, _mDNSProvider.get(), &MdnsProvider::publishService);
-#endif
-	_sslWebserver->moveToThread(sslWsThread);
+	_sslWebServerThread.reset(new QThread());
+	_sslWebServerThread->setObjectName("SSLWebServerThread");
+	_sslWebServer.reset(new WebServer(getSetting(settings::WEBSERVER), true));
+	_sslWebServer->moveToThread(_sslWebServerThread.get());
 
-	// Create SSDP server
-	_ssdp.reset(new SSDPHandler(_webserver.get(),
-			getSetting(settings::FLATBUFSERVER).object()["port"].toInt(),
-			getSetting(settings::PROTOSERVER).object()["port"].toInt(),
-			getSetting(settings::JSONSERVER).object()["port"].toInt(),
-			getSetting(settings::WEBSERVER).object()["sslPort"].toInt(),
-			getSetting(settings::GENERAL).object()["name"].toString()));
-	QThread* ssdpThread = new QThread();
-	ssdpThread->setObjectName("SSDPThread");
-	connect(ssdpThread, &QThread::started, _ssdp.get(), &SSDPHandler::initServer);
-	connect(ssdpThread, &QThread::finished, _ssdp.get(), &SSDPHandler::deleteLater);
-	connect(_webserver.get(), &WebServer::stateChange, _ssdp.get(), &SSDPHandler::handleWebServerStateChange);
-	connect(this, &HyperionDaemon::settingsChanged, _ssdp.get(), &SSDPHandler::handleSettingsUpdate);
-	_ssdp->moveToThread(ssdpThread);
-
-#if defined(ENABLE_FLATBUF_SERVER)
-	// Create FlatBuffer server in thread
-	_flatBufferServer.reset(new FlatBufferServer(getSetting(settings::FLATBUFSERVER)));
-	QThread* fbThread = new QThread();
-	fbThread->setObjectName("FlatBufferServerThread");
-	connect(fbThread, &QThread::started, _flatBufferServer.get(), &FlatBufferServer::initServer);
-	connect(fbThread, &QThread::finished, _flatBufferServer.get(), &FlatBufferServer::deleteLater);
-	connect(this, &HyperionDaemon::settingsChanged, _flatBufferServer.get(), &FlatBufferServer::handleSettingsUpdate);
+	connect(_sslWebServer.get(), &WebServer::publishService, _ssdpHandler.get(), &SSDPHandler::onPortChanged);
+	connect(_ssdpHandler.get(), &SSDPHandler::descriptionUpdated, _sslWebServer.get(), &WebServer::onSsdpDescriptionUpdated);
 #ifdef ENABLE_MDNS
-	connect(_flatBufferServer.get(), &FlatBufferServer::publishService, _mDNSProvider.get(), &MdnsProvider::publishService);
-#endif
-	_flatBufferServer->moveToThread(fbThread);
+	connect(_sslWebServer.get(), &WebServer::publishService, _mDNSProvider.get(), &MdnsProvider::publishService);
 #endif
 
-#if defined(ENABLE_PROTOBUF_SERVER)
-	// Create Proto server in thread
-	_protoServer.reset(new ProtoServer(getSetting(settings::PROTOSERVER)));
-	QThread* pThread = new QThread();
-	pThread->setObjectName("ProtoServerThread");
-	connect(pThread, &QThread::started, _protoServer.get(), &ProtoServer::initServer);
-	connect(pThread, &QThread::finished, _protoServer.get(), &ProtoServer::deleteLater);
-	connect(this, &HyperionDaemon::settingsChanged, _protoServer.get(), &ProtoServer::handleSettingsUpdate);
-#ifdef ENABLE_MDNS
-	connect(_protoServer.get(), &ProtoServer::publishService, _mDNSProvider.get(), &MdnsProvider::publishService);
-#endif
-	_protoServer->moveToThread(pThread);
-#endif
+	connect(_sslWebServerThread.get(), &QThread::started, _sslWebServer.get(), &WebServer::initServer);
+	connect(this, &HyperionDaemon::settingsChanged, _sslWebServer.get(), &WebServer::handleSettingsUpdate);
 }
 
 void HyperionDaemon::startNetworkServices()
 {
-	_jsonServer->thread()->start();
-	_webserver->thread()->start();
-	_sslWebserver->thread()->start();
-#if defined(ENABLE_MDNS)
-	_mDNSProvider->thread()->start();
-#endif
-	_ssdp->thread()->start();
+	//Start JSON-Server only after WebServery were started to avoid port mismatches
+	connect(_sslWebServerThread.get(), &QThread::started, [=]() {
+		_jsonServerThread->start();
+		});
 
-#if defined(ENABLE_FLATBUF_SERVER)
-	_flatBufferServer->thread()->start();
+	_webServerThread->start();
+	_sslWebServerThread->start();
+
+#if defined(ENABLE_MDNS)
+	_mDnsThread->start();
 #endif
-#if defined(ENABLE_PROTOBUF_SERVER)
-	_protoServer->thread()->start();
-#endif
+	_ssdpHandlerThread->start();
 }
 
 void HyperionDaemon::stopNetworkServices()
 {
-#if defined(ENABLE_PROTOBUF_SERVER)
-	_protoServer.reset(nullptr);
-#endif
-#if defined(ENABLE_FLATBUF_SERVER)
-	_flatBufferServer.reset(nullptr);
-#endif
 #if defined(ENABLE_MDNS)
-	_mDNSProvider.reset(nullptr);
+	QMetaObject::invokeMethod(MdnsBrowser::getInstance().get(), "stop", Qt::QueuedConnection);
+	QMetaObject::invokeMethod(_mDNSProvider.get(), &MdnsProvider::stop, Qt::QueuedConnection);
+	if (_mDnsThread->isRunning()) {
+		_mDnsThread->quit();
+		_mDnsThread->wait();
+	}
 #endif
-	_ssdp.reset(nullptr);
 
-	_sslWebserver.reset(nullptr);
-	_webserver.reset(nullptr);
+	if (_jsonServerThread->isRunning()) {
+		_jsonServerThread->quit();
+		_jsonServerThread->wait();
+	}
 	_jsonServer.reset(nullptr);
+
+	if (_webServerThread->isRunning()) {
+		_webServerThread->quit();
+		_webServerThread->wait();
+	}
+
+	QMetaObject::invokeMethod(_sslWebServer.get(), &WebServer::stop, Qt::QueuedConnection);
+	if (_sslWebServerThread->isRunning()) {
+		_sslWebServerThread->quit();
+		_sslWebServerThread->wait();
+	}
+
+	QMetaObject::invokeMethod(_ssdpHandler.get(), &SSDPHandler::stop, Qt::QueuedConnection);
+	if (_ssdpHandlerThread->isRunning()) {
+		_ssdpHandlerThread->quit();
+		_ssdpHandlerThread->wait();
+	}
+}
+
+void HyperionDaemon::createNetworkInputCaptureServices()
+{
+#if defined(ENABLE_FLATBUF_SERVER)
+	// Create FlatBuffer server in thread
+	_flatBufferServerThread.reset(new QThread());
+	_flatBufferServerThread->setObjectName("FlatBufferServerThread");
+	_flatBufferServer.reset(new FlatBufferServer(getSetting(settings::FLATBUFSERVER)));
+	_flatBufferServer->moveToThread(_flatBufferServerThread.get());
+
+	connect(_flatBufferServer.get(), &FlatBufferServer::publishService, _ssdpHandler.get(), &SSDPHandler::onPortChanged);
+#ifdef ENABLE_MDNS
+	connect(_flatBufferServer.get(), &FlatBufferServer::publishService, _mDNSProvider.get(), &MdnsProvider::publishService);
+#endif
+
+	connect(_flatBufferServerThread.get(), &QThread::started, _flatBufferServer.get(), &FlatBufferServer::initServer);
+	connect(this, &HyperionDaemon::settingsChanged, _flatBufferServer.get(), &FlatBufferServer::handleSettingsUpdate);
+#endif
+
+#if defined(ENABLE_PROTOBUF_SERVER)
+	// Create Proto server in thread
+	_protoServerThread.reset(new QThread());
+	_protoServerThread->setObjectName("ProtoServerThread");
+	_protoServer.reset(new ProtoServer(getSetting(settings::PROTOSERVER)));
+	_protoServer->moveToThread(_protoServerThread.get());
+
+	connect(_protoServer.get(), &ProtoServer::publishService, _ssdpHandler.get(), &SSDPHandler::onPortChanged);
+#ifdef ENABLE_MDNS
+	connect(_protoServer.get(), &ProtoServer::publishService, _mDNSProvider.get(), &MdnsProvider::publishService);
+#endif
+
+	connect(_protoServerThread.get(), &QThread::started, _protoServer.get(), &ProtoServer::initServer);
+	connect(this, &HyperionDaemon::settingsChanged, _protoServer.get(), &ProtoServer::handleSettingsUpdate);
+#endif
+}
+
+void HyperionDaemon::startNetworkInputCaptureServices()
+{
+#if defined(ENABLE_FLATBUF_SERVER)
+	if (!_flatBufferServerThread->isRunning())
+	{
+		_flatBufferServerThread->start();
+	}
+#endif
+#if defined(ENABLE_PROTOBUF_SERVER)
+	if (!_protoServerThread->isRunning())
+	{
+		_protoServerThread->start();
+	}
+#endif
+}
+
+void HyperionDaemon::stopNetworkInputCaptureServices()
+{
+#if defined(ENABLE_PROTOBUF_SERVER)
+	if (_protoServerThread->isRunning()) {
+		QMetaObject::invokeMethod(_protoServer.get(), &ProtoServer::stop, Qt::QueuedConnection);
+		_protoServerThread->quit();
+		_protoServerThread->wait();
+	}
+#endif
+
+#if defined(ENABLE_FLATBUF_SERVER)
+	if (_flatBufferServerThread->isRunning()) {
+		QMetaObject::invokeMethod(_flatBufferServer.get(), &FlatBufferServer::stop, Qt::QueuedConnection);
+		_flatBufferServerThread->quit();
+		_flatBufferServerThread->wait();
+	}
+#endif
+}
+
+void HyperionDaemon::createNetworkOutputServices()
+{
+#if defined(ENABLE_FORWARDER)
+	// Create Message Forwarder in thread
+	_messageForwarderThread.reset(new QThread());
+	_messageForwarderThread->setObjectName("MessageForwarderThread");
+	_messageForwarder.reset(new MessageForwarder(getSetting(settings::NETFORWARD)));
+	_messageForwarder->moveToThread(_messageForwarderThread.get());
+
+	connect(_messageForwarderThread.get(), &QThread::started, _messageForwarder.get(), &MessageForwarder::init);
+	connect(this, &HyperionDaemon::settingsChanged, _messageForwarder.get(), &MessageForwarder::handleSettingsUpdate);
+#endif
+}
+
+void HyperionDaemon::startNetworkOutputServices()
+{
+#if defined(ENABLE_FORWARDER)
+	if (!_messageForwarderThread->isRunning())
+	{
+		_messageForwarderThread->start();
+	}
+#endif
+}
+
+void HyperionDaemon::stopNetworkOutputServices()
+{
+#if defined(ENABLE_FORWARDER)
+	if (_messageForwarderThread->isRunning())
+	{
+		QMetaObject::invokeMethod(_messageForwarder.get(), &MessageForwarder::stop, Qt::QueuedConnection);
+		_messageForwarderThread->quit();
+		_messageForwarderThread->wait();
+	}
+#endif
 }
 
 void HyperionDaemon::startEventServices()
@@ -338,17 +485,15 @@ void HyperionDaemon::startEventServices()
 	connect(this, &HyperionDaemon::settingsChanged, _osEventHandler.get(), &OsEventHandler::handleSettingsUpdate);
 
 #if defined(ENABLE_CEC)
+	_cecHandlerThread.reset(new QThread());
+	_cecHandlerThread->setObjectName("CECThread");
 	_cecHandler.reset(new CECHandler(getSetting(settings::CECEVENTS)));
-	QThread* cecHandlerThread = new QThread();
-	cecHandlerThread->setObjectName("CECThread");
-	connect(cecHandlerThread, &QThread::started, _cecHandler.get(), &CECHandler::start);
-	connect(cecHandlerThread, &QThread::finished, _cecHandler.get(), &CECHandler::stop);
-	connect(cecHandlerThread, &QThread::finished, _cecHandler.get(), &CECHandler::deleteLater);
+	_cecHandler->moveToThread(_cecHandlerThread.get());
+	connect(_cecHandlerThread.get(), &QThread::started, _cecHandler.get(), &CECHandler::start);
+	connect(_cecHandlerThread.get(), &QThread::finished, _cecHandler.get(), &CECHandler::stop);
 	connect(this, &HyperionDaemon::settingsChanged, _cecHandler.get(), &CECHandler::handleSettingsUpdate);
 	Info(_log, "CEC event handler created");
-
-	_cecHandler->moveToThread(cecHandlerThread);
-	cecHandlerThread->start();
+	_cecHandlerThread->start();
 #else
 	Debug(_log, "The CEC handler is not supported on this platform");
 #endif
@@ -357,7 +502,14 @@ void HyperionDaemon::startEventServices()
 void HyperionDaemon::stopEventServices()
 {
 #if defined(ENABLE_CEC)
-	_cecHandler.reset(nullptr);
+	if (_cecHandlerThread != nullptr)
+	{
+		if (_cecHandlerThread->isRunning())
+		{
+			_cecHandlerThread->quit();
+			_cecHandlerThread->wait();
+		}
+	}
 #endif
 	_osEventHandler.reset(nullptr);
 	_eventScheduler.reset(nullptr);
@@ -388,7 +540,7 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 	{
 		const QJsonObject& logConfig = config.object();
 
-		std::string level = logConfig["level"].toString("warn").toStdString(); // silent warn verbose debug
+		std::string const level = logConfig["level"].toString("warn").toStdString(); // silent warn verbose debug
 		if (level == "silent")
 		{
 			Logger::setLogLevel(Logger::OFF);
@@ -568,7 +720,7 @@ QString HyperionDaemon::evalScreenGrabberType()
 		{
 			type = "amlogic";
 
-			QString amlDevice("/dev/amvideocap0");
+			QString const amlDevice("/dev/amvideocap0");
 			if (!QFile::exists(amlDevice))
 			{
 				Error(_log, "grabber device '%s' for type amlogic not found!", QSTRING_CSTR(amlDevice));
@@ -577,7 +729,7 @@ QString HyperionDaemon::evalScreenGrabberType()
 		else
 		{
 			// x11 -> if DISPLAY is set
-			QByteArray envDisplay = qgetenv("DISPLAY");
+			QByteArray const envDisplay = qgetenv("DISPLAY");
 			if (!envDisplay.isEmpty())
 			{
 #if defined(ENABLE_X11)
