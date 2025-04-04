@@ -1,18 +1,9 @@
 #include "HyperionConfig.h"
 
 #if defined(ENABLE_EFFECTENGINE)
-// Don't use debug Python APIs on Windows
-#if defined(_MSC_VER) && defined(_DEBUG)
-#if _MSC_VER >= 1930
-#include <corecrt.h>
-#endif
-#undef _DEBUG
-#include <Python.h>
-#define _DEBUG
-#else
 #include <Python.h>
 #endif
-#endif
+
 
 #include "utils/SysInfo.h"
 #include "utils/FileUtils.h"
