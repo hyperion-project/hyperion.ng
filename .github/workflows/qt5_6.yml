@@ -251,7 +251,7 @@ jobs:
       - name: 👷 Build ${{ env.HINT }}
         shell: cmd
         run: |
-           cmake --preset windows-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }}
+           cmake --preset windows-${{ env.BUILD_TYPE }} -DGITHUB_ACTIONS ${{ steps.dependencies.outputs.cmakeArgs }}
            cmake --build --preset windows-${{ env.BUILD_TYPE }} --target package
         env:
           BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
