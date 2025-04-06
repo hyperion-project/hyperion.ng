@@ -32,6 +32,7 @@ if(ENABLE_DEV_USB_HID OR ENABLE_DEV_FTDI)
 	endif()
 
 	if(NOT USE_SYSTEM_LIBUSB_LIBS)
+		include(ExternalProject)
 		ExternalProject_Add(libusb
 			PREFIX				${CMAKE_CURRENT_BINARY_DIR}/external/libusb-cmake
 			BUILD_ALWAYS		ON
@@ -43,6 +44,9 @@ if(ENABLE_DEV_USB_HID OR ENABLE_DEV_FTDI)
 								-DLIBUSB_BUILD_EXAMPLES:BOOL=OFF # Disable build of libusb examples
 								-DLIBUSB_INSTALL_TARGETS:BOOL=ON # Install libusb targets
 								-DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
+								-DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
+								-DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
+								-DCMAKE_C_FLAGS:STRING=${CMAKE_C_FLAGS}
 								-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
 								-DCMAKE_STATIC_LIBRARY_PREFIX:STRING=lib
 								-DCMAKE_WARN_DEPRECATED:BOOL=OFF # Suppress warnings about "Compatibility with CMake < 3.5 will be removed from a future version of CMake"
@@ -101,10 +105,11 @@ if(ENABLE_DEV_FTDI)
 		# Pass LibUSB include directory and library location to LibFTDI
 		get_build_interface_include_directory(TARGET usb-1.0 OUTPUT LIBUSB_INCLUDE_DIR)
 		set(LIBUSB_INCLUDE_DIR ${LIBUSB_INCLUDE_DIR} CACHE INTERNAL "")
-		get_target_property(LIBUSB_LIBRARIES usb-1.0 IMPORTED_LOCATION)
+		getTargetImportedLocation(LIBUSB_LIBRARIES usb-1.0)
 		set(LIBUSB_LIBRARIES ${LIBUSB_LIBRARIES} CACHE INTERNAL "")
 
 		find_package(Git REQUIRED)
+		include(ExternalProject)
 		ExternalProject_Add(libftdi1
 			DEPENDS				usb-1.0
 			PREFIX				${CMAKE_CURRENT_BINARY_DIR}/external/libftdi1
@@ -118,6 +123,8 @@ if(ENABLE_DEV_FTDI)
 								-DLIBUSB_INCLUDE_DIR:PATH=${LIBUSB_INCLUDE_DIR} # LibUSB include directory
 								-DLIBUSB_LIBRARIES:PATH=${LIBUSB_LIBRARIES} # LibUSB library location
 								-DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_INSTALL_PREFIX}
+								-DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
+								-DCMAKE_C_FLAGS:STRING=${CMAKE_C_FLAGS}
 								-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
 								-DCMAKE_STATIC_LIBRARY_PREFIX_C:STRING=lib
 								-DCMAKE_WARN_DEPRECATED:BOOL=OFF # Suppress warnings about "Compatibility with CMake < 3.5 will be removed from a future version of CMake"
@@ -273,7 +280,7 @@ if(ENABLE_FLATBUF_SERVER OR ENABLE_FLATBUF_CONNECT)
 				)
 			elseif(TARGET flatbuffers::flatc)
 				add_executable(flatc IMPORTED GLOBAL)
-				get_target_property(FLATC_EXECUTABLE flatbuffers::flatc IMPORTED_LOCATION_RELEASE)
+				getTargetImportedLocation(FLATC_EXECUTABLE flatbuffers::flatc)
 				set_target_properties(flatc PROPERTIES IMPORTED_LOCATION ${FLATC_EXECUTABLE})
 			endif()
 		endif()
@@ -289,13 +296,15 @@ if(ENABLE_FLATBUF_SERVER OR ENABLE_FLATBUF_CONNECT)
 		# Define the flatc import option
 		set(IMPORT_FLATC "" CACHE STRING "Import the Flatbuffers compiler (flatc_export.cmake) from a native build")
 
+		if(CMAKE_CROSSCOMPILING)
+			# Disable Flatbuffers Compiler
+			set(FLATBUFFERS_BUILD_FLATC OFF CACHE BOOL "Enable the build of the flatbuffers compiler")
+		endif()
+
 		# Add Flatbuffers directory to the build
 		add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/external/flatbuffers")
 
 		if(CMAKE_CROSSCOMPILING)
-			# Disable Flatbuffers Compiler (import or build nativly)
-			set(FLATBUFFERS_BUILD_FLATC OFF CACHE BOOL "Enable the build of the flatbuffers compiler")
-
 			if(IMPORT_FLATC)
 				# Import the Flatbuffers Compiler from a native build ...
 				include(${IMPORT_FLATC})
@@ -312,14 +321,12 @@ if(ENABLE_FLATBUF_SERVER OR ENABLE_FLATBUF_CONNECT)
 										-DFLATBUFFERS_INSTALL:BOOL=OFF
 										-DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
 										-DFLATBUFFERS_BUILD_TESTS:BOOL=${FLATBUFFERS_BUILD_TESTS}
-										-DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
-										-DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
 										-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
 										-Wno-dev # We don't want to be warned over unused variables
 					BUILD_BYPRODUCTS    <BINARY_DIR>/flatc${CMAKE_EXECUTABLE_SUFFIX}
 				)
 
-				add_executable(flatc IMPORTED GOBAL)
+				add_executable(flatc IMPORTED GLOBAL)
 				ExternalProject_Get_Property(flatc-host BINARY_DIR)
 				set_target_properties(flatc PROPERTIES
 					IMPORTED_LOCATION ${BINARY_DIR}/flatc${CMAKE_EXECUTABLE_SUFFIX}
@@ -332,19 +339,24 @@ if(ENABLE_FLATBUF_SERVER OR ENABLE_FLATBUF_CONNECT)
 		endif()
 	endif()
 
-	if(TARGET flatbuffers::flatbuffers OR TARGET FlatBuffers::FlatBuffers)
+	if(TARGET flatbuffers::flatbuffers OR TARGET flatbuffers::flatbuffers_shared OR TARGET FlatBuffers::FlatBuffers)
 		if(NOT TARGET FlatBuffers)
 			add_library(FlatBuffers INTERFACE IMPORTED GLOBAL)
 			if(TARGET flatbuffers::flatbuffers)
 				target_link_libraries(FlatBuffers INTERFACE flatbuffers::flatbuffers)
 				get_build_interface_include_directory(TARGET flatbuffers::flatbuffers OUTPUT FLATBUFFERS_INCLUDE_DIR)
+			elseif(TARGET flatbuffers::flatbuffers_shared)
+				target_link_libraries(FlatBuffers INTERFACE flatbuffers::flatbuffers_shared)
+				get_build_interface_include_directory(TARGET flatbuffers::flatbuffers_shared OUTPUT FLATBUFFERS_INCLUDE_DIR)
 			else()
 				target_link_libraries(FlatBuffers INTERFACE FlatBuffers::FlatBuffers)
 				get_build_interface_include_directory(TARGET FlatBuffers::FlatBuffers OUTPUT FLATBUFFERS_INCLUDE_DIR)
 			endif()
+		else()
+			get_build_interface_include_directory(TARGET FlatBuffers OUTPUT FLATBUFFERS_INCLUDE_DIR)
 		endif()
 
-		# static flatbuffers version detection from: https://github.com/hyperledger-archives/iroha-ametsuchi/blob/master/cmake/Modules/Findflatbuffers.cmake
+		# flatbuffers version detection from: https://github.com/hyperledger-archives/iroha-ametsuchi/blob/master/cmake/Modules/Findflatbuffers.cmake
 		if(FLATBUFFERS_INCLUDE_DIR AND EXISTS "${FLATBUFFERS_INCLUDE_DIR}/flatbuffers/base.h")
 			file(STRINGS "${FLATBUFFERS_INCLUDE_DIR}/flatbuffers/base.h" flatbuffers_version_str REGEX "#define FLATBUFFERS_VERSION_[A-Z]+ ")
 			string(REGEX REPLACE ".*#define FLATBUFFERS_VERSION_MAJOR ([0-9]+).*" "\\1" flatbuffers_MAJOR_VERSION "${flatbuffers_version_str}")
@@ -405,7 +417,7 @@ if(ENABLE_PROTOBUF_SERVER)
 				)
 			elseif(TARGET protobuf::protoc)
 				add_executable(protoc IMPORTED GLOBAL)
-				get_target_property(PROTOC_EXECUTABLE protobuf::protoc IMPORTED_LOCATION_RELEASE)
+				getTargetImportedLocation(PROTOC_EXECUTABLE protobuf::protoc)
 				set_target_properties(protoc PROPERTIES IMPORTED_LOCATION ${PROTOC_EXECUTABLE})
 			endif()
 		endif()
@@ -441,13 +453,15 @@ if(ENABLE_PROTOBUF_SERVER)
 		# Define the protoc import option
 		set(IMPORT_PROTOC "" CACHE STRING "Import the Protobuf compiler (protoc_export.cmake) from a native build")
 
+		if(CMAKE_CROSSCOMPILING)
+			# Disable Protobuf Compiler
+			set(protobuf_BUILD_PROTOC_BINARIES OFF CACHE BOOL "Build protobuf libraries and protoc compiler")
+		endif()
+
 		# Add Protobuf directory to the build
 		add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/external/protobuf")
 
 		if(CMAKE_CROSSCOMPILING)
-			# Disable Protobuf Compiler (import or build nativly)
-			set(protobuf_BUILD_PROTOC_BINARIES OFF CACHE BOOL "Build protobuf libraries and protoc compiler")
-
 			if(IMPORT_PROTOC)
 				# Import the Protobuf Compiler from a native build ...
 				include(${IMPORT_FLATC})
@@ -466,8 +480,6 @@ if(ENABLE_PROTOBUF_SERVER)
 										-Dprotobuf_BUILD_SHARED_LIBS:BOOL=${protobuf_BUILD_SHARED_LIBS}
 										-Dprotobuf_WITH_ZLIB:BOOL=${protobuf_WITH_ZLIB}
 										-DABSL_PROPAGATE_CXX_STD:BOOL=${ABSL_PROPAGATE_CXX_STD}
-										-DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
-										-DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS}
 										-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
 										-Wno-dev # We don't want to be warned over unused variables
 					BUILD_BYPRODUCTS    <BINARY_DIR>/protoc${CMAKE_EXECUTABLE_SUFFIX}
