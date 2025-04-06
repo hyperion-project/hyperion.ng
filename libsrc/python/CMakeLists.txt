@@ -47,3 +47,7 @@ target_compile_definitions(python PRIVATE
 	PYTHON_VERSION_MAJOR=${PYTHON_VERSION_MAJOR}
 	PYTHON_VERSION_MINOR=${PYTHON_VERSION_MINOR}
 )
+
+if(DEFINED ENV{GITHUB_ACTIONS})
+	target_compile_definitions(python PUBLIC GITHUB_ACTIONS)
+endif()
