@@ -266,7 +266,7 @@ $(document).ready(function () {
     $("#conf_cont_tok").insertAfter("#conf_cont_network");
 
     // Initial state check based on server config
-    checkApiTokenState(window.serverConfig.network.internetAccessAPI || window.serverConfig.network.localApiAuth);
+    checkApiTokenState(window.serverConfig.network.internetAccessAPI || window.serverConfig.network.localApiAuth || storedAccess === 'expert');
 
     // Listen for changes on the Internet access API Auth toggle
     $('#root_network_internetAccessAPI').on("change", function () {

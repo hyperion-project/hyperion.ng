@@ -112,7 +112,8 @@ void JsonConnection::setImage(const QImage& image, int priority, int duration, c
 	// ensure the image has RGB888 format
 	QImage imageARGB32 = image.convertToFormat(QImage::Format_ARGB32_Premultiplied);
 	QByteArray binaryImage;
-	binaryImage.reserve(imageARGB32.width() * imageARGB32.height() * 3);
+	binaryImage.reserve(static_cast<qsizetype>(imageARGB32.width()) *
+						static_cast<qsizetype>(imageARGB32.height()) * 3);
 	for (int i = 0; i < imageARGB32.height(); ++i)
 	{
 		const QRgb * scanline = reinterpret_cast<const QRgb *>(imageARGB32.scanLine(i));

@@ -142,7 +142,7 @@ private:
 	/// Flatbuffer connection for forwarding
 	QList<TargetHost> _flatbufferTargets;
 
-	MessageForwarderFlatbufferClientsHelper* _messageForwarderFlatBufHelper;
+	QSharedPointer<MessageForwarderFlatbufferClientsHelper> _messageForwarderFlatBufHelper;
 
 	QSharedPointer<MdnsBrowser> _mdnsBrowser = MdnsBrowser::getInstance();
 };
