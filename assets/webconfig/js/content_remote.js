@@ -61,7 +61,7 @@ $(document).ready(function () {
 
   // Update the channel adjustments
   function updateChannelAdjustments() {
-    if (!window.serverInfo.adjustment) return;
+    if (!window.serverInfo.adjustment || window.serverInfo.adjustment.length === 0) return;
 
     $('.crtbody').html("");
     const sColor = sortProperties(window.serverSchema.properties.color.properties.channelAdjustment.items.properties);

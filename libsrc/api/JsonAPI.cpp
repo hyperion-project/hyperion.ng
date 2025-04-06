@@ -626,7 +626,7 @@ void JsonAPI::handleDeleteEffectCommand(const QJsonObject &message, const JsonAp
 
 void JsonAPI::handleSysInfoCommand(const QJsonObject & /*unused*/, const JsonApiCommand& cmd)
 {
-	sendSuccessDataReply(JsonInfo::getSystemInfo(_hyperion.get()), cmd);
+	sendSuccessDataReply(JsonInfo::getSystemInfo(), cmd);
 }
 
 void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const JsonApiCommand& cmd)

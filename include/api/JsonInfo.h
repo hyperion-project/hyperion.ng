@@ -30,7 +30,7 @@ public:
 	static QJsonArray getActiveEffects(const Hyperion* hyperion);
 	static QJsonArray getActiveColors(const Hyperion* hyperion);
 	static QJsonArray getTransformationInfo(const Hyperion* hyperion);
-	static QJsonObject getSystemInfo(const Hyperion* hyperion);
+	static QJsonObject getSystemInfo();
 	QJsonObject discoverSources (const QString& sourceType, const QJsonObject& params);
 
 	static QJsonObject getConfiguration(const QList<quint8>& instanceIds = {}, const QStringList& instanceFilteredTypes = {}, const QStringList& globalFilterTypes = {} );
