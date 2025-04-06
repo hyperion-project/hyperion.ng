@@ -1,25 +1,31 @@
 $(document).ready(function () {
+
+  const DEFAULT_CPCOLOR = '#B500FF';
+  const BG_PRIORITY = 254;
+
+  // Perform initial translation setup
   performTranslation();
 
-  var EFFECTENGINE_ENABLED = (jQuery.inArray("effectengine", window.serverInfo.services) !== -1);
+  // Check if the effect engine is enabled
+  const EFFECTENGINE_ENABLED = (jQuery.inArray("effectengine", window.serverInfo.services) !== -1);
 
-  // update instance listing
+  // Update the list of Hyperion instances
   updateHyperionInstanceListing();
 
-  var oldEffects = [];
-  var cpcolor = '#B500FF';
-  var mappingList = window.serverSchema.properties.color.properties.imageToLedMappingType.enum;
-  var duration = ENDLESS;
-  var rgb = { r: 255, g: 0, b: 0 };
-  var lastImgData = "";
-  var lastFileName = "";
+  // Initialize variables
+  let oldEffects = [];
+  const mappingList = window.serverSchema.properties.color.properties.imageToLedMappingType.enum;
+  let uiInputDuration_s = 0; // Endless
+  let rgb = { r: 255, g: 0, b: 0 };
+  let lastImgData = "";
+  let lastFileName = "";
 
-  //create html
+  // Create initial HTML structure
   createTable('ssthead', 'sstbody', 'sstcont');
   $('.ssthead').html(createTableRow([$.i18n('remote_input_origin'), $.i18n('remote_input_owner'), $.i18n('remote_input_priority'), $.i18n('remote_input_status')], true, true));
   createTable('crthead', 'crtbody', 'adjust_content', true);
 
-  //create introduction
+  // Create introduction hints if the help option is enabled
   if (window.showOptHelp) {
     createHint("intro", $.i18n('remote_color_intro', $.i18n('remote_losthint')), "color_intro");
     createHint("intro", $.i18n('remote_input_intro', $.i18n('remote_losthint')), "sstcont");
@@ -29,416 +35,500 @@ $(document).ready(function () {
     createHint("intro", $.i18n('remote_videoMode_intro', $.i18n('remote_losthint')), "videomode_intro");
   }
 
+  // Hide color effect table and reset color button if current instance is not running
+  if (!isCurrentInstanceRunning()) {
+    $("#color_effect_table").hide();
+    $("#reset_color").hide();
+    removeOverlay();
+    return;
+  }
+
+  // Function to send the selected effect
   function sendEffect() {
-    var efx = $("#effect_select").val();
-    if (efx != "__none__") {
+    const effect = $("#effect_select").val();
+    if (effect !== "__none__") {
       requestPriorityClear();
-      $(window.hyperion).one("cmd-clear", function (event) {
-        setTimeout(function () { requestPlayEffect(efx, duration) }, 100);
+      $(window.hyperion).one("cmd-clear", function () {
+        setTimeout(function () { requestPlayEffect(effect, uiInputDuration_s); }, 100);
       });
     }
   }
 
+  // Function to send the selected color
   function sendColor() {
-    requestSetColor(rgb.r, rgb.g, rgb.b, duration);
+    requestSetColor(rgb.r, rgb.g, rgb.b, uiInputDuration_s);
   }
 
+  // Update the channel adjustments
   function updateChannelAdjustments() {
+    if (!window.serverInfo.adjustment || window.serverInfo.adjustment.length === 0) return;
 
     $('.crtbody').html("");
-    var sColor = sortProperties(window.serverSchema.properties.color.properties.channelAdjustment.items.properties);
-    var values = window.serverInfo.adjustment[0];
+    const sColor = sortProperties(window.serverSchema.properties.color.properties.channelAdjustment.items.properties);
+    const values = window.serverInfo.adjustment[0];
 
-    for (var key in sColor) {
-      if (sColor[key].key != "id" && sColor[key].key != "leds") {
-        var title = '<label for="cr_' + sColor[key].key + '">' + $.i18n(sColor[key].title) + '</label>';
-        var property;
-        var value = values[sColor[key].key];
+    for (const key in sColor) {
+      if (sColor[key].key !== "id" && sColor[key].key !== "leds") {
+        const title = `<label for="cr_${sColor[key].key}">${$.i18n(sColor[key].title)}</label>`;
+        let property;
+        const value = values[sColor[key].key];
 
-        if (sColor[key].type == "array") {
-          property = '<div id="cr_' + sColor[key].key + '" class="input-group colorpicker-component" ><input type="text" class="form-control" /><span class="input-group-addon"><i></i></span></div>';
+        // Handle array type adjustments
+        if (sColor[key].type === "array") {
+          property = `<div id="cr_${sColor[key].key}" class="input-group colorpicker-component">
+                        <input type="text" class="form-control" />
+                        <span class="input-group-addon"><i></i></span>
+                      </div>`;
           $('.crtbody').append(createTableRow([title, property], false, true));
-          createCP('cr_' + sColor[key].key, value, function (rgb, hex, e) {
-            requestAdjustment(e.target.id.substr(e.target.id.indexOf("_") + 1), '[' + rgb.r + ',' + rgb.g + ',' + rgb.b + ']');
+          createCP(`cr_${sColor[key].key}`, value, function (rgb, hex, e) {
+            const elementName = e.target.id.substr(e.target.id.indexOf("_") + 1);
+            requestAdjustment(elementName, [rgb.r,rgb.g,rgb.b]);
           });
         }
-        else if (sColor[key].type == "boolean") {
-          property = '<div class="checkbox"><input id="cr_' + sColor[key].key + '" type="checkbox" ' + (value ? "checked" : "") + '/><label></label></div>';
+        // Handle boolean type adjustments
+        else if (sColor[key].type === "boolean") {
+          property = `<div class="checkbox">
+                        <input id="cr_${sColor[key].key}" type="checkbox" ${value ? "checked" : ""}/>
+                        <label></label>
+                      </div>`;
           $('.crtbody').append(createTableRow([title, property], false, true));
 
           $('#cr_' + sColor[key].key).off().on('change', function (e) {
-            requestAdjustment(e.target.id.substr(e.target.id.indexOf("_") + 1), e.currentTarget.checked);
+            const elementName = e.target.id.substr(e.target.id.indexOf("_") + 1);
+            requestAdjustment(elementName, e.currentTarget.checked);
           });
         }
+        // Handle number type adjustments
         else {
-          if (sColor[key].key == "brightness" ||
-            sColor[key].key == "brightnessCompensation" ||
-            sColor[key].key == "backlightThreshold" ||
-            sColor[key].key == "saturationGain" ||
-            sColor[key].key == "brightnessGain" ||
-            sColor[key].key == "temperature" ) {
-
-            property = '<input id="cr_' + sColor[key].key + '" type="number" class="form-control" min="' + sColor[key].minimum + '" max="' + sColor[key].maximum + '" step="' + sColor[key].step + '" value="' + value + '"/>';
-            if (sColor[key].append && sColor[key].append !== "" ) {
-              property = '<div class="input-group">' + property + '<span class="input-group-addon">' + $.i18n(sColor[key].append) + '</span></div>';
+          if (["brightness", "brightnessCompensation", "backlightThreshold", "saturationGain", "brightnessGain", "temperature"].includes(sColor[key].key)) {
+            property = `<input id="cr_${sColor[key].key}" type="number" class="form-control" 
+                          min="${sColor[key].minimum}" max="${sColor[key].maximum}" step="${sColor[key].step}" value="${value}" />`;
+            if (sColor[key].append && sColor[key].append !== "") {
+              property = `<div class="input-group">${property}<span class="input-group-addon">${$.i18n(sColor[key].append)}</span></div>`;
             }
-          }
-          else {
-            property = '<input id="cr_' + sColor[key].key + '" type="number" class="form-control" min="0.1" max="4.0" step="0.1" value="' + value + '"/>';
+          } else {
+            property = `<input id="cr_${sColor[key].key}" type="number" class="form-control" min="0.1" max="4.0" step="0.1" value="${value}" />`;
           }
 
           $('.crtbody').append(createTableRow([title, property], false, true));
           $('#cr_' + sColor[key].key).off().on('change', function (e) {
-            valValue(this.id, this.value, this.min, this.max);
-            requestAdjustment(e.target.id.substr(e.target.id.indexOf("_") + 1), e.currentTarget.value);
+            const elementName = e.target.id.substr(e.target.id.indexOf("_") + 1);
+            const value = valValue(this.id, this.value, this.min, this.max);
+            requestAdjustment(elementName, value);
           });
         }
       }
     }
   }
 
+  // Update input select options based on priorities
   function updateInputSelect() {
+    // Clear existing elements
     $('.sstbody').empty();
-    var prios = window.serverInfo.priorities;
-    var clearAll = false;
 
-    for (var i = 0; i < prios.length; i++) {
-      var origin = prios[i].origin ? prios[i].origin : "System";
-      origin = origin.split("@");
-      var ip = origin[1];
-      origin = origin[0];
+    const prios = window.serverInfo.priorities;
+    let clearAll = false;
 
-      var owner = prios[i].owner;
-      var active = prios[i].active;
-      var visible = prios[i].visible;
-      var priority = prios[i].priority;
-      var compId = prios[i].componentId;
-      var duration = prios[i].duration_ms / 1000;
-      var value = "0,0,0";
-      var btn_type = "default";
-      var btn_text = $.i18n('remote_input_setsource_btn');
-      var btn_state = "enabled";
+    // Iterate over priorities
+    for (let i = 0; i < prios.length; i++) {
+      let origin = prios[i].origin ? prios[i].origin : "System";
+      const [originName, ip] = origin.split("@");
+      origin = originName;
 
-      if (active)
-        btn_type = "primary";
+      let {
+        owner,
+        active,
+        visible,
+        priority,
+        componentId,
+        duration_ms 
+      } = prios[i];
 
-      if (priority > 254)
-        continue;
-      if (priority < 254 && (compId == "EFFECT" || compId == "COLOR" || compId == "IMAGE"))
-        clearAll = true;
+      const remoteInputDuration_s = duration_ms / 1000;
+      let value = "0,0,0";
+      let btnType = "default";
+      let btnText = $.i18n('remote_input_setsource_btn');
+      let btnState = "enabled";
+
+      if (active) btnType = "primary";
+      if (priority > BG_PRIORITY) continue;
+      if (priority < BG_PRIORITY && ["EFFECT", "COLOR", "IMAGE"].includes(componentId)) clearAll = true;
 
       if (visible) {
-        btn_state = "disabled";
-        btn_type = "success";
-        btn_text = $.i18n('remote_input_sourceactiv_btn');
+        btnState = "disabled";
+        btnType = "success";
+        btnText = $.i18n('remote_input_sourceactiv_btn');
       }
 
-      if (ip)
-        origin += '<br/><span style="font-size:80%; color:grey;">' + $.i18n('remote_input_ip') + ' ' + ip + '</span>';
+      if (ip) {
+        origin += `<br/><span style="font-size:80%; color:grey;">${$.i18n('remote_input_ip')} ${ip}</span>`;
+      }
 
-      if ("value" in prios[i])
-        value = prios[i].value.RGB;
+      if ("value" in prios[i]) value = prios[i].value.RGB;
 
-      switch (compId) {
+      // Determine owner description based on component ID
+      let ownerText = owner;
+
+      switch (componentId) {
         case "EFFECT":
-          owner = $.i18n('remote_effects_label_effects') + ' ' + owner;
+          ownerText = $.i18n('remote_effects_label_effects') + " " + owner;
           break;
         case "COLOR":
-          owner = $.i18n('remote_color_label_color') + '  ' + '<div style="width:18px; height:18px; border-radius:20px; margin-bottom:-4px; border:1px grey solid; background-color: rgb(' + value + '); display:inline-block" title="RGB: (' + value + ')"></div>';
+          ownerText = $.i18n('remote_color_label_color') + ' ' +
+            `<div style="width:18px; height:18px; border-radius:20px; margin-bottom:-4px; 
+                 border:1px grey solid; background-color: rgb(${value}); display:inline-block" 
+                 title="RGB: (${value})"></div>`;
           break;
         case "IMAGE":
-          owner = $.i18n('remote_effects_label_picture') + (owner !== undefined ? ('  ' + owner) : "");
+          ownerText = $.i18n('remote_effects_label_picture') + (owner ? `  ${owner}` : "");
           break;
         case "GRABBER":
-          owner = $.i18n('general_comp_GRABBER') + ': (' + owner + ')';
-          break;
         case "V4L":
-          owner = $.i18n('general_comp_V4L') + ': (' + owner + ')';
-          break;
-        case "AUDIO":
-          owner = $.i18n('general_comp_AUDIO') + ': (' + owner + ')';
+        case "AUDIO":        
+          ownerText = `${$.i18n("general_comp_" + componentId)}: (${owner})`;
           break;
         case "BOBLIGHTSERVER":
-          owner = $.i18n('general_comp_BOBLIGHTSERVER');
-          break;
         case "FLATBUFSERVER":
-          owner = $.i18n('general_comp_FLATBUFSERVER');
-          break;
-        case "PROTOSERVER":
-          owner = $.i18n('general_comp_PROTOSERVER');
+        case "PROTOSERVER":       
+          ownerText = `${$.i18n("general_comp_" + componentId)})`;
           break;
       }
 
-      if (!(duration && duration < 0)) {
-        if (duration && compId != "GRABBER" && compId != "FLATBUFSERVER" && compId != "PROTOSERVER")
-          owner += '<br/><span style="font-size:80%; color:grey;">' + $.i18n('remote_input_duration') + ' ' + duration.toFixed(0) + $.i18n('edt_append_s') + '</span>';
+      if (remoteInputDuration_s > 0 && !["GRABBER", "FLATBUFSERVER", "PROTOSERVER"].includes(componentId)) {
+          ownerText += `<br/><span style="font-size:80%; color:grey;">${$.i18n('remote_input_duration')} 
+                          ${remoteInputDuration_s.toFixed(0)}${$.i18n('edt_append_s')}</span>`;
+      }
 
-        var btn = '<button id="srcBtn' + i + '" type="button" ' + btn_state + ' class="btn btn-' + btn_type + ' btn_input_selection" onclick="requestSetSource(' + priority + ');">' + btn_text + '</button>';
+      if (!remoteInputDuration_s || remoteInputDuration_s > 0 ) {
+        // Create buttons
+        let btn = `<button id="srcBtn${i}" type="button" ${btnState} class="btn btn-${btnType} btn_input_selection" 
+                       onclick="requestSetSource(${priority});">${btnText}</button>`;
 
-        if ((compId == "EFFECT" || compId == "COLOR" || compId == "IMAGE") && priority < 254)
-          btn += '<button type="button" class="btn btn-sm btn-danger" style="margin-left:10px;" onclick="requestPriorityClear(' + priority + ');"><i class="fa fa-close"></button>';
+        if (["EFFECT", "COLOR", "IMAGE"].includes(componentId) && priority < BG_PRIORITY) {
+          btn += `<button type="button" class="btn btn-sm btn-danger" style="margin-left:10px;" 
+                        onclick="requestPriorityClear(${priority});"><i class="fa fa-close"></i></button>`;
+        }
 
-        if (btn_type != 'default')
-          $('.sstbody').append(createTableRow([origin, owner, priority, btn], false, true));
+        if (btnType !== 'default') {
+          $('.sstbody').append(createTableRow([origin, ownerText, priority, btn], false, true));
+        }
       }
     }
-    var btn_auto_color = (window.serverInfo.priorities_autoselect ? "btn-success" : "btn-danger");
-    var btn_auto_state = (window.serverInfo.priorities_autoselect ? "disabled" : "enabled");
-    var btn_auto_text = (window.serverInfo.priorities_autoselect ? $.i18n('general_btn_on') : $.i18n('general_btn_off'));
-    var btn_call_state = (clearAll ? "enabled" : "disabled");
-    $('#auto_btn').html('<button id="srcBtn' + i + '" type="button" ' + btn_auto_state + ' class="btn ' + btn_auto_color + '" style="margin-right:5px;display:inline-block;" onclick="requestSetSource(\'auto\');">' + $.i18n('remote_input_label_autoselect') + ' (' + btn_auto_text + ')</button>');
-    $('#auto_btn').append('<button type="button" ' + btn_call_state + ' class="btn btn-danger" style="display:inline-block;" onclick="requestClearAll();">' + $.i18n('remote_input_clearall') + '</button>');
 
-    var max_width = 100;
+    // Auto-select and Clear All buttons
+    const autoColor = window.serverInfo.priorities_autoselect ? "btn-success" : "btn-danger";
+    const autoState = window.serverInfo.priorities_autoselect ? "disabled" : "enabled";
+    const autoText = window.serverInfo.priorities_autoselect ? $.i18n('general_btn_on') : $.i18n('general_btn_off');
+    const callState = clearAll ? "enabled" : "disabled";
+
+    $('#auto_btn').html(`
+        <button id="srcBtnAuto" type="button" ${autoState} class="btn ${autoColor}" style="margin-right:5px; display:inline-block;" 
+        onclick="requestSetSource('auto');">${$.i18n('remote_input_label_autoselect')} (${autoText})</button>
+    `);
+
+    $('#auto_btn').append(`
+        <button type="button" ${callState} class="btn btn-danger" style="display:inline-block;" 
+        onclick="requestClearAll();">${$.i18n('remote_input_clearall')}</button>
+    `);
+
+    // Adjust button widths
+    let maxWidth = 100;
     $('.btn_input_selection').each(function () {
-      if ($(this).innerWidth() > max_width)
-        max_width = $(this).innerWidth();
+      if ($(this).innerWidth() > maxWidth) maxWidth = $(this).innerWidth();
     });
-    $('.btn_input_selection').css("min-width", max_width + "px");
+    $('.btn_input_selection').css("min-width", maxWidth + "px");
   }
 
+
   function updateLedMapping() {
-    var mapping = window.serverInfo.imageToLedMappingType;
+    const mapping = window.serverInfo.imageToLedMappingType;
 
-    $('#mappingsbutton').html("");
-    for (var ix = 0; ix < mappingList.length; ix++) {
-      if (mapping == mappingList[ix])
-        var btn_style = 'btn-success';
-      else
-        var btn_style = 'btn-primary';
+    // Clear existing mappings
+    $('#mappingsbutton').empty();
 
-      $('#mappingsbutton').append('<button type="button" id="lmBtn_' + mappingList[ix] + '" class="btn ' + btn_style + '" style="margin:3px;min-width:200px" onclick="requestMappingType(\'' + mappingList[ix] + '\');">' + $.i18n('remote_maptype_label_' + mappingList[ix]) + '</button><br/>');
-    }
+    mappingList.forEach((mapType) => {
+      const btnStyle = (mapping === mapType) ? 'btn-success' : 'btn-primary';
+      const btnText = $.i18n(`remote_maptype_label_${mapType}`);
+
+      $('#mappingsbutton').append(`
+      <button type="button" id="lmBtn_${mapType}" 
+              class="btn ${btnStyle}" 
+              style="margin:3px;min-width:200px"
+              onclick="requestMappingType('${mapType}')">
+        ${btnText}
+      </button><br/>
+    `);
+    });
   }
 
   function initComponents() {
-    var components = window.comps;
-    var hyperionEnabled = true;
-    components.forEach(function (obj) {
-      if (obj.name == "ALL") {
-        hyperionEnabled = obj.enabled;
-      }
-    });
+    const components = window.comps;
+    const hyperionEnabled = components.some(comp => comp.name === "ALL" && comp.enabled);
 
-    for (const comp of components) {
-      if (comp.name === "ALL" || (comp.name === "FORWARDER" && window.currentHyperionInstance != 0) ||
-        (comp.name === "GRABBER" && !window.serverConfig.framegrabber.enable) ||
-        (comp.name === "V4L" && !window.serverConfig.grabberV4L2.enable) ||
-        (comp.name === "AUDIO" && !window.serverConfig.grabberAudio.enable))
-        continue;
+    components.forEach((comp) => {
+      // Skip if component is disabled or not relevant
+      if (shouldSkipComponent(comp)) return;
 
-      const enable_style = (comp.enabled ? "checked" : "");
-      const comp_btn_id = "comp_btn_" + comp.name;
+      const compBtnId = `comp_btn_${comp.name}`;
+      const checkedStatus = comp.enabled ? "checked" : "";
+      const componentHtml = `
+      <span style="display:block;margin:3px">
+        <label class="checkbox-inline">
+          <input id="${compBtnId}" ${checkedStatus} type="checkbox"
+                 data-toggle="toggle"
+                 data-onstyle="success"
+                 data-name="${comp.name}"
+                 data-on="${$.i18n('general_btn_on')}"
+                 data-off="${$.i18n('general_btn_off')}">
+          ${$.i18n('general_comp_' + comp.name)}
+        </label>
+      </span>
+    `;
 
-      if ($("#" + comp_btn_id).length === 0) {
-        var d = '<span style="display:block;margin:3px">'
-          + '<label class="checkbox-inline">'
-          + '<input id = "' + comp_btn_id + '"' + enable_style + ' type = "checkbox"'
-          + 'data-toggle="toggle" data-onstyle="success" data-on="' + $.i18n('general_btn_on') + '" data-off="' + $.i18n('general_btn_off') + '">'
-          + $.i18n('general_comp_' + comp.name) + '</label > '
-          + '</span>';
-
-        $('#componentsbutton').append(d);
-        $(`#${comp_btn_id}`).bootstrapToggle();
-        $(`#${comp_btn_id}`).bootstrapToggle((hyperionEnabled ? "enable" : "disable"));
-        $(`#${comp_btn_id}`).on("change", e => {
-          requestSetComponentState(e.currentTarget.id.split('_').pop(), e.currentTarget.checked);
+      // Append component toggle button if not already created
+      if (!$(`#${compBtnId}`).length) {
+        $('#componentsbutton').append(componentHtml);
+        $(`#${compBtnId}`).bootstrapToggle();
+        $(`#${compBtnId}`).bootstrapToggle(hyperionEnabled ? "enable" : "disable");
+        $(`#${compBtnId}`).on("change", e => {
+          const compName = $(e.currentTarget).data("name");
+          requestSetComponentState(compName, e.currentTarget.checked);
         });
       }
-    }
+    });
+  }
+
+  function shouldSkipComponent(comp) {
+    // Define conditions to skip certain components
+    const skipConditions = {
+      "ALL": false,
+      "FORWARDER": window.currentHyperionInstance !== window.serverConfig.forwarder.instance,
+      "GRABBER": !window.serverConfig.framegrabber.enable,
+      "V4L": !window.serverConfig.grabberV4L2.enable,
+      "AUDIO": !window.serverConfig.grabberAudio.enable
+    };
+
+    return skipConditions[comp.name] || comp.name === "ALL";
   }
 
   function updateComponent(component) {
-    if (component.name == "ALL") {
-      var components = window.comps;
-      var hyperionEnabled = component.enabled;
-      for (const comp of components) {
-
-        if (comp.name === "ALL")
-          continue;
-
-        const comp_btn_id = "comp_btn_" + comp.name;
-
-        if (!hyperionEnabled) {
-          $(`#${comp_btn_id}`).bootstrapToggle('off');
-          $(`#${comp_btn_id}`).bootstrapToggle("disable");
-        }
-        else {
-          $(`#${comp_btn_id}`).bootstrapToggle("enable");
-          if (comp.enabled !== $(`#${comp_btn_id}`).prop("checked")) {
-            $(`#${comp_btn_id}`).bootstrapToggle().prop('checked', comp.enabled).change();
-          }
-        }
-      }
-    }
-    else {
-      const comp_btn_id = "comp_btn_" + component.name;
-
-      //console.log ("updateComponent: ", component.name, "Current Checked: ", $(`#${comp_btn_id}`).prop("checked"), "New Checked: ", component.enabled,  );
-
-      // In case Buttons were disabled before, status may be different to component status
-      if (component.enabled != $(`#${comp_btn_id}`).prop("checked")) {
-        // console.log ("Update status to Checked = ", component.enabled);
-        if (component.enabled)
-          $(`#${comp_btn_id}`).bootstrapToggle("on");
-        else
-          $(`#${comp_btn_id}`).bootstrapToggle("off");
-      }
+    if (component.name === "ALL") {
+      updateAllComponents(component.enabled);
+    } else {
+      updateSingleComponent(component);
     }
   }
 
-  function updateEffectlist() {
-    var newEffects = window.serverInfo.effects;
-    if (newEffects.length != oldEffects.length) {
-      $('#effect_select').html('<option value="__none__"></option>');
-      var usrEffArr = [];
-      var sysEffArr = [];
+  function updateAllComponents(enabled) {
+    window.comps.forEach((comp) => {
+      if (comp.name === "ALL") return;
 
-      for (var i = 0; i < newEffects.length; i++) {
-        var effectName = newEffects[i].name;
-        if (!/^\:/.test(newEffects[i].file)) {
-          usrEffArr.push(effectName);
-        }
-        else {
-          sysEffArr.push(effectName);
-        }
+      const compBtnId = `comp_btn_${comp.name}`;
+      const toggle = $(`#${compBtnId}`).bootstrapToggle();
+
+      if (!enabled) {
+        toggle.bootstrapToggle("off");
+        toggle.bootstrapToggle("disable");
+      } else {
+        toggle.bootstrapToggle("enable");
+        updateSingleComponent(comp);
       }
-      $('#effect_select').append(createSel(usrEffArr, $.i18n('remote_optgroup_usreffets')));
-      $('#effect_select').append(createSel(sysEffArr, $.i18n('remote_optgroup_syseffets')));
+    });
+  }
+
+  function updateSingleComponent(component) {
+    const compBtnId = `comp_btn_${component.name}`;
+    const toggle = $(`#${compBtnId}`).bootstrapToggle();
+
+    if (component.enabled !== $(`#${compBtnId}`).prop("checked")) {
+      toggle.bootstrapToggle(component.enabled ? "on" : "off");
+    }
+  }
+
+  // Update Effect List
+  function updateEffectlist() {
+    const newEffects = window.serverInfo.effects;
+
+    if (newEffects.length !== oldEffects.length) {
+      $('#effect_select').html('<option value="__none__"></option>');
+      const usrEffArr = [];
+      const sysEffArr = [];
+
+      newEffects.forEach(effect => {
+        const effectName = effect.name;
+        const effectArr = effect.file.startsWith(":") ? sysEffArr : usrEffArr;
+        effectArr.push(effectName);
+      });
+
+      $('#effect_select')
+        .append(createSel(usrEffArr, $.i18n('remote_optgroup_usreffets')))
+        .append(createSel(sysEffArr, $.i18n('remote_optgroup_syseffets')));
+
       oldEffects = newEffects;
     }
   }
 
+  // Update Video Mode
   function updateVideoMode() {
-    var videoModes = ["2D", "3DSBS", "3DTAB"];
-    var currVideoMode = window.serverInfo.videomode;
+    const videoModes = ["2D", "3DSBS", "3DTAB"];
+    const currVideoMode = window.serverInfo.videomode;
 
-    $('#videomodebtns').html("");
-    for (var ix = 0; ix < videoModes.length; ix++) {
-      if (currVideoMode == videoModes[ix])
-        var btn_style = 'btn-success';
-      else
-        var btn_style = 'btn-primary';
-      $('#videomodebtns').append('<button type="button" id="vModeBtn_' + videoModes[ix] + '" class="btn ' + btn_style + '" style="margin:3px;min-width:200px" onclick="requestVideoMode(\'' + videoModes[ix] + '\');">' + $.i18n('remote_videoMode_' + videoModes[ix]) + '</button><br/>');
+    $('#videomodebtns').empty();
+    videoModes.forEach(mode => {
+      const btnStyle = currVideoMode === mode ? 'btn-success' : 'btn-primary';
+      const buttonHtml = `<button type="button" id="vModeBtn_${mode}" class="btn ${btnStyle}" 
+                          style="margin:3px;min-width:200px" 
+                          onclick="requestVideoMode('${mode}')">
+                          ${$.i18n('remote_videoMode_' + mode)}
+                        </button><br/>`;
+
+      $('#videomodebtns').append(buttonHtml);
+    });
+  }
+
+  // Initialize Color Picker and Effects
+  function initColorPickerAndEffects() {
+    let cpcolor = getStorage('rmcpcolor') || DEFAULT_CPCOLOR;
+    if (cpcolor) rgb = hexToRgb(cpcolor);
+
+    const storedDuration = getStorage('rmduration');
+    if (storedDuration) {
+      uiInputDuration_s = Number(storedDuration);
+      $("#remote_duration").val(uiInputDuration_s);
+      updateDurationPlaceholder(); // Update the placeholder for "Endless"
     }
+
+    createCP('cp2', cpcolor, function (rgbT, hex) {
+      rgb = rgbT;
+      sendColor();
+      setStorage('rmcpcolor', hex);
+      updateInputSelect();
+    });
+
+    setupEventListeners();
   }
 
-  // colorpicker and effect
-  if (getStorage('rmcpcolor') != null) {
-    cpcolor = getStorage('rmcpcolor');
-    rgb = hexToRgb(cpcolor);
+  // Setup Event Listeners for Controls
+  function setupEventListeners() {
+    $("#reset_color").off().on("click", resetColor);
+    $("#remote_duration").off().on("change", updateDuration);
+    $("#effect_select").off().on("change", sendEffect);
+    $("#remote_input_reseff, #remote_input_rescol").off().on("click", handleResetOrColor);
+    $("#remote_input_repimg").off().on("click", handleImageRequest);
+    $("#remote_input_img").on("change", handleImageChange);
   }
 
-  if (getStorage('rmduration') != null) {
-    $("#remote_duration").val(getStorage('rmduration'));
-    duration = getStorage('rmduration');
-    if (duration == 0) {
-      duration = ENDLESS;
-    }
-  }
-
-  createCP('cp2', cpcolor, function (rgbT, hex) {
-    rgb = rgbT;
-    sendColor();
-    setStorage('rmcpcolor', hex);
-    updateInputSelect();
-  });
-
-  $("#reset_color").off().on("click", function () {
+  // Reset Color Function
+  function resetColor() {
     requestPriorityClear();
     lastImgData = "";
     $("#effect_select").val("__none__");
     $("#remote_input_img").val("");
-  });
-
-  $("#remote_duration").off().on("change", function () {
-    duration = valValue(this.id, this.value, this.min, this.max);
-    setStorage('rmduration', duration);
-    if (duration == 0) {
-      duration = ENDLESS;
-    }
-  });
-
-  $("#effect_select").off().on("change", function (event) {
-    sendEffect();
-  });
-
-  $("#remote_input_reseff, #remote_input_rescol").off().on("click", function () {
-    if (this.id == "remote_input_rescol") {
-      sendColor();
-    } else {
-      if (EFFECTENGINE_ENABLED) {
-        sendEffect();
-      }
-    }
-  });
-
-  $("#remote_input_repimg").off().on("click", function () {
-    if (lastImgData != "") {
-      requestSetImage(lastImgData, duration, lastFileName);
-    }
-  });
-
-  $("#remote_input_img").on("change", function () {
-    readImg(this, function (src, fileName) {
-      lastFileName = fileName;
-      if (src.includes(","))
-        lastImgData = src.split(",")[1];
-      else
-        lastImgData = src;
-
-      requestSetImage(lastImgData, duration, lastFileName);
-    });
-  });
-
-  //force first update
-  initComponents();
-  updateInputSelect();
-  updateLedMapping();
-  updateVideoMode();
-  updateChannelAdjustments();
-  if (EFFECTENGINE_ENABLED) {
-    updateEffectlist();
-  } else {
-    $('#effect_row').hide();
   }
 
-  // interval updates
+  // Update Duration
+  function updateDuration() {
+    uiInputDuration_s = valValue(this.id, this.value, this.min, this.max);
+    setStorage('rmduration', uiInputDuration_s);
+    updateDurationPlaceholder(); // Ensure placeholder is updated dynamically
+  }
 
-  $(window.hyperion).on('components-updated', function (e, comp) {
-    updateComponent(comp);
-  });
-
-  $(window.hyperion).on("cmd-priorities-update", function (event) {
-    window.serverInfo.priorities = event.response.data.priorities;
-    window.serverInfo.priorities_autoselect = event.response.data.priorities_autoselect;
-    updateInputSelect();
-  });
-  $(window.hyperion).on("cmd-imageToLedMapping-update", function (event) {
-    window.serverInfo.imageToLedMappingType = event.response.data.imageToLedMappingType;
-    updateLedMapping();
-  });
-
-  $(window.hyperion).on("cmd-videomode-update", function (event) {
-    window.serverInfo.videomode = event.response.data.videomode;
-    updateVideoMode();
-  });
-
-  $(window.hyperion).on("cmd-effects-update", function (event) {
-    window.serverInfo.effects = event.response.data.effects;
-    updateEffectlist();
-  });
-
-  $(window.hyperion).on("cmd-settings-update", function (event) {
-    if (event.response.data.color) {
-      window.serverInfo.imageToLedMappingType = event.response.data.color.imageToLedMappingType;
-      updateLedMapping();
-
-      window.serverInfo.adjustment = event.response.data.color.channelAdjustment;
-      updateChannelAdjustments();
+  // Update the placeholder or display "Endless" dynamically
+  function updateDurationPlaceholder() {
+    const remoteDuration = $("#remote_duration");
+    if (Number(remoteDuration.val()) === 0) {
+      remoteDuration.val(""); // Clear value temporarily
+      remoteDuration.attr("placeholder", $.i18n('remote_input_duration_endless'));
+    } else {
+      remoteDuration.attr("placeholder", "");
     }
-  });
+  }
 
-  removeOverlay();
+  // Handle Reset or Color Click
+  function handleResetOrColor() {
+    if (this.id === "remote_input_rescol") {
+      sendColor();
+    } else if (EFFECTENGINE_ENABLED) {
+      sendEffect();
+    }
+  }
+
+  // Handle Image Request
+  function handleImageRequest() {
+    if (lastImgData) {
+      requestSetImage(lastImgData, uiInputDuration_s, lastFileName);
+    }
+  }
+
+  // Handle Image Change
+  function handleImageChange() {
+    readImg(this, function (src, fileName) {
+      lastFileName = fileName;
+      lastImgData = src.includes(",") ? src.split(",")[1] : src;
+      requestSetImage(lastImgData, uiInputDuration_s, lastFileName);
+    });
+  }
+
+  // Force First Update
+  function forceFirstUpdate() {
+    initComponents();
+    updateInputSelect();
+    updateLedMapping();
+    updateVideoMode();
+    updateChannelAdjustments();
+
+    if (EFFECTENGINE_ENABLED) {
+      updateEffectlist();
+    } else {
+      $('#effect_row').hide();
+    }
+  }
+
+  // Interval Updates and Event Handlers
+  function setupEventListenersForUpdates() {
+    $(window.hyperion).on('components-updated', (e, comp) => updateComponent(comp));
+
+    $(window.hyperion).on("cmd-priorities-update", (event) => {
+      window.serverInfo.priorities = event.response.data.priorities;
+      window.serverInfo.priorities_autoselect = event.response.data.priorities_autoselect;
+      updateInputSelect();
+    });
+
+    $(window.hyperion).on("cmd-imageToLedMapping-update", (event) => {
+      window.serverInfo.imageToLedMappingType = event.response.data.imageToLedMappingType;
+      updateLedMapping();
+    });
+
+    $(window.hyperion).on("cmd-videomode-update", (event) => {
+      window.serverInfo.videomode = event.response.data.videomode;
+      updateVideoMode();
+    });
+
+    $(window.hyperion).on("cmd-effects-update", (event) => {
+      window.serverInfo.effects = event.response.data.effects;
+      updateEffectlist();
+    });
+
+    $(window.hyperion).on("cmd-settings-update", (event) => {
+      if (event.response.data.color) {
+        window.serverInfo.imageToLedMappingType = event.response.data.color.imageToLedMappingType;
+        updateLedMapping();
+        window.serverInfo.adjustment = event.response.data.color.channelAdjustment;
+        updateChannelAdjustments();
+      }
+    });
+
+    removeOverlay();
+  }
+
+  // Initialize everything
+  function init() {
+    initColorPickerAndEffects();
+    forceFirstUpdate();
+    setupEventListenersForUpdates();
+  }
+
+  init();
+
 });
 

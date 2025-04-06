@@ -431,13 +431,10 @@ const colorCalibrationKodiWizard = (() => {
       stop(true);
     });
 
-    wiz_editor.on("change", function (e) {
-      const val = wiz_editor.getEditor('root.color.channelAdjustment.' + profile + '').getValue();
-      const temp = JSON.parse(JSON.stringify(val));
-      delete temp.leds
-      requestAdjustment(JSON.stringify(temp), "", true);
+    wiz_editor.on("change", function () {
+      const { leds, ...adjustments } = wiz_editor.getEditor('root.color.channelAdjustment.' + profile).getValue();
+      requestAdjustment(adjustments, "", true);
     });
-
     step++
     performAction();
   }

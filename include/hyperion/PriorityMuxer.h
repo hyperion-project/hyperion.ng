@@ -7,7 +7,6 @@
 // QT includes
 #include <QMap>
 #include <QObject>
-#include <QMap>
 #include <QVector>
 
 // Utils includes
@@ -16,8 +15,8 @@
 #include <utils/Components.h>
 
 // global defines
-#define SMOOTHING_MODE_DEFAULT 0
-#define SMOOTHING_MODE_PAUSE   1
+constexpr auto SMOOTHING_MODE_DEFAULT = 0;
+constexpr auto SMOOTHING_MODE_PAUSE = 1;
 
 class QTimer;
 class Logger;
@@ -80,6 +79,16 @@ public:
 	/// Destructor
 	///
 	~PriorityMuxer() override;
+
+	///
+	/// @brief Start the PriorityMuxer and its timers
+	///
+	void start();
+
+	///
+	/// @brief Stop the PriorityMuxer and its timers
+	///
+	void stop();
 
 	///
 	/// @brief Start/Stop the PriorityMuxer update timer; On disabled no priority and timeout updates will be performend
@@ -280,8 +289,8 @@ private:
 	bool _sourceAutoSelectEnabled;
 
 	// Timer to update Muxer times independent
-	QTimer* _updateTimer;
+	QScopedPointer<QTimer, QScopedPointerDeleteLater> _updateTimer;
 
-	QTimer* _timer;
-	QTimer* _blockTimer;
+	QScopedPointer<QTimer, QScopedPointerDeleteLater> _timer;
+	QScopedPointer<QTimer, QScopedPointerDeleteLater> _blockTimer;
 };

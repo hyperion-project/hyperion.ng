@@ -13,6 +13,7 @@
 
 // qt includes
 #include <QString>
+#include <QSharedPointer>
 
 class JsonCallbacks;
 class HyperionIManager;
@@ -379,7 +380,10 @@ protected:
 	HyperionIManager *_instanceManager;
 
 	Logger *_log;
-	Hyperion *_hyperion;
+
+	// current instance index
+	quint8 _currInstanceIndex;
+	QSharedPointer<Hyperion> _hyperion;
 
 signals:
 	///
@@ -421,7 +425,4 @@ private:
 
 	// Contains all active register call data
 	std::map<int, registerData> _activeRegisters;
-
-	// current instance index
-	quint8 _currInstanceIndex;
 };

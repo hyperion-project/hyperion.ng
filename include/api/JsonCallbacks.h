@@ -8,6 +8,7 @@
 #include <QObject>
 #include <QJsonObject>
 #include <QSet>
+#include <QSharedPointer>
 
 #include <utils/Components.h>
 #include <utils/VideoMode.h>
@@ -86,7 +87,7 @@ public:
 	///
 	/// @brief Re-apply all current subs to a new Hyperion instance, the connections to the old instance will be dropped
 	///
-	void setSubscriptionsTo(Hyperion* hyperion);
+	void setSubscriptionsTo(quint8 instanceID);
 
 signals:
 	///
@@ -186,7 +187,8 @@ private:
 	void doCallback(Subscription::Type cmd, const QJsonObject& data);
 
 	Logger *_log;
-	Hyperion* _hyperion;
+	quint8 _instanceID;
+	QSharedPointer<Hyperion> _hyperion;
 
 	/// The peer address of the client
 	QString _peerAddress;
@@ -195,7 +197,7 @@ private:
 	ComponentRegister* _componentRegister;
 
 	/// priority muxer instance
-	PriorityMuxer* _prioMuxer;
+	QSharedPointer<PriorityMuxer> _prioMuxer;
 
 	/// contains active subscriptions
 	QSet<Subscription::Type> _subscribedCommands;

@@ -5,6 +5,10 @@
          "required":true,
          "$ref":"schema-cecEvents.json"
       },
+      "effects":{
+         "required":true,
+         "$ref":"schema-effects.json"
+      },
       "flatbufServer":{
          "required":true,
          "$ref":"schema-flatbufServer.json"

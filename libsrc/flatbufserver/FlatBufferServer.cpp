@@ -20,24 +20,22 @@ const char SERVICE_TYPE[] = "flatbuffer";
 
 FlatBufferServer::FlatBufferServer(const QJsonDocument& config, QObject* parent)
 	: QObject(parent)
-	, _server(new QTcpServer(this))
+	, _server(nullptr)
 	, _log(Logger::getInstance("FLATBUFSERVER"))
 	, _timeout(5000)
 	, _config(config)
 {
-
 }
 
 FlatBufferServer::~FlatBufferServer()
 {
-	stopServer();
-	delete _server;
 }
 
 void FlatBufferServer::initServer()
 {
+	_server.reset(new QTcpServer());
 	_netOrigin = NetOrigin::getInstance();
-	connect(_server, &QTcpServer::newConnection, this, &FlatBufferServer::newConnection);
+	connect(_server.get(), &QTcpServer::newConnection, this, &FlatBufferServer::newConnection);
 
 	// apply config
 	handleSettingsUpdate(settings::FLATBUFSERVER, _config);
@@ -54,14 +52,14 @@ void FlatBufferServer::handleSettingsUpdate(settings::type type, const QJsonDocu
 		// port check
 		if(_server->serverPort() != port)
 		{
-			stopServer();
+			stop();
 			_port = port;
 		}
 
 		// new timeout just for new connections
 		_timeout = obj["timeout"].toInt(5000);
 		// enable check
-		obj["enable"].toBool(true) ? startServer() : stopServer();
+		obj["enable"].toBool(true) ? start() : stop();
 
 		_pixelDecimation = obj["pixelDecimation"].toInt(1);
 		for (const auto& client : _openConnections)
@@ -91,7 +89,6 @@ void FlatBufferServer::newConnection()
 				connect(client, &FlatBufferClient::setGlobalInputImage, GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage);
 				connect(client, &FlatBufferClient::setGlobalInputColor, GlobalSignals::getInstance(), &GlobalSignals::setGlobalColor);
 				connect(client, &FlatBufferClient::setBufferImage, GlobalSignals::getInstance(), &GlobalSignals::setBufferImage);
-				connect(GlobalSignals::getInstance(), &GlobalSignals::globalRegRequired, client, &FlatBufferClient::registationRequired);
 				_openConnections.append(client);
 			}
 			else
@@ -107,7 +104,7 @@ void FlatBufferServer::clientDisconnected()
 	_openConnections.removeAll(client);
 }
 
-void FlatBufferServer::startServer()
+void FlatBufferServer::start()
 {
 	if(!_server->isListening())
 	{
@@ -124,7 +121,7 @@ void FlatBufferServer::startServer()
 	}
 }
 
-void FlatBufferServer::stopServer()
+void FlatBufferServer::stop()
 {
 	if(_server->isListening())
 	{
@@ -133,6 +130,7 @@ void FlatBufferServer::stopServer()
 		{
 			client->forceClose();
 		}
+		_openConnections.clear();
 		_server->close();
 		Info(_log, "FlatBuffer-Server stopped");
 	}

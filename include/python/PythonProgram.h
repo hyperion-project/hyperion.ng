@@ -4,8 +4,8 @@
 #include <QString>
 
 #undef slots
-// Don't use debug Python APIs on Windows
-#if defined(_MSC_VER) && defined(_DEBUG)
+// Don't use debug Python APIs on Windows (GitHub Actions only)
+#if defined(GITHUB_ACTIONS) && defined(_MSC_VER) && defined(_DEBUG)
 #if _MSC_VER >= 1930
 #include <corecrt.h>
 #endif

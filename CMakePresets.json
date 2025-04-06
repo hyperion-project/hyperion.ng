@@ -99,9 +99,17 @@
       }
     },
     {
-      "name": "clang",
+      "name": "ninja-base",
       "hidden": true,
       "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "clang",
+      "hidden": true,
+      "inherits": [ "ninja-base" ],
       "cacheVariables": {
         "CMAKE_C_COMPILER": "/usr/bin/clang",
         "CMAKE_CXX_COMPILER": "/usr/bin/clang++"
@@ -110,7 +118,7 @@
     {
       "name": "msvc",
       "hidden": true,
-      "generator": "Ninja",
+      "inherits": [ "ninja-base" ],
       "cacheVariables": {
         "CMAKE_C_COMPILER": "cl.exe",
         "CMAKE_CXX_COMPILER": "cl.exe"
@@ -119,7 +127,7 @@
     {
       "name": "gcc",
       "hidden": true,
-      "generator": "Ninja",
+      "inherits": [ "ninja-base" ],
       "cacheVariables": {
         "CMAKE_C_COMPILER": "/usr/bin/gcc",
         "CMAKE_CXX_COMPILER": "/usr/bin/g++"

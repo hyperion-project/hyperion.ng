@@ -26,7 +26,7 @@ public:
 
 	void stop();
 
-	bool displayInit();
+	bool screenInit();
 
 signals:
 	void sig_screenshot(const Image<ColorRgb> & screenshot);

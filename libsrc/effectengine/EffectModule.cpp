@@ -1110,7 +1110,5 @@ PyObject* EffectModule::wrapImageResetT(PyObject* self, PyObject* args)
 
 PyObject* EffectModule::wrapLowestUpdateInterval(PyObject* self, PyObject* args)
 {
-	qDebug() << "_lowestUpdateIntervalInSeconds: " << getEffect()->_lowestUpdateIntervalInSeconds;
-
 	return Py_BuildValue("d", getEffect()->_lowestUpdateIntervalInSeconds);
 }

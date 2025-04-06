@@ -19,23 +19,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support gaps on Matrix Layout (#1696)
 - Support a configurable grabber inactive detection time interval (#1740)
 - Windows: Added a new grabber that uses the DXGI DDA (Desktop Duplication API). This has much better performance than the DX grabber as it does more of its work on the GPU.
-
+- Support to freely select source and target instances to be used by forwarder
 - Support to import, export and backup Hyperion's full configuration via the UI, JSON-API and commandline (`--importConfig, --exportConfig`) (#804)
 - Allow to force starting Hyperion in read-only mode (`--readonlyMode`)
-- JSON-API: Support to query for a dedicated set of configuration items for a set of instances
-- JSON-API: Support to save a dedicated set of configuration items for a set of instances
-- JSON-API: Limit update emission frequency: Images (25Hz), raw LED-Colors (40Hz) & LED-Device data (200Hz) 
 - Effects: Limit the maximum update rate to 200Hz
+- Systray: Support multiple instances
+- UI: Validate that key ports do not overlap across editors and pages
 
 **JSON-API**
 - New subscription support for event updates, i.e. `Suspend, Resume, Idle, idleResume, Restart, Quit`.
 - Support direct or multiple instance addressing via single requests (#809)
 - Support of `serverinfo` subcommands: `getInfo, subscribe, unsubscribe, getSubscriptions, getSubscriptionCommands`
 - [Overview](https://github.com/hyperion-project/hyperion.ng/blob/API_Auth/doc/development/JSON-API%20_Commands_Overview.md) of API commands and subscription updates
+- Support to query for a dedicated set of configuration items for a set of instances
+- Support to save a dedicated set of configuration items for a set of instances
+- Limit update emission frequency: Images (25Hz), raw LED-Colors (40Hz) & LED-Device data (200Hz) 
 - Support for requesting instance-data via JSON-API. Implemented requesting the current image in different formats or led colors.
 
 ### Changed
 
+- Removed hard dependency on the first instance. All instances can now be freely created/removed, started or stopped
 - Fixed: Cross Site Scripting Vulnerability (CVE-2024-4174, CVE-2024-4175)
 - Fixed: hyperion-v4l2 taking screenshot failed (#1722)
 - Nanoleaf: Support new devices and do not restore ExtControl state
@@ -46,17 +49,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored: Database access layer
 - Refactored: Hyperion's configuration database is validated before start-up (and migrated, if required)
 - Refactored: Python to enable parallel effect processing under Python 3.12
+- Refactored: Forwarder
+- Refactored: Flatbuffer connection- and client handling
+- Refactored: Decouple Effect definitions from Instance
+- Refactored: Decouple WebServer and SSDPHandler
+- Refactored: Corrected thread affinity across various classes
+- Refactored: Improved code resilience and error handling
+- Standalone grabber do not capture screens when no connection to remote host
 - Fixed: Python 3.12 crashes (#1747)
 - osX Grabber: Use ScreenCaptureKit under macOS 15 and above
 - Removed maximum LED number constraint from Matrix layout schema which was not synced with the UI behaviour (#1804)
 - Fixed bespoke WebSocket implementation by using of QWebSockets (#1816, #1448, #1247, #1130)
+- Fixed mDNS Browser deadlock, plus run in own thread now
+- Fixed that LED Buffer and Layout might get out of sync.
+- Fixed Screen capture error (#1824)
+- Fixed Provide custom forwarding targets is not possible (#1713)
 
 **JSON-API**
 - Refactored JSON-API to ensure consistent authorization behaviour across sessions and single requests with token authorization.
 - Provide additional error details with API responses, esp. on JSON parsing, validation or token errors.
 - Generate random TANs for every API request from the Hyperion UI
-- Fixed: Handling of IP4 addresses wrapped in IPv6 for external network connections-
+- Configuration requests do not any longer require a running instance
+- Fixed: Handling of IP4 addresses wrapped in IPv6 for external network connections
 - Fixed: Local Admin API Authentication rejects valid tokens (#1251)
+- Fixed: Create a proper API response, when Effects are not part of a build
 
 ### Removed
 

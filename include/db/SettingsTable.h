@@ -42,11 +42,18 @@ public:
 	bool recordExist(const QString& type) const;
 
 	///
+	/// @brief Get 'config' column of settings entry as QVariant
+	/// @param[in]  type   The settings type
+	/// @return            The QVariant
+	///
+	QVariant getSettingsRecord(const QString& type) const;
+
+	///
 	/// @brief Get 'config' column of settings entry as QJsonDocument
 	/// @param[in]  type   The settings type
 	/// @return            The QJsonDocument
 	///
-	QJsonDocument getSettingsRecord(const QString& type) const;
+	QJsonDocument getSettingsRecordJson(const QString& type) const;
 
 	///
 	/// @brief Get 'config' column of settings entry as QString

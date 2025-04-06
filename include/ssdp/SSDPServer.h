@@ -12,29 +12,12 @@ class SSDPServer : public QObject
 	Q_OBJECT
 
 public:
-	friend class SSDPHandler;
 	///
 	/// @brief Construct the server, listen on default ssdp address/port with multicast
 	/// @param parent  The parent object
 	///
 	SSDPServer(QObject* parent = nullptr);
 	~SSDPServer() override;
-
-	///
-	/// @brief Prepare server after thread start
-	///
-	void initServer();
-
-	///
-	/// @brief Start SSDP
-	/// @return false if already running or bind failure
-	///
-	bool start();
-
-	///
-	/// @brief Stop SSDP
-	///
-	void stop();
 
 	///
 	/// @brief Send an answer to mSearch requester
@@ -69,58 +52,39 @@ public:
 	void setDescriptionAddress( const QString &addr ) { _descAddress = addr; }
 
 	///
+	/// @brief Get the description address
+	/// @return addr  new address
+	///
+	virtual QString getDescriptionAddress() const { return _descAddress; }
+
+	///
 	/// @brief Set uuid
 	/// @param uuid  The uuid
 	///
 	void setUuid( const QString &uuid ) { _uuid = uuid; }
 
 	///
-	/// @brief set new flatbuffer server port
+	/// @brief Get uuid
+	/// @return uuid  The uuid
 	///
-	void setFlatBufPort( quint16 port ){_fbsPort = QString::number( port ); }
+	QString getUuid() const { return _uuid; }
+
+public slots:
+	///
+	/// @brief Prepare server after thread start
+	///
+	void initServer();
 
 	///
-	/// @brief Get current flatbuffer server port
+	/// @brief Start SSDP
+	/// @return false if already running or bind failure
 	///
-	quint16 getFlatBufPort() const
-	{
-		return _fbsPort.toInt();
-	}
-	///
-	/// @brief set new protobuf server port
-	///
-	void setProtoBufPort( quint16 port ) { _pbsPort = QString::number( port ); }
+	bool start();
 
 	///
-	/// @brief Get current protobuf server port
+	/// @brief Stop SSDP
 	///
-	quint16 getProtoBufPort() const { return _pbsPort.toInt(); }
-	///
-	/// @brief set new json server port
-	///
-	void setJsonServerPort( quint16 port ) { _jssPort = QString::number( port ); }
-	///
-	/// @brief get new json server port
-	///
-	quint16 getJsonServerPort() const { return _jssPort.toInt(); }
-	///
-	/// @brief set new ssl server port
-	///
-	void setSSLServerPort( quint16 port ) { _sslPort = QString::number( port ); }
-	///
-	/// @brief get new ssl server port
-	///
-	quint16 getSSLServerPort() const { return _sslPort.toInt(); }
-
-	///
-	/// @brief set new hyperion name
-	///
-	void setHyperionName( const QString &name ) { _name = name; }
-
-	///
-	/// @brief get hyperion name
-	///
-	QString getHyperionName() const { return _name; }
+	virtual void stop();
 	
 signals:
 	///
@@ -135,11 +99,19 @@ signals:
 								 const QString address,
 								 quint16 port );
 
-private:
-	Logger *_log;
-	QUdpSocket *_udpSocket;
+protected:
 
-	QString _serverHeader, _uuid, _fbsPort, _pbsPort, _jssPort, _sslPort, _name, _descAddress;
+	virtual QString getInfo() const { return {}; };
+
+	Logger *_log;
+
+private:
+
+	QScopedPointer<QUdpSocket> _udpSocket;
+
+	QString _serverHeader;
+	QString _uuid;
+	QString _descAddress;
 	bool _running;
 
 private slots:

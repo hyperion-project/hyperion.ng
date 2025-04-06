@@ -22,6 +22,10 @@ MdnsProvider::MdnsProvider(QObject* parent)
 {
 }
 
+MdnsProvider::~MdnsProvider()
+{
+}
+
 void MdnsProvider::init()
 {
 	_server.reset(new QMdnsEngine::Server());
@@ -31,9 +35,11 @@ void MdnsProvider::init()
 	DebugIf(verboseProvider, _log, "Hostname [%s], isRegistered [%d]", _hostname->hostname().constData(), _hostname->isRegistered());
 }
 
-MdnsProvider::~MdnsProvider()
+void MdnsProvider::stop()
 {
 	_providedServiceTypes.clear();
+	_server.reset();
+	_hostname.reset();
 	Info(_log, "mDNS info service stopped");
 }
 
@@ -49,7 +55,6 @@ void MdnsProvider::publishService(const QString& serviceType, quint16 servicePor
 		{
 			QSharedPointer<QMdnsEngine::Provider> newProvider = QSharedPointer<QMdnsEngine::Provider>::create(_server.data(), _hostname.data());
 			_providedServiceTypes.insert(type, newProvider);
-
 		}
 
 		QSharedPointer<QMdnsEngine::Provider> provider = _providedServiceTypes.value(type);

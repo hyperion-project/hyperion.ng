@@ -6,14 +6,18 @@
 #include <utils/settings.h>
 #include <utils/Components.h>
 #include <events/EventEnum.h>
+#include <db/InstanceTable.h>
 
 // qt
 #include <QMap>
+#include <QSharedPointer>
+#include <QScopedPointer>
 
 class Hyperion;
 class InstanceTable;
 
 enum class InstanceState{
+	H_STARTING,
 	H_STARTED,
 	H_ON_STOP,
 	H_STOPPED,
@@ -39,52 +43,67 @@ public:
 	static HyperionIManager* getInstance() { return HIMinstance; }
 	static HyperionIManager* HIMinstance;
 
+	~HyperionIManager() override;
+
 public slots:
 	///
 	/// @brief Is given instance running?
-	/// @param inst  The instance to check
+	/// @param instanceId  The instance to check
 	/// @return  True when running else false
 	///
-	bool IsInstanceRunning(quint8 inst) const { return _runningInstances.contains(inst); }
+	bool isInstanceRunning(quint8 instanceId) const { return _runningInstances.contains(instanceId); }
+
+	///
+	/// @brief Is given instance a configred one?
+	/// @param instanceId  The instance to check
+	/// @return  True when existing else false
+	///
+	bool doesInstanceExist(quint8 instanceId) const { return _instanceTable->doesInstanceExist(instanceId); }
 
 	///
 	/// @brief Get a Hyperion instance by index
-	/// @param intance  the index
+	/// @param instanceId  the index
 	/// @return Hyperion instance, if index is not found returns instance 0
 	///
-	Hyperion* getHyperionInstance(quint8 instance = 0);
+	QSharedPointer<Hyperion> getHyperionInstance(quint8 instance = 0);
 
 	///
 	/// @brief Get instance data of all instances in db + running state
 	///
 	QVector<QVariantMap> getInstanceData() const;
 
-	QString getInstanceName(quint8 inst = 0);
+	QString getInstanceName(quint8 instanceId = 0);
 
 	///
 	/// @brief Get all instance indicies of running instances
 	///
-	QList<quint8> getRunningInstanceIdx() const;
+	QSet<quint8> getRunningInstanceIdx() const;
+
+	///
+	/// @brief Get the first running Hyperion instance
+	/// @return Hyperion instance, if none is runnning returns a nullptr
+	///
+	QSharedPointer<Hyperion> getFirstRunningInstance();
 
 	///
 	/// @brief Get all instance indicies configured
 	///
-	QList<quint8> getInstanceIds() const;
+	QSet<quint8> getInstanceIds() const;
 
 	///
 	/// @brief Start a Hyperion instance
-	/// @param instance     Instance index
+	/// @param instanceId   Instance index
 	/// @param block        If true return when thread has been started
 	/// @return Return true on success, false if not found in db
 	///
-	bool startInstance(quint8 inst, bool block = false, QObject *caller = nullptr, int tan = 0);
+	bool startInstance(quint8 instanceId, bool block = false, QObject *caller = nullptr, int tan = 0);
 
 	///
 	/// @brief Stop a Hyperion instance
-	/// @param instance  Instance index
+	/// @param instanceId  Instance index
 	/// @return Return true on success, false if not found in db
 	///
-	bool stopInstance(quint8 inst);
+	bool stopInstance(quint8 instanceId);
 
 	///
 	/// @brief Handle an Hyperion Event
@@ -108,27 +127,28 @@ public slots:
 
 	///
 	/// @brief Delete Hyperion instance entry in db. Cleanup also all associated table data for this instance
-	/// @param inst  The instance index
+	/// @param instanceId  The instance index
 	/// @return Return true on success, false if not found or not allowed
 	///
-	bool deleteInstance(quint8 inst);
+	bool deleteInstance(quint8 instanceId);
 
 	///
 	/// @brief Assign a new name to the given instance
-	/// @param inst  The instance index
-	/// @param name  The instance name index
+	/// @param instanceId  The instance index
+	/// @param name        The instance name index
 	/// @return Return true on success, false if not found
 	///
-	bool saveName(quint8 inst, const QString& name);
+	bool saveName(quint8 instanceId, const QString& name);
 
 signals:
 	///
 	/// @brief Emits whenever the state of a instance changes according to enum instanceState
 	/// @param instaneState  A state from enum
-	/// @param instance      The index of instance
+	/// @param instanceId    The index of instance
 	/// @param name          The name of the instance, just available with H_CREATED
 	///
-	void instanceStateChanged(InstanceState state, quint8 instance, const QString& name = QString());
+	void instanceStateChanged(InstanceState state, quint8 instanceId, const QString& name = QString());
+	void started(InstanceState state, quint8 instanceId, const QString& name = QString());
 
 	///
 	/// @brief Emits whenever something changes, the lazy version of instanceStateChanged (- H_ON_STOP) + saveName() emit
@@ -142,6 +162,10 @@ signals:
 	///
 	void startInstanceResponse(QObject *caller, const int &tan);
 
+	///
+	/// @brief Emits when all instances were stopped
+	///
+	void areAllInstancesStopped();
 
 signals:
 	///////////////////////////////////////
@@ -180,8 +204,9 @@ private slots:
 
 	///
 	/// @brief handle finished signal of Hyperion instances
+	/// @param name  The instance's name for information
 	///
-	void handleFinished();
+	void handleFinished(const QString& name = "");
 
 	///
 	/// @brief Toggle the state of all Hyperion instances for a suspend sceanrio (user is not interacting with the system)
@@ -212,18 +237,12 @@ private:
 	///
 	void stopAll();
 
-	///
-	/// @brief check if a instance is allowed for management. Instance 0 represents the root instance
-	/// @apram inst The instance to check
-	///
-	bool isInstAllowed(quint8 inst) const { return (inst > 0); }
-
 private:
 	Logger* _log;
-	InstanceTable* _instanceTable;
-	QMap<quint8, Hyperion*> _runningInstances;
+	QScopedPointer<InstanceTable> _instanceTable;
+	QMap<quint8, QSharedPointer<Hyperion>> _runningInstances;
+	QMap<quint8, QSharedPointer<Hyperion>> _startingInstances;
 
-	QList<quint8> _startQueue;
 	/// All pending requests
 	QMap<quint8, PendingRequests> _pendingRequests;
 };

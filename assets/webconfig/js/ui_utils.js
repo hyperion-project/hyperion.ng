@@ -1,4 +1,6 @@
-var prevTag;
+const DURATION_ENDLESS = -1;
+
+let prevTag;
 
 function removeOverlay() {
   $("#loading_overlay").removeClass("overlay");
@@ -9,9 +11,7 @@ function reload() {
 }
 
 function storageComp() {
-  if (typeof (Storage) !== "undefined")
-    return true;
-  return false;
+  return typeof (Storage) !== "undefined";
 }
 
 function getStorage(item) {
@@ -40,34 +40,97 @@ function debugMessage(msg) {
 }
 
 function validateDuration(d) {
-  if (typeof d === "undefined" || d < 0)
-    return ENDLESS;
-  else
-    return d *= 1000;
+  if (typeof d === "undefined" || d <= 0) {
+    return DURATION_ENDLESS;
+  } else {
+    return d * 1000;
+  }
 }
 
 function getHashtag() {
-  if (getStorage('lasthashtag') != null)
-    return getStorage('lasthashtag');
-  else {
-    var tag = document.URL;
-    tag = tag.substr(tag.indexOf("#") + 1);
-    if (tag == "" || typeof tag === "undefined" || tag.startsWith("http"))
-      tag = "dashboard"
+  const lastHashtag = getStorage('lasthashtag');
+  if (lastHashtag !== null) {
+    return lastHashtag;
+  } else {
+    let tag = document.URL;
+    const hashIndex = tag.indexOf("#");
+    if (hashIndex !== -1) {
+      tag = tag.slice(hashIndex + 1);
+    } else {
+      tag = ""; // No hashtag found
+    }
+
+    if (tag === "" || typeof tag === "undefined" || tag.startsWith("http")) {
+      tag = "dashboard";
+    }
+
     return tag;
   }
 }
 
+function isInstanceRunning(instanceId) {
+  return window.serverInfo?.instance?.some(
+    (instance) => instance.instance === Number(instanceId) && instance.running
+  );
+}
+
+function isCurrentInstanceRunning() {
+  return isInstanceRunning(window.currentHyperionInstance);
+}
+
+function getFirstRunningInstance() {
+
+  const runningInstance = window.serverInfo?.instance?.find(
+    (instance) => instance.running
+  );
+
+  return runningInstance ? runningInstance.instance : null; // Return instance number or null if none is running
+}
+
+function getFirstConfiguredInstance() {
+  const configuredInstance = window.serverInfo?.instance?.find(
+    (instance) => instance.instance !== undefined
+  );
+
+  return configuredInstance ? configuredInstance.instance : null; // Return instance number or null if none exists
+}
+
+function doesInstanceExist(instanceId) {
+
+  if (instanceId == null) {
+    return false; // Return false if instanceId is null or undefined
+  }
+
+  return window.serverInfo?.instance?.some(
+    (instance) => instance.instance === Number(instanceId)
+  ) || false; // Return false if serverInfo or instance is undefined
+}
+
+function getInstanceName(instanceId) {
+  const instance = window.serverInfo?.instance?.find(
+    (instance) => instance.instance === Number(instanceId)
+  );
+
+  return instance?.friendly_name || "unknown";
+}
+
 function loadContent(event, forceRefresh) {
-  var tag;
+  let tag;
+  const lastSelectedInstance = getStorage('lastSelectedInstance');
 
-  var lastSelectedInstance = getStorage('lastSelectedInstance');
-
-  if (lastSelectedInstance && (lastSelectedInstance != window.currentHyperionInstance)) {
-    if (window.serverInfo.instance[lastSelectedInstance] && window.serverInfo.instance[lastSelectedInstance].running) {
-      instanceSwitch(lastSelectedInstance);
-    } else {
-      removeStorage('lastSelectedInstance');
+  // Hide instance related menu entries, if no instance is available or not running
+  if (window.serverInfo.instance.length === 0) {
+    $("#MenuItemLedInstances, #MenuItemRemoteControl, #MenuItemEffectsConfig").hide();
+    removeStorage('lastSelectedInstance');
+  } else if (lastSelectedInstance === null) {
+    const newInstance = getFirstRunningInstance();
+    if (newInstance !== null) {
+      instanceSwitch(newInstance);
+    }
+  } else {
+    const lastInstance = Number(lastSelectedInstance);
+    if (lastInstance !== window.currentHyperionInstance) {
+      instanceSwitch(lastInstance);
     }
   }
 
@@ -75,9 +138,9 @@ function loadContent(event, forceRefresh) {
     tag = event.currentTarget.hash;
     tag = tag.substr(tag.indexOf("#") + 1);
     setStorage('lasthashtag', tag);
-  }
-  else
+  } else {
     tag = getHashtag();
+  }
 
   if (forceRefresh || prevTag != tag) {
     prevTag = tag;
@@ -90,7 +153,9 @@ function loadContent(event, forceRefresh) {
 
         $("#page-content").load("/content/" + tag + ".html", function (response, status, xhr) {
           if (status == "error") {
-            $("#page-content").html('<h3>' + encode_utf8(tag) + '<br/>' + $.i18n('info_404') + '</h3>');
+            $("#page-content").html(
+              '<h3>' + encode_utf8(tag) + '<br/>' + $.i18n('info_404') + '</h3>'
+            );
             removeOverlay();
           }
         });
@@ -100,63 +165,61 @@ function loadContent(event, forceRefresh) {
   }
 }
 
-function getInstanceNameByIndex(index) {
-  var instData = window.serverInfo.instance
-  for (var key in instData) {
-    if (instData[key].instance == index)
-      return instData[key].friendly_name;
-  }
-  return "unknown"
-}
-
 function updateHyperionInstanceListing() {
-  if (window.serverInfo.instance) {
-    var data = window.serverInfo.instance.filter(entry => entry.running);
+  if (window.serverInfo.instance !== null) {
+    const data = window.serverInfo.instance;
     $('#hyp_inst_listing').html("");
-    for (var key in data) {
-      var currInstMarker = (data[key].instance == window.currentHyperionInstance) ? "component-on" : "";
 
-      var html = '<li id="hyperioninstance_' + data[key].instance + '"> \
-      <a>  \
-        <div>  \
-          <i class="fa fa-circle fa-fw '+ currInstMarker + '"></i> \
-          <span>'+ data[key].friendly_name + '</span> \
-        </div> \
-      </a> \
-    </li> '
+    for (const key in data) {
+      const currInstMarker = (data[key].instance == window.currentHyperionInstance) ? "component-on" : "";
 
-      if (data.length - 1 > key)
-        html += '<li class="divider"></li>'
+      // Construct the HTML using concatenation for ES5 compatibility
+      let html = '<li id="hyperioninstance_' + data[key].instance + '">' +
+        '<a>' +
+        '<div>' +
+        '<i class="fa fa-circle fa-fw ' + currInstMarker + '"></i>' +
+        '<span>' + data[key].friendly_name + '</span>' +
+        '</div>' +
+        '</a>' +
+        '</li>';
+
+      if (data.length - 1 > key) {
+        html += '<li class="divider"></li>';
+      }
 
       $('#hyp_inst_listing').append(html);
 
       $('#hyperioninstance_' + data[key].instance).off().on("click", function (e) {
-        var inst = e.currentTarget.id.split("_")[1]
-        instanceSwitch(inst)
+        const inst = e.currentTarget.id.split("_")[1];
+        instanceSwitch(inst);
       });
     }
   }
 }
 
 function initLanguageSelection() {
-  // Initialise language selection list with languages supported
-  for (var i = 0; i < availLang.length; i++) {
-    $("#language-select").append('<option value="' + i + '" selected="">' + availLangText[i] + '</option>');
+  // Initialize language selection list with supported languages
+  for (let i = 0; i < availLang.length; i++) {
+    $("#language-select").append(
+      '<option value="' + i + '" selected="">' + availLangText[i] + '</option>'
+    );
   }
 
-  var langLocale = storedLang;
+  let langLocale = storedLang;
+  let langText = '';
 
-  //Test, if language is supported by hyperion
-  var langIdx = availLang.indexOf(langLocale);
+  // Test if the language is supported by Hyperion
+  let langIdx = availLang.indexOf(langLocale);
   if (langIdx > -1) {
     langText = availLangText[langIdx];
   } else {
-    // If language is not supported by hyperion, try fallback language
+    // If the language is not supported, try the fallback language
     langLocale = $.i18n().options.fallbackLocale.substring(0, 2);
     langIdx = availLang.indexOf(langLocale);
     if (langIdx > -1) {
       langText = availLangText[langIdx];
     } else {
+      // Default to English if fallback language is also unsupported
       langLocale = 'en';
       langIdx = availLang.indexOf(langLocale);
       if (langIdx > -1) {
@@ -165,6 +228,7 @@ function initLanguageSelection() {
     }
   }
 
+  // Update the language select dropdown
   $('#language-select').prop('title', langText);
   $("#language-select").val(langIdx);
   $("#language-select").selectpicker("refresh");
@@ -173,27 +237,43 @@ function initLanguageSelection() {
 function updateUiOnInstance(inst) {
 
   window.currentHyperionInstance = inst;
-  window.currentHyperionInstanceName = getInstanceNameByIndex(inst);
+  if (inst === null) {
+    //No instance defined, hide all instance related menue items
+    $("#MenuItemLedInstances").closest("li").hide();
+    $("#MenuItemRemoteControl, #MenuItemEffectsConfig, #NavMenuWizards, #btn_open_ledsim, #btn_streamer").hide();
+  } else {
+    window.currentHyperionInstanceName = getInstanceName(inst);
 
-  $("#active_instance_friendly_name").text(getInstanceNameByIndex(inst));
-  if (window.serverInfo.instance.filter(entry => entry.running).length > 1) {
+    $("#active_instance_friendly_name").text(getInstanceName(inst));
     $('#btn_hypinstanceswitch').toggle(true);
     $('#active_instance_dropdown').prop('disabled', false);
     $('#active_instance_dropdown').css('cursor', 'pointer');
     $("#active_instance_dropdown").css("pointer-events", "auto");
-  } else {
-    $('#btn_hypinstanceswitch').toggle(false);
-    $('#active_instance_dropdown').prop('disabled', true);
-    $("#active_instance_dropdown").css('cursor', 'default');
-    $("#active_instance_dropdown").css("pointer-events", "none");
+
+    //Allow to configure an existing instance
+    $("#MenuItemLedInstances").show().closest("li").show();
+
+    // Show menue items according to instance's running state
+    if (isInstanceRunning(window.currentHyperionInstance)) {
+      $("#MenuItemRemoteControl, #MenuItemEffectsConfig, #NavMenuWizards, #btn_open_ledsim").show();
+
+      const isMediaStreamingSupported = getStorage('mediaStreamingSupported');
+      if (isMediaStreamingSupported) {
+        $('#btn_streamer').show();
+      }
+
+    } else {
+      $("#MenuItemRemoteControl, #MenuItemEffectsConfig, #NavMenuWizards, #btn_open_ledsim, #btn_streamer").hide();
+    }
   }
 }
 
 function instanceSwitch(inst) {
-  requestInstanceSwitch(inst)
-  window.currentHyperionInstance = inst;
-  window.currentHyperionInstanceName = getInstanceNameByIndex(inst);
-  setStorage('lastSelectedInstance', inst)
+  const instanceID = Number(inst);
+  requestInstanceSwitch(instanceID)
+  window.currentHyperionInstance = instanceID;
+  window.currentHyperionInstanceName = getInstanceName(instanceID);
+  setStorage('lastSelectedInstance', instanceID)
 }
 
 function loadContentTo(containerId, fileName) {
@@ -319,87 +399,147 @@ function showInfoDialog(type, header, message) {
   });
 
   $(document).on('click', '[data-dismiss-modal]', function () {
-    var target = $(this).data('dismiss-modal');
+    const target = $(this).data('dismiss-modal');
     $($.find(target)).modal('hide');
   });
 }
 
 function createHintH(type, text, container) {
   type = String(type);
-  if (type == "intro")
-    tclass = "introd";
 
-  $('#' + container).prepend('<div class="' + tclass + '"><h4 style="font-size:16px">' + text + '</h4><hr/></div>');
-}
-
-function createHint(type, text, container, buttonid, buttontxt) {
-  var fe, tclass;
-
+  let tclass;
   if (type == "intro") {
-    fe = '';
-    tclass = "intro-hint";
-  }
-  else if (type == "info") {
-    fe = '<div style="font-size:25px;text-align:center"><i class="fa fa-info"></i></div><div style="text-align:center;font-size:13px">Information</div>';
-    tclass = "info-hint";
-  }
-  else if (type == "wizard") {
-    fe = '<div style="font-size:25px;text-align:center"><i class="fa fa-magic"></i></div><div style="text-align:center;font-size:13px">Information</div>';
-    tclass = "wizard-hint";
-  }
-  else if (type == "warning") {
-    fe = '<div style="font-size:25px;text-align:center"><i class="fa fa-info"></i></div><div style="text-align:center;font-size:13px">Information</div>';
-    tclass = "warning-hint";
+    tclass = "introd";
   }
 
-  if (buttonid)
-    buttonid = '<p><button id="' + buttonid + '" class="btn btn-wizard" style="margin-top:15px;">' + text + '</button></p>';
-  else
-    buttonid = "";
+  // Prepend the formatted hint to the container
+  $('#' + container).prepend(
+    '<div class="' + tclass + '">' +
+    '<h4 style="font-size:16px">' + text + '</h4>' +
+    '<hr/>' +
+    '</div>'
+  );
+}
 
-  if (type == "intro")
-    $('#' + container).prepend('<div class="bs-callout bs-callout-primary" style="margin-top:0px"><h4>' + $.i18n("conf_helptable_expl") + '</h4>' + text + '</div>');
-  else if (type == "wizard")
-    $('#' + container).prepend('<div class="bs-callout bs-callout-wizard" style="margin-top:0px"><h4>' + $.i18n("wiz_wizavail") + '</h4>' + $.i18n('wiz_guideyou', text) + buttonid + '</div>');
-  else {
-    createTable('', 'htb', container, true, tclass);
-    $('#' + container + ' .htb').append(createTableRow([fe, text], false, true));
+function createHint(type, text, container, buttonid) {
+  let fe = '';
+  let tclass = '';
+  let buttonHtml = '';
+
+  // Set up icon HTML and hint class based on type
+  switch (type) {
+    case 'intro':
+      tclass = 'intro-hint';
+      break;
+    case 'info':
+      fe = `
+        <div style="font-size:25px;text-align:center">
+          <i class="fa fa-info"></i>
+        </div>
+        <div style="text-align:center;font-size:13px">Information</div>`;
+      tclass = 'info-hint';
+      break;
+    case 'wizard':
+      fe = `
+        <div style="font-size:25px;text-align:center">
+          <i class="fa fa-magic"></i>
+        </div>
+        <div style="text-align:center;font-size:13px">Information</div>`;
+      tclass = 'wizard-hint';
+      break;
+    case 'warning':
+      fe = `
+        <div style="font-size:25px;text-align:center">
+          <i class="fa fa-info"></i>
+        </div>
+        <div style="text-align:center;font-size:13px">Information</div>`;
+      tclass = 'warning-hint';
+      break;
+    default:
+      tclass = 'info-hint'; // Default to info-hint if no match
+  }
+
+  // Create button HTML if buttonid is provided
+  if (buttonid) {
+    buttonHtml = `
+      <p>
+        <button id="${buttonid}" class="btn btn-wizard" style="margin-top:15px;">
+          ${text}
+        </button>
+      </p>`;
+  }
+
+  // Add hint to the container based on type
+  switch (type) {
+    case 'intro':
+      $('#' + container).prepend(`
+        <div class="bs-callout bs-callout-primary" style="margin-top:0px">
+          <h4>${$.i18n("conf_helptable_expl")}</h4>
+          ${text}
+        </div>`);
+      break;
+    case 'wizard':
+      $('#' + container).prepend(`
+        <div class="bs-callout bs-callout-wizard" style="margin-top:0px">
+          <h4>${$.i18n("wiz_wizavail")}</h4>
+          ${$.i18n('wiz_guideyou', text)}
+          ${buttonHtml}
+        </div>`);
+      break;
+    default:
+      createTable('', 'htb', container, true, tclass);
+      $('#' + container + ' .htb').append(createTableRow([fe, text], false, true));
   }
 }
+
 
 function createEffHint(title, text) {
-  return '<div class="bs-callout bs-callout-primary" style="margin-top:0px"><h4>' + title + '</h4>' + text + '</div>';
+  return `
+    <div class="bs-callout bs-callout-primary" style="margin-top:0px">
+      <h4>${title}</h4>
+      ${text}
+    </div>
+  `;
 }
 
 function valValue(id, value, min, max) {
-  if (typeof max === 'undefined' || max == "")
-    max = 999999;
+  // Default max to 999999 if it's undefined or an empty string
+  max = (max === undefined || max === "") ? 999999 : Number(max);
 
-  if (Number(value) > Number(max)) {
+  const numericValue = Number(value);
+  const numericMin = Number(min);
+
+  if (numericValue > max) {
     $('#' + id).val(max);
     showInfoDialog("warning", "", $.i18n('edt_msg_error_maximum_incl', max));
     return max;
   }
-  else if (Number(value) < Number(min)) {
-    $('#' + id).val(min);
-    showInfoDialog("warning", "", $.i18n('edt_msg_error_minimum_incl', min));
-    return min;
+
+  if (numericValue < numericMin) {
+    $('#' + id).val(numericMin);
+    showInfoDialog("warning", "", $.i18n('edt_msg_error_minimum_incl', numericMin));
+    return numericMin;
   }
-  return value;
+
+  return numericValue;
 }
 
-function readImg(input, cb) {
-  if (input.files && input.files[0]) {
-    var reader = new FileReader();
-    // inject fileName property
-    reader.fileName = input.files[0].name
+function readImg(input, callback) {
+  const file = input.files?.[0];
 
-    reader.onload = function (e) {
-      cb(e.target.result, e.target.fileName);
-    }
-    reader.readAsDataURL(input.files[0]);
+  if (file) {
+    const reader = new FileReader();
+    reader.fileName = file.name;
+
+    // Handle file load
+    reader.onload = (e) => {
+      callback(e.target.result, e.target.fileName);
+    };
+
+    reader.readAsDataURL(file);
   }
 }
+
 
 function isJsonString(str) {
   try {
@@ -427,11 +567,16 @@ const setObjectProperty = (object, path, value) => {
 
 function getLongPropertiesPath(path) {
   if (path) {
-    var path = path.replace('root.', '');
+    // Remove 'root.' from the start of the path
+    path = path.replace('root.', '');
+
+    // Split the path into parts and append ".properties" to each part
     const parts = path.split('.');
     parts.forEach(function (part, index) {
-      this[index] += ".properties";
-    }, parts);
+      parts[index] += ".properties";
+    });
+
+    // Join the parts back together and append a final '.'
     path = parts.join('.') + '.';
   }
   return path;
@@ -444,7 +589,7 @@ function createJsonEditor(container, schema, setconfig, usePanel, arrayre) {
   if (typeof arrayre === 'undefined')
     arrayre = true;
 
-  var editor = new JSONEditor(document.getElementById(container),
+  let editor = new JSONEditor(document.getElementById(container),
     {
       theme: 'bootstrap3',
       iconlib: "fontawesome4",
@@ -470,328 +615,294 @@ function createJsonEditor(container, schema, setconfig, usePanel, arrayre) {
   }
 
   if (setconfig) {
-    for (var key in editor.root.editors) {
-      editor.getEditor("root." + key).setValue(Object.assign({}, editor.getEditor("root." + key).value, window.serverConfig[key]));
+    for (let key in editor.root.editors) {
+      editor.getEditor("root." + key).setValue({ ...editor.getEditor("root." + key).value, ...window.serverConfig[key] });
     }
   }
 
   return editor;
 }
 
-function updateJsonEditorSelection(rootEditor, path, key, addElements, newEnumVals, newTitleVals, newDefaultVal, addSelect, addCustom, addCustomAsFirst, customText) {
-  var editor = rootEditor.getEditor(path);
-  var orginalProperties = editor.schema.properties[key];
+// Update the selection for JSON Editor
+function updateJsonEditorSelection(
+  rootEditor, path, key, addElements, newEnumVals, newTitleVals, newDefaultVal,
+  addSelect, addCustom, addCustomAsFirst, customText = "edt_conf_enum_custom"
+) {
+  const editor = rootEditor.getEditor(path);
+  const originalProperties = editor.schema.properties[key];
+  const originalWatchFunctions = rootEditor.watchlist[path + "." + key];
 
-  var orginalWatchFunctions = rootEditor.watchlist[path + "." + key];
+  // Unwatch the existing path
   rootEditor.unwatch(path + "." + key);
 
-  var newSchema = [];
-  newSchema[key] =
-  {
-    "type": "string",
-    "enum": [],
-    "required": true,
-    "options": { "enum_titles": [], "infoText": "" },
-    "propertyOrder": 1
+  const newSchema = {
+    [key]: {
+      type: "string",
+      enum: [],
+      required: true,
+      options: { enum_titles: [], infoText: "" },
+      propertyOrder: 1,
+      ...addElements, // Merge custom elements directly into schema
+    }
   };
 
-  //Add additional elements to overwrite defaults
-  for (var item in addElements) {
-    newSchema[key][item] = addElements[item];
+  // Retain original properties if available
+  if (originalProperties) {
+    const { title, options, propertyOrder } = originalProperties;
+    newSchema[key].title = title || newSchema[key].title;
+    newSchema[key].options.infoText = options?.infoText || newSchema[key].options.infoText;
+    newSchema[key].propertyOrder = propertyOrder || newSchema[key].propertyOrder;
   }
 
-  if (orginalProperties) {
-    if (orginalProperties["title"]) {
-      newSchema[key]["title"] = orginalProperties["title"];
-    }
-
-    if (orginalProperties["options"] && orginalProperties["options"]["infoText"]) {
-      newSchema[key]["options"]["infoText"] = orginalProperties["options"]["infoText"];
-    }
-
-    if (orginalProperties["propertyOrder"]) {
-      newSchema[key]["propertyOrder"] = orginalProperties["propertyOrder"];
-    }
-  }
-
+  // Handle custom values
   if (addCustom) {
+    if (newTitleVals.length === 0) newTitleVals = [...newEnumVals];
 
-    if (newTitleVals.length === 0) {
-      newTitleVals = [...newEnumVals];
-    }
+    const customPosition = addCustomAsFirst ? "unshift" : "push";
+    newEnumVals[customPosition]("CUSTOM");
+    newTitleVals[customPosition](customText);
 
-    if (!!!customText) {
-      customText = "edt_conf_enum_custom";
-    }
-
-    if (addCustomAsFirst) {
-      newEnumVals.unshift("CUSTOM");
-      newTitleVals.unshift(customText);
-    } else {
-      newEnumVals.push("CUSTOM");
-      newTitleVals.push(customText);
-    }
-
+    // Append custom infoText if exists
     if (newSchema[key].options.infoText) {
-      var customInfoText = newSchema[key].options.infoText + "_custom";
-      newSchema[key].options.infoText = customInfoText;
+      newSchema[key].options.infoText += "_custom";
     }
   }
 
+  // Handle Select options
   if (addSelect) {
     newEnumVals.unshift("SELECT");
     newTitleVals.unshift("edt_conf_enum_please_select");
     newDefaultVal = "SELECT";
   }
 
-  if (newEnumVals) {
-    newSchema[key]["enum"] = newEnumVals;
-  }
+  // Set new values
+  if (newEnumVals) newSchema[key].enum = newEnumVals;
+  if (newTitleVals) newSchema[key].options.enum_titles = newTitleVals;
+  if (newDefaultVal) newSchema[key].default = newDefaultVal;
 
-  if (newTitleVals) {
-    newSchema[key]["options"]["enum_titles"] = newTitleVals;
-  }
-  if (newDefaultVal) {
-    newSchema[key]["default"] = newDefaultVal;
-  }
-
-  editor.original_schema.properties[key] = orginalProperties;
+  // Update the editor schema
+  editor.original_schema.properties[key] = originalProperties;
   editor.schema.properties[key] = newSchema[key];
-  //Update schema properties for validator
+
+  // Update schema for validation
   setObjectProperty(rootEditor.validator.schema.properties, getLongPropertiesPath(path) + key, newSchema[key]);
 
+  // Re-apply changes to the editor
   editor.removeObjectProperty(key);
   delete editor.cached_editors[key];
   editor.addObjectProperty(key);
 
-  if (orginalWatchFunctions) {
-    for (var i = 0; i < orginalWatchFunctions.length; i++) {
-      rootEditor.watch(path + "." + key, orginalWatchFunctions[i]);
-    }
+  // Reapply original watch functions
+  if (originalWatchFunctions) {
+    originalWatchFunctions.forEach(element => rootEditor.watch(path + "." + key, element));
   }
+
+  // Notify watchers
   rootEditor.notifyWatchers(path + "." + key);
 }
 
-function updateJsonEditorMultiSelection(rootEditor, path, key, addElements, newEnumVals, newTitleVals, newDefaultVal) {
-  var editor = rootEditor.getEditor(path);
-  var orginalProperties = editor.schema.properties[key];
 
-  var orginalWatchFunctions = rootEditor.watchlist[path + "." + key];
+// Handle custom values logic for enum and title values
+function handleCustomValues(newEnumVals, newTitleVals, customText, addCustomAsFirst) {
+  if (newTitleVals.length === 0) {
+    newTitleVals = [...newEnumVals];
+  }
+
+  if (!customText) {
+    customText = "edt_conf_enum_custom";
+  }
+
+  if (addCustomAsFirst) {
+    newEnumVals.unshift("CUSTOM");
+    newTitleVals.unshift(customText);
+  } else {
+    newEnumVals.push("CUSTOM");
+    newTitleVals.push(customText);
+  }
+
+  // Add infoText for custom options
+  if (newSchema[key].options.infoText) {
+    const customInfoText = newSchema[key].options.infoText + "_custom";
+    newSchema[key].options.infoText = customInfoText;
+  }
+}
+
+// Update the JSON Editor for multi-selection fields
+function updateJsonEditorMultiSelection(rootEditor, path, key, addElements, newEnumVals, newTitleVals, newDefaultVal) {
+  const editor = rootEditor.getEditor(path);
+  const originalProperties = editor.schema.properties[key];
+  const originalWatchFunctions = rootEditor.watchlist[path + "." + key];
+
+  // Unwatch the existing path
   rootEditor.unwatch(path + "." + key);
 
-  var newSchema = [];
-  newSchema[key] =
-  {
-    "type": "array",
-    "format": "select",
-    "items": {
-      "type": "string",
-      "enum": [],
-      "options": { "enum_titles": [] },
-    },
-    "options": { "infoText": "" },
-    "default": [],
-    "propertyOrder": 1
+  const newSchema = {
+    [key]: {
+      type: "array",
+      format: "select",
+      items: {
+        type: "string",
+        enum: [],
+        options: { enum_titles: [] }
+      },
+      options: { infoText: "" },
+      default: [],
+      propertyOrder: 1
+    }
   };
 
-  //Add additional elements to overwrite defaults
-  for (var item in addElements) {
-    newSchema[key][item] = addElements[item];
+  // Overwrite default properties with additional elements
+  Object.assign(newSchema[key], addElements);
+
+  // Retain original properties
+  if (originalProperties) {
+    if (originalProperties.title) newSchema[key].title = originalProperties.title;
+    if (originalProperties?.options?.infoText) newSchema[key].options.infoText = originalProperties.options.infoText;
+    if (originalProperties.propertyOrder) newSchema[key].propertyOrder = originalProperties.propertyOrder;
   }
 
-  if (orginalProperties) {
-    if (orginalProperties["title"]) {
-      newSchema[key]["title"] = orginalProperties["title"];
-    }
+  // Set new enum and title values
+  if (newEnumVals) newSchema[key].items.enum = newEnumVals;
+  if (newTitleVals) newSchema[key].items.options.enum_titles = newTitleVals;
+  if (newDefaultVal) newSchema[key].default = newDefaultVal;
 
-    if (orginalProperties["options"] && orginalProperties["options"]["infoText"]) {
-      newSchema[key]["options"]["infoText"] = orginalProperties["options"]["infoText"];
-    }
-
-    if (orginalProperties["propertyOrder"]) {
-      newSchema[key]["propertyOrder"] = orginalProperties["propertyOrder"];
-    }
-  }
-
-  if (newEnumVals) {
-    newSchema[key]["items"]["enum"] = newEnumVals;
-  }
-
-  if (newTitleVals) {
-    newSchema[key]["items"]["options"]["enum_titles"] = newTitleVals;
-  }
-
-  if (newDefaultVal) {
-    newSchema[key]["default"] = newDefaultVal;
-  }
-
-  editor.original_schema.properties[key] = orginalProperties;
+  // Update the editor schema
+  editor.original_schema.properties[key] = originalProperties;
   editor.schema.properties[key] = newSchema[key];
-  //Update schema properties for validator
+
+  // Update schema for validation
   setObjectProperty(rootEditor.validator.schema.properties, getLongPropertiesPath(path) + key, newSchema[key]);
 
+  // Re-apply changes to the editor
   editor.removeObjectProperty(key);
   delete editor.cached_editors[key];
   editor.addObjectProperty(key);
 
-  if (orginalWatchFunctions) {
-    for (var i = 0; i < orginalWatchFunctions.length; i++) {
-      rootEditor.watch(path + "." + key, orginalWatchFunctions[i]);
-    }
+  // Reapply original watch functions
+  if (originalWatchFunctions) {
+    originalWatchFunctions.forEach((element) => {
+      rootEditor.watch(path + "." + key, element);
+    });
   }
+
+  // Notify watchers
   rootEditor.notifyWatchers(path + "." + key);
 }
 
+// Update JSON Editor Range with min, max, and step values
 function updateJsonEditorRange(rootEditor, path, key, minimum, maximum, defaultValue, step, clear) {
-  var editor = rootEditor.getEditor(path);
+  const editor = rootEditor.getEditor(path);
+  const currentValue = rootEditor.getEditor(path + "." + key).getValue();
+  const originalProperties = editor.schema.properties[key];
 
-  //Preserve current value when updating range
-  var currentValue = rootEditor.getEditor(path + "." + key).getValue();
+  // Initialize the new schema with original properties
+  const newSchema = { [key]: { ...originalProperties } };
 
-  var orginalProperties = editor.schema.properties[key];
-  var newSchema = [];
-  newSchema[key] = orginalProperties;
-
+  // Clear range-related properties if needed
   if (clear) {
-    delete newSchema[key]["minimum"];
-    delete newSchema[key]["maximum"];
-    delete newSchema[key]["default"];
-    delete newSchema[key]["step"];
+    delete newSchema[key].minimum;
+    delete newSchema[key].maximum;
+    delete newSchema[key].default;
+    delete newSchema[key].step;
   }
 
-  if (typeof minimum !== "undefined") {
-    newSchema[key]["minimum"] = minimum;
-  }
-  if (typeof maximum !== "undefined") {
-    newSchema[key]["maximum"] = maximum;
-  }
+  // Set the range values
+  if (typeof minimum !== "undefined") newSchema[key].minimum = minimum;
+  if (typeof maximum !== "undefined") newSchema[key].maximum = maximum;
   if (typeof defaultValue !== "undefined") {
-    newSchema[key]["default"] = defaultValue;
-    currentValue = defaultValue;
+    newSchema[key].default = defaultValue;
   }
+  if (typeof step !== "undefined") newSchema[key].step = step;
 
-  if (typeof step !== "undefined") {
-    newSchema[key]["step"] = step;
-  }
-
-  editor.original_schema.properties[key] = orginalProperties;
+  // Update the editor schema
+  editor.original_schema.properties[key] = originalProperties;
   editor.schema.properties[key] = newSchema[key];
-  //Update schema properties for validator
+
+  // Update schema for validation
   setObjectProperty(rootEditor.validator.schema.properties, getLongPropertiesPath(path) + key, newSchema[key]);
 
+  // Re-apply changes to the editor
   editor.removeObjectProperty(key);
   delete editor.cached_editors[key];
   editor.addObjectProperty(key);
 
-  // Restore current (new default) value for new range
+  // Restore the current value after updating the range
   rootEditor.getEditor(path + "." + key).setValue(currentValue);
 }
 
+// Add custom host validation to JSON Editor
 function addJsonEditorHostValidation() {
-
   JSONEditor.defaults.custom_validators.push(function (schema, value, path) {
-    var errors = [];
+    const errors = [];
 
     if (!jQuery.isEmptyObject(value)) {
       switch (schema.format) {
         case "hostname_or_ip":
           if (!isValidHostnameOrIP(value)) {
-            errors.push({
-              path: path,
-              property: 'format',
-              message: $.i18n('edt_msgcust_error_hostname_ip')
-            });
+            errors.push({ path, property: 'format', message: $.i18n('edt_msgcust_error_hostname_ip') });
           }
           break;
         case "hostname_or_ip4":
           if (!isValidHostnameOrIP4(value)) {
-            errors.push({
-              path: path,
-              property: 'format',
-              message: $.i18n('edt_msgcust_error_hostname_ip4')
-            });
+            errors.push({ path, property: 'format', message: $.i18n('edt_msgcust_error_hostname_ip4') });
           }
           break;
-
-        //Remove, when new json-editor 2.x is used
         case "ipv4":
           if (!isValidIPv4(value)) {
-            errors.push({
-              path: path,
-              property: 'format',
-              message: $.i18n('edt_msg_error_ipv4')
-            });
+            errors.push({ path, property: 'format', message: $.i18n('edt_msg_error_ipv4') });
           }
           break;
         case "ipv6":
           if (!isValidIPv6(value)) {
-            errors.push({
-              path: path,
-              property: 'format',
-              message: $.i18n('edt_msg_error_ipv6')
-            });
+            errors.push({ path, property: 'format', message: $.i18n('edt_msg_error_ipv6') });
           }
           break;
         case "hostname":
           if (!isValidHostname(value)) {
-            errors.push({
-              path: path,
-              property: 'format',
-              message: $.i18n('edt_msg_error_hostname')
-            });
+            errors.push({ path, property: 'format', message: $.i18n('edt_msg_error_hostname') });
           }
           break;
-
         default:
+          break;
       }
     }
+
     return errors;
   });
 }
 
+// Build a link with localization
 function buildWL(link, linkt, cl) {
-  var baseLink = "https://docs.hyperion-project.org/";
-  var lang;
+  const baseLink = "https://docs.hyperion-project.org/";
+  const lang = (storedLang === "de" || navigator.locale === "de") ? "de" : "en";
 
-  if (typeof linkt == "undefined")
-    linkt = "Placeholder";
-
-  if (storedLang == "de" || navigator.locale == "de")
-    lang = "de";
-  else
-    lang = "en";
-
-  if (cl === true) {
+  if (cl) {
     linkt = $.i18n(linkt);
-    return '<div class="bs-callout bs-callout-primary"><h4>' + linkt + '</h4>' + $.i18n('general_wiki_moreto', linkt) + ': <a href="' + baseLink + lang + '/' + link + '" target="_blank">' + linkt + '<a></div>'
+    return `<div class="bs-callout bs-callout-primary"><h4>${linkt}</h4>${$.i18n('general_wiki_moreto', linkt)}: <a href="${baseLink}${lang}/${link}" target="_blank">${linkt}</a></div>`;
+  } else {
+    return `: <a href="${baseLink}${lang}/${link}" target="_blank">${linkt}</a>`;
   }
-  else
-    return ': <a href="' + baseLink + lang + '/' + link + '" target="_blank">' + linkt + '<a>';
 }
 
+// Convert RGB values to Hex color
 function rgbToHex(rgb) {
-  if (rgb.length == 3) {
-    return "#" +
-      ("0" + parseInt(rgb[0], 10).toString(16)).slice(-2) +
-      ("0" + parseInt(rgb[1], 10).toString(16)).slice(-2) +
-      ("0" + parseInt(rgb[2], 10).toString(16)).slice(-2);
-  }
-  else
+  if (rgb.length === 3) {
+    return `#${("0" + parseInt(rgb[0], 10).toString(16)).slice(-2)}${("0" + parseInt(rgb[1], 10).toString(16)).slice(-2)}${("0" + parseInt(rgb[2], 10).toString(16)).slice(-2)}`;
+  } else {
     debugMessage('rgbToHex: Given rgb is no array or has wrong length');
+  }
 }
 
+// Convert Hex color to RGB
 function hexToRgb(hex) {
-  var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return result ? {
     r: parseInt(result[1], 16),
     g: parseInt(result[2], 16),
     b: parseInt(result[3], 16)
-  } : {
-    r: 0,
-    g: 0,
-    b: 0
-  };
+  } : { r: 0, g: 0, b: 0 };
 }
+
 
 /*
   Show a notification
@@ -848,13 +959,17 @@ function showNotification(type, message, title = "", addhtml = "") {
 }
 
 function createCP(id, color, cb) {
-  if (Array.isArray(color))
-    color = rgbToHex(color);
-  else if (color == "undefined")
-    color = "#AA3399";
+  // Ensure color is valid and handle cases where it's an array or undefined
+  if (Array.isArray(color)) {
+    color = rgbToHex(color);  // Convert array to hex
+  } else if (color === "undefined") {
+    color = "#AA3399";  // Default color
+  }
 
+  // Only proceed if the color is a valid hex color
   if (color.startsWith("#")) {
-    $('#' + id).colorpicker({
+    // Initialize colorpicker with the given color
+    $(`#${id}`).colorpicker({
       format: 'rgb',
       customClass: 'colorpicker-2x',
       color: color,
@@ -868,41 +983,62 @@ function createCP(id, color, cb) {
         },
       }
     });
-    $('#' + id).colorpicker().on('changeColor', function (e) {
-      var rgb = e.color.toRGB();
-      var hex = e.color.toHex();
-      cb(rgb, hex, e);
+
+    // Handle color change events
+    $(`#${id}`).colorpicker().on('changeColor', (e) => {
+      const rgb = e.color.toRGB();
+      const hex = e.color.toHex();
+      cb(rgb, hex, e);  // Callback with updated color values
     });
-  }
-  else
+  } else {
     debugMessage('createCP: Given color is not legit');
+  }
 }
 
-// Creates a table with thead and tbody ids
-// @param string hid  : a class for thead
-// @param string bid  : a class for tbody
-// @param string cont : a container id to html() the table
-// @param string bless: if true the table is borderless
+// Function to create a table with thead and tbody elements
+// @param {string} hid - Class name for thead
+// @param {string} bid - Class name for tbody
+// @param {string} cont - Container ID to append the table
+// @param {boolean} bless - If true, the table is borderless
+// @param {string} tclass - Additional class for the table (optional)
 function createTable(hid, bid, cont, bless, tclass) {
-  var table = document.createElement('table');
-  var thead = document.createElement('thead');
-  var tbody = document.createElement('tbody');
+  const table = document.createElement('table');
+  const thead = document.createElement('thead');
+  const tbody = document.createElement('tbody');
 
+  // Set the base class for the table
   table.className = "table";
-  if (bless === true)
-    table.className += " borderless";
-  if (typeof tclass !== "undefined")
-    table.className += " " + tclass;
+
+  // If 'bless' is true, add the borderless class
+  if (bless) {
+    table.classList.add("borderless");
+  }
+
+  // If 'tclass' is provided, add it as a class
+  if (tclass) {
+    table.classList.add(tclass);
+  }
+
+  // Remove bottom margin for the table
   table.style.marginBottom = "0px";
-  if (hid != "")
+
+  // Set class for thead and tbody if provided
+  if (hid !== "") {
     thead.className = hid;
+  }
   tbody.className = bid;
-  if (hid != "")
+
+  // Append thead and tbody to the table
+  if (hid !== "") {
     table.appendChild(thead);
+  }
   table.appendChild(tbody);
 
-  $('#' + cont).append(table);
+  // Append the table to the specified container
+  $(`#${cont}`).append(table);
 }
+
+
 
 // Creates a table row <tr>
 // @param array list :innerHTML content for <td>/<th>
@@ -911,29 +1047,27 @@ function createTable(hid, bid, cont, bless, tclass) {
 //
 // @return : <tr> with <td> or <th> as child(s)
 function createTableRow(list, head, align) {
-  var row = document.createElement('tr');
+  const row = document.createElement('tr');
 
-  for (var i = 0; i < list.length; i++) {
-    if (head === true)
-      var el = document.createElement('th');
-    else
-      var el = document.createElement('td');
-
-    if (align)
+  for (const element of list) {
+    let el = head === true ? document.createElement('th') : document.createElement('td');
+    if (align) {
       el.style.verticalAlign = "middle";
-
-    var purifyConfig = {
+    }
+    const purifyConfig = {
       ADD_TAGS: ['button'],
       ADD_ATTR: ['onclick']
     };
-    el.innerHTML = DOMPurify.sanitize(list[i], purifyConfig);
+    el.innerHTML = DOMPurify.sanitize(element, purifyConfig);
     row.appendChild(el);
   }
+
+  // Return the constructed table row
   return row;
 }
 
 function createRow(id) {
-  var el = document.createElement('div');
+  let el = document.createElement('div');
   el.className = "row";
   el.setAttribute('id', id);
   return el;
@@ -942,12 +1076,12 @@ function createRow(id) {
 function createOptPanel(phicon, phead, bodyid, footerid, css, panelId) {
   phead = '<i class="fa ' + phicon + ' fa-fw"></i>' + phead;
 
-  var pfooter = document.createElement('button');
+  let pfooter = document.createElement('button');
   pfooter.className = "btn btn-primary";
   pfooter.setAttribute("id", footerid);
   pfooter.innerHTML = '<i class="fa fa-fw fa-save"></i>' + $.i18n('general_button_savesettings');
 
-  return createPanel(phead, "", pfooter, "panel-default", bodyid, css, panelId);
+  return createPanel(phead, "", pfooter, bodyid, css, panelId);
 }
 
 function compareTwoValues(key1, key2, order = 'asc') {
@@ -965,25 +1099,23 @@ function compareTwoValues(key1, key2, order = 'asc') {
     let comparison = 0;
     if (varA1 > varB1) {
       comparison = 1;
+    } else if (varA1 < varB1) {
+      comparison = -1;
     } else {
-      if (varA1 < varB1) {
-        comparison = -1;
+      if (!a.hasOwnProperty(key2) || !b.hasOwnProperty(key2)) {
+        // property key2 doesn't exist on either object
+        return 0;
+      }
+
+      const varA2 = (typeof a[key2] === 'string')
+        ? a[key2].toUpperCase() : a[key2];
+      const varB2 = (typeof b[key1] === 'string')
+        ? b[key2].toUpperCase() : b[key2];
+
+      if (varA2 > varB2) {
+        comparison = 1;
       } else {
-        if (!a.hasOwnProperty(key2) || !b.hasOwnProperty(key2)) {
-          // property key2 doesn't exist on either object
-          return 0;
-        }
-
-        const varA2 = (typeof a[key2] === 'string')
-          ? a[key2].toUpperCase() : a[key2];
-        const varB2 = (typeof b[key1] === 'string')
-          ? b[key2].toUpperCase() : b[key2];
-
-        if (varA2 > varB2) {
-          comparison = 1;
-        } else {
-          comparison = -1;
-        }
+        comparison = -1;
       }
     }
     return (
@@ -993,97 +1125,114 @@ function compareTwoValues(key1, key2, order = 'asc') {
 }
 
 function sortProperties(list) {
-  for (var key in list) {
-    list[key].key = key;
+  // Assign the key as a property for each item in the list
+  for (const key in list) {
+    if (Object.hasOwn(list, key)) {
+      list[key].key = key;
+    }
   }
-  list = $.map(list, function (value, index) {
+
+  // Convert the object to an array
+  const mappedList = $.map(list, function (value) {
     return [value];
   });
-  return list.sort(function (a, b) {
-    return a.propertyOrder - b.propertyOrder;
-  });
+
+  // Sort the array based on the propertyOrder
+  return mappedList.sort((a, b) => a.propertyOrder - b.propertyOrder);
 }
 
 function createHelpTable(list, phead, panelId) {
-  var table = document.createElement('table');
-  var thead = document.createElement('thead');
-  var tbody = document.createElement('tbody');
+  const table = document.createElement('table');
+  const thead = document.createElement('thead');
+  const tbody = document.createElement('tbody');
+
   list = sortProperties(list);
 
+  // Update the heading with an icon and the translation
   phead = '<i class="fa fa-fw fa-info-circle"></i>' + phead + ' ' + $.i18n("conf_helptable_expl");
 
   table.className = 'table table-hover borderless';
 
+  // Create the table header
   thead.appendChild(createTableRow([$.i18n('conf_helptable_option'), $.i18n('conf_helptable_expl')], true, false));
 
-  for (var key in list) {
-    if (list[key].access != 'system') {
-      // break one iteration (in the loop), if the schema has the entry hidden=true
-      if ("options" in list[key] && "hidden" in list[key].options && (list[key].options.hidden))
+  // Iterate over the list and populate the table
+  for (const key in list) {
+    if (list[key].access !== 'system') {
+      // Skip entries if they are hidden or have access restrictions
+      if ("options" in list[key] && "hidden" in list[key].options && list[key].options.hidden) {
         continue;
-      if ("access" in list[key] && ((list[key].access == "advanced" && storedAccess == "default") || (list[key].access == "expert" && storedAccess != "expert")))
+      }
+
+      if ("access" in list[key] && ((list[key].access === "advanced" && storedAccess === "default") || (list[key].access === "expert" && storedAccess !== "expert"))) {
         continue;
-      var text = list[key].title.replace('title', 'expl');
+      }
+
+      const text = list[key].title.replace('title', 'expl');
       tbody.appendChild(createTableRow([$.i18n(list[key].title), $.i18n(text)], false, false));
 
-      if (list[key].items && list[key].items.properties) {
-        var ilist = sortProperties(list[key].items.properties);
-        for (var ikey in ilist) {
-          // break one iteration (in the loop), if the schema has the entry hidden=true
-          if ("options" in ilist[ikey] && "hidden" in ilist[ikey].options && (ilist[ikey].options.hidden))
+      if (list[key].items?.properties) {
+        const ilist = sortProperties(list[key].items.properties);
+        for (const ikey in ilist) {
+          // Skip items based on hidden or access restrictions
+          if ("options" in ilist[ikey] && "hidden" in ilist[ikey].options && ilist[ikey].options.hidden) {
             continue;
-          if ("access" in ilist[ikey] && ((ilist[ikey].access == "advanced" && storedAccess == "default") || (ilist[ikey].access == "expert" && storedAccess != "expert")))
+          }
+
+          if ("access" in ilist[ikey] && ((ilist[ikey].access === "advanced" && storedAccess === "default") || (ilist[ikey].access === "expert" && storedAccess !== "expert"))) {
             continue;
-          var itext = ilist[ikey].title.replace('title', 'expl');
+          }
+
+          const itext = ilist[ikey].title.replace('title', 'expl');
           tbody.appendChild(createTableRow([$.i18n(ilist[ikey].title), $.i18n(itext)], false, false));
         }
       }
     }
   }
+
   table.appendChild(thead);
   table.appendChild(tbody);
 
-  return createPanel(phead, table, undefined, undefined, undefined, undefined, panelId);
+  return createPanel(phead, table, undefined, undefined, undefined, panelId, undefined);
 }
 
-function createPanel(head, body, footer, type, bodyid, css, panelId) {
-  var cont = document.createElement('div');
-  var p = document.createElement('div');
-  var phead = document.createElement('div');
-  var pbody = document.createElement('div');
-  var pfooter = document.createElement('div');
+function createPanel(head, body, footer, bodyid, css, panelId, type = 'panel-default') {
+  const cont = document.createElement('div');
+  const p = document.createElement('div');
+  const phead = document.createElement('div');
+  const pbody = document.createElement('div');
+  const pfooter = document.createElement('div');
 
   cont.className = "col-lg-6";
 
-  if (typeof type == 'undefined')
-    type = 'panel-default';
-
-  p.className = 'panel ' + type;
-  if (typeof panelId != 'undefined') {
+  p.className = `panel ${type}`;
+  if (panelId) {
     p.setAttribute("id", panelId);
   }
 
-  phead.className = 'panel-heading ' + css;
+  phead.className = `panel-heading ${css}`;
   pbody.className = 'panel-body';
   pfooter.className = 'panel-footer';
 
   phead.innerHTML = head;
 
-  if (typeof bodyid != 'undefined') {
+  if (bodyid) {
     pfooter.style.textAlign = 'right';
     pbody.setAttribute("id", bodyid);
   }
 
-  if (typeof body != 'undefined' && body != "")
+  if (body) {
     pbody.appendChild(body);
+  }
 
-  if (typeof footer != 'undefined')
+  if (footer) {
     pfooter.appendChild(footer);
+  }
 
   p.appendChild(phead);
   p.appendChild(pbody);
 
-  if (typeof footer != 'undefined') {
+  if (footer) {
     pfooter.style.textAlign = "right";
     p.appendChild(pfooter);
   }
@@ -1094,160 +1243,148 @@ function createPanel(head, body, footer, type, bodyid, css, panelId) {
 }
 
 function createSelGroup(group) {
-  var el = document.createElement('optgroup');
+  const el = document.createElement('optgroup');
   el.setAttribute('label', group);
   return el;
 }
 
-function createSelOpt(opt, title) {
-  var el = document.createElement('option');
+function createSelOpt(opt, title = opt) {
+  const el = document.createElement('option');
   el.setAttribute('value', opt);
-  if (typeof title == 'undefined')
-    el.innerHTML = opt;
-  else
-    el.innerHTML = title;
+  el.textContent = title;
   return el;
 }
 
 function createSel(array, group, split) {
-  if (array.length != 0) {
-    var el = createSelGroup(group);
-    for (var i = 0; i < array.length; i++) {
-      var opt;
+  if (array.length !== 0) {
+    const el = createSelGroup(group);
+    for (const element of array) {
+      let opt;
       if (split) {
-        opt = array[i].split(":")
-        opt = createSelOpt(opt[0], opt[1])
+        const [value, label] = element.split(":");
+        opt = createSelOpt(value, label);
+      } else {
+        opt = createSelOpt(element);
       }
-      else
-        opt = createSelOpt(array[i])
       el.appendChild(opt);
     }
     return el;
   }
 }
 
+
 function performTranslation() {
   $('[data-i18n]').i18n();
 }
 
 function encode_utf8(s) {
-  return unescape(encodeURIComponent(s));
+  return btoa(new TextEncoder().encode(s).reduce((data, byte) => data + String.fromCharCode(byte), ''));
 }
 
 function getReleases(callback) {
   $.ajax({
     url: window.gitHubReleaseApiUrl,
-    method: 'get',
-    error: function (XMLHttpRequest, textStatus, errorThrown) {
+    method: 'GET',
+    error: function () {
       callback(false);
     },
     success: function (releases) {
       window.gitHubVersionList = releases;
-      var highestRelease = {
-        tag_name: '0.0.0'
-      };
-      var highestAlphaRelease = {
-        tag_name: '0.0.0'
-      };
-      var highestBetaRelease = {
-        tag_name: '0.0.0'
-      };
-      var highestRcRelease = {
-        tag_name: '0.0.0'
-      };
 
-      for (var i in releases) {
-        //drafts will be ignored
-        if (releases[i].draft)
-          continue;
+      // Initialize release categories
+      const defaultRelease = { tag_name: '0.0.0' };
+      let highestRelease = { ...defaultRelease };
+      let highestAlphaRelease = { ...defaultRelease };
+      let highestBetaRelease = { ...defaultRelease };
+      let highestRcRelease = { ...defaultRelease };
 
-        if (releases[i].tag_name.includes('alpha')) {
-          if (sem = semverLite.gt(releases[i].tag_name, highestAlphaRelease.tag_name))
-            highestAlphaRelease = releases[i];
+      // Iterate through releases
+      releases.forEach((release) => {
+        if (release.draft) return;
+
+        if (release.tag_name.includes('alpha') && semverLite.gt(release.tag_name, highestAlphaRelease.tag_name)) {
+          highestAlphaRelease = release;
+        } else if (release.tag_name.includes('beta') && semverLite.gt(release.tag_name, highestBetaRelease.tag_name)) {
+          highestBetaRelease = release;
+        } else if (release.tag_name.includes('rc') && semverLite.gt(release.tag_name, highestRcRelease.tag_name)) {
+          highestRcRelease = release;
+        } else if (semverLite.gt(release.tag_name, highestRelease.tag_name)) {
+          highestRelease = release;
         }
-        else if (releases[i].tag_name.includes('beta')) {
-          if (sem = semverLite.gt(releases[i].tag_name, highestBetaRelease.tag_name))
-            highestBetaRelease = releases[i];
-        }
-        else if (releases[i].tag_name.includes('rc')) {
-          if (semverLite.gt(releases[i].tag_name, highestRcRelease.tag_name))
-            highestRcRelease = releases[i];
-        }
-        else {
-          if (semverLite.gt(releases[i].tag_name, highestRelease.tag_name))
-            highestRelease = releases[i];
-        }
-      }
+      });
+
+      // Update global variables with the latest releases
       window.latestStableVersion = highestRelease;
       window.latestBetaVersion = highestBetaRelease;
       window.latestAlphaVersion = highestAlphaRelease;
       window.latestRcVersion = highestRcRelease;
 
-      if (window.serverConfig.general.watchedVersionBranch == "Beta" && semverLite.gt(highestBetaRelease.tag_name, highestRelease.tag_name))
+      // Determine the latest version based on the watched branch
+      const { watchedVersionBranch } = window.serverConfig.general;
+
+      if (watchedVersionBranch === "Beta" && semverLite.gt(highestBetaRelease.tag_name, highestRelease.tag_name)) {
         window.latestVersion = highestBetaRelease;
-      else
+      } else if (watchedVersionBranch === "Alpha") {
+        window.latestVersion = semverLite.gt(highestAlphaRelease.tag_name, highestBetaRelease.tag_name)
+          ? highestAlphaRelease
+          : highestBetaRelease;
+      } else {
         window.latestVersion = highestRelease;
+      }
 
-      if (window.serverConfig.general.watchedVersionBranch == "Alpha" && semverLite.gt(highestAlphaRelease.tag_name, highestBetaRelease.tag_name))
-        window.latestVersion = highestAlphaRelease;
+      // Fallback handling if no stable or beta release exists
+      if (window.latestVersion.tag_name === '0.0.0') {
+        if (highestBetaRelease.tag_name !== '0.0.0') {
+          window.latestVersion = highestBetaRelease;
+        } else if (highestAlphaRelease.tag_name !== '0.0.0') {
+          window.latestVersion = highestAlphaRelease;
+        }
+      }
 
-      if (window.serverConfig.general.watchedVersionBranch == "Alpha" && semverLite.lt(highestAlphaRelease.tag_name, highestBetaRelease.tag_name))
-        window.latestVersion = highestBetaRelease;
-
-      //next two if statements are only necessary if we don't have a beta or stable release. We need one alpha release at least
-      if (window.latestVersion.tag_name == '0.0.0' && highestBetaRelease.tag_name != '0.0.0')
-        window.latestVersion = highestBetaRelease;
-
-      if (window.latestVersion.tag_name == '0.0.0' && highestAlphaRelease.tag_name != '0.0.0')
-        window.latestVersion = highestAlphaRelease;
-
+      // Execute the callback with success
       callback(true);
     }
   });
 }
 
 function getSystemInfo() {
-  var sys = window.sysInfo.system;
-  var shy = window.sysInfo.hyperion;
+  const { system: sys, hyperion: shy } = window.sysInfo;
 
-  var info = "Hyperion Server:\n";
-  info += '- Build:             ' + shy.build + '\n';
-  info += '- Build time:        ' + shy.time + '\n';
-  info += '- Git Remote:        ' + shy.gitremote + '\n';
-  info += '- Version:           ' + shy.version + '\n';
-  info += '- UI Lang:           ' + storedLang + ' (BrowserLang: ' + navigator.language + ')\n';
-  info += '- UI Access:         ' + storedAccess + '\n';
-  //info += '- Log lvl:           ' + window.serverConfig.logger.level + '\n';
-  info += '- Avail Screen Cap.: ' + window.serverInfo.grabbers.screen.available + '\n';
-  info += '- Avail Video  Cap.: ' + window.serverInfo.grabbers.video.available + '\n';
-  info += '- Avail Audio  Cap.: ' + window.serverInfo.grabbers.audio.available + '\n';
-  info += '- Avail Services:    ' + window.serverInfo.services + '\n';
-  info += '- Config database:   ' + shy.configDatabaseFile + '\n';
-  info += '- Database:          ' + (shy.readOnlyMode ? "ready-only" : "read/write") + '\n';
-  info += '- Mode:              ' + (shy.isGuiMode ? "GUI" : "Non-GUI") + '\n';
+  let info = `Hyperion Server:
+- Build:             ${shy.build}
+- Build time:        ${shy.time}
+- Build type:        ${shy.buildType}
+- Git Remote:        ${shy.gitremote}
+- Version:           ${shy.version}
+- UI Lang:           ${storedLang} (BrowserLang: ${navigator.language})
+- UI Access:         ${storedAccess}
+- Avail Screen Cap.: ${window.serverInfo.grabbers.screen.available}
+- Avail Video  Cap.: ${window.serverInfo.grabbers.video.available}
+- Avail Audio  Cap.: ${window.serverInfo.grabbers.audio.available}
+- Avail Services:    ${window.serverInfo.services}
+- Config database:   ${shy.configDatabaseFile}
+- Database:          ${shy.readOnlyMode ? "read-only" : "read/write"}
+- Mode:              ${shy.isGuiMode ? "GUI" : "Non-GUI"}
 
-  info += '\n';
+Hyperion Server OS:
+- Distribution:      ${sys.prettyName}
+- Architecture:      ${sys.architecture}`;
 
-  info += 'Hyperion Server OS:\n';
-  info += '- Distribution:      ' + sys.prettyName + '\n';
-  info += '- Architecture:      ' + sys.architecture + '\n';
+  if (sys.cpuModelName) info += `\n- CPU Model:         ${sys.cpuModelName}`;
+  if (sys.cpuModelType) info += `\n- CPU Type:          ${sys.cpuModelType}`;
+  if (sys.cpuRevision) info += `\n- CPU Revision:      ${sys.cpuRevision}`;
+  if (sys.cpuHardware) info += `\n- CPU Hardware:      ${sys.cpuHardware}`;
 
-  if (sys.cpuModelName)
-    info += '- CPU Model:         ' + sys.cpuModelName + '\n';
-  if (sys.cpuModelType)
-    info += '- CPU Type:          ' + sys.cpuModelType + '\n';
-  if (sys.cpuRevision)
-    info += '- CPU Revision:      ' + sys.cpuRevision + '\n';
-  if (sys.cpuHardware)
-    info += '- CPU Hardware:      ' + sys.cpuHardware + '\n';
+  info += `\n- Kernel:            ${sys.kernelType} (${sys.kernelVersion} (WS: ${sys.wordSize}))
+- Root/Admin:        ${sys.isUserAdmin}
+- Qt Version:        ${sys.qtVersion}`;
 
-  info += '- Kernel:            ' + sys.kernelType + ' (' + sys.kernelVersion + ' (WS: ' + sys.wordSize + '))\n';
-  info += '- Root/Admin:        ' + sys.isUserAdmin + '\n';
-  info += '- Qt Version:        ' + sys.qtVersion + '\n';
-  if (jQuery.inArray("effectengine", window.serverInfo.services) !== -1) {
-    info += '- Python Version:    ' + sys.pyVersion + '\n';
+  if (window.serverInfo.services.includes("effectengine")) {
+    info += `\n- Python Version:    ${sys.pyVersion}`;
   }
-  info += '- Browser:           ' + navigator.userAgent;
+
+  info += `\n- Browser:           ${navigator.userAgent}`;
+
   return info;
 }
 
@@ -1259,26 +1396,25 @@ function handleDarkMode() {
   }).appendTo("head");
 
   setStorage("darkMode", "on");
-  $('#btn_darkmode_icon').removeClass('fa fa-moon-o');
-  $('#btn_darkmode_icon').addClass('mdi mdi-white-balance-sunny');
+  $('#btn_darkmode_icon').removeClass('fa fa-moon-o').addClass('mdi mdi-white-balance-sunny');
   $('#navbar_brand_logo').attr("src", 'img/hyperion/logo_negativ.png');
 }
 
 function isAccessLevelCompliant(accessLevel) {
-  var isOK = true;
-  if (accessLevel) {
-    if (accessLevel === 'system') {
-      isOK = false;
-    }
-    else if (accessLevel === 'advanced' && storedAccess === 'default') {
-      isOK = false;
-    }
-    else if (accessLevel === 'expert' && storedAccess !== 'expert') {
-      isOK = false;
-    }
+  if (!accessLevel) return true;
+
+  switch (accessLevel) {
+    case 'system':
+      return false;
+    case 'advanced':
+      return storedAccess !== 'default';
+    case 'expert':
+      return storedAccess === 'expert';
+    default:
+      return true;
   }
-  return isOK
 }
+
 
 function showInputOptions(path, elements, state) {
 
@@ -1286,19 +1422,19 @@ function showInputOptions(path, elements, state) {
     path = ["root", path].join('.');
   }
 
-  for (var i = 0; i < elements.length; i++) {
-    $('[data-schemapath="' + path + '.' + elements[i] + '"]').toggle(state);
+  for (const element of elements) {
+    $('[data-schemapath="' + path + '.' + element + '"]').toggle(state);
   }
 }
 
 function showInputOptionForItem(editor, path, item, state) {
-  //Get access level for full path and item
-  var accessLevel = getObjectProperty(editor.schema.properties, getLongPropertiesPath(path) + item + ".access");
-  // Enable element only, if access level compliant
-  if (!state || isAccessLevelCompliant(accessLevel)) {
+  // Get access level for the full path and item
+  const accessLevel = getObjectProperty(editor.schema.properties, `${getLongPropertiesPath(path)}${item}.access`);
 
+  // Enable the element only if access level is compliant
+  if (!state || isAccessLevelCompliant(accessLevel)) {
+    // If path is not provided, use the editor's path
     if (!path) {
-      debugger;
       path = editor.path;
     }
     showInputOptions(path, [item], state);
@@ -1306,40 +1442,36 @@ function showInputOptionForItem(editor, path, item, state) {
 }
 
 function showInputOptionsForKey(editor, item, showForKeys, state) {
-  var elements = [];
-  var keysToshow = [];
+  const elements = [];
+  let keysToShow = [];
 
+  // Determine keys to show based on input type
   if (Array.isArray(showForKeys)) {
-    keysToshow = showForKeys;
+    keysToShow = showForKeys;
+  } else if (typeof showForKeys === 'string') {
+    keysToShow.push(showForKeys);
   } else {
-    if (typeof showForKeys === 'string') {
-      keysToshow.push(showForKeys);
-    } else {
-      return;
-    }
+    return;
   }
 
-  for (let key in editor.schema.properties[item].properties) {
-    if ($.inArray(key, keysToshow) === -1) {
-      const accessLevel = editor.schema.properties[item].properties[key].access;
+  const itemProperties = editor.schema.properties[item].properties;
 
-      var hidden = false;
-      if (editor.schema.properties[item].properties[key].options) {
-        hidden = editor.schema.properties[item].properties[key].options.hidden;
-        if (typeof hidden === 'undefined') {
-          hidden = false;
-        }
-      }
-      //Always disable all elements, but only enable elements, if access level compliant
-      if (!state || isAccessLevelCompliant(accessLevel)) {
-        if (!hidden) {
-          elements.push(key);
-        }
+  for (const key in itemProperties) {
+    // Skip the key if it is not in the list of keys to show
+    if (!keysToShow.includes(key)) {
+      const { access, options } = itemProperties[key];
+      const hidden = options?.hidden || false;
+
+      // Always disable all elements, but enable only if access level is compliant and not hidden
+      if ((!state || isAccessLevelCompliant(access)) && !hidden) {
+        elements.push(key);
       }
     }
   }
+
   showInputOptions(item, elements, state);
 }
+
 
 function encodeHTML(s) {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
@@ -1359,30 +1491,21 @@ function isValidIPv4(value) {
 }
 
 function isValidIPv6(value) {
-  if (value.match(
+  return !!(value.match(
     '^(?:(?:(?:[a-fA-F0-9]{1,4}:){6}|(?=(?:[a-fA-F0-9]{0,4}:){2,6}(?:[0-9]{1,3}.){3}[0-9]{1,3}$)(([0-9a-fA-F]{1,4}:){1,5}|:)((:[0-9a-fA-F]{1,4}){1,5}:|:)|::(?:[a-fA-F0-9]{1,4}:){5})(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])|(?:[a-fA-F0-9]{1,4}:){7}[a-fA-F0-9]{1,4}|(?=(?:[a-fA-F0-9]{0,4}:){0,7}[a-fA-F0-9]{0,4}$)(([0-9a-fA-F]{1,4}:){1,7}|:)((:[0-9a-fA-F]{1,4}){1,7}|:)|(?:[a-fA-F0-9]{1,4}:){7}:|:(:[a-fA-F0-9]{1,4}){7})$'
-  ))
-    return true;
-  else
-    return false;
+  ));
 }
 
 function isValidHostname(value) {
-  if (value.match(
+  return !!(value.match(
     '^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9])(.([a-zA-Z0-9]|[_a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]))*$'
-  ))
-    return true;
-  else
-    return false;
+  ));
 }
 
 function isValidServicename(value) {
-  if (value.match(
+  return !!(value.match(
     '^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9 -]{0,61}[a-zA-Z0-9])(.([a-zA-Z0-9]|[_a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9]))*$'
-  ))
-    return true;
-  else
-    return false;
+  ));
 }
 
 function isValidHostnameOrIP4(value) {
@@ -1422,3 +1545,4 @@ function loadScript(src, callback, ...params) {
 
   document.head.appendChild(script);
 }
+
