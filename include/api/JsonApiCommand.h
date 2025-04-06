@@ -226,7 +226,7 @@ public:
 
 	static QString toString(MustRun mustRun) {
 		switch (mustRun) {
-		case MustRun_No: return "Instance must not be running";
+		case MustRun_No: return "Instance not required to be running";
 		case MustRun_Yes: return "Instance must be running";
 		default: return "unknown";
 		}
