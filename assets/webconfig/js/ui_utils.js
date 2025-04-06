@@ -1353,6 +1353,7 @@ function getSystemInfo() {
   let info = `Hyperion Server:
 - Build:             ${shy.build}
 - Build time:        ${shy.time}
+- Build type:        ${shy.buildType}
 - Git Remote:        ${shy.gitremote}
 - Version:           ${shy.version}
 - UI Lang:           ${storedLang} (BrowserLang: ${navigator.language})

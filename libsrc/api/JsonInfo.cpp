@@ -136,7 +136,7 @@ QJsonArray JsonInfo::getAdjustmentInfo(const Hyperion* hyperion, Logger* log)
 
 QJsonArray JsonInfo::getPrioritiestInfo(const Hyperion* hyperion)
 {
-	return getPrioritiestInfo(hyperion->getCurrentPriority(), hyperion->getPriorityInfo());
+		return getPrioritiestInfo(hyperion->getCurrentPriority(), hyperion->getPriorityInfo());
 }
 
 QJsonArray JsonInfo::getPrioritiestInfo(int currentPriority, const PriorityMuxer::InputsMap& activeInputs)
@@ -584,6 +584,11 @@ QJsonObject JsonInfo::getSystemInfo(const Hyperion* hyperion)
 	QJsonObject hyperionInfo;
 	hyperionInfo["version"] = QString(HYPERION_VERSION);
 	hyperionInfo["build"] = QString(HYPERION_BUILD_ID);
+#ifdef NDEBUG
+	hyperionInfo["buildType"] = "Release";
+#else
+	hyperionInfo["buildType"] = "Debug";
+#endif
 	hyperionInfo["gitremote"] = QString(HYPERION_GIT_REMOTE);
 	hyperionInfo["time"] = QString(__DATE__ " " __TIME__);
 	hyperionInfo["id"] = AuthManager::getInstance()->getID();
