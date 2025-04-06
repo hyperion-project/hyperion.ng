@@ -333,7 +333,7 @@ void JsonAPI::handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject
 	// Execute the command for each valid instance
 	for (const auto &instanceId : std::as_const(instanceIds))
 	{
-		if (isRunningInstanceRequired == InstanceCmd::MustRun_Yes)
+		if (isRunningInstanceRequired == InstanceCmd::MustRun_Yes || _currInstanceIndex == GLOABL_INSTANCE_ID)
 		{
 			if (handleInstanceSwitch(instanceId))
 			{
