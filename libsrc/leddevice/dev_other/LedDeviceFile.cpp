@@ -30,7 +30,7 @@ bool LedDeviceFile::init(const QJsonObject &deviceConfig)
 #if _WIN32
 	if (_fileName == "/dev/null" )
 	{
-		_fileName = "NULL";
+		_fileName = "NUL";
 	}
 #endif
 
