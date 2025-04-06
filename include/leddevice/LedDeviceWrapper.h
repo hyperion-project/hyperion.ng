@@ -6,7 +6,6 @@
 #include <utils/ColorRgb.h>
 #include <utils/Components.h>
 
-#include <QMutex>
 #include <QScopedPointer>
 
 class LedDevice;

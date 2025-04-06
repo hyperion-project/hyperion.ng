@@ -4,7 +4,6 @@
 #include <api/API.h>
 
 #include <utils/ColorSys.h>
-#include <hyperion/GrabberWrapper.h>
 #include <leddevice/LedDeviceWrapper.h>
 #include <utils/SysInfo.h>
 #include <hyperion/AuthManager.h>
@@ -20,7 +19,6 @@
 #if defined(ENABLE_EFFECTENGINE)
 #include <effectengine/EffectFileHandler.h>
 #endif
-
 
 QJsonObject JsonInfo::getInfo(const Hyperion* hyperion, Logger* log)
 {
@@ -429,7 +427,7 @@ QJsonArray JsonInfo::getComponents(const Hyperion* hyperion)
 		components = componentRegister.getRegister();
 	}
 
-	for (auto comp : components)
+	for (const auto& comp : components)
 	{
 		QJsonObject item;
 		item["name"] = QString::fromStdString(hyperion::componentToIdString(comp.first));
@@ -622,7 +620,7 @@ QJsonObject JsonInfo::discoverSources(const QString& sourceType, const QJsonObje
 template<typename GrabberType>
 void JsonInfo::discoverGrabber(QJsonArray& inputs, const QJsonObject& params) const
 {
-	GrabberType grabber;
+	GrabberType grabber{};
 	QJsonValue discoveryResult = grabber.discover(params);
 
 	if (discoveryResult.isArray())

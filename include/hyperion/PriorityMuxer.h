@@ -7,7 +7,6 @@
 // QT includes
 #include <QMap>
 #include <QObject>
-#include <QMap>
 #include <QVector>
 
 // Utils includes
@@ -16,8 +15,8 @@
 #include <utils/Components.h>
 
 // global defines
-#define SMOOTHING_MODE_DEFAULT 0
-#define SMOOTHING_MODE_PAUSE   1
+constexpr auto SMOOTHING_MODE_DEFAULT = 0;
+constexpr auto SMOOTHING_MODE_PAUSE = 1;
 
 class QTimer;
 class Logger;

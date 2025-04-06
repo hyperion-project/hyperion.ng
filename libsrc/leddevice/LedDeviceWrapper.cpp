@@ -27,6 +27,7 @@ LedDeviceWrapper::LedDeviceWrapper(Hyperion* hyperion)
 	, _hyperion(hyperion)
 	, _ledDevice(nullptr)
 	, _isEnabled(false)
+	, _isOn(false)
 {
 	QString const subComponent = parent()->property("instance").toString();
 	_log = Logger::getInstance("LEDDEVICE", subComponent);

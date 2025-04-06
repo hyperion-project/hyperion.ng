@@ -17,11 +17,11 @@
 #include <QByteArray>
 #include <QMap>
 #include <QJsonArray>
+#include <QSharedPointer>
 #include <QScopedPointer>
 
 // Utility includes
 #include <utils/Logger.h>
-#include <utils/WeakConnect.h>
 
 namespace {
 	constexpr std::chrono::milliseconds DEFAULT_DISCOVER_TIMEOUT{ 500 };
