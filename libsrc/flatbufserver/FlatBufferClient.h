@@ -81,7 +81,6 @@ private slots:
 	/// @brief Is called whenever the socket got new data to read
 	///
 	void readyRead();
-	void processNextMessage();
 
 	///
 	/// @brief Is called when the socket closed the connection, also requests thread exit
@@ -123,6 +122,9 @@ private:
 	///
 	void handleNotImplemented();
 
+	void processNextMessage();
+	bool processNextMessageInline();
+
 	///
 	/// Send a message to the connected client
 	/// @param data to be send
@@ -142,8 +144,8 @@ private:
 	///
 	void sendErrorReply(const QString& error);
 
-	void processRawImage(const hyperionnet::RawImageT& raw_image, int bytesPerPixel, ImageResampler& resampler, Image<ColorRgb>& outputImage);
-	void processNV12Image(const hyperionnet::NV12ImageT& nv12_image, ImageResampler& resampler, Image<ColorRgb>& outputImage);
+	void processRawImage(const uint8_t* buffer, int width, int height, int bytesPerPixel, ImageResampler& resampler, Image<ColorRgb>& outputImage);
+	void processNV12Image(const uint8_t* nv12_data, int width, int height, int stride_y, ImageResampler& resampler, Image<ColorRgb>& outputImage);
 
 private:
 	Logger * _log;
@@ -156,12 +158,13 @@ private:
 
 	QByteArray _receiveBuffer;
 
+	Image<ColorRgb> _imageOutputBuffer;
 	ImageResampler _imageResampler;
+	std::vector<uint8_t> _combinedNv12Buffer;
 
 	// Flatbuffers builder
 	flatbuffers::FlatBufferBuilder _builder;
 	bool _processingMessage;
-	QByteArray _lastMessage;
 };
 
 #endif // FLATBUFFERCLIENT_H
