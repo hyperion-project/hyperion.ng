@@ -255,7 +255,12 @@ function updateUiOnInstance(inst) {
 
     // Show menue items according to instance's running state
     if (isInstanceRunning(window.currentHyperionInstance)) {
-      $("#MenuItemRemoteControl, #MenuItemEffectsConfig, #NavMenuWizards, #btn_open_ledsim").show();
+      $("#MenuItemRemoteControl, #NavMenuWizards, #btn_open_ledsim").show();
+      
+      //Show effectsconfigurator menu entry, only if effectengine is available
+      if (jQuery.inArray("effectengine", window.serverInfo.services) !== -1) {
+        $("#MenuItemEffectsConfig").show();
+      }
 
       const isMediaStreamingSupported = getStorage('mediaStreamingSupported');
       if (isMediaStreamingSupported) {
