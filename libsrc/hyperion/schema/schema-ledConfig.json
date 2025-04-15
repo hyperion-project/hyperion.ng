@@ -177,6 +177,7 @@
 			"items": {
 				"type": "object",
 				"title": "conf_leds_layout_blacklist_rule_title",
+				"allowEmptyArray": true,
 				"required": true,
 				"properties": {
 					"start": {
