@@ -397,7 +397,7 @@ bool DBMigrationManager::upgradeGlobalSettings_2_0_16(semver::version& currentVe
 bool DBMigrationManager::upgradeGlobalSettings_2_1_0(semver::version& currentVersion, QJsonObject& config)
 {
 	bool migrated = false;
-	const semver::version targetVersion{ "2.0.17-beta.2" };
+	const semver::version targetVersion{ "2.0.17-beta.3" };
 
 	if (currentVersion < targetVersion)
 	{
@@ -411,7 +411,6 @@ bool DBMigrationManager::upgradeGlobalSettings_2_1_0(semver::version& currentVer
 			config.insert("effects", effectsSettings.value("effects"));
 
 			Debug(_log, "Effect settings migrated");
-			migrated = true;
 		}
 
 		if (config.contains("general"))
@@ -421,7 +420,6 @@ bool DBMigrationManager::upgradeGlobalSettings_2_1_0(semver::version& currentVer
 			config.insert("general", newGeneralConfig);
 
 			Debug(_log, "General settings migrated");
-			migrated = true;
 		}
 
 		if (config.contains("network"))
@@ -432,7 +430,6 @@ bool DBMigrationManager::upgradeGlobalSettings_2_1_0(semver::version& currentVer
 			config.insert("network", newNetworkConfig);
 
 			Debug(_log, "Network settings migrated");
-			migrated = true;
 		}
 	}
 
@@ -789,7 +786,7 @@ bool DBMigrationManager::upgradeInstanceSettings_2_1_0(semver::version& currentV
 	{
 		config.remove("effects");
 
-		Debug(_log, "Instance [%u] - Effects settings migrated", instance);
+		Debug(_log, "Instance [%u] - Effects settings deleted", instance);
 		migrated = true;
 	}
 	return migrated;

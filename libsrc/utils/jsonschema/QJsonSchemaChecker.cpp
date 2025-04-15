@@ -7,6 +7,7 @@
 // Utils-Jsonschema includes
 #include <utils/jsonschema/QJsonSchemaChecker.h>
 #include <utils/jsonschema/QJsonUtils.h>
+#include <utils/JsonUtils.h>
 
 QJsonSchemaChecker::QJsonSchemaChecker() :
 	_ignoreRequired(false),
@@ -231,7 +232,7 @@ void QJsonSchemaChecker::checkProperties(const QJsonObject& value, const QJsonOb
 {
 	for (QJsonObject::const_iterator i = schema.begin(); i != schema.end(); ++i)
 	{
-		QString property = i.key();
+		QString const property = i.key();
 
 		const QJsonValue& propertyValue = *i;
 
@@ -243,26 +244,27 @@ void QJsonSchemaChecker::checkProperties(const QJsonObject& value, const QJsonOb
 		}
 		else if (!verifyDeps(property, value, schema))
 		{
-			bool isRequired = propertyValue.toObject().value("required").toBool(false);
+			bool const isRequired = propertyValue.toObject().value("required").toBool(false);
 			if (isRequired && !_ignoreRequired)
 			{
 				_error = true;
 
 				if (_correct == "create")
 				{
-					QString workingProperty = property;
-					setMessage("Create property: " + workingProperty + " with value: " + QJsonUtils::getDefaultValue(propertyValue));
-					QJsonUtils::modify(_autoCorrected, _currentPath, QJsonUtils::create(propertyValue, _ignoreRequired), workingProperty);
+					QJsonValue const createdValue = QJsonUtils::create(propertyValue, _ignoreRequired);
+					QJsonUtils::modify(_autoCorrected, _currentPath, createdValue, property);
+					setMessage("Create property with value: " + JsonUtils::jsonValueToQString(createdValue));
 				}
 
-				if (_correct == "")
+				if (_correct.isEmpty())
 				{
 					setMessage("missing member");
 				}
 			}
 			else if (_correct == "create" && _ignoreRequired)
 			{
-				QJsonUtils::modify(_autoCorrected, _currentPath, QJsonUtils::create(propertyValue, _ignoreRequired), property);
+				QJsonValue const createdValue = QJsonUtils::create(propertyValue, _ignoreRequired);
+				QJsonUtils::modify(_autoCorrected, _currentPath, createdValue, property);
 			}
 		}
 
@@ -580,7 +582,7 @@ void QJsonSchemaChecker::checkUniqueItems(const QJsonValue& value, const QJsonVa
 		return;
 	}
 
-	if (schema.toBool() == true)
+	if (schema.toBool())
 	{
 		// make sure no two items are identical
 
