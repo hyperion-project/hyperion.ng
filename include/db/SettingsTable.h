@@ -12,7 +12,7 @@
 
 #include <QJsonDocument>
 
-const int GLOABL_INSTANCE_ID = std::numeric_limits<quint8>::max();;
+const int NO_INSTANCE_ID = std::numeric_limits<quint8>::max();;
 const char DEFAULT_CONFIG_VERSION[] = "2.0.0-alpha.8";
 
 ///
@@ -23,7 +23,7 @@ class SettingsTable : public DBManager
 
 public:
 	/// construct wrapper with settings table
-	SettingsTable(quint8 instance = GLOABL_INSTANCE_ID, QObject* parent = nullptr);
+	SettingsTable(quint8 instance = NO_INSTANCE_ID, QObject* parent = nullptr);
 
 	///
 	/// @brief      Create or update a settings record

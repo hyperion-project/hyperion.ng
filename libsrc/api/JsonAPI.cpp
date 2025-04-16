@@ -333,7 +333,7 @@ void JsonAPI::handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject
 	// Execute the command for each valid instance
 	for (const auto &instanceId : std::as_const(instanceIds))
 	{
-		if (isRunningInstanceRequired == InstanceCmd::MustRun_Yes || _currInstanceIndex == GLOABL_INSTANCE_ID)
+		if (isRunningInstanceRequired == InstanceCmd::MustRun_Yes || _currInstanceIndex == NO_INSTANCE_ID)
 		{
 			if (handleInstanceSwitch(instanceId))
 			{
@@ -911,8 +911,8 @@ void JsonAPI::handleConfigSetCommand(const QJsonObject &message, const JsonApiCo
 	const QJsonObject globalSettings = config["global"].toObject().value("settings").toObject();
 	if (!globalSettings.isEmpty())
 	{
-		const QJsonObject instanceZeroConfig = instancesNewConfigs.value(GLOABL_INSTANCE_ID);
-		instancesNewConfigs.insert(GLOABL_INSTANCE_ID, JsonUtils::mergeJsonObjects(instanceZeroConfig, globalSettings));
+		const QJsonObject instanceZeroConfig = instancesNewConfigs.value(NO_INSTANCE_ID);
+		instancesNewConfigs.insert(NO_INSTANCE_ID, JsonUtils::mergeJsonObjects(instanceZeroConfig, globalSettings));
 	}
 
 	QMapIterator<quint8, QJsonObject> iter (instancesNewConfigs);
@@ -959,10 +959,18 @@ void JsonAPI::handleConfigGetCommand(const QJsonObject &message, const JsonApiCo
 		const QJsonObject globalConfig = filter["global"].toObject();
 		if (!globalConfig.isEmpty())
 		{
-			const QJsonArray globalTypes = globalConfig["types"].toArray();
-			for (const auto &type : globalTypes) {
-				if (type.isString()) {
-					globalFilterTypes.append(type.toString());
+			QJsonValue const globalTypes = globalConfig["types"];
+			if (globalTypes.isNull())
+			{
+				globalFilterTypes.append("__none__");
+			}
+			else
+			{
+				QJsonArray const globalTypesList = globalTypes.toArray();
+				for (const auto &type : globalTypesList) {
+					if (type.isString()) {
+						globalFilterTypes.append(type.toString());
+					}
 				}
 			}
 		}
@@ -974,25 +982,41 @@ void JsonAPI::handleConfigGetCommand(const QJsonObject &message, const JsonApiCo
 		if (!instances.isEmpty())
 		{
 			QSet<quint8> const configuredInstanceIds = _instanceManager->getInstanceIds();
-			const QJsonArray instanceIds = instances["ids"].toArray();
-			for (const auto &idx : instanceIds) {
-				if (idx.isDouble()) {
-					quint8 const instanceId = static_cast<quint8>(idx.toInt());
-					if (configuredInstanceIds.contains(instanceId))
-					{
-						instanceListFilter.append(instanceId);
-					}
-					else
-					{
-						errorDetails.append(QString("Given instance number '%1' does not exist.").arg(instanceId));
+			QJsonValue const instanceIds = instances["ids"];
+			if (instanceIds.isNull())
+			{
+				instanceListFilter.append(NO_INSTANCE_ID);
+			}
+			else
+			{
+				QJsonArray const instaceIdsList = instanceIds.toArray();
+				for (const auto &idx : instaceIdsList) {
+					if (idx.isDouble()) {
+						quint8 const instanceId = static_cast<quint8>(idx.toInt());
+						if (configuredInstanceIds.contains(instanceId))
+						{
+							instanceListFilter.append(instanceId);
+						}
+						else
+						{
+							errorDetails.append(QString("Given instance number '%1' does not exist.").arg(instanceId));
+						}
 					}
 				}
-			}
 
-			const QJsonArray instanceTypes = instances["types"].toArray();
-			for (const auto &type : instanceTypes) {
-				if (type.isString()) {
-					instanceFilterTypes.append(type.toString());
+				QJsonValue const instanceTypes = instances["types"];
+				if (instanceTypes.isNull())
+				{
+					instanceFilterTypes.append("__none__");
+				}
+				else
+				{
+					QJsonArray const instaceTypesList = instanceTypes.toArray();
+					for (const auto &type : instaceTypesList) {
+						if (type.isString()) {
+							instanceFilterTypes.append(type.toString());
+						}
+					}
 				}
 			}
 		}
@@ -1005,14 +1029,7 @@ void JsonAPI::handleConfigGetCommand(const QJsonObject &message, const JsonApiCo
 		settings = JsonInfo::getConfiguration();
 	}
 
-	if (!settings.empty())
-	{
-		sendSuccessDataReplyWithError(settings, cmd, errorDetails);
-	}
-	else
-	{
-		sendErrorReply("Generating full config failed", cmd);
-	}
+	sendSuccessDataReplyWithError(settings, cmd, errorDetails);
 }
 
 void JsonAPI::handleConfigRestoreCommand(const QJsonObject &message, const JsonApiCommand& cmd)
@@ -1670,7 +1687,7 @@ QJsonObject JsonAPI::getBasicCommandReply(bool success, const QString &command, 
 	reply["command"] = command;
 	reply["tan"] = tan;
 
-	if ((_currInstanceIndex != GLOABL_INSTANCE_ID) && instanceCmdType != InstanceCmd::No)
+	if ((_currInstanceIndex != NO_INSTANCE_ID) && instanceCmdType != InstanceCmd::No)
 	{
 		reply["instance"] = _currInstanceIndex;
 	}
@@ -1793,7 +1810,7 @@ void JsonAPI::handleInstanceStateChange(InstanceState state, quint8 instanceID, 
 		if (!_hyperion.isNull() && _hyperion->getInstanceIndex() == instanceID)
 		{
 			_hyperion.reset(nullptr);
-			_jsonCB->setSubscriptionsTo(GLOABL_INSTANCE_ID);
+			_jsonCB->setSubscriptionsTo(NO_INSTANCE_ID);
 		}
 	}
 	break;

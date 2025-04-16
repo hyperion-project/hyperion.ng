@@ -317,11 +317,14 @@ QJsonObject DBConfigManager::getConfiguration(const QList<quint8>& instanceIdsFi
 
 	QJsonObject config;
 
-	QJsonObject globalConfig;
-	MetaTable const metaTable;
-	globalConfig.insert("uuid", metaTable.getUUID());
-	globalConfig.insert("settings", settingsTable.getSettings(globalFilterTypes));
-	config.insert("global", globalConfig);
+	if (!globalFilterTypes.contains("__none__"))
+	{
+		QJsonObject globalConfig;
+		MetaTable const metaTable;
+		globalConfig.insert("uuid", metaTable.getUUID());
+		globalConfig.insert("settings", settingsTable.getSettings(globalFilterTypes));
+		config.insert("global", globalConfig);
+	}
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
 	QSet<quint8> instanceIds(instanceIdsFilter.begin(), instanceIdsFilter.end());
@@ -332,30 +335,33 @@ QJsonObject DBConfigManager::getConfiguration(const QList<quint8>& instanceIdsFi
 	}
 #endif
 
-	if (instanceIds.isEmpty())
+	if (!instanceIds.contains(NO_INSTANCE_ID))
 	{
-		instanceIds = instanceTable.getAllInstanceIDs();
+		if (instanceIds.isEmpty())
+		{
+			instanceIds = instanceTable.getAllInstanceIDs();
+		}
+
+		QList<quint8> sortedInstanceIds = instanceIds.values();
+		std::sort(sortedInstanceIds.begin(), sortedInstanceIds.end());
+
+		QJsonArray instanceIdList;
+		QJsonArray configInstanceList;
+		for (const quint8 instanceId : std::as_const(sortedInstanceIds))
+		{
+			QJsonObject instanceConfig;
+			instanceConfig.insert("id",instanceId);
+			instanceConfig.insert("name", instanceTable.getNamebyIndex(instanceId));
+			instanceConfig.insert("enabled", instanceTable.isEnabled(instanceId));
+			instanceConfig.insert("settings", settingsTable.getSettings(static_cast<quint8>(instanceId), instanceFilteredTypes));
+			configInstanceList.append(instanceConfig);
+
+			instanceIdList.append(instanceId);
+		}
+
+		config.insert("instanceIds", instanceIdList);
+		config.insert("instances", configInstanceList);
 	}
-
-	QList<quint8> sortedInstanceIds = instanceIds.values();
-	std::sort(sortedInstanceIds.begin(), sortedInstanceIds.end());
-
-	QJsonArray instanceIdList;
-	QJsonArray configInstanceList;
-	for (const quint8 instanceId : std::as_const(sortedInstanceIds))
-	{
-		QJsonObject instanceConfig;
-		instanceConfig.insert("id",instanceId);
-		instanceConfig.insert("name", instanceTable.getNamebyIndex(instanceId));
-		instanceConfig.insert("enabled", instanceTable.isEnabled(instanceId));
-		instanceConfig.insert("settings", settingsTable.getSettings(static_cast<quint8>(instanceId), instanceFilteredTypes));
-		configInstanceList.append(instanceConfig);
-
-		instanceIdList.append(instanceId);
-	}
-
-	config.insert("instanceIds", instanceIdList);
-	config.insert("instances", configInstanceList);
 
 	if (!commiTransaction(idb))
 	{

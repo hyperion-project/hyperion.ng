@@ -314,7 +314,7 @@ QJsonObject JsonInfo::getGrabbers(const Hyperion* hyperion)
 {
 	QJsonObject grabbers;
 
-	quint8 idx { GLOABL_INSTANCE_ID };
+	quint8 idx { NO_INSTANCE_ID };
 	if (hyperion != nullptr)
 	{
 		idx = hyperion->getInstanceIndex();

@@ -40,7 +40,7 @@ const int IMAGE_SCALE = 2000;
 
 API::API(Logger *log, bool localConnection, QObject *parent)
 	: QObject(parent),
-	_currInstanceIndex (GLOABL_INSTANCE_ID)
+	_currInstanceIndex (NO_INSTANCE_ID)
 	, _hyperion (nullptr)
 	, _authorized (false)
 	, _adminAuthorized (false)

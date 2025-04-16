@@ -35,7 +35,7 @@ QSharedPointer<Hyperion> HyperionIManager::getHyperionInstance(quint8 instanceId
 
 	if (!_runningInstances.isEmpty())
 	{
-		if (instanceId != GLOABL_INSTANCE_ID )
+		if (instanceId != NO_INSTANCE_ID )
 		{
 			Warning(_log,"The requested instance index '%d' with name '%s' isn't running", instanceId, QSTRING_CSTR(_instanceTable->getNamebyIndex(instanceId)));
 		}

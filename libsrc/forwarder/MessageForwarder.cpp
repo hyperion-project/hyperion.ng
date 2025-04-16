@@ -44,7 +44,7 @@ MessageForwarder::MessageForwarder(const QJsonDocument& config)
 	, _isActive(false)
 	, _priority(DEFAULT_FORWARDER_FLATBUFFFER_PRIORITY)
 	, _isEnabled(false)
-	, _toBeForwardedInstanceID(GLOABL_INSTANCE_ID)
+	, _toBeForwardedInstanceID(NO_INSTANCE_ID)
 	, _hyperion(nullptr)
 	, _muxer(nullptr)
 	, _messageForwarderFlatBufHelper(nullptr)
@@ -137,7 +137,7 @@ void MessageForwarder::handleSettingsUpdate(settings::type type, const QJsonDocu
 {
 	if (type != settings::NETFORWARD) return;
 
-	quint8 const newInstanceID = config["instance"].toInt(GLOABL_INSTANCE_ID);
+	quint8 const newInstanceID = config["instance"].toInt(NO_INSTANCE_ID);
 	if (newInstanceID != _toBeForwardedInstanceID)
 	{
 		disconnect(_toBeForwardedInstanceID);

@@ -87,7 +87,7 @@ HyperionDaemon* HyperionDaemon::daemon = nullptr;
 HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool logLvlOverwrite)
 	: QObject(parent), _log(Logger::getInstance("DAEMON"))
 	, _instanceManager(new HyperionIManager(this))
-	, _settingsManager(new SettingsManager(GLOABL_INSTANCE_ID, this)) // init settings, this settingsManager accesses global settings which are independent from instances
+	, _settingsManager(new SettingsManager(NO_INSTANCE_ID, this)) // init settings, this settingsManager accesses global settings which are independent from instances
 	#if defined(ENABLE_EFFECTENGINE)
 	, _pyInit(new PythonInit())
 	#endif
