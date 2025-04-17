@@ -45,7 +45,7 @@ _http/s Support_
 | clear          |                         | Yes           | Multi        | Yes               | Yes            |
 | clearall       |                         | Yes           | Multi        | Yes               | Yes            |
 | color          |                         | Yes           | Multi        | Yes               | Yes            |
-| componentstate |                         | Yes           | Multi        | Yes               | Yes            |
+| componentstate |                         | Yes           | No or Multi  | Yes               | Yes            |
 | config         | getconfig               | Admin         | No           | No                | Yes            |
 | config         | getschema               | Admin         | No           | No                | Yes            |
 | config         | reload                  | Admin         | No           | No                | Yes            |

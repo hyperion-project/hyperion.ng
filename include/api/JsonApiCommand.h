@@ -309,7 +309,7 @@ public:
 			{ {"clear", ""},                             { Command::Clear,          SubCommand::Empty,                   Authorization::Yes,    InstanceCmd::Multi,        InstanceCmd::MustRun_Yes,    NoListenerCmd::Yes } },
 			{ {"clearall", ""},                          { Command::ClearAll,       SubCommand::Empty,                   Authorization::Yes,    InstanceCmd::Multi,        InstanceCmd::MustRun_Yes,    NoListenerCmd::Yes } },
 			{ {"color", ""},                             { Command::Color,          SubCommand::Empty,                   Authorization::Yes,    InstanceCmd::Multi,        InstanceCmd::MustRun_Yes,    NoListenerCmd::Yes } },
-			{ {"componentstate", ""},                    { Command::ComponentState, SubCommand::Empty,                   Authorization::Yes,    InstanceCmd::Multi,        InstanceCmd::MustRun_Yes,    NoListenerCmd::Yes } },
+			{ {"componentstate", ""},                    { Command::ComponentState, SubCommand::Empty,                   Authorization::Yes,    InstanceCmd::No_or_Multi,  InstanceCmd::MustRun_Yes,    NoListenerCmd::Yes } },
 			{ {"config", "getconfig"},                   { Command::Config,         SubCommand::GetConfig,               Authorization::Admin,  InstanceCmd::No,           InstanceCmd::MustRun_No,     NoListenerCmd::Yes } },
 			{ {"config", "getschema"},                   { Command::Config,         SubCommand::GetSchema,               Authorization::Admin,  InstanceCmd::No,           InstanceCmd::MustRun_No,     NoListenerCmd::Yes } },
 			{ {"config", "reload"},                      { Command::Config,         SubCommand::Reload,                  Authorization::Admin,  InstanceCmd::No,           InstanceCmd::MustRun_No,     NoListenerCmd::Yes } },
