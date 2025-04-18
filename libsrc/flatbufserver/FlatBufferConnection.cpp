@@ -30,16 +30,21 @@ FlatBufferConnection::FlatBufferConnection(const QString& origin, const QHostAdd
 	// init connect
 	connectToRemoteHost();
 
-	// start the connection timer
 	_timer.setInterval(5000);
-
 	connect(&_timer, &QTimer::timeout, this, &FlatBufferConnection::connectToRemoteHost);
+
+	//Trigger the retry timer when connection dropped
+	connect(this, &FlatBufferConnection::isDisconnected, &_timer, static_cast<void (QTimer::*)()>(&QTimer::start));
 	_timer.start();
 }
 
 FlatBufferConnection::~FlatBufferConnection()
 {
 	_timer.stop();
+
+	//Stop retrying on disconnect
+	disconnect(this, &FlatBufferConnection::isDisconnected, &_timer, static_cast<void (QTimer::*)()>(&QTimer::start));
+
 	Debug(_log, "Closing connection with host: %s, port [%u]", QSTRING_CSTR(_host.toString()), _port);
 	_socket.close();
 }
@@ -58,7 +63,6 @@ void FlatBufferConnection::onDisconnected()
 	_isRegistered = false,
 	Info(_log, "Disconnected from target host: %s, port [%u]", QSTRING_CSTR(_host.toString()), _port);
 	emit isDisconnected();
-	_timer.start();
 }
 
 
@@ -225,8 +229,8 @@ bool FlatBufferConnection::parseReply(const hyperionnet::Reply *reply)
 			}
 			else
 			{
-				_timer.stop();
 				_isRegistered = true;
+				_timer.stop();
 				Debug(_log,"Client \"%s\" registered successfully with target host: %s, port [%u]", QSTRING_CSTR(_origin), QSTRING_CSTR(_host.toString()), _port);
 				emit isReadyToSend();
 			}
