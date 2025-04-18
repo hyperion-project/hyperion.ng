@@ -123,7 +123,7 @@
     "edt_conf_enum_HORIZONTAL": "Horisontal",
     "edt_conf_enum_VERTICAL": "Vertikal",
     "edt_conf_enum_bbdefault": "bawaan",
-    "edt_conf_flatbufServers_heading_title": "Server Flatbuffer",
+    "edt_conf_flatbufServer_heading_title": "Server Flatbuffer",
     "edt_conf_fg_type_title": "Tipe",
     "edt_conf_fge_type_title": "Tipe",
     "edt_conf_forwarder_heading_title": "Forwarder",
