@@ -340,7 +340,7 @@ void JsonCallbacks::doCallback(Subscription::Type cmd, const QJsonArray& data)
 
 	if (Subscription::isInstanceSpecific(cmd))
 	{
-		if (_instanceID != GLOABL_INSTANCE_ID)
+		if (_instanceID != NO_INSTANCE_ID)
 		{
 			obj.insert("instance", _instanceID);
 		}
@@ -357,7 +357,7 @@ void JsonCallbacks::doCallback(Subscription::Type cmd, const QJsonObject& data)
 
 	if (Subscription::isInstanceSpecific(cmd))
 	{
-		if (_instanceID != GLOABL_INSTANCE_ID)
+		if (_instanceID != NO_INSTANCE_ID)
 		{
 			obj.insert("instance", _instanceID);
 		}

@@ -183,12 +183,17 @@ QJsonObject SettingsTable::getSettings(const QStringList& filteredTypes ) const
 
 QJsonObject SettingsTable::getSettings(const QVariant& instance, const QStringList& filteredTypes ) const
 {
+	if (filteredTypes.contains("__none__"))
+	{
+		return {};
+	}
+
 	QJsonObject settingsObject;
 	QStringList settingsKeys({ "type", "config" });
 	QString settingsCondition;
 	QVariantList conditionValues;
 
-	if (instance.isNull() || instance == GLOABL_INSTANCE_ID )
+	if (instance.isNull() || instance == NO_INSTANCE_ID )
 	{
 		settingsCondition = "hyperion_inst IS NULL";
 	}
@@ -240,7 +245,7 @@ QStringList SettingsTable::nonExtingTypes() const
 {
 	QStringList testTypes;
 	QString condition {"hyperion_inst"};
-	if(_instance == GLOABL_INSTANCE_ID)
+	if(_instance == NO_INSTANCE_ID)
 	{
 		condition += " IS NULL";
 		testTypes = getGlobalSettingTypes().toList();
@@ -269,7 +274,7 @@ QPair<bool, QStringList> SettingsTable::addMissingDefaults()
 	QStringList errorList;
 
 	QJsonObject defaultSettings;
-	if (_instance == GLOABL_INSTANCE_ID)
+	if (_instance == NO_INSTANCE_ID)
 	{
 		defaultSettings = getDefaultSettings().value("global").toObject();
 	}
@@ -281,7 +286,7 @@ QPair<bool, QStringList> SettingsTable::addMissingDefaults()
 	const QStringList missingTypes = nonExtingTypes();
 	if (missingTypes.empty())
 	{
-		Debug(_log, "%s settings: No missing configuration items identified", _instance == GLOABL_INSTANCE_ID ? "Global" : QSTRING_CSTR(QString("Instance [%1]").arg(_instance)) );
+		Debug(_log, "%s settings: No missing configuration items identified", _instance == NO_INSTANCE_ID ? "Global" : QSTRING_CSTR(QString("Instance [%1]").arg(_instance)) );
 		return qMakePair (true, errorList );
 	}
 
@@ -294,7 +299,7 @@ QPair<bool, QStringList> SettingsTable::addMissingDefaults()
 
 	bool errorOccured {false};
 
-	Info(_log, "%s settings: Add default settings for %d missing configuration items", _instance == GLOABL_INSTANCE_ID ? "Global" : QSTRING_CSTR(QString("Instance [%1]").arg(_instance)), missingTypes.size() );
+	Info(_log, "%s settings: Add default settings for %d missing configuration items", _instance == NO_INSTANCE_ID ? "Global" : QSTRING_CSTR(QString("Instance [%1]").arg(_instance)), missingTypes.size() );
 	for (const auto &missingType: missingTypes)
 	{
 		if (!createSettingsRecord(missingType, JsonUtils::jsonValueToQString(defaultSettings.value(missingType))))
@@ -321,7 +326,7 @@ QPair<bool, QStringList> SettingsTable::addMissingDefaults()
 
 	if(errorList.isEmpty())
 	{
-		Debug(_log, "%s settings: Successfully defaulted settings for %d missing configuration items", _instance == GLOABL_INSTANCE_ID ? "Global" : QSTRING_CSTR(QString("Instance [%1]").arg(_instance)), missingTypes.size() );
+		Debug(_log, "%s settings: Successfully defaulted settings for %d missing configuration items", _instance == NO_INSTANCE_ID ? "Global" : QSTRING_CSTR(QString("Instance [%1]").arg(_instance)), missingTypes.size() );
 	}
 
 	return qMakePair (errorList.isEmpty(), errorList );

@@ -23,7 +23,7 @@ public:
 	/// @params  instance   Instance index of HyperionInstanceManager
 	/// @params  parent    The parent hyperion instance
 	///
-	SettingsManager(quint8 instance = GLOABL_INSTANCE_ID, QObject* parent = nullptr);
+	SettingsManager(quint8 instance = NO_INSTANCE_ID, QObject* parent = nullptr);
 
 	///
 	/// @brief Save a complete JSON configuration

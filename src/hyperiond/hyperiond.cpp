@@ -87,7 +87,7 @@ HyperionDaemon* HyperionDaemon::daemon = nullptr;
 HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool logLvlOverwrite)
 	: QObject(parent), _log(Logger::getInstance("DAEMON"))
 	, _instanceManager(new HyperionIManager(this))
-	, _settingsManager(new SettingsManager(GLOABL_INSTANCE_ID, this)) // init settings, this settingsManager accesses global settings which are independent from instances
+	, _settingsManager(new SettingsManager(NO_INSTANCE_ID, this)) // init settings, this settingsManager accesses global settings which are independent from instances
 	#if defined(ENABLE_EFFECTENGINE)
 	, _pyInit(new PythonInit())
 	#endif
@@ -342,12 +342,6 @@ void HyperionDaemon::stopNetworkServices()
 	}
 #endif
 
-	if (_jsonServerThread->isRunning()) {
-		_jsonServerThread->quit();
-		_jsonServerThread->wait();
-	}
-	_jsonServer.reset(nullptr);
-
 	if (_webServerThread->isRunning()) {
 		_webServerThread->quit();
 		_webServerThread->wait();
@@ -358,6 +352,12 @@ void HyperionDaemon::stopNetworkServices()
 		_sslWebServerThread->quit();
 		_sslWebServerThread->wait();
 	}
+
+	if (_jsonServerThread->isRunning()) {
+		_jsonServerThread->quit();
+		_jsonServerThread->wait();
+	}
+	_jsonServer.reset(nullptr);
 
 	QMetaObject::invokeMethod(_ssdpHandler.get(), &SSDPHandler::stop, Qt::QueuedConnection);
 	if (_ssdpHandlerThread->isRunning()) {

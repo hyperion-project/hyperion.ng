@@ -42,12 +42,12 @@
 	"jsonapi": {
 	  "type": "array",
 	  "title": "edt_conf_forwarder_json_title",
-	  "allowEmptyArray": true,
 	  "uniqueItems": true,
 	  "access": "expert",
 	  "items": {
 		"type": "object",
 		"title": "edt_conf_forwarder_json_itemtitle",
+		"allowEmptyArray": true,
 		"properties": {
 		  "name": {
 			"type": "string",
