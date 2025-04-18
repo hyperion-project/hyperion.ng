@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for Skydimo devices
 - Support gaps on Matrix Layout (#1696)
 - Support a configurable grabber inactive detection time interval (#1740)
+- Support for dominant color processing on a full image which is applied to all LEDs (#1853)
 - Windows: Added a new grabber that uses the DXGI DDA (Desktop Duplication API). This has much better performance than the DX grabber as it does more of its work on the GPU.
 - Support to freely select source and target instances to be used by forwarder
 - Support to import, export and backup Hyperion's full configuration via the UI, JSON-API and commandline (`--importConfig, --exportConfig`) (#804)

@@ -40,11 +40,15 @@ void ImageProcessor::registerProcessingUnit(
 // global transform method
 int ImageProcessor::mappingTypeToInt(const QString& mappingType)
 {
-	if (mappingType == "unicolor_mean" )
+	if (mappingType == "multicolor_mean" )
+	{
+		return 0;
+	}
+	else if (mappingType == "multicolor_mean_squared" )
 	{
 		return 1;
 	}
-	else if (mappingType == "multicolor_mean_squared" )
+	else if (mappingType == "unicolor_mean" )
 	{
 		return 2;
 	}
@@ -52,9 +56,17 @@ int ImageProcessor::mappingTypeToInt(const QString& mappingType)
 	{
 		return 3;
 	}
-	else if (mappingType == "dominant_color_advanced" )
+	else if (mappingType == "unicolor_dominant" )
 	{
 		return 4;
+	}
+	else if (mappingType == "dominant_color_advanced" )
+	{
+		return 5;
+	}
+	else if (mappingType == "unicolor_dominant_advanced" )
+	{
+		return 6;
 	}
 	return 0;
 }
@@ -63,17 +75,27 @@ QString ImageProcessor::mappingTypeToStr(int mappingType)
 {
 	QString typeText;
 	switch (mappingType) {
+
+	case 0:
+		typeText = "multicolor_mean";
+		break;
 	case 1:
-		typeText = "unicolor_mean";
+		typeText = "multicolor_mean_squared";
 		break;
 	case 2:
-		typeText = "multicolor_mean_squared";
+		typeText = "unicolor_mean";
 		break;
 	case 3:
 		typeText = "dominant_color";
 		break;
 	case 4:
+		typeText = "unicolor_dominant";
+		break;
+	case 5:
 		typeText = "dominant_color_advanced";
+		break;
+	case 6:
+		typeText = "unicolor_dominant_advanced";
 		break;
 	default:
 		typeText = "multicolor_mean";

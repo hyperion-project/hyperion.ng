@@ -128,10 +128,10 @@ namespace hyperion
 		/// @return The vector containing the output
 		///
 		template <typename Pixel_T>
-		std::vector<ColorRgb> getMeanLedColorSqrt(const Image<Pixel_T> & image) const
+		std::vector<ColorRgb> getMeanSqrtLedColor(const Image<Pixel_T> & image) const
 		{
 			std::vector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
-			getMeanLedColorSqrt(image, colors);
+			getMeanSqrtLedColor(image, colors);
 			return colors;
 		}
 
@@ -143,7 +143,7 @@ namespace hyperion
 		/// @param[out] ledColors  The vector containing the output
 		///
 		template <typename Pixel_T>
-		void getMeanLedColorSqrt(const Image<Pixel_T> & image, std::vector<ColorRgb> & ledColors) const
+		void getMeanSqrtLedColor(const Image<Pixel_T> & image, std::vector<ColorRgb> & ledColors) const
 		{
 			if(_colorsMap.size() != ledColors.size())
 			{
@@ -239,7 +239,43 @@ namespace hyperion
 		}
 
 		///
-		/// Determines the dominant color  using a k-means algorithm for each LED using the LED area mapping given
+		/// Determines the dominant color of the image and assigns it to all LEDs
+		///
+		/// @param[in] image  The image from which to extract the led color
+		///
+		/// @return The vector containing the output
+		///
+		template <typename Pixel_T>
+		std::vector<ColorRgb> getDominantUniLedColor(const Image<Pixel_T> & image) const
+		{
+			std::vector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
+			getDominantUniLedColor(image, colors);
+			return colors;
+		}
+
+		///
+		/// Determines the dominant color of the image and assigns it to all LEDs
+		///
+		/// @param[in] image  The image from which to extract the LED colors
+		/// @param[out] ledColors  The vector containing the output
+		///
+		template <typename Pixel_T>
+		void getDominantUniLedColor(const Image<Pixel_T> & image, std::vector<ColorRgb> & ledColors) const
+		{
+			if(_colorsMap.size() != ledColors.size())
+			{
+				Debug(_log, "ImageToLedsMap: colorsMap.size != ledColors.size -> %d != %d", _colorsMap.size(), ledColors.size());
+				return;
+			}
+
+			// calculate dominant color
+			const ColorRgb color = calculateDominantColor(image);
+			//Update all LEDs with same color
+			std::fill(ledColors.begin(),ledColors.end(), color);
+		}
+
+		///
+		/// Determines the dominant color using a k-means algorithm for each LED using the LED area mapping given
 		/// at construction.
 		///
 		/// @param[in] image  The image from which to extract the LED color
@@ -247,10 +283,10 @@ namespace hyperion
 		/// @return The vector containing the output
 		///
 		template <typename Pixel_T>
-		std::vector<ColorRgb> getDominantLedColorAdv(const Image<Pixel_T> & image) const
+		std::vector<ColorRgb> getDominantAdvLedColor(const Image<Pixel_T> & image) const
 		{
 			std::vector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
-			getDominantLedColorAdv(image, colors);
+			getDominantAdvLedColor(image, colors);
 			return colors;
 		}
 
@@ -262,7 +298,7 @@ namespace hyperion
 		/// @param[out] ledColors  The vector containing the output
 		///
 		template <typename Pixel_T>
-		void getDominantLedColorAdv(const Image<Pixel_T> & image, std::vector<ColorRgb> & ledColors) const
+		void getDominantAdvLedColor(const Image<Pixel_T> & image, std::vector<ColorRgb> & ledColors) const
 		{
 			// Sanity check for the number of LEDs
 			if(_colorsMap.size() != ledColors.size())
@@ -278,6 +314,42 @@ namespace hyperion
 				const ColorRgb color = calculateDominantColorAdv(image, *colors);
 				*led = color;
 			}
+		}
+
+		///
+		/// Determines the dominant color of the image using a k-means algorithm and assigns it to all LEDs
+		///
+		/// @param[in] image  The image from which to extract the led color
+		///
+		/// @return The vector containing the output
+		///
+		template <typename Pixel_T>
+		std::vector<ColorRgb> getDominantAdvUniLedColor(const Image<Pixel_T> & image) const
+		{
+			std::vector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
+			getDominantAdvUniLedColor(image, colors);
+			return colors;
+		}
+
+		///
+		/// Determines the dominant color of the image using a k-means algorithm and assigns it to all LEDs
+		///
+		/// @param[in] image  The image from which to extract the LED colors
+		/// @param[out] ledColors  The vector containing the output
+		///
+		template <typename Pixel_T>
+		void getDominantAdvUniLedColor(const Image<Pixel_T> & image, std::vector<ColorRgb> & ledColors) const
+		{
+			if(_colorsMap.size() != ledColors.size())
+			{
+				Debug(_log, "ImageToLedsMap: colorsMap.size != ledColors.size -> %d != %d", _colorsMap.size(), ledColors.size());
+				return;
+			}
+
+			// calculate dominant color
+			const ColorRgb color = calculateDominantColorAdv(image);
+			//Update all LEDs with same color
+			std::fill(ledColors.begin(),ledColors.end(), color);
 		}
 
 	private:
