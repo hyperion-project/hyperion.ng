@@ -173,7 +173,7 @@ function initWebSocket() {
   }
 }
 
-function sendToHyperion(command, subcommand, msg) {
+function sendToHyperion(command, subcommand, msg, instanceIds = null) {
   const tan = Math.floor(Math.random() * 1000); // Generate a transaction number
 
   // Build the base object
@@ -185,6 +185,11 @@ function sendToHyperion(command, subcommand, msg) {
   // Add the subcommand if provided
   if (subcommand) {
     message.subcommand = subcommand;
+  }
+
+  // Add the instanceID(s) the command is to be applied to
+  if (instanceIds != null) {
+      message.instance = instanceIds;
   }
 
   // Merge the msg object into the final message if provided
@@ -289,18 +294,18 @@ function requestTokenDelete(id) {
 }
 
 function requestInstanceRename(instance, name) {
-  sendToHyperion("instance", "saveName", { instance: Number(instance), name });
+  sendToHyperion("instance", "saveName", { name }, Number(instance));
 }
 
 function requestInstanceStartStop(instance, start) {
   if (start)
-    sendToHyperion("instance", "startInstance", { instance: Number(instance) });
+    sendToHyperion("instance", "startInstance", {}, Number(instance));
   else
-    sendToHyperion("instance", "stopInstance", { instance: Number(instance) });
+    sendToHyperion("instance", "stopInstance", {}, Number(instance));
 }
 
 function requestInstanceDelete(instance) {
-  sendToHyperion("instance", "deleteInstance", { instance: Number(instance) });
+  sendToHyperion("instance", "deleteInstance", {}, Number(instance));
 }
 
 function requestInstanceCreate(name) {
@@ -308,7 +313,7 @@ function requestInstanceCreate(name) {
 }
 
 function requestInstanceSwitch(instance) {
-  sendToHyperion("instance", "switchTo", { instance: Number(instance) });
+  sendToHyperion("instance", "switchTo", {}, Number(instance));
 }
 
 function requestServerInfo(instance) {
@@ -325,12 +330,8 @@ function requestServerInfo(instance) {
       "event-update"
     ]
   };
-  
-  if (instance !== null && instance !== undefined && !isNaN(Number(instance))) {
-    data.instance = Number(instance);
-  }
 
-  sendToHyperion("serverinfo", "getInfo", data);
+  sendToHyperion("serverinfo", "getInfo", data, Number(instance));
   return Promise.resolve();
 }
 
@@ -394,40 +395,40 @@ function requestServerConfigReload() {
   sendToHyperion("config", "reload");
 }
 
-function requestLedColorsStart() {
+function requestLedColorsStart(instanceId = window.currentHyperionInstance) {
   window.ledStreamActive = true;
-  sendToHyperion("ledcolors", "ledstream-start");
+  sendToHyperion("ledcolors", "ledstream-start", {} , instanceId);
 }
 
-function requestLedColorsStop() {
+function requestLedColorsStop(instanceId = window.currentHyperionInstance) {
   window.ledStreamActive = false;
-  sendToHyperion("ledcolors", "ledstream-stop");
+  sendToHyperion("ledcolors", "ledstream-stop", {} , instanceId);
 }
 
-function requestLedImageStart() {
+function requestLedImageStart(instanceId = window.currentHyperionInstance) {
   window.imageStreamActive = true;
-  sendToHyperion("ledcolors", "imagestream-start");
+  sendToHyperion("ledcolors", "imagestream-start", {} , instanceId);
 }
 
-function requestLedImageStop() {
+function requestLedImageStop(instanceId = window.currentHyperionInstance) {
   window.imageStreamActive = false;
-  sendToHyperion("ledcolors", "imagestream-stop");
+  sendToHyperion("ledcolors", "imagestream-stop", {} , instanceId);
 }
 
-function requestPriorityClear(priority) {
+function requestPriorityClear(priority, instanceIds = [window.currentHyperionInstance]) {
   if (typeof priority !== 'number')
     priority = INPUT.FG_PRIORITY;
 
   $(window.hyperion).trigger({ type: "stopBrowerScreenCapture" });
-  sendToHyperion("clear", "", { priority });
+  sendToHyperion("clear", "", { priority }, instanceIds);
 }
 
-function requestClearAll() {
+function requestClearAll(instanceIds = [window.currentHyperionInstance]) {
   $(window.hyperion).trigger({ type: "stopBrowerScreenCapture" });
-  requestPriorityClear(-1)
+  requestPriorityClear(-1, instanceIds)
 }
 
-function requestPlayEffect(name, duration) {
+function requestPlayEffect(name, duration, instanceIds = [window.currentHyperionInstance]) {
   $(window.hyperion).trigger({ type: "stopBrowerScreenCapture" });
   const data = {
     effect: { name },
@@ -435,10 +436,10 @@ function requestPlayEffect(name, duration) {
     duration: validateDuration(duration),
     origin: INPUT.ORIGIN,
   };
-  sendToHyperion("effect", "", data);
+  sendToHyperion("effect", "", data, instanceIds);
 }
 
-function requestSetColor(r, g, b, duration) {
+function requestSetColor(r, g, b, duration, instanceIds = [window.currentHyperionInstance]) {
   $(window.hyperion).trigger({ type: "stopBrowerScreenCapture" });
   const data = {
     color: [r, g, b],
@@ -446,10 +447,10 @@ function requestSetColor(r, g, b, duration) {
     duration: validateDuration(duration),
     origin: INPUT.ORIGIN
   };
-  sendToHyperion("color", "", data);
+  sendToHyperion("color", "", data, instanceIds);
 }
 
-function requestSetImage(imagedata, duration, name) {
+function requestSetImage(imagedata, duration, name, instanceIds = [window.currentHyperionInstance]) {
   const data = {
     imagedata,
     priority: INPUT.FG_PRIORITY,
@@ -458,18 +459,18 @@ function requestSetImage(imagedata, duration, name) {
     origin: INPUT.ORIGIN,
     name
   };
-  sendToHyperion("image", "", data);
+  sendToHyperion("image", "", data, instanceIds);
 }
 
-function requestSetComponentState(component, state) {
-  sendToHyperion("componentstate", "", { componentstate: { component, state } });
+function requestSetComponentState(component, state, instanceIds = [window.currentHyperionInstance]) {
+  sendToHyperion("componentstate", "", { componentstate: { component, state } }, instanceIds);
 }
 
-function requestSetSource(priority) {
+function requestSetSource(priority, instanceIds = [window.currentHyperionInstance]) {
   if (priority == "auto")
-    sendToHyperion("sourceselect", "", { auto: true });
+    sendToHyperion("sourceselect", "", { auto: true }, instanceIds);
   else
-    sendToHyperion("sourceselect", "", { priority });
+    sendToHyperion("sourceselect", "", { priority }, instanceIds);
 }
 
 // Function to transform the legacy config into thee new API format
@@ -539,7 +540,7 @@ function requestWriteEffect(name, script, args, imageData) {
   sendToHyperion("create-effect", "", data);
 }
 
-function requestTestEffect(name, pythonScript, args, imageData) {
+function requestTestEffect(name, pythonScript, args, imageData, instanceIds = [window.currentHyperionInstance]) {
   const data = {
     effect: { name, args },
     priority: INPUT.FG_PRIORITY,
@@ -547,7 +548,7 @@ function requestTestEffect(name, pythonScript, args, imageData) {
     pythonScript,
     imageData
   };
-  sendToHyperion("effect", "", data);
+  sendToHyperion("effect", "", data, instanceIds);
 }
 
 function requestDeleteEffect(name) {
@@ -564,19 +565,19 @@ function requestLoggingStop() {
   sendToHyperion("logging", "stop");
 }
 
-function requestMappingType(mappingType) {
-  sendToHyperion("processing", "", { mappingType });
+function requestMappingType(mappingType, instanceIds = [window.currentHyperionInstance]) {
+  sendToHyperion("processing", "", { mappingType }, instanceIds);
 }
 
 function requestVideoMode(newMode) {
   sendToHyperion("videomode", "", { videoMode: newMode });
 }
 
-function requestAdjustment(type, value, complete) {
+function requestAdjustment(type, value, complete, instanceIds = [window.currentHyperionInstance]) {
   if (complete === true)
-    sendToHyperion("adjustment", "", { adjustment: type });
+    sendToHyperion("adjustment", "", { adjustment: type }, useCurrentInstance);
   else
-    sendToHyperion("adjustment", "", { adjustment: { [type]: value } });
+    sendToHyperion("adjustment", "", { adjustment: { [type]: value } }, instanceIds);
 }
 
 async function requestLedDeviceDiscovery(ledDeviceType, params) {
