@@ -90,11 +90,11 @@ JsonAPI::JsonAPI(QString peerAddress, Logger *log, bool localConnection, QObject
 
 	qRegisterMetaType<Event>("Event");
 
-	connect(EventHandler::getInstance().data(), &EventHandler::signalEvent, [=](const Event &event) {
+	connect(EventHandler::getInstance().data(), &EventHandler::signalEvent, [log, this](const Event &event) {
 		if (event == Event::Quit)
 		{
 			_isServiceAvailable = false;
-			Info(_log, "JSON-API service stopped");
+			Info(log, "JSON-API service stopped");
 		}
 	});
 
