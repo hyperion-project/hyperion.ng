@@ -421,6 +421,6 @@ private:
 	// The JsonCallbacks instance which handles data subscription/notifications
 	QSharedPointer<JsonCallbacks> _jsonCB;
 
-
+	bool _isServiceAvailable;
 
 };

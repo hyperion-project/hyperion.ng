@@ -84,10 +84,20 @@ JsonAPI::JsonAPI(QString peerAddress, Logger *log, bool localConnection, QObject
 	,_noListener(noListener)
 	,_peerAddress (std::move(peerAddress))
 	,_jsonCB (nullptr)
+	,_isServiceAvailable(false)
 {
 	Q_INIT_RESOURCE(JSONRPC_schemas);
 
 	qRegisterMetaType<Event>("Event");
+
+	connect(EventHandler::getInstance().data(), &EventHandler::signalEvent, [=](const Event &event) {
+		if (event == Event::Quit)
+		{
+			_isServiceAvailable = false;
+			Info(_log, "JSON-API service stopped");
+		}
+	});
+
 	_jsonCB = QSharedPointer<JsonCallbacks>(new JsonCallbacks( _log, _peerAddress, parent));
 }
 
@@ -117,6 +127,9 @@ void JsonAPI::initialize()
 	// notify the forwarder about a jsonMessageForward request
 	QObject::connect(this, &JsonAPI::forwardJsonMessage, GlobalSignals::getInstance(), &GlobalSignals::forwardJsonMessage, Qt::UniqueConnection);
 #endif
+
+	Info(_log, "JSON-API service is ready to process requests");
+	_isServiceAvailable = true;
 }
 
 bool JsonAPI::handleInstanceSwitch(quint8 instanceID, bool /*forced*/)
@@ -180,6 +193,13 @@ void JsonAPI::handleMessage(const QString &messageString, const QString &httpAut
 	{
 		const QStringList errorDetails (subCommand.isEmpty() ? "subcommand is missing" : QString("Invalid subcommand: %1").arg(subCommand));
 		sendErrorReply("Invalid command", errorDetails, command, tan);
+		return;
+	}
+
+	// Do not further handle requests, if service is not available
+	if (!_isServiceAvailable)
+	{
+		sendErrorReply("Service Unavailable", cmd);
 		return;
 	}
 
@@ -330,7 +350,7 @@ void JsonAPI::handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject
 		return;
 	}
 
-	// Execute the command for each valid instance
+	// Execute the command for each valid instance;  Hyperion is about to quit
 	for (const auto &instanceId : std::as_const(instanceIds))
 	{
 		if (isRunningInstanceRequired == InstanceCmd::MustRun_Yes || _currInstanceIndex == NO_INSTANCE_ID)
