@@ -158,9 +158,10 @@ $(document).ready(function () {
     let instanceId = window.currentHyperionInstance;
     const config = event.response.info;
     const { instanceIds } = config;
-    if (instanceIds.length !== 0) {
+
+    if (Array.isArray(instanceIds) && instanceIds.length !== 0) {
       if (!instanceIds.includes(window.currentHyperionInstance)) {
-        // If instanceID is not valid try to switch to the first enabled or or fall back to the first instance configured
+        // If instanceID is not valid try to switch to the first enabled or fall back to the first instance configured
         const { instances } = config;
 
         const firstEnabledInstanceId = instances.find((instance) => instance.enabled)?.id;
@@ -170,7 +171,6 @@ $(document).ready(function () {
         } else {
           instanceId = window.currentHyperionInstance = instanceIds[0];
         }
-
       }
     }
 

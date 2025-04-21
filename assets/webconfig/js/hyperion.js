@@ -359,12 +359,12 @@ const requestServerConfig = {
   createFilter(globalTypes = [], instances = [], instanceTypes = []) {
     const filter = {
       configFilter: {
-        global: { types: globalTypes },
+        global: { types: globalTypes }
       },
     };
 
     // Handle instances: remove "null" if present and add to filter if not empty
-    if (instances.length && !(instances.length === 1 && instances[0] === null)) {
+    if (instances.length) {
       filter.configFilter.instances = { ids: instances };
     }
 
