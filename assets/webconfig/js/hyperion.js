@@ -126,27 +126,50 @@ function initWebSocket() {
               if (error == "Service Unavailable") {
                 window.location.reload();
               } else {
-                $(window.hyperion).trigger({ type: "error", reason: error });
+                const errorData = Array.isArray(response.errorData) ? response.errorData : [];
+                console.log("[window.websocket::onmessage] ", error, ", Description:", errorData);
+                $(window.hyperion).trigger({
+                  type: "error",
+                  reason: {
+                    message: error,
+                    details: errorData.map((item) => item.description || "")
+                  }
+                });
               }
-              let errorData = response.hasOwnProperty("errorData") ? response.errorData : "";
-              console.log("[window.websocket::onmessage] ", error, ", Description:", errorData);
             }
         }
         catch (exception_error) {
-          $(window.hyperion).trigger({ type: "error", reason: exception_error });
-          console.log("[window.websocket::onmessage] ", exception_error)
+          console.log("[window.websocket::onmessage] ", exception_error);
+          $(window.hyperion).trigger({
+            type: "error",
+            reason: {
+              message: $.i18n("ws_processing_exception") + ": " + exception_error.message,
+              details: [exception_error.stack]
+            }
+          });
         }
       };
 
       window.websocket.onerror = function (error) {
-        $(window.hyperion).trigger({ type: "error", reason: error });
-        console.log("[window.websocket::onerror] ", error)
+        console.log("[window.websocket::onerror] ", error);
+        $(window.hyperion).trigger({
+          type: "error",
+          reason: {
+            message: $.i18n("ws_error_occured"),
+            details: [error]
+          }
+        });
       };
     }
   }
   else {
-    $(window.hyperion).trigger("error");
-    alert("Websocket is not supported by your browser");
+    $(window.hyperion).trigger({
+      type: "error",
+      reason: {
+        message: $.i18n("ws_not_supported"),
+        details: []
+      }
+    });
   }
 }
 

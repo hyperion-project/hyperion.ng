@@ -242,11 +242,11 @@ $(document).ready(function () {
   $(window.hyperion).on("error", function (event) {
     //If we are getting an error "No Authorization" back with a set loginToken we will forward to new Login (Token is expired.
     //e.g.: hyperiond was started new in the meantime)
-    if (event.reason == "No Authorization" && getStorage("loginToken")) {
+    if (event.reason.message == "No Authorization" && getStorage("loginToken")) {
       removeStorage("loginToken");
       requestRequiresDefaultPasswortChange();
     } else {
-      showInfoDialog("error", "Error", event.reason);
+      showInfoDialog("error", "", event.reason.message, event.reason.details);
     }
   });
 
