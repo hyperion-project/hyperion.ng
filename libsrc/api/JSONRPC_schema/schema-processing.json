@@ -18,7 +18,7 @@
 		},
 		"mappingType": {
 			"type" : "string",
-			"enum" : ["multicolor_mean","multicolor_mean_squared", "unicolor_mean", "dominant_color", "unicolor_dominant", "dominant_color_advanced", "unicolor_dominant_advanced"],
+			"enum" : ["multicolor_mean","multicolor_mean_squared", "unicolor_mean", "dominant_color", "unicolor_dominant", "dominant_color_advanced", "unicolor_dominant_advanced"]
 		}
 	},
 	"additionalProperties": false
