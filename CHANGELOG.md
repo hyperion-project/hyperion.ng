@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Effects: Limit the maximum update rate to 200Hz
 - Systray: Support multiple instances
 - UI: Validate that key ports do not overlap across editors and pages
+- UI: Provide additional details in error dialogue
 
 **JSON-API**
 - New subscription support for event updates, i.e. `Suspend, Resume, Idle, idleResume, Restart, Quit`.
@@ -71,9 +72,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Provide additional error details with API responses, esp. on JSON parsing, validation or token errors.
 - Generate random TANs for every API request from the Hyperion UI
 - Configuration requests do not any longer require a running instance
+- Ensure that API service does not process commands when Hyperion is quitting
 - Fixed: Handling of IP4 addresses wrapped in IPv6 for external network connections
 - Fixed: Local Admin API Authentication rejects valid tokens (#1251)
 - Fixed: Create a proper API response, when Effects are not part of a build
+- Fixed: Return correct mapping type for a running instance
 
 ### Removed
 
