@@ -124,10 +124,10 @@ void FlatBufferConnection::setImage(const Image<ColorRgb> &image)
 	if (!isClientRegistered()) return;
 
 	const uint8_t* buffer = reinterpret_cast<const uint8_t*>(image.memptr());
-	size_t bufferSize = image.size();
+	qsizetype bufferSize = image.size();
 
 	// Convert the buffer into QByteArray
-	QByteArray imageData = QByteArray::fromRawData(reinterpret_cast<const char*>(buffer), static_cast<int>(bufferSize));
+	QByteArray imageData = QByteArray::fromRawData(reinterpret_cast<const char*>(buffer), bufferSize);
 	setImage(imageData, image.width(), image.height());
 }
 
