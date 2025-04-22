@@ -131,6 +131,7 @@ function initWebSocket() {
                 $(window.hyperion).trigger({
                   type: "error",
                   reason: {
+                    cmd: cmd,
                     message: error,
                     details: errorData.map((item) => item.description || "")
                   }
