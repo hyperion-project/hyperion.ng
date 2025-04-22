@@ -122,8 +122,7 @@ private:
 	///
 	void handleNotImplemented();
 
-	void processNextMessage();
-	bool processNextMessageInline();
+	bool processNextMessage();
 
 	///
 	/// Send a message to the connected client

@@ -15,7 +15,7 @@
 namespace {
 const int FLATBUFFER_PRIORITY_MIN = 100;
 const int FLATBUFFER_PRIORITY_MAX = 199;
-const int FLATBUFFER_MAX_MSG_LENGTH = 10'000'000;
+
 } //End of constants
 
 FlatBufferClient::FlatBufferClient(QTcpSocket* socket, int timeout, QObject *parent)
@@ -50,20 +50,19 @@ void FlatBufferClient::readyRead()
 {
 	if (_socket == nullptr) { return; }
 
-	while (_socket->bytesAvailable() > 0)
-	{
-		_timeoutTimer->start();
-		_receiveBuffer += _socket->readAll();
-		processNextMessage();
-	}
+	_timeoutTimer->start();
+	_receiveBuffer += _socket->readAll();
+
+	processNextMessage();
 }
 
-bool FlatBufferClient::processNextMessageInline()
+bool FlatBufferClient::processNextMessage()
 {
 	if (_processingMessage) { return false; } // Avoid re-entrancy
 
 	// Wait for at least 4 bytes to read the message size
-	if (_receiveBuffer.size() < 4) {
+	if (_receiveBuffer.size() < 4)
+	{
 		return false;
 	}
 
@@ -71,12 +70,13 @@ bool FlatBufferClient::processNextMessageInline()
 
 	// Directly read message size (no memcpy)
 	const uint8_t* raw = reinterpret_cast<const uint8_t*>(_receiveBuffer.constData());
-	uint32_t messageSize = (raw[0] << 24) | (raw[1] << 16) | (raw[2] << 8) | raw[3];
+	uint32_t const messageSize = (raw[0] << 24) | (raw[1] << 16) | (raw[2] << 8) | raw[3];
 
-	// Validate message size
-	if (messageSize == 0 || messageSize > FLATBUFFER_MAX_MSG_LENGTH)
+	// // Validate message size
+	if (messageSize == 0)
 	{
-		Warning(_log, "Invalid message size: %d - dropping received data", messageSize);
+		Warning(_log, "Invalid message size: %u - dropping received data", messageSize);
+		_receiveBuffer.clear();
 		_processingMessage = false;
 		return true;
 	}
@@ -88,6 +88,9 @@ bool FlatBufferClient::processNextMessageInline()
 		return false;
 	}
 
+	// Remove the processed message from the buffer (header + body)
+	_receiveBuffer.remove(0, messageSize + 4);
+
 	// Extract the message and remove it from the buffer (no copying)
 	const uint8_t* msgData = reinterpret_cast<const uint8_t*>(_receiveBuffer.constData() + 4);
 	flatbuffers::Verifier verifier(msgData, messageSize);
@@ -97,32 +100,20 @@ bool FlatBufferClient::processNextMessageInline()
 		sendErrorReply("Invalid FlatBuffer message received");
 		_processingMessage = false;
 
-		// Clear the buffer in case of an invalid message
-		_receiveBuffer.clear();
+		QMetaObject::invokeMethod(this, &FlatBufferClient::processNextMessage, Qt::QueuedConnection);
 		return true;
 	}
 
 	// Invoke message handling
-	QMetaObject::invokeMethod(this, [this, msgData, messageSize]() {
+	QMetaObject::invokeMethod(this, [this, msgData]() {
 		handleMessage(hyperionnet::GetRequest(msgData));
 		_processingMessage = false;
 
-		// Remove the processed message from the buffer (header + body)
-		_receiveBuffer.remove(0, messageSize + 4);  // Clear the processed message + header
-
 		// Continue processing the next message
-		processNextMessage();
+		QMetaObject::invokeMethod(this, &FlatBufferClient::processNextMessage, Qt::QueuedConnection);
 	});
 
 	return true;
-}
-
-void FlatBufferClient::processNextMessage()
-{
-	// Run the message processing inline until the buffer is empty or we can't process further
-	while (processNextMessageInline()) {
-		// Keep processing as long as we can
-	}
 }
 
 void FlatBufferClient::noDataReceived()
