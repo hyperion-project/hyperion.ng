@@ -52,8 +52,8 @@ _http/s Support_
 | config         | restoreconfig           | Admin         | No           | No                | Yes            |
 | config         | setconfig               | Admin         | No           | No                | Yes            |
 | correction     |                         | Yes           | Single       | Yes               | Yes            |
-| create-effect  |                         | Yes           | Single       | Yes               | Yes            |
-| delete-effect  |                         | Yes           | Single       | Yes               | Yes            |
+| create-effect  |                         | Yes           | No           | No                | Yes            |
+| delete-effect  |                         | Yes           | No           | No                | Yes            |
 | effect         |                         | Yes           | Multi        | Yes               | Yes            |
 | image          |                         | Yes           | Multi        | Yes               | Yes            |
 | inputsource    | discover                | Yes           | No           | No                | Yes            |
@@ -71,9 +71,9 @@ _http/s Support_
 | ledcolors      | ledstream-start         | Yes           | Single       | Yes               | Yes            |
 | ledcolors      | ledstream-stop          | Yes           | Single       | Yes               | Yes            |
 | leddevice      | addAuthorization        | Yes           | Single       | Yes               | Yes            |
-| leddevice      | discover                | Yes           | Single       | Yes               | Yes            |
-| leddevice      | getProperties           | Yes           | Single       | Yes               | Yes            |
-| leddevice      | identify                | Yes           | Single       | Yes               | Yes            |
+| leddevice      | discover                | Yes           | No           | No                | Yes            |
+| leddevice      | getProperties           | Yes           | No           | No                | Yes            |
+| leddevice      | identify                | Yes           | No           | No                | Yes            |
 | logging        | start                   | Yes           | No           | No                | Yes            |
 | logging        | stop                    | Yes           | No           | No                | Yes            |
 | processing     |                         | Yes           | Multi        | Yes               | Yes            |
