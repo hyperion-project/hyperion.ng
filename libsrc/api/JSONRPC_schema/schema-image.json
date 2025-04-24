@@ -10,8 +10,7 @@
 		"instance" : {
 			"type": "array",
 			"required": false,
-			"items" : {},
-			"minItems": 1
+			"items" : {}
 		},
 		"tan" : {
 			"type" : "integer"
