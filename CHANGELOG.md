@@ -66,6 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed that LED Buffer and Layout might get out of sync.
 - Fixed Screen capture error (#1824)
 - Fixed Provide custom forwarding targets is not possible (#1713)
+- Fixed Last update of an effect event is not removed in sources overview 
 
 **JSON-API**
 - Refactored JSON-API to ensure consistent authorization behaviour across sessions and single requests with token authorization.

@@ -129,6 +129,11 @@ $(document).ready(function () {
     const prios = window.serverInfo.priorities;
     let clearAll = false;
 
+    if (prios.length === 0) {
+      $('.sstbody').append('<tr><td colspan="4" class="text-center text-muted">No sources available</td></tr>');
+      return;
+    }
+
     // Iterate over priorities
     for (let i = 0; i < prios.length; i++) {
       let origin = prios[i].origin ? prios[i].origin : "System";
