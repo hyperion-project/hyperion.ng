@@ -1092,6 +1092,7 @@
     "remote_input_ip": "IP:",
     "remote_input_label": "Source Selection",
     "remote_input_label_autoselect": "Auto Selection",
+    "remote_input_no_sources": "No sources available",
     "remote_input_origin": "Origin",
     "remote_input_owner": "Type",
     "remote_input_priority": "Priority",
