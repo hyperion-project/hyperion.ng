@@ -19,6 +19,7 @@ public:
 	enum StatusCode
 	{
 		Ok                 = 200,
+		NoContent          = 204,
 		SeeOther           = 303,
 		BadRequest         = 400,
 		Forbidden          = 403,

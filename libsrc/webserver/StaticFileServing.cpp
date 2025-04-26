@@ -146,7 +146,6 @@ void StaticFileServing::onRequestNeedsReply (QtHttpRequest * request, QtHttpRepl
 				{
 					reply->addHeader ("Content-Type", mime.name().toLocal8Bit());
 				}
-				reply->addHeader(QtHttpHeader::AccessControlAllow, "*" );
 				reply->appendRawData (data);
 				file.close ();
 			}

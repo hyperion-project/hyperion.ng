@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Systray: Support multiple instances
 - UI: Validate that key ports do not overlap across editors and pages
 - UI: Provide additional details in error dialogue
+- Http-Server: Support Cross-Origin Resource Sharing (CORS) (#1496)
 
 **JSON-API**
 - New subscription support for event updates, i.e. `Suspend, Resume, Idle, idleResume, Restart, Quit`.
