@@ -62,6 +62,14 @@ function connectionLostDetection(type) {
   }
 }
 
+// Utility function to sanitize strings for safe logging
+function sanitizeForLog(input) {
+  if (typeof input !== 'string') return '';
+  return input
+    .replace(/[\n\r\t]/g, ' ') // Replace newlines, carriage returns, and tabs with space
+    .replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, ''); // Remove ANSI escape codes
+}
+
 setInterval(connectionLostDetection, 3000);
 
 // init websocket to hyperion and bind socket events to jquery events of $(hyperion) object
@@ -116,7 +124,8 @@ function initWebSocket() {
           const success = response.success;
           const cmd = response.command;
           const tan = response.tan
-          if (success || typeof (success) == "undefined") {
+
+          if (success || typeof (success) === "undefined") {
             $(window.hyperion).trigger({ type: "cmd-" + cmd, response: response });
           }
           else
@@ -127,37 +136,49 @@ function initWebSocket() {
                 window.location.reload();
               } else {
                 const errorData = Array.isArray(response.errorData) ? response.errorData : [];
-                console.log("[window.websocket::onmessage] ", error, ", Description:", errorData);
+
+                const safeError = sanitizeForLog(error);
+                const safeErrorData = errorData.map((item) => sanitizeForLog(item.description || ""));
+
+                console.log("[window.websocket::onmessage] ", safeError, ", Description:", safeErrorData);
+
                 $(window.hyperion).trigger({
                   type: "error",
                   reason: {
                     cmd: cmd,
-                    message: error,
-                    details: errorData.map((item) => item.description || "")
+                    message: safeError,
+                    details: safeErrorData
                   }
                 });
               }
             }
         }
         catch (exception_error) {
-          console.log("[window.websocket::onmessage] ", exception_error);
+          const safeExceptionMessage = sanitizeForLog(exception_error.message || 'Unknown error');
+          const safeExceptionStack = sanitizeForLog(exception_error.stack || '');
+
+          console.log("[window.websocket::onmessage] ", safeExceptionMessage);
+
           $(window.hyperion).trigger({
             type: "error",
             reason: {
-              message: $.i18n("ws_processing_exception") + ": " + exception_error.message,
-              details: [exception_error.stack]
+              message: $.i18n("ws_processing_exception") + ": " + safeExceptionMessage,
+              details: [safeExceptionStack]
             }
           });
         }
       };
 
       window.websocket.onerror = function (error) {
-        console.log("[window.websocket::onerror] ", error);
+        const safeError = sanitizeForLog(error?.message || String(error));
+
+        console.log("[window.websocket::onerror] ", safeError);
+
         $(window.hyperion).trigger({
           type: "error",
           reason: {
-            message: $.i18n("ws_error_occured"),
-            details: [error]
+           message: $.i18n("ws_error_occured"),
+            details: [safeError]
           }
         });
       };

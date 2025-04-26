@@ -242,17 +242,21 @@ $(document).ready(function () {
   $(window.hyperion).on("error", function (event) {
     //If we are getting an error "No Authorization" back with a set loginToken we will forward to new Login (Token is expired.
     //e.g.: hyperiond was started new in the meantime)
-    
+
     const error = event.reason;
 
     if (error?.message === "No Authorization" && getStorage("loginToken")) {
       removeStorage("loginToken");
       requestRequiresDefaultPasswortChange();
     } else {
-      const errorDetails = [
-        `Command: "${error?.cmd}"`,
-        error?.details || "No additional details."
-      ];
+      const errorDetails = [];
+
+      if (error?.cmd) {
+        errorDetails.push(`Command: "${error.cmd}"`);
+      }
+
+      errorDetails.push(error?.details || "No additional details.");
+
       showInfoDialog("error", "", error?.message || "Unknown error", errorDetails);
     }
   });
