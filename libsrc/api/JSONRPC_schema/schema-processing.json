@@ -7,10 +7,14 @@
 			"required" : true,
 			"enum" : ["processing"]
 		},
-		"instance" : {
+		"instance": {
 			"type": "array",
-			"required": false,
-			"items" : {}
+			"items": {
+				"type": "integer",
+				"minimum": 0,
+				"maximum": 254
+			},
+			"uniqueItems": true
 		},
 		"tan" : {
 			"type" : "integer"

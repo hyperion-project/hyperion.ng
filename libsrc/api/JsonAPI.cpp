@@ -310,23 +310,24 @@ void JsonAPI::handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject
 	QSet<quint8> instanceIds;
 	QStringList errorDetails;
 
-	// Determine instance IDs, if empty array provided or "all" is given
-	if (instances.isEmpty() || instances.contains("all"))
+	// Determine instance IDs, if empty array provided apply command to all instances
+	if (instances.isEmpty())
 	{
 		instanceIds = (isRunningInstanceRequired == InstanceCmd::MustRun_Yes) ? runningInstanceIds : _instanceManager->getInstanceIds();
 	}
 	else
 	{
+		QSet<quint8> const configuredInstanceIds = _instanceManager->getInstanceIds();
+
 		//Resolve instances provided and test, if they need to be running
 		for (const auto &instance : std::as_const(instances))
 		{
-			if (!instance.isDouble())
+			quint8 const instanceId = static_cast<quint8>(instance.toInt());
+			if (!configuredInstanceIds.contains(instanceId))
 			{
-				errorDetails.append("Not a valid instance: " + instance.toVariant().toString());
+				errorDetails.append(QString("Not a valid instance id: [%1]").arg(instanceId));
 				continue;
 			}
-
-			quint8 const instanceId = static_cast<quint8>(instance.toInt());
 
 			if (isRunningInstanceRequired == InstanceCmd::MustRun_Yes && !runningInstanceIds.contains(instanceId))
 			{
@@ -339,7 +340,7 @@ void JsonAPI::handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject
 		}
 	}
 
-	// Handle cases where no valid instances are found
+	// Handle cases where no instances are found
 	if (instanceIds.isEmpty())
 	{
 		if (errorDetails.isEmpty() && (cmd.getInstanceCmdType() == InstanceCmd::No_or_Single || cmd.getInstanceCmdType() == InstanceCmd::No_or_Multi) )
@@ -347,13 +348,15 @@ void JsonAPI::handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject
 			handleCommand(cmd, message);
 			return;
 		}
-		errorDetails.append("No instance(s) provided, but required");
+		errorDetails.append("No valid instance(s) provided");
 	}
-
-	// Check if multiple instances are allowed
-	if (instanceIds.size() > 1 && cmd.getInstanceCmdType() != InstanceCmd::Multi)
+	else
 	{
-		errorDetails.append("Command does not support multiple instances");
+		// Check if multiple instances are allowed
+		if (instanceIds.size() > 1 && cmd.getInstanceCmdType() != InstanceCmd::Multi)
+		{
+			errorDetails.append("Command does not support multiple instances");
+		}
 	}
 
 	// If there are errors, send a response and exit
@@ -380,7 +383,7 @@ void JsonAPI::handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject
 		}
 	}
 
-	//Switch back to current instance, if command was executred against multiple instances
+	//Switch back to current instance, if command was executed against multiple instances
 	if (currentInstance != _currInstanceIndex && (cmd.getInstanceCmdType() == InstanceCmd::Multi || cmd.getInstanceCmdType() == InstanceCmd::No_or_Multi))
 	{
 		handleInstanceSwitch(currentInstance);
@@ -1759,10 +1762,6 @@ QJsonObject JsonAPI::getBasicCommandReply(bool success, const QString &command, 
 	reply["command"] = command;
 	reply["tan"] = tan;
 
-	if ((_currInstanceIndex != NO_INSTANCE_ID) && instanceCmdType != InstanceCmd::No)
-	{
-		reply["instance"] = _currInstanceIndex;
-	}
 	return reply;
 }
 
