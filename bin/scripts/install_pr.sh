@@ -132,40 +132,47 @@ for i in data:
 """ 2>/dev/null)
 
 if [ "$pr_exists" != "exists" ]; then
-	echo "---> Pull Request $pr_number not found as open PR -> abort"
-	exit 1
-fi
+	if [ -z "$run_id" ]; then
+		echo "---> Pull Request $pr_number not found as open PR -> abort"
+		exit 1
+	else
+		echo "---> Pull Request $pr_number not found as open PR -> use run_id: ${run_id}"
+	fi
+else
+	# Get head_sha value from 'pr_number'
+	head_sha=$(echo "$pulls" | tr '\r\n' ' ' | ${pythonCmd} -c """
+	import json,sys
+	data = json.load(sys.stdin)
 
-# Get head_sha value from 'pr_number'
-head_sha=$(echo "$pulls" | tr '\r\n' ' ' | ${pythonCmd} -c """
-import json,sys
-data = json.load(sys.stdin)
+	for i in data:
+		if i['number'] == "$pr_number":
+			print(i['head']['sha'])
+			break
+	""" 2>/dev/null)
 
-for i in data:
-	if i['number'] == "$pr_number":
-		print(i['head']['sha'])
-		break
-""" 2>/dev/null)
+	if [ -z "$head_sha" ]; then
 
-if [ -z "$head_sha" ]; then
-	echo "---> The specified PR #$pr_number has no longer any artifacts or has been closed."
-	echo "---> It may be older than 14 days or a new build currently in progress. Ask the PR creator to recreate the artifacts at the following URL:"
-	echo "---> https://github.com/hyperion-project/hyperion.ng/pull/$pr_number"
-	exit 1
-fi
+		if [ -z "$run_id" ]; then
+			echo "---> The specified PR #$pr_number has no longer any artifacts or has been closed."
+			echo "---> It may be older than 14 days or a new build currently in progress. Ask the PR creator to recreate the artifacts at the following URL:"
+			echo "---> https://github.com/hyperion-project/hyperion.ng/pull/$pr_number"
+		  	exit 1
+		fi
+	fi
 
-if [ -z "$run_id" ]; then
-	# Determine run_id from head_sha
-	runs=$(request_call "$api_url/actions/runs?head_sha=$head_sha")
-	run_id=$(echo "$runs" | tr '\r\n' ' ' | ${pythonCmd} -c """
-import json,sys,os
-data = json.load(sys.stdin)
+	if [ -z "$run_id" ]; then
+		# Determine run_id from head_sha
+		runs=$(request_call "$api_url/actions/runs?head_sha=$head_sha")
+		run_id=$(echo "$runs" | tr '\r\n' ' ' | ${pythonCmd} -c """
+	import json,sys,os
+	data = json.load(sys.stdin)
 
-for i in data['workflow_runs']:
-	if os.path.basename(i['path']) == 'push_pull.yml':
-		print(i['id'])
-		break
-""" 2>/dev/null)
+	for i in data['workflow_runs']:
+		if os.path.basename(i['path']) == 'push_pull.yml':
+			print(i['id'])
+			break
+	""" 2>/dev/null)
+	fi
 fi
 
 if [ -z "$run_id" ]; then
@@ -174,6 +181,7 @@ if [ -z "$run_id" ]; then
 	echo "---> https://github.com/hyperion-project/hyperion.ng/pull/$pr_number"
 	exit 1
 fi
+
 
 # Get archive_download_url from workflow
 artifacts=$(request_call "$api_url/actions/runs/$run_id/artifacts")
@@ -206,7 +214,7 @@ if [ -z "$archive_download_url" ]; then
 fi
 
 # Download packed PR artifact
-echo "---> Downloading Pull Request #$pr_number, package: $PACKAGE_NAME"
+echo "---> Downloading Pull Request #$pr_number, run_id: $run_id, package: $PACKAGE_NAME"
 if [ $hasCurl -eq 0 ]; then
 	curl -# -kH "Authorization: token ${PR_TOKEN}" -o $BASE_PATH/temp.zip -L --get $archive_download_url
 elif [ $hasWget -eq 0 ]; then
