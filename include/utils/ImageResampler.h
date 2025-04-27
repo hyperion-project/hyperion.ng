@@ -17,7 +17,7 @@ public:
 	void setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom);
 	void setVideoMode(VideoMode mode) { _videoMode = mode; }
 	void setFlipMode(FlipMode mode) { _flipMode = mode; }
-	void processImage(const uint8_t * data, int width, int height, int lineLength, PixelFormat pixelFormat, Image<ColorRgb> & outputImage) const;
+	void processImage(const uint8_t * data, int width, int height, size_t lineLength, PixelFormat pixelFormat, Image<ColorRgb> & outputImage) const;
 
 private:
 	int _horizontalDecimation;

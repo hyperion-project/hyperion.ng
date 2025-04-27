@@ -158,9 +158,10 @@ $(document).ready(function () {
     let instanceId = window.currentHyperionInstance;
     const config = event.response.info;
     const { instanceIds } = config;
-    if (instanceIds.length !== 0) {
+
+    if (Array.isArray(instanceIds) && instanceIds.length !== 0) {
       if (!instanceIds.includes(window.currentHyperionInstance)) {
-        // If instanceID is not valid try to switch to the first enabled or or fall back to the first instance configured
+        // If instanceID is not valid try to switch to the first enabled or fall back to the first instance configured
         const { instances } = config;
 
         const firstEnabledInstanceId = instances.find((instance) => instance.enabled)?.id;
@@ -170,7 +171,6 @@ $(document).ready(function () {
         } else {
           instanceId = window.currentHyperionInstance = instanceIds[0];
         }
-
       }
     }
 
@@ -242,11 +242,22 @@ $(document).ready(function () {
   $(window.hyperion).on("error", function (event) {
     //If we are getting an error "No Authorization" back with a set loginToken we will forward to new Login (Token is expired.
     //e.g.: hyperiond was started new in the meantime)
-    if (event.reason == "No Authorization" && getStorage("loginToken")) {
+
+    const error = event.reason;
+
+    if (error?.message === "No Authorization" && getStorage("loginToken")) {
       removeStorage("loginToken");
       requestRequiresDefaultPasswortChange();
     } else {
-      showInfoDialog("error", "Error", event.reason);
+      const errorDetails = [];
+
+      if (error?.cmd) {
+        errorDetails.push(`Command: "${error.cmd}"`);
+      }
+
+      errorDetails.push(error?.details || "No additional details.");
+
+      showInfoDialog("error", "", error?.message || "Unknown error", errorDetails);
     }
   });
 

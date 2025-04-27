@@ -15,7 +15,7 @@
 namespace {
 const int FLATBUFFER_PRIORITY_MIN = 100;
 const int FLATBUFFER_PRIORITY_MAX = 199;
-const int FLATBUFFER_MAX_MSG_LENGTH = 10'000'000;
+
 } //End of constants
 
 FlatBufferClient::FlatBufferClient(QTcpSocket* socket, int timeout, QObject *parent)
@@ -50,78 +50,33 @@ void FlatBufferClient::readyRead()
 {
 	if (_socket == nullptr) { return; }
 
-	while (_socket->bytesAvailable() > 0)
+	_timeoutTimer->start();
+	_receiveBuffer += _socket->readAll();
+
+	// check if we can read a header
+	while(_receiveBuffer.size() >= 4)
 	{
-		_timeoutTimer->start();
-		_receiveBuffer += _socket->readAll();
-		processNextMessage();
-	}
-}
+		// Directly read message size
+		const uint8_t* raw = reinterpret_cast<const uint8_t*>(_receiveBuffer.constData());
+		uint32_t const messageSize = (raw[0] << 24) | (raw[1] << 16) | (raw[2] << 8) | raw[3];
 
-bool FlatBufferClient::processNextMessageInline()
-{
-	if (_processingMessage) { return false; } // Avoid re-entrancy
+		// check if we can read a complete message
+		if((uint32_t) _receiveBuffer.size() < messageSize + 4) { return; }
 
-	// Wait for at least 4 bytes to read the message size
-	if (_receiveBuffer.size() < 4) {
-		return false;
-	}
+		// extract message without header and remove header + msg from buffer :: QByteArray::remove() does not return the removed data
+		const uint8_t* msgData = reinterpret_cast<const uint8_t*>(_receiveBuffer.constData() + 4);
+		_receiveBuffer.remove(0, messageSize + 4);
 
-	_processingMessage = true;
+		flatbuffers::Verifier verifier(msgData, messageSize);
 
-	// Directly read message size (no memcpy)
-	const uint8_t* raw = reinterpret_cast<const uint8_t*>(_receiveBuffer.constData());
-	uint32_t messageSize = (raw[0] << 24) | (raw[1] << 16) | (raw[2] << 8) | raw[3];
+		if (!hyperionnet::VerifyRequestBuffer(verifier)) {
+			Error(_log, "Invalid FlatBuffer message received");
+			sendErrorReply("Invalid FlatBuffer message received");
+			continue;
+		}
 
-	// Validate message size
-	if (messageSize == 0 || messageSize > FLATBUFFER_MAX_MSG_LENGTH)
-	{
-		Warning(_log, "Invalid message size: %d - dropping received data", messageSize);
-		_processingMessage = false;
-		return true;
-	}
-
-	// Wait for full message
-	if (_receiveBuffer.size() < static_cast<int>(messageSize + 4))
-	{
-		_processingMessage = false;
-		return false;
-	}
-
-	// Extract the message and remove it from the buffer (no copying)
-	const uint8_t* msgData = reinterpret_cast<const uint8_t*>(_receiveBuffer.constData() + 4);
-	flatbuffers::Verifier verifier(msgData, messageSize);
-
-	if (!hyperionnet::VerifyRequestBuffer(verifier)) {
-		Error(_log, "Invalid FlatBuffer message received");
-		sendErrorReply("Invalid FlatBuffer message received");
-		_processingMessage = false;
-
-		// Clear the buffer in case of an invalid message
-		_receiveBuffer.clear();
-		return true;
-	}
-
-	// Invoke message handling
-	QMetaObject::invokeMethod(this, [this, msgData, messageSize]() {
-		handleMessage(hyperionnet::GetRequest(msgData));
-		_processingMessage = false;
-
-		// Remove the processed message from the buffer (header + body)
-		_receiveBuffer.remove(0, messageSize + 4);  // Clear the processed message + header
-
-		// Continue processing the next message
-		processNextMessage();
-	});
-
-	return true;
-}
-
-void FlatBufferClient::processNextMessage()
-{
-	// Run the message processing inline until the buffer is empty or we can't process further
-	while (processNextMessageInline()) {
-		// Keep processing as long as we can
+		const auto *message = hyperionnet::GetRequest(msgData);
+		handleMessage(message);
 	}
 }
 
@@ -222,8 +177,8 @@ void FlatBufferClient::handleImageCommand(const hyperionnet::Image *image)
 		const auto* img = static_cast<const hyperionnet::RawImage*>(image->data_as_RawImage());
 
 		// Read image properties directly from FlatBuffer
-		const int width = img->width();
-		const int height = img->height();
+		int32_t const width = img->width();
+		int32_t const height = img->height();
 		const auto* data = img->data();
 
 		if (width <= 0 || height <= 0 || data == nullptr || data->size() == 0)
@@ -233,8 +188,8 @@ void FlatBufferClient::handleImageCommand(const hyperionnet::Image *image)
 		}
 
 		// Check consistency of image data size
-		const int dataSize = data->size();
-		const int bytesPerPixel = dataSize / (width * height);
+		auto dataSize = data->size();
+		int const bytesPerPixel = dataSize / (width * height);
 		if (bytesPerPixel != 3 && bytesPerPixel != 4)
 		{
 			sendErrorReply("Size of image data does not match with the width and height");
@@ -253,9 +208,9 @@ void FlatBufferClient::handleImageCommand(const hyperionnet::Image *image)
 	{
 		const auto* img = static_cast<const hyperionnet::NV12Image*>(image->data_as_NV12Image());
 
-			const int width = img->width();
-			const int height = img->height();
-			const auto* data_y = img->data_y();
+			int32_t const width = img->width();
+			int32_t const height = img->height();
+			const auto* const data_y = img->data_y();
 			const auto* data_uv = img->data_uv();
 
 			if (width <= 0 || height <= 0 || data_y == nullptr || data_uv == nullptr ||
@@ -266,10 +221,10 @@ void FlatBufferClient::handleImageCommand(const hyperionnet::Image *image)
 			}
 
 			// Combine Y and UV into one contiguous buffer (reuse class member buffer)
-			const size_t y_size = data_y->size();
-			const size_t uv_size = data_uv->size();
+			size_t const y_size = data_y->size();
+			size_t const uv_size = data_uv->size();
 
-			size_t required_size = y_size + uv_size;
+			size_t const required_size = y_size + uv_size;
 			if (_combinedNv12Buffer.capacity() < required_size)
 			{
 				_combinedNv12Buffer.reserve(required_size);
@@ -278,7 +233,7 @@ void FlatBufferClient::handleImageCommand(const hyperionnet::Image *image)
 			std::memcpy(_combinedNv12Buffer.data() + y_size, data_uv->data(), uv_size);
 
 			// Determine stride for Y
-			const int stride_y = img->stride_y() > 0 ? img->stride_y() : width;
+			int32_t const stride_y = img->stride_y() > 0 ? img->stride_y() : width;
 
 			// Resize only when needed
 			if (_imageOutputBuffer.width() != width || _imageOutputBuffer.height() != height)
@@ -335,7 +290,7 @@ void FlatBufferClient::sendMessage(const uint8_t* data, size_t size)
 
 	// write message
 	_socket->write(reinterpret_cast<const char*>(header), sizeof(header));
-	_socket->write(reinterpret_cast<const char *>(data), size);
+	_socket->write(reinterpret_cast<const char *>(data), static_cast<qint64>(size));
 	_socket->flush();
 }
 
@@ -358,13 +313,13 @@ void FlatBufferClient::sendErrorReply(const QString& error)
 }
 
 inline void FlatBufferClient::processRawImage(const uint8_t* buffer,
-											  int width,
-											  int height,
+											  int32_t width,
+											  int32_t height,
 											  int bytesPerPixel,
-											  ImageResampler& resampler,
+											  const ImageResampler& resampler,
 											  Image<ColorRgb>& outputImage)
 {
-	int const lineLength = width * bytesPerPixel;
+	const size_t lineLength = static_cast<size_t>(width) * bytesPerPixel;
 	PixelFormat const pixelFormat = (bytesPerPixel == 4) ? PixelFormat::RGB32 : PixelFormat::RGB24;
 
 	resampler.processImage(
@@ -378,13 +333,13 @@ inline void FlatBufferClient::processRawImage(const uint8_t* buffer,
 }
 
 inline void FlatBufferClient::processNV12Image(const uint8_t* nv12_data,
-											   int width,
-											   int height,
-											   int stride_y,
-											   ImageResampler& resampler,
+											   int32_t width,
+											   int32_t height,
+											   int32_t stride_y,
+											   const ImageResampler& resampler,
 											   Image<ColorRgb>& outputImage)
 {
-	PixelFormat pixelFormat = PixelFormat::NV12;
+	PixelFormat const pixelFormat = PixelFormat::NV12;
 
 	resampler.processImage(
 		nv12_data, // Combined NV12 buffer

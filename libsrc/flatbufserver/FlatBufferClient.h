@@ -122,8 +122,7 @@ private:
 	///
 	void handleNotImplemented();
 
-	void processNextMessage();
-	bool processNextMessageInline();
+	bool processNextMessage();
 
 	///
 	/// Send a message to the connected client
@@ -144,8 +143,8 @@ private:
 	///
 	void sendErrorReply(const QString& error);
 
-	void processRawImage(const uint8_t* buffer, int width, int height, int bytesPerPixel, ImageResampler& resampler, Image<ColorRgb>& outputImage);
-	void processNV12Image(const uint8_t* nv12_data, int width, int height, int stride_y, ImageResampler& resampler, Image<ColorRgb>& outputImage);
+	void processRawImage(const uint8_t* buffer, int32_t width, int32_t height, int bytesPerPixel, const ImageResampler& resampler, Image<ColorRgb>& outputImage);
+	void processNV12Image(const uint8_t* nv12_data, int32_t width, int32_t height, int32_t stride_y, const ImageResampler& resampler, Image<ColorRgb>& outputImage);
 
 private:
 	Logger * _log;
@@ -158,8 +157,8 @@ private:
 
 	QByteArray _receiveBuffer;
 
-	Image<ColorRgb> _imageOutputBuffer;
 	ImageResampler _imageResampler;
+	Image<ColorRgb> _imageOutputBuffer;
 	std::vector<uint8_t> _combinedNv12Buffer;
 
 	// Flatbuffers builder

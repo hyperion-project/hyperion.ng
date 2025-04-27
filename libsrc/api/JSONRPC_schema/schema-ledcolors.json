@@ -10,7 +10,7 @@
 		"instance" : {
 			"type" : "integer",
 			"minimum": 0,
-			"maximum": 255
+			"maximum": 254
 		},
 		"tan" : {
 			"type" : "integer"

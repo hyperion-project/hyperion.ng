@@ -47,6 +47,22 @@ QString QtHttpClientWrapper::getGuid (void)
 	return m_guid;
 }
 
+void QtHttpClientWrapper::injectCorsHeaders(QtHttpReply* reply)
+{
+	if (reply == nullptr)
+		return;
+
+	// Add CORS headers if not already set
+	if (reply->getHeader(QtHttpHeader::AccessControlAllowOrigin).isEmpty())
+		reply->addHeader(QtHttpHeader::AccessControlAllowOrigin, "*");
+
+	if (reply->getHeader(QtHttpHeader::AccessControlAllowMethods).isEmpty())
+		reply->addHeader(QtHttpHeader::AccessControlAllowMethods, "POST, GET, OPTIONS");
+
+	if (reply->getHeader(QtHttpHeader::AccessControlAllowHeaders).isEmpty())
+		reply->addHeader(QtHttpHeader::AccessControlAllowHeaders, "Authorization, Content-Type");
+}
+
 void QtHttpClientWrapper::onClientDataReceived (void)
 {
 	if (m_sockClient != Q_NULLPTR)
@@ -168,6 +184,23 @@ void QtHttpClientWrapper::onClientDataReceived (void)
 			{
 			case RequestParsed: // a valid request has ben fully parsed
 			{
+				// Handle CORS Preflight (OPTIONS)
+				if (m_currentRequest->getCommand() == "OPTIONS")
+				{
+					QtHttpReply reply(m_serverHandle);
+					reply.setStatusCode(QtHttpReply::NoContent); // 204 No Content
+
+					injectCorsHeaders(&reply);
+					reply.addHeader(QtHttpHeader::AccessControlMaxAge, "86400"); // Cache for 1 day
+
+					connect(&reply, &QtHttpReply::requestSendHeaders, this, &QtHttpClientWrapper::onReplySendHeadersRequested, Qt::UniqueConnection);
+					connect(&reply, &QtHttpReply::requestSendData, this, &QtHttpClientWrapper::onReplySendDataRequested, Qt::UniqueConnection);
+
+					m_parsingStatus = sendReplyToClient(&reply);
+
+					return; // Important: return early, do NOT continue to normal POST/jsonrpc handling
+				}
+
 				const auto& upgradeValue = m_currentRequest->getHeader(QtHttpHeader::Upgrade).toLower();
 				if (upgradeValue == "websocket")
 				{
@@ -231,8 +264,9 @@ void QtHttpClientWrapper::onClientDataReceived (void)
 				}
 
 				QtHttpReply reply (m_serverHandle);
-				connect (&reply, &QtHttpReply::requestSendHeaders, this, &QtHttpClientWrapper::onReplySendHeadersRequested);
-				connect (&reply, &QtHttpReply::requestSendData, this, &QtHttpClientWrapper::onReplySendDataRequested);
+				connect(&reply, &QtHttpReply::requestSendHeaders, this, &QtHttpClientWrapper::onReplySendHeadersRequested, Qt::UniqueConnection);
+				connect(&reply, &QtHttpReply::requestSendData, this, &QtHttpClientWrapper::onReplySendDataRequested, Qt::UniqueConnection);
+
 				emit m_serverHandle->requestNeedsReply (m_currentRequest, &reply); // allow app to handle request
 				m_parsingStatus = sendReplyToClient (&reply);
 
@@ -266,6 +300,8 @@ void QtHttpClientWrapper::onReplySendHeadersRequested (void)
 
 	if (reply != Q_NULLPTR)
 	{
+		injectCorsHeaders(reply);
+
 		QByteArray data;
 		// HTTP Version + Status Code + Status Msg
 		data.append (QtHttpServer::HTTP_VERSION.toUtf8());
@@ -286,7 +322,6 @@ void QtHttpClientWrapper::onReplySendHeadersRequested (void)
 		}
 
 		const QList<QByteArray> & headersList = reply->getHeadersList ();
-
 		foreach (const QByteArray & header, headersList)
 		{
 			data.append (header);

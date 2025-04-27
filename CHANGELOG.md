@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for Skydimo devices
 - Support gaps on Matrix Layout (#1696)
 - Support a configurable grabber inactive detection time interval (#1740)
+- Support for dominant color processing on a full image which is applied to all LEDs (#1853)
 - Windows: Added a new grabber that uses the DXGI DDA (Desktop Duplication API). This has much better performance than the DX grabber as it does more of its work on the GPU.
 - Support to freely select source and target instances to be used by forwarder
 - Support to import, export and backup Hyperion's full configuration via the UI, JSON-API and commandline (`--importConfig, --exportConfig`) (#804)
@@ -25,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Effects: Limit the maximum update rate to 200Hz
 - Systray: Support multiple instances
 - UI: Validate that key ports do not overlap across editors and pages
+- UI: Provide additional details in error dialogue
+- Http-Server: Support Cross-Origin Resource Sharing (CORS) (#1496)
 
 **JSON-API**
 - New subscription support for event updates, i.e. `Suspend, Resume, Idle, idleResume, Restart, Quit`.
@@ -64,15 +67,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed that LED Buffer and Layout might get out of sync.
 - Fixed Screen capture error (#1824)
 - Fixed Provide custom forwarding targets is not possible (#1713)
+- Fixed Last update of an effect event is not removed in sources overview 
 
 **JSON-API**
 - Refactored JSON-API to ensure consistent authorization behaviour across sessions and single requests with token authorization.
 - Provide additional error details with API responses, esp. on JSON parsing, validation or token errors.
 - Generate random TANs for every API request from the Hyperion UI
 - Configuration requests do not any longer require a running instance
+- Ensure that API service does not process commands when Hyperion is quitting
 - Fixed: Handling of IP4 addresses wrapped in IPv6 for external network connections
 - Fixed: Local Admin API Authentication rejects valid tokens (#1251)
 - Fixed: Create a proper API response, when Effects are not part of a build
+- Fixed: Return correct mapping type for a running instance
 
 ### Removed
 

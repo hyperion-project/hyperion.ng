@@ -8,10 +8,10 @@
 			"type" : "string",
 			"required" : true,
 			"title" : "edt_conf_color_imageToLedMappingType_title",
-			"enum" : ["multicolor_mean", "unicolor_mean", "multicolor_mean_squared", "dominant_color", "dominant_color_advanced"],
+			"enum" : ["multicolor_mean","multicolor_mean_squared", "unicolor_mean", "dominant_color", "unicolor_dominant", "dominant_color_advanced", "unicolor_dominant_advanced"],
 			"default" : "multicolor_mean",
 			"options" : {
-				"enum_titles" : ["edt_conf_enum_multicolor_mean", "edt_conf_enum_unicolor_mean", "edt_conf_enum_multicolor_mean_squared", "edt_conf_enum_dominant_color", "edt_conf_enum_dominant_color_advanced"]
+				"enum_titles" : ["edt_conf_enum_multicolor_mean","edt_conf_enum_multicolor_mean_squared", "edt_conf_enum_unicolor_mean", "edt_conf_enum_dominant_color", "edt_conf_enum_unicolor_dominant", "edt_conf_enum_dominant_color_advanced", "edt_conf_enum_unicolor_dominant_advanced"]
 			},
 			"propertyOrder" : 1
 		},
@@ -24,7 +24,7 @@
 		    "propertyOrder": 2,
 		    "options": {
 		        "dependencies": {
-		            "imageToLedMappingType": "dominant_color_advanced"
+					"imageToLedMappingType": ["dominant_color_advanced", "unicolor_dominant_advanced"]
 		        }
 		    }
 		},

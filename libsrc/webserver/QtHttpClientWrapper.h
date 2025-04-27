@@ -57,6 +57,9 @@ protected slots:
 	void onReplySendDataRequested    (void);
 
 private:
+
+	void injectCorsHeaders(QtHttpReply* reply);
+
 	QString           m_guid;
 	ParsingStatus     m_parsingStatus;
 	QTcpSocket    *   m_sockClient;

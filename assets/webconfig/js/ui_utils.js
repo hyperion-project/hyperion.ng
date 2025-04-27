@@ -307,7 +307,7 @@ function setClassByBool(obj, enable, class1, class2) {
   }
 }
 
-function showInfoDialog(type, header, message) {
+function showInfoDialog(type, header = "", message = "", details = []) {
   if (type == "success") {
     $('#id_body').html('<i style="margin-bottom:20px" class="fa fa-check modal-icon-check">');
     if (header == "")
@@ -321,9 +321,10 @@ function showInfoDialog(type, header, message) {
     $('#id_footer').html('<button type="button" class="btn btn-warning" data-dismiss="modal">' + $.i18n('general_btn_ok') + '</button>');
   }
   else if (type == "error") {
-    $('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-error">');
-    if (header == "")
+    $('#id_body').html('<i style="margin-bottom:20px" class="fa fa-warning modal-icon-error"></i>');
+    if (header == "") {
       $('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n('infoDialog_general_error_title') + '</h4>');
+    }
     $('#id_footer').html('<button type="button" class="btn btn-danger" data-dismiss-modal="#modal_dialog">' + $.i18n('general_btn_ok') + '</button>');
   }
   else if (type == "select") {
@@ -393,6 +394,24 @@ function showInfoDialog(type, header, message) {
 
   if (type == "select" || type == "iswitch")
     $('#id_body').append('<select id="id_select" class="form-control" style="margin-top:10px;width:auto;"></select>');
+
+  // Append details if available
+  if (Array.isArray(details) && details.length > 0) {
+
+    // Create a container div for additional details with proper styles
+    const detailsContent = $('<div></div>').css({
+      'text-align': 'left',
+      'white-space': 'pre-wrap',     // Ensures newlines are respected
+      'word-wrap': 'break-word',     // Prevents long words from overflowing
+      'margin-top': '15px'
+    });
+
+    detailsContent.append('<hr>');
+    details.forEach((desc, index) => {
+      detailsContent.append(document.createTextNode(`${index + 1}. ${desc}\n`));
+    });
+    $('#id_body').append(detailsContent);
+  }
 
   if (getStorage("darkMode") == "on")
     $('#id_logo').attr("src", 'img/hyperion/logo_negativ.png');

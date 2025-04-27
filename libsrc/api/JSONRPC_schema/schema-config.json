@@ -1,41 +1,46 @@
 {
 	"type":"object",
 	"required":true,
-	"properties":{
+	"properties": {
 		"command": {
-			"type" : "string",
-			"required" : true,
-			"enum" : ["config"]
+			"type": "string",
+			"required": true,
+			"enum": ["config"]
 		},
 		"subcommand": {
-			"type" : "string",
-			"required" : true,
-			"enum" : ["getconfig","getschema","setconfig","restoreconfig","reload"]
+			"type": "string",
+			"required": true,
+			"enum": ["getconfig","getschema","setconfig","restoreconfig","reload"]
 		},
-		"tan" : {
-			"type" : "integer"
+		"tan": {
+			"type": "integer"
 		},
 		"configFilter": {
-			"global" : {
+			"global": {
 				"types": {
 					"type": "array",
 					"required": false,
-					"items" : {
+					"items": {
 						"type" : "string"
 					}
 				}
 			},
-			"instances" : {
-				"ids" : {
+			"instances": {
+				"ids": {
 					"type": "array",
 					"required": true,
-					"items" : {},
+					"items": {
+						"type" : "integer",
+						"minimum": 0,
+						"maximum": 254
+					},
+					"uniqueItems": true,
 					"minItems": 1
 				},
 				"types": {
 					"type": "array",
 					"required": false,
-					"items" :{
+					"items": {
 						"type" : "string"
 					}
 				}

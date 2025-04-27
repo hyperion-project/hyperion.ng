@@ -124,10 +124,16 @@ $(document).ready(function () {
   // Update input select options based on priorities
   function updateInputSelect() {
     // Clear existing elements
-    $('.sstbody').empty();
+    $('.sstbody').empty().html('');
 
     const prios = window.serverInfo.priorities;
     let clearAll = false;
+
+    if (prios.length === 0) {
+      $('.sstbody').append(`<tr><td colspan="4" class="text-center text-muted">${$.i18n('remote_input_no_sources')}</td></tr>`);
+      $('#auto_btn').empty();
+      return;
+    }
 
     // Iterate over priorities
     for (let i = 0; i < prios.length; i++) {

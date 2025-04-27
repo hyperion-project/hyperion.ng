@@ -46,7 +46,7 @@ QJsonObject JsonInfo::getInfo(const Hyperion* hyperion, Logger* log)
 	{
 		info["priorities_autoselect"] = hyperion->sourceAutoSelectEnabled();
 		info["videomode"] = QString(videoMode2String(hyperion->getCurrentVideoMode()));
-		info["imageToLedMappingType"] = ImageProcessor::mappingTypeToStr(0);
+		info["imageToLedMappingType"] = ImageProcessor::mappingTypeToStr(hyperion->getLedMappingType());
 		info["leds"] = hyperion->getSetting(settings::LEDS).array();
 	}
 	else

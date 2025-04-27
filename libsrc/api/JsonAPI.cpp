@@ -84,10 +84,20 @@ JsonAPI::JsonAPI(QString peerAddress, Logger *log, bool localConnection, QObject
 	,_noListener(noListener)
 	,_peerAddress (std::move(peerAddress))
 	,_jsonCB (nullptr)
+	,_isServiceAvailable(false)
 {
 	Q_INIT_RESOURCE(JSONRPC_schemas);
 
 	qRegisterMetaType<Event>("Event");
+
+	connect(EventHandler::getInstance().data(), &EventHandler::signalEvent, [log, this](const Event &event) {
+		if (event == Event::Quit)
+		{
+			_isServiceAvailable = false;
+			Info(log, "JSON-API service stopped");
+		}
+	});
+
 	_jsonCB = QSharedPointer<JsonCallbacks>(new JsonCallbacks( _log, _peerAddress, parent));
 }
 
@@ -117,6 +127,9 @@ void JsonAPI::initialize()
 	// notify the forwarder about a jsonMessageForward request
 	QObject::connect(this, &JsonAPI::forwardJsonMessage, GlobalSignals::getInstance(), &GlobalSignals::forwardJsonMessage, Qt::UniqueConnection);
 #endif
+
+	Info(_log, "JSON-API service is ready to process requests");
+	_isServiceAvailable = true;
 }
 
 bool JsonAPI::handleInstanceSwitch(quint8 instanceID, bool /*forced*/)
@@ -180,6 +193,13 @@ void JsonAPI::handleMessage(const QString &messageString, const QString &httpAut
 	{
 		const QStringList errorDetails (subCommand.isEmpty() ? "subcommand is missing" : QString("Invalid subcommand: %1").arg(subCommand));
 		sendErrorReply("Invalid command", errorDetails, command, tan);
+		return;
+	}
+
+	// Do not further handle requests, if service is not available
+	if (!_isServiceAvailable)
+	{
+		sendErrorReply("Service Unavailable", cmd);
 		return;
 	}
 
@@ -260,8 +280,8 @@ void JsonAPI::handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject
 	QJsonArray instances;
 	const QJsonValue instanceElement = message.value("instance");
 
-	// Extract instance(s) from the message
-	if (!(instanceElement.isUndefined() && instanceElement.isNull()))
+	// Extract instanceIds(s) from the message
+	if (!(instanceElement.isUndefined() || instanceElement.isNull()))
 	{
 		if (instanceElement.isDouble())
 		{
@@ -271,29 +291,43 @@ void JsonAPI::handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject
 			instances = instanceElement.toArray();
 		}
 	}
+	else
+	{
+		// If no instance element is given use the one that was switched to before
+		if (instanceElement.isUndefined() && _currInstanceIndex != NO_INSTANCE_ID)
+		{
+			instances.append(_currInstanceIndex);
+		}
+		else
+		{
+			sendErrorReply("No instance(s) given nor switched to a valid one yet", cmd);
+			return;
+		}
+	}
 
 	InstanceCmd::MustRun const isRunningInstanceRequired = cmd.getInstanceMustRun();
 	QSet const runningInstanceIds = _instanceManager->getRunningInstanceIdx();
 	QSet<quint8> instanceIds;
 	QStringList errorDetails;
 
-	// Determine instance IDs, if not provided or "all" is given
-	if (instanceElement.isUndefined() || instanceElement.isNull() || instances.contains("all"))
+	// Determine instance IDs, if empty array provided apply command to all instances
+	if (instances.isEmpty())
 	{
 		instanceIds = (isRunningInstanceRequired == InstanceCmd::MustRun_Yes) ? runningInstanceIds : _instanceManager->getInstanceIds();
 	}
 	else
 	{
+		QSet<quint8> const configuredInstanceIds = _instanceManager->getInstanceIds();
+
 		//Resolve instances provided and test, if they need to be running
 		for (const auto &instance : std::as_const(instances))
 		{
-			if (!instance.isDouble())
+			quint8 const instanceId = static_cast<quint8>(instance.toInt());
+			if (!configuredInstanceIds.contains(instanceId))
 			{
-				errorDetails.append("Not a valid instance: " + instance.toVariant().toString());
+				errorDetails.append(QString("Not a valid instance id: [%1]").arg(instanceId));
 				continue;
 			}
-
-			quint8 const instanceId = static_cast<quint8>(instance.toInt());
 
 			if (isRunningInstanceRequired == InstanceCmd::MustRun_Yes && !runningInstanceIds.contains(instanceId))
 			{
@@ -306,7 +340,7 @@ void JsonAPI::handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject
 		}
 	}
 
-	// Handle cases where no valid instances are found
+	// Handle cases where no instances are found
 	if (instanceIds.isEmpty())
 	{
 		if (errorDetails.isEmpty() && (cmd.getInstanceCmdType() == InstanceCmd::No_or_Single || cmd.getInstanceCmdType() == InstanceCmd::No_or_Multi) )
@@ -314,13 +348,15 @@ void JsonAPI::handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject
 			handleCommand(cmd, message);
 			return;
 		}
-		errorDetails.append("No instance(s) provided, but required");
+		errorDetails.append("No valid instance(s) provided");
 	}
-
-	// Check if multiple instances are allowed
-	if (instanceIds.size() > 1 && cmd.getInstanceCmdType() != InstanceCmd::Multi)
+	else
 	{
-		errorDetails.append("Command does not support multiple instances");
+		// Check if multiple instances are allowed
+		if (instanceIds.size() > 1 && cmd.getInstanceCmdType() != InstanceCmd::Multi)
+		{
+			errorDetails.append("Command does not support multiple instances");
+		}
 	}
 
 	// If there are errors, send a response and exit
@@ -331,6 +367,7 @@ void JsonAPI::handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject
 	}
 
 	// Execute the command for each valid instance
+	quint8 const currentInstance = _currInstanceIndex;
 	for (const auto &instanceId : std::as_const(instanceIds))
 	{
 		if (isRunningInstanceRequired == InstanceCmd::MustRun_Yes || _currInstanceIndex == NO_INSTANCE_ID)
@@ -344,6 +381,12 @@ void JsonAPI::handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject
 		{
 			handleCommand(cmd, message);
 		}
+	}
+
+	//Switch back to current instance, if command was executed against multiple instances
+	if (currentInstance != _currInstanceIndex && (cmd.getInstanceCmdType() == InstanceCmd::Multi || cmd.getInstanceCmdType() == InstanceCmd::No_or_Multi))
+	{
+		handleInstanceSwitch(currentInstance);
 	}
 }
 
@@ -1462,15 +1505,31 @@ void JsonAPI::handleInstanceCommand(const QJsonObject &message, const JsonApiCom
 	QString replyMsg;
 	QStringList errorDetails;
 
-	const quint8 instanceID = static_cast<quint8>(message["instance"].toInt());
+	QJsonValue const instanceValue = message["instance"];
+
+	const quint8 instanceID = static_cast<quint8>(instanceValue.toInt());
+	if(cmd.subCommand != SubCommand::CreateInstance)
+	{
+		QString errorText;
+		if (instanceValue.isUndefined())
+		{
+			errorText = "No instance provided, but required";
+
+		} else if (!_instanceManager->doesInstanceExist(instanceID))
+		{
+			errorText = QString("Hyperion instance [%1] does not exist.").arg(instanceID);
+		}
+
+		if (!errorText.isEmpty())
+		{
+			sendErrorReply( errorText, cmd);
+			return;
+		}
+	}
+
 	const QString instanceName = _instanceManager->getInstanceName(instanceID);
 	const QString &name = message["name"].toString();
 
-	if(cmd.subCommand != SubCommand::CreateInstance && !_instanceManager->doesInstanceExist(instanceID))
-	{
-		sendErrorReply( QString("Hyperion instance [%1] does not exist.").arg(instanceID), cmd);
-		return;
-	}
 	switch (cmd.subCommand) {
 	case SubCommand::SwitchTo:
 		if (handleInstanceSwitch(instanceID))
@@ -1703,10 +1762,6 @@ QJsonObject JsonAPI::getBasicCommandReply(bool success, const QString &command, 
 	reply["command"] = command;
 	reply["tan"] = tan;
 
-	if ((_currInstanceIndex != NO_INSTANCE_ID) && instanceCmdType != InstanceCmd::No)
-	{
-		reply["instance"] = _currInstanceIndex;
-	}
 	return reply;
 }
 
