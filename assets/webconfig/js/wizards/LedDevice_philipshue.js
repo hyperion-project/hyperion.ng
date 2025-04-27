@@ -20,6 +20,11 @@ const philipshueWizard = (() => {
   let isAPIv2Ready = true;
   let isEntertainmentReady = true;
 
+  function isSafeKey(key) {
+    const unsafeKeys = ['__proto__', 'prototype', 'constructor'];
+    return typeof key === 'string' && !unsafeKeys.includes(key);
+  }
+
   function checkHueBridge(cb, hueUser) {
     const usr = (typeof hueUser != "undefined") ? hueUser : 'config';
     if (usr === 'config') {
@@ -348,6 +353,11 @@ const philipshueWizard = (() => {
 
     const ledType = 'philipshue';
     const key = hostAddress;
+
+    if (!isSafeKey(key) || !isSafeKey(username)) {
+      cb(false, username);
+      return;
+    }
 
     //Create ledType cache entry
     if (!devicesProperties[ledType]) {
