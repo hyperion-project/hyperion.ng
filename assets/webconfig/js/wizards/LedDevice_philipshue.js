@@ -384,7 +384,7 @@ const philipshueWizard = (() => {
           isAPIv2Ready = res.info.isAPIv2Ready;
           isEntertainmentReady = res.info.isEntertainmentReady;
 
-          ledDeviceProperties.isAPIv2Ready = isAPIv2Ready
+          ledDeviceProperties.isAPIv2Ready = isAPIv2Ready;
           ledDeviceProperties.isEntertainmentReady = isEntertainmentReady;
           setLedDeviceProperty(ledType, key, username, ledDeviceProperties);
 
