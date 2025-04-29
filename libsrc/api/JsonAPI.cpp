@@ -1527,15 +1527,31 @@ void JsonAPI::handleInstanceCommand(const QJsonObject &message, const JsonApiCom
 	QString replyMsg;
 	QStringList errorDetails;
 
-	const quint8 instanceID = static_cast<quint8>(message["instance"].toInt());
+	QJsonValue const instanceValue = message["instance"];
+
+	const quint8 instanceID = static_cast<quint8>(instanceValue.toInt());
+	if(cmd.subCommand != SubCommand::CreateInstance)
+	{
+		QString errorText;
+		if (instanceValue.isUndefined())
+		{
+			errorText = "No instance provided, but required";
+
+		} else if (!_instanceManager->doesInstanceExist(instanceID))
+		{
+			errorText = QString("Hyperion instance [%1] does not exist.").arg(instanceID);
+		}
+
+		if (!errorText.isEmpty())
+		{
+			sendErrorReply( errorText, cmd);
+			return;
+		}
+	}
+
 	const QString instanceName = _instanceManager->getInstanceName(instanceID);
 	const QString &name = message["name"].toString();
 
-	if(cmd.subCommand != SubCommand::CreateInstance && !_instanceManager->doesInstanceExist(instanceID))
-	{
-		sendErrorReply( QString("Hyperion instance [%1] does not exist.").arg(instanceID), cmd);
-		return;
-	}
 	switch (cmd.subCommand) {
 	case SubCommand::SwitchTo:
 		if (handleInstanceSwitch(instanceID))
@@ -1768,10 +1784,6 @@ QJsonObject JsonAPI::getBasicCommandReply(bool success, const QString &command, 
 	reply["command"] = command;
 	reply["tan"] = tan;
 
-	if ((_currInstanceIndex != NO_INSTANCE_ID) && instanceCmdType != InstanceCmd::No)
-	{
-		reply["instance"] = _currInstanceIndex;
-	}
 	return reply;
 }
 
