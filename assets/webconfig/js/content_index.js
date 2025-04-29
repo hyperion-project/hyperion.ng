@@ -147,7 +147,7 @@ $(document).ready(function () {
       }
 
       // Find the instance with the matching id and add its settings
-      const instance = instances.find(inst => inst.id === instanceId);
+      const instance = instances?.find(inst => inst.id === instanceId);
       if (instance?.settings) {
         Object.assign(legacyConfig, instance.settings);
       }

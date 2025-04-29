@@ -378,9 +378,12 @@ const requestServerConfig = {
       },
     };
 
-    // Handle instances: remove "null" if present and add to filter if not empty
-    if (instances.length) {
-      filter.configFilter.instances = { ids: instances };
+    if (instances == null) {
+      filter.configFilter.instances = null; // Return no instances
+    } else if (instances.length > 0) {
+      filter.configFilter.instances = { ids: instances }; // Return selected instances
+    } else {
+      filter.configFilter.instances = instances; // Return all instances
     }
 
     if (instanceTypes.length > 0) {
