@@ -330,23 +330,24 @@ function requestInstanceSwitch(instance) {
   sendToHyperion("instance", "switchTo", {}, Number(instance));
 }
 
-function requestServerInfo(instance) {
-  let data = {
-    subscribe: [
-      "components-update",
-      "priorities-update",
-      "imageToLedMapping-update",
-      "adjustment-update",
-      "videomode-update",
-      "effects-update",
-      "settings-update",
-      "instance-update",
-      "event-update"
-    ]
-  };
+function requestServerInfo(instance = null) {
+  const subscriptions = [
+    "components-update",
+    "priorities-update",
+    "imageToLedMapping-update",
+    "adjustment-update",
+    "videomode-update",
+    "effects-update",
+    "settings-update",
+    "instance-update",
+    "event-update"
+  ];
 
-  sendToHyperion("serverinfo", "getInfo", data, Number(instance));
-  return Promise.resolve();
+  const data = { subscribe: subscriptions };
+
+  const targetInstance = instance !== null ? Number(instance) : null;
+
+  return sendToHyperion("serverinfo", "getInfo", data, targetInstance);
 }
 
 function requestSysInfo() {
