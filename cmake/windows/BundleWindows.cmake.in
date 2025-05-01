@@ -54,25 +54,18 @@ if(EXISTS @CMAKE_BINARY_DIR@/bin/@PROJECT_NAME@@CMAKE_EXECUTABLE_SUFFIX@)
 	# Create a qt.conf file in 'bin' to override hard-coded search paths in Qt plugins
 	file(WRITE "${CMAKE_INSTALL_PREFIX}/bin/qt.conf" "[Paths]\nPlugins=../lib/\n")
 
-	# Copy libjpeg-turbo to 'hyperion'
+	# Copy turbojpeg to 'hyperion'
 	if(ENABLE_MF AND NOT TurboJPEG_INCLUDE_DIR STREQUAL "")
 		get_filename_component(TURBOJPEG_DIR "${TurboJPEG_INCLUDE_DIR}" DIRECTORY)
-		foreach(comp "turbojpeg" "jpeg62")
-			find_file(${comp}
-				NAMES
-					"${comp}.dll"
-				PATHS
-					${TURBOJPEG_DIR}
-				PATH_SUFFIXES
-					bin
-			)
-
-			file(INSTALL FILES ${${comp}} DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
-		endforeach()
+		find_file(TURBOJPEG_SHARED NAMES "turbojpeg.dll" PATHS ${TURBOJPEG_DIR} PATH_SUFFIXES bin)
+		if(TURBOJPEG_SHARED)
+			file(INSTALL FILES ${TURBOJPEG_SHARED} DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
+		endif()
 	endif()
 
 	if(NOT PYTHON_VERSION STREQUAL "")
-		set(PYTHON_EMBED_URL "https://www.python.org/ftp/python/${PYTHON_VERSION}/python-${PYTHON_VERSION}-embed-amd64.zip")
+		string(TOLOWER "@CMAKE_SYSTEM_PROCESSOR@" PYTHON_ARCH)
+		set(PYTHON_EMBED_URL "https://www.python.org/ftp/python/${PYTHON_VERSION}/python-${PYTHON_VERSION}-embed-${PYTHON_ARCH}.zip")
 		get_filename_component(PYTHON_EMBED_ARCHIVE ${PYTHON_EMBED_URL} NAME)
 
 		# Download embed python package (release build only)
