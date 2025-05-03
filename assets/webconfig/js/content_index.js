@@ -134,43 +134,14 @@ $(document).ready(function () {
 
   $(window.hyperion).on("cmd-config-getconfig", function (event) {
 
-    // Function to reverse the transformed config into the legacy format
-    function reverseTransformConfig(serverConfig, instanceId) {
-      const { global, instances } = serverConfig;
-
-      // Initialize the resulting legacy config
-      const legacyConfig = {};
-
-      // Add global settings to the legacy config
-      if (global?.settings) {
-        Object.assign(legacyConfig, global.settings);
-      }
-
-      // Find the instance with the matching id and add its settings
-      const instance = instances?.find(inst => inst.id === instanceId);
-      if (instance?.settings) {
-        Object.assign(legacyConfig, instance.settings);
-      }
-
-      return legacyConfig;
-    }
-
     let instanceId = window.currentHyperionInstance;
     const config = event.response.info;
     const { instanceIds } = config;
 
     if (Array.isArray(instanceIds) && instanceIds.length !== 0) {
-      if (!instanceIds.includes(window.currentHyperionInstance)) {
-        // If instanceID is not valid try to switch to the first enabled or fall back to the first instance configured
-        const { instances } = config;
-
-        const firstEnabledInstanceId = instances.find((instance) => instance.enabled)?.id;
-        if (firstEnabledInstanceId) {
-          instanceId = firstEnabledInstanceId;
-          instanceSwitch(instanceId);
-        } else {
-          instanceId = window.currentHyperionInstance = instanceIds[0];
-        }
+      if (!instanceIds.includes(instanceId)) {
+      // Will be switching and triggering a new event soon — skip rest
+      return;
       }
     }
 
@@ -354,23 +325,66 @@ $(document).ready(function () {
 
   async function getServerInformation(instance) {
     try {
-      // Step 1: Request server config
-      await requestServerConfig.sync([], [instance], []);
+      // Step 1: Start waiting for the config-getconfig event before sending the request
+      const configEventPromise = new Promise((resolve) => {
+        const handler = function(event) {
+          $(window.hyperion).off("cmd-config-getconfig", handler);
+          resolve(event);
+        };
+        $(window.hyperion).on("cmd-config-getconfig", handler);
+      });
 
-      // Step 2: Request server info
-      await requestServerInfo(instance);
+      // Step 2: Send config request
+      const configResponsePromise = requestServerConfig.async([], [instance], []);
 
-      // Step 3: Request token info
+      // Step 3: Wait for both response and event
+      const [configResponse, configEvent] = await Promise.all([
+        configResponsePromise,
+        configEventPromise
+      ]);
+
+      const config = configEvent.response.info;
+      let instanceId = instance;
+      const { instanceIds, instances } = config;
+
+      // Step 4: Validate instance
+      if (!instanceIds.includes(instance)) {
+        // Choose a fallback: enabled instance or first
+        const fallback = instances.find((inst) => inst.enabled)?.id || instanceIds[0];
+        if (fallback !== undefined) {
+          instanceId = fallback;
+          window.currentHyperionInstance = fallback;
+          setStorage('lastSelectedInstance', fallback);
+        } else {
+          console.warn("No valid instance found");
+          instanceId = [];
+         }
+      }
+
+      // Step 5: Update server config for the (corrected) instance
+      const legacyConfig = reverseTransformConfig(config, instanceId);
+      window.serverConfig = legacyConfig;
+      window.showOptHelp = window.serverConfig.general?.showOptHelp;
+      $(window.hyperion).trigger("serverConfig_updated");
+
+      // Step 6: Load additional info
+      await requestServerInfo(instanceId);
+
       await requestTokenInfo();
 
     } catch (error) {
-      console.error("An error occurred during getting server information:", error);
+      console.error("Error in getServerInformation:", error);
     }
   }
 
   $(window.hyperion).on("cmd-instance-switchTo", function (event) {
+    const newInstance = window.currentHyperionInstance;
 
-    getServerInformation(window.currentHyperionInstance);
+    if (typeof newInstance === "number" && !isNaN(newInstance)) {
+      getServerInformation(newInstance);
+    } else {
+      console.warn("Invalid instance ID during switch");
+    }
   });
 
   $(window.hyperion).on("cmd-effects-update", function (event) {

@@ -1570,3 +1570,23 @@ function loadScript(src, callback, ...params) {
   document.head.appendChild(script);
 }
 
+  // Function to reverse the transformed config into the legacy format
+  function reverseTransformConfig(serverConfig, instanceId) {
+    const { global, instances } = serverConfig;
+
+    // Initialize the resulting legacy config
+    const legacyConfig = {};
+
+    // Add global settings to the legacy config
+    if (global?.settings) {
+      Object.assign(legacyConfig, global.settings);
+    }
+
+    // Find the instance with the matching id and add its settings
+    const instance = instances?.find(inst => inst.id === instanceId);
+    if (instance?.settings) {
+      Object.assign(legacyConfig, instance.settings);
+    }
+
+    return legacyConfig;
+  }

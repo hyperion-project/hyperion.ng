@@ -344,10 +344,10 @@ function requestServerInfo(instance = null) {
   ];
 
   const data = { subscribe: subscriptions };
-
   const targetInstance = instance !== null ? Number(instance) : null;
 
-  return sendToHyperion("serverinfo", "getInfo", data, targetInstance);
+  sendToHyperion("serverinfo", "getInfo", data, targetInstance);
+  return Promise.resolve();
 }
 
 function requestSysInfo() {
