@@ -69,7 +69,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed that LED Buffer and Layout might get out of sync.
 - Fixed Screen capture error (#1824)
 - Fixed Provide custom forwarding targets is not possible (#1713)
-- Fixed Last update of an effect event is not removed in sources overview 
+- Fixed Last update of an effect event is not removed in sources overview
+- Fixed Removed stale _logger object (#1863)
 - UI: Instance listings are sorted, enabled instances are high-lighted in drop-downs 
 
 **JSON-API**

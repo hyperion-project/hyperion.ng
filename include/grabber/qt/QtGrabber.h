@@ -123,6 +123,4 @@ private:
 
 	QScreen* _screen;
 	bool _isVirtual;
-
-	Logger * _logger;
 };

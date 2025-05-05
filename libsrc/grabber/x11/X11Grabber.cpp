@@ -26,7 +26,6 @@ X11Grabber::X11Grabber(int cropLeft, int cropRight, int cropTop, int cropBottom)
 	, _xRenderAvailable(false)
 	, _xRandRAvailable(false)
 	, _isWayland (false)
-	, _logger{}
 {
 	_useImageResampler = false;
 	_imageResampler.setCropping(0, 0, 0, 0); // cropping is performed by XRender, XShmGetImage or XGetImage
