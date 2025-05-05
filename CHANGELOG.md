@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Systray: Support multiple instances
 - UI: Validate that key ports do not overlap across editors and pages
 - UI: Provide additional details in error dialogue
+- UI: LED preview - show instance's name the preview is applicable to 
 - Http-Server: Support Cross-Origin Resource Sharing (CORS) (#1496)
 
 **JSON-API**
@@ -58,6 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored: Decouple WebServer and SSDPHandler
 - Refactored: Corrected thread affinity across various classes
 - Refactored: Improved code resilience and error handling
+- Refactored: Streamlined the UI code
 - Standalone grabber do not capture screens when no connection to remote host
 - Fixed: Python 3.12 crashes (#1747)
 - osX Grabber: Use ScreenCaptureKit under macOS 15 and above
@@ -68,6 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed Screen capture error (#1824)
 - Fixed Provide custom forwarding targets is not possible (#1713)
 - Fixed Last update of an effect event is not removed in sources overview 
+- UI: Instance listings are sorted, enabled instances are high-lighted in drop-downs 
 
 **JSON-API**
 - Refactored JSON-API to ensure consistent authorization behaviour across sessions and single requests with token authorization.

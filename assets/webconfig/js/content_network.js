@@ -292,13 +292,16 @@ $(document).ready(function () {
     $(window.hyperion).off("cmd-authorize-createToken").on("cmd-authorize-createToken", function (event) {
       const val = event.response.info;
       showInfoDialog("newToken", $.i18n('conf_network_tok_diaTitle'), $.i18n('conf_network_tok_diaMsg') + `<br><div style="font-weight:bold">${val.token}</div>`);
-      tokenList.push(val);
+      addToTokenList(val);
+
       buildTokenList();
     });
 
-    function buildTokenList() {
+    function buildTokenList(tokenList = null) {
       $('.tktbody').empty();
-      tokenList.forEach(token => {
+
+      const list = tokenList || getTokenList();
+      list.forEach(token => {
         const lastUse = token.last_use || "-";
         const btn = `<button id="tok${token.id}" type="button" class="btn btn-danger">${$.i18n('general_btn_delete')}</button>`;
         $('.tktbody').append(createTableRow([token.id, token.comment, lastUse, btn], false, true));
@@ -308,7 +311,8 @@ $(document).ready(function () {
 
     function handleDeleteToken(id) {
       requestTokenDelete(id);
-      tokenList = tokenList.filter(token => token.id !== id);
+
+      deleteFromTokenList(id);
       buildTokenList();
     }
 

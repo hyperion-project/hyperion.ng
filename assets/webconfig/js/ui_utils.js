@@ -114,27 +114,17 @@ function getInstanceName(instanceId) {
   return instance?.friendly_name || "unknown";
 }
 
+function getCurrentInstanceName() {
+
+  const instanceId = window.currentHyperionInstance;
+  return getInstanceName(instanceId);
+}
+
 function loadContent(event, forceRefresh) {
+
   let tag;
-  const lastSelectedInstance = getStorage('lastSelectedInstance');
 
-  // Hide instance related menu entries, if no instance is available or not running
-  if (window.serverInfo.instance.length === 0) {
-    $("#MenuItemLedInstances, #MenuItemRemoteControl, #MenuItemEffectsConfig").hide();
-    removeStorage('lastSelectedInstance');
-  } else if (lastSelectedInstance === null) {
-    const newInstance = getFirstRunningInstance();
-    if (newInstance !== null) {
-      instanceSwitch(newInstance);
-    }
-  } else {
-    const lastInstance = Number(lastSelectedInstance);
-    if (lastInstance !== window.currentHyperionInstance) {
-      instanceSwitch(lastInstance);
-    }
-  }
-
-  if (typeof event != "undefined") {
+  if (typeof event !== "undefined") {
     tag = event.currentTarget.hash;
     tag = tag.substr(tag.indexOf("#") + 1);
     setStorage('lasthashtag', tag);
@@ -142,58 +132,58 @@ function loadContent(event, forceRefresh) {
     tag = getHashtag();
   }
 
-  if (forceRefresh || prevTag != tag) {
+  // Only load content if the tag is different or forced
+  if (forceRefresh || prevTag !== tag) {
     prevTag = tag;
-    $("#page-content").off();
+
+    $("#page-content").off().empty(); // Off all events and clear the content
+
     $("#page-content").load("/content/" + tag + ".html", function (response, status, xhr) {
-      if (status == "error") {
+      if (status === "error") {
         tag = 'dashboard';
         console.log("Could not find page:", prevTag, ", Redirecting to:", tag);
         setStorage('lasthashtag', tag);
-
-        $("#page-content").load("/content/" + tag + ".html", function (response, status, xhr) {
-          if (status == "error") {
-            $("#page-content").html(
-              '<h3>' + encode_utf8(tag) + '<br/>' + $.i18n('info_404') + '</h3>'
-            );
-            removeOverlay();
-          }
-        });
+        $("#page-content").html('<h3>' + encode_utf8(tag) + '<br/>' + $.i18n('info_404') + '</h3>');
+        removeOverlay();
+      } else {
+        updateUiOnInstance(window.currentHyperionInstance);
       }
-      updateUiOnInstance(window.currentHyperionInstance);
     });
   }
 }
 
 function updateHyperionInstanceListing() {
-  if (window.serverInfo.instance !== null) {
-    const data = window.serverInfo.instance;
+
+  const data = window.serverInfo.instance;
+  if (data) {
+    const instances = Object.values(data);
+    // Sort instances by friendly_name (case-insensitive)
+    instances.sort((a, b) => a.friendly_name.toLowerCase().localeCompare(b.friendly_name.toLowerCase()));
+
     $('#hyp_inst_listing').html("");
 
-    for (const key in data) {
-      const currInstMarker = (data[key].instance == window.currentHyperionInstance) ? "component-on" : "";
+    instances.forEach((instance, index) => {
+      const isRunningMarker = isInstanceRunning(instance.instance) ? "component-on" : "";
 
-      // Construct the HTML using concatenation for ES5 compatibility
-      let html = '<li id="hyperioninstance_' + data[key].instance + '">' +
-        '<a>' +
-        '<div>' +
-        '<i class="fa fa-circle fa-fw ' + currInstMarker + '"></i>' +
-        '<span>' + data[key].friendly_name + '</span>' +
-        '</div>' +
-        '</a>' +
-        '</li>';
-
-      if (data.length - 1 > key) {
-        html += '<li class="divider"></li>';
-      }
+      const html = `
+        <li id="hyperioninstance_${instance.instance}">
+          <a>
+            <div>
+              <i class="fa fa-circle fa-fw ${isRunningMarker}"></i>
+              <span>${instance.friendly_name}</span>
+            </div>
+          </a>
+        </li>
+        ${index < instances.length - 1 ? '<li class="divider"></li>' : ''}
+      `;
 
       $('#hyp_inst_listing').append(html);
 
-      $('#hyperioninstance_' + data[key].instance).off().on("click", function (e) {
+      $(`#hyperioninstance_${instance.instance}`).off().on("click", (e) => {
         const inst = e.currentTarget.id.split("_")[1];
         instanceSwitch(inst);
       });
-    }
+    });
   }
 }
 
@@ -256,7 +246,7 @@ function updateUiOnInstance(inst) {
     // Show menue items according to instance's running state
     if (isInstanceRunning(window.currentHyperionInstance)) {
       $("#MenuItemRemoteControl, #NavMenuWizards, #btn_open_ledsim").show();
-      
+
       //Show effectsconfigurator menu entry, only if effectengine is available
       if (jQuery.inArray("effectengine", window.serverInfo.services) !== -1) {
         $("#MenuItemEffectsConfig").show();
@@ -361,16 +351,43 @@ function showInfoDialog(type, header = "", message = "", details = []) {
   else if (type == "changePassword") {
     $('#id_body_rename').html('<i style="margin-bottom:20px" class="fa fa-key modal-icon-edit"><br>');
     $('#id_body_rename').append('<h4>' + header + '</h4><br>');
-    $('#id_body_rename').append('<div class="row"><div class="col-md-4"><p class="text-left">' + $.i18n('infoDialog_username_text') +
-      '</p></div><div class="col-md-8"><input class="form-control" id="username" type="text" value="Hyperion" disabled></div></div><br>');
-    $('#id_body_rename').append('<div class="row"><div class="col-md-4"><p class="text-left">' + $.i18n('infoDialog_password_current_text') +
-      '</p></div><div class="col-md-8"><input class="form-control" id="current-password" placeholder="Old" type="password" autocomplete="current-password"></div></div><br>');
-    $('#id_body_rename').append('<div class="row"><div class="col-md-4"><p class="text-left">' + $.i18n('infoDialog_password_new_text') +
-      '</p></div><div class="col-md-8"><input class="form-control" id="new-password" placeholder="New" type="password" autocomplete="new-password"></div></div>');
-    $('#id_body_rename').append('<div class="bs-callout bs-callout-info"><span>' + $.i18n('infoDialog_password_minimum_length') + '</span></div>');
-    $('#id_footer_rename').html('<button type="button" id="id_btn_ok" class="btn btn-success" data-dismiss-modal="#modal_dialog_rename" disabled><i class="fa fa-fw fa-save"></i>' + $.i18n('general_btn_ok') + '</button></div>');
-    $('#id_footer_rename').append('<button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>');
+
+    // Start form wrapper
+    $('#id_body_rename').append('<form id="changePasswordForm"; return false;">');
+    $('#changePasswordForm').append(
+      '<div class="row">' +
+      '<div class="col-md-4"><p class="text-left">' + $.i18n('infoDialog_username_text') + '</p></div>' +
+      '<div class="col-md-8"><input class="form-control" id="username" type="text" value="Hyperion" disabled autocomplete="username"></div>' +
+      '</div><br>'
+    );
+    $('#changePasswordForm').append(
+      '<div class="row">' +
+      '<div class="col-md-4"><p class="text-left">' + $.i18n('infoDialog_password_current_text') + '</p></div>' +
+      '<div class="col-md-8"><input class="form-control" id="current-password" placeholder="Old" type="password" autocomplete="current-password"></div>' +
+      '</div><br>'
+    );
+    $('#changePasswordForm').append(
+      '<div class="row">' +
+      '<div class="col-md-4"><p class="text-left">' + $.i18n('infoDialog_password_new_text') + '</p></div>' +
+      '<div class="col-md-8"><input class="form-control" id="new-password" placeholder="New" type="password" autocomplete="new-password"></div>' +
+      '</div>'
+    );
+    $('#changePasswordForm').append(
+      '<div class="bs-callout bs-callout-info"><span>' + $.i18n('infoDialog_password_minimum_length') + '</span></div>'
+    );
+    $('#changePasswordForm').append('</form>');
+
+    // Footer buttons
+    $('#id_footer_rename').html(
+      '<button type="submit" form="changePasswordForm" id="id_btn_ok" class="btn btn-success" data-dismiss-modal="#modal_dialog_rename" disabled>' +
+      '<i class="fa fa-fw fa-save"></i>' + $.i18n('general_btn_ok') + '</button>'
+    );
+    $('#id_footer_rename').append(
+      '<button type="button" class="btn btn-danger" data-dismiss="modal">' +
+      '<i class="fa fa-fw fa-close"></i>' + $.i18n('general_btn_cancel') + '</button>'
+    );
   }
+
   else if (type == "checklist") {
     $('#id_body').html('<img style="margin-bottom:20px" id="id_logo" src="img/hyperion/logo_positiv.png" alt="Redefine ambient light!">');
     $('#id_body').append('<h4 style="font-weight:bold;text-transform:uppercase;">' + $.i18n('infoDialog_checklist_title') + '</h4>');
@@ -1439,7 +1456,6 @@ function isAccessLevelCompliant(accessLevel) {
   }
 }
 
-
 function showInputOptions(path, elements, state) {
 
   if (!path.startsWith("root.")) {
@@ -1570,23 +1586,24 @@ function loadScript(src, callback, ...params) {
   document.head.appendChild(script);
 }
 
-  // Function to reverse the transformed config into the legacy format
-  function reverseTransformConfig(serverConfig, instanceId) {
-    const { global, instances } = serverConfig;
+// Function to reverse the transformed config into the legacy format
+function reverseTransformConfig(serverConfig, instanceId) {
+  const { global, instances } = serverConfig;
 
-    // Initialize the resulting legacy config
-    const legacyConfig = {};
+  // Initialize the resulting legacy config
+  const legacyConfig = {};
 
-    // Add global settings to the legacy config
-    if (global?.settings) {
-      Object.assign(legacyConfig, global.settings);
-    }
-
-    // Find the instance with the matching id and add its settings
-    const instance = instances?.find(inst => inst.id === instanceId);
-    if (instance?.settings) {
-      Object.assign(legacyConfig, instance.settings);
-    }
-
-    return legacyConfig;
+  // Add global settings to the legacy config
+  if (global?.settings) {
+    Object.assign(legacyConfig, global.settings);
   }
+
+  // Find the instance with the matching id and add its settings
+  const instance = instances?.find(inst => inst.id === instanceId);
+  if (instance?.settings) {
+    Object.assign(legacyConfig, instance.settings);
+  }
+
+  return legacyConfig;
+}
+

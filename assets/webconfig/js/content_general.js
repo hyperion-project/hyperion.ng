@@ -31,6 +31,15 @@ $(document).ready(function () {
     requestWriteConfig(conf_editor.getValue());
   });
 
+  createTable('ithead', 'itbody', 'itable');
+
+  // Initialize the table header
+  if ($('#ithead').length === 0) {
+    $('.ithead').html(createTableRow([$.i18n('conf_general_inst_namehead'), "", $.i18n('conf_general_inst_actionhead'), ""], true, true));
+  }
+
+  buildInstanceList();
+
   // Instance handling functions
   function handleInstanceRename(instance) {
     showInfoDialog('renInst', $.i18n('conf_general_inst_renreq_t'), getInstanceName(instance));
@@ -59,80 +68,74 @@ $(document).ready(function () {
   // Build the instance list
   function buildInstanceList() {
 
-    const instances = serverInfo.instance;
-
-    // Ensure .itbody exists and clear it
     const $itbody = $('.itbody');
     if ($itbody.length === 0) {
       console.warn("Element '.itbody' does not exist. Aborting instance list build.");
       return;
     }
-    $itbody.empty(); // Explicitly clear the content before adding new rows
 
-    // Collect rows in a document fragment for efficient DOM updates
-    const $rows = $(document.createDocumentFragment());
+    const data = window.serverInfo.instance;
+    if (data) {
+      const instances = Object.values(data);
 
-    for (const instance in instances) {
-      const instanceID = instances[instance].instance;
-      const enableStyle = instances[instance].running ? "checked" : "";
-      const renameBtn = `<button id="instren_${instanceID}" type="button" class="btn btn-primary">
+      // Sort instances by friendly_name (case-insensitive)
+      instances.sort((a, b) => a.friendly_name.toLowerCase().localeCompare(b.friendly_name.toLowerCase()));
+
+      $itbody.empty(); // Explicitly clear the content before adding new rows
+
+      // Collect rows in a document fragment for efficient DOM updates
+      const $rows = $(document.createDocumentFragment());
+
+      // Build all instance rows
+      for (const instance of instances) {
+        const instanceID = instance.instance;
+        const enableStyle = instance.running ? "checked" : "";
+        const renameBtn = `<button id="instren_${instanceID}" type="button" class="btn btn-primary">
                                <i class="mdi mdi-lead-pencil"></i>
                            </button>`;
-      const delBtn = `<button id="instdel_${instanceID}" type="button" class="btn btn-danger">
+        const delBtn = `<button id="instdel_${instanceID}" type="button" class="btn btn-danger">
                             <i class="mdi mdi-delete-forever"></i>
                         </button>`;
-      const startBtn = `<input id="inst_${instanceID}" ${enableStyle} type="checkbox" 
+        const startBtn = `<input id="inst_${instanceID}" ${enableStyle} type="checkbox" 
+                             class="toggle-instance" 
                              data-toggle="toggle" data-onstyle="success font-weight-bold" 
                              data-on="${$.i18n('general_btn_on')}" data-offstyle="default font-weight-bold" 
                              data-off="${$.i18n('general_btn_off')}">`;
 
-      // Generate a table row and add it to the document fragment
-      const $row = createTableRow(
-        [
-          instances[instance].friendly_name,
-          startBtn,
-          renameBtn,
-          delBtn
-        ],
-        false,
-        true
-      );
+        const $row = createTableRow(
+          [instance.friendly_name, startBtn, renameBtn, delBtn],
+          false,
+          true
+        );
 
-      $rows.append($row);
-    }
+        $rows.append($row);
+      }
 
-    // Append all rows to .itbody in one operation
-    $itbody.append($rows);
+      $itbody.append($rows);
 
-    // Reapply event listeners
-    for (const instance in instances) {
-      const instanceID = instances[instance].instance;
+      // Apply Bootstrap toggles and event handlers
+      for (const instance of instances) {
+        const instanceID = instance.instance;
+        const readOnly = window.readOnlyMode;
 
-      const readOnly = window.readOnlyMode;
-      $('#instren_' + instanceID).prop('disabled', readOnly);
-      $('#inst_' + instanceID).prop('disabled', readOnly);
-      $('#instdel_' + instanceID).prop('disabled', readOnly);
+        $('#instren_' + instanceID).prop('disabled', readOnly).off().on('click', function () {
+          handleInstanceRename(instanceID);
+        });
 
-      $('#instren_' + instanceID).off().on('click', function () {
-        handleInstanceRename(instanceID);
-      });
+        $('#instdel_' + instanceID).prop('disabled', readOnly).off().on('click', function () {
+          handleInstanceDelete(instanceID);
+        });
 
-      $('#instdel_' + instanceID).off().on('click', function () {
-        handleInstanceDelete(instanceID);
-      });
-
-      $('#inst_' + instanceID).bootstrapToggle();
-      $('#inst_' + instanceID).change(function () {
-        const isChecked = $(this).prop('checked');
-        requestInstanceStartStop(instanceID, isChecked);
-      });
+        const $toggle = $('#inst_' + instanceID);
+        $toggle.prop('disabled', readOnly);
+        $toggle.bootstrapToggle(); // Reapply toggle
+        $toggle.off('change').on('change', function () {
+          const isChecked = $(this).prop('checked');
+          requestInstanceStartStop(instanceID, isChecked);
+        });
+      }
     }
   }
-
-  // Initialize table
-  createTable('ithead', 'itbody', 'itable');
-  $('.ithead').html(createTableRow([$.i18n('conf_general_inst_namehead'), "", $.i18n('conf_general_inst_actionhead'), ""], true, true));
-  buildInstanceList();
 
   // Instance name input validation
   $('#inst_name').off().on('input', function (e) {
