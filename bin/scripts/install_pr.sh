@@ -141,14 +141,14 @@ if [ "$pr_exists" != "exists" ]; then
 else
 	# Get head_sha value from 'pr_number'
 	head_sha=$(echo "$pulls" | tr '\r\n' ' ' | ${pythonCmd} -c """
-	import json,sys
-	data = json.load(sys.stdin)
+import json,sys
+data = json.load(sys.stdin)
 
-	for i in data:
-		if i['number'] == "$pr_number":
-			print(i['head']['sha'])
-			break
-	""" 2>/dev/null)
+for i in data:
+	if i['number'] == "$pr_number":
+		print(i['head']['sha'])
+		break
+""" 2>/dev/null)
 
 	if [ -z "$head_sha" ]; then
 
@@ -164,14 +164,14 @@ else
 		# Determine run_id from head_sha
 		runs=$(request_call "$api_url/actions/runs?head_sha=$head_sha")
 		run_id=$(echo "$runs" | tr '\r\n' ' ' | ${pythonCmd} -c """
-	import json,sys,os
-	data = json.load(sys.stdin)
+import json,sys,os
+data = json.load(sys.stdin)
 
-	for i in data['workflow_runs']:
-		if os.path.basename(i['path']) == 'push_pull.yml':
-			print(i['id'])
-			break
-	""" 2>/dev/null)
+for i in data['workflow_runs']:
+	if os.path.basename(i['path']) == 'push_pull.yml':
+		print(i['id'])
+		break
+""" 2>/dev/null)
 	fi
 fi
 
