@@ -189,9 +189,9 @@ $(document).ready(function () {
         }
       }
     }
-    updateUiOnInstance(window.currentHyperionInstance);
-    updateHyperionInstanceListing();
 
+    updateHyperionInstanceListing();
+    updateUiOnInstance(window.currentHyperionInstance);
   }
 
   function updateGlobalComponents() {

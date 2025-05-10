@@ -74,6 +74,16 @@ QSet<quint8> HyperionIManager::getRunningInstanceIdx() const
 	return instanceIds;
 }
 
+quint8 HyperionIManager::getFirstRunningInstanceIdx() const
+{
+	quint8 instanceId {NO_INSTANCE_ID};
+	if (!_runningInstances.isEmpty())
+	{
+		instanceId= _runningInstances.firstKey();
+	}
+	return instanceId;
+}
+
 QSharedPointer<Hyperion> HyperionIManager::getFirstRunningInstance()
 {
 	QSharedPointer<Hyperion> hyperion {nullptr};

@@ -294,99 +294,119 @@ void JsonAPI::handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject
 	else
 	{
 		// If no instance element is given use the one that was switched to before
-		if (instanceElement.isUndefined() && _currInstanceIndex != NO_INSTANCE_ID)
+		if (_currInstanceIndex != NO_INSTANCE_ID)
 		{
 			instances.append(_currInstanceIndex);
 		}
 		else
 		{
-			sendErrorReply("No instance(s) given nor switched to a valid one yet", cmd);
-			return;
+			//If no instance was given nor one was switched to before, use first running instance (backward compatability)
+			quint8 const firstRunningInstanceID = _instanceManager->getFirstRunningInstanceIdx();
+			if (firstRunningInstanceID == NO_INSTANCE_ID)
+			{
+				QString errorText {"No instance(s) IDs provided and no running instance available applying the API request to"};
+				Error(_log, "%s", QSTRING_CSTR(errorText));
+				sendErrorReply(errorText, cmd);
+				return;
+			}
+
+			instances.append(firstRunningInstanceID);
+			Debug(_log,"No instance ID(s) provided; applying API request to first running instance [%u]", firstRunningInstanceID);
+
+			if (!handleInstanceSwitch(firstRunningInstanceID))
+			{
+				QString errorText = QString("Error switching to first running instance: [%1] to process API request").arg(firstRunningInstanceID);
+				Error(_log, "%s", QSTRING_CSTR(errorText));
+				sendErrorReply(errorText, cmd);
+				return;
+			}
 		}
 	}
 
-	InstanceCmd::MustRun const isRunningInstanceRequired = cmd.getInstanceMustRun();
-	QSet const runningInstanceIds = _instanceManager->getRunningInstanceIdx();
+	InstanceCmd::MustRun const mustRun = cmd.getInstanceMustRun();
+	QSet<quint8> const configuredInstanceIds = _instanceManager->getInstanceIds();
+	QSet<quint8> const runningInstanceIds = _instanceManager->getRunningInstanceIdx();
 	QSet<quint8> instanceIds;
 	QStringList errorDetails;
+	QStringList errorDetailsInvalidInstances;
 
 	// Determine instance IDs, if empty array provided apply command to all instances
 	if (instances.isEmpty())
 	{
-		instanceIds = (isRunningInstanceRequired == InstanceCmd::MustRun_Yes) ? runningInstanceIds : _instanceManager->getInstanceIds();
+		instanceIds = (mustRun == InstanceCmd::MustRun_Yes) ? runningInstanceIds : _instanceManager->getInstanceIds();
 	}
 	else
 	{
-		QSet<quint8> const configuredInstanceIds = _instanceManager->getInstanceIds();
-
 		//Resolve instances provided and test, if they need to be running
 		for (const auto &instance : std::as_const(instances))
 		{
 			quint8 const instanceId = static_cast<quint8>(instance.toInt());
 			if (!configuredInstanceIds.contains(instanceId))
 			{
-				errorDetails.append(QString("Not a valid instance id: [%1]").arg(instanceId));
+				//Do not store in errorDetails, as command could be one working with and without instance
+				errorDetailsInvalidInstances.append(QString("Not a valid instance id: [%1]").arg(instanceId));
 				continue;
 			}
 
-			if (isRunningInstanceRequired == InstanceCmd::MustRun_Yes && !runningInstanceIds.contains(instanceId))
+			if (mustRun == InstanceCmd::MustRun_Yes && !runningInstanceIds.contains(instanceId))
 			{
-				errorDetails.append(QString("Instance [%1] is not running, but the (sub-) command requires a running instance.").arg(instance.toVariant().toString()));
+				errorDetails.append(QString("Instance [%1] is not running, but the (sub-) command requires a running instance.")
+									.arg(instance.toVariant().toString()));
+				continue;
 			}
-			else
-			{
-				instanceIds.insert(instanceId);
-			}
+
+			instanceIds.insert(instanceId);
 		}
 	}
 
 	// Handle cases where no instances are found
 	if (instanceIds.isEmpty())
 	{
-		if (errorDetails.isEmpty() && (cmd.getInstanceCmdType() == InstanceCmd::No_or_Single || cmd.getInstanceCmdType() == InstanceCmd::No_or_Multi) )
+		if (errorDetails.isEmpty() &&
+			(cmd.getInstanceCmdType() == InstanceCmd::No_or_Single || cmd.getInstanceCmdType() == InstanceCmd::No_or_Multi) )
 		{
 			handleCommand(cmd, message);
 			return;
 		}
+
+		errorDetails.append(errorDetailsInvalidInstances);
 		errorDetails.append("No valid instance(s) provided");
-	}
-	else
-	{
-		// Check if multiple instances are allowed
-		if (instanceIds.size() > 1 && cmd.getInstanceCmdType() != InstanceCmd::Multi)
-		{
-			errorDetails.append("Command does not support multiple instances");
-		}
+
+		sendErrorReply("Errors for instance(s) given", errorDetails, cmd);
+		return;
 	}
 
-	// If there are errors, send a response and exit
-	if ( !errorDetails.isEmpty() )
+	// Check if multiple instances are allowed
+	if (instanceIds.size() > 1 && cmd.getInstanceCmdType() != InstanceCmd::Multi)
 	{
+		errorDetails.append("Command does not support multiple instances");
 		sendErrorReply("Errors for instance(s) given", errorDetails, cmd);
 		return;
 	}
 
 	// Execute the command for each valid instance
-	quint8 const currentInstance = _currInstanceIndex;
+	quint8 const previousInstance = _currInstanceIndex;
+
 	for (const auto &instanceId : std::as_const(instanceIds))
 	{
-		if (isRunningInstanceRequired == InstanceCmd::MustRun_Yes || _currInstanceIndex == NO_INSTANCE_ID)
+		bool isCorrectInstance = true;
+
+		if (mustRun == InstanceCmd::MustRun_Yes || _currInstanceIndex == NO_INSTANCE_ID)
 		{
-			if (handleInstanceSwitch(instanceId))
-			{
-				handleCommand(cmd, message);
-			}
+			isCorrectInstance = handleInstanceSwitch(instanceId);
 		}
-		else
+
+		if (isCorrectInstance)
 		{
 			handleCommand(cmd, message);
 		}
 	}
 
 	//Switch back to current instance, if command was executed against multiple instances
-	if (currentInstance != _currInstanceIndex && (cmd.getInstanceCmdType() == InstanceCmd::Multi || cmd.getInstanceCmdType() == InstanceCmd::No_or_Multi))
+	if (previousInstance != _currInstanceIndex &&
+		(cmd.getInstanceCmdType() == InstanceCmd::Multi || cmd.getInstanceCmdType() == InstanceCmd::No_or_Multi))
 	{
-		handleInstanceSwitch(currentInstance);
+		handleInstanceSwitch(previousInstance);
 	}
 }
 

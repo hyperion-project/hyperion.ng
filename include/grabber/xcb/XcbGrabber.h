@@ -84,8 +84,6 @@ private:
 	bool _XcbShmPixmapAvailable;
 	bool _isWayland;
 
-	Logger * _logger;
-
 	uint8_t * _shmData;
 
 	int _XcbRandREventBase;

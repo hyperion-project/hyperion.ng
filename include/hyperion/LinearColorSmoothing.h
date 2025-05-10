@@ -79,10 +79,10 @@ class LinearColorSmoothing : public QObject
 
 public:
 	/// Constructor
-	/// @param config    The configuration document smoothing
+	/// @param config    The smoothing configuration
 	/// @param hyperion  The hyperion parent instance
 	///
-	LinearColorSmoothing(const QJsonDocument &config, Hyperion *hyperion);
+	LinearColorSmoothing(const QJsonObject &config, Hyperion *hyperion);
 	~LinearColorSmoothing() override;
 
 	/// LED values as input for the smoothing filter
@@ -157,6 +157,13 @@ private slots:
 	void handlePriorityUpdate(int priority);
 
 private:
+
+	///
+	/// @brief Update the settings along the provided configuration
+	/// @param config configuration object
+	///
+	void updateSettings(const QJsonObject &config);
+
 	/**
 	 * Pushes the colors into the output queue and popping the head to the led-device
 	 *
@@ -173,6 +180,9 @@ private:
 	virtual int write(const std::vector<ColorRgb> &ledValues);
 
 	QString getConfig(int cfgID);
+
+	/// Helper to pipe configuration from constructor to start()
+	QJsonObject _smoothConfig;
 
 	/// Logger instance
 	Logger *_log;

@@ -34,7 +34,24 @@ window.currentHyperionInstance = null;
 window.currentHyperionInstanceName = "?";
 window.comps = [];
 window.defaultPasswordIsSet = null;
-let tokenList = {};
+
+let tokenList = [];
+window.setTokenList = function(list) {
+  window.tokenList = list;
+};
+window.getTokenList = function() {
+  return window.tokenList;
+};
+window.addToTokenList = function(token) {
+  const currentList = window.getTokenList() || [];
+  const updatedList = [...currentList, token];
+  window.setTokenList(updatedList);
+};
+window.deleteFromTokenList = function(id) {
+  const currentList = window.getTokenList() || [];
+  const updatedList = currentList.filter(token => token.id !== id);
+  window.setTokenList(updatedList);
+};
 
 function initRestart() {
   $(window.hyperion).off();
@@ -73,7 +90,6 @@ function sanitizeForLog(input) {
 setInterval(connectionLostDetection, 3000);
 
 // init websocket to hyperion and bind socket events to jquery events of $(hyperion) object
-
 function initWebSocket() {
   if ("WebSocket" in window) {
     if (window.websocket == null) {
@@ -139,7 +155,7 @@ function initWebSocket() {
                 // Sanitize provided input
                 const logError = error.replace(/\n|\r/g, "");
                 const logErrorData = JSON.stringify(errorData).replace(/[\r\n\t]/g, ' ')
-                console.log("[window.websocket::onmessage] ", logError, ", Description:", logErrorData);
+                console.error("[window.websocket::onmessage] ", logError, ", Description:", logErrorData);
 
                 $(window.hyperion).trigger({
                   type: "error",
@@ -153,7 +169,7 @@ function initWebSocket() {
             }
         }
         catch (exception_error) {
-          console.log("[window.websocket::onmessage] ", exception_error);
+          console.error("[window.websocket::onmessage] ", exception_error);
           $(window.hyperion).trigger({
             type: "error",
             reason: {
@@ -165,7 +181,7 @@ function initWebSocket() {
       };
 
       window.websocket.onerror = function (error) {
-        console.log("[window.websocket::onerror] ", error);
+        console.error("[window.websocket::onerror] ", error);
         $(window.hyperion).trigger({
           type: "error",
           reason: {
@@ -203,7 +219,7 @@ function sendToHyperion(command, subcommand, msg, instanceIds = null) {
 
   // Add the instanceID(s) the command is to be applied to
   if (instanceIds != null) {
-      message.instance = instanceIds;
+    message.instance = instanceIds;
   }
 
   // Merge the msg object into the final message if provided
@@ -330,22 +346,23 @@ function requestInstanceSwitch(instance) {
   sendToHyperion("instance", "switchTo", {}, Number(instance));
 }
 
-function requestServerInfo(instance) {
-  let data = {
-    subscribe: [
-      "components-update",
-      "priorities-update",
-      "imageToLedMapping-update",
-      "adjustment-update",
-      "videomode-update",
-      "effects-update",
-      "settings-update",
-      "instance-update",
-      "event-update"
-    ]
-  };
+function requestServerInfo(instance = null) {
+  const subscriptions = [
+    "components-update",
+    "priorities-update",
+    "imageToLedMapping-update",
+    "adjustment-update",
+    "videomode-update",
+    "effects-update",
+    "settings-update",
+    "instance-update",
+    "event-update"
+  ];
 
-  sendToHyperion("serverinfo", "getInfo", data, Number(instance));
+  const data = { subscribe: subscriptions };
+  const targetInstance = instance !== null ? Number(instance) : null;
+
+  sendToHyperion("serverinfo", "getInfo", data, targetInstance);
   return Promise.resolve();
 }
 
@@ -367,6 +384,7 @@ function requestSystemRestart() {
 
 function requestServerConfigSchema() {
   sendToHyperion("config", "getschema");
+  return Promise.resolve();
 }
 
 const requestServerConfig = {
@@ -378,9 +396,12 @@ const requestServerConfig = {
       },
     };
 
-    // Handle instances: remove "null" if present and add to filter if not empty
-    if (instances.length) {
-      filter.configFilter.instances = { ids: instances };
+    if (instances == null) {
+      filter.configFilter.instances = null; // Return no instances
+    } else if (instances.length > 0) {
+      filter.configFilter.instances = { ids: instances }; // Return selected instances
+    } else {
+      filter.configFilter.instances = instances; // Return all instances
     }
 
     if (instanceTypes.length > 0) {
@@ -411,22 +432,22 @@ function requestServerConfigReload() {
 
 function requestLedColorsStart(instanceId = window.currentHyperionInstance) {
   window.ledStreamActive = true;
-  sendToHyperion("ledcolors", "ledstream-start", {} , instanceId);
+  sendToHyperion("ledcolors", "ledstream-start", {}, instanceId);
 }
 
 function requestLedColorsStop(instanceId = window.currentHyperionInstance) {
   window.ledStreamActive = false;
-  sendToHyperion("ledcolors", "ledstream-stop", {} , instanceId);
+  sendToHyperion("ledcolors", "ledstream-stop", {}, instanceId);
 }
 
 function requestLedImageStart(instanceId = window.currentHyperionInstance) {
   window.imageStreamActive = true;
-  sendToHyperion("ledcolors", "imagestream-start", {} , instanceId);
+  sendToHyperion("ledcolors", "imagestream-start", {}, instanceId);
 }
 
 function requestLedImageStop(instanceId = window.currentHyperionInstance) {
   window.imageStreamActive = false;
-  sendToHyperion("ledcolors", "imagestream-stop", {} , instanceId);
+  sendToHyperion("ledcolors", "imagestream-stop", {}, instanceId);
 }
 
 function requestPriorityClear(priority, instanceIds = [window.currentHyperionInstance]) {
@@ -615,5 +636,32 @@ async function requestInputSourcesDiscovery(sourceType, params) {
 
 async function requestServiceDiscovery(serviceType, params) {
   return sendAsyncToHyperion("service", "discover", { serviceType, params });
+}
+
+function waitForEvent(eventName) {
+  return new Promise((resolve) => {
+    const handler = function (event) {
+      $(window.hyperion).off(eventName, handler);
+      resolve(event);
+    };
+    $(window.hyperion).on(eventName, handler);
+  });
+}
+
+function waitForEventWithTimeout(eventName, timeout = 5000) {
+  return new Promise((resolve, reject) => {
+    const handler = (event) => {
+      clearTimeout(timer);
+      $(window.hyperion).off(eventName, handler);
+      resolve(event);
+    };
+
+    const timer = setTimeout(() => {
+      $(window.hyperion).off(eventName, handler);
+      reject(new Error(`Timeout waiting for ${eventName}`));
+    }, timeout);
+
+    $(window.hyperion).on(eventName, handler);
+  });
 }
 

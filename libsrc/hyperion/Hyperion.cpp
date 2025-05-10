@@ -124,7 +124,7 @@ void Hyperion::start()
 	_ledBuffer = std::vector<ColorRgb>(static_cast<size_t>(_hwLedCount), ColorRgb::BLACK);
 
 	// smoothing
-	_deviceSmooth.reset(new LinearColorSmoothing(getSetting(settings::SMOOTHING), this));
+	_deviceSmooth.reset(new LinearColorSmoothing(getSetting(settings::SMOOTHING).object(), this));
 	connect(this, &Hyperion::settingsChanged, _deviceSmooth.get(), &LinearColorSmoothing::handleSettingsUpdate);
 	_deviceSmooth->start();
 

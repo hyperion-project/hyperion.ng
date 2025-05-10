@@ -37,7 +37,6 @@ XcbGrabber::XcbGrabber(int cropLeft, int cropRight, int cropTop, int cropBottom)
 	, _XcbShmAvailable{}
 	, _XcbShmPixmapAvailable{}
 	, _isWayland (false)
-	, _logger{}
 	, _shmData{}
 	, _XcbRandREventBase{-1}
 {
@@ -195,7 +194,7 @@ bool XcbGrabber::open()
 		int ret = xcb_connection_has_error(_connection);
 		if (ret != 0)
 		{
-			Debug(_logger, "Cannot open display, error %d", ret);
+			Debug(_log, "Cannot open display, error %d", ret);
 		}
 		else
 		{

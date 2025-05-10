@@ -105,6 +105,10 @@ $(document).ready(function () {
         updateLedLayout();
       },
       opened: function (e) {
+
+        const titleText = $.i18n('main_ledsim_title') + " - " + getCurrentInstanceName();
+        $(this).get(0).querySelector(".modal-title").textContent = titleText;
+
         if (!lC) {
           updateLedLayout();
           lC = true;
@@ -138,7 +142,8 @@ $(document).ready(function () {
       } else {
         console.warn("LED configuration is missing or empty. Skipping updateLedLayout.");
       }
-    });  });
+    });
+  });
 
   function printLedsToCanvas(colors) {
 
@@ -319,6 +324,19 @@ $(document).ready(function () {
       resetImage();
     }
 
+  });
+
+  $(window.hyperion).on("cmd-instance-switchTo", function (event) {
+    if (modalOpened) {
+      if (!isCurrentInstanceRunning()) {
+        dialog.close();
+        return;
+      }
+
+      const titleText = $.i18n('main_ledsim_title') + " - " + getCurrentInstanceName();
+      // Update the title inside the Gijgo modal dialog
+      $("#ledsim_dialog").find(".modal-title").text(titleText);
+    }
   });
 
   function resetImage() {

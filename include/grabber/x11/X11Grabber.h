@@ -124,7 +124,5 @@ private:
 	bool _xRandRAvailable;
 	bool _isWayland;
 
-	Logger * _logger;
-
 	Image<ColorRgb> _image;
 };

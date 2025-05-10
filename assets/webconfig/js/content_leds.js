@@ -652,7 +652,7 @@ $(document).ready(function () {
   if (isInstanceRunning(window.currentHyperionInstance)) {
     $("#leds_prev_toggle_live_video").show();
   } else {
-    $("#leds_prev_toggle_live_video").hide();  
+    $("#leds_prev_toggle_live_video").hide();
   }
 
   //**************************************************
@@ -1121,7 +1121,7 @@ $(document).ready(function () {
         case "ws2812spi":
         case "piblaster":
         case "ws281x":
-	      case "hd108":
+        case "hd108":
 
         //Serial devices
         case "adalight":
@@ -1487,7 +1487,7 @@ $(document).ready(function () {
           case "apa102_ftdi":
           case "sk6812_ftdi":
           case "ws2812_ftdi":
-	        case "hd108":
+          case "hd108":
           default:
         }
 
@@ -2228,7 +2228,7 @@ var updateOutputSelectList = function (ledType, discoveryInfo) {
           case "sk6822spi":
           case "sk9822":
           case "ws2812spi":
-	        case "hd108":
+          case "hd108":
           case "piblaster":
             for (const device of discoveryInfo.devices) {
               enumVals.push(device.systemLocation);
@@ -2814,3 +2814,4 @@ function nanoleafGeneratelayout(panelLayout, panelOrderTopDown, panelOrderLeftRi
   });
   return layoutObjects;
 }
+
