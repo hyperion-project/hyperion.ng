@@ -69,7 +69,7 @@
       "cacheVariables": {
       },
       "environment": {
-        "LINUX_QT_ROOT_DIR": "$env{HOME}/Qt",      
+        "LINUX_QT_ROOT_DIR": "$env{HOME}/Qt"      
       }
     },
     {
