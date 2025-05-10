@@ -149,16 +149,16 @@
     },
     {
       "name": "debug-qt5-all-windows",
-      "inherits": [ "debug", "qt5-env-windows-wrapper" ],
+      "inherits": [ "windows-debug", "qt5-env-windows-wrapper" ],
       "hidden": false
     },
     {
-      "name": "debug-qt5-light",
-      "inherits": [ "debug", "qt5-env-windows-wrapper", "hyperion-light" ]
+      "name": "debug-qt5-light-windows",
+      "inherits": [ "windows-debug", "qt5-env-windows-wrapper", "hyperion-light" ]
     },
     {
-      "name": "debug-qt5-minimum",
-      "inherits": [ "debug", "qt5-env-windows-wrapper", "hyperion-bare-minimum" ]
+      "name": "debug-qt5-minimum-windows",
+      "inherits": [ "windows-debug", "qt5-env-windows-wrapper", "hyperion-bare-minimum" ]
     },
     {
       "name": "release-qt5-all",
@@ -171,47 +171,47 @@
     },
     {
       "name": "debug-qt5-light-linux",
-      "inherits": [ "debug", "qt5-env-linux-wrapper", "hyperion-light" ]
+      "inherits": [ "linux-debug", "qt5-env-linux-wrapper", "hyperion-light" ]
     },
     {
       "name": "debug-qt5-minimum-linux",
-      "inherits": [ "debug", "qt5-env-linux-wrapper", "hyperion-bare-minimum" ]
+      "inherits": [ "linux-debug", "qt5-env-linux-wrapper", "hyperion-bare-minimum" ]
     },
     {
       "name": "release-qt5-all-linux",
-      "inherits": [ "release", "qt5-env-linux-wrapper" ]
+      "inherits": [ "linux-release", "qt5-env-linux-wrapper" ]
     },
     {
       "name": "debug-qt6-all-windows",
-      "inherits": [ "debug", "qt6-env-windows-wrapper" ]
+      "inherits": [ "windows-debug", "qt6-env-windows-wrapper" ]
     },
     {
       "name": "debug-qt6-light-windows",
-      "inherits": [ "debug", "qt6-env-windows-wrapper", "hyperion-light" ]
+      "inherits": [ "windows-debug", "qt6-env-windows-wrapper", "hyperion-light" ]
     },
     {
       "name": "debug-qt6-minimum-windows",
-      "inherits": [ "debug", "qt6-env-windows-wrapper", "hyperion-bare-minimum" ]
+      "inherits": [ "windows-debug", "qt6-env-windows-wrapper", "hyperion-bare-minimum" ]
     },
     {
       "name": "release-qt6-all-windows",
-      "inherits": [ "release", "qt6-env-windows-wrapper" ]
+      "inherits": [ "windows-release", "qt6-env-windows-wrapper" ]
     },
     {
       "name": "debug-qt6-all-linux",
-      "inherits": [ "debug", "qt6-env-linux-wrapper" ]
+      "inherits": [ "linux-debug", "qt6-env-linux-wrapper" ]
     },
     {
       "name": "debug-qt6-light-linux",
-      "inherits": [ "debug", "qt6-env-linux-wrapper", "hyperion-light" ]
+      "inherits": [ "linux-debug", "qt6-env-linux-wrapper", "hyperion-light" ]
     },
     {
       "name": "debug-qt6-minimum-linux",
-      "inherits": [ "debug", "qt6-env-linux-wrapper", "hyperion-bare-minimum" ]
+      "inherits": [ "linux-debug", "qt6-env-linux-wrapper", "hyperion-bare-minimum" ]
     },
     {
       "name": "release-qt6-all-linux",
-      "inherits": [ "release", "qt6-env-linux-wrapper" ]
+      "inherits": [ "linux-release", "qt6-env-linux-wrapper" ]
     }
   ]
 }
