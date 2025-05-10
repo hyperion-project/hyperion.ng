@@ -69,7 +69,8 @@
       "cacheVariables": {
       },
       "environment": {
-        "LINUX_QT_ROOT_DIR": "$env{HOME}/Qt"      
+        "LINUX_QT_ROOT_DIR": "$env{HOME}/Qt",
+        "LINUX_PRE_BUILT_DEPS_ROOT_DIR":"$env{HOME}/hyperion_prebuild_deps"
       }
     },
     {
@@ -82,6 +83,8 @@
         "rhs": "Linux"
       },
       "cacheVariables": {
+        "USE_PRE_BUILT_DEPS":"ON",
+      	"PRE_BUILT_DEPS_DIR":"$env{LINUX_PRE_BUILT_DEPS_ROOT_DIR}/qt5"
       },
       "environment": {
       }
@@ -96,6 +99,8 @@
         "rhs": "Linux"
       },
       "cacheVariables": {
+        "USE_PRE_BUILT_DEPS":"ON",
+      	"PRE_BUILT_DEPS_DIR":"$env{LINUX_PRE_BUILT_DEPS_ROOT_DIR}/qt6"
       },
       "environment": {
         "QTDIR": "$env{LINUX_QT_ROOT_DIR}/6.9.0/gcc_64"
@@ -162,11 +167,11 @@
     },
     {
       "name": "release-qt5-all",
-      "inherits": [ "release", "qt5-env-windows-wrapper" ]
+      "inherits": [ "windows-release", "qt5-env-windows-wrapper" ]
     },
     {
       "name": "debug-qt5-all-linux",
-      "inherits": [ "debug", "qt5-env-linux-wrapper" ],
+      "inherits": [ "linux-debug", "qt5-env-linux-wrapper" ],
       "hidden": false
     },
     {
