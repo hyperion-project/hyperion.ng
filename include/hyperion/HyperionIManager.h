@@ -76,8 +76,15 @@ public slots:
 
 	///
 	/// @brief Get all instance indicies of running instances
+	/// @return All running instance Ids, returns and empty set if no instance is runnning
 	///
 	QSet<quint8> getRunningInstanceIdx() const;
+
+	///
+	/// @brief Get the first running instance's ID
+	/// @return First instance ID, eturns NO_INSTANCE_ID (255) if none is runnning
+	///
+	quint8 getFirstRunningInstanceIdx() const;
 
 	///
 	/// @brief Get the first running Hyperion instance

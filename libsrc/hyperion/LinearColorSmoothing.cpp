@@ -58,8 +58,9 @@ const unsigned DEFAULT_OUTPUTDEPLAY = 0;	// in frames
 
 using namespace hyperion;
 
-LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument &config, Hyperion *hyperion)
+LinearColorSmoothing::LinearColorSmoothing(const QJsonObject &config, Hyperion *hyperion)
 	: QObject(hyperion)
+	, _smoothConfig(config)
 	, _log(nullptr)
 	, _hyperion(hyperion)
 	, _prioMuxer(_hyperion->getMuxerInstance())
@@ -79,8 +80,6 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonDocument &config, Hyperion
 
 	// init cfg (default)
 	updateConfig(SmoothingConfigID::SYSTEM, DEFAULT_SETTLINGTIME, DEFAULT_UPDATEFREQUENCY, DEFAULT_OUTPUTDEPLAY);
-	handleSettingsUpdate(settings::SMOOTHING, config);
-
 	// add pause on cfg 1
 	SmoothingCfg cfg {true, 0, 0};
 	_cfgList.append(std::move(cfg));
@@ -103,6 +102,8 @@ void LinearColorSmoothing::start()
 	QObject::connect(_hyperion, &Hyperion::compStateChangeRequest, this, &LinearColorSmoothing::componentStateChange);
 	QObject::connect(_prioMuxer.get(), &PriorityMuxer::prioritiesChanged, this, &LinearColorSmoothing::handlePriorityUpdate);
 	connect(_timer.get(), &QTimer::timeout, this, &LinearColorSmoothing::updateLeds);
+
+	updateSettings(_smoothConfig);
 }
 
 void LinearColorSmoothing::stop()
@@ -116,21 +117,17 @@ void LinearColorSmoothing::stop()
 	Info(_log, "LinearColorSmoothing stopped");
 }
 
-void LinearColorSmoothing::handleSettingsUpdate(settings::type type, const QJsonDocument &config)
+void LinearColorSmoothing::updateSettings(const QJsonObject &config)
 {
-	if (type == settings::type::SMOOTHING)
-	{
-		QJsonObject obj = config.object();
-
-		setEnable(obj["enable"].toBool(_enabled));
+		setEnable(config["enable"].toBool(_enabled));
 		_enabledSystemCfg = _enabled;
 
-		int64_t settlingTime_ms = static_cast<int64_t>(obj[SETTINGS_KEY_SETTLING_TIME].toInt(DEFAULT_SETTLINGTIME));
-		int _updateInterval_ms =static_cast<int>(MS_PER_MICRO / obj[SETTINGS_KEY_UPDATE_FREQUENCY].toDouble(DEFAULT_UPDATEFREQUENCY));
+		int64_t settlingTime_ms = static_cast<int64_t>(config[SETTINGS_KEY_SETTLING_TIME].toInt(DEFAULT_SETTLINGTIME));
+		int _updateInterval_ms =static_cast<int>(MS_PER_MICRO / config[SETTINGS_KEY_UPDATE_FREQUENCY].toDouble(DEFAULT_UPDATEFREQUENCY));
 
 		SmoothingCfg cfg(false, settlingTime_ms, _updateInterval_ms);
 
-		const QString typeString = obj[SETTINGS_KEY_SMOOTHING_TYPE].toString();
+		const QString typeString = config[SETTINGS_KEY_SMOOTHING_TYPE].toString();
 
 		if(typeString == SETTINGS_KEY_DECAY) {
 			cfg._type = SmoothingType::Decay;
@@ -140,11 +137,11 @@ void LinearColorSmoothing::handleSettingsUpdate(settings::type type, const QJson
 		}
 
 		cfg._pause = false;
-		cfg._outputDelay = static_cast<unsigned>(obj[SETTINGS_KEY_OUTPUT_DELAY].toInt(DEFAULT_OUTPUTDEPLAY));
+		cfg._outputDelay = static_cast<unsigned>(config[SETTINGS_KEY_OUTPUT_DELAY].toInt(DEFAULT_OUTPUTDEPLAY));
 
-		cfg._interpolationRate = obj[SETTINGS_KEY_INTERPOLATION_RATE].toDouble(DEFAULT_UPDATEFREQUENCY);
-		cfg._dithering = obj[SETTINGS_KEY_DITHERING].toBool(false);
-		cfg._decay = obj[SETTINGS_KEY_DECAY].toDouble(1.0);
+		cfg._interpolationRate = config[SETTINGS_KEY_INTERPOLATION_RATE].toDouble(DEFAULT_UPDATEFREQUENCY);
+		cfg._dithering = config[SETTINGS_KEY_DITHERING].toBool(false);
+		cfg._decay = config[SETTINGS_KEY_DECAY].toDouble(1.0);
 
 		_cfgList[SmoothingConfigID::SYSTEM] = cfg;
 		DebugIf(_enabled,_log,"%s", QSTRING_CSTR(getConfig(SmoothingConfigID::SYSTEM)));
@@ -154,6 +151,13 @@ void LinearColorSmoothing::handleSettingsUpdate(settings::type type, const QJson
 		{
 			selectConfig(SmoothingConfigID::SYSTEM, true);
 		}
+}
+
+void LinearColorSmoothing::handleSettingsUpdate(settings::type type, const QJsonDocument &config)
+{
+	if (type == settings::type::SMOOTHING)
+	{
+		updateSettings(config.object());
 	}
 }
 
@@ -533,7 +537,7 @@ void LinearColorSmoothing::clearRememberedFrames()
 
 void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> &ledColors)
 {
-	assert (ledColors.size() > 0);
+	assert (!ledColors.empty());
 
 	if (_outputDelay == 0)
 	{

@@ -6,8 +6,8 @@ import { ledDeviceWizardUtils as utils } from './LedDevice_utils.js';
 
 const philipshueWizard = (() => {
 
-  // External properties, 2-dimensional arry of [ledType][key]
-  let devicesProperties = {};
+  // External properties, 2-dimensional map of [ledType][key]
+  const devicesProperties = new Map();
 
   let hueIPs = [];
   let hueIPsinc = 0;
@@ -19,11 +19,6 @@ const philipshueWizard = (() => {
   let groupLightsLocations = [];
   let isAPIv2Ready = true;
   let isEntertainmentReady = true;
-
-  function isSafeKey(key) {
-    const unsafeKeys = ['__proto__', 'prototype', 'constructor'];
-    return typeof key === 'string' && !unsafeKeys.includes(key);
-  }
 
   function checkHueBridge(cb, hueUser) {
     const usr = (typeof hueUser != "undefined") ? hueUser : 'config';
@@ -248,12 +243,12 @@ const philipshueWizard = (() => {
     return layoutObjects;
   }
 
-  function updateBridgeDetails(properties) {
-    const ledDeviceProperties = properties.config;
+  function updateBridgeDetails(ledType, key, username) {
+    const ledDeviceProperties = getLedDeviceProperty(ledType, key, username);
 
     if (!jQuery.isEmptyObject(ledDeviceProperties)) {
-      isEntertainmentReady = properties.isEntertainmentReady;
-      isAPIv2Ready = properties.isAPIv2Ready;
+      isEntertainmentReady = ledDeviceProperties.isEntertainmentReady;
+      isAPIv2Ready = ledDeviceProperties.isAPIv2Ready;
 
       if (ledDeviceProperties.name && ledDeviceProperties.bridgeid && ledDeviceProperties.modelid) {
         $('#wiz_hue_discovered').html(
@@ -345,6 +340,27 @@ const philipshueWizard = (() => {
     }
   }
 
+  function getOrCreate(map, key, createValue) {
+      if (!map.has(key)) {
+          map.set(key, createValue());
+      }
+      return map.get(key);
+  }
+
+  function getLedDeviceProperty(ledType, key, username) {
+      const ledTypeMap = devicesProperties.get(ledType);
+      if (!ledTypeMap) return undefined;
+      const keyMap = ledTypeMap.get(key);
+      if (!keyMap) return undefined;
+      return keyMap.get(username);
+  }
+
+    function setLedDeviceProperty(ledType, key, username, ledDeviceProperties) {
+      const ledTypeMap = getOrCreate(devicesProperties, ledType, () => new Map());
+      const keyMap = getOrCreate(ledTypeMap, key, () => new Map());
+      keyMap.set(username, ledDeviceProperties);
+  }
+
   async function getProperties(cb, hostAddress, port, username, resourceFilter) {
     let params = { host: hostAddress, username: username, filter: resourceFilter };
     if (port !== 'undefined') {
@@ -354,35 +370,25 @@ const philipshueWizard = (() => {
     const ledType = 'philipshue';
     const key = hostAddress;
 
-    if (!isSafeKey(key) || !isSafeKey(username)) {
-      cb(false, username);
-      return;
-    }
-
-    //Create ledType cache entry
-    if (!devicesProperties[ledType]) {
-      devicesProperties[ledType] = {};
-    }
-
-    // Use device's properties, if properties in chache
-    if (devicesProperties[ledType][key] && devicesProperties[ledType][key][username]) {
-      updateBridgeDetails(devicesProperties[ledType][key]);
+    const cachedLedProperties = getLedDeviceProperty(ledType, key, username);
+    // Use device's properties, if properties in cache
+    if (cachedLedProperties) {
+      updateBridgeDetails(ledType, key, username);
       cb(true, username);
     } else {
       const res = await requestLedDeviceProperties(ledType, params);
       if (res && !res.error) {
-        const ledDeviceProperties = res.info.properties;
+        let ledDeviceProperties = res.info.properties;
         if (!jQuery.isEmptyObject(ledDeviceProperties)) {
 
-          devicesProperties[ledType][key] = {};
-          devicesProperties[ledType][key][username] = ledDeviceProperties;
-
           isAPIv2Ready = res.info.isAPIv2Ready;
-          devicesProperties[ledType][key].isAPIv2Ready = isAPIv2Ready;
           isEntertainmentReady = res.info.isEntertainmentReady;
-          devicesProperties[ledType][key].isEntertainmentReady = isEntertainmentReady;
 
-          updateBridgeDetails(devicesProperties[ledType][key]);
+          ledDeviceProperties.isAPIv2Ready = isAPIv2Ready;
+          ledDeviceProperties.isEntertainmentReady = isEntertainmentReady;
+          setLedDeviceProperty(ledType, key, username, ledDeviceProperties);
+
+          updateBridgeDetails(ledType, key, username);
           if (username === "config") {
             cb(true);
           } else {
@@ -701,34 +707,23 @@ const philipshueWizard = (() => {
   }
 
   function get_hue_groups(username) {
-    const host = hueIPs[hueIPsinc].host;
-
-    if (devicesProperties['philipshue'][host] && devicesProperties['philipshue'][host][username]) {
-      const ledProperties = devicesProperties['philipshue'][host][username];
-
-      if (isAPIv2Ready) {
-        if (!jQuery.isEmptyObject(ledProperties.data)) {
-          if (Object.keys(ledProperties.data).length > 0) {
-            hueEntertainmentConfigs = ledProperties.data.filter(config => {
-              return config.type === "entertainment_configuration";
-            });
-            hueEntertainmentServices = ledProperties.data.filter(config => {
-              return (config.type === "entertainment" && config.renderer === true);
-            });
-          }
-        }
-      } else if (!jQuery.isEmptyObject(ledProperties.groups)) {
-        hueEntertainmentConfigs = [];
-        let hueGroups = ledProperties.groups;
-        for (const groupid in hueGroups) {
-          if (hueGroups[groupid].type == 'Entertainment') {
-            hueGroups[groupid].id = groupid;
-            hueEntertainmentConfigs.push(hueGroups[groupid]);
-          }
+  const host = hueIPs[hueIPsinc]?.host;
+  const ledProperties = getLedDeviceProperty('philipshue', host, username);
+  if (ledProperties) {
+    if (isAPIv2Ready && Array.isArray(ledProperties?.data) && ledProperties.data.length > 0) {
+      hueEntertainmentConfigs = ledProperties.data.filter(config => config.type === "entertainment_configuration");
+      hueEntertainmentServices = ledProperties.data.filter(config => config.type === "entertainment" && config.renderer === true);
+    } else if (ledProperties?.groups && Object.keys(ledProperties.groups).length > 0) {
+      hueEntertainmentConfigs = [];
+      const hueGroups = ledProperties.groups;
+      for (const [groupid, group] of Object.entries(hueGroups)) {
+        if (group.type === 'Entertainment') {
+          hueEntertainmentConfigs.push({ ...group, id: groupid });
         }
       }
+    }
 
-      if (Object.keys(hueEntertainmentConfigs).length > 0) {
+  if (hueEntertainmentConfigs?.length > 0) {
 
         $('.lidsb').html("");
         $('#wh_topcontainer').toggle(false);
@@ -783,18 +778,14 @@ const philipshueWizard = (() => {
   function get_hue_lights(username) {
     const host = hueIPs[hueIPsinc].host;
 
-    if (devicesProperties['philipshue'][host] && devicesProperties['philipshue'][host][username]) {
-      const ledProperties = devicesProperties['philipshue'][host][username];
-
+    const ledProperties = getLedDeviceProperty('philipshue', host, username);
+    if (ledProperties) {
       if (isAPIv2Ready) {
-        if (!jQuery.isEmptyObject(ledProperties.data)) {
-          if (Object.keys(ledProperties.data).length > 0) {
-            hueLights = ledProperties.data.filter(config => {
-              return config.type === "light";
-            });
-          }
+        const data = ledProperties?.data;
+        if (Array.isArray(data) && data.length > 0) {
+          hueLights = data.filter(config => config.type === "light");
         }
-      } else if (!jQuery.isEmptyObject(ledProperties.lights)) {
+      } else if (Array.isArray(ledProperties?.lights) && ledProperties.lights.length > 0) {
         hueLights = ledProperties.lights;
       }
 
@@ -810,6 +801,7 @@ const philipshueWizard = (() => {
           lightOptions.unshift("entertainment");
         } else {
           lightOptions.unshift("disabled");
+          groupLights = [];
           if (isAPIv2Ready) {
             for (const light in hueLights) {
               groupLights.push(hueLights[light].id);

@@ -44,7 +44,7 @@ deploy/*
 .*cache/
 
 # User defined CMake preset file.
-CMakeUserPresets.json
+/CMakeUserPresets.json
 
 #Configurations created under config for testing
 /configs

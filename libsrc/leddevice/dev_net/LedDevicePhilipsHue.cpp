@@ -2646,7 +2646,6 @@ bool LedDevicePhilipsHue::switchOn()
 			if (_isOn)
 			{
 				Info(_log, "Device %s is ON", QSTRING_CSTR(_activeDeviceType));
-				emit isEnabledChanged(_isEnabled);
 				rc =true;
 			}
 			else
@@ -2654,6 +2653,7 @@ bool LedDevicePhilipsHue::switchOn()
 				Warning(_log, "Failed switching device %s ON", QSTRING_CSTR(_activeDeviceType));
 			}
 		}
+		emit isOnChanged(_isOn);
 	}
 	return rc;
 }
@@ -2717,6 +2717,7 @@ bool LedDevicePhilipsHue::switchOff()
 				rc = true;
 			}
 		}
+		emit isOnChanged(_isOn);
 	}
 	return rc;
 }

@@ -1,0 +1,223 @@
+{
+  "version": 8,
+  "configurePresets": [
+    {
+      "name": "env-common",
+      "hidden": true,
+      "cacheVariables": {
+      }
+    },
+    {
+      "name": "env-windows",
+      "hidden": true,
+      "inherits": [ "env-common" ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "environment": {
+        "WIN_DEV_ROOT_DIR": "D:/development",
+        "WIN_QT_ROOT_DIR": "$env{WIN_DEV_ROOT_DIR}/Qt",
+        "WIN_PYTHON_ROOT_DIR": "$env{WIN_DEV_ROOT_DIR}/python",
+        "WIN_TURBO_JPEG_ROOT_DIR": "$env{WIN_DEV_ROOT_DIR}/libjpeg-turbo64",
+        "OPENSSL_ROOT_DIR": "$env{WIN_QT_ROOT_DIR}/Tools/OpenSSLv3/Win_x64"
+      },
+      "cacheVariables": {
+        "TurboJPEG_INCLUDE_DIR": "$env{WIN_TURBO_JPEG_ROOT_DIR}/include",
+        "TurboJPEG_LIBRARY": "$env{WIN_TURBO_JPEG_ROOT_DIR}/lib/turbojpeg.lib",
+        "ENABLE_DX": "OFF"
+      }
+    },
+    {
+      "name": "qt5-env-windows",
+      "hidden": true,
+      "inherits": [ "env-windows" ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "cacheVariables": {
+        "Python3_EXECUTABLE": "$env{WIN_PYTHON_ROOT_DIR}/Python312/python.exe"
+      },
+      "environment": {
+        "QTDIR": "$env{WIN_QT_ROOT_DIR}/5.15.2/msvc2019_64/"
+      }
+    },
+    {
+      "name": "qt6-env-windows",
+      "hidden": true,
+      "inherits": [ "env-windows" ],
+      "cacheVariables": {
+        "Python3_EXECUTABLE": "$env{WIN_PYTHON_ROOT_DIR}/Python313/python.exe"
+      },
+      "environment": {
+        "QTDIR": "$env{WIN_QT_ROOT_DIR}/6.8.1/msvc2022_64/"
+      }
+    },
+
+    {
+      "name": "env-linux",
+      "hidden": true,
+      "inherits": [ "env-common" ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+      },
+      "environment": {
+        "LINUX_QT_ROOT_DIR": "$env{HOME}/Qt",
+        "LINUX_PRE_BUILT_DEPS_ROOT_DIR":"$env{HOME}/hyperion_prebuild_deps"
+      }
+    },
+    {
+      "name": "qt5-env-linux",
+      "hidden": true,
+      "inherits": [ "env-linux" ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "USE_PRE_BUILT_DEPS":"ON",
+      	"PRE_BUILT_DEPS_DIR":"$env{LINUX_PRE_BUILT_DEPS_ROOT_DIR}/qt5"
+      },
+      "environment": {
+      }
+    },
+    {
+      "name": "qt6-env-linux",
+      "hidden": true,
+      "inherits": [ "env-linux" ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "cacheVariables": {
+        "USE_PRE_BUILT_DEPS":"ON",
+      	"PRE_BUILT_DEPS_DIR":"$env{LINUX_PRE_BUILT_DEPS_ROOT_DIR}/qt6"
+      },
+      "environment": {
+        "QTDIR": "$env{LINUX_QT_ROOT_DIR}/6.9.0/gcc_64"
+      }
+    },
+    {
+      "name": "qt5-env-windows-wrapper",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "inherits": [ "qt5-env-windows" ],
+      "binaryDir": "${sourceDir}/build"
+    },
+
+    {
+      "name": "qt5-env-linux-wrapper",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "inherits": [ "qt5-env-linux" ],
+      "binaryDir": "${sourceDir}/build"
+    },
+
+    {
+      "name": "qt6-env-windows-wrapper",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "inherits": [ "qt6-env-windows" ],
+      "binaryDir": "${sourceDir}/build"
+    },
+    {
+      "name": "qt6-env-linux-wrapper",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "inherits": [ "qt6-env-linux" ],
+      "binaryDir": "${sourceDir}/build"
+    },
+    {
+      "name": "debug-qt5-all-windows",
+      "inherits": [ "windows-debug", "qt5-env-windows-wrapper" ],
+      "hidden": false
+    },
+    {
+      "name": "debug-qt5-light-windows",
+      "inherits": [ "windows-debug", "qt5-env-windows-wrapper", "hyperion-light" ]
+    },
+    {
+      "name": "debug-qt5-minimum-windows",
+      "inherits": [ "windows-debug", "qt5-env-windows-wrapper", "hyperion-bare-minimum" ]
+    },
+    {
+      "name": "release-qt5-all",
+      "inherits": [ "windows-release", "qt5-env-windows-wrapper" ]
+    },
+    {
+      "name": "debug-qt5-all-linux",
+      "inherits": [ "linux-debug", "qt5-env-linux-wrapper" ],
+      "hidden": false
+    },
+    {
+      "name": "debug-qt5-light-linux",
+      "inherits": [ "linux-debug", "qt5-env-linux-wrapper", "hyperion-light" ]
+    },
+    {
+      "name": "debug-qt5-minimum-linux",
+      "inherits": [ "linux-debug", "qt5-env-linux-wrapper", "hyperion-bare-minimum" ]
+    },
+    {
+      "name": "release-qt5-all-linux",
+      "inherits": [ "linux-release", "qt5-env-linux-wrapper" ]
+    },
+    {
+      "name": "debug-qt6-all-windows",
+      "inherits": [ "windows-debug", "qt6-env-windows-wrapper" ]
+    },
+    {
+      "name": "debug-qt6-light-windows",
+      "inherits": [ "windows-debug", "qt6-env-windows-wrapper", "hyperion-light" ]
+    },
+    {
+      "name": "debug-qt6-minimum-windows",
+      "inherits": [ "windows-debug", "qt6-env-windows-wrapper", "hyperion-bare-minimum" ]
+    },
+    {
+      "name": "release-qt6-all-windows",
+      "inherits": [ "windows-release", "qt6-env-windows-wrapper" ]
+    },
+    {
+      "name": "debug-qt6-all-linux",
+      "inherits": [ "linux-debug", "qt6-env-linux-wrapper" ]
+    },
+    {
+      "name": "debug-qt6-light-linux",
+      "inherits": [ "linux-debug", "qt6-env-linux-wrapper", "hyperion-light" ]
+    },
+    {
+      "name": "debug-qt6-minimum-linux",
+      "inherits": [ "linux-debug", "qt6-env-linux-wrapper", "hyperion-bare-minimum" ]
+    },
+    {
+      "name": "release-qt6-all-linux",
+      "inherits": [ "linux-release", "qt6-env-linux-wrapper" ]
+    }
+  ]
+}
+
