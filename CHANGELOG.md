@@ -27,8 +27,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Systray: Support multiple instances
 - UI: Validate that key ports do not overlap across editors and pages
 - UI: Provide additional details in error dialogue
-- UI: LED preview - show instance's name the preview is applicable to 
+- UI: LED preview - show instance's name the preview is applicable to
 - Http-Server: Support Cross-Origin Resource Sharing (CORS) (#1496)
+- GitHub: Windows 11 (arm64) has been added to the Qt6 workflow build
 
 **JSON-API**
 - New subscription support for event updates, i.e. `Suspend, Resume, Idle, idleResume, Restart, Quit`.
@@ -37,7 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Overview](https://github.com/hyperion-project/hyperion.ng/blob/API_Auth/doc/development/JSON-API%20_Commands_Overview.md) of API commands and subscription updates
 - Support to query for a dedicated set of configuration items for a set of instances
 - Support to save a dedicated set of configuration items for a set of instances
-- Limit update emission frequency: Images (25Hz), raw LED-Colors (40Hz) & LED-Device data (200Hz) 
+- Limit update emission frequency: Images (25Hz), raw LED-Colors (40Hz) & LED-Device data (200Hz)
 - Support for requesting instance-data via JSON-API. Implemented requesting the current image in different formats or led colors.
 
 ### Changed
@@ -72,7 +73,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed Last update of an effect event is not removed in sources overview
 - Fixed Removed stale _logger object
 - Fixed Smoothing (#1863)
-- UI: Instance listings are sorted, enabled instances are high-lighted in drop-downs 
+- UI: Instance listings are sorted, enabled instances are high-lighted in drop-downs
+- GitHub: For Windows, Pull request artifacts are now built with RelWithDebInfo (#1865 )
 
 **JSON-API**
 - Refactored JSON-API to ensure consistent authorization behaviour across sessions and single requests with token authorization.
