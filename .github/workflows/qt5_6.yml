@@ -146,12 +146,10 @@ jobs:
       - name: 👷 Build ${{ env.HINT }}
         shell: bash
         run: |
-          # Remove once issue with Homebrew cache action is fixed
-          brew reinstall --formula cmake
-
           # Build
           cmake --preset macos-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }}
           cmake --build --preset macos-${{ env.BUILD_TYPE }}
+
           # CPack workaround for macOS 13
           attempt=0
           max_attempts=5
