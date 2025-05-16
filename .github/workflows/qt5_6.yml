@@ -238,7 +238,7 @@ jobs:
           os: 'windows'
           architecture: ${{ matrix.architecture }}
           qt_version: ${{ inputs.qt_version }}
-          build_type: ${{ inputs.event_name != 'pull_request' && 'relwithdebinfo' || 'release' }}
+          build_type: ${{ inputs.event_name == 'pull_request' && 'relwithdebinfo' || 'release' }}
 
       - name: 👷 Build ${{ env.HINT }}
         shell: cmd
@@ -246,7 +246,7 @@ jobs:
            cmake --preset windows-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }}
            cmake --build --preset windows-${{ env.BUILD_TYPE }} --target package
         env:
-          BUILD_TYPE: ${{ inputs.event_name != 'pull_request' && 'relwithdebinfo' || 'release' }}
+          BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'relwithdebinfo' || 'release' }}
           HINT: ${{ steps.dependencies.outputs.cmakeArgs != '' && '(with pre-built dependencies)' || '(full build)' }}
 
       - name: 📦 Upload
