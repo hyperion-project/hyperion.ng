@@ -100,6 +100,7 @@ if(CPACK_GENERATOR MATCHES "DragNDrop")
 	set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_BINARY_DIR}/LICENSE")
 	set(CPACK_DMG_BACKGROUND_IMAGE "${CMAKE_SOURCE_DIR}/cmake/macos/Background.png")
 	set(CPACK_DMG_DS_STORE_SETUP_SCRIPT "${CMAKE_SOURCE_DIR}/cmake/macos/AppleScript.scpt")
+	set(CPACK_COMMAND_HDIUTIL "${CMAKE_SOURCE_DIR}/cmake/macos/hdiutilwrap.sh")
 endif()
 
 # NSIS (Windows only)

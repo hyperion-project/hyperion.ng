@@ -148,21 +148,7 @@ jobs:
         run: |
           # Build
           cmake --preset macos-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }}
-          cmake --build --preset macos-${{ env.BUILD_TYPE }}
-
-          # CPack workaround for macOS 13
-          attempt=0
-          max_attempts=5
-          while [ $attempt -lt $max_attempts ]; do
-            if cd build && cpack; then
-              echo "Package created successfully"
-              break
-            else
-              echo "Failed to create package, retrying..."
-              sleep 10
-            fi
-            attempt=$((attempt + 1))
-          done
+          cmake --build --preset macos-${{ env.BUILD_TYPE }} --target package
         env:
           BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
           HINT: ${{ steps.dependencies.outputs.cmakeArgs != '' && '(with pre-built dependencies)' || '(full build)' }}
