@@ -28,7 +28,9 @@ if(WIN32)
 			message(WARNING "Cannot find the windeployqt tool.")
 		endif()
 	endif()
-elseif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
+endif()
+
+if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 	# include resource files for macos bundle (copy LICENSE file and correct line breaks)
 	configure_file(${CMAKE_SOURCE_DIR}/LICENSE ${CMAKE_BINARY_DIR}/LICENSE COPYONLY)
 	execute_process(COMMAND bash -c "perl -pi -e 's/\n/\r/g' ${CMAKE_BINARY_DIR}/LICENSE")
@@ -53,6 +55,7 @@ add_executable(${PROJECT_NAME}
 	${MACOS_BUNDLE_RESOURCE_FILES}
 )
 
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS DBus QUIET)
 target_link_libraries(${PROJECT_NAME}
 	commandline
 	hyperion
@@ -62,97 +65,44 @@ target_link_libraries(${PROJECT_NAME}
 	database
 	resources
 	events
+	# Qt
 	Qt${QT_VERSION_MAJOR}::Core
 	Qt${QT_VERSION_MAJOR}::Gui
 	Qt${QT_VERSION_MAJOR}::Network
 	Qt${QT_VERSION_MAJOR}::Widgets
+	$<$<BOOL:${Qt${QT_VERSION_MAJOR}DBus_FOUND}>:Qt${QT_VERSION_MAJOR}::DBus>
+	# Grabber
+	$<$<BOOL:${ENABLE_DISPMANX}>:dispmanx-grabber>
+	$<$<BOOL:${ENABLE_FB}>:framebuffer-grabber>
+	$<$<BOOL:${ENABLE_OSX}>:osx-grabber>
+	$<$<BOOL:${ENABLE_V4L2}>:v4l2-grabber>
+	$<$<BOOL:${ENABLE_MF}>:mf-grabber>
+	$<$<BOOL:${ENABLE_AUDIO}>:audio-grabber>
+	$<$<BOOL:${ENABLE_AMLOGIC}>:amlogic-grabber>
+	$<$<BOOL:${ENABLE_X11}>:x11-grabber>
+	$<$<BOOL:${ENABLE_XCB}>:xcb-grabber>
+	$<$<BOOL:${ENABLE_QT}>:qt-grabber>
+	$<$<BOOL:${ENABLE_DX}>:directx-grabber>
+	$<$<BOOL:${ENABLE_DDA}>:dda-grabber>
+	# Input
+	$<$<BOOL:${ENABLE_FLATBUF_SERVER}>:flatbufserver>
+	$<$<BOOL:${ENABLE_PROTOBUF_SERVER}>:protoserver>
+	$<$<BOOL:${ENABLE_CEC}>:cechandler>
+	# Services
+	$<$<BOOL:${ENABLE_EFFECTENGINE} AND TARGET python>:effectengine python>
+	$<$<BOOL:${ENABLE_MDNS}>:mdns>
 )
-
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS DBus QUIET)
-if(Qt${QT_VERSION_MAJOR}DBus_FOUND)
-	target_link_libraries(${PROJECT_NAME} "Qt${QT_VERSION_MAJOR}::DBus")
-endif()
-
-if(ENABLE_EFFECTENGINE AND TARGET python)
-	target_link_libraries(${PROJECT_NAME} effectengine python)
-	get_target_property(PYTHON_VERSION python PYTHON_VERSION_PROPERTY)
-	get_target_property(PYTHON_MODULES_DIR python PYTHON_STDLIB_LOCATION_PROPERTY)
-endif()
-
-if(ENABLE_FLATBUF_SERVER)
-	target_link_libraries(${PROJECT_NAME} flatbufserver)
-endif()
-
-if(ENABLE_PROTOBUF_SERVER)
-	target_link_libraries(${PROJECT_NAME} protoserver)
-endif()
-
-if(ENABLE_DISPMANX)
-	target_link_libraries(${PROJECT_NAME} dispmanx-grabber)
-endif()
-
-if(ENABLE_FB)
-	target_link_libraries(${PROJECT_NAME} framebuffer-grabber)
-endif()
-
-if(ENABLE_OSX)
-	target_link_libraries(${PROJECT_NAME} osx-grabber)
-endif()
-
-if(ENABLE_V4L2)
-	target_link_libraries(${PROJECT_NAME} v4l2-grabber)
-endif()
-
-if(ENABLE_MF)
-	target_link_libraries(${PROJECT_NAME} mf-grabber)
-	if(TARGET turbojpeg)
-		get_target_property(TurboJPEG_INCLUDE_DIR turbojpeg INTERFACE_INCLUDE_DIRECTORIES)
-	endif()
-endif()
-
-if(ENABLE_AUDIO)
-	target_link_libraries(hyperiond audio-grabber)
-endif()
-
-if(ENABLE_AMLOGIC)
-	target_link_libraries(${PROJECT_NAME} amlogic-grabber)
-endif()
-
-if(ENABLE_X11)
-	if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-		include_directories("/opt/X11/include")
-	endif()
-	target_link_libraries(${PROJECT_NAME} x11-grabber)
-endif()
-
-if(ENABLE_XCB)
-	target_link_libraries(${PROJECT_NAME} xcb-grabber)
-endif()
-
-if(ENABLE_QT)
-	target_link_libraries(${PROJECT_NAME} qt-grabber)
-endif()
-
-if(ENABLE_DX)
-	target_link_libraries(${PROJECT_NAME} directx-grabber)
-endif()
-
-if(ENABLE_DDA)
-	target_link_libraries(${PROJECT_NAME} dda-grabber)
-endif()
-
-if(ENABLE_CEC)
-	target_link_libraries(${PROJECT_NAME} cechandler)
-endif()
-
-if(ENABLE_MDNS)
-	target_link_libraries(${PROJECT_NAME} mdns)
-endif()
 
 #####################################
 ########### Install steps ###########
 #####################################
 
+if(ENABLE_EFFECTENGINE AND TARGET python)
+	get_target_property(PYTHON_VERSION python PYTHON_VERSION_PROPERTY)
+	get_target_property(PYTHON_MODULES_DIR python PYTHON_STDLIB_LOCATION_PROPERTY)
+endif()
+
+# MacOS
 if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 	# set bundle information
 	set(MAC_BUNDLE_NAME "Hyperion")
@@ -173,7 +123,10 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 	install(TARGETS ${PROJECT_NAME} BUNDLE DESTINATION . COMPONENT "Hyperion")
 	configure_file("${CMAKE_SOURCE_DIR}/cmake/macos/BundleMacOS.cmake.in" "${PROJECT_BINARY_DIR}/BundleMacOS.cmake" @ONLY)
     install(SCRIPT "${PROJECT_BINARY_DIR}/BundleMacOS.cmake" COMPONENT "Hyperion")
-elseif(NOT WIN32)
+endif()
+
+# Linux
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	# install Hyperion/service files/effect folder
 	install(TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin" COMPONENT "Hyperion")
 	install(DIRECTORY ${CMAKE_SOURCE_DIR}/bin/service DESTINATION "share/hyperion" COMPONENT "Hyperion")
@@ -201,12 +154,27 @@ elseif(NOT WIN32)
 		configure_file("${CMAKE_SOURCE_DIR}/cmake/linux/BundleLinux.cmake.in" "${PROJECT_BINARY_DIR}/BundleLinux.cmake" @ONLY)
 		install(SCRIPT "${PROJECT_BINARY_DIR}/BundleLinux.cmake" COMPONENT "Hyperion")
 	endif()
-else()
+endif()
+
+# Windows
+if(WIN32)
 	install(TARGETS ${PROJECT_NAME} DESTINATION "bin" COMPONENT "Hyperion" OPTIONAL)
 	install(FILES ${CMAKE_SOURCE_DIR}/effects/readme.txt DESTINATION "effects" COMPONENT "Hyperion")
 
+	if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+		set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP true)
+		set(CMAKE_INSTALL_UCRT_LIBRARIES true)
+		set(CMAKE_INSTALL_DEBUG_LIBRARIES true)
+		set(CMAKE_INSTALL_DEBUG_LIBRARIES_ONLY true)
+		include (InstallRequiredSystemLibraries)
+	endif()
+
 	if(TARGET Qt${QT_VERSION_MAJOR}::windeployqt)
 		get_target_property(WINDEPLOYQT_EXECUTABLE Qt${QT_VERSION_MAJOR}::windeployqt IMPORTED_LOCATION)
+	endif()
+
+	if(ENABLE_MF AND TARGET turbojpeg)
+		get_target_property(TurboJPEG_INCLUDE_DIR turbojpeg INTERFACE_INCLUDE_DIRECTORIES)
 	endif()
 
 	configure_file("${CMAKE_SOURCE_DIR}/cmake/windows/BundleWindows.cmake.in" "${PROJECT_BINARY_DIR}/BundleWindows.cmake" @ONLY)

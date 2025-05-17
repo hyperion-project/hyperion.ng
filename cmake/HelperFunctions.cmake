@@ -1,3 +1,5 @@
+include_guard(GLOBAL)
+
 # Extract Major.Minor.Patch.Pre version from string
 function(SetVersionNumber PREFIX VERSION_STRING)
 	string(REGEX MATCHALL "[0-9]+|-([A-Za-z0-9_.]+)" VERSION_PARTS ${VERSION_STRING})

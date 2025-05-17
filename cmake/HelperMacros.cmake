@@ -1,3 +1,5 @@
+include_guard(GLOBAL)
+
 macro(addIndent text)
 	if(${CMAKE_VERSION} VERSION_GREATER "3.16.0")
 		list(APPEND CMAKE_MESSAGE_INDENT ${text})
