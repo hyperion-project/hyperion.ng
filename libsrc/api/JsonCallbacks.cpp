@@ -124,7 +124,7 @@ bool JsonCallbacks::subscribe(const QString& cmd)
 QStringList JsonCallbacks::subscribe(const QJsonArray& subscriptions)
 {
 	QJsonArray subsArr;
-	if (subscriptions.contains("all"))
+	if (subscriptions.isEmpty())
 	{
 		for (const auto& entry : getCommands(false))
 		{
@@ -229,7 +229,7 @@ bool JsonCallbacks::unsubscribe(const Subscription::Type cmd)
 
 bool JsonCallbacks::unsubscribe(const QString& cmd)
 {
-	JsonApiSubscription subscription = ApiSubscriptionRegister::getSubscriptionInfo(cmd);
+	JsonApiSubscription const subscription = ApiSubscriptionRegister::getSubscriptionInfo(cmd);
 	if (subscription.cmd == Subscription::Unknown)
 	{
 		return false;
@@ -240,17 +240,13 @@ bool JsonCallbacks::unsubscribe(const QString& cmd)
 QStringList JsonCallbacks::unsubscribe(const QJsonArray& subscriptions)
 {
 	QJsonArray subsArr;
-	if (subscriptions.contains("all"))
+	if (subscriptions.isEmpty())
 	{
-		for (const auto& entry : getCommands(false))
-		{
-			subsArr.append(entry);
-		}
+		resetSubscriptions();
+		return {};
 	}
-	else
-	{
-		subsArr = subscriptions;
-	}
+
+	subsArr = subscriptions;
 
 	QStringList invalidSubscriptions;
 	for (auto it = subsArr.begin(); it != subsArr.end(); ++it)

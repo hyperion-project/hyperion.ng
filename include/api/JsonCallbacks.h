@@ -36,7 +36,7 @@ public:
 
 	///
 	/// @brief Subscribe to future data updates given by subscription list
-	/// @param type   Array of subscriptionsm
+	/// @param type   Array of subscriptions, an empty array subscribes to all updates
 	///
 	QStringList subscribe(const QJsonArray& subscriptions);
 
@@ -56,7 +56,7 @@ public:
 
 	///
 	/// @brief Unsubscribe to future data updates given by subscription list
-	/// @param type   Array of subscriptions
+	/// @param type   Array of subscriptions, an empty array will unsubcribe all current subscriptions
 	///
 	QStringList unsubscribe(const QJsonArray& subscriptions);
 
