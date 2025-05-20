@@ -113,15 +113,25 @@ void X11Grabber::setupResources()
 	}
 }
 
+
+bool X11Grabber::isAvailable(bool logError)
+{
+	if (getenv("WAYLAND_DISPLAY") != nullptr)
+	{
+		ErrorIf(logError, _log, "Grabber does not work under Wayland!");
+		_isWayland = true;
+	}
+
+	_isAvailable = !_isWayland;
+	return _isAvailable;
+}
+
+
 bool X11Grabber::open()
 {
 	bool rc = false;
 
-	if (getenv("WAYLAND_DISPLAY") != nullptr)
-	{
-		_isWayland = true;
-	}
-	else
+	if (_isAvailable)
 	{
 		_x11Display = XOpenDisplay(nullptr);
 		if (_x11Display != nullptr)
@@ -134,25 +144,24 @@ bool X11Grabber::open()
 
 bool X11Grabber::setupDisplay()
 {
+	if (!_isAvailable)
+	{
+		return false;
+	}
+
 	bool result = false;
 
 	if ( ! open() )
 	{
-		if ( _isWayland  )
+		if (getenv("DISPLAY") != nullptr)
 		{
-			Error(_log, "Grabber does not work under Wayland!");
+			Error(_log, "Unable to open display [%s]",getenv("DISPLAY"));
 		}
 		else
 		{
-			if (getenv("DISPLAY") != nullptr)
-			{
-				Error(_log, "Unable to open display [%s]",getenv("DISPLAY"));
-			}
-			else
-			{
-				Error(_log, "DISPLAY environment variable not set");
-			}
+			Error(_log, "DISPLAY environment variable not set");
 		}
+
 	}
 	else
 	{
@@ -405,7 +414,7 @@ QJsonObject X11Grabber::discover(const QJsonObject& params)
 	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	QJsonObject inputsDiscovered;
-	if ( open() )
+	if ( isAvailable(false) && open() )
 	{
 		inputsDiscovered["device"] = "x11";
 		inputsDiscovered["device_name"] = "X11";

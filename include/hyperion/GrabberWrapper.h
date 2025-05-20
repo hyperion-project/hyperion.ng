@@ -168,9 +168,6 @@ private slots:
 	/// Will start and stop grabber based on active listeners count
 	void handleSourceRequest(hyperion::Components component, int hyperionInd, bool listen);
 
-	///
-
-
 protected:
 
 	///

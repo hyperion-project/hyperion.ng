@@ -64,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed: Python 3.12 crashes (#1747)
 - osX Grabber: Use ScreenCaptureKit under macOS 15 and above
 - Removed maximum LED number constraint from Matrix layout schema which was not synced with the UI behaviour (#1804)
+- UI: Instance listings are sorted, enabled instances are high-lighted in drop-downs 
 - Fixed bespoke WebSocket implementation by using of QWebSockets (#1816, #1448, #1247, #1130)
 - Fixed mDNS Browser deadlock, plus run in own thread now
 - Fixed that LED Buffer and Layout might get out of sync.
@@ -72,7 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed Last update of an effect event is not removed in sources overview
 - Fixed Removed stale _logger object
 - Fixed Smoothing (#1863)
-- UI: Instance listings are sorted, enabled instances are high-lighted in drop-downs 
+- Fixed Crash when XCB,X11 was configured and display manager changed to Wayland
 
 **JSON-API**
 - Refactored JSON-API to ensure consistent authorization behaviour across sessions and single requests with token authorization.
