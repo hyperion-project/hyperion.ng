@@ -99,6 +99,13 @@
       }
     },
     {
+      "name": "relwithdebinfo",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    },
+    {
       "name": "ninja-base",
       "hidden": true,
       "generator": "Ninja",
@@ -160,6 +167,17 @@
       "displayName": "Windows (release) (msvc)",
       "description": "Build with MSVC's CL as Release without Debug Symbols",
       "inherits": [ "base", "release", "msvc" ],
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "windows-relwithdebinfo",
+      "displayName": "Windows (RelWithDebInfo) (msvc)",
+      "description": "Build with MSVC's CL as Release with Debug Symbols",
+      "inherits": [ "base", "relwithdebinfo", "msvc" ],
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
@@ -232,6 +250,19 @@
       "configuration": "Release",
       "targets": "all",
       "configurePreset": "windows-release",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "windows-relwithdebinfo",
+      "displayName": "Windows (RelWithDebInfo) (msvc)",
+      "description": "Build with MSVC's CL as Release with Debug Symbols",
+      "configuration": "RelWithDebInfo",
+      "targets": "all",
+      "configurePreset": "windows-relwithdebinfo",
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",

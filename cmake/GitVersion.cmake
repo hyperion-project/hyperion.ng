@@ -1,3 +1,5 @@
+include_guard(GLOBAL)
+
 execute_process(
     COMMAND git config --global --add safe.directory "*"
     ERROR_QUIET
