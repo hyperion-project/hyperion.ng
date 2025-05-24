@@ -179,15 +179,23 @@ void XcbGrabber::setupShm()
 	}
 }
 
+bool XcbGrabber::isAvailable(bool logError)
+{
+	if (getenv("WAYLAND_DISPLAY") != nullptr)
+	{
+		ErrorIf(logError, _log, "Grabber does not work under Wayland!");
+		_isWayland = true;
+	}
+
+	_isAvailable = !_isWayland;
+	return _isAvailable;
+}
+
 bool XcbGrabber::open()
 {
 	bool rc = false;
 
-	if (getenv("WAYLAND_DISPLAY") != nullptr)
-	{
-		_isWayland = true;
-	}
-	else
+	if (_isAvailable)
 	{
 		_connection = xcb_connect(nullptr, &_screen_num);
 
@@ -212,26 +220,24 @@ bool XcbGrabber::open()
 
 bool XcbGrabber::setupDisplay()
 {
-	bool result = false;
+	if (!_isAvailable)
+	{
+		return false;
+	}
+
+	bool result {false};
 
 	if ( ! open() )
 	{
-		if ( _isWayland  )
+		if (getenv("DISPLAY") != nullptr)
 		{
-			Error(_log, "Grabber does not work under Wayland!");
+			Error(_log, "Unable to open display [%s], screen %d does not exist", getenv("DISPLAY"), _screen_num);
 		}
 		else
 		{
-			if (getenv("DISPLAY") != nullptr)
-			{
-				Error(_log, "Unable to open display [%s], screen %d does not exist", getenv("DISPLAY"), _screen_num);
-			}
-			else
-			{
-				Error(_log, "DISPLAY environment variable not set");
-			}
-			freeResources();
+			Error(_log, "DISPLAY environment variable not set");
 		}
+		freeResources();
 	}
 	else
 	{
@@ -506,7 +512,7 @@ QJsonObject XcbGrabber::discover(const QJsonObject& params)
 	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	QJsonObject inputsDiscovered;
-	if ( open() )
+	if ( isAvailable(false) && open() )
 	{
 		inputsDiscovered["device"] = "xcb";
 		inputsDiscovered["device_name"] = "XCB";

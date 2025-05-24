@@ -73,6 +73,13 @@ public:
 	bool setupDisplay();
 
 	///
+	/// @brief Determine if the grabber is available.
+	///
+	/// @return true, on success (i.e. Window Manager is not Wayland), else false
+	///
+	bool isAvailable(bool logError = true) override;
+
+	///
 	/// @brief Opens the input device.
 	///
 	/// @return Zero, on success (i.e. device is ready), else negative

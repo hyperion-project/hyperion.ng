@@ -31,7 +31,7 @@ DispmanxFrameGrabber::DispmanxFrameGrabber()
 	_useImageResampler = true;
 }
 
-bool DispmanxFrameGrabber::isAvailable()
+bool DispmanxFrameGrabber::isAvailable(bool logError)
 {
 #ifdef BCM_FOUND
 	void* bcm_host = dlopen(std::string("" BCM_LIBRARY).c_str(), RTLD_LAZY | RTLD_GLOBAL);

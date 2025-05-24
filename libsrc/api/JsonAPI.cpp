@@ -719,13 +719,13 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const JsonApiC
 	case SubCommand::Subscribe:
 	case SubCommand::Unsubscribe:
 	{
-		const QJsonObject &params = message["data"].toObject();
-		const QJsonArray &subscriptions = params["subscriptions"].toArray();
-		if (subscriptions.isEmpty()) {
+		QJsonValue const subscriptionsValue = message["subscribe"];
+		if (subscriptionsValue.isUndefined())
+		{
 			sendErrorReply("Invalid params", {"No subscriptions provided"}, cmd);
-			return;
 		}
 
+		const QJsonArray &subscriptions = subscriptionsValue.toArray();
 		QStringList invaliCommands;
 		if (cmd.subCommand == SubCommand::Subscribe)
 		{

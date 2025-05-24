@@ -182,7 +182,6 @@ $(document).ready(function () {
           $("#general_comp_" + componentName).bootstrapToggle(isInstanceEnabled ? "enable" : "disable");
 
           $("#general_comp_" + componentName).change(function () {
-            const componentName = componentName;
             const isChecked = $(this).prop('checked');
             requestSetComponentState(componentName, isChecked);
           });

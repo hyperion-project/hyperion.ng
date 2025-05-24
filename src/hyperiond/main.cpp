@@ -235,30 +235,49 @@ int main(int argc, char** argv)
 	if (parser.isSet(exportEfxOption))
 	{
 		Q_INIT_RESOURCE(EffectEngine);
-		QDir directory(":/effects/");
-		QDir destDir(exportEfxOption.value(parser));
-		if (directory.exists() && destDir.exists())
+		QDir const sourceDir(":/effects/");
+		QDir const destinationDir(exportEfxOption.value(parser));
+
+		// Create destination if it does not exist
+		if (!destinationDir.exists())
 		{
-			std::cout << "Extract to folder: " << destDir.absolutePath().toStdString() << std::endl;
-			const QStringList filenames = directory.entryList(QStringList() << "*", QDir::Files, QDir::Name | QDir::IgnoreCase);
-			QString destFileName;
+			std::cout << "Creating target directory: " << destinationDir.absolutePath().toStdString()  << '\n';
+			if (!QDir().mkpath(destinationDir.absolutePath()))
+			{
+				std::cerr  << "Failed to create directory: \"" << destinationDir.absolutePath().toStdString() << "\", aborting"  << '\n';
+				return 1;
+			}
+		}
+
+		if (sourceDir.exists())
+		{
+			std::cout << "Extract to folder: " << destinationDir.absolutePath().toStdString() << '\n';
+			const QStringList filenames = sourceDir.entryList(QStringList() << "*", QDir::Files, QDir::Name | QDir::IgnoreCase);
 			for (const QString & filename : filenames)
 			{
-				destFileName = destDir.dirName()+"/"+filename;
-				if (QFile::exists(destFileName))
+				QString const sourceFilePath = sourceDir.absoluteFilePath(filename);
+				QString const destinationFilePath = destinationDir.absoluteFilePath(filename);
+
+				if (QFile::exists(destinationFilePath))
 				{
-					QFile::remove(destFileName);
+					QFile::remove(destinationFilePath);
+				}
+
+				if (Logger::getLogLevel() == Logger::DEBUG )
+				{
+					std::cout << "Copy \"" << sourceFilePath.toStdString() << "\" -> \"" << destinationFilePath.toStdString() << "\""  << '\n';
 				}
 
 				std::cout << "Extract: " << filename.toStdString() << " ... ";
-				if (QFile::copy(QString(":/effects/")+filename, destFileName))
+				if (QFile::copy(sourceFilePath, destinationFilePath))
 				{
-					QFile::setPermissions(destFileName, PERM0664 );
-					std::cout << "OK" << std::endl;
+					QFile::setPermissions(destinationFilePath, PERM0664 );
+					std::cout << "OK"  << '\n';
 				}
 				else
 				{
-					std::cout << "Error, aborting" << std::endl;
+					std::cerr  << "Error copying [" << sourceFilePath.toStdString() << " -> [" << destinationFilePath.toStdString() << "]"  << '\n';
+					std::cerr  << "Error, aborting"  << '\n';
 					return 1;
 				}
 			}
