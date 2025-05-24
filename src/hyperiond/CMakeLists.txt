@@ -16,8 +16,8 @@ if(WIN32)
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 
 	# Search for windeployqt target (qt6 has the target natively) otherwise create it.
+	get_filename_component(QT_BIN_DIR ${QMAKE_EXECUTABLE} DIRECTORY)
 	if(NOT TARGET Qt${QT_VERSION_MAJOR}::windeployqt)
-		get_filename_component(QT_BIN_DIR ${QMAKE_EXECUTABLE} DIRECTORY)
 		find_program(WINDEPLOYQT_EXECUTABLE NAMES windeployqt HINTS ${QT_BIN_DIR})
 		if(EXISTS ${WINDEPLOYQT_EXECUTABLE})
 			add_executable(Qt${QT_VERSION_MAJOR}::windeployqt IMPORTED)
@@ -190,6 +190,13 @@ endif()
 if(WIN32 AND NOT DEFINED ENV{GITHUB_ACTIONS})
 	if(TARGET Qt${QT_VERSION_MAJOR}::windeployqt)
 		set(WINDEPLOYQT_PARAMS --verbose 0 --no-compiler-runtime --no-opengl-sw --no-system-d3d-compiler)
+
+		get_target_property(QT_QTPATHS_EXECUTABLE Qt${QT_VERSION_MAJOR}::qtpaths IMPORTED_LOCATION)
+		find_file(QT_PATHS "qtpaths.bat" PATHS ${CMAKE_PREFIX_PATH} PATH_SUFFIXES bin)
+		if(QT_PATHS)
+			list(APPEND WINDEPLOYQT_PARAMS "--qtpaths=${QT_PATHS}")
+		endif()
+
 		add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 			COMMAND Qt${QT_VERSION_MAJOR}::windeployqt ${WINDEPLOYQT_PARAMS} "$<TARGET_FILE:${PROJECT_NAME}>"
 		)

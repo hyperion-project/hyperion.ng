@@ -7,20 +7,29 @@ set(CMAKE_SOURCE_DIR "@CMAKE_SOURCE_DIR@")
 set(CMAKE_CURRENT_BINARY_DIR "@CMAKE_CURRENT_BINARY_DIR@")
 
 # Set windeployqt args
-set(ARGS --dry-run --no-opengl-sw --list mapping)
+set(QT5_ARGS)
 if(@QT_VERSION_MAJOR@ EQUAL 5)
-	set(EXTRA_ARGS --no-angle)
+	set(QT5_ARGS --no-angle)
+endif()
+
+find_file(QT_PATHS "qtpaths.bat" PATHS @CMAKE_PREFIX_PATH@ PATH_SUFFIXES bin)
+if(QT_PATHS)
+	set(QT_PATHS --qtpaths=${QT_PATHS})
+else()
+	set(QT_PATHS "")
 endif()
 
 if(EXISTS @CMAKE_BINARY_DIR@/bin/@PROJECT_NAME@@CMAKE_EXECUTABLE_SUFFIX@)
 	# Collect the runtime libraries
-	get_filename_component(QT_BIN_DIR "${QMAKE_EXECUTABLE}" DIRECTORY)
 	execute_process(
-		COMMAND "${CMAKE_COMMAND}" -E env "PATH=${QT_BIN_DIR}" "@WINDEPLOYQT_EXECUTABLE@"
-		${ARGS}
-		${EXTRA_ARGS}
+		COMMAND "${CMAKE_COMMAND}" -E env "PATH=@QT_BIN_DIR@" "@WINDEPLOYQT_EXECUTABLE@"
+		${QT_PATHS}
+		--dry-run
+		--no-opengl-sw
+		${QT5_ARGS}
+		--list mapping
 		"@CMAKE_BINARY_DIR@/bin/@PROJECT_NAME@@CMAKE_EXECUTABLE_SUFFIX@"
-		WORKING_DIRECTORY "${QT_BIN_DIR}/.."
+		WORKING_DIRECTORY "@QT_BIN_DIR@/.."
 		OUTPUT_VARIABLE DEPS
 		OUTPUT_STRIP_TRAILING_WHITESPACE
 	)
