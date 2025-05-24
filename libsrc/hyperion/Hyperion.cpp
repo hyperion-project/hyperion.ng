@@ -361,7 +361,7 @@ int Hyperion::isComponentEnabled(hyperion::Components comp) const
 void Hyperion::setSuspend(bool isSuspend)
 {
 	bool const enable = !isSuspend;
-	emit compStateChangeRequestAll(enable);
+	emit compStateChangeRequest(hyperion::COMP_ALL, enable);
 }
 
 void Hyperion::setIdle(bool isIdle)

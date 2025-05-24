@@ -52,8 +52,6 @@ private:
 
 	QJsonDocument _bgEffectConfig;
 	bool _isBgEffectEnabled;
-
-	bool _isSuspended;
 };
 
 #endif // BGEFFECTHANDLER_H

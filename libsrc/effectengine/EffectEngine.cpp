@@ -44,6 +44,22 @@ EffectEngine::EffectEngine(Hyperion * hyperion)
 	// get notifications about refreshed effect list
 	connect(_effectFileHandler, &EffectFileHandler::effectListChanged, this, &EffectEngine::handleUpdatedEffectList);
 
+	// Stop all effects when instance is disabled, restart the same when enabled
+	connect(_hyperion, &Hyperion::compStateChangeRequest, this, [=](hyperion::Components component, bool enable) {
+		if (component == hyperion::COMP_ALL)
+		{
+			if (enable)
+			{
+				startCachedEffects();
+			}
+			else
+			{
+				cacheRunningEffects();
+				stopAllEffects();
+			}
+		}
+	});
+
 	// register smooth cfgs and fill available effects
 	handleUpdatedEffectList();
 }

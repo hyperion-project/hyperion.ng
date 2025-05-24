@@ -75,6 +75,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed Smoothing (#1863)
 - Fixed Crash when XCB,X11 was configured and display manager changed to Wayland
 - Fixed Target-directory not correctly build when exporting effects
+- Fixed Effect not suspended when instance is stopped (#1586)
+- Fixed Background effect is started when instance is disabled 
 
 **JSON-API**
 - Refactored JSON-API to ensure consistent authorization behaviour across sessions and single requests with token authorization.
