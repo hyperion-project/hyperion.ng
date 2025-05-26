@@ -27,6 +27,7 @@
 #include "utils/Logger.h"
 #include "utils/VideoMode.h"
 #include "utils/global_defines.h"
+#include <utils/GlobalSignals.h>
 
 #include <HyperionConfig.h> // Required to determine the cmake options
 
@@ -81,6 +82,10 @@
 #ifdef ENABLE_CEC
 #include <cec/CECHandler.h>
 #endif
+
+namespace {
+	GlobalSignals* ensureGlobalSignalsInitialized = GlobalSignals::getInstance();
+}
 
 HyperionDaemon* HyperionDaemon::daemon = nullptr;
 
