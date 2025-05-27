@@ -29,6 +29,34 @@ JsonCallbacks::JsonCallbacks(Logger *log, const QString& peerAddress, QObject* p
 	, _islogMsgStreamingActive(false)
 {
 	qRegisterMetaType<PriorityMuxer::InputsMap>("InputsMap");
+
+	connect(HyperionIManager::getInstance(), &HyperionIManager::instanceStateChanged, this, &JsonCallbacks::handleInstanceStateChange);
+}
+
+void JsonCallbacks::handleInstanceStateChange(InstanceState state, quint8 instanceID, const QString& /*name */)
+{
+	switch (state)
+	{
+	case InstanceState::H_STOPPED:
+	{
+		if (instanceID == _instanceID)
+		{
+			setSubscriptionsTo(NO_INSTANCE_ID);
+
+			//Release reference to stopped Hyperion instance
+			_prioMuxer.clear();
+			_componentRegister.clear();
+			_hyperion.clear();
+		}
+	}
+
+	case InstanceState::H_ON_STOP:
+	case InstanceState::H_STARTING:
+	case InstanceState::H_STARTED:
+	case InstanceState::H_CREATED:
+	case InstanceState::H_DELETED:
+	break;
+	}
 }
 
 bool JsonCallbacks::subscribe(const Subscription::Type cmd)
@@ -70,36 +98,44 @@ bool JsonCallbacks::subscribe(const Subscription::Type cmd)
 
 		// Instance specific subscriptions
 	case Subscription::AdjustmentUpdate:
-		if (!_hyperion.isNull())
+		if (!_hyperion.isNull()) {
 			connect(_hyperion.get(), &Hyperion::adjustmentChanged, this, &JsonCallbacks::handleAdjustmentChange);
+		}
 	break;
 	case Subscription::ComponentsUpdate:
-		if (_componentRegister != nullptr)
-			connect(_componentRegister, &ComponentRegister::updatedComponentState, this, &JsonCallbacks::handleComponentState);
+		if (!_componentRegister.isNull()) {
+			connect(_componentRegister.get(), &ComponentRegister::updatedComponentState, this, &JsonCallbacks::handleComponentState);
+		}
 	break;
 	case Subscription::ImageToLedMappingUpdate:
-		if (!_hyperion.isNull())
+		if (!_hyperion.isNull()) {
 			connect(_hyperion.get(), &Hyperion::imageToLedsMappingChanged, this, &JsonCallbacks::handleImageToLedsMappingChange);
+		}
 	break;
 	case Subscription::ImageUpdate:
-		if (!_hyperion.isNull())
+		if (!_hyperion.isNull()) {
 			connect(_hyperion.get(),  &Hyperion::currentImage, this, &JsonCallbacks::handleImageUpdate);
+		}
 	break;
 	case Subscription::LedColorsUpdate:
-		if (!_hyperion.isNull())
+		if (!_hyperion.isNull()) {
 			connect(_hyperion.get(), &Hyperion::rawLedColors, this, &JsonCallbacks::handleLedColorUpdate);
+		}
 	break;
 	case Subscription::LedsUpdate:
-		if (!_hyperion.isNull())
+		if (!_hyperion.isNull()) {
 			connect(_hyperion.get(), &Hyperion::settingsChanged, this, &JsonCallbacks::handleLedsConfigChange);
+		}
 	break;
 	case Subscription::PrioritiesUpdate:
-		if (!_prioMuxer.isNull())
+		if (!_prioMuxer.isNull()) {
 			connect(_prioMuxer.get(), &PriorityMuxer::prioritiesChanged, this, &JsonCallbacks::handlePriorityUpdate);
+		}
 	break;
 	case Subscription::VideomodeUpdate:
-		if (!_hyperion.isNull())
+		if (!_hyperion.isNull()) {
 			connect(_hyperion.get(), &Hyperion::newVideoMode, this, &JsonCallbacks::handleVideoModeChange);
+		}
 	break;
 
 	default:
@@ -113,7 +149,7 @@ bool JsonCallbacks::subscribe(const Subscription::Type cmd)
 
 bool JsonCallbacks::subscribe(const QString& cmd)
 {
-	JsonApiSubscription subscription = ApiSubscriptionRegister::getSubscriptionInfo(cmd);
+	JsonApiSubscription const subscription = ApiSubscriptionRegister::getSubscriptionInfo(cmd);
 	if (subscription.cmd == Subscription::Unknown)
 	{
 		return false;
@@ -126,7 +162,8 @@ QStringList JsonCallbacks::subscribe(const QJsonArray& subscriptions)
 	QJsonArray subsArr;
 	if (subscriptions.isEmpty())
 	{
-		for (const auto& entry : getCommands(false))
+		const QStringList commands = getCommands(false);
+		for (const QString& entry : commands)
 		{
 			subsArr.append(entry);
 		}
@@ -188,37 +225,45 @@ bool JsonCallbacks::unsubscribe(const Subscription::Type cmd)
 
 		// Instance specific subscriptions
 	case Subscription::AdjustmentUpdate:
-		if (!_hyperion.isNull())
+		if (!_hyperion.isNull()) {
 			disconnect(_hyperion.get(), &Hyperion::adjustmentChanged, this, &JsonCallbacks::handleAdjustmentChange);
+		}
 	break;
 	case Subscription::ComponentsUpdate:
-		if (_componentRegister != nullptr)
-			disconnect(_componentRegister, &ComponentRegister::updatedComponentState, this, &JsonCallbacks::handleComponentState);
+		if (!_componentRegister.isNull()) {
+			disconnect(_componentRegister.get(), &ComponentRegister::updatedComponentState, this, &JsonCallbacks::handleComponentState);
+		}
 	break;
 
 	case Subscription::ImageToLedMappingUpdate:
-		if (!_hyperion.isNull())
+		if (!_hyperion.isNull()) {
 			disconnect(_hyperion.get(), &Hyperion::imageToLedsMappingChanged, this, &JsonCallbacks::handleImageToLedsMappingChange);
+		}
 	break;
 	case Subscription::ImageUpdate:
-		if (!_hyperion.isNull())
+		if (!_hyperion.isNull()) {
 			disconnect(_hyperion.get(), &Hyperion::currentImage, this, &JsonCallbacks::handleImageUpdate);
+		}
 	break;
 	case Subscription::LedColorsUpdate:
-		if (!_hyperion.isNull())
+		if (!_hyperion.isNull()) {
 			disconnect(_hyperion.get(), &Hyperion::rawLedColors, this, &JsonCallbacks::handleLedColorUpdate);
+		}
 	break;
 	case Subscription::LedsUpdate:
-		if (!_hyperion.isNull())
+		if (!_hyperion.isNull()) {
 			disconnect(_hyperion.get(), &Hyperion::settingsChanged, this, &JsonCallbacks::handleLedsConfigChange);
+		}
 	break;
 	case Subscription::PrioritiesUpdate:
-		if (!_prioMuxer.isNull())
+		if (!_prioMuxer.isNull()) {
 			disconnect(_prioMuxer.get(), &PriorityMuxer::prioritiesChanged, this, &JsonCallbacks::handlePriorityUpdate);
+		}
 	break;
 	case Subscription::VideomodeUpdate:
-		if (!_hyperion.isNull())
+		if (!_hyperion.isNull()) {
 			disconnect(_hyperion.get(), &Hyperion::newVideoMode, this, &JsonCallbacks::handleVideoModeChange);
+		}
 	break;
 
 	default:
@@ -297,7 +342,7 @@ void JsonCallbacks::setSubscriptionsTo(quint8 instanceID)
 QStringList JsonCallbacks::getCommands(bool fullList) const
 {
 	QStringList commands;
-	for (JsonApiSubscription subscription : ApiSubscriptionRegister::getSubscriptionLookup())
+	for (JsonApiSubscription const subscription : ApiSubscriptionRegister::getSubscriptionLookup())
 	{
 		if (fullList || subscription.isAll)
 		{
@@ -310,7 +355,7 @@ QStringList JsonCallbacks::getCommands(bool fullList) const
 QStringList JsonCallbacks::getSubscribedCommands() const
 {
 	QStringList commands;
-	for (Subscription::Type cmd : _subscribedCommands)
+	for (Subscription::Type const cmd : _subscribedCommands)
 	{
 		commands << Subscription::toString(cmd);
 	}
@@ -470,7 +515,8 @@ void JsonCallbacks::handleLedColorUpdate(const std::vector<ColorRgb> &ledColors)
 
 void JsonCallbacks::handleImageUpdate(const Image<ColorRgb> &image)
 {
-	QImage jpgImage(reinterpret_cast<const uchar*>(image.memptr()), image.width(), image.height(), qsizetype(3) * image.width(), QImage::Format_RGB888);
+	int const bytesPerLine = 3 * image.width();
+	QImage const jpgImage(reinterpret_cast<const uchar*>(image.memptr()), image.width(), image.height(), bytesPerLine, QImage::Format_RGB888);
 	QByteArray byteArray;
 	QBuffer buffer(&byteArray);
 	buffer.open(QIODevice::WriteOnly);

@@ -1,5 +1,8 @@
 #include <hyperion/BGEffectHandler.h>
 
+#include <hyperion/Hyperion.h>
+#include <hyperion/PriorityMuxer.h>
+
 #include <effectengine/Effect.h>
 
 BGEffectHandler::BGEffectHandler(Hyperion* hyperion)

@@ -1896,17 +1896,6 @@ void JsonAPI::handleInstanceStateChange(InstanceState state, quint8 instanceID, 
 {
 	switch (state)
 	{
-	case InstanceState::H_ON_STOP:
-	{
-		if (!_hyperion.isNull() && _hyperion->getInstanceIndex() == instanceID)
-		{
-			_hyperion.reset(nullptr);
-			_jsonCB->setSubscriptionsTo(NO_INSTANCE_ID);
-		}
-	}
-	break;
-
-	case InstanceState::H_STARTING:
 	case InstanceState::H_STARTED:
 	{
 		quint8 const currentInstance = _currInstanceIndex;
@@ -1916,7 +1905,17 @@ void JsonAPI::handleInstanceStateChange(InstanceState state, quint8 instanceID, 
 			_jsonCB->setSubscriptionsTo(instanceID);
 		}
 	}
+	break;
+
 	case InstanceState::H_STOPPED:
+	{
+		//Release reference to stopped Hyperion instance
+		_hyperion.clear();
+	}
+	break;
+
+	case InstanceState::H_STARTING:
+	case InstanceState::H_ON_STOP:
 	case InstanceState::H_CREATED:
 	case InstanceState::H_DELETED:
 	break;

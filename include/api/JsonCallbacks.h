@@ -179,6 +179,14 @@ private slots:
 	///
 	void handleEventUpdate(const Event &event);
 
+	///
+	/// @brief Handle whenever the state of a instance (HyperionIManager) changes according to enum instanceState
+	/// @param instaneState  A state from enum
+	/// @param instanceId    The index of instance
+	/// @param name          The name of the instance, just available with H_CREATED
+	///
+	void handleInstanceStateChange(InstanceState state, quint8 instanceId, const QString &name = QString());
+
 private:
 
 	/// construct callback msg
@@ -194,7 +202,7 @@ private:
 	QString _peerAddress;
 
 	/// pointer of comp register
-	ComponentRegister* _componentRegister;
+	QSharedPointer<ComponentRegister> _componentRegister;
 
 	/// priority muxer instance
 	QSharedPointer<PriorityMuxer> _prioMuxer;
