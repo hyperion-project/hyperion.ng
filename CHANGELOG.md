@@ -9,114 +9,141 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### ⚠️ Breaking Changes
 
 #### JSON-API
-- Aligned JSON subscription update elements: `ledcolors-imagestream-update`, `ledcolors-ledstream-update`, and `logmsg-update` now return data via `data` instead of `result`.
+- Standardized subscription update elements: `ledcolors-imagestream-update`, `ledcolors-ledstream-update`, and `logmsg-update` now return data under `data` instead of `result`.
 - Global configuration elements are now separated from instance-specific ones.
 
 ---
 
 ### ✨ Added
 
-- Support for **FTDI** chip-based LED devices with `WS2812`, `SK6812`, and `APA102` LED types  
-  _Thanks to @nurikk_ (#1746)
+- **Windows:** Added a new grabber using **DXGI DDA (Desktop Duplication API)** for improved GPU-based performance. _Thanks to @davidsansome_ (#1745, #1753)
+- Support for **bottom-up image** handling using the MF grabber. _Thanks to @Thinner77_ (#1752)
+- Support for **FTDI** chip-based LED devices (`WS2812`, `SK6812`, `APA102`). _Thanks to @nurikk_ (#1746)
+- Support for **16-bit HD108 LEDs** via SPI. _Thanks to @FutureMan0_ (#1826)
 - Support for **HomeAssistant** devices (#1763)
 - Support for **Skydimo** devices
-- Support for **gaps in Matrix layout** (#1696)
+- Support for new **Nanoleaf device types**
+- Support for **gaps in matrix layout** (#1696)
+- Support for **NV12 format** in Flat-Buffer image streams
+- Support for **SizeDecimation** in Flat-Buffer inputs
+- Support for **temperature adjustment** (#658)
 - Configurable **grabber inactivity detection** interval (#1740)
-- **Dominant color processing** on the full image, applied to all LEDs (#1853)
-- **Windows:** Added a new grabber using **DXGI DDA (Desktop Duplication API)** for improved GPU-based performance
+- **Dominant color processing** across the full image, applied to all LEDs (#1853)
 - Selectable **source and target instances** in the forwarder
-- Import, export, and backup **Hyperion's configuration** via UI, JSON-API, and CLI (`--importConfig`, `--exportConfig`) (#804)
-- Option to **force read-only mode** startup (`--readonlyMode`)
+- Import, export, and backup of **Hyperion's configuration** via UI, JSON-API, and CLI (`--importConfig`, `--exportConfig`) (#804)
+- Option to **force read-only mode** at startup (`--readonlyMode`)
 - **Effects:** Limit update rate to 200 Hz
 - **Systray:** Support for multiple instances
 - **UI:**
-  - Validate that key ports do not overlap across editors/pages
-  - Improved error dialog with additional details
-  - LED preview shows the associated instance name
+  - Validation to ensure key ports do not overlap across editors/pages
+  - Enhanced error dialog with additional details
+  - LED preview displays the associated instance name
 - **HTTP Server:** Support for **Cross-Origin Resource Sharing (CORS)** (#1496)
 
 #### JSON-API
-- New event subscription support: `Suspend`, `Resume`, `Idle`, `IdleResume`, `Restart`, `Quit`
-- Support for **direct/multi-instance addressing** in single requests (#809)
+- New event subscriptions: `Suspend`, `Resume`, `Idle`, `IdleResume`, `Restart`, `Quit`
+- Support for **direct/multi-instance addressing** within single requests (#809)
 - `serverinfo` subcommands: `getInfo`, `subscribe`, `unsubscribe`, `getSubscriptions`, `getSubscriptionCommands`
   - [API Overview](https://api.hyperion-project.org/)
-- Query/save specific config items for specific instances
-- Update frequency limits:  
-  - Images: 25 Hz  
-  - Raw LED colors: 40 Hz  
+- Query/save specific configuration items per instance
+- Update frequency limits:
+  - Images: 25 Hz
+  - Raw LED colors: 40 Hz
   - LED device data: 200 Hz
-- Request **instance data** (e.g., current image in various formats, LED colors)
+- Request **instance data** (e.g., image snapshots, LED colors). _Thanks to @xIronic_ (#1839)
 
 ---
 
 ### 🔧 Changed
 
-- Removed dependency on the first instance – all instances can be freely created, started, stopped, or removed
-- **Security Fixes:**  
+- Instances no longer depend on the first instance; any can be created, started, stopped, or removed independently.
+
+- **Security Fixes:**
   - Fixed Cross-Site Scripting (XSS) vulnerabilities (CVE-2024-4174, CVE-2024-4175)
-- **Fixes:**  
-  - `hyperion-v4l2` screenshot failure (#1722)  
-  - Token dialog not closing  
-  - Kodi color calibration, wizard refactor (#1674)  
-  - Philips Hue APIv2 support without Entertainment group (#1742)  
-  - Forwarding to custom targets not possible (#1713)  
-  - Screen capture error (#1824)  
-  - Python 3.12 crash issues (#1747)  
-  - UI LED buffer/layout sync  
-  - Last effect event not cleared from source overview  
-  - Smoothing issues (#1863)  
-  - Crash when switching display manager (XCB/X11 to Wayland)  
-  - Effect not suspended when instance is stopped (#1586)  
-  - Background effect incorrectly starts when instance is disabled  
-  - Target directory incorrectly built during effect export  
-  - Stale `_logger` object removed
+  - Added detailed logs for "Trust on first use" certificates, especially when a certificate can't be stored
 
-- **Web UI:**  
-  - Fixed browser downloading HTML (#1692)  
-  - Instance lists are sorted; active instances are highlighted in dropdowns
+- **Fixes:**
+  - Broken links in README. _Thanks to @blueicehaller_ (#1780)
+  - RGB24/BGR24 cleanup. _Thanks to @Thinner77_ (#1748, #1749)
+  - Clarifying comments in MF grabber. _Thanks to @Thinner77_ (#1754)
+  - Nanoleaf LED strip overlap error. _Thanks to @geekykayaker_ (#1844)
+  - Philips Hue APIv2 support without Entertainment group (#1742)
+  - `hyperion-v4l2` screenshot failures (#1722)
+  - Token dialog not closing
+  - Kodi color calibration and wizard refactor (#1674)
+  - Forwarding to custom targets (#1713)
+  - Screen capture error (#1824)
+  - Python 3.12 crash fixes (#1747)
+  - UI LED buffer/layout sync issues
+  - Last effect event not cleared in source overview
+  - Smoothing issues (#1863)
+  - Crash when switching display managers (XCB/X11 to Wayland)
+  - Effect not suspended when instance is stopped (#1586)
+  - Background effect incorrectly starts when instance is disabled
+  - Incorrect target directory built during effect export
+  - Removed stale `_logger` object
+  - Windows: improper use of “/dev/null”
+  - Fragmented HTTP headers causing "incorrect HTTP headers" error (#1688)
+  - Misleading "Access Denied" message; disabled "Identify" for the same serial device type (#1737)
 
-- **Networking/UI:**  
-  - Replaced custom WebSocket implementation with `QWebSockets` (#1816, #1448, #1247, #1130)  
-  - mDNS browser deadlock fix; moved to dedicated thread
+- **Web UI:**
+  - Workaround that Content type is wrongly resoved (#1692)
+  - Sorted instance lists; active instances are now highlighted in dropdowns
 
-- **Platform-specific:**  
-  - **macOS:** Use `ScreenCaptureKit` on macOS 15+  
-  - Standalone grabber won’t capture if no remote host is connected
+- **Networking/UI:**
+  - Replaced custom WebSocket implementation with `QWebSockets` (#1816, #1448, #1247, #1130)
+  - Fixed mDNS browser deadlock by moving it to a dedicated thread
 
-- **Layout:**  
-  - Removed maximum LED limit from matrix layout schema (UI mismatch) (#1804)
+- **Platform-Specific:**
+  - **macOS:** Use `ScreenCaptureKit` on macOS 15+
+  - Standalone grabber no longer captures without a connected remote host
 
-- **Refactors:**  
-  - Database access and validation/migration on startup  
-  - Forwarder  
-  - Flatbuffer client/connection handling  
-  - Effect definitions decoupled from instances  
-  - WebServer decoupled from SSDP handler  
-  - Python effects (parallel processing under Python 3.12)  
-  - Thread affinity correction  
-  - UI code streamlining  
-  - Improved resilience and error handling
+- **Layout:**
+  - Removed maximum LED limit from matrix layout schema to match UI (#1804)
+
+- **Refactors:**
+  - ImageResampler improvements. _Thanks to @Thinner77_ (#1744)
+  - Corrected confusing `_noSignalDetected` logic. _Thanks to @Thinner77_ (#1731)
+  - Removed unused libraries for Amlogic. _Thanks to @Portisch_ (#1725)
+  - GrabberWrapper constructors (#1714)
+  - Database access and validation/migration on startup
+  - Forwarder cleanup
+  - Flatbuffer client/connection handling
+  - Decoupled effect definitions from instances
+  - Decoupled WebServer from SSDP handler
+  - Python effects: support parallel processing (Python 3.12)
+  - Corrected threads' affinity
+  - Use of smart pointers
+  - UI code streamlining
+  - Improved `install_pr` script
+  - Enhanced resilience and error handling
+
+  - **Build:**
+    - Updated **CompileHowto for macOS**. _Thanks to @Rastafabisch_ (#1757)
+    - Added missing `ENABLE_MDNS`. _Thanks to @Links2004_ (#1711)
+    - Build system now uses **pre-built dependencies** to reduce resource usage
+    - Introduced **CMakePresets** and a **CMakeUserPresets** template
 
 #### JSON-API
 - Consistent token authorization across sessions and single requests
-- Additional API error details (JSON parsing, token errors, etc.)
-- Random TAN generation per API request from the UI
+- Improved error messages (e.g., JSON parsing, token issues)
+- Random TAN generation per API request (from UI)
 - Configuration requests no longer require a running instance
 - Commands are ignored during shutdown
-- Fixed IPv4-in-IPv6 address handling for external connections
+- Fixed IPv4-in-IPv6 handling for external connections
 - Fixed admin authentication token validation (#1251)
-- Fixed error for missing effects in builds
-- Correct mapping type returned for running instances
+- Fixed error on missing effects in builds
+- Corrected mapping type for running instances
 
 ---
 
 ### 🗑️ Removed
 
 #### JSON-API
-- **Removed:** Ability to disable local admin authorization  
+- Removed the ability to disable local admin authorization
   - `authorize-adminRequired` is now always `true`
-- **Removed:** `session-updates` subscription
-- **Deprecated:** `serverinfo/subscribe`  
+- Removed: `session-updates` subscription
+- Deprecated: `serverinfo/subscribe`
   - Use `subscribe` / `unsubscribe` subcommands instead
 
 ## [2.0.16](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.16) - 2024-01
@@ -444,7 +471,6 @@ To run Hyperion with root privileges (e.g. for WS281x) execute <br> `sudo update
   - Fixed: Nanoleaf does not turn on
   - Fixed LED layout - Additional parameters for classic layout were not saved (#1314)
   - Fixed Network LED-Device UI: Trigger getProperties for the configured host, when no hosts were discovered
-  - Fixed Nanoleaf error if LEDs in strip overlap
 
 ### Removed:
 
