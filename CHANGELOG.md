@@ -6,95 +6,118 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.0.16...HEAD)
 
-### Breaking
+### ⚠️ Breaking Changes
 
-**JSON-API**
-- Align JSON subscription update elements. `ledcolors-imagestream-update, ledcolors-ledstream-update, logmsg-update` now return data via `data` and not `result
-- Global global configuration elements are now separated form instance specific ones
+#### JSON-API
+- Aligned JSON subscription update elements: `ledcolors-imagestream-update`, `ledcolors-ledstream-update`, and `logmsg-update` now return data via `data` instead of `result`.
+- Global configuration elements are now separated from instance-specific ones.
 
-### Added
+---
 
-- Support for ftdi chip based LED-devices with ws2812, sk6812 apa102 LED types (Many thanks to @nurikk) (#1746)
-- Support for Skydimo devices
-- Support gaps on Matrix Layout (#1696)
-- Support a configurable grabber inactive detection time interval (#1740)
-- Support for dominant color processing on a full image which is applied to all LEDs (#1853)
-- Windows: Added a new grabber that uses the DXGI DDA (Desktop Duplication API). This has much better performance than the DX grabber as it does more of its work on the GPU.
-- Support to freely select source and target instances to be used by forwarder
-- Support to import, export and backup Hyperion's full configuration via the UI, JSON-API and commandline (`--importConfig, --exportConfig`) (#804)
-- Allow to force starting Hyperion in read-only mode (`--readonlyMode`)
-- Effects: Limit the maximum update rate to 200Hz
-- Systray: Support multiple instances
-- UI: Validate that key ports do not overlap across editors and pages
-- UI: Provide additional details in error dialogue
-- UI: LED preview - show instance's name the preview is applicable to 
-- Http-Server: Support Cross-Origin Resource Sharing (CORS) (#1496)
+### ✨ Added
 
-**JSON-API**
-- New subscription support for event updates, i.e. `Suspend, Resume, Idle, idleResume, Restart, Quit`.
-- Support direct or multiple instance addressing via single requests (#809)
-- Support of `serverinfo` subcommands: `getInfo, subscribe, unsubscribe, getSubscriptions, getSubscriptionCommands`
-- [Overview](https://github.com/hyperion-project/hyperion.ng/blob/API_Auth/doc/development/JSON-API%20_Commands_Overview.md) of API commands and subscription updates
-- Support to query for a dedicated set of configuration items for a set of instances
-- Support to save a dedicated set of configuration items for a set of instances
-- Limit update emission frequency: Images (25Hz), raw LED-Colors (40Hz) & LED-Device data (200Hz) 
-- Support for requesting instance-data via JSON-API. Implemented requesting the current image in different formats or led colors.
+- Support for **FTDI** chip-based LED devices with `WS2812`, `SK6812`, and `APA102` LED types  
+  _Thanks to @nurikk_ (#1746)
+- Support for **HomeAssistant** devices (#1763)
+- Support for **Skydimo** devices
+- Support for **gaps in Matrix layout** (#1696)
+- Configurable **grabber inactivity detection** interval (#1740)
+- **Dominant color processing** on the full image, applied to all LEDs (#1853)
+- **Windows:** Added a new grabber using **DXGI DDA (Desktop Duplication API)** for improved GPU-based performance
+- Selectable **source and target instances** in the forwarder
+- Import, export, and backup **Hyperion's configuration** via UI, JSON-API, and CLI (`--importConfig`, `--exportConfig`) (#804)
+- Option to **force read-only mode** startup (`--readonlyMode`)
+- **Effects:** Limit update rate to 200 Hz
+- **Systray:** Support for multiple instances
+- **UI:**
+  - Validate that key ports do not overlap across editors/pages
+  - Improved error dialog with additional details
+  - LED preview shows the associated instance name
+- **HTTP Server:** Support for **Cross-Origin Resource Sharing (CORS)** (#1496)
 
-### Changed
+#### JSON-API
+- New event subscription support: `Suspend`, `Resume`, `Idle`, `IdleResume`, `Restart`, `Quit`
+- Support for **direct/multi-instance addressing** in single requests (#809)
+- `serverinfo` subcommands: `getInfo`, `subscribe`, `unsubscribe`, `getSubscriptions`, `getSubscriptionCommands`
+  - [API Overview](https://api.hyperion-project.org/)
+- Query/save specific config items for specific instances
+- Update frequency limits:  
+  - Images: 25 Hz  
+  - Raw LED colors: 40 Hz  
+  - LED device data: 200 Hz
+- Request **instance data** (e.g., current image in various formats, LED colors)
 
-- Removed hard dependency on the first instance. All instances can now be freely created/removed, started or stopped
-- Fixed: Cross Site Scripting Vulnerability (CVE-2024-4174, CVE-2024-4175)
-- Fixed: hyperion-v4l2 taking screenshot failed (#1722)
-- Nanoleaf: Support new devices and do not restore ExtControl state
-- Workaround to address Web UI keeps forcing browser to download the html instead (#1692)
-- Fixed: Kodi Color Calibration, Refactor Wizards (#1674)
-- Fixed: Token Dialog not closing
-- Fixed: Philip Hue APIv2 support without Entertainment group defined (#1742)
-- Refactored: Database access layer
-- Refactored: Hyperion's configuration database is validated before start-up (and migrated, if required)
-- Refactored: Python to enable parallel effect processing under Python 3.12
-- Refactored: Forwarder
-- Refactored: Flatbuffer connection- and client handling
-- Refactored: Decouple Effect definitions from Instance
-- Refactored: Decouple WebServer and SSDPHandler
-- Refactored: Corrected thread affinity across various classes
-- Refactored: Improved code resilience and error handling
-- Refactored: Streamlined the UI code
-- Standalone grabber do not capture screens when no connection to remote host
-- Fixed: Python 3.12 crashes (#1747)
-- osX Grabber: Use ScreenCaptureKit under macOS 15 and above
-- Removed maximum LED number constraint from Matrix layout schema which was not synced with the UI behaviour (#1804)
-- UI: Instance listings are sorted, enabled instances are high-lighted in drop-downs 
-- Fixed bespoke WebSocket implementation by using of QWebSockets (#1816, #1448, #1247, #1130)
-- Fixed mDNS Browser deadlock, plus run in own thread now
-- Fixed that LED Buffer and Layout might get out of sync.
-- Fixed Screen capture error (#1824)
-- Fixed Provide custom forwarding targets is not possible (#1713)
-- Fixed Last update of an effect event is not removed in sources overview
-- Fixed Removed stale _logger object
-- Fixed Smoothing (#1863)
-- Fixed Crash when XCB,X11 was configured and display manager changed to Wayland
-- Fixed Target-directory not correctly build when exporting effects
-- Fixed Effect not suspended when instance is stopped (#1586)
-- Fixed Background effect is started when instance is disabled 
+---
 
-**JSON-API**
-- Refactored JSON-API to ensure consistent authorization behaviour across sessions and single requests with token authorization.
-- Provide additional error details with API responses, esp. on JSON parsing, validation or token errors.
-- Generate random TANs for every API request from the Hyperion UI
-- Configuration requests do not any longer require a running instance
-- Ensure that API service does not process commands when Hyperion is quitting
-- Fixed: Handling of IP4 addresses wrapped in IPv6 for external network connections
-- Fixed: Local Admin API Authentication rejects valid tokens (#1251)
-- Fixed: Create a proper API response, when Effects are not part of a build
-- Fixed: Return correct mapping type for a running instance
+### 🔧 Changed
 
-### Removed
+- Removed dependency on the first instance – all instances can be freely created, started, stopped, or removed
+- **Security Fixes:**  
+  - Fixed Cross-Site Scripting (XSS) vulnerabilities (CVE-2024-4174, CVE-2024-4175)
+- **Fixes:**  
+  - `hyperion-v4l2` screenshot failure (#1722)  
+  - Token dialog not closing  
+  - Kodi color calibration, wizard refactor (#1674)  
+  - Philips Hue APIv2 support without Entertainment group (#1742)  
+  - Forwarding to custom targets not possible (#1713)  
+  - Screen capture error (#1824)  
+  - Python 3.12 crash issues (#1747)  
+  - UI LED buffer/layout sync  
+  - Last effect event not cleared from source overview  
+  - Smoothing issues (#1863)  
+  - Crash when switching display manager (XCB/X11 to Wayland)  
+  - Effect not suspended when instance is stopped (#1586)  
+  - Background effect incorrectly starts when instance is disabled  
+  - Target directory incorrectly built during effect export  
+  - Stale `_logger` object removed
 
-**JSON-API**
-- Removed ability to enable/disable local admin authorization. All admin commands require authorization, i.e. `authorize-adminRequired` will always be `true`.
-- Removed `session-updates` subscription
-- `serverinfo/subscribe` element will be deprecated and replaced by corresponding subcommand
+- **Web UI:**  
+  - Fixed browser downloading HTML (#1692)  
+  - Instance lists are sorted; active instances are highlighted in dropdowns
+
+- **Networking/UI:**  
+  - Replaced custom WebSocket implementation with `QWebSockets` (#1816, #1448, #1247, #1130)  
+  - mDNS browser deadlock fix; moved to dedicated thread
+
+- **Platform-specific:**  
+  - **macOS:** Use `ScreenCaptureKit` on macOS 15+  
+  - Standalone grabber won’t capture if no remote host is connected
+
+- **Layout:**  
+  - Removed maximum LED limit from matrix layout schema (UI mismatch) (#1804)
+
+- **Refactors:**  
+  - Database access and validation/migration on startup  
+  - Forwarder  
+  - Flatbuffer client/connection handling  
+  - Effect definitions decoupled from instances  
+  - WebServer decoupled from SSDP handler  
+  - Python effects (parallel processing under Python 3.12)  
+  - Thread affinity correction  
+  - UI code streamlining  
+  - Improved resilience and error handling
+
+#### JSON-API
+- Consistent token authorization across sessions and single requests
+- Additional API error details (JSON parsing, token errors, etc.)
+- Random TAN generation per API request from the UI
+- Configuration requests no longer require a running instance
+- Commands are ignored during shutdown
+- Fixed IPv4-in-IPv6 address handling for external connections
+- Fixed admin authentication token validation (#1251)
+- Fixed error for missing effects in builds
+- Correct mapping type returned for running instances
+
+---
+
+### 🗑️ Removed
+
+#### JSON-API
+- **Removed:** Ability to disable local admin authorization  
+  - `authorize-adminRequired` is now always `true`
+- **Removed:** `session-updates` subscription
+- **Deprecated:** `serverinfo/subscribe`  
+  - Use `subscribe` / `unsubscribe` subcommands instead
 
 ## [2.0.16](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.16) - 2024-01
 
