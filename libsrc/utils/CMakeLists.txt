@@ -82,6 +82,8 @@ add_library(hyperion-utils
 	${CMAKE_SOURCE_DIR}/include/utils/Sleep.h
 	# Wait event loop function
 	${CMAKE_SOURCE_DIR}/include/utils/WaitTime.h
+	# Tracking Shared objects' memory
+	${CMAKE_SOURCE_DIR}/include/utils/TrackedMemory.h
 	# Weak connection
 	${CMAKE_SOURCE_DIR}/include/utils/WeakConnect.h
 	# Semver namespace

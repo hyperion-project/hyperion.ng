@@ -1,30 +1,32 @@
 # Hyperion - Supported platforms
 The GitHub releases of Hyperion are currently supported on the following sets of configuration:
-> [!NOTE]
+> [NOTE]
 > Configurations tagged as unofficial are running in general, but are provided/maintained on a best effort basis.\
 > In case of problems, it is recommended checking with the wider Hyperion community (https://hyperion-project.org/forum/).
 
 ## Official
 | Hardware  | OS              | Version            | Screen-Grabber                          | Package                                                                       | Comments                           |
 |-----------|-----------------|--------------------|-----------------------------------------|-------------------------------------------------------------------------------|------------------------------------|
-| amd64     | Windows         | 10                 | QT&#xB9;                                | [windows-x64.exe](https://github.com/hyperion-project/hyperion.ng/releases) | Direct X9 Grabber via self-compile |
-| amd64     | Ubuntu          | 20.04, 22.04, 24.04&#xB2; | QT&#xB9;<br/>XCB/X11&#xB9;       | [Linux-amd64.deb](https://github.com/hyperion-project/hyperion.ng/releases)  |                                    |
-| amd64     | Debian          | 10, 11, 12, 13&#xB3;   | QT&#xB9;<br/>XCB/X11&#xB9;              | [Linux-amd.deb](https://github.com/hyperion-project/hyperion.ng/releases)  |                                    |
-| RPi 5     | HyperBian       | 10, 11, 12, 13&#xB3;   | QT&#xB9;<br/>XCB/X11&#xB9;<br/>DispmanX | [HyperBian.zip](https://github.com/Hyperion-Project/HyperBian/releases)       |                                    |
-| RPi 5     | Raspberry Pi OS | 12, 13&#xB3;   | QT&#xB9;<br/>XCB/X11&#xB9;<br/>DispmanX | [Linux-arm64.deb](https://github.com/hyperion-project/hyperion.ng/releases)  |                                    |
-| RPi 4     | HyperBian       | 10, 11, 12, 13&#xB3;   | QT&#xB9;<br/>XCB/X11&#xB9;<br/>DispmanX | [HyperBian.zip](https://github.com/Hyperion-Project/HyperBian/releases)       |                                    |
-| RPi 4     | Raspberry Pi OS | 10, 11, 12, 13&#xB3;   | QT&#xB9;<br/>XCB/X11&#xB9;<br/>DispmanX | [Linux-armv7l.deb](https://github.com/hyperion-project/hyperion.ng/releases)  |                                    |
-| RPi 3 /3+ | HyperBian       | 10, 11, 12, 13&#xB3;   | QT&#xB9;<br/>XCB/X11&#xB9;<br/>DispmanX | [HyperBian.zip](https://github.com/hyperion-project/hyperion.ng/releases)     |                                    |
-| RPi 3 /3+ | Raspberry Pi OS | 10, 11, 12, 13&#xB3;   | QT&#xB9;<br/>XCB/X11&#xB9;<br/>DispmanX | [Linux-armv7l.deb](https://github.com/hyperion-project/hyperion.ng/releases)  |                                    |
+| amd64     | Windows         | 11                 | DDA<br/>QT                              | [windows-x64.exe](https://github.com/hyperion-project/hyperion.ng/releases)   | Direct X9 Grabber via self-compile |
+| amd64     | macOS           | 11, 12             | QT<br>OSX                               | [macOS-x86_x64.dmg](https://github.com/hyperion-project/hyperion.ng/releases) |                                    | 
+| amd64     | Ubuntu          | 22.04, 24.04, 25.04&#xB2; | QT&#xB9;<br/>XCB/X11&#xB9;       | [Linux-amd64.deb](https://github.com/hyperion-project/hyperion.ng/releases)   |                                    |
+| amd64     | Debian          | 10, 11, 12, 13&#xB3;   | QT&#xB9;<br/>XCB/X11&#xB9;              | [Linux-amd.deb](https://github.com/hyperion-project/hyperion.ng/releases) |                                    |
+| RPi 5     | HyperBian       | 10, 11, 12, 13&#xB3;   | QT&#xB9;<br/>XCB/X11&#xB9;<br/>DispmanX | [HyperBian.zip](https://github.com/Hyperion-Project/HyperBian/releases)   |                                    |
+| RPi 5     | Raspberry Pi OS | 12, 13&#xB3;   | QT&#xB9;<br/>XCB/X11&#xB9;<br/>DispmanX | [Linux-arm64.deb](https://github.com/hyperion-project/hyperion.ng/releases)       |                                    |
+| RPi 4     | HyperBian       | 10, 11, 12, 13&#xB3;   | QT&#xB9;<br/>XCB/X11&#xB9;<br/>DispmanX | [HyperBian.zip](https://github.com/Hyperion-Project/HyperBian/releases)      |                                    |
+| RPi 4     | Raspberry Pi OS | 10, 11, 12, 13&#xB3;   | QT&#xB9;<br/>XCB/X11&#xB9;<br/>DispmanX | [Linux-armv7l.deb](https://github.com/hyperion-project/hyperion.ng/releases) |                                    |
+| RPi 3 /3+ | HyperBian       | 10, 11, 12, 13&#xB3;   | QT&#xB9;<br/>XCB/X11&#xB9;<br/>DispmanX | [HyperBian.zip](https://github.com/hyperion-project/hyperion.ng/releases)    |                                    |
+| RPi 3 /3+ | Raspberry Pi OS | 10, 11, 12, 13&#xB3;   | QT&#xB9;<br/>XCB/X11&#xB9;<br/>DispmanX | [Linux-armv7l.deb](https://github.com/hyperion-project/hyperion.ng/releases) |                                    |
 
 ## Unofficial
 In case you have an additional working setups you would like to share with the community, please get in touch or issue a PR to have the table updated.
 
 | Hardware      | OS              | Version        | Screen-Grabber                          | Package                                                                         | Comments                                                                                                                                                |
 |---------------|-----------------|----------------|-----------------------------------------|---------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
-| X64           | macOS           | 11, 12         | QT<br>OSX                               | [macOS-x86_x64.dmg](https://github.com/hyperion-project/hyperion.ng/releases)   |                                                                                                                                                         |
-| X64           | Fedora          | 39             | QT&#xB9;<br/>XCB/X11&#xB9;              | [Linux-x86_64.rpm](https://github.com/hyperion-project/hyperion.ng/releases)    |                                                                                                                                                         |
-| X64           | Arch            |                | QT&#xB9;<br/>XCB/X11&#xB9;              | [Linux-x86_64.rpm](https://github.com/hyperion-project/hyperion.ng/releases)    |                                                                                                                                                         |
+| arm64         | Windows         | 11             | DDA<br/>QT                              | [windows-arm64.exe](https://github.com/hyperion-project/hyperion.ng/releases)
+| arm64         | macOS           | 11, 12         | QT<br>OSX                               | [macOS-arm64.dmg](https://github.com/hyperion-project/hyperion.ng/releases)   |                                                                                                                                                         |
+| amd64         | Fedora          | 42             | QT&#xB9;<br/>XCB/X11&#xB9;              | [Linux-x86_64.rpm](https://github.com/hyperion-project/hyperion.ng/releases)    |                                                                                                                                                         |
+| amd64         | Arch            |                | QT&#xB9;<br/>XCB/X11&#xB9;              | [Linux-x86_64.rpm](https://github.com/hyperion-project/hyperion.ng/releases)    |                                                                                                                                                         |
 | RPi 0/ 1 / 2  | Raspberry Pi OS | 10, 11, 12&#xB3;| QT&#xB9;<br/>XCB/X11&#xB9;<br/>DispmanX | [Linux-armv6l.tar.gz](https://github.com/hyperion-project/hyperion.ng/releases) | No recommended                                                                                                                                          |
 | X64           | LibreElec       | 11.x (Nexus)   | [Kodi add-on](https://github.com/hyperion-project/hyperion.kodi/releases) | [Linux-x86_64.tar.gz](https://github.com/hyperion-project/hyperion.ng/releases) | [Install on LibreELEC](https://hyperion-project.org/forum/index.php?thread/10463-install-hyperion-ng-on-libreelec-x86-64-rpi-inoffiziell-unofficially/) |
 | RPi 4         | LibreElec       | 11.x (Nexus)   | -                                       | [Linux-armv7l.tar.gz](https://github.com/hyperion-project/hyperion.ng/releases) | [Install on LibreELEC](https://hyperion-project.org/forum/index.php?thread/10463-install-hyperion-ng-on-libreelec-x86-64-rpi-inoffiziell-unofficially/) |
@@ -43,5 +45,5 @@ In case you have an additional working setups you would like to share with the c
 Legend
 ---
 &#xB9; Requires an environment with `DISPLAY` defined\
-&#xB2; 20=Focal Fossa, 22=Jammy Jellyfish, 24=Lunar Lobster, 24=Noble Numbat\
+&#xB2; 22=Jammy Jellyfish, 24=Noble Numbat, 25=Plucky Puffin\
 &#xB3; 10=Buster, 11=Bullseye, 12=Bookworm, 13=Trixie

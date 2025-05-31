@@ -66,10 +66,10 @@ _http/s Support_
 | instance       | switchTo                | Yes           | No           | No                | Yes            |
 | instance-data  | getImageSnapshot        | Yes           | Single       | Yes               | Yes            |
 | instance-data  | getLedSnapshot          | Yes           | Single       | Yes               | Yes            |
-| ledcolors      | imagestream-start       | Yes           | Single       | Yes               | Yes            |
-| ledcolors      | imagestream-stop        | Yes           | Single       | Yes               | Yes            |
-| ledcolors      | ledstream-start         | Yes           | Single       | Yes               | Yes            |
-| ledcolors      | ledstream-stop          | Yes           | Single       | Yes               | Yes            |
+| ledcolors      | imagestream-start       | Yes           | Single       | Yes               | No             |
+| ledcolors      | imagestream-stop        | Yes           | Single       | Yes               | No             |
+| ledcolors      | ledstream-start         | Yes           | Single       | Yes               | No             |
+| ledcolors      | ledstream-stop          | Yes           | Single       | Yes               | No             |
 | leddevice      | addAuthorization        | Yes           | Single       | Yes               | Yes            |
 | leddevice      | discover                | Yes           | No           | No                | Yes            |
 | leddevice      | getProperties           | Yes           | No           | No                | Yes            |

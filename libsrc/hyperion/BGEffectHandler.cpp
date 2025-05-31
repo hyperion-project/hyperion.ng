@@ -1,23 +1,20 @@
 #include <hyperion/BGEffectHandler.h>
 
+#include <hyperion/Hyperion.h>
+#include <hyperion/PriorityMuxer.h>
+
 #include <effectengine/Effect.h>
 
 BGEffectHandler::BGEffectHandler(Hyperion* hyperion)
 	: QObject(hyperion)
 	, _hyperion(hyperion)
 	, _isBgEffectEnabled(false)
-	, _isSuspended(false)
 {
 	QString subComponent = parent()->property("instance").toString();
 	_log = Logger::getInstance("HYPERION", subComponent);
 
 	QObject::connect(_hyperion, &Hyperion::settingsChanged, this, &BGEffectHandler::handleSettingsUpdate);
 	QObject::connect(_hyperion->getMuxerInstance().get(), &PriorityMuxer::prioritiesChanged, this, &BGEffectHandler::handlePriorityUpdate);
-
-	// listen for suspend/resume requests, to not start a background effect when system goes into suspend mode
-	connect(_hyperion, &Hyperion::suspendRequest, this, [=] (bool isSuspended) {
-		_isSuspended = isSuspended;
-	});
 
 	// initialization
 	handleSettingsUpdate(settings::BGEFFECT, _hyperion->getSetting(settings::BGEFFECT));
@@ -90,9 +87,13 @@ void BGEffectHandler::handlePriorityUpdate(int currentPriority)
 		Debug(_log,"Stop background (color-) effect as it moved out of scope");
 		_hyperion->clear(PriorityMuxer::BG_PRIORITY);
 	}
-	else if (!_isSuspended && currentPriority == PriorityMuxer::LOWEST_PRIORITY && _isBgEffectEnabled)
+	// Do not start a background effect when the overall instance is disabled
+	else if (_hyperion->isComponentEnabled(hyperion::COMP_ALL))
 	{
-		Debug(_log,"Start background (color-) effect as it moved in scope");
-		emit handleSettingsUpdate (settings::BGEFFECT, _bgEffectConfig);
+		if (currentPriority == PriorityMuxer::LOWEST_PRIORITY && _isBgEffectEnabled)
+		{
+			Debug(_log, "Start background (color-) effect as it moved in scope");
+			emit handleSettingsUpdate(settings::BGEFFECT, _bgEffectConfig);
+		}
 	}
 }

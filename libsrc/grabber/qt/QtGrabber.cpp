@@ -46,34 +46,34 @@ void QtGrabber::freeResources()
 	// Qt seems to hold the ownership of the QScreen pointers
 }
 
-bool QtGrabber::open()
+bool QtGrabber::isAvailable(bool logError)
 {
-	bool rc = false;
-
-#ifndef _WIN32
+	#ifndef _WIN32
 	if (getenv("WAYLAND_DISPLAY") != nullptr)
 	{
+		ErrorIf(logError, _log, "Grabber does not work under Wayland!");
 		_isWayland = true;
 	}
-	else
-#endif
-	{
-		rc = true;
-	}
-	return rc;
+	#endif
+
+	_isAvailable = !_isWayland;
+	return _isAvailable;
+}
+
+bool QtGrabber::open()
+{
+	return _isAvailable;
 }
 
 bool QtGrabber::setupDisplay()
 {
-	bool result = false;
-	if (!open())
+	if (!_isAvailable)
 	{
-		if (_isWayland)
-		{
-			Error(_log, "Grabber does not work under Wayland!");
-		}
+		return false;
 	}
-	else
+
+	bool result = false;
+	if (open())
 	{
 		// cleanup last screen
 		freeResources();
@@ -385,7 +385,7 @@ QJsonObject QtGrabber::discover(const QJsonObject& params)
 	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	QJsonObject inputsDiscovered;
-	if (open())
+	if (isAvailable(false) && open())
 	{
 		QList<QScreen*> screens = QGuiApplication::screens();
 		if (!screens.isEmpty())

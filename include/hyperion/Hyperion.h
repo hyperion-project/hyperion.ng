@@ -15,6 +15,7 @@
 #include <QScopedPointer>
 #include <QSharedPointer>
 #include <QElapsedTimer>
+#include <QThread>
 
 // hyperion-utils includes
 #include <utils/Image.h>
@@ -25,10 +26,19 @@
 // Hyperion includes
 #include <hyperion/LedString.h>
 #include <hyperion/PriorityMuxer.h>
+#include <hyperion/MultiColorAdjustment.h>
 #include <hyperion/ColorAdjustment.h>
 #include <hyperion/ComponentRegister.h>
 
+#include <hyperion/SettingsManager.h>
+#include <hyperion/CaptureCont.h>
+#include <hyperion/BGEffectHandler.h>
+
+#include <leddevice/LedDeviceWrapper.h>
+#include <boblightserver/BoblightServer.h>
+
 #if defined(ENABLE_EFFECTENGINE)
+#include <effectengine/EffectEngine.h>
 #include <effectengine/ActiveEffectDefinition.h>
 #endif
 
@@ -38,22 +48,8 @@
 #include <utils/settings.h>
 
 // Forward class declaration
-class HyperionDaemon;
-class HyperionIManager;
 class ImageProcessor;
 class LinearColorSmoothing;
-#if defined(ENABLE_EFFECTENGINE)
-class EffectEngine;
-#endif
-class MultiColorAdjustment;
-class ColorAdjustment;
-class SettingsManager;
-class BGEffectHandler;
-class CaptureCont;
-#if defined(ENABLE_BOBLIGHT_SERVER)
-class BoblightServer;
-#endif
-class LedDeviceWrapper;
 class Logger;
 
 ///
@@ -69,9 +65,10 @@ public:
 	using InputInfo = PriorityMuxer::InputInfo;
 
 	///
-	/// Destructor; cleans up resources
+	/// @brief Constructs the Hyperion instance
+	/// @param  instance  The instance index
 	///
-	~Hyperion() override;
+	explicit Hyperion(quint8 instance, QObject* parent = nullptr);
 
 	ImageProcessor* getImageProcessor() const { return _imageProcessor.get(); }
 
@@ -205,7 +202,7 @@ public slots:
 	/// @brief Get a pointer to the effect engine
 	/// @return     EffectEngine instance pointer
 	///
-	EffectEngine* getEffectEngineInstance() const { return _effectEngine.get(); }
+	QSharedPointer<EffectEngine> getEffectEngineInstance() const { return _effectEngine; }
 
 	/// Run the specified effect on the given priority channel and optionally specify a timeout
 	/// @param effectName Name of the effec to run
@@ -321,7 +318,7 @@ public slots:
 	/// @brief Get the component Register
 	/// return Component register pointer
 	///
-	ComponentRegister* getComponentRegister() const { return _componentRegister.get(); }
+	QSharedPointer<ComponentRegister> getComponentRegister() const { return _componentRegister; }
 
 	///
 	/// @brief Called from components to update their current state. DO NOT CALL FROM USERS
@@ -512,15 +509,6 @@ private slots:
 	void handleSourceAvailability(int priority);
 
 private:
-	friend class HyperionDaemon;
-
-	///
-	/// @brief Constructs the Hyperion instance, just accessible for HyperionIManager
-	/// @param  instance  The instance index
-	///
-	explicit Hyperion(quint8 instance, QObject* parent = nullptr);
-
-	friend class HyperionIManager; // Grant HyperionIManager access to private members
 
 	void updateLedColorAdjustment(int ledCount, const QJsonObject& colors);
 	void updateLedLayout(const QJsonArray& ledLayout);
@@ -556,7 +544,7 @@ private:
 
 #if defined(ENABLE_EFFECTENGINE)
 	/// Effect engine
-	QScopedPointer<EffectEngine, QScopedPointerDeleteLater> _effectEngine;
+	QSharedPointer<EffectEngine> _effectEngine;
 #endif
 
 	/// Logger instance

@@ -39,6 +39,18 @@ public:
 	QtWrapper(const QJsonDocument& grabberConfig = QJsonDocument());
 
 	///
+	/// @brief Determine if the grabber is available for usage on the platform
+	///
+	/// @return true, on success, else false
+	///
+	bool isAvailable() override;
+
+	///
+	/// Starts the grabber, if available
+	///
+	bool start() override;
+
+	///
 	/// Starts the grabber which produces led values with the specified update rate
 	///
 	bool open() override;

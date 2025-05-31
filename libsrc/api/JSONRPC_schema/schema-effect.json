@@ -14,8 +14,7 @@
 				"minimum": 0,
 				"maximum": 254
 			},
-			"uniqueItems": true,
-			"minItems": 1
+			"uniqueItems": true
 		},
 		"tan" : {
 			"type" : "integer"
