@@ -191,7 +191,6 @@ if(WIN32 AND NOT DEFINED ENV{GITHUB_ACTIONS})
 	if(TARGET Qt${QT_VERSION_MAJOR}::windeployqt)
 		set(WINDEPLOYQT_PARAMS --verbose 0 --no-compiler-runtime --no-opengl-sw --no-system-d3d-compiler)
 
-		get_target_property(QT_QTPATHS_EXECUTABLE Qt${QT_VERSION_MAJOR}::qtpaths IMPORTED_LOCATION)
 		find_file(QT_PATHS "qtpaths.bat" PATHS ${CMAKE_PREFIX_PATH} PATH_SUFFIXES bin)
 		if(QT_PATHS)
 			list(APPEND WINDEPLOYQT_PARAMS "--qtpaths=${QT_PATHS}")
