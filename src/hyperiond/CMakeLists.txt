@@ -8,12 +8,9 @@ get_target_property(QMAKE_EXECUTABLE Qt${QT_VERSION_MAJOR}::qmake IMPORTED_LOCAT
 
 if(WIN32)
 	# generate windows .rc file for this binary
-	string(REPLACE "/" "\\\\" WIN_RC_ICON_PATH ${CMAKE_SOURCE_DIR}/cmake/windows/nsis/installer.ico)
+	string(REPLACE "/" "\\\\" WIN_RC_ICON_PATH ${CMAKE_SOURCE_DIR}/cmake/windows/inno/gfx/installer.ico)
 	configure_file(${CMAKE_SOURCE_DIR}/cmake/windows/win.rc.in ${CMAKE_BINARY_DIR}/win.rc)
 	set(WIN_RC_FILE ${CMAKE_BINARY_DIR}/win.rc)
-
-	# promote hyperiond as GUI app
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup")
 
 	# Search for windeployqt target (qt6 has the target natively) otherwise create it.
 	get_filename_component(QT_BIN_DIR ${QMAKE_EXECUTABLE} DIRECTORY)
@@ -44,7 +41,7 @@ endif()
 ########### General steps ###########
 #####################################
 
-add_executable(${PROJECT_NAME}
+add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE
 	console.h
 	hyperiond.h
 	systray.h
@@ -108,7 +105,6 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 	set(MAC_BUNDLE_NAME "Hyperion")
 	set_target_properties(${PROJECT_NAME} PROPERTIES
 		OUTPUT_NAME ${MAC_BUNDLE_NAME}
-		MACOSX_BUNDLE ON
 		MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/cmake/macos/Info.plist.in"
 		MACOSX_BUNDLE_BUNDLE_NAME ${MAC_BUNDLE_NAME}
 		MACOSX_BUNDLE_BUNDLE_VERSION ${HYPERION_VERSION}
@@ -178,7 +174,7 @@ if(WIN32)
 	endif()
 
 	configure_file("${CMAKE_SOURCE_DIR}/cmake/windows/BundleWindows.cmake.in" "${PROJECT_BINARY_DIR}/BundleWindows.cmake" @ONLY)
-	install(SCRIPT "${PROJECT_BINARY_DIR}/BundleWindows.cmake" COMPONENT "Hyperion")
+	install(SCRIPT "${PROJECT_BINARY_DIR}/BundleWindows.cmake" COMPONENT "dependencies")
 endif()
 
 ######################################

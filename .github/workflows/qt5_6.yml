@@ -192,20 +192,6 @@ jobs:
         shell: bash
         run: tr -d '\n' < .version > temp && mv temp .version && echo -n "+PR${{ inputs.pull_request_number }}" >> .version
 
-      - name: 💾 Restore DirectX SDK (x64)
-        if: matrix.architecture == 'x64'
-        uses: ethanjli/cached-download-action@v0.1.2
-        with:
-          url: https://download.microsoft.com/download/A/E/7/AE743F1F-632B-4809-87A9-AA1BB3458E31/DXSDK_Jun10.exe
-          destination: .\installer\dxsdk-jun10.exe
-          cache-key: dxsdk-jun10
-
-      - name: 📥 Extract DirectX SDK (x64)
-        if: matrix.architecture == 'x64'
-        run: |
-          7z x -aoa .\installer\dxsdk-jun10.exe DXSDK/Include DXSDK/Lib -oC:\
-          echo "DXSDK_DIR=C:\DXSDK" | Out-File -FilePath $env:GITHUB_ENV -Append
-
       - name: 📥 Install Qt
         # If the following PR is merged, you can switch back to jurplel/install-qt-action
         # https://github.com/jurplel/install-qt-action/pull/273
