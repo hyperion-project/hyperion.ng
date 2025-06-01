@@ -156,10 +156,8 @@ int main(int argc, char** argv)
 	parser.process(*qApp);
 
 #ifdef WIN32
-	if (parser.isSet(consoleOption))
-	{
-		CreateConsole();
-	}
+	bool isShowConsole = parser.isSet(consoleOption);
+	openConsole(isShowConsole);
 #endif
 
 	if (parser.isSet(versionOption))
