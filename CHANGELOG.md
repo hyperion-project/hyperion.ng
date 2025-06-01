@@ -117,6 +117,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Use of smart pointers
   - UI code streamlining
   - Improved `install_pr` script
+  - Replaced exceptions by signaling errors in main program and standalone grabbers
   - Enhanced resilience and error handling
 
   - **Build:**
