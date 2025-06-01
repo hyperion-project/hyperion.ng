@@ -205,7 +205,7 @@ if("${PLATFORM}" MATCHES "osx")
 
 elseif ("${PLATFORM}" MATCHES "windows")
 	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "i386|i686|amd64|x86_64|AMD64")
-		set(DEFAULT_DX       ON)
+		set(DEFAULT_DX       OFF)
 	endif()
 elseif ("${PLATFORM}" MATCHES "rpi")
 	set(DEFAULT_DISPMANX   ON)

@@ -147,6 +147,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed: `session-updates` subscription
 - Deprecated: `serverinfo/subscribe`
   - Use `subscribe` / `unsubscribe` subcommands instead
+- Deprecated: DirectX grabber in favour of the new DXGI DDA grabber
 
 ## [2.0.16](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.16) - 2024-01
 
