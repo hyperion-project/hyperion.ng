@@ -508,3 +508,29 @@ function suppressDefaultPwWarning() {
   setStorage("suppressDefaultPwWarning", String(checked));
 }
 
+// Menuitem toggle;
+function SwitchToMenuItem(target, item) {
+  document.getElementById(target).click(); // Get <a href menu item;
+  let sidebar = $('#side-menu');  // Get sidebar menu;
+  sidebar.find('.active').toggleClass('inactive'); // find all active classes and set inactive;
+  sidebar.find('.in').removeClass("in"); // Find all collapsed menu items and close it by remove "in" class;
+  $('#' + target).removeClass('inactive'); // Remove inactive state by classname;
+  $('#' + target).addClass('active'); // Add active state by classname;
+  let cl_object = $('#' + target).closest('ul'); // Find closest ul sidemenu header;
+  cl_object.addClass('in'); // Add class "in" to expand header in sidebar menu;
+  if (item) { // Jump to div "item" if available. Time limit 3 seconds
+    function scrollTo(counter) {
+      if (counter < 30) {
+        setTimeout(function () {
+          counter++;
+          if ($('#' + item).length)
+            $('#' + item)[0].scrollIntoView();
+          else
+            scrollTo(counter);
+        }, 100);
+      }
+    }
+
+    scrollTo(0);
+  }
+};

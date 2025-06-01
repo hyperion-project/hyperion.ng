@@ -165,9 +165,9 @@ int main(int argc, char** argv)
 	if (parser.isSet(versionOption))
 	{
 		std::cout
-				<< "Hyperion Ambilight Deamon" << std::endl
-				<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << std::endl
-				<< "\tBuild Time: " << __DATE__ << " " << __TIME__ << std::endl;
+				<< "Hyperion Ambilight Deamon" << "\n"
+				<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << "\n"
+				<< "\tBuild Time: " << __DATE__ << " " << __TIME__ << "\n";
 
 		return 0;
 	}
@@ -178,21 +178,24 @@ int main(int argc, char** argv)
 		{
 			Error(log, "The Hyperion Daemon is already running, abort start");
 
-			// use the first non-localhost IPv4 address, IPv6 are not supported by Yeelight currently
-			for (const auto& address : QNetworkInterface::allAddresses())
-			{
-				if (!address.isLoopback() && (address.protocol() == QAbstractSocket::IPv4Protocol))
+			// use the first non-localhost IPv4 address
+			QList<QHostAddress> const allNetworkAddresses {QNetworkInterface::allAddresses()};
+			auto it = std::find_if(allNetworkAddresses.begin(), allNetworkAddresses.end(),
+				[](const QHostAddress& address)
 				{
-					std::cout << "Access the Hyperion User-Interface for configuration and control via:" << std::endl;
-					std::cout << "http://" << address.toString().toStdString() << ":8090" << std::endl;
+					return !address.isLoopback() && (address.protocol() == QAbstractSocket::IPv4Protocol);
+				});
 
-					QHostInfo hostInfo = QHostInfo::fromName(address.toString());
-					if (hostInfo.error() == QHostInfo::NoError)
-					{
-						QString hostname = hostInfo.hostName();
-						std::cout << "http://" << hostname.toStdString() << ":8090" << std::endl;
-					}
-					break;
+			if (it != allNetworkAddresses.end())
+			{
+				std::cout << "Access the Hyperion User-Interface for configuration and control via:" << "\n";
+				std::cout << "http://" << it->toString().toStdString() << ":8090" << "\n";
+
+				QHostInfo const hostInfo = QHostInfo::fromName(it->toString());
+				if (hostInfo.error() == QHostInfo::NoError)
+				{
+					QString const hostname = hostInfo.hostName();
+					std::cout << "http://" << hostname.toStdString() << ":8090" << "\n";
 				}
 			}
 			return 0;
@@ -235,30 +238,49 @@ int main(int argc, char** argv)
 	if (parser.isSet(exportEfxOption))
 	{
 		Q_INIT_RESOURCE(EffectEngine);
-		QDir directory(":/effects/");
-		QDir destDir(exportEfxOption.value(parser));
-		if (directory.exists() && destDir.exists())
+		QDir const sourceDir(":/effects/");
+		QDir const destinationDir(exportEfxOption.value(parser));
+
+		// Create destination if it does not exist
+		if (!destinationDir.exists())
 		{
-			std::cout << "Extract to folder: " << destDir.absolutePath().toStdString() << std::endl;
-			const QStringList filenames = directory.entryList(QStringList() << "*", QDir::Files, QDir::Name | QDir::IgnoreCase);
-			QString destFileName;
+			std::cout << "Creating target directory: " << destinationDir.absolutePath().toStdString()  << '\n';
+			if (!QDir().mkpath(destinationDir.absolutePath()))
+			{
+				std::cerr  << "Failed to create directory: \"" << destinationDir.absolutePath().toStdString() << "\", aborting"  << '\n';
+				return 1;
+			}
+		}
+
+		if (sourceDir.exists())
+		{
+			std::cout << "Extract to folder: " << destinationDir.absolutePath().toStdString() << '\n';
+			const QStringList filenames = sourceDir.entryList(QStringList() << "*", QDir::Files, QDir::Name | QDir::IgnoreCase);
 			for (const QString & filename : filenames)
 			{
-				destFileName = destDir.dirName()+"/"+filename;
-				if (QFile::exists(destFileName))
+				QString const sourceFilePath = sourceDir.absoluteFilePath(filename);
+				QString const destinationFilePath = destinationDir.absoluteFilePath(filename);
+
+				if (QFile::exists(destinationFilePath))
 				{
-					QFile::remove(destFileName);
+					QFile::remove(destinationFilePath);
+				}
+
+				if (Logger::getLogLevel() == Logger::DEBUG )
+				{
+					std::cout << "Copy \"" << sourceFilePath.toStdString() << "\" -> \"" << destinationFilePath.toStdString() << "\""  << '\n';
 				}
 
 				std::cout << "Extract: " << filename.toStdString() << " ... ";
-				if (QFile::copy(QString(":/effects/")+filename, destFileName))
+				if (QFile::copy(sourceFilePath, destinationFilePath))
 				{
-					QFile::setPermissions(destFileName, PERM0664 );
-					std::cout << "OK" << std::endl;
+					QFile::setPermissions(destinationFilePath, PERM0664 );
+					std::cout << "OK"  << '\n';
 				}
 				else
 				{
-					std::cout << "Error, aborting" << std::endl;
+					std::cerr  << "Error copying [" << sourceFilePath.toStdString() << " -> [" << destinationFilePath.toStdString() << "]"  << '\n';
+					std::cerr  << "Error, aborting"  << '\n';
 					return 1;
 				}
 			}
@@ -273,11 +295,11 @@ int main(int argc, char** argv)
 	Info(log,"Hyperion %s, %s, built: %s:%s", HYPERION_VERSION, HYPERION_BUILD_ID, __DATE__, __TIME__);
 	Debug(log,"QtVersion [%s]", QT_VERSION_STR);
 
-	int rc = 1;
+	int exitCode = 1;
 	bool readonlyMode = false;
 
-	QString userDataPath(userDataOption.value(parser));
-	QDir userDataDirectory(userDataPath);
+	QString const userDataPath(userDataOption.value(parser));
+	QDir const userDataDirectory(userDataPath);
 
 
 	if (parser.isSet(readOnlyModeOption))
@@ -289,7 +311,7 @@ int main(int argc, char** argv)
 
 	Info(log, "Hyperion configuration and user data location: '%s'", QSTRING_CSTR(userDataDirectory.absolutePath()));
 
-	QFileInfo dbFile(DBManager::getFileInfo());
+	QFileInfo const dbFile(DBManager::getFileInfo());
 
 	try
 	{
@@ -319,7 +341,7 @@ int main(int argc, char** argv)
 					throw std::runtime_error("Configuration export failed'");
 				}
 
-				exit(0);
+				return 0;
 			}
 		}
 		else
@@ -347,16 +369,14 @@ int main(int argc, char** argv)
 				throw std::runtime_error("Password reset failed");
 			}
 
-			AuthTable* table = new AuthTable();
-			if(table->resetHyperionUser()){
-				Info(log,"Password reset successful");
-				delete table;
-				exit(0);
-			} else {
-				Error(log,"Failed to reset password!");
-				delete table;
-				exit(1);
+			QScopedPointer<AuthTable> const table(new AuthTable());
+			if(!table->resetHyperionUser())
+			{
+				throw std::runtime_error("Failed to reset password!");
 			}
+
+			Info(log,"Password reset successful");
+			return 0;
 		}
 
 		// delete database before start
@@ -372,13 +392,10 @@ int main(int argc, char** argv)
 			{
 				if (!QFile::remove(dbFile.absoluteFilePath()))
 				{
-					Error(log,"Failed to delete Database!");
-					exit(1);
+					throw std::runtime_error("Failed to delete Database!");
 				}
-				else
-				{
-					Info(log,"Configuration database deleted successfully.");
-				}
+
+				Info(log,"Configuration database deleted successfully.");
 			}
 			else
 			{
@@ -386,7 +403,7 @@ int main(int argc, char** argv)
 			}
 		}
 
-		QString configFile(importConfig.value(parser));
+		QString const configFile(importConfig.value(parser));
 		if (!configFile.isEmpty())
 		{
 			if ( readonlyMode )
@@ -422,7 +439,7 @@ int main(int argc, char** argv)
 		if (!configFile.isEmpty())
 		{
 			Info(log,"Configuration imported sucessfully. You can start Hyperion now.");
-			exit(0);
+			return 0;
 		}
 
 		Info(log,"Starting Hyperion in %sGUI mode, DB is %s", isGuiApp ? "": "non-", readonlyMode ? "read-only" : "read/write");
@@ -450,11 +467,11 @@ int main(int argc, char** argv)
 			QApplication::setQuitOnLastWindowClosed(false);
 			SysTray tray(hyperiond.get());
 			tray.hide();
-			rc = (qobject_cast<QApplication *>(app.data()))->exec();
+			exitCode = (qobject_cast<QApplication *>(app.data()))->exec();
 		}
 		else
 		{
-			rc = app->exec();
+			exitCode = app->exec();
 		}
 	}
 	catch (std::exception& e)
@@ -469,7 +486,7 @@ int main(int argc, char** argv)
 	}
 #endif
 
-	Info(log, "Application ended with code %d", rc);
+	Info(log, "Application ended with code %d", exitCode);
 
-	return rc;
+	return exitCode;
 }

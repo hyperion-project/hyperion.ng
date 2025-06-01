@@ -16,18 +16,11 @@
 			"minimum": 0,
 			"maximum": 254
 		},
-		"data": {
-		  "type": ["null", "array"],
-		  "properties": {
-			"subscriptions": {
-			  "type": "array",
-			  "items": {}
-			}
-		  },
-		  "additionalProperties": false
-		},
 		"subscribe" : {
-			"type" : "array"
+			"type" : "array",
+			"items": {
+				"type" : "string"
+			}
 		},
 		"tan" : {
 			"type" : "integer"

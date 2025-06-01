@@ -2,11 +2,12 @@
 #define BGEFFECTHANDLER_H
 
 #include <utils/Logger.h>
-#include <hyperion/Hyperion.h>
 #include <utils/settings.h>
 
 #include <QObject>
 #include <QJsonDocument>
+
+class Hyperion;
 
 ///
 /// @brief Handle the background Effect settings, reacts on runtime to settings changes
@@ -52,8 +53,6 @@ private:
 
 	QJsonDocument _bgEffectConfig;
 	bool _isBgEffectEnabled;
-
-	bool _isSuspended;
 };
 
 #endif // BGEFFECTHANDLER_H

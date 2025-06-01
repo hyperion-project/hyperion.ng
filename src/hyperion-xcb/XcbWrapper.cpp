@@ -39,7 +39,12 @@ void XcbWrapper::stop()
 
 bool XcbWrapper::screenInit()
 {
-	return _grabber.setupDisplay();
+	if (_grabber.isAvailable())
+	{
+		return _grabber.setupDisplay();
+	}
+
+	return false;
 }
 
 void XcbWrapper::capture()

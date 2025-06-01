@@ -118,7 +118,7 @@ public:
 	///
 	/// @return true, on success (i.e. library is present), else false
 	///
-	virtual bool isAvailable() { return _isAvailable; }
+	virtual bool isAvailable(bool logError = true)  { return _isAvailable; }
 
 public slots:
 

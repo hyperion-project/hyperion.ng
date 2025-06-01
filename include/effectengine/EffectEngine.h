@@ -9,9 +9,6 @@
 #include <QJsonArray>
 #include <QEventLoop>
 
-// Hyperion includes
-#include <hyperion/Hyperion.h>
-
 // Effect engine includes
 #include <effectengine/EffectDefinition.h>
 #include <effectengine/Effect.h>
@@ -21,6 +18,7 @@
 #include <hyperion/LinearColorSmoothing.h>
 
 // pre-declaration
+class Hyperion;
 class Effect;
 class EffectFileHandler;
 

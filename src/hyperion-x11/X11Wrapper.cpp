@@ -38,7 +38,12 @@ void X11Wrapper::stop()
 
 bool X11Wrapper::screenInit()
 {
-	return _grabber.setupDisplay();
+	if (_grabber.isAvailable())
+	{
+		return _grabber.setupDisplay();
+	}
+
+	return false;
 }
 
 void X11Wrapper::capture()

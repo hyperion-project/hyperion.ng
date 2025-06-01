@@ -19,6 +19,7 @@
 #include <utils/Logger.h>
 #include <utils/JsonUtils.h>
 #include "utils/WaitTime.h"
+#include "utils/TrackedMemory.h"
 
 // LedDevice includes
 #include <leddevice/LedDeviceWrapper.h>
@@ -82,15 +83,12 @@ Hyperion::Hyperion(quint8 instance, QObject* parent)
 	, _ledDeviceDataEmissionInterval(DEFAULT_MAX_LED_DEVICE_DATA_EMISSION_INTERVAL)
 {
 	qRegisterMetaType<ComponentList>("ComponentList");
+	qRegisterMetaType<Image<ColorRgb>>("ColorRgbImage");
 
 	QString const subComponent = "I"+QString::number(_instIndex);
 	this->setProperty("instance", QVariant::fromValue(subComponent));
 
 	_log= Logger::getInstance("HYPERION", subComponent);
-}
-
-Hyperion::~Hyperion()
-{
 }
 
 void Hyperion::start()
@@ -104,7 +102,7 @@ void Hyperion::start()
 	// listen for settings updates of this instance (LEDS & COLOR)
 	connect(_settingsManager.get(), &SettingsManager::settingsChanged, this, &Hyperion::handleSettingsUpdate);
 
-	_componentRegister.reset(new ComponentRegister(this));
+	_componentRegister = MAKE_TRACKED_SHARED(ComponentRegister, this);
 
 	// get newVideoMode from HyperionIManager
 	connect(this, &Hyperion::newVideoMode, this, &Hyperion::handleNewVideoMode);
@@ -113,7 +111,8 @@ void Hyperion::start()
 	_hwLedCount = getSetting(settings::DEVICE).object()["hardwareLedCount"].toInt(1);
 	_colorOrder = getSetting(settings::DEVICE).object()["colorOrder"].toString("rgb");
 
-	_muxer.reset(new PriorityMuxer(_hwLedCount, this));
+	_muxer = MAKE_TRACKED_SHARED(PriorityMuxer, _hwLedCount, this);
+
 	// connect Hyperion::update with Muxer visible priority changes as muxer updates independent
 	connect(_muxer.get(), &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::update);
 	connect(_muxer.get(), &PriorityMuxer::visiblePriorityChanged, this, &Hyperion::handleSourceAvailability);
@@ -145,7 +144,7 @@ void Hyperion::start()
 
 #if defined(ENABLE_EFFECTENGINE)
 	// create the effect engine; needs to be initialized after smoothing!
-	_effectEngine.reset(new EffectEngine(this));
+	_effectEngine = MAKE_TRACKED_SHARED(EffectEngine, this);
 	connect(_effectEngine.get(), &EffectEngine::effectListUpdated, this, &Hyperion::effectListUpdated);
 	connect(this, &Hyperion::stopEffects, _effectEngine.get(), &EffectEngine::stopAllEffects);
 #endif
@@ -275,7 +274,7 @@ void Hyperion::updateLedLayout(const QJsonArray& ledLayout)
 
 	if (_imageProcessor.isNull())
 	{
-		_imageProcessor.reset(new ImageProcessor(_ledString, this));
+		_imageProcessor = MAKE_TRACKED_SHARED(ImageProcessor, _ledString, this);
 	}
 	else
 	{
@@ -361,7 +360,7 @@ int Hyperion::isComponentEnabled(hyperion::Components comp) const
 void Hyperion::setSuspend(bool isSuspend)
 {
 	bool const enable = !isSuspend;
-	emit compStateChangeRequestAll(enable);
+	emit compStateChangeRequest(hyperion::COMP_ALL, enable);
 }
 
 void Hyperion::setIdle(bool isIdle)
