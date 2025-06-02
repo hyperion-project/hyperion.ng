@@ -144,7 +144,7 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: 
 [Icons]
 ;menu icons
 Name: "{group}\{#AppName}"; Filename: "{app}\bin\hyperiond.exe"
-Name: "{group}\{#AppName} {cm:MenuIconConsole}"; Filename: "{app}\bin\hyperiond.exe"; Parameters: "-c"
+Name: "{group}\{#AppName} {cm:MenuIconConsole}"; Filename: "{app}\bin\hyperiond.exe"; Parameters: "-c -v"
 
 ;uninstaller
 Name: "{group}\{cm:UninstallProgram,{#AppName}}"; Filename: "{uninstallexe}"
