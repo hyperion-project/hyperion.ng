@@ -8,6 +8,7 @@
 #define OutputName "@CPACK_PACKAGE_FILE_NAME@"
 #define ComponentStagingDir "@CPACK_TEMPORARY_INSTALL_DIRECTORY@"
 #define OutputDir "@CPACK_PACKAGE_DIRECTORY@"
+#define VCRedist "vc_redist.@CPACK_SYSTEM_PROCESSOR@.exe"
 #define AppFile str(ComponentStagingDir)+str("\Hyperion\bin\hyperiond.exe")
 
 [Setup]
@@ -17,6 +18,7 @@
 
 ; App Information
 AppId={{3546F644-587C-4690-B8DA-C84383B9ECFD}
+AppMutex={#AppName}
 AppName={#AppName}
 AppVersion={#AppVersion}
 AppPublisher={#AppPublisher}
@@ -45,7 +47,7 @@ OutputBaseFilename={#OutputName}
 DirExistsWarning=no
 AlwaysShowComponentsList=true
 PrivilegesRequired=lowest
-PrivilegesRequiredOverridesAllowed=commandline
+PrivilegesRequiredOverridesAllowed=dialog
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 ChangesEnvironment=true
@@ -131,7 +133,10 @@ Source: "{#ComponentStagingDir}\hyperion_qt\*"; DestDir: "{app}"; Flags: ignorev
 #endif
 
 ;dependencies
-Source: "{#ComponentStagingDir}\dependencies\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs;
+Source: "{#ComponentStagingDir}\dependencies\*"; DestDir: "{app}"; Excludes: "\bin\{#VCRedist}"; Flags: ignoreversion recursesubdirs;
+
+;vc_redist
+Source: "{#ComponentStagingDir}\dependencies\bin\{#VCRedist}"; DestDir: {tmp}; Flags: deleteafterinstall
 
 [Registry]
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "Hyperion"; ValueData: "{app}\hyperiond.exe"; Flags:uninsdeletevalue; Tasks: autostart
@@ -139,13 +144,18 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: 
 [Icons]
 ;menu icons
 Name: "{group}\{#AppName}"; Filename: "{app}\bin\hyperiond.exe"
+Name: "{group}\{#AppName} {cm:MenuIconConsole}"; Filename: "{app}\bin\hyperiond.exe"; Parameters: "-c"
+
+;uninstaller
 Name: "{group}\{cm:UninstallProgram,{#AppName}}"; Filename: "{uninstallexe}"
 
-;desktop icon
-Name: "{commondesktop}\Hyperion"; Filename: "{app}\bin\hyperiond.exe"; Tasks: desktopicon; Components: runtime
-Name: "{userdesktop}\Hyperion"; Filename: "{app}\bin\hyperiond.exe"; Tasks: desktopicon\common; Components: runtime
+;common desktop icon
+Name: "{commondesktop}\Hyperion"; Filename: "{app}\bin\hyperiond.exe"; Tasks: desktopicon\common; Components: runtime
+;user desktop icon
+Name: "{userdesktop}\Hyperion"; Filename: "{app}\bin\hyperiond.exe"; Tasks: desktopicon\user; Components: runtime
 
 [Run]
+Filename: "{tmp}\{#VCRedist}"; Parameters: "/install /quiet /norestart"; StatusMsg: "{cm:VCRedistInstall}"
 Filename: "{app}\bin\hyperiond.exe"; Description: "{cm:LaunchProgram,{#StringChange(AppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 [Code]

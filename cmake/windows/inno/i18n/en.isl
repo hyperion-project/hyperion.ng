@@ -8,6 +8,7 @@ SetupTypeFull=Full installation (Hyperion and standalone tools)
 SetupTypeCustom=Custom installation
 
 StartMenuEntry=Create a &start menu entry
+MenuIconConsole=(Console)
 
 DesktopIcon=Create a &desktop icon
 DesktopIconAllUsers=For all users
@@ -20,3 +21,5 @@ AddToSystemAllUsers=For all users
 
 Autostart_Group=Autostart
 Autostart_Description=Start Hyperion automatically on Windows startup
+
+VCRedistInstall=Installing VC++ Redistributables...

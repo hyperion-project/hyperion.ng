@@ -123,6 +123,9 @@ int main(int argc, char** argv)
 	QString processName = QCoreApplication::applicationName();
 #ifdef _WIN32
 	processName.append(".exe");
+
+	// This prevents INNO Setup from being (un)installed while Hyperion is running!
+	CreateMutexA(0, FALSE, "Hyperion");
 #endif
 
 	QObject::connect(&errorManager, &ErrorManager::errorOccurred, [&](const QString& error) {

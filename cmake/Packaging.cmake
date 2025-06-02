@@ -108,7 +108,8 @@ endif()
 if(WIN32)
 	set(CPACK_EXTERNAL_PACKAGE_SCRIPT ${CMAKE_SOURCE_DIR}/cmake/windows/inno/innosetup.cmake)
 	set(CPACK_EXTERNAL_ENABLE_STAGING ON)
-	set(CPACK_BUILD_CONFIG "${CMAKE_BUILD_TYPE}")
+	set(CPACK_BUILD_CONFIG ${CMAKE_BUILD_TYPE})
+	set(CPACK_SYSTEM_PROCESSOR ${CMAKE_SYSTEM_PROCESSOR})
 endif()
 
 # Define the install components

@@ -8,6 +8,7 @@ SetupTypeFull=Komplette Installation (Hyperion und standalone tools)
 SetupTypeCustom=Benutzerdefinierte Installation
 
 StartMenuEntry=&Startmenüeintrag erstellen
+MenuIconConsole=(Konsole)
 
 DesktopIcon=&Desktop-Symbol erstellen
 DesktopIconAllUsers=Für alle Benutzer
@@ -20,3 +21,5 @@ AddToSystemAllUsers=Für alle Benutzer
 
 Autostart_Group=Autostart
 Autostart_Description=Hyperion beim Windows start automatisch ausführen
+
+VCRedistInstall=VC++ Laufzeitkomponenten werden installiert...
