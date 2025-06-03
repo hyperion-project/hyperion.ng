@@ -8,7 +8,6 @@ SetupTypeFull=Full installation (Hyperion and standalone tools)
 SetupTypeCustom=Custom installation
 
 StartMenuEntry=Create a &start menu entry
-MenuIconConsole=(Console)
 
 DesktopIcon=Create a &desktop icon
 DesktopIconAllUsers=For all users

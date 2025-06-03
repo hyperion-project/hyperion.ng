@@ -2,19 +2,25 @@
 #define AppVersion "@CPACK_PACKAGE_VERSION@"
 #define AppPublisher "@CPACK_PACKAGE_VENDOR@"
 #define AppURL "@CPACK_PACKAGE_HOMEPAGE_URL@"
-#define AppCopyright "Copyright (c) 2014-2023 Hyperion Project"
+#define AppCopyright "Copyright (c) 2014-2025 Hyperion Project"
 #define AppLicense "@CPACK_RESOURCE_FILE_LICENSE@"
 #define AppDescription "@CPACK_PACKAGE_DESCRIPTION_SUMMARY@"
 #define OutputName "@CPACK_PACKAGE_FILE_NAME@"
 #define ComponentStagingDir "@CPACK_TEMPORARY_INSTALL_DIRECTORY@"
 #define OutputDir "@CPACK_PACKAGE_DIRECTORY@"
-#define VCRedist "vc_redist.@CPACK_SYSTEM_PROCESSOR@.exe"
 #define AppFile str(ComponentStagingDir)+str("\Hyperion\bin\hyperiond.exe")
+#define Arch "@CPACK_SYSTEM_PROCESSOR@"
+#define VCRedist "vc_redist." + Arch + ".exe"
+#define VCRedistVersion GetVersionNumbersString(str(ComponentStagingDir) + "\dependencies\bin\" + VCRedist)
+#define VCRedistVersionMajor
+#expr UnpackVersionComponents(StrToVersion(VCRedistVersion), VCRedistVersionMajor, null, null, null)
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
+
+SetupLogging=yes
 
 ; App Information
 AppId={{3546F644-587C-4690-B8DA-C84383B9ECFD}
@@ -50,6 +56,7 @@ PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
+RestartIfNeededByRun=no
 ChangesEnvironment=true
 CloseApplications=yes
 ShowComponentSizes=no
@@ -144,7 +151,6 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: 
 [Icons]
 ;menu icons
 Name: "{group}\{#AppName}"; Filename: "{app}\bin\hyperiond.exe"
-Name: "{group}\{#AppName} {cm:MenuIconConsole}"; Filename: "{app}\bin\hyperiond.exe"; Parameters: "-c -v"
 
 ;uninstaller
 Name: "{group}\{cm:UninstallProgram,{#AppName}}"; Filename: "{uninstallexe}"
@@ -155,7 +161,7 @@ Name: "{commondesktop}\Hyperion"; Filename: "{app}\bin\hyperiond.exe"; Tasks: de
 Name: "{userdesktop}\Hyperion"; Filename: "{app}\bin\hyperiond.exe"; Tasks: desktopicon\user; Components: runtime
 
 [Run]
-Filename: "{tmp}\{#VCRedist}"; Parameters: "/install /quiet /norestart"; StatusMsg: "{cm:VCRedistInstall}"
+Filename: "{tmp}\{#VCRedist}"; Parameters: "/install /quiet /norestart"; StatusMsg: "{cm:VCRedistInstall}"; Check: VCRedistNeeded;
 Filename: "{app}\bin\hyperiond.exe"; Description: "{cm:LaunchProgram,{#StringChange(AppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 [Code]
@@ -167,6 +173,17 @@ var
   ModPathType: String;
 
 #include "modpath.iss"
+
+function VCRedistNeeded(): boolean;
+var
+  regVersion: String;
+begin
+  Result := True;
+  if (RegQueryStringValue(HKEY_LOCAL_MACHINE, ExpandConstant('SOFTWARE\Microsoft\VisualStudio\{#VCRedistVersionMajor}.0\VC\Runtimes\{#Arch}'), 'Version', regVersion)) then
+  begin
+    Result := (CompareStr(regVersion, ExpandConstant('{#VCRedistVersion}')) < 0);
+  end;
+end;
 
 function GetUninstallString: String;
 var
