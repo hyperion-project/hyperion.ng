@@ -149,6 +149,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Deprecated: `serverinfo/subscribe`
   - Use `subscribe` / `unsubscribe` subcommands instead
 - Deprecated: DirectX grabber in favour of the new DXGI DDA grabber
+- Removed "-c" console option on Windows. Hyperion can be started via terminal to get the required console output
 
 ## [2.0.16](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.16) - 2024-01
 

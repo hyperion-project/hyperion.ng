@@ -167,8 +167,8 @@ int main(int argc, char** argv)
 	parser.process(*qApp);
 
 #ifdef WIN32
-	bool isShowConsole = parser.isSet(consoleOption);
-	openConsole(isShowConsole);
+	//Attach the output to an existing console if available
+	openConsole(false);
 #endif
 
 	if (parser.isSet(versionOption))
@@ -493,15 +493,6 @@ int main(int argc, char** argv)
 	}
 
 	Info(log, "Application ended with code %d", exitCode);
-
-#ifdef _WIN32
-	if (parser.isSet(consoleOption))
-	{
-		system("pause");
-	}
-#endif
-
-	Logger::deleteInstance();
 
 	return exitCode;
 }
