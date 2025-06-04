@@ -428,6 +428,11 @@ int main(int argc, char** argv)
 		}
 	}
 
+	if (!configManager.isConfigVersionCompatible())
+	{
+		return EXIT_FAILURE;
+	}
+
 	if (!configManager.addMissingDefaults().first)
 	{
 		emit errorManager.errorOccurred("Updating configuration database with missing defaults failed.");

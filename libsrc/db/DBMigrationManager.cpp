@@ -21,21 +21,16 @@ bool DBMigrationManager::isMigrationRequired()
 
 	if (settingsTableGlobal.resolveConfigVersion())
 	{
-		semver::version BUILD_VERSION(HYPERION_VERSION);
+		semver::version const BUILD_VERSION(HYPERION_VERSION);
 
 		if (!BUILD_VERSION.isValid())
 		{
+			// Must not happen, otherwise the version must be fixed immediatly
 			Error(_log, "Current Hyperion version [%s] is invalid. Exiting...", BUILD_VERSION.getVersion().c_str());
-			exit(1);
+			assert(false);
 		}
 
 		const semver::version& currentVersion = settingsTableGlobal.getConfigVersion();
-		if (currentVersion > BUILD_VERSION)
-		{
-			Error(_log, "Database version [%s] is greater than current Hyperion version [%s]. Exiting...", currentVersion.getVersion().c_str(), BUILD_VERSION.getVersion().c_str());
-			exit(1);
-		}
-
 		if (currentVersion < BUILD_VERSION)
 		{
 			isNewRelease = true;
@@ -47,14 +42,14 @@ bool DBMigrationManager::isMigrationRequired()
 bool DBMigrationManager::migrateSettings(QJsonObject& config)
 {
 	bool migrated = false;
-	semver::version BUILD_VERSION(HYPERION_VERSION);
+	semver::version const BUILD_VERSION(HYPERION_VERSION);
 
 	SettingsTable settingsTableGlobal;
 	QJsonObject generalConfig = config.value("global").toObject().value("settings").toObject().value("general").toObject();
 
 	if (settingsTableGlobal.resolveConfigVersion(generalConfig))
 	{
-		semver::version currentVersion = settingsTableGlobal.getConfigVersion();
+		semver::version const currentVersion = settingsTableGlobal.getConfigVersion();
 
 		if (currentVersion < BUILD_VERSION)
 		{
@@ -124,15 +119,15 @@ bool DBMigrationManager::upgradeInstanceSettings(const semver::version& currentV
 	semver::version migratedVersion = currentVersion;
 
 	//Migration step for versions < alpha 9
-	upgradeInstanceSettings_alpha_9(migratedVersion, instance, config);
+	migrated |= upgradeInstanceSettings_alpha_9(migratedVersion, instance, config);
 	//Migration step for versions < 2.0.12
-	upgradeInstanceSettings_2_0_12(migratedVersion, instance, config);
+	migrated |= upgradeInstanceSettings_2_0_12(migratedVersion, instance, config);
 	//Migration step for versions < 2.0.13
-	upgradeInstanceSettings_2_0_13(migratedVersion, instance, config);
+	migrated |= upgradeInstanceSettings_2_0_13(migratedVersion, instance, config);
 	//Migration step for versions < 2.0.16
-	upgradeInstanceSettings_2_0_16(migratedVersion, instance, config);
+	migrated |= upgradeInstanceSettings_2_0_16(migratedVersion, instance, config);
 	//Migration step for versions < 2.0.17
-	upgradeInstanceSettings_2_1_0(migratedVersion, instance, config);
+	migrated |= upgradeInstanceSettings_2_1_0(migratedVersion, instance, config);
 
 	return migrated;
 }
