@@ -146,7 +146,7 @@ Source: "{#ComponentStagingDir}\dependencies\*"; DestDir: "{app}"; Excludes: "\b
 Source: "{#ComponentStagingDir}\dependencies\bin\{#VCRedist}"; DestDir: {tmp}; Flags: deleteafterinstall
 
 [Registry]
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "Hyperion"; ValueData: "{app}\hyperiond.exe"; Flags:uninsdeletevalue; Tasks: autostart
+Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "Hyperion"; ValueData: "{app}\bin\hyperiond.exe"; Flags:uninsdeletevalue; Tasks: autostart
 
 [Icons]
 ;menu icons
