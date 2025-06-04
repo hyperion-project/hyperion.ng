@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ⚠️ Breaking Changes
 
+- Rename "-v" & "--verbose" options to "-i" & "--info to not overlap with version information
+
 #### JSON-API
 - Standardized subscription update elements: `ledcolors-imagestream-update`, `ledcolors-ledstream-update`, and `logmsg-update` now return data under `data` instead of `result`.
 - Global configuration elements are now separated from instance-specific ones.

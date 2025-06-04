@@ -55,6 +55,10 @@
 
 using namespace commandline;
 
+namespace {
+	inline const QString APPLICATION_NAME = QStringLiteral("Hyperion Daemon");
+}
+
 #define PERM0664 (QFileDevice::ReadOwner | QFileDevice::ReadGroup | QFileDevice::ReadOther | QFileDevice::WriteOwner | QFileDevice::WriteGroup)
 
 QCoreApplication* createApplication(int& argc, char* argv[])
@@ -135,14 +139,17 @@ int main(int argc, char** argv)
 
 	bool isGuiApp = !(qobject_cast<QApplication*>(app.data()) == nullptr) && QSystemTrayIcon::isSystemTrayAvailable();
 
+	app->setApplicationName(APPLICATION_NAME);
+	app->setApplicationVersion(QString("%1 (%2)").arg(HYPERION_VERSION, HYPERION_BUILD_ID));
+
 	// force the locale
 	setlocale(LC_ALL, "C");
 	QLocale::setDefault(QLocale::c());
 
-	Parser parser("Hyperion Daemon");
+	Parser parser(APPLICATION_NAME);
 	parser.addHelpOption();
+	parser.addVersionOption();
 
-	BooleanOption& versionOption = parser.add<BooleanOption>(0x0, "version", "Show version information");
 	Option& userDataOption = parser.add<Option>('u', "userdata", "Overwrite user data path, defaults to home directory of current user (%1)", QDir::homePath() + "/.hyperion");
 	BooleanOption& resetPassword = parser.add<BooleanOption>(0x0, "resetPassword", "Lost your password? Reset it with this option back to 'hyperion'");
 	BooleanOption& readOnlyModeOption = parser.add<BooleanOption>(0x0, "readonlyMode", "Start in read-only mode. No updates will be written to the database");
@@ -150,8 +157,8 @@ int main(int argc, char** argv)
 	Option& importConfig = parser.add<Option>(0x0, "importConfig", "Replace the current configuration database by a new configuration");
 	Option& exportConfigPath = parser.add<Option>(0x0, "exportConfig", "Export the current configuration database, defaults to home directory of current user (%1)", QDir::homePath() + "/.hyperion//archive");
 	BooleanOption& silentOption = parser.add<BooleanOption>('s', "silent", "Do not print any outputs");
-	BooleanOption& verboseOption = parser.add<BooleanOption>('v', "verbose", "Increase verbosity");
-	BooleanOption& debugOption = parser.add<BooleanOption>('d', "debug", "Show debug messages");
+	BooleanOption& infoMsgOption = parser.add<BooleanOption>('i', "info", "Show Info messages");
+	BooleanOption& debugMsgOption = parser.add<BooleanOption>('d', "debug", "Show Debug messages");
 
 	parser.add<BooleanOption>(0x0, "desktop", "Show systray on desktop");
 	parser.add<BooleanOption>(0x0, "service", "Force hyperion to start as console service");
@@ -168,16 +175,6 @@ int main(int argc, char** argv)
 	//Attach the output to an existing console if available
 	openConsole(false);
 #endif
-
-	if (parser.isSet(versionOption))
-	{
-		std::cout
-			<< "Hyperion Ambilight Deamon" << "\n"
-			<< "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")" << "\n"
-			<< "\tBuild Time: " << __DATE__ << " " << __TIME__ << "\n";
-
-		return EXIT_SUCCESS;
-	}
 
 	if (!parser.isSet(waitOption))
 	{
@@ -223,19 +220,19 @@ int main(int argc, char** argv)
 		logLevelCheck++;
 	}
 
-	if (parser.isSet(verboseOption))
+	if (parser.isSet(infoMsgOption))
 	{
 		Logger::setLogLevel(Logger::INFO);
 		logLevelCheck++;
 	}
 
-	if (parser.isSet(debugOption))
+	if (parser.isSet(debugMsgOption))
 	{
 		Logger::setLogLevel(Logger::DEBUG);
 		logLevelCheck++;
 	}
 
-	Info(log, "Hyperion %s, %s, built: %s:%s", HYPERION_VERSION, HYPERION_BUILD_ID, __DATE__, __TIME__);
+	Info(log, "%s %s, %s, built: %s:%s", QSTRING_CSTR(APPLICATION_NAME), HYPERION_VERSION, HYPERION_BUILD_ID, __DATE__, __TIME__);
 	Debug(log, "QtVersion [%s]", QT_VERSION_STR);
 
 	if (logLevelCheck > 1)
