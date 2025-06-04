@@ -156,9 +156,9 @@ int main(int argc, char** argv)
 	BooleanOption& deleteDB = parser.add<BooleanOption>(0x0, "deleteDatabase", "Start all over? This Option will delete the database");
 	Option& importConfig = parser.add<Option>(0x0, "importConfig", "Replace the current configuration database by a new configuration");
 	Option& exportConfigPath = parser.add<Option>(0x0, "exportConfig", "Export the current configuration database, defaults to home directory of current user (%1)", QDir::homePath() + "/.hyperion//archive");
-	BooleanOption& silentOption = parser.add<BooleanOption>('s', "silent", "Do not print any outputs");
-	BooleanOption& infoMsgOption = parser.add<BooleanOption>('i', "info", "Show Info messages");
-	BooleanOption& debugMsgOption = parser.add<BooleanOption>('d', "debug", "Show Debug messages");
+	BooleanOption& silentLogOption = parser.add<BooleanOption>('s', "silent", "Do not print any log outputs");
+	BooleanOption& infoLogOption = parser.add<BooleanOption>('i', "info", "Show Info log messages");
+	BooleanOption& debugLogOption = parser.add<BooleanOption>('d', "debug", "Show Debug log messages");
 
 	parser.add<BooleanOption>(0x0, "desktop", "Show systray on desktop");
 	parser.add<BooleanOption>(0x0, "service", "Force hyperion to start as console service");
@@ -214,19 +214,19 @@ int main(int argc, char** argv)
 	}
 
 	int logLevelCheck = 0;
-	if (parser.isSet(silentOption))
+	if (parser.isSet(silentLogOption))
 	{
 		Logger::setLogLevel(Logger::OFF);
 		logLevelCheck++;
 	}
 
-	if (parser.isSet(infoMsgOption))
+	if (parser.isSet(infoLogOption))
 	{
 		Logger::setLogLevel(Logger::INFO);
 		logLevelCheck++;
 	}
 
-	if (parser.isSet(debugMsgOption))
+	if (parser.isSet(debugLogOption))
 	{
 		Logger::setLogLevel(Logger::DEBUG);
 		logLevelCheck++;
@@ -237,7 +237,7 @@ int main(int argc, char** argv)
 
 	if (logLevelCheck > 1)
 	{
-		emit errorManager.errorOccurred("Options --silent --verbose --debug cannot be used all together.");
+		emit errorManager.errorOccurred("Options --silent --info --debug cannot be used all together.");
 		return EXIT_FAILURE;
 	}
 
