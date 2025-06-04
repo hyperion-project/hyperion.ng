@@ -152,9 +152,7 @@ int main(int argc, char** argv)
 	BooleanOption& silentOption = parser.add<BooleanOption>('s', "silent", "Do not print any outputs");
 	BooleanOption& verboseOption = parser.add<BooleanOption>('v', "verbose", "Increase verbosity");
 	BooleanOption& debugOption = parser.add<BooleanOption>('d', "debug", "Show debug messages");
-#ifdef WIN32
-	BooleanOption& consoleOption = parser.add<BooleanOption>('c', "console", "Open a console window to view log output");
-#endif
+
 	parser.add<BooleanOption>(0x0, "desktop", "Show systray on desktop");
 	parser.add<BooleanOption>(0x0, "service", "Force hyperion to start as console service");
 #if defined(ENABLE_EFFECTENGINE)
