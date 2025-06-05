@@ -180,7 +180,13 @@ private:
 					path.takeFirst(); //Remove first item of path
 					QJsonValue subTarget;
 					modifyValue(subValue, subTarget, path, newValue);
-					targetObj.insert(key, subTarget);
+
+					//Ignore elements with null values
+					if (subTarget != QJsonValue::Null)
+					{
+						targetObj.insert(key, subTarget);
+					}
+
 					foundKey = true;
 				}
 				else
@@ -243,7 +249,11 @@ private:
 			}
 			else
 			{
-				target = source;
+				//Do not add elements being null
+				if (newValue != QJsonValue::Null)
+				{
+					target = source;
+				}
 			}
 		}
 	}
