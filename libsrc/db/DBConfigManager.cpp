@@ -390,3 +390,27 @@ QPair<bool, QStringList> DBConfigManager::migrateConfiguration()
 	return qMakePair (true, QStringList{} );
 }
 
+bool DBConfigManager::isConfigVersionCompatible()
+{
+	SettingsTable settingsTableGlobal;
+
+	if (settingsTableGlobal.resolveConfigVersion())
+	{
+		semver::version BUILD_VERSION(HYPERION_VERSION);
+
+		if (!BUILD_VERSION.isValid())
+		{
+			Error(_log, "Current Hyperion version [%s] is invalid.", BUILD_VERSION.getVersion().c_str());
+			return false;
+		}
+
+		const semver::version& currentVersion = settingsTableGlobal.getConfigVersion();
+		if (currentVersion > BUILD_VERSION)
+		{
+			Error(_log, "Database version [%s] is greater than current Hyperion version [%s].", currentVersion.getVersion().c_str(), BUILD_VERSION.getVersion().c_str());
+			return false;
+		}
+	}
+	return true;
+}
+

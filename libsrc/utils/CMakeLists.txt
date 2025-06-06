@@ -103,6 +103,10 @@ target_link_libraries(hyperion-utils
 	Qt${QT_VERSION_MAJOR}::Network
 )
 
+if(WIN32)
+	target_link_libraries(hyperion-utils dbghelp)
+endif()
+
 if(ENABLE_EFFECTENGINE)
 	target_link_libraries(hyperion-utils python)
 endif()

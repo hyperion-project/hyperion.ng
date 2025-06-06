@@ -66,14 +66,14 @@ void Logger::deleteInstance(const QString & name, const QString & subName)
 	if (name.isEmpty())
 	{
 		for (auto *logger : std::as_const(LoggerMap)) {
-			delete logger;
+			logger->deleteLater();
 		}
 
 		LoggerMap.clear();
 	}
 	else
 	{
-		delete LoggerMap.value(name + subName, nullptr);
+		 LoggerMap.value(name + subName, nullptr)->deleteLater();
 		LoggerMap.remove(name + subName);
 	}
 }

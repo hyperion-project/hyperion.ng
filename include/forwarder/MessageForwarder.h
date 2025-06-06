@@ -23,7 +23,9 @@
 #include <utils/Image.h>
 
 // Hyperion includes
+#ifdef ENABLE_MDNS
 #include <mdns/MdnsBrowser.h>
+#endif
 #include <db/SettingsTable.h>
 #include <hyperion/PriorityMuxer.h>
 
@@ -144,7 +146,9 @@ private:
 
 	QSharedPointer<MessageForwarderFlatbufferClientsHelper> _messageForwarderFlatBufHelper;
 
+#ifdef ENABLE_MDNS
 	QSharedPointer<MdnsBrowser> _mdnsBrowser = MdnsBrowser::getInstance();
+#endif
 };
 
 class MessageForwarderFlatbufferClientsHelper : public QObject

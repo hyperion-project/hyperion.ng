@@ -14,7 +14,7 @@
 #include <tlhelp32.h>
 #endif
 
-QStringList getProcessIdsByProcessName(const char *processName)
+QStringList getProcessIdsByProcessName(const QString& processName)
 {
 	QStringList listOfPids;
 

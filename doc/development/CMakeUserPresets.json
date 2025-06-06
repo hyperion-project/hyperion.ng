@@ -70,7 +70,7 @@
       },
       "environment": {
         "LINUX_QT_ROOT_DIR": "$env{HOME}/Qt",
-        "LINUX_PRE_BUILT_DEPS_ROOT_DIR":"$env{HOME}/hyperion_prebuild_deps"
+        "LINUX_PRE_BUILT_DEPS_ROOT_DIR": "$env{HOME}/hyperion_prebuild_deps"
       }
     },
     {
@@ -83,8 +83,8 @@
         "rhs": "Linux"
       },
       "cacheVariables": {
-        "USE_PRE_BUILT_DEPS":"ON",
-      	"PRE_BUILT_DEPS_DIR":"$env{LINUX_PRE_BUILT_DEPS_ROOT_DIR}/qt5"
+        "USE_PRE_BUILT_DEPS": "ON",
+        "PRE_BUILT_DEPS_DIR": "$env{LINUX_PRE_BUILT_DEPS_ROOT_DIR}/qt5"
       },
       "environment": {
       }
@@ -99,8 +99,8 @@
         "rhs": "Linux"
       },
       "cacheVariables": {
-        "USE_PRE_BUILT_DEPS":"ON",
-      	"PRE_BUILT_DEPS_DIR":"$env{LINUX_PRE_BUILT_DEPS_ROOT_DIR}/qt6"
+        "USE_PRE_BUILT_DEPS": "ON",
+        "PRE_BUILT_DEPS_DIR": "$env{LINUX_PRE_BUILT_DEPS_ROOT_DIR}/qt6"
       },
       "environment": {
         "QTDIR": "$env{LINUX_QT_ROOT_DIR}/6.9.0/gcc_64"
@@ -218,6 +218,31 @@
       "name": "release-qt6-all-linux",
       "inherits": [ "linux-release", "qt6-env-linux-wrapper" ]
     }
+  ],
+  "buildPresets": [
+    {
+      "name": "package-qt5-all-windows",
+      "displayName": "Windows (package - Qt5)",
+      "configuration": "Release",
+      "targets": [ "package" ],
+      "configurePreset": "release-qt5-all-windows",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "package-qt6-all-windows",
+      "displayName": "Windows (package - Qt6)",
+      "configuration": "Release",
+      "targets": [ "package" ],
+      "configurePreset": "release-qt6-all-windows",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    }
   ]
 }
-

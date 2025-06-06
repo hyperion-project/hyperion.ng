@@ -292,7 +292,7 @@ async function handlePasswordRequirement(event) {
     }
 
     const loginEvent = await waitForEvent("cmd-authorize-login");
-    handleLogin(loginEvent);
+    handleLogin(loginEvent, token !== null);
   } else {
     $("#main-nav, #top-navbar").hide();
 
@@ -300,15 +300,15 @@ async function handlePasswordRequirement(event) {
       requestTokenAuthorization(token);
 
       const loginEvent = await waitForEvent("cmd-authorize-login");
-      handleLogin(loginEvent);
+      handleLogin(loginEvent, true);
     } else {
       loadContentTo("#page-content", "login");
     }
   }
 }
 
-function handleLogin(event) {
-  if (window.defaultPasswordIsSet && getStorage("suppressDefaultPwWarning") !== "true") {
+function handleLogin(event, isLoggedIn = false) {
+  if (isLoggedIn && window.defaultPasswordIsSet && getStorage("suppressDefaultPwWarning") !== "true") {
     const msg = `
       <div class="text-right">
         ${$.i18n('dashboard_message_do_not_show_again')}
@@ -336,7 +336,6 @@ function handleLogin(event) {
 async function handleSchema(event) {
   window.serverSchema = event.response.info;
   window.schema = window.serverSchema.properties;
-
 }
 
 function getStoredInstance() {

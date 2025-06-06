@@ -149,7 +149,7 @@ int main(int argc, char ** argv)
 		QHostAddress hostAddress;
 		if (!NetUtils::resolveHostToAddress(log, hostname, hostAddress, port))
 		{
-			emit errorManager.errorOccurred(QString("Address could not be resolved for hostname: %2").arg(QSTRING_CSTR(hostAddress.toString())));
+			emit errorManager.errorOccurred(QString("Address could not be resolved for hostname: %1").arg(QSTRING_CSTR(hostAddress.toString())));
 			return 1;
 		}
 		Info(log, "Connecting to Hyperion host: %s, port: %u", QSTRING_CSTR(hostAddress.toString()), port);

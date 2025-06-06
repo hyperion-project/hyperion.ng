@@ -12,25 +12,29 @@ elseif(ENABLE_V4L2)
 	set(grabber_project V4L2)
 endif()
 
-add_library(${PROJECT_NAME}
-	${CMAKE_SOURCE_DIR}/include/grabber/video/EncoderThread.h
-	${CMAKE_SOURCE_DIR}/include/grabber/video/VideoWrapper.h
-	${CMAKE_SOURCE_DIR}/libsrc/grabber/video/EncoderThread.cpp
-	${CMAKE_SOURCE_DIR}/libsrc/grabber/video/VideoWrapper.cpp
-	${CMAKE_SOURCE_DIR}/include/grabber/video/${${grabber_project}-grabber}/${grabber_project}Grabber.h
-	${CMAKE_SOURCE_DIR}/libsrc/grabber/video/${${grabber_project}-grabber}/${grabber_project}Grabber.cpp
-	${MediaFoundationSourceReaderCallBack}
-)
-
-target_link_libraries(${PROJECT_NAME} hyperion)
-
-# Add Turbo JPEG library
 if(ENABLE_V4L2 OR ENABLE_MF)
+	add_library(${PROJECT_NAME}
+		${CMAKE_SOURCE_DIR}/include/grabber/video/EncoderThread.h
+		${CMAKE_SOURCE_DIR}/include/grabber/video/VideoWrapper.h
+		${CMAKE_SOURCE_DIR}/libsrc/grabber/video/EncoderThread.cpp
+		${CMAKE_SOURCE_DIR}/libsrc/grabber/video/VideoWrapper.cpp
+		${CMAKE_SOURCE_DIR}/include/grabber/video/${${grabber_project}-grabber}/${grabber_project}Grabber.h
+		${CMAKE_SOURCE_DIR}/libsrc/grabber/video/${${grabber_project}-grabber}/${grabber_project}Grabber.cpp
+		${MediaFoundationSourceReaderCallBack}
+	)
+
+	target_link_libraries(${PROJECT_NAME} hyperion)
+
+	if(ENABLE_MF AND USE_PRE_BUILT_DEPS)
+		set(TURBOJPEG_ROOT_DIR ${PRE_BUILT_DEPS_DIR})
+	endif()
+
 	find_package(TurboJPEG)
-	if(TURBOJPEG_FOUND)
+	if(TURBOJPEG_FOUND AND TARGET turbojpeg)
 		target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_TURBO_JPEG)
 		target_link_libraries(${PROJECT_NAME} turbojpeg)
 	else ()
-		message(STATUS "Turbo JPEG library not found, MJPEG camera format won't work.")
+		message(STATUS "TurboJPEG library not found, MJPEG camera format won't work.")
 	endif()
 endif()
+

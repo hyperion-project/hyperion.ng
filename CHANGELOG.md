@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ⚠️ Breaking Changes
 
+- Rename "-v" & "--verbose" options to "-i" & "--info to not overlap with version information
+
 #### JSON-API
 - Standardized subscription update elements: `ledcolors-imagestream-update`, `ledcolors-ledstream-update`, and `logmsg-update` now return data under `data` instead of `result`.
 - Global configuration elements are now separated from instance-specific ones.
@@ -39,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Enhanced error dialog with additional details
   - LED preview displays the associated instance name
 - **HTTP Server:** Support for **Cross-Origin Resource Sharing (CORS)** (#1496)
+- **GitHub builds** Added Windows 11 on arm64 platform
 
 #### JSON-API
 - New event subscriptions: `Suspend`, `Resume`, `Idle`, `IdleResume`, `Restart`, `Quit`
@@ -116,6 +119,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Use of smart pointers
   - UI code streamlining
   - Improved `install_pr` script
+  - Replaced exceptions by signaling errors in main program and standalone grabbers
   - Enhanced resilience and error handling
 
   - **Build:**
@@ -123,6 +127,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Added missing `ENABLE_MDNS`. _Thanks to @Links2004_ (#1711)
     - Build system now uses **pre-built dependencies** to reduce resource usage
     - Introduced **CMakePresets** and a **CMakeUserPresets** template
+    - GitHub Windows, Pull request artifacts are built with RelWithDebInfo (#1865 )
 
 #### JSON-API
 - Consistent token authorization across sessions and single requests
@@ -145,6 +150,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed: `session-updates` subscription
 - Deprecated: `serverinfo/subscribe`
   - Use `subscribe` / `unsubscribe` subcommands instead
+- Deprecated: DirectX grabber in favour of the new DXGI DDA grabber
+- Removed "-c" console option on Windows. Hyperion can be started via terminal to get the required console output
 
 ## [2.0.16](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.16) - 2024-01
 

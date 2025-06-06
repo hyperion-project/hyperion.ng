@@ -25,6 +25,8 @@ public:
 
 	QPair<bool, QStringList> migrateConfiguration();
 
+	bool isConfigVersionCompatible();
+
 private:
 	// Function to import global settings from the configuration
 	bool importGlobalSettings(const QJsonObject& config, QStringList& errorList);

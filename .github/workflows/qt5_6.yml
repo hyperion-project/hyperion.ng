@@ -131,7 +131,7 @@ jobs:
       - name: 📥 Install dependencies
         uses: tecolicom/actions-use-homebrew-tools@v1
         with:
-          tools: qt@${{ inputs.qt_version }} vulkan-headers coreutils
+          tools: qt@${{ inputs.qt_version }} coreutils
           key: ${{ runner.os }}-${{ matrix.architecture }}-homebrew-packages-${{ inputs.qt_version }}
 
       - name: 💾 Download Pre-Build Dependencies
@@ -146,25 +146,9 @@ jobs:
       - name: 👷 Build ${{ env.HINT }}
         shell: bash
         run: |
-          # Remove once issue with Homebrew cache action is fixed
-          brew reinstall --formula cmake
-
           # Build
           cmake --preset macos-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }}
-          cmake --build --preset macos-${{ env.BUILD_TYPE }}
-          # CPack workaround for macOS 13
-          attempt=0
-          max_attempts=5
-          while [ $attempt -lt $max_attempts ]; do
-            if cd build && cpack; then
-              echo "Package created successfully"
-              break
-            else
-              echo "Failed to create package, retrying..."
-              sleep 10
-            fi
-            attempt=$((attempt + 1))
-          done
+          cmake --build --preset macos-${{ env.BUILD_TYPE }} --target package
         env:
           BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
           HINT: ${{ steps.dependencies.outputs.cmakeArgs != '' && '(with pre-built dependencies)' || '(full build)' }}
@@ -183,10 +167,20 @@ jobs:
 ######################
 
   windows:
-    name: 🪟 Windows x64
-    runs-on: windows-2022
+    name: 🪟 Windows ${{ matrix.architecture }}
+    runs-on: ${{ matrix.architecture == 'arm64' && 'windows-11-arm' || 'windows-2022' }}
     env:
-      LIBJPEG_TURBO_VERSION: 3.0.1
+      LIBJPEG_TURBO_VERSION: 3.1.0
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [ arm64, x64 ]
+        isQt5:
+          - ${{ inputs.qt_version == '5' }}
+        exclude:
+          - isQt5: true
+            architecture: arm64
+
     steps:
       - name: ⬇ Checkout
         uses: actions/checkout@v4
@@ -198,55 +192,40 @@ jobs:
         shell: bash
         run: tr -d '\n' < .version > temp && mv temp .version && echo -n "+PR${{ inputs.pull_request_number }}" >> .version
 
-      - name: 💾 Restore DirectX SDK (if available)
-        uses: ethanjli/cached-download-action@v0.1.2
+      - name: 📥 Install Python
+        uses: actions/setup-python@v5
         with:
-          url: https://download.microsoft.com/download/A/E/7/AE743F1F-632B-4809-87A9-AA1BB3458E31/DXSDK_Jun10.exe
-          destination: .\installer\dxsdk-jun10.exe
-          cache-key: dxsdk-jun10
-
-      - name: 💾 Restore libjpeg-turbo (if available)
-        uses: ethanjli/cached-download-action@v0.1.2
-        with:
-          url: https://sourceforge.net/projects/libjpeg-turbo/files/${{ env.LIBJPEG_TURBO_VERSION }}/libjpeg-turbo-${{ env.LIBJPEG_TURBO_VERSION }}-vc64.exe
-          destination: .\installer\libjpeg-turbo.exe
-          cache-key: libjpeg-turbo
-
-      - name: 📥 Extract DirectX SDK & libjpeg-turbo
-        run: |
-          7z x -aoa .\installer\dxsdk-jun10.exe DXSDK/Include DXSDK/Lib -oC:\
-          echo "DXSDK_DIR=C:\DXSDK" | Out-File -FilePath $env:GITHUB_ENV -Append
-          7z x -aoa .\installer\libjpeg-turbo.exe bin include lib -oC:\turbojpeg
-          echo "TURBOJPEG_DIR=C:\turbojpeg" | Out-File -FilePath $env:GITHUB_ENV -Append
-
-      - name: 📥 Install Vulkan SDK
-        if: ${{ inputs.qt_version == '6' }}
-        uses: jakoch/install-vulkan-sdk-action@v1
-        with:
-          install_runtime: false
-          cache: true
-          stripdown: true
+          python-version: '3.13.3'
+          architecture: ${{ matrix.architecture }}
 
       - name: 📥 Install Qt
-        uses: jurplel/install-qt-action@v4
+        # If the following PR is merged, you can switch back to jurplel/install-qt-action
+        # https://github.com/jurplel/install-qt-action/pull/273
+        uses: jdpurcell/install-qt-action@v5
         with:
-          version: ${{ inputs.qt_version == '6' && '6.8' || '5.15.*' }}
+          version: ${{ inputs.qt_version == '6' && '6.8.*' || '5.15.*' }}
           target: 'desktop'
           modules: ${{ inputs.qt_version == '6' && 'qtserialport qtwebsockets' || '' }}
           cache: 'true'
           cache-key-prefix: 'cache-qt-windows'
+          setup-python: 'false'
+
+      - name: 📥 Install latest CMake and Ninja
+        uses: lukka/get-cmake@latest
 
       - name: 🛠️ Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.architecture }}
 
       - name: 💾 Download Pre-Build Dependencies
         id: dependencies
         uses: ./.github/actions/download-pre-built-deps
         with:
           os: 'windows'
-          architecture: 'x64'
+          architecture: ${{ matrix.architecture }}
           qt_version: ${{ inputs.qt_version }}
-          build_type: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
+          build_type: ${{ inputs.event_name == 'pull_request' && 'relwithdebinfo' || 'release' }}
 
       - name: 👷 Build ${{ env.HINT }}
         shell: cmd
@@ -254,7 +233,7 @@ jobs:
            cmake --preset windows-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }}
            cmake --build --preset windows-${{ env.BUILD_TYPE }} --target package
         env:
-          BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
+          BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'relwithdebinfo' || 'release' }}
           HINT: ${{ steps.dependencies.outputs.cmakeArgs != '' && '(with pre-built dependencies)' || '(full build)' }}
 
       - name: 📦 Upload
@@ -264,7 +243,7 @@ jobs:
           name: ${{ inputs.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
           path: ${{ inputs.event_name == 'pull_request' && 'build/*.exe' || 'build/Hyperion-*' }}
         env:
-          NAME: ${{ inputs.qt_version == '6' && 'windows_x64_qt6' || 'windows_x64' }}
+          NAME: ${{ inputs.qt_version == '6' && format('windows_{0}_qt6', matrix.architecture) || format('windows_{0}', matrix.architecture) }}
 
 #####################################
 ###### Publish GitHub Releases ######
