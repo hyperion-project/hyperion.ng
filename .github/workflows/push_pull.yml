@@ -15,26 +15,197 @@ on:
 
 jobs:
 
-  # GitHub Push/Pull Request (Release only on tagged commits)
-  github_build:
-    name: Qt ${{ matrix.qt_version }} Build ${{ matrix.qt_version == '6' && '(Testing))' || '' }}
+######################
+###### Linux #########
+######################
+
+  Linux:
+    name: Debian ${{ matrix.debian.codename[1] }}
     strategy:
       fail-fast: false
       matrix:
-        qt_version: ['5', '6']
-    uses: ./.github/workflows/qt5_6.yml
+        debian: [
+          { codename: [ 'bullseye', 'Bullseye' ] },
+          { codename: [ 'bookworm', 'Bookworm (Testing)' ] }
+        ]
+    uses: ./.github/workflows/debian.yml
     secrets: inherit
     with:
-      qt_version: ${{ matrix.qt_version }}
+      codename: ${{ matrix.debian.codename[0] }}
       event_name: ${{ github.event_name }}
       pull_request_number: ${{ github.event.pull_request.number }}
-      publish: ${{ startsWith(github.event.ref, 'refs/tags') && matrix.qt_version == '5' }}
+      publish: ${{ startsWith(github.event.ref, 'refs/tags') && matrix.codename == 'bullseye' }}
+
+######################
+###### macOS #########
+######################
+
+  macOS:
+    name: 🍏 macOS (${{ matrix.architecture }})
+    runs-on: ${{ matrix.architecture == 'arm64' && 'macos-14' || 'macos-13' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [ arm64, x64 ]
+
+    steps:
+      - name: ⬇ Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: 🔧 Append Pull Request number to version (PR  only)
+        if: ${{ github.event_name == 'pull_request' }}
+        shell: bash
+        run: tr -d '\n' < .version > temp && mv temp .version && echo -n "+PR${{ github.event.pull_request.number }}" >> .version
+
+      - name: 📥 Install dependencies
+        uses: tecolicom/actions-use-homebrew-tools@v1
+        with:
+          tools: qt@6 coreutils
+          key: ${{ runner.os }}-${{ matrix.architecture }}-homebrew-packages
+
+      - name: 💾 Download Pre-Build Dependencies
+        id: dependencies
+        uses: ./.github/actions/download-pre-built-deps
+        with:
+          os: 'macos'
+          architecture: ${{ matrix.architecture }}
+          build_type: ${{ github.event_name == 'pull_request' && 'debug' || 'release' }}
+
+      - name: 👷 Build ${{ env.HINT }}
+        shell: bash
+        run: |
+          # Build
+          cmake --preset macos-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }}
+          cmake --build --preset macos-${{ env.BUILD_TYPE }} --target package
+        env:
+          BUILD_TYPE: ${{ github.event_name == 'pull_request' && 'debug' || 'release' }}
+          HINT: ${{ steps.dependencies.outputs.cmakeArgs != '' && '(with pre-built dependencies)' || '(full build)' }}
+
+      - name: 📦 Upload
+        if: ${{ startsWith(github.event.ref, 'refs/tags') || github.event_name == 'pull_request' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
+          path: 'build/Hyperion-*'
+        env:
+          NAME: ${{ format('macOS_{0}', matrix.architecture) }}
+
+######################
+###### Windows #######
+######################
+
+  Windows:
+    name: 🪟 Windows (${{ matrix.architecture }})
+    runs-on: ${{ matrix.architecture == 'arm64' && 'windows-11-arm' || 'windows-2022' }}
+    env:
+      LIBJPEG_TURBO_VERSION: 3.1.0
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: [ arm64, x64 ]
+
+    steps:
+      - name: ⬇ Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: 🔧 Append Pull Request number to version (PR  only)
+        if: ${{ github.event_name == 'pull_request' }}
+        shell: bash
+        run: tr -d '\n' < .version > temp && mv temp .version && echo -n "+PR${{ github.event.pull_request.number }}" >> .version
+
+      - name: 📥 Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.3'
+          architecture: ${{ matrix.architecture }}
+
+      - name: 📥 Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.*'
+          target: 'desktop'
+          modules: 'qtserialport qtwebsockets'
+          cache: 'true'
+          cache-key-prefix: 'cache-qt-windows'
+          setup-python: 'false'
+
+      - name: 📥 Install latest CMake and Ninja
+        uses: lukka/get-cmake@latest
+
+      - name: 🛠️ Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.architecture }}
+
+      - name: 💾 Download Pre-Build Dependencies
+        id: dependencies
+        uses: ./.github/actions/download-pre-built-deps
+        with:
+          os: 'windows'
+          architecture: ${{ matrix.architecture }}
+          build_type: ${{ github.event_name == 'pull_request' && 'relwithdebinfo' || 'release' }}
+
+      - name: 👷 Build ${{ env.HINT }}
+        shell: cmd
+        run: |
+           cmake --preset windows-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }}
+           cmake --build --preset windows-${{ env.BUILD_TYPE }} --target package
+        env:
+          BUILD_TYPE: ${{ github.event_name == 'pull_request' && 'relwithdebinfo' || 'release' }}
+          HINT: ${{ steps.dependencies.outputs.cmakeArgs != '' && '(with pre-built dependencies)' || '(full build)' }}
+
+      - name: 📦 Upload
+        if: ${{ startsWith(github.event.ref, 'refs/tags') || github.event_name == 'pull_request' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
+          path: ${{ github.event_name == 'pull_request' && 'build/*.exe' || 'build/Hyperion-*' }}
+        env:
+          NAME: ${{ format('windows_{0}', matrix.architecture) }}
+
+#####################################
+###### Publish GitHub Releases ######
+#####################################
+
+  github_publish:
+    name: 🚀 Publish GitHub Releases
+    if: startsWith(github.event.ref, 'refs/tags')
+    needs: [Linux, macOS, Windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: ⬇ Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔧 Prepare
+        run: |
+          echo "TAG=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
+          echo "VERSION=$(tr -d '\n' < .version)" >> $GITHUB_ENV
+
+      - name: 💾 Artifact download
+        uses: actions/download-artifact@v4
+        with:
+          pattern: artifact-*
+          path: all-artifacts
+
+      - name: 📦 Upload
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Hyperion ${{ env.VERSION }}
+          tag_name: ${{ env.TAG }}
+          files: "all-artifacts/**"
+          draft: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # Build DEB/RPM Packages for APT/DNF Repository (runs only on tagged commits)
   repo_build:
     name: 🚀 Let Hyperion build its own repository (APT/DNF)
     if: startsWith(github.event.ref, 'refs/tags')
-    needs: [ github_build ]
+    needs: [ github_publish ]
     runs-on: ubuntu-latest
     steps:
       - name: 📲 Dispatch APT/DNF build
