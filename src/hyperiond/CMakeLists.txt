@@ -7,10 +7,15 @@ project(hyperiond)
 get_target_property(QMAKE_EXECUTABLE Qt${QT_VERSION_MAJOR}::qmake IMPORTED_LOCATION)
 
 if(WIN32)
-	# generate windows .rc file for this binary
+	# generate windows .rc file
 	string(REPLACE "/" "\\\\" WIN_RC_ICON_PATH ${CMAKE_SOURCE_DIR}/cmake/windows/inno/gfx/installer.ico)
 	configure_file(${CMAKE_SOURCE_DIR}/cmake/windows/win.rc.in ${CMAKE_BINARY_DIR}/win.rc)
 	set(WIN_RC_FILE ${CMAKE_BINARY_DIR}/win.rc)
+	set_property(SOURCE "${WIN_RC_FILE}" APPEND PROPERTY COMPILE_DEFINITIONS
+		$<$<BOOL:${HYPERION_VERSION_MAJOR}>:HYPERION_VERSION_MAJOR=${HYPERION_VERSION_MAJOR}>
+		$<$<BOOL:${HYPERION_VERSION_MINOR}>:HYPERION_VERSION_MINOR=${HYPERION_VERSION_MINOR}>
+		$<$<BOOL:${HYPERION_VERSION_PATCH}>:HYPERION_VERSION_PATCH=${HYPERION_VERSION_PATCH}>
+	)
 
 	# Search for windeployqt target (qt6 has the target natively) otherwise create it.
 	get_filename_component(QT_BIN_DIR ${QMAKE_EXECUTABLE} DIRECTORY)

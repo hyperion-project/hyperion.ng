@@ -104,7 +104,7 @@ if(CPACK_GENERATOR MATCHES "DragNDrop")
 	set(CPACK_COMMAND_HDIUTIL "${CMAKE_SOURCE_DIR}/cmake/macos/hdiutilwrap.sh")
 endif()
 
-# NSIS (Windows only)
+# Inno Setup (Windows only)
 if(WIN32)
 	set(CPACK_EXTERNAL_PACKAGE_SCRIPT ${CMAKE_SOURCE_DIR}/cmake/windows/inno/innosetup.cmake)
 	set(CPACK_EXTERNAL_ENABLE_STAGING ON)
