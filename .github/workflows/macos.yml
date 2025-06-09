@@ -28,12 +28,15 @@ on:
 jobs:
 
   macos:
-    name: ${{ matrix.architecture }}
-    runs-on: ${{ matrix.architecture == 'arm64' && 'macos-14' || 'macos-13' }}
+    name: ${{ matrix.os.description }}
+    runs-on: ${{ matrix.os.architecture == 'arm64' && 'macos-15' || 'macos-13' }}
     strategy:
       fail-fast: false
       matrix:
-        architecture: [ arm64, x64 ]
+        os: [
+          { architecture: 'arm64', description: 'macOS 15 (arm64)' },
+          { architecture: 'x64', description: 'macOS 13 (x64)' }
+        ]
 
     steps:
       - name: ⬇ Checkout
@@ -55,14 +58,14 @@ jobs:
         uses: tecolicom/actions-use-homebrew-tools@v1
         with:
           tools: qt@6 coreutils
-          key: ${{ runner.os }}-${{ matrix.architecture }}-homebrew-packages
+          key: ${{ runner.os }}-${{ matrix.os.architecture }}-homebrew-packages
 
       - name: 💾 Download Pre-Build Dependencies
         id: dependencies
         uses: ./.github/actions/download-pre-built-deps
         with:
           os: 'macos'
-          architecture: ${{ matrix.architecture }}
+          architecture: ${{ matrix.os.architecture }}
           build_type: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
 
       - name: 👷 Build ${{ env.HINT }}
@@ -82,4 +85,4 @@ jobs:
           name: ${{ inputs.event_name == 'pull_request' && env.NAME || format('artifact-{0}', env.NAME) }}
           path: 'build/Hyperion-*'
         env:
-          NAME: ${{ format('macOS_{0}', matrix.architecture) }}
+          NAME: ${{ format('macOS_{0}', matrix.os.architecture) }}

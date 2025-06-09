@@ -28,14 +28,17 @@ on:
 jobs:
 
   windows:
-    name: ${{ matrix.architecture }}
-    runs-on: ${{ matrix.architecture == 'arm64' && 'windows-11-arm' || 'windows-2022' }}
+    name: ${{ matrix.os.description }}
+    runs-on: ${{ matrix.os.architecture == 'arm64' && 'windows-11-arm' || 'windows-2022' }}
     env:
       LIBJPEG_TURBO_VERSION: 3.1.0
     strategy:
       fail-fast: false
       matrix:
-        architecture: [ arm64, x64 ]
+        os: [
+          { architecture: 'arm64', description: 'Windows 11 (arm64)' },
+          { architecture: 'x64', description: 'Windows 11 (x64)' }
+        ]
 
     steps:
       - name: ⬇ Checkout
@@ -57,7 +60,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.13.3'
-          architecture: ${{ matrix.architecture }}
+          architecture: ${{ matrix.os.architecture }}
 
       - name: 📥 Install Qt
         uses: jurplel/install-qt-action@v4
@@ -75,14 +78,14 @@ jobs:
       - name: 🛠️ Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
         with:
-          arch: ${{ matrix.architecture }}
+          arch: ${{ matrix.os.architecture }}
 
       - name: 💾 Download Pre-Build Dependencies
         id: dependencies
         uses: ./.github/actions/download-pre-built-deps
         with:
           os: 'windows'
-          architecture: ${{ matrix.architecture }}
+          architecture: ${{ matrix.os.architecture }}
           build_type: ${{ inputs.event_name == 'pull_request' && 'relwithdebinfo' || 'release' }}
 
       - name: 👷 Build ${{ env.HINT }}
@@ -103,4 +106,4 @@ jobs:
             build/Hyperion-*
             !build/*.json
         env:
-          NAME: ${{ format('windows_{0}', matrix.architecture) }}
+          NAME: ${{ format('windows_{0}', matrix.os.architecture) }}
