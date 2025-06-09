@@ -1,4 +1,4 @@
-name: GitHub Qt5/6 Builds
+name: Debian Builds
 
 on:
   # Reusable from push_pull.yml
@@ -19,6 +19,11 @@ on:
         description: The corresponding PR number
         default: ''
         required: false
+      nightly:
+        type: boolean
+        description: Nightly build
+        default: false
+        required: false
       publish:
         type: boolean
         description: Package publishing
@@ -27,8 +32,8 @@ on:
 
 jobs:
 
-  Debian:
-    name: 🐧 ${{ matrix.os.description }}
+  debian:
+    name: ${{ matrix.os.description }}
     runs-on: ${{ matrix.os.architecture[0] == 'amd64' && 'ubuntu-24.04' || 'ubuntu-24.04-arm' }}
     strategy:
       fail-fast: false
@@ -49,10 +54,15 @@ jobs:
         with:
           submodules: recursive
 
-      - name: 🔧 Append PR number to version (PR  only)
-        if: ${{ inputs.event_name == 'pull_request' }}
+      - name: 🔧 Prepare
         shell: bash
-        run: tr -d '\n' < .version > temp && mv temp .version && echo -n "+PR${{ inputs.pull_request_number }}" >> .version
+        run: |
+          tr -d '\n' < .version > temp && mv temp .version
+          if [[ "${{ inputs.event_name }}" == "pull_request" ]]; then
+            echo -n "+PR${{ inputs.pull_request_number }}" >> .version
+          elif [[ "${{ inputs.nightly }}" = true ]]; then
+            echo -n "+nightly$(date '+%Y%m%d')${{ inputs.head_sha }}" > .version
+          fi
 
       - name: 💾 Download Pre-Build Dependencies
         id: dependencies

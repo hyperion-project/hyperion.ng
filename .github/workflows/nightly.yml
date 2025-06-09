@@ -1,0 +1,95 @@
+name: 🌑️ GitHub nightly builds
+
+# Create nightly builds at the end of every day
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  # This can be used to allow manually triggering nightlies from the web interface
+  workflow_dispatch:
+    inputs:
+      forceRun:
+        type: boolean
+        description: Force build and publish nightly packages to GitHub
+        default: false
+        required: false
+
+jobs:
+
+  # Check if latest commit is less than 1 day old
+  check:
+    name: 🔀 Check latest commit
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.check_latest_commit.outputs.commit-has-changed }}
+    steps:
+      - name: ⬇ Check if latest commit is less than 1 day old
+        id: check_latest_commit
+        continue-on-error: true
+        run: |
+          last_commit_sha=$(git ls-remote https://github.com/hyperion-project/hyperion.ng HEAD | cut -f 1)
+          if [[ -n "$(git rev-list --after="24 hours" ${last_commit_sha})" ]]; then
+            echo "commit-has-changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "commit-has-changed=true" >> $GITHUB_OUTPUT
+          fi
+
+  # Build Debian Bullseye Artifacts
+  linux:
+    name: 🐧 Debian Bullseye
+    if: ${{ needs.check.outputs.should_run == 'true' || inputs.forceRun }}
+    uses: ./.github/workflows/debian.yml
+    secrets: inherit
+    with:
+      codename: 'bullseye'
+      publish: true
+      nightly: true
+
+  # Build macOS Artifacts
+  macos:
+    name: 🍏 macOS
+    if: ${{ needs.check.outputs.should_run == 'true' || inputs.forceRun }}
+    uses: ./.github/workflows/macos.yml
+    secrets: inherit
+    with:
+      publish: true
+      nightly: true
+
+  # Build Windows Artifacts
+  windows:
+    name: 🪟 Windows
+    if: ${{ needs.check.outputs.should_run == 'true' || inputs.forceRun }}
+    uses: ./.github/workflows/windows.yml
+    secrets: inherit
+    with:
+      publish: true
+      nightly: true
+
+  # Publish to GitHub
+  nightly:
+    name: 🚀 Publish to GitHub
+    if: ${{ needs.check.outputs.should_run == 'true' || inputs.forceRun }}
+    needs: [linux, macos, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: 💾 Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: artifact-*
+          merge-multiple: true
+
+      - name: ✏️ Generate changelog
+        id: changelog
+        uses: janheinrichmerker/action-github-changelog-generator@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          sinceTag: v2.0.16
+
+      - name: 📦 Upload Nightly Release
+        uses: andelf/nightly-release@main
+        with:
+          tag_name: nightly
+          name: 'Nightly Release $$'
+          prerelease: true
+          body: ${{ steps.changelog.outputs.changelog }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
