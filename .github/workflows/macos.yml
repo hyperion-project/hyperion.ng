@@ -29,12 +29,12 @@ jobs:
 
   macos:
     name: ${{ matrix.os.description }}
-    runs-on: ${{ matrix.os.architecture == 'arm64' && 'macos-15' || 'macos-13' }}
+    runs-on: ${{ matrix.os.architecture == 'arm64' && 'macos-14' || 'macos-13' }}
     strategy:
       fail-fast: false
       matrix:
         os: [
-          { architecture: 'arm64', description: 'macOS 15 (arm64)' },
+          { architecture: 'arm64', description: 'macOS 14 (arm64)' },
           { architecture: 'x64', description: 'macOS 13 (x64)' }
         ]
 
@@ -51,7 +51,7 @@ jobs:
           if [[ "${{ inputs.event_name }}" == "pull_request" ]]; then
             echo -n "+PR${{ inputs.pull_request_number }}" >> .version
           elif [[ "${{ inputs.nightly }}" = true ]]; then
-            echo -n "+nightly$(date '+%Y%m%d')${{ inputs.head_sha }}" > .version
+            echo -n "+nightly$(date '+%Y%m%d')" >> .version
           fi
 
       - name: 📥 Install dependencies

@@ -61,7 +61,7 @@ jobs:
           if [[ "${{ inputs.event_name }}" == "pull_request" ]]; then
             echo -n "+PR${{ inputs.pull_request_number }}" >> .version
           elif [[ "${{ inputs.nightly }}" = true ]]; then
-            echo -n "+nightly$(date '+%Y%m%d')${{ inputs.head_sha }}" > .version
+            echo -n "+nightly$(date '+%Y%m%d')" >> .version
           fi
 
       - name: 💾 Download Pre-Build Dependencies

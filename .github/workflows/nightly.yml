@@ -1,4 +1,7 @@
-name: 🌑️ GitHub nightly builds
+name: 🌙 Nightly builds
+run-name: |
+  ${{ github.event_name == 'schedule' && '⏰ Scheduled nightly build' || '' }}
+  ${{ github.event_name == 'workflow_dispatch' && '👷 Triggered nightly build' || '' }}
 
 # Create nightly builds at the end of every day
 on:
@@ -20,23 +23,26 @@ jobs:
     name: 🔀 Check latest commit
     runs-on: ubuntu-latest
     outputs:
-      should_run: ${{ steps.check_latest_commit.outputs.commit-has-changed }}
+      should_run: ${{ steps.check_latest_commit.outputs.code_changes_since_yesterday }}
     steps:
+      - uses: actions/checkout@v4
+        id: checkout
+
       - name: ⬇ Check if latest commit is less than 1 day old
         id: check_latest_commit
         continue-on-error: true
         run: |
-          last_commit_sha=$(git ls-remote https://github.com/hyperion-project/hyperion.ng HEAD | cut -f 1)
-          if [[ -n "$(git rev-list --after="24 hours" ${last_commit_sha})" ]]; then
-            echo "commit-has-changed=false" >> $GITHUB_OUTPUT
+          if [[ -n "$(git rev-list --after="24 hours" ${{ steps.checkout.outputs.commit }})" ]]; then
+            echo "code_changes_since_yesterday=true" >> $GITHUB_OUTPUT
           else
-            echo "commit-has-changed=true" >> $GITHUB_OUTPUT
+            echo "code_changes_since_yesterday=false" >> $GITHUB_OUTPUT
           fi
 
   # Build Debian Bullseye Artifacts
   linux:
     name: 🐧 Debian Bullseye
     if: ${{ needs.check.outputs.should_run == 'true' || inputs.forceRun }}
+    needs: [check]
     uses: ./.github/workflows/debian.yml
     secrets: inherit
     with:
@@ -48,6 +54,7 @@ jobs:
   macos:
     name: 🍏 macOS
     if: ${{ needs.check.outputs.should_run == 'true' || inputs.forceRun }}
+    needs: [check]
     uses: ./.github/workflows/macos.yml
     secrets: inherit
     with:
@@ -58,6 +65,7 @@ jobs:
   windows:
     name: 🪟 Windows
     if: ${{ needs.check.outputs.should_run == 'true' || inputs.forceRun }}
+    needs: [check]
     uses: ./.github/workflows/windows.yml
     secrets: inherit
     with:
@@ -68,28 +76,41 @@ jobs:
   nightly:
     name: 🚀 Publish to GitHub
     if: ${{ needs.check.outputs.should_run == 'true' || inputs.forceRun }}
-    needs: [linux, macos, windows]
+    needs: [check, linux, macos, windows]
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
       - name: 💾 Download artifacts
         uses: actions/download-artifact@v4
         with:
           pattern: artifact-*
           merge-multiple: true
 
-      - name: ✏️ Generate changelog
-        id: changelog
-        uses: janheinrichmerker/action-github-changelog-generator@v2
+      - name: 📑 Read nightly template
+        uses: markpatterson27/markdown-to-output@v1
+        id: nightly_template
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          sinceTag: v2.0.16
+          filepath: ./.github/nightly.md
 
-      - name: 📦 Upload Nightly Release
+      - name: 📦 Upload Nightly builds
         uses: andelf/nightly-release@main
-        with:
-          tag_name: nightly
-          name: 'Nightly Release $$'
-          prerelease: true
-          body: ${{ steps.changelog.outputs.changelog }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: nightly
+          name: 'Nightly build $$'
+          prerelease: true
+          body: ${{ steps.nightly_template.outputs.body }}
+          files: |
+            *.deb
+            *.tar.gz
+            *.exe
+            *.zip
+            *.dmg
+
+      - name: 🧹 Cleanup
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: artifact-*
+          failOnError: false
