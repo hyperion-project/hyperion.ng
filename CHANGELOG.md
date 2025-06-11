@@ -4,7 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.0.16...HEAD)
+## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.1...HEAD)
+
+## [2.1](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.1) - 2025-06
 
 ### ⚠️ Breaking Changes
 
@@ -152,6 +154,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Use `subscribe` / `unsubscribe` subcommands instead
 - Deprecated: DirectX grabber in favour of the new DXGI DDA grabber
 - Removed "-c" console option on Windows. Hyperion can be started via terminal to get the required console output
+
+#### Builds
+-  Removed builds for following operating system LTS or software component versions, as they are End-of-Life and do not receive maintenance nor security updates any longer
+    - Debian Buster
+    - Ubuntu Focal Fossa (20.04)
+    - Qt5
 
 ## [2.0.16](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.0.16) - 2024-01
 
