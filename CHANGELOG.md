@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased](https://github.com/hyperion-project/hyperion.ng/compare/2.1.0...HEAD)
 
+### ⚠️ Breaking Changes
+
+### ✨ Added
+
+### 🔧 Changed
+
+- **Fixes:**
+  - WebUI unreachable via IPv6 (#1871)
+
+### 🗑️ Removed
+
 ## [2.1.0](https://github.com/hyperion-project/hyperion.ng/releases/tag/2.1.0) - 2025-06-12
 
 ### ⚠️ Breaking Changes
