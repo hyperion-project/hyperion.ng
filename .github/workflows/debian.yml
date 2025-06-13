@@ -47,6 +47,11 @@ jobs:
         target_lookup: [
           { 'arm64': 'arm64', 'armv6': 'armv6l', 'armv7': 'armv7l' }
         ]
+        isTrixie:
+          - ${{ inputs.codename == 'trixie' }}
+        exclude:
+          - isTrixie: true
+            os: { architecture: [ armv6, linux/arm/v6 ] }
 
     steps:
       - name: ⬇ Checkout
