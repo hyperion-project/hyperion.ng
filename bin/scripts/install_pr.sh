@@ -15,7 +15,6 @@ hasPython2=$?
 DISTRIBUTION="debian"
 CODENAME="bullseye"
 ARCHITECTURE=""
-WITH_QT5=false
 
 BASE_PATH='.'
 
@@ -35,21 +34,57 @@ else
 	exit 1
 fi
 
-function request_call() {
+request_call() {
+	local url="$1"
+	local response body status_code
+
 	if [ $hasWget -eq 0 ]; then
-		echo $(wget --quiet --header="Authorization: token ${PR_TOKEN}" -O - $1)
+		# Use a temp file to store headers
+		local headers_file=$(mktemp)
+		body=$(wget --quiet --server-response --header="Authorization: token ${PR_TOKEN}" -O - "$url" 2> "$headers_file")
+		status_code=$(awk '/^  HTTP/{code=$2} END{print code}' "$headers_file")
+		rm -f "$headers_file"
+
 	elif [ $hasCurl -eq 0 ]; then
-		echo $(curl -skH "Authorization: token ${PR_TOKEN}" $1)
+		# Append status code at the end of the response
+		response=$(curl -sk -w "\n%{http_code}" -H "Authorization: token ${PR_TOKEN}" "$url")
+		body=$(echo "$response" | sed '$d')                      # All but last line
+		status_code=$(echo "$response" | tail -n1)               # Last line = status code
+	else
+		echo "---> Neither wget nor curl is available." >&2
+		exit 1
 	fi
+
+	# Handle common HTTP errors
+	case "$status_code" in
+		401)
+			echo "---> Error: 401 Unauthorized. Check your token." >&2
+			exit 1
+			;;
+		403)
+			echo "---> Error: 403 Forbidden. You might be rate-limited or lack permissions." >&2
+			exit 1
+			;;
+		404)
+			echo "---> Error: 404 Not Found. URL is incorrect or resource doesn't exist." >&2
+			exit 1
+			;;
+		5*)
+			echo "---> Error: Server error ($status_code). Try again later." >&2
+			exit 1
+			;;
+	esac
+
+	# Success: print response body
+	echo "$body"
 }
 
-while getopts ":a:c:r:t:5" opt; do
+while getopts ":a:c:r:t:" opt; do
 	case "$opt" in
 	a) ARCHITECTURE=$OPTARG ;;
 	c) CONFIGDIR=$OPTARG ;;
 	r) run_id=$OPTARG ;;
 	t) PR_TOKEN=$OPTARG ;;
-	5) WITH_QT5=true ;;
 	esac
 done
 shift $((OPTIND - 1))
@@ -103,19 +138,7 @@ if [ $? -ne 0 ]; then
 	exit 1
 else
 	PACKAGE="${ARCHITECTURE}"
-
-	# armv6 has no Qt6 support yet
-	if [[ "${PACKAGE}" == "armv6" ]]; then
-		WITH_QT5=true
-	fi
-
-	QTVERSION="5"
-	if [ ${WITH_QT5} == false ]; then
-		QTVERSION="6"
-		PACKAGE="${PACKAGE}_qt6"
-	fi
-
-	echo "---> Download package for identified runtime architecture: $ARCHITECTURE and Qt$QTVERSION"
+	echo "---> Download package for identified runtime architecture: $ARCHITECTURE"
 fi
 
 # Determine if PR number exists
