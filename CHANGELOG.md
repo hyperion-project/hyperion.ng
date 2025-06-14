@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Fixes:**
   - WebUI unreachable via IPv6 (#1871)
   - Align install_pr script working with default Qt6 builds & show authentication failures (#1871)
+  
+- **Build:**
+    - Added Debian Trixie to PR-builds for early testing
 
 ---
 
