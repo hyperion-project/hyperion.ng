@@ -1,84 +1,110 @@
 {
-  "version": "2025-06-08",
+  "version": "2025-06-14",
   "baseUrl": "https://github.com/hyperion-project/hyperion-deps/releases/download",
   "hashes": {
     "debian_bookworm": {
       "amd64": {
         "qt6": {
-          "debug": "0e942549ea239c0b82125475511cc6f471e5ae6106eccd447b2657a77784aed0",
-          "release": "a815cf7ef9695b5cfbbf07bd1a4c65bd11fe7f1507a06ad36585c151b590fdf1"
+          "debug": "e4b23dae967ba4f1f97f3b14be85ba64ba22749e568e16992edcb26c98253785",
+          "release": "3d41b66502e4a306f15f22123920d2180346ad56e160e26825d1c906d24d1a3e"
         }
       },
       "arm64": {
         "qt6": {
-          "debug": "f78dd1fedbb93232473eca6cac9c33465b0245ef36fa4ddd4beba3cddaa0b525",
-          "release": "616d10f849e1f2335690ee3349a656a0c610c42f47f8c4c2f2534f944c7005f5"
+          "debug": "a598f94c59138841384220137dae968ea04a306e54d42aded0983746324d0199",
+          "release": "e76a951f98a584e0bef5abd18e367a0ca9625e5d323851b8c56bd0ea913dd7a3"
         }
       },
       "armv6": {
         "qt6": {
-          "debug": "c5b8d6f2b8347b6f7a53e80530feec87d45196171709f257783fefb8d99b6470",
-          "release": "afc221f57eda8cca6929b67c5931358566886e1466741403ea622d60e2d7391b"
+          "debug": "d76d863a6027eebb3cdb55b794154da1a4627074481f54f45bb0c8132294f3eb",
+          "release": "0d1ff354e8d75cf7113c0f99f9ceb9852a68a520fb8fb6b24db815b68cc6a962"
         }
       },
       "armv7": {
         "qt6": {
-          "debug": "64a59a230d4450dbc34707c23178ed0da2f0dad8a5b6f1aa580e750c2bdedf0e",
-          "release": "965e26b678dd3222f2d8d9615bee7625253d4d7acd881b4c233f1b623179e4e1"
+          "debug": "dbeb12e1819a65dd15cf0e26ebf2b3b5ba98c1a97b313187d4a2a4c283d1786f",
+          "release": "19f4b26f0b5e53a7b1fb1e909bdb5483f5fb152d95df6b49f02ea1bb362caa4a"
         }
       }
     },
     "debian_bullseye": {
       "amd64": {
         "qt6": {
-          "debug": "d9e87d8321ec62db6eeee61177e4ca83d3e5485a9475da2633460d3dfb6d2001",
-          "release": "5207ae10c3351ba7b59c1d7a0ea33377996c3f8c035ad3861a6d7aa409c23476"
+          "debug": "8e69724c2ec35b471765b6bd153c00fb3edfe7e136dfdfa023b9232f0bf02545",
+          "release": "532ebf28a3469be87a88a32fd4871dc475b585857b9f85398386160439689647"
         }
       },
       "arm64": {
         "qt6": {
-          "debug": "2e056a31fbc03221496d075c9c851779547730a6e2cc47cf7569b4790dfaef1c",
-          "release": "f715d0376a96f05d072b4e2d4c4e2cd4aa04790bbe9c06fe02ae83261f3bd233"
+          "debug": "4dc745b91eea3b7dc057a1f781cfdff600d51f4b4bc6751c2795578e2a70c0db",
+          "release": "ca681d04c7cbd720b336e52972918d9fb0c4cf0e85fda078005b1030fa353444"
         }
       },
       "armv6": {
         "qt5": {
-          "debug": "88ac40a89707ef146453162c683f0deced478d768c50d4cba95bf2ba246d9ec2",
-          "release": "58d9a3fa11564347fe46d4b2c308efc63c788cad1d9f0ccaeb6ab86997b6e29f"
+          "debug": "76f39f5f771e33978d3ed1f3de3b995020f0ba8be952b16e7613e831a2a3b0b5",
+          "release": "a388f7941bdd0cf3fe8807eb98ba5a815af666e65c47c3c3821ccd099778403e"
         }
       },
       "armv7": {
         "qt6": {
-          "debug": "df56203dca02c2dd8724f9ad111e105af4f46efabac6aba3f8583d48cbd6c8a3",
-          "release": "70ea455ad0a5ddbe74296b35a2ff4e0fe7c2acb5af9f527a9548b72b56eaaeae"
+          "debug": "43743e0956529d3420380bdf2648a2cf6d0e16d9ae8b000faebc5afc4781a942",
+          "release": "754573abfe866695545614e3775d9554102a2249ef42bb2b262c94026e9af7ce"
+        }
+      }
+    },
+    "debian_trixie": {
+      "amd64": {
+        "qt6": {
+          "debug": "13b548b24d78628854431e313dbeb792be22df124e0f3366285ab1f858bbf759",
+          "release": "265032c7173d16c1acc8901dd8ec5c65effd4db05069f4dfefea3c901d4afc51"
+        }
+      },
+      "arm64": {
+        "qt6": {
+          "debug": "ad02bd31029a5b30b27d4333e00c30ffbf242da555683394d8ccf2ac6ab42f21",
+          "release": "b0f8644c5c2bf61fe3b8d3623324bc7cc85b3f8e481b180e797d0719d0ad6e9f"
+        }
+      },
+      "armv6": {
+        "qt6": {
+          "debug": "0ecda00729db18d52a1353a594caa61122541a7380b45f54c389e8317106f208",
+          "release": "2066020c282c49b52d504147be76f0932e3d69c8f281a21500ccda86cf2940bb"
+        }
+      },
+      "armv7": {
+        "qt6": {
+          "debug": "a2e06583be33963bcd2ec5b0921b90f2849d9a1c0b3f9c77d916a20f83600cb6",
+          "release": "7424d63e6f5986b8891635fddab46dfce51de2de5155ab9dbde62d5614a08c50"
         }
       }
     },
     "macos": {
       "arm64": {
         "qt6": {
-          "debug": "b850180c333e07400d9e8d525b4322c38596d2d112f70e589f0023e756e65752",
-          "release": "4ba3d8da0802b7d2f658fe45dfc470143987cbfd107cf75bd267f1926352041f"
+          "debug": "11d3eb5658ecad15c4f2f4ef8e00b6fe870260df90b6c6cbb495adf4e33ba6d8",
+          "release": "9c4921b3a8497b36572091a5907d35e04009d554daf835d4ec8c5950b9c5fc60"
         }
       },
       "x64": {
         "qt6": {
-          "debug": "6c759d2b63fe26bdd013375f323ffe086d7e241b22067c88c8642cfb3beec8a9",
-          "release": "dcd7e8ffb7c32bfc78844afc1ac7eb1f35cb1eaf3b5392f1453f9ba5eefbcf51"
+          "debug": "d4e123952710e61db3be7ff2c23c44f99a902539892a090758463a576edaff8b",
+          "release": "69a93c21bf36f7f84ea8f3e627df3599c139df299e639b7e803e0e95e60032bb"
         }
       }
     },
     "windows": {
       "arm64": {
         "qt6": {
-          "release": "74fe89d5513f7f98ad6d75518ad87415a970d0777d2c07b6e91e351a7ca28679",
-          "relwithdebinfo": "ae32edcd574a390e5ececc724e02850a036d2240a517ce61c18d7e3aed9f0881"
+          "release": "b8b38aa1077003d2eb20fad49e046796a59297e408fd039d0300d70d6b54bc19",
+          "relwithdebinfo": "1ad231fd78a5fc490793b077f8a1da989e89c76b9b32c820cf64dd10880e8c5c"
         }
       },
       "x64": {
         "qt6": {
-          "release": "17ca40e4e38c7cf753a330f11912c3aef892413474bbe6523c4592e355cd95ea",
-          "relwithdebinfo": "f968de5a05eacb6cb24374879be81d01f67bc22ab00c4ee9c55ce5b9640918ca"
+          "release": "70af4ea825e52c933e565cffd8bd8d8c7da554daca989e6288eba1928d2296bd",
+          "relwithdebinfo": "d267667572a1898b208e687d81554f51705fc6f895a02b83ddfc46fbb52a34e6"
         }
       }
     }
