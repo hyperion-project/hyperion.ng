@@ -188,40 +188,41 @@ function updateHyperionInstanceListing() {
 }
 
 function initLanguageSelection() {
-  // Initialize language selection list with supported languages
+  const $select = $('#language-select');
+  $select.empty(); // clear existing options
+
   for (let i = 0; i < availLang.length; i++) {
-    $("#language-select").append(
-      '<option value="' + i + '" selected="">' + availLangText[i] + '</option>'
-    );
+    $select.append('<option value="' + availLang[i] + '">' + availLangText[i] + '</option>');
   }
 
   let langLocale = storedLang;
-  let langText = '';
+  if (!langLocale) {
+    langLocale = navigator.language?.substring(0, 2) || 'en';
+  }
 
-  // Test if the language is supported by Hyperion
+  let langText = '';
   let langIdx = availLang.indexOf(langLocale);
-  if (langIdx > -1) {
-    langText = availLangText[langIdx];
-  } else {
-    // If the language is not supported, try the fallback language
+
+  if (langIdx === -1) {
+    // Try fallback
     langLocale = $.i18n().options.fallbackLocale.substring(0, 2);
     langIdx = availLang.indexOf(langLocale);
-    if (langIdx > -1) {
-      langText = availLangText[langIdx];
-    } else {
-      // Default to English if fallback language is also unsupported
-      langLocale = 'en';
-      langIdx = availLang.indexOf(langLocale);
-      if (langIdx > -1) {
-        langText = availLangText[langIdx];
-      }
-    }
+  }
+
+  if (langIdx === -1) {
+    // Default to English
+    langLocale = 'en';
+    langIdx = availLang.indexOf(langLocale);
   }
 
   // Update the language select dropdown
-  $('#language-select').prop('title', langText);
-  $("#language-select").val(langIdx);
-  $("#language-select").selectpicker("refresh");
+  $select.val(langLocale); 
+  $select.selectpicker({
+    container: 'body',
+    width: 'fit',
+    style: 'btn-transparent'
+  });
+  $select.selectpicker('refresh');
 }
 
 function updateUiOnInstance(inst) {

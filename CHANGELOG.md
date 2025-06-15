@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🔧 Changed
 
+- **Fixes:**
+  - UI - Language is not selectable (#1877)
+  
 ---
 
 ### 🗑️ Removed
