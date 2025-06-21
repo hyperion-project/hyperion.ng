@@ -107,7 +107,6 @@ class ProtoServer;
 class MessageForwarder;
 #endif
 class AuthManager;
-class NetOrigin;
 class CECHandler;
 
 class HyperionDaemon : public QObject
@@ -258,7 +257,6 @@ private:
 
 	/// Network services
 	QScopedPointer<AuthManager, QScopedPointerDeleteLater> _authManager;
-	QScopedPointer<NetOrigin, QScopedPointerDeleteLater> _netOrigin;
 	QScopedPointer<JsonServer, QScopedPointerDeleteLater> _jsonServer;
 	QScopedPointer<QThread> _jsonServerThread;
 	QScopedPointer<WebServer, QScopedPointerDeleteLater> _webServer;

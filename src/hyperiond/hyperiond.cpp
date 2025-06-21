@@ -68,9 +68,6 @@
 // InstanceManager Hyperion
 #include <hyperion/HyperionIManager.h>
 
-// NetOrigin checks
-#include <utils/NetOrigin.h>
-
 #if defined(ENABLE_EFFECTENGINE)
 // Init Python
 #include <python/PythonInit.h>
@@ -97,7 +94,6 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	, _pyInit(new PythonInit())
 	#endif
 	, _authManager(new AuthManager(this))
-	, _netOrigin(new NetOrigin(this))
 	, _currVideoMode(VideoMode::VIDEO_2D)
 {
 	HyperionDaemon::daemon = this;
@@ -249,10 +245,6 @@ void HyperionDaemon::createNetworkServices()
 	// connect and apply settings for AuthManager
 	connect(this, &HyperionDaemon::settingsChanged, _authManager.get(), &AuthManager::handleSettingsUpdate);
 	_authManager->handleSettingsUpdate(settings::NETWORK, _settingsManager->getSetting(settings::NETWORK));
-
-	// connect and apply settings for NetOrigin
-	connect(this, &HyperionDaemon::settingsChanged, _netOrigin.get(), &NetOrigin::handleSettingsUpdate);
-	_netOrigin->handleSettingsUpdate(settings::NETWORK, _settingsManager->getSetting(settings::NETWORK));
 
 #ifdef ENABLE_MDNS
 	// Create mDNS-Provider and mDNS-Browser in own thread

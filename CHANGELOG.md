@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🗑️ Removed
 
+- Removed the ability to revoke API requests which are not issued from the same network segment. This includes the removal of IP-address white- & blacklisting (#1880)
+Rationale: Such kind of functionality is better to be dealt with via proper network management and setup, e.g. via firewalls, VLANs.
+
 ## [2.1.1](https://github.com/hyperion-project/hyperion.ng/compare/2.1.1...HEAD) - 2025-06-14
 
 ### 🔧 Changed
