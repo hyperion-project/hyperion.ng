@@ -272,7 +272,9 @@ $DOCKER run --rm --platform=${PLATFORM_ARCHITECTURE} \
 	${ENTRYPOINT_OPTION} \
 	-v "${DEPLOY_PATH}:/deploy" \
 	-v "${CODE_PATH}/:/source:rw" \
-	${REGISTRY_URL}/${DISTRIBUTION}:${CODENAME} \
+	-e LANG="C.UTF-8" \
+	-e LC_ALL="C.UTF-8" \
+	"${REGISTRY_URL}/${DISTRIBUTION}:${CODENAME}" \
 	/bin/bash -c "mkdir -p /source/${BUILD_DIR} && cd /source/${BUILD_DIR} &&
 	cmake -G Ninja -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ${PLATFORM} ${BUILD_ARGS} .. || exit 2 &&
 	cmake --build . ${PACKAGES} -- -j $(nproc) || exit 3 || : &&
