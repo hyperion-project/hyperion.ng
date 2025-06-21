@@ -57,6 +57,13 @@ add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE
 	${MACOS_BUNDLE_RESOURCE_FILES}
 )
 
+# OpenSSL is only found correctly under ARM windows from CMake 4.1 onwards.
+# To fix this until the release of CMake 4.1, Hyperion contains a customized OpenSSL find script.
+if(WIN32 AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64|ARM64|arm64" AND CMAKE_VERSION VERSION_LESS "4.1.0")
+	list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/windows/openssl)
+endif()
+
+find_package(OpenSSL QUIET)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS DBus QUIET)
 target_link_libraries(${PROJECT_NAME}
 	commandline
@@ -214,7 +221,9 @@ if(WIN32 AND NOT DEFINED ENV{GITHUB_ACTIONS})
 			set(open_ssl_version_suffix "-3")
 		endif()
 
-		if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+		if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64|ARM64|arm64")
+			string(APPEND open_ssl_version_suffix "-arm64")
+		elseif(CMAKE_SIZEOF_VOID_P EQUAL 8)
 			string(APPEND open_ssl_version_suffix "-x64")
 		endif()
 

@@ -45,6 +45,12 @@ if(ENABLE_MDNS)
 	target_link_libraries(webserver mdns)
 endif()
 
+# OpenSSL is only found correctly under ARM windows from CMake 4.1 onwards.
+# To fix this until the release of CMake 4.1, Hyperion contains a customized OpenSSL find script.
+if(WIN32 AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64|ARM64|arm64" AND CMAKE_VERSION VERSION_LESS "4.1.0")
+	list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/windows/openssl)
+endif()
+
 find_package(OpenSSL QUIET)
 if(OPENSSL_FOUND AND TARGET OpenSSL::SSL AND TARGET OpenSSL::Crypto)
 	target_link_libraries(webserver
