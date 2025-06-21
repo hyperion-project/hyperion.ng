@@ -227,13 +227,12 @@ if(WIN32 AND NOT DEFINED ENV{GITHUB_ACTIONS})
 			string(APPEND open_ssl_version_suffix "-x64")
 		endif()
 
-		get_filename_component(OPENSSL_DIR "${OPENSSL_INCLUDE_DIR}" DIRECTORY)
 		foreach(comp "ssl" "crypto")
 			find_file(${comp}
 				NAMES
 					"lib${comp}${open_ssl_version_suffix}.dll"
 				PATHS
-					${OPENSSL_DIR}
+					${_OPENSSL_ROOT_PATHS}
 				PATH_SUFFIXES
 					bin
 			)

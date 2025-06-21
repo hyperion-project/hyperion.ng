@@ -1,7 +1,6 @@
 set(ENABLE_MF @ENABLE_MF@)
 set(ENABLE_DX @ENABLE_DX@)
 set(OPENSSL_FOUND @OPENSSL_FOUND@)
-set(OPENSSL_INCLUDE_DIR "@OPENSSL_INCLUDE_DIR@")
 set(TurboJPEG_INCLUDE_DIR "@TurboJPEG_INCLUDE_DIR@")
 set(PYTHON_VERSION "@PYTHON_VERSION@")
 set(CMAKE_SOURCE_DIR "@CMAKE_SOURCE_DIR@")
@@ -62,7 +61,7 @@ if(EXISTS @CMAKE_BINARY_DIR@/bin/@PROJECT_NAME@@CMAKE_EXECUTABLE_SUFFIX@)
 	endwhile()
 
 	# Copy libssl/libcrypto to 'hyperion'
-	if(OPENSSL_FOUND AND NOT OPENSSL_INCLUDE_DIR STREQUAL "")
+	if(OPENSSL_FOUND)
 		string(REGEX MATCHALL "[0-9]+" openssl_versions "@OPENSSL_VERSION@")
 		list(GET openssl_versions 0 openssl_version_major)
 		list(GET openssl_versions 1 openssl_version_minor)
@@ -74,19 +73,18 @@ if(EXISTS @CMAKE_BINARY_DIR@/bin/@PROJECT_NAME@@CMAKE_EXECUTABLE_SUFFIX@)
 			set(open_ssl_version_suffix "-3")
 		endif()
 
-		if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64|ARM64|arm64")
+		if(@CMAKE_SYSTEM_PROCESSOR@ MATCHES "aarch64|ARM64|arm64")
 			string(APPEND open_ssl_version_suffix "-arm64")
-		elseif(CMAKE_SIZEOF_VOID_P EQUAL 8)
+		elseif(@CMAKE_SIZEOF_VOID_P@ EQUAL 8)
 			string(APPEND open_ssl_version_suffix "-x64")
 		endif()
 
-		get_filename_component(OPENSSL_DIR "${OPENSSL_INCLUDE_DIR}" DIRECTORY)
 		foreach(comp "ssl" "crypto")
 			find_file(${comp}
 				NAMES
 					"lib${comp}${open_ssl_version_suffix}.dll"
 				PATHS
-					${OPENSSL_DIR}
+					"@_OPENSSL_ROOT_PATHS@"
 				PATH_SUFFIXES
 					bin
 			)
