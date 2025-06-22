@@ -64,6 +64,7 @@ if(WIN32 AND ${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64|ARM64|arm64" AND CMAKE_V
 endif()
 
 find_package(OpenSSL QUIET)
+
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS DBus QUIET)
 target_link_libraries(${PROJECT_NAME}
 	commandline
@@ -228,17 +229,20 @@ if(WIN32 AND NOT DEFINED ENV{GITHUB_ACTIONS})
 		endif()
 
 		foreach(comp "ssl" "crypto")
-			find_file(${comp}
+			find_file(lib${comp}
 				NAMES
 					"lib${comp}${open_ssl_version_suffix}.dll"
 				PATHS
 					${_OPENSSL_ROOT_PATHS}
+				HINTS
+					${OPENSSL_ROOT_DIR}
+					$ENV{OPENSSL_ROOT_DIR}
 				PATH_SUFFIXES
 					bin
 			)
 
 			add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-				COMMAND ${CMAKE_COMMAND} -E copy ${${comp}} $<TARGET_FILE_DIR:${PROJECT_NAME}>
+				COMMAND ${CMAKE_COMMAND} -E copy ${lib${comp}} $<TARGET_FILE_DIR:${PROJECT_NAME}>
 			)
 		endforeach()
 	endif()

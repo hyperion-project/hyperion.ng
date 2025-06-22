@@ -80,6 +80,19 @@ jobs:
         with:
           arch: ${{ matrix.os.architecture }}
 
+      - name: 💾 Download OpenSSL 3.x
+        uses: ethanjli/cached-download-action@v0.1.2
+        with:
+          url: "https://slproweb.com/download/Win64${{ matrix.os.architecture == 'arm64' && 'ARM' || '' }}OpenSSL-3_5_0.exe"
+          destination: .\installer\openssl.exe
+          cache-key: OpenSSL
+
+      - name: 📥 Install OpenSSL 3.x
+        shell: powershell
+        run: |
+          Start-Process -FilePath ".\installer\openssl.exe" -ArgumentList "/silent", "/verysilent", "/sp-", "/suppressmsgboxes", "/DIR=C:\OpenSSL" -Wait
+          echo "OPENSSL_ROOT_DIR=C:\OpenSSL" >> $env:GITHUB_ENV
+
       - name: 💾 Download Pre-Build Dependencies
         id: dependencies
         uses: ./.github/actions/download-pre-built-deps

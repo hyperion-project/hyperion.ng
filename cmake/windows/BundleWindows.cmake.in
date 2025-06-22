@@ -80,19 +80,22 @@ if(EXISTS @CMAKE_BINARY_DIR@/bin/@PROJECT_NAME@@CMAKE_EXECUTABLE_SUFFIX@)
 		endif()
 
 		foreach(comp "ssl" "crypto")
-			find_file(${comp}
+			find_file(lib${comp}
 				NAMES
 					"lib${comp}${open_ssl_version_suffix}.dll"
 				PATHS
 					"@_OPENSSL_ROOT_PATHS@"
+				HINTS
+					"@OPENSSL_ROOT_DIR@"
+					$ENV{OPENSSL_ROOT_DIR}
 				PATH_SUFFIXES
 					bin
 			)
 
-			if(comp)
+			if(lib${comp})
 				file(INSTALL
 					FILES
-						${${comp}}
+						${lib${comp}}
 					DESTINATION
 						"${CMAKE_INSTALL_PREFIX}/bin"
 				)
