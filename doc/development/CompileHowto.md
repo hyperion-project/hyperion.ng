@@ -61,14 +61,14 @@ cd $HYPERION_HOME
 
 ```console
 sudo apt-get update
-sudo apt-get install git cmake build-essential qtbase5-dev libqt5serialport5-dev libqt5websockets5-dev libqt5sql5-sqlite libqt5svg5-dev libqt5x11extras5-dev libusb-1.0-0-dev python3-dev libasound2-dev libturbojpeg0-dev libjpeg-dev libssl-dev libftdi1-dev
+sudo apt-get install git cmake build-essential ninja-build qtbase5-dev libqt5serialport5-dev libqt5websockets5-dev libqt5sql5-sqlite libqt5svg5-dev libqt5x11extras5-dev libusb-1.0-0-dev python3-dev libasound2-dev libturbojpeg0-dev libjpeg-dev libssl-dev libftdi1-dev
 ```
 
 **Ubuntu (22.04+) - Qt6 based**
 
 ```console
 sudo apt-get update
-sudo apt-get install git cmake build-essential qt6-base-dev libqt6serialport6-dev libqt6websockets6-dev libxkbcommon-dev libvulkan-dev libgl1-mesa-dev libusb-1.0-0-dev python3-dev libasound2-dev libturbojpeg0-dev libjpeg-dev libssl-dev pkg-config libftdi1-dev
+sudo apt-get install git cmake build-essential ninja-build qt6-base-dev libqt6serialport6-dev libqt6websockets6-dev libxkbcommon-dev libvulkan-dev libgl1-mesa-dev libusb-1.0-0-dev python3-dev libasound2-dev libturbojpeg0-dev libjpeg-dev libssl-dev pkg-config libftdi1-dev
 ```
 
 **For Linux X11/XCB grabber support**
@@ -110,7 +110,7 @@ See [AUR](https://aur.archlinux.org/packages/?O=0&SeB=nd&K=hyperion&outdated=&SB
 The following dependencies are needed to build hyperion.ng on fedora.
 ```console
 sudo dnf -y groupinstall "Development Tools"
-sudo dnf install python3-devel qt-devel qt6-qtbase-devel qt6-qtserialport-devel qt6-qtwebsockets-devel xrandr xcb-util-image-devel qt5-qtx11extras-devel alsa-lib-devel turbojpeg-devel libusb-devel xcb-util-devel dbus-devel openssl-devel fedora-packager rpmdevtools gcc libcec-devel libftdi1-dev
+sudo dnf install ninja-build python3-devel qt-devel qt6-qtbase-devel qt6-qtserialport-devel qt6-qtwebsockets-devel xrandr xcb-util-image-devel qt5-qtx11extras-devel alsa-lib-devel turbojpeg-devel libusb-devel xcb-util-devel dbus-devel openssl-devel fedora-packager rpmdevtools gcc libcec-devel libftdi1-dev
 ```
 After installing the dependencies, you can continue with the compile instructions later on this page (the more detailed way..).
 
@@ -118,35 +118,43 @@ After installing the dependencies, you can continue with the compile instruction
 To install on OS X you either need [Homebrew](https://brew.sh/) or [Macport](https://www.macports.org/) but Homebrew is the recommended way to install the packages. To use Homebrew, XCode is required as well, use `brew doctor` to check your install.
 
 First you need to install the dependencies for either the QT5 or QT6 build:
-####QT5
+#### QT5
 ```console
-brew install git qt@5 python3 cmake libusb openssl@1.1 libftdi pkg-config
+brew install git qt@5 ninja python3 cmake libusb openssl@1.1 libftdi pkg-config
 ```
-####QT6
+#### QT6
 ```console
-brew install git qt python3 cmake libusb openssl@1.1 libftdi pkg-config
+brew install git qt ninja python3 cmake libusb openssl@3 libftdi pkg-config
 ```
 
 ## Windows
-We assume a 64bit Windows 10. Install the following;
+> [!NOTE]
+> When downloading, please remember whether you have an x64 or an ARM64 architecture.
+
+We assume a 64bit Windows 11. Install the following:
 - [Git](https://git-scm.com/downloads) (Check: Add to PATH)
-- [CMake (Windows win64-x64 installer)](https://cmake.org/download/) (Check: Add to PATH)
+- [CMake (Windows Installer)](https://cmake.org/download/) (Check: Add to PATH)
 - [Visual Studio 2022 Community Edition](https://visualstudio.microsoft.com/downloads/#visual-studio-community-2022)
   - Select 'Desktop development with C++'
-  - On the right, just select `MSVC v143 VS 2022 C++ x64/x86-Buildtools`, `C++ ATL for latest v143 build tools (x86 & x64)` and latest `Windows 10 SDK`. Everything else is not needed.
-- [Win64 OpenSSL v1.1.1w](https://slproweb.com/products/Win32OpenSSL.html) ([direct link](https://slproweb.com/download/Win64OpenSSL-1_1_1w.exe))
-- [Python 3 (Windows x86-64 executable installer)](https://www.python.org/downloads/windows/) (Check: Add to PATH and Debug Symbols)
+  - On the right, just select:
+    - for x64 architecture: `MSVC v143 VS 2022 C++ x64/x86-Buildtools`, `C++ ATL for latest v143 build tools (x86 & x64)`
+    - for ARM64 architecture: `MSVC v143 VS 2022 C++ ARM64/ARM64EC-Buildtools`, `C++ ATL for latest v143 build tools (ARM64/ARM64EC)`
+    - and latest `Windows 11 SDK`.
+  - Everything else is not needed.
+- [Win64 OpenSSL](https://slproweb.com/products/Win32OpenSSL.html)
+  - [x64 direct link](https://slproweb.com/download/Win64OpenSSL-3_5_0.exe)
+  - [ARM64 direct link](https://slproweb.com/download/Win64ARMOpenSSL-3_5_0.exe)
+- [Python 3 Windows installer (64-bit or ARM64)](https://www.python.org/downloads/windows/) (Check: Add to PATH and Debug Symbols)
   - Open a console window and execute `pip install aqtinstall`.
-  - Now we can download Qt to _C:\Qt_ `mkdir c:\Qt && aqt install -O c:\Qt 5.15.2 windows desktop win64_msvc2019_64`
-  - QT6.2 requires the [Vulkan SDK](https://vulkan.lunarg.com/sdk/home) to be installed
+  - Now we can download Qt to _C:\Qt_:
+    - for x64 architecture: `mkdir c:\Qt && aqt install-qt -O c:\Qt windows desktop 6.8.3 win64_msvc2022_64 -m qtserialport qtwebsockets`
+    - for ARM64 architecture: `mkdir c:\Qt && aqt install-qt -O c:\Qt windows_arm64 desktop 6.8.3 win64_msvc2022_arm64 -m qtserialport qtwebsockets`
 - [libjpeg-turbo SDK for Visual C++](https://sourceforge.net/projects/libjpeg-turbo/files/)
   - Download the latest 64bit installer (currently `libjpeg-turbo-3.0.1-vc64.exe`) and install to its default location `C:\libjpeg-turbo64`.
 
 ###  Optional:
-- For DirectX9 grabber:
-  - [DirectX Software Development Kit](https://www.microsoft.com/en-us/download/details.aspx?id=6812) ([direct link](https://download.microsoft.com/download/A/E/7/AE743F1F-632B-4809-87A9-AA1BB3458E31/DXSDK_Jun10.exe))
 - For package creation:
-  - [NSIS 3.x](https://sourceforge.net/projects/nsis/files/NSIS%203/) ([direct link](https://sourceforge.net/projects/nsis/files/latest/download))
+  - [Inno Setup 6.x](https://jrsoftware.org/isinfo.php) ([direct link](https://jrsoftware.org/download.php/is.exe?site=1))
 
 # Compiling and installing Hyperion
 
@@ -165,14 +173,14 @@ git clone --recursive https://github.com/hyperion-project/hyperion.ng.git hyperi
 cd hyperion
 mkdir build
 cd build
-cmake -DCMAKE_BUILD_TYPE=Release ..
-make -j $(nproc)
+cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ..
+cmake --build .
 if this get stucked and dmesg says out of memory try:
-make -j 2
+cmake --build . -j 2
 # optional: install into your system
-sudo make install/strip
+sudo cmake --build . --target install/strip
 # to uninstall (not very well tested, please keep that in mind)
-sudo make uninstall
+sudo cmake --build . --target uninstall
 # ... or run it from compile directory
 bin/hyperiond
 # webui is located on localhost:8090 or 8091
@@ -195,83 +203,54 @@ On Windows MSVC2022 set it via the CMakeSettings.json:
 
 ## The detailed way (with many comments)
 
-**Download:**
- Creates hyperion directory and checkout the code from github
+### 1. Download:
+ Checkout the code from GitHub
 ```console
-export HYPERION_DIR="hyperion"
-git clone --recursive --depth 1 https://github.com/hyperion-project/hyperion.ng.git "$HYPERION_DIR"
+git clone --recursive --depth 1 https://github.com/hyperion-project/hyperion.ng.git hyperion
 ```
 
-**Preparations:**
+### 2. Prepare:
 Change into hyperion folder and create a build folder
 ```console
-cd "$HYPERION_DIR"
+cd hyperion
 mkdir build
 cd build
 ```
 
-**Generate the make files:**
-To generate make files with automatic platform detection and default settings:
-This should fit to *RPI, x86, amlogic/wetek:
+### 3. Configure:
+
+> [!IMPORTANT]
+> **Windows** developers may need to use the "x64" or "AMR64" native build tools. \
+An easy way to do that is to run the shortcut "Native Tools Command
+Prompt" for the architecture/version of Visual Studio that you have installed.
+
+To generate the configuration files with automatic platform detection and default settings:
+This should fit to **RPI (arm), x64, Windows, macOS**:
 ```console
-cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ..
 ```
 
-*Developers on x86* linux should use:
+**Developers** should use:
 ```console
-cmake -DPLATFORM=x11-dev -DCMAKE_BUILD_TYPE=Release ..
+cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug ..
 ```
 
-To use framebuffer instead of dispmanx (for example on the *cubox-i*):
+### 4. Make it:
 ```console
-cmake -DENABLE_FB=ON -DCMAKE_BUILD_TYPE=Release ..
+ninja
 ```
 
-To generate make files on OS X:
+### 5. Additionals (Linux)
 
-Platform should be auto detected and refer to osx, you can also force osx:
+**Install hyperion into your system:** \
+Copies all required files to ``/usr/local/share/hyperion``
 ```console
-cmake -DPLATFORM=osx -DCMAKE_BUILD_TYPE=Release ..
+sudo cmake --build . --target install/strip
 ```
 
-To generate files on Windows (Release+Debug capable):
-
-Platform should be auto detected and refer to windows, you can also force windows:
-
-```posh
-# You might need to setup MSVC env first
-call "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
-cmake -DPLATFORM=windows -G "Visual Studio 17 2022" ..
-```
-
-**Run make to build Hyperion:**
-The `-j $(nproc)` specifies the amount of CPU cores to use.
+**If you want to install into another location call this before installing:**
 ```console
-make -j $(nproc)
-```
-
-On a mac you can use ``sysctl -n hw.ncpu`` to get the number of available CPU cores to use.
-
-```console
-make -j $(sysctl -n hw.ncpu)
-```
-
-On Windows run:
-```posh
-cmake --build . --config Release -- -maxcpucount
-```
-Maintainer: To build installer, install [NSIS](https://nsis.sourceforge.io/Main_Page) and set env `VCINSTALLDIR="C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC"`
-
-**Install hyperion into your system:**
-Copy all necessary files to ``/usr/local/share/hyperion``
-```console
-sudo make install/strip
-```
-
-If you want to install into another location call this before installing
-
-```console
-cmake -DCMAKE_INSTALL_PREFIX=/home/pi/apps ..
+cmake -G Ninja -DCMAKE_INSTALL_PREFIX=/home/pi/apps ..
 ```
 This will install to ``/home/pi/apps/share/hyperion``
 
