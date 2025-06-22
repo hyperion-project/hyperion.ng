@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Fixes:**
   - UI - Language is not selectable (#1877)
+  - CEC-Handler is not stopped properly
   
 ---
 

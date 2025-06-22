@@ -487,7 +487,6 @@ void HyperionDaemon::startEventServices()
 	_cecHandler.reset(new CECHandler(getSetting(settings::CECEVENTS)));
 	_cecHandler->moveToThread(_cecHandlerThread.get());
 	connect(_cecHandlerThread.get(), &QThread::started, _cecHandler.get(), &CECHandler::start);
-	connect(_cecHandlerThread.get(), &QThread::finished, _cecHandler.get(), &CECHandler::stop);
 	connect(this, &HyperionDaemon::settingsChanged, _cecHandler.get(), &CECHandler::handleSettingsUpdate);
 	Info(_log, "CEC event handler created");
 	_cecHandlerThread->start();
@@ -499,15 +498,14 @@ void HyperionDaemon::startEventServices()
 void HyperionDaemon::stopEventServices()
 {
 #if defined(ENABLE_CEC)
-	if (_cecHandlerThread != nullptr)
+	QMetaObject::invokeMethod(_cecHandler.get(), &CECHandler::stop, Qt::QueuedConnection);
+	if (_cecHandlerThread->isRunning())
 	{
-		if (_cecHandlerThread->isRunning())
-		{
-			_cecHandlerThread->quit();
-			_cecHandlerThread->wait();
-		}
+		_cecHandlerThread->quit();
+		_cecHandlerThread->wait();
 	}
 #endif
+
 	_osEventHandler.reset(nullptr);
 	_eventScheduler.reset(nullptr);
 }

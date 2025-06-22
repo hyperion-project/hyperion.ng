@@ -287,7 +287,7 @@ private:
 	QScopedPointer<OsEventHandler> _osEventHandler;
 	QScopedPointer<EventScheduler> _eventScheduler;
 #ifdef ENABLE_CEC
-	QScopedPointer<CECHandler> _cecHandler;
+	QScopedPointer<CECHandler, QScopedPointerDeleteLater> _cecHandler;
 	QScopedPointer<QThread> _cecHandlerThread;
 #endif
 
