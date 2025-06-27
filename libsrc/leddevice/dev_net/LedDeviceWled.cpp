@@ -177,7 +177,11 @@ bool LedDeviceWled::init(const QJsonObject &deviceConfig)
 
 bool LedDeviceWled::openRestAPI()
 {
-	bool isInitOK {true};
+	if (_address.isNull())
+	{
+		Error(_log, "Empty IP address. REST API cannot be initiatised.");
+		return false;
+	}
 
 	if ( _restApi == nullptr )
 	{
@@ -192,7 +196,7 @@ bool LedDeviceWled::openRestAPI()
 		_restApi->setPort(_apiPort);
 	}
 
-	return isInitOK;
+	return true;
 }
 
 int LedDeviceWled::open()
@@ -200,8 +204,13 @@ int LedDeviceWled::open()
 	int retval = -1;
 	_isDeviceReady = false;
 
-	if (NetUtils::resolveHostToAddress(_log, _hostName, _address, _apiPort))
+	QHostAddress resolvedAddress;
+	int resolvedPort {};
+	if (NetUtils::resolveHostToAddress(_log, _hostName, resolvedAddress, resolvedPort))
 	{
+		_address = resolvedAddress;
+		_apiPort = resolvedPort;
+
 		if ( openRestAPI() )
 		{
 			if (_isStreamDDP)

@@ -227,14 +227,22 @@ inline bool resolveHostToAddress(Logger* log, const QString& hostname, QHostAddr
 		QMdnsEngine::Record const service = resolveMdDnsServiceRecord(hostname.toUtf8());
 		if (!service.target().isEmpty())
 		{
-			Info(log, "Resolved service [%s] to mDNS hostname [%s], service port [%d]", QSTRING_CSTR(hostname), service.target().constData(), service.port());
-			target = service.target();
-			port = service.port();
+			if (!service.target().isEmpty())
+			{
+				Info(log, "Resolved service [%s] to mDNS hostname [%s], service port [%d]", QSTRING_CSTR(hostname), service.target().constData(), service.port());
+				target = service.target();
+				port = service.port();
+			}
+			else
+			{
+				Error(log, "Failed to resolved service [%s] to an mDNS hostname", QSTRING_CSTR(hostname));
+				return false;
+			}
 		}
 		else
 		{
 			Error(log, "Cannot resolve mDNS hostname for given service [%s]!", QSTRING_CSTR(hostname));
-			return areHostAddressPartOK;
+			return false;
 		}
 	}
 #endif
