@@ -166,6 +166,12 @@ bool LedDeviceHomeAssistant::openRestAPI()
 {
 	bool isInitOK{ true };
 
+	if (_address.isNull())
+	{
+		Error(_log, "Empty IP address. REST API cannot be initiatised.");
+		return false;
+	}
+
 	if (_restApi == nullptr)
 	{
 		if (_apiPort == 0)
@@ -190,6 +196,7 @@ int LedDeviceHomeAssistant::open()
 	int retval = -1;
 	_isDeviceReady = false;
 
+	this->setIsRecoverable(true);
 	if (NetUtils::resolveHostToAddress(_log, _hostName, _address, _apiPort))
 	{
 		if (openRestAPI())
