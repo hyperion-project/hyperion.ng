@@ -204,8 +204,10 @@ int LedDeviceWled::open()
 	int retval = -1;
 	_isDeviceReady = false;
 
+	this->setIsRecoverable(true);
+
 	QHostAddress resolvedAddress;
-	int resolvedPort {};
+	int resolvedPort {_apiPort};
 	if (NetUtils::resolveHostToAddress(_log, _hostName, resolvedAddress, resolvedPort))
 	{
 		_address = resolvedAddress;
@@ -579,8 +581,13 @@ QJsonObject LedDeviceWled::getProperties(const QJsonObject& params)
 
 	Info(_log, "Get properties for %s, hostname (%s)", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(_hostName) );
 
-	if (NetUtils::resolveHostToAddress(_log, _hostName, _address, _apiPort))
+	QHostAddress resolvedAddress;
+	int resolvedPort {_apiPort};
+	if (NetUtils::resolveHostToAddress(_log, _hostName, resolvedAddress, resolvedPort))
 	{
+		_address = resolvedAddress;
+		_apiPort = resolvedPort;
+
 		if ( openRestAPI() )
 		{
 			QString filter = params["filter"].toString("");
@@ -622,8 +629,13 @@ void LedDeviceWled::identify(const QJsonObject& params)
 
 	Info(_log, "Identify %s, hostname (%s)", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(_hostName) );
 
-	if (NetUtils::resolveHostToAddress(_log, _hostName, _address, _apiPort))
+	QHostAddress resolvedAddress;
+	int resolvedPort {_apiPort};
+	if (NetUtils::resolveHostToAddress(_log, _hostName, resolvedAddress, resolvedPort))
 	{
+		_address = resolvedAddress;
+		_apiPort = resolvedPort;
+
 		if ( openRestAPI() )
 		{
 			_isRestoreOrigState = true;

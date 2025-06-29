@@ -108,6 +108,12 @@ public:
 	///
 	void setAutoStart(bool isAutoStart);
 
+	/// @brief Define, if a device can be recovered by retrying open attempts in an error scenrario
+	///
+	/// @param[in] isRecoverable
+	///
+	void setIsRecoverable(bool isRecoverable = true) { _isDeviceRecoverable = isRecoverable; }
+
 	///
 	/// @brief Discover devices of this type available (for configuration).
 	/// @note Mainly used for network devices. Allows to find devices, e.g. via ssdp, mDNS or cloud ways.
