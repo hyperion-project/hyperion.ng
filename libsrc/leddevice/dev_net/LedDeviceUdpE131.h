@@ -137,7 +137,7 @@ private:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	int write(const QVector<ColorRgb> & ledValues) override;	
+	int write(const QVector<ColorRgb> & ledValues) override;
 
 	///
 	/// @brief Writes the RGB-Color values to the LEDs.
