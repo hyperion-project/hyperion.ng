@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - CEC-Handler is not stopped properly
   - Qt-Grabber (Windows) does not apply pixel ratio (#1882) - _Thanks to @SolberLight_
   - LED-devices are not retrying to establish connectivity, if supported by the device
+  - LED-devices are resolving IP-addresses for API and UDP two times in sequence
 
 ---
 

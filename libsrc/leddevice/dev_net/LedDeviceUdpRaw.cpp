@@ -51,18 +51,34 @@ bool LedDeviceUdpRaw::init(const QJsonObject &deviceConfig)
 
 int LedDeviceUdpRaw::open()
 {
+	QHostAddress resolvedAddress;
+	if (NetUtils::resolveHostToAddress(_log, _hostName, resolvedAddress))
+	{
+		return open(resolvedAddress);
+	}
+
+	return -1;
+}
+
+int LedDeviceUdpRaw::open(const QHostAddress& address)
+{
 	int retval = -1;
 	_isDeviceReady = false;
 
-	if (NetUtils::resolveHostToAddress(_log, _hostName, _address))
+	if (address.isNull())
 	{
-		if (ProviderUdp::open() == 0)
-		{
-			// Everything is OK, device is ready
-			_isDeviceReady = true;
-			retval = 0;
-		}
+		Error(_log, "Empty IP address. UDP stream cannot be initiatised.");
+		return retval;
 	}
+
+	_address = address;
+	if (ProviderUdp::open() == 0)
+	{
+		// Everything is OK, device is ready
+		_isDeviceReady = true;
+		retval = 0;
+	}
+
 	return retval;
 }
 
