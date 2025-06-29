@@ -200,9 +200,7 @@ function initLanguageSelection() {
     langLocale = navigator.language?.substring(0, 2) || 'en';
   }
 
-  let langText = '';
   let langIdx = availLang.indexOf(langLocale);
-
   if (langIdx === -1) {
     // Try fallback
     langLocale = $.i18n().options.fallbackLocale.substring(0, 2);
@@ -212,7 +210,6 @@ function initLanguageSelection() {
   if (langIdx === -1) {
     // Default to English
     langLocale = 'en';
-    langIdx = availLang.indexOf(langLocale);
   }
 
   // Update the language select dropdown
