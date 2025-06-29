@@ -36,6 +36,24 @@
       "type": "string",
       "title": "edt_dev_spec_cid_title",
       "propertyOrder": 5
+    },
+    "whiteAlgorithm": {
+      "type": "string",
+      "title": "edt_dev_spec_white_algorithm_title",
+      "enum": [
+        "white_off",
+        "subtractive",
+        "additive"
+      ],
+      "default": "white_off",
+      "propertyOrder": 6,
+      "options": {
+        "enum_titles": [
+          "edt_dev_spec_white_algorithm_white_off",
+          "edt_dev_spec_white_algorithm_subtractive",
+          "edt_dev_spec_white_algorithm_additive"
+        ]
+      }
     }
   },
   "additionalProperties": true
