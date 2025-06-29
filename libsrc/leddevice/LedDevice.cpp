@@ -157,7 +157,7 @@ void LedDevice::enable()
 
 		if (!_isDeviceReady)
 		{
-			if (open() != 0)
+			if (open() < 0)
 			{
 				setInError("Failed to open device", _isDeviceRecoverable);
 			}
