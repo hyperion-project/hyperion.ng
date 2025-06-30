@@ -22,6 +22,12 @@
       "default": 1,
       "propertyOrder": 3
     },
+    "dmx-max": {
+      "type": "integer",
+      "title": "edt_dev_spec_dmx_max_title",
+      "default": 512,
+      "propertyOrder": 4
+    },
     "latchTime": {
       "type": "integer",
       "title": "edt_dev_spec_latchtime_title",
@@ -30,30 +36,43 @@
       "minimum": 0,
       "maximum": 1000,
       "access": "expert",
-      "propertyOrder": 4
+      "propertyOrder": 5
     },
     "cid": {
       "type": "string",
       "title": "edt_dev_spec_cid_title",
-      "propertyOrder": 5
+      "propertyOrder": 6
     },
+
     "whiteAlgorithm": {
       "type": "string",
-      "title": "edt_dev_spec_white_algorithm_title",
-      "enum": [
-        "white_off",
-        "subtractive",
-        "additive"
+      "title":"edt_dev_spec_whiteLedAlgor_title",
+      "enum" : [
+	"subtract_minimum",
+	"sub_min_cool_adjust",
+	"sub_min_warm_adjust",
+	"cold_white",
+	"neutral_white",
+	"auto",
+	"auto_max",
+	"auto_accurate",
+	"white_off"
       ],
       "default": "white_off",
-      "propertyOrder": 6,
-      "options": {
-        "enum_titles": [
-          "edt_dev_spec_white_algorithm_white_off",
-          "edt_dev_spec_white_algorithm_subtractive",
-          "edt_dev_spec_white_algorithm_additive"
-        ]
-      }
+      "options" : {
+	"enum_titles" : [
+	  "edt_dev_enum_subtract_minimum",
+	  "edt_dev_enum_sub_min_cool_adjust",
+	  "edt_dev_enum_sub_min_warm_adjust",
+	  "edt_dev_enum_cold_white",
+	  "edt_dev_enum_neutral_white",
+	  "edt_dev_enum_auto",
+	  "edt_dev_enum_auto_max",
+	  "edt_dev_enum_auto_accurate",
+	  "edt_dev_enum_white_off"
+	]
+      },
+      "propertyOrder" : 7
     }
   },
   "additionalProperties": true

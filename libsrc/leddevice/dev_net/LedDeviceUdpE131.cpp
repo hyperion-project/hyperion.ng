@@ -40,7 +40,6 @@ const int DMX_MAX = 512; // 512 usable slots
 LedDeviceUdpE131::LedDeviceUdpE131(const QJsonObject &deviceConfig)
 	: ProviderUdp(deviceConfig)
 	, _whiteAlgorithm(RGBW::WhiteAlgorithm::INVALID)
-	, _ledRGBWCount(0)
 {
 }
 
@@ -60,6 +59,7 @@ bool LedDeviceUdpE131::init(const QJsonObject &deviceConfig)
 		_port = deviceConfig[CONFIG_PORT].toInt(E131_DEFAULT_PORT);
 
 		_e131_universe = deviceConfig["universe"].toInt(1);
+		_e131_dmx_max = deviceConfig["dmx-max"].toInt(DMX_MAX);
 		_e131_source_name = deviceConfig["source-name"].toString("hyperion on "+QHostInfo::localHostName());
 		QString _json_cid = deviceConfig["cid"].toString("");
 
@@ -73,17 +73,6 @@ bool LedDeviceUdpE131::init(const QJsonObject &deviceConfig)
 			return false;
 		}
 		Debug(_log, "whiteAlgorithm : %s", QSTRING_CSTR(whiteAlgorithmStr));
-
-		// Calculate RGBW count
-		if (_whiteAlgorithm == RGBW::WhiteAlgorithm::WHITE_OFF)
-		{
-			_ledRGBWCount = _ledCount * 3;
-		}
-		else
-		{
-			_ledRGBWCount = _ledCount * 4;
-		}
-
 
 		if (_json_cid.isEmpty())
 		{
@@ -164,7 +153,7 @@ int LedDeviceUdpE131::write(const std::vector<ColorRgb> &ledValues)
 {
 	int retVal = 0;
 	int thisChannelCount = 0;
-	int dmxChannelCount = _ledRGBWCount; // Use _ledRGBWCount
+	int dmxChannelCount = (_whiteAlgorithm == RGBW::WhiteAlgorithm::WHITE_OFF) ? _ledRGBCount : _ledRGBWCount; // if white_off we expect 3 channels per LED otherwise 4 
 
 	// Create a temporary buffer for RGB or RGBW data
 	std::vector<uint8_t> tempBuffer(dmxChannelCount);
@@ -193,26 +182,26 @@ int LedDeviceUdpE131::write(const std::vector<ColorRgb> &ledValues)
 
 	for (int rawIdx = 0; rawIdx < dmxChannelCount; rawIdx++)
 	{
-		if (rawIdx % DMX_MAX == 0) // start of new packet
+		if (rawIdx % _e131_dmx_max == 0) // start of new packet
 		{
-			thisChannelCount = (dmxChannelCount - rawIdx < DMX_MAX) ? dmxChannelCount % DMX_MAX : DMX_MAX;
+			thisChannelCount = (dmxChannelCount - rawIdx < _e131_dmx_max) ? dmxChannelCount % _e131_dmx_max : _e131_dmx_max;
 			// is this the last packet? ? ^^ last packet : ^^ earlier packets
 
-			prepare(_e131_universe + rawIdx / DMX_MAX, thisChannelCount);
+			prepare(_e131_universe + rawIdx / _e131_dmx_max, thisChannelCount);
 			e131_packet.sequence_number = _e131_seq;
 		}
 
-		e131_packet.property_values[1 + rawIdx % DMX_MAX] = rawDataPtr[rawIdx];
+		e131_packet.property_values[1 + rawIdx % _e131_dmx_max] = rawDataPtr[rawIdx];
 
 		// is this the last byte of last packet || last byte of other packets
-		if ((rawIdx == dmxChannelCount - 1) || (rawIdx % DMX_MAX == DMX_MAX - 1))
+		if ((rawIdx == dmxChannelCount - 1) || (rawIdx % _e131_dmx_max == _e131_dmx_max - 1))
 		{
 #undef e131debug
 #if e131debug
 			Debug (_log, "send packet: rawidx %d dmxchannelcount %d universe: %d, packetsz %d"
 				, rawIdx
 				, dmxChannelCount
-				, _e131_universe + rawIdx / DMX_MAX
+				, _e131_universe + rawIdx / _e131_dmx_max
 				, E131_DMP_DATA + 1 + thisChannelCount
 				);
 #endif
