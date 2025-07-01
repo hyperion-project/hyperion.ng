@@ -74,6 +74,9 @@ jobs:
 
       - name: 📥 Install latest CMake and Ninja
         uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: latestrc
+          ninjaVersion: latest
 
       - name: 🛠️ Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
