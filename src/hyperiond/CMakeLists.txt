@@ -57,6 +57,7 @@ add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE
 	${MACOS_BUNDLE_RESOURCE_FILES}
 )
 
+find_package(OpenSSL QUIET)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS DBus QUIET)
 target_link_libraries(${PROJECT_NAME}
 	commandline
@@ -214,23 +215,27 @@ if(WIN32 AND NOT DEFINED ENV{GITHUB_ACTIONS})
 			set(open_ssl_version_suffix "-3")
 		endif()
 
-		if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+		if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64|ARM64|arm64")
+			string(APPEND open_ssl_version_suffix "-arm64")
+		elseif(CMAKE_SIZEOF_VOID_P EQUAL 8)
 			string(APPEND open_ssl_version_suffix "-x64")
 		endif()
 
-		get_filename_component(OPENSSL_DIR "${OPENSSL_INCLUDE_DIR}" DIRECTORY)
 		foreach(comp "ssl" "crypto")
-			find_file(${comp}
+			find_file(lib${comp}
 				NAMES
 					"lib${comp}${open_ssl_version_suffix}.dll"
 				PATHS
-					${OPENSSL_DIR}
+					${_OPENSSL_ROOT_PATHS}
+				HINTS
+					${OPENSSL_ROOT_DIR}
+					$ENV{OPENSSL_ROOT_DIR}
 				PATH_SUFFIXES
 					bin
 			)
 
 			add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-				COMMAND ${CMAKE_COMMAND} -E copy ${${comp}} $<TARGET_FILE_DIR:${PROJECT_NAME}>
+				COMMAND ${CMAKE_COMMAND} -E copy ${lib${comp}} $<TARGET_FILE_DIR:${PROJECT_NAME}>
 			)
 		endforeach()
 	endif()
