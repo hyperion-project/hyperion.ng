@@ -1909,6 +1909,10 @@ bool LedDevicePhilipsHue::initLeds()
 			if( _useEntertainmentAPI )
 			{
 				_groupName = getGroupName( _groupId );
+				if (!_groupName.isEmpty())
+				{
+					isInitOK = true;
+				}
 			}
 			else
 			{
@@ -1916,13 +1920,14 @@ bool LedDevicePhilipsHue::initLeds()
 				setLatchTime( 100 * getLightsCount() );
 				isInitOK = true;
 			}
-			_isInitLeds = true;
 		}
 		else
 		{
 			isInitOK = false;
 		}
 	}
+	_isInitLeds = isInitOK;
+
 	return isInitOK;
 }
 
