@@ -99,6 +99,7 @@ bool LedDeviceUdpDdp::init(const QJsonObject &deviceConfig)
 int LedDeviceUdpDdp::open()
 {
 	QHostAddress resolvedAddress;
+	this->setIsRecoverable(true);
 	if (NetUtils::resolveHostToAddress(_log, _hostName, resolvedAddress))
 	{
 		return open(resolvedAddress);
