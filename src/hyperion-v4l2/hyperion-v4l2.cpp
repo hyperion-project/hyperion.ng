@@ -64,8 +64,8 @@ int main(int argc, char** argv)
 		QTimer::singleShot(0, [&app]() { app.quit(); });
 	});
 
-	// force the locale
-	setlocale(LC_ALL, "C");
+	// Force locale to have predictable, minimal behavior while still supporting full Unicode.
+	setlocale(LC_ALL, "C.UTF-8");
 	QLocale::setDefault(QLocale::c());
 
 	// register the image type to use in signals

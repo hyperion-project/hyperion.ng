@@ -67,7 +67,7 @@ void WebServer::onServerStarted(quint16 port)
 {
 	_inited = true;
 
-	Info(_log, "'%s' started on port %d", _server->getServerName().toStdString().c_str(), port);
+	Info(_log, "%s started on port %d", _server->getServerName().toStdString().c_str(), port);
 
 	if (_useSsl)
 	{

@@ -168,6 +168,7 @@ int LedDeviceCololight::open()
 	int retval = -1;
 	_isDeviceReady = false;
 
+	this->setIsRecoverable(true);
 	if (NetUtils::resolveHostToAddress(_log, _hostName, _address))
 	{
 		if (ProviderUdp::open() == 0)

@@ -99,6 +99,8 @@ bool DBMigrationManager::upgradeGlobalSettings(const semver::version& currentVer
 	upgradeGlobalSettings_2_0_16(migratedVersion, config);
 	//Migration step for versions < 2.0.17
 	upgradeGlobalSettings_2_1_0(migratedVersion, config);
+	//Migration step for versions < 2.1.1
+	upgradeGlobalSettings_2_1_2(migratedVersion, config);
 
 	// Set the daqtabase version to the current build version
 	QJsonObject generalConfig = config["general"].toObject();
@@ -432,6 +434,32 @@ bool DBMigrationManager::upgradeGlobalSettings_2_1_0(semver::version& currentVer
 	SettingsTable globalSettingsTable(255);
 	globalSettingsTable.deleteInstance();
 	migrated = true;
+
+	return migrated;
+}
+
+bool DBMigrationManager::upgradeGlobalSettings_2_1_2(semver::version& currentVersion, QJsonObject& config)
+{
+	bool migrated = false;
+	const semver::version targetVersion{ "2.1.2" };
+
+	if (currentVersion < targetVersion)
+	{
+		Info(_log, "Global settings: Migrate from version [%s] to version [%s] or later", currentVersion.getVersion().c_str(), targetVersion.getVersion().c_str());
+		currentVersion = targetVersion;
+
+		if (config.contains("network"))
+		{
+			QJsonObject newNetworkConfig = config["network"].toObject();
+			newNetworkConfig.remove("internetAccessAPI");
+			newNetworkConfig.remove("restirctedInternetAccessAPI");
+			newNetworkConfig.remove("ipWhitelist");
+			config.insert("network", newNetworkConfig);
+
+			Debug(_log, "Network settings migrated");
+			migrated = true;
+		}
+	}
 
 	return migrated;
 }

@@ -251,6 +251,7 @@ begin
     PageDescriptionLabel.Visible := False;
     PageNameLabel.Visible := False;
     Bevel1.Visible := False;
+    RunList.Left := InnerNotebook.Left;
 
     with WizardSmallBitmapImage do
     begin
@@ -260,6 +261,32 @@ begin
       Stretch             := False;
       Center              := True;
       Align               := alClient;
+    end;
+
+    with FinishedLabel do
+    begin
+      Left                := InnerNotebook.Left;
+      Width               := InnerNotebook.Width;
+    end;
+
+    with FinishedHeadingLabel do
+    begin
+      Left                := InnerNotebook.Left;
+      Width               := InnerNotebook.Width;
+      Top                 := 0;
+    end;
+
+    with WizardBitmapImage2 do
+    begin
+      Parent              := FinishedHeadingLabel;
+      Bitmap.AlphaFormat  := afDefined;
+      Width               := Parent.Width;
+      Height              := Parent.Height;
+      AutoSize            := True;
+      Stretch             := False;
+      Center              := True;
+      Align               := alClient;
+      Bitmap              := WizardSmallBitmapImage.Bitmap;
     end;
   end;
 end;

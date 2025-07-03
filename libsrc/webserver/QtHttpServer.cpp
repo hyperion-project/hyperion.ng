@@ -84,33 +84,26 @@ void QtHttpServer::onClientConnected (void)
 	{
 		if (QTcpSocket * sock = m_sockServer->nextPendingConnection ())
 		{
-			if (m_netOrigin->accessAllowed(sock->peerAddress(), sock->localAddress()))
-			{
-				connect(sock, &QTcpSocket::disconnected, this, &QtHttpServer::onClientDisconnected);
+			connect(sock, &QTcpSocket::disconnected, this, &QtHttpServer::onClientDisconnected);
 
-				if (m_useSsl)
+			if (m_useSsl)
+			{
+				if (QSslSocket* ssl = qobject_cast<QSslSocket*> (sock))
 				{
-					if (QSslSocket* ssl = qobject_cast<QSslSocket*> (sock))
-					{
-						connect(ssl, SslErrorSignal(&QSslSocket::sslErrors), this, &QtHttpServer::onClientSslErrors);
-						connect(ssl, &QSslSocket::encrypted, this, &QtHttpServer::onClientSslEncrypted);
-						connect(ssl, &QSslSocket::peerVerifyError, this, &QtHttpServer::onClientSslPeerVerifyError);
-						connect(ssl, &QSslSocket::modeChanged, this, &QtHttpServer::onClientSslModeChanged);
-						ssl->setLocalCertificateChain(m_sslCerts);
-						ssl->setPrivateKey(m_sslKey);
-						ssl->setPeerVerifyMode(QSslSocket::AutoVerifyPeer);
-						ssl->startServerEncryption();
-					}
+					connect(ssl, SslErrorSignal(&QSslSocket::sslErrors), this, &QtHttpServer::onClientSslErrors);
+					connect(ssl, &QSslSocket::encrypted, this, &QtHttpServer::onClientSslEncrypted);
+					connect(ssl, &QSslSocket::peerVerifyError, this, &QtHttpServer::onClientSslPeerVerifyError);
+					connect(ssl, &QSslSocket::modeChanged, this, &QtHttpServer::onClientSslModeChanged);
+					ssl->setLocalCertificateChain(m_sslCerts);
+					ssl->setPrivateKey(m_sslKey);
+					ssl->setPeerVerifyMode(QSslSocket::AutoVerifyPeer);
+					ssl->startServerEncryption();
 				}
+			}
 
-				QtHttpClientWrapper* wrapper = new QtHttpClientWrapper(sock, m_netOrigin->isLocalAddress(sock->peerAddress(), sock->localAddress()), this);
-				m_socksClientsHash.insert(sock, wrapper);
-				emit clientConnected (wrapper->getGuid ());
-			}
-			else
-			{
-				sock->close();
-			}
+			QtHttpClientWrapper* wrapper = new QtHttpClientWrapper(sock, m_netOrigin->isLocalAddress(sock->peerAddress(), sock->localAddress()), this);
+			m_socksClientsHash.insert(sock, wrapper);
+			emit clientConnected (wrapper->getGuid ());
 		}
 	}
 }

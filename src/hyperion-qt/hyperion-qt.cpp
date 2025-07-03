@@ -60,6 +60,10 @@ int main(int argc, char ** argv)
 		QTimer::singleShot(0, [&app]() { app.quit(); });
 	});
 
+	// Force locale to have predictable, minimal behavior while still supporting full Unicode.
+	setlocale(LC_ALL, "C.UTF-8");
+	QLocale::setDefault(QLocale::c());
+
 	// create the option parser and initialize all parameters
 	Parser parser( CAPTURE_TYPE + " capture application for Hyperion. Will automatically search a Hyperion server if -a option is not used. Please note that if you have more than one server running it's more or less random which one will be used.");
 
