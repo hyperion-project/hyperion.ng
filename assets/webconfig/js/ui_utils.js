@@ -915,13 +915,13 @@ function addJsonEditorHostValidation() {
 // Build a link with localization
 function buildWL(link, linkt, cl) {
   const baseLink = "https://docs.hyperion-project.org/";
-  const lang = (storedLang === "de" || navigator.locale === "de") ? "de" : "en";
+  const lang = (storedLang === "de" || navigator.locale === "de") ? "de/" : "";
 
   if (cl) {
     linkt = $.i18n(linkt);
-    return `<div class="bs-callout bs-callout-primary"><h4>${linkt}</h4>${$.i18n('general_wiki_moreto', linkt)}: <a href="${baseLink}${lang}/${link}" target="_blank">${linkt}</a></div>`;
+    return `<div class="bs-callout bs-callout-primary"><h4>${linkt}</h4>${$.i18n('general_wiki_moreto', linkt)}: <a href="${baseLink}${lang}${link}" target="_blank">${linkt}</a></div>`;
   } else {
-    return `: <a href="${baseLink}${lang}/${link}" target="_blank">${linkt}</a>`;
+    return `: <a href="${baseLink}${lang}${link}" target="_blank">${linkt}</a>`;
   }
 }
 
