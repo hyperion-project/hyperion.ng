@@ -373,16 +373,17 @@ PyObject* EffectModule::wrapGetImage(PyObject* self, PyObject* args)
 					height = qimage.height();
 				}
 
-				QByteArray binaryImage;
-				for (int i = 0; i < height; i++)
+				QByteArray binaryImage(width * height * 3, Qt::Uninitialized);
+				char* dest = binaryImage.data();
+				for (int i = 0; i < height; ++i)
 				{
 					const QRgb* scanline = reinterpret_cast<const QRgb*>(qimage.scanLine(i));
-					const QRgb* end = scanline + qimage.width();
-					for (; scanline != end; scanline++)
+					for (int j = 0; j < width; ++j)
 					{
-						binaryImage.append(!grayscale ? (char)qRed(scanline[0]) : (char)qGray(scanline[0]));
-						binaryImage.append(!grayscale ? (char)qGreen(scanline[1]) : (char)qGray(scanline[1]));
-						binaryImage.append(!grayscale ? (char)qBlue(scanline[2]) : (char)qGray(scanline[2]));
+						QRgb pixel = scanline[j];
+						*dest++ = static_cast<char>(!grayscale ? qRed(pixel) : qGray(pixel));
+						*dest++ = static_cast<char>(!grayscale ? qGreen(pixel) : qGray(pixel));
+						*dest++ = static_cast<char>(!grayscale ? qBlue(pixel) : qGray(pixel));
 					}
 				}
 				PyList_SET_ITEM(result, i, Py_BuildValue("{s:i,s:i,s:O}", "imageWidth", width, "imageHeight", height, "imageData", PyByteArray_FromStringAndSize(binaryImage.constData(), binaryImage.size())));
