@@ -139,7 +139,7 @@ void Hyperion::start()
 	// listen for suspend/resume, idle requests to perform core activation/deactivation actions
 	connect(this, &Hyperion::suspendRequest, this, &Hyperion::setSuspend);
 	connect(this, &Hyperion::idleRequest, this, &Hyperion::setIdle);
-	
+
 	_muxer->start();
 
 #if defined(ENABLE_EFFECTENGINE)
@@ -648,13 +648,19 @@ void Hyperion::update()
 	int const priority = _muxer->getCurrentPriority();
 	const PriorityMuxer::InputInfo priorityInfo = _muxer->getInputInfo(priority);
 
-	std::vector<ColorRgb> ledColors;
+	const Image<ColorRgb>& image = priorityInfo.image;
+	const int width  = image.width();
+	const int height = image.height();
+
 
 	// copy image & process OR copy ledColors from muxer
-	Image<ColorRgb> const image = priorityInfo.image;
-	if (image.width() > 1 || image.height() > 1)
+	std::vector<ColorRgb> ledColors;
+	if (width > 1 || height > 1)
 	{
-		_imageEmissionInterval = (image.width() > 1280) ?  2 * DEFAULT_MAX_IMAGE_EMISSION_INTERVAL : DEFAULT_MAX_IMAGE_EMISSION_INTERVAL;
+		_imageEmissionInterval = (width > 1280)
+			?  2 * DEFAULT_MAX_IMAGE_EMISSION_INTERVAL
+			: DEFAULT_MAX_IMAGE_EMISSION_INTERVAL;
+
 		// Throttle the emission of currentImage(image) signal
 		qint64 elapsedImageEmissionTime = _imageTimer.elapsed();
 		if (elapsedImageEmissionTime - _lastImageEmission >= _imageEmissionInterval.count())
@@ -669,13 +675,14 @@ void Hyperion::update()
 		ledColors = priorityInfo.ledColors;
 		if (_ledString.hasBlackListedLeds())
 		{
-			for (unsigned long const id : _ledString.blacklistedLedIds())
+			const std::vector<int>& blacklist = _ledString.blacklistedLedIds();
+			const size_t size = ledColors.size();
+			for (unsigned long const id : blacklist)
 			{
-				if (id > ledColors.size()-1)
+				if (id < size)
 				{
-					break;
+					ledColors[id] = ColorRgb::BLACK;
 				}
-				ledColors.at(id) = ColorRgb::BLACK;
 			}
 		}
 	}
