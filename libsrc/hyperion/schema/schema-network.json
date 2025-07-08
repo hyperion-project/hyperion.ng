@@ -2,47 +2,12 @@
 	"type": "object",
 	"title": "edt_conf_network_heading_title",
 	"properties": {
-		"internetAccessAPI": {
-			"type": "boolean",
-			"title": "edt_conf_network_internetAccessAPI_title",
-			"required": true,
-			"default": false,
-			"propertyOrder": 1
-		},
-		"restirctedInternetAccessAPI": {
-			"type": "boolean",
-			"title": "edt_conf_network_restirctedInternetAccessAPI_title",
-			"required": true,
-			"default": false,
-			"options": {
-				"dependencies": {
-					"internetAccessAPI": true
-				}
-			},
-			"propertyOrder": 2
-		},
-		"ipWhitelist": {
-			"type": "array",
-			"title": "edt_conf_network_ipWhitelist_title",
-			"required": true,
-			"items": {
-				"type": "string",
-				"title": "edt_conf_network_ip_itemtitle",
-				"allowEmptyArray": true
-			},
-			"options": {
-				"dependencies": {
-					"restirctedInternetAccessAPI": true
-				}
-			},
-			"propertyOrder": 3
-		},
 		"localApiAuth": {
 			"type": "boolean",
 			"title": "edt_conf_network_localApiAuth_title",
 			"required": true,
 			"default": false,
-			"propertyOrder": 4
+			"propertyOrder": 1
 		}
 	},
 	"additionalProperties": false

@@ -36,11 +36,6 @@ CECHandler::CECHandler(const QJsonDocument& config, QObject * parent)
 	_cecConfig.callbackParam = this;
 }
 
-CECHandler::~CECHandler()
-{
-	Info(_logger, "CEC handler stopped");
-}
-
 void CECHandler::handleSettingsUpdate(settings::type type, const QJsonDocument& config)
 {
 	if(type == settings::CECEVENTS)
@@ -124,6 +119,7 @@ void CECHandler::stop()
 		_cecAdapter->Close();
 		UnloadLibCec(_cecAdapter);
 	}
+	Info(_logger, "CEC handler stopped");
 }
 
 bool CECHandler::enable()

@@ -142,8 +142,8 @@ int main(int argc, char** argv)
 	app->setApplicationName(APPLICATION_NAME);
 	app->setApplicationVersion(QString("%1 (%2)").arg(HYPERION_VERSION, HYPERION_BUILD_ID));
 
-	// force the locale
-	setlocale(LC_ALL, "C");
+	// Force locale to have predictable, minimal behavior while still supporting full Unicode.
+	setlocale(LC_ALL, "C.UTF-8");
 	QLocale::setDefault(QLocale::c());
 
 	Parser parser(APPLICATION_NAME);

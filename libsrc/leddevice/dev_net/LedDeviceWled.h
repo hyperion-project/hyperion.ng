@@ -160,7 +160,6 @@ private:
 	///REST-API wrapper
 	ProviderRestApi* _restApi;
 
-	QString _hostAddress;
 	int		_apiPort;
 
 	QJsonObject _wledInfo;
