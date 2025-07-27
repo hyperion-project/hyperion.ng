@@ -23,6 +23,14 @@ public:
 	void setVideoCaptureEnable(bool enable);
 	void setAudioCaptureEnable(bool enable);
 
+	///
+	/// @brief Start Capture Control and its timers
+	///
+	void start();
+
+	///
+	/// @brief Stop Capture Control and its timers
+	///
 	void stop();
 
 private slots:
@@ -82,17 +90,17 @@ private:
 	bool _screenCaptureEnabled;
 	int _screenCapturePriority;
 	QString _screenCaptureName;
-	QTimer* _screenCaptureInactiveTimer;
+	QScopedPointer<QTimer, QScopedPointerDeleteLater> _screenCaptureInactiveTimer;
 
 	/// Reflect state of video capture and prio
 	bool _videoCaptureEnabled;
 	int _videoCapturePriority;
 	QString _videoCaptureName;
-	QTimer* _videoInactiveTimer;
+	QScopedPointer<QTimer, QScopedPointerDeleteLater> _videoInactiveTimer;
 
 	/// Reflect state of audio capture and prio
 	bool _audioCaptureEnabled;
 	int _audioCapturePriority;
 	QString _audioCaptureName;
-	QTimer* _audioCaptureInactiveTimer;
+	QScopedPointer<QTimer, QScopedPointerDeleteLater> _audioCaptureInactiveTimer;
 };

@@ -162,6 +162,7 @@ void Hyperion::start()
 
 	// create the Daemon capture interface
 	_captureCont.reset(new CaptureCont(this));
+	_captureCont->start();
 
 	// link global signals with the corresponding slots
 	connect(GlobalSignals::getInstance(), &GlobalSignals::registerGlobalInput, this, &Hyperion::registerInput);

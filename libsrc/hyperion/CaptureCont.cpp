@@ -25,14 +25,20 @@ CaptureCont::CaptureCont(Hyperion* hyperion)
 	: _hyperion(hyperion)
 	, _screenCaptureEnabled(false)
 	, _screenCapturePriority(0)
-	, _screenCaptureInactiveTimer(new QTimer(this))
+	, _screenCaptureInactiveTimer(nullptr)
 	, _videoCaptureEnabled(false)
 	, _videoCapturePriority(0)
-	, _videoInactiveTimer(new QTimer(this))
+	, _videoInactiveTimer(nullptr)
 	, _audioCaptureEnabled(false)
 	, _audioCapturePriority(0)
-	, _audioCaptureInactiveTimer(new QTimer(this))
+	, _audioCaptureInactiveTimer(nullptr)
 {
+}
+
+void CaptureCont::start()
+{
+	qDebug() << "CaptureCont::start()...";
+
 	// settings changes
 	connect(_hyperion, &Hyperion::settingsChanged, this, &CaptureCont::handleSettingsUpdate);
 
@@ -40,17 +46,20 @@ CaptureCont::CaptureCont(Hyperion* hyperion)
 	connect(_hyperion, &Hyperion::compStateChangeRequest, this, &CaptureCont::handleCompStateChangeRequest);
 
 	// inactive timer screen
-	connect(_screenCaptureInactiveTimer, &QTimer::timeout, this, &CaptureCont::onScreenIsInactive);
+	_screenCaptureInactiveTimer.reset(new QTimer(this));
+	connect(_screenCaptureInactiveTimer.get(), &QTimer::timeout, this, &CaptureCont::onScreenIsInactive);
 	_screenCaptureInactiveTimer->setSingleShot(true);
 	_screenCaptureInactiveTimer->setInterval(DEFAULT_SCREEN_CAPTURE_INACTIVE_TIMEOUT);
 
 	// inactive timer video
-	connect(_videoInactiveTimer, &QTimer::timeout, this, &CaptureCont::onVideoIsInactive);
+	_videoInactiveTimer.reset(new QTimer(this));
+	connect(_videoInactiveTimer.get(), &QTimer::timeout, this, &CaptureCont::onVideoIsInactive);
 	_videoInactiveTimer->setSingleShot(true);
 	_videoInactiveTimer->setInterval(DEFAULT_VIDEO_CAPTURE_INACTIVE_TIMEOUT);
 
 	// inactive timer audio
-	connect(_audioCaptureInactiveTimer, &QTimer::timeout, this, &CaptureCont::onAudioIsInactive);
+	_audioCaptureInactiveTimer.reset(new QTimer(this));
+	connect(_audioCaptureInactiveTimer.get(), &QTimer::timeout, this, &CaptureCont::onAudioIsInactive);
 	_audioCaptureInactiveTimer->setSingleShot(true);
 	_audioCaptureInactiveTimer->setInterval(DEFAULT_AUDIO_CAPTURE_INACTIVE_TIMEOUT);
 
@@ -62,16 +71,18 @@ void CaptureCont::stop()
 {
 	qDebug() << "CaptureCont::stop()...";
 
+	disconnect(_hyperion, &Hyperion::compStateChangeRequest, this, &CaptureCont::handleCompStateChangeRequest);
+	disconnect(_hyperion, &Hyperion::settingsChanged, this, &CaptureCont::handleSettingsUpdate);
+
 	_videoInactiveTimer->stop();
 	_screenCaptureInactiveTimer->stop();
 	_audioCaptureInactiveTimer->stop();
 
-	disconnect(_videoInactiveTimer, &QTimer::timeout, this, &CaptureCont::onVideoIsInactive);
-	disconnect(_screenCaptureInactiveTimer, &QTimer::timeout, this, &CaptureCont::onScreenIsInactive);
-	disconnect(_audioCaptureInactiveTimer, &QTimer::timeout, this, &CaptureCont::onAudioIsInactive);
+	disconnect(_videoInactiveTimer.get(), &QTimer::timeout, this, &CaptureCont::onVideoIsInactive);
+	disconnect(_screenCaptureInactiveTimer.get(), &QTimer::timeout, this, &CaptureCont::onScreenIsInactive);
+	disconnect(_audioCaptureInactiveTimer.get(), &QTimer::timeout, this, &CaptureCont::onAudioIsInactive);
 
-	disconnect(_hyperion, &Hyperion::compStateChangeRequest, this, &CaptureCont::handleCompStateChangeRequest);
-	disconnect(_hyperion, &Hyperion::settingsChanged, this, &CaptureCont::handleSettingsUpdate);
+
 }
 
 CaptureCont::~CaptureCont()
