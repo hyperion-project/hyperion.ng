@@ -151,14 +151,20 @@ void Logger::write(const Logger::T_LOG_MESSAGE & message)
 	name.resize(MAX_IDENTIFICATION_LENGTH, ' ');
 
 	const QDateTime timestamp = QDateTime::fromMSecsSinceEpoch(message.utime);
-	std::cout << QString("%1 %2 : <%3> %4%5")
-			.arg(timestamp.toString(Qt::ISODateWithMs))
-			.arg(name)
-			.arg(LogLevelStrings[message.level])
-			.arg(location)
-			.arg(message.message)
-		.toStdString()
-	<< std::endl;
+	QString msg = timestamp.toString(Qt::ISODateWithMs)
+		% " " % name
+		% " : <" % LogLevelStrings[message.level]
+		% "> " % location
+		% message.message % "\n";
+
+#ifdef _WIN32
+	if (IsDebuggerPresent())
+	{
+		OutputDebugStringA(QSTRING_CSTR(msg));
+	}
+	else
+#endif
+	std::cout << msg.toStdString();
 
 	emit newLogMessage(message);
 }
