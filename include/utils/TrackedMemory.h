@@ -9,7 +9,7 @@
 #include <type_traits>
 #include <utils/Logger.h>
 
-#define ENABLE_MEMORY_TRACKING 0
+#define ENABLE_MEMORY_TRACKING 1
 
 #define USE_TRACKED_SHARED_PTR ENABLE_MEMORY_TRACKING
 #define USE_TRACKED_DELETE_LATER ENABLE_MEMORY_TRACKING
@@ -40,7 +40,7 @@ void untrackedDeleteLater(T* ptr)
 		QThread* thread = ptr->thread();
 		if (thread && thread->isRunning())
 		{
-			ptr->deleteLater();
+			QMetaObject::invokeMethod(ptr, "deleteLater", Qt::QueuedConnection);
 		}
 		else
 		{
@@ -85,19 +85,22 @@ void trackedDeleteLater(T* ptr)
 		QThread* thread = ptr->thread();
 		if (thread && thread->isRunning())
 		{
-			ptr->deleteLater();
-			Debug(log, "QObject<%s>::deleteLater() scheduled on thread '%s'", QSTRING_CSTR(typeName), QSTRING_CSTR(thread->objectName()));
+			// Schedule deleteLater from the object's thread
+			Debug(log, "QObject<%s>::deleteLater() scheduled via invokeMethod on thread '%s'",
+				QSTRING_CSTR(typeName), QSTRING_CSTR(thread->objectName()));
+			QMetaObject::invokeMethod(ptr, "deleteLater", Qt::QueuedConnection);
 		}
 		else
 		{
-			delete ptr;
 			Debug(log, "QObject<%s> deleted immediately (thread not running).", QSTRING_CSTR(typeName));
+			delete ptr;
 		}
 	}
 	else
 	{
-		delete ptr;
 		Debug(log, "Non-QObject<%s> deleted immediately.", QSTRING_CSTR(typeName));
+		delete ptr;
+
 	}
 }
 
