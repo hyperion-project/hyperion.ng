@@ -70,6 +70,8 @@ public:
 	///
 	explicit Hyperion(quint8 instance, QObject* parent = nullptr);
 
+	~Hyperion() override;
+
 	ImageProcessor* getImageProcessor() const { return _imageProcessor.get(); }
 
 	///
@@ -559,7 +561,7 @@ private:
 	/// Background effect instance, kept active to react on setting changes
 	QScopedPointer<BGEffectHandler, QScopedPointerDeleteLater> _BGEffectHandler;
 	/// Capture control for Daemon native capture
-	QScopedPointer<CaptureCont,QScopedPointerDeleteLater> _captureCont;
+	QScopedPointer<CaptureCont> _captureCont;
 
 	/// buffer for leds (with adjustment)
 	std::vector<ColorRgb> _ledBuffer;

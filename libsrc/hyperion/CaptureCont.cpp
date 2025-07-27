@@ -58,6 +58,26 @@ CaptureCont::CaptureCont(Hyperion* hyperion)
 	handleSettingsUpdate(settings::INSTCAPTURE, _hyperion->getSetting(settings::INSTCAPTURE));
 }
 
+void CaptureCont::stop()
+{
+	qDebug() << "CaptureCont::stop()...";
+
+	_videoInactiveTimer->stop();
+	_screenCaptureInactiveTimer->stop();
+	_audioCaptureInactiveTimer->stop();
+
+	disconnect(_videoInactiveTimer, &QTimer::timeout, this, &CaptureCont::onVideoIsInactive);
+	disconnect(_screenCaptureInactiveTimer, &QTimer::timeout, this, &CaptureCont::onScreenIsInactive);
+	disconnect(_audioCaptureInactiveTimer, &QTimer::timeout, this, &CaptureCont::onAudioIsInactive);
+
+	disconnect(_hyperion, &Hyperion::compStateChangeRequest, this, &CaptureCont::handleCompStateChangeRequest);
+	disconnect(_hyperion, &Hyperion::settingsChanged, this, &CaptureCont::handleSettingsUpdate);
+}
+
+CaptureCont::~CaptureCont()
+{
+	qDebug() << "CaptureCont::~CaptureCont()...";
+}
 void CaptureCont::handleVideoImage(const QString& name, const Image<ColorRgb> & image)
 {
 	if(_videoCaptureName != name)

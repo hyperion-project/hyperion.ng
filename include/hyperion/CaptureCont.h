@@ -17,10 +17,13 @@ class CaptureCont : public QObject
 	Q_OBJECT
 public:
 	CaptureCont(Hyperion* hyperion);
+	~CaptureCont();
 
 	void setScreenCaptureEnable(bool enable);
 	void setVideoCaptureEnable(bool enable);
 	void setAudioCaptureEnable(bool enable);
+
+	void stop();
 
 private slots:
 	///
