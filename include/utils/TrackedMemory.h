@@ -17,16 +17,42 @@
 #if USE_TRACKED_SHARED_PTR
 	#define MAKE_TRACKED_SHARED(T, ...) makeTrackedShared<T>(__VA_ARGS__)
 #else
-	#define MAKE_TRACKED_SHARED(T, ...) QSharedPointer<T>(new T(__VA_ARGS__), &QObject::deleteLater)
+	#define MAKE_TRACKED_SHARED(T, ...) QSharedPointer<T>(new T(__VA_ARGS__), &DELETE_LATER_FN(T))
 #endif
 
 #if USE_TRACKED_DELETE_LATER
 	#define DELETE_LATER_FN(T) trackedDeleteLater<T>
 #else
-	#define DELETE_LATER_FN(T) &QObject::deleteLater
+	#define DELETE_LATER_FN(T) untrackedDeleteLater<T>
+
 #endif
 
-// Deleter function template
+// Deleter function templates
+
+template<typename T>
+void untrackedDeleteLater(T* ptr)
+{
+	if (!ptr)
+		return;
+
+	if constexpr (std::is_base_of<QObject, T>::value)
+	{
+		QThread* thread = ptr->thread();
+		if (thread && thread->isRunning())
+		{
+			ptr->deleteLater();
+		}
+		else
+		{
+			delete ptr;
+		}
+	}
+	else
+	{
+		delete ptr;
+	}
+}
+
 template<typename T>
 void trackedDeleteLater(T* ptr)
 {
@@ -80,6 +106,8 @@ template<typename T, typename... Args>
 QSharedPointer<T> makeTrackedShared(Args&&... args)
 {
 	T* rawPtr = new T(std::forward<Args>(args)...);
+	if (!rawPtr)
+		return QSharedPointer<T>();
 
 	QString subComponent = "__";
 	QString typeName;
