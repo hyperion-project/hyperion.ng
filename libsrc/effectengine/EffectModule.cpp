@@ -85,73 +85,78 @@ PyObject* EffectModule::json2python(const QJsonValue& jsonData)
 {
 	switch (jsonData.type())
 	{
-	case QJsonValue::Null:
-		Py_RETURN_NONE;
+		case QJsonValue::Null:
+			Py_RETURN_NONE;
 
-	case QJsonValue::Undefined:
-		Py_RETURN_NOTIMPLEMENTED;
+		case QJsonValue::Undefined:
+			Py_RETURN_NOTIMPLEMENTED;
 
-	case QJsonValue::Double:
-	{
-		double value = jsonData.toDouble();
-		if (value == static_cast<int>(value))  // If no fractional part, value is equal to its integer representation
+		case QJsonValue::Double:
 		{
-			return Py_BuildValue("i", static_cast<int>(value));
+			double value = jsonData.toDouble();
+			if (value == static_cast<int>(value))  // If no fractional part, value is equal to its integer representation
+			{
+				return Py_BuildValue("i", static_cast<int>(value));
+			}
+			return Py_BuildValue("d", value);
 		}
-		return Py_BuildValue("d", value);
-	}
 
-	case QJsonValue::Bool:
-		return PyBool_FromLong(jsonData.toBool() ? 1 : 0);
+		case QJsonValue::Bool:
+			return PyBool_FromLong(jsonData.toBool() ? 1 : 0);
 
-	case QJsonValue::String:
-		return PyUnicode_FromString(jsonData.toString().toUtf8().constData());
+		case QJsonValue::String:
+			return PyUnicode_FromString(jsonData.toString().toUtf8().constData());
 
-	case QJsonValue::Array:
-	{
-		QJsonArray arrayData = jsonData.toArray();
-		PyObject* list = PyList_New(arrayData.size());
-		int index = 0;
-		for (QJsonArray::iterator i = arrayData.begin(); i != arrayData.end(); ++i, ++index)
+		case QJsonValue::Array:
 		{
-			PyObject* obj = json2python(*i);
-			Py_INCREF(obj);
-			PyList_SetItem(list, index, obj);
-			Py_XDECREF(obj);
-		}
-		return list;
-	}
-
-	case QJsonValue::Object: {
-		// Python's dict
-		QJsonObject jsonObject = jsonData.toObject();
-		PyObject* pyDict = PyDict_New();
-		for (auto it = jsonObject.begin(); it != jsonObject.end(); ++it) {
-			// Convert key
-			PyObject* pyKey = PyUnicode_FromString(it.key().toUtf8().constData());
-			if (!pyKey) {
-				Py_XDECREF(pyDict);
-				return nullptr;  // Error occurred, return null
+			QJsonArray arrayData = jsonData.toArray();
+			PyObject* list = PyList_New(arrayData.size());
+			int index = 0;
+			for (QJsonArray::iterator i = arrayData.begin(); i != arrayData.end(); ++i, ++index)
+			{
+				PyObject* obj = json2python(*i);
+				if (!obj)
+				{
+					Py_XDECREF(list);
+					return nullptr; // Error occurred, return null
+				}
+				PyList_SetItem(list, index, obj);
 			}
-			// Convert value
-			PyObject* pyValue = json2python(it.value());
-			if (!pyValue) {
-				Py_XDECREF(pyKey);
-				Py_XDECREF(pyDict);
-				return nullptr;  // Error occurred, return null
-			}
-			// Add to dictionary
-			PyDict_SetItem(pyDict, pyKey, pyValue);
-			Py_XDECREF(pyKey);
-			Py_XDECREF(pyValue);
+			return list;
 		}
-		return pyDict;
-	}
 
-	default:
-		// Unsupported type
-		PyErr_SetString(PyExc_TypeError, "Unsupported QJsonValue type.");
-		return nullptr;
+		case QJsonValue::Object:
+		{
+			// Python's dict
+			QJsonObject jsonObject = jsonData.toObject();
+			PyObject* pyDict = PyDict_New();
+			for (auto it = jsonObject.begin(); it != jsonObject.end(); ++it)
+			{
+				// Convert key
+				PyObject* pyKey = PyUnicode_FromString(it.key().toUtf8().constData());
+				if (!pyKey)
+				{
+					Py_XDECREF(pyDict);
+					return nullptr; // Error occurred, return null
+				}
+				// Convert value
+				PyObject* pyValue = json2python(it.value());
+				if (!pyValue)
+				{
+					Py_XDECREF(pyKey);
+					Py_XDECREF(pyDict);
+					return nullptr;  // Error occurred, return null
+				}
+				// Add to dictionary
+				PyDict_SetItem(pyDict, pyKey, pyValue);
+			}
+			return pyDict;
+		}
+
+		default:
+			// Unsupported type
+			PyErr_SetString(PyExc_TypeError, "Unsupported QJsonValue type.");
+			return nullptr;
 	}
 
 	assert(false);
@@ -349,6 +354,7 @@ PyObject* EffectModule::wrapGetImage(PyObject* self, PyObject* args)
 	if (reader.canRead())
 	{
 		PyObject* result = PyList_New(reader.imageCount());
+		if(!result) return nullptr;
 
 		for (int i = 0; i < reader.imageCount(); ++i)
 		{
@@ -363,6 +369,7 @@ PyObject* EffectModule::wrapGetImage(PyObject* self, PyObject* args)
 				{
 					if (cropLeft + cropRight >= width || cropTop + cropBottom >= height)
 					{
+						Py_DECREF(result);
 						QString errorStr = QString("Rejecting invalid crop values: left: %1, right: %2, top: %3, bottom: %4, higher than height/width %5/%6").arg(cropLeft).arg(cropRight).arg(cropTop).arg(cropBottom).arg(height).arg(width);
 						PyErr_SetString(PyExc_RuntimeError, qPrintable(errorStr));
 						return nullptr;
@@ -386,10 +393,28 @@ PyObject* EffectModule::wrapGetImage(PyObject* self, PyObject* args)
 						*dest++ = static_cast<char>(!grayscale ? qBlue(pixel) : qGray(pixel));
 					}
 				}
-				PyList_SET_ITEM(result, i, Py_BuildValue("{s:i,s:i,s:O}", "imageWidth", width, "imageHeight", height, "imageData", PyByteArray_FromStringAndSize(binaryImage.constData(), binaryImage.size())));
+
+				PyObject* pyBytes = PyByteArray_FromStringAndSize(binaryImage.constData(), binaryImage.size());
+				if (!pyBytes)
+				{
+					Py_DECREF(result);
+					return nullptr;
+				}
+
+				PyObject* dict = Py_BuildValue("{s:i,s:i,s:O}", "imageWidth", width, "imageHeight", height, "imageData", pyBytes);
+				Py_DECREF(pyBytes);
+
+				if (!dict)
+				{
+					Py_DECREF(result);
+					return nullptr;
+				}
+
+				PyList_SET_ITEM(result, i, dict);
 			}
 			else
 			{
+				Py_DECREF(result);
 				PyErr_SetString(PyExc_TypeError, reader.errorString().toUtf8().constData());
 				return nullptr;
 			}
