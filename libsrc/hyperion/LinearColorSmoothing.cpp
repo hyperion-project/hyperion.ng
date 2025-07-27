@@ -86,6 +86,7 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonObject &config, Hyperion *
 }
 LinearColorSmoothing::~LinearColorSmoothing()
 {
+	qDebug() << "LinearColorSmoothing::~LinearColorSmoothing()...";
 }
 
 void LinearColorSmoothing::start()

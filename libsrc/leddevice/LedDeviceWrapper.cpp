@@ -37,6 +37,7 @@ LedDeviceWrapper::LedDeviceWrapper(Hyperion* hyperion)
 
 LedDeviceWrapper::~LedDeviceWrapper()
 {
+	qDebug() << "LedDeviceWrapper::~LedDeviceWrapper()...";
 }
 
 void LedDeviceWrapper::createLedDevice(const QJsonObject& config)
