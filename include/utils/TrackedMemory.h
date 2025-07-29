@@ -9,55 +9,26 @@
 #include <type_traits>
 #include <utils/Logger.h>
 
-#define ENABLE_MEMORY_TRACKING 1
+#define ENABLE_MEMORY_TRACKING 0
 
 #define USE_TRACKED_SHARED_PTR ENABLE_MEMORY_TRACKING
-#define USE_TRACKED_DELETE_LATER ENABLE_MEMORY_TRACKING
+#define USE_TRACKED_CUSTOM_DELETE ENABLE_MEMORY_TRACKING
 
 #if USE_TRACKED_SHARED_PTR
 	#define MAKE_TRACKED_SHARED(T, ...) makeTrackedShared<T>(__VA_ARGS__)
 #else
-	#define MAKE_TRACKED_SHARED(T, ...) QSharedPointer<T>(new T(__VA_ARGS__), &DELETE_LATER_FN(T))
+	#define MAKE_TRACKED_SHARED(T, ...) QSharedPointer<T>(new T(__VA_ARGS__), &customDelete<T>)
 #endif
 
-#if USE_TRACKED_DELETE_LATER
-	#define DELETE_LATER_FN(T) trackedDeleteLater<T>
-#else
-	#define DELETE_LATER_FN(T) untrackedDeleteLater<T>
-
-#endif
-
-// Deleter function templates
+// Custom Delete function templates
 
 template<typename T>
-void untrackedDeleteLater(T* ptr)
+void customDelete(T* ptr)
 {
 	if (!ptr)
 		return;
 
-	if constexpr (std::is_base_of<QObject, T>::value)
-	{
-		QThread* thread = ptr->thread();
-		if (thread && thread->isRunning())
-		{
-			QMetaObject::invokeMethod(ptr, "deleteLater", Qt::QueuedConnection);
-		}
-		else
-		{
-			delete ptr;
-		}
-	}
-	else
-	{
-		delete ptr;
-	}
-}
-
-template<typename T>
-void trackedDeleteLater(T* ptr)
-{
-	if (!ptr)
-		return;
+#if USE_TRACKED_CUSTOM_DELETE
 
 	QString subComponent = "__";
 	QString typeName;
@@ -77,28 +48,44 @@ void trackedDeleteLater(T* ptr)
 	}
 
 	Logger* log = Logger::getInstance("MEMORY", subComponent);
-
 	Debug(log, "Deleting object of type '%s' at %p", QSTRING_CSTR(typeName), static_cast<void*>(ptr));
+#endif
 
 	if constexpr (std::is_base_of<QObject, T>::value)
 	{
 		QThread* thread = ptr->thread();
-		if (thread && thread->isRunning())
-		{
-			// Schedule deleteLater from the object's thread
-			Debug(log, "QObject<%s>::deleteLater() scheduled via invokeMethod on thread '%s'",
-				QSTRING_CSTR(typeName), QSTRING_CSTR(thread->objectName()));
-			QMetaObject::invokeMethod(ptr, "deleteLater", Qt::QueuedConnection);
+		if (thread && thread == QThread::currentThread()) {
+#if USE_TRACKED_CUSTOM_DELETE
+			Debug(log, "QObject<%s> deleted immediately (current thread).", QSTRING_CSTR(typeName));
+#endif
+			ptr->deleteLater();
 		}
 		else
 		{
-			Debug(log, "QObject<%s> deleted immediately (thread not running).", QSTRING_CSTR(typeName));
-			delete ptr;
+			if (thread && thread->isRunning())
+			{
+				// Schedule deleteLater from the object's thread
+#if USE_TRACKED_CUSTOM_DELETE
+				Debug(log, "QObject<%s>::deleteLater() scheduled via invokeMethod on thread '%s'",
+					QSTRING_CSTR(typeName), QSTRING_CSTR(thread->objectName()));
+#endif
+				QMetaObject::invokeMethod(ptr, "deleteLater", Qt::QueuedConnection);
+			}
+			else
+			{
+				// This should be an *extremely rare* fallback and indicates a bug in the thread shutdown sequence.
+#if USE_TRACKED_CUSTOM_DELETE
+				Debug(log, "<%s> object's owning thread is not running. Deleted immediately (thread not running).", QSTRING_CSTR(typeName));
+#endif
+				delete ptr;
+			}
 		}
 	}
 	else
 	{
+#if USE_TRACKED_CUSTOM_DELETE
 		Debug(log, "Non-QObject<%s> deleted immediately.", QSTRING_CSTR(typeName));
+#endif
 		delete ptr;
 
 	}
@@ -132,7 +119,7 @@ QSharedPointer<T> makeTrackedShared(Args&&... args)
 	Logger* log = Logger::getInstance("MEMORY", subComponent);
 	Debug(log, "Creating object of type '%s' at %p", QSTRING_CSTR(typeName), static_cast<void*>(rawPtr));
 
-	return QSharedPointer<T>(rawPtr, DELETE_LATER_FN(T));
+	return QSharedPointer<T>(rawPtr, &customDelete<T>);
 }
 
 #endif // TRACKEDMEMORY_H
