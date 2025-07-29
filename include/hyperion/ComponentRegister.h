@@ -8,6 +8,8 @@
 
 #include <QObject>
 #include <QVector>
+#include <QSharedPointer>
+#include <QWeakPointer>
 
 class Hyperion;
 
@@ -22,7 +24,7 @@ class ComponentRegister : public QObject
 	Q_OBJECT
 
 public:
-	ComponentRegister(Hyperion* hyperion);
+	explicit ComponentRegister(const QSharedPointer<Hyperion>& hyperionInstance);
 	~ComponentRegister() override;
 
 	///
@@ -68,7 +70,7 @@ private slots:
 
 private:
 	///  Hyperion instance
-	Hyperion * _hyperion;
+	QWeakPointer<Hyperion> _hyperionWeak;
 	/// Logger instance
 	Logger * _log;
 	/// current state of all components

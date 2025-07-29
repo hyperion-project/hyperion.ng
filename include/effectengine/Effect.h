@@ -24,7 +24,7 @@ public:
 
 	friend class EffectModule;
 
-	Effect(Hyperion* hyperion
+	Effect(const QSharedPointer<Hyperion>& hyperionInstance
 		, int priority
 		, int timeout
 		, const QString& script
@@ -84,7 +84,8 @@ private:
 	bool setModuleParameters();
 	void addImage();
 
-	Hyperion* _hyperion;
+	/// Hyperion instance pointer
+	QWeakPointer<Hyperion> _hyperionWeak;
 
 	const int _priority;
 

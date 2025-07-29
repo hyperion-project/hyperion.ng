@@ -108,7 +108,7 @@ void Hyperion::start()
 	// listen for settings updates of this instance (LEDS & COLOR)
 	connect(_settingsManager.get(), &SettingsManager::settingsChanged, this, &Hyperion::handleSettingsUpdate);
 
-	_componentRegister = MAKE_TRACKED_SHARED(ComponentRegister, this);
+	_componentRegister = MAKE_TRACKED_SHARED(ComponentRegister, sharedFromThis());
 
 	// get newVideoMode from HyperionIManager
 	connect(this, &Hyperion::newVideoMode, this, &Hyperion::handleNewVideoMode);
@@ -129,14 +129,14 @@ void Hyperion::start()
 	_ledBuffer = std::vector<ColorRgb>(static_cast<size_t>(_hwLedCount), ColorRgb::BLACK);
 
 	// smoothing
-	_deviceSmooth.reset(new LinearColorSmoothing(getSetting(settings::SMOOTHING).object(), this));
+	_deviceSmooth.reset(new LinearColorSmoothing(getSetting(settings::SMOOTHING).object(), sharedFromThis()));
 	connect(this, &Hyperion::settingsChanged, _deviceSmooth.get(), &LinearColorSmoothing::handleSettingsUpdate);
 	_deviceSmooth->start();
 
 	// initialize LED-devices
 	QJsonObject const ledDeviceSettings = getSetting(settings::DEVICE).object();
 
-	_ledDeviceWrapper.reset(new LedDeviceWrapper(this));
+	_ledDeviceWrapper.reset(new LedDeviceWrapper(sharedFromThis()));
 	connect(this, &Hyperion::compStateChangeRequest, _ledDeviceWrapper.get(), &LedDeviceWrapper::handleComponentState);
 	connect(this, &Hyperion::ledDeviceData, _ledDeviceWrapper.get(), &LedDeviceWrapper::updateLeds);
 
@@ -150,7 +150,7 @@ void Hyperion::start()
 
 #if defined(ENABLE_EFFECTENGINE)
 	// create the effect engine; needs to be initialized after smoothing!
-	_effectEngine = MAKE_TRACKED_SHARED(EffectEngine, this);
+	_effectEngine = MAKE_TRACKED_SHARED(EffectEngine, sharedFromThis());
 	connect(_effectEngine.get(), &EffectEngine::effectListUpdated, this, &Hyperion::effectListUpdated);
 	connect(this, &Hyperion::stopEffects, _effectEngine.get(), &EffectEngine::stopAllEffects);
 #endif
@@ -158,10 +158,10 @@ void Hyperion::start()
 	hyperion::handleInitialEffect(this, getSetting(settings::FGEFFECT).object());
 
 	// handle background effect
-	_BGEffectHandler.reset(new BGEffectHandler(this));
+	_BGEffectHandler.reset(new BGEffectHandler(sharedFromThis()));
 
 	// create the Daemon capture interface
-	_captureCont.reset(new CaptureCont(this));
+	_captureCont.reset(new CaptureCont(sharedFromThis()));
 	_captureCont->start();
 
 	// link global signals with the corresponding slots
@@ -210,11 +210,17 @@ void Hyperion::stop(const QString name)
 
 #if defined(ENABLE_EFFECTENGINE)
 	_effectEngine->stopAllEffects();
+	_effectEngine.clear();
 #endif
 
 	_ledDeviceWrapper->stopDevice();
 	_deviceSmooth->stop();
 	_muxer->stop();
+
+	//Clear all objects shared by <Hyperion> being the master
+	_muxer.clear();
+	_imageProcessor.clear();
+	_componentRegister.clear();
 
 	emit finished(name);
 }
@@ -283,7 +289,7 @@ void Hyperion::updateLedLayout(const QJsonArray& ledLayout)
 
 	if (_imageProcessor.isNull())
 	{
-		_imageProcessor = MAKE_TRACKED_SHARED(ImageProcessor, _ledString, this);
+		_imageProcessor = MAKE_TRACKED_SHARED(ImageProcessor, _ledString, sharedFromThis());
 	}
 	else
 	{

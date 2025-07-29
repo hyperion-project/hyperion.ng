@@ -499,15 +499,16 @@ void JsonAPI::handleCommand(const JsonApiCommand& cmd, const QJsonObject &messag
 
 void JsonAPI::handleGetImageSnapshotCommand(const QJsonObject &message, const JsonApiCommand &cmd)
 {
-	if (_hyperion.isNull())
+	if (_hyperionWeak.isNull())
 	{
 		sendErrorReply("Failed to create snapshot. No instance provided.", cmd);
 		return;
 	}
 
+	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
 	QString replyMsg;
 	QString const imageFormat = message["format"].toString("PNG");
-	const PriorityMuxer::InputInfo priorityInfo = _hyperion->getPriorityInfo(_hyperion->getCurrentPriority());
+	const PriorityMuxer::InputInfo priorityInfo = hyperion->getPriorityInfo(hyperion->getCurrentPriority());
 	Image<ColorRgb> image = priorityInfo.image;
 	QImage snapshot(reinterpret_cast<const uchar *>(image.memptr()), image.width(), image.height(), qsizetype(3) * image.width(), QImage::Format_RGB888);
 	QByteArray byteArray;
@@ -532,11 +533,13 @@ void JsonAPI::handleGetImageSnapshotCommand(const QJsonObject &message, const Js
 
 void JsonAPI::handleGetLedSnapshotCommand(const QJsonObject& /*message*/, const JsonApiCommand &cmd)
 {
-	if (_hyperion.isNull())
+	if (_hyperionWeak.isNull())
 	{
 		sendErrorReply("Failed to create snapshot. No instance not.", cmd);
 		return;
 	}
+
+	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
 
 	std::vector<ColorRgb> ledColors;
 	QEventLoop loop;
@@ -551,7 +554,7 @@ void JsonAPI::handleGetLedSnapshotCommand(const QJsonObject& /*message*/, const 
 	// Capture LED colors when the LED data signal is emitted (execute only once)
 	std::unique_ptr<QObject> context{new QObject};
 	QObject* pcontext = context.get();
-	QObject::connect(_hyperion.get(), &Hyperion::ledDeviceData, pcontext,
+	QObject::connect(hyperion.get(), &Hyperion::ledDeviceData, pcontext,
 			[this, &loop, context = std::move(context), &ledColors, cmd](std::vector<ColorRgb> ledColorsUpdate) mutable {
 		ledColors = ledColorsUpdate;
 		loop.quit();  // Ensure the event loop quits immediately when data is received
@@ -700,20 +703,21 @@ void JsonAPI::handleServerInfoCommand(const QJsonObject &message, const JsonApiC
 	switch (cmd.getSubCommand()) {
 	case SubCommand::Empty:
 	case SubCommand::GetInfo:
+	{
 		// Global information
-		info = JsonInfo::getInfo(_hyperion.get(),_log);
-
+		info = JsonInfo::getInfo(_hyperionWeak.toStrongRef(), _log);
+	
 		if (!_noListener && message.contains("subscribe"))
 		{
-			const QJsonArray &subscriptions = message["subscribe"].toArray();
+			const QJsonArray& subscriptions = message["subscribe"].toArray();
 			QStringList const invaliCommands = _jsonCB->subscribe(subscriptions);
 			if (!invaliCommands.isEmpty())
 			{
-				errorDetails.append("subscribe - Invalid commands provided: " +  invaliCommands.join(','));
+				errorDetails.append("subscribe - Invalid commands provided: " + invaliCommands.join(','));
 			}
 		}
 		// END
-
+	}
 	break;
 
 	case SubCommand::Subscribe:
@@ -782,24 +786,28 @@ void JsonAPI::handleClearallCommand(const QJsonObject &message, const JsonApiCom
 
 void JsonAPI::handleAdjustmentCommand(const QJsonObject &message, const JsonApiCommand& cmd)
 {
-	const QJsonObject &adjustment = message["adjustment"].toObject();
+	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+	if (hyperion)
+	{
+		const QJsonObject& adjustment = message["adjustment"].toObject();
 
-	const QList<QString> adjustmentIds = _hyperion->getAdjustmentIds();
-	if (adjustmentIds.isEmpty()) {
-		sendErrorReply("No adjustment data available", cmd);
-		return;
+		const QList<QString> adjustmentIds = hyperion->getAdjustmentIds();
+		if (adjustmentIds.isEmpty()) {
+			sendErrorReply("No adjustment data available", cmd);
+			return;
+		}
+
+		const QString adjustmentId = adjustment["id"].toString(adjustmentIds.first());
+		ColorAdjustment* colorAdjustment = hyperion->getAdjustment(adjustmentId);
+		if (colorAdjustment == nullptr) {
+			Warning(_log, "Incorrect adjustment identifier: %s", adjustmentId.toStdString().c_str());
+			return;
+		}
+
+		applyColorAdjustments(adjustment, colorAdjustment);
+		applyTransforms(adjustment, colorAdjustment);
+		hyperion->adjustmentsUpdated();
 	}
-
-	const QString adjustmentId = adjustment["id"].toString(adjustmentIds.first());
-	ColorAdjustment *colorAdjustment = _hyperion->getAdjustment(adjustmentId);
-	if (colorAdjustment == nullptr) {
-		Warning(_log, "Incorrect adjustment identifier: %s", adjustmentId.toStdString().c_str());
-		return;
-	}
-
-	applyColorAdjustments(adjustment, colorAdjustment);
-	applyTransforms(adjustment, colorAdjustment);
-	_hyperion->adjustmentsUpdated();
 	sendSuccessReply(cmd);
 }
 
@@ -1202,13 +1210,16 @@ void JsonAPI::handleLedColorsCommand(const QJsonObject& /*message*/, const JsonA
 {
 	switch (cmd.subCommand) {
 	case SubCommand::LedStreamStart:
-		_jsonCB->subscribe( Subscription::LedColorsUpdate);
-		if (!_hyperion.isNull())
+	{
+		_jsonCB->subscribe(Subscription::LedColorsUpdate);
+		QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+		if (hyperion)
 		{
 			// push once
-			_hyperion->update();
+			hyperion->update();
 		}
 		sendSuccessReply(cmd);
+	}
 	break;
 
 	case SubCommand::LedStreamStop:
@@ -1879,7 +1890,11 @@ void JsonAPI::sendNewRequest(const QJsonValue &infoData, const QString &command,
 
 	if (instanceCmdType != InstanceCmd::No)
 	{
-		request["instance"] = _hyperion->getInstanceIndex();
+		QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+		if (hyperion)
+		{
+			request["instance"] = hyperion->getInstanceIndex();
+		}
 	}
 
 	request["info"] = infoData;
@@ -1901,7 +1916,7 @@ void JsonAPI::handleInstanceStateChange(InstanceState state, quint8 instanceID, 
 		quint8 const currentInstance = _currInstanceIndex;
 		if (instanceID == currentInstance)
 		{
-			_hyperion = _instanceManager->getHyperionInstance(instanceID);
+			_hyperionWeak = _instanceManager->getHyperionInstance(instanceID);
 			_jsonCB->setSubscriptionsTo(instanceID);
 		}
 	}
@@ -1909,8 +1924,6 @@ void JsonAPI::handleInstanceStateChange(InstanceState state, quint8 instanceID, 
 
 	case InstanceState::H_STOPPED:
 	{
-		//Release reference to stopped Hyperion instance
-		_hyperion.clear();
 	}
 	break;
 

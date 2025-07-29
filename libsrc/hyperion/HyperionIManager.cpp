@@ -309,47 +309,80 @@ bool HyperionIManager::saveName(quint8 instanceId, const QString& name)
 	return false;
 }
 
+//void HyperionIManager::handleFinished(const QString& name)
+//{
+//	Hyperion* rawHyperion = qobject_cast<Hyperion*>(sender());
+//
+//	if (rawHyperion != nullptr)
+//	{
+//		quint8 const instanceId = rawHyperion->getInstanceIndex();
+//
+//		_startingInstances.remove(instanceId);
+//		_runningInstances.remove(instanceId);
+//
+//		emit instanceStateChanged(InstanceState::H_STOPPED, instanceId);
+//		emit change();
+//
+//		// Manually stop the thread and cleanup
+//		QThread* thread = rawHyperion->thread();
+//		if (thread != nullptr)
+//		{
+//			thread->quit();
+//			thread->wait();
+//		}
+//
+//		Info(_log, "Hyperion instance [%u] - '%s' stopped.", instanceId, QSTRING_CSTR(name));
+//	}
+//
+//	if (_runningInstances.isEmpty())
+//	{
+//		Info(_log, "All Hyperion instances are stopped now.");
+//		emit areAllInstancesStopped();
+//	}
+//}
+
 void HyperionIManager::handleFinished(const QString& name)
 {
 	Hyperion* rawHyperion = qobject_cast<Hyperion*>(sender());
 
-	if (rawHyperion != nullptr)
+	if (rawHyperion)
 	{
-		quint8 const instanceId = rawHyperion->getInstanceIndex();
+		QSharedPointer<Hyperion> hyperion = rawHyperion->sharedFromThis();
 
-		QSharedPointer<Hyperion> hyperion;
+		quint8 const instanceId = hyperion->getInstanceIndex();
 		if (_startingInstances.contains(instanceId))
 		{
-			hyperion = _startingInstances.value(instanceId);
+			_startingInstances.remove(instanceId);
 		}
 		else if (_runningInstances.contains(instanceId))
 		{
-			hyperion = _runningInstances.value(instanceId);
-		}
-
-		if (!hyperion.isNull())
-		{
-			// Manually stop the thread and cleanup
-			QThread* thread = hyperion->thread();
-			if (thread != nullptr)
-			{
-				thread->quit();
-				thread->wait();
-			}
-
-			Info(_log,"Hyperion instance [%u] - '%s' stopped.", instanceId, QSTRING_CSTR(name));
-
-			_startingInstances.remove(instanceId);
 			_runningInstances.remove(instanceId);
-
-			emit instanceStateChanged(InstanceState::H_STOPPED, instanceId);
-			emit change();
 		}
+
+		emit instanceStateChanged(InstanceState::H_STOPPED, instanceId);
+		emit change();
+
+		qDebug() << "Hyperion instance [" << instanceId << "] - '" << name << "' finished.";
+
+		// Manually stop the thread and cleanup
+		QThread* thread = hyperion->thread();
+		if (thread != nullptr)
+		{
+			thread->quit();
+			thread->wait();
+		}
+
+		Info(_log, "Hyperion instance [%u] - '%s' stopped.", instanceId, QSTRING_CSTR(name));
+
+	}
+	else {
+		// Handle case where sender is not Hyperion or is null
+		qWarning() << "Sender is not a Hyperion object or is null.";
 	}
 
-	if ( _runningInstances.isEmpty())
+	if (_runningInstances.isEmpty())
 	{
-		Info(_log,"All Hyperion instances are stopped now.");
+		Info(_log, "All Hyperion instances are stopped now.");
 		emit areAllInstancesStopped();
 	}
 }

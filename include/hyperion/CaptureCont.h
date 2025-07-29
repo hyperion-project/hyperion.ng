@@ -16,8 +16,8 @@ class CaptureCont : public QObject
 {
 	Q_OBJECT
 public:
-	CaptureCont(Hyperion* hyperion);
-	~CaptureCont();
+	explicit CaptureCont(const QSharedPointer<Hyperion>& hyperionInstance);
+	~CaptureCont() override;
 
 	void setScreenCaptureEnable(bool enable);
 	void setVideoCaptureEnable(bool enable);
@@ -84,7 +84,8 @@ private slots:
 
 private:
 	/// Hyperion instance
-	Hyperion* _hyperion;
+	/// Hyperion instance pointer
+	QWeakPointer<Hyperion> _hyperionWeak;
 
 	/// Reflect state of screen capture and prio
 	bool _screenCaptureEnabled;

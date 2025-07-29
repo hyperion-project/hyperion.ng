@@ -7,6 +7,7 @@
 #include <utils/Components.h>
 
 #include <QScopedPointer>
+#include <QWeakPointer>
 
 class LedDevice;
 class Hyperion;
@@ -21,7 +22,7 @@ class LedDeviceWrapper : public QObject
 {
 	Q_OBJECT
 public:
-	explicit LedDeviceWrapper(Hyperion* hyperion);
+	explicit LedDeviceWrapper(const QSharedPointer<Hyperion>& hyperionInstance);
 	~LedDeviceWrapper() override;
 	///
 	/// @brief Constructs a new LedDevice, moves to thread and starts
@@ -158,8 +159,8 @@ private:
 	/// The common Logger instance for all LED-devices
 	Logger * _log;
 
-	// parent Hyperion
-	Hyperion* _hyperion;
+	/// Hyperion instance pointer
+	QWeakPointer<Hyperion> _hyperionWeak;
 
 	// Pointer to the current LED-device & its thread
 	QScopedPointer<LedDevice> _ledDevice;

@@ -35,8 +35,7 @@ public:
 	///	@param[in] ledString    LedString data
 	/// @param[in] hyperion     Hyperion instance pointer
 	///
-	ImageProcessor(const LedString& ledString, Hyperion* hyperion);
-
+	explicit ImageProcessor(const LedString& ledString, const QSharedPointer<Hyperion>& hyperionInstance);
 	~ImageProcessor() override;
 
 	///
@@ -270,13 +269,14 @@ private slots:
 	void handleSettingsUpdate(settings::type type, const QJsonDocument& config);
 
 private:
+	/// Logger instance
+	Logger* _log;
 
-	Logger * _log;
 	/// The Led-string specification
 	LedString _ledString;
 
 	/// The processor for black border detection
-	hyperion::BlackBorderProcessor * _borderProcessor;
+	QScopedPointer <hyperion::BlackBorderProcessor> _borderProcessor;
 
 	/// The mapping of image-pixels to LEDs
 	QSharedPointer<hyperion::ImageToLedsMap> _imageToLedColors;
@@ -292,5 +292,5 @@ private:
 	int _reducedPixelSetFactorFactor;
 
 	/// Hyperion instance pointer
-	Hyperion* _hyperion;
+	QWeakPointer<Hyperion> _hyperionWeak;
 };

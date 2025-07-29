@@ -56,7 +56,7 @@ class Logger;
 /// The main class of Hyperion. This gives other 'users' access to the attached LedDevice through
 /// the priority muxer.
 ///
-class Hyperion : public QObject
+class Hyperion : public QObject, public QEnableSharedFromThis<Hyperion>
 {
 	Q_OBJECT
 public:
@@ -539,10 +539,10 @@ private:
 	QScopedPointer<MultiColorAdjustment> _raw2ledAdjustment;
 
 	/// The actual LedDeviceWrapper
-	QScopedPointer<LedDeviceWrapper> _ledDeviceWrapper;
+	QScopedPointer<LedDeviceWrapper, QScopedPointerDeleteLater> _ledDeviceWrapper;
 
 	/// The smoothing LedDevice
-	QScopedPointer<LinearColorSmoothing> _deviceSmooth;
+	QScopedPointer<LinearColorSmoothing, QScopedPointerDeleteLater> _deviceSmooth;
 
 #if defined(ENABLE_EFFECTENGINE)
 	/// Effect engine
@@ -561,7 +561,7 @@ private:
 	/// Background effect instance, kept active to react on setting changes
 	QScopedPointer<BGEffectHandler, QScopedPointerDeleteLater> _BGEffectHandler;
 	/// Capture control for Daemon native capture
-	QScopedPointer<CaptureCont> _captureCont;
+	QScopedPointer<CaptureCont, QScopedPointerDeleteLater> _captureCont;
 
 	/// buffer for leds (with adjustment)
 	std::vector<ColorRgb> _ledBuffer;
