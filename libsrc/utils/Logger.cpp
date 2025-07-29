@@ -139,7 +139,7 @@ Logger::~Logger()
 void Logger::write(const Logger::T_LOG_MESSAGE& message)
 {
 	QString location;
-	if (message.level == Logger::LogLevel::LOG_DEBUG)
+	if (message.level == LogLevel::LOG_DEBUG)
 	{
 		location = QString("%1:%2:%3() | ")
 			.arg(message.fileName)
@@ -195,7 +195,7 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 
 			write(repMsg);
 #ifndef _WIN32
-			if (_syslogEnabled && repMsg.level >= Logger::WARNING)
+			if (_syslogEnabled && repMsg.level >= LogLevel::LOG_WARNING)
 			{
 				syslog(LogLevelSysLog[repMsg.level], "Previous line repeats %d times", RepeatCount.localData());
 			}
@@ -240,7 +240,7 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 
 		write(logMsg);
 #ifndef _WIN32
-		if (_syslogEnabled && level >= Logger::WARNING)
+		if (_syslogEnabled && level >= LogLevel::LOG_WARNING)
 		{
 			syslog(LogLevelSysLog[level], "%s", msg);
 		}
