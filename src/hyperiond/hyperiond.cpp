@@ -538,19 +538,19 @@ void HyperionDaemon::handleSettingsUpdate(settings::type settingsType, const QJs
 		std::string const level = logConfig["level"].toString("warn").toStdString(); // silent warn verbose debug
 		if (level == "silent")
 		{
-			Logger::setLogLevel(Logger::OFF);
+			Logger::setLogLevel(Logger::LOG_OFF);
 		}
 		else if (level == "warn")
 		{
-			Logger::setLogLevel(Logger::LogLevel::WARNING);
+			Logger::setLogLevel(Logger::LOG_WARNING);
 		}
 		else if (level == "verbose")
 		{
-			Logger::setLogLevel(Logger::INFO);
+			Logger::setLogLevel(Logger::LOG_INFO);
 		}
 		else if (level == "debug")
 		{
-			Logger::setLogLevel(Logger::DEBUG);
+			Logger::setLogLevel(Logger::LOG_DEBUG);
 		}
 	}
 

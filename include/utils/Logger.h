@@ -17,18 +17,21 @@
 
 // stl includes
 #ifdef _WIN32
+
 #include <stdexcept>
 #endif
 
 #include <utils/global_defines.h>
 
+// ================================================================
+
 #define LOG_MESSAGE(severity, logger, ...)   (logger)->Message(severity, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
 // standard log messages
-#define Debug(logger, ...)   LOG_MESSAGE(Logger::DEBUG  , logger, __VA_ARGS__)
-#define Info(logger, ...)    LOG_MESSAGE(Logger::INFO   , logger, __VA_ARGS__)
-#define Warning(logger, ...) LOG_MESSAGE(Logger::WARNING, logger, __VA_ARGS__)
-#define Error(logger, ...)   LOG_MESSAGE(Logger::ERRORR , logger, __VA_ARGS__)
+#define Debug(logger, ...)   LOG_MESSAGE(Logger::LogLevel::LOG_DEBUG  , logger, __VA_ARGS__)
+#define Info(logger, ...)    LOG_MESSAGE(Logger::LogLevel::LOG_INFO   , logger, __VA_ARGS__)
+#define Warning(logger, ...) LOG_MESSAGE(Logger::LogLevel::LOG_WARNING, logger, __VA_ARGS__)
+#define Error(logger, ...)   LOG_MESSAGE(Logger::LogLevel::LOG_ERROR , logger, __VA_ARGS__)
 
 // conditional log messages
 #define DebugIf(condition, logger, ...)   if (condition) Debug(logger,   __VA_ARGS__)
@@ -43,13 +46,14 @@ class Logger : public QObject
 	Q_OBJECT
 
 public:
+
 	enum LogLevel {
-		UNSET    = 0,
-		DEBUG    = 1,
-		INFO     = 2,
-		WARNING  = 3,
-		ERRORR   = 4,
-		OFF      = 5
+		LOG_UNSET = 0,
+		LOG_DEBUG = 1,
+		LOG_INFO = 2,
+		LOG_WARNING = 3,
+		LOG_ERROR = 4,
+		LOG_OFF = 5
 	};
 
 	struct T_LOG_MESSAGE
@@ -65,7 +69,7 @@ public:
 		QString      levelString;
 	};
 
-	static Logger*  getInstance(const QString & name = "", const QString & subName = "__", LogLevel minLevel=Logger::INFO);
+	static Logger*  getInstance(const QString & name = "", const QString & subName = "__", LogLevel minLevel= Logger::LogLevel::LOG_INFO);
 	static void     deleteInstance(const QString & name = "", const QString & subName = "__");
 	static void     setLogLevel(LogLevel level, const QString & name = "", const QString & subName = "__");
 	static LogLevel getLogLevel(const QString & name = "", const QString & subName = "__");
@@ -80,7 +84,7 @@ signals:
 	void newLogMessage(Logger::T_LOG_MESSAGE);
 
 protected:
-	Logger(const QString & name="", const QString & subName = "__", LogLevel minLevel = INFO);
+	Logger(const QString & name="", const QString & subName = "__", LogLevel minLevel = Logger::LogLevel::LOG_INFO);
 	~Logger() override;
 
 private:
@@ -123,7 +127,7 @@ public:
 
 public slots:
 	void handleNewLogMessage(const Logger::T_LOG_MESSAGE&);
-	QJsonArray getLogMessageBuffer(Logger::LogLevel filter=Logger::UNSET) const;
+	QJsonArray getLogMessageBuffer(Logger::LogLevel filter= Logger::LogLevel::LOG_UNSET) const;
 
 signals:
 	void newLogMessage(const Logger::T_LOG_MESSAGE&);

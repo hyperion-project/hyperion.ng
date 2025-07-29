@@ -83,7 +83,7 @@ int main(int argc, char * argv[])
 	DefaultSignalHandler::install();
 
 	Logger* log = Logger::getInstance("REMOTE");
-	Logger::setLogLevel(Logger::INFO);
+	Logger::setLogLevel(Logger::LOG_INFO);
 
 	QCoreApplication const app(argc, argv);
 
@@ -167,7 +167,7 @@ int main(int argc, char * argv[])
 	// check if debug logging is required
 	if (parser.isSet(argDebug))
 	{
-		Logger::setLogLevel(Logger::DEBUG);
+		Logger::setLogLevel(Logger::LOG_DEBUG);
 	}
 
 	// check if we need to display the usage. exit if we do.

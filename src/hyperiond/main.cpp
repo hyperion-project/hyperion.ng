@@ -117,7 +117,7 @@ int main(int argc, char** argv)
 
 	// initialize main logger and set global log level
 	Logger* log = Logger::getInstance("MAIN");
-	Logger::setLogLevel(Logger::WARNING);
+	Logger::setLogLevel(Logger::LOG_WARNING);
 
 	// Initialising QCoreApplication
 	QScopedPointer<QCoreApplication> app(createApplication(argc, argv));
@@ -172,7 +172,7 @@ int main(int argc, char** argv)
 	parser.process(*qApp);
 
 #ifdef WIN32
-	//Attach the output to an existing console if available
+		//Attach the output to an existing console if available
 	openConsole(false);
 #endif
 
@@ -216,19 +216,19 @@ int main(int argc, char** argv)
 	int logLevelCheck = 0;
 	if (parser.isSet(silentLogOption))
 	{
-		Logger::setLogLevel(Logger::OFF);
+		Logger::setLogLevel(Logger::LOG_OFF);
 		logLevelCheck++;
 	}
 
 	if (parser.isSet(infoLogOption))
 	{
-		Logger::setLogLevel(Logger::INFO);
+		Logger::setLogLevel(Logger::LOG_INFO);
 		logLevelCheck++;
 	}
 
 	if (parser.isSet(debugLogOption))
 	{
-		Logger::setLogLevel(Logger::DEBUG);
+		Logger::setLogLevel(Logger::LOG_DEBUG);
 		logLevelCheck++;
 	}
 
@@ -273,7 +273,7 @@ int main(int argc, char** argv)
 					QFile::remove(destinationFilePath);
 				}
 
-				if (Logger::getLogLevel() == Logger::DEBUG)
+				if (Logger::getLogLevel() == Logger::LOG_DEBUG)
 				{
 					std::cout << "Copy \"" << sourceFilePath.toStdString() << "\" -> \"" << destinationFilePath.toStdString() << "\"" << '\n';
 				}
