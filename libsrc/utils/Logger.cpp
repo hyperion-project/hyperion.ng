@@ -103,8 +103,7 @@ Logger::LogLevel Logger::getLogLevel(const QString& name, const QString& subName
 }
 
 Logger::Logger(const QString& name, const QString& subName, LogLevel minLevel)
-	: QObject()
-	, _name(name)
+	: _name(name)
 	, _subName(subName)
 	, _syslogEnabled(true)
 	, _loggerId(LoggerId++)
@@ -139,7 +138,7 @@ Logger::~Logger()
 void Logger::write(const Logger::T_LOG_MESSAGE& message)
 {
 	QString location;
-	if (message.level == LogLevel::LOG_DEBUG)
+	if (message.level == LOG_DEBUG)
 	{
 		location = QString("%1:%2:%3() | ")
 			.arg(message.fileName)
@@ -151,12 +150,8 @@ void Logger::write(const Logger::T_LOG_MESSAGE& message)
 	name.resize(MAX_IDENTIFICATION_LENGTH, ' ');
 
 	const QDateTime timestamp = QDateTime::fromMSecsSinceEpoch(message.utime);
-	QString msg = QString("%1 %2 : <%3> %4%5\n")
-		.arg(timestamp.toString(Qt::ISODateWithMs))
-		.arg(name)
-		.arg(LogLevelStrings[message.level])
-		.arg(location)
-		.arg(message.message);
+	QString const msg = QString("%1 %2 : <%3> %4%5\n")
+		.arg(timestamp.toString(Qt::ISODateWithMs), name, LogLevelStrings[message.level], location, message.message);
 
 #ifdef _WIN32
 	if (IsDebuggerPresent())
@@ -172,7 +167,7 @@ void Logger::write(const Logger::T_LOG_MESSAGE& message)
 
 void Logger::Message(LogLevel level, const char* sourceFile, const char* func, unsigned int line, const char* fmt, ...)
 {
-	LogLevel globalLevel = LogLevel(int(GLOBAL_MIN_LOG_LEVEL));
+	LogLevel const globalLevel = LogLevel(int(GLOBAL_MIN_LOG_LEVEL));
 
 	if ((globalLevel == Logger::LogLevel::LOG_UNSET && level < _minLevel) // no global level, use level from logger
 		|| (globalLevel > LogLevel::LOG_UNSET && level < globalLevel)) // global level set, use global level
@@ -195,7 +190,7 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 
 			write(repMsg);
 #ifndef _WIN32
-			if (_syslogEnabled && repMsg.level >= LogLevel::LOG_WARNING)
+			if (_syslogEnabled && repMsg.level >= LOG_WARNING)
 			{
 				syslog(LogLevelSysLog[repMsg.level], "Previous line repeats %d times", RepeatCount.localData());
 			}
@@ -221,7 +216,7 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 	}
 	else
 	{
-		if (RepeatCount.localData())
+		if (RepeatCount.localData() != 0)
 		{
 			repeatedSummary();
 		}
@@ -240,7 +235,7 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 
 		write(logMsg);
 #ifndef _WIN32
-		if (_syslogEnabled && level >= LogLevel::LOG_WARNING)
+		if (_syslogEnabled && level >= LOG_WARNING)
 		{
 			syslog(LogLevelSysLog[level], "%s", msg);
 		}
@@ -252,8 +247,7 @@ void Logger::Message(LogLevel level, const char* sourceFile, const char* func, u
 QScopedPointer<LoggerManager> LoggerManager::instance;
 
 LoggerManager::LoggerManager()
-	: QObject()
-	, _loggerMaxMsgBufferSize(MAX_LOG_MSG_BUFFERED)
+	: _loggerMaxMsgBufferSize(MAX_LOG_MSG_BUFFERED)
 {
 	_logMessageBuffer.reserve(_loggerMaxMsgBufferSize);
 }

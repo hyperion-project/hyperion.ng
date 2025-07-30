@@ -28,10 +28,10 @@
 #define LOG_MESSAGE(severity, logger, ...)   (logger)->Message(severity, __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
 
 // standard log messages
-#define Debug(logger, ...)   LOG_MESSAGE(Logger::LogLevel::LOG_DEBUG  , logger, __VA_ARGS__)
-#define Info(logger, ...)    LOG_MESSAGE(Logger::LogLevel::LOG_INFO   , logger, __VA_ARGS__)
-#define Warning(logger, ...) LOG_MESSAGE(Logger::LogLevel::LOG_WARNING, logger, __VA_ARGS__)
-#define Error(logger, ...)   LOG_MESSAGE(Logger::LogLevel::LOG_ERROR , logger, __VA_ARGS__)
+#define Debug(logger, ...)   LOG_MESSAGE(Logger::LOG_DEBUG  , logger, __VA_ARGS__)
+#define Info(logger, ...)    LOG_MESSAGE(Logger::LOG_INFO   , logger, __VA_ARGS__)
+#define Warning(logger, ...) LOG_MESSAGE(Logger::LOG_WARNING, logger, __VA_ARGS__)
+#define Error(logger, ...)   LOG_MESSAGE(Logger::LOG_ERROR , logger, __VA_ARGS__)
 
 // conditional log messages
 #define DebugIf(condition, logger, ...)   if (condition) Debug(logger,   __VA_ARGS__)
