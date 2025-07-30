@@ -163,7 +163,7 @@ private:
 	QWeakPointer<Hyperion> _hyperionWeak;
 
 	// Pointer to the current LED-device & its thread
-	QScopedPointer<LedDevice> _ledDevice;
+	QScopedPointer<LedDevice, QScopedPointerDeleteLater> _ledDevice;
 	QScopedPointer<QThread> _ledDeviceThread;
 
 	// 	LED-Device's states

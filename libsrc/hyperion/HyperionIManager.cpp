@@ -343,9 +343,9 @@ void HyperionIManager::handleFinished(const QString& name)
 		Info(_log, "Hyperion instance [%u] - '%s' stopped.", instanceId, QSTRING_CSTR(name));
 
 	}
-	else {
-		// Handle case where sender is not Hyperion or is null
-		qWarning() << "Sender is not a Hyperion object or is null.";
+	else
+	{
+		Info(_log, "No Hyperion instances are running.");
 	}
 
 	if (_runningInstances.isEmpty())

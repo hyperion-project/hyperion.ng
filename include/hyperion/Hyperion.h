@@ -539,7 +539,7 @@ private:
 	QScopedPointer<MultiColorAdjustment> _raw2ledAdjustment;
 
 	/// The actual LedDeviceWrapper
-	QScopedPointer<LedDeviceWrapper, QScopedPointerDeleteLater> _ledDeviceWrapper;
+	QScopedPointer<LedDeviceWrapper> _ledDeviceWrapper;
 
 	/// The smoothing LedDevice
 	QScopedPointer<LinearColorSmoothing, QScopedPointerDeleteLater> _deviceSmooth;

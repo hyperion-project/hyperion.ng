@@ -32,9 +32,10 @@ public:
 	/// @param  comp   The component from enum
 	/// @return        True if component is running else false. Not found is -1
 	///
-	int isComponentEnabled(hyperion::Components comp) const;
-
-	/// contains all components and their state
+    int extracted(hyperion::Components &comp) const;
+    int isComponentEnabled(hyperion::Components comp) const;
+    
+    /// contains all components and their state
 	std::map<hyperion::Components, bool> getRegister() const { return _componentStates; }
 
 signals:

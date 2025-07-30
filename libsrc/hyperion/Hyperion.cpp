@@ -217,6 +217,9 @@ void Hyperion::stop(const QString name)
 	_deviceSmooth->stop();
 	_muxer->stop();
 
+	//Clear local objects
+	_ledDeviceWrapper.reset();
+
 	//Clear all objects shared by <Hyperion> being the master
 	_muxer.clear();
 	_imageProcessor.clear();
@@ -406,7 +409,7 @@ bool Hyperion::setInput(int priority, const std::vector<ColorRgb>& ledColors, in
 		// if this priority is visible, update immediately
 		if (priority == _muxer->getCurrentPriority())
 		{
-			refreshUpdate();
+			update();
 		}
 
 		return true;
@@ -435,7 +438,7 @@ bool Hyperion::setInputImage(int priority, const Image<ColorRgb>& image, int64_t
 		// if this priority is visible, update immediately
 		if (priority == _muxer->getCurrentPriority())
 		{
-			refreshUpdate();
+			update();
 		}
 
 		return true;
@@ -653,7 +656,7 @@ void Hyperion::handleSourceAvailability(int priority)
 
 void Hyperion::refreshUpdate()
 {
-	//wait(_ledDeviceWrapper->getLatchTime());
+	wait(_ledDeviceWrapper->getLatchTime());
 	update();
 }
 
@@ -679,7 +682,7 @@ void Hyperion::update()
 	{
 		_imageEmissionInterval = (image.width() > 1280) ? 2 * DEFAULT_MAX_IMAGE_EMISSION_INTERVAL : DEFAULT_MAX_IMAGE_EMISSION_INTERVAL;
 		// Throttle the emission of currentImage(image) signal
-		qint64 elapsedImageEmissionTime = _imageTimer.elapsed();
+		qint64 const elapsedImageEmissionTime = _imageTimer.elapsed();
 		if (elapsedImageEmissionTime - _lastImageEmission >= _imageEmissionInterval.count())
 		{
 			_lastImageEmission = elapsedImageEmissionTime;
@@ -765,8 +768,8 @@ void Hyperion::update()
 		}
 		else
 		{
-			// feed smoothing in pause mode to maintain a smooth transition back to smooth mode
-			if (_deviceSmooth->enabled() || _deviceSmooth->pause())
+			// device is enabled, feed smoothing in pause mode to maintain a smooth transition back to smooth mode
+			if (_deviceSmooth->pause())
 			{
 				_deviceSmooth->updateLedValues(_ledBuffer);
 			}

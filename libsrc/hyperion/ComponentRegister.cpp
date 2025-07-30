@@ -1,5 +1,4 @@
 #include <hyperion/ComponentRegister.h>
-#include <iostream>
 
 #include <hyperion/Hyperion.h>
 
@@ -14,7 +13,7 @@ ComponentRegister::ComponentRegister(const QSharedPointer<Hyperion>& hyperionIns
 {
 	QString subComponent{ "__" };
 
-	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+	QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
 	if (hyperion)
 	{
 		subComponent = hyperion->property("instance").toString();
@@ -25,9 +24,9 @@ ComponentRegister::ComponentRegister(const QSharedPointer<Hyperion>& hyperionIns
 	QVector<hyperion::Components> vect;
 	vect << COMP_ALL << COMP_SMOOTHING << COMP_LEDDEVICE;
 
-	bool areScreenGrabberAvailable = !GrabberWrapper::availableGrabbers(GrabberTypeFilter::VIDEO).isEmpty();
-	bool areVideoGrabberAvailable = !GrabberWrapper::availableGrabbers(GrabberTypeFilter::VIDEO).isEmpty();
-	bool areAudioGrabberAvailable = !GrabberWrapper::availableGrabbers(GrabberTypeFilter::AUDIO).isEmpty();
+	bool const areScreenGrabberAvailable = !GrabberWrapper::availableGrabbers(GrabberTypeFilter::SCREEN).isEmpty();
+	bool const areVideoGrabberAvailable = !GrabberWrapper::availableGrabbers(GrabberTypeFilter::VIDEO).isEmpty();
+	bool const areAudioGrabberAvailable = !GrabberWrapper::availableGrabbers(GrabberTypeFilter::AUDIO).isEmpty();
 	bool flatBufServerAvailable{ false };
 	bool protoBufServerAvailable{ false };
 
@@ -87,7 +86,8 @@ ComponentRegister::~ComponentRegister()
 
 int ComponentRegister::isComponentEnabled(hyperion::Components comp) const
 {
-	return (_componentStates.count(comp)) ? _componentStates.at(comp) : -1;
+	auto iter = _componentStates.find(comp);
+	return (iter != _componentStates.end()) ? int(iter->second) : -1;
 }
 
 void ComponentRegister::setNewComponentState(hyperion::Components comp, bool isActive)
@@ -141,7 +141,7 @@ void ComponentRegister::handleCompStateChangeRequestAll(bool isActive, const Com
 						QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
 						if (hyperion)
 						{
-							emit hyperion.get()->compStateChangeRequest(comp.first, false);
+							emit hyperion->compStateChangeRequest(comp.first, false);
 						}
 					}
 				}
@@ -175,7 +175,7 @@ void ComponentRegister::handleCompStateChangeRequestAll(bool isActive, const Com
 							QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
 							if (hyperion)
 							{
-								emit hyperion.get()->compStateChangeRequest(comp.first, true);
+								emit hyperion->compStateChangeRequest(comp.first, true);
 							}
 						}
 					}

@@ -31,9 +31,7 @@ LedDeviceWrapper::LedDeviceWrapper(const QSharedPointer<Hyperion>& hyperionInsta
 {
 	QString subComponent{ "__" };
 
-	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
-	qDebug() << "LedDeviceWrapper::LedDeviceWrapper()..." << ", hyperion: " << hyperion;
-
+	QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
 	if (hyperion)
 	{
 		subComponent = hyperion->property("instance").toString();
@@ -95,7 +93,7 @@ void LedDeviceWrapper::handleComponentState(hyperion::Components component, bool
 
 void LedDeviceWrapper::onIsEnabledChanged(bool isEnabled)
 {
-	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+	QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
 	if (hyperion)
 	{
 		hyperion->setNewComponentState(hyperion::COMP_LEDDEVICE, isEnabled);
@@ -108,7 +106,7 @@ void LedDeviceWrapper::onIsOnChanged(bool isOn)
 	_isOn = isOn;
 	if (_isOn)
 	{
-		QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+		QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
 		if (hyperion)
 		{
 			hyperion->refreshUpdate();
@@ -134,12 +132,15 @@ void LedDeviceWrapper::stopDevice()
 	emit stop();
 	loop.exec();
 
+	_ledDevice.reset();
+
 	if (!_ledDeviceThread.isNull())
 	{
 		if (_ledDeviceThread->isRunning())
 		{
 			_ledDeviceThread->quit();
 			_ledDeviceThread->wait();
+			_ledDeviceThread.reset();
 		}
 	}
 
