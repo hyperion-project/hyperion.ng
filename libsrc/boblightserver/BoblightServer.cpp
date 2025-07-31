@@ -49,7 +49,6 @@ BoblightServer::BoblightServer(const QSharedPointer<Hyperion>& hyperionInstance,
 BoblightServer::~BoblightServer()
 {
 	qDebug() << "BoblightServer::~BoblightServer()...";
-	stop();
 }
 
 void BoblightServer::start()

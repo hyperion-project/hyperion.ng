@@ -773,7 +773,7 @@ void Hyperion::update()
 		else
 		{
 			// device is enabled, feed smoothing in pause mode to maintain a smooth transition back to smooth mode
-			if (_deviceSmooth->pause())
+			if (!_deviceSmooth->pause())
 			{
 				_deviceSmooth->updateLedValues(_ledBuffer);
 			}
