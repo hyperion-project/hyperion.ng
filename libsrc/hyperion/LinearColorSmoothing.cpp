@@ -123,9 +123,6 @@ void LinearColorSmoothing::stop()
 	setEnable(false);
 	_timer->stop();
 
-	//_prioMuxer.clear();
-	//_hyperion = nullptr;
-
 	Info(_log, "LinearColorSmoothing stopped");
 }
 
