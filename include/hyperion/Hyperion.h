@@ -512,8 +512,10 @@ private slots:
 	///
 	void handleSourceAvailability(int priority);
 
-private:
+signals:
+	void isSetNewComponentState(hyperion::Components component, bool state);
 
+private:
 	void updateLedColorAdjustment(int ledCount, const QJsonObject& colors);
 	void updateLedLayout(const QJsonArray& ledLayout);
 

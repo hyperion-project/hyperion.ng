@@ -109,6 +109,7 @@ void Hyperion::start()
 	connect(_settingsManager.get(), &SettingsManager::settingsChanged, this, &Hyperion::handleSettingsUpdate);
 
 	_componentRegister = MAKE_TRACKED_SHARED(ComponentRegister, sharedFromThis());
+	connect(this, &Hyperion::isSetNewComponentState, _componentRegister.get(), &ComponentRegister::setNewComponentState);
 
 	// get newVideoMode from HyperionIManager
 	connect(this, &Hyperion::newVideoMode, this, &Hyperion::handleNewVideoMode);
@@ -366,7 +367,12 @@ bool Hyperion::sourceAutoSelectEnabled() const
 
 void Hyperion::setNewComponentState(hyperion::Components component, bool state)
 {
-	_componentRegister->setNewComponentState(component, state);
+	if (_componentRegister.isNull())
+	{
+		Debug(_log, "ComponentRegister is not initialized, cannot set state for component '%s'", componentToString(component));
+	}
+
+	emit isSetNewComponentState(component, state);
 }
 
 std::map<hyperion::Components, bool> Hyperion::getAllComponents() const

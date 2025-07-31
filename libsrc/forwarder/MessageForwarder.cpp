@@ -77,7 +77,8 @@ void MessageForwarder::start()
 
 void MessageForwarder::stop()
 {
-	if (!_hyperionWeak.isNull())
+	QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
+	if (!hyperion.isNull())
 	{
 		disconnect(_toBeForwardedInstanceID);
 
@@ -268,13 +269,12 @@ void MessageForwarder::handleTargets(bool start, const QJsonObject& config)
 	stopFlatbufferTargets();
 
 	QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
-
 	if (start)
 	{
-		int const jsonTargetNum = startJsonTargets(config);
-
 		if (!hyperion.isNull())
 		{
+			int const jsonTargetNum = startJsonTargets(config);
+
 			int const currentPriority = hyperion->getCurrentPriority();
 			bool const isActiveFlatbufferTarget = activateFlatbufferTargets(currentPriority);
 
