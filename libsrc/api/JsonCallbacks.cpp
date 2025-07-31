@@ -61,7 +61,7 @@ bool JsonCallbacks::subscribe(const Subscription::Type cmd)
 		return true;
 	}
 
-	QSharedPointer<Hyperion> hyperionStrong = _hyperionWeak.toStrongRef();
+	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
 
 	switch (cmd) {
 
@@ -96,8 +96,8 @@ bool JsonCallbacks::subscribe(const Subscription::Type cmd)
 
 		// Instance specific subscriptions
 	case Subscription::AdjustmentUpdate:
-		if (!hyperionStrong.isNull()) {
-			connect(hyperionStrong.get(), &Hyperion::adjustmentChanged, this, &JsonCallbacks::handleAdjustmentChange);
+		if (!hyperion.isNull()) {
+			connect(hyperion.get(), &Hyperion::adjustmentChanged, this, &JsonCallbacks::handleAdjustmentChange);
 		}
 	break;
 	case Subscription::ComponentsUpdate:
@@ -109,23 +109,23 @@ bool JsonCallbacks::subscribe(const Subscription::Type cmd)
 	}
 	break;
 	case Subscription::ImageToLedMappingUpdate:
-		if (!hyperionStrong.isNull()) {
-			connect(hyperionStrong.get(), &Hyperion::imageToLedsMappingChanged, this, &JsonCallbacks::handleImageToLedsMappingChange);
+		if (!hyperion.isNull()) {
+			connect(hyperion.get(), &Hyperion::imageToLedsMappingChanged, this, &JsonCallbacks::handleImageToLedsMappingChange);
 		}
 	break;
 	case Subscription::ImageUpdate:
-		if (!hyperionStrong.isNull()) {
-			connect(hyperionStrong.get(),  &Hyperion::currentImage, this, &JsonCallbacks::handleImageUpdate);
+		if (!hyperion.isNull()) {
+			connect(hyperion.get(),  &Hyperion::currentImage, this, &JsonCallbacks::handleImageUpdate);
 		}
 	break;
 	case Subscription::LedColorsUpdate:
-		if (!hyperionStrong.isNull()) {
-			connect(hyperionStrong.get(), &Hyperion::rawLedColors, this, &JsonCallbacks::handleLedColorUpdate);
+		if (!hyperion.isNull()) {
+			connect(hyperion.get(), &Hyperion::rawLedColors, this, &JsonCallbacks::handleLedColorUpdate);
 		}
 	break;
 	case Subscription::LedsUpdate:
-		if (!hyperionStrong.isNull()) {
-			connect(hyperionStrong.get(), &Hyperion::settingsChanged, this, &JsonCallbacks::handleLedsConfigChange);
+		if (!hyperion.isNull()) {
+			connect(hyperion.get(), &Hyperion::settingsChanged, this, &JsonCallbacks::handleLedsConfigChange);
 		}
 	break;
 	case Subscription::PrioritiesUpdate:
@@ -137,8 +137,8 @@ bool JsonCallbacks::subscribe(const Subscription::Type cmd)
 	}
 	break;
 	case Subscription::VideomodeUpdate:
-		if (!hyperionStrong.isNull()) {
-			connect(hyperionStrong.get(), &Hyperion::newVideoMode, this, &JsonCallbacks::handleVideoModeChange);
+		if (!hyperion.isNull()) {
+			connect(hyperion.get(), &Hyperion::newVideoMode, this, &JsonCallbacks::handleVideoModeChange);
 		}
 	break;
 
@@ -198,7 +198,7 @@ bool JsonCallbacks::unsubscribe(const Subscription::Type cmd)
 
 	_subscribedCommands.remove(cmd);
 
-	QSharedPointer<Hyperion> hyperionStrong = _hyperionWeak.toStrongRef();
+	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
 
 	switch (cmd) {
 	// Global subscriptions
@@ -231,8 +231,8 @@ bool JsonCallbacks::unsubscribe(const Subscription::Type cmd)
 
 		// Instance specific subscriptions
 	case Subscription::AdjustmentUpdate:
-		if (!hyperionStrong.isNull()) {
-			disconnect(hyperionStrong.get(), &Hyperion::adjustmentChanged, this, &JsonCallbacks::handleAdjustmentChange);
+		if (!hyperion.isNull()) {
+			disconnect(hyperion.get(), &Hyperion::adjustmentChanged, this, &JsonCallbacks::handleAdjustmentChange);
 		}
 	break;
 	case Subscription::ComponentsUpdate:
@@ -245,23 +245,23 @@ bool JsonCallbacks::unsubscribe(const Subscription::Type cmd)
 	break;
 
 	case Subscription::ImageToLedMappingUpdate:
-		if (!hyperionStrong.isNull()) {
-			disconnect(hyperionStrong.get(), &Hyperion::imageToLedsMappingChanged, this, &JsonCallbacks::handleImageToLedsMappingChange);
+		if (!hyperion.isNull()) {
+			disconnect(hyperion.get(), &Hyperion::imageToLedsMappingChanged, this, &JsonCallbacks::handleImageToLedsMappingChange);
 		}
 	break;
 	case Subscription::ImageUpdate:
-		if (!hyperionStrong.isNull()) {
-			disconnect(hyperionStrong.get(), &Hyperion::currentImage, this, &JsonCallbacks::handleImageUpdate);
+		if (!hyperion.isNull()) {
+			disconnect(hyperion.get(), &Hyperion::currentImage, this, &JsonCallbacks::handleImageUpdate);
 		}
 	break;
 	case Subscription::LedColorsUpdate:
-		if (!hyperionStrong.isNull()) {
-			disconnect(hyperionStrong.get(), &Hyperion::rawLedColors, this, &JsonCallbacks::handleLedColorUpdate);
+		if (!hyperion.isNull()) {
+			disconnect(hyperion.get(), &Hyperion::rawLedColors, this, &JsonCallbacks::handleLedColorUpdate);
 		}
 	break;
 	case Subscription::LedsUpdate:
-		if (!hyperionStrong.isNull()) {
-			disconnect(hyperionStrong.get(), &Hyperion::settingsChanged, this, &JsonCallbacks::handleLedsConfigChange);
+		if (!hyperion.isNull()) {
+			disconnect(hyperion.get(), &Hyperion::settingsChanged, this, &JsonCallbacks::handleLedsConfigChange);
 		}
 	break;
 	case Subscription::PrioritiesUpdate:
@@ -273,8 +273,8 @@ bool JsonCallbacks::unsubscribe(const Subscription::Type cmd)
 	}
 	break;
 	case Subscription::VideomodeUpdate:
-		if (!hyperionStrong.isNull()) {
-			disconnect(hyperionStrong.get(), &Hyperion::newVideoMode, this, &JsonCallbacks::handleVideoModeChange);
+		if (!hyperion.isNull()) {
+			disconnect(hyperion.get(), &Hyperion::newVideoMode, this, &JsonCallbacks::handleVideoModeChange);
 		}
 	break;
 
@@ -338,7 +338,7 @@ void JsonCallbacks::setSubscriptionsTo(quint8 instanceID)
 
 	// update pointer
 	QSharedPointer<Hyperion> const hyperion =  HyperionIManager::getInstance()->getHyperionInstance(instanceID);
-	if (!hyperion.isNull() && _hyperionWeak.toStrongRef())
+	if (!hyperion.isNull() && hyperion != _hyperionWeak)
 	{
 		_hyperionWeak = hyperion;
 		_componentRegisterWeak = hyperion->getComponentRegister();
