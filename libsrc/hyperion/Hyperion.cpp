@@ -129,14 +129,15 @@ void Hyperion::start()
 	_ledBuffer = std::vector<ColorRgb>(static_cast<size_t>(_hwLedCount), ColorRgb::BLACK);
 
 	// smoothing
-	_deviceSmooth.reset(new LinearColorSmoothing(getSetting(settings::SMOOTHING).object(), sharedFromThis()));
+	_deviceSmooth = MAKE_TRACKED_SHARED(LinearColorSmoothing, getSetting(settings::SMOOTHING).object(), sharedFromThis());
+
 	connect(this, &Hyperion::settingsChanged, _deviceSmooth.get(), &LinearColorSmoothing::handleSettingsUpdate);
 	_deviceSmooth->start();
 
 	// initialize LED-devices
 	QJsonObject const ledDeviceSettings = getSetting(settings::DEVICE).object();
 
-	_ledDeviceWrapper.reset(new LedDeviceWrapper(sharedFromThis()));
+	_ledDeviceWrapper = MAKE_TRACKED_SHARED(LedDeviceWrapper, sharedFromThis());
 	connect(this, &Hyperion::compStateChangeRequest, _ledDeviceWrapper.get(), &LedDeviceWrapper::handleComponentState);
 	connect(this, &Hyperion::ledDeviceData, _ledDeviceWrapper.get(), &LedDeviceWrapper::updateLeds);
 
@@ -158,10 +159,10 @@ void Hyperion::start()
 	hyperion::handleInitialEffect(this, getSetting(settings::FGEFFECT).object());
 
 	// handle background effect
-	_BGEffectHandler.reset(new BGEffectHandler(sharedFromThis()));
+	_BGEffectHandler = MAKE_TRACKED_SHARED(BGEffectHandler, sharedFromThis());
 
 	// create the Daemon capture interface
-	_captureCont.reset(new CaptureCont(sharedFromThis()));
+	_captureCont = MAKE_TRACKED_SHARED(CaptureCont, sharedFromThis());
 	_captureCont->start();
 
 	// link global signals with the corresponding slots
@@ -184,7 +185,8 @@ void Hyperion::start()
 
 #if defined(ENABLE_BOBLIGHT_SERVER)
 	// boblight, can't live in global scope as it depends on layout
-	_boblightServer.reset(new BoblightServer(this, getSetting(settings::BOBLSERVER)));
+	_boblightServer = MAKE_TRACKED_SHARED(BoblightServer, sharedFromThis(), getSetting(settings::BOBLSERVER));
+
 	connect(this, &Hyperion::settingsChanged, _boblightServer.get(), &BoblightServer::handleSettingsUpdate);
 #endif
 
@@ -203,6 +205,7 @@ void Hyperion::stop(const QString name)
 
 #if defined(ENABLE_BOBLIGHT_SERVER)
 	_boblightServer->stop();
+	_boblightServer.clear();
 #endif
 
 	//Remove all priorities
@@ -213,14 +216,15 @@ void Hyperion::stop(const QString name)
 	_effectEngine.clear();
 #endif
 
-	_ledDeviceWrapper->stopDevice();
-	_deviceSmooth->stop();
 	_muxer->stop();
+	_deviceSmooth->stop();
+	_ledDeviceWrapper->stopDevice();
 
-	//Clear local objects
-	_ledDeviceWrapper.reset();
-
-	//Clear all objects shared by <Hyperion> being the master
+	//Clear all objects maintained/shared by <Hyperion> being the master
+	_BGEffectHandler.clear();
+	_captureCont.clear();
+	_deviceSmooth.clear();
+	_ledDeviceWrapper.clear();
 	_muxer.clear();
 	_imageProcessor.clear();
 	_componentRegister.clear();

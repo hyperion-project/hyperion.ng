@@ -83,7 +83,6 @@ private slots:
 
 
 private:
-	/// Hyperion instance
 	/// Hyperion instance pointer
 	QWeakPointer<Hyperion> _hyperionWeak;
 
