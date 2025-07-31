@@ -380,7 +380,8 @@ PyObject* EffectModule::wrapGetImage(PyObject* self, PyObject* args)
 					height = qimage.height();
 				}
 
-				QByteArray binaryImage(width * height * 3, Qt::Uninitialized);
+				qsizetype size = qsizetype(width) * qsizetype(height) * 3;
+				QByteArray binaryImage(size, Qt::Uninitialized);
 				char* dest = binaryImage.data();
 				for (int i = 0; i < height; ++i)
 				{
