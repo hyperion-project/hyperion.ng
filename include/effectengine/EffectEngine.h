@@ -27,7 +27,7 @@ class EffectEngine : public QObject
 	Q_OBJECT
 
 public:
-	EffectEngine(Hyperion * hyperion);
+	explicit EffectEngine(const QSharedPointer<Hyperion>& hyperionInstance);
 	~EffectEngine() override;
 
 	std::list<EffectDefinition> getEffects() const { return _availableEffects; }
@@ -101,7 +101,8 @@ private:
 	void waitForEffectsToStop();
 
 private:
-	Hyperion * _hyperion;
+	/// Hyperion instance pointer
+	QWeakPointer<Hyperion> _hyperionWeak;
 
 	std::list<EffectDefinition> _availableEffects;
 
@@ -112,7 +113,7 @@ private:
 	Logger * _log;
 
 	// The global effect file handler
-	EffectFileHandler* _effectFileHandler;
+	EffectFileHandler * _effectFileHandler;
 
 	QEventLoop _eventLoop;
 	int _remainingEffects;

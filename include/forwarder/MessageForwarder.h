@@ -14,6 +14,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QSharedPointer>
+#include <QWeakPointer>
 
 // Utils includes
 #include <utils/ColorRgb.h>
@@ -133,10 +134,11 @@ private:
 	SettingsTable _settings;
 
 	/// Hyperion instance forwarded
-	QSharedPointer<Hyperion> _hyperion;
+	///  Hyperion instance
+	QWeakPointer<Hyperion> _hyperionWeak;
 
 	/// Muxer instance
-	QSharedPointer<PriorityMuxer> _muxer;
+	QWeakPointer<PriorityMuxer> _muxerWeak;
 
 	// JSON connections for forwarding
 	QList<TargetHost> _jsonTargets;

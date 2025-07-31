@@ -175,6 +175,8 @@ protected:
 
 	// Device states
 
+	bool _isCropping;
+
 	/// Is the device available?
 	bool _isAvailable;
 

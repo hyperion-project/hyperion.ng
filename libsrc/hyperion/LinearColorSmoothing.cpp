@@ -58,12 +58,12 @@ const unsigned DEFAULT_OUTPUTDEPLAY = 0;	// in frames
 
 using namespace hyperion;
 
-LinearColorSmoothing::LinearColorSmoothing(const QJsonObject &config, Hyperion *hyperion)
-	: QObject(hyperion)
+LinearColorSmoothing::LinearColorSmoothing(const QJsonObject &config, const QSharedPointer<Hyperion>& hyperionInstance)
+	: QObject()
 	, _smoothConfig(config)
 	, _log(nullptr)
-	, _hyperion(hyperion)
-	, _prioMuxer(_hyperion->getMuxerInstance())
+	, _hyperionWeak(hyperionInstance)
+	, _prioMuxerWeak(nullptr)
 	, _updateInterval(DEFAULT_UPDATEINTERVALL.count())
 	, _settlingTime(DEFAULT_SETTLINGTIME)
 	, _timer(nullptr)
@@ -75,7 +75,13 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonObject &config, Hyperion *
 	, _smoothingType(SmoothingType::Linear)
 	, tempValues(std::vector<uint64_t>())
 {
-	QString subComponent = hyperion->property("instance").toString();
+	QString subComponent{ "__" };
+	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+	if (hyperion)
+	{
+		subComponent = hyperion->property("instance").toString();
+		_prioMuxerWeak = hyperion->getMuxerInstance();
+	}
 	_log= Logger::getInstance("SMOOTHING", subComponent);
 
 	// init cfg (default)
@@ -86,11 +92,13 @@ LinearColorSmoothing::LinearColorSmoothing(const QJsonObject &config, Hyperion *
 }
 LinearColorSmoothing::~LinearColorSmoothing()
 {
+	qDebug() << "LinearColorSmoothing::~LinearColorSmoothing()...";
 }
 
 void LinearColorSmoothing::start()
 {
 	Info(_log, "LinearColorSmoothing starting...");
+
 
 	_timer.reset(new QTimer(this));
 	_timer->setTimerType(Qt::PreciseTimer);
@@ -99,8 +107,8 @@ void LinearColorSmoothing::start()
 	setPause(true);
 
 	// listen for comp changes
-	QObject::connect(_hyperion, &Hyperion::compStateChangeRequest, this, &LinearColorSmoothing::componentStateChange);
-	QObject::connect(_prioMuxer.get(), &PriorityMuxer::prioritiesChanged, this, &LinearColorSmoothing::handlePriorityUpdate);
+	QObject::connect(_hyperionWeak.toStrongRef().get(), &Hyperion::compStateChangeRequest, this, &LinearColorSmoothing::componentStateChange);
+	QObject::connect(_prioMuxerWeak.toStrongRef().get(), &PriorityMuxer::prioritiesChanged, this, &LinearColorSmoothing::handlePriorityUpdate);
 	connect(_timer.get(), &QTimer::timeout, this, &LinearColorSmoothing::updateLeds);
 
 	updateSettings(_smoothConfig);
@@ -110,7 +118,8 @@ void LinearColorSmoothing::stop()
 {
 	Debug(_log, "LinearColorSmoothing stopping...");
 
-	QObject::disconnect(_prioMuxer.get(), &PriorityMuxer::prioritiesChanged, this, &LinearColorSmoothing::handlePriorityUpdate);
+	QObject::disconnect(_prioMuxerWeak.toStrongRef().get(), &PriorityMuxer::prioritiesChanged, this, &LinearColorSmoothing::handlePriorityUpdate);
+
 	setEnable(false);
 	_timer->stop();
 
@@ -163,7 +172,7 @@ void LinearColorSmoothing::handleSettingsUpdate(settings::type type, const QJson
 
 void LinearColorSmoothing::handlePriorityUpdate(int priority)
 {
-	const PriorityMuxer::InputInfo priorityInfo = _prioMuxer->getInputInfo(priority);
+	const PriorityMuxer::InputInfo priorityInfo = _prioMuxerWeak.toStrongRef()->getInputInfo(priority);
 	int smooth_cfg = priorityInfo.smooth_cfg;
 	if (smooth_cfg != _currentConfigId || smooth_cfg == SmoothingConfigID::EFFECT_DYNAMIC)
 	{
@@ -544,7 +553,11 @@ void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> &ledColors)
 		// No output delay => immediate write
 		if (!_pause)
 		{
-			emit _hyperion->ledDeviceData(ledColors);
+			QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+			if (hyperion)
+			{
+				emit hyperion->ledDeviceData(ledColors);
+			}
 		}
 	}
 	else
@@ -559,7 +572,11 @@ void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> &ledColors)
 			{
 				if (!_pause)
 				{
-					emit _hyperion->ledDeviceData(_outputQueue.front());
+					QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+					if (hyperion)
+					{
+						emit hyperion->ledDeviceData(_outputQueue.front());
+					}
 				}
 				_outputQueue.pop_front();
 			}
@@ -595,7 +612,11 @@ void LinearColorSmoothing::setEnable(bool enable)
 			clearQueuedColors();
 		}
 		// update comp register
-		_hyperion->setNewComponentState(hyperion::COMP_SMOOTHING, enable);
+		QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+		if (hyperion)
+		{
+			hyperion->setNewComponentState(hyperion::COMP_SMOOTHING, enable);
+		}
 	}
 }
 

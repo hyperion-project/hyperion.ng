@@ -47,6 +47,8 @@
 // settings utils
 #include <utils/settings.h>
 
+#include <utils/TrackedMemory.h>
+
 // Forward class declaration
 class ImageProcessor;
 class LinearColorSmoothing;
@@ -56,7 +58,7 @@ class Logger;
 /// The main class of Hyperion. This gives other 'users' access to the attached LedDevice through
 /// the priority muxer.
 ///
-class Hyperion : public QObject
+class Hyperion : public QObject, public QEnableSharedFromThis<Hyperion>
 {
 	Q_OBJECT
 public:
@@ -70,7 +72,9 @@ public:
 	///
 	explicit Hyperion(quint8 instance, QObject* parent = nullptr);
 
-	ImageProcessor* getImageProcessor() const { return _imageProcessor.get(); }
+	~Hyperion() override;
+
+	QSharedPointer<ImageProcessor> getImageProcessor() const { return _imageProcessor; }
 
 	///
 	/// @brief Get instance index of this instance
@@ -508,8 +512,10 @@ private slots:
 	///
 	void handleSourceAvailability(int priority);
 
-private:
+signals:
+	void isSetNewComponentState(hyperion::Components component, bool state);
 
+private:
 	void updateLedColorAdjustment(int ledCount, const QJsonObject& colors);
 	void updateLedLayout(const QJsonArray& ledLayout);
 
@@ -519,32 +525,43 @@ private:
 	/// Settings manager of this instance
 	QScopedPointer<SettingsManager,QScopedPointerDeleteLater> _settingsManager;
 
-	/// Register that holds component states
-	QSharedPointer<ComponentRegister> _componentRegister;
-
 	/// The specifiation of the led frame construction and picture integration
 	LedString _ledString;
+
+	std::vector<ColorOrder> _ledStringColorOrder;
+
+	/// Register that holds component states
+	QSharedPointer<ComponentRegister> _componentRegister;
 
 	/// Image Processor
 	QSharedPointer<ImageProcessor> _imageProcessor;
 
-	std::vector<ColorOrder> _ledStringColorOrder;
+	/// The adjustment from raw colors to led colors
+	QScopedPointer<MultiColorAdjustment> _raw2ledAdjustment;
 
 	/// The priority muxer
 	QSharedPointer<PriorityMuxer> _muxer;
 
-	/// The adjustment from raw colors to led colors
-	QScopedPointer<MultiColorAdjustment> _raw2ledAdjustment;
-
 	/// The actual LedDeviceWrapper
-	QScopedPointer<LedDeviceWrapper> _ledDeviceWrapper;
+	QSharedPointer<LedDeviceWrapper> _ledDeviceWrapper;
 
 	/// The smoothing LedDevice
-	QScopedPointer<LinearColorSmoothing> _deviceSmooth;
+	QSharedPointer<LinearColorSmoothing> _deviceSmooth;
+
+	/// Capture control for Daemon native capture
+	QSharedPointer<CaptureCont> _captureCont;
+
+	/// Background effect instance, kept active to react on setting changes
+	QSharedPointer<BGEffectHandler> _BGEffectHandler;
 
 #if defined(ENABLE_EFFECTENGINE)
 	/// Effect engine
 	QSharedPointer<EffectEngine> _effectEngine;
+#endif
+
+#if defined(ENABLE_BOBLIGHT_SERVER)
+	/// Boblight instance
+	QSharedPointer<BoblightServer> _boblightServer;
 #endif
 
 	/// Logger instance
@@ -556,20 +573,10 @@ private:
 	QString _colorOrder;
 	QSize _layoutGridSize;
 
-	/// Background effect instance, kept active to react on setting changes
-	QScopedPointer<BGEffectHandler, QScopedPointerDeleteLater> _BGEffectHandler;
-	/// Capture control for Daemon native capture
-	QScopedPointer<CaptureCont,QScopedPointerDeleteLater> _captureCont;
-
 	/// buffer for leds (with adjustment)
 	std::vector<ColorRgb> _ledBuffer;
 
 	VideoMode _currVideoMode = VideoMode::VIDEO_2D;
-
-#if defined(ENABLE_BOBLIGHT_SERVER)
-	/// Boblight instance
-	QScopedPointer<BoblightServer, QScopedPointerDeleteLater> _boblightServer;
-#endif
 
 	QElapsedTimer _imageTimer;  // Timer for controlling image emission frequency
 	QElapsedTimer _rawLedDataTimer;  // Timer for controlling rawLedColors emission frequency

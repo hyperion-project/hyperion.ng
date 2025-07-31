@@ -18,6 +18,7 @@ Grabber::Grabber(const QString& grabberName, int cropLeft, int cropRight, int cr
 	, _cropRight(0)
 	, _cropTop(0)
 	, _cropBottom(0)
+	, _isCropping(false)
 	, _isAvailable(true)
 	, _isEnabled(true)
 	, _isDeviceInError(false)
@@ -90,7 +91,7 @@ void Grabber::setCropping(int cropLeft, int cropRight, int cropTop, int cropBott
 	{
 		if (cropLeft + cropRight >= _width || cropTop + cropBottom >= _height)
 		{
-			Error(_log, "Rejecting invalid crop values: left: %d, right: %d, top: %d, bottom: %d, higher than height/width %d/%d", cropLeft, cropRight, cropTop, cropBottom, _height, _width);
+			Error(_log, "Rejecting invalid crop values: left: %d, right: %d, top: %d, bottom: %d, greater than or equal to width/height %d/%d", cropLeft, cropRight, cropTop, cropBottom, _width, _height);
 			return;
 		}
 	}
@@ -112,6 +113,11 @@ void Grabber::setCropping(int cropLeft, int cropRight, int cropTop, int cropBott
 	if (cropLeft > 0 || cropRight > 0 || cropTop > 0 || cropBottom > 0)
 	{
 		Info(_log, "Cropping image: width=%d height=%d; crop: left=%d right=%d top=%d bottom=%d ", _width, _height, cropLeft, cropRight, cropTop, cropBottom);
+		_isCropping = true;
+	}
+	else
+	{
+		_isCropping = false;
 	}
 }
 

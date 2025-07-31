@@ -70,6 +70,7 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 
 LedDevice::~LedDevice()
 {
+		qDebug() << "LedDevice::~LedDevice()...";
 }
 
 void LedDevice::start()
@@ -157,7 +158,10 @@ void LedDevice::enable()
 
 		if (!_isDeviceReady)
 		{
-			open();
+			if (open() < 0)
+			{
+				setInError("Failed to open device", _isDeviceRecoverable);
+			}
 		}
 
 		bool isEnableFailed(true);

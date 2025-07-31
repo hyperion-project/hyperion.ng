@@ -82,7 +82,7 @@ public:
 	/// @param config    The smoothing configuration
 	/// @param hyperion  The hyperion parent instance
 	///
-	LinearColorSmoothing(const QJsonObject &config, Hyperion *hyperion);
+	explicit LinearColorSmoothing(const QJsonObject &config, const QSharedPointer<Hyperion>& hyperionInstance);
 	~LinearColorSmoothing() override;
 
 	/// LED values as input for the smoothing filter
@@ -188,10 +188,10 @@ private:
 	Logger *_log;
 
 	/// Hyperion instance
-	Hyperion *_hyperion;
+	QWeakPointer<Hyperion> _hyperionWeak;
 
 	/// priority muxer instance
-	QSharedPointer<PriorityMuxer> _prioMuxer;
+	QWeakPointer<PriorityMuxer> _prioMuxerWeak;
 
 	/// The interval at which to update the leds (msec)
 	int _updateInterval;
@@ -200,7 +200,7 @@ private:
 	int64_t _settlingTime;
 
 	/// The Qt timer object
-	QScopedPointer<QTimer> _timer;
+	QScopedPointer<QTimer,QScopedPointerDeleteLater> _timer;
 
 	/// The timestamp at which the target data should be fully applied
 	int64_t _targetTime;

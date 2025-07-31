@@ -13,9 +13,7 @@ public:
 		Unknown,
 		AdjustmentUpdate,
 		ComponentsUpdate,
-#if defined(ENABLE_EFFECTENGINE)
 		EffectsUpdate,
-#endif
 		EventUpdate,
 		ImageToLedMappingUpdate,
 		ImageUpdate,
@@ -33,9 +31,7 @@ public:
 		switch (type) {
 		case AdjustmentUpdate: return "adjustment-update";
 		case ComponentsUpdate: return "components-update";
-#if defined(ENABLE_EFFECTENGINE)
 		case EffectsUpdate: return "effects-update";
-#endif
 		case EventUpdate: return "event-update";
 		case ImageToLedMappingUpdate: return "imageToLedMapping-update";
 		case ImageUpdate: return "ledcolors-imagestream-update";
@@ -55,9 +51,7 @@ public:
 		switch (type) {
 		case AdjustmentUpdate:
 		case ComponentsUpdate:
-#if defined(ENABLE_EFFECTENGINE)
 		case EffectsUpdate:
-#endif
 		case ImageToLedMappingUpdate:
 		case ImageUpdate:
 		case LedColorsUpdate:
@@ -109,9 +103,7 @@ public:
 		static const SubscriptionLookupMap subscriptionLookup {
 			{ {"adjustment-update"}, { Subscription::AdjustmentUpdate, true} },
 			{ {"components-update"}, { Subscription::ComponentsUpdate, true} },
-#if defined(ENABLE_EFFECTENGINE)
 			{ {"effects-update"}, { Subscription::EffectsUpdate, true} },
-#endif
 			{ {"event-update"}, { Subscription::EventUpdate, true} },
 			{ {"imageToLedMapping-update"}, { Subscription::ImageToLedMappingUpdate, true} },
 			{ {"ledcolors-imagestream-update"}, { Subscription::ImageUpdate, false} },

@@ -196,16 +196,16 @@ private:
 
 	Logger *_log;
 	quint8 _instanceID;
-	QSharedPointer<Hyperion> _hyperion;
+	QWeakPointer<Hyperion> _hyperionWeak;
 
 	/// The peer address of the client
 	QString _peerAddress;
 
 	/// pointer of comp register
-	QSharedPointer<ComponentRegister> _componentRegister;
+	QWeakPointer<ComponentRegister> _componentRegisterWeak;
 
 	/// priority muxer instance
-	QSharedPointer<PriorityMuxer> _prioMuxer;
+	QWeakPointer<PriorityMuxer> _prioMuxerWeak;
 
 	/// contains active subscriptions
 	QSet<Subscription::Type> _subscribedCommands;

@@ -26,7 +26,8 @@ namespace hyperion
 	{
 		Q_OBJECT
 	public:
-		BlackBorderProcessor(Hyperion* hyperion, QObject* parent);
+		BlackBorderProcessor(const QSharedPointer<Hyperion>& hyperionInstance, QObject* parent);
+		~BlackBorderProcessor() override;
 
 		///
 		/// Return the current (detected) border
@@ -114,7 +115,9 @@ namespace hyperion
 
 	private:
 		/// Hyperion instance
-		Hyperion* _hyperion;
+		QWeakPointer<Hyperion> _hyperionWeak;
+		/// Logger instance
+		Logger* _log;
 
 		///
 		/// Updates the current border based on the newly detected border. Returns true if the

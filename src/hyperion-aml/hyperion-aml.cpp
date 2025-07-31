@@ -46,7 +46,7 @@ int main(int argc, char ** argv)
 	ErrorManager errorManager;
 
 	Logger *log = Logger::getInstance(CAPTURE_TYPE.toUpper());
-	Logger::setLogLevel(Logger::INFO);
+	Logger::setLogLevel(Logger::LOG_INFO);
 
 	QCoreApplication const app(argc, argv);
 
@@ -59,6 +59,10 @@ int main(int argc, char ** argv)
 		Error(log, "Error occured: %s", QSTRING_CSTR(error));
 		QTimer::singleShot(0, [&app]() { app.quit(); });
 	});
+
+	// Force locale to have predictable, minimal behavior while still supporting full Unicode.
+	setlocale(LC_ALL, "C.UTF-8");
+	QLocale::setDefault(QLocale::c());
 
 	// create the option parser and initialize all parser
 	Parser parser( CAPTURE_TYPE + " capture application for Hyperion. Will automatically search a Hyperion server if -a option is not used. Please note that if you have more than one server running it's more or less random which one will be used.");
@@ -88,7 +92,7 @@ int main(int argc, char ** argv)
 	// check if debug logging is required
 	if (parser.isSet(argDebug))
 	{
-		Logger::setLogLevel(Logger::DEBUG);
+		Logger::setLogLevel(Logger::LOG_DEBUG);
 	}
 
 	// check if we need to display the usage. exit if we do.

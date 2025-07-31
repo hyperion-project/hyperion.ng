@@ -21,22 +21,31 @@
 LedDeviceRegistry LedDeviceWrapper::_ledDeviceMap {};
 static std::once_flag initFlag;
 
-LedDeviceWrapper::LedDeviceWrapper(Hyperion* hyperion)
-	: QObject(hyperion)
+LedDeviceWrapper::LedDeviceWrapper(const QSharedPointer<Hyperion>& hyperionInstance)
+	: QObject()
 	, _log(nullptr)
-	, _hyperion(hyperion)
+	, _hyperionWeak(hyperionInstance)
 	, _ledDevice(nullptr)
 	, _isEnabled(false)
 	, _isOn(false)
 {
-	QString const subComponent = parent()->property("instance").toString();
+	QString subComponent{ "__" };
+
+	QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
+	if (hyperion)
+	{
+		subComponent = hyperion->property("instance").toString();
+
+		hyperion->setNewComponentState(hyperion::COMP_LEDDEVICE, false);
+	}
 	_log = Logger::getInstance("LEDDEVICE", subComponent);
 
-	_hyperion->setNewComponentState(hyperion::COMP_LEDDEVICE, false);
+	
 }
 
 LedDeviceWrapper::~LedDeviceWrapper()
 {
+	qDebug() << "LedDeviceWrapper::~LedDeviceWrapper()...";
 }
 
 void LedDeviceWrapper::createLedDevice(const QJsonObject& config)
@@ -85,7 +94,11 @@ void LedDeviceWrapper::handleComponentState(hyperion::Components component, bool
 
 void LedDeviceWrapper::onIsEnabledChanged(bool isEnabled)
 {
-	_hyperion->setNewComponentState(hyperion::COMP_LEDDEVICE, isEnabled);
+	QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
+	if (hyperion)
+	{
+		hyperion->setNewComponentState(hyperion::COMP_LEDDEVICE, isEnabled);
+	}
 	_isEnabled = isEnabled;
 }
 
@@ -94,7 +107,11 @@ void LedDeviceWrapper::onIsOnChanged(bool isOn)
 	_isOn = isOn;
 	if (_isOn)
 	{
-		_hyperion->refreshUpdate();
+		QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
+		if (hyperion)
+		{
+			hyperion->refreshUpdate();
+		}
 	}
 }
 
@@ -116,12 +133,15 @@ void LedDeviceWrapper::stopDevice()
 	emit stop();
 	loop.exec();
 
+	_ledDevice.reset();
+
 	if (!_ledDeviceThread.isNull())
 	{
 		if (_ledDeviceThread->isRunning())
 		{
 			_ledDeviceThread->quit();
 			_ledDeviceThread->wait();
+			_ledDeviceThread.reset();
 		}
 	}
 
