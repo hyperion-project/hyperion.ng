@@ -92,7 +92,6 @@ int ComponentRegister::isComponentEnabled(hyperion::Components comp) const
 
 void ComponentRegister::setNewComponentState(hyperion::Components comp, bool isActive)
 {
-
 	if (_componentStates.count(comp) > 0)
 	{
 		if (_componentStates[comp] != isActive)
