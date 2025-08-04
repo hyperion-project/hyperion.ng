@@ -144,7 +144,9 @@ void CaptureCont::setScreenCaptureEnable(bool enable)
 		}
 		else
 		{
+			disconnect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, hyperion.get(), &Hyperion::forwardSystemProtoMessage);
 			disconnect(GlobalSignals::getInstance(), &GlobalSignals::setSystemImage, this, nullptr);
+
 			hyperion->clear(_screenCapturePriority);
 			_screenCaptureInactiveTimer->stop();
 			_screenCaptureName = "";
@@ -168,7 +170,9 @@ void CaptureCont::setVideoCaptureEnable(bool enable)
 		}
 		else
 		{
+			disconnect(GlobalSignals::getInstance(), &GlobalSignals::setV4lImage, hyperion.get(), &Hyperion::forwardV4lProtoMessage);
 			disconnect(GlobalSignals::getInstance(), &GlobalSignals::setV4lImage, this, nullptr);
+
 			hyperion->clear(_videoCapturePriority);
 			_videoInactiveTimer->stop();
 			_videoCaptureName = "";
@@ -192,7 +196,9 @@ void CaptureCont::setAudioCaptureEnable(bool enable)
 		}
 		else
 		{
+			disconnect(GlobalSignals::getInstance(), &GlobalSignals::setAudioImage, hyperion.get(), &Hyperion::forwardAudioProtoMessage);
 			disconnect(GlobalSignals::getInstance(), &GlobalSignals::setAudioImage, this, nullptr);
+
 			hyperion->clear(_audioCapturePriority);
 			_audioCaptureInactiveTimer->stop();
 			_audioCaptureName = "";
