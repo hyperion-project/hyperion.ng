@@ -90,17 +90,17 @@ private:
 	bool _screenCaptureEnabled;
 	int _screenCapturePriority;
 	QString _screenCaptureName;
-	QScopedPointer<QTimer, QScopedPointerDeleteLater> _screenCaptureInactiveTimer;
+	QScopedPointer<QTimer> _screenCaptureInactiveTimer;
 
 	/// Reflect state of video capture and prio
 	bool _videoCaptureEnabled;
 	int _videoCapturePriority;
 	QString _videoCaptureName;
-	QScopedPointer<QTimer, QScopedPointerDeleteLater> _videoInactiveTimer;
+	QScopedPointer<QTimer> _videoInactiveTimer;
 
 	/// Reflect state of audio capture and prio
 	bool _audioCaptureEnabled;
 	int _audioCapturePriority;
 	QString _audioCaptureName;
-	QScopedPointer<QTimer, QScopedPointerDeleteLater> _audioCaptureInactiveTimer;
+	QScopedPointer<QTimer> _audioCaptureInactiveTimer;
 };

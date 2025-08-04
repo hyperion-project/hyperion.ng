@@ -442,7 +442,7 @@ protected:
 
 	/// Timer object which makes sure that LED data is written at a minimum rate
 	/// e.g. some devices will switch off when they do not receive data at least every 15 seconds
-	QScopedPointer<QTimer, QScopedPointerDeleteLater> _refreshTimer;
+	QScopedPointer<QTimer> _refreshTimer;
 
 	// Device configuration parameters
 
@@ -522,7 +522,7 @@ private:
 	void stopRefreshTimer();
 
 	/// Timer that enables a device (used to retry enablement, if enabled failed before)
-	QScopedPointer<QTimer, QScopedPointerDeleteLater>	_enableAttemptsTimer;
+	QScopedPointer<QTimer>	_enableAttemptsTimer;
 
 	// Device configuration parameters
 
