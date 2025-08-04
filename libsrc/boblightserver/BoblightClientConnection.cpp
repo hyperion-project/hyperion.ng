@@ -33,20 +33,32 @@ namespace {
 	const int BOBLIGHT_MAX_PRIORITY = PriorityMuxer::BG_PRIORITY-1;
 } //End of constants
 
-BoblightClientConnection::BoblightClientConnection(Hyperion* hyperion, QTcpSocket* socket, int priority)
+BoblightClientConnection::BoblightClientConnection(const QSharedPointer<Hyperion>& hyperionInstance, QTcpSocket* socket, int priority)
 	: QObject()
 	, _locale(QLocale::C)
 	, _socket(socket)
-	, _imageProcessor(hyperion->getImageProcessor())
-	, _hyperion(hyperion)
+	, _hyperionWeak(hyperionInstance)
+	, _imageProcessorWeak()
 	, _receiveBuffer()
 	, _priority(priority)
-	, _ledColors(hyperion->getLedCount(), ColorRgb::BLACK)
-	, _log(Logger::getInstance("BOBLIGHT"))
+	, _ledColors()
+	, _log()
 	, _clientAddress(QHostInfo::fromName(socket->peerAddress().toString()).hostName())
 {
 	// initalize the locale. Start with the default C-locale
 	_locale.setNumberOptions(QLocale::OmitGroupSeparator | QLocale::RejectGroupSeparator);
+
+	QString subComponent{ "__" };
+
+	QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
+	if (hyperion)
+	{
+		subComponent = hyperion->property("instance").toString();
+
+		_imageProcessorWeak = hyperion->getImageProcessor();
+		_ledColors.resize(hyperion->getLedCount(), ColorRgb::BLACK);
+	}
+	_log = Logger::getInstance("BOBLIGHT", subComponent);
 
 	// connect internal signals and slots
 	connect(_socket, &QTcpSocket::disconnected, this, &BoblightClientConnection::socketClosed);
@@ -113,7 +125,11 @@ void BoblightClientConnection::socketClosed()
 {
 	if (_priority >= BOBLIGHT_MIN_PRIORITY && _priority <= BOBLIGHT_MAX_PRIORITY)
 	{
-		_hyperion->clear(_priority);
+		QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
+		if (hyperion)
+		{
+			hyperion->clear(_priority);
+		}
 	}
 
 	emit connectionClosed(this);
@@ -125,6 +141,7 @@ void BoblightClientConnection::handleMessage(const QString& message)
 	QStringList messageParts = QStringUtils::split(message, ' ', QStringUtils::SplitBehavior::SkipEmptyParts);
 	if (!messageParts.isEmpty())
 	{
+		QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
 		if (messageParts[0] == "hello")
 		{
 			sendMessage("hello\n");
@@ -179,7 +196,7 @@ void BoblightClientConnection::handleMessage(const QString& message)
 							// send current color values to hyperion if this is the last led assuming leds values are send in order of id
 							if (ledIndex == _ledColors.size() - 1)
 							{
-								_hyperion->setInput(_priority, _ledColors);
+								hyperion->setInput(_priority, _ledColors);
 							}
 
 							return;
@@ -201,11 +218,11 @@ void BoblightClientConnection::handleMessage(const QString& message)
 				const int prio = static_cast<int>(parseUInt(messageParts[2], &rc));
 				if (rc)
 				{
-					int currentPriority = _hyperion->getCurrentPriority();
+					int currentPriority = hyperion->getCurrentPriority();
 
 					if (prio == currentPriority)
 					{
-						Error(_log, "The priority %i is already in use onther component of type [%s]", prio, componentToString(_hyperion->getPriorityInfo(currentPriority).componentId));
+						Error(_log, "The priority %i is already in use onther component of type [%s]", prio, componentToString(hyperion->getPriorityInfo(currentPriority).componentId));
 						_socket->close();
 					}
 					else
@@ -213,7 +230,7 @@ void BoblightClientConnection::handleMessage(const QString& message)
 						if (prio < BOBLIGHT_MIN_PRIORITY || prio > BOBLIGHT_MAX_PRIORITY)
 						{
 							_priority = BOBLIGHT_DEFAULT_PRIORITY;
-							while (_hyperion->getActivePriorities().contains(_priority))
+							while (hyperion->getActivePriorities().contains(_priority))
 							{
 								_priority += 1;
 							}
@@ -222,12 +239,12 @@ void BoblightClientConnection::handleMessage(const QString& message)
 							Warning(_log, "The priority %i is not in the priority range of [%d-%d]. Priority %i is used instead.",
 									 prio, BOBLIGHT_MIN_PRIORITY, BOBLIGHT_MAX_PRIORITY, _priority);
 							// register new priority (previously modified)
-							_hyperion->registerInput(_priority, hyperion::COMP_BOBLIGHTSERVER, QString("Boblight@%1").arg(_clientAddress));
+							hyperion->registerInput(_priority, hyperion::COMP_BOBLIGHTSERVER, QString("Boblight@%1").arg(_clientAddress));
 						}
 						else
 						{
 							// register new priority
-							_hyperion->registerInput(prio, hyperion::COMP_BOBLIGHTSERVER, QString("Boblight@%1").arg(_clientAddress));
+							hyperion->registerInput(prio, hyperion::COMP_BOBLIGHTSERVER, QString("Boblight@%1").arg(_clientAddress));
 							_priority = prio;
 						}
 					}
@@ -239,16 +256,16 @@ void BoblightClientConnection::handleMessage(const QString& message)
 		{
 			if (_priority >= BOBLIGHT_MIN_PRIORITY && _priority <= BOBLIGHT_MAX_PRIORITY)
 			{
-				int currentPriority = _hyperion->getCurrentPriority();
+				int currentPriority = hyperion->getCurrentPriority();
 				if ( _priority != currentPriority)
 				{
 					// register this connection's priority
-					_hyperion->registerInput(_priority, hyperion::COMP_BOBLIGHTSERVER, QString("Boblight@%1").arg(_clientAddress));
+					hyperion->registerInput(_priority, hyperion::COMP_BOBLIGHTSERVER, QString("Boblight@%1").arg(_clientAddress));
 				}
 
 				if (_priority >= BOBLIGHT_MIN_PRIORITY && _priority <= BOBLIGHT_MAX_PRIORITY)
 				{
-					_hyperion->setInput(_priority, _ledColors); // send current color values to hyperion
+					hyperion->setInput(_priority, _ledColors); // send current color values to hyperion
 				}
 			}
 
@@ -409,14 +426,23 @@ void BoblightClientConnection::sendLightMessage()
 {
 	char buffer[256];
 
-	int n = snprintf(buffer, sizeof(buffer), "lights %d\n", _hyperion->getLedCount());
-	sendMessage(QByteArray(buffer, n));
-
-	double h0, h1, v0, v1;
-	for (int i = 0; i < _hyperion->getLedCount(); ++i)
+	QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
+	if (hyperion)
 	{
-		_imageProcessor->getScanParameters(i, h0, h1, v0, v1);
-		n = snprintf(buffer, sizeof(buffer), "light %03d scan %f %f %f %f\n", i, 100 * v0, 100 * v1, 100 * h0, 100 * h1);
+		int n = snprintf(buffer, sizeof(buffer), "lights %d\n", hyperion->getLedCount());
 		sendMessage(QByteArray(buffer, n));
+
+		QSharedPointer<ImageProcessor> const imageProcessor = _imageProcessorWeak.toStrongRef();
+		if (imageProcessor)
+		{
+			double h0, h1, v0, v1;
+
+			for (int i = 0; i < hyperion->getLedCount(); ++i)
+			{
+				imageProcessor->getScanParameters(i, h0, h1, v0, v1);
+				n = snprintf(buffer, sizeof(buffer), "light %03d scan %f %f %f %f\n", i, 100 * v0, 100 * v1, 100 * h0, 100 * h1);
+				sendMessage(QByteArray(buffer, n));
+			}
+		}
 	}
 }

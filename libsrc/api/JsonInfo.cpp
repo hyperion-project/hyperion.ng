@@ -20,7 +20,7 @@
 #include <effectengine/EffectFileHandler.h>
 #endif
 
-QJsonObject JsonInfo::getInfo(const Hyperion* hyperion, Logger* log)
+QJsonObject JsonInfo::getInfo(const QSharedPointer<Hyperion>& hyperionInstance, Logger* log)
 {
 	QJsonObject info {};
 
@@ -32,22 +32,22 @@ QJsonObject JsonInfo::getInfo(const Hyperion* hyperion, Logger* log)
 	info["effects"] = JsonInfo::getEffects();
 
 	// Global/Instance specific information
-	info["grabbers"] = JsonInfo::getGrabbers(hyperion);
-	info["components"] = JsonInfo::getComponents(hyperion);
+	info["grabbers"] = JsonInfo::getGrabbers(hyperionInstance);
+	info["components"] = JsonInfo::getComponents(hyperionInstance);
 
 	// Instance specific information
-	info["priorities"] = JsonInfo::getPrioritiestInfo(hyperion);
-	info["adjustment"] = JsonInfo::getAdjustmentInfo(hyperion, log);
-	info["activeLedColor"] = JsonInfo::getActiveColors(hyperion);
+	info["priorities"] = JsonInfo::getPrioritiestInfo(hyperionInstance);
+	info["adjustment"] = JsonInfo::getAdjustmentInfo(hyperionInstance, log);
+	info["activeLedColor"] = JsonInfo::getActiveColors(hyperionInstance);
 #if defined(ENABLE_EFFECTENGINE)
-	info["activeEffects"] = JsonInfo::getActiveEffects(hyperion);
+	info["activeEffects"] = JsonInfo::getActiveEffects(hyperionInstance);
 #endif
-	if (hyperion != nullptr)
+	if (!hyperionInstance.isNull())
 	{
-		info["priorities_autoselect"] = hyperion->sourceAutoSelectEnabled();
-		info["videomode"] = QString(videoMode2String(hyperion->getCurrentVideoMode()));
-		info["imageToLedMappingType"] = ImageProcessor::mappingTypeToStr(hyperion->getLedMappingType());
-		info["leds"] = hyperion->getSetting(settings::LEDS).array();
+		info["priorities_autoselect"] = hyperionInstance->sourceAutoSelectEnabled();
+		info["videomode"] = QString(videoMode2String(hyperionInstance->getCurrentVideoMode()));
+		info["imageToLedMappingType"] = ImageProcessor::mappingTypeToStr(hyperionInstance->getLedMappingType());
+		info["leds"] = hyperionInstance->getSetting(settings::LEDS).array();
 	}
 	else
 	{
@@ -57,23 +57,23 @@ QJsonObject JsonInfo::getInfo(const Hyperion* hyperion, Logger* log)
 		info["leds"] = QJsonArray();
 	}
 
-	// BEGIN | The following entries are deprecated but used to ensure backward compatibility with hyperion Classic or up to Hyperion 2.0.16
+	// BEGIN | The following entries are deprecated but used to ensure backward compatibility with hyperionInstance Classic or up to hyperionInstance 2.0.16
 	info["hostname"] = QHostInfo::localHostName();
-	info["transform"] = JsonInfo::getTransformationInfo(hyperion);
+	info["transform"] = JsonInfo::getTransformationInfo(hyperionInstance);
 	return info;
 }
 
-QJsonArray JsonInfo::getAdjustmentInfo(const Hyperion* hyperion, Logger* log)
+QJsonArray JsonInfo::getAdjustmentInfo(const QSharedPointer<Hyperion>& hyperionInstance, Logger* log)
 {
-	if (hyperion == nullptr)
+	if (hyperionInstance.isNull())
 	{
 		return QJsonArray();
 	}
 
 	QJsonArray adjustmentArray;
-	for (const QString &adjustmentId : hyperion->getAdjustmentIds())
+	for (const QString &adjustmentId : hyperionInstance->getAdjustmentIds())
 	{
-		const ColorAdjustment *colorAdjustment = hyperion->getAdjustment(adjustmentId);
+		const ColorAdjustment *colorAdjustment = hyperionInstance->getAdjustment(adjustmentId);
 		if (colorAdjustment == nullptr)
 		{
 			Error(log, "Incorrect color adjustment id: %s", QSTRING_CSTR(adjustmentId));
@@ -143,14 +143,14 @@ QJsonArray JsonInfo::getAdjustmentInfo(const Hyperion* hyperion, Logger* log)
 	return adjustmentArray;
 }
 
-QJsonArray JsonInfo::getPrioritiestInfo(const Hyperion* hyperion)
+QJsonArray JsonInfo::getPrioritiestInfo(const QSharedPointer<Hyperion>& hyperionInstance)
 {
-	if (hyperion == nullptr)
+	if (hyperionInstance.isNull())
 	{
 		return QJsonArray();
 	}
 
-	return getPrioritiestInfo(hyperion->getCurrentPriority(), hyperion->getPriorityInfo());
+	return getPrioritiestInfo(hyperionInstance->getCurrentPriority(), hyperionInstance->getPriorityInfo());
 }
 
 QJsonArray JsonInfo::getPrioritiestInfo(int currentPriority, const PriorityMuxer::InputsMap& activeInputs)
@@ -310,14 +310,14 @@ QJsonArray JsonInfo::getAvailableAudioGrabbers()
 	return availableAudioGrabbers;
 }
 
-QJsonObject JsonInfo::getGrabbers(const Hyperion* hyperion)
+QJsonObject JsonInfo::getGrabbers(const QSharedPointer<Hyperion>& hyperionInstance)
 {
 	QJsonObject grabbers;
 
 	quint8 idx { NO_INSTANCE_ID };
-	if (hyperion != nullptr)
+	if (!hyperionInstance.isNull())
 	{
-		idx = hyperion->getInstanceIndex();
+		idx = hyperionInstance->getInstanceIndex();
 	}
 
 	// SCREEN
@@ -425,15 +425,15 @@ QJsonArray JsonInfo::getServices()
 	return services;
 }
 
-QJsonArray JsonInfo::getComponents(const Hyperion* hyperion)
+QJsonArray JsonInfo::getComponents(const QSharedPointer<Hyperion>& hyperionInstance)
 {
 	// get available components
 	QJsonArray component;
 	std::map<hyperion::Components, bool> components;
 
-	if (hyperion!= nullptr)
+	if (!hyperionInstance.isNull())
 	{
-		components = hyperion->getComponentRegister()->getRegister();
+		components = hyperionInstance->getComponentRegister()->getRegister();
 	}
 	else
 	{
@@ -466,17 +466,17 @@ QJsonArray JsonInfo::getInstanceInfo()
 	return instanceInfo;
 }
 
-QJsonArray JsonInfo::getTransformationInfo(const Hyperion* hyperion)
+QJsonArray JsonInfo::getTransformationInfo(const QSharedPointer<Hyperion>& hyperionInstance)
 {
 	// TRANSFORM INFORMATION (DEFAULT VALUES)
 	QJsonArray transformArray;
 
-	if (hyperion == nullptr)
+	if (hyperionInstance.isNull())
 	{
 		return transformArray;
 	}
 
-	for (const QString &transformId : hyperion->getAdjustmentIds())
+	for (const QString &transformId : hyperionInstance->getAdjustmentIds())
 	{
 		QJsonObject transform;
 		QJsonArray blacklevel;
@@ -509,18 +509,18 @@ QJsonArray JsonInfo::getTransformationInfo(const Hyperion* hyperion)
 	return transformArray;
 }
 
-QJsonArray JsonInfo::getActiveEffects(const Hyperion* hyperion)
+QJsonArray JsonInfo::getActiveEffects(const QSharedPointer<Hyperion>& hyperionInstance)
 {
 	// ACTIVE EFFECT INFO
 	QJsonArray activeEffects;
 
-	if (hyperion == nullptr)
+	if (hyperionInstance.isNull())
 	{
 		return activeEffects;
 	}
 
 #if defined(ENABLE_EFFECTENGINE)
-	for (const ActiveEffectDefinition &activeEffectDefinition : hyperion->getActiveEffects())
+	for (const ActiveEffectDefinition &activeEffectDefinition : hyperionInstance->getActiveEffects())
 	{
 		if (activeEffectDefinition.priority != PriorityMuxer::LOWEST_PRIORITY - 1)
 		{
@@ -537,12 +537,13 @@ QJsonArray JsonInfo::getActiveEffects(const Hyperion* hyperion)
 	return activeEffects;
 }
 
-QJsonArray JsonInfo::getActiveColors(const Hyperion* hyperion)
+QJsonArray JsonInfo::getActiveColors(const QSharedPointer<Hyperion>& hyperionInstance)
 {
 	// ACTIVE STATIC LED COLOR
 	QJsonArray activeLedColors;
 
-	if (hyperion == nullptr)
+	QSharedPointer<Hyperion> hyperion = hyperionInstance;
+	if (hyperion.isNull())
 	{
 		return activeLedColors;
 	}

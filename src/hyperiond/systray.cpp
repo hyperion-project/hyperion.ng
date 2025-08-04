@@ -9,6 +9,7 @@
 #include <events/EventHandler.h>
 
 #include <HyperionConfig.h> // Required to determine the cmake options
+#include <hyperion/Hyperion.h>
 #if defined(ENABLE_EFFECTENGINE)
 #include <effectengine/EffectDefinition.h>
 #include <effectengine/EffectFileHandler.h>
@@ -124,7 +125,7 @@ QAction *SysTray::createAction(const QString &text, const QString &iconPath, con
 
 void SysTray::setColor(int instance, const QColor &color)
 {
-	QSharedPointer<Hyperion> hyperion = HyperionIManager::getInstance()->getHyperionInstance(instance);
+	QSharedPointer<Hyperion> const hyperion = HyperionIManager::getInstance()->getHyperionInstance(instance);
 	if (!hyperion.isNull())
 	{
 		std::vector<ColorRgb> rgbColor {color.rgb()};
@@ -135,7 +136,7 @@ void SysTray::setColor(int instance, const QColor &color)
 #if defined(ENABLE_EFFECTENGINE)
 void SysTray::setEffect(int instance, const QString& effectName)
 {
-	QSharedPointer<Hyperion> hyperion = HyperionIManager::getInstance()->getHyperionInstance(instance);
+	QSharedPointer<Hyperion> const hyperion = HyperionIManager::getInstance()->getHyperionInstance(instance);
 	if (!hyperion.isNull())
 	{
 		emit hyperion->setEffect(effectName, PriorityMuxer::FG_PRIORITY, PriorityMuxer::ENDLESS);
@@ -161,7 +162,7 @@ void SysTray::showColorDialog(int instance)
 
 void SysTray::clearSource(int instance)
 {
-	QSharedPointer<Hyperion> hyperion = HyperionIManager::getInstance()->getHyperionInstance(instance);
+	QSharedPointer<Hyperion> const hyperion = HyperionIManager::getInstance()->getHyperionInstance(instance);
 	if (!hyperion.isNull())
 	{
 		emit hyperion->clear(PriorityMuxer::FG_PRIORITY);

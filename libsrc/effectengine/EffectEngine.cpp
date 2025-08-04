@@ -18,39 +18,49 @@
 #include <effectengine/EffectFileHandler.h>
 #include "HyperionConfig.h"
 
-EffectEngine::EffectEngine(Hyperion * hyperion)
-	: _hyperion(hyperion)
+EffectEngine::EffectEngine(const QSharedPointer<Hyperion>& hyperionInstance)
+	: _hyperionWeak(hyperionInstance)
 	, _log(nullptr)
 	, _effectFileHandler(EffectFileHandler::getInstance())
 {
-	QString subComponent = hyperion->property("instance").toString();
-	_log= Logger::getInstance("EFFECTENGINE", subComponent);
+	QString subComponent{ "__" };
+
+	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+	if (hyperion)
+	{
+		subComponent = hyperion->property("instance").toString();
+	}
+	_log = Logger::getInstance("EFFECTENGINE", subComponent);
+
 
 	Q_INIT_RESOURCE(EffectEngine);
 	qRegisterMetaType<hyperion::Components>("hyperion::Components");
 
-	// connect the Hyperion channel clear feedback
-	connect(_hyperion, &Hyperion::channelCleared, this, &EffectEngine::channelCleared);
-	connect(_hyperion, &Hyperion::allChannelsCleared, this, &EffectEngine::allChannelsCleared);
+	if (hyperion)
+	{
+		// connect the Hyperion channel clear feedback
+		connect(hyperion.get(), &Hyperion::channelCleared, this, &EffectEngine::channelCleared);
+		connect(hyperion.get(), &Hyperion::allChannelsCleared, this, &EffectEngine::allChannelsCleared);
 
-	// get notifications about refreshed effect list
-	connect(_effectFileHandler, &EffectFileHandler::effectListChanged, this, &EffectEngine::handleUpdatedEffectList);
+		// get notifications about refreshed effect list
+		connect(_effectFileHandler, &EffectFileHandler::effectListChanged, this, &EffectEngine::handleUpdatedEffectList);
 
-	// Stop all effects when instance is disabled, restart the same when enabled
-	connect(_hyperion, &Hyperion::compStateChangeRequest, this, [=](hyperion::Components component, bool enable) {
-		if (component == hyperion::COMP_ALL)
-		{
-			if (enable)
+		// Stop all effects when instance is disabled, restart the same when enabled
+		connect(hyperion.get(), &Hyperion::compStateChangeRequest, this, [=](hyperion::Components component, bool enable) {
+			if (component == hyperion::COMP_ALL)
 			{
-				startCachedEffects();
+				if (enable)
+				{
+					startCachedEffects();
+				}
+				else
+				{
+					cacheRunningEffects();
+					stopAllEffects();
+				}
 			}
-			else
-			{
-				cacheRunningEffects();
-				stopAllEffects();
-			}
-		}
-	});
+			});
+	}
 
 	// register smooth cfgs and fill available effects
 	handleUpdatedEffectList();
@@ -58,6 +68,7 @@ EffectEngine::EffectEngine(Hyperion * hyperion)
 
 EffectEngine::~EffectEngine()
 {
+	qDebug() << "EffectEngine::~EffectEngine()...";
 }
 
 std::list<ActiveEffectDefinition> EffectEngine::getActiveEffects() const
@@ -109,8 +120,9 @@ void EffectEngine::handleUpdatedEffectList()
 {
 	_availableEffects.clear();
 
+	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
 	//Add smoothing config entry to support dynamic effects done in configurator
-	_hyperion->updateSmoothingConfig(SmoothingConfigID::EFFECT_DYNAMIC);
+	hyperion->updateSmoothingConfig(SmoothingConfigID::EFFECT_DYNAMIC);
 
 	unsigned specificId = SmoothingConfigID::EFFECT_SPECIFIC;
 	for (auto def : _effectFileHandler->getEffects())
@@ -124,7 +136,7 @@ void EffectEngine::handleUpdatedEffectList()
 
 			Debug(_log, "Effect \"%s\": Add custom smoothing settings [%d]. Type: Linear, Settling time: %dms, Interval: %.fHz ", QSTRING_CSTR(def.name), specificId, settlingTime_ms, ledUpdateFrequency_hz);
 
-			def.smoothCfg = _hyperion->updateSmoothingConfig(
+			def.smoothCfg = hyperion->updateSmoothingConfig(
 								++specificId,
 								settlingTime_ms,
 								ledUpdateFrequency_hz,
@@ -164,7 +176,7 @@ int EffectEngine::runEffect(const QString &effectName, const QJsonObject &args, 
 
 		Debug(_log, "Effect \"%s\": Apply dynamic smoothing settings, if smoothing. Type: Linear, Settling time: %dms, Interval: %.fHz ", QSTRING_CSTR(effectName), settlingTime_ms, ledUpdateFrequency_hz);
 
-		smoothCfg = _hyperion->updateSmoothingConfig(
+		smoothCfg = _hyperionWeak.toStrongRef()->updateSmoothingConfig(
 						SmoothingConfigID::EFFECT_DYNAMIC,
 						settlingTime_ms,
 						ledUpdateFrequency_hz,
@@ -203,15 +215,16 @@ int EffectEngine::runEffectScript(const QString &script, const QString &name, co
 	channelCleared(priority);
 
 	// create the effect
-	Effect *effect = new Effect(_hyperion, priority, timeout, script, name, args, imageData);
-	connect(effect, &Effect::setInput, _hyperion, &Hyperion::setInput, Qt::QueuedConnection);
-	connect(effect, &Effect::setInputImage, _hyperion, &Hyperion::setInputImage, Qt::QueuedConnection);
+	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+	Effect *effect = new Effect(hyperion, priority, timeout, script, name, args, imageData);
+	connect(effect, &Effect::setInput, hyperion.get(), &Hyperion::setInput, Qt::QueuedConnection);
+	connect(effect, &Effect::setInputImage, hyperion.get(), &Hyperion::setInputImage, Qt::QueuedConnection);
 	connect(effect, &QThread::finished, this, &EffectEngine::effectFinished);
 	_activeEffects.push_back(effect);
 
 	// start the effect
 	Debug(_log, "Start the effect: \"%s\"", QSTRING_CSTR(name));
-	_hyperion->registerInput(priority, hyperion::COMP_EFFECT, origin, name ,smoothCfg);
+	hyperion->registerInput(priority, hyperion::COMP_EFFECT, origin, name ,smoothCfg);
 	effect->start();
 
 	return 0;

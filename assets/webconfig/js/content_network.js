@@ -266,16 +266,11 @@ $(document).ready(function () {
     $("#conf_cont_tok").insertAfter("#conf_cont_network");
 
     // Initial state check based on server config
-    checkApiTokenState(window.serverConfig.network.internetAccessAPI || window.serverConfig.network.localApiAuth || storedAccess === 'expert');
-
-    // Listen for changes on the Internet access API Auth toggle
-    $('#root_network_internetAccessAPI').on("change", function () {
-      checkApiTokenState($(this).is(":checked") || $('#root_network_localApiAuth').is(":checked"));
-    });
+    checkApiTokenState(window.serverConfig.network.localApiAuth || storedAccess === 'expert');
 
     // Listen for changes on the local API Auth toggle
     $('#root_network_localApiAuth').on("change", function () {
-      checkApiTokenState($(this).is(":checked") || $('#root_network_internetAccessAPI').is(":checked"));
+      checkApiTokenState($(this).is(":checked"));
     });
 
     $('#btn_create_tok').off().on('click', function () {
@@ -317,7 +312,7 @@ $(document).ready(function () {
     }
 
     function checkApiTokenState(state) {
-      if (!state) {
+      if (!state && storedAccess !== 'expert') {
         $("#conf_cont_tok").hide();
       } else {
         $("#conf_cont_tok").show();

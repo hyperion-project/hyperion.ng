@@ -68,22 +68,17 @@ void ProtoServer::newConnection()
 	{
 		if(QTcpSocket * socket = _server->nextPendingConnection())
 		{
-			if(_netOrigin->accessAllowed(socket->peerAddress(), socket->localAddress()))
-			{
-				Debug(_log, "New connection from %s", QSTRING_CSTR(socket->peerAddress().toString()));
-				ProtoClientConnection * client = new ProtoClientConnection(socket, _timeout, this);
-				// internal
-				connect(client, &ProtoClientConnection::clientDisconnected, this, &ProtoServer::clientDisconnected);
-				connect(client, &ProtoClientConnection::registerGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::registerGlobalInput);
-				connect(client, &ProtoClientConnection::clearGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::clearGlobalInput);
-				connect(client, &ProtoClientConnection::setGlobalInputImage, GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage);
-				connect(client, &ProtoClientConnection::setGlobalInputColor, GlobalSignals::getInstance(), &GlobalSignals::setGlobalColor);
-				connect(client, &ProtoClientConnection::setBufferImage, GlobalSignals::getInstance(), &GlobalSignals::setBufferImage);
-				connect(GlobalSignals::getInstance(), &GlobalSignals::globalRegRequired, client, &ProtoClientConnection::registationRequired);
-				_openConnections.append(client);
-			}
-			else
-				socket->close();
+			Debug(_log, "New connection from %s", QSTRING_CSTR(socket->peerAddress().toString()));
+			ProtoClientConnection * client = new ProtoClientConnection(socket, _timeout, this);
+			// internal
+			connect(client, &ProtoClientConnection::clientDisconnected, this, &ProtoServer::clientDisconnected);
+			connect(client, &ProtoClientConnection::registerGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::registerGlobalInput);
+			connect(client, &ProtoClientConnection::clearGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::clearGlobalInput);
+			connect(client, &ProtoClientConnection::setGlobalInputImage, GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage);
+			connect(client, &ProtoClientConnection::setGlobalInputColor, GlobalSignals::getInstance(), &GlobalSignals::setGlobalColor);
+			connect(client, &ProtoClientConnection::setBufferImage, GlobalSignals::getInstance(), &GlobalSignals::setBufferImage);
+			connect(GlobalSignals::getInstance(), &GlobalSignals::globalRegRequired, client, &ProtoClientConnection::registationRequired);
+			_openConnections.append(client);
 		}
 	}
 }

@@ -442,7 +442,28 @@ $(window.hyperion).on("cmd-config-setconfig", function (event) {
 
 function bindUiHandlers() {
 
-  // Side menu link click activation
+  // Handle language selection
+
+  // Prevent dropdown from closing when selecting language
+  $('#btn_setlang').on('click', function (e) {
+    e.stopPropagation();
+  });
+
+  $('#language-select').on('changed.bs.select', function () {
+    const newLang = $(this).val();
+    if (newLang !== storedLang) {
+      setStorage("langcode", newLang);
+      location.reload();
+    }
+  });
+
+  //Close selector, if open (and no change in language happend)
+  $(document).on("click", function () {
+    $(".bootstrap-select.open").removeClass("open");
+  });
+  //End language selection
+
+  // Side smenu link click activation
   $('#side-menu li a, #side-menu li ul li a').on("click", function () {
     $('#side-menu').find('.active').removeClass('active');
     $(this).addClass('active');
@@ -475,13 +496,6 @@ function bindUiHandlers() {
 
     logo.style.display = window.scrollY > 65 ? "none" : "";
   }, { passive: true });
-
-  // Language selector
-  $(".langSelect").off().on("click", function () {
-    const newLang = $(this).attr("id").replace("lang_", "");
-    setStorage("lang", newLang);
-    location.reload();
-  });
 
   // Toggle top menu for mobile
   $(".navbar-toggle").off().on("click", function () {

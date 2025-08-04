@@ -22,10 +22,10 @@ using namespace hyperion;
 JsonCallbacks::JsonCallbacks(Logger *log, const QString& peerAddress, QObject* parent)
 	: QObject(parent)
 	, _log (log)
-	, _hyperion(nullptr)
+	, _hyperionWeak(nullptr)
 	, _peerAddress (peerAddress)
-	, _componentRegister(nullptr)
-	, _prioMuxer(nullptr)
+	, _componentRegisterWeak(nullptr)
+	, _prioMuxerWeak(nullptr)
 	, _islogMsgStreamingActive(false)
 {
 	qRegisterMetaType<PriorityMuxer::InputsMap>("InputsMap");
@@ -42,11 +42,6 @@ void JsonCallbacks::handleInstanceStateChange(InstanceState state, quint8 instan
 		if (instanceID == _instanceID)
 		{
 			setSubscriptionsTo(NO_INSTANCE_ID);
-
-			//Release reference to stopped Hyperion instance
-			_prioMuxer.clear();
-			_componentRegister.clear();
-			_hyperion.clear();
 		}
 	}
 
@@ -55,7 +50,7 @@ void JsonCallbacks::handleInstanceStateChange(InstanceState state, quint8 instan
 	case InstanceState::H_STARTED:
 	case InstanceState::H_CREATED:
 	case InstanceState::H_DELETED:
-	break;
+		break;
 	}
 }
 
@@ -66,14 +61,17 @@ bool JsonCallbacks::subscribe(const Subscription::Type cmd)
 		return true;
 	}
 
+	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+
 	switch (cmd) {
 
 	// Global subscriptions
-#if defined(ENABLE_EFFECTENGINE)
 	case Subscription::EffectsUpdate:
+#if defined(ENABLE_EFFECTENGINE)
 		connect(EffectFileHandler::getInstance(), &EffectFileHandler::effectListChanged, this, &JsonCallbacks::handleEffectListChange);
-	break;
 #endif
+	break;
+
 	case Subscription::EventUpdate:
 		connect(EventHandler::getInstance().data(), &EventHandler::signalEvent, this, &JsonCallbacks::handleEventUpdate);
 	break;
@@ -98,43 +96,49 @@ bool JsonCallbacks::subscribe(const Subscription::Type cmd)
 
 		// Instance specific subscriptions
 	case Subscription::AdjustmentUpdate:
-		if (!_hyperion.isNull()) {
-			connect(_hyperion.get(), &Hyperion::adjustmentChanged, this, &JsonCallbacks::handleAdjustmentChange);
+		if (!hyperion.isNull()) {
+			connect(hyperion.get(), &Hyperion::adjustmentChanged, this, &JsonCallbacks::handleAdjustmentChange);
 		}
 	break;
 	case Subscription::ComponentsUpdate:
-		if (!_componentRegister.isNull()) {
-			connect(_componentRegister.get(), &ComponentRegister::updatedComponentState, this, &JsonCallbacks::handleComponentState);
+	{
+		QSharedPointer<ComponentRegister> componentRegisterStrong = _componentRegisterWeak.toStrongRef();
+		if (!componentRegisterStrong.isNull()) {
+			connect(componentRegisterStrong.get(), &ComponentRegister::updatedComponentState, this, &JsonCallbacks::handleComponentState);
 		}
+	}
 	break;
 	case Subscription::ImageToLedMappingUpdate:
-		if (!_hyperion.isNull()) {
-			connect(_hyperion.get(), &Hyperion::imageToLedsMappingChanged, this, &JsonCallbacks::handleImageToLedsMappingChange);
+		if (!hyperion.isNull()) {
+			connect(hyperion.get(), &Hyperion::imageToLedsMappingChanged, this, &JsonCallbacks::handleImageToLedsMappingChange);
 		}
 	break;
 	case Subscription::ImageUpdate:
-		if (!_hyperion.isNull()) {
-			connect(_hyperion.get(),  &Hyperion::currentImage, this, &JsonCallbacks::handleImageUpdate);
+		if (!hyperion.isNull()) {
+			connect(hyperion.get(),  &Hyperion::currentImage, this, &JsonCallbacks::handleImageUpdate);
 		}
 	break;
 	case Subscription::LedColorsUpdate:
-		if (!_hyperion.isNull()) {
-			connect(_hyperion.get(), &Hyperion::rawLedColors, this, &JsonCallbacks::handleLedColorUpdate);
+		if (!hyperion.isNull()) {
+			connect(hyperion.get(), &Hyperion::rawLedColors, this, &JsonCallbacks::handleLedColorUpdate);
 		}
 	break;
 	case Subscription::LedsUpdate:
-		if (!_hyperion.isNull()) {
-			connect(_hyperion.get(), &Hyperion::settingsChanged, this, &JsonCallbacks::handleLedsConfigChange);
+		if (!hyperion.isNull()) {
+			connect(hyperion.get(), &Hyperion::settingsChanged, this, &JsonCallbacks::handleLedsConfigChange);
 		}
 	break;
 	case Subscription::PrioritiesUpdate:
-		if (!_prioMuxer.isNull()) {
-			connect(_prioMuxer.get(), &PriorityMuxer::prioritiesChanged, this, &JsonCallbacks::handlePriorityUpdate);
+	{
+		QSharedPointer<PriorityMuxer> prioMuxerStrong = _prioMuxerWeak.toStrongRef();
+		if (!prioMuxerStrong.isNull()) {
+			connect(prioMuxerStrong.get(), &PriorityMuxer::prioritiesChanged, this, &JsonCallbacks::handlePriorityUpdate);
 		}
+	}
 	break;
 	case Subscription::VideomodeUpdate:
-		if (!_hyperion.isNull()) {
-			connect(_hyperion.get(), &Hyperion::newVideoMode, this, &JsonCallbacks::handleVideoModeChange);
+		if (!hyperion.isNull()) {
+			connect(hyperion.get(), &Hyperion::newVideoMode, this, &JsonCallbacks::handleVideoModeChange);
 		}
 	break;
 
@@ -194,14 +198,16 @@ bool JsonCallbacks::unsubscribe(const Subscription::Type cmd)
 
 	_subscribedCommands.remove(cmd);
 
-	switch (cmd) {
+	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
 
+	switch (cmd) {
 	// Global subscriptions
-#if defined(ENABLE_EFFECTENGINE)
 	case Subscription::EffectsUpdate:
+#if defined(ENABLE_EFFECTENGINE)
 		disconnect(EffectFileHandler::getInstance(), &EffectFileHandler::effectListChanged, this, &JsonCallbacks::handleEffectListChange);
-	break;
 #endif
+	break;
+
 	case Subscription::EventUpdate:
 		disconnect(EventHandler::getInstance().data(), &EventHandler::signalEvent, this, &JsonCallbacks::handleEventUpdate);
 	break;
@@ -225,44 +231,50 @@ bool JsonCallbacks::unsubscribe(const Subscription::Type cmd)
 
 		// Instance specific subscriptions
 	case Subscription::AdjustmentUpdate:
-		if (!_hyperion.isNull()) {
-			disconnect(_hyperion.get(), &Hyperion::adjustmentChanged, this, &JsonCallbacks::handleAdjustmentChange);
+		if (!hyperion.isNull()) {
+			disconnect(hyperion.get(), &Hyperion::adjustmentChanged, this, &JsonCallbacks::handleAdjustmentChange);
 		}
 	break;
 	case Subscription::ComponentsUpdate:
-		if (!_componentRegister.isNull()) {
-			disconnect(_componentRegister.get(), &ComponentRegister::updatedComponentState, this, &JsonCallbacks::handleComponentState);
+	{
+		QSharedPointer<ComponentRegister> componentRegisterStrong = _componentRegisterWeak.toStrongRef();
+		if (!componentRegisterStrong.isNull()) {
+			disconnect(componentRegisterStrong.get(), &ComponentRegister::updatedComponentState, this, &JsonCallbacks::handleComponentState);
 		}
+	}
 	break;
 
 	case Subscription::ImageToLedMappingUpdate:
-		if (!_hyperion.isNull()) {
-			disconnect(_hyperion.get(), &Hyperion::imageToLedsMappingChanged, this, &JsonCallbacks::handleImageToLedsMappingChange);
+		if (!hyperion.isNull()) {
+			disconnect(hyperion.get(), &Hyperion::imageToLedsMappingChanged, this, &JsonCallbacks::handleImageToLedsMappingChange);
 		}
 	break;
 	case Subscription::ImageUpdate:
-		if (!_hyperion.isNull()) {
-			disconnect(_hyperion.get(), &Hyperion::currentImage, this, &JsonCallbacks::handleImageUpdate);
+		if (!hyperion.isNull()) {
+			disconnect(hyperion.get(), &Hyperion::currentImage, this, &JsonCallbacks::handleImageUpdate);
 		}
 	break;
 	case Subscription::LedColorsUpdate:
-		if (!_hyperion.isNull()) {
-			disconnect(_hyperion.get(), &Hyperion::rawLedColors, this, &JsonCallbacks::handleLedColorUpdate);
+		if (!hyperion.isNull()) {
+			disconnect(hyperion.get(), &Hyperion::rawLedColors, this, &JsonCallbacks::handleLedColorUpdate);
 		}
 	break;
 	case Subscription::LedsUpdate:
-		if (!_hyperion.isNull()) {
-			disconnect(_hyperion.get(), &Hyperion::settingsChanged, this, &JsonCallbacks::handleLedsConfigChange);
+		if (!hyperion.isNull()) {
+			disconnect(hyperion.get(), &Hyperion::settingsChanged, this, &JsonCallbacks::handleLedsConfigChange);
 		}
 	break;
 	case Subscription::PrioritiesUpdate:
-		if (!_prioMuxer.isNull()) {
-			disconnect(_prioMuxer.get(), &PriorityMuxer::prioritiesChanged, this, &JsonCallbacks::handlePriorityUpdate);
+	{
+		QSharedPointer<PriorityMuxer> prioMuxerStrong = _prioMuxerWeak.toStrongRef();
+		if (!prioMuxerStrong.isNull()) {
+			disconnect(prioMuxerStrong.get(), &PriorityMuxer::prioritiesChanged, this, &JsonCallbacks::handlePriorityUpdate);
 		}
+	}
 	break;
 	case Subscription::VideomodeUpdate:
-		if (!_hyperion.isNull()) {
-			disconnect(_hyperion.get(), &Hyperion::newVideoMode, this, &JsonCallbacks::handleVideoModeChange);
+		if (!hyperion.isNull()) {
+			disconnect(hyperion.get(), &Hyperion::newVideoMode, this, &JsonCallbacks::handleVideoModeChange);
 		}
 	break;
 
@@ -323,13 +335,14 @@ void JsonCallbacks::setSubscriptionsTo(quint8 instanceID)
 	resetSubscriptions();
 
 	_instanceID = instanceID;
+
 	// update pointer
 	QSharedPointer<Hyperion> const hyperion =  HyperionIManager::getInstance()->getHyperionInstance(instanceID);
-	if (!hyperion.isNull() && hyperion != _hyperion)
+	if (!hyperion.isNull() && hyperion != _hyperionWeak)
 	{
-		_hyperion = hyperion;
-		_componentRegister = _hyperion->getComponentRegister();
-		_prioMuxer = _hyperion->getMuxerInstance();
+		_hyperionWeak = hyperion;
+		_componentRegisterWeak = hyperion->getComponentRegister();
+		_prioMuxerWeak = hyperion->getMuxerInstance();
 	}
 
 	// re-apply subscriptions
@@ -421,7 +434,7 @@ void JsonCallbacks::handlePriorityUpdate(int currentPriority, const PriorityMuxe
 {
 	QJsonObject data;
 	data["priorities"] = JsonInfo::getPrioritiestInfo(currentPriority, activeInputs);
-	data["priorities_autoselect"] = _hyperion->sourceAutoSelectEnabled();
+	data["priorities_autoselect"] = _hyperionWeak.toStrongRef()->sourceAutoSelectEnabled();
 
 	doCallback(Subscription::PrioritiesUpdate, data);
 }
@@ -436,7 +449,7 @@ void JsonCallbacks::handleImageToLedsMappingChange(int mappingType)
 
 void JsonCallbacks::handleAdjustmentChange()
 {
-	doCallback(Subscription::AdjustmentUpdate, JsonInfo::getAdjustmentInfo(_hyperion.get(),_log));
+	doCallback(Subscription::AdjustmentUpdate, JsonInfo::getAdjustmentInfo(_hyperionWeak.toStrongRef(), _log));
 }
 
 void JsonCallbacks::handleVideoModeChange(VideoMode mode)

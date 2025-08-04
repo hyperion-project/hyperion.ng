@@ -16,11 +16,22 @@ class CaptureCont : public QObject
 {
 	Q_OBJECT
 public:
-	CaptureCont(Hyperion* hyperion);
+	explicit CaptureCont(const QSharedPointer<Hyperion>& hyperionInstance);
+	~CaptureCont() override;
 
 	void setScreenCaptureEnable(bool enable);
 	void setVideoCaptureEnable(bool enable);
 	void setAudioCaptureEnable(bool enable);
+
+	///
+	/// @brief Start Capture Control and its timers
+	///
+	void start();
+
+	///
+	/// @brief Stop Capture Control and its timers
+	///
+	void stop();
 
 private slots:
 	///
@@ -72,24 +83,24 @@ private slots:
 
 
 private:
-	/// Hyperion instance
-	Hyperion* _hyperion;
+	/// Hyperion instance pointer
+	QWeakPointer<Hyperion> _hyperionWeak;
 
 	/// Reflect state of screen capture and prio
 	bool _screenCaptureEnabled;
 	int _screenCapturePriority;
 	QString _screenCaptureName;
-	QTimer* _screenCaptureInactiveTimer;
+	QScopedPointer<QTimer> _screenCaptureInactiveTimer;
 
 	/// Reflect state of video capture and prio
 	bool _videoCaptureEnabled;
 	int _videoCapturePriority;
 	QString _videoCaptureName;
-	QTimer* _videoInactiveTimer;
+	QScopedPointer<QTimer> _videoInactiveTimer;
 
 	/// Reflect state of audio capture and prio
 	bool _audioCaptureEnabled;
 	int _audioCapturePriority;
 	QString _audioCaptureName;
-	QTimer* _audioCaptureInactiveTimer;
+	QScopedPointer<QTimer> _audioCaptureInactiveTimer;
 };

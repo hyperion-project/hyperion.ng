@@ -114,6 +114,11 @@ ImageToLedsMap::ImageToLedsMap(
 
 }
 
+	ImageToLedsMap::~ImageToLedsMap()
+	{
+		qDebug() << "ImageToLedsMap::~ImageToLedsMap()...";
+	}
+
 int ImageToLedsMap::width() const
 {
 	return _width;
