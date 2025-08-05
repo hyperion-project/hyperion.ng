@@ -83,7 +83,6 @@ private:
 	bool resetDeviceAndCapture();
 
 	void computeCropBox(const D3D11_TEXTURE2D_DESC& desc, D3D11_BOX& box) const;
-	void copyMappedToImage(const D3D11_MAPPED_SUBRESOURCE& mapped, Image<ColorRgb>& image) const;
 
 private:
 	std::unique_ptr<DDAGrabberImpl> d;
