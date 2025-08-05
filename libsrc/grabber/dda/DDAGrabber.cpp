@@ -310,64 +310,117 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image)
 	const int srcPitch = mapped.RowPitch;
 
 	image.resize(d->finalWidth, d->finalHeight);
-	ColorRgb* rgbBuffer = image.memptr();
-
-	if (!rgbBuffer)
+	ColorRgb* rgbDestinationBuffer = image.memptr();
+	if (!rgbDestinationBuffer)
 	{
 		d->deviceContext->Unmap(d->intermediateTexture, 0);
 		return -1;
 	}
 
-	const int srcWidth1 = srcWidth - 1;
-	const int srcHeight1 = srcHeight - 1;
-	const int finalWidth1 = d->finalWidth - 1;
-	const int finalHeight1 = d->finalHeight - 1;
-
-	for (int y_dest = 0; y_dest < d->finalHeight; ++y_dest)
+	//Determine the processing strategy once per frame, and execute in specilised function
+	switch (d->desktopRotation)
 	{
-		ColorRgb* destRowPtr = rgbBuffer + (y_dest * d->finalWidth);
-
-		for (int x_dest = 0; x_dest < d->finalWidth; ++x_dest)
-		{
-			int src_x, src_y;
-
-			switch (d->desktopRotation)
-			{
-			case DXGI_MODE_ROTATION_IDENTITY:
-				src_x = x_dest * _pixelDecimation;
-				src_y = y_dest * _pixelDecimation;
-				break;
-			case DXGI_MODE_ROTATION_ROTATE90:
-				src_x = srcWidth1 - ((finalHeight1 - y_dest) * _pixelDecimation);
-				src_y = (finalWidth1 - x_dest) * _pixelDecimation;
-				break;
-			case DXGI_MODE_ROTATION_ROTATE180:
-				src_x = srcWidth1 - (x_dest * _pixelDecimation);
-				src_y = srcHeight1 - (y_dest * _pixelDecimation);
-				break;
-			case DXGI_MODE_ROTATION_ROTATE270:
-				src_x = (finalHeight1 - y_dest) * _pixelDecimation;
-				src_y = srcHeight1 - ((finalWidth1 - x_dest) * _pixelDecimation);
-				break;
-			default:
-				src_x = x_dest * _pixelDecimation;
-				src_y = y_dest * _pixelDecimation;
-				break;
-			}
-
-			src_x = std::clamp(src_x, 0, srcWidth1);
-			src_y = std::clamp(src_y, 0, srcHeight1);
-
-			const unsigned char* srcPixel = srcPixels + (src_y * srcPitch) + (src_x << 2);
-			ColorRgb& destPixel = destRowPtr[x_dest];
-			destPixel.red = srcPixel[2];
-			destPixel.green = srcPixel[1];
-			destPixel.blue = srcPixel[0];
-		}
+	case DXGI_MODE_ROTATION_ROTATE90:
+		processFrameRotate90(rgbDestinationBuffer, srcPixels, srcWidth, srcHeight, srcPitch, d->finalWidth, d->finalHeight, _pixelDecimation);
+		break;
+	case DXGI_MODE_ROTATION_ROTATE180:
+		processFrameRotate180(rgbDestinationBuffer, srcPixels, srcWidth, srcHeight, srcPitch, d->finalWidth, d->finalHeight, _pixelDecimation);
+		break;
+	case DXGI_MODE_ROTATION_ROTATE270:
+		processFrameRotate270(rgbDestinationBuffer, srcPixels, srcWidth, srcHeight, srcPitch, d->finalWidth, d->finalHeight, _pixelDecimation);
+		break;
+	case DXGI_MODE_ROTATION_IDENTITY:
+	default: // Fallback to identity
+		processFrameIdentity(rgbDestinationBuffer, srcPixels, srcWidth, srcHeight, srcPitch, d->finalWidth, d->finalHeight, _pixelDecimation);
+		break;
 	}
 
 	d->deviceContext->Unmap(d->intermediateTexture, 0);
 	return 0;
+}
+
+void DDAGrabber::processFrameIdentity(ColorRgb* dest, const unsigned char* src, int srcWidth, int srcHeight, int srcPitch, int finalWidth, int finalHeight, int downscaleFactor)
+{
+	const int srcWidth_minus_1 = srcWidth - 1;
+
+	for (int y_dest = 0; y_dest < finalHeight; ++y_dest)
+	{
+		const int src_y = y_dest * downscaleFactor;
+		for (int x_dest = 0; x_dest < finalWidth; ++x_dest)
+		{
+			const int src_x = (std::min)(x_dest * downscaleFactor, srcWidth_minus_1);
+			const unsigned char* srcPixelPtr = src + (src_y * srcPitch) + (src_x << 2); // x * 4
+			ColorRgb* destPixelPtr = dest + (y_dest * finalWidth) + x_dest;
+			destPixelPtr->red = srcPixelPtr[2];
+			destPixelPtr->green = srcPixelPtr[1];
+			destPixelPtr->blue = srcPixelPtr[0];
+		}
+	}
+}
+
+void DDAGrabber::processFrameRotate90(ColorRgb* dest, const unsigned char* src, int srcWidth, int srcHeight, int srcPitch, int finalWidth, int finalHeight, int downscaleFactor)
+{
+	const int srcWidth_minus_1 = srcWidth - 1;
+	const int finalWidth_minus_1 = finalWidth - 1;
+	const int finalHeight_minus_1 = finalHeight - 1;
+
+	for (int y_dest = 0; y_dest < finalHeight; ++y_dest)
+	{
+		for (int x_dest = 0; x_dest < finalWidth; ++x_dest)
+		{
+			int src_x = srcWidth_minus_1 - ((finalHeight_minus_1 - y_dest) * downscaleFactor);
+			int src_y = (finalWidth_minus_1 - x_dest) * downscaleFactor;
+
+			const unsigned char* srcPixelPtr = src + (src_y * srcPitch) + (src_x << 2);
+			ColorRgb* destPixelPtr = dest + (y_dest * finalWidth) + x_dest;
+			destPixelPtr->red = srcPixelPtr[2];
+			destPixelPtr->green = srcPixelPtr[1];
+			destPixelPtr->blue = srcPixelPtr[0];
+		}
+	}
+}
+
+void DDAGrabber::processFrameRotate180(ColorRgb* dest, const unsigned char* src, int srcWidth, int srcHeight, int srcPitch, int finalWidth, int finalHeight, int downscaleFactor)
+{
+	const int srcWidth_minus_1 = srcWidth - 1;
+	const int srcHeight_minus_1 = srcHeight - 1;
+
+	for (int y_dest = 0; y_dest < finalHeight; ++y_dest)
+	{
+		for (int x_dest = 0; x_dest < finalWidth; ++x_dest)
+		{
+			int src_x = srcWidth_minus_1 - (x_dest * downscaleFactor);
+			int src_y = srcHeight_minus_1 - (y_dest * downscaleFactor);
+
+			const unsigned char* srcPixelPtr = src + (src_y * srcPitch) + (src_x << 2);
+			ColorRgb* destPixelPtr = dest + (y_dest * finalWidth) + x_dest;
+			destPixelPtr->red = srcPixelPtr[2];
+			destPixelPtr->green = srcPixelPtr[1];
+			destPixelPtr->blue = srcPixelPtr[0];
+		}
+	}
+}
+
+void DDAGrabber::processFrameRotate270(ColorRgb* dest, const unsigned char* src, int srcWidth, int srcHeight, int srcPitch, int finalWidth, int finalHeight, int downscaleFactor)
+{
+	const int srcHeight_minus_1 = srcHeight - 1;
+	const int finalWidth_minus_1 = finalWidth - 1;
+	const int finalHeight_minus_1 = finalHeight - 1;
+
+	for (int y_dest = 0; y_dest < finalHeight; ++y_dest)
+	{
+		for (int x_dest = 0; x_dest < finalWidth; ++x_dest)
+		{
+			int src_x = (finalHeight_minus_1 - y_dest) * downscaleFactor;
+			int src_y = srcHeight_minus_1 - ((finalWidth_minus_1 - x_dest) * downscaleFactor);
+
+			const unsigned char* srcPixelPtr = src + (src_y * srcPitch) + (src_x << 2);
+			ColorRgb* destPixelPtr = dest + (y_dest * finalWidth) + x_dest;
+			destPixelPtr->red = srcPixelPtr[2];
+			destPixelPtr->green = srcPixelPtr[1];
+			destPixelPtr->blue = srcPixelPtr[0];
+		}
+	}
 }
 
 bool DDAGrabber::resetDeviceAndCapture()
