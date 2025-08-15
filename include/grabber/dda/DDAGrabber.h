@@ -82,12 +82,7 @@ private:
 
 	bool resetDeviceAndCapture();
 
-	void computeCropBox(const D3D11_TEXTURE2D_DESC& desc, D3D11_BOX& box) const;
-
-	void processFrameIdentity(ColorRgb* dest, const unsigned char* src, int srcWidth, int srcHeight, int srcPitch, int finalWidth, int finalHeight, int downscaleFactor);
-	void processFrameRotate90(ColorRgb* dest, const unsigned char* src, int srcWidth, int srcHeight, int srcPitch, int finalWidth, int finalHeight, int downscaleFactor);
-	void processFrameRotate180(ColorRgb* dest, const unsigned char* src, int srcWidth, int srcHeight, int srcPitch, int finalWidth, int finalHeight, int downscaleFactor);
-	void processFrameRotate270(ColorRgb* dest, const unsigned char* src, int srcWidth, int srcHeight, int srcPitch, int finalWidth, int finalHeight, int downscaleFactor);
+	void computeCropBox(int sourceWidth, int sourceHeight, D3D11_BOX& box) const;
 
 private:
 	std::unique_ptr<DDAGrabberImpl> d;
