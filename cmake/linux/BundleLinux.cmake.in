@@ -1,7 +1,6 @@
 set(PROJECT_NAME "@PROJECT_NAME@")
 set(QMAKE_EXECUTABLE "@QMAKE_EXECUTABLE@")
 set(OPENSSL_FOUND @OPENSSL_FOUND@)
-set(OPENSSL_LIBRARIES "@OPENSSL_LIBRARIES@")
 set(PYTHON_MODULES_DIR "@PYTHON_MODULES_DIR@")
 set(PYTHON_VERSION "@PYTHON_VERSION@")
 set(CMAKE_BINARY_DIR "@CMAKE_BINARY_DIR@")
@@ -55,15 +54,6 @@ foreach(PLUGIN "platforms" "sqldrivers" "imageformats" "tls" "wayland-shell-inte
 	endif()
 endforeach()
 
-# Append the OpenSSL library to the list
-if(OPENSSL_FOUND AND NOT OPENSSL_LIBRARIES STREQUAL "")
-	foreach(openssl_lib ${OPENSSL_LIBRARIES})
-		collect_dependencies(${openssl_lib} PREREQUISITE_LIBS)
-		gp_append_unique(PREREQUISITE_LIBS ${openssl_lib})
-		get_filename_component(file_canonical ${openssl_lib} REALPATH)
-		gp_append_unique(PREREQUISITE_LIBS ${file_canonical})
-	endforeach()
-endif()
 
 # Copy dependencies to 'share/hyperion/lib'
 file(INSTALL FILES ${PREREQUISITE_LIBS} DESTINATION "${CMAKE_INSTALL_PREFIX}/share/hyperion/lib")

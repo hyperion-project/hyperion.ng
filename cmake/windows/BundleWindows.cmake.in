@@ -60,49 +60,6 @@ if(EXISTS @CMAKE_BINARY_DIR@/bin/@PROJECT_NAME@@CMAKE_EXECUTABLE_SUFFIX@)
 		list(REMOVE_AT DEPENDENCIES 0 1)
 	endwhile()
 
-	# Copy libssl/libcrypto to 'hyperion'
-	if(OPENSSL_FOUND)
-		string(REGEX MATCHALL "[0-9]+" openssl_versions "@OPENSSL_VERSION@")
-		list(GET openssl_versions 0 openssl_version_major)
-		list(GET openssl_versions 1 openssl_version_minor)
-
-		set(open_ssl_version_suffix)
-		if(openssl_version_major VERSION_EQUAL 1 AND openssl_version_minor VERSION_EQUAL 1)
-			set(open_ssl_version_suffix "-1_1")
-		else()
-			set(open_ssl_version_suffix "-3")
-		endif()
-
-		if("@CMAKE_SYSTEM_PROCESSOR@" MATCHES "aarch64|ARM64|arm64")
-			string(APPEND open_ssl_version_suffix "-arm64")
-		elseif(@CMAKE_SIZEOF_VOID_P@ EQUAL 8)
-			string(APPEND open_ssl_version_suffix "-x64")
-		endif()
-
-		foreach(comp "ssl" "crypto")
-			find_file(lib${comp}
-				NAMES
-					"lib${comp}${open_ssl_version_suffix}.dll"
-				PATHS
-					"@_OPENSSL_ROOT_PATHS@"
-				HINTS
-					"@OPENSSL_ROOT_DIR@"
-					$ENV{OPENSSL_ROOT_DIR}
-				PATH_SUFFIXES
-					bin
-			)
-
-			if(lib${comp})
-				file(INSTALL
-					FILES
-						${lib${comp}}
-					DESTINATION
-						"${CMAKE_INSTALL_PREFIX}/bin"
-				)
-			endif()
-		endforeach()
-	endif()
-
 	# Create a qt.conf file in 'bin' to override hard-coded search paths in Qt plugins
 	file(WRITE "${CMAKE_INSTALL_PREFIX}/bin/qt.conf" "[Paths]\nPlugins=../lib/\n")
 
@@ -111,12 +68,7 @@ if(EXISTS @CMAKE_BINARY_DIR@/bin/@PROJECT_NAME@@CMAKE_EXECUTABLE_SUFFIX@)
 		get_filename_component(TURBOJPEG_DIR "${TurboJPEG_INCLUDE_DIR}" DIRECTORY)
 		find_file(TURBOJPEG_SHARED NAMES "turbojpeg.dll" PATHS ${TURBOJPEG_DIR} PATH_SUFFIXES bin)
 		if(TURBOJPEG_SHARED)
-			file(INSTALL
-				FILES
-					${TURBOJPEG_SHARED}
-				DESTINATION
-					"${CMAKE_INSTALL_PREFIX}/bin"
-			)
+			file(INSTALL FILES ${TURBOJPEG_SHARED} DESTINATION "${CMAKE_INSTALL_PREFIX}/bin")
 		endif()
 	endif()
 

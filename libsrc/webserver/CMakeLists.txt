@@ -45,6 +45,14 @@ if(ENABLE_MDNS)
 	target_link_libraries(webserver mdns)
 endif()
 
+find_package(OpenSSL QUIET)
+if(OPENSSL_FOUND AND TARGET OpenSSL::SSL AND TARGET OpenSSL::Crypto)
+	target_link_libraries(webserver
+		OpenSSL::SSL
+		OpenSSL::Crypto
+	)
+endif()
+
 if(NOT CMAKE_VERSION VERSION_LESS "3.15")
 	set_target_properties(webserver PROPERTIES
 		ADDITIONAL_CLEAN_FILES ${CMAKE_BINARY_DIR}/WebConfig.qrc
