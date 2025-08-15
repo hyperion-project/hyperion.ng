@@ -142,17 +142,15 @@ We assume a 64bit Windows 11. Install the following:
     - and latest `Windows 11 SDK`.
   - Everything else is not needed.
 - [Win64 OpenSSL](https://slproweb.com/products/Win32OpenSSL.html)
-  - for x64 architecture: [direct link](https://slproweb.com/download/Win64OpenSSL-3_5_1.exe)
-  - for ARM64 architecture: [direct link](https://slproweb.com/download/Win64ARMOpenSSL-3_5_1.exe)
+  - [x64 direct link](https://slproweb.com/download/Win64OpenSSL-3_5_0.exe)
+  - [ARM64 direct link](https://slproweb.com/download/Win64ARMOpenSSL-3_5_0.exe)
 - [Python 3 Windows installer (64-bit or ARM64)](https://www.python.org/downloads/windows/) (Check: Add to PATH and Debug Symbols)
   - Open a console window and execute `pip install aqtinstall`.
   - Now we can download Qt to _C:\Qt_:
     - for x64 architecture: `mkdir c:\Qt && aqt install-qt -O c:\Qt windows desktop 6.8.3 win64_msvc2022_64 -m qtserialport qtwebsockets`
     - for ARM64 architecture: `mkdir c:\Qt && aqt install-qt -O c:\Qt windows_arm64 desktop 6.8.3 win64_msvc2022_arm64 -m qtserialport qtwebsockets`
-- [libjpeg-turbo SDK for Visual C++](https://github.com/libjpeg-turbo/libjpeg-turbo)
-  - Download the latest installer and install to its default location `C:\libjpeg-turbo64`:
-    - for x64 architecture: [direct link](https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.1.1/libjpeg-turbo-3.1.1-vc-x64.exe)
-    - for ARM64 architecture: [direct link](https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.1.1/libjpeg-turbo-3.1.1-vc-arm64.exe)
+- [libjpeg-turbo SDK for Visual C++](https://sourceforge.net/projects/libjpeg-turbo/files/)
+  - Download the latest 64bit installer (currently `libjpeg-turbo-3.0.1-vc64.exe`) and install to its default location `C:\libjpeg-turbo64`.
 
 ###  Optional:
 - For package creation:
@@ -255,3 +253,5 @@ sudo cmake --build . --target install/strip
 cmake -G Ninja -DCMAKE_INSTALL_PREFIX=/home/pi/apps ..
 ```
 This will install to ``/home/pi/apps/share/hyperion``
+
+
