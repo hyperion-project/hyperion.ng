@@ -469,7 +469,7 @@ bool DDAGrabber::setDisplayIndex(int index)
 	if (d->display != index)
 	{
 		d->display = index;
-		rc = restartCapture();
+		rc = resetDeviceAndCapture();
 	}
 	return rc;
 }
