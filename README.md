@@ -50,10 +50,10 @@ Find here more details on [supported platforms and configuration sets](doc/devel
 
 ## Documentation
 Covers these topics:
-- [Getting Started and Installation](https://docs.hyperion-project.org/user/GettingStarted.html)
+- [Getting Started and Installation](https://docs.hyperion-project.org/user/gettingstarted/Overview.html)
 - [Configuration](https://docs.hyperion-project.org/user/Configuration.html)
 - [Effect development](https://docs.hyperion-project.org/effects/Effects.html)
-- [JSON API](https://docs.hyperion-project.org/json/JSON.html)
+- [JSON API](https://api.hyperion-project.org/)
 
 [![Visit Documentation](https://img.shields.io/website/https/docs.hyperion-project.org.svg?label=Documentation&down_color=red&down_message=offline&up_color=4bc51d&up_message=online&logo=read-the-docs)](https://docs.hyperion-project.org)
 
@@ -64,7 +64,7 @@ Released and unreleased changes at [CHANGELOG.md](CHANGELOG.md).
 See [CompileHowto.md](doc/development/CompileHowto.md).
 
 ## Installation
-See [Getting Started](https://docs.hyperion-project.org/user/GettingStarted.html) or on the [Release Repository](https://releases.hyperion-project.org).
+See [Getting Started and Installation](https://docs.hyperion-project.org/user/gettingstarted/Overview.html).
 
 ## Download
 GitHub Releases are available on the [Hyperion release page](https://github.com/hyperion-project/hyperion.ng/releases).
