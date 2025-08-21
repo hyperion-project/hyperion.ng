@@ -765,6 +765,7 @@
     "edt_dev_spec_useEntertainmentAPI_title": "Use Hue Entertainment API",
     "edt_dev_spec_useOrbSmoothing_title": "Use orb smoothing",
     "edt_dev_spec_useRgbwProtocol_title": "Use RGBW protocol",
+    "edt_dev_spec_useSsl_title": "SSL",
     "edt_dev_spec_username_title": "Username",
     "edt_dev_spec_verbose_title": "Log all Hue commands",
     "edt_dev_spec_vid_title": "VID",
@@ -1238,4 +1239,5 @@
     "ws_not_supported": "Websocket is not supported by your browser",
     "ws_processing_exception": "Exception during Websocket message processing"    
 }
+
 
