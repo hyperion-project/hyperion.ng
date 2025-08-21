@@ -310,6 +310,36 @@ void LedDevice::stopEnableAttemptsTimer()
 
 int LedDevice::updateLeds(std::vector<ColorRgb> ledValues)
 {
+	// Take the LED update into a shared buffer and return quickly
+	{
+		QMutexLocker locker(&_ledBufferMutex);
+		_ledUpdateBuffer = std::move(ledValues);
+	}
+
+	// If a frame processing is NOT already scheduled, schedule one.
+	if (!_isUpdatePending.exchange(true))
+	{
+		QTimer::singleShot(0, this, &LedDevice::processLedUpdate);
+	}
+
+	return 0; // Return immediately
+}
+
+void LedDevice::processLedUpdate()
+{
+	std::vector<ColorRgb> valuesToProcess;
+	{
+		QMutexLocker locker(&_ledBufferMutex);
+		valuesToProcess = _ledUpdateBuffer;
+	}
+
+	writeLedUpdate(valuesToProcess);
+
+	_isUpdatePending.store(false);
+}
+
+int LedDevice::writeLedUpdate(const std::vector<ColorRgb>& ledValues)
+{
 	int retval = 0;
 	if (!_isEnabled || !_isOn || !_isDeviceReady || _isDeviceInError)
 	{
@@ -318,7 +348,7 @@ int LedDevice::updateLeds(std::vector<ColorRgb> ledValues)
 	}
 	else
 	{
-		qint64 elapsedTimeMs = _lastWriteTime.msecsTo(QDateTime::currentDateTime());
+		qint64 const elapsedTimeMs = _lastWriteTime.msecsTo(QDateTime::currentDateTime());
 		if (_latchTime_ms == 0 || elapsedTimeMs >= _latchTime_ms)
 		{
 			retval = write(ledValues);
@@ -346,6 +376,14 @@ int LedDevice::updateLeds(std::vector<ColorRgb> ledValues)
 
 int LedDevice::rewriteLEDs()
 {
+	bool expected = false;
+	if (!_isUpdatePending.compare_exchange_strong(expected, true))
+	{
+		// The flag was already true, meaning a write from updateLeds/processFrame is currently in progress or scheduled.
+		// We can safely skip this refresh, as the other write will restart the timer.
+		return 0;
+	}
+
 	int retval = -1;
 
 	if (_isEnabled && _isOn && _isDeviceReady && !_isDeviceInError)
@@ -526,7 +564,7 @@ QJsonObject LedDevice::discover(const QJsonObject& /*params*/)
 
 	devicesDiscovered.insert("ledDeviceType", _activeDeviceType);
 
-	QJsonArray deviceList;
+	QJsonArray const deviceList;
 	devicesDiscovered.insert("devices", deviceList);
 
 	Debug(_log, "devicesDiscovered: [%s]", QString(QJsonDocument(devicesDiscovered).toJson(QJsonDocument::Compact)).toUtf8().constData());
@@ -548,7 +586,7 @@ QJsonObject LedDevice::getProperties(const QJsonObject& params)
 
 	QJsonObject properties;
 
-	QJsonObject deviceProperties;
+	QJsonObject const deviceProperties;
 	properties.insert("properties", deviceProperties);
 
 	Debug(_log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData());
@@ -633,7 +671,7 @@ void LedDevice::printLedValues(const std::vector<ColorRgb>& ledValues)
 	{
 		std::cout << color;
 	}
-	std::cout << "]" << std::endl;
+	std::cout << "]\n";
 }
 
 QString LedDevice::uint8_t_to_hex_string(const uint8_t* data, const int size, int number)
@@ -643,7 +681,7 @@ QString LedDevice::uint8_t_to_hex_string(const uint8_t* data, const int size, in
 		number = size;
 	}
 
-	QByteArray bytes(reinterpret_cast<const char*>(data), number);
+	QByteArray const bytes(reinterpret_cast<const char*>(data), number);
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 9, 0))
 	return bytes.toHex(':');
 #else
@@ -651,7 +689,7 @@ QString LedDevice::uint8_t_to_hex_string(const uint8_t* data, const int size, in
 #endif
 }
 
-QString LedDevice::toHex(const QByteArray& data, int number)
+QString LedDevice::toHex(const QByteArray& data, qsizetype number)
 {
 	if (number <= 0 || number > data.size())
 	{
