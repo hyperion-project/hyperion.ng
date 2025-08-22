@@ -209,7 +209,7 @@ public slots:
 	///
 	/// @brief Update the color values of the device's LEDs.
 	///
-	/// Updates are skipped while another update is in progress to avoid queueing.
+	/// Updates received while another updates is in progress are skipped to avoid queueing.
 	///
 	/// @param[in] ledValues The color per LED
 	/// @return Zero on success else negative
@@ -511,8 +511,6 @@ private slots:
 	///
 	/// @brief Process LED updates requested.
 	///
-	/// @return Zero on success else negative
-	///
 	void processLedUpdate();
 
 	///
@@ -560,9 +558,7 @@ private:
 	/// Last LED values written
 	std::vector<ColorRgb> _lastLedValues;
 
-	// Member variables for the new logic
-	// Use std::atomic for the flag. No mutex needed for it!
-	std::atomic<bool> _isUpdatePending{ false };
+	std::atomic<bool> _isLedUpdatePending{ false };
 
 	// The mutex now ONLY protects the data buffer.
 	QMutex _ledBufferMutex;

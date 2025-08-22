@@ -317,7 +317,7 @@ int LedDevice::updateLeds(std::vector<ColorRgb> ledValues)
 	}
 
 	// If a frame processing is NOT already scheduled, schedule one.
-	if (!_isUpdatePending.exchange(true))
+	if (!_isLedUpdatePending.exchange(true))
 	{
 		QTimer::singleShot(0, this, &LedDevice::processLedUpdate);
 	}
@@ -335,7 +335,7 @@ void LedDevice::processLedUpdate()
 
 	writeLedUpdate(valuesToProcess);
 
-	_isUpdatePending.store(false);
+	_isLedUpdatePending.store(false);
 }
 
 int LedDevice::writeLedUpdate(const std::vector<ColorRgb>& ledValues)
@@ -377,7 +377,7 @@ int LedDevice::writeLedUpdate(const std::vector<ColorRgb>& ledValues)
 int LedDevice::rewriteLEDs()
 {
 	bool expected = false;
-	if (!_isUpdatePending.compare_exchange_strong(expected, true))
+	if (!_isLedUpdatePending.compare_exchange_strong(expected, true))
 	{
 		// The flag was already true, meaning a write from updateLeds/processFrame is currently in progress or scheduled.
 		// We can safely skip this refresh, as the other write will restart the timer.
