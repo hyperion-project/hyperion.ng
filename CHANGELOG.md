@@ -12,7 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ✨ Added
 
+- HTTPS support for homeassistant LED devices (#1886)
+
 ---
+
 
 ### 🔧 Changed
 
@@ -22,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Qt-Grabber (Windows) does not apply pixel ratio (#1882) - _Thanks to @SolberLight_
   - LED-devices are not retrying to establish connectivity, if supported by the device
   - LED-devices are resolving IP-addresses for API and UDP two times in sequence
+  - LED-device updates queue up and let Hyperion crash (#1887)
 
 ---
 
