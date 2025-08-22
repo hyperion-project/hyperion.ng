@@ -84,7 +84,7 @@ jobs:
       - name: 💾 Download OpenSSL 3.x
         uses: ethanjli/cached-download-action@v0.1.2
         with:
-          url: "https://slproweb.com/download/Win64${{ matrix.os.architecture == 'arm64' && 'ARM' || '' }}OpenSSL-3_5_1.exe"
+          url: "https://slproweb.com/download/Win64${{ matrix.os.architecture == 'arm64' && 'ARM' || '' }}OpenSSL-3_5_2.exe"
           destination: .\installer\openssl.exe
           cache-key: OpenSSL
 
