@@ -5,6 +5,7 @@
 #include <cstring>
 #include <algorithm>
 #include <utils/ColorRgb.h>
+#include <utils/Logger.h>
 
 // QT includes
 #include <QSharedData>
@@ -15,6 +16,12 @@
 typedef SSIZE_T ssize_t;
 #endif
 
+#define IMAGEDATA_ENABLE_MEMORY_TRACKING_ALLOC 0
+#define IMAGEDATA_ENABLE_MEMORY_TRACKING_DEEP 0
+#define IMAGEDATA_ENABLE_MEMORY_TRACKING_RELEASE 0
+
+static quint64 imageData_instance_counter = 0;
+
 template <typename Pixel_T>
 class ImageData : public QSharedData
 {
@@ -24,18 +31,30 @@ public:
 	ImageData(int width, int height, const Pixel_T background) :
 		_width(width),
 		_height(height),
-		_pixels(new Pixel_T[static_cast<size_t>(width) * static_cast<size_t>(height)])
+		_pixels(new Pixel_T[static_cast<size_t>(width) * static_cast<size_t>(height)]),
+		_instanceId(++imageData_instance_counter)
 	{
 		std::fill(_pixels, _pixels + width * height, background);
+
+		DebugIf(IMAGEDATA_ENABLE_MEMORY_TRACKING_ALLOC, Logger::getInstance("MEMORY-ImageData"), "ALLOC (DATA): New ImageData [%d] created (%dx%d).", _instanceId, width, height);
 	}
 
-	ImageData(const ImageData & other) :
-		QSharedData(other),
+	// Copy constructor for deep copies (for detach)
+	ImageData(const ImageData& other) :
 		_width(other._width),
 		_height(other._height),
-		_pixels(new Pixel_T[static_cast<size_t>(other._width) * static_cast<size_t>(other._height)])
+		_pixels(new Pixel_T[static_cast<size_t>(other._width) * static_cast<size_t>(other._height)]),
+		_instanceId(++imageData_instance_counter)
 	{
 		memcpy(_pixels, other._pixels, static_cast<size_t>(other._width) * static_cast<size_t>(other._height) * sizeof(Pixel_T));
+
+		DebugIf(IMAGEDATA_ENABLE_MEMORY_TRACKING_DEEP, Logger::getInstance("MEMORY-ImageData"), "COPY (DEEP DATA): New ImageData [%d] created as a deep copy of [%d].", _instanceId, other._instanceId);
+	}
+
+	~ImageData()
+	{
+		delete[] _pixels;
+		DebugIf(IMAGEDATA_ENABLE_MEMORY_TRACKING_RELEASE, Logger::getInstance("MEMORY-ImageData"), "RELEASE (DATA): ImageData [%d] destroyed and memory freed.", _instanceId);
 	}
 
 	ImageData& operator=(ImageData rhs)
@@ -66,10 +85,8 @@ public:
 		return *this;
 	}
 
-	~ImageData()
-	{
-		delete[] _pixels;
-	}
+	// Check reference count
+	int refCount() const { return this->ref.loadRelaxed(); }
 
 	inline int width() const
 	{
@@ -98,12 +115,12 @@ public:
 
 	const Pixel_T& operator()(int x, int y) const
 	{
-		return _pixels[toIndex(x,y)];
+		return _pixels[y * _width + x];
 	}
 
 	Pixel_T& operator()(int x, int y)
 	{
-		return _pixels[toIndex(x,y)];
+		return _pixels[y * _width + x];
 	}
 
 	void resize(int width, int height)
@@ -144,7 +161,6 @@ public:
 		}
 
 		const int imageSize = _width * _height;
-
 		for (int idx = 0; idx < imageSize; idx++)
 		{
 			const Pixel_T & color = _pixels[idx];
@@ -168,7 +184,7 @@ public:
 	}
 
 private:
-	inline int toIndex(int x, int y) const
+	int toIndex(int x, int y) const
 	{
 		return y * _width + x;
 	}
@@ -179,4 +195,6 @@ private:
 	int _height;
 	/// The pixels of the image
 	Pixel_T* _pixels;
+
+	quint64 _instanceId; // Unique ID for this data block
 };

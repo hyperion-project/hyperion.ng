@@ -102,7 +102,7 @@ bool JsonCallbacks::subscribe(const Subscription::Type cmd)
 	break;
 	case Subscription::ComponentsUpdate:
 	{
-		QSharedPointer<ComponentRegister> componentRegisterStrong = _componentRegisterWeak.toStrongRef();
+		QSharedPointer<ComponentRegister> const componentRegisterStrong = _componentRegisterWeak.toStrongRef();
 		if (!componentRegisterStrong.isNull()) {
 			connect(componentRegisterStrong.get(), &ComponentRegister::updatedComponentState, this, &JsonCallbacks::handleComponentState);
 		}
@@ -130,7 +130,7 @@ bool JsonCallbacks::subscribe(const Subscription::Type cmd)
 	break;
 	case Subscription::PrioritiesUpdate:
 	{
-		QSharedPointer<PriorityMuxer> prioMuxerStrong = _prioMuxerWeak.toStrongRef();
+		QSharedPointer<PriorityMuxer> const prioMuxerStrong = _prioMuxerWeak.toStrongRef();
 		if (!prioMuxerStrong.isNull()) {
 			connect(prioMuxerStrong.get(), &PriorityMuxer::prioritiesChanged, this, &JsonCallbacks::handlePriorityUpdate);
 		}
@@ -198,7 +198,7 @@ bool JsonCallbacks::unsubscribe(const Subscription::Type cmd)
 
 	_subscribedCommands.remove(cmd);
 
-	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+	QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
 
 	switch (cmd) {
 	// Global subscriptions
@@ -237,7 +237,7 @@ bool JsonCallbacks::unsubscribe(const Subscription::Type cmd)
 	break;
 	case Subscription::ComponentsUpdate:
 	{
-		QSharedPointer<ComponentRegister> componentRegisterStrong = _componentRegisterWeak.toStrongRef();
+		QSharedPointer<ComponentRegister> const componentRegisterStrong = _componentRegisterWeak.toStrongRef();
 		if (!componentRegisterStrong.isNull()) {
 			disconnect(componentRegisterStrong.get(), &ComponentRegister::updatedComponentState, this, &JsonCallbacks::handleComponentState);
 		}
@@ -266,7 +266,7 @@ bool JsonCallbacks::unsubscribe(const Subscription::Type cmd)
 	break;
 	case Subscription::PrioritiesUpdate:
 	{
-		QSharedPointer<PriorityMuxer> prioMuxerStrong = _prioMuxerWeak.toStrongRef();
+		QSharedPointer<PriorityMuxer> const prioMuxerStrong = _prioMuxerWeak.toStrongRef();
 		if (!prioMuxerStrong.isNull()) {
 			disconnect(prioMuxerStrong.get(), &PriorityMuxer::prioritiesChanged, this, &JsonCallbacks::handlePriorityUpdate);
 		}
@@ -529,7 +529,8 @@ void JsonCallbacks::handleLedColorUpdate(const std::vector<ColorRgb> &ledColors)
 void JsonCallbacks::handleImageUpdate(const Image<ColorRgb> &image)
 {
 	int const bytesPerLine = 3 * image.width();
-	QImage const jpgImage(reinterpret_cast<const uchar*>(image.memptr()), image.width(), image.height(), bytesPerLine, QImage::Format_RGB888);
+	QImage const jpgImage(reinterpret_cast<const uchar*>(std::as_const(image).memptr()), image.width(), image.height(), bytesPerLine, QImage::Format_RGB888);
+
 	QByteArray byteArray;
 	QBuffer buffer(&byteArray);
 	buffer.open(QIODevice::WriteOnly);

@@ -178,7 +178,15 @@ PriorityMuxer::InputInfo PriorityMuxer::getInputInfo(int priority) const
 
 hyperion::Components PriorityMuxer::getComponentOfPriority(int priority) const
 {
-	return _activeInputs[priority].componentId;
+	auto it = _activeInputs.constFind(priority);
+	if (it != _activeInputs.constEnd())
+	{
+		return it->componentId;
+	}
+	else
+	{
+		return hyperion::COMP_INVALID;
+	}
 }
 
 void PriorityMuxer::registerInput(int priority, hyperion::Components component, const QString& origin, const QString& owner, unsigned smooth_cfg)

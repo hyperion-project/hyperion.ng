@@ -1,8 +1,19 @@
 #pragma once
 
+#include <QDebug>
 #include <QSharedDataPointer>
 
 #include <utils/ImageData.h>
+#include <utils/Logger.h>
+
+#define IMAGE_ENABLE_MEMORY_TRACKING_ALLOC 0
+#define IMAGE_ENABLE_MEMORY_TRACKING_DEEP 0
+#define IMAGE_ENABLE_MEMORY_TRACKING_SHALLOW 0
+#define IMAGE_ENABLE_MEMORY_TRACKING_MOVE 0
+#define IMAGE_ENABLE_MEMORY_TRACKING_RELEASE 0
+
+// Static counter for unique HANDLE instance IDs
+static quint64 image_instance_counter = 0;
 
 template <typename Pixel_T>
 class Image
@@ -28,41 +39,45 @@ public:
 	/// @param background The color of the image
 	///
 	Image(int width, int height, const Pixel_T background) :
-		_d_ptr(new ImageData<Pixel_T>(width, height, background))
+		_d_ptr(new ImageData<Pixel_T>(width, height, background)),
+		_instanceId(++image_instance_counter)
 	{
+		DebugIf(IMAGE_ENABLE_MEMORY_TRACKING_ALLOC, Logger::getInstance("MEMORY-Image"), "ALLOC (HANDLE): New Image handle [%d] created.", _instanceId);
 	}
 
 	///
 	/// Copy constructor for an image
 	/// @param other The image which will be copied
 	///
-	Image(const Image & other)
+	// Copy constructor (Shallow Copy)
+	Image(const Image& other) :
+		_d_ptr(other._d_ptr), // This just increments the ref-counter
+		_instanceId(++image_instance_counter)
 	{
-		_d_ptr = other._d_ptr;
+		DebugIf(IMAGE_ENABLE_MEMORY_TRACKING_SHALLOW, Logger::getInstance("MEMORY-Image"), "COPY (SHALLOW HANDLE): Image handle [%d] created, sharing data with handle [%d].", _instanceId, other._instanceId);
 	}
 
+	// Copy assignment
 	Image& operator=(Image rhs)
 	{
-		// Define assignment operator in terms of the copy constructor
-		// More to read: https://stackoverflow.com/questions/255612/dynamically-allocating-an-array-of-objects?answertab=active#tab-top
-		_d_ptr = rhs._d_ptr;
+		DebugIf(IMAGE_ENABLE_MEMORY_TRACKING_SHALLOW, Logger::getInstance("MEMORY-Image"), "ASSIGN (SHALLOW HANDLE): Image handle [%d] now points to data from another handle.", this->_instanceId);
+		rhs.swap(*this);
 		return *this;
 	}
 
-	void swap(Image& s)
+	void swap(Image& swap) noexcept
 	{
-		std::swap(this->_d_ptr, s._d_ptr);
+		std::swap(this->_d_ptr, swap._d_ptr);
+		std::swap(this->_instanceId, swap._instanceId);
 	}
 
-	Image(Image&& src) noexcept
+	// Move constructor
+	Image(Image&& src) noexcept :
+		_d_ptr(src._d_ptr),
+		_instanceId(src._instanceId)
 	{
-		std::swap(this->_d_ptr, src._d_ptr);
-	}
-
-	Image& operator=(Image&& src) noexcept
-	{
-		src.swap(*this);
-		return *this;
+		src._instanceId = 0; // Invalidate moved-from handle
+		DebugIf(IMAGE_ENABLE_MEMORY_TRACKING_MOVE, Logger::getInstance("MEMORY-Image"), "MOVE: New Image handle [%d] has been moved into a new instance.", _instanceId);
 	}
 
 	///
@@ -70,6 +85,24 @@ public:
 	///
 	~Image()
 	{
+		if (_instanceId == 0)
+		{
+			return;
+		}
+
+		if (isDetached())
+		{
+			DebugIf(IMAGE_ENABLE_MEMORY_TRACKING_RELEASE, Logger::getInstance("MEMORY-Image"), "RELEASE (HANDLE): Image handle [%d] destroyed. This was the last handle.", _instanceId);
+		}
+		else {
+			DebugIf(IMAGE_ENABLE_MEMORY_TRACKING_RELEASE, Logger::getInstance("MEMORY-Image"), "RELEASE (HANDLE): Image handle [%d] destroyed. Other handles still exist.", _instanceId);
+		}
+	}
+
+	// Check if the data is unique
+	bool isDetached() const
+	{
+		return _d_ptr != nullptr && _d_ptr->refCount() == 1;
 	}
 
 	///
@@ -77,7 +110,7 @@ public:
 	///
 	/// @return The width of the image
 	///
-	inline int width() const
+	int width() const
 	{
 		return _d_ptr->width();
 	}
@@ -87,7 +120,7 @@ public:
 	///
 	/// @return The height of the image
 	///
-	inline int height() const
+	int height() const
 	{
 		return _d_ptr->height();
 	}
@@ -147,6 +180,11 @@ public:
 	///
 	Pixel_T* memptr()
 	{
+		if (!isDetached())
+		{
+			DebugIf(IMAGE_ENABLE_MEMORY_TRACKING_MOVE, Logger::getInstance("MEMORY-Image"), "COPY (DEEP): memptr() on shared Image handle [%d] is causing a detach.", _instanceId);
+		}
+		_d_ptr.detach();
 		return _d_ptr->memptr();
 	}
 
@@ -197,11 +235,13 @@ private:
 	///
 	/// @return The index into the underlying data-vector
 	///
-	inline int toIndex(int x, int y) const
+	int toIndex(int x, int y) const
 	{
 		return _d_ptr->toIndex(x, y);
 	}
 
-	QSharedDataPointer<ImageData<Pixel_T>>  _d_ptr;
+	QSharedDataPointer<ImageData<Pixel_T>> _d_ptr;
+
+	quint64 _instanceId; // Unique ID for this C++ object handle
 };
 
