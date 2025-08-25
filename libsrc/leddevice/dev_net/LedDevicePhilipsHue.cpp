@@ -413,6 +413,12 @@ bool LedDevicePhilipsHueBridge::openRestAPI()
 {
 	bool isInitOK {true};
 
+	if (_address.isNull())
+	{
+		Error(_log, "Empty IP address. REST API cannot be initiatised.");
+		return false;
+	}
+
 	if (_restApi == nullptr)
 	{
 		_restApi = new ProviderRestApi(_address.toString(), _apiPort);
@@ -507,6 +513,7 @@ int LedDevicePhilipsHueBridge::open()
 	int retval = -1;
 	_isDeviceReady = false;
 
+	this->setIsRecoverable(true);
 	if (NetUtils::resolveHostToAddress(_log, _hostName, _address))
 	{
 		if ( openRestAPI() )
@@ -1902,6 +1909,10 @@ bool LedDevicePhilipsHue::initLeds()
 			if( _useEntertainmentAPI )
 			{
 				_groupName = getGroupName( _groupId );
+				if (!_groupName.isEmpty())
+				{
+					isInitOK = true;
+				}
 			}
 			else
 			{
@@ -1909,13 +1920,14 @@ bool LedDevicePhilipsHue::initLeds()
 				setLatchTime( 100 * getLightsCount() );
 				isInitOK = true;
 			}
-			_isInitLeds = true;
 		}
 		else
 		{
 			isInitOK = false;
 		}
 	}
+	_isInitLeds = isInitOK;
+
 	return isInitOK;
 }
 

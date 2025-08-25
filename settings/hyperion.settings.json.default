@@ -113,9 +113,6 @@
          "level":"warn"
       },
       "network":{
-         "internetAccessAPI":false,
-         "restirctedInternetAccessAPI":false,
-         "ipWhitelist":[],
          "localApiAuth":false
       },
       "osEvents":{

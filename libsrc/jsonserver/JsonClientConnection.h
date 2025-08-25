@@ -25,6 +25,8 @@ public:
 	/// @param socket The Socket object for this connection
 	///
 	JsonClientConnection(QTcpSocket * socket, bool localConnection);
+	~JsonClientConnection() override;
+
 	QHostAddress getClientAddress();
 
 signals:

@@ -1412,24 +1412,30 @@ $(document).ready(function () {
             break;
 
           case "homeassistant":
-            var token = conf_editor.getEditor("root.specificOptions.token").getValue();
+            {
+            const port = conf_editor.getEditor("root.specificOptions.port").getValue();
+            const useSsl = conf_editor.getEditor("root.specificOptions.useSsl").getValue();
+            const token = conf_editor.getEditor("root.specificOptions.token").getValue();
             if (token === "") {
               return;
             }
 
-            params = { host: host, token: token, filter: "states" };
+            params = { host, port, useSsl, token, filter: "states" };
             getProperties_device(ledType, host, params);
+            }
             break;
 
           case "nanoleaf":
-            $('#btn_wiz_holder').show();
+            {
+              $('#btn_wiz_holder').show();
 
-            var token = conf_editor.getEditor("root.specificOptions.token").getValue();
-            if (token === "") {
-              return;
+              const token = conf_editor.getEditor("root.specificOptions.token").getValue();
+              if (token === "") {
+                return;
+              }
+              params = { host, token };
+              getProperties_device(ledType, host, params);
             }
-            params = { host: host, token: token };
-            getProperties_device(ledType, host, params);
             break;
 
           case "wled":
@@ -1586,25 +1592,69 @@ $(document).ready(function () {
       if (token !== "") {
         let params = {};
 
-        var host = "";
+        let host = "";
         switch (ledType) {
           case "homeassistant":
-            host = conf_editor.getEditor("root.specificOptions.host").getValue();
-            if (host === "") {
-              return
+            {
+              host = conf_editor.getEditor("root.specificOptions.host").getValue();
+              if (host === "") {
+                return
+              }
+              const port = conf_editor.getEditor("root.specificOptions.port").getValue();
+              const useSsl = conf_editor.getEditor("root.specificOptions.useSsl").getValue();
+              params = { host, port, useSsl, token, filter: "states" };
             }
-            params = { host: host, token: token, filter: "states" };
             break;
 
           case "nanoleaf":
-            host = conf_editor.getEditor("root.specificOptions.host").getValue();
-            if (host === "") {
-              return
+            {
+              host = conf_editor.getEditor("root.specificOptions.host").getValue();
+              if (host === "") {
+                return
+              }
+              params = { host, token };
             }
-            params = { host: host, token: token };
             break;
           default:
         }
+
+        getProperties_device(ledType, host, params);
+      }
+    });
+
+    conf_editor.watch('root.specificOptions.port', () => {
+
+      const port = conf_editor.getEditor("root.specificOptions.port").getValue();
+      if (port !== "") {
+        let params = {};
+        if (ledType === "homeassistant") {
+          const host = conf_editor.getEditor("root.specificOptions.host").getValue();
+          const token = conf_editor.getEditor("root.specificOptions.token").getValue();
+
+          if (host === "" || token == "") {
+            return
+          }
+          const useSsl = conf_editor.getEditor("root.specificOptions.useSsl").getValue();
+          params = { host, port, useSsl, token, filter: "states" };
+
+          getProperties_device(ledType, host, params);
+        }
+      }
+    });
+
+    conf_editor.watch('root.specificOptions.useSsl', () => {
+
+      let params = {};
+      if (ledType === "homeassistant") {
+        const host = conf_editor.getEditor("root.specificOptions.host").getValue();
+        const token = conf_editor.getEditor("root.specificOptions.token").getValue();
+
+        if (host === "" || token == "") {
+          return
+        }
+        const port = conf_editor.getEditor("root.specificOptions.port").getValue();
+        const useSsl = conf_editor.getEditor("root.specificOptions.useSsl").getValue();
+        params = { host, port, useSsl, token, filter: "states" };
 
         getProperties_device(ledType, host, params);
       }
@@ -1788,36 +1838,46 @@ $(document).ready(function () {
 
   // Identify/ Test LED-Device
   $("#btn_test_controller").off().on("click", function () {
-    var ledType = $("#leddevices").val();
+    const ledType = $("#leddevices").val();
     let params = {};
 
     switch (ledType) {
       case "cololight":
       case "wled":
-        var host = conf_editor.getEditor("root.specificOptions.host").getValue();
-        params = { host: host };
+        {
+          const host = conf_editor.getEditor("root.specificOptions.host").getValue();
+          params = { host: host };
+        }
         break;
 
       case "homeassistant":
-        var host = conf_editor.getEditor("root.specificOptions.host").getValue();
-        var token = conf_editor.getEditor("root.specificOptions.token").getValue();
-        const entityIds = conf_editor.getEditor("root.specificOptions.entityIds").getValue();
-        params = { host: host, token: token, entity_id: entityIds };
+        {
+          const host = conf_editor.getEditor("root.specificOptions.host").getValue();
+          const port = conf_editor.getEditor("root.specificOptions.port").getValue();
+          const useSsl = conf_editor.getEditor("root.specificOptions.useSsl").getValue();
+          const token = conf_editor.getEditor("root.specificOptions.token").getValue();
+          const entityIds = conf_editor.getEditor("root.specificOptions.entityIds").getValue();
+          params = { host, port, useSsl, token, entity_id: entityIds };
+        }
         break;
 
       case "nanoleaf":
-        var host = conf_editor.getEditor("root.specificOptions.host").getValue();
-        var token = conf_editor.getEditor("root.specificOptions.token").getValue();
-        params = { host: host, token: token };
+        {
+          const host = conf_editor.getEditor("root.specificOptions.host").getValue();
+          const token = conf_editor.getEditor("root.specificOptions.token").getValue();
+          params = { host, token };
+        }
         break;
 
       case "adalight":
       case "skydimo":
-        var currentLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue();
-        params = Object.assign(conf_editor.getEditor("root.generalOptions").getValue(),
-          conf_editor.getEditor("root.specificOptions").getValue(),
-          { currentLedCount }
-        );
+        {
+          const currentLedCount = conf_editor.getEditor("root.generalOptions.hardwareLedCount").getValue();
+          params = Object.assign(conf_editor.getEditor("root.generalOptions").getValue(),
+            conf_editor.getEditor("root.specificOptions").getValue(),
+            { currentLedCount }
+          );
+        }
       default:
     }
 
@@ -2814,4 +2874,3 @@ function nanoleafGeneratelayout(panelLayout, panelOrderTopDown, panelOrderLeftRi
   });
   return layoutObjects;
 }
-

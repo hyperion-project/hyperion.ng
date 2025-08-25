@@ -27,9 +27,9 @@ PriorityMuxer::PriorityMuxer(int ledCount, QObject * parent)
 	  , _manualSelectedPriority(MANUAL_SELECTED_PRIORITY)
 	  , _prevVisComp (hyperion::Components::COMP_COLOR)
 	  , _sourceAutoSelectEnabled(true)
-	  , _updateTimer(new QTimer(this))
-	  , _timer(new QTimer(this))
-	  , _blockTimer(new QTimer(this))
+	  , _updateTimer(nullptr)
+	  , _timer(nullptr)
+	  , _blockTimer(nullptr)
 {
 	QString subComponent = parent->property("instance").toString();
 	_log= Logger::getInstance("MUXER", subComponent);
@@ -50,6 +50,7 @@ PriorityMuxer::PriorityMuxer(int ledCount, QObject * parent)
 
 PriorityMuxer::~PriorityMuxer()
 {
+	qDebug() << "PriorityMuxer::~PriorityMuxer()...";
 }
 
 void PriorityMuxer::start()

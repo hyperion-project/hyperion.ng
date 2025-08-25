@@ -422,5 +422,4 @@ private:
 	QSharedPointer<JsonCallbacks> _jsonCB;
 
 	bool _isServiceAvailable;
-
 };

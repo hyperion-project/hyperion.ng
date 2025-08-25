@@ -45,8 +45,8 @@ MessageForwarder::MessageForwarder(const QJsonDocument& config)
 	, _priority(DEFAULT_FORWARDER_FLATBUFFFER_PRIORITY)
 	, _isEnabled(false)
 	, _toBeForwardedInstanceID(NO_INSTANCE_ID)
-	, _hyperion(nullptr)
-	, _muxer(nullptr)
+	, _hyperionWeak(nullptr)
+	, _muxerWeak(nullptr)
 	, _messageForwarderFlatBufHelper(nullptr)
 {
 	qRegisterMetaType<TargetHost>("TargetHost");
@@ -54,6 +54,7 @@ MessageForwarder::MessageForwarder(const QJsonDocument& config)
 
 MessageForwarder::~MessageForwarder()
 {
+	qDebug() << "MessageForwarder::~MessageForwarder()...";
 }
 
 void MessageForwarder::init()
@@ -76,7 +77,8 @@ void MessageForwarder::start()
 
 void MessageForwarder::stop()
 {
-	if (!_hyperion.isNull())
+	QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
+	if (!hyperion.isNull())
 	{
 		disconnect(_toBeForwardedInstanceID);
 
@@ -94,19 +96,23 @@ bool MessageForwarder::connect(quint8 instanceID)
 		{
 			Info(_log, "Connect forwarder to instance [%u]", _toBeForwardedInstanceID);
 
-			_hyperion = HyperionIManager::getInstance()->getHyperionInstance(_toBeForwardedInstanceID);
-			_muxer = _hyperion->getMuxerInstance();
+			QSharedPointer<Hyperion> const hyperion = HyperionIManager::getInstance()->getHyperionInstance(_toBeForwardedInstanceID);
+			if (hyperion)
+			{
+				_hyperionWeak = hyperion;
+				_muxerWeak = hyperion->getMuxerInstance();
 
-			// component changes
-			QObject::connect(_hyperion.get(), &Hyperion::compStateChangeRequest, this, &MessageForwarder::handleCompStateChangeRequest);
+				// component changes
+				QObject::connect(hyperion.get(), &Hyperion::compStateChangeRequest, this, &MessageForwarder::handleCompStateChangeRequest);
 
-			// connect with Muxer visible priority changes
-			QObject::connect(_muxer.get(), &PriorityMuxer::visiblePriorityChanged, this, &MessageForwarder::handlePriorityChanges);
+				// connect with Muxer visible priority changes
+				QObject::connect(_muxerWeak.toStrongRef().get(), &PriorityMuxer::visiblePriorityChanged, this, &MessageForwarder::handlePriorityChanges);
 
 #if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
-			QObject::connect(GlobalSignals::getInstance(), &GlobalSignals::setBufferImage, _hyperion.get(), &Hyperion::forwardBufferMessage);
+				QObject::connect(GlobalSignals::getInstance(), &GlobalSignals::setBufferImage, hyperion.get(), &Hyperion::forwardBufferMessage);
 #endif
-			isConnected = true;
+				isConnected = true;
+			}
 		}
 		else
 		{
@@ -118,18 +124,16 @@ bool MessageForwarder::connect(quint8 instanceID)
 
 void MessageForwarder::disconnect(quint8 instanceID)
 {
-	if (instanceID == _toBeForwardedInstanceID && !_hyperion.isNull())
+	QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
+	if (instanceID == _toBeForwardedInstanceID && !hyperion.isNull())
 	{
 		Debug(_log, "Disconnect forwarder from instance [%u]", instanceID);
 
 #if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
-		QObject::disconnect(GlobalSignals::getInstance(), &GlobalSignals::setBufferImage, _hyperion.get(), &Hyperion::forwardBufferMessage);
+		QObject::disconnect(GlobalSignals::getInstance(), &GlobalSignals::setBufferImage, hyperion.get(), &Hyperion::forwardBufferMessage);
 #endif
 
 		handleTargets(false, _config.object());
-
-		_hyperion.clear();
-		_muxer.clear();
 	}
 }
 
@@ -165,7 +169,7 @@ void MessageForwarder::handleCompStateChangeRequest(hyperion::Components compone
 
 		if (enable)
 		{
-			if (_hyperion.isNull())
+			if (_hyperionWeak.isNull())
 			{
 				connect(_toBeForwardedInstanceID);
 			}
@@ -180,31 +184,43 @@ void MessageForwarder::handleCompStateChangeRequest(hyperion::Components compone
 
 bool MessageForwarder::isFlatbufferComponent(int priority)
 {
-	bool isFlatbufferComponent{ false };
-	hyperion::Components const activeCompId = _hyperion->getPriorityInfo(priority).componentId;
+	QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
+	if (hyperion.isNull())
+	{
+		return false;
+	}
 
-	switch (activeCompId) {
-	case hyperion::COMP_GRABBER:
-	case hyperion::COMP_V4L:
-	case hyperion::COMP_AUDIO:
+	bool isFlatbufferComponent{ false };
+	hyperion::Components const activeCompId = hyperion->getPriorityInfo(priority).componentId;
+
+		switch (activeCompId) {
+		case hyperion::COMP_GRABBER:
+		case hyperion::COMP_V4L:
+		case hyperion::COMP_AUDIO:
 #if defined(ENABLE_FLATBUF_SERVER)
-	case hyperion::COMP_FLATBUFSERVER:
+		case hyperion::COMP_FLATBUFSERVER:
 #endif
 #if defined(ENABLE_PROTOBUF_SERVER)
-	case hyperion::COMP_PROTOSERVER:
+		case hyperion::COMP_PROTOSERVER:
 #endif
 #if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
-		isFlatbufferComponent = true;
-		break;
+			isFlatbufferComponent = true;
+			break;
 #endif
-	default:
-		break;
-	}
+		default:
+			break;
+		}
 	return isFlatbufferComponent;
 }
 
 bool MessageForwarder::activateFlatbufferTargets(int priority)
 {
+	QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
+	if (hyperion.isNull())
+	{
+		return false;
+	}
+
 	int startedFlatbufTargets{ 0 };
 
 	if (priority != PriorityMuxer::LOWEST_PRIORITY)
@@ -214,16 +230,16 @@ bool MessageForwarder::activateFlatbufferTargets(int priority)
 			startedFlatbufTargets = startFlatbufferTargets(_config.object());
 			if (startedFlatbufTargets > 0)
 			{
-				hyperion::Components const activeCompId = _hyperion->getPriorityInfo(priority).componentId;
+				hyperion::Components const activeCompId = hyperion->getPriorityInfo(priority).componentId;
 				switch (activeCompId) {
 				case hyperion::COMP_GRABBER:
-					QObject::connect(_hyperion.get(), &Hyperion::forwardSystemProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage, Qt::UniqueConnection);
+					QObject::connect(hyperion.get(), &Hyperion::forwardSystemProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage, Qt::UniqueConnection);
 					break;
 				case hyperion::COMP_V4L:
-					QObject::connect(_hyperion.get(), &Hyperion::forwardV4lProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage, Qt::UniqueConnection);
+					QObject::connect(hyperion.get(), &Hyperion::forwardV4lProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage, Qt::UniqueConnection);
 					break;
 				case hyperion::COMP_AUDIO:
-					QObject::connect(_hyperion.get(), &Hyperion::forwardAudioProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage, Qt::UniqueConnection);
+					QObject::connect(hyperion.get(), &Hyperion::forwardAudioProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage, Qt::UniqueConnection);
 					break;
 #if defined(ENABLE_FLATBUF_SERVER)
 				case hyperion::COMP_FLATBUFSERVER:
@@ -233,7 +249,7 @@ bool MessageForwarder::activateFlatbufferTargets(int priority)
 #endif
 #if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
 
-					QObject::connect(_hyperion.get(), &Hyperion::forwardBufferMessage, this, &MessageForwarder::forwardFlatbufferMessage, Qt::UniqueConnection);
+					QObject::connect(hyperion.get(), &Hyperion::forwardBufferMessage, this, &MessageForwarder::forwardFlatbufferMessage, Qt::UniqueConnection);
 					break;
 #endif
 				default:
@@ -252,13 +268,14 @@ void MessageForwarder::handleTargets(bool start, const QJsonObject& config)
 	stopJsonTargets();
 	stopFlatbufferTargets();
 
+	QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
 	if (start)
 	{
-		int const jsonTargetNum = startJsonTargets(config);
-
-		if (!_hyperion.isNull())
+		if (!hyperion.isNull())
 		{
-			int const currentPriority = _hyperion->getCurrentPriority();
+			int const jsonTargetNum = startJsonTargets(config);
+
+			int const currentPriority = hyperion->getCurrentPriority();
 			bool const isActiveFlatbufferTarget = activateFlatbufferTargets(currentPriority);
 
 			if (jsonTargetNum > 0 || isActiveFlatbufferTarget)
@@ -273,41 +290,42 @@ void MessageForwarder::handleTargets(bool start, const QJsonObject& config)
 		}
 	}
 
-	if (!_hyperion.isNull())
+	if (!hyperion.isNull())
 	{
-		_hyperion->setNewComponentState(hyperion::COMP_FORWARDER, _isActive);
+		hyperion->setNewComponentState(hyperion::COMP_FORWARDER, _isActive);
 	}
 }
 
 void MessageForwarder::disconnectFlatBufferComponents(int priority)
 {
-	if (_hyperion.isNull())
+	QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
+	if (hyperion.isNull())
 	{
 		return;
 	}
 
-	hyperion::Components const activeCompId = _hyperion->getPriorityInfo(priority).componentId;
+	hyperion::Components const activeCompId = hyperion->getPriorityInfo(priority).componentId;
 
 	switch (activeCompId) {
 	case hyperion::COMP_GRABBER:
-		QObject::disconnect(_hyperion.get(), &Hyperion::forwardV4lProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
-		QObject::disconnect(_hyperion.get(), &Hyperion::forwardAudioProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
+		QObject::disconnect(hyperion.get(), &Hyperion::forwardV4lProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
+		QObject::disconnect(hyperion.get(), &Hyperion::forwardAudioProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
 #if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
-		QObject::disconnect(_hyperion.get(), &Hyperion::forwardBufferMessage, this, &MessageForwarder::forwardFlatbufferMessage);
+		QObject::disconnect(hyperion.get(), &Hyperion::forwardBufferMessage, this, &MessageForwarder::forwardFlatbufferMessage);
 #endif
 		break;
 	case hyperion::COMP_V4L:
-		QObject::disconnect(_hyperion.get(), &Hyperion::forwardSystemProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
-		QObject::disconnect(_hyperion.get(), &Hyperion::forwardAudioProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
+		QObject::disconnect(hyperion.get(), &Hyperion::forwardSystemProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
+		QObject::disconnect(hyperion.get(), &Hyperion::forwardAudioProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
 #if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
-		QObject::disconnect(_hyperion.get(), &Hyperion::forwardBufferMessage, this, &MessageForwarder::forwardFlatbufferMessage);
+		QObject::disconnect(hyperion.get(), &Hyperion::forwardBufferMessage, this, &MessageForwarder::forwardFlatbufferMessage);
 #endif
 		break;
 	case hyperion::COMP_AUDIO:
-		QObject::disconnect(_hyperion.get(), &Hyperion::forwardSystemProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
-		QObject::disconnect(_hyperion.get(), &Hyperion::forwardV4lProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
+		QObject::disconnect(hyperion.get(), &Hyperion::forwardSystemProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
+		QObject::disconnect(hyperion.get(), &Hyperion::forwardV4lProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
 #if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
-		QObject::disconnect(_hyperion.get(), &Hyperion::forwardBufferMessage, this, &MessageForwarder::forwardFlatbufferMessage);
+		QObject::disconnect(hyperion.get(), &Hyperion::forwardBufferMessage, this, &MessageForwarder::forwardFlatbufferMessage);
 #endif
 		break;
 #if defined(ENABLE_FLATBUF_SERVER)
@@ -317,17 +335,17 @@ void MessageForwarder::disconnectFlatBufferComponents(int priority)
 	case hyperion::COMP_PROTOSERVER:
 #endif
 #if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
-		QObject::disconnect(_hyperion.get(), &Hyperion::forwardAudioProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
-		QObject::disconnect(_hyperion.get(), &Hyperion::forwardSystemProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
-		QObject::disconnect(_hyperion.get(), &Hyperion::forwardV4lProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
+		QObject::disconnect(hyperion.get(), &Hyperion::forwardAudioProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
+		QObject::disconnect(hyperion.get(), &Hyperion::forwardSystemProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
+		QObject::disconnect(hyperion.get(), &Hyperion::forwardV4lProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
 		break;
 #endif
 	default:
-		QObject::disconnect(_hyperion.get(), &Hyperion::forwardSystemProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
-		QObject::disconnect(_hyperion.get(), &Hyperion::forwardV4lProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
-		QObject::disconnect(_hyperion.get(), &Hyperion::forwardAudioProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
+		QObject::disconnect(hyperion.get(), &Hyperion::forwardSystemProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
+		QObject::disconnect(hyperion.get(), &Hyperion::forwardV4lProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
+		QObject::disconnect(hyperion.get(), &Hyperion::forwardAudioProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
 #if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
-		QObject::disconnect(_hyperion.get(), &Hyperion::forwardBufferMessage, this, &MessageForwarder::forwardFlatbufferMessage);
+		QObject::disconnect(hyperion.get(), &Hyperion::forwardBufferMessage, this, &MessageForwarder::forwardFlatbufferMessage);
 #endif
 		break;
 	}
@@ -365,7 +383,7 @@ void MessageForwarder::addJsonTarget(const QJsonObject& targetConfig)
 
 	if (!hostName.isEmpty())
 	{
-		if (_hyperion.isNull())
+		if (_hyperionWeak.isNull())
 		{
 			return;
 		}
@@ -470,7 +488,7 @@ void MessageForwarder::addFlatbufferTarget(const QJsonObject& targetConfig)
 
 	if (!hostName.isEmpty())
 	{
-		if (_hyperion.isNull())
+		if (_hyperionWeak.isNull())
 		{
 			return;
 		}
@@ -557,13 +575,14 @@ void MessageForwarder::stopFlatbufferTargets()
 {
 	if (!_flatbufferTargets.isEmpty())
 	{
-		if (!_hyperion.isNull())
+		QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
+		if (!hyperion.isNull())
 		{
-			QObject::disconnect(_hyperion.get(), &Hyperion::forwardSystemProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
-			QObject::disconnect(_hyperion.get(), &Hyperion::forwardV4lProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
-			QObject::disconnect(_hyperion.get(), &Hyperion::forwardAudioProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
+			QObject::disconnect(hyperion.get(), &Hyperion::forwardSystemProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
+			QObject::disconnect(hyperion.get(), &Hyperion::forwardV4lProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
+			QObject::disconnect(hyperion.get(), &Hyperion::forwardAudioProtoMessage, this, &MessageForwarder::forwardFlatbufferMessage);
 #if defined(ENABLE_FLATBUF_SERVER) || defined(ENABLE_PROTOBUF_SERVER)
-			QObject::disconnect(_hyperion.get(), &Hyperion::forwardBufferMessage, this, &MessageForwarder::forwardFlatbufferMessage);
+			QObject::disconnect(hyperion.get(), &Hyperion::forwardBufferMessage, this, &MessageForwarder::forwardFlatbufferMessage);
 #endif
 		}
 

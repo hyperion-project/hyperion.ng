@@ -6,9 +6,9 @@ $(document).ready(function () {
   var leds;
   var grabberConfig;
   var lC = false;
-  var imageCanvasNodeCtx = document.getElementById("image_preview_canv").getContext("2d");
-  var ledsCanvasNodeCtx = document.getElementById("leds_preview_canv").getContext("2d");
-  var sigDetectAreaCanvasNodeCtx = document.getElementById("grab_preview_canv").getContext("2d");
+  var imageCanvasNodeCtx = document.getElementById("image_preview_canv").getContext("2d", { willReadFrequently: false});
+  var ledsCanvasNodeCtx = document.getElementById("leds_preview_canv").getContext("2d", { willReadFrequently: false});
+  var sigDetectAreaCanvasNodeCtx = document.getElementById("grab_preview_canv").getContext("2d", { willReadFrequently: false});
   var canvas_height;
   var canvas_width;
   var twoDPaths = [];
@@ -205,12 +205,12 @@ $(document).ready(function () {
     canvas_width = $('#ledsim_dialog').outerWidth() - 30;
 
     $("[id$=_preview_canv]").prop({ "width": canvas_width, "height": canvas_height });
-    $("body").get(0).style.setProperty("--width-var", canvas_width + "px");
-    $("body").get(0).style.setProperty("--height-var", canvas_height + "px");
+    $('#leds_canvas').css("--width-var", canvas_width + "px");
+    $('#leds_canvas').css("--height-var", canvas_height + "px");
 
     create2dPaths();
     printLedsToCanvas();
-    $("body").get(0).style.setProperty("--background-var", "none");
+    $('#leds_canvas').css("--background-var", "none");
     resetImage();
   }
 
@@ -227,7 +227,7 @@ $(document).ready(function () {
     if (window.ledStreamActive) {
       requestLedColorsStop();
       ledsCanvasNodeCtx.clear();
-      $("body").get(0).style.setProperty("--background-var", "none");
+      $('#leds_canvas').css("--background-var", "none");
     } else {
       requestLedColorsStart();
     }
@@ -263,11 +263,13 @@ $(document).ready(function () {
   $(window.hyperion).on("cmd-ledcolors-ledstream-update", function (event) {
     if (!modalOpened) {
       requestLedColorsStop();
-      $("body").get(0).style.setProperty("--background-var", "none");
+      $('#leds_canvas').css("--background-var", "none");
     }
     else {
       printLedsToCanvas(event.response.data.leds)
-      $("body").get(0).style.setProperty("--background-var", "url(" + ($('#leds_preview_canv')[0]).toDataURL("image/jpg") + ") no-repeat top left");
+      $('#leds_canvas').css("--background-var", "url(" + ($('#leds_preview_canv')[0]).toDataURL("image/jpg") + ") no-repeat top left");
+      // Safari workaround (redraw canvas)
+      $('#leds_canvas').parent().hide().show(0);
     }
   });
 

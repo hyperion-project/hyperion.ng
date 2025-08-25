@@ -160,10 +160,10 @@ private:
 	// ///
 	// int getHwLedCount(const QJsonObject& jsonLayout) const;
 
-	QString      _hostName;
-	QHostAddress _address;
+	QString _hostName;
 	ProviderRestApi* _restApi;
 	int	_apiPort;
+	bool _useSsl;
 	QString _bearerToken;
 
 	/// List of the HA light entity_ids.

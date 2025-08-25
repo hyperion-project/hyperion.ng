@@ -82,6 +82,8 @@ jobs:
             -v "${{ github.workspace }}:/source:rw" \
             -v "/tmp/deps:/tmp/deps:rw" \
             -w "/source" \
+            -e LANG="C.UTF-8" \
+            -e LC_ALL="C.UTF-8" \
             ghcr.io/hyperion-project/debian:${{ env.DOCKER_TAG }} \
             /bin/bash -c "cmake --preset linux-${{ env.BUILD_TYPE }} ${{ steps.dependencies.outputs.cmakeArgs }} -DPLATFORM=${{ matrix.os.platform }} ${{ env.CPACK_SYSTEM_PROCESSOR }} &&
             cmake --build --preset linux-${{ env.BUILD_TYPE }} --target package &&

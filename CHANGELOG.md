@@ -12,13 +12,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ✨ Added
 
+- HTTPS support for homeassistant LED devices (#1886)
+
 ---
 
+
 ### 🔧 Changed
+
+- **Fixes:**
+  - UI - Language is not selectable (#1877)
+  - CEC-Handler is not stopped properly
+  - Qt-Grabber (Windows) does not apply pixel ratio (#1882) - _Thanks to @SolberLight_
+  - LED-devices are not retrying to establish connectivity, if supported by the device
+  - LED-devices are resolving IP-addresses for API and UDP two times in sequence
+  - LED-device updates queue up and let Hyperion crash (#1887)
 
 ---
 
 ### 🗑️ Removed
+
+- Removed the ability to revoke API requests which are not issued from the same network segment. This includes the removal of IP-address white- & blacklisting (#1880)
+Rationale: Such kind of functionality is better to be dealt with via proper network management and setup, e.g. via firewalls, VLANs.
 
 ## [2.1.1](https://github.com/hyperion-project/hyperion.ng/compare/2.1.1...HEAD) - 2025-06-14
 
