@@ -396,7 +396,6 @@ int DDAGrabber::grabFrame(Image<ColorRgb>& image)
 	RETURN_IF_ERROR(hr, "Failed to map final texture", -1);
 
 	// CPU pixel copy from BGRA to output RGB image
-	image.resize(_width, _height);
 	ColorRgb* destPtr = image.memptr();
 	const uint8_t* srcPtr = static_cast<const uint8_t*>(mapped.pData);
 
