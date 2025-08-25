@@ -409,6 +409,7 @@ public:
 	///
 	/// @param[in] timeout in milliseconds.
 	void setTransferTimeout(std::chrono::milliseconds timeout = DEFAULT_REST_TIMEOUT) { _requestTimeout = timeout; }
+	void setTransferTimeout(int timeout = DEFAULT_REST_TIMEOUT.count()) { _requestTimeout = std::chrono::milliseconds(timeout); }
 
 
 	bool setCaCertificate(const QString& caFileName);
