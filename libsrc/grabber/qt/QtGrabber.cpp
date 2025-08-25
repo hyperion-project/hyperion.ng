@@ -259,7 +259,7 @@ int QtGrabber::grabFrame(Image<ColorRgb>& image)
 	}
 
 	QImage const imageFrame = originalPixmap.toImage().scaled(_width, _height).convertToFormat(QImage::Format_RGB888);
-	const qsizetype imageSizeInBytes = imageFrame.sizeInBytes();
+	const int rawSize = imageFrame.width() * imageFrame.height() * 3;
 
 	// Get a modifiable pointer to the destination buffer.
 	// This will only trigger a deep copy if the image is shared AND we are the first to modify it.
@@ -269,7 +269,7 @@ int QtGrabber::grabFrame(Image<ColorRgb>& image)
 	const unsigned char* srcPtr = imageFrame.constBits();
 
 	// Copy the entire image data in one operation.
-	memcpy(destPtr, srcPtr, imageSizeInBytes);
+	memcpy(destPtr, srcPtr, rawSize);
 
 	return 0;
 }
