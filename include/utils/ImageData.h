@@ -9,6 +9,7 @@
 
 // QT includes
 #include <QSharedData>
+#include <QAtomicInt>
 
 // https://docs.microsoft.com/en-us/windows/win32/winprog/windows-data-types#ssize-t
 #if defined(_MSC_VER)
@@ -16,11 +17,11 @@
 typedef SSIZE_T ssize_t;
 #endif
 
-#define IMAGEDATA_ENABLE_MEMORY_TRACKING_ALLOC 0
-#define IMAGEDATA_ENABLE_MEMORY_TRACKING_DEEP 0
-#define IMAGEDATA_ENABLE_MEMORY_TRACKING_RELEASE 0
+#define IMAGEDATA_ENABLE_MEMORY_TRACKING_ALLOC 1
+#define IMAGEDATA_ENABLE_MEMORY_TRACKING_DEEP 1
+#define IMAGEDATA_ENABLE_MEMORY_TRACKING_RELEASE 1
 
-static quint64 imageData_instance_counter = 0;
+static QAtomicInteger<quint64> imageData_instance_counter(0);
 
 template <typename Pixel_T>
 class ImageData : public QSharedData
@@ -69,20 +70,16 @@ public:
 		swap(this->_width, s._width);
 		swap(this->_height, s._height);
 		swap(this->_pixels, s._pixels);
+		swap(this->_instanceId, s._instanceId);
 	}
 
 	ImageData(ImageData&& src) noexcept
 		: _width(0)
 		, _height(0)
-		, _pixels(NULL)
+		, _pixels(nullptr)
+		, _instanceId(0)
 	{
 		src.swap(*this);
-	}
-
-	ImageData& operator=(ImageData&& src) noexcept
-	{
-		src.swap(*this);
-		return *this;
 	}
 
 	// Check reference count
@@ -163,8 +160,8 @@ public:
 		const int imageSize = _width * _height;
 		for (int idx = 0; idx < imageSize; idx++)
 		{
-			const Pixel_T & color = _pixels[idx];
-			image.memptr()[idx] = ColorRgb{color.red, color.green, color.blue};
+			const Pixel_T& color = _pixels[idx];
+			image.memptr()[idx] = ColorRgb{ color.red, color.green, color.blue };
 		}
 	}
 
@@ -175,9 +172,15 @@ public:
 
 	void clear()
 	{
+		// Fill the entire existing pixel buffer with the default-constructed pixel value
+		std::fill(_pixels, _pixels + (static_cast<size_t>(_width) * _height), Pixel_T());
+	}
+
+	void reset()
+	{
 		if (_width != 1 || _height != 1)
 		{
-			resize(1,1);
+			resize(1, 1);
 		}
 		// Set the single pixel to the default background
 		_pixels[0] = Pixel_T();

@@ -6,11 +6,11 @@
 #include <utils/ImageData.h>
 #include <utils/Logger.h>
 
-#define IMAGE_ENABLE_MEMORY_TRACKING_ALLOC 0
-#define IMAGE_ENABLE_MEMORY_TRACKING_DEEP 0
-#define IMAGE_ENABLE_MEMORY_TRACKING_SHALLOW 0
-#define IMAGE_ENABLE_MEMORY_TRACKING_MOVE 0
-#define IMAGE_ENABLE_MEMORY_TRACKING_RELEASE 0
+#define IMAGE_ENABLE_MEMORY_TRACKING_ALLOC 1
+#define IMAGE_ENABLE_MEMORY_TRACKING_DEEP 1
+#define IMAGE_ENABLE_MEMORY_TRACKING_SHALLOW 1
+#define IMAGE_ENABLE_MEMORY_TRACKING_MOVE 1
+#define IMAGE_ENABLE_MEMORY_TRACKING_RELEASE 1
 
 // Static counter for unique HANDLE instance IDs
 static quint64 image_instance_counter = 0;
@@ -57,32 +57,16 @@ public:
 		DebugIf(IMAGE_ENABLE_MEMORY_TRACKING_SHALLOW, Logger::getInstance("MEMORY-Image"), "COPY (SHALLOW HANDLE): Image handle [%d] created, sharing data with handle [%d].", _instanceId, other._instanceId);
 	}
 
-	// Copy assignment
-	Image& operator=(Image rhs)
-	{
-		DebugIf(IMAGE_ENABLE_MEMORY_TRACKING_SHALLOW, Logger::getInstance("MEMORY-Image"), "ASSIGN (SHALLOW HANDLE): Image handle [%d] now points to data from another handle.", this->_instanceId);
-		rhs.swap(*this);
-		return *this;
-	}
-
-	void swap(Image& swap) noexcept
-	{
-		std::swap(this->_d_ptr, swap._d_ptr);
-		std::swap(this->_instanceId, swap._instanceId);
-	}
-
 	// Move constructor
 	Image(Image&& src) noexcept :
 		_d_ptr(src._d_ptr),
 		_instanceId(src._instanceId)
 	{
 		src._instanceId = 0; // Invalidate moved-from handle
-		DebugIf(IMAGE_ENABLE_MEMORY_TRACKING_MOVE, Logger::getInstance("MEMORY-Image"), "MOVE: New Image handle [%d] has been moved into a new instance.", _instanceId);
+		DebugIf(IMAGE_ENABLE_MEMORY_TRACKING_MOVE, Logger::getInstance("MEMORY-Image"), "MOVE: Image handle [%d] has been moved into a new instance.", _instanceId);
 	}
 
-	///
-	/// Destructor
-	///
+	// Destructor
 	~Image()
 	{
 		if (_instanceId == 0)
@@ -97,6 +81,36 @@ public:
 		else {
 			DebugIf(IMAGE_ENABLE_MEMORY_TRACKING_RELEASE, Logger::getInstance("MEMORY-Image"), "RELEASE (HANDLE): Image handle [%d] destroyed. Other handles still exist.", _instanceId);
 		}
+	}
+
+	// Copy assignment operator (Shallow Copy)
+	Image& operator=(const Image& other)
+	{
+		if (this != &other)
+		{
+			_d_ptr = other._d_ptr;
+			DebugIf(IMAGE_ENABLE_MEMORY_TRACKING_SHALLOW, Logger::getInstance("MEMORY-Image"), "ASSIGN (SHALLOW HANDLE): Image handle [%d]  now shares data with handle [%d].", _instanceId, other._instanceId);
+		}
+		return *this;
+	}
+
+	// Move assignment operator
+	Image& operator=(Image&& other) noexcept
+	{
+		if (this != &other)
+		{
+			_d_ptr = std::move(other._d_ptr);
+			_instanceId = other._instanceId;
+			other._instanceId = 0;
+			DebugIf(IMAGE_ENABLE_MEMORY_TRACKING_MOVE, Logger::getInstance("MEMORY-Image"), "MOVE ASSIGN: Image handle [%d] has taken ownership from another handle.", _instanceId);
+		}
+		return *this;
+	}
+
+	void swap(Image& other) noexcept
+	{
+		std::swap(this->_d_ptr, other._d_ptr);
+		std::swap(this->_instanceId, other._instanceId);
 	}
 
 	// Check if the data is unique
@@ -182,7 +196,7 @@ public:
 	{
 		if (!isDetached())
 		{
-			DebugIf(IMAGE_ENABLE_MEMORY_TRACKING_MOVE, Logger::getInstance("MEMORY-Image"), "COPY (DEEP): memptr() on shared Image handle [%d] is causing a detach.", _instanceId);
+			DebugIf(IMAGE_ENABLE_MEMORY_TRACKING_DEEP, Logger::getInstance("MEMORY-Image"), "COPY (DEEP): memptr() on shared Image handle [%d] is causing a detach.", _instanceId);
 		}
 		_d_ptr.detach();
 		return _d_ptr->memptr();
@@ -216,11 +230,24 @@ public:
 	}
 
 	///
-	/// Clear the image
+	/// Clear the image, i.e. fill the image with default background color
 	///
 	void clear()
 	{
 		_d_ptr->clear();
+	}
+
+	///
+	/// Reset the image to 1x1 with default background color
+	///
+	void reset()
+	{
+		_d_ptr->reset();
+	}
+
+	quint64 id() const
+	{
+		return _instanceId;
 	}
 
 private:
