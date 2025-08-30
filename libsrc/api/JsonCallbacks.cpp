@@ -528,13 +528,10 @@ void JsonCallbacks::handleLedColorUpdate(const std::vector<ColorRgb> &ledColors)
 
 void JsonCallbacks::handleImageUpdate(const Image<ColorRgb> &image)
 {
-	int const bytesPerLine = 3 * image.width();
-	QImage const jpgImage(reinterpret_cast<const uchar*>(std::as_const(image).memptr()), image.width(), image.height(), bytesPerLine, QImage::Format_RGB888);
-
 	QByteArray byteArray;
 	QBuffer buffer(&byteArray);
 	buffer.open(QIODevice::WriteOnly);
-	jpgImage.save(&buffer, "jpg");
+	image.toQImage().save(&buffer, "jpg");
 
 	QJsonObject result;
 	result["image"] = "data:image/jpg;base64," + QString(byteArray.toBase64());

@@ -17,11 +17,14 @@
 typedef SSIZE_T ssize_t;
 #endif
 
-#define IMAGEDATA_ENABLE_MEMORY_TRACKING_ALLOC 1
-#define IMAGEDATA_ENABLE_MEMORY_TRACKING_DEEP 1
-#define IMAGEDATA_ENABLE_MEMORY_TRACKING_RELEASE 1
+#define IMAGEDATA_ENABLE_MEMORY_TRACKING_ALLOC 0
+#define IMAGEDATA_ENABLE_MEMORY_TRACKING_DEEP 0
+#define IMAGEDATA_ENABLE_MEMORY_TRACKING_RELEASE 0
 
-static QAtomicInteger<quint64> imageData_instance_counter(0);
+namespace {
+// Counter for unique image data instance IDs
+QAtomicInteger<quint64> imageData_instance_counter(0);
+}
 
 template <typename Pixel_T>
 class ImageData : public QSharedData
@@ -64,13 +67,13 @@ public:
 		return *this;
 	}
 
-	void swap(ImageData& s) noexcept
+	void swap(ImageData& src) noexcept
 	{
 		using std::swap;
-		swap(this->_width, s._width);
-		swap(this->_height, s._height);
-		swap(this->_pixels, s._pixels);
-		swap(this->_instanceId, s._instanceId);
+		swap(this->_width, src._width);
+		swap(this->_height, src._height);
+		swap(this->_pixels, src._pixels);
+		swap(this->_instanceId, src._instanceId);
 	}
 
 	ImageData(ImageData&& src) noexcept
@@ -85,12 +88,12 @@ public:
 	// Check reference count
 	int refCount() const { return this->ref.loadRelaxed(); }
 
-	inline int width() const
+	int width() const
 	{
 		return _width;
 	}
 
-	inline int height() const
+	int height() const
 	{
 		return _height;
 	}

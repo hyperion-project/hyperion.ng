@@ -2,18 +2,63 @@
 
 #include <QDebug>
 #include <QSharedDataPointer>
+#include <QAtomicInt>
+#include <QImage>
+
+
 
 #include <utils/ImageData.h>
+#include <utils/ColorRgb.h>
+#include <utils/ColorRgba.h>
 #include <utils/Logger.h>
 
-#define IMAGE_ENABLE_MEMORY_TRACKING_ALLOC 1
-#define IMAGE_ENABLE_MEMORY_TRACKING_DEEP 1
-#define IMAGE_ENABLE_MEMORY_TRACKING_SHALLOW 1
-#define IMAGE_ENABLE_MEMORY_TRACKING_MOVE 1
-#define IMAGE_ENABLE_MEMORY_TRACKING_RELEASE 1
+#define IMAGE_ENABLE_MEMORY_TRACKING_ALLOC 0
+#define IMAGE_ENABLE_MEMORY_TRACKING_DEEP 0
+#define IMAGE_ENABLE_MEMORY_TRACKING_SHALLOW 0
+#define IMAGE_ENABLE_MEMORY_TRACKING_MOVE 0
+#define IMAGE_ENABLE_MEMORY_TRACKING_RELEASE 0
 
-// Static counter for unique HANDLE instance IDs
-static quint64 image_instance_counter = 0;
+namespace {
+// Counter for unique HANDLE instance IDs
+QAtomicInteger<quint64> image_instance_counter(0);
+}
+
+
+// Trait to map a Pixel_T to a QImage::Format
+template<typename Pixel_T>
+struct PixelFormatTraits;
+
+// Specialization for ColorRgb
+template<>
+struct PixelFormatTraits<ColorRgb> {
+	static constexpr QImage::Format format = QImage::Format_RGB888;
+	static_assert(sizeof(ColorRgb) == 3,
+		"ColorRgb must be exactly 3 bytes to match QImage::Format_RGB888");
+};
+
+// Specialization for ColorRgba
+template<>
+struct PixelFormatTraits<ColorRgba> {
+	// Note: QImage byte order is ARGB for 32-bit.
+	// If your ColorRgba is {R,G,B,A}, you may need to use Format_RGBA8888 and potentially swizzle bytes.
+	// Format_RGB32 is a common alternative, mapping to {0,R,G,B}.
+	// We'll assume Format_RGB8888 aligns with {R,G,B,A} layout.
+	static constexpr QImage::Format format = QImage::Format_RGBA8888;
+	static_assert(sizeof(ColorRgba) == 4,
+		"ColorRgba must be exactly 4 bytes to match QImage::Format_RGBA8888");
+};
+
+template <typename Pixel_T>
+void imageDataCleanupHandler(void* info)
+{
+	// This function is called by QImage when it's destroyed.
+	// It safely decrements the reference count of our shared data.
+	auto* data = static_cast<ImageData<Pixel_T>*>(info);
+	if (data)
+	{
+		data->ref.deref();
+	}
+}
 
 template <typename Pixel_T>
 class Image
@@ -248,6 +293,64 @@ public:
 	quint64 id() const
 	{
 		return _instanceId;
+	}
+
+	///
+	/// Returns a const QImage that shares data with this Image object.
+	/// No data is copied. The returned QImage is read-only.
+	///
+	QImage toQImage() const
+	{
+		const ImageData<Pixel_T>* d_ptr = _d_ptr.constData();
+		if (d_ptr == nullptr)
+		{
+			return QImage();
+		}
+
+		// Manually increment the reference count. Use const_cast to bypass the const-check.
+		const_cast<ImageData<Pixel_T>*>(d_ptr)->ref.ref();
+
+		return QImage(
+			reinterpret_cast<const uchar*>(d_ptr->memptr()),
+			d_ptr->width(),
+			d_ptr->height(),
+			d_ptr->width() * sizeof(Pixel_T),
+			PixelFormatTraits<Pixel_T>::format,
+			imageDataCleanupHandler<Pixel_T>,
+			const_cast<ImageData<Pixel_T>*>(d_ptr)
+		);
+	}
+
+	///
+	/// Returns a modifiable QImage that shares data with this Image object.
+	/// This may trigger a deep copy (detach) if the data is currently shared,
+	/// preserving copy-on-write semantics.
+	///
+	QImage toQImage()
+	{
+		// First, ensure we have a unique copy of the data before allowing modification.
+		// This is the core of copy-on-write.
+		memptr(); // This calls detach() internally
+
+		ImageData<Pixel_T>* d_ptr = _d_ptr.data();
+		if (d_ptr == nullptr)
+		{
+			return QImage();
+		}
+
+		// Manually increment the reference count
+		d_ptr->ref.ref();
+
+		// Create a modifiable QImage wrapper
+		return QImage(
+			reinterpret_cast<uchar*>(d_ptr->memptr()),
+			d_ptr->width(),
+			d_ptr->height(),
+			d_ptr->width() * sizeof(Pixel_T),
+			PixelFormatTraits<Pixel_T>::format,
+			imageDataCleanupHandler<Pixel_T>,
+			d_ptr
+		);
 	}
 
 private:
