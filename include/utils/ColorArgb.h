@@ -4,6 +4,9 @@
 #include <cstdint>
 #include <ostream>
 
+#include <utils/Packed.h>
+
+PACKED_STRUCT_BEGIN
 struct ColorArgb
 {
 	/// The alpha mask channel
@@ -28,10 +31,10 @@ struct ColorArgb
 	static const ColorArgb YELLOW;
 	/// 'White' RgbColor (255, 255, 255, 255)
 	static const ColorArgb WHITE;
-};
+}
+PACKED_STRUCT_END;
 
-/// Assert to ensure that the size of the structure is 'only' 3 bytes
-static_assert(sizeof(ColorArgb) == 4, "Incorrect size of ColorARGB");
+static_assert(sizeof(ColorArgb) == 4, "ColorArgb must be exactly 4 bytes");
 
 ///
 /// Stream operator to write ColorRgb to an outputstream (format "'{'[alpha]', '[red]','[green]','[blue]'}'")

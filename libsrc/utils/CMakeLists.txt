@@ -5,6 +5,7 @@ endif()
 add_library(hyperion-utils
 	# Global defines/signal sharing
 	${CMAKE_SOURCE_DIR}/include/utils/global_defines.h
+	${CMAKE_SOURCE_DIR}/include/utils/Packed.h
 	${CMAKE_SOURCE_DIR}/include/utils/GlobalSignals.h
 	# Error signal handler
 	${CMAKE_SOURCE_DIR}/include/utils/ErrorManager.h
