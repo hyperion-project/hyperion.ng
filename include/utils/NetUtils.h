@@ -217,7 +217,6 @@ inline QMdnsEngine::Record resolveMDnsServiceRecord(const QByteArray& serviceIns
 ///
 inline bool resolveHostToAddress(Logger* log, const QString& hostname, QHostAddress& hostAddress, int& port)
 {
-	bool areHostAddressPartOK{ false };
 	QString target{ hostname };
 
 #ifdef ENABLE_MDNS
@@ -244,29 +243,25 @@ inline bool resolveHostToAddress(Logger* log, const QString& hostname, QHostAddr
 			Error(log, "Cannot resolve mDNS hostname for given service [%s]!", QSTRING_CSTR(hostname));
 			return false;
 		}
+	}
+#endif
 
-		QHostAddress resolvedAddress;
-		if (NetUtils::resolveMDnsHostToAddress(log, target, resolvedAddress))
+	QHostAddress resolvedAddress;
+	if (NetUtils::resolveMDnsHostToAddress(log, target, resolvedAddress))
+	{
+		hostAddress = resolvedAddress;
+		if (hostname != hostAddress.toString())
 		{
-			hostAddress = resolvedAddress;
-			if (hostname != hostAddress.toString())
-			{
-				Info(log, "Resolved hostname (%s) to IP-address (%s)", QSTRING_CSTR(hostname), QSTRING_CSTR(hostAddress.toString()));
-			}
+			Info(log, "Resolved hostname (%s) to IP-address (%s)", QSTRING_CSTR(hostname), QSTRING_CSTR(hostAddress.toString()));
+		}
 
-			if (NetUtils::isValidPort(log, port, hostAddress.toString()))
-			{
-				areHostAddressPartOK = true;
-			}
+		if (NetUtils::isValidPort(log, port, hostAddress.toString()))
+		{
+			return true;
 		}
 	}
-	else
-#endif
-	{
-		return false;
 
-	}
-	return areHostAddressPartOK;
+	return false;
 }
 
 ///
