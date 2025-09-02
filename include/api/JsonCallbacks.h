@@ -160,13 +160,13 @@ private slots:
 	/// @brief Is called whenever the current Hyperion instance pushes new led raw values (if enabled)
 	/// @param ledColors  The current led colors
 	///
-	void handleLedColorUpdate(const std::vector<ColorRgb> &ledColors);
+	void handleLedColorUpdate(const std::vector<ColorRgb>& ledColors);
 
 	///
 	/// @brief Is called whenever the current Hyperion instance pushes new image update (if enabled)
 	/// @param image  The current image
 	///
-	void handleImageUpdate(const Image<ColorRgb> &image);
+	void handleImageUpdate(const Image<ColorRgb>& image);
 
 	///
 	/// @brief Process and push new log messages from logger (if enabled)
@@ -186,6 +186,16 @@ private slots:
 	/// @param name          The name of the instance, just available with H_CREATED
 	///
 	void handleInstanceStateChange(InstanceState state, quint8 instanceId, const QString &name = QString());
+
+	///
+	/// @brief Process image updates requested.
+	///
+	void processImageUpdate();
+
+	///
+	/// @brief Process LED updates requested.
+	///
+	void processLedUpdate();
 
 private:
 
@@ -212,4 +222,24 @@ private:
 
 	/// flag to determine state of log streaming
 	bool _islogMsgStreamingActive;
+
+	std::atomic<bool> _ledColorsUpdatePending{ false };
+	// The mutex protects the data buffer.
+	QMutex _ledColorsBufferMutex;
+	std::vector<ColorRgb> _ledColorsUpdateBuffer;
+
+	QElapsedTimer _ledUpdateTimer;
+	/// Timestamp of last led update
+	qint64 _lastLedUpdateTime;
+
+	std::atomic<bool> _imageUpdatePending{ false };
+	// The mutex protects the data buffer.
+	QMutex _imageBufferMutex;
+	Image<ColorRgb> _imageUpdateBuffer;	
+
+	QElapsedTimer _imageUpdateTimer;
+	/// Timestamp of last image update
+	qint64 _lastImageUpdateTime;
+
+	bool _isImageSizeLimited;
 };
