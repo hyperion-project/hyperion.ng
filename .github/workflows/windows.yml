@@ -82,7 +82,7 @@ jobs:
           arch: ${{ matrix.os.architecture }}
 
       - name: 💾 Download OpenSSL 3.x
-        uses: ethanjli/cached-download-action@v0.1.2
+        uses: ethanjli/cached-download-action@v0.1.3
         with:
           url: "https://slproweb.com/download/Win64${{ matrix.os.architecture == 'arm64' && 'ARM' || '' }}OpenSSL-3_5_2.exe"
           destination: .\installer\openssl.exe
