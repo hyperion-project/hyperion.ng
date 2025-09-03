@@ -25,7 +25,7 @@ jobs:
     outputs:
       should_run: ${{ steps.check_latest_commit.outputs.code_changes_since_yesterday }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         id: checkout
 
       - name: ⬇ Check if latest commit is less than 1 day old
@@ -79,7 +79,7 @@ jobs:
     needs: [check, linux, macos, windows]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: 💾 Download artifacts
         uses: actions/download-artifact@v4
