@@ -307,7 +307,9 @@ public:
 			return QImage();
 		}
 
-		// Manually increment the reference count. Use const_cast to bypass the const-check.
+		// Manually increment the reference count for the shared data block.
+		// This is necessary because we are creating a new QImage that will share the data.
+		// QImage's cleanup function will later decrement it.
 		const_cast<ImageData<Pixel_T>*>(d_ptr)->ref.ref();
 
 		return QImage(
@@ -316,7 +318,9 @@ public:
 			d_ptr->height(),
 			d_ptr->width() * sizeof(Pixel_T),
 			PixelFormatTraits<Pixel_T>::format,
+			// Provide a custom cleanup function. QImage will call this when it's destroyed.
 			imageDataCleanupHandler<Pixel_T>,
+			// Pass the ImageData pointer as the context for the cleanup handler.
 			const_cast<ImageData<Pixel_T>*>(d_ptr)
 		);
 	}
@@ -329,8 +333,8 @@ public:
 	QImage toQImage()
 	{
 		// First, ensure we have a unique copy of the data before allowing modification.
-		// This is the core of copy-on-write.
-		memptr(); // This calls detach() internally
+		// This is the core of copy-on-write. memptr() calls detach() internally.
+		memptr();
 
 		ImageData<Pixel_T>* d_ptr = _d_ptr.data();
 		if (d_ptr == nullptr)
@@ -338,7 +342,9 @@ public:
 			return QImage();
 		}
 
-		// Manually increment the reference count
+		// Manually increment the reference count for the shared data block.
+		// This is necessary because we are creating a new QImage that will share the data.
+		// QImage's cleanup function will later decrement it.
 		d_ptr->ref.ref();
 
 		// Create a modifiable QImage wrapper
@@ -348,12 +354,14 @@ public:
 			d_ptr->height(),
 			d_ptr->width() * sizeof(Pixel_T),
 			PixelFormatTraits<Pixel_T>::format,
+			// Provide a custom cleanup function. QImage will call this when it's destroyed.
 			imageDataCleanupHandler<Pixel_T>,
+			// Pass the ImageData pointer as the context for the cleanup handler.
 			d_ptr
 		);
 	}
 
-private:
+ private:
 	template<class T>
 	friend class Image;
 
