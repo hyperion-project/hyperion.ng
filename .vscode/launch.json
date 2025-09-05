@@ -3,48 +3,116 @@
   // Hover to view descriptions of existing attributes.
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
+  "inputs": [
+    {
+      "id": "hyperionConfigFile",
+      "type": "promptString",
+      "description": "Enter the config file DB name",
+      "default": "test"
+    }
+  ],
   "configurations": [
     {
-      "name": "(Linux) hyperiond",
+      "name": "Run hyperiond",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/bin/hyperiond",
-      "args": ["-d"],
+      "program": "${command:cmake.launchTargetDirectory}/hyperiond",
+      "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
       "externalConsole": false,
-      "MIMode": "gdb",
-      "setupCommands": [
-        {
-          "description": "Enable pretty-printing for gdb",
-          "text": "-enable-pretty-printing",
-          "ignoreFailures": true
-        }
-      ]
+      "linux": {
+        "MIMode": "gdb",
+        "setupCommands": [
+          {
+            "description": "Enable pretty-printing for gdb",
+            "text": "-enable-pretty-printing",
+            "ignoreFailures": true
+          }
+        ]
+      },
+      "windows": {
+        "program": "${command:cmake.launchTargetDirectory}/hyperiond.exe",
+        "MIMode": "gdb"
+      },
+      "osx": {
+        "program": "${command:cmake.launchTargetDirectory}/Hyperion.app/Contents/MacOS/Hyperion",
+        "MIMode": "lldb"
+      }
     },
     {
-      "name": "(Windows) hyperiond",
-      "type": "cppvsdbg",
-      "request": "launch",
-      "program": "${command:cmake.launchTargetDirectory}/hyperiond",
-      "args": ["-d"],
-      "stopAtEntry": false,
-      "cwd": "${workspaceFolder}",
-      "environment": [],
-      "console": "internalConsole"
-    },
-    {
-      "name": "(macOS) Hyperion.app",
+      "name": "Run hyperiond (Debug Logging)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/bin/Hyperion.app/Contents/MacOS/Hyperion",
-      "args": ["-d"],
+      "program": "${command:cmake.launchTargetDirectory}/hyperiond",
+      "args": [ "-d" ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
-      "console": "internalConsole",
-      "MIMode": "lldb"
+      "externalConsole": false,
+      "linux": {
+        "MIMode": "gdb",
+        "setupCommands": [
+          {
+            "description": "Enable pretty-printing for gdb",
+            "text": "-enable-pretty-printing",
+            "ignoreFailures": true
+          }
+        ]
+      },
+      "windows": {
+        "program": "${command:cmake.launchTargetDirectory}/hyperiond.exe",
+        "MIMode": "gdb"
+      },
+      "osx": {
+        "program": "${command:cmake.launchTargetDirectory}/Hyperion.app/Contents/MacOS/Hyperion",
+        "MIMode": "lldb"
+      }
+    },
+    {
+      "name": "Run hyperiond (Debug Logging, Test Config)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${command:cmake.launchTargetDirectory}/hyperiond",
+      "args": [ "-d", "-uconfig/test" ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "linux": {
+        "MIMode": "gdb",
+        "setupCommands": [
+          { "description": "Enable pretty-printing for gdb", "text": "-enable-pretty-printing", "ignoreFailures": true }
+        ]
+      },
+      "windows": {
+        "program": "${command:cmake.launchTargetDirectory}/hyperiond.exe",
+        "MIMode": "gdb"
+      },
+      "osx": {
+        "program": "${command:cmake.launchTargetDirectory}/Hyperion.app/Contents/MacOS/Hyperion",
+        "MIMode": "lldb"
+      }
+    },
+    {
+      "name": "Run hyperiond (Debug Logging, Custom Config)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${command:cmake.launchTargetDirectory}/hyperiond",
+      "args": [ "-d", "-uconfig/${input:hyperionConfigFile}" ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "linux": {
+        "MIMode": "gdb",
+        "setupCommands": [
+          { "description": "Enable pretty-printing for gdb", "text": "-enable-pretty-printing", "ignoreFailures": true }
+        ]
+      },
+      "windows": { "program": "${command:cmake.launchTargetDirectory}/hyperiond.exe", "MIMode": "gdb" },
+      "osx": { "program": "${command:cmake.launchTargetDirectory}/Hyperion.app/Contents/MacOS/Hyperion", "MIMode": "lldb" }
     }
   ]
 }
