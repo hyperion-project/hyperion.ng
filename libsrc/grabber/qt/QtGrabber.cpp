@@ -238,14 +238,16 @@ QPixmap QtGrabber::grabWindow(quintptr window, int xIn, int yIn, int width, int 
 
 int QtGrabber::grabFrame(Image<ColorRgb>& image)
 {
-	if (!_isEnabled || _isDeviceInError)
-	{
-		if (_isDeviceInError)
-		{
-			Error(_log, "Cannot grab frame, device is in error state");
-		}
-		return -1;
-	}
+    if (!_isEnabled)
+    {
+        return -1;
+    }
+
+    if (_isDeviceInError)
+    {
+        Error(_log, "Cannot grab frame, device is in error state");
+        return -1;
+    }
 
 
 #ifdef _WIN32

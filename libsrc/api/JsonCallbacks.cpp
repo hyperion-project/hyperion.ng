@@ -28,7 +28,7 @@ namespace {
 	constexpr std::chrono::milliseconds MAX_IMAGE_EMISSION_INTERVAL{ 40 }; // 25 Hz
 	constexpr std::chrono::milliseconds MAX_LED_DEVICE_DATA_EMISSION_INTERVAL{ 10 }; // 100 Hz
 
-	bool const verbose {true};
+	bool const verbose {false};
 
 } //End of constants
 

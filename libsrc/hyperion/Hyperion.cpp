@@ -680,24 +680,10 @@ void Hyperion::update()
 	else
 	{
 		ledColors = priorityInfo.ledColors;
-		applyBlacklist(ledColors);
 	}
 
 	emit rawLedColors(ledColors);
-
-	if (_ledString.hasBlackListedLeds())
-	{
-		for (unsigned long const id : _ledString.blacklistedLedIds())
-		{
-			if (id >= ledColors.size())
-			{
-				continue;
-			}
-			ledColors[id] = ColorRgb::BLACK;
-		}
-	}
-
-	emit rawLedColors(ledColors);
+	applyBlacklist(ledColors);
 
 	// Start transformations
 	_raw2ledAdjustment->applyAdjustment(ledColors);
