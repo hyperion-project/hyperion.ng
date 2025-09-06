@@ -1,11 +1,15 @@
-#pragma once
+#ifndef IMAGEDATA_H
+#define IMAGEDATA_H
 
 // STL includes
 #include <cstdint>
 #include <cstring>
 #include <algorithm>
+
+#include "HyperionConfig.h"
 #include <utils/ColorRgb.h>
 #include <utils/Logger.h>
+#include <utils/TrackedMemory.h>
 
 // QT includes
 #include <QSharedData>
@@ -17,194 +21,100 @@
 typedef SSIZE_T ssize_t;
 #endif
 
-#define IMAGEDATA_ENABLE_MEMORY_TRACKING_ALLOC 0
-#define IMAGEDATA_ENABLE_MEMORY_TRACKING_DEEP 0
-#define IMAGEDATA_ENABLE_MEMORY_TRACKING_RELEASE 0
-
-namespace {
-// Counter for unique image data instance IDs
-QAtomicInteger<quint64> imageData_instance_counter(0);
-}
+// Define to enable memory tracing for Image objects.
+// Define as TraceEvent::All; for all events, or a combination of TraceEvent flags.
+// e.g. constexpr TraceEvent TRACE_IMAGE_DATA_MEMORY_EVENTS = TraceEvent::Alloc | TraceEvent::Release
 
 template <typename Pixel_T>
-class ImageData : public QSharedData
+class ImageData;
+
+#if defined(ENABLE_TRACE_IMAGE_DATA_MEMORY)
+constexpr TraceEvent TRACE_IMAGE_DATA_MEMORY_EVENTS = TraceEvent::All;
+template<typename Pixel_T>
+struct ComponentTracer<ImageData<Pixel_T>> {
+	static constexpr bool enabled = true;
+	static inline TraceEvent active_events = TRACE_IMAGE_DATA_MEMORY_EVENTS;
+};
+#else
+template<typename Pixel_T>
+struct ComponentTracer<ImageData<Pixel_T>> {
+	static constexpr bool enabled = false;
+	static inline TraceEvent active_events = TraceEvent::None;
+};
+#endif
+
+// Base class to hold the static instance counter
+class ImageDataCounter {
+protected:
+	// The static counter is defined in a .cpp file to ensure a single instance.
+	static QAtomicInteger<quint64> _imageData_instance_counter;
+};
+
+template <typename>
+class Image;
+
+template <typename Pixel_T>
+class ImageData : public QSharedData, private ImageDataCounter
 {
+	friend class Image<Pixel_T>;
 public:
-	typedef Pixel_T pixel_type;
+	using pixel_type = Pixel_T;
 
-	ImageData(int width, int height, const Pixel_T background) :
-		_width(width),
-		_height(height),
-		_pixels(new Pixel_T[static_cast<size_t>(width) * static_cast<size_t>(height)]),
-		_instanceId(++imageData_instance_counter)
-	{
-		std::fill(_pixels, _pixels + width * height, background);
-
-		DebugIf(IMAGEDATA_ENABLE_MEMORY_TRACKING_ALLOC, Logger::getInstance("MEMORY-ImageData"), "ALLOC (DATA): New ImageData [%d] created (%dx%d).", _instanceId, width, height);
-	}
-
+	ImageData(int width, int height, const pixel_type background);
 	// Copy constructor for deep copies (for detach)
-	ImageData(const ImageData& other) :
-		_width(other._width),
-		_height(other._height),
-		_pixels(new Pixel_T[static_cast<size_t>(other._width) * static_cast<size_t>(other._height)]),
-		_instanceId(++imageData_instance_counter)
-	{
-		memcpy(_pixels, other._pixels, static_cast<size_t>(other._width) * static_cast<size_t>(other._height) * sizeof(Pixel_T));
+	ImageData(const ImageData& other);
 
-		DebugIf(IMAGEDATA_ENABLE_MEMORY_TRACKING_DEEP, Logger::getInstance("MEMORY-ImageData"), "COPY (DEEP DATA): New ImageData [%d] created as a deep copy of [%d].", _instanceId, other._instanceId);
-	}
+	~ImageData();
 
-	~ImageData()
-	{
-		delete[] _pixels;
-		DebugIf(IMAGEDATA_ENABLE_MEMORY_TRACKING_RELEASE, Logger::getInstance("MEMORY-ImageData"), "RELEASE (DATA): ImageData [%d] destroyed and memory freed.", _instanceId);
-	}
+	ImageData& operator=(ImageData rhs);
 
-	ImageData& operator=(ImageData rhs)
-	{
-		rhs.swap(*this);
-		return *this;
-	}
-
-	void swap(ImageData& src) noexcept
-	{
-		using std::swap;
-		swap(this->_width, src._width);
-		swap(this->_height, src._height);
-		swap(this->_pixels, src._pixels);
-		swap(this->_instanceId, src._instanceId);
-	}
+	void swap(ImageData& src) noexcept;
 
 	// Move constructor
-	ImageData(ImageData&& src) noexcept
-	: _width(src._width)
-	, _height(src._height)
-	, _pixels(src._pixels)
-	, _instanceId(src._instanceId)
-	{
-		src._width = 0;
-		src._height = 0;
-		src._pixels = nullptr;
-		src._instanceId = 0;
-	}
+	ImageData(ImageData&& src) noexcept;
 
 	// Check reference count
-	int refCount() const { return this->ref.loadRelaxed(); }
+	int refCount() const;
 
-	int width() const
-	{
-		return _width;
-	}
+	int width() const;
 
-	int height() const
-	{
-		return _height;
-	}
+	int height() const;
 
-	uint8_t red(int pixel) const
-	{
-		return (_pixels + pixel)->red;
-	}
+	uint8_t red(int pixel) const;
 
-	uint8_t green(int pixel) const
-	{
-		return (_pixels + pixel)->green;
-	}
+	uint8_t green(int pixel) const;
 
-	uint8_t blue(int pixel) const
-	{
-		return (_pixels + pixel)->blue;
-	}
+	uint8_t blue(int pixel) const;
 
-	const Pixel_T& operator()(int x, int y) const
-	{
-		return _pixels[y * _width + x];
-	}
+	const Pixel_T& operator()(int x, int y) const;
 
-	Pixel_T& operator()(int x, int y)
-	{
-		return _pixels[y * _width + x];
-	}
+	Pixel_T& operator()(int x, int y);
 
-	void resize(int width, int height)
-	{
-		if (width == _width && height == _height)
-		{
-			return;
-		}
+	void resize(int width, int height);
 
-		// Allocate a new buffer without initializing the content
-		Pixel_T* newPixels = new Pixel_T[static_cast<size_t>(width) * static_cast<size_t>(height)];
+	Pixel_T* memptr();
 
-		// Release the old buffer without copying data
-		delete[] _pixels;
+	const Pixel_T* memptr() const;
 
-		// Update the pointer to the new buffer
-		_pixels = newPixels;
+	void toRgb(ImageData<ColorRgb>& image) const;
 
-		_width = width;
-		_height = height;
-	}
+	ssize_t size() const;
 
-	Pixel_T* memptr()
-	{
-		return _pixels;
-	}
+	void clear();
 
-	const Pixel_T* memptr() const
-	{
-		return _pixels;
-	}
-
-	void toRgb(ImageData<ColorRgb>& image) const
-	{
-		if (image.width() != _width || image.height() != _height)
-		{
-			image.resize(_width, _height);
-		}
-
-		const int imageSize = _width * _height;
-		for (int idx = 0; idx < imageSize; idx++)
-		{
-			const Pixel_T& color = _pixels[idx];
-			image.memptr()[idx] = ColorRgb{ color.red, color.green, color.blue };
-		}
-	}
-
-	ssize_t size() const
-	{
-		return  static_cast<ssize_t>(_width) * static_cast<ssize_t>(_height) * sizeof(Pixel_T);
-	}
-
-	void clear()
-	{
-		// Fill the entire existing pixel buffer with the default-constructed pixel value
-		std::fill(_pixels, _pixels + (static_cast<size_t>(_width) * _height), Pixel_T());
-	}
-
-	void reset()
-	{
-		if (_width != 1 || _height != 1)
-		{
-			resize(1, 1);
-		}
-		// Set the single pixel to the default background
-		_pixels[0] = Pixel_T();
-	}
+	void reset();
 
 private:
-	int toIndex(int x, int y) const
-	{
-		return y * _width + x;
-	}
+	int toIndex(int x, int y) const;
 
 	/// The width of the image
 	int _width;
 	/// The height of the image
 	int _height;
 	/// The pixels of the image
-	Pixel_T* _pixels;
+	pixel_type* _pixels;
 
 	quint64 _instanceId; // Unique ID for this data block
 };
+
+#endif // IMAGEDATA_H

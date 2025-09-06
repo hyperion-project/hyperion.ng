@@ -9,84 +9,148 @@
 #include <type_traits>
 #include <utils/Logger.h>
 
-#define ENABLE_MEMORY_TRACKING 1
+/*
+ * EXAMPLE USAGE:
+ *
+ * 0. To enable tracing globally for all classes, define the following macro
+ *    before including TrackedMemory.h (e.g., in your CMake file):
+ *
+ *    #define ENABLE_GLOBAL_MEMORY_TRACKING
+ *
+ * 1. To enable tracing for a class at runtime (e.g., in your main.cpp):
+ *
+ *    #include <utils/Image.h>
+ *    #include <utils/ColorRgb.h>
+ *    #include <utils/TrackedMemory.h>
+ *
+ *    // Enable all trace events for Image<ColorRgb>
+ *    ComponentTracer<Image<ColorRgb>>::active_events = TraceEvent::All;
+ *
+ *    // Or just specific events
+ *    ComponentTracer<Image<ColorRgb>>::active_events = TraceEvent::Alloc | TraceEvent::Deep;
+ *
+ *    // Enable tracing for the underlying data of Image<ColorRgb>
+ *    ComponentTracer<ImageData<ColorRgb>>::active_events = TraceEvent::All;
+ *
+ * 2. To disable all tracing for a class at compile time, you can specialize the template:
+ *
+ *    template<>
+ *    struct ComponentTracer<Image<ColorRgb>> {
+ *        static constexpr bool enabled = false;
+ *        static inline TraceEvent active_events = TraceEvent::None;
+ *    };
+ *
+ */
 
-#define USE_TRACKED_SHARED_PTR ENABLE_MEMORY_TRACKING
-#define USE_TRACKED_CUSTOM_DELETE ENABLE_MEMORY_TRACKING
+// Generic flags for memory/lifetime event tracing
+enum class TraceEvent : std::uint32_t {
+	None    = 0,
+	Alloc   = 1 << 0, // For new resource allocations
+	Deep    = 1 << 1, // For deep copies (detach)
+	Shallow = 1 << 2, // For shallow copies (ref-counting)
+	Move    = 1 << 3, // For move operations
+	Release = 1 << 4, // For resource/handle destruction
+	All     = Alloc | Deep | Shallow | Move | Release
+};
 
-#if USE_TRACKED_SHARED_PTR
-	#define MAKE_TRACKED_SHARED(T, ...) makeTrackedShared<T>(__VA_ARGS__)
+// Enable bitwise operators for the enum class
+constexpr TraceEvent operator|(TraceEvent a, TraceEvent b) {
+	return static_cast<TraceEvent>(static_cast<std::uint32_t>(a) | static_cast<std::uint32_t>(b));
+}
+
+constexpr TraceEvent operator&(TraceEvent a, TraceEvent b) {
+	return static_cast<TraceEvent>(static_cast<std::uint32_t>(a) & static_cast<std::uint32_t>(b));
+}
+
+constexpr bool has_flag(TraceEvent haystack, TraceEvent needle) {
+	return (static_cast<std::uint32_t>(haystack) & static_cast<std::uint32_t>(needle)) != 0;
+}
+
+// A generic, templated component tracer.
+// This allows controlling trace events on a per-class basis.
+template<typename T>
+struct ComponentTracer {
+	// Statically holds the active trace events for class T.
+	// Can be modified at runtime to dynamically change logging verbosity.
+	// Default is None, so no tracing occurs unless explicitly enabled.
+#if defined(ENABLE_GLOBAL_MEMORY_TRACKING)
+	static inline TraceEvent active_events = TraceEvent::All;
+	static inline bool enabled = true;
 #else
-	#define MAKE_TRACKED_SHARED(T, ...) QSharedPointer<T>(new T(__VA_ARGS__), &customDelete<T>)
+	static inline TraceEvent active_events = TraceEvent::None;
+	static inline bool enabled = false;
 #endif
+};
+
+// Helper function to check if a specific event is being traced for a class.
+template<typename T>
+inline bool is_tracing(TraceEvent event) {
+	if (ComponentTracer<T>::enabled)
+	{
+		return has_flag(ComponentTracer<T>::active_events, event);
+	}
+	return false;
+}
+
+// Forward declarations
+template<typename T>
+void customDelete(T* ptr);
+
+template<typename T, typename... Args>
+QSharedPointer<T> makeTrackedShared(Args&&... args);
+
+// Main factory helper function
+template<typename T, typename... Args>
+QSharedPointer<T> createTrackedPointer(Args&&... args)
+{
+	if (ComponentTracer<T>::enabled)
+	{
+		return makeTrackedShared<T>(std::forward<Args>(args)...);
+	}
+	else
+	{
+		return QSharedPointer<T>(new T(std::forward<Args>(args)...), &customDelete<T>);
+	}
+}
+
+#define MAKE_TRACKED_SHARED(T, ...) createTrackedPointer<T>(__VA_ARGS__)
 
 // Custom Delete function templates
-
 template<typename T>
 void customDelete(T* ptr)
 {
 	if (!ptr)
 		return;
 
-#if USE_TRACKED_CUSTOM_DELETE
-
-	QString subComponent = "__";
-	QString typeName;
-
-	if constexpr (std::is_base_of<QObject, T>::value)
+	if (is_tracing<T>(TraceEvent::Release))
 	{
-		QVariant prop = ptr->property("instance");
-		if (prop.isValid() && prop.canConvert<QString>())
+		QString subComponent = "__";
+		QString typeName;
+
+		if constexpr (std::is_base_of_v<QObject, T>)
 		{
-			subComponent = prop.toString();
-		}
-		typeName = ptr->metaObject()->className();
-	}
-	else
-	{
-		typeName = typeid(T).name();
-	}
-
-	Logger* log = Logger::getInstance("MEMORY", subComponent);
-	Debug(log, "Deleting object of type '%s' at %p - current thread: '%s'", QSTRING_CSTR(typeName), static_cast<void*>(ptr), QSTRING_CSTR(QThread::currentThread()->objectName()));
-#endif
-
-	if constexpr (std::is_base_of<QObject, T>::value)
-	{
-		QThread* thread = ptr->thread();
-		if (thread && thread == QThread::currentThread()) {
-#if USE_TRACKED_CUSTOM_DELETE
-			Debug(log, "QObject<%s> deleted immediately (current thread: '%s').", QSTRING_CSTR(typeName), QSTRING_CSTR(thread->objectName()));
-#endif
-			ptr->deleteLater();
+			if (QVariant prop = ptr->property("instance"); prop.isValid() && prop.canConvert<QString>())
+			{
+				subComponent = prop.toString();
+			}
+			typeName = ptr->metaObject()->className();
 		}
 		else
 		{
-			if (thread && thread->isRunning())
-			{
-				// Schedule deleteLater from the object's thread
-#if USE_TRACKED_CUSTOM_DELETE
-				Debug(log, "QObject<%s>::deleteLater() scheduled via invokeMethod on thread '%s'", QSTRING_CSTR(typeName), QSTRING_CSTR(thread->objectName()));
-#endif
-				QMetaObject::invokeMethod(ptr, "deleteLater", Qt::QueuedConnection);
-			}
-			else
-			{
-				// This should be an *extremely rare* fallback and indicates a bug in the thread shutdown sequence.
-#if USE_TRACKED_CUSTOM_DELETE
-				Debug(log, "<%s> object's owning thread is not running. Deleted immediately (thread not running) - current thread: '%s'", QSTRING_CSTR(typeName), QSTRING_CSTR(QThread::currentThread()->objectName()));
-#endif
-				delete ptr;
-			}
+			typeName = typeid(T).name();
 		}
+
+		Logger* log = Logger::getInstance("MEMORY", subComponent);
+		Debug(log, "Deleting object of type '%s' at %p - current thread: '%s'", QSTRING_CSTR(typeName), static_cast<void*>(ptr), QSTRING_CSTR(QThread::currentThread()->objectName()));
+	}
+
+	if constexpr (std::is_base_of_v<QObject, T>)
+	{
+		ptr->deleteLater();
 	}
 	else
 	{
-#if USE_TRACKED_CUSTOM_DELETE
-		Debug(log, "Non-QObject<%s> deleted immediately - current thread: '%s'.", QSTRING_CSTR(typeName), QSTRING_CSTR(QThread::currentThread()->objectName()));
-#endif
 		delete ptr;
-
 	}
 }
 
@@ -94,29 +158,30 @@ void customDelete(T* ptr)
 template<typename T, typename... Args>
 QSharedPointer<T> makeTrackedShared(Args&&... args)
 {
-	T* rawPtr = new T(std::forward<Args>(args)...);
+	auto rawPtr = new T(std::forward<Args>(args)...);
 	if (!rawPtr)
 		return QSharedPointer<T>();
 
-	QString subComponent = "__";
-	QString typeName;
-
-	if constexpr (std::is_base_of<QObject, T>::value)
+	if (is_tracing<T>(TraceEvent::Alloc))
 	{
-		QVariant prop = rawPtr->property("instance");
-		if (prop.isValid() && prop.canConvert<QString>())
+		QString subComponent = "__";
+		QString typeName;
+
+		if constexpr (std::is_base_of_v<QObject, T>)
 		{
-			subComponent = prop.toString();
+			if (QVariant prop = rawPtr->property("instance"); prop.isValid() && prop.canConvert<QString>())
+			{
+				subComponent = prop.toString();
+			}
+			typeName = rawPtr->metaObject()->className();
 		}
-		typeName = rawPtr->metaObject()->className();
-	}
-	else
-	{
-		typeName = typeid(T).name();
-	}
+		{
+			typeName = typeid(T).name();
+		}
 
-	Logger* log = Logger::getInstance("MEMORY", subComponent);
-	Debug(log, "Creating object of type '%s' at %p (current thread '%s')", QSTRING_CSTR(typeName), static_cast<void*>(rawPtr), QSTRING_CSTR(QThread::currentThread()->objectName()));
+		Logger* log = Logger::getInstance("MEMORY", subComponent);
+		Debug(log, "Creating object of type '%s' at %p (current thread '%s')", QSTRING_CSTR(typeName), static_cast<void*>(rawPtr), QSTRING_CSTR(QThread::currentThread()->objectName()));
+	}
 
 	return QSharedPointer<T>(rawPtr, &customDelete<T>);
 }

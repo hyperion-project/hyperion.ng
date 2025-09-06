@@ -1,28 +1,49 @@
-#pragma once
+#ifndef IMAGE_H
+#define IMAGE_H
 
-#include <QDebug>
 #include <QSharedDataPointer>
 #include <QAtomicInt>
 #include <QImage>
+#include <QDebug>
 
-
-
+#include "HyperionConfig.h"
 #include <utils/ImageData.h>
 #include <utils/ColorRgb.h>
 #include <utils/ColorRgba.h>
 #include <utils/Logger.h>
+#include <utils/TrackedMemory.h>
 
-#define IMAGE_ENABLE_MEMORY_TRACKING_ALLOC 0
-#define IMAGE_ENABLE_MEMORY_TRACKING_DEEP 0
-#define IMAGE_ENABLE_MEMORY_TRACKING_SHALLOW 0
-#define IMAGE_ENABLE_MEMORY_TRACKING_MOVE 0
-#define IMAGE_ENABLE_MEMORY_TRACKING_RELEASE 0
+#include <cstdint>
+#include <utils/Logger.h>
 
-namespace {
-// Counter for unique HANDLE instance IDs
-QAtomicInteger<quint64> image_instance_counter(0);
-}
+// Define to enable memory tracing for Image objects.
+// Define as TraceEvent::All; for all events, or a combination of TraceEvent flags.
+// e.g. constexpr TraceEvent TRACE_IMAGE_MEMORY_EVENTS = TraceEvent::Alloc | TraceEvent::Release
 
+template <typename Pixel_T>
+class Image;
+
+#if defined(ENABLE_TRACE_IMAGE_MEMORY)
+constexpr TraceEvent TRACE_IMAGE_MEMORY_EVENTS = TraceEvent::All;
+template<typename Pixel_T>
+struct ComponentTracer<Image<Pixel_T>> {
+	static constexpr bool enabled = true;
+	static inline TraceEvent active_events = TRACE_IMAGE_MEMORY_EVENTS;
+};
+#else
+template<typename Pixel_T>
+struct ComponentTracer<Image<Pixel_T>> {
+	static constexpr bool enabled = false;
+	static inline TraceEvent active_events = TraceEvent::None;
+};
+#endif
+
+// Base class to hold the static instance counter
+class ImageCounter {
+protected:
+	// The static counter is defined in a .cpp file to ensure a single instance.
+	static QAtomicInteger<quint64> _image_instance_counter;
+};
 
 // Trait to map a Pixel_T to a QImage::Format
 template<typename Pixel_T>
@@ -49,33 +70,16 @@ struct PixelFormatTraits<ColorRgba> {
 };
 
 template <typename Pixel_T>
-void imageDataCleanupHandler(void* info)
-{
-	// This function is called by QImage when it's destroyed.
-	// It safely decrements the reference count of our shared data.
-	auto* data = static_cast<ImageData<Pixel_T>*>(info);
-	if (data)
-	{
-		data->ref.deref();
-	}
-}
+void imageDataCleanupHandler(void* info);
 
 template <typename Pixel_T>
-class Image
+class Image : private ImageCounter
 {
 public:
-	typedef Pixel_T pixel_type;
+	using pixel_type = Pixel_T;
 
-	Image() :
-		Image(1, 1, Pixel_T())
-	{
-	}
-
-	Image(int width, int height) :
-		Image(width, height, Pixel_T())
-	{
-	}
-
+	Image();
+	Image(int width, int height);
 	///
 	/// Constructor for an image with specified width and height
 	///
@@ -83,116 +87,45 @@ public:
 	/// @param height The height of the image
 	/// @param background The color of the image
 	///
-	Image(int width, int height, const Pixel_T background) :
-		_d_ptr(new ImageData<Pixel_T>(width, height, background)),
-		_instanceId(++image_instance_counter)
-	{
-		DebugIf(IMAGE_ENABLE_MEMORY_TRACKING_ALLOC, Logger::getInstance("MEMORY-Image"), "ALLOC (HANDLE): New Image handle [%d] created.", _instanceId);
-	}
+	Image(int width, int height, const Pixel_T background);
 
-	///
-	/// Copy constructor for an image
-	/// @param other The image which will be copied
-	///
 	// Copy constructor (Shallow Copy)
-	Image(const Image& other) :
-		_d_ptr(other._d_ptr), // This just increments the ref-counter
-		_instanceId(++image_instance_counter)
-	{
-		DebugIf(IMAGE_ENABLE_MEMORY_TRACKING_SHALLOW, Logger::getInstance("MEMORY-Image"), "COPY (SHALLOW HANDLE): Image handle [%d] created, sharing data with handle [%d].", _instanceId, other._instanceId);
-	}
+	Image(const Image& other);
 
 	// Move constructor
-	Image(Image&& src) noexcept :
-		_d_ptr(std::move(src._d_ptr)),
-		_instanceId(src._instanceId)
-	{
-		src._instanceId = 0; // Invalidate moved-from handle
-		DebugIf(IMAGE_ENABLE_MEMORY_TRACKING_MOVE, Logger::getInstance("MEMORY-Image"), "MOVE: Image handle [%d] has been moved into a new instance.", _instanceId);
-	}
+	Image(Image&& src) noexcept;
 
 	// Destructor
-	~Image()
-	{
-		if (_instanceId == 0)
-		{
-			return;
-		}
-
-		if (isDetached())
-		{
-			DebugIf(IMAGE_ENABLE_MEMORY_TRACKING_RELEASE, Logger::getInstance("MEMORY-Image"), "RELEASE (HANDLE): Image handle [%d] destroyed. This was the last handle.", _instanceId);
-		}
-		else {
-			DebugIf(IMAGE_ENABLE_MEMORY_TRACKING_RELEASE, Logger::getInstance("MEMORY-Image"), "RELEASE (HANDLE): Image handle [%d] destroyed. Other handles still exist.", _instanceId);
-		}
-	}
+	~Image();
 
 	// Copy assignment operator (Shallow Copy)
-	Image& operator=(const Image& other)
-	{
-		if (this != &other)
-		{
-			_d_ptr = other._d_ptr;
-			DebugIf(IMAGE_ENABLE_MEMORY_TRACKING_SHALLOW, Logger::getInstance("MEMORY-Image"), "ASSIGN (SHALLOW HANDLE): Image handle [%d]  now shares data with handle [%d].", _instanceId, other._instanceId);
-		}
-		return *this;
-	}
+	Image& operator=(const Image& other);
 
 	// Move assignment operator
-	Image& operator=(Image&& other) noexcept
-	{
-		if (this != &other)
-		{
-			_d_ptr = std::move(other._d_ptr);
-			_instanceId = other._instanceId;
-			other._instanceId = 0;
-			DebugIf(IMAGE_ENABLE_MEMORY_TRACKING_MOVE, Logger::getInstance("MEMORY-Image"), "MOVE ASSIGN: Image handle [%d] has taken ownership from another handle.", _instanceId);
-		}
-		return *this;
-	}
+	Image& operator=(Image&& other) noexcept;
 
-	void swap(Image& other) noexcept
-	{
-		std::swap(this->_d_ptr, other._d_ptr);
-		std::swap(this->_instanceId, other._instanceId);
-	}
+	void swap(Image& other) noexcept;
 
 	// Check if the data is unique
-	bool isDetached() const
-	{
-		return _d_ptr != nullptr && _d_ptr->refCount() == 1;
-	}
+	bool isDetached() const;
 
 	///
 	/// Returns the width of the image
 	///
 	/// @return The width of the image
 	///
-	int width() const
-	{
-		return _d_ptr->width();
-	}
+	int width() const;
 
 	///
 	/// Returns the height of the image
 	///
 	/// @return The height of the image
 	///
-	int height() const
-	{
-		return _d_ptr->height();
-	}
+	int height() const;
 
-	uint8_t red(unsigned pixel) const
-	{
-		return _d_ptr->red(pixel);
-	}
+	uint8_t red(unsigned pixel) const;
 
-	uint8_t green(unsigned pixel) const
-	{
-		return _d_ptr->green(pixel);
-	}
+	uint8_t green(unsigned pixel) const;
 
 	///
 	/// Returns a const reference to a specified pixel in the image
@@ -202,164 +135,73 @@ public:
 	///
 	/// @return const reference to specified pixel
 	///
-	uint8_t blue(int pixel) const
-	{
-		return _d_ptr->blue(pixel);
-	}
+	uint8_t blue(int pixel) const;
 
 	///
 	/// Returns a reference to a specified pixel in the image
 	///
 	/// @param x The x index
 	/// @param y The y index
-	const Pixel_T& operator()(int x, int y) const
-	{
-		return _d_ptr->operator()(x, y);
-	}
+	const Pixel_T& operator()(int x, int y) const;
 
 	///
 	/// @return reference to specified pixel
 	///
-	Pixel_T& operator()(int x, int y)
-	{
-		return _d_ptr->operator()(x, y);
-	}
+	Pixel_T& operator()(int x, int y);
 
 	/// Resize the image
 	/// @param width The width of the image
 	/// @param height The height of the image
-	void resize(int width, int height)
-	{
-		_d_ptr->resize(width, height);
-	}
+	void resize(int width, int height);
 
 	///
 	/// Returns a memory pointer to the first pixel in the image
 	/// @return The memory pointer to the first pixel
 	///
-	Pixel_T* memptr()
-	{
-		if (!isDetached())
-		{
-			DebugIf(IMAGE_ENABLE_MEMORY_TRACKING_DEEP, Logger::getInstance("MEMORY-Image"), "COPY (DEEP): memptr() on shared Image handle [%d] is causing a detach.", _instanceId);
-		}
-		_d_ptr.detach();
-		return _d_ptr->memptr();
-	}
+	Pixel_T* memptr();
 
 	///
 	/// Returns a const memory pointer to the first pixel in the image
 	/// @return The const memory pointer to the first pixel
 	///
-	const Pixel_T* memptr() const
-	{
-		return _d_ptr->memptr();
-	}
+	const Pixel_T* memptr() const;
 
 	///
 	/// Convert image of any color order to a RGB image.
 	///
 	/// @param[out] image  The image that buffers the output
 	///
-	void toRgb(Image<ColorRgb>& image) const
-	{
-		_d_ptr->toRgb(*image._d_ptr);
-	}
+	void toRgb(Image<ColorRgb>& image) const;
 
 	///
 	/// Get size of buffer
 	///
-	ssize_t size() const
-	{
-		return _d_ptr->size();
-	}
+	ssize_t size() const;
 
 	///
 	/// Clear the image, i.e. fill the image with default background color
 	///
-	void clear()
-	{
-		_d_ptr->clear();
-	}
+	void clear();
 
 	///
 	/// Reset the image to 1x1 with default background color
 	///
-	void reset()
-	{
-		_d_ptr->reset();
-	}
+	void reset();
 
-	quint64 id() const
-	{
-		return _instanceId;
-	}
+	quint64 id() const;
 
 	///
 	/// Returns a const QImage that shares data with this Image object.
 	/// No data is copied. The returned QImage is read-only.
 	///
-	QImage toQImage() const
-	{
-		const ImageData<Pixel_T>* d_ptr = _d_ptr.constData();
-		if (d_ptr == nullptr)
-		{
-			return QImage();
-		}
-
-		// Manually increment the reference count for the shared data block.
-		// This is necessary because we are creating a new QImage that will share the data.
-		// QImage's cleanup function will later decrement it.
-		const_cast<ImageData<Pixel_T>*>(d_ptr)->ref.ref();
-
-		return QImage(
-			reinterpret_cast<const uchar*>(d_ptr->memptr()),
-			d_ptr->width(),
-			d_ptr->height(),
-			d_ptr->width() * sizeof(Pixel_T),
-			PixelFormatTraits<Pixel_T>::format,
-			// Provide a custom cleanup function. QImage will call this when it's destroyed.
-			imageDataCleanupHandler<Pixel_T>,
-			// Pass the ImageData pointer as the context for the cleanup handler.
-			const_cast<ImageData<Pixel_T>*>(d_ptr)
-		);
-	}
+	QImage toQImage() const;
 
 	///
 	/// Returns a modifiable QImage that shares data with this Image object.
 	/// This may trigger a deep copy (detach) if the data is currently shared,
 	/// preserving copy-on-write semantics.
 	///
-	QImage toQImage()
-	{
-		// First, ensure we have a unique copy of the data before allowing modification.
-		// This is the core of copy-on-write. memptr() calls detach() internally.
-		memptr();
-
-		ImageData<Pixel_T>* d_ptr = _d_ptr.data();
-		if (d_ptr == nullptr)
-		{
-			return QImage();
-		}
-
-		// Manually increment the reference count for the shared data block.
-		// This is necessary because we are creating a new QImage that will share the data.
-		// QImage's cleanup function will later decrement it.
-		d_ptr->ref.ref();
-
-		// Create a modifiable QImage wrapper
-		return QImage(
-			reinterpret_cast<uchar*>(d_ptr->memptr()),
-			d_ptr->width(),
-			d_ptr->height(),
-			d_ptr->width() * sizeof(Pixel_T),
-			PixelFormatTraits<Pixel_T>::format,
-			// Provide a custom cleanup function. QImage will call this when it's destroyed.
-			imageDataCleanupHandler<Pixel_T>,
-			// Pass the ImageData pointer as the context for the cleanup handler.
-			d_ptr
-		);
-	}
+	QImage toQImage();
 
  private:
 	template<class T>
@@ -373,13 +215,10 @@ public:
 	///
 	/// @return The index into the underlying data-vector
 	///
-	int toIndex(int x, int y) const
-	{
-		return _d_ptr->toIndex(x, y);
-	}
+	int toIndex(int x, int y) const;
 
-	QSharedDataPointer<ImageData<Pixel_T>> _d_ptr;
-
+	QSharedDataPointer<ImageData<pixel_type>> _d_ptr;
 	quint64 _instanceId; // Unique ID for this C++ object handle
 };
 
+#endif // IMAGE_H
