@@ -56,18 +56,18 @@ Hyperion::Hyperion(quint8 instance, QObject* parent)
 	, _muxer(nullptr)
 	, _ledDeviceWrapper(nullptr)
 	, _deviceSmooth(nullptr)
-#if defined(ENABLE_EFFECTENGINE)
 	, _captureCont(nullptr)
-#endif
 	, _BGEffectHandler(nullptr)
+#if defined(ENABLE_EFFECTENGINE)	
 	, _effectEngine(nullptr)
+#endif	
+#if defined(ENABLE_BOBLIGHT_SERVER)
 	, _boblightServer(nullptr)
+#endif	
 	, _log(nullptr)
 	, _hwLedCount(0)
 	, _layoutLedCount(0)
-#if defined(ENABLE_BOBLIGHT_SERVER)
 	, _colorOrder("rgb")
-#endif
 {
 	qRegisterMetaType<ComponentList>("ComponentList");
 	qRegisterMetaType<Image<ColorRgb>>("ColorRgbImage");
