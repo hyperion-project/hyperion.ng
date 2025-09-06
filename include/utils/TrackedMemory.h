@@ -23,13 +23,13 @@
  *    #include <utils/ColorRgb.h>
  *    #include <utils/TrackedMemory.h>
  *
- *    // Enable all trace events for Image<ColorRgb>
+ *    Enable all trace events for Image<ColorRgb>
  *    ComponentTracer<Image<ColorRgb>>::active_events = TraceEvent::All;
  *
- *    // Or just specific events
+ *    Or just specific events
  *    ComponentTracer<Image<ColorRgb>>::active_events = TraceEvent::Alloc | TraceEvent::Deep;
  *
- *    // Enable tracing for the underlying data of Image<ColorRgb>
+ *    Enable tracing for the underlying data of Image<ColorRgb>
  *    ComponentTracer<ImageData<ColorRgb>>::active_events = TraceEvent::All;
  *
  * 2. To disable all tracing for a class at compile time, you can specialize the template:

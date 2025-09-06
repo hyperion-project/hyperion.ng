@@ -1,7 +1,9 @@
 #include <utils/ImageData.h>
+
 #include <utils/ColorRgb.h>
 #include <utils/ColorRgba.h>
 #include <utils/Logger.h>
+#include <vector>
 
 // The static instance counter needs to be defined in a .cpp file.
 QAtomicInteger<quint64> ImageDataCounter::_imageData_instance_counter(0);
@@ -10,11 +12,9 @@ template <typename Pixel_T>
 ImageData<Pixel_T>::ImageData(int width, int height, const pixel_type background) :
 	_width(width),
 	_height(height),
-	_pixels(new pixel_type[static_cast<size_t>(width) * static_cast<size_t>(height)]),
+	_pixels(static_cast<size_t>(width) * static_cast<size_t>(height), background),
 	_instanceId(++_imageData_instance_counter)
 {
-	std::fill(_pixels, _pixels + static_cast<size_t>(width) * height, background);
-
 	DebugIf(is_tracing<ImageData<pixel_type>>(TraceEvent::Alloc), Logger::getInstance("MEMORY-ImageData"), "ALLOC (DATA): New ImageData [%d] created (%dx%d).", _instanceId, width, height);
 }
 
@@ -22,18 +22,15 @@ template <typename Pixel_T>
 ImageData<Pixel_T>::ImageData(const ImageData& other) :
 	_width(other._width),
 	_height(other._height),
-	_pixels(new pixel_type[static_cast<size_t>(other._width) * static_cast<size_t>(other._height)]),
+	_pixels(other._pixels),
 	_instanceId(++_imageData_instance_counter)
 {
-	memcpy(_pixels, other._pixels, static_cast<size_t>(other._width) * static_cast<size_t>(other._height) * sizeof(Pixel_T));
-
 	DebugIf(is_tracing<ImageData<pixel_type>>(TraceEvent::Deep), Logger::getInstance("MEMORY-ImageData"), "COPY (DEEP DATA): New ImageData [%d] created as a deep copy of [%d].", _instanceId, other._instanceId);
 }
 
 template <typename Pixel_T>
 ImageData<Pixel_T>::~ImageData()
 {
-	delete[] _pixels;
 	DebugIf(is_tracing<ImageData<pixel_type>>(TraceEvent::Release), Logger::getInstance("MEMORY-ImageData"), "RELEASE (DATA): ImageData [%d] destroyed and memory freed.", _instanceId);
 }
 
@@ -58,12 +55,11 @@ template <typename Pixel_T>
 ImageData<Pixel_T>::ImageData(ImageData&& src) noexcept
 : _width(src._width)
 , _height(src._height)
-, _pixels(src._pixels)
+, _pixels(std::move(src._pixels))
 , _instanceId(src._instanceId)
 {
 	src._width = 0;
 	src._height = 0;
-	src._pixels = nullptr;
 	src._instanceId = 0;
 }
 
@@ -85,19 +81,19 @@ int ImageData<Pixel_T>::height() const
 template <typename Pixel_T>
 uint8_t ImageData<Pixel_T>::red(int pixel) const
 {
-	return (_pixels + pixel)->red;
+	return (_pixels.data() + pixel)->red;
 }
 
 template <typename Pixel_T>
 uint8_t ImageData<Pixel_T>::green(int pixel) const
 {
-	return (_pixels + pixel)->green;
+	return (_pixels.data() + pixel)->green;
 }
 
 template <typename Pixel_T>
 uint8_t ImageData<Pixel_T>::blue(int pixel) const
 {
-	return (_pixels + pixel)->blue;
+	return (_pixels.data() + pixel)->blue;
 }
 
 template <typename Pixel_T>
@@ -120,14 +116,7 @@ void ImageData<Pixel_T>::resize(int width, int height)
 		return;
 	}
 
-	// Allocate a new buffer without initializing the content
-	auto newPixels = new pixel_type[static_cast<size_t>(width) * static_cast<size_t>(height)];
-
-	// Release the old buffer without copying data
-	delete[] _pixels;
-
-	// Update the pointer to the new buffer
-	_pixels = newPixels;
+	_pixels.resize(static_cast<size_t>(width) * static_cast<size_t>(height));
 
 	_width = width;
 	_height = height;
@@ -136,13 +125,13 @@ void ImageData<Pixel_T>::resize(int width, int height)
 template <typename Pixel_T>
 typename ImageData<Pixel_T>::pixel_type* ImageData<Pixel_T>::memptr()
 {
-	return _pixels;
+	return _pixels.data();
 }
 
 template <typename Pixel_T>
 const typename ImageData<Pixel_T>::pixel_type* ImageData<Pixel_T>::memptr() const
 {
-	return _pixels;
+	return _pixels.data();
 }
 
 template <typename Pixel_T>
@@ -171,7 +160,7 @@ template <typename Pixel_T>
 void ImageData<Pixel_T>::clear()
 {
 	// Fill the entire existing pixel buffer with the default-constructed pixel value
-	std::fill(_pixels, _pixels + (static_cast<size_t>(_width) * _height), pixel_type());
+	std::fill(_pixels.begin(), _pixels.end(), pixel_type());
 }
 
 template <typename Pixel_T>

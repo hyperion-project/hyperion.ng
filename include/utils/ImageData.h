@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <cstring>
 #include <algorithm>
+#include <vector>
 
 #include "HyperionConfig.h"
 #include <utils/ColorRgb.h>
@@ -112,7 +113,7 @@ private:
 	/// The height of the image
 	int _height;
 	/// The pixels of the image
-	pixel_type* _pixels;
+	std::vector<pixel_type> _pixels;
 
 	quint64 _instanceId; // Unique ID for this data block
 };
