@@ -104,7 +104,7 @@ public:
 
 	// Move constructor
 	Image(Image&& src) noexcept :
-		_d_ptr(src._d_ptr),
+		_d_ptr(std::move(src._d_ptr)),
 		_instanceId(src._instanceId)
 	{
 		src._instanceId = 0; // Invalidate moved-from handle

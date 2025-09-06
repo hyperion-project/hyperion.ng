@@ -76,13 +76,17 @@ public:
 		swap(this->_instanceId, src._instanceId);
 	}
 
+	// Move constructor
 	ImageData(ImageData&& src) noexcept
-		: _width(0)
-		, _height(0)
-		, _pixels(nullptr)
-		, _instanceId(0)
+	: _width(src._width)
+	, _height(src._height)
+	, _pixels(src._pixels)
+	, _instanceId(src._instanceId)
 	{
-		src.swap(*this);
+		src._width = 0;
+		src._height = 0;
+		src._pixels = nullptr;
+		src._instanceId = 0;
 	}
 
 	// Check reference count
