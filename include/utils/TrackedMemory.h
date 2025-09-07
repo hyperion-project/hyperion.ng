@@ -37,14 +37,14 @@
  *    template<>
  *    struct ComponentTracer<Image<ColorRgb>> {
  *        static constexpr bool enabled = false;
- *        static inline TraceEvent active_events = TraceEvent::None;
+ *        static inline TraceEvent active_events = TraceEvent::NoEvent;
  *    };
  *
  */
 
 // Generic flags for memory/lifetime event tracing
 enum class TraceEvent : std::uint32_t {
-	None    = 0,
+	NoTrace = 0,
 	Alloc   = 1 << 0, // For new resource allocations
 	Deep    = 1 << 1, // For deep copies (detach)
 	Shallow = 1 << 2, // For shallow copies (ref-counting)
@@ -72,12 +72,12 @@ template<typename T>
 struct ComponentTracer {
 	// Statically holds the active trace events for class T.
 	// Can be modified at runtime to dynamically change logging verbosity.
-	// Default is None, so no tracing occurs unless explicitly enabled.
+	// Default is NoTrace, so no tracing occurs unless explicitly enabled.
 #if defined(ENABLE_GLOBAL_MEMORY_TRACKING)
 	static inline TraceEvent active_events = TraceEvent::All;
 	static inline bool enabled = true;
 #else
-	static inline TraceEvent active_events = TraceEvent::None;
+	static inline TraceEvent active_events = TraceEvent::NoTrace;
 	static inline bool enabled = false;
 #endif
 };

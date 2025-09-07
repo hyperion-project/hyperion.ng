@@ -34,7 +34,7 @@ struct ComponentTracer<Image<Pixel_T>> {
 template<typename Pixel_T>
 struct ComponentTracer<Image<Pixel_T>> {
 	static constexpr bool enabled = false;
-	static inline TraceEvent active_events = TraceEvent::None;
+	static inline TraceEvent active_events = TraceEvent::NoTrace;
 };
 #endif
 
