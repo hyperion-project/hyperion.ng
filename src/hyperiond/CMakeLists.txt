@@ -57,6 +57,9 @@ add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE
 	${MACOS_BUNDLE_RESOURCE_FILES}
 )
 
+# Disable debug output for release builds
+target_compile_definitions(${PROJECT_NAME} PRIVATE $<$<CONFIG:Release>:QT_NO_DEBUG_OUTPUT>)
+
 find_package(OpenSSL QUIET)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS DBus QUIET)
 target_link_libraries(${PROJECT_NAME}
