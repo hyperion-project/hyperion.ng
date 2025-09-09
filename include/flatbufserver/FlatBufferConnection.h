@@ -48,7 +48,7 @@ public:
 	~FlatBufferConnection() override;
 
 	/// @brief Do not read reply messages from Hyperion if set to true
-	void setSkipReply(bool skip);
+	void setSkipReply(bool skip) const;
 
 	///
 	/// @brief Set all leds to the specified color
