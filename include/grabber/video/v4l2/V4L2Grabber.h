@@ -16,6 +16,7 @@
 #include <QRectF>
 #include <QMap>
 #include <QMultiMap>
+#include <QLoggingCategory>
 
 // util includes
 #include <utils/PixelFormat.h>
@@ -31,6 +32,8 @@
 #include <HyperionConfig.h>
 
 #include <events/EventEnum.h>
+
+Q_DECLARE_LOGGING_CATEGORY(comp_v4l2)
 
 ///
 /// Capture class for V4L2 devices
