@@ -20,7 +20,12 @@
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
-      "environment": [],
+      "environment": [
+        {
+          "name": "QT_LOGGING_RULES",
+          "value": "*.debug=false"
+        }
+      ],
       "externalConsole": false,
       "linux": {
         "MIMode": "gdb",
@@ -46,10 +51,17 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${command:cmake.launchTargetDirectory}/hyperiond",
-      "args": [ "-d" ],
+      "args": [
+        "-d"
+      ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
-      "environment": [],
+      "environment": [
+        {
+          "name": "QT_LOGGING_CONF",
+          "value": "qtlogging.ini"
+        }
+      ],
       "externalConsole": false,
       "linux": {
         "MIMode": "gdb",
@@ -75,15 +87,27 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${command:cmake.launchTargetDirectory}/hyperiond",
-      "args": [ "-d", "-uconfig/test" ],
+      "args": [
+        "-d",
+        "-uconfig/test"
+      ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
-      "environment": [],
+      "environment": [
+        {
+          "name": "QT_LOGGING_CONF",
+          "value": "qtlogging.ini"
+        }
+      ],
       "externalConsole": false,
       "linux": {
         "MIMode": "gdb",
         "setupCommands": [
-          { "description": "Enable pretty-printing for gdb", "text": "-enable-pretty-printing", "ignoreFailures": true }
+          {
+            "description": "Enable pretty-printing for gdb",
+            "text": "-enable-pretty-printing",
+            "ignoreFailures": true
+          }
         ]
       },
       "windows": {
@@ -100,19 +124,37 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${command:cmake.launchTargetDirectory}/hyperiond",
-      "args": [ "-d", "-uconfig/${input:hyperionConfigFile}" ],
+      "args": [
+        "-d",
+        "-uconfig/${input:hyperionConfigFile}"
+      ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
-      "environment": [],
+      "environment": [
+        {
+          "name": "QT_LOGGING_CONF",
+          "value": "qtlogging.ini"
+        }
+      ],
       "externalConsole": false,
       "linux": {
         "MIMode": "gdb",
         "setupCommands": [
-          { "description": "Enable pretty-printing for gdb", "text": "-enable-pretty-printing", "ignoreFailures": true }
+          {
+            "description": "Enable pretty-printing for gdb",
+            "text": "-enable-pretty-printing",
+            "ignoreFailures": true
+          }
         ]
       },
-      "windows": { "program": "${command:cmake.launchTargetDirectory}/hyperiond.exe", "MIMode": "gdb" },
-      "osx": { "program": "${command:cmake.launchTargetDirectory}/Hyperion.app/Contents/MacOS/Hyperion", "MIMode": "lldb" }
+      "windows": {
+        "program": "${command:cmake.launchTargetDirectory}/hyperiond.exe",
+        "MIMode": "gdb"
+      },
+      "osx": {
+        "program": "${command:cmake.launchTargetDirectory}/Hyperion.app/Contents/MacOS/Hyperion",
+        "MIMode": "lldb"
+      }
     }
   ]
 }
