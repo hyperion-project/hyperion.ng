@@ -179,6 +179,12 @@ public:
 	ssize_t size() const;
 
 	///
+	/// Check, if it is a null image
+	/// A null image has all parameters set to zero and no allocated data.
+	/// @return true if the image is null (0x0)
+	bool isNull() const;
+
+	///
 	/// Clear the image, i.e. fill the image with default background color
 	///
 	void clear();

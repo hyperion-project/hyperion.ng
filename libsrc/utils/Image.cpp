@@ -21,7 +21,7 @@ void imageDataCleanupHandler(void* info)
 
 template <typename Pixel_T>
 Image<Pixel_T>::Image() :
-	Image(1, 1, pixel_type())
+	Image(0, 0, pixel_type())
 {
 }
 
@@ -187,6 +187,12 @@ template <typename Pixel_T>
 ssize_t Image<Pixel_T>::size() const
 {
 	return _d_ptr->size();
+}
+
+template <typename Pixel_T>
+bool Image<Pixel_T>::isNull() const
+{
+	return _d_ptr->size() == 0;
 }
 
 template <typename Pixel_T>
