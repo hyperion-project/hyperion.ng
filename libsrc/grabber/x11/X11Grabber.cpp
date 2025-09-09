@@ -285,7 +285,7 @@ int X11Grabber::updateScreenDimensions(bool force)
 		return 0;
 	}
 
-	if ((_screenWidth != 0) || _screenHeight != 0)
+	if ((_screenWidth != 0) || (_screenHeight != 0))
 	{
 		freeResources();
 	}
@@ -398,7 +398,7 @@ bool X11Grabber::nativeEventFilter(const QByteArray & eventType, void * message,
 		return false;
 	}
 
-	xcb_generic_event_t *event = static_cast<xcb_generic_event_t*>(message);
+	auto event = static_cast<xcb_generic_event_t*>(message);
 	const uint8_t xEventType = XCB_EVENT_RESPONSE_TYPE(event);
 
 	if (xEventType == _xRandREventBase + XCB_RANDR_SCREEN_CHANGE_NOTIFY)

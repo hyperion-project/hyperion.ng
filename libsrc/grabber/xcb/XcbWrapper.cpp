@@ -15,10 +15,9 @@ XcbWrapper::XcbWrapper(const QJsonDocument& grabberConfig)
 				 GrabberWrapper::DEFAULT_PIXELDECIMATION,
 				 0,0,0,0)
 {
-	_isAvailable = _grabber.isAvailable();
-	if (_isAvailable)
+	if (_grabber.isAvailable(true))
 	{
-		this->handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
+		GrabberWrapper::handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
 	}
 }
 
@@ -26,18 +25,13 @@ XcbWrapper::~XcbWrapper()
 {
 	if ( _init )
 	{
-		stop();
+		GrabberWrapper::stop();
 	}
-}
-
-bool XcbWrapper::isAvailable()
-{
-	return _isAvailable;
 }
 
 bool XcbWrapper::start()
 {
-	if (_isAvailable)
+	if (_grabber.isAvailable())
 	{
 		return GrabberWrapper::start();
 	}
@@ -48,21 +42,12 @@ bool XcbWrapper::start()
 
 bool XcbWrapper::open()
 {
-	bool isOpen {false};
-	if ( _isAvailable && _grabber.setupDisplay())
-	{
-		if (_grabber.updateScreenDimensions() >= 0)
-		{
-			isOpen = true;
-		}
-	}
-
-	return isOpen;
+	return _grabber.setupDisplay();
 }
 
 void XcbWrapper::action()
 {
-	if (!_isAvailable)
+	if (!_grabber.isAvailable())
 	{
 		return;
 	}

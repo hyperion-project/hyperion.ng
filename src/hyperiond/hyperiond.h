@@ -13,68 +13,68 @@
 #ifdef ENABLE_DISPMANX
 	#include <grabber/dispmanx/DispmanxWrapper.h>
 #else
-	typedef QObject DispmanxWrapper;
+	using DispmanxWrapper = QObject;
 #endif
 
 #if defined(ENABLE_V4L2) || defined(ENABLE_MF)
 	#include <grabber/video/VideoWrapper.h>
 #else
-	typedef QObject VideoWrapper;
+	using VideoWrapper = QObject;
 #endif
 
 #ifdef ENABLE_FB
 	#include <grabber/framebuffer/FramebufferWrapper.h>
 #else
-	typedef QObject FramebufferWrapper;
+	using FramebufferWrapper = QObject;
 #endif
 
 #ifdef ENABLE_AMLOGIC
 	#include <grabber/amlogic/AmlogicWrapper.h>
 #else
-	typedef QObject AmlogicWrapper;
+	using AmlogicWrapper = QObject;
 #endif
 
 #ifdef ENABLE_OSX
 	#include <grabber/osx/OsxWrapper.h>
 #else
-	typedef QObject OsxWrapper;
+	using OsxWrapper = QObject;
 #endif
 
 #ifdef ENABLE_X11
 	#include <grabber/x11/X11Wrapper.h>
 #else
-	typedef QObject X11Wrapper;
+	using X11Wrapper = QObject;
 #endif
 
 #ifdef ENABLE_XCB
 	#include <grabber/xcb/XcbWrapper.h>
 #else
-	typedef QObject XcbWrapper;
+	using XcbWrapper = QObject;
 #endif
 
 #ifdef ENABLE_QT
 	#include <grabber/qt/QtWrapper.h>
 #else
-	typedef QObject QtWrapper;
+	using QtWrapper = QObject;
 #endif
 
 #ifdef ENABLE_DX
 	#include <grabber/directx/DirectXWrapper.h>
 #else
-	typedef QObject DirectXWrapper;
+	using DirectXWrapper = QObject;
 #endif
 
 #ifdef ENABLE_DDA
 	#include <grabber/dda/DDAWrapper.h>
 #else
-	typedef QObject DDAWrapper;
+	using DDAWrapper = QObject;
 #endif
 
 #include <hyperion/GrabberWrapper.h>
 #ifdef ENABLE_AUDIO
 	#include <grabber/audio/AudioWrapper.h>
 #else
-	typedef QObject AudioWrapper;
+	using AudioWrapper = QObject;
 #endif
 
 
@@ -229,7 +229,7 @@ private:
 		}
 		else
 		{
-			if (!grabber->isAvailable())
+			if (!grabber->getGrabber()->isAvailable())
 			{
 				Debug(_log, "The %s grabber is not available on this platform", QSTRING_CSTR(typeName));
 				return;

@@ -87,13 +87,10 @@ void Grabber::setFlipMode(FlipMode mode)
 
 void Grabber::setCropping(int cropLeft, int cropRight, int cropTop, int cropBottom)
 {
-	if (_width>0 && _height>0)
+	if ((_width>0) && (_height>0) && (cropLeft + cropRight >= _width || cropTop + cropBottom >= _height))
 	{
-		if (cropLeft + cropRight >= _width || cropTop + cropBottom >= _height)
-		{
-			Error(_log, "Rejecting invalid crop values: left: %d, right: %d, top: %d, bottom: %d, greater than or equal to width/height %d/%d", cropLeft, cropRight, cropTop, cropBottom, _width, _height);
-			return;
-		}
+		Error(_log, "Rejecting invalid crop values: left: %d, right: %d, top: %d, bottom: %d, greater than or equal to width/height %d/%d", cropLeft, cropRight, cropTop, cropBottom, _width, _height);
+		return;
 	}
 
 	_cropLeft   = cropLeft;
