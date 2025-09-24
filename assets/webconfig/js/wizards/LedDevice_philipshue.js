@@ -946,7 +946,7 @@ const philipshueWizard = (() => {
       topContainer_html += '</div><p><span style="font-weight:bold;color:red" id="wiz_hue_ipstate"></span><span style="font-weight:bold;" id="wiz_hue_discovered"></span></p>';
 
       // Hidden fields
-      topContainer_html += '<div class="form-group" id="bridgeid" style="display:none"></div>';      
+      topContainer_html += '<div class="form-group" style="display:none"><input type="hidden" id="bridgeid" name="bridgeid"></div>';
       topContainer_html += '<div class="form-group" id="usrcont" style="display:none"></div>';
 
       $('#wh_topcontainer').append(topContainer_html);
