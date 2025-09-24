@@ -2,8 +2,9 @@
 #include "LedDevicePhilipsHue.h"
 
 #include <chrono>
-
+#include <QStringLiteral>
 #include <utils/QStringUtils.h>
+
 #include "qendian.h"
 
 #include <ssdp/SSDPDiscover.h>
@@ -68,6 +69,9 @@ const char DEV_DATA_MODEL[] = "model_id";
 
 const char DEV_DATA_PRODUCT_V1[] = "productname";
 const char DEV_DATA_MODEL_V1[] = "modelid";
+
+// MAC prefixes for Philips Bridge V1, Bridge V2, Bridge Pro
+const QStringList DEV_DATA_MAC_PREFIXES = {"001788", "ECB5FA", "C42996"};
 
 // List of Group / Stream Information
 const char API_GROUP_NAME[] = "name";
@@ -341,7 +345,9 @@ LedDevicePhilipsHueBridge::LedDevicePhilipsHueBridge(const QJsonObject &deviceCo
 	, _restApi(nullptr)
 	, _apiPort(API_DEFAULT_PORT)
 	, _useEntertainmentAPI(false)
+	, _useApiV2(true)
 	, _isAPIv2Ready(false)
+	, _isPhilipsHueBridge(false)
 	, _isDiyHue(false)
 	, _api_major(0)
 	, _api_minor(0)
@@ -369,11 +375,13 @@ bool LedDevicePhilipsHueBridge::init(const QJsonObject &deviceConfig)
 	//Set hostname as per configuration and default port
 	_hostName = deviceConfig[CONFIG_HOST].toString();
 	_apiPort = deviceConfig[CONFIG_PORT].toInt();
+	setBridgeId(deviceConfig[DEV_DATA_BRIDGEID].toString());
 	_authToken = deviceConfig[CONFIG_USERNAME].toString();
 
 	Debug(_log, "Hostname/IP: %s", QSTRING_CSTR(_hostName) );
+	Debug(_log, "Bridge-ID: %s", QSTRING_CSTR(getBridgeId()) );
 
-	_useApiV2 = deviceConfig[CONFIG_USE_HUE_API_V2].toBool(false);
+	_useApiV2 = deviceConfig[CONFIG_USE_HUE_API_V2].toBool(true);
 	Debug(_log, "Use Hue API v2: %s", _useApiV2 ? "Yes" : "No" );
 
 	if( _useEntertainmentAPI )
@@ -413,20 +421,20 @@ bool LedDevicePhilipsHueBridge::openRestAPI()
 {
 	bool isInitOK {true};
 
-	if (_address.isNull())
+	if (_hostName.isNull())
 	{
-		Error(_log, "Empty IP address. REST API cannot be initiatised.");
+		Error(_log, "Empty hostname or IP address. REST API cannot be initiatised.");
 		return false;
 	}
 
 	if (_restApi == nullptr)
 	{
-		_restApi = new ProviderRestApi(_address.toString(), _apiPort);
+		_restApi = new ProviderRestApi(_hostName, _apiPort);
 		_restApi->setLogger(_log);
 	}
 	else
 	{
-		_restApi->setHost(_address.toString());
+		_restApi->setHost(_hostName);
 		_restApi->setPort(_apiPort);
 	}
 
@@ -514,58 +522,55 @@ int LedDevicePhilipsHueBridge::open()
 	_isDeviceReady = false;
 
 	this->setIsRecoverable(true);
-	if (NetUtils::resolveHostToAddress(_log, _hostName, _address))
+	NetUtils::resolveMdnsHost(_log, _hostName, _apiPort);
+	if ( openRestAPI() )
 	{
-		if ( openRestAPI() )
+		QJsonDocument bridgeDetails = retrieveBridgeDetails();
+		if ( !bridgeDetails.isEmpty() )
 		{
-			QJsonDocument bridgeDetails = retrieveBridgeDetails();
-			if ( !bridgeDetails.isEmpty() )
+			setBridgeDetails(bridgeDetails, true);
+
+			if (_useApiV2)
 			{
-				setBridgeDetails(bridgeDetails, true);
-
-
-				if (_useApiV2)
+				if ( configureSsl() )
 				{
-					if ( configureSsl() )
+					if (retrieveApplicationId())
 					{
-						if (retrieveApplicationId())
-						{
-							setPSKidentity(_applicationID);
-						}
+						setPSKidentity(_applicationID);
 					}
 				}
-				else
+			}
+			else
+			{
+				if (_isAPIv2Ready)
 				{
-					if (_isAPIv2Ready)
-					{
-						Warning(_log,"Your Hue Bridge supports a newer API. Reconfigure your device in Hyperion to benefit from new features.");
-					}
+					Warning(_log,"Your Hue Bridge supports a newer API. Reconfigure your device in Hyperion to benefit from new features.");
 				}
+			}
 
-				if (!isInError() )
+			if (!isInError() )
+			{
+				setBaseApiEnvironment(_useApiV2);
+				if (initLightsMap() && initDevicesMap() && initEntertainmentSrvsMap())
 				{
-					setBaseApiEnvironment(_useApiV2);
-					if (initLightsMap() && initDevicesMap() && initEntertainmentSrvsMap())
+					if ( _useEntertainmentAPI )
 					{
-						if ( _useEntertainmentAPI )
+						if (initGroupsMap())
 						{
-							if (initGroupsMap())
+							// Open bridge for streaming
+							if ( ProviderUdpSSL::open() == 0 )
 							{
-								// Open bridge for streaming
-								if ( ProviderUdpSSL::open() == 0 )
-								{
-									// Everything is OK, device is ready
-									_isDeviceReady = true;
-									retval = 0;
-								}
+								// Everything is OK, device is ready
+								_isDeviceReady = true;
+								retval = 0;
 							}
 						}
-						else
-						{
-							// Everything is OK, device is ready
-							_isDeviceReady = true;
-							retval = 0;
-						}
+					}
+					else
+					{
+						// Everything is OK, device is ready
+						_isDeviceReady = true;
+						retval = 0;
 					}
 				}
 			}
@@ -590,8 +595,24 @@ int LedDevicePhilipsHueBridge::close()
 
 bool LedDevicePhilipsHueBridge::configureSsl()
 {
-	_restApi->setAlternateServerIdentity(_deviceBridgeId);
-	_restApi->acceptSelfSignedCertificates(true);
+	if (_isPhilipsHueBridge)
+	{
+		if (getBridgeId().isEmpty())
+		{
+			this->setInError ( "Failed to configure Hue Bridge for SSL, Bridge-ID is empty", false );
+			return false;
+		}
+
+		// Do not allow self-signed certificates for official Hue Bridges
+		// see https://developers.meethue.com/develop/application-design-guidance/using-https/
+		_restApi->acceptSelfSignedCertificates(false);
+	}
+	else
+	{
+		_restApi->acceptSelfSignedCertificates(true);
+	}
+
+	_restApi->setAlternateServerIdentity(getBridgeId());
 
 	bool success = _restApi->setCaCertificate(API_SSL_CA_CERTIFICATE_RESSOURCE);
 	if (!success)
@@ -627,11 +648,32 @@ void LedDevicePhilipsHueBridge::log(const char* msg, const char* type, ...) cons
 QJsonDocument LedDevicePhilipsHueBridge::retrieveBridgeDetails()
 {
 	QJsonDocument bridgeDetails;
+
 	if ( openRestAPI() )
 	{
-		setBaseApiEnvironment(false, API_BASE_PATH_V1);
+		//Allow http fall-back only for DiyHue or other 3rd party bridges
+		//Official Philips Hue Bridges should support API v2 and https
+		if (getBridgeId().isEmpty() && !_isPhilipsHueBridge)
+		{
+			Debug(_log,"Bridge-ID not available. Get bridge details via http call.");
+			setBaseApiEnvironment(false, API_BASE_PATH_V1);
+		}
+		else
+		{
+			if (_isPhilipsHueBridge)
+			{
+				_useApiV2 = true;
+			}
+			
+			if (!configureSsl())
+			{
+				return {};
+			}
+			setBaseApiEnvironment(_useApiV2, API_BASE_PATH_V1);
+		}
 		bridgeDetails = get( API_RESOURCE_CONFIG );
 	}
+
 	return bridgeDetails;
 }
 
@@ -874,15 +916,23 @@ void LedDevicePhilipsHueBridge::setBridgeDetails(const QJsonDocument &doc, bool 
 	}
 
 	_deviceName = jsonConfigInfo[DEV_DATA_NAME].toString();
+	_deviceModel = jsonConfigInfo[DEV_DATA_MODEL_V1].toString();
+	setBridgeId(jsonConfigInfo[DEV_DATA_BRIDGEID].toString());
+	_deviceFirmwareVersion = jsonConfigInfo[DEV_DATA_SOFTWAREVERSION].toString().toInt();
+	_deviceAPIVersion = jsonConfigInfo[DEV_DATA_APIVERSION].toString();
+
+	// Check if bridge-id MAC prefix is known from Philips Hue devices
+	// If not, we assume it is a DiyHue or other 3rd party bridge
+	if (!DEV_DATA_MAC_PREFIXES.contains(getBridgeId().left(6)))
+	{
+		_isPhilipsHueBridge = false;
+	}
+
+	// Check if bridge is DIYHue to apply workarounds
 	if (_deviceName.startsWith("DiyHue", Qt::CaseInsensitive))
 	{
 		_isDiyHue = true;
 	}
-
-	_deviceModel = jsonConfigInfo[DEV_DATA_MODEL_V1].toString();
-	_deviceBridgeId = jsonConfigInfo[DEV_DATA_BRIDGEID].toString();
-	_deviceFirmwareVersion = jsonConfigInfo[DEV_DATA_SOFTWAREVERSION].toString().toInt();
-	_deviceAPIVersion = jsonConfigInfo[DEV_DATA_APIVERSION].toString();
 
 	_isHueEntertainmentReady = isApiEntertainmentReady(_deviceAPIVersion);
 	_isAPIv2Ready = isAPIv2Ready(_deviceFirmwareVersion);
@@ -890,20 +940,20 @@ void LedDevicePhilipsHueBridge::setBridgeDetails(const QJsonDocument &doc, bool 
 	if( _useEntertainmentAPI )
 	{
 		DebugIf( !_isHueEntertainmentReady, _log, "Bridge is not Entertainment API Ready - Entertainment API usage was disabled!" );
-		_useEntertainmentAPI = _isHueEntertainmentReady;
+		_useEntertainmentAPI = _isHueEntertainmentReady;	
 	}
 
 	if (isLogging)
 	{
-		log( "Bridge Name", "%s", QSTRING_CSTR( _deviceName ));
-		log( "Bridge-ID", "%s", QSTRING_CSTR( _deviceBridgeId ));
+		log( "Bridge name [ID]","%s [%s]", QSTRING_CSTR( _deviceName ), QSTRING_CSTR(getBridgeId()));
+		log( "Philips Bridge", "%s", _isPhilipsHueBridge ? "Yes" : "No" );
+		log( "DIYHue Bridge", "%s", _isDiyHue ? "Yes" : "No" );
 		log( "Model", "%s", QSTRING_CSTR( _deviceModel ));
 		log( "Firmware version", "%d", _deviceFirmwareVersion );
 		log( "API-Version", "%u.%u.%u", _api_major, _api_minor, _api_patch );
 		log( "API v2 ready", "%s", _isAPIv2Ready ? "Yes" : "No" );
 		log( "Entertainment ready", "%s", _isHueEntertainmentReady ? "Yes" : "No" );
 		log( "Use Entertainment API", "%s", _useEntertainmentAPI ? "Yes" : "No" );
-		log( "DIYHue", "%s", _isDiyHue ? "Yes" : "No" );
 	}
 }
 
@@ -1328,54 +1378,55 @@ QJsonObject LedDevicePhilipsHueBridge::getProperties(const QJsonObject& params)
 	_hostName = params[CONFIG_HOST].toString("");
 	_apiPort =  params[CONFIG_PORT].toInt();
 	_authToken = params[CONFIG_USERNAME].toString("");
+	setBridgeId(params[DEV_DATA_BRIDGEID].toString(""));
 
-	Info(_log, "Get properties for %s, hostname (%s)", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(_hostName) );
+	Info(_log, "Get properties for %s, bridge-id: [%s], hostname (%s) ", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(getBridgeId()), QSTRING_CSTR(_hostName));
 
-	if (NetUtils::resolveHostToAddress(_log, _hostName, _address))
+	NetUtils::resolveMdnsHost(_log, _hostName, _apiPort);
+
+	QJsonDocument bridgeDetails = retrieveBridgeDetails();
+	if ( !bridgeDetails.isEmpty() )
 	{
-		QJsonDocument bridgeDetails = retrieveBridgeDetails();
-		if ( !bridgeDetails.isEmpty() )
-		{
-			setBridgeDetails(bridgeDetails);
+		setBridgeDetails(bridgeDetails);
 
-			if ( openRestAPI() )
+		if ( openRestAPI() )
+		{
+			_useApiV2 = _isAPIv2Ready;
+			if (_authToken == API_RESOURCE_CONFIG)
 			{
-				_useApiV2 = _isAPIv2Ready;
-				if (_authToken == API_RESOURCE_CONFIG)
+				properties.insert("properties", bridgeDetails.object());
+				properties.insert("isEntertainmentReady",_isHueEntertainmentReady);
+				properties.insert("isAPIv2Ready",_isAPIv2Ready);
+			}
+			else
+			{
+				if (_useApiV2)
 				{
-					properties.insert("properties", bridgeDetails.object());
+					configureSsl();
+				}
+
+				if (!isInError() )
+				{
+					setBaseApiEnvironment(_useApiV2);
+
+					QString filter = params["filter"].toString("");
+					_restApi->setPath(filter);
+
+					// Perform request
+					httpResponse response = _restApi->get();
+					if (response.error())
+					{
+						Warning(_log, "%s get properties for bridge-id: [%s] failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(getBridgeId()), QSTRING_CSTR(response.getErrorReason()));					
+					}
+					properties.insert("properties", response.getBody().object());
 					properties.insert("isEntertainmentReady",_isHueEntertainmentReady);
 					properties.insert("isAPIv2Ready",_isAPIv2Ready);
 				}
-				else
-				{
-					if (_useApiV2)
-					{
-						configureSsl();
-					}
-
-					if (!isInError() )
-					{
-						setBaseApiEnvironment(_useApiV2);
-
-						QString filter = params["filter"].toString("");
-						_restApi->setPath(filter);
-
-						// Perform request
-						httpResponse response = _restApi->get();
-						if (response.error())
-						{
-							Warning(_log, "%s get properties failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
-						}
-						properties.insert("properties", response.getBody().object());
-						properties.insert("isEntertainmentReady",_isHueEntertainmentReady);
-						properties.insert("isAPIv2Ready",_isAPIv2Ready);
-					}
-				}
 			}
 		}
-		DebugIf(verbose, _log, "properties: [%s]", QJsonDocument(properties).toJson(QJsonDocument::Compact).constData());
 	}
+	DebugIf(verbose, _log, "properties: [%s]", QJsonDocument(properties).toJson(QJsonDocument::Compact).constData());
+	
 	return properties;
 }
 
@@ -1387,47 +1438,57 @@ QJsonObject LedDevicePhilipsHueBridge::addAuthorization(const QJsonObject& param
 	// New Phillips-Bridge device client/application key
 	_hostName = params[CONFIG_HOST].toString("");
 	_apiPort =  params[CONFIG_PORT].toInt();
+	setBridgeId(params[DEV_DATA_BRIDGEID].toString(""));
 
-	Info(_log, "Add authorized user for %s, hostname (%s)", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(_hostName) );
+	Info(_log, "Add authorized user for %s, bridge-id: [%s], hostname (%s) ", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(getBridgeId()), QSTRING_CSTR(_hostName) );
 
-	if (NetUtils::resolveHostToAddress(_log, _hostName, _address))
+	NetUtils::resolveMdnsHost(_log, _hostName, _apiPort);
+	QJsonDocument bridgeDetails = retrieveBridgeDetails();
+	if ( !bridgeDetails.isEmpty() )
 	{
-		QJsonDocument bridgeDetails = retrieveBridgeDetails();
-		if ( !bridgeDetails.isEmpty() )
+		setBridgeDetails(bridgeDetails);
+		if ( openRestAPI() )
 		{
-			setBridgeDetails(bridgeDetails);
-			if ( openRestAPI() )
+			_useApiV2 = _isAPIv2Ready;
+			if (_useApiV2)
 			{
-				_useApiV2 = _isAPIv2Ready;
-				if (_useApiV2)
+				configureSsl();
+			}
+
+			if (!isInError() )
+			{
+				setBaseApiEnvironment(_useApiV2, API_BASE_PATH_V1);
+
+				QJsonObject clientKeyCmd{ {"devicetype", "hyperion#" + QHostInfo::localHostName()}, {"generateclientkey", true } };
+				_restApi->setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+				httpResponse response = _restApi->post(clientKeyCmd);
+				if (response.error())
 				{
-					configureSsl();
+					Warning(_log, "%s generation of authorization/client key failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
 				}
-
-				if (!isInError() )
+				else
 				{
-					setBaseApiEnvironment(_useApiV2, API_BASE_PATH_V1);
-
-					QJsonObject clientKeyCmd{ {"devicetype", "hyperion#" + QHostInfo::localHostName()}, {"generateclientkey", true } };
-					_restApi->setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-
-					httpResponse response = _restApi->post(clientKeyCmd);
-					if (response.error())
+					if (!checkApiError(response.getBody(),false))
 					{
-						Warning(_log, "%s generation of authorization/client key failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
-					}
-					else
-					{
-						if (!checkApiError(response.getBody(),false))
-						{
-							responseBody = response.getBody().array().first().toObject().value("success").toObject();
-						}
+						responseBody = response.getBody().array().first().toObject().value("success").toObject();
 					}
 				}
 			}
 		}
 	}
+	
 	return responseBody;
+}
+
+void LedDevicePhilipsHueBridge::setBridgeId(const QString& bridgeId)
+{
+	_deviceBridgeId = bridgeId.toUpper();
+}
+
+QString LedDevicePhilipsHueBridge::getBridgeId() const
+{
+	return _deviceBridgeId;
 }
 
 const std::set<QString> PhilipsHueLight::GAMUT_A_MODEL_IDS =
@@ -2802,60 +2863,60 @@ void LedDevicePhilipsHue::identify(const QJsonObject& params)
 	_hostName = params[CONFIG_HOST].toString("");
 	_apiPort =  params[CONFIG_PORT].toInt();
 	_authToken = params[CONFIG_USERNAME].toString("");
+	setBridgeId(params[DEV_DATA_BRIDGEID].toString(""));
 
 	QString lighName = params["lightName"].toString();
 
-	Info(_log, "Identify %s, Light: \"%s\" @hostname (%s)", QSTRING_CSTR(_activeDeviceType),  QSTRING_CSTR(lighName), QSTRING_CSTR(_hostName) );
+	Info(_log, "Identify %s, Light: \"%s\" @%s hostname (%s)", QSTRING_CSTR(_activeDeviceType),  QSTRING_CSTR(lighName), QSTRING_CSTR(getBridgeId()), QSTRING_CSTR(_hostName));
 
-	if (NetUtils::resolveHostToAddress(_log, _hostName, _address))
+	NetUtils::resolveMdnsHost(_log, _hostName, _apiPort);
+	
+	QJsonDocument bridgeDetails = retrieveBridgeDetails();
+	if ( !bridgeDetails.isEmpty() )
 	{
-		QJsonDocument bridgeDetails = retrieveBridgeDetails();
-		if ( !bridgeDetails.isEmpty() )
+		setBridgeDetails(bridgeDetails);
+		if ( openRestAPI() )
 		{
-			setBridgeDetails(bridgeDetails);
-			if ( openRestAPI() )
+			_useApiV2 = _isAPIv2Ready;
+
+			// DIYHue does not provide v2 Breathe effects, yet -> fall back to v1
+			if (_isDiyHue)
 			{
-				_useApiV2 = _isAPIv2Ready;
+				_useApiV2 = false;
+			}
 
-				// DIYHue does not provide v2 Breathe effects, yet -> fall back to v1
-				if (_isDiyHue)
-				{
-					_useApiV2 = false;
-				}
+			if (_useApiV2)
+			{
+				configureSsl();
+			}
 
+			if (!isInError() )
+			{
+				setBaseApiEnvironment(_useApiV2);
+
+				QStringList resourcepath;
+				QJsonObject cmd;
 				if (_useApiV2)
 				{
-					configureSsl();
+					QString lightId = params[API_LIGTH_ID].toString();
+					resourcepath << API_RESOURCE_LIGHT << lightId;
+					cmd.insert(API_ALERT, QJsonObject {{API_ACTION, API_ACTION_BREATHE}});
 				}
-
-				if (!isInError() )
+				else
 				{
-					setBaseApiEnvironment(_useApiV2);
+					bool on {true};
+					QString lightId = params[API_LIGTH_ID_v1].toString();
+					resourcepath << lightId << API_STATE;
+					cmd.insert(API_STATE_ON, on);
+					cmd.insert(API_ALERT, API_SELECT);
+				}
+				_restApi->setPath(resourcepath);
 
-					QStringList resourcepath;
-					QJsonObject cmd;
-					if (_useApiV2)
-					{
-						QString lightId = params[API_LIGTH_ID].toString();
-						resourcepath << API_RESOURCE_LIGHT << lightId;
-						cmd.insert(API_ALERT, QJsonObject {{API_ACTION, API_ACTION_BREATHE}});
-					}
-					else
-					{
-						bool on {true};
-						QString lightId = params[API_LIGTH_ID_v1].toString();
-						resourcepath << lightId << API_STATE;
-						cmd.insert(API_STATE_ON, on);
-						cmd.insert(API_ALERT, API_SELECT);
-					}
-					_restApi->setPath(resourcepath);
-
-					// Perform request
-					httpResponse response = _restApi->put(cmd);
-					if (response.error())
-					{
-						Warning(_log, "%s identification failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
-					}
+				// Perform request
+				httpResponse response = _restApi->put(cmd);
+				if (response.error())
+				{
+					Warning(_log, "%s identification failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
 				}
 			}
 		}

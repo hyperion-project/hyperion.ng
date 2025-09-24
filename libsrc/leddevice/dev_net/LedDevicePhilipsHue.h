@@ -349,6 +349,9 @@ protected:
 	///
 	QJsonObject addAuthorization(const QJsonObject& params) override;
 
+	void setBridgeId(const QString& bridgeId);
+	QString getBridgeId() const;
+
 	bool isApiEntertainmentReady(const QString& apiVersion);
 	bool isAPIv2Ready (int swVersion);
 
@@ -383,6 +386,7 @@ protected:
 	bool _useApiV2;
 	bool _isAPIv2Ready;
 
+	bool _isPhilipsHueBridge;
 	bool _isDiyHue;
 
 private:

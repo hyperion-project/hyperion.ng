@@ -668,6 +668,7 @@
     "edt_dev_spec_PBFiFo_title": "Pi-Blaster FiFo",
     "edt_dev_spec_baudrate_title": "Baudrate",
     "edt_dev_spec_blackLightsTimeout_title": "Signal detection timeout on black",
+    "edt_dev_spec_bridgeid_title": "Bridge-ID",
     "edt_dev_spec_brightnessFactor_title": "Brightness factor",
     "edt_dev_spec_brightnessMax_title": "Brightness maximum",
     "edt_dev_spec_brightnessMin_title": "Brightness minimum",
