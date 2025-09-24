@@ -1416,7 +1416,7 @@ QJsonObject LedDevicePhilipsHueBridge::getProperties(const QJsonObject& params)
 					httpResponse response = _restApi->get();
 					if (response.error())
 					{
-						Warning(_log, "%s get properties for bridge-id: [%s] failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(getBridgeId()), QSTRING_CSTR(response.getErrorReason()));					
+						Warning(_log, "%s get properties for bridge-id: [%s] failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(getBridgeId()), QSTRING_CSTR(response.getErrorReason()));
 					}
 					properties.insert("properties", response.getBody().object());
 					properties.insert("isEntertainmentReady",_isHueEntertainmentReady);
