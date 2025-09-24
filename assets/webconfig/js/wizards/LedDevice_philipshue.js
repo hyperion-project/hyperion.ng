@@ -797,8 +797,6 @@ const philipshueWizard = (() => {
         }
       } else if (Array.isArray(ledProperties?.lights) && ledProperties.lights.length > 0) {
         hueLights = ledProperties.lights;
-      } else {
-        hueLights = ledProperties.lights;
       }
 
       if (Object.keys(hueLights).length > 0) {
