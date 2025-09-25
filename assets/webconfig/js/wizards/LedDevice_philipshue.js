@@ -457,7 +457,11 @@ const philipshueWizard = (() => {
       else {
         $('#port').val('');
       }
-      hueIPs.push({ host, port });
+
+      const bridgeid = utils.eV("bridgeid");
+      $('#bridgeid').val(bridgeid);
+
+      hueIPs.push({ host, port, bridgeid });
 
       if (usr != "") {
         checkHueBridge(checkUserResult, usr);
@@ -467,17 +471,20 @@ const philipshueWizard = (() => {
     }
 
     $('#retry_bridge').off().on('click', function () {
+
       const host = $('#host').val();
       const port = parseInt($('#port').val());
+      const bridgeid = $('#bridgeid').val();
 
       if (host != "") {
-
-        const idx = hueIPs.findIndex(item => item.host === host && item.port === port);
+        const idx = hueIPs.findIndex(item => item.host === host);
         if (idx === -1) {
-          hueIPs.push({ host: host, port: port });
+          hueIPs.push({ host, port, bridgeid });
           hueIPsinc = hueIPs.length - 1;
         } else {
           hueIPsinc = idx;
+          hueIPs[hueIPsinc].port = port;
+          hueIPs[hueIPsinc].bridgeid = bridgeid;
         }
       }
       else {
@@ -649,8 +656,9 @@ const philipshueWizard = (() => {
   function createHueUser() {
     const host = hueIPs[hueIPsinc].host;
     const port = hueIPs[hueIPsinc].port;
+    const bridgeid = hueIPs[hueIPsinc].bridgeid;
 
-    let params = { host: host };
+    let params = { host, bridgeid };
     if (port !== 'undefined') {
       params.port = parseInt(port);
     }
@@ -690,6 +698,7 @@ const philipshueWizard = (() => {
                 conf_editor.getEditor("root.specificOptions.username").setValue(username);
                 conf_editor.getEditor("root.specificOptions.host").setValue(host);
                 conf_editor.getEditor("root.specificOptions.port").setValue(port);
+                conf_editor.getEditor("root.specificOptions.bridgeid").setValue(bridgeid);
               }
 
               if (isEntertainmentReady) {
@@ -926,25 +935,36 @@ const philipshueWizard = (() => {
       $('#wizp2_body').html('<div id="wh_topcontainer"></div>');
 
       let topContainer_html = '<p class="text-left" style="font-weight:bold">' + $.i18n(hue_desc1) + '</p>' +
-        '<div class="row">' +
+        '<div class="row" style="display: flex; align-items: center; margin-bottom: 10px;">' +
         '<div class="col-md-2">' +
-        '  <p class="text-left">' + $.i18n('wiz_hue_ip') + '</p></div>' +
+        '  <p class="text-left" style="margin:0;">' + $.i18n('wiz_hue_bridge') + '</p></div>' +
         '  <div class="col-md-7"><div class="input-group">' +
         '    <span class="input-group-addon" id="retry_bridge" style="cursor:pointer"><i class="fa fa-refresh"></i></span>' +
         '    <select id="hue_bridge_select" class="hue_bridge_sel_watch form-control">' + '</select>' + '</div></div>' +
-        '  <div class="col-md-7"><div class="input-group">' +
-        '    <span class="input-group-addon"><i class="fa fa-arrow-right"></i></span>' +
-        '    <input type="text" class="input-group form-control" id="host" placeholder="' + $.i18n('wiz_hue_ip') + '"></div></div>';
+        '</div>';
+
+      if (storedAccess === 'expert') {
+        topContainer_html += '<div class="row" style="display: flex; align-items: center; margin-bottom: 10px; margin-top: 30px;">' +
+          '<div class="col-md-2"><p class="text-left" style="margin:0;">' + $.i18n('edt_dev_spec_bridgeid_title') + '</p></div>' +
+          '<div class="col-md-7"><div class="input-group">' +
+          '<span class="input-group-addon"><i class="fa fa-qrcode"></i></span>' +
+          '<input type="text" class="input-group form-control" id="bridgeid" placeholder="' + $.i18n('edt_dev_spec_bridgeid_title') + '"></div></div></div>';
+      }
+
+      topContainer_html += '<div class="row" style="display: flex; align-items: center; margin-bottom: 10px;">' +
+        '<div class="col-md-2"><p class="text-left" style="margin:0;">' + $.i18n('edt_dev_spec_targetIpHost_title') + '</p></div>' +
+        '<div class="col-md-7"><div class="input-group">' +
+        '<span class="input-group-addon"><i class="fa fa-arrow-right"></i></span>' +
+        '<input type="text" class="input-group form-control" id="host" placeholder="' + $.i18n('edt_dev_spec_targetIpHost_title') + '"></div></div>';
 
       if (storedAccess === 'expert') {
         topContainer_html += '<div class="col-md-3"><div class="input-group">' +
           '<span class="input-group-addon">:</span>' +
           '<input type="text" class="input-group form-control" id="port" placeholder="' + $.i18n('edt_conf_general_port_title') + '"></div></div>';
       }
-      topContainer_html += '</div><p><span style="font-weight:bold;color:red" id="wiz_hue_ipstate"></span><span style="font-weight:bold;" id="wiz_hue_discovered"></span></p>';
+      topContainer_html += '</div><div class="row" style="margin-top: 15px;"><div text-center"><p><span style="font-weight:bold;color:red" id="wiz_hue_ipstate"></span><span style="font-weight:bold;" id="wiz_hue_discovered"></span></p></div></div>';
 
       // Hidden fields
-      topContainer_html += '<div class="form-group" style="display:none"><input type="hidden" id="bridgeid" name="bridgeid"></div>';
       topContainer_html += '<div class="form-group" id="usrcont" style="display:none"></div>';
 
       $('#wh_topcontainer').append(topContainer_html);

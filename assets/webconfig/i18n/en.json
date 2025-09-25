@@ -1180,6 +1180,7 @@
     "wiz_cololight_title": "Cololight Wizard",
     "wiz_guideyou": "The $1 will guide you through the settings. Just press the button!",
     "wiz_hue_blinkblue": "Let it light up",
+    "wiz_hue_bridge": "Bridge",
     "wiz_hue_clientkey": "Clientkey",
     "wiz_hue_create_user": "Create new User",
     "wiz_hue_desc1": "1. Hyperion searches automatically for a Hue-Bridge, in case it cannot find one you need to provide the hostname or IP-address and push the reload button. <br> 2. Provide a user ID, if you do not have one create a new one.",
