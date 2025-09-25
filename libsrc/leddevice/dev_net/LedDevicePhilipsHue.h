@@ -10,6 +10,7 @@
 #include <QNetworkReply>
 #include <QtCore/qmath.h>
 #include <QStringList>
+#include <QScopedPointer>
 
 // LedDevice includes
 #include <leddevice/LedDevice.h>
@@ -32,7 +33,9 @@ struct XYColor
  */
 struct CiColorTriangle
 {
-	XYColor red, green, blue;
+	XYColor red;
+	XYColor green;
+	XYColor blue;
 };
 
 /**
@@ -174,10 +177,11 @@ public:
 	bool isWhite(bool isWhite);
 	void setBlack();
 	void blackScreenTriggered();
+
 private:
 
 	Logger* _log;
-	bool _useApiV2;
+	bool _isUsingApiV2;
 
 	QString _id;
 	QString _deviceId;
@@ -271,6 +275,15 @@ public:
 	QStringList getGroupLights(const QString& groupId) const;
 	int getGroupChannelsCount(const QString& groupId) const;
 
+	bool isPhilipsHueBridge() const;
+	bool isDiyHue() const;
+	bool isAPIv2Ready() const;
+	bool isAPIv2Ready(int swVersion) const;
+	bool isApiEntertainmentReady(const QString& apiVersion);
+
+	QString getBridgeId() const;
+	int getFirmwareVersion() const;
+
 protected:
 
 	///
@@ -350,12 +363,13 @@ protected:
 	QJsonObject addAuthorization(const QJsonObject& params) override;
 
 	void setBridgeId(const QString& bridgeId);
-	QString getBridgeId() const;
 
-	bool isApiEntertainmentReady(const QString& apiVersion);
-	bool isAPIv2Ready (int swVersion);
+	void useApiV2(bool useApiV2);
+	bool isUsingApiV2() const;
 
-	int getFirmwareVerion() { return _deviceFirmwareVersion; }
+	void useEntertainmentAPI(bool useEntertainmentAPI);
+	bool isUsingEntertainmentApi() const;
+
 	void setBridgeDetails( const QJsonDocument &doc, bool isLogging = false );
 
 	void setBaseApiEnvironment(bool apiV2 = true, const QString& path = "");
@@ -376,18 +390,10 @@ protected:
 	const int * getCiphersuites() const override;
 
 	///REST-API wrapper
-	ProviderRestApi* _restApi;
+	QScopedPointer<ProviderRestApi> _restApi;
 	int _apiPort;
 	/// User name for the API ("newdeveloper")
 	QString _authToken;
-	QString _applicationID;
-
-	bool _useEntertainmentAPI;
-	bool _useApiV2;
-	bool _isAPIv2Ready;
-
-	bool _isPhilipsHueBridge;
-	bool _isDiyHue;
 
 private:
 
@@ -397,7 +403,7 @@ private:
 	///
 	/// @return A JSON structure holding a list of devices found
 	///
-	QJsonArray discoverSsdp();
+	QJsonArray discoverSsdp() const;
 
 	QJsonDocument retrieveDeviceDetails(const QString& deviceId = "");
 	QJsonDocument retrieveLightDetails(const QString& lightId = "");
@@ -422,7 +428,15 @@ private:
 	uint _api_minor;
 	uint _api_patch;
 
+	bool _isPhilipsHueBridge;
+	bool _isDiyHue;
 	bool _isHueEntertainmentReady;
+	bool _isAPIv2Ready;
+
+	QString _applicationID;
+
+	bool _useEntertainmentAPI;
+	bool _useApiV2;
 
 	QMap<QString,QJsonObject> _devicesMap;
 	QMap<QString,QJsonObject> _lightsMap;
