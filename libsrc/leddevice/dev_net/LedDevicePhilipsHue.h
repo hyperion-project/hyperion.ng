@@ -384,7 +384,7 @@ protected:
 	bool initGroupsMap();
 	bool initEntertainmentSrvsMap();
 
-	void log(const char* msg, const char* type, ...) const;
+	void log(const QString& msg, const QVariant& value) const;
 
 	bool configureSsl();
 	const int * getCiphersuites() const override;
@@ -468,11 +468,6 @@ public:
 	/// @param deviceConfig Device's configuration as JSON-Object
 	///
 	explicit LedDevicePhilipsHue(const QJsonObject &deviceConfig);
-
-	///
-	/// @brief Destructor of the LED-device
-	///
-	~LedDevicePhilipsHue() override;
 
 	///
 	/// @brief Constructs the LED-device

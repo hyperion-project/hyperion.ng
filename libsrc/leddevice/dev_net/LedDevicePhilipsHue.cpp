@@ -623,21 +623,9 @@ const int *LedDevicePhilipsHueBridge::getCiphersuites() const
 	return SSL_CIPHERSUITES;
 }
 
-void LedDevicePhilipsHueBridge::log(const char *msg, const char *type, ...) const
+void LedDevicePhilipsHueBridge::log(const QString& msg, const QVariant& value) const
 {
-	const size_t max_val_length = 1024;
-	char val[max_val_length];
-	va_list args;
-	va_start(args, type);
-	vsnprintf(val, max_val_length, type, args);
-	va_end(args);
-	std::string s = msg;
-	size_t max = 30;
-	if (max > s.length())
-	{
-		s.append(max - s.length(), ' ');
-	}
-	Debug(_log, "%s: %s", s.c_str(), val);
+	Debug(_log, "%s: %s", QSTRING_CSTR(msg.leftJustified(30, ' ')), QSTRING_CSTR(value.toString()));
 }
 
 QJsonDocument LedDevicePhilipsHueBridge::retrieveBridgeDetails()
@@ -971,15 +959,15 @@ void LedDevicePhilipsHueBridge::setBridgeDetails(const QJsonDocument &doc, bool 
 
 	if (isLogging)
 	{
-		log("Bridge name [ID]", "%s [%s]", QSTRING_CSTR(_deviceName), QSTRING_CSTR(getBridgeId()));
-		log("Philips Bridge", "%s", _isPhilipsHueBridge ? "Yes" : "No");
-		log("DIYHue Bridge", "%s", _isDiyHue ? "Yes" : "No");
-		log("Model", "%s", QSTRING_CSTR(_deviceModel));
-		log("Firmware version", "%d", _deviceFirmwareVersion);
-		log("API-Version", "%u.%u.%u", _api_major, _api_minor, _api_patch);
-		log("API v2 ready", "%s", _isAPIv2Ready ? "Yes" : "No");
-		log("Entertainment ready", "%s", _isHueEntertainmentReady ? "Yes" : "No");
-		log("Use Entertainment API", "%s", _useEntertainmentAPI ? "Yes" : "No");
+		log("Bridge name [ID]", QString("%1 [%2]").arg(_deviceName, getBridgeId()));
+		log("Philips Bridge", _isPhilipsHueBridge ? "Yes" : "No");
+		log("DIYHue Bridge", _isDiyHue ? "Yes" : "No");
+		log("Model", _deviceModel);
+		log("Firmware version", _deviceFirmwareVersion);
+		log("API-Version", QString("%1.%2.%3").arg(_api_major).arg(_api_minor).arg(_api_patch));
+		log("API v2 ready", _isAPIv2Ready ? "Yes" : "No");
+		log("Entertainment ready", _isHueEntertainmentReady ? "Yes" : "No");
+		log("Use Entertainment API", _useEntertainmentAPI ? "Yes" : "No");
 	}
 }
 
@@ -1036,7 +1024,7 @@ void LedDevicePhilipsHueBridge::setLightsMap(const QJsonDocument &doc)
 	}
 	else
 	{
-		log("Lights at Bridge found", "%d", _lightsCount);
+		log("Lights at Bridge found", _lightsCount);
 	}
 }
 
@@ -1061,7 +1049,7 @@ void LedDevicePhilipsHueBridge::setGroupMap(const QJsonDocument &doc)
 		// Get all available group ids and their values
 		QStringList keys = jsonGroupsInfo.keys();
 
-		int _groupsCount = keys.size();
+		auto _groupsCount = keys.size();
 		for (int i = 0; i < _groupsCount; ++i)
 		{
 			_groupsMap.insert(keys.at(i), jsonGroupsInfo.take(keys.at(i)).toObject());
@@ -1846,10 +1834,6 @@ LedDevice *LedDevicePhilipsHue::construct(const QJsonObject &deviceConfig)
 	return new LedDevicePhilipsHue(deviceConfig);
 }
 
-LedDevicePhilipsHue::~LedDevicePhilipsHue()
-{
-}
-
 bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
 {
 	bool isInitOK{false};
@@ -1891,19 +1875,19 @@ bool LedDevicePhilipsHue::init(const QJsonObject &deviceConfig)
 
 	if (LedDevicePhilipsHueBridge::init(_devConfig))
 	{
-		log("Off on Black", "%s", _switchOffOnBlack ? "Yes" : "No");
-		log("Brightness Factor", "%f", _brightnessFactor);
-		log("Transition Time", "%d", _transitionTime);
-		log("Restore Original State", "%s", _isRestoreOrigState ? "Yes" : "No");
-		log("Use Hue Entertainment API", "%s", isUsingEntertainmentApi() ? "Yes" : "No");
-		log("Brightness Threshold", "%f", _blackLevel);
-		log("CandyGamma", "%s", _candyGamma ? "Yes" : "No");
-		log("Time powering off when black", "%s", _onBlackTimeToPowerOff ? "Yes" : "No");
-		log("Time powering on when signalled", "%s", _onBlackTimeToPowerOn ? "Yes" : "No");
+		log("Off on Black", _switchOffOnBlack ? "Yes" : "No");
+		log("Brightness Factor", _brightnessFactor);
+		log("Transition Time", _transitionTime);
+		log("Restore Original State", _isRestoreOrigState ? "Yes" : "No");
+		log("Use Hue Entertainment API", isUsingEntertainmentApi() ? "Yes" : "No");
+		log("Brightness Threshold", _blackLevel);
+		log("CandyGamma", _candyGamma ? "Yes" : "No");
+		log("Time powering off when black", _onBlackTimeToPowerOff ? "Yes" : "No");
+		log("Time powering on when signalled", _onBlackTimeToPowerOn ? "Yes" : "No");
 
 		if (isUsingEntertainmentApi())
 		{
-			log("Entertainment API Group-ID", "%s", QSTRING_CSTR(_groupId));
+			log("Entertainment API Group-ID", _groupId);
 
 			if (_groupId.isEmpty())
 			{
