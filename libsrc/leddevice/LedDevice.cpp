@@ -28,7 +28,7 @@ namespace {
 	const char CONFIG_LATCH_TIME[] = "latchTime";
 	const char CONFIG_REWRITE_TIME[] = "rewriteTime";
 
-	int DEFAULT_LED_COUNT{ 1 };
+	const int DEFAULT_LED_COUNT{ 1 };
 	const char DEFAULT_COLOR_ORDER[]{ "RGB" };
 	const bool DEFAULT_IS_AUTOSTART{ true };
 

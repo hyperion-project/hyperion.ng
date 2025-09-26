@@ -1,6 +1,7 @@
 // Local-Hyperion includes
 #include "LedDevicePhilipsHue.h"
 
+#include <array>
 #include <chrono>
 #include <QStringLiteral>
 #include <utils/QStringUtils.h>
@@ -149,7 +150,7 @@ namespace
 
 	const int STREAM_CONNECTION_RETRYS = 20;
 	const int STREAM_SSL_HANDSHAKE_ATTEMPTS = 5;
-	const int SSL_CIPHERSUITES[2] = {MBEDTLS_TLS_PSK_WITH_AES_128_GCM_SHA256, 0};
+	const std::array<int, 2> SSL_CIPHERSUITES = {{MBEDTLS_TLS_PSK_WITH_AES_128_GCM_SHA256, 0}};
 
 	const int DEV_FIRMWAREVERSION_APIV2 = 1948086000;
 
@@ -157,42 +158,49 @@ namespace
 	constexpr std::chrono::milliseconds STREAM_REWRITE_TIME{5000};
 
 	// Streaming message header and payload definition
-	const uint8_t HEADER[] =
-		{
+	const std::array<uint8_t, 16> HEADER =
+		{{
 			'H', 'u', 'e', 'S', 't', 'r', 'e', 'a', 'm', // protocol
 			0x01, 0x00,									 // version 1.0
 			0x01,										 // sequence number 1
 			0x00, 0x00,									 // Reserved write 0’s
 			0x00,										 // 0x00 = RGB; 0x01 = XY Brightness
 			0x00,										 // Reserved, write 0’s
-	};
+	}};
 
-	const uint8_t PAYLOAD_PER_LIGHT[] =
-		{
+	const std::array<uint8_t, 9> PAYLOAD_PER_LIGHT =
+		{{
 			0x01, 0x00, 0x06, // light ID
 			// color: 16 bpc
 			0xff, 0xff, // Red
 			0xff, 0xff, // Green
 			0xff, 0xff, // Blue
-	};
+	}};
 
 	// API v2 - Streaming message header and payload definition
-	const uint8_t HEADER_V2[] =
-		{
+	const std::array<uint8_t, 16> HEADER_V2 =
+		{{
 			'H', 'u', 'e', 'S', 't', 'r', 'e', 'a', 'm', // protocol
 			0x02, 0x00,									 // version 2.0
 			0x01,										 // sequence number 1
 			0x00, 0x00,									 // Reserved write 0’s
 			0x00,										 // 0x00 = RGB; 0x01 = XY Brightness
 			0x00,										 // Reserved
-	};
+	}};
 
-	const char *ENTERTAINMENT_ID[36];
-	const uint8_t PAYLOAD_PER_CHANNEL_V2[] =
-		{
+	const int ENTERTAINMENT_ID_SIZE = 36; // Expected length of Entertainment Configuration UUID (without null terminator)
+	const std::array<uint8_t, 7> PAYLOAD_PER_CHANNEL_V2 =
+		{{
 			0xff,							   // channel id
 			0xff, 0xff, 0xff, 0xff, 0xff, 0xff // color
-	};
+	}};
+
+	// Compile-time sanity checks for protocol element sizes
+	static_assert(HEADER.size() == 16, "Hue v1 header must be 16 bytes");
+	static_assert(HEADER_V2.size() == 16, "Hue v2 header must be 16 bytes");
+	static_assert(PAYLOAD_PER_LIGHT.size() == 9, "Payload per light must be 9 bytes (3 id + 6 color)");
+	static_assert(PAYLOAD_PER_CHANNEL_V2.size() == 7, "Payload per channel v2 must be 7 bytes (1 id + 6 color)");
+	static_assert(ENTERTAINMENT_ID_SIZE == 36, "Entertainment ID size expected to be 36 characters");
 
 } // End of constants
 
@@ -620,7 +628,7 @@ bool LedDevicePhilipsHueBridge::configureSsl()
 
 const int *LedDevicePhilipsHueBridge::getCiphersuites() const
 {
-	return SSL_CIPHERSUITES;
+	return SSL_CIPHERSUITES.data();
 }
 
 void LedDevicePhilipsHueBridge::log(const QString& msg, const QVariant& value) const
@@ -1775,7 +1783,7 @@ void PhilipsHueLight::saveOriginalState(const QJsonObject &values)
 			state[API_XY_COORDINATES].toArray()[1].toDouble(),
 			state[API_BRIGHTNESS].toDouble() / 254.0};
 		_originalColor = _color;
-		c = QString("{ \"%1\": [%2, %3], \"%4\": %5 }").arg(API_XY_COORDINATES).arg(_originalColor.x, 0, 'd', 4).arg(_originalColor.y, 0, 'd', 4).arg(API_BRIGHTNESS).arg((_originalColor.bri * 254.0), 0, 'd', 4);
+		c = QString(R"({ "%1": [%2, %3], "%4": %5 })").arg(API_XY_COORDINATES).arg(_originalColor.x, 0, 'd', 4).arg(_originalColor.y, 0, 'd', 4).arg(API_BRIGHTNESS).arg((_originalColor.bri * 254.0), 0, 'd', 4);
 		Debug(_log, "Philips original state stored: %s", QSTRING_CSTR(c));
 		_transitionTime = values[API_STATE].toObject()[API_TRANSITIONTIME].toInt();
 	}
@@ -2381,9 +2389,11 @@ int LedDevicePhilipsHue::writeStreamData(const std::vector<ColorRgb> &ledValues,
 		//		0xff, 0xff, 0xff, 0xff, 0xff, 0xff //white
 		//		//etc for channel ids 4-7
 
-		msg.reserve(static_cast<int>(sizeof(HEADER_V2) + sizeof(ENTERTAINMENT_ID) + sizeof(PAYLOAD_PER_CHANNEL_V2) * _lights.size()));
-		msg.append(reinterpret_cast<const char *>(HEADER_V2), sizeof(HEADER_V2));
-		msg.append(_groupId.toLocal8Bit());
+		msg.reserve(static_cast<int>(HEADER_V2.size() + ENTERTAINMENT_ID_SIZE + PAYLOAD_PER_CHANNEL_V2.size() * _lights.size()));
+		msg.append(reinterpret_cast<const char *>(HEADER_V2.data()), static_cast<int>(HEADER_V2.size()));
+
+		QByteArray entertainmentID (_groupId.toLocal8Bit(),ENTERTAINMENT_ID_SIZE); 
+		msg.append(entertainmentID);
 
 		auto maxChannels = static_cast<uint8_t>(ledValues.size());
 
@@ -2400,8 +2410,8 @@ int LedDevicePhilipsHue::writeStreamData(const std::vector<ColorRgb> &ledValues,
 				auto B = static_cast<quint16>(color.blue << 8);
 
 				msg.append(static_cast<char>(channel));
-				const uint16_t payload[] = {qToBigEndian<quint16>(R), qToBigEndian<quint16>(G), qToBigEndian<quint16>(B)};
-				msg.append(reinterpret_cast<const char *>(payload), sizeof(payload));
+				std::array<quint16, 3> const payload = {qToBigEndian<quint16>(R), qToBigEndian<quint16>(G), qToBigEndian<quint16>(B)};
+				msg.append(reinterpret_cast<const char*>(payload.data()), static_cast<int>(sizeof(payload)));
 			}
 		}
 	}
@@ -2418,8 +2428,8 @@ int LedDevicePhilipsHue::writeStreamData(const std::vector<ColorRgb> &ledValues,
 		//		0x00, 0x00, 0x04, //light ID 4
 		//		0x00, 0x00, 0x00, 0x00, 0xff, 0xff //blue
 
-		msg.reserve(static_cast<int>(sizeof(HEADER) + sizeof(PAYLOAD_PER_LIGHT) * _lights.size()));
-		msg.append(reinterpret_cast<const char *>(HEADER), sizeof(HEADER));
+		msg.reserve(static_cast<int>(HEADER.size() + PAYLOAD_PER_LIGHT.size() * _lights.size()));
+		msg.append(reinterpret_cast<const char *>(HEADER.data()), static_cast<int>(HEADER.size()));
 
 		ColorRgb color;
 
@@ -2437,9 +2447,8 @@ int LedDevicePhilipsHue::writeStreamData(const std::vector<ColorRgb> &ledValues,
 
 				msg.append(2, 0x00);
 				msg.append(static_cast<char>(id));
-				const uint16_t payload[] = {
-					qToBigEndian<quint16>(R), qToBigEndian<quint16>(G), qToBigEndian<quint16>(B)};
-				msg.append(reinterpret_cast<const char *>(payload), sizeof(payload));
+				std::array<quint16, 3> const payload = {qToBigEndian<quint16>(R), qToBigEndian<quint16>(G), qToBigEndian<quint16>(B)};
+				msg.append(reinterpret_cast<const char*>(payload.data()), static_cast<int>(sizeof(payload)));
 			}
 			++i;
 		}
