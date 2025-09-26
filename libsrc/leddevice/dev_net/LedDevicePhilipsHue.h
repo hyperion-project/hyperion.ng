@@ -412,6 +412,9 @@ private:
 
 	bool retrieveApplicationId();
 
+	bool handleV1ApiError(const QJsonArray& responseList, QString& errorReason) const;
+	bool handleV2ApiError(const QJsonObject& obj, QString& errorReason) const;
+
 	void setDevicesMap( const QJsonDocument &doc );
 	void setLightsMap( const QJsonDocument &doc );
 	void setGroupMap( const QJsonDocument &doc );
@@ -505,6 +508,7 @@ public:
 	void setOnOffState(PhilipsHueLight& light, bool on, bool force = false);
 	void setTransitionTime(PhilipsHueLight& light);
 	void setColor(PhilipsHueLight& light, CiColor& color);
+	void setColor(PhilipsHueLight &light, CiColor &color, bool force);
 	void setState(PhilipsHueLight& light, bool on, const CiColor& color);
 
 public slots:
@@ -628,6 +632,8 @@ private:
 
 	int writeSingleLights(const std::vector<ColorRgb>& ledValues);
 	int writeStreamData(const std::vector<ColorRgb>& ledValues, bool flush = false);
+
+	QJsonObject buildSetStateCommand(PhilipsHueLight& light, bool on, const CiColor& color);
 
 	///
 	bool _switchOffOnBlack;
