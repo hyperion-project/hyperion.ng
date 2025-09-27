@@ -169,11 +169,6 @@
           "useEntertainmentAPI": true
         }
       },
-      "options": {
-        "dependencies": {
-          "useAPIv2": false
-        }
-      },
       "propertyOrder": 15
     },
     "brightnessFactor": {

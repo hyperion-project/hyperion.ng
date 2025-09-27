@@ -1,5 +1,5 @@
-#ifndef PROVIDERRESTKAPI_H
-#define PROVIDERRESTKAPI_H
+#ifndef PROVIDERRESTAPI_H
+#define PROVIDERRESTAPI_H
 
 // Local-Hyperion includes
 #include <utils/Logger.h>
@@ -482,4 +482,4 @@ private:
 	bool _isSelfSignedCertificateAccpeted;
 };
 
-#endif // PROVIDERRESTKAPI_H
+#endif // PROVIDERRESTAPI_H

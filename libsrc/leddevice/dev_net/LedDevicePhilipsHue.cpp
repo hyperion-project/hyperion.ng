@@ -945,10 +945,7 @@ void LedDevicePhilipsHueBridge::setBridgeDetails(const QJsonDocument &doc, bool 
 
 	// Check if bridge-id MAC prefix is known from Philips Hue devices
 	// If not, we assume it is a DiyHue or other 3rd party bridge
-	if (!DEV_DATA_MAC_PREFIXES.contains(getBridgeId().left(6)))
-	{
-		_isPhilipsHueBridge = false;
-	}
+	_isPhilipsHueBridge = DEV_DATA_MAC_PREFIXES.contains(getBridgeId().left(6));
 
 	// Check if bridge is DIYHue to apply workarounds
 	if (_deviceName.startsWith("DiyHue", Qt::CaseInsensitive))

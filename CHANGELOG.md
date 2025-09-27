@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🔧 Changed
 
-- Hue Bridge - Wizard updates to support bridge-ids
+- Hue Bridge - Wizard updates to support bridge-ids, overall code refactoring
 
 - **Fixes:**
   - UI - Language is not selectable (#1877)
