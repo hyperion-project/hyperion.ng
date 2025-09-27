@@ -18,11 +18,18 @@
       "access": "expert",
       "propertyOrder": 2
     },
+    "bridgeid": {
+      "type": "string",
+      "title": "edt_dev_spec_bridgeid_title",
+      "default": "",
+      "access": "expert",      
+      "propertyOrder": 3
+    },
     "username": {
       "type": "string",
       "title": "edt_dev_spec_username_title",
       "default": "",
-      "propertyOrder": 3
+      "propertyOrder": 4
     },
     "clientkey": {
       "type": "string",
@@ -33,18 +40,18 @@
           "useEntertainmentAPI": true
         }
       },
-      "propertyOrder": 4
+      "propertyOrder": 5    
     },
     "useAPIv2": {
       "type": "boolean",
       "format": "checkbox",
       "title": "edt_dev_spec_useAPIv2_title",
-      "default": false,
+      "default": true,
       "options": {
         "hidden": true
       },
       "access": "expert",
-      "propertyOrder": 5
+      "propertyOrder": 6
     },
     "useEntertainmentAPI": {
       "type": "boolean",
@@ -54,7 +61,7 @@
       "options": {
         "hidden": true
       },
-      "propertyOrder": 6
+      "propertyOrder": 7
     },
     "switchOffOnBlack": {
       "type": "boolean",
@@ -66,14 +73,14 @@
           "useAPIv2": false
         }
       },
-      "propertyOrder": 7
+      "propertyOrder": 8
     },
     "restoreOriginalState": {
       "type": "boolean",
       "format": "checkbox",
       "title": "edt_dev_spec_restoreOriginalState_title",
       "default": false,
-      "propertyOrder": 8
+      "propertyOrder": 9
     },
     "blackLevel": {
       "type": "number",
@@ -88,7 +95,7 @@
           "useAPIv2": false
         }
       },
-      "propertyOrder": 9
+      "propertyOrder": 10
     },
     "onBlackTimeToPowerOff": {
       "type": "integer",
@@ -105,7 +112,7 @@
           "useAPIv2": false
         }
       },
-      "propertyOrder": 10
+      "propertyOrder": 11
     },
     "onBlackTimeToPowerOn": {
       "type": "integer",
@@ -122,7 +129,7 @@
           "useAPIv2": false
         }
       },
-      "propertyOrder": 11
+      "propertyOrder": 12
     },
     "candyGamma": {
       "type": "boolean",
@@ -134,7 +141,7 @@
           "useAPIv2": false
         }
       },
-      "propertyOrder": 12
+      "propertyOrder": 13
     },
     "lightIds": {
       "type": "array",
@@ -151,7 +158,7 @@
           "useEntertainmentAPI": false
         }
       },
-      "propertyOrder": 13
+      "propertyOrder": 14
     },
     "groupId": {
       "type": "string",
@@ -162,12 +169,7 @@
           "useEntertainmentAPI": true
         }
       },
-      "options": {
-        "dependencies": {
-          "useAPIv2": false
-        }
-      },
-      "propertyOrder": 14
+      "propertyOrder": 15
     },
     "brightnessFactor": {
       "type": "number",
@@ -183,7 +185,7 @@
           "useAPIv2": false
         }
       },
-      "propertyOrder": 15
+      "propertyOrder": 16
     },
     "handshakeTimeoutMin": {
       "type": "number",
@@ -201,7 +203,7 @@
           "useEntertainmentAPI": true
         }
       },
-      "propertyOrder": 16
+      "propertyOrder": 17
     },
     "handshakeTimeoutMax": {
       "type": "number",
@@ -219,7 +221,7 @@
           "useEntertainmentAPI": true
         }
       },
-      "propertyOrder": 17
+      "propertyOrder": 18
     },
     "verbose": {
       "type": "boolean",
@@ -227,7 +229,7 @@
       "title": "edt_dev_spec_verbose_title",
       "default": false,
       "access": "expert",
-      "propertyOrder": 18
+      "propertyOrder": 19
     },
     "transitiontime": {
       "type": "number",
@@ -242,7 +244,7 @@
           "useEntertainmentAPI": false
         }
       },
-      "propertyOrder": 19
+      "propertyOrder": 20
     },
     "blackLightsTimeout": {
       "type": "number",
@@ -253,7 +255,7 @@
           "useAPIv2": false
         }
       },
-      "propertyOrder": 20
+      "propertyOrder": 21
     },
     "brightnessThreshold": {
       "type": "number",
@@ -264,7 +266,7 @@
           "useAPIv2": false
         }
       },
-      "propertyOrder": 21
+      "propertyOrder": 22
     },
     "brightnessMin": {
       "type": "number",
@@ -279,7 +281,7 @@
           "useAPIv2": false
         }
       },
-      "propertyOrder": 22
+      "propertyOrder": 23
     },
     "brightnessMax": {
       "type": "number",
@@ -294,7 +296,7 @@
           "useAPIv2": false
         }
       },
-      "propertyOrder": 23
+      "propertyOrder": 24
     }
   },
   "additionalProperties": true

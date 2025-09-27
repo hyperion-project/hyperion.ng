@@ -8,16 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### ⚠️ Breaking Changes
 
+- Align Hue Bridge processing to Philips' guidance on security, i.e. no self-signed certificates for orginal bridges
+
 ---
 
 ### ✨ Added
 
 - HTTPS support for homeassistant LED devices (#1886)
+- Hue Bridge - Use https and certificates for all API calls, support Bridge Pro (V3)
+- Hue Bridge - Alternate certificate support
 
 ---
 
-
 ### 🔧 Changed
+
+- Hue Bridge - Wizard updates to support bridge-ids, overall code refactoring
 
 - **Fixes:**
   - UI - Language is not selectable (#1877)

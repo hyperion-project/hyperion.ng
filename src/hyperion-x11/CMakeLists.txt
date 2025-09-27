@@ -13,7 +13,6 @@ add_executable(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
 	commandline
-	hyperion-utils
 	flatbufconnect
 	x11-grabber
 	Qt${QT_VERSION_MAJOR}::Widgets
@@ -24,6 +23,10 @@ if(ENABLE_MDNS)
 else()
 	target_link_libraries(${PROJECT_NAME} ssdp)
 endif()
+
+target_link_libraries(${PROJECT_NAME}
+	hyperion-utils
+)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION "share/hyperion/bin" COMPONENT "hyperion_x11" OPTIONAL)
 

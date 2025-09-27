@@ -10,7 +10,6 @@ add_executable(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
 	commandline
-	hyperion-utils
 	Qt${QT_VERSION_MAJOR}::Widgets
 )
 
@@ -19,6 +18,10 @@ if(ENABLE_MDNS)
 else()
 	target_link_libraries(${PROJECT_NAME} ssdp)
 endif()
+
+target_link_libraries(${PROJECT_NAME}
+	hyperion-utils
+)
 
 if(ENABLE_EFFECTENGINE)
 	target_link_libraries(${PROJECT_NAME} effectengine)
