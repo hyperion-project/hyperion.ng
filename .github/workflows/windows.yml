@@ -107,7 +107,7 @@ jobs:
             exit 1
           )
           
-          echo ::warning::Inno Setup installed successfully!
+          echo "Inno Setup installed successfully!"
         shell: cmd
           
       - name: 💾 Download Pre-Build Dependencies
