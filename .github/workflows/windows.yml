@@ -55,9 +55,9 @@ jobs:
           fi
 
       - name: 📥 Install Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.13.5'
+          python-version: '3.13.7'
           architecture: ${{ matrix.os.architecture }}
 
       - name: 📥 Install Qt
@@ -80,20 +80,7 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: ${{ matrix.os.architecture }}
-
-      - name: 💾 Download OpenSSL 3.x
-        uses: ethanjli/cached-download-action@v0.1.3
-        with:
-          url: "https://slproweb.com/download/Win64${{ matrix.os.architecture == 'arm64' && 'ARM' || '' }}OpenSSL-3_5_3.exe"
-          destination: .\installer\openssl.exe
-          cache-key: OpenSSL
-
-      - name: 📥 Install OpenSSL 3.x
-        shell: powershell
-        run: |
-          Start-Process -FilePath ".\installer\openssl.exe" -ArgumentList "/silent", "/verysilent", "/sp-", "/suppressmsgboxes", "/DIR=C:\OpenSSL" -Wait
-          echo "OPENSSL_ROOT_DIR=C:\OpenSSL" >> $env:GITHUB_ENV
-
+          
       - name: 💾 Download Pre-Build Dependencies
         id: dependencies
         uses: ./.github/actions/download-pre-built-deps
