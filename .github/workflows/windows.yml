@@ -29,7 +29,7 @@ jobs:
 
   windows:
     name: ${{ matrix.os.description }}
-    runs-on: ${{ matrix.os.architecture == 'arm64' && 'windows-11-arm' || 'windows-2022' }}
+    runs-on: ${{ matrix.os.architecture == 'arm64' && 'windows-11-arm' || 'windows-2025' }}
     strategy:
       fail-fast: false
       matrix:
