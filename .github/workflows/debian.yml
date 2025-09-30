@@ -39,7 +39,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [
-          { description: Linux (x86_64),                      architecture: [ amd64, linux/amd64  ], platform: x11 },
+          { description: Linux (amd64),                      architecture: [ amd64, linux/amd64  ], platform: x11 },
           { description: Raspberry Pi 1 & Zero 1 (armv6),     architecture: [ armv6, linux/arm/v6 ], platform: rpi },
           { description: Raspberry Pi 2 (armv7),              architecture: [ armv7, linux/arm/v7 ], platform: rpi },
           { description: Raspberry Pi 3/4/5 & Zero 2 (arm64), architecture: [ arm64, linux/arm64  ], platform: rpi }
@@ -92,7 +92,7 @@ jobs:
           DOCKER_TAG: ${{ inputs.codename == 'bullseye' && matrix.os.architecture[0] == 'armv6' && inputs.codename || format('{0}-qt6', inputs.codename) }}
           BUILD_TYPE: ${{ inputs.event_name == 'pull_request' && 'debug' || 'release' }}
           ENTRYPOINT: ${{ matrix.os.architecture[0] != 'amd64' && '--entrypoint /usr/bin/env' || '' }}
-          CPACK_SYSTEM_PROCESSOR: ${{ matrix.os.architecture[0] != 'amd64' && format('-DCPACK_SYSTEM_PROCESSOR={0}', matrix.target_lookup[format('{0}', matrix.os.architecture[0])]) || '' }}
+          CPACK_SYSTEM_PROCESSOR: ${{ format('-DCPACK_SYSTEM_PROCESSOR={0}', matrix.target_lookup[format('{0}', matrix.os.architecture[0])]) || '' }}
           HINT: ${{ steps.dependencies.outputs.cmakeArgs != '' && '(with pre-built dependencies)' || '(full build)' }}
 
       - name: 📦 Upload
