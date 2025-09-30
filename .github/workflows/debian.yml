@@ -39,13 +39,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [
-          { description: Linux (amd64),                      architecture: [ amd64, linux/amd64  ], platform: x11 },
+          { description: Linux (amd64),                       architecture: [ amd64, linux/amd64  ], platform: x11 },
           { description: Raspberry Pi 1 & Zero 1 (armv6),     architecture: [ armv6, linux/arm/v6 ], platform: rpi },
           { description: Raspberry Pi 2 (armv7),              architecture: [ armv7, linux/arm/v7 ], platform: rpi },
           { description: Raspberry Pi 3/4/5 & Zero 2 (arm64), architecture: [ arm64, linux/arm64  ], platform: rpi }
         ]
         target_lookup: [
-          { 'arm64': 'arm64', 'armv6': 'armv6l', 'armv7': 'armv7l' }
+          { 'amd64': 'amd64', 'arm64': 'arm64', 'armv6': 'armv6l', 'armv7': 'armv7l' }
         ]
 
     steps:
