@@ -29,13 +29,13 @@ jobs:
 
   macos:
     name: ${{ matrix.os.description }}
-    runs-on: ${{ matrix.os.architecture == 'arm64' && 'macos-14' || 'macos-13' }}
+    runs-on: ${{ matrix.os.architecture == 'x64' && 'macos-15-intel' || 'macos-15' }}
     strategy:
       fail-fast: false
       matrix:
         os: [
-          { architecture: 'arm64', description: 'macOS 14 (arm64)' },
-          { architecture: 'x64', description: 'macOS 13 (x64)' }
+          { architecture: 'arm64', description: 'macOS 15 (arm64)' },
+          { architecture: 'x64', description: 'macOS 15 (x64)' }
         ]
 
     steps:
