@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### 🔧 Changed
 
 - Hue Bridge - Wizard updates to support bridge-ids, overall code refactoring
+- USB Grabber - Default hardware control properties are now applied when a new USB grabber is selected (avoids black images)
 
 - **Fixes:**
   - UI - Language is not selectable (#1877)
