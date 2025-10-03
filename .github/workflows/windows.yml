@@ -29,7 +29,7 @@ jobs:
 
   windows:
     name: ${{ matrix.os.description }}
-    runs-on: ${{ matrix.os.architecture == 'arm64' && 'windows-11-arm' || 'windows-2022' }}
+    runs-on: ${{ matrix.os.architecture == 'arm64' && 'windows-11-arm' || 'windows-2025' }}
     strategy:
       fail-fast: false
       matrix:
@@ -55,9 +55,9 @@ jobs:
           fi
 
       - name: 📥 Install Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.13.5'
+          python-version: '3.13.7'
           architecture: ${{ matrix.os.architecture }}
 
       - name: 📥 Install Qt
@@ -81,19 +81,35 @@ jobs:
         with:
           arch: ${{ matrix.os.architecture }}
 
-      - name: 💾 Download OpenSSL 3.x
-        uses: ethanjli/cached-download-action@v0.1.3
-        with:
-          url: "https://slproweb.com/download/Win64${{ matrix.os.architecture == 'arm64' && 'ARM' || '' }}OpenSSL-3_5_3.exe"
-          destination: .\installer\openssl.exe
-          cache-key: OpenSSL
-
-      - name: 📥 Install OpenSSL 3.x
-        shell: powershell
+      - name: Download/Install Inno Setup
         run: |
-          Start-Process -FilePath ".\installer\openssl.exe" -ArgumentList "/silent", "/verysilent", "/sp-", "/suppressmsgboxes", "/DIR=C:\OpenSSL" -Wait
-          echo "OPENSSL_ROOT_DIR=C:\OpenSSL" >> $env:GITHUB_ENV
-
+          echo "Checking pre-installation..."
+          
+          set "ISCC_PATH=%programfiles(x86)%\Inno Setup 6\ISCC.exe"
+          
+          if exist "%ISCC_PATH%" (
+            echo ::warning::Inno Setup is already installed
+            exit /b 0
+          )
+          
+          echo "Downloading Inno Setup..."
+  
+          set "_url_=https://jrsoftware.org/download.php/is.exe?site=1"
+          set "_file_=innosetup.exe"
+  
+          curl -L -o "%tmp%\%_file_%" "%_url_%"
+          
+          echo "Installing Inno Setup..."
+          "%tmp%\%_file_%" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-
+          
+          if not exist "%ISCC_PATH%" (
+            echo "::error::Inno Setup installation failed"
+            exit 1
+          )
+          
+          echo "Inno Setup installed successfully!"
+        shell: cmd
+          
       - name: 💾 Download Pre-Build Dependencies
         id: dependencies
         uses: ./.github/actions/download-pre-built-deps
