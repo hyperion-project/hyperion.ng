@@ -424,6 +424,10 @@ if(ENABLE_PROTOBUF_SERVER)
 	endif()
 
 	if(NOT USE_SYSTEM_PROTO_LIBS)
+		
+		# Enable ProtoBuf verbose mode
+		set(protobuf_VERBOSE ON CACHE BOOL "Build protobuf verbose")
+		
 		# Build Protobuf as static library
 		set(protobuf_BUILD_SHARED_LIBS OFF CACHE BOOL "Build protobuf shared")
 
