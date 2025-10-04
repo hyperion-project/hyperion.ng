@@ -43,7 +43,7 @@ WebServer::~WebServer()
 void WebServer::initServer()
 {
 	Debug(_log, "Initialize %s-Webserver", _useSsl ? "https" : "http");
-	_server.reset(new QtHttpServer(this));
+	_server.reset(new QtHttpServer());
 	_server->setServerName(QStringLiteral("Hyperion %1-Webserver").arg(_useSsl ? "https" : "http"));
 
 	if (_useSsl)

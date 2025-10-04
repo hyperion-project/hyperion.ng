@@ -24,7 +24,7 @@ WebSocketJsonHandler::WebSocketJsonHandler(QWebSocket* websocket, QObject* paren
 	bool localConnection = NetOrigin::getInstance()->isLocalAddress(_websocket->peerAddress(), _websocket->localAddress());
 
 	// Json processor
-	_jsonAPI.reset(new JsonAPI(_peerAddress, _log, localConnection, this));
+	_jsonAPI.reset(new JsonAPI(_peerAddress, _log, localConnection));
 
 	connect(_jsonAPI.get(), &JsonAPI::callbackReady, this, &WebSocketJsonHandler::sendMessage);
 	connect(_jsonAPI->getCallBack().get(), &JsonCallbacks::callbackReady, this, &WebSocketJsonHandler::sendMessage);

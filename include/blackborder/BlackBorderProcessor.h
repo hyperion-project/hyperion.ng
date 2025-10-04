@@ -26,7 +26,7 @@ namespace hyperion
 	{
 		Q_OBJECT
 	public:
-		BlackBorderProcessor(const QSharedPointer<Hyperion>& hyperionInstance, QObject* parent);
+		BlackBorderProcessor(const QSharedPointer<Hyperion>& hyperionInstance, QObject* parent = nullptr);
 		~BlackBorderProcessor() override;
 
 		///

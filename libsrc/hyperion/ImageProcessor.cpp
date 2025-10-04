@@ -129,7 +129,7 @@ ImageProcessor::ImageProcessor(const LedString& ledString, const QSharedPointer<
 	}
 	_log = Logger::getInstance("IMAGETOLED", subComponent);
 
-	_borderProcessor.reset(new BlackBorderProcessor(hyperion, this));
+	_borderProcessor.reset(new BlackBorderProcessor(hyperion));
 
 	// init
 	handleSettingsUpdate(settings::COLOR, hyperion->getSetting(settings::COLOR));

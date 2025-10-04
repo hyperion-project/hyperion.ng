@@ -79,6 +79,11 @@ const char SETTINGS_UI_SCHEMA_FILE[] = ":/schema-settings-ui.json";
 const bool verbose = false;
 }
 
+JsonAPI::JsonAPI(QString peerAddress, Logger *log, bool localConnection, bool noListener)
+	: JsonAPI(peerAddress, log, localConnection, nullptr, noListener)
+{
+}
+
 JsonAPI::JsonAPI(QString peerAddress, Logger *log, bool localConnection, QObject *parent, bool noListener)
 	: API(log, localConnection, parent)
 	,_noListener(noListener)
@@ -541,7 +546,7 @@ void JsonAPI::handleGetLedSnapshotCommand(const QJsonObject& /*message*/, const 
 
 	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
 
-	std::vector<ColorRgb> ledColors;
+	QVector<ColorRgb> ledColors;
 	QEventLoop loop;
 	QTimer timer;
 
@@ -555,7 +560,7 @@ void JsonAPI::handleGetLedSnapshotCommand(const QJsonObject& /*message*/, const 
 	std::unique_ptr<QObject> context{new QObject};
 	QObject* pcontext = context.get();
 	QObject::connect(hyperion.get(), &Hyperion::ledDeviceData, pcontext,
-			[this, &loop, context = std::move(context), &ledColors, cmd](std::vector<ColorRgb> ledColorsUpdate) mutable {
+			[this, &loop, context = std::move(context), &ledColors, cmd](QVector<ColorRgb> ledColorsUpdate) mutable {
 		ledColors = ledColorsUpdate;
 		loop.quit();  // Ensure the event loop quits immediately when data is received
 
