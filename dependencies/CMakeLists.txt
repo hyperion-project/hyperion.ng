@@ -433,8 +433,8 @@ if(ENABLE_PROTOBUF_SERVER)
 		# Disable build of Protobuf with zlib support
 		set(protobuf_WITH_ZLIB OFF CACHE BOOL "Build protobuf with zlib support")
 
-		# Disable build of libupb
-		set(protobuf_BUILD_LIBUPB OFF CACHE BOOL "Build libupb")
+		# Enable build of libupb
+		set(protobuf_BUILD_LIBUPB ON CACHE BOOL "Build libupb")
 
 		# Build abeil (3rd party sub-module) with C++ version requirements
 		set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "Build abseil-cpp with C++ version requirements propagated")
