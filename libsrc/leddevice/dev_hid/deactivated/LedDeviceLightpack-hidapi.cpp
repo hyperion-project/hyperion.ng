@@ -115,7 +115,7 @@ int LedDeviceLightpackHidapi::testAndOpen(hid_device_info *device, const std::st
 		{
 			// the serial number needs to be converted to a char array instead of wchar
 			size_t size = wcslen(device->serial_number);
-			serialNumber.resize(size, '.');
+			serialNumber.fill('.', size);
 			for (size_t i = 0; i < size; ++i)
 			{
 				int c = wctob(device->serial_number[i]);

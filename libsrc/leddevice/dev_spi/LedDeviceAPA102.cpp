@@ -37,7 +37,7 @@ bool LedDeviceAPA102::init(const QJsonObject &deviceConfig)
 	const unsigned int endFrameSize = (_ledCount/32) * 4 + 4;
 	const unsigned int APAbufferSize = (_ledCount * 4) + startFrameSize + endFrameSize;
 
-	_ledBuffer.resize(APAbufferSize, 0x00);
+	_ledBuffer.fill(0x00, APAbufferSize);
 
 	return true;
 }

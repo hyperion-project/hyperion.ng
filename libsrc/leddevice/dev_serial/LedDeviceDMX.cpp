@@ -57,7 +57,7 @@ bool LedDeviceDMX::init(const QJsonObject &deviceConfig)
 	Debug(_log, "_dmxStart %d, _dmxSlotsPerLed %d", _dmxStart, _dmxSlotsPerLed);
 	Debug(_log, "_ledCount %d, _dmxLedCount %d, _dmxChannelCount %d", _ledCount, _dmxLedCount, _dmxChannelCount);
 
-	_ledBuffer.resize(_dmxChannelCount, 0);
+	_ledBuffer.fill(0x00, _dmxChannelCount);
 	_ledBuffer[0] = 0x00;	// NULL START code
 
 	return true;

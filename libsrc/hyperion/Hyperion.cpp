@@ -267,7 +267,7 @@ void Hyperion::handleSettingsUpdate(settings::type type, const QJsonDocument& co
 		_colorOrder = _ledDeviceWrapper->getColorOrder();
 
 		updateLedLayout(getSetting(settings::LEDS).array());
-		_ledBuffer.resize(static_cast<QVector<ColorRgb>::size_type>(_hwLedCount), ColorRgb::BLACK);
+		_ledBuffer.fill(ColorRgb::BLACK, _hwLedCount);
 	}
 }
 

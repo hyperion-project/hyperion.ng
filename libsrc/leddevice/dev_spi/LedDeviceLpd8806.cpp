@@ -21,7 +21,7 @@ bool LedDeviceLpd8806::init(const QJsonObject &deviceConfig)
 	const unsigned clearSize = _ledCount/32+1;
 	unsigned messageLength = _ledRGBCount + clearSize;
 	// Initialise the buffer
-	_ledBuffer.resize(messageLength, 0x00);
+	_ledBuffer.fill(0x00, messageLength);
 
 	return true;
 }

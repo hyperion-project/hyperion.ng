@@ -34,7 +34,7 @@ void LedDeviceAPA102_ftdi::CreateHeader()
 	// Endframe, add additional 4 bytes to cover SK9922 Reset frame (in case SK9922 were sold as AP102) -  has no effect on APA102
 	const unsigned int endFrameSize = (_ledCount / 32) * 4 + 4;
 	const unsigned int APAbufferSize = (_ledCount * 4) + startFrameSize + endFrameSize;
-	_ledBuffer.resize(APAbufferSize, 0);
+	_ledBuffer.fill(0x00, APAbufferSize);
 	Debug(_log, "APA102 buffer created for %d LEDs", _ledCount);
 }
 

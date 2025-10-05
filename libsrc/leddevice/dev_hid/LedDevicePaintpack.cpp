@@ -20,7 +20,7 @@ bool LedDevicePaintpack::init(const QJsonObject &deviceConfig)
 		return false;
 	}
 
-	_ledBuffer.resize(_ledRGBCount + 2, uint8_t(0));
+	_ledBuffer.fill(0x00, _ledRGBCount + 2);
 	_ledBuffer[0] = 3;
 	_ledBuffer[1] = 0;
 

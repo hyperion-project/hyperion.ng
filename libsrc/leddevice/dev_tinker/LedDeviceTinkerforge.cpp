@@ -58,9 +58,9 @@ bool LedDeviceTinkerforge::init(const QJsonObject &deviceConfig)
 
 	if (_colorChannelSize < _ledCount)
 	{
-		_redChannel.resize(_ledCount, uint8_t(0));
-		_greenChannel.resize(_ledCount, uint8_t(0));
-		_blueChannel.resize(_ledCount, uint8_t(0));
+		_redChannel.fill(0x00, _ledCount);
+		_greenChannel.fill(0x00, _ledCount);
+		_blueChannel.fill(0x00, _ledCount);
 	}
 	_colorChannelSize = _ledCount;
 

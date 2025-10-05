@@ -134,14 +134,14 @@ void PriorityMuxer::updateLedColorsLength(int ledCount)
 	{
 		if (!infoIt->ledColors.empty())
 		{
-			infoIt->ledColors.resize(ledCount, infoIt->ledColors.at(0));
+			infoIt->ledColors.fill(infoIt->ledColors.at(0), ledCount);
 		}
 		++infoIt;
 	}
 
 	if (_lowestPriorityInfo.ledColors.size() != static_cast<size_t>(ledCount))
 	{
-		_lowestPriorityInfo.ledColors.resize(static_cast<QVector<ColorRgb>::size_type>(ledCount), ColorRgb::BLACK);
+		_lowestPriorityInfo.ledColors.fill(ColorRgb::BLACK, ledCount);
 		_activeInputs[PriorityMuxer::LOWEST_PRIORITY].ledColors = _lowestPriorityInfo.ledColors;
 	}
 }

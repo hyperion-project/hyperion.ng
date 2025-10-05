@@ -38,8 +38,8 @@ bool LedDeviceSK9822::init(const QJsonObject &deviceConfig)
 	const unsigned int endFrameSize = ((_ledCount/32) + 1)*4;
 	const unsigned int bufferSize = (_ledCount * 4) + startFrameSize + endFrameSize;
 
-	_ledBuffer.resize(0, 0x00);
-	_ledBuffer.resize(bufferSize, 0x00);
+	_ledBuffer.resize(bufferSize);
+	_ledBuffer.fill(0x00);
 
 	return true;
 }

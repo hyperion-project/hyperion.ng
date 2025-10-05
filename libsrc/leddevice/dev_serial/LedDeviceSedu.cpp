@@ -31,7 +31,7 @@ bool LedDeviceSedu::init(const QJsonObject &deviceConfig)
 		if ((unsigned)_ledRGBCount <= frameSpec.size)
 		{
 			_ledBuffer.clear();
-			_ledBuffer.resize(frameSpec.size + 3, 0);
+			_ledBuffer.fill(0x00, frameSpec.size + 3);
 			_ledBuffer[0] = 0x5A;
 			_ledBuffer[1] = frameSpec.id;
 			_ledBuffer.back() = 0xA5;

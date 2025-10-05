@@ -65,7 +65,7 @@ bool LedDeviceAPA104::init(const QJsonObject &deviceConfig)
 	
 	WarningIf(( _baudRate_Hz < 2000000 || _baudRate_Hz > 2470000 ), _log, "SPI rate %d outside recommended range (2000000 -> 2470000)", _baudRate_Hz);
 
-	_ledBuffer.resize(_ledRGBCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
+	_ledBuffer.fill(0x00,_ledRGBCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES);
 
 	return true;
 }

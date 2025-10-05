@@ -36,7 +36,7 @@ bool LedDeviceSkydimo::init(const QJsonObject &deviceConfig)
 void LedDeviceSkydimo::prepareHeader()
 {
 	_bufferLength = static_cast<qint64>(HEADER_SIZE + _ledRGBCount);
-	_ledBuffer.resize(static_cast<size_t>(_bufferLength), 0x00);
+	_ledBuffer.fill(0x00, _bufferLength);
 	_ledBuffer[0] = 'A';
 	_ledBuffer[1] = 'd';
 	_ledBuffer[2] = 'a';

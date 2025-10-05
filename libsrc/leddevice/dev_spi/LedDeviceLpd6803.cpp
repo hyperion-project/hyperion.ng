@@ -20,7 +20,7 @@ bool LedDeviceLpd6803::init(const QJsonObject &deviceConfig)
 
 	unsigned messageLength = 4 + 2*_ledCount + _ledCount/8 + 1;
 	// Initialise the buffer
-	_ledBuffer.resize(messageLength, 0x00);
+	_ledBuffer.fill(0x00, messageLength);
 
 	return true;
 }

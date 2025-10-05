@@ -18,7 +18,7 @@ bool LedDeviceP9813::init(const QJsonObject &deviceConfig)
 		return false;
 	}
 
-	_ledBuffer.resize(_ledCount * 4 + 8, 0x00);
+	_ledBuffer.fill(0x00, _ledCount * 4 + 8);
 
 	return true;
 }
