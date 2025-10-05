@@ -14,7 +14,7 @@ AudioWrapper::AudioWrapper()
 
 AudioWrapper::~AudioWrapper()
 {
-	stop();
+	AudioWrapper::stop();
 }
 
 bool AudioWrapper::start()

@@ -205,7 +205,7 @@ PyObject* EffectModule::wrapSetColor(PyObject* self, PyObject* args)
 		{
 			getEffect()->_colors.fill(color);
 			QVector<ColorRgb> _cQV = getEffect()->_colors;
-			emit getEffect()->setInput(getEffect()->_priority, std::vector<ColorRgb>(_cQV.begin(), _cQV.end()), getEffect()->getRemaining(), false);
+			emit getEffect()->setInput(getEffect()->_priority, QVector<ColorRgb>(_cQV.begin(), _cQV.end()), getEffect()->getRemaining(), false);
 			Py_RETURN_NONE;
 		}
 		return nullptr;
@@ -224,7 +224,7 @@ PyObject* EffectModule::wrapSetColor(PyObject* self, PyObject* args)
 					char* data = PyByteArray_AS_STRING(bytearray);
 					memcpy(getEffect()->_colors.data(), data, length);
 					QVector<ColorRgb> _cQV = getEffect()->_colors;
-					emit getEffect()->setInput(getEffect()->_priority, std::vector<ColorRgb>(_cQV.begin(), _cQV.end()), getEffect()->getRemaining(), false);
+					emit getEffect()->setInput(getEffect()->_priority, QVector<ColorRgb>(_cQV.begin(), _cQV.end()), getEffect()->getRemaining(), false);
 					Py_RETURN_NONE;
 				}
 				else

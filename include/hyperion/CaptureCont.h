@@ -69,17 +69,17 @@ private slots:
 	///
 	/// @brief Sets the video source to inactive
 	///
-	void onVideoIsInactive();
+	void onVideoIsInactive() const;
 
 	///
 	/// @brief Sets the screen source to inactive
 	///
-	void onScreenIsInactive();
+	void onScreenIsInactive() const;
 
 	///
 	/// @brief Sets the audio source to inactive
 	///
-	void onAudioIsInactive();
+	void onAudioIsInactive() const;
 
 
 private:

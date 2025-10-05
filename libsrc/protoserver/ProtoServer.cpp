@@ -69,7 +69,7 @@ void ProtoServer::newConnection()
 		if(QTcpSocket * socket = _server->nextPendingConnection())
 		{
 			Debug(_log, "New connection from %s", QSTRING_CSTR(socket->peerAddress().toString()));
-			ProtoClientConnection * client = new ProtoClientConnection(socket, _timeout, this);
+			auto* client = new ProtoClientConnection(socket, _timeout, this);
 			// internal
 			connect(client, &ProtoClientConnection::clientDisconnected, this, &ProtoServer::clientDisconnected);
 			connect(client, &ProtoClientConnection::registerGlobalInput, GlobalSignals::getInstance(), &GlobalSignals::registerGlobalInput);

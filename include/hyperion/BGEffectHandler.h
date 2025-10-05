@@ -17,15 +17,15 @@ class BGEffectHandler : public QObject
 	Q_OBJECT
 
 public:
-	BGEffectHandler(const QSharedPointer<Hyperion>& hyperionInstance);
+	explicit BGEffectHandler(const QSharedPointer<Hyperion>& hyperionInstance);
 	~BGEffectHandler() override;
 
 	///
-	/// @brief Disconnect from connected signals
+	/// @brief Stop BGEffect Handler (disconnect from connected signals)
 	/// Disconnect should be done before other priorities invoke methods
 	/// during shutdown
 	///
-	void disconnect();
+	void stop() const;
 
 	///
 	/// @brief Check, if background effect processing is enabled.

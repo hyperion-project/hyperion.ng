@@ -38,7 +38,7 @@ PriorityMuxer::PriorityMuxer(int ledCount, QObject * parent)
 	_lowestPriorityInfo.priority       = PriorityMuxer::LOWEST_PRIORITY;
 
 	_lowestPriorityInfo.timeoutTime_ms = -1;
-	_lowestPriorityInfo.ledColors      = std::vector<ColorRgb>(ledCount, ColorRgb::BLACK);
+	_lowestPriorityInfo.ledColors      = QVector<ColorRgb>(ledCount, ColorRgb::BLACK);
 
 	_lowestPriorityInfo.componentId    = hyperion::COMP_COLOR;
 	_lowestPriorityInfo.origin         = "System";
@@ -58,17 +58,17 @@ void PriorityMuxer::start()
 	Info(_log, "Priority-Muxer starting...");
 
 	// adapt to 1s interval for COLOR and EFFECT timeouts > -1 (endless)
-	_timer.reset(new QTimer(this));
+	_timer.reset(new QTimer());
 	connect(_timer.get(), &QTimer::timeout, this, &PriorityMuxer::timeTrigger);
 	_timer->setSingleShot(true);
 
-	_blockTimer.reset(new QTimer(this));
+	_blockTimer.reset(new QTimer());
 	_blockTimer->setSingleShot(true);
 
 	connect(this, &PriorityMuxer::signalTimeTrigger, this, &PriorityMuxer::timeTrigger);
 
 	// start muxer timer
-	_updateTimer.reset(new QTimer(this));
+	_updateTimer.reset(new QTimer());
 	connect(_updateTimer.get(), &QTimer::timeout, this, &PriorityMuxer::updatePriorities);
 	_updateTimer->setInterval(250);
 	_updateTimer->start();
@@ -141,7 +141,7 @@ void PriorityMuxer::updateLedColorsLength(int ledCount)
 
 	if (_lowestPriorityInfo.ledColors.size() != static_cast<size_t>(ledCount))
 	{
-		_lowestPriorityInfo.ledColors.resize(static_cast<std::vector<ColorRgb>::size_type>(ledCount), ColorRgb::BLACK);
+		_lowestPriorityInfo.ledColors.resize(static_cast<QVector<ColorRgb>::size_type>(ledCount), ColorRgb::BLACK);
 		_activeInputs[PriorityMuxer::LOWEST_PRIORITY].ledColors = _lowestPriorityInfo.ledColors;
 	}
 }
@@ -216,7 +216,7 @@ void PriorityMuxer::registerInput(int priority, hyperion::Components component, 
 	}
 }
 
-bool PriorityMuxer::setInput(int priority, const std::vector<ColorRgb>& ledColors, int64_t timeout_ms)
+bool PriorityMuxer::setInput(int priority, const QVector<ColorRgb>& ledColors, int64_t timeout_ms)
 {
 	if(!_activeInputs.contains(priority))
 	{

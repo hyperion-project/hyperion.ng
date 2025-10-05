@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QString>
+#include <QVector>
 #include <QSharedPointer>
 
 // Utils includes
@@ -119,9 +120,9 @@ public:
 	/// @return The color value per LED
 	///
 	template <typename Pixel_T>
-	std::vector<ColorRgb> process(const Image<Pixel_T>& image)
+	QVector<ColorRgb> process(const Image<Pixel_T>& image)
 	{
-		std::vector<ColorRgb> colors;
+		QVector<ColorRgb> colors;
 
 		if (image.width()>0 && image.height()>0)
 		{
@@ -174,7 +175,7 @@ public:
 	/// @param[out] ledColors  The color value per LED
 	///
 	template <typename Pixel_T>
-	void process(const Image<Pixel_T>& image, std::vector<ColorRgb>& ledColors)
+	void process(const Image<Pixel_T>& image, QVector<ColorRgb>& ledColors)
 	{
 		if ( image.width()>0 && image.height()>0)
 		{

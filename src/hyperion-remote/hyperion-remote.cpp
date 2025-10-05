@@ -21,7 +21,6 @@
 #ifdef ENABLE_MDNS
 // mDNS discover
 #include <mdns/MdnsBrowser.h>
-#include <mdns/MdnsServiceRegister.h>
 #else
 // ssdp discover
 #include <ssdp/SSDPDiscover.h>
@@ -41,7 +40,7 @@ int count(std::initializer_list<bool> values)
 	return std::count_if(values.begin(), values.end(), [](bool value) { return value; });
 }
 
-void showHelp(Option & option){
+void showHelp(const Option & option){
 	QString shortOption;
 	QString const longOption = QString("--%1").arg(option.names().constLast());
 
@@ -92,9 +91,9 @@ int main(int argc, char * argv[])
 			  << "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")\n"
 			  << "\tbuild time: " << __DATE__ << " " << __TIME__ << "\n";
 
-	QObject::connect(&errorManager, &ErrorManager::errorOccurred, [&](const QString& error) {
+	QObject::connect(&errorManager, &ErrorManager::errorOccurred, [&log](const QString &error) {
 		Error(log, "Error occured: %s", QSTRING_CSTR(error));
-		QTimer::singleShot(0, [&app]() { app.quit(); });
+		QTimer::singleShot(0, []() { QCoreApplication::quit(); }); 
 	});
 
 	// Force locale to have predictable, minimal behavior while still supporting full Unicode.
@@ -246,19 +245,23 @@ int main(int argc, char * argv[])
 		return 1;
 	}
 
-	QHostAddress hostAddress;
-	if (!NetUtils::resolveHostToAddress(log, hostname, hostAddress, port))
+	Info(log, "Connecting to Hyperion host: %s, port: %u", QSTRING_CSTR(hostname), port);
+
+	if (MdnsBrowser::isMdns(hostname))
 	{
-		emit errorManager.errorOccurred(QString("Address could not be resolved for hostname: \"%1\"").arg(QSTRING_CSTR(hostname)));
+		NetUtils::discoverMdnsServices("jsonapi");
+	}
+
+	if (!NetUtils::convertMdnsToIp(log, hostname, port))
+	{
+		emit errorManager.errorOccurred(QString("IP-address cannot be resolved for the given mDNS service- or hostname: \"%1\"").arg(QSTRING_CSTR(hostname)));
 		return 1;
 	}
 
-	Info(log, "Connecting to Hyperion host: %s, port: %u", QSTRING_CSTR(hostAddress.toString()), port);
-
 	// create the connection to the hyperion server
-	QScopedPointer<JsonConnection> connection (new JsonConnection(hostAddress, parser.isSet(argPrint), port));
+	QScopedPointer<JsonConnection> connection (new JsonConnection(hostname, parser.isSet(argPrint), static_cast<quint16>(port)));
 
-	QObject::connect(connection.get(), &JsonConnection::errorOccured, [&](const QString& error) {
+	QObject::connect(connection.get(), &JsonConnection::errorOccured, [](const QString& error) {
 		emit errorManager.errorOccurred(error);
 	});
 
@@ -274,7 +277,7 @@ int main(int argc, char * argv[])
 			}
 		}
 
-		//Global cammands
+		//Global commands
 
 		if (parser.isSet(argServerInfo))
 		{
@@ -447,11 +450,11 @@ int main(int argc, char * argv[])
 
 		connection->close();
 
-		Debug(log, "Command execution complete. Exiting...");
-		app.quit();
+		Info(log, "Command execution completed successfully. Exiting...");
+		QCoreApplication::quit();
 	});
 
-	app.exec();
+	QCoreApplication::exec();
 
 	return 0;
 }

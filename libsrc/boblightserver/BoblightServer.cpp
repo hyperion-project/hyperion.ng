@@ -115,7 +115,7 @@ void BoblightServer::newConnection()
 	if (socket != nullptr)
 	{
 		Info(_log, "New connection from %s ", QSTRING_CSTR(QString("Boblight@%1").arg(socket->peerAddress().toString())));
-		BoblightClientConnection * connection = new BoblightClientConnection(_hyperionWeak.toStrongRef(), socket, _priority);
+		auto* connection = new BoblightClientConnection(_hyperionWeak.toStrongRef(), socket, _priority);
 		_openConnections.insert(connection);
 
 		// register slot for cleaning up after the connection closed
@@ -137,7 +137,7 @@ void BoblightServer::handleSettingsUpdate(settings::type type, const QJsonDocume
 	if(type == settings::BOBLSERVER)
 	{
 		QJsonObject obj = config.object();
-		_port = obj["port"].toInt();
+		_port = static_cast<uint16_t>(obj["port"].toInt());
 		_priority = obj["priority"].toInt();
 		stop();
 		if(obj["enable"].toBool())

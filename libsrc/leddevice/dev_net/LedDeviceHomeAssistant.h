@@ -151,13 +151,6 @@ private:
 	///
 	QJsonArray discoverSsdp() const;
 
-	// ///
-	// /// @brief Get number of panels that can be used as LEds.
-	// ///
-	// /// @return Number of usable LED panels
-	// ///
-	// int getHwLedCount(const QJsonObject& jsonLayout) const;
-
 	QString _hostName;
 	QScopedPointer<ProviderRestApi> _restApi;
 	int	_apiPort;

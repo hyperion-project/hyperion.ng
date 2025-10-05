@@ -27,7 +27,7 @@ public:
 	JsonClientConnection(QTcpSocket * socket, bool localConnection);
 	~JsonClientConnection() override;
 
-	QHostAddress getClientAddress();
+	QHostAddress getClientAddress() const;
 
 signals:
 	void connectionClosed();

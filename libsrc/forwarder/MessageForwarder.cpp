@@ -80,13 +80,13 @@ void MessageForwarder::stop()
 	QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
 	if (!hyperion.isNull())
 	{
-		disconnect(_toBeForwardedInstanceID);
+		disconnectFromInstance(_toBeForwardedInstanceID);
 
 		Info(_log, "Forwarding service stopped");
 	}
 }
 
-bool MessageForwarder::connect(quint8 instanceID)
+bool MessageForwarder::connectToInstance(quint8 instanceID)
 {
 	bool isConnected{ false };
 
@@ -122,7 +122,7 @@ bool MessageForwarder::connect(quint8 instanceID)
 	return isConnected;
 }
 
-void MessageForwarder::disconnect(quint8 instanceID)
+void MessageForwarder::disconnectFromInstance(quint8 instanceID)
 {
 	QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
 	if (instanceID == _toBeForwardedInstanceID && !hyperion.isNull())
@@ -144,14 +144,14 @@ void MessageForwarder::handleSettingsUpdate(settings::type type, const QJsonDocu
 	quint8 const newInstanceID = config["instance"].toInt(NO_INSTANCE_ID);
 	if (newInstanceID != _toBeForwardedInstanceID)
 	{
-		disconnect(_toBeForwardedInstanceID);
+		disconnectFromInstance(_toBeForwardedInstanceID);
 		_toBeForwardedInstanceID = newInstanceID;
 	}
 
 	_config = config;
 	_isEnabled = config["enable"].toBool(false);;
 
-	if (_isEnabled && connect(_toBeForwardedInstanceID))
+	if (_isEnabled && connectToInstance(_toBeForwardedInstanceID))
 	{
 		start();
 	}
@@ -171,7 +171,7 @@ void MessageForwarder::handleCompStateChangeRequest(hyperion::Components compone
 		{
 			if (_hyperionWeak.isNull())
 			{
-				connect(_toBeForwardedInstanceID);
+				connectToInstance(_toBeForwardedInstanceID);
 			}
 			handleTargets(true, _config.object());
 		}
@@ -296,7 +296,7 @@ void MessageForwarder::handleTargets(bool start, const QJsonObject& config)
 	}
 }
 
-void MessageForwarder::disconnectFlatBufferComponents(int priority)
+void MessageForwarder::disconnectFlatBufferComponents(int priority) const
 {
 	QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
 	if (hyperion.isNull())
@@ -444,7 +444,7 @@ int MessageForwarder::startJsonTargets(const QJsonObject& config)
 #ifdef ENABLE_MDNS
 		if (!addr.isEmpty())
 		{
-			QMetaObject::invokeMethod(MdnsBrowser::getInstance().get(), "browseForServiceType", Q_ARG(QByteArray, MdnsServiceRegister::getServiceType("jsonapi")));
+			NetUtils::discoverMdnsServices("jsonapi");
 		}
 #endif
 
@@ -552,7 +552,7 @@ int MessageForwarder::startFlatbufferTargets(const QJsonObject& config)
 #ifdef ENABLE_MDNS
 		if (!addr.isEmpty())
 		{
-			QMetaObject::invokeMethod(MdnsBrowser::getInstance().get(), "browseForServiceType", Q_ARG(QByteArray, MdnsServiceRegister::getServiceType("flatbuffer")));
+			NetUtils::discoverMdnsServices("flatbuffer");
 		}
 #endif
 		for (const auto& entry : addr)
@@ -597,25 +597,26 @@ void MessageForwarder::stopFlatbufferTargets()
 
 void MessageForwarder::forwardJsonMessage(const QJsonObject& message, quint8 instanceId)
 {
-	if (_isActive)
+	if (!_isActive)
 	{
-		if (instanceId == _toBeForwardedInstanceID)
+		return;
+	}
+	if (instanceId == _toBeForwardedInstanceID)
+	{
+		QTcpSocket client;
+		for (const auto& targetHost : std::as_const(_jsonTargets))
 		{
-			QTcpSocket client;
-			for (const auto& targetHost : std::as_const(_jsonTargets))
+			client.connectToHost(targetHost.host, targetHost.port);
+			if (client.waitForConnected(JSON_SOCKET_CONNECT_TIMEOUT.count()))
 			{
-				client.connectToHost(targetHost.host, targetHost.port);
-				if (client.waitForConnected(JSON_SOCKET_CONNECT_TIMEOUT.count()))
-				{
-					sendJsonMessage(message, &client, targetHost.instanceIds);
-					client.close();
-				}
+				sendJsonMessage(message, &client, targetHost.instanceIds);
+				client.close();
 			}
 		}
 	}
 }
 
-void MessageForwarder::forwardFlatbufferMessage(const QString& /*name*/, const Image<ColorRgb>& image)
+void MessageForwarder::forwardFlatbufferMessage(const QString& /*name*/, const Image<ColorRgb>& image) const
 {
 	if (_messageForwarderFlatBufHelper)
 	{
@@ -679,12 +680,12 @@ void MessageForwarder::sendJsonMessage(const QJsonObject& message, QTcpSocket* s
 
 	for (const QByteArray& reply : replies)
 	{
-		QPair<bool, QStringList> const parsingResult = JsonUtils::parse(ident, reply, response, _log);
-		if (!parsingResult.first)
+		auto const [isParsed, errorMessages] = JsonUtils::parse(ident, reply, response, _log);
+		if (!isParsed)
 		{
 			DebugIf(verbose, _log, "Response: [%s]", QJsonDocument(response).toJson(QJsonDocument::Compact).constData());
 			isParsingError = true;
-			errorList.append(parsingResult.second);
+			errorList.append(errorMessages);
 		}
 		else
 		{
@@ -753,11 +754,11 @@ void MessageForwarderFlatbufferClientsHelper::forwardImage(const Image<ColorRgb>
 {
 	_isFree = false;
 
-	for (int i = 0; i < _forwardClients.size(); i++)
+	for (const auto& client : _forwardClients)
 	{
-		if (_forwardClients.at(i)->isClientRegistered())
+		if (client->isClientRegistered())
 		{
-			_forwardClients.at(i)->setImage(image);
+			client->setImage(image);
 		}
 	}
 

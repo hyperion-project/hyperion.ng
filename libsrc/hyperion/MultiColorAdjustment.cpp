@@ -92,7 +92,7 @@ void MultiColorAdjustment::setBacklightEnabled(bool enable)
 	}
 }
 
-void MultiColorAdjustment::applyAdjustment(std::vector<ColorRgb>& ledColors)
+void MultiColorAdjustment::applyAdjustment(QVector<ColorRgb>& ledColors)
 {
 	const size_t itCnt = qMin(_ledAdjustments.size(), ledColors.size());
 	for (size_t i=0; i<itCnt; ++i)

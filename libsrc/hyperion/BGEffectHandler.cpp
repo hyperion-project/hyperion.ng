@@ -33,7 +33,7 @@ BGEffectHandler::~BGEffectHandler()
 	qDebug() << "BGEffectHandler::~BGEffectHandler()...";
 }
 
-void BGEffectHandler::disconnect()
+void BGEffectHandler::stop() const
 {
 	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
 	if (hyperion)
@@ -77,7 +77,7 @@ void BGEffectHandler::handleSettingsUpdate(settings::type type, const QJsonDocum
 			const QJsonValue bgColorConfig = BGEffectConfig["color"];
 			if (bgTypeConfig.contains("color"))
 			{
-				std::vector<ColorRgb> bg_color = {
+				QVector<ColorRgb> bg_color = {
 					ColorRgb {
 						static_cast<uint8_t>(BGCONFIG_ARRAY.at(0).toInt(0)),
 						static_cast<uint8_t>(BGCONFIG_ARRAY.at(1).toInt(0)),

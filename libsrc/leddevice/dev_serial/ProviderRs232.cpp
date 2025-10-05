@@ -39,8 +39,6 @@ ProviderRs232::ProviderRs232(const QJsonObject &deviceConfig)
 
 bool ProviderRs232::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = false;
-
 	// Initialise sub-class
 	if (!LedDevice::init(deviceConfig) )
 	{
@@ -132,16 +130,13 @@ bool ProviderRs232::tryOpen(int delayAfterConnect_ms)
 {
 	if (_deviceName.isEmpty() || _rs232Port.portName().isEmpty())
 	{
-		if (!_rs232Port.isOpen())
+		if (!_rs232Port.isOpen() && _isAutoDeviceName)
 		{
-			if ( _isAutoDeviceName )
+		_deviceName = discoverFirst();
+			if (_deviceName.isEmpty())
 			{
-				_deviceName = discoverFirst();
-				if (_deviceName.isEmpty())
-				{
-					this->setInError( QString("No serial device found automatically!") );
-					return false;
-				}
+				this->setInError( QString("No serial device found automatically!") );
+				return false;
 			}
 		}
 

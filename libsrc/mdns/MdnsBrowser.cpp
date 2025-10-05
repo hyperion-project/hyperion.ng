@@ -51,8 +51,6 @@ void MdnsBrowser::stop()
 
 QSharedPointer<MdnsBrowser>& MdnsBrowser::getInstance(QThread* externalThread)
 {
-	//static QSharedPointer<MdnsBrowser> instance;
-
 	if (instance.isNull())
 	{
 		instance.reset(new MdnsBrowser());

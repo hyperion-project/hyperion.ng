@@ -100,7 +100,7 @@ void LinearColorSmoothing::start()
 	Info(_log, "LinearColorSmoothing starting...");
 
 
-	_timer.reset(new QTimer(this));
+	_timer.reset(new QTimer());
 	_timer->setTimerType(Qt::PreciseTimer);
 
 	//Start in pause mode, a new priority will activate smoothing (either start-effect or grabber)
@@ -180,7 +180,7 @@ void LinearColorSmoothing::handlePriorityUpdate(int priority)
 	}
 }
 
-int LinearColorSmoothing::write(const std::vector<ColorRgb> &ledValues)
+int LinearColorSmoothing::write(const QVector<ColorRgb> &ledValues)
 {
 	_targetTime = micros() + (MS_PER_MICRO * _settlingTime);
 	_targetValues = ledValues;
@@ -204,7 +204,7 @@ int LinearColorSmoothing::write(const std::vector<ColorRgb> &ledValues)
 	return 0;
 }
 
-int LinearColorSmoothing::updateLedValues(const std::vector<ColorRgb> &ledValues)
+int LinearColorSmoothing::updateLedValues(const QVector<ColorRgb> &ledValues)
 {
 	int retval = 0;
 	if (!_enabled)
@@ -320,7 +320,7 @@ void LinearColorSmoothing::assembleFrame()
 	}
 }
 
-ALWAYS_INLINE void LinearColorSmoothing::aggregateComponents(const std::vector<ColorRgb>& colors, std::vector<uint64_t>& weighted, const floatT weight) {
+ALWAYS_INLINE void LinearColorSmoothing::aggregateComponents(const QVector<ColorRgb>& colors, std::vector<uint64_t>& weighted, const floatT weight) {
 	// Determine the integer-scale by converting the weight to fixed point
 	const uint64_t scale = (static_cast<uint64_t>(1L)<<FPShift) * static_cast<double>(weight);
 
@@ -508,7 +508,7 @@ void LinearColorSmoothing::updateLeds()
 	}
 }
 
-void LinearColorSmoothing::rememberFrame(const std::vector<ColorRgb> &ledColors)
+void LinearColorSmoothing::rememberFrame(const QVector<ColorRgb> &ledColors)
 {
 	const int64_t now = micros();
 
@@ -544,7 +544,7 @@ void LinearColorSmoothing::clearRememberedFrames()
 	tempValues.clear();
 }
 
-void LinearColorSmoothing::queueColors(const std::vector<ColorRgb> &ledColors)
+void LinearColorSmoothing::queueColors(const QVector<ColorRgb> &ledColors)
 {
 	assert (!ledColors.empty());
 

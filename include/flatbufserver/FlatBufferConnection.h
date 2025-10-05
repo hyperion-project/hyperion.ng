@@ -40,7 +40,8 @@ public:
 	/// @param port The port of the Hyperion Flatpuffer server (default is 19400)
 	/// @param skipReply  If true skip reply
 	///
-	FlatBufferConnection(const QString& origin, const QHostAddress& host, int priority, bool skipReply, quint16 port = FLATBUFFER_DEFAULT_PORT);
+	FlatBufferConnection(const QString& origin, const QHostAddress& address, int priority, bool skipReply, quint16 port = FLATBUFFER_DEFAULT_PORT);
+	FlatBufferConnection(const QString& origin, const QString& hostname, int priority, bool skipReply, quint16 port = FLATBUFFER_DEFAULT_PORT);
 
 	///
 	/// @brief Destructor
@@ -48,7 +49,7 @@ public:
 	~FlatBufferConnection() override;
 
 	/// @brief Do not read reply messages from Hyperion if set to true
-	void setSkipReply(bool skip);
+	void setSkipReply(bool skip) const;
 
 	///
 	/// @brief Set all leds to the specified color
@@ -137,7 +138,7 @@ private:
 	int _priority;
 
 	/// Host address
-	QHostAddress _host;
+	QString _hostname;
 
 	/// Host port
 	uint16_t _port;

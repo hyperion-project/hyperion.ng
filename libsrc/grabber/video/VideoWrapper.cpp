@@ -26,7 +26,7 @@ VideoWrapper::VideoWrapper()
 
 VideoWrapper::~VideoWrapper()
 {
-	stop();
+	VideoWrapper::stop();
 }
 
 bool VideoWrapper::start()

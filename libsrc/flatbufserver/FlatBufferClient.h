@@ -55,7 +55,7 @@ signals:
 	///
 	/// @brief Forward requested color
 	///
-	void setGlobalInputColor(int priority, const std::vector<ColorRgb> &ledColor, int timeout_ms, const QString& origin = "FlatBuffer" ,bool clearEffects = true);
+	void setGlobalInputColor(int priority, const QVector<ColorRgb> &ledColor, int timeout_ms, const QString& origin = "FlatBuffer" ,bool clearEffects = true);
 
 	///
 	/// @brief Emit the final processed image
@@ -143,8 +143,8 @@ private:
 	///
 	void sendErrorReply(const QString& error);
 
-	void processRawImage(const uint8_t* buffer, int32_t width, int32_t height, int bytesPerPixel, const ImageResampler& resampler, Image<ColorRgb>& outputImage);
-	void processNV12Image(const uint8_t* nv12_data, int32_t width, int32_t height, int32_t stride_y, const ImageResampler& resampler, Image<ColorRgb>& outputImage);
+	void processRawImage(const uint8_t* buffer, int32_t width, int32_t height, int bytesPerPixel, const ImageResampler& resampler, Image<ColorRgb>& outputImage) const;
+	void processNV12Image(const uint8_t* nv12_data, int32_t width, int32_t height, int32_t stride_y, const ImageResampler& resampler, Image<ColorRgb>& outputImage) const;
 
 private:
 	Logger * _log;

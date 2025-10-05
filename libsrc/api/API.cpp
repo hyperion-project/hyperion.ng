@@ -98,7 +98,7 @@ void API::setColor(int priority, const std::vector<uint8_t> &ledColors, int time
 {
 	if (ledColors.size() % 3 == 0)
 	{
-		std::vector<ColorRgb> fledColors;
+		QVector<ColorRgb> fledColors;
 		for (unsigned i = 0; i < ledColors.size(); i += 3)
 		{
 			fledColors.emplace_back(ColorRgb{ledColors[i], ledColors[i + 1], ledColors[i + 2]});
@@ -107,7 +107,7 @@ void API::setColor(int priority, const std::vector<uint8_t> &ledColors, int time
 		QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
 		if (hyperion)
 		{
-			QMetaObject::invokeMethod(hyperion.get(), "setColor", Qt::QueuedConnection, Q_ARG(int, priority), Q_ARG(std::vector<ColorRgb>, fledColors), Q_ARG(int, timeout_ms), Q_ARG(QString, origin));
+			QMetaObject::invokeMethod(hyperion.get(), "setColor", Qt::QueuedConnection, Q_ARG(int, priority), Q_ARG(QVector<ColorRgb>, fledColors), Q_ARG(int, timeout_ms), Q_ARG(QString, origin));
 		}
 	}
 }

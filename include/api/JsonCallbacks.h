@@ -160,7 +160,7 @@ private slots:
 	/// @brief Is called whenever the current Hyperion instance pushes new led raw values (if enabled)
 	/// @param ledColors  The current led colors
 	///
-	void handleLedColorUpdate(const std::vector<ColorRgb> &ledColors);
+	void handleLedColorUpdate(const QVector<ColorRgb> &ledColors);
 
 	///
 	/// @brief Is called whenever the current Hyperion instance pushes new image update (if enabled)

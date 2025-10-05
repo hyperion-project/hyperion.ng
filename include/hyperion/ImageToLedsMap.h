@@ -7,6 +7,8 @@
 #include <sstream>
 #include <cmath>
 
+#include <QVector>
+
 // hyperion-utils includes
 #include <utils/Image.h>
 #include <utils/Logger.h>
@@ -88,9 +90,9 @@ namespace hyperion
 		/// @return The vector containing the output
 		///
 		template <typename Pixel_T>
-		std::vector<ColorRgb> getMeanLedColor(const Image<Pixel_T> & image) const
+		QVector<ColorRgb> getMeanLedColor(const Image<Pixel_T> & image) const
 		{
-			std::vector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
+			QVector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
 			getMeanLedColor(image, colors);
 			return colors;
 		}
@@ -103,7 +105,7 @@ namespace hyperion
 		/// @param[out] ledColors  The vector containing the output
 		///
 		template <typename Pixel_T>
-		void getMeanLedColor(const Image<Pixel_T> & image, std::vector<ColorRgb> & ledColors) const
+		void getMeanLedColor(const Image<Pixel_T> & image, QVector<ColorRgb> & ledColors) const
 		{
 			if(_colorsMap.size() != ledColors.size())
 			{
@@ -129,9 +131,9 @@ namespace hyperion
 		/// @return The vector containing the output
 		///
 		template <typename Pixel_T>
-		std::vector<ColorRgb> getMeanSqrtLedColor(const Image<Pixel_T> & image) const
+		QVector<ColorRgb> getMeanSqrtLedColor(const Image<Pixel_T> & image) const
 		{
-			std::vector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
+			QVector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
 			getMeanSqrtLedColor(image, colors);
 			return colors;
 		}
@@ -144,7 +146,7 @@ namespace hyperion
 		/// @param[out] ledColors  The vector containing the output
 		///
 		template <typename Pixel_T>
-		void getMeanSqrtLedColor(const Image<Pixel_T> & image, std::vector<ColorRgb> & ledColors) const
+		void getMeanSqrtLedColor(const Image<Pixel_T> & image, QVector<ColorRgb> & ledColors) const
 		{
 			if(_colorsMap.size() != ledColors.size())
 			{
@@ -169,9 +171,9 @@ namespace hyperion
 		/// @return The vector containing the output
 		///
 		template <typename Pixel_T>
-		std::vector<ColorRgb> getUniLedColor(const Image<Pixel_T> & image) const
+		QVector<ColorRgb> getUniLedColor(const Image<Pixel_T> & image) const
 		{
-			std::vector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
+			QVector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
 			getUniLedColor(image, colors);
 			return colors;
 		}
@@ -183,7 +185,7 @@ namespace hyperion
 		/// @param[out] ledColors  The vector containing the output
 		///
 		template <typename Pixel_T>
-		void getUniLedColor(const Image<Pixel_T> & image, std::vector<ColorRgb> & ledColors) const
+		void getUniLedColor(const Image<Pixel_T> & image, QVector<ColorRgb> & ledColors) const
 		{
 			if(_colorsMap.size() != ledColors.size())
 			{
@@ -206,9 +208,9 @@ namespace hyperion
 		/// @return The vector containing the output
 		///
 		template <typename Pixel_T>
-		std::vector<ColorRgb> getDominantLedColor(const Image<Pixel_T> & image) const
+		QVector<ColorRgb> getDominantLedColor(const Image<Pixel_T> & image) const
 		{
-			std::vector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
+			QVector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
 			getDominantLedColor(image, colors);
 			return colors;
 		}
@@ -221,7 +223,7 @@ namespace hyperion
 		/// @param[out] ledColors  The vector containing the output
 		///
 		template <typename Pixel_T>
-		void getDominantLedColor(const Image<Pixel_T> & image, std::vector<ColorRgb> & ledColors) const
+		void getDominantLedColor(const Image<Pixel_T> & image, QVector<ColorRgb> & ledColors) const
 		{
 			// Sanity check for the number of LEDs
 			if(_colorsMap.size() != ledColors.size())
@@ -247,9 +249,9 @@ namespace hyperion
 		/// @return The vector containing the output
 		///
 		template <typename Pixel_T>
-		std::vector<ColorRgb> getDominantUniLedColor(const Image<Pixel_T> & image) const
+		QVector<ColorRgb> getDominantUniLedColor(const Image<Pixel_T> & image) const
 		{
-			std::vector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
+			QVector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
 			getDominantUniLedColor(image, colors);
 			return colors;
 		}
@@ -261,7 +263,7 @@ namespace hyperion
 		/// @param[out] ledColors  The vector containing the output
 		///
 		template <typename Pixel_T>
-		void getDominantUniLedColor(const Image<Pixel_T> & image, std::vector<ColorRgb> & ledColors) const
+		void getDominantUniLedColor(const Image<Pixel_T> & image, QVector<ColorRgb> & ledColors) const
 		{
 			if(_colorsMap.size() != ledColors.size())
 			{
@@ -284,9 +286,9 @@ namespace hyperion
 		/// @return The vector containing the output
 		///
 		template <typename Pixel_T>
-		std::vector<ColorRgb> getDominantAdvLedColor(const Image<Pixel_T> & image) const
+		QVector<ColorRgb> getDominantAdvLedColor(const Image<Pixel_T> & image) const
 		{
-			std::vector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
+			QVector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
 			getDominantAdvLedColor(image, colors);
 			return colors;
 		}
@@ -299,7 +301,7 @@ namespace hyperion
 		/// @param[out] ledColors  The vector containing the output
 		///
 		template <typename Pixel_T>
-		void getDominantAdvLedColor(const Image<Pixel_T> & image, std::vector<ColorRgb> & ledColors) const
+		void getDominantAdvLedColor(const Image<Pixel_T> & image, QVector<ColorRgb> & ledColors) const
 		{
 			// Sanity check for the number of LEDs
 			if(_colorsMap.size() != ledColors.size())
@@ -325,9 +327,9 @@ namespace hyperion
 		/// @return The vector containing the output
 		///
 		template <typename Pixel_T>
-		std::vector<ColorRgb> getDominantAdvUniLedColor(const Image<Pixel_T> & image) const
+		QVector<ColorRgb> getDominantAdvUniLedColor(const Image<Pixel_T> & image) const
 		{
-			std::vector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
+			QVector<ColorRgb> colors(_colorsMap.size(), ColorRgb{0,0,0});
 			getDominantAdvUniLedColor(image, colors);
 			return colors;
 		}
@@ -339,7 +341,7 @@ namespace hyperion
 		/// @param[out] ledColors  The vector containing the output
 		///
 		template <typename Pixel_T>
-		void getDominantAdvUniLedColor(const Image<Pixel_T> & image, std::vector<ColorRgb> & ledColors) const
+		void getDominantAdvUniLedColor(const Image<Pixel_T> & image, QVector<ColorRgb> & ledColors) const
 		{
 			if(_colorsMap.size() != ledColors.size())
 			{

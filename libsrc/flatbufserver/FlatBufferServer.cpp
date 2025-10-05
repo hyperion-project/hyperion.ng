@@ -47,7 +47,7 @@ void FlatBufferServer::handleSettingsUpdate(settings::type type, const QJsonDocu
 	{
 		const QJsonObject& obj = config.object();
 
-		quint16 port = obj["port"].toInt(19400);
+		auto port = static_cast<quint16>(obj["port"].toInt(19400));
 
 		// port check
 		if(_server->serverPort() != port)
@@ -76,7 +76,7 @@ void FlatBufferServer::newConnection()
 		if(QTcpSocket* socket = _server->nextPendingConnection())
 		{
 			Debug(_log, "New connection from %s", QSTRING_CSTR(socket->peerAddress().toString()));
-			FlatBufferClient *client = new FlatBufferClient(socket, _timeout, this);
+			auto* client = new FlatBufferClient(socket, _timeout, this);
 
 			client->setPixelDecimation(_pixelDecimation);
 

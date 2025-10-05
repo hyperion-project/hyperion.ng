@@ -161,7 +161,7 @@ void AuthManager::setNewTokenRequest(QObject *caller, const QString &comment, co
 	}
 }
 
-void AuthManager::cancelNewTokenRequest(QObject *caller, const QString &, const QString &id)
+void AuthManager::cancelNewTokenRequest(const QObject *caller, const QString &, const QString &id)
 {
 	if (_pendingRequests.contains(id))
 	{
@@ -247,7 +247,7 @@ void AuthManager::checkTimeout()
 {
 	const uint64_t now = QDateTime::currentMSecsSinceEpoch();
 
-	QMapIterator<QString, AuthDefinition> i(_pendingRequests);
+	QMapIterator i(_pendingRequests);
 	while (i.hasNext())
 	{
 		i.next();

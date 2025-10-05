@@ -269,14 +269,9 @@ QJsonObject JsonInfo::getAvailableLedDevices()
 {
 	// get available led devices
 	QJsonObject ledDevices;
-	QJsonArray availableLedDevices;
 
-	for (const auto& dev : LedDeviceWrapper::getDeviceMap())
-	{
-		availableLedDevices.append(dev.first);
-	}
-
-	ledDevices["available"] = availableLedDevices;
+	QStringList const ledDeviceNames = LedDeviceWrapper::getDeviceMap().keys();
+	ledDevices["available"] = QJsonArray::fromStringList(ledDeviceNames);
 
 	return ledDevices;
 }

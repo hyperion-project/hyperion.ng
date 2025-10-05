@@ -71,9 +71,6 @@
 #if defined(ENABLE_EFFECTENGINE)
 // Init Python
 #include <python/PythonInit.h>
-
-// EffectFileHandler
-#include <effectengine/EffectFileHandler.h>
 #endif
 
 #ifdef ENABLE_CEC
@@ -81,7 +78,7 @@
 #endif
 
 namespace {
-	GlobalSignals* ensureGlobalSignalsInitialized = GlobalSignals::getInstance();
+	const GlobalSignals * const ensureGlobalSignalsInitialized = GlobalSignals::getInstance();
 }
 
 HyperionDaemon* HyperionDaemon::daemon = nullptr;
@@ -104,7 +101,7 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 	qRegisterMetaType<settings::type>("settings::type");
 	qRegisterMetaType<VideoMode>("VideoMode");
 	qRegisterMetaType<QMap<quint8, QJsonObject>>("QMap<quint8,QJsonObject>");
-	qRegisterMetaType<std::vector<ColorRgb>>("std::vector<ColorRgb>");
+	qRegisterMetaType<QVector<ColorRgb>>("QVector<ColorRgb>");
 
 	// set inital log lvl if the loglvl wasn't overwritten by arg
 	if (!logLvlOverwrite)
@@ -114,8 +111,8 @@ HyperionDaemon::HyperionDaemon(const QString& rootPath, QObject* parent, bool lo
 
 #if defined(ENABLE_EFFECTENGINE)
 	// init EffectFileHandler
-	EffectFileHandler* efh = new EffectFileHandler(rootPath, getSetting(settings::EFFECTS), this);
-	connect(this, &HyperionDaemon::settingsChanged, efh, &EffectFileHandler::handleSettingsUpdate);
+	_effectFileHandler.reset(new EffectFileHandler(rootPath, getSetting(settings::EFFECTS)));
+	connect(this, &HyperionDaemon::settingsChanged, _effectFileHandler.data(), &EffectFileHandler::handleSettingsUpdate);
 #endif
 
 	// spawn all Hyperion instances (non blocking)
@@ -166,7 +163,7 @@ void HyperionDaemon::handleInstanceStateChange(InstanceState state, quint8 insta
 #if defined(ENABLE_FORWARDER)
 		QMetaObject::invokeMethod(_messageForwarder.get(),
 			[this, instance]() {
-				if (_messageForwarder->connect(instance))
+				if (_messageForwarder->connectToInstance(instance))
 				{
 					_messageForwarder->start();
 				}
@@ -178,7 +175,7 @@ void HyperionDaemon::handleInstanceStateChange(InstanceState state, quint8 insta
 	case InstanceState::H_STOPPED:
 #if defined(ENABLE_FORWARDER)
 		QMetaObject::invokeMethod(_messageForwarder.get(),
-			[this, instance]() { _messageForwarder->disconnect(instance); },
+			[this, instance]() { _messageForwarder->disconnectFromInstance(instance); },
 			Qt::QueuedConnection);
 #endif
 
@@ -471,7 +468,7 @@ void HyperionDaemon::stopNetworkOutputServices()
 
 void HyperionDaemon::startEventServices()
 {
-	_eventHandler->getInstance();
+	EventHandler::getInstance();
 
 	_eventScheduler.reset(new EventScheduler());
 	_eventScheduler->handleSettingsUpdate(settings::SCHEDEVENTS, getSetting(settings::SCHEDEVENTS));

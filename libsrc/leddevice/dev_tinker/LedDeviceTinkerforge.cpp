@@ -45,18 +45,18 @@ bool LedDeviceTinkerforge::init(const QJsonObject &deviceConfig)
 	}
 
 	_host     = deviceConfig["output"].toString("127.0.0.1");
-	_port     = deviceConfig["port"].toInt(DEFAULT_PORT);
+	_port     = static_cast<uint16_t>(deviceConfig["port"].toInt(DEFAULT_PORT));
 	_uid      = deviceConfig["uid"].toString();
 	_interval = deviceConfig["rate"].toInt();
 
-	if ((unsigned)_ledCount > MAX_NUM_LEDS)
+	if (_ledCount > MAX_NUM_LEDS)
 	{
 		QString errortext = QString ("Initialization error. Not more than %1 LEDs are allowed.").arg(MAX_NUM_LEDS);
 		this->setInError(errortext);
 		return false;
 	}
 
-	if (_colorChannelSize < (unsigned)_ledCount)
+	if (_colorChannelSize < _ledCount)
 	{
 		_redChannel.resize(_ledCount, uint8_t(0));
 		_greenChannel.resize(_ledCount, uint8_t(0));
@@ -96,7 +96,7 @@ int LedDeviceTinkerforge::open()
 	_ledStrip = new LEDStrip;
 	led_strip_create(_ledStrip, QSTRING_CSTR(_uid), _ipConnection);
 
-	int frameStatus = led_strip_set_frame_duration(_ledStrip, _interval);
+	int frameStatus = led_strip_set_frame_duration(_ledStrip, static_cast<uint16_t>(_interval));
 	if (frameStatus < 0)
 	{
 		Error(_log,"Attempt to connect to led strip bricklet (led_strip_set_frame_duration()) failed with status %d", frameStatus);

@@ -38,7 +38,7 @@ private:
 	bool enable();
 	void disable();
 
-	int getMillisecondsToNextScheduledTime(const QTime& time);
+	qint64 getMillisecondsToNextScheduledTime(const QTime& time) const;
 
 	void clearTimers();
 

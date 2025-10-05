@@ -46,10 +46,10 @@ private:
 	///
 	int write(const QVector<ColorRgb>& ledValues) override;
 
-	inline uint8_t scale(uint8_t i, uint8_t scale) {
+	inline uint8_t scale(uint8_t i, uint8_t scale) const {
 		return (((uint16_t)i) * (1 + (uint16_t)(scale))) >> 8;
 	}
-
+	
 	RGBW::WhiteAlgorithm _whiteAlgorithm;
 
 	const int SPI_BYTES_PER_COLOUR;

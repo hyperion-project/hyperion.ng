@@ -2,14 +2,10 @@
 
 #include <chrono>
 
-// hyperion includes
-#include <hyperion/Hyperion.h>
-
-// utils includes
-#include <utils/GlobalSignals.h>
-
-// qt includes
 #include <QTimer>
+
+#include <hyperion/Hyperion.h>
+#include <utils/GlobalSignals.h>
 
 namespace {
 const int DEFAULT_VIDEO_CAPTURE_PRIORITY = 240;
@@ -53,19 +49,19 @@ void CaptureCont::start()
 
 
 		// inactive timer screen
-		_screenCaptureInactiveTimer.reset(new QTimer(this));
+		_screenCaptureInactiveTimer.reset(new QTimer());
 		connect(_screenCaptureInactiveTimer.get(), &QTimer::timeout, this, &CaptureCont::onScreenIsInactive);
 		_screenCaptureInactiveTimer->setSingleShot(true);
 		_screenCaptureInactiveTimer->setInterval(DEFAULT_SCREEN_CAPTURE_INACTIVE_TIMEOUT);
 
 		// inactive timer video
-		_videoInactiveTimer.reset(new QTimer(this));
+		_videoInactiveTimer.reset(new QTimer());
 		connect(_videoInactiveTimer.get(), &QTimer::timeout, this, &CaptureCont::onVideoIsInactive);
 		_videoInactiveTimer->setSingleShot(true);
 		_videoInactiveTimer->setInterval(DEFAULT_VIDEO_CAPTURE_INACTIVE_TIMEOUT);
 
 		// inactive timer audio
-		_audioCaptureInactiveTimer.reset(new QTimer(this));
+		_audioCaptureInactiveTimer.reset(new QTimer());
 		connect(_audioCaptureInactiveTimer.get(), &QTimer::timeout, this, &CaptureCont::onAudioIsInactive);
 		_audioCaptureInactiveTimer->setSingleShot(true);
 		_audioCaptureInactiveTimer->setInterval(DEFAULT_AUDIO_CAPTURE_INACTIVE_TIMEOUT);
@@ -222,7 +218,7 @@ void CaptureCont::handleSettingsUpdate(settings::type type, const QJsonDocument&
 			_videoCapturePriority = videoCapturePriority;
 		}
 
-		std::chrono::milliseconds videoCaptureInactiveTimeout = static_cast<std::chrono::milliseconds>(obj["videoInactiveTimeout"].toInt(DEFAULT_VIDEO_CAPTURE_INACTIVE_TIMEOUT.count()) * 1000);
+		auto videoCaptureInactiveTimeout = static_cast<std::chrono::milliseconds>(obj["videoInactiveTimeout"].toInt(DEFAULT_VIDEO_CAPTURE_INACTIVE_TIMEOUT.count()) * 1000);
 		if(_videoInactiveTimer->intervalAsDuration() != videoCaptureInactiveTimeout)
 		{
 			_videoInactiveTimer->setInterval(videoCaptureInactiveTimeout);
@@ -235,7 +231,7 @@ void CaptureCont::handleSettingsUpdate(settings::type type, const QJsonDocument&
 			_screenCapturePriority = screenCapturePriority;
 		}
 
-		std::chrono::milliseconds screenCaptureInactiveTimeout =  static_cast<std::chrono::milliseconds>(obj["screenInactiveTimeout"].toInt(DEFAULT_SCREEN_CAPTURE_INACTIVE_TIMEOUT.count()) * 1000);
+		auto screenCaptureInactiveTimeout =  static_cast<std::chrono::milliseconds>(obj["screenInactiveTimeout"].toInt(DEFAULT_SCREEN_CAPTURE_INACTIVE_TIMEOUT.count()) * 1000);
 		if(_screenCaptureInactiveTimer->intervalAsDuration() != screenCaptureInactiveTimeout)
 		{
 			_screenCaptureInactiveTimer->setInterval(screenCaptureInactiveTimeout);
@@ -248,7 +244,7 @@ void CaptureCont::handleSettingsUpdate(settings::type type, const QJsonDocument&
 			_audioCapturePriority = autoCapturePriority;
 		}
 
-		std::chrono::milliseconds audioCaptureInactiveTimeout =  static_cast<std::chrono::milliseconds>(obj["audioInactiveTimeout"].toInt(DEFAULT_AUDIO_CAPTURE_INACTIVE_TIMEOUT.count()) * 1000);
+		auto audioCaptureInactiveTimeout =  static_cast<std::chrono::milliseconds>(obj["audioInactiveTimeout"].toInt(DEFAULT_AUDIO_CAPTURE_INACTIVE_TIMEOUT.count()) * 1000);
 		if(_audioCaptureInactiveTimer->intervalAsDuration() != audioCaptureInactiveTimeout)
 		{
 			_audioCaptureInactiveTimer->setInterval(audioCaptureInactiveTimeout);
@@ -276,17 +272,17 @@ void CaptureCont::handleCompStateChangeRequest(hyperion::Components component, b
 	}
 }
 
-void CaptureCont::onVideoIsInactive()
+void CaptureCont::onVideoIsInactive() const
 {
 	_hyperionWeak.toStrongRef()->setInputInactive(_videoCapturePriority);
 }
 
-void CaptureCont::onScreenIsInactive()
+void CaptureCont::onScreenIsInactive() const
 {
 	_hyperionWeak.toStrongRef()->setInputInactive(_screenCapturePriority);
 }
 
-void CaptureCont::onAudioIsInactive()
+void CaptureCont::onAudioIsInactive() const
 {
 	_hyperionWeak.toStrongRef()->setInputInactive(_audioCapturePriority);
 }

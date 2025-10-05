@@ -142,7 +142,7 @@ public slots:
 	/// @param  caller  The QObject of the caller to deliver the reply
 	/// @param  id      The id created by the caller
 	///
-	void cancelNewTokenRequest(QObject *caller, const QString &, const QString &id);
+	void cancelNewTokenRequest(const QObject *caller, const QString &, const QString &id);
 
 	///
 	/// @brief Handle a token request by id, generate token and inform token caller or deny

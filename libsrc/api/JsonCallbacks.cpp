@@ -178,9 +178,8 @@ QStringList JsonCallbacks::subscribe(const QJsonArray& subscriptions)
 	}
 
 	QStringList invalidSubscriptions;
-	for (auto it = subsArr.begin(); it != subsArr.end(); ++it)
+	for (const QJsonValue& entry : subsArr)
 	{
-		const QJsonValue& entry = *it;
 		if (!subscribe(entry.toString()))
 		{
 			invalidSubscriptions.append(entry.toString());
@@ -306,9 +305,8 @@ QStringList JsonCallbacks::unsubscribe(const QJsonArray& subscriptions)
 	subsArr = subscriptions;
 
 	QStringList invalidSubscriptions;
-	for (auto it = subsArr.begin(); it != subsArr.end(); ++it)
+	for (const QJsonValue& entry : subsArr)
 	{
-		const QJsonValue& entry = *it;
 		if (!unsubscribe(entry.toString()))
 		{
 			invalidSubscriptions.append(entry.toString());
@@ -316,7 +314,6 @@ QStringList JsonCallbacks::unsubscribe(const QJsonArray& subscriptions)
 	}
 	return invalidSubscriptions;
 }
-
 void JsonCallbacks::resetSubscriptions()
 {
 	const QSet<Subscription::Type> currentSubscriptions = _subscribedCommands;
@@ -509,7 +506,7 @@ void JsonCallbacks::handleTokenChange(const QVector<AuthManager::AuthDefinition>
 	doCallback(Subscription::TokenUpdate, arr);
 }
 
-void JsonCallbacks::handleLedColorUpdate(const std::vector<ColorRgb> &ledColors)
+void JsonCallbacks::handleLedColorUpdate(const QVector<ColorRgb> &ledColors)
 {
 	QJsonObject result;
 	QJsonArray leds;

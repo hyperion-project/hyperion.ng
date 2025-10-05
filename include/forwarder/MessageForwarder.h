@@ -51,7 +51,7 @@ class MessageForwarder : public QObject
 {
 	Q_OBJECT
 public:
-	MessageForwarder(const QJsonDocument& config);
+	explicit MessageForwarder(const QJsonDocument& config);
 	~MessageForwarder() override;
 
 	void addJsonTarget(const QJsonObject& targetConfig);
@@ -66,8 +66,8 @@ public slots:
 	void handleSettingsUpdate(settings::type type, const QJsonDocument &config);
 
 	void init();
-	bool connect(quint8 instanceID);
-	void disconnect(quint8 instanceID);
+	bool connectToInstance(quint8 instanceID);
+	void disconnectFromInstance(quint8 instanceID);
 	void start();
 	void stop();
 
@@ -97,7 +97,7 @@ private slots:
 	/// @param image The flatbuffer image to send
 	///
 	///
-	void forwardFlatbufferMessage(const QString& name, const Image<ColorRgb> &image);
+	void forwardFlatbufferMessage(const QString& name, const Image<ColorRgb> &image) const;
 #endif
 
 	///
@@ -114,7 +114,7 @@ private:
 	bool activateFlatbufferTargets(int priority = PriorityMuxer::LOWEST_PRIORITY);
 
 	bool isFlatbufferComponent(int priority);
-	void disconnectFlatBufferComponents(int priority = PriorityMuxer::LOWEST_PRIORITY);
+	void disconnectFlatBufferComponents(int priority = PriorityMuxer::LOWEST_PRIORITY) const;
 
 	int startJsonTargets(const QJsonObject& config);
 	void stopJsonTargets();
@@ -160,7 +160,7 @@ class MessageForwarderFlatbufferClientsHelper : public QObject
 
 public:
 	MessageForwarderFlatbufferClientsHelper();
-	~MessageForwarderFlatbufferClientsHelper();
+	~MessageForwarderFlatbufferClientsHelper() override;
 
 signals:
 	void addClient(const QString& origin, const TargetHost& targetHost, int priority, bool skipReply);

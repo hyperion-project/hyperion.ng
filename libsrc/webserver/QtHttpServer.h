@@ -24,7 +24,6 @@ class QtHttpServerWrapper : public QTcpServer
 
 public:
 	explicit QtHttpServerWrapper (QObject * parent = Q_NULLPTR);
-	~QtHttpServerWrapper() override;
 
 	void setUseSecure (const bool ssl = true);
 

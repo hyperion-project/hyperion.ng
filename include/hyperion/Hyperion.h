@@ -11,6 +11,8 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QJsonArray>
+#include <QJsonDocument>
+#include <QVector>
 #include <QMap>
 #include <QScopedPointer>
 #include <QSharedPointer>
@@ -105,10 +107,10 @@ public:
 public slots:
 
 	///
-	/// Updates the priority muxer with the current time and (re)writes the led color with applied
-	/// transforms.
+	/// Performs the main output processing.
+	/// Retrieves the current priority input and processes it to update the LEDs.
 	///
-	void update();
+	void update();	
 
 	///
 	/// Forces one update to the priority muxer with the current time and (re)writes the led color with applied
@@ -141,7 +143,7 @@ public slots:
 	/// @param  clearEffect  Should be true when NOT called from an effect
 	/// @return              True on success, false when priority is not found
 	///
-	bool setInput(int priority, const std::vector<ColorRgb>& ledColors, int timeout_ms = PriorityMuxer::ENDLESS, bool clearEffect = true);
+	bool setInput(int priority, const QVector<ColorRgb>& ledColors, int timeout_ms = PriorityMuxer::ENDLESS, bool clearEffect = true);
 
 	///
 	/// @brief   Update the current image of a priority (prev registered with registerInput())
@@ -165,7 +167,7 @@ public slots:
 	/// @param[in] origin   The setter
 	/// @param     clearEffect  Should be true when NOT called from an effect
 	///
-	void setColor(int priority, const std::vector<ColorRgb> &ledColors, int timeout_ms = PriorityMuxer::ENDLESS, const QString& origin = "System" ,bool clearEffects = true);
+	void setColor(int priority, const QVector<ColorRgb> &ledColors, int timeout_ms = PriorityMuxer::ENDLESS, const QString& origin = "System" ,bool clearEffects = true);
 
 	///
 	/// @brief Set the given priority to inactive
@@ -304,10 +306,6 @@ public slots:
 	/// @return      Data Document
 	///
 	QJsonDocument getSetting(settings::type type) const;
-
-	/// gets the current json config object from SettingsManager
-	/// @return json config
-	QJsonObject getQJsonConfig(quint8 inst) const;
 
 	///
 	/// @brief Save a complete json config
@@ -468,12 +466,12 @@ signals:
 	///
 	/// @brief Emits whenever new data should be pushed to the LedDeviceWrapper which forwards it to the threaded LedDevice
 	///
-	void ledDeviceData(const std::vector<ColorRgb>& ledValues);
+	void ledDeviceData(const QVector<ColorRgb>& ledValues);
 
 	///
 	/// @brief Emits whenever new untransformed ledColos data is available, reflects the current visible device
 	///
-	void rawLedColors(const std::vector<ColorRgb>& ledValues);
+	void rawLedColors(const QVector<ColorRgb>& ledValues);
 
 	///
 	/// @brief Emits before thread quit is requested
@@ -519,6 +517,42 @@ private:
 	void updateLedColorAdjustment(int ledCount, const QJsonObject& colors);
 	void updateLedLayout(const QJsonArray& ledLayout);
 
+	///
+	/// Processes a source image to generate LED colors.
+	/// This includes black border detection and image-to-LED mapping.
+	///
+	/// @param image The source image to process.
+	/// @return A vector of colors for the LEDs.
+	///
+	QVector<ColorRgb> processSourceImage(const Image<ColorRgb>& image);
+
+	///
+	/// Applies the blacklist to a vector of LED colors, setting blacklisted LEDs to black.
+	///
+	/// @param ledColors The vector of LED colors to modify.
+	///
+	void applyBlacklist(QVector<ColorRgb>& ledColors);
+
+	///
+	/// Emits the raw LED colors signal, throttled to a specific rate.
+	///
+	/// @param ledColors The vector of raw LED colors to emit.
+	///
+	void emitRawLedColors(const QVector<ColorRgb>& ledColors);
+
+	///
+	/// Applies the configured color order to a vector of LED colors.
+	///
+	/// @param ledColors The vector of LED colors to modify.
+	///
+	void applyColorOrder(QVector<ColorRgb>& ledColors) const;
+
+	///
+	/// Writes the final LED colors to the LED device.
+	/// This involves smoothing and throttling.
+	///
+	void writeToLeds();
+
 	/// instance index
 	const quint8 _instIndex;
 
@@ -528,7 +562,7 @@ private:
 	/// The specifiation of the led frame construction and picture integration
 	LedString _ledString;
 
-	std::vector<ColorOrder> _ledStringColorOrder;
+	QVector<ColorOrder> _ledStringColorOrder;
 
 	/// Register that holds component states
 	QSharedPointer<ComponentRegister> _componentRegister;
@@ -574,7 +608,7 @@ private:
 	QSize _layoutGridSize;
 
 	/// buffer for leds (with adjustment)
-	std::vector<ColorRgb> _ledBuffer;
+	QVector<ColorRgb> _ledBuffer;
 
 	VideoMode _currVideoMode = VideoMode::VIDEO_2D;
 

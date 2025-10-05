@@ -17,11 +17,6 @@ QtHttpServerWrapper::QtHttpServerWrapper (QObject * parent)
 
 }
 
-QtHttpServerWrapper::~QtHttpServerWrapper (void)
-{
-
-}
-
 void QtHttpServerWrapper::setUseSecure (const bool ssl)
 {
 	m_useSsl = ssl;
@@ -101,7 +96,7 @@ void QtHttpServer::onClientConnected (void)
 				}
 			}
 
-			QtHttpClientWrapper* wrapper = new QtHttpClientWrapper(sock, m_netOrigin->isLocalAddress(sock->peerAddress(), sock->localAddress()), this);
+			auto* wrapper = new QtHttpClientWrapper(sock, m_netOrigin->isLocalAddress(sock->peerAddress(), sock->localAddress()), this);
 			m_socksClientsHash.insert(sock, wrapper);
 			emit clientConnected (wrapper->getGuid ());
 		}

@@ -19,7 +19,7 @@ public:
 	///
 	/// @brief Constructs a RS232 LED-device
 	///
-	ProviderRs232(const QJsonObject &deviceConfig);
+	explicit ProviderRs232(const QJsonObject &deviceConfig);
 
 	///
 	/// @brief Send an update to the RS232 device to identify it.

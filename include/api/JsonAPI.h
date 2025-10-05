@@ -27,13 +27,25 @@ class JsonAPI : public API
 	Q_OBJECT
 
 public:
+
+public:
 	///
 	/// Constructor
 	///
 	/// @param peerAddress provide the Address of the peer
 	/// @param log         The Logger class of the creator
-	/// @param parent      Parent QObject
 	/// @param localConnection True when the sender has origin home network
+	/// @param noListener  if true, this instance won't listen for hyperion push events
+	///
+	JsonAPI(QString peerAddress, Logger *log, bool localConnection, bool noListener = false);
+
+	///
+	/// Constructor
+	///
+	/// @param peerAddress provide the Address of the peer
+	/// @param log         The Logger class of the creator
+	/// @param localConnection True when the sender has origin home network
+	/// @param parent      Parent QObject
 	/// @param noListener  if true, this instance won't listen for hyperion push events
 	///
 	JsonAPI(QString peerAddress, Logger *log, bool localConnection, QObject *parent, bool noListener = false);

@@ -128,7 +128,7 @@ void SysTray::setColor(int instance, const QColor &color)
 	QSharedPointer<Hyperion> const hyperion = HyperionIManager::getInstance()->getHyperionInstance(instance);
 	if (!hyperion.isNull())
 	{
-		std::vector<ColorRgb> rgbColor {color.rgb()};
+		QVector<ColorRgb> rgbColor {color.rgb()};
 		emit hyperion->setColor(PriorityMuxer::FG_PRIORITY,rgbColor, PriorityMuxer::ENDLESS);
 	}
 }
