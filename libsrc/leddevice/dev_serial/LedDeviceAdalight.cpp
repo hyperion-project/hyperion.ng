@@ -79,7 +79,7 @@ void LedDeviceAdalight::prepareHeader()
 		const unsigned int bytesPerRGBLed = 4;
 		const unsigned int endFrameSize = qMax<unsigned int>(((_ledCount + 15) / 16), bytesPerRGBLed);
 		_bufferLength = HEADER_SIZE + (_ledCount * bytesPerRGBLed) + startFrameSize + endFrameSize;
-		_ledBuffer.resize(static_cast<size_t>(_bufferLength), 0x00);
+		_ledBuffer.fill(0x00, _bufferLength);
 
 		// init constant data values
 		for (uint iLed=1; iLed <= _ledCount; iLed++)
@@ -91,7 +91,7 @@ void LedDeviceAdalight::prepareHeader()
 	case Adalight::AWA:
 	{
 		_bufferLength = static_cast<qint64>(HEADER_SIZE + _ledRGBCount + 8);
-		_ledBuffer.resize(static_cast<size_t>(_bufferLength), 0x00);
+		_ledBuffer.fill(0x00, _bufferLength);
 		_ledBuffer[0] = 'A';
 		_ledBuffer[1] = 'w';
 		_ledBuffer[2] = _white_channel_calibration ? 'A' : 'a';
@@ -103,7 +103,7 @@ void LedDeviceAdalight::prepareHeader()
 		[[fallthrough]];
 	default:
 		_bufferLength = static_cast<qint64>(HEADER_SIZE + _ledRGBCount);
-		_ledBuffer.resize(static_cast<size_t>(_bufferLength), 0x00);
+		_ledBuffer.fill(0x00, _bufferLength);
 		_ledBuffer[0] = 'A';
 		_ledBuffer[1] = 'd';
 		_ledBuffer[2] = 'a';
