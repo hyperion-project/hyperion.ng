@@ -6,6 +6,7 @@
 #include <QThread>
 #include <QDir>
 #include <QEventLoop>
+#include <QDebug>
 
 #include <leddevice/LedDevice.h>
 #include <leddevice/LedDeviceFactory.h>
@@ -222,7 +223,7 @@ QJsonObject LedDeviceWrapper::getLedDeviceSchemas()
 		if(!FileUtils::readFile(schemaFile, data, Logger::getInstance("LEDDEVICE")))
 		{
 			Error(Logger::getInstance("LEDDEVICE"), "Failed to read LED device schema: %s", QSTRING_CSTR(item));
-			qFatal() << "Failed to read LED device schema:" << item;
+			qFatal("Failed to read LED device schema: %s", QSTRING_CSTR(item));
 		}
 
 		QJsonObject schema;
@@ -235,7 +236,7 @@ QJsonObject LedDeviceWrapper::getLedDeviceSchemas()
 				Error(Logger::getInstance("LEDDEVICE"), "JSON parse error: %s ", QSTRING_CSTR(errorMessage));
 			}
 			qWarning() << "LED device schema" << item << "is invalid";
-			qFatal() << "JSON parse error:" << errorList;
+			qFatal("JSON parse error: %s", QSTRING_CSTR(errorList.join(' ')));
 		}
 
         schemaJson = schema;
