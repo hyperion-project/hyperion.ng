@@ -56,7 +56,7 @@ API::API(Logger *log, bool localConnection, QObject *parent)
 	_instanceManager = HyperionIManager::getInstance();
 
 	// connect to possible token responses that has been requested
-	connect(_authManager, &AuthManager::tokenResponse, this, [=] (bool success, const QObject *caller, const QString &token, const QString &comment, const QString &tokenId, const int &tan)
+	connect(_authManager, &AuthManager::tokenResponse, this, [this] (bool success, const QObject *caller, const QString &token, const QString &comment, const QString &tokenId, const int &tan)
 	{
 		if (this == caller)
 		{
@@ -64,7 +64,7 @@ API::API(Logger *log, bool localConnection, QObject *parent)
 		}
 	});
 
-	connect(_instanceManager, &HyperionIManager::startInstanceResponse, this, [=] (const QObject *caller, const int &tan)
+	connect(_instanceManager, &HyperionIManager::startInstanceResponse, this, [this] (const QObject *caller, const int &tan)
 	{
 		if (this == caller)
 		{
@@ -94,14 +94,14 @@ void API::init()
 	_adminAuthorized = false;
 }
 
-void API::setColor(int priority, const std::vector<uint8_t> &ledColors, int timeout_ms, const QString &origin, hyperion::Components /*callerComp*/)
+void API::setColor(int priority, const QVector<uint8_t> &ledColors, int timeout_ms, const QString &origin, hyperion::Components /*callerComp*/) const
 {
 	if (ledColors.size() % 3 == 0)
 	{
 		QVector<ColorRgb> fledColors;
 		for (unsigned i = 0; i < ledColors.size(); i += 3)
 		{
-			fledColors.emplace_back(ColorRgb{ledColors[i], ledColors[i + 1], ledColors[i + 2]});
+			fledColors.append(ColorRgb{ledColors[i], ledColors[i + 1], ledColors[i + 2]});
 		}
 
 		QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
@@ -112,7 +112,7 @@ void API::setColor(int priority, const std::vector<uint8_t> &ledColors, int time
 	}
 }
 
-bool API::setImage(ImageCmdData &data, hyperion::Components comp, QString &replyMsg, hyperion::Components /*callerComp*/)
+bool API::setImage(ImageCmdData &data, hyperion::Components comp, QString &replyMsg, hyperion::Components /*callerComp*/) const
 {
 	// truncate name length
 	data.imgName.truncate(16);
@@ -172,10 +172,10 @@ bool API::setImage(ImageCmdData &data, hyperion::Components comp, QString &reply
 		// extract image
 		img = img.convertToFormat(QImage::Format_ARGB32_Premultiplied);
 		data.data.clear();
-		data.data.reserve(static_cast<int>(img.width() * img.height() * 3));
+		data.data.reserve(img.width() * img.height() * 3);
 		for (int i = 0; i < img.height(); ++i)
 		{
-			const QRgb *scanline = reinterpret_cast<const QRgb *>(img.scanLine(i));
+			const auto* scanline = reinterpret_cast<const QRgb *>(img.scanLine(i));
 			for (int j = 0; j < img.width(); ++j)
 			{
 				data.data.append(static_cast<char>(qRed(scanline[j])));
@@ -208,7 +208,7 @@ bool API::setImage(ImageCmdData &data, hyperion::Components comp, QString &reply
 	return true;
 }
 
-bool API::clearPriority(int priority, QString &replyMsg, hyperion::Components /*callerComp*/)
+bool API::clearPriority(int priority, QString &replyMsg, hyperion::Components /*callerComp*/) const
 {
 	if (priority < 0 || (priority > 0 && priority < PriorityMuxer::BG_PRIORITY))
 	{
@@ -226,7 +226,7 @@ bool API::clearPriority(int priority, QString &replyMsg, hyperion::Components /*
 	return true;
 }
 
-bool API::setComponentState(const QString &comp, bool &compState, QString &replyMsg, hyperion::Components /*callerComp*/)
+bool API::setComponentState(const QString &comp, const bool &compState, QString &replyMsg, hyperion::Components /*callerComp*/) const
 {
 	Components component = stringToComponent(comp);
 
@@ -243,7 +243,7 @@ bool API::setComponentState(const QString &comp, bool &compState, QString &reply
 	return false;
 }
 
-void API::setLedMappingType(int type, hyperion::Components /*callerComp*/)
+void API::setLedMappingType(int type, hyperion::Components /*callerComp*/) const
 {
 	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
 	if (hyperion)
@@ -252,7 +252,7 @@ void API::setLedMappingType(int type, hyperion::Components /*callerComp*/)
 	}
 }
 
-void API::setVideoMode(VideoMode mode, hyperion::Components /*callerComp*/)
+void API::setVideoMode(VideoMode mode, hyperion::Components /*callerComp*/) const
 {
 	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
 	if (hyperion)
@@ -262,9 +262,9 @@ void API::setVideoMode(VideoMode mode, hyperion::Components /*callerComp*/)
 }
 
 #if defined(ENABLE_EFFECTENGINE)
-bool API::setEffect(const EffectCmdData &dat, hyperion::Components /*callerComp*/)
+bool API::setEffect(const EffectCmdData &dat, hyperion::Components /*callerComp*/) const
 {
-	int isStarted;
+	int isStarted {-1};
 	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
 	if (hyperion)
 	{
@@ -282,7 +282,7 @@ bool API::setEffect(const EffectCmdData &dat, hyperion::Components /*callerComp*
 }
 #endif
 
-void API::setSourceAutoSelect(bool state, hyperion::Components /*callerComp*/)
+void API::setSourceAutoSelect(bool state, hyperion::Components /*callerComp*/) const
 {
 	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
 	if (hyperion)
@@ -291,7 +291,7 @@ void API::setSourceAutoSelect(bool state, hyperion::Components /*callerComp*/)
 	}
 }
 
-void API::setVisiblePriority(int priority, hyperion::Components /*callerComp*/)
+void API::setVisiblePriority(int priority, hyperion::Components /*callerComp*/) const
 {
 	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
 	if (hyperion)
@@ -304,10 +304,10 @@ void API::registerInput(int priority, hyperion::Components component, const QStr
 {
 	if (_activeRegisters.count(priority) != 0)
 	{
-		_activeRegisters.erase(priority);
+		_activeRegisters.remove(priority);
 	}
 
-	_activeRegisters.insert({priority, registerData{component, origin, owner, callerComp}});
+	_activeRegisters.insert(priority, registerData{component, origin, owner, callerComp});
 
 	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
 	if (hyperion)
@@ -320,7 +320,7 @@ void API::unregisterInput(int priority)
 {
 	if (_activeRegisters.count(priority) != 0)
 	{
-		_activeRegisters.erase(priority);
+		_activeRegisters.remove(priority);
 	}
 }
 
@@ -344,9 +344,9 @@ bool API::setHyperionInstance(quint8 inst)
 	return true;
 }
 
-bool API::isHyperionEnabled()
+bool API::isHyperionEnabled() const
 {
-	int isEnabled;
+	int isEnabled {-1};
 	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
 	if (hyperion)
 	{
@@ -364,7 +364,7 @@ QVector<QVariantMap> API::getAllInstanceData() const
 
 bool API::startInstance(quint8 index, int tan)
 {
-	bool isStarted;
+	bool isStarted {false};
 	(_instanceManager->thread() != this->thread())
 			? QMetaObject::invokeMethod(_instanceManager, "startInstance", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isStarted), Q_ARG(quint8, index), Q_ARG(bool, false), Q_ARG(QObject*, this), Q_ARG(int, tan))
 			: isStarted = _instanceManager->startInstance(index, false, this, tan);
@@ -392,7 +392,7 @@ QString API::createInstance(const QString &name)
 {
 	if (_adminAuthorized)
 	{
-		bool success;
+		bool success {false};
 		QMetaObject::invokeMethod(_instanceManager, "createInstance", Qt::DirectConnection, Q_RETURN_ARG(bool, success), Q_ARG(QString, name));
 		if (!success)
 		{
@@ -414,7 +414,7 @@ QString API::setInstanceName(quint8 index, const QString &name)
 }
 
 #if defined(ENABLE_EFFECTENGINE)
-QString API::deleteEffect(const QString &name)
+QString API::deleteEffect(const QString &name) const
 {
 	if (_adminAuthorized)
 	{
@@ -429,7 +429,7 @@ QString API::deleteEffect(const QString &name)
 	return NO_AUTHORIZATION;
 }
 
-QString API::saveEffect(const QJsonObject &data)
+QString API::saveEffect(const QJsonObject &data) const
 {
 	if (_adminAuthorized)
 	{
@@ -593,7 +593,7 @@ bool API::isTokenAuthorized(const QString &token)
 
 bool API::isUserAuthorized(const QString &password)
 {
-	bool isUserAuthorized;
+	bool isUserAuthorized {false};
 	QMetaObject::invokeMethod(_authManager, "isUserAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isUserAuthorized), Q_ARG(QString, DEFAULT_USER), Q_ARG(QString, password));
 	if (isUserAuthorized)
 	{
@@ -612,9 +612,9 @@ bool API::isUserAuthorized(const QString &password)
 
 bool API::hasHyperionDefaultPw()
 {
-	bool isDefaultPassort;
-	QMetaObject::invokeMethod(_authManager, "isUserAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isDefaultPassort), Q_ARG(QString, DEFAULT_USER), Q_ARG(QString, DEFAULT_PASSWORD));
-	return isDefaultPassort;
+	bool isDefaultPassword {false};
+	QMetaObject::invokeMethod(_authManager, "isUserAuthorized", Qt::BlockingQueuedConnection, Q_RETURN_ARG(bool, isDefaultPassword), Q_ARG(QString, DEFAULT_USER), Q_ARG(QString, DEFAULT_PASSWORD));
+	return isDefaultPassword;
 }
 
 void API::logout()

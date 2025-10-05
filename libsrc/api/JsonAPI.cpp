@@ -159,14 +159,14 @@ void JsonAPI::handleMessage(const QString &messageString, const QString &httpAut
 	QJsonObject message;
 
 	//parse the message
-	QPair<bool, QStringList> const parsingResult = JsonUtils::parse(ident, messageString, message, _log);
-	if (!parsingResult.first)
+	auto const [parsingSuccessful, errorDetails] = JsonUtils::parse(ident, messageString, message, _log);
+	if (!parsingSuccessful)
 	{
 		//Try to find command and tan, even parsing failed
 		QString const command = findCommand(messageString);
 		int const tan = findTan(messageString);
 
-		sendErrorReply("Parse error", parsingResult.second, command, tan);
+		sendErrorReply("Parse error", errorDetails, command, tan);
 		return;
 	}
 
@@ -196,8 +196,8 @@ void JsonAPI::handleMessage(const QString &messageString, const QString &httpAut
 
 	if (cmd.command == Command::Unknown)
 	{
-		const QStringList errorDetails (subCommand.isEmpty() ? "subcommand is missing" : QString("Invalid subcommand: %1").arg(subCommand));
-		sendErrorReply("Invalid command", errorDetails, command, tan);
+		const QStringList unknownCmdErrorDetails (subCommand.isEmpty() ? "subcommand is missing" : QString("Invalid subcommand: %1").arg(subCommand));
+		sendErrorReply("Invalid command", unknownCmdErrorDetails, command, tan);
 		return;
 	}
 
@@ -345,7 +345,7 @@ void JsonAPI::handleInstanceCommand(const JsonApiCommand& cmd, const QJsonObject
 		//Resolve instances provided and test, if they need to be running
 		for (const auto &instance : std::as_const(instances))
 		{
-			quint8 const instanceId = static_cast<quint8>(instance.toInt());
+			auto const instanceId = static_cast<quint8>(instance.toInt());
 			if (!configuredInstanceIds.contains(instanceId))
 			{
 				//Do not store in errorDetails, as command could be one working with and without instance
@@ -557,10 +557,10 @@ void JsonAPI::handleGetLedSnapshotCommand(const QJsonObject& /*message*/, const 
 	});
 
 	// Capture LED colors when the LED data signal is emitted (execute only once)
-	std::unique_ptr<QObject> context{new QObject};
-	QObject* pcontext = context.get();
-	QObject::connect(hyperion.get(), &Hyperion::ledDeviceData, pcontext,
-			[this, &loop, context = std::move(context), &ledColors, cmd](QVector<ColorRgb> ledColorsUpdate) mutable {
+	auto thisContext = std::make_unique<QObject>();
+	auto pcontext = thisContext.get();
+	auto connection = QObject::connect(hyperion.get(), &Hyperion::ledDeviceData, pcontext,
+			[this, &loop, &ledColors, cmd](QVector<ColorRgb> ledColorsUpdate) {
 		ledColors = ledColorsUpdate;
 		loop.quit();  // Ensure the event loop quits immediately when data is received
 
@@ -577,13 +577,13 @@ void JsonAPI::handleGetLedSnapshotCommand(const QJsonObject& /*message*/, const 
 		info["leds"] = ledRgbColorsArray;
 
 		sendSuccessDataReply(info, cmd);
-		context.reset();
 	}
 	);
 
 	// Start the timer and wait for either the signal or timeout
 	timer.start(LED_DATA_TIMEOUT);
 	loop.exec();
+	QObject::disconnect(connection);
 
 	// If no data was received, return an error
 	if (ledColors.empty())
@@ -618,8 +618,8 @@ void JsonAPI::handleColorCommand(const QJsonObject &message, const JsonApiComman
 	const QString origin = message["origin"].toString("JsonRpc") + "@" + _peerAddress;
 
 	const QJsonArray &jsonColor = message["color"].toArray();
-	std::vector<uint8_t> colors;
-	colors.reserve(static_cast<std::vector<uint8_t>::size_type>(jsonColor.size()));
+	QVector<uint8_t> colors;
+	colors.reserve(jsonColor.size());
 	// Transform each entry in jsonColor to uint8_t and append to colors
 	std::transform(jsonColor.begin(), jsonColor.end(), std::back_inserter(colors),
 				   [](const QJsonValue &value) { return static_cast<uint8_t>(value.toInt()); });
@@ -971,7 +971,7 @@ void JsonAPI::handleConfigSetCommand(const QJsonObject &message, const JsonApiCo
 			const QJsonValue idx = instanceObject["id"];
 			if (idx.isDouble())
 			{
-				quint8 const instanceId = static_cast<quint8>(idx.toInt());
+				auto const instanceId = static_cast<quint8>(idx.toInt());
 				if (configuredInstanceIds.contains(instanceId))
 				{
 					instancesNewConfigs.insert(instanceId,instanceObject.value("settings").toObject());
@@ -980,6 +980,7 @@ void JsonAPI::handleConfigSetCommand(const QJsonObject &message, const JsonApiCo
 				{
 					errorDetails.append(QString("Given instance id '%1' does not exist. Configuration item will be ignored").arg(instanceId));
 				}
+
 			}
 		}
 	}
@@ -1025,101 +1026,100 @@ void JsonAPI::handleConfigSetCommand(const QJsonObject &message, const JsonApiCo
 void JsonAPI::handleConfigGetCommand(const QJsonObject &message, const JsonApiCommand& cmd)
 {
 	QJsonObject settings;
-	QStringList errorDetails;
 
 	QJsonObject filter = message["configFilter"].toObject();
-	if (!filter.isEmpty())
-	{
-		QStringList globalFilterTypes;
-
-		const QJsonValue globalConfig = filter["global"];
-		if (globalConfig.isNull())
-		{
-			globalFilterTypes.append("__none__");
-		}
-		else
-		{
-			const QJsonObject globalConfigObject = globalConfig.toObject();
-			if (!globalConfigObject.isEmpty())
-			{
-				QJsonValue const globalTypes = globalConfig["types"];
-				if (globalTypes.isNull())
-				{
-					globalFilterTypes.append("__none__");
-				}
-				else
-				{
-					QJsonArray const globalTypesList = globalTypes.toArray();
-					for (const auto &type : globalTypesList) {
-						if (type.isString()) {
-							globalFilterTypes.append(type.toString());
-						}
-					}
-				}
-			}
-		}
-
-		QList<quint8> instanceListFilter;
-		QStringList instanceFilterTypes;
-
-		const QJsonValue instances = filter["instances"];
-		if (instances.isNull())
-		{
-			instanceListFilter.append(NO_INSTANCE_ID);
-		}
-		else
-		{
-			const QJsonObject instancesObject = instances.toObject();
-			if (!instancesObject.isEmpty())
-			{
-				QSet<quint8> const configuredInstanceIds = _instanceManager->getInstanceIds();
-				QJsonValue const instanceIds = instances["ids"];
-				if (instanceIds.isNull())
-				{
-					instanceListFilter.append(NO_INSTANCE_ID);
-				}
-				else
-				{
-					QJsonArray const instaceIdsList = instanceIds.toArray();
-					for (const auto &idx : instaceIdsList) {
-						if (idx.isDouble()) {
-							quint8 const instanceId = static_cast<quint8>(idx.toInt());
-							if (configuredInstanceIds.contains(instanceId))
-							{
-								instanceListFilter.append(instanceId);
-							}
-							else
-							{
-								errorDetails.append(QString("Given instance number '%1' does not exist.").arg(instanceId));
-							}
-						}
-					}
-
-					QJsonValue const instanceTypes = instances["types"];
-					if (instanceTypes.isNull())
-					{
-						instanceFilterTypes.append("__none__");
-					}
-					else
-					{
-						QJsonArray const instaceTypesList = instanceTypes.toArray();
-						for (const auto &type : instaceTypesList) {
-							if (type.isString()) {
-								instanceFilterTypes.append(type.toString());
-							}
-						}
-					}
-				}
-			}
-		}
-
-		settings = JsonInfo::getConfiguration(instanceListFilter, instanceFilterTypes, globalFilterTypes);
-	}
-	else
+	if (filter.isEmpty())
 	{
 		//Get complete configuration
 		settings = JsonInfo::getConfiguration();
+		sendSuccessDataReply(settings, cmd);
 	}
+
+	QStringList errorDetails;
+	QStringList globalFilterTypes;
+
+	const QJsonValue globalConfig = filter["global"];
+	if (globalConfig.isNull())
+	{
+		globalFilterTypes.append("__none__");
+	}
+	else
+	{
+		const QJsonObject globalConfigObject = globalConfig.toObject();
+		if (!globalConfigObject.isEmpty())
+		{
+			QJsonValue const globalTypes = globalConfig["types"];
+			if (globalTypes.isNull())
+			{
+				globalFilterTypes.append("__none__");
+			}
+			else
+			{
+				QJsonArray const globalTypesList = globalTypes.toArray();
+				for (const auto &type : globalTypesList) {
+					if (type.isString()) {
+						globalFilterTypes.append(type.toString());
+					}
+				}
+			}
+		}
+	}
+
+	QList<quint8> instanceListFilter;
+	QStringList instanceFilterTypes;
+
+	const QJsonValue instances = filter["instances"];
+	if (instances.isNull())
+	{
+		instanceListFilter.append(NO_INSTANCE_ID);
+	}
+	else
+	{
+		const QJsonObject instancesObject = instances.toObject();
+		if (!instancesObject.isEmpty())
+		{
+			QSet<quint8> const configuredInstanceIds = _instanceManager->getInstanceIds();
+			QJsonValue const instanceIds = instances["ids"];
+			if (instanceIds.isNull())
+			{
+				instanceListFilter.append(NO_INSTANCE_ID);
+			}
+			else
+			{
+				QJsonArray const instaceIdsList = instanceIds.toArray();
+				for (const auto &idx : instaceIdsList) {
+					if (idx.isDouble()) {
+						auto const instanceId = static_cast<quint8>(idx.toInt());
+						if (configuredInstanceIds.contains(instanceId))
+						{
+							instanceListFilter.append(instanceId);
+						}
+						else
+						{
+							errorDetails.append(QString("Given instance number '%1' does not exist.").arg(instanceId));
+						}
+					}
+				}
+
+				QJsonValue const instanceTypes = instances["types"];
+				if (instanceTypes.isNull())
+				{
+					instanceFilterTypes.append("__none__");
+				}
+				else
+				{
+					QJsonArray const instaceTypesList = instanceTypes.toArray();
+					for (const auto &type : instaceTypesList) {
+						if (type.isString()) {
+							instanceFilterTypes.append(type.toString());
+						}
+					}
+				}
+			}
+		}
+	}
+
+	settings = JsonInfo::getConfiguration(instanceListFilter, instanceFilterTypes, globalFilterTypes);
 
 	sendSuccessDataReplyWithError(settings, cmd, errorDetails);
 }
@@ -1129,8 +1129,8 @@ void JsonAPI::handleConfigRestoreCommand(const QJsonObject &message, const JsonA
 	QJsonObject config = message["config"].toObject();
 
 	DBConfigManager configManager;
-	QPair<bool, QStringList> const result = configManager.updateConfiguration(config, false);
-	if (result.first)
+	auto const [success, messages] = configManager.updateConfiguration(config, false);
+	if (success)
 	{
 		QString const infoMsg {"Restarting after importing configuration successfully."};
 		sendSuccessDataReply(infoMsg, cmd);
@@ -1139,7 +1139,7 @@ void JsonAPI::handleConfigRestoreCommand(const QJsonObject &message, const JsonA
 	}
 	else
 	{
-		sendErrorReply("Restore configuration failed", result.second, cmd);
+		sendErrorReply("Restore configuration failed", messages, cmd);
 	}
 }
 
@@ -1543,7 +1543,7 @@ void JsonAPI::handleInstanceCommand(const QJsonObject &message, const JsonApiCom
 
 	QJsonValue const instanceValue = message["instance"];
 
-	const quint8 instanceID = static_cast<quint8>(instanceValue.toInt());
+	auto const instanceID = static_cast<quint8>(instanceValue.toInt());
 	if(cmd.subCommand != SubCommand::CreateInstance)
 	{
 		QString errorText;
@@ -1791,7 +1791,7 @@ void JsonAPI::handleSystemCommand(const QJsonObject& /*message*/, const JsonApiC
 	sendSuccessReply(cmd);
 }
 
-QJsonObject JsonAPI::getBasicCommandReply(bool success, const QString &command, int tan, InstanceCmd::Type instanceCmdType) const
+QJsonObject JsonAPI::getBasicCommandReply(bool success, const QString &command, int tan, InstanceCmd::Type /*instanceCmdType*/) const
 {
 	QJsonObject reply;
 	reply["success"] = success;
@@ -1928,10 +1928,6 @@ void JsonAPI::handleInstanceStateChange(InstanceState state, quint8 instanceID, 
 	break;
 
 	case InstanceState::H_STOPPED:
-	{
-	}
-	break;
-
 	case InstanceState::H_STARTING:
 	case InstanceState::H_ON_STOP:
 	case InstanceState::H_CREATED:
@@ -1951,7 +1947,7 @@ QString JsonAPI::findCommand (const QString& jsonString)
 	QString commandValue {"unknown"};
 
 	// Define a regular expression pattern to match the value associated with the key "command"
-	static QRegularExpression regex("\"command\"\\s*:\\s*\"([^\"]+)\"");
+	static QRegularExpression regex(R"("command"\s*:\s*"([^"]+)");
 	QRegularExpressionMatch match = regex.match(jsonString);
 
 	if (match.hasMatch()) {
@@ -1963,7 +1959,7 @@ QString JsonAPI::findCommand (const QString& jsonString)
 int JsonAPI::findTan (const QString& jsonString)
 {
 	int tanValue {0};
-	static QRegularExpression regex("\"tan\"\\s*:\\s*(\\d+)");
+	static QRegularExpression regex(R"("tan"\s*:\s*(\d+))");
 	QRegularExpressionMatch match = regex.match(jsonString);
 
 	if (match.hasMatch()) {

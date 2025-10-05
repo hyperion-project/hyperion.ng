@@ -158,13 +158,12 @@ void MdnsBrowser::resolveFirstAddress(Logger* log, const QString& hostname, std:
 
 		auto thisContext = std::make_unique<QObject>();
 		auto pcontext = thisContext.get();
-		connect(this, &MdnsBrowser::isAddressResolved, pcontext, [log, hostname, &loop, &resolvedAddress, context = std::move(thisContext)](const QString& resHostname, const QHostAddress& address) mutable {
+		auto connection = connect(this, &MdnsBrowser::isAddressResolved, pcontext, [log, hostname, &loop, &resolvedAddress](const QString& resHostname, const QHostAddress& address) mutable {
 			qDebug() << "isAddressResolved - hostname: " << hostname << ", resolved hostname: " << resHostname << ", address: " << address;
 			if (hostname == resHostname)
 			{
 				resolvedAddress = address;
 				loop.quit();
-				context.reset();
 			}
 			else
 			{
@@ -174,6 +173,7 @@ void MdnsBrowser::resolveFirstAddress(Logger* log, const QString& hostname, std:
 
 		timer.start(timeout);
 		loop.exec();
+		QObject::disconnect(connection);
 
 		if (!resolvedAddress.isNull())
 		{
