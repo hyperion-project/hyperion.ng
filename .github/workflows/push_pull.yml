@@ -24,7 +24,7 @@ jobs:
         debian: [
           { codename: [ 'bullseye', 'Bullseye' ] },
           { codename: [ 'bookworm', 'Bookworm' ] },
-          { codename: [ 'trixie', 'Trixie (Testing)' ] }
+          { codename: [ 'trixie', 'Trixie' ] }
         ]
     uses: ./.github/workflows/debian.yml
     secrets: inherit
