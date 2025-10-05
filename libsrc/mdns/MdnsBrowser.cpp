@@ -3,7 +3,6 @@
 #include <qmdnsengine/service.h>
 
 // Qt includes
-#include <QThread>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -34,10 +33,6 @@ MdnsBrowser::MdnsBrowser(QObject* parent)
 	qRegisterMetaType<QHostAddress>("QHostAddress");
 }
 
-MdnsBrowser::~MdnsBrowser()
-{
-}
-
 void MdnsBrowser::initMdns()
 {
 	if (!_server) // Ensure it only initializes once
@@ -56,7 +51,7 @@ void MdnsBrowser::stop()
 
 QSharedPointer<MdnsBrowser>& MdnsBrowser::getInstance(QThread* externalThread)
 {
-	static QSharedPointer<MdnsBrowser> instance;
+	//static QSharedPointer<MdnsBrowser> instance;
 
 	if (instance.isNull())
 	{
@@ -105,18 +100,18 @@ void MdnsBrowser::onServiceAdded(const QMdnsEngine::Service& service)
 
 void MdnsBrowser::onServiceUpdated(const QMdnsEngine::Service& service)
 {
-	DebugIf(verboseBrowser, _log, "[%s], Name: [%s], Port: [%u], Thread: %s", service.type().constData(), service.name().constData(), service.port(), QSTRING_CSTR(QThread::currentThread()->objectName()));
+	DebugIf(verboseBrowser, _log, "Service [%s] was updated, Name: [%s], Port: [%u], Thread: %s", service.type().constData(), service.name().constData(), service.port(), QSTRING_CSTR(QThread::currentThread()->objectName()));
 }
 
 void MdnsBrowser::onServiceRemoved(const QMdnsEngine::Service& service)
 {
-	DebugIf(verboseBrowser, _log, "[%s], Name: [%s], Port: [%u], Thread: %s", service.type().constData(), service.name().constData(), service.port(), QSTRING_CSTR(QThread::currentThread()->objectName()));
+	DebugIf(verboseBrowser, _log, "Service [%s] was removed, Name: [%s], Port: [%u], Thread: %s", service.type().constData(), service.name().constData(), service.port(), QSTRING_CSTR(QThread::currentThread()->objectName()));
 	emit serviceRemoved(service);
 }
 
-void MdnsBrowser::onHostNameResolved(const QHostAddress& address)
+void MdnsBrowser::onHostNameResolved(const QString& hostname, const QHostAddress& address)
 {
-	DebugIf(verboseBrowser, _log, "for address [%s], Thread: %s", QSTRING_CSTR(address.toString()), QSTRING_CSTR(QThread::currentThread()->objectName()));
+	DebugIf(verboseBrowser, _log, "Resolved mDNS hostname [%s] to IP-address [%s], Thread: %s", QSTRING_CSTR(hostname), QSTRING_CSTR(address.toString()), QSTRING_CSTR(QThread::currentThread()->objectName()));
 
 	// Do not publish link local addresses
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
@@ -125,7 +120,7 @@ void MdnsBrowser::onHostNameResolved(const QHostAddress& address)
 	if (!address.toString().startsWith("fe80"))
 #endif
 	{
-		emit isAddressResolved(address);
+		emit isAddressResolved(hostname, address);
 	}
 }
 
@@ -135,10 +130,23 @@ void MdnsBrowser::resolveFirstAddress(Logger* log, const QString& hostname, std:
 
 	QHostAddress resolvedAddress;
 
-	if (hostname.endsWith(".local") || hostname.endsWith(".local."))
+	qDebug() << "resolveFirstAddress: hostname:" << hostname;
+
+	if (isMdns(hostname))
 	{
-		QMdnsEngine::Resolver const resolver (_server.get(), hostname.toUtf8(), _cache.get());
-		connect(&resolver, &QMdnsEngine::Resolver::resolved, this, &MdnsBrowser::onHostNameResolved);
+		QByteArray hostLookupName = hostname.toUtf8();
+
+		if (!hostLookupName.endsWith('.'))
+		{
+			hostLookupName.append('.');
+		}
+
+		qDebug() << "resolveFirstAddress: hostLookupName:" << hostLookupName;
+
+		QSharedPointer<QMdnsEngine::Resolver> resolver(new QMdnsEngine::Resolver(_server.get(), hostLookupName, _cache.get()), &QObject::deleteLater);
+		connect(resolver.get(), &QMdnsEngine::Resolver::resolved, this, [this, hostname](const QHostAddress& address) {
+			onHostNameResolved(hostname, address);
+			});
 
 		DebugIf(verboseBrowser, log, "Wait for resolver on hostname [%s]", QSTRING_CSTR(hostname));
 
@@ -148,22 +156,30 @@ void MdnsBrowser::resolveFirstAddress(Logger* log, const QString& hostname, std:
 		timer.setSingleShot(true);
 		connect(&timer, &QTimer::timeout, this, [&loop]() {
 			loop.quit();  // Stop waiting if timeout occurs
-		});
+			});
 
-		std::unique_ptr<QObject> context{new QObject};
-		QObject* pcontext = context.get();
-		connect(this, &MdnsBrowser::isAddressResolved, pcontext, [ &loop, &resolvedAddress, context = std::move(context)](const QHostAddress &address) mutable {
-			resolvedAddress = address;
-			loop.quit();
-			context.reset();
-		});
+		auto thisContext = std::make_unique<QObject>();
+		auto pcontext = thisContext.get();
+		connect(this, &MdnsBrowser::isAddressResolved, pcontext, [log, hostname, &loop, &resolvedAddress, context = std::move(thisContext)](const QString& resHostname, const QHostAddress& address) mutable {
+			qDebug() << "isAddressResolved - hostname: " << hostname << ", resolved hostname: " << resHostname << ", address: " << address;
+			if (hostname == resHostname)
+			{
+				resolvedAddress = address;
+				loop.quit();
+				context.reset();
+			}
+			else
+			{
+				Debug(log, "Resolved mDNS hostname [%s] does not match requested mDNS hostname [%s]", QSTRING_CSTR(resHostname), QSTRING_CSTR(hostname));
+			}
+			});
 
 		timer.start(timeout);
 		loop.exec();
 
 		if (!resolvedAddress.isNull())
 		{
-			Debug(log, "Resolved mDNS hostname [%s] to address [%s]", QSTRING_CSTR(hostname), QSTRING_CSTR(resolvedAddress.toString()));
+			Debug(log, "Resolved mDNS hostname [%s] to IP-address [%s]", QSTRING_CSTR(hostname), QSTRING_CSTR(resolvedAddress.toString()));
 		}
 		else
 		{
@@ -175,7 +191,7 @@ void MdnsBrowser::resolveFirstAddress(Logger* log, const QString& hostname, std:
 		Error(log, "Hostname [%s] is not an mDNS hostname.", QSTRING_CSTR(hostname));
 	}
 
-	emit isFirstAddressResolved(resolvedAddress);
+	emit isFirstAddressResolved(hostname, resolvedAddress);
 }
 
 void MdnsBrowser::resolveServiceInstance(const QByteArray& serviceInstance, const std::chrono::milliseconds waitTime) const
@@ -184,14 +200,15 @@ void MdnsBrowser::resolveServiceInstance(const QByteArray& serviceInstance, cons
 
 	if (_cache.isNull())
 	{
+		emit isServiceRecordResolved(serviceInstance, QMdnsEngine::Record());
 		return;
 	}
 
-	QByteArray service{ serviceInstance };
+	QByteArray serviceLookupName = serviceInstance;
 
-	if (!service.endsWith('.'))
+	if (!serviceLookupName.endsWith('.'))
 	{
-		service.append('.');
+		serviceLookupName.append('.');
 	}
 
 	QMdnsEngine::Record srvRecord;
@@ -200,7 +217,7 @@ void MdnsBrowser::resolveServiceInstance(const QByteArray& serviceInstance, cons
 
 	while (!found && retries >= 0)
 	{
-		if (!_cache.isNull() && _cache->lookupRecord(service, QMdnsEngine::SRV, srvRecord))
+		if (!_cache.isNull() && _cache->lookupRecord(serviceLookupName, QMdnsEngine::SRV, srvRecord))
 		{
 			found = true;
 		}
@@ -211,19 +228,21 @@ void MdnsBrowser::resolveServiceInstance(const QByteArray& serviceInstance, cons
 		}
 	}
 
+	printCache(nullptr, QMdnsEngine::ANY);
+
 	if (!_server.isNull())
 	{
 		if (found)
 		{
-			DebugIf(verboseBrowser, _log, "Service record found for service instance [%s]", service.constData());
+			DebugIf(verboseBrowser, _log, "Service record found for service instance [%s]", serviceLookupName.constData());
 
 		}
 		else
 		{
-			Debug(_log, "No service record found for service instance [%s]", service.constData());
+			Debug(_log, "No service record found for service instance [%s]", serviceLookupName.constData());
 		}
 	}
-	emit isServiceRecordResolved(srvRecord);
+	emit isServiceRecordResolved(serviceInstance, srvRecord);
 }
 
 QMdnsEngine::Service MdnsBrowser::getFirstService(const QByteArray& serviceType, const QString& filter, const std::chrono::milliseconds waitTime) const
@@ -381,7 +400,7 @@ QJsonArray MdnsBrowser::getServicesDiscoveredJson(const QByteArray& serviceType,
 								QMap<QByteArray, QByteArray> const txtAttributes = txtRecord.attributes();
 
 								QVariantMap txtMap;
-								QMapIterator<QByteArray, QByteArray> iterator(txtAttributes);
+								QMapIterator iterator(txtAttributes);
 								while (iterator.hasNext()) {
 									iterator.next();
 									txtMap.insert(iterator.key(), iterator.value());

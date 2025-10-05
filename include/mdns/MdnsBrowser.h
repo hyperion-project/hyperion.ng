@@ -47,14 +47,32 @@ private:
 	static QSharedPointer<MdnsBrowser> instance;
 
 public:
-	~MdnsBrowser() override;
 	 static QSharedPointer<MdnsBrowser>& getInstance(QThread* externalThread = nullptr);
-
 
 	QMdnsEngine::Service getFirstService(const QByteArray& serviceType, const QString& filter = ".*", std::chrono::milliseconds waitTime = DEFAULT_DISCOVER_TIMEOUT) const;
 	QJsonArray getServicesDiscoveredJson(const QByteArray& serviceType, const QString& filter = ".*", std::chrono::milliseconds waitTime = std::chrono::milliseconds{ 0 }) const;
 
-	void printCache(const QByteArray& name = QByteArray(), quint16 type = QMdnsEngine::ANY) const;
+	///
+	/// @brief Check if the passed name is an MDNS service- or hostname
+	/// @param[in]     mdnsName    The name to be checked
+	/// @return        True on success else false
+	///
+	static inline bool isMdns(const QString &mdnsName)
+	{
+		return mdnsName.endsWith(".local") || mdnsName.endsWith(".local.");
+	}
+
+	///
+	/// @brief Check if the passed name is an MDNS service name
+	/// @param[in]     mdnsServiceName    The name to be checked
+	/// @return        True on success else false
+	///
+	static inline bool isMdnsService(const QString &mdnsServiceName)
+	{
+		return mdnsServiceName.endsWith("._tcp.local") || mdnsServiceName.endsWith("._tcp.local.");
+	}
+
+	void printCache(const QByteArray &name = QByteArray(), quint16 type = QMdnsEngine::ANY) const;
 
 public slots:
 
@@ -88,10 +106,10 @@ Q_SIGNALS:
 	 */
 	void serviceRemoved(const QMdnsEngine::Service& service);
 
-	void isAddressResolved(QHostAddress address);
-	void isFirstAddressResolved(QHostAddress address);
+	void isAddressResolved(const QString& hostname, const QHostAddress& address);
+	void isFirstAddressResolved(const QString& hostname, const QHostAddress& address);
 
-	void isServiceRecordResolved(QMdnsEngine::Record serviceRecord) const;
+	void isServiceRecordResolved(const QByteArray& serviceInstance, const QMdnsEngine::Record& serviceRecord) const;
 
 private slots:
 
@@ -101,7 +119,7 @@ private slots:
 	void onServiceUpdated(const QMdnsEngine::Service& service);
 	void onServiceRemoved(const QMdnsEngine::Service& service);
 
-	void onHostNameResolved(const QHostAddress& address);
+	void onHostNameResolved(const QString& hostname, const QHostAddress& address);
 
 private:
 	/// The logger instance for mDNS-Service
