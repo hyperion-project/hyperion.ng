@@ -45,7 +45,7 @@ public:
 	///
 	/// @brief Constructs an UDP SSL LED-device
 	///
-	ProviderUdpSSL(const QJsonObject &deviceConfig);
+	explicit ProviderUdpSSL(const QJsonObject &deviceConfig);
 
 	///
 	/// @brief Destructor of the LED-device
@@ -54,7 +54,6 @@ public:
 
 	///
 	QString      _hostName;
-	QHostAddress _address;
 	int          _port;
 
 protected:
@@ -63,7 +62,7 @@ protected:
 	/// @brief Initialise the UDP-SSL device's configuration and network address details
 	///
 	/// @param[in] deviceConfig the JSON device configuration
-	/// @return True, if success#endif // PROVIDERUDP_H
+	/// @return True, if success
 	///
 	bool init(const QJsonObject &deviceConfig) override;
 

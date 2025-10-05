@@ -3,19 +3,13 @@
 
 #include <array>
 #include <chrono>
-#include <QStringLiteral>
-#include <utils/QStringUtils.h>
 
+#include <QStringLiteral>
 #include "qendian.h"
 
 #include <ssdp/SSDPDiscover.h>
-
-// mDNS discover
-#ifdef ENABLE_MDNS
-#include <mdns/MdnsBrowser.h>
-#include <mdns/MdnsServiceRegister.h>
-#endif
 #include <utils/NetUtils.h>
+#include <utils/QStringUtils.h>
 
 // Constants
 namespace
@@ -352,10 +346,7 @@ double CiColor::getDistanceBetweenTwoPoints(CiColor p1, XYColor p2)
 LedDevicePhilipsHueBridge::LedDevicePhilipsHueBridge(const QJsonObject &deviceConfig)
 	: ProviderUdpSSL(deviceConfig), _restApi(nullptr), _apiPort(API_DEFAULT_PORT), _api_major(0), _api_minor(0), _api_patch(0), _isPhilipsHueBridge(false), _isDiyHue(false), _isHueEntertainmentReady(false), _isAPIv2Ready(false), _useEntertainmentAPI(false), _useApiV2(true)
 {
-#ifdef ENABLE_MDNS
-	QMetaObject::invokeMethod(MdnsBrowser::getInstance().data(), "browseForServiceType",
-							  Qt::QueuedConnection, Q_ARG(QByteArray, MdnsServiceRegister::getServiceType(_activeDeviceType)));
-#endif
+	NetUtils::discoverMdnsServices(_activeDeviceType);
 }
 
 LedDevicePhilipsHueBridge::~LedDevicePhilipsHueBridge()
@@ -416,8 +407,6 @@ bool LedDevicePhilipsHueBridge::init(const QJsonObject &deviceConfig)
 
 bool LedDevicePhilipsHueBridge::openRestAPI()
 {
-	bool isInitOK{true};
-
 	if (_hostName.isNull())
 	{
 		Error(_log, "Empty hostname or IP address. REST API cannot be initiatised.");
@@ -442,7 +431,7 @@ bool LedDevicePhilipsHueBridge::openRestAPI()
 	}
 
 	_restApi->setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-	return isInitOK;
+	return true;
 }
 
 bool LedDevicePhilipsHueBridge::handleV2ApiError(const QJsonObject &obj, QString &errorReason) const
@@ -527,7 +516,7 @@ int LedDevicePhilipsHueBridge::open()
 	_isDeviceReady = false;
 	this->setIsRecoverable(true);
 
-	NetUtils::resolveMdnsHost(_log, _hostName, _apiPort);
+	NetUtils::convertMdnsToIp(_log, _hostName, _apiPort);
 
 	if (!openRestAPI())
 	{
@@ -571,16 +560,14 @@ int LedDevicePhilipsHueBridge::open()
 		if (initGroupsMap() && ProviderUdpSSL::open() == 0)
 		{
 			_isDeviceReady = true;
-			return 0;
 		}
 	}
 	else
 	{
 		_isDeviceReady = true;
-		return 0;
 	}
 
-	return -1;
+	return _isDeviceReady ? 0 : -1;
 }
 
 int LedDevicePhilipsHueBridge::close()
@@ -1374,10 +1361,7 @@ QJsonObject LedDevicePhilipsHueBridge::discover(const QJsonObject & /*params*/)
 
 #ifdef ENABLE_MDNS
 	QString discoveryMethod("mDNS");
-	deviceList = MdnsBrowser::getInstance().data()->getServicesDiscoveredJson(
-		MdnsServiceRegister::getServiceType(_activeDeviceType),
-		MdnsServiceRegister::getServiceNameFilter(_activeDeviceType),
-		DEFAULT_DISCOVER_TIMEOUT);
+	deviceList = NetUtils::getMdnsServicesDiscovered(_activeDeviceType);
 #else
 	QString discoveryMethod("ssdp");
 	deviceList = discoverSsdp();
@@ -1402,7 +1386,7 @@ QJsonObject LedDevicePhilipsHueBridge::getProperties(const QJsonObject &params)
 
 	Info(_log, "Get properties for %s, bridge-id: [%s], hostname (%s) ", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(getBridgeId()), QSTRING_CSTR(_hostName));
 
-	NetUtils::resolveMdnsHost(_log, _hostName, _apiPort);
+	NetUtils::convertMdnsToIp(_log, _hostName, _apiPort);
 
 	QJsonDocument bridgeDetails = retrieveBridgeDetails();
 	if (bridgeDetails.isEmpty())
@@ -1470,7 +1454,7 @@ QJsonObject LedDevicePhilipsHueBridge::addAuthorization(const QJsonObject &param
 
 	Info(_log, "Add authorized user for %s, bridge-id: [%s], hostname (%s) ", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(getBridgeId()), QSTRING_CSTR(_hostName));
 
-	NetUtils::resolveMdnsHost(_log, _hostName, _apiPort);
+	NetUtils::convertMdnsToIp(_log, _hostName, _apiPort);
 	QJsonDocument bridgeDetails = retrieveBridgeDetails();
 	if (bridgeDetails.isEmpty())
 	{
@@ -2158,6 +2142,7 @@ bool LedDevicePhilipsHue::getStreamGroupState()
 			this->setInError("No Entertainment/Streaming details in Group found");
 		}
 		else
+	
 		{
 			QJsonObject group = groups[0].toObject();
 			QString streamStaus = group.value(API_STREAM_STATUS).toString();
@@ -2255,7 +2240,7 @@ int LedDevicePhilipsHue::open()
 	return retval;
 }
 
-int LedDevicePhilipsHue::write(const std::vector<ColorRgb> &ledValues)
+int LedDevicePhilipsHue::write(const QVector<ColorRgb> &ledValues)
 {
 	// lights will be empty sometimes
 	if (_lights.empty())
@@ -2285,7 +2270,7 @@ int LedDevicePhilipsHue::write(const std::vector<ColorRgb> &ledValues)
 	return rc;
 }
 
-int LedDevicePhilipsHue::writeSingleLights(const std::vector<ColorRgb> &ledValues)
+int LedDevicePhilipsHue::writeSingleLights(const QVector<ColorRgb> &ledValues)
 {
 	// Iterate through lights and set colors.
 	unsigned int idx = 0;
@@ -2352,7 +2337,7 @@ int LedDevicePhilipsHue::writeSingleLights(const std::vector<ColorRgb> &ledValue
 	return 0;
 }
 
-int LedDevicePhilipsHue::writeStreamData(const std::vector<ColorRgb> &ledValues, bool flush)
+int LedDevicePhilipsHue::writeStreamData(const QVector<ColorRgb> &ledValues, bool flush)
 {
 	QByteArray msg;
 
@@ -2400,7 +2385,7 @@ int LedDevicePhilipsHue::writeStreamData(const std::vector<ColorRgb> &ledValues,
 		{
 			if (channel < 20) // v2 max 20 channels
 			{
-				color = static_cast<ColorRgb>(ledValues.at(channel));
+				color = ledValues.at(channel);
 
 				auto R = static_cast<quint16>(color.red << 8);
 				auto G = static_cast<quint16>(color.green << 8);
@@ -2437,7 +2422,7 @@ int LedDevicePhilipsHue::writeStreamData(const std::vector<ColorRgb> &ledValues,
 			{
 				auto id = static_cast<uint8_t>(light.getId().toInt());
 
-				color = static_cast<ColorRgb>(ledValues.at(i));
+				color = ledValues.at(i);
 				auto R = static_cast<quint16>(color.red << 8);
 				auto G = static_cast<quint16>(color.green << 8);
 				auto B = static_cast<quint16>(color.blue << 8);
@@ -2841,7 +2826,7 @@ void LedDevicePhilipsHue::identify(const QJsonObject &params)
 
 	Info(_log, "Identify %s, Light: \"%s\" @%s hostname (%s)", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(lighName), QSTRING_CSTR(getBridgeId()), QSTRING_CSTR(_hostName));
 
-	NetUtils::resolveMdnsHost(_log, _hostName, _apiPort);
+	NetUtils::convertMdnsToIp(_log, _hostName, _apiPort);
 
 	QJsonDocument bridgeDetails = retrieveBridgeDetails();
 	if (bridgeDetails.isEmpty())

@@ -2,6 +2,11 @@
 
 #include <mutex>
 
+#include <QtGlobal>
+#include <QThread>
+#include <QDir>
+#include <QEventLoop>
+
 #include <leddevice/LedDevice.h>
 #include <leddevice/LedDeviceFactory.h>
 
@@ -11,12 +16,6 @@
 // util
 #include <hyperion/Hyperion.h>
 #include <utils/JsonUtils.h>
-
-// qt
-#include <QtGlobal>
-#include <QThread>
-#include <QDir>
-#include <QEventLoop>
 
 LedDeviceRegistry LedDeviceWrapper::_ledDeviceMap {};
 static std::once_flag initFlag;
@@ -39,8 +38,6 @@ LedDeviceWrapper::LedDeviceWrapper(const QSharedPointer<Hyperion>& hyperionInsta
 		hyperion->setNewComponentState(hyperion::COMP_LEDDEVICE, false);
 	}
 	_log = Logger::getInstance("LEDDEVICE", subComponent);
-
-	
 }
 
 LedDeviceWrapper::~LedDeviceWrapper()
@@ -189,9 +186,10 @@ bool LedDeviceWrapper::isOn() const
 
 void LedDeviceWrapper::initializeDeviceMap()
 {
-	std::call_once(initFlag, []() {
+	std::call_once(initFlag, []() 
+	{
 		// Initialize the map once
-#define REGISTER(className) _ledDeviceMap.emplace(QString(#className).toLower(), LedDevice##className::construct);
+#define REGISTER(className) _ledDeviceMap.insert(QString(#className).toLower(), LedDevice##className::construct);
 
 #include "LedDevice_register.cpp"
 
@@ -217,28 +215,30 @@ QJsonObject LedDeviceWrapper::getLedDeviceSchemas()
 
 	for(QString &item : dir.entryList())
 	{
-		QString const schemaPath(QString(":/leddevices/")+item);
+		QString const schemaFile = dir.filePath(item);
 		QString const devName = item.remove("schema-");
 
 		QString data;
-		if(!FileUtils::readFile(schemaPath, data, Logger::getInstance("LEDDEVICE")))
+		if(!FileUtils::readFile(schemaFile, data, Logger::getInstance("LEDDEVICE")))
 		{
-			throw std::runtime_error("ERROR: Schema not found: " + item.toStdString());
+			Error(Logger::getInstance("LEDDEVICE"), "Failed to read LED device schema: %s", QSTRING_CSTR(item));
+			qFatal() << "Failed to read LED device schema:" << item;
 		}
 
 		QJsonObject schema;
-		QPair<bool, QStringList> const parsingResult = JsonUtils::parse(schemaPath, data, schema, Logger::getInstance("LEDDEVICE"));
-		if (!parsingResult.first)
+		auto [parsingSuccess, errorList] = JsonUtils::parse(schemaFile, data, schema, Logger::getInstance("LEDDEVICE"));
+		if (!parsingSuccess)
 		{
-			QStringList const errorList = parsingResult.second;
-			for (const auto& errorMessage : errorList) {
-				Debug(Logger::getInstance("LEDDEVICE"), "JSON parse error: %s ", QSTRING_CSTR(errorMessage));
+			Error(Logger::getInstance("LEDDEVICE"), "LED device schema '%s' is invalid", QSTRING_CSTR(item));
+			for (const auto &errorMessage : errorList)
+			{
+				Error(Logger::getInstance("LEDDEVICE"), "JSON parse error: %s ", QSTRING_CSTR(errorMessage));
 			}
-			throw std::runtime_error("ERROR: JSON schema is wrong for file: " + item.toStdString());
+			qWarning() << "LED device schema" << item << "is invalid";
+			qFatal() << "JSON parse error:" << errorList;
 		}
 
-
-		schemaJson = schema;
+        schemaJson = schema;
 		schemaJson["title"] = QString("edt_dev_spec_header_title");
 
 		result[devName] = schemaJson;

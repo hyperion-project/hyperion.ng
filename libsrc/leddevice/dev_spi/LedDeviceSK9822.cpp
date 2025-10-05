@@ -24,32 +24,30 @@ LedDevice *LedDeviceSK9822::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceSK9822::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = false;
-
 	// Initialise sub-class
-	if (ProviderSpi::init(deviceConfig))
+	if ( !ProviderSpi::init(deviceConfig) )
 	{
-		_globalBrightnessControlThreshold = deviceConfig["globalBrightnessControlThreshold"].toInt(255);
-		_globalBrightnessControlMaxLevel = deviceConfig["globalBrightnessControlMaxLevel"].toInt(SK9822_GBC_MAX_LEVEL);
-		Info(_log, "[SK9822] Using global brightness control with threshold of %d and max level of %d", _globalBrightnessControlThreshold, _globalBrightnessControlMaxLevel);
-
-		const unsigned int startFrameSize = 4;
-		const unsigned int endFrameSize = ((_ledCount/32) + 1)*4;
-		const unsigned int bufferSize = (_ledCount * 4) + startFrameSize + endFrameSize;
-
-		_ledBuffer.resize(0, 0x00);
-		_ledBuffer.resize(bufferSize, 0x00);
-
-		isInitOK = true;
+		return false;
 	}
-	return isInitOK;
+	
+	_globalBrightnessControlThreshold = deviceConfig["globalBrightnessControlThreshold"].toInt(255);
+	_globalBrightnessControlMaxLevel = deviceConfig["globalBrightnessControlMaxLevel"].toInt(SK9822_GBC_MAX_LEVEL);
+	Info(_log, "[SK9822] Using global brightness control with threshold of %d and max level of %d", _globalBrightnessControlThreshold, _globalBrightnessControlMaxLevel);
+
+	const unsigned int startFrameSize = 4;
+	const unsigned int endFrameSize = ((_ledCount/32) + 1)*4;
+	const unsigned int bufferSize = (_ledCount * 4) + startFrameSize + endFrameSize;
+
+	_ledBuffer.resize(0, 0x00);
+	_ledBuffer.resize(bufferSize, 0x00);
+
+	return true;
 }
 
+void LedDeviceSK9822::bufferWithMaxCurrent(QVector<uint8_t> &txBuf, const QVector<ColorRgb> & ledValues, const int maxLevel) const
+{
 
-void LedDeviceSK9822::bufferWithMaxCurrent(std::vector<uint8_t> &txBuf, const std::vector<ColorRgb> & ledValues, const int maxLevel) {
-	const int ledCount = static_cast<int>(_ledCount);
-
-	for (int iLed = 0; iLed < ledCount; ++iLed)
+	for (int iLed = 0; iLed < _ledCount; ++iLed)
 	{
 		const ColorRgb &rgb = ledValues[iLed];
 		const uint8_t red = rgb.red;
@@ -70,14 +68,15 @@ void LedDeviceSK9822::bufferWithMaxCurrent(std::vector<uint8_t> &txBuf, const st
 	}
 }
 
-inline __attribute__((always_inline)) unsigned LedDeviceSK9822::scale(const uint8_t value, const int maxLevel, const uint16_t brightness) {
-	return (((maxLevel * value + (brightness >> 1)) / brightness));
+inline __attribute__((always_inline)) unsigned LedDeviceSK9822::scale(const uint8_t value, const int maxLevel, const uint16_t brightness) const 
+{
+	return ((maxLevel * value + (brightness >> 1)) / brightness);
 }
 
-void LedDeviceSK9822::bufferWithAdjustedCurrent(std::vector<uint8_t> &txBuf, const std::vector<ColorRgb> & ledValues, const int threshold, const int maxLevel) {
-	const int ledCount = static_cast<int>(_ledCount);
+void LedDeviceSK9822::bufferWithAdjustedCurrent(QVector<uint8_t> &txBuf, const QVector<ColorRgb> & ledValues, const int threshold, const int maxLevel) const
+{
 
-	for (int iLed = 0; iLed < ledCount; ++iLed)
+	for (int iLed = 0; iLed < _ledCount; ++iLed)
 	{
 		const ColorRgb &rgb = ledValues[iLed];
 		uint8_t red = rgb.red;
@@ -105,22 +104,22 @@ void LedDeviceSK9822::bufferWithAdjustedCurrent(std::vector<uint8_t> &txBuf, con
 			// See also: https://github.com/FastLED/FastLED/issues/656
 
 			// Scale the r,g,b-channel grayscale values to adjusted current = brightness level
-			const uint16_t /* 16 bit! */ brightness = (((maxValue + 1) * maxLevel - 1) >> 8) + 1;
+			auto /* 16 bit! */ brightness = static_cast<uint16_t>((((maxValue + 1) * maxLevel - 1) >> 8) + 1);
 
 			level = (brightness & SK9822_GBC_MAX_LEVEL);
-			red = scale(red, maxLevel, brightness);
-			green = scale(green, maxLevel, brightness);
-			blue = scale(blue, maxLevel, brightness);
+			red = static_cast<uint8_t>(scale(red, maxLevel, brightness));
+			green = static_cast<uint8_t>(scale(green, maxLevel, brightness));
+			blue = static_cast<uint8_t>(scale(blue, maxLevel, brightness));
 		}
 
-		txBuf[b + 0] = level | SK9822_GBC_UPPER_BITS;
+		txBuf[b + 0] = level | static_cast<uint8_t>(SK9822_GBC_UPPER_BITS);
 		txBuf[b + 1] = red;
 		txBuf[b + 2] = green;
 		txBuf[b + 3] = blue;
 	}
 }
 
-int LedDeviceSK9822::write(const std::vector<ColorRgb> &ledValues)
+int LedDeviceSK9822::write(const QVector<ColorRgb> &ledValues)
 {
 	const int threshold = _globalBrightnessControlThreshold;
 	const int maxLevel = _globalBrightnessControlMaxLevel;

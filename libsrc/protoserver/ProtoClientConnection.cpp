@@ -120,7 +120,7 @@ void ProtoClientConnection::handleColorCommand(const proto::ColorRequest &messag
 	// extract parameters
 	int priority = message.priority();
 	int duration = message.has_duration() ? message.duration() : -1;
-	std::vector<ColorRgb> color{ ColorRgb{ uint8_t(qRed(message.rgbcolor())), uint8_t(qGreen(message.rgbcolor())), uint8_t(qBlue(message.rgbcolor())) } };
+	QVector<ColorRgb> color{ ColorRgb{ uint8_t(qRed(message.rgbcolor())), uint8_t(qGreen(message.rgbcolor())), uint8_t(qBlue(message.rgbcolor())) } };
 
 	if (priority < 100 || priority >= 200)
 	{

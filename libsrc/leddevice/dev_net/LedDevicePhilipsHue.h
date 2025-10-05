@@ -11,6 +11,10 @@
 #include <QtCore/qmath.h>
 #include <QStringList>
 #include <QScopedPointer>
+#include <QJsonObject>
+#include <QByteArray>
+#include <QVector>
+#include <QHostAddress>
 
 // LedDevice includes
 #include <leddevice/LedDevice.h>
@@ -538,7 +542,7 @@ protected:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	int write(const std::vector<ColorRgb>& ledValues) override;
+	int write(const QVector<ColorRgb>& ledValues) override;
 
 	///
 	/// @brief Switch the LEDs on.
@@ -625,8 +629,8 @@ private:
 	bool startStream();
 	bool stopStream();
 
-	int writeSingleLights(const std::vector<ColorRgb>& ledValues);
-	int writeStreamData(const std::vector<ColorRgb>& ledValues, bool flush = false);
+	int writeSingleLights(const QVector<ColorRgb>& ledValues);
+	int writeStreamData(const QVector<ColorRgb>& ledValues, bool flush = false);
 
 	QJsonObject buildSetStateCommand(PhilipsHueLight& light, bool on, const CiColor& color);
 

@@ -9,6 +9,7 @@
 
 // Hyperion includes
 #include <leddevice/LedDevice.h>
+#include <QVector>
 
 ///
 /// LedDevice implementation for a lightpack device (http://code.google.com/p/light-pack/)
@@ -90,7 +91,7 @@ public:
 	///	///
 	const QString & getSerialNumber() const;
 
-	bool isOpen(){ return _isOpen; }
+	bool isOpen() const { return _isOpen; }
 
 protected:
 
@@ -100,7 +101,7 @@ protected:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	int write(const std::vector<ColorRgb> & ledValues) override;
+	int write(const QVector<ColorRgb> & ledValues) override;
 
 private:
 
@@ -128,7 +129,7 @@ private:
 	int openDevice(libusb_device *device, libusb_device_handle ** deviceHandle);
 	int closeDevice(libusb_device_handle * deviceHandle);
 
-	QString getProperty(libusb_device * device, int stringDescriptorIndex);
+	QString getProperty(libusb_device * device, uint8_t stringDescriptorIndex);
 
 	/// libusb context
 	libusb_context * _libusbContext;

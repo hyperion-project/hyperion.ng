@@ -41,8 +41,8 @@ bool ProviderHID::init(const QJsonObject &deviceConfig)
 		auto ProductIdString  = deviceConfig["PID"].toString("0x8036").toStdString();
 
 		// Convert HEX values to integer
-		_VendorId = std::stoul(VendorIdString, nullptr, 16);
-		_ProductId = std::stoul(ProductIdString, nullptr, 16);
+		_VendorId = static_cast<unsigned short>(std::stoul(VendorIdString, nullptr, 16));
+		_ProductId = static_cast<unsigned short>(std::stoul(ProductIdString, nullptr, 16));
 
 		// Initialize the USB context
 		if ( hid_init() != 0)
@@ -61,7 +61,6 @@ bool ProviderHID::init(const QJsonObject &deviceConfig)
 
 int ProviderHID::open()
 {
-	int retval = -1;
 	_isDeviceReady = false;
 
 	// Open the device
@@ -72,7 +71,6 @@ int ProviderHID::open()
 	{
 		// Failed to open the device
 		this->setInError( "Failed to open HID device. Maybe your PID/VID setting is wrong? Make sure to add a udev rule/use sudo." );
-
 #if 0
 		// http://www.signal11.us/oss/hidapi/
 				std::cout << "Showing a list of all available HID devices:" << std::endl;
@@ -89,15 +87,12 @@ int ProviderHID::open()
 				}
 				hid_free_enumeration(devs);
 #endif
+		return -1;
+	}
 
-	}
-	else
-	{
-		Info(_log,"Opened HID device successful");
-		// Everything is OK -> enable device
-		_isDeviceReady = true;
-		retval = 0;
-	}
+	Info(_log,"Opened HID device successful");
+	// Everything is OK -> enable device
+	_isDeviceReady = true;
 
 	// Wait after device got opened if enabled
 	if (_delayAfterConnect_ms > 0)
@@ -107,12 +102,11 @@ int ProviderHID::open()
 		Debug(_log, "Device blocked for %d  ms", _delayAfterConnect_ms);
 	}
 
-	return retval;
+	return 0;
 }
 
 int ProviderHID::close()
 {
-	int retval = 0;
 	_isDeviceReady = false;
 
 	// LedDevice specific closing activities
@@ -121,12 +115,13 @@ int ProviderHID::close()
 		hid_close(_deviceHandle);
 		_deviceHandle = nullptr;
 	}
-	return retval;
+	return 0;
 }
 
 int ProviderHID::writeBytes(unsigned size, const uint8_t * data)
 {
-	if (_blockedForDelay) {
+	if (_blockedForDelay) 
+	{
 		return 0;
 	}
 
@@ -209,11 +204,11 @@ QJsonObject ProviderHID::discover(const QJsonObject& /*params*/)
 			QJsonObject deviceInfo;
 			deviceInfo.insert("manufacturer",QString::fromWCharArray(cur_dev->manufacturer_string));
 			deviceInfo.insert("path",cur_dev->path);
-			deviceInfo.insert("productIdentifier", QString("0x%1").arg(static_cast<ushort>(cur_dev->product_id),0,16));
-			deviceInfo.insert("release_number",QString("0x%1").arg(static_cast<ushort>(cur_dev->release_number),0,16));
+			deviceInfo.insert("productIdentifier", QString("0x%1").arg(cur_dev->product_id,0,16));
+			deviceInfo.insert("release_number",QString("0x%1").arg(cur_dev->release_number,0,16));
 			deviceInfo.insert("serialNumber",QString::fromWCharArray(cur_dev->serial_number));
-			deviceInfo.insert("usage_page", QString("0x%1").arg(static_cast<ushort>(cur_dev->usage_page),0,16));
-			deviceInfo.insert("vendorIdentifier", QString("0x%1").arg(static_cast<ushort>(cur_dev->vendor_id),0,16));
+			deviceInfo.insert("usage_page", QString("0x%1").arg(cur_dev->usage_page,0,16));
+			deviceInfo.insert("vendorIdentifier", QString("0x%1").arg(cur_dev->vendor_id,0,16));
 			deviceInfo.insert("interface_number",cur_dev->interface_number);
 			deviceList.append(deviceInfo);
 

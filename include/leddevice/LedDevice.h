@@ -1,6 +1,10 @@
 #ifndef LEDEVICE_H
 #define LEDEVICE_H
 
+// STL includes
+#include <chrono>
+#include <algorithm>
+
 // qt includes
 #include <QObject>
 #include <QString>
@@ -9,14 +13,10 @@
 #include <QJsonDocument>
 #include <QTimer>
 #include <QDateTime>
+#include <QVector>
+#include <QMap>
 #include <QScopedPointer>
-
-
-// STL includes
-#include <vector>
-#include <map>
-#include <algorithm>
-#include <chrono>
+#include <QMutex>
 
 // Utility includes
 #include <utils/ColorRgb.h>
@@ -28,8 +28,8 @@
 
 class LedDevice;
 
-typedef LedDevice* ( *LedDeviceCreateFuncType ) ( const QJsonObject& );
-typedef std::map<QString,LedDeviceCreateFuncType> LedDeviceRegistry;
+// using LedDeviceCreateFuncType = LedDevice* (*)( const QJsonObject& );
+// using LedDeviceRegistry = QMap<QString,LedDeviceCreateFuncType>;
 
 ///
 /// @brief Interface (pure virtual base class) for LED-devices.
@@ -46,7 +46,7 @@ public:
 	/// @param deviceConfig Device's configuration as JSON-Object
 	/// @param parent QT parent
 	///
-	LedDevice(const QJsonObject& deviceConfig = QJsonObject(), QObject* parent = nullptr);
+	explicit LedDevice(const QJsonObject& deviceConfig = QJsonObject(), QObject* parent = nullptr);
 
 	///
 	/// @brief Destructor of the LED-device
@@ -149,7 +149,7 @@ public:
 	///
 	/// @param[in] params Parameters to address device
 	///
-	virtual void identify(const QJsonObject& /*params*/) {}
+	virtual void identify(const QJsonObject& params);
 
 	///
 	/// @brief Add an authorization/client-key or token to the device
@@ -158,7 +158,7 @@ public:
 	///
 	/// @param[in] params Parameters to address device
 	/// @return A JSON structure holding the authorization key/token
-	virtual QJsonObject addAuthorization(const QJsonObject& /*params*/) { return QJsonObject(); }
+	virtual QJsonObject addAuthorization(const QJsonObject& params);
 
 	///
 	/// @brief Check, if device is properly initialised
@@ -190,7 +190,7 @@ public:
 	///
 	/// @param[in] ledValues The color per led
 	///
-	static void printLedValues(const std::vector<ColorRgb>& ledValues);
+	static void printLedValues(const QVector<ColorRgb>& ledValues);
 
 public slots:
 
@@ -214,7 +214,7 @@ public slots:
 	/// @param[in] ledValues The color per LED
 	/// @return Zero on success else negative
 	///
-	virtual int updateLeds(std::vector<ColorRgb> ledValues);
+	virtual int updateLeds(QVector<ColorRgb> ledValues);
 
 	///
 	/// @brief Get the currently defined LatchTime.
@@ -340,7 +340,7 @@ protected:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	virtual int write(const std::vector<ColorRgb>& ledValues) = 0;
+	virtual int write(const QVector<ColorRgb>& ledValues) = 0;
 
 	///
 	/// @brief Writes "BLACK" to the output stream,
@@ -438,7 +438,7 @@ protected:
 	Logger * _log;
 
 	/// The buffer containing the packed RGB values
-	std::vector<uint8_t> _ledBuffer;
+	QVector<uint8_t> _ledBuffer;
 
 	/// Timer object which makes sure that LED data is written at a minimum rate
 	/// e.g. some devices will switch off when they do not receive data at least every 15 seconds
@@ -528,7 +528,7 @@ private:
 	/// @param[in] ledValues The color per LED
 	/// @return Zero on success else negative (i.e. device is not ready)
 	///
-	int writeLedUpdate(const std::vector<ColorRgb>& ledValues);
+	int writeLedUpdate(const QVector<ColorRgb>& ledValues);
 
 	/// @brief Start a new refresh cycle
 	void startRefreshTimer();
@@ -556,13 +556,13 @@ private:
 	QString	_colorOrder;
 
 	/// Last LED values written
-	std::vector<ColorRgb> _lastLedValues;
+	QVector<ColorRgb> _lastLedValues;
 
 	std::atomic<bool> _isLedUpdatePending{ false };
 
 	// The mutex now ONLY protects the data buffer.
 	QMutex _ledBufferMutex;
-	std::vector<ColorRgb> _ledUpdateBuffer;
+	QVector<ColorRgb> _ledUpdateBuffer;
 };
 
 #endif // LEDEVICE_H

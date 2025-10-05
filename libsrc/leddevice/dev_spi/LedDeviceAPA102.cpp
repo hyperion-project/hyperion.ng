@@ -23,30 +23,29 @@ LedDevice* LedDeviceAPA102::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceAPA102::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = false;
-
 	// Initialise sub-class
-	if ( ProviderSpi::init(deviceConfig) )
+	if ( !ProviderSpi::init(deviceConfig) )
 	{
-		_brightnessControlMaxLevel = deviceConfig["brightnessControlMaxLevel"].toInt(APA102_BRIGHTNESS_MAX_LEVEL);
-		Info(_log, "[%s] Setting maximum brightness to [%d] = %d%%", QSTRING_CSTR(_activeDeviceType), _brightnessControlMaxLevel, _brightnessControlMaxLevel * 100 / APA102_BRIGHTNESS_MAX_LEVEL);
-
-		const unsigned int startFrameSize = 4;
-		//Endframe, add additional 4 bytes to cover SK9922 Reset frame (in case SK9922 were sold as AP102) -  has no effect on APA102
-		const unsigned int endFrameSize = (_ledCount/32) * 4 + 4;
-		const unsigned int APAbufferSize = (_ledCount * 4) + startFrameSize + endFrameSize;
-
-		_ledBuffer.resize(APAbufferSize, 0x00);
-
-		isInitOK = true;
+		return false;
 	}
-	return isInitOK;
+
+	_brightnessControlMaxLevel = deviceConfig["brightnessControlMaxLevel"].toInt(APA102_BRIGHTNESS_MAX_LEVEL);
+	Info(_log, "[%s] Setting maximum brightness to [%d] = %d%%", QSTRING_CSTR(_activeDeviceType), _brightnessControlMaxLevel, _brightnessControlMaxLevel * 100 / APA102_BRIGHTNESS_MAX_LEVEL);
+
+	const unsigned int startFrameSize = 4;
+	//Endframe, add additional 4 bytes to cover SK9922 Reset frame (in case SK9922 were sold as AP102) -  has no effect on APA102
+	const unsigned int endFrameSize = (_ledCount/32) * 4 + 4;
+	const unsigned int APAbufferSize = (_ledCount * 4) + startFrameSize + endFrameSize;
+
+	_ledBuffer.resize(APAbufferSize, 0x00);
+
+	return true;
 }
 
-void LedDeviceAPA102::bufferWithBrightness(std::vector<uint8_t> &txBuf, const std::vector<ColorRgb> & ledValues, const int brightness) {
-	const int ledCount = static_cast<int>(_ledCount);
+void LedDeviceAPA102::bufferWithBrightness(QVector<uint8_t> &txBuf, const QVector<ColorRgb> & ledValues, const int brightness) const
+{
 
-	for (int iLed = 0; iLed < ledCount; ++iLed)
+	for (int iLed = 0; iLed < _ledCount; ++iLed)
 	{
 		const ColorRgb &rgb = ledValues[iLed];
 		const uint8_t red = rgb.red;
@@ -56,14 +55,14 @@ void LedDeviceAPA102::bufferWithBrightness(std::vector<uint8_t> &txBuf, const st
 		/// The LED index in the buffer
 		const int b = 4 + iLed * 4;
 
-		txBuf[b + 0] = brightness | APA102_LEDFRAME_UPPER_BITS;
+		txBuf[b + 0] = static_cast<uint8_t>(brightness | APA102_LEDFRAME_UPPER_BITS);
 		txBuf[b + 1] = blue;
 		txBuf[b + 2] = green;
 		txBuf[b + 3] = red;
 	}
 }
 
-int LedDeviceAPA102::write(const std::vector<ColorRgb> &ledValues)
+int LedDeviceAPA102::write(const QVector<ColorRgb> &ledValues)
 {
 	this->bufferWithBrightness(_ledBuffer, ledValues, _brightnessControlMaxLevel);
 

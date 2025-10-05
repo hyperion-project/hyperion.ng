@@ -1,17 +1,26 @@
 #ifndef LEDDEVICEWLED_H
 #define LEDDEVICEWLED_H
 
+#include <QScopedPointer>
+#include <QJsonObject>
+#include <QByteArray>
+#include <QVector>
+#include <QString>
+#include <QHostAddress>
+
 // LedDevice includes
-#include <leddevice/LedDevice.h>
-#include "ProviderRestApi.h"
 #include "LedDeviceUdpDdp.h"
 #include "LedDeviceUdpRaw.h"
+#include "ProviderRestApi.h"
 
 #include <utils/version.hpp>
+
+///
+
 ///
 /// Implementation of a WLED-device
 ///
-class LedDeviceWled : public LedDeviceUdpDdp, LedDeviceUdpRaw
+class LedDeviceWled : public LedDeviceUdpDdp, public LedDeviceUdpRaw
 {
 
 public:
@@ -21,11 +30,6 @@ public:
 	/// @param deviceConfig Device's configuration as JSON-Object
 	///
 	explicit LedDeviceWled(const QJsonObject &deviceConfig);
-
-	///
-	/// @brief Destructor of the WLED-device
-	///
-	~LedDeviceWled() override;
 
 	///
 	/// @brief Constructs the WLED-device
@@ -103,7 +107,7 @@ protected:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	int write(const std::vector<ColorRgb> & ledValues) override;
+	int write(const QVector<ColorRgb> & ledValues) override;
 
 	///
 	/// @brief Power-/turn on the WLED device.
@@ -152,13 +156,13 @@ private:
 
 	bool sendStateUpdateRequest(const QJsonObject &request, const QString requestType = "");
 
-	bool isReadyForSegmentStreaming(semver::version& version) const;
-	bool isReadyForDDPStreaming(semver::version& version) const;
+	bool isReadyForSegmentStreaming(const semver::version& version) const;
+	bool isReadyForDDPStreaming(const semver::version& version) const;
 
 	QString resolveAddress (const QString& hostName);
 
 	///REST-API wrapper
-	ProviderRestApi* _restApi;
+	QScopedPointer<ProviderRestApi> _restApi;
 
 	int		_apiPort;
 

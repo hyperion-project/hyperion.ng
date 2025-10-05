@@ -65,7 +65,7 @@ private:
 	///
 	/// @return Zero on success else negative
 	///
-	virtual int write(const std::vector<ColorRgb>& ledValues);
+	virtual int write(const QVector<ColorRgb>& ledValues);
 
 	///
 	/// Test if the device is a (or the) lightpack we are looking for

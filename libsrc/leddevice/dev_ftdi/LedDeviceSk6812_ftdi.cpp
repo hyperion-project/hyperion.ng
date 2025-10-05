@@ -19,42 +19,36 @@ LedDevice *LedDeviceSk6812_ftdi::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceSk6812_ftdi::init(const QJsonObject &deviceConfig)
 {
-
-	bool isInitOK = false;
-
 	// Initialise sub-class
-	if (ProviderFtdi::init(deviceConfig))
+	if (!ProviderFtdi::init(deviceConfig))
 	{
-		_brightnessControlMaxLevel = deviceConfig["brightnessControlMaxLevel"].toInt(255);
-		Info(_log, "[%s] Setting maximum brightness to [%d]", QSTRING_CSTR(_activeDeviceType), _brightnessControlMaxLevel);
-
-
-		QString whiteAlgorithm = deviceConfig["whiteAlgorithm"].toString("white_off");
-
-		_whiteAlgorithm = RGBW::stringToWhiteAlgorithm(whiteAlgorithm);
-		if (_whiteAlgorithm == RGBW::WhiteAlgorithm::INVALID)
-		{
-			QString errortext = QString ("unknown whiteAlgorithm: %1").arg(whiteAlgorithm);
-			this->setInError(errortext);
-			isInitOK = false;
-		}
-		else
-		{
-
-			Debug(_log, "whiteAlgorithm : %s", QSTRING_CSTR(whiteAlgorithm));
-
-			WarningIf((_baudRate_Hz < 2050000 || _baudRate_Hz > 3750000), _log, "Baud rate %d outside recommended range (2050000 -> 3750000)", _baudRate_Hz);
-
-			const int SPI_FRAME_END_LATCH_BYTES = 3;
-			_ledBuffer.resize(_ledRGBWCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
-
-			isInitOK = true;
-		}
+		return false;
 	}
-	return isInitOK;
+	_brightnessControlMaxLevel = deviceConfig["brightnessControlMaxLevel"].toInt(255);
+	Info(_log, "[%s] Setting maximum brightness to [%d]", QSTRING_CSTR(_activeDeviceType), _brightnessControlMaxLevel);
+
+
+	QString whiteAlgorithm = deviceConfig["whiteAlgorithm"].toString("white_off");
+
+	_whiteAlgorithm = RGBW::stringToWhiteAlgorithm(whiteAlgorithm);
+	if (_whiteAlgorithm == RGBW::WhiteAlgorithm::INVALID)
+	{
+		QString errortext = QString ("unknown whiteAlgorithm: %1").arg(whiteAlgorithm);
+		this->setInError(errortext);
+		return false;
+	}
+
+	Debug(_log, "whiteAlgorithm : %s", QSTRING_CSTR(whiteAlgorithm));
+
+	WarningIf((_baudRate_Hz < 2050000 || _baudRate_Hz > 3750000), _log, "Baud rate %d outside recommended range (2050000 -> 3750000)", _baudRate_Hz);
+
+	const int SPI_FRAME_END_LATCH_BYTES = 3;
+	_ledBuffer.resize(_ledRGBWCount * SPI_BYTES_PER_COLOUR + SPI_FRAME_END_LATCH_BYTES, 0x00);
+
+	return true;
 }
 
-int LedDeviceSk6812_ftdi::write(const std::vector<ColorRgb> &ledValues)
+int LedDeviceSk6812_ftdi::write(const QVector<ColorRgb> &ledValues)
 {
 	unsigned spi_ptr = 0;
 	const int SPI_BYTES_PER_LED = sizeof(ColorRgbw) * SPI_BYTES_PER_COLOUR;

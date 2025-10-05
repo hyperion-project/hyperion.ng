@@ -204,7 +204,7 @@ int LedDeviceLightpackHidapi::testAndOpen(hid_device_info *device, const std::st
 	return -1;
 }
 
-int LedDeviceLightpack::write(const std::vector<ColorRgb> &ledValues)
+int LedDeviceLightpack::write(const QVector<ColorRgb> &ledValues)
 {
 	return write(ledValues.data(), _ledCount);
 }

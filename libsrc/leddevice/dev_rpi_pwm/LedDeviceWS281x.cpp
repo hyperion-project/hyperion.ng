@@ -11,10 +11,6 @@ LedDeviceWS281x::LedDeviceWS281x(const QJsonObject &deviceConfig)
 {
 }
 
-LedDeviceWS281x::~LedDeviceWS281x()
-{
-}
-
 LedDevice* LedDeviceWS281x::construct(const QJsonObject &deviceConfig)
 {
 	return new LedDeviceWS281x(deviceConfig);
@@ -22,92 +18,78 @@ LedDevice* LedDeviceWS281x::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceWS281x::init(const QJsonObject &deviceConfig)
 {
-	QString errortext;
-
-	bool isInitOK = false;
 
 	// Initialise sub-class
-	if ( LedDevice::init(deviceConfig) )
+	// Initialise sub-class
+	if (!LedDevice::init(deviceConfig))
 	{
-		QString whiteAlgorithm = deviceConfig["whiteAlgorithm"].toString("white_off");
-
-		_whiteAlgorithm	= RGBW::stringToWhiteAlgorithm(whiteAlgorithm);
-		if (_whiteAlgorithm == RGBW::WhiteAlgorithm::INVALID)
-		{
-			errortext = QString ("unknown whiteAlgorithm: %1").arg(whiteAlgorithm);
-			isInitOK = false;
-		}
-		else
-		{
-			_channel = deviceConfig["pwmchannel"].toInt(0);
-			if (_channel != 0 && _channel != 1)
-			{
-				errortext = "WS281x: invalid PWM channel; must be 0 or 1.";
-				isInitOK = false;
-			}
-			else
-			{
-				memset(&_led_string, 0, sizeof(_led_string));
-				_led_string.freq   = deviceConfig["freq"].toInt(800000UL);
-				_led_string.dmanum = deviceConfig["dma"].toInt(5);
-				_led_string.channel[_channel].gpionum    = deviceConfig["gpio"].toInt(18);
-				_led_string.channel[_channel].count      = deviceConfig["leds"].toInt(256);
-				_led_string.channel[_channel].invert     = deviceConfig["invert"].toInt(0);
-				_led_string.channel[_channel].strip_type = (deviceConfig["rgbw"].toBool(false) ? SK6812_STRIP_GRBW : WS2811_STRIP_RGB);
-				_led_string.channel[_channel].brightness = 255;
-
-				_led_string.channel[!_channel].gpionum = 0;
-				_led_string.channel[!_channel].invert = _led_string.channel[_channel].invert;
-				_led_string.channel[!_channel].count = 0;
-				_led_string.channel[!_channel].brightness = 0;
-				_led_string.channel[!_channel].strip_type = WS2811_STRIP_RGB;
-
-				Debug( _log, "ws281x strip type : %d", _led_string.channel[_channel].strip_type );
-
-				isInitOK = true;
-			}
-		}
+		return false;
 	}
 
-	if ( !isInitOK)
+	QString whiteAlgorithm = deviceConfig["whiteAlgorithm"].toString("white_off");
+
+	_whiteAlgorithm	= RGBW::stringToWhiteAlgorithm(whiteAlgorithm);
+	if (_whiteAlgorithm == RGBW::WhiteAlgorithm::INVALID)
 	{
-		this->setInError(errortext);
+		this->setInError(QString ("unknown whiteAlgorithm: %1").arg(whiteAlgorithm));
+		return false;
 	}
-	return isInitOK;
+
+	_channel = deviceConfig["pwmchannel"].toInt(0);
+	if (_channel != 0 && _channel != 1)
+	{
+		this->setInError("WS281x: invalid PWM channel; must be 0 or 1.");
+		return false;
+	}
+
+	memset(&_led_string, 0, sizeof(_led_string));
+	_led_string.freq   = deviceConfig["freq"].toInt(800000UL);
+	_led_string.dmanum = deviceConfig["dma"].toInt(5);
+	_led_string.channel[_channel].gpionum    = deviceConfig["gpio"].toInt(18);
+	_led_string.channel[_channel].count      = deviceConfig["leds"].toInt(256);
+	_led_string.channel[_channel].invert     = deviceConfig["invert"].toInt(0);
+	_led_string.channel[_channel].strip_type = (deviceConfig["rgbw"].toBool(false) ? SK6812_STRIP_GRBW : WS2811_STRIP_RGB);
+	_led_string.channel[_channel].brightness = 255;
+
+	_led_string.channel[!_channel].gpionum = 0;
+	_led_string.channel[!_channel].invert = _led_string.channel[_channel].invert;
+	_led_string.channel[!_channel].count = 0;
+	_led_string.channel[!_channel].brightness = 0;
+	_led_string.channel[!_channel].strip_type = WS2811_STRIP_RGB;
+
+	Debug( _log, "ws281x strip type : %d", _led_string.channel[_channel].strip_type );
+
+	return true;
 }
 
 int LedDeviceWS281x::open()
 {
-	int retval = -1;
 	_isDeviceReady = false;
 
 	if (!SysInfo::isUserAdmin())
 	{
 		QString errortext = QString ("Hyperion must run with \"root\" privileges for this device. Current user is: \"%1\"").arg(SysInfo::userName());
 		this->setInError( errortext );
+		return -1;
 	}
-	else
+
+	// Try to open the LedDevice
+	ws2811_return_t rc = ws2811_init(&_led_string);
+	if ( rc != WS2811_SUCCESS )
 	{
-		// Try to open the LedDevice
-		ws2811_return_t rc = ws2811_init(&_led_string);
-		if ( rc != WS2811_SUCCESS )
-		{
-			QString errortext = QString ("Failed to open. Error message: %1").arg( ws2811_get_return_t_str(rc) );
-			this->setInError( errortext );
-		}
-		else
-		{
-			// Everything is OK, device is ready
-			_isDeviceReady = true;
-			retval = 0;
-		}
+		QString errortext = QString ("Failed to open. Error message: %1").arg( ws2811_get_return_t_str(rc) );
+		this->setInError( errortext );
+		return -1;
 	}
-	return retval;
+
+	// Everything is OK, device is ready
+	_isDeviceReady = true;
+
+	return 0;
 }
 
 int LedDeviceWS281x::close()
 {
-	int retval = 0;
 	_isDeviceReady = false;
 
 	// LedDevice specific closing activities
@@ -116,11 +98,11 @@ int LedDeviceWS281x::close()
 		ws2811_fini(&_led_string);
 	}
 
-	return retval;
+	return 0;
 }
 
 // Send new values down the LED chain
-int LedDeviceWS281x::write(const std::vector<ColorRgb> &ledValues)
+int LedDeviceWS281x::write(const QVector<ColorRgb> &ledValues)
 {
 	int idx = 0;
 	for (const ColorRgb& color : ledValues)

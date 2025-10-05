@@ -81,35 +81,32 @@ ProviderUdpSSL::~ProviderUdpSSL()
 
 bool ProviderUdpSSL::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = false;
-
 	// Initialise sub-class
-	if ( LedDevice::init(deviceConfig) )
+	if (!LedDevice::init(deviceConfig))
 	{
-		//PSK Pre Shared Key
-		_psk           = deviceConfig["psk"].toString();
-		_psk_identity  = deviceConfig["psk_identity"].toString();
-		_ssl_port      = deviceConfig["sslport"].toInt(DEFAULT_SSLPORT);
-		_server_name   = deviceConfig["servername"].toString();
-
-		if( deviceConfig.contains("transport_type") ) { _transport_type        = deviceConfig["transport_type"].toString(DEFAULT_TRANSPORT_TYPE); }
-		if( deviceConfig.contains("seed_custom") )    { _custom                = deviceConfig["seed_custom"].toString(DEFAULT_SEED_CUSTOM); }
-		if( deviceConfig.contains("hs_attempts") )    { _handshake_attempts    = deviceConfig["hs_attempts"].toInt(DEFAULT_HANDSHAKE_ATTEMPTS); }
-		if (deviceConfig.contains("hs_timeout_min"))  { _handshake_timeout_min = static_cast<uint32_t>(deviceConfig["hs_timeout_min"].toInt(DEFAULT_HANDSHAKE_TIMEOUT_MIN)); }
-		if (deviceConfig.contains("hs_timeout_max"))  { _handshake_timeout_max = static_cast<uint32_t>(deviceConfig["hs_timeout_max"].toInt(DEFAULT_HANDSHAKE_TIMEOUT_MAX)); }
-
-		if (!NetUtils::isValidPort(_log,_ssl_port,_server_name))
-		{
-			QString errortext = QString ("Invalid SSL port [%1]!").arg(_ssl_port);
-			this->setInError( errortext );
-			isInitOK = false;
-		}
-		else
-		{
-			isInitOK = true;
-		}
+		return false;
 	}
-	return isInitOK;
+
+	//PSK Pre Shared Key
+	_psk           = deviceConfig["psk"].toString();
+	_psk_identity  = deviceConfig["psk_identity"].toString();
+	_ssl_port      = deviceConfig["sslport"].toInt(DEFAULT_SSLPORT);
+	_server_name   = deviceConfig["servername"].toString();
+
+	if( deviceConfig.contains("transport_type") ) { _transport_type        = deviceConfig["transport_type"].toString(DEFAULT_TRANSPORT_TYPE); }
+	if( deviceConfig.contains("seed_custom") )    { _custom                = deviceConfig["seed_custom"].toString(DEFAULT_SEED_CUSTOM); }
+	if( deviceConfig.contains("hs_attempts") )    { _handshake_attempts    = deviceConfig["hs_attempts"].toInt(DEFAULT_HANDSHAKE_ATTEMPTS); }
+	if (deviceConfig.contains("hs_timeout_min"))  { _handshake_timeout_min = static_cast<uint32_t>(deviceConfig["hs_timeout_min"].toInt(DEFAULT_HANDSHAKE_TIMEOUT_MIN)); }
+	if (deviceConfig.contains("hs_timeout_max"))  { _handshake_timeout_max = static_cast<uint32_t>(deviceConfig["hs_timeout_max"].toInt(DEFAULT_HANDSHAKE_TIMEOUT_MAX)); }
+
+	if (!NetUtils::isValidPort(_log,_ssl_port,_server_name))
+	{
+		QString errortext = QString ("Invalid SSL port [%1]!").arg(_ssl_port);
+		this->setInError( errortext );
+		return false;
+	}
+
+	return true;
 }
 
 int ProviderUdpSSL::open()

@@ -1,7 +1,10 @@
 #ifndef LEDEVICERAZER_H
 #define LEDEVICERAZER_H
 
-// LedDevice includes
+#include <QScopedPointer>
+#include <QJsonObject>
+#include <QVector>
+
 #include <leddevice/LedDevice.h>
 #include "ProviderRestApi.h"
 
@@ -120,11 +123,6 @@ public:
 	///
 	QJsonObject getProperties(const QJsonObject& params) override;
 
-	///
-	/// @brief Destructor of the LED-device
-	///
-	~LedDeviceRazer() override;
-
 protected:
 
 	///
@@ -155,7 +153,7 @@ protected:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	int write(const std::vector<ColorRgb>& ledValues) override;
+	int write(const QVector<ColorRgb>& ledValues) override;
 
 protected slots:
 
@@ -170,12 +168,9 @@ private:
 
 	///
 	/// @brief Initialise the access to the REST-API wrapper
-	///
-	/// @param[in] host
-	/// @param[in] port
 	/// @return True, if success
 	///
-	bool initRestAPI(const QString& hostname, int port);
+	bool openRestAPI();
 
 	///
 	/// @brief Check, if Chroma SDK API response failed
@@ -194,9 +189,9 @@ private:
 	bool resolveDeviceProperties(const QString& deviceType);
 
 	///REST-API wrapper
-	ProviderRestApi* _restApi;
+	QScopedPointer<ProviderRestApi> _restApi;
 
-	QString _hostname;
+	QString _hostName;
 	int		_apiPort;
 	QUrl	_uri;
 

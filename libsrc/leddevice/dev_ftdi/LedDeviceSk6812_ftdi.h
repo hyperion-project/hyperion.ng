@@ -8,6 +8,7 @@
 #endif
 
 #include "ProviderFtdi.h"
+#include <QVector>
 
 class LedDeviceSk6812_ftdi : public ProviderFtdi
 {
@@ -43,7 +44,7 @@ private:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	int write(const std::vector<ColorRgb>& ledValues) override;
+	int write(const QVector<ColorRgb>& ledValues) override;
 
 	inline uint8_t scale(uint8_t i, uint8_t scale) {
 		return (((uint16_t)i) * (1 + (uint16_t)(scale))) >> 8;

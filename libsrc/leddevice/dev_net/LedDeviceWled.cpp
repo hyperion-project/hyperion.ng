@@ -6,11 +6,6 @@
 #include <utils/QStringUtils.h>
 #include <utils/WaitTime.h>
 
-// mDNS discover
-#ifdef ENABLE_MDNS
-#include <mdns/MdnsBrowser.h>
-#include <mdns/MdnsServiceRegister.h>
-#endif
 #include <utils/NetUtils.h>
 #include <utils/version.hpp>
 
@@ -98,16 +93,7 @@ LedDeviceWled::LedDeviceWled(const QJsonObject &deviceConfig)
 	  ,_isSwitchOffOtherSegments(DEFAULT_IS_SWITCH_OFF_OTHER_SEGMENTS)
 	  ,_isStreamToSegment(false)
 {
-#ifdef ENABLE_MDNS
-	QMetaObject::invokeMethod(MdnsBrowser::getInstance().data(), "browseForServiceType",
-							   Qt::QueuedConnection, Q_ARG(QByteArray, MdnsServiceRegister::getServiceType(_activeDeviceType)));
-#endif
-}
-
-LedDeviceWled::~LedDeviceWled()
-{
-	delete _restApi;
-	_restApi = nullptr;
+	NetUtils::discoverMdnsServices(_activeDeviceType);
 }
 
 LedDevice* LedDeviceWled::construct(const QJsonObject &deviceConfig)
@@ -177,22 +163,22 @@ bool LedDeviceWled::init(const QJsonObject &deviceConfig)
 
 bool LedDeviceWled::openRestAPI()
 {
-	if (_address.isNull())
+	if (_hostName.isNull())
 	{
-		Error(_log, "Empty IP address. REST API cannot be initiatised.");
+		Error(_log, "Empty hostname or IP address. REST API cannot be initiatised.");
 		return false;
 	}
 
-	if ( _restApi == nullptr )
+	if ( _restApi.isNull() )
 	{
-		_restApi = new ProviderRestApi(_address.toString(), _apiPort);
+		_restApi.reset(new ProviderRestApi(_hostName, _apiPort));
 		_restApi->setLogger(_log);
 
 		_restApi->setBasePath( API_BASE_PATH );
 	}
 	else
 	{
-		_restApi->setHost(_address.toString());
+		_restApi->setHost(_hostName);
 		_restApi->setPort(_apiPort);
 	}
 
@@ -201,35 +187,33 @@ bool LedDeviceWled::openRestAPI()
 
 int LedDeviceWled::open()
 {
-	int retval = -1;
 	_isDeviceReady = false;
-
 	this->setIsRecoverable(true);
-	if (NetUtils::resolveHostToAddress(_log, _hostName, _address, _apiPort))
+
+	NetUtils::convertMdnsToIp(_log, _hostName, _apiPort);
+	if ( !openRestAPI() )
 	{
-		if ( openRestAPI() )
+		return -1;
+	}
+	
+	if (_isStreamDDP)
+	{
+		if (LedDeviceUdpDdp::open() == 0)
 		{
-			if (_isStreamDDP)
-			{
-				if (LedDeviceUdpDdp::open(_address) == 0)
-				{
-					// Everything is OK, device is ready
-					_isDeviceReady = true;
-					retval = 0;
-				}
-			}
-			else
-			{
-				if (LedDeviceUdpRaw::open(_address) == 0)
-				{
-					// Everything is OK, device is ready
-					_isDeviceReady = true;
-					retval = 0;
-				}
-			}
+			// Everything is OK, device is ready
+			_isDeviceReady = true;
 		}
 	}
-	return retval;
+	else
+	{
+		if (LedDeviceUdpRaw::open() == 0)
+		{
+			// Everything is OK, device is ready
+			_isDeviceReady = true;
+		}
+	}
+	
+	return _isDeviceReady ? 0 : -1;
 }
 
 int LedDeviceWled::close()
@@ -287,7 +271,7 @@ bool LedDeviceWled::sendStateUpdateRequest(const QJsonObject &request, const QSt
 	return rc;
 }
 
-bool LedDeviceWled::isReadyForSegmentStreaming(semver::version& version) const
+bool LedDeviceWled::isReadyForSegmentStreaming(const semver::version& version) const
 {
 	bool isReady{false};
 
@@ -311,7 +295,7 @@ bool LedDeviceWled::isReadyForSegmentStreaming(semver::version& version) const
 	return isReady;
 }
 
-bool LedDeviceWled::isReadyForDDPStreaming(semver::version& version) const
+bool LedDeviceWled::isReadyForDDPStreaming(const semver::version& version) const
 {
 	bool isReady{false};
 
@@ -337,130 +321,130 @@ bool LedDeviceWled::isReadyForDDPStreaming(semver::version& version) const
 
 bool LedDeviceWled::powerOn()
 {
-	bool on = false;
-	if ( _isDeviceReady)
+	if ( !_isDeviceReady)
 	{
-		//Power-on WLED device
-		QJsonObject cmd;
-		if (_isStreamToSegment)
+		return false;
+	}
+
+	//Power-on WLED device
+	QJsonObject cmd;
+	if (_isStreamToSegment)
+	{
+		if (!isReadyForSegmentStreaming(_currentVersion))
 		{
-			if (!isReadyForSegmentStreaming(_currentVersion))
-			{
-				return false;
-			}
+			return false;
+		}
 
-			if (_wledInfo[INFO_LIVESEG].toInt() == -1)
-			{
-				stopEnableAttemptsTimer();
-				this->setInError( "Segment streaming configured, but \"Use main segment only\" in WLED Sync Interface configuration is not enabled!", false);
-				return false;
-			}
-			else
-			{
-				const QJsonArray propertiesSegments = _originalStateProperties[STATE_SEG].toArray();
-
-				bool isStreamSegmentIdFound { false };
-
-				QJsonArray segments;
-				for (const auto& segmentItem : propertiesSegments)
-				{
-					QJsonObject segmentObj = segmentItem.toObject();
-
-					int segmentID = segmentObj.value(STATE_SEG_ID).toInt();
-					if (segmentID == _streamSegmentId)
-					{
-						isStreamSegmentIdFound = true;
-						int len = segmentObj.value(STATE_SEG_LEN).toInt();
-						if (getLedCount() > len)
-						{
-							QString errorReason = QString("Too many LEDs [%1] configured for segment [%2], which supports maximum [%3] LEDs. Check your WLED setup!").arg(getLedCount()).arg(_streamSegmentId).arg(len);
-							this->setInError(errorReason, false);
-							return false;
-						}
-						else
-						{
-							int brightness{ -1 };
-							if (_isBrightnessOverwrite)
-							{
-								brightness = _brightness;
-							}
-							segments.append(getSegmentObject(segmentID, true, brightness));
-						}
-					}
-					else
-					{
-						if (_isSwitchOffOtherSegments)
-						{
-							segments.append(getSegmentObject(segmentID, false));
-						}
-					}
-				}
-
-				if (!isStreamSegmentIdFound)
-				{
-					QString errorReason = QString("Segment streaming to segment [%1] configured, but segment does not exist on WLED. Check your WLED setup!").arg(_streamSegmentId);
-					this->setInError(errorReason, false);
-					return false;
-				}
-
-				cmd.insert(STATE_SEG, segments);
-
-				//Set segment to be streamed to
-				cmd.insert(STATE_MAINSEG, _streamSegmentId);
-			}
+		if (_wledInfo[INFO_LIVESEG].toInt() == -1)
+		{
+			stopEnableAttemptsTimer();
+			this->setInError( "Segment streaming configured, but \"Use main segment only\" in WLED Sync Interface configuration is not enabled!", false);
+			return false;
 		}
 		else
 		{
-			if (_isBrightnessOverwrite)
+			const QJsonArray propertiesSegments = _originalStateProperties[STATE_SEG].toArray();
+
+			bool isStreamSegmentIdFound { false };
+
+			QJsonArray segments;
+			for (const auto& segmentItem : propertiesSegments)
 			{
-				cmd.insert(STATE_BRI, _brightness);
+				QJsonObject segmentObj = segmentItem.toObject();
+
+				int segmentID = segmentObj.value(STATE_SEG_ID).toInt();
+				if (segmentID == _streamSegmentId)
+				{
+					isStreamSegmentIdFound = true;
+					int len = segmentObj.value(STATE_SEG_LEN).toInt();
+					if (getLedCount() > len)
+					{
+						QString errorReason = QString("Too many LEDs [%1] configured for segment [%2], which supports maximum [%3] LEDs. Check your WLED setup!").arg(getLedCount()).arg(_streamSegmentId).arg(len);
+						this->setInError(errorReason, false);
+						return false;
+					}
+					else
+					{
+						int brightness{ -1 };
+						if (_isBrightnessOverwrite)
+						{
+							brightness = _brightness;
+						}
+						segments.append(getSegmentObject(segmentID, true, brightness));
+					}
+				}
+				else
+				{
+					if (_isSwitchOffOtherSegments)
+					{
+						segments.append(getSegmentObject(segmentID, false));
+					}
+				}
 			}
+
+			if (!isStreamSegmentIdFound)
+			{
+				QString errorReason = QString("Segment streaming to segment [%1] configured, but segment does not exist on WLED. Check your WLED setup!").arg(_streamSegmentId);
+				this->setInError(errorReason, false);
+				return false;
+			}
+
+			cmd.insert(STATE_SEG, segments);
+
+			//Set segment to be streamed to
+			cmd.insert(STATE_MAINSEG, _streamSegmentId);
 		}
-
-		cmd.insert(STATE_LIVE, true);
-		cmd.insert(STATE_ON, true);
-
-		if (_isSyncOverwrite)
-		{
-			Debug( _log, "Disable synchronisation with other WLED devices");
-			cmd.insert(STATE_UDPN, getUdpnObject(false, false));
-		}
-
-		on = sendStateUpdateRequest(cmd,"Power-on");
 	}
-	return on;
+	else
+	{
+		if (_isBrightnessOverwrite)
+		{
+			cmd.insert(STATE_BRI, _brightness);
+		}
+	}
+
+	cmd.insert(STATE_LIVE, true);
+	cmd.insert(STATE_ON, true);
+
+	if (_isSyncOverwrite)
+	{
+		Debug( _log, "Disable synchronisation with other WLED devices");
+		cmd.insert(STATE_UDPN, getUdpnObject(false, false));
+	}
+
+	return sendStateUpdateRequest(cmd,"Power-on");
 }
 
 bool LedDeviceWled::powerOff()
 {
-	bool off = true;
-	if ( _isDeviceReady)
+	if (!_isDeviceReady)
 	{
-		// Write a final "Black" to have a defined outcome
-		writeBlack();
-
-		//Power-off the WLED device physically
-		QJsonObject cmd;
-		if (_isStreamToSegment)
-		{
-			QJsonArray segments;
-			segments.append(getSegmentObject(_streamSegmentId, _isStayOnAfterStreaming));
-			cmd.insert(STATE_SEG, segments);
-		}
-
-		cmd.insert(STATE_LIVE, false);
-		cmd.insert(STATE_TRANSITIONTIME_CURRENTCALL, 0);
-		cmd.insert(STATE_ON, _isStayOnAfterStreaming);
-
-		if (_isSyncOverwrite)
-		{
-			Debug( _log, "Restore synchronisation with other WLED devices");
-			cmd.insert(STATE_UDPN, getUdpnObject(_originalStateUdpnSend, _originalStateUdpnRecv));
-		}
-
-		off = sendStateUpdateRequest(cmd,"Power-off");
+		return false;
 	}
-	return off;
+
+	// Write a final "Black" to have a defined outcome
+	writeBlack();
+
+	//Power-off the WLED device physically
+	QJsonObject cmd;
+	if (_isStreamToSegment)
+	{
+		QJsonArray segments;
+		segments.append(getSegmentObject(_streamSegmentId, _isStayOnAfterStreaming));
+		cmd.insert(STATE_SEG, segments);
+	}
+
+	cmd.insert(STATE_LIVE, false);
+	cmd.insert(STATE_TRANSITIONTIME_CURRENTCALL, 0);
+	cmd.insert(STATE_ON, _isStayOnAfterStreaming);
+
+	if (_isSyncOverwrite)
+	{
+		Debug( _log, "Restore synchronisation with other WLED devices");
+		cmd.insert(STATE_UDPN, getUdpnObject(_originalStateUdpnSend, _originalStateUdpnRecv));
+	}
+
+	return sendStateUpdateRequest(cmd,"Power-off");
 }
 
 bool LedDeviceWled::storeState()
@@ -502,45 +486,45 @@ bool LedDeviceWled::storeState()
 
 bool LedDeviceWled::restoreState()
 {
-	bool rc = true;
-
-	if ( _isRestoreOrigState )
+	if ( !_isRestoreOrigState )
 	{
-		_restApi->setPath(API_PATH_STATE);
-
-		if (_isStreamToSegment)
-		{
-			const QJsonArray propertiesSegments = _originalStateProperties[STATE_SEG].toArray();
-			QJsonArray segments;
-			for (const auto& segmentItem : propertiesSegments)
-			{
-				QJsonObject segmentObj = segmentItem.toObject();
-
-				int segmentID = segmentObj.value(STATE_SEG_ID).toInt();
-				if (segmentID == _streamSegmentId)
-				{
-					segmentObj[STATE_ON] = _isStayOnAfterStreaming;
-				}
-				segments.append(segmentObj);
-			}
-			_originalStateProperties[STATE_SEG] = segments;
-		}
-
-		_originalStateProperties[STATE_LIVE] = false;
-		_originalStateProperties[STATE_TRANSITIONTIME_CURRENTCALL] = 0;
-		if (_isStayOnAfterStreaming)
-		{
-			_originalStateProperties[STATE_ON] = true;
-		}
-
-		httpResponse response = _restApi->put(_originalStateProperties);
-		if ( response.error() )
-		{
-			Warning (_log, "%s restoring state failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
-		}
+		return true;
 	}
 
-	return rc;
+	_restApi->setPath(API_PATH_STATE);
+
+	if (_isStreamToSegment)
+	{
+		const QJsonArray propertiesSegments = _originalStateProperties[STATE_SEG].toArray();
+		QJsonArray segments;
+		for (const auto& segmentItem : propertiesSegments)
+		{
+			QJsonObject segmentObj = segmentItem.toObject();
+
+			int segmentID = segmentObj.value(STATE_SEG_ID).toInt();
+			if (segmentID == _streamSegmentId)
+			{
+				segmentObj[STATE_ON] = _isStayOnAfterStreaming;
+			}
+			segments.append(segmentObj);
+		}
+		_originalStateProperties[STATE_SEG] = segments;
+	}
+
+	_originalStateProperties[STATE_LIVE] = false;
+	_originalStateProperties[STATE_TRANSITIONTIME_CURRENTCALL] = 0;
+	if (_isStayOnAfterStreaming)
+	{
+		_originalStateProperties[STATE_ON] = true;
+	}
+
+	httpResponse response = _restApi->put(_originalStateProperties);
+	if ( response.error() )
+	{
+		Warning (_log, "%s restoring state failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+	}
+
+	return true;
 }
 
 QJsonObject LedDeviceWled::discover(const QJsonObject& /*params*/)
@@ -568,44 +552,41 @@ QJsonObject LedDeviceWled::discover(const QJsonObject& /*params*/)
 QJsonObject LedDeviceWled::getProperties(const QJsonObject& params)
 {
 	DebugIf(verbose, _log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData() );
-	QJsonObject properties;
 
 	_hostName = params[CONFIG_HOST].toString("");
 	_apiPort = API_DEFAULT_PORT;
 
 	Info(_log, "Get properties for %s, hostname (%s)", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(_hostName) );
 
-	if (NetUtils::resolveHostToAddress(_log, _hostName, _address, _apiPort))
+	NetUtils::convertMdnsToIp(_log, _hostName, _apiPort);
+	if (!openRestAPI())
 	{
-		if ( openRestAPI() )
-		{
-			QString filter = params["filter"].toString("");
-			_restApi->setPath(filter);
-
-			httpResponse response = _restApi->get();
-			if ( response.error() )
-			{
-				Warning (_log, "%s get properties failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
-			}
-			else
-			{
-				QJsonObject propertiesDetails = response.getBody().object();
-
-				_wledInfo = propertiesDetails.value(API_PATH_INFO).toObject();
-				_currentVersion.setVersion(_wledInfo.value(INFO_VER).toString().toStdString());
-				if (!isReadyForDDPStreaming(_currentVersion))
-				{
-					if (!propertiesDetails.isEmpty())
-					{
-						propertiesDetails.insert("maxLedCount", UDP_MAX_LED_NUM);
-					}
-				}
-				properties.insert("properties", propertiesDetails);
-			}
-		}
-
-		DebugIf(verbose, _log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData() );
+		return {};
 	}
+
+	QJsonObject properties;
+
+	QString filter = params["filter"].toString("");
+	_restApi->setPath(filter);
+
+	httpResponse response = _restApi->get();
+	if ( response.error() )
+	{
+		Warning (_log, "%s get properties failed with error: '%s'", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(response.getErrorReason()));
+	}
+	else
+	{
+		QJsonObject propertiesDetails = response.getBody().object();
+
+		_wledInfo = propertiesDetails.value(API_PATH_INFO).toObject();
+		_currentVersion.setVersion(_wledInfo.value(INFO_VER).toString().toStdString());
+		if (!isReadyForDDPStreaming(_currentVersion) && !propertiesDetails.isEmpty())
+		{
+			propertiesDetails.insert("maxLedCount", UDP_MAX_LED_NUM);
+		}
+		properties.insert("properties", propertiesDetails);
+	}
+
 	return properties;
 }
 
@@ -618,39 +599,39 @@ void LedDeviceWled::identify(const QJsonObject& params)
 
 	Info(_log, "Identify %s, hostname (%s)", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(_hostName) );
 
-	if (NetUtils::resolveHostToAddress(_log, _hostName, _address, _apiPort))
+	NetUtils::convertMdnsToIp(_log, _hostName, _apiPort);
+	if ( !openRestAPI() )
 	{
-		if ( openRestAPI() )
-		{
-			_isRestoreOrigState = true;
-			storeState();
-
-			QJsonObject cmd;
-
-			cmd.insert(STATE_ON, true);
-			cmd.insert(STATE_LOR, 1);
-
-			_streamSegmentId = params[CONFIG_STREAM_SEGMENT_ID].toInt(0);
-
-			QJsonObject segment;
-			segment = getSegmentObject(_streamSegmentId, true, BRI_MAX);
-			segment.insert(STATE_SEG_FX, 25);
-			segment.insert(STATE_SEG_SX, 128);
-
-			QJsonArray segments;
-			segments.append(segment);
-			cmd.insert(STATE_SEG, segments);
-
-			sendStateUpdateRequest(cmd,"Identify");
-
-			wait(DEFAULT_IDENTIFY_TIME);
-
-			restoreState();
-		}
+		return;
 	}
+
+	_isRestoreOrigState = true;
+	storeState();
+
+	QJsonObject cmd;
+
+	cmd.insert(STATE_ON, true);
+	cmd.insert(STATE_LOR, 1);
+
+	_streamSegmentId = params[CONFIG_STREAM_SEGMENT_ID].toInt(0);
+
+	QJsonObject segment;
+	segment = getSegmentObject(_streamSegmentId, true, BRI_MAX);
+	segment.insert(STATE_SEG_FX, 25);
+	segment.insert(STATE_SEG_SX, 128);
+
+	QJsonArray segments;
+	segments.append(segment);
+	cmd.insert(STATE_SEG, segments);
+
+	sendStateUpdateRequest(cmd,"Identify");
+
+	wait(DEFAULT_IDENTIFY_TIME);
+
+	restoreState();
 }
 
-int LedDeviceWled::write(const std::vector<ColorRgb> &ledValues)
+int LedDeviceWled::write(const QVector<ColorRgb> &ledValues)
 {
 	int rc {0};
 

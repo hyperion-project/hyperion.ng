@@ -22,15 +22,15 @@ LedDevice* LedDeviceSkydimo::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceSkydimo::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK = false;
-
 	// Initialise sub-class
-	if ( ProviderRs232::init(deviceConfig) )
+	if ( !ProviderRs232::init(deviceConfig) )
 	{
-		prepareHeader();
-		isInitOK = true;
+		return false;
 	}
-	return isInitOK;
+
+	prepareHeader();
+
+	return true;
 }
 
 void LedDeviceSkydimo::prepareHeader()
@@ -48,7 +48,7 @@ void LedDeviceSkydimo::prepareHeader()
 		   _ledBuffer[0], _ledBuffer[1], _ledBuffer[2], _ledBuffer[3], _ledBuffer[4], _ledBuffer[5] );
 }
 
-int LedDeviceSkydimo::write(const std::vector<ColorRgb> & ledValues)
+int LedDeviceSkydimo::write(const QVector<ColorRgb> & ledValues)
 {
 	if (_ledCount != ledValues.size())
 	{
@@ -58,7 +58,7 @@ int LedDeviceSkydimo::write(const std::vector<ColorRgb> & ledValues)
 		prepareHeader();
 	}
 
-	if (_bufferLength >  static_cast<qint64>(_ledBuffer.size()))
+	if (_bufferLength >  _ledBuffer.size())
 	{
 		Warning(_log, "Skydimo buffer's size has changed. Skipping refresh.");
 		return 0;

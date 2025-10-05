@@ -38,124 +38,117 @@ LedDevice* LedDeviceAtmoOrb::construct(const QJsonObject &deviceConfig)
 	return new LedDeviceAtmoOrb(deviceConfig);
 }
 
-LedDeviceAtmoOrb::~LedDeviceAtmoOrb()
-{
-	delete _udpSocket;
-}
-
 bool LedDeviceAtmoOrb::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK {false};
-
-	if ( LedDevice::init(deviceConfig) )
+	if (!LedDevice::init(deviceConfig))
 	{
-		_multicastGroup     = deviceConfig["host"].toString(MULTICAST_GROUP_DEFAULT_ADDRESS);
-		_multiCastGroupPort = static_cast<quint16>(deviceConfig["port"].toInt(MULTICAST_GROUP_DEFAULT_PORT));
-		_useOrbSmoothing    = deviceConfig["useOrbSmoothing"].toBool(false);
-		_skipSmoothingDiff  = deviceConfig["skipSmoothingDiff"].toInt(0);
-		QStringList orbIds = QStringUtils::split(deviceConfig["orbIds"].toString().simplified().remove(" "),",", QStringUtils::SplitBehavior::SkipEmptyParts);
+		return false;
+	}
 
-		Debug(_log, "MulticastGroup    : %s", QSTRING_CSTR(_multicastGroup));
-		Debug(_log, "MulticastGroupPort: %d", _multiCastGroupPort);
-		Debug(_log, "Orb ID list       : %s", QSTRING_CSTR(deviceConfig["orbIds"].toString()));
-		Debug(_log, "Use Orb Smoothing : %d", _useOrbSmoothing);
-		Debug(_log, "Skip SmoothingDiff: %d", _skipSmoothingDiff);
+	_multicastGroup     = deviceConfig["host"].toString(MULTICAST_GROUP_DEFAULT_ADDRESS);
+	_multiCastGroupPort = static_cast<quint16>(deviceConfig["port"].toInt(MULTICAST_GROUP_DEFAULT_PORT));
+	_useOrbSmoothing    = deviceConfig["useOrbSmoothing"].toBool(false);
+	_skipSmoothingDiff  = deviceConfig["skipSmoothingDiff"].toInt(0);
+	QStringList orbIds = QStringUtils::split(deviceConfig["orbIds"].toString().simplified().remove(" "),",", QStringUtils::SplitBehavior::SkipEmptyParts);
 
-		_orbIds.clear();
+	Debug(_log, "MulticastGroup    : %s", QSTRING_CSTR(_multicastGroup));
+	Debug(_log, "MulticastGroupPort: %d", _multiCastGroupPort);
+	Debug(_log, "Orb ID list       : %s", QSTRING_CSTR(deviceConfig["orbIds"].toString()));
+	Debug(_log, "Use Orb Smoothing : %d", _useOrbSmoothing);
+	Debug(_log, "Skip SmoothingDiff: %d", _skipSmoothingDiff);
 
-		for (auto & id_str : orbIds)
+	_orbIds.clear();
+
+	for (const auto & id_str : orbIds)
+	{
+		bool ok;
+		int id = id_str.toInt(&ok);
+		if (ok)
 		{
-			bool ok;
-			int id = id_str.toInt(&ok);
-			if (ok)
+			if ( id < 1 || id > 255 )
 			{
-				if ( id < 1 || id > 255 )
-				{
-					Warning(_log, "Skip orb id '%d'. IDs must be in range 1-255", id);
-				}
-				else
-				{
-					_orbIds.append(id);
-				}
+				Warning(_log, "Skip orb id '%d'. IDs must be in range 1-255", id);
 			}
 			else
 			{
-				Error(_log, "orb id '%s' is not a number", QSTRING_CSTR(id_str));
+				_orbIds.append(id);
 			}
-		}
-
-		int numberOrbs = _orbIds.size();
-		int configuredLedCount = this->getLedCount();
-
-		if ( _orbIds.empty() )
-		{
-			this->setInError("No valid OrbIds found!");
-			isInitOK = false;
 		}
 		else
 		{
-			if ( numberOrbs < configuredLedCount )
-			{
-				QString errorReason = QString("Not enough Orbs [%1] for configured LEDs [%2] found!")
-										  .arg(numberOrbs)
-										  .arg(configuredLedCount);
-				this->setInError(errorReason);
-				isInitOK = false;
-			}
-			else
-			{
-				if ( numberOrbs > configuredLedCount )
-				{
-					Info(_log, "%s: More Orbs [%d] than configured LEDs [%d].", QSTRING_CSTR(this->getActiveDeviceType()), numberOrbs, configuredLedCount );
-				}
-
-				isInitOK = true;
-			}
+			Error(_log, "orb id '%s' is not a number", QSTRING_CSTR(id_str));
 		}
 	}
-	return isInitOK;
+
+	auto numberOrbs = _orbIds.size();
+	int configuredLedCount = this->getLedCount();
+
+	if ( _orbIds.empty() )
+	{
+		this->setInError("No valid OrbIds found!");
+		return false;
+	}
+
+	if ( numberOrbs < configuredLedCount )
+	{
+		QString errorReason = QString("Not enough Orbs [%1] for configured LEDs [%2] found!")
+									.arg(numberOrbs)
+									.arg(configuredLedCount);
+		this->setInError(errorReason);
+		return false;
+	}
+
+	if ( numberOrbs > configuredLedCount )
+	{
+		Info(_log, "%s: More Orbs [%d] than configured LEDs [%d].", QSTRING_CSTR(this->getActiveDeviceType()), numberOrbs, configuredLedCount );
+	}
+
+	return true;
 }
 
 int LedDeviceAtmoOrb::open()
 {
-	int retval = -1;
 	_isDeviceReady = false;
+	this->setIsRecoverable(true);	
 
-	if ( _udpSocket == nullptr )
+	if ( _udpSocket.isNull() )
 	{
-		_udpSocket = new QUdpSocket();
+		_udpSocket.reset(new QUdpSocket());
 	}
 
 	// Try to bind the UDP-Socket
-	if ( _udpSocket != nullptr )
+	if ( _udpSocket.isNull() )
 	{
-		if ( _udpSocket->state() != QAbstractSocket::BoundState )
+		this->setInError("Creating UDP-Socket failed!");
+		return -1;
+	}
+
+	if ( _udpSocket->state() != QAbstractSocket::BoundState )
+	{
+		if ( !_udpSocket->bind(QHostAddress(QHostAddress::AnyIPv4), 0 ) )
 		{
-			if ( !_udpSocket->bind(QHostAddress(QHostAddress::AnyIPv4), 0 ) )
+			QString errortext = QString ("Socket bind failed: (%1) %2, MulticastGroup: (%3)").arg(_udpSocket->error()).arg(_udpSocket->errorString(), _multicastGroup);
+			this->setInError( errortext );
+		}
+		else
+		{
+			_groupAddress = QHostAddress(_multicastGroup);
+			_joinedMulticastgroup = _udpSocket->joinMulticastGroup(_groupAddress);
+			if ( !_joinedMulticastgroup )
 			{
-				QString errortext = QString ("Socket bind failed: (%1) %2, MulticastGroup: (%3)").arg(_udpSocket->error()).arg(_udpSocket->errorString(), _multicastGroup);
+				QString errortext = QString ("Joining Multicastgroup failed: (%1) %2, MulticastGroup: (%3)").arg(_udpSocket->error()).arg(_udpSocket->errorString(), _multicastGroup);
 				this->setInError( errortext );
 			}
-			else
-			{
-				_groupAddress = QHostAddress(_multicastGroup);
-				_joinedMulticastgroup = _udpSocket->joinMulticastGroup(_groupAddress);
-				if ( !_joinedMulticastgroup )
-				{
-					QString errortext = QString ("Joining Multicastgroup failed: (%1) %2, MulticastGroup: (%3)").arg(_udpSocket->error()).arg(_udpSocket->errorString(), _multicastGroup);
-					this->setInError( errortext );
-				}
-			}
-		}
-
-		if ( ! _isDeviceInError )
-		{
-			// Everything is OK, device is ready
-			_isDeviceReady = true;
-			retval = 0;
 		}
 	}
-	return retval;
+
+	if ( ! _isDeviceInError )
+	{
+		// Everything is OK, device is ready
+		_isDeviceReady = true;
+	}
+	
+	return _isDeviceReady ? 0 : -1;
 }
 
 int LedDeviceAtmoOrb::close()
@@ -163,7 +156,7 @@ int LedDeviceAtmoOrb::close()
 	int retval = 0;
 	_isDeviceReady = false;
 
-	if ( _udpSocket != nullptr )
+	if ( !_udpSocket.isNull())
 	{
 		if ( _udpSocket->state() == QAbstractSocket::BoundState )
 		{
@@ -181,7 +174,7 @@ int LedDeviceAtmoOrb::close()
 	return retval;
 }
 
-int LedDeviceAtmoOrb::write(const std::vector <ColorRgb> &ledValues)
+int LedDeviceAtmoOrb::write(const QVector<ColorRgb> &ledValues)
 {
 	// If not in multicast group return
 	if (!_joinedMulticastgroup)
@@ -268,7 +261,7 @@ void LedDeviceAtmoOrb::setColor(int orbId, const ColorRgb &color, int commandTyp
 void LedDeviceAtmoOrb::sendCommand(const QByteArray &bytes)
 {
 	DebugIf(verbose3, _log, "command: [%s] -> %s:%u", QSTRING_CSTR( QString(bytes.toHex())), QSTRING_CSTR(_groupAddress.toString()), _multiCastGroupPort );
-	_udpSocket->writeDatagram(bytes.data(), bytes.size(), _groupAddress, _multiCastGroupPort);
+	_udpSocket->writeDatagram(bytes, _groupAddress, _multiCastGroupPort);
 }
 
 QJsonObject LedDeviceAtmoOrb::discover(const QJsonObject& params)
@@ -330,14 +323,14 @@ QJsonObject LedDeviceAtmoOrb::discover(const QJsonObject& params)
 		{
 			QString hostname = hostInfo.hostName();
 			//Seems that for Windows no local domain name is resolved
-			if (!hostInfo.localDomainName().isEmpty() )
+			if (!QHostInfo::localDomainName().isEmpty() )
 			{
-				obj.insert("hostname", hostname.remove("."+hostInfo.localDomainName()));
-				obj.insert("domain", hostInfo.localDomainName());
+				obj.insert("hostname", hostname.remove("."+QHostInfo::localDomainName()));
+				obj.insert("domain", QHostInfo::localDomainName());
 			}
 			else
 			{
-				int domainPos = hostname.indexOf('.');
+				auto domainPos = hostname.indexOf('.');
 				obj.insert("hostname", hostname.left(domainPos));
 				obj.insert("domain", hostname.mid(domainPos+1));
 			}

@@ -42,80 +42,79 @@ bool ProviderRs232::init(const QJsonObject &deviceConfig)
 	bool isInitOK = false;
 
 	// Initialise sub-class
-	if ( LedDevice::init(deviceConfig) )
+	if (!LedDevice::init(deviceConfig) )
 	{
-		_deviceName           = deviceConfig["output"].toString("auto");
-		_isAutoDeviceName     = _deviceName.toLower() == "auto";
-
-		// If device name was given as unix /dev/ system-location, get port name
-		if ( _deviceName.startsWith(QLatin1String("/dev/")) )
-		{
-			_location = _deviceName;
-			//Handle udev devices
-			QFileInfo file_info(_deviceName);
-			if (file_info.isSymLink())
-			{
-				_deviceName = file_info.symLinkTarget();
-			}
-			_deviceName = _deviceName.mid(5);
-		}
-
-		_baudRate_Hz = deviceConfig["rate"].toInt();
-		_delayAfterConnect_ms = deviceConfig["delayAfterConnect"].toInt(1500);
-
-		Debug(_log, "DeviceName   : %s", QSTRING_CSTR(_deviceName));
-		DebugIf(!_location.isEmpty(), _log, "Location     : %s", QSTRING_CSTR(_location));
-		Debug(_log, "AutoDevice   : %d", _isAutoDeviceName);
-		Debug(_log, "baudRate_Hz  : %d", _baudRate_Hz);
-		Debug(_log, "delayAfCon ms: %d", _delayAfterConnect_ms);
-
-		isInitOK = true;
+		return false;
 	}
-	return isInitOK;
-}
 
-ProviderRs232::~ProviderRs232()
-{
+	_deviceName           = deviceConfig["output"].toString("auto");
+	_isAutoDeviceName     = _deviceName.toLower() == "auto";
+
+	// If device name was given as unix /dev/ system-location, get port name
+	if ( _deviceName.startsWith(QLatin1String("/dev/")) )
+	{
+		_location = _deviceName;
+		//Handle udev devices
+		QFileInfo file_info(_deviceName);
+		if (file_info.isSymLink())
+		{
+			_deviceName = file_info.symLinkTarget();
+		}
+		_deviceName = _deviceName.mid(5);
+	}
+
+	_baudRate_Hz = deviceConfig["rate"].toInt();
+	_delayAfterConnect_ms = deviceConfig["delayAfterConnect"].toInt(1500);
+
+	Debug(_log, "DeviceName   : %s", QSTRING_CSTR(_deviceName));
+	DebugIf(!_location.isEmpty(), _log, "Location     : %s", QSTRING_CSTR(_location));
+	Debug(_log, "AutoDevice   : %d", _isAutoDeviceName);
+	Debug(_log, "baudRate_Hz  : %d", _baudRate_Hz);
+	Debug(_log, "delayAfCon ms: %d", _delayAfterConnect_ms);
+
+	return true;
 }
 
 int ProviderRs232::open()
 {
-	int retval = -1;
 	_isDeviceReady = false;
 
 	// open device physically
-	if ( tryOpen(_delayAfterConnect_ms) )
+	if ( !tryOpen(_delayAfterConnect_ms) )
 	{
-		connect(&_rs232Port, &QSerialPort::readyRead, this, &ProviderRs232::readFeedback);
-
-		// Everything is OK, device is ready
-		_isDeviceReady = true;
-		retval = 0;
+		return -1;
 	}
-	return retval;
+
+	connect(&_rs232Port, &QSerialPort::readyRead, this, &ProviderRs232::readFeedback);
+
+	// Everything is OK, device is ready
+	_isDeviceReady = true;
+
+	return 0;
 }
 
 int ProviderRs232::close()
 {
-	int retval = 0;
-
 	_isDeviceReady = false;
 
 	// Test, if device requires closing
-	if (_rs232Port.isOpen())
+	if (!_rs232Port.isOpen())
 	{
-		if ( _rs232Port.flush() )
-		{
-			Debug(_log,"Flush was successful");
-		}
-
-		disconnect(&_rs232Port, &QSerialPort::readyRead, this, &ProviderRs232::readFeedback);
-
-		Debug(_log,"Close UART: %s", QSTRING_CSTR(_deviceName) );
-		_rs232Port.close();
-		// Everything is OK -> device is closed
+		return 0;
 	}
-	return retval;
+
+	if ( _rs232Port.flush() )
+	{
+		Debug(_log,"Flush was successful");
+	}
+
+	disconnect(&_rs232Port, &QSerialPort::readyRead, this, &ProviderRs232::readFeedback);
+
+	Debug(_log,"Close UART: %s", QSTRING_CSTR(_deviceName) );
+	_rs232Port.close();
+	// Everything is OK -> device is closed
+
+	return 0;
 }
 
 bool ProviderRs232::powerOff()
@@ -167,26 +166,24 @@ bool ProviderRs232::tryOpen(int delayAfterConnect_ms)
 		Debug(_log, "_rs232Port.open(QIODevice::ReadWrite): %s, Baud rate [%d]bps", QSTRING_CSTR(_deviceName), _baudRate_Hz);
 
 		QSerialPortInfo serialPortInfo(_deviceName);
-		if (!serialPortInfo.isNull() )
+		if (serialPortInfo.isNull() )
 		{
-			Debug(_log, "portName:          %s", QSTRING_CSTR(serialPortInfo.portName()));
-			Debug(_log, "systemLocation:    %s", QSTRING_CSTR(serialPortInfo.systemLocation()));
-			Debug(_log, "description:       %s", QSTRING_CSTR(serialPortInfo.description()));
-			Debug(_log, "manufacturer:      %s", QSTRING_CSTR(serialPortInfo.manufacturer()));
-			Debug(_log, "vendorIdentifier:  %s", QSTRING_CSTR(QString("0x%1").arg(serialPortInfo.vendorIdentifier(), 0, 16)));
-			Debug(_log, "productIdentifier: %s", QSTRING_CSTR(QString("0x%1").arg(serialPortInfo.productIdentifier(), 0, 16)));
-			Debug(_log, "serialNumber:      %s", QSTRING_CSTR(serialPortInfo.serialNumber()));
-
-			if ( !_rs232Port.open(QIODevice::ReadWrite) )
-			{
-				this->setInError(_rs232Port.errorString());
-				return false;
-			}
-		}
-		else
-		{
-			QString errortext = QString("Invalid serial device: %1 %2!").arg(_deviceName, _location);
+						QString errortext = QString("Invalid serial device: %1 %2!").arg(_deviceName, _location);
 			this->setInError( errortext );
+			return false;
+		}
+
+		Debug(_log, "portName:          %s", QSTRING_CSTR(serialPortInfo.portName()));
+		Debug(_log, "systemLocation:    %s", QSTRING_CSTR(serialPortInfo.systemLocation()));
+		Debug(_log, "description:       %s", QSTRING_CSTR(serialPortInfo.description()));
+		Debug(_log, "manufacturer:      %s", QSTRING_CSTR(serialPortInfo.manufacturer()));
+		Debug(_log, "vendorIdentifier:  %s", QSTRING_CSTR(QString("0x%1").arg(serialPortInfo.vendorIdentifier(), 0, 16)));
+		Debug(_log, "productIdentifier: %s", QSTRING_CSTR(QString("0x%1").arg(serialPortInfo.productIdentifier(), 0, 16)));
+		Debug(_log, "serialNumber:      %s", QSTRING_CSTR(serialPortInfo.serialNumber()));
+
+		if ( !_rs232Port.open(QIODevice::ReadWrite) )
+		{
+			this->setInError(_rs232Port.errorString());
 			return false;
 		}
 	}
@@ -218,6 +215,7 @@ void ProviderRs232::setInError(const QString& errorMsg, bool isRecoverable)
 int ProviderRs232::writeBytes(const qint64 size, const uint8_t *data)
 {
 	int rc = 0;
+	
 	if (!_rs232Port.isOpen())
 	{
 		Debug(_log, "!_rs232Port.isOpen()");
@@ -227,48 +225,48 @@ int ProviderRs232::writeBytes(const qint64 size, const uint8_t *data)
 			return -1;
 		}
 	}
+
 	qint64 bytesWritten = _rs232Port.write(reinterpret_cast<const char*>(data), size);
 	if (bytesWritten == -1 || bytesWritten != size)
 	{
 		this->setInError( QString ("Rs232 SerialPortError: %1").arg(_rs232Port.errorString()) );
-		rc = -1;
+		return -1;
 	}
-	else
+
+	if (!_rs232Port.waitForBytesWritten(WRITE_TIMEOUT.count()))
 	{
-		if (!_rs232Port.waitForBytesWritten(WRITE_TIMEOUT.count()))
+		if (_rs232Port.error() == QSerialPort::TimeoutError)
 		{
-			if (_rs232Port.error() == QSerialPort::TimeoutError)
+			Debug(_log, "Timeout after %dms: %d frames already dropped, Rs232 SerialPortError [%d]: %s", WRITE_TIMEOUT.count(), _frameDropCounter, _rs232Port.error(), QSTRING_CSTR(_rs232Port.errorString()));
+
+			++_frameDropCounter;
+
+			// Check,if number of timeouts in a given time frame is greater than defined
+			// TODO: ProviderRs232::writeBytes - Add time frame to check for timeouts that devices does not close after absolute number of timeouts
+			if ( _frameDropCounter > MAX_WRITE_TIMEOUTS )
 			{
-				Debug(_log, "Timeout after %dms: %d frames already dropped, Rs232 SerialPortError [%d]: %s", WRITE_TIMEOUT.count(), _frameDropCounter, _rs232Port.error(), QSTRING_CSTR(_rs232Port.errorString()));
-
-				++_frameDropCounter;
-
-				// Check,if number of timeouts in a given time frame is greater than defined
-				// TODO: ProviderRs232::writeBytes - Add time frame to check for timeouts that devices does not close after absolute number of timeouts
-				if ( _frameDropCounter > MAX_WRITE_TIMEOUTS )
-				{
-					this->setInError( QString ("Timeout writing data to %1").arg(_deviceName) );
-					rc = -1;
-				}
-				else
-				{
-					//give it another try
-					_rs232Port.clearError();
-				}
+				this->setInError( QString ("Timeout writing data to %1").arg(_deviceName) );
+				rc = -1;
 			}
 			else
 			{
-				this->setInError( QString ("Error writing data to %1, Error: %2").arg(_deviceName).arg(_rs232Port.error()));
-				rc = -1;
+				//give it another try
+				_rs232Port.clearError();
 			}
 		}
-
-		if (rc == -1)
+		else
 		{
-			Info(_log, "Try restarting the device %s after error occured...", QSTRING_CSTR(_activeDeviceType));
-			emit enable();
+			this->setInError( QString ("Error writing data to %1, Error: %2").arg(_deviceName).arg(_rs232Port.error()));
+			rc = -1;
 		}
 	}
+
+	if (rc == -1)
+	{
+		Info(_log, "Try restarting the device %s after error occured...", QSTRING_CSTR(_activeDeviceType));
+		emit enable();
+	}
+
 	return rc;
 }
 
@@ -285,7 +283,7 @@ void ProviderRs232::readFeedback()
 QString ProviderRs232::discoverFirst()
 {
 	// take first available USB serial port - currently no probing!
-	for (auto & port : QSerialPortInfo::availablePorts())
+	for (const auto& port : QSerialPortInfo::availablePorts())
 	{
 		if (!port.isNull())
 		{
@@ -308,7 +306,7 @@ QJsonObject ProviderRs232::discover(const QJsonObject& params)
 	bool showAll = params["discoverAll"].toBool(false);
 
 	// Discover serial Devices
-	for (auto &port : QSerialPortInfo::availablePorts() )
+	for (const auto& port : QSerialPortInfo::availablePorts())
 	{
 		if ( !port.isNull() && (showAll || port.vendorIdentifier() != 0) )
 		{
@@ -333,16 +331,15 @@ QJsonObject ProviderRs232::discover(const QJsonObject& params)
 	deviceDirectory.setSorting(QDir::Name);
 	QFileInfoList deviceFiles = deviceDirectory.entryInfoList(QDir::AllEntries);
 
-	QFileInfoList::const_iterator deviceFileIterator;
-	for (deviceFileIterator = deviceFiles.constBegin(); deviceFileIterator != deviceFiles.constEnd(); ++deviceFileIterator)
+	for (const auto& deviceFile : deviceFiles)
 	{
-		if ((*deviceFileIterator).isSymLink())
+		if (deviceFile.isSymLink())
 		{
-			QSerialPortInfo port = QSerialPortInfo(QSerialPort((*deviceFileIterator).symLinkTarget()));
+			auto port = QSerialPortInfo(QSerialPort(deviceFile.symLinkTarget()));
 
 			QJsonObject portInfo;
-			portInfo.insert("portName", (*deviceFileIterator).fileName());
-			portInfo.insert("systemLocation", (*deviceFileIterator).absoluteFilePath());
+			portInfo.insert("portName", deviceFile.fileName());
+			portInfo.insert("systemLocation", deviceFile.absoluteFilePath());
 			portInfo.insert("udev", true);
 
 			portInfo.insert("description", port.description());
@@ -367,31 +364,34 @@ void ProviderRs232::identify(const QJsonObject& params)
 	DebugIf(verbose,_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	QString deviceName = params["output"].toString("");
-	if (!deviceName.isEmpty())
+	if (deviceName.isEmpty())
 	{
-		Info(_log, "Identify %s, device: %s", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(deviceName) );
+		return;
+	}
+	Info(_log, "Identify %s, device: %s", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(deviceName) );
 
-		_devConfig = params;
-		init(_devConfig);
+	_devConfig = params;
+	init(_devConfig);
+
+	if ( open() != 0 )
+	{
+		return;
+	}
+	
+	for (int i = 0; i < 2; ++i)
+	{
+		if (writeColor(ColorRgb::RED) == 0)
 		{
-			if ( open() == 0 )
-			{
-				for (int i = 0; i < 2; ++i)
-				{
-					if (writeColor(ColorRgb::RED) == 0)
-					{
-						wait(DEFAULT_IDENTIFY_TIME);
+			wait(DEFAULT_IDENTIFY_TIME);
 
-						writeColor(ColorRgb::BLACK);
-						wait(DEFAULT_IDENTIFY_TIME);
-					}
-					else
-					{
-						break;
-					}
-				}
-				close();
-			}
+			writeColor(ColorRgb::BLACK);
+			wait(DEFAULT_IDENTIFY_TIME);
+		}
+		else
+		{
+			break;
 		}
 	}
+
+	close();
 }

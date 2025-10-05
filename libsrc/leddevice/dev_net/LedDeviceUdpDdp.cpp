@@ -35,27 +35,27 @@ namespace DDP {
 		uint8_t len[2];
 	};
 
-	static constexpr int HEADER_LEN = (sizeof(struct Header)); // header is 10 bytes (14 if TIME flag used)
-	static constexpr int MAX_LEDS = 480;
-	static constexpr int CHANNELS_PER_PACKET = MAX_LEDS*3;
+	constexpr int HEADER_LEN = (sizeof(struct Header)); // header is 10 bytes (14 if TIME flag used)
+	constexpr int MAX_LEDS = 480;
+	constexpr int CHANNELS_PER_PACKET = MAX_LEDS*3;
 
 	namespace flags1 {
-	static constexpr auto VER_MASK = 0xc0;
-	static constexpr auto VER1 = 0x40;
-	static constexpr auto PUSH = 0x01;
-	static constexpr auto QUERY = 0x02;
-	static constexpr auto REPLY = 0x04;
-	static constexpr auto STORAGE = 0x08;
-	static constexpr auto TIME = 0x10;
+	constexpr auto VER_MASK = 0xc0;
+	constexpr auto VER1 = 0x40;
+	constexpr auto PUSH = 0x01;
+	constexpr auto QUERY = 0x02;
+	constexpr auto REPLY = 0x04;
+	constexpr auto STORAGE = 0x08;
+	constexpr auto TIME = 0x10;
 	}  // namespace flags1
 
 	namespace id {
-	static constexpr auto DISPLAY = 1;
-	static constexpr auto CONTROL = 246;
-	static constexpr auto CONFIG = 250;
-	static constexpr auto STATUS = 251;
-	static constexpr auto DMXTRANSIT = 254;
-	static constexpr auto ALLDEVICES = 255;
+	constexpr auto DISPLAY = 1;
+	constexpr auto CONTROL = 246;
+	constexpr auto CONFIG = 250;
+	constexpr auto STATUS = 251;
+	constexpr auto DMXTRANSIT = 254;
+	constexpr auto ALLDEVICES = 255;
 	}  // namespace id
 
 }  // namespace DDP
@@ -75,62 +75,48 @@ LedDevice* LedDeviceUdpDdp::construct(const QJsonObject &deviceConfig)
 
 bool LedDeviceUdpDdp::init(const QJsonObject &deviceConfig)
 {
-	bool isInitOK {false};
-
-	if ( ProviderUdp::init(deviceConfig) )
+	if (!ProviderUdp::init(deviceConfig))
 	{
-		_hostName = _devConfig[ CONFIG_HOST ].toString();
-		_port = deviceConfig[CONFIG_PORT].toInt(DDP_DEFAULT_PORT);
-
-		Debug(_log, "Hostname/IP       : %s", QSTRING_CSTR(_hostName) );
-		Debug(_log, "Port              : %d", _port );
-
-		_ddpData.resize(DDP::HEADER_LEN + DDP::CHANNELS_PER_PACKET);
-		_ddpData[0] = DDP::flags1::VER1; // flags1
-		_ddpData[1] = 0;				 // flags2
-		_ddpData[2] = 1;				 // type
-		_ddpData[3] = DDP::id::DISPLAY;	 // id
-
-		isInitOK = true;
+		return false;
 	}
-	return isInitOK;
+
+	_hostName = _devConfig[ CONFIG_HOST ].toString();
+	_port = deviceConfig[CONFIG_PORT].toInt(DDP_DEFAULT_PORT);
+
+	Debug(_log, "Hostname/IP       : %s", QSTRING_CSTR(_hostName) );
+	Debug(_log, "Port              : %d", _port );
+
+	_ddpData.resize(DDP::HEADER_LEN + DDP::CHANNELS_PER_PACKET);
+	_ddpData[0] = DDP::flags1::VER1; // flags1
+	_ddpData[1] = 0;				 // flags2
+	_ddpData[2] = 1;				 // type
+	_ddpData[3] = DDP::id::DISPLAY;	 // id
+
+	return true;
 }
 
 int LedDeviceUdpDdp::open()
 {
-	QHostAddress resolvedAddress;
-	this->setIsRecoverable(true);
-	if (NetUtils::resolveHostToAddress(_log, _hostName, resolvedAddress))
-	{
-		return open(resolvedAddress);
-	}
-
-	return -1;
-}
-
-int LedDeviceUdpDdp::open(const QHostAddress& address)
-{
-	int retval = -1;
 	_isDeviceReady = false;
+	this->setIsRecoverable(true);	
 
-	if (address.isNull())
+	if (_hostName.isNull())
 	{
-		Error(_log, "Empty IP address. UDP stream cannot be initiatised.");
-		return retval;
+		Error(_log, "Empty hostname or IP address. UDP stream cannot be initiatised.");
+		return -1;
 	}
 
-	_address = address;
+	NetUtils::convertMdnsToIp(_log, _hostName);
 	if (ProviderUdp::open() == 0)
 	{
 		// Everything is OK, device is ready
 		_isDeviceReady = true;
-		retval = 0;
 	}
 
-	return retval;
+	return _isDeviceReady ? 0 : -1;
 }
 
-int LedDeviceUdpDdp::write(const std::vector<ColorRgb> &ledValues)
+int LedDeviceUdpDdp::write(const QVector<ColorRgb> &ledValues)
 {
 	int rc {0};
 

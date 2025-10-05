@@ -54,7 +54,7 @@ signals:
 	///
 	/// @brief Forward requested color
 	///
-	void setGlobalInputColor(int priority, const std::vector<ColorRgb> &ledColor, int timeout_ms, const QString& origin = "ProtoBuffer" ,bool clearEffects = true);
+	void setGlobalInputColor(int priority, const QVector<ColorRgb> &ledColor, int timeout_ms, const QString& origin = "ProtoBuffer" ,bool clearEffects = true);
 
 	///
 	/// @brief Emit the final processed image

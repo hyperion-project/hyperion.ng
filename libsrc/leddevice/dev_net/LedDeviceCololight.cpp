@@ -8,11 +8,6 @@
 
 #include <chrono>
 
-// mDNS discover
-#ifdef ENABLE_MDNS
-#include <mdns/MdnsBrowser.h>
-#include <mdns/MdnsServiceRegister.h>
-#endif
 #include <utils/NetUtils.h>
 
 // Constants
@@ -52,10 +47,7 @@ LedDeviceCololight::LedDeviceCololight(const QJsonObject& deviceConfig)
 	, _distance(0)
 	, _sequenceNumber(1)
 {
-#ifdef ENABLE_MDNS
-	QMetaObject::invokeMethod(MdnsBrowser::getInstance().data(), "browseForServiceType",
-							   Qt::QueuedConnection, Q_ARG(QByteArray, MdnsServiceRegister::getServiceType(_activeDeviceType)));
-#endif
+	NetUtils::discoverMdnsServices(_activeDeviceType);
 
 	_packetFixPart.append(reinterpret_cast<const char*>(PACKET_HEADER), sizeof(PACKET_HEADER));
 	_packetFixPart.append(reinterpret_cast<const char*>(PACKET_SECU), sizeof(PACKET_SECU));
@@ -81,68 +73,63 @@ bool LedDeviceCololight::init(const QJsonObject& deviceConfig)
 
 bool LedDeviceCololight::initLedsConfiguration()
 {
-	bool isInitOK = false;
-
 	if (!getInfo())
 	{
 		QString errorReason = QString("Cololight device (%1) not accessible to get additional properties!")
-								  .arg(getAddress().toString());
+								  .arg(getHostName());
 		setInError(errorReason);
+		return false;
 	}
-	else
+
+	QString modelTypeText;
+
+	switch (_modelType) {
+	case STRIP:
+		modelTypeText = "Strip";
+		_ledLayoutType = STRIP_LAYOUT;
+		break;
+	case PLUS:
+		_ledLayoutType = MODLUE_LAYOUT;
+		modelTypeText = "Plus";
+		break;
+	default:
+		_modelType = STRIP;
+		modelTypeText = "Strip";
+		_ledLayoutType = STRIP_LAYOUT;
+		Info(_log, "Model not identified, assuming Cololight %s", QSTRING_CSTR(modelTypeText));
+		break;
+	}
+	Debug(_log, "Model type   : %s", QSTRING_CSTR(modelTypeText));
+
+	if (getLedCount() == 0)
 	{
-		QString modelTypeText;
-
-		switch (_modelType) {
-		case STRIP:
-			modelTypeText = "Strip";
-			_ledLayoutType = STRIP_LAYOUT;
-			break;
-		case PLUS:
-			_ledLayoutType = MODLUE_LAYOUT;
-			modelTypeText = "Plus";
-			break;
-		default:
-			_modelType = STRIP;
-			modelTypeText = "Strip";
-			_ledLayoutType = STRIP_LAYOUT;
-			Info(_log, "Model not identified, assuming Cololight %s", QSTRING_CSTR(modelTypeText));
-			break;
-		}
-		Debug(_log, "Model type   : %s", QSTRING_CSTR(modelTypeText));
-
-		if (getLedCount() == 0)
-		{
-			setLedCount(_devConfig[CONFIG_HW_LED_COUNT].toInt(0));
-		}
-
-		Debug(_log, "LedCount     : %d", getLedCount());
-
-		int configuredLedCount = _devConfig["currentLedCount"].toInt(1);
-
-		if (getLedCount() < configuredLedCount)
-		{
-			QString errorReason = QString("Not enough LEDs [%1] for configured LEDs in layout [%2] found!")
-									  .arg(getLedCount())
-									  .arg(configuredLedCount);
-			this->setInError(errorReason);
-		}
-		else
-		{
-			if (getLedCount() > configuredLedCount)
-			{
-				Info(_log, "%s: More LEDs [%d] than configured LEDs in layout [%d].", QSTRING_CSTR(this->getActiveDeviceType()), getLedCount(), configuredLedCount);
-			}
-			isInitOK = true;
-		}
+		setLedCount(_devConfig[CONFIG_HW_LED_COUNT].toInt(0));
 	}
 
-	return isInitOK;
+	Debug(_log, "LedCount     : %d", getLedCount());
+
+	int configuredLedCount = _devConfig["currentLedCount"].toInt(1);
+
+	if (getLedCount() < configuredLedCount)
+	{
+		QString errorReason = QString("Not enough LEDs [%1] for configured LEDs in layout [%2] found!")
+									.arg(getLedCount())
+									.arg(configuredLedCount);
+		this->setInError(errorReason);
+		return false;
+	}
+
+	if (getLedCount() > configuredLedCount)
+	{
+		Info(_log, "%s: More LEDs [%d] than configured LEDs in layout [%d].", QSTRING_CSTR(this->getActiveDeviceType()), getLedCount(), configuredLedCount);
+	}
+
+	return true;
 }
 
 void LedDeviceCololight::initDirectColorCmdTemplate()
 {
-	int ledNumber = static_cast<int>(this->getLedCount());
+	int ledNumber = this->getLedCount();
 
 	_directColorCommandTemplate.clear();
 
@@ -165,30 +152,29 @@ void LedDeviceCololight::initDirectColorCmdTemplate()
 
 int LedDeviceCololight::open()
 {
-	int retval = -1;
 	_isDeviceReady = false;
-
 	this->setIsRecoverable(true);
-	if (NetUtils::resolveHostToAddress(_log, _hostName, _address))
+
+	if (_hostName.isNull())
 	{
-		if (ProviderUdp::open() == 0)
-		{
-			if (initLedsConfiguration())
-			{
-				initDirectColorCmdTemplate();
-				// Everything is OK, device is ready
-				_isDeviceReady = true;
-				retval = 0;
-			}
-		}
+		Error(_log, "Empty hostname or IP address. UDP stream cannot be initiatised.");
+		return -1;
 	}
-	return retval;
+
+	NetUtils::convertMdnsToIp(_log, _hostName);
+	if (ProviderUdp::open() == 0)
+	{
+		initDirectColorCmdTemplate();
+		
+		// Everything is OK, device is ready
+		_isDeviceReady = true;
+	}
+
+	return _isDeviceReady ? 0 : -1;
 }
 
 bool LedDeviceCololight::getInfo()
 {
-	bool isCmdOK = false;
-
 	QByteArray command;
 
 	const quint8 packetSize = 2;
@@ -205,51 +191,53 @@ bool LedDeviceCololight::getInfo()
 	command[fixPartsize] = static_cast<char>(READ_INFO_FROM_STORAGE); // idx
 	command[fixPartsize + 1] = static_cast<char>(0x01); // idx
 
-	if (sendRequest(TL1_CMD, command))
+	if (!sendRequest(TL1_CMD, command))
 	{
-		QByteArray response;
-		if (readResponse(response))
-		{
-			DebugIf(verbose,_log, "#[0x%x], Data returned: [%s]", _sequenceNumber, QSTRING_CSTR(toHex(response)));
-
-			quint16 ledNum = qFromBigEndian<quint16>(response.data() + 1);
-
-			if (ledNum != 0xFFFF)
-			{
-				_ledBeadCount = ledNum;
-				// Cololight types are not identifyable currently
-				// Work under the assumption that modules (Cololight Plus) have a number of beads and a Colologht Strip does not have a multiple of beads
-				// The assumption will not hold true, if a user cuts the Strip to a multiple of beads...
-				if (ledNum % COLOLIGHT_BEADS_PER_MODULE == 0)
-				{
-					_modelType = PLUS;
-					_ledLayoutType = MODLUE_LAYOUT;
-					_distance = ledNum / COLOLIGHT_BEADS_PER_MODULE;
-					setLedCount(_distance);
-				}
-				else
-				{
-					_modelType = STRIP;
-					_ledLayoutType = STRIP_LAYOUT;
-					_distance = 0;
-					setLedCount(ledNum);
-				}
-				isCmdOK = true;
-				Debug(_log, "#LEDs found [0x%x], [%u], distance [%d]", _ledBeadCount, _ledBeadCount, _distance);
-			}
-			else
-			{
-				_modelType = -1;
-				_ledLayoutType = -1;
-				_distance = 0;
-				setLedCount(0);
-				isCmdOK = false;
-				Error(_log, "Number of LEDs cannot be resolved");
-			}
-		}
+		return false;
+	}
+	QByteArray response;
+	if (!readResponse(response))
+	{
+		return false;
 	}
 
-	return isCmdOK;
+	DebugIf(verbose,_log, "#[0x%x], Data returned: [%s]", _sequenceNumber, QSTRING_CSTR(toHex(response)));
+
+	quint16 ledNum = qFromBigEndian<quint16>(response.data() + 1);
+
+	if (ledNum == 0xFFFF)
+	{
+		_modelType = -1;
+		_ledLayoutType = -1;
+		_distance = 0;
+		setLedCount(0);
+
+		Error(_log, "Number of LEDs cannot be resolved");
+		return false;
+	}
+
+	_ledBeadCount = ledNum;
+	// Cololight types are not identifyable currently
+	// Work under the assumption that modules (Cololight Plus) have a number of beads and a Colologht Strip does not have a multiple of beads
+	// The assumption will not hold true, if a user cuts the Strip to a multiple of beads...
+	if (ledNum % COLOLIGHT_BEADS_PER_MODULE == 0)
+	{
+		_modelType = PLUS;
+		_ledLayoutType = MODLUE_LAYOUT;
+		_distance = ledNum / COLOLIGHT_BEADS_PER_MODULE;
+		setLedCount(_distance);
+	}
+	else
+	{
+		_modelType = STRIP;
+		_ledLayoutType = STRIP_LAYOUT;
+		_distance = 0;
+		setLedCount(ledNum);
+	}
+
+	Debug(_log, "#LEDs found [0x%x], [%u], distance [%d]", _ledBeadCount, _ledBeadCount, _distance);
+	
+	return true;
 }
 
 bool LedDeviceCololight::setEffect(const effect effect)
@@ -359,9 +347,9 @@ bool LedDeviceCololight::setStateDirect(bool isOn)
 	return isCmdOK;
 }
 
-bool LedDeviceCololight::setColor(const std::vector<ColorRgb>& ledValues)
+bool LedDeviceCololight::setColor(const QVector<ColorRgb>& ledValues)
 {
-	int ledNumber = static_cast<int>(ledValues.size());
+	auto ledNumber = ledValues.size();
 
 	QByteArray command = _directColorCommandTemplate;
 
@@ -420,7 +408,7 @@ bool LedDeviceCololight::sendRequest(const appID appID, const QByteArray& comman
 	packet.append(static_cast<char>(_sequenceNumber));
 	packet.append(command);
 
-	quint32 size = static_cast<quint32>(static_cast<int>(sizeof(PACKET_SECU)) + 1 + command.size());
+	auto size = static_cast<quint32>(static_cast<int>(sizeof(PACKET_SECU)) + 1 + command.size());
 
 	qToBigEndian<quint16>(appID, packet.data() + 4);
 
@@ -461,72 +449,74 @@ bool LedDeviceCololight::readResponse(QByteArray& response)
 
 				_udpSocket->readDatagram(datagram.data(), datagram.size(), &senderIP, &senderPort);
 
-				if (datagram.size() >= 10)
+				if (datagram.size() < 10)
 				{
-					DebugIf(verbose3, _log, "response: [%s]", QSTRING_CSTR(toHex(datagram, 64)));
+					continue;
+				}
 
-					quint16 appID = qFromBigEndian<quint16>(datagram.mid(4, sizeof(appID)));
+				DebugIf(verbose3, _log, "response: [%s]", QSTRING_CSTR(toHex(datagram, 64)));
 
-					if (verbose && appID == 0x8000)
+				quint16 appID = qFromBigEndian<quint16>(datagram.mid(4, sizeof(appID)));
+
+				if (verbose && appID == 0x8000)
+				{
+					QString tagVersion = datagram.left(2);
+					quint32 packetSize = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER) - sizeof(packetSize)));
+
+					Debug(_log, "Response HEADER: tagVersion [%s], appID: [0x%.2x][%u], packet size: [0x%.4x][%u]", QSTRING_CSTR(tagVersion), appID, appID, packetSize, packetSize);
+
+					quint32 dictionary = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER)));
+					quint32 checkSum = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER) + sizeof(dictionary)));
+					quint32 salt = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER) + sizeof(dictionary) + sizeof(checkSum), sizeof(salt)));
+					quint32 sequenceNumber = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER) + sizeof(dictionary) + sizeof(checkSum) + sizeof(salt)));
+
+					Debug(_log, "Response SECU  : Dict: [0x%.4x][%u], Sum: [0x%.4x][%u], Salt: [0x%.4x][%u], SN: [0x%.4x][%u]", dictionary, dictionary, checkSum, checkSum, salt, salt, sequenceNumber, sequenceNumber);
+
+					auto packetSN = static_cast<quint8>(datagram.at(sizeof(PACKET_HEADER) + sizeof(PACKET_SECU)));
+					Debug(_log, "Response packSN: [0x%.4x][%u]", packetSN, packetSN);
+				}
+
+				auto errorCode = static_cast<quint8>(datagram.at(sizeof(PACKET_HEADER) + sizeof(PACKET_SECU) + 1));
+
+				int dataPartStart = sizeof(PACKET_HEADER) + sizeof(PACKET_SECU) + sizeof(TL1_CMD_FIXED_PART);
+
+				if (errorCode != 0)
+				{
+					auto originalVerb = static_cast<quint8>(datagram.at(dataPartStart - 2) - 0x80);
+					auto originalRequestPacketSN = static_cast<quint8>(datagram.at(dataPartStart - 1));
+
+					if (errorCode == 16)
 					{
-						QString tagVersion = datagram.left(2);
-						quint32 packetSize = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER) - sizeof(packetSize)));
-
-						Debug(_log, "Response HEADER: tagVersion [%s], appID: [0x%.2x][%u], packet size: [0x%.4x][%u]", QSTRING_CSTR(tagVersion), appID, appID, packetSize, packetSize);
-
-						quint32 dictionary = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER)));
-						quint32 checkSum = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER) + sizeof(dictionary)));
-						quint32 salt = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER) + sizeof(dictionary) + sizeof(checkSum), sizeof(salt)));
-						quint32 sequenceNumber = qFromBigEndian<quint32>(datagram.mid(sizeof(PACKET_HEADER) + sizeof(dictionary) + sizeof(checkSum) + sizeof(salt)));
-
-						Debug(_log, "Response SECU  : Dict: [0x%.4x][%u], Sum: [0x%.4x][%u], Salt: [0x%.4x][%u], SN: [0x%.4x][%u]", dictionary, dictionary, checkSum, checkSum, salt, salt, sequenceNumber, sequenceNumber);
-
-						quint8 packetSN = static_cast<quint8>(datagram.at(sizeof(PACKET_HEADER) + sizeof(PACKET_SECU)));
-						Debug(_log, "Response packSN: [0x%.4x][%u]", packetSN, packetSN);
-					}
-
-					quint8 errorCode = static_cast<quint8>(datagram.at(sizeof(PACKET_HEADER) + sizeof(PACKET_SECU) + 1));
-
-					int dataPartStart = sizeof(PACKET_HEADER) + sizeof(PACKET_SECU) + sizeof(TL1_CMD_FIXED_PART);
-
-					if (errorCode != 0)
-					{
-						quint8 originalVerb = static_cast<quint8>(datagram.at(dataPartStart - 2) - 0x80);
-						quint8 originalRequestPacketSN = static_cast<quint8>(datagram.at(dataPartStart - 1));
-
-						if (errorCode == 16)
-						{
-							//TL1 Command failure
-							Error(_log, "Request [0x%x] failed =with error [%u], appID [%u], originalVerb [0x%x]", originalRequestPacketSN, errorCode, appID, originalVerb);
-						}
-						else
-						{
-							Error(_log, "Request [0x%x] failed with error [%u], appID [%u]", originalRequestPacketSN, errorCode, appID);
-						}
+						//TL1 Command failure
+						Error(_log, "Request [0x%x] failed =with error [%u], appID [%u], originalVerb [0x%x]", originalRequestPacketSN, errorCode, appID, originalVerb);
 					}
 					else
 					{
-						// TL1 Protocol
-						if (appID == 0x8000)
+						Error(_log, "Request [0x%x] failed with error [%u], appID [%u]", originalRequestPacketSN, errorCode, appID);
+					}
+				}
+				else
+				{
+					// TL1 Protocol
+					if (appID == 0x8000)
+					{
+						if (dataPartStart < datagram.size())
 						{
-							if (dataPartStart < datagram.size())
-							{
-								quint8 dataLength = static_cast<quint8>(datagram.at(dataPartStart));
+							auto dataLength = static_cast<quint8>(datagram.at(dataPartStart));
 
-								response = datagram.mid(dataPartStart + 1, dataLength);
-								if (verbose)
-								{
-									quint8 originalVerb = static_cast<quint8>(datagram.at(dataPartStart - 2) - 0x80);
-									Debug(_log, "Cmd [0x%x], Data returned: [%s]", originalVerb, QSTRING_CSTR(toHex(response)));
-								}
-							}
-							else
+							response = datagram.mid(dataPartStart + 1, dataLength);
+							if (verbose)
 							{
-								DebugIf(verbose,_log, "No additional data returned");
+								auto originalVerb = static_cast<quint8>(datagram.at(dataPartStart - 2) - 0x80);
+								Debug(_log, "Cmd [0x%x], Data returned: [%s]", originalVerb, QSTRING_CSTR(toHex(response)));
 							}
 						}
-						isRequestOK = true;
+						else
+						{
+							DebugIf(verbose,_log, "No additional data returned");
+						}
 					}
+					isRequestOK = true;
 				}
 			}
 		}
@@ -534,7 +524,7 @@ bool LedDeviceCololight::readResponse(QByteArray& response)
 	return isRequestOK;
 }
 
-int LedDeviceCololight::write(const std::vector<ColorRgb>& ledValues)
+int LedDeviceCololight::write(const QVector<ColorRgb>& ledValues)
 {
 	int rc = -1;
 
@@ -548,27 +538,25 @@ int LedDeviceCololight::write(const std::vector<ColorRgb>& ledValues)
 
 bool LedDeviceCololight::powerOn()
 {
-	bool on = true;
-	if (_isDeviceReady)
+	if ( !_isDeviceReady)
 	{
-		if (!setState(false) || !setTL1CommandMode(false))
-		{
-			on = false;
-		}
+		return false;
 	}
-	return on;
+
+	return setState(false) && setTL1CommandMode(false);
 }
 
 bool LedDeviceCololight::powerOff()
 {
-	bool off = true;
-	if (_isDeviceReady)
+	if ( !_isDeviceReady)
 	{
-		writeBlack();
-		off = setStateDirect(false);
-		setTL1CommandMode(false);
+		return false;
 	}
-	return off;
+
+	writeBlack();
+	bool isOff = setStateDirect(false);
+	setTL1CommandMode(false);
+	return isOff;
 }
 
 QJsonArray LedDeviceCololight::discover()
@@ -600,7 +588,7 @@ QJsonArray LedDeviceCololight::discover()
 				{
 					// split into key=value, be aware that value field may contain also a "="
 					entry = entry.simplified();
-					int pos = entry.indexOf("=");
+					auto pos = entry.indexOf("=");
 					if (pos == -1)
 					{
 						continue;
@@ -659,7 +647,7 @@ QJsonArray LedDeviceCololight::discover()
 				}
 				else
 				{
-					int domainPos = hostname.indexOf('.');
+					auto domainPos = hostname.indexOf('.');
 					obj.insert("hostname", hostname.left(domainPos));
 					obj.insert("domain", hostname.mid(domainPos + 1));
 				}
@@ -701,44 +689,43 @@ QJsonObject LedDeviceCololight::discover(const QJsonObject& /*params*/)
 QJsonObject LedDeviceCololight::getProperties(const QJsonObject& params)
 {
 	DebugIf(verbose,_log, "params: [%s]", QString(QJsonDocument(params).toJson(QJsonDocument::Compact)).toUtf8().constData());
-	QJsonObject properties;
-	QJsonObject propertiesDetails;
 
 	_hostName = params[CONFIG_HOST].toString("");
 	_port = STREAM_DEFAULT_PORT;
 
 	Info(_log, "Get properties for %s, hostname (%s)", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(_hostName) );
 
-	if (NetUtils::resolveHostToAddress(_log, _hostName, _address))
+	NetUtils::convertMdnsToIp(_log, _hostName);
+	if (ProviderUdp::open() != 0)
 	{
-		if (ProviderUdp::open() == 0)
-		{
-			if (getInfo())
-			{
-				QString modelTypeText;
+		return {};
+	}
 
-				switch (_modelType) {
-				case STRIP:
-					modelTypeText = "Strip";
-					break;
-				case PLUS:
-					modelTypeText = "Plus";
-					break;
-				default:
-					modelTypeText = "Strip";
-					break;
-				}
-				propertiesDetails.insert("modelType", modelTypeText);
-				propertiesDetails.insert("ledCount", static_cast<int>(getLedCount()));
-				propertiesDetails.insert("ledBeadCount", _ledBeadCount);
-				propertiesDetails.insert("distance", _distance);
-			}
+	QJsonObject properties;
+	QJsonObject propertiesDetails;
+
+	if (getInfo())
+	{
+		QString modelTypeText;
+
+		switch (_modelType) {
+		case STRIP:
+			modelTypeText = "Strip";
+			break;
+		case PLUS:
+			modelTypeText = "Plus";
+			break;
+		default:
+			modelTypeText = "Strip";
+			break;
 		}
+		propertiesDetails.insert("modelType", modelTypeText);
+		propertiesDetails.insert("ledCount", getLedCount());
+		propertiesDetails.insert("ledBeadCount", _ledBeadCount);
+		propertiesDetails.insert("distance", _distance);
 	}
 
 	properties.insert("properties", propertiesDetails);
-
-	DebugIf(verbose,_log, "properties: [%s]", QString(QJsonDocument(properties).toJson(QJsonDocument::Compact)).toUtf8().constData());
 
 	return properties;
 }
@@ -752,18 +739,18 @@ void LedDeviceCololight::identify(const QJsonObject& params)
 
 	Info(_log, "Identify %s, hostname (%s)", QSTRING_CSTR(_activeDeviceType), QSTRING_CSTR(_hostName) );
 
-	if (NetUtils::resolveHostToAddress(_log, _hostName, _address))
+	NetUtils::convertMdnsToIp(_log, _hostName);
+	if (ProviderUdp::open() != 0)
 	{
-		if (ProviderUdp::open() == 0)
-		{
-			if (setStateDirect(false) && setState(true))
-			{
-				setEffect(THE_CIRCUS);
+		return;
+	}
 
-				wait(DEFAULT_IDENTIFY_TIME);
+	if (setStateDirect(false) && setState(true))
+	{
+		setEffect(THE_CIRCUS);
 
-				setColor(ColorRgb::BLACK);
-			}
-		}
+		wait(DEFAULT_IDENTIFY_TIME);
+
+		setColor(ColorRgb::BLACK);
 	}
 }

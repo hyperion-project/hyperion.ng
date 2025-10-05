@@ -9,11 +9,17 @@
 #include <QHostAddress>
 #include <QTcpServer>
 #include <QColor>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QSharedPointer>
+#include <QVector>
 
 #include <chrono>
 
 // Constants
-namespace {
+namespace Yeelight
+{
 
 // List of State Information
 const char API_METHOD_POWER[] = "set_power";
@@ -34,7 +40,8 @@ constexpr std::chrono::milliseconds API_PARAM_DURATION{50};
 constexpr std::chrono::milliseconds API_PARAM_DURATION_POWERONOFF{1000};
 constexpr std::chrono::milliseconds API_PARAM_EXTRA_TIME_DARKNESS{200};
 
-} //End of constants
+} // namespace Yeelight
+
 ///
 /// Response object for Yeelight-API calls and JSON-responses
 ///
@@ -42,11 +49,11 @@ class YeelightResponse
 {
 public:
 
-	enum API_REPLY{
+	enum class API_REPLY{
 		API_OK,
 		API_ERROR,
 		API_NOTIFICATION,
-		};
+	};
 
 	API_REPLY error() const { return _error;}
 	void setError(const YeelightResponse::API_REPLY replyType) { _error = replyType; }
@@ -55,7 +62,7 @@ public:
 	void setResult(const QJsonArray &result) { _resultArray = result; }
 
 	int getErrorCode() const { return _errorCode; }
-	void setErrorCode(int errorCode) { _errorCode = errorCode; _error = API_ERROR;}
+	void setErrorCode(int errorCode) { _errorCode = errorCode; _error = API_REPLY::API_ERROR;}
 
 	QString getErrorReason() const { return _errorReason; }
 	void setErrorReason(const QString &errorReason) { _errorReason = errorReason; }
@@ -63,7 +70,7 @@ public:
 private:
 
 	QJsonArray _resultArray;
-	API_REPLY _error = API_OK;
+	API_REPLY _error = API_REPLY::API_OK;
 
 	int _errorCode = 0;
 	QString _errorReason;
@@ -97,11 +104,6 @@ public:
 	/// @param[in] port, default port 55443 is used when not provided
 	///
 	YeelightLight( Logger *log, const QString &hostname, quint16 port);
-
-	///
-	/// @brief Destructor of the Yeelight light
-	///
-	virtual ~YeelightLight();
 
 	///
 	/// @brief Set the Yeelight light connectivity parameters
@@ -227,7 +229,7 @@ public:
 	/// @param[in] effect Transition effect, sudden or smooth
 	/// @param[in] duration Duration of the transition, if smooth
 	///
-	void setTransitionEffect ( API_EFFECT effect ,int duration = API_PARAM_DURATION.count() );
+	void setTransitionEffect ( API_EFFECT effect ,int duration = Yeelight::API_PARAM_DURATION.count() );
 
 	///
 	/// @brief Set the Yeelight light brightness configuration behaviour
@@ -286,7 +288,7 @@ public:
 	///
 	/// @return True, if light was on at start
 	///
-	bool wasOriginallyOn() const { return _power == API_METHOD_POWER_ON ? true : false; }
+	bool wasOriginallyOn() const { return _power == Yeelight::API_METHOD_POWER_ON ? true : false; }
 
 	///
 	/// @brief Check, if the Yeelight light is ready for updates
@@ -360,13 +362,13 @@ private:
 	bool _isInError;
 
 	/// IP address/port of the Yeelight light
-	QString _host;
+	QString _hostName;
 	quint16 _port;
 
 	/// Yeelight light communication socket
-	QTcpSocket*	 _tcpSocket;
+	QSharedPointer<QTcpSocket> _tcpSocket;
 	/// Music mode server communication socket
-	QTcpSocket*	 _tcpStreamSocket;
+	QSharedPointer<QTcpSocket> _tcpStreamSocket;
 
 	/// ID of last command written or streamed
 	int _correlationID;
@@ -422,11 +424,6 @@ public:
 	/// @param deviceConfig Device's configuration as JSON-Object
 	///
 	explicit LedDeviceYeelight(const QJsonObject &deviceConfig);
-
-	///
-	/// @brief Destructor of the LedDevice
-	///
-	~LedDeviceYeelight() override;
 
 	///
 	/// @brief Constructs the LED-device
@@ -503,7 +500,7 @@ protected:
 	/// @param[in] ledValues The RGB-color per LED
 	/// @return Zero on success, else negative
 	///
-	int write(const std::vector<ColorRgb> & ledValues) override;
+	int write(const QVector<ColorRgb> & ledValues) override;
 
 	///
 	/// @brief Power-/turn on the Nanoleaf device.
@@ -604,7 +601,7 @@ private:
 	QVector<yeelightAddress> _lightsAddressList;
 
 	/// Array to save the lights
-	std::vector<YeelightLight> _lights;
+	QVector<YeelightLight> _lights;
 	unsigned int _lightsCount;
 
 	/// Yeelight configuration/behavioural parameters
@@ -625,7 +622,7 @@ private:
 	///Music mode Server details
 	QHostAddress _musicModeServerAddress;
 	int _musicModeServerPort;
-	QTcpServer* _tcpMusicModeServer = nullptr;
+	QScopedPointer<QTcpServer> _tcpMusicModeServer;
 
 };
 

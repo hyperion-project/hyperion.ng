@@ -22,11 +22,6 @@ public:
 	ProviderRs232(const QJsonObject &deviceConfig);
 
 	///
-	/// @brief Destructor of the UDP LED-device
-	///
-	~ProviderRs232() override;
-
-	///
 	/// @brief Send an update to the RS232 device to identify it.
 	///
 	/// Following parameters are required
