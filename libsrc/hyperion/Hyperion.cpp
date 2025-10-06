@@ -634,11 +634,11 @@ void Hyperion::handleSourceAvailability(int priority)
 	}
 }
 
-void Hyperion::applyBlacklist(std::vector<ColorRgb>& ledColors)
+void Hyperion::applyBlacklist(QVector<ColorRgb>& ledColors)
 {
 	if (_ledString.hasBlackListedLeds())
 	{
-		for (unsigned long const id : _ledString.blacklistedLedIds())
+		for (const auto& id : _ledString.blacklistedLedIds())
 		{
 			if (id < ledColors.size())
 			{
@@ -648,33 +648,12 @@ void Hyperion::applyBlacklist(std::vector<ColorRgb>& ledColors)
 	}
 }
 
-void Hyperion::refreshUpdate()
-{
-	wait(_ledDeviceWrapper->getLatchTime());
-	update();
-}
-
-void Hyperion::applyBlacklist(QVector<ColorRgb>& ledColors)
-{
-	if (_ledString.hasBlackListedLeds())
-	{
-		for (unsigned long const id : _ledString.blacklistedLedIds())
-		{
-			if (id >= static_cast<unsigned long>(ledColors.size()))
-			{
-				break;
-			}
-			ledColors[id] = ColorRgb::BLACK;
-		}
-	}
-}
-
 void Hyperion::applyColorOrder(QVector<ColorRgb>& ledColors) const
 {
 	assert(ledColors.size() >= _ledStringColorOrder.size());
 
 	// Only apply color order for LEDs defined by layout
-	for (qsizetype i = 0; i < _ledStringColorOrder.size(); ++i)
+	for (auto i = 0; i < _ledStringColorOrder.size(); ++i)
 	{
 		auto& color = ledColors[i];
 		// correct the color byte order
@@ -724,6 +703,12 @@ void Hyperion::writeToLeds()
 	}
 }
 
+void Hyperion::refreshUpdate()
+{
+	wait(_ledDeviceWrapper->getLatchTime());
+	update();
+}
+
 void Hyperion::update()
 {
 	// Obtain the current priority channel
@@ -732,7 +717,7 @@ void Hyperion::update()
 	// copy image & process OR copy ledColors from muxer
 	const Image<ColorRgb>& image = priorityInfo.image;
 
-	if (image.isEmpty())
+	if (image.isNull())
 	{
 		qDebug() << "Empty image - skip update";
 		return;
@@ -750,7 +735,7 @@ void Hyperion::update()
 
 	}
 
-	emitRawLedColors(ledColors);
+	emit rawLedColors(ledColors);
 	applyBlacklist(ledColors);
 
 	// Start transformations

@@ -226,7 +226,7 @@ private:
 	std::atomic<bool> _ledColorsUpdatePending{ false };
 	// The mutex protects the data buffer.
 	QMutex _ledColorsBufferMutex;
-	std::vector<ColorRgb> _ledColorsUpdateBuffer;
+	QVector<ColorRgb> _ledColorsUpdateBuffer;
 
 	QElapsedTimer _ledUpdateTimer;
 	/// Timestamp of last led update

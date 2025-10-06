@@ -8,7 +8,7 @@ ImageToLedsMap::ImageToLedsMap(
 		int height,
 		int horizontalBorder,
 		int verticalBorder,
-		const std::vector<Led>& leds,
+		const QVector<Led>& leds,
 		int reducedPixelSetFactor,
 		int accuracyLevel)
 	: _log(log)
@@ -81,17 +81,16 @@ ImageToLedsMap::ImageToLedsMap(
 			skipPixelProcessing = true;
 		}
 
-		size_t totalSize = static_cast<size_t>(realYLedCount * realXLedCount);
+		auto totalSize =realYLedCount * realXLedCount;
 
 		if (!skipPixelProcessing && totalSize > 1600)
 		{
-			skipPixelProcessing = true;
+			skipPixelProcessing = true; // TO DO Review, as value is variable is never read
 			_nextPixelCount = 2;
 			Warning(_log, "Mapping LED/light [%d]. The current mapping area contains %d pixels which is huge. Therefore every %d pixels will be skipped. You can enable reduced processing to hide that warning.", ledCounter, totalSize, _nextPixelCount);
 		}
 
-		std::vector<int> ledColors;
-		ledColors.reserve(totalSize);
+		QVector<int> ledColors (totalSize);
 
 		for (int y = minY_idx; y < maxYLedCount; y += _nextPixelCount)
 		{
@@ -111,7 +110,6 @@ ImageToLedsMap::ImageToLedsMap(
 	}
 	Debug(_log, "Total index number is: %d (memory: %d). Reduced pixel set factor: %d, Accuracy level: %d, Image size: %d x %d, LED areas: %d",
 		totalCount, totalCapacity, reducedPixelSetFactor, accuracyLevel, width, height, leds.size());
-
 }
 
 	ImageToLedsMap::~ImageToLedsMap()

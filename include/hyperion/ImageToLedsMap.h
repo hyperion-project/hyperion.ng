@@ -52,7 +52,7 @@ namespace hyperion
 				int height,
 				int horizontalBorder,
 				int verticalBorder,
-				const std::vector<Led> & leds,
+				const QVector<Led> & leds,
 				int reducedProcessingFactor = 0,
 				int accuraryLevel = 0);
 		~ImageToLedsMap() override;
@@ -374,7 +374,7 @@ namespace hyperion
 		int _clusterCount;
 
 		/// The absolute indices into the image for each led
-		std::vector<std::vector<int>> _colorsMap;
+		QVector<QVector<int>> _colorsMap;
 
 		///
 		/// Calculates the 'mean color' over the given image. This is the mean over each color-channel
@@ -386,7 +386,7 @@ namespace hyperion
 		/// @return The mean of the given list of colors (or black when empty)
 		///
 		template <typename Pixel_T>
-		ColorRgb calcMeanColor(const Image<Pixel_T> & image, const std::vector<int32_t> & pixels) const
+		ColorRgb calcMeanColor(const Image<Pixel_T> & image, const QVector<int32_t> & pixels) const
 		{
 			const auto pixelNum = pixels.size();
 			if (pixelNum == 0)
@@ -463,7 +463,7 @@ namespace hyperion
 		/// @return The mean of the given list of colors (or black when empty)
 		///
 		template <typename Pixel_T>
-		ColorRgb calcMeanColorSqrt(const Image<Pixel_T> & image, const std::vector<int32_t> & pixels) const
+		ColorRgb calcMeanColorSqrt(const Image<Pixel_T> & image, const QVector<int32_t> & pixels) const
 		{
 			const auto pixelNum = pixels.size();
 			if (pixelNum == 0)
@@ -545,7 +545,7 @@ namespace hyperion
 		/// @return The image area's dominant color or black, if no pixel indices provided
 		///
 		template <typename Pixel_T>
-		ColorRgb calculateDominantColor(const Image<Pixel_T> & image, const std::vector<int> & pixels) const
+		ColorRgb calculateDominantColor(const Image<Pixel_T> & image, const QVector<int> & pixels) const
 		{
 			ColorRgb dominantColor {ColorRgb::BLACK};
 
@@ -588,7 +588,7 @@ namespace hyperion
 		{
 			const unsigned pixelNum = image.width() * image.height();
 
-			std::vector<int> pixels(pixelNum);
+			QVector<int> pixels(pixelNum);
 			std::iota(pixels.begin(), pixels.end(), 0);
 
 			return calculateDominantColor(image, pixels);
@@ -623,7 +623,7 @@ namespace hyperion
 		/// @return The image area's dominant color or black, if no pixel indices provided
 		///
 		template <typename Pixel_T>
-		ColorRgb calculateDominantColorAdv(const Image<Pixel_T> & image, const std::vector<int> & pixels) const
+		ColorRgb calculateDominantColorAdv(const Image<Pixel_T> & image, const QVector<int> & pixels) const
 		{
 			ColorRgb dominantColor {ColorRgb::BLACK};
 			const auto pixelNum = pixels.size();
@@ -725,7 +725,7 @@ namespace hyperion
 		{
 			const unsigned pixelNum = image.width() * image.height();
 
-			std::vector<int> pixels(pixelNum);
+			QVector<int> pixels(pixelNum);
 			std::iota(pixels.begin(), pixels.end(), 0);
 
 			return calculateDominantColorAdv(image, pixels);

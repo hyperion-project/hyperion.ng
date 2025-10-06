@@ -542,7 +542,7 @@ void JsonCallbacks::handleLedColorUpdate(const QVector<ColorRgb> &ledColors)
 
 void JsonCallbacks::processLedUpdate()
 {
-	std::vector<ColorRgb> ledColorsToProcess;
+	QVector<ColorRgb> ledColorsToProcess;
 	{
 		QMutexLocker locker(&_ledColorsBufferMutex);
 		ledColorsToProcess = _ledColorsUpdateBuffer;

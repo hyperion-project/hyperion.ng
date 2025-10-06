@@ -516,16 +516,6 @@ signals:
 private:
 	void updateLedColorAdjustment(int ledCount, const QJsonObject& colors);
 	void updateLedLayout(const QJsonArray& ledLayout);
-	void applyBlacklist(std::vector<ColorRgb>& ledColors);
-
-	///
-	/// Processes a source image to generate LED colors.
-	/// This includes black border detection and image-to-LED mapping.
-	///
-	/// @param image The source image to process.
-	/// @return A vector of colors for the LEDs.
-	///
-	QVector<ColorRgb> processSourceImage(const Image<ColorRgb>& image);
 
 	///
 	/// Applies the blacklist to a vector of LED colors, setting blacklisted LEDs to black.
@@ -533,13 +523,6 @@ private:
 	/// @param ledColors The vector of LED colors to modify.
 	///
 	void applyBlacklist(QVector<ColorRgb>& ledColors);
-
-	///
-	/// Emits the raw LED colors signal, throttled to a specific rate.
-	///
-	/// @param ledColors The vector of raw LED colors to emit.
-	///
-	void emitRawLedColors(const QVector<ColorRgb>& ledColors);
 
 	///
 	/// Applies the configured color order to a vector of LED colors.

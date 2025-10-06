@@ -109,7 +109,6 @@ QString ImageProcessor::mappingTypeToStr(int mappingType)
 
 ImageProcessor::ImageProcessor(const LedString& ledString, const QSharedPointer<Hyperion>& hyperionInstance)
 	: QObject()
-	, _hyperionWeak(hyperionInstance)
 	, _log(nullptr)
 	, _ledString(ledString)
 	, _borderProcessor(nullptr)
@@ -119,6 +118,7 @@ ImageProcessor::ImageProcessor(const LedString& ledString, const QSharedPointer<
 	, _hardMappingType(-1)
 	, _accuraryLevel(0)
 	, _reducedPixelSetFactorFactor(1)
+	, _hyperionWeak(hyperionInstance)
 {
 	QString subComponent{ "__" };
 
