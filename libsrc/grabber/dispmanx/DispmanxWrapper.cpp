@@ -5,7 +5,7 @@ DispmanxWrapper::DispmanxWrapper( int updateRate_Hz,
 								  )
 	: GrabberWrapper(GRABBERTYPE, &_grabber, updateRate_Hz)
 {
-	if (_isAvailable)
+	if (_grabber.isAvailable(true))
 	{
 		_grabber.setPixelDecimation(pixelDecimation);
 	}
@@ -15,7 +15,7 @@ DispmanxWrapper::DispmanxWrapper(const QJsonDocument& grabberConfig)
 	: DispmanxWrapper(GrabberWrapper::DEFAULT_RATE_HZ,
 					  GrabberWrapper::DEFAULT_PIXELDECIMATION)
 {
-	this->handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
+	GrabberWrapper::handleSettingsUpdate(settings::SYSTEMCAPTURE, grabberConfig);
 }
 
 bool DispmanxWrapper::open()

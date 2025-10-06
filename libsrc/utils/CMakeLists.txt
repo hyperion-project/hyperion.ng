@@ -5,6 +5,7 @@ endif()
 add_library(hyperion-utils
 	# Global defines/signal sharing
 	${CMAKE_SOURCE_DIR}/include/utils/global_defines.h
+	${CMAKE_SOURCE_DIR}/include/utils/Packed.h
 	${CMAKE_SOURCE_DIR}/include/utils/GlobalSignals.h
 	# Error signal handler
 	${CMAKE_SOURCE_DIR}/include/utils/ErrorManager.h
@@ -27,7 +28,9 @@ add_library(hyperion-utils
 	${CMAKE_SOURCE_DIR}/libsrc/utils/ColorRgbw.cpp
 	# Image declaration
 	${CMAKE_SOURCE_DIR}/include/utils/Image.h
+	${CMAKE_SOURCE_DIR}/libsrc/utils/Image.cpp
 	${CMAKE_SOURCE_DIR}/include/utils/ImageData.h
+	${CMAKE_SOURCE_DIR}/libsrc/utils/ImageData.cpp
 	# Image resampler
 	${CMAKE_SOURCE_DIR}/include/utils/ImageResampler.h
 	${CMAKE_SOURCE_DIR}/libsrc/utils/ImageResampler.cpp

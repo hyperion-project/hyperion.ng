@@ -9,6 +9,9 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QImage>
+#include <QDebug>
+#include <QPainter>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -67,20 +70,25 @@ bool QtGrabber::open()
 
 bool QtGrabber::setupDisplay()
 {
-	if (!_isAvailable)
+	if (_isDeviceInError)
+	{
+		Error(_log, "Cannot setup display, device is in error state");
+		return false;
+	}
+
+	if (!isAvailable(true))
 	{
 		return false;
 	}
 
-	bool result = false;
 	if (open())
 	{
 		// cleanup last screen
 		freeResources();
 		_numberOfSDisplays = 0;
 
-		QScreen* primary = QGuiApplication::primaryScreen();
-		QList<QScreen*> screens = QGuiApplication::screens();
+		QScreen *primary = QGuiApplication::primaryScreen();
+		QList<QScreen *> screens = QGuiApplication::screens();
 		// inject main screen at 0, if not nullptr
 		if (primary != nullptr)
 		{
@@ -95,66 +103,71 @@ bool QtGrabber::setupDisplay()
 		if (screens.isEmpty())
 		{
 			Error(_log, "No displays found to capture from!");
-			result = false;
+			return false;
 		}
-		else
+
+		_numberOfSDisplays = static_cast<int>(screens.size());
+
+		Info(_log, "Available Displays:");
+		int index = 0;
+		for (const QScreen *screen : screens)
 		{
-			_numberOfSDisplays = screens.size();
+			const QRect geo = screen->geometry();
+			qreal devicePixelRatio = screen->devicePixelRatio();
+			Info(_log, "Display %d: Name: %s Resolution: [%dx%d], Geometry: (L,T,R,B) %d,%d,%d,%d Depth:%dbit DPR:%.2f", index, QSTRING_CSTR(screen->name()), geo.width(), geo.height(), geo.x(), geo.y(), geo.x() + geo.width(), geo.y() + geo.height(), screen->depth(), devicePixelRatio);
 
-			Info(_log, "Available Displays:");
-			int index = 0;
-			for (auto* screen : std::as_const(screens))
+			++index;
+		}
+
+		if (screens.at(0)->size() != screens.at(0)->virtualSize())
+		{
+			const QRect vgeo = screens.at(0)->virtualGeometry();
+			qreal devicePixelRatio = screens.at(0)->devicePixelRatio();
+			Info(_log, "Display %d: Name: %s Resolution: [%dx%d], Geometry: (L,T,R,B) %d,%d,%d,%d Depth:%dbit DPR:%.2f", _numberOfSDisplays, "All Displays", vgeo.width(), vgeo.height(), vgeo.x(), vgeo.y(), vgeo.x() + vgeo.width(), vgeo.y() + vgeo.height(), screens.at(0)->depth(), devicePixelRatio);
+		}
+
+		_isVirtual = false;
+		// be sure the index is available
+		if (_display > _numberOfSDisplays - 1)
+		{
+
+			if ((screens.at(0)->size() != screens.at(0)->virtualSize()) && (_display == _numberOfSDisplays))
 			{
-				const QRect geo = screen->geometry();
-				qreal devicePixelRatio = screen->devicePixelRatio();
-				Info(_log, "Display %d: Name: %s Resolution: [%dx%d], Geometry: (L,T,R,B) %d,%d,%d,%d Depth:%dbit DPR:%.2f", index, QSTRING_CSTR(screen->name()), geo.width(), geo.height(), geo.x(), geo.y(), geo.x() + geo.width(), geo.y() + geo.height(), screen->depth(), devicePixelRatio);
-
-				++index;
-			}
-
-			if (screens.at(0)->size() != screens.at(0)->virtualSize())
-			{
-				const QRect vgeo = screens.at(0)->virtualGeometry();
-				qreal devicePixelRatio = screens.at(0)->devicePixelRatio();
-				Info(_log, "Display %d: Name: %s Resolution: [%dx%d], Geometry: (L,T,R,B) %d,%d,%d,%d Depth:%dbit DPR:%.2f", _numberOfSDisplays, "All Displays", vgeo.width(), vgeo.height(), vgeo.x(), vgeo.y(), vgeo.x() + vgeo.width(), vgeo.y() + vgeo.height(), screens.at(0)->depth(), devicePixelRatio);
-			}
-
-			_isVirtual = false;
-			// be sure the index is available
-			if (_display > _numberOfSDisplays - 1)
-			{
-
-				if ((screens.at(0)->size() != screens.at(0)->virtualSize()) && (_display == _numberOfSDisplays))
-				{
-					_isVirtual = true;
-					_display = 0;
-
-				}
-				else
-				{
-					Info(_log, "The requested display index '%d' is not available, falling back to display 0", _display);
-					_display = 0;
-				}
-			}
-
-			// init the requested display
-			_screen = screens.at(_display);
-			connect(_screen, &QScreen::geometryChanged, this, &QtGrabber::geometryChanged);
-			connect(_screen, &QScreen::physicalDotsPerInchChanged, this, &QtGrabber::pixelRatioChanged);
-			updateScreenDimensions(true);
-
-			if (_isVirtual)
-			{
-				Info(_log, "Using virtual display across all screens");
+				_isVirtual = true;
+				_display = 0;
 			}
 			else
 			{
-				Info(_log, "Initialized display %d", _display);
+				Info(_log, "The requested display index '%d' is not available, falling back to display 0", _display);
+				_display = 0;
 			}
-			result = true;
+		}
+
+		// init the requested display
+		_screen = screens.at(_display);
+		connect(_screen, &QScreen::geometryChanged, this, &QtGrabber::geometryChanged);
+		connect(_screen, &QScreen::physicalDotsPerInchChanged, this, &QtGrabber::pixelRatioChanged);
+		
+		bool isOK = (updateScreenDimensions(true) >= 0);
+		if (!isOK)
+		{
+			setInError(QString("%1 start failed").arg(_grabberName));
+			return false;
+		}
+
+		setEnabled(true);
+
+		if (_isVirtual)
+		{
+			Info(_log, "Using virtual display across all screens");
+		}
+		else
+		{
+			Info(_log, "Initialized display %d", _display);
 		}
 	}
-	return result;
+
+	return true;
 }
 
 void QtGrabber::geometryChanged(const QRect& geo)
@@ -238,40 +251,56 @@ QPixmap QtGrabber::grabWindow(quintptr window, int xIn, int yIn, int width, int 
 
 int QtGrabber::grabFrame(Image<ColorRgb>& image)
 {
-	int rc = 0;
-	if (_isEnabled && !_isDeviceInError)
+	if (!_isAvailable)
 	{
-		if (_screen == nullptr)
-		{
-			// reinit, this will disable capture on failure
-			bool result = setupDisplay();
-			setEnabled(result);
-		}
-
-		if (_isEnabled)
-		{
-#ifdef _WIN32
-			QPixmap originalPixmap = grabWindow(0, _src_x, _src_y, _src_x_max, _src_y_max);
-#else
-			QPixmap originalPixmap = _screen->grabWindow(0, _src_x, _src_y, _src_x_max, _src_y_max);
-#endif
-			if (originalPixmap.isNull())
-			{
-				rc = -1;
-			}
-			else
-			{
-				QImage imageFrame = originalPixmap.toImage().scaled(_width, _height).convertToFormat(QImage::Format_RGB888);
-				image.resize(_width, _height);
-
-				for (int y = 0; y < imageFrame.height(); y++)
-				{
-					memcpy((unsigned char*)image.memptr() + y * image.width() * 3, static_cast<unsigned char*>(imageFrame.scanLine(y)), imageFrame.width() * 3);
-				}
-			}
-		}
+		return -1;
 	}
-	return rc;
+
+	if (_isDeviceInError)
+    {
+        Error(_log, "Cannot grab frame, device is in error state");
+        return -1;
+    }
+
+    if (!_isEnabled)
+    {
+        return -1;
+    }
+
+	if (_screen == nullptr)
+	{
+		Error(_log, "No display available to grab from");
+		return -1;
+	}
+
+	if (image.isNull())
+	{
+	// cannot grab into a null image
+	return -1;
+}
+
+#if 0 //Preserve code to handle Windows differently from standard
+#ifdef _WIN32
+	QPixmap const originalPixmap = grabWindow(0, _src_x, _src_y, _src_x_max, _src_y_max);
+ #else
+ 	QPixmap const originalPixmap = _screen->grabWindow(0, _src_x, _src_y, _src_x_max, _src_y_max);
+#endif
+#endif
+
+	QPixmap const originalPixmap = _screen->grabWindow(0, _src_x, _src_y, _src_x_max, _src_y_max);
+
+	if (originalPixmap.isNull())
+	{
+		return -1;
+	}
+
+	QImage imageFrame = originalPixmap.toImage().scaled(_width, _height, Qt::KeepAspectRatio, Qt::FastTransformation).convertToFormat(QImage::Format_RGB888);
+	for (int y = 0; y < imageFrame.height(); y++)
+	{
+		memcpy((unsigned char*)image.memptr() + y * image.width() * 3, imageFrame.scanLine(y), imageFrame.width() * 3);
+	}
+
+	return 0;
 }
 
 int QtGrabber::updateScreenDimensions(bool force)
@@ -378,12 +407,9 @@ void QtGrabber::setVideoMode(VideoMode mode)
 bool QtGrabber::setPixelDecimation(int pixelDecimation)
 {
 	bool rc(true);
-	if (Grabber::setPixelDecimation(pixelDecimation))
+	if (Grabber::setPixelDecimation(pixelDecimation) && updateScreenDimensions(true) < 0)
 	{
-		if (updateScreenDimensions(true) < 0)
-		{
-			rc = false;
-		}
+		rc = false;
 	}
 	return rc;
 }
@@ -439,7 +465,7 @@ QJsonObject QtGrabber::discover(const QJsonObject& params)
 				QJsonObject in;
 
 				QString name = screens.at(i)->name();
-				int pos = name.lastIndexOf('\\');
+				qsizetype pos = name.lastIndexOf('\\');
 				if (pos != -1)
 				{
 					name = name.right(name.length() - pos - 1);

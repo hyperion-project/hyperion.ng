@@ -79,10 +79,8 @@ public:
 	///
 	virtual bool isActive() const;
 
-	virtual bool isAvailable() { return _isAvailable; }
-
-
-	QString getName() { return _grabberName; }
+	QString getName() const { return _grabberName; }
+	Grabber* getGrabber() const { return _ggrabber; }
 
 	///
 	/// @brief Get active grabber name
@@ -93,28 +91,31 @@ public:
 	virtual QStringList getActive(int inst, GrabberTypeFilter type = GrabberTypeFilter::ALL) const;
 
 	bool getSysGrabberState() const { return GLOBAL_GRABBER_SYS_ENABLE; }
-	void setSysGrabberState(bool sysGrabberState){ GLOBAL_GRABBER_SYS_ENABLE = sysGrabberState; }
+	void setSysGrabberState(bool sysGrabberState) const { GLOBAL_GRABBER_SYS_ENABLE = sysGrabberState; }
 	bool getV4lGrabberState() const { return GLOBAL_GRABBER_V4L_ENABLE; }
-	void setV4lGrabberState(bool v4lGrabberState){ GLOBAL_GRABBER_V4L_ENABLE = v4lGrabberState; }
+	void setV4lGrabberState(bool v4lGrabberState) const { GLOBAL_GRABBER_V4L_ENABLE = v4lGrabberState; }
 	bool getAudioGrabberState() const { return GLOBAL_GRABBER_AUDIO_ENABLE; }
-	void setAudioGrabberState(bool audioGrabberState) { GLOBAL_GRABBER_AUDIO_ENABLE = audioGrabberState; }
+	void setAudioGrabberState(bool audioGrabberState) const { GLOBAL_GRABBER_AUDIO_ENABLE = audioGrabberState; }
 
 	static QStringList availableGrabbers(GrabberTypeFilter type = GrabberTypeFilter::ALL);
 
-public:
 	template <typename Grabber_T>
 	bool transferFrame(Grabber_T &grabber)
 	{
 		int w = grabber.getImageWidth();
 		int h = grabber.getImageHeight();
-		if ( _image.width() != w || _image.height() != h)
+
+		qDebug() << "GrabberWrapper::transferFrame - grabber image size : " << w << "x" << h;
+		if (_image.width() != w || _image.height() != h)
 		{
+			qDebug() << "GrabberWrapper::transferFrame - resizing image from " << _image.width() << "x" << _image.height() << " to " << w << "x" << h;
 			_image.resize(w, h);
 		}
 
 		int ret = grabber.grabFrame(_image);
 		if (ret >= 0)
 		{
+			qDebug() << "GrabberWrapper::transferFrame - image size : " << _image.width() << "x" << _image.height();
 			emit systemImage(_grabberName, _image);
 			return true;
 		}
@@ -189,11 +190,13 @@ protected:
 	///
 	void updateTimer(int interval);
 
-
-	QString _grabberName;
-
 	/// The Logger instance
 	Logger * _log;
+
+private:
+
+	Grabber *_ggrabber;
+	QString _grabberName;
 
 	/// The timer for generating events with the specified update rate
 	QScopedPointer<QTimer> _timer;
@@ -201,10 +204,6 @@ protected:
 	/// The calculated update rate [ms]
 	int _updateInterval_ms;
 
-	Grabber *_ggrabber;
-
 	/// The image used for grabbing frames
 	Image<ColorRgb> _image;
-
-	bool _isAvailable;
 };

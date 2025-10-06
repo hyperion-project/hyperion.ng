@@ -68,7 +68,6 @@ LedDevice::LedDevice(const QJsonObject& deviceConfig, QObject* parent)
 
 LedDevice::~LedDevice()
 {
-		qDebug() << "LedDevice::~LedDevice()...";
 }
 
 void LedDevice::start()

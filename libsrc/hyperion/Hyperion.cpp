@@ -46,13 +46,6 @@
 #include <boblightserver/BoblightServer.h>
 #endif
 
-// Constants
-namespace {
-	constexpr std::chrono::milliseconds DEFAULT_MAX_IMAGE_EMISSION_INTERVAL{ 40 }; // 25 Hz
-	constexpr std::chrono::milliseconds DEFAULT_MAX_RAW_LED_DATA_EMISSION_INTERVAL{ 25 }; // 40 Hz
-	constexpr std::chrono::milliseconds DEFAULT_MAX_LED_DEVICE_DATA_EMISSION_INTERVAL{ 5 }; // 200 Hz
-} //End of constants
-
 Hyperion::Hyperion(quint8 instance, QObject* parent)
 	: QObject(parent)
 	, _instIndex(instance)
@@ -63,24 +56,18 @@ Hyperion::Hyperion(quint8 instance, QObject* parent)
 	, _muxer(nullptr)
 	, _ledDeviceWrapper(nullptr)
 	, _deviceSmooth(nullptr)
-#if defined(ENABLE_EFFECTENGINE)
 	, _captureCont(nullptr)
-#endif
 	, _BGEffectHandler(nullptr)
+#if defined(ENABLE_EFFECTENGINE)	
 	, _effectEngine(nullptr)
+#endif	
+#if defined(ENABLE_BOBLIGHT_SERVER)
 	, _boblightServer(nullptr)
+#endif	
 	, _log(nullptr)
 	, _hwLedCount(0)
 	, _layoutLedCount(0)
-#if defined(ENABLE_BOBLIGHT_SERVER)
 	, _colorOrder("rgb")
-#endif
-	, _lastImageEmission(0)
-	, _lastRawLedDataEmission(0)
-	, _lastLedDeviceDataEmission(0)
-	, _imageEmissionInterval(DEFAULT_MAX_IMAGE_EMISSION_INTERVAL)
-	, _rawLedDataEmissionInterval(DEFAULT_MAX_RAW_LED_DATA_EMISSION_INTERVAL)
-	, _ledDeviceDataEmissionInterval(DEFAULT_MAX_LED_DEVICE_DATA_EMISSION_INTERVAL)
 {
 	qRegisterMetaType<ComponentList>("ComponentList");
 	qRegisterMetaType<Image<ColorRgb>>("ColorRgbImage");
@@ -171,15 +158,6 @@ void Hyperion::start()
 	connect(GlobalSignals::getInstance(), &GlobalSignals::clearGlobalInput, this, &Hyperion::clear);
 	connect(GlobalSignals::getInstance(), &GlobalSignals::setGlobalColor, this, &Hyperion::setColor);
 	connect(GlobalSignals::getInstance(), &GlobalSignals::setGlobalImage, this, &Hyperion::setInputImage);
-
-	// Limit LED data emission, if high rumber of LEDs configured
-	_rawLedDataEmissionInterval = (_ledString.leds().size() > 1000) ? 2 * DEFAULT_MAX_RAW_LED_DATA_EMISSION_INTERVAL : DEFAULT_MAX_RAW_LED_DATA_EMISSION_INTERVAL;
-	_ledDeviceDataEmissionInterval = (_hwLedCount > 1000) ? 2 * DEFAULT_MAX_LED_DEVICE_DATA_EMISSION_INTERVAL : DEFAULT_MAX_LED_DEVICE_DATA_EMISSION_INTERVAL;
-
-	// Set up timers to throttle specific signals
-	_imageTimer.start();  // Start the elapsed timer for image signal throttling
-	_rawLedDataTimer.start();  // Start the elapsed timer for rawLedColors throttling
-	_ledDeviceDataTimer.start(); // Start the elapsed timer for LED-Device data throttling
 
 	// if there is no startup / background effect and no sending capture interface we probably want to push once BLACK (as PrioMuxer won't emit a priority change)
 	refreshUpdate();
@@ -656,23 +634,24 @@ void Hyperion::handleSourceAvailability(int priority)
 	}
 }
 
+void Hyperion::applyBlacklist(std::vector<ColorRgb>& ledColors)
+{
+	if (_ledString.hasBlackListedLeds())
+	{
+		for (unsigned long const id : _ledString.blacklistedLedIds())
+		{
+			if (id < ledColors.size())
+			{
+				ledColors[id] = ColorRgb::BLACK;
+			}
+		}
+	}
+}
+
 void Hyperion::refreshUpdate()
 {
 	wait(_ledDeviceWrapper->getLatchTime());
 	update();
-}
-
-QVector<ColorRgb> Hyperion::processSourceImage(const Image<ColorRgb>& image)
-{
-	_imageEmissionInterval = (image.width() > 1280) ? 2 * DEFAULT_MAX_IMAGE_EMISSION_INTERVAL : DEFAULT_MAX_IMAGE_EMISSION_INTERVAL;
-	// Throttle the emission of currentImage(image) signal
-	qint64 const elapsedImageEmissionTime = _imageTimer.elapsed();
-	if (elapsedImageEmissionTime - _lastImageEmission >= _imageEmissionInterval.count())
-	{
-		_lastImageEmission = elapsedImageEmissionTime;
-		emit currentImage(image);  // Emit the image signal at the controlled rate
-	}
-	return _imageProcessor->process(image);
 }
 
 void Hyperion::applyBlacklist(QVector<ColorRgb>& ledColors)
@@ -687,17 +666,6 @@ void Hyperion::applyBlacklist(QVector<ColorRgb>& ledColors)
 			}
 			ledColors[id] = ColorRgb::BLACK;
 		}
-	}
-}
-
-void Hyperion::emitRawLedColors(const QVector<ColorRgb>& ledColors)
-{
-	// Throttle the emission of rawLedColors(_ledBuffer) signal
-	qint64 elapsedRawLedDataEmissionTime = _rawLedDataTimer.elapsed();
-	if (elapsedRawLedDataEmissionTime - _lastRawLedDataEmission >= _rawLedDataEmissionInterval.count())
-	{
-		_lastRawLedDataEmission = elapsedRawLedDataEmissionTime;
-		emit rawLedColors(ledColors);  // Emit the rawLedColors signal at the controlled rate
 	}
 }
 
@@ -743,13 +711,7 @@ void Hyperion::writeToLeds()
 		// Smoothing is disabled
 		if (!_deviceSmooth->enabled())
 		{
-			// Throttle the emission of LED-Device data signal
-			qint64 elapsedLedDeviceDataEmissionTime = _ledDeviceDataTimer.elapsed();
-			if (elapsedLedDeviceDataEmissionTime - _lastLedDeviceDataEmission >= _ledDeviceDataEmissionInterval.count())
-			{
-				_lastLedDeviceDataEmission = elapsedLedDeviceDataEmissionTime;
 				emit ledDeviceData(_ledBuffer);
-			}
 		}
 		else
 		{
@@ -770,7 +732,7 @@ void Hyperion::update()
 	// copy image & process OR copy ledColors from muxer
 	const Image<ColorRgb>& image = priorityInfo.image;
 
-	if (image.size() == 0)
+	if (image.isEmpty())
 	{
 		qDebug() << "Empty image - skip update";
 		return;
@@ -779,15 +741,17 @@ void Hyperion::update()
 	QVector<ColorRgb> ledColors;
 	if (image.width() > 1 || image.height() > 1)
 	{
-		ledColors = processSourceImage(image);
+		emit currentImage(image);  // Emit the image signal at the controlled rate
+		ledColors = _imageProcessor->process(image);
 	}
 	else
 	{
 		ledColors = priorityInfo.ledColors;
-		applyBlacklist(ledColors);
+
 	}
 
 	emitRawLedColors(ledColors);
+	applyBlacklist(ledColors);
 
 	// Start transformations
 	_raw2ledAdjustment->applyAdjustment(ledColors);

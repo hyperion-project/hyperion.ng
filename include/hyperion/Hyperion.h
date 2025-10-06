@@ -516,6 +516,7 @@ signals:
 private:
 	void updateLedColorAdjustment(int ledCount, const QJsonObject& colors);
 	void updateLedLayout(const QJsonArray& ledLayout);
+	void applyBlacklist(std::vector<ColorRgb>& ledColors);
 
 	///
 	/// Processes a source image to generate LED colors.
@@ -611,14 +612,4 @@ private:
 	QVector<ColorRgb> _ledBuffer;
 
 	VideoMode _currVideoMode = VideoMode::VIDEO_2D;
-
-	QElapsedTimer _imageTimer;  // Timer for controlling image emission frequency
-	QElapsedTimer _rawLedDataTimer;  // Timer for controlling rawLedColors emission frequency
-	QElapsedTimer _ledDeviceDataTimer; // Timer for controlling LedDevice data emission frequency
-	qint64 _lastImageEmission;  // Last timestamp of image signal emission
-	qint64 _lastRawLedDataEmission;  // Last timestamp of rawLedColors signal emission
-	qint64 _lastLedDeviceDataEmission; // Last timestamp of ledDeviceData signal emission
-	std::chrono::milliseconds _imageEmissionInterval;
-	std::chrono::milliseconds _rawLedDataEmissionInterval;
-	std::chrono::milliseconds _ledDeviceDataEmissionInterval;
 };

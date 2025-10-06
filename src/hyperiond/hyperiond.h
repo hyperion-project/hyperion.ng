@@ -233,7 +233,7 @@ private:
 		}
 		else
 		{
-			if (!grabber->isAvailable())
+			if (!grabber->getGrabber()->isAvailable())
 			{
 				Debug(_log, "The %s grabber is not available on this platform", QSTRING_CSTR(typeName));
 				return;

@@ -8,10 +8,14 @@
 #include <QTextStream>
 #include <QRgb>
 
+#include <utils/Packed.h>
+
 ///
 /// Plain-Old-Data structure containing the red-green-blue color specification. Size of the
 /// structure is exactly 3-bytes for easy writing to led-device
 ///
+
+PACKED_STRUCT_BEGIN
 struct ColorRgb
 {
 	/// The red color channel
@@ -78,10 +82,10 @@ struct ColorRgb
 	{
 		return QString("(%1,%2,%3)").arg(red).arg(green).arg(blue);
 	}
-};
+}
+PACKED_STRUCT_END;
 
-/// Assert to ensure that the size of the structure is 'only' 3 bytes
-static_assert(sizeof(ColorRgb) == 3, "Incorrect size of ColorRgb");
+static_assert(sizeof(ColorRgb) == 3, "ColorRgb must be exactly 3 bytes");
 
 ///
 /// Stream operator to write ColorRgb to an outputstream (format "'{'[red]','[green]','[blue]'}'")

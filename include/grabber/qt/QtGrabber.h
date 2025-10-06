@@ -15,7 +15,7 @@ class QtGrabber : public Grabber
 {
 public:
 
-	QtGrabber(int display=0, int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
+	explicit QtGrabber(int display=0, int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
 
 	~QtGrabber() override;
 
@@ -77,7 +77,7 @@ public:
 	///
 	/// @return true, on success (i.e. Window Manager is not Wayland), else false
 	///
-	bool isAvailable(bool logError = true) override;
+	bool isAvailable(bool logError = false) override;
 
 	///
 	/// @brief Opens the input device.

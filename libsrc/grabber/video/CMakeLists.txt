@@ -10,6 +10,7 @@ if(ENABLE_MF)
 elseif(ENABLE_V4L2)
 	project(v4l2-grabber)
 	set(grabber_project V4L2)
+	set(V4L2GrabberDebug ${CMAKE_SOURCE_DIR}/include/grabber/video/v4l2/V4L2GrabberDebug.h)	
 endif()
 
 if(ENABLE_V4L2 OR ENABLE_MF)
@@ -21,6 +22,7 @@ if(ENABLE_V4L2 OR ENABLE_MF)
 		${CMAKE_SOURCE_DIR}/include/grabber/video/${${grabber_project}-grabber}/${grabber_project}Grabber.h
 		${CMAKE_SOURCE_DIR}/libsrc/grabber/video/${${grabber_project}-grabber}/${grabber_project}Grabber.cpp
 		${MediaFoundationSourceReaderCallBack}
+		${V4L2GrabberDebug}
 	)
 
 	target_link_libraries(${PROJECT_NAME} hyperion)

@@ -22,7 +22,7 @@ class Grabber : public QObject
 
 public:
 
-	Grabber(const QString& grabberName = "", int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
+	explicit Grabber(const QString& grabberName = "", int cropLeft=0, int cropRight=0, int cropTop=0, int cropBottom=0);
 
 	///
 	/// Set the video mode (2D/3D)
@@ -118,11 +118,11 @@ public:
 	///
 	/// @return true, on success (i.e. library is present), else false
 	///
-	virtual bool isAvailable(bool logError = true)  { return _isAvailable; }
+	virtual bool isAvailable(bool logError = false)  { return _isAvailable; }
 
 public slots:
 
-	virtual void handleEvent(Event event) {}
+	virtual void handleEvent(Event event) { /* Not implemented in base class */ }
 
 protected slots:
 	///
@@ -171,7 +171,10 @@ protected:
 	int _input;
 
 	/// number of pixels to crop after capturing
-	int _cropLeft, _cropRight, _cropTop, _cropBottom;
+	int _cropLeft;
+	int _cropRight;
+	int _cropTop;
+	int _cropBottom;
 
 	// Device states
 
@@ -185,7 +188,5 @@ protected:
 
 	/// Is the device in error state and stopped?
 	bool _isDeviceInError;
-
-
 
 };

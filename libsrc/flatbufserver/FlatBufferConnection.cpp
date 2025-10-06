@@ -126,13 +126,14 @@ void FlatBufferConnection::setColor(const ColorRgb& color, int duration)
 
 void FlatBufferConnection::setImage(const Image<ColorRgb> &image)
 {
+	qDebug() << "FlatBufferConnection::setImage - Image [" << image.id() << "]";
 	if (!isClientRegistered()) return;
 
-	auto* buffer = reinterpret_cast<const uint8_t*>(image.memptr());
+	const auto* buffer = reinterpret_cast<const uint8_t*>(image.memptr());
 	qsizetype bufferSize = image.size();
 
 	// Convert the buffer into QByteArray
-	QByteArray imageData = QByteArray::fromRawData(reinterpret_cast<const char*>(buffer), bufferSize);
+	QByteArray const imageData = QByteArray::fromRawData(reinterpret_cast<const char*>(buffer), bufferSize);
 	setImage(imageData, image.width(), image.height());
 }
 
@@ -186,7 +187,7 @@ void FlatBufferConnection::readData()
 		// extract message only and remove header + msg from buffer :: QByteArray::remove() does not return the removed data
 		const QByteArray msg = _receiveBuffer.mid(4, messageSize);
 		_receiveBuffer.remove(0, messageSize + 4);
-		auto* msgData = reinterpret_cast<const uint8_t*>(msg.constData());
+		const auto* msgData = reinterpret_cast<const uint8_t*>(msg.constData());
 		flatbuffers::Verifier verifier(msgData, messageSize);
 
 		if (hyperionnet::VerifyReplyBuffer(verifier))

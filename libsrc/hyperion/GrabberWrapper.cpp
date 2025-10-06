@@ -25,12 +25,11 @@ bool GrabberWrapper::GLOBAL_GRABBER_V4L_ENABLE = false;
 bool GrabberWrapper::GLOBAL_GRABBER_AUDIO_ENABLE = false;
 
 GrabberWrapper::GrabberWrapper(const QString& grabberName, Grabber * ggrabber, int updateRate_Hz)
-	: _grabberName(grabberName)
-	  , _log(Logger::getInstance(("Grabber-" + grabberName).toUpper()))
-	  , _timer(nullptr)
-	  , _updateInterval_ms(1000/updateRate_Hz)
-	  , _ggrabber(ggrabber)
-	  , _isAvailable(true)
+	: _ggrabber(ggrabber)
+	, _grabberName(grabberName)
+	, _log(Logger::getInstance(("Grabber-" + grabberName).toUpper()))
+	, _timer(nullptr)
+	, _updateInterval_ms(1000/updateRate_Hz)
 {
 	GrabberWrapper::instance = this;
 
@@ -107,7 +106,7 @@ bool GrabberWrapper::isActive() const
 
 QStringList GrabberWrapper::getActive(int inst, GrabberTypeFilter type) const
 {
-	QStringList result = QStringList();
+	auto result = QStringList();
 
 	if (type == GrabberTypeFilter::SCREEN || type == GrabberTypeFilter::ALL)
 	{

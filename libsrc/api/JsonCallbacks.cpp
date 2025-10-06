@@ -17,7 +17,20 @@
 #include <QImage>
 #include <QBuffer>
 
+#include <chrono>
+
 using namespace hyperion;
+
+// Constants
+namespace {
+	bool const IS_IMAGE_SIZE_LIMITED{ true };
+	int const MAX_CALLBACK_IMAGE_WIDTH{ 1280 };
+	constexpr std::chrono::milliseconds MAX_IMAGE_EMISSION_INTERVAL{ 40 }; // 25 Hz
+	constexpr std::chrono::milliseconds MAX_LED_DEVICE_DATA_EMISSION_INTERVAL{ 10 }; // 100 Hz
+
+	bool const verbose {false};
+
+} //End of constants
 
 JsonCallbacks::JsonCallbacks(Logger *log, const QString& peerAddress, QObject* parent)
 	: QObject(parent)
@@ -27,6 +40,9 @@ JsonCallbacks::JsonCallbacks(Logger *log, const QString& peerAddress, QObject* p
 	, _componentRegisterWeak(nullptr)
 	, _prioMuxerWeak(nullptr)
 	, _islogMsgStreamingActive(false)
+	, _lastLedUpdateTime(0)
+	, _lastImageUpdateTime(0)
+	, _isImageSizeLimited(IS_IMAGE_SIZE_LIMITED)
 {
 	qRegisterMetaType<PriorityMuxer::InputsMap>("InputsMap");
 
@@ -44,7 +60,7 @@ void JsonCallbacks::handleInstanceStateChange(InstanceState state, quint8 instan
 			setSubscriptionsTo(NO_INSTANCE_ID);
 		}
 	}
-
+	[[fallthrough]];
 	case InstanceState::H_ON_STOP:
 	case InstanceState::H_STARTING:
 	case InstanceState::H_STARTED:
@@ -102,7 +118,7 @@ bool JsonCallbacks::subscribe(const Subscription::Type cmd)
 	break;
 	case Subscription::ComponentsUpdate:
 	{
-		QSharedPointer<ComponentRegister> componentRegisterStrong = _componentRegisterWeak.toStrongRef();
+		QSharedPointer<ComponentRegister> const componentRegisterStrong = _componentRegisterWeak.toStrongRef();
 		if (!componentRegisterStrong.isNull()) {
 			connect(componentRegisterStrong.get(), &ComponentRegister::updatedComponentState, this, &JsonCallbacks::handleComponentState);
 		}
@@ -115,11 +131,13 @@ bool JsonCallbacks::subscribe(const Subscription::Type cmd)
 	break;
 	case Subscription::ImageUpdate:
 		if (!hyperion.isNull()) {
+			_imageUpdateTimer.start();
 			connect(hyperion.get(),  &Hyperion::currentImage, this, &JsonCallbacks::handleImageUpdate);
 		}
 	break;
 	case Subscription::LedColorsUpdate:
 		if (!hyperion.isNull()) {
+			_ledUpdateTimer.start();
 			connect(hyperion.get(), &Hyperion::rawLedColors, this, &JsonCallbacks::handleLedColorUpdate);
 		}
 	break;
@@ -130,7 +148,7 @@ bool JsonCallbacks::subscribe(const Subscription::Type cmd)
 	break;
 	case Subscription::PrioritiesUpdate:
 	{
-		QSharedPointer<PriorityMuxer> prioMuxerStrong = _prioMuxerWeak.toStrongRef();
+		QSharedPointer<PriorityMuxer> const prioMuxerStrong = _prioMuxerWeak.toStrongRef();
 		if (!prioMuxerStrong.isNull()) {
 			connect(prioMuxerStrong.get(), &PriorityMuxer::prioritiesChanged, this, &JsonCallbacks::handlePriorityUpdate);
 		}
@@ -197,7 +215,7 @@ bool JsonCallbacks::unsubscribe(const Subscription::Type cmd)
 
 	_subscribedCommands.remove(cmd);
 
-	QSharedPointer<Hyperion> hyperion = _hyperionWeak.toStrongRef();
+	QSharedPointer<Hyperion> const hyperion = _hyperionWeak.toStrongRef();
 
 	switch (cmd) {
 	// Global subscriptions
@@ -236,7 +254,7 @@ bool JsonCallbacks::unsubscribe(const Subscription::Type cmd)
 	break;
 	case Subscription::ComponentsUpdate:
 	{
-		QSharedPointer<ComponentRegister> componentRegisterStrong = _componentRegisterWeak.toStrongRef();
+		QSharedPointer<ComponentRegister> const componentRegisterStrong = _componentRegisterWeak.toStrongRef();
 		if (!componentRegisterStrong.isNull()) {
 			disconnect(componentRegisterStrong.get(), &ComponentRegister::updatedComponentState, this, &JsonCallbacks::handleComponentState);
 		}
@@ -249,12 +267,16 @@ bool JsonCallbacks::unsubscribe(const Subscription::Type cmd)
 		}
 	break;
 	case Subscription::ImageUpdate:
+		_imageUpdateTimer.invalidate();
+		_lastImageUpdateTime = 0;
 		if (!hyperion.isNull()) {
 			disconnect(hyperion.get(), &Hyperion::currentImage, this, &JsonCallbacks::handleImageUpdate);
 		}
 	break;
 	case Subscription::LedColorsUpdate:
 		if (!hyperion.isNull()) {
+			_ledUpdateTimer.invalidate();
+			_lastLedUpdateTime = 0;
 			disconnect(hyperion.get(), &Hyperion::rawLedColors, this, &JsonCallbacks::handleLedColorUpdate);
 		}
 	break;
@@ -265,7 +287,7 @@ bool JsonCallbacks::unsubscribe(const Subscription::Type cmd)
 	break;
 	case Subscription::PrioritiesUpdate:
 	{
-		QSharedPointer<PriorityMuxer> prioMuxerStrong = _prioMuxerWeak.toStrongRef();
+		QSharedPointer<PriorityMuxer> const prioMuxerStrong = _prioMuxerWeak.toStrongRef();
 		if (!prioMuxerStrong.isNull()) {
 			disconnect(prioMuxerStrong.get(), &PriorityMuxer::prioritiesChanged, this, &JsonCallbacks::handlePriorityUpdate);
 		}
@@ -314,6 +336,7 @@ QStringList JsonCallbacks::unsubscribe(const QJsonArray& subscriptions)
 	}
 	return invalidSubscriptions;
 }
+
 void JsonCallbacks::resetSubscriptions()
 {
 	const QSet<Subscription::Type> currentSubscriptions = _subscribedCommands;
@@ -389,12 +412,9 @@ void JsonCallbacks::doCallback(Subscription::Type cmd, const QJsonArray& data)
 	QJsonObject obj;
 	obj["command"] = Subscription::toString(cmd);
 
-	if (Subscription::isInstanceSpecific(cmd))
+	if (Subscription::isInstanceSpecific(cmd) && _instanceID != NO_INSTANCE_ID)
 	{
-		if (_instanceID != NO_INSTANCE_ID)
-		{
-			obj.insert("instance", _instanceID);
-		}
+		obj.insert("instance", _instanceID);
 	}
 	obj.insert("data", data);
 
@@ -406,12 +426,9 @@ void JsonCallbacks::doCallback(Subscription::Type cmd, const QJsonObject& data)
 	QJsonObject obj;
 	obj["command"] = Subscription::toString(cmd);
 
-	if (Subscription::isInstanceSpecific(cmd))
+	if (Subscription::isInstanceSpecific(cmd) && _instanceID != NO_INSTANCE_ID)
 	{
-		if (_instanceID != NO_INSTANCE_ID)
-		{
-			obj.insert("instance", _instanceID);
-		}
+		obj.insert("instance", _instanceID);
 	}
 	obj.insert("data", data);
 
@@ -508,34 +525,121 @@ void JsonCallbacks::handleTokenChange(const QVector<AuthManager::AuthDefinition>
 
 void JsonCallbacks::handleLedColorUpdate(const QVector<ColorRgb> &ledColors)
 {
-	QJsonObject result;
-	QJsonArray leds;
-
-	// Avoid copying by appending RGB values directly
-	for (const auto& color : ledColors)
+	// Take the LED update into a shared buffer and return quickly
 	{
-		leds.append(QJsonValue(color.red));
-		leds.append(QJsonValue(color.green));
-		leds.append(QJsonValue(color.blue));
+		QMutexLocker locker(&_ledColorsBufferMutex);
+		_ledColorsUpdateBuffer = ledColors;
 	}
-	result["leds"] = leds;
 
-	doCallback(Subscription::LedColorsUpdate, result);
+	// If a frame processing is NOT already scheduled, schedule one.
+	if (!_ledColorsUpdatePending.exchange(true))
+	{
+		QTimer::singleShot(0, this, &JsonCallbacks::processLedUpdate);
+	}
+
+	return; // Return immediately
 }
 
-void JsonCallbacks::handleImageUpdate(const Image<ColorRgb> &image)
+void JsonCallbacks::processLedUpdate()
 {
-	int const bytesPerLine = 3 * image.width();
-	QImage const jpgImage(reinterpret_cast<const uchar*>(image.memptr()), image.width(), image.height(), bytesPerLine, QImage::Format_RGB888);
-	QByteArray byteArray;
-	QBuffer buffer(&byteArray);
-	buffer.open(QIODevice::WriteOnly);
-	jpgImage.save(&buffer, "jpg");
+	std::vector<ColorRgb> ledColorsToProcess;
+	{
+		QMutexLocker locker(&_ledColorsBufferMutex);
+		ledColorsToProcess = _ledColorsUpdateBuffer;
+	}
 
-	QJsonObject result;
-	result["image"] = "data:image/jpg;base64," + QString(byteArray.toBase64());
+	qint64 const elapsedLedUpdateTime = _ledUpdateTimer.elapsed();
+	qint64 const elapsedTimeMs = elapsedLedUpdateTime - _lastLedUpdateTime;
+	if (_lastLedUpdateTime == 0 || elapsedTimeMs >= MAX_LED_DEVICE_DATA_EMISSION_INTERVAL.count())
+	{
+		QJsonObject result;
+		QJsonArray leds;
 
-	doCallback(Subscription::ImageUpdate, result);
+		// Avoid copying by appending RGB values directly
+		for (const auto& color : ledColorsToProcess)
+		{
+			leds.append(QJsonValue(color.red));
+			leds.append(QJsonValue(color.green));
+			leds.append(QJsonValue(color.blue));
+		}
+		result["leds"] = leds;
+
+		doCallback(Subscription::LedColorsUpdate, result);
+		_lastLedUpdateTime = elapsedLedUpdateTime;
+	}
+	else
+	{
+		// It's useful to know when we are skipping, but this can be very noisy.
+		DebugIf(verbose, _log, "Skipping LED color update as last update was only %lld ms ago", elapsedTimeMs);
+	}
+
+	_ledColorsUpdatePending.store(false);
+}
+
+void JsonCallbacks::handleImageUpdate(const Image<ColorRgb>& image)
+{
+	qDebug() << "JsonCallbacks::handleImageUpdate - image [" << image.id() << "]";
+
+	// Take the image update into a shared buffer and return quickly
+	{
+		QMutexLocker locker(&_imageBufferMutex);
+		_imageUpdateBuffer = image;
+	}
+
+	// If a frame processing is NOT already scheduled, schedule one.
+	if (!_imageUpdatePending.exchange(true))
+	{
+		QTimer::singleShot(0, this, &JsonCallbacks::processImageUpdate);
+	}
+
+	return; // Return immediately
+}
+
+void JsonCallbacks::processImageUpdate()
+{
+	Image<ColorRgb> imageToProcess;
+	{
+		QMutexLocker locker(&_imageBufferMutex);
+		imageToProcess = _imageUpdateBuffer;
+	}
+
+	qDebug() << "JsonCallbacks::processImageUpdate - image [" << imageToProcess.id() << "]";
+
+	qint64 const elapsedImageUpdateTime = _imageUpdateTimer.elapsed();
+	qint64 const elapsedTimeMs = elapsedImageUpdateTime - _lastImageUpdateTime;
+	if ( _lastImageUpdateTime == 0 || elapsedTimeMs >= MAX_IMAGE_EMISSION_INTERVAL.count())
+	{
+		QImage jpgImage = std::as_const(imageToProcess).toQImage();
+		if (_isImageSizeLimited && jpgImage.width() > MAX_CALLBACK_IMAGE_WIDTH)
+		{
+			jpgImage = jpgImage.scaledToWidth(MAX_CALLBACK_IMAGE_WIDTH, Qt::FastTransformation);
+		}
+
+		QByteArray byteArray;
+		QBuffer buffer(&byteArray);
+		buffer.open(QIODevice::WriteOnly);
+
+		if (!jpgImage.save(&buffer, "JPG"))
+		{
+			qWarning() << "[handleImageUpdate] Failed to convert image to JPG format.";
+			return;
+		}
+		buffer.close();
+
+		QJsonObject result;
+		result["image"] = QStringLiteral("data:image/jpg;base64,") + QString::fromLatin1(byteArray.toBase64());
+
+		doCallback(Subscription::ImageUpdate, result);
+		_lastImageUpdateTime = elapsedImageUpdateTime;
+	}
+	else
+	{
+		DebugIf(verbose,_log, "Skipping image update as last update was only %lld ms ago", elapsedTimeMs);
+	}
+
+	qDebug() << "JsonCallbacks::processImageUpdate DONE - image [" << imageToProcess.id() << "]";
+
+	_imageUpdatePending.store(false);
 }
 
 void JsonCallbacks::handleLogMessageUpdate(const Logger::T_LOG_MESSAGE &msg)
@@ -578,4 +682,3 @@ void JsonCallbacks::handleEventUpdate(const Event &event)
 
 	doCallback(Subscription::EventUpdate, result);
 }
-

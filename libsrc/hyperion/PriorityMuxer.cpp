@@ -178,7 +178,15 @@ PriorityMuxer::InputInfo PriorityMuxer::getInputInfo(int priority) const
 
 hyperion::Components PriorityMuxer::getComponentOfPriority(int priority) const
 {
-	return _activeInputs[priority].componentId;
+	auto it = _activeInputs.constFind(priority);
+	if (it != _activeInputs.constEnd())
+	{
+		return it->componentId;
+	}
+	else
+	{
+		return hyperion::COMP_INVALID;
+	}
 }
 
 void PriorityMuxer::registerInput(int priority, hyperion::Components component, const QString& origin, const QString& owner, unsigned smooth_cfg)
@@ -265,7 +273,7 @@ bool PriorityMuxer::setInput(int priority, const QVector<ColorRgb>& ledColors, i
 	// update input
 	input.timeoutTime_ms = timeout_ms;
 	input.ledColors      = ledColors;
-	input.image.clear();
+	input.image.reset();
 
 	// emit active change
 	if(activeChange)
