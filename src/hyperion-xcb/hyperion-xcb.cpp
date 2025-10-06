@@ -27,8 +27,7 @@
 
 using namespace commandline;
 
-namespace
-{
+namespace {
 	inline const QString CAPTURE_TYPE = QStringLiteral("XCB-Grabber");
 }
 // save the image as screenshot
@@ -137,34 +136,34 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		QString hostname;
+		QString hostName;
 		int port{FLATBUFFER_DEFAULT_PORT};
 
 		// Split hostname and port (or use default port)
 		QString const givenAddress = argAddress.value(parser);
 
-		if (!NetUtils::resolveHostPort(givenAddress, hostname, port))
+		if (!NetUtils::resolveHostPort(givenAddress, hostName, port))
 		{
 			emit errorManager.errorOccurred(QString("Wrong address: unable to parse address (%1)").arg(givenAddress));
 			return 1;
 		}
 
-		Info(log, "Connecting to Hyperion host: %s, port: %u", QSTRING_CSTR(hostname), port);
+		Info(log, "Connecting to Hyperion host: %s, port: %u", QSTRING_CSTR(hostName), port);
 
-		if (MdnsBrowser::isMdns(hostname))
+		if (MdnsBrowser::isMdns(hostName))
 		{
 			NetUtils::discoverMdnsServices("flatbuffer");
 		}
 
-		if (!NetUtils::convertMdnsToIp(log, hostname, port))
+		if (!NetUtils::convertMdnsToIp(log, hostName, port))
 		{
-			emit errorManager.errorOccurred(QString("IP-address cannot be resolved for the given mDNS service- or hostname: \"%1\"").arg(QSTRING_CSTR(hostname)));
+			emit errorManager.errorOccurred(QString("IP-address cannot be resolved for the given mDNS service- or hostname: \"%1\"").arg(QSTRING_CSTR(hostName)));
 			return 1;
 		}
 
-		// Create the Flabuf-connection
+		// Create the Flabuffer-connection
 		FlatBufferConnection const flatbuf(CAPTURE_TYPE + " Standalone",
-										   hostname,
+										   hostName,
 										   argPriority.getInt(parser),
 										   parser.isSet(argSkipReply), static_cast<quint16>(port));
 
