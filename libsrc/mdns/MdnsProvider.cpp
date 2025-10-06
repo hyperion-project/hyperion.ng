@@ -10,9 +10,7 @@
 #include <HyperionConfig.h>
 #include <hyperion/AuthManager.h>
 
-namespace {
-	const bool verboseProvider = false;
-} // End of constants
+Q_LOGGING_CATEGORY(mdns_provider, "mdns.provider")
 
 MdnsProvider::MdnsProvider(QObject* parent)
 	: QObject(parent)
@@ -22,17 +20,13 @@ MdnsProvider::MdnsProvider(QObject* parent)
 {
 }
 
-MdnsProvider::~MdnsProvider()
-{
-}
-
 void MdnsProvider::init()
 {
 	_server.reset(new QMdnsEngine::Server());
 	_hostname.reset(new QMdnsEngine::Hostname(_server.data()));
 
 	connect(_hostname.data(), &QMdnsEngine::Hostname::hostnameChanged, this, &MdnsProvider::onHostnameChanged);
-	DebugIf(verboseProvider, _log, "Hostname [%s], isRegistered [%d]", _hostname->hostname().constData(), _hostname->isRegistered());
+	qCDebug(mdns_provider) << "Hostname:" << _hostname->hostname() << ", isRegistered:" << _hostname->isRegistered();
 }
 
 void MdnsProvider::stop()
@@ -47,46 +41,48 @@ void MdnsProvider::publishService(const QString& serviceType, quint16 servicePor
 {
 	QByteArray type = MdnsServiceRegister::getServiceType(serviceType);
 
-	if (!type.isEmpty())
+	if (type.isEmpty())
 	{
-		DebugIf(verboseProvider, _log, "Publish new mDNS serviceType [%s], Thread: %s", type.constData(), QSTRING_CSTR(QThread::currentThread()->objectName()));
-
-		if (!_providedServiceTypes.contains(type))
-		{
-			QSharedPointer<QMdnsEngine::Provider> newProvider = QSharedPointer<QMdnsEngine::Provider>::create(_server.data(), _hostname.data());
-			_providedServiceTypes.insert(type, newProvider);
-		}
-
-		QSharedPointer<QMdnsEngine::Provider> provider = _providedServiceTypes.value(type);
-		if (!provider.isNull())
-		{
-			QMdnsEngine::Service service;
-			service.setType(type);
-			service.setPort(servicePort);
-
-			QByteArray name(QHostInfo::localHostName().toUtf8());
-			if (!serviceName.isEmpty())
-			{
-				name.prepend(serviceName + "@");
-			}
-			service.setName(name);
-
-			QByteArray uuid = AuthManager::getInstance()->getID().toUtf8();
-			const QMap<QByteArray, QByteArray> attributes = {{"id", uuid}, {"version", HYPERION_VERSION}};
-			service.setAttributes(attributes);
-
-			DebugIf(verboseProvider, _log, "[%s], Name: [%s], Port: [%u] ", service.type().constData(), service.name().constData(), service.port());
-
-			provider->update(service);
-		}
-		else
-		{
-			Error(_log, "Not able to get hold of mDNS serviceType [%s]",  type.constData());
-		}
+		Error(_log, "Not able to publish mDNS serviceType [%s], invalid type",  serviceType.constData());
+		return;
 	}
+
+	qCDebug(mdns_provider) << "Publish new mDNS serviceType:" << type;
+
+	if (!_providedServiceTypes.contains(type))
+	{
+		QSharedPointer<QMdnsEngine::Provider> newProvider = QSharedPointer<QMdnsEngine::Provider>::create(_server.data(), _hostname.data());
+		_providedServiceTypes.insert(type, newProvider);
+	}
+
+	QSharedPointer<QMdnsEngine::Provider> provider = _providedServiceTypes.value(type);
+	if (provider.isNull())
+	{
+		Error(_log, "Not able to get hold of mDNS serviceType [%s]",  type.constData());
+		return;
+	}
+
+	QMdnsEngine::Service service;
+	service.setType(type);
+	service.setPort(servicePort);
+
+	QByteArray name(QHostInfo::localHostName().toUtf8());
+	if (!serviceName.isEmpty())
+	{
+		name.prepend(serviceName + "@");
+	}
+	service.setName(name);
+
+	QByteArray uuid = AuthManager::getInstance()->getID().toUtf8();
+	const QMap<QByteArray, QByteArray> attributes = {{"id", uuid}, {"version", HYPERION_VERSION}};
+	service.setAttributes(attributes);
+
+	qCDebug(mdns_provider) << "Successfully published mDNS serviceType:" << service.type() << ", name:" << service.name() << ", port:" << service.port();
+
+	provider->update(service);
 }
 
-void MdnsProvider::onHostnameChanged(const QByteArray& hostname)
+void MdnsProvider::onHostnameChanged(const QByteArray& hostname) const
 {
-	DebugIf(verboseProvider, _log, "mDNS-hostname changed to hostname [%s]", hostname.constData());
+	qCDebug(mdns_provider) << "Updated mDNS hostname to:" << hostname;
 }

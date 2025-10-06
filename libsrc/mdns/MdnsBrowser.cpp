@@ -16,8 +16,9 @@
 #include <utils/NetUtils.h>
 #include <utils/JsonUtils.h>
 
+Q_LOGGING_CATEGORY(mdns_browser, "mdns.browser")
+
 namespace {
-const bool verboseBrowser = false;
 const int SERVICE_LOOKUP_RETRIES = 5;
 } // End of constants
 
@@ -75,7 +76,7 @@ void MdnsBrowser::browseForServiceType(const QByteArray& serviceType)
 {
 	if (!_browsedServiceTypes.contains(serviceType))
 	{
-		DebugIf(verboseBrowser, _log, "Start new mDNS browser for serviceType [%s], Thread: %s", serviceType.constData(), QSTRING_CSTR(QThread::currentThread()->objectName()));
+		qCDebug(mdns_browser) << "Start new mDNS browser for serviceType:" << serviceType;
 		QSharedPointer<QMdnsEngine::Browser> const newBrowser = QSharedPointer<QMdnsEngine::Browser>::create(_server.get(), serviceType, _cache.get());
 
 		QObject::connect(newBrowser.get(), &QMdnsEngine::Browser::serviceAdded, this, &MdnsBrowser::onServiceAdded);
@@ -86,30 +87,30 @@ void MdnsBrowser::browseForServiceType(const QByteArray& serviceType)
 	}
 	else
 	{
-		DebugIf(verboseBrowser, _log, "Use existing mDNS browser for serviceType [%s], Thread: %s", serviceType.constData(), QSTRING_CSTR(QThread::currentThread()->objectName()));
+		qCDebug(mdns_browser) << "Use existing mDNS browser for serviceType:" << serviceType;
 	}
 }
 
 void MdnsBrowser::onServiceAdded(const QMdnsEngine::Service& service)
 {
-	DebugIf(verboseBrowser, _log, "Discovered service [%s] at host: %s, port: %u, Thread: %s", service.name().constData(), service.hostname().constData(), service.port(), QSTRING_CSTR(QThread::currentThread()->objectName()));
+	qCDebug(mdns_browser) << "Discovered service:" << service.name() << "at host:" << service.hostname() << ", port:" << service.port();
 	emit serviceFound(service);
 }
 
 void MdnsBrowser::onServiceUpdated(const QMdnsEngine::Service& service)
 {
-	DebugIf(verboseBrowser, _log, "Service [%s] was updated, Name: [%s], Port: [%u], Thread: %s", service.type().constData(), service.name().constData(), service.port(), QSTRING_CSTR(QThread::currentThread()->objectName()));
+	qCDebug(mdns_browser) << "Service:" << service.type() << "was updated, name:" << service.name() << ", port:" << service.port();
 }
 
 void MdnsBrowser::onServiceRemoved(const QMdnsEngine::Service& service)
 {
-	DebugIf(verboseBrowser, _log, "Service [%s] was removed, Name: [%s], Port: [%u], Thread: %s", service.type().constData(), service.name().constData(), service.port(), QSTRING_CSTR(QThread::currentThread()->objectName()));
+	qCDebug(mdns_browser) << "Service:" << service.type() << "was removed, name:" << service.name() << ", port:" << service.port();
 	emit serviceRemoved(service);
 }
 
 void MdnsBrowser::onHostNameResolved(const QString& hostname, const QHostAddress& address)
 {
-	DebugIf(verboseBrowser, _log, "Resolved mDNS hostname [%s] to IP-address [%s], Thread: %s", QSTRING_CSTR(hostname), QSTRING_CSTR(address.toString()), QSTRING_CSTR(QThread::currentThread()->objectName()));
+	qCDebug(mdns_browser) << "Resolved mDNS hostname:" << hostname << "to IP-address:" << address;
 
 	// Do not publish link local addresses
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
@@ -128,65 +129,63 @@ void MdnsBrowser::resolveFirstAddress(Logger* log, const QString& hostname, std:
 
 	QHostAddress resolvedAddress;
 
-	qDebug() << "resolveFirstAddress: hostname:" << hostname;
+	qCDebug(mdns_browser) << "Resolve first address for hostname:" << hostname << "with timeout of:" << timeout.count() << "ms";
 
-	if (isMdns(hostname))
+	if (!isMdns(hostname))
 	{
-		QByteArray hostLookupName = hostname.toUtf8();
+		qCWarning(mdns_browser) << "Hostname:" << hostname << "is not an mDNS hostname.";
+		emit isFirstAddressResolved(hostname, resolvedAddress);
+		return;
+	}
 
-		if (!hostLookupName.endsWith('.'))
+	QByteArray hostLookupName = hostname.toUtf8();
+
+	if (!hostLookupName.endsWith('.'))
+	{
+		hostLookupName.append('.');
+	}
+
+	QSharedPointer<QMdnsEngine::Resolver> resolver(new QMdnsEngine::Resolver(_server.get(), hostLookupName, _cache.get()), &QObject::deleteLater);
+	connect(resolver.get(), &QMdnsEngine::Resolver::resolved, this, [this, hostname](const QHostAddress& address) {
+		onHostNameResolved(hostname, address);
+		});
+
+	qCDebug(mdns_browser) << "Wait for resolver on mDNS hostname:" << hostname;
+
+	QEventLoop loop;
+	QTimer timer;
+
+	timer.setSingleShot(true);
+	connect(&timer, &QTimer::timeout, this, [&loop]() {
+		loop.quit();  // Stop waiting if timeout occurs
+		});
+
+	auto thisContext = std::make_unique<QObject>();
+	auto pcontext = thisContext.get();
+	auto connection = connect(this, &MdnsBrowser::isAddressResolved, pcontext, [hostname, &loop, &resolvedAddress](const QString& resHostname, const QHostAddress& address) mutable {
+		if (hostname == resHostname)
 		{
-			hostLookupName.append('.');
-		}
-
-		qDebug() << "resolveFirstAddress: hostLookupName:" << hostLookupName;
-
-		QSharedPointer<QMdnsEngine::Resolver> resolver(new QMdnsEngine::Resolver(_server.get(), hostLookupName, _cache.get()), &QObject::deleteLater);
-		connect(resolver.get(), &QMdnsEngine::Resolver::resolved, this, [this, hostname](const QHostAddress& address) {
-			onHostNameResolved(hostname, address);
-			});
-
-		DebugIf(verboseBrowser, log, "Wait for resolver on hostname [%s]", QSTRING_CSTR(hostname));
-
-		QEventLoop loop;
-		QTimer timer;
-
-		timer.setSingleShot(true);
-		connect(&timer, &QTimer::timeout, this, [&loop]() {
-			loop.quit();  // Stop waiting if timeout occurs
-			});
-
-		auto thisContext = std::make_unique<QObject>();
-		auto pcontext = thisContext.get();
-		auto connection = connect(this, &MdnsBrowser::isAddressResolved, pcontext, [log, hostname, &loop, &resolvedAddress](const QString& resHostname, const QHostAddress& address) mutable {
-			qDebug() << "isAddressResolved - hostname: " << hostname << ", resolved hostname: " << resHostname << ", address: " << address;
-			if (hostname == resHostname)
-			{
-				resolvedAddress = address;
-				loop.quit();
-			}
-			else
-			{
-				Debug(log, "Resolved mDNS hostname [%s] does not match requested mDNS hostname [%s]", QSTRING_CSTR(resHostname), QSTRING_CSTR(hostname));
-			}
-			});
-
-		timer.start(timeout);
-		loop.exec();
-		QObject::disconnect(connection);
-
-		if (!resolvedAddress.isNull())
-		{
-			Debug(log, "Resolved mDNS hostname [%s] to IP-address [%s]", QSTRING_CSTR(hostname), QSTRING_CSTR(resolvedAddress.toString()));
+			qCDebug(mdns_browser) << "Resolved mDNS hostname:" << hostname << "matches requested mDNS hostname:" << resHostname << ", resolved IP-address:" << address;
+			resolvedAddress = address;
+			loop.quit();
 		}
 		else
 		{
-			Error(log, "Failed to resolve mDNS hostname [%s]", QSTRING_CSTR(hostname));
+			qCWarning(mdns_browser) << "Resolved mDNS hostname:" << resHostname << "does not match requested mDNS hostname:" << hostname;
 		}
+		});
+
+	timer.start(timeout);
+	loop.exec();
+	QObject::disconnect(connection);
+
+	if (resolvedAddress.isNull())
+	{
+		Error(log, "Failed to resolve mDNS hostname: \"%s\"", QSTRING_CSTR(hostname));
 	}
 	else
 	{
-		Error(log, "Hostname [%s] is not an mDNS hostname.", QSTRING_CSTR(hostname));
+		qCDebug(mdns_browser) << "Resolved mDNS hostname:" << hostname << "to IP-address:" << resolvedAddress;
 	}
 
 	emit isFirstAddressResolved(hostname, resolvedAddress);
@@ -194,7 +193,7 @@ void MdnsBrowser::resolveFirstAddress(Logger* log, const QString& hostname, std:
 
 void MdnsBrowser::resolveServiceInstance(const QByteArray& serviceInstance, const std::chrono::milliseconds waitTime) const
 {
-	DebugIf(verboseBrowser, _log, "Get service instance [%s] details, Thread: %s",serviceInstance.constData(), QSTRING_CSTR(QThread::currentThread()->objectName()));
+	qCDebug(mdns_browser) << "Get details for service instance:" << serviceInstance;
 
 	if (_cache.isNull())
 	{
@@ -232,12 +231,12 @@ void MdnsBrowser::resolveServiceInstance(const QByteArray& serviceInstance, cons
 	{
 		if (found)
 		{
-			DebugIf(verboseBrowser, _log, "Service record found for service instance [%s]", serviceLookupName.constData());
+			qCDebug(mdns_browser) << "Service record found for service instance:" << serviceLookupName;
 
 		}
 		else
 		{
-			Debug(_log, "No service record found for service instance [%s]", serviceLookupName.constData());
+			qCWarning(mdns_browser) << "No service record found for service instance:" << serviceLookupName;
 		}
 	}
 	emit isServiceRecordResolved(serviceInstance, srvRecord);
@@ -245,7 +244,7 @@ void MdnsBrowser::resolveServiceInstance(const QByteArray& serviceInstance, cons
 
 QMdnsEngine::Service MdnsBrowser::getFirstService(const QByteArray& serviceType, const QString& filter, const std::chrono::milliseconds waitTime) const
 {
-	DebugIf(verboseBrowser, _log, "Get first service of type [%s], matching name: [%s]", QSTRING_CSTR(QString(serviceType)), QSTRING_CSTR(filter));
+	qCDebug(mdns_browser) << "Get first service of type:" << serviceType << ", matching name:" << filter;
 
 	if (_cache.isNull())
 	{
@@ -257,9 +256,7 @@ QMdnsEngine::Service MdnsBrowser::getFirstService(const QByteArray& serviceType,
 
 	if (!regEx.isValid()) {
 		QString errorString = regEx.errorString();
-		qsizetype const errorOffset = regEx.patternErrorOffset();
-
-		Error(_log, "Filtering regular expression [%s] error [%d]:[%s]", QSTRING_CSTR(filter), errorOffset, QSTRING_CSTR(errorString));
+		qCWarning(mdns_browser) << "Filtering regular expression:" << filter << "error:" << regEx.patternErrorOffset() << ":" << errorString;
 		return service;
 	}
 
@@ -305,11 +302,11 @@ QMdnsEngine::Service MdnsBrowser::getFirstService(const QByteArray& serviceType,
 
 	if (found)
 	{
-		DebugIf(verboseBrowser, _log, "Service of type [%s] found", serviceType.constData());
+		qCDebug(mdns_browser) << "Service of type:" << serviceType << "found";
 	}
 	else
 	{
-		Debug(_log, "No service of type [%s] found", serviceType.constData());
+		qCWarning(mdns_browser) << "No service of type:" << serviceType << "found";
 	}
 
 	return service;
@@ -317,7 +314,7 @@ QMdnsEngine::Service MdnsBrowser::getFirstService(const QByteArray& serviceType,
 
 QJsonArray MdnsBrowser::getServicesDiscoveredJson(const QByteArray& serviceType, const QString& filter, const std::chrono::milliseconds waitTime) const
 {
-	DebugIf(verboseBrowser,_log, "Get services of type [%s], matching name: [%s], Thread: %s", QSTRING_CSTR(QString(serviceType)), QSTRING_CSTR(filter), QSTRING_CSTR(QThread::currentThread()->objectName()));
+	qCDebug(mdns_browser) << "Get services of type:" << serviceType << ", matching name:" << filter;
 
 	if (_cache.isNull())
 	{
@@ -331,7 +328,7 @@ QJsonArray MdnsBrowser::getServicesDiscoveredJson(const QByteArray& serviceType,
 		QString const errorString = regEx.errorString();
 		qsizetype const errorOffset = regEx.patternErrorOffset();
 
-		Error(_log, "Filtering regular expression [%s] error [%d]:[%s]", QSTRING_CSTR(filter), errorOffset, QSTRING_CSTR(errorString));
+		qCWarning(mdns_browser) << "Filtering regular expression:" << filter << "error:" << errorOffset << ":" << errorString;
 	}
 	else
 	{
@@ -350,7 +347,7 @@ QJsonArray MdnsBrowser::getServicesDiscoveredJson(const QByteArray& serviceType,
 						QMdnsEngine::Record srvRecord;
 						if (!_cache->lookupRecord(serviceName, QMdnsEngine::SRV, srvRecord))
 						{
-							Debug(_log, "No SRV record for [%s] found, skip entry", serviceName.constData());
+							qCWarning(mdns_browser) << "No SRV record for:" << serviceName << "found, skip entry";
 						}
 						else
 						{
@@ -421,11 +418,11 @@ QJsonArray MdnsBrowser::getServicesDiscoveredJson(const QByteArray& serviceType,
 
 		if (!result.isEmpty())
 		{
-			DebugIf(verboseBrowser,_log, "result: [%s]", QSTRING_CSTR(JsonUtils::jsonValueToQString(result)));
+			qCDebug(mdns_browser) << "result: [" << QSTRING_CSTR(JsonUtils::jsonValueToQString(result)) << "]";
 		}
 		else
 		{
-			Debug(_log, "No service of type [%s] found", serviceType.constData());
+			qCWarning(mdns_browser) << "No service of type:" << serviceType << "found";
 
 		}
 	}
@@ -435,36 +432,36 @@ QJsonArray MdnsBrowser::getServicesDiscoveredJson(const QByteArray& serviceType,
 
 void MdnsBrowser::printCache(const QByteArray& name, quint16 type) const
 {
-	DebugIf(verboseBrowser,_log, "for type: %s", QSTRING_CSTR(QMdnsEngine::typeName(type)));
+	qCDebug(mdns_browser) << "mDNS Browser Cache for type:" << QMdnsEngine::typeName(type);
 	QList<QMdnsEngine::Record> records;
 	if (!_cache.isNull() && _cache->lookupRecords(name, type, records))
 	{
 		foreach(QMdnsEngine::Record const record, records)
 		{
-			qDebug() << QMdnsEngine::typeName(record.type()) << "," << record.name() << "], ttl       : " << record.ttl();
+			qCDebug(mdns_browser) << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", ttl       :" << record.ttl();
 
 			switch (record.type()) {
 			case QMdnsEngine::PTR:
-				qDebug() << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", target    : " << record.target();
+				qCDebug(mdns_browser) << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", target    :" << record.target();
 			break;
 
 			case QMdnsEngine::SRV:
-				qDebug() << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", target    : " << record.target();
-				qDebug() << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", port      : " << record.port();
-				qDebug() << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", priority  : " << record.priority();
-				qDebug() << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", weight    : " << record.weight();
+				qCDebug(mdns_browser) << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", target    :" << record.target();
+				qCDebug(mdns_browser) << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", port      :" << record.port();
+				qCDebug(mdns_browser) << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", priority  :" << record.priority();
+				qCDebug(mdns_browser) << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", weight    :" << record.weight();
 			break;
 			case QMdnsEngine::TXT:
-				qDebug() << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", attributes: " << record.attributes();
+				qCDebug(mdns_browser) << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", attributes:" << record.attributes();
 			break;
 
 			case QMdnsEngine::NSEC:
-				qDebug() << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", nextDomNam: " << record.nextDomainName();
+				qCDebug(mdns_browser) << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", nextDomNam:" << record.nextDomainName();
 			break;
 
 			case QMdnsEngine::A:
 			case QMdnsEngine::AAAA:
-				qDebug() << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", address   : " << record.address();
+				qCDebug(mdns_browser) << QMdnsEngine::typeName(record.type()) << "," << record.name() << ", address   :" << record.address();
 			break;
 			default:
 			break;
@@ -473,6 +470,6 @@ void MdnsBrowser::printCache(const QByteArray& name, quint16 type) const
 	}
 	else
 	{
-		DebugIf(verboseBrowser,_log, "Cash is empty for type: %s", QSTRING_CSTR(QMdnsEngine::typeName(type)));
+		qCDebug(mdns_browser) << "Cache is empty for type:" << QSTRING_CSTR(QMdnsEngine::typeName(type));
 	}
 }

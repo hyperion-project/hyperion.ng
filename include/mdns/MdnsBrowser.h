@@ -19,9 +19,12 @@
 #include <QJsonArray>
 #include <QSharedPointer>
 #include <QScopedPointer>
+#include <QLoggingCategory>
 
 // Utility includes
 #include <utils/Logger.h>
+
+Q_DECLARE_LOGGING_CATEGORY(mdns_browser)
 
 namespace {
 	constexpr std::chrono::milliseconds DEFAULT_DISCOVER_TIMEOUT{ 500 };

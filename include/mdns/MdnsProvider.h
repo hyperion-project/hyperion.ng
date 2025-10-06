@@ -10,17 +10,19 @@
 #include <QObject>
 #include <QByteArray>
 #include <QScopedPointer>
+#include <QLoggingCategory>
 
 // Utility includes
 #include <utils/Logger.h>
+
+Q_DECLARE_LOGGING_CATEGORY(mdns_provider)
 
 class MdnsProvider : public QObject
 {
 
 public:
 
-	MdnsProvider(QObject* parent = nullptr);
-	~MdnsProvider() override;
+	explicit MdnsProvider(QObject* parent = nullptr);
 
 	QList<QByteArray> getServiceTypesProvided() const { return _providedServiceTypes.keys(); }
 
@@ -40,7 +42,7 @@ public slots:
 
 private slots:
 
-	void onHostnameChanged(const QByteArray& hostname);
+	void onHostnameChanged(const QByteArray& hostname) const;
 
 private:
 
