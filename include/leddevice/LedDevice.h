@@ -28,9 +28,6 @@
 
 class LedDevice;
 
-// using LedDeviceCreateFuncType = LedDevice* (*)( const QJsonObject& );
-// using LedDeviceRegistry = QMap<QString,LedDeviceCreateFuncType>;
-
 ///
 /// @brief Interface (pure virtual base class) for LED-devices.
 ///
