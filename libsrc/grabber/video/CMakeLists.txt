@@ -27,6 +27,8 @@ if(ENABLE_V4L2 OR ENABLE_MF)
 
 	target_link_libraries(${PROJECT_NAME} hyperion)
 
+	target_link_libraries(${PROJECT_NAME} atomic)
+
 	if(ENABLE_MF AND USE_PRE_BUILT_DEPS)
 		set(TURBOJPEG_ROOT_DIR ${PRE_BUILT_DEPS_DIR})
 	endif()
@@ -39,4 +41,6 @@ if(ENABLE_V4L2 OR ENABLE_MF)
 		message(STATUS "TurboJPEG library not found, MJPEG camera format won't work.")
 	endif()
 endif()
+
+
 
