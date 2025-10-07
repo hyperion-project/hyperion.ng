@@ -1,4 +1,4 @@
-if(ENABLE_PROFILER)
+LOL if(ENABLE_PROFILER)
 	set(PROFILER ${CURRENT_HEADER_DIR}/Profiler.h ${CURRENT_SOURCE_DIR}/Profiler.cpp)
 endif()
 
@@ -109,6 +109,8 @@ target_link_libraries(hyperion-utils
 if(WIN32)
 	target_link_libraries(hyperion-utils dbghelp)
 endif()
+
+target_link_libraries(hyperion-utils atomic)
 
 if(ENABLE_EFFECTENGINE)
 	target_link_libraries(hyperion-utils python)
