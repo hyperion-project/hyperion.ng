@@ -89,6 +89,8 @@ public slots:
 	void resolveServiceInstance(const QByteArray& serviceInstance, std::chrono::milliseconds waitTime = DEFAULT_DISCOVER_TIMEOUT) const;
 
 	void resolveFirstAddress(Logger* log, const QString& hostname, std::chrono::milliseconds timeout = DEFAULT_ADDRESS_RESOLVE_TIMEOUT);
+	void resolveFirstAddress(Logger* log, const QString& hostname, QAbstractSocket::NetworkLayerProtocol protocol);
+	void resolveFirstAddress(Logger* log, const QString& hostname, QAbstractSocket::NetworkLayerProtocol protocol, std::chrono::milliseconds timeout);
 
 Q_SIGNALS:
 

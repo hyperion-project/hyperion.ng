@@ -123,13 +123,25 @@ void MdnsBrowser::onHostNameResolved(const QString& hostname, const QHostAddress
 	}
 }
 
-void MdnsBrowser::resolveFirstAddress(Logger* log, const QString& hostname, std::chrono::milliseconds timeout)
+void MdnsBrowser::resolveFirstAddress(Logger* log, const QString& hostname, const std::chrono::milliseconds timeout)
+{
+	qCDebug(mdns_browser) << "Resolve first address for hostname:" << hostname << "with timeout of:" << timeout.count() << "ms";
+	resolveFirstAddress(log, hostname, QAbstractSocket::AnyIPProtocol, timeout);
+}
+
+void MdnsBrowser::resolveFirstAddress(Logger* log, const QString& hostname, QAbstractSocket::NetworkLayerProtocol protocol)
+{
+	qCDebug(mdns_browser) << "Resolve first address for hostname:" << hostname << "with protocol:" << protocol;
+	resolveFirstAddress(log, hostname, protocol, DEFAULT_ADDRESS_RESOLVE_TIMEOUT*4);
+}
+
+void MdnsBrowser::resolveFirstAddress(Logger* log, const QString& hostname, QAbstractSocket::NetworkLayerProtocol protocol, const std::chrono::milliseconds timeout)
 {
 	qRegisterMetaType<QMdnsEngine::Message>("Message");
 
 	QHostAddress resolvedAddress;
 
-	qCDebug(mdns_browser) << "Resolve first address for hostname:" << hostname << "with timeout of:" << timeout.count() << "ms";
+	qCDebug(mdns_browser) << "Resolve first address for hostname:" << hostname << "with protocol:" << protocol << "and timeout of:" << timeout.count() << "ms";
 
 	if (!isMdns(hostname))
 	{
@@ -162,12 +174,20 @@ void MdnsBrowser::resolveFirstAddress(Logger* log, const QString& hostname, std:
 
 	auto thisContext = std::make_unique<QObject>();
 	auto pcontext = thisContext.get();
-	auto connection = connect(this, &MdnsBrowser::isAddressResolved, pcontext, [hostname, &loop, &resolvedAddress](const QString& resHostname, const QHostAddress& address) mutable {
+	QMetaObject::Connection connection = connect(this, &MdnsBrowser::isAddressResolved, pcontext, [&connection, &hostname, &protocol, &loop, &resolvedAddress](const QString& resHostname, const QHostAddress& address) mutable {
 		if (hostname == resHostname)
 		{
-			qCDebug(mdns_browser) << "Resolved mDNS hostname:" << hostname << "matches requested mDNS hostname:" << resHostname << ", resolved IP-address:" << address;
-			resolvedAddress = address;
-			loop.quit();
+			if (protocol == QAbstractSocket::AnyIPProtocol || address.protocol() == protocol)
+			{
+				qCDebug(mdns_browser) << "Resolved mDNS hostname:" << hostname << "matches the protocol:" << protocol << ", resolved IP-address:" << address;
+				resolvedAddress = address;
+				QObject::disconnect(connection);
+				loop.quit();
+			}
+			else
+			{
+				qCDebug(mdns_browser) << "Ignoring address" << address << "for" << hostname << "- protocol mismatch. Requested:" << protocol << "Got:" << address.protocol();
+			}
 		}
 		else
 		{

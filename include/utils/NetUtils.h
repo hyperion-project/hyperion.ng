@@ -168,7 +168,7 @@ inline QMdnsEngine::Record resolveMdnsServiceRecord(const QByteArray& serviceIns
 /// @param[out]    hostAddress The resolved IP-Address
 /// @return        True on success else false
 ///
-inline bool resolveMdnsHostToAddress(Logger *log, QString &hostname)
+inline bool resolveMdnsHostToAddress(Logger *log, QString &hostname, QAbstractSocket::NetworkLayerProtocol protocol = QAbstractSocket::AnyIPProtocol)
 {
 	if (hostname.isEmpty())
 	{
@@ -198,7 +198,8 @@ inline bool resolveMdnsHostToAddress(Logger *log, QString &hostname)
 	QMetaObject::invokeMethod(browser, "resolveFirstAddress",
 							  Qt::QueuedConnection, // Ensures it runs in the correct thread
 							  Q_ARG(Logger *, log),
-							  Q_ARG(QString, hostname));
+							  Q_ARG(QString, hostname),
+							  Q_ARG(QAbstractSocket::NetworkLayerProtocol, protocol));
 
 	// Wait for the result
 	loop.exec();
@@ -226,7 +227,7 @@ inline bool resolveMdnsHostToAddress(Logger *log, QString &hostname)
 /// @param[in/out] port        The port provided by the mDNS service, if not mDNS the input port is returned
 /// @return        True on success else false
 ///
-inline bool convertMdnsToIp(Logger* log, QString& mdnsName, int& port)
+inline bool convertMdnsToIp(Logger* log, QString& mdnsName, int& port, QAbstractSocket::NetworkLayerProtocol protocol = QAbstractSocket::AnyIPProtocol)
 {
 	if (!MdnsBrowser::isMdns(mdnsName))
 	{
@@ -262,7 +263,7 @@ inline bool convertMdnsToIp(Logger* log, QString& mdnsName, int& port)
 
 	QString address{mdnsHostname};
 	// 2. Resolve the mDNS-Hostname into an IP-address
-	if (NetUtils::resolveMdnsHostToAddress(log, address))
+	if (NetUtils::resolveMdnsHostToAddress(log, address, protocol))
 	{
 			Info(log, "Successfully resolved mDNS hostname [%s] into IP-address [%s]", QSTRING_CSTR(mdnsHostname), QSTRING_CSTR(address));
 	}
@@ -291,11 +292,11 @@ inline bool convertMdnsToIp(Logger* log, QString& mdnsName)
 /// @param[in/out] port        The port provided by the mDNS service, if not mDNS the input port is returned
 /// @return        True on success else false
 ///
-inline bool resolveHostToAddress(Logger *log, const QString &hostname, QHostAddress &hostAddress, int &port)
+inline bool resolveHostToAddress(Logger *log, const QString &hostname, QHostAddress &hostAddress, int &port, QAbstractSocket::NetworkLayerProtocol protocol = QAbstractSocket::AnyIPProtocol)
 {
 	QString resolvedHost{hostname};
 
-	if (!convertMdnsToIp(log, resolvedHost, port))
+	if (!convertMdnsToIp(log, resolvedHost, port, protocol))
 	{
 		return false;
 	}
