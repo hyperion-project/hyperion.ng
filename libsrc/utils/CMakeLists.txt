@@ -1,4 +1,4 @@
-LOL if(ENABLE_PROFILER)
+if(ENABLE_PROFILER)
 	set(PROFILER ${CURRENT_HEADER_DIR}/Profiler.h ${CURRENT_SOURCE_DIR}/Profiler.cpp)
 endif()
 
