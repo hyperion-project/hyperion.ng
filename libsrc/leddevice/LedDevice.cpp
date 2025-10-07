@@ -304,12 +304,12 @@ void LedDevice::stopEnableAttemptsTimer()
 	}
 }
 
-int LedDevice::updateLeds(QVector<ColorRgb> ledValues)
+int LedDevice::updateLeds(const QVector<ColorRgb>& ledValues)
 {
 	// Take the LED update into a shared buffer and return quickly
 	{
 		QMutexLocker locker(&_ledBufferMutex);
-		_ledUpdateBuffer = std::move(ledValues);
+		_ledUpdateBuffer = ledValues;
 	}
 
 	// If a frame processing is NOT already scheduled, schedule one.
@@ -336,7 +336,6 @@ void LedDevice::processLedUpdate()
 
 int LedDevice::writeLedUpdate(const QVector<ColorRgb>& ledValues)
 {
-
 	if (!_isEnabled || !_isOn || !_isDeviceReady || _isDeviceInError)
 	{
 		// LedDevice NOT ready!
@@ -344,7 +343,7 @@ int LedDevice::writeLedUpdate(const QVector<ColorRgb>& ledValues)
 	}
 
 	qint64 const elapsedTimeMs = _lastWriteTime.msecsTo(QDateTime::currentDateTime());
-	if (_latchTime_ms != 0 || elapsedTimeMs < _latchTime_ms)
+	if (_latchTime_ms > 0 && elapsedTimeMs < _latchTime_ms)
 	{
 		// Skip write as elapsedTime < latchTime
 		if (_isRefreshEnabled)
@@ -355,7 +354,7 @@ int LedDevice::writeLedUpdate(const QVector<ColorRgb>& ledValues)
 		return 0;
 	}
 
-	bool success = write(ledValues);
+	int const result = write(ledValues);
 	_lastWriteTime = QDateTime::currentDateTime();
 
 	// if device requires refreshing, save Led-Values and restart the timer
@@ -365,7 +364,7 @@ int LedDevice::writeLedUpdate(const QVector<ColorRgb>& ledValues)
 		this->startRefreshTimer();
 	}
 
-	return success;
+	return result;
 }
 
 int LedDevice::rewriteLEDs()

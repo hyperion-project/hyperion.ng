@@ -732,7 +732,6 @@ void Hyperion::update()
 	else
 	{
 		ledColors = priorityInfo.ledColors;
-
 	}
 
 	emit rawLedColors(ledColors);

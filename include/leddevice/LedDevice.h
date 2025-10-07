@@ -214,7 +214,7 @@ public slots:
 	/// @param[in] ledValues The color per LED
 	/// @return Zero on success else negative
 	///
-	virtual int updateLeds(QVector<ColorRgb> ledValues);
+	virtual int updateLeds(const QVector<ColorRgb>& ledValues);
 
 	///
 	/// @brief Get the currently defined LatchTime.
