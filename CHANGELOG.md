@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hue Bridge - Alternate certificate support
 - Linux: New DRM/KMS screen grabber with plane-based capture - not feature complete yet
 - Logging/Tracing: Introduced qlogging categories to enable dynamic tracing
+- Home Assistent: dynamically set brightness for higher dynamic range (#1922)
 
 ---
 
