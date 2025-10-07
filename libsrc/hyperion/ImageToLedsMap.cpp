@@ -46,7 +46,7 @@ ImageToLedsMap::ImageToLedsMap(
 		// skip leds without area
 		if ((led.maxX_frac-led.minX_frac) < 1e-6 || (led.maxY_frac-led.minY_frac) < 1e-6)
 		{
-			_colorsMap.emplace_back();
+			_colorsMap.append(QVector<int>());
 			continue;
 		}
 
