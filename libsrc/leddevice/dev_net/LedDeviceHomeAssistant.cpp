@@ -196,7 +196,6 @@ int LedDeviceHomeAssistant::open()
 	{
 		// Everything is OK, device is ready
 		_isDeviceReady = true;
-
 	}
 	
 	return _isDeviceReady ? 0 : -1;
@@ -300,7 +299,6 @@ QJsonObject LedDeviceHomeAssistant::getProperties(const QJsonObject& params)
 		}
 
 		propertiesDetails.insert("lightEntities", sortedArray);
-
 	}
 
 	if (!propertiesDetails.isEmpty())
@@ -395,8 +393,6 @@ bool LedDeviceHomeAssistant::powerOff()
 
 int LedDeviceHomeAssistant::write(const QVector<ColorRgb>& ledValues)
 {
-	int retVal = 0;
-
 	QJsonObject serviceAttributes{ {ENTITY_ID, QJsonArray::fromStringList(_lightEntityIds)} };
 	ColorRgb ledValue = ledValues.at(0);
 
@@ -409,19 +405,17 @@ int LedDeviceHomeAssistant::write(const QVector<ColorRgb>& ledValues)
 	_restApi->setPath(API_LIGHT_TURN_ON);
 	serviceAttributes.insert(RGB_COLOR, QJsonArray{ ledValue.red, ledValue.green, ledValue.blue });
 
-	int brightness = _brightness;
-
-	// Some devices cannot deal with a black color and brightness > 0
-	if (ledValue == ColorRgb::BLACK)
+	int brightness;
+	if (!_isBrightnessOverwrite)
 	{
-		brightness = 0;
+		brightness = qBound(0, qRound(0.2126 * ledValue.red + 0.7152 * ledValue.green + 0.0722 * ledValue.blue), 255);
+	}
+	else
+	{
+		brightness = _brightness;
 	}
 
-	// Add brightness attribute if applicable
-	if (brightness == 0 || _isBrightnessOverwrite)
-	{
-		serviceAttributes.insert(BRIGHTNESS, brightness);
-	}
+	serviceAttributes.insert(BRIGHTNESS, brightness);
 
 	if (_transitionTime > 0)
 	{
@@ -432,8 +426,8 @@ int LedDeviceHomeAssistant::write(const QVector<ColorRgb>& ledValues)
 	if (response.error())
 	{
 		Warning(_log, "Updating lights failed with error: '%s'", QSTRING_CSTR(response.getErrorReason()));
-		retVal = -1;
+		return -1;
 	}
 
-	return retVal;
+	return 0;
 }
