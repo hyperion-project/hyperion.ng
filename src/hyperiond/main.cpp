@@ -232,7 +232,7 @@ int main(int argc, char** argv)
 		logLevelCheck++;
 	}
 
-	Info(log, "%s %s, %s, built: %s:%s", QSTRING_CSTR(APPLICATION_NAME), HYPERION_VERSION, HYPERION_BUILD_ID, __DATE__, __TIME__);
+	Info(log, "%s %s, %s, built: %s", QSTRING_CSTR(APPLICATION_NAME), HYPERION_VERSION, HYPERION_BUILD_ID, BUILD_TIMESTAMP);
 	Debug(log, "QtVersion [%s]", QT_VERSION_STR);
 
 	if (logLevelCheck > 1)
@@ -473,6 +473,7 @@ int main(int argc, char** argv)
 	catch (std::exception& e)
 	{
 		Error(log, "Hyperion Daemon aborted: %s", e.what());
+		return EXIT_FAILURE;
 	}
 
 	int exitCode{ EXIT_FAILURE };

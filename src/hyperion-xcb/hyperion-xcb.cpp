@@ -50,8 +50,7 @@ int main(int argc, char **argv)
 
 	QString const baseName = QCoreApplication::applicationName();
 	std::cout << baseName.toStdString() << ":\n"
-			  << "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ")\n"
-			  << "\tbuild time: " << __DATE__ << " " << __TIME__ << "\n";
+			  << "\tVersion   : " << HYPERION_VERSION << " (" << HYPERION_BUILD_ID << ") - " << BUILD_TIMESTAMP << "\n";
 
 	QObject::connect(&errorManager, &ErrorManager::errorOccurred, [&log](const QString &error) {
 		Error(log, "Error occured: %s", QSTRING_CSTR(error));

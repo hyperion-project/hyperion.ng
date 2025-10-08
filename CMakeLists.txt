@@ -94,7 +94,15 @@ file(WRITE ${CMAKE_BINARY_DIR}/settings/hyperion.settings.json.default "${DEFAUL
 
 include(GitVersion)
 message(STATUS "Current Version: ${HYPERION_VERSION}")
-message(STATUS " - Build: ${HYPERION_BUILD_ID}")
+
+#=============================================================================
+# Set build timestamp
+#=============================================================================
+
+execute_process(COMMAND date "+%Y-%m-%d %H:%M:%S" OUTPUT_VARIABLE BUILD_TIMESTAMP OUTPUT_STRIP_TRAILING_WHITESPACE)
+add_compile_definitions(BUILD_TIMESTAMP="${BUILD_TIMESTAMP}")
+
+message(STATUS " - Build: ${HYPERION_BUILD_ID} - ${BUILD_TIMESTAMP}")
 
 #=============================================================================
 # Set default build variables

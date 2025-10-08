@@ -618,7 +618,7 @@ QJsonObject JsonInfo::getSystemInfo()
 	hyperionInfo["buildType"] = "Debug";
 #endif
 	hyperionInfo["gitremote"] = QString(HYPERION_GIT_REMOTE);
-	hyperionInfo["time"] = QString(__DATE__ " " __TIME__);
+	hyperionInfo["time"] = QString(BUILD_TIMESTAMP);
 	hyperionInfo["id"] = AuthManager::getInstance()->getID();
 	hyperionInfo["configDatabaseFile"] = DBManager::getFileInfo().absoluteFilePath();
 	hyperionInfo["readOnlyMode"] = DBManager::isReadOnly();
