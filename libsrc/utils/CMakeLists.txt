@@ -110,7 +110,9 @@ if(WIN32)
 	target_link_libraries(hyperion-utils dbghelp)
 endif()
 
-target_link_libraries(hyperion-utils atomic)
+if(UNIX AND NOT APPLE)
+	target_link_libraries(hyperion-utils atomic)
+endif()
 
 if(ENABLE_EFFECTENGINE)
 	target_link_libraries(hyperion-utils python)
