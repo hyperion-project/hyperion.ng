@@ -165,6 +165,7 @@ set(DEFAULT_HYPERION_LIGHT              OFF)
 set(DEFAULT_PRE_BUILD_DEPS              OFF)
 
 if(${CMAKE_SYSTEM} MATCHES "Linux")
+	set(DEFAULT_DRM             ON)
 	set(DEFAULT_FB              ON)
 	set(DEFAULT_V4L2            ON)
 	set(DEFAULT_DEV_SPI         ON)

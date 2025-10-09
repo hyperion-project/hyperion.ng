@@ -195,7 +195,7 @@ jobs:
       - name: 📥 Install Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13.3'
+          python-version: '3.13.7'
           architecture: ${{ matrix.architecture }}
 
       - name: 📥 Install Qt
